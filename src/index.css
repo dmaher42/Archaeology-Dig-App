@@ -29,8 +29,8 @@ body {
   background-color: var(--bg-color);
   background-image: radial-gradient(circle at top center, #2a221a 0%, var(--bg-color) 100%);
   color: var(--text-color);
-  min-height: 100vh;
-  overflow-x: hidden;
+  height: 100vh;
+  overflow: hidden;
 }
 
 /* Scrollbar */
@@ -42,11 +42,12 @@ body {
 .app-wrapper {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .main-header {
-  padding: 0.75rem 2rem;
+  padding: 0.45rem 1.25rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -55,29 +56,35 @@ body {
 }
 
 .header-titles h1 {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   color: var(--sand-100);
-  margin-bottom: 2px;
+  margin-bottom: 0;
 }
 
 .header-titles p {
   color: var(--sand-400);
-  font-size: 0.9rem;
+  font-size: 0.78rem;
+  line-height: 1.2;
 }
 
 /* Phase Indicator */
 .phase-indicator {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   font-weight: 600;
   color: var(--sand-600);
 }
 
 .phase-indicator span {
-  padding: 4px 12px;
-  border-radius: 20px;
+  padding: 4px 10px;
+  border-radius: 999px;
   transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  line-height: 1;
 }
 
 .phase-indicator span.active {
@@ -90,6 +97,21 @@ body {
   color: var(--sand-300);
 }
 
+.phase-indicator span strong {
+  font-size: 0.68rem;
+  font-weight: 800;
+  opacity: 0.9;
+}
+
+.phase-indicator span em {
+  font-style: normal;
+  font-size: 0.86rem;
+}
+
+.phase-indicator svg {
+  opacity: 0.65;
+}
+
 .main-content {
   flex: 1;
   display: flex;
@@ -98,10 +120,17 @@ body {
 
 /* Phase Containers */
 .phase-container {
-  padding: 1rem 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  min-height: calc(100vh - 100px);
+  padding: 0.5rem clamp(0.5rem, 1vw, 1.5rem);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: calc(100vh - 60px);
+}
+
+.dig-phase {
+  position: relative;
+  flex: 1;
   display: flex;
   flex-direction: column;
 }
@@ -229,12 +258,182 @@ body {
 /* Phase 1: Dig Grid */
 .memory-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(8, 1fr);
   gap: 6px;
   width: 100%;
-  max-width: 480px;
-  margin: 0 auto 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
   perspective: 1000px;
+  flex: 1;
+}
+
+.dig-phase-header {
+  gap: 0.25rem;
+  width: min(100%, 1400px);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.dig-phase-header h2 {
+  font-size: 0.98rem;
+  margin-bottom: 0;
+}
+
+.dig-event-banner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 auto 0.1rem;
+  padding: 0.28rem 0.68rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--event-color) 55%, white 20%);
+  color: var(--event-color);
+  background: color-mix(in srgb, var(--event-color) 15%, transparent);
+  font-weight: 800;
+  font-size: 0.78rem;
+  letter-spacing: 0.2px;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.03) inset;
+}
+
+.dig-blurb {
+  max-width: 1400px;
+  margin: 0 auto;
+  color: var(--sand-300);
+  font-size: 0.8rem;
+  line-height: 1.22;
+}
+
+.dig-control-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 0;
+  width: min(100%, 1400px);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.dig-control-row .btn {
+  padding: 5px 14px;
+  font-size: 0.8rem;
+}
+
+.dig-control-row .timer-display {
+  font-size: 0.92rem;
+  padding: 4px 12px;
+}
+
+.dig-player-row {
+  display: flex;
+  justify-content: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  margin: 0.2rem 0 0.12rem;
+  width: min(100%, 1400px);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.dig-player-chip {
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--sand-200);
+  border: 1px solid rgba(255,255,255,0.08);
+  font-size: 0.68rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.dig-player-chip.active {
+  background: var(--accent);
+  color: #111;
+  border-color: var(--accent);
+  box-shadow: 0 8px 20px rgba(232, 158, 93, 0.2);
+}
+
+.dig-progress-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0.16rem auto 0.04rem;
+  width: 100%;
+  max-width: 1400px;
+}
+
+.dig-mini-stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.dig-mini-stats span {
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(232, 158, 93, 0.18);
+  color: var(--sand-300);
+  font-size: 0.62rem;
+  letter-spacing: 0.1px;
+  text-align: center;
+}
+
+.dig-grid-shell {
+  position: relative;
+  margin-top: 0.35rem;
+  padding: 0.42rem;
+  border-radius: 24px;
+  width: 100%;
+  max-width: 1440px;
+  margin-left: auto;
+  margin-right: auto;
+  background:
+    linear-gradient(180deg, rgba(74, 56, 38, 0.96) 0%, rgba(39, 28, 20, 0.98) 18%, rgba(18, 14, 11, 0.98) 100%);
+  border: 1px solid rgba(232, 158, 93, 0.2);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 0 100px rgba(0, 0, 0, 0.46),
+    0 20px 40px rgba(0, 0, 0, 0.28);
+  overflow: hidden;
+}
+
+.dig-grid-shell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at top left, rgba(232, 158, 93, 0.08), transparent 35%),
+    radial-gradient(circle at bottom right, rgba(255, 255, 255, 0.04), transparent 30%),
+    radial-gradient(circle at 20% 30%, rgba(244, 236, 225, 0.06), transparent 10%),
+    radial-gradient(circle at 70% 40%, rgba(244, 236, 225, 0.04), transparent 12%),
+    radial-gradient(circle at 40% 75%, rgba(244, 236, 225, 0.05), transparent 11%);
+  pointer-events: none;
+  opacity: 0.9;
+  animation: dig-drift 12s ease-in-out infinite alternate;
+}
+
+.dig-grid-shell::after {
+  content: '';
+  position: absolute;
+  inset: 10px 10px auto;
+  height: 34px;
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0)),
+    linear-gradient(180deg, rgba(134, 96, 61, 0.55), rgba(74, 52, 32, 0));
+  pointer-events: none;
+  opacity: 0.65;
+}
+
+.dig-grid-shell .memory-grid {
+  position: relative;
+  z-index: 1;
+  max-width: 100%;
+  height: 100%;
 }
 
 @media (max-width: 900px) {
@@ -248,17 +447,39 @@ body {
   }
 }
 
+@media (min-width: 1200px) {
+  .memory-grid {
+    grid-template-columns: repeat(8, 1fr);
+    gap: 5px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .memory-grid {
+    grid-template-columns: repeat(8, minmax(92px, 1fr));
+    gap: 6px;
+  }
+}
+
 .memory-tile {
   aspect-ratio: 1;
   position: relative;
   cursor: pointer;
-  border-radius: 12px;
+  border-radius: 10px;
   transition: transform 0.2s;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.28);
 }
 
 .memory-tile:hover {
   transform: translateY(-4px);
+}
+
+.memory-tile.matched {
+  animation: recovered-pop 0.45s ease-out;
+}
+
+.memory-tile.matched:hover {
+  transform: translateY(-3px) scale(1.01);
 }
 
 .tile-inner {
@@ -268,7 +489,7 @@ body {
   text-align: center;
   transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
   transform-style: preserve-3d;
-  border-radius: 12px;
+  border-radius: 10px;
 }
 
 .memory-tile.revealed .tile-inner {
@@ -277,7 +498,7 @@ body {
 
 .memory-tile.matched .tile-inner {
   transform: rotateY(180deg);
-  box-shadow: 0 0 20px rgba(232, 158, 93, 0.8);
+  box-shadow: 0 0 20px var(--artifact-accent-soft, rgba(232, 158, 93, 0.8));
 }
 
 .tile-front, .tile-back {
@@ -286,7 +507,7 @@ body {
   height: 100%;
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
-  border-radius: 12px;
+  border-radius: 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -300,23 +521,47 @@ body {
 }
 
 .tile-back.artifact-texture {
-  background: linear-gradient(135deg, var(--sand-800), var(--sand-900));
-  border-color: var(--sand-600);
+  background:
+    radial-gradient(circle at 50% 20%, var(--artifact-accent-soft, rgba(232, 158, 93, 0.16)), transparent 45%),
+    linear-gradient(135deg, rgba(46, 34, 23, 0.96), rgba(25, 18, 13, 0.98));
+  border-color: color-mix(in srgb, var(--artifact-accent, var(--sand-600)) 55%, white 10%);
   transform: rotateY(180deg);
-  padding: 10px;
+  padding: 4px;
+  gap: 2px;
+  text-align: center;
+  overflow: hidden;
 }
 
 .artifact-icon {
-  font-size: 2rem;
-  margin-bottom: 8px;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-bottom: 0;
+  border-radius: 10px;
+  color: var(--artifact-accent, var(--accent));
+  background: rgba(255,255,255,0.04);
+  border: 1px solid color-mix(in srgb, var(--artifact-accent, var(--accent)) 40%, transparent);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
 }
 
 .artifact-label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--sand-200);
-  line-height: 1.2;
+  font-size: 0.56rem;
+  font-weight: 700;
+  color: var(--sand-100);
+  line-height: 1.05;
+  text-align: center;
+}
+
+@keyframes dig-drift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(0, -6px, 0);
+  }
 }
 
 /* Sorting & Lab Phases */
@@ -327,8 +572,10 @@ body {
 .sorting-layout {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-  margin-top: 0.5rem;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+  flex: 1;
+  min-height: 0;
 }
 
 @media (max-width: 1100px) {
@@ -354,8 +601,9 @@ body {
   background: rgba(0, 0, 0, 0.4);
   border: 2px dashed var(--sand-700);
   border-radius: 12px;
-  padding: 0.75rem;
-  height: 280px; /* Fixed height to prevent moving */
+  padding: 0.6rem;
+  height: 100%; /* Fill the grid area */
+  min-height: 200px;
   transition: all 0.2s;
   display: flex;
   flex-direction: column;
@@ -368,7 +616,7 @@ body {
 }
 
 .category-title {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: var(--sand-200);
   margin-bottom: 1rem;
@@ -377,7 +625,28 @@ body {
   border-bottom: 1px solid rgba(255,255,255,0.1);
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+  line-height: 1.2;
+}
+
+.category-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.category-title-text {
+  text-wrap: balance;
+}
+
+.category-description {
+  font-size: 0.78rem;
+  color: var(--sand-400);
+  font-weight: 400;
+  line-height: 1.35;
+  text-wrap: balance;
 }
 
 .item-count {
@@ -404,25 +673,29 @@ body {
 .artifact-card {
   width: 100%;
   max-width: 130px;
-  background: linear-gradient(135deg, var(--sand-200), var(--sand-100));
-  color: var(--sand-900);
-  border-radius: 6px;
-  padding: 8px 6px;
-  text-align: center;
+  background: linear-gradient(145deg, rgba(33, 25, 18, 0.9), rgba(18, 14, 11, 0.96));
+  color: var(--sand-100);
+  border-radius: 10px;
+  padding: 8px;
+  text-align: left;
   font-size: 0.8rem;
   font-weight: 700;
   cursor: grab;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-  border: 2px solid transparent;
-  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.22);
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
   position: relative;
   user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .artifact-card:active { cursor: grabbing; }
 .artifact-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+  box-shadow: 0 10px 18px rgba(0,0,0,0.32);
+  border-color: var(--artifact-accent, var(--accent));
 }
 .artifact-card.dragging {
   opacity: 0.9;
@@ -431,8 +704,35 @@ body {
 }
 
 .artifact-card.has-status {
-  border-color: var(--sand-600);
-  background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+  border-color: var(--artifact-accent, var(--sand-600));
+  background: linear-gradient(145deg, rgba(255,255,255,0.06), rgba(18, 14, 11, 0.96));
+}
+
+.artifact-card-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 1px solid color-mix(in srgb, var(--artifact-accent, var(--accent)) 55%, white 18%);
+  background: var(--artifact-accent-soft, rgba(232, 158, 93, 0.12));
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.artifact-card-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.artifact-card .card-name {
+  color: var(--sand-100);
+  font-size: 0.78rem;
+  line-height: 1.15;
 }
 
 .status-indicator {
@@ -451,14 +751,14 @@ body {
 .inventory-tray {
   position: fixed;
   bottom: 0; left: 0; right: 0;
-  height: 100px;
+  height: 75px;
   background: rgba(20, 16, 12, 0.98);
   backdrop-filter: blur(15px);
   border-top: 2px solid var(--sand-700);
   display: flex;
   align-items: center;
-  padding: 0 1.5rem;
-  gap: 15px;
+  padding: 0 1rem;
+  gap: 12px;
   z-index: 10;
   transition: transform 0.3s;
   box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
@@ -488,8 +788,9 @@ body {
 }
 
 .tray-items .artifact-card {
-  width: 120px;
+  width: 110px;
   flex-shrink: 0;
+  padding: 6px;
 }
 
 .tray-complete {
@@ -527,6 +828,24 @@ body {
 .clue-content.active {
   color: var(--sand-100);
   font-size: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.field-note-mini {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  justify-content: center;
+  font-size: 0.82rem;
+  color: var(--sand-300);
+  line-height: 1.35;
+}
+
+.field-note-mini strong {
+  color: var(--accent);
+  margin-right: 4px;
 }
 .clue-content strong {
   color: var(--accent);
@@ -554,6 +873,83 @@ body {
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.2);
   animation: shake 0.4s ease-in-out;
+}
+
+.field-note-card {
+  margin-top: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(232, 158, 93, 0.25);
+  border-radius: 12px;
+  padding: 12px 14px;
+  text-align: left;
+}
+
+.field-note-heading {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+
+.field-note-name {
+  font-size: 1rem;
+  color: var(--sand-100);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.field-note-lines {
+  display: grid;
+  gap: 4px;
+  font-size: 0.84rem;
+  color: var(--sand-300);
+  line-height: 1.35;
+}
+
+.field-note-lines strong {
+  color: var(--sand-200);
+}
+
+.field-note-foot {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: var(--sand-400);
+  font-style: italic;
+}
+
+.field-note-card--dig {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  max-width: 380px;
+  margin: 0;
+  z-index: 2;
+  box-shadow: 0 14px 28px rgba(0,0,0,0.35);
+}
+
+.field-note-card--dig .field-note-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.field-note-card--dig .field-note-name::before {
+  content: 'Field';
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--accent);
+  background: rgba(232, 158, 93, 0.08);
+  border: 1px solid rgba(232, 158, 93, 0.2);
+  border-radius: 999px;
+  padding: 2px 6px;
+}
+
+.field-note-card--dig .field-note-mini {
+  justify-content: flex-start;
+  margin-bottom: 2px;
 }
 
 .quick-sort-buttons {
@@ -617,6 +1013,12 @@ body {
   75% { transform: translateX(5px); }
 }
 
+@keyframes recovered-pop {
+  0% { transform: scale(0.96); }
+  45% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
 /* Modal */
 .modal-overlay {
   position: fixed;
@@ -624,12 +1026,12 @@ body {
   background: rgba(0,0,0,0.85);
   backdrop-filter: blur(8px);
   display: flex;
-  align-items: flex-start; /* Ensure top isn't cut off if content is tall */
+  align-items: center;
   justify-content: center;
   z-index: 100;
   animation: fadeIn 0.2s;
-  overflow-y: auto; /* Allow overlay to scroll */
-  padding: 40px 20px; /* Space around the modal */
+  overflow-y: auto;
+  padding: 20px;
 }
 
 .glass-card {
@@ -646,18 +1048,117 @@ body {
 
 .modal-content {
   width: 100%;
-  max-width: 550px; /* Slightly wider for better readability */
-  padding: 2.5rem;
+  max-width: 480px;
+  padding: 1.25rem;
   position: relative;
+}
+
+.debrief-modal {
+  max-width: 620px;
+}
+
+.field-note-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 1rem 0 1.25rem;
+}
+
+.field-note-stat {
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(232, 158, 93, 0.18);
+  border-radius: 12px;
+  padding: 12px 10px;
   text-align: center;
-  margin: auto; /* Vertical centering helper in flex/grid */
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.field-note-stat strong {
+  display: block;
+  font-size: 1.6rem;
+  color: var(--accent);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.field-note-stat span {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--sand-300);
+  line-height: 1.25;
+}
+
+.debrief-insight {
+  margin-bottom: 1.25rem;
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  background: rgba(232, 158, 93, 0.08);
+  border: 1px solid rgba(232, 158, 93, 0.18);
+  color: var(--sand-100);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 640px) {
+  .dig-phase {
+    height: auto;
+    overflow: visible;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .dig-phase-header {
+    gap: 0.5rem;
+  }
+
+  .dig-blurb {
+    font-size: 0.9rem;
+  }
+
+  .dig-control-row {
+    gap: 8px;
+  }
+
+  .dig-grid-shell {
+    padding: 0.7rem;
+    border-radius: 18px;
+    margin-top: 0.5rem;
+  }
+
+  .dig-event-banner {
+    font-size: 0.82rem;
+    padding: 0.34rem 0.7rem;
+  }
+
+  .field-note-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .field-note-mini {
+    justify-content: flex-start;
+    text-align: left;
+    gap: 6px 10px;
+  }
+
+  .dig-player-row {
+    gap: 0.5rem;
+  }
+
+  .dig-player-chip {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.7rem;
+  }
+
+  .field-note-card--dig {
+    position: static;
+    max-width: none;
+    margin-top: 0.5rem;
+  }
 }
 
 .modal-title {
-  font-size: 2rem;
+  font-size: 1.75rem;
   color: var(--accent);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
 }
 
 .modal-clue {
@@ -699,7 +1200,7 @@ body {
 
 .close-btn {
   position: absolute;
-  top: 20px; right: 20px;
+  top: 15px; right: 15px;
   background: transparent;
   border: none;
   color: var(--sand-400);

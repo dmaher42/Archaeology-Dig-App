@@ -1,11 +1,31 @@
 import { Wind, Droplets, AlertTriangle, Moon } from 'lucide-react';
 
 export const CATEGORIES = [
-  { id: 'objects', title: "Artefacts (Objects people made)" },
-  { id: 'remains', title: "Ancient Remains (Human or animal)" },
-  { id: 'structures', title: "Features (Places and structures)" },
-  { id: 'environment', title: "Nature's Evidence (Plants and soil)" },
-  { id: 'written', title: "Primary Evidence (Writing and symbols)" }
+  {
+    id: 'objects',
+    title: 'Objects people made',
+    description: 'tools, pottery, weapons, jewellery, money',
+  },
+  {
+    id: 'remains',
+    title: 'Human remains',
+    description: 'bones, teeth, mummified bodies',
+  },
+  {
+    id: 'structures',
+    title: 'Places and structures',
+    description: 'roads, tombs, temples, walls, drainage',
+  },
+  {
+    id: 'environment',
+    title: 'Environmental evidence',
+    description: 'seeds, charcoal, shells, animal bones',
+  },
+  {
+    id: 'written',
+    title: 'Written or symbolic evidence',
+    description: 'symbols, writing, carvings, painted images',
+  }
 ];
 
 export const RANDOM_EVENTS = [

@@ -139,7 +139,67 @@ const getIcon = (type, size = 20) => {
   }
 };
 
+const getCategoryTitle = (type) => CATEGORIES.find(category => category.id === type)?.title ?? type;
+
+const getArtifactEraLabel = (artifact) => artifact?.isRedHerring ? 'Modern disturbance' : 'Ancient evidence';
+
+const ARTIFACT_THEME_MAP = {
+  objects: {
+    accent: '#f59e0b',
+    accentSoft: 'rgba(245, 158, 11, 0.18)',
+    label: 'Artifact',
+  },
+  remains: {
+    accent: '#a855f7',
+    accentSoft: 'rgba(168, 85, 247, 0.18)',
+    label: 'Remains',
+  },
+  structures: {
+    accent: '#14b8a6',
+    accentSoft: 'rgba(20, 184, 166, 0.18)',
+    label: 'Structure',
+  },
+  environment: {
+    accent: '#84cc16',
+    accentSoft: 'rgba(132, 204, 22, 0.18)',
+    label: 'Ecofact',
+  },
+  written: {
+    accent: '#60a5fa',
+    accentSoft: 'rgba(96, 165, 250, 0.18)',
+    label: 'Text / Symbol',
+  },
+  default: {
+    accent: '#e89e5d',
+    accentSoft: 'rgba(232, 158, 93, 0.18)',
+    label: 'Find',
+  },
+};
+
+const getArtifactHash = (input = '') => {
+  let hash = 0;
+  for (let i = 0; i < input.length; i += 1) {
+    hash = (hash * 31 + input.charCodeAt(i)) >>> 0;
+  }
+  return hash;
+};
+
+const getArtifactTheme = (artifact) => {
+  const base = ARTIFACT_THEME_MAP[artifact?.type] ?? ARTIFACT_THEME_MAP.default;
+  const hash = getArtifactHash(artifact?.id ?? artifact?.name ?? 'artifact');
+  const shade = (hash % 18) - 9;
+  return {
+    accent: base.accent,
+    accentSoft: base.accentSoft,
+    label: artifact?.isRedHerring ? 'Modern Find' : base.label,
+    shimmer: `hsl(${(hash % 360)} 78% ${58 + shade / 4}%)`,
+    panel: `hsl(${(hash % 360)} 32% ${18 + shade / 5}%)`,
+    panel2: `hsl(${(hash % 360)} 28% ${12 + shade / 6}%)`,
+  };
+};
+
 function DraggableArtifact({ artifact, onClick, showStatus }) {
+  const theme = getArtifactTheme(artifact);
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: artifact.id,
     data: artifact,
@@ -149,15 +209,17 @@ function DraggableArtifact({ artifact, onClick, showStatus }) {
     transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
     zIndex: isDragging ? 999 : 1,
     opacity: isDragging ? 0.8 : 1,
-  } : undefined;
+  } : {};
+  style['--artifact-accent'] = theme.accent;
+  style['--artifact-accent-soft'] = theme.accentSoft;
 
   return (
     <div 
       ref={setNodeRef} 
       style={style} 
+      className={`artifact-card ${showStatus ? 'has-status' : ''} artifact-card--${artifact.type} ${artifact.isRedHerring ? 'artifact-card--disturbance' : ''}`}
       {...listeners} 
       {...attributes}
-      className={`artifact-card ${showStatus ? 'has-status' : ''}`}
       onClick={(e) => {
         if (!isDragging && onClick) {
           e.stopPropagation();
@@ -165,7 +227,12 @@ function DraggableArtifact({ artifact, onClick, showStatus }) {
         }
       }}
     >
-      <span className="card-name">{artifact.name}</span>
+      <span className="artifact-card-icon" style={{ '--artifact-accent': theme.accent, '--artifact-accent-soft': theme.accentSoft }}>
+        {getIcon(artifact.type, 22)}
+      </span>
+      <span className="artifact-card-copy">
+        <span className="card-name">{artifact.name}</span>
+      </span>
       {showStatus && <div className="status-indicator"><CheckCircle2 size={16} /></div>}
     </div>
   );
@@ -178,8 +245,13 @@ function CategoryBin({ category, items, onArtifactClick, itemsWithHypothesis = {
 
   return (
     <div ref={setNodeRef} className={`category-bin ${isOver ? 'is-over' : ''}`}>
-      <h3 className="category-title" style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-        {getIcon(category.id, 24)} {category.title} <span className="item-count">({items.length})</span>
+      <h3 className="category-title">
+        <span className="category-title-row">
+          {getIcon(category.id, 24)}
+          <span className="category-title-text">{category.title}</span>
+          <span className="item-count">({items.length})</span>
+        </span>
+        <span className="category-description">{category.description}</span>
       </h3>
       <div className="bin-items">
         {items.map(item => (
@@ -202,6 +274,9 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
   const [tiles, setTiles] = useState([]);
   const [flippedIndices, setFlippedIndices] = useState([]);
   const [isLocked, setIsLocked] = useState(false);
+  const [feedback, setFeedback] = useState({ message: '', isError: false });
+  const [fieldNote, setFieldNote] = useState(null);
+  const [showDebrief, setShowDebrief] = useState(false);
   
   // Timer State
   const [timeLeft, setTimeLeft] = useState(currentEvent.time); 
@@ -209,7 +284,7 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
   const [showStormWarning, setShowStormWarning] = useState(true);
   const [isTimeUp, setIsTimeUp] = useState(false);
   const [perfectClear, setPerfectClear] = useState(false);
-
+ 
   // Multiplayer State
   const [numPlayers, setNumPlayers] = useState(1);
   const [currentPlayer, setCurrentPlayer] = useState(1);
@@ -219,6 +294,9 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
   const [difficulty, setDifficulty] = useState('medium');
 
   const EventIcon = currentEvent.icon;
+  const recoveredArtifacts = activeArtifacts.filter(artifact => excavatedIds.has(artifact.id));
+  const ancientRecoveredCount = recoveredArtifacts.filter(artifact => !artifact.isRedHerring).length;
+  const disturbanceCount = recoveredArtifacts.filter(artifact => artifact.isRedHerring).length;
 
   // Initialize the memory grid with pairs
   useEffect(() => {
@@ -265,12 +343,22 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
     }
   }, [excavatedIds.size, activeArtifacts.length]);
 
+  useEffect(() => {
+    if (feedback.message) {
+      const timer = setTimeout(() => {
+        setFeedback({ message: '', isError: false });
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [feedback.message]);
+
   const handleRadar = () => {
     const radarCost = difficulty === 'easy' ? 30 : difficulty === 'medium' ? 20 : 10;
     if (timeLeft <= radarCost || isLocked || !isPlaying) return;
     
     initAudio();
-    playTone(800, 'sine', 0.5, 0.1); // Radar sweep sound
+    playTone(800, 'sine', 0.5, 0.1); // Survey sweep sound
+    setFeedback({ message: 'Surveying the site - checking for buried context.', isError: false });
     setTimeLeft(prev => prev - radarCost);
     setIsLocked(true);
     
@@ -287,6 +375,20 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
       setIsLocked(false);
       setFlippedIndices([]);
     }, duration);
+  };
+
+  const recordRecoveryNote = (artifact) => {
+    setFieldNote({
+      name: artifact.name,
+      eraLabel: getArtifactEraLabel(artifact),
+      discoveryMethod: artifact.discoveryMethod,
+      typeLabel: getCategoryTitle(artifact.type),
+      isDisturbance: !!artifact.isRedHerring,
+    });
+  };
+
+  const openDebrief = () => {
+    setShowDebrief(true);
   };
 
   const handleTileClick = (index) => {
@@ -327,6 +429,7 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
             next.add(tiles[idx1].artifactId);
             return next;
           });
+          recordRecoveryNote(tiles[idx1].artifact);
           
           if (numPlayers === 2) {
              setScores(prev => ({ ...prev, [currentPlayer]: prev[currentPlayer] + 1 }));
@@ -361,9 +464,10 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
   };
 
   const timeDanger = timeLeft <= 15 && isPlaying;
+  const showRoundStats = !isPlaying;
 
   return (
-    <div className="phase-container">
+    <div className="phase-container dig-phase">
       {/* Modals for story logic */}
       {showStormWarning && (
         <div className="modal-overlay">
@@ -374,7 +478,7 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
               {currentEvent.description} You have exactly <strong>{difficulty === 'easy' ? '5 minutes' : difficulty === 'medium' ? '3 minutes' : '90 seconds'}</strong> to excavate as many artifacts as you can before we must evacuate.
             </p>
             <p style={{fontSize: '1.1rem', marginBottom: '2rem', color: 'var(--sand-300)'}}>
-              Find matching pairs to save them. You'll only get to keep the ones you find before time runs out!
+              Find matching pairs to save them. Some finds are ancient evidence, while others are modern disturbance mixed into the site. You'll only get to keep the ones you find before time runs out!
             </p>
             
             <div style={{marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
@@ -427,7 +531,7 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
                 We had to evacuate the site! Great job—you managed to save <strong>{excavatedIds.size}</strong> artifacts from the incident.
               </p>
             )}
-            <button className="btn primary-btn" onClick={() => onComplete(excavatedIds)}>
+            <button className="btn primary-btn" onClick={openDebrief}>
               Run to the Sorting Tent <Tent size={20} />
             </button>
           </div>
@@ -452,25 +556,67 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
                 Incredible work! You excavated all <strong>{activeArtifacts.length}</strong> artifacts with {formatTime(timeLeft)} to spare before the incident!
               </p>
             )}
-            <button className="btn primary-btn" onClick={() => onComplete(excavatedIds)}>
+            <button className="btn primary-btn" onClick={openDebrief}>
               Head to the Sorting Tent <Tent size={20} />
             </button>
           </div>
         </div>
       )}
 
-      <div className="phase-header">
+      {showDebrief && (
+        <div className="modal-overlay">
+          <div className="modal-content glass-card debrief-modal">
+            <FileText size={48} style={{ color: 'var(--accent)', marginBottom: '1rem' }} />
+            <h2 className="modal-title" style={{color: 'var(--accent)'}}>Field Notebook</h2>
+            <p style={{fontSize: '1.05rem', marginBottom: '1.25rem', color: 'var(--sand-200)'}}>
+              The excavation is done. The site now contains a mix of ancient evidence and modern disturbance, so the next step is to sort what was recovered.
+            </p>
+
+            <div className="field-note-summary">
+              <div className="field-note-stat">
+                <strong>{ancientRecoveredCount}</strong>
+                <span>Ancient finds recovered</span>
+              </div>
+              <div className="field-note-stat">
+                <strong>{disturbanceCount}</strong>
+                <span>Modern disturbance items</span>
+              </div>
+              <div className="field-note-stat">
+                <strong>{recoveredArtifacts.length}</strong>
+                <span>Total items saved</span>
+              </div>
+            </div>
+
+            <div className="debrief-insight">
+              Archaeologists use discovery method and context first, then sort the evidence and ask what it can tell us.
+            </div>
+
+            <button className="btn primary-btn" onClick={() => onComplete(excavatedIds)}>
+              Proceed to Sorting Tent <Tent size={20} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="phase-header dig-phase-header">
         <h2><Pickaxe size={28} /> Phase 1: Emergency Excavation</h2>
-        <p style={{color: currentEvent.dangerColor, fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'}}><EventIcon size={18}/> {currentEvent.title}</p>
+        <p className="dig-event-banner" style={{'--event-color': currentEvent.dangerColor}}>
+          <EventIcon size={18}/> {currentEvent.title}
+        </p>
+        {showRoundStats && (
+          <p className="dig-blurb">
+            Search carefully. The trench can hide ancient evidence, modern disturbance, and clues about what archaeologists need to recover first.
+          </p>
+        )}
         
-        {numPlayers === 2 && (
-           <div style={{display: 'flex', justifyContent: 'center', gap: '1rem', margin: '10px 0'}}>
-             <div style={{padding: '5px 15px', borderRadius: '20px', background: currentPlayer === 1 ? 'var(--accent)' : 'rgba(0,0,0,0.3)', color: currentPlayer === 1 ? '#111' : '#fff', fontWeight: currentPlayer === 1 ? 'bold' : 'normal', transition: 'all 0.3s'}}>Player 1: {scores[1]}</div>
-             <div style={{padding: '5px 15px', borderRadius: '20px', background: currentPlayer === 2 ? 'var(--accent)' : 'rgba(0,0,0,0.3)', color: currentPlayer === 2 ? '#111' : '#fff', fontWeight: currentPlayer === 2 ? 'bold' : 'normal', transition: 'all 0.3s'}}>Player 2: {scores[2]}</div>
+        {showRoundStats && numPlayers === 2 && (
+           <div className="dig-player-row">
+             <div className={`dig-player-chip ${currentPlayer === 1 ? 'active' : ''}`}>Player 1: {scores[1]}</div>
+             <div className={`dig-player-chip ${currentPlayer === 2 ? 'active' : ''}`}>Player 2: {scores[2]}</div>
            </div>
         )}
 
-        <div style={{display: 'flex', justifyContent: 'center', gap: '16px', alignItems: 'center'}}>
+        <div className="dig-control-row">
           <div className={`timer-display ${timeDanger ? 'danger' : ''}`}>
             <Clock size={24} /> {formatTime(timeLeft)}
           </div>
@@ -484,15 +630,33 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
             <Radar size={18} /> Use Radar (-{difficulty === 'easy' ? 30 : difficulty === 'medium' ? 20 : 10}s)
           </button>
         </div>
-        <div className="progress-bar">
-          <div className="progress-fill" style={{ width: `${(excavatedIds.size / activeArtifacts.length) * 100 || 0}%` }}></div>
-        </div>
-        <p className="progress-text">Saved: {excavatedIds.size} / {activeArtifacts.length}</p>
+        {showRoundStats && (
+          <>
+            <div className="dig-progress-group">
+              <div className="progress-bar">
+                <div className="progress-fill" style={{ width: `${(excavatedIds.size / activeArtifacts.length) * 100 || 0}%` }}></div>
+              </div>
+              <div className="dig-mini-stats">
+                <span>Saved {excavatedIds.size} / {activeArtifacts.length} | Ancient {ancientRecoveredCount} | Disturbance {disturbanceCount}</span>
+              </div>
+            </div>
+            <p className="progress-text">Keep the saved tiles moving toward the Sorting Tent.</p>
+          </>
+        )}
+
+        {feedback.message && (
+          <div className={`sort-feedback ${feedback.isError ? 'error' : 'success'}`} style={{marginTop: '0.75rem'}}>
+            {feedback.isError ? '❌ ' : '✅ '}{feedback.message}
+          </div>
+        )}
+
       </div>
       
-      <div className="memory-grid">
-        {tiles.map((tile, index) => {
+      <div className="dig-grid-shell">
+        <div className="memory-grid">
+          {tiles.map((tile, index) => {
           const isRevealed = tile.isFlipped || tile.isMatched;
+          const tileTheme = getArtifactTheme(tile.artifact);
           return (
             <div 
               key={tile.uniqueId} 
@@ -501,23 +665,38 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
             >
               <div className="tile-inner">
                 <div className="tile-front dirt-texture"></div>
-                  <div className="tile-back artifact-texture">
-                    {tile.artifact.image ? (
-                      <div style={{width: '40px', height: '40px', marginBottom: '4px', borderRadius: '4px', overflow: 'hidden', border: '1px solid var(--accent)'}}>
-                        <img src={tile.artifact.image} alt="" style={{width: '100%', height: '100%', objectFit: 'cover'}} />
-                      </div>
-                    ) : (
-                      <div style={{color: 'var(--accent)', marginBottom: '4px'}}>
-                        {getIcon(tile.artifact.type, 28)}
-                      </div>
-                    )}
-                    <div className="artifact-name" style={{fontSize: '0.65rem', fontWeight: 'bold', textAlign: 'center', lineHeight: '1.1', maxWidth: '90%'}}>{tile.artifact.name}</div>
+                <div
+                  className={`tile-back artifact-texture artifact-texture--${tile.artifact.type} ${tile.artifact.isRedHerring ? 'artifact-texture--disturbance' : ''}`}
+                  style={{ '--artifact-accent': tileTheme.accent, '--artifact-accent-soft': tileTheme.accentSoft }}
+                >
+                  <div className="artifact-icon" style={{ color: 'var(--artifact-accent)' }}>
+                    {getIcon(tile.artifact.type, 28)}
                   </div>
+                  <div className="artifact-label">{tile.artifact.name}</div>
+                </div>
               </div>
             </div>
           );
-        })}
+          })}
+        </div>
       </div>
+
+      {fieldNote && (
+        <div className="field-note-card field-note-card--dig">
+          <div className="field-note-heading">Field note</div>
+          <div className="field-note-name">{fieldNote.name}</div>
+          <div className="field-note-mini">
+            <span><strong>Discovery:</strong> {fieldNote.discoveryMethod}</span>
+            <span><strong>Type:</strong> {fieldNote.typeLabel}</span>
+            <span><strong>Context:</strong> {fieldNote.eraLabel}</span>
+          </div>
+          <div className="field-note-foot">
+            {fieldNote.isDisturbance
+              ? 'Modern disturbance logged for sorting later.'
+              : 'Ancient evidence ready for the Sorting Tent.'}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -549,15 +728,15 @@ function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, onComplet
       ...prev,
       [card.id]: categoryId
     }));
-    const catTitle = CATEGORIES.find(c => c.id === categoryId).title.split(' (')[0];
-    setFeedback({ message: `Correct — this is an ${catTitle.toLowerCase()}.`, isError: false });
+    const catTitle = CATEGORIES.find(c => c.id === categoryId)?.title ?? 'this category';
+    setFeedback({ message: `Recovered - this fits ${catTitle.toLowerCase()}.`, isError: false });
     setHoveredCard(null); // Deselect on success
   };
 
   const processFailure = () => {
     initAudio();
     playError();
-    setFeedback({ message: "Not quite — read the clue again and try another category.", isError: true });
+    setFeedback({ message: "Not quite - check the clue and the discovery method again.", isError: true });
   };
 
   const handleDragEnd = (event) => {
@@ -624,6 +803,10 @@ function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, onComplet
           {hoveredCard ? (
             <div className="clue-content active">
               <strong>{hoveredCard.name}:</strong> {hoveredCard.clue}
+              <div className="field-note-mini">
+                <span><strong>Discovery:</strong> {hoveredCard.discoveryMethod}</span>
+                <span><strong>Context:</strong> {getArtifactEraLabel(hoveredCard)}</span>
+              </div>
             </div>
           ) : (
             <div className="clue-content">
@@ -648,7 +831,7 @@ function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, onComplet
                   className="quick-sort-btn"
                   onClick={() => handleQuickSort(cat.id)}
                 >
-                  {getIcon(cat.id, 18)} {cat.title.split(' (')[0]}
+                  {getIcon(cat.id, 18)} {cat.title}
                 </button>
               ))}
             </div>
@@ -743,21 +926,21 @@ function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypotheses, s
 
   return (
     <div className="phase-container">
-      <div className="phase-header lab-header">
-        <h2><Search size={28} /> Phase 3: The Lab</h2>
-        <p>Choose <strong>{requiredCount} artifact{requiredCount > 1 ? 's' : ''}</strong> to analyze. What might they tell archaeologists about the past?</p>
+      <div className="phase-header lab-header" style={{marginBottom: '0.5rem'}}>
+        <h2 style={{fontSize: '1.15rem', marginBottom: '2px'}}><Search size={22} /> Phase 3: The Lab</h2>
+        <p style={{fontSize: '0.85rem', marginBottom: '0.5rem'}}>Analyze <strong>{requiredCount} artifact{requiredCount > 1 ? 's' : ''}</strong>. What do they reveal?</p>
         
         {currentScenarioData && (
-          <div className="historical-context-box slide-up">
-            <h3><ScrollText size={20} style={{verticalAlign: 'middle', marginRight: '8px'}}/> Historical Briefing</h3>
-            <p>{currentScenarioData.historicalContext}</p>
+          <div className="historical-context-box slide-up" style={{padding: '0.6rem 0.8rem', marginBottom: '0.5rem'}}>
+            <h3 style={{fontSize: '0.9rem', marginBottom: '2px'}}><ScrollText size={16} style={{verticalAlign: 'middle', marginRight: '6px'}}/> Briefing</h3>
+            <p style={{fontSize: '0.82rem', lineHeight: '1.3'}}>{currentScenarioData.historicalContext}</p>
           </div>
         )}
 
-        <div className="progress-bar">
+        <div className="progress-bar" style={{height: '6px', marginBottom: '2px'}}>
           <div className="progress-fill" style={{ width: `${Math.min(100, (hypothesesCount / requiredCount) * 100)}%` }}></div>
         </div>
-        <p className="progress-text">Analyzed: {hypothesesCount} / {requiredCount}</p>
+        <p className="progress-text" style={{fontSize: '0.75rem'}}>Analyzed: {hypothesesCount} / {requiredCount}</p>
       </div>
 
       <div className="sorting-layout read-only">
@@ -784,9 +967,6 @@ function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypotheses, s
         <div className="modal-overlay">
           <div className="modal-content glass-card slide-up" style={{maxWidth: '600px'}}>
             <h2 className="modal-title">Final Synthesis</h2>
-            <p style={{marginBottom: '1.5rem', color: 'var(--sand-200)', fontSize: '1.1rem'}}>
-              Based on the totality of the evidence you've analyzed, which ancient society do you believe inhabited this site?
-            </p>
             
             <div className="mcq-options" style={{marginBottom: '2rem'}}>
                {shuffledCivs.map((scen, idx) => (
@@ -829,26 +1009,42 @@ function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypotheses, s
       {inspectingItem && !showNamingModal && (
         <div className="modal-overlay" onClick={() => setInspectingItem(null)}>
           <div className="modal-content glass-card" onClick={e => e.stopPropagation()}>
-            <button className="close-btn" onClick={() => setInspectingItem(null)}><X size={24} /></button>
-            <h2 className="modal-title">{inspectingItem.name}</h2>
+            <button className="close-btn" onClick={() => setInspectingItem(null)}><X size={20} /></button>
+            <h2 className="modal-title" style={{fontSize: '1.4rem', marginBottom: '0.15rem'}}>{inspectingItem.name}</h2>
             
-            <div className="evidence-metadata" style={{background: 'rgba(0,0,0,0.3)', padding: '15px', borderRadius: '8px', marginBottom: '15px', textAlign: 'left', border: '1px solid var(--sand-600)'}}>
-              <p style={{margin: '0 0 10px 0', fontSize: '0.95rem', color: 'var(--sand-200)'}}>
-                <strong style={{color: 'var(--accent)'}}><Pickaxe size={16} style={{verticalAlign:'middle', marginRight:'5px'}}/> Discovery Method:</strong> 
-                <br/>{inspectingItem.discoveryMethod}
+            <div className="evidence-metadata" style={{
+              background: 'rgba(0,0,0,0.3)', 
+              padding: '8px 10px', 
+              borderRadius: '8px', 
+              marginBottom: '8px', 
+              textAlign: 'left', 
+              border: '1px solid var(--sand-600)',
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '10px'
+            }}>
+              <p style={{margin: '0', fontSize: '0.75rem', color: 'var(--sand-200)'}}>
+                <strong style={{color: 'var(--accent)', display: 'block', marginBottom: '0'}}>
+                  <Pickaxe size={11} style={{verticalAlign:'middle', marginRight:'4px'}}/> Method:
+                </strong> 
+                {inspectingItem.discoveryMethod}
               </p>
-              <p style={{margin: '0', fontSize: '0.95rem', color: 'var(--sand-200)'}}>
-                <strong style={{color: 'var(--accent)'}}><FileText size={16} style={{verticalAlign:'middle', marginRight:'5px'}}/> Field Notes:</strong> 
-                <br/>"{inspectingItem.clue}"
+              <p style={{margin: '0', fontSize: '0.75rem', color: 'var(--sand-200)'}}>
+                <strong style={{color: 'var(--accent)', display: 'block', marginBottom: '0'}}>
+                  <FileText size={11} style={{verticalAlign:'middle', marginRight:'4px'}}/> Notes:
+                </strong> 
+                "{inspectingItem.clue}"
               </p>
             </div>
             
-            <div className="hypothesis-prompt">
-              Significance Analysis: {inspectingItem.question}
+            <div className="hypothesis-prompt" style={{marginBottom: '0.35rem', fontSize: '0.82rem', lineHeight: '1.2'}}>
+              Analysis: {inspectingItem.question}
             </div>
             
-            <div className="mcq-options" style={{display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '2rem'}}>
-              {shuffledOptions.map((opt, idx) => (
+            <div className="mcq-options" style={{display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '0.6rem'}}>
+              {shuffledOptions
+                .filter(opt => !isSuccess || opt.originalIndex === inspectingItem.correct)
+                .map((opt, idx) => (
                 <button 
                   key={idx}
                   className="btn"
@@ -857,9 +1053,11 @@ function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypotheses, s
                     color: currentSelection === opt.originalIndex ? '#111' : 'var(--sand-100)',
                     border: '1px solid var(--sand-600)',
                     textAlign: 'left',
-                    padding: '12px',
+                    padding: '6px 10px',
+                    fontSize: '0.8rem',
                     fontWeight: 'normal',
-                    justifyContent: 'flex-start'
+                    justifyContent: 'flex-start',
+                    lineHeight: '1.2'
                   }}
                   disabled={isSuccess}
                   onClick={() => {
@@ -874,8 +1072,8 @@ function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypotheses, s
             </div>
 
             {wrongAttempt && (
-               <p style={{color: '#ef4444', fontWeight: 'bold', marginBottom: '1rem', animation: 'pulse 1s infinite', background: 'rgba(239, 68, 68, 0.1)', padding: '10px', borderRadius: '8px', border: '1px solid #ef4444'}}>
-                 ❌ That interpretation doesn't quite match the field notes. Review the evidence and try again!
+               <p style={{color: '#ef4444', fontWeight: 'bold', marginBottom: '0.75rem', animation: 'pulse 1s infinite', background: 'rgba(239, 68, 68, 0.1)', padding: '6px', borderRadius: '8px', border: '1px solid #ef4444', fontSize: '0.8rem'}}>
+                 ❌ Incorrect interpretation. Review the notes and try again!
                </p>
             )}
 
@@ -883,16 +1081,16 @@ function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypotheses, s
                <div className="rationale-box slide-up" style={{
                  background: 'rgba(74, 222, 128, 0.1)',
                  border: '1px solid var(--success)',
-                 padding: '1.5rem',
-                 borderRadius: '12px',
-                 marginBottom: '2rem',
+                  padding: '0.6rem',
+                  borderRadius: '10px',
+                  marginBottom: '0.6rem',
                  textAlign: 'left',
                  animation: 'fadeIn 0.5s ease-out'
                }}>
-                 <h4 style={{color: 'var(--success)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '8px'}}>
-                   <Sparkles size={18} /> Analysis Confirmed
+                 <h4 style={{color: 'var(--success)', marginBottom: '0.1rem', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem'}}>
+                   <Sparkles size={12} /> Analysis Confirmed
                  </h4>
-                 <p style={{color: 'var(--sand-100)', lineHeight: '1.6', fontSize: '1.05rem'}}>
+                 <p style={{color: 'var(--sand-100)', lineHeight: '1.25', fontSize: '0.78rem'}}>
                    {inspectingItem.rationale || "Great job! Your analysis correctly identifies the historical significance of this artifact."}
                  </p>
                </div>
@@ -902,32 +1100,31 @@ function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypotheses, s
               <button 
                 className="btn primary-btn" 
                 disabled={currentSelection === null}
-                style={{opacity: currentSelection === null ? 0.5 : 1, width: '100%'}}
+                style={{opacity: currentSelection === null ? 0.5 : 1, width: '100%', padding: '8px', fontSize: '0.95rem'}}
                 onClick={() => {
                   initAudio();
                   if (currentSelection == inspectingItem.correct) {
                     playMatch();
                     setIsSuccess(true);
-                    // We'll save the hypothesis and close after they read the rationale
                   } else {
                     playError();
                     setWrongAttempt(true);
                   }
                 }}
               >
-                Submit for Peer Review <CheckCircle2 size={20} />
+                Submit Analysis <CheckCircle2 size={16} />
               </button>
             ) : (
               <button 
                 className="btn primary-btn" 
-                style={{background: 'var(--success)', color: '#111', width: '100%'}}
+                style={{background: 'var(--success)', color: '#111', width: '100%', padding: '8px', fontSize: '0.95rem'}}
                 onClick={() => {
                   setHypotheses({...hypotheses, [inspectingItem.id]: currentSelection});
                   setInspectingItem(null);
                   setIsSuccess(false);
                 }}
               >
-                Accept Findings & Continue <ArrowRight size={20} />
+                Accept Findings & Continue <ArrowRight size={16} />
               </button>
             )}
           </div>
@@ -948,7 +1145,7 @@ const generateFeedback = (selectedIndex, correctIndex) => {
 };
 
 // ------------------------------------------------------------------
-// Phase 3: Museum Curator (Student selects items and writes labels)
+// Phase 4: Museum Curator (Student selects items and writes labels)
 // ------------------------------------------------------------------
 function MuseumPhase({ activeArtifacts, excavatedIds, hypotheses, curatedItems, setCuratedItems, plaques, setPlaques, onComplete }) {
   const [editingId, setEditingId] = useState(null);
@@ -972,22 +1169,22 @@ function MuseumPhase({ activeArtifacts, excavatedIds, hypotheses, curatedItems, 
   return (
     <div className="phase-container museum-phase">
       <div className="phase-header">
-        <h2><Library size={28} /> Phase 3: Grand Opening Curation</h2>
+        <h2><Library size={28} /> Phase 4: Grand Opening Curation</h2>
         <p>Select your 3 most significant artifacts to feature in the Grand Opening of the local Museum exhibit.</p>
       </div>
 
-      <div style={{display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '2rem', minHeight: '60vh'}}>
+      <div style={{display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '0.75rem', flex: 1, minHeight: 0}}>
         {/* Artifact List */}
-        <div className="glass-card" style={{padding: '1.5rem', maxHeight: '70vh', overflowY: 'auto'}}>
-          <h3 style={{color: 'var(--accent)', marginBottom: '1rem', borderBottom: '1px solid var(--sand-600)', paddingBottom: '8px'}}>Inventory</h3>
-          <div style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
+        <div className="glass-card" style={{padding: '0.75rem', overflowY: 'auto'}}>
+          <h3 style={{color: 'var(--accent)', marginBottom: '0.5rem', borderBottom: '1px solid var(--sand-600)', paddingBottom: '4px', fontSize: '1rem'}}>Inventory</h3>
+          <div style={{display: 'flex', flexDirection: 'column', gap: '6px'}}>
             {analyzedItems.map(item => (
               <div 
                 key={item.id} 
                 className={`artifact-list-item ${curatedItems.includes(item.id) ? 'selected' : ''}`}
                 onClick={() => toggleItem(item.id)}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', borderRadius: '8px', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', borderRadius: '8px', cursor: 'pointer',
                   background: curatedItems.includes(item.id) ? 'rgba(232, 158, 93, 0.2)' : 'rgba(0,0,0,0.3)',
                   border: curatedItems.includes(item.id) ? '1px solid var(--accent)' : '1px solid var(--sand-600)',
                   transition: 'all 0.2s'
@@ -1010,10 +1207,10 @@ function MuseumPhase({ activeArtifacts, excavatedIds, hypotheses, curatedItems, 
         <div className="display-case-area">
           <div className="museum-case glass-card" style={{
             background: 'linear-gradient(to bottom, rgba(30,30,35,0.8), rgba(15,15,20,0.9))',
-            padding: '2rem', minHeight: '100%', position: 'relative', border: '1px solid rgba(255,255,255,0.1)',
-            boxShadow: 'inset 0 0 50px rgba(0,0,0,0.5)'
+            padding: '1rem', minHeight: '100%', position: 'relative', border: '1px solid rgba(255,255,255,0.1)',
+            boxShadow: 'inset 0 0 50px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column'
           }}>
-            <h3 style={{textAlign: 'center', textTransform: 'uppercase', letterSpacing: '2px', color: 'var(--sand-400)', marginBottom: '2rem'}}>The Discovery Gallery</h3>
+            <h3 style={{textAlign: 'center', textTransform: 'uppercase', letterSpacing: '2px', color: 'var(--sand-400)', marginBottom: '1rem', fontSize: '0.85rem'}}>The Discovery Gallery</h3>
             
             <div style={{display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '2rem'}}>
               {[0, 1, 2].map(idx => {
@@ -1024,7 +1221,7 @@ function MuseumPhase({ activeArtifacts, excavatedIds, hypotheses, curatedItems, 
                     className={`display-slot ${item ? 'active' : ''}`}
                     onClick={() => item && setEditingId(itemId)}
                     style={{
-                      width: '120px', height: '140px', border: '2px dashed var(--sand-600)', borderRadius: '12px',
+                      width: '100px', height: '110px', border: '2px dashed var(--sand-600)', borderRadius: '12px',
                       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                       background: editingId === itemId ? 'rgba(232, 158, 93, 0.1)' : 'transparent',
                       borderColor: editingId === itemId ? 'var(--accent)' : 'var(--sand-600)',
@@ -1045,8 +1242,8 @@ function MuseumPhase({ activeArtifacts, excavatedIds, hypotheses, curatedItems, 
             </div>
 
             {editingId ? (
-              <div className="plaque-editor animate-fade-in" style={{background: 'rgba(0,0,0,0.3)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--accent)'}}>
-                <div style={{display: 'flex', gap: '1.5rem', marginBottom: '1.5rem'}}>
+              <div className="plaque-editor animate-fade-in" style={{background: 'rgba(0,0,0,0.3)', padding: '1rem', borderRadius: '12px', border: '1px solid var(--accent)', flex: 1}}>
+                <div style={{display: 'flex', gap: '1rem', marginBottom: '1rem', height: '100%'}}>
                   {analyzedItems.find(a => a.id === editingId).image && (
                     <div style={{width: '180px', flexShrink: 0}}>
                       <img 
@@ -1057,17 +1254,17 @@ function MuseumPhase({ activeArtifacts, excavatedIds, hypotheses, curatedItems, 
                     </div>
                   )}
                   <div style={{flex: 1}}>
-                    <label style={{display: 'block', color: 'var(--accent)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.5rem'}}>Exhibition Plaque: {analyzedItems.find(a => a.id === editingId).name}</label>
-                    <textarea 
-                      placeholder="Write an educational plaque for museum visitors. Explain what this item is and its historical significance..."
-                      value={plaques[editingId] || ''}
-                      onChange={(e) => setPlaques({...plaques, [editingId]: e.target.value})}
-                      style={{
-                        width: '100%', height: '140px', background: 'rgba(0,0,0,0.5)', border: '1px solid var(--sand-600)',
-                        color: 'var(--sand-100)', padding: '12px', borderRadius: '8px', resize: 'none', fontFamily: 'inherit',
-                        lineHeight: '1.6', fontSize: '0.95rem'
-                      }}
-                    />
+                      <label style={{display: 'block', color: 'var(--accent)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px'}}>Exhibition Plaque: {analyzedItems.find(a => a.id === editingId).name}</label>
+                      <textarea 
+                        placeholder="Write an educational plaque..."
+                        value={plaques[editingId] || ''}
+                        onChange={(e) => setPlaques({...plaques, [editingId]: e.target.value})}
+                        style={{
+                          width: '100%', flex: 1, minHeight: '80px', background: 'rgba(0,0,0,0.5)', border: '1px solid var(--sand-600)',
+                          color: 'var(--sand-100)', padding: '10px', borderRadius: '8px', resize: 'none', fontFamily: 'inherit',
+                          lineHeight: '1.4', fontSize: '0.9rem'
+                        }}
+                      />
                     <div style={{display: 'flex', justifyContent: 'space-between', marginTop: '8px', fontSize: '0.75rem'}}>
                       <span style={{color: (plaques[editingId]?.length || 0) > 10 ? 'var(--success)' : '#ef4444'}}>
                         {(plaques[editingId]?.length || 0) > 10 ? '✓ Minimum length met' : '⚠ Description too short'}
@@ -1087,19 +1284,19 @@ function MuseumPhase({ activeArtifacts, excavatedIds, hypotheses, curatedItems, 
         </div>
       </div>
 
-      <div style={{marginTop: '2rem', textAlign: 'center'}}>
+      <div style={{marginTop: '1rem', textAlign: 'center'}}>
         <button 
           className="btn primary-btn" 
           disabled={!isReady}
-          style={{opacity: isReady ? 1 : 0.5, padding: '1rem 3rem'}}
+          style={{opacity: isReady ? 1 : 0.5, padding: '0.75rem 2rem'}}
           onClick={() => {
             initAudio();
             onComplete();
           }}
         >
-          OPEN EXHIBITION TO PUBLIC <Users size={20} />
+          OPEN EXHIBITION <Users size={18} />
         </button>
-        {!isReady && <p style={{fontSize: '0.9rem', color: 'var(--sand-400)', marginTop: '10px'}}>Curate 3 items and write their labels to finish.</p>}
+        {!isReady && <p style={{fontSize: '0.8rem', color: 'var(--sand-400)', marginTop: '4px'}}>Curate 3 items to finish.</p>}
       </div>
     </div>
   );
@@ -1140,31 +1337,37 @@ function ReportPhase({ activeArtifacts, itemsLocation, hypotheses, siteName, fin
   }, [activeArtifacts]);
 
   return (
-    <div className="report-container">
-      <div className="report-paper">
-        <div className="report-header">
-          <h2>Archaeologist's Final Report</h2>
-          <p className="report-subtitle">Dig Site: {siteName}</p>
+    <div className="report-container" style={{padding: '1rem', maxWidth: '800px'}}>
+      <div className="report-paper" style={{padding: '1.5rem'}}>
+        <div className="report-header" style={{marginBottom: '1rem', paddingBottom: '0.5rem'}}>
+          <h2 style={{fontSize: '1.5rem'}}>Archaeologist's Final Report</h2>
+          <p className="report-subtitle" style={{fontSize: '1rem'}}>Dig Site: {siteName}</p>
         </div>
         
         {finalConclusion && currentScenario && (
-          <div className="site-conclusion" style={{background: finalConclusion === currentScenario.id ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)', borderColor: finalConclusion === currentScenario.id ? '#22c55e' : '#ef4444'}}>
-             <h3 style={{color: finalConclusion === currentScenario.id ? '#166534' : '#991b1b'}}><Search size={20} style={{verticalAlign:'middle', marginBottom:'2px'}}/> Grand Synthesis</h3>
-             <p><strong>Your Hypothesis:</strong> {SCENARIOS.find(s => s.id === finalConclusion)?.civilization}</p>
-             <p><strong>True Identity:</strong> {currentScenario.civilization}</p>
-             <p style={{marginTop: '10px', fontStyle: 'italic', color: finalConclusion === currentScenario.id ? '#166534' : '#991b1b'}}>
+          <div className="site-conclusion" style={{
+            background: finalConclusion === currentScenario.id ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)', 
+            borderColor: finalConclusion === currentScenario.id ? '#22c55e' : '#ef4444',
+            padding: '1rem', marginBottom: '1rem'
+          }}>
+             <h3 style={{color: finalConclusion === currentScenario.id ? '#166534' : '#991b1b', fontSize: '1.1rem', marginBottom: '0.5rem'}}>
+               <Search size={18} style={{verticalAlign:'middle', marginBottom:'2px'}}/> Grand Synthesis
+             </h3>
+             <p style={{fontSize: '0.9rem'}}><strong>Your Hypothesis:</strong> {SCENARIOS.find(s => s.id === finalConclusion)?.civilization}</p>
+             <p style={{fontSize: '0.9rem'}}><strong>True Identity:</strong> {currentScenario.civilization}</p>
+             <p style={{marginTop: '6px', fontStyle: 'italic', color: finalConclusion === currentScenario.id ? '#166534' : '#991b1b', fontSize: '0.85rem'}}>
                {finalConclusion === currentScenario.id 
-                  ? "✅ Excellent work! You correctly synthesized the evidence to identify this civilization." 
-                  : "💡 Growth Feedback: Historical interpretation requires looking at all the evidence together. Review your artifacts and consider how they fit into the bigger picture of a society."}
+                  ? "✅ Excellent work! You correctly synthesized the evidence." 
+                  : "💡 Historical interpretation requires looking at all evidence together."}
              </p>
           </div>
         )}
 
-        <div className="site-conclusion" style={{marginTop: '1.5rem'}}>
-          <h3><Search size={20} style={{verticalAlign:'middle', marginBottom:'2px'}}/> Evidence Summary</h3>
-          <p className="conclusion-vol">{summary.vol}</p>
+        <div className="site-conclusion" style={{marginTop: '1rem', padding: '1rem', marginBottom: '1rem'}}>
+          <h3 style={{fontSize: '1.1rem', marginBottom: '0.5rem'}}><Search size={18} style={{verticalAlign:'middle', marginBottom:'2px'}}/> Evidence Summary</h3>
+          <p className="conclusion-vol" style={{fontSize: '0.9rem', marginBottom: '0.5rem'}}>{summary.vol}</p>
           {summary.specs.length > 0 && (
-            <ul className="conclusion-specs">
+            <ul className="conclusion-specs" style={{fontSize: '0.85rem'}}>
               {summary.specs.map((spec, i) => <li key={i}>{spec}</li>)}
             </ul>
           )}
@@ -1229,7 +1432,7 @@ function ReportPhase({ activeArtifacts, itemsLocation, hypotheses, siteName, fin
          <button className="btn primary-btn" onClick={() => window.print()}>
            Print Report
          </button>
-         <button className="btn" onClick={onRetry} style={{marginLeft: 'auto', background: '#d32f2f', color: '#fff', borderColor: '#b71c1c'}}>
+         <button className="btn" onClick={onRetry} style={{marginLeft: 'auto', background: 'var(--accent)', color: '#111', borderColor: 'var(--accent)'}}>
            <RefreshCw size={20} style={{verticalAlign:'middle', marginRight:'5px'}} />
            Start New Dig
          </button>
@@ -1313,9 +1516,23 @@ export default function App() {
     setActiveArtifacts(shuffled);
   };
 
+  const [showDevTools, setShowDevTools] = useState(false);
+
   // Initialize random selection of 15 artifacts for the game (30 tiles for memory)
   useEffect(() => {
     initGame();
+  }, []);
+
+  // Hotkey listener for DevTools (Ctrl + Shift + D)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.ctrlKey && e.shiftKey && e.key.toUpperCase() === 'D') {
+        e.preventDefault();
+        setShowDevTools(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   const handleRetry = () => {
@@ -1355,15 +1572,15 @@ export default function App() {
           <p>What can evidence tell us about the ancient past?</p>
         </div>
         <div className="phase-indicator">
-          <span className={phase === 'dig' ? 'active' : phase === 'sort' || phase === 'lab' || phase === 'museum' || phase === 'report' ? 'done' : ''}>Excavate</span>
+          <span className={phase === 'dig' ? 'active' : phase === 'sort' || phase === 'lab' || phase === 'museum' || phase === 'report' ? 'done' : ''}><strong>1</strong><em>Dig</em></span>
           <ChevronRight size={16} />
-          <span className={phase === 'sort' ? 'active' : phase === 'lab' || phase === 'museum' || phase === 'report' ? 'done' : ''}>Sort</span>
+          <span className={phase === 'sort' ? 'active' : phase === 'lab' || phase === 'museum' || phase === 'report' ? 'done' : ''}><strong>2</strong><em>Sort</em></span>
           <ChevronRight size={16} />
-          <span className={phase === 'lab' ? 'active' : phase === 'museum' || phase === 'report' ? 'done' : ''}>Analyze</span>
+          <span className={phase === 'lab' ? 'active' : phase === 'museum' || phase === 'report' ? 'done' : ''}><strong>3</strong><em>Lab</em></span>
           <ChevronRight size={16} />
-          <span className={phase === 'museum' ? 'active' : phase === 'report' ? 'done' : ''}>Curate</span>
+          <span className={phase === 'museum' ? 'active' : phase === 'report' ? 'done' : ''}><strong>4</strong><em>Museum</em></span>
           <ChevronRight size={16} />
-          <span className={phase === 'report' ? 'active' : ''}>Report</span>
+          <span className={phase === 'report' ? 'active' : ''}><strong>5</strong><em>Report</em></span>
         </div>
       </header>
 
@@ -1433,18 +1650,20 @@ export default function App() {
         )}
       </main>
 
-      <DevTools 
-        currentPhase={phase}
-        setPhase={setPhase}
-        setExcavatedIds={setExcavatedIds}
-        setActiveArtifacts={setActiveArtifacts}
-        setItemsLocation={setItemsLocation}
-        setHypotheses={setHypotheses}
-        setCurrentScenario={setCurrentScenario}
-        setCurrentEvent={setCurrentEvent}
-        setSiteName={setSiteName}
-        setFinalConclusion={setFinalConclusion}
-      />
+      {showDevTools && (
+        <DevTools 
+          currentPhase={phase}
+          setPhase={setPhase}
+          setExcavatedIds={setExcavatedIds}
+          setActiveArtifacts={setActiveArtifacts}
+          setItemsLocation={setItemsLocation}
+          setHypotheses={setHypotheses}
+          setCurrentScenario={setCurrentScenario}
+          setCurrentEvent={setCurrentEvent}
+          setSiteName={setSiteName}
+          setFinalConclusion={setFinalConclusion}
+        />
+      )}
     </div>
   );
 }
