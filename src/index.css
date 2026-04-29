@@ -259,16 +259,15 @@ body {
 .memory-grid {
   display: grid;
   grid-template-columns: repeat(8, 1fr);
-  grid-template-rows: repeat(3, 1fr);
-  gap: clamp(4px, 0.5vw, 8px);
+  gap: clamp(4px, 0.6vw, 10px);
   width: 100%;
-  max-width: 1200px;
-  height: 100%;
-  max-height: calc(100vh - 310px);
+  /* Max width calculated to keep 8 columns across 3 rows square within available height */
+  max-width: min(1200px, calc((100vh - 330px) * 2.66)); 
   margin: 0 auto;
   perspective: 1000px;
   flex: 1;
   min-height: 0;
+  align-content: center;
 }
 
 .dig-phase-header {
@@ -387,25 +386,27 @@ body {
 
 .dig-grid-shell {
   position: relative;
-  margin-top: 0.25rem;
-  padding: 0.35rem;
+  margin-top: 0.5rem;
+  padding: 0.75rem;
   border-radius: 20px;
   width: 100%;
-  max-width: 1440px;
+  max-width: 1240px;
   margin-left: auto;
   margin-right: auto;
   background:
     linear-gradient(180deg, rgba(74, 56, 38, 0.96) 0%, rgba(39, 28, 20, 0.98) 18%, rgba(18, 14, 11, 0.98) 100%);
-  border: 1px solid rgba(232, 158, 93, 0.2);
+  border: 1px solid rgba(232, 158, 93, 0.15);
+  /* Trench depth effect */
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    inset 0 0 100px rgba(0, 0, 0, 0.46),
-    0 20px 40px rgba(0, 0, 0, 0.28);
+    inset 0 4px 20px rgba(0, 0, 0, 0.6),
+    inset 0 0 100px rgba(0, 0, 0, 0.4),
+    0 10px 30px rgba(0, 0, 0, 0.3);
   overflow: hidden;
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
+  justify-content: center;
 }
 
 .dig-grid-shell::before {
@@ -469,7 +470,7 @@ body {
 }
 
 .memory-tile {
-  height: 100%;
+  aspect-ratio: 1;
   position: relative;
   cursor: pointer;
   border-radius: 10px;
