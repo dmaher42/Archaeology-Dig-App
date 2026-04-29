@@ -481,14 +481,21 @@ body {
 /* Clue Panel */
 .clue-panel {
   background: rgba(0,0,0,0.2);
-  border-radius: 8px;
-  padding: 12px 20px;
+  border-radius: 12px;
+  padding: 1.5rem;
   margin-bottom: 2rem;
   border: 1px solid rgba(255,255,255,0.05);
-  min-height: 48px;
+  min-height: 120px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.clue-main-content {
+  width: 100%;
+  text-align: center;
 }
 
 .clue-content {
@@ -503,6 +510,88 @@ body {
 .clue-content strong {
   color: var(--accent);
   margin-right: 8px;
+}
+
+.sort-feedback {
+  margin-top: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 6px 16px;
+  border-radius: 8px;
+  display: inline-block;
+  animation: slideUp 0.3s ease-out;
+}
+
+.sort-feedback.success { 
+  color: var(--success); 
+  background: rgba(74, 222, 128, 0.1);
+  border: 1px solid rgba(74, 222, 128, 0.2);
+}
+
+.sort-feedback.error { 
+  color: #ef4444; 
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  animation: shake 0.4s ease-in-out;
+}
+
+.quick-sort-buttons {
+  margin-top: 1.5rem;
+  width: 100%;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  padding-top: 1rem;
+}
+
+.quick-sort-label {
+  font-size: 0.75rem;
+  color: var(--sand-500);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.quick-sort-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.quick-sort-btn {
+  background: rgba(26, 21, 16, 0.6);
+  border: 1px solid var(--sand-700);
+  color: var(--sand-200);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: inherit;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.quick-sort-btn:hover {
+  background: var(--sand-800);
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+}
+
+.quick-sort-btn:active {
+  transform: translateY(0);
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
 }
 
 /* Modal */

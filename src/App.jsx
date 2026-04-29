@@ -2,11 +2,12 @@ import React, { useState, useEffect, useMemo } from 'react';
 import {
   DndContext,
   DragOverlay,
-  closestCenter,
   useSensor,
   useSensors,
   MouseSensor,
   TouchSensor,
+  pointerWithin,
+  rectIntersection,
 } from '@dnd-kit/core';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { Pickaxe, Tent, Search, FileText, CheckCircle2, X, ChevronRight, Clock, Wind, Radar, Droplets, AlertTriangle, Moon, RefreshCw, Library, Users, Skull, Landmark, Leaf, ScrollText, Package, Sparkles, ArrowRight } from 'lucide-react';
@@ -118,6 +119,25 @@ export const playTone = (freq, type = 'sine', duration = 0.5, vol = 0.2) => {
 };
 // -----------------------
 import { CATEGORIES, RANDOM_EVENTS, SCENARIOS, RED_HERRINGS } from './data';
+
+// Custom collision detection strategy
+const customCollisionDetection = (args) => {
+  const pointerCollisions = pointerWithin(args);
+  if (pointerCollisions.length > 0) return pointerCollisions;
+  return rectIntersection(args);
+};
+
+// Global Icon Helper
+const getIcon = (type, size = 20) => {
+  switch(type) {
+    case 'objects': return <Package size={size} />;
+    case 'remains': return <Skull size={size} />;
+    case 'structures': return <Landmark size={size} />;
+    case 'environment': return <Leaf size={size} />;
+    case 'written': return <ScrollText size={size} />;
+    default: return <Search size={size} />;
+  }
+};
 
 function DraggableArtifact({ artifact, onClick, showStatus }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
@@ -243,17 +263,18 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
     }
   }, [excavatedIds.size, activeArtifacts.length]);
 
-  const handleRadar = () => {
-    if (timeLeft <= 10 || isLocked || !isPlaying) return;
+    const radarCost = difficulty === 'easy' ? 30 : difficulty === 'medium' ? 20 : 10;
+    if (timeLeft <= radarCost || isLocked || !isPlaying) return;
+    
     initAudio();
     playTone(800, 'sine', 0.5, 0.1); // Radar sweep sound
-    setTimeLeft(prev => prev - 10);
+    setTimeLeft(prev => prev - radarCost);
     setIsLocked(true);
     
-    // Dynamic reveal duration based on difficulty
-    let duration = 5000; // Hard (5s)
-    if (difficulty === 'easy') duration = 30000; // 30s
-    if (difficulty === 'medium') duration = 20000; // 20s
+    // Dynamic reveal duration based on difficulty (snappier for better game flow)
+    let duration = 1500; // Hard (1.5s)
+    if (difficulty === 'easy') duration = 5000; // 5s
+    if (difficulty === 'medium') duration = 3000; // 3s
 
     // Briefly flip all unmatched tiles
     setTiles(prev => prev.map(t => t.isMatched ? t : { ...t, isFlipped: true }));
@@ -454,10 +475,10 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
             className="btn" 
             style={{background: 'rgba(232, 158, 93, 0.1)', color: 'var(--accent)', border: '1px solid var(--accent)', padding: '6px 16px', borderRadius: '30px', fontSize: '0.9rem'}}
             onClick={handleRadar}
-            disabled={timeLeft <= 10 || isLocked || !isPlaying}
-            title="Reveal all tiles for 2 seconds (Costs 10s)"
+            disabled={timeLeft <= (difficulty === 'easy' ? 30 : difficulty === 'medium' ? 20 : 10) || isLocked || !isPlaying}
+            title={`Reveal all tiles briefly (Costs ${difficulty === 'easy' ? 30 : difficulty === 'medium' ? 20 : 10}s)`}
           >
-            <Radar size={18} /> Use Radar (-10s)
+            <Radar size={18} /> Use Radar (-{difficulty === 'easy' ? 30 : difficulty === 'medium' ? 20 : 10}s)
           </button>
         </div>
         <div className="progress-bar">
@@ -478,8 +499,16 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
               <div className="tile-inner">
                 <div className="tile-front dirt-texture"></div>
                   <div className="tile-back artifact-texture">
-                    <Search size={24} style={{marginBottom: '4px', color: 'var(--accent)'}} />
-                    <div className="artifact-name" style={{fontSize: '0.75rem', fontWeight: 'bold'}}>{tile.artifact.name}</div>
+                    {tile.artifact.image ? (
+                      <div style={{width: '40px', height: '40px', marginBottom: '4px', borderRadius: '4px', overflow: 'hidden', border: '1px solid var(--accent)'}}>
+                        <img src={tile.artifact.image} alt="" style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+                      </div>
+                    ) : (
+                      <div style={{color: 'var(--accent)', marginBottom: '4px'}}>
+                        {getIcon(tile.artifact.type, 28)}
+                      </div>
+                    )}
+                    <div className="artifact-name" style={{fontSize: '0.65rem', fontWeight: 'bold', textAlign: 'center', lineHeight: '1.1', maxWidth: '90%'}}>{tile.artifact.name}</div>
                   </div>
               </div>
             </div>
@@ -496,6 +525,7 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
 function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, onComplete }) {
   const [activeId, setActiveId] = useState(null);
   const [hoveredCard, setHoveredCard] = useState(null);
+  const [feedback, setFeedback] = useState({ message: '', isError: false });
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
@@ -506,32 +536,62 @@ function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, onComplet
     setActiveId(event.active.id);
     const card = activeArtifacts.find(c => c.id === event.active.id);
     setHoveredCard(card);
+    setFeedback({ message: '', isError: false });
+  };
+
+  const processSuccess = (card, categoryId) => {
+    initAudio();
+    playMatch();
+    setItemsLocation(prev => ({
+      ...prev,
+      [card.id]: categoryId
+    }));
+    const catTitle = CATEGORIES.find(c => c.id === categoryId).title.split(' (')[0];
+    setFeedback({ message: `Correct — this is an ${catTitle.toLowerCase()}.`, isError: false });
+    setHoveredCard(null); // Deselect on success
+  };
+
+  const processFailure = () => {
+    initAudio();
+    playError();
+    setFeedback({ message: "Not quite — read the clue again and try another category.", isError: true });
   };
 
   const handleDragEnd = (event) => {
     const { active, over } = event;
     setActiveId(null);
-    setHoveredCard(null);
     
     if (over) {
       const card = activeArtifacts.find(c => c.id === active.id);
       if (card.type === over.id) {
-        initAudio();
-        playMatch();
-        setItemsLocation(prev => ({
-          ...prev,
-          [active.id]: over.id
-        }));
+        processSuccess(card, over.id);
       } else {
-        initAudio();
-        playError();
+        processFailure();
       }
+    }
+  };
+
+  const handleQuickSort = (categoryId) => {
+    if (!hoveredCard) return;
+    if (hoveredCard.type === categoryId) {
+      processSuccess(hoveredCard, categoryId);
+    } else {
+      processFailure();
     }
   };
 
   const inventoryItems = activeArtifacts.filter(c => itemsLocation[c.id] === 'inventory');
   const sortedCount = activeArtifacts.length - inventoryItems.length;
   const isComplete = sortedCount === activeArtifacts.length;
+
+  useEffect(() => {
+    if (feedback.message) {
+      const timer = setTimeout(() => {
+        setFeedback({ message: '', isError: false });
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [feedback.message]);
 
   useEffect(() => {
     if (isComplete && activeArtifacts.length > 0) {
@@ -557,20 +617,45 @@ function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, onComplet
       </div>
 
       <div className="clue-panel">
-        {hoveredCard ? (
-          <div className="clue-content active">
-            <strong>{hoveredCard.name}:</strong> {hoveredCard.clue}
-          </div>
-        ) : (
-          <div className="clue-content">
-            <em>Drag an item or tap to view its clue here...</em>
+        <div className="clue-main-content">
+          {hoveredCard ? (
+            <div className="clue-content active">
+              <strong>{hoveredCard.name}:</strong> {hoveredCard.clue}
+            </div>
+          ) : (
+            <div className="clue-content">
+              <em>{feedback.message ? '' : 'Drag an item or tap to view its clue here...'}</em>
+            </div>
+          )}
+          
+          {feedback.message && (
+            <div className={`sort-feedback ${feedback.isError ? 'error' : 'success'}`}>
+              {feedback.isError ? '❌ ' : '✅ '}{feedback.message}
+            </div>
+          )}
+        </div>
+
+        {hoveredCard && (
+          <div className="quick-sort-buttons animate-fade-in">
+            <p className="quick-sort-label">Select Category:</p>
+            <div className="quick-sort-grid">
+              {CATEGORIES.map(cat => (
+                <button 
+                  key={cat.id} 
+                  className="quick-sort-btn"
+                  onClick={() => handleQuickSort(cat.id)}
+                >
+                  {cat.title.split(' (')[0]}
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </div>
 
       <DndContext 
         sensors={sensors}
-        collisionDetection={closestCenter}
+        collisionDetection={customCollisionDetection}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
@@ -876,17 +961,6 @@ function MuseumPhase({ activeArtifacts, excavatedIds, hypotheses, curatedItems, 
         setCuratedItems([...curatedItems, id]);
         setEditingId(id);
       }
-    }
-  };
-
-  const getIcon = (type) => {
-    switch(type) {
-      case 'objects': return <Package size={20} />;
-      case 'remains': return <Skull size={20} />;
-      case 'structures': return <Landmark size={20} />;
-      case 'environment': return <Leaf size={20} />;
-      case 'written': return <ScrollText size={20} />;
-      default: return <Package size={20} />;
     }
   };
 
