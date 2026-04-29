@@ -98,11 +98,10 @@ body {
 
 /* Phase Containers */
 .phase-container {
-  padding: 2rem;
+  padding: 1rem 2rem;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 1rem;
-  min-height: calc(100vh - 120px);
+  min-height: calc(100vh - 100px);
   display: flex;
   flex-direction: column;
 }
@@ -153,17 +152,16 @@ body {
 /* Phase Header */
 .phase-header {
   text-align: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 .phase-header h2 {
-  font-size: 1.8rem;
-  color: var(--sand-800);
-  margin-bottom: 0.5rem;
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .phase-header p {
@@ -323,13 +321,26 @@ body {
 
 /* Sorting & Lab Phases */
 .sort-phase {
-  padding-bottom: 160px; /* Space for inventory tray */
+  padding-bottom: 120px; /* Space for inventory tray */
 }
 
 .sorting-layout {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 1100px) {
+  .sorting-layout {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .sorting-layout {
+    grid-template-columns: 1fr;
+  }
 }
 
 .read-only .artifact-card {
@@ -340,12 +351,12 @@ body {
 }
 
 .category-bin {
-  background: rgba(0, 0, 0, 0.3);
-  border: 2px dashed var(--sand-600);
-  border-radius: 16px;
-  padding: 1rem;
-  min-height: 350px;
-  transition: all 0.3s;
+  background: rgba(0, 0, 0, 0.4);
+  border: 2px dashed var(--sand-700);
+  border-radius: 12px;
+  padding: 0.75rem;
+  height: 280px; /* Fixed height to prevent moving */
+  transition: all 0.2s;
   display: flex;
   flex-direction: column;
 }
@@ -378,21 +389,27 @@ body {
 .bin-items {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   align-content: flex-start;
   flex: 1;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.bin-items::-webkit-scrollbar {
+  width: 4px;
 }
 
 /* Artifact Card */
 .artifact-card {
   width: 100%;
-  max-width: 140px;
-  background: linear-gradient(135deg, var(--sand-300), var(--sand-100));
+  max-width: 130px;
+  background: linear-gradient(135deg, var(--sand-200), var(--sand-100));
   color: var(--sand-900);
-  border-radius: 8px;
-  padding: 10px 8px;
+  border-radius: 6px;
+  padding: 8px 6px;
   text-align: center;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 700;
   cursor: grab;
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
@@ -434,16 +451,17 @@ body {
 .inventory-tray {
   position: fixed;
   bottom: 0; left: 0; right: 0;
-  height: 130px;
-  background: rgba(26, 21, 16, 0.95);
-  backdrop-filter: blur(10px);
-  border-top: 1px solid var(--sand-700);
+  height: 100px;
+  background: rgba(20, 16, 12, 0.98);
+  backdrop-filter: blur(15px);
+  border-top: 2px solid var(--sand-700);
   display: flex;
   align-items: center;
-  padding: 0 2rem;
-  gap: 20px;
+  padding: 0 1.5rem;
+  gap: 15px;
   z-index: 10;
   transition: transform 0.3s;
+  box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
 }
 
 .inventory-tray.empty-tray {
@@ -452,10 +470,12 @@ body {
 }
 
 .tray-label {
-  color: var(--sand-300);
-  font-weight: bold;
-  min-width: 80px;
-  font-size: 1.1rem;
+  color: var(--accent);
+  font-weight: 800;
+  min-width: 100px;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .tray-items {
@@ -480,17 +500,18 @@ body {
 
 /* Clue Panel */
 .clue-panel {
-  background: rgba(0,0,0,0.2);
+  background: rgba(0,0,0,0.4);
   border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-  border: 1px solid rgba(255,255,255,0.05);
-  min-height: 120px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--sand-800);
+  min-height: 80px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
 }
 
 .clue-main-content {
@@ -536,19 +557,19 @@ body {
 }
 
 .quick-sort-buttons {
-  margin-top: 1.5rem;
   width: 100%;
-  border-top: 1px solid rgba(255,255,255,0.1);
-  padding-top: 1rem;
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  text-align: center;
 }
 
 .quick-sort-label {
-  font-size: 0.75rem;
-  color: var(--sand-500);
+  font-size: 0.7rem;
   text-transform: uppercase;
-  letter-spacing: 2px;
-  margin-bottom: 1rem;
-  text-align: center;
+  letter-spacing: 1px;
+  color: var(--sand-500);
+  margin-bottom: 0.5rem;
 }
 
 .quick-sort-grid {
@@ -559,16 +580,18 @@ body {
 }
 
 .quick-sort-btn {
-  background: rgba(26, 21, 16, 0.6);
+  background: rgba(255,255,255,0.03);
   border: 1px solid var(--sand-700);
   color: var(--sand-200);
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 0.9rem;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  font-family: inherit;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
 }
 
 .quick-sort-btn:hover {
@@ -598,13 +621,15 @@ body {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.8);
+  background: rgba(0,0,0,0.85);
   backdrop-filter: blur(8px);
   display: flex;
-  align-items: center;
+  align-items: flex-start; /* Ensure top isn't cut off if content is tall */
   justify-content: center;
   z-index: 100;
   animation: fadeIn 0.2s;
+  overflow-y: auto; /* Allow overlay to scroll */
+  padding: 40px 20px; /* Space around the modal */
 }
 
 .glass-card {
@@ -620,11 +645,13 @@ body {
 }
 
 .modal-content {
-  width: 90%;
-  max-width: 500px;
+  width: 100%;
+  max-width: 550px; /* Slightly wider for better readability */
   padding: 2.5rem;
   position: relative;
   text-align: center;
+  margin: auto; /* Vertical centering helper in flex/grid */
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
 .modal-title {
@@ -889,4 +916,54 @@ body {
     border-color: #22c55e;
     color: #15803d;
   }
+}
+
+/* Dev Tools Overlay */
+.dev-tools {
+  position: fixed;
+  bottom: 110px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.9);
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--accent);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  z-index: 9999;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  transition: all 0.3s ease;
+}
+
+.dev-tools-label {
+  font-size: 0.6rem;
+  color: var(--accent);
+  font-weight: bold;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.dev-tools button {
+  background: #333;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.dev-tools button:hover {
+  background: var(--accent);
+  color: #000;
+}
+
+.dev-tools button.active {
+  background: var(--accent);
+  color: #000;
 }

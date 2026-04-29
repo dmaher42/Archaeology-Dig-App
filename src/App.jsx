@@ -178,7 +178,9 @@ function CategoryBin({ category, items, onArtifactClick, itemsWithHypothesis = {
 
   return (
     <div ref={setNodeRef} className={`category-bin ${isOver ? 'is-over' : ''}`}>
-      <h3 className="category-title">{category.title} <span className="item-count">({items.length})</span></h3>
+      <h3 className="category-title" style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+        {getIcon(category.id, 24)} {category.title} <span className="item-count">({items.length})</span>
+      </h3>
       <div className="bin-items">
         {items.map(item => (
           <DraggableArtifact 
@@ -646,7 +648,7 @@ function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, onComplet
                   className="quick-sort-btn"
                   onClick={() => handleQuickSort(cat.id)}
                 >
-                  {cat.title.split(' (')[0]}
+                  {getIcon(cat.id, 18)} {cat.title.split(' (')[0]}
                 </button>
               ))}
             </div>
@@ -1237,6 +1239,49 @@ function ReportPhase({ activeArtifacts, itemsLocation, hypotheses, siteName, fin
 }
 
 // ------------------------------------------------------------------
+// Dev Tools Component
+// ------------------------------------------------------------------
+function DevTools({ currentPhase, setPhase, setExcavatedIds, setActiveArtifacts, setItemsLocation, setHypotheses, setCurrentScenario, setCurrentEvent, setSiteName, setFinalConclusion }) {
+  const jumpTo = (target) => {
+    // Pick first scenario as default for testing
+    const scen = SCENARIOS[0]; 
+    const artifacts = [...scen.evidence, RED_HERRINGS[0]];
+    const evt = RANDOM_EVENTS[0];
+    
+    setCurrentScenario(scen);
+    setCurrentEvent(evt);
+    setActiveArtifacts(artifacts);
+    setExcavatedIds(new Set(artifacts.map(a => a.id)));
+    
+    if (target === 'sort') {
+      const locations = artifacts.reduce((acc, a) => ({ ...acc, [a.id]: 'inventory' }), {});
+      setItemsLocation(locations);
+    } else if (target === 'lab' || target === 'museum' || target === 'report') {
+      const locations = artifacts.reduce((acc, a) => ({ ...acc, [a.id]: a.type || 'objects' }), {});
+      setItemsLocation(locations);
+      
+      const hyps = artifacts.reduce((acc, a) => ({ ...acc, [a.id]: a.correct || 0 }), {});
+      setHypotheses(hyps);
+      setSiteName("Mock Testing Site");
+      setFinalConclusion(scen.id);
+    }
+    
+    setPhase(target);
+  };
+
+  return (
+    <div className="dev-tools hide-on-print">
+      <div className="dev-tools-label">Test Mode</div>
+      <button className={currentPhase === 'dig' ? 'active' : ''} onClick={() => jumpTo('dig')}>1. Dig</button>
+      <button className={currentPhase === 'sort' ? 'active' : ''} onClick={() => jumpTo('sort')}>2. Sort</button>
+      <button className={currentPhase === 'lab' ? 'active' : ''} onClick={() => jumpTo('lab')}>3. Analyze</button>
+      <button className={currentPhase === 'museum' ? 'active' : ''} onClick={() => jumpTo('museum')}>4. Curate</button>
+      <button className={currentPhase === 'report' ? 'active' : ''} onClick={() => jumpTo('report')}>5. Report</button>
+    </div>
+  );
+}
+
+// ------------------------------------------------------------------
 // Main App Component
 // ------------------------------------------------------------------
 export default function App() {
@@ -1387,6 +1432,19 @@ export default function App() {
           />
         )}
       </main>
+
+      <DevTools 
+        currentPhase={phase}
+        setPhase={setPhase}
+        setExcavatedIds={setExcavatedIds}
+        setActiveArtifacts={setActiveArtifacts}
+        setItemsLocation={setItemsLocation}
+        setHypotheses={setHypotheses}
+        setCurrentScenario={setCurrentScenario}
+        setCurrentEvent={setCurrentEvent}
+        setSiteName={setSiteName}
+        setFinalConclusion={setFinalConclusion}
+      />
     </div>
   );
 }
