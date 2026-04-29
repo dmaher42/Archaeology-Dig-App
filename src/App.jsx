@@ -263,6 +263,7 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
     }
   }, [excavatedIds.size, activeArtifacts.length]);
 
+  const handleRadar = () => {
     const radarCost = difficulty === 'easy' ? 30 : difficulty === 'medium' ? 20 : 10;
     if (timeLeft <= radarCost || isLocked || !isPlaying) return;
     
