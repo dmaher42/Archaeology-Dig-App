@@ -140,6 +140,7 @@ const getIcon = (type, size = 20) => {
     case 'structures': return <Landmark size={size} />;
     case 'environment': return <Leaf size={size} />;
     case 'written': return <ScrollText size={size} />;
+    case 'mystery': return <Search size={size} />;
     default: return <Search size={size} />;
   }
 };
@@ -214,28 +215,25 @@ const getArtifactTheme = (artifact) => {
   };
 };
 
-function DraggableArtifact({ artifact, onClick, showStatus }) {
-  const theme = getArtifactTheme(artifact);
+function DraggableArtifact({ artifact, onClick, showStatus = false, isNeutral = false }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: artifact.id,
-    data: artifact,
   });
 
   const style = transform ? {
     transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-    zIndex: isDragging ? 999 : 1,
-    opacity: isDragging ? 0.8 : 1,
-  } : {};
-  style['--artifact-accent'] = theme.accent;
-  style['--artifact-accent-soft'] = theme.accentSoft;
+    zIndex: 1001,
+  } : undefined;
+
+  const theme = isNeutral ? { accent: '#A88661', accentSoft: 'rgba(168, 134, 97, 0.1)' } : getArtifactTheme(artifact);
 
   return (
     <div 
       ref={setNodeRef} 
       style={style} 
-      className={`artifact-card ${showStatus ? 'has-status' : ''} artifact-card--${artifact.type} ${artifact.isRedHerring ? 'artifact-card--disturbance' : ''}`}
       {...listeners} 
-      {...attributes}
+      {...attributes} 
+      className={`artifact-card ${isDragging ? 'dragging' : ''} ${isNeutral ? 'neutral-artifact' : ''}`}
       onClick={(e) => {
         if (!isDragging && onClick) {
           e.stopPropagation();
@@ -244,7 +242,7 @@ function DraggableArtifact({ artifact, onClick, showStatus }) {
       }}
     >
       <span className="artifact-card-icon" style={{ '--artifact-accent': theme.accent, '--artifact-accent-soft': theme.accentSoft }}>
-        {getIcon(artifact.type, 22)}
+        {getIcon(isNeutral ? 'mystery' : artifact.type, 22)}
       </span>
       <span className="artifact-card-copy">
         <span className="card-name">{artifact.name}</span>
@@ -261,23 +259,37 @@ function CategoryBin({ category, items, onArtifactClick, itemsWithHypothesis = {
 
   return (
     <div ref={setNodeRef} className={`category-bin ${isOver ? 'is-over' : ''}`}>
-      <h3 className="category-title">
-        <span className="category-title-row">
-          {getIcon(category.id, 24)}
-          <span className="category-title-text">{category.title}</span>
-          <span className="item-count">({items.length})</span>
-        </span>
-        <span className="category-description">{category.description}</span>
-      </h3>
-      <div className="bin-items">
-        {items.map(item => (
-          <DraggableArtifact 
-            key={item.id} 
-            artifact={item} 
-            onClick={onArtifactClick}
-            showStatus={!!itemsWithHypothesis[item.id]}
-          />
-        ))}
+      <div className="category-header">
+        {getIcon(category.id, 28)}
+        <div className="category-header-text">
+          <h3 className="category-title">{category.title}</h3>
+          <p className="category-examples">{category.description}</p>
+        </div>
+      </div>
+      
+      <div className="bin-content">
+        <div className="drop-zone-area">
+          {items.length === 0 ? (
+            <div className="drop-placeholder">
+              <span className="drop-icon"><Search size={20} /></span>
+              <span className="drop-text">Drop items here</span>
+            </div>
+          ) : (
+            <div className="bin-items">
+              {items.map(item => (
+                <DraggableArtifact 
+                  key={item.id} 
+                  artifact={item} 
+                  onClick={onArtifactClick}
+                  showStatus={!!itemsWithHypothesis[item.id]}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="bin-footer">
+          <span className="bin-count">{items.length} {items.length === 1 ? 'item' : 'items'}</span>
+        </div>
       </div>
     </div>
   );
@@ -792,58 +804,25 @@ function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, onComplet
 
   return (
     <div className="phase-container sort-phase">
-      <div className="phase-header sort-header">
-        <div className="header-content">
-          <h2><Tent size={28} /> Phase 2: Sorting Tent</h2>
-          <p>Drag the artifacts you saved from the storm into the correct categories.</p>
+      <div className="phase-status-panel">
+        <div className="status-panel-info">
+          <div className="status-icon-box">
+            <Tent size={24} color="var(--accent)" />
+          </div>
+          <div className="status-text-content">
+            <h2>Phase 2: Sorting Tent</h2>
+            <p>Drag the artefacts you saved into the correct evidence categories.</p>
+          </div>
         </div>
-        <div className="progress-section">
-          <div className="progress-bar">
+        <div className="status-panel-progress">
+          <div className="progress-label-row">
+            <span className="progress-label">PROGRESS</span>
+            <span className="progress-count">{sortedCount} / {activeArtifacts.length} sorted</span>
+          </div>
+          <div className="progress-bar-wide">
             <div className="progress-fill" style={{ width: `${(sortedCount / activeArtifacts.length) * 100}%` }}></div>
           </div>
-          <p className="progress-text">Sorted: {sortedCount} / {activeArtifacts.length}</p>
         </div>
-      </div>
-
-      <div className="clue-panel">
-        <div className="clue-main-content">
-          {hoveredCard ? (
-            <div className="clue-content active">
-              <strong>{hoveredCard.name}:</strong> {hoveredCard.clue}
-              <div className="field-note-mini">
-                <span><strong>Discovery:</strong> {hoveredCard.discoveryMethod}</span>
-                <span><strong>Context:</strong> {getArtifactEraLabel(hoveredCard)}</span>
-              </div>
-            </div>
-          ) : (
-            <div className="clue-content">
-              <em>{feedback.message ? '' : 'Drag an item or tap to view its clue here...'}</em>
-            </div>
-          )}
-          
-          {feedback.message && (
-            <div className={`sort-feedback ${feedback.isError ? 'error' : 'success'}`}>
-              {feedback.isError ? '❌ ' : '✅ '}{feedback.message}
-            </div>
-          )}
-        </div>
-
-        {hoveredCard && (
-          <div className="quick-sort-buttons animate-fade-in">
-            <p className="quick-sort-label">Select Category:</p>
-            <div className="quick-sort-grid">
-              {CATEGORIES.map(cat => (
-                <button 
-                  key={cat.id} 
-                  className="quick-sort-btn"
-                  onClick={() => handleQuickSort(cat.id)}
-                >
-                  {getIcon(cat.id, 18)} {cat.title}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
       <DndContext 
@@ -852,40 +831,105 @@ function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, onComplet
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="sorting-layout">
-          {CATEGORIES.map(cat => (
-            <CategoryBin 
-              key={cat.id} 
-              category={cat} 
-              items={activeArtifacts.filter(c => itemsLocation[c.id] === cat.id)} 
-              onArtifactClick={setHoveredCard}
-            />
-          ))}
-        </div>
+        <div className="sort-main-layout">
+          {/* Left Column: Inventory */}
+          <div className="inventory-side-panel">
+            <div className="panel-header">
+              <h3>INVENTORY</h3>
+              <p>Tap an item to see its clue, then drag to a category.</p>
+            </div>
+            <div className="inventory-scroll-area">
+              {inventoryItems.map(item => (
+                 <DraggableArtifact 
+                   key={item.id} 
+                   artifact={item} 
+                   onClick={setHoveredCard} 
+                   isNeutral={true}
+                 />
+              ))}
+              {inventoryItems.length === 0 && (
+                <div className="empty-inventory-msg">
+                  <CheckCircle2 size={32} color="var(--success)" />
+                  <p>All items sorted!</p>
+                </div>
+              )}
+            </div>
+          </div>
 
-        <div className={`inventory-tray ${isComplete ? 'empty-tray' : ''}`}>
-           <div className="tray-label">
-             Inventory
-           </div>
-           <div className="tray-items">
-             {inventoryItems.map(item => (
-                <DraggableArtifact key={item.id} artifact={item} onClick={setHoveredCard} />
-             ))}
-           </div>
-           
-           {isComplete && (
-             <div className="tray-complete slide-up">
-                <button className="btn primary-btn" onClick={onComplete}>
-                  Proceed to The Lab <Search size={20} />
-                </button>
-             </div>
-           )}
+          {/* Right Column: Clues and Categories */}
+          <div className="sort-content-area">
+            <div className="clue-card-wide">
+              <div className="clue-card-header">
+                <div className="clue-label">CLUE CARD</div>
+                {hoveredCard && <div className="selected-item-tag">{hoveredCard.name}</div>}
+              </div>
+              <div className="clue-card-body">
+                {hoveredCard ? (
+                  <div className="clue-info-active animate-fade-in">
+                    <p className="clue-text">"{hoveredCard.clue}"</p>
+                    <div className="clue-metadata">
+                      <span><strong>Discovery:</strong> {hoveredCard.discoveryMethod}</span>
+                      <span><strong>Context:</strong> {getArtifactEraLabel(hoveredCard)}</span>
+                    </div>
+                    <p className="clue-prompt">Which evidence category does this best fit?</p>
+                  </div>
+                ) : (
+                  <div className="clue-placeholder">
+                    <p className="placeholder-main">No item selected</p>
+                    <p className="placeholder-sub">Tap an item from the inventory to view its clue before sorting.</p>
+                  </div>
+                )}
+                
+                {feedback.message && (
+                  <div className={`sort-feedback-inline ${feedback.isError ? 'error' : 'success'}`}>
+                    {feedback.isError ? '❌ ' : '✅ '}{feedback.message}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="categories-section">
+              <h4 className="section-heading">SORT INTO EVIDENCE CATEGORIES</h4>
+              <div className="categories-grid-custom">
+                {CATEGORIES.map(cat => (
+                  <CategoryBin 
+                    key={cat.id} 
+                    category={cat} 
+                    items={activeArtifacts.filter(c => itemsLocation[c.id] === cat.id)} 
+                    onArtifactClick={setHoveredCard}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="sort-footer-actions">
+              <button 
+                className="help-btn-large" 
+                onClick={() => setFeedback({message: "Carefully read the clue for each item. Think about what it is made of, where it was found, and what it represents.", isError: false})}
+              >
+                <HelpCircle size={20} /> How to Play
+              </button>
+              
+              {isComplete && (
+                <div className="completion-action animate-bounce-in">
+                   <button className="btn primary-btn large-btn" onClick={onComplete}>
+                     Proceed to The Lab <ArrowRight size={22} />
+                   </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         <DragOverlay dropAnimation={{ duration: 250, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>
           {activeId ? (
-            <div className="artifact-card dragging">
-              {activeArtifacts.find(c => c.id === activeId)?.name}
+            <div className="artifact-card dragging neutral-artifact">
+              <span className="artifact-card-icon">
+                <Search size={22} />
+              </span>
+              <span className="artifact-card-copy">
+                <span className="card-name">{activeArtifacts.find(c => c.id === activeId)?.name}</span>
+              </span>
             </div>
           ) : null}
         </DragOverlay>
