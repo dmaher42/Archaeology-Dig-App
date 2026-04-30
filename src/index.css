@@ -313,7 +313,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  max-width: 1250px;
+  max-width: 1500px; /* Increased for better desktop width usage */
   margin: 0 auto;
   height: calc(100vh - 85px); /* Fit exactly in viewport below header */
   overflow: hidden;
@@ -447,19 +447,19 @@ body {
 
 .memory-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 10px;
+  grid-template-columns: repeat(8, 1fr); /* 8 columns for 24 tiles (3 rows) */
+  gap: 16px;
   width: 100%;
-  max-width: 1100px;
+  max-width: 100%; /* Use full width of container */
   margin: 0 auto;
 }
 
 .memory-tile {
-  aspect-ratio: 0.85;
+  aspect-ratio: 0.8; /* Slightly more compact ratio */
   cursor: pointer;
   perspective: 1000px;
   position: relative;
-  max-height: 135px; /* Critical for fitting on laptop screens */
+  max-height: 160px; /* Allowed to be slightly taller since we only have 3 rows */
 }
 
 .tile-inner {
@@ -584,10 +584,21 @@ body {
 }
 
 /* Mobile Responsiveness */
-@media (max-width: 1100px) {
+@media (max-width: 1200px) {
+  .memory-grid {
+    grid-template-columns: repeat(6, 1fr);
+    gap: 14px;
+  }
+}
+
+@media (max-width: 1000px) {
   .memory-grid {
     grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
+    gap: 12px;
+  }
+  .dig-phase {
+    height: auto;
+    overflow-y: auto;
   }
 }
 
@@ -627,7 +638,7 @@ body {
   }
   
   .phase-navigation {
-    display: none; /* Hide on small mobile to save space */
+    display: none;
   }
 }
 
