@@ -1,0 +1,244 @@
+{
+  "generatedAt": "2026-04-30T21:39:44.835Z",
+  "note": "Museum exhibition image attributions for locally wired assets. Sensitive human-remains evidence should use context imagery unless explicit approval is given.",
+  "entries": [
+    {
+      "id": "eg_1",
+      "file": "egypt_canopic_jar.jpg",
+      "evidence": "Canopic Jar",
+      "source": "The Met",
+      "title": "Canopic Jar with a Lid Depicting a Queen",
+      "license": "CC0",
+      "creator": "The Metropolitan Museum of Art",
+      "page": "https://www.metmuseum.org/art/collection/search/544689",
+      "url": "https://images.metmuseum.org/CRDImages/eg/web-large/DT227703.jpg",
+      "appPath": "museum/egypt_canopic_jar.jpg"
+    },
+    {
+      "id": "eg_2",
+      "file": "egypt_faience_amulet.jpg",
+      "evidence": "Faience Amulet",
+      "source": "The Met",
+      "title": "Amulet",
+      "license": "CC0",
+      "creator": "The Metropolitan Museum of Art",
+      "page": "https://www.metmuseum.org/art/collection/search/552886",
+      "url": "https://images.metmuseum.org/CRDImages/eg/web-large/O.C.276_EGDP018529.jpg",
+      "appPath": "museum/egypt_faience_amulet.jpg"
+    },
+    {
+      "id": "eg_3",
+      "file": "egypt_bronze_mirror.jpg",
+      "evidence": "Bronze Mirror",
+      "source": "The Met",
+      "title": "Mirror",
+      "license": "CC0",
+      "creator": "The Metropolitan Museum of Art",
+      "page": "https://www.metmuseum.org/art/collection/search/547605",
+      "url": "https://images.metmuseum.org/CRDImages/eg/web-large/26.7.837a_EGDP015259.jpg",
+      "appPath": "museum/egypt_bronze_mirror.jpg"
+    },
+    {
+      "id": "eg_8",
+      "file": "egypt_limestone_block.jpg",
+      "evidence": "Limestone Block",
+      "source": "Wikimedia Commons",
+      "title": "Sneferu Pyramid waste limestone block",
+      "license": "CC BY-SA 4.0",
+      "creator": "Osama Shukir Muhammed Amin FRCP(Glasg)",
+      "page": "https://commons.wikimedia.org/wiki/File:Sneferu_Pyramid_waste_limestone_block._Hole_in_bottom,_used_as_pivot_block_to_turn_heavy_levers_on_in_moving_stones._4th_Dynasty._From_Meidum,_Egypt._The_Petrie_Museum_of_Egyptian_Archaeology,_London.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/6/6b/Sneferu_Pyramid_waste_limestone_block._Hole_in_bottom%2C_used_as_pivot_block_to_turn_heavy_levers_on_in_moving_stones._4th_Dynasty._From_Meidum%2C_Egypt._The_Petrie_Museum_of_Egyptian_Archaeology%2C_London.jpg",
+      "appPath": "museum/egypt_limestone_block.jpg"
+    },
+    {
+      "id": "eg_10",
+      "file": "egypt_flax_seeds.jpg",
+      "evidence": "Flax Seeds",
+      "source": "Wikimedia Commons",
+      "title": "Brown Flax Seeds",
+      "license": "CC BY-SA 3.0",
+      "creator": "Sanjay Acharya",
+      "page": "https://commons.wikimedia.org/wiki/File:Brown_Flax_Seeds.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/5/56/Brown_Flax_Seeds.jpg",
+      "appPath": "museum/egypt_flax_seeds.jpg"
+    },
+    {
+      "id": "eg_13",
+      "file": "egypt_papyrus_scroll.jpg",
+      "evidence": "Papyrus Scroll",
+      "source": "The Met",
+      "title": "Papyrus letter in Greek",
+      "license": "CC0",
+      "creator": "The Metropolitan Museum of Art",
+      "page": "https://www.metmuseum.org/art/collection/search/251788",
+      "url": "https://images.metmuseum.org/CRDImages/gr/web-large/DP137338.jpg",
+      "appPath": "museum/egypt_papyrus_scroll.jpg"
+    },
+    {
+      "id": "eg_14",
+      "file": "egypt_hieroglyphs.jpg",
+      "evidence": "Hieroglyph Carving",
+      "source": "The Met",
+      "title": "Relief showing procession of offering bearers",
+      "license": "CC0",
+      "creator": "The Metropolitan Museum of Art",
+      "page": "https://www.metmuseum.org/art/collection/search/544193",
+      "url": "https://images.metmuseum.org/CRDImages/eg/web-large/DP322058.jpg",
+      "appPath": "museum/egypt_hieroglyphs.jpg"
+    },
+    {
+      "id": "eg_15",
+      "file": "egypt_ostracon.jpg",
+      "evidence": "Ostracon",
+      "source": "The Met",
+      "title": "Ostracon",
+      "license": "CC0",
+      "creator": "The Metropolitan Museum of Art",
+      "page": "https://www.metmuseum.org/art/collection/search/588352",
+      "url": "https://images.metmuseum.org/CRDImages/eg/web-large/DP-28398-001.jpg",
+      "appPath": "museum/egypt_ostracon.jpg"
+    },
+    {
+      "id": "rm_1",
+      "file": "roman_coin.jpg",
+      "evidence": "Bronze Sestertius",
+      "source": "The Met",
+      "title": "Bronze sestertius of Trajan",
+      "license": "CC0",
+      "creator": "The Metropolitan Museum of Art",
+      "page": "https://www.metmuseum.org/art/collection/search/248043",
+      "url": "https://images.metmuseum.org/CRDImages/gr/web-large/LC-08_170_121b.jpg",
+      "appPath": "museum/roman_coin.jpg"
+    },
+    {
+      "id": "rm_5",
+      "file": "roman_cremation_urn.jpg",
+      "evidence": "Cremation Urn Ashes",
+      "source": "The Met",
+      "title": "Marble cinerary urn",
+      "license": "CC0",
+      "creator": "The Metropolitan Museum of Art",
+      "page": "https://www.metmuseum.org/art/collection/search/257610",
+      "url": "https://images.metmuseum.org/CRDImages/gr/web-large/DT5415.jpg",
+      "appPath": "museum/roman_cremation_urn.jpg"
+    },
+    {
+      "id": "rm_9",
+      "file": "roman_mosaic_floor.jpg",
+      "evidence": "Mosaic Floor",
+      "source": "The Met",
+      "title": "Mosaic floor panel",
+      "license": "CC0",
+      "creator": "The Metropolitan Museum of Art",
+      "page": "https://www.metmuseum.org/art/collection/search/253565",
+      "url": "https://images.metmuseum.org/CRDImages/gr/web-large/DP140137.jpg",
+      "appPath": "museum/roman_mosaic_floor.jpg"
+    }
+  ],
+  "existingLocal": [
+    {
+      "id": "eg_4",
+      "evidence": "Mummified Remains",
+      "appPath": "museum/egypt_mummy.png",
+      "note": "Pre-existing local asset; source attribution still needs verification."
+    },
+    {
+      "id": "mg_1",
+      "evidence": "Silcrete Stone Tool",
+      "appPath": "museum/mungo_stone_tool.png",
+      "note": "Pre-existing local asset; source attribution still needs verification."
+    },
+    {
+      "id": "rm_4",
+      "evidence": "Gladiator Skull",
+      "appPath": "museum/roman_skull.png",
+      "note": "Pre-existing local asset; source attribution still needs verification."
+    },
+    {
+      "id": "ch_4",
+      "evidence": "Chariot Horse Skeletons",
+      "appPath": "museum/china_horse_skeletons.png",
+      "note": "Pre-existing local asset; source attribution still needs verification."
+    }
+  ],
+  "pending": [
+    {
+      "id": "eg_11",
+      "evidence": "Nile Silt Layer",
+      "intendedFile": "egypt_nile_silt_layer.jpg",
+      "reason": "Download blocked: 429 Too many requests (f061ab2)"
+    },
+    {
+      "id": "eg_12",
+      "evidence": "Dried Papyrus Reeds",
+      "intendedFile": "egypt_papyrus_reeds.jpg",
+      "reason": "Download blocked: 429 Too many requests (f061ab2)"
+    },
+    {
+      "id": "mg_2",
+      "evidence": "Grinding Stone",
+      "intendedFile": "mungo_grinding_stone.jpg",
+      "reason": "Download blocked: 429 Too many requests (f061ab2)"
+    },
+    {
+      "id": "mg_3",
+      "evidence": "Ochre Fragment",
+      "intendedFile": "mungo_ochre_fragment.jpg",
+      "reason": "Download blocked: 429 Too many requests (f061ab2)"
+    },
+    {
+      "id": "mg_4",
+      "evidence": "Ritual Burial Skeleton",
+      "intendedFile": "mungo_ochre_burial_context.jpg",
+      "reason": "Download blocked: 429 Too many requests (f061ab2)"
+    },
+    {
+      "id": "rm_13",
+      "evidence": "Wax Tablet",
+      "intendedFile": "roman_wax_tablet.jpg",
+      "reason": "Download blocked: 429 Too many requests (f061ab2)"
+    },
+    {
+      "id": "rm_15",
+      "evidence": "Carbonized Scroll",
+      "intendedFile": "roman_carbonized_scroll.jpg",
+      "reason": "Download blocked: 429 Too many requests (f061ab2)"
+    },
+    {
+      "id": "ch_1",
+      "evidence": "Bronze Ding",
+      "intendedFile": "china_bronze_ding.jpg",
+      "reason": "Download blocked: 429 Too many requests (f061ab2)"
+    },
+    {
+      "id": "ch_2",
+      "evidence": "Terracotta Fragment",
+      "intendedFile": "china_terracotta.jpg",
+      "reason": "Download blocked: 429 Too many requests - please contact noc@wikimedia.org to discuss a less disruptive approach or instead use thumbnail images in sizes listed on https://w.wiki/GHai. (0c640b1)"
+    },
+    {
+      "id": "ch_3",
+      "evidence": "Jade Ornament",
+      "intendedFile": "china_jade_ornament.jpg",
+      "reason": "Download blocked: 429 Too many requests - please contact noc@wikimedia.org to discuss a less disruptive approach or instead use thumbnail images in sizes listed on https://w.wiki/GHai. (0c640b1)"
+    },
+    {
+      "id": "ch_5",
+      "evidence": "Silk-Wrapped Bones",
+      "intendedFile": "china_silk_fibres.jpg",
+      "reason": "Download blocked: 404 Not Found"
+    },
+    {
+      "id": "ch_6",
+      "evidence": "Laborer Skeletons",
+      "intendedFile": "china_wall_laborers_context.jpg",
+      "reason": "Download blocked: 429 Too many requests - please contact noc@wikimedia.org to discuss a less disruptive approach or instead use thumbnail images in sizes listed on https://w.wiki/GHai. (0c640b1)"
+    },
+    {
+      "id": "ch_7",
+      "evidence": "Rammed Earth Wall",
+      "intendedFile": "china_rammed_earth_wall.jpg",
+      "reason": "Download blocked: 429 Too many requests - please contact noc@wikimedia.org to discuss a less disruptive approach or instead use thumbnail images in sizes listed on https://w.wiki/GHai. (0c640b1)"
+    }
+  ]
+}
