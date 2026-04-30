@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  Trowel, 
+  Shovel, 
   Search, 
   Microscope, 
   FileText, 
@@ -50,7 +50,6 @@ import {
   MinusCircle,
   RefreshCw,
   Archive,
-  Graveyard,
   Mountain,
   Waves,
   Feather,
@@ -463,7 +462,7 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
             </p>
             
             <div style={{ background: 'rgba(0,0,0,0.3)', padding: '1rem', borderRadius: '12px', marginBottom: '1.5rem' }}>
-              <h4 style={{ color: var(--accent), marginBottom: '0.5rem', fontSize: '0.9rem', textTransform: 'uppercase' }}>Field Objectives:</h4>
+              <h4 style={{ color: 'var(--accent)', marginBottom: '0.5rem', fontSize: '0.9rem', textTransform: 'uppercase' }}>Field Objectives:</h4>
               <ul style={{ textAlign: 'left', fontSize: '0.95rem', color: 'var(--sand-300)', paddingLeft: '1.2rem' }}>
                 <li>Find matching pairs of artifacts in the trench grid.</li>
                 <li>Each match recovers the item to our sorting tent.</li>
@@ -521,7 +520,7 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
           <div className="modal-content glass-card slide-up">
             <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
               {perfectClear ? (
-                <div style={{ color: var(--success) }}>
+                <div style={{ color: 'var(--success)' }}>
                   <Trophy size={64} style={{ margin: '0 auto 1rem' }} />
                   <h2 className="modal-title">SITE SECURED!</h2>
                   <p>Incredible work! You've recovered every single artifact before the {currentEvent.name} hit.</p>
@@ -567,7 +566,7 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
             </p>
 
             <div className="debrief-insight">
-              <h4 style={{ color: var(--accent), marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h4 style={{ color: 'var(--accent)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <History size={18} /> Historical Context Log
               </h4>
               <p>By excavating these remains, we've begun to piece together the history of this site. Your quick actions saved valuable evidence that will now be processed in the lab.</p>
@@ -575,13 +574,13 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '2rem' }}>
               <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                <h5 style={{ color: var(--sand-200), marginBottom: '0.5rem' }}>Site Integrity</h5>
+                <h5 style={{ color: 'var(--sand-200)', marginBottom: '0.5rem' }}>Site Integrity</h5>
                 <p style={{ fontSize: '0.85rem', color: 'var(--sand-400)' }}>
                   Recovery of {ancientRecoveredCount} items provides a significant sample size for determining the site's primary function and era.
                 </p>
               </div>
               <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                <h5 style={{ color: var(--sand-200), marginBottom: '0.5rem' }}>Stratigraphy Note</h5>
+                <h5 style={{ color: 'var(--sand-200)', marginBottom: '0.5rem' }}>Stratigraphy Note</h5>
                 <p style={{ fontSize: '0.85rem', color: 'var(--sand-400)' }}>
                   {disturbanceCount > 0 ? `The ${disturbanceCount} modern items found suggest some soil disturbance (bioturbation) in the upper layers.` : "The absence of modern items indicates a very well-preserved, sealed context."}
                 </p>
@@ -661,7 +660,7 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
             >
               <div className="tile-inner">
                 <div className="tile-front dirt-texture">
-                  <Trowel size={24} style={{ opacity: 0.3, color: 'var(--sand-900)' }} />
+                  <Shovel size={24} style={{ opacity: 0.3, color: 'var(--sand-900)' }} />
                 </div>
                 <div className="tile-back artifact-texture">
                   <div className="artifact-icon">
@@ -809,7 +808,7 @@ function SortPhase({ artifacts, onComplete }) {
               <p><strong>Current Task:</strong> Sort the recovered items by their primary archaeological function.</p>
               <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
                  {CATEGORIES.map(cat => (
-                   <span key={cat.id} style={{ fontSize: '0.75rem', padding: '4px 8px', borderRadius: '4px', background: 'rgba(255,255,255,0.05)', color: var(--sand-400) }}>
+                   <span key={cat.id} style={{ fontSize: '0.75rem', padding: '4px 8px', borderRadius: '4px', background: 'rgba(255,255,255,0.05)', color: 'var(--sand-400)' }}>
                      {cat.title}
                    </span>
                  ))}
@@ -817,7 +816,7 @@ function SortPhase({ artifacts, onComplete }) {
             </div>
           ) : (
             <div className="clue-content active">
-              <p style={{ color: var(--success) }}><strong>Tent Organized!</strong> All artifacts have been categorized and are ready for laboratory analysis.</p>
+              <p style={{ color: 'var(--success)' }}><strong>Tent Organized!</strong> All artifacts have been categorized and are ready for laboratory analysis.</p>
               <button className="btn primary-btn slide-up" onClick={() => onComplete(binnedItems)} style={{ marginTop: '1rem' }}>
                 OPEN THE LAB CASE <ChevronRight size={20} />
               </button>
@@ -935,12 +934,12 @@ function LabPhase({ binnedItems, onComplete }) {
 
       <div className="lab-layout" style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: '2rem', flex: 1, minHeight: 0 }}>
         <div className="lab-sidebar glass-card" style={{ padding: '1rem', overflowY: 'auto' }}>
-          <h3 style={{ fontSize: '0.9rem', textTransform: 'uppercase', color: var(--accent), marginBottom: '1rem' }}>Recovered Evidence</h3>
+          <h3 style={{ fontSize: '0.9rem', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: '1rem' }}>Recovered Evidence</h3>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {CATEGORIES.map(category => (
               <div key={category.id}>
-                <h4 style={{ fontSize: '0.8rem', color: var(--sand-400), marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <h4 style={{ fontSize: '0.8rem', color: 'var(--sand-400)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   {getIcon(category.id, 14)} {category.title}
                 </h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -974,7 +973,7 @@ function LabPhase({ binnedItems, onComplete }) {
                 <div style={{ 
                   width: '120px', height: '120px', borderRadius: '20px', 
                   background: 'rgba(255,255,255,0.03)', border: '2px solid var(--accent)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', color: var(--accent)
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)'
                 }}>
                   {getIcon(selectedArtifact.type, 64)}
                 </div>
@@ -1028,7 +1027,7 @@ function LabPhase({ binnedItems, onComplete }) {
               </div>
             </div>
           ) : (
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', color: var(--sand-500) }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', color: 'var(--sand-500)' }}>
               <Search size={64} style={{ marginBottom: '1.5rem', opacity: 0.2 }} />
               <h3>Select an artifact from the tray to begin analysis</h3>
               <p style={{ maxWidth: '400px', marginTop: '1rem' }}>Each object is a piece of the puzzle. Analyze its properties to build a hypothesis for your final archaeological report.</p>
@@ -1107,7 +1106,7 @@ function ReportPhase({ scenario, binnedItems, hypotheses, onRestart }) {
                         </div>
                         <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '0.8rem' }}>{item.details}</p>
                         <div className="report-hypothesis">
-                          <strong style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: var(--sand-600), display: 'block', marginBottom: '4px' }}>Hypothesis:</strong>
+                          <strong style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--sand-600)', display: 'block', marginBottom: '4px' }}>Hypothesis:</strong>
                           {hypotheses[item.id]}
                         </div>
                       </li>
@@ -1210,7 +1209,7 @@ export default function ArchaeologyApp() {
         </div>
         <div className="phase-indicator">
           <span className={phase === 'dig' ? 'active' : 'done'}>
-            <Trowel size={14} /> <strong>PHASE 1</strong> <em>Site Dig</em>
+            <Shovel size={14} /> <strong>PHASE 1</strong> <em>Site Dig</em>
           </span>
           <ChevronRight size={14} />
           <span className={phase === 'sort' ? 'active' : phase === 'lab' || phase === 'report' ? 'done' : ''}>
