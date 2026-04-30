@@ -594,43 +594,35 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
         </div>
       )}
 
-      {/* Status Panel */}
+      {/* Status Panel - Horizontal Compact Bar */}
       <div className="dig-status-panel">
-        <div className="status-section left">
-          <div className="status-icon-box">
-             <EventIcon size={24} style={{color: currentEvent.dangerColor}} />
-          </div>
-          <div className="status-info">
-            <div className="status-phase-label">Phase 1: Emergency Excavation</div>
-            <div className="status-warning-pill" style={{'--pill-color': currentEvent.dangerColor}}>
-               {currentEvent.title}
-            </div>
-          </div>
+        <div className="status-info-row">
+          <span className="status-phase-label">Phase 1: Emergency Excavation</span>
+          <span className="status-sep">|</span>
+          <span className="status-warning-text" style={{color: currentEvent.dangerColor}}>
+             {currentEvent.title}
+          </span>
         </div>
         
-        <div className="status-section center">
-          <div className={`timer-card ${timeDanger ? 'danger' : ''}`}>
-             <Clock size={22} />
-             <span className="timer-value">{formatTime(timeLeft)}</span>
-             <div className="timer-label">TIME REMAINING</div>
-          </div>
+        <div className={`timer-horizontal ${timeDanger ? 'danger' : ''}`}>
+           <Clock size={20} />
+           <span className="timer-value">{formatTime(timeLeft)}</span>
+           <span className="timer-label">TIME REMAINING</span>
         </div>
 
-        <div className="status-section right">
-           <button 
-             className="radar-btn" 
-             onClick={handleRadar}
-             disabled={timeLeft <= (difficulty === 'easy' ? 30 : difficulty === 'medium' ? 20 : 10) || isLocked || !isPlaying}
-           >
-             <Radar size={18} /> Use Radar (-{difficulty === 'easy' ? 30 : difficulty === 'medium' ? 20 : 10}s)
-           </button>
-        </div>
+        <button 
+          className="radar-btn-compact" 
+          onClick={handleRadar}
+          disabled={timeLeft <= (difficulty === 'easy' ? 30 : difficulty === 'medium' ? 20 : 10) || isLocked || !isPlaying}
+        >
+          <Radar size={16} /> Use Radar (-{difficulty === 'easy' ? 30 : difficulty === 'medium' ? 20 : 10}s)
+        </button>
       </div>
 
       {/* Game Panel */}
       <div className="dig-game-panel">
         <div className="instruction-row">
-          <Lightbulb size={18} className="instruction-icon" />
+          <Lightbulb size={16} className="instruction-icon" />
           <span>Find matching artefacts before time runs out!</span>
         </div>
         
@@ -663,7 +655,7 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
                       style={{ '--artifact-accent': tileTheme.accent, '--artifact-accent-soft': tileTheme.accentSoft }}
                     >
                       <div className="artifact-icon" style={{ color: 'var(--artifact-accent)' }}>
-                        {getIcon(tile.artifact.type, 28)}
+                        {getIcon(tile.artifact.type, 24)}
                       </div>
                       <div className="artifact-label">{tile.artifact.name}</div>
                     </div>
@@ -675,24 +667,21 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
         </div>
       </div>
 
-      {/* Footer Panel */}
-      <div className="dig-footer-panel">
-        <div className="footer-stat">
-           <Trophy size={20} className="footer-icon" />
-           <div className="stat-content">
-             <span className="stat-label">Matches Found</span>
-             <span className="stat-value">{excavatedIds.size} / {activeArtifacts.length}</span>
-           </div>
+      {/* Compact Footer Panel */}
+      <div className="dig-footer-panel-compact">
+        <div className="footer-stats-group">
+          <div className="footer-stat-item">
+             <Trophy size={16} />
+             <span>Matches Found: <strong>{excavatedIds.size} / {activeArtifacts.length}</strong></span>
+          </div>
+          <div className="footer-stat-item">
+             <RefreshCw size={16} />
+             <span>Attempts: <strong>{attempts}</strong></span>
+          </div>
         </div>
-        <div className="footer-stat">
-           <RefreshCw size={20} className="footer-icon" />
-           <div className="stat-content">
-             <span className="stat-label">Attempts</span>
-             <span className="stat-value">{attempts}</span>
-           </div>
-        </div>
-        <button className="help-btn" onClick={() => setFeedback({message: "Match pairs of items to excavate them. Some are ancient, some are modern distraction!", isError: false})}>
-           <HelpCircle size={20} /> How to Play
+        
+        <button className="help-btn-compact" onClick={() => setFeedback({message: "Match pairs of items to excavate them. Some are ancient, some are modern distraction!", isError: false})}>
+           <HelpCircle size={18} /> How to Play
         </button>
       </div>
 
