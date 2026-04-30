@@ -215,6 +215,39 @@ const getArtifactTheme = (artifact) => {
   };
 };
 
+const LAB_ANALYSIS_PROMPTS = [
+  {
+    id: 'daily-life',
+    title: 'Daily life',
+    description: 'How people lived, worked or ate',
+    icon: MapPin,
+  },
+  {
+    id: 'beliefs',
+    title: 'Beliefs',
+    description: 'Religion, burial or afterlife ideas',
+    icon: Landmark,
+  },
+  {
+    id: 'technology',
+    title: 'Technology',
+    description: 'Tools, building or materials',
+    icon: Beaker,
+  },
+  {
+    id: 'environment',
+    title: 'Environment',
+    description: 'Climate, plants, animals or natural conditions',
+    icon: Leaf,
+  },
+  {
+    id: 'society',
+    title: 'Power and society',
+    description: 'Rules, status, wealth or leadership',
+    icon: Users,
+  },
+];
+
 function DraggableArtifact({ artifact, onClick, showStatus = false, isNeutral = false }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: artifact.id,
@@ -523,14 +556,14 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
             <EventIcon size={48} style={{ color: currentEvent.dangerColor, marginBottom: '1rem', animation: 'pulse 2s infinite' }} />
             <h2 className="modal-title" style={{color: currentEvent.dangerColor}}>{currentEvent.title}</h2>
             <p style={{fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--sand-100)'}}>
-              {currentEvent.description} You have exactly <strong>{difficulty === 'easy' ? '5 minutes' : difficulty === 'medium' ? '3 minutes' : '90 seconds'}</strong> to excavate as many artifacts as you can before we must evacuate.
+              {currentEvent.description} You have exactly <strong>{difficulty === 'easy' ? '5 minutes' : difficulty === 'medium' ? '3 minutes' : '90 seconds'}</strong> to recover as many finds as you can before the team must leave.
             </p>
             <div style={{marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-              <p style={{margin: '0 0 10px 0', fontWeight: 'bold', color: 'var(--sand-200)'}}>Select Difficulty:</p>
+              <p style={{margin: '0 0 10px 0', fontWeight: 'bold', color: 'var(--sand-200)'}}>Select difficulty</p>
               <div style={{display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center'}}>
-                <button className={`btn ${difficulty === 'easy' ? 'primary-btn' : ''}`} onClick={() => setDifficulty('easy')} style={{padding: '5px 15px', background: difficulty === 'easy' ? 'var(--accent)' : 'rgba(0,0,0,0.5)', color: difficulty === 'easy' ? '#111' : 'var(--sand-100)', border: '1px solid var(--sand-600)'}}>Easy (5 Min)</button>
-                <button className={`btn ${difficulty === 'medium' ? 'primary-btn' : ''}`} onClick={() => setDifficulty('medium')} style={{padding: '5px 15px', background: difficulty === 'medium' ? 'var(--accent)' : 'rgba(0,0,0,0.5)', color: difficulty === 'medium' ? '#111' : 'var(--sand-100)', border: '1px solid var(--sand-600)'}}>Medium (3 Min)</button>
-                <button className={`btn ${difficulty === 'hard' ? 'primary-btn' : ''}`} onClick={() => setDifficulty('hard')} style={{padding: '5px 15px', background: difficulty === 'hard' ? 'var(--accent)' : 'rgba(0,0,0,0.5)', color: difficulty === 'hard' ? '#111' : 'var(--sand-100)', border: '1px solid var(--sand-600)'}}>Hard (90 Sec)</button>
+                <button className={`btn ${difficulty === 'easy' ? 'primary-btn' : ''}`} onClick={() => setDifficulty('easy')} style={{padding: '5px 15px', background: difficulty === 'easy' ? 'var(--accent)' : 'rgba(0,0,0,0.5)', color: difficulty === 'easy' ? '#111' : 'var(--sand-100)', border: '1px solid var(--sand-600)'}}>Easy (5 min)</button>
+                <button className={`btn ${difficulty === 'medium' ? 'primary-btn' : ''}`} onClick={() => setDifficulty('medium')} style={{padding: '5px 15px', background: difficulty === 'medium' ? 'var(--accent)' : 'rgba(0,0,0,0.5)', color: difficulty === 'medium' ? '#111' : 'var(--sand-100)', border: '1px solid var(--sand-600)'}}>Medium (3 min)</button>
+                <button className={`btn ${difficulty === 'hard' ? 'primary-btn' : ''}`} onClick={() => setDifficulty('hard')} style={{padding: '5px 15px', background: difficulty === 'hard' ? 'var(--accent)' : 'rgba(0,0,0,0.5)', color: difficulty === 'hard' ? '#111' : 'var(--sand-100)', border: '1px solid var(--sand-600)'}}>Hard (90 sec)</button>
               </div>
             </div>
             <div style={{display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap'}}>
@@ -547,7 +580,7 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
                 setTimeLeft(difficulty === 'easy' ? 300 : difficulty === 'medium' ? 180 : 90);
                 setShowStormWarning(false);
                 setIsPlaying(true);
-              }}>2 Player Versus <Pickaxe size={20} /></button>
+              }}>2-player challenge <Pickaxe size={20} /></button>
             </div>
           </div>
         </div>
@@ -557,11 +590,11 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
         <div className="modal-overlay">
           <div className="modal-content glass-card warning-modal" style={{borderColor: '#ef4444'}}>
             <EventIcon size={48} style={{ color: '#ef4444', marginBottom: '1rem' }} />
-            <h2 className="modal-title" style={{color: '#ef4444'}}>Time's Up!</h2>
+            <h2 className="modal-title" style={{color: '#ef4444'}}>Time is up</h2>
             <p style={{fontSize: '1.2rem', marginBottom: '2rem', color: 'var(--sand-100)'}}>
-              We had to evacuate the site! You managed to save <strong>{excavatedIds.size}</strong> artifacts.
+              The site had to be cleared. You recovered <strong>{excavatedIds.size}</strong> find{excavatedIds.size === 1 ? '' : 's'} for study.
             </p>
-            <button className="btn primary-btn" onClick={openDebrief}>Run to Sorting Tent <Tent size={20} /></button>
+            <button className="btn primary-btn" onClick={openDebrief}>Move finds to Sorting Tent <Tent size={20} /></button>
           </div>
         </div>
       )}
@@ -570,11 +603,11 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
         <div className="modal-overlay">
           <div className="modal-content glass-card warning-modal">
             <CheckCircle2 size={48} style={{ color: 'var(--success)', marginBottom: '1rem' }} />
-            <h2 className="modal-title" style={{color: 'var(--success)'}}>Site Cleared!</h2>
+            <h2 className="modal-title" style={{color: 'var(--success)'}}>Site cleared</h2>
             <p style={{fontSize: '1.2rem', marginBottom: '2rem', color: 'var(--sand-100)'}}>
-              Incredible! You excavated all artifacts with {formatTime(timeLeft)} to spare!
+              Every find was recovered with {formatTime(timeLeft)} remaining.
             </p>
-            <button className="btn primary-btn" onClick={openDebrief}>Head to Sorting Tent <Tent size={20} /></button>
+            <button className="btn primary-btn" onClick={openDebrief}>Move finds to Sorting Tent <Tent size={20} /></button>
           </div>
         </div>
       )}
@@ -583,13 +616,13 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
         <div className="modal-overlay">
           <div className="modal-content glass-card debrief-modal">
             <FileText size={48} style={{ color: 'var(--accent)', marginBottom: '1rem' }} />
-            <h2 className="modal-title" style={{color: 'var(--accent)'}}>Field Notebook</h2>
+            <h2 className="modal-title" style={{color: 'var(--accent)'}}>Field notebook</h2>
             <div className="field-note-summary">
               <div className="field-note-stat"><strong>{ancientRecoveredCount}</strong><span>Ancient finds</span></div>
               <div className="field-note-stat"><strong>{disturbanceCount}</strong><span>Disturbance items</span></div>
               <div className="field-note-stat"><strong>{recoveredArtifacts.length}</strong><span>Total items</span></div>
             </div>
-            <button className="btn primary-btn" onClick={() => onComplete(excavatedIds)}>Proceed to Sorting <Tent size={20} /></button>
+            <button className="btn primary-btn" onClick={() => onComplete(excavatedIds)}>Open Sorting Tent <Tent size={20} /></button>
           </div>
         </div>
       )}
@@ -597,7 +630,7 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
       {/* Status Panel - Horizontal Compact Bar */}
       <div className="dig-status-panel">
         <div className="status-info-row">
-          <span className="status-phase-label">Phase 1: Emergency Excavation</span>
+          <span className="status-phase-label">Phase 1: Emergency excavation</span>
           <span className="status-sep">|</span>
           <span className="status-warning-text" style={{color: currentEvent.dangerColor}}>
              {currentEvent.title}
@@ -615,7 +648,7 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
           onClick={handleRadar}
           disabled={timeLeft <= (difficulty === 'easy' ? 30 : difficulty === 'medium' ? 20 : 10) || isLocked || !isPlaying}
         >
-          <Radar size={16} /> Use Radar (-{difficulty === 'easy' ? 30 : difficulty === 'medium' ? 20 : 10}s)
+          <Radar size={16} /> Use radar (-{difficulty === 'easy' ? 30 : difficulty === 'medium' ? 20 : 10}s)
         </button>
       </div>
 
@@ -623,7 +656,7 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
       <div className="dig-game-panel">
         <div className="instruction-row">
           <Lightbulb size={16} className="instruction-icon" />
-          <span>Find matching artefacts before time runs out!</span>
+          <span>Match pairs to recover finds before time runs out.</span>
         </div>
         
         <div className="game-board-container" style={{position: 'relative'}}>
@@ -672,7 +705,7 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
         <div className="footer-stats-group">
           <div className="footer-stat-item">
              <Trophy size={16} />
-             <span>Matches Found: <strong>{excavatedIds.size} / {activeArtifacts.length}</strong></span>
+             <span>Recovered: <strong>{excavatedIds.size} / {activeArtifacts.length}</strong></span>
           </div>
           <div className="footer-stat-item">
              <RefreshCw size={16} />
@@ -680,8 +713,8 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
           </div>
         </div>
         
-        <button className="help-btn-compact" onClick={() => setFeedback({message: "Match pairs of items to excavate them. Some are ancient, some are modern distraction!", isError: false})}>
-           <HelpCircle size={18} /> How to Play
+        <button className="help-btn-compact" onClick={() => setFeedback({message: "Match two identical finds to recover them. Some finds are ancient evidence; others are modern disturbance.", isError: false})}>
+           <HelpCircle size={18} /> Field guide
         </button>
       </div>
 
@@ -793,22 +826,23 @@ function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, onComplet
 
   return (
     <div className="phase-container sort-phase">
-      <div className="phase-status-panel">
-        <div className="status-panel-info">
-          <div className="status-icon-box">
-            <Tent size={24} color="var(--accent)" />
+      <div className="phase-status-panel-compact">
+        <div className="status-info-row">
+          <div className="status-icon-box-small">
+            <Tent size={20} color="var(--arch-accent)" />
           </div>
-          <div className="status-text-content">
+          <div className="status-text-content-horizontal">
             <h2>Phase 2: Sorting Tent</h2>
-            <p>Drag the artefacts you saved into the correct evidence categories.</p>
+            <p className="hide-on-mobile">Classify each recovered find by the evidence it provides.</p>
           </div>
         </div>
-        <div className="status-panel-progress">
-          <div className="progress-label-row">
-            <span className="progress-label">PROGRESS</span>
-            <span className="progress-count">{sortedCount} / {activeArtifacts.length} sorted</span>
+        
+        <div className="status-panel-progress-compact">
+          <div className="progress-label-group">
+            <span className="progress-label-mini">PROGRESS</span>
+            <span className="progress-count-mini">{sortedCount} / {activeArtifacts.length}</span>
           </div>
-          <div className="progress-bar-wide">
+          <div className="progress-bar-thin">
             <div className="progress-fill" style={{ width: `${(sortedCount / activeArtifacts.length) * 100}%` }}></div>
           </div>
         </div>
@@ -824,8 +858,8 @@ function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, onComplet
           {/* Left Column: Inventory */}
           <div className="inventory-side-panel">
             <div className="panel-header">
-              <h3>INVENTORY</h3>
-              <p>Tap an item to see its clue, then drag to a category.</p>
+              <h3>Evidence tray</h3>
+              <p>Check the clue, then place the find in its best category.</p>
             </div>
             <div className="inventory-scroll-area">
               {inventoryItems.map(item => (
@@ -839,7 +873,7 @@ function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, onComplet
               {inventoryItems.length === 0 && (
                 <div className="empty-inventory-msg">
                   <CheckCircle2 size={32} color="var(--success)" />
-                  <p>All items sorted!</p>
+                  <p>All finds sorted.</p>
                 </div>
               )}
             </div>
@@ -860,12 +894,12 @@ function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, onComplet
                       <span><strong>Discovery:</strong> {hoveredCard.discoveryMethod}</span>
                       <span><strong>Context:</strong> {getArtifactEraLabel(hoveredCard)}</span>
                     </div>
-                    <p className="clue-prompt">Which evidence category does this best fit?</p>
+                    <p className="clue-prompt">Which evidence category best explains this find?</p>
                   </div>
                 ) : (
                   <div className="clue-placeholder">
-                    <p className="placeholder-main">No item selected</p>
-                    <p className="placeholder-sub">Tap an item from the inventory to view its clue before sorting.</p>
+                    <p className="placeholder-main">No find selected</p>
+                    <p className="placeholder-sub">Select a find to inspect its clue before sorting.</p>
                   </div>
                 )}
                 
@@ -878,7 +912,7 @@ function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, onComplet
             </div>
 
             <div className="categories-section">
-              <h4 className="section-heading">SORT INTO EVIDENCE CATEGORIES</h4>
+              <h4 className="section-heading">Evidence categories</h4>
               <div className="categories-grid-custom">
                 {CATEGORIES.map(cat => (
                   <CategoryBin 
@@ -894,15 +928,15 @@ function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, onComplet
             <div className="sort-footer-actions">
               <button 
                 className="help-btn-large" 
-                onClick={() => setFeedback({message: "Carefully read the clue for each item. Think about what it is made of, where it was found, and what it represents.", isError: false})}
+                onClick={() => setFeedback({message: "Use the clue, material, and discovery context to decide which kind of evidence the find provides.", isError: false})}
               >
-                <HelpCircle size={20} /> How to Play
+                <HelpCircle size={20} /> Sorting guide
               </button>
               
               {isComplete && (
                 <div className="completion-action animate-bounce-in">
                    <button className="btn primary-btn large-btn" onClick={onComplete}>
-                     Proceed to The Lab <ArrowRight size={22} />
+                     Open the Lab <ArrowRight size={22} />
                    </button>
                 </div>
               )}
@@ -931,260 +965,273 @@ function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, onComplet
 // Phase 3: Lab
 // ------------------------------------------------------------------
 function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypotheses, scenarios, currentScenario, onComplete }) {
-  // Use currentScenario directly as it is passed as the scenario object from App.jsx
   const currentScenarioData = currentScenario;
+  const trayItems = useMemo(() => {
+    const sortedItems = activeArtifacts.filter(item => itemsLocation[item.id] && itemsLocation[item.id] !== 'inventory');
+    return sortedItems.length > 0 ? sortedItems : activeArtifacts;
+  }, [activeArtifacts, itemsLocation]);
 
-  const [inspectingItem, setInspectingItem] = useState(null);
-  const [showNamingModal, setShowNamingModal] = useState(false);
-  const [tempSiteName, setTempSiteName] = useState("");
-  const [selectedCiv, setSelectedCiv] = useState(null);
-  const [wrongAttempt, setWrongAttempt] = useState(false);
-  const [currentSelection, setCurrentSelection] = useState(null);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [shuffledOptions, setShuffledOptions] = useState([]);
-  const [shuffledCivs, setShuffledCivs] = useState([]);
+  const [selectedArtifactId, setSelectedArtifactId] = useState(null);
+  const [selectedPromptId, setSelectedPromptId] = useState(null);
+  const [draftNote, setDraftNote] = useState('');
 
-  useEffect(() => {
-    setWrongAttempt(false);
-    setIsSuccess(false);
-    setCurrentSelection(null);
-    if (inspectingItem && inspectingItem.options) {
-      const opts = inspectingItem.options.map((text, idx) => ({ text, originalIndex: idx }));
-      setShuffledOptions([...opts].sort(() => Math.random() - 0.5));
-    }
-  }, [inspectingItem]);
+  const requiredCount = 3;
+  const analysedEntries = Object.entries(hypotheses);
+  const analysedCount = analysedEntries.length;
+  const progressPercent = Math.min(100, (analysedCount / requiredCount) * 100);
+  const isComplete = analysedCount >= requiredCount;
+  const selectedArtifact = trayItems.find(item => item.id === selectedArtifactId) || null;
+  const selectedAnalysis = selectedArtifact ? hypotheses[selectedArtifact.id] : null;
+  const selectedPrompt = LAB_ANALYSIS_PROMPTS.find(prompt => prompt.id === selectedPromptId) || null;
 
   useEffect(() => {
-    if (showNamingModal) {
-      setShuffledCivs([...scenarios].sort(() => Math.random() - 0.5));
+    if (!selectedArtifactId) {
+      setSelectedPromptId(null);
+      setDraftNote('');
+      return;
     }
-  }, [showNamingModal, scenarios]);
-  
-  // They only need to analyze up to 3 (or less if they found less than 3)
-  const requiredCount = Math.min(3, activeArtifacts.length);
-  const hypothesesCount = Object.keys(hypotheses).length;
-  const isComplete = hypothesesCount >= requiredCount;
+
+    const saved = hypotheses[selectedArtifactId];
+    setSelectedPromptId(saved?.promptId ?? null);
+    setDraftNote(saved?.note ?? '');
+  }, [selectedArtifactId, hypotheses]);
+
+  useEffect(() => {
+    if (selectedArtifactId && !trayItems.some(item => item.id === selectedArtifactId)) {
+      setSelectedArtifactId(null);
+    }
+  }, [trayItems, selectedArtifactId]);
+
+  const handleSaveAnalysis = () => {
+    if (!selectedArtifact || !selectedPrompt || !draftNote.trim()) return;
+
+    const analysisRecord = {
+      promptId: selectedPrompt.id,
+      promptTitle: selectedPrompt.title,
+      promptDescription: selectedPrompt.description,
+      note: draftNote.trim(),
+      clue: selectedArtifact.clue,
+      question: selectedArtifact.question,
+      typeLabel: getCategoryTitle(selectedArtifact.type),
+      eraLabel: getArtifactEraLabel(selectedArtifact),
+      savedAt: Date.now(),
+    };
+
+    setHypotheses(prev => ({
+      ...prev,
+      [selectedArtifact.id]: analysisRecord,
+    }));
+    setSelectedArtifactId(null);
+    setSelectedPromptId(null);
+    setDraftNote('');
+  };
+
+  const savedAnalyses = analysedEntries.map(([artifactId, analysis], index) => {
+    const artifact = activeArtifacts.find(item => item.id === artifactId);
+    return {
+      artifactId,
+      analysis,
+      artifact,
+      slot: index + 1,
+    };
+  });
 
   return (
-    <div className="phase-container">
-      <div className="phase-header lab-header" style={{marginBottom: '0.5rem'}}>
-        <h2 style={{fontSize: '1.15rem', marginBottom: '2px'}}><Search size={22} /> Phase 3: The Lab</h2>
-        <p style={{fontSize: '0.85rem', marginBottom: '0.5rem'}}>Analyze <strong>{requiredCount} artifact{requiredCount > 1 ? 's' : ''}</strong>. What do they reveal?</p>
-        
-        {currentScenarioData && (
-          <div className="historical-context-box slide-up" style={{padding: '0.6rem 0.8rem', marginBottom: '0.5rem'}}>
-            <h3 style={{fontSize: '0.9rem', marginBottom: '2px'}}><ScrollText size={16} style={{verticalAlign: 'middle', marginRight: '6px'}}/> Briefing</h3>
-            <p style={{fontSize: '0.82rem', lineHeight: '1.3'}}>{currentScenarioData.historicalContext}</p>
+    <div className="phase-container lab-phase">
+      <div className="phase-status-panel-compact lab-status-panel">
+        <div className="status-panel-info">
+          <div className="status-icon-box-small">
+            <Search size={20} />
           </div>
-        )}
-
-        <div className="progress-bar" style={{height: '6px', marginBottom: '2px'}}>
-          <div className="progress-fill" style={{ width: `${Math.min(100, (hypothesesCount / requiredCount) * 100)}%` }}></div>
+          <div className="status-text-content-horizontal">
+            <h2>Phase 3: The Lab</h2>
+            <p>Choose three finds. Read the clue, then record what each one reveals.</p>
+          </div>
         </div>
-        <p className="progress-text" style={{fontSize: '0.75rem'}}>Analyzed: {hypothesesCount} / {requiredCount}</p>
+
+        <div className="status-panel-progress-compact">
+          <div className="progress-label-group">
+            <span className="progress-label-mini">PROGRESS</span>
+            <span className="progress-count-mini">{analysedCount} / {requiredCount} analysed</span>
+          </div>
+          <div className="progress-bar-thin">
+            <div className="progress-fill" style={{ width: `${progressPercent}%` }}></div>
+          </div>
+        </div>
       </div>
 
-      <div className="sorting-layout read-only">
-        {CATEGORIES.map(cat => (
-          <CategoryBin 
-            key={cat.id} 
-            category={cat} 
-            items={activeArtifacts.filter(c => itemsLocation[c.id] === cat.id)} 
-            onArtifactClick={setInspectingItem}
-            itemsWithHypothesis={hypotheses}
-          />
-        ))}
-      </div>
-      
-      {isComplete && (
-        <div className="action-footer slide-up">
-           <button className="btn primary-btn" onClick={() => setShowNamingModal(true)}>
-             Complete Analysis <CheckCircle2 size={20} />
-           </button>
+      {currentScenarioData && (
+        <div className="lab-briefing-card">
+          <div className="lab-briefing-title">
+            <ScrollText size={16} />
+            <span>Briefing</span>
+          </div>
+          <p>{currentScenarioData.historicalContext}</p>
         </div>
       )}
 
-      {showNamingModal && (
-        <div className="modal-overlay">
-          <div className="modal-content glass-card slide-up" style={{maxWidth: '600px'}}>
-            <h2 className="modal-title">Final Synthesis</h2>
-            
-            <div className="mcq-options" style={{marginBottom: '2rem'}}>
-               {shuffledCivs.map((scen, idx) => (
-                  <button key={idx} className="btn" 
-                     style={{
-                        background: selectedCiv === scen.id ? 'var(--accent)' : 'rgba(0,0,0,0.4)',
-                        color: selectedCiv === scen.id ? '#111' : 'var(--sand-100)',
-                        border: '1px solid var(--sand-600)',
-                        marginBottom: '8px',
-                        display: 'block', width: '100%',
-                        textAlign: 'left'
-                     }}
-                     onClick={() => setSelectedCiv(scen.id)}
-                  >{scen.civilization}</button>
-               ))}
-            </div>
+      <div className="lab-layout">
+        <section className="lab-panel lab-tray-panel">
+          <div className="lab-panel-heading">Evidence Tray</div>
+          <p className="lab-panel-subheading">Choose one sorted find to examine.</p>
 
-            <h3 style={{marginTop: '1rem', marginBottom: '0.5rem'}}>Name Your Dig Site</h3>
-            <p style={{marginBottom: '1rem', color: 'var(--sand-300)', fontSize: '0.9rem'}}>What should we call this site for the official records?</p>
-            <input 
-              type="text" 
-              className="hypothesis-input" 
-              style={{minHeight: 'auto', textAlign: 'center', fontSize: '1.5rem', padding: '1rem'}}
-              placeholder="e.g. The Lost City of Alexandria"
-              value={tempSiteName}
-              onChange={e => setTempSiteName(e.target.value)}
-            />
-            <button className="btn primary-btn" style={{marginTop: '1.5rem'}} disabled={!selectedCiv} onClick={() => {
-               confetti({ particleCount: 200, spread: 100, origin: { y: 0.5 } });
-               initAudio();
-               playWin();
-               onComplete(tempSiteName || "Unknown Dig Site", selectedCiv);
-            }}>
-              Generate Final Report <FileText size={20} />
-            </button>
-          </div>
-        </div>
-      )}
+          <div className="lab-tray-list">
+            {trayItems.map(item => {
+              const theme = getArtifactTheme(item);
+              const isSelected = selectedArtifactId === item.id;
+              const isAnalysed = !!hypotheses[item.id];
 
-      {inspectingItem && !showNamingModal && (
-        <div className="modal-overlay" onClick={() => setInspectingItem(null)}>
-          <div className="modal-content glass-card" onClick={e => e.stopPropagation()}>
-            <button className="close-btn" onClick={() => setInspectingItem(null)}><X size={20} /></button>
-            <h2 className="modal-title" style={{fontSize: '1.4rem', marginBottom: '0.15rem'}}>{inspectingItem.name}</h2>
-            
-            <div className="evidence-metadata" style={{
-              background: 'rgba(0,0,0,0.3)', 
-              padding: '8px 10px', 
-              borderRadius: '8px', 
-              marginBottom: '8px', 
-              textAlign: 'left', 
-              border: '1px solid var(--sand-600)',
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: '10px'
-            }}>
-              <p style={{margin: '0', fontSize: '0.75rem', color: 'var(--sand-200)'}}>
-                <strong style={{color: 'var(--accent)', display: 'block', marginBottom: '0'}}>
-                  <Pickaxe size={11} style={{verticalAlign:'middle', marginRight:'4px'}}/> Method:
-                </strong> 
-                {inspectingItem.discoveryMethod}
-              </p>
-              <p style={{margin: '0', fontSize: '0.75rem', color: 'var(--sand-200)'}}>
-                <strong style={{color: 'var(--accent)', display: 'block', marginBottom: '0'}}>
-                  <FileText size={11} style={{verticalAlign:'middle', marginRight:'4px'}}/> Notes:
-                </strong> 
-                "{inspectingItem.clue}"
-              </p>
-            </div>
-            
-            <div className="hypothesis-prompt" style={{marginBottom: '0.35rem', fontSize: '0.82rem', lineHeight: '1.2'}}>
-              Analysis: {inspectingItem.question}
-            </div>
-            
-            <div className="mcq-options" style={{display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '0.6rem'}}>
-              {shuffledOptions
-                .filter(opt => !isSuccess || opt.originalIndex === inspectingItem.correct)
-                .map((opt, idx) => (
-                <button 
-                  key={idx}
-                  className="btn"
-                  style={{
-                    background: currentSelection === opt.originalIndex ? 'var(--accent)' : 'rgba(0,0,0,0.4)',
-                    color: currentSelection === opt.originalIndex ? '#111' : 'var(--sand-100)',
-                    border: '1px solid var(--sand-600)',
-                    textAlign: 'left',
-                    padding: '6px 10px',
-                    fontSize: '0.8rem',
-                    fontWeight: 'normal',
-                    justifyContent: 'flex-start',
-                    lineHeight: '1.2'
-                  }}
-                  disabled={isSuccess}
-                  onClick={() => {
-                    if (isSuccess) return;
-                    setCurrentSelection(opt.originalIndex);
-                    setWrongAttempt(false);
-                  }}
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={`lab-tray-card ${isSelected ? 'selected' : ''} ${isAnalysed ? 'analysed' : ''}`}
+                  onClick={() => setSelectedArtifactId(item.id)}
                 >
-                  {opt.text}
+                  <div className="lab-tray-icon" style={{ color: theme.accent }}>
+                    {getIcon(item.type, 18)}
+                  </div>
+                  <div className="lab-tray-copy">
+                    <div className="lab-tray-name">{item.name}</div>
+                    <div className="lab-tray-meta">{getCategoryTitle(item.type)}</div>
+                  </div>
+                  {isAnalysed && <CheckCircle2 size={16} className="lab-tray-check" />}
                 </button>
-              ))}
-            </div>
-
-            {wrongAttempt && (
-               <p style={{color: '#ef4444', fontWeight: 'bold', marginBottom: '0.75rem', animation: 'pulse 1s infinite', background: 'rgba(239, 68, 68, 0.1)', padding: '6px', borderRadius: '8px', border: '1px solid #ef4444', fontSize: '0.8rem'}}>
-                 ❌ Incorrect interpretation. Review the notes and try again!
-               </p>
-            )}
-
-            {isSuccess && (
-               <div className="rationale-box slide-up" style={{
-                 background: 'rgba(74, 222, 128, 0.1)',
-                 border: '1px solid var(--success)',
-                  padding: '0.6rem',
-                  borderRadius: '10px',
-                  marginBottom: '0.6rem',
-                 textAlign: 'left',
-                 animation: 'fadeIn 0.5s ease-out'
-               }}>
-                 <h4 style={{color: 'var(--success)', marginBottom: '0.1rem', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem'}}>
-                   <Sparkles size={12} /> Analysis Confirmed
-                 </h4>
-                 <p style={{color: 'var(--sand-100)', lineHeight: '1.25', fontSize: '0.78rem'}}>
-                   {inspectingItem.rationale || "Great job! Your analysis correctly identifies the historical significance of this artifact."}
-                 </p>
-               </div>
-            )}
-            
-            {!isSuccess ? (
-              <button 
-                className="btn primary-btn" 
-                disabled={currentSelection === null}
-                style={{opacity: currentSelection === null ? 0.5 : 1, width: '100%', padding: '8px', fontSize: '0.95rem'}}
-                onClick={() => {
-                  initAudio();
-                  if (currentSelection == inspectingItem.correct) {
-                    playMatch();
-                    setIsSuccess(true);
-                  } else {
-                    playError();
-                    setWrongAttempt(true);
-                  }
-                }}
-              >
-                Submit Analysis <CheckCircle2 size={16} />
-              </button>
-            ) : (
-              <button 
-                className="btn primary-btn" 
-                style={{background: 'var(--success)', color: '#111', width: '100%', padding: '8px', fontSize: '0.95rem'}}
-                onClick={() => {
-                  setHypotheses({...hypotheses, [inspectingItem.id]: currentSelection});
-                  setInspectingItem(null);
-                  setIsSuccess(false);
-                }}
-              >
-                Accept Findings & Continue <ArrowRight size={16} />
-              </button>
-            )}
+              );
+            })}
           </div>
-        </div>
-      )}
+        </section>
+
+        <section className="lab-panel lab-bench-panel">
+          <div className="lab-panel-heading">Analysis Bench</div>
+          <p className="lab-panel-subheading">Study the clue, choose a reveal, and write a short research note.</p>
+
+          {!selectedArtifact ? (
+            <div className="lab-empty-state">
+              <div className="lab-empty-icon"><Search size={26} /></div>
+              <div className="lab-empty-title">No find selected</div>
+              <p>Select a find from the Evidence Tray to begin analysis.</p>
+            </div>
+          ) : (
+            <div className="lab-bench-content">
+              <div className="lab-artifact-card">
+                <div className="lab-artifact-icon" style={{ color: getArtifactTheme(selectedArtifact).accent }}>
+                  {getIcon(selectedArtifact.type, 28)}
+                </div>
+                <div className="lab-artifact-copy">
+                  <div className="lab-artifact-name">{selectedArtifact.name}</div>
+                  <div className="lab-artifact-meta">
+                    <span>{getCategoryTitle(selectedArtifact.type)}</span>
+                    <span>{getArtifactEraLabel(selectedArtifact)}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="lab-clue-box">
+                <div className="lab-label">Clue</div>
+                <p>{selectedArtifact.clue}</p>
+                <div className="lab-clue-method">{selectedArtifact.discoveryMethod}</div>
+              </div>
+
+              <div className="lab-question-box">
+                <div className="lab-label">Analysis Question</div>
+                <p>What does this evidence reveal about ancient people?</p>
+              </div>
+
+              <div className="lab-prompt-grid">
+                {LAB_ANALYSIS_PROMPTS.map(prompt => {
+                  const PromptIcon = prompt.icon;
+                  const isActive = selectedPromptId === prompt.id;
+
+                  return (
+                    <button
+                      key={prompt.id}
+                      type="button"
+                      className={`lab-prompt-card ${isActive ? 'selected' : ''}`}
+                      onClick={() => setSelectedPromptId(prompt.id)}
+                    >
+                      <PromptIcon size={16} />
+                      <span className="lab-prompt-title">{prompt.title}</span>
+                      <span className="lab-prompt-desc">{prompt.description}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="lab-note-editor">
+                <label htmlFor="lab-note">Research note</label>
+                <textarea
+                  id="lab-note"
+                  value={draftNote}
+                  onChange={(e) => setDraftNote(e.target.value)}
+                  placeholder="Write one or two sentences using the clue as evidence..."
+                  rows={4}
+                />
+                <div className="lab-note-footer">
+                  <span>{draftNote.trim().length} characters</span>
+                  <span>{selectedAnalysis ? 'Saved note loaded' : 'Use the clue as evidence'}</span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                className="btn primary-btn lab-save-btn"
+                disabled={!selectedPrompt || !draftNote.trim()}
+                onClick={handleSaveAnalysis}
+              >
+                Save analysis <CheckCircle2 size={18} />
+              </button>
+            </div>
+          )}
+        </section>
+
+        <section className="lab-panel lab-notes-panel">
+          <div className="lab-panel-heading">Research Notes</div>
+          <p className="lab-panel-subheading">Complete three short analyses.</p>
+
+          <div className="lab-notes-list">
+            {[0, 1, 2].map(index => {
+              const saved = savedAnalyses[index];
+              return (
+                <div key={index} className={`lab-note-card ${saved ? 'filled' : 'empty'}`}>
+                  <div className="lab-note-slot">Analysis {index + 1}</div>
+                  {saved ? (
+                    <>
+                      <div className="lab-note-artifact">{saved.artifact?.name ?? 'Unknown find'}</div>
+                      <div className="lab-note-reveal">{saved.analysis?.promptTitle ?? 'Research note'}</div>
+                      <p className="lab-note-text">{saved.analysis?.note ?? ''}</p>
+                    </>
+                  ) : (
+                    <div className="lab-note-empty">Select find - choose reveal - explain</div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      </div>
+
+      <div className="lab-footer-strip">
+        <div className="lab-footer-flow">Choose a find - read the clue - choose a reveal - save a note</div>
+        {isComplete ? (
+          <button
+            type="button"
+            className="btn primary-btn lab-continue-btn"
+            onClick={() => {
+              initAudio();
+              playWin();
+              onComplete(currentScenarioData?.name || 'Unknown Dig Site', currentScenarioData?.id || null);
+            }}
+          >
+            Continue to Museum <ArrowRight size={18} />
+          </button>
+        ) : (
+          <div className="lab-footer-prompt">Complete three analyses to continue.</div>
+        )}
+      </div>
     </div>
   );
 }
-
-// ------------------------------------------------------------------
-// Phase 4: Report
-// ------------------------------------------------------------------
-const generateFeedback = (selectedIndex, correctIndex) => {
-  if (selectedIndex === correctIndex) {
-    return "✅ Expert Feedback: Correct interpretation! You successfully connected the primary evidence to logical conclusions about this ancient civilization.";
-  }
-  return "💡 Growth Feedback: Historical evidence is contestable, but most archaeologists interpret this differently. Review the evidence and try again.";
-};
-
 // ------------------------------------------------------------------
 // Phase 4: Museum Curator (Student selects items and writes labels)
 // ------------------------------------------------------------------
@@ -1450,12 +1497,25 @@ function ReportPhase({ activeArtifacts, itemsLocation, hypotheses, siteName, fin
                       </div>
                       {hypotheses[item.id] !== undefined && (
                         <>
-                          <div className="report-hypothesis">
-                            <strong>Significance:</strong> "{item.options && hypotheses[item.id] !== undefined ? item.options[hypotheses[item.id]] : 'N/A'}"
-                          </div>
-                          <div className="report-feedback">
-                            {generateFeedback(hypotheses[item.id], item.correct)}
-                          </div>
+                          {typeof hypotheses[item.id] === 'object' ? (
+                            <>
+                              <div className="report-hypothesis">
+                                <strong>Analysis focus:</strong> {hypotheses[item.id].promptTitle || 'Research note'}
+                              </div>
+                              <div className="report-feedback">
+                                {hypotheses[item.id].note || 'No note recorded.'}
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="report-hypothesis">
+                                <strong>Significance:</strong> "{item.options && hypotheses[item.id] !== undefined ? item.options[hypotheses[item.id]] : 'N/A'}"
+                              </div>
+                              <div className="report-feedback">
+                                {generateFeedback(hypotheses[item.id], item.correct)}
+                              </div>
+                            </>
+                          )}
                         </>
                       )}
                     </li>
@@ -1502,7 +1562,13 @@ function DevTools({ currentPhase, setPhase, setExcavatedIds, setActiveArtifacts,
     if (target === 'sort') {
       const locations = artifacts.reduce((acc, a) => ({ ...acc, [a.id]: 'inventory' }), {});
       setItemsLocation(locations);
-    } else if (target === 'lab' || target === 'museum' || target === 'report') {
+    } else if (target === 'lab') {
+      const locations = artifacts.reduce((acc, a) => ({ ...acc, [a.id]: a.type || 'objects' }), {});
+      setItemsLocation(locations);
+      setHypotheses({});
+      setSiteName("Mock Testing Site");
+      setFinalConclusion(scen.id);
+    } else if (target === 'museum' || target === 'report') {
       const locations = artifacts.reduce((acc, a) => ({ ...acc, [a.id]: a.type || 'objects' }), {});
       setItemsLocation(locations);
       

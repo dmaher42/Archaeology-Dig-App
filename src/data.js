@@ -32,7 +32,7 @@ export const RANDOM_EVENTS = [
   {
     id: 'sandstorm',
     title: 'Incoming Sandstorm!',
-    description: 'A huge sandstorm is blowing in! We need to hurry before the site is covered.',
+    description: 'A huge sandstorm is blowing in. Recover the finds before the site is covered.',
     icon: Wind,
     time: 90,
     dangerColor: '#E89E5D'
@@ -40,7 +40,7 @@ export const RANDOM_EVENTS = [
   {
     id: 'flood',
     title: 'Flash Flood Warning!',
-    description: 'Heavy rain is flooding the site! We have to get the items out now.',
+    description: 'Heavy rain is flooding the site. Move quickly before the trench is unsafe.',
     icon: Droplets,
     time: 75,
     dangerColor: '#3b82f6'
@@ -48,7 +48,7 @@ export const RANDOM_EVENTS = [
   {
     id: 'looters',
     title: 'Looters Spotted!',
-    description: 'Tomb raiders are nearby. We must finish our work before they arrive!',
+    description: 'Looters are nearby. Finish the recovery before the site is disturbed.',
     icon: AlertTriangle,
     time: 80,
     dangerColor: '#f59e0b'
@@ -56,7 +56,7 @@ export const RANDOM_EVENTS = [
   {
     id: 'nightfall',
     title: 'Generator Failure!',
-    description: 'The power is out and it is getting dark! We cannot dig in the pitch black.',
+    description: 'The power is out and it is getting dark. Recover what you can before nightfall.',
     icon: Moon,
     time: 70,
     dangerColor: '#8b5cf6'
@@ -95,7 +95,7 @@ export const SCENARIOS = [
     id: 'mungo',
     name: 'The Ancient Dry Lake',
     civilization: 'Indigenous Australia (Lake Mungo)',
-    historicalContext: 'Lake Mungo shows that people have lived here for over 42,000 years. It has some of the world’s oldest ritual burials, proving a long and rich history.',
+    historicalContext: "Lake Mungo shows that people have lived here for over 42,000 years. It has some of the world's oldest ritual burials, proving a long and rich history.",
     evidence: [
       { id: 'mg_1', name: "Silcrete Stone Tool", type: "objects", discoveryMethod: "Found on the ground after the wind blew away the sand.", clue: "A sharp stone that has been carefully shaped.", question: "What does this tool tell us about the people?", options: ["They knew exactly how to shape stone into tools", "The stones were used as weights for tents", "They were used as tokens for trading", "The stone was broken naturally by the heat"], correct: 0, image: "museum/mungo_stone_tool.png" },
       { id: 'mg_2', name: "Grinding Stone", type: "objects", discoveryMethod: "Dug up and mapped using GPS.", clue: "A large, flat rock with a smooth, worn-out dip in the middle.", question: "What was this stone used for?", options: ["A seat for the leaders of the group", "To crush seeds and grains into flour", "A lid for an underground water hole", "A tool for making metal weapons"], correct: 1 },
