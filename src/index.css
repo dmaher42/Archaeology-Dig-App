@@ -259,10 +259,11 @@ body {
 .memory-grid {
   display: grid;
   grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(3, 1fr);
   gap: clamp(4px, 0.6vw, 10px);
   width: 100%;
-  /* Max width calculated to keep 8 columns across 3 rows square within available height */
-  max-width: min(1200px, calc((100vh - 330px) * 2.66)); 
+  /* Buffer increased to 420px to account for header, feedback, and labels */
+  max-width: min(1200px, calc((100vh - 420px) * 2.66)); 
   margin: 0 auto;
   perspective: 1000px;
   flex: 1;
@@ -271,7 +272,7 @@ body {
 }
 
 .dig-phase-header {
-  gap: 0.4rem;
+  gap: 0.25rem;
   width: min(100%, 1400px);
   margin: 0 auto;
 }
@@ -470,7 +471,11 @@ body {
 }
 
 .memory-tile {
+  height: 100%;
+  width: auto;
   aspect-ratio: 1;
+  max-width: 100%;
+  margin: 0 auto;
   position: relative;
   cursor: pointer;
   border-radius: 10px;
