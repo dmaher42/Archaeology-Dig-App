@@ -788,9 +788,11 @@ body {
   to {
     transform: translate3d(0, -6px, 0);
   }
+}
+
 /* Sorting & Lab Phases */
 .sort-phase {
-  padding-bottom: 120px; /* Space for inventory tray */
+  padding-bottom: 2rem;
 }
 
 .sort-main-layout {

@@ -1528,7 +1528,7 @@ function DevTools({ currentPhase, setPhase, setExcavatedIds, setActiveArtifacts,
 
   return (
     <div className="dev-tools hide-on-print">
-      <div className="dev-tools-label">Test Mode</div>
+      <div className="dev-tools-label">Dev Panel</div>
       <button className={currentPhase === 'dig' ? 'active' : ''} onClick={() => jumpTo('dig')}>1. Dig</button>
       <button className={currentPhase === 'sort' ? 'active' : ''} onClick={() => jumpTo('sort')}>2. Sort</button>
       <button className={currentPhase === 'lab' ? 'active' : ''} onClick={() => jumpTo('lab')}>3. Analyze</button>
