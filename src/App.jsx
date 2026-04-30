@@ -356,7 +356,7 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
     if (fieldNote) {
       const timer = setTimeout(() => {
         setFieldNote(null);
-      }, 4000);
+      }, 2500); // Shorter duration as per user feedback
       return () => clearTimeout(timer);
     }
   }, [fieldNote]);
@@ -393,6 +393,7 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
       discoveryMethod: artifact.discoveryMethod,
       typeLabel: getCategoryTitle(artifact.type),
       isDisturbance: !!artifact.isRedHerring,
+      timestamp: Date.now() // Unique ID to ensure effect re-runs
     });
   };
 

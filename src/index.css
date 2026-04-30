@@ -29,8 +29,7 @@ body {
   background-color: var(--bg-color);
   background-image: radial-gradient(circle at top center, #2a221a 0%, var(--bg-color) 100%);
   color: var(--text-color);
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
 }
 
 /* Scrollbar */
@@ -42,8 +41,7 @@ body {
 .app-wrapper {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
 }
 
 .main-header {
@@ -444,30 +442,20 @@ body {
   z-index: 1;
   max-width: 100%;
   height: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(clamp(60px, 10vw, 95px), 1fr));
+  gap: 8px;
+  padding: 10px;
+  justify-content: center;
+  align-content: center;
+  overflow-y: auto;
 }
 
-@media (max-width: 900px) {
-  .memory-grid {
-    grid-template-columns: repeat(5, 1fr);
-  }
-}
 @media (max-width: 600px) {
-  .memory-grid {
+  .dig-grid-shell .memory-grid {
     grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-@media (min-width: 1200px) {
-  .memory-grid {
-    grid-template-columns: repeat(8, 1fr);
-    gap: 5px;
-  }
-}
-
-@media (min-width: 1280px) {
-  .memory-grid {
-    grid-template-columns: repeat(8, minmax(92px, 1fr));
     gap: 6px;
+    padding: 5px;
   }
 }
 
