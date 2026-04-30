@@ -459,16 +459,76 @@ body {
 
 .memory-tile {
   aspect-ratio: 0.85;
-  border-radius: 10px;
+  cursor: pointer;
+  perspective: 1000px;
+  position: relative;
 }
 
-.memory-tile .tile-front, 
-.memory-tile .tile-back {
+.tile-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+}
+
+.memory-tile.revealed .tile-inner,
+.memory-tile.matched .tile-inner {
+  transform: rotateY(180deg);
+}
+
+.tile-front, .tile-back {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
   border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .tile-back {
+  transform: rotateY(180deg);
+  background: #2a221a;
   padding: 8px !important;
+  border: 2px solid var(--artifact-accent, var(--arch-accent));
+}
+
+.artifact-icon {
+  margin-bottom: 6px;
+}
+
+.artifact-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--arch-text);
+  text-align: center;
+  line-height: 1.1;
+}
+
+/* Card Back Design */
+.card-back-design {
+  background: linear-gradient(135deg, #4d3a2b 0%, #2e2219 100%);
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+  border: 2px solid #5a4533;
+}
+
+.card-back-pattern {
+  position: absolute;
+  inset: 6px;
+  border: 1px solid rgba(168, 134, 97, 0.15);
+  border-radius: 6px;
+  pointer-events: none;
+}
+
+.card-back-icon {
+  color: rgba(168, 134, 97, 0.2);
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
 }
 
 /* 3. Footer Stats */
