@@ -174,6 +174,23 @@ export const SCENARIOS = [
   }
 ];
 
+export const ARTIFACT_TYPES = CATEGORIES.map(c => c.id);
+
+export const getCategoryTitle = (categoryId) => {
+  const cat = CATEGORIES.find(c => c.id === categoryId);
+  return cat ? cat.title : categoryId;
+};
+
+export const getArtifactEraLabel = (artifact) => {
+  for (const scenario of SCENARIOS) {
+    if (scenario.evidence.some(e => e.id === artifact.id)) {
+      return scenario.civilization;
+    }
+  }
+  if (artifact.isRedHerring) return 'Modern';
+  return 'Unknown Era';
+};
+
 export const RED_HERRINGS = [
   { 
     id: 'rh_1', 
