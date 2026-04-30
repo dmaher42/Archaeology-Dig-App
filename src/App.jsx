@@ -284,7 +284,7 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
   const [showStormWarning, setShowStormWarning] = useState(true);
   const [isTimeUp, setIsTimeUp] = useState(false);
   const [perfectClear, setPerfectClear] = useState(false);
- 
+  
   // Multiplayer State
   const [numPlayers, setNumPlayers] = useState(1);
   const [currentPlayer, setCurrentPlayer] = useState(1);
@@ -1505,13 +1505,11 @@ export default function App() {
     setCurrentEvent(evt);
     const scen = SCENARIOS[Math.floor(Math.random() * SCENARIOS.length)];
     setCurrentScenario(scen);
-    // Use the artifacts from this scenario
-    let pool = [...scen.evidence];
-    
-    // Inject a red herring!
+    // Choose exactly 11 items from the scenario + 1 red herring = 12 items total (24 tiles)
+    const scenarioArtifacts = [...scen.evidence].sort(() => 0.5 - Math.random()).slice(0, 11);
     const herring = RED_HERRINGS[Math.floor(Math.random() * RED_HERRINGS.length)];
-    pool.push(herring);
-
+    
+    const pool = [...scenarioArtifacts, herring];
     const shuffled = pool.sort(() => 0.5 - Math.random());
     setActiveArtifacts(shuffled);
   };
