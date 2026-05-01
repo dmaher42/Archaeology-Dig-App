@@ -1413,6 +1413,51 @@ body {
   margin-bottom: 0.4rem;
 }
 
+.lab-note-scaffold {
+  display: grid;
+  gap: 0.45rem;
+  margin-bottom: 0.65rem;
+  padding: 0.65rem;
+  border-radius: 12px;
+  background: rgba(232, 158, 93, 0.07);
+  border: 1px solid rgba(232, 158, 93, 0.16);
+  color: var(--sand-200);
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.lab-note-scaffold strong {
+  color: var(--sand-100);
+}
+
+.lab-note-scaffold p {
+  margin: 0;
+  color: var(--sand-300);
+}
+
+.lab-stem-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.lab-stem-chip {
+  border: 1px solid rgba(232, 158, 93, 0.28);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.22);
+  color: var(--sand-100);
+  padding: 0.34rem 0.58rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.lab-stem-chip:hover {
+  border-color: var(--accent);
+  background: rgba(232, 158, 93, 0.16);
+}
+
 .lab-note-editor textarea {
   width: 100%;
   min-height: 118px;
@@ -2326,6 +2371,80 @@ body {
   box-shadow: 0 0 0 2px rgba(232, 158, 93, 0.2);
 }
 
+.museum-reflection-card {
+  margin-top: 0.9rem;
+  display: grid;
+  gap: 0.42rem;
+  padding: 0.85rem;
+  border-radius: 12px;
+  background: rgba(232, 158, 93, 0.08);
+  border: 1px solid rgba(232, 158, 93, 0.2);
+  color: var(--sand-200);
+  font-size: 0.82rem;
+  line-height: 1.38;
+}
+
+.museum-reflection-card strong,
+.museum-reflection-title {
+  color: var(--sand-100);
+}
+
+.museum-reflection-title {
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.museum-final-statement {
+  margin-top: 1rem;
+  padding: 1rem;
+  display: grid;
+  gap: 0.7rem;
+  border-color: rgba(232, 158, 93, 0.3);
+}
+
+.museum-final-statement h3 {
+  color: var(--accent);
+  margin: 0 0 0.2rem;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.museum-final-statement p {
+  margin: 0;
+  color: var(--sand-300);
+  font-size: 0.9rem;
+}
+
+.museum-final-statement textarea {
+  width: 100%;
+  min-height: 86px;
+  resize: vertical;
+  border-radius: 10px;
+  border: 1px solid var(--sand-600);
+  background: rgba(0, 0, 0, 0.45);
+  color: var(--sand-100);
+  padding: 0.75rem;
+  font: inherit;
+  line-height: 1.4;
+}
+
+.museum-final-statement textarea:focus {
+  outline: 2px solid rgba(232, 158, 93, 0.3);
+  border-color: var(--accent);
+}
+
+.museum-final-statement-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  color: var(--sand-400);
+  font-size: 0.78rem;
+}
+
 .close-btn {
   position: absolute;
   top: 15px; right: 15px;
@@ -2529,6 +2648,224 @@ body {
   font-style: italic;
 }
 
+.museum-exhibition-section {
+  margin-top: 1.5rem;
+  border: 1px solid var(--sand-400);
+  border-radius: 10px;
+  background: #fffaf2;
+  overflow: hidden;
+}
+
+.museum-export-cover {
+  padding: 1.35rem;
+  background: linear-gradient(135deg, #2c1d12 0%, #6e421f 100%);
+  color: #fff8ec;
+}
+
+.museum-export-kicker {
+  color: #ffbf6b;
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+
+.museum-export-cover h3 {
+  color: #fff8ec;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.4rem;
+  font-size: 1.55rem;
+}
+
+.museum-export-cover p {
+  margin: 0 0 1rem;
+  max-width: 48rem;
+  color: #f8dfbf;
+  line-height: 1.45;
+}
+
+.museum-export-meta {
+  display: grid;
+  grid-template-columns: 1.2fr 0.7fr 1fr;
+  gap: 0.6rem;
+  font-size: 0.82rem;
+  color: #fff4e4;
+}
+
+.museum-export-meta span,
+.museum-export-context {
+  padding: 0.55rem 0.65rem;
+  border: 1px solid rgba(255, 226, 185, 0.24);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.museum-export-context {
+  margin-top: 0.6rem;
+  font-size: 0.86rem;
+  color: #fff4e4;
+}
+
+.museum-export-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+  padding: 1rem 1.2rem;
+  background: #fff3df;
+  border-bottom: 1px solid #dfc39f;
+}
+
+.museum-export-summary div {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.museum-export-summary strong {
+  color: #4b2e18;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.museum-export-summary span {
+  color: #5e4631;
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.museum-export-final-statement {
+  margin: 1rem 1.2rem 0;
+  padding: 0.9rem 1rem;
+  border-left: 5px solid #9b632f;
+  background: #fff7ea;
+  color: #2a1a10;
+}
+
+.museum-export-final-statement strong {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: #4b2e18;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.museum-export-final-statement p {
+  margin: 0;
+  color: #3b2a1d;
+  line-height: 1.45;
+  font-size: 0.92rem;
+}
+
+.museum-export-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  padding: 1.2rem;
+}
+
+.museum-export-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border: 1px solid #d8bea0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 18px rgba(83, 52, 25, 0.14);
+}
+
+.museum-export-card-number {
+  position: absolute;
+  top: 0.65rem;
+  left: 0.65rem;
+  z-index: 1;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(17, 12, 8, 0.82);
+  color: #fff4df;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.museum-export-card img,
+.museum-export-image-placeholder {
+  width: 100%;
+  height: 145px;
+  object-fit: cover;
+  background: #2b1b10;
+}
+
+.museum-export-image-placeholder {
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+}
+
+.museum-export-card-body {
+  padding: 0.9rem;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.museum-export-category {
+  color: #8b5a2b;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.museum-export-card h4 {
+  margin: 0;
+  color: #20140d;
+  font-size: 1.02rem;
+  line-height: 1.15;
+}
+
+.museum-export-label,
+.museum-export-evidence,
+.museum-export-analysis {
+  border-left: 3px solid #d79a4d;
+  padding-left: 0.55rem;
+}
+
+.museum-export-label strong,
+.museum-export-evidence strong,
+.museum-export-analysis strong {
+  display: block;
+  color: #3c2616;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.2rem;
+}
+
+.museum-export-label p,
+.museum-export-evidence p,
+.museum-export-analysis p {
+  margin: 0;
+  color: #4d3a2a;
+  font-size: 0.82rem;
+  line-height: 1.38;
+}
+
+.museum-export-analysis span {
+  font-weight: 800;
+  color: #2f2015;
+}
+
+@media (max-width: 900px) {
+  .museum-export-meta,
+  .museum-export-summary,
+  .museum-export-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Printing */
 @media print {
   body { background: white; color: black; }
@@ -2547,6 +2884,7 @@ body {
   }
   .print-mode-museum .report-context-card,
   .print-mode-museum .evidence-summary-card,
+  .print-mode-museum .report-header,
   .print-mode-museum .report-body {
     display: none !important;
   }
@@ -2554,9 +2892,52 @@ body {
     display: block !important;
     margin-top: 0 !important;
     break-inside: avoid;
+    border: 0;
   }
   .museum-export-card {
     break-inside: avoid;
+  }
+  .museum-export-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+    padding: 0.8rem 0;
+  }
+  .museum-export-cover {
+    color: #111;
+    background: white;
+    border-bottom: 2px solid #111;
+    padding: 0 0 0.75rem;
+  }
+  .museum-export-kicker,
+  .museum-export-cover h3,
+  .museum-export-cover p,
+  .museum-export-context,
+  .museum-export-meta {
+    color: #111;
+  }
+  .museum-export-meta span,
+  .museum-export-context {
+    background: white;
+    border-color: #999;
+  }
+  .museum-export-summary {
+    background: #f6f1e9;
+    border: 1px solid #bbb;
+    margin-top: 0.75rem;
+    padding: 0.65rem;
+  }
+  .museum-export-final-statement {
+    background: #fff;
+    border-color: #555;
+    margin: 0.75rem 0 0;
+  }
+  .museum-export-card {
+    box-shadow: none;
+    border-color: #bbb;
+  }
+  .museum-export-card img,
+  .museum-export-image-placeholder {
+    height: 120px;
   }
 }
 

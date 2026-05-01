@@ -13,7 +13,7 @@ import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { 
   Pickaxe, Tent, Search, FileText, CheckCircle2, X, ChevronRight, Clock, Wind, Radar, 
   Droplets, AlertTriangle, Moon, RefreshCw, Library, Users, Skull, Landmark, Leaf, 
-  ScrollText, Package, Sparkles, ArrowRight, Lightbulb, Info, HelpCircle, History,
+  ScrollText, Package, Sparkles, ArrowRight, Lightbulb, Info, HelpCircle, History, Archive,
   MapPin, Beaker, Dna, Zap, Trophy, Award, Check, Database, FileCheck
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -248,6 +248,12 @@ const LAB_ANALYSIS_PROMPTS = [
   },
 ];
 
+const LAB_NOTE_STEMS = [
+  'This find suggests...',
+  'The clue that supports this is...',
+  'This helps historians understand...',
+];
+
 function DraggableArtifact({ artifact, onClick, showStatus = false, isNeutral = false }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: artifact.id,
@@ -370,8 +376,8 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
         uniqueId: `${artifact.id}-${index}`,
         artifactId: artifact.id,
         artifact: artifact,
-        isFlipped: false,
-        isMatched: false
+        isFlipped: excavatedIds.has(artifact.id),
+        isMatched: excavatedIds.has(artifact.id)
       }));
       // Shuffle
       for (let i = pairs.length - 1; i > 0; i--) {
@@ -380,7 +386,7 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
       }
       setTiles(pairs);
     }
-  }, [activeArtifacts, tiles.length]);
+  }, [activeArtifacts, excavatedIds, tiles.length]);
 
   // Timer Logic
   useEffect(() => {
@@ -983,6 +989,9 @@ function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypotheses, s
   const selectedArtifact = trayItems.find(item => item.id === selectedArtifactId) || null;
   const selectedAnalysis = selectedArtifact ? hypotheses[selectedArtifact.id] : null;
   const selectedPrompt = LAB_ANALYSIS_PROMPTS.find(prompt => prompt.id === selectedPromptId) || null;
+  const notePlaceholder = selectedArtifact
+    ? `This ${selectedArtifact.name} suggests... The clue that supports this is... This helps historians understand...`
+    : 'Select a find, then use the sentence frames to build an evidence-based note.';
 
   useEffect(() => {
     if (!selectedArtifactId) {
@@ -1024,6 +1033,13 @@ function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypotheses, s
     setSelectedArtifactId(null);
     setSelectedPromptId(null);
     setDraftNote('');
+  };
+
+  const addNoteStem = (stem) => {
+    setDraftNote(prev => {
+      const trimmed = prev.trim();
+      return trimmed ? `${trimmed} ${stem}` : stem;
+    });
   };
 
   const savedAnalyses = analysedEntries.map(([artifactId, analysis], index) => {
@@ -1160,16 +1176,39 @@ function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypotheses, s
 
               <div className="lab-note-editor">
                 <label htmlFor="lab-note">Research note</label>
+                <div className="lab-note-scaffold">
+                  <div>
+                    <strong>Write like a historian:</strong>
+                    <span> make a claim, use the clue, then explain what it reveals.</span>
+                  </div>
+                  {selectedPrompt && (
+                    <p>
+                      Focus: <strong>{selectedPrompt.title}</strong> - {selectedPrompt.description}.
+                    </p>
+                  )}
+                  <div className="lab-stem-row" aria-label="Sentence starters">
+                    {LAB_NOTE_STEMS.map(stem => (
+                      <button
+                        key={stem}
+                        type="button"
+                        className="lab-stem-chip"
+                        onClick={() => addNoteStem(stem)}
+                      >
+                        {stem}
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 <textarea
                   id="lab-note"
                   value={draftNote}
                   onChange={(e) => setDraftNote(e.target.value)}
-                  placeholder="Write one or two sentences using the clue as evidence..."
+                  placeholder={notePlaceholder}
                   rows={4}
                 />
                 <div className="lab-note-footer">
                   <span>{draftNote.trim().length} characters</span>
-                  <span>{selectedAnalysis ? 'Saved note loaded' : 'Use the clue as evidence'}</span>
+                  <span>{selectedAnalysis ? 'Saved note loaded' : 'Claim + clue + meaning'}</span>
                 </div>
               </div>
 
@@ -1235,10 +1274,23 @@ function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypotheses, s
 // ------------------------------------------------------------------
 // Phase 4: Museum Curator (Student selects items and writes labels)
 // ------------------------------------------------------------------
-function MuseumPhase({ activeArtifacts, excavatedIds, hypotheses, curatedItems, setCuratedItems, plaques, setPlaques, onComplete }) {
+function MuseumPhase({
+  activeArtifacts,
+  excavatedIds,
+  hypotheses,
+  curatedItems,
+  setCuratedItems,
+  plaques,
+  setPlaques,
+  finalExhibitionStatement,
+  setFinalExhibitionStatement,
+  onComplete,
+}) {
   const [editingId, setEditingId] = useState(null);
 
   const analyzedItems = activeArtifacts.filter(a => excavatedIds.has(a.id) && hypotheses[a.id] !== undefined);
+  const editingItem = analyzedItems.find(a => a.id === editingId) || null;
+  const editingAnalysis = editingItem ? hypotheses[editingItem.id] : null;
   
   const toggleItem = (id) => {
     if (curatedItems.includes(id)) {
@@ -1252,13 +1304,15 @@ function MuseumPhase({ activeArtifacts, excavatedIds, hypotheses, curatedItems, 
     }
   };
 
-  const isReady = curatedItems.length === 3 && curatedItems.every(id => plaques[id] && plaques[id].length > 10);
+  const isReady = curatedItems.length === 3
+    && curatedItems.every(id => plaques[id] && plaques[id].length > 10)
+    && finalExhibitionStatement.trim().length > 12;
 
   return (
     <div className="phase-container museum-phase">
       <div className="phase-header">
-        <h2><Library size={28} /> Phase 4: Grand Opening Curation</h2>
-        <p>Select your 3 most significant artifacts to feature in the Grand Opening of the local Museum exhibit.</p>
+        <h2><Library size={28} /> Museum Exhibition: What Does the Evidence Show?</h2>
+        <p>Choose your strongest finds and explain what they teach us about ancient people.</p>
       </div>
 
       <div style={{display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '0.75rem', flex: 1, minHeight: 0}}>
@@ -1283,7 +1337,7 @@ function MuseumPhase({ activeArtifacts, excavatedIds, hypotheses, curatedItems, 
                 </div>
                 <div style={{flex: 1}}>
                   <div style={{fontWeight: 'bold', color: '#fff'}}>{item.name}</div>
-                  <div style={{fontSize: '0.8rem', color: 'var(--sand-300)'}}>{item.type}</div>
+                  <div style={{fontSize: '0.8rem', color: 'var(--sand-300)'}}>{getCategoryTitle(item.type)}</div>
                 </div>
                 {curatedItems.includes(item.id) && <CheckCircle2 size={16} color="var(--accent)" />}
               </div>
@@ -1298,7 +1352,7 @@ function MuseumPhase({ activeArtifacts, excavatedIds, hypotheses, curatedItems, 
             padding: '1rem', minHeight: '100%', position: 'relative', border: '1px solid rgba(255,255,255,0.1)',
             boxShadow: 'inset 0 0 50px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column'
           }}>
-            <h3 style={{textAlign: 'center', textTransform: 'uppercase', letterSpacing: '2px', color: 'var(--sand-400)', marginBottom: '1rem', fontSize: '0.85rem'}}>The Discovery Gallery</h3>
+            <h3 style={{textAlign: 'center', textTransform: 'uppercase', letterSpacing: '2px', color: 'var(--sand-400)', marginBottom: '1rem', fontSize: '0.85rem'}}>Curator's Exhibition Report</h3>
             
             <div style={{display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '2rem'}}>
               {[0, 1, 2].map(idx => {
@@ -1329,22 +1383,22 @@ function MuseumPhase({ activeArtifacts, excavatedIds, hypotheses, curatedItems, 
               })}
             </div>
 
-            {editingId ? (
+            {editingItem ? (
               <div className="plaque-editor animate-fade-in" style={{background: 'rgba(0,0,0,0.3)', padding: '1rem', borderRadius: '12px', border: '1px solid var(--accent)', flex: 1}}>
                 <div style={{display: 'flex', gap: '1rem', marginBottom: '1rem', height: '100%'}}>
-                  {analyzedItems.find(a => a.id === editingId).image && (
+                  {editingItem.image && (
                     <div style={{width: '180px', flexShrink: 0}}>
                       <img 
-                        src={analyzedItems.find(a => a.id === editingId).image} 
+                        src={editingItem.image} 
                         alt="Artifact"
                         style={{width: '100%', height: 'auto', borderRadius: '8px', border: '1px solid var(--sand-600)', boxShadow: '0 4px 20px rgba(0,0,0,0.6)'}}
                       />
                     </div>
                   )}
                   <div style={{flex: 1}}>
-                      <label style={{display: 'block', color: 'var(--accent)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px'}}>Exhibition Plaque: {analyzedItems.find(a => a.id === editingId).name}</label>
+                      <label style={{display: 'block', color: 'var(--accent)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px'}}>Exhibition Plaque: {editingItem.name}</label>
                       <textarea 
-                        placeholder="Write an educational plaque..."
+                        placeholder="Write a museum label. Explain what this evidence suggests and why it matters."
                         value={plaques[editingId] || ''}
                         onChange={(e) => setPlaques({...plaques, [editingId]: e.target.value})}
                         style={{
@@ -1359,6 +1413,20 @@ function MuseumPhase({ activeArtifacts, excavatedIds, hypotheses, curatedItems, 
                       </span>
                       <span style={{color: 'var(--sand-400)'}}>{plaques[editingId]?.length || 0} characters</span>
                     </div>
+                    <div className="museum-reflection-card">
+                      <div className="museum-reflection-title">Connect evidence to interpretation</div>
+                      <div><strong>Evidence:</strong> {editingItem.name}</div>
+                      <div><strong>Category:</strong> {getCategoryTitle(editingItem.type)}</div>
+                      <div><strong>What is it?</strong> {editingItem.clue}</div>
+                      <div>
+                        <strong>What does it tell us?</strong>{' '}
+                        {editingAnalysis && typeof editingAnalysis === 'object'
+                          ? `${editingAnalysis.promptTitle}: ${editingAnalysis.note}`
+                          : 'Use your lab note and plaque to explain what this find suggests.'}
+                      </div>
+                      <div><strong>How confident are we?</strong> Strongest when the clue and lab note support the same idea.</div>
+                      <div><strong>What question do we still have?</strong> What other evidence would help confirm this interpretation?</div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1369,6 +1437,22 @@ function MuseumPhase({ activeArtifacts, excavatedIds, hypotheses, curatedItems, 
               </div>
             )}
           </div>
+        </div>
+      </div>
+
+      <div className="museum-final-statement glass-card">
+        <div>
+          <h3>Final exhibition statement</h3>
+          <p>Use all three finds to make one clear historical interpretation.</p>
+        </div>
+        <textarea
+          value={finalExhibitionStatement}
+          onChange={(e) => setFinalExhibitionStatement(e.target.value)}
+          placeholder="Our exhibition shows that this civilisation... / The evidence suggests that these people..."
+        />
+        <div className="museum-final-statement-footer">
+          <span>{finalExhibitionStatement.trim().length} characters</span>
+          <span>{finalExhibitionStatement.trim().length > 12 ? 'Reflection ready' : 'Add a final statement to open the exhibition'}</span>
         </div>
       </div>
 
@@ -1384,7 +1468,7 @@ function MuseumPhase({ activeArtifacts, excavatedIds, hypotheses, curatedItems, 
         >
           OPEN EXHIBITION <Users size={18} />
         </button>
-        {!isReady && <p style={{fontSize: '0.8rem', color: 'var(--sand-400)', marginTop: '4px'}}>Curate 3 items to finish.</p>}
+        {!isReady && <p style={{fontSize: '0.8rem', color: 'var(--sand-400)', marginTop: '4px'}}>Curate 3 items, write plaques, and add a final statement to finish.</p>}
       </div>
     </div>
   );
@@ -1396,9 +1480,64 @@ const getLegacyAnalysisFeedback = (selectedIndex, correctIndex) => {
   }
   return 'This interpretation needs more evidence. Historians revise ideas when the clues point another way.';
 };
-function ReportPhase({ activeArtifacts, itemsLocation, hypotheses, siteName, finalConclusion, currentScenario, onBack, currentEvent, onRetry, curatedItems = [], plaques = {} }) {
+
+const AUTOSAVE_KEY = 'archaeologyDigApp.autosave.v1';
+const AUTOSAVE_VERSION = 1;
+
+const allArtifactsById = () => {
+  const artifacts = SCENARIOS.flatMap(scenario => scenario.evidence || []);
+  return new Map([...artifacts, ...RED_HERRINGS].map(item => [item.id, item]));
+};
+
+const loadAutosave = () => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(AUTOSAVE_KEY);
+    if (!raw) return null;
+
+    const saved = JSON.parse(raw);
+    if (!saved || saved.version !== AUTOSAVE_VERSION) return null;
+
+    const scenario = SCENARIOS.find(item => item.id === saved.currentScenarioId);
+    const event = RANDOM_EVENTS.find(item => item.id === saved.currentEventId);
+    const artifactsById = allArtifactsById();
+    const artifacts = (saved.activeArtifactIds || [])
+      .map(id => artifactsById.get(id))
+      .filter(Boolean);
+
+    if (!scenario || !event || artifacts.length === 0) return null;
+
+    return {
+      phase: saved.phase || 'dig',
+      currentScenario: scenario,
+      currentEvent: event,
+      activeArtifacts: artifacts,
+      excavatedIds: new Set(saved.excavatedIds || []),
+      itemsLocation: saved.itemsLocation || {},
+      hypotheses: saved.hypotheses || {},
+      siteName: saved.siteName || scenario.name || 'Unknown Dig Site',
+      finalConclusion: saved.finalConclusion || null,
+      curatedItems: saved.curatedItems || [],
+      plaques: saved.plaques || {},
+      finalExhibitionStatement: saved.finalExhibitionStatement || '',
+    };
+  } catch (error) {
+    console.warn('Could not load autosaved archaeology game.', error);
+    return null;
+  }
+};
+
+const clearAutosave = () => {
+  if (typeof window === 'undefined') return;
+  window.localStorage.removeItem(AUTOSAVE_KEY);
+};
+
+function ReportPhase({ activeArtifacts, itemsLocation, hypotheses, siteName, finalConclusion, currentScenario, onBack, currentEvent, onRetry, curatedItems = [], plaques = {}, finalExhibitionStatement = '' }) {
   const [printMode, setPrintMode] = useState('report');
   const analysedItems = activeArtifacts.filter(item => hypotheses[item.id] !== undefined);
+  const curatedFinds = curatedItems
+    .map(id => activeArtifacts.find(item => item.id === id))
+    .filter(Boolean);
   const currentCivilization = SCENARIOS.find(s => s.id === finalConclusion)?.civilization || currentScenario?.civilization || 'Unknown civilisation';
   const eventTitle = currentEvent?.title ? currentEvent.title.replace('!', '') : 'Emergency excavation';
 
@@ -1451,21 +1590,86 @@ function ReportPhase({ activeArtifacts, itemsLocation, hypotheses, siteName, fin
           <h3 style={{fontSize: '1.1rem', marginBottom: '0.5rem'}}><Search size={18} style={{verticalAlign:'middle', marginBottom:'2px'}}/> Evidence Summary</h3>
           <p className="conclusion-vol" style={{fontSize: '0.9rem', marginBottom: '0.5rem'}}>{summary.evidenceSentence}</p>
           <p className="conclusion-vol" style={{fontSize: '0.9rem', marginBottom: '0.5rem'}}>{summary.analysisSentence}</p>
+          {finalExhibitionStatement && (
+            <p className="conclusion-vol" style={{fontSize: '0.9rem', marginBottom: 0}}>
+              <strong>Final exhibition statement:</strong> {finalExhibitionStatement}
+            </p>
+          )}
         </div>
 
-        {curatedItems.length > 0 && (
-          <div className="site-conclusion museum-exhibition-section" style={{marginTop: '1.5rem', background: 'rgba(232, 158, 93, 0.05)', borderColor: 'var(--accent)'}}>
-             <h3 style={{color: 'var(--accent)'}}><Library size={20} style={{verticalAlign:'middle', marginBottom:'2px'}}/> Museum Exhibition: Star Finds</h3>
-             <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginTop: '1rem'}}>
-                {curatedItems.map(id => {
-                  const item = activeArtifacts.find(a => a.id === id);
-                  if (!item) return null;
+        {curatedFinds.length > 0 && (
+          <div className="museum-exhibition-section">
+             <div className="museum-export-cover">
+               <div className="museum-export-kicker">Museum Exhibition Assessment</div>
+               <h3><Library size={22} /> Evidence From The Ancient Past</h3>
+               <p>
+                 Curate three significant finds and explain what they reveal about ancient people, places, beliefs,
+                 technology or environments.
+               </p>
+               <div className="museum-export-meta">
+                 <span>Name / group: ____________________</span>
+                 <span>Class: __________</span>
+                 <span>Dig site: {siteName}</span>
+               </div>
+               <div className="museum-export-context">
+                 <strong>Civilisation / context:</strong> {currentCivilization}
+               </div>
+             </div>
+
+             <div className="museum-export-summary">
+               <div>
+                 <strong>Curator task</strong>
+                 <span>Select important evidence, write clear museum labels, and support ideas with clues.</span>
+               </div>
+               <div>
+                 <strong>Evidence used</strong>
+                 <span>{curatedFinds.length} star find{curatedFinds.length === 1 ? '' : 's'} from {activeArtifacts.length} recovered find{activeArtifacts.length === 1 ? '' : 's'}.</span>
+               </div>
+               <div>
+                 <strong>Historical thinking</strong>
+                 <span>Claim + clue + meaning</span>
+               </div>
+             </div>
+
+             {finalExhibitionStatement && (
+               <div className="museum-export-final-statement">
+                 <strong>Final exhibition statement</strong>
+                 <p>{finalExhibitionStatement}</p>
+               </div>
+             )}
+
+             <div className="museum-export-grid">
+                {curatedFinds.map((item, index) => {
+                  const analysis = hypotheses[item.id];
                   return (
-                    <div key={id} className="museum-export-card" style={{padding: '10px', background: '#fff', borderRadius: '4px', border: '1px solid #ddd'}}>
-                       {item.image && <img src={item.image} style={{width: '100%', height: '110px', objectFit: 'cover', borderRadius: '2px', marginBottom: '8px'}} alt={item.name}/>}
-                       <h4 style={{margin: '0 0 4px 0', fontSize: '0.95rem'}}>{item.name}</h4>
-                       <p style={{fontSize: '0.78rem', color: '#555', fontStyle: 'italic', lineHeight: '1.25'}}>{plaques[id] || 'No plaque written.'}</p>
-                    </div>
+                    <article key={item.id} className="museum-export-card">
+                       <div className="museum-export-card-number">Find {index + 1}</div>
+                       {item.image ? (
+                         <img src={item.image} alt={item.name} />
+                       ) : (
+                         <div className="museum-export-image-placeholder">
+                           {getIcon(item.type, 34)}
+                         </div>
+                       )}
+                       <div className="museum-export-card-body">
+                         <div className="museum-export-category">{getCategoryTitle(item.type)}</div>
+                         <h4>{item.name}</h4>
+                         <div className="museum-export-label">
+                           <strong>Museum label</strong>
+                           <p>{plaques[item.id] || 'No plaque written.'}</p>
+                         </div>
+                         <div className="museum-export-evidence">
+                           <strong>Evidence clue</strong>
+                           <p>{item.clue}</p>
+                         </div>
+                         {analysis && typeof analysis === 'object' && (
+                           <div className="museum-export-analysis">
+                             <strong>What this reveals</strong>
+                             <p><span>{analysis.promptTitle}:</span> {analysis.note}</p>
+                           </div>
+                         )}
+                       </div>
+                    </article>
                   );
                 })}
              </div>
@@ -1587,17 +1791,20 @@ function DevTools({ currentPhase, setPhase, setExcavatedIds, setActiveArtifacts,
 // Main App Component
 // ------------------------------------------------------------------
 export default function App() {
-  const [phase, setPhase] = useState('dig'); // 'dig', 'sort', 'lab', 'report'
-  const [currentScenario, setCurrentScenario] = useState(null);
-  const [activeArtifacts, setActiveArtifacts] = useState([]);
-  const [excavatedIds, setExcavatedIds] = useState(new Set());
-  const [itemsLocation, setItemsLocation] = useState({});
-  const [hypotheses, setHypotheses] = useState({});
-  const [siteName, setSiteName] = useState("Unknown Dig Site");
-  const [finalConclusion, setFinalConclusion] = useState(null);
-  const [currentEvent, setCurrentEvent] = useState(null);
-  const [curatedItems, setCuratedItems] = useState([]);
-  const [plaques, setPlaques] = useState({});
+  const [savedGame] = useState(() => loadAutosave());
+  const [showResumePrompt, setShowResumePrompt] = useState(() => !!savedGame);
+  const [phase, setPhase] = useState(savedGame?.phase || 'dig'); // 'dig', 'sort', 'lab', 'museum', 'report'
+  const [currentScenario, setCurrentScenario] = useState(savedGame?.currentScenario || null);
+  const [activeArtifacts, setActiveArtifacts] = useState(savedGame?.activeArtifacts || []);
+  const [excavatedIds, setExcavatedIds] = useState(savedGame?.excavatedIds || new Set());
+  const [itemsLocation, setItemsLocation] = useState(savedGame?.itemsLocation || {});
+  const [hypotheses, setHypotheses] = useState(savedGame?.hypotheses || {});
+  const [siteName, setSiteName] = useState(savedGame?.siteName || "Unknown Dig Site");
+  const [finalConclusion, setFinalConclusion] = useState(savedGame?.finalConclusion || null);
+  const [currentEvent, setCurrentEvent] = useState(savedGame?.currentEvent || null);
+  const [curatedItems, setCuratedItems] = useState(savedGame?.curatedItems || []);
+  const [plaques, setPlaques] = useState(savedGame?.plaques || {});
+  const [finalExhibitionStatement, setFinalExhibitionStatement] = useState(savedGame?.finalExhibitionStatement || '');
 
   const initGame = () => {
     const scen = SCENARIOS && SCENARIOS.length > 0 
@@ -1630,8 +1837,50 @@ export default function App() {
 
   // Initialize random selection of 15 artifacts for the game (30 tiles for memory)
   useEffect(() => {
-    initGame();
-  }, []);
+    if (!savedGame) {
+      initGame();
+    }
+  }, [savedGame]);
+
+  useEffect(() => {
+    if (!currentScenario || !currentEvent || activeArtifacts.length === 0) return;
+
+    const payload = {
+      version: AUTOSAVE_VERSION,
+      savedAt: new Date().toISOString(),
+      phase,
+      currentScenarioId: currentScenario.id,
+      currentEventId: currentEvent.id,
+      activeArtifactIds: activeArtifacts.map(item => item.id),
+      excavatedIds: Array.from(excavatedIds),
+      itemsLocation,
+      hypotheses,
+      siteName,
+      finalConclusion,
+      curatedItems,
+      plaques,
+      finalExhibitionStatement,
+    };
+
+    try {
+      window.localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(payload));
+    } catch (error) {
+      console.warn('Could not autosave archaeology game.', error);
+    }
+  }, [
+    activeArtifacts,
+    currentEvent,
+    currentScenario,
+    curatedItems,
+    excavatedIds,
+    finalConclusion,
+    finalExhibitionStatement,
+    hypotheses,
+    itemsLocation,
+    phase,
+    plaques,
+    siteName,
+  ]);
 
   // Hotkey listener for DevTools (Ctrl + Shift + D)
   useEffect(() => {
@@ -1646,12 +1895,17 @@ export default function App() {
   }, []);
 
   const handleRetry = () => {
+    clearAutosave();
+    setShowResumePrompt(false);
     setPhase('dig');
     setExcavatedIds(new Set());
     setItemsLocation({});
     setHypotheses({});
     setSiteName("Unknown Dig Site");
     setFinalConclusion(null);
+    setCuratedItems([]);
+    setPlaques({});
+    setFinalExhibitionStatement('');
     initGame();
   };
 
@@ -1672,10 +1926,41 @@ export default function App() {
     setPhase('sort');
   };
 
+  const resumePhaseLabel = savedGame ? {
+    dig: 'Phase 1: Dig',
+    sort: 'Phase 2: Sort',
+    lab: 'Phase 3: Lab',
+    museum: 'Phase 4: Museum',
+    report: 'Phase 5: Report',
+  }[savedGame.phase] || 'Saved dig' : 'Saved dig';
+
   if (activeArtifacts.length === 0) return null;
 
   return (
     <div className="app-wrapper">
+      {showResumePrompt && savedGame && (
+        <div className="modal-overlay">
+          <div className="modal-content glass-card warning-modal resume-modal">
+            <Archive size={44} style={{ color: 'var(--accent)', marginBottom: '0.75rem' }} />
+            <h2 className="modal-title">Saved dig found</h2>
+            <p style={{fontSize: '1.02rem', marginBottom: '0.75rem', color: 'var(--sand-100)'}}>
+              You have autosaved progress from <strong>{resumePhaseLabel}</strong>.
+            </p>
+            <p style={{fontSize: '0.95rem', marginBottom: '1.4rem', color: 'var(--sand-300)'}}>
+              Resume where you left off, or start a new dig and replace this saved game.
+            </p>
+            <div style={{display: 'flex', gap: '0.85rem', justifyContent: 'center', flexWrap: 'wrap'}}>
+              <button className="btn primary-btn" onClick={() => setShowResumePrompt(false)}>
+                Resume Dig <ArrowRight size={20} />
+              </button>
+              <button className="btn" onClick={handleRetry}>
+                Start New Dig
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <header className="main-header hide-on-print">
         <div className="header-left">
           <div className="header-icon-container">
@@ -1754,6 +2039,8 @@ export default function App() {
             setCuratedItems={setCuratedItems}
             plaques={plaques}
             setPlaques={setPlaques}
+            finalExhibitionStatement={finalExhibitionStatement}
+            setFinalExhibitionStatement={setFinalExhibitionStatement}
             onComplete={() => setPhase('report')}
           />
         )}
@@ -1771,6 +2058,7 @@ export default function App() {
             currentEvent={currentEvent}
             curatedItems={curatedItems}
             plaques={plaques}
+            finalExhibitionStatement={finalExhibitionStatement}
           />
         )}
       </main>
