@@ -2545,6 +2545,19 @@ body {
     border-color: #22c55e;
     color: #15803d;
   }
+  .print-mode-museum .report-context-card,
+  .print-mode-museum .evidence-summary-card,
+  .print-mode-museum .report-body {
+    display: none !important;
+  }
+  .print-mode-museum .museum-exhibition-section {
+    display: block !important;
+    margin-top: 0 !important;
+    break-inside: avoid;
+  }
+  .museum-export-card {
+    break-inside: avoid;
+  }
 }
 
 /* Dev Tools Overlay */

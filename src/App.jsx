@@ -1390,90 +1390,81 @@ function MuseumPhase({ activeArtifacts, excavatedIds, hypotheses, curatedItems, 
   );
 }
 
+const getLegacyAnalysisFeedback = (selectedIndex, correctIndex) => {
+  if (selectedIndex === correctIndex) {
+    return 'This interpretation matches the strongest evidence from the clue.';
+  }
+  return 'This interpretation needs more evidence. Historians revise ideas when the clues point another way.';
+};
 function ReportPhase({ activeArtifacts, itemsLocation, hypotheses, siteName, finalConclusion, currentScenario, onBack, currentEvent, onRetry, curatedItems = [], plaques = {} }) {
+  const [printMode, setPrintMode] = useState('report');
+  const analysedItems = activeArtifacts.filter(item => hypotheses[item.id] !== undefined);
+  const currentCivilization = SCENARIOS.find(s => s.id === finalConclusion)?.civilization || currentScenario?.civilization || 'Unknown civilisation';
+  const eventTitle = currentEvent?.title ? currentEvent.title.replace('!', '') : 'Emergency excavation';
+
   const summary = useMemo(() => {
-    const total = activeArtifacts.length;
-    const eventTitle = (currentEvent && currentEvent.title) ? currentEvent.title.replace('!', '') : 'Emergency';
-    let vol = `Despite the emergency situation (${eventTitle}), your team successfully excavated ${total} artifact${total !== 1 ? 's' : ''}. `;
-    if (total < 5) {
-      vol += "While the incident forced an early evacuation, this small sample still provides valuable clues, though much of the site remains a mystery.";
-    } else if (total < 10) {
-      vol += "This provides a strong foundation of evidence to help us understand the ancient people who lived here.";
-    } else {
-      vol += "This incredibly rich collection of evidence gives us a highly detailed picture of ancient life at this dig site.";
-    }
+    const categoriesUsed = CATEGORIES
+      .map(cat => ({
+        ...cat,
+        items: activeArtifacts.filter(item => itemsLocation[item.id] === cat.id),
+      }))
+      .filter(cat => cat.items.length > 0);
 
-    const names = activeArtifacts.map(a => a.name.toLowerCase());
-    const specs = [];
-    
-    if (names.some(n => n.includes('pottery') || n.includes('sword') || n.includes('coin') || n.includes('amulet') || n.includes('jade') || n.includes('mirror'))) {
-      specs.push("The objects you discovered prove that these people had advanced skills in craft, metallurgy, and potentially a trading economy.");
-    }
-    if (names.some(n => n.includes('skull') || n.includes('teeth') || n.includes('mummified') || n.includes('bone') || n.includes('skeleton'))) {
-      specs.push("The human and animal remains provide crucial biological evidence about their physical health, diet, and their spiritual beliefs surrounding death.");
-    }
-    if (names.some(n => n.includes('temple') || n.includes('wall') || n.includes('hearth') || n.includes('trap') || n.includes('aqueduct') || n.includes('foundation') || n.includes('kiln'))) {
-      specs.push("The places and structures indicate organized engineering, settlement building, and potentially defensive or communal capabilities.");
-    }
-    if (names.some(n => n.includes('shell') || n.includes('seeds') || n.includes('charcoal') || n.includes('silt') || n.includes('ash') || n.includes('papyrus') || n.includes('leaves'))) {
-      specs.push("The environmental evidence gives us a direct look into their diet, local climate, available natural resources, and agricultural practices.");
-    }
-    if (names.some(n => n.includes('tablet') || n.includes('painting') || n.includes('hieroglyph') || n.includes('scroll') || n.includes('art') || n.includes('bone') || n.includes('slips') || n.includes('inscription'))) {
-      specs.push("The written and symbolic evidence reveals their intellectual culture, showing how they communicated, recorded history, and expressed complex ideas.");
-    }
+    const evidenceSentence = `Your team recovered ${activeArtifacts.length} find${activeArtifacts.length === 1 ? '' : 's'} during the ${eventTitle.toLowerCase()}.`;
+    const analysisSentence = analysedItems.length > 0
+      ? `You completed ${analysedItems.length} evidence-based analysis note${analysedItems.length === 1 ? '' : 's'}.`
+      : 'No analysis notes were recorded.';
 
-    return { vol, specs };
-  }, [activeArtifacts]);
+    return { categoriesUsed, evidenceSentence, analysisSentence };
+  }, [activeArtifacts, analysedItems.length, eventTitle, itemsLocation]);
+
+  useEffect(() => {
+    const resetPrintMode = () => setPrintMode('report');
+    window.addEventListener('afterprint', resetPrintMode);
+    return () => window.removeEventListener('afterprint', resetPrintMode);
+  }, []);
+
+  const handlePrint = (mode = 'report') => {
+    setPrintMode(mode);
+    window.setTimeout(() => window.print(), 60);
+  };
 
   return (
-    <div className="report-container" style={{padding: '1rem', maxWidth: '800px'}}>
+    <div className={`report-container print-mode-${printMode}`} style={{padding: '1rem', maxWidth: '900px'}}>
       <div className="report-paper" style={{padding: '1.5rem'}}>
         <div className="report-header" style={{marginBottom: '1rem', paddingBottom: '0.5rem'}}>
           <h2 style={{fontSize: '1.5rem'}}>Archaeologist's Final Report</h2>
           <p className="report-subtitle" style={{fontSize: '1rem'}}>Dig Site: {siteName}</p>
         </div>
-        
-        {finalConclusion && currentScenario && (
-          <div className="site-conclusion" style={{
-            background: finalConclusion === currentScenario.id ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)', 
-            borderColor: finalConclusion === currentScenario.id ? '#22c55e' : '#ef4444',
-            padding: '1rem', marginBottom: '1rem'
-          }}>
-             <h3 style={{color: finalConclusion === currentScenario.id ? '#166534' : '#991b1b', fontSize: '1.1rem', marginBottom: '0.5rem'}}>
-               <Search size={18} style={{verticalAlign:'middle', marginBottom:'2px'}}/> Grand Synthesis
-             </h3>
-             <p style={{fontSize: '0.9rem'}}><strong>Your Hypothesis:</strong> {SCENARIOS.find(s => s.id === finalConclusion)?.civilization}</p>
-             <p style={{fontSize: '0.9rem'}}><strong>True Identity:</strong> {currentScenario.civilization}</p>
-             <p style={{marginTop: '6px', fontStyle: 'italic', color: finalConclusion === currentScenario.id ? '#166534' : '#991b1b', fontSize: '0.85rem'}}>
-               {finalConclusion === currentScenario.id 
-                  ? "✅ Excellent work! You correctly synthesized the evidence." 
-                  : "💡 Historical interpretation requires looking at all evidence together."}
-             </p>
-          </div>
-        )}
 
-        <div className="site-conclusion" style={{marginTop: '1rem', padding: '1rem', marginBottom: '1rem'}}>
+        <div className="site-conclusion report-context-card" style={{padding: '1rem', marginBottom: '1rem'}}>
+          <h3 style={{fontSize: '1.1rem', marginBottom: '0.5rem'}}><Search size={18} style={{verticalAlign:'middle', marginBottom:'2px'}}/> Site Context</h3>
+          <p style={{fontSize: '0.9rem'}}><strong>Civilisation / context:</strong> {currentCivilization}</p>
+          <p style={{fontSize: '0.9rem'}}><strong>Evidence recovered:</strong> {activeArtifacts.length}</p>
+          <p style={{fontSize: '0.9rem'}}><strong>Analyses completed:</strong> {analysedItems.length}</p>
+          <p style={{marginTop: '6px', fontStyle: 'italic', fontSize: '0.85rem'}}>
+            Historians and archaeologists use evidence carefully to explain what the past may have been like.
+          </p>
+        </div>
+
+        <div className="site-conclusion evidence-summary-card" style={{marginTop: '1rem', padding: '1rem', marginBottom: '1rem'}}>
           <h3 style={{fontSize: '1.1rem', marginBottom: '0.5rem'}}><Search size={18} style={{verticalAlign:'middle', marginBottom:'2px'}}/> Evidence Summary</h3>
-          <p className="conclusion-vol" style={{fontSize: '0.9rem', marginBottom: '0.5rem'}}>{summary.vol}</p>
-          {summary.specs.length > 0 && (
-            <ul className="conclusion-specs" style={{fontSize: '0.85rem'}}>
-              {summary.specs.map((spec, i) => <li key={i}>{spec}</li>)}
-            </ul>
-          )}
+          <p className="conclusion-vol" style={{fontSize: '0.9rem', marginBottom: '0.5rem'}}>{summary.evidenceSentence}</p>
+          <p className="conclusion-vol" style={{fontSize: '0.9rem', marginBottom: '0.5rem'}}>{summary.analysisSentence}</p>
         </div>
 
         {curatedItems.length > 0 && (
-          <div className="site-conclusion" style={{marginTop: '1.5rem', background: 'rgba(232, 158, 93, 0.05)', borderColor: 'var(--accent)'}}>
+          <div className="site-conclusion museum-exhibition-section" style={{marginTop: '1.5rem', background: 'rgba(232, 158, 93, 0.05)', borderColor: 'var(--accent)'}}>
              <h3 style={{color: 'var(--accent)'}}><Library size={20} style={{verticalAlign:'middle', marginBottom:'2px'}}/> Museum Exhibition: Star Finds</h3>
              <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginTop: '1rem'}}>
                 {curatedItems.map(id => {
                   const item = activeArtifacts.find(a => a.id === id);
                   if (!item) return null;
                   return (
-                    <div key={id} style={{padding: '10px', background: '#fff', borderRadius: '4px', border: '1px solid #ddd'}}>
-                       {item.image && <img src={item.image} style={{width: '100%', height: '80px', objectFit: 'cover', borderRadius: '2px', marginBottom: '8px'}} alt={item.name}/>}
-                       <h4 style={{margin: '0 0 4px 0', fontSize: '0.9rem'}}>{item.name}</h4>
-                       <p style={{fontSize: '0.75rem', color: '#555', fontStyle: 'italic', lineHeight: '1.2'}}>{plaques[id]}</p>
+                    <div key={id} className="museum-export-card" style={{padding: '10px', background: '#fff', borderRadius: '4px', border: '1px solid #ddd'}}>
+                       {item.image && <img src={item.image} style={{width: '100%', height: '110px', objectFit: 'cover', borderRadius: '2px', marginBottom: '8px'}} alt={item.name}/>}
+                       <h4 style={{margin: '0 0 4px 0', fontSize: '0.95rem'}}>{item.name}</h4>
+                       <p style={{fontSize: '0.78rem', color: '#555', fontStyle: 'italic', lineHeight: '1.25'}}>{plaques[id] || 'No plaque written.'}</p>
                     </div>
                   );
                 })}
@@ -1482,57 +1473,56 @@ function ReportPhase({ activeArtifacts, itemsLocation, hypotheses, siteName, fin
         )}
 
         <div className="report-body">
-          {CATEGORIES.map(cat => {
-            const items = activeArtifacts.filter(c => itemsLocation[c.id] === cat.id);
-            if (items.length === 0) return null;
-            return (
-              <div key={cat.id} className="report-category">
-                <h3>{cat.title}</h3>
-                <ul>
-                  {items.map(item => (
+          {summary.categoriesUsed.map(cat => (
+            <div key={cat.id} className="report-category">
+              <h3>{cat.title}</h3>
+              <ul>
+                {cat.items.map(item => {
+                  const analysis = hypotheses[item.id];
+                  return (
                     <li key={item.id} className="report-item">
                       <div className="report-item-header">
                         <strong>{item.name}</strong>
                         <span className="report-clue">{item.clue}</span>
                       </div>
-                      {hypotheses[item.id] !== undefined && (
+                      {analysis && typeof analysis === 'object' && (
                         <>
-                          {typeof hypotheses[item.id] === 'object' ? (
-                            <>
-                              <div className="report-hypothesis">
-                                <strong>Analysis focus:</strong> {hypotheses[item.id].promptTitle || 'Research note'}
-                              </div>
-                              <div className="report-feedback">
-                                {hypotheses[item.id].note || 'No note recorded.'}
-                              </div>
-                            </>
-                          ) : (
-                            <>
-                              <div className="report-hypothesis">
-                                <strong>Significance:</strong> "{item.options && hypotheses[item.id] !== undefined ? item.options[hypotheses[item.id]] : 'N/A'}"
-                              </div>
-                              <div className="report-feedback">
-                                {generateFeedback(hypotheses[item.id], item.correct)}
-                              </div>
-                            </>
-                          )}
+                          <div className="report-hypothesis">
+                            <strong>Analysis focus:</strong> {analysis.promptTitle || 'Research note'}
+                          </div>
+                          <div className="report-feedback">
+                            {analysis.note || 'No note recorded.'}
+                          </div>
+                        </>
+                      )}
+                      {typeof analysis === 'number' && (
+                        <>
+                          <div className="report-hypothesis">
+                            <strong>Significance:</strong> "{item.options?.[analysis] || 'No option recorded.'}"
+                          </div>
+                          <div className="report-feedback">
+                            {getLegacyAnalysisFeedback(analysis, item.correct)}
+                          </div>
                         </>
                       )}
                     </li>
-                  ))}
-                </ul>
-              </div>
-            );
-          })}
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
         </div>
       </div>
-      
+
       <div className="report-actions hide-on-print">
          <button className="btn" onClick={onBack}>
            Back to Lab
          </button>
-         <button className="btn primary-btn" onClick={() => window.print()}>
+         <button className="btn primary-btn" onClick={() => handlePrint('report')}>
            Print Report
+         </button>
+         <button className="btn primary-btn" onClick={() => handlePrint('museum')} disabled={curatedItems.length === 0}>
+           Export Museum
          </button>
          <button className="btn" onClick={onRetry} style={{marginLeft: 'auto', background: 'var(--accent)', color: '#111', borderColor: 'var(--accent)'}}>
            <RefreshCw size={20} style={{verticalAlign:'middle', marginRight:'5px'}} />
