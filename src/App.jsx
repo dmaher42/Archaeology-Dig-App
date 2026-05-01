@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -11,10 +11,10 @@ import {
 } from '@dnd-kit/core';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { 
-  Pickaxe, Tent, Search, FileText, CheckCircle2, X, ChevronRight, Clock, Wind, Radar, 
-  Droplets, AlertTriangle, Moon, RefreshCw, Library, Users, Skull, Landmark, Leaf, 
-  ScrollText, Package, Sparkles, ArrowRight, Lightbulb, Info, HelpCircle, History, Archive,
-  MapPin, Beaker, Dna, Zap, Trophy, Award, Check, Database, FileCheck
+  Pickaxe, Tent, Search, FileText, CheckCircle2, ChevronRight, Clock, Radar,
+  AlertTriangle, RefreshCw, Library, Users, Skull, Landmark, Leaf,
+  ScrollText, Package, ArrowRight, Lightbulb, HelpCircle, Archive, Save, Upload,
+  MapPin, Beaker, Trophy
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import './index.css';
@@ -123,7 +123,14 @@ export const playTone = (freq, type = 'sine', duration = 0.5, vol = 0.2) => {
   osc.stop(audioCtx.currentTime + duration);
 };
 // -----------------------
-import { CATEGORIES, RANDOM_EVENTS, SCENARIOS, RED_HERRINGS } from './data';
+import {
+  CATEGORIES,
+  RANDOM_EVENTS,
+  SCENARIOS,
+  RED_HERRINGS,
+  getCategoryTitle,
+  getArtifactEraLabel,
+} from './data';
 
 // Custom collision detection strategy
 const customCollisionDetection = (args) => {
@@ -143,21 +150,6 @@ const getIcon = (type, size = 20) => {
     case 'mystery': return <Search size={size} />;
     default: return <Search size={size} />;
   }
-};
-
-const getCategoryTitle = (type) => CATEGORIES.find(category => category.id === type)?.title ?? type;
-
-const getArtifactEraLabel = (artifact) => {
-  if (!artifact) return 'Unknown';
-  if (artifact.isRedHerring) return 'Modern disturbance';
-  
-  // Try to find the scenario this artifact belongs to for a better label
-  for (const s of SCENARIOS) {
-    if (s.evidence.some(e => e.id === artifact.id)) {
-      return s.civilization;
-    }
-  }
-  return 'Ancient evidence';
 };
 
 const ARTIFACT_THEME_MAP = {
@@ -356,11 +348,6 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
   const [attempts, setAttempts] = useState(0);
   const [isSurveying, setIsSurveying] = useState(false);
  
-  // Multiplayer State
-  const [numPlayers, setNumPlayers] = useState(1);
-  const [currentPlayer, setCurrentPlayer] = useState(1);
-  const [scores, setScores] = useState({ 1: 0, 2: 0 });
-
   // Difficulty State
   const [difficulty, setDifficulty] = useState('medium');
 
@@ -519,10 +506,6 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
           });
           recordRecoveryNote(tiles[idx1].artifact);
           
-          if (numPlayers === 2) {
-             setScores(prev => ({ ...prev, [currentPlayer]: prev[currentPlayer] + 1 }));
-          }
-
           setFlippedIndices([]);
           setIsLocked(false);
         }, 600);
@@ -535,9 +518,6 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
             next[idx2] = { ...next[idx2], isFlipped: false };
             return next;
           });
-          if (numPlayers === 2) {
-             setCurrentPlayer(prev => prev === 1 ? 2 : 1);
-          }
           setFlippedIndices([]);
           setIsLocked(false);
         }, 1000);
@@ -575,14 +555,12 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
             <div style={{display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap'}}>
               <button className="btn primary-btn" onClick={() => {
                 initAudio();
-                setNumPlayers(1);
                 setTimeLeft(difficulty === 'easy' ? 300 : difficulty === 'medium' ? 180 : 90);
                 setShowStormWarning(false);
                 setIsPlaying(true);
               }}>1 Player <Pickaxe size={20} /></button>
               <button className="btn primary-btn" onClick={() => {
                 initAudio();
-                setNumPlayers(2);
                 setTimeLeft(difficulty === 'easy' ? 300 : difficulty === 'medium' ? 180 : 90);
                 setShowStormWarning(false);
                 setIsPlaying(true);
@@ -800,15 +778,6 @@ function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, onComplet
     }
   };
 
-  const handleQuickSort = (categoryId) => {
-    if (!hoveredCard) return;
-    if (hoveredCard.type === categoryId) {
-      processSuccess(hoveredCard, categoryId);
-    } else {
-      processFailure();
-    }
-  };
-
   const inventoryItems = activeArtifacts.filter(c => itemsLocation[c.id] === 'inventory');
   const sortedCount = activeArtifacts.length - inventoryItems.length;
   const isComplete = sortedCount === activeArtifacts.length;
@@ -970,7 +939,7 @@ function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, onComplet
 // ------------------------------------------------------------------
 // Phase 3: Lab
 // ------------------------------------------------------------------
-function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypotheses, scenarios, currentScenario, onComplete }) {
+function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypotheses, currentScenario, onComplete }) {
   const currentScenarioData = currentScenario;
   const trayItems = useMemo(() => {
     const sortedItems = activeArtifacts.filter(item => itemsLocation[item.id] && itemsLocation[item.id] !== 'inventory');
@@ -1483,10 +1452,75 @@ const getLegacyAnalysisFeedback = (selectedIndex, correctIndex) => {
 
 const AUTOSAVE_KEY = 'archaeologyDigApp.autosave.v1';
 const AUTOSAVE_VERSION = 1;
+const SAVE_APP_ID = 'archaeology-dig-app';
+
+const createSavePayload = ({
+  phase,
+  currentScenario,
+  currentEvent,
+  activeArtifacts,
+  excavatedIds,
+  itemsLocation,
+  hypotheses,
+  siteName,
+  finalConclusion,
+  curatedItems,
+  plaques,
+  finalExhibitionStatement,
+}) => ({
+  app: SAVE_APP_ID,
+  version: AUTOSAVE_VERSION,
+  saveVersion: AUTOSAVE_VERSION,
+  savedAt: new Date().toISOString(),
+  phase,
+  currentScenarioId: currentScenario.id,
+  currentEventId: currentEvent.id,
+  activeArtifactIds: activeArtifacts.map(item => item.id),
+  excavatedIds: Array.from(excavatedIds),
+  itemsLocation,
+  hypotheses,
+  siteName,
+  finalConclusion,
+  curatedItems,
+  plaques,
+  finalExhibitionStatement,
+});
 
 const allArtifactsById = () => {
   const artifacts = SCENARIOS.flatMap(scenario => scenario.evidence || []);
   return new Map([...artifacts, ...RED_HERRINGS].map(item => [item.id, item]));
+};
+
+const rebuildSavedSession = (saved) => {
+  if (!saved || saved.app !== SAVE_APP_ID || saved.saveVersion !== AUTOSAVE_VERSION) {
+    throw new Error('This is not a valid Archaeology Dig save file.');
+  }
+
+  const scenario = SCENARIOS.find(item => item.id === saved.currentScenarioId);
+  const event = RANDOM_EVENTS.find(item => item.id === saved.currentEventId);
+  const artifactsById = allArtifactsById();
+  const artifacts = (saved.activeArtifactIds || [])
+    .map(id => artifactsById.get(id))
+    .filter(Boolean);
+
+  if (!scenario || !event || artifacts.length === 0) {
+    throw new Error('This save file is missing scenario or evidence data.');
+  }
+
+  return {
+    phase: saved.phase || 'dig',
+    currentScenario: scenario,
+    currentEvent: event,
+    activeArtifacts: artifacts,
+    excavatedIds: new Set(saved.excavatedIds || []),
+    itemsLocation: saved.itemsLocation || {},
+    hypotheses: saved.hypotheses || {},
+    siteName: saved.siteName || scenario.name || 'Unknown Dig Site',
+    finalConclusion: saved.finalConclusion || null,
+    curatedItems: saved.curatedItems || [],
+    plaques: saved.plaques || {},
+    finalExhibitionStatement: saved.finalExhibitionStatement || '',
+  };
 };
 
 const loadAutosave = () => {
@@ -1496,31 +1530,8 @@ const loadAutosave = () => {
     if (!raw) return null;
 
     const saved = JSON.parse(raw);
-    if (!saved || saved.version !== AUTOSAVE_VERSION) return null;
-
-    const scenario = SCENARIOS.find(item => item.id === saved.currentScenarioId);
-    const event = RANDOM_EVENTS.find(item => item.id === saved.currentEventId);
-    const artifactsById = allArtifactsById();
-    const artifacts = (saved.activeArtifactIds || [])
-      .map(id => artifactsById.get(id))
-      .filter(Boolean);
-
-    if (!scenario || !event || artifacts.length === 0) return null;
-
-    return {
-      phase: saved.phase || 'dig',
-      currentScenario: scenario,
-      currentEvent: event,
-      activeArtifacts: artifacts,
-      excavatedIds: new Set(saved.excavatedIds || []),
-      itemsLocation: saved.itemsLocation || {},
-      hypotheses: saved.hypotheses || {},
-      siteName: saved.siteName || scenario.name || 'Unknown Dig Site',
-      finalConclusion: saved.finalConclusion || null,
-      curatedItems: saved.curatedItems || [],
-      plaques: saved.plaques || {},
-      finalExhibitionStatement: saved.finalExhibitionStatement || '',
-    };
+    if (!saved.app || saved.app !== SAVE_APP_ID || saved.saveVersion !== AUTOSAVE_VERSION) return null;
+    return rebuildSavedSession(saved);
   } catch (error) {
     console.warn('Could not load autosaved archaeology game.', error);
     return null;
@@ -1805,6 +1816,7 @@ export default function App() {
   const [curatedItems, setCuratedItems] = useState(savedGame?.curatedItems || []);
   const [plaques, setPlaques] = useState(savedGame?.plaques || {});
   const [finalExhibitionStatement, setFinalExhibitionStatement] = useState(savedGame?.finalExhibitionStatement || '');
+  const [saveMessage, setSaveMessage] = useState('');
 
   const initGame = () => {
     const scen = SCENARIOS && SCENARIOS.length > 0 
@@ -1835,6 +1847,21 @@ export default function App() {
 
   const [showDevTools, setShowDevTools] = useState(false);
 
+  const buildCurrentSavePayload = () => createSavePayload({
+    phase,
+    currentScenario,
+    currentEvent,
+    activeArtifacts,
+    excavatedIds,
+    itemsLocation,
+    hypotheses,
+    siteName,
+    finalConclusion,
+    curatedItems,
+    plaques,
+    finalExhibitionStatement,
+  });
+
   // Initialize random selection of 15 artifacts for the game (30 tiles for memory)
   useEffect(() => {
     if (!savedGame) {
@@ -1845,25 +1872,8 @@ export default function App() {
   useEffect(() => {
     if (!currentScenario || !currentEvent || activeArtifacts.length === 0) return;
 
-    const payload = {
-      version: AUTOSAVE_VERSION,
-      savedAt: new Date().toISOString(),
-      phase,
-      currentScenarioId: currentScenario.id,
-      currentEventId: currentEvent.id,
-      activeArtifactIds: activeArtifacts.map(item => item.id),
-      excavatedIds: Array.from(excavatedIds),
-      itemsLocation,
-      hypotheses,
-      siteName,
-      finalConclusion,
-      curatedItems,
-      plaques,
-      finalExhibitionStatement,
-    };
-
     try {
-      window.localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(payload));
+      window.localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(buildCurrentSavePayload()));
     } catch (error) {
       console.warn('Could not autosave archaeology game.', error);
     }
@@ -1894,6 +1904,12 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  useEffect(() => {
+    if (!saveMessage) return;
+    const timer = window.setTimeout(() => setSaveMessage(''), 4500);
+    return () => window.clearTimeout(timer);
+  }, [saveMessage]);
+
   const handleRetry = () => {
     clearAutosave();
     setShowResumePrompt(false);
@@ -1907,6 +1923,65 @@ export default function App() {
     setPlaques({});
     setFinalExhibitionStatement('');
     initGame();
+  };
+
+  const applySavedSession = (session) => {
+    setPhase(session.phase);
+    setCurrentScenario(session.currentScenario);
+    setCurrentEvent(session.currentEvent);
+    setActiveArtifacts(session.activeArtifacts);
+    setExcavatedIds(session.excavatedIds);
+    setItemsLocation(session.itemsLocation);
+    setHypotheses(session.hypotheses);
+    setSiteName(session.siteName);
+    setFinalConclusion(session.finalConclusion);
+    setCuratedItems(session.curatedItems);
+    setPlaques(session.plaques);
+    setFinalExhibitionStatement(session.finalExhibitionStatement);
+    setShowResumePrompt(false);
+  };
+
+  const handleSaveProgressFile = () => {
+    if (!currentScenario || !currentEvent || activeArtifacts.length === 0) return;
+
+    const payload = buildCurrentSavePayload();
+    const stamp = new Date()
+      .toISOString()
+      .slice(0, 16)
+      .replace('T', '-')
+      .replace(':', '');
+    const filename = `archaeology-dig-${currentScenario.id}-${stamp}.json`;
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    setSaveMessage(`Progress downloaded as ${filename}`);
+  };
+
+  const handleLoadProgressFile = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const payload = JSON.parse(text);
+      const session = rebuildSavedSession(payload);
+      applySavedSession(session);
+      window.localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(payload));
+      setSaveMessage(`Loaded progress from ${file.name}`);
+    } catch (error) {
+      console.warn('Could not load progress file.', error);
+      setSaveMessage(error instanceof SyntaxError
+        ? 'That file is not valid JSON. Please choose an exported Archaeology Dig save file.'
+        : error.message || 'Could not load that save file.');
+    }
   };
 
   const handleDigComplete = (finalExcavatedIds) => {
@@ -1971,6 +2046,15 @@ export default function App() {
             <p>What can evidence tell us about the ancient past?</p>
           </div>
         </div>
+        <div className="save-controls">
+          <button className="save-control-btn" type="button" onClick={handleSaveProgressFile}>
+            <Save size={16} /> Save Progress
+          </button>
+          <label className="save-control-btn">
+            <Upload size={16} /> Load Progress
+            <input type="file" accept="application/json,.json" onChange={handleLoadProgressFile} />
+          </label>
+        </div>
         <nav className="phase-navigation">
           <div className={`phase-nav-item ${phase === 'dig' ? 'active' : 'done'}`}>
             <span className="phase-num">1</span> Dig
@@ -1993,6 +2077,11 @@ export default function App() {
           </div>
         </nav>
       </header>
+      {saveMessage && (
+        <div className="save-message hide-on-print" role="status">
+          {saveMessage}
+        </div>
+      )}
 
       <main className="main-content">
         {phase === 'dig' && currentEvent && (
@@ -2020,7 +2109,6 @@ export default function App() {
             itemsLocation={itemsLocation} 
             hypotheses={hypotheses}
             setHypotheses={setHypotheses}
-            scenarios={SCENARIOS}
             currentScenario={currentScenario}
             onComplete={(name, civId) => {
               setSiteName(name);

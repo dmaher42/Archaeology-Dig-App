@@ -53,33 +53,37 @@ It fits especially well after students have been introduced to:
 
 ## Game structure
 
-The app is built around a multi-phase learning sequence.
+The app is built around a five-phase learning sequence.
 
-### 1. Emergency excavation
+### 1. Dig
 
-Students recover finds from a dig site under pressure.
+Students recover finds from a threatened dig site under time pressure.
 
 Random events such as sandstorms, floods, looters, or nightfall create urgency and make the dig feel like an active mission.
 
-### 2. Sorting tent
+### 2. Sort
 
 Students classify the recovered evidence into archaeology categories:
 
-- **Objects people made** – tools, pottery, weapons, jewellery, money
-- **Human remains** – bones, teeth, mummified bodies
-- **Places and structures** – roads, tombs, temples, walls, drainage
-- **Environmental evidence** – seeds, charcoal, shells, animal bones
-- **Written or symbolic evidence** – symbols, writing, carvings, painted images
+- **Objects people made** - tools, pottery, weapons, jewellery, money
+- **Human remains** - bones, teeth, mummified bodies
+- **Places and structures** - roads, tombs, temples, walls, drainage
+- **Environmental evidence** - seeds, charcoal, shells, animal bones
+- **Written or symbolic evidence** - symbols, writing, carvings, painted images
 
-### 3. Evidence analysis
+### 3. Lab
 
-Students answer questions about each find and consider what it tells historians and archaeologists.
+Students answer questions about each find and write short research notes about what it reveals.
 
-This is the most important learning phase. The goal is not only to sort correctly, but to explain what the evidence might mean.
+This is the main evidence-analysis phase. The goal is not only to sort correctly, but to explain what the evidence might mean.
 
-### 4. Historical interpretation
+### 4. Museum
 
-Students use evidence to form stronger explanations about how ancient people lived, what they valued, what technology they used, and how they adapted to their environment.
+Students curate three strongest finds, write exhibition plaques, and build a final exhibition statement.
+
+### 5. Report
+
+Students review the full evidence set and print or export the final museum/report view.
 
 ## Civilisations and scenarios
 
@@ -217,8 +221,9 @@ npm run lint
 ## Main files
 
 - `src/App.jsx` – main game flow and interface
-- `src/data.js` – archaeology categories, random events, scenarios, evidence, clues, questions, and rationales
+- `src/data.js` – archaeology categories, random events, scenarios, evidence, clues, questions, rationales, and shared label helpers
 - `src/index.css` – app styling
+- `public/museum/` – museum and report imagery used by the evidence cards
 - `package.json` – Vite scripts and dependencies
 
 ## Future improvement ideas
@@ -234,6 +239,14 @@ Possible next upgrades:
 - whole-class projection mode
 - accessibility improvements for lower-literacy students
 - clearer connection between migration, settlement, civilisation, and evidence
+
+## Save and load
+
+The app now supports both autosave and manual save/load.
+
+- Autosave writes to local storage while the game is in progress.
+- Save Progress downloads a JSON file.
+- Load Progress restores a saved JSON file back into the same state model.
 
 ## Teaching vision
 

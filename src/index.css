@@ -102,6 +102,58 @@ body {
   margin-top: 2px;
 }
 
+.save-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+  margin-right: 1rem;
+}
+
+.save-control-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border: 1px solid rgba(232, 158, 93, 0.38);
+  border-radius: 999px;
+  background: rgba(232, 158, 93, 0.1);
+  color: var(--sand-100);
+  padding: 0.45rem 0.75rem;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.save-control-btn:hover {
+  border-color: var(--accent);
+  background: rgba(232, 158, 93, 0.22);
+  transform: translateY(-1px);
+}
+
+.save-control-btn input {
+  display: none;
+}
+
+.save-message {
+  position: fixed;
+  top: 5.6rem;
+  left: 50%;
+  z-index: 5000;
+  transform: translateX(-50%);
+  max-width: min(720px, calc(100vw - 2rem));
+  padding: 0.65rem 1rem;
+  border: 1px solid rgba(232, 158, 93, 0.45);
+  border-radius: 999px;
+  background: rgba(22, 15, 9, 0.94);
+  color: var(--sand-100);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35);
+  font-size: 0.86rem;
+  text-align: center;
+}
+
 .phase-navigation {
   display: flex;
   align-items: center;

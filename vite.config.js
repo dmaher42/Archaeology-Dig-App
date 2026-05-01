@@ -6,5 +6,4 @@ export default defineConfig({
   // GitHub Pages project site base path
   base: '/Archaeology-Dig-App/',
   plugins: [react()],
-  base: '/Archaeology-Dig-App/',
 })
