@@ -1613,9 +1613,10 @@ body {
 .sort-content-area {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  overflow-y: auto;
-  padding-right: 0.5rem;
+  gap: 0.85rem;
+  min-height: 0;
+  overflow: hidden;
+  padding-right: 0;
 }
 
 /* Clue Card Wide */
@@ -1625,6 +1626,7 @@ body {
   border: 1px solid rgba(168, 134, 97, 0.3);
   overflow: hidden;
   box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  flex: 0 0 auto;
 }
 
 .clue-card-header {
@@ -1654,10 +1656,10 @@ body {
 
 .clue-card-body {
   padding: 1.25rem 2rem;
-  min-height: 100px;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   position: relative;
 }
 
@@ -1691,6 +1693,36 @@ body {
   letter-spacing: 0.5px;
 }
 
+.sort-clue-selected {
+  display: grid;
+  gap: 0.35rem;
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(168, 134, 97, 0.14);
+}
+
+.sort-clue-name {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--sand-100);
+}
+
+.sort-clue-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  color: var(--sand-400);
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+.sort-clue-meta span {
+  padding: 0.16rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(168, 134, 97, 0.14);
+}
+
 .clue-placeholder {
   text-align: center;
   color: var(--sand-500);
@@ -1707,9 +1739,8 @@ body {
 }
 
 .sort-feedback-inline {
-  position: absolute;
-  top: 1rem;
-  right: 1.5rem;
+  position: static;
+  margin-top: 0.8rem;
   padding: 8px 16px;
   border-radius: 12px;
   font-weight: 700;
@@ -2404,7 +2435,10 @@ body {
 .categories-section {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
 }
 
 .section-heading {
@@ -2412,53 +2446,58 @@ body {
   font-weight: 800;
   color: var(--sand-400);
   letter-spacing: 2px;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0;
 }
 
 .categories-grid-custom {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  flex: 1;
+  min-height: 0;
+  align-content: start;
+  overflow: auto;
+  padding-right: 0.25rem;
 }
 
-/* 3 top: span 2 columns each */
-.categories-grid-custom > :nth-child(-n+3) {
-  grid-column: span 2;
+.categories-grid-custom > * {
+  grid-column: auto !important;
 }
 
-/* 2 bottom: span 2 columns each, centered */
-.categories-grid-custom > :nth-child(4) {
-  grid-column: 2 / span 2;
-}
-
-.categories-grid-custom > :nth-child(5) {
-  grid-column: 4 / span 2;
-}
-
-@media (max-width: 1200px) {
+@media (max-width: 900px) {
   .categories-grid-custom {
-    grid-template-columns: repeat(2, 1fr);
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  .categories-grid-custom > * {
-    flex: 1 1 300px;
-    max-width: 450px;
-  }
-}
-
-@media (max-width: 600px) {
-  .categories-grid-custom {
-    display: grid;
     grid-template-columns: 1fr;
-  }
-  .categories-grid-custom > * {
-    grid-column: span 1 !important;
   }
 }
 
 /* Category Bin Overhaul */
+.sort-categories-section {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  overflow: hidden;
+}
+
+.sort-categories-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+.sort-categories-help {
+  margin: 0.35rem 0 0;
+  color: var(--sand-400);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.sort-guide-btn {
+  flex-shrink: 0;
+}
+
 .category-bin {
   background: rgba(0,0,0,0.3);
   border: 1px solid rgba(168, 134, 97, 0.15);
@@ -2466,7 +2505,8 @@ body {
   display: flex;
   flex-direction: column;
   transition: all 0.3s ease;
-  min-height: 180px;
+  min-height: 0;
+  height: 100%;
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
@@ -2478,7 +2518,7 @@ body {
 }
 
 .category-header {
-  padding: 0.75rem 1rem;
+  padding: 0.65rem 0.85rem;
   display: flex;
   gap: 0.75rem;
   border-bottom: 1px solid rgba(255,255,255,0.05);
@@ -2490,14 +2530,14 @@ body {
 }
 
 .category-title {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 800;
   color: var(--accent);
   margin-bottom: 4px;
 }
 
 .category-examples {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--sand-400);
   line-height: 1.3;
 }
@@ -2506,7 +2546,7 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 0.75rem;
+  padding: 0.55rem;
 }
 
 .drop-zone-area {
@@ -2515,7 +2555,7 @@ body {
   border-radius: 10px;
   display: flex;
   flex-direction: column;
-  min-height: 100px;
+  min-height: 72px;
   background: rgba(0,0,0,0.1);
   transition: all 0.2s;
 }
@@ -2547,13 +2587,13 @@ body {
 }
 
 .bin-items {
-  padding: 0.5rem;
+  padding: 0.35rem;
   display: grid;
   gap: 8px;
 }
 
 .bin-footer {
-  padding-top: 0.75rem;
+  padding-top: 0.5rem;
   text-align: right;
 }
 
@@ -2570,11 +2610,12 @@ body {
 .sort-footer-actions {
   display: flex;
   flex-direction: row; /* Horizontal for better space usage */
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
-  gap: 2rem;
-  margin-top: 1rem;
-  padding-bottom: 1.5rem;
+  gap: 1rem;
+  margin-top: 0.25rem;
+  padding-bottom: 0;
+  flex: 0 0 auto;
 }
 
 .help-btn-large {

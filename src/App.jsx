@@ -1159,6 +1159,7 @@ function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, onComplet
   const inventoryItems = activeArtifacts.filter(c => itemsLocation[c.id] === 'inventory');
   const sortedCount = activeArtifacts.length - inventoryItems.length;
   const isComplete = sortedCount === activeArtifacts.length;
+  const hoveredCategory = hoveredCard ? CATEGORIES.find(cat => cat.id === hoveredCard.type) || null : null;
 
   useEffect(() => {
     if (feedback.message) {
@@ -1247,7 +1248,14 @@ function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, onComplet
                       <span><strong>Discovery:</strong> {hoveredCard.discoveryMethod}</span>
                       <span><strong>Context:</strong> {getArtifactEraLabel(hoveredCard)}</span>
                     </div>
-                    <p className="clue-prompt">Which evidence category best explains this find?</p>
+                    <div className="sort-clue-selected">
+                      <div className="sort-clue-name">{hoveredCard.name}</div>
+                      <div className="sort-clue-meta">
+                        <span>{getCategoryTitle(hoveredCard.type)}</span>
+                        <span>{hoveredCategory?.description}</span>
+                      </div>
+                    </div>
+                    <p className="clue-prompt">What type of evidence is this?</p>
                   </div>
                 ) : (
                   <div className="clue-placeholder">
