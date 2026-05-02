@@ -456,7 +456,47 @@ function TrainingTray({ stages }) {
   );
 }
 
-function TrainingPhase({ trainingPlacements, setTrainingPlacements, onSkip, onStartDig }) {
+function ActivityMenu({ onStartInvestigation, onStartTraining }) {
+  return (
+    <section className="phase-container menu-phase">
+      <div className="menu-hero glass-card">
+        <div className="training-kicker">Choose Your Activity</div>
+        <h2>Archaeology Challenge</h2>
+        <p>Pick the full investigation game or the archaeology training activity.</p>
+      </div>
+
+      <div className="activity-menu-grid">
+        <article className="activity-card glass-card">
+          <div className="activity-card-icon activity-card-icon--investigation">
+            <Pickaxe size={26} />
+          </div>
+          <div className="activity-card-copy">
+            <h3>Full Investigation Game</h3>
+            <p>Recover evidence, sort your finds, analyse clues, build a museum exhibition, and complete your report.</p>
+          </div>
+          <button type="button" className="btn primary-btn activity-card-action" onClick={onStartInvestigation}>
+            Start Investigation
+          </button>
+        </article>
+
+        <article className="activity-card glass-card">
+          <div className="activity-card-icon activity-card-icon--training">
+            <MapPin size={26} />
+          </div>
+          <div className="activity-card-copy">
+            <h3>Archaeologist Training</h3>
+            <p>Practise the steps archaeologists use to investigate the past.</p>
+          </div>
+          <button type="button" className="btn primary-btn activity-card-action" onClick={onStartTraining}>
+            Start Training
+          </button>
+        </article>
+      </div>
+    </section>
+  );
+}
+
+function TrainingPhase({ trainingPlacements, setTrainingPlacements, onBackToMenu }) {
   const [activeStageId, setActiveStageId] = useState(null);
   const didCelebrateRef = useRef(false);
   const [trayOrder] = useState(() => shuffleArray(TRAINING_STAGES));
@@ -534,14 +574,11 @@ function TrainingPhase({ trainingPlacements, setTrainingPlacements, onSkip, onSt
             <div className="training-kicker">Archaeologist Training</div>
             <h2>How Do We Investigate the Past?</h2>
             <p>
-              Put the five archaeology stages in order before you start the dig.
+              Put the five archaeology stages in order.
             </p>
           </div>
           <div className="training-hero-actions">
-            <button className="btn" type="button" onClick={onSkip}>Skip training</button>
-            <button className="btn primary-btn" type="button" onClick={onStartDig} disabled={!isComplete}>
-              Start Dig
-            </button>
+            <button className="btn" type="button" onClick={onBackToMenu}>Back to menu</button>
           </div>
         </div>
 
@@ -579,11 +616,8 @@ function TrainingPhase({ trainingPlacements, setTrainingPlacements, onSkip, onSt
                 If archaeologists move evidence before recording it, then...
               </div>
               <div className="training-summary-actions">
-                <button className="btn primary-btn" type="button" onClick={onStartDig}>
-                  Start Dig
-                </button>
-                <button className="btn" type="button" onClick={onSkip}>
-                  Skip training
+                <button className="btn primary-btn" type="button" onClick={onBackToMenu}>
+                  Back to menu
                 </button>
               </div>
             </>
@@ -611,7 +645,7 @@ function TrainingPhase({ trainingPlacements, setTrainingPlacements, onSkip, onSt
 // ------------------------------------------------------------------
 // Phase 1: Dig (Memory Matching Game with Time Limit)
 // ------------------------------------------------------------------
-function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, currentEvent }) {
+function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, currentEvent, onBackToMenu }) {
   const [tiles, setTiles] = useState(() => createDigTiles(activeArtifacts, excavatedIds));
   const [flippedIndices, setFlippedIndices] = useState([]);
   const [isLocked, setIsLocked] = useState(false);
@@ -858,6 +892,9 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
               </div>
             </div>
             <div style={{display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap'}}>
+              <button className="btn" onClick={onBackToMenu}>
+                Back to menu
+              </button>
               <button className="btn primary-btn" onClick={() => {
                 initAudio();
                 setTimeLeft(difficulty === 'easy' ? 300 : difficulty === 'medium' ? 180 : 90);
@@ -1830,7 +1867,7 @@ const rebuildSavedSession = (saved) => {
   };
 };
 
-const createNewGameSession = () => {
+const createNewGameSession = (startPhase = 'menu') => {
   const scen = SCENARIOS && SCENARIOS.length > 0
     ? SCENARIOS[Math.floor(Math.random() * SCENARIOS.length)]
     : null;
@@ -1851,7 +1888,7 @@ const createNewGameSession = () => {
     : { id: 'fallback', name: 'Unknown Object', type: 'objects', options: ['Ancient', 'Modern'], correct: 1 };
 
   return {
-    phase: 'training',
+    phase: startPhase,
     currentScenario: scen,
     currentEvent: evt,
     activeArtifacts: [...scenarioArtifacts, selectedRedHerring].sort(() => 0.5 - Math.random()),
@@ -1867,6 +1904,7 @@ const loadAutosave = () => {
 
     const saved = JSON.parse(raw);
     if (!saved.app || saved.app !== SAVE_APP_ID || saved.saveVersion !== AUTOSAVE_VERSION) return null;
+    if (saved.phase === 'menu') return null;
     return rebuildSavedSession(saved);
   } catch (error) {
     console.warn('Could not load autosaved archaeology game.', error);
@@ -2139,9 +2177,9 @@ function DevTools({ currentPhase, setPhase, setExcavatedIds, setActiveArtifacts,
 // ------------------------------------------------------------------
 export default function App() {
   const [savedGame] = useState(() => loadAutosave());
-  const initialGame = useMemo(() => savedGame ?? createNewGameSession(), [savedGame]);
+  const initialGame = useMemo(() => createNewGameSession('menu'), []);
   const [showResumePrompt, setShowResumePrompt] = useState(() => !!savedGame);
-  const [phase, setPhase] = useState(initialGame.phase); // 'training', 'dig', 'sort', 'lab', 'museum', 'report'
+  const [phase, setPhase] = useState(initialGame.phase); // 'menu', 'training', 'dig', 'sort', 'lab', 'museum', 'report'
   const [currentScenario, setCurrentScenario] = useState(initialGame.currentScenario || null);
   const [activeArtifacts, setActiveArtifacts] = useState(initialGame.activeArtifacts || []);
   const [excavatedIds, setExcavatedIds] = useState(initialGame.excavatedIds || new Set());
@@ -2159,6 +2197,7 @@ export default function App() {
   const [showDevTools, setShowDevTools] = useState(false);
 
   useEffect(() => {
+    if (phase === 'menu') return;
     if (!currentScenario || !currentEvent || activeArtifacts.length === 0) return;
 
     try {
@@ -2217,7 +2256,7 @@ export default function App() {
   const handleRetry = () => {
     clearAutosave();
     setShowResumePrompt(false);
-    const nextGame = createNewGameSession();
+    const nextGame = createNewGameSession('dig');
     if (!nextGame) return;
     setPhase(nextGame.phase);
     setCurrentScenario(nextGame.currentScenario);
@@ -2233,6 +2272,30 @@ export default function App() {
     setPlaques({});
     setFinalExhibitionStatement('');
     setTrainingPlacements(Array(TRAINING_STAGES.length).fill(null));
+  };
+
+  const handleStartInvestigation = () => {
+    handleRetry();
+  };
+
+  const handleStartTraining = () => {
+    clearAutosave();
+    setShowResumePrompt(false);
+    const nextGame = createNewGameSession('training');
+    if (!nextGame) return;
+    setPhase(nextGame.phase);
+    setCurrentScenario(nextGame.currentScenario);
+    setCurrentEvent(nextGame.currentEvent);
+    setActiveArtifacts(nextGame.activeArtifacts);
+    setTrainingPlacements(nextGame.trainingPlacements || Array(TRAINING_STAGES.length).fill(null));
+    setExcavatedIds(new Set());
+    setItemsLocation({});
+    setHypotheses({});
+    setSiteName("Unknown Dig Site");
+    setFinalConclusion(null);
+    setCuratedItems([]);
+    setPlaques({});
+    setFinalExhibitionStatement('');
   };
 
   const applySavedSession = (session) => {
@@ -2253,6 +2316,10 @@ export default function App() {
   };
 
   const handleSaveProgressFile = () => {
+    if (phase === 'menu') {
+      setSaveMessage('Choose Investigation or Training before saving.');
+      return;
+    }
     if (!currentScenario || !currentEvent || activeArtifacts.length === 0) return;
 
     const payload = createSavePayload({
@@ -2378,6 +2445,7 @@ export default function App() {
               className="save-control-btn save-control-icon-btn"
               type="button"
               onClick={handleSaveProgressFile}
+              disabled={phase === 'menu'}
               title="Save progress"
               aria-label="Save progress"
             >
@@ -2390,27 +2458,29 @@ export default function App() {
               <input type="file" accept="application/json,.json" onChange={handleLoadProgressFile} />
             </label>
           </div>
-          <nav className="phase-navigation">
-            <div className={`phase-nav-item ${phase === 'training' || phase === 'dig' ? 'active' : 'done'}`}>
-              <span className="phase-num">1</span> Dig
-            </div>
-            <ChevronRight size={16} className="phase-sep" />
-            <div className={`phase-nav-item ${phase === 'sort' ? 'active' : (phase === 'lab' || phase === 'museum' || phase === 'report' ? 'done' : '')}`}>
-              <span className="phase-num">2</span> Sort
-            </div>
-            <ChevronRight size={16} className="phase-sep" />
-            <div className={`phase-nav-item ${phase === 'lab' ? 'active' : (phase === 'museum' || phase === 'report' ? 'done' : '')}`}>
-              <span className="phase-num">3</span> Lab
-            </div>
-            <ChevronRight size={16} className="phase-sep" />
-            <div className={`phase-nav-item ${phase === 'museum' ? 'active' : (phase === 'report' ? 'done' : '')}`}>
-              <span className="phase-num">4</span> Museum
-            </div>
-            <ChevronRight size={16} className="phase-sep" />
-            <div className={`phase-nav-item ${phase === 'report' ? 'active' : ''}`}>
-              <span className="phase-num">5</span> Report
-            </div>
-          </nav>
+          {phase !== 'menu' && phase !== 'training' && (
+            <nav className="phase-navigation">
+              <div className={`phase-nav-item ${phase === 'training' || phase === 'dig' ? 'active' : 'done'}`}>
+                <span className="phase-num">1</span> Dig
+              </div>
+              <ChevronRight size={16} className="phase-sep" />
+              <div className={`phase-nav-item ${phase === 'sort' ? 'active' : (phase === 'lab' || phase === 'museum' || phase === 'report' ? 'done' : '')}`}>
+                <span className="phase-num">2</span> Sort
+              </div>
+              <ChevronRight size={16} className="phase-sep" />
+              <div className={`phase-nav-item ${phase === 'lab' ? 'active' : (phase === 'museum' || phase === 'report' ? 'done' : '')}`}>
+                <span className="phase-num">3</span> Lab
+              </div>
+              <ChevronRight size={16} className="phase-sep" />
+              <div className={`phase-nav-item ${phase === 'museum' ? 'active' : (phase === 'report' ? 'done' : '')}`}>
+                <span className="phase-num">4</span> Museum
+              </div>
+              <ChevronRight size={16} className="phase-sep" />
+              <div className={`phase-nav-item ${phase === 'report' ? 'active' : ''}`}>
+                <span className="phase-num">5</span> Report
+              </div>
+            </nav>
+          )}
         </div>
       </header>
       {saveMessage && (
@@ -2420,12 +2490,18 @@ export default function App() {
       )}
 
       <main className="main-content">
+        {phase === 'menu' && (
+          <ActivityMenu
+            onStartInvestigation={handleStartInvestigation}
+            onStartTraining={handleStartTraining}
+          />
+        )}
+
         {phase === 'training' && currentScenario && currentEvent && (
           <TrainingPhase
             trainingPlacements={trainingPlacements}
             setTrainingPlacements={setTrainingPlacements}
-            onSkip={() => setPhase('dig')}
-            onStartDig={() => setPhase('dig')}
+            onBackToMenu={() => setPhase('menu')}
           />
         )}
 
@@ -2436,6 +2512,7 @@ export default function App() {
             setExcavatedIds={setExcavatedIds} 
             onComplete={handleDigComplete}
             currentEvent={currentEvent}
+            onBackToMenu={() => setPhase('menu')}
           />
         )}
         
