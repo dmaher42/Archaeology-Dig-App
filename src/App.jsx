@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useLayoutEffect } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -21,12 +21,12 @@ import './index.css';
 
 // --- Advanced Audio Synthesis ---
 let audioCtx = null;
-export const initAudio = () => {
+const initAudio = () => {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   if (audioCtx.state === 'suspended') audioCtx.resume();
 };
 
-export const playFlip = () => {
+const playFlip = () => {
   if (!audioCtx) return;
   // Dirt/brush sound: filtered noise
   const bufferSize = audioCtx.sampleRate * 0.15; 
@@ -50,7 +50,7 @@ export const playFlip = () => {
   noiseSource.start();
 };
 
-export const playMatch = () => {
+const playMatch = () => {
   if (!audioCtx) return;
   // Magical chime (major arpeggio)
   const playBell = (freq, startTime, vol) => {
@@ -71,7 +71,7 @@ export const playMatch = () => {
   playBell(783.99, now + 0.2, 0.3); // G5
 };
 
-export const playError = () => {
+const playError = () => {
   if (!audioCtx) return;
   // Soft, low thud
   const osc = audioCtx.createOscillator();
@@ -87,7 +87,7 @@ export const playError = () => {
   osc.stop(audioCtx.currentTime + 0.2);
 };
 
-export const playWin = () => {
+const playWin = () => {
   if (!audioCtx) return;
   // Grand success arpeggio
   const playBell = (freq, startTime, duration) => {
@@ -109,7 +109,7 @@ export const playWin = () => {
   playBell(1046.50, now + 0.45, 1.2); // C6
 };
 
-export const playTone = (freq, type = 'sine', duration = 0.5, vol = 0.2) => {
+const playTone = (freq, type = 'sine', duration = 0.5, vol = 0.2) => {
   if (!audioCtx) return;
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
@@ -246,6 +246,68 @@ const LAB_NOTE_STEMS = [
   'This helps historians understand...',
 ];
 
+const TRAINING_STAGES = [
+  {
+    id: 'survey',
+    title: 'Survey',
+    purpose: 'Find a possible site',
+  },
+  {
+    id: 'grid',
+    title: 'Grid',
+    purpose: 'Mark out the site so locations can be recorded',
+  },
+  {
+    id: 'excavate',
+    title: 'Excavate',
+    purpose: 'Carefully uncover evidence',
+  },
+  {
+    id: 'map',
+    title: 'Map',
+    purpose: 'Record where each find was discovered',
+  },
+  {
+    id: 'lab',
+    title: 'Lab',
+    purpose: 'Analyse the finds to work out what they mean',
+  },
+];
+
+const TRAINING_STAGE_ICONS = {
+  survey: Search,
+  grid: FileText,
+  excavate: Pickaxe,
+  map: MapPin,
+  lab: Beaker,
+};
+
+const shuffleArray = (items) => {
+  const next = [...items];
+  for (let i = next.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [next[i], next[j]] = [next[j], next[i]];
+  }
+  return next;
+};
+
+const createDigTiles = (activeArtifacts, excavatedIds) => {
+  const pairs = [...activeArtifacts, ...activeArtifacts].map((artifact, index) => ({
+    uniqueId: `${artifact.id}-${index}`,
+    artifactId: artifact.id,
+    artifact,
+    isFlipped: excavatedIds.has(artifact.id),
+    isMatched: excavatedIds.has(artifact.id),
+  }));
+
+  for (let i = pairs.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pairs[i], pairs[j]] = [pairs[j], pairs[i]];
+  }
+
+  return pairs;
+};
+
 function DraggableArtifact({ artifact, onClick, showStatus = false, isNeutral = false }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: artifact.id,
@@ -326,11 +388,231 @@ function CategoryBin({ category, items, onArtifactClick, itemsWithHypothesis = {
   );
 }
 
+function TrainingStageCard({ stage, compact = false }) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: stage.id,
+  });
+  const Icon = TRAINING_STAGE_ICONS[stage.id] ?? Search;
+  const style = transform ? {
+    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+    zIndex: 1001,
+  } : undefined;
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...listeners}
+      {...attributes}
+      className={`training-stage-card ${compact ? 'compact' : ''} ${isDragging ? 'dragging' : ''}`}
+    >
+      <div className="training-stage-chip">
+        <Icon size={18} />
+      </div>
+      <div className="training-stage-copy">
+        <span className="training-stage-title">{stage.title}</span>
+        <span className="training-stage-purpose">{stage.purpose}</span>
+      </div>
+    </div>
+  );
+}
+
+function TrainingSlot({ index, stage }) {
+  const { isOver, setNodeRef } = useDroppable({
+    id: `training-slot-${index}`,
+  });
+
+  return (
+    <div ref={setNodeRef} className={`training-slot ${isOver ? 'is-over' : ''} ${stage ? 'filled' : ''}`}>
+      <div className="training-slot-label">Step {index + 1}</div>
+      {stage ? (
+        <TrainingStageCard stage={stage} compact />
+      ) : (
+        <div className="training-slot-empty">
+          <span>Drop stage here</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TrainingTray({ stages }) {
+  const { isOver, setNodeRef } = useDroppable({
+    id: 'training-tray',
+  });
+
+  return (
+    <div className={`training-tray ${isOver ? 'is-over' : ''}`} ref={setNodeRef}>
+      <div className="training-tray-header">
+        <span className="training-panel-kicker">Stage cards</span>
+        <span className="training-tray-hint">Drag these into the correct order</span>
+      </div>
+      <div className="training-tray-list">
+        {stages.map(stage => (
+          <TrainingStageCard key={stage.id} stage={stage} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TrainingPhase({ trainingPlacements, setTrainingPlacements, onSkip, onStartDig }) {
+  const [activeStageId, setActiveStageId] = useState(null);
+  const didCelebrateRef = useRef(false);
+  const [trayOrder] = useState(() => shuffleArray(TRAINING_STAGES));
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 6 } }),
+  );
+
+  const stageById = useMemo(() => new Map(TRAINING_STAGES.map(stage => [stage.id, stage])), []);
+  const placedIds = useMemo(() => trainingPlacements.filter(Boolean), [trainingPlacements]);
+  const trayStages = useMemo(() => {
+    const placedSet = new Set(placedIds);
+    return trayOrder.filter(stage => !placedSet.has(stage.id));
+  }, [placedIds, trayOrder]);
+  const activeStage = activeStageId ? stageById.get(activeStageId) : null;
+  const correctCount = trainingPlacements.reduce(
+    (count, stageId, index) => count + (stageId === TRAINING_STAGES[index].id ? 1 : 0),
+    0,
+  );
+  const isComplete = correctCount === TRAINING_STAGES.length;
+
+  useEffect(() => {
+    if (isComplete && !didCelebrateRef.current) {
+      initAudio();
+      playWin();
+      confetti({ particleCount: 120, spread: 72, origin: { y: 0.55 } });
+      didCelebrateRef.current = true;
+    }
+    if (!isComplete && didCelebrateRef.current) {
+      didCelebrateRef.current = false;
+    }
+  }, [isComplete]);
+
+  const handleDragStart = (event) => {
+    setActiveStageId(event.active?.id ?? null);
+  };
+
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    setActiveStageId(null);
+    if (!active || !over) return;
+
+    const activeId = active.id;
+    const overId = over.id;
+
+    if (overId === 'training-tray') {
+      setTrainingPlacements(prev => prev.map(stageId => (stageId === activeId ? null : stageId)));
+      return;
+    }
+
+    if (typeof overId === 'string' && overId.startsWith('training-slot-')) {
+      const slotIndex = Number(overId.replace('training-slot-', ''));
+      if (Number.isNaN(slotIndex)) return;
+
+      setTrainingPlacements(prev => {
+        const next = [...prev];
+        const currentIndex = next.indexOf(activeId);
+        if (currentIndex !== -1) next[currentIndex] = null;
+        next[slotIndex] = activeId;
+        return next;
+      });
+    }
+  };
+
+  return (
+    <section className="phase-container training-phase">
+      <DndContext
+        sensors={sensors}
+        collisionDetection={customCollisionDetection}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="training-hero glass-card">
+          <div className="training-hero-copy">
+            <div className="training-kicker">Archaeologist Training</div>
+            <h2>How Do We Investigate the Past?</h2>
+            <p>
+              Put the five archaeology stages in order before you start the dig.
+            </p>
+          </div>
+          <div className="training-hero-actions">
+            <button className="btn" type="button" onClick={onSkip}>Skip training</button>
+            <button className="btn primary-btn" type="button" onClick={onStartDig} disabled={!isComplete}>
+              Start Dig
+            </button>
+          </div>
+        </div>
+
+        <div className="training-layout">
+          <TrainingTray stages={trayStages} />
+          <div className="training-board glass-card">
+            <div className="training-board-header">
+              <div>
+                <div className="training-panel-kicker">Put these in order</div>
+                <h3>Survey, Grid, Excavate, Map, Lab</h3>
+              </div>
+              <div className="training-progress">
+                {correctCount}/5 correct
+              </div>
+            </div>
+
+            <div className="training-slots">
+              {TRAINING_STAGES.map((stage, index) => (
+                <TrainingSlot
+                  key={stage.id}
+                  index={index}
+                  stage={stageById.get(trainingPlacements[index]) ?? null}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="training-summary glass-card">
+          {isComplete ? (
+            <>
+              <div className="training-success-message">You are ready to investigate the ancient past.</div>
+              <p className="training-prompt">Why does the order matter?</p>
+              <div className="training-answer-starter">
+                If archaeologists move evidence before recording it, then...
+              </div>
+              <div className="training-summary-actions">
+                <button className="btn primary-btn" type="button" onClick={onStartDig}>
+                  Start Dig
+                </button>
+                <button className="btn" type="button" onClick={onSkip}>
+                  Skip training
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="training-summary-copy">
+              <span className="training-summary-title">Keep going</span>
+              <p>
+                Use the tray on the left to place each stage in the correct order.
+              </p>
+              <div className="training-summary-note">
+                {correctCount}/5 stages are in the right place.
+              </div>
+            </div>
+          )}
+        </div>
+
+        <DragOverlay dropAnimation={{ duration: 250, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>
+          {activeStage ? <TrainingStageCard stage={activeStage} compact /> : null}
+        </DragOverlay>
+      </DndContext>
+    </section>
+  );
+}
+
 // ------------------------------------------------------------------
 // Phase 1: Dig (Memory Matching Game with Time Limit)
 // ------------------------------------------------------------------
 function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, currentEvent }) {
-  const [tiles, setTiles] = useState([]);
+  const [tiles, setTiles] = useState(() => createDigTiles(activeArtifacts, excavatedIds));
   const [flippedIndices, setFlippedIndices] = useState([]);
   const [isLocked, setIsLocked] = useState(false);
   const [feedback, setFeedback] = useState({ message: '', isError: false });
@@ -342,7 +624,6 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
   const [isPlaying, setIsPlaying] = useState(false);
   const [showStormWarning, setShowStormWarning] = useState(true);
   const [isTimeUp, setIsTimeUp] = useState(false);
-  const [perfectClear, setPerfectClear] = useState(false);
   
   // Game Stats
   const [attempts, setAttempts] = useState(0);
@@ -350,34 +631,21 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
  
   // Difficulty State
   const [difficulty, setDifficulty] = useState('medium');
+  const radarTimeoutRef = useRef(null);
+  const boardContainerRef = useRef(null);
+  const [boardFit, setBoardFit] = useState({ width: 0, height: 0 });
+  const boardColumns = 8;
+  const boardRows = Math.max(1, Math.ceil(tiles.length / boardColumns));
 
   const EventIcon = currentEvent.icon;
   const recoveredArtifacts = activeArtifacts.filter(artifact => excavatedIds.has(artifact.id));
   const ancientRecoveredCount = recoveredArtifacts.filter(artifact => !artifact.isRedHerring).length;
   const disturbanceCount = recoveredArtifacts.filter(artifact => artifact.isRedHerring).length;
 
-  // Initialize the memory grid with pairs
-  useEffect(() => {
-    if (tiles.length === 0 && activeArtifacts.length > 0) {
-      const pairs = [...activeArtifacts, ...activeArtifacts].map((artifact, index) => ({
-        uniqueId: `${artifact.id}-${index}`,
-        artifactId: artifact.id,
-        artifact: artifact,
-        isFlipped: excavatedIds.has(artifact.id),
-        isMatched: excavatedIds.has(artifact.id)
-      }));
-      // Shuffle
-      for (let i = pairs.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [pairs[i], pairs[j]] = [pairs[j], pairs[i]];
-      }
-      setTiles(pairs);
-    }
-  }, [activeArtifacts, excavatedIds, tiles.length]);
-
   // Timer Logic
   useEffect(() => {
-    if (!isPlaying || isTimeUp || perfectClear) return;
+    const isComplete = activeArtifacts.length > 0 && excavatedIds.size === activeArtifacts.length;
+    if (!isPlaying || isTimeUp || isComplete) return;
     const interval = setInterval(() => {
       setTimeLeft(prev => {
         if (prev <= 1) {
@@ -390,16 +658,7 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [isPlaying, isTimeUp, perfectClear]);
-
-  // Perfect clear logic
-  useEffect(() => {
-    if (excavatedIds.size === activeArtifacts.length && activeArtifacts.length > 0) {
-      setIsPlaying(false);
-      setPerfectClear(true);
-      confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
-    }
-  }, [excavatedIds.size, activeArtifacts.length]);
+  }, [activeArtifacts.length, excavatedIds.size, isPlaying, isTimeUp]);
 
   useEffect(() => {
     if (feedback.message) {
@@ -419,6 +678,44 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
     }
   }, [fieldNote]);
 
+  useLayoutEffect(() => {
+    const element = boardContainerRef.current;
+    if (!element || typeof ResizeObserver === 'undefined') return undefined;
+
+    const updateBoardFit = () => {
+      const width = element.clientWidth;
+      const height = element.clientHeight;
+      if (!width || !height) return;
+
+      const gapSize = 6;
+      const tileSize = Math.max(1, Math.floor(Math.min(
+        (width - (gapSize * (boardColumns - 1))) / boardColumns,
+        (height - (gapSize * (boardRows - 1))) / boardRows,
+      )));
+      const nextWidth = (tileSize * boardColumns) + (gapSize * (boardColumns - 1));
+      const nextHeight = (tileSize * boardRows) + (gapSize * (boardRows - 1));
+
+      setBoardFit(prev => (
+        prev.width === nextWidth && prev.height === nextHeight
+          ? prev
+          : { width: nextWidth, height: nextHeight }
+      ));
+    };
+
+    updateBoardFit();
+    const observer = new ResizeObserver(updateBoardFit);
+    observer.observe(element);
+
+    return () => observer.disconnect();
+  }, [boardColumns, boardRows]);
+
+  useEffect(() => () => {
+    if (radarTimeoutRef.current) {
+      clearTimeout(radarTimeoutRef.current);
+      radarTimeoutRef.current = null;
+    }
+  }, []);
+
   const handleRadar = () => {
     const radarCost = difficulty === 'easy' ? 30 : difficulty === 'medium' ? 20 : 10;
     if (timeLeft <= radarCost || isLocked || !isPlaying) return;
@@ -435,12 +732,16 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
     if (difficulty === 'medium') duration = 3000;
 
     setTiles(prev => prev.map(t => t.isMatched ? t : { ...t, isFlipped: true }));
+    if (radarTimeoutRef.current) {
+      clearTimeout(radarTimeoutRef.current);
+    }
     
-    setTimeout(() => {
+    radarTimeoutRef.current = setTimeout(() => {
       setTiles(prev => prev.map(t => t.isMatched ? t : { ...t, isFlipped: false }));
       setIsLocked(false);
       setIsSurveying(false);
       setFlippedIndices([]);
+      radarTimeoutRef.current = null;
     }, duration);
   };
 
@@ -451,7 +752,6 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
       discoveryMethod: artifact.discoveryMethod,
       typeLabel: getCategoryTitle(artifact.type),
       isDisturbance: !!artifact.isRedHerring,
-      timestamp: Date.now()
     });
 
     // Clear the note after 5 seconds so it doesn't block tiles
@@ -505,6 +805,10 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
             return next;
           });
           recordRecoveryNote(tiles[idx1].artifact);
+          if (excavatedIds.size + 1 === activeArtifacts.length) {
+            setIsPlaying(false);
+            confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+          }
           
           setFlippedIndices([]);
           setIsLocked(false);
@@ -532,6 +836,7 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
   };
 
   const timeDanger = timeLeft <= 15 && isPlaying;
+  const perfectClear = activeArtifacts.length > 0 && excavatedIds.size === activeArtifacts.length;
 
   return (
     <div className="phase-container dig-phase">
@@ -643,7 +948,7 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
           <span>Match pairs to recover finds before time runs out.</span>
         </div>
         
-        <div className="game-board-container" style={{position: 'relative'}}>
+        <div className="game-board-container" ref={boardContainerRef} style={{ position: 'relative' }}>
           {isSurveying && (
             <div className="surveying-overlay">
                <div className="surveying-content">
@@ -652,7 +957,16 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
                </div>
             </div>
           )}
-          <div className="memory-grid">
+          <div
+            className="memory-grid"
+            style={boardFit.width && boardFit.height ? {
+              width: `${boardFit.width}px`,
+              height: `${boardFit.height}px`,
+              gap: '6px',
+              gridTemplateColumns: `repeat(${boardColumns}, minmax(0, 1fr))`,
+              gridTemplateRows: `repeat(${boardRows}, minmax(0, 1fr))`,
+            } : undefined}
+          >
             {tiles.map((tile, index) => {
               const isRevealed = tile.isFlipped || tile.isMatched;
               const tileTheme = getArtifactTheme(tile.artifact);
@@ -962,23 +1276,12 @@ function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypotheses, c
     ? `This ${selectedArtifact.name} suggests... The clue that supports this is... This helps historians understand...`
     : 'Select a find, then use the sentence frames to build an evidence-based note.';
 
-  useEffect(() => {
-    if (!selectedArtifactId) {
-      setSelectedPromptId(null);
-      setDraftNote('');
-      return;
-    }
-
-    const saved = hypotheses[selectedArtifactId];
+  const selectArtifact = (artifactId) => {
+    setSelectedArtifactId(artifactId);
+    const saved = hypotheses[artifactId];
     setSelectedPromptId(saved?.promptId ?? null);
     setDraftNote(saved?.note ?? '');
-  }, [selectedArtifactId, hypotheses]);
-
-  useEffect(() => {
-    if (selectedArtifactId && !trayItems.some(item => item.id === selectedArtifactId)) {
-      setSelectedArtifactId(null);
-    }
-  }, [trayItems, selectedArtifactId]);
+  };
 
   const handleSaveAnalysis = () => {
     if (!selectedArtifact || !selectedPrompt || !draftNote.trim()) return;
@@ -992,7 +1295,6 @@ function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypotheses, c
       question: selectedArtifact.question,
       typeLabel: getCategoryTitle(selectedArtifact.type),
       eraLabel: getArtifactEraLabel(selectedArtifact),
-      savedAt: Date.now(),
     };
 
     setHypotheses(prev => ({
@@ -1067,12 +1369,12 @@ function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypotheses, c
               const isAnalysed = !!hypotheses[item.id];
 
               return (
-                <button
-                  key={item.id}
-                  type="button"
-                  className={`lab-tray-card ${isSelected ? 'selected' : ''} ${isAnalysed ? 'analysed' : ''}`}
-                  onClick={() => setSelectedArtifactId(item.id)}
-                >
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={`lab-tray-card ${isSelected ? 'selected' : ''} ${isAnalysed ? 'analysed' : ''}`}
+                    onClick={() => selectArtifact(item.id)}
+                  >
                   <div className="lab-tray-icon" style={{ color: theme.accent }}>
                     {getIcon(item.type, 18)}
                   </div>
@@ -1467,6 +1769,7 @@ const createSavePayload = ({
   curatedItems,
   plaques,
   finalExhibitionStatement,
+  trainingPlacements,
 }) => ({
   app: SAVE_APP_ID,
   version: AUTOSAVE_VERSION,
@@ -1484,6 +1787,7 @@ const createSavePayload = ({
   curatedItems,
   plaques,
   finalExhibitionStatement,
+  trainingPlacements,
 });
 
 const allArtifactsById = () => {
@@ -1520,6 +1824,38 @@ const rebuildSavedSession = (saved) => {
     curatedItems: saved.curatedItems || [],
     plaques: saved.plaques || {},
     finalExhibitionStatement: saved.finalExhibitionStatement || '',
+    trainingPlacements: Array.from({ length: TRAINING_STAGES.length }, (_, index) => (
+      Array.isArray(saved.trainingPlacements) ? saved.trainingPlacements[index] ?? null : null
+    )),
+  };
+};
+
+const createNewGameSession = () => {
+  const scen = SCENARIOS && SCENARIOS.length > 0
+    ? SCENARIOS[Math.floor(Math.random() * SCENARIOS.length)]
+    : null;
+
+  if (!scen || !scen.evidence) {
+    console.error('Critical Error: No scenario or evidence found during initialization.');
+    return null;
+  }
+
+  const evt = RANDOM_EVENTS && RANDOM_EVENTS.length > 0
+    ? RANDOM_EVENTS[Math.floor(Math.random() * RANDOM_EVENTS.length)]
+    : { title: 'Emergency', time: 60, icon: AlertTriangle };
+
+  // Choose exactly 11 items from the scenario + 1 red herring = 12 items total (24 tiles)
+  const scenarioArtifacts = [...scen.evidence].sort(() => 0.5 - Math.random()).slice(0, 11);
+  const selectedRedHerring = (RED_HERRINGS && RED_HERRINGS.length > 0)
+    ? RED_HERRINGS[Math.floor(Math.random() * RED_HERRINGS.length)]
+    : { id: 'fallback', name: 'Unknown Object', type: 'objects', options: ['Ancient', 'Modern'], correct: 1 };
+
+  return {
+    phase: 'training',
+    currentScenario: scen,
+    currentEvent: evt,
+    activeArtifacts: [...scenarioArtifacts, selectedRedHerring].sort(() => 0.5 - Math.random()),
+    trainingPlacements: Array(TRAINING_STAGES.length).fill(null),
   };
 };
 
@@ -1803,77 +2139,44 @@ function DevTools({ currentPhase, setPhase, setExcavatedIds, setActiveArtifacts,
 // ------------------------------------------------------------------
 export default function App() {
   const [savedGame] = useState(() => loadAutosave());
+  const initialGame = useMemo(() => savedGame ?? createNewGameSession(), [savedGame]);
   const [showResumePrompt, setShowResumePrompt] = useState(() => !!savedGame);
-  const [phase, setPhase] = useState(savedGame?.phase || 'dig'); // 'dig', 'sort', 'lab', 'museum', 'report'
-  const [currentScenario, setCurrentScenario] = useState(savedGame?.currentScenario || null);
-  const [activeArtifacts, setActiveArtifacts] = useState(savedGame?.activeArtifacts || []);
-  const [excavatedIds, setExcavatedIds] = useState(savedGame?.excavatedIds || new Set());
-  const [itemsLocation, setItemsLocation] = useState(savedGame?.itemsLocation || {});
-  const [hypotheses, setHypotheses] = useState(savedGame?.hypotheses || {});
-  const [siteName, setSiteName] = useState(savedGame?.siteName || "Unknown Dig Site");
-  const [finalConclusion, setFinalConclusion] = useState(savedGame?.finalConclusion || null);
-  const [currentEvent, setCurrentEvent] = useState(savedGame?.currentEvent || null);
-  const [curatedItems, setCuratedItems] = useState(savedGame?.curatedItems || []);
-  const [plaques, setPlaques] = useState(savedGame?.plaques || {});
-  const [finalExhibitionStatement, setFinalExhibitionStatement] = useState(savedGame?.finalExhibitionStatement || '');
+  const [phase, setPhase] = useState(initialGame.phase); // 'training', 'dig', 'sort', 'lab', 'museum', 'report'
+  const [currentScenario, setCurrentScenario] = useState(initialGame.currentScenario || null);
+  const [activeArtifacts, setActiveArtifacts] = useState(initialGame.activeArtifacts || []);
+  const [excavatedIds, setExcavatedIds] = useState(initialGame.excavatedIds || new Set());
+  const [itemsLocation, setItemsLocation] = useState(initialGame.itemsLocation || {});
+  const [hypotheses, setHypotheses] = useState(initialGame.hypotheses || {});
+  const [siteName, setSiteName] = useState(initialGame.siteName || "Unknown Dig Site");
+  const [finalConclusion, setFinalConclusion] = useState(initialGame.finalConclusion || null);
+  const [currentEvent, setCurrentEvent] = useState(initialGame.currentEvent || null);
+  const [curatedItems, setCuratedItems] = useState(initialGame.curatedItems || []);
+  const [plaques, setPlaques] = useState(initialGame.plaques || {});
+  const [finalExhibitionStatement, setFinalExhibitionStatement] = useState(initialGame.finalExhibitionStatement || '');
+  const [trainingPlacements, setTrainingPlacements] = useState(initialGame.trainingPlacements || Array(TRAINING_STAGES.length).fill(null));
   const [saveMessage, setSaveMessage] = useState('');
 
-  const initGame = () => {
-    const scen = SCENARIOS && SCENARIOS.length > 0 
-      ? SCENARIOS[Math.floor(Math.random() * SCENARIOS.length)] 
-      : null;
-    
-    if (!scen || !scen.evidence) {
-      console.error("Critical Error: No scenario or evidence found during initialization.");
-      return;
-    }
-
-    const evt = RANDOM_EVENTS && RANDOM_EVENTS.length > 0 
-      ? RANDOM_EVENTS[Math.floor(Math.random() * RANDOM_EVENTS.length)] 
-      : { title: "Emergency", time: 60, icon: AlertTriangle };
-
-    setCurrentScenario(scen);
-    setCurrentEvent(evt);
-    // Choose exactly 11 items from the scenario + 1 red herring = 12 items total (24 tiles)
-    const scenarioArtifacts = [...scen.evidence].sort(() => 0.5 - Math.random()).slice(0, 11);
-    const selectedRedHerring = (RED_HERRINGS && RED_HERRINGS.length > 0) 
-      ? RED_HERRINGS[Math.floor(Math.random() * RED_HERRINGS.length)] 
-      : { id: 'fallback', name: 'Unknown Object', type: 'objects', options: ['Ancient', 'Modern'], correct: 1 };
-
-    const artifacts = [...scenarioArtifacts, selectedRedHerring].sort(() => 0.5 - Math.random());
-    setActiveArtifacts(artifacts);
-    setPhase('dig');
-  };
-
   const [showDevTools, setShowDevTools] = useState(false);
-
-  const buildCurrentSavePayload = () => createSavePayload({
-    phase,
-    currentScenario,
-    currentEvent,
-    activeArtifacts,
-    excavatedIds,
-    itemsLocation,
-    hypotheses,
-    siteName,
-    finalConclusion,
-    curatedItems,
-    plaques,
-    finalExhibitionStatement,
-  });
-
-  // Initialize random selection of 15 artifacts for the game (30 tiles for memory)
-  useEffect(() => {
-    if (!savedGame) {
-      initGame();
-    }
-  }, [savedGame]);
 
   useEffect(() => {
     if (!currentScenario || !currentEvent || activeArtifacts.length === 0) return;
 
     try {
-      window.localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(buildCurrentSavePayload()));
+      window.localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(createSavePayload({
+        phase,
+        currentScenario,
+        currentEvent,
+        activeArtifacts,
+        excavatedIds,
+        itemsLocation,
+        hypotheses,
+        siteName,
+        finalConclusion,
+        curatedItems,
+        plaques,
+        finalExhibitionStatement,
+        trainingPlacements,
+      })));
     } catch (error) {
       console.warn('Could not autosave archaeology game.', error);
     }
@@ -1890,6 +2193,7 @@ export default function App() {
     phase,
     plaques,
     siteName,
+    trainingPlacements,
   ]);
 
   // Hotkey listener for DevTools (Ctrl + Shift + D)
@@ -1913,7 +2217,13 @@ export default function App() {
   const handleRetry = () => {
     clearAutosave();
     setShowResumePrompt(false);
-    setPhase('dig');
+    const nextGame = createNewGameSession();
+    if (!nextGame) return;
+    setPhase(nextGame.phase);
+    setCurrentScenario(nextGame.currentScenario);
+    setCurrentEvent(nextGame.currentEvent);
+    setActiveArtifacts(nextGame.activeArtifacts);
+    setTrainingPlacements(nextGame.trainingPlacements || Array(TRAINING_STAGES.length).fill(null));
     setExcavatedIds(new Set());
     setItemsLocation({});
     setHypotheses({});
@@ -1922,7 +2232,7 @@ export default function App() {
     setCuratedItems([]);
     setPlaques({});
     setFinalExhibitionStatement('');
-    initGame();
+    setTrainingPlacements(Array(TRAINING_STAGES.length).fill(null));
   };
 
   const applySavedSession = (session) => {
@@ -1938,13 +2248,28 @@ export default function App() {
     setCuratedItems(session.curatedItems);
     setPlaques(session.plaques);
     setFinalExhibitionStatement(session.finalExhibitionStatement);
+    setTrainingPlacements(session.trainingPlacements || Array(TRAINING_STAGES.length).fill(null));
     setShowResumePrompt(false);
   };
 
   const handleSaveProgressFile = () => {
     if (!currentScenario || !currentEvent || activeArtifacts.length === 0) return;
 
-    const payload = buildCurrentSavePayload();
+    const payload = createSavePayload({
+      phase,
+      currentScenario,
+      currentEvent,
+      activeArtifacts,
+      excavatedIds,
+      itemsLocation,
+      hypotheses,
+      siteName,
+      finalConclusion,
+      curatedItems,
+      plaques,
+      finalExhibitionStatement,
+      trainingPlacements,
+    });
     const stamp = new Date()
       .toISOString()
       .slice(0, 16)
@@ -2002,6 +2327,7 @@ export default function App() {
   };
 
   const resumePhaseLabel = savedGame ? {
+    training: 'Archaeologist Training',
     dig: 'Phase 1: Dig',
     sort: 'Phase 2: Sort',
     lab: 'Phase 3: Lab',
@@ -2037,45 +2363,55 @@ export default function App() {
       )}
 
       <header className="main-header hide-on-print">
-        <div className="header-left">
+          <div className="header-left">
           <div className="header-icon-container">
-            <Pickaxe size={32} className="header-main-icon" />
+            <Pickaxe size={28} className="header-main-icon" />
           </div>
           <div className="header-titles">
             <h1>Archaeology Challenge</h1>
             <p>What can evidence tell us about the ancient past?</p>
           </div>
         </div>
-        <div className="save-controls">
-          <button className="save-control-btn" type="button" onClick={handleSaveProgressFile}>
-            <Save size={16} /> Save Progress
-          </button>
-          <label className="save-control-btn">
-            <Upload size={16} /> Load Progress
-            <input type="file" accept="application/json,.json" onChange={handleLoadProgressFile} />
-          </label>
+        <div className="header-right">
+          <div className="save-controls">
+            <button
+              className="save-control-btn save-control-icon-btn"
+              type="button"
+              onClick={handleSaveProgressFile}
+              title="Save progress"
+              aria-label="Save progress"
+            >
+              <Save size={16} aria-hidden="true" />
+              <span className="save-control-text">Save Progress</span>
+            </button>
+            <label className="save-control-btn save-control-icon-btn" title="Load progress" aria-label="Load progress">
+              <Upload size={16} aria-hidden="true" />
+              <span className="save-control-text">Load Progress</span>
+              <input type="file" accept="application/json,.json" onChange={handleLoadProgressFile} />
+            </label>
+          </div>
+          <nav className="phase-navigation">
+            <div className={`phase-nav-item ${phase === 'training' || phase === 'dig' ? 'active' : 'done'}`}>
+              <span className="phase-num">1</span> Dig
+            </div>
+            <ChevronRight size={16} className="phase-sep" />
+            <div className={`phase-nav-item ${phase === 'sort' ? 'active' : (phase === 'lab' || phase === 'museum' || phase === 'report' ? 'done' : '')}`}>
+              <span className="phase-num">2</span> Sort
+            </div>
+            <ChevronRight size={16} className="phase-sep" />
+            <div className={`phase-nav-item ${phase === 'lab' ? 'active' : (phase === 'museum' || phase === 'report' ? 'done' : '')}`}>
+              <span className="phase-num">3</span> Lab
+            </div>
+            <ChevronRight size={16} className="phase-sep" />
+            <div className={`phase-nav-item ${phase === 'museum' ? 'active' : (phase === 'report' ? 'done' : '')}`}>
+              <span className="phase-num">4</span> Museum
+            </div>
+            <ChevronRight size={16} className="phase-sep" />
+            <div className={`phase-nav-item ${phase === 'report' ? 'active' : ''}`}>
+              <span className="phase-num">5</span> Report
+            </div>
+          </nav>
         </div>
-        <nav className="phase-navigation">
-          <div className={`phase-nav-item ${phase === 'dig' ? 'active' : 'done'}`}>
-            <span className="phase-num">1</span> Dig
-          </div>
-          <ChevronRight size={16} className="phase-sep" />
-          <div className={`phase-nav-item ${phase === 'sort' ? 'active' : (phase === 'lab' || phase === 'museum' || phase === 'report' ? 'done' : '')}`}>
-            <span className="phase-num">2</span> Sort
-          </div>
-          <ChevronRight size={16} className="phase-sep" />
-          <div className={`phase-nav-item ${phase === 'lab' ? 'active' : (phase === 'museum' || phase === 'report' ? 'done' : '')}`}>
-            <span className="phase-num">3</span> Lab
-          </div>
-          <ChevronRight size={16} className="phase-sep" />
-          <div className={`phase-nav-item ${phase === 'museum' ? 'active' : (phase === 'report' ? 'done' : '')}`}>
-            <span className="phase-num">4</span> Museum
-          </div>
-          <ChevronRight size={16} className="phase-sep" />
-          <div className={`phase-nav-item ${phase === 'report' ? 'active' : ''}`}>
-            <span className="phase-num">5</span> Report
-          </div>
-        </nav>
       </header>
       {saveMessage && (
         <div className="save-message hide-on-print" role="status">
@@ -2084,6 +2420,15 @@ export default function App() {
       )}
 
       <main className="main-content">
+        {phase === 'training' && currentScenario && currentEvent && (
+          <TrainingPhase
+            trainingPlacements={trainingPlacements}
+            setTrainingPlacements={setTrainingPlacements}
+            onSkip={() => setPhase('dig')}
+            onStartDig={() => setPhase('dig')}
+          />
+        )}
+
         {phase === 'dig' && currentEvent && (
           <DigPhase 
             activeArtifacts={activeArtifacts}
