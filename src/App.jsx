@@ -291,6 +291,33 @@ const shuffleArray = (items) => {
   return next;
 };
 
+const hashStringToSeed = (value) => {
+  let hash = 2166136261;
+  for (let i = 0; i < value.length; i += 1) {
+    hash ^= value.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+};
+
+const shuffleArrayWithSeed = (items, seedSource) => {
+  const next = [...items];
+  let seed = hashStringToSeed(seedSource);
+
+  const seededRandom = () => {
+    seed = (seed + 0x6D2B79F5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t ^= t + Math.imul(t ^ (t >>> 7), 61 | t);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+
+  for (let i = next.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(seededRandom() * (i + 1));
+    [next[i], next[j]] = [next[j], next[i]];
+  }
+  return next;
+};
+
 const createDigTiles = (activeArtifacts, excavatedIds) => {
   const pairs = [...activeArtifacts, ...activeArtifacts].map((artifact, index) => ({
     uniqueId: `${artifact.id}-${index}`,
@@ -1310,6 +1337,13 @@ function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypotheses, c
   const selectedArtifact = trayItems.find(item => item.id === selectedArtifactId) || null;
   const selectedAnalysis = selectedArtifact ? hypotheses[selectedArtifact.id] : null;
   const selectedPrompt = LAB_ANALYSIS_PROMPTS.find(prompt => prompt.id === selectedPromptId) || null;
+  const answerChoices = useMemo(() => {
+    if (!selectedArtifact) return [];
+    return shuffleArrayWithSeed(
+      (selectedArtifact.options ?? []).map((text, originalIndex) => ({ text, originalIndex })),
+      selectedArtifact.id,
+    );
+  }, [selectedArtifact]);
   const notePlaceholder = selectedArtifact
     ? `${selectedArtifact.name} suggests... The clue that supports this is... This helps historians understand...`
     : 'Select a find, then use the sentence frames to build an evidence-based note.';
@@ -1472,28 +1506,26 @@ function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypotheses, c
               <div className="lab-answer-box">
                 <div className="lab-label">Choose the best interpretation</div>
                 <div className="lab-answer-grid">
-                  {(selectedArtifact.options ?? []).map((option, index) => {
-                    const isSelected = selectedAnswerIndex === index;
-                    const isCorrect = index === selectedArtifact.correct;
+                  {answerChoices.map(choice => {
+                    const isSelected = selectedAnswerIndex === choice.originalIndex;
+                    const isCorrect = choice.originalIndex === selectedArtifact.correct;
                     const showResult = selectedAnswerIndex !== null;
                     const optionState = !showResult
                       ? ''
                       : isSelected
                         ? (isCorrect ? 'correct' : 'incorrect')
-                        : isCorrect
-                          ? 'correct-answer'
-                          : '';
+                        : '';
 
                     return (
                       <button
-                        key={option}
+                        key={choice.originalIndex}
                         type="button"
                         className={`lab-answer-card ${isSelected ? 'selected' : ''} ${optionState}`}
-                        onClick={() => setSelectedAnswerIndex(index)}
+                        onClick={() => setSelectedAnswerIndex(choice.originalIndex)}
                         aria-pressed={isSelected}
                       >
-                        <span className="lab-answer-index">{String.fromCharCode(65 + index)}</span>
-                        <span className="lab-answer-text">{option}</span>
+                        <span className="lab-answer-index">{String.fromCharCode(65 + choice.originalIndex)}</span>
+                        <span className="lab-answer-text">{choice.text}</span>
                       </button>
                     );
                   })}
