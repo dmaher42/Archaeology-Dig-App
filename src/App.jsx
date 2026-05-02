@@ -207,6 +207,55 @@ const getArtifactTheme = (artifact) => {
   };
 };
 
+const getFirstSentence = (text = '') => {
+  const trimmed = String(text).trim();
+  if (!trimmed) return '';
+  const match = trimmed.match(/^(.+?[.!?])(?:\s|$)/);
+  return (match?.[1] ?? trimmed).trim();
+};
+
+const lowercaseFirstLetter = (text = '') => {
+  if (!text) return '';
+  return text.charAt(0).toLowerCase() + text.slice(1);
+};
+
+const SORT_HINTS = {
+  objects: {
+    first: 'This looks like something people deliberately made and could pick up. What does that tell you about it?',
+    repeat: 'Look again at the clue. What does the shape, material or use tell you about what people made it for?',
+  },
+  remains: {
+    first: 'This evidence comes from a person or animal body. What clue in the find points you toward health, burial or care?',
+    repeat: 'Look again at the clue. What part of a body or burial does this evidence point to?',
+  },
+  structures: {
+    first: 'This looks like part of a built place rather than a loose item. What does that suggest?',
+    repeat: 'Look again at the clue. Is this a small object, or part of a larger place people built?',
+  },
+  environment: {
+    first: 'This clue comes from the natural world around the site. What does that tell you to pay attention to?',
+    repeat: 'Look again at the clue. Does this come from plants, animals, mud, shells, or another natural trace?',
+  },
+  written: {
+    first: 'Look at the marks on the surface. Are they decoration, or are they trying to communicate something?',
+    repeat: 'Look again at the clue. Do the marks on this evidence record or communicate information?',
+  },
+};
+
+const getSortingHint = (artifact, attemptCount = 0) => {
+  const hintSet = SORT_HINTS[artifact?.type] ?? SORT_HINTS.objects;
+  const hint = attemptCount > 0 ? hintSet.repeat : hintSet.first;
+  return `Not quite yet. ${hint} Try again.`;
+};
+
+const getSortingSuccessMessage = (artifact, categoryId) => {
+  const categoryTitle = getCategoryTitle(categoryId);
+  const explanation = lowercaseFirstLetter(getFirstSentence(artifact?.rationale))
+    || lowercaseFirstLetter(artifact?.clue)
+    || 'it gives useful evidence about the past';
+  return `Correct. ${artifact.name} fits ${categoryTitle} because ${explanation}`;
+};
+
 const LAB_ANALYSIS_PROMPTS = [
   {
     id: 'daily-life',
@@ -1111,6 +1160,7 @@ function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, onComplet
   const [activeId, setActiveId] = useState(null);
   const [hoveredCard, setHoveredCard] = useState(null);
   const [feedback, setFeedback] = useState({ message: '', isError: false });
+  const [attemptCounts, setAttemptCounts] = useState({});
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
@@ -1131,15 +1181,27 @@ function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, onComplet
       ...prev,
       [card.id]: categoryId
     }));
-    const catTitle = CATEGORIES.find(c => c.id === categoryId)?.title ?? 'this category';
-    setFeedback({ message: `Recovered - this fits ${catTitle.toLowerCase()}.`, isError: false });
+    setAttemptCounts(prev => {
+      if (!Object.prototype.hasOwnProperty.call(prev, card.id)) return prev;
+      const next = { ...prev };
+      delete next[card.id];
+      return next;
+    });
+    setFeedback({ message: getSortingSuccessMessage(card, categoryId), isError: false });
     setHoveredCard(null); // Deselect on success
   };
 
-  const processFailure = () => {
+  const processFailure = (card) => {
     initAudio();
     playError();
-    setFeedback({ message: "Not quite - check the clue and the discovery method again.", isError: true });
+    setAttemptCounts(prev => ({
+      ...prev,
+      [card.id]: (prev[card.id] ?? 0) + 1,
+    }));
+    setFeedback({
+      message: getSortingHint(card, attemptCounts[card.id] ?? 0),
+      isError: true,
+    });
   };
 
   const handleDragEnd = (event) => {
@@ -1151,7 +1213,7 @@ function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, onComplet
       if (card.type === over.id) {
         processSuccess(card, over.id);
       } else {
-        processFailure();
+        processFailure(card);
       }
     }
   };
@@ -1235,19 +1297,15 @@ function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, onComplet
 
           {/* Right Column: Clues and Categories */}
           <div className="sort-content-area">
-            <div className="clue-card-wide">
+            <div className="sort-board-shell">
+            <div className="clue-card-wide sort-clue-card">
               <div className="clue-card-header">
-                <div className="clue-label">CLUE CARD</div>
+                <div className="clue-label">Clue card</div>
                 {hoveredCard && <div className="selected-item-tag">{hoveredCard.name}</div>}
               </div>
               <div className="clue-card-body">
                 {hoveredCard ? (
                   <div className="clue-info-active animate-fade-in">
-                    <p className="clue-text">"{hoveredCard.clue}"</p>
-                    <div className="clue-metadata">
-                      <span><strong>Discovery:</strong> {hoveredCard.discoveryMethod}</span>
-                      <span><strong>Context:</strong> {getArtifactEraLabel(hoveredCard)}</span>
-                    </div>
                     <div className="sort-clue-selected">
                       <div className="sort-clue-name">{hoveredCard.name}</div>
                       <div className="sort-clue-meta">
@@ -1256,6 +1314,11 @@ function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, onComplet
                       </div>
                     </div>
                     <p className="clue-prompt">What type of evidence is this?</p>
+                    <p className="clue-text">"{hoveredCard.clue}"</p>
+                    <div className="clue-metadata">
+                      <span><strong>Discovery:</strong> {hoveredCard.discoveryMethod}</span>
+                      <span><strong>Context:</strong> {getArtifactEraLabel(hoveredCard)}</span>
+                    </div>
                   </div>
                 ) : (
                   <div className="clue-placeholder">
@@ -1272,8 +1335,19 @@ function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, onComplet
               </div>
             </div>
 
-            <div className="categories-section">
-              <h4 className="section-heading">Evidence categories</h4>
+            <div className="categories-section sort-categories-section">
+              <div className="sort-categories-header">
+                <div className="sort-categories-copy">
+                  <h4 className="section-heading">Evidence categories</h4>
+                  <p className="sort-categories-help">Drop each find into the category that best explains the clue.</p>
+                </div>
+                <button 
+                  className="help-btn-large sort-guide-btn" 
+                  onClick={() => setFeedback({message: "Use the clue, material, and discovery context to decide which kind of evidence the find provides.", isError: false})}
+                >
+                  <HelpCircle size={20} /> Sorting guide
+                </button>
+              </div>
               <div className="categories-grid-custom">
                 {CATEGORIES.map(cat => (
                   <CategoryBin 
@@ -1284,23 +1358,15 @@ function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, onComplet
                   />
                 ))}
               </div>
-            </div>
 
-            <div className="sort-footer-actions">
-              <button 
-                className="help-btn-large" 
-                onClick={() => setFeedback({message: "Use the clue, material, and discovery context to decide which kind of evidence the find provides.", isError: false})}
-              >
-                <HelpCircle size={20} /> Sorting guide
-              </button>
-              
               {isComplete && (
-                <div className="completion-action animate-bounce-in">
-                   <button className="btn primary-btn large-btn" onClick={onComplete}>
-                     Open the Lab <ArrowRight size={22} />
-                   </button>
+                <div className="sort-completion-strip animate-bounce-in">
+                  <button className="btn primary-btn large-btn" onClick={onComplete}>
+                    Open the Lab <ArrowRight size={22} />
+                  </button>
                 </div>
               )}
+            </div>
             </div>
           </div>
         </div>
