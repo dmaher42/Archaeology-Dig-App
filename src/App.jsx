@@ -1298,6 +1298,7 @@ function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypotheses, c
   }, [activeArtifacts, itemsLocation]);
 
   const [selectedArtifactId, setSelectedArtifactId] = useState(null);
+  const [selectedAnswerIndex, setSelectedAnswerIndex] = useState(null);
   const [selectedPromptId, setSelectedPromptId] = useState(null);
   const [draftNote, setDraftNote] = useState('');
 
@@ -1310,20 +1311,25 @@ function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypotheses, c
   const selectedAnalysis = selectedArtifact ? hypotheses[selectedArtifact.id] : null;
   const selectedPrompt = LAB_ANALYSIS_PROMPTS.find(prompt => prompt.id === selectedPromptId) || null;
   const notePlaceholder = selectedArtifact
-    ? `This ${selectedArtifact.name} suggests... The clue that supports this is... This helps historians understand...`
+    ? `${selectedArtifact.name} suggests... The clue that supports this is... This helps historians understand...`
     : 'Select a find, then use the sentence frames to build an evidence-based note.';
 
   const selectArtifact = (artifactId) => {
     setSelectedArtifactId(artifactId);
     const saved = hypotheses[artifactId];
+    setSelectedAnswerIndex(typeof saved?.answerIndex === 'number' ? saved.answerIndex : null);
     setSelectedPromptId(saved?.promptId ?? null);
     setDraftNote(saved?.note ?? '');
   };
 
   const handleSaveAnalysis = () => {
-    if (!selectedArtifact || !selectedPrompt || !draftNote.trim()) return;
+    if (!selectedArtifact || selectedAnswerIndex === null || !selectedPrompt || !draftNote.trim()) return;
 
     const analysisRecord = {
+      answerIndex: selectedAnswerIndex,
+      answerText: selectedArtifact.options?.[selectedAnswerIndex] ?? '',
+      answerIsCorrect: selectedAnswerIndex === selectedArtifact.correct,
+      answerRationale: selectedArtifact.rationale,
       promptId: selectedPrompt.id,
       promptTitle: selectedPrompt.title,
       promptDescription: selectedPrompt.description,
@@ -1339,6 +1345,7 @@ function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypotheses, c
       [selectedArtifact.id]: analysisRecord,
     }));
     setSelectedArtifactId(null);
+    setSelectedAnswerIndex(null);
     setSelectedPromptId(null);
     setDraftNote('');
   };
@@ -1428,7 +1435,7 @@ function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypotheses, c
 
         <section className="lab-panel lab-bench-panel">
           <div className="lab-panel-heading">Analysis Bench</div>
-          <p className="lab-panel-subheading">Study the clue, choose a reveal, and write a short research note.</p>
+          <p className="lab-panel-subheading">Study the clue, answer the question, then write a short research note.</p>
 
           {!selectedArtifact ? (
             <div className="lab-empty-state">
@@ -1459,27 +1466,47 @@ function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypotheses, c
 
               <div className="lab-question-box">
                 <div className="lab-label">Analysis Question</div>
-                <p>What does this evidence reveal about ancient people?</p>
+                <p>{selectedArtifact.question}</p>
               </div>
 
-              <div className="lab-prompt-grid">
-                {LAB_ANALYSIS_PROMPTS.map(prompt => {
-                  const PromptIcon = prompt.icon;
-                  const isActive = selectedPromptId === prompt.id;
+              <div className="lab-answer-box">
+                <div className="lab-label">Choose the best interpretation</div>
+                <div className="lab-answer-grid">
+                  {(selectedArtifact.options ?? []).map((option, index) => {
+                    const isSelected = selectedAnswerIndex === index;
+                    const isCorrect = index === selectedArtifact.correct;
+                    const showResult = selectedAnswerIndex !== null;
+                    const optionState = !showResult
+                      ? ''
+                      : isSelected
+                        ? (isCorrect ? 'correct' : 'incorrect')
+                        : isCorrect
+                          ? 'correct-answer'
+                          : '';
 
-                  return (
-                    <button
-                      key={prompt.id}
-                      type="button"
-                      className={`lab-prompt-card ${isActive ? 'selected' : ''}`}
-                      onClick={() => setSelectedPromptId(prompt.id)}
-                    >
-                      <PromptIcon size={16} />
-                      <span className="lab-prompt-title">{prompt.title}</span>
-                      <span className="lab-prompt-desc">{prompt.description}</span>
-                    </button>
-                  );
-                })}
+                    return (
+                      <button
+                        key={option}
+                        type="button"
+                        className={`lab-answer-card ${isSelected ? 'selected' : ''} ${optionState}`}
+                        onClick={() => setSelectedAnswerIndex(index)}
+                        aria-pressed={isSelected}
+                      >
+                        <span className="lab-answer-index">{String.fromCharCode(65 + index)}</span>
+                        <span className="lab-answer-text">{option}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {selectedAnswerIndex !== null && (
+                  <div className={`lab-answer-feedback ${selectedAnswerIndex === selectedArtifact.correct ? 'correct' : 'incorrect'}`}>
+                    <strong>
+                      {selectedAnswerIndex === selectedArtifact.correct ? 'Good evidence thinking' : 'Try again'}
+                    </strong>
+                    <p>{selectedArtifact.rationale}</p>
+                  </div>
+                )}
               </div>
 
               <div className="lab-note-editor">
@@ -1516,14 +1543,14 @@ function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypotheses, c
                 />
                 <div className="lab-note-footer">
                   <span>{draftNote.trim().length} characters</span>
-                  <span>{selectedAnalysis ? 'Saved note loaded' : 'Claim + clue + meaning'}</span>
+                  <span>{selectedAnalysis ? 'Saved analysis loaded' : 'Claim + clue + meaning'}</span>
                 </div>
               </div>
 
               <button
                 type="button"
                 className="btn primary-btn lab-save-btn"
-                disabled={!selectedPrompt || !draftNote.trim()}
+                disabled={selectedAnswerIndex === null || !selectedPrompt || !draftNote.trim()}
                 onClick={handleSaveAnalysis}
               >
                 Save analysis <CheckCircle2 size={18} />
