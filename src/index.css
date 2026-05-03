@@ -4383,6 +4383,126 @@ body {
   flex-wrap: wrap;
 }
 
+.bureau-tier-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
+}
+
+.bureau-evidence-filter {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(125, 211, 252, 0.18);
+  background: rgba(8, 14, 22, 0.35);
+}
+
+.bureau-evidence-filter-note {
+  margin: 0.25rem 0 0.8rem;
+  color: var(--sand-300);
+  line-height: 1.45;
+  font-size: 0.92rem;
+}
+
+.bureau-evidence-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.85rem;
+}
+
+.bureau-evidence-summary span {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.32rem 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border: 1px solid rgba(168, 134, 97, 0.22);
+  background: rgba(0, 0, 0, 0.18);
+  color: var(--sand-100);
+}
+
+.bureau-evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.bureau-evidence-card {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 16px;
+  border: 1px solid rgba(168, 134, 97, 0.18);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.bureau-evidence-card-title {
+  font-weight: 700;
+  color: var(--sand-100);
+  line-height: 1.25;
+}
+
+.bureau-evidence-card.status-keep {
+  border-color: rgba(74, 222, 128, 0.32);
+  background: rgba(74, 222, 128, 0.06);
+}
+
+.bureau-evidence-card.status-discard {
+  border-color: rgba(248, 113, 113, 0.28);
+  background: rgba(248, 113, 113, 0.06);
+}
+
+.bureau-evidence-card.status-unsure {
+  border-color: rgba(125, 211, 252, 0.18);
+}
+
+.bureau-evidence-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.bureau-evidence-chip {
+  border: 1px solid rgba(168, 134, 97, 0.24);
+  border-radius: 999px;
+  padding: 0.35rem 0.65rem;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--sand-300);
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bureau-evidence-chip:hover {
+  transform: translateY(-1px);
+  border-color: rgba(125, 211, 252, 0.48);
+  color: var(--sand-100);
+}
+
+.bureau-evidence-chip.selected {
+  color: #07111f;
+}
+
+.bureau-evidence-card.status-keep .bureau-evidence-chip.selected {
+  background: rgba(74, 222, 128, 0.92);
+  border-color: rgba(74, 222, 128, 0.92);
+}
+
+.bureau-evidence-card.status-discard .bureau-evidence-chip.selected {
+  background: rgba(248, 113, 113, 0.92);
+  border-color: rgba(248, 113, 113, 0.92);
+}
+
+.bureau-evidence-card.status-unsure .bureau-evidence-chip.selected {
+  background: rgba(125, 211, 252, 0.92);
+  border-color: rgba(125, 211, 252, 0.92);
+}
+
 .bureau-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.6fr) minmax(240px, 0.8fr);
@@ -4518,6 +4638,53 @@ body {
   align-items: center;
 }
 
+.bureau-research-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.bureau-research-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.bureau-research-btn {
+  min-height: 4.1rem;
+}
+
+.bureau-research-card {
+  border: 1px solid rgba(168, 134, 97, 0.22);
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.22);
+  padding: 1rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.bureau-research-card h3 {
+  margin: 0;
+}
+
+.bureau-research-section {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.bureau-research-section ul,
+.bureau-reflection-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--sand-300);
+}
+
+.bureau-research-reminder {
+  border-top: 1px solid rgba(168, 134, 97, 0.16);
+  padding-top: 0.75rem;
+}
+
 .bureau-results-item p,
 .bureau-sidebar-block p {
   margin-top: 0.3rem;
@@ -4534,6 +4701,15 @@ body {
 @media (max-width: 900px) {
   .bureau-layout,
   .bureau-results-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .bureau-research-layout,
+  .bureau-research-list {
+    grid-template-columns: 1fr;
+  }
+
+  .bureau-evidence-grid {
     grid-template-columns: 1fr;
   }
 

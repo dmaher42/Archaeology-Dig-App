@@ -10,6 +10,7 @@ import {
   rectIntersection,
 } from '@dnd-kit/core';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
+import * as data from './data';
 import { 
   Pickaxe, Tent, Search, FileText, CheckCircle2, ChevronRight, Clock, Radar,
   AlertTriangle, RefreshCw, Library, Users, Skull, Landmark, Leaf,
@@ -123,15 +124,35 @@ const playTone = (freq, type = 'sine', duration = 0.5, vol = 0.2) => {
   osc.stop(audioCtx.currentTime + duration);
 };
 // -----------------------
-import {
+const {
   CATEGORIES,
   RANDOM_EVENTS,
   SCENARIOS,
   RED_HERRINGS,
-  BUREAU_CASES,
+  BUREAU_CASES: RAW_BUREAU_CASES = [],
+  BUREAU_RESEARCH_FOCUS = {},
   getCategoryTitle,
   getArtifactEraLabel,
-} from './data';
+} = data;
+
+const BUREAU_CASES = RAW_BUREAU_CASES;
+const BUREAU_CASES_BY_ID = new Map(BUREAU_CASES.map(item => [item.id, item]));
+const BUREAU_COMPARISON_CHALLENGES = data.BUREAU_COMPARISON_CHALLENGES || [];
+const BUREAU_COMPARISON_BY_PAIR = new Map(
+  BUREAU_COMPARISON_CHALLENGES.map(item => [item.civilisations.slice().sort().join('||'), item]),
+);
+const BUREAU_CIVILISATIONS = [...new Set(BUREAU_CASES.map(item => item.civilisation))];
+const BUREAU_EVIDENCE_STATUS_LABELS = {
+  keep: 'Keep',
+  discard: 'Discard',
+  unsure: 'Unsure',
+};
+const createInitialBureauEvidenceFilter = () => (
+  BUREAU_CIVILISATIONS.reduce((acc, civilisation) => {
+    acc[civilisation] = 'unsure';
+    return acc;
+  }, {})
+);
 
 // Custom collision detection strategy
 const customCollisionDetection = (args) => {
@@ -575,7 +596,7 @@ function ActivityMenu({ onStartInvestigation, onStartTraining, onStartBureau }) 
           </div>
           <div className="activity-card-copy">
             <h3>Antiquities Bureau</h3>
-            <p>Solve civilisation cold cases by tracing clues across the site, society, and legacy.</p>
+            <p>Preview ancient civilisation case files, use evidence to test ideas, and choose one civilisation to investigate further in your booklet.</p>
           </div>
           <button type="button" className="btn primary-btn activity-card-action" onClick={onStartBureau}>
             Open Bureau
@@ -588,14 +609,24 @@ function ActivityMenu({ onStartInvestigation, onStartTraining, onStartBureau }) 
 
 function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
   const didCelebrateRef = useRef(false);
+  const [selectedResearchCivilisation, setSelectedResearchCivilisation] = useState(null);
   const currentCase = BUREAU_CASES[bureauState.caseIndex] || null;
   const currentComparison = bureauState.phase === 'bureauComparison'
     ? createBureauComparisonChallenge(bureauState.caseResults)
     : null;
   const solvedCaseCount = bureauState.caseResults.length;
   const totalCases = BUREAU_CASES.length;
-  const needsComparison = solvedCaseCount > 0 && solvedCaseCount % 2 === 0 && solvedCaseCount < totalCases;
+  const needsComparison = solvedCaseCount > 0 && solvedCaseCount % 2 === 0;
   const latestOutcome = bureauState.latestOutcome;
+  const researchFocus = selectedResearchCivilisation
+    ? BUREAU_RESEARCH_FOCUS[selectedResearchCivilisation] || null
+    : null;
+  const evidenceFilter = bureauState.evidenceFilter || createInitialBureauEvidenceFilter();
+  const evidenceCounts = BUREAU_CIVILISATIONS.reduce((acc, civilisation) => {
+    const status = evidenceFilter[civilisation] || 'unsure';
+    acc[status] = (acc[status] || 0) + 1;
+    return acc;
+  }, { keep: 0, discard: 0, unsure: 0 });
 
   useEffect(() => {
     if (bureauState.phase === 'bureauResults' && !didCelebrateRef.current) {
@@ -613,31 +644,64 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
     setBureauState(prev => ({ ...prev, ...patch }));
   };
 
+  const resetCaseState = () => ({
+    currentTier: 1,
+    selectedAnswerIndex: null,
+    selectedLogAnswerIndex: null,
+    selectedComparisonAnswerIndex: null,
+    pendingCaseOutcome: null,
+    latestOutcome: null,
+    evidenceFilter: createInitialBureauEvidenceFilter(),
+  });
+
+  const setEvidenceFilterStatus = (civilisation, status) => {
+    setBureauState(prev => ({
+      ...prev,
+      evidenceFilter: {
+        ...(prev.evidenceFilter || createInitialBureauEvidenceFilter()),
+        [civilisation]: status,
+      },
+    }));
+  };
+
+  const revealNextClue = () => {
+    if (!currentCase || bureauState.currentTier >= 3) return;
+    const nextTier = Math.min(3, bureauState.currentTier + 1);
+    updateState({
+      currentTier: nextTier,
+      selectedAnswerIndex: null,
+      latestOutcome: {
+        explanation: `Tier ${nextTier} clue revealed. Re-check the evidence and refine your identification.`,
+      },
+    });
+  };
+
   const startCase = () => {
     updateState({
       phase: 'bureauCase',
-      currentTier: 1,
-      selectedAnswerIndex: null,
-      selectedLogAnswerIndex: null,
-      selectedComparisonAnswerIndex: null,
-      pendingCaseOutcome: null,
-      latestOutcome: null,
+      ...resetCaseState(),
     });
   };
 
   const handleSubmitCase = () => {
     if (!currentCase || bureauState.selectedAnswerIndex === null) return;
 
-    const isCorrect = bureauState.selectedAnswerIndex === currentCase.correctAnswer;
+    const correctAnswerIndex = getBureauCorrectCivilisationIndex(currentCase);
+    const selectedCivilisation = getBureauCivilisationOptions(currentCase)[bureauState.selectedAnswerIndex] || '';
+    const correctCivilisation = getBureauCorrectCivilisationLabel(currentCase);
+    const isCorrect = bureauState.selectedAnswerIndex === correctAnswerIndex;
     const tierPoints = isCorrect ? Math.max(0, 4 - bureauState.currentTier) : 0;
     const nextOutcome = {
       caseId: currentCase.id,
       caseTitle: currentCase.caseTitle,
       civilisation: currentCase.civilisation,
-      tierSolvedAt: bureauState.currentTier,
+      correctCivilisation,
+      selectedCivilisation,
+      civilisationCorrect: isCorrect,
+      tierSolvedAt: isCorrect ? bureauState.currentTier : null,
       tierPoints,
       chosenAnswerIndex: bureauState.selectedAnswerIndex,
-      correctAnswerIndex: currentCase.correctAnswer,
+      correctAnswerIndex,
       logAnswerIndex: null,
       logPoints: 0,
       logCorrect: false,
@@ -664,7 +728,7 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
       selectedAnswerIndex: null,
       latestOutcome: {
         ...nextOutcome,
-        explanation: 'Not quite. Another clue has been added to the report.',
+        explanation: `Not quite. Another clue has been added to the report for ${correctCivilisation}.`,
       },
     }));
   };
@@ -708,11 +772,7 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
         ...prev,
         phase: 'bureauCase',
         caseIndex: prev.caseIndex + 1,
-        currentTier: 1,
-        selectedAnswerIndex: null,
-        selectedLogAnswerIndex: null,
-        selectedComparisonAnswerIndex: null,
-        latestOutcome: null,
+        ...resetCaseState(),
       }));
       return;
     }
@@ -750,12 +810,8 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
         ...prev,
         phase: 'bureauCase',
         caseIndex: prev.caseIndex + 1,
-        currentTier: 1,
-        selectedAnswerIndex: null,
-        selectedLogAnswerIndex: null,
-        selectedComparisonAnswerIndex: null,
         comparisonResult: null,
-        latestOutcome: null,
+        ...resetCaseState(),
       }));
       return;
     }
@@ -764,7 +820,16 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
   };
 
   const handleReplay = () => {
+    setSelectedResearchCivilisation(null);
     setBureauState(createNewBureauSession('bureauBriefing'));
+  };
+
+  const openResearchChoice = () => {
+    setSelectedResearchCivilisation(null);
+    setBureauState(prev => ({
+      ...prev,
+      phase: 'bureauResearchChoice',
+    }));
   };
 
   if (bureauState.phase === 'bureauBriefing') {
@@ -774,8 +839,8 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
           <div className="training-kicker">The Antiquities Bureau</div>
           <h2>Civilisation Cold Cases</h2>
           <p>
-            Junior historians, your task is to solve discovery reports using tiered evidence.
-            Reveal the site, society, and legacy clues, identify the civilisation, then write the strongest historian&apos;s log entry.
+            Junior historians, today you will preview ancient civilisation case files.
+            Use evidence to keep or discard possible civilisations, then choose one civilisation to investigate further in your booklet.
           </p>
           <div className="bureau-briefing-points">
             <span>Tier 1 correct: 3 points</span>
@@ -786,7 +851,7 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
           </div>
           <div className="bureau-briefing-actions">
             <button className="btn primary-btn" type="button" onClick={startCase}>
-              Open briefing
+              Start case file
             </button>
             <button className="btn" type="button" onClick={onBackToMenu}>
               Back to menu
@@ -814,44 +879,98 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
             </div>
 
             <div className="bureau-tier-stack">
-              <div className={`bureau-tier-card ${bureauState.currentTier >= 1 ? 'visible' : 'hidden'}`}>
+              <div className="bureau-tier-card visible">
                 <div className="bureau-tier-label">Tier 1: The Site</div>
                 <p>{currentCase?.tier1SiteClue || 'Site clue pending.'}</p>
               </div>
-              <div className={`bureau-tier-card ${bureauState.currentTier >= 2 ? 'visible' : 'hidden'}`}>
-                <div className="bureau-tier-label">Tier 2: The Society</div>
-                <p>{currentCase?.tier2SocietyClue || 'Society clue pending.'}</p>
-              </div>
-              <div className={`bureau-tier-card ${bureauState.currentTier >= 3 ? 'visible' : 'hidden'}`}>
-                <div className="bureau-tier-label">Tier 3: The Legacy</div>
-                <p>{currentCase?.tier3LegacyClue || 'Legacy clue pending.'}</p>
-              </div>
+              {bureauState.currentTier >= 2 && (
+                <div className="bureau-tier-card visible">
+                  <div className="bureau-tier-label">Tier 2: The Society</div>
+                  <p>{currentCase?.tier2SocietyClue || 'Society clue pending.'}</p>
+                </div>
+              )}
+              {bureauState.currentTier >= 3 && (
+                <div className="bureau-tier-card visible">
+                  <div className="bureau-tier-label">Tier 3: The Legacy</div>
+                  <p>{currentCase?.tier3LegacyClue || 'Legacy clue pending.'}</p>
+                </div>
+              )}
             </div>
 
-            <div className="bureau-answer-grid">
-              {(currentCase?.answerOptions || []).map((option, index) => (
-                <button
-                  key={option}
-                  type="button"
-                  className={`bureau-answer-btn ${bureauState.selectedAnswerIndex === index ? 'selected' : ''}`}
-                  onClick={() => setBureauState(prev => ({ ...prev, selectedAnswerIndex: index }))}
-                >
-                  <span className="bureau-answer-index">{String.fromCharCode(65 + index)}</span>
-                  <span>{option}</span>
-                </button>
-              ))}
+          <div className="bureau-evidence-filter">
+            <div className="bureau-tier-label">Keep / Discard Evidence Filter</div>
+            <p className="bureau-evidence-filter-note">
+              Mark each civilisation as Keep, Discard, or Unsure while you test the clues. You can revise your choices after every new tier.
+            </p>
+            <div className="bureau-evidence-summary" aria-label="Evidence filter summary">
+              <span>Keep {evidenceCounts.keep}</span>
+              <span>Discard {evidenceCounts.discard}</span>
+              <span>Unsure {evidenceCounts.unsure}</span>
             </div>
+            <div className="bureau-evidence-grid">
+              {BUREAU_CIVILISATIONS.map((civilisation) => {
+                const status = evidenceFilter[civilisation] || 'unsure';
+                return (
+                  <article key={civilisation} className={`bureau-evidence-card status-${status}`}>
+                    <div className="bureau-evidence-card-title">{civilisation}</div>
+                    <div className="bureau-evidence-status-row" role="group" aria-label={`${civilisation} evidence status`}>
+                      {Object.entries(BUREAU_EVIDENCE_STATUS_LABELS).map(([value, label]) => (
+                        <button
+                          key={value}
+                          type="button"
+                          className={`bureau-evidence-chip ${status === value ? 'selected' : ''}`}
+                          onClick={() => setEvidenceFilterStatus(civilisation, value)}
+                          aria-pressed={status === value}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
 
-            <div className="bureau-case-actions">
-              <button
-                type="button"
-                className="btn primary-btn"
-                onClick={handleSubmitCase}
-                disabled={bureauState.selectedAnswerIndex === null}
-              >
-                Submit identification
+          <div className="bureau-tier-actions">
+            {bureauState.currentTier < 2 && (
+              <button type="button" className="btn" onClick={revealNextClue}>
+                Reveal Tier 2 clue
               </button>
-            </div>
+            )}
+            {bureauState.currentTier === 2 && (
+              <button type="button" className="btn" onClick={revealNextClue}>
+                Reveal Tier 3 clue
+              </button>
+            )}
+          </div>
+
+          <div className="bureau-tier-label" style={{marginTop: '0.5rem'}}>Identify civilisation</div>
+          <div className="bureau-answer-grid">
+            {getBureauCivilisationOptions(currentCase).map((option, index) => (
+              <button
+                key={option}
+                type="button"
+                className={`bureau-answer-btn ${bureauState.selectedAnswerIndex === index ? 'selected' : ''}`}
+                onClick={() => setBureauState(prev => ({ ...prev, selectedAnswerIndex: index }))}
+                aria-pressed={bureauState.selectedAnswerIndex === index}
+              >
+                <span className="bureau-answer-index">{String.fromCharCode(65 + index)}</span>
+                <span>{option}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="bureau-case-actions">
+            <button
+              type="button"
+              className="btn primary-btn"
+              onClick={handleSubmitCase}
+              disabled={bureauState.selectedAnswerIndex === null}
+            >
+              Submit identification
+            </button>
+          </div>
           </article>
 
           <aside className="bureau-sidebar glass-card">
@@ -904,7 +1023,7 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
               onClick={handleSubmitLog}
               disabled={bureauState.selectedLogAnswerIndex === null}
             >
-              Record log entry
+              Record Historian&apos;s Log
             </button>
           </div>
         </div>
@@ -914,24 +1033,28 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
 
   if (bureauState.phase === 'bureauFeedback') {
     const outcome = bureauState.latestOutcome || {};
-    const solvedAt = typeof outcome.tierSolvedAt === 'number' ? outcome.tierSolvedAt : 3;
+    const civilisationCorrect = outcome.civilisationCorrect === true;
+    const solvedAt = typeof outcome.tierSolvedAt === 'number' ? outcome.tierSolvedAt : null;
     const tierPoints = outcome.tierPoints || 0;
     const logPoints = outcome.logPoints || 0;
     const feedbackText = outcome.logCorrect
       ? 'The log entry matches the strongest evidence in the report.'
       : 'The log entry needs a stronger link to the clues.';
+    const civilisationText = civilisationCorrect
+      ? `Correct. You identified ${outcome.correctCivilisation || outcome.civilisation || 'the civilisation'} with the strongest evidence.`
+      : `The correct civilisation was ${outcome.correctCivilisation || outcome.civilisation || 'unknown'}.`;
 
     return (
       <section className="phase-container bureau-phase">
         <div className="bureau-feedback glass-card">
           <div className="training-kicker">Feedback</div>
           <h2>{outcome.caseTitle || 'Case complete'}</h2>
-          <p>{feedbackText}</p>
+          <p>{civilisationCorrect ? feedbackText : civilisationText}</p>
 
           <div className="bureau-feedback-grid">
             <div className="bureau-feedback-card">
               <strong>Civilisation guess</strong>
-              <span>Correct at Tier {solvedAt}</span>
+              <span>{civilisationCorrect ? `Correct at Tier ${solvedAt}` : 'Not identified in time'}</span>
               <span>{tierPoints} point{tierPoints === 1 ? '' : 's'}</span>
             </div>
             <div className="bureau-feedback-card">
@@ -1034,7 +1157,7 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
         <div className="bureau-results glass-card">
           <div className="training-kicker">Final Results</div>
           <h2>Civilisation Cold Cases Complete</h2>
-          <p>You solved {bureauState.caseResults.length} case{bureauState.caseResults.length === 1 ? '' : 's'} and built historical arguments from tiered evidence.</p>
+          <p>You previewed {bureauState.caseResults.length} case{bureauState.caseResults.length === 1 ? '' : 's'} and used evidence to narrow down ancient civilisation choices for your booklet research.</p>
 
           <div className="bureau-results-summary">
             <div className="bureau-results-card">
@@ -1060,10 +1183,10 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
               <article key={result.caseId} className="bureau-results-item">
                 <div>
                   <strong>Case {index + 1}: {result.caseTitle}</strong>
-                  <p>{result.civilisation}</p>
+                  <p>{result.civilisationCorrect ? `Identified as ${result.correctCivilisation}` : `Best evidence points to ${result.correctCivilisation}`}</p>
                 </div>
                 <div className="bureau-results-item-points">
-                  <span>Tier {result.tierSolvedAt} + Log</span>
+                  <span>{result.civilisationCorrect ? `Tier ${result.tierSolvedAt}` : 'No civilisation points'} + Log</span>
                   <strong>{(result.tierPoints || 0) + (result.logPoints || 0)} pts</strong>
                 </div>
               </article>
@@ -1071,8 +1194,92 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
           </div>
 
           <div className="bureau-case-actions">
-            <button type="button" className="btn primary-btn" onClick={handleReplay}>
+            <button type="button" className="btn primary-btn" onClick={openResearchChoice}>
+              Choose Your Civilisation Investigation
+            </button>
+            <button type="button" className="btn" onClick={handleReplay}>
               Start another Bureau case file
+            </button>
+            <button type="button" className="btn" onClick={onBackToMenu}>
+              Back to menu
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (bureauState.phase === 'bureauResearchChoice') {
+    return (
+      <section className="phase-container bureau-phase">
+        <div className="bureau-results glass-card">
+          <div className="training-kicker">Choose Your Civilisation Investigation</div>
+          <h2>Which civilisation would you like to explore further in the booklet?</h2>
+          <p>
+            The Bureau helped you preview the case files. Now choose one civilisation to investigate in more depth and bring evidence back to your booklet work.
+          </p>
+
+          <div className="bureau-research-layout">
+            <div className="bureau-research-list">
+              {BUREAU_CASES.map((bureauCase, index) => {
+                const isSelected = selectedResearchCivilisation === bureauCase.civilisation;
+                return (
+                  <button
+                    key={bureauCase.id}
+                    type="button"
+                    className={`bureau-answer-btn bureau-research-btn ${isSelected ? 'selected' : ''}`}
+                    onClick={() => setSelectedResearchCivilisation(bureauCase.civilisation)}
+                    aria-pressed={isSelected}
+                  >
+                    <span className="bureau-answer-index">{String(index + 1).padStart(2, '0')}</span>
+                    <span>{bureauCase.civilisation}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="bureau-research-card">
+              {researchFocus ? (
+                <>
+                  <div className="bureau-tier-label">Research focus</div>
+                  <h3>{selectedResearchCivilisation}</h3>
+                  <div className="bureau-research-section">
+                    <strong>Look for:</strong>
+                    <ul>
+                      {researchFocus.lookFor.map(item => <li key={item}>{item}</li>)}
+                    </ul>
+                  </div>
+                  <div className="bureau-research-section">
+                    <strong>Inquiry question:</strong>
+                    <p>{researchFocus.inquiryQuestion}</p>
+                  </div>
+                  <div className="bureau-research-section bureau-research-reminder">
+                    <strong>Evidence reminder:</strong>
+                    <p>{researchFocus.evidenceReminder}</p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="bureau-tier-label">Research focus card</div>
+                  <p>Select a civilisation to see booklet prompts and an inquiry question.</p>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="bureau-feedback-note">
+            <strong>Think about your thinking:</strong>
+            <ul className="bureau-reflection-list">
+              <li>Which clue type helped you most: Site, Society, or Legacy?</li>
+              <li>Did you guess early or wait for more evidence?</li>
+              <li>Which civilisation seems most interesting to research further?</li>
+              <li>What evidence made you interested in that civilisation?</li>
+            </ul>
+          </div>
+
+          <div className="bureau-case-actions">
+            <button type="button" className="btn" onClick={() => setBureauState(prev => ({ ...prev, phase: 'bureauResults' }))}>
+              Back to results
             </button>
             <button type="button" className="btn" onClick={onBackToMenu}>
               Back to menu
@@ -2481,7 +2688,148 @@ const BUREAU_TAG_LABELS = {
 
 const getBureauTagLabel = (tag = '') => BUREAU_TAG_LABELS[tag] ?? tag.replace(/_/g, ' ');
 
+const getBureauCivilisationOptions = (bureauCase) => bureauCase?.civilisationOptions || bureauCase?.answerOptions || [];
+
+const getBureauCorrectCivilisationIndex = (bureauCase) => {
+  if (Number.isInteger(bureauCase?.correctCivilisation)) return bureauCase.correctCivilisation;
+  if (Number.isInteger(bureauCase?.correctAnswer)) return bureauCase.correctAnswer;
+  return 0;
+};
+
+const getBureauCorrectCivilisationLabel = (bureauCase) => {
+  const options = getBureauCivilisationOptions(bureauCase);
+  const correctIndex = getBureauCorrectCivilisationIndex(bureauCase);
+  return options[correctIndex] || bureauCase?.civilisation || 'Unknown civilisation';
+};
+
+const getBureauComparisonKeyVariants = (firstCase, secondCase) => {
+  const idPair = [firstCase?.id, secondCase?.id].filter(Boolean);
+  const titlePair = [firstCase?.caseTitle, secondCase?.caseTitle].filter(Boolean);
+  const sortedIdPair = [...idPair].sort();
+  const sortedTitlePair = [...titlePair].sort();
+  return [
+    idPair.join('::'),
+    idPair.join('|'),
+    idPair.join('__'),
+    idPair.join('+'),
+    idPair.slice().reverse().join('::'),
+    idPair.slice().reverse().join('|'),
+    idPair.slice().reverse().join('__'),
+    idPair.slice().reverse().join('+'),
+    sortedIdPair.join('::'),
+    sortedIdPair.join('|'),
+    sortedIdPair.join('__'),
+    sortedIdPair.join('+'),
+    titlePair.join('::'),
+    titlePair.join('|'),
+    titlePair.slice().reverse().join('::'),
+    titlePair.slice().reverse().join('|'),
+    sortedTitlePair.join('::'),
+    sortedTitlePair.join('|'),
+  ].filter(Boolean);
+};
+
+const normalizeBureauComparisonChallenge = (entry, firstCase, secondCase) => {
+  if (!entry || typeof entry !== 'object') return null;
+
+  const source = entry.challenge
+    || entry.comparison
+    || entry.comparisonChallenge
+    || entry.data
+    || entry;
+
+  if (!source || typeof source !== 'object') return null;
+
+  const options = Array.isArray(source.options)
+    ? source.options.filter(option => typeof option === 'string' && option.trim())
+    : [];
+
+  if (options.length === 0) return null;
+
+  const maxIndex = Math.max(0, options.length - 1);
+  const correctAnswer = Number.isInteger(source.correctAnswer)
+    ? Math.min(Math.max(source.correctAnswer, 0), maxIndex)
+    : 0;
+
+  return {
+    title: source.title || `${firstCase?.caseTitle || 'Case 1'} + ${secondCase?.caseTitle || 'Case 2'}`,
+    question: source.question
+      || source.prompt
+      || `What theme links ${firstCase?.caseTitle || 'the first case'} and ${secondCase?.caseTitle || 'the second case'}?`,
+    options,
+    correctAnswer,
+    explanation: source.explanation
+      || source.feedback
+      || 'These cases can be compared to show how archaeologists connect evidence across discoveries.',
+  };
+};
+
+const findExplicitBureauComparisonChallenge = (firstCase, secondCase) => {
+  const pairKey = [firstCase?.civilisation, secondCase?.civilisation].filter(Boolean).sort().join('||');
+  if (pairKey && BUREAU_COMPARISON_BY_PAIR.has(pairKey)) {
+    const challenge = normalizeBureauComparisonChallenge(
+      BUREAU_COMPARISON_BY_PAIR.get(pairKey),
+      firstCase,
+      secondCase,
+    );
+    if (challenge) return challenge;
+  }
+
+  const pairKeys = getBureauComparisonKeyVariants(firstCase, secondCase);
+  const sources = [
+    firstCase?.comparisonChallenge,
+    firstCase?.comparison,
+    firstCase?.comparisonData,
+    secondCase?.comparisonChallenge,
+    secondCase?.comparison,
+    secondCase?.comparisonData,
+  ].filter(Boolean);
+
+  const resolveFromSource = (source) => {
+    if (Array.isArray(source)) {
+      for (const entry of source) {
+        const challenge = normalizeBureauComparisonChallenge(entry, firstCase, secondCase);
+        if (challenge) return challenge;
+      }
+      return null;
+    }
+
+    if (typeof source !== 'object') return null;
+
+    for (const key of pairKeys) {
+      if (source[key]) {
+        const challenge = normalizeBureauComparisonChallenge(source[key], firstCase, secondCase);
+        if (challenge) return challenge;
+      }
+    }
+
+    const directChallenge = normalizeBureauComparisonChallenge(source, firstCase, secondCase);
+    if (directChallenge) return directChallenge;
+
+    for (const value of Object.values(source)) {
+      if (Array.isArray(value)) {
+        for (const entry of value) {
+          const challenge = normalizeBureauComparisonChallenge(entry, firstCase, secondCase);
+          if (challenge) return challenge;
+        }
+      }
+    }
+
+    return null;
+  };
+
+  for (const source of sources) {
+    const challenge = resolveFromSource(source);
+    if (challenge) return challenge;
+  }
+
+  return null;
+};
+
 const buildBureauComparisonChallenge = (firstCase, secondCase) => {
+  const explicitChallenge = findExplicitBureauComparisonChallenge(firstCase, secondCase);
+  if (explicitChallenge) return explicitChallenge;
+
   const sharedTags = (firstCase?.comparisonTags || []).filter(tag => secondCase?.comparisonTags?.includes(tag));
   const focusTags = sharedTags.length > 0
     ? sharedTags
@@ -2506,7 +2854,7 @@ const buildBureauComparisonChallenge = (firstCase, secondCase) => {
 
 const createBureauComparisonChallenge = (caseResults = []) => {
   const solvedCases = caseResults
-    .map(result => BUREAU_CASES.find(item => item.id === result.caseId))
+    .map(result => BUREAU_CASES_BY_ID.get(result.caseId))
     .filter(Boolean);
   const secondLast = solvedCases[solvedCases.length - 2] ?? null;
   const last = solvedCases[solvedCases.length - 1] ?? null;
@@ -2519,6 +2867,7 @@ const createNewBureauSession = (startPhase = 'bureauBriefing') => ({
   score: 0,
   caseIndex: 0,
   currentTier: 1,
+  evidenceFilter: createInitialBureauEvidenceFilter(),
   selectedAnswerIndex: null,
   selectedLogAnswerIndex: null,
   selectedComparisonAnswerIndex: null,
@@ -2948,7 +3297,7 @@ function DevTools({ currentPhase, setPhase, setBureauState, setExcavatedIds, set
 export default function App() {
   const [savedGame] = useState(() => loadAutosave());
   const initialGame = useMemo(() => createNewGameSession('archaeology', 'menu'), []);
-  const initialBureauGame = useMemo(() => createNewGameSession('bureau', 'bureauBriefing'), []);
+  const initialBureauGame = useMemo(() => createNewBureauSession('bureauBriefing'), []);
   const [showResumePrompt, setShowResumePrompt] = useState(() => !!savedGame);
   const [phase, setPhase] = useState(initialGame.phase); // 'menu', 'training', 'dig', 'sort', 'lab', 'museum', 'report'
   const [currentScenario, setCurrentScenario] = useState(initialGame.currentScenario || null);
@@ -3082,7 +3431,7 @@ export default function App() {
     clearAutosave();
     setShowResumePrompt(false);
     setSaveMessage('');
-    setBureauState(createNewGameSession('bureau', 'bureauBriefing'));
+    setBureauState(createNewBureauSession('bureauBriefing'));
     setPhase('bureauBriefing');
   };
 
@@ -3208,6 +3557,7 @@ export default function App() {
     bureauFeedback: 'Feedback',
     bureauComparison: 'Comparison Challenge',
     bureauResults: 'Final Results',
+    bureauResearchChoice: 'Choose Your Civilisation Investigation',
   }[savedGame.phase] || 'Saved dig' : 'Saved dig';
   const resumeTitle = savedGame?.mode === 'bureau' ? 'Saved Bureau case file found' : 'Saved dig found';
   const resumePrimaryAction = savedGame?.mode === 'bureau' ? 'Resume Bureau' : 'Resume Dig';
