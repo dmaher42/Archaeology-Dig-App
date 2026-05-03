@@ -970,6 +970,13 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
             >
               Submit identification
             </button>
+            <button
+              type="button"
+              className="btn"
+              onClick={onBackToMenu}
+            >
+              Back to menu
+            </button>
           </div>
           </article>
 

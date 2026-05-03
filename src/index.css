@@ -4396,6 +4396,8 @@ body {
   border-radius: 18px;
   border: 1px solid rgba(125, 211, 252, 0.18);
   background: rgba(8, 14, 22, 0.35);
+  max-height: min(42vh, 24rem);
+  overflow-y: auto;
 }
 
 .bureau-evidence-filter-note {
@@ -4426,7 +4428,7 @@ body {
 
 .bureau-evidence-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.65rem;
 }
 
