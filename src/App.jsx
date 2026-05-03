@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useLayoutEffect } from 'react';
+import { useState, useEffect, useMemo, useReducer, useRef, useLayoutEffect } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -142,11 +142,6 @@ const BUREAU_COMPARISON_BY_PAIR = new Map(
   BUREAU_COMPARISON_CHALLENGES.map(item => [item.civilisations.slice().sort().join('||'), item]),
 );
 const BUREAU_CIVILISATIONS = [...new Set(BUREAU_CASES.map(item => item.civilisation))];
-const BUREAU_EVIDENCE_STATUS_LABELS = {
-  keep: 'Keep',
-  discard: 'Discard',
-  unsure: 'Unsure',
-};
 const createInitialBureauEvidenceFilter = () => (
   BUREAU_CIVILISATIONS.reduce((acc, civilisation) => {
     acc[civilisation] = 'unsure';
@@ -560,7 +555,7 @@ function ActivityMenu({ onStartInvestigation, onStartTraining, onStartBureau }) 
       <div className="menu-hero glass-card">
         <div className="training-kicker">Choose Your Activity</div>
         <h2>Archaeology Challenge</h2>
-        <p>Pick the full investigation game or the archaeology training activity.</p>
+        <p>Pick the full investigation game, the archaeology training activity, or the Antiquities Bureau preview.</p>
       </div>
 
       <div className="activity-menu-grid">
@@ -607,9 +602,45 @@ function ActivityMenu({ onStartInvestigation, onStartTraining, onStartBureau }) 
   );
 }
 
+function ResumeCard({ savedGame, onResume }) {
+  if (!savedGame) return null;
+
+  return (
+    <section className="menu-resume glass-card">
+      <div className="training-kicker">Saved progress found</div>
+      <h3>Resume your last game?</h3>
+      <p>
+        You have a saved {savedGame.mode === 'bureau' ? 'Bureau' : 'investigation'} session from{' '}
+        <strong>{savedGame.phase === 'bureauBriefing'
+          ? 'Antiquities Bureau Briefing'
+          : savedGame.phase === 'bureauCase'
+            ? 'Discovery Report'
+            : savedGame.phase === 'bureauLog'
+              ? "Historian's Log"
+              : savedGame.phase === 'bureauFeedback'
+                ? 'Feedback'
+                : savedGame.phase === 'bureauComparison'
+                  ? 'Comparison Challenge'
+                  : savedGame.phase === 'bureauResults'
+                    ? 'Final Results'
+                    : savedGame.phase === 'bureauResearchChoice'
+                      ? 'Choose Your Civilisation Investigation'
+                      : savedGame.phase || 'a previous screen'}</strong>.
+      </p>
+      <div className="bureau-briefing-actions">
+        <button type="button" className="btn primary-btn" onClick={onResume}>
+          {savedGame.mode === 'bureau' ? 'Resume Antiquities Bureau' : 'Resume Investigation Game'}
+        </button>
+      </div>
+    </section>
+  );
+}
+
 function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
   const didCelebrateRef = useRef(false);
   const [selectedResearchCivilisation, setSelectedResearchCivilisation] = useState(null);
+  const [isMakingClaim, setIsMakingClaim] = useState(false);
+  const [showArchivedSuspects, setShowArchivedSuspects] = useState(false);
   const currentCase = BUREAU_CASES[bureauState.caseIndex] || null;
   const currentComparison = bureauState.phase === 'bureauComparison'
     ? createBureauComparisonChallenge(bureauState.caseResults)
@@ -622,11 +653,18 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
     ? BUREAU_RESEARCH_FOCUS[selectedResearchCivilisation] || null
     : null;
   const evidenceFilter = bureauState.evidenceFilter || createInitialBureauEvidenceFilter();
-  const evidenceCounts = BUREAU_CIVILISATIONS.reduce((acc, civilisation) => {
-    const status = evidenceFilter[civilisation] || 'unsure';
-    acc[status] = (acc[status] || 0) + 1;
-    return acc;
-  }, { keep: 0, discard: 0, unsure: 0 });
+  const caseCivilisationOptions = getBureauCivilisationOptions(currentCase);
+  const selectedClaimCivilisation = bureauState.selectedClaimCivilisation
+    || (bureauState.selectedAnswerIndex !== null ? caseCivilisationOptions[bureauState.selectedAnswerIndex] : '')
+    || '';
+  const currentEvidenceText = [
+    currentCase?.tier1SiteClue && { evidence: 'Site', tier: 'Tier 1', text: currentCase.tier1SiteClue },
+    bureauState.currentTier >= 2 && currentCase?.tier2SocietyClue && { evidence: 'Society', tier: 'Tier 2', text: currentCase.tier2SocietyClue },
+    bureauState.currentTier >= 3 && currentCase?.tier3LegacyClue && { evidence: 'Legacy', tier: 'Tier 3', text: currentCase.tier3LegacyClue },
+  ].filter(Boolean);
+  const availableClaimPoints = Math.max(0, 4 - bureauState.currentTier);
+  const activeSuspects = BUREAU_CIVILISATIONS.filter(civilisation => (evidenceFilter[civilisation] || 'unsure') !== 'discard');
+  const archivedSuspects = BUREAU_CIVILISATIONS.filter(civilisation => (evidenceFilter[civilisation] || 'unsure') === 'discard');
 
   useEffect(() => {
     if (bureauState.phase === 'bureauResults' && !didCelebrateRef.current) {
@@ -647,11 +685,13 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
   const resetCaseState = () => ({
     currentTier: 1,
     selectedAnswerIndex: null,
+    selectedClaimCivilisation: '',
     selectedLogAnswerIndex: null,
     selectedComparisonAnswerIndex: null,
     pendingCaseOutcome: null,
     latestOutcome: null,
     evidenceFilter: createInitialBureauEvidenceFilter(),
+    showEvidenceFilter: true,
   });
 
   const setEvidenceFilterStatus = (civilisation, status) => {
@@ -664,32 +704,67 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
     }));
   };
 
+  const selectClaimCivilisation = (civilisation) => {
+    const answerIndex = caseCivilisationOptions.indexOf(civilisation);
+    setBureauState(prev => ({
+      ...prev,
+      selectedClaimCivilisation: civilisation,
+      selectedAnswerIndex: answerIndex >= 0 ? answerIndex : null,
+    }));
+  };
+
+  const toggleSuspectArchive = (civilisation) => {
+    const currentStatus = evidenceFilter[civilisation] || 'unsure';
+    setEvidenceFilterStatus(civilisation, currentStatus === 'discard' ? 'unsure' : 'discard');
+  };
+
   const revealNextClue = () => {
     if (!currentCase || bureauState.currentTier >= 3) return;
+    setIsMakingClaim(false);
     const nextTier = Math.min(3, bureauState.currentTier + 1);
     updateState({
       currentTier: nextTier,
       selectedAnswerIndex: null,
+      selectedClaimCivilisation: '',
       latestOutcome: {
-        explanation: `Tier ${nextTier} clue revealed. Re-check the evidence and refine your identification.`,
+        explanation: `New evidence added. Historians revise claims when new evidence changes the pattern.`,
       },
     });
   };
 
   const startCase = () => {
+    setIsMakingClaim(false);
     updateState({
       phase: 'bureauCase',
       ...resetCaseState(),
     });
   };
 
+  const renderStickyActionBar = (primaryLabel, onPrimary, primaryDisabled = false) => (
+    <div className="bureau-sticky-action-bar hide-on-print">
+      <button
+        type="button"
+        className="btn primary-btn"
+        onClick={onPrimary}
+        disabled={primaryDisabled}
+      >
+        {primaryLabel}
+      </button>
+      <button type="button" className="btn" onClick={onBackToMenu}>
+        Back to Main Menu
+      </button>
+    </div>
+  );
+
   const handleSubmitCase = () => {
-    if (!currentCase || bureauState.selectedAnswerIndex === null) return;
+    if (!currentCase || !selectedClaimCivilisation) return;
 
     const correctAnswerIndex = getBureauCorrectCivilisationIndex(currentCase);
-    const selectedCivilisation = getBureauCivilisationOptions(currentCase)[bureauState.selectedAnswerIndex] || '';
+    const selectedAnswerIndex = caseCivilisationOptions.indexOf(selectedClaimCivilisation);
+    const selectedCivilisation = selectedClaimCivilisation;
     const correctCivilisation = getBureauCorrectCivilisationLabel(currentCase);
-    const isCorrect = bureauState.selectedAnswerIndex === correctAnswerIndex;
+    const isCorrect = selectedCivilisation === correctCivilisation
+      || (selectedAnswerIndex >= 0 && selectedAnswerIndex === correctAnswerIndex);
     const tierPoints = isCorrect ? Math.max(0, 4 - bureauState.currentTier) : 0;
     const nextOutcome = {
       caseId: currentCase.id,
@@ -700,7 +775,7 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
       civilisationCorrect: isCorrect,
       tierSolvedAt: isCorrect ? bureauState.currentTier : null,
       tierPoints,
-      chosenAnswerIndex: bureauState.selectedAnswerIndex,
+      chosenAnswerIndex: selectedAnswerIndex >= 0 ? selectedAnswerIndex : null,
       correctAnswerIndex,
       logAnswerIndex: null,
       logPoints: 0,
@@ -710,6 +785,7 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
     };
 
     if (isCorrect || bureauState.currentTier >= 3) {
+      setIsMakingClaim(false);
       setBureauState(prev => ({
         ...prev,
         score: prev.score + tierPoints,
@@ -718,6 +794,7 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
         pendingCaseOutcome: nextOutcome,
         latestOutcome: nextOutcome,
         selectedAnswerIndex: null,
+        selectedClaimCivilisation: '',
       }));
       return;
     }
@@ -726,11 +803,13 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
       ...prev,
       currentTier: Math.min(3, prev.currentTier + 1),
       selectedAnswerIndex: null,
+      selectedClaimCivilisation: '',
       latestOutcome: {
         ...nextOutcome,
-        explanation: `Not quite. Another clue has been added to the report for ${correctCivilisation}.`,
+        explanation: `Claim needs revision. Another clue has been added to the case file, so test your idea against the stronger evidence.`,
       },
     }));
+    setIsMakingClaim(false);
   };
 
   const handleSubmitLog = () => {
@@ -768,6 +847,7 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
     }
 
     if (bureauState.caseIndex + 1 < totalCases) {
+      setIsMakingClaim(false);
       setBureauState(prev => ({
         ...prev,
         phase: 'bureauCase',
@@ -806,6 +886,7 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
 
   const handleContinueAfterComparison = () => {
     if (bureauState.caseIndex + 1 < totalCases) {
+      setIsMakingClaim(false);
       setBureauState(prev => ({
         ...prev,
         phase: 'bureauCase',
@@ -821,6 +902,7 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
 
   const handleReplay = () => {
     setSelectedResearchCivilisation(null);
+    setIsMakingClaim(false);
     setBureauState(createNewBureauSession('bureauBriefing'));
   };
 
@@ -863,13 +945,85 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
   }
 
   if (bureauState.phase === 'bureauCase') {
-    return (
-      <section className="phase-container bureau-phase">
-        <div className="bureau-layout">
-          <article className="bureau-report glass-card">
+    if (isMakingClaim) {
+      return (
+        <section className="phase-container bureau-phase">
+          <div className="bureau-claim-screen glass-card">
             <div className="bureau-report-header">
               <div>
-                <div className="training-kicker">Discovery Report</div>
+                <div className="training-kicker">Case File #{String(bureauState.caseIndex + 1).padStart(2, '0')}</div>
+                <h2>Make Your Claim</h2>
+              </div>
+              <div className="bureau-simple-points">
+                {bureauState.currentTier < 3 ? `Solve now for ${availableClaimPoints} points` : 'Final claim: 1 point'}
+              </div>
+            </div>
+
+            <p className="bureau-case-instruction">
+              Which civilisation does the evidence best support?
+            </p>
+
+            <div className="bureau-claim-evidence-reminder">
+              <strong>Current evidence:</strong>
+              <span>{currentEvidenceText[currentEvidenceText.length - 1]?.text || 'Review the case file evidence before submitting your claim.'}</span>
+            </div>
+
+            <div className="bureau-answer-grid bureau-focused-answer-grid">
+              {caseCivilisationOptions.map((option, index) => (
+                <button
+                  key={option}
+                  type="button"
+                  className={`bureau-answer-btn bureau-focused-answer ${selectedClaimCivilisation === option ? 'selected' : ''}`}
+                  onClick={() => selectClaimCivilisation(option)}
+                  aria-pressed={selectedClaimCivilisation === option}
+                >
+                  <span className="bureau-answer-index">{String.fromCharCode(65 + index)}</span>
+                  <span>{option}</span>
+                </button>
+              ))}
+            </div>
+
+            {latestOutcome && (
+              <div className="bureau-feedback-note bureau-case-latest">
+                {latestOutcome.explanation}
+              </div>
+            )}
+
+            <div className="bureau-case-actions bureau-claim-actions">
+              <button
+                type="button"
+                className="btn primary-btn"
+                onClick={handleSubmitCase}
+                disabled={!selectedClaimCivilisation}
+              >
+                Submit My Claim
+              </button>
+              <button
+                type="button"
+                className="btn"
+                onClick={() => {
+                  setIsMakingClaim(false);
+                  updateState({ selectedAnswerIndex: null, selectedClaimCivilisation: '' });
+                }}
+              >
+                Go back to evidence
+              </button>
+              <button type="button" className="btn" onClick={onBackToMenu}>
+                Back to Main Menu
+              </button>
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    return (
+      <section className="phase-container bureau-phase">
+        <div className="bureau-investigation-layout">
+          <article className="bureau-case-file glass-card">
+            <div className="bureau-report-header">
+              <div>
+                <div className="training-kicker">Case File #{String(bureauState.caseIndex + 1).padStart(2, '0')}</div>
                 <h2>{currentCase?.caseTitle || 'Unknown case'}</h2>
               </div>
               <div className="bureau-case-meta">
@@ -878,123 +1032,142 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
               </div>
             </div>
 
-            <div className="bureau-tier-stack">
-              <div className="bureau-tier-card visible">
-                <div className="bureau-tier-label">Tier 1: The Site</div>
-                <p>{currentCase?.tier1SiteClue || 'Site clue pending.'}</p>
-              </div>
-              {bureauState.currentTier >= 2 && (
-                <div className="bureau-tier-card visible">
-                  <div className="bureau-tier-label">Tier 2: The Society</div>
-                  <p>{currentCase?.tier2SocietyClue || 'Society clue pending.'}</p>
-                </div>
-              )}
-              {bureauState.currentTier >= 3 && (
-                <div className="bureau-tier-card visible">
-                  <div className="bureau-tier-label">Tier 3: The Legacy</div>
-                  <p>{currentCase?.tier3LegacyClue || 'Legacy clue pending.'}</p>
-                </div>
-              )}
+            <p className="bureau-case-instruction">
+              Use the evidence to work out which civilisation this case belongs to.
+              You can guess now for more points, or reveal more clues first.
+            </p>
+
+            <div className="bureau-tier-tabs" aria-label="Case file clue tiers">
+              {['Site', 'Society', 'Legacy'].map((label, index) => {
+                const tierNumber = index + 1;
+                const stateClass = bureauState.currentTier === tierNumber
+                  ? 'current'
+                  : bureauState.currentTier > tierNumber
+                    ? 'complete'
+                    : 'locked';
+                return (
+                  <div key={label} className={`bureau-tier-tab bureau-tier-indicator ${stateClass}`}>
+                    {label}
+                    <span>{stateClass === 'locked' ? 'Locked' : stateClass === 'current' ? 'Current clue' : 'Seen'}</span>
+                  </div>
+                );
+              })}
             </div>
 
-          <div className="bureau-evidence-filter">
-            <div className="bureau-tier-label">Keep / Discard Evidence Filter</div>
-            <p className="bureau-evidence-filter-note">
-              Mark each civilisation as Keep, Discard, or Unsure while you test the clues. You can revise your choices after every new tier.
-            </p>
-            <div className="bureau-evidence-summary" aria-label="Evidence filter summary">
-              <span>Keep {evidenceCounts.keep}</span>
-              <span>Discard {evidenceCounts.discard}</span>
-              <span>Unsure {evidenceCounts.unsure}</span>
+            <div className="bureau-evidence-box">
+              <div className="bureau-evidence-text-list">
+                {currentEvidenceText.map((item, index) => (
+                  <div key={item.tier} className="bureau-evidence-text">
+                    <strong>Evidence {index + 1}: {item.evidence}</strong>
+                    <p>{item.text}</p>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="bureau-evidence-grid">
-              {BUREAU_CIVILISATIONS.map((civilisation) => {
+
+            {latestOutcome && (
+              <div className="bureau-feedback-note bureau-case-latest">
+                {latestOutcome.explanation}
+              </div>
+            )}
+
+            <div className="bureau-case-actions">
+              <button
+                type="button"
+                className="btn primary-btn"
+                onClick={() => {
+                  updateState({ selectedAnswerIndex: null, selectedClaimCivilisation: '' });
+                  setIsMakingClaim(true);
+                }}
+              >
+                Make a claim
+              </button>
+              {bureauState.currentTier < 3 && (
+                <button type="button" className="btn" onClick={revealNextClue}>
+                  Reveal more evidence
+                </button>
+              )}
+              <span className="bureau-simple-points">
+                {bureauState.currentTier < 3 ? `Solve now for ${availableClaimPoints} points` : 'Final claim: 1 point'}
+              </span>
+              <button type="button" className="btn" onClick={onBackToMenu}>
+                Back to Main Menu
+              </button>
+            </div>
+          </article>
+
+          <aside className="bureau-suspect-board glass-card">
+            <div className="bureau-suspect-header">
+              <div>
+                <div className="training-kicker">Suspect Board</div>
+                <h3>Archive suspects that do not fit</h3>
+              </div>
+              <div className="bureau-evidence-summary" aria-label="Evidence filter summary">
+                <span>{activeSuspects.length} active</span>
+                <span>{archivedSuspects.length} archived</span>
+              </div>
+            </div>
+            <p className="bureau-evidence-filter-note">
+              Click a card to mark it possible. Archive weak matches. Restore them if new evidence changes your mind.
+            </p>
+
+            <div className="bureau-suspect-grid">
+              {activeSuspects.map((civilisation) => {
                 const status = evidenceFilter[civilisation] || 'unsure';
                 return (
-                  <article key={civilisation} className={`bureau-evidence-card status-${status}`}>
-                    <div className="bureau-evidence-card-title">{civilisation}</div>
-                    <div className="bureau-evidence-status-row" role="group" aria-label={`${civilisation} evidence status`}>
-                      {Object.entries(BUREAU_EVIDENCE_STATUS_LABELS).map(([value, label]) => (
-                        <button
-                          key={value}
-                          type="button"
-                          className={`bureau-evidence-chip ${status === value ? 'selected' : ''}`}
-                          onClick={() => setEvidenceFilterStatus(civilisation, value)}
-                          aria-pressed={status === value}
-                        >
-                          {label}
-                        </button>
-                      ))}
+                  <article key={civilisation} className={`bureau-suspect-card status-${status}`}>
+                    <button
+                      type="button"
+                      className="bureau-suspect-main"
+                      onClick={() => setEvidenceFilterStatus(civilisation, 'keep')}
+                    >
+                      <span>{civilisation}</span>
+                      <small>{status === 'keep' ? 'Possible' : 'Tap to mark possible'}</small>
+                    </button>
+                    <div className="bureau-suspect-actions" role="group" aria-label={`${civilisation} archive action`}>
+                      <button
+                        type="button"
+                        className="bureau-evidence-chip"
+                        onClick={() => toggleSuspectArchive(civilisation)}
+                      >
+                        Archive
+                      </button>
                     </div>
                   </article>
                 );
               })}
             </div>
-          </div>
 
-          <div className="bureau-tier-actions">
-            {bureauState.currentTier < 2 && (
-              <button type="button" className="btn" onClick={revealNextClue}>
-                Reveal Tier 2 clue
-              </button>
-            )}
-            {bureauState.currentTier === 2 && (
-              <button type="button" className="btn" onClick={revealNextClue}>
-                Reveal Tier 3 clue
-              </button>
-            )}
-          </div>
-
-          <div className="bureau-tier-label" style={{marginTop: '0.5rem'}}>Identify civilisation</div>
-          <div className="bureau-answer-grid">
-            {getBureauCivilisationOptions(currentCase).map((option, index) => (
+            <div className="bureau-archived-suspects">
               <button
-                key={option}
                 type="button"
-                className={`bureau-answer-btn ${bureauState.selectedAnswerIndex === index ? 'selected' : ''}`}
-                onClick={() => setBureauState(prev => ({ ...prev, selectedAnswerIndex: index }))}
-                aria-pressed={bureauState.selectedAnswerIndex === index}
+                className="btn bureau-filter-toggle"
+                onClick={() => setShowArchivedSuspects(prev => !prev)}
               >
-                <span className="bureau-answer-index">{String.fromCharCode(65 + index)}</span>
-                <span>{option}</span>
+                {showArchivedSuspects ? 'Hide archived suspects' : `Archived suspects (${archivedSuspects.length})`}
               </button>
-            ))}
-          </div>
 
-          <div className="bureau-case-actions">
-            <button
-              type="button"
-              className="btn primary-btn"
-              onClick={handleSubmitCase}
-              disabled={bureauState.selectedAnswerIndex === null}
-            >
-              Submit identification
-            </button>
-            <button
-              type="button"
-              className="btn"
-              onClick={onBackToMenu}
-            >
-              Back to menu
-            </button>
-          </div>
-          </article>
-
-          <aside className="bureau-sidebar glass-card">
-            <div className="bureau-sidebar-block">
-              <div className="bureau-sidebar-title">Current file</div>
-              <p>{currentCase?.civilisation ? 'Identify the civilisation from the evidence trail.' : 'No case selected.'}</p>
+              {showArchivedSuspects && (
+                <div className="bureau-archived-list">
+                  {archivedSuspects.length === 0 ? (
+                    <p>No suspects archived yet.</p>
+                  ) : (
+                    archivedSuspects.map(civilisation => (
+                      <div key={civilisation} className="bureau-archived-row">
+                        <span>{civilisation}</span>
+                        <button
+                          type="button"
+                          className="bureau-evidence-chip"
+                          onClick={() => toggleSuspectArchive(civilisation)}
+                        >
+                          Undo archive
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
             </div>
-            <div className="bureau-sidebar-block">
-              <div className="bureau-sidebar-title">Case reminder</div>
-              <p>Work from the site clue to the legacy clue. Only commit when the evidence feels strongest.</p>
-            </div>
-            {latestOutcome && (
-              <div className="bureau-sidebar-block bureau-sidebar-result">
-                <div className="bureau-sidebar-title">Latest decision</div>
-                <p>{latestOutcome.explanation}</p>
-              </div>
-            )}
           </aside>
         </div>
       </section>
@@ -1033,6 +1206,7 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
               Record Historian&apos;s Log
             </button>
           </div>
+          {renderStickyActionBar('Record Historian\'s Log', handleSubmitLog, bureauState.selectedLogAnswerIndex === null)}
         </div>
       </section>
     );
@@ -1045,23 +1219,23 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
     const tierPoints = outcome.tierPoints || 0;
     const logPoints = outcome.logPoints || 0;
     const feedbackText = outcome.logCorrect
-      ? 'The log entry matches the strongest evidence in the report.'
-      : 'The log entry needs a stronger link to the clues.';
+      ? 'Strongest evidence recorded. Your claim is supported by specific evidence.'
+      : 'The claim needs a stronger evidence link. Historians revise claims when the strongest clue points another way.';
     const civilisationText = civilisationCorrect
-      ? `Correct. You identified ${outcome.correctCivilisation || outcome.civilisation || 'the civilisation'} with the strongest evidence.`
-      : `The correct civilisation was ${outcome.correctCivilisation || outcome.civilisation || 'unknown'}.`;
+      ? `Claim supported. You identified ${outcome.correctCivilisation || outcome.civilisation || 'the civilisation'} using the evidence trail.`
+      : `Claim needs revision. The strongest evidence points to ${outcome.correctCivilisation || outcome.civilisation || 'unknown'}.`;
 
     return (
       <section className="phase-container bureau-phase">
         <div className="bureau-feedback glass-card">
-          <div className="training-kicker">Feedback</div>
+          <div className="training-kicker">Claim Feedback</div>
           <h2>{outcome.caseTitle || 'Case complete'}</h2>
           <p>{civilisationCorrect ? feedbackText : civilisationText}</p>
 
           <div className="bureau-feedback-grid">
             <div className="bureau-feedback-card">
-              <strong>Civilisation guess</strong>
-              <span>{civilisationCorrect ? `Correct at Tier ${solvedAt}` : 'Not identified in time'}</span>
+              <strong>Investigative claim</strong>
+              <span>{civilisationCorrect ? `Supported at Tier ${solvedAt}` : 'Needs revision'}</span>
               <span>{tierPoints} point{tierPoints === 1 ? '' : 's'}</span>
             </div>
             <div className="bureau-feedback-card">
@@ -1088,6 +1262,12 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
               Back to menu
             </button>
           </div>
+          {renderStickyActionBar(
+            needsComparison
+              ? 'Start comparison challenge'
+              : (bureauState.caseIndex + 1 < totalCases ? 'Open next case' : 'View results'),
+            handleContinueFromFeedback,
+          )}
         </div>
       </section>
     );
@@ -1149,6 +1329,13 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
               Back to menu
             </button>
           </div>
+          {renderStickyActionBar(
+            comparisonResult
+              ? (bureauState.caseIndex + 1 < totalCases ? 'Open next case' : 'View results')
+              : 'Submit comparison',
+            comparisonResult ? handleContinueAfterComparison : handleSubmitComparison,
+            !comparisonResult && bureauState.selectedComparisonAnswerIndex === null,
+          )}
         </div>
       </section>
     );
@@ -1161,7 +1348,7 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
 
     return (
       <section className="phase-container bureau-phase">
-        <div className="bureau-results glass-card">
+          <div className="bureau-results glass-card">
           <div className="training-kicker">Final Results</div>
           <h2>Civilisation Cold Cases Complete</h2>
           <p>You previewed {bureauState.caseResults.length} case{bureauState.caseResults.length === 1 ? '' : 's'} and used evidence to narrow down ancient civilisation choices for your booklet research.</p>
@@ -1884,7 +2071,7 @@ function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, 
 // ------------------------------------------------------------------
 // Phase 2: Sort
 // ------------------------------------------------------------------
-function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, onComplete }) {
+function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, onComplete, onBackToMenu }) {
   const [activeId, setActiveId] = useState(null);
   const [hoveredCard, setHoveredCard] = useState(null);
   const [feedback, setFeedback] = useState({ message: '', isError: false });
@@ -2077,6 +2264,16 @@ function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, onComplet
                   <button className="btn primary-btn large-btn" onClick={onComplete}>
                     Open the Lab <ArrowRight size={22} />
                   </button>
+                  <button className="btn" type="button" onClick={onBackToMenu}>
+                    Back to Main Menu
+                  </button>
+                </div>
+              )}
+              {!isComplete && (
+                <div className="sort-completion-strip">
+                  <button className="btn" type="button" onClick={onBackToMenu}>
+                    Back to Main Menu
+                  </button>
                 </div>
               )}
             </div>
@@ -2104,7 +2301,7 @@ function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, onComplet
 // ------------------------------------------------------------------
 // Phase 3: Lab
 // ------------------------------------------------------------------
-function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypotheses, currentScenario, onComplete }) {
+function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypotheses, currentScenario, onComplete, onBackToMenu }) {
   const currentScenarioData = currentScenario;
   const trayItems = useMemo(() => {
     const sortedItems = activeArtifacts.filter(item => itemsLocation[item.id] && itemsLocation[item.id] !== 'inventory');
@@ -2376,6 +2573,29 @@ function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypotheses, c
                 )}
               </div>
 
+              <div className="lab-prompt-box">
+                <div className="lab-label">Choose the reveal focus</div>
+                <div className="lab-prompt-grid">
+                  {LAB_ANALYSIS_PROMPTS.map(prompt => {
+                    const PromptIcon = prompt.icon;
+                    const isSelected = selectedPromptId === prompt.id;
+                    return (
+                      <button
+                        key={prompt.id}
+                        type="button"
+                        className={`lab-prompt-card ${isSelected ? 'selected' : ''}`}
+                        onClick={() => setSelectedPromptId(prompt.id)}
+                        aria-pressed={isSelected}
+                      >
+                        <PromptIcon size={16} aria-hidden="true" />
+                        <span className="lab-prompt-title">{prompt.title}</span>
+                        <span className="lab-prompt-desc">{prompt.description}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               <div className="lab-note-editor">
                 <label htmlFor="lab-note">Research note</label>
                 <div className="lab-note-scaffold">
@@ -2455,19 +2675,33 @@ function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypotheses, c
       <div className="lab-footer-strip">
         <div className="lab-footer-flow">Choose a find - read the clue - choose a reveal - save a note</div>
         {isComplete ? (
-          <button
-            type="button"
-            className="btn primary-btn lab-continue-btn"
-            onClick={() => {
-              initAudio();
-              playWin();
-              onComplete(currentScenarioData?.name || 'Unknown Dig Site', currentScenarioData?.id || null);
-            }}
-          >
-            Continue to Museum <ArrowRight size={18} />
-          </button>
+          <div className="lab-footer-actions">
+            <button
+              type="button"
+              className="btn"
+              onClick={onBackToMenu}
+            >
+              Back to Main Menu
+            </button>
+            <button
+              type="button"
+              className="btn primary-btn lab-continue-btn"
+              onClick={() => {
+                initAudio();
+                playWin();
+                onComplete(currentScenarioData?.name || 'Unknown Dig Site', currentScenarioData?.id || null);
+              }}
+            >
+              Continue to Museum <ArrowRight size={18} />
+            </button>
+          </div>
         ) : (
-          <div className="lab-footer-prompt">Complete three analyses to continue.</div>
+          <div className="lab-footer-actions">
+            <button type="button" className="btn" onClick={onBackToMenu}>
+              Back to Main Menu
+            </button>
+            <div className="lab-footer-prompt">Complete three analyses to continue.</div>
+          </div>
         )}
       </div>
     </div>
@@ -2487,6 +2721,7 @@ function MuseumPhase({
   finalExhibitionStatement,
   setFinalExhibitionStatement,
   onComplete,
+  onBackToMenu,
 }) {
   const [editingId, setEditingId] = useState(null);
 
@@ -2671,6 +2906,11 @@ function MuseumPhase({
           OPEN EXHIBITION <Users size={18} />
         </button>
         {!isReady && <p style={{fontSize: '0.8rem', color: 'var(--sand-400)', marginTop: '4px'}}>Curate 3 items, write plaques, and add a final statement to finish.</p>}
+        <div style={{marginTop: '0.75rem'}}>
+          <button className="btn" type="button" onClick={onBackToMenu}>
+            Back to Main Menu
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -2875,7 +3115,9 @@ const createNewBureauSession = (startPhase = 'bureauBriefing') => ({
   caseIndex: 0,
   currentTier: 1,
   evidenceFilter: createInitialBureauEvidenceFilter(),
+  showEvidenceFilter: true,
   selectedAnswerIndex: null,
+  selectedClaimCivilisation: '',
   selectedLogAnswerIndex: null,
   selectedComparisonAnswerIndex: null,
   pendingCaseOutcome: null,
@@ -2911,7 +3153,7 @@ const createSavePayload = ({
   saveVersion: AUTOSAVE_VERSION,
   savedAt: new Date().toISOString(),
   mode,
-  phase,
+  phase: mode === 'bureau' ? (bureauState?.phase || phase) : phase,
   ...(mode === 'bureau' ? {
     bureauState,
   } : {
@@ -3033,12 +3275,21 @@ const loadAutosave = () => {
   }
 };
 
-const clearAutosave = () => {
-  if (typeof window === 'undefined') return;
-  window.localStorage.removeItem(AUTOSAVE_KEY);
-};
-
-function ReportPhase({ activeArtifacts, itemsLocation, hypotheses, siteName, finalConclusion, currentScenario, onBack, currentEvent, onRetry, curatedItems = [], plaques = {}, finalExhibitionStatement = '' }) {
+function ReportPhase({
+  activeArtifacts,
+  itemsLocation,
+  hypotheses,
+  siteName,
+  finalConclusion,
+  currentScenario,
+  onBack,
+  currentEvent,
+  onRetry,
+  onBackToMenu,
+  curatedItems = [],
+  plaques = {},
+  finalExhibitionStatement = '',
+}) {
   const [printMode, setPrintMode] = useState('report');
   const analysedItems = activeArtifacts.filter(item => hypotheses[item.id] !== undefined);
   const curatedFinds = curatedItems
@@ -3228,6 +3479,9 @@ function ReportPhase({ activeArtifacts, itemsLocation, hypotheses, siteName, fin
          <button className="btn" onClick={onBack}>
            Back to Lab
          </button>
+         <button className="btn" onClick={onBackToMenu}>
+           Back to Main Menu
+         </button>
          <button className="btn primary-btn" onClick={() => handlePrint('report')}>
            Print Report
          </button>
@@ -3302,10 +3556,9 @@ function DevTools({ currentPhase, setPhase, setBureauState, setExcavatedIds, set
 // Main App Component
 // ------------------------------------------------------------------
 export default function App() {
-  const [savedGame] = useState(() => loadAutosave());
+  const [savedGame, setSavedGame] = useReducer((_, nextSavedGame) => nextSavedGame, null, loadAutosave);
   const initialGame = useMemo(() => createNewGameSession('archaeology', 'menu'), []);
   const initialBureauGame = useMemo(() => createNewBureauSession('bureauBriefing'), []);
-  const [showResumePrompt, setShowResumePrompt] = useState(() => !!savedGame);
   const [phase, setPhase] = useState(initialGame.phase); // 'menu', 'training', 'dig', 'sort', 'lab', 'museum', 'report'
   const [currentScenario, setCurrentScenario] = useState(initialGame.currentScenario || null);
   const [activeArtifacts, setActiveArtifacts] = useState(initialGame.activeArtifacts || []);
@@ -3349,8 +3602,9 @@ export default function App() {
           plaques,
           finalExhibitionStatement,
           trainingPlacements,
-        });
+      });
       window.localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(payload));
+      setSavedGame(rebuildSavedSession(payload));
     } catch (error) {
       console.warn('Could not autosave archaeology game.', error);
     }
@@ -3390,8 +3644,6 @@ export default function App() {
   }, [saveMessage]);
 
   const handleRetry = () => {
-    clearAutosave();
-    setShowResumePrompt(false);
     const nextGame = createNewGameSession('archaeology', 'dig');
     if (!nextGame) return;
     setPhase(nextGame.phase);
@@ -3415,8 +3667,6 @@ export default function App() {
   };
 
   const handleStartTraining = () => {
-    clearAutosave();
-    setShowResumePrompt(false);
     const nextGame = createNewGameSession('archaeology', 'training');
     if (!nextGame) return;
     setPhase(nextGame.phase);
@@ -3435,8 +3685,6 @@ export default function App() {
   };
 
   const handleStartBureau = () => {
-    clearAutosave();
-    setShowResumePrompt(false);
     setSaveMessage('');
     setBureauState(createNewBureauSession('bureauBriefing'));
     setPhase('bureauBriefing');
@@ -3460,7 +3708,7 @@ export default function App() {
       setFinalExhibitionStatement(session.finalExhibitionStatement);
       setTrainingPlacements(session.trainingPlacements || Array(TRAINING_STAGES.length).fill(null));
     }
-    setShowResumePrompt(false);
+    setSavedGame(session);
   };
 
   const handleSaveProgressFile = () => {
@@ -3525,6 +3773,7 @@ export default function App() {
       const session = rebuildSavedSession(payload);
       applySavedSession(session);
       window.localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(payload));
+      setSavedGame(session);
       setSaveMessage(`Loaded progress from ${file.name}`);
     } catch (error) {
       console.warn('Could not load progress file.', error);
@@ -3551,52 +3800,10 @@ export default function App() {
     setPhase('sort');
   };
 
-  const resumePhaseLabel = savedGame ? {
-    training: 'Archaeologist Training',
-    dig: 'Phase 1: Dig',
-    sort: 'Phase 2: Sort',
-    lab: 'Phase 3: Lab',
-    museum: 'Phase 4: Museum',
-    report: 'Phase 5: Report',
-    bureauBriefing: 'Antiquities Bureau Briefing',
-    bureauCase: 'Discovery Report',
-    bureauLog: "Historian's Log",
-    bureauFeedback: 'Feedback',
-    bureauComparison: 'Comparison Challenge',
-    bureauResults: 'Final Results',
-    bureauResearchChoice: 'Choose Your Civilisation Investigation',
-  }[savedGame.phase] || 'Saved dig' : 'Saved dig';
-  const resumeTitle = savedGame?.mode === 'bureau' ? 'Saved Bureau case file found' : 'Saved dig found';
-  const resumePrimaryAction = savedGame?.mode === 'bureau' ? 'Resume Bureau' : 'Resume Dig';
-  const resumeStartNew = savedGame?.mode === 'bureau' ? 'Start New Bureau' : 'Start New Dig';
-
-  if (activeArtifacts.length === 0) return null;
+  const resumeAction = savedGame ? (() => applySavedSession(savedGame)) : null;
 
   return (
     <div className="app-wrapper">
-      {showResumePrompt && savedGame && (
-        <div className="modal-overlay">
-          <div className="modal-content glass-card warning-modal resume-modal">
-            <Archive size={44} style={{ color: 'var(--accent)', marginBottom: '0.75rem' }} />
-            <h2 className="modal-title">{resumeTitle}</h2>
-            <p style={{fontSize: '1.02rem', marginBottom: '0.75rem', color: 'var(--sand-100)'}}>
-              You have autosaved progress from <strong>{resumePhaseLabel}</strong>.
-            </p>
-            <p style={{fontSize: '0.95rem', marginBottom: '1.4rem', color: 'var(--sand-300)'}}>
-              Resume where you left off, or start a new case and replace this saved game.
-            </p>
-            <div style={{display: 'flex', gap: '0.85rem', justifyContent: 'center', flexWrap: 'wrap'}}>
-              <button className="btn primary-btn" onClick={() => savedGame && applySavedSession(savedGame)}>
-                {resumePrimaryAction} <ArrowRight size={20} />
-              </button>
-              <button className="btn" onClick={savedGame?.mode === 'bureau' ? handleStartBureau : handleRetry}>
-                {resumeStartNew}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       <header className="main-header hide-on-print">
         <div className="header-left">
           <div className="header-icon-container">
@@ -3668,11 +3875,17 @@ export default function App() {
 
       <main className="main-content">
         {phase === 'menu' && (
-          <ActivityMenu
-            onStartInvestigation={handleStartInvestigation}
-            onStartTraining={handleStartTraining}
-            onStartBureau={handleStartBureau}
-          />
+          <>
+            <ActivityMenu
+              onStartInvestigation={handleStartInvestigation}
+              onStartTraining={handleStartTraining}
+              onStartBureau={handleStartBureau}
+            />
+            <ResumeCard
+              savedGame={savedGame}
+              onResume={resumeAction}
+            />
+          </>
         )}
 
         {phase === 'training' && currentScenario && currentEvent && (
@@ -3700,6 +3913,7 @@ export default function App() {
             itemsLocation={itemsLocation} 
             setItemsLocation={setItemsLocation} 
             onComplete={() => setPhase('lab')}
+            onBackToMenu={() => setPhase('menu')}
           />
         )}
 
@@ -3715,6 +3929,7 @@ export default function App() {
               setFinalConclusion(civId);
               setPhase('museum');
             }}
+            onBackToMenu={() => setPhase('menu')}
           />
         )}
         
@@ -3730,6 +3945,7 @@ export default function App() {
             finalExhibitionStatement={finalExhibitionStatement}
             setFinalExhibitionStatement={setFinalExhibitionStatement}
             onComplete={() => setPhase('report')}
+            onBackToMenu={() => setPhase('menu')}
           />
         )}
 
@@ -3747,6 +3963,7 @@ export default function App() {
             curatedItems={curatedItems}
             plaques={plaques}
             finalExhibitionStatement={finalExhibitionStatement}
+            onBackToMenu={() => setPhase('menu')}
           />
         )}
 
