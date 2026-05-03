@@ -555,7 +555,7 @@ function ActivityMenu({ onStartInvestigation, onStartTraining, onStartBureau }) 
       <div className="menu-hero glass-card">
         <div className="training-kicker">Choose Your Activity</div>
         <h2>Archaeology Challenge</h2>
-        <p>Pick the full investigation game, the archaeology training activity, or the Antiquities Bureau preview.</p>
+        <p>Pick the full investigation game, the archaeology training activity, or the Antiquities Bureau clues game.</p>
       </div>
 
       <div className="activity-menu-grid">
@@ -591,10 +591,10 @@ function ActivityMenu({ onStartInvestigation, onStartTraining, onStartBureau }) 
           </div>
           <div className="activity-card-copy">
             <h3>Antiquities Bureau</h3>
-            <p>Preview ancient civilisation case files, use evidence to test ideas, and choose one civilisation to investigate further in your booklet.</p>
+            <p>Use clues to work out which ancient civilisation each case belongs to. Then choose one civilisation to research in your booklet.</p>
           </div>
           <button type="button" className="btn primary-btn activity-card-action" onClick={onStartBureau}>
-            Open Bureau
+            Start Bureau Game
           </button>
         </article>
       </div>
@@ -612,24 +612,24 @@ function ResumeCard({ savedGame, onResume }) {
       <p>
         You have a saved {savedGame.mode === 'bureau' ? 'Bureau' : 'investigation'} session from{' '}
         <strong>{savedGame.phase === 'bureauBriefing'
-          ? 'Antiquities Bureau Briefing'
+          ? 'Bureau Briefing'
           : savedGame.phase === 'bureauCase'
-            ? 'Discovery Report'
-            : savedGame.phase === 'bureauLog'
+            ? 'Case'
+          : savedGame.phase === 'bureauLog'
               ? "Historian's Log"
               : savedGame.phase === 'bureauFeedback'
-                ? 'Feedback'
+                ? 'Case Feedback'
                 : savedGame.phase === 'bureauComparison'
-                  ? 'Comparison Challenge'
+                  ? 'Compare Two Civilisations'
                   : savedGame.phase === 'bureauResults'
-                    ? 'Final Results'
+                    ? 'Case Work Complete'
                     : savedGame.phase === 'bureauResearchChoice'
-                      ? 'Choose Your Civilisation Investigation'
+                      ? 'Choose Your Civilisation'
                       : savedGame.phase || 'a previous screen'}</strong>.
       </p>
       <div className="bureau-briefing-actions">
         <button type="button" className="btn primary-btn" onClick={onResume}>
-          {savedGame.mode === 'bureau' ? 'Resume Antiquities Bureau' : 'Resume Investigation Game'}
+          {savedGame.mode === 'bureau' ? 'Resume Bureau Game' : 'Resume Investigation Game'}
         </button>
       </div>
     </section>
@@ -658,9 +658,9 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
     || (bureauState.selectedAnswerIndex !== null ? caseCivilisationOptions[bureauState.selectedAnswerIndex] : '')
     || '';
   const currentEvidenceText = [
-    currentCase?.tier1SiteClue && { evidence: 'Site', tier: 'Tier 1', text: currentCase.tier1SiteClue },
-    bureauState.currentTier >= 2 && currentCase?.tier2SocietyClue && { evidence: 'Society', tier: 'Tier 2', text: currentCase.tier2SocietyClue },
-    bureauState.currentTier >= 3 && currentCase?.tier3LegacyClue && { evidence: 'Legacy', tier: 'Tier 3', text: currentCase.tier3LegacyClue },
+    currentCase?.tier1SiteClue && { label: 'Clue 1: Place', text: currentCase.tier1SiteClue },
+    bureauState.currentTier >= 2 && currentCase?.tier2SocietyClue && { label: 'Clue 2: People', text: currentCase.tier2SocietyClue },
+    bureauState.currentTier >= 3 && currentCase?.tier3LegacyClue && { label: 'Clue 3: What they left behind', text: currentCase.tier3LegacyClue },
   ].filter(Boolean);
   const availableClaimPoints = Math.max(0, 4 - bureauState.currentTier);
   const activeSuspects = BUREAU_CIVILISATIONS.filter(civilisation => (evidenceFilter[civilisation] || 'unsure') !== 'discard');
@@ -727,7 +727,7 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
       selectedAnswerIndex: null,
       selectedClaimCivilisation: '',
       latestOutcome: {
-        explanation: `New evidence added. Historians revise claims when new evidence changes the pattern.`,
+        explanation: 'Not yet. That answer does not fit all the clues. Reveal another clue.',
       },
     });
   };
@@ -806,7 +806,7 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
       selectedClaimCivilisation: '',
       latestOutcome: {
         ...nextOutcome,
-        explanation: `Claim needs revision. Another clue has been added to the case file, so test your idea against the stronger evidence.`,
+        explanation: 'Not yet. That answer does not fit all the clues. Reveal another clue.',
       },
     }));
     setIsMakingClaim(false);
@@ -919,24 +919,18 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
       <section className="phase-container bureau-phase">
         <div className="bureau-briefing glass-card">
           <div className="training-kicker">The Antiquities Bureau</div>
-          <h2>Civilisation Cold Cases</h2>
+          <h2>Ancient Civilisation Clues</h2>
           <p>
-            Junior historians, today you will preview ancient civilisation case files.
-            Use evidence to keep or discard possible civilisations, then choose one civilisation to investigate further in your booklet.
+            You are going to solve ancient civilisation cases.
+            Each case gives you clues. Use the clues to work out which civilisation it is.
+            You can guess early for more points, or reveal more clues first.
           </p>
-          <div className="bureau-briefing-points">
-            <span>Tier 1 correct: 3 points</span>
-            <span>Tier 2 correct: 2 points</span>
-            <span>Tier 3 correct: 1 point</span>
-            <span>Log question: 1 point</span>
-            <span>Comparison challenge: 2 points</span>
-          </div>
           <div className="bureau-briefing-actions">
             <button className="btn primary-btn" type="button" onClick={startCase}>
-              Start case file
+              Start First Case
             </button>
             <button className="btn" type="button" onClick={onBackToMenu}>
-              Back to menu
+              Back to Main Menu
             </button>
           </div>
         </div>
@@ -951,21 +945,21 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
           <div className="bureau-claim-screen glass-card">
             <div className="bureau-report-header">
               <div>
-                <div className="training-kicker">Case File #{String(bureauState.caseIndex + 1).padStart(2, '0')}</div>
-                <h2>Make Your Claim</h2>
+                <div className="training-kicker">Case {bureauState.caseIndex + 1} of {totalCases}</div>
+                <h2>Make your guess</h2>
               </div>
               <div className="bureau-simple-points">
-                {bureauState.currentTier < 3 ? `Solve now for ${availableClaimPoints} points` : 'Final claim: 1 point'}
+                {bureauState.currentTier < 3 ? `Guess now: ${availableClaimPoints} points` : 'Final guess: 1 point'}
               </div>
             </div>
 
             <p className="bureau-case-instruction">
-              Which civilisation does the evidence best support?
+              Which civilisation do the clues point to?
             </p>
 
             <div className="bureau-claim-evidence-reminder">
-              <strong>Current evidence:</strong>
-              <span>{currentEvidenceText[currentEvidenceText.length - 1]?.text || 'Review the case file evidence before submitting your claim.'}</span>
+              <strong>Current clue:</strong>
+              <span>{currentEvidenceText[currentEvidenceText.length - 1]?.text || 'Review the clues before you submit your guess.'}</span>
             </div>
 
             <div className="bureau-answer-grid bureau-focused-answer-grid">
@@ -996,7 +990,7 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
                 onClick={handleSubmitCase}
                 disabled={!selectedClaimCivilisation}
               >
-                Submit My Claim
+                Submit Guess
               </button>
               <button
                 type="button"
@@ -1006,7 +1000,7 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
                   updateState({ selectedAnswerIndex: null, selectedClaimCivilisation: '' });
                 }}
               >
-                Go back to evidence
+                Back to clues
               </button>
               <button type="button" className="btn" onClick={onBackToMenu}>
                 Back to Main Menu
@@ -1023,7 +1017,7 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
           <article className="bureau-case-file glass-card">
             <div className="bureau-report-header">
               <div>
-                <div className="training-kicker">Case File #{String(bureauState.caseIndex + 1).padStart(2, '0')}</div>
+                <div className="training-kicker">Case {bureauState.caseIndex + 1} of {totalCases}</div>
                 <h2>{currentCase?.caseTitle || 'Unknown case'}</h2>
               </div>
               <div className="bureau-case-meta">
@@ -1033,8 +1027,7 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
             </div>
 
             <p className="bureau-case-instruction">
-              Use the evidence to work out which civilisation this case belongs to.
-              You can guess now for more points, or reveal more clues first.
+              Read the clues. Remove choices that do not fit. Guess when you are ready.
             </p>
 
             <div className="bureau-tier-tabs" aria-label="Case file clue tiers">
@@ -1047,8 +1040,8 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
                     : 'locked';
                 return (
                   <div key={label} className={`bureau-tier-tab bureau-tier-indicator ${stateClass}`}>
-                    {label}
-                    <span>{stateClass === 'locked' ? 'Locked' : stateClass === 'current' ? 'Current clue' : 'Seen'}</span>
+                    {`Clue ${tierNumber}`}
+                    <span>{label}</span>
                   </div>
                 );
               })}
@@ -1056,9 +1049,9 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
 
             <div className="bureau-evidence-box">
               <div className="bureau-evidence-text-list">
-                {currentEvidenceText.map((item, index) => (
+                {currentEvidenceText.map((item) => (
                   <div key={item.tier} className="bureau-evidence-text">
-                    <strong>Evidence {index + 1}: {item.evidence}</strong>
+                    <strong>{item.label}</strong>
                     <p>{item.text}</p>
                   </div>
                 ))}
@@ -1080,15 +1073,15 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
                   setIsMakingClaim(true);
                 }}
               >
-                Make a claim
+                Make a Guess
               </button>
               {bureauState.currentTier < 3 && (
                 <button type="button" className="btn" onClick={revealNextClue}>
-                  Reveal more evidence
+                  Reveal Clue {bureauState.currentTier + 1}
                 </button>
               )}
               <span className="bureau-simple-points">
-                {bureauState.currentTier < 3 ? `Solve now for ${availableClaimPoints} points` : 'Final claim: 1 point'}
+                {bureauState.currentTier < 3 ? `Guess now: ${availableClaimPoints} points` : 'Final guess: 1 point'}
               </span>
               <button type="button" className="btn" onClick={onBackToMenu}>
                 Back to Main Menu
@@ -1099,16 +1092,16 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
           <aside className="bureau-suspect-board glass-card">
             <div className="bureau-suspect-header">
               <div>
-                <div className="training-kicker">Suspect Board</div>
-                <h3>Archive suspects that do not fit</h3>
+                <div className="training-kicker">Possible Civilisations</div>
+                <h3>Remove civilisations that do not fit the clue</h3>
               </div>
               <div className="bureau-evidence-summary" aria-label="Evidence filter summary">
-                <span>{activeSuspects.length} active</span>
-                <span>{archivedSuspects.length} archived</span>
+                <span>{activeSuspects.length} possible</span>
+                <span>{archivedSuspects.length} removed</span>
               </div>
             </div>
             <p className="bureau-evidence-filter-note">
-              Click a card to mark it possible. Archive weak matches. Restore them if new evidence changes your mind.
+              Click a card to mark it possible. Remove ones that do not fit. Bring them back if you change your mind.
             </p>
 
             <div className="bureau-suspect-grid">
@@ -1124,13 +1117,13 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
                       <span>{civilisation}</span>
                       <small>{status === 'keep' ? 'Possible' : 'Tap to mark possible'}</small>
                     </button>
-                    <div className="bureau-suspect-actions" role="group" aria-label={`${civilisation} archive action`}>
+                    <div className="bureau-suspect-actions" role="group" aria-label={`${civilisation} remove action`}>
                       <button
                         type="button"
                         className="bureau-evidence-chip"
                         onClick={() => toggleSuspectArchive(civilisation)}
                       >
-                        Archive
+                        Remove
                       </button>
                     </div>
                   </article>
@@ -1144,13 +1137,13 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
                 className="btn bureau-filter-toggle"
                 onClick={() => setShowArchivedSuspects(prev => !prev)}
               >
-                {showArchivedSuspects ? 'Hide archived suspects' : `Archived suspects (${archivedSuspects.length})`}
+                {showArchivedSuspects ? 'Hide removed civilisations' : `Removed civilisations (${archivedSuspects.length})`}
               </button>
 
               {showArchivedSuspects && (
                 <div className="bureau-archived-list">
                   {archivedSuspects.length === 0 ? (
-                    <p>No suspects archived yet.</p>
+                    <p>No civilisations removed yet.</p>
                   ) : (
                     archivedSuspects.map(civilisation => (
                       <div key={civilisation} className="bureau-archived-row">
@@ -1160,7 +1153,7 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
                           className="bureau-evidence-chip"
                           onClick={() => toggleSuspectArchive(civilisation)}
                         >
-                          Undo archive
+                          Bring back
                         </button>
                       </div>
                     ))
@@ -1177,10 +1170,11 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
   if (bureauState.phase === 'bureauLog') {
     return (
       <section className="phase-container bureau-phase">
-        <div className="bureau-log glass-card">
+          <div className="bureau-log glass-card">
           <div className="training-kicker">Historian&apos;s Log</div>
           <h2>{currentCase?.caseTitle || 'Case log'}</h2>
-          <p>{currentCase?.historianLogQuestion || 'Choose the strongest evidence note.'}</p>
+          <p>Historians explain how they know something. Choose the clue that best supports your answer.</p>
+          <p>{currentCase?.historianLogQuestion || 'Which clue was the strongest evidence?'}</p>
 
           <div className="bureau-answer-grid bureau-log-grid">
             {(currentCase?.historianLogOptions || []).map((option, index) => (
@@ -1203,10 +1197,10 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
               onClick={handleSubmitLog}
               disabled={bureauState.selectedLogAnswerIndex === null}
             >
-              Record Historian&apos;s Log
+              Submit Log
             </button>
           </div>
-          {renderStickyActionBar('Record Historian\'s Log', handleSubmitLog, bureauState.selectedLogAnswerIndex === null)}
+          {renderStickyActionBar('Submit Log', handleSubmitLog, bureauState.selectedLogAnswerIndex === null)}
         </div>
       </section>
     );
@@ -1219,28 +1213,28 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
     const tierPoints = outcome.tierPoints || 0;
     const logPoints = outcome.logPoints || 0;
     const feedbackText = outcome.logCorrect
-      ? 'Strongest evidence recorded. Your claim is supported by specific evidence.'
-      : 'The claim needs a stronger evidence link. Historians revise claims when the strongest clue points another way.';
+      ? 'Good thinking. You chose the strongest clue.'
+      : 'Good try. This clue was useful, but it was not the strongest one.';
     const civilisationText = civilisationCorrect
-      ? `Claim supported. You identified ${outcome.correctCivilisation || outcome.civilisation || 'the civilisation'} using the evidence trail.`
-      : `Claim needs revision. The strongest evidence points to ${outcome.correctCivilisation || outcome.civilisation || 'unknown'}.`;
+      ? `Correct. The clues point to ${outcome.correctCivilisation || outcome.civilisation || 'the civilisation'}.`
+      : `Not quite. The correct civilisation was ${outcome.correctCivilisation || outcome.civilisation || 'unknown'}.`;
 
     return (
       <section className="phase-container bureau-phase">
         <div className="bureau-feedback glass-card">
-          <div className="training-kicker">Claim Feedback</div>
+          <div className="training-kicker">Case Feedback</div>
           <h2>{outcome.caseTitle || 'Case complete'}</h2>
           <p>{civilisationCorrect ? feedbackText : civilisationText}</p>
 
           <div className="bureau-feedback-grid">
             <div className="bureau-feedback-card">
-              <strong>Investigative claim</strong>
-              <span>{civilisationCorrect ? `Supported at Tier ${solvedAt}` : 'Needs revision'}</span>
+              <strong>Guess</strong>
+              <span>{civilisationCorrect ? `Solved at Clue ${solvedAt}` : 'Not quite'}</span>
               <span>{tierPoints} point{tierPoints === 1 ? '' : 's'}</span>
             </div>
             <div className="bureau-feedback-card">
               <strong>Historian&apos;s Log</strong>
-              <span>{logPoints > 0 ? 'Correct log entry' : 'Needs more evidence'}</span>
+              <span>{logPoints > 0 ? 'Correct clue' : 'Needs more evidence'}</span>
               <span>{logPoints} points</span>
             </div>
             <div className="bureau-feedback-card">
@@ -1251,21 +1245,21 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
           </div>
 
           <div className="bureau-feedback-note">
-            {outcome.explanation || 'Use the next case to keep building your interpretation.'}
+            {outcome.explanation || 'Use the next case to keep building your thinking.'}
           </div>
 
           <div className="bureau-case-actions">
             <button type="button" className="btn primary-btn" onClick={handleContinueFromFeedback}>
-              {needsComparison ? 'Start comparison challenge' : (bureauState.caseIndex + 1 < totalCases ? 'Open next case' : 'View results')}
+              {needsComparison ? 'Compare Two Civilisations' : (bureauState.caseIndex + 1 < totalCases ? 'Next Case' : 'View Results')}
             </button>
             <button type="button" className="btn" onClick={onBackToMenu}>
-              Back to menu
+              Back to Main Menu
             </button>
           </div>
           {renderStickyActionBar(
             needsComparison
-              ? 'Start comparison challenge'
-              : (bureauState.caseIndex + 1 < totalCases ? 'Open next case' : 'View results'),
+              ? 'Compare Two Civilisations'
+              : (bureauState.caseIndex + 1 < totalCases ? 'Next Case' : 'View Results'),
             handleContinueFromFeedback,
           )}
         </div>
@@ -1280,9 +1274,9 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
     return (
       <section className="phase-container bureau-phase">
         <div className="bureau-comparison glass-card">
-          <div className="training-kicker">Comparison Challenge</div>
+          <div className="training-kicker">Compare Two Civilisations</div>
           <h2>{challenge?.title || 'Compare the cases'}</h2>
-          <p>{challenge?.question || 'Which theme best links these two cases?'}</p>
+          <p>{challenge?.question || 'What was similar about these two civilisations?'}</p>
 
           <div className="bureau-answer-grid bureau-comparison-grid">
             {(challenge?.options || []).map((option, index) => (
@@ -1314,7 +1308,7 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
                 onClick={handleSubmitComparison}
                 disabled={bureauState.selectedComparisonAnswerIndex === null}
               >
-                Submit comparison
+                Submit Answer
               </button>
             ) : (
               <button
@@ -1322,17 +1316,17 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
                 className="btn primary-btn"
                 onClick={handleContinueAfterComparison}
               >
-                {bureauState.caseIndex + 1 < totalCases ? 'Open next case' : 'View results'}
+                {bureauState.caseIndex + 1 < totalCases ? 'Next Case' : 'View Results'}
               </button>
             )}
             <button type="button" className="btn" onClick={onBackToMenu}>
-              Back to menu
+              Back to Main Menu
             </button>
           </div>
           {renderStickyActionBar(
             comparisonResult
-              ? (bureauState.caseIndex + 1 < totalCases ? 'Open next case' : 'View results')
-              : 'Submit comparison',
+              ? (bureauState.caseIndex + 1 < totalCases ? 'Next Case' : 'View Results')
+              : 'Submit Answer',
             comparisonResult ? handleContinueAfterComparison : handleSubmitComparison,
             !comparisonResult && bureauState.selectedComparisonAnswerIndex === null,
           )}
@@ -1349,26 +1343,30 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
     return (
       <section className="phase-container bureau-phase">
           <div className="bureau-results glass-card">
-          <div className="training-kicker">Final Results</div>
-          <h2>Civilisation Cold Cases Complete</h2>
-          <p>You previewed {bureauState.caseResults.length} case{bureauState.caseResults.length === 1 ? '' : 's'} and used evidence to narrow down ancient civilisation choices for your booklet research.</p>
+          <div className="training-kicker">Case Work Complete</div>
+          <h2>You solved the civilisation cases</h2>
+          <p>You solved {bureauState.caseResults.length} case{bureauState.caseResults.length === 1 ? '' : 's'} using the clues.</p>
 
           <div className="bureau-results-summary">
             <div className="bureau-results-card">
-              <strong>Total score</strong>
-              <span>{bureauState.score} points</span>
+              <strong>Cases completed</strong>
+              <span>{bureauState.caseResults.length}</span>
             </div>
             <div className="bureau-results-card">
-              <strong>Tier clues</strong>
+              <strong>Correct guesses</strong>
               <span>{totalTierPoints} points</span>
             </div>
             <div className="bureau-results-card">
-              <strong>Historian&apos;s Logs</strong>
+              <strong>Historian&apos;s Log points</strong>
               <span>{totalLogPoints} points</span>
             </div>
             <div className="bureau-results-card">
-              <strong>Comparison Challenges</strong>
+              <strong>Comparison points</strong>
               <span>{totalComparisonPoints} points</span>
+            </div>
+            <div className="bureau-results-card">
+              <strong>Total score</strong>
+              <span>{bureauState.score} points</span>
             </div>
           </div>
 
@@ -1377,10 +1375,10 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
               <article key={result.caseId} className="bureau-results-item">
                 <div>
                   <strong>Case {index + 1}: {result.caseTitle}</strong>
-                  <p>{result.civilisationCorrect ? `Identified as ${result.correctCivilisation}` : `Best evidence points to ${result.correctCivilisation}`}</p>
+                  <p>{result.civilisationCorrect ? `Correct guess: ${result.correctCivilisation}` : `Best guess: ${result.correctCivilisation}`}</p>
                 </div>
                 <div className="bureau-results-item-points">
-                  <span>{result.civilisationCorrect ? `Tier ${result.tierSolvedAt}` : 'No civilisation points'} + Log</span>
+                  <span>{result.civilisationCorrect ? `Clue ${result.tierSolvedAt}` : 'No guess points'} + Log</span>
                   <strong>{(result.tierPoints || 0) + (result.logPoints || 0)} pts</strong>
                 </div>
               </article>
@@ -1389,13 +1387,13 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
 
           <div className="bureau-case-actions">
             <button type="button" className="btn primary-btn" onClick={openResearchChoice}>
-              Choose Your Civilisation Investigation
+              Choose Civilisation
             </button>
             <button type="button" className="btn" onClick={handleReplay}>
-              Start another Bureau case file
+              Start another Bureau game
             </button>
             <button type="button" className="btn" onClick={onBackToMenu}>
-              Back to menu
+              Back to Main Menu
             </button>
           </div>
         </div>
@@ -1407,10 +1405,10 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
     return (
       <section className="phase-container bureau-phase">
         <div className="bureau-results glass-card">
-          <div className="training-kicker">Choose Your Civilisation Investigation</div>
-          <h2>Which civilisation would you like to explore further in the booklet?</h2>
+          <div className="training-kicker">Choose Civilisation</div>
+          <h2>Which civilisation would you like to research in your booklet?</h2>
           <p>
-            The Bureau helped you preview the case files. Now choose one civilisation to investigate in more depth and bring evidence back to your booklet work.
+            Pick the civilisation that interested you most.
           </p>
 
           <div className="bureau-research-layout">
@@ -1435,27 +1433,27 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
             <div className="bureau-research-card">
               {researchFocus ? (
                 <>
-                  <div className="bureau-tier-label">Research focus</div>
+                  <div className="bureau-tier-label">Research tips</div>
                   <h3>{selectedResearchCivilisation}</h3>
                   <div className="bureau-research-section">
-                    <strong>Look for:</strong>
+                    <strong>In your booklet, look for:</strong>
                     <ul>
                       {researchFocus.lookFor.map(item => <li key={item}>{item}</li>)}
                     </ul>
                   </div>
                   <div className="bureau-research-section">
-                    <strong>Inquiry question:</strong>
+                    <strong>Big question:</strong>
                     <p>{researchFocus.inquiryQuestion}</p>
                   </div>
                   <div className="bureau-research-section bureau-research-reminder">
-                    <strong>Evidence reminder:</strong>
+                    <strong>Remember:</strong>
                     <p>{researchFocus.evidenceReminder}</p>
                   </div>
                 </>
               ) : (
                 <>
-                  <div className="bureau-tier-label">Research focus card</div>
-                  <p>Select a civilisation to see booklet prompts and an inquiry question.</p>
+                  <div className="bureau-tier-label">Research tips</div>
+                  <p>Select a civilisation to see booklet prompts and a big question.</p>
                 </>
               )}
             </div>
@@ -1476,7 +1474,7 @@ function BureauMode({ bureauState, setBureauState, onBackToMenu }) {
               Back to results
             </button>
             <button type="button" className="btn" onClick={onBackToMenu}>
-              Back to menu
+              Back to Main Menu
             </button>
           </div>
         </div>
@@ -3813,7 +3811,7 @@ export default function App() {
             {phase.startsWith('bureau') ? (
               <>
                 <h1>The Antiquities Bureau</h1>
-                <p>Civilisation Cold Cases</p>
+                <p>Ancient Civilisation Clues</p>
               </>
             ) : (
               <>
