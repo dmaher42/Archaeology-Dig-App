@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">Modern disturbance evidence card image</title>
+  <desc id="desc">A stylised modern rubbish scene with bottle, can and coin in a warning frame.</desc>
+  <defs>
+    <linearGradient id="steel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#d8e1ea"/>
+      <stop offset="100%" stop-color="#7d8b9b"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#steel)"/>
+  <rect x="90" y="110" width="1020" height="580" rx="46" fill="#eef2f6" opacity="0.7" stroke="#445160" stroke-width="10"/>
+  <circle cx="340" cy="380" r="82" fill="#7ec8ff" opacity="0.95"/>
+  <rect x="300" y="250" width="80" height="230" rx="26" fill="#2e7bbf"/>
+  <rect x="320" y="205" width="40" height="60" rx="16" fill="#f3f7fb"/>
+  <rect x="520" y="295" width="150" height="170" rx="28" fill="#d15c42"/>
+  <rect x="548" y="260" width="94" height="50" rx="14" fill="#f3f7fb"/>
+  <rect x="700" y="340" width="100" height="120" rx="20" fill="#8b949c"/>
+  <circle cx="750" cy="375" r="30" fill="#d8e1ea"/>
+  <path d="M880 255 L995 455 L765 455 Z" fill="#f3ce4b" stroke="#7a5a00" stroke-width="10"/>
+  <path d="M880 300 L880 385" stroke="#7a5a00" stroke-width="18" stroke-linecap="round"/>
+  <circle cx="880" cy="415" r="14" fill="#7a5a00"/>
+  <text x="72" y="110" fill="#34495e" font-size="68" font-family="Georgia, serif" font-weight="700">Modern Disturbance</text>
+</svg>

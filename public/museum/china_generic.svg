@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">Ancient China evidence card image</title>
+  <desc id="desc">A stylised China scene with bronze vessel, wall and silk details.</desc>
+  <defs>
+    <linearGradient id="jade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#d9f0e4"/>
+      <stop offset="100%" stop-color="#7fb49a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#jade)"/>
+  <path d="M0 560 H1200 V800 H0 Z" fill="#6a8d72" opacity="0.55"/>
+  <path d="M120 585 L195 470 L270 585 Z" fill="#6a5a35"/>
+  <path d="M290 585 L365 445 L440 585 Z" fill="#5a4a2d"/>
+  <path d="M520 585 L590 455 L660 585 Z" fill="#6d5a35"/>
+  <path d="M700 585 L770 430 L840 585 Z" fill="#584826"/>
+  <path d="M845 560 C900 470, 980 470, 1035 560 C980 590, 900 590, 845 560 Z" fill="#8c6d39"/>
+  <rect x="895" y="480" width="70" height="90" rx="18" fill="#5d4827"/>
+  <rect x="355" y="250" width="330" height="220" rx="32" fill="#8f6b28" stroke="#5d4827" stroke-width="14"/>
+  <path d="M420 310 C470 240, 570 240, 620 310 C585 325, 545 338, 520 338 C495 338, 455 325, 420 310 Z" fill="#5d4827"/>
+  <path d="M455 385 C500 350, 565 350, 610 385" fill="none" stroke="#5d4827" stroke-width="14" stroke-linecap="round"/>
+  <path d="M0 210 C120 180, 240 170, 360 180 C485 190, 600 220, 720 210 C830 202, 955 170, 1200 175" fill="none" stroke="#e8f7ef" stroke-width="18" opacity="0.8"/>
+  <text x="72" y="110" fill="#24493b" font-size="68" font-family="Georgia, serif" font-weight="700">Ancient China</text>
+</svg>

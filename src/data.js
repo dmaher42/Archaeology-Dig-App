@@ -1,62 +1,36 @@
-import { Wind, Droplets, AlertTriangle, Moon } from 'lucide-react';
+import { 
+  Package, Skull, Landmark, Leaf, ScrollText, Moon
+} from 'lucide-react';
 
 export const CATEGORIES = [
-  {
-    id: 'objects',
-    title: 'Objects people made',
-    description: 'tools, pottery, weapons, jewellery, money',
-  },
-  {
-    id: 'remains',
-    title: 'Human remains',
-    description: 'bones, teeth, mummified bodies',
-  },
-  {
-    id: 'structures',
-    title: 'Places and structures',
-    description: 'roads, tombs, temples, walls, drainage',
-  },
-  {
-    id: 'environment',
-    title: 'Environmental evidence',
-    description: 'seeds, charcoal, shells, animal bones',
-  },
-  {
-    id: 'written',
-    title: 'Written or symbolic evidence',
-    description: 'symbols, writing, carvings, painted images',
-  }
+  { id: 'objects', title: 'Objects', icon: Package, color: '#f59e0b' },
+  { id: 'remains', title: 'Remains', icon: Skull, color: '#a855f7' },
+  { id: 'structures', title: 'Structures', icon: Landmark, color: '#14b8a6' },
+  { id: 'environment', title: 'Environment', icon: Leaf, color: '#84cc16' },
+  { id: 'written', title: 'Written', icon: ScrollText, color: '#60a5fa' }
 ];
 
 export const RANDOM_EVENTS = [
   {
-    id: 'sandstorm',
-    title: 'Incoming Sandstorm!',
-    description: 'A huge sandstorm is blowing in. Recover the finds before the site is covered.',
-    icon: Wind,
-    time: 90,
-    dangerColor: '#E89E5D'
+    id: 'storm',
+    title: 'Dust Storm',
+    description: 'A sudden storm has covered the site in dust! You have less time to dig.',
+    icon: AlertTriangle => {}, // Placeholder for icon if needed, but we use Lucide in components
+    time: 50,
+    dangerColor: '#ef4444'
   },
   {
     id: 'flood',
-    title: 'Flash Flood Warning!',
-    description: 'Heavy rain is flooding the site. Move quickly before the trench is unsafe.',
-    icon: Droplets,
-    time: 75,
+    title: 'Flash Flood',
+    description: 'Heavy rain has flooded the lower trenches. Move quickly!',
+    icon: AlertTriangle => {},
+    time: 45,
     dangerColor: '#3b82f6'
   },
   {
-    id: 'looters',
-    title: 'Looters Spotted!',
-    description: 'Looters are nearby. Finish the recovery before the site is disturbed.',
-    icon: AlertTriangle,
-    time: 80,
-    dangerColor: '#f59e0b'
-  },
-  {
-    id: 'nightfall',
-    title: 'Generator Failure!',
-    description: 'The power is out and it is getting dark. Recover what you can before nightfall.',
+    id: 'night',
+    title: 'Approaching Night',
+    description: 'The sun is setting fast. Can you finish before it gets too dark?',
     icon: Moon,
     time: 70,
     dangerColor: '#8b5cf6'
@@ -68,6 +42,7 @@ export const SCENARIOS = [
     id: 'egypt',
     name: 'The Desert River Valley',
     civilization: 'Ancient Egypt',
+    spark: 'Uncover the secrets of the Pharaohs and the mystery of the Nile.',
     historicalContext: 'The Nile Valley was home to a very long-lasting civilization. The dry desert sand helped preserve items like paper and cloth that would usually rot away.',
     evidence: [
       { id: 'eg_1', name: "Canopic Jar", type: "objects", discoveryMethod: "Dug up carefully in an underground tomb using small brushes.", clue: "A stone jar with a lid shaped like an animal head.", question: "Based on the clue, what does this jar suggest about Ancient Egyptian beliefs?", options: ["It suggests Egyptians believed organs needed to be protected for the afterlife.", "It suggests Egyptians used decorated jars mainly for cooking meals.", "It suggests Egyptians buried jars because stone was easy to find.", "It suggests Egyptians used animal-shaped lids only as decoration."], correct: 0, image: "museum/egypt_canopic_jar.jpg", rationale: "The canopic jar is evidence of burial beliefs. It suggests Egyptians believed the body and organs were important for the afterlife." },
@@ -82,7 +57,7 @@ export const SCENARIOS = [
       { id: 'eg_8', name: "Limestone Block", type: "structures", discoveryMethod: "Found using radar that sees through the ground.", clue: "A giant, perfectly cut stone block weighing 2 tons.", question: "What can archaeologists infer from a large, precisely cut limestone block?", options: ["It is most likely a natural rock shaped by wind.", "It suggests organised labour, planning and engineering skill.", "It suggests limestone blocks were used only for farming boundaries.", "It suggests the society avoided large building projects."], correct: 1, image: "museum/egypt_limestone_block.jpg", rationale: "A large cut block suggests planning, technology and the ability to organise workers." },
       { id: 'eg_9', name: "Tomb Shaft", type: "structures", discoveryMethod: "Found by clearing rocks from a vertical tunnel.", clue: "A deep hole in the ground leading to a hidden room.", question: "Based on the clue, what does a deep tomb shaft suggest?", options: ["It suggests people built shafts mainly to escape the heat.", "It suggests burial places could be hidden or protected.", "It suggests people dug shafts mostly to find underground water.", "It suggests tombs were used as rubbish pits."], correct: 1, rationale: "A tomb shaft suggests burial practices, protection of the dead and concerns about tomb robbery." },
 
-      { id: 'eg_10', name: "Flax Seeds", type: "environment", discoveryMethod: "Found by mixing soil with water until the seeds floated.", clue: "Ancient seeds from a flax plant.", question: "What can ancient flax seeds suggest about daily life and technology?", options: ["They suggest people used plants such as flax to make useful materials like linen.", "They suggest flax was used mainly as money.", "They suggest people did not farm plants.", "They suggest flax was only used as temple medicine."], correct: 0, image: "museum/egypt_flax_seeds.jpg", rationale: "Flax seeds can help historians understand farming, clothing, textiles and everyday materials." },
+      { id: 'eg_10', name: "Flax Seeds", type: "environment", discoveryMethod: "Found in a wet pit using water to float the seeds.", clue: "Ancient seeds from a flax plant.", question: "What can ancient flax seeds suggest about daily life and technology?", options: ["They suggest people used plants such as flax to make useful materials like linen.", "They suggest flax was used mainly as money.", "They suggest people did not farm plants.", "They suggest flax was only used as temple medicine."], correct: 0, image: "museum/egypt_flax_seeds.jpg", rationale: "Flax seeds can help historians understand farming, clothing, textiles and everyday materials." },
       { id: 'eg_11', name: "Nile Silt Layer", type: "environment", discoveryMethod: "Taken from deep underground using a core drill.", clue: "A thick layer of rich, dark river mud.", question: "What can a rich layer of Nile silt help historians understand?", options: ["It suggests an earthquake changed the farmland.", "It suggests river flooding helped create fertile farming land.", "It suggests people moved mud to build cities.", "It suggests one flood destroyed the whole civilisation."], correct: 1, rationale: "Nile silt is environmental evidence that helps explain why farming was successful near the river." },
       { id: 'eg_12', name: "Dried Papyrus Reeds", type: "environment", discoveryMethod: "Found preserved in the dry desert sand.", clue: "Stems of a plant that grows in wet marshes.", question: "Based on the clue, what can papyrus reeds suggest about Egyptian life?", options: ["They suggest people used natural plants to make materials such as paper, boats and baskets.", "They suggest papyrus was only a weed that damaged farms.", "They suggest papyrus was the main material for stone buildings.", "They suggest papyrus was used only by wealthy doctors."], correct: 0, rationale: "Papyrus reeds show how people used environmental resources for writing, transport and everyday objects." },
 
@@ -95,6 +70,7 @@ export const SCENARIOS = [
     id: 'mungo',
     name: 'The Ancient Dry Lake',
     civilization: 'Indigenous Australia (Lake Mungo)',
+    spark: "Discover the world's oldest ritual burials at an ancient dry lake.",
     historicalContext: "Lake Mungo shows that people have lived here for over 42,000 years. It has some of the world's oldest ritual burials, proving a long and rich history.",
     evidence: [
       { id: 'mg_1', name: "Silcrete Stone Tool", type: "objects", discoveryMethod: "Found on the ground after the wind blew away the sand.", clue: "A sharp stone that has been carefully shaped.", question: "Based on the clue, what does this stone tool suggest about people in the past?", options: ["It suggests people had skill and knowledge for shaping stone into useful tools.", "It suggests the stone was mainly used as a tent weight.", "It suggests the stone was broken naturally by heat.", "It suggests stone tools were used only as trade tokens."], correct: 0, image: "museum/mungo_stone_tool.png", rationale: "A shaped stone tool shows skill, planning and knowledge of materials." },
@@ -122,6 +98,7 @@ export const SCENARIOS = [
     id: 'rome',
     name: 'The Mediterranean Empire',
     civilization: 'Ancient Rome',
+    spark: 'Explore the engineering marvels and military power of the Mediterranean Empire.',
     historicalContext: 'Rome was famous for its huge buildings and powerful army. From lead pipes to stone carvings, their items show a very organized and advanced society.',
     evidence: [
       { id: 'rm_1', name: "Bronze Sestertius", type: "objects", discoveryMethod: "Found with a metal detector in an old market.", clue: "A coin with the face of an Emperor on it.", question: "What can a coin with an emperor's face suggest about Roman society?", options: ["Coins were mainly carried as lucky charms.", "Coins can show economy, leadership and public messages.", "Coins were only used to count food supplies.", "Coins were used only to buy temple animals."], correct: 1, image: "museum/roman_coin.jpg", rationale: "Coins can provide evidence about trade, economy, rulers and the spread of official messages." },
@@ -149,6 +126,7 @@ export const SCENARIOS = [
     id: 'china',
     name: 'The Eastern Dynasties',
     civilization: 'Ancient China',
+    spark: 'Unearth the treasures of the Eastern Dynasties and the origins of writing.',
     historicalContext: 'Ancient Chinese history lasted for thousands of years. Discoveries like the Terracotta Army and Oracle Bones show a society with early writing and complex beliefs.',
     evidence: [
       { id: 'ch_1', name: "Bronze Ding", type: "objects", discoveryMethod: "Dug up from a high-status burial pit.", clue: "A massive, heavy metal pot standing on three legs.", question: "What can a large bronze ding suggest about power and beliefs?", options: ["It was mainly used for everyday cooking in small villages.", "It suggests ritual, status and power were connected in society.", "It was mainly used to store grain.", "It was mainly a musical instrument."], correct: 1, rationale: "A bronze ding can suggest elite status, ritual practice and political or religious power." },
@@ -642,61 +620,73 @@ export const BUREAU_CASE_COMPARISONS = BUREAU_COMPARISON_CHALLENGES;
 
 export const BUREAU_RESEARCH_FOCUS = {
   'Ancient Egypt': {
+    spark: 'Uncover the secrets of the Pharaohs and the mystery of the Nile.',
     lookFor: ['the Nile River', 'Pharaohs', 'pyramids and tombs', 'hieroglyphics', 'beliefs about the afterlife'],
     inquiryQuestion: 'How did the Nile River and belief in the afterlife shape Ancient Egyptian society?',
     evidenceReminder: 'When you complete your booklet task, use facts from the text as evidence, not just guesses.',
   },
   'Indus Valley Civilisation': {
+    spark: 'Explore the mystery of planned cities and ancient drainage systems.',
     lookFor: ['planned cities', 'drainage systems', 'standard weights', 'trade seals', 'city streets'],
     inquiryQuestion: 'How did planning, drainage, and trade help Indus Valley cities work well?',
     evidenceReminder: 'Use the booklet to find evidence about city design, trade, and daily life.',
   },
   'Ancient Greece': {
+    spark: 'Step into the world of city-states, democracy, and philosophy.',
     lookFor: ['city-states', 'the assembly', 'democracy', 'temples', 'philosophy and theatre'],
     inquiryQuestion: 'How did city life and ideas about citizenship shape Ancient Greece?',
     evidenceReminder: 'Look for examples that show how Greeks shared ideas, rules, and beliefs.',
   },
   'Ancient China': {
+    spark: 'Discover the Great Wall, early writing, and powerful dynasties.',
     lookFor: ['dynasties', 'oracle bones', 'silk', 'the Great Wall', 'writing and records'],
     inquiryQuestion: 'How did writing, rulers, and inventions help Ancient China develop?',
     evidenceReminder: 'Find facts that show how Chinese society organised power, knowledge, and work.',
   },
   'Babylonian Empire': {
+    spark: 'Investigate the Code of Hammurabi and the secrets of Mesopotamia.',
     lookFor: ['Mesopotamia', 'law codes', 'cuneiform', 'trade', 'city walls and canals'],
     inquiryQuestion: 'How did law, writing, and trade help Babylonian cities and rulers stay organised?',
     evidenceReminder: 'Use the booklet to find evidence about laws, records, and city life.',
   },
   'Mayan Civilisation': {
+    spark: 'Decipher glyphs and explore the calendars of the jungle pyramids.',
     lookFor: ['city-states', 'glyphs', 'calendars', 'temples', 'astronomy'],
     inquiryQuestion: 'How did writing, calendars, and cities shape Mayan civilisation?',
     evidenceReminder: 'Look for evidence that shows how Mayan people recorded time, rulers, and ceremony.',
   },
   'Persian Empire': {
+    spark: 'Travel the Royal Road and manage a vast, diverse empire.',
     lookFor: ['the Royal Road', 'satraps', 'different peoples', 'messengers', 'empire control'],
     inquiryQuestion: 'How did roads and officials help the Persian Empire control a large area?',
     evidenceReminder: 'Find evidence about travel, government, and how the empire managed distance.',
   },
   'Ancient Rome': {
+    spark: 'Build roads, laws, and aqueducts in the heart of the Mediterranean.',
     lookFor: ['roads', 'the forum', 'law', 'emperors', 'aqueducts and city life'],
     inquiryQuestion: 'How did roads, law, and engineering help Ancient Rome grow powerful?',
     evidenceReminder: 'Use the booklet to find evidence about Roman city life, government, and engineering.',
   },
   'Byzantine Empire': {
+    spark: 'Explore the golden mosaics and city power of Constantinople.',
     lookFor: ['Constantinople', 'Christianity', 'mosaics', 'trade', 'emperor and church power'],
     inquiryQuestion: 'How did Constantinople and Christianity shape the Byzantine Empire?',
     evidenceReminder: 'Look for evidence about the city, religion, and the empire continuing Roman ideas.',
   },
   'Inca Empire': {
+    spark: 'Climb the Andes to manage terraces and quipu records.',
     lookFor: ['the Andes', 'terraces', 'quipu', 'roads', 'labor and empire control'],
     inquiryQuestion: 'How did mountains, roads, and record keeping help the Inca Empire run?',
     evidenceReminder: 'Use the booklet to find evidence about how the Inca managed a difficult landscape.',
   },
   'Ottoman Empire': {
+    spark: 'Connect continents and cultures in the powerful city of Istanbul.',
     lookFor: ['Istanbul', 'sultans', 'trade routes', 'mosques', 'diverse peoples'],
     inquiryQuestion: 'How did Istanbul and trade help the Ottoman Empire grow and stay powerful?',
     evidenceReminder: 'Find evidence about leadership, trade, and the people who lived in the empire.',
   },
   'Aztec Empire': {
+    spark: 'Discover the lake city of Tenochtitlan and the power of tribute.',
     lookFor: ['Tenochtitlan', 'tribute', 'temples', 'chinampas', 'Spanish arrival'],
     inquiryQuestion: 'How did tribute and city life shape the Aztec Empire before Spanish arrival?',
     evidenceReminder: 'Use the booklet to find evidence about empire, trade, religion, and conquest.',
