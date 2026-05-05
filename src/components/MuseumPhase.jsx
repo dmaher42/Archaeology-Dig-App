@@ -114,6 +114,21 @@ export function MuseumPhase({
               </div>
             )}
           </div>
+
+          {curatedItems.length > 0 && (
+            <div className="museum-final-statement-box">
+              <div className="museum-panel-heading">Final Exhibition Statement</div>
+              <p className="museum-panel-subheading">Summarise what this entire collection tells us about the site.</p>
+              <div className="museum-statement-input-wrap">
+                <textarea
+                  className="museum-statement-textarea"
+                  value={finalExhibitionStatement}
+                  onChange={(e) => setFinalExhibitionStatement(e.target.value)}
+                  placeholder="The evidence from this site reveals that..."
+                />
+              </div>
+            </div>
+          )}
         </section>
 
         <section className="museum-panel museum-exhibit-panel">
@@ -163,19 +178,6 @@ export function MuseumPhase({
                 </div>
               )}
            </div>
-
-           {curatedItems.length > 0 && (
-             <div className="museum-final-statement-box">
-                <div className="museum-panel-heading">Final Exhibition Statement</div>
-                <p className="museum-panel-subheading">Summarise what this entire collection tells us about the site.</p>
-                <textarea
-                  className="museum-statement-textarea"
-                  value={finalExhibitionStatement}
-                  onChange={(e) => setFinalExhibitionStatement(e.target.value)}
-                  placeholder="The evidence from this site reveals that..."
-                />
-             </div>
-           )}
         </section>
       </div>
     </div>

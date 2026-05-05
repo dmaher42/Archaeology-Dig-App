@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { Landmark, Trash2 } from 'lucide-react';
+import { Landmark, RotateCcw, Trash2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import * as data from '../data';
 
 import { 
   BUREAU_CASES,
@@ -23,6 +22,30 @@ const getBureauTagLabel = (tag = '') => BUREAU_TAG_LABELS[tag] ?? tag.replace(/_
 
 const BUREAU_CLUE_TYPES = ['Location', 'Rulers', 'Buildings', 'Beliefs', 'Inventions', 'Mysteries'];
 
+const getBureauProfileFactsGrouped = (bureauCase) => {
+  const rawProfileFacts = bureauCase?.profileFacts ?? bureauCase?.keywords;
+  if (!rawProfileFacts) return {};
+
+  if (Array.isArray(rawProfileFacts)) {
+    return rawProfileFacts.reduce((acc, fact, index) => {
+      const clueType = bureauCase?.clueTiers?.[index]?.category || BUREAU_CLUE_TYPES[index] || 'Mysteries';
+      if (!acc[clueType]) acc[clueType] = [];
+      if (fact) acc[clueType].push(fact);
+      return acc;
+    }, {});
+  }
+
+  return BUREAU_CLUE_TYPES.reduce((acc, clueType) => {
+    const value = rawProfileFacts[clueType];
+    if (Array.isArray(value)) {
+      acc[clueType] = value.filter(Boolean);
+    } else if (value) {
+      acc[clueType] = [value];
+    }
+    return acc;
+  }, {});
+};
+
 const getBureauClueTiers = (bureauCase) => {
   if (Array.isArray(bureauCase?.clueTiers) && bureauCase.clueTiers.length > 0) {
     return bureauCase.clueTiers;
@@ -35,56 +58,15 @@ const getBureauClueTiers = (bureauCase) => {
   ].filter(Boolean);
 };
 
-const getBureauProfileFacts = (bureauCase) => bureauCase?.profileFacts || bureauCase?.keywords || [];
+const getBureauProfileFacts = (bureauCase, clueType = null) => {
+  const groupedFacts = getBureauProfileFactsGrouped(bureauCase);
+  if (clueType) {
+    return groupedFacts[clueType] || [];
+  }
+  return BUREAU_CLUE_TYPES.flatMap(type => groupedFacts[type] || []);
+};
 
 const getUnlockedCivilisations = () => BUREAU_CASES.filter(bureauCase => bureauCase.round === 'training').map(item => item.civilisation);
-
-const findExplicitBureauComparisonChallenge = (firstCase, secondCase) => {
-  if (!firstCase || !secondCase) return null;
-  const BUREAU_COMPARISON_CHALLENGES = data.BUREAU_COMPARISON_CHALLENGES || [];
-  const pairKey = [firstCase.civilisation, secondCase.civilisation].sort().join('||');
-  
-  for (const challenge of BUREAU_COMPARISON_CHALLENGES) {
-    const challengeKey = challenge.civilisations.slice().sort().join('||');
-    if (challengeKey === pairKey) return challenge;
-  }
-  return null;
-};
-
-const buildBureauComparisonChallenge = (firstCase, secondCase) => {
-  const explicitChallenge = findExplicitBureauComparisonChallenge(firstCase, secondCase);
-  if (explicitChallenge) return explicitChallenge;
-
-  const sharedTags = (firstCase?.comparisonTags || []).filter(tag => secondCase?.comparisonTags?.includes(tag));
-  const focusTags = sharedTags.length > 0
-    ? sharedTags
-    : (firstCase?.comparisonTags || []).slice(0, 2);
-  const label = focusTags.length > 0
-    ? focusTags.map(getBureauTagLabel).join(' and ')
-    : 'historical evidence';
-
-  return {
-    title: `${firstCase?.caseTitle || 'Case 1'} + ${secondCase?.caseTitle || 'Case 2'}`,
-    question: `What theme links ${firstCase?.caseTitle || 'the first case'} and ${secondCase?.caseTitle || 'the second case'}?`,
-    options: [
-      `Both cases show ${label}.`,
-      'Both cases prove the same civilisation owned every clue.',
-      'Both cases are modern and not ancient.',
-      'Both cases only tell us about weather.',
-    ],
-    correctAnswer: 0,
-    explanation: `Both cases connect through ${label}. Historians compare evidence to notice patterns across different discoveries.`,
-  };
-};
-
-export const createBureauComparisonChallenge = (caseResults = []) => {
-  const solvedCases = caseResults
-    .map(result => BUREAU_CASES_BY_ID.get(result.caseId))
-    .filter(Boolean);
-  const secondLast = solvedCases[solvedCases.length - 2] ?? null;
-  const last = solvedCases[solvedCases.length - 1] ?? null;
-  return buildBureauComparisonChallenge(secondLast, last);
-};
 
 export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioControls = {} }) {
   const { playWin, initAudio } = audioControls;
@@ -101,9 +83,10 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
   const selectedClaimClueType = bureauState.selectedClaimClueType || '';
   const selectedClaimEvidence = bureauState.selectedClaimEvidence || '';
   const currentClueTiers = getBureauClueTiers(currentCase);
-  const currentProfileFacts = getBureauProfileFacts(
-    BUREAU_CASES.find(item => item.civilisation === selectedClaimCivilisation)
-  );
+  const selectedProfile = BUREAU_CASES.find(item => item.civilisation === selectedClaimCivilisation);
+  const currentProfileFacts = selectedProfile && selectedClaimClueType
+    ? getBureauProfileFacts(selectedProfile, selectedClaimClueType)
+    : [];
   const availableClueTypes = [...new Set(
     currentClueTiers
       .filter(item => item.tier <= bureauState.currentTier)
@@ -171,12 +154,16 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
   };
 
   const selectClaimCivilisation = (civilisation) => {
-    const profileFacts = getBureauProfileFacts(BUREAU_CASES.find(item => item.civilisation === civilisation));
+    const profile = BUREAU_CASES.find(item => item.civilisation === civilisation);
     setBureauState(prev => ({
       ...prev,
       selectedClaimCivilisation: civilisation,
-      selectedClaimClueType: prev.selectedClaimClueType || '',
-      selectedClaimEvidence: profileFacts.includes(prev.selectedClaimEvidence) ? prev.selectedClaimEvidence : profileFacts[0] || '',
+      selectedClaimEvidence: (() => {
+        const matchingFacts = prev.selectedClaimClueType
+          ? getBureauProfileFacts(profile, prev.selectedClaimClueType)
+          : getBureauProfileFacts(profile);
+        return matchingFacts.includes(prev.selectedClaimEvidence) ? prev.selectedClaimEvidence : '';
+      })(),
     }));
   };
 
@@ -184,6 +171,11 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
     setBureauState(prev => ({
       ...prev,
       selectedClaimClueType: clueType,
+      selectedClaimEvidence: (() => {
+        const profile = BUREAU_CASES.find(item => item.civilisation === prev.selectedClaimCivilisation);
+        const matchingFacts = profile ? getBureauProfileFacts(profile, clueType) : [];
+        return matchingFacts.includes(prev.selectedClaimEvidence) ? prev.selectedClaimEvidence : '';
+      })(),
     }));
   };
 
@@ -223,8 +215,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
   const handleSubmitCase = () => {
     if (!currentCase || !selectedClaimCivilisation || !selectedClaimClueType || !selectedClaimEvidence) return;
 
-    const selectedProfile = BUREAU_CASES.find(item => item.civilisation === selectedClaimCivilisation);
-    const selectedFacts = getBureauProfileFacts(selectedProfile);
+    const selectedFacts = getBureauProfileFacts(selectedProfile, selectedClaimClueType);
     const selectedClueSet = currentEvidenceText.map(item => item.label);
     const isCorrectCivilisation = selectedClaimCivilisation === currentCase.civilisation;
     const isValidClue = selectedClueSet.includes(selectedClaimClueType);
@@ -402,7 +393,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
                 <h2>Evidence Sentence</h2>
               </div>
               <div className="bureau-simple-points">
-                {bureauState.currentTier < 3 ? `Guess now: ${availableClaimPoints} points` : 'Final guess: 1 point'}
+                {bureauState.currentTier < 3 ? `Close case now: ${availableClaimPoints} points` : 'Final claim: 1 point'}
               </div>
             </div>
 
@@ -446,9 +437,13 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
                   className="bureau-sentence-select"
                   value={selectedClaimEvidence}
                   onChange={(e) => selectClaimEvidence(e.target.value)}
-                  disabled={!selectedClaimCivilisation}
+                  disabled={!selectedClaimCivilisation || !selectedClaimClueType}
                 >
-                  <option value="">{selectedClaimCivilisation ? 'Choose a profile fact' : 'Choose a civilisation first'}</option>
+                  <option value="">
+                    {selectedClaimCivilisation
+                      ? (selectedClaimClueType ? 'Choose a profile fact' : 'Choose a clue type first')
+                      : 'Choose a civilisation first'}
+                  </option>
                   {currentProfileFacts.map(option => (
                     <option key={option} value={option}>{option}</option>
                   ))}
@@ -475,7 +470,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
                   onClick={handleSubmitCase}
                   disabled={!canCloseCase}
                 >
-                  Close Case
+                  Close case now
                 </button>
                 <button
                   type="button"
@@ -571,7 +566,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
                     setIsMakingClaim(true);
                   }}
                 >
-                  Build Sentence
+                  Close case now
                 </button>
                 {bureauState.currentTier < 3 && (
                   <button type="button" className="btn" onClick={revealNextClue}>
@@ -579,7 +574,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
                   </button>
                 )}
                 <span className="bureau-simple-points">
-                  {bureauState.currentTier < 3 ? `Guess now: ${availableClaimPoints} points` : 'Final guess: 1 point'}
+                  {bureauState.currentTier < 3 ? `Close case now: ${availableClaimPoints} points` : 'Final claim: 1 point'}
                 </span>
               </div>
               <button type="button" className="btn" onClick={onBackToMenu}>
@@ -617,13 +612,13 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
                       {civilisation}
                     </div>
                     {isDiscarded && <div className="bureau-discard-label">DISCARDED</div>}
-                    <button
-                      type="button"
-                      className="bureau-suspect-remove-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleSuspectArchive(civilisation);
-                      }}
+                      <button
+                        type="button"
+                        className="bureau-suspect-remove-btn bureau-suspect-remove-btn--restore"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleSuspectArchive(civilisation);
+                        }}
                       title={isDiscarded ? "Restore Suspect" : "Discard Suspect"}
                     >
                       <Trash2 size={14} />
@@ -648,14 +643,15 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
                       <div className="bureau-discard-label">DISCARDED</div>
                       <button
                         type="button"
-                        className="bureau-suspect-remove-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleSuspectArchive(civilisation);
-                        }}
-                        title="Restore Suspect"
-                      >
-                        <Trash2 size={14} />
+                      className="bureau-suspect-remove-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleSuspectArchive(civilisation);
+                      }}
+                      title="Restore Suspect"
+                    >
+                        <RotateCcw size={14} />
+                        <span>Restore</span>
                       </button>
                     </article>
                   ))}

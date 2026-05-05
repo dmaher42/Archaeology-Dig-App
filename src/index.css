@@ -2673,31 +2673,44 @@ body {
 }
 
 .museum-final-statement-box {
-  padding: 0.85rem 1.15rem;
   background: rgba(232, 158, 93, 0.03);
   border-top: 1px solid var(--arch-panel-border);
-  flex: 0 0 auto;
+  margin-top: auto;
 }
 
 .museum-statement-textarea {
   width: 100%;
-  min-height: 70px;
+  min-height: 80px;
   background: rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(232, 158, 93, 0.3);
-  border-radius: 12px;
-  padding: 0.85rem;
+  border-radius: 10px;
+  padding: 0.75rem;
   color: var(--sand-100);
   font: inherit;
-  font-size: 0.88rem;
-  line-height: 1.45;
-  margin-top: 0.4rem;
+  font-size: 0.82rem;
+  line-height: 1.4;
   transition: all 0.2s;
+  resize: none;
 }
 
 .museum-statement-textarea:focus {
   outline: none;
   border-color: var(--arch-accent);
   box-shadow: 0 0 15px rgba(232, 158, 93, 0.08);
+}
+
+.museum-statement-input-wrap {
+  padding: 0 1.15rem 1rem;
+}
+
+.museum-final-statement-box .museum-panel-heading {
+  padding: 0.8rem 1.15rem 0.2rem;
+  font-size: 0.9rem;
+}
+
+.museum-final-statement-box .museum-panel-subheading {
+  padding: 0 1.15rem 0.6rem;
+  font-size: 0.65rem;
 }
 
 .museum-empty-tray, .museum-empty-display {

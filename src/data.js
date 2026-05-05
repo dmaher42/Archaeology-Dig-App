@@ -205,19 +205,54 @@ export const RED_HERRINGS = [
   }
 ];
 
-const createBureauCase = (caseItem) => ({
-  ...caseItem,
-  clueTiers: caseItem.clueTiers || [],
-  tier1SiteClue: caseItem.clueTiers?.[0]?.text || caseItem.tier1SiteClue || '',
-  tier2SocietyClue: caseItem.clueTiers?.[1]?.text || caseItem.tier2SocietyClue || '',
-  tier3LegacyClue: caseItem.clueTiers?.[2]?.text || caseItem.tier3LegacyClue || '',
-  civilisationOptions: caseItem.civilisationOptions || [caseItem.civilisation],
-  correctCivilisation: Number.isInteger(caseItem.correctCivilisation) ? caseItem.correctCivilisation : 0,
-  answerOptions: caseItem.answerOptions || caseItem.civilisationOptions || [caseItem.civilisation],
-  correctAnswer: Number.isInteger(caseItem.correctAnswer) ? caseItem.correctAnswer : 0,
-  profileFacts: caseItem.profileFacts || [],
-  keywords: caseItem.keywords || caseItem.profileFacts || [],
-});
+const BUREAU_CLUE_TYPES = ['Location', 'Rulers', 'Buildings', 'Beliefs', 'Inventions', 'Mysteries'];
+
+const groupBureauProfileFacts = (caseItem) => {
+  const rawFacts = caseItem.profileFacts || {};
+
+  if (!Array.isArray(rawFacts)) {
+    return BUREAU_CLUE_TYPES.reduce((acc, clueType) => {
+      const value = rawFacts[clueType];
+      if (Array.isArray(value)) {
+        acc[clueType] = value.filter(Boolean);
+      } else if (value) {
+        acc[clueType] = [value];
+      }
+      return acc;
+    }, {});
+  }
+
+  return rawFacts.reduce((acc, fact, index) => {
+    const clueType = caseItem.clueTiers?.[index]?.category || BUREAU_CLUE_TYPES[index] || 'Mysteries';
+    if (!acc[clueType]) acc[clueType] = [];
+    if (fact) acc[clueType].push(fact);
+    return acc;
+  }, {});
+};
+
+const flattenBureauProfileFacts = (profileFacts) => {
+  if (Array.isArray(profileFacts)) return profileFacts.filter(Boolean);
+  return BUREAU_CLUE_TYPES.flatMap(clueType => profileFacts?.[clueType] || []).filter(Boolean);
+};
+
+const createBureauCase = (caseItem) => {
+  const groupedProfileFacts = groupBureauProfileFacts(caseItem);
+  const flatProfileFacts = flattenBureauProfileFacts(groupedProfileFacts);
+
+  return {
+    ...caseItem,
+    clueTiers: caseItem.clueTiers || [],
+    tier1SiteClue: caseItem.clueTiers?.[0]?.text || caseItem.tier1SiteClue || '',
+    tier2SocietyClue: caseItem.clueTiers?.[1]?.text || caseItem.tier2SocietyClue || '',
+    tier3LegacyClue: caseItem.clueTiers?.[2]?.text || caseItem.tier3LegacyClue || '',
+    civilisationOptions: caseItem.civilisationOptions || [caseItem.civilisation],
+    correctCivilisation: Number.isInteger(caseItem.correctCivilisation) ? caseItem.correctCivilisation : 0,
+    answerOptions: caseItem.answerOptions || caseItem.civilisationOptions || [caseItem.civilisation],
+    correctAnswer: Number.isInteger(caseItem.correctAnswer) ? caseItem.correctAnswer : 0,
+    profileFacts: groupedProfileFacts,
+    keywords: flattenBureauProfileFacts(caseItem.keywords || flatProfileFacts),
+  };
+};
 
 const BUREAU_CASES_RAW = [
   {
@@ -243,7 +278,11 @@ const BUREAU_CASES_RAW = [
         text: 'People built pyramids and tombs to protect important burials.',
       },
     ],
-    profileFacts: ['flooding helped farming', 'rulers were linked to gods', 'pyramids were tombs'],
+    profileFacts: {
+      Location: ['flooding helped farming'],
+      Rulers: ['rulers were linked to gods'],
+      Buildings: ['pyramids were tombs'],
+    },
     keywords: ['Nile flood', 'pharaohs', 'pyramids'],
     explanation: 'Flooding, pharaohs, and pyramids point clearly to Ancient Egypt.',
   },
@@ -270,7 +309,11 @@ const BUREAU_CASES_RAW = [
         text: 'Temples, theatres, and stone columns were common.',
       },
     ],
-    profileFacts: ['had city-states', 'Athens used democracy', 'Sparta was known for soldiers'],
+    profileFacts: {
+      Location: ['mountainous peninsula with many islands and natural harbours'],
+      Rulers: ['Athens used democracy'],
+      Buildings: ['temples, theatres, and stone columns'],
+    },
     keywords: ['city-states', 'democracy', 'Sparta'],
     explanation: 'The city-states and ideas like democracy point clearly to Ancient Greece.',
   },
@@ -297,7 +340,11 @@ const BUREAU_CASES_RAW = [
         text: 'Roads, aqueducts, and amphitheatres linked the empire.',
       },
     ],
-    profileFacts: ['had a senate', 'had written laws', 'became an empire'],
+    profileFacts: {
+      Location: ['hills and the coast of a major inland sea'],
+      Rulers: ['had a senate', 'became an empire'],
+      Buildings: ['roads, aqueducts, and amphitheatres'],
+    },
     keywords: ['senate', 'laws', 'empire'],
     explanation: 'The senate, laws, and roads point clearly to Ancient Rome.',
   },
@@ -324,7 +371,11 @@ const BUREAU_CASES_RAW = [
         text: 'It invented paper and built early walls.',
       },
     ],
-    profileFacts: ['ruled by dynasties', 'invented paper', 'built early walls'],
+    profileFacts: {
+      Location: ['powerful river system where floods helped farming'],
+      Rulers: ['ruled by dynasties'],
+      Inventions: ['invented paper', 'built early walls'],
+    },
     keywords: ['dynasties', 'paper', 'walls'],
     explanation: 'Dynasties, paper, and early walls point clearly to Ancient China.',
   },
@@ -351,7 +402,11 @@ const BUREAU_CASES_RAW = [
         text: 'They built religious pyramids.',
       },
     ],
-    profileFacts: ['studied stars and planets', 'used calendars', 'built religious pyramids'],
+    profileFacts: {
+      Location: ['tropical rainforest and lowland region'],
+      Beliefs: ['studied stars and planets', 'used calendars'],
+      Buildings: ['built religious pyramids'],
+    },
     keywords: ['calendars', 'stars', 'pyramids'],
     explanation: 'Calendars, astronomy, and religious pyramids point clearly to the Maya.',
   },
@@ -378,7 +433,11 @@ const BUREAU_CASES_RAW = [
         text: 'It is linked to knotted cords used to keep records and to Machu Picchu.',
       },
     ],
-    profileFacts: ['used knotted cords to keep records', 'developed in the Andes Mountains', 'built mountain roads'],
+    profileFacts: {
+      Location: ['high mountains and the Andes'],
+      Rulers: ['organised labour, roads, storehouses, and terrace farming'],
+      Mysteries: ['used knotted cords to keep records', 'built mountain roads'],
+    },
     keywords: ['quipu', 'Andes', 'Machu Picchu'],
     explanation: 'The Andes, quipu, and mountain roads point clearly to the Inca.',
   },
@@ -405,7 +464,11 @@ const BUREAU_CASES_RAW = [
         text: 'Its writing has not been fully translated.',
       },
     ],
-    profileFacts: ['cities had drainage systems', 'writing has not been fully translated', 'used standard weights and seals'],
+    profileFacts: {
+      Location: ['river system, floods and seasonal rains'],
+      Buildings: ['cities had drainage systems and straight streets'],
+      Mysteries: ['writing has not been fully translated', 'used standard weights and seals'],
+    },
     keywords: ['drainage', 'untranslated writing', 'seals'],
     explanation: 'Drainage systems and the still-mysterious writing point clearly to the Indus Valley.',
   },
@@ -432,7 +495,11 @@ const BUREAU_CASES_RAW = [
         text: 'It was known for laws and scribes who helped manage city life.',
       },
     ],
-    profileFacts: ['located between two rivers', 'known for laws', 'built temples'],
+    profileFacts: {
+      Location: ['located between two rivers'],
+      Buildings: ['built temples and ziggurats'],
+      Rulers: ['known for laws and scribes'],
+    },
     keywords: ['two rivers', 'laws', 'ziggurat'],
     explanation: 'The two rivers, laws, and ziggurats point clearly to Babylon / Mesopotamia.',
   },
@@ -459,7 +526,11 @@ const BUREAU_CASES_RAW = [
         text: 'It allowed different religions and ruled a large empire.',
       },
     ],
-    profileFacts: ['used governors', 'allowed religions', 'controlled a large empire'],
+    profileFacts: {
+      Location: ['dry plateaus and mountain regions'],
+      Rulers: ['used governors'],
+      Beliefs: ['allowed different religions'],
+    },
     keywords: ['governors', 'religions', 'empire'],
     explanation: 'Governors, religious tolerance, and the large empire point clearly to Persia.',
   },
@@ -486,7 +557,11 @@ const BUREAU_CASES_RAW = [
         text: 'Justinian created a law code and the capital was Constantinople.',
       },
     ],
-    profileFacts: ['Eastern Roman Empire', 'Justinian created a law code', 'capital was Constantinople'],
+    profileFacts: {
+      Location: ['coastal city that connected important trade routes'],
+      Rulers: ['Eastern Roman Empire', 'Justinian created a law code'],
+      Buildings: ['capital was Constantinople'],
+    },
     keywords: ['Constantinople', 'Justinian', 'Eastern Roman Empire'],
     explanation: 'Constantinople, Justinian, and the Eastern Roman Empire point clearly to Byzantine.',
   },
@@ -513,7 +588,11 @@ const BUREAU_CASES_RAW = [
         text: 'It renamed Constantinople Istanbul.',
       },
     ],
-    profileFacts: ['ruled by sultans', 'renamed Constantinople Istanbul', 'controlled a large empire'],
+    profileFacts: {
+      Location: ['crossroads between Europe and Asia'],
+      Rulers: ['ruled by sultans'],
+      Buildings: ['renamed Constantinople Istanbul'],
+    },
     keywords: ['sultans', 'Istanbul', 'crossroads'],
     explanation: 'Sultans, Istanbul, and the crossroads location point clearly to the Ottoman Empire.',
   },
@@ -540,7 +619,11 @@ const BUREAU_CASES_RAW = [
         text: 'It was ruled by an emperor.',
       },
     ],
-    profileFacts: ['capital was built on an island', 'sun was important', 'ruled by an emperor'],
+    profileFacts: {
+      Location: ['capital was built on an island'],
+      Beliefs: ['sun was important'],
+      Rulers: ['ruled by an emperor'],
+    },
     keywords: ['Tenochtitlan', 'sun', 'emperor'],
     explanation: 'The island capital, the sun, and the emperor point clearly to the Aztec.',
   },
