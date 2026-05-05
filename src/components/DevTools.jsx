@@ -9,7 +9,8 @@ import {
 export function DevTools({ 
   currentPhase, setPhase, setBureauState, setExcavatedIds, setActiveArtifacts, 
   setItemsLocation, setHypotheses, setCurrentScenario, setCurrentEvent, 
-  setSiteName, setFinalConclusion, currentScenario, activeArtifacts, currentEvent 
+  setSiteName, setFinalConclusion, setCuratedItems, setPlaques,
+  currentScenario, activeArtifacts, currentEvent 
 }) {
   const jumpTo = (target) => {
     // Use current scenario if available, otherwise pick first as fallback
@@ -50,10 +51,29 @@ export function DevTools({
       const locations = artifacts.reduce((acc, a) => ({ ...acc, [a.id]: a.type || 'objects' }), {});
       setItemsLocation(locations);
       
-      const hyps = artifacts.reduce((acc, a) => ({ ...acc, [a.id]: a.correct || 0 }), {});
+      const hyps = artifacts.reduce((acc, a) => ({ 
+        ...acc, 
+        [a.id]: {
+          answerIndex: a.correct || 0,
+          answerText: a.options?.[a.correct || 0] || 'Mock identification',
+          note: `Research shows that this ${a.name} is significant to our understanding of the site.`,
+          answerIsCorrect: true
+        } 
+      }), {});
       setHypotheses(hyps);
       setSiteName(`Mock ${scen.name} Site`);
       setFinalConclusion(scen.id);
+
+      if (target === 'report') {
+        // Pre-curate first 3 items for testing
+        const toCurate = artifacts.filter(a => !a.isRedHerring).slice(0, 3);
+        setCuratedItems(toCurate);
+        const mockPlaques = toCurate.reduce((acc, a) => ({ ...acc, [a.id]: `Mock plaque for ${a.name}` }), {});
+        setPlaques(mockPlaques);
+      } else {
+        setCuratedItems([]);
+        setPlaques({});
+      }
     }
     
     if (target === 'bureau') {

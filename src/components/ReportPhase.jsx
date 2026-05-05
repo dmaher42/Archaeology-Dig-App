@@ -37,8 +37,18 @@ export function ReportPhase({
   }, [activeArtifacts, itemsLocation, hypotheses]);
 
   const handlePrint = (type) => {
-    // Basic print trigger. Styles in index.css handle .hide-on-print
-    window.print();
+    // Add specific class for museum-only export
+    if (type === 'museum') {
+      document.body.classList.add('print-museum-only');
+    }
+
+    // Larger delay to ensure browser handles the class addition before preview
+    setTimeout(() => {
+      window.print();
+      if (type === 'museum') {
+        document.body.classList.remove('print-museum-only');
+      }
+    }, 500);
   };
 
   const getLegacyAnalysisFeedback = (selectedIndex, correctIndex) => {
@@ -170,14 +180,14 @@ export function ReportPhase({
            Back to Main Menu
          </button>
          <button className="btn primary-btn" onClick={() => handlePrint('report')}>
-           Print Report
+           Print Full Report
          </button>
          <button className="btn primary-btn" onClick={() => handlePrint('museum')} disabled={curatedFinds.length === 0}>
-           Export Museum
+           Export Exhibition Plaques
          </button>
          <button className="btn" onClick={onRetry} style={{marginLeft: 'auto', background: 'var(--accent)', color: '#111', borderColor: 'var(--accent)'}}>
            <RefreshCw size={20} style={{verticalAlign:'middle', marginRight:'5px'}} />
-           Start New Dig
+           Start New Investigation
          </button>
       </div>
     </div>

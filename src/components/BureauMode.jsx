@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
-import { Landmark, RotateCcw, Trash2 } from 'lucide-react';
+import { Landmark } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 import { 
   BUREAU_CASES,
   BUREAU_CIVILISATIONS,
   createInitialBureauEvidenceFilter,
-  createNewBureauSession
+  createNewBureauSession,
+  getBureauClaimValidationMessage,
 } from '../utils/gameLogic';
 
 const BUREAU_TAG_LABELS = {
@@ -72,12 +73,12 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
   const { playWin, initAudio } = audioControls;
   const didCelebrateRef = useRef(false);
   const [isMakingClaim, setIsMakingClaim] = useState(false);
+  const [claimValidationMessage, setClaimValidationMessage] = useState('');
   
   const totalCases = BUREAU_CASES.length;
   const currentCase = BUREAU_CASES[bureauState.caseIndex] || null;
   const solvedCaseCount = bureauState.caseResults.length;
   const latestOutcome = bureauState.latestOutcome;
-  const currentComparison = null;
   const evidenceFilter = bureauState.evidenceFilter || createInitialBureauEvidenceFilter();
   const selectedClaimCivilisation = bureauState.selectedClaimCivilisation || '';
   const selectedClaimClueType = bureauState.selectedClaimClueType || '';
@@ -95,15 +96,15 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
   const sentencePreview = selectedClaimCivilisation && selectedClaimClueType && selectedClaimEvidence
     ? `I think this object belongs to ${selectedClaimCivilisation} because the clue is about ${selectedClaimClueType}, and the profile says ${selectedClaimEvidence}.`
     : 'Choose all three dropdowns to close the case.';
-  const canCloseCase = Boolean(selectedClaimCivilisation && selectedClaimClueType && selectedClaimEvidence);
-    
   const availableClaimPoints = Math.max(0, 4 - bureauState.currentTier);
   const availableCivilisations = solvedCaseCount >= 6 
     ? BUREAU_CIVILISATIONS 
     : getUnlockedCivilisations();
 
-  const activeSuspects = availableCivilisations.filter(civilisation => (evidenceFilter[civilisation] || 'unsure') !== 'discard');
-  const discardedSuspects = availableCivilisations.filter(civilisation => (evidenceFilter[civilisation] || 'unsure') === 'discard');
+  const suspectStatuses = availableCivilisations.map(civilisation => ({
+    civilisation,
+    isRuledOut: (evidenceFilter[civilisation] || 'unsure') === 'discard',
+  }));
 
   const currentEvidenceText = currentClueTiers
     .filter(item => item.tier <= bureauState.currentTier)
@@ -165,6 +166,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
         return matchingFacts.includes(prev.selectedClaimEvidence) ? prev.selectedClaimEvidence : '';
       })(),
     }));
+    setClaimValidationMessage('');
   };
 
   const selectClaimClueType = (clueType) => {
@@ -177,6 +179,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
         return matchingFacts.includes(prev.selectedClaimEvidence) ? prev.selectedClaimEvidence : '';
       })(),
     }));
+    setClaimValidationMessage('');
   };
 
   const selectClaimEvidence = (evidence) => {
@@ -184,9 +187,10 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
       ...prev,
       selectedClaimEvidence: evidence,
     }));
+    setClaimValidationMessage('');
   };
 
-  const toggleSuspectArchive = (civilisation) => {
+  const toggleSuspectRuleOut = (civilisation) => {
     const currentStatus = evidenceFilter[civilisation] || 'unsure';
     setEvidenceFilterStatus(civilisation, currentStatus === 'discard' ? 'unsure' : 'discard');
   };
@@ -194,6 +198,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
   const revealNextClue = () => {
     if (!currentCase || bureauState.currentTier >= 3) return;
     setIsMakingClaim(false);
+    setClaimValidationMessage('');
     const nextTier = Math.min(3, bureauState.currentTier + 1);
     updateState({
       currentTier: nextTier,
@@ -206,6 +211,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
 
   const startCase = () => {
     setIsMakingClaim(false);
+    setClaimValidationMessage('');
     updateState({
       phase: 'bureauCase',
       ...resetCaseState(),
@@ -213,15 +219,25 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
   };
 
   const handleSubmitCase = () => {
-    if (!currentCase || !selectedClaimCivilisation || !selectedClaimClueType || !selectedClaimEvidence) return;
+    if (!currentCase || !selectedClaimCivilisation || !selectedClaimClueType || !selectedClaimEvidence) {
+      setClaimValidationMessage('Choose a civilisation, a clue type, and a profile fact before closing the case.');
+      return;
+    }
 
-    const selectedFacts = getBureauProfileFacts(selectedProfile, selectedClaimClueType);
-    const selectedClueSet = currentEvidenceText.map(item => item.label);
-    const isCorrectCivilisation = selectedClaimCivilisation === currentCase.civilisation;
-    const isValidClue = selectedClueSet.includes(selectedClaimClueType);
-    const isValidEvidence = selectedFacts.includes(selectedClaimEvidence);
-    if (!isValidClue || !isValidEvidence) return;
-    const tierPoints = isCorrectCivilisation ? Math.max(0, 4 - bureauState.currentTier) : 0;
+    const validationMessage = getBureauClaimValidationMessage({
+      currentCase,
+      selectedClaimCivilisation,
+      selectedClaimClueType,
+      selectedClaimEvidence,
+      currentEvidenceText,
+    });
+
+    if (validationMessage) {
+      setClaimValidationMessage(validationMessage);
+      return;
+    }
+
+    const tierPoints = Math.max(0, 4 - bureauState.currentTier);
     const evidenceSentence = `I think this object belongs to ${selectedClaimCivilisation} because the clue is about ${selectedClaimClueType}, and the profile says ${selectedClaimEvidence}.`;
     const nextOutcome = {
       caseId: currentCase.id,
@@ -230,11 +246,11 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
       civilisation: currentCase.civilisation,
       correctCivilisation: currentCase.civilisation,
       selectedCivilisation: selectedClaimCivilisation,
-      civilisationCorrect: isCorrectCivilisation,
+      civilisationCorrect: true,
       clueType: selectedClaimClueType,
-      clueCorrect: isValidClue,
+      clueCorrect: true,
       selectedEvidence: selectedClaimEvidence,
-      evidenceCorrect: isValidEvidence,
+      evidenceCorrect: true,
       evidenceSentence,
       tiersRevealed: bureauState.currentTier,
       tierSolvedAt: bureauState.currentTier,
@@ -259,29 +275,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
       selectedClaimClueType: '',
       selectedClaimEvidence: '',
     }));
-  };
-
-  const handleSubmitLog = () => {
-    if (!currentCase || bureauState.selectedLogAnswerIndex === null || !bureauState.pendingCaseOutcome) return;
-
-    const logCorrect = bureauState.selectedLogAnswerIndex === currentCase.correctHistorianLogAnswer;
-    const logPoints = logCorrect ? 1 : 0;
-    const completedCase = {
-      ...bureauState.pendingCaseOutcome,
-      logAnswerIndex: bureauState.selectedLogAnswerIndex,
-      logCorrect,
-      logPoints,
-    };
-
-    setBureauState(prev => ({
-      ...prev,
-      score: prev.score + logPoints,
-      caseResults: [...prev.caseResults, completedCase],
-      latestOutcome: completedCase,
-      pendingCaseOutcome: null,
-      selectedLogAnswerIndex: null,
-      phase: 'bureauFeedback',
-    }));
+    setClaimValidationMessage('');
   };
 
   const handleContinueFromFeedback = () => {
@@ -289,6 +283,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
     const nextCaseIndex = bureauState.caseIndex + 1;
 
     setIsMakingClaim(false);
+    setClaimValidationMessage('');
     setBureauState(prev => {
       const nextState = {
         ...prev,
@@ -313,33 +308,10 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
     });
   };
 
-  const handleSubmitComparison = () => {
-    if (!currentComparison || bureauState.selectedComparisonAnswerIndex === null) return;
-    const isCorrect = bureauState.selectedComparisonAnswerIndex === currentComparison.correctAnswer;
-    const comparisonPoints = isCorrect ? 2 : 0;
-    const result = {
-      title: currentComparison.title,
-      selectedAnswerIndex: bureauState.selectedComparisonAnswerIndex,
-      correct: isCorrect,
-      points: comparisonPoints,
-      explanation: currentComparison.explanation,
-    };
-
-    setBureauState(prev => ({
-      ...prev,
-      score: prev.score + comparisonPoints,
-      comparisonResults: [
-        ...prev.comparisonResults,
-        result,
-      ],
-      comparisonResult: result,
-      latestOutcome: result,
-    }));
-  };
-
   const handleContinueAfterComparison = () => {
     if (bureauState.caseIndex + 1 < totalCases) {
       setIsMakingClaim(false);
+      setClaimValidationMessage('');
       setBureauState(prev => ({
         ...prev,
         phase: 'bureauCase',
@@ -355,6 +327,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
 
   const handleReplay = () => {
     setIsMakingClaim(false);
+    setClaimValidationMessage('');
     setBureauState(createNewBureauSession('bureauBriefing'));
   };
 
@@ -410,7 +383,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
                   onChange={(e) => selectClaimCivilisation(e.target.value)}
                 >
                   <option value="">Choose a civilisation</option>
-                  {activeSuspects.map(option => (
+                  {availableCivilisations.map(option => (
                     <option key={option} value={option}>{option}</option>
                   ))}
                 </select>
@@ -456,6 +429,12 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
               {sentencePreview}
             </div>
 
+            {claimValidationMessage && (
+              <div className="bureau-feedback-note bureau-claim-warning" role="status" aria-live="polite">
+                {claimValidationMessage}
+              </div>
+            )}
+
             {latestOutcome && (
               <div className="bureau-feedback-note bureau-case-latest">
                 {latestOutcome.explanation}
@@ -468,7 +447,6 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
                   type="button"
                   className="btn primary-btn"
                   onClick={handleSubmitCase}
-                  disabled={!canCloseCase}
                 >
                   Close case now
                 </button>
@@ -477,6 +455,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
                   className="btn"
                   onClick={() => {
                     setIsMakingClaim(false);
+                    setClaimValidationMessage('');
                     updateState({
                       selectedAnswerIndex: null,
                       selectedClaimCivilisation: '',
@@ -516,6 +495,12 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
                 </div>
               </div>
             </div>
+
+            {bureauState.caseIndex === 6 && currentCase?.round === 'challenge' && (
+              <div className="bureau-feedback-note bureau-transition-note" role="status" aria-live="polite">
+                Training Round complete. Challenge Round unlocked.
+              </div>
+            )}
 
             <p className="bureau-case-instruction">
               Read the clues, check the suspect profiles, and keep narrowing the options.
@@ -594,16 +579,26 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
                   <div className="bureau-unlock-tag unlocked">Challenge Round Active</div>
                 )}
               </div>
-              <p>Discard suspects that do not fit. Restore them if you change your mind.</p>
+              <p>Click a card to rule it out. Click again if you change your mind.</p>
             </div>
 
             <div className="bureau-suspect-grid">
-              {activeSuspects.map((civilisation) => {
-                const isDiscarded = (evidenceFilter[civilisation] || 'unsure') === 'discard';
+              {suspectStatuses.map(({ civilisation, isRuledOut }) => {
                 return (
                   <article 
                     key={civilisation} 
-                    className={`bureau-suspect-card ${isDiscarded ? 'is-discarded' : ''}`}
+                    className={`bureau-suspect-card ${isRuledOut ? 'is-ruled-out' : ''}`}
+                    role="button"
+                    tabIndex={0}
+                    aria-pressed={isRuledOut}
+                    aria-label={`${civilisation}. ${isRuledOut ? 'Ruled out.' : 'Still possible.'} Click to toggle.`}
+                    onClick={() => toggleSuspectRuleOut(civilisation)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggleSuspectRuleOut(civilisation);
+                      }
+                    }}
                   >
                     <div className="bureau-suspect-icon-box">
                        <Landmark size={20} />
@@ -611,53 +606,14 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
                     <div className="bureau-suspect-name">
                       {civilisation}
                     </div>
-                    {isDiscarded && <div className="bureau-discard-label">DISCARDED</div>}
-                      <button
-                        type="button"
-                        className="bureau-suspect-remove-btn bureau-suspect-remove-btn--restore"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleSuspectArchive(civilisation);
-                        }}
-                      title={isDiscarded ? "Restore Suspect" : "Discard Suspect"}
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                    <div className="bureau-suspect-status">
+                      {isRuledOut ? 'Ruled out' : 'Still possible'}
+                    </div>
+                    {isRuledOut && <div className="bureau-ruled-out-label">Ruled out</div>}
                   </article>
                 );
               })}
             </div>
-
-            {discardedSuspects.length > 0 && (
-              <div className="bureau-archived-suspects">
-                <div className="bureau-archived-title">Discarded suspects</div>
-                <div className="bureau-suspect-grid bureau-suspect-grid--discarded">
-                  {discardedSuspects.map((civilisation) => (
-                    <article key={civilisation} className="bureau-suspect-card is-discarded">
-                      <div className="bureau-suspect-icon-box">
-                        <Landmark size={20} />
-                      </div>
-                      <div className="bureau-suspect-name">
-                        {civilisation}
-                      </div>
-                      <div className="bureau-discard-label">DISCARDED</div>
-                      <button
-                        type="button"
-                      className="bureau-suspect-remove-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleSuspectArchive(civilisation);
-                      }}
-                      title="Restore Suspect"
-                    >
-                        <RotateCcw size={14} />
-                        <span>Restore</span>
-                      </button>
-                    </article>
-                  ))}
-                </div>
-              </div>
-            )}
           </aside>
         </div>
       </section>
@@ -771,12 +727,20 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
     const totalTierPoints = caseResults.reduce((acc, curr) => acc + (curr.tierPoints || 0), 0);
     const trainingSolved = caseResults.filter(result => result.round === 'training').length;
     const challengeSolved = caseResults.filter(result => result.round === 'challenge').length;
-    const mostConfidentCases = caseResults
+    const earlyGuessCases = caseResults
       .filter(result => result.tiersRevealed === 1)
       .slice(0, 3);
-    const hardestCases = [...caseResults]
+    const earlyGuessCount = caseResults.filter(result => result.tiersRevealed === 1).length;
+    const moreClueCases = [...caseResults]
+      .filter(result => result.tiersRevealed > 1)
       .sort((a, b) => (b.tiersRevealed || 0) - (a.tiersRevealed || 0))
       .slice(0, 3);
+    const reflectionPrompts = [
+      'Which clue helped you the most? Explain why.',
+      'Which case was hardest to solve? What made it difficult?',
+      'How did evidence help you avoid guessing?',
+      'What would a historian or archaeologist do before making a claim?',
+    ];
 
     return (
       <section className="phase-container bureau-phase">
@@ -785,7 +749,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
             <div>
               <div className="training-kicker">Mission Audit</div>
               <h2>Civilisation Fingerprinting Record</h2>
-              <p>Which cases were easiest, which were hardest, and what sentence closed each file?</p>
+              <p>Historians build explanations from evidence. This record helps you think about how you used clues.</p>
             </div>
             <div className="bureau-score-badge">
               <span className="bureau-score-label">FINAL SCORE</span>
@@ -814,10 +778,13 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
 
           <div className="bureau-results-grid">
             <section className="bureau-audit-panel">
-              <h3>Most confident cases</h3>
-              <p>Closed after the first clue.</p>
+              <div className="bureau-audit-panel-head">
+                <h3>Best evidence moments</h3>
+                <div className="bureau-unlock-tag unlocked">Guessed early: {earlyGuessCount}</div>
+              </div>
+              <p>These cases were solved after the first clue.</p>
               <div className="bureau-results-list">
-                {mostConfidentCases.length > 0 ? mostConfidentCases.map((result, index) => (
+                {earlyGuessCases.length > 0 ? earlyGuessCases.map((result, index) => (
                   <article key={`${result.caseId}-conf-${index}`} className="bureau-results-item">
                     <div>
                       <strong>{result.caseTitle}</strong>
@@ -827,17 +794,15 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
                       <strong>{result.tiersRevealed} clue{result.tiersRevealed === 1 ? '' : 's'}</strong>
                     </div>
                   </article>
-                )) : (
-                  <p className="bureau-empty-state">No cases were solved after one clue.</p>
-                )}
+                )) : <p className="bureau-empty-state">No cases were solved after one clue.</p>}
               </div>
             </section>
 
             <section className="bureau-audit-panel">
-              <h3>Hardest cases</h3>
-              <p>Cases that needed the most clues.</p>
+              <h3>Cases needing more clues</h3>
+              <p>These answers needed extra evidence before you were ready to claim them.</p>
               <div className="bureau-results-list">
-                {hardestCases.length > 0 ? hardestCases.map((result, index) => (
+                {moreClueCases.length > 0 ? moreClueCases.map((result, index) => (
                   <article key={`${result.caseId}-hard-${index}`} className="bureau-results-item">
                     <div>
                       <strong>{result.caseTitle}</strong>
@@ -847,26 +812,21 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
                       <strong>{result.tiersRevealed} clue{result.tiersRevealed === 1 ? '' : 's'}</strong>
                     </div>
                   </article>
-                )) : (
-                  <p className="bureau-empty-state">No case data to rank yet.</p>
-                )}
+                )) : <p className="bureau-empty-state">No cases needed extra clues.</p>}
               </div>
             </section>
           </div>
 
-          <section className="bureau-audit-panel bureau-audit-panel--full">
-            <h3>Evidence summary</h3>
-            <p>Each completed evidence sentence from the mission.</p>
-            <div className="bureau-audit-sentences">
-              {caseResults.map((result, index) => (
-                <article key={result.caseId} className="bureau-audit-sentence">
-                  <div className="bureau-audit-sentence-head">
-                    <strong>Case {index + 1}: {result.caseTitle}</strong>
-                    <span>{result.civilisationCorrect ? 'Correct' : 'Not quite'}</span>
-                  </div>
-                  <p>{result.evidenceSentence || 'No sentence recorded.'}</p>
-                </article>
+          <section className="bureau-audit-panel bureau-audit-panel--full bureau-reflection-card">
+            <h3>Reflection on evidence</h3>
+            <p>Pick one question to answer or discuss with your teacher.</p>
+            <ul className="bureau-reflection-list">
+              {reflectionPrompts.map((prompt) => (
+                <li key={prompt}>{prompt}</li>
               ))}
+            </ul>
+            <div className="bureau-reflection-note">
+              Historians and archaeologists look at clues first, then make the best explanation they can from the evidence.
             </div>
           </section>
 

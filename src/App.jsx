@@ -471,6 +471,7 @@ export default function App() {
           setItemsLocation={setItemsLocation} setHypotheses={setHypotheses}
           setCurrentScenario={setCurrentScenario} setCurrentEvent={setCurrentEvent}
           setSiteName={setSiteName} setFinalConclusion={setFinalConclusion}
+          setCuratedItems={setCuratedItems} setPlaques={setPlaques}
           currentScenario={currentScenario}
           activeArtifacts={activeArtifacts}
           currentEvent={currentEvent}

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { 
-  Camera, CheckCircle2, ChevronRight, FileText, Search
+  Camera, CheckCircle2, ChevronRight, FileText, Search, Send
 } from 'lucide-react';
 import { 
   getArtifactTheme, 
@@ -126,7 +126,7 @@ export function MuseumPhase({
                   onChange={(e) => setFinalExhibitionStatement(e.target.value)}
                   placeholder="The evidence from this site reveals that..."
                 />
-                <button onClick={onFinish} className="btn primary-btn finish-museum-btn">
+                <button onClick={onComplete} className="btn primary-btn finish-museum-btn">
                   <Send size={14} />
                   Finish Exhibition
                 </button>
@@ -161,7 +161,14 @@ export function MuseumPhase({
                        <h4>{item.name}</h4>
                        <div className="museum-display-analysis-box">
                           <strong>Lab Result:</strong>
-                          <p>{analysis?.note || 'No research note.'}</p>
+                          {analysis ? (
+                             <>
+                               <p className="museum-analysis-answer">{analysis.answerText}</p>
+                               <p className="museum-analysis-note">{analysis.note}</p>
+                             </>
+                           ) : (
+                             <p>No research note.</p>
+                           )}
                        </div>
                        <div className="museum-plaque-field">
                           <label>Exhibition Label</label>

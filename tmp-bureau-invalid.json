@@ -1,0 +1,35 @@
+{
+  "app": "archaeology-dig-app",
+  "version": 1,
+  "saveVersion": 1,
+  "savedAt": "2026-05-05T20:49:58.097Z",
+  "mode": "bureau",
+  "phase": "bureauCase",
+  "bureauState": {
+    "mode": "bureau",
+    "phase": "bureauCase",
+    "score": 0,
+    "caseIndex": 0,
+    "currentTier": 1,
+    "evidenceFilter": {
+      "Ancient Egypt": "unsure",
+      "Ancient Greece": "unsure",
+      "Ancient Rome": "unsure",
+      "Ancient China": "unsure",
+      "Maya": "unsure",
+      "Inca": "unsure"
+    },
+    "showEvidenceFilter": false,
+    "selectedAnswerIndex": null,
+    "selectedClaimCivilisation": "Ancient Egypt",
+    "selectedClaimClueType": "Rulers",
+    "selectedClaimEvidence": "pyramids were tombs",
+    "selectedLogAnswerIndex": null,
+    "selectedComparisonAnswerIndex": null,
+    "pendingCaseOutcome": null,
+    "caseResults": [],
+    "comparisonResults": [],
+    "comparisonResult": null,
+    "latestOutcome": null
+  }
+}

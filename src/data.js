@@ -3,11 +3,41 @@ import {
 } from 'lucide-react';
 
 export const CATEGORIES = [
-  { id: 'objects', title: 'Objects', icon: Package, color: '#f59e0b' },
-  { id: 'remains', title: 'Remains', icon: Skull, color: '#a855f7' },
-  { id: 'structures', title: 'Structures', icon: Landmark, color: '#14b8a6' },
-  { id: 'environment', title: 'Environment', icon: Leaf, color: '#84cc16' },
-  { id: 'written', title: 'Written', icon: ScrollText, color: '#60a5fa' }
+  {
+    id: 'objects',
+    title: 'Artefacts / Objects',
+    description: 'Human-made items that can usually be moved, such as tools, jewellery, pots or weapons.',
+    icon: Package,
+    color: '#f59e0b'
+  },
+  {
+    id: 'remains',
+    title: 'Human Remains',
+    description: 'Bones, teeth, mummies or other remains that help us understand people from the past.',
+    icon: Skull,
+    color: '#a855f7'
+  },
+  {
+    id: 'structures',
+    title: 'Features / Structures',
+    description: 'Built or changed places, such as walls, tombs, roads, ruins, hearths or buildings.',
+    icon: Landmark,
+    color: '#14b8a6'
+  },
+  {
+    id: 'environment',
+    title: 'Environmental Evidence',
+    description: 'Natural evidence such as seeds, ash, silt, shells or animal bones that helps explain the past environment.',
+    icon: Leaf,
+    color: '#84cc16'
+  },
+  {
+    id: 'written',
+    title: 'Written Sources',
+    description: 'Writing, symbols, inscriptions, tablets or records from the past.',
+    icon: ScrollText,
+    color: '#60a5fa'
+  }
 ];
 
 export const RANDOM_EVENTS = [
@@ -102,24 +132,24 @@ export const SCENARIOS = [
     historicalContext: 'Rome was famous for its huge buildings and powerful army. From lead pipes to stone carvings, their items show a very organized and advanced society.',
     evidence: [
       { id: 'rm_1', name: "Bronze Sestertius", type: "objects", discoveryMethod: "Found with a metal detector in an old market.", clue: "A coin with the face of an Emperor on it.", question: "What can a coin with an emperor's face suggest about Roman society?", options: ["Coins were mainly carried as lucky charms.", "Coins can show economy, leadership and public messages.", "Coins were only used to count food supplies.", "Coins were used only to buy temple animals."], correct: 1, image: "museum/roman_coin.jpg", rationale: "Coins can provide evidence about trade, economy, rulers and the spread of official messages." },
-      { id: 'rm_2', name: "Gladius", type: "objects", discoveryMethod: "Dug up from an old battlefield.", clue: "A short, iron sword made for stabbing.", question: "What can a standard Roman sword suggest about the army?", options: ["It suggests Rome had organised soldiers using specialised equipment.", "It suggests the sword was mainly a farming tool.", "It suggests weapons were only status symbols, not used in fighting.", "It suggests soldiers used swords mostly to clear bushes."], correct: 0, rationale: "A gladius helps historians understand military organisation, technology and warfare." },
-      { id: 'rm_3', name: "Samian Ware", type: "objects", discoveryMethod: "Found in a trash pit and put back together.", clue: "High-quality, shiny red pottery made in large amounts.", question: "What can mass-produced fine pottery suggest about Roman trade and production?", options: ["It was used only for sacred oils.", "The red colour was chosen only to imitate copper.", "It suggests large-scale production and trade networks.", "It was made only as a rare item for emperors."], correct: 2, rationale: "Samian ware suggests skilled production, trade and consumer goods across the Roman world." },
+      { id: 'rm_2', name: "Gladius", type: "objects", discoveryMethod: "Dug up from an old battlefield.", clue: "A short, iron sword made for stabbing.", question: "What can a standard Roman sword suggest about the army?", options: ["It suggests Rome had organised soldiers using specialised equipment.", "It suggests the sword was mainly a farming tool.", "It suggests weapons were only status symbols, not used in fighting.", "It suggests soldiers used swords mostly to clear bushes."], correct: 0, image: "museum/roman_gladius.jpg", rationale: "A gladius helps historians understand military organisation, technology and warfare." },
+      { id: 'rm_3', name: "Samian Ware", type: "objects", discoveryMethod: "Found in a trash pit and put back together.", clue: "High-quality, shiny red pottery made in large amounts.", question: "What can mass-produced fine pottery suggest about Roman trade and production?", options: ["It was used only for sacred oils.", "The red colour was chosen only to imitate copper.", "It suggests large-scale production and trade networks.", "It was made only as a rare item for emperors."], correct: 2, image: "museum/roman_samian_ware.jpg", rationale: "Samian ware suggests skilled production, trade and consumer goods across the Roman world." },
 
       { id: 'rm_4', name: "Gladiator Skull", type: "remains", discoveryMethod: "Found in a graveyard outside the city.", clue: "A skull with wounds that have healed over.", question: "What can healed injuries on a skull suggest about Roman life?", options: ["The person was hurt only in a common household accident.", "Violent entertainment and medical care may have been part of society.", "The evidence proves Roman surgery was always successful.", "The injury was definitely caused by an earthquake."], correct: 1, image: "museum/roman_skull.png", rationale: "Human remains can reveal injury, health, occupation and aspects of social life, but should be interpreted carefully." },
       { id: 'rm_5', name: "Cremation Urn Ashes", type: "remains", discoveryMethod: "Sifted from a jar found in a tomb.", clue: "Burnt human bone fragments inside a labeled jar.", question: "What can ashes inside a labelled urn suggest about Roman beliefs and customs?", options: ["The ashes were kept to trap spirits inside homes.", "Cremation could be a formal burial practice.", "Only the most powerful people were cremated.", "The bones were probably placed there by mistake."], correct: 1, image: "museum/roman_cremation_urn.jpg", rationale: "Cremation urns provide evidence of burial customs and beliefs about death." },
-      { id: 'rm_6', name: "Lead Isotope Teeth", type: "remains", discoveryMethod: "Studied in a lab to find minerals in the teeth.", clue: "Teeth that have lead and minerals from a far-away place.", question: "What can minerals in teeth help archaeologists investigate?", options: ["They can suggest where a person lived, moved or what environment affected them.", "They prove people used lead as a food spice.", "They prove the lead always came from local soil.", "They show the person definitely worked in a lead factory."], correct: 0, rationale: "Scientific testing of teeth can help investigate movement, diet, health and environment." },
+      { id: 'rm_6', name: "Lead Isotope Teeth", type: "remains", discoveryMethod: "Studied in a lab to find minerals in the teeth.", clue: "Teeth that have lead and minerals from a far-away place.", question: "What can minerals in teeth help archaeologists investigate?", options: ["They can suggest where a person lived, moved or what environment affected them.", "They prove people used lead as a food spice.", "They prove the lead always came from local soil.", "They show the person definitely worked in a lead factory."], correct: 0, image: "museum/roman_lead_isotope_teeth.jpg", rationale: "Scientific testing of teeth can help investigate movement, diet, health and environment." },
 
-      { id: 'rm_7', name: "Aqueduct Arch", type: "structures", discoveryMethod: "Measured above ground to see how it was built.", clue: "A giant stone bridge that carried water into the city.", question: "What can an aqueduct help historians understand about Roman cities?", options: ["It was mainly a decorative city gateway.", "It suggests engineering skill and the organised supply of water.", "It was mainly built to stop people moving around.", "It was a high platform only for religious parades."], correct: 1, rationale: "Aqueducts show engineering, planning and the importance of water supply in Roman cities." },
-      { id: 'rm_8', name: "Hypocaust", type: "structures", discoveryMethod: "Dug under a floor to see what was beneath it.", clue: "A system of pillars that let hot air flow under the floor.", question: "What does a hypocaust system suggest about Roman technology?", options: ["It was designed mostly to stop floors getting wet.", "It shows advanced heating technology for buildings and baths.", "It was mainly a cold basement for storing food.", "It was built as a secret escape tunnel."], correct: 1, rationale: "A hypocaust is evidence of engineering and comfort in some Roman buildings." },
+      { id: 'rm_7', name: "Aqueduct Arch", type: "structures", discoveryMethod: "Measured above ground to see how it was built.", clue: "A giant stone bridge that carried water into the city.", question: "What can an aqueduct help historians understand about Roman cities?", options: ["It was mainly a decorative city gateway.", "It suggests engineering skill and the organised supply of water.", "It was mainly built to stop people moving around.", "It was a high platform only for religious parades."], correct: 1, image: "museum/roman_aqueduct_arch.jpg", rationale: "Aqueducts show engineering, planning and the importance of water supply in Roman cities." },
+      { id: 'rm_8', name: "Hypocaust", type: "structures", discoveryMethod: "Dug under a floor to see what was beneath it.", clue: "A system of pillars that let hot air flow under the floor.", question: "What does a hypocaust system suggest about Roman technology?", options: ["It was designed mostly to stop floors getting wet.", "It shows advanced heating technology for buildings and baths.", "It was mainly a cold basement for storing food.", "It was built as a secret escape tunnel."], correct: 1, image: "museum/roman_hypocaust.jpg", rationale: "A hypocaust is evidence of engineering and comfort in some Roman buildings." },
       { id: 'rm_9', name: "Mosaic Floor", type: "structures", discoveryMethod: "Cleaned with brushes and sponges to show the colors.", clue: "A floor made of thousands of tiny colored stones.", question: "What can a detailed mosaic floor suggest about Roman homes?", options: ["Wealthy people could use art and design to show taste or status.", "Mosaic floors were mainly maps for rituals.", "They were used mostly as non-slip sports flooring.", "The colours were used to tell the time."], correct: 0, image: "museum/roman_mosaic_floor.jpg", rationale: "Mosaics can reveal wealth, art, design, values and social status." },
 
-      { id: 'rm_10', name: "Volcanic Ash Layer", type: "environment", discoveryMethod: "Found by looking at the layers of soil in a hole.", clue: "A thick layer of ash and rock covering the city.", question: "What can a volcanic ash layer help archaeologists understand?", options: ["It was probably a building material brought from far away.", "It suggests a natural disaster suddenly buried or preserved a site.", "It was most likely ash from ordinary factory fires.", "It was mainly used as garden fertilizer."], correct: 1, rationale: "Environmental layers can explain how a site was destroyed, preserved or changed." },
-      { id: 'rm_11', name: "Olive Pits", type: "environment", discoveryMethod: "Found in an old sewer drain.", clue: "Thousands of old seeds from olive fruits.", question: "What can many olive pits in an ancient drain suggest?", options: ["They were used mainly as heating fuel.", "Olives were likely important in diet, trade or everyday life.", "They were used as small weapons.", "Olive trees were grown only for wood."], correct: 1, rationale: "Food remains can reveal diet, farming, trade and daily habits." },
-      { id: 'rm_12', name: "Dormouse Bones", type: "environment", discoveryMethod: "Sifted from a special clay jar.", clue: "Bones of small rodents found inside a clay pot.", question: "What can dormouse bones in a special jar suggest about Roman food culture?", options: ["They show there was only a rodent problem in the market.", "They suggest some Romans raised and ate dormice as a luxury food.", "They prove dormice were kept only as sacred pets.", "They show mice accidentally got trapped during a flood."], correct: 1, rationale: "Animal remains can reveal diet, wealth and unusual food customs." },
+      { id: 'rm_10', name: "Volcanic Ash Layer", type: "environment", discoveryMethod: "Found by looking at the layers of soil in a hole.", clue: "A thick layer of ash and rock covering the city.", question: "What can a volcanic ash layer help archaeologists understand?", options: ["It was probably a building material brought from far away.", "It suggests a natural disaster suddenly buried or preserved a site.", "It was most likely ash from ordinary factory fires.", "It was mainly used as garden fertilizer."], correct: 1, image: "museum/roman_volcanic_ash_layer.jpg", rationale: "Environmental layers can explain how a site was destroyed, preserved or changed." },
+      { id: 'rm_11', name: "Olive Pits", type: "environment", discoveryMethod: "Found in an old sewer drain.", clue: "Thousands of old seeds from olive fruits.", question: "What can many olive pits in an ancient drain suggest?", options: ["They were used mainly as heating fuel.", "Olives were likely important in diet, trade or everyday life.", "They were used as small weapons.", "Olive trees were grown only for wood."], correct: 1, image: "museum/roman_olive_pits.jpg", rationale: "Food remains can reveal diet, farming, trade and daily habits." },
+      { id: 'rm_12', name: "Dormouse Bones", type: "environment", discoveryMethod: "Sifted from a special clay jar.", clue: "Bones of small rodents found inside a clay pot.", question: "What can dormouse bones in a special jar suggest about Roman food culture?", options: ["They show there was only a rodent problem in the market.", "They suggest some Romans raised and ate dormice as a luxury food.", "They prove dormice were kept only as sacred pets.", "They show mice accidentally got trapped during a flood."], correct: 1, image: "museum/roman_dormouse_bones.jpg", rationale: "Animal remains can reveal diet, wealth and unusual food customs." },
 
-      { id: 'rm_13', name: "Wax Tablet", type: "written", discoveryMethod: "Found in wet mud which kept the wood from rotting.", clue: "A wooden board with wax that was written on with a pen.", question: "What can a wax writing tablet suggest about Roman communication?", options: ["It suggests people used reusable writing tools for notes, school or business.", "It was mainly used as a lamp.", "It was mainly used to seal letters.", "It was only a cover for expensive paper."], correct: 0, rationale: "Wax tablets are written evidence of communication, education and administration." },
-      { id: 'rm_14', name: "Monumental Inscription", type: "written", discoveryMethod: "Photographed and studied on a public building.", clue: "Large letters carved deeply into a marble slab.", question: "What can a large public inscription suggest?", options: ["It was a secret code for government taxes.", "Public writing could communicate messages, honours or information to people.", "The letters were only decorative and never read.", "The stone was mainly used to test building weight."], correct: 1, rationale: "Public inscriptions can reveal politics, status, public messages and literacy." },
-      { id: 'rm_15', name: "Carbonized Scroll", type: "written", discoveryMethod: "Scanned with a special machine to read without unrolling.", clue: "A paper scroll burnt to charcoal by a volcano.", question: "What can a carbonized scroll help historians understand?", options: ["It can preserve evidence of books, ideas, laws or records.", "It was mainly used as a fire starter.", "It was mainly used to store herbs.", "It was used to make fishing nets."], correct: 0, rationale: "Scrolls are written evidence that can reveal ideas, laws, records and literature." }
+      { id: 'rm_13', name: "Wax Tablet", type: "written", discoveryMethod: "Found in wet mud which kept the wood from rotting.", clue: "A wooden board with wax that was written on with a pen.", question: "What can a wax writing tablet suggest about Roman communication?", options: ["It suggests people used reusable writing tools for notes, school or business.", "It was mainly used as a lamp.", "It was mainly used to seal letters.", "It was only a cover for expensive paper."], correct: 0, image: "museum/roman_wax_tablet.jpg", rationale: "Wax tablets are written evidence of communication, education and administration." },
+      { id: 'rm_14', name: "Monumental Inscription", type: "written", discoveryMethod: "Photographed and studied on a public building.", clue: "Large letters carved deeply into a marble slab.", question: "What can a large public inscription suggest?", options: ["It was a secret code for government taxes.", "Public writing could communicate messages, honours or information to people.", "The letters were only decorative and never read.", "The stone was mainly used to test building weight."], correct: 1, image: "museum/roman_inscription.jpg", rationale: "Public inscriptions can reveal politics, status, public messages and literacy." },
+      { id: 'rm_15', name: "Carbonized Scroll", type: "written", discoveryMethod: "Scanned with a special machine to read without unrolling.", clue: "A paper scroll burnt to charcoal by a volcano.", question: "What can a carbonized scroll help historians understand?", options: ["It can preserve evidence of books, ideas, laws or records.", "It was mainly used as a fire starter.", "It was mainly used to store herbs.", "It was used to make fishing nets."], correct: 0, image: "museum/roman_carbonized_scroll.jpg", rationale: "Scrolls are written evidence that can reveal ideas, laws, records and literature." }
     ]
   },
   {
@@ -190,7 +220,8 @@ export const RED_HERRINGS = [
     clue: "A clear, flexible bottle made of plastic.", 
     question: "Why is this in an ancient layer of soil?", 
     options: ["Ancient people knew how to make plastic", "It was moved there by animals or modern digging", "It was used to store water in ancient times", "It was buried as a time capsule"], 
-    correct: 1 
+    correct: 1,
+    image: "museum/plastic_water_bottle.jpg"
   },
   { 
     id: 'rh_3', 
@@ -201,7 +232,8 @@ export const RED_HERRINGS = [
     clue: "A small gold-colored coin with the year '2024' on it.", 
     question: "Does this coin tell us anything about the past?", 
     options: ["It proves the site was built in 2024", "It is a modern loss and tells us nothing about history", "Ancient people traded with modern people", "It was a weight used in an ancient market"], 
-    correct: 1 
+    correct: 1,
+    image: "museum/modern_coin.jpg"
   }
 ];
 

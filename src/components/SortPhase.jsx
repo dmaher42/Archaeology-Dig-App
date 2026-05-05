@@ -58,7 +58,7 @@ function DraggableArtifact({ artifact }) {
   );
 }
 
-function CategoryBin({ categoryId, title, items }) {
+function CategoryBin({ categoryId, title, description, items }) {
   const { isOver, setNodeRef } = useDroppable({
     id: categoryId,
   });
@@ -66,7 +66,10 @@ function CategoryBin({ categoryId, title, items }) {
   return (
     <div ref={setNodeRef} className={`category-bin ${isOver ? 'is-over' : ''}`}>
       <div className="category-bin-header">
-        <span className="category-bin-title">{title}</span>
+        <div className="category-bin-header-copy">
+          <span className="category-bin-title">{title}</span>
+          <span className="category-bin-description">{description}</span>
+        </div>
         <span className="category-bin-count">{items.length} finds</span>
       </div>
       <div className="category-bin-list">
@@ -204,6 +207,7 @@ export function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, on
                   key={bin.id} 
                   categoryId={bin.id} 
                   title={bin.title} 
+                  description={bin.description} 
                   items={bin.items} 
                 />
               ))}
@@ -229,7 +233,7 @@ export function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, on
               <HelpCircle size={32} className="sort-tutorial-icon" />
               <h3>How to sort</h3>
               <p>Drag each find from the tray on the left into one of the bins on the right.</p>
-              <p><strong>Clues</strong> on the card will help you choose between <em>Objects, Remains, Structures, Environment,</em> or <em>Written</em> evidence.</p>
+              <p><strong>Clues</strong> on the card will help you choose between <em>Artefacts / Objects, Human Remains, Features / Structures, Environmental Evidence,</em> or <em>Written Sources</em>.</p>
               <button className="btn primary-btn">Got it</button>
            </div>
         </div>

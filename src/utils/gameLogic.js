@@ -29,7 +29,7 @@ export const resolveAssetPath = (path) => {
 const EVIDENCE_FALLBACK_IMAGES = {
   eg: 'museum/egypt_generic.svg',
   mg: 'museum/mungo_generic.svg',
-  rm: 'museum/roman_generic.svg',
+  rm: 'museum/roman_generic.jpg',
   ch: 'museum/china_generic.svg',
   rh: 'museum/modern_generic.svg',
   default: 'museum/modern_generic.svg',
@@ -228,6 +228,50 @@ export const createInitialBureauEvidenceFilter = () => (
   }, {})
 );
 
+const getBureauProfileFactsForClue = (bureauCase, clueType = '') => {
+  const facts = bureauCase?.profileFacts?.[clueType];
+  if (Array.isArray(facts)) return facts.filter(Boolean);
+  if (facts) return [facts];
+  return [];
+};
+
+export const getBureauClaimValidationMessage = ({
+  currentCase,
+  selectedClaimCivilisation,
+  selectedClaimClueType,
+  selectedClaimEvidence,
+  currentEvidenceText = [],
+}) => {
+  if (!currentCase) return '';
+
+  const selectedProfile = BUREAU_CASES.find(item => item.civilisation === selectedClaimCivilisation);
+  const revealedClueTypes = new Set(currentEvidenceText.map(item => item.label));
+  const allProfileFacts = selectedProfile
+    ? Object.values(selectedProfile.profileFacts || {}).flat().filter(Boolean)
+    : [];
+  const clueFacts = selectedProfile
+    ? getBureauProfileFactsForClue(selectedProfile, selectedClaimClueType)
+    : [];
+
+  if (selectedClaimCivilisation !== currentCase.civilisation) {
+    return 'That civilisation does not match the clues yet. Check the suspect profiles again.';
+  }
+
+  if (!revealedClueTypes.has(selectedClaimClueType)) {
+    return 'That evidence does not match the clue type you selected.';
+  }
+
+  if (!allProfileFacts.includes(selectedClaimEvidence)) {
+    return 'That profile fact does not belong to the civilisation you selected.';
+  }
+
+  if (!clueFacts.includes(selectedClaimEvidence)) {
+    return 'Use a profile fact that supports the clue.';
+  }
+
+  return '';
+};
+
 export const createNewBureauSession = (startPhase = 'bureauBriefing', startCivilisation = null) => {
   let initialCaseIndex = 0;
   if (startCivilisation) {
@@ -385,6 +429,6 @@ export const rebuildSavedSession = (saved) => {
   };
 };
 
-export const customCollisionDetection = (args) => {
+export const customCollisionDetection = () => {
   return null; 
 };
