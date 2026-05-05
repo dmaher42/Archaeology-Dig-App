@@ -355,6 +355,42 @@ body {
   font-size: 0.95rem;
 }
 
+.menu-resume {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+  margin: 0 0 1.25rem;
+}
+
+.menu-resume-copy {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.menu-resume-copy h3 {
+  margin: 0;
+  color: var(--sand-100);
+  font-size: 1.1rem;
+  line-height: 1.2;
+}
+
+.menu-resume-copy p {
+  margin: 0;
+  color: var(--sand-300);
+  line-height: 1.45;
+}
+
+.menu-resume-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .activity-menu-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1861,6 +1897,18 @@ body {
     flex-direction: column;
     gap: 0.5rem;
   }
+  .menu-resume {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .menu-resume-actions {
+    justify-content: stretch;
+  }
+
+  .menu-resume-actions .btn {
+    width: 100%;
+  }
 }
 
 @media (max-width: 600px) {
@@ -2266,10 +2314,431 @@ body {
   padding: 1rem;
 }
 
+.phase-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  height: 100%;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1.5rem 1.5rem;
+  overflow: hidden;
+}
+
+.phase-status-panel-compact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--arch-panel);
+  border: 1px solid var(--arch-panel-border);
+  padding: 0.6rem 1.25rem;
+  border-radius: 16px;
+  gap: 1.5rem;
+  flex: 0 0 auto;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.status-panel-info {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  flex: 0 0 auto;
+}
+
+.status-icon-box-small {
+  width: 36px;
+  height: 36px;
+  background: rgba(232, 158, 93, 0.08);
+  border: 1px solid rgba(232, 158, 93, 0.4);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--arch-accent);
+}
+
+.status-text-content-horizontal h2 {
+  font-family: 'Cinzel', serif;
+  font-size: 1.05rem;
+  margin: 0;
+  color: var(--arch-accent);
+  letter-spacing: 0.5px;
+}
+
+.status-text-content-horizontal p {
+  font-size: 0.72rem;
+  margin: 0;
+  color: var(--sand-400);
+}
+
+.status-panel-progress-compact {
+  flex: 1;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.progress-label-group {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.progress-label-mini { color: var(--sand-400); }
+.progress-count-mini { color: var(--arch-accent); }
+
+.progress-bar-thin {
+  height: 6px;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--arch-accent);
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 12px rgba(232, 158, 93, 0.25);
+}
+
+/* Museum Phase Layout */
+.museum-phase {
+  height: calc(100vh - 100px);
+}
+
+.museum-layout {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 1.5rem;
+  flex: 1;
+  min-height: 0;
+}
+
+.museum-panel {
+  background: rgba(20, 16, 12, 0.45);
+  border: 1px solid var(--arch-panel-border);
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.museum-panel-heading {
+  padding: 1.25rem 1.25rem 0.25rem;
+  font-family: 'Cinzel', serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--arch-accent);
+}
+
+.museum-panel-subheading {
+  padding: 0 1.25rem 1.25rem;
+  font-size: 0.8rem;
+  color: var(--sand-400);
+  border-bottom: 1px solid rgba(168, 134, 97, 0.1);
+}
+
+.museum-curation-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  scrollbar-width: thin;
+}
+
+.museum-curation-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(168, 134, 97, 0.18);
+  border-radius: 14px;
+  padding: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  width: 100%;
+  position: relative;
+}
+
+.museum-curation-card:hover {
+  background: rgba(168, 134, 97, 0.08);
+  border-color: var(--arch-accent);
+}
+
+.museum-curation-card.active {
+  background: rgba(232, 158, 93, 0.1);
+  border-color: var(--arch-accent);
+  box-shadow: 0 0 15px rgba(232, 158, 93, 0.1);
+}
+
+.museum-curation-icon {
+  width: 64px;
+  height: 64px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+}
+
+.museum-curation-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.museum-curation-name {
+  font-family: 'Cinzel', serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--sand-100);
+  margin-bottom: 2px;
+}
+
+.museum-curation-meta {
+  font-size: 0.72rem;
+  color: var(--sand-400);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.museum-curation-checkbox {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.museum-curation-card.curated .museum-curation-checkbox {
+  background: var(--success);
+  color: #111;
+}
+
+.museum-checkbox-empty {
+  width: 22px;
+  height: 22px;
+  border: 2px solid rgba(168, 134, 97, 0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.museum-checkbox-empty::before, .museum-checkbox-empty::after {
+  content: "";
+  position: absolute;
+  background: rgba(168, 134, 97, 0.5);
+}
+
+.museum-checkbox-empty::before { width: 10px; height: 2px; }
+.museum-checkbox-empty::after { width: 2px; height: 10px; }
+
+.museum-display-grid {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1.5rem;
+  align-content: start;
+  scrollbar-width: thin;
+}
+
+.museum-display-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--arch-panel-border);
+  border-radius: 20px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.museum-display-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.museum-display-number {
+  font-size: 0.65rem;
+  font-weight: 900;
+  color: var(--arch-accent);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+}
+
+.museum-remove-btn {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.museum-remove-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  transform: translateY(-1px);
+}
+
+.museum-display-visual {
+  height: 160px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  padding: 1rem;
+}
+
+.museum-display-body h4 {
+  font-family: 'Cinzel', serif;
+  font-size: 1.1rem;
+  margin: 0 0 0.85rem;
+  color: var(--arch-accent);
+}
+
+.museum-display-analysis-box {
+  background: rgba(232, 158, 93, 0.06);
+  border-left: 3px solid var(--arch-accent);
+  border-radius: 4px 10px 10px 4px;
+  padding: 0.85rem 1rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--sand-200);
+  margin-bottom: 1.25rem;
+}
+
+.museum-display-analysis-box strong {
+  display: block;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  color: var(--arch-accent);
+  margin-bottom: 0.35rem;
+  letter-spacing: 0.5px;
+}
+
+.museum-plaque-field label {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--sand-400);
+  margin-bottom: 0.6rem;
+  letter-spacing: 0.8px;
+}
+
+.museum-plaque-field textarea {
+  width: 100%;
+  min-height: 90px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(168, 134, 97, 0.25);
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  color: var(--sand-100);
+  font: inherit;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  resize: vertical;
+  transition: all 0.2s;
+}
+
+.museum-plaque-field textarea:focus {
+  outline: none;
+  border-color: var(--arch-accent);
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.museum-final-statement-box {
+  padding: 1.5rem;
+  background: rgba(232, 158, 93, 0.04);
+  border-top: 1px solid var(--arch-panel-border);
+  flex: 0 0 auto;
+}
+
+.museum-statement-textarea {
+  width: 100%;
+  min-height: 110px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(232, 158, 93, 0.4);
+  border-radius: 14px;
+  padding: 1.25rem;
+  color: var(--sand-100);
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-top: 0.75rem;
+  transition: all 0.2s;
+}
+
+.museum-statement-textarea:focus {
+  outline: none;
+  border-color: var(--arch-accent);
+  box-shadow: 0 0 20px rgba(232, 158, 93, 0.1);
+}
+
+.museum-empty-tray, .museum-empty-display {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  padding: 4rem 2rem;
+  color: var(--sand-500);
+  text-align: center;
+  opacity: 0.7;
+}
+
+.museum-empty-display p {
+  max-width: 240px;
+  font-size: 0.9rem;
+}
+
 .status-panel-actions-compact {
   display: flex;
-  gap: 0.65rem;
+  gap: 0.75rem;
   align-items: center;
+}
+
+.primary-btn {
+  background: var(--arch-accent) !important;
+  color: #1a1510 !important;
+  border-color: transparent !important;
+}
+
+.primary-btn:hover {
+  background: var(--sand-100) !important;
+  transform: translateY(-1px);
+}
+
+.primary-btn:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
 }
 
 .btn {

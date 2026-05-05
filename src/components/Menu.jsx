@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { Pickaxe, MapPin, FileText, Dice5, ChevronLeft } from 'lucide-react';
 import { SCENARIOS } from '../data';
 
+const getSavedModeLabel = (mode) => (mode === 'bureau' ? 'Bureau case' : 'Investigation');
+const getResumeLabel = (mode) => (mode === 'bureau' ? 'Resume Bureau' : 'Resume Investigation');
+
 export function ActivityMenu({ 
   onStartInvestigation, 
   onStartTraining, 
@@ -104,13 +107,13 @@ export function ActivityMenu({
             <button 
               type="button" 
               className={`btn primary-btn activity-card-action ${hasSavedInvestigation ? 'pulse-btn' : ''}`} 
-              onClick={hasSavedInvestigation ? onResumeInvestigation : () => setShowCivSelection(true)}
-            >
-              {hasSavedInvestigation ? 'Resume Mission' : 'Start New Mission'}
+            onClick={hasSavedInvestigation ? onResumeInvestigation : () => setShowCivSelection(true)}
+          >
+              {hasSavedInvestigation ? 'Resume Investigation' : 'Start Investigation'}
             </button>
             {hasSavedInvestigation && (
               <button type="button" className="btn secondary-btn activity-card-action" onClick={() => setShowCivSelection(true)}>
-                Start New
+                Start New Investigation
               </button>
             )}
           </div>
@@ -132,13 +135,13 @@ export function ActivityMenu({
             <button 
               type="button" 
               className={`btn primary-btn activity-card-action ${hasSavedBureau ? 'pulse-btn' : ''}`} 
-              onClick={hasSavedBureau ? onResumeBureau : onStartBureau}
-            >
-              {hasSavedBureau ? 'Resume Mission' : 'Start New Mission'}
+            onClick={hasSavedBureau ? onResumeBureau : onStartBureau}
+          >
+              {hasSavedBureau ? 'Resume Bureau' : 'Start Bureau'}
             </button>
             {hasSavedBureau && (
               <button type="button" className="btn secondary-btn activity-card-action" onClick={onStartBureau}>
-                Start New
+                Start New Bureau
               </button>
             )}
           </div>
@@ -157,7 +160,7 @@ export function ResumeCard({ savedGame, onResume }) {
         <div className="training-kicker">Saved progress found</div>
         <h3>Continue where you left off?</h3>
         <p>
-          Saved {savedGame.mode === 'bureau' ? 'Bureau' : 'investigation'} game:{' '}
+          Saved {getSavedModeLabel(savedGame.mode)}:{' '}
           <strong>{savedGame.phase === 'bureauBriefing'
             ? 'Bureau Briefing'
             : savedGame.phase === 'bureauCase'
@@ -177,7 +180,7 @@ export function ResumeCard({ savedGame, onResume }) {
       </div>
       <div className="menu-resume-actions">
         <button type="button" className="btn primary-btn" onClick={onResume}>
-          {savedGame.mode === 'bureau' ? 'Resume Bureau Game' : 'Resume Investigation Game'}
+          {getResumeLabel(savedGame.mode)}
         </button>
       </div>
     </section>
