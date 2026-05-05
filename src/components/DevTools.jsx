@@ -6,35 +6,53 @@ import {
 } from '../utils/gameLogic'; 
 
 
-export function DevTools({ currentPhase, setPhase, setBureauState, setExcavatedIds, setActiveArtifacts, setItemsLocation, setHypotheses, setCurrentScenario, setCurrentEvent, setSiteName, setFinalConclusion }) {
+export function DevTools({ 
+  currentPhase, setPhase, setBureauState, setExcavatedIds, setActiveArtifacts, 
+  setItemsLocation, setHypotheses, setCurrentScenario, setCurrentEvent, 
+  setSiteName, setFinalConclusion, currentScenario, activeArtifacts, currentEvent 
+}) {
   const jumpTo = (target) => {
-    // Pick first scenario as default for testing
-    const scen = SCENARIOS && SCENARIOS.length > 0 ? SCENARIOS[0] : null;
+    // Use current scenario if available, otherwise pick first as fallback
+    const scen = currentScenario || (SCENARIOS && SCENARIOS.length > 0 ? SCENARIOS[0] : null);
     if (!scen) return;
-    const artifacts = [...(scen.evidence || []), (RED_HERRINGS && RED_HERRINGS.length > 0 ? RED_HERRINGS[0] : null)].filter(Boolean);
-    const evt = RANDOM_EVENTS && RANDOM_EVENTS.length > 0 ? RANDOM_EVENTS[0] : null;
+    
+    // For jumps, if we're not already in a game state, we might need to initialize artifacts
+    // But usually activeArtifacts should already be set if we're in a game.
+    // However, for a "jump", we often want to populate it with all evidence for that scenario.
+    const artifacts = activeArtifacts && activeArtifacts.length > 0 
+      ? activeArtifacts 
+      : [...(scen.evidence || []), (RED_HERRINGS && RED_HERRINGS.length > 0 ? RED_HERRINGS[0] : null)].filter(Boolean);
+    
+    const evt = currentEvent || (RANDOM_EVENTS && RANDOM_EVENTS.length > 0 ? RANDOM_EVENTS[0] : null);
     
     setCurrentScenario(scen);
     setCurrentEvent(evt);
-    setActiveArtifacts(artifacts);
-    setExcavatedIds(new Set(artifacts.map(a => a.id)));
     
-    if (target === 'sort') {
+    if (target === 'dig') {
+      setActiveArtifacts(artifacts);
+      setExcavatedIds(new Set());
+    } else if (target === 'sort') {
+      setActiveArtifacts(artifacts);
+      setExcavatedIds(new Set(artifacts.map(a => a.id)));
       const locations = artifacts.reduce((acc, a) => ({ ...acc, [a.id]: 'inventory' }), {});
       setItemsLocation(locations);
     } else if (target === 'lab') {
+      setActiveArtifacts(artifacts);
+      setExcavatedIds(new Set(artifacts.map(a => a.id)));
       const locations = artifacts.reduce((acc, a) => ({ ...acc, [a.id]: a.type || 'objects' }), {});
       setItemsLocation(locations);
       setHypotheses({});
-      setSiteName("Mock Testing Site");
+      setSiteName(`Mock ${scen.name} Site`);
       setFinalConclusion(scen.id);
     } else if (target === 'museum' || target === 'report') {
+      setActiveArtifacts(artifacts);
+      setExcavatedIds(new Set(artifacts.map(a => a.id)));
       const locations = artifacts.reduce((acc, a) => ({ ...acc, [a.id]: a.type || 'objects' }), {});
       setItemsLocation(locations);
       
       const hyps = artifacts.reduce((acc, a) => ({ ...acc, [a.id]: a.correct || 0 }), {});
       setHypotheses(hyps);
-      setSiteName("Mock Testing Site");
+      setSiteName(`Mock ${scen.name} Site`);
       setFinalConclusion(scen.id);
     }
     

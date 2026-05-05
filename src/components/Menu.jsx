@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Pickaxe, MapPin, FileText, Dice5, ChevronLeft } from 'lucide-react';
-import { SCENARIOS, BUREAU_RESEARCH_FOCUS } from '../data';
-import { BUREAU_CIVILISATIONS } from '../utils/gameLogic';
+import { SCENARIOS } from '../data';
 
 export function ActivityMenu({ 
   onStartInvestigation, 
@@ -12,7 +11,6 @@ export function ActivityMenu({
   onResumeBureau 
 }) {
   const [showCivSelection, setShowCivSelection] = useState(false);
-  const [showBureauSelection, setShowBureauSelection] = useState(false);
   const hasSavedInvestigation = savedGames?.archaeology && savedGames.archaeology.phase !== 'menu';
   const hasSavedBureau = savedGames?.bureau;
 
@@ -57,42 +55,6 @@ export function ActivityMenu({
               </div>
             </button>
           ))}
-        </div>
-      </section>
-    );
-  }
-
-  if (showBureauSelection) {
-    return (
-      <section className="phase-container menu-phase">
-        <div className="menu-hero glass-card">
-          <button 
-            className="back-to-modes-btn" 
-            onClick={() => setShowBureauSelection(false)}
-          >
-            <ChevronLeft size={16} /> Back to Missions
-          </button>
-          <div className="training-kicker">Bureau Intelligence</div>
-          <h2>Select Your Target Case</h2>
-          <p>Each case file contains restricted evidence. Which civilisation will you identify today?</p>
-        </div>
-
-        <div className="civ-selection-grid">
-          {BUREAU_CIVILISATIONS.map(civ => {
-            const focus = BUREAU_RESEARCH_FOCUS[civ] || {};
-            return (
-              <button 
-                key={civ}
-                className="civ-selection-card glass-card"
-                onClick={() => onStartBureau(civ)}
-              >
-                <div className="civ-card-content">
-                  <h4>{civ}</h4>
-                  <p className="civ-spark-text">"{focus.spark || 'Analyze the evidence to solve the mystery.'}"</p>
-                </div>
-              </button>
-            );
-          })}
         </div>
       </section>
     );
@@ -171,12 +133,12 @@ export function ActivityMenu({
                 <button type="button" className="btn primary-btn activity-card-action pulse-btn" onClick={onResumeBureau}>
                   Resume Mission
                 </button>
-                <button type="button" className="btn secondary-btn activity-card-action" onClick={() => setShowBureauSelection(true)}>
+                <button type="button" className="btn secondary-btn activity-card-action" onClick={onStartBureau}>
                   Start New Mission
                 </button>
               </div>
             ) : (
-              <button type="button" className="btn primary-btn activity-card-action" onClick={() => setShowBureauSelection(true)}>
+              <button type="button" className="btn primary-btn activity-card-action" onClick={onStartBureau}>
                 Start New Mission
               </button>
             )}

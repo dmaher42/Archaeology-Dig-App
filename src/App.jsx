@@ -277,8 +277,8 @@ export default function App() {
     applySavedSession(next);
   };
 
-  const handleStartBureau = (preferredCivilisation = null) => {
-    const next = createNewBureauSession(preferredCivilisation ? 'bureauCase' : 'bureauBriefing', preferredCivilisation);
+  const handleStartBureau = () => {
+    const next = createNewBureauSession('bureauBriefing');
     setBureauState(next);
     setPhase(next.phase);
   };
@@ -384,9 +384,9 @@ export default function App() {
             activeArtifacts={activeArtifacts} 
             excavatedIds={excavatedIds} 
             setExcavatedIds={setExcavatedIds} 
-            onComplete={(ids) => {
-              setActiveArtifacts(activeArtifacts.filter(a => ids.has(a.id)));
-              setItemsLocation(activeArtifacts.reduce((acc, a) => ({ ...acc, [a.id]: 'inventory' }), {}));
+            onComplete={(recoveredArtifacts) => {
+              setActiveArtifacts(recoveredArtifacts);
+              setItemsLocation(recoveredArtifacts.reduce((acc, a) => ({ ...acc, [a.id]: 'inventory' }), {}));
               setPhase('sort');
             }} 
             currentEvent={currentEvent} 
@@ -402,6 +402,7 @@ export default function App() {
             setItemsLocation={setItemsLocation} 
             onComplete={() => setPhase('lab')} 
             onBackToMenu={() => setPhase('menu')} 
+            currentScenario={currentScenario}
           />
         )}
 
@@ -470,6 +471,9 @@ export default function App() {
           setItemsLocation={setItemsLocation} setHypotheses={setHypotheses}
           setCurrentScenario={setCurrentScenario} setCurrentEvent={setCurrentEvent}
           setSiteName={setSiteName} setFinalConclusion={setFinalConclusion}
+          currentScenario={currentScenario}
+          activeArtifacts={activeArtifacts}
+          currentEvent={currentEvent}
         />
       )}
     </div>

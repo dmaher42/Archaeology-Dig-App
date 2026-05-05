@@ -89,7 +89,7 @@ function CategoryBin({ categoryId, title, items }) {
   );
 }
 
-export function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, onComplete, onBackToMenu }) {
+export function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, onComplete, onBackToMenu, currentScenario }) {
   const [activeArtifactId, setActiveArtifactId] = useState(null);
   const [feedback, setFeedback] = useState({ message: '', isError: false });
   const [attemptsMap, setAttemptsMap] = useState({});
@@ -151,7 +151,10 @@ export function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, on
               <Tent size={20} />
             </div>
             <div className="status-text-content-horizontal">
-              <h2>Phase 2: The Sorting Tent</h2>
+              <div style={{display: 'flex', alignItems: 'baseline', gap: '10px'}}>
+                <h2>Phase 2: The Sorting Tent</h2>
+                <span className="status-site-badge">{currentScenario?.civilization || 'Archaeological Site'}</span>
+              </div>
               <p>Match each find to its correct category based on the clue.</p>
             </div>
           </div>

@@ -99,7 +99,10 @@ export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypoth
             <Search size={20} />
           </div>
           <div className="status-text-content-horizontal">
-            <h2>Phase 3: The Lab</h2>
+            <div style={{display: 'flex', alignItems: 'baseline', gap: '10px'}}>
+              <h2>Phase 3: The Lab</h2>
+              <span className="status-site-badge">{currentScenario?.civilization || 'Archaeological Site'}</span>
+            </div>
             <p>Choose three finds. Read the clue, then record what each one reveals.</p>
           </div>
         </div>

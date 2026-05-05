@@ -2182,13 +2182,16 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+  scrollbar-width: thin;
 }
 
 .sort-bins-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.25rem;
-  height: 100%;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+  padding-bottom: 1rem;
 }
 
 
@@ -6064,6 +6067,85 @@ textarea.lab-note-textarea:focus {
 
 .back-to-modes-btn:hover {
   color: var(--arch-accent);
+}
+
+.status-site-badge {
+  background: rgba(232, 158, 93, 0.15);
+  color: var(--arch-accent);
+  border: 1px solid rgba(232, 158, 93, 0.3);
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  box-shadow: 0 0 15px rgba(232, 158, 93, 0.1);
+  display: inline-block;
+  white-space: nowrap;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.status-site-badge:empty {
+  display: none;
+}
+
+/* Sorting Tutorial Overlay */
+.sort-tutorial-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  cursor: pointer;
+  animation: fadeIn 0.4s ease;
+}
+
+.sort-tutorial-card {
+  max-width: 450px;
+  width: 100%;
+  text-align: center;
+  padding: 2.5rem;
+  animation: slideUp 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+.sort-tutorial-icon {
+  color: var(--arch-accent);
+  margin-bottom: 1.5rem;
+  filter: drop-shadow(0 0 10px rgba(232, 158, 93, 0.4));
+}
+
+.sort-tutorial-card h3 {
+  font-family: 'Cinzel', serif;
+  font-size: 1.75rem;
+  color: var(--arch-accent);
+  margin-bottom: 1rem;
+}
+
+.sort-tutorial-card p {
+  color: var(--sand-400);
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.sort-tutorial-card p em {
+  color: var(--arch-accent);
+  font-style: normal;
+  font-weight: 600;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 

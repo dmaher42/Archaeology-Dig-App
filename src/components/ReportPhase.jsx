@@ -62,7 +62,7 @@ export function ReportPhase({
           <div className="report-meta">
             <div className="report-meta-item">
               <MapPin size={16} />
-              <span><strong>Scenario:</strong> {currentScenario?.title || 'Unknown'}</span>
+              <span><strong>Scenario:</strong> {currentScenario?.name || 'Unknown'}</span>
             </div>
             <div className="report-meta-item">
               <Search size={16} />

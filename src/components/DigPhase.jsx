@@ -309,7 +309,12 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
               <div className="field-note-stat"><strong>{disturbanceCount}</strong><span>Disturbance items</span></div>
               <div className="field-note-stat"><strong>{recoveredArtifacts.length}</strong><span>Total items</span></div>
             </div>
-            <button className="btn primary-btn" onClick={() => onComplete(excavatedIds)}>Open Sorting Tent <Tent size={20} /></button>
+            <button
+              className="btn primary-btn"
+              onClick={() => onComplete(recoveredArtifacts)}
+            >
+              Open Sorting Tent <Tent size={20} />
+            </button>
           </div>
         </div>
       )}
