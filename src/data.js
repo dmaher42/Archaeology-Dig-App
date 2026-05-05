@@ -6,35 +6,35 @@ export const CATEGORIES = [
   {
     id: 'objects',
     title: 'Artefacts / Objects',
-    description: 'Human-made items that can usually be moved, such as tools, jewellery, pots or weapons.',
+    description: 'Human-made items that people used or valued.',
     icon: Package,
     color: '#f59e0b'
   },
   {
     id: 'remains',
     title: 'Human Remains',
-    description: 'Bones, teeth, mummies or other remains that help us understand people from the past.',
+    description: 'Physical evidence from people who lived in the past.',
     icon: Skull,
     color: '#a855f7'
   },
   {
     id: 'structures',
     title: 'Features / Structures',
-    description: 'Built or changed places, such as walls, tombs, roads, ruins, hearths or buildings.',
+    description: 'Built or changed places that remain at a site.',
     icon: Landmark,
     color: '#14b8a6'
   },
   {
     id: 'environment',
     title: 'Environmental Evidence',
-    description: 'Natural evidence such as seeds, ash, silt, shells or animal bones that helps explain the past environment.',
+    description: 'Natural evidence that helps explain the past environment.',
     icon: Leaf,
     color: '#84cc16'
   },
   {
     id: 'written',
     title: 'Written Sources',
-    description: 'Writing, symbols, inscriptions, tablets or records from the past.',
+    description: 'Writing, symbols or records from the past.',
     icon: ScrollText,
     color: '#60a5fa'
   }

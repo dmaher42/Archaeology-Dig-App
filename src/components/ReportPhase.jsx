@@ -7,23 +7,22 @@ import {
   getEvidenceImagePath,
   CATEGORIES
 } from '../utils/gameLogic';
-import { getIcon } from './Icons';
 
 export function ReportPhase({ 
   activeArtifacts, 
   itemsLocation, 
   hypotheses, 
   siteName, 
-  finalConclusion, 
   currentScenario, 
   onBack, 
   onRetry, 
-  currentEvent, 
   curatedItems, 
   plaques, 
   finalExhibitionStatement, 
   onBackToMenu 
 }) {
+  const exhibitionSiteName = siteName?.replace(/^Mock\s*/i, '').trim() || siteName || 'Unknown Site';
+
   const summary = useMemo(() => {
     const categoriesUsed = CATEGORIES.map(cat => ({
       ...cat,
@@ -88,7 +87,24 @@ export function ReportPhase({
 
         {curatedFinds.length > 0 && (
           <div className="museum-export-section">
-             <h3>Museum Exhibition: {siteName}</h3>
+             <div className="museum-export-title-block">
+               <div className="museum-export-kicker">Museum Exhibition Record</div>
+               <h3>Site: {exhibitionSiteName}</h3>
+               <div className="museum-export-title-fields" aria-label="Exhibition record fields">
+                 <div className="museum-export-title-field">
+                   <strong>Curator</strong>
+                   <span>____________________</span>
+                 </div>
+                 <div className="museum-export-title-field">
+                   <strong>Class</strong>
+                   <span>____________________</span>
+                 </div>
+                 <div className="museum-export-title-field">
+                   <strong>Date</strong>
+                   <span>____________________</span>
+                 </div>
+               </div>
+             </div>
              
              {finalExhibitionStatement && (
                <div className="museum-export-final-statement">
@@ -118,7 +134,7 @@ export function ReportPhase({
                          {analysis && typeof analysis === 'object' && (
                            <div className="museum-export-analysis">
                              <strong>What this reveals</strong>
-                             <p><span>{analysis.promptTitle}:</span> {analysis.note}</p>
+                             <p><span>{analysis.promptTitle}</span> {analysis.note}</p>
                            </div>
                          )}
                        </div>
@@ -185,6 +201,19 @@ export function ReportPhase({
          <button className="btn primary-btn" onClick={() => handlePrint('museum')} disabled={curatedFinds.length === 0}>
            Export Exhibition Plaques
          </button>
+         <aside className="museum-save-instructions" aria-label="Save as PDF Instructions">
+           <div className="museum-save-instructions-title">Save as PDF Instructions</div>
+           <ol className="museum-save-instructions-list">
+             <li>Click Print / Save as PDF.</li>
+             <li>In the print window, choose Save as PDF.</li>
+             <li>Choose Portrait.</li>
+             <li>Turn off Headers and footers if the option appears.</li>
+             <li>Check the preview.</li>
+             <li>Click Save.</li>
+             <li>Name your file: Firstname_Lastname_Museum_Exhibition.</li>
+             <li>Upload the PDF to Google Classroom.</li>
+           </ol>
+         </aside>
          <button className="btn" onClick={onRetry} style={{marginLeft: 'auto', background: 'var(--accent)', color: '#111', borderColor: 'var(--accent)'}}>
            <RefreshCw size={20} style={{verticalAlign:'middle', marginRight:'5px'}} />
            Start New Investigation

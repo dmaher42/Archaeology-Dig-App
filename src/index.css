@@ -5279,6 +5279,34 @@ textarea.lab-note-textarea:focus {
   margin-top: 2rem;
 }
 
+.museum-save-instructions {
+  max-width: 320px;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid rgba(139, 106, 72, 0.28);
+  border-radius: 12px;
+  background: rgba(255, 250, 242, 0.92);
+  color: #3c2616;
+  box-shadow: 0 6px 18px rgba(83, 52, 25, 0.08);
+}
+
+.museum-save-instructions-title {
+  margin-bottom: 0.45rem;
+  color: #8b5a2b;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.museum-save-instructions-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.28rem;
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
 .starter-btn {
   background: rgba(255,255,255,0.05);
   border: 1px solid var(--sand-600);
@@ -5315,6 +5343,12 @@ textarea.lab-note-textarea:focus {
   overflow: hidden;
 }
 
+.museum-export-title-block {
+  padding: 1.1rem 1.2rem 0.95rem;
+  background: linear-gradient(180deg, #fffaf2 0%, #fff4e6 100%);
+  border-bottom: 1px solid #dfc39f;
+}
+
 .museum-export-cover {
   padding: 1.35rem;
   background: linear-gradient(135deg, #2c1d12 0%, #6e421f 100%);
@@ -5337,6 +5371,44 @@ textarea.lab-note-textarea:focus {
   gap: 0.5rem;
   margin: 0 0 0.4rem;
   font-size: 1.55rem;
+}
+
+.museum-export-title-block h3 {
+  margin: 0.2rem 0 0.75rem;
+  color: #2c1d12;
+  font-family: 'Cinzel', serif;
+  font-size: 1.4rem;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.museum-export-title-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.museum-export-title-field {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid rgba(139, 106, 72, 0.24);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.78);
+  color: #3c2616;
+}
+
+.museum-export-title-field strong {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #8b5a2b;
+}
+
+.museum-export-title-field span {
+  font-size: 0.92rem;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
 }
 
 .museum-export-cover p {
@@ -5476,6 +5548,8 @@ textarea.lab-note-textarea:focus {
   font-weight: 900;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  white-space: nowrap;
+  word-break: keep-all;
 }
 
 .museum-export-card h4 {
@@ -5483,6 +5557,8 @@ textarea.lab-note-textarea:focus {
   color: #20140d;
   font-size: 1.02rem;
   line-height: 1.15;
+  word-break: normal;
+  overflow-wrap: normal;
 }
 
 .museum-export-label,
@@ -5527,6 +5603,11 @@ textarea.lab-note-textarea:focus {
 
 /* Printing */
 @media print {
+  @page {
+    size: A4 landscape;
+    margin: 10mm;
+  }
+
   body { background: white; color: black; }
   .hide-on-print { display: none !important; }
   .report-container { padding: 0; max-width: 100%; }
@@ -5541,25 +5622,62 @@ textarea.lab-note-textarea:focus {
     border-color: #22c55e;
     color: #15803d;
   }
-  .print-mode-museum .report-context-card,
-  .print-mode-museum .evidence-summary-card,
-  .print-mode-museum .report-header,
-  .print-mode-museum .report-body {
+  .print-museum-only .report-context-card,
+  .print-museum-only .evidence-summary-card,
+  .print-museum-only .report-header,
+  .print-museum-only .report-body {
     display: none !important;
   }
-  .print-mode-museum .museum-exhibition-section {
+  .print-museum-only .museum-exhibition-section {
     display: block !important;
     margin-top: 0 !important;
     break-inside: avoid;
     border: 0;
+  }
+  .print-museum-only .museum-export-title-block {
+    border: 1px solid #8b6a48;
+    background: white;
+    padding: 0.7rem 0.8rem 0.75rem;
+    margin-bottom: 0.6rem;
+    box-shadow: none;
+    break-inside: avoid;
+    page-break-after: avoid;
+  }
+  .print-museum-only .museum-export-title-block h3 {
+    color: #111;
+    font-size: 1.08rem;
+    margin: 0.1rem 0 0.5rem;
+    white-space: nowrap;
+  }
+  .print-museum-only .museum-export-title-fields {
+    grid-template-columns: 1.15fr 1fr 1fr;
+    gap: 0.45rem;
+  }
+  .print-museum-only .museum-export-title-field {
+    border-color: #9d8a71;
+    background: white;
+    padding: 0.45rem 0.5rem;
+  }
+  .print-museum-only .museum-export-title-field strong,
+  .print-museum-only .museum-export-title-field span {
+    color: #111;
+  }
+  .print-museum-only .museum-export-title-field span {
+    font-size: 0.8rem;
+  }
+  .print-museum-only .museum-export-final-statement {
+    display: none !important;
+  }
+  .print-museum-only .museum-save-instructions {
+    display: none !important;
   }
   .museum-export-card {
     break-inside: avoid;
   }
   .museum-export-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.75rem;
-    padding: 0.8rem 0;
+    gap: 0.55rem;
+    padding: 0.35rem 0 0;
   }
   .museum-export-cover {
     color: #111;
@@ -5593,10 +5711,46 @@ textarea.lab-note-textarea:focus {
   .museum-export-card {
     box-shadow: none;
     border-color: #bbb;
+    border-radius: 8px;
   }
   .museum-export-card img,
   .museum-export-image-placeholder {
-    height: 120px;
+    height: 92px;
+  }
+  .museum-export-card-body {
+    padding: 0.65rem 0.7rem 0.7rem;
+    gap: 0.42rem;
+  }
+  .museum-export-card h4 {
+    font-size: 0.88rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .museum-export-category {
+    font-size: 0.62rem;
+    letter-spacing: 0.06em;
+  }
+  .museum-export-label,
+  .museum-export-evidence,
+  .museum-export-analysis {
+    border-left-width: 2px;
+    padding-left: 0.45rem;
+  }
+  .museum-export-label strong,
+  .museum-export-evidence strong,
+  .museum-export-analysis strong {
+    font-size: 0.62rem;
+    margin-bottom: 0.12rem;
+  }
+  .museum-export-label p,
+  .museum-export-evidence p,
+  .museum-export-analysis p {
+    font-size: 0.7rem;
+    line-height: 1.22;
+  }
+  .museum-export-analysis span {
+    font-weight: 800;
   }
 }
 
@@ -7373,28 +7527,29 @@ textarea.lab-note-textarea:focus {
     width: 100% !important;
   }
 
-  /* Museum Export Grid: Force 3 columns for plaques */
-  .museum-export-grid {
+  .print-museum-only .museum-export-grid {
     display: grid !important;
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: 15px !important;
-    padding: 10px !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 0.55rem !important;
+    padding: 0.35rem 0 0 !important;
     width: 100% !important;
   }
 
-  /* Compact Card for Print */
-  .museum-export-card {
+  .print-museum-only .museum-export-card {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
-    border: 1px solid #ddd !important;
+    border: 1px solid #bbb !important;
     background: white !important;
-    margin-bottom: 20px !important;
+    margin-bottom: 0 !important;
     display: flex !important;
     flex-direction: column !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
   }
 
-  .museum-export-card img {
-    height: 140px !important;
+  .print-museum-only .museum-export-card img,
+  .print-museum-only .museum-export-image-placeholder {
+    height: 92px !important;
     width: 100% !important;
     object-fit: contain !important;
     background: #fdfdfd !important;
@@ -7402,24 +7557,38 @@ textarea.lab-note-textarea:focus {
     border-bottom: 1px solid #eee !important;
   }
 
-  .museum-export-card-body {
-    padding: 10px !important;
+  .print-museum-only .museum-export-card-body {
+    padding: 0.65rem 0.7rem 0.7rem !important;
+    gap: 0.42rem !important;
   }
 
-  .museum-export-card h4 {
-    font-size: 1rem !important;
-    margin: 5px 0 !important;
+  .print-museum-only .museum-export-card h4 {
+    font-size: 0.88rem !important;
+    margin: 0 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
   }
 
-  .museum-export-label p {
-    font-size: 0.9rem !important;
-    line-height: 1.3 !important;
+  .print-museum-only .museum-export-category {
+    font-size: 0.62rem !important;
+    letter-spacing: 0.06em !important;
+    white-space: nowrap !important;
+    word-break: keep-all !important;
+  }
+
+  .print-museum-only .museum-export-label p,
+  .print-museum-only .museum-export-evidence p,
+  .print-museum-only .museum-export-analysis p {
+    font-size: 0.7rem !important;
+    line-height: 1.22 !important;
     margin-top: 2px !important;
   }
 
-  .museum-export-evidence, .museum-export-analysis {
-    font-size: 0.75rem !important;
-    margin-top: 8px !important;
+  .print-museum-only .museum-export-label strong,
+  .print-museum-only .museum-export-evidence strong,
+  .print-museum-only .museum-export-analysis strong {
+    font-size: 0.62rem !important;
   }
 
   /* Museum Mode: Hide the dossier paperwork */
