@@ -69,44 +69,16 @@ export function ActivityMenu({
       </div>
 
       <div className="activity-menu-grid">
-        <article className={`activity-card glass-card ${hasSavedInvestigation ? 'has-save' : ''}`}>
-          <div className="activity-card-header">
-            <div className="activity-card-icon activity-card-icon--investigation">
-              <Pickaxe size={24} />
-            </div>
-            <div className="activity-time-tag">45-60 MINS</div>
-          </div>
-          <div className="activity-card-copy">
-            <h3>Full Investigation</h3>
-            <p>Recover finds, sort evidence, and build a museum display.</p>
-          </div>
-          <div className="activity-card-actions">
-            {hasSavedInvestigation ? (
-              <div className="activity-card-button-group">
-                <button type="button" className="btn primary-btn activity-card-action pulse-btn" onClick={onResumeInvestigation}>
-                  Resume Mission
-                </button>
-                <button type="button" className="btn secondary-btn activity-card-action" onClick={() => setShowCivSelection(true)}>
-                  Start New Mission
-                </button>
-              </div>
-            ) : (
-              <button type="button" className="btn primary-btn activity-card-action" onClick={() => setShowCivSelection(true)}>
-                Start New Mission
-              </button>
-            )}
-          </div>
-        </article>
-
+        {/* Basic Training */}
         <article className="activity-card glass-card">
           <div className="activity-card-header">
             <div className="activity-card-icon activity-card-icon--training">
               <MapPin size={24} />
             </div>
-            <div className="activity-time-tag">5-10 MINS</div>
+            <div className="activity-time-tag">5-10 MINS | PRACTICE</div>
           </div>
           <div className="activity-card-copy">
-            <h3>Basic Training</h3>
+            <h3>Archaeologist Training</h3>
             <p>Practise the five core investigation steps in isolation.</p>
           </div>
           <div className="activity-card-actions">
@@ -116,30 +88,57 @@ export function ActivityMenu({
           </div>
         </article>
 
+        {/* Full Investigation */}
+        <article className={`activity-card glass-card ${hasSavedInvestigation ? 'has-save' : ''}`}>
+          <div className="activity-card-header">
+            <div className="activity-card-icon activity-card-icon--investigation">
+              <Pickaxe size={24} />
+            </div>
+            <div className="activity-time-tag">45-60 MINS | SITE MISSION</div>
+          </div>
+          <div className="activity-card-copy">
+            <h3>Full Investigation</h3>
+            <p>Recover finds, sort evidence, and build a museum display.</p>
+          </div>
+          <div className="activity-card-actions">
+            <button 
+              type="button" 
+              className={`btn primary-btn activity-card-action ${hasSavedInvestigation ? 'pulse-btn' : ''}`} 
+              onClick={hasSavedInvestigation ? onResumeInvestigation : () => setShowCivSelection(true)}
+            >
+              {hasSavedInvestigation ? 'Resume Mission' : 'Start New Mission'}
+            </button>
+            {hasSavedInvestigation && (
+              <button type="button" className="btn secondary-btn activity-card-action" onClick={() => setShowCivSelection(true)}>
+                Start New
+              </button>
+            )}
+          </div>
+        </article>
+
+        {/* Antiquities Bureau */}
         <article className={`activity-card glass-card ${hasSavedBureau ? 'has-save' : ''}`}>
           <div className="activity-card-header">
             <div className="activity-card-icon activity-card-icon--bureau">
               <FileText size={24} />
             </div>
-            <div className="activity-time-tag">15-20 MINS</div>
+            <div className="activity-time-tag">15-20 MINS | DEDUCTION</div>
           </div>
           <div className="activity-card-copy">
             <h3>Antiquities Bureau</h3>
             <p>Solve high-stakes civilisation cases using evidence clues.</p>
           </div>
           <div className="activity-card-actions">
-            {hasSavedBureau ? (
-              <div className="activity-card-button-group">
-                <button type="button" className="btn primary-btn activity-card-action pulse-btn" onClick={onResumeBureau}>
-                  Resume Mission
-                </button>
-                <button type="button" className="btn secondary-btn activity-card-action" onClick={onStartBureau}>
-                  Start New Mission
-                </button>
-              </div>
-            ) : (
-              <button type="button" className="btn primary-btn activity-card-action" onClick={onStartBureau}>
-                Start New Mission
+            <button 
+              type="button" 
+              className={`btn primary-btn activity-card-action ${hasSavedBureau ? 'pulse-btn' : ''}`} 
+              onClick={hasSavedBureau ? onResumeBureau : onStartBureau}
+            >
+              {hasSavedBureau ? 'Resume Mission' : 'Start New Mission'}
+            </button>
+            {hasSavedBureau && (
+              <button type="button" className="btn secondary-btn activity-card-action" onClick={onStartBureau}>
+                Start New
               </button>
             )}
           </div>

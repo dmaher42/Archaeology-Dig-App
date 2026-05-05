@@ -245,6 +245,8 @@ export const createNewBureauSession = (startPhase = 'bureauBriefing', startCivil
     showEvidenceFilter: false,
     selectedAnswerIndex: null,
     selectedClaimCivilisation: '',
+    selectedClaimClueType: '',
+    selectedClaimEvidence: '',
     selectedLogAnswerIndex: null,
     selectedComparisonAnswerIndex: null,
     pendingCaseOutcome: null,
@@ -343,7 +345,10 @@ export const rebuildSavedSession = (saved) => {
     return {
       mode: 'bureau',
       phase: saved.phase || 'bureauBriefing',
-      bureauState: saved.bureauState || createNewBureauSession(saved.phase),
+      bureauState: {
+        ...createNewBureauSession(saved.phase),
+        ...(saved.bureauState || {}),
+      },
       savedAt: saved.savedAt || null,
     };
   }

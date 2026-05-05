@@ -512,7 +512,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 2rem;
+  margin-top: 1rem;
   gap: 1rem;
 }
 
@@ -526,7 +526,7 @@ body {
 }
 
 .bureau-phase {
-  gap: 1.5rem;
+  gap: 1rem;
   min-height: 0;
 }
 
@@ -549,7 +549,7 @@ body {
 }
 
 .bureau-score-value {
-  font-size: 1.5rem;
+  font-size: 1.1rem;
   font-weight: 800;
   color: var(--accent);
   line-height: 1;
@@ -558,7 +558,7 @@ body {
 .bureau-tier-tabs {
   display: flex;
   gap: 2px;
-  margin: 1.5rem 0;
+  margin: 0.75rem 0;
   border-bottom: 2px solid rgba(168, 134, 97, 0.2);
   padding-bottom: 0;
 }
@@ -5392,9 +5392,9 @@ textarea.lab-note-textarea:focus {
 .bureau-results-item,
 .bureau-sidebar-block {
   border: 1px solid rgba(168, 134, 97, 0.22);
-  border-radius: 16px;
+  border-radius: 12px;
   background: rgba(0, 0, 0, 0.22);
-  padding: 0.9rem 1rem;
+  padding: 0.5rem 0.75rem;
 }
 
 .bureau-tier-card.hidden {
@@ -5423,11 +5423,11 @@ textarea.lab-note-textarea:focus {
   align-items: flex-start;
   gap: 0.75rem;
   text-align: left;
-  border-radius: 16px;
+  border-radius: 12px;
   border: 1px solid rgba(168, 134, 97, 0.24);
   background: rgba(10, 8, 6, 0.48);
   color: var(--sand-100);
-  padding: 0.9rem;
+  padding: 0.6rem;
   cursor: pointer;
   transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 }
@@ -5461,8 +5461,8 @@ textarea.lab-note-textarea:focus {
 }
 
 .bureau-feedback-note {
-  margin-top: 1rem;
-  padding: 0.9rem 1rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
   border-radius: 14px;
   background: rgba(125, 211, 252, 0.12);
   border: 1px solid rgba(125, 211, 252, 0.22);
@@ -5670,7 +5670,7 @@ textarea.lab-note-textarea:focus {
 .bureau-investigation-layout {
     display: grid !important;
     grid-template-columns: 1.5fr 1fr !important;
-    gap: 1.25rem !important;
+    gap: 0.75rem !important;
     align-items: stretch !important;
     width: 100% !important;
     max-width: 1600px !important;
@@ -5684,14 +5684,14 @@ textarea.lab-note-textarea:focus {
     height: 100%;
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 0.75rem;
     padding: 2.5rem !important; /* Generous padding for the main game part */
     overflow-y: auto;
 }
 
 .bureau-case-info h2 {
     font-family: 'Cinzel', serif !important;
-    font-size: 1.8rem !important;
+    font-size: 1.35rem !important;
     color: var(--arch-text);
     margin: 0.5rem 0;
 }
@@ -5737,7 +5737,7 @@ textarea.lab-note-textarea:focus {
     align-items: center !important;
     justify-content: center !important;
     text-align: center;
-    padding: 0.35rem !important;
+    padding: 0.2rem !important;
     background: rgba(255, 255, 255, 0.03) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
     border-radius: 12px !important;
@@ -5753,8 +5753,8 @@ textarea.lab-note-textarea:focus {
 }
 
 .bureau-suspect-icon-box {
-    width: 32px !important;
-    height: 32px !important;
+    width: 24px !important;
+    height: 24px !important;
     background: rgba(232, 158, 93, 0.1) !important;
     border-radius: 8px !important;
     display: grid;
@@ -5764,7 +5764,7 @@ textarea.lab-note-textarea:focus {
 
 .bureau-suspect-name {
     font-family: 'Outfit', sans-serif !important; /* Cleaner font for small text */
-    font-size: 0.75rem !important;
+    font-size: 0.65rem !important;
     font-weight: 700;
     line-height: 1.1;
     color: var(--sand-100);
@@ -5798,8 +5798,8 @@ textarea.lab-note-textarea:focus {
    ========================================================================== */
 
 .bureau-suspect-board {
-    gap: 0.5rem !important; /* Reduce gap between header, description, and grid */
-    padding: 1.25rem !important;
+    gap: 0.25rem !important;
+    padding: 0.75rem !important;
 }
 
 .bureau-suspect-header {
@@ -5812,7 +5812,7 @@ textarea.lab-note-textarea:focus {
 
 .bureau-suspect-board p {
     margin-bottom: 0.25rem !important;
-    font-size: 0.85rem !important;
+    font-size: 0.75rem !important;
     line-height: 1.2 !important;
     opacity: 0.8;
 }
@@ -5829,20 +5829,20 @@ textarea.lab-note-textarea:focus {
    ========================================================================== */
 
 .bureau-case-info h2 {
-    font-size: 2rem !important; /* Balanced header size */
+    font-size: 1.35rem !important;
 }
 
 .bureau-evidence-text p {
-    font-size: 1.25rem !important; /* Balanced evidence size */
-    line-height: 1.5 !important;
+    font-size: 1.05rem !important;
+    line-height: 1.3 !important;
 }
 
 .bureau-case-file {
-    padding: 1.75rem !important; /* Reduce padding slightly */
+    padding: 1rem !important;
 }
 
 .bureau-evidence-box {
-    padding: 1.5rem !important;
+    padding: 1rem !important;
     border-radius: 16px !important;
 }
 
@@ -5970,14 +5970,14 @@ textarea.lab-note-textarea:focus {
 .lab-prompt-desc {
     display: block !important;
     color: var(--sand-300) !important;
-    font-size: 0.75rem !important;
-    line-height: 1.2 !important;
+    font-size: 0.65rem !important;
+    line-height: 1.1 !important;
 }
 
 /* Ensure icons in prompt buttons are styled */
 .lab-prompt-icon {
-    width: 32px !important;
-    height: 32px !important;
+    width: 24px !important;
+    height: 24px !important;
     border-radius: 8px !important;
     background: rgba(255, 255, 255, 0.05) !important;
     display: flex !important;
@@ -5998,7 +5998,7 @@ textarea.lab-note-textarea:focus {
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1rem;
   width: 100%;
-  margin-top: 1rem;
+  margin-top: 0.5rem;
   margin-bottom: 2rem;
 }
 
@@ -6012,7 +6012,7 @@ textarea.lab-note-textarea:focus {
   transition: all 0.2s ease;
   cursor: pointer;
   background: rgba(255, 255, 255, 0.03);
-  border-radius: 16px;
+  border-radius: 12px;
 }
 
 .civ-selection-card:hover {
@@ -6148,4 +6148,349 @@ textarea.lab-note-textarea:focus {
   to { opacity: 1; transform: translateY(0); }
 }
 
+
+
+.bureau-case-instruction { font-size: 0.82rem !important; opacity: 0.75; margin-bottom: 0.5rem !important; line-height: 1.2 !important; }
+
+/* --- EVIDENCE-BASED FINGERPRINTING UPDATES --- */
+
+/* Main Menu Symmetry */
+.activity-menu-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 1.5rem !important;
+  align-items: stretch !important;
+  margin-top: 2rem;
+}
+
+.activity-card {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(232, 158, 93, 0.15) !important;
+  transition: transform 0.3s ease, border-color 0.3s ease !important;
+}
+
+.activity-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--accent) !important;
+  background: rgba(232, 158, 93, 0.05) !important;
+}
+
+/* Bureau Dossier Aesthetic */
+.bureau-investigation-layout {
+  display: grid !important;
+  grid-template-columns: 1.1fr 0.9fr !important;
+  gap: 1.5rem !important;
+  margin-top: 1rem;
+}
+
+.bureau-case-file {
+  background: #f4edd8 !important; /* Manila Paper */
+  background-image: radial-gradient(#dcd3b6 1px, transparent 1px) !important;
+  background-size: 20px 20px !important;
+  color: #2c1d12 !important;
+  border: 1px solid #c5bba0 !important;
+  border-radius: 4px 24px 4px 4px !important;
+  padding: 1.25rem !important;
+  box-shadow: 
+    0 10px 30px rgba(0,0,0,0.3),
+    inset 0 0 40px rgba(139, 106, 72, 0.1) !important;
+}
+
+.bureau-case-file::before {
+  content: "OFFICIAL DOSSIER";
+  position: absolute;
+  top: -1.4rem;
+  left: 2rem;
+  background: #f4edd8;
+  padding: 0.3rem 1.5rem;
+  font-size: 0.7rem;
+  font-weight: 900;
+  color: #8b6a48;
+  border: 1px solid #c5bba0;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  letter-spacing: 0.15em;
+}
+
+.bureau-case-file h2 {
+  font-family: 'Cinzel', serif !important;
+  color: #1a1510 !important;
+  border-bottom: 2px solid #2c1d12;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem !important;
+}
+
+.bureau-case-file .training-kicker {
+  color: #8b6a48 !important;
+  opacity: 0.8;
+}
+
+.bureau-clue-dossier-item {
+  margin-bottom: 1.5rem;
+  background: rgba(44, 29, 18, 0.05);
+  padding: 1rem;
+  border-radius: 4px;
+  border-left: 5px solid #2c1d12;
+  position: relative;
+}
+
+.bureau-clue-badge {
+  position: absolute;
+  top: -0.6rem;
+  left: 1rem;
+  background: #2c1d12;
+  color: #f4edd8;
+  font-size: 0.6rem;
+  font-weight: 900;
+  padding: 0.15rem 0.6rem;
+  border-radius: 2px;
+  letter-spacing: 0.1em;
+}
+
+.bureau-clue-content p {
+  margin: 0;
+  color: #2c1d12 !important;
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+
+/* Suspect Board Discard Logic */
+.bureau-suspect-card.is-discarded {
+  opacity: 0.4 !important;
+  filter: grayscale(1) !important;
+  background: rgba(0,0,0,0.3) !important;
+  border-color: rgba(255,255,255,0.05) !important;
+  transform: scale(0.96);
+}
+
+.bureau-discard-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-15deg);
+  border: 2px solid #ef4444;
+  color: #ef4444;
+  padding: 0.2rem 0.6rem;
+  font-weight: 900;
+  font-size: 0.7rem;
+  background: rgba(26, 21, 16, 0.9);
+  border-radius: 4px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.bureau-unlock-tag {
+  font-size: 0.65rem;
+  font-weight: 900;
+  color: var(--accent);
+  background: rgba(232, 158, 93, 0.1);
+  padding: 0.2rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba(232, 158, 93, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.bureau-unlock-tag.unlocked {
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.1);
+  border-color: rgba(74, 222, 128, 0.3);
+}
+
+.bureau-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.bureau-suspect-remove-btn {
+  transition: all 0.2s ease;
+}
+
+.bureau-suspect-remove-btn:hover {
+  transform: scale(1.2);
+  color: #ef4444 !important;
+}
+
+.is-discarded .bureau-suspect-remove-btn {
+  color: #4ade80 !important;
+}
+
+.bureau-claim-screen,
+.bureau-mission-audit {
+  display: grid;
+  gap: 1rem;
+}
+
+.bureau-round-tag {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid rgba(232, 158, 93, 0.22);
+  background: rgba(232, 158, 93, 0.08);
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.bureau-sentence-builder {
+  display: grid;
+  gap: 0.85rem;
+  padding: 0.95rem;
+  border-radius: 16px;
+  border: 1px solid rgba(168, 134, 97, 0.2);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.bureau-sentence-phrase {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--sand-100);
+  line-height: 1.45;
+}
+
+.bureau-sentence-select {
+  min-width: min(100%, 260px);
+  max-width: 100%;
+  padding: 0.7rem 0.8rem;
+  border-radius: 12px;
+  border: 1px solid rgba(168, 134, 97, 0.35);
+  background: rgba(20, 16, 11, 0.9);
+  color: var(--sand-100);
+  font: inherit;
+}
+
+.bureau-sentence-select:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.bureau-sentence-preview {
+  padding: 0.85rem 0.95rem;
+  border-radius: 14px;
+  border: 1px solid rgba(232, 158, 93, 0.22);
+  background: rgba(232, 158, 93, 0.08);
+  color: var(--sand-100);
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.bureau-results-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.bureau-audit-panel {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(168, 134, 97, 0.22);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.bureau-audit-panel h3 {
+  margin: 0;
+  color: var(--sand-100);
+  font-size: 1rem;
+}
+
+.bureau-audit-panel p {
+  margin: 0;
+  color: var(--sand-400);
+  font-size: 0.88rem;
+}
+
+.bureau-audit-panel--full {
+  margin-top: 0.25rem;
+}
+
+.bureau-audit-sentences {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.bureau-audit-sentence {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.85rem 0.95rem;
+  border-radius: 12px;
+  border: 1px solid rgba(168, 134, 97, 0.18);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.bureau-audit-sentence-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.bureau-audit-sentence-head span {
+  flex: 0 0 auto;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(232, 158, 93, 0.12);
+  color: var(--accent);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.bureau-audit-sentence p {
+  margin: 0;
+  color: var(--sand-300);
+  line-height: 1.45;
+}
+
+.bureau-empty-state {
+  margin: 0;
+  color: var(--sand-400);
+  font-size: 0.9rem;
+}
+
+.bureau-archived-title {
+  color: var(--sand-400);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.bureau-suspect-grid--discarded {
+  margin-top: 0.65rem;
+}
+
+@media (max-width: 1100px) {
+  .bureau-results-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .bureau-sentence-phrase {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .bureau-sentence-select {
+    width: 100%;
+  }
+
+  .bureau-audit-sentence-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
 
