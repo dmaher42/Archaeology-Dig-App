@@ -2410,13 +2410,14 @@ body {
 
 /* Museum Phase Layout */
 .museum-phase {
-  height: calc(100vh - 85px);
+  height: calc(100vh - 80px);
+  gap: 0.65rem !important;
 }
 
 .museum-layout {
   display: grid;
   grid-template-columns: 310px 1fr;
-  gap: 1.25rem;
+  gap: 0.75rem;
   flex: 1;
   min-height: 0;
 }
@@ -2431,7 +2432,7 @@ body {
 }
 
 .museum-panel-heading {
-  padding: 1rem 1.15rem 0.2rem;
+  padding: 0.65rem 1.15rem 0.15rem;
   font-family: 'Cinzel', serif;
   font-size: 1.05rem;
   font-weight: 700;
@@ -2554,7 +2555,7 @@ body {
 .museum-display-grid {
   flex: 1;
   overflow-y: auto;
-  padding: 1.15rem;
+  padding: 0.85rem;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
   gap: 1.15rem;
@@ -2565,11 +2566,11 @@ body {
 .museum-display-card {
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid var(--arch-panel-border);
-  border-radius: 14px;
-  padding: 1rem 1.15rem;
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.65rem;
   box-shadow: 0 6px 20px rgba(0,0,0,0.12);
 }
 
@@ -2605,7 +2606,7 @@ body {
 }
 
 .museum-display-visual {
-  height: 120px;
+  height: 100px;
   background: rgba(0, 0, 0, 0.2);
   border-radius: 8px;
   display: flex;
@@ -2626,11 +2627,11 @@ body {
   background: rgba(232, 158, 93, 0.04);
   border-left: 2px solid var(--arch-accent);
   border-radius: 2px 8px 8px 2px;
-  padding: 0.6rem 0.85rem;
-  font-size: 0.76rem;
-  line-height: 1.35;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.74rem;
+  line-height: 1.3;
   color: var(--sand-300);
-  margin-bottom: 0.85rem;
+  margin-bottom: 0.65rem;
 }
 
 .museum-display-analysis-box strong {
@@ -2701,6 +2702,13 @@ body {
 
 .museum-statement-input-wrap {
   padding: 0 1.15rem 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.finish-museum-btn {
+  margin-top: 0.75rem;
+  width: 100%;
 }
 
 .museum-final-statement-box .museum-panel-heading {
