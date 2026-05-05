@@ -126,6 +126,10 @@ export function MuseumPhase({
                   onChange={(e) => setFinalExhibitionStatement(e.target.value)}
                   placeholder="The evidence from this site reveals that..."
                 />
+                <button onClick={onFinish} className="btn primary-btn finish-museum-btn">
+                  <Send size={14} />
+                  Finish Exhibition
+                </button>
               </div>
             </div>
           )}

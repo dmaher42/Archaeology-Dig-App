@@ -2429,6 +2429,7 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-height: 0;
 }
 
 .museum-panel-heading {
@@ -2681,7 +2682,8 @@ body {
 
 .museum-statement-textarea {
   width: 100%;
-  min-height: 80px;
+  min-height: 64px;
+  height: 64px;
   background: rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(232, 158, 93, 0.3);
   border-radius: 10px;
@@ -2701,24 +2703,26 @@ body {
 }
 
 .museum-statement-input-wrap {
-  padding: 0 1.15rem 1rem;
+  padding: 0 1.15rem 0.75rem;
   display: flex;
   flex-direction: column;
 }
 
 .finish-museum-btn {
-  margin-top: 0.75rem;
+  margin-top: 0.5rem;
   width: 100%;
+  padding: 0.45rem !important;
+  font-size: 0.75rem !important;
 }
 
 .museum-final-statement-box .museum-panel-heading {
-  padding: 0.8rem 1.15rem 0.2rem;
-  font-size: 0.9rem;
+  padding: 0.5rem 1.15rem 0.15rem;
+  font-size: 0.85rem;
 }
 
 .museum-final-statement-box .museum-panel-subheading {
-  padding: 0 1.15rem 0.6rem;
-  font-size: 0.65rem;
+  padding: 0 1.15rem 0.5rem;
+  font-size: 0.64rem;
 }
 
 .museum-empty-tray, .museum-empty-display {
