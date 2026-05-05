@@ -68,7 +68,7 @@ export const SCENARIOS = [
   },
   {
     id: 'mungo',
-    name: 'The Ancient Dry Lake',
+    name: 'Lake Mungo (The Ancient Dry Lake)',
     civilization: 'Indigenous Australia (Lake Mungo)',
     spark: "Discover the world's oldest ritual burials at an ancient dry lake.",
     historicalContext: "Lake Mungo shows that people have lived here for over 42,000 years. It has some of the world's oldest ritual burials, proving a long and rich history.",
@@ -518,6 +518,32 @@ const BUREAU_CASES_RAW = [
     explanation: 'Correct. Tenochtitlan, chinampas, tribute codices, and Spanish arrival point much more clearly to the Aztec Empire.',
     comparisonTags: ['administration', 'records', 'tribute'],
   },
+  {
+    id: 'bureau_13',
+    civilisation: 'Indigenous Australia (Lake Mungo)',
+    caseTitle: 'The Ancient Lake Clue',
+    dateRange: '42,000 BC - Present',
+    tier1SiteClue: 'This site is an ancient dry lake in Australia where the wind reveals ancient secrets.',
+    tier2SocietyClue: 'It is home to the world\'s oldest ritual burials, showing a deep spiritual connection to Country.',
+    tier3LegacyClue: 'It is linked to Mungo Man, Mungo Lady, ochre rituals, and footprints from 20,000 years ago.',
+    civilisationOptions: [
+      'Indigenous Australia (Lake Mungo)',
+      'Mayan Civilisation',
+      'Ancient Egypt',
+      'Inca Empire',
+    ],
+    correctCivilisation: 0,
+    historianLogQuestion: 'Which clue was the strongest evidence?',
+    historianLogOptions: [
+      'The lake clue was interesting, but many civilisations lived near water.',
+      'Mungo Man, Mungo Lady, ochre rituals, and ancient footprints pointed clearly to this specific site.',
+      'The wind clue was useful, but it could happen anywhere.',
+      'The date helped, but it was not the clearest clue.',
+    ],
+    correctHistorianLogAnswer: 1,
+    explanation: 'Correct. Mungo Man, Mungo Lady, and the specific ritual evidence point clearly to Indigenous Australia at Lake Mungo.',
+    comparisonTags: ['records', 'ritual', 'continuity'],
+  },
 ];
 
 export const BUREAU_CASES = BUREAU_CASES_RAW.map(caseItem => ({
@@ -690,5 +716,11 @@ export const BUREAU_RESEARCH_FOCUS = {
     lookFor: ['Tenochtitlan', 'tribute', 'temples', 'chinampas', 'Spanish arrival'],
     inquiryQuestion: 'How did tribute and city life shape the Aztec Empire before Spanish arrival?',
     evidenceReminder: 'Use the booklet to find evidence about empire, trade, religion, and conquest.',
+  },
+  'Indigenous Australia (Lake Mungo)': {
+    spark: "Discover the world's oldest ritual burials at an ancient dry lake.",
+    lookFor: ['ancient dry lake', 'ritual burials', 'Mungo Man and Mungo Lady', 'ochre', 'footprints'],
+    inquiryQuestion: 'How does Lake Mungo provide evidence of long-term cultural continuity and ritual in Australia?',
+    evidenceReminder: 'Use facts about burials, ochre, and footprints to support your historical claims.',
   },
 };
