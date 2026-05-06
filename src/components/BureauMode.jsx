@@ -1,22 +1,39 @@
 import { useState, useEffect, useRef } from 'react';
-import { Landmark } from 'lucide-react';
+import { Landmark, Map, Users, Sparkles, Wrench, Search } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 import { 
   BUREAU_CASES,
   BUREAU_CIVILISATIONS,
+  BUREAU_COMPARISON_DATA,
   createInitialBureauEvidenceFilter,
   createNewBureauSession,
   getBureauClaimValidationMessage,
 } from '../utils/gameLogic';
 
 const BUREAU_TAG_LABELS = {
-  Location: 'Location',
-  Rulers: 'Rulers',
-  Buildings: 'Buildings',
+  Location: 'Geography',
+  Rulers: 'Society',
+  Buildings: 'Legacy',
   Beliefs: 'Beliefs',
   Inventions: 'Inventions',
   Mysteries: 'Mysteries',
+};
+
+const getCategoryIcon = (category) => {
+  const size = 14;
+  switch (category) {
+    case 'Location': 
+    case 'Geography': return <Map size={size} />;
+    case 'Rulers':
+    case 'Society': return <Users size={size} />;
+    case 'Buildings':
+    case 'Legacy': return <Landmark size={size} />;
+    case 'Beliefs': return <Sparkles size={size} />;
+    case 'Inventions': return <Wrench size={size} />;
+    case 'Mysteries': return <Search size={size} />;
+    default: return null;
+  }
 };
 
 const getBureauTagLabel = (tag = '') => BUREAU_TAG_LABELS[tag] ?? tag.replace(/_/g, ' ');
@@ -30,8 +47,9 @@ const getBureauProfileFactsGrouped = (bureauCase) => {
   if (Array.isArray(rawProfileFacts)) {
     return rawProfileFacts.reduce((acc, fact, index) => {
       const clueType = bureauCase?.clueTiers?.[index]?.category || BUREAU_CLUE_TYPES[index] || 'Mysteries';
-      if (!acc[clueType]) acc[clueType] = [];
-      if (fact) acc[clueType].push(fact);
+      const label = BUREAU_TAG_LABELS[clueType] || clueType;
+      if (!acc[label]) acc[label] = [];
+      if (fact) acc[label].push(fact);
       return acc;
     }, {});
   }
@@ -294,6 +312,27 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
         latestOutcome: completedCase || prev.latestOutcome,
       };
 
+      // Trigger comparison round every 2 cases
+      const solvedCount = nextState.caseResults.length;
+      if (solvedCount > 0 && solvedCount % 2 === 0 && solvedCount < totalCases) {
+        // Find a comparison challenge that matches the last two civilisations solved
+        const lastTwo = nextState.caseResults.slice(-2).map(r => r.correctCivilisation);
+        const comparison = BUREAU_COMPARISON_DATA.find(c => 
+          c.civilisations.includes(lastTwo[0]) && c.civilisations.includes(lastTwo[1])
+        ) || BUREAU_COMPARISON_DATA[Math.floor(Math.random() * BUREAU_COMPARISON_DATA.length)];
+
+        return {
+          ...nextState,
+          phase: 'bureauComparison',
+          comparisonResult: {
+            ...comparison,
+            isCorrect: null,
+            submitted: false
+          },
+          selectedComparisonAnswerIndex: null
+        };
+      }
+
       if (nextCaseIndex < totalCases) {
         return {
           ...nextState,
@@ -308,6 +347,32 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
         phase: 'bureauResults',
       };
     });
+  };
+
+  const handleComparisonSelection = (index) => {
+    if (bureauState.comparisonResult?.submitted) return;
+
+    const isCorrect = index === bureauState.comparisonResult.correctAnswer;
+    
+    setBureauState(prev => ({
+      ...prev,
+      selectedComparisonAnswerIndex: index,
+      score: prev.score + (isCorrect ? 2 : 0),
+      comparisonResult: {
+        ...prev.comparisonResult,
+        isCorrect,
+        submitted: true
+      }
+    }));
+
+    if (isCorrect) {
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#e89e5d', '#f4edd8', '#2c1d12']
+      });
+    }
   };
 
   const handleContinueAfterComparison = () => {
@@ -336,6 +401,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
   if (bureauState.phase === 'bureauCase' || bureauState.phase === 'bureauBriefing') {
     const mainContent = isMakingClaim ? (
       <div className="bureau-claim-screen glass-card">
+        <div className="bureau-paper-texture" />
         <div className="bureau-report-header">
           <div>
             <div className="training-kicker">Antiquities Bureau - Case #{bureauState.caseIndex + 1}</div>
@@ -451,6 +517,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
     ) : (
       <div className="bureau-investigation-layout">
         <article className="bureau-case-file glass-card">
+          <div className="bureau-paper-texture" />
           <div className="bureau-report-header">
             <div className="bureau-case-info">
               <div className="training-kicker">Antiquities Case #{bureauState.caseIndex + 1}</div>
@@ -463,6 +530,9 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
               <div className="bureau-score-badge">
                 <span className="bureau-score-label">CURRENT SCORE</span>
                 <span className="bureau-score-value">{bureauState.score}</span>
+                <div className={`bureau-score-stamp visible ${bureauState.score === 0 ? 'pending' : 'active'}`}>
+                  {bureauState.score === 0 ? 'PENDING' : 'ACTIVE'}
+                </div>
               </div>
             </div>
           </div>
@@ -486,8 +556,11 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
                   : 'locked';
               return (
                 <div key={`${item.tier}-${item.category}`} className={`bureau-tier-tab bureau-tier-indicator ${stateClass}`}>
-                  {`Clue ${item.tier}`}
-                  <span>{getBureauTagLabel(item.category)}</span>
+                  <div className="bureau-tier-icon">{getCategoryIcon(item.category)}</div>
+                  <div className="bureau-tier-info">
+                    {`Clue ${item.tier}`}
+                    <span>{getBureauTagLabel(item.category)}</span>
+                  </div>
                 </div>
               );
             })}
@@ -513,33 +586,32 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
           )}
 
           <div className="bureau-case-actions">
-            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-              <button
-                type="button"
-                className="btn primary-btn"
-                onClick={() => {
-                  updateState({ selectedAnswerIndex: null, selectedClaimCivilisation: '' });
-                  setIsMakingClaim(true);
-                }}
-              >
-                Close case now
+            <button
+              type="button"
+              className="btn primary-btn bureau-solve-btn"
+              onClick={() => {
+                updateState({ selectedAnswerIndex: null, selectedClaimCivilisation: '' });
+                setIsMakingClaim(true);
+              }}
+            >
+              Close case now
+            </button>
+            {bureauState.currentTier < 3 && (
+              <button type="button" className="btn bureau-reveal-btn" onClick={revealNextClue}>
+                Reveal Clue {bureauState.currentTier + 1}
               </button>
-              {bureauState.currentTier < 3 && (
-                <button type="button" className="btn" onClick={revealNextClue}>
-                  Reveal Clue {bureauState.currentTier + 1}
-                </button>
-              )}
-              <span className="bureau-simple-points">
-                {bureauState.currentTier < 3 ? `Close case now: ${availableClaimPoints} points` : 'Final claim: 1 point'}
-              </span>
+            )}
+            <div className="bureau-clue-cost">
+              {bureauState.currentTier < 3 ? `Close case now: ${availableClaimPoints} points` : 'Final claim: 1 point'}
             </div>
-            <button type="button" className="btn" onClick={onBackToMenu}>
+            <button type="button" className="btn bureau-back-btn" onClick={onBackToMenu}>
               Back to Main Menu
             </button>
           </div>
         </article>
 
         <aside className="bureau-suspect-board glass-card">
+          <div className="bureau-paper-texture" />
           <div className="bureau-suspect-header">
             <div className="bureau-header-row">
               <h2>Suspect Profiles</h2>
@@ -595,6 +667,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
         {showBriefing && (
           <div className="bureau-briefing-overlay">
             <div className="bureau-briefing-modal">
+              <div className="bureau-paper-texture" />
               <div className="training-kicker">Case Briefing</div>
               <h2>Mission Intelligence</h2>
               <p>
@@ -621,6 +694,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
     return (
       <section className="phase-container bureau-phase">
         <div className="bureau-log glass-card">
+          <div className="bureau-paper-texture" />
           <div className="training-kicker">Historian&apos;s Log - Case #{bureauState.caseIndex + 1}</div>
           <h2>Evidence Review</h2>
           <p>
@@ -695,21 +769,69 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
   }
 
   if (bureauState.phase === 'bureauComparison') {
+    const comp = bureauState.comparisonResult;
     return (
       <section className="phase-container bureau-phase">
         <div className="bureau-comparison glass-card">
+          <div className="bureau-paper-texture" />
           <div className="training-kicker">Comparative Analysis</div>
-          <h2>Comparison Retired</h2>
-          <p>The Bureau now uses the evidence sentence instead. Continue to the next case or the mission audit.</p>
+          <h2>{comp?.title || 'History Comparison'}</h2>
+          <p className="bureau-comparison-question">
+            {comp?.question || 'What is similar about these two civilisations?'}
+          </p>
+
+          <div className="bureau-comparison-options">
+            {comp?.options?.map((option, index) => {
+              const isSelected = bureauState.selectedComparisonAnswerIndex === index;
+              const isCorrect = index === comp.correctAnswer;
+              const showResult = comp.submitted;
+
+              let btnClass = 'bureau-comparison-option';
+              if (showResult) {
+                if (isCorrect) btnClass += ' is-correct';
+                else if (isSelected) btnClass += ' is-incorrect';
+              } else if (isSelected) {
+                btnClass += ' is-selected';
+              }
+
+              return (
+                <button
+                  key={index}
+                  className={btnClass}
+                  onClick={() => handleComparisonSelection(index)}
+                  disabled={showResult}
+                >
+                  <span className="bureau-option-letter">{String.fromCharCode(65 + index)}</span>
+                  <span className="bureau-option-text">{option}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {comp?.submitted && (
+            <div className={`bureau-comparison-feedback ${comp.isCorrect ? 'correct' : 'incorrect'}`}>
+              <div className="bureau-feedback-icon">
+                {comp.isCorrect ? '✓' : '✗'}
+              </div>
+              <div className="bureau-feedback-content">
+                <strong>{comp.isCorrect ? 'Brilliant analysis!' : 'Not quite right.'}</strong>
+                <p>{comp.explanation}</p>
+              </div>
+            </div>
+          )}
 
           <div className="bureau-case-actions">
-            <button
-              type="button"
-              className="btn primary-btn"
-              onClick={handleContinueAfterComparison}
-            >
-              {bureauState.caseIndex + 1 < totalCases ? 'Next Case' : 'View Mission Audit'}
-            </button>
+            {comp?.submitted ? (
+              <button
+                type="button"
+                className="btn primary-btn"
+                onClick={handleContinueAfterComparison}
+              >
+                {bureauState.caseIndex + 1 < totalCases ? 'Next Case' : 'View Mission Audit'}
+              </button>
+            ) : (
+              <p className="bureau-hint">Choose the best historical explanation to continue.</p>
+            )}
             <button type="button" className="btn" onClick={onBackToMenu}>
               Back to Main Menu
             </button>
