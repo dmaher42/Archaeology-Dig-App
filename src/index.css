@@ -5758,19 +5758,29 @@ textarea.lab-note-textarea:focus {
 
 .report-actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
-  gap: 1rem;
+  align-items: flex-start;
+  gap: 0.85rem;
   margin-top: 2rem;
 }
 
+.report-actions > .btn {
+  flex: 0 0 auto;
+  align-self: flex-start;
+}
+
 .museum-save-instructions {
-  max-width: 320px;
+  flex: 1 1 340px;
+  max-width: 360px;
+  min-width: 280px;
   padding: 0.75rem 0.85rem;
   border: 1px solid rgba(139, 106, 72, 0.28);
   border-radius: 12px;
   background: rgba(255, 250, 242, 0.92);
   color: #3c2616;
   box-shadow: 0 6px 18px rgba(83, 52, 25, 0.08);
+  align-self: flex-start;
 }
 
 .museum-save-instructions-title {
