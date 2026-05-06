@@ -184,7 +184,7 @@ export default function App() {
   const [trainingPlacements, setTrainingPlacements] = useState(initialGame.trainingPlacements || Array(TRAINING_STAGES.length).fill(null));
   const [bureauState, setBureauState] = useState(initialBureauGame);
   const [saveMessage, setSaveMessage] = useState('');
-  const [showDevTools, setShowDevTools] = useState(true);
+  const [showDevTools, setShowDevTools] = useState(false);
 
   // Initialize bureauState from saved game if applicable
   useEffect(() => {

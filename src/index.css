@@ -751,6 +751,11 @@ body {
   align-items: center;
   margin-top: 1rem;
   gap: 1rem;
+  position: sticky;
+  bottom: 0.75rem;
+  padding: 0.85rem 0 0.15rem;
+  background: linear-gradient(180deg, rgba(253, 246, 227, 0), rgba(253, 246, 227, 0.96) 30%);
+  z-index: 3;
 }
 
 .primary-btn {
@@ -6577,6 +6582,7 @@ textarea.lab-note-textarea:focus {
   border: 1px solid #c5bba0 !important;
   border-radius: 4px 24px 4px 4px !important;
   padding: 1.25rem !important;
+  padding-bottom: 4.5rem !important;
   box-shadow: 
     0 10px 30px rgba(0,0,0,0.3),
     inset 0 0 40px rgba(139, 106, 72, 0.1) !important;
