@@ -774,6 +774,9 @@ body {
   
   gap: 1.25rem;
   min-height: 0;
+  height: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   color: var(--bureau-ink);
   padding: 1rem 1rem 6rem;
 }
