@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useLayoutEffect } from 'react'; 
 import { 
-  Pickaxe, Clock, Radar, Trophy, RefreshCw, HelpCircle, Lightbulb, 
+  Pickaxe, Clock, Radar, Trophy, RefreshCw, HelpCircle, Lightbulb, Users,
   CheckCircle2, FileText, Tent
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -17,10 +17,16 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
   const [tiles, setTiles] = useState(() => createDigTiles(activeArtifacts, excavatedIds));
   const [flippedIndices, setFlippedIndices] = useState([]);
   const [isLocked, setIsLocked] = useState(false);
-  const [feedback, setFeedback] = useState({ message: '', isError: false });
+  const [feedback, setFeedback] = useState({ message: '', isError: false, tone: 'neutral' });
   const [fieldNote, setFieldNote] = useState(null);
   const [showDebrief, setShowDebrief] = useState(false);
-  
+  const [timerMode, setTimerMode] = useState('normal');
+  const [selectedDigMode, setSelectedDigMode] = useState('normal');
+  const [selectedPlayerCount, setSelectedPlayerCount] = useState(1);
+  const [playerCount, setPlayerCount] = useState(1);
+  const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
+  const [playerScores, setPlayerScores] = useState([0, 0]);
+  const [elapsedTime, setElapsedTime] = useState(0);
   const [timeLeft, setTimeLeft] = useState(currentEvent.time); 
   const [isPlaying, setIsPlaying] = useState(false);
   const [showStormWarning, setShowStormWarning] = useState(true);
@@ -28,39 +34,55 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
   
   const [attempts, setAttempts] = useState(0);
   const [isSurveying, setIsSurveying] = useState(false);
-  const [difficulty, setDifficulty] = useState('medium');
+  const [challengeDuration, setChallengeDuration] = useState(180);
   const radarTimeoutRef = useRef(null);
   const boardContainerRef = useRef(null);
   const [boardFit, setBoardFit] = useState({ width: 0, height: 0 });
   const boardColumns = 8;
   const boardRows = Math.max(1, Math.ceil(tiles.length / boardColumns));
 
-  const EventIcon = currentEvent.icon;
+  const EventIcon = currentEvent?.icon ?? HelpCircle;
   const recoveredArtifacts = activeArtifacts.filter(artifact => excavatedIds.has(artifact.id));
   const ancientRecoveredCount = recoveredArtifacts.filter(artifact => !artifact.isRedHerring).length;
   const disturbanceCount = recoveredArtifacts.filter(artifact => artifact.isRedHerring).length;
+  const isTwoPlayer = playerCount === 2;
+  const playerTurnLabel = isTwoPlayer ? `Player ${currentPlayerIndex + 1}` : 'Explorer';
+  const playerOneScore = playerScores[0] ?? 0;
+  const playerTwoScore = playerScores[1] ?? 0;
+  const scoreSummary = isTwoPlayer
+    ? `P1 ${playerOneScore} - P2 ${playerTwoScore}`
+    : `Score ${playerOneScore}`;
+  const getWinnerText = () => {
+    if (!isTwoPlayer) return `You recovered ${recoveredArtifacts.length} find${recoveredArtifacts.length === 1 ? '' : 's'}.`;
+    if (playerOneScore === playerTwoScore) return `It's a tie at ${playerOneScore} to ${playerTwoScore}.`;
+    return `Player ${playerOneScore > playerTwoScore ? 1 : 2} wins ${Math.max(playerOneScore, playerTwoScore)} to ${Math.min(playerOneScore, playerTwoScore)}.`;
+  };
 
   useEffect(() => {
     const isComplete = activeArtifacts.length > 0 && excavatedIds.size === activeArtifacts.length;
     if (!isPlaying || isTimeUp || isComplete) return;
     const interval = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          setIsPlaying(false);
-          setIsTimeUp(true);
-          return 0;
-        }
-        return prev - 1;
-      });
+      if (timerMode === 'challenge') {
+        setTimeLeft(prev => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            setIsPlaying(false);
+            setIsTimeUp(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+        return;
+      }
+      setElapsedTime(prev => prev + 1);
     }, 1000);
     return () => clearInterval(interval);
-  }, [activeArtifacts.length, excavatedIds.size, isPlaying, isTimeUp]);
+  }, [activeArtifacts.length, excavatedIds.size, isPlaying, isTimeUp, timerMode]);
 
   useEffect(() => {
     if (feedback.message) {
       const timer = setTimeout(() => {
-        setFeedback({ message: '', isError: false });
+        setFeedback({ message: '', isError: false, tone: 'neutral' });
       }, 3000);
       return () => clearTimeout(timer);
     }
@@ -114,19 +136,19 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
   }, []);
 
   const handleRadar = () => {
-    const radarCost = difficulty === 'easy' ? 30 : difficulty === 'medium' ? 20 : 10;
-    if (timeLeft <= radarCost || isLocked || !isPlaying) return;
+    const radarCost = timerMode === 'challenge' ? (challengeDuration === 300 ? 30 : challengeDuration === 180 ? 20 : 10) : 0;
+    if ((timerMode === 'challenge' && timeLeft <= radarCost) || isLocked || !isPlaying) return;
     
     if (initAudio) initAudio();
     if (playTone) playTone(800, 'sine', 0.5, 0.1);
-    setFeedback({ message: 'Radar activated. Scanning sub-surface context...', isError: false });
-    setTimeLeft(prev => prev - radarCost);
+    setFeedback({ message: 'Radar activated. Scanning sub-surface context...', isError: false, tone: 'neutral' });
+    if (radarCost > 0) {
+      setTimeLeft(prev => prev - radarCost);
+    }
     setIsLocked(true);
     setIsSurveying(true);
     
-    let duration = 1500;
-    if (difficulty === 'easy') duration = 5000;
-    if (difficulty === 'medium') duration = 3000;
+    const duration = challengeDuration === 300 ? 5000 : challengeDuration === 180 ? 3000 : 1500;
 
     setTiles(prev => prev.map(t => t.isMatched ? t : { ...t, isFlipped: true }));
     if (radarTimeoutRef.current) {
@@ -200,6 +222,19 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
             next.add(tiles[idx1].artifactId);
             return next;
           });
+          if (isTwoPlayer) {
+            const scoringPlayer = currentPlayerIndex;
+            setPlayerScores(prev => {
+              const next = [...prev];
+              next[scoringPlayer] = (next[scoringPlayer] || 0) + 1;
+              return next;
+            });
+            setFeedback({
+              message: `Player ${scoringPlayer + 1} keeps the turn.`,
+              isError: false,
+              tone: 'accent',
+            });
+          }
           recordRecoveryNote(tiles[idx1].artifact);
           if (excavatedIds.size + 1 === activeArtifacts.length) {
             setIsPlaying(false);
@@ -212,6 +247,15 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
       } else {
         setTimeout(() => {
           if (playError) playError();
+          if (isTwoPlayer) {
+            const nextPlayerIndex = currentPlayerIndex === 0 ? 1 : 0;
+            setCurrentPlayerIndex(nextPlayerIndex);
+            setFeedback({
+              message: `Turn passes to Player ${nextPlayerIndex + 1}.`,
+              isError: false,
+              tone: 'neutral',
+            });
+          }
           setTiles(prev => {
             const next = [...prev];
             next[idx1] = { ...next[idx1], isFlipped: false };
@@ -233,41 +277,98 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
 
   const timeDanger = timeLeft <= 15 && isPlaying;
   const perfectClear = activeArtifacts.length > 0 && excavatedIds.size === activeArtifacts.length;
+  const displayTime = timerMode === 'challenge' ? timeLeft : elapsedTime;
+  const timerLabel = timerMode === 'challenge' ? 'TIME LEFT' : 'TIME TAKEN';
+  const timerModeLabel = timerMode === 'challenge' ? 'Challenge' : 'Explore';
+  const challengeTimeLabel = challengeDuration === 300 ? '5 minutes' : challengeDuration === 180 ? '3 minutes' : '90 seconds';
 
   return (
     <div className="phase-container dig-phase">
       {showStormWarning && (
         <div className="modal-overlay">
-          <div className="modal-content glass-card warning-modal" style={{borderColor: currentEvent.dangerColor, boxShadow: `0 20px 50px rgba(0,0,0,0.8), 0 0 30px ${currentEvent.dangerColor}40`}}>
-            <EventIcon size={48} style={{ color: currentEvent.dangerColor, marginBottom: '1rem', animation: 'pulse 2s infinite' }} />
-            <h2 className="modal-title" style={{color: currentEvent.dangerColor}}>{currentEvent.title}</h2>
-            <p style={{fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--sand-100)'}}>
-              {currentEvent.description} You have exactly <strong>{difficulty === 'easy' ? '5 minutes' : difficulty === 'medium' ? '3 minutes' : '90 seconds'}</strong> to recover as many finds as you can before the team must leave.
-            </p>
-            <div style={{marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-              <p style={{margin: '0 0 10px 0', fontWeight: 'bold', color: 'var(--sand-200)'}}>Select difficulty</p>
-              <div style={{display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center'}}>
-                <button className={`btn ${difficulty === 'easy' ? 'primary-btn' : ''}`} onClick={() => setDifficulty('easy')} style={{padding: '5px 15px', background: difficulty === 'easy' ? 'var(--accent)' : 'rgba(0,0,0,0.5)', color: difficulty === 'easy' ? '#111' : 'var(--sand-100)', border: '1px solid var(--sand-600)'}}>Easy (5 min)</button>
-                <button className={`btn ${difficulty === 'medium' ? 'primary-btn' : ''}`} onClick={() => setDifficulty('medium')} style={{padding: '5px 15px', background: difficulty === 'medium' ? 'var(--accent)' : 'rgba(0,0,0,0.5)', color: difficulty === 'medium' ? '#111' : 'var(--sand-100)', border: '1px solid var(--sand-600)'}}>Medium (3 min)</button>
-                <button className={`btn ${difficulty === 'hard' ? 'primary-btn' : ''}`} onClick={() => setDifficulty('hard')} style={{padding: '5px 15px', background: difficulty === 'hard' ? 'var(--accent)' : 'rgba(0,0,0,0.5)', color: difficulty === 'hard' ? '#111' : 'var(--sand-100)', border: '1px solid var(--sand-600)'}}>Hard (90 sec)</button>
-              </div>
+          <div className="modal-content warning-modal" style={{borderColor: currentEvent.dangerColor, boxShadow: `0 20px 60px rgba(0,0,0,0.9), 0 0 40px ${currentEvent.dangerColor}30`}}>
+            <div style={{ color: currentEvent.dangerColor, marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <EventIcon size={64} style={{ animation: 'pulse 2s infinite', filter: `drop-shadow(0 0 15px ${currentEvent.dangerColor}60)` }} />
             </div>
-            <div style={{display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap'}}>
-              <button className="btn" onClick={onBackToMenu}>
+            <h2 className="modal-title" style={{color: currentEvent.dangerColor}}>{currentEvent.title}</h2>
+            <p className="modal-subtitle">{currentEvent.description}</p>
+            <div className="dig-mode-picker">
+              <div className="dig-mode-group">
+                <p className="dig-step-label">Select Crew Size</p>
+                <div className="dig-mode-grid">
+                  <button
+                    type="button"
+                    className={`btn dig-mode-card ${selectedPlayerCount === 1 ? 'is-selected' : ''}`}
+                    onClick={() => setSelectedPlayerCount(1)}
+                  >
+                    <strong>Solo Operation</strong>
+                    <span>Single explorer focus</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn dig-mode-card ${selectedPlayerCount === 2 ? 'is-selected' : ''}`}
+                    onClick={() => setSelectedPlayerCount(2)}
+                  >
+                    <strong>Team Expedition</strong>
+                    <span>Two explorers, shared grid</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="dig-mode-group">
+                <p className="dig-step-label">Excavation Strategy</p>
+                <div className="dig-mode-grid">
+                  <button
+                    type="button"
+                    className={`btn dig-mode-card ${selectedDigMode === 'normal' ? 'is-selected' : ''}`}
+                    onClick={() => setSelectedDigMode('normal')}
+                  >
+                    <strong>Methodical Search</strong>
+                    <span>No time pressure, thorough study</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn dig-mode-card ${selectedDigMode === 'challenge' ? 'is-selected' : ''}`}
+                    onClick={() => setSelectedDigMode('challenge')}
+                  >
+                    <strong>Emergency Rescue</strong>
+                    <span>Rapid recovery before time expires</span>
+                  </button>
+                </div>
+              </div>
+
+              {selectedDigMode === 'challenge' && (
+                <div className="dig-mode-group" style={{animation: 'fadeIn 0.3s ease'}}>
+                  <p className="dig-step-label">Time Authorization</p>
+                  <div className="dig-time-grid">
+                    <button className={`btn dig-time-pill ${challengeDuration === 300 ? 'is-selected' : ''}`} onClick={() => setChallengeDuration(300)}>5m Authorization</button>
+                    <button className={`btn dig-time-pill ${challengeDuration === 180 ? 'is-selected' : ''}`} onClick={() => setChallengeDuration(180)}>3m Authorization</button>
+                    <button className={`btn dig-time-pill ${challengeDuration === 90 ? 'is-selected' : ''}`} onClick={() => setChallengeDuration(90)}>90s Authorization</button>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="dig-mode-actions">
+              <button className="btn secondary-btn" onClick={onBackToMenu}>
                 Back to menu
               </button>
-              <button className="btn primary-btn" onClick={() => {
+              <button className="btn primary-btn large-btn" onClick={() => {
                 if (initAudio) initAudio();
-                setTimeLeft(difficulty === 'easy' ? 300 : difficulty === 'medium' ? 180 : 90);
+                setPlayerCount(selectedPlayerCount);
+                setCurrentPlayerIndex(0);
+                setPlayerScores([0, 0]);
+                setTimerMode(selectedDigMode);
+                setElapsedTime(0);
+                setTimeLeft(challengeDuration);
+                setIsTimeUp(false);
+                setShowDebrief(false);
+                setFeedback({ message: '', isError: false, tone: 'neutral' });
                 setShowStormWarning(false);
                 setIsPlaying(true);
-              }}>1 Player <Pickaxe size={20} /></button>
-              <button className="btn primary-btn" onClick={() => {
-                if (initAudio) initAudio();
-                setTimeLeft(difficulty === 'easy' ? 300 : difficulty === 'medium' ? 180 : 90);
-                setShowStormWarning(false);
-                setIsPlaying(true);
-              }}>2-player challenge <Pickaxe size={20} /></button>
+              }}>
+                {selectedDigMode === 'challenge' ? `Start challenge (${challengeTimeLabel})` : 'Start explore'}
+                <Pickaxe size={20} />
+              </button>
             </div>
           </div>
         </div>
@@ -279,7 +380,9 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
             <EventIcon size={48} style={{ color: '#ef4444', marginBottom: '1rem' }} />
             <h2 className="modal-title" style={{color: '#ef4444'}}>Time is up</h2>
             <p style={{fontSize: '1.2rem', marginBottom: '2rem', color: 'var(--sand-100)'}}>
-              The site had to be cleared. You recovered <strong>{excavatedIds.size}</strong> find{excavatedIds.size === 1 ? '' : 's'} for study.
+              The site had to be cleared. {isTwoPlayer
+                ? getWinnerText()
+                : `You recovered ${excavatedIds.size} find${excavatedIds.size === 1 ? '' : 's'} for study.`}
             </p>
             <button className="btn primary-btn" onClick={openDebrief}>Move finds to Sorting Tent <Tent size={20} /></button>
           </div>
@@ -287,12 +390,16 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
       )}
 
       {perfectClear && (
-        <div className="modal-overlay">
+      <div className="modal-overlay">
           <div className="modal-content glass-card warning-modal">
             <CheckCircle2 size={48} style={{ color: 'var(--success)', marginBottom: '1rem' }} />
             <h2 className="modal-title" style={{color: 'var(--success)'}}>Site cleared</h2>
             <p style={{fontSize: '1.2rem', marginBottom: '2rem', color: 'var(--sand-100)'}}>
-              Every find was recovered with {formatTime(timeLeft)} remaining.
+              {isTwoPlayer
+                ? `Every find was recovered. ${getWinnerText()}`
+                : timerMode === 'challenge'
+                  ? `Every find was recovered with ${formatTime(timeLeft)} remaining.`
+                  : `Every find was recovered in ${formatTime(displayTime)}.`}
             </p>
             <button className="btn primary-btn" onClick={openDebrief}>Move finds to Sorting Tent <Tent size={20} /></button>
           </div>
@@ -309,6 +416,11 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
               <div className="field-note-stat"><strong>{disturbanceCount}</strong><span>Disturbance items</span></div>
               <div className="field-note-stat"><strong>{recoveredArtifacts.length}</strong><span>Total items</span></div>
             </div>
+            <p style={{ margin: '0 0 1rem 0', color: 'var(--sand-200)' }}>
+              {timerMode === 'challenge'
+                ? `You cleared the site in ${formatTime(displayTime)} of challenge time.`
+                : `You cleared the site in ${formatTime(displayTime)}.`}
+            </p>
             <button
               className="btn primary-btn"
               onClick={() => onComplete(recoveredArtifacts)}
@@ -326,21 +438,45 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
           <span className="status-warning-text" style={{color: currentEvent.dangerColor}}>
              {currentEvent.title}
           </span>
+          <span className="status-sep">|</span>
+          <span className="status-phase-label">{timerModeLabel}</span>
+          {isTwoPlayer && (
+            <>
+              <span className="status-sep">|</span>
+              <span className="status-phase-label">2 players</span>
+            </>
+          )}
         </div>
         
         <div className={`timer-horizontal ${timeDanger ? 'danger' : ''}`}>
            <Clock size={20} />
-           <span className="timer-value">{formatTime(timeLeft)}</span>
-           <span className="timer-label">TIME REMAINING</span>
+           <span className="timer-value">{formatTime(displayTime)}</span>
+           <span className="timer-label">{timerLabel}</span>
         </div>
 
-        <button 
-          className="radar-btn-compact" 
-          onClick={handleRadar}
-          disabled={timeLeft <= (difficulty === 'easy' ? 30 : difficulty === 'medium' ? 20 : 10) || isLocked || !isPlaying}
-        >
-          <Radar size={16} /> Use radar (-{difficulty === 'easy' ? 30 : difficulty === 'medium' ? 20 : 10}s)
-        </button>
+        {isTwoPlayer && (
+          <div className="dig-player-row" aria-label="Player scores">
+            <div className={`dig-player-chip ${currentPlayerIndex === 0 ? 'active' : ''}`}>
+              <strong>Player 1</strong>
+              <span>: {playerOneScore}</span>
+            </div>
+            <div className={`dig-player-chip ${currentPlayerIndex === 1 ? 'active' : ''}`}>
+              <strong>Player 2</strong>
+              <span>: {playerTwoScore}</span>
+            </div>
+            <div className="dig-player-turn">{playerTurnLabel} to play</div>
+          </div>
+        )}
+
+        {timerMode === 'challenge' && (
+          <button 
+            className="radar-btn-compact" 
+            onClick={handleRadar}
+            disabled={timeLeft <= (challengeDuration === 300 ? 30 : challengeDuration === 180 ? 20 : 10) || isLocked || !isPlaying}
+          >
+            <Radar size={16} /> Use radar (-{challengeDuration === 300 ? 30 : challengeDuration === 180 ? 20 : 10}s)
+          </button>
+        )}
       </div>
 
       <div className="dig-game-panel">
@@ -409,16 +545,21 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
              <RefreshCw size={16} />
              <span>Attempts: <strong>{attempts}</strong></span>
           </div>
+          {isTwoPlayer && (
+            <div className="footer-stat-item">
+              <Users size={16} />
+              <span>Score: <strong>{scoreSummary}</strong></span>
+            </div>
+          )}
         </div>
         
-        <button className="help-btn-compact" onClick={() => setFeedback({message: "Match two identical finds to recover them. Some finds are ancient evidence; others are modern disturbance.", isError: false})}>
+        <button className="help-btn-compact" onClick={() => setFeedback({message: "Match two identical finds to recover them. Some finds are ancient evidence; others are modern disturbance.", isError: false, tone: 'neutral'})}>
            <HelpCircle size={18} /> Field guide
         </button>
-      </div>
-
-      {feedback.message && (
-        <div className={`sort-feedback ${feedback.isError ? 'error' : 'success'}`} style={{position: 'fixed', bottom: '80px', left: '50%', transform: 'translateX(-50%)', zIndex: 100}}>
-          {feedback.isError ? '❌ ' : '✅ '}{feedback.message}
+      </div>      {feedback.message && (
+        <div className={`sort-feedback ${feedback.tone === 'accent' ? 'accent' : feedback.isError ? 'error' : 'neutral'}`} style={{position: 'fixed', bottom: '80px', left: '50%', transform: 'translateX(-50%)', zIndex: 100}}>
+          <span className="sort-feedback-icon" aria-hidden="true">•</span>
+          <span>{feedback.message}</span>
         </div>
       )}
 
@@ -439,3 +580,6 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
     </div>
   );
 }
+
+
+

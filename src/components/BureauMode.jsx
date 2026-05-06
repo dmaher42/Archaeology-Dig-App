@@ -93,6 +93,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
   const [isMakingClaim, setIsMakingClaim] = useState(false);
   const [claimValidationMessage, setClaimValidationMessage] = useState('');
   const [showBriefing, setShowBriefing] = useState(bureauState.phase === 'bureauBriefing');
+  const [activeTabTier, setActiveTabTier] = useState(bureauState.currentTier);
   
   const totalCases = BUREAU_CASES.length;
   const currentCase = BUREAU_CASES[bureauState.caseIndex] || null;
@@ -126,7 +127,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
   }));
 
   const currentEvidenceText = currentClueTiers
-    .filter(item => item.tier <= bureauState.currentTier)
+    .filter(item => item.tier <= bureauState.currentTier && item.tier === activeTabTier)
     .map(item => ({
       label: item.category,
       text: item.text,
@@ -226,6 +227,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
       selectedClaimClueType: '',
       selectedClaimEvidence: '',
     });
+    setActiveTabTier(nextTier);
   };
 
   const startCase = () => {
@@ -236,6 +238,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
       phase: 'bureauCase',
       ...resetCaseState(),
     });
+    setActiveTabTier(1);
   };
 
   const handleSubmitCase = () => {
@@ -400,8 +403,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
 
   if (bureauState.phase === 'bureauCase' || bureauState.phase === 'bureauBriefing') {
     const mainContent = isMakingClaim ? (
-      <div className="bureau-claim-screen glass-card">
-        <div className="bureau-paper-texture" />
+      <div className="bureau-claim-screen">
         <div className="bureau-report-header">
           <div>
             <div className="training-kicker">Antiquities Bureau - Case #{bureauState.caseIndex + 1}</div>
@@ -516,8 +518,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
       </div>
     ) : (
       <div className="bureau-investigation-layout">
-        <article className="bureau-case-file glass-card">
-          <div className="bureau-paper-texture" />
+        <article className="bureau-case-file">
           <div className="bureau-report-header">
             <div className="bureau-case-info">
               <div className="training-kicker">Antiquities Case #{bureauState.caseIndex + 1}</div>
@@ -555,7 +556,17 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
                   ? 'complete'
                   : 'locked';
               return (
-                <div key={`${item.tier}-${item.category}`} className={`bureau-tier-tab bureau-tier-indicator ${stateClass}`}>
+                <div 
+                  key={`${item.tier}-${item.category}`} 
+                  className={`bureau-tier-tab bureau-tier-indicator ${stateClass} ${activeTabTier === item.tier ? 'active-selection' : ''}`}
+                  onClick={() => {
+                    if (item.tier <= bureauState.currentTier) {
+                      setActiveTabTier(item.tier);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={item.tier <= bureauState.currentTier ? 0 : -1}
+                >
                   <div className="bureau-tier-icon">{getCategoryIcon(item.category)}</div>
                   <div className="bureau-tier-info">
                     {`Clue ${item.tier}`}
@@ -610,19 +621,20 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
           </div>
         </article>
 
-        <aside className="bureau-suspect-board glass-card">
-          <div className="bureau-paper-texture" />
+        <aside className="bureau-suspect-board">
           <div className="bureau-suspect-header">
             <div className="bureau-header-row">
               <h2>Suspect Profiles</h2>
-              {solvedCaseCount < 6 && (
-                <div className="bureau-unlock-tag">Training round: {6 - solvedCaseCount} more cases</div>
-              )}
-              {solvedCaseCount >= 6 && (
-                <div className="bureau-unlock-tag unlocked">Challenge Round Active</div>
-              )}
+              <div className="bureau-unlock-tags">
+                {solvedCaseCount < 6 && (
+                  <div className="bureau-unlock-tag">Training: {6 - solvedCaseCount} left</div>
+                )}
+                {solvedCaseCount >= 6 && (
+                  <div className="bureau-unlock-tag unlocked">Challenge Active</div>
+                )}
+              </div>
             </div>
-            <p>Click a card to rule it out. Click again if you change your mind.</p>
+            <p className="bureau-suspect-instruction">Click a profile to rule out civilizations that don't match the evidence.</p>
           </div>
 
           <div className="bureau-suspect-grid">
@@ -643,14 +655,8 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
                     }
                   }}
                 >
-                  <div className="bureau-suspect-icon-box">
-                      <Landmark size={20} />
-                  </div>
                   <div className="bureau-suspect-name">
                     {civilisation}
-                  </div>
-                  <div className="bureau-suspect-status">
-                    {isRuledOut ? 'Ruled out' : 'Still possible'}
                   </div>
                   {isRuledOut && <div className="bureau-ruled-out-label">Ruled out</div>}
                 </article>
@@ -667,7 +673,6 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
         {showBriefing && (
           <div className="bureau-briefing-overlay">
             <div className="bureau-briefing-modal">
-              <div className="bureau-paper-texture" />
               <div className="training-kicker">Case Briefing</div>
               <h2>Mission Intelligence</h2>
               <p>
@@ -693,8 +698,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
   if (bureauState.phase === 'bureauLog') {
     return (
       <section className="phase-container bureau-phase">
-        <div className="bureau-log glass-card">
-          <div className="bureau-paper-texture" />
+        <div className="bureau-log">
           <div className="training-kicker">Historian&apos;s Log - Case #{bureauState.caseIndex + 1}</div>
           <h2>Evidence Review</h2>
           <p>
@@ -729,7 +733,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
 
     return (
       <section className="phase-container bureau-phase">
-        <div className="bureau-feedback glass-card">
+        <div className="bureau-feedback">
           <div className="training-kicker">Intelligence Report - Case #{bureauState.caseIndex + 1}</div>
           <h2>Review & Outcome</h2>
           <p>{civilisationText}</p>
@@ -772,8 +776,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
     const comp = bureauState.comparisonResult;
     return (
       <section className="phase-container bureau-phase">
-        <div className="bureau-comparison glass-card">
-          <div className="bureau-paper-texture" />
+        <div className="bureau-comparison">
           <div className="training-kicker">Comparative Analysis</div>
           <h2>{comp?.title || 'History Comparison'}</h2>
           <p className="bureau-comparison-question">
@@ -863,7 +866,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
 
     return (
       <section className="phase-container bureau-phase">
-        <div className="bureau-mission-audit glass-card">
+        <div className="bureau-mission-audit">
           <div className="bureau-report-header">
             <div>
               <div className="training-kicker">Mission Audit</div>
