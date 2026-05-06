@@ -23,6 +23,25 @@ export function ReportPhase({
 }) {
   const exhibitionSiteName = siteName?.replace(/^Mock\s*/i, '').trim() || siteName || 'Unknown Site';
 
+  const getPrintedMuseumLabel = (itemId) => {
+    const rawLabel = plaques[itemId]?.trim();
+    if (rawLabel && !/^mock plaque/i.test(rawLabel)) {
+      return rawLabel;
+    }
+    return 'Museum interpretation pending';
+  };
+
+  const getPrintedRevealText = (itemId) => {
+    const analysis = hypotheses[itemId];
+    if (analysis && typeof analysis === 'object' && analysis.note?.trim()) {
+      return analysis.note.trim();
+    }
+    if (finalExhibitionStatement?.trim()) {
+      return finalExhibitionStatement.trim();
+    }
+    return 'This evidence may help archaeologists understand how people lived, what they valued, or what happened at this site.';
+  };
+
   const summary = useMemo(() => {
     const categoriesUsed = CATEGORIES.map(cat => ({
       ...cat,
@@ -88,11 +107,11 @@ export function ReportPhase({
         {curatedFinds.length > 0 && (
           <div className="museum-export-section">
              <div className="museum-export-title-block">
-               <div className="museum-export-kicker">Museum Exhibition Record</div>
-               <h3>Site: {exhibitionSiteName}</h3>
+               <div className="museum-export-kicker">MUSEUM EXHIBITION RECORD</div>
+               <h3>{exhibitionSiteName}</h3>
                <div className="museum-export-title-fields" aria-label="Exhibition record fields">
                  <div className="museum-export-title-field">
-                   <strong>Curator</strong>
+                   <strong>Curated by</strong>
                    <span>____________________</span>
                  </div>
                  <div className="museum-export-title-field">
@@ -106,41 +125,44 @@ export function ReportPhase({
                </div>
              </div>
              
-             {finalExhibitionStatement && (
-               <div className="museum-export-final-statement">
-                 <strong>Final exhibition statement</strong>
-                 <p>{finalExhibitionStatement}</p>
-               </div>
-             )}
-
-             <div className="museum-export-grid">
+              <div className="museum-export-grid">
                 {curatedFinds.map((item, index) => {
-                  const analysis = hypotheses[item.id];
+                  const revealText = getPrintedRevealText(item.id);
+                  const museumLabel = getPrintedMuseumLabel(item.id);
                   return (
                     <article key={item.id} className="museum-export-card">
-                       <div className="museum-export-card-number">Find {index + 1}</div>
+                       <div className="museum-export-card-number">EXHIBIT {index + 1}</div>
                        <img src={getEvidenceImagePath(item)} alt={item.name} />
                        <div className="museum-export-card-body">
-                         <div className="museum-export-category">{getCategoryTitle(item.type)}</div>
+                         <div className="museum-export-card-top">
+                           <div className="museum-export-category">{getCategoryTitle(item.type)}</div>
+                         </div>
                          <h4>{item.name}</h4>
                          <div className="museum-export-label">
                            <strong>Museum label</strong>
-                           <p>{plaques[item.id] || 'No plaque written.'}</p>
+                           <p>{museumLabel}</p>
                          </div>
                          <div className="museum-export-evidence">
                            <strong>Evidence clue</strong>
                            <p>{item.clue}</p>
                          </div>
-                         {analysis && typeof analysis === 'object' && (
-                           <div className="museum-export-analysis">
-                             <strong>What this reveals</strong>
-                             <p><span>{analysis.promptTitle}</span> {analysis.note}</p>
-                           </div>
-                         )}
+                         <div className="museum-export-analysis">
+                           <strong>What this reveals</strong>
+                           <p>{revealText}</p>
+                         </div>
                        </div>
                     </article>
                   );
                 })}
+             </div>
+
+             <div className="museum-export-conclusion">
+               <strong>Curator's Conclusion</strong>
+               <p>
+                 {finalExhibitionStatement?.trim()
+                   ? finalExhibitionStatement.trim()
+                   : 'The evidence from this site suggests that ______________________________.'}
+               </p>
              </div>
           </div>
         )}
