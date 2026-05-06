@@ -74,6 +74,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
   const didCelebrateRef = useRef(false);
   const [isMakingClaim, setIsMakingClaim] = useState(false);
   const [claimValidationMessage, setClaimValidationMessage] = useState('');
+  const [showBriefing, setShowBriefing] = useState(bureauState.phase === 'bureauBriefing');
   
   const totalCases = BUREAU_CASES.length;
   const currentCase = BUREAU_CASES[bureauState.caseIndex] || null;
@@ -210,6 +211,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
   };
 
   const startCase = () => {
+    setShowBriefing(false);
     setIsMakingClaim(false);
     setClaimValidationMessage('');
     updateState({
@@ -331,291 +333,286 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
     setBureauState(createNewBureauSession('bureauBriefing'));
   };
 
-  if (bureauState.phase === 'bureauBriefing') {
-    return (
-      <section className="phase-container bureau-phase">
-        <div className="bureau-briefing glass-card">
-          <div className="training-kicker">Case Briefing</div>
-          <h2>Mission Intelligence</h2>
-          <p>
-            You are going to solve ancient civilisation cases.
-            Each case gives you clues. Use the clues to work out which civilisation it is.
-            You can guess early for more points, or reveal more clues first.
-          </p>
-          <div className="bureau-briefing-actions">
-            <button className="btn primary-btn" type="button" onClick={startCase}>
-              Start First Case
+  if (bureauState.phase === 'bureauCase' || bureauState.phase === 'bureauBriefing') {
+    const mainContent = isMakingClaim ? (
+      <div className="bureau-claim-screen glass-card">
+        <div className="bureau-report-header">
+          <div>
+            <div className="training-kicker">Antiquities Bureau - Case #{bureauState.caseIndex + 1}</div>
+            <h2>Evidence Sentence</h2>
+          </div>
+          <div className="bureau-simple-points">
+            {bureauState.currentTier < 3 ? `Close case now: ${availableClaimPoints} points` : 'Final claim: 1 point'}
+          </div>
+        </div>
+
+        <p className="bureau-case-instruction">
+          Build the sentence using the clues and the profile card. The case only closes when all three parts are chosen.
+        </p>
+
+        <div className="bureau-sentence-builder">
+          <div className="bureau-sentence-phrase">
+            <span>I think this object belongs to</span>
+            <select
+              className="bureau-sentence-select"
+              value={selectedClaimCivilisation}
+              onChange={(e) => selectClaimCivilisation(e.target.value)}
+            >
+              <option value="">Choose a civilisation</option>
+              {availableCivilisations.map(option => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="bureau-sentence-phrase">
+            <span>because the clue is about</span>
+            <select
+              className="bureau-sentence-select"
+              value={selectedClaimClueType}
+              onChange={(e) => selectClaimClueType(e.target.value)}
+              disabled={!availableClueTypes.length}
+            >
+              <option value="">{availableClueTypes.length ? 'Choose a clue type' : 'Reveal a clue first'}</option>
+              {availableClueTypes.map(option => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="bureau-sentence-phrase">
+            <span>and the profile says</span>
+            <select
+              className="bureau-sentence-select"
+              value={selectedClaimEvidence}
+              onChange={(e) => selectClaimEvidence(e.target.value)}
+              disabled={!selectedClaimCivilisation || !selectedClaimClueType}
+            >
+              <option value="">
+                {selectedClaimCivilisation
+                  ? (selectedClaimClueType ? 'Choose a profile fact' : 'Choose a clue type first')
+                  : 'Choose a civilisation first'}
+              </option>
+              {currentProfileFacts.map(option => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
+            <span>.</span>
+          </div>
+        </div>
+
+        <div className="bureau-sentence-preview">
+          {sentencePreview}
+        </div>
+
+        {claimValidationMessage && (
+          <div className="bureau-feedback-note bureau-claim-warning" role="status" aria-live="polite">
+            {claimValidationMessage}
+          </div>
+        )}
+
+        {latestOutcome && (
+          <div className="bureau-feedback-note bureau-case-latest">
+            {latestOutcome.explanation}
+          </div>
+        )}
+
+        <div className="bureau-case-actions bureau-claim-actions">
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            <button
+              type="button"
+              className="btn primary-btn"
+              onClick={handleSubmitCase}
+            >
+              Close case now
             </button>
-            <button className="btn" type="button" onClick={onBackToMenu}>
+            <button
+              type="button"
+              className="btn"
+              onClick={() => {
+                setIsMakingClaim(false);
+                setClaimValidationMessage('');
+                updateState({
+                  selectedAnswerIndex: null,
+                  selectedClaimCivilisation: '',
+                  selectedClaimClueType: '',
+                  selectedClaimEvidence: '',
+                });
+              }}
+            >
+              Back to clues
+            </button>
+          </div>
+          <button type="button" className="btn" onClick={onBackToMenu}>
+            Back to Main Menu
+          </button>
+        </div>
+      </div>
+    ) : (
+      <div className="bureau-investigation-layout">
+        <article className="bureau-case-file glass-card">
+          <div className="bureau-report-header">
+            <div className="bureau-case-info">
+              <div className="training-kicker">Antiquities Case #{bureauState.caseIndex + 1}</div>
+              <h2>{currentCase?.caseTitle || 'Case File'}</h2>
+              <div className="bureau-round-tag">
+                {currentCase?.round === 'training' ? 'Training Round' : 'Challenge Round'}
+              </div>
+            </div>
+            <div className="bureau-case-meta">
+              <div className="bureau-score-badge">
+                <span className="bureau-score-label">CURRENT SCORE</span>
+                <span className="bureau-score-value">{bureauState.score}</span>
+              </div>
+            </div>
+          </div>
+
+          {bureauState.caseIndex === 6 && currentCase?.round === 'challenge' && (
+            <div className="bureau-feedback-note bureau-transition-note" role="status" aria-live="polite">
+              Training Round complete. Challenge Round unlocked.
+            </div>
+          )}
+
+          <p className="bureau-case-instruction">
+            Read the clues, check the suspect profiles, and keep narrowing the options.
+          </p>
+
+          <div className="bureau-tier-tabs" aria-label="Case file clue tiers">
+            {currentClueTiers.map((item) => {
+              const stateClass = bureauState.currentTier === item.tier
+                ? 'current'
+                : bureauState.currentTier > item.tier
+                  ? 'complete'
+                  : 'locked';
+              return (
+                <div key={`${item.tier}-${item.category}`} className={`bureau-tier-tab bureau-tier-indicator ${stateClass}`}>
+                  {`Clue ${item.tier}`}
+                  <span>{getBureauTagLabel(item.category)}</span>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="bureau-evidence-box">
+            <div className="bureau-evidence-text-list">
+              {currentEvidenceText.map((item) => (
+                <div key={item.tier} className="bureau-clue-dossier-item">
+                  <div className="bureau-clue-badge">{item.label}</div>
+                  <div className="bureau-clue-content">
+                    <p>{item.text}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {latestOutcome && (
+            <div className="bureau-feedback-note bureau-case-latest">
+              {latestOutcome.explanation}
+            </div>
+          )}
+
+          <div className="bureau-case-actions">
+            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+              <button
+                type="button"
+                className="btn primary-btn"
+                onClick={() => {
+                  updateState({ selectedAnswerIndex: null, selectedClaimCivilisation: '' });
+                  setIsMakingClaim(true);
+                }}
+              >
+                Close case now
+              </button>
+              {bureauState.currentTier < 3 && (
+                <button type="button" className="btn" onClick={revealNextClue}>
+                  Reveal Clue {bureauState.currentTier + 1}
+                </button>
+              )}
+              <span className="bureau-simple-points">
+                {bureauState.currentTier < 3 ? `Close case now: ${availableClaimPoints} points` : 'Final claim: 1 point'}
+              </span>
+            </div>
+            <button type="button" className="btn" onClick={onBackToMenu}>
               Back to Main Menu
             </button>
           </div>
-        </div>
-      </section>
-    );
-  }
+        </article>
 
-  if (bureauState.phase === 'bureauCase') {
-    if (isMakingClaim) {
-      return (
-        <section className="phase-container bureau-phase">
-          <div className="bureau-claim-screen glass-card">
-            <div className="bureau-report-header">
-              <div>
-                <div className="training-kicker">Antiquities Bureau - Case #{bureauState.caseIndex + 1}</div>
-                <h2>Evidence Sentence</h2>
-              </div>
-              <div className="bureau-simple-points">
-                {bureauState.currentTier < 3 ? `Close case now: ${availableClaimPoints} points` : 'Final claim: 1 point'}
-              </div>
+        <aside className="bureau-suspect-board glass-card">
+          <div className="bureau-suspect-header">
+            <div className="bureau-header-row">
+              <h2>Suspect Profiles</h2>
+              {solvedCaseCount < 6 && (
+                <div className="bureau-unlock-tag">Training round: {6 - solvedCaseCount} more cases</div>
+              )}
+              {solvedCaseCount >= 6 && (
+                <div className="bureau-unlock-tag unlocked">Challenge Round Active</div>
+              )}
             </div>
+            <p>Click a card to rule it out. Click again if you change your mind.</p>
+          </div>
 
-            <p className="bureau-case-instruction">
-              Build the sentence using the clues and the profile card. The case only closes when all three parts are chosen.
-            </p>
-
-            <div className="bureau-sentence-builder">
-              <div className="bureau-sentence-phrase">
-                <span>I think this object belongs to</span>
-                <select
-                  className="bureau-sentence-select"
-                  value={selectedClaimCivilisation}
-                  onChange={(e) => selectClaimCivilisation(e.target.value)}
-                >
-                  <option value="">Choose a civilisation</option>
-                  {availableCivilisations.map(option => (
-                    <option key={option} value={option}>{option}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="bureau-sentence-phrase">
-                <span>because the clue is about</span>
-                <select
-                  className="bureau-sentence-select"
-                  value={selectedClaimClueType}
-                  onChange={(e) => selectClaimClueType(e.target.value)}
-                  disabled={!availableClueTypes.length}
-                >
-                  <option value="">{availableClueTypes.length ? 'Choose a clue type' : 'Reveal a clue first'}</option>
-                  {availableClueTypes.map(option => (
-                    <option key={option} value={option}>{option}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="bureau-sentence-phrase">
-                <span>and the profile says</span>
-                <select
-                  className="bureau-sentence-select"
-                  value={selectedClaimEvidence}
-                  onChange={(e) => selectClaimEvidence(e.target.value)}
-                  disabled={!selectedClaimCivilisation || !selectedClaimClueType}
-                >
-                  <option value="">
-                    {selectedClaimCivilisation
-                      ? (selectedClaimClueType ? 'Choose a profile fact' : 'Choose a clue type first')
-                      : 'Choose a civilisation first'}
-                  </option>
-                  {currentProfileFacts.map(option => (
-                    <option key={option} value={option}>{option}</option>
-                  ))}
-                </select>
-                <span>.</span>
-              </div>
-            </div>
-
-            <div className="bureau-sentence-preview">
-              {sentencePreview}
-            </div>
-
-            {claimValidationMessage && (
-              <div className="bureau-feedback-note bureau-claim-warning" role="status" aria-live="polite">
-                {claimValidationMessage}
-              </div>
-            )}
-
-            {latestOutcome && (
-              <div className="bureau-feedback-note bureau-case-latest">
-                {latestOutcome.explanation}
-              </div>
-            )}
-
-            <div className="bureau-case-actions bureau-claim-actions">
-              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                <button
-                  type="button"
-                  className="btn primary-btn"
-                  onClick={handleSubmitCase}
-                >
-                  Close case now
-                </button>
-                <button
-                  type="button"
-                  className="btn"
-                  onClick={() => {
-                    setIsMakingClaim(false);
-                    setClaimValidationMessage('');
-                    updateState({
-                      selectedAnswerIndex: null,
-                      selectedClaimCivilisation: '',
-                      selectedClaimClueType: '',
-                      selectedClaimEvidence: '',
-                    });
+          <div className="bureau-suspect-grid">
+            {suspectStatuses.map(({ civilisation, isRuledOut }) => {
+              return (
+                <article 
+                  key={civilisation} 
+                  className={`bureau-suspect-card ${isRuledOut ? 'is-ruled-out' : ''}`}
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={isRuledOut}
+                  aria-label={`${civilisation}. ${isRuledOut ? 'Ruled out.' : 'Still possible.'} Click to toggle.`}
+                  onClick={() => toggleSuspectRuleOut(civilisation)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      toggleSuspectRuleOut(civilisation);
+                    }
                   }}
                 >
-                  Back to clues
-                </button>
-              </div>
-              <button type="button" className="btn" onClick={onBackToMenu}>
-                Back to Main Menu
-              </button>
-            </div>
+                  <div className="bureau-suspect-icon-box">
+                      <Landmark size={20} />
+                  </div>
+                  <div className="bureau-suspect-name">
+                    {civilisation}
+                  </div>
+                  <div className="bureau-suspect-status">
+                    {isRuledOut ? 'Ruled out' : 'Still possible'}
+                  </div>
+                  {isRuledOut && <div className="bureau-ruled-out-label">Ruled out</div>}
+                </article>
+              );
+            })}
           </div>
-        </section>
-      );
-    }
+        </aside>
+      </div>
+    );
 
     return (
       <section className="phase-container bureau-phase">
-        <div className="bureau-investigation-layout">
-          <article className="bureau-case-file glass-card">
-            <div className="bureau-report-header">
-              <div className="bureau-case-info">
-                <div className="training-kicker">Antiquities Case #{bureauState.caseIndex + 1}</div>
-                <h2>{currentCase?.caseTitle || 'Case File'}</h2>
-                <div className="bureau-round-tag">
-                  {currentCase?.round === 'training' ? 'Training Round' : 'Challenge Round'}
-                </div>
-              </div>
-              <div className="bureau-case-meta">
-                <div className="bureau-score-badge">
-                  <span className="bureau-score-label">CURRENT SCORE</span>
-                  <span className="bureau-score-value">{bureauState.score}</span>
-                </div>
-              </div>
-            </div>
-
-            {bureauState.caseIndex === 6 && currentCase?.round === 'challenge' && (
-              <div className="bureau-feedback-note bureau-transition-note" role="status" aria-live="polite">
-                Training Round complete. Challenge Round unlocked.
-              </div>
-            )}
-
-            <p className="bureau-case-instruction">
-              Read the clues, check the suspect profiles, and keep narrowing the options.
-            </p>
-
-            <div className="bureau-tier-tabs" aria-label="Case file clue tiers">
-              {currentClueTiers.map((item) => {
-                const stateClass = bureauState.currentTier === item.tier
-                  ? 'current'
-                  : bureauState.currentTier > item.tier
-                    ? 'complete'
-                    : 'locked';
-                return (
-                  <div key={`${item.tier}-${item.category}`} className={`bureau-tier-tab bureau-tier-indicator ${stateClass}`}>
-                    {`Clue ${item.tier}`}
-                    <span>{getBureauTagLabel(item.category)}</span>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="bureau-evidence-box">
-              <div className="bureau-evidence-text-list">
-                {currentEvidenceText.map((item) => (
-                  <div key={item.tier} className="bureau-clue-dossier-item">
-                    <div className="bureau-clue-badge">{item.label}</div>
-                    <div className="bureau-clue-content">
-                      <p>{item.text}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {latestOutcome && (
-              <div className="bureau-feedback-note bureau-case-latest">
-                {latestOutcome.explanation}
-              </div>
-            )}
-
-            <div className="bureau-case-actions">
-              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                <button
-                  type="button"
-                  className="btn primary-btn"
-                  onClick={() => {
-                    updateState({ selectedAnswerIndex: null, selectedClaimCivilisation: '' });
-                    setIsMakingClaim(true);
-                  }}
-                >
-                  Close case now
+        {mainContent}
+        {showBriefing && (
+          <div className="bureau-briefing-overlay">
+            <div className="bureau-briefing-modal">
+              <div className="training-kicker">Case Briefing</div>
+              <h2>Mission Intelligence</h2>
+              <p>
+                You are going to solve ancient civilisation cases.
+                Each case gives you clues. Use the clues to work out which civilisation it is.
+                You can guess early for more points, or reveal more clues first.
+              </p>
+              <div className="bureau-briefing-actions">
+                <button className="btn primary-btn" type="button" onClick={startCase}>
+                  Start First Case
                 </button>
-                {bureauState.currentTier < 3 && (
-                  <button type="button" className="btn" onClick={revealNextClue}>
-                    Reveal Clue {bureauState.currentTier + 1}
-                  </button>
-                )}
-                <span className="bureau-simple-points">
-                  {bureauState.currentTier < 3 ? `Close case now: ${availableClaimPoints} points` : 'Final claim: 1 point'}
-                </span>
+                <button className="btn" type="button" onClick={onBackToMenu}>
+                  Back to Main Menu
+                </button>
               </div>
-              <button type="button" className="btn" onClick={onBackToMenu}>
-                Back to Main Menu
-              </button>
             </div>
-          </article>
-
-          <aside className="bureau-suspect-board glass-card">
-            <div className="bureau-suspect-header">
-              <div className="bureau-header-row">
-                <h2>Suspect Profiles</h2>
-                {solvedCaseCount < 6 && (
-                  <div className="bureau-unlock-tag">Training round: {6 - solvedCaseCount} more cases</div>
-                )}
-                {solvedCaseCount >= 6 && (
-                  <div className="bureau-unlock-tag unlocked">Challenge Round Active</div>
-                )}
-              </div>
-              <p>Click a card to rule it out. Click again if you change your mind.</p>
-            </div>
-
-            <div className="bureau-suspect-grid">
-              {suspectStatuses.map(({ civilisation, isRuledOut }) => {
-                return (
-                  <article 
-                    key={civilisation} 
-                    className={`bureau-suspect-card ${isRuledOut ? 'is-ruled-out' : ''}`}
-                    role="button"
-                    tabIndex={0}
-                    aria-pressed={isRuledOut}
-                    aria-label={`${civilisation}. ${isRuledOut ? 'Ruled out.' : 'Still possible.'} Click to toggle.`}
-                    onClick={() => toggleSuspectRuleOut(civilisation)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        toggleSuspectRuleOut(civilisation);
-                      }
-                    }}
-                  >
-                    <div className="bureau-suspect-icon-box">
-                       <Landmark size={20} />
-                    </div>
-                    <div className="bureau-suspect-name">
-                      {civilisation}
-                    </div>
-                    <div className="bureau-suspect-status">
-                      {isRuledOut ? 'Ruled out' : 'Still possible'}
-                    </div>
-                    {isRuledOut && <div className="bureau-ruled-out-label">Ruled out</div>}
-                  </article>
-                );
-              })}
-            </div>
-          </aside>
-        </div>
+          </div>
+        )}
       </section>
     );
   }
