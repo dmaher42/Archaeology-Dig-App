@@ -6287,7 +6287,7 @@ textarea.lab-note-textarea:focus {
 /* Dev Tools Overlay */
 .dev-tools {
   position: fixed;
-  bottom: 110px;
+  top: 5.25rem;
   right: 20px;
   background: rgba(0, 0, 0, 0.9);
   padding: 10px;
@@ -6299,6 +6299,8 @@ textarea.lab-note-textarea:focus {
   z-index: 9999;
   box-shadow: 0 4px 20px rgba(0,0,0,0.5);
   transition: all 0.3s ease;
+  max-height: calc(100vh - 6.5rem);
+  overflow-y: auto;
 }
 
 .dev-tools-label {
