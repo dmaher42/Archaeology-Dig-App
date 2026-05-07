@@ -6710,10 +6710,12 @@ textarea.lab-note-textarea:focus {
 .bureau-claim-screen,
 .bureau-log,
 .bureau-briefing-overlay {
-  background: #fdfaf0 !important;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E") !important;
+  background-color: #f4ead5 !important;
+  background-image: 
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.04' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.15'/%3E%3C/svg%3E"),
+    linear-gradient(to right, rgba(0,0,0,0.05) 0%, transparent 5%, transparent 95%, rgba(0,0,0,0.05) 100%) !important;
   color: #1a1510 !important;
-  border: 1px solid #d4c8b0 !important;
+  border: 1px solid #c2b29a !important;
   border-radius: 4px 50px 4px 4px !important;
   box-shadow: 0 15px 40px rgba(0,0,0,0.15) !important;
   position: relative !important;
@@ -6721,6 +6723,11 @@ textarea.lab-note-textarea:focus {
   flex-direction: column !important;
   padding: 3rem 2.5rem 3rem 4rem !important; /* Extra left padding for spine */
   overflow: visible !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+.bureau-case-file {
+  box-shadow: 0 0 40px rgba(232, 158, 93, 0.1), 0 15px 50px rgba(0,0,0,0.3) !important;
 }
 
 .bureau-case-file::after {
@@ -7891,39 +7898,129 @@ textarea.lab-note-textarea:focus {
 
 .bureau-suspect-card {
   background-color: white !important;
-  background-image: 
-    url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"),
-    linear-gradient(rgba(200, 220, 255, 0.1) 1px, transparent 1px) !important;
-  background-size: auto, 100% 1.5rem !important;
-  background-blend-mode: overlay !important;
-  border: 1px solid #d4c8b0 !important;
-  padding: 1rem 1.5rem !important;
-  margin-bottom: 0 !important;
-  box-shadow: 
-    2px 2px 5px rgba(0,0,0,0.05),
-    inset 0 0 10px rgba(0,0,0,0.02) !important;
+  background: #fff !important;
+  border: 1px solid #ddd !important;
+  padding: 0.75rem 0.75rem 3rem 0.75rem !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
   position: relative !important;
   cursor: pointer !important;
-  font-size: 1rem !important;
-  transition: all 0.2s ease !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transform: rotate(-1deg);
   display: flex !important;
-  align-items: center !important;
-  min-height: 4rem !important;
+  flex-direction: column !important;
+  min-height: 8rem !important;
+}
+
+.bureau-suspect-card:nth-child(even) {
+  transform: rotate(1.5deg);
 }
 
 .bureau-suspect-card:hover {
-  transform: translateY(-2px) !important;
-  box-shadow: 4px 4px 10px rgba(0,0,0,0.1) !important;
+  transform: rotate(0deg) scale(1.05) translateY(-5px) !important;
+  box-shadow: 0 15px 30px rgba(0,0,0,0.3) !important;
+  z-index: 10 !important;
+}
+
+.bureau-suspect-discard-btn {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  background: rgba(220, 38, 38, 0.1);
+  color: #ef4444;
+  border: none;
+  border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.2s;
   z-index: 2;
+  cursor: pointer;
+}
+
+.bureau-suspect-card:hover .bureau-suspect-discard-btn {
+  opacity: 1;
+}
+
+.bureau-suspect-discard-btn:hover {
+  background: #ef4444;
+  color: white;
+  transform: scale(1.1);
 }
 
 .bureau-suspect-card.is-ruled-out {
-  opacity: 0.3 !important;
+  opacity: 0.6 !important;
   filter: grayscale(1) !important;
+  transform: rotate(0deg) scale(0.95) !important;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
 }
 
 .bureau-suspect-card.is-ruled-out .bureau-suspect-name {
   text-decoration: line-through;
+  opacity: 0.5;
+}
+
+.bureau-suspect-name {
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  color: #2c1d12;
+  font-size: 0.95rem;
+  text-align: center;
+  margin-top: auto;
+}
+
+/* Index Tabs for Clue Categories */
+.bureau-tier-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 0 !important;
+  padding-left: 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+.bureau-tier-tab {
+  background: #d4c8b0 !important;
+  padding: 0.6rem 1.25rem !important;
+  border-radius: 8px 8px 0 0 !important;
+  cursor: pointer !important;
+  font-weight: 700 !important;
+  font-size: 0.75rem !important;
+  color: #5c4a31 !important;
+  border: 1px solid #c2b29a !important;
+  border-bottom: none !important;
+  transition: all 0.2s !important;
+  position: relative;
+  bottom: -1px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.bureau-tier-tab:hover {
+  background: #e6d5b8 !important;
+}
+
+.bureau-tier-tab.current, 
+.bureau-tier-tab.active-selection {
+  background: #f4ead5 !important;
+  color: #1a1510 !important;
+  border-color: #c2b29a !important;
+  padding-bottom: 0.7rem !important;
+  z-index: 2;
+}
+
+.bureau-tier-tab.locked {
+  opacity: 0.5;
+  cursor: not-allowed !important;
+}
+
+.bureau-tier-tab span {
+  display: block;
+  font-size: 0.6rem;
+  opacity: 0.7;
+  font-weight: 400;
 }
 
 .bureau-ruled-out-label {

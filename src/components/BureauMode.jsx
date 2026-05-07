@@ -94,6 +94,13 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
     isRuledOut: (evidenceFilter[civilisation] || 'unsure') === 'discard',
   }));
 
+  const revealedEvidenceText = currentClueTiers
+    .filter(item => item.tier <= bureauState.currentTier)
+    .map(item => ({
+      label: item.category,
+      text: item.text,
+      tier: item.tier,
+    }));
   const currentEvidenceText = currentClueTiers
     .filter(item => item.tier <= bureauState.currentTier && item.tier === activeTabTier)
     .map(item => ({
@@ -230,7 +237,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
       selectedClaimCivilisation,
       selectedClaimClueType,
       selectedClaimEvidence,
-      currentEvidenceText,
+      currentEvidenceText: revealedEvidenceText,
     });
 
     if (validationMessage) {
@@ -427,7 +434,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
           </div>
 
           <div className="bureau-sentence-phrase">
-            <span>and the profile says</span>
+            <span>WHICH SUPPORTS MY ANSWER</span>
             <select
               className="bureau-sentence-select"
               value={selectedClaimEvidence}
