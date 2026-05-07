@@ -73,6 +73,8 @@ const HAZARDS = [
 
 const CLAIM_OPTIONS = ['Ancient Egypt', 'Ancient Greece', 'Ancient Rome', 'Ancient China', 'Maya', 'Inca'];
 const INITIAL_RESOURCES = { investigation: 100, stamina: 100, time: 600 };
+const CLUE_GROUPS = ['Geography', 'Society', 'Legacy'];
+const INVESTIGATION_BONUS = 5;
 
 const rectsOverlap = (a, b) => (
   a.x < b.x + b.w &&
@@ -102,11 +104,11 @@ const buildExpeditionEvidence = () => {
   const egypt = SCENARIOS.find(scenario => scenario.civilization === TARGET_CIVILISATION);
   const byId = new Map((egypt?.evidence || []).map(item => [item.id, item]));
   const picks = [
-    { id: 'eg_13', x: 690, y: 94, zone: 'Archive Corner' },
-    { id: 'eg_1', x: 398, y: 112, zone: 'Burial Area' },
-    { id: 'eg_11', x: 128, y: 142, zone: 'Riverbank' },
-    { id: 'eg_8', x: 462, y: 338, zone: 'Ruined Wall' },
-    { id: 'eg_10', x: 140, y: 330, zone: 'Market Area' },
+    { id: 'eg_13', x: 690, y: 94, zone: 'Archive Corner', clueGroup: 'Legacy' },
+    { id: 'eg_1', x: 398, y: 112, zone: 'Burial Area', clueGroup: 'Legacy' },
+    { id: 'eg_11', x: 128, y: 142, zone: 'Riverbank', clueGroup: 'Geography' },
+    { id: 'eg_8', x: 462, y: 338, zone: 'Ruined Wall', clueGroup: 'Society' },
+    { id: 'eg_10', x: 140, y: 330, zone: 'Market Area', clueGroup: 'Society' },
   ];
 
   return picks.map((pick, index) => {
@@ -135,10 +137,15 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
   const hazardCooldownRef = useRef({});
   const lockedRef = useRef(false);
   const tickAccumulatorRef = useRef(0);
+  const nearbyTokenRef = useRef(null);
   const [collectedEvidence, setCollectedEvidence] = useState([]);
   const [resources, setResources] = useState(INITIAL_RESOURCES);
   const [currentZone, setCurrentZone] = useState('Market Area');
   const [notice, setNotice] = useState('Collect 3 evidence tokens, then reach the Exit Gate.');
+  const [briefingOpen, setBriefingOpen] = useState(true);
+  const [nearbyToken, setNearbyToken] = useState(null);
+  const [inspectionToken, setInspectionToken] = useState(null);
+  const [inspectionFeedback, setInspectionFeedback] = useState(null);
   const [claimOpen, setClaimOpen] = useState(false);
   const [selectedCivilisation, setSelectedCivilisation] = useState('');
   const [selectedEvidenceId, setSelectedEvidenceId] = useState('');
@@ -162,6 +169,54 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     };
     setResources({ ...resourcesRef.current });
   }, []);
+
+  const openInspection = useCallback((token = nearbyTokenRef.current) => {
+    if (briefingOpen || !token || token.collected || lockedRef.current) return;
+    setInspectionToken(token);
+    setInspectionFeedback(null);
+    setNotice(`Inspecting ${token.name}. Choose what this evidence mostly helps us understand.`);
+  }, [briefingOpen]);
+
+  const beginExpedition = () => {
+    keysRef.current = {};
+    tickAccumulatorRef.current = 0;
+    setBriefingOpen(false);
+    setNotice('Collect 3 evidence tokens, then reach the Exit Gate.');
+  };
+
+  const closeInspection = () => {
+    setInspectionToken(null);
+    setInspectionFeedback(null);
+  };
+
+  const collectInspectedEvidence = (token, selectedGroup) => {
+    if (!token || token.collected) return;
+    const isCorrect = selectedGroup === token.clueGroup;
+    token.collected = true;
+    collectedRef.current = [...collectedRef.current, token];
+    setCollectedEvidence(collectedRef.current);
+    nearbyTokenRef.current = null;
+    setNearbyToken(null);
+
+    if (isCorrect) {
+      syncResources({ investigation: INVESTIGATION_BONUS });
+      setInspectionFeedback({
+        correct: true,
+        stamp: 'EVIDENCE VERIFIED',
+        text: `Evidence verified. This is strong ${token.clueGroup} evidence.`,
+      });
+      setNotice(`${token.name} added to your evidence satchel. +${INVESTIGATION_BONUS} investigation points.`);
+      audioControls.playMatch?.();
+    } else {
+      setInspectionFeedback({
+        correct: false,
+        stamp: 'EVIDENCE COLLECTED',
+        text: `Evidence collected, but this is better used as ${token.clueGroup} evidence.`,
+      });
+      setNotice(`${token.name} added to your evidence satchel.`);
+      audioControls.playError?.();
+    }
+  };
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -256,7 +311,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
   }, [categoryById]);
 
   const update = useCallback((dt = 1 / 60) => {
-    if (lockedRef.current) {
+    if (briefingOpen || lockedRef.current || inspectionToken) {
       draw();
       return;
     }
@@ -311,18 +366,19 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       }
     });
 
-    tokensRef.current.forEach((token) => {
+    const nearestToken = tokensRef.current.find((token) => {
       if (token.collected) return;
       const dxToken = playerRef.current.x + PLAYER_SIZE / 2 - token.x;
       const dyToken = playerRef.current.y + PLAYER_SIZE / 2 - token.y;
-      if (Math.hypot(dxToken, dyToken) <= 27) {
-        token.collected = true;
-        collectedRef.current = [...collectedRef.current, token];
-        setCollectedEvidence(collectedRef.current);
-        setNotice(`${token.name} added to your evidence satchel.`);
-        audioControls.playMatch?.();
-      }
+      return Math.hypot(dxToken, dyToken) <= 31;
     });
+    if (nearestToken !== nearbyTokenRef.current) {
+      nearbyTokenRef.current = nearestToken || null;
+      setNearbyToken(nearestToken || null);
+      if (nearestToken) {
+        setNotice('Press E to inspect evidence.');
+      }
+    }
 
     const gateRect = { x: 724, y: 258, w: 54, h: 108 };
     if (rectsOverlap(playerRect, gateRect)) {
@@ -336,13 +392,18 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     }
 
     draw();
-  }, [audioControls, draw, syncResources]);
+  }, [audioControls, briefingOpen, draw, inspectionToken, syncResources]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(event.code)) {
         event.preventDefault();
+        if (briefingOpen || lockedRef.current || inspectionToken) return;
         keysRef.current[event.code] = true;
+      }
+      if (event.code === 'KeyE') {
+        event.preventDefault();
+        openInspection();
       }
     };
     const handleKeyUp = (event) => {
@@ -377,6 +438,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         id: item.id,
         name: item.name,
         category: item.category,
+        clueGroup: item.clueGroup,
         supports: item.supports,
       })),
       remainingEvidence: tokensRef.current.filter(item => !item.collected).map(item => ({
@@ -384,10 +446,19 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         x: item.x,
         y: item.y,
         category: item.category,
+        clueGroup: item.clueGroup,
       })),
       hazards: HAZARDS.map(item => ({ id: item.id, name: item.name, x: item.x, y: item.y, w: item.w, h: item.h })),
       exitUnlocked: collectedRef.current.length >= EVIDENCE_REQUIRED,
       claimOpen: lockedRef.current,
+      briefingOpen,
+      nearbyEvidence: nearbyTokenRef.current ? {
+        id: nearbyTokenRef.current.id,
+        name: nearbyTokenRef.current.name,
+        clueGroup: nearbyTokenRef.current.clueGroup,
+      } : null,
+      inspectionOpen: Boolean(inspectionToken),
+      inspectionFeedback,
     });
 
     return () => {
@@ -397,7 +468,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       delete window.advanceTime;
       delete window.render_game_to_text;
     };
-  }, [draw, update]);
+  }, [briefingOpen, draw, inspectionFeedback, inspectionToken, openInspection, update]);
 
   const resetExpedition = () => {
     playerRef.current = { x: 42, y: 498 };
@@ -407,11 +478,16 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     hazardCooldownRef.current = {};
     lockedRef.current = false;
     tickAccumulatorRef.current = 0;
+    nearbyTokenRef.current = null;
     keysRef.current = {};
     setCollectedEvidence([]);
     setResources(INITIAL_RESOURCES);
     setCurrentZone('Market Area');
     setNotice('Collect 3 evidence tokens, then reach the Exit Gate.');
+    setBriefingOpen(true);
+    setNearbyToken(null);
+    setInspectionToken(null);
+    setInspectionFeedback(null);
     setClaimOpen(false);
     setSelectedCivilisation('');
     setSelectedEvidenceId('');
@@ -451,7 +527,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
 
   return (
     <section className="phase-container bureau-phase expedition-phase">
-      <div className="expedition-shell">
+      <div className={`expedition-shell ${briefingOpen ? 'briefing-paused' : ''}`}>
         <header className="expedition-topbar">
           <button type="button" className="bureau-hint-btn" onClick={onBackToMenu}>
             <ChevronLeft size={18} /> Back to Menu
@@ -478,6 +554,18 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
               aria-label="Top-down expedition map"
               className="expedition-canvas"
             />
+            {nearbyToken && !inspectionToken && (
+              <div className="expedition-inspect-prompt">
+                <div>
+                  <strong>{nearbyToken.name}</strong>
+                  <span>Press E to inspect evidence</span>
+                </div>
+                <button type="button" className="btn primary-btn" onClick={() => openInspection(nearbyToken)}>
+                  Inspect Evidence
+                </button>
+                <kbd>E</kbd>
+              </div>
+            )}
           </div>
 
           <aside className="expedition-side-panel">
@@ -516,11 +604,99 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
 
             <section className="expedition-panel">
               <h3><Clock size={17} /> Controls</h3>
-              <p className="expedition-control-copy">Move with WASD or the arrow keys. Collect glowing evidence tokens and enter the Exit Gate after 3 finds.</p>
+              <p className="expedition-control-copy">Move with WASD or the arrow keys. Stand near evidence and press E or Inspect Evidence.</p>
             </section>
           </aside>
         </div>
       </div>
+
+      {briefingOpen && (
+        <div className="bureau-briefing-overlay expedition-briefing-overlay">
+          <div className="bureau-briefing-modal expedition-mission-briefing-modal">
+            <div className="expedition-briefing-stamp">Top Secret</div>
+            <div className="training-kicker">📂 ANTIQUITIES BUREAU: TOP SECRET BRIEFING</div>
+            <h2>Operation: Lost Site Expedition</h2>
+            <p><strong>Greetings, Junior Historian.</strong></p>
+            <p>You have been sent to a restricted dig site. Your goal is not just to find the exit. Your goal is to prove which civilisation once lived here using evidence.</p>
+
+            <div className="expedition-briefing-rules" aria-label="Mission Rules">
+              <h3>Mission Rules</h3>
+              <ol>
+                <li>
+                  <strong>Collect Evidence</strong>
+                  <span>Find at least 3 Evidence Tokens to unlock the Exit Gate.</span>
+                </li>
+                <li>
+                  <strong>Categorise Findings</strong>
+                  <span>Each token gives you clues about Geography, Society or Legacy.</span>
+                </li>
+                <li>
+                  <strong>Avoid Hazards</strong>
+                  <span>Sandstorms, falling rocks and unstable ground can reduce your Investigation Points, stamina or time.</span>
+                </li>
+                <li>
+                  <strong>Make a Final Claim</strong>
+                  <span>At the Exit Gate, choose the civilisation and the evidence that best supports your answer.</span>
+                </li>
+              </ol>
+            </div>
+
+            <p className="expedition-briefing-warning">Do not guess. Use your Field Guide.</p>
+
+            <div className="bureau-briefing-actions">
+              <button type="button" className="btn primary-btn expedition-begin-btn" onClick={beginExpedition}>
+                Begin Expedition
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {inspectionToken && (
+        <div className="bureau-briefing-overlay">
+          <div className="bureau-briefing-modal expedition-inspection-modal">
+            <div className="training-kicker">Inspect Evidence</div>
+            <h2>{inspectionToken.name}</h2>
+            <div className="expedition-inspection-meta">{inspectionToken.category}</div>
+            <p>{inspectionToken.clue}</p>
+            <div className="expedition-inspection-question">What does this evidence mostly help us understand?</div>
+
+            <div className="expedition-clue-options">
+              {CLUE_GROUPS.map(group => (
+                <button
+                  key={group}
+                  type="button"
+                  className="bureau-comparison-option"
+                  disabled={Boolean(inspectionFeedback)}
+                  onClick={() => collectInspectedEvidence(inspectionToken, group)}
+                >
+                  <span className="bureau-option-letter">{group.charAt(0)}</span>
+                  <span className="bureau-option-text">{group}</span>
+                </button>
+              ))}
+            </div>
+
+            {inspectionFeedback && (
+              <div className={`expedition-claim-feedback ${inspectionFeedback.correct ? 'correct' : 'incorrect'}`}>
+                {inspectionFeedback.correct ? <CheckCircle2 size={22} /> : <AlertTriangle size={22} />}
+                <div>
+                  <strong>{inspectionFeedback.correct ? 'Evidence verified' : 'Evidence collected'}</strong>
+                  <p>{inspectionFeedback.text}</p>
+                </div>
+                <span className={`expedition-evidence-stamp ${inspectionFeedback.correct ? 'verified' : 'collected'}`}>
+                  {inspectionFeedback.stamp}
+                </span>
+              </div>
+            )}
+
+            <div className="bureau-briefing-actions">
+              <button type="button" className="btn" onClick={closeInspection}>
+                {inspectionFeedback ? 'Continue Expedition' : 'Keep Looking'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {claimOpen && (
         <div className="bureau-briefing-overlay">
