@@ -2,7 +2,6 @@ import {
   Package, Skull, Landmark, Leaf, ScrollText, Search,
   Users, Beaker, MapPin, FileText
 } from 'lucide-react';
-import React from 'react';
 
 export const getIcon = (type, size = 20) => {
   switch(type) {

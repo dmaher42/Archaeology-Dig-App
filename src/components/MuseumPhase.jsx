@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { 
-  Camera, CheckCircle2, ChevronRight, FileText, Search, Send
+  Camera, CheckCircle2, ChevronRight, Search, Send
 } from 'lucide-react';
 import { 
   getArtifactTheme, 
   getCategoryTitle,
   getEvidenceImagePath
 } from '../utils/gameLogic';
-import { getIcon } from './Icons';
 
 export function MuseumPhase({ 
   activeArtifacts, 
@@ -25,7 +24,6 @@ export function MuseumPhase({
   const curatedSet = new Set(curatedItems.map(item => item.id));
   
   const analysedArtifacts = activeArtifacts.filter(item => !!hypotheses[item.id]);
-  const selectedArtifact = selectedArtifactId ? activeArtifacts.find(a => a.id === selectedArtifactId) : null;
 
   const toggleCuration = (artifact) => {
     if (curatedSet.has(artifact.id)) {
@@ -39,8 +37,6 @@ export function MuseumPhase({
   const handlePlaqueChange = (artifactId, text) => {
     setPlaques(prev => ({ ...prev, [artifactId]: text }));
   };
-
-  const isComplete = curatedItems.length > 0 && curatedItems.every(item => plaques[item.id] && plaques[item.id].trim().length > 10);
 
   return (
     <div className="phase-container museum-phase">
@@ -141,7 +137,6 @@ export function MuseumPhase({
 
            <div className="museum-display-grid">
               {curatedItems.map((item, index) => {
-                const theme = getArtifactTheme(item);
                 const analysis = hypotheses[item.id];
 
                 return (

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useReducer } from 'react';
 import { 
-  Archive, Pickaxe, Save, Upload, ChevronRight 
+  Archive, Pickaxe, Save, Upload 
 } from 'lucide-react';
 import './index.css';
 
@@ -13,6 +13,7 @@ import { LabPhase } from './components/LabPhase';
 import { MuseumPhase } from './components/MuseumPhase';
 import { ReportPhase } from './components/ReportPhase';
 import { BureauMode } from './components/BureauMode';
+import { ExpeditionMode } from './components/ExpeditionMode';
 import { DevTools } from './components/DevTools';
 
 // Utilities & Data
@@ -185,18 +186,13 @@ export default function App() {
   const [bureauState, setBureauState] = useState(initialBureauGame);
   const [saveMessage, setSaveMessage] = useState('');
   const [showDevTools, setShowDevTools] = useState(false);
-
-  // Initialize bureauState from saved game if applicable
-  useEffect(() => {
-    const saved = loadAutosave();
-    if (saved && saved.mode === 'bureau') {
-      setBureauState(saved.bureauState);
-    }
-  }, []);
+  const isBureauPhase = phase.startsWith('bureau');
+  const isExpeditionPhase = phase === 'expedition';
+  const canUseProgressFiles = phase !== 'menu' && !isExpeditionPhase;
 
   // Autosave Logic
   useEffect(() => {
-    if (phase === 'menu') return;
+    if (phase === 'menu' || phase === 'expedition') return;
     try {
       const isBureau = phase.startsWith('bureau');
       const payload = isBureau
@@ -283,9 +279,13 @@ export default function App() {
     setPhase(next.phase);
   };
 
+  const handleStartExpedition = () => {
+    setPhase('expedition');
+  };
+
   const handleSaveProgressFile = () => {
-    if (phase === 'menu') {
-      setSaveMessage('Choose an activity before saving.');
+    if (!canUseProgressFiles) {
+      setSaveMessage(isExpeditionPhase ? 'Expedition is a short mode and does not use save files.' : 'Choose an activity before saving.');
       return;
     }
     const isBureau = phase.startsWith('bureau');
@@ -317,7 +317,7 @@ export default function App() {
       const session = rebuildSavedSession(JSON.parse(text));
       applySavedSession(session);
       setSaveMessage(`Loaded ${file.name}`);
-    } catch (e) {
+    } catch {
       setSaveMessage('Invalid save file.');
     }
     event.target.value = '';
@@ -328,24 +328,24 @@ export default function App() {
       <header className="main-header hide-on-print">
         <div className="header-left">
           <div className="header-icon-container">
-            {phase.startsWith('bureau') ? <Archive size={28} className="header-main-icon" /> : <Pickaxe size={28} className="header-main-icon" />}
+            {isBureauPhase ? <Archive size={28} className="header-main-icon" /> : <Pickaxe size={28} className="header-main-icon" />}
           </div>
           <div className="header-titles">
-            <h1>{phase.startsWith('bureau') ? 'The Antiquities Bureau' : 'Archaeology Challenge'}</h1>
-            <p>{phase.startsWith('bureau') ? 'Ancient Civilisation Clues' : 'What can evidence tell us about the ancient past?'}</p>
+            <h1>{isBureauPhase ? 'The Antiquities Bureau' : isExpeditionPhase ? 'Lost Site Expedition' : 'Archaeology Challenge'}</h1>
+            <p>{isBureauPhase ? 'Ancient Civilisation Clues' : isExpeditionPhase ? 'Collect evidence, avoid site hazards, and make a claim.' : 'What can evidence tell us about the ancient past?'}</p>
           </div>
         </div>
         <div className="header-right">
           <div className="save-controls">
-            <button className="save-control-btn" onClick={handleSaveProgressFile} disabled={phase === 'menu'}>
+            <button className="save-control-btn" onClick={handleSaveProgressFile} disabled={!canUseProgressFiles}>
               <Save size={16} /> Save Progress
             </button>
-            <label className="save-control-btn">
+            <label className={`save-control-btn ${!canUseProgressFiles ? 'is-disabled' : ''}`} aria-disabled={!canUseProgressFiles}>
               <Upload size={16} /> Load Progress
-              <input type="file" accept=".json" onChange={handleLoadProgressFile} hidden />
+              <input type="file" accept=".json" onChange={handleLoadProgressFile} disabled={!canUseProgressFiles} hidden />
             </label>
           </div>
-          {phase !== 'menu' && phase !== 'training' && !phase.startsWith('bureau') && (
+          {phase !== 'menu' && phase !== 'training' && !isBureauPhase && !isExpeditionPhase && (
             <nav className="phase-navigation">
               {['Dig', 'Sort', 'Lab', 'Museum', 'Report'].map((p, i) => (
                 <div key={p} className={`phase-nav-item ${phase.toLowerCase() === p.toLowerCase() ? 'active' : ''}`}>
@@ -365,6 +365,7 @@ export default function App() {
             onStartInvestigation={handleStartInvestigation}
             onStartTraining={handleStartTraining}
             onStartBureau={handleStartBureau}
+            onStartExpedition={handleStartExpedition}
             savedGames={savedGames}
             onResumeInvestigation={() => applySavedSession(savedGames.archaeology)}
             onResumeBureau={() => applySavedSession(savedGames.bureau)}
@@ -451,6 +452,13 @@ export default function App() {
             plaques={plaques} 
             finalExhibitionStatement={finalExhibitionStatement} 
             onBackToMenu={() => setPhase('menu')} 
+          />
+        )}
+
+        {phase === 'expedition' && (
+          <ExpeditionMode 
+            onBackToMenu={() => setPhase('menu')} 
+            audioControls={audioControls}
           />
         )}
 

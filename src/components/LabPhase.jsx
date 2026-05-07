@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { 
-  Search, CheckCircle2, ScrollText, ChevronRight, Beaker, FileText, Landmark, Users, Leaf, MapPin
+  Search, CheckCircle2, ScrollText, ChevronRight
 } from 'lucide-react';
 import { 
   getArtifactTheme, 
@@ -9,10 +9,9 @@ import {
   getEvidenceImagePath,
   shuffleArrayWithSeed,
   LAB_ANALYSIS_PROMPTS,
-  LAB_NOTE_STEMS,
-  SCENARIOS
+  LAB_NOTE_STEMS
 } from '../utils/gameLogic';
-import { getIcon, getPromptIcon } from './Icons';
+import { getPromptIcon } from './Icons';
 
 export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypotheses, currentScenario, onComplete, onBackToMenu }) {
   const currentScenarioData = currentScenario;

@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { Pickaxe, MapPin, FileText, Dice5, ChevronLeft } from 'lucide-react';
+import { Pickaxe, MapPin, FileText, Dice5, ChevronLeft, Compass } from 'lucide-react';
 import { SCENARIOS } from '../data';
+import { WorldMap } from './WorldMap';
+
 
 const getSavedModeLabel = (mode) => (mode === 'bureau' ? 'Bureau case' : 'Investigation');
 const getResumeLabel = (mode) => (mode === 'bureau' ? 'Resume Bureau' : 'Resume Investigation');
@@ -9,17 +11,19 @@ export function ActivityMenu({
   onStartInvestigation, 
   onStartTraining, 
   onStartBureau, 
+  onStartExpedition,
   savedGames, 
   onResumeInvestigation, 
   onResumeBureau 
 }) {
   const [showCivSelection, setShowCivSelection] = useState(false);
+  const [hoveredId, setHoveredId] = useState(null);
   const hasSavedInvestigation = savedGames?.archaeology && savedGames.archaeology.phase !== 'menu';
   const hasSavedBureau = savedGames?.bureau;
 
   if (showCivSelection) {
     return (
-      <section className="phase-container menu-phase">
+      <section className="phase-container menu-phase selection-view">
         <div className="menu-hero glass-card">
           <button 
             className="back-to-modes-btn" 
@@ -27,41 +31,54 @@ export function ActivityMenu({
           >
             <ChevronLeft size={16} /> Back to Missions
           </button>
-          <div className="training-kicker">Customise Your Expedition</div>
-          <h2>Choose Your Ancient Civilisation</h2>
-          <p>Select a specific site to investigate, or let fate decide your destination.</p>
+          <div className="training-kicker">Expedition Logistics</div>
+          <h2 className="premium-text-glow">Interactive Expedition Map</h2>
+          <p>Deploy your team to a specific global site to begin your archaeological inquiry.</p>
         </div>
 
-        <div className="civ-selection-grid">
-          <button 
-            className="civ-selection-card random-card glass-card"
-            onClick={() => onStartInvestigation(null)}
-          >
-            <div className="civ-card-icon">
-              <Dice5 size={32} />
-            </div>
-            <div className="civ-card-content">
-              <h4>Random Selection</h4>
-              <p>Test your skills with a surprise historical mystery.</p>
-            </div>
-          </button>
+        <div className="selection-layout">
+          <div className="selection-map-area">
+            <WorldMap 
+              onSelect={onStartInvestigation} 
+              activeId={hoveredId} 
+              onHover={setHoveredId}
+            />
+          </div>
 
-          {SCENARIOS && SCENARIOS.map(civ => (
-            <button 
-              key={civ.id}
-              className="civ-selection-card glass-card"
-              onClick={() => onStartInvestigation(civ.id)}
-            >
-              <div className="civ-card-content">
-                <h4>{civ.name}</h4>
-                <p className="civ-spark-text">"{civ.spark}"</p>
-              </div>
-            </button>
-          ))}
+          <div className="selection-sidebar glass-card">
+            <div className="sidebar-header">
+              <h3>Available Sites</h3>
+              <button 
+                className="btn secondary-btn btn-sm"
+                onClick={() => onStartInvestigation(null)}
+              >
+                <Dice5 size={14} /> Random
+              </button>
+            </div>
+            <div className="sidebar-list">
+              {SCENARIOS && SCENARIOS.map(civ => (
+                <button 
+                  key={civ.id}
+                  className={`sidebar-civ-item ${hoveredId === civ.id ? 'active' : ''}`}
+                  onClick={() => onStartInvestigation(civ.id)}
+                  onMouseEnter={() => setHoveredId(civ.id)}
+                  onMouseLeave={() => setHoveredId(null)}
+                >
+                  <div className="civ-item-info">
+                    <span className="civ-item-name">{civ.name}</span>
+                    <span className="civ-item-tag">{civ.civilization}</span>
+                  </div>
+                  <ChevronLeft className="rotate-180" size={14} />
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
     );
   }
+
+
 
   return (
     <section className="phase-container menu-phase">
@@ -144,6 +161,25 @@ export function ActivityMenu({
                 Start New Bureau
               </button>
             )}
+          </div>
+        </article>
+
+        {/* Lost Site Expedition */}
+        <article className="activity-card glass-card">
+          <div className="activity-card-header">
+            <div className="activity-card-icon activity-card-icon--expedition">
+              <Compass size={24} />
+            </div>
+            <div className="activity-time-tag">10-15 MINS | SOLO ADVENTURE</div>
+          </div>
+          <div className="activity-card-copy">
+            <h3>Lost Site Expedition</h3>
+            <p>Explore ruins, navigate hazards, and identify the lost civilisation.</p>
+          </div>
+          <div className="activity-card-actions">
+            <button type="button" className="btn primary-btn activity-card-action" onClick={onStartExpedition}>
+              Start Expedition
+            </button>
           </div>
         </article>
       </div>

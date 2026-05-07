@@ -12,11 +12,10 @@ import {
   rectIntersection
 } from '@dnd-kit/core';
 import { 
-  CheckCircle2, AlertCircle, Tent, Search, Beaker, HelpCircle
+  CheckCircle2, AlertCircle, Tent, Beaker, HelpCircle
 } from 'lucide-react';
 import { 
   getArtifactTheme, 
-  getCategoryTitle,
   getSortingHint,
   getSortingSuccessMessage,
   CATEGORIES
