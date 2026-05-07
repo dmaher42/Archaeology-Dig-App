@@ -386,14 +386,13 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     // 7. Tokens (Floating/glowing)
     tokensRef.current.forEach((token, index) => {
       if (token.collected) return;
-      const category = categoryById.get(token.type);
       
       const floatY = Math.sin((now / 200) + index) * 3;
       
-      ctx.shadowColor = category?.color || '#e89e5d';
+      ctx.shadowColor = 'rgba(232, 158, 93, 0.8)';
       ctx.shadowBlur = 12;
       
-      ctx.fillStyle = category?.color || '#e89e5d';
+      ctx.fillStyle = '#e89e5d';
       ctx.beginPath();
       ctx.arc(token.x, token.y + floatY, 15, 0, Math.PI * 2);
       ctx.fill();
@@ -403,12 +402,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       ctx.lineWidth = 2;
       ctx.stroke();
       
-      let tokenEmoji = '🔍';
-      if (token.type === 'structures') tokenEmoji = '🏛️';
-      if (token.type === 'written') tokenEmoji = '📜';
-      if (token.type === 'objects') tokenEmoji = '🏺';
-      if (token.type === 'environment') tokenEmoji = '🌿';
-      if (token.type === 'human_remains' || token.type === 'remains') tokenEmoji = '⚰️';
+      const tokenEmoji = '🔍'; // Keep generic so students must inspect to find out what it is
       
       ctx.font = '15px Outfit, sans-serif';
       ctx.fillText(tokenEmoji, token.x - 7, token.y + 5 + floatY);
