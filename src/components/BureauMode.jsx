@@ -8,6 +8,7 @@ import {
   BUREAU_COMPARISON_DATA,
   createInitialBureauEvidenceFilter,
   createNewBureauSession,
+  getBureauEvidenceSentenceOptions,
   getBureauClaimValidationMessage,
 } from '../utils/gameLogic';
 
@@ -38,33 +39,6 @@ const getCategoryIcon = (category) => {
 
 const getBureauTagLabel = (tag = '') => BUREAU_TAG_LABELS[tag] ?? tag.replace(/_/g, ' ');
 
-const BUREAU_CLUE_TYPES = ['Location', 'Rulers', 'Buildings', 'Beliefs', 'Inventions', 'Mysteries'];
-
-const getBureauProfileFactsGrouped = (bureauCase) => {
-  const rawProfileFacts = bureauCase?.profileFacts ?? bureauCase?.keywords;
-  if (!rawProfileFacts) return {};
-
-  if (Array.isArray(rawProfileFacts)) {
-    return rawProfileFacts.reduce((acc, fact, index) => {
-      const clueType = bureauCase?.clueTiers?.[index]?.category || BUREAU_CLUE_TYPES[index] || 'Mysteries';
-      const label = BUREAU_TAG_LABELS[clueType] || clueType;
-      if (!acc[label]) acc[label] = [];
-      if (fact) acc[label].push(fact);
-      return acc;
-    }, {});
-  }
-
-  return BUREAU_CLUE_TYPES.reduce((acc, clueType) => {
-    const value = rawProfileFacts[clueType];
-    if (Array.isArray(value)) {
-      acc[clueType] = value.filter(Boolean);
-    } else if (value) {
-      acc[clueType] = [value];
-    }
-    return acc;
-  }, {});
-};
-
 const getBureauClueTiers = (bureauCase) => {
   if (Array.isArray(bureauCase?.clueTiers) && bureauCase.clueTiers.length > 0) {
     return bureauCase.clueTiers;
@@ -75,14 +49,6 @@ const getBureauClueTiers = (bureauCase) => {
     bureauCase?.tier2SocietyClue && { tier: 2, category: 'Rulers', text: bureauCase.tier2SocietyClue },
     bureauCase?.tier3LegacyClue && { tier: 3, category: 'Buildings', text: bureauCase.tier3LegacyClue },
   ].filter(Boolean);
-};
-
-const getBureauProfileFacts = (bureauCase, clueType = null) => {
-  const groupedFacts = getBureauProfileFactsGrouped(bureauCase);
-  if (clueType) {
-    return groupedFacts[clueType] || [];
-  }
-  return BUREAU_CLUE_TYPES.flatMap(type => groupedFacts[type] || []);
 };
 
 const getUnlockedCivilisations = () => BUREAU_CASES.filter(bureauCase => bureauCase.round === 'training').map(item => item.civilisation);
@@ -104,10 +70,12 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
   const selectedClaimClueType = bureauState.selectedClaimClueType || '';
   const selectedClaimEvidence = bureauState.selectedClaimEvidence || '';
   const currentClueTiers = getBureauClueTiers(currentCase);
-  const selectedProfile = BUREAU_CASES.find(item => item.civilisation === selectedClaimCivilisation);
-  const currentProfileFacts = selectedProfile && selectedClaimClueType
-    ? getBureauProfileFacts(selectedProfile, selectedClaimClueType)
-    : [];
+  const profileFactOptions = getBureauEvidenceSentenceOptions({
+    selectedCivilisation: selectedClaimCivilisation,
+    selectedClueType: selectedClaimClueType,
+    maxOptions: 4,
+    seedSource: `${currentCase?.id || 'bureau'}:${selectedClaimCivilisation}:${selectedClaimClueType}`,
+  });
   const availableClueTypes = [...new Set(
     currentClueTiers
       .filter(item => item.tier <= bureauState.currentTier)
@@ -175,28 +143,38 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
   };
 
   const selectClaimCivilisation = (civilisation) => {
-    const profile = BUREAU_CASES.find(item => item.civilisation === civilisation);
+    const nextProfileFactOptions = civilisation && selectedClaimClueType
+      ? getBureauEvidenceSentenceOptions({
+        selectedCivilisation: civilisation,
+        selectedClueType: selectedClaimClueType,
+        maxOptions: 4,
+        seedSource: `${currentCase?.id || 'bureau'}:${civilisation}:${selectedClaimClueType}`,
+      })
+      : [];
     setBureauState(prev => ({
       ...prev,
       selectedClaimCivilisation: civilisation,
       selectedClaimEvidence: (() => {
-        const matchingFacts = prev.selectedClaimClueType
-          ? getBureauProfileFacts(profile, prev.selectedClaimClueType)
-          : getBureauProfileFacts(profile);
-        return matchingFacts.includes(prev.selectedClaimEvidence) ? prev.selectedClaimEvidence : '';
+        return nextProfileFactOptions.includes(prev.selectedClaimEvidence) ? prev.selectedClaimEvidence : '';
       })(),
     }));
     setClaimValidationMessage('');
   };
 
   const selectClaimClueType = (clueType) => {
+    const nextProfileFactOptions = selectedClaimCivilisation && clueType
+      ? getBureauEvidenceSentenceOptions({
+        selectedCivilisation: selectedClaimCivilisation,
+        selectedClueType: clueType,
+        maxOptions: 4,
+        seedSource: `${currentCase?.id || 'bureau'}:${selectedClaimCivilisation}:${clueType}`,
+      })
+      : [];
     setBureauState(prev => ({
       ...prev,
       selectedClaimClueType: clueType,
       selectedClaimEvidence: (() => {
-        const profile = BUREAU_CASES.find(item => item.civilisation === prev.selectedClaimCivilisation);
-        const matchingFacts = profile ? getBureauProfileFacts(profile, clueType) : [];
-        return matchingFacts.includes(prev.selectedClaimEvidence) ? prev.selectedClaimEvidence : '';
+        return nextProfileFactOptions.includes(prev.selectedClaimEvidence) ? prev.selectedClaimEvidence : '';
       })(),
     }));
     setClaimValidationMessage('');
@@ -461,7 +439,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
                   ? (selectedClaimClueType ? 'Choose a profile fact' : 'Choose a clue type first')
                   : 'Choose a civilisation first'}
               </option>
-              {currentProfileFacts.map(option => (
+              {profileFactOptions.map(option => (
                 <option key={option} value={option}>{option}</option>
               ))}
             </select>

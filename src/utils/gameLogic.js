@@ -236,6 +236,62 @@ const getBureauProfileFactsForClue = (bureauCase, clueType = '') => {
   return [];
 };
 
+const getBureauAllProfileFacts = (bureauCase = null) => {
+  if (!bureauCase) {
+    return [];
+  }
+
+  return Object.entries(bureauCase.profileFacts || {}).flatMap(([clueType, facts]) => (
+    (facts || []).filter(Boolean).map(fact => ({
+      civilisation: bureauCase.civilisation,
+      clueType,
+      fact,
+    }))
+  ));
+};
+
+export const getBureauEvidenceSentenceOptions = ({
+  selectedCivilisation = '',
+  selectedClueType = '',
+  maxOptions = 4,
+  seedSource = '',
+} = {}) => {
+  if (!selectedCivilisation || !selectedClueType) return [];
+
+  const correctCase = BUREAU_CASES.find(item => item.civilisation === selectedCivilisation);
+  const correctFacts = getBureauProfileFactsForClue(correctCase, selectedClueType);
+  const correctFact = correctFacts[0];
+  if (!correctFact) return [];
+
+  const sameClueDistractors = BUREAU_CASES
+    .filter(item => item.civilisation !== selectedCivilisation)
+    .flatMap(item => getBureauProfileFactsForClue(item, selectedClueType)
+      .map(fact => ({
+        civilisation: item.civilisation,
+        clueType: selectedClueType,
+        fact,
+      })));
+
+  const fallbackDistractors = BUREAU_CASES
+    .filter(item => item.civilisation !== selectedCivilisation)
+    .flatMap(item => getBureauAllProfileFacts(item))
+    .filter(option => option.fact !== correctFact);
+
+  const seen = new Set();
+  const uniqueDistractors = [...sameClueDistractors, ...fallbackDistractors].filter(option => {
+    if (option.fact === correctFact || seen.has(option.fact)) return false;
+    seen.add(option.fact);
+    return true;
+  });
+
+  const pickedOptions = shuffleArrayWithSeed(
+    [correctFact, ...uniqueDistractors.slice(0, Math.max(0, maxOptions - 1)).map(option => option.fact)],
+    seedSource || `${selectedCivilisation}:${selectedClueType}`
+  );
+
+  return pickedOptions;
+};
+
 export const getBureauClaimValidationMessage = ({
   currentCase,
   selectedClaimCivilisation,
