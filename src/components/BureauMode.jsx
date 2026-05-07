@@ -623,27 +623,66 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
           </div>
 
           <div className="bureau-suspect-grid">
-            {suspectStatuses.map(({ civilisation, isRuledOut }) => {
+            {suspectStatuses.map(({ civilisation, isRuledOut }, index) => {
+              const suspectData = BUREAU_CASES.find(c => c.civilisation === civilisation);
+              
+              // Helper to check if this suspect matches the clues revealed so far
+              const getMatchStatus = (category) => {
+                if (!currentCase || !suspectData) return false;
+                
+                // We consider it a match if the suspect has a profile fact that overlaps with the case's facts
+                // or if it's the correct answer.
+                const mappedCategory = category === 'Geography' ? 'Location' : 
+                                     category === 'Society' ? 'Rulers' : 
+                                     category === 'Legacy' ? 'Buildings' : category;
+                
+                const suspectFacts = suspectData.profileFacts?.[mappedCategory] || [];
+                const caseFacts = currentCase.profileFacts?.[mappedCategory] || [];
+                
+                // Check if any revealed tier matches this category
+                const isTierRevealed = currentClueTiers.some(t => 
+                  (t.category === category || t.category === mappedCategory) && t.tier <= bureauState.currentTier
+                );
+                
+                if (!isTierRevealed) return false;
+                
+                return civilisation === currentCase.civilisation || 
+                       suspectFacts.some(f => caseFacts.includes(f));
+              };
+
               return (
                 <article 
                   key={civilisation} 
                   className={`bureau-suspect-card ${isRuledOut ? 'is-ruled-out' : ''}`}
+                  style={{ '--deal-order': index }}
                   role="button"
                   tabIndex={0}
                   aria-pressed={isRuledOut}
-                  aria-label={`${civilisation}. ${isRuledOut ? 'Ruled out.' : 'Still possible.'} Click to toggle.`}
+                  aria-label={`${civilisation}. ${isRuledOut ? 'Ruled out.' : 'Still possible.'}`}
                   onClick={() => toggleSuspectRuleOut(civilisation)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      toggleSuspectRuleOut(civilisation);
-                    }
-                  }}
                 >
+                  <button 
+                    className="bureau-discard-btn" 
+                    title="Rule out this suspect"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleSuspectRuleOut(civilisation);
+                    }}
+                  >
+                    X
+                  </button>
+                  
                   <div className="bureau-suspect-name">
                     {civilisation}
                   </div>
-                  {isRuledOut && <div className="bureau-ruled-out-label">Ruled out</div>}
+
+                  <div className="bureau-evidence-dots">
+                    <div className={`evidence-dot geo ${getMatchStatus('Geography') ? 'active' : ''}`} title="Geography Match"></div>
+                    <div className={`evidence-dot soc ${getMatchStatus('Society') ? 'active' : ''}`} title="Society Match"></div>
+                    <div className={`evidence-dot leg ${getMatchStatus('Legacy') ? 'active' : ''}`} title="Legacy Match"></div>
+                  </div>
+
+                  {isRuledOut && <div className="bureau-discarded-stamp">DISCARDED</div>}
                 </article>
               );
             })}

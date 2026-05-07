@@ -6704,12 +6704,125 @@ textarea.lab-note-textarea:focus {
 /* --- BUREAU DOSSIER UI BASE --- */
 /* Consolidated into line 1132 */
 
+/* Suspect Card Dossiers */
+.bureau-suspect-card {
+  position: relative;
+  background-color: #f4e4bc !important;
+  background-image: 
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)' opacity='0.08'/%3E%3C/svg%3E") !important;
+  border: 1px solid rgba(0,0,0,0.15) !important;
+  border-radius: 2px !important;
+  padding: 1.5rem 1rem !important;
+  aspect-ratio: 3/4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1) !important;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1) !important;
+  opacity: 0;
+  animation: dealCard 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: calc(var(--deal-order) * 0.05s);
+  overflow: hidden;
+}
+
+@keyframes dealCard {
+  from { opacity: 0; transform: translateY(40px) rotate(10deg); }
+  to { opacity: 1; transform: translateY(0) rotate(var(--random-rot, 0deg)); }
+}
+
+.bureau-suspect-card:nth-child(3n) { --random-rot: 1.5deg; }
+.bureau-suspect-card:nth-child(3n+1) { --random-rot: -1deg; }
+.bureau-suspect-card:nth-child(3n+2) { --random-rot: 0.5deg; }
+
+.bureau-suspect-card:hover {
+  transform: translateY(-5px) scale(1.05) !important;
+  z-index: 10;
+  box-shadow: 0 15px 30px rgba(0,0,0,0.2) !important;
+}
+
+.bureau-suspect-card.is-ruled-out {
+  filter: grayscale(100%) brightness(0.7) !important;
+  transform: scale(0.98) !important;
+  opacity: 0.8 !important;
+}
+
+.bureau-discard-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.2);
+  background: white;
+  color: #b91c1c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 0.8rem;
+  cursor: pointer;
+  z-index: 5;
+}
+
+.bureau-discard-btn:hover {
+  background: #b91c1c;
+  color: white;
+}
+
+.bureau-suspect-name {
+  font-family: "Courier New", Courier, monospace !important;
+  font-weight: 900 !important;
+  font-size: 1.2rem !important;
+  color: #1a1510 !important;
+  margin-top: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.bureau-evidence-dots {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+
+.evidence-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.1);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.evidence-dot.active.geo { background-color: #22c55e; box-shadow: 0 0 8px #22c55e; }
+.evidence-dot.active.soc { background-color: #3b82f6; box-shadow: 0 0 8px #3b82f6; }
+.evidence-dot.active.leg { background-color: #eab308; box-shadow: 0 0 8px #eab308; }
+
+.bureau-discarded-stamp {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-15deg);
+  border: 4px double rgba(185, 28, 28, 0.7);
+  color: rgba(185, 28, 28, 0.7);
+  padding: 0.4rem 1rem;
+  font-family: "Courier New", Courier, monospace !important;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 1.4rem;
+  background: rgba(255, 255, 255, 0.1);
+  z-index: 6;
+}
+
 .bureau-case-file,
 .bureau-suspect-board,
 .bureau-mission-audit,
 .bureau-claim-screen,
 .bureau-log,
-.bureau-briefing-overlay {
+.bureau-briefing-modal {
   background-color: #f4ead5 !important;
   background-image: 
     url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.04' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.15'/%3E%3C/svg%3E"),
@@ -6758,39 +6871,6 @@ textarea.lab-note-textarea:focus {
 .bureau-mission-audit {
   display: grid;
   gap: 1rem;
-}
-
-.bureau-round-tag {
-  display: inline-flex;
-  align-items: center;
-  width: fit-content;
-  padding: 0.2rem 0.6rem;
-  border-radius: 999px;
-  border: 1px solid rgba(232, 158, 93, 0.22);
-  background: rgba(232, 158, 93, 0.08);
-  color: var(--accent);
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.bureau-sentence-builder {
-  display: grid;
-  gap: 0.85rem;
-  padding: 0.95rem;
-  border-radius: 16px;
-  border: 1px solid rgba(168, 134, 97, 0.2);
-  background: rgba(0, 0, 0, 0.18);
-}
-
-.bureau-sentence-phrase {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.55rem;
-  color: var(--sand-100);
-  line-height: 1.45;
 }
 
 .bureau-round-tag {
@@ -7030,26 +7110,6 @@ textarea.lab-note-textarea:focus {
   .bureau-results-grid {
     grid-template-columns: 1fr;
   }
-}
-
-@media (max-width: 720px) {
-  .bureau-sentence-phrase {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .bureau-sentence-select {
-    width: 100%;
-  }
-
-  .bureau-audit-sentence-head {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-}
-
-
-/* --- REPORT PHASE & MUSEUM EXPORT --- */
 
 .report-phase {
   overflow-y: auto;
@@ -7495,37 +7555,27 @@ textarea.lab-note-textarea:focus {
 
 /* Bureau Briefing Modal */
 .bureau-briefing-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.75);
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(0, 0, 0, 0.8) !important;
   backdrop-filter: blur(8px);
-  z-index: 5000;
-  display: flex;
+  z-index: 9999 !important;
+  display: flex !important;
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
-  animation: fadeIn 0.3s ease-out;
+  animation: fadeIn 0.4s ease-out;
 }
 
 .bureau-briefing-modal {
   width: 100%;
   max-width: 650px;
-  background: #f4edd8; /* Manila Paper */
-  background-image: radial-gradient(#dcd3b6 1px, transparent 1px);
-  background-size: 20px 20px;
-  border: 2px solid #c5bba0;
-  border-radius: 4px 32px 4px 4px;
-  padding: 3rem;
-  box-shadow: 
-    0 25px 50px -12px rgba(0, 0, 0, 0.6),
-    inset 0 0 40px rgba(139, 106, 72, 0.1);
   animation: modalSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   overflow: hidden;
-  color: #2c1d12;
 }
 
 .bureau-briefing-modal::before {
@@ -7896,156 +7946,383 @@ textarea.lab-note-textarea:focus {
   scrollbar-color: #8b6a48 rgba(0,0,0,0.05);
 }
 
-.bureau-suspect-card {
-  background-color: white !important;
-  background: #fff !important;
-  border: 1px solid #ddd !important;
-  padding: 0.75rem 0.75rem 3rem 0.75rem !important;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
-  position: relative !important;
-  cursor: pointer !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  transform: rotate(-1deg);
-  display: flex !important;
-  flex-direction: column !important;
-  min-height: 8rem !important;
+
+/* --- ANTIQUITIES BUREAU PREMIUM DOSSIER --- */
+/* High-fidelity tactile investigative interface */
+
+:root {
+  --bureau-parchment: #f4e4bc;
+  --bureau-parchment-dark: #e8d8b0;
+  --bureau-ink: #1a1510;
+  --bureau-ink-muted: #4a3620;
+  --bureau-gold: #8b6a48;
+  --bureau-gold-light: rgba(139, 106, 72, 0.2);
+  --bureau-red: #b91c1c;
 }
 
-.bureau-suspect-card:nth-child(even) {
-  transform: rotate(1.5deg);
+.bureau-investigation-layout {
+  display: grid;
+  grid-template-columns: minmax(450px, 1fr) minmax(0, 1.2fr);
+  gap: 3rem;
+  align-items: stretch;
+  width: 98%;
+  max-width: 1600px;
+  margin: 2rem auto;
+  padding: 1rem;
+  min-height: calc(100vh - 120px);
 }
+
+.bureau-case-file,
+.bureau-suspect-board,
+.bureau-mission-audit,
+.bureau-claim-screen,
+.bureau-log,
+.bureau-briefing-modal {
+  background-color: var(--bureau-parchment) !important;
+  background-image: 
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.04' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.15'/%3E%3C/svg%3E"),
+    linear-gradient(to right, rgba(0,0,0,0.05) 0%, transparent 5%, transparent 95%, rgba(0,0,0,0.05) 100%) !important;
+  color: var(--bureau-ink) !important;
+  border: 1px solid #c2b29a !important;
+  border-radius: 4px 50px 4px 4px !important;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.3), inset 0 0 40px rgba(139, 106, 72, 0.1) !important;
+  position: relative !important;
+  padding: 3rem 2.5rem 3rem 4rem !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+/* Dossier Spine Effect */
+.bureau-case-file::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 30px;
+  height: 100%;
+  background: linear-gradient(to right, rgba(0,0,0,0.1), transparent);
+  border-right: 1px solid rgba(0,0,0,0.1);
+  border-radius: 4px 0 0 4px;
+}
+
+/* Suspect Cards as Pinned Files */
+.bureau-suspect-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
+  gap: 1.5rem !important;
+  padding: 1rem !important;
+  user-select: none;
+}
+
+.bureau-suspect-card {
+  position: relative;
+  background-color: #fff !important;
+  background-image: 
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)' opacity='0.05'/%3E%3C/svg%3E") !important;
+  border: 1px solid #ddd !important;
+  padding: 1rem 1rem 3.5rem 1rem !important;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15) !important;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+  transform: rotate(var(--random-rot, -1deg));
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: dealCard 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: calc(var(--deal-order) * 0.08s);
+  opacity: 0;
+}
+
+@keyframes dealCard {
+  from { opacity: 0; transform: translateY(50px) rotate(15deg) scale(0.9); }
+  to { opacity: 1; transform: translateY(0) rotate(var(--random-rot, 0deg)) scale(1); }
+}
+
+.bureau-suspect-card:nth-child(3n) { --random-rot: 1.5deg; }
+.bureau-suspect-card:nth-child(3n+1) { --random-rot: -1.2deg; }
+.bureau-suspect-card:nth-child(3n+2) { --random-rot: 0.8deg; }
 
 .bureau-suspect-card:hover {
-  transform: rotate(0deg) scale(1.05) translateY(-5px) !important;
-  box-shadow: 0 15px 30px rgba(0,0,0,0.3) !important;
-  z-index: 10 !important;
-}
-
-.bureau-suspect-discard-btn {
-  position: absolute;
-  top: 0.4rem;
-  right: 0.4rem;
-  background: rgba(220, 38, 38, 0.1);
-  color: #ef4444;
-  border: none;
-  border-radius: 4px;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: all 0.2s;
-  z-index: 2;
-  cursor: pointer;
-}
-
-.bureau-suspect-card:hover .bureau-suspect-discard-btn {
-  opacity: 1;
-}
-
-.bureau-suspect-discard-btn:hover {
-  background: #ef4444;
-  color: white;
-  transform: scale(1.1);
+  transform: translateY(-8px) rotate(0deg) scale(1.05) !important;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3) !important;
+  z-index: 50;
 }
 
 .bureau-suspect-card.is-ruled-out {
-  opacity: 0.6 !important;
-  filter: grayscale(1) !important;
-  transform: rotate(0deg) scale(0.95) !important;
+  filter: grayscale(100%) brightness(0.6) !important;
+  transform: scale(0.95) rotate(0deg) !important;
+  opacity: 0.7 !important;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
 }
 
-.bureau-suspect-card.is-ruled-out .bureau-suspect-name {
-  text-decoration: line-through;
-  opacity: 0.5;
-}
-
-.bureau-suspect-name {
-  font-family: 'Cinzel', serif;
-  font-weight: 700;
-  color: #2c1d12;
-  font-size: 0.95rem;
-  text-align: center;
-  margin-top: auto;
-}
-
-/* Index Tabs for Clue Categories */
-.bureau-tier-tabs {
+/* Discard Button */
+.bureau-discard-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.1);
+  background: white;
+  color: var(--bureau-red);
   display: flex;
-  gap: 4px;
+  align-items: center;
+  justify-content: center;
+  font-family: "Courier New", Courier, monospace;
+  font-weight: 900;
+  font-size: 1rem;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.bureau-discard-btn:hover {
+  background: var(--bureau-red);
+  color: white;
+  transform: scale(1.1) rotate(90deg);
+}
+
+/* Typography - Typewriter Aesthetic */
+.bureau-suspect-name {
+  font-family: "Courier New", Courier, monospace !important;
+  font-weight: 900 !important;
+  font-size: 1.1rem !important;
+  color: #1a1510 !important;
+  margin-top: 1rem;
+  text-transform: uppercase;
+}
+
+/* Matching Evidence Dots */
+.bureau-evidence-dots {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: auto;
+  padding-top: 1rem;
+}
+
+.evidence-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.08);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+  border: 1px solid rgba(0,0,0,0.05);
+  transition: all 0.3s;
+}
+
+.evidence-dot.active.geo { background-color: #22c55e; box-shadow: 0 0 10px rgba(34, 197, 94, 0.5); }
+.evidence-dot.active.soc { background-color: #3b82f6; box-shadow: 0 0 10px rgba(59, 130, 246, 0.5); }
+.evidence-dot.active.leg { background-color: #eab308; box-shadow: 0 0 10px rgba(234, 179, 8, 0.5); }
+
+/* Discarded Stamp */
+.bureau-discarded-stamp {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-15deg);
+  border: 5px double var(--bureau-red);
+  color: var(--bureau-red);
+  padding: 0.5rem 1.2rem;
+  font-family: "Courier New", Courier, monospace !important;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 1.6rem;
+  background: rgba(255, 255, 255, 0.2);
+  z-index: 6;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+/* Dossier Index Tabs */
+.bureau-tier-tabs {
+  display: flex !important;
+  gap: 0.4rem !important;
   margin-bottom: 0 !important;
   padding-left: 1rem;
   position: relative;
-  z-index: 1;
+  z-index: 10;
 }
 
 .bureau-tier-tab {
   background: #d4c8b0 !important;
-  padding: 0.6rem 1.25rem !important;
-  border-radius: 8px 8px 0 0 !important;
+  padding: 0.6rem 1.5rem !important;
+  border-radius: 12px 12px 0 0 !important;
   cursor: pointer !important;
-  font-weight: 700 !important;
+  font-weight: 800 !important;
   font-size: 0.75rem !important;
   color: #5c4a31 !important;
   border: 1px solid #c2b29a !important;
   border-bottom: none !important;
-  transition: all 0.2s !important;
-  position: relative;
-  bottom: -1px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.bureau-tier-tab:hover {
-  background: #e6d5b8 !important;
-}
-
-.bureau-tier-tab.current, 
-.bureau-tier-tab.active-selection {
-  background: #f4ead5 !important;
-  color: #1a1510 !important;
-  border-color: #c2b29a !important;
-  padding-bottom: 0.7rem !important;
-  z-index: 2;
-}
-
-.bureau-tier-tab.locked {
-  opacity: 0.5;
-  cursor: not-allowed !important;
-}
-
-.bureau-tier-tab span {
-  display: block;
-  font-size: 0.6rem;
-  opacity: 0.7;
-  font-weight: 400;
-}
-
-.bureau-ruled-out-label {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(-10deg);
-  border: 3px double #b91c1c;
-  color: #b91c1c;
-  padding: 0.2rem 0.8rem;
-  font-family: 'Outfit', sans-serif;
-  font-weight: 900;
+  transition: all 0.3s !important;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  opacity: 0.8;
-  pointer-events: none;
-  font-size: 0.8rem;
-  background: rgba(255, 255, 255, 0.9);
-  z-index: 5;
+  position: relative;
+  bottom: -1px;
 }
 
-/* Responsive Overrides */
-@media (max-width: 1200px) {
+.bureau-tier-tab:hover:not(.locked) {
+  background: #e6d5b8 !important;
+  transform: translateY(-2px);
+}
+
+.bureau-tier-tab.active-selection {
+  background: var(--bureau-parchment) !important;
+  color: var(--bureau-ink) !important;
+  padding-bottom: 0.8rem !important;
+  z-index: 15;
+  box-shadow: 0 -5px 15px rgba(0,0,0,0.05);
+}
+
+/* Briefing Overlay */
+.bureau-briefing-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: rgba(0,0,0,0.85) !important;
+  backdrop-filter: blur(10px);
+  z-index: 10000 !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.bureau-briefing-modal {
+  max-width: 700px !important;
+  animation: modalSlideUp 0.6s cubic-bezier(0.23, 1, 0.32, 1) !important;
+}
+
+/* Kickers and Headings */
+.training-kicker {
+  color: var(--bureau-gold) !important;
+  font-family: "Courier New", Courier, monospace !important;
+  font-weight: 900 !important;
+  font-size: 0.85rem !important;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+h2 {
+  font-family: 'Cinzel', serif !important;
+  font-weight: 700 !important;
+  color: var(--bureau-ink) !important;
+}
+
+/* Responsive centering */
+@media (max-width: 1100px) {
   .bureau-investigation-layout {
     grid-template-columns: 1fr !important;
     height: auto !important;
   }
+}
+
+
+/* Case File Internal Layout */
+.bureau-case-file h2 {
+  font-size: 2.2rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 2px solid var(--bureau-gold-light);
+  padding-bottom: 0.5rem;
+}
+
+.bureau-tier-status {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+  padding: 0.8rem 1.2rem;
+  background: rgba(139, 106, 72, 0.05);
+  border-radius: 8px;
+  border: 1px dashed rgba(139, 106, 72, 0.2);
+}
+
+.bureau-tier-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--bureau-ink-muted);
+}
+
+.bureau-tier-indicator.active {
+  color: var(--bureau-ink);
+}
+
+.bureau-indicator-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.1);
+}
+
+.bureau-indicator-dot.unlocked { background-color: var(--success); box-shadow: 0 0 8px var(--success); }
+
+.clue-reveal-container {
+  background: rgba(255, 255, 255, 0.4);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid rgba(0,0,0,0.05);
+  margin: 1.5rem 0;
+  min-height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.bureau-case-actions {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-top: 2rem;
+}
+
+.bureau-solve-btn {
+  background: var(--bureau-ink) !important;
+  color: var(--bureau-parchment) !important;
+  padding: 1rem 2rem !important;
+  border-radius: 8px !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 2px !important;
+  transition: all 0.3s !important;
+  border: none !important;
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.2) !important;
+}
+
+.bureau-solve-btn:hover:not(:disabled) {
+  transform: translateY(-3px) !important;
+  box-shadow: 0 15px 30px rgba(0,0,0,0.4) !important;
+  background: #000 !important;
+}
+
+.bureau-solve-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.bureau-hint-btn {
+  background: transparent !important;
+  color: var(--bureau-ink-muted) !important;
+  border: 1px solid var(--bureau-gold-light) !important;
+  padding: 0.6rem 1.2rem !important;
+  border-radius: 6px !important;
+  font-size: 0.85rem !important;
+  font-weight: 700 !important;
+  transition: all 0.2s !important;
+}
+
+.bureau-hint-btn:hover {
+  background: var(--bureau-gold-light) !important;
+  color: var(--bureau-ink) !important;
 }
