@@ -243,7 +243,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       setInspectionFeedback({
         correct: true,
         stamp: 'EVIDENCE VERIFIED',
-        text: 'Correct. This is structural evidence. It helps show what people built or changed at the site.',
+        text: 'Correct. This structural evidence matches the mission because it helps show what people built or changed at the site.',
       });
       setNotice(`${token.name} added to your evidence satchel. +${INVESTIGATION_BONUS} investigation points.`);
       audioControls.playMatch?.();
@@ -251,7 +251,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       setInspectionFeedback({
         correct: false,
         stamp: 'EVIDENCE COLLECTED',
-        text: 'Not quite. This evidence may still be useful, but it does not show buildings or structures.',
+        text: 'Useful evidence, but it does not match the mission because it does not show buildings or structures.',
       });
       setNotice(`${token.name} added to your evidence satchel.`);
       audioControls.playError?.();
@@ -282,110 +282,157 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, MAP_WIDTH, MAP_HEIGHT);
 
-    ctx.fillStyle = '#ead8b8';
+    const now = Date.now();
+
+    // 1. Better Background (Subtle radial gradient)
+    const bgGradient = ctx.createRadialGradient(MAP_WIDTH/2, MAP_HEIGHT/2, MAP_WIDTH/4, MAP_WIDTH/2, MAP_HEIGHT/2, MAP_WIDTH);
+    bgGradient.addColorStop(0, '#ebdaba');
+    bgGradient.addColorStop(1, '#d4c09d');
+    ctx.fillStyle = bgGradient;
     ctx.fillRect(0, 0, MAP_WIDTH, MAP_HEIGHT);
-    ctx.strokeStyle = 'rgba(74, 54, 32, 0.12)';
+
+    // 2. Map Grid (Softer)
+    ctx.strokeStyle = 'rgba(100, 75, 50, 0.08)';
+    ctx.lineWidth = 1;
     for (let x = 0; x <= MAP_WIDTH; x += 40) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, MAP_HEIGHT);
-      ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, MAP_HEIGHT); ctx.stroke();
     }
     for (let y = 0; y <= MAP_HEIGHT; y += 40) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(MAP_WIDTH, y);
-      ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(MAP_WIDTH, y); ctx.stroke();
     }
 
+    // 3. Map Zones with transparent labels
     ZONES.forEach((zone) => {
       ctx.fillStyle = zone.color;
       ctx.fillRect(zone.x, zone.y, zone.w, zone.h);
-      ctx.strokeStyle = 'rgba(74, 54, 32, 0.18)';
+      ctx.strokeStyle = 'rgba(74, 54, 32, 0.2)';
+      ctx.lineWidth = 2;
       ctx.strokeRect(zone.x, zone.y, zone.w, zone.h);
       
       // Draw watermark emoji
-      ctx.fillStyle = 'rgba(74, 54, 32, 0.15)';
-      ctx.font = '60px Outfit, sans-serif';
-      ctx.fillText(zone.emoji, zone.x + zone.w / 2 - 30, zone.y + zone.h / 2 + 20);
+      ctx.fillStyle = 'rgba(74, 54, 32, 0.12)';
+      ctx.font = '72px Outfit, sans-serif';
+      ctx.fillText(zone.emoji, zone.x + zone.w / 2 - 36, zone.y + zone.h / 2 + 25);
 
-      ctx.fillStyle = '#4a3620';
-      ctx.font = '700 14px Outfit, sans-serif';
-      ctx.fillText(`${zone.emoji} ${zone.name}`, zone.x + 14, zone.y + 24);
+      // Label background
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+      const labelText = `${zone.emoji} ${zone.name}`;
+      ctx.font = '700 13px Outfit, sans-serif';
+      const textWidth = ctx.measureText(labelText).width;
+      ctx.fillRect(zone.x + 8, zone.y + 8, textWidth + 12, 24);
+
+      ctx.fillStyle = '#3a2a18';
+      ctx.fillText(labelText, zone.x + 14, zone.y + 24);
     });
 
-    const gateOpen = missionEvidenceCount >= 1;
-    ctx.fillStyle = gateOpen ? 'rgba(45, 90, 39, 0.45)' : 'rgba(74, 54, 32, 0.25)';
-    ctx.fillRect(724, 258, 54, 108);
-    ctx.strokeStyle = gateOpen ? '#2d5a27' : '#8b6a48';
-    ctx.lineWidth = 3;
-    ctx.strokeRect(724, 258, 54, 108);
-    ctx.fillStyle = gateOpen ? '#163b18' : '#4a3620';
-    ctx.font = '800 13px Outfit, sans-serif';
-    ctx.fillText(gateOpen ? '🔓 EXIT' : '🔒 LOCKED', gateOpen ? 728 : 728, 316);
-    ctx.lineWidth = 1;
-
+    // 4. Hazards (Pulsing borders)
+    const pulse = (Math.sin(now / 300) + 1) / 2; // 0 to 1
     HAZARDS.forEach((hazard) => {
       ctx.fillStyle = hazard.color;
       ctx.fillRect(hazard.x, hazard.y, hazard.w, hazard.h);
-      ctx.strokeStyle = 'rgba(120, 53, 15, 0.55)';
-      ctx.setLineDash([6, 5]);
+      
+      ctx.strokeStyle = `rgba(180, 50, 20, ${0.4 + pulse * 0.4})`;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([8, 8]);
+      ctx.lineDashOffset = -now / 40; // Moving dash
       ctx.strokeRect(hazard.x, hazard.y, hazard.w, hazard.h);
       ctx.setLineDash([]);
       
       // Draw watermark emoji
-      ctx.fillStyle = 'rgba(120, 53, 15, 0.3)';
-      ctx.font = '40px Outfit, sans-serif';
-      ctx.fillText(hazard.emoji, hazard.x + hazard.w / 2 - 20, hazard.y + hazard.h / 2 + 15);
+      ctx.fillStyle = 'rgba(120, 53, 15, 0.25)';
+      ctx.font = '48px Outfit, sans-serif';
+      ctx.fillText(hazard.emoji, hazard.x + hazard.w / 2 - 24, hazard.y + hazard.h / 2 + 16);
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+      const labelText = `${hazard.emoji} ${hazard.name}`;
+      ctx.font = '700 12px Outfit, sans-serif';
+      const textWidth = ctx.measureText(labelText).width;
+      ctx.fillRect(hazard.x + 4, hazard.y + 4, textWidth + 10, 22);
 
       ctx.fillStyle = '#5b2b16';
-      ctx.font = '700 12px Outfit, sans-serif';
-      ctx.fillText(`${hazard.emoji} ${hazard.name}`, hazard.x + 8, hazard.y + 22);
+      ctx.fillText(labelText, hazard.x + 9, hazard.y + 19);
     });
 
-    ctx.fillStyle = '#5c4b37';
+    // 5. Walls with drop shadow
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+    ctx.shadowBlur = 6;
+    ctx.shadowOffsetY = 4;
+    ctx.fillStyle = '#4a3a2a'; // darker stone
     WALLS.forEach((wall) => {
       ctx.fillRect(wall.x, wall.y, wall.w, wall.h);
-      ctx.strokeStyle = 'rgba(26, 21, 16, 0.4)';
+      ctx.strokeStyle = 'rgba(20, 15, 10, 0.6)';
+      ctx.lineWidth = 2;
       ctx.strokeRect(wall.x, wall.y, wall.w, wall.h);
     });
+    ctx.shadowColor = 'transparent'; // Reset
+    ctx.shadowOffsetY = 0;
 
-    tokensRef.current.forEach((token) => {
+    // 6. Exit Gate
+    const gateOpen = missionEvidenceCount >= 1;
+    ctx.shadowColor = gateOpen ? 'rgba(74, 222, 128, 0.4)' : 'rgba(0,0,0,0.3)';
+    ctx.shadowBlur = 10;
+    ctx.fillStyle = gateOpen ? 'rgba(74, 222, 128, 0.6)' : 'rgba(74, 54, 32, 0.8)';
+    ctx.fillRect(724, 258, 54, 108);
+    ctx.strokeStyle = gateOpen ? '#166534' : '#3a2a18';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(724, 258, 54, 108);
+    ctx.shadowColor = 'transparent';
+
+    ctx.fillStyle = gateOpen ? '#064e3b' : '#fdf6e3';
+    ctx.font = '800 13px Outfit, sans-serif';
+    ctx.fillText(gateOpen ? '🔓 EXIT' : '🔒 LOCKED', gateOpen ? 728 : 726, 316);
+    ctx.lineWidth = 1;
+
+    // 7. Tokens (Floating/glowing)
+    tokensRef.current.forEach((token, index) => {
       if (token.collected) return;
       const category = categoryById.get(token.type);
+      
+      const floatY = Math.sin((now / 200) + index) * 3;
+      
+      ctx.shadowColor = category?.color || '#e89e5d';
+      ctx.shadowBlur = 12;
+      
       ctx.fillStyle = category?.color || '#e89e5d';
       ctx.beginPath();
-      ctx.arc(token.x, token.y, 14, 0, Math.PI * 2);
+      ctx.arc(token.x, token.y + floatY, 15, 0, Math.PI * 2);
       ctx.fill();
-      ctx.strokeStyle = '#fff7dc';
-      ctx.lineWidth = 3;
+      
+      ctx.shadowColor = 'transparent';
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
       ctx.stroke();
-      ctx.lineWidth = 1;
-      ctx.fillStyle = '#2c241a';
-      ctx.font = '14px Outfit, sans-serif';
       
       let tokenEmoji = '🔍';
       if (token.type === 'structures') tokenEmoji = '🏛️';
       if (token.type === 'written') tokenEmoji = '📜';
       if (token.type === 'objects') tokenEmoji = '🏺';
       if (token.type === 'environment') tokenEmoji = '🌿';
-      if (token.type === 'remains') tokenEmoji = '⚰️';
+      if (token.type === 'human_remains' || token.type === 'remains') tokenEmoji = '⚰️';
       
-      ctx.fillText(tokenEmoji, token.x - 7, token.y + 5);
+      ctx.font = '15px Outfit, sans-serif';
+      ctx.fillText(tokenEmoji, token.x - 7, token.y + 5 + floatY);
     });
 
+    // 8. Player Avatar
     const player = playerRef.current;
+    ctx.shadowColor = 'rgba(0,0,0,0.4)';
+    ctx.shadowBlur = 8;
+    ctx.shadowOffsetY = 3;
+    
+    // Draw a nice badge background for the player
     ctx.fillStyle = '#2563eb';
     ctx.beginPath();
-    ctx.arc(player.x + PLAYER_SIZE / 2, player.y + PLAYER_SIZE / 2, PLAYER_SIZE / 2, 0, Math.PI * 2);
+    ctx.arc(player.x + PLAYER_SIZE / 2, player.y + PLAYER_SIZE / 2, PLAYER_SIZE / 2 + 2, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = '#fdf6e3';
+    ctx.strokeStyle = '#fff';
     ctx.lineWidth = 3;
     ctx.stroke();
-    ctx.lineWidth = 1;
-    ctx.fillStyle = '#fdf6e3';
-    ctx.font = '14px Outfit, sans-serif';
-    ctx.fillText('🕵️', player.x + 2, player.y + 16);
+    
+    ctx.shadowColor = 'transparent';
+    ctx.shadowOffsetY = 0;
+    ctx.font = '16px Outfit, sans-serif';
+    ctx.fillText('🕵️', player.x + 3, player.y + 17);
   }, [categoryById, missionEvidenceCount]);
 
   const update = useCallback((dt = 1 / 60) => {
@@ -768,14 +815,14 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
                   className="btn primary-btn"
                   onClick={() => inspectMissionChoice(true)}
                 >
-                  Yes, secure it
+                  Secure as mission evidence
                 </button>
                 <button
                   type="button"
                   className="btn"
                   onClick={() => inspectMissionChoice(false)}
                 >
-                  No, leave it and keep looking
+                  Not mission evidence - keep searching
                 </button>
               </div>
             )}
