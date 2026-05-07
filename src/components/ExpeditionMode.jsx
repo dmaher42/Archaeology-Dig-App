@@ -19,12 +19,12 @@ const PLAYER_SIZE = 22;
 const TARGET_CIVILISATION = 'Ancient Egypt';
 
 const ZONES = [
-  { id: 'riverbank', name: 'Riverbank', x: 0, y: 0, w: 260, h: 220, color: 'rgba(96, 165, 250, 0.16)' },
-  { id: 'burial', name: 'Burial Area', x: 260, y: 0, w: 260, h: 220, color: 'rgba(168, 85, 247, 0.13)' },
-  { id: 'archive', name: 'Archive Corner', x: 520, y: 0, w: 280, h: 220, color: 'rgba(232, 158, 93, 0.14)' },
-  { id: 'market', name: 'Market Area', x: 0, y: 220, w: 320, h: 190, color: 'rgba(245, 158, 11, 0.13)' },
-  { id: 'wall', name: 'Ruined Wall', x: 320, y: 220, w: 260, h: 190, color: 'rgba(20, 184, 166, 0.12)' },
-  { id: 'gate', name: 'Exit Gate', x: 580, y: 220, w: 220, h: 340, color: 'rgba(74, 222, 128, 0.1)' },
+  { id: 'riverbank', name: 'Riverbank', emoji: '🌊', x: 0, y: 0, w: 260, h: 220, color: 'rgba(96, 165, 250, 0.16)' },
+  { id: 'burial', name: 'Burial Area', emoji: '🏺', x: 260, y: 0, w: 260, h: 220, color: 'rgba(168, 85, 247, 0.13)' },
+  { id: 'archive', name: 'Archive Corner', emoji: '📜', x: 520, y: 0, w: 280, h: 220, color: 'rgba(232, 158, 93, 0.14)' },
+  { id: 'market', name: 'Market Area', emoji: '⛺', x: 0, y: 220, w: 320, h: 190, color: 'rgba(245, 158, 11, 0.13)' },
+  { id: 'wall', name: 'Ruined Wall', emoji: '🏛️', x: 320, y: 220, w: 260, h: 190, color: 'rgba(20, 184, 166, 0.12)' },
+  { id: 'gate', name: 'Exit Gate', emoji: '🔒', x: 580, y: 220, w: 220, h: 340, color: 'rgba(74, 222, 128, 0.1)' },
 ];
 
 const WALLS = [
@@ -38,6 +38,7 @@ const HAZARDS = [
   {
     id: 'sandstorm',
     name: 'sandstorm',
+    emoji: '🌪️',
     x: 84,
     y: 96,
     w: 120,
@@ -49,6 +50,7 @@ const HAZARDS = [
   {
     id: 'falling-rocks',
     name: 'falling rocks',
+    emoji: '🪨',
     x: 388,
     y: 292,
     w: 110,
@@ -60,6 +62,7 @@ const HAZARDS = [
   {
     id: 'unstable-floor',
     name: 'unstable floor',
+    emoji: '⚠️',
     x: 196,
     y: 454,
     w: 118,
@@ -73,9 +76,10 @@ const HAZARDS = [
 const CLAIM_OPTIONS = ['Ancient Egypt', 'Ancient Greece', 'Ancient Rome', 'Ancient China', 'Maya', 'Inca'];
 const INITIAL_RESOURCES = { investigation: 95, stamina: 100, time: 600 };
 const INVESTIGATION_BONUS = 5;
+const MAX_EVIDENCE_ITEMS = 3;
 const MISSION_TARGET = {
   title: 'Find Structural Evidence',
-  instruction: 'The Bureau needs evidence of buildings or structures. Search the site and find evidence that shows people built or changed this place.',
+  instruction: 'The Bureau needs evidence of buildings or structures. Search the site and secure evidence that shows people built or changed this place.',
   targetCategoryId: 'structures',
   targetCategoryTitle: 'Features / Structures',
 };
@@ -150,6 +154,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
   const [briefingOpen, setBriefingOpen] = useState(true);
   const [nearbyToken, setNearbyToken] = useState(null);
   const [inspectionToken, setInspectionToken] = useState(null);
+  const [inspectionStep, setInspectionStep] = useState('review');
   const [inspectionFeedback, setInspectionFeedback] = useState(null);
   const [missionEvidenceCount, setMissionEvidenceCount] = useState(0);
   const [claimOpen, setClaimOpen] = useState(false);
@@ -166,6 +171,12 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
 
   const categoryById = useMemo(() => new Map(CATEGORIES.map(category => [category.id, category])), []);
   const exitUnlocked = missionEvidenceCount >= 1;
+  const syncInventory = useCallback((items) => {
+    const nextItems = [...items];
+    collectedRef.current = nextItems;
+    setCollectedEvidence(nextItems);
+    setMissionEvidenceCount(nextItems.filter(item => item.isMissionEvidence).length);
+  }, []);
 
   const syncResources = useCallback((patch) => {
     resourcesRef.current = {
@@ -179,6 +190,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
   const openInspection = useCallback((token = nearbyTokenRef.current) => {
     if (briefingOpen || !token || token.collected || lockedRef.current) return;
     setInspectionToken(token);
+    setInspectionStep('review');
     setInspectionFeedback(null);
     setNotice(`Inspecting ${token.name}. Decide whether it matches your mission.`);
   }, [briefingOpen]);
@@ -187,11 +199,12 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     keysRef.current = {};
     tickAccumulatorRef.current = 0;
     setBriefingOpen(false);
-    setNotice('Find structural evidence to unlock the Exit Gate.');
+    setNotice(MISSION_TARGET.instruction);
   };
 
   const closeInspection = () => {
     setInspectionToken(null);
+    setInspectionStep('review');
     setInspectionFeedback(null);
   };
 
@@ -199,23 +212,33 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     if (!token || token.collected) return;
     dismissedTokenRef.current = token.id;
     setInspectionToken(null);
+    setInspectionStep('review');
     setInspectionFeedback(null);
     setNotice('Keep searching for structural evidence.');
   };
 
-  const collectInspectedEvidence = (token, matchesMission) => {
+  const finishInspection = (token, replacementId = null) => {
     if (!token || token.collected) return;
+    const isStructuralEvidence = token.type === MISSION_TARGET.targetCategoryId;
+    const nextInventory = replacementId
+      ? collectedRef.current.filter(item => item.id !== replacementId)
+      : [...collectedRef.current];
+
+    if (!replacementId && nextInventory.length >= MAX_EVIDENCE_ITEMS) {
+      setInspectionStep('capacity');
+      setNotice('Your evidence satchel is full. Replace an item or leave this evidence here.');
+      return;
+    }
+
     dismissedTokenRef.current = null;
     token.collected = true;
-    collectedRef.current = [...collectedRef.current, token];
-    setCollectedEvidence(collectedRef.current);
+    token.isMissionEvidence = isStructuralEvidence;
+    nextInventory.push(token);
+    syncInventory(nextInventory);
     nearbyTokenRef.current = null;
     setNearbyToken(null);
 
-    const isStructuralEvidence = token.type === MISSION_TARGET.targetCategoryId;
-
-    if (matchesMission && isStructuralEvidence) {
-      setMissionEvidenceCount(1);
+    if (isStructuralEvidence) {
       syncResources({ investigation: INVESTIGATION_BONUS });
       setInspectionFeedback({
         correct: true,
@@ -224,14 +247,6 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       });
       setNotice(`${token.name} added to your evidence satchel. +${INVESTIGATION_BONUS} investigation points.`);
       audioControls.playMatch?.();
-    } else if (matchesMission && !isStructuralEvidence) {
-      setInspectionFeedback({
-        correct: false,
-        stamp: 'EVIDENCE COLLECTED',
-        text: 'Not quite. This evidence may still be useful, but it does not show buildings or structures.',
-      });
-      setNotice(`${token.name} added to your evidence satchel.`);
-      audioControls.playError?.();
     } else {
       setInspectionFeedback({
         correct: false,
@@ -241,6 +256,24 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       setNotice(`${token.name} added to your evidence satchel.`);
       audioControls.playError?.();
     }
+    setInspectionStep('review');
+  };
+
+  const inspectMissionChoice = (matchesMission) => {
+    if (!inspectionToken || inspectionToken.collected) return;
+
+    if (!matchesMission) {
+      rejectInspectedEvidence(inspectionToken);
+      return;
+    }
+
+    if (collectedRef.current.length >= MAX_EVIDENCE_ITEMS) {
+      setInspectionStep('capacity');
+      setNotice('Your evidence satchel is full. Replace an item or leave this evidence here.');
+      return;
+    }
+
+    finishInspection(inspectionToken);
   };
 
   const draw = useCallback(() => {
@@ -270,9 +303,15 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       ctx.fillRect(zone.x, zone.y, zone.w, zone.h);
       ctx.strokeStyle = 'rgba(74, 54, 32, 0.18)';
       ctx.strokeRect(zone.x, zone.y, zone.w, zone.h);
+      
+      // Draw watermark emoji
+      ctx.fillStyle = 'rgba(74, 54, 32, 0.15)';
+      ctx.font = '60px Outfit, sans-serif';
+      ctx.fillText(zone.emoji, zone.x + zone.w / 2 - 30, zone.y + zone.h / 2 + 20);
+
       ctx.fillStyle = '#4a3620';
       ctx.font = '700 14px Outfit, sans-serif';
-      ctx.fillText(zone.name, zone.x + 14, zone.y + 24);
+      ctx.fillText(`${zone.emoji} ${zone.name}`, zone.x + 14, zone.y + 24);
     });
 
     const gateOpen = missionEvidenceCount >= 1;
@@ -283,7 +322,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     ctx.strokeRect(724, 258, 54, 108);
     ctx.fillStyle = gateOpen ? '#163b18' : '#4a3620';
     ctx.font = '800 13px Outfit, sans-serif';
-    ctx.fillText(gateOpen ? 'EXIT' : 'LOCKED', gateOpen ? 735 : 728, 316);
+    ctx.fillText(gateOpen ? '🔓 EXIT' : '🔒 LOCKED', gateOpen ? 728 : 728, 316);
     ctx.lineWidth = 1;
 
     HAZARDS.forEach((hazard) => {
@@ -293,9 +332,15 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       ctx.setLineDash([6, 5]);
       ctx.strokeRect(hazard.x, hazard.y, hazard.w, hazard.h);
       ctx.setLineDash([]);
+      
+      // Draw watermark emoji
+      ctx.fillStyle = 'rgba(120, 53, 15, 0.3)';
+      ctx.font = '40px Outfit, sans-serif';
+      ctx.fillText(hazard.emoji, hazard.x + hazard.w / 2 - 20, hazard.y + hazard.h / 2 + 15);
+
       ctx.fillStyle = '#5b2b16';
       ctx.font = '700 12px Outfit, sans-serif';
-      ctx.fillText(hazard.name, hazard.x + 8, hazard.y + 22);
+      ctx.fillText(`${hazard.emoji} ${hazard.name}`, hazard.x + 8, hazard.y + 22);
     });
 
     ctx.fillStyle = '#5c4b37';
@@ -310,15 +355,23 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       const category = categoryById.get(token.type);
       ctx.fillStyle = category?.color || '#e89e5d';
       ctx.beginPath();
-      ctx.arc(token.x, token.y, 12, 0, Math.PI * 2);
+      ctx.arc(token.x, token.y, 14, 0, Math.PI * 2);
       ctx.fill();
       ctx.strokeStyle = '#fff7dc';
       ctx.lineWidth = 3;
       ctx.stroke();
       ctx.lineWidth = 1;
       ctx.fillStyle = '#2c241a';
-      ctx.font = '900 12px Outfit, sans-serif';
-      ctx.fillText('?', token.x - 3, token.y + 4);
+      ctx.font = '14px Outfit, sans-serif';
+      
+      let tokenEmoji = '🔍';
+      if (token.type === 'structures') tokenEmoji = '🏛️';
+      if (token.type === 'written') tokenEmoji = '📜';
+      if (token.type === 'objects') tokenEmoji = '🏺';
+      if (token.type === 'environment') tokenEmoji = '🌿';
+      if (token.type === 'remains') tokenEmoji = '⚰️';
+      
+      ctx.fillText(tokenEmoji, token.x - 7, token.y + 5);
     });
 
     const player = playerRef.current;
@@ -331,8 +384,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     ctx.stroke();
     ctx.lineWidth = 1;
     ctx.fillStyle = '#fdf6e3';
-    ctx.font = '900 11px Outfit, sans-serif';
-    ctx.fillText('J', player.x + 8, player.y + 15);
+    ctx.font = '14px Outfit, sans-serif';
+    ctx.fillText('🕵️', player.x + 2, player.y + 16);
   }, [categoryById, missionEvidenceCount]);
 
   const update = useCallback((dt = 1 / 60) => {
@@ -486,6 +539,10 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         required: 1,
       },
       exitUnlocked: missionEvidenceCount >= 1,
+      inventory: {
+        count: collectedRef.current.length,
+        limit: MAX_EVIDENCE_ITEMS,
+      },
       claimOpen: lockedRef.current,
       briefingOpen,
       nearbyEvidence: nearbyTokenRef.current ? {
@@ -519,18 +576,19 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     setCollectedEvidence([]);
     setResources(INITIAL_RESOURCES);
     setCurrentZone('Market Area');
-    setNotice('Find structural evidence to unlock the Exit Gate.');
-      setBriefingOpen(true);
-      setNearbyToken(null);
-      setInspectionToken(null);
-      setInspectionFeedback(null);
-      setMissionEvidenceCount(0);
-      setClaimOpen(false);
-      setSelectedCivilisation('');
-      setSelectedEvidenceId('');
-      setClaimResult(null);
-      dismissedTokenRef.current = null;
-      draw();
+    setNotice(MISSION_TARGET.instruction);
+    setBriefingOpen(true);
+    setNearbyToken(null);
+    setInspectionToken(null);
+    setInspectionStep('review');
+    setInspectionFeedback(null);
+    setMissionEvidenceCount(0);
+    setClaimOpen(false);
+    setSelectedCivilisation('');
+    setSelectedEvidenceId('');
+    setClaimResult(null);
+    dismissedTokenRef.current = null;
+    draw();
   };
 
   const submitClaim = () => {
@@ -631,7 +689,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
             </section>
 
             <section className="expedition-panel">
-              <h3><Backpack size={17} /> Evidence Inventory</h3>
+              <h3><Backpack size={17} /> Evidence Inventory <span className="expedition-inventory-count">{collectedEvidence.length}/{MAX_EVIDENCE_ITEMS}</span></h3>
               <div className="expedition-evidence-list">
                 {collectedEvidence.length === 0 && <p className="expedition-empty">No evidence collected yet.</p>}
                 {collectedEvidence.map(item => (
@@ -667,42 +725,22 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         <div className="bureau-briefing-overlay expedition-briefing-overlay">
           <div className="bureau-briefing-modal expedition-mission-briefing-modal">
             <div className="expedition-briefing-stamp">Top Secret</div>
-            <div className="training-kicker">ANTIQUITIES BUREAU: TOP SECRET BRIEFING</div>
             <h2>Operation: Lost Site Expedition</h2>
-            <p><strong>Greetings, Junior Historian.</strong></p>
-            <p>You have been sent to a restricted dig site. Your goal is not just to find the exit. Your goal is to prove which civilisation once lived here using evidence.</p>
+            <p>Explore the site, collect evidence, and prove which civilisation lived here.</p>
+            
             <div className="expedition-mission-card expedition-briefing-mission">
               <strong>{MISSION_TARGET.title}</strong>
-              <span>{MISSION_TARGET.targetCategoryTitle}</span>
               <p>{MISSION_TARGET.instruction}</p>
-              <div className="expedition-mission-progress">
-                Structural evidence found: <span>0/1</span>
-              </div>
             </div>
 
             <div className="expedition-briefing-rules" aria-label="Mission Rules">
-              <h3>Mission Rules</h3>
-              <ol>
-                <li>
-                  <strong>Collect Evidence</strong>
-                  <span>Find at least 1 piece of structural evidence to unlock the Exit Gate.</span>
-                </li>
-                <li>
-                  <strong>Inspect Before You Choose</strong>
-                  <span>Evidence tells you different things. Use the clue carefully before you answer.</span>
-                </li>
-                <li>
-                  <strong>Avoid Hazards</strong>
-                  <span>Sandstorms, falling rocks and unstable ground can reduce your Investigation Points, stamina or time.</span>
-                </li>
-                <li>
-                  <strong>Make a Final Claim</strong>
-                  <span>At the Exit Gate, choose the civilisation and the evidence that best supports your answer.</span>
-                </li>
-              </ol>
+              <ul style={{ paddingLeft: '1.2rem', margin: 0, display: 'grid', gap: '0.4rem' }}>
+                <li><strong>Search</strong>: Find structural evidence to unlock the Exit Gate.</li>
+                <li><strong>Choose Carefully</strong>: Your evidence satchel can only hold 3 items, so you may need to replace weaker evidence.</li>
+                <li><strong>Survive</strong>: Avoid hazards that drain your time and stamina.</li>
+                <li><strong>Prove</strong>: Make your final claim at the exit using your evidence.</li>
+              </ul>
             </div>
-
-            <p className="expedition-briefing-warning">Do not guess. Use your Field Guide.</p>
 
             <div className="bureau-briefing-actions">
               <button type="button" className="btn primary-btn expedition-begin-btn" onClick={beginExpedition}>
@@ -723,24 +761,68 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
             <div className="expedition-inspection-clue-group">Clue group: {inspectionToken.clueGroup}</div>
             <div className="expedition-inspection-question">Does this evidence match your mission?</div>
 
-            <div className="expedition-inspection-actions">
-              <button
-                type="button"
-                className="btn primary-btn"
-                disabled={Boolean(inspectionFeedback)}
-                onClick={() => collectInspectedEvidence(inspectionToken, true)}
-              >
-                Yes, this matches the mission
-              </button>
-              <button
-                type="button"
-                className="btn"
-                disabled={Boolean(inspectionFeedback)}
-                onClick={() => rejectInspectedEvidence(inspectionToken)}
-              >
-                No, keep looking
-              </button>
-            </div>
+            {!inspectionFeedback && inspectionStep === 'review' && (
+              <div className="expedition-inspection-actions">
+                <button
+                  type="button"
+                  className="btn primary-btn"
+                  onClick={() => inspectMissionChoice(true)}
+                >
+                  Yes, secure it
+                </button>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => inspectMissionChoice(false)}
+                >
+                  No, leave it and keep looking
+                </button>
+              </div>
+            )}
+
+            {!inspectionFeedback && inspectionStep === 'capacity' && (
+              <div className="expedition-inventory-choice">
+                <p>Your evidence satchel is full. What would you like to do?</p>
+                <div className="expedition-inventory-choice-actions">
+                  <button
+                    type="button"
+                    className="btn primary-btn"
+                    onClick={() => setInspectionStep('replace')}
+                  >
+                    Replace an existing evidence item
+                  </button>
+                  <button
+                    type="button"
+                    className="btn"
+                    onClick={() => rejectInspectedEvidence(inspectionToken)}
+                  >
+                    Leave this evidence here
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {!inspectionFeedback && inspectionStep === 'replace' && (
+              <div className="expedition-replacement-picker">
+                <p>Choose one evidence item to replace.</p>
+                <div className="expedition-replacement-grid">
+                  {collectedEvidence.map(item => (
+                    <button
+                      type="button"
+                      key={item.id}
+                      className="expedition-replacement-card"
+                      onClick={() => finishInspection(inspectionToken, item.id)}
+                    >
+                      <strong>{item.name}</strong>
+                      <span>{item.category} | {item.zone}</span>
+                    </button>
+                  ))}
+                </div>
+                <button type="button" className="btn" onClick={() => setInspectionStep('capacity')}>
+                  Back
+                </button>
+              </div>
+            )}
 
             {inspectionFeedback && (
               <div className={`expedition-claim-feedback ${inspectionFeedback.correct ? 'correct' : 'incorrect'}`}>
