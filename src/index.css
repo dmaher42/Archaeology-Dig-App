@@ -8896,9 +8896,10 @@ main {
 }
 
 .expedition-gate-badge {
-  display: inline-flex;
+  display: grid;
+  grid-auto-flow: row;
   align-items: center;
-  justify-content: center;
+  justify-items: center;
   gap: 0.4rem;
   min-height: 2.25rem;
   padding: 0.45rem 0.75rem;
@@ -8908,13 +8909,22 @@ main {
   color: var(--bureau-ink-muted);
   font-size: 0.78rem;
   font-weight: 900;
-  white-space: nowrap;
 }
 
 .expedition-gate-badge.unlocked {
   background: rgba(45, 90, 39, 0.12);
   border-color: rgba(45, 90, 39, 0.35);
   color: #2d5a27;
+}
+
+.expedition-gate-badge span,
+.expedition-gate-badge small {
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.expedition-gate-badge small {
+  font-size: 0.67rem;
 }
 
 .expedition-layout {
@@ -9022,6 +9032,36 @@ main {
   border-radius: 4px;
 }
 
+.expedition-mission-card {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid rgba(139, 106, 72, 0.3);
+  border-radius: 6px;
+  background: rgba(255, 250, 240, 0.6);
+}
+
+.expedition-mission-card strong {
+  color: var(--bureau-ink);
+  font-size: 0.95rem;
+}
+
+.expedition-mission-card span,
+.expedition-mission-card p,
+.expedition-mission-progress {
+  color: var(--bureau-ink-muted);
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.expedition-mission-progress {
+  font-weight: 900;
+}
+
+.expedition-mission-progress span {
+  color: var(--bureau-ink);
+}
+
 .expedition-panel h3 {
   display: flex;
   align-items: center;
@@ -9085,6 +9125,13 @@ main {
   color: var(--bureau-ink);
 }
 
+.expedition-evidence-clue-group {
+  color: var(--bureau-ink-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
 .expedition-evidence-item p {
   margin: 0;
   color: var(--bureau-ink);
@@ -9140,6 +9187,10 @@ main {
   margin: 0 !important;
   font-size: 1rem !important;
   line-height: 1.45 !important;
+}
+
+.expedition-briefing-mission {
+  margin-top: 0.15rem;
 }
 
 .expedition-briefing-stamp {
@@ -9241,16 +9292,22 @@ main {
   line-height: 1.4;
 }
 
-.expedition-clue-options {
+.expedition-inspection-clue-group {
+  padding: 0.4rem 0.65rem;
+  border-left: 3px solid rgba(92, 66, 38, 0.45);
+  background: rgba(255, 250, 240, 0.6);
+  color: var(--bureau-ink-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.expedition-inspection-actions {
   display: grid;
   gap: 0.65rem;
 }
 
-.expedition-clue-options .bureau-comparison-option {
-  background: #fffaf0;
-}
-
-.expedition-clue-options .bureau-comparison-option:disabled {
+.expedition-inspection-actions .btn:disabled {
   opacity: 0.58;
   cursor: not-allowed;
 }
