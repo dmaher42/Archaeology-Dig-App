@@ -44,6 +44,21 @@ const HAZARDS = [
   { id: 'sandstorm', name: 'sandstorm patch', x: 1315, y: 315, width: 96, height: 45, penalty: { time: 12 }, message: 'Sandstorm patch slowed the team. Time reduced.' },
 ];
 
+const GUARDIANS = [
+  {
+    id: 'sand-wraith',
+    name: 'Sand Wraith',
+    patrolMin: 760,
+    patrolMax: 1050,
+    y: 318,
+    width: 34,
+    height: 42,
+    speed: 92,
+    penalty: { stamina: 14, time: 6 },
+    message: 'A Sand Wraith swept past the team. Stamina and time reduced.',
+  },
+];
+
 const GATE = { x: 1760, y: 282, width: 56, height: 78 };
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -67,12 +82,18 @@ const makeInitialState = () => ({
   },
   fieldKit: [],
   collectedToolIds: new Set(),
+  guardians: GUARDIANS.map((guardian) => ({
+    ...guardian,
+    x: guardian.patrolMin,
+    direction: 1,
+  })),
   resources: {
     stamina: 100,
     time: 180,
   },
   notice: INITIAL_JOURNEY_NOTICE,
   hazardCooldown: 0,
+  guardianCooldown: 0,
   timeAccumulator: 0,
   completed: false,
 });
@@ -101,6 +122,14 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
         .filter((tool) => !current.collectedToolIds.has(tool.id))
         .map((tool) => tool.name),
       hazards: HAZARDS.map((hazard) => hazard.name),
+      guardians: current.guardians.map((guardian) => ({
+        id: guardian.id,
+        name: guardian.name,
+        x: Math.round(guardian.x),
+        y: guardian.y,
+        patrolMin: guardian.patrolMin,
+        patrolMax: guardian.patrolMax,
+      })),
       endGateReached: current.completed,
       notice: current.notice,
     };
@@ -173,6 +202,31 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
       ctx.fillStyle = '#2f251d';
       ctx.font = '12px Arial';
       ctx.fillText(hazard.name, x - 2, hazard.y - 6);
+    });
+
+    current.guardians.forEach((guardian) => {
+      const x = guardian.x - cameraX;
+      const shimmer = (Math.sin(Date.now() / 180) + 1) / 2;
+      ctx.save();
+      ctx.globalAlpha = 0.68 + shimmer * 0.22;
+      ctx.fillStyle = '#6b4f8f';
+      ctx.beginPath();
+      ctx.ellipse(x + guardian.width / 2, guardian.y + 20, 18, 26, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#d8c7ff';
+      ctx.beginPath();
+      ctx.arc(x + 12, guardian.y + 14, 3, 0, Math.PI * 2);
+      ctx.arc(x + 23, guardian.y + 14, 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(72, 48, 105, 0.45)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
+      ctx.strokeRect(guardian.patrolMin - cameraX, guardian.y + guardian.height + 6, guardian.patrolMax - guardian.patrolMin, 8);
+      ctx.setLineDash([]);
+      ctx.restore();
+      ctx.fillStyle = '#2f251d';
+      ctx.font = '12px Arial';
+      ctx.fillText(guardian.name, x - 14, guardian.y - 8);
     });
 
     TOOL_LAYOUT.forEach((toolPosition) => {
@@ -293,6 +347,7 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
     });
 
     current.hazardCooldown = Math.max(0, current.hazardCooldown - dt);
+    current.guardianCooldown = Math.max(0, current.guardianCooldown - dt);
     if (current.hazardCooldown <= 0) {
       const hitHazard = HAZARDS.find((hazard) => rectsOverlap(player, hazard));
       if (hitHazard) {
@@ -307,6 +362,37 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
         audioControls?.playError?.();
       }
     }
+
+    current.guardians.forEach((guardian) => {
+      guardian.x += guardian.direction * guardian.speed * dt;
+      if (guardian.x <= guardian.patrolMin) {
+        guardian.x = guardian.patrolMin;
+        guardian.direction = 1;
+      } else if (guardian.x >= guardian.patrolMax) {
+        guardian.x = guardian.patrolMax;
+        guardian.direction = -1;
+      }
+
+      const guardianRect = {
+        x: guardian.x,
+        y: guardian.y,
+        width: guardian.width,
+        height: guardian.height,
+      };
+
+      if (current.guardianCooldown <= 0 && rectsOverlap(player, guardianRect)) {
+        current.resources.stamina = Math.max(0, current.resources.stamina - guardian.penalty.stamina);
+        current.resources.time = Math.max(0, current.resources.time - guardian.penalty.time);
+        const playerCentre = player.x + player.width / 2;
+        const guardianCentre = guardian.x + guardian.width / 2;
+        const pushDirection = playerCentre < guardianCentre ? -1 : 1;
+        player.x = clamp(player.x + pushDirection * 76, 0, WORLD_WIDTH - player.width);
+        player.vx = 0;
+        current.notice = guardian.message;
+        current.guardianCooldown = 1.6;
+        audioControls?.playError?.();
+      }
+    });
 
     current.timeAccumulator += dt;
     if (current.timeAccumulator >= 1) {
@@ -452,6 +538,9 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
               <ul className="expedition-hazard-list">
                 {HAZARDS.map((hazard) => (
                   <li key={hazard.id}>{hazard.name}</li>
+                ))}
+                {GUARDIANS.map((guardian) => (
+                  <li key={guardian.id}>{guardian.name}: avoid its patrol</li>
                 ))}
               </ul>
             </section>

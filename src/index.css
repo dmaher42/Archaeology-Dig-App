@@ -9386,6 +9386,42 @@ main {
   text-transform: uppercase;
 }
 
+.expedition-tool-effect-hint {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid rgba(139, 106, 72, 0.24);
+  border-left: 4px solid var(--bureau-gold);
+  border-radius: 6px;
+  background: rgba(255, 250, 240, 0.68);
+  color: var(--bureau-ink-muted);
+  text-align: left;
+}
+
+.expedition-tool-effect-hint strong {
+  color: var(--bureau-ink);
+  font-size: 0.82rem;
+}
+
+.expedition-tool-effect-hint span {
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.expedition-tool-effect-hint.match {
+  border-left-color: #2d5a27;
+  background: rgba(45, 90, 39, 0.1);
+}
+
+.expedition-tool-effect-hint.miss {
+  border-left-color: #92400e;
+  background: rgba(146, 64, 14, 0.09);
+}
+
+.expedition-note-item {
+  background: rgba(255, 250, 240, 0.72);
+}
+
 .expedition-inspection-actions {
   display: grid;
   gap: 0.65rem;

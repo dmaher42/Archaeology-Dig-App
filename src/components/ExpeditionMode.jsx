@@ -74,9 +74,30 @@ const HAZARDS = [
   },
 ];
 
+const EXCAVATION_GUARDIANS = [
+  {
+    id: 'tomb-guardian-shadow',
+    name: 'Tomb Guardian Shadow',
+    x: 620,
+    y: 420,
+    w: 30,
+    h: 30,
+    path: [
+      { x: 620, y: 420 },
+      { x: 708, y: 420 },
+      { x: 708, y: 286 },
+      { x: 620, y: 286 },
+    ],
+    speed: 54,
+    penalty: { investigation: -6, time: -8 },
+    message: 'Tomb Guardian Shadow disrupted your survey. Investigation points and time reduced.',
+  },
+];
+
 const CLAIM_OPTIONS = ['Ancient Egypt', 'Ancient Greece', 'Ancient Rome', 'Ancient China', 'Maya', 'Inca'];
 const INITIAL_RESOURCES = { investigation: 95, stamina: 100, time: 600 };
 const INVESTIGATION_BONUS = 5;
+const BRUSH_RECOVERY_BONUS = 3;
 const MAX_EVIDENCE_ITEMS = 3;
 const JOURNEY_TOOLS = ExpeditionJourney.tools;
 const EVIDENCE_HUNT_MISSIONS = [
@@ -89,56 +110,69 @@ const EVIDENCE_HUNT_MISSIONS = [
     evidenceLabel: 'Structural evidence',
     gateRequirement: 'The Exit Gate needs 1 piece of structural evidence.',
     keepSearchingNotice: 'Keep searching for evidence of buildings or structures.',
-    matchFeedback: 'Correct. This structural evidence matches the mission because it helps show what people built or changed at the site.',
-    mismatchFeedback: 'Useful evidence, but it does not match the mission because it does not show buildings or structures.',
+    matchFeedback: 'Correct. This structural evidence matches the current Bureau mission because it helps show what people built or changed at the site.',
+    mismatchFeedback: 'Useful evidence, but it does not match the current Bureau mission because it does not show buildings or structures.',
     briefingRule: 'Find structural evidence to unlock the Exit Gate.',
   },
   {
     id: 'written',
     title: 'Find Written Evidence',
-    instruction: 'The Bureau needs written evidence. Search the site and secure evidence that shows people recorded ideas, rules, beliefs or messages.',
+    instruction: 'The Bureau needs written evidence. Search the site and secure evidence that shows people recorded information, beliefs, laws or stories.',
     targetCategoryId: 'written',
     targetCategoryTitle: 'Written Sources',
     evidenceLabel: 'Written evidence',
     gateRequirement: 'The Exit Gate needs 1 piece of written evidence.',
     keepSearchingNotice: 'Keep searching for written evidence.',
-    matchFeedback: 'Correct. This written evidence matches the mission because it can reveal recorded ideas, beliefs, rules or messages.',
-    mismatchFeedback: 'Useful evidence, but it does not match the mission because it is not a written source.',
+    matchFeedback: 'Correct. This written evidence matches the current Bureau mission because it can show recorded information, beliefs, laws or stories.',
+    mismatchFeedback: 'Useful evidence, but it does not match the current Bureau mission because it is not a written source.',
     briefingRule: 'Find written evidence to unlock the Exit Gate.',
   },
   {
-    id: 'environment',
+    id: 'environmental',
     title: 'Find Environmental Evidence',
-    instruction: 'The Bureau needs environmental evidence. Search the site and secure evidence that shows how landscape, plants, water or natural materials shaped life.',
-    targetCategoryId: 'environment',
+    instruction: 'The Bureau needs environmental evidence. Search the site and secure evidence that shows how geography, rivers, farming or natural resources shaped this civilisation.',
+    targetCategoryId: 'environmental',
     targetCategoryTitle: 'Environmental Evidence',
     evidenceLabel: 'Environmental evidence',
     gateRequirement: 'The Exit Gate needs 1 piece of environmental evidence.',
     keepSearchingNotice: 'Keep searching for environmental evidence.',
-    matchFeedback: 'Correct. This environmental evidence matches the mission because it helps explain how the natural world shaped the site.',
-    mismatchFeedback: 'Useful evidence, but it does not match the mission because it is not environmental evidence.',
+    matchFeedback: 'Correct. This environmental evidence matches the current Bureau mission because it helps explain how geography, rivers, farming or natural resources shaped this civilisation.',
+    mismatchFeedback: 'Useful evidence, but it does not match the current Bureau mission because it is not environmental evidence.',
     briefingRule: 'Find environmental evidence to unlock the Exit Gate.',
   },
   {
     id: 'objects',
-    title: 'Find Artefact Evidence',
-    instruction: 'The Bureau needs artefact evidence. Search the site and secure an object that shows what people made, used, carried or valued.',
+    title: 'Find Object Evidence',
+    instruction: 'The Bureau needs artefact evidence. Search the site and secure evidence that shows what people made, used, traded or valued.',
     targetCategoryId: 'objects',
     targetCategoryTitle: 'Artefacts / Objects',
-    evidenceLabel: 'Artefact evidence',
+    evidenceLabel: 'Object evidence',
     gateRequirement: 'The Exit Gate needs 1 artefact or object as evidence.',
-    keepSearchingNotice: 'Keep searching for artefact evidence.',
-    matchFeedback: 'Correct. This artefact evidence matches the mission because it shows something people made, used, carried or valued.',
-    mismatchFeedback: 'Useful evidence, but it does not match the mission because it is not an artefact or object.',
-    briefingRule: 'Find artefact evidence to unlock the Exit Gate.',
+    keepSearchingNotice: 'Keep searching for object evidence.',
+    matchFeedback: 'Correct. This object evidence matches the current Bureau mission because it shows what people made, used, traded or valued.',
+    mismatchFeedback: 'Useful evidence, but it does not match the current Bureau mission because it is not an artefact or object.',
+    briefingRule: 'Find object evidence to unlock the Exit Gate.',
   },
 ];
+
+const normaliseEvidenceTypeForMission = (type) => (
+  type === 'environment' ? 'environmental' : type
+);
+
+const evidenceMatchesMission = (token, mission) => (
+  normaliseEvidenceTypeForMission(token?.type) === mission?.targetCategoryId
+);
 
 const chooseEvidenceHuntMission = (previousMissionId = null) => {
   const choices = EVIDENCE_HUNT_MISSIONS.filter(mission => mission.id !== previousMissionId);
   const pool = choices.length > 0 ? choices : EVIDENCE_HUNT_MISSIONS;
   return pool[Math.floor(Math.random() * pool.length)];
 };
+
+const buildExcavationGuardians = () => EXCAVATION_GUARDIANS.map(guardian => ({
+  ...guardian,
+  targetIndex: 1,
+}));
 
 const rectsOverlap = (a, b) => (
   a.x < b.x + b.w &&
@@ -198,13 +232,16 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
   const journeySnapshotRef = useRef(null);
   const collectedRef = useRef([]);
   const tokensRef = useRef(buildExpeditionEvidence());
+  const guardiansRef = useRef(buildExcavationGuardians());
   const resourcesRef = useRef(INITIAL_RESOURCES);
   const hazardCooldownRef = useRef({});
+  const guardianCooldownRef = useRef({});
   const lockedRef = useRef(false);
   const tickAccumulatorRef = useRef(0);
   const nearbyTokenRef = useRef(null);
   const dismissedTokenRef = useRef(null);
   const [collectedEvidence, setCollectedEvidence] = useState([]);
+  const [fieldNotes, setFieldNotes] = useState([]);
   const [resources, setResources] = useState(INITIAL_RESOURCES);
   const [currentZone, setCurrentZone] = useState('Market Area');
   const [activeMission, setActiveMission] = useState(() => chooseEvidenceHuntMission());
@@ -296,6 +333,22 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
 
   const rejectInspectedEvidence = (token) => {
     if (!token || token.collected) return;
+    if (fieldKitEffects.notebookReady) {
+      setFieldNotes(previous => (
+        previous.some(note => note.id === token.id)
+          ? previous
+          : [
+              ...previous,
+              {
+                id: token.id,
+                name: token.name,
+                category: token.category,
+                clue: token.clue,
+                note: `${token.category} noted for comparison. It did not fill the evidence satchel.`,
+              },
+            ]
+      ));
+    }
     dismissedTokenRef.current = token.id;
     setInspectionToken(null);
     setInspectionStep('review');
@@ -305,7 +358,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
 
   const finishInspection = (token, replacementId = null) => {
     if (!token || token.collected) return;
-    const isMissionEvidence = token.type === activeMission.targetCategoryId;
+    const isMissionEvidence = evidenceMatchesMission(token, activeMission);
     const nextInventory = replacementId
       ? collectedRef.current.filter(item => item.id !== replacementId)
       : [...collectedRef.current];
@@ -325,13 +378,16 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     setNearbyToken(null);
 
     if (isMissionEvidence) {
-      syncResources({ investigation: INVESTIGATION_BONUS });
+      const investigationBonus = INVESTIGATION_BONUS + (fieldKitEffects.brushReady ? BRUSH_RECOVERY_BONUS : 0);
+      syncResources({ investigation: investigationBonus });
       setInspectionFeedback({
         correct: true,
         stamp: 'EVIDENCE VERIFIED',
-        text: activeMission.matchFeedback,
+        text: fieldKitEffects.brushReady
+          ? `${activeMission.matchFeedback} Brush Ready adds a careful recovery bonus.`
+          : activeMission.matchFeedback,
       });
-      setNotice(`${token.name} added to your evidence satchel. +${INVESTIGATION_BONUS} investigation points.`);
+      setNotice(`${token.name} added to your evidence satchel. +${investigationBonus} investigation points.`);
       audioControls.playMatch?.();
     } else {
       setInspectionFeedback({
@@ -494,7 +550,43 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       ctx.fillText(tokenEmoji, token.x - 7, token.y + 5 + floatY);
     });
 
-    // 8. Player Avatar
+    // 8. Mythic guardians (non-combat pressure)
+    guardiansRef.current.forEach((guardian) => {
+      const shimmer = (Math.sin(now / 180) + 1) / 2;
+      ctx.save();
+      ctx.strokeStyle = 'rgba(76, 29, 149, 0.25)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 6]);
+      ctx.beginPath();
+      guardian.path.forEach((point, pointIndex) => {
+        if (pointIndex === 0) ctx.moveTo(point.x + guardian.w / 2, point.y + guardian.h / 2);
+        else ctx.lineTo(point.x + guardian.w / 2, point.y + guardian.h / 2);
+      });
+      ctx.closePath();
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.globalAlpha = 0.68 + shimmer * 0.24;
+      ctx.fillStyle = '#5b3b8c';
+      ctx.beginPath();
+      ctx.ellipse(guardian.x + guardian.w / 2, guardian.y + guardian.h / 2, 18, 21, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#efe3ff';
+      ctx.beginPath();
+      ctx.arc(guardian.x + 10, guardian.y + 11, 2.8, 0, Math.PI * 2);
+      ctx.arc(guardian.x + 20, guardian.y + 11, 2.8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      ctx.fillStyle = 'rgba(255, 250, 240, 0.72)';
+      ctx.font = '700 11px Outfit, sans-serif';
+      const labelWidth = ctx.measureText(guardian.name).width;
+      ctx.fillRect(guardian.x - 22, guardian.y - 24, labelWidth + 14, 18);
+      ctx.fillStyle = '#3a2a18';
+      ctx.fillText(guardian.name, guardian.x - 15, guardian.y - 11);
+    });
+
+    // 9. Player Avatar
     const player = playerRef.current;
     ctx.shadowColor = 'rgba(0,0,0,0.4)';
     ctx.shadowBlur = 8;
@@ -523,6 +615,9 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
 
     Object.keys(hazardCooldownRef.current).forEach((key) => {
       hazardCooldownRef.current[key] = Math.max(0, hazardCooldownRef.current[key] - dt);
+    });
+    Object.keys(guardianCooldownRef.current).forEach((key) => {
+      guardianCooldownRef.current[key] = Math.max(0, guardianCooldownRef.current[key] - dt);
     });
 
     tickAccumulatorRef.current += dt;
@@ -571,6 +666,40 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       }
     });
 
+    guardiansRef.current.forEach((guardian) => {
+      const target = guardian.path[guardian.targetIndex];
+      const dxGuardian = target.x - guardian.x;
+      const dyGuardian = target.y - guardian.y;
+      const distance = Math.hypot(dxGuardian, dyGuardian);
+      const travel = guardian.speed * dt;
+
+      if (distance <= travel) {
+        guardian.x = target.x;
+        guardian.y = target.y;
+        guardian.targetIndex = (guardian.targetIndex + 1) % guardian.path.length;
+      } else if (distance > 0) {
+        guardian.x += (dxGuardian / distance) * travel;
+        guardian.y += (dyGuardian / distance) * travel;
+      }
+
+      if (rectsOverlap(playerRect, guardian) && !guardianCooldownRef.current[guardian.id]) {
+        guardianCooldownRef.current[guardian.id] = 2.2;
+        syncResources(guardian.penalty);
+        const playerCentre = playerRef.current.x + PLAYER_SIZE / 2;
+        const guardianCentre = guardian.x + guardian.w / 2;
+        const pushDirection = playerCentre < guardianCentre ? -1 : 1;
+        const pushed = {
+          x: clamp(playerRef.current.x + pushDirection * 54, 0, MAP_WIDTH - PLAYER_SIZE),
+          y: playerRef.current.y,
+        };
+        if (!WALLS.some(wall => rectsOverlap(getPlayerRect(pushed), wall))) {
+          playerRef.current = pushed;
+        }
+        setNotice(guardian.message);
+        audioControls.playError?.();
+      }
+    });
+
     const nearestToken = tokensRef.current.find((token) => {
       if (token.collected) return;
       const dxToken = playerRef.current.x + PLAYER_SIZE / 2 - token.x;
@@ -614,7 +743,15 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     window.render_game_to_text = () => JSON.stringify({
       mode: 'Lost Site Expedition',
       stage: baseCampOpen ? 'base-camp' : 'journey',
+      activeMission,
       missionTarget: activeMission,
+      missionProgress: {
+        found: missionEvidenceCount,
+        required: 1,
+        targetCategoryId: activeMission.targetCategoryId,
+        targetCategoryTitle: activeMission.targetCategoryTitle,
+      },
+      exitUnlocked: missionEvidenceCount >= 1,
       fieldKit,
       fieldKitEffects,
       baseCampOpen,
@@ -625,7 +762,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       delete window.advanceTime;
       delete window.render_game_to_text;
     };
-  }, [activeMission, baseCampOpen, expeditionStage, fieldKit, fieldKitEffects]);
+  }, [activeMission, baseCampOpen, expeditionStage, fieldKit, fieldKitEffects, missionEvidenceCount]);
 
   useEffect(() => {
     if (expeditionStage !== 'excavation') return undefined;
@@ -670,12 +807,15 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       coordinateSystem: 'origin top-left, x right, y down',
       fieldKit,
       fieldKitEffects,
+      fieldNotes,
       player: { ...playerRef.current, size: PLAYER_SIZE, zone: getZoneName(playerRef.current) },
       resources: resourcesRef.current,
       collectedEvidence: collectedRef.current.map(item => ({
         id: item.id,
         name: item.name,
         category: item.category,
+        missionCategoryId: normaliseEvidenceTypeForMission(item.type),
+        isMissionEvidence: item.isMissionEvidence,
         clueGroup: item.clueGroup,
         supports: item.supports,
       })),
@@ -684,13 +824,25 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         x: item.x,
         y: item.y,
         category: item.category,
+        missionCategoryId: normaliseEvidenceTypeForMission(item.type),
         clueGroup: item.clueGroup,
       })),
       hazards: HAZARDS.map(item => ({ id: item.id, name: item.name, x: item.x, y: item.y, w: item.w, h: item.h })),
+      guardians: guardiansRef.current.map(item => ({
+        id: item.id,
+        name: item.name,
+        x: Math.round(item.x),
+        y: Math.round(item.y),
+        w: item.w,
+        h: item.h,
+      })),
+      activeMission,
       missionTarget: activeMission,
       missionProgress: {
         found: missionEvidenceCount,
         required: 1,
+        targetCategoryId: activeMission.targetCategoryId,
+        targetCategoryTitle: activeMission.targetCategoryTitle,
       },
       exitUnlocked: missionEvidenceCount >= 1,
       inventory: {
@@ -715,7 +867,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       delete window.advanceTime;
       delete window.render_game_to_text;
     };
-  }, [activeMission, briefingOpen, draw, expeditionStage, fieldKit, fieldKitEffects, inspectionFeedback, inspectionToken, missionEvidenceCount, openInspection, update]);
+  }, [activeMission, briefingOpen, draw, expeditionStage, fieldKit, fieldKitEffects, fieldNotes, inspectionFeedback, inspectionToken, missionEvidenceCount, openInspection, update]);
 
   const resetExpedition = () => {
     const nextMission = chooseEvidenceHuntMission(activeMission.id);
@@ -727,14 +879,17 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     journeySnapshotRef.current = null;
     playerRef.current = { x: 42, y: 498 };
     tokensRef.current = buildExpeditionEvidence();
+    guardiansRef.current = buildExcavationGuardians();
     collectedRef.current = [];
     resourcesRef.current = INITIAL_RESOURCES;
     hazardCooldownRef.current = {};
+    guardianCooldownRef.current = {};
     lockedRef.current = false;
     tickAccumulatorRef.current = 0;
     nearbyTokenRef.current = null;
     keysRef.current = {};
     setCollectedEvidence([]);
+    setFieldNotes([]);
     setResources(INITIAL_RESOURCES);
     setCurrentZone('Market Area');
     setNotice(nextMission.instruction);
@@ -867,7 +1022,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
           <div className={`expedition-gate-badge ${exitUnlocked ? 'unlocked' : ''}`}>
             <Sparkles size={16} />
             <span>{exitUnlocked ? 'Exit Gate Unlocked' : 'Exit Gate Locked'}</span>
-            <small>{exitUnlocked ? `${activeMission.evidenceLabel} secured 1/1` : `${activeMission.evidenceLabel} found ${missionEvidenceCount}/1`}</small>
+            <small>{exitUnlocked ? `${activeMission.targetCategoryTitle} secured 1/1` : `${activeMission.targetCategoryTitle} found ${missionEvidenceCount}/1`}</small>
           </div>
         </header>
 
@@ -906,7 +1061,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
                 <span>{activeMission.targetCategoryTitle}</span>
                 <p>{activeMission.instruction}</p>
                 <div className="expedition-mission-progress">
-                  {activeMission.evidenceLabel} found: <span>{missionEvidenceCount}/1</span>
+                  {activeMission.targetCategoryTitle} found: <span>{missionEvidenceCount}/1</span>
                 </div>
               </div>
             </section>
@@ -925,18 +1080,34 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
               <ul className="expedition-tool-list">
                 <li className={fieldKitEffects.fieldGuideAvailable ? 'is-collected' : ''}>
                   <span>Field Guide Available</span>
-                  <strong>{fieldKitEffects.fieldGuideAvailable ? 'Ready' : 'Missing'}</strong>
+                  <strong>{fieldKitEffects.fieldGuideAvailable ? 'Hints' : 'Missing'}</strong>
                 </li>
                 <li className={fieldKitEffects.notebookReady ? 'is-collected' : ''}>
                   <span>Notebook Ready</span>
-                  <strong>{fieldKitEffects.notebookReady ? 'Ready' : 'Missing'}</strong>
+                  <strong>{fieldKitEffects.notebookReady ? 'Notes' : 'Missing'}</strong>
                 </li>
                 <li className={fieldKitEffects.brushReady ? 'is-collected' : ''}>
                   <span>Brush Ready</span>
-                  <strong>{fieldKitEffects.brushReady ? 'Ready' : 'Missing'}</strong>
+                  <strong>{fieldKitEffects.brushReady ? '+3 Bonus' : 'Missing'}</strong>
                 </li>
               </ul>
             </section>
+
+            {fieldKitEffects.notebookReady && (
+              <section className="expedition-panel">
+                <h3><MapIcon size={17} /> Field Notes</h3>
+                <div className="expedition-evidence-list">
+                  {fieldNotes.length === 0 && <p className="expedition-empty">Reject non-mission evidence to record a note here.</p>}
+                  {fieldNotes.map(note => (
+                    <article key={note.id} className="expedition-evidence-item expedition-note-item">
+                      <strong>{note.name}</strong>
+                      <span>{note.category}</span>
+                      <p>{note.note}</p>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            )}
 
             <section className="expedition-panel">
               <h3><Backpack size={17} /> Evidence Inventory <span className="expedition-inventory-count">{collectedEvidence.length}/{MAX_EVIDENCE_ITEMS}</span></h3>
@@ -960,6 +1131,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
                 <li>falling rocks: lowers investigation points</li>
                 <li>unstable floor: lowers stamina</li>
                 <li>scorpion path: obstacle only</li>
+                <li>Tomb Guardian Shadow: avoid its patrol</li>
               </ul>
             </section>
 
@@ -1009,6 +1181,22 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
             <div className="expedition-inspection-meta">{inspectionToken.category}</div>
             <p>{inspectionToken.clue}</p>
             <div className="expedition-inspection-clue-group">Clue group: {inspectionToken.clueGroup}</div>
+            {fieldKitEffects.fieldGuideAvailable && !inspectionFeedback && (
+              <div className={`expedition-tool-effect-hint ${evidenceMatchesMission(inspectionToken, activeMission) ? 'match' : 'miss'}`}>
+                <strong>Field Guide Available</strong>
+                <span>
+                  {evidenceMatchesMission(inspectionToken, activeMission)
+                    ? `${inspectionToken.category} matches this mission target.`
+                    : `${inspectionToken.category} is useful, but it does not match this mission target.`}
+                </span>
+              </div>
+            )}
+            {fieldKitEffects.notebookReady && !inspectionFeedback && (
+              <div className="expedition-tool-effect-hint">
+                <strong>Notebook Ready</strong>
+                <span>Choosing "Not mission evidence" records a field note without filling your evidence satchel.</span>
+              </div>
+            )}
             <div className="expedition-inspection-question">Does this evidence match your mission?</div>
 
             {!inspectionFeedback && inspectionStep === 'review' && (
