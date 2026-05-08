@@ -79,11 +79,65 @@ const INITIAL_RESOURCES = { investigation: 95, stamina: 100, time: 600 };
 const INVESTIGATION_BONUS = 5;
 const MAX_EVIDENCE_ITEMS = 3;
 const JOURNEY_TOOLS = ExpeditionJourney.tools;
-const MISSION_TARGET = {
-  title: 'Find Structural Evidence',
-  instruction: 'The Bureau needs evidence of buildings or structures. Search the site and secure evidence that shows people built or changed this place.',
-  targetCategoryId: 'structures',
-  targetCategoryTitle: 'Features / Structures',
+const EVIDENCE_HUNT_MISSIONS = [
+  {
+    id: 'structures',
+    title: 'Find Structural Evidence',
+    instruction: 'The Bureau needs evidence of buildings or structures. Search the site and secure evidence that shows people built or changed this place.',
+    targetCategoryId: 'structures',
+    targetCategoryTitle: 'Features / Structures',
+    evidenceLabel: 'Structural evidence',
+    gateRequirement: 'The Exit Gate needs 1 piece of structural evidence.',
+    keepSearchingNotice: 'Keep searching for evidence of buildings or structures.',
+    matchFeedback: 'Correct. This structural evidence matches the mission because it helps show what people built or changed at the site.',
+    mismatchFeedback: 'Useful evidence, but it does not match the mission because it does not show buildings or structures.',
+    briefingRule: 'Find structural evidence to unlock the Exit Gate.',
+  },
+  {
+    id: 'written',
+    title: 'Find Written Evidence',
+    instruction: 'The Bureau needs written evidence. Search the site and secure evidence that shows people recorded ideas, rules, beliefs or messages.',
+    targetCategoryId: 'written',
+    targetCategoryTitle: 'Written Sources',
+    evidenceLabel: 'Written evidence',
+    gateRequirement: 'The Exit Gate needs 1 piece of written evidence.',
+    keepSearchingNotice: 'Keep searching for written evidence.',
+    matchFeedback: 'Correct. This written evidence matches the mission because it can reveal recorded ideas, beliefs, rules or messages.',
+    mismatchFeedback: 'Useful evidence, but it does not match the mission because it is not a written source.',
+    briefingRule: 'Find written evidence to unlock the Exit Gate.',
+  },
+  {
+    id: 'environment',
+    title: 'Find Environmental Evidence',
+    instruction: 'The Bureau needs environmental evidence. Search the site and secure evidence that shows how landscape, plants, water or natural materials shaped life.',
+    targetCategoryId: 'environment',
+    targetCategoryTitle: 'Environmental Evidence',
+    evidenceLabel: 'Environmental evidence',
+    gateRequirement: 'The Exit Gate needs 1 piece of environmental evidence.',
+    keepSearchingNotice: 'Keep searching for environmental evidence.',
+    matchFeedback: 'Correct. This environmental evidence matches the mission because it helps explain how the natural world shaped the site.',
+    mismatchFeedback: 'Useful evidence, but it does not match the mission because it is not environmental evidence.',
+    briefingRule: 'Find environmental evidence to unlock the Exit Gate.',
+  },
+  {
+    id: 'objects',
+    title: 'Find Artefact Evidence',
+    instruction: 'The Bureau needs artefact evidence. Search the site and secure an object that shows what people made, used, carried or valued.',
+    targetCategoryId: 'objects',
+    targetCategoryTitle: 'Artefacts / Objects',
+    evidenceLabel: 'Artefact evidence',
+    gateRequirement: 'The Exit Gate needs 1 artefact or object as evidence.',
+    keepSearchingNotice: 'Keep searching for artefact evidence.',
+    matchFeedback: 'Correct. This artefact evidence matches the mission because it shows something people made, used, carried or valued.',
+    mismatchFeedback: 'Useful evidence, but it does not match the mission because it is not an artefact or object.',
+    briefingRule: 'Find artefact evidence to unlock the Exit Gate.',
+  },
+];
+
+const chooseEvidenceHuntMission = (previousMissionId = null) => {
+  const choices = EVIDENCE_HUNT_MISSIONS.filter(mission => mission.id !== previousMissionId);
+  const pool = choices.length > 0 ? choices : EVIDENCE_HUNT_MISSIONS;
+  return pool[Math.floor(Math.random() * pool.length)];
 };
 
 const rectsOverlap = (a, b) => (
@@ -153,7 +207,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
   const [collectedEvidence, setCollectedEvidence] = useState([]);
   const [resources, setResources] = useState(INITIAL_RESOURCES);
   const [currentZone, setCurrentZone] = useState('Market Area');
-  const [notice, setNotice] = useState('Find structural evidence to unlock the Exit Gate.');
+  const [activeMission, setActiveMission] = useState(() => chooseEvidenceHuntMission());
+  const [notice, setNotice] = useState('Complete the Bureau evidence hunt to unlock the Exit Gate.');
   const [briefingOpen, setBriefingOpen] = useState(true);
   const [nearbyToken, setNearbyToken] = useState(null);
   const [inspectionToken, setInspectionToken] = useState(null);
@@ -211,7 +266,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     keysRef.current = {};
     tickAccumulatorRef.current = 0;
     setBriefingOpen(false);
-    setNotice(MISSION_TARGET.instruction);
+    setNotice(activeMission.instruction);
   };
 
   const handleJourneySnapshot = useCallback((snapshot) => {
@@ -230,7 +285,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     setExpeditionStage('excavation');
     setBaseCampOpen(false);
     setBriefingOpen(true);
-    setNotice(MISSION_TARGET.instruction);
+    setNotice(activeMission.instruction);
   };
 
   const closeInspection = () => {
@@ -245,12 +300,12 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     setInspectionToken(null);
     setInspectionStep('review');
     setInspectionFeedback(null);
-    setNotice('Keep searching for structural evidence.');
+    setNotice(activeMission.keepSearchingNotice);
   };
 
   const finishInspection = (token, replacementId = null) => {
     if (!token || token.collected) return;
-    const isStructuralEvidence = token.type === MISSION_TARGET.targetCategoryId;
+    const isMissionEvidence = token.type === activeMission.targetCategoryId;
     const nextInventory = replacementId
       ? collectedRef.current.filter(item => item.id !== replacementId)
       : [...collectedRef.current];
@@ -263,18 +318,18 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
 
     dismissedTokenRef.current = null;
     token.collected = true;
-    token.isMissionEvidence = isStructuralEvidence;
+    token.isMissionEvidence = isMissionEvidence;
     nextInventory.push(token);
     syncInventory(nextInventory);
     nearbyTokenRef.current = null;
     setNearbyToken(null);
 
-    if (isStructuralEvidence) {
+    if (isMissionEvidence) {
       syncResources({ investigation: INVESTIGATION_BONUS });
       setInspectionFeedback({
         correct: true,
         stamp: 'EVIDENCE VERIFIED',
-        text: 'Correct. This structural evidence matches the mission because it helps show what people built or changed at the site.',
+        text: activeMission.matchFeedback,
       });
       setNotice(`${token.name} added to your evidence satchel. +${INVESTIGATION_BONUS} investigation points.`);
       audioControls.playMatch?.();
@@ -282,7 +337,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       setInspectionFeedback({
         correct: false,
         stamp: 'EVIDENCE COLLECTED',
-        text: 'Useful evidence, but it does not match the mission because it does not show buildings or structures.',
+        text: activeMission.mismatchFeedback,
       });
       setNotice(`${token.name} added to your evidence satchel.`);
       audioControls.playError?.();
@@ -543,12 +598,12 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         setClaimOpen(true);
         setNotice('Exit Gate reached. Make your final claim.');
       } else {
-        setNotice('The Exit Gate needs 1 piece of structural evidence.');
+        setNotice(activeMission.gateRequirement);
       }
     }
 
     draw();
-  }, [audioControls, briefingOpen, draw, inspectionToken, missionEvidenceCount, syncResources]);
+  }, [activeMission.gateRequirement, audioControls, briefingOpen, draw, inspectionToken, missionEvidenceCount, syncResources]);
 
   useEffect(() => {
     if (expeditionStage === 'excavation') return undefined;
@@ -559,6 +614,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     window.render_game_to_text = () => JSON.stringify({
       mode: 'Lost Site Expedition',
       stage: baseCampOpen ? 'base-camp' : 'journey',
+      missionTarget: activeMission,
       fieldKit,
       fieldKitEffects,
       baseCampOpen,
@@ -569,7 +625,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       delete window.advanceTime;
       delete window.render_game_to_text;
     };
-  }, [baseCampOpen, expeditionStage, fieldKit, fieldKitEffects]);
+  }, [activeMission, baseCampOpen, expeditionStage, fieldKit, fieldKitEffects]);
 
   useEffect(() => {
     if (expeditionStage !== 'excavation') return undefined;
@@ -631,7 +687,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         clueGroup: item.clueGroup,
       })),
       hazards: HAZARDS.map(item => ({ id: item.id, name: item.name, x: item.x, y: item.y, w: item.w, h: item.h })),
-      missionTarget: MISSION_TARGET,
+      missionTarget: activeMission,
       missionProgress: {
         found: missionEvidenceCount,
         required: 1,
@@ -659,12 +715,14 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       delete window.advanceTime;
       delete window.render_game_to_text;
     };
-  }, [briefingOpen, draw, expeditionStage, fieldKit, fieldKitEffects, inspectionFeedback, inspectionToken, missionEvidenceCount, openInspection, update]);
+  }, [activeMission, briefingOpen, draw, expeditionStage, fieldKit, fieldKitEffects, inspectionFeedback, inspectionToken, missionEvidenceCount, openInspection, update]);
 
   const resetExpedition = () => {
+    const nextMission = chooseEvidenceHuntMission(activeMission.id);
     setExpeditionStage('journey');
     setBaseCampOpen(false);
     setFieldKit([]);
+    setActiveMission(nextMission);
     setJourneyRunId(previous => previous + 1);
     journeySnapshotRef.current = null;
     playerRef.current = { x: 42, y: 498 };
@@ -679,7 +737,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     setCollectedEvidence([]);
     setResources(INITIAL_RESOURCES);
     setCurrentZone('Market Area');
-    setNotice(MISSION_TARGET.instruction);
+    setNotice(nextMission.instruction);
     setBriefingOpen(true);
     setNearbyToken(null);
     setInspectionToken(null);
@@ -728,6 +786,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     return (
       <ExpeditionJourney
         key={journeyRunId}
+        mission={activeMission}
         onBackToMenu={onBackToMenu}
         onComplete={handleJourneyComplete}
         onSnapshotChange={handleJourneySnapshot}
@@ -761,8 +820,14 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
               <h3>Equipment packed for the excavation stage</h3>
               <p>
                 Tools collected on the journey will appear in the excavation side panel. The first version
-                keeps the effects simple while the evidence mission stays unchanged.
+                keeps the field kit effects simple while the evidence mission drives the excavation goal.
               </p>
+            </div>
+
+            <div className="expedition-mission-card">
+              <strong>{activeMission.title}</strong>
+              <span>{activeMission.targetCategoryTitle}</span>
+              <p>{activeMission.instruction}</p>
             </div>
 
             <ul className="expedition-tool-list expedition-basecamp-list">
@@ -802,7 +867,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
           <div className={`expedition-gate-badge ${exitUnlocked ? 'unlocked' : ''}`}>
             <Sparkles size={16} />
             <span>{exitUnlocked ? 'Exit Gate Unlocked' : 'Exit Gate Locked'}</span>
-            <small>{exitUnlocked ? 'Structural evidence secured 1/1' : `Structural evidence found ${missionEvidenceCount}/1`}</small>
+            <small>{exitUnlocked ? `${activeMission.evidenceLabel} secured 1/1` : `${activeMission.evidenceLabel} found ${missionEvidenceCount}/1`}</small>
           </div>
         </header>
 
@@ -837,11 +902,11 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
             <section className="expedition-panel expedition-mission-panel">
               <h3><Sparkles size={17} /> Mission Target</h3>
               <div className="expedition-mission-card">
-                <strong>{MISSION_TARGET.title}</strong>
-                <span>{MISSION_TARGET.targetCategoryTitle}</span>
-                <p>{MISSION_TARGET.instruction}</p>
+                <strong>{activeMission.title}</strong>
+                <span>{activeMission.targetCategoryTitle}</span>
+                <p>{activeMission.instruction}</p>
                 <div className="expedition-mission-progress">
-                  Structural evidence found: <span>{missionEvidenceCount}/1</span>
+                  {activeMission.evidenceLabel} found: <span>{missionEvidenceCount}/1</span>
                 </div>
               </div>
             </section>
@@ -914,13 +979,13 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
             <p>Explore the site, collect evidence, and prove which civilisation lived here.</p>
             
             <div className="expedition-mission-card expedition-briefing-mission">
-              <strong>{MISSION_TARGET.title}</strong>
-              <p>{MISSION_TARGET.instruction}</p>
+              <strong>{activeMission.title}</strong>
+              <p>{activeMission.instruction}</p>
             </div>
 
             <div className="expedition-briefing-rules" aria-label="Mission Rules">
               <ul style={{ paddingLeft: '1.2rem', margin: 0, display: 'grid', gap: '0.4rem' }}>
-                <li><strong>Search</strong>: Find structural evidence to unlock the Exit Gate.</li>
+                <li><strong>Search</strong>: {activeMission.briefingRule}</li>
                 <li><strong>Choose Carefully</strong>: Your evidence satchel can only hold 3 items, so you may need to replace weaker evidence.</li>
                 <li><strong>Survive</strong>: Avoid hazards that drain your time and stamina.</li>
                 <li><strong>Prove</strong>: Make your final claim at the exit using your evidence.</li>

@@ -77,7 +77,7 @@ const makeInitialState = () => ({
   completed: false,
 });
 
-function ExpeditionJourney({ onBackToMenu, onComplete, onSnapshotChange, audioControls }) {
+function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange, audioControls }) {
   const canvasRef = useRef(null);
   const keysRef = useRef({});
   const stateRef = useRef(makeInitialState());
@@ -404,6 +404,15 @@ function ExpeditionJourney({ onBackToMenu, onComplete, onSnapshotChange, audioCo
           </div>
 
           <aside className="expedition-panel-stack">
+            <section className="expedition-panel">
+              <h3>
+                <Flag size={18} aria-hidden="true" />
+                Bureau Mission
+              </h3>
+              <strong>{mission?.title || 'Evidence Hunt'}</strong>
+              <p>{mission?.instruction || 'Prepare for the excavation mission.'}</p>
+            </section>
+
             <section className="expedition-panel">
               <h3>
                 <Backpack size={18} aria-hidden="true" />
