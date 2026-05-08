@@ -28,6 +28,242 @@ const ZONES = [
   { id: 'gate', name: 'Exit Gate', emoji: '🔒', x: 580, y: 220, w: 220, h: 340, color: 'rgba(74, 222, 128, 0.12)' },
 ];
 
+const SURVEY_COST = { investigation: -4, time: -8 };
+const SURVEY_ZONES = [
+  {
+    id: 'riverbank',
+    name: 'Riverbank',
+    prompt: 'Dark river mud and reed marks sit near the edge of the site.',
+    clue: 'You notice layers of river silt and plant traces. This area may show how the natural environment shaped where people lived.',
+    risk: 'Survey cost: -4 investigation points and -8 seconds.',
+    likelyEvidence: 'Possible environmental evidence from water, soil or plants.',
+    missionHint: 'This may help explain the site, but it does not look like the strongest place for structural evidence.',
+  },
+  {
+    id: 'burial',
+    name: 'Burial Area',
+    prompt: 'Sunken ground and stone edges suggest an old protected space.',
+    clue: 'You notice a cut edge in the ground and signs of a hidden chamber. This area may include a built burial feature, but not every clue here will match the mission.',
+    risk: 'Survey cost: -4 investigation points and -8 seconds.',
+    likelyEvidence: 'Possible burial structures plus other evidence linked to beliefs or records.',
+    missionHint: 'This area could help, but the mission evidence may be mixed with non-target finds.',
+  },
+  {
+    id: 'archive',
+    name: 'Archive Corner',
+    prompt: 'Broken shelves and sealed jars cluster near a shaded wall.',
+    clue: 'You notice scraps, sealed containers and marks that look recorded rather than built. This area may preserve messages or records.',
+    risk: 'Survey cost: -4 investigation points and -8 seconds.',
+    likelyEvidence: 'Possible written evidence, symbols or records.',
+    missionHint: 'Useful for understanding people, but probably not the best match for structural evidence.',
+  },
+  {
+    id: 'market',
+    name: 'Market Area',
+    prompt: 'Scattered everyday materials sit near an old activity space.',
+    clue: 'You notice small objects and traces of daily work. This area may show what people used, traded or made.',
+    risk: 'Survey cost: -4 investigation points and -8 seconds.',
+    likelyEvidence: 'Possible artefacts, objects or everyday activity evidence.',
+    missionHint: 'This area may produce useful discoveries, but it is not the strongest match for the current mission.',
+  },
+  {
+    id: 'wall',
+    name: 'Ruined Wall',
+    prompt: 'Stone lines and compacted foundations run across the trench.',
+    clue: 'You notice a line of stone blocks and compacted foundations. This area may show where people built, changed or protected the site.',
+    risk: 'Survey cost: -4 investigation points and -8 seconds.',
+    likelyEvidence: 'Possible structures or construction evidence.',
+    missionHint: 'This area looks promising for the current Bureau mission.',
+  },
+];
+
+const SURVEY_ZONE_BY_ID = Object.fromEntries(SURVEY_ZONES.map(zone => [zone.id, zone]));
+const SURVEY_REVEAL_LINKS = {
+  eg_13: ['archive', 'burial'],
+  eg_7: ['burial', 'wall'],
+  eg_11: ['riverbank'],
+  eg_8: ['wall'],
+  eg_10: ['market', 'riverbank'],
+  eg_9: ['wall', 'burial'],
+};
+const GRID_COSTS = {
+  Low: { investigation: -2, time: -4 },
+  Medium: { investigation: -4, time: -8 },
+  High: { investigation: -6, time: -12 },
+};
+const GRID_ZONE_CONFIGS = {
+  wall: [
+    {
+      id: 'A1',
+      clue: 'A straight line of compacted stone runs under the sand.',
+      risk: 'Low',
+      possibleEvidenceHint: 'Possible foundation or wall evidence.',
+      linkedEvidenceIds: ['eg_8'],
+      openFeedback: 'Grid A1 opened. You have recorded this location and can now inspect evidence found there.',
+    },
+    {
+      id: 'A2',
+      clue: 'Loose rubble and cracked stone make this area harder to work.',
+      risk: 'Medium',
+      possibleEvidenceHint: 'Unstable area. Evidence may be limited.',
+      linkedEvidenceIds: [],
+      openFeedback: 'Grid A2 opened. Mostly rubble here. This square did not reveal strong mission evidence.',
+    },
+    {
+      id: 'B1',
+      clue: 'You notice mudbrick fragments in a repeated pattern.',
+      risk: 'Low',
+      possibleEvidenceHint: 'Possible building material.',
+      linkedEvidenceIds: ['eg_7'],
+      openFeedback: 'Grid B1 opened. Repeated building material is visible here. Inspect the evidence carefully.',
+    },
+    {
+      id: 'B2',
+      clue: 'A darker rectangular cut appears beneath the surface.',
+      risk: 'Medium',
+      possibleEvidenceHint: 'Possible tomb shaft or built feature.',
+      linkedEvidenceIds: ['eg_9'],
+      openFeedback: 'Grid B2 opened. A built feature may be present. Inspect the evidence carefully.',
+    },
+  ],
+  burial: [
+    {
+      id: 'A1',
+      clue: 'A cut edge in the soil suggests a planned burial space.',
+      risk: 'Low',
+      possibleEvidenceHint: 'Possible tomb feature or burial structure.',
+      linkedEvidenceIds: ['eg_7'],
+      openFeedback: 'Grid A1 opened. A burial feature may be recorded here.',
+    },
+    {
+      id: 'A2',
+      clue: 'Stone chips and disturbed fill sit above a sealed layer.',
+      risk: 'Medium',
+      possibleEvidenceHint: 'Mixed evidence from a protected area.',
+      linkedEvidenceIds: ['eg_13'],
+      openFeedback: 'Grid A2 opened. This square may hold useful clues, but not all of them match the mission.',
+    },
+    {
+      id: 'B1',
+      clue: 'A neat rectangular cut drops below the surface.',
+      risk: 'Medium',
+      possibleEvidenceHint: 'Possible shaft or built chamber.',
+      linkedEvidenceIds: ['eg_9'],
+      openFeedback: 'Grid B1 opened. A built burial feature may be present here.',
+    },
+    {
+      id: 'B2',
+      clue: 'The top layer is mostly loose sand and scattered debris.',
+      risk: 'Low',
+      possibleEvidenceHint: 'A weaker square with fewer clear signs.',
+      linkedEvidenceIds: [],
+      openFeedback: 'Grid B2 opened. This square is mostly loose surface debris.',
+    },
+  ],
+  archive: [
+    {
+      id: 'A1',
+      clue: 'A sealed container sits beside a collapsed shelf line.',
+      risk: 'Low',
+      possibleEvidenceHint: 'Possible written record or stored document evidence.',
+      linkedEvidenceIds: ['eg_13'],
+      openFeedback: 'Grid A1 opened. Stored evidence can now be inspected here.',
+    },
+    {
+      id: 'A2',
+      clue: 'Dusty fragments cluster in a corner with little structure left.',
+      risk: 'Low',
+      possibleEvidenceHint: 'Light traces of storage activity.',
+      linkedEvidenceIds: [],
+      openFeedback: 'Grid A2 opened. This square shows only light traces of storage activity.',
+    },
+    {
+      id: 'B1',
+      clue: 'The ground is compact but broken by shelf collapse.',
+      risk: 'Medium',
+      possibleEvidenceHint: 'Possible mixed archive debris.',
+      linkedEvidenceIds: [],
+      openFeedback: 'Grid B1 opened. The archive surface is disturbed here.',
+    },
+    {
+      id: 'B2',
+      clue: 'Scattered sherds sit in a line beside a wall base.',
+      risk: 'Medium',
+      possibleEvidenceHint: 'Possible stored material or writing tools.',
+      linkedEvidenceIds: [],
+      openFeedback: 'Grid B2 opened. This square gives context, but not a strong mission lead.',
+    },
+  ],
+  riverbank: [
+    {
+      id: 'A1',
+      clue: 'Dark silt layers sit beneath the top sand.',
+      risk: 'Low',
+      possibleEvidenceHint: 'Possible river or environmental evidence.',
+      linkedEvidenceIds: ['eg_11'],
+      openFeedback: 'Grid A1 opened. River evidence can now be inspected here.',
+    },
+    {
+      id: 'A2',
+      clue: 'Plant traces cling to damp soil near the edge.',
+      risk: 'Low',
+      possibleEvidenceHint: 'Possible plant or soil evidence.',
+      linkedEvidenceIds: [],
+      openFeedback: 'Grid A2 opened. This square adds environmental context to the site.',
+    },
+    {
+      id: 'B1',
+      clue: 'The bank has slumped and the surface is uneven.',
+      risk: 'Medium',
+      possibleEvidenceHint: 'A harder square with limited clear finds.',
+      linkedEvidenceIds: [],
+      openFeedback: 'Grid B1 opened. The unstable bank limits what can be recorded here.',
+    },
+    {
+      id: 'B2',
+      clue: 'Scattered objects have washed toward a shallow channel.',
+      risk: 'Medium',
+      possibleEvidenceHint: 'Possible washed-in artefacts or everyday materials.',
+      linkedEvidenceIds: ['eg_10'],
+      openFeedback: 'Grid B2 opened. This square may hold useful finds carried by water or activity nearby.',
+    },
+  ],
+  market: [
+    {
+      id: 'A1',
+      clue: 'Broken object pieces sit where people once moved through the space.',
+      risk: 'Low',
+      possibleEvidenceHint: 'Possible artefacts or trade objects.',
+      linkedEvidenceIds: ['eg_10'],
+      openFeedback: 'Grid A1 opened. Everyday activity evidence can now be inspected here.',
+    },
+    {
+      id: 'A2',
+      clue: 'The ground is trampled and mixed with little pattern.',
+      risk: 'Medium',
+      possibleEvidenceHint: 'A busy surface with mixed evidence.',
+      linkedEvidenceIds: [],
+      openFeedback: 'Grid A2 opened. This square is busy but does not show a strong mission clue yet.',
+    },
+    {
+      id: 'B1',
+      clue: 'A patch of packed soil suggests repeated foot traffic.',
+      risk: 'Low',
+      possibleEvidenceHint: 'Possible market activity evidence.',
+      linkedEvidenceIds: [],
+      openFeedback: 'Grid B1 opened. This square helps explain how the area was used.',
+    },
+    {
+      id: 'B2',
+      clue: 'Collapsed stall debris makes the square harder to clear.',
+      risk: 'Medium',
+      possibleEvidenceHint: 'Possible mixed object evidence.',
+      linkedEvidenceIds: [],
+      openFeedback: 'Grid B2 opened. This square is cluttered and slower to investigate.',
+    },
+  ],
+};
+
 const WALLS = [
   { x: 322, y: 238, w: 178, h: 34, label: 'low ruined wall' },
   { x: 98, y: 366, w: 210, h: 28, label: 'broken market stall' },
@@ -258,6 +494,34 @@ const getZoneName = (player) => {
   ))?.name || 'Open Trench';
 };
 
+const getSurveyZoneAtPlayer = (player) => {
+  const centre = { x: player.x + PLAYER_SIZE / 2, y: player.y + PLAYER_SIZE / 2 };
+  const zone = SURVEY_ZONES.find(item => {
+    const mapZone = ZONES.find(mapItem => mapItem.id === item.id);
+    return mapZone && centre.x >= mapZone.x && centre.x <= mapZone.x + mapZone.w &&
+      centre.y >= mapZone.y && centre.y <= mapZone.y + mapZone.h;
+  });
+  return zone || null;
+};
+
+const getGridSquaresForZone = (zoneId) => GRID_ZONE_CONFIGS[zoneId] || [];
+
+const evidenceVisibleForGrid = (token, selectedSurveyZone, openedGridSquares) => {
+  if (!selectedSurveyZone || !SURVEY_REVEAL_LINKS[token.id]?.includes(selectedSurveyZone)) {
+    return false;
+  }
+  if (!openedGridSquares || openedGridSquares.size === 0) {
+    return false;
+  }
+  return getGridSquaresForZone(selectedSurveyZone).some(square => (
+    openedGridSquares.has(square.id) && square.linkedEvidenceIds.includes(token.id)
+  ));
+};
+
+const getSurveyZoneName = (zoneId) => (
+  zoneId ? SURVEY_ZONE_BY_ID[zoneId]?.name || zoneId : null
+);
+
 const buildExpeditionEvidence = () => {
   const egypt = SCENARIOS.find(scenario => scenario.civilization === TARGET_CIVILISATION);
   const byId = new Map((egypt?.evidence || []).map(item => [item.id, item]));
@@ -301,6 +565,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
   const lockedRef = useRef(false);
   const tickAccumulatorRef = useRef(0);
   const nearbyTokenRef = useRef(null);
+  const nearbySurveyZoneRef = useRef(null);
   const dismissedTokenRef = useRef(null);
   const [collectedEvidence, setCollectedEvidence] = useState([]);
   const [fieldNotes, setFieldNotes] = useState([]);
@@ -310,6 +575,13 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
   const [notice, setNotice] = useState('Complete the Bureau evidence hunt to unlock the Exit Gate.');
   const [briefingOpen, setBriefingOpen] = useState(true);
   const [nearbyToken, setNearbyToken] = useState(null);
+  const [selectedSurveyZone, setSelectedSurveyZone] = useState(null);
+  const [surveyedZones, setSurveyedZones] = useState(() => new Set());
+  const [nearbySurveyZone, setNearbySurveyZone] = useState(null);
+  const [surveyReportZone, setSurveyReportZone] = useState(null);
+  const [gridSetupOpen, setGridSetupOpen] = useState(false);
+  const [selectedGridSquare, setSelectedGridSquare] = useState(null);
+  const [openedGridSquares, setOpenedGridSquares] = useState(() => new Set());
   const [inspectionToken, setInspectionToken] = useState(null);
   const [inspectionStep, setInspectionStep] = useState('review');
   const [inspectionFeedback, setInspectionFeedback] = useState(null);
@@ -334,6 +606,15 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
 
   const missionRequiredCount = getMissionRequiredCount(activeMission);
   const exitUnlocked = missionEvidenceCount >= missionRequiredCount;
+  const surveyComplete = Boolean(selectedSurveyZone);
+  const gridSquares = useMemo(() => getGridSquaresForZone(selectedSurveyZone), [selectedSurveyZone]);
+  const gridComplete = openedGridSquares.size > 0;
+  const getVisibleEvidence = useCallback(() => (
+    tokensRef.current.filter(token => !token.collected && evidenceVisibleForGrid(token, selectedSurveyZone, openedGridSquares))
+  ), [openedGridSquares, selectedSurveyZone]);
+  const getHiddenEvidence = useCallback(() => (
+    tokensRef.current.filter(token => !token.collected && !evidenceVisibleForGrid(token, selectedSurveyZone, openedGridSquares))
+  ), [openedGridSquares, selectedSurveyZone]);
   const fieldKitSet = useMemo(() => new Set(fieldKit), [fieldKit]);
   const fieldKitEffects = useMemo(() => ({
     fieldGuideAvailable: fieldKitSet.has('field-guide-page'),
@@ -428,6 +709,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     setInspectionToken(null);
     setInspectionStep('review');
     setInspectionFeedback(null);
+    setSurveyReportZone(null);
+    setGridSetupOpen(false);
     setClaimOpen(false);
     setResultOpen(false);
     setExpeditionFailure({
@@ -474,19 +757,107 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     ));
   }, []);
 
+  const recordGridFieldNote = useCallback((square, zoneName) => {
+    if (!square || !zoneName) return;
+    setFieldNotes(previous => (
+      previous.some(note => note.id === `grid-${zoneName}-${square.id}`)
+        ? previous
+        : [
+            ...previous,
+            {
+              id: `grid-${zoneName}-${square.id}`,
+              evidenceId: `grid-${square.id}`,
+              reason: 'grid-opened',
+              name: `Grid ${square.id}`,
+              category: 'Grid square',
+              clue: square.clue,
+              note: `${zoneName} grid ${square.id} was opened and recorded before excavation. ${square.possibleEvidenceHint}`,
+            },
+          ]
+    ));
+  }, []);
+
+  const openSurveyReport = useCallback((zone = nearbySurveyZoneRef.current) => {
+    if (briefingOpen || !zone || lockedRef.current || inspectionToken || expeditionFailure) return;
+    if (!surveyedZones.has(zone.id)) {
+      syncResources(SURVEY_COST);
+      setSurveyedZones(previous => new Set([...previous, zone.id]));
+    }
+    setSurveyReportZone(zone);
+    setNotice(`Survey report opened for ${zone.name}.`);
+  }, [briefingOpen, expeditionFailure, inspectionToken, surveyedZones, syncResources]);
+
+  const keepSurveying = () => {
+    setSurveyReportZone(null);
+    setNotice('Keep surveying possible dig zones before choosing where to dig.');
+  };
+
+  const markSurveyZone = (zone = surveyReportZone) => {
+    if (!zone) return;
+    setSelectedSurveyZone(zone.id);
+    setSurveyReportZone(null);
+    setGridSetupOpen(true);
+    setSelectedGridSquare(null);
+    setOpenedGridSquares(new Set());
+    nearbyTokenRef.current = null;
+    setNearbyToken(null);
+    dismissedTokenRef.current = null;
+    setNotice(`${zone.name} marked as the dig zone. Open grid squares before evidence can be inspected.`);
+  };
+
+  const keepExploringGrid = useCallback(() => {
+    setGridSetupOpen(false);
+    setNotice('Keep exploring the dig zone or reopen the grid setup when you are ready to investigate a square.');
+  }, []);
+
+  const openGridSetup = useCallback(() => {
+    if (!selectedSurveyZone || briefingOpen || lockedRef.current || expeditionFailure) return;
+    setGridSetupOpen(true);
+    setNotice(`Grid setup opened for ${getSurveyZoneName(selectedSurveyZone)}.`);
+  }, [briefingOpen, expeditionFailure, selectedSurveyZone]);
+
+  const openGridSquare = useCallback((square) => {
+    if (!square || !selectedSurveyZone) return;
+    const zoneName = getSurveyZoneName(selectedSurveyZone);
+    const alreadyOpened = openedGridSquares.has(square.id);
+
+    if (!alreadyOpened) {
+      syncResources(GRID_COSTS[square.risk] || GRID_COSTS.Low);
+      setOpenedGridSquares(previous => new Set([...previous, square.id]));
+      if (fieldKitEffects.notebookReady) {
+        recordGridFieldNote(square, zoneName);
+      }
+    }
+
+    setSelectedGridSquare(square.id);
+    setGridSetupOpen(false);
+    nearbyTokenRef.current = null;
+    setNearbyToken(null);
+    dismissedTokenRef.current = null;
+
+    const measuringTapeNote = !alreadyOpened && fieldKitEffects.measuringTapeReady
+      ? ' Measuring Tape used: grid lines marked clearly.'
+      : '';
+    const repeatNote = alreadyOpened
+      ? ' This square was already opened, so no extra resources were used.'
+      : '';
+    setNotice(`${square.openFeedback}${repeatNote}${measuringTapeNote}`);
+  }, [fieldKitEffects.measuringTapeReady, fieldKitEffects.notebookReady, openedGridSquares, recordGridFieldNote, selectedSurveyZone, syncResources]);
+
   const openInspection = useCallback((token = nearbyTokenRef.current) => {
-    if (briefingOpen || !token || token.collected || lockedRef.current) return;
+    if (briefingOpen || !surveyComplete || !gridComplete || !token || token.collected || lockedRef.current) return;
+    if (!evidenceVisibleForGrid(token, selectedSurveyZone, openedGridSquares)) return;
     setInspectionToken(token);
     setInspectionStep('review');
     setInspectionFeedback(null);
     setNotice(`Inspecting ${token.name}. Decide whether it matches your mission.`);
-  }, [briefingOpen]);
+  }, [briefingOpen, gridComplete, openedGridSquares, selectedSurveyZone, surveyComplete]);
 
   const beginExpedition = () => {
     keysRef.current = {};
     tickAccumulatorRef.current = 0;
     setBriefingOpen(false);
-    setNotice(activeMission.instruction);
+    setNotice('Survey the site first. Choose a promising dig zone before inspecting evidence.');
   };
 
   const handleJourneySnapshot = useCallback((snapshot) => {
@@ -505,7 +876,15 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     setExpeditionStage('excavation');
     setBaseCampOpen(false);
     setBriefingOpen(true);
-    setNotice(activeMission.instruction);
+    setSelectedSurveyZone(null);
+    setSurveyedZones(new Set());
+    setNearbySurveyZone(null);
+    setSurveyReportZone(null);
+    setGridSetupOpen(false);
+    setSelectedGridSquare(null);
+    setOpenedGridSquares(new Set());
+    nearbySurveyZoneRef.current = null;
+    setNotice('Survey the site first. Choose a promising dig zone before inspecting evidence.');
   };
 
   const closeInspection = () => {
@@ -660,6 +1039,21 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
 
       ctx.fillStyle = '#3a2a18';
       ctx.fillText(labelText, zone.x + 14, zone.y + 24);
+
+      if (SURVEY_ZONE_BY_ID[zone.id]) {
+        const surveyLabel = selectedSurveyZone === zone.id
+          ? 'Dig zone marked'
+          : surveyedZones.has(zone.id)
+            ? 'Surveyed'
+            : 'Survey area';
+        ctx.fillStyle = selectedSurveyZone === zone.id
+          ? 'rgba(45, 90, 39, 0.82)'
+          : 'rgba(58, 42, 24, 0.72)';
+        ctx.fillRect(zone.x + 10, zone.y + zone.h - 32, 118, 22);
+        ctx.fillStyle = '#fff7ed';
+        ctx.font = '800 11px Outfit, sans-serif';
+        ctx.fillText(surveyLabel, zone.x + 18, zone.y + zone.h - 17);
+      }
     });
 
     // 4. Hazards (Pulsing borders)
@@ -722,7 +1116,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
 
     // 7. Tokens (Floating/glowing)
     tokensRef.current.forEach((token, index) => {
-      if (token.collected) return;
+      if (token.collected || !evidenceVisibleForGrid(token, selectedSurveyZone, openedGridSquares)) return;
       
       const floatY = Math.sin((now / 200) + index) * 3;
       
@@ -800,10 +1194,10 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     ctx.shadowOffsetY = 0;
     ctx.font = '16px Outfit, sans-serif';
     ctx.fillText('🕵️', player.x + 3, player.y + 17);
-  }, [missionEvidenceCount, missionRequiredCount]);
+  }, [missionEvidenceCount, missionRequiredCount, openedGridSquares, selectedSurveyZone, surveyedZones]);
 
   const update = useCallback((dt = 1 / 60) => {
-    if (briefingOpen || lockedRef.current || inspectionToken || expeditionFailure) {
+    if (briefingOpen || lockedRef.current || inspectionToken || surveyReportZone || gridSetupOpen || expeditionFailure) {
       draw();
       return;
     }
@@ -850,6 +1244,14 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
 
     const zoneName = getZoneName(playerRef.current);
     setCurrentZone(previous => previous === zoneName ? previous : zoneName);
+    const surveyZone = getSurveyZoneAtPlayer(playerRef.current);
+    if (surveyZone !== nearbySurveyZoneRef.current) {
+      nearbySurveyZoneRef.current = surveyZone;
+      setNearbySurveyZone(surveyZone);
+      if (surveyZone && !nearbyTokenRef.current) {
+        setNotice('Press E to survey this area before digging.');
+      }
+    }
 
     const playerRect = getPlayerRect(playerRef.current);
     HAZARDS.forEach((hazard) => {
@@ -897,6 +1299,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
 
     const nearestToken = tokensRef.current.find((token) => {
       if (token.collected) return;
+      if (!evidenceVisibleForGrid(token, selectedSurveyZone, openedGridSquares)) return;
       const dxToken = playerRef.current.x + PLAYER_SIZE / 2 - token.x;
       const dyToken = playerRef.current.y + PLAYER_SIZE / 2 - token.y;
       return Math.hypot(dxToken, dyToken) <= 31;
@@ -927,7 +1330,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     }
 
     draw();
-  }, [activeMission.gateRequirement, audioControls, briefingOpen, draw, expeditionFailure, inspectionToken, missionEvidenceCount, missionRequiredCount, syncResources]);
+  }, [activeMission.gateRequirement, audioControls, briefingOpen, draw, expeditionFailure, gridSetupOpen, inspectionToken, missionEvidenceCount, missionRequiredCount, openedGridSquares, selectedSurveyZone, surveyReportZone, syncResources]);
 
   useEffect(() => {
     if (expeditionStage === 'excavation') return undefined;
@@ -949,6 +1352,26 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       },
       requiredMissionEvidenceCount: missionRequiredCount,
       exitUnlocked,
+      surveyRequired: true,
+      surveyComplete,
+      selectedSurveyZone: getSurveyZoneName(selectedSurveyZone),
+      gridRequired: surveyComplete,
+      gridOpen: Boolean(gridSetupOpen),
+      selectedGridSquare,
+      openedGridSquares: [...openedGridSquares],
+      gridSquares: gridSquares.map(square => ({
+        id: square.id,
+        clue: square.clue,
+        risk: square.risk,
+        possibleEvidenceHint: square.possibleEvidenceHint,
+        linkedEvidenceIds: square.linkedEvidenceIds,
+        opened: openedGridSquares.has(square.id),
+      })),
+      nearbySurveyZone: nearbySurveyZone ? nearbySurveyZone.name : null,
+      surveyedZones: [...surveyedZones].map(getSurveyZoneName),
+      surveyReportOpen: Boolean(surveyReportZone),
+      visibleEvidence: getVisibleEvidence().map(item => ({ id: item.id, name: item.name, zone: item.zone, missionType: item.missionType })),
+      hiddenEvidence: getHiddenEvidence().map(item => ({ id: item.id, name: item.name, zone: item.zone, missionType: item.missionType })),
       resultOpen,
       failureOpen: Boolean(expeditionFailure),
       expeditionFailure,
@@ -1009,7 +1432,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       delete window.advanceTime;
       delete window.render_game_to_text;
     };
-  }, [activeMission, baseCampOpen, claimCorrect, evidenceSupportsClaim, expeditionFailure, expeditionStage, exitUnlocked, fieldKit, fieldKitBonus, fieldKitEffects, fieldKitImpact, finalRank, finalScore, inspectionFeedback, inspectionToken, inventoryFullDecisionOpen, missionComplete, missionEvidenceCount, missionRequiredCount, pendingEvidence, resultOpen, satchelContents]);
+  }, [activeMission, baseCampOpen, claimCorrect, evidenceSupportsClaim, expeditionFailure, expeditionStage, exitUnlocked, fieldKit, fieldKitBonus, fieldKitEffects, fieldKitImpact, finalRank, finalScore, getHiddenEvidence, getVisibleEvidence, gridSetupOpen, gridSquares, inspectionFeedback, inspectionToken, inventoryFullDecisionOpen, missionComplete, missionEvidenceCount, missionRequiredCount, nearbySurveyZone, openedGridSquares, pendingEvidence, resultOpen, satchelContents, selectedGridSquare, selectedSurveyZone, surveyComplete, surveyedZones, surveyReportZone]);
 
   useEffect(() => {
     if (expeditionStage !== 'excavation') return undefined;
@@ -1017,12 +1440,20 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     const handleKeyDown = (event) => {
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(event.code)) {
         event.preventDefault();
-        if (briefingOpen || lockedRef.current || inspectionToken || expeditionFailure) return;
+        if (briefingOpen || lockedRef.current || inspectionToken || surveyReportZone || gridSetupOpen || expeditionFailure) return;
         keysRef.current[event.code] = true;
       }
       if (event.code === 'KeyE') {
         event.preventDefault();
-        openInspection();
+        if (nearbyTokenRef.current) {
+          openInspection();
+        } else if (nearbySurveyZoneRef.current) {
+          openSurveyReport(nearbySurveyZoneRef.current);
+        } else if (selectedSurveyZone) {
+          openGridSetup();
+        } else {
+          openSurveyReport();
+        }
       }
     };
     const handleKeyUp = (event) => {
@@ -1096,6 +1527,39 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       },
       requiredMissionEvidenceCount: missionRequiredCount,
       exitUnlocked,
+      surveyRequired: true,
+      surveyComplete,
+      selectedSurveyZone: getSurveyZoneName(selectedSurveyZone),
+      gridRequired: surveyComplete,
+      gridOpen: Boolean(gridSetupOpen),
+      selectedGridSquare,
+      openedGridSquares: [...openedGridSquares],
+      gridSquares: gridSquares.map(square => ({
+        id: square.id,
+        clue: square.clue,
+        risk: square.risk,
+        possibleEvidenceHint: square.possibleEvidenceHint,
+        linkedEvidenceIds: square.linkedEvidenceIds,
+        opened: openedGridSquares.has(square.id),
+      })),
+      nearbySurveyZone: nearbySurveyZone ? nearbySurveyZone.name : null,
+      surveyedZones: [...surveyedZones].map(getSurveyZoneName),
+      surveyReportOpen: Boolean(surveyReportZone),
+      surveyReport: surveyReportZone,
+      visibleEvidence: getVisibleEvidence().map(item => ({
+        id: item.id,
+        name: item.name,
+        x: item.x,
+        y: item.y,
+        zone: item.zone,
+        missionType: item.missionType,
+      })),
+      hiddenEvidence: getHiddenEvidence().map(item => ({
+        id: item.id,
+        name: item.name,
+        zone: item.zone,
+        missionType: item.missionType,
+      })),
       inventory: {
         count: collectedRef.current.length,
         limit: MAX_EVIDENCE_ITEMS,
@@ -1150,7 +1614,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       delete window.advanceTime;
       delete window.render_game_to_text;
     };
-  }, [activeMission, briefingOpen, claimCorrect, draw, evidenceSupportsClaim, expeditionFailure, expeditionStage, exitUnlocked, fieldKit, fieldKitBonus, fieldKitEffects, fieldKitImpact, fieldNotes, finalRank, finalScore, inspectionFeedback, inspectionToken, inventoryFullDecisionOpen, missionComplete, missionEvidenceCount, missionRequiredCount, openInspection, pendingEvidence, resultOpen, satchelContents, update]);
+  }, [activeMission, briefingOpen, claimCorrect, draw, evidenceSupportsClaim, expeditionFailure, expeditionStage, exitUnlocked, fieldKit, fieldKitBonus, fieldKitEffects, fieldKitImpact, fieldNotes, finalRank, finalScore, getHiddenEvidence, getVisibleEvidence, gridSetupOpen, gridSquares, inspectionFeedback, inspectionToken, inventoryFullDecisionOpen, missionComplete, missionEvidenceCount, missionRequiredCount, nearbySurveyZone, openGridSetup, openInspection, openSurveyReport, openedGridSquares, pendingEvidence, resultOpen, satchelContents, selectedGridSquare, selectedSurveyZone, surveyComplete, surveyedZones, surveyReportZone, update]);
 
   const resetExpedition = () => {
     const nextMission = chooseEvidenceHuntMission(activeMission.id);
@@ -1170,6 +1634,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     lockedRef.current = false;
     tickAccumulatorRef.current = 0;
     nearbyTokenRef.current = null;
+    nearbySurveyZoneRef.current = null;
     keysRef.current = {};
     setCollectedEvidence([]);
     setFieldNotes([]);
@@ -1178,6 +1643,13 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     setNotice(nextMission.instruction);
     setBriefingOpen(true);
     setNearbyToken(null);
+    setSelectedSurveyZone(null);
+    setSurveyedZones(new Set());
+    setNearbySurveyZone(null);
+    setSurveyReportZone(null);
+    setGridSetupOpen(false);
+    setSelectedGridSquare(null);
+    setOpenedGridSquares(new Set());
     setInspectionToken(null);
     setInspectionStep('review');
     setInspectionFeedback(null);
@@ -1328,6 +1800,30 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
               aria-label="Top-down expedition map"
               className="expedition-canvas"
             />
+            {nearbySurveyZone && !nearbyToken && !inspectionToken && !surveyReportZone && (
+              <div className="expedition-inspect-prompt expedition-survey-prompt">
+                <div>
+                  <strong>{nearbySurveyZone.name}</strong>
+                  <span>{nearbySurveyZone.prompt}</span>
+                </div>
+                <button type="button" className="btn primary-btn" onClick={() => openSurveyReport(nearbySurveyZone)}>
+                  Survey Area
+                </button>
+                <kbd>E</kbd>
+              </div>
+            )}
+            {selectedSurveyZone && !gridComplete && !nearbyToken && !inspectionToken && !surveyReportZone && !gridSetupOpen && (
+              <div className="expedition-inspect-prompt expedition-grid-prompt">
+                <div>
+                  <strong>{SURVEY_ZONE_BY_ID[selectedSurveyZone]?.name} grid ready</strong>
+                  <span>Open a grid square before evidence can be inspected.</span>
+                </div>
+                <button type="button" className="btn primary-btn" onClick={openGridSetup}>
+                  Grid Setup
+                </button>
+                <kbd>E</kbd>
+              </div>
+            )}
             {nearbyToken && !inspectionToken && (
               <div className="expedition-inspect-prompt">
                 <div>
@@ -1353,6 +1849,45 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
                 <div className="expedition-mission-progress">
                   {activeMission.evidenceLabel}: <span>{missionEvidenceCount}/{missionRequiredCount}</span>
                 </div>
+              </div>
+            </section>
+
+            <section className="expedition-panel">
+              <h3><MapIcon size={17} /> Survey Before Digging</h3>
+              <div className="expedition-mission-card">
+                <strong>{surveyComplete ? `${SURVEY_ZONE_BY_ID[selectedSurveyZone]?.name} marked` : 'Survey required'}</strong>
+                <span>Survey, choose a dig zone, then set up a grid</span>
+                <p>
+                  {surveyComplete
+                    ? 'Your dig zone is marked. Evidence will stay hidden until you open grid squares in this area.'
+                    : 'Evidence is hidden until you survey an area and mark a dig zone.'}
+                </p>
+                <div className="expedition-mission-progress">
+                  Surveyed zones: <span>{surveyedZones.size}/{SURVEY_ZONES.length}</span>
+                </div>
+              </div>
+            </section>
+
+            <section className="expedition-panel">
+              <h3><MapIcon size={17} /> Grid Before Excavating</h3>
+              <div className="expedition-mission-card">
+                <strong>{selectedSurveyZone ? `${SURVEY_ZONE_BY_ID[selectedSurveyZone]?.name} grid` : 'Grid not ready yet'}</strong>
+                <span>Mark squares to record where evidence was found</span>
+                <p>
+                  {selectedSurveyZone
+                    ? (gridComplete
+                      ? `Opened squares: ${[...openedGridSquares].join(', ')}. Open more squares if you need more evidence.`
+                      : 'Choose a grid square before any evidence becomes visible in this dig zone.')
+                    : 'Grid setup becomes available after you mark a dig zone.'}
+                </p>
+                <div className="expedition-mission-progress">
+                  Grid squares opened: <span>{openedGridSquares.size}/{gridSquares.length || 4}</span>
+                </div>
+                {selectedSurveyZone && (
+                  <button type="button" className="btn" onClick={openGridSetup}>
+                    {gridComplete ? 'Review Grid Setup' : 'Open Grid Setup'}
+                  </button>
+                )}
               </div>
             </section>
 
@@ -1422,7 +1957,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
 
             <section className="expedition-panel">
               <h3><Clock size={17} /> Controls</h3>
-              <p className="expedition-control-copy">Move with WASD or the arrow keys. Stand near evidence and press E or Inspect Evidence.</p>
+              <p className="expedition-control-copy">Move with WASD or the arrow keys. Stand in a zone and press E to survey. After marking a dig zone, press E to open the grid setup, then inspect evidence revealed by opened squares.</p>
             </section>
           </aside>
         </div>
@@ -1433,7 +1968,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
           <div className="bureau-briefing-modal expedition-mission-briefing-modal">
             <div className="expedition-briefing-stamp">Top Secret</div>
             <h2>Operation: Lost Site Expedition</h2>
-            <p>Explore the site, collect evidence, and prove which civilisation lived here.</p>
+            <p>Survey the site first, choose a dig zone, collect evidence, and prove which civilisation lived here.</p>
             
             <div className="expedition-mission-card expedition-briefing-mission">
               <strong>{activeMission.title}</strong>
@@ -1446,6 +1981,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
             <div className="expedition-briefing-rules" aria-label="Mission Rules">
               <ul style={{ paddingLeft: '1.2rem', margin: 0, display: 'grid', gap: '0.4rem' }}>
                 <li><strong>Search</strong>: {activeMission.briefingRule}</li>
+                <li><strong>Survey First</strong>: Evidence is hidden until you survey an area and mark a dig zone.</li>
+                <li><strong>Grid Next</strong>: Open grid squares to record where evidence was found before inspecting it.</li>
                 <li><strong>Choose Carefully</strong>: Your evidence satchel can only hold 3 items, so you may need to replace weaker evidence.</li>
                 <li><strong>Survive</strong>: Avoid hazards that drain your time and stamina.</li>
                 <li><strong>Prove</strong>: Make your final claim at the exit using your evidence.</li>
@@ -1477,6 +2014,99 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
               </button>
               <button type="button" className="btn" onClick={onBackToMenu}>
                 Back to Menu
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {surveyReportZone && (
+        <div className="bureau-briefing-overlay">
+          <div className="bureau-briefing-modal expedition-survey-modal">
+            <div className="training-kicker">Survey Report</div>
+            <h2>{surveyReportZone.name}</h2>
+            <p>{surveyReportZone.clue}</p>
+
+            <div className="expedition-survey-report-grid">
+              <section>
+                <strong>Likely evidence</strong>
+                <span>{surveyReportZone.likelyEvidence}</span>
+              </section>
+              <section>
+                <strong>Mission hint</strong>
+                <span>{surveyReportZone.missionHint}</span>
+              </section>
+              <section>
+                <strong>Risk / cost</strong>
+                <span>{surveyReportZone.risk}</span>
+              </section>
+            </div>
+
+            <p className="expedition-survey-process-note">
+              Archaeologists survey before digging so they can choose where evidence is most likely to answer the question.
+            </p>
+
+            <div className="bureau-briefing-actions">
+              <button type="button" className="btn primary-btn" onClick={() => markSurveyZone(surveyReportZone)}>
+                Mark as Dig Zone
+              </button>
+              <button type="button" className="btn" onClick={keepSurveying}>
+                Keep Surveying
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {gridSetupOpen && selectedSurveyZone && (
+        <div className="bureau-briefing-overlay">
+          <div className="bureau-briefing-modal expedition-grid-modal">
+            <div className="training-kicker">Grid Setup</div>
+            <h2>{SURVEY_ZONE_BY_ID[selectedSurveyZone]?.name}</h2>
+            <p>
+              Archaeologists divide a dig site into grid squares so they can record exactly where evidence was found.
+            </p>
+
+            <div className="expedition-mission-card expedition-grid-explainer">
+              <strong>Selected dig zone</strong>
+              <span>{SURVEY_ZONE_BY_ID[selectedSurveyZone]?.name}</span>
+              <p>Open one square at a time. Only evidence linked to opened squares will become visible.</p>
+            </div>
+
+            <div className="expedition-grid-square-list">
+              {gridSquares.map(square => {
+                const isOpened = openedGridSquares.has(square.id);
+                const cost = GRID_COSTS[square.risk] || GRID_COSTS.Low;
+                return (
+                  <article key={square.id} className={`expedition-grid-square ${isOpened ? 'is-opened' : ''}`}>
+                    <strong>{square.id}</strong>
+                    <span>Risk: {square.risk}</span>
+                    <p>{square.clue}</p>
+                    <div className="expedition-grid-square-meta">
+                      <small>{square.possibleEvidenceHint}</small>
+                      <small>
+                        Cost: {cost.investigation} investigation, {cost.time} seconds
+                      </small>
+                    </div>
+                    <button type="button" className="btn primary-btn" onClick={() => openGridSquare(square)}>
+                      {isOpened ? 'Open Grid Square Again' : 'Open Grid Square'}
+                    </button>
+                  </article>
+                );
+              })}
+            </div>
+
+            <div className="expedition-grid-review">
+              <strong>{activeMission.title}</strong>
+              <span>{activeMission.instruction}</span>
+            </div>
+
+            <div className="bureau-briefing-actions">
+              <button type="button" className="btn primary-btn" onClick={keepExploringGrid}>
+                Keep Exploring
+              </button>
+              <button type="button" className="btn" onClick={() => setNotice(`${activeMission.title}: ${activeMission.instruction}`)}>
+                Review Mission
               </button>
             </div>
           </div>
