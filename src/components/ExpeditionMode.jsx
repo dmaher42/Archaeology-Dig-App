@@ -293,6 +293,21 @@ const EXCAVATION_METHODS = [
   },
 ];
 const EXCAVATION_METHOD_BY_ID = Object.fromEntries(EXCAVATION_METHODS.map(method => [method.id, method]));
+const MAP_EVIDENCE_TYPES = [
+  { id: 'structure', name: 'Feature / Structure' },
+  { id: 'written_record', name: 'Written Source' },
+  { id: 'material_culture', name: 'Artefact / Object' },
+  { id: 'environmental', name: 'Environmental Evidence' },
+  { id: 'human_remains', name: 'Human Remains' },
+];
+const MAP_EVIDENCE_TYPE_BY_ID = Object.fromEntries(MAP_EVIDENCE_TYPES.map(item => [item.id, item]));
+const MAP_EVIDENCE_TYPE_BY_MISSION_TYPE = {
+  structure: 'structure',
+  written_record: 'written_record',
+  material_culture: 'material_culture',
+  environmental: 'environmental',
+  human_remains: 'human_remains',
+};
 
 const WALLS = [
   { x: 322, y: 238, w: 178, h: 34, label: 'low ruined wall' },
@@ -456,6 +471,16 @@ const getMissionEvidenceType = (type) => EVIDENCE_MISSION_TYPE_MAP[type] || norm
 
 const evidenceMatchesMission = (token, mission) => (
   token?.missionType === mission?.targetEvidenceType
+);
+
+const getMapEvidenceTypeIdForToken = (token) => (
+  MAP_EVIDENCE_TYPE_BY_MISSION_TYPE[token?.missionType] || 'structure'
+);
+
+const getMapEvidenceTypeName = (typeId) => MAP_EVIDENCE_TYPE_BY_ID[typeId]?.name || 'Unknown';
+
+const isMappingAccurate = (token, typeId) => (
+  getMapEvidenceTypeIdForToken(token) === typeId
 );
 
 const quickDigDamagesEvidence = (token, mission) => (
@@ -663,6 +688,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
   const [inspectionFeedback, setInspectionFeedback] = useState(null);
   const [selectedExcavationMethod, setSelectedExcavationMethod] = useState(null);
   const [excavationMethodHistory, setExcavationMethodHistory] = useState([]);
+  const [selectedMappedEvidenceType, setSelectedMappedEvidenceType] = useState('');
+  const [mappingFeedback, setMappingFeedback] = useState(null);
   const [missionEvidenceCount, setMissionEvidenceCount] = useState(0);
   const [claimOpen, setClaimOpen] = useState(false);
   const [selectedCivilisation, setSelectedCivilisation] = useState('');
@@ -721,6 +748,17 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
   ), [activeMission, inspectionToken]);
   const excavationMethodOpen = Boolean(inspectionToken && inspectionStep === 'excavate');
   const excavationMethodRequired = Boolean(inspectionToken && !inspectionToken.excavationMethod);
+  const mappingOpen = Boolean(inspectionToken && inspectionStep === 'map');
+  const mappingRequired = Boolean(inspectionToken && !inspectionToken.mappedEvidenceType);
+  const pendingMappedEvidence = useMemo(() => (
+    inspectionToken ? {
+      ...inspectionToken,
+      selectedSurveyZone: getSurveyZoneName(selectedSurveyZone),
+      selectedGridSquare,
+      mappedEvidenceType: inspectionToken.mappedEvidenceType ? getMapEvidenceTypeName(inspectionToken.mappedEvidenceType) : null,
+      mappingAccurate: inspectionToken.mappingAccurate ?? null,
+    } : null
+  ), [inspectionToken, selectedGridSquare, selectedSurveyZone]);
   const inventoryFullDecisionOpen = Boolean(inspectionToken && ['capacity', 'replace', 'mission'].includes(inspectionStep));
   const evidenceQualitySummary = useMemo(() => (
     collectedEvidence.reduce((summary, item) => {
@@ -731,6 +769,12 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       };
     }, { excellent: 0, good: 0, damaged: 0 })
   ), [collectedEvidence]);
+  const mappingAccuracySummary = useMemo(() => {
+    const mapped = collectedEvidence.filter(item => item.mappedEvidenceType);
+    const accurate = mapped.filter(item => item.mappingAccurate).length;
+    const needsReview = mapped.length - accurate;
+    return { mapped: mapped.length, accurate, needsReview };
+  }, [collectedEvidence]);
   const missingTools = useMemo(() => (
     JOURNEY_TOOLS.filter(tool => !fieldKitSet.has(tool.id))
   ), [fieldKitSet]);
@@ -766,6 +810,11 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     const bonus = (evidenceQualitySummary.excellent * 2) - (evidenceQualitySummary.damaged * 2);
     return clamp(bonus, -6, 6);
   }, [claimResult, evidenceQualitySummary]);
+  const mappingAccuracyBonus = useMemo(() => {
+    if (!claimResult) return 0;
+    const bonus = (mappingAccuracySummary.accurate * 2) - mappingAccuracySummary.needsReview + (fieldKitEffects.measuringTapeReady ? 1 : 0);
+    return clamp(bonus, -10, 10);
+  }, [claimResult, fieldKitEffects.measuringTapeReady, mappingAccuracySummary]);
   const claimCorrect = claimResult ? selectedCivilisation === TARGET_CIVILISATION : false;
   const evidenceSupportsClaim = claimResult ? selectedEvidence?.supports === TARGET_CIVILISATION : false;
   const missionComplete = missionEvidenceCount >= missionRequiredCount;
@@ -784,11 +833,12 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       staminaScore +
       timeScore +
       fieldKitBonus +
+      mappingAccuracyBonus +
       evidenceQualityBonus,
       0,
       100
     );
-  }, [claimCorrect, claimResult, evidenceQualityBonus, evidenceSupportsClaim, fieldKit.length, fieldKitBonus, missionComplete, resources]);
+  }, [claimCorrect, claimResult, evidenceQualityBonus, evidenceSupportsClaim, fieldKit.length, fieldKitBonus, mappingAccuracyBonus, missionComplete, resources]);
   const finalRank = finalScore === null ? null : getRankTitle(finalScore);
   const resultFeedback = finalScore === null ? '' : getRankFeedback(finalScore);
   const syncInventory = useCallback((items) => {
@@ -888,6 +938,26 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
               category: token.category,
               clue: token.clue,
               note: `${method.name} was used on ${token.name}. Evidence quality: ${outcome.quality}.`,
+          },
+        ]
+    ));
+  }, []);
+
+  const recordMappingNote = useCallback((token, mapping) => {
+    if (!token || !mapping) return;
+    setFieldNotes(previous => (
+      previous.some(note => note.id === `${token.id}-mapping`)
+        ? previous
+        : [
+            ...previous,
+            {
+              id: `${token.id}-mapping`,
+              evidenceId: token.id,
+              reason: 'mapping',
+              name: token.name,
+              category: token.category,
+              clue: token.clue,
+              note: `${mapping.zone} | ${mapping.gridSquare} | ${mapping.evidenceType}. Mapping ${mapping.mappingAccurate ? 'was accurate' : 'needs review'}.`,
             },
           ]
     ));
@@ -964,8 +1034,9 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     if (briefingOpen || !surveyComplete || !gridComplete || !token || token.collected || lockedRef.current) return;
     if (!evidenceVisibleForGrid(token, selectedSurveyZone, openedGridSquares)) return;
     setInspectionToken(token);
-    setInspectionStep(token.excavationMethod ? 'review' : 'excavate');
+    setInspectionStep(token.excavationMethod ? (token.mappedEvidenceType ? 'review' : 'map') : 'excavate');
     setInspectionFeedback(null);
+    setMappingFeedback(null);
     setSelectedExcavationMethod(token.excavationMethod || null);
     setNotice(`Inspecting ${token.name}. Choose an excavation method before deciding if it matches the mission.`);
   }, [briefingOpen, gridComplete, openedGridSquares, selectedSurveyZone, surveyComplete]);
@@ -1021,11 +1092,65 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     }
 
     setSelectedExcavationMethod(historyItem);
-    setInspectionStep('review');
+    setSelectedMappedEvidenceType('');
+    setMappingFeedback(null);
+    setInspectionStep('map');
     const bonusText = outcome.bonus > 0 ? ` Field kit bonus: +${outcome.bonus} investigation.` : '';
     const kitText = outcome.kitFeedback ? ` ${outcome.kitFeedback}` : '';
     setNotice(`${method.name} used. Evidence quality: ${outcome.quality}.${bonusText}${kitText}`);
   }, [activeMission, fieldKitEffects, inspectionToken, recordExcavationMethodNote, syncResources]);
+
+  const recordMappedFind = useCallback(() => {
+    if (!inspectionToken || inspectionToken.collected || !selectedMappedEvidenceType) return;
+    const evidenceTypeId = selectedMappedEvidenceType;
+    const evidenceTypeName = getMapEvidenceTypeName(evidenceTypeId);
+    const accurate = isMappingAccurate(inspectionToken, evidenceTypeId);
+    const zoneName = getSurveyZoneName(selectedSurveyZone);
+    const gridSquare = selectedGridSquare || 'Unknown';
+    const mapping = {
+      zone: zoneName,
+      gridSquare,
+      evidenceType: evidenceTypeName,
+      studentMappedType: evidenceTypeId,
+      mappingAccurate: accurate,
+    };
+    const updatedToken = {
+      ...inspectionToken,
+      mappedZone: zoneName,
+      mappedGridSquare: gridSquare,
+      mappedEvidenceType: evidenceTypeName,
+      studentMappedType: evidenceTypeId,
+      mappingAccurate: accurate,
+    };
+    tokensRef.current = tokensRef.current.map(token => (
+      token.id === inspectionToken.id ? updatedToken : token
+    ));
+    nearbyTokenRef.current = nearbyTokenRef.current?.id === inspectionToken.id
+      ? updatedToken
+      : nearbyTokenRef.current;
+    setNearbyToken(previous => previous?.id === inspectionToken.id ? updatedToken : previous);
+    setInspectionToken(updatedToken);
+
+    if (fieldKitEffects.measuringTapeReady) {
+      syncResources({ investigation: 1 });
+    }
+    if (fieldKitEffects.notebookReady) {
+      recordMappingNote(updatedToken, mapping);
+    }
+
+    setMappingFeedback({
+      accurate,
+      text: accurate
+        ? 'Mapping complete. You recorded the evidence accurately.'
+        : 'Mapping recorded, but the evidence type may need review. Historians often revisit their first interpretation.',
+    });
+    setInspectionStep('review');
+    setNotice(fieldKitEffects.measuringTapeReady
+      ? 'Measuring Tape used: grid location recorded accurately.'
+      : accurate
+        ? 'Mapping complete. You recorded the evidence accurately.'
+        : 'Mapping recorded, but the evidence type may need review.');
+  }, [fieldKitEffects.measuringTapeReady, fieldKitEffects.notebookReady, inspectionToken, recordMappingNote, selectedGridSquare, selectedMappedEvidenceType, selectedSurveyZone, syncResources]);
 
   const beginExpedition = () => {
     keysRef.current = {};
@@ -1068,6 +1193,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     setInspectionStep('review');
     setInspectionFeedback(null);
     setSelectedExcavationMethod(null);
+    setSelectedMappedEvidenceType('');
+    setMappingFeedback(null);
   };
 
   const rejectInspectedEvidence = (token) => {
@@ -1080,6 +1207,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     setInspectionStep('review');
     setInspectionFeedback(null);
     setSelectedExcavationMethod(null);
+    setSelectedMappedEvidenceType('');
+    setMappingFeedback(null);
     setNotice(activeMission.keepSearchingNotice);
   };
 
@@ -1100,6 +1229,10 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     token.collected = true;
     token.isMissionEvidence = isMissionEvidence;
     token.evidenceQuality = token.evidenceQuality || 'good';
+    token.mappedZone = token.mappedZone || getSurveyZoneName(selectedSurveyZone);
+    token.mappedGridSquare = token.mappedGridSquare || selectedGridSquare;
+    token.mappedEvidenceType = token.mappedEvidenceType || getMapEvidenceTypeName(token.studentMappedType || getMapEvidenceTypeIdForToken(token));
+    token.mappingAccurate = token.mappingAccurate ?? (token.studentMappedType ? isMappingAccurate(token, token.studentMappedType) : true);
     nextInventory.push(token);
     syncInventory(nextInventory);
     nearbyTokenRef.current = null;
@@ -1152,6 +1285,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       recordFieldNote(token, 'inspected');
     }
     setInspectionStep('review');
+    setSelectedMappedEvidenceType('');
+    setMappingFeedback(null);
   };
 
   const inspectMissionChoice = (matchesMission) => {
@@ -1159,6 +1294,11 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     if (!inspectionToken.excavationMethod) {
       setInspectionStep('excavate');
       setNotice('Choose an excavation method before deciding whether to collect this evidence.');
+      return;
+    }
+    if (!inspectionToken.mappedEvidenceType) {
+      setInspectionStep('map');
+      setNotice('Map the find before deciding whether to collect this evidence.');
       return;
     }
 
@@ -2388,6 +2528,73 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
               </div>
             )}
 
+            {!inspectionFeedback && inspectionStep === 'map' && (
+              <div className="expedition-map-panel">
+                <div className="expedition-inspection-question">Map the Find</div>
+                <p className="expedition-survey-process-note">
+                  Archaeologists record where evidence is found. This helps them understand the evidence in context.
+                </p>
+
+                <div className="expedition-map-summary">
+                  <section>
+                    <strong>Zone</strong>
+                    <span>{getSurveyZoneName(selectedSurveyZone) || 'Unknown'}</span>
+                  </section>
+                  <section>
+                    <strong>Grid Square</strong>
+                    <span>{selectedGridSquare || 'Unknown'}</span>
+                  </section>
+                  <section>
+                    <strong>Evidence Type</strong>
+                    <span>{selectedMappedEvidenceType ? getMapEvidenceTypeName(selectedMappedEvidenceType) : 'Choose one below'}</span>
+                  </section>
+                </div>
+
+                {fieldKitEffects.fieldGuideAvailable && (
+                  <div className="expedition-tool-effect-hint">
+                    <strong>Field Guide Hint</strong>
+                    <span>
+                      {FIELD_GUIDE_HINTS[inspectionToken.missionType] || 'Field Guide Hint: Look at what this evidence shows before deciding on its type.'}
+                    </span>
+                  </div>
+                )}
+
+                <div className="expedition-map-type-grid">
+                  {MAP_EVIDENCE_TYPES.map(type => (
+                    <button
+                      key={type.id}
+                      type="button"
+                      className={`expedition-map-type-btn ${selectedMappedEvidenceType === type.id ? 'is-selected' : ''}`}
+                      onClick={() => setSelectedMappedEvidenceType(type.id)}
+                    >
+                      {type.name}
+                    </button>
+                  ))}
+                </div>
+
+                {mappingFeedback && (
+                  <div className={`expedition-claim-feedback ${mappingFeedback.accurate ? 'correct' : 'incorrect'}`}>
+                    <CheckCircle2 size={20} />
+                    <div>
+                      <strong>{mappingFeedback.accurate ? 'Mapping complete' : 'Mapping recorded'}</strong>
+                      <p>{mappingFeedback.text}</p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="bureau-briefing-actions">
+                  <button
+                    type="button"
+                    className="btn primary-btn"
+                    onClick={recordMappedFind}
+                    disabled={!selectedMappedEvidenceType}
+                  >
+                    Record Map
+                  </button>
+                </div>
+              </div>
+            )}
+
             {selectedExcavationMethod && !inspectionFeedback && inspectionStep !== 'excavate' && (
               <div className="expedition-tool-effect-hint match">
                 <strong>{selectedExcavationMethod.methodName} used</strong>
@@ -2398,7 +2605,14 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
               </div>
             )}
 
-            {inspectionStep !== 'excavate' && (
+            {inspectionStep === 'review' && mappingFeedback && !inspectionFeedback && (
+              <div className={`expedition-tool-effect-hint ${mappingFeedback.accurate ? 'match' : 'miss'}`}>
+                <strong>{mappingFeedback.accurate ? 'Mapping accurate' : 'Mapping needs review'}</strong>
+                <span>{mappingFeedback.text}</span>
+              </div>
+            )}
+
+            {inspectionStep === 'review' && (
               <div className="expedition-inspection-question">Does this evidence match your mission?</div>
             )}
 

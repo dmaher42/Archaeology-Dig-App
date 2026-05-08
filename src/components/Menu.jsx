@@ -88,9 +88,9 @@ export function ActivityMenu({
         <p>Choose an archaeological mission to begin or resume your progress.</p>
       </div>
 
-      <div className="activity-menu-grid">
+      <div className="activity-menu-grid" aria-label="Choose an activity">
         {/* Basic Training */}
-        <article className="activity-card glass-card">
+        <article className="activity-card activity-card--training glass-card">
           <div className="activity-card-header">
             <div className="activity-card-icon activity-card-icon--training">
               <MapPin size={24} />
@@ -101,7 +101,7 @@ export function ActivityMenu({
             <h3>Archaeologist Training</h3>
             <p>Practise the five core investigation steps in isolation.</p>
           </div>
-          <div className="activity-card-actions">
+          <div className="activity-card-actions activity-card-button-group">
             <button type="button" className="btn primary-btn activity-card-action" onClick={onStartTraining}>
               Start Training
             </button>
@@ -109,7 +109,7 @@ export function ActivityMenu({
         </article>
 
         {/* Full Investigation */}
-        <article className={`activity-card glass-card ${hasSavedInvestigation ? 'has-save' : ''}`}>
+        <article className={`activity-card activity-card--investigation glass-card ${hasSavedInvestigation ? 'has-save' : ''}`}>
           <div className="activity-card-header">
             <div className="activity-card-icon activity-card-icon--investigation">
               <Pickaxe size={24} />
@@ -120,7 +120,7 @@ export function ActivityMenu({
             <h3>Full Investigation</h3>
             <p>Recover finds, sort evidence, and build a museum display.</p>
           </div>
-          <div className="activity-card-actions">
+          <div className="activity-card-actions activity-card-button-group">
             <button 
               type="button" 
               className={`btn primary-btn activity-card-action ${hasSavedInvestigation ? 'pulse-btn' : ''}`} 
@@ -137,7 +137,7 @@ export function ActivityMenu({
         </article>
 
         {/* Antiquities Bureau */}
-        <article className={`activity-card glass-card ${hasSavedBureau ? 'has-save' : ''}`}>
+        <article className={`activity-card activity-card--bureau glass-card ${hasSavedBureau ? 'has-save' : ''}`}>
           <div className="activity-card-header">
             <div className="activity-card-icon activity-card-icon--bureau">
               <FileText size={24} />
@@ -148,7 +148,7 @@ export function ActivityMenu({
             <h3>Antiquities Bureau</h3>
             <p>Solve high-stakes civilisation cases using evidence clues.</p>
           </div>
-          <div className="activity-card-actions">
+          <div className="activity-card-actions activity-card-button-group">
             <button 
               type="button" 
               className={`btn primary-btn activity-card-action ${hasSavedBureau ? 'pulse-btn' : ''}`} 
@@ -165,7 +165,7 @@ export function ActivityMenu({
         </article>
 
         {/* Lost Site Expedition */}
-        <article className="activity-card glass-card">
+        <article className="activity-card activity-card--expedition glass-card">
           <div className="activity-card-header">
             <div className="activity-card-icon activity-card-icon--expedition">
               <Compass size={24} />
@@ -176,7 +176,7 @@ export function ActivityMenu({
             <h3>Lost Site Expedition</h3>
             <p>Explore ruins, navigate hazards, and identify the lost civilisation.</p>
           </div>
-          <div className="activity-card-actions">
+          <div className="activity-card-actions activity-card-button-group">
             <button type="button" className="btn primary-btn activity-card-action" onClick={onStartExpedition}>
               Start Expedition
             </button>

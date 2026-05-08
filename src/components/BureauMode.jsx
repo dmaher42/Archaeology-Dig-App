@@ -655,11 +655,8 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
                   key={civilisation} 
                   className={`bureau-suspect-card ${isRuledOut ? 'is-ruled-out' : ''}`}
                   style={{ '--deal-order': index }}
-                  role="button"
-                  tabIndex={0}
                   aria-pressed={isRuledOut}
                   aria-label={`${civilisation}. ${isRuledOut ? 'Ruled out.' : 'Still possible.'}`}
-                  onClick={() => toggleSuspectRuleOut(civilisation)}
                 >
                   <button 
                     className="bureau-discard-btn" 
