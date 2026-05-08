@@ -9631,6 +9631,64 @@ main {
   margin-top: 0.1rem;
 }
 
+.expedition-map-panel {
+  display: grid;
+  gap: 0.7rem;
+  margin: 1rem 0;
+}
+
+.expedition-map-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.expedition-map-summary section {
+  display: grid;
+  gap: 0.22rem;
+  padding: 0.7rem 0.75rem;
+  border: 1px solid rgba(139, 106, 72, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 250, 240, 0.72);
+}
+
+.expedition-map-summary strong {
+  color: var(--bureau-ink);
+  font-size: 0.84rem;
+  text-transform: uppercase;
+}
+
+.expedition-map-summary span {
+  color: var(--bureau-ink-muted);
+  font-size: 0.86rem;
+  line-height: 1.34;
+}
+
+.expedition-map-type-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.expedition-map-type-btn {
+  min-height: 100%;
+  padding: 0.7rem 0.55rem;
+  border-radius: 8px;
+  border: 1px solid rgba(139, 106, 72, 0.22);
+  background: rgba(255, 250, 240, 0.72);
+  color: var(--bureau-ink);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.expedition-map-type-btn.is-selected {
+  border-color: var(--bureau-gold);
+  background: rgba(214, 174, 127, 0.22);
+  box-shadow: inset 0 0 0 1px rgba(214, 174, 127, 0.45);
+}
+
 .expedition-method-kit-note,
 .expedition-quality-feedback {
   color: #2d5a27 !important;
@@ -9639,7 +9697,9 @@ main {
 
 @media (max-width: 760px) {
   .expedition-grid-square-list,
-  .expedition-excavation-method-grid {
+  .expedition-excavation-method-grid,
+  .expedition-map-summary,
+  .expedition-map-type-grid {
     grid-template-columns: 1fr;
   }
 }

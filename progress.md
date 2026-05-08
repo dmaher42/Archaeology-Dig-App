@@ -56,3 +56,10 @@ Remaining notes:
 - Field kit effects were connected: Brush and Trowel can improve method outcomes, Notebook records method notes, Camera/Field Guide effects remain in the existing flow.
 - `npm.cmd run build` and `npm.cmd run lint` passed.
 - Remaining risk: short browser/state checks covered the method step; a full Ruined Wall result/reset regression is still recommended before building Map recording.
+
+2026-05-08 update:
+- Added Map the Find to Lost Site Expedition after excavation method choice and before evidence collection.
+- Mapping accuracy now records zone, grid square, and evidence type with accurate or needs review feedback.
+- Measuring Tape and Notebook effects are connected to mapping notes and the result screen now shows Mapping Accuracy.
+- `npm.cmd run build` and `npm.cmd run lint` will be rechecked after this pass.
+- Remaining risk: the new mapping flow still needs a full Ruined Wall browser regression, including result and reset.
