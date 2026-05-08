@@ -25,3 +25,18 @@ Remaining notes:
 - Strengthened field kit effects in Lost Site Expedition.
 - Base Camp now explains collected and missing tool impacts.
 - Excavation now uses Field Guide hints, Notebook notes, Brush, Trowel and Camera bonuses, and the result screen shows Measuring Tape / field kit impact.
+
+2026-05-08 update:
+- Added Field Rescue restart prompts when journey or excavation hazards/monsters reduce resources to zero.
+- Journey rescue offers Restart Journey or Back to Menu.
+- Excavation rescue pauses the map and offers Restart Expedition or Back to Menu.
+
+2026-05-08 update:
+- Stabilised the first Evidence Hunt Mission as "Find Structural Evidence".
+- Mission progress now requires 3 structural evidence items before the Exit Gate unlocks.
+- Added a mission briefing before the journey stage so the mission appears as soon as Expedition starts.
+
+2026-05-08 update:
+- Added a clearer Evidence Satchel Decision panel for full inventory cases.
+- The panel now shows mission details, satchel contents, the pending evidence item, and review/replace/leave choices.
+- Browser verification confirmed the first mission evidence pickup and the new render state fields; the full overflow playthrough still needs a longer end-to-end check.

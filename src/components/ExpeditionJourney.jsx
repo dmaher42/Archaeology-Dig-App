@@ -96,6 +96,8 @@ const makeInitialState = () => ({
   hazardCooldown: 0,
   guardianCooldown: 0,
   timeAccumulator: 0,
+  failed: false,
+  failureReason: '',
   completed: false,
 });
 
@@ -105,10 +107,13 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
   const stateRef = useRef(makeInitialState());
   const lastFrameRef = useRef(0);
   const animationRef = useRef(0);
+  const [briefingOpen, setBriefingOpen] = useState(true);
   const [hud, setHud] = useState(() => ({
     fieldKit: [],
     resources: { stamina: 100, time: 180 },
     notice: INITIAL_JOURNEY_NOTICE,
+    failed: false,
+    failureReason: '',
   }));
 
   const makeSnapshot = useCallback(() => {
@@ -132,9 +137,12 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
         patrolMax: guardian.patrolMax,
       })),
       endGateReached: current.completed,
+      briefingOpen,
+      failed: current.failed,
+      failureReason: current.failureReason,
       notice: current.notice,
     };
-  }, []);
+  }, [briefingOpen]);
 
   const syncHud = useCallback(() => {
     const current = stateRef.current;
@@ -142,9 +150,29 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
       fieldKit: [...current.fieldKit],
       resources: { ...current.resources },
       notice: current.notice,
+      failed: current.failed,
+      failureReason: current.failureReason,
     });
     onSnapshotChange?.(makeSnapshot());
   }, [makeSnapshot, onSnapshotChange]);
+
+  const restartJourney = useCallback(() => {
+    stateRef.current = makeInitialState();
+    keysRef.current = {};
+    setBriefingOpen(true);
+    syncHud();
+  }, [syncHud]);
+
+  const triggerJourneyRescue = useCallback((reason) => {
+    const current = stateRef.current;
+    if (current.failed || current.completed) return;
+    current.failed = true;
+    current.failureReason = reason;
+    current.notice = reason;
+    keysRef.current = {};
+    audioControls?.playError?.();
+    syncHud();
+  }, [audioControls, syncHud]);
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -331,7 +359,7 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
 
   const update = useCallback((dt) => {
     const current = stateRef.current;
-    if (current.completed) return;
+    if (briefingOpen || current.completed || current.failed) return;
 
     const player = current.player;
     const keys = keysRef.current;
@@ -387,6 +415,9 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
       current.resources.stamina = Math.max(0, current.resources.stamina - 8);
       current.notice = 'You slipped off the route and returned to the track. Stamina reduced.';
       audioControls?.playError?.();
+      if (current.resources.stamina <= 0) {
+        triggerJourneyRescue('Field rescue needed: stamina reached zero. Restart the journey and avoid hazards.');
+      }
     }
 
     TOOL_LAYOUT.forEach((toolPosition) => {
@@ -420,6 +451,9 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
         current.notice = hitHazard.message;
         current.hazardCooldown = 1.35;
         audioControls?.playError?.();
+        if (current.resources.stamina <= 0 || current.resources.time <= 0) {
+          triggerJourneyRescue(`Field rescue needed after ${hitHazard.name}. Restart the journey and plan a safer route.`);
+        }
       }
     }
 
@@ -451,6 +485,9 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
         current.notice = guardian.message;
         current.guardianCooldown = 1.6;
         audioControls?.playError?.();
+        if (current.resources.stamina <= 0 || current.resources.time <= 0) {
+          triggerJourneyRescue(`Field rescue needed after the ${guardian.name}. Restart the journey and avoid its patrol.`);
+        }
       }
     });
 
@@ -458,6 +495,9 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
     if (current.timeAccumulator >= 1) {
       current.resources.time = Math.max(0, current.resources.time - Math.floor(current.timeAccumulator));
       current.timeAccumulator %= 1;
+      if (current.resources.time <= 0) {
+        triggerJourneyRescue('Field rescue needed: time ran out before reaching Base Camp. Restart the journey.');
+      }
     }
 
     if (rectsOverlap(player, GATE)) {
@@ -467,7 +507,7 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
       syncHud();
       onComplete?.([...current.fieldKit]);
     }
-  }, [audioControls, onComplete, syncHud]);
+  }, [audioControls, briefingOpen, onComplete, syncHud, triggerJourneyRescue]);
 
   const step = useCallback((ms) => {
     const dt = Math.min(ms / 1000, 0.05);
@@ -481,6 +521,7 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
       if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'Space'].includes(event.code)) {
         event.preventDefault();
       }
+      if (briefingOpen) return;
       keysRef.current[event.code] = true;
     };
     const handleKeyUp = (event) => {
@@ -508,7 +549,7 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
         delete window.__advanceExpeditionJourney;
       }
     };
-  }, [step]);
+  }, [briefingOpen, step]);
 
   const collectedToolNames = hud.fieldKit
     .map((id) => JOURNEY_TOOLS.find((tool) => tool.id === id)?.name)
@@ -620,6 +661,55 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
           </aside>
         </div>
       </div>
+
+      {hud.failed && (
+        <div className="bureau-briefing-overlay">
+          <div className="bureau-briefing-modal expedition-rescue-modal">
+            <div className="training-kicker">Field Rescue</div>
+            <h2>Restart Needed</h2>
+            <p>{hud.failureReason}</p>
+            <p>
+              Hazards and monsters can drain your field resources. Try again, watch the patrols,
+              and collect tools before entering the dig site.
+            </p>
+            <div className="bureau-briefing-actions">
+              <button type="button" className="btn primary-btn" onClick={restartJourney}>
+                Restart Journey
+              </button>
+              <button type="button" className="btn" onClick={onBackToMenu}>
+                Back to Menu
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {briefingOpen && (
+        <div className="bureau-briefing-overlay expedition-briefing-overlay">
+          <div className="bureau-briefing-modal expedition-mission-briefing-modal">
+            <div className="expedition-briefing-stamp">Top Secret</div>
+            <h2>{mission?.title || 'Evidence Hunt Mission'}</h2>
+            <p>
+              The Bureau has assigned an inquiry before you reach the excavation site.
+              Collect field tools on the journey, then use evidence carefully at the dig.
+            </p>
+            <div className="expedition-mission-card expedition-briefing-mission">
+              <strong>Mission Brief</strong>
+              {mission?.inquiryQuestion && (
+                <p><strong>Inquiry question:</strong> {mission.inquiryQuestion}</p>
+              )}
+              <p><strong>Evidence type:</strong> {mission?.targetCategoryTitle || 'Mission evidence'}</p>
+              <p><strong>Needed:</strong> {mission?.requiredTargetCount || 3} correct evidence items</p>
+              <p>{mission?.instruction || 'Prepare for the excavation mission.'}</p>
+            </div>
+            <div className="bureau-briefing-actions">
+              <button type="button" className="btn primary-btn expedition-begin-btn" onClick={() => setBriefingOpen(false)}>
+                Begin Journey
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
