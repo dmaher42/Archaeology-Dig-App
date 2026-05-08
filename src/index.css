@@ -9205,6 +9205,60 @@ main {
   line-height: 1.35;
 }
 
+.expedition-satchel-decision {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.expedition-satchel-decision-note,
+.expedition-mission-review-note {
+  margin: 0;
+  padding: 0.7rem 0.8rem;
+  border-left: 4px solid rgba(146, 64, 14, 0.38);
+  background: rgba(255, 244, 220, 0.72);
+  color: var(--bureau-ink);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.expedition-satchel-decision-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.expedition-satchel-column {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.expedition-satchel-column h3 {
+  margin: 0;
+  color: var(--bureau-ink);
+  font-size: 0.92rem;
+}
+
+.expedition-satchel-summary-card {
+  width: 100%;
+}
+
+.expedition-mission-review {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.expedition-replacement-action {
+  color: var(--bureau-ink-muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+.expedition-evidence-item.is-mission {
+  border-color: rgba(45, 90, 39, 0.35);
+  background: rgba(45, 90, 39, 0.06);
+}
+
 .expedition-hazard-list {
   display: grid;
   gap: 0.3rem;
@@ -9444,6 +9498,18 @@ main {
 
 .expedition-result-modal {
   max-width: 920px;
+}
+
+.expedition-rescue-modal {
+  max-width: 560px;
+}
+
+.expedition-rescue-modal h2 {
+  color: #7c2d12;
+}
+
+.expedition-rescue-modal p {
+  text-align: left;
 }
 
 .expedition-result-header {
@@ -10083,6 +10149,125 @@ main {
   justify-content: center;
   gap: 0.75rem;
   flex-wrap: wrap;
+}
+
+.stack-actions {
+  flex-direction: column;
+}
+
+.stack-actions .btn {
+  width: 100%;
+}
+
+.outline-btn {
+  background: transparent;
+  border: 1px solid var(--bureau-gold);
+  color: var(--bureau-ink);
+}
+
+.outline-btn:hover {
+  background: rgba(139, 106, 72, 0.1);
+}
+
+.expedition-satchel-mission-banner {
+  background: rgba(232, 158, 93, 0.12);
+  border: 1px solid rgba(232, 158, 93, 0.3);
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.expedition-satchel-mission-banner .training-kicker {
+  text-align: left;
+  margin-bottom: 0.25rem;
+}
+
+.expedition-satchel-mission-banner strong {
+  display: block;
+  font-size: 1.1rem;
+  color: var(--bureau-ink);
+  margin-bottom: 0.5rem;
+}
+
+.expedition-satchel-mission-banner .inquiry {
+  font-size: 0.9rem;
+  color: #92400e;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+}
+
+.expedition-satchel-mission-banner .expedition-mission-progress {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--bureau-ink);
+}
+
+.expedition-satchel-decision-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.expedition-satchel-column h3 {
+  font-family: 'Cinzel', serif;
+  font-size: 1.05rem;
+  margin: 0 0 0.75rem 0;
+  color: var(--bureau-ink);
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--bureau-gold-light);
+  padding-bottom: 0.4rem;
+}
+
+.item-label {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+
+.item-label.mission {
+  background: rgba(45, 90, 39, 0.15);
+  color: #2d5a27;
+  border: 1px solid rgba(45, 90, 39, 0.3);
+}
+
+.item-label.general {
+  background: rgba(139, 106, 72, 0.15);
+  color: var(--bureau-ink);
+  border: 1px solid rgba(139, 106, 72, 0.3);
+}
+
+.new-evidence-card {
+  background: #fff;
+  border: 2px solid var(--bureau-gold);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.new-evidence-advice {
+  margin-top: 0.75rem;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.new-evidence-advice.positive {
+  background: rgba(45, 90, 39, 0.1);
+  color: #2d5a27;
+}
+
+.new-evidence-advice.negative {
+  background: rgba(185, 28, 28, 0.1);
+  color: #7f1d1d;
+}
+
+.expedition-satchel-decision-note strong {
+  color: #7f1d1d;
 }
 
 .expedition-replacement-picker {
