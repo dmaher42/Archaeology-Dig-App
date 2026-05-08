@@ -9592,8 +9592,54 @@ main {
   line-height: 1.35;
 }
 
+.expedition-excavation-method-panel {
+  display: grid;
+  gap: 0.7rem;
+  margin: 1rem 0;
+}
+
+.expedition-excavation-method-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.expedition-excavation-method-card {
+  display: grid;
+  gap: 0.38rem;
+  padding: 0.78rem;
+  border: 1px solid rgba(139, 106, 72, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 250, 240, 0.72);
+  text-align: left;
+}
+
+.expedition-excavation-method-card strong {
+  color: var(--bureau-ink);
+  font-size: 0.9rem;
+}
+
+.expedition-excavation-method-card span,
+.expedition-excavation-method-card p {
+  margin: 0;
+  color: var(--bureau-ink-muted);
+  font-size: 0.8rem;
+  line-height: 1.34;
+}
+
+.expedition-excavation-method-card .btn {
+  margin-top: 0.1rem;
+}
+
+.expedition-method-kit-note,
+.expedition-quality-feedback {
+  color: #2d5a27 !important;
+  font-weight: 700;
+}
+
 @media (max-width: 760px) {
-  .expedition-grid-square-list {
+  .expedition-grid-square-list,
+  .expedition-excavation-method-grid {
     grid-template-columns: 1fr;
   }
 }

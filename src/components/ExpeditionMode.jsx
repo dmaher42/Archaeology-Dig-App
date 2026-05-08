@@ -263,6 +263,36 @@ const GRID_ZONE_CONFIGS = {
     },
   ],
 };
+const EXCAVATION_METHODS = [
+  {
+    id: 'brush',
+    name: 'Brush Carefully',
+    bestFor: 'Safest method. Best when evidence may be fragile.',
+    cost: { investigation: -2, time: -10 },
+    baseQuality: 'good',
+    kitTool: 'brush',
+    feedback: 'Careful recovery protected the evidence.',
+  },
+  {
+    id: 'trowel',
+    name: 'Use Trowel',
+    bestFor: 'Balanced method. Best for structures and objects.',
+    cost: { investigation: -3, time: -6 },
+    baseQuality: 'good',
+    kitTool: 'trowel',
+    feedback: 'Trowel used. The evidence was removed cleanly.',
+  },
+  {
+    id: 'quick-dig',
+    name: 'Quick Dig',
+    bestFor: 'Fastest method, but it can damage context.',
+    cost: { investigation: -1, time: -2 },
+    baseQuality: 'good',
+    kitTool: null,
+    feedback: 'Quick dig saved time, but this was risky.',
+  },
+];
+const EXCAVATION_METHOD_BY_ID = Object.fromEntries(EXCAVATION_METHODS.map(method => [method.id, method]));
 
 const WALLS = [
   { x: 322, y: 238, w: 178, h: 34, label: 'low ruined wall' },
@@ -428,6 +458,52 @@ const evidenceMatchesMission = (token, mission) => (
   token?.missionType === mission?.targetEvidenceType
 );
 
+const quickDigDamagesEvidence = (token, mission) => (
+  evidenceMatchesMission(token, mission)
+);
+
+const getExcavationOutcome = (methodId, token, fieldKitEffects, mission) => {
+  const method = EXCAVATION_METHOD_BY_ID[methodId];
+  if (!method || !token) return null;
+
+  if (method.id === 'brush') {
+    const excellent = fieldKitEffects.brushReady || ['written_record', 'human_remains'].includes(token.missionType);
+    return {
+      quality: excellent ? 'excellent' : method.baseQuality,
+      damaged: false,
+      bonus: fieldKitEffects.brushReady ? 2 : 0,
+      feedback: `${method.feedback} Careful excavation protects fragile evidence and keeps it useful for historians.`,
+      kitFeedback: fieldKitEffects.brushReady ? 'Brush from field kit used: recovery quality improved.' : '',
+    };
+  }
+
+  if (method.id === 'trowel') {
+    const suitedEvidence = ['structure', 'material_culture'].includes(token.missionType);
+    return {
+      quality: fieldKitEffects.trowelReady && suitedEvidence ? 'excellent' : method.baseQuality,
+      damaged: false,
+      bonus: fieldKitEffects.trowelReady && suitedEvidence ? 2 : 0,
+      feedback: method.feedback,
+      kitFeedback: fieldKitEffects.trowelReady && suitedEvidence ? 'Trowel from field kit used: structural or object evidence was excavated cleanly.' : '',
+    };
+  }
+
+  if (method.id === 'quick-dig') {
+    const damaged = quickDigDamagesEvidence(token, mission);
+    return {
+      quality: damaged ? 'damaged' : 'good',
+      damaged,
+      bonus: 0,
+      feedback: damaged
+        ? 'The evidence was partly damaged because the excavation was rushed.'
+        : method.feedback,
+      kitFeedback: '',
+    };
+  }
+
+  return null;
+};
+
 const getEvidenceMissionLabel = (token, mission) => (
   evidenceMatchesMission(token, mission) ? 'Mission evidence' : 'General discovery'
 );
@@ -585,6 +661,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
   const [inspectionToken, setInspectionToken] = useState(null);
   const [inspectionStep, setInspectionStep] = useState('review');
   const [inspectionFeedback, setInspectionFeedback] = useState(null);
+  const [selectedExcavationMethod, setSelectedExcavationMethod] = useState(null);
+  const [excavationMethodHistory, setExcavationMethodHistory] = useState([]);
   const [missionEvidenceCount, setMissionEvidenceCount] = useState(0);
   const [claimOpen, setClaimOpen] = useState(false);
   const [selectedCivilisation, setSelectedCivilisation] = useState('');
@@ -641,7 +719,18 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       missionLabel: getEvidenceMissionLabel(inspectionToken, activeMission),
     } : null
   ), [activeMission, inspectionToken]);
+  const excavationMethodOpen = Boolean(inspectionToken && inspectionStep === 'excavate');
+  const excavationMethodRequired = Boolean(inspectionToken && !inspectionToken.excavationMethod);
   const inventoryFullDecisionOpen = Boolean(inspectionToken && ['capacity', 'replace', 'mission'].includes(inspectionStep));
+  const evidenceQualitySummary = useMemo(() => (
+    collectedEvidence.reduce((summary, item) => {
+      const quality = item.evidenceQuality || 'good';
+      return {
+        ...summary,
+        [quality]: (summary[quality] || 0) + 1,
+      };
+    }, { excellent: 0, good: 0, damaged: 0 })
+  ), [collectedEvidence]);
   const missingTools = useMemo(() => (
     JOURNEY_TOOLS.filter(tool => !fieldKitSet.has(tool.id))
   ), [fieldKitSet]);
@@ -672,6 +761,11 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       (fieldKitEffects.brushReady && collectedEvidence.some(item => item.isMissionEvidence) ? 2 : 0);
     return Math.min(10, bonus);
   }, [claimResult, collectedEvidence, fieldKitEffects, fieldNotes.length]);
+  const evidenceQualityBonus = useMemo(() => {
+    if (!claimResult) return 0;
+    const bonus = (evidenceQualitySummary.excellent * 2) - (evidenceQualitySummary.damaged * 2);
+    return clamp(bonus, -6, 6);
+  }, [claimResult, evidenceQualitySummary]);
   const claimCorrect = claimResult ? selectedCivilisation === TARGET_CIVILISATION : false;
   const evidenceSupportsClaim = claimResult ? selectedEvidence?.supports === TARGET_CIVILISATION : false;
   const missionComplete = missionEvidenceCount >= missionRequiredCount;
@@ -689,11 +783,12 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       investigationScore +
       staminaScore +
       timeScore +
-      fieldKitBonus,
+      fieldKitBonus +
+      evidenceQualityBonus,
       0,
       100
     );
-  }, [claimCorrect, claimResult, evidenceSupportsClaim, fieldKit.length, fieldKitBonus, missionComplete, resources]);
+  }, [claimCorrect, claimResult, evidenceQualityBonus, evidenceSupportsClaim, fieldKit.length, fieldKitBonus, missionComplete, resources]);
   const finalRank = finalScore === null ? null : getRankTitle(finalScore);
   const resultFeedback = finalScore === null ? '' : getRankFeedback(finalScore);
   const syncInventory = useCallback((items) => {
@@ -709,6 +804,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     setInspectionToken(null);
     setInspectionStep('review');
     setInspectionFeedback(null);
+    setSelectedExcavationMethod(null);
     setSurveyReportZone(null);
     setGridSetupOpen(false);
     setClaimOpen(false);
@@ -772,6 +868,26 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
               category: 'Grid square',
               clue: square.clue,
               note: `${zoneName} grid ${square.id} was opened and recorded before excavation. ${square.possibleEvidenceHint}`,
+            },
+          ]
+    ));
+  }, []);
+
+  const recordExcavationMethodNote = useCallback((token, method, outcome) => {
+    if (!token || !method || !outcome) return;
+    setFieldNotes(previous => (
+      previous.some(note => note.id === `${token.id}-excavation-method`)
+        ? previous
+        : [
+            ...previous,
+            {
+              id: `${token.id}-excavation-method`,
+              evidenceId: token.id,
+              reason: 'excavation-method',
+              name: token.name,
+              category: token.category,
+              clue: token.clue,
+              note: `${method.name} was used on ${token.name}. Evidence quality: ${outcome.quality}.`,
             },
           ]
     ));
@@ -848,10 +964,68 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     if (briefingOpen || !surveyComplete || !gridComplete || !token || token.collected || lockedRef.current) return;
     if (!evidenceVisibleForGrid(token, selectedSurveyZone, openedGridSquares)) return;
     setInspectionToken(token);
-    setInspectionStep('review');
+    setInspectionStep(token.excavationMethod ? 'review' : 'excavate');
     setInspectionFeedback(null);
-    setNotice(`Inspecting ${token.name}. Decide whether it matches your mission.`);
+    setSelectedExcavationMethod(token.excavationMethod || null);
+    setNotice(`Inspecting ${token.name}. Choose an excavation method before deciding if it matches the mission.`);
   }, [briefingOpen, gridComplete, openedGridSquares, selectedSurveyZone, surveyComplete]);
+
+  const chooseExcavationMethod = useCallback((methodId) => {
+    if (!inspectionToken || inspectionToken.collected) return;
+    const method = EXCAVATION_METHOD_BY_ID[methodId];
+    const outcome = getExcavationOutcome(methodId, inspectionToken, fieldKitEffects, activeMission);
+    if (!method || !outcome) return;
+
+    syncResources(method.cost);
+    if (outcome.bonus > 0) {
+      syncResources({ investigation: outcome.bonus });
+    }
+
+    const updatedToken = {
+      ...inspectionToken,
+      excavationMethod: method.id,
+      excavationMethodName: method.name,
+      evidenceQuality: outcome.quality,
+      excavationDamaged: outcome.damaged,
+      excavationFeedback: outcome.feedback,
+    };
+    tokensRef.current = tokensRef.current.map(token => (
+      token.id === inspectionToken.id ? updatedToken : token
+    ));
+    nearbyTokenRef.current = nearbyTokenRef.current?.id === inspectionToken.id
+      ? updatedToken
+      : nearbyTokenRef.current;
+    setNearbyToken(previous => previous?.id === inspectionToken.id ? updatedToken : previous);
+    setInspectionToken(updatedToken);
+
+    const historyItem = {
+      evidenceId: inspectionToken.id,
+      evidenceName: updatedToken.name,
+      methodId: method.id,
+      methodName: method.name,
+      quality: outcome.quality,
+      damaged: outcome.damaged,
+      cost: method.cost,
+      bonus: outcome.bonus,
+      feedback: outcome.feedback,
+      kitFeedback: outcome.kitFeedback,
+    };
+    setExcavationMethodHistory(previous => (
+      previous.some(item => item.evidenceId === inspectionToken.id)
+        ? previous.map(item => item.evidenceId === inspectionToken.id ? historyItem : item)
+        : [...previous, historyItem]
+    ));
+
+    if (fieldKitEffects.notebookReady) {
+      recordExcavationMethodNote(updatedToken, method, outcome);
+    }
+
+    setSelectedExcavationMethod(historyItem);
+    setInspectionStep('review');
+    const bonusText = outcome.bonus > 0 ? ` Field kit bonus: +${outcome.bonus} investigation.` : '';
+    const kitText = outcome.kitFeedback ? ` ${outcome.kitFeedback}` : '';
+    setNotice(`${method.name} used. Evidence quality: ${outcome.quality}.${bonusText}${kitText}`);
+  }, [activeMission, fieldKitEffects, inspectionToken, recordExcavationMethodNote, syncResources]);
 
   const beginExpedition = () => {
     keysRef.current = {};
@@ -883,6 +1057,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     setGridSetupOpen(false);
     setSelectedGridSquare(null);
     setOpenedGridSquares(new Set());
+    setSelectedExcavationMethod(null);
+    setExcavationMethodHistory([]);
     nearbySurveyZoneRef.current = null;
     setNotice('Survey the site first. Choose a promising dig zone before inspecting evidence.');
   };
@@ -891,6 +1067,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     setInspectionToken(null);
     setInspectionStep('review');
     setInspectionFeedback(null);
+    setSelectedExcavationMethod(null);
   };
 
   const rejectInspectedEvidence = (token) => {
@@ -902,6 +1079,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     setInspectionToken(null);
     setInspectionStep('review');
     setInspectionFeedback(null);
+    setSelectedExcavationMethod(null);
     setNotice(activeMission.keepSearchingNotice);
   };
 
@@ -921,6 +1099,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     dismissedTokenRef.current = null;
     token.collected = true;
     token.isMissionEvidence = isMissionEvidence;
+    token.evidenceQuality = token.evidenceQuality || 'good';
     nextInventory.push(token);
     syncInventory(nextInventory);
     nearbyTokenRef.current = null;
@@ -941,7 +1120,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       setInspectionFeedback({
         correct: true,
         stamp: 'EVIDENCE VERIFIED',
-        text: `${activeMission.matchFeedback}${toolFeedback ? ` ${toolFeedback}` : ''}`,
+        text: `${activeMission.matchFeedback} Excavation method: ${token.excavationMethodName}. Evidence quality: ${token.evidenceQuality}.${toolFeedback ? ` ${toolFeedback}` : ''}`,
       });
       setNotice(`${token.name} added to your evidence satchel. +${investigationBonus} investigation points.`);
       if (missionEvidenceCount + 1 >= missionRequiredCount) {
@@ -964,7 +1143,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       setInspectionFeedback({
         correct: false,
         stamp: 'EVIDENCE COLLECTED',
-        text: `${activeMission.mismatchFeedback}${toolFeedback ? ` ${toolFeedback}` : ''}`,
+        text: `${activeMission.mismatchFeedback} Excavation method: ${token.excavationMethodName}. Evidence quality: ${token.evidenceQuality}.${toolFeedback ? ` ${toolFeedback}` : ''}`,
       });
       setNotice(`${token.name} added to your evidence satchel.`);
       audioControls.playError?.();
@@ -977,6 +1156,11 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
 
   const inspectMissionChoice = (matchesMission) => {
     if (!inspectionToken || inspectionToken.collected) return;
+    if (!inspectionToken.excavationMethod) {
+      setInspectionStep('excavate');
+      setNotice('Choose an excavation method before deciding whether to collect this evidence.');
+      return;
+    }
 
     if (!matchesMission) {
       rejectInspectedEvidence(inspectionToken);
@@ -1370,6 +1554,16 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       nearbySurveyZone: nearbySurveyZone ? nearbySurveyZone.name : null,
       surveyedZones: [...surveyedZones].map(getSurveyZoneName),
       surveyReportOpen: Boolean(surveyReportZone),
+      excavationMethodRequired,
+      selectedExcavationMethod,
+      excavationMethodOpen,
+      pendingExcavationEvidence: excavationMethodOpen && inspectionToken ? {
+        id: inspectionToken.id,
+        name: inspectionToken.name,
+        missionType: inspectionToken.missionType,
+        category: inspectionToken.category,
+      } : null,
+      excavationMethodHistory,
       visibleEvidence: getVisibleEvidence().map(item => ({ id: item.id, name: item.name, zone: item.zone, missionType: item.missionType })),
       hiddenEvidence: getHiddenEvidence().map(item => ({ id: item.id, name: item.name, zone: item.zone, missionType: item.missionType })),
       resultOpen,
@@ -1390,6 +1584,9 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         missionType: pendingEvidence.missionType,
         missionLabel: pendingEvidence.missionLabel,
         matchesMission: pendingEvidence.matchesMission,
+        evidenceQuality: pendingEvidence.evidenceQuality || null,
+        excavationMethod: pendingEvidence.excavationMethod || null,
+        excavationMethodName: pendingEvidence.excavationMethodName || null,
         clue: pendingEvidence.clue,
         zone: pendingEvidence.zone,
       } : null,
@@ -1400,6 +1597,9 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         missionType: item.missionType,
         missionLabel: item.missionLabel,
         matchesMission: item.matchesMission,
+        evidenceQuality: item.evidenceQuality || null,
+        excavationMethod: item.excavationMethod || null,
+        excavationMethodName: item.excavationMethodName || null,
         clue: item.clue,
         zone: item.zone,
       })),
@@ -1411,6 +1611,9 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         missionCategoryId: item.missionType,
         missionType: item.missionType,
         isMissionEvidence: item.isMissionEvidence,
+        evidenceQuality: item.evidenceQuality || null,
+        excavationMethod: item.excavationMethod || null,
+        excavationMethodName: item.excavationMethodName || null,
         supports: item.supports,
       })),
       remainingEvidence: tokensRef.current.filter(item => !item.collected).map(item => ({
@@ -1432,7 +1635,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       delete window.advanceTime;
       delete window.render_game_to_text;
     };
-  }, [activeMission, baseCampOpen, claimCorrect, evidenceSupportsClaim, expeditionFailure, expeditionStage, exitUnlocked, fieldKit, fieldKitBonus, fieldKitEffects, fieldKitImpact, finalRank, finalScore, getHiddenEvidence, getVisibleEvidence, gridSetupOpen, gridSquares, inspectionFeedback, inspectionToken, inventoryFullDecisionOpen, missionComplete, missionEvidenceCount, missionRequiredCount, nearbySurveyZone, openedGridSquares, pendingEvidence, resultOpen, satchelContents, selectedGridSquare, selectedSurveyZone, surveyComplete, surveyedZones, surveyReportZone]);
+  }, [activeMission, baseCampOpen, claimCorrect, evidenceSupportsClaim, excavationMethodHistory, excavationMethodOpen, excavationMethodRequired, expeditionFailure, expeditionStage, exitUnlocked, fieldKit, fieldKitBonus, fieldKitEffects, fieldKitImpact, finalRank, finalScore, getHiddenEvidence, getVisibleEvidence, gridSetupOpen, gridSquares, inspectionFeedback, inspectionToken, inventoryFullDecisionOpen, missionComplete, missionEvidenceCount, missionRequiredCount, nearbySurveyZone, openedGridSquares, pendingEvidence, resultOpen, satchelContents, selectedExcavationMethod, selectedGridSquare, selectedSurveyZone, surveyComplete, surveyedZones, surveyReportZone]);
 
   useEffect(() => {
     if (expeditionStage !== 'excavation') return undefined;
@@ -1495,6 +1698,9 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         missionCategoryId: item.missionType,
         missionType: item.missionType,
         isMissionEvidence: item.isMissionEvidence,
+        evidenceQuality: item.evidenceQuality || null,
+        excavationMethod: item.excavationMethod || null,
+        excavationMethodName: item.excavationMethodName || null,
         clueGroup: item.clueGroup,
         supports: item.supports,
       })),
@@ -1546,6 +1752,16 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       surveyedZones: [...surveyedZones].map(getSurveyZoneName),
       surveyReportOpen: Boolean(surveyReportZone),
       surveyReport: surveyReportZone,
+      excavationMethodRequired,
+      selectedExcavationMethod,
+      excavationMethodOpen,
+      pendingExcavationEvidence: excavationMethodOpen && inspectionToken ? {
+        id: inspectionToken.id,
+        name: inspectionToken.name,
+        missionType: inspectionToken.missionType,
+        category: inspectionToken.category,
+      } : null,
+      excavationMethodHistory,
       visibleEvidence: getVisibleEvidence().map(item => ({
         id: item.id,
         name: item.name,
@@ -1583,6 +1799,9 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         missionType: pendingEvidence.missionType,
         missionLabel: pendingEvidence.missionLabel,
         matchesMission: pendingEvidence.matchesMission,
+        evidenceQuality: pendingEvidence.evidenceQuality || null,
+        excavationMethod: pendingEvidence.excavationMethod || null,
+        excavationMethodName: pendingEvidence.excavationMethodName || null,
         clue: pendingEvidence.clue,
         zone: pendingEvidence.zone,
       } : null,
@@ -1593,6 +1812,9 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         missionType: item.missionType,
         missionLabel: item.missionLabel,
         matchesMission: item.matchesMission,
+        evidenceQuality: item.evidenceQuality || null,
+        excavationMethod: item.excavationMethod || null,
+        excavationMethodName: item.excavationMethodName || null,
         clue: item.clue,
         zone: item.zone,
       })),
@@ -1614,7 +1836,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       delete window.advanceTime;
       delete window.render_game_to_text;
     };
-  }, [activeMission, briefingOpen, claimCorrect, draw, evidenceSupportsClaim, expeditionFailure, expeditionStage, exitUnlocked, fieldKit, fieldKitBonus, fieldKitEffects, fieldKitImpact, fieldNotes, finalRank, finalScore, getHiddenEvidence, getVisibleEvidence, gridSetupOpen, gridSquares, inspectionFeedback, inspectionToken, inventoryFullDecisionOpen, missionComplete, missionEvidenceCount, missionRequiredCount, nearbySurveyZone, openGridSetup, openInspection, openSurveyReport, openedGridSquares, pendingEvidence, resultOpen, satchelContents, selectedGridSquare, selectedSurveyZone, surveyComplete, surveyedZones, surveyReportZone, update]);
+  }, [activeMission, briefingOpen, claimCorrect, draw, evidenceSupportsClaim, excavationMethodHistory, excavationMethodOpen, excavationMethodRequired, expeditionFailure, expeditionStage, exitUnlocked, fieldKit, fieldKitBonus, fieldKitEffects, fieldKitImpact, fieldNotes, finalRank, finalScore, getHiddenEvidence, getVisibleEvidence, gridSetupOpen, gridSquares, inspectionFeedback, inspectionToken, inventoryFullDecisionOpen, missionComplete, missionEvidenceCount, missionRequiredCount, nearbySurveyZone, openGridSetup, openInspection, openSurveyReport, openedGridSquares, pendingEvidence, resultOpen, satchelContents, selectedExcavationMethod, selectedGridSquare, selectedSurveyZone, surveyComplete, surveyedZones, surveyReportZone, update]);
 
   const resetExpedition = () => {
     const nextMission = chooseEvidenceHuntMission(activeMission.id);
@@ -1653,6 +1875,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     setInspectionToken(null);
     setInspectionStep('review');
     setInspectionFeedback(null);
+    setSelectedExcavationMethod(null);
+    setExcavationMethodHistory([]);
     setMissionEvidenceCount(0);
     setClaimOpen(false);
     setSelectedCivilisation('');
@@ -1937,6 +2161,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
                   <article key={item.id} className="expedition-evidence-item">
                     <strong>{item.name}</strong>
                     <span>{item.category} | {item.zone}</span>
+                    {item.evidenceQuality && <span>Quality: {item.evidenceQuality}</span>}
                     <span className="expedition-evidence-clue-group">{item.clueGroup}</span>
                     <p>{item.clue}</p>
                   </article>
@@ -2132,10 +2357,50 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
             {fieldKitEffects.notebookReady && !inspectionFeedback && (
               <div className="expedition-tool-effect-hint">
                 <strong>Notebook Ready</strong>
-                <span>Choosing "Not mission evidence" records a field note without filling your evidence satchel.</span>
+                <span>Excavation method choices and rejected evidence are recorded as field notes.</span>
               </div>
             )}
-            <div className="expedition-inspection-question">Does this evidence match your mission?</div>
+
+            {!inspectionFeedback && inspectionStep === 'excavate' && (
+              <div className="expedition-excavation-method-panel">
+                <div className="expedition-inspection-question">Choose an excavation method before collecting evidence.</div>
+                <p className="expedition-survey-process-note">
+                  Archaeologists excavate carefully so the evidence and its location stay useful.
+                </p>
+                <div className="expedition-excavation-method-grid">
+                  {EXCAVATION_METHODS.map(method => {
+                    const outcome = getExcavationOutcome(method.id, inspectionToken, fieldKitEffects, activeMission);
+                    const costText = `${method.cost.investigation} investigation, ${method.cost.time} seconds`;
+                    return (
+                      <article key={method.id} className="expedition-excavation-method-card">
+                        <strong>{method.name}</strong>
+                        <span>{method.bestFor}</span>
+                        <p>Cost: {costText}</p>
+                        <p>Likely quality: {outcome?.quality || method.baseQuality}</p>
+                        {outcome?.kitFeedback && <p className="expedition-method-kit-note">{outcome.kitFeedback}</p>}
+                        <button type="button" className="btn primary-btn" onClick={() => chooseExcavationMethod(method.id)}>
+                          Choose Method
+                        </button>
+                      </article>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {selectedExcavationMethod && !inspectionFeedback && inspectionStep !== 'excavate' && (
+              <div className="expedition-tool-effect-hint match">
+                <strong>{selectedExcavationMethod.methodName} used</strong>
+                <span>
+                  Evidence quality: {selectedExcavationMethod.quality}. {selectedExcavationMethod.feedback}
+                  {selectedExcavationMethod.kitFeedback ? ` ${selectedExcavationMethod.kitFeedback}` : ''}
+                </span>
+              </div>
+            )}
+
+            {inspectionStep !== 'excavate' && (
+              <div className="expedition-inspection-question">Does this evidence match your mission?</div>
+            )}
 
             {!inspectionFeedback && inspectionStep === 'review' && (
               <div className="expedition-inspection-actions">
@@ -2182,6 +2447,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
                           </div>
                           <strong>{item.name}</strong>
                           <span>{item.category} | {item.zone}</span>
+                          {item.evidenceQuality && <span>Quality: {item.evidenceQuality}</span>}
                           <p>{item.clue}</p>
                         </article>
                       ))}
@@ -2196,6 +2462,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
                       </div>
                       <strong>{pendingEvidence.name}</strong>
                       <span>{pendingEvidence.category} | {pendingEvidence.zone}</span>
+                      {pendingEvidence.evidenceQuality && <span>Quality: {pendingEvidence.evidenceQuality}</span>}
                       <p>{pendingEvidence.clue}</p>
                       <div className={`new-evidence-advice ${pendingEvidence.matchesMission ? 'positive' : 'negative'}`}>
                         {pendingEvidence.matchesMission 
@@ -2262,6 +2529,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
                     >
                       <strong>{item.name}</strong>
                       <span>{item.category} | {item.zone}</span>
+                      {item.evidenceQuality && <span>Quality: {item.evidenceQuality}</span>}
                       <span className="expedition-evidence-clue-group">{item.missionLabel}</span>
                       <span className="expedition-replacement-action">Replace {item.name}</span>
                     </button>
@@ -2418,6 +2686,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
                   <span>Evidence: <strong>{collectedEvidence.length}/{MAX_EVIDENCE_ITEMS}</strong></span>
                   <span>Field notes: <strong>{fieldNotes.length}</strong></span>
                   <span>Tool bonus: <strong>+{fieldKitBonus}</strong></span>
+                  <span>Quality impact: <strong>{evidenceQualityBonus >= 0 ? `+${evidenceQualityBonus}` : evidenceQualityBonus}</strong></span>
                 </div>
                 <div className="expedition-result-lists">
                   <div>
@@ -2430,13 +2699,27 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
                   </div>
                   <div>
                     <strong>Evidence collected</strong>
-                    <p>{collectedEvidence.length > 0 ? collectedEvidence.map(item => item.name).join(', ') : 'No evidence collected'}</p>
+                    <p>{collectedEvidence.length > 0 ? collectedEvidence.map(item => `${item.name} (${item.evidenceQuality || 'good'})`).join(', ') : 'No evidence collected'}</p>
                   </div>
                   <div>
                     <strong>Field notes recorded</strong>
                     <p>{fieldNotes.length > 0 ? fieldNotes.map(note => note.name).join(', ') : 'No field notes recorded'}</p>
                   </div>
                 </div>
+              </section>
+
+              <section className="expedition-result-card expedition-result-card-wide">
+                <h3>Evidence Quality</h3>
+                <div className="expedition-result-stats">
+                  <span>Excellent: <strong>{evidenceQualitySummary.excellent}</strong></span>
+                  <span>Good: <strong>{evidenceQualitySummary.good}</strong></span>
+                  <span>Damaged: <strong>{evidenceQualitySummary.damaged}</strong></span>
+                </div>
+                <p className="expedition-quality-feedback">
+                  {evidenceQualitySummary.damaged > 0
+                    ? 'Some evidence was damaged by rushed excavation. It can still support a claim, but careful excavation is more reliable.'
+                    : 'Careful excavation improved the reliability of your evidence.'}
+                </p>
               </section>
 
               <section className="expedition-result-card expedition-result-card-wide">

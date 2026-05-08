@@ -40,3 +40,19 @@ Remaining notes:
 - Added a clearer Evidence Satchel Decision panel for full inventory cases.
 - The panel now shows mission details, satchel contents, the pending evidence item, and review/replace/leave choices.
 - Browser verification confirmed the first mission evidence pickup and the new render state fields; the full overflow playthrough still needs a longer end-to-end check.
+
+2026-05-08 update:
+- Added and regression-tested Survey Before Digging in Lost Site Expedition.
+- Evidence now starts hidden until a survey zone is marked.
+- Survey zones were added for Riverbank, Burial Area, Archive Corner, Market Area, and Ruined Wall.
+- Ruined Wall reveals the 3 structural mission items needed for the current Find Structural Evidence mission.
+- Full Ruined Wall playthrough passed from Journey through Run Result, Play Again reset, and Back to Menu.
+- `npm.cmd run build`, `npm.cmd run lint`, and `git diff --check` passed.
+- Remaining risk: this pass covered one automated browser viewport; a quick classroom-device spot check is still useful before the next lesson.
+
+2026-05-08 update:
+- Added Excavation Method Choices to Lost Site Expedition after evidence is revealed by survey/grid.
+- Evidence quality was added: excellent, good, or damaged.
+- Field kit effects were connected: Brush and Trowel can improve method outcomes, Notebook records method notes, Camera/Field Guide effects remain in the existing flow.
+- `npm.cmd run build` and `npm.cmd run lint` passed.
+- Remaining risk: short browser/state checks covered the method step; a full Ruined Wall result/reset regression is still recommended before building Map recording.
