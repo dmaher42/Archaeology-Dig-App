@@ -775,6 +775,18 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     const needsReview = mapped.length - accurate;
     return { mapped: mapped.length, accurate, needsReview };
   }, [collectedEvidence]);
+  const mappedFindsSummary = useMemo(() => (
+    collectedEvidence
+      .filter(item => item.mappedEvidenceType)
+      .map(item => ({
+        id: item.id,
+        name: item.name,
+        mappedZone: item.mappedZone || getSurveyZoneName(selectedSurveyZone),
+        mappedGridSquare: item.mappedGridSquare || selectedGridSquare,
+        mappedEvidenceType: item.mappedEvidenceType,
+        mappingAccurate: item.mappingAccurate ?? true,
+      }))
+  ), [collectedEvidence, selectedGridSquare, selectedSurveyZone]);
   const missingTools = useMemo(() => (
     JOURNEY_TOOLS.filter(tool => !fieldKitSet.has(tool.id))
   ), [fieldKitSet]);
@@ -855,6 +867,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     setInspectionStep('review');
     setInspectionFeedback(null);
     setSelectedExcavationMethod(null);
+    setSelectedMappedEvidenceType('');
+    setMappingFeedback(null);
     setSurveyReportZone(null);
     setGridSetupOpen(false);
     setClaimOpen(false);
@@ -1184,6 +1198,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     setOpenedGridSquares(new Set());
     setSelectedExcavationMethod(null);
     setExcavationMethodHistory([]);
+    setSelectedMappedEvidenceType('');
+    setMappingFeedback(null);
     nearbySurveyZoneRef.current = null;
     setNotice('Survey the site first. Choose a promising dig zone before inspecting evidence.');
   };
@@ -1704,6 +1720,12 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         category: inspectionToken.category,
       } : null,
       excavationMethodHistory,
+      mappingRequired,
+      mappingOpen,
+      pendingMappedEvidence,
+      mappedFinds: mappedFindsSummary,
+      mappedFindsAccurate: mappingAccuracySummary.accurate,
+      mappedFindsNeedsReview: mappingAccuracySummary.needsReview,
       visibleEvidence: getVisibleEvidence().map(item => ({ id: item.id, name: item.name, zone: item.zone, missionType: item.missionType })),
       hiddenEvidence: getHiddenEvidence().map(item => ({ id: item.id, name: item.name, zone: item.zone, missionType: item.missionType })),
       resultOpen,
@@ -1740,6 +1762,10 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         evidenceQuality: item.evidenceQuality || null,
         excavationMethod: item.excavationMethod || null,
         excavationMethodName: item.excavationMethodName || null,
+        mappedZone: item.mappedZone || null,
+        mappedGridSquare: item.mappedGridSquare || null,
+        mappedEvidenceType: item.mappedEvidenceType || null,
+        mappingAccurate: item.mappingAccurate ?? null,
         clue: item.clue,
         zone: item.zone,
       })),
@@ -1754,6 +1780,10 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         evidenceQuality: item.evidenceQuality || null,
         excavationMethod: item.excavationMethod || null,
         excavationMethodName: item.excavationMethodName || null,
+        mappedZone: item.mappedZone || null,
+        mappedGridSquare: item.mappedGridSquare || null,
+        mappedEvidenceType: item.mappedEvidenceType || null,
+        mappingAccurate: item.mappingAccurate ?? null,
         supports: item.supports,
       })),
       remainingEvidence: tokensRef.current.filter(item => !item.collected).map(item => ({
@@ -1902,6 +1932,12 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         category: inspectionToken.category,
       } : null,
       excavationMethodHistory,
+      mappingRequired,
+      mappingOpen,
+      pendingMappedEvidence,
+      mappedFinds: mappedFindsSummary,
+      mappedFindsAccurate: mappingAccuracySummary.accurate,
+      mappedFindsNeedsReview: mappingAccuracySummary.needsReview,
       visibleEvidence: getVisibleEvidence().map(item => ({
         id: item.id,
         name: item.name,
@@ -2017,6 +2053,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     setInspectionFeedback(null);
     setSelectedExcavationMethod(null);
     setExcavationMethodHistory([]);
+    setSelectedMappedEvidenceType('');
+    setMappingFeedback(null);
     setMissionEvidenceCount(0);
     setClaimOpen(false);
     setSelectedCivilisation('');
@@ -2932,7 +2970,21 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
                 <p className="expedition-quality-feedback">
                   {evidenceQualitySummary.damaged > 0
                     ? 'Some evidence was damaged by rushed excavation. It can still support a claim, but careful excavation is more reliable.'
-                    : 'Careful excavation improved the reliability of your evidence.'}
+                  : 'Careful excavation improved the reliability of your evidence.'}
+                </p>
+              </section>
+
+              <section className="expedition-result-card expedition-result-card-wide">
+                <h3>Mapping Accuracy</h3>
+                <div className="expedition-result-stats">
+                  <span>Mapped finds: <strong>{mappingAccuracySummary.mapped}</strong></span>
+                  <span>Accurate: <strong>{mappingAccuracySummary.accurate}</strong></span>
+                  <span>Needs review: <strong>{mappingAccuracySummary.needsReview}</strong></span>
+                </div>
+                <p className="expedition-quality-feedback">
+                  {fieldKitEffects.measuringTapeReady
+                    ? 'Measuring Tape used: grid locations were recorded clearly.'
+                    : 'Measuring Tape was not collected, so location records were a little less precise.'}
                 </p>
               </section>
 
