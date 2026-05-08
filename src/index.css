@@ -10518,6 +10518,7 @@ main {
 .expedition-claim-modal {
   max-width: 520px;
 }
+
 .bureau-case-file,
 .bureau-suspect-board {
   flex: 1 1 400px;
