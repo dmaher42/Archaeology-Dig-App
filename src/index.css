@@ -10458,4 +10458,21 @@ main {
 .expedition-claim-modal {
   max-width: 520px;
 }
-\n\n.bureau-case-file,\n.bureau-suspect-board {\n  flex: 1 1 400px;\n}\n\n.bureau-reveal-btn {\n  background-color: var(--bureau-ink);\n  color: var(--bureau-parchment);\n  border: 2px solid var(--bureau-ink);\n  font-weight: 600;\n}\n\n.bureau-reveal-btn:hover {\n  background-color: var(--bureau-ink-muted);\n  border-color: var(--bureau-ink-muted);\n  color: var(--bureau-parchment-dark);\n}\n
+
+.bureau-case-file,
+.bureau-suspect-board {
+  flex: 1 1 400px;
+}
+
+.bureau-reveal-btn {
+  background-color: var(--bureau-ink);
+  color: var(--bureau-parchment);
+  border: 2px solid var(--bureau-ink);
+  font-weight: 600;
+}
+
+.bureau-reveal-btn:hover {
+  background-color: var(--bureau-ink-muted);
+  border-color: var(--bureau-ink-muted);
+  color: var(--bureau-parchment-dark);
+}
