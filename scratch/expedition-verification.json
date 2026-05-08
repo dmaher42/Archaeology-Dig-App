@@ -1,0 +1,466 @@
+{
+  "initial": {
+    "mode": "Lost Site Expedition",
+    "coordinateSystem": "origin top-left, x right, y down",
+    "player": {
+      "x": 42,
+      "y": 498,
+      "size": 22,
+      "zone": "Open Trench"
+    },
+    "resources": {
+      "investigation": 100,
+      "stamina": 100,
+      "time": 599
+    },
+    "collectedEvidence": [],
+    "remainingEvidence": [
+      {
+        "id": "eg_13",
+        "x": 690,
+        "y": 94,
+        "category": "Written Sources"
+      },
+      {
+        "id": "eg_1",
+        "x": 398,
+        "y": 112,
+        "category": "Artefacts / Objects"
+      },
+      {
+        "id": "eg_11",
+        "x": 128,
+        "y": 142,
+        "category": "Environmental Evidence"
+      },
+      {
+        "id": "eg_8",
+        "x": 462,
+        "y": 338,
+        "category": "Features / Structures"
+      },
+      {
+        "id": "eg_10",
+        "x": 140,
+        "y": 330,
+        "category": "Environmental Evidence"
+      }
+    ],
+    "hazards": [
+      {
+        "id": "sandstorm",
+        "name": "sandstorm",
+        "x": 84,
+        "y": 96,
+        "w": 120,
+        "h": 70
+      },
+      {
+        "id": "falling-rocks",
+        "name": "falling rocks",
+        "x": 388,
+        "y": 292,
+        "w": 110,
+        "h": 78
+      },
+      {
+        "id": "unstable-floor",
+        "name": "unstable floor",
+        "x": 196,
+        "y": 454,
+        "w": 118,
+        "h": 70
+      }
+    ],
+    "exitUnlocked": false,
+    "claimOpen": false
+  },
+  "afterHazard": {
+    "mode": "Lost Site Expedition",
+    "coordinateSystem": "origin top-left, x right, y down",
+    "player": {
+      "x": 222.6000000000001,
+      "y": 498,
+      "size": 22,
+      "zone": "Open Trench"
+    },
+    "resources": {
+      "investigation": 100,
+      "stamina": 82,
+      "time": 598
+    },
+    "collectedEvidence": [],
+    "remainingEvidence": [
+      {
+        "id": "eg_13",
+        "x": 690,
+        "y": 94,
+        "category": "Written Sources"
+      },
+      {
+        "id": "eg_1",
+        "x": 398,
+        "y": 112,
+        "category": "Artefacts / Objects"
+      },
+      {
+        "id": "eg_11",
+        "x": 128,
+        "y": 142,
+        "category": "Environmental Evidence"
+      },
+      {
+        "id": "eg_8",
+        "x": 462,
+        "y": 338,
+        "category": "Features / Structures"
+      },
+      {
+        "id": "eg_10",
+        "x": 140,
+        "y": 330,
+        "category": "Environmental Evidence"
+      }
+    ],
+    "hazards": [
+      {
+        "id": "sandstorm",
+        "name": "sandstorm",
+        "x": 84,
+        "y": 96,
+        "w": 120,
+        "h": 70
+      },
+      {
+        "id": "falling-rocks",
+        "name": "falling rocks",
+        "x": 388,
+        "y": 292,
+        "w": 110,
+        "h": 78
+      },
+      {
+        "id": "unstable-floor",
+        "name": "unstable floor",
+        "x": 196,
+        "y": 454,
+        "w": 118,
+        "h": 70
+      }
+    ],
+    "exitUnlocked": false,
+    "claimOpen": false
+  },
+  "afterFirst": {
+    "mode": "Lost Site Expedition",
+    "coordinateSystem": "origin top-left, x right, y down",
+    "player": {
+      "x": 142.33906666666655,
+      "y": 308.7999999999995,
+      "size": 22,
+      "zone": "Market Area"
+    },
+    "resources": {
+      "investigation": 100,
+      "stamina": 82,
+      "time": 595
+    },
+    "collectedEvidence": [
+      {
+        "id": "eg_10",
+        "name": "Flax Seeds",
+        "category": "Environmental Evidence",
+        "supports": "Ancient Egypt"
+      }
+    ],
+    "remainingEvidence": [
+      {
+        "id": "eg_13",
+        "x": 690,
+        "y": 94,
+        "category": "Written Sources"
+      },
+      {
+        "id": "eg_1",
+        "x": 398,
+        "y": 112,
+        "category": "Artefacts / Objects"
+      },
+      {
+        "id": "eg_11",
+        "x": 128,
+        "y": 142,
+        "category": "Environmental Evidence"
+      },
+      {
+        "id": "eg_8",
+        "x": 462,
+        "y": 338,
+        "category": "Features / Structures"
+      }
+    ],
+    "hazards": [
+      {
+        "id": "sandstorm",
+        "name": "sandstorm",
+        "x": 84,
+        "y": 96,
+        "w": 120,
+        "h": 70
+      },
+      {
+        "id": "falling-rocks",
+        "name": "falling rocks",
+        "x": 388,
+        "y": 292,
+        "w": 110,
+        "h": 78
+      },
+      {
+        "id": "unstable-floor",
+        "name": "unstable floor",
+        "x": 196,
+        "y": 454,
+        "w": 118,
+        "h": 70
+      }
+    ],
+    "exitUnlocked": false,
+    "claimOpen": false
+  },
+  "afterSecond": {
+    "mode": "Lost Site Expedition",
+    "coordinateSystem": "origin top-left, x right, y down",
+    "player": {
+      "x": 142.33906666666655,
+      "y": 85.19999999999912,
+      "size": 22,
+      "zone": "Riverbank"
+    },
+    "resources": {
+      "investigation": 100,
+      "stamina": 82,
+      "time": 578
+    },
+    "collectedEvidence": [
+      {
+        "id": "eg_10",
+        "name": "Flax Seeds",
+        "category": "Environmental Evidence",
+        "supports": "Ancient Egypt"
+      },
+      {
+        "id": "eg_11",
+        "name": "Nile Silt Layer",
+        "category": "Environmental Evidence",
+        "supports": "Ancient Egypt"
+      }
+    ],
+    "remainingEvidence": [
+      {
+        "id": "eg_13",
+        "x": 690,
+        "y": 94,
+        "category": "Written Sources"
+      },
+      {
+        "id": "eg_1",
+        "x": 398,
+        "y": 112,
+        "category": "Artefacts / Objects"
+      },
+      {
+        "id": "eg_8",
+        "x": 462,
+        "y": 338,
+        "category": "Features / Structures"
+      }
+    ],
+    "hazards": [
+      {
+        "id": "sandstorm",
+        "name": "sandstorm",
+        "x": 84,
+        "y": 96,
+        "w": 120,
+        "h": 70
+      },
+      {
+        "id": "falling-rocks",
+        "name": "falling rocks",
+        "x": 388,
+        "y": 292,
+        "w": 110,
+        "h": 78
+      },
+      {
+        "id": "unstable-floor",
+        "name": "unstable floor",
+        "x": 196,
+        "y": 454,
+        "w": 118,
+        "h": 70
+      }
+    ],
+    "exitUnlocked": false,
+    "claimOpen": false
+  },
+  "afterThird": {
+    "mode": "Lost Site Expedition",
+    "coordinateSystem": "origin top-left, x right, y down",
+    "player": {
+      "x": 411.81146666666723,
+      "y": 85.19999999999912,
+      "size": 22,
+      "zone": "Burial Area"
+    },
+    "resources": {
+      "investigation": 100,
+      "stamina": 82,
+      "time": 577
+    },
+    "collectedEvidence": [
+      {
+        "id": "eg_10",
+        "name": "Flax Seeds",
+        "category": "Environmental Evidence",
+        "supports": "Ancient Egypt"
+      },
+      {
+        "id": "eg_11",
+        "name": "Nile Silt Layer",
+        "category": "Environmental Evidence",
+        "supports": "Ancient Egypt"
+      },
+      {
+        "id": "eg_1",
+        "name": "Canopic Jar",
+        "category": "Artefacts / Objects",
+        "supports": "Ancient Egypt"
+      }
+    ],
+    "remainingEvidence": [
+      {
+        "id": "eg_13",
+        "x": 690,
+        "y": 94,
+        "category": "Written Sources"
+      },
+      {
+        "id": "eg_8",
+        "x": 462,
+        "y": 338,
+        "category": "Features / Structures"
+      }
+    ],
+    "hazards": [
+      {
+        "id": "sandstorm",
+        "name": "sandstorm",
+        "x": 84,
+        "y": 96,
+        "w": 120,
+        "h": 70
+      },
+      {
+        "id": "falling-rocks",
+        "name": "falling rocks",
+        "x": 388,
+        "y": 292,
+        "w": 110,
+        "h": 78
+      },
+      {
+        "id": "unstable-floor",
+        "name": "unstable floor",
+        "x": 196,
+        "y": 454,
+        "w": 118,
+        "h": 70
+      }
+    ],
+    "exitUnlocked": true,
+    "claimOpen": false
+  },
+  "atExit": {
+    "mode": "Lost Site Expedition",
+    "coordinateSystem": "origin top-left, x right, y down",
+    "player": {
+      "x": 775.8838666666682,
+      "y": 237.13333333333264,
+      "size": 22,
+      "zone": "Exit Gate"
+    },
+    "resources": {
+      "investigation": 100,
+      "stamina": 82,
+      "time": 573
+    },
+    "collectedEvidence": [
+      {
+        "id": "eg_10",
+        "name": "Flax Seeds",
+        "category": "Environmental Evidence",
+        "supports": "Ancient Egypt"
+      },
+      {
+        "id": "eg_11",
+        "name": "Nile Silt Layer",
+        "category": "Environmental Evidence",
+        "supports": "Ancient Egypt"
+      },
+      {
+        "id": "eg_1",
+        "name": "Canopic Jar",
+        "category": "Artefacts / Objects",
+        "supports": "Ancient Egypt"
+      }
+    ],
+    "remainingEvidence": [
+      {
+        "id": "eg_13",
+        "x": 690,
+        "y": 94,
+        "category": "Written Sources"
+      },
+      {
+        "id": "eg_8",
+        "x": 462,
+        "y": 338,
+        "category": "Features / Structures"
+      }
+    ],
+    "hazards": [
+      {
+        "id": "sandstorm",
+        "name": "sandstorm",
+        "x": 84,
+        "y": 96,
+        "w": 120,
+        "h": 70
+      },
+      {
+        "id": "falling-rocks",
+        "name": "falling rocks",
+        "x": 388,
+        "y": 292,
+        "w": 110,
+        "h": 78
+      },
+      {
+        "id": "unstable-floor",
+        "name": "unstable floor",
+        "x": 196,
+        "y": 454,
+        "w": 118,
+        "h": 70
+      }
+    ],
+    "exitUnlocked": true,
+    "claimOpen": true
+  },
+  "incorrectText": "I think this site belongs to Ancient Greece because Flax Seeds.\n\nFlax Seeds does not support Ancient Greece. Its clue points to Ancient Egypt because Ancient seeds from a flax plant.",
+  "correctText": "I think this site belongs to Ancient Egypt because Flax Seeds.\n\nFlax Seeds supports Ancient Egypt: Flax seeds can help historians understand farming, clothing, textiles and everyday materials.",
+  "bureauBriefing": true,
+  "errors": []
+}

@@ -10,8 +10,9 @@ import {
   ShieldAlert,
   Sparkles,
 } from 'lucide-react';
-import { CATEGORIES, SCENARIOS } from '../data';
+import { SCENARIOS } from '../data';
 import { BUREAU_CASES, getCategoryTitle } from '../utils/gameLogic';
+import ExpeditionJourney from './ExpeditionJourney';
 
 const MAP_WIDTH = 800;
 const MAP_HEIGHT = 560;
@@ -77,6 +78,7 @@ const CLAIM_OPTIONS = ['Ancient Egypt', 'Ancient Greece', 'Ancient Rome', 'Ancie
 const INITIAL_RESOURCES = { investigation: 95, stamina: 100, time: 600 };
 const INVESTIGATION_BONUS = 5;
 const MAX_EVIDENCE_ITEMS = 3;
+const JOURNEY_TOOLS = ExpeditionJourney.tools;
 const MISSION_TARGET = {
   title: 'Find Structural Evidence',
   instruction: 'The Bureau needs evidence of buildings or structures. Search the site and secure evidence that shows people built or changed this place.',
@@ -139,6 +141,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
   const canvasRef = useRef(null);
   const keysRef = useRef({});
   const playerRef = useRef({ x: 42, y: 498 });
+  const journeySnapshotRef = useRef(null);
   const collectedRef = useRef([]);
   const tokensRef = useRef(buildExpeditionEvidence());
   const resourcesRef = useRef(INITIAL_RESOURCES);
@@ -161,6 +164,10 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
   const [selectedCivilisation, setSelectedCivilisation] = useState('');
   const [selectedEvidenceId, setSelectedEvidenceId] = useState('');
   const [claimResult, setClaimResult] = useState(null);
+  const [expeditionStage, setExpeditionStage] = useState('journey');
+  const [baseCampOpen, setBaseCampOpen] = useState(false);
+  const [fieldKit, setFieldKit] = useState([]);
+  const [journeyRunId, setJourneyRunId] = useState(0);
 
   const trainingCivilisations = useMemo(() => (
     BUREAU_CASES
@@ -169,8 +176,13 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       .filter(civilisation => CLAIM_OPTIONS.includes(civilisation))
   ), []);
 
-  const categoryById = useMemo(() => new Map(CATEGORIES.map(category => [category.id, category])), []);
   const exitUnlocked = missionEvidenceCount >= 1;
+  const fieldKitSet = useMemo(() => new Set(fieldKit), [fieldKit]);
+  const fieldKitEffects = useMemo(() => ({
+    fieldGuideAvailable: fieldKitSet.has('field-guide-page'),
+    notebookReady: fieldKitSet.has('notebook'),
+    brushReady: fieldKitSet.has('brush'),
+  }), [fieldKitSet]);
   const syncInventory = useCallback((items) => {
     const nextItems = [...items];
     collectedRef.current = nextItems;
@@ -199,6 +211,25 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     keysRef.current = {};
     tickAccumulatorRef.current = 0;
     setBriefingOpen(false);
+    setNotice(MISSION_TARGET.instruction);
+  };
+
+  const handleJourneySnapshot = useCallback((snapshot) => {
+    journeySnapshotRef.current = snapshot;
+  }, []);
+
+  const handleJourneyComplete = useCallback((nextFieldKit) => {
+    setFieldKit(nextFieldKit);
+    setBaseCampOpen(true);
+    setNotice('Base Camp reached. Check your field kit before excavation.');
+  }, []);
+
+  const beginExcavationStage = () => {
+    keysRef.current = {};
+    tickAccumulatorRef.current = 0;
+    setExpeditionStage('excavation');
+    setBaseCampOpen(false);
+    setBriefingOpen(true);
     setNotice(MISSION_TARGET.instruction);
   };
 
@@ -427,7 +458,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     ctx.shadowOffsetY = 0;
     ctx.font = '16px Outfit, sans-serif';
     ctx.fillText('🕵️', player.x + 3, player.y + 17);
-  }, [categoryById, missionEvidenceCount]);
+  }, [missionEvidenceCount]);
 
   const update = useCallback((dt = 1 / 60) => {
     if (briefingOpen || lockedRef.current || inspectionToken) {
@@ -520,6 +551,29 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
   }, [audioControls, briefingOpen, draw, inspectionToken, missionEvidenceCount, syncResources]);
 
   useEffect(() => {
+    if (expeditionStage === 'excavation') return undefined;
+
+    window.advanceTime = (ms = 16) => {
+      window.__advanceExpeditionJourney?.(ms);
+    };
+    window.render_game_to_text = () => JSON.stringify({
+      mode: 'Lost Site Expedition',
+      stage: baseCampOpen ? 'base-camp' : 'journey',
+      fieldKit,
+      fieldKitEffects,
+      baseCampOpen,
+      journey: journeySnapshotRef.current,
+    });
+
+    return () => {
+      delete window.advanceTime;
+      delete window.render_game_to_text;
+    };
+  }, [baseCampOpen, expeditionStage, fieldKit, fieldKitEffects]);
+
+  useEffect(() => {
+    if (expeditionStage !== 'excavation') return undefined;
+
     const handleKeyDown = (event) => {
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(event.code)) {
         event.preventDefault();
@@ -556,7 +610,10 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     };
     window.render_game_to_text = () => JSON.stringify({
       mode: 'Lost Site Expedition',
+      stage: 'excavation',
       coordinateSystem: 'origin top-left, x right, y down',
+      fieldKit,
+      fieldKitEffects,
       player: { ...playerRef.current, size: PLAYER_SIZE, zone: getZoneName(playerRef.current) },
       resources: resourcesRef.current,
       collectedEvidence: collectedRef.current.map(item => ({
@@ -602,9 +659,14 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       delete window.advanceTime;
       delete window.render_game_to_text;
     };
-  }, [briefingOpen, draw, inspectionFeedback, inspectionToken, missionEvidenceCount, openInspection, update]);
+  }, [briefingOpen, draw, expeditionStage, fieldKit, fieldKitEffects, inspectionFeedback, inspectionToken, missionEvidenceCount, openInspection, update]);
 
   const resetExpedition = () => {
+    setExpeditionStage('journey');
+    setBaseCampOpen(false);
+    setFieldKit([]);
+    setJourneyRunId(previous => previous + 1);
+    journeySnapshotRef.current = null;
     playerRef.current = { x: 42, y: 498 };
     tokensRef.current = buildExpeditionEvidence();
     collectedRef.current = [];
@@ -661,6 +723,70 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       audioControls.playError?.();
     }
   };
+
+  if (expeditionStage === 'journey' && !baseCampOpen) {
+    return (
+      <ExpeditionJourney
+        key={journeyRunId}
+        onBackToMenu={onBackToMenu}
+        onComplete={handleJourneyComplete}
+        onSnapshotChange={handleJourneySnapshot}
+        audioControls={audioControls}
+      />
+    );
+  }
+
+  if (baseCampOpen) {
+    return (
+      <section className="phase-container bureau-phase expedition-phase">
+        <div className="expedition-shell expedition-basecamp-shell">
+          <header className="expedition-topbar">
+            <button type="button" className="bureau-hint-btn" onClick={onBackToMenu}>
+              <ChevronLeft size={18} /> Back to Menu
+            </button>
+            <div className="expedition-title">
+              <div className="training-kicker">Lost Site Expedition</div>
+              <h2>Base Camp Checklist</h2>
+            </div>
+            <div className="expedition-gate-badge unlocked">
+              <Sparkles size={16} />
+              <span>Dig Site Reached</span>
+              <small>Prepare for excavation</small>
+            </div>
+          </header>
+
+          <div className="expedition-basecamp-card">
+            <div>
+              <p className="phase-kicker">Field Kit Report</p>
+              <h3>Equipment packed for the excavation stage</h3>
+              <p>
+                Tools collected on the journey will appear in the excavation side panel. The first version
+                keeps the effects simple while the evidence mission stays unchanged.
+              </p>
+            </div>
+
+            <ul className="expedition-tool-list expedition-basecamp-list">
+              {JOURNEY_TOOLS.map((tool) => (
+                <li key={tool.id} className={fieldKitSet.has(tool.id) ? 'is-collected' : ''}>
+                  <span>{tool.name}</span>
+                  <strong>{fieldKitSet.has(tool.id) ? 'Collected' : 'Missing'}</strong>
+                </li>
+              ))}
+            </ul>
+
+            <div className="bureau-briefing-actions">
+              <button type="button" className="btn primary-btn expedition-begin-btn" onClick={beginExcavationStage}>
+                Begin Excavation
+              </button>
+              <button type="button" className="btn" onClick={resetExpedition}>
+                Restart Journey
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="phase-container bureau-phase expedition-phase">
@@ -727,6 +853,24 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
                 <div><strong>{resources.stamina}</strong><span>Stamina</span></div>
                 <div><strong>{Math.floor(resources.time / 60)}:{String(resources.time % 60).padStart(2, '0')}</strong><span>Time</span></div>
               </div>
+            </section>
+
+            <section className="expedition-panel">
+              <h3><Backpack size={17} /> Field Kit</h3>
+              <ul className="expedition-tool-list">
+                <li className={fieldKitEffects.fieldGuideAvailable ? 'is-collected' : ''}>
+                  <span>Field Guide Available</span>
+                  <strong>{fieldKitEffects.fieldGuideAvailable ? 'Ready' : 'Missing'}</strong>
+                </li>
+                <li className={fieldKitEffects.notebookReady ? 'is-collected' : ''}>
+                  <span>Notebook Ready</span>
+                  <strong>{fieldKitEffects.notebookReady ? 'Ready' : 'Missing'}</strong>
+                </li>
+                <li className={fieldKitEffects.brushReady ? 'is-collected' : ''}>
+                  <span>Brush Ready</span>
+                  <strong>{fieldKitEffects.brushReady ? 'Ready' : 'Missing'}</strong>
+                </li>
+              </ul>
             </section>
 
             <section className="expedition-panel">
