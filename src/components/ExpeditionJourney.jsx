@@ -14,12 +14,12 @@ const JUMP_SPEED = 620;
 const INITIAL_JOURNEY_NOTICE = 'Reach the dig site entrance with as much field kit as you can.';
 
 const JOURNEY_TOOLS = [
-  { id: 'brush', name: 'Brush' },
-  { id: 'trowel', name: 'Trowel' },
-  { id: 'notebook', name: 'Notebook' },
-  { id: 'camera', name: 'Camera' },
-  { id: 'measuring-tape', name: 'Measuring Tape' },
-  { id: 'field-guide-page', name: 'Field Guide Page' },
+  { id: 'brush', name: 'Brush', emoji: '🖌️' },
+  { id: 'trowel', name: 'Trowel', emoji: '⛏️' },
+  { id: 'notebook', name: 'Notebook', emoji: '📓' },
+  { id: 'camera', name: 'Camera', emoji: '📷' },
+  { id: 'measuring-tape', name: 'Measuring Tape', emoji: '📏' },
+  { id: 'field-guide-page', name: 'Field Guide Page', emoji: '📄' },
 ];
 
 const TOOL_LAYOUT = [
@@ -39,15 +39,16 @@ const PLATFORMS = [
 ];
 
 const HAZARDS = [
-  { id: 'scorpion', name: 'scorpion', x: 555, y: 329, width: 42, height: 31, penalty: { stamina: 10 }, message: 'Careful: site obstacle. Stamina reduced.' },
-  { id: 'falling-rocks', name: 'falling rocks', x: 1115, y: 318, width: 58, height: 42, penalty: { stamina: 12 }, message: 'Falling rocks delayed the journey. Stamina reduced.' },
-  { id: 'sandstorm', name: 'sandstorm patch', x: 1315, y: 315, width: 96, height: 45, penalty: { time: 12 }, message: 'Sandstorm patch slowed the team. Time reduced.' },
+  { id: 'scorpion', name: 'scorpion', emoji: '🦂', x: 555, y: 329, width: 42, height: 31, penalty: { stamina: 10 }, message: 'Careful: site obstacle. Stamina reduced.' },
+  { id: 'falling-rocks', name: 'falling rocks', emoji: '🪨', x: 1115, y: 318, width: 58, height: 42, penalty: { stamina: 12 }, message: 'Falling rocks delayed the journey. Stamina reduced.' },
+  { id: 'sandstorm', name: 'sandstorm patch', emoji: '🌪️', x: 1315, y: 315, width: 96, height: 45, penalty: { time: 12 }, message: 'Sandstorm patch slowed the team. Time reduced.' },
 ];
 
 const GUARDIANS = [
   {
     id: 'sand-wraith',
     name: 'Sand Wraith',
+    emoji: '👤',
     patrolMin: 760,
     patrolMax: 1050,
     y: 318,
@@ -152,121 +153,180 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
     const current = stateRef.current;
     const player = current.player;
     const cameraX = clamp(player.x - 260, 0, WORLD_WIDTH - CANVAS_WIDTH);
+    const now = Date.now();
 
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
+    // Warm desert sky
     const skyGradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-    skyGradient.addColorStop(0, '#f7e4b8');
-    skyGradient.addColorStop(1, '#e8c77d');
+    skyGradient.addColorStop(0, '#f2dca5');
+    skyGradient.addColorStop(1, '#e3b976');
     ctx.fillStyle = skyGradient;
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    ctx.fillStyle = 'rgba(104, 75, 39, 0.16)';
+    // Distant dunes
+    ctx.fillStyle = 'rgba(186, 126, 68, 0.2)';
     for (let hill = -100; hill < WORLD_WIDTH; hill += 240) {
       ctx.beginPath();
-      ctx.ellipse(hill - cameraX, 355, 165, 38, 0, 0, Math.PI * 2);
+      ctx.ellipse(hill - cameraX, 355, 180, 45, 0, 0, Math.PI * 2);
       ctx.fill();
     }
 
+    // Platforms
     PLATFORMS.forEach((platform) => {
-      ctx.fillStyle = platform.y === GROUND_Y ? '#86613b' : '#6c5540';
+      ctx.fillStyle = platform.y === GROUND_Y ? '#b5865a' : '#94653e';
       ctx.fillRect(platform.x - cameraX, platform.y, platform.width, platform.height);
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
-      ctx.fillRect(platform.x - cameraX, platform.y, platform.width, 4);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.fillRect(platform.x - cameraX, platform.y, platform.width, 6);
+      ctx.strokeStyle = 'rgba(50, 30, 10, 0.3)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(platform.x - cameraX, platform.y, platform.width, platform.height);
     });
 
+    // Hazards
+    const pulse = (Math.sin(now / 200) + 1) / 2;
     HAZARDS.forEach((hazard) => {
       const x = hazard.x - cameraX;
-      if (hazard.id === 'sandstorm') {
-        ctx.fillStyle = 'rgba(185, 132, 51, 0.5)';
-        ctx.fillRect(x, hazard.y, hazard.width, hazard.height);
-        ctx.strokeStyle = '#7c4d1f';
-        ctx.setLineDash([6, 5]);
-        ctx.strokeRect(x, hazard.y, hazard.width, hazard.height);
-        ctx.setLineDash([]);
-      } else if (hazard.id === 'falling-rocks') {
-        ctx.fillStyle = '#60493a';
-        ctx.beginPath();
-        ctx.moveTo(x + 8, hazard.y + hazard.height);
-        ctx.lineTo(x + 26, hazard.y + 4);
-        ctx.lineTo(x + 50, hazard.y + hazard.height);
-        ctx.closePath();
-        ctx.fill();
-      } else {
-        ctx.fillStyle = '#432f2a';
-        ctx.fillRect(x + 5, hazard.y + 10, hazard.width - 10, hazard.height - 12);
-        ctx.fillStyle = '#221713';
-        ctx.fillRect(x, hazard.y + 16, 10, 5);
-        ctx.fillRect(x + hazard.width - 10, hazard.y + 16, 10, 5);
-      }
-      ctx.fillStyle = '#2f251d';
-      ctx.font = '12px Arial';
-      ctx.fillText(hazard.name, x - 2, hazard.y - 6);
+      
+      // Hazard visual zone
+      ctx.fillStyle = 'rgba(200, 80, 50, 0.2)';
+      ctx.fillRect(x, hazard.y, hazard.width, hazard.height);
+      
+      ctx.strokeStyle = `rgba(200, 50, 20, ${0.4 + pulse * 0.4})`;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 6]);
+      ctx.lineDashOffset = -now / 30;
+      ctx.strokeRect(x, hazard.y, hazard.width, hazard.height);
+      ctx.setLineDash([]);
+      
+      // Emoji
+      ctx.font = '32px Outfit, sans-serif';
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.6)'; // Shadow for emoji
+      ctx.fillText(hazard.emoji, x + hazard.width / 2 - 16, hazard.y + hazard.height / 2 + 12);
+      
+      // Label
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+      const textWidth = ctx.measureText(hazard.name).width;
+      ctx.fillRect(x + hazard.width / 2 - textWidth / 2 - 4, hazard.y - 20, textWidth + 8, 18);
+      ctx.fillStyle = '#5b2b16';
+      ctx.font = '700 11px Outfit, sans-serif';
+      ctx.fillText(hazard.name, x + hazard.width / 2 - textWidth / 2, hazard.y - 7);
     });
 
+    // Guardians
     current.guardians.forEach((guardian) => {
       const x = guardian.x - cameraX;
-      const shimmer = (Math.sin(Date.now() / 180) + 1) / 2;
-      ctx.save();
-      ctx.globalAlpha = 0.68 + shimmer * 0.22;
-      ctx.fillStyle = '#6b4f8f';
+      const floatY = Math.sin(now / 150) * 4;
+      
+      // Shadow
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
       ctx.beginPath();
-      ctx.ellipse(x + guardian.width / 2, guardian.y + 20, 18, 26, 0, 0, Math.PI * 2);
+      ctx.ellipse(x + guardian.width / 2, guardian.y + guardian.height, 15, 4, 0, 0, Math.PI * 2);
       ctx.fill();
-      ctx.fillStyle = '#d8c7ff';
-      ctx.beginPath();
-      ctx.arc(x + 12, guardian.y + 14, 3, 0, Math.PI * 2);
-      ctx.arc(x + 23, guardian.y + 14, 3, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(72, 48, 105, 0.45)';
+
+      // Emoji
+      ctx.font = '40px Outfit, sans-serif';
+      ctx.fillText(guardian.emoji, x - 4, guardian.y + 36 + floatY);
+
+      // Patrol path
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
       ctx.lineWidth = 2;
-      ctx.setLineDash([5, 5]);
-      ctx.strokeRect(guardian.patrolMin - cameraX, guardian.y + guardian.height + 6, guardian.patrolMax - guardian.patrolMin, 8);
+      ctx.setLineDash([4, 4]);
+      ctx.strokeRect(guardian.patrolMin - cameraX, guardian.y + guardian.height + 6, guardian.patrolMax - guardian.patrolMin, 4);
       ctx.setLineDash([]);
-      ctx.restore();
+
+      // Label
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+      ctx.font = '700 11px Outfit, sans-serif';
+      const textWidth = ctx.measureText(guardian.name).width;
+      ctx.fillRect(x + guardian.width / 2 - textWidth / 2 - 4, guardian.y - 24, textWidth + 8, 18);
       ctx.fillStyle = '#2f251d';
-      ctx.font = '12px Arial';
-      ctx.fillText(guardian.name, x - 14, guardian.y - 8);
+      ctx.fillText(guardian.name, x + guardian.width / 2 - textWidth / 2, guardian.y - 11);
     });
 
-    TOOL_LAYOUT.forEach((toolPosition) => {
+    // Tools
+    TOOL_LAYOUT.forEach((toolPosition, index) => {
       if (current.collectedToolIds.has(toolPosition.id)) return;
       const tool = JOURNEY_TOOLS.find((item) => item.id === toolPosition.id);
       const x = toolPosition.x - cameraX;
-      ctx.fillStyle = '#fff3c9';
-      ctx.strokeStyle = '#6d4c2c';
-      ctx.lineWidth = 2;
+      const floatY = Math.sin((now / 200) + index) * 4;
+
+      ctx.shadowColor = 'rgba(255, 215, 0, 0.6)';
+      ctx.shadowBlur = 12;
+      
+      // Glowing orb
+      ctx.fillStyle = 'rgba(255, 243, 201, 0.9)';
       ctx.beginPath();
-      ctx.arc(x, toolPosition.y, 14, 0, Math.PI * 2);
+      ctx.arc(x, toolPosition.y + floatY, 18, 0, Math.PI * 2);
       ctx.fill();
+      
+      ctx.shadowColor = 'transparent';
+      ctx.strokeStyle = '#d4af37';
+      ctx.lineWidth = 2;
       ctx.stroke();
+
+      // Emoji
+      ctx.font = '18px Outfit, sans-serif';
+      ctx.fillText(tool.emoji, x - 9, toolPosition.y + floatY + 6);
+
+      // Label
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.font = '700 11px Outfit, sans-serif';
+      const textWidth = ctx.measureText(tool.name).width;
+      ctx.fillRect(x - textWidth / 2 - 4, toolPosition.y - 34 + floatY, textWidth + 8, 18);
       ctx.fillStyle = '#3b2b1f';
-      ctx.font = '11px Arial';
-      ctx.fillText(tool.name, x - 26, toolPosition.y - 20);
+      ctx.fillText(tool.name, x - textWidth / 2, toolPosition.y - 21 + floatY);
     });
 
-    ctx.fillStyle = '#365f4c';
-    ctx.fillRect(GATE.x - cameraX, GATE.y, GATE.width, GATE.height);
-    ctx.fillStyle = '#f6d77b';
-    ctx.fillRect(GATE.x - cameraX + 8, GATE.y + 10, GATE.width - 16, 12);
-    ctx.fillStyle = '#2e231b';
-    ctx.font = '13px Arial';
-    ctx.fillText('Dig Site', GATE.x - cameraX - 5, GATE.y - 10);
+    // Gate
+    const gateX = GATE.x - cameraX;
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+    ctx.shadowBlur = 8;
+    ctx.fillStyle = '#3a5a40';
+    ctx.fillRect(gateX, GATE.y, GATE.width, GATE.height);
+    ctx.strokeStyle = '#2d4532';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(gateX, GATE.y, GATE.width, GATE.height);
+    ctx.shadowColor = 'transparent';
 
-    ctx.fillStyle = '#234f48';
-    ctx.fillRect(player.x - cameraX, player.y, player.width, player.height);
-    ctx.fillStyle = '#f1d0a0';
-    ctx.fillRect(player.x - cameraX + 7, player.y - 12, 14, 14);
-    ctx.fillStyle = '#2b211a';
-    ctx.fillRect(player.x - cameraX + 4, player.y - 17, 20, 6);
-    ctx.fillStyle = '#f8edcf';
-    ctx.fillRect(player.x - cameraX + 4, player.y + 10, 20, 9);
+    ctx.font = '40px Outfit, sans-serif';
+    ctx.fillText('⛺', gateX + 8, GATE.y + 45);
 
-    ctx.fillStyle = 'rgba(48, 35, 24, 0.78)';
-    ctx.fillRect(16, 16, 290, 44);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.font = '700 12px Outfit, sans-serif';
+    const gateTextWidth = ctx.measureText('Base Camp').width;
+    ctx.fillRect(gateX + GATE.width / 2 - gateTextWidth / 2 - 4, GATE.y - 20, gateTextWidth + 8, 18);
+    ctx.fillStyle = '#1b2b1e';
+    ctx.fillText('Base Camp', gateX + GATE.width / 2 - gateTextWidth / 2, GATE.y - 7);
+
+    // Player
+    ctx.shadowColor = 'rgba(0,0,0,0.4)';
+    ctx.shadowBlur = 6;
+    ctx.shadowOffsetY = 3;
+    
+    // Player background token
+    ctx.fillStyle = '#2563eb';
+    ctx.beginPath();
+    ctx.arc(player.x - cameraX + player.width / 2, player.y + player.height / 2, 18, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    
+    ctx.shadowColor = 'transparent';
+    ctx.shadowOffsetY = 0;
+    ctx.font = '20px Outfit, sans-serif';
+    ctx.fillText('🕵️', player.x - cameraX + 4, player.y + 28);
+
+    // HUD Info
+    ctx.fillStyle = 'rgba(48, 35, 24, 0.85)';
+    ctx.fillRect(16, 16, 260, 40);
+    ctx.strokeStyle = '#b5865a';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(16, 16, 260, 40);
     ctx.fillStyle = '#fff4d4';
-    ctx.font = '14px Arial';
-    ctx.fillText(`Field kit: ${current.fieldKit.length}/${JOURNEY_TOOLS.length}`, 30, 43);
+    ctx.font = '700 14px Outfit, sans-serif';
+    ctx.fillText(`🎒 Field kit: ${current.fieldKit.length}/${JOURNEY_TOOLS.length}`, 30, 42);
   }, []);
 
   const update = useCallback((dt) => {

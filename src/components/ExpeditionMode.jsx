@@ -20,12 +20,12 @@ const PLAYER_SIZE = 22;
 const TARGET_CIVILISATION = 'Ancient Egypt';
 
 const ZONES = [
-  { id: 'riverbank', name: 'Riverbank', emoji: '🌊', x: 0, y: 0, w: 260, h: 220, color: 'rgba(96, 165, 250, 0.16)' },
-  { id: 'burial', name: 'Burial Area', emoji: '🏺', x: 260, y: 0, w: 260, h: 220, color: 'rgba(168, 85, 247, 0.13)' },
-  { id: 'archive', name: 'Archive Corner', emoji: '📜', x: 520, y: 0, w: 280, h: 220, color: 'rgba(232, 158, 93, 0.14)' },
-  { id: 'market', name: 'Market Area', emoji: '⛺', x: 0, y: 220, w: 320, h: 190, color: 'rgba(245, 158, 11, 0.13)' },
-  { id: 'wall', name: 'Ruined Wall', emoji: '🏛️', x: 320, y: 220, w: 260, h: 190, color: 'rgba(20, 184, 166, 0.12)' },
-  { id: 'gate', name: 'Exit Gate', emoji: '🔒', x: 580, y: 220, w: 220, h: 340, color: 'rgba(74, 222, 128, 0.1)' },
+  { id: 'riverbank', name: 'Riverbank', emoji: '🌊', x: 0, y: 0, w: 260, h: 220, color: 'rgba(56, 189, 248, 0.18)' },
+  { id: 'burial', name: 'Burial Area', emoji: '🏺', x: 260, y: 0, w: 260, h: 220, color: 'rgba(160, 120, 90, 0.2)' },
+  { id: 'archive', name: 'Archive Corner', emoji: '📜', x: 520, y: 0, w: 280, h: 220, color: 'rgba(232, 158, 93, 0.16)' },
+  { id: 'market', name: 'Market Area', emoji: '⛺', x: 0, y: 220, w: 320, h: 190, color: 'rgba(245, 158, 11, 0.14)' },
+  { id: 'wall', name: 'Ruined Wall', emoji: '🏛️', x: 320, y: 220, w: 260, h: 190, color: 'rgba(148, 163, 184, 0.18)' },
+  { id: 'gate', name: 'Exit Gate', emoji: '🔒', x: 580, y: 220, w: 220, h: 340, color: 'rgba(74, 222, 128, 0.12)' },
 ];
 
 const WALLS = [
@@ -78,6 +78,7 @@ const EXCAVATION_GUARDIANS = [
   {
     id: 'tomb-guardian-shadow',
     name: 'Tomb Guardian Shadow',
+    emoji: '👤',
     x: 620,
     y: 420,
     w: 30,
@@ -98,8 +99,61 @@ const CLAIM_OPTIONS = ['Ancient Egypt', 'Ancient Greece', 'Ancient Rome', 'Ancie
 const INITIAL_RESOURCES = { investigation: 95, stamina: 100, time: 600 };
 const INVESTIGATION_BONUS = 5;
 const BRUSH_RECOVERY_BONUS = 3;
+const TROWEL_EXCAVATION_BONUS = 2;
+const CAMERA_DOCUMENTATION_BONUS = 1;
 const MAX_EVIDENCE_ITEMS = 3;
 const JOURNEY_TOOLS = ExpeditionJourney.tools;
+const TOOL_EFFECTS = {
+  brush: {
+    short: 'Careful recovery',
+    collected: 'Helps recover fragile evidence carefully. Adds a careful recovery bonus when mission evidence is secured.',
+    missing: 'Fragile evidence is harder to recover carefully.',
+    result: 'Brush used: careful recovery bonus added.',
+  },
+  trowel: {
+    short: 'Excavation bonus',
+    collected: 'Helps excavate features and buried objects. Adds a bonus for structures or object evidence.',
+    missing: 'Features and buried objects are harder to excavate cleanly.',
+    result: 'Trowel used: excavation bonus added for structures or object evidence.',
+  },
+  notebook: {
+    short: 'Field notes',
+    collected: 'Records field notes when evidence is rejected or inspected. Adds field notes to the final result.',
+    missing: 'Fewer field notes are recorded for later checking.',
+    result: 'Notebook used: field notes recorded for inspected or rejected evidence.',
+  },
+  camera: {
+    short: 'Documented in situ',
+    collected: 'Documents evidence in place before collection. Adds a small evidence quality bonus.',
+    missing: 'Evidence is less clearly documented before it is moved.',
+    result: 'Camera used: evidence documented before collection.',
+  },
+  'measuring-tape': {
+    short: 'Site mapping',
+    collected: 'Helps map and record where evidence was found. Adds a mapping bonus in the result.',
+    missing: 'Site mapping is less accurate.',
+    result: 'Measuring Tape: site mapping completed.',
+  },
+  'field-guide-page': {
+    short: 'Category hints',
+    collected: 'Gives evidence category hints during inspection.',
+    missing: 'No category hints are available during inspection.',
+    result: 'Field Guide used: evidence category hints were available.',
+  },
+};
+const FIELD_GUIDE_HINTS = {
+  structures: 'Field Guide Hint: Features and structures are things people built or changed, like walls, roads, buildings or tombs.',
+  written: 'Field Guide Hint: Written sources often contain symbols, records, laws, names or stories.',
+  environmental: 'Field Guide Hint: Environmental evidence can show rivers, farming, climate, soil, plants or natural resources.',
+  objects: 'Field Guide Hint: Artefacts and objects are things people made, used, traded or valued.',
+};
+const RANK_BANDS = [
+  { min: 90, title: 'Lead Archaeologist' },
+  { min: 75, title: 'Field Investigator' },
+  { min: 60, title: 'Evidence Apprentice' },
+  { min: 40, title: 'Trainee Excavator' },
+  { min: 0, title: 'Needs More Training' },
+];
 const EVIDENCE_HUNT_MISSIONS = [
   {
     id: 'structures',
@@ -162,6 +216,18 @@ const normaliseEvidenceTypeForMission = (type) => (
 const evidenceMatchesMission = (token, mission) => (
   normaliseEvidenceTypeForMission(token?.type) === mission?.targetCategoryId
 );
+
+const getRankTitle = (score) => RANK_BANDS.find(rank => score >= rank.min)?.title || RANK_BANDS[RANK_BANDS.length - 1].title;
+
+const getRankFeedback = (score) => {
+  if (score >= 90) {
+    return 'Excellent fieldwork. You used evidence carefully and made a strong historical claim.';
+  }
+  if (score >= 60) {
+    return 'Good work. You found useful evidence, but your claim or field preparation could be stronger.';
+  }
+  return 'You need more training. Review the mission, collect useful tools, and choose evidence that supports your claim.';
+};
 
 const chooseEvidenceHuntMission = (previousMissionId = null) => {
   const choices = EVIDENCE_HUNT_MISSIONS.filter(mission => mission.id !== previousMissionId);
@@ -256,6 +322,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
   const [selectedCivilisation, setSelectedCivilisation] = useState('');
   const [selectedEvidenceId, setSelectedEvidenceId] = useState('');
   const [claimResult, setClaimResult] = useState(null);
+  const [resultOpen, setResultOpen] = useState(false);
   const [expeditionStage, setExpeditionStage] = useState('journey');
   const [baseCampOpen, setBaseCampOpen] = useState(false);
   const [fieldKit, setFieldKit] = useState([]);
@@ -274,7 +341,67 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     fieldGuideAvailable: fieldKitSet.has('field-guide-page'),
     notebookReady: fieldKitSet.has('notebook'),
     brushReady: fieldKitSet.has('brush'),
+    trowelReady: fieldKitSet.has('trowel'),
+    cameraReady: fieldKitSet.has('camera'),
+    measuringTapeReady: fieldKitSet.has('measuring-tape'),
   }), [fieldKitSet]);
+  const selectedEvidence = useMemo(() => (
+    collectedEvidence.find(item => item.id === selectedEvidenceId) || null
+  ), [collectedEvidence, selectedEvidenceId]);
+  const missingTools = useMemo(() => (
+    JOURNEY_TOOLS.filter(tool => !fieldKitSet.has(tool.id))
+  ), [fieldKitSet]);
+  const collectedTools = useMemo(() => (
+    JOURNEY_TOOLS.filter(tool => fieldKitSet.has(tool.id))
+  ), [fieldKitSet]);
+  const fieldKitImpact = useMemo(() => (
+    JOURNEY_TOOLS.map((tool) => ({
+      id: tool.id,
+      name: tool.name,
+      collected: fieldKitSet.has(tool.id),
+      effect: TOOL_EFFECTS[tool.id]?.short || 'Field tool',
+      detail: fieldKitSet.has(tool.id)
+        ? TOOL_EFFECTS[tool.id]?.result
+        : TOOL_EFFECTS[tool.id]?.missing,
+      baseCampCollected: TOOL_EFFECTS[tool.id]?.collected,
+      baseCampMissing: TOOL_EFFECTS[tool.id]?.missing,
+    }))
+  ), [fieldKitSet]);
+  const fieldKitBonus = useMemo(() => {
+    if (!claimResult) return 0;
+    const bonus =
+      (fieldKitEffects.fieldGuideAvailable ? 2 : 0) +
+      (fieldKitEffects.notebookReady && fieldNotes.length > 0 ? 2 : 0) +
+      (fieldKitEffects.cameraReady && collectedEvidence.length > 0 ? 2 : 0) +
+      (fieldKitEffects.measuringTapeReady ? 2 : 0) +
+      (fieldKitEffects.trowelReady && collectedEvidence.some(item => ['structures', 'objects'].includes(normaliseEvidenceTypeForMission(item.type))) ? 2 : 0) +
+      (fieldKitEffects.brushReady && collectedEvidence.some(item => item.isMissionEvidence) ? 2 : 0);
+    return Math.min(10, bonus);
+  }, [claimResult, collectedEvidence, fieldKitEffects, fieldNotes.length]);
+  const claimCorrect = claimResult ? selectedCivilisation === TARGET_CIVILISATION : false;
+  const evidenceSupportsClaim = claimResult ? selectedEvidence?.supports === TARGET_CIVILISATION : false;
+  const missionComplete = missionEvidenceCount >= 1;
+  const finalScore = useMemo(() => {
+    if (!claimResult) return null;
+    const toolsScore = Math.round((fieldKit.length / JOURNEY_TOOLS.length) * 15);
+    const investigationScore = Math.round((resources.investigation / 100) * 10);
+    const staminaScore = Math.round((resources.stamina / 100) * 5);
+    const timeScore = Math.round((resources.time / INITIAL_RESOURCES.time) * 5);
+    return clamp(
+      (missionComplete ? 25 : 0) +
+      (claimCorrect ? 20 : 0) +
+      (evidenceSupportsClaim ? 20 : 0) +
+      toolsScore +
+      investigationScore +
+      staminaScore +
+      timeScore +
+      fieldKitBonus,
+      0,
+      100
+    );
+  }, [claimCorrect, claimResult, evidenceSupportsClaim, fieldKit.length, fieldKitBonus, missionComplete, resources]);
+  const finalRank = finalScore === null ? null : getRankTitle(finalScore);
+  const resultFeedback = finalScore === null ? '' : getRankFeedback(finalScore);
   const syncInventory = useCallback((items) => {
     const nextItems = [...items];
     collectedRef.current = nextItems;
@@ -289,6 +416,28 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       time: clamp(resourcesRef.current.time + (patch.time || 0), 0, 600),
     };
     setResources({ ...resourcesRef.current });
+  }, []);
+
+  const recordFieldNote = useCallback((token, reason) => {
+    if (!token) return;
+    setFieldNotes(previous => (
+      previous.some(note => note.evidenceId === token.id && note.reason === reason)
+        ? previous
+        : [
+            ...previous,
+            {
+              id: `${token.id}-${reason}`,
+              evidenceId: token.id,
+              reason,
+              name: token.name,
+              category: token.category,
+              clue: token.clue,
+              note: reason === 'rejected'
+                ? `${token.name} was inspected but not selected for the mission. It was ${token.category}, so the team kept looking.`
+                : `${token.name} was inspected and recorded as ${token.category} evidence from the ${token.zone}.`,
+            },
+          ]
+    ));
   }, []);
 
   const openInspection = useCallback((token = nearbyTokenRef.current) => {
@@ -334,20 +483,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
   const rejectInspectedEvidence = (token) => {
     if (!token || token.collected) return;
     if (fieldKitEffects.notebookReady) {
-      setFieldNotes(previous => (
-        previous.some(note => note.id === token.id)
-          ? previous
-          : [
-              ...previous,
-              {
-                id: token.id,
-                name: token.name,
-                category: token.category,
-                clue: token.clue,
-                note: `${token.category} noted for comparison. It did not fill the evidence satchel.`,
-              },
-            ]
-      ));
+      recordFieldNote(token, 'rejected');
     }
     dismissedTokenRef.current = token.id;
     setInspectionToken(null);
@@ -378,25 +514,47 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     setNearbyToken(null);
 
     if (isMissionEvidence) {
-      const investigationBonus = INVESTIGATION_BONUS + (fieldKitEffects.brushReady ? BRUSH_RECOVERY_BONUS : 0);
+      const trowelBonus = fieldKitEffects.trowelReady && ['structures', 'objects'].includes(normaliseEvidenceTypeForMission(token.type))
+        ? TROWEL_EXCAVATION_BONUS
+        : 0;
+      const cameraBonus = fieldKitEffects.cameraReady ? CAMERA_DOCUMENTATION_BONUS : 0;
+      const investigationBonus = INVESTIGATION_BONUS + (fieldKitEffects.brushReady ? BRUSH_RECOVERY_BONUS : 0) + trowelBonus + cameraBonus;
+      const toolFeedback = [
+        fieldKitEffects.brushReady ? 'Brush used: careful recovery bonus added.' : '',
+        trowelBonus ? 'Trowel used: excavation bonus added.' : '',
+        cameraBonus ? 'Camera used: evidence documented before collection.' : '',
+      ].filter(Boolean).join(' ');
       syncResources({ investigation: investigationBonus });
       setInspectionFeedback({
         correct: true,
         stamp: 'EVIDENCE VERIFIED',
-        text: fieldKitEffects.brushReady
-          ? `${activeMission.matchFeedback} Brush Ready adds a careful recovery bonus.`
-          : activeMission.matchFeedback,
+        text: `${activeMission.matchFeedback}${toolFeedback ? ` ${toolFeedback}` : ''}`,
       });
       setNotice(`${token.name} added to your evidence satchel. +${investigationBonus} investigation points.`);
       audioControls.playMatch?.();
     } else {
+      const trowelBonus = fieldKitEffects.trowelReady && ['structures', 'objects'].includes(normaliseEvidenceTypeForMission(token.type))
+        ? TROWEL_EXCAVATION_BONUS
+        : 0;
+      const cameraBonus = fieldKitEffects.cameraReady ? CAMERA_DOCUMENTATION_BONUS : 0;
+      const investigationBonus = trowelBonus + cameraBonus;
+      if (investigationBonus > 0) {
+        syncResources({ investigation: investigationBonus });
+      }
+      const toolFeedback = [
+        trowelBonus ? 'Trowel used: excavation bonus added.' : '',
+        cameraBonus ? 'Camera used: evidence documented before collection.' : '',
+      ].filter(Boolean).join(' ');
       setInspectionFeedback({
         correct: false,
         stamp: 'EVIDENCE COLLECTED',
-        text: activeMission.mismatchFeedback,
+        text: `${activeMission.mismatchFeedback}${toolFeedback ? ` ${toolFeedback}` : ''}`,
       });
       setNotice(`${token.name} added to your evidence satchel.`);
       audioControls.playError?.();
+    }
+    if (fieldKitEffects.notebookReady) {
+      recordFieldNote(token, 'inspected');
     }
     setInspectionStep('review');
   };
@@ -752,6 +910,31 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         targetCategoryTitle: activeMission.targetCategoryTitle,
       },
       exitUnlocked: missionEvidenceCount >= 1,
+      resultOpen,
+      finalScore,
+      finalRank,
+      fieldKitBonus,
+      claimCorrect,
+      evidenceSupportsClaim,
+      missionComplete,
+      fieldGuideHintVisible: Boolean(fieldKitEffects.fieldGuideAvailable && inspectionToken && !inspectionFeedback),
+      fieldKitImpact,
+      collectedEvidence: collectedRef.current.map(item => ({
+        id: item.id,
+        name: item.name,
+        category: item.category,
+        missionCategoryId: normaliseEvidenceTypeForMission(item.type),
+        isMissionEvidence: item.isMissionEvidence,
+        supports: item.supports,
+      })),
+      remainingEvidence: tokensRef.current.filter(item => !item.collected).map(item => ({
+        id: item.id,
+        x: item.x,
+        y: item.y,
+        category: item.category,
+        missionCategoryId: normaliseEvidenceTypeForMission(item.type),
+        clueGroup: item.clueGroup,
+      })),
       fieldKit,
       fieldKitEffects,
       baseCampOpen,
@@ -762,7 +945,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       delete window.advanceTime;
       delete window.render_game_to_text;
     };
-  }, [activeMission, baseCampOpen, expeditionStage, fieldKit, fieldKitEffects, missionEvidenceCount]);
+  }, [activeMission, baseCampOpen, claimCorrect, evidenceSupportsClaim, expeditionStage, fieldKit, fieldKitBonus, fieldKitEffects, fieldKitImpact, finalRank, finalScore, inspectionFeedback, inspectionToken, missionComplete, missionEvidenceCount, resultOpen]);
 
   useEffect(() => {
     if (expeditionStage !== 'excavation') return undefined;
@@ -850,6 +1033,15 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         limit: MAX_EVIDENCE_ITEMS,
       },
       claimOpen: lockedRef.current,
+      resultOpen,
+      finalScore,
+      finalRank,
+      fieldKitBonus,
+      claimCorrect,
+      evidenceSupportsClaim,
+      missionComplete,
+      fieldGuideHintVisible: Boolean(fieldKitEffects.fieldGuideAvailable && inspectionToken && !inspectionFeedback),
+      fieldKitImpact,
       briefingOpen,
       nearbyEvidence: nearbyTokenRef.current ? {
         id: nearbyTokenRef.current.id,
@@ -867,7 +1059,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       delete window.advanceTime;
       delete window.render_game_to_text;
     };
-  }, [activeMission, briefingOpen, draw, expeditionStage, fieldKit, fieldKitEffects, fieldNotes, inspectionFeedback, inspectionToken, missionEvidenceCount, openInspection, update]);
+  }, [activeMission, briefingOpen, claimCorrect, draw, evidenceSupportsClaim, expeditionStage, fieldKit, fieldKitBonus, fieldKitEffects, fieldKitImpact, fieldNotes, finalRank, finalScore, inspectionFeedback, inspectionToken, missionComplete, missionEvidenceCount, openInspection, resultOpen, update]);
 
   const resetExpedition = () => {
     const nextMission = chooseEvidenceHuntMission(activeMission.id);
@@ -903,12 +1095,13 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     setSelectedCivilisation('');
     setSelectedEvidenceId('');
     setClaimResult(null);
+    setResultOpen(false);
     dismissedTokenRef.current = null;
     draw();
   };
 
   const submitClaim = () => {
-    const chosenEvidence = collectedEvidence.find(item => item.id === selectedEvidenceId);
+    const chosenEvidence = selectedEvidence;
     if (!selectedCivilisation || !chosenEvidence) {
       setClaimResult({
         correct: false,
@@ -929,6 +1122,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         ? `${chosenEvidence.name} supports ${TARGET_CIVILISATION}: ${chosenEvidence.rationale}`
         : `${chosenEvidence.name} does not support ${selectedCivilisation}. Its clue points to ${chosenEvidence.supports} because ${chosenEvidence.clue}`,
     });
+    setResultOpen(true);
+    setClaimOpen(false);
 
     if (civilisationCorrect && evidenceCorrect) {
       audioControls.playWin?.();
@@ -974,8 +1169,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
               <p className="phase-kicker">Field Kit Report</p>
               <h3>Equipment packed for the excavation stage</h3>
               <p>
-                Tools collected on the journey will appear in the excavation side panel. The first version
-                keeps the field kit effects simple while the evidence mission drives the excavation goal.
+                Tools collected on the journey now help with careful excavation, field notes,
+                mapping and evidence checks. Missing tools mean the team loses that advantage.
               </p>
             </div>
 
@@ -985,14 +1180,15 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
               <p>{activeMission.instruction}</p>
             </div>
 
-            <ul className="expedition-tool-list expedition-basecamp-list">
-              {JOURNEY_TOOLS.map((tool) => (
-                <li key={tool.id} className={fieldKitSet.has(tool.id) ? 'is-collected' : ''}>
-                  <span>{tool.name}</span>
-                  <strong>{fieldKitSet.has(tool.id) ? 'Collected' : 'Missing'}</strong>
-                </li>
+            <div className="expedition-field-kit-impact-grid">
+              {fieldKitImpact.map((tool) => (
+                <article key={tool.id} className={`expedition-field-kit-impact ${tool.collected ? 'is-collected' : ''}`}>
+                  <strong>{tool.name}</strong>
+                  <span>{tool.collected ? 'Advantage secured' : 'Missed advantage'}</span>
+                  <p>{tool.collected ? tool.baseCampCollected : tool.baseCampMissing}</p>
+                </article>
               ))}
-            </ul>
+            </div>
 
             <div className="bureau-briefing-actions">
               <button type="button" className="btn primary-btn expedition-begin-btn" onClick={beginExcavationStage}>
@@ -1077,19 +1273,14 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
 
             <section className="expedition-panel">
               <h3><Backpack size={17} /> Field Kit</h3>
-              <ul className="expedition-tool-list">
-                <li className={fieldKitEffects.fieldGuideAvailable ? 'is-collected' : ''}>
-                  <span>Field Guide Available</span>
-                  <strong>{fieldKitEffects.fieldGuideAvailable ? 'Hints' : 'Missing'}</strong>
-                </li>
-                <li className={fieldKitEffects.notebookReady ? 'is-collected' : ''}>
-                  <span>Notebook Ready</span>
-                  <strong>{fieldKitEffects.notebookReady ? 'Notes' : 'Missing'}</strong>
-                </li>
-                <li className={fieldKitEffects.brushReady ? 'is-collected' : ''}>
-                  <span>Brush Ready</span>
-                  <strong>{fieldKitEffects.brushReady ? '+3 Bonus' : 'Missing'}</strong>
-                </li>
+              <ul className="expedition-tool-list expedition-tool-impact-list compact">
+                {fieldKitImpact.map((tool) => (
+                  <li key={tool.id} className={tool.collected ? 'is-collected' : ''}>
+                    <span>{tool.name}</span>
+                    <strong>{tool.collected ? tool.effect : 'Missing'}</strong>
+                    <p>{tool.collected ? tool.detail : tool.baseCampMissing}</p>
+                  </li>
+                ))}
               </ul>
             </section>
 
@@ -1182,12 +1373,10 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
             <p>{inspectionToken.clue}</p>
             <div className="expedition-inspection-clue-group">Clue group: {inspectionToken.clueGroup}</div>
             {fieldKitEffects.fieldGuideAvailable && !inspectionFeedback && (
-              <div className={`expedition-tool-effect-hint ${evidenceMatchesMission(inspectionToken, activeMission) ? 'match' : 'miss'}`}>
-                <strong>Field Guide Available</strong>
+              <div className="expedition-tool-effect-hint">
+                <strong>Field Guide Hint</strong>
                 <span>
-                  {evidenceMatchesMission(inspectionToken, activeMission)
-                    ? `${inspectionToken.category} matches this mission target.`
-                    : `${inspectionToken.category} is useful, but it does not match this mission target.`}
+                  {FIELD_GUIDE_HINTS[normaliseEvidenceTypeForMission(inspectionToken.type)] || 'Field Guide Hint: Look at what this evidence shows before deciding if it matches the mission.'}
                 </span>
               </div>
             )}
@@ -1338,6 +1527,107 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
                   Return to Site
                 </button>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {resultOpen && (
+        <div className="bureau-briefing-overlay">
+          <div className="bureau-briefing-modal expedition-result-modal">
+            <div className="training-kicker">Run Result</div>
+            <div className="expedition-result-header">
+              <div>
+                <h2>{finalRank}</h2>
+                <p>{resultFeedback}</p>
+              </div>
+              <div className="expedition-score-badge">
+                <strong>{finalScore}</strong>
+                <span>/100</span>
+              </div>
+            </div>
+
+            <div className="expedition-result-grid">
+              <section className="expedition-result-card">
+                <h3>Mission Result</h3>
+                <dl>
+                  <div><dt>Mission</dt><dd>{activeMission.title}</dd></div>
+                  <div><dt>Mission evidence</dt><dd>{missionComplete ? 'Secured' : 'Not secured'}</dd></div>
+                  <div><dt>Collected</dt><dd>{missionEvidenceCount}/1 {activeMission.targetCategoryTitle}</dd></div>
+                  <div><dt>Exit Gate</dt><dd>{exitUnlocked ? 'Unlocked' : 'Locked'}</dd></div>
+                </dl>
+              </section>
+
+              <section className="expedition-result-card">
+                <h3>Final Claim</h3>
+                <dl>
+                  <div><dt>Civilisation</dt><dd>{selectedCivilisation || 'Not chosen'}</dd></div>
+                  <div><dt>Ancient Egypt match</dt><dd>{claimCorrect ? 'Yes' : 'No'}</dd></div>
+                  <div><dt>Supporting evidence</dt><dd>{selectedEvidence?.name || 'Not chosen'}</dd></div>
+                  <div><dt>Evidence support</dt><dd>{evidenceSupportsClaim ? 'Supports Ancient Egypt' : 'Does not support Ancient Egypt'}</dd></div>
+                </dl>
+                {claimResult && (
+                  <div className={`expedition-claim-feedback ${claimResult.correct ? 'correct' : 'incorrect'}`}>
+                    {claimResult.correct ? <CheckCircle2 size={20} /> : <AlertTriangle size={20} />}
+                    <div>
+                      <strong>{claimResult.sentence}</strong>
+                      <p>{claimResult.feedback}</p>
+                    </div>
+                  </div>
+                )}
+              </section>
+
+              <section className="expedition-result-card expedition-result-card-wide">
+                <h3>Field Performance</h3>
+                <div className="expedition-result-stats">
+                  <span>Time: <strong>{resources.time}s</strong></span>
+                  <span>Stamina: <strong>{resources.stamina}</strong></span>
+                  <span>Investigation: <strong>{resources.investigation}</strong></span>
+                  <span>Evidence: <strong>{collectedEvidence.length}/{MAX_EVIDENCE_ITEMS}</strong></span>
+                  <span>Field notes: <strong>{fieldNotes.length}</strong></span>
+                  <span>Tool bonus: <strong>+{fieldKitBonus}</strong></span>
+                </div>
+                <div className="expedition-result-lists">
+                  <div>
+                    <strong>Tools collected</strong>
+                    <p>{collectedTools.length > 0 ? collectedTools.map(tool => tool.name).join(', ') : 'No tools collected'}</p>
+                  </div>
+                  <div>
+                    <strong>Missing tools</strong>
+                    <p>{missingTools.length > 0 ? missingTools.map(tool => tool.name).join(', ') : 'No tools missing'}</p>
+                  </div>
+                  <div>
+                    <strong>Evidence collected</strong>
+                    <p>{collectedEvidence.length > 0 ? collectedEvidence.map(item => item.name).join(', ') : 'No evidence collected'}</p>
+                  </div>
+                  <div>
+                    <strong>Field notes recorded</strong>
+                    <p>{fieldNotes.length > 0 ? fieldNotes.map(note => note.name).join(', ') : 'No field notes recorded'}</p>
+                  </div>
+                </div>
+              </section>
+
+              <section className="expedition-result-card expedition-result-card-wide">
+                <h3>Field Kit Impact</h3>
+                <div className="expedition-field-kit-impact-grid">
+                  {fieldKitImpact.map((tool) => (
+                    <article key={tool.id} className={`expedition-field-kit-impact ${tool.collected ? 'is-collected' : ''}`}>
+                      <strong>{tool.name}</strong>
+                      <span>{tool.collected ? tool.effect : 'Missed advantage'}</span>
+                      <p>{tool.detail}</p>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            </div>
+
+            <div className="bureau-briefing-actions">
+              <button type="button" className="btn primary-btn" onClick={resetExpedition}>
+                Play Again
+              </button>
+              <button type="button" className="btn" onClick={onBackToMenu}>
+                Back to Menu
+              </button>
             </div>
           </div>
         </div>
