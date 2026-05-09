@@ -10430,177 +10430,256 @@ main {
   border-left: 3px solid #92400e;
   background: rgba(146, 64, 14, 0.1);
   color: #6b2d12;
-  font-weight: 700;
 }
 
-.expedition-objective-status,
-.expedition-boss-status,
-.expedition-atmosphere-status {
+/* --- Polished Expedition Journey UI --- */
+
+.expedition-journey-shell {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 40px);
+}
+
+.expedition-journey-grid {
   display: grid;
-  gap: 0.25rem;
-  padding: 0.55rem 0.65rem;
+  grid-template-columns: 1fr 320px;
+  gap: 1.5rem;
+  flex: 1;
+  min-height: 0;
+  padding: 1rem;
+}
+
+.expedition-journey-canvas-card {
+  position: relative;
+  background: #1e293b;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: inset 0 0 100px rgba(0,0,0,0.5), 0 10px 25px -5px rgba(0,0,0,0.3);
+  border: 4px solid #334155;
+  display: flex;
+  flex-direction: column;
+}
+
+.expedition-journey-canvas-card canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+
+.expedition-journey-notice {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(8px);
+  padding: 0.75rem 1.5rem;
+  border-radius: 99px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 10;
+  animation: noticePop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes noticePop {
+  from { transform: translate(-50%, 20px); opacity: 0; }
+  to { transform: translate(-50%, 0); opacity: 1; }
+}
+
+.expedition-panel-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.expedition-panel {
+  background: var(--bureau-parchment);
+  border: 1px solid var(--bureau-gold-muted);
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 2px 2px 8px rgba(0,0,0,0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.expedition-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--bureau-gold);
+}
+
+.expedition-panel h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--bureau-gold-dark);
+  margin-bottom: 0.75rem;
+  border-bottom: 1px dashed rgba(139, 106, 72, 0.2);
+  padding-bottom: 0.5rem;
+}
+
+/* Resource Bars */
+.expedition-stat-bar {
+  height: 8px;
+  background: rgba(0,0,0,0.1);
   border-radius: 4px;
-  background: rgba(255, 250, 240, 0.58);
-  border: 1px solid rgba(139, 106, 72, 0.24);
+  overflow: hidden;
+  margin-top: 0.25rem;
+  border: 1px solid rgba(0,0,0,0.05);
 }
 
-.expedition-objective-status strong,
-.expedition-boss-status strong,
-.expedition-atmosphere-status strong {
-  color: var(--bureau-ink);
-  line-height: 1.2;
+.expedition-stat-fill {
+  height: 100%;
+  transition: width 0.3s ease;
 }
 
-.expedition-objective-status span,
-.expedition-boss-status span,
-.expedition-atmosphere-status span {
+.stamina-fill { background: linear-gradient(90deg, #10b981, #34d399); }
+.time-fill { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+
+.expedition-resource-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.expedition-resource-row span {
+  font-size: 0.75rem;
   color: var(--bureau-ink-muted);
-  font-size: 0.78rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 
-.expedition-boss-status {
-  border-left: 3px solid #7f1d1d;
-  background: rgba(127, 29, 29, 0.08);
-}
-
-.expedition-atmosphere-status {
-  border-left: 3px solid #2563eb;
-  background: rgba(37, 99, 235, 0.08);
-}
-
-.expedition-cinematic-note {
-  padding: 0.45rem 0.55rem;
-  border-left: 3px solid #b45309;
-  background: rgba(180, 83, 9, 0.1);
-  color: #6b2d12;
-  font-weight: 700;
-}
-
-.expedition-boss-warning-note {
-  padding: 0.45rem 0.55rem;
-  border-left: 3px solid #7f1d1d;
-  background: rgba(127, 29, 29, 0.12);
-  color: #6b1111;
-  font-weight: 800;
-}
-
-.expedition-environment-note {
-  padding: 0.45rem 0.55rem;
-  border-left: 3px solid #2563eb;
-  background: rgba(37, 99, 235, 0.1);
-  color: #1e3a8a;
-  font-weight: 700;
-}
-
-.expedition-route-gate-status {
-  display: grid;
-  gap: 0.35rem;
-  padding: 0.55rem 0.65rem;
-  border: 1px solid rgba(146, 64, 14, 0.24);
-  border-left: 3px solid #92400e;
-  border-radius: 4px;
-  background: rgba(146, 64, 14, 0.08);
-  color: var(--bureau-ink-muted);
-  font-size: 0.78rem;
-}
-
-.expedition-route-gate-status strong {
+.expedition-resource-row strong {
+  font-family: 'Courier New', monospace;
+  font-size: 1rem;
   color: var(--bureau-ink);
 }
 
-.expedition-route-gate-status ul {
+/* Field Kit Checklist */
+.expedition-tool-list {
   display: grid;
-  gap: 0.2rem;
-  margin: 0;
+  gap: 0.4rem;
   padding: 0;
   list-style: none;
 }
 
-.expedition-route-gate-status li::before {
-  content: 'Need';
-  margin-right: 0.35rem;
-  color: #92400e;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
-.expedition-route-gate-status li.is-met {
-  color: #2d5a27;
-}
-
-.expedition-route-gate-status li.is-met::before {
-  content: 'Ready';
-  color: #2d5a27;
-}
-
-.expedition-mission-card {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.expedition-mission-card strong {
-  font-family: 'Cinzel', serif;
-  font-size: 1.05rem;
-  color: var(--bureau-ink);
-}
-
-.expedition-mission-card span {
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 0.85rem;
-  color: var(--bureau-ink-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.expedition-mission-card p {
-  margin: 0.25rem 0;
-  font-size: 0.9rem;
-  line-height: 1.4;
-  color: var(--bureau-ink);
-}
-
-.expedition-mission-progress {
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
-  border-top: 1px dashed rgba(139, 106, 72, 0.3);
-  font-family: 'Courier New', Courier, monospace;
-  font-weight: bold;
-  font-size: 0.95rem;
+.expedition-tool-list li {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 0.4rem 0.6rem;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 4px;
+  font-size: 0.8rem;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
 }
 
-.expedition-mission-progress span {
-  color: var(--bureau-gold-dark);
-  font-size: 1.1rem;
+.expedition-tool-list li.is-collected {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.2);
+  color: #065f46;
 }
 
-.resource-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-  gap: 0.75rem;
+.expedition-tool-list li.is-collected span::before {
+  content: '✓ ';
+  font-weight: bold;
 }
 
-.resource-list div {
-  background: rgba(255, 255, 255, 0.5);
-  padding: 0.65rem;
-  border-radius: 6px;
-  border: 1px solid rgba(139, 106, 72, 0.15);
-  text-align: center;
+.expedition-tool-list li:not(.is-collected) {
+  opacity: 0.6;
 }
 
-.resource-list strong {
-  display: block;
-  font-size: 1.2rem;
-  color: var(--bureau-ink);
-  font-family: 'Courier New', Courier, monospace;
+/* Boss & Atmosphere Panels */
+.expedition-boss-panel {
+  border-left-color: #ef4444;
+  background: rgba(254, 242, 242, 0.7);
 }
 
-.resource-list span {
-  font-size: 0.7rem;
+.expedition-atmosphere-panel {
+  border-left-color: #3b82f6;
+  background: rgba(239, 246, 255, 0.7);
+}
+
+/* Mission Briefing */
+.expedition-mission-briefing-modal {
+  max-width: 550px;
+  background: var(--bureau-parchment);
+  padding: 2.5rem;
+  border: 2px solid var(--bureau-gold);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+
+.expedition-briefing-stamp {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  border: 3px solid #7f1d1d;
+  color: #7f1d1d;
+  padding: 0.25rem 0.75rem;
+  font-weight: 900;
   text-transform: uppercase;
-  color: var(--bureau-ink-muted);
+  transform: rotate(15deg);
+  opacity: 0.6;
+  font-family: 'Cinzel', serif;
+}
+
+.expedition-begin-btn {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1.1rem;
+  font-family: 'Cinzel', serif;
+}
+
+.expedition-briefing-mission {
+  background: rgba(139, 106, 72, 0.05);
+  border: 1px dashed var(--bureau-gold-muted);
+  padding: 1.25rem;
+  border-radius: 8px;
+  margin: 1.5rem 0;
+}
+
+.expedition-briefing-mission strong {
+  color: var(--bureau-gold-dark);
+}
+
+/* Route Gate Readability */
+.expedition-route-gate-status {
+  background: rgba(254, 252, 232, 0.6);
+  border: 1px solid rgba(234, 179, 8, 0.3);
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin-top: 0.5rem;
+}
+
+.expedition-route-gate-status ul {
+  margin-top: 0.5rem;
+}
+
+.expedition-route-gate-status li {
+  font-family: 'Courier New', monospace;
+  font-size: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.expedition-route-gate-status li.is-met {
+  color: #166534;
+  font-weight: bold;
 }

@@ -27,20 +27,20 @@ const INVULNERABLE_DURATION = 1.05;
 const INITIAL_JOURNEY_NOTICE = 'Reach Base Camp. Collect tools, relic shards, and upgrades along the way.';
 
 const JOURNEY_TOOLS = [
-  { id: 'brush', name: 'Brush', icon: 'B' },
-  { id: 'trowel', name: 'Trowel', icon: 'T' },
-  { id: 'notebook', name: 'Notebook', icon: 'N' },
-  { id: 'camera', name: 'Camera', icon: 'C' },
-  { id: 'measuring-tape', name: 'Measuring Tape', icon: 'M' },
-  { id: 'field-guide-page', name: 'Field Guide Page', icon: 'F' },
+  { id: 'brush', name: 'Brush', emoji: '🖌️', icon: 'B' },
+  { id: 'trowel', name: 'Trowel', emoji: '⛏️', icon: 'T' },
+  { id: 'notebook', name: 'Notebook', emoji: '📓', icon: 'N' },
+  { id: 'camera', name: 'Camera', emoji: '📷', icon: 'C' },
+  { id: 'measuring-tape', name: 'Measuring Tape', emoji: '📏', icon: 'M' },
+  { id: 'field-guide-page', name: 'Field Guide Page', emoji: '📜', icon: 'F' },
 ];
 
 const SECTIONS = [
-  { id: 'desert-entry', name: 'Desert Entry', start: 0, end: 1500, color: '#e8c179', accent: '#b66d34' },
-  { id: 'ruined-temple', name: 'Ruined Temple', start: 1500, end: 3150, color: '#c9ad82', accent: '#6f5b45' },
-  { id: 'catacombs', name: 'Catacombs', start: 3150, end: 5050, color: '#4f4a46', accent: '#b99b5b' },
-  { id: 'escape-sequence', name: 'Escape Sequence', start: 5050, end: 6500, color: '#9f6b4b', accent: '#5b2c20' },
-  { id: 'dig-site-entrance', name: 'Dig Site Entrance', start: 6500, end: WORLD_WIDTH, color: '#8f9f7a', accent: '#31543d' },
+  { id: 'desert-entry', name: 'Desert Entry', start: 0, end: 1500, color: '#f3e5ab', accent: '#b45309' },
+  { id: 'ruined-temple', name: 'Ruined Temple', start: 1500, end: 3150, color: '#d1bfa7', accent: '#5c4033' },
+  { id: 'catacombs', name: 'Catacombs', start: 3150, end: 5050, color: '#3d3d3d', accent: '#7c3aed' },
+  { id: 'escape-sequence', name: 'Escape Sequence', start: 5050, end: 6500, color: '#a16207', accent: '#991b1b' },
+  { id: 'dig-site-entrance', name: 'Dig Site Entrance', start: 6500, end: WORLD_WIDTH, color: '#dcfce7', accent: '#166534' },
 ];
 
 const TOOL_LAYOUT = [
@@ -81,27 +81,27 @@ const PLATFORMS = [
 ];
 
 const HAZARDS = [
-  { id: 'thorn-bush', name: 'thorn bush', x: 560, y: 329, width: 54, height: 31, penalty: { stamina: 8 }, message: 'Thorn scrub slowed the team. Stamina reduced.' },
-  { id: 'sand-pit', name: 'soft sand', x: 1060, y: 330, width: 92, height: 30, penalty: { time: 10 }, message: 'Soft sand cost the team time.' },
-  { id: 'spike-trap', name: 'temple trap', x: 2050, y: 330, width: 70, height: 30, penalty: { stamina: 12 }, message: 'A temple trap clipped your route. Stamina reduced.' },
-  { id: 'rolling-stones', name: 'rolling stones', x: 2925, y: 318, width: 70, height: 42, penalty: { stamina: 12, time: 5 }, message: 'Rolling stones forced a scramble.' },
-  { id: 'dark-gap', name: 'dark gap', x: 3460, y: 344, width: 90, height: 18, penalty: { stamina: 10 }, message: 'You stumbled in a dark gap.' },
-  { id: 'bat-cloud', name: 'bat cloud', x: 4470, y: 244, width: 105, height: 78, penalty: { time: 9 }, message: 'A cloud of bats scattered the team.' },
-  { id: 'falling-blocks', name: 'falling blocks', x: 5350, y: 318, width: 90, height: 42, penalty: { stamina: 14 }, message: 'Falling blocks made the escape tense.' },
-  { id: 'dust-wave', name: 'dust wave', x: 5960, y: 316, width: 130, height: 44, penalty: { time: 12 }, message: 'Dust reduced visibility. Time reduced.' },
-  { id: 'loose-slope', name: 'loose slope', x: 6910, y: 330, width: 110, height: 30, penalty: { stamina: 10 }, message: 'Loose stones made the final climb harder.' },
+  { id: 'thorn-bush', name: 'thorn bush', emoji: '🌿', x: 560, y: 329, width: 54, height: 31, penalty: { stamina: 8 }, message: 'Thorn scrub slowed the team. Stamina reduced.' },
+  { id: 'sand-pit', name: 'soft sand', emoji: '⏳', x: 1060, y: 330, width: 92, height: 30, penalty: { time: 10 }, message: 'Soft sand cost the team time.' },
+  { id: 'spike-trap', name: 'temple trap', emoji: '🧱', x: 2050, y: 330, width: 70, height: 30, penalty: { stamina: 12 }, message: 'A temple trap clipped your route. Stamina reduced.' },
+  { id: 'rolling-stones', name: 'rolling stones', emoji: '🪨', x: 2925, y: 318, width: 70, height: 42, penalty: { stamina: 12, time: 5 }, message: 'Rolling stones forced a scramble.' },
+  { id: 'dark-gap', name: 'dark gap', emoji: '⬛', x: 3460, y: 344, width: 90, height: 18, penalty: { stamina: 10 }, message: 'You stumbled in a dark gap.' },
+  { id: 'bat-cloud', name: 'bat cloud', emoji: '🦇', x: 4470, y: 244, width: 105, height: 78, penalty: { time: 9 }, message: 'A cloud of bats scattered the team.' },
+  { id: 'falling-blocks', name: 'falling blocks', emoji: '🧱', x: 5350, y: 318, width: 90, height: 42, penalty: { stamina: 14 }, message: 'Falling blocks made the escape tense.' },
+  { id: 'dust-wave', name: 'dust wave', emoji: '💨', x: 5960, y: 316, width: 130, height: 44, penalty: { time: 12 }, message: 'Dust reduced visibility. Time reduced.' },
+  { id: 'loose-slope', name: 'loose slope', emoji: '📉', x: 6910, y: 330, width: 110, height: 30, penalty: { stamina: 10 }, message: 'Loose stones made the final climb harder.' },
 ];
 
 const ENEMIES = [
-  { id: 'scarab-1', name: 'Scarab', type: 'scarab', x: 890, y: 334, width: 34, height: 26, patrolMin: 820, patrolMax: 1040, speed: 80, health: 1, damage: 8, shards: 2 },
-  { id: 'snake-1', name: 'Sand Snake', type: 'snake', x: 1390, y: 330, width: 42, height: 30, patrolMin: 1320, patrolMax: 1470, speed: 62, health: 1, damage: 10, shards: 2 },
-  { id: 'guardian-1', name: 'Stone Guardian', type: 'guardian', x: 2350, y: 318, width: 36, height: 42, patrolMin: 2240, patrolMax: 2580, speed: 72, health: 2, damage: 12, shards: 4 },
-  { id: 'looter-1', name: 'Rival Looter', type: 'looter', x: 3040, y: 318, width: 34, height: 42, patrolMin: 2920, patrolMax: 3140, speed: 90, health: 2, damage: 12, shards: 4 },
-  { id: 'bat-1', name: 'Temple Bat', type: 'bat', x: 3700, y: 245, width: 34, height: 28, patrolMin: 3600, patrolMax: 3870, speed: 118, health: 1, damage: 8, shards: 3, flying: true },
-  { id: 'statue-1', name: 'Cursed Statue', type: 'statue', x: 4700, y: 318, width: 42, height: 42, patrolMin: 4630, patrolMax: 4860, speed: 56, health: 3, damage: 14, shards: 6 },
-  { id: 'scarab-2', name: 'Scarab Swarm', type: 'scarab', x: 5240, y: 334, width: 44, height: 26, patrolMin: 5140, patrolMax: 5410, speed: 130, health: 2, damage: 10, shards: 4 },
-  { id: 'looter-2', name: 'Rival Looter', type: 'looter', x: 6330, y: 318, width: 34, height: 42, patrolMin: 6170, patrolMax: 6470, speed: 95, health: 2, damage: 12, shards: 4 },
-  { id: 'guardian-2', name: 'Gate Guardian', type: 'guardian', x: 7180, y: 318, width: 38, height: 42, patrolMin: 7060, patrolMax: 7350, speed: 78, health: 3, damage: 15, shards: 8 },
+  { id: 'scarab-1', name: 'Scarab', type: 'scarab', emoji: '🐞', x: 890, y: 334, width: 34, height: 26, patrolMin: 820, patrolMax: 1040, speed: 80, health: 1, damage: 8, shards: 2 },
+  { id: 'snake-1', name: 'Sand Snake', type: 'snake', emoji: '🐍', x: 1390, y: 330, width: 42, height: 30, patrolMin: 1320, patrolMax: 1470, speed: 62, health: 1, damage: 10, shards: 2 },
+  { id: 'guardian-1', name: 'Stone Guardian', type: 'guardian', emoji: '🗿', x: 2350, y: 318, width: 36, height: 42, patrolMin: 2240, patrolMax: 2580, speed: 72, health: 2, damage: 12, shards: 4 },
+  { id: 'looter-1', name: 'Rival Looter', type: 'looter', emoji: '👤', x: 3040, y: 318, width: 34, height: 42, patrolMin: 2920, patrolMax: 3140, speed: 90, health: 2, damage: 12, shards: 4 },
+  { id: 'bat-1', name: 'Temple Bat', type: 'bat', emoji: '🦇', x: 3700, y: 245, width: 34, height: 28, patrolMin: 3600, patrolMax: 3870, speed: 118, health: 1, damage: 8, shards: 3, flying: true },
+  { id: 'statue-1', name: 'Cursed Statue', type: 'statue', emoji: '🗽', x: 4700, y: 318, width: 42, height: 42, patrolMin: 4630, patrolMax: 4860, speed: 56, health: 3, damage: 14, shards: 6 },
+  { id: 'scarab-2', name: 'Scarab Swarm', type: 'scarab', emoji: '🐝', x: 5240, y: 334, width: 44, height: 26, patrolMin: 5140, patrolMax: 5410, speed: 130, health: 2, damage: 10, shards: 4 },
+  { id: 'looter-2', name: 'Rival Looter', type: 'looter', emoji: '👤', x: 6330, y: 318, width: 34, height: 42, patrolMin: 6170, patrolMax: 6470, speed: 95, health: 2, damage: 12, shards: 4 },
+  { id: 'guardian-2', name: 'Gate Guardian', type: 'guardian', emoji: '🗿', x: 7180, y: 318, width: 38, height: 42, patrolMin: 7060, patrolMax: 7350, speed: 78, health: 3, damage: 15, shards: 8 },
 ];
 
 const RELIC_SHARDS = [
@@ -116,11 +116,11 @@ const RELIC_SHARDS = [
 }));
 
 const UPGRADES = [
-  { id: 'reinforced-boots', name: 'Reinforced Boots', shortName: 'Boots', x: 1160, y: 320, effect: 'Higher jump for temple ledges.' },
-  { id: 'rope-launcher', name: 'Rope Launcher', shortName: 'Rope', x: 2140, y: 232, effect: 'One extra mid-air jump to reach optional shelves.' },
-  { id: 'torch-upgrade', name: 'Torch Upgrade', shortName: 'Torch', x: 3345, y: 320, effect: 'Reveals darker catacomb routes.' },
-  { id: 'historian-vision', name: 'Historian Vision', shortName: 'Vision', x: 4620, y: 190, effect: 'Reveals hidden relic shard clusters.' },
-  { id: 'ancient-compass', name: 'Ancient Compass', shortName: 'Compass', x: 6675, y: 320, effect: 'Marks secret rooms near the dig-site entrance.' },
+  { id: 'reinforced-boots', name: 'Reinforced Boots', shortName: 'Boots', emoji: '🥾', x: 1160, y: 320, effect: 'Higher jump for temple ledges.' },
+  { id: 'rope-launcher', name: 'Rope Launcher', shortName: 'Rope', emoji: '🪝', x: 2140, y: 232, effect: 'One extra mid-air jump to reach optional shelves.' },
+  { id: 'torch-upgrade', name: 'Torch Upgrade', shortName: 'Torch', emoji: '🔦', x: 3345, y: 320, effect: 'Reveals darker catacomb routes.' },
+  { id: 'historian-vision', name: 'Historian Vision', shortName: 'Vision', emoji: '👁️', x: 4620, y: 190, effect: 'Reveals hidden relic shard clusters.' },
+  { id: 'ancient-compass', name: 'Ancient Compass', shortName: 'Compass', emoji: '🧭', x: 6675, y: 320, effect: 'Marks secret rooms near the dig-site entrance.' },
 ];
 
 const CHECKPOINTS = [
@@ -269,54 +269,54 @@ const MINI_BOSSES = [
 
 const SECTION_ATMOSPHERES = {
   'desert-entry': {
-    skyTop: '#f7d88d',
-    skyBottom: '#e5a85d',
-    haze: 'rgba(255, 236, 180, 0.2)',
+    skyTop: '#ffda91',
+    skyBottom: '#ffcc7d',
+    haze: 'rgba(255, 243, 171, 0.25)',
     particle: 'sand',
-    particleColor: 'rgba(255, 239, 184, 0.58)',
-    fogColor: 'rgba(255, 243, 205, 0.16)',
-    mood: 'warm sunlight, blowing sand, distant ruins',
-    title: 'The desert opens toward a lost route.',
+    particleColor: 'rgba(255, 247, 212, 0.6)',
+    fogColor: 'rgba(255, 248, 220, 0.2)',
+    mood: 'sun-baked dunes, heat haze, ancient sand',
+    title: 'The desert dunes stretch toward the lost temple.',
   },
   'ruined-temple': {
-    skyTop: '#6b5c4a',
-    skyBottom: '#b6905f',
-    haze: 'rgba(250, 204, 21, 0.12)',
+    skyTop: '#5c4d3c',
+    skyBottom: '#8b6a47',
+    haze: 'rgba(251, 191, 36, 0.15)',
     particle: 'embers',
-    particleColor: 'rgba(255, 203, 99, 0.54)',
-    fogColor: 'rgba(62, 45, 29, 0.18)',
-    mood: 'torchlight, crumbling stone, waking statues',
-    title: 'Temple doors grind open.',
+    particleColor: 'rgba(251, 191, 36, 0.5)',
+    fogColor: 'rgba(75, 50, 32, 0.22)',
+    mood: 'flickering torches, shifting shadows, heavy stone',
+    title: 'Deep within the temple, the stone begins to groan.',
   },
-  catacombs: {
-    skyTop: '#182136',
-    skyBottom: '#3f2c66',
-    haze: 'rgba(147, 197, 253, 0.16)',
+  'catacombs': {
+    skyTop: '#111827',
+    skyBottom: '#312e81',
+    haze: 'rgba(129, 140, 248, 0.18)',
     particle: 'glyph motes',
-    particleColor: 'rgba(168, 199, 255, 0.5)',
-    fogColor: 'rgba(91, 65, 145, 0.24)',
-    mood: 'blue glyph light, fog, narrow tunnels',
-    title: 'The path drops into the catacombs.',
+    particleColor: 'rgba(165, 180, 252, 0.55)',
+    fogColor: 'rgba(30, 27, 75, 0.3)',
+    mood: 'pulsing glyphs, purple mist, forgotten depths',
+    title: 'The catacombs reveal secrets written in light.',
   },
   'escape-sequence': {
-    skyTop: '#5f2419',
-    skyBottom: '#c75a2a',
-    haze: 'rgba(248, 113, 113, 0.2)',
-    particle: 'dust and rubble',
-    particleColor: 'rgba(255, 205, 142, 0.58)',
-    fogColor: 'rgba(127, 29, 29, 0.22)',
-    mood: 'shaking stone, dust, urgent escape',
-    title: 'The ruins begin to collapse.',
+    skyTop: '#7f1d1d',
+    skyBottom: '#ef4444',
+    haze: 'rgba(248, 113, 113, 0.25)',
+    particle: 'dust and debris',
+    particleColor: 'rgba(255, 228, 172, 0.65)',
+    fogColor: 'rgba(153, 27, 27, 0.25)',
+    mood: 'trembling ground, falling rubble, urgent heat',
+    title: 'The ruins are collapsing! Find the exit now!',
   },
   'dig-site-entrance': {
-    skyTop: '#8fbf9d',
-    skyBottom: '#f4d08b',
-    haze: 'rgba(187, 247, 208, 0.18)',
-    particle: 'camp sparks',
-    particleColor: 'rgba(255, 247, 179, 0.56)',
-    fogColor: 'rgba(220, 252, 231, 0.16)',
-    mood: 'campfires, excavation lights, safe arrival',
-    title: 'Base Camp glows beyond the final rise.',
+    skyTop: '#064e3b',
+    skyBottom: '#065f46',
+    haze: 'rgba(167, 243, 208, 0.2)',
+    particle: 'fireflies',
+    particleColor: 'rgba(209, 250, 229, 0.6)',
+    fogColor: 'rgba(6, 78, 59, 0.18)',
+    mood: 'safe encampment, golden light, the site awaits',
+    title: 'Base Camp is in sight. You have reached the dig.',
   },
 };
 
@@ -837,6 +837,31 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
     }
   }, [audioControls, triggerJourneyRescue]);
 
+  const drawFieldNoteLabel = useCallback((ctx, x, y, text, color) => {
+    ctx.save();
+    ctx.font = '800 11px Outfit, sans-serif';
+    const textWidth = ctx.measureText(text).width;
+    const padding = 6;
+    const w = textWidth + padding * 2;
+    const h = 18;
+    const r = 4;
+    const lx = x - w / 2;
+    const ly = y - h / 2;
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.beginPath();
+    ctx.roundRect(lx, ly, w, h, r);
+    ctx.fill();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.fillStyle = color;
+    ctx.textAlign = 'center';
+    ctx.fillText(text, x, y + 4);
+    ctx.restore();
+  }, []);
+
   const drawPlatform = useCallback((ctx, platform, cameraX, current) => {
     if (platform.requiresUpgrade && !current.collectedUpgrades.has(platform.requiresUpgrade)) {
       if (!platform.secret) return;
@@ -853,25 +878,50 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
     ctx.globalAlpha = 1;
   }, []);
 
-  const drawCollectible = useCallback((ctx, x, y, cameraX, now, label, color, hidden = false) => {
+  const drawCollectible = useCallback((ctx, x, y, cameraX, now, label, color, hidden = false, isShard = false) => {
     const screenX = x - cameraX;
-    const floatY = Math.sin((now / 220) + x) * 4;
+    const floatY = Math.sin((now / 220) + x) * 6;
     ctx.save();
-    ctx.globalAlpha = hidden ? 0.42 : 1;
-    ctx.shadowColor = color;
-    ctx.shadowBlur = 10;
-    ctx.fillStyle = '#fff8d7';
+    ctx.globalAlpha = hidden ? 0.35 : 1;
+    
+    // Glow effect
+    const gradient = ctx.createRadialGradient(screenX, y + floatY, 0, screenX, y + floatY, 25);
+    gradient.addColorStop(0, `${color}44`);
+    gradient.addColorStop(1, 'transparent');
+    ctx.fillStyle = gradient;
     ctx.beginPath();
-    ctx.arc(screenX, y + floatY, 15, 0, Math.PI * 2);
+    ctx.arc(screenX, y + floatY, 25, 0, Math.PI * 2);
     ctx.fill();
-    ctx.shadowColor = 'transparent';
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.fillStyle = color;
-    ctx.font = '800 12px Outfit, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(label, screenX, y + floatY + 4);
+
+    if (isShard) {
+      // Draw a crystal/shard shape
+      ctx.fillStyle = '#fff8d7';
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 12;
+      ctx.beginPath();
+      ctx.moveTo(screenX, y + floatY - 12);
+      ctx.lineTo(screenX + 10, y + floatY);
+      ctx.lineTo(screenX, y + floatY + 12);
+      ctx.lineTo(screenX - 10, y + floatY);
+      ctx.closePath();
+      ctx.fill();
+    } else {
+      // Draw a rounded placard for tools/upgrades
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 3;
+      const r = 18;
+      ctx.beginPath();
+      ctx.roundRect(screenX - r, y + floatY - r, r * 2, r * 2, 8);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#1e293b';
+      ctx.font = '800 16px Outfit, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(label, screenX, y + floatY + 6);
+    }
+    
     ctx.restore();
   }, []);
 
@@ -879,82 +929,88 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
     const x = prop.x - cameraX;
     if (x < -140 || x > CANVAS_WIDTH + 140) return;
     ctx.save();
-    ctx.lineWidth = 3;
+    
     if (prop.type === 'ruins') {
-      ctx.fillStyle = 'rgba(116, 70, 33, 0.35)';
-      ctx.fillRect(x - 36, prop.y, 24, 94);
-      ctx.fillRect(x + 4, prop.y + 28, 28, 66);
-      ctx.fillRect(x - 46, prop.y - 8, 90, 14);
+      ctx.fillStyle = 'rgba(116, 70, 33, 0.4)';
+      ctx.strokeStyle = 'rgba(62, 45, 29, 0.6)';
+      ctx.lineWidth = 2;
+      // Pillar base
+      ctx.fillRect(x - 30, prop.y + 10, 60, 80);
+      ctx.strokeRect(x - 30, prop.y + 10, 60, 80);
+      // Top cap
+      ctx.fillRect(x - 40, prop.y - 10, 80, 20);
+      ctx.strokeRect(x - 40, prop.y - 10, 80, 20);
     } else if (prop.type === 'camp') {
-      ctx.fillStyle = '#5b341d';
-      ctx.fillRect(x - 34, prop.y + 26, 70, 12);
-      ctx.strokeStyle = '#7c4a21';
+      // Tent
+      ctx.fillStyle = '#e5e7eb';
       ctx.beginPath();
-      ctx.moveTo(x - 26, prop.y + 26);
+      ctx.moveTo(x - 50, prop.y + 60);
       ctx.lineTo(x, prop.y);
-      ctx.lineTo(x + 28, prop.y + 26);
+      ctx.lineTo(x + 50, prop.y + 60);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#94a3b8';
       ctx.stroke();
+      // Campfire
+      const fireGlow = Math.abs(Math.sin(now / 150)) * 0.4 + 0.6;
+      ctx.fillStyle = `rgba(249, 115, 22, ${0.4 * fireGlow})`;
+      ctx.beginPath();
+      ctx.arc(x + 20, prop.y + 60, 30, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#7c2d12';
+      ctx.fillRect(x + 10, prop.y + 55, 20, 5);
     } else if (prop.type === 'door') {
       ctx.fillStyle = '#4b3a2c';
-      ctx.fillRect(x - 38, prop.y, 76, 130);
+      ctx.fillRect(x - 40, prop.y, 80, 140);
       ctx.strokeStyle = '#d4af37';
-      ctx.strokeRect(x - 28, prop.y + 14, 56, 106);
+      ctx.lineWidth = 4;
+      ctx.strokeRect(x - 32, prop.y + 10, 64, 120);
+      // Door glyphs
+      ctx.fillStyle = 'rgba(212, 175, 55, 0.4)';
+      ctx.font = '12px serif';
+      ctx.fillText('𓀀𓀁𓀂', x - 20, prop.y + 50);
     } else if (prop.type === 'statue') {
-      ctx.fillStyle = '#665342';
-      ctx.fillRect(x - 19, prop.y, 38, 82);
-      ctx.fillRect(x - 28, prop.y + 70, 56, 14);
-      ctx.fillStyle = '#facc15';
-      ctx.fillRect(x - 9, prop.y + 20, 5, 4);
-      ctx.fillRect(x + 4, prop.y + 20, 5, 4);
-    } else if (prop.type === 'mural' || prop.type === 'glyphs') {
-      ctx.fillStyle = prop.type === 'glyphs' ? 'rgba(96, 165, 250, 0.18)' : 'rgba(180, 83, 9, 0.18)';
-      ctx.fillRect(x - 60, prop.y - 42, 120, 78);
-      ctx.fillStyle = prop.type === 'glyphs' ? '#93c5fd' : '#92400e';
-      for (let i = 0; i < 5; i += 1) {
-        ctx.fillText(['I', 'V', 'O', 'X', 'L'][i], x - 42 + i * 20, prop.y + Math.sin(now / 260 + i) * 5);
-      }
-    } else if (prop.type === 'eyes') {
-      ctx.fillStyle = `rgba(147, 197, 253, ${0.45 + Math.sin(now / 220) * 0.18})`;
-      ctx.fillRect(x - 18, prop.y, 8, 5);
-      ctx.fillRect(x + 10, prop.y, 8, 5);
-    } else if (prop.type === 'bridge') {
-      ctx.strokeStyle = '#5b2c20';
+      ctx.fillStyle = '#64748b';
+      ctx.fillRect(x - 25, prop.y, 50, 100);
+      ctx.fillStyle = '#475569';
+      ctx.fillRect(x - 35, prop.y + 80, 70, 20);
+      // Glowing eyes
+      const eyeGlow = Math.abs(Math.sin(now / 400)) * 0.5 + 0.5;
+      ctx.fillStyle = `rgba(239, 68, 68, ${eyeGlow})`;
+      ctx.beginPath(); ctx.arc(x - 10, prop.y + 25, 3, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(x + 10, prop.y + 25, 3, 0, Math.PI * 2); ctx.fill();
+    } else if (prop.type === 'glyphs') {
+      ctx.fillStyle = 'rgba(96, 165, 250, 0.15)';
       ctx.beginPath();
-      ctx.moveTo(x - 70, prop.y + 26);
-      ctx.lineTo(x + 70, prop.y);
-      ctx.stroke();
-      ctx.fillStyle = '#7c2d12';
-      for (let i = 0; i < 5; i += 1) {
-        ctx.fillRect(x - 58 + i * 26, prop.y + 18 - i * 4, 18, 6);
-      }
-    } else if (prop.type === 'sign') {
-      ctx.fillStyle = '#6b3f20';
-      ctx.fillRect(x - 4, prop.y, 8, 44);
-      ctx.fillStyle = '#facc15';
-      ctx.fillRect(x - 30, prop.y - 18, 60, 22);
-      ctx.fillStyle = '#7f1d1d';
-      ctx.font = '900 13px Outfit, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('!', x, prop.y - 2);
-    } else if (prop.type === 'lights') {
-      ctx.strokeStyle = '#334155';
-      ctx.beginPath();
-      ctx.moveTo(x - 34, prop.y + 78);
-      ctx.lineTo(x - 16, prop.y);
-      ctx.moveTo(x + 34, prop.y + 78);
-      ctx.lineTo(x + 16, prop.y);
-      ctx.stroke();
-      ctx.fillStyle = 'rgba(250, 204, 21, 0.28)';
-      ctx.beginPath();
-      ctx.arc(x, prop.y + 18, 70, 0, Math.PI * 2);
+      ctx.roundRect(x - 80, prop.y - 40, 160, 80, 10);
       ctx.fill();
-    } else if (prop.type === 'banners') {
-      ctx.fillStyle = '#31543d';
-      ctx.fillRect(x - 40, prop.y, 10, 100);
-      ctx.fillRect(x + 36, prop.y, 10, 100);
-      ctx.fillStyle = '#facc15';
-      ctx.fillRect(x - 30, prop.y + 8, 38, 24);
-      ctx.fillRect(x - 2, prop.y + 40, 38, 24);
+      ctx.strokeStyle = 'rgba(96, 165, 250, 0.3)';
+      ctx.stroke();
+      ctx.fillStyle = '#60a5fa';
+      ctx.font = 'bold 24px serif';
+      ctx.textAlign = 'center';
+      const symbols = ['𓋹', '𓅃', '𓃻', '𓇳'];
+      symbols.forEach((s, i) => {
+        const offset = (i - 1.5) * 35;
+        const bounce = Math.sin(now / 300 + i) * 6;
+        ctx.fillText(s, x + offset, prop.y + bounce);
+      });
+    } else if (prop.type === 'lights') {
+      // Industrial floodlight
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(x - 5, prop.y + 20, 10, 60);
+      ctx.fillStyle = '#94a3b8';
+      ctx.beginPath();
+      ctx.arc(x, prop.y + 20, 15, 0, Math.PI * 2);
+      ctx.fill();
+      // Beam
+      const beamGrad = ctx.createRadialGradient(x, prop.y + 20, 5, x, prop.y + 20, 120);
+      beamGrad.addColorStop(0, 'rgba(254, 240, 138, 0.4)');
+      beamGrad.addColorStop(1, 'transparent');
+      ctx.fillStyle = beamGrad;
+      ctx.beginPath();
+      ctx.arc(x, prop.y + 20, 120, 0, Math.PI * 2);
+      ctx.fill();
     }
     ctx.restore();
   }, []);
@@ -962,17 +1018,26 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
   const drawParticles = useCallback((ctx, atmosphere, cameraX, now) => {
     ctx.save();
     ctx.fillStyle = atmosphere.particleColor;
-    for (let i = 0; i < 34; i += 1) {
-      const drift = (now / (atmosphere.particle === 'dust and rubble' ? 18 : 35)) % 260;
-      const x = ((i * 97 + drift + cameraX * 0.18) % (CANVAS_WIDTH + 120)) - 60;
-      const yBase = atmosphere.particle === 'glyph motes' ? 90 : atmosphere.particle === 'camp sparks' ? 270 : 55;
-      const yRange = atmosphere.particle === 'dust and rubble' ? 250 : 190;
-      const y = yBase + ((i * 53 + Math.sin(now / 400 + i) * 22) % yRange);
-      const size = atmosphere.particle === 'dust and rubble' ? 3 + (i % 3) : 2 + (i % 2);
-      ctx.globalAlpha = atmosphere.particle === 'glyph motes' ? 0.44 : 0.58;
-      ctx.beginPath();
-      ctx.arc(x, y, size, 0, Math.PI * 2);
-      ctx.fill();
+    const count = atmosphere.particle === 'dust and debris' ? 45 : 34;
+    for (let i = 0; i < count; i += 1) {
+      const speedMult = atmosphere.particle === 'dust and debris' ? 2.5 : 1;
+      const drift = (now / (35 / speedMult)) % 2000;
+      const x = ((i * 137 + drift + cameraX * 0.1) % (CANVAS_WIDTH + 100)) - 50;
+      const yBase = atmosphere.particle === 'glyph motes' ? 120 : atmosphere.particle === 'fireflies' ? 150 : 60;
+      const yRange = atmosphere.particle === 'dust and debris' ? 300 : 200;
+      const y = yBase + ((i * 71 + Math.sin(now / 500 + i) * 30) % yRange);
+      
+      if (atmosphere.particle === 'glyph motes') {
+        ctx.globalAlpha = 0.35;
+        ctx.font = 'bold 10px serif';
+        ctx.fillText(['𓋹', '𓊽', '𓃻', '𓇳'][i % 4], x, y);
+      } else {
+        const size = atmosphere.particle === 'dust and debris' ? 2 + (i % 4) : 1.5 + (i % 2);
+        ctx.globalAlpha = 0.5;
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
     ctx.restore();
   }, []);
@@ -1057,348 +1122,294 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
       ctx.strokeRect(px, platform.y, platform.width, platform.height);
     });
 
+    // --- Background Layers (Parallax) ---
+    // Distant dunes/mountains
+    const drawParallax = (depth, color, heightMult) => {
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(0, CANVAS_HEIGHT);
+      for (let i = 0; i <= CANVAS_WIDTH; i += 40) {
+        const worldX = i + cameraX * depth;
+        const y = CANVAS_HEIGHT - 60 - heightMult * (20 + Math.sin(worldX * 0.002) * 30 + Math.cos(worldX * 0.005) * 15);
+        ctx.lineTo(i, y);
+      }
+      ctx.lineTo(CANVAS_WIDTH, CANVAS_HEIGHT);
+      ctx.fill();
+    };
+    
+    drawParallax(0.1, `${atmosphere.skyBottom}88`, 1.2); // Distant
+    drawParallax(0.2, `${atmosphere.skyBottom}aa`, 0.8); // Mid
+
+    // --- Ground & Atmosphere ---
+    ctx.fillStyle = atmosphere.haze;
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    
     STORY_PROPS.forEach((prop) => drawStoryProp(ctx, prop, cameraX, now));
     drawParticles(ctx, atmosphere, cameraX, now);
 
+    // --- Environment Events ---
     if (current.environmentEvent) {
       ctx.save();
+      const alpha = Math.min(1, current.environmentEventTimer / 60);
       if (current.environmentEvent.type === 'collapse') {
-        ctx.fillStyle = 'rgba(127, 29, 29, 0.18)';
+        ctx.fillStyle = `rgba(127, 29, 29, ${0.12 * alpha})`;
         ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-        ctx.fillStyle = 'rgba(76, 45, 28, 0.62)';
-        for (let i = 0; i < 12; i += 1) {
-          const x = ((i * 83 + now / 12) % CANVAS_WIDTH);
-          const y = 70 + ((i * 41 + now / 8) % 230);
-          ctx.fillRect(x, y, 18 + (i % 4) * 5, 10 + (i % 3) * 4);
+        // Falling dust chunks
+        ctx.fillStyle = 'rgba(76, 45, 28, 0.5)';
+        for (let i = 0; i < 15; i += 1) {
+          const rx = (i * 123 + now / 8) % CANVAS_WIDTH;
+          const ry = (i * 67 + now / 5) % CANVAS_HEIGHT;
+          ctx.fillRect(rx, ry, 6, 6);
         }
-      } else if (current.environmentEvent.type === 'doors') {
-        ctx.fillStyle = 'rgba(250, 204, 21, 0.16)';
-        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-      } else if (current.environmentEvent.type === 'glyphs') {
-        ctx.fillStyle = 'rgba(96, 165, 250, 0.14)';
-        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-      } else if (current.environmentEvent.type === 'arrival') {
-        ctx.fillStyle = 'rgba(220, 252, 231, 0.16)';
-        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
       }
       ctx.restore();
     }
 
+    // --- Hidden Rooms (Markers) ---
     HIDDEN_ROOMS.forEach((room) => {
       const visible = current.collectedUpgrades.has(room.requiresUpgrade);
       if (!visible && room.requiresUpgrade !== 'ancient-compass') return;
       if (room.x + room.width < cameraX || room.x > cameraX + CANVAS_WIDTH) return;
+      
+      const rx = room.x - cameraX;
       ctx.save();
-      ctx.globalAlpha = visible ? 0.28 : 0.1;
+      ctx.globalAlpha = visible ? 0.25 : 0.08;
       ctx.fillStyle = '#f5d56e';
-      ctx.fillRect(room.x - cameraX, room.y, room.width, room.height);
+      ctx.fillRect(rx, room.y, room.width, room.height);
       ctx.strokeStyle = '#f5d56e';
-      ctx.setLineDash([8, 8]);
-      ctx.strokeRect(room.x - cameraX, room.y, room.width, room.height);
-      ctx.setLineDash([]);
-      ctx.globalAlpha = 1;
-      if (visible) {
-        ctx.fillStyle = '#fff8d7';
-        ctx.font = '700 12px Outfit, sans-serif';
-        ctx.fillText(room.name, room.x - cameraX + 12, room.y + 22);
-      }
+      ctx.setLineDash([6, 6]);
+      ctx.strokeRect(rx, room.y, room.width, room.height);
       ctx.restore();
     });
 
+    // --- World Elements (Platforms, Hazards, Units) ---
     PLATFORMS.forEach((platform) => drawPlatform(ctx, platform, cameraX, current));
 
-    const pulse = (Math.sin(now / 200) + 1) / 2;
+    // Hazards
     HAZARDS.forEach((hazard) => {
-      const x = hazard.x - cameraX;
+      const hx = hazard.x - cameraX;
+      if (hx + hazard.width < -50 || hx > CANVAS_WIDTH + 50) return;
       
-      // Emoji with shadow
-      ctx.font = '32px Outfit, sans-serif';
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-      ctx.fillText(hazard.emoji, x + hazard.width / 2 - 16, hazard.y + hazard.height / 2 + 12);
-      
-      // Label (Rounded placard)
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-      ctx.font = '700 11px Outfit, sans-serif';
-      const textWidth = ctx.measureText(hazard.name).width;
-      
-      const lx = x + hazard.width / 2 - textWidth / 2 - 6;
-      const ly = hazard.y - 22;
-      const lw = textWidth + 12;
-      const lh = 18;
-      const lr = 4;
+      // Shadow & Emoji
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,0.3)';
+      ctx.shadowBlur = 4;
+      ctx.font = '34px Outfit, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(hazard.emoji, hx + hazard.width / 2, hazard.y + hazard.height / 2 + 10);
+      ctx.restore();
 
-      ctx.beginPath();
-      ctx.moveTo(lx + lr, ly); ctx.lineTo(lx + lw - lr, ly);
-      ctx.quadraticCurveTo(lx + lw, ly, lx + lw, ly + lr);
-      ctx.lineTo(lx + lw, ly + lh - lr);
-      ctx.quadraticCurveTo(lx + lw, ly + lh, lx + lw - lr, ly + lh);
-      ctx.lineTo(lx + lr, ly + lh);
-      ctx.quadraticCurveTo(lx, ly + lh, lx, ly + lr);
-      ctx.lineTo(lx, ly + lr);
-      ctx.quadraticCurveTo(lx, ly, lx + lr, ly);
-      ctx.closePath();
-      ctx.fill();
-
-      ctx.fillStyle = '#5b2b16';
-      ctx.fillText(hazard.name, lx + 6, ly + 13);
+      // Field Note Label
+      drawFieldNoteLabel(ctx, hx + hazard.width / 2, hazard.y - 12, hazard.name, '#7f1d1d');
     });
 
-
+    // Checkpoints
     CHECKPOINTS.forEach((checkpoint) => {
-      const x = checkpoint.x - cameraX;
-      if (x < -80 || x > CANVAS_WIDTH + 80) return;
+      const cx = checkpoint.x - cameraX;
+      if (cx < -80 || cx > CANVAS_WIDTH + 80) return;
       const active = current.activeCheckpoint.id === checkpoint.id;
-      ctx.fillStyle = active ? '#2d5a27' : '#7c4a21';
-      ctx.fillRect(x, checkpoint.y, 12, 78);
-      ctx.fillStyle = active ? '#d9f99d' : '#fee2b3';
+      
+      ctx.save();
+      // Flagpole
+      ctx.fillStyle = active ? '#166534' : '#451a03';
+      ctx.fillRect(cx - 2, checkpoint.y, 4, 80);
+      
+      // Flag
+      ctx.fillStyle = active ? '#22c55e' : '#b45309';
       ctx.beginPath();
-      ctx.moveTo(x + 12, checkpoint.y + 6);
-      ctx.lineTo(x + 64, checkpoint.y + 22);
-      ctx.lineTo(x + 12, checkpoint.y + 38);
+      ctx.moveTo(cx + 2, checkpoint.y);
+      ctx.lineTo(cx + 42, checkpoint.y + 15);
+      ctx.lineTo(cx + 2, checkpoint.y + 30);
       ctx.closePath();
       ctx.fill();
-      ctx.fillStyle = '#2f251d';
-      ctx.font = '700 11px Outfit, sans-serif';
-      ctx.fillText(active ? 'Checkpoint' : checkpoint.name, x - 8, checkpoint.y - 8);
+      
+      drawFieldNoteLabel(ctx, cx, checkpoint.y - 20, active ? 'CHECKPOINT (ACTIVE)' : checkpoint.name, active ? '#166534' : '#78350f');
+      ctx.restore();
     });
 
+    // Route Gates
     ROUTE_GATES.forEach((gate) => {
       if (current.openedRouteGateIds.has(gate.id)) return;
-      const x = gate.x - cameraX;
-      if (x + gate.width < -80 || x > CANVAS_WIDTH + 80) return;
+      const gx = gate.x - cameraX;
+      if (gx + gate.width < -100 || gx > CANVAS_WIDTH + 100) return;
+      
       const requirements = getGateRequirements(gate, current);
-      const complete = requirements.every((requirement) => requirement.met);
+      const complete = requirements.every(r => r.met);
+      
       ctx.save();
-      ctx.fillStyle = complete ? 'rgba(45, 90, 39, 0.72)' : 'rgba(91, 43, 22, 0.82)';
-      ctx.fillRect(x, gate.y, gate.width, gate.height);
-      ctx.strokeStyle = complete ? '#d9f99d' : '#facc15';
-      ctx.lineWidth = 3;
-      ctx.setLineDash(complete ? [] : [7, 6]);
-      ctx.strokeRect(x, gate.y, gate.width, gate.height);
-      ctx.setLineDash([]);
-      ctx.fillStyle = '#fff8d7';
-      ctx.font = '800 11px Outfit, sans-serif';
+      // Gate structure
+      ctx.fillStyle = complete ? 'rgba(34, 197, 94, 0.2)' : 'rgba(180, 83, 9, 0.2)';
+      ctx.fillRect(gx, gate.y, gate.width, gate.height);
+      
+      // Gate border
+      ctx.strokeStyle = complete ? '#22c55e' : '#b45309';
+      ctx.lineWidth = 4;
+      ctx.setLineDash(complete ? [] : [10, 5]);
+      ctx.strokeRect(gx, gate.y, gate.width, gate.height);
+      
+      // Symbol
+      ctx.font = '32px Outfit, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(complete ? 'OPEN' : 'LOCK', x + gate.width / 2, gate.y - 10);
-      ctx.translate(x + gate.width / 2, gate.y + gate.height / 2);
-      ctx.rotate(-Math.PI / 2);
-      ctx.fillText(gate.name, 0, 4);
+      ctx.fillText(complete ? '🔓' : '🔒', gx + gate.width / 2, gate.y + gate.height / 2 + 10);
+      
+      drawFieldNoteLabel(ctx, gx + gate.width / 2, gate.y - 15, gate.name, complete ? '#166534' : '#78350f');
       ctx.restore();
     });
 
+    // Enemies
     current.enemies.forEach((enemy) => {
       if (enemy.defeated) return;
-      const x = enemy.x - cameraX;
-      if (x + enemy.width < -80 || x > CANVAS_WIDTH + 80) return;
+      const ex = enemy.x - cameraX;
+      if (ex + enemy.width < -50 || ex > CANVAS_WIDTH + 50) return;
+
       ctx.save();
-      if (enemy.hitFlash > 0) ctx.globalAlpha = 0.55;
-      ctx.fillStyle = enemy.type === 'guardian' || enemy.type === 'statue' ? '#5b4b3a' : '#6d3f25';
-      if (enemy.type === 'bat') ctx.fillStyle = '#2f3542';
-      if (enemy.type === 'looter') ctx.fillStyle = '#7f1d1d';
-      ctx.fillRect(x, enemy.y, enemy.width, enemy.height);
-      ctx.strokeStyle = enemy.stunTimer > 0 ? '#facc15' : '#1f1610';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(x, enemy.y, enemy.width, enemy.height);
-      ctx.fillStyle = '#fff4d4';
-      ctx.font = '800 10px Outfit, sans-serif';
+      if (enemy.hitFlash > 0) ctx.globalAlpha = 0.6;
+      
+      // Floating emoji
+      const floatY = Math.sin(now / 150 + enemy.x) * 3;
+      ctx.font = '38px Outfit, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(enemy.name, x + enemy.width / 2, enemy.y - 8);
+      ctx.fillText(enemy.emoji, ex + enemy.width / 2, enemy.y + enemy.height / 2 + 12 + floatY);
+
+      // Stun/Alert effect
+      if (enemy.stunTimer > 0) {
+        ctx.fillStyle = '#facc15';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.fillText('💫', ex + enemy.width / 2, enemy.y - 30);
+      }
+
+      // Small Health Bar
+      const barW = enemy.width;
+      const barH = 5;
+      const barY = enemy.y + enemy.height + 10;
+      ctx.fillStyle = 'rgba(0,0,0,0.4)';
+      ctx.fillRect(ex, barY, barW, barH);
       ctx.fillStyle = '#dc2626';
-      ctx.fillRect(x, enemy.y + enemy.height + 5, enemy.width, 4);
-      ctx.fillStyle = '#84cc16';
-      ctx.fillRect(x, enemy.y + enemy.height + 5, enemy.width * (enemy.health / enemy.maxHealth), 4);
+      ctx.fillRect(ex, barY, barW * (enemy.health / enemy.maxHealth), barH);
+
+      drawFieldNoteLabel(ctx, ex + enemy.width / 2, enemy.y - 10, enemy.name, '#1e293b');
       ctx.restore();
-      ctx.textAlign = 'start';
     });
 
+    // Bosses
     current.miniBosses.forEach((boss) => {
       if (boss.defeated) return;
-      const x = boss.x - cameraX;
-      if (x + boss.width < -100 || x > CANVAS_WIDTH + 100) return;
+      const bx = boss.x - cameraX;
+      if (bx + boss.width < -100 || bx > CANVAS_WIDTH + 100) return;
+
       ctx.save();
-      if (boss.hitFlash > 0) ctx.globalAlpha = 0.55;
-      ctx.fillStyle = boss.type === 'guardian' || boss.type === 'statue' ? '#3f3429' : '#6d3f25';
-      if (boss.type === 'snake') ctx.fillStyle = '#365314';
-      if (boss.type === 'looter') ctx.fillStyle = '#7f1d1d';
-      ctx.fillRect(x, boss.y, boss.width, boss.height);
-      ctx.strokeStyle = boss.stunTimer > 0 ? '#facc15' : '#fff4d4';
-      ctx.lineWidth = 3;
-      ctx.strokeRect(x, boss.y, boss.width, boss.height);
-      ctx.fillStyle = '#fff4d4';
-      ctx.font = '900 12px Outfit, sans-serif';
+      const shakeX = boss.hitFlash > 0 ? (Math.random() - 0.5) * 10 : 0;
+      
+      // Giant Emoji / Icon
+      ctx.font = '80px Outfit, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(boss.name, x + boss.width / 2, boss.y - 12);
-      ctx.fillStyle = '#7f1d1d';
-      ctx.fillRect(x, boss.y + boss.height + 7, boss.width, 6);
+      ctx.fillText(boss.emoji || '👾', bx + boss.width / 2 + shakeX, boss.y + boss.height / 2 + 25);
+
+      // Boss Name (Premium Header)
+      ctx.fillStyle = '#fff';
+      ctx.shadowColor = 'rgba(0,0,0,0.5)';
+      ctx.shadowBlur = 8;
+      ctx.font = '900 18px Cinzel, serif';
+      ctx.fillText(boss.name.toUpperCase(), bx + boss.width / 2, boss.y - 25);
+      
+      // Boss Health Bar (Chunky)
+      const bw = boss.width * 1.5;
+      const bh = 8;
+      const by = boss.y + boss.height + 20;
+      const bl = bx + (boss.width - bw) / 2;
+      ctx.fillStyle = 'rgba(0,0,0,0.6)';
+      ctx.fillRect(bl, by, bw, bh);
       ctx.fillStyle = '#facc15';
-      ctx.fillRect(x, boss.y + boss.height + 7, boss.width * (boss.health / boss.maxHealth), 6);
+      ctx.fillRect(bl, by, bw * (boss.health / boss.maxHealth), bh);
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(bl, by, bw, bh);
+      
       ctx.restore();
-      ctx.textAlign = 'start';
     });
 
+    // --- Collectibles ---
+    // Shards
     RELIC_SHARDS.forEach((shard) => {
       if (current.collectedShardIds.has(shard.id)) return;
-      if (shard.hidden && !current.collectedUpgrades.has('historian-vision')) return;
-      drawCollectible(ctx, shard.x, shard.y, cameraX, now, 'R', '#b45309', shard.hidden);
+      const visible = !shard.hidden || current.collectedUpgrades.has('historian-vision');
+      if (!visible) return;
+      drawCollectible(ctx, shard.x, shard.y, cameraX, now, '💎', '#b45309', shard.hidden, true);
     });
 
+    // Upgrades
     UPGRADES.forEach((upgrade) => {
       if (current.collectedUpgrades.has(upgrade.id)) return;
-      drawCollectible(ctx, upgrade.x, upgrade.y, cameraX, now, 'U', '#2563eb');
-      ctx.fillStyle = '#1e293b';
-      ctx.font = '700 11px Outfit, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(upgrade.shortName, upgrade.x - cameraX, upgrade.y - 23);
-      ctx.textAlign = 'start';
+      drawCollectible(ctx, upgrade.x, upgrade.y, cameraX, now, upgrade.emoji, '#2563eb');
+      drawFieldNoteLabel(ctx, upgrade.x - cameraX, upgrade.y - 30, upgrade.name, '#2563eb');
     });
 
-    TOOL_LAYOUT.forEach((toolPosition) => {
-      if (current.collectedToolIds.has(toolPosition.id)) return;
-      const tool = JOURNEY_TOOLS.find((item) => item.id === toolPosition.id);
-      const x = toolPosition.x - cameraX;
-      const floatY = Math.sin((now / 200) + index) * 4;
-
-      ctx.shadowColor = 'rgba(255, 215, 0, 0.6)';
-      ctx.shadowBlur = 12;
-      
-      // Glowing orb
-      ctx.fillStyle = 'rgba(255, 243, 201, 0.9)';
-      ctx.beginPath();
-      ctx.arc(x, toolPosition.y + floatY, 18, 0, Math.PI * 2);
-      ctx.fill();
-      
-      ctx.shadowColor = 'transparent';
-      ctx.strokeStyle = '#d4af37';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      // Emoji
-      ctx.font = '18px Outfit, sans-serif';
-      ctx.fillText(tool.emoji, x - 9, toolPosition.y + floatY + 6);
-
-      // Label (Rounded placard)
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-      ctx.font = '700 11px Outfit, sans-serif';
-      const textWidth = ctx.measureText(tool.name).width;
-      
-      const lx = x - textWidth / 2 - 6;
-      const ly = toolPosition.y - 38 + floatY;
-      const lw = textWidth + 12;
-      const lh = 18;
-      const lr = 4;
-
-      ctx.beginPath();
-      ctx.moveTo(lx + lr, ly); ctx.lineTo(lx + lw - lr, ly);
-      ctx.quadraticCurveTo(lx + lw, ly, lx + lw, ly + lr);
-      ctx.lineTo(lx + lw, ly + lh - lr);
-      ctx.quadraticCurveTo(lx + lw, ly + lh, lx + lw - lr, ly + lh);
-      ctx.lineTo(lx + lr, ly + lh);
-      ctx.quadraticCurveTo(lx, ly + lh, lx, ly + lr);
-      ctx.lineTo(lx, ly + lr);
-      ctx.quadraticCurveTo(lx, ly, lx + lr, ly);
-      ctx.closePath();
-      ctx.fill();
-
-      ctx.fillStyle = '#3b2b1f';
-      ctx.textAlign = 'center';
-      ctx.fillText(tool.name, x, ly + 13);
-      ctx.textAlign = 'start';
+    // Tools
+    TOOL_LAYOUT.forEach((toolPos) => {
+      if (current.collectedToolIds.has(toolPos.id)) return;
+      const tool = JOURNEY_TOOLS.find(t => t.id === toolPos.id);
+      drawCollectible(ctx, toolPos.x, toolPos.y, cameraX, now, tool.emoji, '#d4af37');
+      drawFieldNoteLabel(ctx, toolPos.x - cameraX, toolPos.y - 30, tool.name, '#b45309');
     });
 
-    OBJECTIVE_MARKERS.forEach((marker, index) => {
+    // Objective Markers
+    OBJECTIVE_MARKERS.forEach((marker) => {
       if (current.collectedObjectiveIds.has(marker.id)) return;
-      const x = marker.x - cameraX;
-      if (x < -80 || x > CANVAS_WIDTH + 80) return;
-      
-      const floatY = Math.sin((now / 220) + index) * 3;
-      
-      // Pulsing glow for objectives
+      const mx = marker.x - cameraX;
+      if (mx < -50 || mx > CANVAS_WIDTH + 50) return;
+
+      const floatY = Math.sin(now / 150) * 5;
+      const emoji = marker.type === 'switch' ? '⚙️' : marker.type === 'glyph' ? '📜' : marker.type === 'escape' ? '🏃' : '🚩';
+
+      ctx.save();
       ctx.shadowColor = marker.color || '#d4af37';
       ctx.shadowBlur = 10 + Math.sin(now / 150) * 5;
-      
-      ctx.fillStyle = '#fff8d7';
-      ctx.beginPath();
-      ctx.arc(x, marker.y + floatY, 15, 0, Math.PI * 2);
-      ctx.fill();
-      
-      ctx.shadowBlur = 0;
-      ctx.strokeStyle = marker.color || '#d4af37';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      ctx.fillStyle = '#2f251d';
-      ctx.font = '800 12px Outfit, sans-serif';
+      ctx.font = '32px Outfit, sans-serif';
       ctx.textAlign = 'center';
-      const label = marker.type === 'switch' ? 'S' : marker.type === 'glyph' ? 'G' : marker.type === 'escape' ? 'E' : 'M';
-      ctx.fillText(label, x, marker.y + floatY + 4);
+      ctx.fillText(emoji, mx + 15, marker.y + 15 + floatY);
+      ctx.restore();
 
-      // Label (Rounded placard)
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-      ctx.font = '700 10px Outfit, sans-serif';
-      const textWidth = ctx.measureText(marker.label).width;
-      
-      const lx = x - textWidth / 2 - 5;
-      const ly = marker.y - 34 + floatY;
-      const lw = textWidth + 10;
-      const lh = 16;
-      const lr = 3;
-
-      ctx.beginPath();
-      ctx.moveTo(lx + lr, ly); ctx.lineTo(lx + lw - lr, ly);
-      ctx.quadraticCurveTo(lx + lw, ly, lx + lw, ly + lr);
-      ctx.lineTo(lx + lw, ly + lh - lr);
-      ctx.quadraticCurveTo(lx + lw, ly + lh, lx + lw - lr, ly + lh);
-      ctx.lineTo(lx + lr, ly + lh);
-      ctx.quadraticCurveTo(lx, ly + lh, lx, ly + lr);
-      ctx.lineTo(lx, ly + lr);
-      ctx.quadraticCurveTo(lx, ly, lx + lr, ly);
-      ctx.closePath();
-      ctx.fill();
-
-      ctx.fillStyle = '#2f251d';
-      ctx.fillText(marker.label, x, ly + 11);
-      ctx.textAlign = 'start';
+      drawFieldNoteLabel(ctx, mx + 15, marker.y - 15, marker.label, marker.color || '#b45309');
     });
 
+    // Lore Tablets
     LORE_TABLETS.forEach((tablet, index) => {
       if (current.collectedTabletIds.has(tablet.id)) return;
-      const x = tablet.x - cameraX;
-      if (x < -60 || x > CANVAS_WIDTH + 60) return;
+      const tx = tablet.x - cameraX;
+      if (tx < -50 || tx > CANVAS_WIDTH + 50) return;
       
       const floatY = Math.sin((now / 250) + index) * 4;
       
-      ctx.fillStyle = '#8b6a47';
-      ctx.fillRect(x - 13, tablet.y - 17 + floatY, 26, 34);
-      ctx.strokeStyle = '#3b2b1f';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(x - 13, tablet.y - 17 + floatY, 26, 34);
-      
-      ctx.fillStyle = '#fff4d4';
-      ctx.font = '800 12px Outfit, sans-serif';
+      ctx.save();
+      ctx.font = '34px Outfit, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('L', x, tablet.y + 4 + floatY);
-      
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-      ctx.font = '800 9px Outfit, sans-serif';
-      ctx.fillText('LORE', x, tablet.y - 22 + floatY);
-      ctx.textAlign = 'start';
+      ctx.fillText('🧱', tx, tablet.y + floatY);
+      ctx.restore();
+
+      drawFieldNoteLabel(ctx, tx, tablet.y - 25, 'Ancient Lore', '#3b2b1f');
     });
 
+    // Final Gate
     const gateX = GATE.x - cameraX;
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-    ctx.shadowBlur = 8;
-    ctx.fillStyle = '#31543d';
-    ctx.fillRect(gateX, GATE.y, GATE.width, GATE.height);
-    ctx.strokeStyle = '#213729';
-    ctx.lineWidth = 4;
-    ctx.strokeRect(gateX, GATE.y, GATE.width, GATE.height);
-    ctx.shadowColor = 'transparent';
-    ctx.fillStyle = '#fff4d4';
-    ctx.font = '800 13px Outfit, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('Base', gateX + GATE.width / 2, GATE.y + 32);
-    ctx.fillText('Camp', gateX + GATE.width / 2, GATE.y + 50);
-    ctx.textAlign = 'start';
+    if (gateX > -200 && gateX < CANVAS_WIDTH + 200) {
+      ctx.save();
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+      ctx.shadowBlur = 12;
+      ctx.fillStyle = '#31543d';
+      ctx.fillRect(gateX, GATE.y, GATE.width, GATE.height);
+      ctx.strokeStyle = '#facc15';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(gateX, GATE.y, GATE.width, GATE.height);
+      
+      ctx.font = '50px Outfit, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('⛺', gateX + GATE.width / 2, GATE.y + 45);
+      
+      ctx.fillStyle = '#fff';
+      ctx.font = '900 14px Cinzel, serif';
+      ctx.fillText('BASE CAMP', gateX + GATE.width / 2, GATE.y - 15);
+      ctx.restore();
+    }
 
     const playerScreenX = player.x - cameraX;
     const flicker = player.invulnerable > 0 && Math.floor(now / 80) % 2 === 0;
@@ -2045,80 +2056,67 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
           </div>
 
           <aside className="expedition-panel-stack">
-            <section className="expedition-panel expedition-journey-status-panel">
+            <section className="expedition-panel">
               <h3>
                 <Map size={18} aria-hidden="true" />
                 Route Status
               </h3>
-              <div className="expedition-resource">
+              <div className="expedition-resource-row">
                 <span>Section</span>
                 <strong>{hud.journeySection}</strong>
               </div>
-              <div className="expedition-resource">
-                <span>Checkpoint</span>
-                <strong>{hud.activeCheckpoint}</strong>
+              <div className="expedition-resource-row">
+                <span>Objective</span>
+                <strong style={{ fontSize: '0.8rem' }}>{hud.currentObjective}</strong>
               </div>
-              <div className="expedition-objective-status">
-                <strong>{hud.currentObjective}</strong>
-                <span>{hud.objectiveProgress.label}</span>
-              </div>
-              {hud.activeAtmosphere && (
-                <div className="expedition-atmosphere-status">
-                  <strong>{hud.activeAtmosphere.sectionName}</strong>
-                  <span>{hud.activeAtmosphere.mood}</span>
-                </div>
-              )}
-              {hud.activeMiniBoss && (
-                <div className="expedition-boss-status">
-                  <strong>{hud.activeMiniBoss.name}</strong>
-                  <span>{hud.activeMiniBoss.health}/{hud.activeMiniBoss.maxHealth} health</span>
-                </div>
-              )}
-              {hud.bossIntroState && (
-                <p className="expedition-small-note expedition-boss-warning-note">
-                  {hud.bossIntroState.name}: {hud.bossIntroState.message}
-                </p>
-              )}
-              {hud.environmentEventState && (
-                <p className="expedition-small-note expedition-environment-note">
-                  {hud.environmentEventState.name}: {hud.environmentEventState.message}
-                </p>
-              )}
-              {hud.sectionTransitionState && (
-                <p className="expedition-small-note expedition-cinematic-note">
-                  {hud.sectionTransitionState.name}: {hud.sectionTransitionState.message}
-                </p>
-              )}
-              {hud.cinematicEventState && (
-                <p className="expedition-small-note expedition-cinematic-note">
-                  {hud.cinematicEventState.name}: {hud.cinematicEventState.message}
-                </p>
-              )}
+              <p className="expedition-small-note" style={{ marginTop: '0.5rem' }}>
+                {hud.objectiveProgress.label}
+              </p>
+
               {hud.routeGateStatus && (
                 <div className="expedition-route-gate-status">
                   <strong>{hud.routeGateStatus.name}</strong>
-                  <span>{hud.routeGateStatus.summary} - {hud.routeGateStatus.distance}px ahead</span>
+                  <p style={{ fontSize: '0.7rem', margin: '0.2rem 0' }}>{hud.routeGateStatus.summary}</p>
                   <ul>
-                    {hud.routeGateStatus.requirements.map((requirement) => (
-                      <li key={requirement.label} className={requirement.met ? 'is-met' : ''}>
-                        {requirement.label}
+                    {hud.routeGateStatus.requirements.map((req) => (
+                      <li key={req.label} className={req.met ? 'is-met' : ''}>
+                        {req.met ? '✓' : '○'} {req.label}
                       </li>
                     ))}
                   </ul>
                 </div>
               )}
-              {hud.enemyWarning && (
-                <p className="expedition-small-note expedition-warning-note">{hud.enemyWarning}</p>
-              )}
             </section>
 
             <section className="expedition-panel">
               <h3>
-                <Flag size={18} aria-hidden="true" />
-                Bureau Mission
+                <Gauge size={18} aria-hidden="true" />
+                Resources
               </h3>
-              <strong>{mission?.title || 'Evidence Hunt'}</strong>
-              <p>{mission?.instruction || 'Prepare for the excavation mission.'}</p>
+              <div className="expedition-resource-group">
+                <div className="expedition-resource-row">
+                  <span>Stamina</span>
+                  <strong>{hud.resources.stamina}%</strong>
+                </div>
+                <div className="expedition-stat-bar">
+                  <div 
+                    className="expedition-stat-fill stamina-fill" 
+                    style={{ width: `${hud.resources.stamina}%` }} 
+                  />
+                </div>
+              </div>
+              <div className="expedition-resource-group" style={{ marginTop: '1rem' }}>
+                <div className="expedition-resource-row">
+                  <span>Time Remaining</span>
+                  <strong>{hud.resources.time}s</strong>
+                </div>
+                <div className="expedition-stat-bar">
+                  <div 
+                    className="expedition-stat-fill time-fill" 
+                    style={{ width: `${Math.min(100, (hud.resources.time / 300) * 100)}%` }} 
+                  />
+                </div>
+              </div>
             </section>
 
             <section className="expedition-panel">
@@ -2126,7 +2124,6 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
                 <Backpack size={18} aria-hidden="true" />
                 Field Kit
               </h3>
-              <p>{hud.fieldKit.length}/{JOURNEY_TOOLS.length} tools collected</p>
               <ul className="expedition-tool-list">
                 {JOURNEY_TOOLS.map((tool) => (
                   <li key={tool.id} className={hud.fieldKit.includes(tool.id) ? 'is-collected' : ''}>
@@ -2140,75 +2137,67 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
             <section className="expedition-panel">
               <h3>
                 <Gem size={18} aria-hidden="true" />
-                Relics and Upgrades
+                Findings
               </h3>
-              <div className="expedition-resource">
+              <div className="expedition-resource-row">
                 <span>Relic Shards</span>
                 <strong>{hud.relicShardCount}</strong>
               </div>
-              <div className="expedition-resource">
-                <span>Upgrades</span>
-                <strong>{upgradeNames.length ? upgradeNames.join(', ') : 'None'}</strong>
+              <div className="expedition-resource-row">
+                <span>Lore Tablets</span>
+                <strong>{hud.loreTabletCount}/{LORE_TABLETS.length}</strong>
               </div>
-              <div className="expedition-resource">
-                <span>Secrets</span>
-                <strong>{hud.hiddenRoomsFound}/{HIDDEN_ROOMS.length}</strong>
-              </div>
-              <p className="expedition-small-note">
-                Lore {hud.loreTabletCount}/{LORE_TABLETS.length} | Bosses {hud.defeatedMiniBosses}/{MINI_BOSSES.length} | Atmosphere: {hud.activeParticles}
-              </p>
+              {upgradeNames.length > 0 && (
+                <div className="expedition-resource-row">
+                  <span>Upgrades</span>
+                  <strong style={{ fontSize: '0.7rem' }}>{upgradeNames.join(', ')}</strong>
+                </div>
+              )}
             </section>
 
-            <section className="expedition-panel">
-              <h3>
-                <Gauge size={18} aria-hidden="true" />
-                Journey Resources
-              </h3>
-              <div className="expedition-resource">
-                <span>Stamina</span>
-                <strong>{hud.resources.stamina}</strong>
-              </div>
-              <div className="expedition-resource">
-                <span>Time</span>
-                <strong>{hud.resources.time}s</strong>
-              </div>
-            </section>
+            {hud.activeAtmosphere && (
+              <section className="expedition-panel expedition-atmosphere-panel">
+                <h3>
+                  <Sparkles size={18} aria-hidden="true" />
+                  Atmosphere
+                </h3>
+                <strong>{hud.activeAtmosphere.sectionName}</strong>
+                <p className="expedition-small-note">{hud.activeAtmosphere.mood}</p>
+              </section>
+            )}
 
-            <section className="expedition-panel">
-              <h3>
-                <Swords size={18} aria-hidden="true" />
-                Encounters
-              </h3>
-              <div className="expedition-resource">
-                <span>Enemies defeated</span>
-                <strong>{hud.defeatedEnemies}/{ENEMIES.length}</strong>
-              </div>
-              <p className="expedition-small-note">J or K swings your field tool to stun nearby enemies.</p>
-            </section>
-
-            <section className="expedition-panel">
-              <h3>
-                <ShieldAlert size={18} aria-hidden="true" />
-                Hazards
-              </h3>
-              <ul className="expedition-hazard-list">
-                <li>Main route is safer.</li>
-                <li>Optional high routes hide shards, lore and upgrades.</li>
-                <li>Checkpoints preserve collected tools, shards and upgrades.</li>
-              </ul>
-            </section>
+            {hud.activeMiniBoss && (
+              <section className="expedition-panel expedition-boss-panel">
+                <h3>
+                  <Swords size={18} aria-hidden="true" />
+                  Boss Encounter
+                </h3>
+                <div className="expedition-resource-row">
+                  <span>{hud.activeMiniBoss.name}</span>
+                  <strong>{hud.activeMiniBoss.health} HP</strong>
+                </div>
+                <div className="expedition-stat-bar">
+                  <div 
+                    className="expedition-stat-fill" 
+                    style={{ 
+                      width: `${(hud.activeMiniBoss.health / hud.activeMiniBoss.maxHealth) * 100}%`,
+                      background: '#ef4444'
+                    }} 
+                  />
+                </div>
+              </section>
+            )}
 
             <section className="expedition-panel">
               <h3>
                 <Sparkles size={18} aria-hidden="true" />
                 Controls
               </h3>
-              <p>A/D or Arrow keys move. W, ArrowUp or Space jumps. J or K attacks.</p>
-              {collectedToolNames.length > 0 && (
-                <p className="expedition-small-note">
-                  Packed: {collectedToolNames.join(', ')}
-                </p>
-              )}
+              <p className="expedition-small-note">
+                <strong>A / D</strong>: Move<br/>
+                <strong>W / Space</strong>: Jump<br/>
+                <strong>J / K</strong>: Strike / Stun
+              </p>
             </section>
           </aside>
         </div>
