@@ -1028,6 +1028,35 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
       ctx.fillText(area.name, area.start - cameraX + 24, 84);
     });
 
+    // Platforms
+    PLATFORMS.forEach((platform) => {
+      const px = platform.x - cameraX;
+      
+      // Stony foundation style
+      ctx.fillStyle = platform.y === GROUND_Y ? '#b5865a' : '#968471';
+      ctx.fillRect(px, platform.y, platform.width, platform.height);
+      
+      // Highlights
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+      ctx.fillRect(px, platform.y, platform.width, 4);
+      
+      // Cracks / texture for stone ledges
+      if (platform.y !== GROUND_Y) {
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
+        ctx.lineWidth = 1;
+        for (let i = 20; i < platform.width; i += 40) {
+          ctx.beginPath();
+          ctx.moveTo(px + i, platform.y);
+          ctx.lineTo(px + i, platform.y + platform.height);
+          ctx.stroke();
+        }
+      }
+
+      ctx.strokeStyle = 'rgba(50, 30, 10, 0.35)';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(px, platform.y, platform.width, platform.height);
+    });
+
     STORY_PROPS.forEach((prop) => drawStoryProp(ctx, prop, cameraX, now));
     drawParticles(ctx, atmosphere, cameraX, now);
 
@@ -1081,20 +1110,87 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
     const pulse = (Math.sin(now / 200) + 1) / 2;
     HAZARDS.forEach((hazard) => {
       const x = hazard.x - cameraX;
-      if (x + hazard.width < -80 || x > CANVAS_WIDTH + 80) return;
-      ctx.fillStyle = 'rgba(155, 52, 36, 0.22)';
-      ctx.fillRect(x, hazard.y, hazard.width, hazard.height);
-      ctx.strokeStyle = `rgba(155, 52, 36, ${0.45 + pulse * 0.35})`;
-      ctx.lineWidth = 2;
-      ctx.setLineDash([6, 6]);
-      ctx.lineDashOffset = -now / 30;
-      ctx.strokeRect(x, hazard.y, hazard.width, hazard.height);
+      
+      // Emoji with shadow
+      ctx.font = '32px Outfit, sans-serif';
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+      ctx.fillText(hazard.emoji, x + hazard.width / 2 - 16, hazard.y + hazard.height / 2 + 12);
+      
+      // Label (Rounded placard)
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+      ctx.font = '700 11px Outfit, sans-serif';
+      const textWidth = ctx.measureText(hazard.name).width;
+      
+      const lx = x + hazard.width / 2 - textWidth / 2 - 6;
+      const ly = hazard.y - 22;
+      const lw = textWidth + 12;
+      const lh = 18;
+      const lr = 4;
+
+      ctx.beginPath();
+      ctx.moveTo(lx + lr, ly); ctx.lineTo(lx + lw - lr, ly);
+      ctx.quadraticCurveTo(lx + lw, ly, lx + lw, ly + lr);
+      ctx.lineTo(lx + lw, ly + lh - lr);
+      ctx.quadraticCurveTo(lx + lw, ly + lh, lx + lw - lr, ly + lh);
+      ctx.lineTo(lx + lr, ly + lh);
+      ctx.quadraticCurveTo(lx, ly + lh, lx, ly + lr);
+      ctx.lineTo(lx, ly + lr);
+      ctx.quadraticCurveTo(lx, ly, lx + lr, ly);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = '#5b2b16';
+      ctx.fillText(hazard.name, lx + 6, ly + 13);
+    });
+
+    // Guardians
+    current.guardians.forEach((guardian) => {
+      const x = guardian.x - cameraX;
+      const floatY = Math.sin(now / 150) * 4;
+      
+      // Shadow
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+      ctx.beginPath();
+      ctx.ellipse(x + guardian.width / 2, guardian.y + guardian.height, 15, 4, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Emoji
+      ctx.font = '40px Outfit, sans-serif';
+      ctx.fillText(guardian.emoji, x - 4, guardian.y + 36 + floatY);
+
+      // Patrol path
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 4]);
+      ctx.strokeRect(guardian.patrolMin - cameraX, guardian.y + guardian.height + 6, guardian.patrolMax - guardian.patrolMin, 4);
       ctx.setLineDash([]);
-      ctx.fillStyle = '#682b1c';
-      ctx.font = '800 11px Outfit, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(hazard.name, x + hazard.width / 2, hazard.y - 7);
-      ctx.textAlign = 'start';
+
+      // Label (Rounded placard)
+      ctx.fillStyle = 'rgba(255, 250, 240, 0.85)';
+      ctx.font = '700 11px Outfit, sans-serif';
+      const textWidth = ctx.measureText(guardian.name).width;
+      
+      const lx = x + guardian.width / 2 - textWidth / 2 - 6;
+      const ly = guardian.y - 24;
+      const lw = textWidth + 12;
+      const lh = 18;
+      const lr = 4;
+
+      ctx.beginPath();
+      ctx.moveTo(lx + lr, ly); ctx.lineTo(lx + lw - lr, ly);
+      ctx.quadraticCurveTo(lx + lw, ly, lx + lw, ly + lr);
+      ctx.lineTo(lx + lw, ly + lh - lr);
+      ctx.quadraticCurveTo(lx + lw, ly + lh, lx + lw - lr, ly + lh);
+      ctx.lineTo(lx + lr, ly + lh);
+      ctx.quadraticCurveTo(lx, ly + lh, lx, ly + lr);
+      ctx.lineTo(lx, ly + lr);
+      ctx.quadraticCurveTo(lx, ly, lx + lr, ly);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = '#2f251d';
+      ctx.fillText(guardian.name, lx + 6, ly + 13);
+>>>>>>> Stashed changes
     });
 
     CHECKPOINTS.forEach((checkpoint) => {
@@ -1208,39 +1304,132 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
     TOOL_LAYOUT.forEach((toolPosition) => {
       if (current.collectedToolIds.has(toolPosition.id)) return;
       const tool = JOURNEY_TOOLS.find((item) => item.id === toolPosition.id);
-      drawCollectible(ctx, toolPosition.x, toolPosition.y, cameraX, now, tool.icon, '#d4af37');
-      ctx.fillStyle = '#3b2b1f';
+      const x = toolPosition.x - cameraX;
+      const floatY = Math.sin((now / 200) + index) * 4;
+
+      ctx.shadowColor = 'rgba(255, 215, 0, 0.6)';
+      ctx.shadowBlur = 12;
+      
+      // Glowing orb
+      ctx.fillStyle = 'rgba(255, 243, 201, 0.9)';
+      ctx.beginPath();
+      ctx.arc(x, toolPosition.y + floatY, 18, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.shadowColor = 'transparent';
+      ctx.strokeStyle = '#d4af37';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Emoji
+      ctx.font = '18px Outfit, sans-serif';
+      ctx.fillText(tool.emoji, x - 9, toolPosition.y + floatY + 6);
+
+      // Label (Rounded placard)
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
       ctx.font = '700 11px Outfit, sans-serif';
+      const textWidth = ctx.measureText(tool.name).width;
+      
+      const lx = x - textWidth / 2 - 6;
+      const ly = toolPosition.y - 38 + floatY;
+      const lw = textWidth + 12;
+      const lh = 18;
+      const lr = 4;
+
+      ctx.beginPath();
+      ctx.moveTo(lx + lr, ly); ctx.lineTo(lx + lw - lr, ly);
+      ctx.quadraticCurveTo(lx + lw, ly, lx + lw, ly + lr);
+      ctx.lineTo(lx + lw, ly + lh - lr);
+      ctx.quadraticCurveTo(lx + lw, ly + lh, lx + lw - lr, ly + lh);
+      ctx.lineTo(lx + lr, ly + lh);
+      ctx.quadraticCurveTo(lx, ly + lh, lx, ly + lr);
+      ctx.lineTo(lx, ly + lr);
+      ctx.quadraticCurveTo(lx, ly, lx + lr, ly);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = '#3b2b1f';
       ctx.textAlign = 'center';
-      ctx.fillText(tool.name, toolPosition.x - cameraX, toolPosition.y - 23);
+      ctx.fillText(tool.name, x, ly + 13);
       ctx.textAlign = 'start';
     });
 
-    OBJECTIVE_MARKERS.forEach((marker) => {
+    OBJECTIVE_MARKERS.forEach((marker, index) => {
       if (current.collectedObjectiveIds.has(marker.id)) return;
       const x = marker.x - cameraX;
       if (x < -80 || x > CANVAS_WIDTH + 80) return;
-      const label = marker.type === 'switch' ? 'S' : marker.type === 'glyph' ? 'G' : marker.type === 'escape' ? 'E' : 'M';
-      drawCollectible(ctx, marker.x, marker.y, cameraX, now, label, marker.color);
+      
+      const floatY = Math.sin((now / 220) + index) * 3;
+      
+      // Pulsing glow for objectives
+      ctx.shadowColor = marker.color || '#d4af37';
+      ctx.shadowBlur = 10 + Math.sin(now / 150) * 5;
+      
+      ctx.fillStyle = '#fff8d7';
+      ctx.beginPath();
+      ctx.arc(x, marker.y + floatY, 15, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = marker.color || '#d4af37';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
       ctx.fillStyle = '#2f251d';
-      ctx.font = '800 11px Outfit, sans-serif';
+      ctx.font = '800 12px Outfit, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(marker.label, x, marker.y - 23);
+      const label = marker.type === 'switch' ? 'S' : marker.type === 'glyph' ? 'G' : marker.type === 'escape' ? 'E' : 'M';
+      ctx.fillText(label, x, marker.y + floatY + 4);
+
+      // Label (Rounded placard)
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+      ctx.font = '700 10px Outfit, sans-serif';
+      const textWidth = ctx.measureText(marker.label).width;
+      
+      const lx = x - textWidth / 2 - 5;
+      const ly = marker.y - 34 + floatY;
+      const lw = textWidth + 10;
+      const lh = 16;
+      const lr = 3;
+
+      ctx.beginPath();
+      ctx.moveTo(lx + lr, ly); ctx.lineTo(lx + lw - lr, ly);
+      ctx.quadraticCurveTo(lx + lw, ly, lx + lw, ly + lr);
+      ctx.lineTo(lx + lw, ly + lh - lr);
+      ctx.quadraticCurveTo(lx + lw, ly + lh, lx + lw - lr, ly + lh);
+      ctx.lineTo(lx + lr, ly + lh);
+      ctx.quadraticCurveTo(lx, ly + lh, lx, ly + lr);
+      ctx.lineTo(lx, ly + lr);
+      ctx.quadraticCurveTo(lx, ly, lx + lr, ly);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = '#2f251d';
+      ctx.fillText(marker.label, x, ly + 11);
       ctx.textAlign = 'start';
     });
 
-    LORE_TABLETS.forEach((tablet) => {
+    LORE_TABLETS.forEach((tablet, index) => {
       if (current.collectedTabletIds.has(tablet.id)) return;
       const x = tablet.x - cameraX;
       if (x < -60 || x > CANVAS_WIDTH + 60) return;
+      
+      const floatY = Math.sin((now / 250) + index) * 4;
+      
       ctx.fillStyle = '#8b6a47';
-      ctx.fillRect(x - 13, tablet.y - 17, 26, 34);
+      ctx.fillRect(x - 13, tablet.y - 17 + floatY, 26, 34);
       ctx.strokeStyle = '#3b2b1f';
-      ctx.strokeRect(x - 13, tablet.y - 17, 26, 34);
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x - 13, tablet.y - 17 + floatY, 26, 34);
+      
       ctx.fillStyle = '#fff4d4';
       ctx.font = '800 12px Outfit, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('L', x, tablet.y + 4);
+      ctx.fillText('L', x, tablet.y + 4 + floatY);
+      
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.font = '800 9px Outfit, sans-serif';
+      ctx.fillText('LORE', x, tablet.y - 22 + floatY);
       ctx.textAlign = 'start';
     });
 

@@ -1379,62 +1379,138 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       ctx.font = '72px Outfit, sans-serif';
       ctx.fillText(zone.emoji, zone.x + zone.w / 2 - 36, zone.y + zone.h / 2 + 25);
 
-      // Label background
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+      // Label background (Soft rounded card)
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
       const labelText = `${zone.emoji} ${zone.name}`;
       ctx.font = '700 13px Outfit, sans-serif';
       const textWidth = ctx.measureText(labelText).width;
-      ctx.fillRect(zone.x + 8, zone.y + 8, textWidth + 12, 24);
+      
+      const lx = zone.x + 8;
+      const ly = zone.y + 8;
+      const lw = textWidth + 12;
+      const lh = 24;
+      const lr = 4;
+
+      ctx.beginPath();
+      ctx.moveTo(lx + lr, ly); ctx.lineTo(lx + lw - lr, ly);
+      ctx.quadraticCurveTo(lx + lw, ly, lx + lw, ly + lr);
+      ctx.lineTo(lx + lw, ly + lh - lr);
+      ctx.quadraticCurveTo(lx + lw, ly + lh, lx + lw - lr, ly + lh);
+      ctx.lineTo(lx + lr, ly + lh);
+      ctx.quadraticCurveTo(lx, ly + lh, lx, ly + lr);
+      ctx.lineTo(lx, ly + lr);
+      ctx.quadraticCurveTo(lx, ly, lx + lr, ly);
+      ctx.closePath();
+      ctx.fill();
 
       ctx.fillStyle = '#3a2a18';
-      ctx.fillText(labelText, zone.x + 14, zone.y + 24);
+      ctx.fillText(labelText, lx + 6, ly + 17);
 
       if (SURVEY_ZONE_BY_ID[zone.id]) {
         const surveyLabel = selectedSurveyZone === zone.id
-          ? 'Dig zone marked'
+          ? '🎯 Dig zone marked'
           : surveyedZones.has(zone.id)
-            ? 'Surveyed'
-            : 'Survey area';
+            ? '✓ Surveyed'
+            : '📍 Survey area';
+            
+        // Placard background
         ctx.fillStyle = selectedSurveyZone === zone.id
-          ? 'rgba(45, 90, 39, 0.82)'
-          : 'rgba(58, 42, 24, 0.72)';
-        ctx.fillRect(zone.x + 10, zone.y + zone.h - 32, 118, 22);
+          ? 'rgba(45, 90, 39, 0.9)'
+          : 'rgba(74, 54, 32, 0.85)';
+        
+        const sX = zone.x + 10;
+        const sY = zone.y + zone.h - 32;
+        const sW = 120;
+        const sH = 24;
+        const sR = 4;
+        
+        ctx.beginPath();
+        ctx.moveTo(sX + sR, sY); ctx.lineTo(sX + sW - sR, sY);
+        ctx.quadraticCurveTo(sX + sW, sY, sX + sW, sY + sR);
+        ctx.lineTo(sX + sW, sY + sH - sR);
+        ctx.quadraticCurveTo(sX + sW, sY + sH, sX + sW - sR, sY + sH);
+        ctx.lineTo(sX + sR, sY + sH);
+        ctx.quadraticCurveTo(sX, sY + sH, sX, sY + sR);
+        ctx.lineTo(sX, sY + sR);
+        ctx.quadraticCurveTo(sX, sY, sX + sR, sY);
+        ctx.closePath();
+        ctx.fill();
+        
         ctx.fillStyle = '#fff7ed';
         ctx.font = '800 11px Outfit, sans-serif';
-        ctx.fillText(surveyLabel, zone.x + 18, zone.y + zone.h - 17);
+        ctx.fillText(surveyLabel, sX + 10, sY + 16);
       }
     });
 
     // 4. Hazards (Simplified to reduce visual noise)
     HAZARDS.forEach((hazard) => {
       // Draw watermark emoji
-      ctx.fillStyle = 'rgba(120, 53, 15, 0.35)';
+      ctx.fillStyle = 'rgba(120, 53, 15, 0.25)';
       ctx.font = '48px Outfit, sans-serif';
       ctx.fillText(hazard.emoji, hazard.x + hazard.w / 2 - 24, hazard.y + hazard.h / 2 + 16);
 
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+      // Label background (Soft card)
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
       const labelText = `${hazard.emoji} ${hazard.name}`;
       ctx.font = '700 12px Outfit, sans-serif';
       const textWidth = ctx.measureText(labelText).width;
-      ctx.fillRect(hazard.x + 4, hazard.y + 4, textWidth + 10, 22);
+      
+      // Rounded rect for hazard label
+      const hX = hazard.x + 4;
+      const hY = hazard.y + 4;
+      const hW = textWidth + 12;
+      const hH = 22;
+      const r = 4;
+      ctx.beginPath();
+      ctx.moveTo(hX + r, hY);
+      ctx.lineTo(hX + hW - r, hY);
+      ctx.quadraticCurveTo(hX + hW, hY, hX + hW, hY + r);
+      ctx.lineTo(hX + hW, hY + hH - r);
+      ctx.quadraticCurveTo(hX + hW, hY + hH, hX + hW - r, hY + hH);
+      ctx.lineTo(hX + r, hY + hH);
+      ctx.quadraticCurveTo(hX, hY + hH, hX, hY + r);
+      ctx.lineTo(hX, hY + r);
+      ctx.quadraticCurveTo(hX, hY, hX + r, hY);
+      ctx.closePath();
+      ctx.fill();
 
       ctx.fillStyle = '#5b2b16';
-      ctx.fillText(labelText, hazard.x + 9, hazard.y + 19);
+      ctx.fillText(labelText, hX + 6, hY + 15);
     });
 
-    // 5. Walls with drop shadow
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-    ctx.shadowBlur = 6;
-    ctx.shadowOffsetY = 4;
-    ctx.fillStyle = '#4a3a2a'; // darker stone
+    // 5. Walls (Stony texture instead of black bars)
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
+    ctx.shadowBlur = 4;
+    ctx.shadowOffsetY = 3;
+    
     WALLS.forEach((wall) => {
+      // Base stone color
+      ctx.fillStyle = '#968471'; 
       ctx.fillRect(wall.x, wall.y, wall.w, wall.h);
-      ctx.strokeStyle = 'rgba(20, 15, 10, 0.6)';
-      ctx.lineWidth = 2;
+      
+      // Add stone highlights/texture
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.fillRect(wall.x, wall.y, wall.w, 2); // Top highlight
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+      ctx.fillRect(wall.x, wall.y + wall.h - 2, wall.w, 2); // Bottom shadow
+      
+      // Cracks / Stone blocks
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
+      ctx.lineWidth = 1;
+      for (let i = 20; i < wall.w; i += 40) {
+        ctx.beginPath();
+        ctx.moveTo(wall.x + i, wall.y);
+        ctx.lineTo(wall.x + i, wall.y + wall.h);
+        ctx.stroke();
+      }
+
+      ctx.strokeStyle = 'rgba(74, 54, 32, 0.35)';
+      ctx.lineWidth = 1.5;
       ctx.strokeRect(wall.x, wall.y, wall.w, wall.h);
     });
-    ctx.shadowColor = 'transparent'; // Reset
+    ctx.shadowColor = 'transparent';
     ctx.shadowOffsetY = 0;
+    ctx.shadowBlur = 0;
 
     // 6. Exit Gate
     const gateOpen = missionEvidenceCount >= missionRequiredCount;
@@ -1505,12 +1581,31 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       ctx.fill();
       ctx.restore();
 
-      ctx.fillStyle = 'rgba(255, 250, 240, 0.72)';
+      // Guardian label (Small rounded placard)
+      ctx.fillStyle = 'rgba(255, 250, 240, 0.85)';
       ctx.font = '700 11px Outfit, sans-serif';
       const labelWidth = ctx.measureText(guardian.name).width;
-      ctx.fillRect(guardian.x - 22, guardian.y - 24, labelWidth + 14, 18);
+      
+      const gx = guardian.x - 22;
+      const gy = guardian.y - 24;
+      const gw = labelWidth + 14;
+      const gh = 18;
+      const gr = 3;
+
+      ctx.beginPath();
+      ctx.moveTo(gx + gr, gy); ctx.lineTo(gx + gw - gr, gy);
+      ctx.quadraticCurveTo(gx + gw, gy, gx + gw, gy + gr);
+      ctx.lineTo(gx + gw, gy + gh - gr);
+      ctx.quadraticCurveTo(gx + gw, gy + gh, gx + gw - gr, gy + gh);
+      ctx.lineTo(gx + gr, gy + gh);
+      ctx.quadraticCurveTo(gx, gy + gh, gx, gy + gr);
+      ctx.lineTo(gx, gy + gr);
+      ctx.quadraticCurveTo(gx, gy, gx + gr, gy);
+      ctx.closePath();
+      ctx.fill();
+
       ctx.fillStyle = '#3a2a18';
-      ctx.fillText(guardian.name, guardian.x - 15, guardian.y - 11);
+      ctx.fillText(guardian.name, gx + 7, gy + 13);
     });
 
     // 9. Player Avatar

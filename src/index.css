@@ -7676,7 +7676,11 @@ textarea.lab-note-textarea:focus {
   max-width: 650px;
   animation: modalSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
+  max-height: 85vh;
+  /* Scrollbar styling for a cleaner look */
+  scrollbar-width: thin;
+  scrollbar-color: var(--bureau-gold-light) transparent;
 }
 
 .bureau-briefing-modal::before {
@@ -9378,6 +9382,201 @@ main {
   text-align: center;
 }
 
+
+
+.expedition-replacement-card span {
+  color: var(--bureau-ink-muted);
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
+.expedition-satchel-decision {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.expedition-satchel-decision-note,
+.expedition-mission-review-note {
+  margin: 0;
+  padding: 0.7rem 0.8rem;
+  border-left: 4px solid rgba(146, 64, 14, 0.38);
+  background: rgba(255, 244, 220, 0.72);
+  color: var(--bureau-ink);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.expedition-satchel-decision-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.expedition-satchel-column {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.expedition-satchel-column h3 {
+  margin: 0;
+  color: var(--bureau-ink);
+  font-size: 0.92rem;
+}
+
+.expedition-satchel-summary-card {
+  width: 100%;
+}
+
+.expedition-mission-review {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.expedition-replacement-action {
+  color: var(--bureau-ink-muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+.expedition-evidence-item.is-mission {
+  border-color: rgba(45, 90, 39, 0.35);
+  background: rgba(45, 90, 39, 0.06);
+}
+
+.expedition-hazard-list {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.expedition-claim-modal {
+  display: grid;
+  gap: 1rem;
+}
+
+.expedition-claim-modal::before {
+  content: "FINAL CLAIM" !important;
+}
+
+.expedition-briefing-overlay {
+  background: rgba(26, 21, 16, 0.58) !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+.expedition-mission-briefing-modal {
+  max-width: min(780px, calc(100vw - 2rem)) !important;
+  max-height: calc(100vh - 4rem) !important;
+  overflow-y: auto !important;
+  display: grid;
+  gap: 0.5rem !important;
+  padding: 1.5rem 2rem !important;
+  border: 2px solid rgba(92, 66, 38, 0.72) !important;
+  border-radius: 8px !important;
+  box-shadow: 
+    0 28px 80px rgba(0, 0, 0, 0.42),
+    inset 0 0 0 1px rgba(255, 250, 240, 0.42) !important;
+}
+
+.expedition-mission-briefing-modal::before {
+  content: "BUREAU MEMO" !important;
+}
+
+.expedition-mission-briefing-modal h2 {
+  margin: 0 !important;
+  font-size: clamp(1.4rem, 2.5vw, 1.8rem) !important;
+  line-height: 1.1 !important;
+}
+
+.expedition-mission-briefing-modal p {
+  margin: 0 !important;
+  font-size: 0.95rem !important;
+  line-height: 1.4 !important;
+}
+
+.expedition-briefing-mission {
+  margin-top: 0.1rem;
+  padding: 0.5rem 0.75rem !important;
+}
+
+.expedition-briefing-mission p {
+  font-size: 0.85rem !important;
+  margin-bottom: 0.25rem !important;
+}
+
+.expedition-briefing-mission strong {
+  font-size: 0.9rem !important;
+}
+
+.expedition-briefing-stamp {
+  justify-self: end;
+  width: max-content;
+  padding: 0.22rem 0.65rem;
+  border: 3px solid rgba(130, 35, 24, 0.8);
+  border-radius: 4px;
+  color: #7f1d1d;
+  font-family: 'Cinzel', serif;
+  font-size: 0.8rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transform: rotate(3deg);
+}
+
+.expedition-briefing-rules {
+  padding: 0.75rem;
+  border: 1px solid rgba(139, 106, 72, 0.35);
+  border-radius: 6px;
+  background: rgba(255, 250, 240, 0.48);
+}
+
+.expedition-briefing-rules h3 {
+  margin: 0 0 0.4rem;
+  color: var(--bureau-ink);
+  font-family: 'Cinzel', serif;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+}
+
+.expedition-briefing-rules ol {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.expedition-briefing-rules li {
+  color: var(--bureau-ink);
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.expedition-briefing-rules li strong {
+  display: inline-block;
+  margin-right: 0.5rem;
+}
+
+.expedition-briefing-rules li span {
+  display: inline;
+}
+
+.expedition-briefing-rules li strong {
+  font-weight: 900;
+}
+
+.expedition-briefing-warning {
+  justify-self: center;
+  padding: 0.35rem 0.7rem;
+  margin-top: 0.25rem;
+  border: 1px dashed rgba(130, 35, 24, 0.65);
+  border-radius: 4px;
+  color: #7f1d1d !important;
+  font-weight: 900;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
 .expedition-begin-btn {
   min-width: 200px;
   justify-content: center;
@@ -9385,9 +9584,14 @@ main {
   padding: 0.65rem 1.5rem !important;
 }
 
-.expedition-inspection-modal {
-  display: grid;
-  gap: 1rem;
+.expedition-inspection-modal,
+.expedition-grid-modal,
+.expedition-survey-modal,
+.expedition-claim-modal,
+.expedition-result-modal {
+  max-width: 720px;
+  padding: 1.25rem 2rem 1.25rem 3.5rem !important;
+  gap: 0.75rem !important;
 }
 
 .expedition-inspection-modal::before {
@@ -9404,6 +9608,13 @@ main {
   font-size: 0.76rem;
   font-weight: 900;
   text-transform: uppercase;
+}
+
+.expedition-survey-modal h2,
+.expedition-grid-modal h2,
+.expedition-inspection-modal h2 {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
 }
 
 .expedition-inspection-question {
@@ -9498,14 +9709,11 @@ main {
   text-align: left;
 }
 
-.expedition-survey-modal {
-  max-width: 640px;
-}
-
 .expedition-survey-report-grid {
   display: grid;
-  gap: 0.65rem;
-  margin: 1rem 0;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+  margin: 0.5rem 0;
   text-align: left;
 }
 
@@ -9543,9 +9751,9 @@ main {
 
 .expedition-grid-square-list {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
-  margin-top: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.5rem;
 }
 
 .expedition-grid-square {
@@ -9995,6 +10203,8 @@ main {
   padding: 0;
   list-style: none;
 }
+
+
 /* --- LOST SITE EXPEDITION REFINEMENT --- */
 .expedition-phase {
   /* Inherits bureau-phase parchment theme */
@@ -10322,4 +10532,76 @@ main {
 .expedition-route-gate-status li.is-met::before {
   content: 'Ready';
   color: #2d5a27;
+}
+
+.expedition-mission-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.expedition-mission-card strong {
+  font-family: 'Cinzel', serif;
+  font-size: 1.05rem;
+  color: var(--bureau-ink);
+}
+
+.expedition-mission-card span {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.85rem;
+  color: var(--bureau-ink-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.expedition-mission-card p {
+  margin: 0.25rem 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: var(--bureau-ink);
+}
+
+.expedition-mission-progress {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed rgba(139, 106, 72, 0.3);
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: bold;
+  font-size: 0.95rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.expedition-mission-progress span {
+  color: var(--bureau-gold-dark);
+  font-size: 1.1rem;
+}
+
+.resource-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 0.75rem;
+}
+
+.resource-list div {
+  background: rgba(255, 255, 255, 0.5);
+  padding: 0.65rem;
+  border-radius: 6px;
+  border: 1px solid rgba(139, 106, 72, 0.15);
+  text-align: center;
+}
+
+.resource-list strong {
+  display: block;
+  font-size: 1.2rem;
+  color: var(--bureau-ink);
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.resource-list span {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: var(--bureau-ink-muted);
+}
 }
