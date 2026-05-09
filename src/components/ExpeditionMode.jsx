@@ -477,7 +477,7 @@ const getMapEvidenceTypeIdForToken = (token) => (
   MAP_EVIDENCE_TYPE_BY_MISSION_TYPE[token?.missionType] || 'structure'
 );
 
-const getMapEvidenceTypeName = (typeId) => MAP_EVIDENCE_TYPE_BY_ID[typeId]?.name || 'Unknown';
+const getMapEvidenceTypeName = (typeId) => MAP_EVIDENCE_TYPE_BY_ID[typeId]?.name || typeId || 'Unknown';
 
 const isMappingAccurate = (token, typeId) => (
   getMapEvidenceTypeIdForToken(token) === typeId
@@ -619,6 +619,12 @@ const evidenceVisibleForGrid = (token, selectedSurveyZone, openedGridSquares) =>
   ));
 };
 
+const getOpenedGridSquareForEvidence = (token, selectedSurveyZone, openedGridSquares) => (
+  getGridSquaresForZone(selectedSurveyZone).find(square => (
+    openedGridSquares?.has(square.id) && square.linkedEvidenceIds.includes(token.id)
+  ))?.id || null
+);
+
 const getSurveyZoneName = (zoneId) => (
   zoneId ? SURVEY_ZONE_BY_ID[zoneId]?.name || zoneId : null
 );
@@ -628,9 +634,9 @@ const buildExpeditionEvidence = () => {
   const byId = new Map((egypt?.evidence || []).map(item => [item.id, item]));
   const picks = [
     { id: 'eg_13', x: 690, y: 94, zone: 'Archive Corner', clueGroup: 'Legacy' },
-    { id: 'eg_7', x: 398, y: 112, zone: 'Burial Area', clueGroup: 'Society' },
+    { id: 'eg_7', x: 548, y: 340, zone: 'Ruined Wall', clueGroup: 'Society' },
     { id: 'eg_11', x: 128, y: 142, zone: 'Riverbank', clueGroup: 'Geography' },
-    { id: 'eg_8', x: 350, y: 214, zone: 'Ruined Wall', clueGroup: 'Society' },
+    { id: 'eg_8', x: 350, y: 310, zone: 'Ruined Wall', clueGroup: 'Society' },
     { id: 'eg_10', x: 140, y: 330, zone: 'Market Area', clueGroup: 'Society' },
     { id: 'eg_9', x: 532, y: 330, zone: 'Ruined Wall', clueGroup: 'Society' },
   ];
@@ -690,6 +696,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
   const [excavationMethodHistory, setExcavationMethodHistory] = useState([]);
   const [selectedMappedEvidenceType, setSelectedMappedEvidenceType] = useState('');
   const [mappingFeedback, setMappingFeedback] = useState(null);
+  const [mappedFinds, setMappedFinds] = useState([]);
   const [missionEvidenceCount, setMissionEvidenceCount] = useState(0);
   const [claimOpen, setClaimOpen] = useState(false);
   const [selectedCivilisation, setSelectedCivilisation] = useState('');
@@ -754,11 +761,11 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     inspectionToken ? {
       ...inspectionToken,
       selectedSurveyZone: getSurveyZoneName(selectedSurveyZone),
-      selectedGridSquare,
+      selectedGridSquare: getOpenedGridSquareForEvidence(inspectionToken, selectedSurveyZone, openedGridSquares) || selectedGridSquare,
       mappedEvidenceType: inspectionToken.mappedEvidenceType ? getMapEvidenceTypeName(inspectionToken.mappedEvidenceType) : null,
       mappingAccurate: inspectionToken.mappingAccurate ?? null,
     } : null
-  ), [inspectionToken, selectedGridSquare, selectedSurveyZone]);
+  ), [inspectionToken, openedGridSquares, selectedGridSquare, selectedSurveyZone]);
   const inventoryFullDecisionOpen = Boolean(inspectionToken && ['capacity', 'replace', 'mission'].includes(inspectionStep));
   const evidenceQualitySummary = useMemo(() => (
     collectedEvidence.reduce((summary, item) => {
@@ -769,24 +776,14 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       };
     }, { excellent: 0, good: 0, damaged: 0 })
   ), [collectedEvidence]);
-  const mappingAccuracySummary = useMemo(() => {
-    const mapped = collectedEvidence.filter(item => item.mappedEvidenceType);
-    const accurate = mapped.filter(item => item.mappingAccurate).length;
-    const needsReview = mapped.length - accurate;
-    return { mapped: mapped.length, accurate, needsReview };
-  }, [collectedEvidence]);
   const mappedFindsSummary = useMemo(() => (
-    collectedEvidence
-      .filter(item => item.mappedEvidenceType)
-      .map(item => ({
-        id: item.id,
-        name: item.name,
-        mappedZone: item.mappedZone || getSurveyZoneName(selectedSurveyZone),
-        mappedGridSquare: item.mappedGridSquare || selectedGridSquare,
-        mappedEvidenceType: item.mappedEvidenceType,
-        mappingAccurate: item.mappingAccurate ?? true,
-      }))
-  ), [collectedEvidence, selectedGridSquare, selectedSurveyZone]);
+    mappedFinds
+  ), [mappedFinds]);
+  const mappingAccuracySummary = useMemo(() => {
+    const accurate = mappedFindsSummary.filter(item => item.mappingAccurate).length;
+    const needsReview = mappedFindsSummary.length - accurate;
+    return { mapped: mappedFindsSummary.length, accurate, needsReview };
+  }, [mappedFindsSummary]);
   const missingTools = useMemo(() => (
     JOURNEY_TOOLS.filter(tool => !fieldKitSet.has(tool.id))
   ), [fieldKitSet]);
@@ -1120,11 +1117,16 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     const evidenceTypeName = getMapEvidenceTypeName(evidenceTypeId);
     const accurate = isMappingAccurate(inspectionToken, evidenceTypeId);
     const zoneName = getSurveyZoneName(selectedSurveyZone);
-    const gridSquare = selectedGridSquare || 'Unknown';
+    const gridSquare = getOpenedGridSquareForEvidence(inspectionToken, selectedSurveyZone, openedGridSquares) || selectedGridSquare || 'Unknown';
     const mapping = {
+      id: inspectionToken.id,
+      name: inspectionToken.name,
       zone: zoneName,
       gridSquare,
       evidenceType: evidenceTypeName,
+      mappedZone: zoneName,
+      mappedGridSquare: gridSquare,
+      mappedEvidenceType: evidenceTypeName,
       studentMappedType: evidenceTypeId,
       mappingAccurate: accurate,
     };
@@ -1151,6 +1153,11 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     if (fieldKitEffects.notebookReady) {
       recordMappingNote(updatedToken, mapping);
     }
+    setMappedFinds(previous => (
+      previous.some(item => item.id === inspectionToken.id)
+        ? previous.map(item => item.id === inspectionToken.id ? mapping : item)
+        : [...previous, mapping]
+    ));
 
     setMappingFeedback({
       accurate,
@@ -1164,7 +1171,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       : accurate
         ? 'Mapping complete. You recorded the evidence accurately.'
         : 'Mapping recorded, but the evidence type may need review.');
-  }, [fieldKitEffects.measuringTapeReady, fieldKitEffects.notebookReady, inspectionToken, recordMappingNote, selectedGridSquare, selectedMappedEvidenceType, selectedSurveyZone, syncResources]);
+  }, [fieldKitEffects.measuringTapeReady, fieldKitEffects.notebookReady, inspectionToken, openedGridSquares, recordMappingNote, selectedGridSquare, selectedMappedEvidenceType, selectedSurveyZone, syncResources]);
 
   const beginExpedition = () => {
     keysRef.current = {};
@@ -1200,6 +1207,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     setExcavationMethodHistory([]);
     setSelectedMappedEvidenceType('');
     setMappingFeedback(null);
+    setMappedFinds([]);
     nearbySurveyZoneRef.current = null;
     setNotice('Survey the site first. Choose a promising dig zone before inspecting evidence.');
   };
@@ -1246,7 +1254,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     token.isMissionEvidence = isMissionEvidence;
     token.evidenceQuality = token.evidenceQuality || 'good';
     token.mappedZone = token.mappedZone || getSurveyZoneName(selectedSurveyZone);
-    token.mappedGridSquare = token.mappedGridSquare || selectedGridSquare;
+    token.mappedGridSquare = token.mappedGridSquare || getOpenedGridSquareForEvidence(token, selectedSurveyZone, openedGridSquares) || selectedGridSquare;
     token.mappedEvidenceType = token.mappedEvidenceType || getMapEvidenceTypeName(token.studentMappedType || getMapEvidenceTypeIdForToken(token));
     token.mappingAccurate = token.mappingAccurate ?? (token.studentMappedType ? isMappingAccurate(token, token.studentMappedType) : true);
     nextInventory.push(token);
@@ -1668,134 +1676,146 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     window.advanceTime = (ms = 16) => {
       window.__advanceExpeditionJourney?.(ms);
     };
-    window.render_game_to_text = () => JSON.stringify({
-      mode: 'Lost Site Expedition',
-      stage: baseCampOpen ? 'base-camp' : 'journey',
-      activeMission,
-      missionTarget: activeMission,
-      missionProgress: {
-        found: missionEvidenceCount,
-        required: missionRequiredCount,
-        targetCategoryId: activeMission.targetCategoryId,
-        targetEvidenceType: activeMission.targetEvidenceType,
-        targetCategoryTitle: activeMission.targetCategoryTitle,
-      },
-      requiredMissionEvidenceCount: missionRequiredCount,
-      exitUnlocked,
-      surveyRequired: true,
-      surveyComplete,
-      selectedSurveyZone: getSurveyZoneName(selectedSurveyZone),
-      gridRequired: surveyComplete,
-      gridOpen: Boolean(gridSetupOpen),
-      selectedGridSquare,
-      openedGridSquares: [...openedGridSquares],
-      gridSquares: gridSquares.map(square => ({
-        id: square.id,
-        clue: square.clue,
-        risk: square.risk,
-        possibleEvidenceHint: square.possibleEvidenceHint,
-        linkedEvidenceIds: square.linkedEvidenceIds,
-        opened: openedGridSquares.has(square.id),
-      })),
-      nearbySurveyZone: nearbySurveyZone ? nearbySurveyZone.name : null,
-      surveyedZones: [...surveyedZones].map(getSurveyZoneName),
-      surveyReportOpen: Boolean(surveyReportZone),
-      excavationMethodRequired,
-      selectedExcavationMethod,
-      excavationMethodOpen,
-      pendingExcavationEvidence: excavationMethodOpen && inspectionToken ? {
-        id: inspectionToken.id,
-        name: inspectionToken.name,
-        missionType: inspectionToken.missionType,
-        category: inspectionToken.category,
-      } : null,
-      excavationMethodHistory,
-      mappingRequired,
-      mappingOpen,
-      pendingMappedEvidence,
-      mappedFinds: mappedFindsSummary,
-      mappedFindsAccurate: mappingAccuracySummary.accurate,
-      mappedFindsNeedsReview: mappingAccuracySummary.needsReview,
-      visibleEvidence: getVisibleEvidence().map(item => ({ id: item.id, name: item.name, zone: item.zone, missionType: item.missionType })),
-      hiddenEvidence: getHiddenEvidence().map(item => ({ id: item.id, name: item.name, zone: item.zone, missionType: item.missionType })),
-      resultOpen,
-      failureOpen: Boolean(expeditionFailure),
-      expeditionFailure,
-      finalScore,
-      finalRank,
-      fieldKitBonus,
-      claimCorrect,
-      evidenceSupportsClaim,
-      missionComplete,
-      fieldGuideHintVisible: Boolean(fieldKitEffects.fieldGuideAvailable && inspectionToken && !inspectionFeedback),
-      inventoryFullDecisionOpen,
-      pendingEvidence: pendingEvidence ? {
-        id: pendingEvidence.id,
-        name: pendingEvidence.name,
-        category: pendingEvidence.category,
-        missionType: pendingEvidence.missionType,
-        missionLabel: pendingEvidence.missionLabel,
-        matchesMission: pendingEvidence.matchesMission,
-        evidenceQuality: pendingEvidence.evidenceQuality || null,
-        excavationMethod: pendingEvidence.excavationMethod || null,
-        excavationMethodName: pendingEvidence.excavationMethodName || null,
-        clue: pendingEvidence.clue,
-        zone: pendingEvidence.zone,
-      } : null,
-      satchelContents: satchelContents.map(item => ({
-        id: item.id,
-        name: item.name,
-        category: item.category,
-        missionType: item.missionType,
-        missionLabel: item.missionLabel,
-        matchesMission: item.matchesMission,
-        evidenceQuality: item.evidenceQuality || null,
-        excavationMethod: item.excavationMethod || null,
-        excavationMethodName: item.excavationMethodName || null,
-        mappedZone: item.mappedZone || null,
-        mappedGridSquare: item.mappedGridSquare || null,
-        mappedEvidenceType: item.mappedEvidenceType || null,
-        mappingAccurate: item.mappingAccurate ?? null,
-        clue: item.clue,
-        zone: item.zone,
-      })),
-      fieldKitImpact,
-      collectedEvidence: collectedRef.current.map(item => ({
-        id: item.id,
-        name: item.name,
-        category: item.category,
-        missionCategoryId: item.missionType,
-        missionType: item.missionType,
-        isMissionEvidence: item.isMissionEvidence,
-        evidenceQuality: item.evidenceQuality || null,
-        excavationMethod: item.excavationMethod || null,
-        excavationMethodName: item.excavationMethodName || null,
-        mappedZone: item.mappedZone || null,
-        mappedGridSquare: item.mappedGridSquare || null,
-        mappedEvidenceType: item.mappedEvidenceType || null,
-        mappingAccurate: item.mappingAccurate ?? null,
-        supports: item.supports,
-      })),
-      remainingEvidence: tokensRef.current.filter(item => !item.collected).map(item => ({
-        id: item.id,
-        x: item.x,
-        y: item.y,
-        category: item.category,
-        missionCategoryId: item.missionType,
-        missionType: item.missionType,
-        clueGroup: item.clueGroup,
-      })),
-      fieldKit,
-      fieldKitEffects,
-      baseCampOpen,
-      journey: journeySnapshotRef.current,
-    });
+    window.render_game_to_text = () => {
+      const journeySnapshot = journeySnapshotRef.current || {};
+      return JSON.stringify({
+        mode: 'Lost Site Expedition',
+        stage: baseCampOpen ? 'base-camp' : 'journey',
+        activeMission,
+        missionTarget: activeMission,
+        missionProgress: {
+          found: missionEvidenceCount,
+          required: missionRequiredCount,
+          targetCategoryId: activeMission.targetCategoryId,
+          targetEvidenceType: activeMission.targetEvidenceType,
+          targetCategoryTitle: activeMission.targetCategoryTitle,
+        },
+        requiredMissionEvidenceCount: missionRequiredCount,
+        exitUnlocked,
+        surveyRequired: true,
+        surveyComplete,
+        selectedSurveyZone: getSurveyZoneName(selectedSurveyZone),
+        gridRequired: surveyComplete,
+        gridOpen: Boolean(gridSetupOpen),
+        selectedGridSquare,
+        openedGridSquares: [...openedGridSquares],
+        gridSquares: gridSquares.map(square => ({
+          id: square.id,
+          clue: square.clue,
+          risk: square.risk,
+          possibleEvidenceHint: square.possibleEvidenceHint,
+          linkedEvidenceIds: square.linkedEvidenceIds,
+          opened: openedGridSquares.has(square.id),
+        })),
+        nearbySurveyZone: nearbySurveyZone ? nearbySurveyZone.name : null,
+        surveyedZones: [...surveyedZones].map(getSurveyZoneName),
+        surveyReportOpen: Boolean(surveyReportZone),
+        excavationMethodRequired,
+        selectedExcavationMethod,
+        excavationMethodOpen,
+        pendingExcavationEvidence: excavationMethodOpen && inspectionToken ? {
+          id: inspectionToken.id,
+          name: inspectionToken.name,
+          missionType: inspectionToken.missionType,
+          category: inspectionToken.category,
+        } : null,
+        excavationMethodHistory,
+        mappingRequired,
+        mappingOpen,
+        pendingMappedEvidence,
+        mappedFinds: mappedFindsSummary,
+        mappedFindsAccurate: mappingAccuracySummary.accurate,
+        mappedFindsNeedsReview: mappingAccuracySummary.needsReview,
+        visibleEvidence: getVisibleEvidence().map(item => ({ id: item.id, name: item.name, zone: item.zone, missionType: item.missionType })),
+        hiddenEvidence: getHiddenEvidence().map(item => ({ id: item.id, name: item.name, zone: item.zone, missionType: item.missionType })),
+        resultOpen,
+        failureOpen: Boolean(expeditionFailure),
+        expeditionFailure,
+        finalScore,
+        finalRank,
+        fieldKitBonus,
+        claimCorrect,
+        evidenceSupportsClaim,
+        missionComplete,
+        fieldGuideHintVisible: Boolean(fieldKitEffects.fieldGuideAvailable && inspectionToken && !inspectionFeedback),
+        inventoryFullDecisionOpen,
+        pendingEvidence: pendingEvidence ? {
+          id: pendingEvidence.id,
+          name: pendingEvidence.name,
+          category: pendingEvidence.category,
+          missionType: pendingEvidence.missionType,
+          missionLabel: pendingEvidence.missionLabel,
+          matchesMission: pendingEvidence.matchesMission,
+          evidenceQuality: pendingEvidence.evidenceQuality || null,
+          excavationMethod: pendingEvidence.excavationMethod || null,
+          excavationMethodName: pendingEvidence.excavationMethodName || null,
+          clue: pendingEvidence.clue,
+          zone: pendingEvidence.zone,
+        } : null,
+        satchelContents: satchelContents.map(item => ({
+          id: item.id,
+          name: item.name,
+          category: item.category,
+          missionType: item.missionType,
+          missionLabel: item.missionLabel,
+          matchesMission: item.matchesMission,
+          evidenceQuality: item.evidenceQuality || null,
+          excavationMethod: item.excavationMethod || null,
+          excavationMethodName: item.excavationMethodName || null,
+          mappedZone: item.mappedZone || null,
+          mappedGridSquare: item.mappedGridSquare || null,
+          mappedEvidenceType: item.mappedEvidenceType || null,
+          mappingAccurate: item.mappingAccurate ?? null,
+          clue: item.clue,
+          zone: item.zone,
+        })),
+        fieldKitImpact,
+        collectedEvidence: collectedRef.current.map(item => ({
+          id: item.id,
+          name: item.name,
+          category: item.category,
+          missionCategoryId: item.missionType,
+          missionType: item.missionType,
+          isMissionEvidence: item.isMissionEvidence,
+          evidenceQuality: item.evidenceQuality || null,
+          excavationMethod: item.excavationMethod || null,
+          excavationMethodName: item.excavationMethodName || null,
+          mappedZone: item.mappedZone || null,
+          mappedGridSquare: item.mappedGridSquare || null,
+          mappedEvidenceType: item.mappedEvidenceType || null,
+          mappingAccurate: item.mappingAccurate ?? null,
+          supports: item.supports,
+        })),
+        remainingEvidence: tokensRef.current.filter(item => !item.collected).map(item => ({
+          id: item.id,
+          x: item.x,
+          y: item.y,
+          category: item.category,
+          missionCategoryId: item.missionType,
+          missionType: item.missionType,
+          clueGroup: item.clueGroup,
+        })),
+        fieldKit,
+        fieldKitEffects,
+        baseCampOpen,
+        journeySection: journeySnapshot.journeySection || null,
+        relicShardCount: journeySnapshot.relicShardCount || 0,
+        collectedUpgrades: journeySnapshot.collectedUpgrades || [],
+        activeCheckpoint: journeySnapshot.activeCheckpoint || null,
+        defeatedEnemies: journeySnapshot.defeatedEnemies || [],
+        hiddenRoomsFound: journeySnapshot.hiddenRoomsFound || [],
+        playerCombatState: journeySnapshot.playerCombatState || null,
+        enemyStates: journeySnapshot.enemyStates || [],
+        worldProgressPercent: journeySnapshot.worldProgressPercent || 0,
+        journey: journeySnapshot,
+      });
+    };
 
     return () => {
       delete window.advanceTime;
       delete window.render_game_to_text;
     };
-  }, [activeMission, baseCampOpen, claimCorrect, evidenceSupportsClaim, excavationMethodHistory, excavationMethodOpen, excavationMethodRequired, expeditionFailure, expeditionStage, exitUnlocked, fieldKit, fieldKitBonus, fieldKitEffects, fieldKitImpact, finalRank, finalScore, getHiddenEvidence, getVisibleEvidence, gridSetupOpen, gridSquares, inspectionFeedback, inspectionToken, inventoryFullDecisionOpen, missionComplete, missionEvidenceCount, missionRequiredCount, nearbySurveyZone, openedGridSquares, pendingEvidence, resultOpen, satchelContents, selectedExcavationMethod, selectedGridSquare, selectedSurveyZone, surveyComplete, surveyedZones, surveyReportZone]);
+  }, [activeMission, baseCampOpen, claimCorrect, evidenceSupportsClaim, excavationMethodHistory, excavationMethodOpen, excavationMethodRequired, expeditionFailure, expeditionStage, exitUnlocked, fieldKit, fieldKitBonus, fieldKitEffects, fieldKitImpact, finalRank, finalScore, getHiddenEvidence, getVisibleEvidence, gridSetupOpen, gridSquares, inspectionFeedback, inspectionToken, inventoryFullDecisionOpen, mappedFindsSummary, mappingAccuracySummary.accurate, mappingAccuracySummary.needsReview, mappingOpen, mappingRequired, missionComplete, missionEvidenceCount, missionRequiredCount, nearbySurveyZone, openedGridSquares, pendingEvidence, pendingMappedEvidence, resultOpen, satchelContents, selectedExcavationMethod, selectedGridSquare, selectedSurveyZone, surveyComplete, surveyedZones, surveyReportZone]);
 
   useEffect(() => {
     if (expeditionStage !== 'excavation') return undefined;
@@ -1861,6 +1881,10 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         evidenceQuality: item.evidenceQuality || null,
         excavationMethod: item.excavationMethod || null,
         excavationMethodName: item.excavationMethodName || null,
+        mappedZone: item.mappedZone || null,
+        mappedGridSquare: item.mappedGridSquare || null,
+        mappedEvidenceType: item.mappedEvidenceType || null,
+        mappingAccurate: item.mappingAccurate ?? null,
         clueGroup: item.clueGroup,
         supports: item.supports,
       })),
@@ -1968,6 +1992,10 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         evidenceQuality: pendingEvidence.evidenceQuality || null,
         excavationMethod: pendingEvidence.excavationMethod || null,
         excavationMethodName: pendingEvidence.excavationMethodName || null,
+        mappedZone: pendingEvidence.mappedZone || null,
+        mappedGridSquare: pendingEvidence.mappedGridSquare || null,
+        mappedEvidenceType: pendingEvidence.mappedEvidenceType || null,
+        mappingAccurate: pendingEvidence.mappingAccurate ?? null,
         clue: pendingEvidence.clue,
         zone: pendingEvidence.zone,
       } : null,
@@ -1981,6 +2009,10 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         evidenceQuality: item.evidenceQuality || null,
         excavationMethod: item.excavationMethod || null,
         excavationMethodName: item.excavationMethodName || null,
+        mappedZone: item.mappedZone || null,
+        mappedGridSquare: item.mappedGridSquare || null,
+        mappedEvidenceType: item.mappedEvidenceType || null,
+        mappingAccurate: item.mappingAccurate ?? null,
         clue: item.clue,
         zone: item.zone,
       })),
@@ -2002,7 +2034,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       delete window.advanceTime;
       delete window.render_game_to_text;
     };
-  }, [activeMission, briefingOpen, claimCorrect, draw, evidenceSupportsClaim, excavationMethodHistory, excavationMethodOpen, excavationMethodRequired, expeditionFailure, expeditionStage, exitUnlocked, fieldKit, fieldKitBonus, fieldKitEffects, fieldKitImpact, fieldNotes, finalRank, finalScore, getHiddenEvidence, getVisibleEvidence, gridSetupOpen, gridSquares, inspectionFeedback, inspectionToken, inventoryFullDecisionOpen, missionComplete, missionEvidenceCount, missionRequiredCount, nearbySurveyZone, openGridSetup, openInspection, openSurveyReport, openedGridSquares, pendingEvidence, resultOpen, satchelContents, selectedExcavationMethod, selectedGridSquare, selectedSurveyZone, surveyComplete, surveyedZones, surveyReportZone, update]);
+  }, [activeMission, briefingOpen, claimCorrect, draw, evidenceSupportsClaim, excavationMethodHistory, excavationMethodOpen, excavationMethodRequired, expeditionFailure, expeditionStage, exitUnlocked, fieldKit, fieldKitBonus, fieldKitEffects, fieldKitImpact, fieldNotes, finalRank, finalScore, getHiddenEvidence, getVisibleEvidence, gridSetupOpen, gridSquares, inspectionFeedback, inspectionToken, inventoryFullDecisionOpen, mappedFindsSummary, mappingAccuracySummary.accurate, mappingAccuracySummary.needsReview, mappingOpen, mappingRequired, missionComplete, missionEvidenceCount, missionRequiredCount, nearbySurveyZone, openGridSetup, openInspection, openSurveyReport, openedGridSquares, pendingEvidence, pendingMappedEvidence, resultOpen, satchelContents, selectedExcavationMethod, selectedGridSquare, selectedSurveyZone, surveyComplete, surveyedZones, surveyReportZone, update]);
 
   const resetExpedition = () => {
     const nextMission = chooseEvidenceHuntMission(activeMission.id);
@@ -2045,6 +2077,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     setExcavationMethodHistory([]);
     setSelectedMappedEvidenceType('');
     setMappingFeedback(null);
+    setMappedFinds([]);
     setMissionEvidenceCount(0);
     setClaimOpen(false);
     setSelectedCivilisation('');

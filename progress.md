@@ -61,5 +61,13 @@ Remaining notes:
 - Added Map the Find to Lost Site Expedition after excavation method choice and before evidence collection.
 - Mapping accuracy now records zone, grid square, and evidence type with accurate or needs review feedback.
 - Measuring Tape and Notebook effects are connected to mapping notes and the result screen now shows Mapping Accuracy.
-- `npm.cmd run build` and `npm.cmd run lint` will be rechecked after this pass.
-- Remaining risk: the new mapping flow still needs a full Ruined Wall browser regression, including result and reset.
+- `npm.cmd run build` passed and `npm.cmd run lint` passed on this pass.
+- Browser checks confirmed Ruined Wall A1 reveals reachable evidence, opens excavation method choice, opens Map the Find, records correct and incorrect mapping outcomes, and still allows mission collection.
+- Remaining risk: a full 3/3 Exit Gate -> Final Claim -> Run Result -> Play Again regression is still recommended before starting Lab Analysis.
+
+2026-05-09 update:
+- Added Journey Adventure Expansion Phase 1 to the existing `ExpeditionJourney.jsx` side-scroller.
+- Added simple field-tool combat, enemy encounters, relic shards, temporary archaeologist upgrades, hidden rooms, checkpoints, route-seal pacing gates, longer section progression, and direct journey fields in `render_game_to_text`.
+- `npm.cmd run build` passed, `npm.cmd run lint` passed, and `git diff --check` only reported the repo's existing LF-to-CRLF warnings.
+- Browser smoke checks confirmed Expedition opens, Journey starts, attack state appears, enemies can be defeated, relic shards collect, upgrades can be collected, hidden rooms can be found, checkpoints advance, straight-line rushing is blocked by route seals, Base Camp opens after route progress, and Begin Excavation still enters the existing excavation stage.
+- Remaining risk: the Journey now supports a 10-15 minute classroom run through required route progress plus optional shards/upgrades/secrets; exact duration still depends on student skill and how much optional exploration they choose.

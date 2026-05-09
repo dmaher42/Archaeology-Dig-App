@@ -10215,3 +10215,51 @@ main {
   font-style: italic;
   font-family: 'Courier New', Courier, monospace;
 }
+.expedition-warning-note {
+  padding: 0.45rem 0.55rem;
+  border-left: 3px solid #92400e;
+  background: rgba(146, 64, 14, 0.1);
+  color: #6b2d12;
+  font-weight: 700;
+}
+
+.expedition-route-gate-status {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid rgba(146, 64, 14, 0.24);
+  border-left: 3px solid #92400e;
+  border-radius: 4px;
+  background: rgba(146, 64, 14, 0.08);
+  color: var(--bureau-ink-muted);
+  font-size: 0.78rem;
+}
+
+.expedition-route-gate-status strong {
+  color: var(--bureau-ink);
+}
+
+.expedition-route-gate-status ul {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.expedition-route-gate-status li::before {
+  content: 'Need';
+  margin-right: 0.35rem;
+  color: #92400e;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.expedition-route-gate-status li.is-met {
+  color: #2d5a27;
+}
+
+.expedition-route-gate-status li.is-met::before {
+  content: 'Ready';
+  color: #2d5a27;
+}
