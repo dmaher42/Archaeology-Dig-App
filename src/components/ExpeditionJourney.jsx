@@ -49,6 +49,61 @@ import {
   rectsOverlap,
 } from './expedition-journey/journeyUtils';
 
+const DEFAULT_BOSS_ATTACK_PHASES = [
+  {
+    id: 'heavy-swipe',
+    label: 'Heavy Swipe',
+    kind: 'close',
+    windup: 0.72,
+    duration: 0.34,
+    cooldown: 1.85,
+    recovery: 0.78,
+    vulnerableAfter: 0.85,
+    range: 58,
+    height: 40,
+    speed: 72,
+    color: '#fb923c',
+  },
+  {
+    id: 'pulse-ring',
+    label: 'Pulse Ring',
+    kind: 'area',
+    windup: 0.92,
+    duration: 0.36,
+    cooldown: 2.15,
+    recovery: 0.88,
+    vulnerableAfter: 1,
+    range: 118,
+    height: 54,
+    damageScale: 0.85,
+    shieldDuringWindup: true,
+    color: '#facc15',
+  },
+];
+
+const BOSS_ATTACK_PHASES = {
+  'scarab-queen': [
+    { ...DEFAULT_BOSS_ATTACK_PHASES[0], id: 'queen-charge', label: 'Sand Charge', speed: 145, cooldown: 1.65 },
+    { ...DEFAULT_BOSS_ATTACK_PHASES[1], id: 'scarab-burst', label: 'Scarab Burst', kind: 'area', cooldown: 2, damageScale: 0.75 },
+  ],
+  'temple-guardian': [
+    { ...DEFAULT_BOSS_ATTACK_PHASES[0], id: 'stone-swipe', label: 'Stone Swipe', windup: 0.9, duration: 0.42, speed: 58 },
+    { ...DEFAULT_BOSS_ATTACK_PHASES[1], id: 'shockwave-slam', label: 'Shockwave Slam', windup: 1.05, range: 132, damageScale: 0.8 },
+  ],
+  'giant-serpent': [
+    { ...DEFAULT_BOSS_ATTACK_PHASES[0], id: 'wall-lunge', label: 'Wall Lunge', speed: 120, cooldown: 1.75 },
+    { ...DEFAULT_BOSS_ATTACK_PHASES[1], id: 'venom-line', label: 'Venom Line', kind: 'ranged', windup: 0.8, range: 126, height: 30, cooldown: 2, damageScale: 0.75 },
+  ],
+  'looter-captain': [
+    { ...DEFAULT_BOSS_ATTACK_PHASES[0], id: 'dash-shove', label: 'Dash Shove', windup: 0.58, duration: 0.28, speed: 145, cooldown: 1.45 },
+    { ...DEFAULT_BOSS_ATTACK_PHASES[1], id: 'sand-throw', label: 'Sand Throw', kind: 'ranged', windup: 0.76, range: 112, height: 28, cooldown: 1.85, damageScale: 0.7 },
+  ],
+  'ancient-construct': [
+    { ...DEFAULT_BOSS_ATTACK_PHASES[0], id: 'construct-slam', label: 'Construct Slam', windup: 1, duration: 0.44, speed: 54, cooldown: 2 },
+    { ...DEFAULT_BOSS_ATTACK_PHASES[1], id: 'core-pulse', label: 'Core Pulse', windup: 1.1, range: 140, cooldown: 2.25, damageScale: 0.85 },
+  ],
+};
+
 export default function ExpeditionJourney({ mission, onComplete, onSnapshotChange, audioControls }) {
   const [gameState, setGameState] = useState(makeInitialState());
   const [briefingOpen, setBriefingOpen] = useState(true);
@@ -173,6 +228,27 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     return 'ready';
   }, []);
 
+  const getBossPhaseConfig = useCallback((boss) => {
+    const phases = BOSS_ATTACK_PHASES[boss.id] || DEFAULT_BOSS_ATTACK_PHASES;
+    return phases.find(phase => phase.id === boss.attackPattern) || phases[boss.attackCycleIndex % phases.length] || phases[0];
+  }, []);
+
+  const getBossVulnerabilityState = useCallback((boss) => {
+    const phase = getBossPhaseConfig(boss);
+    const shielded = boss.shieldTimer > 0 || (boss.attackWindup > 0 && phase?.shieldDuringWindup);
+    const vulnerable = !shielded && (boss.vulnerabilityTimer > 0 || boss.attackRecovery > 0 || boss.stunTimer > 0);
+    return {
+      phaseId: boss.attackPattern || phase?.id || 'heavy',
+      phaseLabel: boss.attackPhaseLabel || phase?.label || 'Heavy attack',
+      attackKind: boss.attackKind || phase?.kind || 'close',
+      shielded,
+      vulnerable,
+      vulnerabilityTimer: Number((boss.vulnerabilityTimer || 0).toFixed(2)),
+      shieldTimer: Number((boss.shieldTimer || 0).toFixed(2)),
+      patternHistory: boss.patternHistory || [],
+    };
+  }, [getBossPhaseConfig]);
+
   const getEntityCombatState = useCallback((entity) => ({
     state: getCombatMode(entity),
     idle: getCombatMode(entity) === 'idle',
@@ -189,6 +265,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
   const createJourneySnapshot = useCallback((current = stateRef.current) => {
     const section = getSectionForX(current.player.x);
     const objective = getObjectiveProgress(section.id, current);
+    const activeMiniBoss = current.miniBosses.find(boss => boss.awakened && !boss.defeated && Math.abs(boss.x - current.player.x) < 520);
     const playerAttackBox = current.playerAttackBox
       ? {
         x: Math.round(current.playerAttackBox.x),
@@ -241,7 +318,16 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         x: Math.round(boss.x),
         ...getEntityCombatState(boss),
       })),
-      activeMiniBoss: current.miniBosses.find(boss => boss.awakened && !boss.defeated && Math.abs(boss.x - current.player.x) < 520)?.name || null,
+      activeMiniBoss: activeMiniBoss?.name || null,
+      activeMiniBossState: activeMiniBoss ? {
+        id: activeMiniBoss.id,
+        name: activeMiniBoss.name,
+        health: activeMiniBoss.health,
+        maxHealth: activeMiniBoss.maxHealth,
+        x: Math.round(activeMiniBoss.x),
+        ...getEntityCombatState(activeMiniBoss),
+        ...getBossVulnerabilityState(activeMiniBoss),
+      } : null,
       defeatedEnemies: Array.from(current.defeatedEnemies),
       defeatedMiniBosses: Array.from(current.defeatedMiniBosses),
       hiddenRoomsFound: Array.from(current.hiddenRoomsFound),
@@ -327,7 +413,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       failureReason: current.failureReason,
       notice: current.notice,
     };
-  }, [briefingOpen, getEntityCombatState, getGateRequirements, getObjectiveProgress, getPlayerAttackState]);
+  }, [briefingOpen, getBossVulnerabilityState, getEntityCombatState, getGateRequirements, getObjectiveProgress, getPlayerAttackState]);
 
   // --- Rendering Helpers ---
   const drawFieldNoteLabel = useCallback((ctx, x, y, text, color) => {
@@ -968,8 +1054,25 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     ctx.roundRect(screenX - 10, boss.y - 25, boss.width + 20, 8, 4);
     ctx.fill();
     ctx.fillStyle = '#14b8a6';
-    ctx.roundRect(screenX - 10, boss.y - 25, (boss.health / 3) * (boss.width + 20), 8, 4);
+    ctx.roundRect(screenX - 10, boss.y - 25, (boss.health / boss.maxHealth) * (boss.width + 20), 8, 4);
     ctx.fill();
+
+    if (boss.shieldTimer > 0) {
+      ctx.fillStyle = '#dbeafe';
+      ctx.strokeStyle = '#0369a1';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 28 + Math.sin(now / 80) * 3, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.font = '900 9px Outfit, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('SHIELD', cx, boss.y - 28);
+    } else if (boss.vulnerabilityTimer > 0) {
+      ctx.fillStyle = '#bbf7d0';
+      ctx.font = '900 9px Outfit, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('OPEN!', cx, boss.y - 28);
+    }
 
     drawFieldNoteLabel(ctx, cx, boss.y - 40, boss.name, '#0f766e');
     ctx.restore();
@@ -1006,9 +1109,26 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     const cy = entity.y + entity.height / 2;
     const warning = entity.attackWindup > 0;
     const attacking = entity.attackTimer > 0;
-    if (!warning && !attacking) return;
+    const shielded = isBoss && entity.shieldTimer > 0;
+    const vulnerable = isBoss && entity.vulnerabilityTimer > 0;
+    if (!warning && !attacking && !shielded && !vulnerable) return;
 
     ctx.save();
+    if (shielded) {
+      ctx.strokeStyle = 'rgba(125, 211, 252, 0.85)';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 54 + Math.sin(now / 70) * 4, 0, Math.PI * 2);
+      ctx.stroke();
+      drawFieldNoteLabel(ctx, cx, entity.y - 58, 'SHIELDED', '#0369a1');
+    } else if (vulnerable) {
+      ctx.strokeStyle = 'rgba(34, 197, 94, 0.82)';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 50 + Math.sin(now / 90) * 5, 0, Math.PI * 2);
+      ctx.stroke();
+      drawFieldNoteLabel(ctx, cx, entity.y - 58, 'COUNTER WINDOW', '#166534');
+    }
     if (warning) {
       const pulse = Math.sin(now / 80) * 0.25 + 0.75;
       ctx.strokeStyle = `rgba(248, 113, 113, ${pulse})`;
@@ -1027,14 +1147,26 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       ctx.font = `900 ${isBoss ? 15 : 12}px Outfit, sans-serif`;
       ctx.textAlign = 'center';
       ctx.fillText('!', cx, entity.y - (isBoss ? 13 : 14));
+      if (isBoss && entity.attackPhaseLabel) {
+        drawFieldNoteLabel(ctx, cx, entity.y - 36, entity.attackPhaseLabel, '#b45309');
+      }
     }
 
     if (attacking) {
-      const box = getAttackBox(entity, isBoss ? 58 : 36, isBoss ? 40 : 24, entity.attackDirection);
-      drawAttackArc(ctx, box, cameraX, entity.attackDirection, isBoss ? '#fb923c' : '#f87171', isBoss ? 'SLAM' : 'ATTACK');
+      const isArea = isBoss && entity.attackKind === 'area';
+      const isRanged = isBoss && entity.attackKind === 'ranged';
+      const box = isArea
+        ? {
+          x: entity.x - 36,
+          y: entity.y + entity.height - 48,
+          width: entity.width + 72,
+          height: 54,
+        }
+        : getAttackBox(entity, isRanged ? 122 : isBoss ? 58 : 36, isBoss ? 40 : 24, entity.attackDirection);
+      drawAttackArc(ctx, box, cameraX, entity.attackDirection, isBoss ? (isRanged ? '#7dd3fc' : isArea ? '#facc15' : '#fb923c') : '#f87171', isBoss ? (entity.attackPhaseLabel || 'BOSS ATTACK') : 'ATTACK');
     }
     ctx.restore();
-  }, [drawAttackArc, getAttackBox]);
+  }, [drawAttackArc, drawFieldNoteLabel, getAttackBox]);
 
   const drawCombatEffects = useCallback((ctx, effects, cameraX, now) => {
     effects.forEach((effect) => {
@@ -1655,8 +1787,18 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       b.attackCooldown = Math.max(0, b.attackCooldown - dt);
       b.attackRecovery = Math.max(0, b.attackRecovery - dt);
       b.knockbackTimer = Math.max(0, b.knockbackTimer - dt);
+      b.vulnerabilityTimer = Math.max(0, (b.vulnerabilityTimer || 0) - dt);
+      b.shieldTimer = Math.max(0, (b.shieldTimer || 0) - dt);
       if (wasBossAttacking && b.attackTimer <= 0) {
-        b.attackRecovery = b.type === 'guardian' || b.type === 'statue' ? 0.58 : 0.42;
+        const phase = getBossPhaseConfig(b);
+        b.attackRecovery = phase.recovery;
+        b.vulnerabilityTimer = phase.vulnerableAfter;
+        addCombatEffect(current, {
+          type: 'boss-vulnerable',
+          x: b.x + b.width / 2,
+          y: b.y + b.height / 2,
+          color: '#22c55e',
+        });
       }
       if (!b.awakened && Math.abs(b.x - player.x) < 400) {
         b.awakened = true;
@@ -1668,35 +1810,52 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       const bossNearPlayer = Math.abs(distanceToPlayer) < 155 && Math.abs(player.y - b.y) < 90;
 
       if (b.awakened && b.stunTimer <= 0 && b.attackTimer <= 0 && b.attackWindup <= 0 && bossNearPlayer && b.attackCooldown <= 0) {
-        b.attackWindup = b.type === 'guardian' || b.type === 'statue' ? 0.95 : 0.68;
+        const phases = BOSS_ATTACK_PHASES[b.id] || DEFAULT_BOSS_ATTACK_PHASES;
+        const phase = phases[b.attackCycleIndex % phases.length];
+        b.attackPattern = phase.id;
+        b.attackPhaseLabel = phase.label;
+        b.attackKind = phase.kind;
+        b.attackWindup = phase.windup;
         b.attackDirection = distanceToPlayer >= 0 ? 1 : -1;
         b.attackHasHit = false;
         b.attackReady = true;
-        b.attackPattern = b.id === 'scarab-queen'
-          ? 'queen-charge'
-          : b.id === 'temple-guardian'
-            ? 'shockwave-slam'
-            : b.id === 'giant-serpent'
-              ? 'wall-lunge'
-              : b.id === 'looter-captain'
-                ? 'dash-shove'
-                : 'construct-pulse';
-        b.attackCooldown = b.type === 'looter' ? 1.85 : 2.15;
-        current.notice = `${b.name} is preparing a big attack.`;
+        b.attackCooldown = phase.cooldown;
+        b.shieldTimer = phase.shieldDuringWindup ? Math.min(0.55, phase.windup * 0.7) : 0;
+        b.vulnerabilityTimer = 0;
+        b.attackCycleIndex += 1;
+        b.patternHistory = [...(b.patternHistory || []), phase.id].slice(-6);
+        addCombatEffect(current, {
+          type: 'boss-telegraph',
+          x: b.x + b.width / 2,
+          y: b.y + b.height / 2,
+          color: phase.color || '#fb923c',
+        });
+        audioControls?.playAction?.();
+        current.notice = `${b.name} telegraphs ${phase.label}. Watch, dodge, then counter.`;
       }
 
       if (b.attackReady && b.attackWindup <= 0 && b.attackTimer <= 0) {
-        b.attackTimer = b.type === 'guardian' || b.type === 'statue' ? 0.48 : 0.34;
+        const phase = getBossPhaseConfig(b);
+        b.attackTimer = phase.duration;
         b.attackReady = false;
       }
 
       if (b.attackTimer > 0) {
-        const bossAttackSpeed = b.type === 'looter' ? 150 : b.type === 'snake' ? 125 : b.type === 'scarab' ? 145 : 62;
-        b.x += b.attackDirection * bossAttackSpeed * dt;
-        const bossAttackBox = getAttackBox(b, 58, 40, b.attackDirection);
+        const phase = getBossPhaseConfig(b);
+        if (phase.kind === 'close') {
+          b.x += b.attackDirection * phase.speed * dt;
+        }
+        const bossAttackBox = phase.kind === 'area'
+          ? {
+            x: b.x - 36,
+            y: b.y + b.height - 48,
+            width: b.width + 72,
+            height: 54,
+          }
+          : getAttackBox(b, phase.range, phase.height, b.attackDirection);
         if (!b.attackHasHit && rectsOverlap(bossAttackBox, player)) {
           b.attackHasHit = true;
-          applyPlayerDamage(b.damage, `${b.name} attack landed. Watch the warning tell.`, b.attackDirection);
+          applyPlayerDamage(Math.max(4, Math.round(b.damage * (phase.damageScale || 1))), `${b.name} ${phase.label} landed. Dodge the tell, then counter.`, b.attackDirection);
         }
       }
 
@@ -1710,6 +1869,19 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       }
       if (attackRect && !current.attackHitIds.has(b.id) && rectsOverlap(attackRect, b)) {
         current.attackHitIds.add(b.id);
+        const { shielded } = getBossVulnerabilityState(b);
+        if (shielded) {
+          b.hitFlash = 0.16;
+          b.attackCooldown = Math.max(b.attackCooldown, 0.35);
+          addCombatEffect(current, {
+            type: 'boss-shield',
+            x: b.x + b.width / 2,
+            y: b.y + b.height / 2,
+            color: '#7dd3fc',
+          });
+          current.notice = `${b.name}'s shield blocked the hit. Wait for the counter window.`;
+          return;
+        }
         b.health -= 1;
         b.hitFlash = 0.28;
         b.stunTimer = 0.75;
@@ -1718,6 +1890,8 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         b.attackReady = false;
         b.attackCooldown = Math.max(b.attackCooldown, 1.1);
         b.attackRecovery = 0.75;
+        b.vulnerabilityTimer = 0.55;
+        b.shieldTimer = 0;
         b.knockbackTimer = 0.18;
         b.knockbackDirection = player.direction;
         b.x += player.direction * 12;
@@ -1772,7 +1946,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       if (current.resources.time <= 0) triggerJourneyRescue('Time expired. Field team rescued.');
     }
 
-  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, getAttackBox, getObjectiveProgress, getGateRequirements, addCombatEffect, getPlayerAttackState, syncHud]);
+  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, getAttackBox, getBossPhaseConfig, getBossVulnerabilityState, getObjectiveProgress, getGateRequirements, addCombatEffect, getPlayerAttackState, syncHud]);
 
   const step = useCallback((ms) => {
     const dt = Math.min(ms / 1000, 0.05);

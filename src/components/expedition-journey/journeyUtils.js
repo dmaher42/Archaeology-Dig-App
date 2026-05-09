@@ -54,6 +54,12 @@ export const makeMiniBoss = (boss) => ({
   attackReady: false,
   attackRecovery: 0,
   attackPattern: 'heavy',
+  attackPhaseLabel: 'Heavy attack',
+  attackKind: 'close',
+  attackCycleIndex: 0,
+  vulnerabilityTimer: 0,
+  shieldTimer: 0,
+  patternHistory: [],
   knockbackTimer: 0,
   knockbackDirection: 0,
 });
