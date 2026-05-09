@@ -56,6 +56,17 @@ import {
   updatePlayerAnimation,
 } from './expedition-journey/journeyUtils';
 
+import {
+  createEnvironmentAssetState,
+  drawAtlasRegion,
+  ENVIRONMENT_ATLAS_JSON,
+  getEnvironmentAssetKeyForHazard,
+  getEnvironmentAssetKeyForPlatform,
+  getEnvironmentAssetKeyForStoryProp,
+  getMissingEnvironmentAssets,
+  loadEnvironmentAssetPack,
+} from './expedition-journey/journeyRenderAssets';
+
 const DEFAULT_BOSS_ATTACK_PHASES = [
   {
     id: 'heavy-swipe',
@@ -266,6 +277,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
   const lastFrameRef = useRef(0);
   const animationRef = useRef(null);
   const playerSpriteRef = useRef({ image: null, loaded: false, failed: false });
+  const environmentAssetsRef = useRef(createEnvironmentAssetState());
 
   // Sync ref for the physics loop
   useEffect(() => {
@@ -296,6 +308,14 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       cancelled = true;
     };
   }, [syncHud]);
+
+  useEffect(() => loadEnvironmentAssetPack({
+    baseUrl: import.meta.env.BASE_URL,
+    onUpdate: (assets) => {
+      environmentAssetsRef.current = assets;
+      syncHud();
+    },
+  }), [syncHud]);
 
   const triggerJourneyRescue = useCallback((reason) => {
     const current = stateRef.current;
@@ -570,6 +590,9 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     const section = getSectionForX(current.player.x);
     const objective = getObjectiveProgress(section.id, current);
     const activeMiniBoss = current.miniBosses.find(boss => boss.awakened && !boss.defeated && Math.abs(boss.x - current.player.x) < 520);
+    const environmentAssets = environmentAssetsRef.current;
+    const missingEnvironmentAssets = getMissingEnvironmentAssets(environmentAssets);
+    const environmentFallbackActive = !environmentAssets.loaded || environmentAssets.failed || missingEnvironmentAssets.length > 0;
     const playerAttackBox = current.playerAttackBox
       ? {
         x: Math.round(current.playerAttackBox.x),
@@ -594,6 +617,14 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       playerAnimationState: current.player.animationState || 'idle',
       playerAnimationFrame: current.player.animationFrame ?? 1,
       playerSpriteScale: Number((current.player.spriteScale || PLAYER_SPRITE_SCALE).toFixed(3)),
+      environmentAssetsLoaded: Boolean(environmentAssets.loaded),
+      environmentAssetsReady: Boolean(environmentAssets.ready),
+      environmentAtlasPath: environmentAssets.atlasPath || ENVIRONMENT_ATLAS_JSON,
+      missingEnvironmentAssets,
+      environmentFallbackActive,
+      platformArtMode: environmentAssets.loaded ? 'atlas' : 'canvas-fallback',
+      hazardArtMode: environmentAssets.loaded ? 'atlas' : 'canvas-fallback',
+      gateArtMode: environmentAssets.loaded ? 'atlas' : 'canvas-fallback',
       playerAttackBox,
       playerInvulnerable: Number(current.player.invulnerable.toFixed(2)),
       invulnerabilityRemainingMs: Math.round(current.player.invulnerable * 1000),
@@ -979,11 +1010,31 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     const x = platform.x - cameraX;
     if (x + platform.width < -50 || x > CANVAS_WIDTH + 50) return;
 
+    ctx.save();
     if (platform.secret && !current.collectedUpgrades.has('ancient-compass')) {
       ctx.globalAlpha = 0.15;
     }
 
     const isGround = platform.y === GROUND_Y;
+    const section = getSectionForX(platform.x);
+    const assetKey = getEnvironmentAssetKeyForPlatform(platform, section.id);
+    const assetDrawn = drawAtlasRegion(
+      ctx,
+      environmentAssetsRef.current,
+      assetKey,
+      { x, y: platform.y, width: platform.width, height: platform.height },
+      { mode: 'tileX' },
+    );
+
+    if (assetDrawn) {
+      ctx.fillStyle = isGround ? 'rgba(255, 244, 212, 0.08)' : 'rgba(255, 255, 255, 0.1)';
+      ctx.fillRect(x, platform.y, platform.width, 5);
+      ctx.strokeStyle = 'rgba(37, 25, 14, 0.45)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x, platform.y, platform.width, platform.height);
+      ctx.restore();
+      return;
+    }
     
     // Platform Base
     ctx.fillStyle = platform.secret ? '#5c4d3c' : isGround ? '#8b6a47' : '#4a3720';
@@ -1011,7 +1062,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     ctx.strokeStyle = 'rgba(37, 25, 14, 0.5)';
     ctx.lineWidth = 2;
     ctx.strokeRect(x, platform.y, platform.width, platform.height);
-    ctx.globalAlpha = 1;
+    ctx.restore();
   }, []);
 
   const drawStoryProp = useCallback((ctx, prop, cameraX, now) => {
@@ -1019,6 +1070,34 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     if (x + 200 < 0 || x - 200 > CANVAS_WIDTH) return;
 
     ctx.save();
+    const propAssetKey = getEnvironmentAssetKeyForStoryProp(prop);
+    if (propAssetKey) {
+      const propSize = {
+        door: { width: 150, height: 150, yOffset: 8 },
+        statue: { width: 76, height: 102, yOffset: 0 },
+        bridge: { width: 178, height: 70, yOffset: 8 },
+        lights: { width: 42, height: 64, yOffset: 0 },
+        ruins: { width: 120, height: 118, yOffset: 8 },
+        camp: { width: 96, height: 70, yOffset: 2 },
+        banners: { width: 88, height: 52, yOffset: 0 },
+      }[prop.type] || { width: 72, height: 72, yOffset: 0 };
+      const drawn = drawAtlasRegion(
+        ctx,
+        environmentAssetsRef.current,
+        propAssetKey,
+        {
+          x: x - propSize.width / 2,
+          y: prop.y - propSize.height + propSize.yOffset,
+          width: propSize.width,
+          height: propSize.height,
+        },
+        { mode: 'contain' },
+      );
+      if (drawn) {
+        ctx.restore();
+        return;
+      }
+    }
     if (prop.type === 'ruins') {
       ctx.fillStyle = 'rgba(92, 64, 51, 0.32)';
       ctx.fillRect(x - 52, prop.y + 18, 104, 48);
@@ -1318,6 +1397,53 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     const glowColor = complete ? '#22c55e' : '#f59e0b';
 
     ctx.save();
+    const gateVisual = {
+      x: screenX - 44,
+      y: gate.y + 18,
+      width: gate.width + 88,
+      height: 220,
+    };
+    const gateDrawn = drawAtlasRegion(
+      ctx,
+      environmentAssetsRef.current,
+      complete ? 'routeDoor' : 'sealedGate',
+      gateVisual,
+      { mode: 'stretch' },
+    );
+    if (gateDrawn) {
+      ctx.shadowColor = glowColor;
+      ctx.shadowBlur = complete ? 18 : 10;
+      ctx.globalAlpha = complete ? 0.72 : 0.92;
+      drawAtlasRegion(
+        ctx,
+        environmentAssetsRef.current,
+        'ancientSeal',
+        { x: gateCenter - 30, y: gate.y + gate.height / 2 - 30, width: 60, height: 60 },
+        { mode: 'contain' },
+      );
+      ctx.globalAlpha = 1;
+      ctx.shadowBlur = 0;
+
+      const guidance = getGateGuidance(gate, current);
+      const displayReqs = guidance.gateRequirements.slice(0, 4);
+      drawFieldNoteLabel(ctx, gateCenter, top - 10, complete ? 'SEAL READY' : 'SEALED GATE', complete ? '#166534' : '#78350f');
+      if (!complete && displayReqs.length > 0) {
+        ctx.fillStyle = 'rgba(255, 252, 235, 0.84)';
+        ctx.fillRect(gateCenter - 74, top + height + 4, 148, 52);
+        ctx.strokeStyle = '#78350f';
+        ctx.strokeRect(gateCenter - 74, top + height + 4, 148, 52);
+        ctx.fillStyle = '#78350f';
+        ctx.font = '800 8px Outfit, sans-serif';
+        ctx.textAlign = 'left';
+        displayReqs.forEach((req, index) => {
+          const mark = req.met ? '✓' : '○';
+          ctx.fillText(`${mark} ${req.label}`.toUpperCase(), gateCenter - 66, top + height + 16 + index * 10);
+        });
+      }
+      ctx.restore();
+      return;
+    }
+
     ctx.shadowColor = glowColor;
     ctx.shadowBlur = complete ? 14 : 8;
     ctx.fillStyle = complete ? 'rgba(22, 101, 52, 0.28)' : 'rgba(69, 26, 3, 0.36)';
@@ -1427,6 +1553,46 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     const baseY = hazard.y;
 
     ctx.save();
+    const hazardAssetKey = getEnvironmentAssetKeyForHazard(hazard);
+    const hazardDest = {
+      x: hx - 7,
+      y: baseY - (hazard.id === 'dark-gap' ? 22 : 18),
+      width: hazard.width + 14,
+      height: hazard.height + (hazard.id === 'dark-gap' ? 32 : 28),
+    };
+    const hazardDrawn = drawAtlasRegion(
+      ctx,
+      environmentAssetsRef.current,
+      hazardAssetKey,
+      hazardDest,
+      { mode: 'contain' },
+    );
+    if (hazardDrawn) {
+      ctx.lineWidth = hitActive ? 4 : 2;
+      ctx.strokeStyle = hitActive ? '#ef4444' : visual.color;
+      ctx.globalAlpha = 0.75 + pulse * 0.25;
+      ctx.setLineDash([5, 5]);
+      ctx.strokeRect(hx - 5, baseY - 7, hazard.width + 10, hazard.height + 14);
+      ctx.setLineDash([]);
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = visual.color;
+      ctx.beginPath();
+      ctx.moveTo(hx + hazard.width / 2, baseY - 25);
+      ctx.lineTo(hx + hazard.width / 2 - 10, baseY - 7);
+      ctx.lineTo(hx + hazard.width / 2 + 10, baseY - 7);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = '#fff7ed';
+      ctx.font = '900 12px Outfit, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(visual.icon, hx + hazard.width / 2, baseY - 11);
+      if (nearPlayer || hitActive) {
+        drawFieldNoteLabel(ctx, hx + hazard.width / 2, baseY - 34, visual.label, visual.color);
+      }
+      ctx.restore();
+      return;
+    }
+
     ctx.lineWidth = hitActive ? 4 : 2;
     ctx.strokeStyle = hitActive ? '#ef4444' : visual.color;
     ctx.fillStyle = visual.fill;

@@ -1,0 +1,161 @@
+{
+  "image": "desert-temple-pack.png",
+  "source": "ChatGPT Image May 10, 2026, 08_34_02 AM.png",
+  "size": {
+    "w": 1448,
+    "h": 1086
+  },
+  "mappingNote": "Approximate named regions from the AI-generated Desert Temple Environment Pack. Coordinates are source-atlas pixels and are intentionally generous so the renderer can crop recognizable art while preserving fallback canvas drawing.",
+  "regions": {
+    "groundSand": {
+      "x": 45,
+      "y": 55,
+      "w": 260,
+      "h": 140
+    },
+    "groundCracked": {
+      "x": 318,
+      "y": 55,
+      "w": 255,
+      "h": 140
+    },
+    "layeredSand": {
+      "x": 590,
+      "y": 55,
+      "w": 258,
+      "h": 142
+    },
+    "templeFloor": {
+      "x": 846,
+      "y": 55,
+      "w": 262,
+      "h": 140
+    },
+    "catacombFloor": {
+      "x": 1124,
+      "y": 55,
+      "w": 258,
+      "h": 140
+    },
+    "sandstoneBlock": {
+      "x": 40,
+      "y": 248,
+      "w": 285,
+      "h": 145
+    },
+    "templeBlock": {
+      "x": 350,
+      "y": 248,
+      "w": 282,
+      "h": 145
+    },
+    "woodenPlatform": {
+      "x": 648,
+      "y": 242,
+      "w": 230,
+      "h": 150
+    },
+    "brokenBridge": {
+      "x": 922,
+      "y": 250,
+      "w": 238,
+      "h": 135
+    },
+    "thornBush": {
+      "x": 38,
+      "y": 438,
+      "w": 252,
+      "h": 135
+    },
+    "spikeTrap": {
+      "x": 315,
+      "y": 442,
+      "w": 185,
+      "h": 122
+    },
+    "fallingRocks": {
+      "x": 518,
+      "y": 430,
+      "w": 122,
+      "h": 145
+    },
+    "softSand": {
+      "x": 675,
+      "y": 474,
+      "w": 288,
+      "h": 82
+    },
+    "collapsingFloor": {
+      "x": 965,
+      "y": 438,
+      "w": 194,
+      "h": 135
+    },
+    "darkPit": {
+      "x": 1180,
+      "y": 438,
+      "w": 230,
+      "h": 150
+    },
+    "brokenColumn": {
+      "x": 34,
+      "y": 615,
+      "w": 160,
+      "h": 155
+    },
+    "torch": {
+      "x": 258,
+      "y": 625,
+      "w": 105,
+      "h": 145
+    },
+    "pottery": {
+      "x": 495,
+      "y": 630,
+      "w": 150,
+      "h": 135
+    },
+    "rope": {
+      "x": 660,
+      "y": 682,
+      "w": 120,
+      "h": 70
+    },
+    "lantern": {
+      "x": 802,
+      "y": 650,
+      "w": 68,
+      "h": 112
+    },
+    "catStatue": {
+      "x": 982,
+      "y": 604,
+      "w": 86,
+      "h": 165
+    },
+    "lionStatue": {
+      "x": 1080,
+      "y": 610,
+      "w": 88,
+      "h": 160
+    },
+    "sealedGate": {
+      "x": 744,
+      "y": 810,
+      "w": 240,
+      "h": 210
+    },
+    "ancientSeal": {
+      "x": 990,
+      "y": 804,
+      "w": 214,
+      "h": 214
+    },
+    "routeDoor": {
+      "x": 1210,
+      "y": 812,
+      "w": 210,
+      "h": 205
+    }
+  }
+}
