@@ -99,17 +99,17 @@ export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypoth
           </div>
           <div className="status-text-content-horizontal">
             <div style={{display: 'flex', alignItems: 'baseline', gap: '10px'}}>
-              <h2>Phase 3: The Lab</h2>
+              <h2>Phase 3: Laboratory Analysis</h2>
               <span className="status-site-badge">{currentScenario?.civilization || 'Archaeological Site'}</span>
             </div>
-            <p>Choose three finds. Read the clue, then record what each one reveals.</p>
+            <p>Select three items of evidence. Document your findings to complete the dossier.</p>
           </div>
         </div>
 
         <div className="status-panel-progress-compact">
           <div className="progress-label-group">
             <span className="progress-label-mini">PROGRESS</span>
-            <span className="progress-count-mini">{analysedCount} / {requiredCount} analysed</span>
+            <span className="progress-count-mini">{analysedCount} / {requiredCount} Documented</span>
           </div>
           <div className="progress-bar-thin">
             <div className="progress-fill" style={{ width: `${progressPercent}%` }}></div>
@@ -119,7 +119,7 @@ export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypoth
         <div className="status-panel-actions-compact">
           <button className="btn" onClick={onBackToMenu}>Main Menu</button>
           <button className="btn primary-btn" onClick={handleFinalise} disabled={!isComplete}>
-            Curation Phase <ChevronRight size={18} />
+            Final Review <ChevronRight size={18} />
           </button>
         </div>
       </div>
@@ -128,7 +128,7 @@ export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypoth
         <div className="lab-briefing-card">
           <div className="lab-briefing-title">
             <ScrollText size={16} />
-            <span>Briefing</span>
+            <span>Dossier Briefing</span>
           </div>
           <p>{currentScenarioData.historicalContext}</p>
         </div>
@@ -136,8 +136,8 @@ export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypoth
 
       <div className="lab-layout">
         <section className="lab-panel lab-tray-panel">
-          <div className="lab-panel-heading">Evidence Tray</div>
-          <p className="lab-panel-subheading">Choose one sorted find to examine.</p>
+          <div className="lab-panel-heading">Accession Pending</div>
+          <p className="lab-panel-subheading">Select evidence for formal documentation.</p>
 
           <div className="lab-tray-list">
             {trayItems.map(item => {
@@ -171,8 +171,8 @@ export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypoth
         </section>
 
         <section className="lab-panel lab-bench-panel">
-          <div className="lab-panel-heading">Analysis Bench</div>
-          <p className="lab-panel-subheading">Study the clue, answer the question, then write a short research note.</p>
+          <div className="lab-panel-heading">Examination Workstation</div>
+          <p className="lab-panel-subheading">Analyze the evidence, categorize the impact, and record a formal observation.</p>
 
           {!selectedArtifact ? (
             <div className="lab-empty-state">
@@ -199,7 +199,7 @@ export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypoth
                       <span>{getArtifactEraLabel(selectedArtifact)}</span>
                     </div>
                     <div className="lab-artifact-clue" style={{ marginTop: '0.5rem' }}>
-                      <strong>Evidence clue:</strong> {selectedArtifact.clue}
+                      <strong>Evidence Clue:</strong> {selectedArtifact.clue}
                     </div>
                   </div>
                 </div>
@@ -207,7 +207,7 @@ export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypoth
 
               <div className="lab-analysis-form">
                 <div className="lab-analysis-section">
-                   <div className="lab-section-title">1. Identify Significance</div>
+                   <div className="lab-section-title">1. Deduce Significance</div>
                    <p className="lab-section-instruction">{selectedArtifact.question || 'What does this reveal about the past?'}</p>
                     <div className="lab-answer-grid">
                        {answerChoices.map((choice, idx) => (
@@ -224,7 +224,7 @@ export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypoth
                 </div>
 
                 <div className="lab-analysis-section">
-                   <div className="lab-section-title">2. Choose Research Category</div>
+                   <div className="lab-section-title">2. Categorization Protocol</div>
                    <p className="lab-section-instruction">Which historical area does this evidence best support?</p>
                    <div className="lab-prompt-grid">
                       {LAB_ANALYSIS_PROMPTS.map(prompt => {
@@ -246,7 +246,7 @@ export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypoth
                 </div>
 
                 <div className="lab-analysis-section">
-                   <div className="lab-section-title">3. Record Research Note</div>
+                   <div className="lab-section-title">3. Formal Case Log</div>
                    <p className="lab-section-instruction">Explain your reasoning in 1-2 sentences.</p>
                    
                    <div className="lab-note-field-container">
@@ -270,7 +270,7 @@ export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypoth
                     disabled={selectedAnswerIndex === null || !selectedPrompt || !draftNote.trim()}
                     onClick={handleSaveAnalysis}
                   >
-                    Save Analysis to Journal
+                    Commit Findings to Dossier
                   </button>
                 </div>
               </div>
