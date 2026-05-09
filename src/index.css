@@ -8825,7 +8825,6 @@ main {
   padding-bottom: 4rem;
 }
 
-<<<<<<< HEAD
 /* Lost Site Expedition */
 .expedition-phase {
   align-items: stretch;
@@ -9995,7 +9994,7 @@ main {
   margin: 0;
   padding: 0;
   list-style: none;
-=======
+}
 /* --- LOST SITE EXPEDITION REFINEMENT --- */
 .expedition-phase {
   /* Inherits bureau-phase parchment theme */
@@ -10174,6 +10173,8 @@ main {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+
 .expedition-tool-list li,
 .expedition-hazard-list li {
   display: flex;
@@ -10214,4 +10215,3 @@ main {
   font-style: italic;
   font-family: 'Courier New', Courier, monospace;
 }
-
