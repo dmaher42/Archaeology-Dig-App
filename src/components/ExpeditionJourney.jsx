@@ -57,6 +57,7 @@ import {
 } from './expedition-journey/journeyUtils';
 
 import {
+  ATLAS_TUNING_VERSION,
   createEnvironmentAssetState,
   drawAtlasRegion,
   ENVIRONMENT_ATLAS_JSON,
@@ -593,6 +594,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     const environmentAssets = environmentAssetsRef.current;
     const missingEnvironmentAssets = getMissingEnvironmentAssets(environmentAssets);
     const environmentFallbackActive = !environmentAssets.loaded || environmentAssets.failed || missingEnvironmentAssets.length > 0;
+    const renderStats = current.renderStats || {};
     const playerAttackBox = current.playerAttackBox
       ? {
         x: Math.round(current.playerAttackBox.x),
@@ -625,6 +627,10 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       platformArtMode: environmentAssets.loaded ? 'atlas' : 'canvas-fallback',
       hazardArtMode: environmentAssets.loaded ? 'atlas' : 'canvas-fallback',
       gateArtMode: environmentAssets.loaded ? 'atlas' : 'canvas-fallback',
+      visibleLabelCount: renderStats.visibleLabelCount || 0,
+      labelSuppressionActive: Boolean(renderStats.labelSuppressionActive),
+      atlasTuningVersion: ATLAS_TUNING_VERSION,
+      activeAtlasRegionIssues: missingEnvironmentAssets,
       playerAttackBox,
       playerInvulnerable: Number(current.player.invulnerable.toFixed(2)),
       invulnerabilityRemainingMs: Math.round(current.player.invulnerable * 1000),
@@ -794,20 +800,22 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
 
   // --- Rendering Helpers ---
   const drawFieldNoteLabel = useCallback((ctx, x, y, text, color) => {
+    const current = stateRef.current;
+    if (current.renderStats) current.renderStats.visibleLabelCount += 1;
     ctx.save();
-    ctx.font = '800 9px Outfit, sans-serif';
+    ctx.font = '800 8px Outfit, sans-serif';
     const metrics = ctx.measureText(text.toUpperCase());
-    const padding = 5;
+    const padding = 4;
     
-    ctx.fillStyle = 'rgba(255, 252, 235, 0.86)';
-    ctx.fillRect(x - metrics.width / 2 - padding, y - 9, metrics.width + padding * 2, 14);
+    ctx.fillStyle = 'rgba(255, 252, 235, 0.78)';
+    ctx.fillRect(x - metrics.width / 2 - padding, y - 8, metrics.width + padding * 2, 12);
     ctx.strokeStyle = color;
     ctx.lineWidth = 1;
-    ctx.strokeRect(x - metrics.width / 2 - padding, y - 9, metrics.width + padding * 2, 14);
+    ctx.strokeRect(x - metrics.width / 2 - padding, y - 8, metrics.width + padding * 2, 12);
     
     ctx.fillStyle = color;
     ctx.textAlign = 'center';
-    ctx.fillText(text.toUpperCase(), x, y + 1);
+    ctx.fillText(text.toUpperCase(), x, y);
     ctx.restore();
   }, []);
 
@@ -1018,20 +1026,29 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     const isGround = platform.y === GROUND_Y;
     const section = getSectionForX(platform.x);
     const assetKey = getEnvironmentAssetKeyForPlatform(platform, section.id);
+    ctx.fillStyle = isGround
+      ? section.id === 'catacombs'
+        ? '#2b211a'
+        : '#9b7140'
+      : '#5f4229';
+    ctx.fillRect(x - 1, platform.y, platform.width + 2, platform.height);
     const assetDrawn = drawAtlasRegion(
       ctx,
       environmentAssetsRef.current,
       assetKey,
-      { x, y: platform.y, width: platform.width, height: platform.height },
-      { mode: 'tileX' },
+      { x: x - 1, y: platform.y, width: platform.width + 2, height: platform.height },
+      { mode: 'tileX', sourceInset: isGround ? 18 : 12, sourceInsetY: isGround ? 3 : 0, overlap: 2.5, tileScale: isGround ? 1.2 : 1 },
     );
 
     if (assetDrawn) {
-      ctx.fillStyle = isGround ? 'rgba(255, 244, 212, 0.08)' : 'rgba(255, 255, 255, 0.1)';
-      ctx.fillRect(x, platform.y, platform.width, 5);
-      ctx.strokeStyle = 'rgba(37, 25, 14, 0.45)';
+      ctx.fillStyle = isGround ? 'rgba(69, 26, 3, 0.08)' : 'rgba(255, 255, 255, 0.08)';
+      ctx.fillRect(x, platform.y, platform.width, 3);
+      ctx.strokeStyle = 'rgba(37, 25, 14, 0.22)';
       ctx.lineWidth = 2;
-      ctx.strokeRect(x, platform.y, platform.width, platform.height);
+      ctx.beginPath();
+      ctx.moveTo(x, platform.y + 1);
+      ctx.lineTo(x + platform.width, platform.y + 1);
+      ctx.stroke();
       ctx.restore();
       return;
     }
@@ -1073,7 +1090,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     const propAssetKey = getEnvironmentAssetKeyForStoryProp(prop);
     if (propAssetKey) {
       const propSize = {
-        door: { width: 150, height: 150, yOffset: 8 },
+        door: { width: 112, height: 112, yOffset: 18 },
         statue: { width: 76, height: 102, yOffset: 0 },
         bridge: { width: 178, height: 70, yOffset: 8 },
         lights: { width: 42, height: 64, yOffset: 0 },
@@ -1398,10 +1415,10 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
 
     ctx.save();
     const gateVisual = {
-      x: screenX - 44,
-      y: gate.y + 18,
-      width: gate.width + 88,
-      height: 220,
+      x: screenX - 40,
+      y: gate.y + 112,
+      width: gate.width + 80,
+      height: 122,
     };
     const gateDrawn = drawAtlasRegion(
       ctx,
@@ -1418,7 +1435,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         ctx,
         environmentAssetsRef.current,
         'ancientSeal',
-        { x: gateCenter - 30, y: gate.y + gate.height / 2 - 30, width: 60, height: 60 },
+        { x: gateCenter - 22, y: gate.y + gate.height / 2 + 42, width: 44, height: 44 },
         { mode: 'contain' },
       );
       ctx.globalAlpha = 1;
@@ -1426,18 +1443,23 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
 
       const guidance = getGateGuidance(gate, current);
       const displayReqs = guidance.gateRequirements.slice(0, 4);
-      drawFieldNoteLabel(ctx, gateCenter, top - 10, complete ? 'SEAL READY' : 'SEALED GATE', complete ? '#166534' : '#78350f');
       if (!complete && displayReqs.length > 0) {
-        ctx.fillStyle = 'rgba(255, 252, 235, 0.84)';
-        ctx.fillRect(gateCenter - 74, top + height + 4, 148, 52);
-        ctx.strokeStyle = '#78350f';
-        ctx.strokeRect(gateCenter - 74, top + height + 4, 148, 52);
+        const panelWidth = 132;
+        const panelHeight = 42;
+        const preferredX = gateCenter < CANVAS_WIDTH * 0.55 ? gateCenter + 44 : gateCenter - panelWidth - 44;
+        const panelX = clamp(preferredX, 18, CANVAS_WIDTH - panelWidth - 18);
+        const panelY = clamp(gate.y + gate.height - 70, 92, CANVAS_HEIGHT - panelHeight - 18);
+        ctx.fillStyle = 'rgba(255, 252, 235, 0.74)';
+        ctx.fillRect(panelX, panelY, panelWidth, panelHeight);
+        ctx.strokeStyle = 'rgba(120, 53, 15, 0.65)';
+        ctx.strokeRect(panelX, panelY, panelWidth, panelHeight);
         ctx.fillStyle = '#78350f';
         ctx.font = '800 8px Outfit, sans-serif';
         ctx.textAlign = 'left';
-        displayReqs.forEach((req, index) => {
-          const mark = req.met ? '✓' : '○';
-          ctx.fillText(`${mark} ${req.label}`.toUpperCase(), gateCenter - 66, top + height + 16 + index * 10);
+        displayReqs.slice(0, 3).forEach((req, index) => {
+          const mark = req.met ? 'OK' : 'NEED';
+          const label = req.checklistLabel || req.label;
+          ctx.fillText(`${mark} ${label}`.toUpperCase(), panelX + 8, panelY + 13 + index * 10);
         });
       }
       ctx.restore();
@@ -1500,14 +1522,14 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       ctx.font = '800 8px Outfit, sans-serif';
       ctx.textAlign = 'left';
       displayReqs.forEach((req, index) => {
-        const mark = req.met ? '✓' : '○';
+          const mark = req.met ? 'OK' : 'NEED';
         ctx.fillText(`${mark} ${req.label}`.toUpperCase(), gateCenter - 66, top + height + 16 + index * 10);
       });
     }
     ctx.restore();
   }, [drawFieldNoteLabel, getGateGuidance]);
 
-  const drawMissingObjectiveMarker = useCallback((ctx, guidance, cameraX, now) => {
+  const drawMissingObjectiveMarker = useCallback((ctx, guidance, cameraX, now, suppressLabel = false) => {
     if (!guidance?.activeGateLocked || !guidance.nearestMissingObjective) return;
     const target = guidance.nearestMissingObjective;
     const targetScreenX = target.x - cameraX;
@@ -1520,7 +1542,9 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       ctx.beginPath();
       ctx.arc(targetScreenX, 292, 24 + pulse * 8, 0, Math.PI * 2);
       ctx.stroke();
-      drawFieldNoteLabel(ctx, targetScreenX, 258, `Needed: ${target.label}`, '#78350f');
+      if (!suppressLabel) {
+        drawFieldNoteLabel(ctx, targetScreenX, 258, `Needed: ${target.label}`, '#78350f');
+      }
     } else {
       const arrowX = targetScreenX < 0 ? 30 : CANVAS_WIDTH - 30;
       const direction = targetScreenX < 0 ? -1 : 1;
@@ -1530,7 +1554,9 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       ctx.lineTo(arrowX - direction * 13, 126);
       ctx.closePath();
       ctx.fill();
-      drawFieldNoteLabel(ctx, arrowX + direction * 60, 92, `Need: ${target.label}`, '#78350f');
+      if (!suppressLabel) {
+        drawFieldNoteLabel(ctx, arrowX + direction * 60, 92, `Need: ${target.label}`, '#78350f');
+      }
     }
     ctx.restore();
   }, [drawFieldNoteLabel]);
@@ -1568,12 +1594,21 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       { mode: 'contain' },
     );
     if (hazardDrawn) {
-      ctx.lineWidth = hitActive ? 4 : 2;
-      ctx.strokeStyle = hitActive ? '#ef4444' : visual.color;
-      ctx.globalAlpha = 0.75 + pulse * 0.25;
-      ctx.setLineDash([5, 5]);
-      ctx.strokeRect(hx - 5, baseY - 7, hazard.width + 10, hazard.height + 14);
-      ctx.setLineDash([]);
+      const glow = ctx.createRadialGradient(
+        hx + hazard.width / 2,
+        baseY + hazard.height / 2,
+        4,
+        hx + hazard.width / 2,
+        baseY + hazard.height / 2,
+        Math.max(hazard.width, hazard.height) * 0.85,
+      );
+      glow.addColorStop(0, hitActive ? 'rgba(239, 68, 68, 0.3)' : 'rgba(250, 204, 21, 0.16)');
+      glow.addColorStop(1, 'transparent');
+      ctx.globalAlpha = 0.7 + pulse * 0.2;
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.ellipse(hx + hazard.width / 2, baseY + hazard.height / 2, hazard.width * 0.78, Math.max(18, hazard.height * 0.8), 0, 0, Math.PI * 2);
+      ctx.fill();
       ctx.globalAlpha = 1;
       ctx.fillStyle = visual.color;
       ctx.beginPath();
@@ -1586,7 +1621,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       ctx.font = '900 12px Outfit, sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(visual.icon, hx + hazard.width / 2, baseY - 11);
-      if (nearPlayer || hitActive) {
+      if (nearPlayer && !hitActive && !current.renderStats?.labelSuppressionActive) {
         drawFieldNoteLabel(ctx, hx + hazard.width / 2, baseY - 34, visual.label, visual.color);
       }
       ctx.restore();
@@ -1707,13 +1742,13 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     ctx.textAlign = 'center';
     ctx.fillText(visual.icon, hx + hazard.width / 2, baseY - 11);
 
-    if (nearPlayer || hitActive) {
+    if (nearPlayer && !hitActive && !current.renderStats?.labelSuppressionActive) {
       drawFieldNoteLabel(ctx, hx + hazard.width / 2, baseY - 34, visual.label, visual.color);
     }
     ctx.restore();
   }, [drawFieldNoteLabel]);
 
-  const drawMiniBoss = useCallback((ctx, boss, screenX, now) => {
+  const drawMiniBoss = useCallback((ctx, boss, screenX, now, showLabel = true) => {
     const pulse = Math.sin(now / 400) * 0.12 + 0.88;
     const cx = screenX + boss.width / 2;
     const cy = boss.y + boss.height / 2;
@@ -1828,7 +1863,9 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       ctx.fillText('OPEN!', cx, boss.y - 28);
     }
 
-    drawFieldNoteLabel(ctx, cx, boss.y - 40, boss.name, '#0f766e');
+    if (showLabel) {
+      drawFieldNoteLabel(ctx, cx, boss.y - 40, boss.name, '#0f766e');
+    }
     ctx.restore();
   }, [drawFieldNoteLabel]);
 
@@ -1858,7 +1895,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     ctx.restore();
   }, []);
 
-  const drawEnemyAttackTell = useCallback((ctx, entity, screenX, cameraX, now, isBoss = false) => {
+  const drawEnemyAttackTell = useCallback((ctx, entity, screenX, cameraX, now, isBoss = false, suppressLabels = false) => {
     const cx = screenX + entity.width / 2;
     const cy = entity.y + entity.height / 2;
     const warning = entity.attackWindup > 0;
@@ -1874,14 +1911,18 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       ctx.beginPath();
       ctx.arc(cx, cy, 54 + Math.sin(now / 70) * 4, 0, Math.PI * 2);
       ctx.stroke();
-      drawFieldNoteLabel(ctx, cx, entity.y - 58, 'SHIELDED', '#0369a1');
+      if (!suppressLabels) {
+        drawFieldNoteLabel(ctx, cx, entity.y - 58, 'SHIELDED', '#0369a1');
+      }
     } else if (vulnerable) {
       ctx.strokeStyle = 'rgba(34, 197, 94, 0.82)';
       ctx.lineWidth = 4;
       ctx.beginPath();
       ctx.arc(cx, cy, 50 + Math.sin(now / 90) * 5, 0, Math.PI * 2);
       ctx.stroke();
-      drawFieldNoteLabel(ctx, cx, entity.y - 58, 'COUNTER WINDOW', '#166534');
+      if (!suppressLabels) {
+        drawFieldNoteLabel(ctx, cx, entity.y - 58, 'COUNTER WINDOW', '#166534');
+      }
     }
     if (warning) {
       const pulse = Math.sin(now / 80) * 0.25 + 0.75;
@@ -1901,7 +1942,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       ctx.font = `900 ${isBoss ? 15 : 12}px Outfit, sans-serif`;
       ctx.textAlign = 'center';
       ctx.fillText('!', cx, entity.y - (isBoss ? 13 : 14));
-      if (isBoss && entity.attackPhaseLabel) {
+      if (isBoss && entity.attackPhaseLabel && !suppressLabels) {
         drawFieldNoteLabel(ctx, cx, entity.y - 36, entity.attackPhaseLabel, '#b45309');
       }
     }
@@ -1917,7 +1958,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
           height: 54,
         }
         : getAttackBox(entity, isRanged ? 122 : isBoss ? 58 : 36, isBoss ? 40 : 24, entity.attackDirection);
-      drawAttackArc(ctx, box, cameraX, entity.attackDirection, isBoss ? (isRanged ? '#7dd3fc' : isArea ? '#facc15' : '#fb923c') : '#f87171', isBoss ? (entity.attackPhaseLabel || 'BOSS ATTACK') : 'ATTACK');
+      drawAttackArc(ctx, box, cameraX, entity.attackDirection, isBoss ? (isRanged ? '#7dd3fc' : isArea ? '#facc15' : '#fb923c') : '#f87171', suppressLabels ? '' : isBoss ? (entity.attackPhaseLabel || 'BOSS ATTACK') : 'ATTACK');
     }
     ctx.restore();
   }, [drawAttackArc, drawFieldNoteLabel, getAttackBox]);
@@ -1974,6 +2015,24 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       : 0;
     const cameraX = clamp((Number.isFinite(current.cameraX) ? current.cameraX : 0) + shake, 0, WORLD_WIDTH - CANVAS_WIDTH);
     const isPlayerNear = (worldX, distance = 240) => Math.abs((player.x + player.width / 2) - worldX) < distance;
+    const activeRouteGate = ROUTE_GATES.find(gate => !current.openedRouteGateIds.has(gate.id));
+    const activeGateGuidance = activeRouteGate ? getGateGuidance(activeRouteGate, current) : null;
+    const playerCenterX = player.x + player.width / 2;
+    const crowdedGateActive = Boolean(activeRouteGate && Math.abs((activeRouteGate.x + activeRouteGate.width / 2) - playerCenterX) < 360);
+    const crowdedBossActive = current.miniBosses.some(boss => boss.awakened && !boss.defeated && Math.abs(boss.x - player.x) < 360);
+    const labelSuppressionActive = crowdedGateActive || crowdedBossActive || current.bossIntroTimer > 0;
+    current.renderStats = {
+      visibleLabelCount: 0,
+      labelSuppressionActive,
+      atlasTuningVersion: ATLAS_TUNING_VERSION,
+      activeAtlasRegionIssues: getMissingEnvironmentAssets(environmentAssetsRef.current),
+    };
+    const showWorldLabel = (worldX, distance = 150, priority = 'normal') => {
+      const near = isPlayerNear(worldX, distance);
+      if (priority === 'critical') return near && !labelSuppressionActive;
+      if (priority === 'combat') return near && !labelSuppressionActive;
+      return near && !labelSuppressionActive;
+    };
 
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
@@ -2034,14 +2093,11 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       ctx.save();
       ctx.fillStyle = active ? '#166534' : '#451a03';
       ctx.fillRect(cx - 2, checkpoint.y, 4, 80);
-      if (active || isPlayerNear(checkpoint.x, 230)) {
+      if (active || showWorldLabel(checkpoint.x, 130)) {
         drawFieldNoteLabel(ctx, cx, checkpoint.y - 20, active ? 'CHECKPOINT' : checkpoint.name, active ? '#166534' : '#78350f');
       }
       ctx.restore();
     });
-
-    const activeRouteGate = ROUTE_GATES.find(gate => !current.openedRouteGateIds.has(gate.id));
-    const activeGateGuidance = activeRouteGate ? getGateGuidance(activeRouteGate, current) : null;
 
     ROUTE_GATES.forEach((gate) => {
       if (current.openedRouteGateIds.has(gate.id)) return;
@@ -2051,7 +2107,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       const complete = requirements.every(r => r.met);
       drawRouteGate(ctx, gate, gx, current, complete);
     });
-    drawMissingObjectiveMarker(ctx, activeGateGuidance, cameraX, now);
+    drawMissingObjectiveMarker(ctx, activeGateGuidance, cameraX, now, labelSuppressionActive);
 
     current.enemies.forEach((enemy) => {
       if (enemy.defeated) return;
@@ -2086,7 +2142,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         ctx.fillRect(ex, enemy.y - 12, (enemy.health / 2) * enemy.width, 4);
       }
 
-      if (isPlayerNear(enemy.x + enemy.width / 2, 170) || enemy.hitFlash > 0 || enemy.stunTimer > 0) {
+      if (enemy.hitFlash > 0 || enemy.stunTimer > 0 || showWorldLabel(enemy.x + enemy.width / 2, 120, 'combat')) {
         drawFieldNoteLabel(ctx, ex + enemy.width / 2, enemy.y - 20, enemy.name, '#1e293b');
       }
       ctx.restore();
@@ -2096,8 +2152,8 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       if (boss.defeated) return;
       const bx = boss.x - cameraX;
       if (bx + boss.width < -100 || bx > CANVAS_WIDTH + 100) return;
-      drawMiniBoss(ctx, boss, bx, now);
-      drawEnemyAttackTell(ctx, boss, bx, cameraX, now, true);
+      drawMiniBoss(ctx, boss, bx, now, !crowdedGateActive);
+      drawEnemyAttackTell(ctx, boss, bx, cameraX, now, true, crowdedGateActive);
     });
 
     RELIC_SHARDS.forEach(shard => {
@@ -2109,7 +2165,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     UPGRADES.forEach(upgrade => {
       if (!current.collectedUpgrades.has(upgrade.id)) {
         drawCollectible(ctx, upgrade.x, upgrade.y, cameraX, now, upgrade.emoji, '#2563eb');
-        if (isPlayerNear(upgrade.x, 260)) {
+        if (showWorldLabel(upgrade.x, 135, 'critical')) {
           drawFieldNoteLabel(ctx, upgrade.x - cameraX, upgrade.y - 30, upgrade.name, '#2563eb');
         }
       }
@@ -2119,7 +2175,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       if (!current.collectedToolIds.has(toolPos.id)) {
         const tool = JOURNEY_TOOLS.find(t => t.id === toolPos.id);
         drawCollectible(ctx, toolPos.x, toolPos.y, cameraX, now, tool.emoji, '#d4af37');
-        if (isPlayerNear(toolPos.x, 240)) {
+        if (showWorldLabel(toolPos.x, 125)) {
           drawFieldNoteLabel(ctx, toolPos.x - cameraX, toolPos.y - 30, tool.name, '#b45309');
         }
       }
@@ -2134,7 +2190,8 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       ctx.font = '32px Outfit';
       ctx.textAlign = 'center';
       ctx.fillText(emoji, mx + 15, marker.y + 15);
-      if (isPlayerNear(marker.x, 260)) {
+      const markerNeeded = activeGateGuidance?.nearestMissingObjective?.id === marker.id;
+      if (showWorldLabel(marker.x, markerNeeded ? 170 : 120, markerNeeded ? 'critical' : 'normal')) {
         drawFieldNoteLabel(ctx, mx + 15, marker.y - 15, marker.label, marker.color || '#b45309');
       }
       ctx.restore();

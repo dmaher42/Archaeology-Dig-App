@@ -1,5 +1,6 @@
 export const ENVIRONMENT_ATLAS_BASE_PATH = 'assets/expedition/environment/desert-temple/';
 export const ENVIRONMENT_ATLAS_JSON = `${ENVIRONMENT_ATLAS_BASE_PATH}desert-temple-pack.json`;
+export const ATLAS_TUNING_VERSION = 'environment-atlas-tuning-2026-05-10';
 
 export const EXPECTED_ENVIRONMENT_ASSET_KEYS = [
   'groundSand',
@@ -106,11 +107,17 @@ export const drawAtlasRegion = (ctx, assets, key, dest, options = {}) => {
   if (width <= 0 || height <= 0) return false;
 
   if (mode === 'tileX') {
-    const tileWidth = Math.max(16, Math.round(height * (region.w / region.h)));
-    for (let dx = x; dx < x + width; dx += tileWidth) {
+    const inset = options.sourceInset ?? 8;
+    const overlap = options.overlap ?? 1.5;
+    const sourceX = region.x + inset;
+    const sourceY = region.y + (options.sourceInsetY ?? 0);
+    const sourceWidthBase = Math.max(12, region.w - inset * 2);
+    const sourceHeight = Math.max(12, region.h - (options.sourceInsetY ?? 0));
+    const tileWidth = Math.max(16, Math.round(height * (sourceWidthBase / sourceHeight) * (options.tileScale ?? 1)));
+    for (let dx = x; dx < x + width; dx += tileWidth - overlap) {
       const visibleWidth = Math.min(tileWidth, x + width - dx);
-      const sourceWidth = region.w * (visibleWidth / tileWidth);
-      drawRegionOnce(ctx, assets.image, region, region.x, region.y, sourceWidth, region.h, dx, y, visibleWidth, height);
+      const sourceWidth = sourceWidthBase * (visibleWidth / tileWidth);
+      drawRegionOnce(ctx, assets.image, region, sourceX, sourceY, sourceWidth, sourceHeight, dx, y, visibleWidth + overlap, height);
     }
     return true;
   }
@@ -132,8 +139,9 @@ export const drawAtlasRegion = (ctx, assets, key, dest, options = {}) => {
 };
 
 export const getEnvironmentAssetKeyForPlatform = (platform, sectionId) => {
-  if (platform.label?.includes('bridge') || platform.label?.includes('ledge')) return 'brokenBridge';
-  if (platform.label?.includes('shelf') || platform.label?.includes('plinth') || platform.label?.includes('step')) return 'sandstoneBlock';
+  if (platform.label?.includes('bridge')) return 'brokenBridge';
+  if (platform.label?.includes('ledge') || platform.label?.includes('shelf')) return 'woodenPlatform';
+  if (platform.label?.includes('plinth') || platform.label?.includes('step')) return 'sandstoneBlock';
   if (sectionId === 'catacombs') return 'catacombFloor';
   if (sectionId === 'ruined-temple') return platform.y >= 350 ? 'templeFloor' : 'templeBlock';
   if (sectionId === 'escape-sequence') return platform.y >= 350 ? 'groundCracked' : 'collapsingFloor';
