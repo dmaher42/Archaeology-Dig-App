@@ -104,6 +104,134 @@ const BOSS_ATTACK_PHASES = {
   ],
 };
 
+const OBJECTIVE_MARKER_IDS_BY_SECTION = {
+  'desert-entry': ['map-tablet'],
+  'ruined-temple': ['switch-1', 'switch-2', 'switch-3'],
+  catacombs: ['glyph-1', 'glyph-2', 'glyph-3'],
+  'escape-sequence': ['escape-beacon'],
+};
+
+const OBJECTIVE_LABELS = {
+  'desert-entry': 'Map Tablet',
+  'ruined-temple': 'Switches',
+  catacombs: 'Glyph Fragments',
+  'escape-sequence': 'Escape Route',
+  'dig-site-entrance': 'Guardian Seal',
+};
+
+const OBJECTIVE_SINGULAR_LABELS = {
+  'desert-entry': 'map tablet',
+  'ruined-temple': 'switch',
+  catacombs: 'glyph fragment',
+  'escape-sequence': 'escape marker',
+  'dig-site-entrance': 'guardian seal',
+};
+
+const GATE_HINTS = {
+  objective: {
+    'desert-entry': 'The map tablet is still behind you in the desert route.',
+    'ruined-temple': 'One switch is still behind you in the Ruined Temple.',
+    catacombs: 'Search the catacomb floor for the remaining glyph fragment.',
+    'escape-sequence': 'Reach the escape marker before the route seal will open.',
+    'dig-site-entrance': 'The final guardian seal opens after the Ancient Construct falls.',
+  },
+  shards: 'Search the nearby platforms and lower route for more relic shards.',
+  upgrade: 'Look back through this section for the missing upgrade route.',
+};
+
+const HAZARD_VISUALS = {
+  'thorn-bush': {
+    icon: '!',
+    label: 'Thorns',
+    color: '#b91c1c',
+    fill: 'rgba(127, 29, 29, 0.28)',
+    accent: '#22c55e',
+    message: 'Thorn bush scratched your legs.',
+  },
+  'sand-pit': {
+    icon: '!',
+    label: 'Soft Sand',
+    color: '#92400e',
+    fill: 'rgba(180, 83, 9, 0.26)',
+    accent: '#facc15',
+    message: 'Soft sand slowed you down.',
+  },
+  'spike-trap': {
+    icon: '!',
+    label: 'Trap',
+    color: '#991b1b',
+    fill: 'rgba(153, 27, 27, 0.24)',
+    accent: '#f97316',
+    message: 'Temple trap triggered.',
+  },
+  'rolling-stones': {
+    icon: '!',
+    label: 'Rolling Stones',
+    color: '#7c2d12',
+    fill: 'rgba(120, 53, 15, 0.24)',
+    accent: '#fb923c',
+    message: 'Rolling stones cost stamina.',
+  },
+  'dark-gap': {
+    icon: '!',
+    label: 'Dark Gap',
+    color: '#111827',
+    fill: 'rgba(15, 23, 42, 0.76)',
+    accent: '#38bdf8',
+    message: 'You stumbled in a dark gap.',
+  },
+  'bat-cloud': {
+    icon: '!',
+    label: 'Bat Cloud',
+    color: '#581c87',
+    fill: 'rgba(88, 28, 135, 0.28)',
+    accent: '#c084fc',
+    message: 'Bat cloud scattered the team.',
+  },
+  'falling-blocks': {
+    icon: '!',
+    label: 'Falling Blocks',
+    color: '#7f1d1d',
+    fill: 'rgba(127, 29, 29, 0.24)',
+    accent: '#facc15',
+    message: 'Falling rocks cost stamina.',
+  },
+  'dust-wave': {
+    icon: '!',
+    label: 'Dust Wave',
+    color: '#92400e',
+    fill: 'rgba(146, 64, 14, 0.22)',
+    accent: '#fed7aa',
+    message: 'Dust reduced visibility.',
+  },
+  'loose-slope': {
+    icon: '!',
+    label: 'Loose Slope',
+    color: '#7c2d12',
+    fill: 'rgba(120, 53, 15, 0.24)',
+    accent: '#f59e0b',
+    message: 'Loose stones made the climb harder.',
+  },
+};
+
+const getDirectionFromPlayer = (playerX, targetX) => {
+  if (targetX == null) return 'nearby';
+  if (targetX < playerX - 35) return 'left';
+  if (targetX > playerX + 35) return 'right';
+  return 'nearby';
+};
+
+const getDirectionText = (direction) => (
+  direction === 'left' ? 'behind you' : direction === 'right' ? 'ahead' : 'nearby'
+);
+
+const formatMissingSummary = (missing) => {
+  if (missing.length === 0) return 'all route tasks are ready';
+  if (missing.length === 1) return missing[0].shortMissing;
+  if (missing.length === 2) return `${missing[0].shortMissing} and ${missing[1].shortMissing}`;
+  return `${missing.slice(0, -1).map(item => item.shortMissing).join(', ')} and ${missing[missing.length - 1].shortMissing}`;
+};
+
 export default function ExpeditionJourney({ mission, onComplete, onSnapshotChange, audioControls }) {
   const [gameState, setGameState] = useState(makeInitialState());
   const [briefingOpen, setBriefingOpen] = useState(true);
@@ -144,41 +272,10 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     syncHud();
   }, [syncHud]);
 
-  const getGateRequirements = useCallback((gate, current) => {
-    const reqs = [];
-    if (gate.requires.objective) {
-      reqs.push({
-        label: `Objective: ${gate.requires.objective}`,
-        met: current.completedObjectiveIds.has(gate.requires.objective),
-      });
-    }
-    if (gate.requires.miniBoss) {
-      reqs.push({
-        label: `Mini-boss: ${gate.requires.miniBoss}`,
-        met: current.defeatedMiniBosses.has(gate.requires.miniBoss),
-      });
-    }
-    if (gate.requires.shards) {
-      reqs.push({
-        label: `Relic Shards: ${current.relicShardCount}/${gate.requires.shards}`,
-        met: current.relicShardCount >= gate.requires.shards,
-      });
-    }
-    if (gate.requires.upgrades) {
-      gate.requires.upgrades.forEach(uId => {
-        reqs.push({
-          label: `Upgrade: ${uId}`,
-          met: current.collectedUpgrades.has(uId),
-        });
-      });
-    }
-    return reqs;
-  }, []);
-
   const getObjectiveProgress = useCallback((sectionId, current) => {
     const config = SECTION_OBJECTIVES[sectionId];
     if (!config) return null;
-    
+
     let count = 0;
     if (sectionId === 'desert-entry') {
       count = current.collectedObjectiveIds.has('map-tablet') ? 1 : 0;
@@ -191,9 +288,148 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     } else if (sectionId === 'dig-site-entrance') {
       count = current.defeatedMiniBosses.has('ancient-construct') ? 1 : 0;
     }
-    
+
     return { ...config, count };
   }, []);
+
+  const getNearestUnmetObjective = useCallback((sectionId, current) => {
+    const markerIds = OBJECTIVE_MARKER_IDS_BY_SECTION[sectionId] || [];
+    const marker = OBJECTIVE_MARKERS.find(item => (
+      markerIds.includes(item.id) && !current.collectedObjectiveIds.has(item.id)
+    ));
+    return marker ? {
+      type: 'objective',
+      id: marker.id,
+      label: marker.label,
+      x: marker.x,
+      direction: getDirectionFromPlayer(current.player.x, marker.x),
+    } : null;
+  }, []);
+
+  const getGateRequirements = useCallback((gate, current) => {
+    const reqs = [];
+    const sectionId = gate.requires.objective;
+    if (sectionId) {
+      const objective = getObjectiveProgress(sectionId, current);
+      const nearest = getNearestUnmetObjective(sectionId, current);
+      const missingCount = objective ? Math.max(0, objective.total - objective.count) : 1;
+      reqs.push({
+        type: 'objective',
+        id: sectionId,
+        label: `${OBJECTIVE_LABELS[sectionId] || 'Objective'}: ${objective?.count ?? 0}/${objective?.total ?? 1}`,
+        checklistLabel: OBJECTIVE_LABELS[sectionId] || 'Objective',
+        shortMissing: missingCount === 1
+          ? `complete 1 more ${OBJECTIVE_SINGULAR_LABELS[sectionId] || 'objective'}`
+          : `complete ${missingCount} more ${objective?.itemLabel || 'objectives'}`,
+        met: current.completedObjectiveIds.has(sectionId) || Boolean(objective && objective.count >= objective.total),
+        found: objective?.count ?? 0,
+        required: objective?.total ?? 1,
+        hint: GATE_HINTS.objective[sectionId] || 'Search this section for the missing objective marker.',
+        targetX: nearest?.x ?? gate.x - 220,
+        nearestObjective: nearest,
+      });
+    }
+    if (gate.requires.miniBoss) {
+      const boss = current.miniBosses.find(item => item.id === gate.requires.miniBoss);
+      const bossName = boss?.name || gate.requires.miniBoss;
+      const direction = getDirectionFromPlayer(current.player.x, boss?.x);
+      reqs.push({
+        type: 'miniBoss',
+        id: gate.requires.miniBoss,
+        label: `${bossName}: ${current.defeatedMiniBosses.has(gate.requires.miniBoss) ? 'defeated' : 'active'}`,
+        checklistLabel: `${bossName} defeated`,
+        shortMissing: `defeat ${bossName}`,
+        met: current.defeatedMiniBosses.has(gate.requires.miniBoss),
+        found: current.defeatedMiniBosses.has(gate.requires.miniBoss) ? 1 : 0,
+        required: 1,
+        hint: `${bossName} is still active ${getDirectionText(direction)}. Watch the warning tell, dodge, then counter.`,
+        targetX: boss?.x,
+        nearestObjective: boss ? {
+          type: 'miniBoss',
+          id: boss.id,
+          label: boss.name,
+          x: boss.x,
+          direction,
+        } : null,
+      });
+    }
+    if (gate.requires.shards) {
+      const missing = Math.max(0, gate.requires.shards - current.relicShardCount);
+      const shard = RELIC_SHARDS.find(item => !current.collectedShardIds.has(item.id) && item.x < gate.x);
+      const direction = getDirectionFromPlayer(current.player.x, shard?.x);
+      reqs.push({
+        type: 'shards',
+        id: 'relic-shards',
+        label: `Relic Shards: ${current.relicShardCount}/${gate.requires.shards}`,
+        checklistLabel: 'Relic Shards',
+        shortMissing: `collect ${missing} more relic shard${missing === 1 ? '' : 's'}`,
+        met: current.relicShardCount >= gate.requires.shards,
+        found: current.relicShardCount,
+        required: gate.requires.shards,
+        hint: `${GATE_HINTS.shards} Look ${getDirectionText(direction)} for the closest shard.`,
+        targetX: shard?.x,
+        nearestObjective: shard ? {
+          type: 'shards',
+          id: shard.id,
+          label: 'Relic Shard',
+          x: shard.x,
+          direction,
+        } : null,
+      });
+    }
+    if (gate.requires.upgrades) {
+      gate.requires.upgrades.forEach(uId => {
+        const upgrade = UPGRADES.find(item => item.id === uId);
+        const direction = getDirectionFromPlayer(current.player.x, upgrade?.x);
+        reqs.push({
+          type: 'upgrade',
+          id: uId,
+          label: `${upgrade?.name || 'Upgrade'}: ${current.collectedUpgrades.has(uId) ? 'packed' : 'missing'}`,
+          checklistLabel: upgrade?.name || 'Upgrade',
+          shortMissing: `find ${upgrade?.name || 'the missing upgrade'}`,
+          met: current.collectedUpgrades.has(uId),
+          found: current.collectedUpgrades.has(uId) ? 1 : 0,
+          required: 1,
+          hint: `${GATE_HINTS.upgrade} ${upgrade?.name || 'The upgrade'} is ${getDirectionText(direction)}.`,
+          targetX: upgrade?.x,
+          nearestObjective: upgrade ? {
+            type: 'upgrade',
+            id: upgrade.id,
+            label: upgrade.name,
+            x: upgrade.x,
+            direction,
+          } : null,
+        });
+      });
+    }
+    return reqs;
+  }, [getNearestUnmetObjective, getObjectiveProgress]);
+
+  const getGateGuidance = useCallback((gate, current) => {
+    if (!gate) return null;
+    const requirements = getGateRequirements(gate, current);
+    const missingRequirements = requirements.filter(req => !req.met);
+    const nearestMissingObjective = missingRequirements
+      .map(req => req.nearestObjective)
+      .filter(Boolean)
+      .sort((a, b) => Math.abs(a.x - current.player.x) - Math.abs(b.x - current.player.x))[0] || null;
+    const missingObjectiveDirection = nearestMissingObjective?.direction || null;
+    const hint = missingRequirements[0]?.hint || `${gate.name} is ready. Move through the open seal.`;
+    return {
+      activeGateName: gate.name,
+      activeGateLocked: missingRequirements.length > 0,
+      gateRequirements: requirements,
+      gateMissingRequirements: missingRequirements,
+      gateHint: hint,
+      nearestMissingObjective,
+      missingObjectiveDirection,
+      gateChecklistText: requirements.map(req => `${req.met ? '✓' : '○'} ${req.label}`).join(' | '),
+      missingSummary: formatMissingSummary(missingRequirements),
+      notice: missingRequirements.length > 0
+        ? `${gate.name} locked: ${formatMissingSummary(missingRequirements)}. ${hint}`
+        : `${gate.name} ready: all route tasks complete.`,
+    };
+  }, [getGateRequirements]);
 
   const getAttackBox = useCallback((attacker, range = 42, height = 28, direction = attacker.direction || 1) => ({
     x: direction >= 0 ? attacker.x + attacker.width : attacker.x - range,
@@ -226,6 +462,22 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     if (current.attackRecoilTimer > 0) return 'recoil';
     if (current.attackCooldown > 0) return 'cooldown';
     return 'ready';
+  }, []);
+
+  const getActiveHazardsNearPlayer = useCallback((current) => HAZARDS
+    .filter(hazard => Math.abs((hazard.x + hazard.width / 2) - (current.player.x + current.player.width / 2)) < 150)
+    .map(hazard => ({
+      id: hazard.id,
+      name: hazard.name,
+      distance: Math.round((hazard.x + hazard.width / 2) - (current.player.x + current.player.width / 2)),
+      penalty: hazard.penalty,
+    })), []);
+
+  const getStaminaWarningState = useCallback((current) => {
+    if (current.resources.stamina <= 0) return 'empty';
+    if (current.resources.stamina < 30) return 'low';
+    if (current.staminaFeedbackTimer > 0) return 'recent-loss';
+    return 'stable';
   }, []);
 
   const getBossPhaseConfig = useCallback((boss) => {
@@ -292,6 +544,14 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       journeySection: section.name,
       worldProgressPercent: Math.round((current.player.x / WORLD_WIDTH) * 100),
       resources: current.resources,
+      playerStamina: current.resources.stamina,
+      activeHazardsNearPlayer: getActiveHazardsNearPlayer(current),
+      lastHazardHit: current.lastHazardHit,
+      lastStaminaDelta: current.lastStaminaDelta,
+      lastStaminaLossReason: current.lastStaminaLossReason,
+      staminaFeedbackActive: current.staminaFeedbackTimer > 0,
+      staminaWarningState: getStaminaWarningState(current),
+      hazardFeedbackCooldown: Number(current.hazardCooldown.toFixed(2)),
       fieldKit: current.fieldKit.map(tool => tool.name),
       remainingTools: JOURNEY_TOOLS.filter(tool => !current.collectedToolIds.has(tool.id)).map(tool => tool.name),
       relicShardCount: current.relicShardCount,
@@ -349,6 +609,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         x: Math.round(effect.x),
         y: Math.round(effect.y),
         timer: Number(effect.timer.toFixed(2)),
+        text: effect.text || null,
       })),
       knockbackState: {
         playerKnockback: current.player.knockbackTimer > 0,
@@ -383,7 +644,8 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       })),
       routeGateStatus: ROUTE_GATES.find(gate => !current.openedRouteGateIds.has(gate.id)) ? (() => {
         const gate = ROUTE_GATES.find(item => !current.openedRouteGateIds.has(item.id));
-        const requirements = getGateRequirements(gate, current);
+        const guidance = getGateGuidance(gate, current);
+        const requirements = guidance.gateRequirements;
         return {
           id: gate.id,
           name: gate.name,
@@ -391,6 +653,14 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
           requirements,
           complete: requirements.every(req => req.met),
           summary: `${requirements.filter(req => req.met).length}/${requirements.length} ready`,
+          activeGateName: guidance.activeGateName,
+          activeGateLocked: guidance.activeGateLocked,
+          gateRequirements: guidance.gateRequirements,
+          gateMissingRequirements: guidance.gateMissingRequirements,
+          gateHint: guidance.gateHint,
+          nearestMissingObjective: guidance.nearestMissingObjective,
+          missingObjectiveDirection: guidance.missingObjectiveDirection,
+          gateChecklistText: guidance.gateChecklistText,
         };
       })() : null,
       cinematicEventState: current.cinematicEvent,
@@ -413,7 +683,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       failureReason: current.failureReason,
       notice: current.notice,
     };
-  }, [briefingOpen, getBossVulnerabilityState, getEntityCombatState, getGateRequirements, getObjectiveProgress, getPlayerAttackState]);
+  }, [briefingOpen, getActiveHazardsNearPlayer, getBossVulnerabilityState, getEntityCombatState, getGateGuidance, getObjectiveProgress, getPlayerAttackState, getStaminaWarningState]);
 
   // --- Rendering Helpers ---
   const drawFieldNoteLabel = useCallback((ctx, x, y, text, color) => {
@@ -943,21 +1213,190 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     ctx.fillStyle = '#3b2b22';
     ctx.fillRect(gateCenter - 9, gate.y + gate.height / 2 - 2, 18, 13);
 
-    const requirements = getGateRequirements(gate, current);
-    const unmet = requirements.filter(req => !req.met).slice(0, 2);
+    const guidance = getGateGuidance(gate, current);
+    const displayReqs = guidance.gateRequirements.slice(0, 4);
     drawFieldNoteLabel(ctx, gateCenter, top - 10, complete ? 'SEAL READY' : 'SEALED GATE', complete ? '#166534' : '#78350f');
-    if (!complete && unmet.length > 0) {
+    if (!complete && displayReqs.length > 0) {
       ctx.fillStyle = 'rgba(255, 252, 235, 0.84)';
-      ctx.fillRect(gateCenter - 58, top + height + 4, 116, 32);
+      ctx.fillRect(gateCenter - 74, top + height + 4, 148, 52);
       ctx.strokeStyle = '#78350f';
-      ctx.strokeRect(gateCenter - 58, top + height + 4, 116, 32);
+      ctx.strokeRect(gateCenter - 74, top + height + 4, 148, 52);
       ctx.fillStyle = '#78350f';
       ctx.font = '800 8px Outfit, sans-serif';
-      ctx.textAlign = 'center';
-      unmet.forEach((req, index) => ctx.fillText(req.label.toUpperCase(), gateCenter, top + height + 17 + index * 10));
+      ctx.textAlign = 'left';
+      displayReqs.forEach((req, index) => {
+        const mark = req.met ? '✓' : '○';
+        ctx.fillText(`${mark} ${req.label}`.toUpperCase(), gateCenter - 66, top + height + 16 + index * 10);
+      });
     }
     ctx.restore();
-  }, [drawFieldNoteLabel, getGateRequirements]);
+  }, [drawFieldNoteLabel, getGateGuidance]);
+
+  const drawMissingObjectiveMarker = useCallback((ctx, guidance, cameraX, now) => {
+    if (!guidance?.activeGateLocked || !guidance.nearestMissingObjective) return;
+    const target = guidance.nearestMissingObjective;
+    const targetScreenX = target.x - cameraX;
+    const pulse = Math.sin(now / 140) * 0.25 + 0.75;
+    ctx.save();
+    ctx.strokeStyle = `rgba(251, 191, 36, ${pulse})`;
+    ctx.fillStyle = '#78350f';
+    ctx.lineWidth = 3;
+    if (targetScreenX > 24 && targetScreenX < CANVAS_WIDTH - 24) {
+      ctx.beginPath();
+      ctx.arc(targetScreenX, 292, 24 + pulse * 8, 0, Math.PI * 2);
+      ctx.stroke();
+      drawFieldNoteLabel(ctx, targetScreenX, 258, `Needed: ${target.label}`, '#78350f');
+    } else {
+      const arrowX = targetScreenX < 0 ? 30 : CANVAS_WIDTH - 30;
+      const direction = targetScreenX < 0 ? -1 : 1;
+      ctx.beginPath();
+      ctx.moveTo(arrowX + direction * 13, 112);
+      ctx.lineTo(arrowX - direction * 13, 98);
+      ctx.lineTo(arrowX - direction * 13, 126);
+      ctx.closePath();
+      ctx.fill();
+      drawFieldNoteLabel(ctx, arrowX + direction * 60, 92, `Need: ${target.label}`, '#78350f');
+    }
+    ctx.restore();
+  }, [drawFieldNoteLabel]);
+
+  const drawHazard = useCallback((ctx, hazard, cameraX, current, now) => {
+    const hx = hazard.x - cameraX;
+    if (hx + hazard.width < -50 || hx > CANVAS_WIDTH + 50) return;
+
+    const visual = HAZARD_VISUALS[hazard.id] || {
+      icon: '!',
+      label: hazard.name,
+      color: '#7f1d1d',
+      fill: 'rgba(127, 29, 29, 0.24)',
+      accent: '#facc15',
+      message: hazard.message,
+    };
+    const nearPlayer = Math.abs((current.player.x + current.player.width / 2) - (hazard.x + hazard.width / 2)) < 210;
+    const pulse = Math.sin(now / 180 + hazard.x * 0.01) * 0.25 + 0.75;
+    const hitActive = current.lastHazardHit?.id === hazard.id && current.staminaFeedbackTimer > 0;
+    const baseY = hazard.y;
+
+    ctx.save();
+    ctx.lineWidth = hitActive ? 4 : 2;
+    ctx.strokeStyle = hitActive ? '#ef4444' : visual.color;
+    ctx.fillStyle = visual.fill;
+    ctx.globalAlpha = hitActive ? 0.98 : 0.88;
+
+    if (hazard.id === 'dark-gap') {
+      const gradient = ctx.createRadialGradient(hx + hazard.width / 2, baseY + hazard.height / 2, 6, hx + hazard.width / 2, baseY + hazard.height / 2, hazard.width / 1.5);
+      gradient.addColorStop(0, '#020617');
+      gradient.addColorStop(1, 'rgba(15, 23, 42, 0.72)');
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.ellipse(hx + hazard.width / 2, baseY + hazard.height / 2, hazard.width / 2, Math.max(12, hazard.height), 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.6)';
+      ctx.fillRect(hx + 8, baseY + 3, hazard.width - 16, 2);
+    } else if (hazard.id === 'thorn-bush') {
+      ctx.beginPath();
+      ctx.roundRect(hx, baseY + 8, hazard.width, hazard.height - 4, 8);
+      ctx.fill();
+      ctx.stroke();
+      ctx.strokeStyle = visual.accent;
+      for (let i = 8; i < hazard.width; i += 12) {
+        ctx.beginPath();
+        ctx.moveTo(hx + i, baseY + hazard.height + 2);
+        ctx.lineTo(hx + i + 6, baseY + 5);
+        ctx.lineTo(hx + i + 12, baseY + hazard.height + 2);
+        ctx.stroke();
+      }
+    } else if (hazard.id === 'sand-pit') {
+      ctx.beginPath();
+      ctx.ellipse(hx + hazard.width / 2, baseY + hazard.height / 2, hazard.width / 2, hazard.height / 2, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.strokeStyle = visual.accent;
+      for (let i = 0; i < 4; i += 1) {
+        ctx.beginPath();
+        ctx.arc(hx + 18 + i * 18, baseY + 15 + Math.sin(now / 220 + i) * 3, 5 + pulse * 2, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    } else if (hazard.id === 'spike-trap') {
+      ctx.fillRect(hx, baseY + 10, hazard.width, hazard.height - 8);
+      ctx.strokeRect(hx, baseY + 10, hazard.width, hazard.height - 8);
+      ctx.fillStyle = visual.accent;
+      for (let i = 4; i < hazard.width - 4; i += 14) {
+        ctx.beginPath();
+        ctx.moveTo(hx + i, baseY + 10);
+        ctx.lineTo(hx + i + 7, baseY - 8 - pulse * 3);
+        ctx.lineTo(hx + i + 14, baseY + 10);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      }
+    } else if (hazard.id === 'rolling-stones' || hazard.id === 'falling-blocks') {
+      ctx.fillRect(hx, baseY + 10, hazard.width, hazard.height - 8);
+      ctx.strokeRect(hx, baseY + 10, hazard.width, hazard.height - 8);
+      ctx.strokeStyle = visual.accent;
+      ctx.beginPath();
+      ctx.moveTo(hx + 8, baseY + 18);
+      ctx.lineTo(hx + hazard.width * 0.45, baseY + 8);
+      ctx.lineTo(hx + hazard.width - 10, baseY + 22);
+      ctx.stroke();
+      ctx.fillStyle = visual.color;
+      for (let i = 0; i < 3; i += 1) {
+        ctx.beginPath();
+        ctx.arc(hx + 18 + i * 22, baseY + 6 + Math.sin(now / 160 + i) * 4, 5 + i, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } else if (hazard.id === 'bat-cloud' || hazard.id === 'dust-wave') {
+      ctx.beginPath();
+      ctx.roundRect(hx, baseY, hazard.width, hazard.height, 18);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = visual.accent;
+      for (let i = 0; i < 7; i += 1) {
+        ctx.globalAlpha = 0.35 + pulse * 0.35;
+        ctx.beginPath();
+        ctx.arc(hx + 14 + i * 15, baseY + 18 + Math.sin(now / 130 + i) * 14, 3 + (i % 3), 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(hx, baseY + hazard.height);
+      ctx.lineTo(hx + hazard.width * 0.35, baseY + 8);
+      ctx.lineTo(hx + hazard.width, baseY + hazard.height);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.strokeStyle = visual.accent;
+      ctx.beginPath();
+      ctx.moveTo(hx + 12, baseY + hazard.height - 8);
+      ctx.lineTo(hx + hazard.width - 10, baseY + 12);
+      ctx.stroke();
+    }
+
+    ctx.globalAlpha = 0.75 + pulse * 0.25;
+    ctx.strokeStyle = visual.accent;
+    ctx.setLineDash([5, 5]);
+    ctx.strokeRect(hx - 5, baseY - 7, hazard.width + 10, hazard.height + 14);
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = visual.color;
+    ctx.beginPath();
+    ctx.moveTo(hx + hazard.width / 2, baseY - 25);
+    ctx.lineTo(hx + hazard.width / 2 - 10, baseY - 7);
+    ctx.lineTo(hx + hazard.width / 2 + 10, baseY - 7);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#fff7ed';
+    ctx.font = '900 12px Outfit, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(visual.icon, hx + hazard.width / 2, baseY - 11);
+
+    if (nearPlayer || hitActive) {
+      drawFieldNoteLabel(ctx, hx + hazard.width / 2, baseY - 34, visual.label, visual.color);
+    }
+    ctx.restore();
+  }, [drawFieldNoteLabel]);
 
   const drawMiniBoss = useCallback((ctx, boss, screenX, now) => {
     const pulse = Math.sin(now / 400) * 0.12 + 0.88;
@@ -1194,6 +1633,14 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         ctx.textAlign = 'center';
         ctx.fillText('SHARDS!', x, y - 18 - (1 - progress) * 10);
       }
+      if (effect.text) {
+        ctx.font = '900 13px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = 'rgba(15, 23, 42, 0.88)';
+        ctx.strokeText(effect.text, x, y - 24 - (1 - progress) * 16);
+        ctx.fillText(effect.text, x, y - 24 - (1 - progress) * 16);
+      }
       ctx.restore();
     });
   }, []);
@@ -1266,18 +1713,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     // --- Entities ---
     PLATFORMS.forEach((platform) => drawPlatform(ctx, platform, cameraX, current));
     
-    HAZARDS.forEach((hazard) => {
-      const hx = hazard.x - cameraX;
-      if (hx + hazard.width < -50 || hx > CANVAS_WIDTH + 50) return;
-      ctx.save();
-      ctx.font = '34px Outfit';
-      ctx.textAlign = 'center';
-      ctx.fillText(hazard.emoji, hx + hazard.width / 2, hazard.y + hazard.height / 2 + 10);
-      if (isPlayerNear(hazard.x + hazard.width / 2, 210)) {
-        drawFieldNoteLabel(ctx, hx + hazard.width / 2, hazard.y - 12, hazard.name, '#7f1d1d');
-      }
-      ctx.restore();
-    });
+    HAZARDS.forEach((hazard) => drawHazard(ctx, hazard, cameraX, current, now));
 
     CHECKPOINTS.forEach((checkpoint) => {
       const cx = checkpoint.x - cameraX;
@@ -1292,6 +1728,9 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       ctx.restore();
     });
 
+    const activeRouteGate = ROUTE_GATES.find(gate => !current.openedRouteGateIds.has(gate.id));
+    const activeGateGuidance = activeRouteGate ? getGateGuidance(activeRouteGate, current) : null;
+
     ROUTE_GATES.forEach((gate) => {
       if (current.openedRouteGateIds.has(gate.id)) return;
       const gx = gate.x - cameraX;
@@ -1300,6 +1739,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       const complete = requirements.every(r => r.met);
       drawRouteGate(ctx, gate, gx, current, complete);
     });
+    drawMissingObjectiveMarker(ctx, activeGateGuidance, cameraX, now);
 
     current.enemies.forEach((enemy) => {
       if (enemy.defeated) return;
@@ -1439,7 +1879,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       ctx.fillText(featureCard.message || '', 450, 135);
       ctx.textAlign = 'start';
     }
-  }, [drawAttackArc, drawCollectible, drawCombatEffects, drawEnemyAttackTell, drawMiniBoss, drawParticles, drawPlatform, drawRouteGate, drawStoryProp, drawTempleBackdrop, getGateRequirements, drawPlayerCharacter, drawFieldNoteLabel]);
+  }, [drawAttackArc, drawCollectible, drawCombatEffects, drawEnemyAttackTell, drawHazard, drawMiniBoss, drawMissingObjectiveMarker, drawParticles, drawPlatform, drawRouteGate, drawStoryProp, drawTempleBackdrop, getGateGuidance, getGateRequirements, drawPlayerCharacter, drawFieldNoteLabel]);
 
   const queueAttack = useCallback(() => {
     const current = stateRef.current;
@@ -1471,6 +1911,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     if (current.cameraShakeTimer <= 0) current.cameraShakeStrength = 0;
     current.invulnerable = Math.max(0, current.invulnerable - dt);
     current.hazardCooldown = Math.max(0, current.hazardCooldown - dt);
+    current.staminaFeedbackTimer = Math.max(0, current.staminaFeedbackTimer - dt);
     current.enemyCooldown = Math.max(0, current.enemyCooldown - dt);
     current.attackCooldown = Math.max(0, current.attackCooldown - dt);
     const wasWindingUp = current.attackWindupTimer > 0;
@@ -1625,10 +2066,38 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     if (current.hazardCooldown <= 0) {
       HAZARDS.forEach(h => {
         if (rectsOverlap(player, h)) {
-          if (h.penalty.stamina) current.resources.stamina = Math.max(0, current.resources.stamina - h.penalty.stamina);
-          if (h.penalty.time) current.resources.time = Math.max(0, current.resources.time - h.penalty.time);
+          const staminaLoss = h.penalty.stamina || 0;
+          const timeLoss = h.penalty.time || 0;
+          const visual = HAZARD_VISUALS[h.id] || {};
+          if (staminaLoss) current.resources.stamina = Math.max(0, current.resources.stamina - staminaLoss);
+          if (timeLoss) current.resources.time = Math.max(0, current.resources.time - timeLoss);
           current.hazardCooldown = 1.2;
-          current.notice = h.message;
+          current.lastHazardHit = {
+            id: h.id,
+            name: h.name,
+            message: visual.message || h.message,
+            staminaDelta: -staminaLoss,
+            timeDelta: -timeLoss,
+          };
+          current.lastStaminaDelta = -staminaLoss;
+          current.lastStaminaLossReason = staminaLoss ? (visual.message || h.message) : '';
+          current.staminaFeedbackTimer = staminaLoss ? 1.25 : 0.65;
+          if (staminaLoss) {
+            player.hitFeedbackTimer = 0.85;
+            player.lastDamage = staminaLoss;
+            player.knockbackTimer = Math.max(player.knockbackTimer, 0.12);
+            player.knockbackDirection = player.direction >= 0 ? -1 : 1;
+          }
+          current.cameraShakeTimer = Math.max(current.cameraShakeTimer, staminaLoss ? 0.16 : 0.08);
+          current.cameraShakeStrength = Math.max(current.cameraShakeStrength, staminaLoss ? 0.28 : 0.16);
+          addCombatEffect(current, {
+            type: staminaLoss ? 'hazard-stamina' : 'hazard-warning',
+            x: player.x + player.width / 2,
+            y: player.y + player.height / 2,
+            text: staminaLoss ? `-${staminaLoss}` : timeLoss ? `-${timeLoss}s` : '!',
+            color: staminaLoss ? '#ef4444' : '#f59e0b',
+          });
+          current.notice = `${visual.message || h.message}${staminaLoss ? ` -${staminaLoss} stamina.` : timeLoss ? ` -${timeLoss} seconds.` : ''}`;
           audioControls?.playError?.();
           if (current.resources.stamina <= 0) triggerJourneyRescue('Team stamina exhausted. Rescue dispatched.');
         }
@@ -1919,13 +2388,13 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     // Gates
     ROUTE_GATES.forEach(g => {
       if (!current.openedRouteGateIds.has(g.id) && rectsOverlap(player, g)) {
-        const reqs = getGateRequirements(g, current);
-        if (reqs.every(r => r.met)) {
+        const guidance = getGateGuidance(g, current);
+        if (!guidance.activeGateLocked) {
           current.openedRouteGateIds.add(g.id);
           current.notice = `${g.name} opened.`;
         } else {
           player.x = g.x - player.width - 5;
-          current.notice = g.message;
+          current.notice = guidance.notice;
         }
       }
     });
@@ -1946,7 +2415,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       if (current.resources.time <= 0) triggerJourneyRescue('Time expired. Field team rescued.');
     }
 
-  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, getAttackBox, getBossPhaseConfig, getBossVulnerabilityState, getObjectiveProgress, getGateRequirements, addCombatEffect, getPlayerAttackState, syncHud]);
+  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, getAttackBox, getBossPhaseConfig, getBossVulnerabilityState, getObjectiveProgress, getGateGuidance, addCombatEffect, getPlayerAttackState, syncHud]);
 
   const step = useCallback((ms) => {
     const dt = Math.min(ms / 1000, 0.05);
@@ -1992,6 +2461,10 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     };
   }, [briefingOpen, queueAttack, step]);
 
+  const activeHudGate = ROUTE_GATES.find(gate => !gameState.openedRouteGateIds.has(gate.id));
+  const activeHudGateGuidance = activeHudGate ? getGateGuidance(activeHudGate, gameState) : null;
+  const staminaWarningState = getStaminaWarningState(gameState);
+
   return (
     <section className="expedition-journey-container" id="expedition-journey">
       <div className="expedition-journey-grid">
@@ -2000,9 +2473,15 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
             <h2 className="cinzel-header">Expedition Log</h2>
             <div className="expedition-stat-card">
               <div className="stat-label"><Gauge size={14} /> Stamina</div>
-              <div className="expedition-stat-bar">
+              <div className={`expedition-stat-bar ${staminaWarningState !== 'stable' ? 'stamina-alert' : ''}`}>
                 <div className="expedition-stat-fill stamina-fill" style={{ width: `${gameState.resources.stamina}%` }} />
+                {gameState.staminaFeedbackTimer > 0 && gameState.lastStaminaDelta < 0 && (
+                  <span className="stamina-delta">-{Math.abs(gameState.lastStaminaDelta)}</span>
+                )}
               </div>
+              {staminaWarningState === 'low' && (
+                <div className="stamina-warning-text">Low stamina</div>
+              )}
             </div>
             <div className="expedition-stat-card">
               <div className="stat-label"><Sparkles size={14} /> Time</div>
@@ -2032,6 +2511,26 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
               <div>Shards: {gameState.relicShardCount} / 22</div>
               <div>Upgrades: {gameState.collectedUpgrades.size} / {UPGRADES.length}</div>
             </div>
+            {activeHudGateGuidance && (
+              <div className={`route-gate-hud ${activeHudGateGuidance.activeGateLocked ? 'is-locked' : 'is-ready'}`}>
+                <div className="route-gate-hud-title">
+                  {activeHudGateGuidance.activeGateName}
+                </div>
+                <ul className="route-gate-checklist">
+                  {activeHudGateGuidance.gateRequirements.map(req => (
+                    <li key={`${req.type}-${req.id}`} className={req.met ? 'is-met' : 'is-missing'}>
+                      <span aria-hidden="true">{req.met ? '✓' : '○'}</span>
+                      <span>{req.label}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="route-gate-hint">
+                  {activeHudGateGuidance.activeGateLocked
+                    ? activeHudGateGuidance.gateHint
+                    : 'All route tasks are complete. Move through the seal.'}
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -2044,11 +2543,14 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
                 <Gem size={18} className="text-amber-500" />
                 <span>{gameState.relicShardCount}</span>
               </div>
-              <div className="hud-stamina">
+              <div className={`hud-stamina ${staminaWarningState !== 'stable' ? 'stamina-alert' : ''}`}>
                 <Gauge size={18} className="text-red-500" />
                 <div className="hud-bar-bg">
                   <div className="hud-bar-fill stamina" style={{ width: `${gameState.resources.stamina}%` }} />
                 </div>
+                {gameState.staminaFeedbackTimer > 0 && gameState.lastStaminaDelta < 0 && (
+                  <span className="hud-stamina-delta">-{Math.abs(gameState.lastStaminaDelta)}</span>
+                )}
               </div>
             </div>
 
