@@ -1143,55 +1143,6 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
       ctx.fillText(hazard.name, lx + 6, ly + 13);
     });
 
-    // Guardians
-    current.guardians.forEach((guardian) => {
-      const x = guardian.x - cameraX;
-      const floatY = Math.sin(now / 150) * 4;
-      
-      // Shadow
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-      ctx.beginPath();
-      ctx.ellipse(x + guardian.width / 2, guardian.y + guardian.height, 15, 4, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Emoji
-      ctx.font = '40px Outfit, sans-serif';
-      ctx.fillText(guardian.emoji, x - 4, guardian.y + 36 + floatY);
-
-      // Patrol path
-      ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([4, 4]);
-      ctx.strokeRect(guardian.patrolMin - cameraX, guardian.y + guardian.height + 6, guardian.patrolMax - guardian.patrolMin, 4);
-      ctx.setLineDash([]);
-
-      // Label (Rounded placard)
-      ctx.fillStyle = 'rgba(255, 250, 240, 0.85)';
-      ctx.font = '700 11px Outfit, sans-serif';
-      const textWidth = ctx.measureText(guardian.name).width;
-      
-      const lx = x + guardian.width / 2 - textWidth / 2 - 6;
-      const ly = guardian.y - 24;
-      const lw = textWidth + 12;
-      const lh = 18;
-      const lr = 4;
-
-      ctx.beginPath();
-      ctx.moveTo(lx + lr, ly); ctx.lineTo(lx + lw - lr, ly);
-      ctx.quadraticCurveTo(lx + lw, ly, lx + lw, ly + lr);
-      ctx.lineTo(lx + lw, ly + lh - lr);
-      ctx.quadraticCurveTo(lx + lw, ly + lh, lx + lw - lr, ly + lh);
-      ctx.lineTo(lx + lr, ly + lh);
-      ctx.quadraticCurveTo(lx, ly + lh, lx, ly + lr);
-      ctx.lineTo(lx, ly + lr);
-      ctx.quadraticCurveTo(lx, ly, lx + lr, ly);
-      ctx.closePath();
-      ctx.fill();
-
-      ctx.fillStyle = '#2f251d';
-      ctx.fillText(guardian.name, lx + 6, ly + 13);
->>>>>>> Stashed changes
-    });
 
     CHECKPOINTS.forEach((checkpoint) => {
       const x = checkpoint.x - cameraX;
