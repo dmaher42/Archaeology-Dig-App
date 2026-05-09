@@ -20,6 +20,8 @@ import {
   GRAVITY,
   ATTACK_DURATION,
   ATTACK_COOLDOWN,
+  ATTACK_RECOIL_DURATION,
+  ATTACK_WINDUP_DURATION,
 } from './expedition-journey/journeyConstants';
 
 import {
@@ -145,13 +147,44 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     height,
   }), []);
 
+  const addCombatEffect = useCallback((current, effect) => {
+    current.combatHitEffects.push({
+      timer: 0.35,
+      maxTimer: 0.35,
+      ...effect,
+    });
+    if (current.combatHitEffects.length > 12) current.combatHitEffects.shift();
+  }, []);
+
+  const getCombatMode = useCallback((entity) => {
+    if (entity.defeated) return 'defeated';
+    if (entity.stunTimer > 0) return 'stunned';
+    if (entity.attackWindup > 0) return 'windup';
+    if (entity.attackTimer > 0) return 'attacking';
+    if (entity.attackRecovery > 0 || entity.attackCooldown > 0) return 'cooldown';
+    return Math.abs(entity.speed || 0) > 0 ? 'patrol' : 'idle';
+  }, []);
+
+  const getPlayerAttackState = useCallback((current) => {
+    if (current.attackWindupTimer > 0) return 'windup';
+    if (current.attackTimer > 0) return 'swing';
+    if (current.attackRecoilTimer > 0) return 'recoil';
+    if (current.attackCooldown > 0) return 'cooldown';
+    return 'ready';
+  }, []);
+
   const getEntityCombatState = useCallback((entity) => ({
+    state: getCombatMode(entity),
+    idle: getCombatMode(entity) === 'idle',
+    patrol: getCombatMode(entity) === 'patrol',
     attacking: entity.attackTimer > 0,
     windup: entity.attackWindup > 0,
-    cooldown: Number(entity.attackCooldown?.toFixed?.(2) || 0),
+    cooldown: entity.attackRecovery > 0 || entity.attackCooldown > 0,
     stunned: entity.stunTimer > 0,
     defeated: Boolean(entity.defeated),
-  }), []);
+    recovery: Number((entity.attackRecovery || 0).toFixed(2)),
+    pattern: entity.attackPattern || null,
+  }), [getCombatMode]);
 
   const createJourneySnapshot = useCallback((current = stateRef.current) => {
     const section = getSectionForX(current.player.x);
@@ -178,6 +211,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       playerFacing: current.player.direction >= 0 ? 'right' : 'left',
       playerAttackBox,
       playerInvulnerable: Number(current.player.invulnerable.toFixed(2)),
+      playerAttackState: getPlayerAttackState(current),
       journeySection: section.name,
       worldProgressPercent: Math.round((current.player.x / WORLD_WIDTH) * 100),
       resources: current.resources,
@@ -216,12 +250,32 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         attacking: current.attackTimer > 0,
         attackCooldown: Number(current.attackCooldown.toFixed(2)),
         attackTimer: Number(current.attackTimer.toFixed(2)),
+        attackWindup: Number(current.attackWindupTimer.toFixed(2)),
+        attackRecoil: Number(current.attackRecoilTimer.toFixed(2)),
+        attackState: getPlayerAttackState(current),
+        hitStop: Number(current.hitStopTimer.toFixed(2)),
         facing: current.player.direction >= 0 ? 'right' : 'left',
         invulnerable: Number(current.player.invulnerable.toFixed(2)),
         lastDamage: current.player.lastDamage || 0,
       },
+      combatHitEffects: current.combatHitEffects.map(effect => ({
+        type: effect.type,
+        x: Math.round(effect.x),
+        y: Math.round(effect.y),
+        timer: Number(effect.timer.toFixed(2)),
+      })),
+      knockbackState: {
+        playerKnockback: current.player.knockbackTimer > 0,
+        playerDirection: current.player.knockbackDirection,
+        enemies: current.enemies
+          .filter(enemy => enemy.knockbackTimer > 0)
+          .map(enemy => ({ id: enemy.id, direction: enemy.knockbackDirection, timer: Number(enemy.knockbackTimer.toFixed(2)) })),
+        bosses: current.miniBosses
+          .filter(boss => boss.knockbackTimer > 0)
+          .map(boss => ({ id: boss.id, direction: boss.knockbackDirection, timer: Number(boss.knockbackTimer.toFixed(2)) })),
+      },
       enemyStates: current.enemies
-        .filter(enemy => !enemy.defeated && Math.abs(enemy.x - current.player.x) < 700)
+        .filter(enemy => Math.abs(enemy.x - current.player.x) < 700 || current.defeatedEnemies.has(enemy.id))
         .map(enemy => ({
           id: enemy.id,
           name: enemy.name,
@@ -231,6 +285,16 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
           x: Math.round(enemy.x),
           ...getEntityCombatState(enemy),
         })),
+      miniBossStates: current.miniBosses.map(boss => ({
+        id: boss.id,
+        name: boss.name,
+        sectionId: boss.sectionId,
+        health: boss.health,
+        maxHealth: boss.maxHealth,
+        awakened: boss.awakened,
+        x: Math.round(boss.x),
+        ...getEntityCombatState(boss),
+      })),
       routeGateStatus: ROUTE_GATES.find(gate => !current.openedRouteGateIds.has(gate.id)) ? (() => {
         const gate = ROUTE_GATES.find(item => !current.openedRouteGateIds.has(item.id));
         const requirements = getGateRequirements(gate, current);
@@ -263,7 +327,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       failureReason: current.failureReason,
       notice: current.notice,
     };
-  }, [briefingOpen, getEntityCombatState, getGateRequirements, getObjectiveProgress]);
+  }, [briefingOpen, getEntityCombatState, getGateRequirements, getObjectiveProgress, getPlayerAttackState]);
 
   // --- Rendering Helpers ---
   const drawFieldNoteLabel = useCallback((ctx, x, y, text, color) => {
@@ -290,8 +354,15 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     
     const bob = Math.sin(now / 150) * 2;
     const legSwing = Math.sin(now / 100) * 8;
-    const attacking = stateRef.current.attackTimer > 0;
-    const attackLean = attacking ? direction * 4 : 0;
+    const attackState = getPlayerAttackState(stateRef.current);
+    const attacking = attackState === 'swing';
+    const attackLean = attackState === 'windup'
+      ? -direction * 3
+      : attackState === 'swing'
+        ? direction * 7
+        : attackState === 'recoil'
+          ? -direction * 4
+          : 0;
 
     // Readability shadow and outline
     ctx.fillStyle = 'rgba(0,0,0,0.36)';
@@ -365,12 +436,12 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
 
     // Field tool in hand
     const handX = x + attackLean + (direction > 0 ? 27 : 3);
-    const reach = attacking ? 24 : 12;
+    const reach = attackState === 'windup' ? 8 : attacking ? 28 : attackState === 'recoil' ? 10 : 12;
     ctx.strokeStyle = '#facc15';
     ctx.lineWidth = attacking ? 5 : 3;
     ctx.beginPath();
     ctx.moveTo(handX, y + 17 + bob);
-    ctx.lineTo(handX + direction * reach, y + (attacking ? 7 : 12) + bob);
+    ctx.lineTo(handX + direction * reach, y + (attacking ? 6 : attackState === 'windup' ? 20 : 12) + bob);
     ctx.stroke();
     ctx.fillStyle = '#fff7ad';
     ctx.beginPath();
@@ -397,7 +468,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     }
     
     ctx.restore();
-  }, []);
+  }, [getPlayerAttackState]);
 
   const drawPlatform = useCallback((ctx, platform, cameraX, current) => {
     const x = platform.x - cameraX;
@@ -965,6 +1036,36 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     ctx.restore();
   }, [drawAttackArc, getAttackBox]);
 
+  const drawCombatEffects = useCallback((ctx, effects, cameraX, now) => {
+    effects.forEach((effect) => {
+      const progress = effect.timer / (effect.maxTimer || 0.35);
+      const x = effect.x - cameraX;
+      const y = effect.y;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, progress);
+      ctx.strokeStyle = effect.color || '#facc15';
+      ctx.fillStyle = effect.color || '#facc15';
+      ctx.lineWidth = 3;
+      const burst = 18 + (1 - progress) * 22;
+      ctx.beginPath();
+      ctx.arc(x, y, burst * 0.45, 0, Math.PI * 2);
+      ctx.stroke();
+      for (let i = 0; i < 5; i += 1) {
+        const angle = now / 180 + i * ((Math.PI * 2) / 5);
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + Math.cos(angle) * burst, y + Math.sin(angle) * burst * 0.65);
+        ctx.stroke();
+      }
+      if (effect.type?.includes('defeat')) {
+        ctx.font = '900 10px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('SHARDS!', x, y - 18 - (1 - progress) * 10);
+      }
+      ctx.restore();
+    });
+  }, []);
+
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -1178,6 +1279,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       drawAttackArc(ctx, current.playerAttackBox, cameraX, player.direction, '#facc15', 'TOOL SWING');
     }
     drawPlayerCharacter(ctx, player.x - cameraX, player.y, player.width, player.height, player.direction, player.invulnerable, now);
+    drawCombatEffects(ctx, current.combatHitEffects, cameraX, now);
 
     if (player.hitFeedbackTimer > 0) {
       ctx.save();
@@ -1205,12 +1307,12 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       ctx.fillText(featureCard.message || '', 450, 135);
       ctx.textAlign = 'start';
     }
-  }, [drawAttackArc, drawCollectible, drawEnemyAttackTell, drawMiniBoss, drawParticles, drawPlatform, drawRouteGate, drawStoryProp, drawTempleBackdrop, getGateRequirements, drawPlayerCharacter, drawFieldNoteLabel]);
+  }, [drawAttackArc, drawCollectible, drawCombatEffects, drawEnemyAttackTell, drawMiniBoss, drawParticles, drawPlatform, drawRouteGate, drawStoryProp, drawTempleBackdrop, getGateRequirements, drawPlayerCharacter, drawFieldNoteLabel]);
 
   const queueAttack = useCallback(() => {
     const current = stateRef.current;
     if (briefingOpen || current.failed || current.completed) return;
-    if (current.attackCooldown > 0 || current.attackTimer > 0) return;
+    if (current.attackCooldown > 0 || current.attackWindupTimer > 0 || current.attackTimer > 0 || current.attackRecoilTimer > 0) return;
     current.attackQueued = true;
   }, [briefingOpen]);
 
@@ -1239,9 +1341,30 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     current.hazardCooldown = Math.max(0, current.hazardCooldown - dt);
     current.enemyCooldown = Math.max(0, current.enemyCooldown - dt);
     current.attackCooldown = Math.max(0, current.attackCooldown - dt);
+    const wasWindingUp = current.attackWindupTimer > 0;
+    const wasSwinging = current.attackTimer > 0;
+    const wasRecoiling = current.attackRecoilTimer > 0;
+    current.attackWindupTimer = Math.max(0, current.attackWindupTimer - dt);
     current.attackTimer = Math.max(0, current.attackTimer - dt);
+    current.attackRecoilTimer = Math.max(0, current.attackRecoilTimer - dt);
     player.hitFeedbackTimer = Math.max(0, player.hitFeedbackTimer - dt);
     if (current.attackTimer <= 0) current.playerAttackBox = null;
+    if (wasWindingUp && current.attackWindupTimer <= 0) {
+      current.attackTimer = ATTACK_DURATION;
+      current.attackHitIds.clear();
+    }
+    if (wasSwinging && current.attackTimer <= 0 && current.attackRecoilTimer <= 0) {
+      current.attackRecoilTimer = ATTACK_RECOIL_DURATION;
+    }
+    if (wasRecoiling && current.attackRecoilTimer <= 0 && current.attackCooldown <= 0) {
+      current.attackPhase = 'ready';
+    } else {
+      current.attackPhase = getPlayerAttackState(current);
+    }
+    current.hitStopTimer = Math.max(0, current.hitStopTimer - dt);
+    current.combatHitEffects = current.combatHitEffects
+      .map(effect => ({ ...effect, timer: Math.max(0, effect.timer - dt) }))
+      .filter(effect => effect.timer > 0);
     current.routeGateCooldown = Math.max(0, current.routeGateCooldown - dt);
 
     // Movement
@@ -1249,6 +1372,12 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     if (left) { player.vx -= MOVE_SPEED; player.direction = -1; }
     if (right) { player.vx += MOVE_SPEED; player.direction = 1; }
     if (current.collectedUpgrades.has('reinforced-boots')) player.vx *= 1.05;
+    if (current.attackWindupTimer > 0) player.vx *= 0.45;
+    if (current.attackRecoilTimer > 0) player.vx += -player.direction * 55;
+    if (player.knockbackTimer > 0) {
+      player.knockbackTimer = Math.max(0, player.knockbackTimer - dt);
+      player.vx += player.knockbackDirection * 150;
+    }
 
     if (jump && !keys.jumpHeld) {
       if (player.onGround) {
@@ -1368,7 +1497,10 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     let attackRect = null;
     if (current.attackQueued) {
       current.attackQueued = false;
-      current.attackTimer = ATTACK_DURATION;
+      current.attackWindupTimer = ATTACK_WINDUP_DURATION;
+      current.attackTimer = 0;
+      current.attackRecoilTimer = 0;
+      current.attackPhase = 'windup';
       current.attackCooldown = ATTACK_COOLDOWN;
       current.attackHitIds.clear();
       audioControls?.playAction?.();
@@ -1386,10 +1518,19 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       player.invulnerable = INVULNERABLE_DURATION;
       player.hitFeedbackTimer = 0.75;
       player.lastDamage = amount;
-      player.vx += direction * 85;
+      player.knockbackTimer = 0.22;
+      player.knockbackDirection = direction;
+      player.vx += direction * 115;
       current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.18);
       current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.35);
       current.notice = message;
+      addCombatEffect(current, {
+        type: 'player-hit',
+        x: player.x + player.width / 2,
+        y: player.y + player.height / 2,
+        direction,
+        color: '#f87171',
+      });
       audioControls?.playError?.();
       if (current.resources.stamina <= 0) triggerJourneyRescue(message);
     };
@@ -1397,11 +1538,17 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     // Enemies
     current.enemies.forEach(e => {
       if (e.defeated) return;
+      const wasEnemyAttacking = e.attackTimer > 0;
       e.hitFlash = Math.max(0, e.hitFlash - dt);
       e.stunTimer = Math.max(0, e.stunTimer - dt);
       e.attackWindup = Math.max(0, e.attackWindup - dt);
       e.attackTimer = Math.max(0, e.attackTimer - dt);
       e.attackCooldown = Math.max(0, e.attackCooldown - dt);
+      e.attackRecovery = Math.max(0, e.attackRecovery - dt);
+      e.knockbackTimer = Math.max(0, e.knockbackTimer - dt);
+      if (wasEnemyAttacking && e.attackTimer <= 0) {
+        e.attackRecovery = e.type === 'guardian' || e.type === 'statue' ? 0.42 : 0.28;
+      }
 
       const distanceToPlayer = (player.x + player.width / 2) - (e.x + e.width / 2);
       const nearPlayer = Math.abs(distanceToPlayer) < (e.type === 'bat' ? 145 : 110) && Math.abs(player.y - e.y) < 70;
@@ -1411,6 +1558,15 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         e.attackDirection = distanceToPlayer >= 0 ? 1 : -1;
         e.attackHasHit = false;
         e.attackReady = true;
+        e.attackPattern = e.type === 'scarab'
+          ? 'charge'
+          : e.type === 'snake'
+            ? 'lunge'
+            : e.type === 'bat'
+              ? 'swoop'
+              : e.type === 'looter'
+                ? 'shove'
+                : 'slam';
         e.attackCooldown = e.type === 'scarab' ? 1.15 : e.type === 'bat' ? 1.35 : 1.45;
         current.notice = `${e.name} is winding up. Move or stun it.`;
       }
@@ -1421,6 +1577,16 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       }
 
       if (e.attackTimer > 0) {
+        const attackSpeed = e.type === 'scarab'
+          ? 160
+          : e.type === 'bat'
+            ? 185
+            : e.type === 'snake'
+              ? 130
+              : e.type === 'looter'
+                ? 150
+                : 70;
+        e.x += e.attackDirection * attackSpeed * dt;
         const enemyAttackBox = getAttackBox(e, e.type === 'guardian' || e.type === 'statue' ? 44 : 34, e.type === 'bat' ? 30 : 24, e.attackDirection);
         if (!e.attackHasHit && rectsOverlap(enemyAttackBox, player)) {
           e.attackHasHit = true;
@@ -1428,7 +1594,11 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         }
       }
 
-      if (e.stunTimer <= 0 && e.attackWindup <= 0 && e.attackTimer <= 0) {
+      if (e.knockbackTimer > 0) {
+        e.x += e.knockbackDirection * 95 * dt;
+      }
+
+      if (e.stunTimer <= 0 && e.attackWindup <= 0 && e.attackTimer <= 0 && e.attackRecovery <= 0) {
         e.x += e.direction * e.speed * dt;
         if (e.x <= e.patrolMin || e.x >= e.patrolMax) e.direction *= -1;
       }
@@ -1441,7 +1611,18 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         e.attackTimer = 0;
         e.attackReady = false;
         e.attackCooldown = Math.max(e.attackCooldown, 0.6);
+        e.attackRecovery = 0.45;
+        e.knockbackTimer = 0.22;
+        e.knockbackDirection = player.direction;
         e.x += player.direction * 18;
+        current.hitStopTimer = 0.05;
+        addCombatEffect(current, {
+          type: e.health <= 0 ? 'defeat' : 'enemy-hit',
+          x: e.x + e.width / 2,
+          y: e.y + e.height / 2,
+          direction: player.direction,
+          color: e.health <= 0 ? '#facc15' : '#7dd3fc',
+        });
         if (e.health <= 0) {
           e.defeated = true;
           current.defeatedEnemies.add(e.id);
@@ -1456,11 +1637,17 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     // Bosses
     current.miniBosses.forEach(b => {
       if (b.defeated) return;
+      const wasBossAttacking = b.attackTimer > 0;
       b.hitFlash = Math.max(0, b.hitFlash - dt);
       b.stunTimer = Math.max(0, b.stunTimer - dt);
       b.attackWindup = Math.max(0, b.attackWindup - dt);
       b.attackTimer = Math.max(0, b.attackTimer - dt);
       b.attackCooldown = Math.max(0, b.attackCooldown - dt);
+      b.attackRecovery = Math.max(0, b.attackRecovery - dt);
+      b.knockbackTimer = Math.max(0, b.knockbackTimer - dt);
+      if (wasBossAttacking && b.attackTimer <= 0) {
+        b.attackRecovery = b.type === 'guardian' || b.type === 'statue' ? 0.58 : 0.42;
+      }
       if (!b.awakened && Math.abs(b.x - player.x) < 400) {
         b.awakened = true;
         current.bossIntro = { id: b.id, title: b.name, message: b.intro, focusX: b.x };
@@ -1475,6 +1662,15 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         b.attackDirection = distanceToPlayer >= 0 ? 1 : -1;
         b.attackHasHit = false;
         b.attackReady = true;
+        b.attackPattern = b.id === 'scarab-queen'
+          ? 'queen-charge'
+          : b.id === 'temple-guardian'
+            ? 'shockwave-slam'
+            : b.id === 'giant-serpent'
+              ? 'wall-lunge'
+              : b.id === 'looter-captain'
+                ? 'dash-shove'
+                : 'construct-pulse';
         b.attackCooldown = b.type === 'looter' ? 1.35 : 1.75;
         current.notice = `${b.name} is preparing a big attack.`;
       }
@@ -1485,6 +1681,8 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       }
 
       if (b.attackTimer > 0) {
+        const bossAttackSpeed = b.type === 'looter' ? 150 : b.type === 'snake' ? 125 : b.type === 'scarab' ? 145 : 62;
+        b.x += b.attackDirection * bossAttackSpeed * dt;
         const bossAttackBox = getAttackBox(b, 58, 40, b.attackDirection);
         if (!b.attackHasHit && rectsOverlap(bossAttackBox, player)) {
           b.attackHasHit = true;
@@ -1492,7 +1690,11 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         }
       }
 
-      if (b.awakened && b.stunTimer <= 0 && b.attackWindup <= 0 && b.attackTimer <= 0) {
+      if (b.knockbackTimer > 0) {
+        b.x += b.knockbackDirection * 65 * dt;
+      }
+
+      if (b.awakened && b.stunTimer <= 0 && b.attackWindup <= 0 && b.attackTimer <= 0 && b.attackRecovery <= 0) {
         b.x += b.direction * b.speed * dt;
         if (b.x <= b.patrolMin || b.x >= b.patrolMax) b.direction *= -1;
       }
@@ -1505,7 +1707,18 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         b.attackTimer = 0;
         b.attackReady = false;
         b.attackCooldown = Math.max(b.attackCooldown, 0.75);
+        b.attackRecovery = 0.55;
+        b.knockbackTimer = 0.18;
+        b.knockbackDirection = player.direction;
         b.x += player.direction * 12;
+        current.hitStopTimer = 0.06;
+        addCombatEffect(current, {
+          type: b.health <= 0 ? 'boss-defeat' : 'boss-hit',
+          x: b.x + b.width / 2,
+          y: b.y + b.height / 2,
+          direction: player.direction,
+          color: b.health <= 0 ? '#facc15' : '#fb923c',
+        });
         current.notice = `${b.name} staggered.`;
         if (b.health <= 0) {
           b.defeated = true;
@@ -1546,7 +1759,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       if (current.resources.time <= 0) triggerJourneyRescue('Time expired. Field team rescued.');
     }
 
-  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, getAttackBox, getObjectiveProgress, getGateRequirements, syncHud]);
+  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, getAttackBox, getObjectiveProgress, getGateRequirements, addCombatEffect, getPlayerAttackState, syncHud]);
 
   const step = useCallback((ms) => {
     const dt = Math.min(ms / 1000, 0.05);
