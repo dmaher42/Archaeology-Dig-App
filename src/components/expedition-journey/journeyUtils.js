@@ -2,6 +2,8 @@ import {
   GROUND_Y,
   INITIAL_JOURNEY_NOTICE,
   PLAYER_HEIGHT,
+  PLAYER_SPRITE_FRAME_COUNT,
+  PLAYER_SPRITE_SCALE,
   PLAYER_WIDTH,
 } from './journeyConstants';
 import { CHECKPOINTS, ENEMIES, MINI_BOSSES, SECTIONS, SECTION_ATMOSPHERES } from './journeyLevelData';
@@ -18,6 +20,33 @@ export const rectsOverlap = (a, b) => (
 export const getSectionForX = (x) => (
   SECTIONS.find((section) => x >= section.start && x < section.end) || SECTIONS[SECTIONS.length - 1]
 );
+
+export const getPlayerAnimationState = (current) => {
+  if (current.player.hitFeedbackTimer > 0 || current.player.knockbackTimer > 0) return 'hurt';
+  if (current.attackWindupTimer > 0 || current.attackTimer > 0 || current.attackRecoilTimer > 0) return 'attack';
+  if (!current.player.onGround) return 'jump';
+  if (Math.abs(current.player.vx) > 8) return 'walk';
+  return 'idle';
+};
+
+export const getPlayerAnimationFrame = (animationState, walkCycleDistance = 0) => {
+  if (animationState === 'walk') {
+    return Math.floor(walkCycleDistance / 22) % PLAYER_SPRITE_FRAME_COUNT;
+  }
+  if (animationState === 'jump' || animationState === 'attack') return 2;
+  if (animationState === 'hurt') return 0;
+  return 1;
+};
+
+export const updatePlayerAnimation = (current, dt) => {
+  const animationState = getPlayerAnimationState(current);
+  if (animationState === 'walk') {
+    current.player.walkCycleDistance += Math.abs(current.player.vx) * dt;
+  }
+  current.player.animationState = animationState;
+  current.player.animationFrame = getPlayerAnimationFrame(animationState, current.player.walkCycleDistance);
+  current.player.spriteScale = PLAYER_SPRITE_SCALE;
+};
 
 export const makeEnemy = (enemy) => ({
   ...enemy,
@@ -76,10 +105,17 @@ export const makeInitialState = () => ({
     onGround: true,
     airJumpsUsed: 0,
     invulnerable: 0,
+    damageCooldownTimer: 0,
     hitFeedbackTimer: 0,
     lastDamage: 0,
+    lastDamageSource: null,
+    lastDamageTime: null,
     knockbackTimer: 0,
     knockbackDirection: 0,
+    animationState: 'idle',
+    animationFrame: 1,
+    walkCycleDistance: 0,
+    spriteScale: PLAYER_SPRITE_SCALE,
   },
   fieldKit: [],
   collectedToolIds: new Set(),
@@ -100,6 +136,7 @@ export const makeInitialState = () => ({
   cinematicTimer: 0,
   bossIntro: null,
   bossIntroTimer: 0,
+  seenBossIntroIds: new Set(),
   environmentEvent: null,
   environmentEventTimer: 0,
   sectionTransition: {
@@ -108,6 +145,10 @@ export const makeInitialState = () => ({
     message: SECTION_ATMOSPHERES[SECTIONS[0].id].title,
   },
   sectionTransitionTimer: 2.6,
+  cameraX: 0,
+  targetCameraX: 0,
+  cameraMode: 'follow',
+  cameraFocusTarget: null,
   cameraShakeTimer: 0,
   cameraShakeStrength: 0,
   lastSectionId: SECTIONS[0].id,

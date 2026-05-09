@@ -13,4 +13,11 @@ export const ATTACK_WINDUP_DURATION = 0.08;
 export const ATTACK_RECOIL_DURATION = 0.12;
 export const INVULNERABLE_DURATION = 1.05;
 
+export const PLAYER_SPRITE_SRC = 'sprites/archaeologist-walk-cycle.png';
+export const PLAYER_SPRITE_FRAME_COUNT = 4;
+export const PLAYER_SPRITE_FRAME_WIDTH = 390;
+export const PLAYER_SPRITE_FRAME_HEIGHT = 560;
+export const PLAYER_SPRITE_DRAW_HEIGHT = 86;
+export const PLAYER_SPRITE_SCALE = PLAYER_SPRITE_DRAW_HEIGHT / PLAYER_SPRITE_FRAME_HEIGHT;
+
 export const INITIAL_JOURNEY_NOTICE = 'Reach Base Camp. Collect tools, relic shards, and upgrades along the way.';

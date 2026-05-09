@@ -1,3 +1,4 @@
+/* global require */
 const fs = require('fs');
 const https = require('https');
 const d3 = require('d3-geo');

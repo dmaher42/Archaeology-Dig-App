@@ -22,6 +22,12 @@ import {
   ATTACK_COOLDOWN,
   ATTACK_RECOIL_DURATION,
   ATTACK_WINDUP_DURATION,
+  PLAYER_SPRITE_DRAW_HEIGHT,
+  PLAYER_SPRITE_FRAME_COUNT,
+  PLAYER_SPRITE_FRAME_HEIGHT,
+  PLAYER_SPRITE_FRAME_WIDTH,
+  PLAYER_SPRITE_SCALE,
+  PLAYER_SPRITE_SRC,
 } from './expedition-journey/journeyConstants';
 
 import {
@@ -47,6 +53,7 @@ import {
   getSectionForX,
   makeInitialState,
   rectsOverlap,
+  updatePlayerAnimation,
 } from './expedition-journey/journeyUtils';
 
 const DEFAULT_BOSS_ATTACK_PHASES = [
@@ -232,6 +239,24 @@ const formatMissingSummary = (missing) => {
   return `${missing.slice(0, -1).map(item => item.shortMissing).join(', ')} and ${missing[missing.length - 1].shortMissing}`;
 };
 
+const getCameraFollowTarget = (current) => {
+  const playerCenterX = current.player.x + current.player.width / 2;
+  if (current.bossIntroTimer > 0 && current.bossIntro?.focusX) {
+    const focusX = current.bossIntro.focusX * 0.7 + playerCenterX * 0.3;
+    return {
+      mode: 'boss-intro',
+      focusTarget: Math.round(current.bossIntro.focusX),
+      targetCameraX: clamp(focusX - CANVAS_WIDTH * 0.48, 0, WORLD_WIDTH - CANVAS_WIDTH),
+    };
+  }
+
+  return {
+    mode: 'follow',
+    focusTarget: Math.round(playerCenterX),
+    targetCameraX: clamp(playerCenterX - CANVAS_WIDTH * 0.38, 0, WORLD_WIDTH - CANVAS_WIDTH),
+  };
+};
+
 export default function ExpeditionJourney({ mission, onComplete, onSnapshotChange, audioControls }) {
   const [gameState, setGameState] = useState(makeInitialState());
   const [briefingOpen, setBriefingOpen] = useState(true);
@@ -240,6 +265,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
   const keysRef = useRef({});
   const lastFrameRef = useRef(0);
   const animationRef = useRef(null);
+  const playerSpriteRef = useRef({ image: null, loaded: false, failed: false });
 
   // Sync ref for the physics loop
   useEffect(() => {
@@ -249,6 +275,27 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
   const syncHud = useCallback(() => {
     setGameState({ ...stateRef.current });
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const image = new Image();
+    image.onload = () => {
+      if (cancelled) return;
+      playerSpriteRef.current = { image, loaded: true, failed: false };
+      stateRef.current.playerSpriteLoaded = true;
+      syncHud();
+    };
+    image.onerror = () => {
+      if (cancelled) return;
+      playerSpriteRef.current = { image: null, loaded: false, failed: true };
+      stateRef.current.playerSpriteLoaded = false;
+      syncHud();
+    };
+    image.src = `${import.meta.env.BASE_URL}${PLAYER_SPRITE_SRC}`;
+    return () => {
+      cancelled = true;
+    };
+  }, [syncHud]);
 
   const triggerJourneyRescue = useCallback((reason) => {
     const current = stateRef.current;
@@ -267,6 +314,11 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     current.player.vx = 0;
     current.player.vy = 0;
     current.resources.stamina = Math.max(current.resources.stamina, 40);
+    const camera = getCameraFollowTarget(current);
+    current.cameraX = camera.targetCameraX;
+    current.targetCameraX = camera.targetCameraX;
+    current.cameraMode = camera.mode;
+    current.cameraFocusTarget = camera.focusTarget;
     current.failed = false;
     current.notice = `Returned to ${cp.name}. Expedition continues.`;
     syncHud();
@@ -538,13 +590,30 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         onGround: current.player.onGround,
       },
       playerFacing: current.player.direction >= 0 ? 'right' : 'left',
+      playerSpriteLoaded: Boolean(playerSpriteRef.current.loaded),
+      playerAnimationState: current.player.animationState || 'idle',
+      playerAnimationFrame: current.player.animationFrame ?? 1,
+      playerSpriteScale: Number((current.player.spriteScale || PLAYER_SPRITE_SCALE).toFixed(3)),
       playerAttackBox,
       playerInvulnerable: Number(current.player.invulnerable.toFixed(2)),
+      invulnerabilityRemainingMs: Math.round(current.player.invulnerable * 1000),
+      damageCooldownRemainingMs: Math.round(current.player.damageCooldownTimer * 1000),
+      playerFlashActive: current.player.invulnerable > 0,
+      lastDamageSource: current.player.lastDamageSource,
+      lastDamageTime: current.player.lastDamageTime,
       playerAttackState: getPlayerAttackState(current),
       journeySection: section.name,
       worldProgressPercent: Math.round((current.player.x / WORLD_WIDTH) * 100),
       resources: current.resources,
       playerStamina: current.resources.stamina,
+      cameraX: Math.round(current.cameraX),
+      targetCameraX: Math.round(current.targetCameraX),
+      playerWorldX: Math.round(current.player.x),
+      playerScreenX: Math.round(current.player.x - current.cameraX),
+      currentSection: section.name,
+      cameraMode: current.cameraMode,
+      cameraFocusTarget: current.cameraFocusTarget,
+      cameraShakeActive: current.cameraShakeTimer > 0,
       activeHazardsNearPlayer: getActiveHazardsNearPlayer(current),
       lastHazardHit: current.lastHazardHit,
       lastStaminaDelta: current.lastStaminaDelta,
@@ -601,8 +670,15 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         attackState: getPlayerAttackState(current),
         hitStop: Number(current.hitStopTimer.toFixed(2)),
         facing: current.player.direction >= 0 ? 'right' : 'left',
+        animationState: current.player.animationState || 'idle',
+        animationFrame: current.player.animationFrame ?? 1,
         invulnerable: Number(current.player.invulnerable.toFixed(2)),
+        invulnerabilityRemainingMs: Math.round(current.player.invulnerable * 1000),
+        damageCooldownRemainingMs: Math.round(current.player.damageCooldownTimer * 1000),
+        flashActive: current.player.invulnerable > 0,
         lastDamage: current.player.lastDamage || 0,
+        lastDamageSource: current.player.lastDamageSource,
+        lastDamageTime: current.player.lastDamageTime,
       },
       combatHitEffects: current.combatHitEffects.map(effect => ({
         type: effect.type,
@@ -704,7 +780,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     ctx.restore();
   }, []);
 
-  const drawPlayerCharacter = useCallback((ctx, x, y, w, h, direction, invuln, now) => {
+  const drawPlayerFallbackCharacter = useCallback((ctx, x, y, w, h, direction, invuln, now) => {
     ctx.save();
     if (invuln > 0 && Math.floor(now / 100) % 2 === 0) ctx.globalAlpha = 0.3;
     
@@ -825,6 +901,79 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     
     ctx.restore();
   }, [getPlayerAttackState]);
+
+  const drawPlayerSprite = useCallback((ctx, x, y, w, h, direction, invuln, now) => {
+    const sprite = playerSpriteRef.current;
+    if (!sprite.loaded || !sprite.image) {
+      drawPlayerFallbackCharacter(ctx, x, y, w, h, direction, invuln, now);
+      return;
+    }
+
+    const current = stateRef.current;
+    const frame = clamp(current.player.animationFrame ?? 1, 0, PLAYER_SPRITE_FRAME_COUNT - 1);
+    const drawHeight = PLAYER_SPRITE_DRAW_HEIGHT;
+    const drawWidth = PLAYER_SPRITE_FRAME_WIDTH * PLAYER_SPRITE_SCALE;
+    const footX = x + w / 2;
+    const footY = y + h + 1;
+    const drawX = -drawWidth / 2;
+    const drawY = -drawHeight;
+    const attackState = getPlayerAttackState(current);
+    const attackLean = attackState === 'windup'
+      ? -direction * 3
+      : attackState === 'swing'
+        ? direction * 6
+        : attackState === 'recoil'
+          ? -direction * 4
+          : 0;
+    const jumpLift = current.player.animationState === 'jump' ? -2 : 0;
+    const hurtShake = current.player.animationState === 'hurt' ? Math.sin(now / 24) * 2 : 0;
+
+    ctx.save();
+    if (invuln > 0 && Math.floor(now / 100) % 2 === 0) ctx.globalAlpha = 0.34;
+
+    ctx.fillStyle = 'rgba(0,0,0,0.34)';
+    ctx.beginPath();
+    ctx.ellipse(footX, footY + 1, w * 1.05, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.translate(footX + attackLean + hurtShake, footY + jumpLift);
+    if (direction < 0) ctx.scale(-1, 1);
+    ctx.drawImage(
+      sprite.image,
+      frame * PLAYER_SPRITE_FRAME_WIDTH,
+      0,
+      PLAYER_SPRITE_FRAME_WIDTH,
+      PLAYER_SPRITE_FRAME_HEIGHT,
+      drawX,
+      drawY,
+      drawWidth,
+      drawHeight,
+    );
+
+    if (attackState !== 'ready' && attackState !== 'cooldown') {
+      const handX = drawWidth * 0.42;
+      const handY = -drawHeight * 0.56;
+      const reach = attackState === 'swing' ? 28 : attackState === 'windup' ? 12 : 18;
+      ctx.strokeStyle = '#facc15';
+      ctx.lineWidth = attackState === 'swing' ? 5 : 3;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(handX, handY);
+      ctx.lineTo(handX + reach, handY - (attackState === 'swing' ? 10 : 2));
+      ctx.stroke();
+    }
+
+    ctx.restore();
+
+    if (stateRef.current.notice && stateRef.current.notice.includes('near')) {
+      ctx.save();
+      ctx.fillStyle = '#facc15';
+      ctx.font = 'bold 12px Outfit';
+      ctx.textAlign = 'center';
+      ctx.fillText('!', x + w / 2, y - 18);
+      ctx.restore();
+    }
+  }, [drawPlayerFallbackCharacter, getPlayerAttackState]);
 
   const drawPlatform = useCallback((ctx, platform, cameraX, current) => {
     const x = platform.x - cameraX;
@@ -1654,13 +1803,10 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     const now = Date.now();
     const section = getSectionForX(player.x);
     const atmosphere = SECTION_ATMOSPHERES[section.id] || SECTION_ATMOSPHERES[SECTIONS[0].id];
-    const focusX = current.bossIntroTimer > 0 && current.bossIntro?.focusX
-      ? current.bossIntro.focusX * 0.72 + player.x * 0.28
-      : player.x;
     const shake = current.cameraShakeTimer > 0
       ? Math.sin(now / 28) * current.cameraShakeStrength * 7
       : 0;
-    const cameraX = clamp(focusX - 260 + shake, 0, WORLD_WIDTH - CANVAS_WIDTH);
+    const cameraX = clamp((Number.isFinite(current.cameraX) ? current.cameraX : 0) + shake, 0, WORLD_WIDTH - CANVAS_WIDTH);
     const isPlayerNear = (worldX, distance = 240) => Math.abs((player.x + player.width / 2) - worldX) < distance;
 
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -1850,7 +1996,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     if (current.attackTimer > 0) {
       drawAttackArc(ctx, current.playerAttackBox, cameraX, player.direction, '#facc15', 'TOOL SWING');
     }
-    drawPlayerCharacter(ctx, player.x - cameraX, player.y, player.width, player.height, player.direction, player.invulnerable, now);
+    drawPlayerSprite(ctx, player.x - cameraX, player.y, player.width, player.height, player.direction, player.invulnerable, now);
     drawCombatEffects(ctx, current.combatHitEffects, cameraX, now);
 
     if (player.hitFeedbackTimer > 0) {
@@ -1879,7 +2025,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       ctx.fillText(featureCard.message || '', 450, 135);
       ctx.textAlign = 'start';
     }
-  }, [drawAttackArc, drawCollectible, drawCombatEffects, drawEnemyAttackTell, drawHazard, drawMiniBoss, drawMissingObjectiveMarker, drawParticles, drawPlatform, drawRouteGate, drawStoryProp, drawTempleBackdrop, getGateGuidance, getGateRequirements, drawPlayerCharacter, drawFieldNoteLabel]);
+  }, [drawAttackArc, drawCollectible, drawCombatEffects, drawEnemyAttackTell, drawHazard, drawMiniBoss, drawMissingObjectiveMarker, drawParticles, drawPlatform, drawRouteGate, drawStoryProp, drawTempleBackdrop, getGateGuidance, getGateRequirements, drawPlayerSprite, drawFieldNoteLabel]);
 
   const queueAttack = useCallback(() => {
     const current = stateRef.current;
@@ -1909,7 +2055,8 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     if (current.sectionTransitionTimer <= 0 && current.sectionTransition) current.sectionTransition = null;
     current.cameraShakeTimer = Math.max(0, current.cameraShakeTimer - dt);
     if (current.cameraShakeTimer <= 0) current.cameraShakeStrength = 0;
-    current.invulnerable = Math.max(0, current.invulnerable - dt);
+    player.invulnerable = Math.max(0, player.invulnerable - dt);
+    player.damageCooldownTimer = Math.max(0, player.damageCooldownTimer - dt);
     current.hazardCooldown = Math.max(0, current.hazardCooldown - dt);
     current.staminaFeedbackTimer = Math.max(0, current.staminaFeedbackTimer - dt);
     current.enemyCooldown = Math.max(0, current.enemyCooldown - dt);
@@ -1969,6 +2116,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     player.vy += GRAVITY * dt;
     player.x += player.vx * dt;
     player.y += player.vy * dt;
+    updatePlayerAnimation(current, dt);
 
     // Bounds
     player.x = clamp(player.x, 0, WORLD_WIDTH - player.width);
@@ -2123,12 +2271,15 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       current.playerAttackBox = null;
     }
 
-    const applyPlayerDamage = (amount, message, direction = 1) => {
-      if (player.invulnerable > 0) return;
+    const applyPlayerDamage = (amount, message, direction = 1, source = 'enemy') => {
+      if (player.invulnerable > 0 || player.damageCooldownTimer > 0) return;
       current.resources.stamina = Math.max(0, current.resources.stamina - amount);
       player.invulnerable = INVULNERABLE_DURATION;
+      player.damageCooldownTimer = INVULNERABLE_DURATION + 0.65;
       player.hitFeedbackTimer = 0.75;
       player.lastDamage = amount;
+      player.lastDamageSource = source;
+      player.lastDamageTime = Date.now();
       player.knockbackTimer = 0.22;
       player.knockbackDirection = direction;
       player.vx += direction * 115;
@@ -2201,7 +2352,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         const enemyAttackBox = getAttackBox(e, e.type === 'guardian' || e.type === 'statue' ? 44 : 34, e.type === 'bat' ? 30 : 24, e.attackDirection);
         if (!e.attackHasHit && rectsOverlap(enemyAttackBox, player)) {
           e.attackHasHit = true;
-          applyPlayerDamage(e.damage, `${e.name} attack connected. Stamina lost.`, e.attackDirection);
+          applyPlayerDamage(e.damage, `${e.name} attack connected. Stamina lost.`, e.attackDirection, e.name);
         }
       }
 
@@ -2269,10 +2420,14 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
           color: '#22c55e',
         });
       }
-      if (!b.awakened && Math.abs(b.x - player.x) < 400) {
+      if (!current.seenBossIntroIds) current.seenBossIntroIds = new Set();
+      if (!current.seenBossIntroIds.has(b.id) && Math.abs(b.x - player.x) < 400) {
         b.awakened = true;
+        current.seenBossIntroIds.add(b.id);
         current.bossIntro = { id: b.id, title: b.name, message: b.intro, focusX: b.x };
         current.bossIntroTimer = 3;
+      } else if (current.seenBossIntroIds.has(b.id) && Math.abs(b.x - player.x) < 400) {
+        b.awakened = true;
       }
 
       const distanceToPlayer = (player.x + player.width / 2) - (b.x + b.width / 2);
@@ -2324,7 +2479,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
           : getAttackBox(b, phase.range, phase.height, b.attackDirection);
         if (!b.attackHasHit && rectsOverlap(bossAttackBox, player)) {
           b.attackHasHit = true;
-          applyPlayerDamage(Math.max(4, Math.round(b.damage * (phase.damageScale || 1))), `${b.name} ${phase.label} landed. Dodge the tell, then counter.`, b.attackDirection);
+          applyPlayerDamage(Math.max(4, Math.round(b.damage * (phase.damageScale || 1))), `${b.name} ${phase.label} landed. Dodge the tell, then counter.`, b.attackDirection, b.name);
         }
       }
 
@@ -2406,6 +2561,20 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       syncHud();
       onComplete?.([...current.fieldKit]);
     }
+
+    // Camera
+    const camera = getCameraFollowTarget(current);
+    current.targetCameraX = camera.targetCameraX;
+    current.cameraMode = camera.mode;
+    current.cameraFocusTarget = camera.focusTarget;
+    if (!Number.isFinite(current.cameraX)) current.cameraX = camera.targetCameraX;
+    const smoothing = camera.mode === 'boss-intro' ? 0.055 : 0.11;
+    const cameraStep = clamp((current.targetCameraX - current.cameraX) * smoothing, -34, 34);
+    current.cameraX = clamp(
+      current.cameraX + cameraStep,
+      0,
+      WORLD_WIDTH - CANVAS_WIDTH,
+    );
 
     // Time
     current.timeAccumulator += dt;
