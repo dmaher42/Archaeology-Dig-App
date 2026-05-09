@@ -71,7 +71,7 @@ export const ENEMIES = [
   { id: 'snake-1', name: 'Sand Snake', type: 'snake', emoji: '🐍', x: 1390, y: 330, width: 42, height: 30, patrolMin: 1320, patrolMax: 1470, speed: 62, health: 1, damage: 10, shards: 2 },
   { id: 'guardian-1', name: 'Stone Guardian', type: 'guardian', emoji: '🗿', x: 2350, y: 318, width: 36, height: 42, patrolMin: 2240, patrolMax: 2580, speed: 72, health: 2, damage: 12, shards: 4 },
   { id: 'looter-1', name: 'Rival Looter', type: 'looter', emoji: '👤', x: 3040, y: 318, width: 34, height: 42, patrolMin: 2920, patrolMax: 3140, speed: 90, health: 2, damage: 12, shards: 4 },
-  { id: 'bat-1', name: 'Temple Bat', type: 'bat', emoji: '🦇', x: 3700, y: 245, width: 34, height: 28, patrolMin: 3600, patrolMax: 3870, speed: 118, health: 1, damage: 8, shards: 3, flying: true },
+  { id: 'bat-1', name: 'Temple Bat', type: 'bat', emoji: '🦇', x: 3700, y: 304, width: 34, height: 28, patrolMin: 3600, patrolMax: 3870, speed: 118, health: 1, damage: 8, shards: 3, flying: true },
   { id: 'statue-1', name: 'Cursed Statue', type: 'statue', emoji: '🗽', x: 4700, y: 318, width: 42, height: 42, patrolMin: 4630, patrolMax: 4860, speed: 56, health: 3, damage: 14, shards: 6 },
   { id: 'scarab-2', name: 'Scarab Swarm', type: 'scarab', emoji: '🐝', x: 5240, y: 334, width: 44, height: 26, patrolMin: 5140, patrolMax: 5410, speed: 130, health: 2, damage: 10, shards: 4 },
   { id: 'looter-2', name: 'Rival Looter', type: 'looter', emoji: '👤', x: 6330, y: 318, width: 34, height: 42, patrolMin: 6170, patrolMax: 6470, speed: 95, health: 2, damage: 12, shards: 4 },
@@ -234,11 +234,11 @@ export const OBJECTIVE_MARKERS = [
 ];
 
 export const MINI_BOSSES = [
-  { id: 'scarab-queen', sectionId: 'desert-entry', name: 'Scarab Queen', type: 'scarab', x: 1325, y: 318, width: 58, height: 42, patrolMin: 1250, patrolMax: 1430, speed: 66, health: 2, damage: 8, shards: 6, intro: 'Mini-boss: Scarab Queen guarding the desert map route.' },
-  { id: 'temple-guardian', sectionId: 'ruined-temple', name: 'Stone Guardian', type: 'guardian', x: 2875, y: 306, width: 54, height: 54, patrolMin: 2760, patrolMax: 3040, speed: 58, health: 3, damage: 9, shards: 8, intro: 'Mini-boss: Stone Guardian awakened beside the temple seal.' },
-  { id: 'giant-serpent', sectionId: 'catacombs', name: 'Giant Serpent', type: 'snake', x: 4750, y: 308, width: 72, height: 52, patrolMin: 4610, patrolMax: 4940, speed: 70, health: 3, damage: 9, shards: 8, intro: 'Mini-boss: Giant Serpent moving through the catacombs.' },
-  { id: 'looter-captain', sectionId: 'escape-sequence', name: 'Rival Looter Captain', type: 'looter', x: 6230, y: 306, width: 54, height: 54, patrolMin: 6120, patrolMax: 6420, speed: 86, health: 3, damage: 9, shards: 8, intro: 'Mini-boss: Rival Looter Captain blocking the escape route.' },
-  { id: 'ancient-construct', sectionId: 'dig-site-entrance', name: 'Ancient Construct', type: 'statue', x: 7250, y: 300, width: 62, height: 60, patrolMin: 7120, patrolMax: 7370, speed: 54, health: 3, damage: 10, shards: 10, intro: 'Final mini-boss: Ancient Construct guarding Base Camp.' },
+  { id: 'scarab-queen', sectionId: 'desert-entry', name: 'Scarab Queen', type: 'scarab', x: 1325, y: 318, width: 58, height: 42, patrolMin: 1250, patrolMax: 1430, speed: 66, health: 2, damage: 6, shards: 6, intro: 'Mini-boss: Scarab Queen guarding the desert map route.' },
+  { id: 'temple-guardian', sectionId: 'ruined-temple', name: 'Stone Guardian', type: 'guardian', x: 2875, y: 306, width: 54, height: 54, patrolMin: 2760, patrolMax: 3040, speed: 58, health: 2, damage: 6, shards: 8, intro: 'Mini-boss: Stone Guardian awakened beside the temple seal.' },
+  { id: 'giant-serpent', sectionId: 'catacombs', name: 'Giant Serpent', type: 'snake', x: 4750, y: 308, width: 72, height: 52, patrolMin: 4610, patrolMax: 4940, speed: 70, health: 2, damage: 6, shards: 8, intro: 'Mini-boss: Giant Serpent moving through the catacombs.' },
+  { id: 'looter-captain', sectionId: 'escape-sequence', name: 'Rival Looter Captain', type: 'looter', x: 6230, y: 306, width: 54, height: 54, patrolMin: 6120, patrolMax: 6420, speed: 86, health: 2, damage: 6, shards: 8, intro: 'Mini-boss: Rival Looter Captain blocking the escape route.' },
+  { id: 'ancient-construct', sectionId: 'dig-site-entrance', name: 'Ancient Construct', type: 'statue', x: 7250, y: 300, width: 62, height: 60, patrolMin: 7120, patrolMax: 7370, speed: 54, health: 3, damage: 7, shards: 10, intro: 'Final mini-boss: Ancient Construct guarding Base Camp.' },
 ];
 
 export const SECTION_ATMOSPHERES = {

@@ -105,8 +105,8 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     }
     if (gate.requires.shards) {
       reqs.push({
-        label: `Relic Shards: ${current.collectedShardIds.size}/${gate.requires.shards}`,
-        met: current.collectedShardIds.size >= gate.requires.shards,
+        label: `Relic Shards: ${current.relicShardCount}/${gate.requires.shards}`,
+        met: current.relicShardCount >= gate.requires.shards,
       });
     }
     if (gate.requires.upgrades) {
@@ -1425,6 +1425,16 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       audioControls?.playLevelUp?.();
     }
 
+    const reachedCheckpoint = CHECKPOINTS
+      .filter(checkpoint => player.x + player.width / 2 >= checkpoint.x)
+      .at(-1);
+    if (reachedCheckpoint && current.activeCheckpoint.id !== reachedCheckpoint.id) {
+      current.activeCheckpoint = reachedCheckpoint;
+      current.resources.stamina = Math.max(current.resources.stamina, 85);
+      current.notice = `Checkpoint reached: ${reachedCheckpoint.name}.`;
+      audioControls?.playSuccess?.();
+    }
+
     // Events
     ENVIRONMENT_EVENTS.forEach(ev => {
       if (!current.triggeredEnvironmentEventIds.has(ev.id) && Math.abs(player.x - ev.x) < 50) {
@@ -1658,7 +1668,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       const bossNearPlayer = Math.abs(distanceToPlayer) < 155 && Math.abs(player.y - b.y) < 90;
 
       if (b.awakened && b.stunTimer <= 0 && b.attackTimer <= 0 && b.attackWindup <= 0 && bossNearPlayer && b.attackCooldown <= 0) {
-        b.attackWindup = b.type === 'guardian' || b.type === 'statue' ? 0.72 : 0.5;
+        b.attackWindup = b.type === 'guardian' || b.type === 'statue' ? 0.95 : 0.68;
         b.attackDirection = distanceToPlayer >= 0 ? 1 : -1;
         b.attackHasHit = false;
         b.attackReady = true;
@@ -1671,7 +1681,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
               : b.id === 'looter-captain'
                 ? 'dash-shove'
                 : 'construct-pulse';
-        b.attackCooldown = b.type === 'looter' ? 1.35 : 1.75;
+        b.attackCooldown = b.type === 'looter' ? 1.85 : 2.15;
         current.notice = `${b.name} is preparing a big attack.`;
       }
 
@@ -1702,12 +1712,12 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         current.attackHitIds.add(b.id);
         b.health -= 1;
         b.hitFlash = 0.28;
-        b.stunTimer = 0.45;
+        b.stunTimer = 0.75;
         b.attackWindup = 0;
         b.attackTimer = 0;
         b.attackReady = false;
-        b.attackCooldown = Math.max(b.attackCooldown, 0.75);
-        b.attackRecovery = 0.55;
+        b.attackCooldown = Math.max(b.attackCooldown, 1.1);
+        b.attackRecovery = 0.75;
         b.knockbackTimer = 0.18;
         b.knockbackDirection = player.direction;
         b.x += player.direction * 12;
@@ -1723,6 +1733,9 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         if (b.health <= 0) {
           b.defeated = true;
           current.defeatedMiniBosses.add(b.id);
+          if (b.sectionId === 'dig-site-entrance') {
+            current.completedObjectiveIds.add(b.sectionId);
+          }
           current.relicShardCount += b.shards;
           current.notice = `${b.name} defeated. Path secured.`;
         }
@@ -1842,8 +1855,8 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
               {SECTIONS.find(s => s.id === gameState.currentSectionId)?.name || 'Surveying'}
             </div>
             <div className="objective-progress">
-              <div>Shards: {gameState.collectedShardIds.size} / 12</div>
-              <div>Upgrades: {gameState.collectedUpgrades.size} / 3</div>
+              <div>Shards: {gameState.relicShardCount} / 22</div>
+              <div>Upgrades: {gameState.collectedUpgrades.size} / {UPGRADES.length}</div>
             </div>
           </div>
         </div>
