@@ -10223,6 +10223,66 @@ main {
   font-weight: 700;
 }
 
+.expedition-objective-status,
+.expedition-boss-status,
+.expedition-atmosphere-status {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: 4px;
+  background: rgba(255, 250, 240, 0.58);
+  border: 1px solid rgba(139, 106, 72, 0.24);
+}
+
+.expedition-objective-status strong,
+.expedition-boss-status strong,
+.expedition-atmosphere-status strong {
+  color: var(--bureau-ink);
+  line-height: 1.2;
+}
+
+.expedition-objective-status span,
+.expedition-boss-status span,
+.expedition-atmosphere-status span {
+  color: var(--bureau-ink-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.expedition-boss-status {
+  border-left: 3px solid #7f1d1d;
+  background: rgba(127, 29, 29, 0.08);
+}
+
+.expedition-atmosphere-status {
+  border-left: 3px solid #2563eb;
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.expedition-cinematic-note {
+  padding: 0.45rem 0.55rem;
+  border-left: 3px solid #b45309;
+  background: rgba(180, 83, 9, 0.1);
+  color: #6b2d12;
+  font-weight: 700;
+}
+
+.expedition-boss-warning-note {
+  padding: 0.45rem 0.55rem;
+  border-left: 3px solid #7f1d1d;
+  background: rgba(127, 29, 29, 0.12);
+  color: #6b1111;
+  font-weight: 800;
+}
+
+.expedition-environment-note {
+  padding: 0.45rem 0.55rem;
+  border-left: 3px solid #2563eb;
+  background: rgba(37, 99, 235, 0.1);
+  color: #1e3a8a;
+  font-weight: 700;
+}
+
 .expedition-route-gate-status {
   display: grid;
   gap: 0.35rem;

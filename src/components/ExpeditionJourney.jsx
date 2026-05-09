@@ -133,6 +133,20 @@ const CHECKPOINTS = [
 
 const ROUTE_GATES = [
   {
+    id: 'desert-seal',
+    name: 'Desert Map Seal',
+    x: 1480,
+    y: 86,
+    width: 34,
+    height: 274,
+    message: 'Complete the desert approach before entering the ruined temple.',
+    requires: {
+      objective: 'desert-entry',
+      miniBoss: 'scarab-queen',
+      shards: 4,
+    },
+  },
+  {
     id: 'temple-seal',
     name: 'Temple Route Seal',
     x: 3090,
@@ -141,8 +155,9 @@ const ROUTE_GATES = [
     height: 274,
     message: 'Secure the temple route before entering the catacombs.',
     requires: {
+      objective: 'ruined-temple',
+      miniBoss: 'temple-guardian',
       shards: 8,
-      defeatedEnemies: 1,
       upgrades: ['reinforced-boots'],
     },
   },
@@ -155,6 +170,8 @@ const ROUTE_GATES = [
     height: 274,
     message: 'Light and survey the catacombs before the escape path opens.',
     requires: {
+      objective: 'catacombs',
+      miniBoss: 'giant-serpent',
       shards: 14,
       upgrades: ['torch-upgrade'],
     },
@@ -168,8 +185,9 @@ const ROUTE_GATES = [
     height: 274,
     message: 'Complete the escape route challenge before the dig-site entrance.',
     requires: {
+      objective: 'escape-sequence',
+      miniBoss: 'looter-captain',
       shards: 20,
-      defeatedEnemies: 2,
     },
   },
   {
@@ -181,6 +199,8 @@ const ROUTE_GATES = [
     height: 274,
     message: 'Collect enough route evidence before reporting to Base Camp.',
     requires: {
+      objective: 'dig-site-entrance',
+      miniBoss: 'ancient-construct',
       shards: 22,
       checkpoint: 'dig-site-entrance',
     },
@@ -199,6 +219,156 @@ const LORE_TABLETS = [
   { id: 'tablet-2', x: 3840, y: 176, text: 'Tablet found: torchlight reveals careful records, not treasure maps.' },
   { id: 'tablet-3', x: 7040, y: 218, text: 'Tablet found: Base Camp lies beyond the last guardian path.' },
 ];
+
+const SECTION_OBJECTIVES = {
+  'desert-entry': {
+    title: 'Recover the Lost Map Tablet',
+    total: 1,
+    itemLabel: 'map tablet',
+  },
+  'ruined-temple': {
+    title: 'Activate 3 Ancient Switches',
+    total: 3,
+    itemLabel: 'switches',
+  },
+  catacombs: {
+    title: 'Recover 3 Glyph Fragments',
+    total: 3,
+    itemLabel: 'glyph fragments',
+  },
+  'escape-sequence': {
+    title: 'Escape Collapsing Ruins',
+    total: 1,
+    itemLabel: 'escape route',
+  },
+  'dig-site-entrance': {
+    title: 'Defeat the Guardian and Unlock Base Camp',
+    total: 1,
+    itemLabel: 'guardian seal',
+  },
+};
+
+const OBJECTIVE_MARKERS = [
+  { id: 'map-tablet', sectionId: 'desert-entry', type: 'map-tablet', label: 'Map Tablet', x: 1185, y: 304, color: '#166534' },
+  { id: 'switch-1', sectionId: 'ruined-temple', type: 'switch', label: 'Switch 1', x: 1765, y: 320, color: '#92400e' },
+  { id: 'switch-2', sectionId: 'ruined-temple', type: 'switch', label: 'Switch 2', x: 2235, y: 320, color: '#92400e' },
+  { id: 'switch-3', sectionId: 'ruined-temple', type: 'switch', label: 'Switch 3', x: 2765, y: 320, color: '#92400e' },
+  { id: 'glyph-1', sectionId: 'catacombs', type: 'glyph', label: 'Glyph 1', x: 3445, y: 320, color: '#0f766e' },
+  { id: 'glyph-2', sectionId: 'catacombs', type: 'glyph', label: 'Glyph 2', x: 3925, y: 320, color: '#0f766e' },
+  { id: 'glyph-3', sectionId: 'catacombs', type: 'glyph', label: 'Glyph 3', x: 4565, y: 320, color: '#0f766e' },
+  { id: 'escape-beacon', sectionId: 'escape-sequence', type: 'escape', label: 'Escape Marker', x: 6340, y: 320, color: '#b91c1c' },
+];
+
+const MINI_BOSSES = [
+  { id: 'scarab-queen', sectionId: 'desert-entry', name: 'Scarab Queen', type: 'scarab', x: 1325, y: 318, width: 58, height: 42, patrolMin: 1250, patrolMax: 1430, speed: 66, health: 2, damage: 8, shards: 6, intro: 'Mini-boss: Scarab Queen guarding the desert map route.' },
+  { id: 'temple-guardian', sectionId: 'ruined-temple', name: 'Stone Guardian', type: 'guardian', x: 2875, y: 306, width: 54, height: 54, patrolMin: 2760, patrolMax: 3040, speed: 58, health: 3, damage: 9, shards: 8, intro: 'Mini-boss: Stone Guardian awakened beside the temple seal.' },
+  { id: 'giant-serpent', sectionId: 'catacombs', name: 'Giant Serpent', type: 'snake', x: 4750, y: 308, width: 72, height: 52, patrolMin: 4610, patrolMax: 4940, speed: 70, health: 3, damage: 9, shards: 8, intro: 'Mini-boss: Giant Serpent moving through the catacombs.' },
+  { id: 'looter-captain', sectionId: 'escape-sequence', name: 'Rival Looter Captain', type: 'looter', x: 6230, y: 306, width: 54, height: 54, patrolMin: 6120, patrolMax: 6420, speed: 86, health: 3, damage: 9, shards: 8, intro: 'Mini-boss: Rival Looter Captain blocking the escape route.' },
+  { id: 'ancient-construct', sectionId: 'dig-site-entrance', name: 'Ancient Construct', type: 'statue', x: 7250, y: 300, width: 62, height: 60, patrolMin: 7120, patrolMax: 7370, speed: 54, health: 3, damage: 10, shards: 10, intro: 'Final mini-boss: Ancient Construct guarding Base Camp.' },
+];
+
+const SECTION_ATMOSPHERES = {
+  'desert-entry': {
+    skyTop: '#f7d88d',
+    skyBottom: '#e5a85d',
+    haze: 'rgba(255, 236, 180, 0.2)',
+    particle: 'sand',
+    particleColor: 'rgba(255, 239, 184, 0.58)',
+    fogColor: 'rgba(255, 243, 205, 0.16)',
+    mood: 'warm sunlight, blowing sand, distant ruins',
+    title: 'The desert opens toward a lost route.',
+  },
+  'ruined-temple': {
+    skyTop: '#6b5c4a',
+    skyBottom: '#b6905f',
+    haze: 'rgba(250, 204, 21, 0.12)',
+    particle: 'embers',
+    particleColor: 'rgba(255, 203, 99, 0.54)',
+    fogColor: 'rgba(62, 45, 29, 0.18)',
+    mood: 'torchlight, crumbling stone, waking statues',
+    title: 'Temple doors grind open.',
+  },
+  catacombs: {
+    skyTop: '#182136',
+    skyBottom: '#3f2c66',
+    haze: 'rgba(147, 197, 253, 0.16)',
+    particle: 'glyph motes',
+    particleColor: 'rgba(168, 199, 255, 0.5)',
+    fogColor: 'rgba(91, 65, 145, 0.24)',
+    mood: 'blue glyph light, fog, narrow tunnels',
+    title: 'The path drops into the catacombs.',
+  },
+  'escape-sequence': {
+    skyTop: '#5f2419',
+    skyBottom: '#c75a2a',
+    haze: 'rgba(248, 113, 113, 0.2)',
+    particle: 'dust and rubble',
+    particleColor: 'rgba(255, 205, 142, 0.58)',
+    fogColor: 'rgba(127, 29, 29, 0.22)',
+    mood: 'shaking stone, dust, urgent escape',
+    title: 'The ruins begin to collapse.',
+  },
+  'dig-site-entrance': {
+    skyTop: '#8fbf9d',
+    skyBottom: '#f4d08b',
+    haze: 'rgba(187, 247, 208, 0.18)',
+    particle: 'camp sparks',
+    particleColor: 'rgba(255, 247, 179, 0.56)',
+    fogColor: 'rgba(220, 252, 231, 0.16)',
+    mood: 'campfires, excavation lights, safe arrival',
+    title: 'Base Camp glows beyond the final rise.',
+  },
+};
+
+const STORY_PROPS = [
+  { id: 'distant-ruins', sectionId: 'desert-entry', type: 'ruins', x: 210, y: 236, label: 'distant ruins' },
+  { id: 'abandoned-camp', sectionId: 'desert-entry', type: 'camp', x: 970, y: 312, label: 'abandoned survey camp' },
+  { id: 'temple-door', sectionId: 'ruined-temple', type: 'door', x: 1518, y: 196, label: 'massive temple doors' },
+  { id: 'broken-statue', sectionId: 'ruined-temple', type: 'statue', x: 2380, y: 280, label: 'broken guardian statue' },
+  { id: 'mural-wall', sectionId: 'ruined-temple', type: 'mural', x: 2640, y: 228, label: 'ancient mural' },
+  { id: 'glowing-eyes', sectionId: 'catacombs', type: 'eyes', x: 3705, y: 190, label: 'hidden eyes' },
+  { id: 'glyph-wall', sectionId: 'catacombs', type: 'glyphs', x: 4250, y: 230, label: 'glowing glyph wall' },
+  { id: 'cracked-bridge', sectionId: 'escape-sequence', type: 'bridge', x: 5480, y: 300, label: 'collapsing bridge' },
+  { id: 'warning-sign', sectionId: 'escape-sequence', type: 'sign', x: 6030, y: 306, label: 'warning marker' },
+  { id: 'camp-lights', sectionId: 'dig-site-entrance', type: 'lights', x: 6700, y: 268, label: 'excavation lights' },
+  { id: 'base-banners', sectionId: 'dig-site-entrance', type: 'banners', x: 7310, y: 244, label: 'base camp banners' },
+];
+
+const ENVIRONMENT_EVENTS = [
+  { id: 'sand-gust', sectionId: 'desert-entry', x: 520, name: 'Sand Gust', message: 'A sheet of sand sweeps across the entry route.', type: 'gust', duration: 2.4, shake: 0.4 },
+  { id: 'temple-doors', sectionId: 'ruined-temple', x: 1530, name: 'Temple Doors', message: 'Ancient doors groan open as the team enters.', type: 'doors', duration: 3.2, shake: 0.7 },
+  { id: 'torch-descent', sectionId: 'catacombs', x: 3240, name: 'Torch-lit Descent', message: 'Blue glyph light flickers deeper underground.', type: 'glyphs', duration: 3.4, shake: 0.35 },
+  { id: 'cave-in', sectionId: 'escape-sequence', x: 5240, name: 'Cave-in Escape', message: 'Rubble falls behind you. Keep moving.', type: 'collapse', duration: 3.6, shake: 1.1 },
+  { id: 'camp-overlook', sectionId: 'dig-site-entrance', x: 6680, name: 'Camp Overlook', message: 'Excavation lights appear beyond the final rise.', type: 'arrival', duration: 3.2, shake: 0.25 },
+];
+
+const BOSS_INTROS = {
+  'scarab-queen': {
+    title: 'Sand Eruption',
+    message: 'A giant scarab bursts from the dunes.',
+    effect: 'sand burst',
+  },
+  'temple-guardian': {
+    title: 'Statue Awakens',
+    message: 'Stone eyes flare as the guardian steps down.',
+    effect: 'torch flare',
+  },
+  'giant-serpent': {
+    title: 'Wall Break',
+    message: 'A serpent crashes through the catacomb wall.',
+    effect: 'glyph shock',
+  },
+  'looter-captain': {
+    title: 'Rival Ambush',
+    message: 'A rival captain blocks the escape path.',
+    effect: 'dust standoff',
+  },
+  'ancient-construct': {
+    title: 'Final Guardian',
+    message: 'The ancient construct powers on before Base Camp.',
+    effect: 'camp light surge',
+  },
+};
 
 const GATE = { x: 7480, y: 282, width: 56, height: 78 };
 
@@ -224,6 +394,16 @@ const makeEnemy = (enemy) => ({
   hitFlash: 0,
 });
 
+const makeMiniBoss = (boss) => ({
+  ...boss,
+  direction: 1,
+  maxHealth: boss.health,
+  defeated: false,
+  awakened: false,
+  stunTimer: 0,
+  hitFlash: 0,
+});
+
 const makeInitialState = () => ({
   player: {
     x: 44,
@@ -243,10 +423,30 @@ const makeInitialState = () => ({
   relicShardCount: 0,
   collectedUpgrades: new Set(),
   collectedTabletIds: new Set(),
+  collectedObjectiveIds: new Set(),
   enemies: ENEMIES.map(makeEnemy),
+  miniBosses: MINI_BOSSES.map(makeMiniBoss),
   defeatedEnemies: new Set(),
+  defeatedMiniBosses: new Set(),
   hiddenRoomsFound: new Set(),
   openedRouteGateIds: new Set(),
+  completedObjectiveIds: new Set(),
+  triggeredEnvironmentEventIds: new Set(),
+  cinematicEvent: null,
+  cinematicTimer: 0,
+  bossIntro: null,
+  bossIntroTimer: 0,
+  environmentEvent: null,
+  environmentEventTimer: 0,
+  sectionTransition: {
+    id: 'desert-entry',
+    name: SECTIONS[0].name,
+    message: SECTION_ATMOSPHERES[SECTIONS[0].id].title,
+  },
+  sectionTransitionTimer: 2.6,
+  cameraShakeTimer: 0,
+  cameraShakeStrength: 0,
+  lastSectionId: SECTIONS[0].id,
   activeCheckpoint: CHECKPOINTS[0],
   resources: {
     stamina: 100,
@@ -283,16 +483,131 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
     collectedUpgrades: [],
     activeCheckpoint: CHECKPOINTS[0].name,
     journeySection: SECTIONS[0].name,
+    currentObjective: SECTION_OBJECTIVES[SECTIONS[0].id].title,
+    objectiveProgress: { found: 0, required: SECTION_OBJECTIVES[SECTIONS[0].id].total, label: '0/1 map tablet' },
     defeatedEnemies: 0,
+    defeatedMiniBosses: 0,
     hiddenRoomsFound: 0,
+    loreTabletCount: 0,
+    activeMiniBoss: null,
+    cinematicEventState: null,
+    cinematicState: null,
+    bossIntroState: null,
+    environmentEventState: null,
+    sectionTransitionState: {
+      id: 'desert-entry',
+      name: SECTIONS[0].name,
+      message: SECTION_ATMOSPHERES[SECTIONS[0].id].title,
+      timeRemaining: 2.6,
+    },
+    activeParticles: SECTION_ATMOSPHERES[SECTIONS[0].id].particle,
+    activeAtmosphere: SECTION_ATMOSPHERES[SECTIONS[0].id],
+    secretObjectiveProgress: null,
     routeGateStatus: null,
     enemyWarning: '',
   }));
+
+  const getObjectiveProgress = useCallback((sectionId, current = stateRef.current) => {
+    const objective = SECTION_OBJECTIVES[sectionId] || SECTION_OBJECTIVES[SECTIONS[0].id];
+    let found = 0;
+    if (sectionId === 'desert-entry') {
+      found = current.collectedObjectiveIds.has('map-tablet') ? 1 : 0;
+    } else if (sectionId === 'ruined-temple') {
+      found = ['switch-1', 'switch-2', 'switch-3'].filter((id) => current.collectedObjectiveIds.has(id)).length;
+    } else if (sectionId === 'catacombs') {
+      found = ['glyph-1', 'glyph-2', 'glyph-3'].filter((id) => current.collectedObjectiveIds.has(id)).length;
+    } else if (sectionId === 'escape-sequence') {
+      found = current.completedObjectiveIds.has('escape-sequence') ? 1 : 0;
+    } else if (sectionId === 'dig-site-entrance') {
+      found = current.defeatedMiniBosses.has('ancient-construct') ? 1 : 0;
+    }
+
+    return {
+      id: sectionId,
+      title: objective.title,
+      found,
+      required: objective.total,
+      complete: found >= objective.total,
+      label: `${found}/${objective.total} ${objective.itemLabel}`,
+    };
+  }, []);
+
+  const getActiveMiniBoss = useCallback((current = stateRef.current) => (
+    current.miniBosses
+      .filter((boss) => !boss.defeated)
+      .sort((a, b) => Math.abs(a.x - current.player.x) - Math.abs(b.x - current.player.x))
+      .find((boss) => Math.abs(boss.x - current.player.x) < 560) || null
+  ), []);
+
+  const getSecretObjectiveProgress = useCallback((current = stateRef.current) => ({
+    relicShards: { found: current.collectedShardIds.size, required: RELIC_SHARDS.length },
+    loreTablets: { found: current.collectedTabletIds.size, required: LORE_TABLETS.length },
+    hiddenRooms: { found: current.hiddenRoomsFound.size, required: HIDDEN_ROOMS.length },
+    miniBosses: { found: current.defeatedMiniBosses.size, required: MINI_BOSSES.length },
+  }), []);
+
+  const getCinematicEventState = useCallback((current = stateRef.current) => {
+    if (!current.cinematicEvent) return null;
+    return {
+      ...current.cinematicEvent,
+      timeRemaining: Number(current.cinematicTimer.toFixed(1)),
+    };
+  }, []);
+
+  const getActiveAtmosphere = useCallback((current = stateRef.current) => {
+    const section = getSectionForX(current.player.x);
+    const atmosphere = SECTION_ATMOSPHERES[section.id] || SECTION_ATMOSPHERES[SECTIONS[0].id];
+    return {
+      sectionId: section.id,
+      sectionName: section.name,
+      particle: atmosphere.particle,
+      mood: atmosphere.mood,
+      title: atmosphere.title,
+    };
+  }, []);
+
+  const getBossIntroState = useCallback((current = stateRef.current) => {
+    if (!current.bossIntro) return null;
+    return {
+      ...current.bossIntro,
+      timeRemaining: Number(current.bossIntroTimer.toFixed(1)),
+    };
+  }, []);
+
+  const getEnvironmentEventState = useCallback((current = stateRef.current) => {
+    if (!current.environmentEvent) return null;
+    return {
+      ...current.environmentEvent,
+      timeRemaining: Number(current.environmentEventTimer.toFixed(1)),
+    };
+  }, []);
+
+  const getSectionTransitionState = useCallback((current = stateRef.current) => {
+    if (!current.sectionTransition) return null;
+    return {
+      ...current.sectionTransition,
+      timeRemaining: Number(current.sectionTransitionTimer.toFixed(1)),
+    };
+  }, []);
 
   const getGateRequirements = useCallback((gate, current = stateRef.current) => {
     if (!gate) return [];
     const requirements = [];
     const requires = gate.requires;
+    if (requires.objective) {
+      const objective = getObjectiveProgress(requires.objective, current);
+      requirements.push({
+        label: objective.title,
+        met: objective.complete,
+      });
+    }
+    if (requires.miniBoss) {
+      const boss = MINI_BOSSES.find((item) => item.id === requires.miniBoss);
+      requirements.push({
+        label: `${boss?.name || requires.miniBoss} defeated`,
+        met: current.defeatedMiniBosses.has(requires.miniBoss),
+      });
+    }
     if (requires.shards) {
       requirements.push({
         label: `${requires.shards} relic shards`,
@@ -326,10 +641,10 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
       });
     });
     return requirements;
-  }, []);
+  }, [getObjectiveProgress]);
 
   const getNextRouteGateStatus = useCallback((current = stateRef.current) => {
-    const nextGate = ROUTE_GATES.find((gate) => !current.openedRouteGateIds.has(gate.id) && gate.x > current.player.x - 12);
+    const nextGate = ROUTE_GATES.find((gate) => !current.openedRouteGateIds.has(gate.id));
     if (!nextGate) return null;
     const requirements = getGateRequirements(nextGate, current);
     const metCount = requirements.filter((requirement) => requirement.met).length;
@@ -347,6 +662,13 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
     const current = stateRef.current;
     const player = current.player;
     const section = getSectionForX(player.x);
+    const objectiveProgress = getObjectiveProgress(section.id, current);
+    const activeMiniBoss = getActiveMiniBoss(current);
+    const activeAtmosphere = getActiveAtmosphere(current);
+    const cinematicState = getCinematicEventState(current);
+    const bossIntroState = getBossIntroState(current);
+    const environmentEventState = getEnvironmentEventState(current);
+    const sectionTransitionState = getSectionTransitionState(current);
     const nearbyEnemies = current.enemies
       .filter((enemy) => !enemy.defeated && Math.abs(enemy.x - player.x) < 420)
       .map((enemy) => ({
@@ -379,8 +701,42 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
       totalRelicShards: RELIC_SHARDS.length,
       collectedUpgrades: [...current.collectedUpgrades],
       activeCheckpoint: current.activeCheckpoint.name,
+      checkpointState: {
+        id: current.activeCheckpoint.id,
+        name: current.activeCheckpoint.name,
+      },
+      currentObjective: objectiveProgress.title,
+      objectiveProgress,
+      miniBossState: current.miniBosses.map((boss) => ({
+        id: boss.id,
+        name: boss.name,
+        sectionId: boss.sectionId,
+        health: boss.health,
+        maxHealth: boss.maxHealth,
+        defeated: boss.defeated,
+        awakened: boss.awakened,
+        x: Math.round(boss.x),
+      })),
+      activeMiniBoss: activeMiniBoss ? {
+        id: activeMiniBoss.id,
+        name: activeMiniBoss.name,
+        health: activeMiniBoss.health,
+        maxHealth: activeMiniBoss.maxHealth,
+        defeated: activeMiniBoss.defeated,
+        awakened: activeMiniBoss.awakened,
+      } : null,
       defeatedEnemies: [...current.defeatedEnemies],
+      defeatedMiniBosses: [...current.defeatedMiniBosses],
       hiddenRoomsFound: [...current.hiddenRoomsFound],
+      loreTabletCount: current.collectedTabletIds.size,
+      secretObjectiveProgress: getSecretObjectiveProgress(current),
+      cinematicEventState: cinematicState,
+      cinematicState,
+      bossIntroState,
+      environmentEventState,
+      sectionTransitionState,
+      activeParticles: activeAtmosphere.particle,
+      activeAtmosphere,
       routeGateStatus: getNextRouteGateStatus(current),
       playerCombatState: {
         attacking: current.attackTimer > 0,
@@ -395,11 +751,15 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
       failureReason: current.failureReason,
       notice: current.notice,
     };
-  }, [briefingOpen, getNextRouteGateStatus]);
+  }, [briefingOpen, getActiveAtmosphere, getActiveMiniBoss, getBossIntroState, getCinematicEventState, getEnvironmentEventState, getNextRouteGateStatus, getObjectiveProgress, getSecretObjectiveProgress, getSectionTransitionState]);
 
   const syncHud = useCallback(() => {
     const current = stateRef.current;
     const section = getSectionForX(current.player.x);
+    const objectiveProgress = getObjectiveProgress(section.id, current);
+    const activeMiniBoss = getActiveMiniBoss(current);
+    const activeAtmosphere = getActiveAtmosphere(current);
+    const cinematicState = getCinematicEventState(current);
     const enemyWarning = current.enemies
       .filter((enemy) => !enemy.defeated)
       .sort((a, b) => Math.abs(a.x - current.player.x) - Math.abs(b.x - current.player.x))[0];
@@ -413,15 +773,33 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
       collectedUpgrades: [...current.collectedUpgrades],
       activeCheckpoint: current.activeCheckpoint.name,
       journeySection: section.name,
+      currentObjective: objectiveProgress.title,
+      objectiveProgress,
       defeatedEnemies: current.defeatedEnemies.size,
+      defeatedMiniBosses: current.defeatedMiniBosses.size,
       hiddenRoomsFound: current.hiddenRoomsFound.size,
+      loreTabletCount: current.collectedTabletIds.size,
+      activeMiniBoss: activeMiniBoss ? {
+        id: activeMiniBoss.id,
+        name: activeMiniBoss.name,
+        health: activeMiniBoss.health,
+        maxHealth: activeMiniBoss.maxHealth,
+      } : null,
+      cinematicEventState: cinematicState,
+      cinematicState,
+      bossIntroState: getBossIntroState(current),
+      environmentEventState: getEnvironmentEventState(current),
+      sectionTransitionState: getSectionTransitionState(current),
+      activeParticles: activeAtmosphere.particle,
+      activeAtmosphere,
+      secretObjectiveProgress: getSecretObjectiveProgress(current),
       routeGateStatus: getNextRouteGateStatus(current),
       enemyWarning: enemyWarning && Math.abs(enemyWarning.x - current.player.x) < 520
         ? `${enemyWarning.name} nearby`
         : '',
     });
     onSnapshotChange?.(makeSnapshot());
-  }, [getNextRouteGateStatus, makeSnapshot, onSnapshotChange]);
+  }, [getActiveAtmosphere, getActiveMiniBoss, getBossIntroState, getCinematicEventState, getEnvironmentEventState, getNextRouteGateStatus, getObjectiveProgress, getSecretObjectiveProgress, getSectionTransitionState, makeSnapshot, onSnapshotChange]);
 
   const restartJourney = useCallback(() => {
     stateRef.current = makeInitialState();
@@ -497,28 +875,147 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
     ctx.restore();
   }, []);
 
+  const drawStoryProp = useCallback((ctx, prop, cameraX, now) => {
+    const x = prop.x - cameraX;
+    if (x < -140 || x > CANVAS_WIDTH + 140) return;
+    ctx.save();
+    ctx.lineWidth = 3;
+    if (prop.type === 'ruins') {
+      ctx.fillStyle = 'rgba(116, 70, 33, 0.35)';
+      ctx.fillRect(x - 36, prop.y, 24, 94);
+      ctx.fillRect(x + 4, prop.y + 28, 28, 66);
+      ctx.fillRect(x - 46, prop.y - 8, 90, 14);
+    } else if (prop.type === 'camp') {
+      ctx.fillStyle = '#5b341d';
+      ctx.fillRect(x - 34, prop.y + 26, 70, 12);
+      ctx.strokeStyle = '#7c4a21';
+      ctx.beginPath();
+      ctx.moveTo(x - 26, prop.y + 26);
+      ctx.lineTo(x, prop.y);
+      ctx.lineTo(x + 28, prop.y + 26);
+      ctx.stroke();
+    } else if (prop.type === 'door') {
+      ctx.fillStyle = '#4b3a2c';
+      ctx.fillRect(x - 38, prop.y, 76, 130);
+      ctx.strokeStyle = '#d4af37';
+      ctx.strokeRect(x - 28, prop.y + 14, 56, 106);
+    } else if (prop.type === 'statue') {
+      ctx.fillStyle = '#665342';
+      ctx.fillRect(x - 19, prop.y, 38, 82);
+      ctx.fillRect(x - 28, prop.y + 70, 56, 14);
+      ctx.fillStyle = '#facc15';
+      ctx.fillRect(x - 9, prop.y + 20, 5, 4);
+      ctx.fillRect(x + 4, prop.y + 20, 5, 4);
+    } else if (prop.type === 'mural' || prop.type === 'glyphs') {
+      ctx.fillStyle = prop.type === 'glyphs' ? 'rgba(96, 165, 250, 0.18)' : 'rgba(180, 83, 9, 0.18)';
+      ctx.fillRect(x - 60, prop.y - 42, 120, 78);
+      ctx.fillStyle = prop.type === 'glyphs' ? '#93c5fd' : '#92400e';
+      for (let i = 0; i < 5; i += 1) {
+        ctx.fillText(['I', 'V', 'O', 'X', 'L'][i], x - 42 + i * 20, prop.y + Math.sin(now / 260 + i) * 5);
+      }
+    } else if (prop.type === 'eyes') {
+      ctx.fillStyle = `rgba(147, 197, 253, ${0.45 + Math.sin(now / 220) * 0.18})`;
+      ctx.fillRect(x - 18, prop.y, 8, 5);
+      ctx.fillRect(x + 10, prop.y, 8, 5);
+    } else if (prop.type === 'bridge') {
+      ctx.strokeStyle = '#5b2c20';
+      ctx.beginPath();
+      ctx.moveTo(x - 70, prop.y + 26);
+      ctx.lineTo(x + 70, prop.y);
+      ctx.stroke();
+      ctx.fillStyle = '#7c2d12';
+      for (let i = 0; i < 5; i += 1) {
+        ctx.fillRect(x - 58 + i * 26, prop.y + 18 - i * 4, 18, 6);
+      }
+    } else if (prop.type === 'sign') {
+      ctx.fillStyle = '#6b3f20';
+      ctx.fillRect(x - 4, prop.y, 8, 44);
+      ctx.fillStyle = '#facc15';
+      ctx.fillRect(x - 30, prop.y - 18, 60, 22);
+      ctx.fillStyle = '#7f1d1d';
+      ctx.font = '900 13px Outfit, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('!', x, prop.y - 2);
+    } else if (prop.type === 'lights') {
+      ctx.strokeStyle = '#334155';
+      ctx.beginPath();
+      ctx.moveTo(x - 34, prop.y + 78);
+      ctx.lineTo(x - 16, prop.y);
+      ctx.moveTo(x + 34, prop.y + 78);
+      ctx.lineTo(x + 16, prop.y);
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(250, 204, 21, 0.28)';
+      ctx.beginPath();
+      ctx.arc(x, prop.y + 18, 70, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (prop.type === 'banners') {
+      ctx.fillStyle = '#31543d';
+      ctx.fillRect(x - 40, prop.y, 10, 100);
+      ctx.fillRect(x + 36, prop.y, 10, 100);
+      ctx.fillStyle = '#facc15';
+      ctx.fillRect(x - 30, prop.y + 8, 38, 24);
+      ctx.fillRect(x - 2, prop.y + 40, 38, 24);
+    }
+    ctx.restore();
+  }, []);
+
+  const drawParticles = useCallback((ctx, atmosphere, cameraX, now) => {
+    ctx.save();
+    ctx.fillStyle = atmosphere.particleColor;
+    for (let i = 0; i < 34; i += 1) {
+      const drift = (now / (atmosphere.particle === 'dust and rubble' ? 18 : 35)) % 260;
+      const x = ((i * 97 + drift + cameraX * 0.18) % (CANVAS_WIDTH + 120)) - 60;
+      const yBase = atmosphere.particle === 'glyph motes' ? 90 : atmosphere.particle === 'camp sparks' ? 270 : 55;
+      const yRange = atmosphere.particle === 'dust and rubble' ? 250 : 190;
+      const y = yBase + ((i * 53 + Math.sin(now / 400 + i) * 22) % yRange);
+      const size = atmosphere.particle === 'dust and rubble' ? 3 + (i % 3) : 2 + (i % 2);
+      ctx.globalAlpha = atmosphere.particle === 'glyph motes' ? 0.44 : 0.58;
+      ctx.beginPath();
+      ctx.arc(x, y, size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }, []);
+
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     const current = stateRef.current;
     const player = current.player;
-    const cameraX = clamp(player.x - 260, 0, WORLD_WIDTH - CANVAS_WIDTH);
     const now = Date.now();
     const section = getSectionForX(player.x);
+    const atmosphere = SECTION_ATMOSPHERES[section.id] || SECTION_ATMOSPHERES[SECTIONS[0].id];
+    const focusX = current.bossIntroTimer > 0 && current.bossIntro?.focusX
+      ? current.bossIntro.focusX * 0.72 + player.x * 0.28
+      : player.x;
+    const shake = current.cameraShakeTimer > 0
+      ? Math.sin(now / 28) * current.cameraShakeStrength * 7
+      : 0;
+    const cameraX = clamp(focusX - 260 + shake, 0, WORLD_WIDTH - CANVAS_WIDTH);
 
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
     const skyGradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-    skyGradient.addColorStop(0, section.id === 'catacombs' ? '#262b33' : '#f2dca5');
-    skyGradient.addColorStop(1, section.color);
+    skyGradient.addColorStop(0, atmosphere.skyTop);
+    skyGradient.addColorStop(1, atmosphere.skyBottom);
     ctx.fillStyle = skyGradient;
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    ctx.fillStyle = atmosphere.haze;
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
     ctx.fillStyle = section.id === 'catacombs' ? 'rgba(0, 0, 0, 0.28)' : 'rgba(112, 73, 42, 0.16)';
     for (let hill = -160; hill < WORLD_WIDTH; hill += 240) {
       ctx.beginPath();
-      ctx.ellipse(hill - cameraX, 355, 180, 45, 0, 0, Math.PI * 2);
+      ctx.ellipse(hill - cameraX * 0.34, 355, 180, 45, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.fillStyle = section.id === 'dig-site-entrance' ? 'rgba(34, 84, 61, 0.18)' : 'rgba(53, 40, 30, 0.14)';
+    for (let ridge = -260; ridge < WORLD_WIDTH; ridge += 360) {
+      ctx.beginPath();
+      ctx.ellipse(ridge - cameraX * 0.18, 242, 220, 58, 0, 0, Math.PI * 2);
       ctx.fill();
     }
 
@@ -530,6 +1027,33 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
       ctx.font = '800 16px Outfit, sans-serif';
       ctx.fillText(area.name, area.start - cameraX + 24, 84);
     });
+
+    STORY_PROPS.forEach((prop) => drawStoryProp(ctx, prop, cameraX, now));
+    drawParticles(ctx, atmosphere, cameraX, now);
+
+    if (current.environmentEvent) {
+      ctx.save();
+      if (current.environmentEvent.type === 'collapse') {
+        ctx.fillStyle = 'rgba(127, 29, 29, 0.18)';
+        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        ctx.fillStyle = 'rgba(76, 45, 28, 0.62)';
+        for (let i = 0; i < 12; i += 1) {
+          const x = ((i * 83 + now / 12) % CANVAS_WIDTH);
+          const y = 70 + ((i * 41 + now / 8) % 230);
+          ctx.fillRect(x, y, 18 + (i % 4) * 5, 10 + (i % 3) * 4);
+        }
+      } else if (current.environmentEvent.type === 'doors') {
+        ctx.fillStyle = 'rgba(250, 204, 21, 0.16)';
+        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+      } else if (current.environmentEvent.type === 'glyphs') {
+        ctx.fillStyle = 'rgba(96, 165, 250, 0.14)';
+        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+      } else if (current.environmentEvent.type === 'arrival') {
+        ctx.fillStyle = 'rgba(220, 252, 231, 0.16)';
+        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+      }
+      ctx.restore();
+    }
 
     HIDDEN_ROOMS.forEach((room) => {
       const visible = current.collectedUpgrades.has(room.requiresUpgrade);
@@ -640,6 +1164,31 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
       ctx.textAlign = 'start';
     });
 
+    current.miniBosses.forEach((boss) => {
+      if (boss.defeated) return;
+      const x = boss.x - cameraX;
+      if (x + boss.width < -100 || x > CANVAS_WIDTH + 100) return;
+      ctx.save();
+      if (boss.hitFlash > 0) ctx.globalAlpha = 0.55;
+      ctx.fillStyle = boss.type === 'guardian' || boss.type === 'statue' ? '#3f3429' : '#6d3f25';
+      if (boss.type === 'snake') ctx.fillStyle = '#365314';
+      if (boss.type === 'looter') ctx.fillStyle = '#7f1d1d';
+      ctx.fillRect(x, boss.y, boss.width, boss.height);
+      ctx.strokeStyle = boss.stunTimer > 0 ? '#facc15' : '#fff4d4';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(x, boss.y, boss.width, boss.height);
+      ctx.fillStyle = '#fff4d4';
+      ctx.font = '900 12px Outfit, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(boss.name, x + boss.width / 2, boss.y - 12);
+      ctx.fillStyle = '#7f1d1d';
+      ctx.fillRect(x, boss.y + boss.height + 7, boss.width, 6);
+      ctx.fillStyle = '#facc15';
+      ctx.fillRect(x, boss.y + boss.height + 7, boss.width * (boss.health / boss.maxHealth), 6);
+      ctx.restore();
+      ctx.textAlign = 'start';
+    });
+
     RELIC_SHARDS.forEach((shard) => {
       if (current.collectedShardIds.has(shard.id)) return;
       if (shard.hidden && !current.collectedUpgrades.has('historian-vision')) return;
@@ -664,6 +1213,19 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
       ctx.font = '700 11px Outfit, sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(tool.name, toolPosition.x - cameraX, toolPosition.y - 23);
+      ctx.textAlign = 'start';
+    });
+
+    OBJECTIVE_MARKERS.forEach((marker) => {
+      if (current.collectedObjectiveIds.has(marker.id)) return;
+      const x = marker.x - cameraX;
+      if (x < -80 || x > CANVAS_WIDTH + 80) return;
+      const label = marker.type === 'switch' ? 'S' : marker.type === 'glyph' ? 'G' : marker.type === 'escape' ? 'E' : 'M';
+      drawCollectible(ctx, marker.x, marker.y, cameraX, now, label, marker.color);
+      ctx.fillStyle = '#2f251d';
+      ctx.font = '800 11px Outfit, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(marker.label, x, marker.y - 23);
       ctx.textAlign = 'start';
     });
 
@@ -737,8 +1299,30 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
     ctx.font = '800 14px Outfit, sans-serif';
     ctx.fillText(`${section.name} - ${Math.round((player.x / (WORLD_WIDTH - PLAYER_WIDTH)) * 100)}%`, 30, 40);
     ctx.font = '700 12px Outfit, sans-serif';
-    ctx.fillText(`Kit ${current.fieldKit.length}/${JOURNEY_TOOLS.length}  Relics ${current.relicShardCount}/${RELIC_SHARDS.length}  Checkpoint: ${current.activeCheckpoint.name}`, 30, 62);
-  }, [drawCollectible, drawPlatform, getGateRequirements]);
+    ctx.fillText(`Kit ${current.fieldKit.length}/${JOURNEY_TOOLS.length}  Shard score ${current.relicShardCount}  Checkpoint: ${current.activeCheckpoint.name}`, 30, 62);
+
+    const featureCard = current.bossIntro || current.sectionTransition || current.environmentEvent || current.cinematicEvent;
+    if (featureCard) {
+      const isBossIntro = Boolean(current.bossIntro);
+      ctx.fillStyle = isBossIntro ? 'rgba(89, 22, 22, 0.9)' : 'rgba(47, 37, 29, 0.88)';
+      ctx.fillRect(208, 84, 484, isBossIntro ? 92 : 72);
+      ctx.strokeStyle = isBossIntro ? '#facc15' : '#f8d891';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(208, 84, 484, isBossIntro ? 92 : 72);
+      ctx.fillStyle = '#fff4d4';
+      ctx.font = '900 17px Outfit, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(featureCard.name || featureCard.title, 450, 114);
+      ctx.font = '800 12px Outfit, sans-serif';
+      ctx.fillText(featureCard.message || atmosphere.title, 450, 140);
+      if (isBossIntro) {
+        ctx.fillStyle = '#facc15';
+        ctx.font = '900 11px Outfit, sans-serif';
+        ctx.fillText(`WARNING: ${current.bossIntro.effect}`, 450, 160);
+      }
+      ctx.textAlign = 'start';
+    }
+  }, [drawCollectible, drawParticles, drawPlatform, drawStoryProp, getGateRequirements]);
 
   const availablePlatforms = useCallback((current) => PLATFORMS.filter((platform) => (
     !platform.requiresUpgrade || current.collectedUpgrades.has(platform.requiresUpgrade)
@@ -761,6 +1345,27 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
     const right = keys.ArrowRight || keys.KeyD;
     const jump = keys.ArrowUp || keys.KeyW || keys.Space;
 
+    current.cinematicTimer = Math.max(0, current.cinematicTimer - dt);
+    if (current.cinematicTimer <= 0 && current.cinematicEvent?.temporary) {
+      current.cinematicEvent = null;
+    }
+    current.bossIntroTimer = Math.max(0, current.bossIntroTimer - dt);
+    if (current.bossIntroTimer <= 0 && current.bossIntro) {
+      current.bossIntro = null;
+    }
+    current.environmentEventTimer = Math.max(0, current.environmentEventTimer - dt);
+    if (current.environmentEventTimer <= 0 && current.environmentEvent) {
+      current.environmentEvent = null;
+    }
+    current.sectionTransitionTimer = Math.max(0, current.sectionTransitionTimer - dt);
+    if (current.sectionTransitionTimer <= 0 && current.sectionTransition) {
+      current.sectionTransition = null;
+    }
+    current.cameraShakeTimer = Math.max(0, current.cameraShakeTimer - dt);
+    if (current.cameraShakeTimer <= 0) {
+      current.cameraShakeStrength = 0;
+    }
+
     player.vx = 0;
     if (left) {
       player.vx -= MOVE_SPEED;
@@ -772,6 +1377,9 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
     }
     if (current.collectedUpgrades.has('reinforced-boots')) {
       player.vx *= 1.04;
+    }
+    if (current.bossIntroTimer > 0) {
+      player.vx *= 0.42;
     }
 
     if (jump && !keys.jumpHeld) {
@@ -810,11 +1418,50 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
     player.y += player.vy * dt;
     player.onGround = false;
 
+    const activeSection = getSectionForX(player.x);
+    if (activeSection.id !== current.lastSectionId) {
+      current.lastSectionId = activeSection.id;
+      const atmosphere = SECTION_ATMOSPHERES[activeSection.id] || SECTION_ATMOSPHERES[SECTIONS[0].id];
+      current.sectionTransition = {
+        id: activeSection.id,
+        name: activeSection.name,
+        message: atmosphere.title,
+      };
+      current.sectionTransitionTimer = 3;
+      current.cinematicEvent = {
+        id: `enter-${activeSection.id}`,
+        name: activeSection.name,
+        message: getObjectiveProgress(activeSection.id, current).title,
+        temporary: true,
+      };
+      current.cinematicTimer = 2.4;
+      current.notice = `${activeSection.name}: ${getObjectiveProgress(activeSection.id, current).title}`;
+      audioControls?.playPlace?.();
+    }
+
+    ENVIRONMENT_EVENTS.forEach((event) => {
+      if (current.triggeredEnvironmentEventIds.has(event.id)) return;
+      if (player.x < event.x - 24 || player.x > event.x + 80) return;
+      current.triggeredEnvironmentEventIds.add(event.id);
+      current.environmentEvent = {
+        id: event.id,
+        sectionId: event.sectionId,
+        name: event.name,
+        message: event.message,
+        type: event.type,
+      };
+      current.environmentEventTimer = event.duration;
+      current.cameraShakeTimer = Math.max(current.cameraShakeTimer, Math.min(event.duration, 2));
+      current.cameraShakeStrength = Math.max(current.cameraShakeStrength, event.shake);
+      current.notice = `${event.name}: ${event.message}`;
+      audioControls?.playError?.();
+    });
+
     ROUTE_GATES.forEach((gate) => {
       if (current.openedRouteGateIds.has(gate.id)) return;
       const gateRect = { x: gate.x, y: gate.y, width: gate.width, height: gate.height };
       const reachedFromLeft = previousX < gate.x && player.x + player.width >= gate.x;
-      const slippedPastGate = player.x > gate.x && player.x < gate.x + 360;
+      const slippedPastGate = player.x > gate.x;
       const touchingGate = rectsOverlap(player, gateRect) || reachedFromLeft || slippedPastGate;
       if (!touchingGate) return;
 
@@ -870,6 +1517,13 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
         current.activeCheckpoint = checkpoint;
         current.resources.stamina = Math.min(100, current.resources.stamina + 18);
         current.notice = `${checkpoint.name} checkpoint reached. Stamina topped up.`;
+        current.cinematicEvent = {
+          id: `checkpoint-${checkpoint.id}`,
+          name: 'Checkpoint Reached',
+          message: `${checkpoint.name} route secured.`,
+          temporary: true,
+        };
+        current.cinematicTimer = 2;
         audioControls?.playSuccess?.();
       }
     });
@@ -893,18 +1547,61 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
       if (rectsOverlap(player, shardRect)) {
         current.collectedShardIds.add(shard.id);
         current.relicShardCount += 1;
-        current.notice = `Relic shard collected. Total: ${current.relicShardCount}/${RELIC_SHARDS.length}.`;
+        current.notice = `Relic shard collected. Shard score: ${current.relicShardCount}.`;
+        if (current.relicShardCount > 0 && current.relicShardCount % 10 === 0) {
+          current.cinematicEvent = {
+            id: `shard-milestone-${current.relicShardCount}`,
+            name: 'Relic Milestone',
+            message: `${current.relicShardCount} shard score reached.`,
+            temporary: true,
+          };
+          current.cinematicTimer = 1.8;
+        }
         audioControls?.playMatch?.();
       }
     });
 
     UPGRADES.forEach((upgrade) => {
       if (current.collectedUpgrades.has(upgrade.id)) return;
-      const upgradeRect = { x: upgrade.x - 16, y: upgrade.y - 16, width: 32, height: 32 };
+      const upgradeRect = { x: upgrade.x - 42, y: upgrade.y - 64, width: 84, height: 108 };
       if (rectsOverlap(player, upgradeRect)) {
         current.collectedUpgrades.add(upgrade.id);
         current.notice = `${upgrade.name} unlocked: ${upgrade.effect}`;
+        current.cinematicEvent = {
+          id: `upgrade-${upgrade.id}`,
+          name: 'Upgrade Unlocked',
+          message: `${upgrade.name}: ${upgrade.effect}`,
+          temporary: true,
+        };
+        current.cinematicTimer = 2.4;
         audioControls?.playSuccess?.();
+      }
+    });
+
+    OBJECTIVE_MARKERS.forEach((marker) => {
+      if (current.collectedObjectiveIds.has(marker.id)) return;
+      const markerRect = { x: marker.x - 52, y: marker.y - 72, width: 104, height: 120 };
+      if (rectsOverlap(player, markerRect)) {
+        current.collectedObjectiveIds.add(marker.id);
+        if (marker.type === 'escape') {
+          current.completedObjectiveIds.add('escape-sequence');
+        }
+        const progress = getObjectiveProgress(marker.sectionId, current);
+        if (progress.complete) {
+          current.completedObjectiveIds.add(marker.sectionId);
+          current.cinematicEvent = {
+            id: `objective-${marker.sectionId}`,
+            name: 'Objective Complete',
+            message: progress.title,
+            temporary: true,
+          };
+          current.cinematicTimer = 2.4;
+          current.notice = `${progress.title} complete.`;
+          audioControls?.playSuccess?.();
+        } else {
+          current.notice = `${marker.label} secured. Objective progress: ${progress.label}.`;
+          audioControls?.playMatch?.();
+        }
       }
     });
 
@@ -1011,6 +1708,95 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
       }
     });
 
+    current.miniBosses.forEach((boss) => {
+      if (boss.defeated) return;
+      if (!boss.awakened && Math.abs(boss.x - player.x) < 430) {
+        boss.awakened = true;
+        const intro = BOSS_INTROS[boss.id] || { title: boss.name, message: boss.intro, effect: 'arcade warning' };
+        current.bossIntro = {
+          id: boss.id,
+          name: intro.title,
+          bossName: boss.name,
+          message: intro.message,
+          effect: intro.effect,
+          focusX: boss.x,
+        };
+        current.bossIntroTimer = 3.4;
+        current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 1.2);
+        current.cameraShakeStrength = Math.max(current.cameraShakeStrength, boss.type === 'statue' ? 1.1 : 0.8);
+        current.cinematicEvent = {
+          id: `boss-${boss.id}`,
+          name: boss.name,
+          message: boss.intro,
+          temporary: true,
+        };
+        current.cinematicTimer = 2.7;
+        current.notice = boss.intro;
+        audioControls?.playError?.();
+      }
+
+      boss.stunTimer = Math.max(0, boss.stunTimer - dt);
+      boss.hitFlash = Math.max(0, boss.hitFlash - dt);
+      if (boss.awakened && boss.stunTimer <= 0) {
+        boss.x += boss.direction * boss.speed * dt;
+        if (boss.x <= boss.patrolMin) {
+          boss.x = boss.patrolMin;
+          boss.direction = 1;
+        } else if (boss.x >= boss.patrolMax) {
+          boss.x = boss.patrolMax;
+          boss.direction = -1;
+        }
+      }
+
+      const bossRect = { x: boss.x, y: boss.y, width: boss.width, height: boss.height };
+      if (attackRect && !current.attackHitIds.has(boss.id) && rectsOverlap(attackRect, bossRect)) {
+        current.attackHitIds.add(boss.id);
+        boss.awakened = true;
+        boss.health -= 1;
+        boss.stunTimer = 0.55;
+        boss.hitFlash = 0.18;
+        const pushDirection = player.x + player.width / 2 < boss.x + boss.width / 2 ? 1 : -1;
+        boss.x = clamp(boss.x + pushDirection * 24, boss.patrolMin, boss.patrolMax);
+        if (boss.health <= 0) {
+          boss.defeated = true;
+          current.defeatedMiniBosses.add(boss.id);
+          current.defeatedEnemies.add(boss.id);
+          current.relicShardCount += boss.shards;
+          if (boss.sectionId === 'dig-site-entrance') {
+            current.completedObjectiveIds.add('dig-site-entrance');
+          }
+          current.cinematicEvent = {
+            id: `defeated-${boss.id}`,
+            name: 'Mini-boss Defeated',
+            message: `${boss.name} defeated. Route progress unlocked.`,
+            temporary: true,
+          };
+          current.cinematicTimer = 2.5;
+          current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.9);
+          current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.6);
+          current.notice = `${boss.name} defeated. Bonus relic shards +${boss.shards}.`;
+          audioControls?.playSuccess?.();
+        } else {
+          current.notice = `${boss.name} staggered. ${boss.health}/${boss.maxHealth} health left.`;
+          audioControls?.playMatch?.();
+        }
+      }
+
+      if (current.enemyCooldown <= 0 && player.invulnerable <= 0 && rectsOverlap(player, bossRect)) {
+        current.resources.stamina = Math.max(0, current.resources.stamina - Math.ceil(boss.damage / 4));
+        const pushDirection = player.x + player.width / 2 < boss.x + boss.width / 2 ? -1 : 1;
+        player.x = clamp(player.x + pushDirection * 96, 0, WORLD_WIDTH - player.width);
+        player.vy = Math.min(player.vy, -180);
+        player.invulnerable = INVULNERABLE_DURATION;
+        current.enemyCooldown = 0.95;
+        current.notice = `${boss.name} pushed the team back. Strike, retreat, and try again.`;
+        audioControls?.playError?.();
+        if (current.resources.stamina <= 0) {
+          triggerJourneyRescue(`Field rescue needed after the ${boss.name}. Restart from the journey briefing.`);
+        }
+      }
+    });
+
     current.timeAccumulator += dt;
     if (current.timeAccumulator >= 1) {
       current.resources.time = Math.max(0, current.resources.time - Math.floor(current.timeAccumulator));
@@ -1027,7 +1813,7 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
       syncHud();
       onComplete?.([...current.fieldKit]);
     }
-  }, [audioControls, availablePlatforms, briefingOpen, getGateRequirements, onComplete, respawnAtCheckpoint, syncHud, triggerJourneyRescue]);
+  }, [audioControls, availablePlatforms, briefingOpen, getGateRequirements, getObjectiveProgress, onComplete, respawnAtCheckpoint, syncHud, triggerJourneyRescue]);
 
   const step = useCallback((ms) => {
     const dt = Math.min(ms / 1000, 0.05);
@@ -1132,6 +1918,42 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
                 <span>Checkpoint</span>
                 <strong>{hud.activeCheckpoint}</strong>
               </div>
+              <div className="expedition-objective-status">
+                <strong>{hud.currentObjective}</strong>
+                <span>{hud.objectiveProgress.label}</span>
+              </div>
+              {hud.activeAtmosphere && (
+                <div className="expedition-atmosphere-status">
+                  <strong>{hud.activeAtmosphere.sectionName}</strong>
+                  <span>{hud.activeAtmosphere.mood}</span>
+                </div>
+              )}
+              {hud.activeMiniBoss && (
+                <div className="expedition-boss-status">
+                  <strong>{hud.activeMiniBoss.name}</strong>
+                  <span>{hud.activeMiniBoss.health}/{hud.activeMiniBoss.maxHealth} health</span>
+                </div>
+              )}
+              {hud.bossIntroState && (
+                <p className="expedition-small-note expedition-boss-warning-note">
+                  {hud.bossIntroState.name}: {hud.bossIntroState.message}
+                </p>
+              )}
+              {hud.environmentEventState && (
+                <p className="expedition-small-note expedition-environment-note">
+                  {hud.environmentEventState.name}: {hud.environmentEventState.message}
+                </p>
+              )}
+              {hud.sectionTransitionState && (
+                <p className="expedition-small-note expedition-cinematic-note">
+                  {hud.sectionTransitionState.name}: {hud.sectionTransitionState.message}
+                </p>
+              )}
+              {hud.cinematicEventState && (
+                <p className="expedition-small-note expedition-cinematic-note">
+                  {hud.cinematicEventState.name}: {hud.cinematicEventState.message}
+                </p>
+              )}
               {hud.routeGateStatus && (
                 <div className="expedition-route-gate-status">
                   <strong>{hud.routeGateStatus.name}</strong>
@@ -1192,6 +2014,9 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
                 <span>Secrets</span>
                 <strong>{hud.hiddenRoomsFound}/{HIDDEN_ROOMS.length}</strong>
               </div>
+              <p className="expedition-small-note">
+                Lore {hud.loreTabletCount}/{LORE_TABLETS.length} | Bosses {hud.defeatedMiniBosses}/{MINI_BOSSES.length} | Atmosphere: {hud.activeParticles}
+              </p>
             </section>
 
             <section className="expedition-panel">
