@@ -8,6 +8,7 @@ import {
   BUREAU_COMPARISON_DATA,
   createInitialBureauEvidenceFilter,
   createNewBureauSession,
+  getBureauCasesForSession,
   getBureauEvidenceSentenceOptions,
   getBureauClaimValidationMessage,
 } from '../utils/gameLogic';
@@ -61,8 +62,9 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
   const [showBriefing, setShowBriefing] = useState(bureauState.phase === 'bureauBriefing');
   const [activeTabTier, setActiveTabTier] = useState(bureauState.currentTier);
   
-  const totalCases = BUREAU_CASES.length;
-  const currentCase = BUREAU_CASES[bureauState.caseIndex] || null;
+  const bureauCases = getBureauCasesForSession(bureauState);
+  const totalCases = bureauCases.length;
+  const currentCase = bureauCases[bureauState.caseIndex] || null;
   const solvedCaseCount = bureauState.caseResults.length;
   const latestOutcome = bureauState.latestOutcome;
   const evidenceFilter = bureauState.evidenceFilter || createInitialBureauEvidenceFilter();
@@ -624,32 +626,6 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
 
           <div className="bureau-suspect-grid">
             {suspectStatuses.map(({ civilisation, isRuledOut }, index) => {
-              const suspectData = BUREAU_CASES.find(c => c.civilisation === civilisation);
-              
-              // Helper to check if this suspect matches the clues revealed so far
-              const getMatchStatus = (category) => {
-                if (!currentCase || !suspectData) return false;
-                
-                // We consider it a match if the suspect has a profile fact that overlaps with the case's facts
-                // or if it's the correct answer.
-                const mappedCategory = category === 'Geography' ? 'Location' : 
-                                     category === 'Society' ? 'Rulers' : 
-                                     category === 'Legacy' ? 'Buildings' : category;
-                
-                const suspectFacts = suspectData.profileFacts?.[mappedCategory] || [];
-                const caseFacts = currentCase.profileFacts?.[mappedCategory] || [];
-                
-                // Check if any revealed tier matches this category
-                const isTierRevealed = currentClueTiers.some(t => 
-                  (t.category === category || t.category === mappedCategory) && t.tier <= bureauState.currentTier
-                );
-                
-                if (!isTierRevealed) return false;
-                
-                return civilisation === currentCase.civilisation || 
-                       suspectFacts.some(f => caseFacts.includes(f));
-              };
-
               return (
                 <article 
                   key={civilisation} 
@@ -671,12 +647,6 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
                   
                   <div className="bureau-suspect-name">
                     {civilisation}
-                  </div>
-
-                  <div className="bureau-evidence-dots">
-                    <div className={`evidence-dot geo ${getMatchStatus('Geography') ? 'active' : ''}`} title="Geography Match"></div>
-                    <div className={`evidence-dot soc ${getMatchStatus('Society') ? 'active' : ''}`} title="Society Match"></div>
-                    <div className={`evidence-dot leg ${getMatchStatus('Legacy') ? 'active' : ''}`} title="Legacy Match"></div>
                   </div>
 
                   {isRuledOut && <div className="bureau-discarded-stamp">DISCARDED</div>}

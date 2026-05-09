@@ -2197,6 +2197,68 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     draw();
   };
 
+  const devJumpToJourney = () => {
+    keysRef.current = {};
+    tickAccumulatorRef.current = 0;
+    setExpeditionStage('journey');
+    setBaseCampOpen(false);
+    setExpeditionFailure(null);
+    setJourneyRunId(previous => previous + 1);
+    journeySnapshotRef.current = null;
+    setNotice(activeMission.instruction);
+  };
+
+  const devJumpToBaseCamp = () => {
+    const snapshotFieldKit = journeySnapshotRef.current?.fieldKit || [];
+    keysRef.current = {};
+    tickAccumulatorRef.current = 0;
+    setFieldKit(snapshotFieldKit.length ? snapshotFieldKit : fieldKit);
+    setExpeditionStage('journey');
+    setBaseCampOpen(true);
+    setExpeditionFailure(null);
+    setNotice('Developer mode: Base Camp opened.');
+  };
+
+  const devJumpToExcavation = () => {
+    keysRef.current = {};
+    tickAccumulatorRef.current = 0;
+    if (fieldKit.length === 0 && journeySnapshotRef.current?.fieldKit?.length) {
+      setFieldKit(journeySnapshotRef.current.fieldKit);
+    }
+    beginExcavationStage();
+    setNotice('Developer mode: Excavation opened.');
+  };
+
+  const renderDevModeSwitcher = () => {
+    const activeDevStage = baseCampOpen ? 'base-camp' : expeditionStage;
+    return (
+      <div className="expedition-dev-switcher" role="group" aria-label="Lost Site Expedition developer mode switcher">
+        <span>Dev mode</span>
+        <button
+          type="button"
+          className={activeDevStage === 'journey' ? 'is-active' : ''}
+          onClick={devJumpToJourney}
+        >
+          Journey
+        </button>
+        <button
+          type="button"
+          className={activeDevStage === 'base-camp' ? 'is-active' : ''}
+          onClick={devJumpToBaseCamp}
+        >
+          Base Camp
+        </button>
+        <button
+          type="button"
+          className={activeDevStage === 'excavation' ? 'is-active' : ''}
+          onClick={devJumpToExcavation}
+        >
+          Excavation
+        </button>
+      </div>
+    );
+  };
+
   const submitClaim = () => {
     const chosenEvidence = selectedEvidence;
     if (!selectedCivilisation || !chosenEvidence) {
@@ -2231,20 +2293,24 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
 
   if (expeditionStage === 'journey' && !baseCampOpen) {
     return (
-      <ExpeditionJourney
-        key={journeyRunId}
-        mission={activeMission}
-        onBackToMenu={onBackToMenu}
-        onComplete={handleJourneyComplete}
-        onSnapshotChange={handleJourneySnapshot}
-        audioControls={audioControls}
-      />
+      <>
+        {renderDevModeSwitcher()}
+        <ExpeditionJourney
+          key={journeyRunId}
+          mission={activeMission}
+          onBackToMenu={onBackToMenu}
+          onComplete={handleJourneyComplete}
+          onSnapshotChange={handleJourneySnapshot}
+          audioControls={audioControls}
+        />
+      </>
     );
   }
 
   if (baseCampOpen) {
     return (
       <section className="phase-container bureau-phase expedition-phase">
+        {renderDevModeSwitcher()}
         <div className="expedition-shell expedition-basecamp-shell">
           <header className="expedition-topbar">
             <button type="button" className="bureau-hint-btn" onClick={onBackToMenu}>
@@ -2304,6 +2370,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
 
   return (
     <section className="phase-container bureau-phase expedition-phase">
+      {renderDevModeSwitcher()}
       <div className={`expedition-shell ${briefingOpen ? 'briefing-paused' : ''}`}>
         <header className="expedition-topbar">
           <button type="button" className="bureau-hint-btn" onClick={onBackToMenu}>

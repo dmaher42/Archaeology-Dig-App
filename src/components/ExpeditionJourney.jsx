@@ -839,26 +839,33 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
 
   const drawFieldNoteLabel = useCallback((ctx, x, y, text, color) => {
     ctx.save();
-    ctx.font = '800 11px Outfit, sans-serif';
-    const textWidth = ctx.measureText(text).width;
-    const padding = 6;
+    ctx.font = '900 11px Cinzel, serif';
+    const textWidth = ctx.measureText(text.toUpperCase()).width;
+    const padding = 8;
     const w = textWidth + padding * 2;
-    const h = 18;
-    const r = 4;
+    const h = 20;
+    const r = 3;
     const lx = x - w / 2;
     const ly = y - h / 2;
 
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    // Premium shadowed placard
+    ctx.shadowColor = 'rgba(0,0,0,0.3)';
+    ctx.shadowBlur = 6;
+    ctx.shadowOffsetY = 2;
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
     ctx.beginPath();
     ctx.roundRect(lx, ly, w, h, r);
     ctx.fill();
+    
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
     ctx.strokeStyle = color;
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 1.5;
     ctx.stroke();
 
     ctx.fillStyle = color;
     ctx.textAlign = 'center';
-    ctx.fillText(text, x, y + 4);
+    ctx.fillText(text.toUpperCase(), x, y + 4);
     ctx.restore();
   }, []);
 
@@ -868,11 +875,26 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
       ctx.globalAlpha = 0.16;
     }
     const x = platform.x - cameraX;
-    ctx.fillStyle = platform.secret ? '#7f643f' : platform.y === GROUND_Y ? '#8b6a47' : '#6f5b45';
+    
+    // Physical stone texture
+    ctx.fillStyle = platform.secret ? '#7f643f' : platform.y === GROUND_Y ? '#b5865a' : '#6f5b45';
     ctx.fillRect(x, platform.y, platform.width, platform.height);
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.14)';
-    ctx.fillRect(x, platform.y, platform.width, 5);
-    ctx.strokeStyle = 'rgba(37, 25, 14, 0.36)';
+    
+    // Top light edge
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
+    ctx.fillRect(x, platform.y, platform.width, 6);
+    
+    // Subtle cracks
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.12)';
+    ctx.lineWidth = 1;
+    for (let i = 25; i < platform.width; i += 50) {
+      ctx.beginPath();
+      ctx.moveTo(x + i, platform.y);
+      ctx.lineTo(x + i + 4, platform.y + platform.height);
+      ctx.stroke();
+    }
+
+    ctx.strokeStyle = 'rgba(37, 25, 14, 0.4)';
     ctx.lineWidth = 2;
     ctx.strokeRect(x, platform.y, platform.width, platform.height);
     ctx.globalAlpha = 1;
@@ -880,48 +902,114 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
 
   const drawCollectible = useCallback((ctx, x, y, cameraX, now, label, color, hidden = false, isShard = false) => {
     const screenX = x - cameraX;
-    const floatY = Math.sin((now / 220) + x) * 6;
+    const floatY = Math.sin((now / 220) + x) * 8;
     ctx.save();
     ctx.globalAlpha = hidden ? 0.35 : 1;
     
-    // Glow effect
-    const gradient = ctx.createRadialGradient(screenX, y + floatY, 0, screenX, y + floatY, 25);
-    gradient.addColorStop(0, `${color}44`);
-    gradient.addColorStop(1, 'transparent');
-    ctx.fillStyle = gradient;
+    // Core glow
+    const innerGlow = ctx.createRadialGradient(screenX, y + floatY, 0, screenX, y + floatY, 20);
+    innerGlow.addColorStop(0, `${color}66`);
+    innerGlow.addColorStop(1, 'transparent');
+    ctx.fillStyle = innerGlow;
     ctx.beginPath();
-    ctx.arc(screenX, y + floatY, 25, 0, Math.PI * 2);
+    ctx.arc(screenX, y + floatY, 20, 0, Math.PI * 2);
     ctx.fill();
 
     if (isShard) {
-      // Draw a crystal/shard shape
-      ctx.fillStyle = '#fff8d7';
+      // Shimmer effect
+      const shimmer = Math.sin(now / 150) * 0.2 + 0.8;
       ctx.shadowColor = color;
-      ctx.shadowBlur = 12;
+      ctx.shadowBlur = 15 * shimmer;
+      
+      // Shard geometry (crystal fragment)
+      ctx.fillStyle = '#fff9e5';
       ctx.beginPath();
-      ctx.moveTo(screenX, y + floatY - 12);
-      ctx.lineTo(screenX + 10, y + floatY);
-      ctx.lineTo(screenX, y + floatY + 12);
-      ctx.lineTo(screenX - 10, y + floatY);
+      ctx.moveTo(screenX, y + floatY - 14);
+      ctx.lineTo(screenX + 9, y + floatY - 4);
+      ctx.lineTo(screenX + 6, y + floatY + 14);
+      ctx.lineTo(screenX - 8, y + floatY + 8);
+      ctx.lineTo(screenX - 10, y + floatY - 6);
       ctx.closePath();
       ctx.fill();
+
+      // Highlights
+      ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(screenX - 4, y + floatY - 8);
+      ctx.lineTo(screenX, y + floatY - 12);
+      ctx.stroke();
     } else {
-      // Draw a rounded placard for tools/upgrades
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+      // Tool/Upgrade Placard
+      ctx.shadowColor = 'rgba(0,0,0,0.3)';
+      ctx.shadowBlur = 8;
+      ctx.fillStyle = '#fffcf0';
       ctx.strokeStyle = color;
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 2.5;
       const r = 18;
       ctx.beginPath();
-      ctx.roundRect(screenX - r, y + floatY - r, r * 2, r * 2, 8);
+      ctx.roundRect(screenX - r, y + floatY - r, r * 2, r * 2, 6);
       ctx.fill();
       ctx.stroke();
 
+      ctx.shadowBlur = 0;
       ctx.fillStyle = '#1e293b';
-      ctx.font = '800 16px Outfit, sans-serif';
+      ctx.font = '800 17px Outfit, sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(label, screenX, y + floatY + 6);
     }
     
+    ctx.restore();
+  }, []);
+
+  const drawPlayerCharacter = useCallback((ctx, x, y, width, height, direction, invulnerable, now) => {
+    ctx.save();
+    
+    const flicker = invulnerable > 0 && Math.floor(now / 80) % 2 === 0;
+    if (flicker) ctx.globalAlpha = 0.4;
+
+    // Body silhouette
+    ctx.fillStyle = '#b45309'; // Tan/Brown jacket
+    ctx.beginPath();
+    ctx.roundRect(x + 8, y + 10, width - 16, height - 12, 4);
+    ctx.fill();
+
+    // Backpack
+    ctx.fillStyle = '#451a03';
+    ctx.fillRect(direction >= 0 ? x + 4 : x + width - 12, y + 12, 8, 20);
+
+    // Head
+    ctx.fillStyle = '#fde68a'; // Skin tone
+    ctx.beginPath();
+    ctx.arc(x + width / 2, y + 8, 8, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Fedora Hat
+    ctx.fillStyle = '#78350f';
+    ctx.fillRect(x + 4, y - 4, width - 8, 4); // Brim
+    ctx.fillRect(x + 10, y - 12, width - 20, 8); // Crown
+
+    // Tool/Flashlight
+    ctx.strokeStyle = '#94a3b8';
+    ctx.lineWidth = 3;
+    const handX = direction >= 0 ? x + width - 4 : x + 4;
+    ctx.beginPath();
+    ctx.moveTo(handX, y + 24);
+    ctx.lineTo(handX + (direction * 12), y + 24);
+    ctx.stroke();
+
+    // Flashlight beam (subtle)
+    const beamGrad = ctx.createLinearGradient(handX, y + 24, handX + (direction * 40), y + 24);
+    beamGrad.addColorStop(0, 'rgba(254, 240, 138, 0.3)');
+    beamGrad.addColorStop(1, 'transparent');
+    ctx.fillStyle = beamGrad;
+    ctx.beginPath();
+    ctx.moveTo(handX, y + 24);
+    ctx.lineTo(handX + (direction * 50), y + 8);
+    ctx.lineTo(handX + (direction * 50), y + 40);
+    ctx.closePath();
+    ctx.fill();
+
     ctx.restore();
   }, []);
 
@@ -1088,9 +1176,6 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
       if (area.end < cameraX || area.start > cameraX + CANVAS_WIDTH) return;
       ctx.fillStyle = area.id === section.id ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)';
       ctx.fillRect(area.start - cameraX, 0, area.end - area.start, CANVAS_HEIGHT);
-      ctx.fillStyle = area.accent;
-      ctx.font = '800 16px Outfit, sans-serif';
-      ctx.fillText(area.name, area.start - cameraX + 24, 84);
     });
 
     // Platforms
@@ -1123,7 +1208,6 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
     });
 
     // --- Background Layers (Parallax) ---
-    // Distant dunes/mountains
     const drawParallax = (depth, color, heightMult) => {
       ctx.fillStyle = color;
       ctx.beginPath();
@@ -1137,8 +1221,9 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
       ctx.fill();
     };
     
-    drawParallax(0.1, `${atmosphere.skyBottom}88`, 1.2); // Distant
-    drawParallax(0.2, `${atmosphere.skyBottom}aa`, 0.8); // Mid
+    drawParallax(0.08, `${atmosphere.skyBottom}66`, 1.3); // Far
+    drawParallax(0.18, `${atmosphere.skyBottom}99`, 0.9); // Mid
+    drawParallax(0.28, `${atmosphere.skyBottom}cc`, 0.5); // Close
 
     // --- Ground & Atmosphere ---
     ctx.fillStyle = atmosphere.haze;
@@ -1412,45 +1497,24 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
     }
 
     const playerScreenX = player.x - cameraX;
-    const flicker = player.invulnerable > 0 && Math.floor(now / 80) % 2 === 0;
-    if (!flicker) {
-      ctx.shadowColor = 'rgba(0,0,0,0.4)';
-      ctx.shadowBlur = 6;
-      ctx.shadowOffsetY = 3;
-      ctx.fillStyle = '#2563eb';
-      ctx.fillRect(playerScreenX, player.y, player.width, player.height);
-      ctx.strokeStyle = '#fff';
-      ctx.lineWidth = 3;
-      ctx.strokeRect(playerScreenX, player.y, player.width, player.height);
-      ctx.shadowColor = 'transparent';
-      ctx.shadowOffsetY = 0;
-      ctx.fillStyle = '#fff';
-      ctx.font = '800 14px Outfit, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('A', playerScreenX + player.width / 2, player.y + 26);
-      ctx.textAlign = 'start';
-    }
+    drawPlayerCharacter(ctx, playerScreenX, player.y, player.width, player.height, player.direction, player.invulnerable, now);
 
     if (current.attackTimer > 0) {
       const attackX = player.direction >= 0
         ? player.x + player.width - cameraX
         : player.x - 38 - cameraX;
-      ctx.fillStyle = 'rgba(250, 204, 21, 0.36)';
-      ctx.fillRect(attackX, player.y + 7, 42, 28);
+      ctx.save();
+      ctx.fillStyle = 'rgba(250, 204, 21, 0.4)';
+      ctx.beginPath();
+      ctx.roundRect(attackX, player.y + 7, 42, 28, 4);
+      ctx.fill();
       ctx.strokeStyle = '#f59e0b';
-      ctx.strokeRect(attackX, player.y + 7, 42, 28);
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.restore();
     }
 
-    ctx.fillStyle = 'rgba(48, 35, 24, 0.88)';
-    ctx.fillRect(16, 16, 340, 64);
-    ctx.strokeStyle = '#b5865a';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(16, 16, 340, 64);
-    ctx.fillStyle = '#fff4d4';
-    ctx.font = '800 14px Outfit, sans-serif';
-    ctx.fillText(`${section.name} - ${Math.round((player.x / (WORLD_WIDTH - PLAYER_WIDTH)) * 100)}%`, 30, 40);
-    ctx.font = '700 12px Outfit, sans-serif';
-    ctx.fillText(`Kit ${current.fieldKit.length}/${JOURNEY_TOOLS.length}  Shard score ${current.relicShardCount}  Checkpoint: ${current.activeCheckpoint.name}`, 30, 62);
+    // Notice Box (compacted and moved slightly higher if needed, but handled by React HUD now)
 
     const featureCard = current.bossIntro || current.sectionTransition || current.environmentEvent || current.cinematicEvent;
     if (featureCard) {
@@ -2006,249 +2070,315 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
       window.cancelAnimationFrame(animationRef.current);
+        enemy.x += enemy.direction * enemy.speed * dt;
+        if (enemy.x <= enemy.patrolMin) {
+          enemy.x = enemy.patrolMin;
+          enemy.direction = 1;
+        } else if (enemy.x >= enemy.patrolMax) {
+          enemy.x = enemy.patrolMax;
+          enemy.direction = -1;
+        }
+        if (enemy.flying) {
+          enemy.y += Math.sin(Date.now() / 160) * 0.16;
+        }
+      }
+
+      const enemyRect = { x: enemy.x, y: enemy.y, width: enemy.width, height: enemy.height };
+      if (attackRect && !current.attackHitIds.has(enemy.id) && rectsOverlap(attackRect, enemyRect)) {
+        current.attackHitIds.add(enemy.id);
+        enemy.health -= 1;
+        enemy.stunTimer = 0.7;
+        enemy.hitFlash = 0.18;
+        const pushDirection = player.x + player.width / 2 < enemy.x + enemy.width / 2 ? 1 : -1;
+        enemy.x = clamp(enemy.x + pushDirection * 34, enemy.patrolMin, enemy.patrolMax);
+        if (enemy.health <= 0) {
+          enemy.defeated = true;
+          current.defeatedEnemies.add(enemy.id);
+          current.relicShardCount += enemy.shards;
+          current.notice = `${enemy.name} defeated. Bonus relic shards +${enemy.shards}.`;
+          audioControls?.playSuccess?.();
+        } else {
+          current.notice = `${enemy.name} stunned. Keep moving or strike again.`;
+          audioControls?.playMatch?.();
+        }
+      }
+
+      if (current.enemyCooldown <= 0 && player.invulnerable <= 0 && rectsOverlap(player, enemyRect)) {
+        current.resources.stamina = Math.max(0, current.resources.stamina - enemy.damage);
+        const pushDirection = player.x + player.width / 2 < enemy.x + enemy.width / 2 ? -1 : 1;
+        player.x = clamp(player.x + pushDirection * 84, 0, WORLD_WIDTH - player.width);
+        player.vy = Math.min(player.vy, -170);
+        player.invulnerable = INVULNERABLE_DURATION;
+        current.enemyCooldown = 0.85;
+        current.notice = `${enemy.name} bumped the team. Use J or K to stun enemies.`;
+        audioControls?.playError?.();
+        if (current.resources.stamina <= 0) {
+          triggerJourneyRescue(`Field rescue needed after the ${enemy.name}. Restart from the journey briefing.`);
+        }
+      }
+    });
+
+    current.miniBosses.forEach((boss) => {
+      if (boss.defeated) return;
+      if (!boss.awakened && Math.abs(boss.x - player.x) < 430) {
+        boss.awakened = true;
+        const intro = BOSS_INTROS[boss.id] || { title: boss.name, message: boss.intro, effect: 'arcade warning' };
+        current.bossIntro = {
+          id: boss.id,
+          name: intro.title,
+          bossName: boss.name,
+          message: intro.message,
+          effect: intro.effect,
+          focusX: boss.x,
+        };
+        current.bossIntroTimer = 3.4;
+        current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 1.2);
+        current.cameraShakeStrength = Math.max(current.cameraShakeStrength, boss.type === 'statue' ? 1.1 : 0.8);
+        current.cinematicEvent = {
+          id: `boss-${boss.id}`,
+          name: boss.name,
+          message: boss.intro,
+          temporary: true,
+        };
+        current.cinematicTimer = 2.7;
+        current.notice = boss.intro;
+        audioControls?.playError?.();
+      }
+
+      boss.stunTimer = Math.max(0, boss.stunTimer - dt);
+      boss.hitFlash = Math.max(0, boss.hitFlash - dt);
+      if (boss.awakened && boss.stunTimer <= 0) {
+        boss.x += boss.direction * boss.speed * dt;
+        if (boss.x <= boss.patrolMin) {
+          boss.x = boss.patrolMin;
+          boss.direction = 1;
+        } else if (boss.x >= boss.patrolMax) {
+          boss.x = boss.patrolMax;
+          boss.direction = -1;
+        }
+      }
+
+      const bossRect = { x: boss.x, y: boss.y, width: boss.width, height: boss.height };
+      if (attackRect && !current.attackHitIds.has(boss.id) && rectsOverlap(attackRect, bossRect)) {
+        current.attackHitIds.add(boss.id);
+        boss.awakened = true;
+        boss.health -= 1;
+        boss.stunTimer = 0.55;
+        boss.hitFlash = 0.18;
+        const pushDirection = player.x + player.width / 2 < boss.x + boss.width / 2 ? 1 : -1;
+        boss.x = clamp(boss.x + pushDirection * 24, boss.patrolMin, boss.patrolMax);
+        if (boss.health <= 0) {
+          boss.defeated = true;
+          current.defeatedMiniBosses.add(boss.id);
+          current.defeatedEnemies.add(boss.id);
+          current.relicShardCount += boss.shards;
+          if (boss.sectionId === 'dig-site-entrance') {
+            current.completedObjectiveIds.add('dig-site-entrance');
+          }
+          current.cinematicEvent = {
+            id: `defeated-${boss.id}`,
+            name: 'Mini-boss Defeated',
+            message: `${boss.name} defeated. Route progress unlocked.`,
+            temporary: true,
+          };
+          current.cinematicTimer = 2.5;
+          current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.9);
+          current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.6);
+          current.notice = `${boss.name} defeated. Bonus relic shards +${boss.shards}.`;
+          audioControls?.playSuccess?.();
+        } else {
+          current.notice = `${boss.name} staggered. ${boss.health}/${boss.maxHealth} health left.`;
+          audioControls?.playMatch?.();
+        }
+      }
+
+      if (current.enemyCooldown <= 0 && player.invulnerable <= 0 && rectsOverlap(player, bossRect)) {
+        current.resources.stamina = Math.max(0, current.resources.stamina - Math.ceil(boss.damage / 4));
+        const pushDirection = player.x + player.width / 2 < boss.x + boss.width / 2 ? -1 : 1;
+        player.x = clamp(player.x + pushDirection * 96, 0, WORLD_WIDTH - player.width);
+        player.vy = Math.min(player.vy, -180);
+        player.invulnerable = INVULNERABLE_DURATION;
+        current.enemyCooldown = 0.95;
+        current.notice = `${boss.name} pushed the team back. Strike, retreat, and try again.`;
+        audioControls?.playError?.();
+        if (current.resources.stamina <= 0) {
+          triggerJourneyRescue(`Field rescue needed after the ${boss.name}. Restart from the journey briefing.`);
+        }
+      }
+    });
+
+    current.timeAccumulator += dt;
+    if (current.timeAccumulator >= 1) {
+      current.resources.time = Math.max(0, current.resources.time - Math.floor(current.timeAccumulator));
+      current.timeAccumulator %= 1;
+      if (current.resources.time <= 0) {
+        triggerJourneyRescue('Field rescue needed: time ran out before reaching Base Camp. Restart the journey.');
+      }
+    }
+
+    if (rectsOverlap(player, GATE)) {
+      current.completed = true;
+      current.notice = 'Dig site entrance reached. Report to Base Camp.';
+      audioControls?.playSuccess?.();
+      syncHud();
+      onComplete?.([...current.fieldKit]);
+    }
+  }, [audioControls, availablePlatforms, briefingOpen, getGateRequirements, getObjectiveProgress, onComplete, respawnAtCheckpoint, syncHud, triggerJourneyRescue]);
+
+  const step = useCallback((ms) => {
+    const dt = Math.min(ms / 1000, 0.05);
+    update(dt);
+    draw();
+    syncHud();
+  }, [draw, syncHud, update]);
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'Space', 'KeyA', 'KeyD', 'KeyW', 'KeyJ', 'KeyK'].includes(event.code)) {
+        event.preventDefault();
+      }
+      if (briefingOpen) return;
+      if (event.code === 'KeyJ' || event.code === 'KeyK') {
+        queueAttack();
+        return;
+      }
+      keysRef.current[event.code] = true;
+    };
+    const handleKeyUp = (event) => {
+      keysRef.current[event.code] = false;
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    window.__advanceExpeditionJourney = (ms = 16) => step(ms);
+
+    const frame = (timestamp) => {
+      if (!lastFrameRef.current) lastFrameRef.current = timestamp;
+      const elapsed = timestamp - lastFrameRef.current;
+      lastFrameRef.current = timestamp;
+      step(elapsed);
+      animationRef.current = window.requestAnimationFrame(frame);
+    };
+    animationRef.current = window.requestAnimationFrame(frame);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+      window.cancelAnimationFrame(animationRef.current);
       if (window.__advanceExpeditionJourney) {
         delete window.__advanceExpeditionJourney;
       }
     };
   }, [briefingOpen, queueAttack, step]);
-
-  const collectedToolNames = hud.fieldKit
-    .map((id) => JOURNEY_TOOLS.find((tool) => tool.id === id)?.name)
-    .filter(Boolean);
-
-  const upgradeNames = hud.collectedUpgrades
-    .map((id) => UPGRADES.find((upgrade) => upgrade.id === id)?.shortName)
-    .filter(Boolean);
-
   return (
-    <section className="phase-container bureau-phase expedition-phase">
-      <div className="expedition-shell expedition-journey-shell">
-        <header className="expedition-topbar">
-          <button type="button" className="bureau-hint-btn" onClick={onBackToMenu}>
-            <ChevronLeft size={16} aria-hidden="true" />
-            Back to Menu
-          </button>
-          <div className="expedition-title">
-            <p className="phase-kicker">Lost Site Expedition</p>
-            <h2>Journey to the Dig Site</h2>
-            <p>
-              Explore the route, collect relic shards and field kit, and reach Base Camp.
-            </p>
-          </div>
-          <div className="expedition-gate-badge">
-            <Flag size={16} aria-hidden="true" />
-            <span>{hud.journeySection}</span>
-            <small>Checkpoint: {hud.activeCheckpoint}</small>
-          </div>
-        </header>
+    <section className="expedition-journey-container" id="expedition-journey">
+      <div className="expedition-journey-grid">
+        {/* Sidebar HUD */}
+        <div className="expedition-sidebar">
+          <div className="expedition-panel dossier-info">
+            <h2 className="cinzel-header">Expedition Log</h2>
+            <p className="field-meta">Year 7 Archaeological Survey</p>
+            
+            <div className="expedition-stat-card">
+              <div className="stat-label">
+                <Gauge size={14} /> Team Stamina
+              </div>
+              <div className="expedition-stat-bar">
+                <div 
+                  className="expedition-stat-fill stamina-fill" 
+                  style={{ width: `${gameState.resources.stamina}%` }}
+                />
+              </div>
+            </div>
 
-        <div className="expedition-journey-grid">
-          <div className="expedition-journey-canvas-card">
+            <div className="expedition-stat-card">
+              <div className="stat-label">
+                <Sparkles size={14} /> Expedition Time
+              </div>
+              <div className="expedition-stat-bar">
+                <div 
+                  className="expedition-stat-fill time-fill" 
+                  style={{ width: `${(gameState.resources.time / 120) * 100}%` }}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="expedition-panel inventory-panel">
+            <h3 className="section-title"><Backpack size={16} /> Field Kit</h3>
+            <ul className="expedition-tool-list">
+              {JOURNEY_TOOLS.map(tool => (
+                <li key={tool.id} className={gameState.collectedToolIds.has(tool.id) ? 'is-collected' : ''}>
+                  <span className="tool-emoji">{tool.emoji}</span>
+                  <span className="tool-name">{tool.name}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="expedition-panel objective-panel">
+            <h3 className="section-title"><Map size={16} /> Objectives</h3>
+            <div className="current-section-badge" style={{ backgroundColor: SECTIONS.find(s => s.id === gameState.currentSectionId)?.accent + '22', color: SECTIONS.find(s => s.id === gameState.currentSectionId)?.accent }}>
+              {SECTIONS.find(s => s.id === gameState.currentSectionId)?.name}
+            </div>
+            <div className="objective-progress">
+              <div className="progress-text">Shards: {gameState.collectedShardIds.size} / 12</div>
+              <div className="progress-text">Upgrades: {gameState.collectedUpgrades.size} / 3</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Gameplay Area */}
+        <div className="expedition-main">
+          <div className="canvas-wrapper">
             <canvas
               ref={canvasRef}
               width={CANVAS_WIDTH}
               height={CANVAS_HEIGHT}
-              aria-label="Side-scroller journey to the dig site"
+              className="expedition-canvas"
             />
-            <div className="expedition-journey-notice" role="status">
-              {hud.notice}
-            </div>
+            
+            {gameState.notice && (
+              <div className="expedition-journey-notice">
+                {gameState.notice}
+              </div>
+            )}
           </div>
-
-          <aside className="expedition-panel-stack">
-            <section className="expedition-panel">
-              <h3>
-                <Map size={18} aria-hidden="true" />
-                Route Status
-              </h3>
-              <div className="expedition-resource-row">
-                <span>Section</span>
-                <strong>{hud.journeySection}</strong>
-              </div>
-              <div className="expedition-resource-row">
-                <span>Objective</span>
-                <strong style={{ fontSize: '0.8rem' }}>{hud.currentObjective}</strong>
-              </div>
-              <p className="expedition-small-note" style={{ marginTop: '0.5rem' }}>
-                {hud.objectiveProgress.label}
-              </p>
-
-              {hud.routeGateStatus && (
-                <div className="expedition-route-gate-status">
-                  <strong>{hud.routeGateStatus.name}</strong>
-                  <p style={{ fontSize: '0.7rem', margin: '0.2rem 0' }}>{hud.routeGateStatus.summary}</p>
-                  <ul>
-                    {hud.routeGateStatus.requirements.map((req) => (
-                      <li key={req.label} className={req.met ? 'is-met' : ''}>
-                        {req.met ? '✓' : '○'} {req.label}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </section>
-
-            <section className="expedition-panel">
-              <h3>
-                <Gauge size={18} aria-hidden="true" />
-                Resources
-              </h3>
-              <div className="expedition-resource-group">
-                <div className="expedition-resource-row">
-                  <span>Stamina</span>
-                  <strong>{hud.resources.stamina}%</strong>
-                </div>
-                <div className="expedition-stat-bar">
-                  <div 
-                    className="expedition-stat-fill stamina-fill" 
-                    style={{ width: `${hud.resources.stamina}%` }} 
-                  />
-                </div>
-              </div>
-              <div className="expedition-resource-group" style={{ marginTop: '1rem' }}>
-                <div className="expedition-resource-row">
-                  <span>Time Remaining</span>
-                  <strong>{hud.resources.time}s</strong>
-                </div>
-                <div className="expedition-stat-bar">
-                  <div 
-                    className="expedition-stat-fill time-fill" 
-                    style={{ width: `${Math.min(100, (hud.resources.time / 300) * 100)}%` }} 
-                  />
-                </div>
-              </div>
-            </section>
-
-            <section className="expedition-panel">
-              <h3>
-                <Backpack size={18} aria-hidden="true" />
-                Field Kit
-              </h3>
-              <ul className="expedition-tool-list">
-                {JOURNEY_TOOLS.map((tool) => (
-                  <li key={tool.id} className={hud.fieldKit.includes(tool.id) ? 'is-collected' : ''}>
-                    <span>{tool.name}</span>
-                    <strong>{hud.fieldKit.includes(tool.id) ? 'Packed' : 'Missing'}</strong>
-                  </li>
-                ))}
-              </ul>
-            </section>
-
-            <section className="expedition-panel">
-              <h3>
-                <Gem size={18} aria-hidden="true" />
-                Findings
-              </h3>
-              <div className="expedition-resource-row">
-                <span>Relic Shards</span>
-                <strong>{hud.relicShardCount}</strong>
-              </div>
-              <div className="expedition-resource-row">
-                <span>Lore Tablets</span>
-                <strong>{hud.loreTabletCount}/{LORE_TABLETS.length}</strong>
-              </div>
-              {upgradeNames.length > 0 && (
-                <div className="expedition-resource-row">
-                  <span>Upgrades</span>
-                  <strong style={{ fontSize: '0.7rem' }}>{upgradeNames.join(', ')}</strong>
-                </div>
-              )}
-            </section>
-
-            {hud.activeAtmosphere && (
-              <section className="expedition-panel expedition-atmosphere-panel">
-                <h3>
-                  <Sparkles size={18} aria-hidden="true" />
-                  Atmosphere
-                </h3>
-                <strong>{hud.activeAtmosphere.sectionName}</strong>
-                <p className="expedition-small-note">{hud.activeAtmosphere.mood}</p>
-              </section>
-            )}
-
-            {hud.activeMiniBoss && (
-              <section className="expedition-panel expedition-boss-panel">
-                <h3>
-                  <Swords size={18} aria-hidden="true" />
-                  Boss Encounter
-                </h3>
-                <div className="expedition-resource-row">
-                  <span>{hud.activeMiniBoss.name}</span>
-                  <strong>{hud.activeMiniBoss.health} HP</strong>
-                </div>
-                <div className="expedition-stat-bar">
-                  <div 
-                    className="expedition-stat-fill" 
-                    style={{ 
-                      width: `${(hud.activeMiniBoss.health / hud.activeMiniBoss.maxHealth) * 100}%`,
-                      background: '#ef4444'
-                    }} 
-                  />
-                </div>
-              </section>
-            )}
-
-            <section className="expedition-panel">
-              <h3>
-                <Sparkles size={18} aria-hidden="true" />
-                Controls
-              </h3>
-              <p className="expedition-small-note">
-                <strong>A / D</strong>: Move<br/>
-                <strong>W / Space</strong>: Jump<br/>
-                <strong>J / K</strong>: Strike / Stun
-              </p>
-            </section>
-          </aside>
+          
+          <div className="controls-hint">
+            <span>[Arrows/WASD] Move & Jump</span>
+            <span>[J/K] Primary Action / Strike</span>
+          </div>
         </div>
       </div>
 
-      {hud.failed && (
-        <div className="bureau-briefing-overlay">
-          <div className="bureau-briefing-modal expedition-rescue-modal">
-            <div className="training-kicker">Field Rescue</div>
-            <h2>Restart Needed</h2>
-            <p>{hud.failureReason}</p>
-            <p>
-              Checkpoints reduce frustration, but stamina and time still matter.
-              Use jumps, routes, and tool swings to keep the expedition moving.
-            </p>
-            <div className="bureau-briefing-actions">
-              <button type="button" className="btn primary-btn" onClick={restartJourney}>
-                Restart Journey
-              </button>
-              <button type="button" className="btn" onClick={onBackToMenu}>
-                Back to Menu
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
+      {/* Briefing Overlay */}
       {briefingOpen && (
-        <div className="bureau-briefing-overlay expedition-briefing-overlay">
-          <div className="bureau-briefing-modal expedition-mission-briefing-modal">
-            <div className="expedition-briefing-stamp">Top Secret</div>
-            <h2>{mission?.title || 'Evidence Hunt Mission'}</h2>
-            <p>
-              The Bureau has assigned an inquiry before you reach the excavation site.
-              Collect field tools, relic shards and upgrades, then use evidence carefully at the dig.
-            </p>
-            <div className="expedition-mission-card expedition-briefing-mission">
-              <strong>Mission Brief</strong>
-              {mission?.inquiryQuestion && (
-                <p><strong>Inquiry question:</strong> {mission.inquiryQuestion}</p>
-              )}
-              <p><strong>Evidence type:</strong> {mission?.targetCategoryTitle || 'Mission evidence'}</p>
-              <p><strong>Needed:</strong> {mission?.requiredTargetCount || 3} correct evidence items</p>
-              <p>{mission?.instruction || 'Prepare for the excavation mission.'}</p>
-              <p><strong>Journey controls:</strong> Move with A/D or arrows, jump with W/ArrowUp/Space, attack with J or K.</p>
+        <div className="expedition-briefing-overlay">
+          <div className="expedition-briefing-card">
+            <h1 className="cinzel-header">Lost Site Expedition</h1>
+            <div className="briefing-content">
+              <p>Historian, the survey team has identified a potential site entrance. Your objective is to navigate the terrain and reach Base Camp.</p>
+              
+              <div className="expedition-briefing-mission">
+                <strong>Current Mission:</strong> {mission || 'Secure the site entrance and recover any surface artifacts.'}
+              </div>
+
+              <div className="briefing-intel">
+                <h3>Initial Reconnaissance:</h3>
+                <ul>
+                  <li>Collect <strong>Relic Shards</strong> to unlock secure route gates.</li>
+                  <li>Recover <strong>Field Upgrades</strong> to access hidden survey areas.</li>
+                  <li>Maintain <strong>Team Stamina</strong> by avoiding environmental hazards.</li>
+                </ul>
+              </div>
             </div>
-            <div className="bureau-briefing-actions">
-              <button type="button" className="btn primary-btn expedition-begin-btn" onClick={() => setBriefingOpen(false)}>
-                Begin Journey
-              </button>
-            </div>
+            <button 
+              className="expedition-begin-btn"
+              onClick={() => setBriefingOpen(false)}
+            >
+              Begin Expedition
+            </button>
           </div>
         </div>
       )}

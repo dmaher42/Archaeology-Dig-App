@@ -66,6 +66,40 @@ export const getEvidenceImagePath = (artifact) => {
 export const BUREAU_CASES_BY_ID = new Map(BUREAU_CASES.map(item => [item.id, item]));
 export const BUREAU_CIVILISATIONS = [...new Set(BUREAU_CASES.map(item => item.civilisation))];
 
+const FIRST_BUREAU_CIVILISATION = 'Ancient Egypt';
+
+const shuffleItems = (items) => {
+  const shuffled = [...items];
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
+  }
+  return shuffled;
+};
+
+export const createBureauCaseOrder = () => {
+  const firstCase = BUREAU_CASES.find(item => item.civilisation === FIRST_BUREAU_CIVILISATION) || BUREAU_CASES[0];
+  const trainingCases = BUREAU_CASES.filter(item => item.round === 'training' && item.id !== firstCase?.id);
+  const challengeCases = BUREAU_CASES.filter(item => item.round !== 'training' && item.id !== firstCase?.id);
+
+  return [
+    firstCase,
+    ...shuffleItems(trainingCases),
+    ...shuffleItems(challengeCases),
+  ].filter(Boolean).map(item => item.id);
+};
+
+export const getBureauCasesForSession = (bureauState = {}) => {
+  const caseOrder = Array.isArray(bureauState.caseOrder) ? bureauState.caseOrder : [];
+  if (caseOrder.length === 0) return BUREAU_CASES;
+
+  const orderedCases = caseOrder.map(id => BUREAU_CASES_BY_ID.get(id)).filter(Boolean);
+  const orderedIds = new Set(orderedCases.map(item => item.id));
+  const missingCases = BUREAU_CASES.filter(item => !orderedIds.has(item.id));
+
+  return [...orderedCases, ...missingCases];
+};
+
 export const AUTOSAVE_KEY = 'archaeologyDigApp.autosave.v1';
 export const AUTOSAVE_VERSION = 1;
 export const SAVE_APP_ID = 'archaeology-dig-app';
@@ -330,9 +364,11 @@ export const getBureauClaimValidationMessage = ({
 };
 
 export const createNewBureauSession = (startPhase = 'bureauBriefing', startCivilisation = null) => {
+  const caseOrder = createBureauCaseOrder();
+  const orderedCases = caseOrder.map(id => BUREAU_CASES_BY_ID.get(id)).filter(Boolean);
   let initialCaseIndex = 0;
   if (startCivilisation) {
-    const foundIndex = BUREAU_CASES.findIndex(c => c.civilisation === startCivilisation);
+    const foundIndex = orderedCases.findIndex(c => c.civilisation === startCivilisation);
     if (foundIndex >= 0) initialCaseIndex = foundIndex;
   }
 
@@ -340,6 +376,7 @@ export const createNewBureauSession = (startPhase = 'bureauBriefing', startCivil
     mode: 'bureau',
     phase: startPhase,
     score: 0,
+    caseOrder,
     caseIndex: initialCaseIndex,
     currentTier: 1,
     evidenceFilter: createInitialBureauEvidenceFilter(),

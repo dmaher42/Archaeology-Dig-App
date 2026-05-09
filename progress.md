@@ -85,3 +85,17 @@ Remaining notes:
 - `npm.cmd run build` passed and `npm.cmd run lint` passed on this pass; `git diff --check` only reported the repo's LF-to-CRLF warnings.
 - Browser/state checks confirmed boss intros, environment events, section transition states, section atmosphere changes, route-to-Base-Camp completion, and Begin Excavation still entering the existing excavation stage.
 - Remaining risk: spectacle timing and readability should still be classroom-playtested on a projector, especially in the darker Catacombs and faster Escape Sequence sections.
+
+2026-05-09 update:
+- Completed an `ExpeditionJourney.jsx` refactor without intending gameplay behaviour changes.
+- Created `src/components/expedition-journey/journeyConstants.js`, `journeyLevelData.js`, and `journeyUtils.js` for constants, static level data, and pure state/helper functions.
+- Kept the public `src/components/ExpeditionJourney.jsx` import path as the main orchestration component and left rendering/update/JSX in place.
+- `npm.cmd run build` passed and `npm.cmd run lint` passed on this pass.
+- Remaining risk: this was a structural move, so a focused browser smoke route should remain part of any next Journey tuning pass.
+
+2026-05-09 update:
+- Added a Lost Site Expedition developer mode switcher for jumping between Journey, Base Camp, and Excavation.
+- The switcher uses the existing Expedition stage state and does not add a parallel gameplay mode system.
+- `npm.cmd run build` passed and `npm.cmd run lint` passed on this pass.
+- Browser checks confirmed the switcher can move Journey -> Base Camp -> Excavation -> Journey and that Journey state repopulates in `render_game_to_text`.
+- Remaining risk: the switcher is intentionally a dev utility and should be hidden or removed before a student-facing release if it is not wanted in class.
