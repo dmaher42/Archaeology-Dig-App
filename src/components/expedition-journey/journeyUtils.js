@@ -26,6 +26,12 @@ export const makeEnemy = (enemy) => ({
   defeated: false,
   stunTimer: 0,
   hitFlash: 0,
+  attackWindup: 0,
+  attackTimer: 0,
+  attackCooldown: 0.8,
+  attackDirection: 1,
+  attackHasHit: false,
+  attackReady: false,
 });
 
 export const makeMiniBoss = (boss) => ({
@@ -36,6 +42,12 @@ export const makeMiniBoss = (boss) => ({
   awakened: false,
   stunTimer: 0,
   hitFlash: 0,
+  attackWindup: 0,
+  attackTimer: 0,
+  attackCooldown: 1.2,
+  attackDirection: 1,
+  attackHasHit: false,
+  attackReady: false,
 });
 
 export const makeInitialState = () => ({
@@ -50,6 +62,8 @@ export const makeInitialState = () => ({
     onGround: true,
     airJumpsUsed: 0,
     invulnerable: 0,
+    hitFeedbackTimer: 0,
+    lastDamage: 0,
   },
   fieldKit: [],
   collectedToolIds: new Set(),
@@ -93,6 +107,7 @@ export const makeInitialState = () => ({
   attackTimer: 0,
   attackQueued: false,
   attackHitIds: new Set(),
+  playerAttackBox: null,
   routeGateCooldown: 0,
   timeAccumulator: 0,
   failed: false,

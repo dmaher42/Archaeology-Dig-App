@@ -47,7 +47,7 @@ import {
   rectsOverlap,
 } from './expedition-journey/journeyUtils';
 
-export default function ExpeditionJourney({ mission, onComplete, audioControls }) {
+export default function ExpeditionJourney({ mission, onComplete, onSnapshotChange, audioControls }) {
   const [gameState, setGameState] = useState(makeInitialState());
   const [briefingOpen, setBriefingOpen] = useState(true);
   const canvasRef = useRef(null);
@@ -138,6 +138,133 @@ export default function ExpeditionJourney({ mission, onComplete, audioControls }
     return { ...config, count };
   }, []);
 
+  const getAttackBox = useCallback((attacker, range = 42, height = 28, direction = attacker.direction || 1) => ({
+    x: direction >= 0 ? attacker.x + attacker.width : attacker.x - range,
+    y: attacker.y + Math.max(4, (attacker.height - height) / 2),
+    width: range,
+    height,
+  }), []);
+
+  const getEntityCombatState = useCallback((entity) => ({
+    attacking: entity.attackTimer > 0,
+    windup: entity.attackWindup > 0,
+    cooldown: Number(entity.attackCooldown?.toFixed?.(2) || 0),
+    stunned: entity.stunTimer > 0,
+    defeated: Boolean(entity.defeated),
+  }), []);
+
+  const createJourneySnapshot = useCallback((current = stateRef.current) => {
+    const section = getSectionForX(current.player.x);
+    const objective = getObjectiveProgress(section.id, current);
+    const playerAttackBox = current.playerAttackBox
+      ? {
+        x: Math.round(current.playerAttackBox.x),
+        y: Math.round(current.playerAttackBox.y),
+        width: current.playerAttackBox.width,
+        height: current.playerAttackBox.height,
+      }
+      : null;
+
+    return {
+      stage: 'journey',
+      coordinateSystem: 'origin top-left, x right, y down',
+      player: {
+        x: Math.round(current.player.x),
+        y: Math.round(current.player.y),
+        vx: Math.round(current.player.vx),
+        vy: Math.round(current.player.vy),
+        onGround: current.player.onGround,
+      },
+      playerFacing: current.player.direction >= 0 ? 'right' : 'left',
+      playerAttackBox,
+      playerInvulnerable: Number(current.player.invulnerable.toFixed(2)),
+      journeySection: section.name,
+      worldProgressPercent: Math.round((current.player.x / WORLD_WIDTH) * 100),
+      resources: current.resources,
+      fieldKit: current.fieldKit.map(tool => tool.name),
+      remainingTools: JOURNEY_TOOLS.filter(tool => !current.collectedToolIds.has(tool.id)).map(tool => tool.name),
+      relicShardCount: current.relicShardCount,
+      totalRelicShards: RELIC_SHARDS.length,
+      collectedUpgrades: Array.from(current.collectedUpgrades),
+      activeCheckpoint: current.activeCheckpoint?.name,
+      checkpointState: current.activeCheckpoint ? { id: current.activeCheckpoint.id, name: current.activeCheckpoint.name } : null,
+      currentObjective: objective?.title || null,
+      objectiveProgress: objective ? {
+        id: section.id,
+        title: objective.title,
+        found: objective.count,
+        required: objective.total,
+        complete: objective.count >= objective.total,
+        label: `${objective.count}/${objective.total} ${objective.itemLabel}`,
+      } : null,
+      miniBossState: current.miniBosses.map(boss => ({
+        id: boss.id,
+        name: boss.name,
+        sectionId: boss.sectionId,
+        health: boss.health,
+        maxHealth: boss.maxHealth,
+        awakened: boss.awakened,
+        x: Math.round(boss.x),
+        ...getEntityCombatState(boss),
+      })),
+      activeMiniBoss: current.miniBosses.find(boss => boss.awakened && !boss.defeated && Math.abs(boss.x - current.player.x) < 520)?.name || null,
+      defeatedEnemies: Array.from(current.defeatedEnemies),
+      defeatedMiniBosses: Array.from(current.defeatedMiniBosses),
+      hiddenRoomsFound: Array.from(current.hiddenRoomsFound),
+      loreTabletCount: current.collectedTabletIds.size,
+      playerCombatState: {
+        attacking: current.attackTimer > 0,
+        attackCooldown: Number(current.attackCooldown.toFixed(2)),
+        attackTimer: Number(current.attackTimer.toFixed(2)),
+        facing: current.player.direction >= 0 ? 'right' : 'left',
+        invulnerable: Number(current.player.invulnerable.toFixed(2)),
+        lastDamage: current.player.lastDamage || 0,
+      },
+      enemyStates: current.enemies
+        .filter(enemy => !enemy.defeated && Math.abs(enemy.x - current.player.x) < 700)
+        .map(enemy => ({
+          id: enemy.id,
+          name: enemy.name,
+          type: enemy.type,
+          health: enemy.health,
+          maxHealth: enemy.maxHealth,
+          x: Math.round(enemy.x),
+          ...getEntityCombatState(enemy),
+        })),
+      routeGateStatus: ROUTE_GATES.find(gate => !current.openedRouteGateIds.has(gate.id)) ? (() => {
+        const gate = ROUTE_GATES.find(item => !current.openedRouteGateIds.has(item.id));
+        const requirements = getGateRequirements(gate, current);
+        return {
+          id: gate.id,
+          name: gate.name,
+          distance: Math.round(gate.x - current.player.x),
+          requirements,
+          complete: requirements.every(req => req.met),
+          summary: `${requirements.filter(req => req.met).length}/${requirements.length} ready`,
+        };
+      })() : null,
+      cinematicEventState: current.cinematicEvent,
+      cinematicState: current.cinematicEvent,
+      bossIntroState: current.bossIntro,
+      environmentEventState: current.environmentEvent,
+      sectionTransitionState: current.sectionTransition,
+      activeParticles: SECTION_ATMOSPHERES[section.id]?.particle || null,
+      activeAtmosphere: {
+        sectionId: section.id,
+        sectionName: section.name,
+        particle: SECTION_ATMOSPHERES[section.id]?.particle || null,
+        mood: SECTION_ATMOSPHERES[section.id]?.mood || null,
+        title: SECTION_ATMOSPHERES[section.id]?.title || null,
+      },
+      hazards: HAZARDS.map(hazard => hazard.name),
+      endGateReached: current.completed,
+      briefingOpen,
+      failed: current.failed,
+      failureReason: current.failureReason,
+      notice: current.notice,
+    };
+  }, [briefingOpen, getEntityCombatState, getGateRequirements, getObjectiveProgress]);
+
   // --- Rendering Helpers ---
   const drawFieldNoteLabel = useCallback((ctx, x, y, text, color) => {
     ctx.save();
@@ -163,6 +290,8 @@ export default function ExpeditionJourney({ mission, onComplete, audioControls }
     
     const bob = Math.sin(now / 150) * 2;
     const legSwing = Math.sin(now / 100) * 8;
+    const attacking = stateRef.current.attackTimer > 0;
+    const attackLean = attacking ? direction * 4 : 0;
 
     // Readability shadow and outline
     ctx.fillStyle = 'rgba(0,0,0,0.36)';
@@ -174,16 +303,16 @@ export default function ExpeditionJourney({ mission, onComplete, audioControls }
     ctx.lineWidth = 4;
     ctx.lineJoin = 'round';
     ctx.beginPath();
-    ctx.roundRect(x + 3, y + 5 + bob, 24, 28, 6);
+    ctx.roundRect(x + 3 + attackLean, y + 5 + bob, 24, 28, 6);
     ctx.stroke();
     ctx.beginPath();
-    ctx.arc(x + w / 2, y + 4 + bob, 8, 0, Math.PI * 2);
+    ctx.arc(x + w / 2 + attackLean, y + 4 + bob, 8, 0, Math.PI * 2);
     ctx.stroke();
 
     // Body
     ctx.fillStyle = '#1f4f5f';
     ctx.beginPath();
-    ctx.roundRect(x + 2, y + 8 + bob, 26, 25, 7);
+    ctx.roundRect(x + 2 + attackLean, y + 8 + bob, 26, 25, 7);
     ctx.fill();
     ctx.strokeStyle = '#05111f';
     ctx.lineWidth = 2;
@@ -191,13 +320,13 @@ export default function ExpeditionJourney({ mission, onComplete, audioControls }
 
     ctx.fillStyle = '#f2c36b';
     ctx.beginPath();
-    ctx.arc(x + w / 2, y + 18 + bob, 5, 0, Math.PI * 2);
+    ctx.arc(x + w / 2 + attackLean, y + 18 + bob, 5, 0, Math.PI * 2);
     ctx.fill();
 
     // Head
     ctx.fillStyle = '#d69a5f';
     ctx.beginPath();
-    ctx.arc(x + w / 2, y + 1 + bob, 8, 0, Math.PI * 2);
+    ctx.arc(x + w / 2 + attackLean, y + 1 + bob, 8, 0, Math.PI * 2);
     ctx.fill();
     ctx.strokeStyle = '#3a2416';
     ctx.lineWidth = 2;
@@ -207,8 +336,8 @@ export default function ExpeditionJourney({ mission, onComplete, audioControls }
     ctx.strokeStyle = '#3a2416';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(x + (direction > 0 ? 8 : 22), y + 11 + bob);
-    ctx.lineTo(x + (direction > 0 ? 22 : 8), y + 29 + bob);
+    ctx.moveTo(x + attackLean + (direction > 0 ? 8 : 22), y + 11 + bob);
+    ctx.lineTo(x + attackLean + (direction > 0 ? 22 : 8), y + 29 + bob);
     ctx.stroke();
 
     // Hat
@@ -216,35 +345,36 @@ export default function ExpeditionJourney({ mission, onComplete, audioControls }
     ctx.strokeStyle = '#fff7d6';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.roundRect(x + (direction > 0 ? -6 : 0), y - 5 + bob, 36, 5, 2);
+    ctx.roundRect(x + attackLean + (direction > 0 ? -6 : 0), y - 5 + bob, 36, 5, 2);
     ctx.fill();
     ctx.stroke();
     ctx.beginPath();
-    ctx.roundRect(x + (direction > 0 ? 4 : 8), y - 13 + bob, 20, 10, 3);
+    ctx.roundRect(x + attackLean + (direction > 0 ? 4 : 8), y - 13 + bob, 20, 10, 3);
     ctx.fill();
     ctx.stroke();
 
     // Backpack and satchel
     ctx.fillStyle = '#7c3f18';
     ctx.beginPath();
-    ctx.roundRect(x + (direction > 0 ? -2 : 21), y + 13 + bob, 9, 16, 3);
+    ctx.roundRect(x + attackLean + (direction > 0 ? -2 : 21), y + 13 + bob, 9, 16, 3);
     ctx.fill();
     ctx.fillStyle = '#b45309';
     ctx.beginPath();
-    ctx.roundRect(x + (direction > 0 ? 20 : 0), y + 18 + bob, 10, 8, 2);
+    ctx.roundRect(x + attackLean + (direction > 0 ? 20 : 0), y + 18 + bob, 10, 8, 2);
     ctx.fill();
 
     // Field tool in hand
-    const handX = x + (direction > 0 ? 27 : 3);
+    const handX = x + attackLean + (direction > 0 ? 27 : 3);
+    const reach = attacking ? 24 : 12;
     ctx.strokeStyle = '#facc15';
-    ctx.lineWidth = 3;
+    ctx.lineWidth = attacking ? 5 : 3;
     ctx.beginPath();
     ctx.moveTo(handX, y + 17 + bob);
-    ctx.lineTo(handX + direction * 12, y + 12 + bob);
+    ctx.lineTo(handX + direction * reach, y + (attacking ? 7 : 12) + bob);
     ctx.stroke();
     ctx.fillStyle = '#fff7ad';
     ctx.beginPath();
-    ctx.arc(handX + direction * 14, y + 11 + bob, 3, 0, Math.PI * 2);
+    ctx.arc(handX + direction * (reach + 2), y + (attacking ? 6 : 11) + bob, attacking ? 4 : 3, 0, Math.PI * 2);
     ctx.fill();
 
     // Legs and boots
@@ -685,6 +815,13 @@ export default function ExpeditionJourney({ mission, onComplete, audioControls }
     ctx.beginPath();
     ctx.arc(cx, cy, 78 * pulse, 0, Math.PI * 2);
     ctx.fill();
+    if (boss.hitFlash > 0 || boss.stunTimer > 0) {
+      ctx.strokeStyle = boss.hitFlash > 0 ? '#fff7ad' : '#7dd3fc';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 40 + Math.sin(now / 60) * 4, 0, Math.PI * 2);
+      ctx.stroke();
+    }
 
     ctx.shadowColor = 'rgba(15, 23, 42, 0.55)';
     ctx.shadowBlur = 10;
@@ -766,6 +903,67 @@ export default function ExpeditionJourney({ mission, onComplete, audioControls }
     drawFieldNoteLabel(ctx, cx, boss.y - 40, boss.name, '#0f766e');
     ctx.restore();
   }, [drawFieldNoteLabel]);
+
+  const drawAttackArc = useCallback((ctx, box, cameraX, direction, color = '#facc15', label = 'STUN') => {
+    if (!box) return;
+    const x = box.x - cameraX;
+    const cx = direction >= 0 ? x + 6 : x + box.width - 6;
+    const cy = box.y + box.height / 2;
+
+    ctx.save();
+    ctx.globalAlpha = 0.82;
+    ctx.fillStyle = `${color}22`;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, box.width * 0.58, box.height * 0.78, direction >= 0 ? -0.2 : 0.2, -Math.PI * 0.45, Math.PI * 0.45);
+    ctx.stroke();
+    ctx.fillRect(x, box.y, box.width, box.height);
+    ctx.fillStyle = '#fff7ad';
+    ctx.beginPath();
+    ctx.arc(direction >= 0 ? x + box.width : x, box.y + 5, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = color;
+    ctx.font = '800 8px Outfit, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(label, x + box.width / 2, box.y - 4);
+    ctx.restore();
+  }, []);
+
+  const drawEnemyAttackTell = useCallback((ctx, entity, screenX, cameraX, now, isBoss = false) => {
+    const cx = screenX + entity.width / 2;
+    const cy = entity.y + entity.height / 2;
+    const warning = entity.attackWindup > 0;
+    const attacking = entity.attackTimer > 0;
+    if (!warning && !attacking) return;
+
+    ctx.save();
+    if (warning) {
+      const pulse = Math.sin(now / 80) * 0.25 + 0.75;
+      ctx.strokeStyle = `rgba(248, 113, 113, ${pulse})`;
+      ctx.lineWidth = isBoss ? 5 : 3;
+      ctx.beginPath();
+      ctx.arc(cx, cy, (isBoss ? 46 : 30) + pulse * 5, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = '#fee2e2';
+      ctx.strokeStyle = '#7f1d1d';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(cx, entity.y - 18, isBoss ? 12 : 9, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#7f1d1d';
+      ctx.font = `900 ${isBoss ? 15 : 12}px Outfit, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.fillText('!', cx, entity.y - (isBoss ? 13 : 14));
+    }
+
+    if (attacking) {
+      const box = getAttackBox(entity, isBoss ? 58 : 36, isBoss ? 40 : 24, entity.attackDirection);
+      drawAttackArc(ctx, box, cameraX, entity.attackDirection, isBoss ? '#fb923c' : '#f87171', isBoss ? 'SLAM' : 'ATTACK');
+    }
+    ctx.restore();
+  }, [drawAttackArc, getAttackBox]);
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -877,6 +1075,7 @@ export default function ExpeditionJourney({ mission, onComplete, audioControls }
       
       ctx.save();
       const shakeX = enemy.hitFlash > 0 ? Math.sin(now / 20) * 5 : 0;
+      drawEnemyAttackTell(ctx, enemy, ex, cameraX, now);
       
       // Enemy Aura
       const aura = ctx.createRadialGradient(ex + enemy.width/2, enemy.y + enemy.height/2, 5, ex + enemy.width/2, enemy.y + enemy.height/2, 30);
@@ -913,6 +1112,7 @@ export default function ExpeditionJourney({ mission, onComplete, audioControls }
       const bx = boss.x - cameraX;
       if (bx + boss.width < -100 || bx > CANVAS_WIDTH + 100) return;
       drawMiniBoss(ctx, boss, bx, now);
+      drawEnemyAttackTell(ctx, boss, bx, cameraX, now, true);
     });
 
     RELIC_SHARDS.forEach(shard => {
@@ -974,7 +1174,23 @@ export default function ExpeditionJourney({ mission, onComplete, audioControls }
       ctx.restore();
     }
 
+    if (current.attackTimer > 0) {
+      drawAttackArc(ctx, current.playerAttackBox, cameraX, player.direction, '#facc15', 'TOOL SWING');
+    }
     drawPlayerCharacter(ctx, player.x - cameraX, player.y, player.width, player.height, player.direction, player.invulnerable, now);
+
+    if (player.hitFeedbackTimer > 0) {
+      ctx.save();
+      ctx.fillStyle = '#fecaca';
+      ctx.strokeStyle = '#7f1d1d';
+      ctx.lineWidth = 2;
+      ctx.font = '900 12px Outfit, sans-serif';
+      ctx.textAlign = 'center';
+      const px = player.x - cameraX + player.width / 2;
+      ctx.fillText(`-${player.lastDamage} STAMINA`, px, player.y - 24 - player.hitFeedbackTimer * 8);
+      ctx.strokeText(`-${player.lastDamage} STAMINA`, px, player.y - 24 - player.hitFeedbackTimer * 8);
+      ctx.restore();
+    }
 
     // CINEMATIC CARDS
     const featureCard = current.bossIntro || current.sectionTransition || current.environmentEvent || current.cinematicEvent;
@@ -989,7 +1205,7 @@ export default function ExpeditionJourney({ mission, onComplete, audioControls }
       ctx.fillText(featureCard.message || '', 450, 135);
       ctx.textAlign = 'start';
     }
-  }, [drawCollectible, drawMiniBoss, drawParticles, drawPlatform, drawRouteGate, drawStoryProp, drawTempleBackdrop, getGateRequirements, drawPlayerCharacter, drawFieldNoteLabel]);
+  }, [drawAttackArc, drawCollectible, drawEnemyAttackTell, drawMiniBoss, drawParticles, drawPlatform, drawRouteGate, drawStoryProp, drawTempleBackdrop, getGateRequirements, drawPlayerCharacter, drawFieldNoteLabel]);
 
   const queueAttack = useCallback(() => {
     const current = stateRef.current;
@@ -1024,6 +1240,8 @@ export default function ExpeditionJourney({ mission, onComplete, audioControls }
     current.enemyCooldown = Math.max(0, current.enemyCooldown - dt);
     current.attackCooldown = Math.max(0, current.attackCooldown - dt);
     current.attackTimer = Math.max(0, current.attackTimer - dt);
+    player.hitFeedbackTimer = Math.max(0, player.hitFeedbackTimer - dt);
+    if (current.attackTimer <= 0) current.playerAttackBox = null;
     current.routeGateCooldown = Math.max(0, current.routeGateCooldown - dt);
 
     // Movement
@@ -1156,19 +1374,61 @@ export default function ExpeditionJourney({ mission, onComplete, audioControls }
       audioControls?.playAction?.();
     }
     if (current.attackTimer > 0) {
-      attackRect = {
-        x: player.direction >= 0 ? player.x + player.width : player.x - 42,
-        y: player.y + 7,
-        width: 42,
-        height: 28
-      };
+      attackRect = getAttackBox(player, 48, 30, player.direction);
+      current.playerAttackBox = attackRect;
+    } else {
+      current.playerAttackBox = null;
     }
+
+    const applyPlayerDamage = (amount, message, direction = 1) => {
+      if (player.invulnerable > 0) return;
+      current.resources.stamina = Math.max(0, current.resources.stamina - amount);
+      player.invulnerable = INVULNERABLE_DURATION;
+      player.hitFeedbackTimer = 0.75;
+      player.lastDamage = amount;
+      player.vx += direction * 85;
+      current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.18);
+      current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.35);
+      current.notice = message;
+      audioControls?.playError?.();
+      if (current.resources.stamina <= 0) triggerJourneyRescue(message);
+    };
 
     // Enemies
     current.enemies.forEach(e => {
       if (e.defeated) return;
+      e.hitFlash = Math.max(0, e.hitFlash - dt);
       e.stunTimer = Math.max(0, e.stunTimer - dt);
-      if (e.stunTimer <= 0) {
+      e.attackWindup = Math.max(0, e.attackWindup - dt);
+      e.attackTimer = Math.max(0, e.attackTimer - dt);
+      e.attackCooldown = Math.max(0, e.attackCooldown - dt);
+
+      const distanceToPlayer = (player.x + player.width / 2) - (e.x + e.width / 2);
+      const nearPlayer = Math.abs(distanceToPlayer) < (e.type === 'bat' ? 145 : 110) && Math.abs(player.y - e.y) < 70;
+
+      if (e.stunTimer <= 0 && e.attackTimer <= 0 && e.attackWindup <= 0 && nearPlayer && e.attackCooldown <= 0) {
+        e.attackWindup = e.type === 'guardian' || e.type === 'statue' ? 0.55 : 0.34;
+        e.attackDirection = distanceToPlayer >= 0 ? 1 : -1;
+        e.attackHasHit = false;
+        e.attackReady = true;
+        e.attackCooldown = e.type === 'scarab' ? 1.15 : e.type === 'bat' ? 1.35 : 1.45;
+        current.notice = `${e.name} is winding up. Move or stun it.`;
+      }
+
+      if (e.attackReady && e.attackWindup <= 0 && e.attackTimer <= 0) {
+        e.attackTimer = e.type === 'guardian' || e.type === 'statue' ? 0.38 : 0.25;
+        e.attackReady = false;
+      }
+
+      if (e.attackTimer > 0) {
+        const enemyAttackBox = getAttackBox(e, e.type === 'guardian' || e.type === 'statue' ? 44 : 34, e.type === 'bat' ? 30 : 24, e.attackDirection);
+        if (!e.attackHasHit && rectsOverlap(enemyAttackBox, player)) {
+          e.attackHasHit = true;
+          applyPlayerDamage(e.damage, `${e.name} attack connected. Stamina lost.`, e.attackDirection);
+        }
+      }
+
+      if (e.stunTimer <= 0 && e.attackWindup <= 0 && e.attackTimer <= 0) {
         e.x += e.direction * e.speed * dt;
         if (e.x <= e.patrolMin || e.x >= e.patrolMax) e.direction *= -1;
       }
@@ -1176,34 +1436,77 @@ export default function ExpeditionJourney({ mission, onComplete, audioControls }
         current.attackHitIds.add(e.id);
         e.health -= 1;
         e.stunTimer = 0.8;
+        e.hitFlash = 0.25;
+        e.attackWindup = 0;
+        e.attackTimer = 0;
+        e.attackReady = false;
+        e.attackCooldown = Math.max(e.attackCooldown, 0.6);
+        e.x += player.direction * 18;
         if (e.health <= 0) {
           e.defeated = true;
+          current.defeatedEnemies.add(e.id);
           current.relicShardCount += e.shards;
           current.notice = `${e.name} defeated. +${e.shards} shards.`;
+        } else {
+          current.notice = `${e.name} stunned.`;
         }
-      }
-      if (player.invulnerable <= 0 && rectsOverlap(player, e)) {
-        current.resources.stamina = Math.max(0, current.resources.stamina - e.damage);
-        player.invulnerable = INVULNERABLE_DURATION;
-        if (current.resources.stamina <= 0) triggerJourneyRescue(`${e.name} exhausted the team.`);
       }
     });
 
     // Bosses
     current.miniBosses.forEach(b => {
       if (b.defeated) return;
+      b.hitFlash = Math.max(0, b.hitFlash - dt);
+      b.stunTimer = Math.max(0, b.stunTimer - dt);
+      b.attackWindup = Math.max(0, b.attackWindup - dt);
+      b.attackTimer = Math.max(0, b.attackTimer - dt);
+      b.attackCooldown = Math.max(0, b.attackCooldown - dt);
       if (!b.awakened && Math.abs(b.x - player.x) < 400) {
         b.awakened = true;
         current.bossIntro = { id: b.id, title: b.name, message: b.intro, focusX: b.x };
         current.bossIntroTimer = 3;
       }
-      if (b.awakened) {
+
+      const distanceToPlayer = (player.x + player.width / 2) - (b.x + b.width / 2);
+      const bossNearPlayer = Math.abs(distanceToPlayer) < 155 && Math.abs(player.y - b.y) < 90;
+
+      if (b.awakened && b.stunTimer <= 0 && b.attackTimer <= 0 && b.attackWindup <= 0 && bossNearPlayer && b.attackCooldown <= 0) {
+        b.attackWindup = b.type === 'guardian' || b.type === 'statue' ? 0.72 : 0.5;
+        b.attackDirection = distanceToPlayer >= 0 ? 1 : -1;
+        b.attackHasHit = false;
+        b.attackReady = true;
+        b.attackCooldown = b.type === 'looter' ? 1.35 : 1.75;
+        current.notice = `${b.name} is preparing a big attack.`;
+      }
+
+      if (b.attackReady && b.attackWindup <= 0 && b.attackTimer <= 0) {
+        b.attackTimer = b.type === 'guardian' || b.type === 'statue' ? 0.48 : 0.34;
+        b.attackReady = false;
+      }
+
+      if (b.attackTimer > 0) {
+        const bossAttackBox = getAttackBox(b, 58, 40, b.attackDirection);
+        if (!b.attackHasHit && rectsOverlap(bossAttackBox, player)) {
+          b.attackHasHit = true;
+          applyPlayerDamage(b.damage, `${b.name} attack landed. Watch the warning tell.`, b.attackDirection);
+        }
+      }
+
+      if (b.awakened && b.stunTimer <= 0 && b.attackWindup <= 0 && b.attackTimer <= 0) {
         b.x += b.direction * b.speed * dt;
         if (b.x <= b.patrolMin || b.x >= b.patrolMax) b.direction *= -1;
       }
       if (attackRect && !current.attackHitIds.has(b.id) && rectsOverlap(attackRect, b)) {
         current.attackHitIds.add(b.id);
         b.health -= 1;
+        b.hitFlash = 0.28;
+        b.stunTimer = 0.45;
+        b.attackWindup = 0;
+        b.attackTimer = 0;
+        b.attackReady = false;
+        b.attackCooldown = Math.max(b.attackCooldown, 0.75);
+        b.x += player.direction * 12;
+        current.notice = `${b.name} staggered.`;
         if (b.health <= 0) {
           b.defeated = true;
           current.defeatedMiniBosses.add(b.id);
@@ -1243,14 +1546,24 @@ export default function ExpeditionJourney({ mission, onComplete, audioControls }
       if (current.resources.time <= 0) triggerJourneyRescue('Time expired. Field team rescued.');
     }
 
-  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, getObjectiveProgress, getGateRequirements, syncHud]);
+  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, getAttackBox, getObjectiveProgress, getGateRequirements, syncHud]);
 
   const step = useCallback((ms) => {
     const dt = Math.min(ms / 1000, 0.05);
     update(dt);
     draw();
+    onSnapshotChange?.(createJourneySnapshot());
     syncHud();
-  }, [draw, syncHud, update]);
+  }, [createJourneySnapshot, draw, onSnapshotChange, syncHud, update]);
+
+  useEffect(() => {
+    window.__advanceExpeditionJourney = step;
+    window.__renderExpeditionJourneyState = () => createJourneySnapshot();
+    return () => {
+      delete window.__advanceExpeditionJourney;
+      delete window.__renderExpeditionJourneyState;
+    };
+  }, [createJourneySnapshot, step]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
