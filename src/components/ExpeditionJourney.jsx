@@ -1,14 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Backpack,
-  ChevronLeft,
   Flag,
   Gauge,
   Gem,
   Map,
   ShieldAlert,
   Sparkles,
-  Swords,
 } from 'lucide-react';
 
 import {
@@ -18,8 +16,6 @@ import {
   INVULNERABLE_DURATION,
   JUMP_SPEED,
   MOVE_SPEED,
-  PLAYER_HEIGHT,
-  PLAYER_WIDTH,
   WORLD_WIDTH,
   GRAVITY,
   ATTACK_DURATION,
@@ -28,12 +24,8 @@ import {
 
 import {
   CHECKPOINTS,
-  ENEMIES,
   HAZARDS,
-  HIDDEN_ROOMS,
   JOURNEY_TOOLS,
-  LORE_TABLETS,
-  MINI_BOSSES,
   OBJECTIVE_MARKERS,
   PLATFORMS,
   RELIC_SHARDS,
@@ -43,7 +35,6 @@ import {
   STORY_PROPS,
   TOOL_LAYOUT,
   UPGRADES,
-  BOSS_INTROS,
   GATE,
   ENVIRONMENT_EVENTS,
   SECTION_OBJECTIVES,
@@ -56,7 +47,7 @@ import {
   rectsOverlap,
 } from './expedition-journey/journeyUtils';
 
-export default function ExpeditionJourney({ mission, onComplete, onBack, audioControls }) {
+export default function ExpeditionJourney({ mission, onComplete, audioControls }) {
   const [gameState, setGameState] = useState(makeInitialState());
   const [briefingOpen, setBriefingOpen] = useState(true);
   const canvasRef = useRef(null);
@@ -150,19 +141,19 @@ export default function ExpeditionJourney({ mission, onComplete, onBack, audioCo
   // --- Rendering Helpers ---
   const drawFieldNoteLabel = useCallback((ctx, x, y, text, color) => {
     ctx.save();
-    ctx.font = '800 10px Outfit, sans-serif';
+    ctx.font = '800 9px Outfit, sans-serif';
     const metrics = ctx.measureText(text.toUpperCase());
-    const padding = 6;
+    const padding = 5;
     
-    ctx.fillStyle = 'rgba(255, 252, 235, 0.95)';
-    ctx.fillRect(x - metrics.width / 2 - padding, y - 10, metrics.width + padding * 2, 16);
+    ctx.fillStyle = 'rgba(255, 252, 235, 0.86)';
+    ctx.fillRect(x - metrics.width / 2 - padding, y - 9, metrics.width + padding * 2, 14);
     ctx.strokeStyle = color;
     ctx.lineWidth = 1;
-    ctx.strokeRect(x - metrics.width / 2 - padding, y - 10, metrics.width + padding * 2, 16);
+    ctx.strokeRect(x - metrics.width / 2 - padding, y - 9, metrics.width + padding * 2, 14);
     
     ctx.fillStyle = color;
     ctx.textAlign = 'center';
-    ctx.fillText(text.toUpperCase(), x, y + 2);
+    ctx.fillText(text.toUpperCase(), x, y + 1);
     ctx.restore();
   }, []);
 
@@ -173,48 +164,99 @@ export default function ExpeditionJourney({ mission, onComplete, onBack, audioCo
     const bob = Math.sin(now / 150) * 2;
     const legSwing = Math.sin(now / 100) * 8;
 
-    // Shadow
-    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    // Readability shadow and outline
+    ctx.fillStyle = 'rgba(0,0,0,0.36)';
     ctx.beginPath();
-    ctx.ellipse(x + w/2, y + h, w/1.5, 4, 0, 0, Math.PI * 2);
+    ctx.ellipse(x + w/2, y + h + 2, w * 0.9, 5, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Body (Archaeologist Coat)
-    ctx.fillStyle = '#2c3e50'; // Navy coat
+    ctx.strokeStyle = '#fff7d6';
+    ctx.lineWidth = 4;
+    ctx.lineJoin = 'round';
     ctx.beginPath();
-    ctx.roundRect(x + 4, y + 5 + bob, 22, 25, 6);
-    ctx.fill();
-
-    // Satchel Strap
-    ctx.strokeStyle = '#78350f';
-    ctx.lineWidth = 2.5;
+    ctx.roundRect(x + 3, y + 5 + bob, 24, 28, 6);
+    ctx.stroke();
     ctx.beginPath();
-    ctx.moveTo(x + (direction > 0 ? 6 : 24), y + 8 + bob);
-    ctx.lineTo(x + (direction > 0 ? 24 : 6), y + 25 + bob);
+    ctx.arc(x + w / 2, y + 4 + bob, 8, 0, Math.PI * 2);
     ctx.stroke();
 
-    // Hat (Wide brim)
-    ctx.fillStyle = '#3f2b1d'; // Fedora brown
-    ctx.fillRect(x + (direction > 0 ? -4 : 2), y + 2 + bob, 32, 3); // Brim
+    // Body
+    ctx.fillStyle = '#1f4f5f';
     ctx.beginPath();
-    ctx.roundRect(x + (direction > 0 ? 4 : 8), y - 4 + bob, 18, 8, 3); // Top
+    ctx.roundRect(x + 2, y + 8 + bob, 26, 25, 7);
+    ctx.fill();
+    ctx.strokeStyle = '#05111f';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.fillStyle = '#f2c36b';
+    ctx.beginPath();
+    ctx.arc(x + w / 2, y + 18 + bob, 5, 0, Math.PI * 2);
     ctx.fill();
 
-    // Satchel
+    // Head
+    ctx.fillStyle = '#d69a5f';
+    ctx.beginPath();
+    ctx.arc(x + w / 2, y + 1 + bob, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#3a2416';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Satchel Strap
+    ctx.strokeStyle = '#3a2416';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x + (direction > 0 ? 8 : 22), y + 11 + bob);
+    ctx.lineTo(x + (direction > 0 ? 22 : 8), y + 29 + bob);
+    ctx.stroke();
+
+    // Hat
+    ctx.fillStyle = '#4b2f1c';
+    ctx.strokeStyle = '#fff7d6';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(x + (direction > 0 ? -6 : 0), y - 5 + bob, 36, 5, 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.roundRect(x + (direction > 0 ? 4 : 8), y - 13 + bob, 20, 10, 3);
+    ctx.fill();
+    ctx.stroke();
+
+    // Backpack and satchel
+    ctx.fillStyle = '#7c3f18';
+    ctx.beginPath();
+    ctx.roundRect(x + (direction > 0 ? -2 : 21), y + 13 + bob, 9, 16, 3);
+    ctx.fill();
     ctx.fillStyle = '#b45309';
     ctx.beginPath();
     ctx.roundRect(x + (direction > 0 ? 20 : 0), y + 18 + bob, 10, 8, 2);
     ctx.fill();
 
-    // Legs
-    ctx.fillStyle = '#2c3e50';
-    if (Math.abs(stateRef.current.player.vx) > 0.1) {
-      ctx.fillRect(x + 6 + (direction > 0 ? legSwing : -legSwing), y + 28, 6, 14);
-      ctx.fillRect(x + 18 + (direction > 0 ? -legSwing : legSwing), y + 28, 6, 14);
-    } else {
-      ctx.fillRect(x + 7, y + 28, 6, 14);
-      ctx.fillRect(x + 17, y + 28, 6, 14);
-    }
+    // Field tool in hand
+    const handX = x + (direction > 0 ? 27 : 3);
+    ctx.strokeStyle = '#facc15';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(handX, y + 17 + bob);
+    ctx.lineTo(handX + direction * 12, y + 12 + bob);
+    ctx.stroke();
+    ctx.fillStyle = '#fff7ad';
+    ctx.beginPath();
+    ctx.arc(handX + direction * 14, y + 11 + bob, 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Legs and boots
+    const moving = Math.abs(stateRef.current.player.vx) > 0.1;
+    const leftLegX = x + 7 + (moving ? (direction > 0 ? legSwing : -legSwing) * 0.25 : 0);
+    const rightLegX = x + 17 + (moving ? (direction > 0 ? -legSwing : legSwing) * 0.25 : 0);
+    ctx.fillStyle = '#10233b';
+    ctx.fillRect(leftLegX, y + 31, 6, 12);
+    ctx.fillRect(rightLegX, y + 31, 6, 12);
+    ctx.fillStyle = '#241407';
+    ctx.fillRect(leftLegX - 1, y + 41, 9, 4);
+    ctx.fillRect(rightLegX - 1, y + 41, 9, 4);
 
     // Interaction Prompt
     if (stateRef.current.notice && stateRef.current.notice.includes('near')) {
@@ -271,6 +313,154 @@ export default function ExpeditionJourney({ mission, onComplete, onBack, audioCo
     if (x + 200 < 0 || x - 200 > CANVAS_WIDTH) return;
 
     ctx.save();
+    if (prop.type === 'ruins') {
+      ctx.fillStyle = 'rgba(92, 64, 51, 0.32)';
+      ctx.fillRect(x - 52, prop.y + 18, 104, 48);
+      ctx.fillStyle = 'rgba(48, 31, 21, 0.28)';
+      [-34, -12, 12, 34].forEach(offset => ctx.fillRect(x + offset, prop.y - 16, 14, 82));
+      ctx.strokeStyle = 'rgba(255, 244, 212, 0.28)';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x - 60, prop.y - 18);
+      ctx.lineTo(x, prop.y - 48);
+      ctx.lineTo(x + 60, prop.y - 18);
+      ctx.stroke();
+      ctx.restore();
+      return;
+    }
+    if (prop.type === 'door') {
+      ctx.fillStyle = 'rgba(42, 28, 20, 0.62)';
+      ctx.fillRect(x - 62, prop.y, 124, 158);
+      ctx.fillStyle = 'rgba(140, 98, 54, 0.68)';
+      ctx.fillRect(x - 76, prop.y - 18, 152, 24);
+      [-54, 54].forEach(offset => {
+        ctx.fillStyle = 'rgba(92, 64, 51, 0.8)';
+        ctx.fillRect(x + offset - 14, prop.y, 28, 160);
+        ctx.strokeStyle = 'rgba(255, 236, 180, 0.22)';
+        ctx.strokeRect(x + offset - 10, prop.y + 12, 20, 42);
+        ctx.strokeRect(x + offset - 10, prop.y + 66, 20, 42);
+      });
+      ctx.strokeStyle = 'rgba(250, 204, 21, 0.28)';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(x - 36, prop.y + 24, 72, 112);
+      ctx.restore();
+      return;
+    }
+    if (prop.type === 'statue') {
+      ctx.fillStyle = 'rgba(71, 85, 105, 0.62)';
+      ctx.strokeStyle = 'rgba(15, 23, 42, 0.5)';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.roundRect(x - 24, prop.y - 28, 48, 32, 8);
+      ctx.fill();
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.roundRect(x - 34, prop.y + 2, 68, 70, 10);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(20, 184, 166, 0.55)';
+      ctx.fillRect(x - 8, prop.y + 24, 16, 16);
+      ctx.fillStyle = 'rgba(71, 85, 105, 0.62)';
+      ctx.fillRect(x - 48, prop.y + 68, 96, 14);
+      ctx.restore();
+      return;
+    }
+    if (prop.type === 'mural') {
+      ctx.fillStyle = 'rgba(49, 32, 21, 0.55)';
+      ctx.fillRect(x - 88, prop.y - 26, 176, 92);
+      ctx.strokeStyle = 'rgba(250, 204, 21, 0.34)';
+      ctx.lineWidth = 2;
+      for (let i = -64; i <= 64; i += 32) {
+        ctx.strokeRect(x + i - 10, prop.y - 4, 20, 28);
+        ctx.beginPath();
+        ctx.moveTo(x + i - 14, prop.y + 42);
+        ctx.lineTo(x + i + 14, prop.y + 32);
+        ctx.stroke();
+      }
+      ctx.strokeStyle = 'rgba(255, 247, 212, 0.22)';
+      ctx.strokeRect(x - 78, prop.y - 18, 156, 76);
+      ctx.restore();
+      return;
+    }
+    if (prop.type === 'camp') {
+      ctx.fillStyle = 'rgba(120, 53, 15, 0.45)';
+      ctx.fillRect(x - 38, prop.y + 18, 76, 18);
+      ctx.strokeStyle = 'rgba(69, 26, 3, 0.55)';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x - 46, prop.y + 18);
+      ctx.lineTo(x - 18, prop.y - 18);
+      ctx.lineTo(x + 12, prop.y + 18);
+      ctx.stroke();
+      ctx.restore();
+      return;
+    }
+    if (prop.type === 'glyphs') {
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.52)';
+      ctx.fillRect(x - 82, prop.y - 30, 164, 90);
+      ctx.strokeStyle = `rgba(125, 211, 252, ${0.38 + Math.sin(now / 350) * 0.12})`;
+      ctx.lineWidth = 2;
+      for (let i = -54; i <= 54; i += 36) {
+        ctx.beginPath();
+        ctx.arc(x + i, prop.y + 6, 12, 0, Math.PI * 1.5);
+        ctx.stroke();
+        ctx.strokeRect(x + i - 8, prop.y + 30, 16, 16);
+      }
+      ctx.restore();
+      return;
+    }
+    if (prop.type === 'eyes') {
+      ctx.fillStyle = `rgba(125, 211, 252, ${0.28 + Math.sin(now / 280) * 0.12})`;
+      [-16, 16].forEach(offset => {
+        ctx.beginPath();
+        ctx.ellipse(x + offset, prop.y, 12, 5, 0, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.restore();
+      return;
+    }
+    if (prop.type === 'bridge') {
+      ctx.strokeStyle = 'rgba(69, 26, 3, 0.62)';
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(x - 90, prop.y + 34);
+      ctx.lineTo(x + 90, prop.y + 22);
+      ctx.stroke();
+      ctx.lineWidth = 3;
+      for (let i = -70; i <= 70; i += 28) {
+        ctx.beginPath();
+        ctx.moveTo(x + i, prop.y + 16);
+        ctx.lineTo(x + i + 10, prop.y + 44);
+        ctx.stroke();
+      }
+      ctx.restore();
+      return;
+    }
+    if (prop.type === 'sign') {
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(x - 3, prop.y - 20, 6, 56);
+      ctx.fillStyle = '#facc15';
+      ctx.beginPath();
+      ctx.moveTo(x - 22, prop.y - 18);
+      ctx.lineTo(x + 22, prop.y - 18);
+      ctx.lineTo(x, prop.y + 16);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = '#7f1d1d';
+      ctx.fillRect(x - 3, prop.y - 8, 6, 14);
+      ctx.restore();
+      return;
+    }
+    if (prop.type === 'banners') {
+      [-24, 24].forEach(offset => {
+        ctx.fillStyle = '#451a03';
+        ctx.fillRect(x + offset, prop.y - 38, 4, 96);
+        ctx.fillStyle = offset < 0 ? '#0f766e' : '#b45309';
+        ctx.fillRect(x + offset + 4, prop.y - 34, 26, 44);
+      });
+      ctx.restore();
+      return;
+    }
     if (prop.type === 'ruins' || prop.type === 'statue') {
       ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
       ctx.font = 'bold 80px serif';
@@ -329,27 +519,35 @@ export default function ExpeditionJourney({ mission, onComplete, onBack, audioCo
     ctx.fill();
 
     if (isShard) {
-      // Crystalline shard look
-      ctx.shadowColor = color;
-      ctx.shadowBlur = 10 * pulse;
+      // Amber archaeology shard with carved glyph lines.
+      ctx.shadowColor = '#f59e0b';
+      ctx.shadowBlur = 12 * pulse;
       
-      const shardColor = ctx.createLinearGradient(screenX - 10, y + floatY - 10, screenX + 10, y + floatY + 10);
-      shardColor.addColorStop(0, '#fff');
-      shardColor.addColorStop(0.5, color);
-      shardColor.addColorStop(1, '#000');
+      const shardColor = ctx.createLinearGradient(screenX - 12, y + floatY - 14, screenX + 12, y + floatY + 16);
+      shardColor.addColorStop(0, '#fff7ad');
+      shardColor.addColorStop(0.45, '#f59e0b');
+      shardColor.addColorStop(1, '#78350f');
       
       ctx.fillStyle = shardColor;
       ctx.beginPath();
-      ctx.moveTo(screenX, y + floatY - 15);
-      ctx.lineTo(screenX + 10, y + floatY);
-      ctx.lineTo(screenX, y + floatY + 15);
-      ctx.lineTo(screenX - 10, y + floatY);
+      ctx.moveTo(screenX - 2, y + floatY - 16);
+      ctx.lineTo(screenX + 13, y + floatY - 4);
+      ctx.lineTo(screenX + 7, y + floatY + 15);
+      ctx.lineTo(screenX - 12, y + floatY + 8);
+      ctx.lineTo(screenX - 9, y + floatY - 8);
       ctx.closePath();
       ctx.fill();
       
-      // Highlight
-      ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+      ctx.strokeStyle = '#451a03';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.strokeStyle = 'rgba(255, 247, 212, 0.82)';
       ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(screenX - 3, y + floatY - 8);
+      ctx.lineTo(screenX + 5, y + floatY - 2);
+      ctx.moveTo(screenX - 5, y + floatY + 4);
+      ctx.lineTo(screenX + 4, y + floatY + 8);
       ctx.stroke();
     } else {
       ctx.shadowColor = 'rgba(0,0,0,0.4)';
@@ -376,6 +574,199 @@ export default function ExpeditionJourney({ mission, onComplete, onBack, audioCo
     ctx.restore();
   }, []);
 
+  const drawTempleBackdrop = useCallback((ctx, section, cameraX) => {
+    if (section.id !== 'ruined-temple') return;
+
+    ctx.save();
+    ctx.fillStyle = 'rgba(34, 24, 18, 0.22)';
+    for (let worldX = section.start + 90; worldX < section.end; worldX += 180) {
+      const x = worldX - cameraX;
+      if (x < -120 || x > CANVAS_WIDTH + 120) continue;
+      ctx.fillRect(x - 18, 116, 36, 242);
+      ctx.fillStyle = 'rgba(255, 236, 180, 0.1)';
+      ctx.fillRect(x - 13, 126, 26, 18);
+      ctx.fillRect(x - 13, 176, 26, 18);
+      ctx.fillRect(x - 13, 226, 26, 18);
+      ctx.fillStyle = 'rgba(34, 24, 18, 0.22)';
+    }
+
+    ctx.strokeStyle = 'rgba(255, 236, 180, 0.18)';
+    ctx.lineWidth = 2;
+    for (let worldX = section.start + 30; worldX < section.end; worldX += 90) {
+      const x = worldX - cameraX;
+      if (x < -80 || x > CANVAS_WIDTH + 80) continue;
+      ctx.strokeRect(x, 156, 42, 24);
+      ctx.beginPath();
+      ctx.moveTo(x + 8, 226);
+      ctx.lineTo(x + 35, 206);
+      ctx.lineTo(x + 47, 232);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }, []);
+
+  const drawRouteGate = useCallback((ctx, gate, screenX, current, complete) => {
+    const gateCenter = screenX + gate.width / 2;
+    const top = gate.y - 22;
+    const height = gate.height + 22;
+    const glowColor = complete ? '#22c55e' : '#f59e0b';
+
+    ctx.save();
+    ctx.shadowColor = glowColor;
+    ctx.shadowBlur = complete ? 14 : 8;
+    ctx.fillStyle = complete ? 'rgba(22, 101, 52, 0.28)' : 'rgba(69, 26, 3, 0.36)';
+    ctx.beginPath();
+    ctx.roundRect(screenX - 14, top, gate.width + 28, height, 8);
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#5f4938';
+    ctx.fillRect(screenX - 22, top + 4, 20, height - 4);
+    ctx.fillRect(screenX + gate.width + 2, top + 4, 20, height - 4);
+    ctx.fillStyle = '#7a5b3d';
+    ctx.fillRect(screenX - 26, top - 8, gate.width + 52, 18);
+    ctx.fillStyle = '#3b2b22';
+    ctx.fillRect(screenX, top + 16, gate.width, height - 28);
+
+    ctx.strokeStyle = glowColor;
+    ctx.lineWidth = 3;
+    ctx.strokeRect(screenX + 4, top + 24, gate.width - 8, height - 44);
+    ctx.strokeStyle = 'rgba(255, 236, 180, 0.25)';
+    ctx.lineWidth = 1;
+    for (let y = top + 38; y < top + height - 22; y += 22) {
+      ctx.beginPath();
+      ctx.moveTo(screenX + 8, y);
+      ctx.lineTo(screenX + gate.width - 8, y + 5);
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = complete ? '#bbf7d0' : '#fef3c7';
+    ctx.beginPath();
+    ctx.arc(gateCenter, gate.y + gate.height / 2, 17, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = glowColor;
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    ctx.strokeStyle = '#3b2b22';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(gateCenter, gate.y + gate.height / 2 - 2, 8, Math.PI, 0);
+    ctx.stroke();
+    ctx.fillStyle = '#3b2b22';
+    ctx.fillRect(gateCenter - 9, gate.y + gate.height / 2 - 2, 18, 13);
+
+    const requirements = getGateRequirements(gate, current);
+    const unmet = requirements.filter(req => !req.met).slice(0, 2);
+    drawFieldNoteLabel(ctx, gateCenter, top - 10, complete ? 'SEAL READY' : 'SEALED GATE', complete ? '#166534' : '#78350f');
+    if (!complete && unmet.length > 0) {
+      ctx.fillStyle = 'rgba(255, 252, 235, 0.84)';
+      ctx.fillRect(gateCenter - 58, top + height + 4, 116, 32);
+      ctx.strokeStyle = '#78350f';
+      ctx.strokeRect(gateCenter - 58, top + height + 4, 116, 32);
+      ctx.fillStyle = '#78350f';
+      ctx.font = '800 8px Outfit, sans-serif';
+      ctx.textAlign = 'center';
+      unmet.forEach((req, index) => ctx.fillText(req.label.toUpperCase(), gateCenter, top + height + 17 + index * 10));
+    }
+    ctx.restore();
+  }, [drawFieldNoteLabel, getGateRequirements]);
+
+  const drawMiniBoss = useCallback((ctx, boss, screenX, now) => {
+    const pulse = Math.sin(now / 400) * 0.12 + 0.88;
+    const cx = screenX + boss.width / 2;
+    const cy = boss.y + boss.height / 2;
+
+    ctx.save();
+    const bossAura = ctx.createRadialGradient(cx, cy, 18, cx, cy, 78 * pulse);
+    bossAura.addColorStop(0, 'rgba(20, 184, 166, 0.24)');
+    bossAura.addColorStop(1, 'transparent');
+    ctx.fillStyle = bossAura;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 78 * pulse, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.shadowColor = 'rgba(15, 23, 42, 0.55)';
+    ctx.shadowBlur = 10;
+    ctx.strokeStyle = '#111827';
+    ctx.lineWidth = 3;
+
+    if (boss.type === 'guardian' || boss.type === 'statue') {
+      ctx.fillStyle = '#64748b';
+      ctx.beginPath();
+      ctx.roundRect(screenX + 10, boss.y + 10, boss.width - 20, 22, 8);
+      ctx.fill();
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.roundRect(screenX + 5, boss.y + 30, boss.width - 10, boss.height - 28, 10);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#475569';
+      ctx.fillRect(screenX - 8, boss.y + 36, 14, 34);
+      ctx.fillRect(screenX + boss.width - 6, boss.y + 36, 14, 34);
+      ctx.fillRect(screenX + 8, boss.y + boss.height - 4, boss.width - 16, 12);
+      ctx.fillStyle = '#7dd3fc';
+      ctx.beginPath();
+      ctx.arc(cx - 8, boss.y + 22, 3, 0, Math.PI * 2);
+      ctx.arc(cx + 8, boss.y + 22, 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#facc15';
+      ctx.beginPath();
+      ctx.arc(cx, boss.y + 50, 9 + Math.sin(now / 220) * 1.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255, 247, 212, 0.34)';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(screenX + 14, boss.y + 38, boss.width - 28, 24);
+    } else if (boss.type === 'snake') {
+      ctx.fillStyle = '#166534';
+      for (let i = 0; i < 5; i += 1) {
+        ctx.beginPath();
+        ctx.ellipse(screenX + 12 + i * 14, cy + Math.sin(now / 180 + i) * 5, 16, 12, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      }
+      ctx.fillStyle = '#fef3c7';
+      ctx.beginPath();
+      ctx.arc(screenX + boss.width - 10, cy - 4, 3, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (boss.type === 'looter') {
+      ctx.fillStyle = '#1e293b';
+      ctx.beginPath();
+      ctx.roundRect(screenX + 14, boss.y + 18, boss.width - 28, boss.height - 14, 8);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(screenX + 7, boss.y + 9, boss.width - 14, 6);
+      ctx.fillStyle = '#facc15';
+      ctx.fillRect(screenX + boss.width - 18, boss.y + 36, 12, 18);
+    } else {
+      ctx.fillStyle = '#92400e';
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, boss.width / 2, boss.height / 2, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#f59e0b';
+      ctx.beginPath();
+      ctx.moveTo(cx, boss.y + 8);
+      ctx.lineTo(cx + 18, cy);
+      ctx.lineTo(cx, boss.y + boss.height - 6);
+      ctx.lineTo(cx - 18, cy);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = 'rgba(0,0,0,0.62)';
+    ctx.roundRect(screenX - 10, boss.y - 25, boss.width + 20, 8, 4);
+    ctx.fill();
+    ctx.fillStyle = '#14b8a6';
+    ctx.roundRect(screenX - 10, boss.y - 25, (boss.health / 3) * (boss.width + 20), 8, 4);
+    ctx.fill();
+
+    drawFieldNoteLabel(ctx, cx, boss.y - 40, boss.name, '#0f766e');
+    ctx.restore();
+  }, [drawFieldNoteLabel]);
+
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -392,6 +783,7 @@ export default function ExpeditionJourney({ mission, onComplete, onBack, audioCo
       ? Math.sin(now / 28) * current.cameraShakeStrength * 7
       : 0;
     const cameraX = clamp(focusX - 260 + shake, 0, WORLD_WIDTH - CANVAS_WIDTH);
+    const isPlayerNear = (worldX, distance = 240) => Math.abs((player.x + player.width / 2) - worldX) < distance;
 
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
@@ -419,6 +811,7 @@ export default function ExpeditionJourney({ mission, onComplete, onBack, audioCo
     }
 
     // --- Ground & Props ---
+    drawTempleBackdrop(ctx, section, cameraX);
     STORY_PROPS.forEach((prop) => drawStoryProp(ctx, prop, cameraX, now));
     drawParticles(ctx, atmosphere, cameraX, now);
 
@@ -449,7 +842,9 @@ export default function ExpeditionJourney({ mission, onComplete, onBack, audioCo
       ctx.font = '34px Outfit';
       ctx.textAlign = 'center';
       ctx.fillText(hazard.emoji, hx + hazard.width / 2, hazard.y + hazard.height / 2 + 10);
-      drawFieldNoteLabel(ctx, hx + hazard.width / 2, hazard.y - 12, hazard.name, '#7f1d1d');
+      if (isPlayerNear(hazard.x + hazard.width / 2, 210)) {
+        drawFieldNoteLabel(ctx, hx + hazard.width / 2, hazard.y - 12, hazard.name, '#7f1d1d');
+      }
       ctx.restore();
     });
 
@@ -460,7 +855,9 @@ export default function ExpeditionJourney({ mission, onComplete, onBack, audioCo
       ctx.save();
       ctx.fillStyle = active ? '#166534' : '#451a03';
       ctx.fillRect(cx - 2, checkpoint.y, 4, 80);
-      drawFieldNoteLabel(ctx, cx, checkpoint.y - 20, active ? 'CHECKPOINT (ACTIVE)' : checkpoint.name, active ? '#166534' : '#78350f');
+      if (active || isPlayerNear(checkpoint.x, 230)) {
+        drawFieldNoteLabel(ctx, cx, checkpoint.y - 20, active ? 'CHECKPOINT' : checkpoint.name, active ? '#166534' : '#78350f');
+      }
       ctx.restore();
     });
 
@@ -470,14 +867,7 @@ export default function ExpeditionJourney({ mission, onComplete, onBack, audioCo
       if (gx + gate.width < -100 || gx > CANVAS_WIDTH + 100) return;
       const requirements = getGateRequirements(gate, current);
       const complete = requirements.every(r => r.met);
-      ctx.save();
-      ctx.fillStyle = complete ? 'rgba(34, 197, 94, 0.2)' : 'rgba(180, 83, 9, 0.2)';
-      ctx.fillRect(gx, gate.y, gate.width, gate.height);
-      ctx.strokeStyle = complete ? '#22c55e' : '#b45309';
-      ctx.lineWidth = 4;
-      ctx.strokeRect(gx, gate.y, gate.width, gate.height);
-      drawFieldNoteLabel(ctx, gx + gate.width / 2, gate.y - 15, gate.name, complete ? '#166534' : '#78350f');
-      ctx.restore();
+      drawRouteGate(ctx, gate, gx, current, complete);
     });
 
     current.enemies.forEach((enemy) => {
@@ -512,7 +902,9 @@ export default function ExpeditionJourney({ mission, onComplete, onBack, audioCo
         ctx.fillRect(ex, enemy.y - 12, (enemy.health / 2) * enemy.width, 4);
       }
 
-      drawFieldNoteLabel(ctx, ex + enemy.width / 2, enemy.y - 20, enemy.name, '#1e293b');
+      if (isPlayerNear(enemy.x + enemy.width / 2, 170) || enemy.hitFlash > 0 || enemy.stunTimer > 0) {
+        drawFieldNoteLabel(ctx, ex + enemy.width / 2, enemy.y - 20, enemy.name, '#1e293b');
+      }
       ctx.restore();
     });
 
@@ -520,36 +912,7 @@ export default function ExpeditionJourney({ mission, onComplete, onBack, audioCo
       if (boss.defeated) return;
       const bx = boss.x - cameraX;
       if (bx + boss.width < -100 || bx > CANVAS_WIDTH + 100) return;
-      
-      ctx.save();
-      const pulse = Math.sin(now / 400) * 0.15 + 0.85;
-      
-      // Boss Aura
-      const bossAura = ctx.createRadialGradient(bx + boss.width/2, boss.y + boss.height/2, 20, bx + boss.width/2, boss.y + boss.height/2, 80 * pulse);
-      bossAura.addColorStop(0, 'rgba(124, 58, 237, 0.3)');
-      bossAura.addColorStop(1, 'transparent');
-      ctx.fillStyle = bossAura;
-      ctx.beginPath();
-      ctx.arc(bx + boss.width/2, boss.y + boss.height/2, 80 * pulse, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Boss Sprite
-      ctx.font = `${70 * pulse}px Outfit`;
-      ctx.textAlign = 'center';
-      ctx.shadowColor = '#7c3aed';
-      ctx.shadowBlur = 20 * pulse;
-      ctx.fillText(boss.emoji || '👾', bx + boss.width / 2, boss.y + boss.height / 2 + 28);
-      
-      // Boss Health
-      ctx.fillStyle = 'rgba(0,0,0,0.6)';
-      ctx.roundRect(bx - 10, boss.y - 25, boss.width + 20, 8, 4);
-      ctx.fill();
-      ctx.fillStyle = '#7c3aed';
-      ctx.roundRect(bx - 10, boss.y - 25, (boss.health / 3) * (boss.width + 20), 8, 4);
-      ctx.fill();
-
-      drawFieldNoteLabel(ctx, bx + boss.width/2, boss.y - 40, `GUARDIAN: ${boss.name}`, '#7c3aed');
-      ctx.restore();
+      drawMiniBoss(ctx, boss, bx, now);
     });
 
     RELIC_SHARDS.forEach(shard => {
@@ -561,7 +924,9 @@ export default function ExpeditionJourney({ mission, onComplete, onBack, audioCo
     UPGRADES.forEach(upgrade => {
       if (!current.collectedUpgrades.has(upgrade.id)) {
         drawCollectible(ctx, upgrade.x, upgrade.y, cameraX, now, upgrade.emoji, '#2563eb');
-        drawFieldNoteLabel(ctx, upgrade.x - cameraX, upgrade.y - 30, upgrade.name, '#2563eb');
+        if (isPlayerNear(upgrade.x, 260)) {
+          drawFieldNoteLabel(ctx, upgrade.x - cameraX, upgrade.y - 30, upgrade.name, '#2563eb');
+        }
       }
     });
 
@@ -569,7 +934,9 @@ export default function ExpeditionJourney({ mission, onComplete, onBack, audioCo
       if (!current.collectedToolIds.has(toolPos.id)) {
         const tool = JOURNEY_TOOLS.find(t => t.id === toolPos.id);
         drawCollectible(ctx, toolPos.x, toolPos.y, cameraX, now, tool.emoji, '#d4af37');
-        drawFieldNoteLabel(ctx, toolPos.x - cameraX, toolPos.y - 30, tool.name, '#b45309');
+        if (isPlayerNear(toolPos.x, 240)) {
+          drawFieldNoteLabel(ctx, toolPos.x - cameraX, toolPos.y - 30, tool.name, '#b45309');
+        }
       }
     });
 
@@ -582,7 +949,9 @@ export default function ExpeditionJourney({ mission, onComplete, onBack, audioCo
       ctx.font = '32px Outfit';
       ctx.textAlign = 'center';
       ctx.fillText(emoji, mx + 15, marker.y + 15);
-      drawFieldNoteLabel(ctx, mx + 15, marker.y - 15, marker.label, marker.color || '#b45309');
+      if (isPlayerNear(marker.x, 260)) {
+        drawFieldNoteLabel(ctx, mx + 15, marker.y - 15, marker.label, marker.color || '#b45309');
+      }
       ctx.restore();
     });
 
@@ -590,7 +959,18 @@ export default function ExpeditionJourney({ mission, onComplete, onBack, audioCo
     if (gateX > -200 && gateX < CANVAS_WIDTH + 200) {
       ctx.save();
       ctx.fillStyle = '#31543d';
-      ctx.fillRect(gateX, GATE.y, GATE.width, GATE.height);
+      ctx.fillRect(gateX - 18, GATE.y - 20, GATE.width + 36, GATE.height + 20);
+      ctx.fillStyle = '#facc15';
+      ctx.fillRect(gateX - 28, GATE.y - 28, GATE.width + 56, 10);
+      ctx.fillStyle = '#1f3f2e';
+      ctx.fillRect(gateX + 8, GATE.y + 12, GATE.width - 16, GATE.height - 12);
+      ctx.strokeStyle = '#bbf7d0';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(gateX + 10, GATE.y + 18, GATE.width - 20, GATE.height - 24);
+      ctx.fillStyle = 'rgba(250, 204, 21, 0.32)';
+      ctx.beginPath();
+      ctx.arc(gateX + GATE.width / 2, GATE.y + 18, 36, 0, Math.PI * 2);
+      ctx.fill();
       ctx.restore();
     }
 
@@ -609,7 +989,7 @@ export default function ExpeditionJourney({ mission, onComplete, onBack, audioCo
       ctx.fillText(featureCard.message || '', 450, 135);
       ctx.textAlign = 'start';
     }
-  }, [drawCollectible, drawParticles, drawPlatform, drawStoryProp, getGateRequirements, drawPlayerCharacter, drawFieldNoteLabel]);
+  }, [drawCollectible, drawMiniBoss, drawParticles, drawPlatform, drawRouteGate, drawStoryProp, drawTempleBackdrop, getGateRequirements, drawPlayerCharacter, drawFieldNoteLabel]);
 
   const queueAttack = useCallback(() => {
     const current = stateRef.current;
@@ -863,7 +1243,7 @@ export default function ExpeditionJourney({ mission, onComplete, onBack, audioCo
       if (current.resources.time <= 0) triggerJourneyRescue('Time expired. Field team rescued.');
     }
 
-  }, [briefingOpen, audioControls, triggerJourneyRescue, getObjectiveProgress, getGateRequirements, syncHud]);
+  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, getObjectiveProgress, getGateRequirements, syncHud]);
 
   const step = useCallback((ms) => {
     const dt = Math.min(ms / 1000, 0.05);

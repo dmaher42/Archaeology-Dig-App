@@ -106,3 +106,10 @@ Remaining notes:
 - Restored the high-fidelity dossier HUD and polished canvas rendering logic.
 - Verified the fix with a successful npm run build and pushed the stable version to GitHub.
 - The Lost Site Expedition is now fully modular and production-ready.
+
+2026-05-09 update:
+- Completed an Antigravity visual polish pass for the Lost Site Expedition Journey stage only.
+- Improved player readability, route seal visuals, relic shard identity, contextual label clutter, mini-boss drawing, and Ruined Temple environmental details in `src/components/ExpeditionJourney.jsx`.
+- `npm.cmd run build` passed, `npm.cmd run lint` passed, and `git diff --check` only reported the repo's existing LF-to-CRLF warning for the edited Journey file.
+- Browser smoke checks used `http://localhost:5177/Archaeology-Dig-App/` and confirmed the app opens, Lost Site Expedition starts, Journey controls respond, the sealed gate is visibly ancient/thematic, Base Camp opens, Begin Excavation enters the existing excavation stage, and no console errors appeared.
+- Remaining risk: the Stone Guardian/late-temple readability should still be checked in a longer human playthrough or a targeted debug-position helper, because the automated smoke route did not clear the desert gate far enough to reach that mini-boss naturally.
