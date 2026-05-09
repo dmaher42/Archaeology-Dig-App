@@ -1347,8 +1347,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     ctx.fillStyle = bgGradient;
     ctx.fillRect(0, 0, MAP_WIDTH, MAP_HEIGHT);
 
-    // 2. Map Grid (Softer)
-    ctx.strokeStyle = 'rgba(100, 75, 50, 0.08)';
+    // 2. Map Grid (Ultra Faint)
+    ctx.strokeStyle = 'rgba(100, 75, 50, 0.03)';
     ctx.lineWidth = 1;
     for (let x = 0; x <= MAP_WIDTH; x += 40) {
       ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, MAP_HEIGHT); ctx.stroke();
@@ -1356,6 +1356,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     for (let y = 0; y <= MAP_HEIGHT; y += 40) {
       ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(MAP_WIDTH, y); ctx.stroke();
     }
+
 
     // 3. Map Zones with transparent labels
     ZONES.forEach((zone) => {
@@ -1396,21 +1397,10 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       }
     });
 
-    // 4. Hazards (Pulsing borders)
-    const pulse = (Math.sin(now / 300) + 1) / 2; // 0 to 1
+    // 4. Hazards (Simplified to reduce visual noise)
     HAZARDS.forEach((hazard) => {
-      ctx.fillStyle = hazard.color;
-      ctx.fillRect(hazard.x, hazard.y, hazard.w, hazard.h);
-      
-      ctx.strokeStyle = `rgba(180, 50, 20, ${0.4 + pulse * 0.4})`;
-      ctx.lineWidth = 2;
-      ctx.setLineDash([8, 8]);
-      ctx.lineDashOffset = -now / 40; // Moving dash
-      ctx.strokeRect(hazard.x, hazard.y, hazard.w, hazard.h);
-      ctx.setLineDash([]);
-      
       // Draw watermark emoji
-      ctx.fillStyle = 'rgba(120, 53, 15, 0.25)';
+      ctx.fillStyle = 'rgba(120, 53, 15, 0.35)';
       ctx.font = '48px Outfit, sans-serif';
       ctx.fillText(hazard.emoji, hazard.x + hazard.w / 2 - 24, hazard.y + hazard.h / 2 + 16);
 

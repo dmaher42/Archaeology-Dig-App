@@ -211,21 +211,11 @@ function ExpeditionJourney({ mission, onBackToMenu, onComplete, onSnapshotChange
       ctx.strokeRect(platform.x - cameraX, platform.y, platform.width, platform.height);
     });
 
-    // Hazards
-    const pulse = (Math.sin(now / 200) + 1) / 2;
+    // Hazards (Simplified to reduce visual noise)
     HAZARDS.forEach((hazard) => {
       const x = hazard.x - cameraX;
       
-      // Hazard visual zone
-      ctx.fillStyle = 'rgba(200, 80, 50, 0.2)';
-      ctx.fillRect(x, hazard.y, hazard.width, hazard.height);
-      
-      ctx.strokeStyle = `rgba(200, 50, 20, ${0.4 + pulse * 0.4})`;
-      ctx.lineWidth = 2;
-      ctx.setLineDash([6, 6]);
-      ctx.lineDashOffset = -now / 30;
-      ctx.strokeRect(x, hazard.y, hazard.width, hazard.height);
-      ctx.setLineDash([]);
+      // Hazard visual zone removed to reduce noise
       
       // Emoji
       ctx.font = '32px Outfit, sans-serif';
