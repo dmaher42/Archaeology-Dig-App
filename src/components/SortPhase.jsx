@@ -84,7 +84,7 @@ function CategoryBin({ categoryId, title, description, items }) {
           );
         })}
         {items.length === 0 && (
-          <div className="category-bin-empty">Drop {title} here</div>
+          <div className="category-bin-empty">File {title} Here</div>
         )}
       </div>
     </div>
@@ -154,10 +154,10 @@ export function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, on
             </div>
             <div className="status-text-content-horizontal">
               <div style={{display: 'flex', alignItems: 'baseline', gap: '10px'}}>
-                <h2>Phase 2: The Sorting Tent</h2>
-                <span className="status-site-badge">{currentScenario?.civilization || 'Archaeological Site'}</span>
+                <h2>Phase 2: Evidence Processing</h2>
+                <span className="status-site-badge">{currentScenario?.civilization || 'Active Site'}</span>
               </div>
-              <p>Match each find to its correct category based on the clue.</p>
+              <p>Categorize each piece of evidence based on the field notes.</p>
             </div>
           </div>
 
@@ -182,8 +182,8 @@ export function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, on
         <div className="sort-layout">
           <section className="sort-tray-panel">
             <div className="sort-tray-header">
-              <span className="sort-panel-label">Recent finds</span>
-              <span className="sort-panel-hint">Drag these into the bins</span>
+              <span className="sort-panel-label">Pending Evidence</span>
+              <span className="sort-panel-hint">Process these into the correct folders</span>
             </div>
             <div className="sort-tray-list">
               {inventory.map(item => (
@@ -192,8 +192,8 @@ export function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, on
               {inventory.length === 0 && (
                 <div className="sort-tray-empty">
                   <CheckCircle2 size={32} />
-                  <p>All items sorted!</p>
-                  <button className="btn primary-btn" onClick={onComplete}>Next Phase</button>
+                  <p>All evidence processed!</p>
+                  <button className="btn primary-btn" onClick={onComplete}>Finalize Lab Report</button>
                 </div>
               )}
             </div>
@@ -230,9 +230,9 @@ export function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, on
         <div className="sort-tutorial-overlay" onClick={() => setShowTutorial(false)}>
            <div className="sort-tutorial-card glass-card">
               <HelpCircle size={32} className="sort-tutorial-icon" />
-              <h3>How to sort</h3>
-              <p>Drag each find from the tray on the left into one of the bins on the right.</p>
-              <p><strong>Clues</strong> on the card will help you choose between <em>Artefacts / Objects, Human Remains, Features / Structures, Environmental Evidence,</em> or <em>Written Sources</em>.</p>
+              <h3>Categorization Protocol</h3>
+              <p>Process each piece of evidence from the pending tray into its designated folder.</p>
+              <p><strong>Clues</strong> in the field notes will help you distinguish between <em>Artefacts, Human Remains, Features, Environmental Evidence,</em> or <em>Written Sources</em>.</p>
               <button className="btn primary-btn">Got it</button>
            </div>
         </div>
