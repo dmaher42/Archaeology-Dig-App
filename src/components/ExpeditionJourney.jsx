@@ -170,25 +170,59 @@ export default function ExpeditionJourney({ mission, onComplete, onBack, audioCo
     ctx.save();
     if (invuln > 0 && Math.floor(now / 100) % 2 === 0) ctx.globalAlpha = 0.3;
     
-    // Archaeologist Silhouette
-    ctx.fillStyle = '#1e293b'; // Dark navy silhouette
+    const bob = Math.sin(now / 150) * 2;
+    const legSwing = Math.sin(now / 100) * 8;
+
+    // Shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
     ctx.beginPath();
-    
-    // Hat
-    ctx.fillRect(x + (direction > 0 ? 2 : 6), y - 4, 20, 6);
-    ctx.fillRect(x + (direction > 0 ? -2 : 2), y + 2, 32, 3);
-    
-    // Body/Tunic
-    ctx.roundRect(x + 4, y + 5, 20, 24, 4);
+    ctx.ellipse(x + w/2, y + h, w/1.5, 4, 0, 0, Math.PI * 2);
     ctx.fill();
-    
-    // Legs
-    ctx.fillRect(x + 6, y + 28, 6, 14);
-    ctx.fillRect(x + 16, y + 28, 6, 14);
-    
-    // Satchel (Accent)
+
+    // Body (Archaeologist Coat)
+    ctx.fillStyle = '#2c3e50'; // Navy coat
+    ctx.beginPath();
+    ctx.roundRect(x + 4, y + 5 + bob, 22, 25, 6);
+    ctx.fill();
+
+    // Satchel Strap
+    ctx.strokeStyle = '#78350f';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(x + (direction > 0 ? 6 : 24), y + 8 + bob);
+    ctx.lineTo(x + (direction > 0 ? 24 : 6), y + 25 + bob);
+    ctx.stroke();
+
+    // Hat (Wide brim)
+    ctx.fillStyle = '#3f2b1d'; // Fedora brown
+    ctx.fillRect(x + (direction > 0 ? -4 : 2), y + 2 + bob, 32, 3); // Brim
+    ctx.beginPath();
+    ctx.roundRect(x + (direction > 0 ? 4 : 8), y - 4 + bob, 18, 8, 3); // Top
+    ctx.fill();
+
+    // Satchel
     ctx.fillStyle = '#b45309';
-    ctx.fillRect(x + (direction > 0 ? 18 : 4), y + 14, 6, 8);
+    ctx.beginPath();
+    ctx.roundRect(x + (direction > 0 ? 20 : 0), y + 18 + bob, 10, 8, 2);
+    ctx.fill();
+
+    // Legs
+    ctx.fillStyle = '#2c3e50';
+    if (Math.abs(stateRef.current.player.vx) > 0.1) {
+      ctx.fillRect(x + 6 + (direction > 0 ? legSwing : -legSwing), y + 28, 6, 14);
+      ctx.fillRect(x + 18 + (direction > 0 ? -legSwing : legSwing), y + 28, 6, 14);
+    } else {
+      ctx.fillRect(x + 7, y + 28, 6, 14);
+      ctx.fillRect(x + 17, y + 28, 6, 14);
+    }
+
+    // Interaction Prompt
+    if (stateRef.current.notice && stateRef.current.notice.includes('near')) {
+      ctx.fillStyle = '#facc15';
+      ctx.font = 'bold 12px Outfit';
+      ctx.textAlign = 'center';
+      ctx.fillText('!', x + w/2, y - 15 + bob);
+    }
     
     ctx.restore();
   }, []);
@@ -201,22 +235,32 @@ export default function ExpeditionJourney({ mission, onComplete, onBack, audioCo
       ctx.globalAlpha = 0.15;
     }
 
-    ctx.fillStyle = platform.secret ? '#7f643f' : platform.y === GROUND_Y ? '#b5865a' : '#6f5b45';
+    const isGround = platform.y === GROUND_Y;
+    
+    // Platform Base
+    ctx.fillStyle = platform.secret ? '#5c4d3c' : isGround ? '#8b6a47' : '#4a3720';
     ctx.fillRect(x, platform.y, platform.width, platform.height);
     
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
+    // Depth Side
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    ctx.fillRect(x, platform.y + platform.height - 4, platform.width, 4);
+
+    // Top Surface
+    ctx.fillStyle = isGround ? 'rgba(0,0,0,0.1)' : 'rgba(255, 255, 255, 0.12)';
     ctx.fillRect(x, platform.y, platform.width, 6);
     
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.12)';
+    // Texture / Cracks
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
     ctx.lineWidth = 1;
-    for (let i = 25; i < platform.width; i += 50) {
+    for (let i = 40; i < platform.width; i += 80) {
       ctx.beginPath();
-      ctx.moveTo(x + i, platform.y);
-      ctx.lineTo(x + i + 4, platform.y + platform.height);
+      ctx.moveTo(x + i, platform.y + 6);
+      ctx.lineTo(x + i + 5, platform.y + platform.height - 4);
       ctx.stroke();
     }
 
-    ctx.strokeStyle = 'rgba(37, 25, 14, 0.4)';
+    // Border
+    ctx.strokeStyle = 'rgba(37, 25, 14, 0.5)';
     ctx.lineWidth = 2;
     ctx.strokeRect(x, platform.y, platform.width, platform.height);
     ctx.globalAlpha = 1;
@@ -272,44 +316,62 @@ export default function ExpeditionJourney({ mission, onComplete, onBack, audioCo
     const screenX = x - cameraX;
     const floatY = Math.sin((now / 220) + x) * 8;
     ctx.save();
-    ctx.globalAlpha = hidden ? 0.35 : 1;
+    ctx.globalAlpha = hidden ? 0.25 : 1;
     
-    // Core glow
-    const innerGlow = ctx.createRadialGradient(screenX, y + floatY, 0, screenX, y + floatY, 20);
-    innerGlow.addColorStop(0, `${color}66`);
+    // Core glow (Dynamic)
+    const pulse = Math.sin(now / 300) * 0.3 + 0.7;
+    const innerGlow = ctx.createRadialGradient(screenX, y + floatY, 0, screenX, y + floatY, 25 * pulse);
+    innerGlow.addColorStop(0, `${color}88`);
     innerGlow.addColorStop(1, 'transparent');
     ctx.fillStyle = innerGlow;
     ctx.beginPath();
-    ctx.arc(screenX, y + floatY, 20, 0, Math.PI * 2);
+    ctx.arc(screenX, y + floatY, 25 * pulse, 0, Math.PI * 2);
     ctx.fill();
 
     if (isShard) {
-      const shimmer = Math.sin(now / 150) * 0.2 + 0.8;
+      // Crystalline shard look
       ctx.shadowColor = color;
-      ctx.shadowBlur = 15 * shimmer;
-      ctx.fillStyle = '#fff9e5';
+      ctx.shadowBlur = 10 * pulse;
+      
+      const shardColor = ctx.createLinearGradient(screenX - 10, y + floatY - 10, screenX + 10, y + floatY + 10);
+      shardColor.addColorStop(0, '#fff');
+      shardColor.addColorStop(0.5, color);
+      shardColor.addColorStop(1, '#000');
+      
+      ctx.fillStyle = shardColor;
       ctx.beginPath();
-      ctx.moveTo(screenX, y + floatY - 14);
-      ctx.lineTo(screenX + 9, y + floatY - 4);
-      ctx.lineTo(screenX + 6, y + floatY + 14);
-      ctx.lineTo(screenX - 8, y + floatY + 8);
-      ctx.lineTo(screenX - 10, y + floatY - 6);
+      ctx.moveTo(screenX, y + floatY - 15);
+      ctx.lineTo(screenX + 10, y + floatY);
+      ctx.lineTo(screenX, y + floatY + 15);
+      ctx.lineTo(screenX - 10, y + floatY);
       ctx.closePath();
       ctx.fill();
+      
+      // Highlight
+      ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
     } else {
-      ctx.shadowColor = 'rgba(0,0,0,0.3)';
-      ctx.shadowBlur = 8;
-      ctx.fillStyle = '#fffcf0';
+      ctx.shadowColor = 'rgba(0,0,0,0.4)';
+      ctx.shadowBlur = 12;
+      
+      // Premium Token
+      const tokenGrad = ctx.createRadialGradient(screenX, y + floatY, 5, screenX, y + floatY, 20);
+      tokenGrad.addColorStop(0, '#fffcf0');
+      tokenGrad.addColorStop(1, '#e5e7eb');
+      ctx.fillStyle = tokenGrad;
+      
       ctx.strokeStyle = color;
-      ctx.lineWidth = 2.5;
+      ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.roundRect(screenX - 18, y + floatY - 18, 36, 36, 6);
+      ctx.roundRect(screenX - 18, y + floatY - 18, 36, 36, 8);
       ctx.fill();
       ctx.stroke();
+      
       ctx.fillStyle = '#1e293b';
-      ctx.font = '22px Outfit';
+      ctx.font = '800 20px Outfit';
       ctx.textAlign = 'center';
-      ctx.fillText(label, screenX, y + floatY + 8);
+      ctx.fillText(label, screenX, y + floatY + 7);
     }
     ctx.restore();
   }, []);
@@ -422,12 +484,35 @@ export default function ExpeditionJourney({ mission, onComplete, onBack, audioCo
       if (enemy.defeated) return;
       const ex = enemy.x - cameraX;
       if (ex + enemy.width < -50 || ex > CANVAS_WIDTH + 50) return;
+      
       ctx.save();
-      if (enemy.hitFlash > 0) ctx.globalAlpha = 0.6;
-      ctx.font = '38px Outfit';
+      const shakeX = enemy.hitFlash > 0 ? Math.sin(now / 20) * 5 : 0;
+      
+      // Enemy Aura
+      const aura = ctx.createRadialGradient(ex + enemy.width/2, enemy.y + enemy.height/2, 5, ex + enemy.width/2, enemy.y + enemy.height/2, 30);
+      aura.addColorStop(0, 'rgba(30, 41, 59, 0.2)');
+      aura.addColorStop(1, 'transparent');
+      ctx.fillStyle = aura;
+      ctx.beginPath();
+      ctx.arc(ex + enemy.width/2, enemy.y + enemy.height/2, 30, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Main Visual
+      ctx.font = '42px Outfit';
       ctx.textAlign = 'center';
-      ctx.fillText(enemy.emoji, ex + enemy.width / 2, enemy.y + enemy.height / 2 + 12);
-      drawFieldNoteLabel(ctx, ex + enemy.width / 2, enemy.y - 10, enemy.name, '#1e293b');
+      ctx.shadowColor = 'rgba(0,0,0,0.5)';
+      ctx.shadowBlur = 10;
+      ctx.fillText(enemy.emoji, ex + enemy.width / 2 + shakeX, enemy.y + enemy.height / 2 + 14);
+      
+      // Health Bar (Small)
+      if (enemy.health > 1) {
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        ctx.fillRect(ex, enemy.y - 12, enemy.width, 4);
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(ex, enemy.y - 12, (enemy.health / 2) * enemy.width, 4);
+      }
+
+      drawFieldNoteLabel(ctx, ex + enemy.width / 2, enemy.y - 20, enemy.name, '#1e293b');
       ctx.restore();
     });
 
@@ -435,10 +520,35 @@ export default function ExpeditionJourney({ mission, onComplete, onBack, audioCo
       if (boss.defeated) return;
       const bx = boss.x - cameraX;
       if (bx + boss.width < -100 || bx > CANVAS_WIDTH + 100) return;
+      
       ctx.save();
-      ctx.font = '80px Outfit';
+      const pulse = Math.sin(now / 400) * 0.15 + 0.85;
+      
+      // Boss Aura
+      const bossAura = ctx.createRadialGradient(bx + boss.width/2, boss.y + boss.height/2, 20, bx + boss.width/2, boss.y + boss.height/2, 80 * pulse);
+      bossAura.addColorStop(0, 'rgba(124, 58, 237, 0.3)');
+      bossAura.addColorStop(1, 'transparent');
+      ctx.fillStyle = bossAura;
+      ctx.beginPath();
+      ctx.arc(bx + boss.width/2, boss.y + boss.height/2, 80 * pulse, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Boss Sprite
+      ctx.font = `${70 * pulse}px Outfit`;
       ctx.textAlign = 'center';
-      ctx.fillText(boss.emoji || '👾', bx + boss.width / 2, boss.y + boss.height / 2 + 25);
+      ctx.shadowColor = '#7c3aed';
+      ctx.shadowBlur = 20 * pulse;
+      ctx.fillText(boss.emoji || '👾', bx + boss.width / 2, boss.y + boss.height / 2 + 28);
+      
+      // Boss Health
+      ctx.fillStyle = 'rgba(0,0,0,0.6)';
+      ctx.roundRect(bx - 10, boss.y - 25, boss.width + 20, 8, 4);
+      ctx.fill();
+      ctx.fillStyle = '#7c3aed';
+      ctx.roundRect(bx - 10, boss.y - 25, (boss.health / 3) * (boss.width + 20), 8, 4);
+      ctx.fill();
+
+      drawFieldNoteLabel(ctx, bx + boss.width/2, boss.y - 40, `GUARDIAN: ${boss.name}`, '#7c3aed');
       ctx.restore();
     });
 
@@ -835,12 +945,32 @@ export default function ExpeditionJourney({ mission, onComplete, onBack, audioCo
         <div className="expedition-main">
           <div className="canvas-wrapper">
             <canvas ref={canvasRef} width={CANVAS_WIDTH} height={CANVAS_HEIGHT} className="expedition-canvas" />
-            {gameState.notice && <div className="expedition-journey-notice">{gameState.notice}</div>}
+            
+            <div className="journey-hud-overlay">
+              <div className="hud-shards">
+                <Gem size={18} className="text-amber-500" />
+                <span>{gameState.relicShardCount}</span>
+              </div>
+              <div className="hud-stamina">
+                <Gauge size={18} className="text-red-500" />
+                <div className="hud-bar-bg">
+                  <div className="hud-bar-fill stamina" style={{ width: `${gameState.resources.stamina}%` }} />
+                </div>
+              </div>
+            </div>
+
+            {gameState.notice && (
+              <div className="expedition-journey-notice animate-fade-in">
+                <Sparkles size={16} />
+                <span>{gameState.notice}</span>
+              </div>
+            )}
             
             {gameState.failed && (
               <div className="expedition-failure-overlay">
-                <div className="expedition-panel">
-                  <h3>Field Rescue Required</h3>
+                <div className="expedition-panel failure-card">
+                  <ShieldAlert size={48} className="text-red-600 mb-4" />
+                  <h3 className="cinzel-header">Field Rescue Required</h3>
                   <p>{gameState.failureReason}</p>
                   <button className="expedition-begin-btn" onClick={respawnAtCheckpoint}>
                     Restart from Checkpoint
@@ -850,22 +980,28 @@ export default function ExpeditionJourney({ mission, onComplete, onBack, audioCo
             )}
           </div>
           <div className="controls-hint">
-            <span>[Arrows/WASD] Move</span>
-            <span>[J/K] Primary Action</span>
+            <kbd>W/A/S/D</kbd> Move & Jump • <kbd>J/K</kbd> Use Tool
           </div>
         </div>
       </div>
 
       {briefingOpen && (
         <div className="expedition-briefing-overlay">
-          <div className="expedition-briefing-card">
-            <h1 className="cinzel-header">Lost Site Expedition</h1>
+          <div className="expedition-briefing-card animate-slide-up">
+            <div className="briefing-header">
+              <Flag className="text-amber-600" size={32} />
+              <h1 className="cinzel-header">Lost Site Expedition</h1>
+            </div>
             <div className="briefing-content">
-              <p>Recover the artifacts and reach the dig site entrance.</p>
-              <div className="expedition-briefing-mission"><strong>Mission:</strong> {mission}</div>
+              <p className="instruction-text">Navigate the ruins, recover relics, and secure the entrance to the dig site.</p>
+              <div className="mission-dossier">
+                <div className="dossier-tag">ACTIVE MISSION</div>
+                <h2 className="mission-title">{mission.title}</h2>
+                <p className="mission-desc">{mission.instruction}</p>
+              </div>
             </div>
             <button className="expedition-begin-btn" onClick={() => setBriefingOpen(false)}>
-              Begin Expedition
+              Initialize Expedition
             </button>
           </div>
         </div>

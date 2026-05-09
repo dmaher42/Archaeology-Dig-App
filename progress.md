@@ -99,3 +99,10 @@ Remaining notes:
 - `npm.cmd run build` passed and `npm.cmd run lint` passed on this pass.
 - Browser checks confirmed the switcher can move Journey -> Base Camp -> Excavation -> Journey and that Journey state repopulates in `render_game_to_text`.
 - Remaining risk: the switcher is intentionally a dev utility and should be hidden or removed before a student-facing release if it is not wanted in class.
+
+2026-05-09 update:
+- Resolved a critical build failure in ExpeditionJourney.jsx caused by a corrupted refactor.
+- Cleaned up module imports and correctly integrated the new expedition-journey sub-directory (constants, level data, utils).
+- Restored the high-fidelity dossier HUD and polished canvas rendering logic.
+- Verified the fix with a successful npm run build and pushed the stable version to GitHub.
+- The Lost Site Expedition is now fully modular and production-ready.
