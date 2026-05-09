@@ -9,6 +9,13 @@ import {
   Map as MapIcon,
   ShieldAlert,
   Sparkles,
+  Search,
+  Camera,
+  BookOpen,
+  Ruler,
+  Compass,
+  Hammer,
+  Target,
 } from 'lucide-react';
 import { SCENARIOS } from '../data';
 import { BUREAU_CASES, getCategoryTitle } from '../utils/gameLogic';
@@ -386,40 +393,70 @@ const MAX_EVIDENCE_ITEMS = 3;
 const JOURNEY_TOOLS = ExpeditionJourney.tools;
 const TOOL_EFFECTS = {
   brush: {
-    short: 'Careful recovery',
+    icon: Search,
+    short: 'Precision Cleaning',
+    shortTitle: 'Precision Brush',
     collected: 'Helps recover fragile evidence carefully. Adds a careful recovery bonus when mission evidence is secured.',
     missing: 'Fragile evidence is harder to recover carefully.',
-    result: 'Brush used: careful recovery bonus added.',
+    result: 'Precision Brush: Secured for careful artifact recovery.',
+    impact: '+2 Quality Bonus for fragile finds',
+    collectedDesc: 'Your team is equipped with precision brushes, allowing for the safe recovery of fragile mudbrick and ceramics.',
+    missingDesc: 'Without precision brushes, fragile surface details may be lost during the excavation process.'
   },
   trowel: {
-    short: 'Excavation bonus',
+    icon: Hammer,
+    short: 'Structural Excavation',
+    shortTitle: 'Masonry Trowel',
     collected: 'Helps excavate features and buried objects. Adds a bonus for structures or object evidence.',
     missing: 'Features and buried objects are harder to excavate cleanly.',
-    result: 'Trowel used: excavation bonus added for structures or object evidence.',
+    result: 'Masonry Trowel: Secured for structural feature clearing.',
+    impact: '+2 Efficiency for built features',
+    collectedDesc: 'The masonry trowel is essential for defining the edges of stone foundations and mudbrick walls.',
+    missingDesc: 'Lack of proper trowels will make it difficult to distinguish built features from surrounding debris.'
   },
   notebook: {
-    short: 'Field notes',
+    icon: BookOpen,
+    short: 'Field Documentation',
+    shortTitle: 'Field Notebook',
     collected: 'Records field notes when evidence is rejected or inspected. Adds field notes to the final result.',
     missing: 'Fewer field notes are recorded for later checking.',
-    result: 'Notebook used: field notes recorded for inspected or rejected evidence.',
+    result: 'Field Notebook: Secured for stratigraphic recording.',
+    impact: 'Unlocks Detailed Field Notes',
+    collectedDesc: 'Standard Bureau notebooks are ready for recording every layer and context found during the dig.',
+    missingDesc: 'Without notebooks, your team will rely on memory, leading to less detailed final reports.'
   },
   camera: {
-    short: 'Documented in situ',
+    icon: Camera,
+    short: 'Visual Evidence',
+    shortTitle: 'Survey Camera',
     collected: 'Documents evidence in place before collection. Adds a small evidence quality bonus.',
     missing: 'Evidence is less clearly documented before it is moved.',
-    result: 'Camera used: evidence documented before collection.',
+    result: 'Survey Camera: Secured for in-situ documentation.',
+    impact: '+1 Evidence Quality (All)',
+    collectedDesc: 'The survey camera allows for high-resolution documentation of evidence in its original context.',
+    missingDesc: 'Moving evidence without photographs significantly reduces its historical value and quality.'
   },
   'measuring-tape': {
-    short: 'Site mapping',
+    icon: Ruler,
+    short: 'Spatial Mapping',
+    shortTitle: 'Measuring Tape',
     collected: 'Helps map and record where evidence was found. Adds a mapping bonus in the result.',
     missing: 'Site mapping is less accurate.',
-    result: 'Measuring Tape: site mapping completed.',
+    result: 'Measuring Tape: Secured for precise spatial mapping.',
+    impact: 'Unlocks Accurate Site Mapping',
+    collectedDesc: 'Steel measuring tapes allow for the precise recording of artifact coordinates within the grid.',
+    missingDesc: 'Estimated measurements will result in a less accurate map of the site layout.'
   },
   'field-guide-page': {
-    short: 'Category hints',
+    icon: Compass,
+    short: 'Analytical Support',
+    shortTitle: 'Expert Field Guide',
     collected: 'Gives evidence category hints during inspection.',
     missing: 'No category hints are available during inspection.',
-    result: 'Field Guide used: evidence category hints were available.',
+    result: 'Expert Field Guide: Secured for real-time analysis.',
+    impact: 'Unlocks Category Expert Hints',
+    collectedDesc: 'The field guide provides instant reference for identifying Egyptian pottery and architectural styles.',
+    missingDesc: 'Identifying unfamiliar artifacts will be much slower and more prone to error.'
   },
 };
 const FIELD_GUIDE_HINTS = {
@@ -791,17 +828,20 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     JOURNEY_TOOLS.filter(tool => fieldKitSet.has(tool.id))
   ), [fieldKitSet]);
   const fieldKitImpact = useMemo(() => (
-    JOURNEY_TOOLS.map((tool) => ({
-      id: tool.id,
-      name: tool.name,
-      collected: fieldKitSet.has(tool.id),
-      effect: TOOL_EFFECTS[tool.id]?.short || 'Field tool',
-      detail: fieldKitSet.has(tool.id)
-        ? TOOL_EFFECTS[tool.id]?.result
-        : TOOL_EFFECTS[tool.id]?.missing,
-      baseCampCollected: TOOL_EFFECTS[tool.id]?.collected,
-      baseCampMissing: TOOL_EFFECTS[tool.id]?.missing,
-    }))
+    JOURNEY_TOOLS.map((tool) => {
+      const effects = TOOL_EFFECTS[tool.id];
+      const isCollected = fieldKitSet.has(tool.id);
+      return {
+        id: tool.id,
+        name: tool.name,
+        shortTitle: effects?.shortTitle || tool.name,
+        icon: effects?.icon || Search,
+        isCollected,
+        impact: effects?.impact || 'N/A',
+        collectedDesc: effects?.collectedDesc || 'Standard equipment is secured.',
+        missingDesc: effects?.missingDesc || 'Standard equipment is missing.',
+      };
+    })
   ), [fieldKitSet]);
   const fieldKitBonus = useMemo(() => {
     if (!claimResult) return 0;
@@ -2328,29 +2368,67 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
           </header>
 
           <div className="expedition-basecamp-card">
-            <div>
-              <p className="phase-kicker">Field Kit Report</p>
-              <h3>Equipment packed for the excavation stage</h3>
-              <p>
+            <section className="basecamp-intro-section">
+              <header className="basecamp-section-header">
+                <div className="section-icon-circle">
+                  <Backpack size={20} />
+                </div>
+                <div>
+                  <p className="phase-kicker">Expedition Status</p>
+                  <h3>Field Kit & Equipment Report</h3>
+                </div>
+              </header>
+              <p className="basecamp-section-description">
                 Tools collected on the journey now help with careful excavation, field notes,
                 mapping and evidence checks. Missing tools mean the team loses that advantage.
               </p>
-            </div>
+            </section>
 
-            <div className="expedition-mission-card">
-              <strong>{activeMission.title}</strong>
-              <span>{activeMission.targetCategoryTitle}</span>
-              <p><strong>Inquiry question:</strong> {activeMission.inquiryQuestion}</p>
-              <p>{activeMission.instruction}</p>
-            </div>
+            <section className="basecamp-mission-section">
+              <header className="basecamp-section-header">
+                <div className="section-icon-circle">
+                  <Target size={20} />
+                </div>
+                <div>
+                  <p className="phase-kicker">Mission Objective</p>
+                  <h3>{activeMission.title}</h3>
+                </div>
+              </header>
+              <div className="expedition-mission-card">
+                <span className="mission-category-tag">{activeMission.targetCategoryTitle}</span>
+                <p className="mission-question"><strong>Inquiry:</strong> {activeMission.inquiryQuestion}</p>
+                <p className="mission-instruction">{activeMission.instruction}</p>
+              </div>
+            </section>
 
             <div className="expedition-field-kit-impact-grid">
               {fieldKitImpact.map((tool) => (
-                <article key={tool.id} className={`expedition-field-kit-impact ${tool.collected ? 'is-collected' : ''}`}>
-                  <strong>{tool.name}</strong>
-                  <span>{tool.collected ? 'Advantage secured' : 'Missed advantage'}</span>
-                  <p>{tool.collected ? tool.baseCampCollected : tool.baseCampMissing}</p>
-                </article>
+                <div key={tool.id} className={`expedition-field-kit-impact ${tool.isCollected ? 'is-collected' : ''}`}>
+                  <div className="expedition-impact-header">
+                    <div className="expedition-tool-icon-wrapper">
+                      <tool.icon size={28} />
+                    </div>
+                    <div className="expedition-impact-meta">
+                      <div className="status-label-row">
+                        {tool.isCollected ? (
+                          <CheckCircle2 size={12} className="status-icon" />
+                        ) : (
+                          <ShieldAlert size={12} className="status-icon" />
+                        )}
+                        <span className="status-label">
+                          {tool.isCollected ? 'Equipment Secured' : 'Gear Missing'}
+                        </span>
+                      </div>
+                      <strong>{tool.shortTitle}</strong>
+                    </div>
+                  </div>
+                  <p className="expedition-impact-description">
+                    {tool.isCollected ? tool.collectedDesc : tool.missingDesc}
+                  </p>
+                  <p className="expedition-impact-description">
+                    <strong>Field Impact:</strong> {tool.impact}
+                  </p>
+                </div>
               ))}
             </div>
 

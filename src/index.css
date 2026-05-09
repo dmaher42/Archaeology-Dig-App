@@ -10205,159 +10205,138 @@ main {
 }
 
 
-/* --- LOST SITE EXPEDITION REFINEMENT --- */
-.expedition-phase {
-  /* Inherits bureau-phase parchment theme */
+/* --- BASE CAMP CHECKLIST POLISH --- */
+.expedition-basecamp-shell {
+  max-width: 1000px; /* More focused for checklist */
 }
 
-.expedition-shell {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 1.5rem 2rem;
+.expedition-basecamp-card {
+  background: var(--bureau-parchment);
+  border: 1px solid #c2b29a;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  padding: 2.5rem;
+  border-radius: 4px;
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 2.5rem;
 }
 
-.expedition-topbar {
+.expedition-basecamp-card::after {
+  content: "OFFICIAL BUREAU CHECKLIST";
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  font-weight: 900;
+  color: var(--bureau-gold-dark);
+  opacity: 0.4;
+  letter-spacing: 0.2em;
+}
+
+.basecamp-section-header {
   display: flex;
   align-items: center;
-  gap: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 2px solid var(--bureau-gold-light);
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
 }
 
-.expedition-title h2 {
+.section-icon-circle {
+  width: 44px;
+  height: 44px;
+  background: rgba(139, 106, 72, 0.1);
+  border: 1px solid var(--bureau-gold-muted);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--bureau-gold-dark);
+}
+
+.basecamp-section-header h3 {
   font-family: 'Cinzel', serif;
-  font-size: 2.2rem;
+  font-size: 1.4rem;
   color: var(--bureau-ink);
   margin: 0;
 }
 
-.expedition-title p {
+.basecamp-section-description {
   font-family: 'Playfair Display', serif;
+  font-size: 1.05rem;
+  line-height: 1.6;
   color: var(--bureau-ink-muted);
-  margin-top: 0.5rem;
-  font-size: 1.1rem;
+  max-width: 700px;
+  margin: 0;
 }
 
-.expedition-gate-badge {
-  margin-left: auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: rgba(139, 106, 72, 0.05);
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  border: 1px dashed var(--bureau-gold);
-  font-family: 'Courier New', Courier, monospace;
-}
-
-.expedition-gate-badge span {
-  font-weight: bold;
-  color: var(--bureau-ink);
-  margin-top: 0.25rem;
-}
-
-.expedition-gate-badge small {
-  color: var(--bureau-ink-muted);
-}
-
-.expedition-layout, .expedition-journey-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 350px;
-  gap: 2.5rem;
-  align-items: start;
-}
-
-/* Canvas styling to make it the primary focus */
-.expedition-map-card, .expedition-journey-canvas-card {
-  background: #fff;
+.expedition-mission-card {
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px dashed var(--bureau-gold-muted);
   padding: 1.5rem;
   border-radius: 8px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
   position: relative;
 }
 
-.expedition-map-card::before, .expedition-journey-canvas-card::before {
-  content: "";
-  position: absolute;
-  top: 0.5rem; left: 0.5rem; right: 0.5rem; bottom: 0.5rem;
-  border: 1px solid rgba(0,0,0,0.05);
-  pointer-events: none;
+.mission-category-tag {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  background: var(--bureau-gold);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
   border-radius: 4px;
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.05em;
 }
 
-.expedition-canvas {
-  width: 100%;
-  height: auto;
-  display: block;
-  border-radius: 4px;
-}
-
-.expedition-map-status, .expedition-journey-notice {
-  margin-top: 1.5rem;
-  padding: 1rem;
-  background: rgba(139, 106, 72, 0.08);
-  border-radius: 6px;
-  font-family: 'Courier New', Courier, monospace;
-  font-weight: bold;
-  text-align: center;
+.mission-question {
+  font-size: 1.15rem;
   color: var(--bureau-ink);
-  border: 1px solid rgba(139, 106, 72, 0.2);
+  margin: 0 0 0.5rem 0;
+  line-height: 1.4;
 }
 
-/* Side Panels - "Field Notebook" Aesthetic */
-.expedition-side-panel, .expedition-panel-stack {
-  display: flex;
-  flex-direction: column;
+.mission-instruction {
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  color: var(--bureau-ink-muted);
+  margin: 0;
+  font-style: italic;
+}
+
+.expedition-field-kit-impact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 1.25rem;
 }
 
-.expedition-panel {
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(139, 106, 72, 0.3);
+.expedition-field-kit-impact {
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(139, 106, 72, 0.2);
   border-radius: 8px;
-  padding: 1.5rem;
-  font-family: 'Playfair Display', serif;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
-}
-
-.expedition-panel h3 {
-  font-family: 'Cinzel', serif;
-  font-size: 1.2rem;
-  color: var(--bureau-ink);
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  border-bottom: 1px solid rgba(139, 106, 72, 0.2);
-  padding-bottom: 0.5rem;
-}
-
-.expedition-mission-panel {
-  background: rgba(139, 106, 72, 0.08);
-  border-left: 4px solid var(--bureau-gold);
-}
-
-.expedition-mission-panel strong {
-  display: block;
-  font-size: 1.1rem;
-  margin-bottom: 0.5rem;
-  color: var(--bureau-ink);
-}
-
-.expedition-resource-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
-.expedition-resource {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: 1rem;
+  transition: all 0.2s ease;
+}
+
+.expedition-field-kit-impact.is-collected {
+  background: rgba(16, 185, 129, 0.05);
+  border-color: rgba(16, 185, 129, 0.25);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.05);
+}
+
+.expedition-impact-header {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.expedition-tool-icon-wrapper {
+  width: 48px;
+  height: 48px;
   background: #fff;
   padding: 0.75rem;
   border-radius: 6px;
@@ -10407,7 +10386,7 @@ main {
 
 .expedition-hazard-list li {
   background: rgba(185, 28, 28, 0.05);
-  color: var(--bureau-red);
+  color: #b91c1c;
   border-color: rgba(185, 28, 28, 0.1);
 }
 
@@ -10776,4 +10755,84 @@ main {
   border-radius: 4px;
   font-family: monospace;
   margin-right: 4px;
+}
+
+/* Base Camp specific overrides and polish */
+.expedition-basecamp-card .expedition-tool-icon-wrapper {
+  border: 1px solid rgba(139, 106, 72, 0.15);
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  color: var(--bureau-gold-muted);
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.is-collected .expedition-tool-icon-wrapper {
+  color: #059669;
+  border-color: rgba(16, 185, 129, 0.3);
+  background: #fff;
+}
+
+.expedition-impact-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.status-label-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.status-icon {
+  flex-shrink: 0;
+}
+
+.is-collected .status-icon { color: #059669; }
+.status-label {
+  font-size: 0.65rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--bureau-ink-muted);
+}
+
+.is-collected .status-label { color: #059669; }
+
+.expedition-impact-meta strong {
+  font-family: 'Cinzel', serif;
+  font-size: 1rem;
+  color: var(--bureau-ink);
+}
+
+.expedition-impact-description {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--bureau-ink-muted);
+}
+
+.expedition-impact-description strong {
+  color: var(--bureau-ink);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* Fix overlapping and alignment */
+@media (max-width: 800px) {
+  .expedition-field-kit-impact-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.bureau-briefing-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(139, 106, 72, 0.1);
+
 }
