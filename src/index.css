@@ -11715,3 +11715,591 @@ main {
     grid-template-columns: 1fr 1fr !important;
   }
 }
+
+/* Main Menu UI Polish Pass */
+.menu-phase {
+  position: relative;
+  gap: clamp(1rem, 2vw, 1.35rem) !important;
+  padding: clamp(0.75rem, 1.4vw, 1.25rem) clamp(0.75rem, 1.8vw, 1.5rem) 2.5rem !important;
+  overflow-x: hidden !important;
+  background:
+    radial-gradient(circle at 18% 6%, rgba(255, 215, 128, 0.22), transparent 22rem),
+    radial-gradient(circle at 84% 0%, rgba(62, 130, 150, 0.18), transparent 20rem),
+    linear-gradient(180deg, rgba(99, 69, 37, 0.18), transparent 28rem);
+}
+
+.menu-phase::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 12% 10%, rgba(255, 211, 124, 0.1), transparent 18rem),
+    linear-gradient(rgba(21, 15, 10, 0.2), rgba(21, 15, 10, 0.58));
+  opacity: 1;
+  z-index: 0;
+}
+
+.menu-phase > * {
+  position: relative;
+  z-index: 1;
+}
+
+.menu-hero {
+  width: min(1180px, 100%) !important;
+  max-width: 1180px !important;
+  min-height: clamp(10.75rem, 23vh, 14rem) !important;
+  margin: 0 auto !important;
+  padding: clamp(1.15rem, 2.2vw, 2rem) !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.05fr) minmax(16rem, 0.65fr) !important;
+  align-items: stretch !important;
+  gap: clamp(1rem, 2.5vw, 2rem) !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(255, 214, 143, 0.34) !important;
+  border-radius: 8px !important;
+  background:
+    linear-gradient(90deg, rgba(18, 13, 9, 0.92), rgba(45, 31, 18, 0.7) 54%, rgba(101, 70, 34, 0.35)),
+    radial-gradient(circle at 82% 38%, rgba(255, 216, 128, 0.38), transparent 6rem),
+    linear-gradient(0deg, rgba(158, 99, 36, 0.6) 0 19%, transparent 19%),
+    linear-gradient(165deg, transparent 0 55%, rgba(202, 154, 89, 0.18) 55% 58%, transparent 58%),
+    linear-gradient(180deg, rgba(238, 183, 95, 0.16), rgba(46, 29, 14, 0.4)) !important;
+  box-shadow: 0 24px 58px rgba(0, 0, 0, 0.34), inset 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
+}
+
+.menu-hero-copy {
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.menu-hero .training-kicker,
+.mission-selection-heading .training-kicker {
+  color: #ffd27c !important;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.44);
+}
+
+.menu-hero h2 {
+  max-width: 10ch;
+  margin: 0 !important;
+  color: #fff7df !important;
+  font-size: clamp(2.35rem, 5.4vw, 4.45rem) !important;
+  line-height: 0.96 !important;
+  text-align: left !important;
+  text-shadow: 0 6px 28px rgba(0, 0, 0, 0.52);
+}
+
+.menu-hero p {
+  max-width: 58ch !important;
+  margin: 0 !important;
+  color: #f6e6c4 !important;
+  font-size: clamp(1rem, 1.7vw, 1.18rem) !important;
+  line-height: 1.5 !important;
+  font-style: normal !important;
+  text-align: left !important;
+}
+
+.menu-hero-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.35rem;
+}
+
+.menu-hero-badges span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid rgba(255, 210, 124, 0.38);
+  border-radius: 999px;
+  background: rgba(255, 210, 124, 0.12);
+  color: #fff1cf;
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.menu-hero-art {
+  position: relative;
+  min-height: 10rem;
+  align-self: stretch;
+  overflow: hidden;
+}
+
+.menu-hero-art::before {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 34%;
+  border-radius: 50% 50% 0 0;
+  background: linear-gradient(180deg, rgba(232, 158, 93, 0.4), rgba(104, 60, 20, 0.82));
+  filter: blur(0.2px);
+}
+
+.menu-hero-sun {
+  position: absolute;
+  right: 12%;
+  top: 5%;
+  width: clamp(3.5rem, 6vw, 5.3rem);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 239, 179, 0.98), rgba(255, 183, 84, 0.42) 58%, transparent 72%);
+  opacity: 0.78;
+}
+
+.menu-hero-sprite {
+  position: absolute;
+  right: clamp(1rem, 6vw, 3.2rem);
+  bottom: -0.35rem;
+  width: clamp(6.6rem, 10vw, 8.8rem);
+  height: clamp(9.5rem, 18vw, 13.2rem);
+  background-repeat: no-repeat;
+  background-size: 400% 100%;
+  background-position: 0 0;
+  filter: drop-shadow(0 20px 22px rgba(0, 0, 0, 0.48));
+}
+
+.mission-selection-heading {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.mission-selection-heading h3 {
+  margin: 0;
+  color: #fff7df;
+  font-family: 'Cinzel', serif;
+  font-size: clamp(1.2rem, 2vw, 1.72rem);
+  line-height: 1.12;
+}
+
+.mission-selection-heading p {
+  max-width: 42ch;
+  margin: 0;
+  color: #dec9a6;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  text-align: right;
+}
+
+.activity-menu-grid {
+  width: min(1180px, 100%) !important;
+  max-width: 1180px !important;
+  margin: 0 auto 1rem !important;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 245px), 1fr)) !important;
+  gap: clamp(0.85rem, 1.4vw, 1.15rem) !important;
+  align-items: stretch !important;
+}
+
+.activity-card {
+  position: relative;
+  min-width: 0;
+  min-height: 14.7rem !important;
+  padding: 1rem !important;
+  gap: 0.85rem !important;
+  overflow: hidden;
+  border: 1px solid rgba(255, 213, 145, 0.26) !important;
+  border-radius: 8px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 248, 226, 0.08), rgba(255, 255, 255, 0.02)),
+    rgba(21, 16, 11, 0.84) !important;
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.22), inset 0 0 0 1px rgba(255, 255, 255, 0.04) !important;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease !important;
+}
+
+.activity-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.42;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(255, 211, 124, 0.16), transparent 8rem),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.05), transparent 45%);
+}
+
+.activity-card::after {
+  top: 0.7rem !important;
+  right: 0.75rem !important;
+  padding: 0.18rem 0.38rem !important;
+  border-color: rgba(255, 210, 124, 0.32) !important;
+  color: rgba(255, 238, 200, 0.62) !important;
+  font-size: 0.56rem !important;
+  transform: rotate(5deg) !important;
+}
+
+.activity-card:hover,
+.activity-card:focus-within {
+  transform: translateY(-4px);
+  border-color: rgba(255, 210, 124, 0.58) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 214, 143, 0.13), rgba(255, 255, 255, 0.025)),
+    rgba(28, 20, 12, 0.92) !important;
+  box-shadow: 0 24px 46px rgba(0, 0, 0, 0.3), 0 0 0 3px rgba(255, 210, 124, 0.08) !important;
+}
+
+.activity-card-header,
+.activity-card-copy,
+.activity-card-actions {
+  position: relative;
+  z-index: 1;
+}
+
+.activity-card-header {
+  min-height: 4.35rem;
+  gap: 0.6rem !important;
+}
+
+.activity-card-icon {
+  width: 2.7rem !important;
+  height: 2.7rem !important;
+  border-radius: 7px !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 8px 18px rgba(0, 0, 0, 0.18);
+}
+
+.activity-time-tag {
+  width: fit-content;
+  max-width: 100%;
+  padding: 0.3rem 0.48rem !important;
+  border-radius: 999px !important;
+  color: #ffe5ae !important;
+  border-color: rgba(255, 210, 124, 0.26) !important;
+  background: rgba(255, 210, 124, 0.09) !important;
+  white-space: normal;
+}
+
+.activity-card-copy {
+  display: grid;
+  gap: 0.38rem !important;
+}
+
+.activity-card-copy h3 {
+  color: #fff7df !important;
+  font-size: clamp(1.08rem, 1.55vw, 1.3rem) !important;
+  line-height: 1.12 !important;
+  margin: 0 !important;
+}
+
+.activity-mode-label {
+  width: fit-content;
+  padding: 0.22rem 0.5rem;
+  border-left: 3px solid #ffd27c;
+  background: rgba(255, 210, 124, 0.1);
+  color: #ffdca0;
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.activity-card-copy p {
+  color: #e6d3af !important;
+  font-size: 0.88rem !important;
+  line-height: 1.4 !important;
+  margin: 0 !important;
+}
+
+.activity-card-actions {
+  margin-top: auto !important;
+}
+
+.activity-card-button-group {
+  display: grid !important;
+  gap: 0.6rem !important;
+}
+
+.activity-card-action {
+  min-height: 2.65rem !important;
+  border-radius: 7px !important;
+  padding: 0.72rem 0.82rem !important;
+  font-weight: 900 !important;
+}
+
+.activity-card--training .activity-card-icon--training {
+  background: linear-gradient(180deg, #d9ecff, #7aa8d8) !important;
+  color: #10273c !important;
+}
+
+.activity-card--investigation .activity-card-icon--investigation {
+  background: linear-gradient(180deg, #ffd89a, #b6732b) !important;
+  color: #2f1c0d !important;
+}
+
+.activity-card--bureau .activity-card-icon--bureau {
+  background: linear-gradient(180deg, #fff4d5, #d6ad63) !important;
+  color: #7a221a !important;
+}
+
+.activity-card--expedition {
+  border-color: rgba(255, 210, 124, 0.46) !important;
+}
+
+.activity-card--expedition .activity-card-icon--expedition {
+  background: linear-gradient(180deg, #fff0b8, #dd9f2e) !important;
+  color: #3a230b !important;
+}
+
+.activity-card--expedition::before {
+  opacity: 0.68;
+  background:
+    radial-gradient(circle at 16% 8%, rgba(255, 234, 167, 0.22), transparent 8rem),
+    linear-gradient(145deg, rgba(88, 157, 177, 0.12), transparent 42%),
+    linear-gradient(0deg, rgba(255, 210, 124, 0.06), transparent);
+}
+
+.save-controls--menu-note {
+  max-width: 18rem;
+  justify-content: flex-end;
+  padding: 0.42rem 0.7rem;
+  border: 1px solid rgba(139, 84, 28, 0.42);
+  border-radius: 999px;
+  background: rgba(255, 246, 225, 0.72);
+  color: #5c3218;
+  font-size: 0.78rem;
+  font-weight: 900;
+  line-height: 1.3;
+  text-align: right;
+}
+
+.btn:focus-visible,
+.save-control-btn:focus-visible,
+.sidebar-civ-item:focus-visible,
+.back-to-modes-btn:focus-visible {
+  outline: 3px solid rgba(255, 210, 124, 0.9);
+  outline-offset: 3px;
+}
+
+@media (max-width: 900px) {
+  .menu-hero {
+    grid-template-columns: 1fr !important;
+  }
+
+  .menu-hero-art {
+    min-height: 8rem;
+  }
+
+  .menu-hero-sprite {
+    right: -7rem;
+    bottom: -1.6rem;
+    height: 14rem;
+  }
+
+  .mission-selection-heading {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .mission-selection-heading p {
+    text-align: left;
+  }
+}
+
+@media (max-width: 640px) {
+  .menu-hero {
+    min-height: 0 !important;
+    padding: 1rem !important;
+  }
+
+  .menu-hero h2 {
+    font-size: clamp(2.15rem, 14vw, 3.4rem) !important;
+  }
+
+  .menu-hero-art {
+    display: none;
+  }
+
+  .activity-menu-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .activity-card {
+    min-height: 0 !important;
+  }
+
+  .save-controls--menu-note {
+    max-width: 12rem;
+    font-size: 0.72rem;
+  }
+}
+
+/* Main menu laptop fit refinement */
+.menu-phase {
+  gap: clamp(0.55rem, 1.15vw, 0.9rem) !important;
+}
+
+.menu-phase .menu-hero {
+  min-height: clamp(8.2rem, 16vh, 9.5rem) !important;
+  padding: clamp(0.8rem, 1.35vw, 1.1rem) clamp(0.9rem, 1.7vw, 1.35rem) !important;
+  grid-template-columns: minmax(0, 1fr) clamp(5.5rem, 10vw, 8rem) !important;
+  align-items: center !important;
+}
+
+.menu-phase .menu-hero-copy {
+  gap: 0.38rem;
+}
+
+.menu-phase .menu-hero h2 {
+  max-width: 18ch !important;
+  font-size: clamp(2rem, 4.1vw, 3.35rem) !important;
+  line-height: 0.96 !important;
+}
+
+.menu-phase .menu-hero p {
+  max-width: 66ch !important;
+  font-size: clamp(0.9rem, 1.1vw, 1rem) !important;
+  line-height: 1.35 !important;
+}
+
+.menu-phase .menu-hero-badges {
+  gap: 0.35rem;
+  margin-top: 0.08rem;
+}
+
+.menu-phase .menu-hero-badges span {
+  min-height: 1.45rem;
+  padding: 0.22rem 0.5rem;
+  font-size: 0.66rem;
+}
+
+.menu-phase .menu-hero-art {
+  min-height: 7.4rem;
+}
+
+.menu-phase .menu-hero-sun {
+  width: clamp(3.8rem, 7vw, 5.2rem);
+}
+
+.menu-phase .menu-hero-sprite {
+  right: -2.15rem;
+  bottom: -0.55rem;
+  height: clamp(8rem, 15vw, 11.5rem);
+}
+
+.menu-phase .mission-selection-heading {
+  align-items: end;
+}
+
+.menu-phase .mission-selection-heading h3 {
+  font-size: clamp(1.05rem, 1.75vw, 1.42rem);
+}
+
+.menu-phase .mission-selection-heading p {
+  font-size: 0.84rem;
+  line-height: 1.35;
+}
+
+.menu-phase .activity-menu-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)) !important;
+  gap: clamp(0.65rem, 1vw, 0.9rem) !important;
+}
+
+.menu-phase .activity-card {
+  min-height: 14.2rem !important;
+  gap: 0.54rem !important;
+  padding: 0.82rem 0.9rem !important;
+}
+
+.menu-phase .activity-card-header {
+  min-height: 4rem;
+  gap: 0.44rem !important;
+}
+
+.menu-phase .activity-card-icon {
+  width: 2.65rem !important;
+  height: 2.65rem !important;
+}
+
+.menu-phase .activity-time-tag {
+  padding: 0.22rem 0.42rem !important;
+  font-size: 0.58rem !important;
+}
+
+.menu-phase .activity-card-copy {
+  gap: 0.26rem !important;
+}
+
+.menu-phase .activity-card-copy h3 {
+  font-size: clamp(0.98rem, 1.34vw, 1.16rem) !important;
+}
+
+.menu-phase .activity-mode-label {
+  min-height: 1.4rem;
+  padding: 0.18rem 0.43rem;
+  font-size: 0.62rem;
+}
+
+.menu-phase .activity-card-copy p {
+  font-size: 0.84rem !important;
+  line-height: 1.34 !important;
+  min-height: 3.4rem;
+}
+
+.menu-phase .activity-card-action {
+  min-height: 2.32rem !important;
+  padding: 0.56rem 0.72rem !important;
+  font-size: 0.74rem !important;
+}
+
+.menu-phase .activity-card::after {
+  opacity: 0.16 !important;
+}
+
+@media (max-width: 1100px) {
+  .menu-phase .activity-card {
+    min-height: 13.4rem !important;
+  }
+
+  .menu-phase .activity-card-copy p {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .menu-phase .menu-hero {
+    grid-template-columns: 1fr !important;
+  }
+
+  .menu-phase .mission-selection-heading {
+    display: grid;
+    align-items: start;
+  }
+
+  .menu-phase .mission-selection-heading p {
+    max-width: none;
+    text-align: left;
+  }
+}
+
+@media (max-width: 640px) {
+  .menu-phase .menu-hero {
+    min-height: 16.5rem !important;
+    align-items: start !important;
+    overflow: hidden !important;
+  }
+
+  .menu-phase .menu-hero-copy {
+    align-content: start;
+  }
+
+  .menu-phase .menu-hero h2 {
+    font-size: clamp(1.9rem, 11vw, 2.7rem) !important;
+    line-height: 0.98 !important;
+  }
+
+  .menu-phase .menu-hero p {
+    display: block;
+    font-size: 0.86rem !important;
+    line-height: 1.38 !important;
+  }
+
+  .menu-phase .menu-hero-badges {
+    margin-top: 0.12rem;
+  }
+}

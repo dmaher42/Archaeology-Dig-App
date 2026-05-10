@@ -331,20 +331,26 @@ export default function App() {
             {isBureauPhase ? <Archive size={28} className="header-main-icon" /> : <Pickaxe size={28} className="header-main-icon" />}
           </div>
           <div className="header-titles">
-            <h1>{isBureauPhase ? 'The Antiquities Bureau' : isExpeditionPhase ? 'Lost Site Expedition' : 'Archaeology Challenge'}</h1>
-            <p>{isBureauPhase ? 'Ancient Civilisation Clues' : isExpeditionPhase ? 'Collect evidence, avoid site hazards, and make a claim.' : 'What can evidence tell us about the ancient past?'}</p>
+            <h1>{isBureauPhase ? 'The Antiquities Bureau' : (isExpeditionPhase || phase === 'menu') ? 'Lost Site Expedition' : 'Archaeology Challenge'}</h1>
+            <p>{isBureauPhase ? 'Ancient Civilisation Clues' : isExpeditionPhase ? 'Collect evidence, avoid site hazards, and make a claim.' : phase === 'menu' ? 'Archaeology Challenge' : 'What can evidence tell us about the ancient past?'}</p>
           </div>
         </div>
         <div className="header-right">
-          <div className="save-controls">
-            <button className="save-control-btn" onClick={handleSaveProgressFile} disabled={!canUseProgressFiles}>
-              <Save size={16} /> Save Progress
-            </button>
-            <label className={`save-control-btn ${!canUseProgressFiles ? 'is-disabled' : ''}`} aria-disabled={!canUseProgressFiles}>
-              <Upload size={16} /> Load Progress
-              <input type="file" accept=".json" onChange={handleLoadProgressFile} disabled={!canUseProgressFiles} hidden />
-            </label>
-          </div>
+          {phase === 'menu' ? (
+            <div className="save-controls save-controls--menu-note" role="note">
+              Save and load files unlock after a mission starts.
+            </div>
+          ) : (
+            <div className="save-controls">
+              <button className="save-control-btn" onClick={handleSaveProgressFile} disabled={!canUseProgressFiles}>
+                <Save size={16} /> Save Progress
+              </button>
+              <label className={`save-control-btn ${!canUseProgressFiles ? 'is-disabled' : ''}`} aria-disabled={!canUseProgressFiles}>
+                <Upload size={16} /> Load Progress
+                <input type="file" accept=".json" onChange={handleLoadProgressFile} disabled={!canUseProgressFiles} hidden />
+              </label>
+            </div>
+          )}
           {phase !== 'menu' && phase !== 'training' && !isBureauPhase && !isExpeditionPhase && (
             <nav className="phase-navigation" role="tablist">
               {['Dig', 'Sort', 'Lab', 'Museum', 'Report'].map((p, i) => (

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Pickaxe, MapPin, FileText, Dice5, ChevronLeft, Compass } from 'lucide-react';
 import { SCENARIOS } from '../data';
 import { WorldMap } from './WorldMap';
+import { PLAYER_SPRITE_SRC } from './expedition-journey/journeyConstants';
 
 
 const getSavedModeLabel = (mode) => (mode === 'bureau' ? 'Bureau case' : 'Investigation');
@@ -83,9 +84,31 @@ export function ActivityMenu({
   return (
     <section className="phase-container menu-phase">
       <div className="menu-hero glass-card">
-        <div className="training-kicker">Welcome back, Historian</div>
-        <h2>What are we doing today?</h2>
-        <p>Choose an archaeological mission to begin or resume your progress.</p>
+        <div className="menu-hero-copy">
+          <div className="training-kicker">Archaeology Challenge</div>
+          <h2>Lost Site Expedition</h2>
+          <p>Choose your classroom mission: practise field skills, investigate a dig site, solve museum case files, or begin the solo adventure.</p>
+          <div className="menu-hero-badges" aria-label="Game features">
+            <span>Year 7 HASS</span>
+            <span>Evidence Skills</span>
+            <span>Museum Mystery</span>
+          </div>
+        </div>
+        <div className="menu-hero-art" aria-hidden="true">
+          <div className="menu-hero-sun" />
+          <div
+            className="menu-hero-sprite"
+            style={{ backgroundImage: `url(${import.meta.env.BASE_URL}${PLAYER_SPRITE_SRC})` }}
+          />
+        </div>
+      </div>
+
+      <div className="mission-selection-heading">
+        <div>
+          <div className="training-kicker">Mission Select</div>
+          <h3>Pick a path into the ancient world</h3>
+        </div>
+        <p>Four modes, one evidence toolkit. Start quick, go deep, or take the new platforming route.</p>
       </div>
 
       <div className="activity-menu-grid" aria-label="Choose an activity">
@@ -99,6 +122,7 @@ export function ActivityMenu({
           </div>
           <div className="activity-card-copy">
             <h3>Archaeologist Training</h3>
+            <div className="activity-mode-label">Practice</div>
             <p>Practise the five core investigation steps in isolation.</p>
           </div>
           <div className="activity-card-actions activity-card-button-group">
@@ -118,6 +142,7 @@ export function ActivityMenu({
           </div>
           <div className="activity-card-copy">
             <h3>Full Investigation</h3>
+            <div className="activity-mode-label">Site Mission</div>
             <p>Recover finds, sort evidence, and build a museum display.</p>
           </div>
           <div className="activity-card-actions activity-card-button-group">
@@ -146,6 +171,7 @@ export function ActivityMenu({
           </div>
           <div className="activity-card-copy">
             <h3>Antiquities Bureau</h3>
+            <div className="activity-mode-label">Deduction</div>
             <p>Open classified museum case files and solve evidence mysteries.</p>
           </div>
           <div className="activity-card-actions activity-card-button-group">
@@ -174,6 +200,7 @@ export function ActivityMenu({
           </div>
           <div className="activity-card-copy">
             <h3>Lost Site Expedition</h3>
+            <div className="activity-mode-label">Solo Adventure</div>
             <p>Explore ruins, navigate hazards, and identify the lost civilisation.</p>
           </div>
           <div className="activity-card-actions activity-card-button-group">

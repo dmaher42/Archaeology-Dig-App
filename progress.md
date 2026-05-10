@@ -247,3 +247,22 @@ Remaining notes:
 - Browser checks confirmed app load, main menu load, Antiquities Bureau routing, briefing modal, case title/brief readability, evidence folder visibility, profile card readability, profile rule-out interaction, reveal-clue interaction, back button, other mode menu buttons, no horizontal clipping, and no console errors. Screenshots were saved under `scratch/bureau-theme-verification/`.
 - `npm.cmd run build` passed, `npm.cmd run lint` passed, and `git diff --check` only reported the repo's LF-to-CRLF warnings.
 - Remaining risk: the dossier visuals are readable at laptop size, but a classroom projector check should still judge whether the paper texture and profile-card spacing feel strong enough from the back of the room.
+
+2026-05-10 update:
+- Completed the Main Menu UI Polish Pass.
+- Fixed the mission-card layout so all four cards, including Lost Site Expedition, fit on a normal laptop viewport with no horizontal clipping and wrap cleanly on narrower screens.
+- Updated the menu identity around `Lost Site Expedition` with `Archaeology Challenge` as the subtitle/series label, added a more cinematic landing hero, cropped the existing archaeologist sprite into the landing art, and gave the mission cards stronger adventure-game styling, readable mode labels, hover/focus states, and aligned buttons.
+- Replaced confusing disabled Save Progress / Load Progress buttons on the landing screen with a clear note that file save/load unlocks after a mission starts; the existing working save/load controls still appear in supported active modes.
+- Browser checks confirmed app load, polished main menu rendering, four visible unclipped mode cards, Expedition card fully visible, clean narrower-width wrapping, Training/Investigation/Bureau/Expedition button routing, clear save/load state, and no console errors. Screenshots were saved under `scratch/main-menu-polish-verification/`.
+- `npm.cmd run build` passed, `npm.cmd run lint` passed, and `git diff --check` only reported the repo's LF-to-CRLF warnings.
+- Remaining risk: the menu now visually matches the Journey direction much better, but a projector check should still judge whether the dark adventure palette remains bright enough in the classroom.
+
+2026-05-10 update:
+- Completed the Main Menu Responsive UI Polish Pass.
+- Fixed mission-card clipping by moving the main menu to a responsive card grid that fits all four cards at normal laptop width and wraps cleanly at narrower widths.
+- Tightened the menu hero, mission heading, card spacing, button alignment, and bottom padding so card actions are visible and no longer cut off on the desktop/laptop check.
+- Clarified Save Progress / Load Progress treatment on the menu: the inactive buttons are replaced by a clear header note that save/load files unlock after a mission starts.
+- Added menu visual polish using the existing expedition sprite/background identity, a subtle Lost Site Expedition accent, stronger readable labels, clearer focus states, and lower-opacity confidential stamps.
+- Browser checks confirmed app load, main menu display, all four mission cards visible at 1366px laptop width, Lost Site Expedition fully visible, no horizontal clipping, card buttons visible, clear save/load note, responsive wrapping/stacking at narrower widths, and all four mode buttons routing from the menu.
+- `npm.cmd run build` passed; `npm.cmd run lint` passed; `git diff --check` only reported the repo's LF-to-CRLF warnings.
+- Remaining risk: the desktop and narrow browser checks look show-off ready, but a real classroom projector check should still judge the final contrast and visual weight from the back of the room.
