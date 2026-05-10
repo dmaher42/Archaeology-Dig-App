@@ -59,6 +59,7 @@ import {
 import {
   ATLAS_TUNING_VERSION,
   createEnvironmentAssetState,
+  DESERT_VISUAL_TUNING_VERSION,
   drawAtlasRegion,
   ENVIRONMENT_ATLAS_JSON,
   getEnvironmentAssetKeyForHazard,
@@ -657,6 +658,8 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       backgroundDepthMode: renderStats.backgroundDepthMode || 'canvas-fallback',
       visibleLabelCount: renderStats.visibleLabelCount || 0,
       labelSuppressionActive: Boolean(renderStats.labelSuppressionActive),
+      platformVisualTuningActive: Boolean(renderStats.platformVisualTuningActive),
+      desertVisualTuningVersion: DESERT_VISUAL_TUNING_VERSION,
       atlasTuningVersion: ATLAS_TUNING_VERSION,
       activeAtlasRegionIssues: missingEnvironmentAssets,
       playerAttackBox,
@@ -1054,24 +1057,50 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     const isGround = platform.y === GROUND_Y;
     const section = getSectionForX(platform.x);
     const assetKey = getEnvironmentAssetKeyForPlatform(platform, section.id);
+    const visualHeight = isGround ? platform.height : Math.max(platform.height + 10, 28);
+    const visualY = platform.y;
+    const platformX = x - 2;
+    const platformWidth = platform.width + 4;
     ctx.fillStyle = isGround
       ? section.id === 'catacombs'
         ? '#2b211a'
         : '#9b7140'
       : '#5f4229';
-    ctx.fillRect(x - 1, platform.y, platform.width + 2, platform.height);
+    if (!isGround) {
+      ctx.fillStyle = 'rgba(28, 18, 10, 0.22)';
+      ctx.beginPath();
+      ctx.ellipse(x + platform.width / 2, platform.y + visualHeight + 3, platform.width * 0.44, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.fillStyle = isGround ? '#9b7140' : '#5f4229';
+    ctx.fillRect(platformX, visualY, platformWidth, visualHeight);
     const assetDrawn = drawAtlasRegion(
       ctx,
       environmentAssetsRef.current,
       assetKey,
-      { x: x - 1, y: platform.y, width: platform.width + 2, height: platform.height },
-      { mode: 'tileX', sourceInset: isGround ? 18 : 12, sourceInsetY: isGround ? 3 : 0, overlap: 2.5, tileScale: isGround ? 1.2 : 1 },
+      { x: platformX, y: visualY, width: platformWidth, height: visualHeight },
+      {
+        mode: 'tileX',
+        sourceInset: isGround ? 30 : 22,
+        sourceInsetY: isGround ? 5 : 4,
+        overlap: isGround ? 4 : 3,
+        tileScale: isGround ? 1.55 : 1.35,
+      },
     );
 
     if (assetDrawn) {
-      ctx.fillStyle = isGround ? 'rgba(69, 26, 3, 0.08)' : 'rgba(255, 255, 255, 0.08)';
-      ctx.fillRect(x, platform.y, platform.width, 3);
-      ctx.strokeStyle = 'rgba(37, 25, 14, 0.22)';
+      ctx.fillStyle = isGround ? 'rgba(69, 26, 3, 0.06)' : 'rgba(255, 247, 212, 0.2)';
+      ctx.fillRect(x, platform.y, platform.width, isGround ? 3 : 4);
+      if (!isGround) {
+        ctx.fillStyle = 'rgba(45, 28, 15, 0.24)';
+        ctx.fillRect(x, platform.y + visualHeight - 5, platform.width, 5);
+        ctx.strokeStyle = 'rgba(255, 247, 212, 0.2)';
+        ctx.beginPath();
+        ctx.moveTo(x + 4, platform.y + 2);
+        ctx.lineTo(x + platform.width - 4, platform.y + 2);
+        ctx.stroke();
+      }
+      ctx.strokeStyle = isGround ? 'rgba(37, 25, 14, 0.18)' : 'rgba(37, 25, 14, 0.34)';
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(x, platform.y + 1);
@@ -1596,11 +1625,8 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     ctx.lineWidth = 3;
     if (targetScreenX > 24 && targetScreenX < CANVAS_WIDTH - 24) {
       ctx.beginPath();
-      ctx.arc(targetScreenX, 292, 24 + pulse * 8, 0, Math.PI * 2);
+      ctx.arc(targetScreenX, 292, 20 + pulse * 6, 0, Math.PI * 2);
       ctx.stroke();
-      if (!suppressLabel) {
-        drawFieldNoteLabel(ctx, targetScreenX, 258, `Needed: ${target.label}`, '#78350f');
-      }
     } else {
       const arrowX = targetScreenX < 0 ? 30 : CANVAS_WIDTH - 30;
       const direction = targetScreenX < 0 ? -1 : 1;
@@ -1611,7 +1637,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       ctx.closePath();
       ctx.fill();
       if (!suppressLabel) {
-        drawFieldNoteLabel(ctx, arrowX + direction * 60, 92, `Need: ${target.label}`, '#78350f');
+        drawFieldNoteLabel(ctx, arrowX + direction * 50, 92, `Need ${target.label}`, '#78350f');
       }
     }
     ctx.restore();
@@ -1677,7 +1703,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       ctx.font = '900 12px Outfit, sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(visual.icon, hx + hazard.width / 2, baseY - 11);
-      if (nearPlayer && !hitActive && !current.renderStats?.labelSuppressionActive) {
+      if (nearPlayer && !hitActive && !current.renderStats?.labelSuppressionActive && current.hazardCooldown <= 0) {
         drawFieldNoteLabel(ctx, hx + hazard.width / 2, baseY - 34, visual.label, visual.color);
       }
       ctx.restore();
@@ -1798,7 +1824,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     ctx.textAlign = 'center';
     ctx.fillText(visual.icon, hx + hazard.width / 2, baseY - 11);
 
-    if (nearPlayer && !hitActive && !current.renderStats?.labelSuppressionActive) {
+    if (nearPlayer && !hitActive && !current.renderStats?.labelSuppressionActive && current.hazardCooldown <= 0) {
       drawFieldNoteLabel(ctx, hx + hazard.width / 2, baseY - 34, visual.label, visual.color);
     }
     ctx.restore();
@@ -2085,10 +2111,12 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       parallaxLayersActive: false,
       activeBackgroundSection: null,
       backgroundDepthMode: 'canvas-fallback',
+      platformVisualTuningActive: true,
+      desertVisualTuningVersion: DESERT_VISUAL_TUNING_VERSION,
     };
     const showWorldLabel = (worldX, distance = 150, priority = 'normal') => {
       const near = isPlayerNear(worldX, distance);
-      if (priority === 'critical') return near && !labelSuppressionActive;
+      if (priority === 'critical') return near && !labelSuppressionActive && Math.abs(worldX - playerCenterX) < distance;
       if (priority === 'combat') return near && !labelSuppressionActive;
       return near && !labelSuppressionActive;
     };

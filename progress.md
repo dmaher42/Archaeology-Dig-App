@@ -228,3 +228,14 @@ Remaining notes:
 - Browser/state checks confirmed app load, Lost Site Expedition launch, Journey start, Desert Entry parallax active, subtle camera-linked background movement, player/platform/hazard readability, route gate state intact, Base Camp opening through the existing dev path, Begin Excavation working, and no console errors. Screenshots were saved under `scratch/desert-background-verification-2/`.
 - `npm.cmd run build` passed, `npm.cmd run lint` passed, and `git diff --check` only reported the repo's LF-to-CRLF warning for the edited Journey file.
 - Remaining risk: the Desert Entry layer crops are tuned from the provided sheet and look cohesive in the early route screenshots, but a projector pass should still judge whether the distant ruins are subtle enough on classroom displays.
+
+2026-05-10 update:
+- Completed the Desert Entry final visual tuning pass before enemy sprite generation.
+- Tuned Desert Entry floating platforms to use existing sandstone atlas art with a thicker visual body, subtle underside shadow, top highlight, and unchanged collision boxes so the player feet still align to the platform top.
+- Reduced debug-like label clutter by removing the on-screen `Needed: Relic Shard` label from nearby objective rings, tightening critical-label proximity, and keeping route gate guidance in the gate panel/sidebar/notice.
+- Polished ground tiling with a wider inset atlas sample, stronger tile overlap, and larger horizontal tile scale to reduce repeated seams and obvious patterning while preserving ground collision.
+- Polished hazard feedback by keeping hazard icons/glows visible while suppressing hazard labels during active stamina-hit feedback so the warning reads as intentional game feedback rather than an editor rectangle.
+- Added `platformVisualTuningActive` and `desertVisualTuningVersion` to `render_game_to_text` for visual-regression checks.
+- Browser/state checks confirmed app load, Lost Site Expedition launch, Journey start, Desert Entry parallax still active, player sprite rendering, atlas platform mode, improved ledge/ground visuals, lower label counts, hazard feedback, camera follow, route gate state, Base Camp opening through the existing dev path, Begin Excavation working, and no console errors. Screenshots were saved under `scratch/desert-final-visual-tuning/`.
+- `npm.cmd run build` passed, `npm.cmd run lint` passed, and `git diff --check` only reported the repo's LF-to-CRLF warnings.
+- Remaining risk: Desert Entry is ready for enemy sprite generation, but final judgement on label size and distant-ruin contrast should still happen on the classroom projector.

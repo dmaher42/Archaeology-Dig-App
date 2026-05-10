@@ -1978,6 +1978,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         backgroundDepthMode: journeySnapshot.backgroundDepthMode || null,
         visibleLabelCount: journeySnapshot.visibleLabelCount || 0,
         labelSuppressionActive: Boolean(journeySnapshot.labelSuppressionActive),
+        platformVisualTuningActive: Boolean(journeySnapshot.platformVisualTuningActive),
+        desertVisualTuningVersion: journeySnapshot.desertVisualTuningVersion || null,
         atlasTuningVersion: journeySnapshot.atlasTuningVersion || null,
         activeAtlasRegionIssues: journeySnapshot.activeAtlasRegionIssues || [],
         playerInvulnerable: journeySnapshot.playerInvulnerable || 0,
