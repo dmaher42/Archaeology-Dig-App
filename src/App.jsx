@@ -346,11 +346,18 @@ export default function App() {
             </label>
           </div>
           {phase !== 'menu' && phase !== 'training' && !isBureauPhase && !isExpeditionPhase && (
-            <nav className="phase-navigation">
+            <nav className="phase-navigation" role="tablist">
               {['Dig', 'Sort', 'Lab', 'Museum', 'Report'].map((p, i) => (
-                <div key={p} className={`phase-nav-item ${phase.toLowerCase() === p.toLowerCase() ? 'active' : ''}`}>
+                <button 
+                  key={p} 
+                  className={`phase-nav-item ${phase.toLowerCase() === p.toLowerCase() ? 'active' : ''}`}
+                  onClick={() => setPhase(p.toLowerCase())}
+                  role="tab"
+                  aria-selected={phase.toLowerCase() === p.toLowerCase()}
+                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', font: 'inherit', color: 'inherit' }}
+                >
                   <span className="phase-num">{i + 1}</span> {p}
-                </div>
+                </button>
               ))}
             </nav>
           )}

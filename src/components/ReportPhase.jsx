@@ -77,7 +77,7 @@ export function ReportPhase({
   const curatedFinds = curatedItems || [];
 
   return (
-    <div className="phase-container report-phase">
+    <div className="phase-container report-phase bureau-phase">
       <div className="report-card glass-card">
         <div className="report-header">
           <div className="report-header-top">

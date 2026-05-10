@@ -32,6 +32,32 @@
   --shadow-dossier: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255,255,255,0.05);
   --card-radius: 2px; /* Sharp edges for paper */
   
+  /* Legacy/Base Expedition Tokens */
+  --sand-100: #F4ECE1;
+  --sand-200: #E6D5C3;
+  --sand-300: #D4BCA3;
+  --sand-400: #C2A383;
+  --sand-500: #A88661;
+  --sand-600: #8A6A48;
+  --sand-700: #6B5034;
+  --sand-800: #4A3620;
+  --sand-900: #291D11;
+  --text-color: #F4ECE1;
+  --accent: #E89E5D;
+  --accent-hover: #f3b482;
+  --success: #4ade80;
+
+  /* Bureau Aliases */
+  --bureau-parchment: var(--paper);
+  --bureau-parchment-dark: var(--paper-dark);
+  --bureau-ink: var(--text-ink);
+  --bureau-ink-muted: var(--text-ink-muted);
+  --bureau-gold: var(--folder-bg);
+  --bureau-gold-light: var(--folder-border);
+  --bureau-gold-dark: var(--folder-border);
+  --bureau-gold-muted: rgba(168, 134, 97, 0.5);
+  --bureau-shadow: var(--shadow-dossier);
+
   /* Retro-compatible vars */
   --arch-bg: var(--bg-color);
   --arch-text: var(--text-ink);
@@ -46,7 +72,7 @@ body {
   background-image: 
     radial-gradient(circle at 50% 0%, rgba(255, 230, 180, 0.05) 0%, transparent 60%),
     url("https://www.transparenttextures.com/patterns/dark-wood.png");
-  color: var(--text-ink);
+  color: var(--sand-100);
   min-height: 100vh;
   -webkit-font-smoothing: grayscale;
 }
