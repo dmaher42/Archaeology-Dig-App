@@ -40,6 +40,8 @@ const getCategoryIcon = (category) => {
 
 const getBureauTagLabel = (tag = '') => BUREAU_TAG_LABELS[tag] ?? tag.replace(/_/g, ' ');
 
+const BUREAU_DOSSIER_TABS = ['Dossier', 'Evidence', 'Profiles', 'Journal'];
+
 const getBureauClueTiers = (bureauCase) => {
   if (Array.isArray(bureauCase?.clueTiers) && bureauCase.clueTiers.length > 0) {
     return bureauCase.clueTiers;
@@ -506,6 +508,20 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
     ) : (
       <div className="bureau-investigation-layout">
         <article className="bureau-case-file">
+          <div className="bureau-file-banner" aria-label="Classified museum case file">
+            <span>Classified Museum Case File</span>
+            <strong>Antiquities Bureau</strong>
+          </div>
+          <nav className="bureau-dossier-tabs" aria-label="Bureau case sections">
+            {BUREAU_DOSSIER_TABS.map((tab) => (
+              <span
+                key={tab}
+                className={`bureau-dossier-tab ${tab === 'Dossier' ? 'active' : ''}`}
+              >
+                {tab}
+              </span>
+            ))}
+          </nav>
           <div className="bureau-report-header">
             <div className="bureau-case-info">
               <div className="training-kicker">Antiquities Case #{bureauState.caseIndex + 1}</div>
@@ -532,7 +548,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
           )}
 
           <p className="bureau-case-instruction">
-            Read the clues, check the suspect profiles, and keep narrowing the options.
+            Read the clues, check the civilisation profiles, and keep narrowing the options.
           </p>
 
           <div className="bureau-tier-tabs" aria-label="Case file clue tiers">
@@ -565,6 +581,10 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
           </div>
 
           <div className="bureau-evidence-box">
+            <div className="bureau-section-label">
+              <span>Evidence Folder</span>
+              <strong>{currentEvidenceText.length} filed</strong>
+            </div>
             <div className="bureau-evidence-text-list">
               {currentEvidenceText.map((item) => (
                 <div key={item.tier} className="bureau-clue-dossier-item">
@@ -611,7 +631,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
         <aside className="bureau-suspect-board">
           <div className="bureau-suspect-header">
             <div className="bureau-header-row">
-              <h2>Suspect Profiles</h2>
+              <h2>Civilisation Profiles</h2>
               <div className="bureau-unlock-tags">
                 {solvedCaseCount < 6 && (
                   <div className="bureau-unlock-tag">Training: {6 - solvedCaseCount} left</div>
@@ -621,7 +641,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
                 )}
               </div>
             </div>
-            <p className="bureau-suspect-instruction">Click a profile to rule out civilizations that don't match the evidence.</p>
+            <p className="bureau-suspect-instruction">Click a profile to rule out civilisations that do not match the evidence.</p>
           </div>
 
           <div className="bureau-suspect-grid">

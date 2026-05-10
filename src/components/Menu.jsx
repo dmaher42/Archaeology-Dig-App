@@ -146,7 +146,7 @@ export function ActivityMenu({
           </div>
           <div className="activity-card-copy">
             <h3>Antiquities Bureau</h3>
-            <p>Solve high-stakes civilisation cases using evidence clues.</p>
+            <p>Open classified museum case files and solve evidence mysteries.</p>
           </div>
           <div className="activity-card-actions activity-card-button-group">
             <button 
