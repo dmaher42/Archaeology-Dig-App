@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Backpack,
+  CheckCircle2,
   Flag,
   Gauge,
   Gem,
@@ -3071,20 +3072,57 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         <div className="expedition-briefing-overlay">
           <div className="expedition-briefing-card animate-slide-up">
             <div className="briefing-header">
-              <Flag className="text-amber-600" size={32} />
-              <h1 className="cinzel-header">Lost Site Expedition</h1>
-            </div>
-            <div className="briefing-content">
-              <p className="instruction-text">Navigate the ruins, recover relics, and secure the entrance to the dig site.</p>
-              <div className="mission-dossier">
-                <div className="dossier-tag">ACTIVE MISSION</div>
-                <h2 className="mission-title">{mission.title}</h2>
-                <p className="mission-desc">{mission.instruction}</p>
+              <div className="briefing-header-copy">
+                <div className="briefing-kicker">
+                  <Flag size={16} />
+                  Field Mission Dossier
+                </div>
+                <h1 className="cinzel-header">Lost Site Expedition</h1>
+                <p>Navigate the ruins, collect your field kit, and reach Base Camp.</p>
+              </div>
+              <div className="briefing-hero-mark" aria-hidden="true">
+                <span className="briefing-sun" />
+                <span
+                  className="briefing-hero-sprite"
+                  style={{ backgroundImage: `url(${PLAYER_SPRITE_SRC})` }}
+                />
               </div>
             </div>
-            <button className="expedition-begin-btn" onClick={() => setBriefingOpen(false)}>
-              Initialize Expedition
-            </button>
+            <div className="briefing-content">
+              <div className="mission-dossier expedition-start-dossier">
+                <div className="dossier-tag">ACTIVE MISSION</div>
+                <h2 className="mission-title">{mission.title}</h2>
+                <p className="mission-desc">
+                  Search for evidence that shows Ancient Egypt had advanced engineering and organised construction.
+                </p>
+              </div>
+              <div className="briefing-task-panel">
+                <div className="briefing-task-heading">
+                  <Map size={18} />
+                  <h2>Your task</h2>
+                </div>
+                <ul className="briefing-task-list">
+                  {[
+                    'Collect field tools',
+                    'Avoid hazards and conserve stamina',
+                    'Reach Base Camp',
+                    'Survey the site',
+                    'Find 3 pieces of structural evidence',
+                    'Make a claim using evidence',
+                  ].map(task => (
+                    <li key={task}>
+                      <CheckCircle2 size={16} />
+                      <span>{task}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+            <div className="briefing-actions">
+              <button type="button" className="expedition-begin-btn" onClick={() => setBriefingOpen(false)}>
+                Begin Expedition
+              </button>
+            </div>
           </div>
         </div>
       )}

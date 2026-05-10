@@ -102,22 +102,27 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
     if (!element || typeof ResizeObserver === 'undefined') return undefined;
 
     const updateBoardFit = () => {
-      const width = element.clientWidth;
-      const height = element.clientHeight;
+      const styles = window.getComputedStyle(element);
+      const horizontalPadding = parseFloat(styles.paddingLeft) + parseFloat(styles.paddingRight);
+      const verticalPadding = parseFloat(styles.paddingTop) + parseFloat(styles.paddingBottom);
+      const width = element.clientWidth - horizontalPadding;
+      const height = element.clientHeight - verticalPadding;
       if (!width || !height) return;
 
-      const gapSize = 6;
+      const gapSize = window.matchMedia('(max-height: 820px), (max-width: 900px)').matches ? 4 : 5;
+      const maxTileSize = window.matchMedia('(max-height: 820px) and (min-width: 901px)').matches ? 132 : 150;
       const tileSize = Math.max(1, Math.floor(Math.min(
         (width - (gapSize * (boardColumns - 1))) / boardColumns,
         (height - (gapSize * (boardRows - 1))) / boardRows,
+        maxTileSize,
       )));
       const nextWidth = (tileSize * boardColumns) + (gapSize * (boardColumns - 1));
       const nextHeight = (tileSize * boardRows) + (gapSize * (boardRows - 1));
 
       setBoardFit(prev => (
-        prev.width === nextWidth && prev.height === nextHeight
+        prev.width === nextWidth && prev.height === nextHeight && prev.gap === gapSize
           ? prev
-          : { width: nextWidth, height: nextHeight }
+          : { width: nextWidth, height: nextHeight, gap: gapSize }
       ));
     };
 
@@ -499,7 +504,7 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
             style={boardFit.width && boardFit.height ? {
               width: `${boardFit.width}px`,
               height: `${boardFit.height}px`,
-              gap: '6px',
+              gap: `${boardFit.gap}px`,
               gridTemplateColumns: `repeat(${boardColumns}, minmax(0, 1fr))`,
               gridTemplateRows: `repeat(${boardRows}, minmax(0, 1fr))`,
             } : undefined}

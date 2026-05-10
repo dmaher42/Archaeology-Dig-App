@@ -266,3 +266,61 @@ Remaining notes:
 - Browser checks confirmed app load, main menu display, all four mission cards visible at 1366px laptop width, Lost Site Expedition fully visible, no horizontal clipping, card buttons visible, clear save/load note, responsive wrapping/stacking at narrower widths, and all four mode buttons routing from the menu.
 - `npm.cmd run build` passed; `npm.cmd run lint` passed; `git diff --check` only reported the repo's LF-to-CRLF warnings.
 - Remaining risk: the desktop and narrow browser checks look show-off ready, but a real classroom projector check should still judge the final contrast and visual weight from the back of the room.
+
+2026-05-10 update:
+- Completed the Expedition Briefing Modal Polish Pass for the Lost Site Expedition Journey start screen.
+- Reworded the launch button from `Initialize Expedition` to `Begin Expedition`, tightened the title/subtitle, and made the mission brief clearer for Year 7 students.
+- Added a compact `Your task` checklist covering field tools, hazards/stamina, Base Camp, survey, 3 structural evidence finds, and evidence-based claiming.
+- Reworked the modal layout with a stronger adventure dossier header, existing archaeologist sprite treatment, mission card, checklist panel, polished primary button, hover/focus styling, and responsive sizing.
+- Preserved Journey gameplay logic, mission requirements, movement/combat/hazards/route gates/background/player rendering, Base Camp handoff, excavation systems, BureauMode.jsx, and gameLogic.js.
+- Browser checks confirmed app load, Lost Site Expedition routing, polished briefing modal display, non-technical `Begin Expedition` button, movement input paused while the modal remains open, Journey start after clicking, no laptop clipping, and no console errors. Screenshots were saved under `scratch/expedition-briefing-polish/`.
+- `npm.cmd run build` passed; `npm.cmd run lint` passed; `git diff --check` only reported the repo's LF-to-CRLF warnings.
+- Remaining risk: the modal is much closer to an exciting launch screen, but a classroom projector pass should still judge whether the parchment contrast and small checklist text read clearly from the back of the room.
+
+2026-05-10 update:
+- Completed the Main Menu One-Screen Layout Fix + Hover Stability Pass.
+- Reduced the header/menu vertical footprint, shortened the hero strip, tightened mission-heading spacing, compacted the save/load note, and adjusted card spacing so the full landing menu fits a 1366x768 laptop viewport without vertical or horizontal scrolling.
+- Fixed hover movement by removing the card `translateY` lift on hover/focus and keeping card dimensions, padding, border width, grid gap, and content flow stable before and after hover.
+- Confirmed all four cards and their primary buttons remain visible, with buttons pinned inside the card bottom area and no card/button clipping.
+- Browser checks confirmed app load, main menu display, no vertical scrolling, no horizontal scrolling, all four cards visible, all primary buttons visible, stable card hover including Lost Site Expedition, compact save/load message, all four route buttons still working, and no console errors.
+- `npm.cmd run build` passed; `npm.cmd run lint` passed; `git diff --check` only reported the repo's LF-to-CRLF warnings.
+- Remaining risk: the 1366x768 laptop/projector target is now one-screen and stable; smaller laptop heights or browser UI zoom should still be judged in the actual classroom setup.
+
+2026-05-10 update:
+- Completed the World-map Site Selection UI pass.
+- Replaced the dark sci-fi/radar map treatment with a parchment expedition planning-table style using aged-paper texture, wood/dossier framing, red route-string styling, compass/map-grid motifs, and readable archive labels.
+- Added visible map markers for Egypt, Lake Mungo, Rome and China, implemented as stable positioned buttons over the map so marker click/focus selection works reliably and highlights the selected site.
+- Improved the site list and selected-site dossier with short mission hooks, location/focus details, selected state, a clear `Begin Site Mission` action, and a working `Random` action that still routes through the existing investigation start path.
+- Browser checks confirmed app load, main menu load, site-selection open, map visible, all four markers visible, all four site cards visible, selected marker/list/dossier sync, marker click selection, Random routing, Begin Site Mission routing, no 1366x768 page scrolling, no horizontal overflow at desktop or narrower width, and no console errors. Screenshot saved at `scratch/site-selection-world-map-desktop.png`.
+- `npm.cmd run build` passed; `npm.cmd run lint` passed; `git diff --check` only reported the repo's LF-to-CRLF warnings.
+- Remaining risk: the parchment map is intentionally stylised rather than geographically precise; a projector pass should still judge marker-label readability from the back of the room.
+
+2026-05-10 update:
+- Completed the Full Investigation Dig Phase One-Screen Layout Pass.
+- Confirmed `src/components/DigPhase.jsx` is the canonical Dig/matching-board component, mounted from `App.jsx` when the app phase is `dig`.
+- Fixed card grid sizing by subtracting board padding from the usable fit calculation, tightening the grid gap, and capping tile size on laptop-height viewports so the full matching grid remains visible.
+- Improved header/status/bottom HUD layout with a Dig-specific compact app wrapper class, smaller progress tracker, tighter status/timer row, clearer high-contrast instruction strip, compact footer stats, and a repositioned field-note card that no longer covers the HUD.
+- Browser checks confirmed app load, main menu, Full Investigation site selection, Dig phase launch, readable instruction/timer/progress tracker, visible full grid and bottom HUD, Field Guide access, card clicking, Recovered update after a match, Attempts update after a non-match, no horizontal overflow, no full-page vertical scrolling at 1366x768, clean 900px-width fit, and no console errors. Screenshot saved at `scratch/dig-one-screen-after.png`.
+- `npm.cmd run build` passed; `npm.cmd run lint` passed; `git diff --check` only reported the repo's LF-to-CRLF warnings.
+- Remaining risk: the layout is verified at normal laptop/projector dimensions, but a real classroom projector pass should still judge whether the 102-132px card sizes are ideal from the back of the room.
+
+2026-05-10 update:
+- Completed the Parchment World Map Site Selection pass.
+- Integrated the new world map image at `public/assets/expedition/maps/world-expedition-map.png` and replaced the CSS/SVG placeholder map with an image-backed parchment planning table.
+- Added load/error handling on the map image with testing data fields for `selectedSite`, `worldMapLoaded`, `worldMapFallbackActive`, `visibleMapMarkers`, and `selectedMapMarker`, plus a parchment fallback panel if the image fails.
+- Kept interactive app markers over the decorative map pins for Egypt, Lake Mungo, Rome and China, with hover/focus/selected states and reliable marker-to-dossier selection.
+- Updated the site list and selected-site dossier copy so list hooks remain readable and the pinned dossier shows the fuller mission focus plus the existing `Begin Site Mission` action.
+- Browser checks confirmed app load, main menu, site-selection open, parchment map image load, all four markers visible, marker clicks selecting the correct site, site list selection matching the marker, selected-site panel updates, Random routing, Begin Site Mission routing, normal laptop/projector fit, no horizontal overflow, and no console errors. Screenshot saved at `scratch/site-selection-parchment-map.png`.
+- `npm.cmd run build` passed; `npm.cmd run lint` passed; `git diff --check` only reported the repo's LF-to-CRLF warnings.
+- Remaining risk: marker placement is approximate against the generated map art; it looks aligned for the current image, but should be judged once on the classroom projector.
+
+2026-05-10 update:
+- Completed the Global Header Compact Mode-Aware Layout Pass.
+- Confirmed the global header is rendered once in `src/App.jsx`; no duplicate header was created.
+- Kept the larger branded header on the main menu while adding a compact in-game header mode for Training, Full Investigation, site selection, Antiquities Bureau, and Lost Site Expedition.
+- Added a small site-selection state bridge from `Menu.jsx` to `App.jsx` so the site-selection screen can use the compact header even though the app phase remains `menu`.
+- Updated compact header titles/subtitles to show the current mode or phase, including `Full Investigation - Site Selection`, `Full Investigation - Phase 1: Dig`, `Antiquities Bureau - Case File`, and `Lost Site Expedition - Solo Adventure`.
+- Made the save/load treatment secondary: the large menu note remains only on the landing screen, gameplay save/load buttons are smaller, and unsupported short modes show a tiny secondary note instead of a dominant warning.
+- Browser checks confirmed app load, larger main-menu header, compact headers for Training, Full Investigation site selection, Dig, Antiquities Bureau, and Lost Site Expedition, no hidden content under the header, existing back/menu controls visible where supported, no horizontal overflow, no full-page vertical overflow in checked screens, and no console errors.
+- `npm.cmd run build` passed; `npm.cmd run lint` passed; `git diff --check` only reported the repo's LF-to-CRLF warnings.
+- Remaining risk: Dig still has a slightly taller compact header than other modes because the phase tracker remains in the global header; it is improved, but a future pass could move the phase tracker into the Dig HUD if more vertical space is needed.

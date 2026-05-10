@@ -186,9 +186,47 @@ export default function App() {
   const [bureauState, setBureauState] = useState(initialBureauGame);
   const [saveMessage, setSaveMessage] = useState('');
   const [showDevTools, setShowDevTools] = useState(false);
+  const [isSiteSelectionActive, setIsSiteSelectionActive] = useState(false);
   const isBureauPhase = phase.startsWith('bureau');
   const isExpeditionPhase = phase === 'expedition';
+  const isMenuLanding = phase === 'menu' && !isSiteSelectionActive;
+  const isCompactHeader = !isMenuLanding;
   const canUseProgressFiles = phase !== 'menu' && !isExpeditionPhase;
+
+  const phaseTitleMap = {
+    training: 'Archaeologist Training',
+    dig: 'Full Investigation',
+    sort: 'Full Investigation',
+    lab: 'Full Investigation',
+    museum: 'Full Investigation',
+    report: 'Full Investigation',
+    expedition: 'Lost Site Expedition',
+  };
+
+  const phaseSubtitleMap = {
+    training: 'Practice',
+    dig: 'Phase 1: Dig',
+    sort: 'Phase 2: Sort',
+    lab: 'Phase 3: Lab',
+    museum: 'Phase 4: Museum',
+    report: 'Phase 5: Report',
+    expedition: 'Solo Adventure',
+  };
+
+  const headerTitle = isSiteSelectionActive
+    ? 'Full Investigation'
+    : isBureauPhase
+      ? 'Antiquities Bureau'
+      : isMenuLanding
+        ? 'Lost Site Expedition'
+        : phaseTitleMap[phase] || 'Archaeology Challenge';
+  const headerSubtitle = isSiteSelectionActive
+    ? 'Site Selection'
+    : isBureauPhase
+      ? 'Case File'
+      : isMenuLanding
+        ? 'Archaeology Challenge'
+        : phaseSubtitleMap[phase] || 'Evidence Toolkit';
 
   // Autosave Logic
   useEffect(() => {
@@ -239,6 +277,7 @@ export default function App() {
   // Persistence Actions
   const applySavedSession = (session) => {
     if (!session) return;
+    setIsSiteSelectionActive(false);
     setPhase(session.phase);
     if (session.mode === 'bureau') {
       setBureauState(session.bureauState);
@@ -275,11 +314,13 @@ export default function App() {
 
   const handleStartBureau = () => {
     const next = createNewBureauSession('bureauBriefing');
+    setIsSiteSelectionActive(false);
     setBureauState(next);
     setPhase(next.phase);
   };
 
   const handleStartExpedition = () => {
+    setIsSiteSelectionActive(false);
     setPhase('expedition');
   };
 
@@ -324,23 +365,23 @@ export default function App() {
   };
 
   return (
-    <div className="app-wrapper">
-      <header className="main-header hide-on-print">
+    <div className={`app-wrapper app-wrapper--${phase} ${isCompactHeader ? 'app-wrapper--compact-header' : 'app-wrapper--menu-header'} ${isSiteSelectionActive ? 'app-wrapper--site-selection' : ''}`}>
+      <header className={`main-header hide-on-print ${isCompactHeader ? 'main-header--compact' : 'main-header--menu'}`}>
         <div className="header-left">
           <div className="header-icon-container">
-            {isBureauPhase ? <Archive size={28} className="header-main-icon" /> : <Pickaxe size={28} className="header-main-icon" />}
+            {isBureauPhase ? <Archive size={isCompactHeader ? 18 : 28} className="header-main-icon" /> : <Pickaxe size={isCompactHeader ? 18 : 28} className="header-main-icon" />}
           </div>
           <div className="header-titles">
-            <h1>{isBureauPhase ? 'The Antiquities Bureau' : (isExpeditionPhase || phase === 'menu') ? 'Lost Site Expedition' : 'Archaeology Challenge'}</h1>
-            <p>{isBureauPhase ? 'Ancient Civilisation Clues' : isExpeditionPhase ? 'Collect evidence, avoid site hazards, and make a claim.' : phase === 'menu' ? 'Archaeology Challenge' : 'What can evidence tell us about the ancient past?'}</p>
+            <h1>{headerTitle}</h1>
+            <p>{headerSubtitle}</p>
           </div>
         </div>
         <div className="header-right">
-          {phase === 'menu' ? (
+          {isMenuLanding ? (
             <div className="save-controls save-controls--menu-note" role="note">
               Save and load files unlock after a mission starts.
             </div>
-          ) : (
+          ) : canUseProgressFiles ? (
             <div className="save-controls">
               <button className="save-control-btn" onClick={handleSaveProgressFile} disabled={!canUseProgressFiles}>
                 <Save size={16} /> Save Progress
@@ -349,6 +390,10 @@ export default function App() {
                 <Upload size={16} /> Load Progress
                 <input type="file" accept=".json" onChange={handleLoadProgressFile} disabled={!canUseProgressFiles} hidden />
               </label>
+            </div>
+          ) : (
+            <div className="save-controls save-controls--compact-note" role="note">
+              Save files unavailable here
             </div>
           )}
           {phase !== 'menu' && phase !== 'training' && !isBureauPhase && !isExpeditionPhase && (
@@ -382,6 +427,7 @@ export default function App() {
             savedGames={savedGames}
             onResumeInvestigation={() => applySavedSession(savedGames.archaeology)}
             onResumeBureau={() => applySavedSession(savedGames.bureau)}
+            onSiteSelectionChange={setIsSiteSelectionActive}
           />
         )}
 
