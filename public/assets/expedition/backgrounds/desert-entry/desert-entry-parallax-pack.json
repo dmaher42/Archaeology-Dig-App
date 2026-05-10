@@ -1,0 +1,13 @@
+{
+  "image": "desert-entry-parallax-pack.png",
+  "imageWidth": 1536,
+  "imageHeight": 1024,
+  "notes": "Approximate horizontal-band atlas from the Desert Entry Parallax Background Pack. Sky uses the full atmosphere band; parallax bands crop closer to the dune/ruin content so repeated layer skies do not create hard horizontal seams.",
+  "regions": {
+    "sky": { "x": 33, "y": 42, "w": 1470, "h": 198 },
+    "farDunes": { "x": 33, "y": 323, "w": 1470, "h": 98 },
+    "distantRuins": { "x": 33, "y": 501, "w": 1470, "h": 91 },
+    "midgroundRuins": { "x": 33, "y": 680, "w": 1470, "h": 102 },
+    "foregroundAtmosphere": { "x": 33, "y": 861, "w": 1470, "h": 115 }
+  }
+}

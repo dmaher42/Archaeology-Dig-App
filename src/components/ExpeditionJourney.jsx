@@ -68,6 +68,14 @@ import {
   loadEnvironmentAssetPack,
 } from './expedition-journey/journeyRenderAssets';
 
+import {
+  createDesertBackgroundAssetState,
+  DESERT_BACKGROUND_DEPTH_MODE,
+  drawDesertBackgroundLayer,
+  getMissingDesertBackgroundAssets,
+  loadDesertBackgroundAssetPack,
+} from './expedition-journey/journeyBackgroundAssets';
+
 const DEFAULT_BOSS_ATTACK_PHASES = [
   {
     id: 'heavy-swipe',
@@ -279,6 +287,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
   const animationRef = useRef(null);
   const playerSpriteRef = useRef({ image: null, loaded: false, failed: false });
   const environmentAssetsRef = useRef(createEnvironmentAssetState());
+  const desertBackgroundAssetsRef = useRef(createDesertBackgroundAssetState());
 
   // Sync ref for the physics loop
   useEffect(() => {
@@ -314,6 +323,14 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     baseUrl: import.meta.env.BASE_URL,
     onUpdate: (assets) => {
       environmentAssetsRef.current = assets;
+      syncHud();
+    },
+  }), [syncHud]);
+
+  useEffect(() => loadDesertBackgroundAssetPack({
+    baseUrl: import.meta.env.BASE_URL,
+    onUpdate: (assets) => {
+      desertBackgroundAssetsRef.current = assets;
       syncHud();
     },
   }), [syncHud]);
@@ -594,6 +611,11 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     const environmentAssets = environmentAssetsRef.current;
     const missingEnvironmentAssets = getMissingEnvironmentAssets(environmentAssets);
     const environmentFallbackActive = !environmentAssets.loaded || environmentAssets.failed || missingEnvironmentAssets.length > 0;
+    const desertBackgroundAssets = desertBackgroundAssetsRef.current;
+    const missingDesertBackgroundAssets = getMissingDesertBackgroundAssets(desertBackgroundAssets);
+    const desertBackgroundFallbackActive = !desertBackgroundAssets.loaded
+      || desertBackgroundAssets.failed
+      || missingDesertBackgroundAssets.length > 0;
     const renderStats = current.renderStats || {};
     const playerAttackBox = current.playerAttackBox
       ? {
@@ -627,6 +649,12 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       platformArtMode: environmentAssets.loaded ? 'atlas' : 'canvas-fallback',
       hazardArtMode: environmentAssets.loaded ? 'atlas' : 'canvas-fallback',
       gateArtMode: environmentAssets.loaded ? 'atlas' : 'canvas-fallback',
+      desertBackgroundAssetsLoaded: desertBackgroundAssets.loaded,
+      desertBackgroundAssetsReady: desertBackgroundAssets.ready,
+      desertBackgroundFallbackActive,
+      parallaxLayersActive: Boolean(renderStats.parallaxLayersActive),
+      activeBackgroundSection: renderStats.activeBackgroundSection || null,
+      backgroundDepthMode: renderStats.backgroundDepthMode || 'canvas-fallback',
       visibleLabelCount: renderStats.visibleLabelCount || 0,
       labelSuppressionActive: Boolean(renderStats.labelSuppressionActive),
       atlasTuningVersion: ATLAS_TUNING_VERSION,
@@ -1376,6 +1404,34 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     ctx.restore();
   }, []);
 
+  const drawDesertEntryBackground = useCallback((ctx, section, cameraX) => {
+    const isNearDesertEntry = section.id === 'desert-entry' || cameraX < SECTIONS[1].start - CANVAS_WIDTH * 0.45;
+    const assets = desertBackgroundAssetsRef.current;
+    if (!isNearDesertEntry || !assets.ready) return false;
+
+    const layerOptions = { canvasWidth: CANVAS_WIDTH, cameraX };
+    const drawn = [
+      drawDesertBackgroundLayer(ctx, assets, 'sky', { y: 0, height: 285 }, { ...layerOptions, parallax: 0.03, alpha: 0.94 }),
+      drawDesertBackgroundLayer(ctx, assets, 'farDunes', { y: 208, height: 108 }, { ...layerOptions, parallax: 0.12, alpha: 0.48 }),
+      drawDesertBackgroundLayer(ctx, assets, 'distantRuins', { y: 236, height: 100 }, { ...layerOptions, parallax: 0.22, alpha: 0.42 }),
+      drawDesertBackgroundLayer(ctx, assets, 'midgroundRuins', { y: 260, height: 104 }, { ...layerOptions, parallax: 0.35, alpha: 0.46 }),
+    ];
+    return drawn.every(Boolean);
+  }, []);
+
+  const drawDesertForegroundAtmosphere = useCallback((ctx, section, cameraX) => {
+    const isNearDesertEntry = section.id === 'desert-entry' || cameraX < SECTIONS[1].start - CANVAS_WIDTH * 0.45;
+    const assets = desertBackgroundAssetsRef.current;
+    if (!isNearDesertEntry || !assets.ready) return false;
+    return drawDesertBackgroundLayer(
+      ctx,
+      assets,
+      'foregroundAtmosphere',
+      { y: 318, height: 84 },
+      { canvasWidth: CANVAS_WIDTH, cameraX, parallax: 0.45, alpha: 0.18 },
+    );
+  }, []);
+
   const drawTempleBackdrop = useCallback((ctx, section, cameraX) => {
     if (section.id !== 'ruined-temple') return;
 
@@ -2026,6 +2082,9 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       labelSuppressionActive,
       atlasTuningVersion: ATLAS_TUNING_VERSION,
       activeAtlasRegionIssues: getMissingEnvironmentAssets(environmentAssetsRef.current),
+      parallaxLayersActive: false,
+      activeBackgroundSection: null,
+      backgroundDepthMode: 'canvas-fallback',
     };
     const showWorldLabel = (worldX, distance = 150, priority = 'normal') => {
       const near = isPlayerNear(worldX, distance);
@@ -2036,27 +2095,34 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
 
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    // Sky
-    const skyGradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-    skyGradient.addColorStop(0, atmosphere.skyTop);
-    skyGradient.addColorStop(1, atmosphere.skyBottom);
-    ctx.fillStyle = skyGradient;
-    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    const desertBackgroundDrawn = drawDesertEntryBackground(ctx, section, cameraX);
+    if (desertBackgroundDrawn) {
+      current.renderStats.parallaxLayersActive = true;
+      current.renderStats.activeBackgroundSection = 'desert-entry';
+      current.renderStats.backgroundDepthMode = DESERT_BACKGROUND_DEPTH_MODE;
+    } else {
+      // Sky
+      const skyGradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
+      skyGradient.addColorStop(0, atmosphere.skyTop);
+      skyGradient.addColorStop(1, atmosphere.skyBottom);
+      ctx.fillStyle = skyGradient;
+      ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    // Parallax Hills
-    ctx.fillStyle = section.id === 'catacombs' ? 'rgba(0, 0, 0, 0.28)' : 'rgba(112, 73, 42, 0.16)';
-    for (let hill = -160; hill < WORLD_WIDTH; hill += 240) {
-      ctx.beginPath();
-      ctx.ellipse(hill - cameraX * 0.34, 355, 180, 45, 0, 0, Math.PI * 2);
-      ctx.fill();
-    }
+      // Parallax Hills
+      ctx.fillStyle = section.id === 'catacombs' ? 'rgba(0, 0, 0, 0.28)' : 'rgba(112, 73, 42, 0.16)';
+      for (let hill = -160; hill < WORLD_WIDTH; hill += 240) {
+        ctx.beginPath();
+        ctx.ellipse(hill - cameraX * 0.34, 355, 180, 45, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
 
-    // Parallax Ridges
-    ctx.fillStyle = section.id === 'dig-site-entrance' ? 'rgba(34, 84, 61, 0.18)' : 'rgba(53, 40, 30, 0.14)';
-    for (let ridge = -260; ridge < WORLD_WIDTH; ridge += 360) {
-      ctx.beginPath();
-      ctx.ellipse(ridge - cameraX * 0.18, 242, 220, 58, 0, 0, Math.PI * 2);
-      ctx.fill();
+      // Parallax Ridges
+      ctx.fillStyle = section.id === 'dig-site-entrance' ? 'rgba(34, 84, 61, 0.18)' : 'rgba(53, 40, 30, 0.14)';
+      for (let ridge = -260; ridge < WORLD_WIDTH; ridge += 360) {
+        ctx.beginPath();
+        ctx.ellipse(ridge - cameraX * 0.18, 242, 220, 58, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
 
     // --- Ground & Props ---
@@ -2080,6 +2146,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     renderParallaxLayer(0.08, `${atmosphere.skyBottom}66`, 1.3);
     renderParallaxLayer(0.18, `${atmosphere.skyBottom}99`, 0.9);
     renderParallaxLayer(0.28, `${atmosphere.skyBottom}cc`, 0.5);
+    drawDesertForegroundAtmosphere(ctx, section, cameraX);
 
     // --- Entities ---
     PLATFORMS.forEach((platform) => drawPlatform(ctx, platform, cameraX, current));
@@ -2248,7 +2315,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       ctx.fillText(featureCard.message || '', 450, 135);
       ctx.textAlign = 'start';
     }
-  }, [drawAttackArc, drawCollectible, drawCombatEffects, drawEnemyAttackTell, drawHazard, drawMiniBoss, drawMissingObjectiveMarker, drawParticles, drawPlatform, drawRouteGate, drawStoryProp, drawTempleBackdrop, getGateGuidance, getGateRequirements, drawPlayerSprite, drawFieldNoteLabel]);
+  }, [drawAttackArc, drawCollectible, drawCombatEffects, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawEnemyAttackTell, drawHazard, drawMiniBoss, drawMissingObjectiveMarker, drawParticles, drawPlatform, drawRouteGate, drawStoryProp, drawTempleBackdrop, getGateGuidance, getGateRequirements, drawPlayerSprite, drawFieldNoteLabel]);
 
   const queueAttack = useCallback(() => {
     const current = stateRef.current;

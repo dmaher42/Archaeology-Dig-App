@@ -218,3 +218,13 @@ Remaining notes:
 - Browser/state checks confirmed app load, Lost Site Expedition launch, Journey start, player sprite rendering, atlas platform/hazard/gate modes, continuous ground, clearer hazards with stamina feedback, reduced labels in crowded gate/boss areas, route gate state intact, Base Camp opening through the existing dev path, Begin Excavation working, and no console errors. Screenshots were saved under `scratch/environment-tuning-verification-final/`.
 - `npm.cmd run build` passed, `npm.cmd run lint` passed, and `git diff --check` only reported the repo's LF-to-CRLF warnings.
 - Remaining visual risk: early Desert Entry and the first gate now look much more polished, but late-section gates and atlas crops should still get a slower human projector pass before enemy sprite generation locks the full art direction.
+
+2026-05-10 update:
+- Integrated the Desert Entry Parallax Background Pack for the Lost Site Expedition Journey stage.
+- Added the background atlas image and metadata at `public/assets/expedition/backgrounds/desert-entry/desert-entry-parallax-pack.png` and `desert-entry-parallax-pack.json`.
+- Added a safe Desert Entry background loader/render helper with one-time JSON/image loading, missing-layer reporting, parallax tiling, and fallback to the existing drawn background if the pack fails.
+- Applied the parallax background only to Desert Entry and near the first Desert Entry gate; Ruined Temple, Catacombs, Escape Sequence, and Dig Site Entrance still use the existing background treatment.
+- Added `render_game_to_text` fields for `desertBackgroundAssetsLoaded`, `desertBackgroundAssetsReady`, `desertBackgroundFallbackActive`, `parallaxLayersActive`, `activeBackgroundSection`, and `backgroundDepthMode`.
+- Browser/state checks confirmed app load, Lost Site Expedition launch, Journey start, Desert Entry parallax active, subtle camera-linked background movement, player/platform/hazard readability, route gate state intact, Base Camp opening through the existing dev path, Begin Excavation working, and no console errors. Screenshots were saved under `scratch/desert-background-verification-2/`.
+- `npm.cmd run build` passed, `npm.cmd run lint` passed, and `git diff --check` only reported the repo's LF-to-CRLF warning for the edited Journey file.
+- Remaining risk: the Desert Entry layer crops are tuned from the provided sheet and look cohesive in the early route screenshots, but a projector pass should still judge whether the distant ruins are subtle enough on classroom displays.
