@@ -1,7 +1,8 @@
 export const BOSS_SPRITE_BASE_PATH = 'assets/expedition/bosses/';
 export const BOSS_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}scarab-queen-sprites.json`;
 export const STONE_GUARDIAN_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}stone-guardian-sprites.json`;
-export const BOSS_SPRITE_ATLAS_VERSION = 'boss-sprites-scarab-queen-stone-guardian-2026-05-11';
+export const ANCIENT_CONSTRUCT_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}ancient-construct-sprites.json`;
+export const BOSS_SPRITE_ATLAS_VERSION = 'boss-sprites-scarab-queen-stone-guardian-ancient-construct-2026-05-11';
 
 export const SCARAB_QUEEN_SPRITE_KEYS = [
   'scarabQueenIdle',
@@ -31,9 +32,24 @@ export const STONE_GUARDIAN_SPRITE_KEYS = [
   'stoneGuardianDefeated',
 ];
 
+export const ANCIENT_CONSTRUCT_SPRITE_KEYS = [
+  'ancientConstructIdle',
+  'ancientConstructWalk1',
+  'ancientConstructWalk2',
+  'ancientConstructIntro',
+  'ancientConstructWindup',
+  'ancientConstructSlam',
+  'ancientConstructPulse',
+  'ancientConstructShielded',
+  'ancientConstructCounterWindow',
+  'ancientConstructHit',
+  'ancientConstructDefeated',
+];
+
 export const EXPECTED_BOSS_SPRITE_KEYS = [
   ...SCARAB_QUEEN_SPRITE_KEYS,
   ...STONE_GUARDIAN_SPRITE_KEYS,
+  ...ANCIENT_CONSTRUCT_SPRITE_KEYS,
 ];
 
 const BOSS_SPRITE_PACKS = {
@@ -44,6 +60,10 @@ const BOSS_SPRITE_PACKS = {
   'temple-guardian': {
     atlasPath: STONE_GUARDIAN_SPRITE_ATLAS_JSON,
     expectedKeys: STONE_GUARDIAN_SPRITE_KEYS,
+  },
+  'ancient-construct': {
+    atlasPath: ANCIENT_CONSTRUCT_SPRITE_ATLAS_JSON,
+    expectedKeys: ANCIENT_CONSTRUCT_SPRITE_KEYS,
   },
 };
 
@@ -184,6 +204,23 @@ export const getStoneGuardianSpriteFrame = (boss, combatMode, bossVisualState = 
   return frameToggle ? 'stoneGuardianWalk2' : 'stoneGuardianWalk1';
 };
 
+export const getAncientConstructSpriteFrame = (boss, combatMode, bossVisualState = {}, now = 0) => {
+  if (boss?.id !== 'ancient-construct') return null;
+
+  if (combatMode === 'defeated') return 'ancientConstructDefeated';
+  if (boss.hitFlash > 0 || combatMode === 'stunned') return 'ancientConstructHit';
+  if (bossVisualState.shielded) return 'ancientConstructShielded';
+  if (bossVisualState.vulnerable) return 'ancientConstructCounterWindow';
+  if (combatMode === 'windup') return 'ancientConstructWindup';
+  if (combatMode === 'attacking') {
+    return bossVisualState.attackKind === 'area' ? 'ancientConstructPulse' : 'ancientConstructSlam';
+  }
+  if (!boss.awakened) return 'ancientConstructIntro';
+
+  const frameToggle = Math.floor(now / 280) % 2;
+  return frameToggle ? 'ancientConstructWalk2' : 'ancientConstructWalk1';
+};
+
 export const getScarabQueenDrawBox = (boss, screenX) => {
   const width = Math.max(124, boss.width * 2.45);
   const height = Math.max(90, boss.height * 2.2);
@@ -201,6 +238,17 @@ export const getStoneGuardianDrawBox = (boss, screenX) => {
   return {
     x: screenX + boss.width / 2 - width / 2,
     y: boss.y + boss.height - height + boss.height * 0.06,
+    width,
+    height,
+  };
+};
+
+export const getAncientConstructDrawBox = (boss, screenX) => {
+  const width = Math.max(132, boss.width * 2.25);
+  const height = Math.max(128, boss.height * 2.15);
+  return {
+    x: screenX + boss.width / 2 - width / 2,
+    y: boss.y + boss.height - height + boss.height * 0.05,
     width,
     height,
   };

@@ -533,3 +533,15 @@ Remaining notes:
 - Static frame checks confirmed Stone Guardian mappings for patrol, windup, slam, shockwave, shielded, counter-window, hit, and defeated.
 - `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning.
 - Remaining risk: the automated browser check verified loading and mappings, but the Ruined Temple Stone Guardian encounter itself still needs a live/manual route playthrough because reaching the Temple Route Seal requires clearing earlier Journey objectives.
+
+2026-05-11 update:
+- Completed the Ancient Construct boss sprite integration pass for Lost Site Expedition.
+- Added the uploaded Ancient Construct sprite sheet at `public/assets/expedition/bosses/ancient-construct-sprites.png` and named atlas metadata at `public/assets/expedition/bosses/ancient-construct-sprites.json`.
+- Extended the existing multi-boss helper in `src/components/expedition-journey/journeyBossSprites.js` so Scarab Queen, Stone Guardian, and Ancient Construct share one fallback-safe boss sprite loader.
+- Mapped existing `ancient-construct` boss states to Ancient Construct frames: walk loop, intro/activation, windup, slam, pulse, shielded, counter-window, hit, and defeated.
+- Integrated only Ancient Construct rendering in `src/components/ExpeditionJourney.jsx`; Giant Serpent, Rival Looter Captain, small enemies, player rendering, environment assets, route gates, collision, health, damage, timing, and boss rhythm logic were left unchanged.
+- Added Ancient Construct debug fields to Journey `render_game_to_text`, including `ancientConstructSpriteLoaded`, `ancientConstructSpriteFrame`, and `ancientConstructSpriteAtlasPath`.
+- Browser checks confirmed app load, Lost Site Expedition launch, Journey start, Ancient Construct JSON/PNG fetch, 11 atlas regions, Ancient Construct sprite loader ready, boss sprite fallback inactive, earlier boss sprite packs still loaded, and no console errors in the checked flow.
+- Static frame checks confirmed Ancient Construct mappings for patrol, windup, slam, pulse, shielded, counter-window, hit, and defeated.
+- `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning.
+- Remaining risk: the automated browser check verified loading and mappings, but the Dig Site Entrance Ancient Construct encounter itself still needs a live/manual route playthrough because reaching the Base Camp Survey Seal requires clearing earlier Journey objectives.

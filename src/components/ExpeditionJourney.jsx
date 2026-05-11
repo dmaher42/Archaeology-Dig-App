@@ -80,9 +80,12 @@ import {
 } from './expedition-journey/journeyBackgroundAssets';
 
 import {
+  ANCIENT_CONSTRUCT_SPRITE_ATLAS_JSON,
   BOSS_SPRITE_ATLAS_JSON,
   BOSS_SPRITE_ATLAS_VERSION,
   createBossSpriteState,
+  getAncientConstructDrawBox,
+  getAncientConstructSpriteFrame,
   getBossSpritePack,
   getMissingBossSpriteAssets,
   getScarabQueenDrawBox,
@@ -741,6 +744,9 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       stoneGuardianSpriteLoaded: Boolean(bossSpriteAssets.packs?.['temple-guardian']?.loaded),
       stoneGuardianSpriteFrame: renderStats.stoneGuardianSpriteFrame || null,
       stoneGuardianSpriteAtlasPath: STONE_GUARDIAN_SPRITE_ATLAS_JSON,
+      ancientConstructSpriteLoaded: Boolean(bossSpriteAssets.packs?.['ancient-construct']?.loaded),
+      ancientConstructSpriteFrame: renderStats.ancientConstructSpriteFrame || null,
+      ancientConstructSpriteAtlasPath: ANCIENT_CONSTRUCT_SPRITE_ATLAS_JSON,
       parallaxLayersActive: Boolean(renderStats.parallaxLayersActive),
       activeBackgroundSection: renderStats.activeBackgroundSection || null,
       backgroundDepthMode: renderStats.backgroundDepthMode || 'canvas-fallback',
@@ -2049,15 +2055,21 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
   }, [drawContactShadow, getCombatMode]);
 
   const drawBossSprite = useCallback((ctx, boss, screenX, now, bossVisualState) => {
-    const supportedBoss = boss.id === 'scarab-queen' || boss.id === 'temple-guardian';
+    const supportedBoss = boss.id === 'scarab-queen'
+      || boss.id === 'temple-guardian'
+      || boss.id === 'ancient-construct';
     if (!supportedBoss) return false;
     const combatMode = getCombatMode(boss);
-    const frameKey = boss.id === 'temple-guardian'
-      ? getStoneGuardianSpriteFrame(boss, combatMode, bossVisualState, now)
-      : getScarabQueenSpriteFrame(boss, combatMode, bossVisualState, now);
-    const drawBox = boss.id === 'temple-guardian'
-      ? getStoneGuardianDrawBox(boss, screenX)
-      : getScarabQueenDrawBox(boss, screenX);
+    const frameKey = boss.id === 'ancient-construct'
+      ? getAncientConstructSpriteFrame(boss, combatMode, bossVisualState, now)
+      : boss.id === 'temple-guardian'
+        ? getStoneGuardianSpriteFrame(boss, combatMode, bossVisualState, now)
+        : getScarabQueenSpriteFrame(boss, combatMode, bossVisualState, now);
+    const drawBox = boss.id === 'ancient-construct'
+      ? getAncientConstructDrawBox(boss, screenX)
+      : boss.id === 'temple-guardian'
+        ? getStoneGuardianDrawBox(boss, screenX)
+        : getScarabQueenDrawBox(boss, screenX);
     const pack = getBossSpritePack(bossSpriteAssetsRef.current, boss.id);
     if (!frameKey || !drawBox || !pack) return false;
 
@@ -2069,8 +2081,9 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     const baseY = boss.y + boss.height;
 
     ctx.save();
-    drawContactShadow(ctx, centerX, baseY + 3, drawBox.width * (boss.id === 'temple-guardian' ? 0.86 : 0.78), boss.id === 'temple-guardian' ? 0.34 : 0.28, 1.5);
-    if (boss.id === 'temple-guardian' && (combatMode === 'attacking' || combatMode === 'windup')) {
+    const isStoneBoss = boss.id === 'temple-guardian' || boss.id === 'ancient-construct';
+    drawContactShadow(ctx, centerX, baseY + 3, drawBox.width * (isStoneBoss ? 0.86 : 0.78), isStoneBoss ? 0.34 : 0.28, 1.5);
+    if (isStoneBoss && (combatMode === 'attacking' || combatMode === 'windup')) {
       drawGroundDustLip(ctx, centerX, baseY + 2, drawBox.width * 0.72, 'rgba(197, 148, 72, 0.28)');
     }
     ctx.shadowColor = bossVisualState?.shielded
@@ -2078,7 +2091,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       : bossVisualState?.vulnerable
         ? 'rgba(74, 222, 128, 0.44)'
         : 'rgba(15, 23, 42, 0.55)';
-    ctx.shadowBlur = bossVisualState?.shielded || bossVisualState?.vulnerable ? 16 : boss.id === 'temple-guardian' ? 12 : 10;
+    ctx.shadowBlur = bossVisualState?.shielded || bossVisualState?.vulnerable ? 16 : isStoneBoss ? 12 : 10;
     if (boss.hitFlash > 0 || combatMode === 'stunned') {
       ctx.filter = 'brightness(1.28) saturate(1.12)';
     }
@@ -2106,6 +2119,9 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       stateRef.current.renderStats.activeBossAnimationState = combatMode;
       if (boss.id === 'temple-guardian') {
         stateRef.current.renderStats.stoneGuardianSpriteFrame = frameKey;
+      }
+      if (boss.id === 'ancient-construct') {
+        stateRef.current.renderStats.ancientConstructSpriteFrame = frameKey;
       }
     }
 
@@ -2418,6 +2434,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       activeBossSpriteFrame: null,
       activeBossAnimationState: null,
       stoneGuardianSpriteFrame: null,
+      ancientConstructSpriteFrame: null,
     };
     const showWorldLabel = (worldX, distance = 150, priority = 'normal') => {
       const near = isPlayerNear(worldX, distance);
