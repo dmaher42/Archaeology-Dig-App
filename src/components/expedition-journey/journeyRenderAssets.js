@@ -2,6 +2,7 @@ export const ENVIRONMENT_ATLAS_BASE_PATH = 'assets/expedition/environment/desert
 export const ENVIRONMENT_ATLAS_JSON = `${ENVIRONMENT_ATLAS_BASE_PATH}desert-temple-pack.json`;
 export const ATLAS_TUNING_VERSION = 'environment-atlas-tuning-2026-05-10';
 export const DESERT_VISUAL_TUNING_VERSION = 'desert-entry-final-visual-tuning-2026-05-10';
+export const JOURNEY_ASSET_GROUNDING_VERSION = 'journey-asset-grounding-2026-05-11';
 
 export const EXPECTED_ENVIRONMENT_ASSET_KEYS = [
   'groundSand',

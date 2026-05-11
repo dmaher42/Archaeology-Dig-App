@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef, useLayoutEffect } from 'react'; 
+import { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react';
 import { 
   Pickaxe, Clock, Radar, Trophy, RefreshCw, HelpCircle, Lightbulb, Users,
-  CheckCircle2, FileText, Tent
+  CheckCircle2, FileText, Tent, Activity, AlertTriangle, Wind, CloudRain, Moon, Mountain
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { 
@@ -11,6 +11,113 @@ import {
   createDigTiles
 } from '../utils/gameLogic';
 import { getIcon } from './Icons';
+import { getAtlasRegionStyle, useFullInvestigationAssets } from './full-investigation/fullInvestigationAssets';
+
+const INITIAL_EMERGENCY_STATE = {
+  phase: 'cooldown',
+  event: null,
+  threatZone: null,
+  secondsRemaining: 0,
+  cooldownRemaining: 0,
+  message: '',
+  impactKey: null,
+  cycleId: 0,
+};
+
+const DIG_EMERGENCY_EVENTS = [
+  {
+    id: 'nightfall',
+    label: 'Approaching Night',
+    Icon: Moon,
+    match: /night|dark/i,
+    zone: 'all',
+    warning: 'Nightfall closing in. Exposed finds may lose recovery context.',
+    active: 'Nightfall pressure reduces recovery quality for exposed finds.',
+    resolved: 'Nightfall reduced recovery quality.',
+    exploreAffected: 1,
+    challengeAffected: 2,
+    pressure: 1,
+    disturbance: 1,
+  },
+  {
+    id: 'sandstorm',
+    label: 'Sandstorm',
+    Icon: Wind,
+    match: /storm|sand|dust/i,
+    zone: 'center',
+    warning: 'Sandstorm approaching. The centre trench is at risk.',
+    active: 'Sand is covering exposed evidence in the centre trench.',
+    resolved: 'Sandstorm disturbed exposed finds.',
+    exploreAffected: 1,
+    challengeAffected: 2,
+    pressure: 1,
+    disturbance: 1,
+  },
+  {
+    id: 'flash-flood',
+    label: 'Flash Flood',
+    Icon: CloudRain,
+    match: /flood|river|water/i,
+    zone: 'bottom',
+    warning: 'Flash flood warning. Lower trench finds are threatened.',
+    active: 'Water is damaging exposed finds in the lower trench.',
+    resolved: 'Flash flood damaged lower-trench evidence.',
+    exploreAffected: 1,
+    challengeAffected: 2,
+    pressure: 2,
+    disturbance: 2,
+  },
+  {
+    id: 'falling-debris',
+    label: 'Falling Debris',
+    Icon: Mountain,
+    match: /collapse|debris|falling|ruin/i,
+    zone: 'row',
+    warning: 'Falling debris warning. One trench row is unstable.',
+    active: 'Debris is shaking loose over an exposed trench row.',
+    resolved: 'Falling debris damaged exposed evidence.',
+    exploreAffected: 1,
+    challengeAffected: 1,
+    pressure: 2,
+    disturbance: 1,
+  },
+];
+
+const getEventTheme = (currentEvent) => `${currentEvent?.title || ''} ${currentEvent?.description || ''}`;
+
+const pickEmergencyEvent = (currentEvent, cycleIndex) => {
+  const theme = getEventTheme(currentEvent);
+  const themed = DIG_EMERGENCY_EVENTS.find(event => event.match.test(theme));
+  if (themed && cycleIndex % 2 === 0) return themed;
+  return DIG_EMERGENCY_EVENTS[cycleIndex % DIG_EMERGENCY_EVENTS.length];
+};
+
+const getThreatZone = (event, cycleIndex, boardRows) => {
+  if (event.zone === 'bottom') {
+    return { id: `${event.id}-bottom`, type: 'row', row: Math.max(0, boardRows - 1), label: 'lower trench' };
+  }
+  if (event.zone === 'center') {
+    return { id: `${event.id}-center`, type: 'center', label: 'centre trench' };
+  }
+  if (event.zone === 'all') {
+    return { id: `${event.id}-all`, type: 'all', label: 'whole site' };
+  }
+  const row = Math.max(0, cycleIndex % boardRows);
+  return { id: `${event.id}-row-${row}`, type: 'row', row, label: `trench row ${row + 1}` };
+};
+
+const isTileInThreatZone = (index, zone, columns, rows) => {
+  if (!zone) return false;
+  const row = Math.floor(index / columns);
+  const col = index % columns;
+  if (zone.type === 'all') return true;
+  if (zone.type === 'row') return row === zone.row;
+  if (zone.type === 'center') {
+    const centerRows = rows <= 2 ? [0, rows - 1] : [Math.floor((rows - 1) / 2)];
+    return centerRows.includes(row) && col >= 2 && col <= Math.max(2, columns - 3);
+  }
+  return false;
+};
 
 export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onComplete, currentEvent, onBackToMenu, audioControls = {} }) {
   const { playFlip, playMatch, playError, initAudio, playTone } = audioControls;
@@ -35,16 +142,25 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
   const [attempts, setAttempts] = useState(0);
   const [isSurveying, setIsSurveying] = useState(false);
   const [challengeDuration, setChallengeDuration] = useState(180);
+  const [disturbanceLevel, setDisturbanceLevel] = useState(0);
+  const [artifactPressure, setArtifactPressure] = useState({});
+  const [radarUses, setRadarUses] = useState(0);
+  const [emergencyState, setEmergencyState] = useState(INITIAL_EMERGENCY_STATE);
+  const [emergencyImpactCount, setEmergencyImpactCount] = useState(0);
+  const [emergencyAffectedEvidenceIds, setEmergencyAffectedEvidenceIds] = useState([]);
+  const [emergencyLog, setEmergencyLog] = useState([]);
   const radarTimeoutRef = useRef(null);
+  const appliedEmergencyImpactsRef = useRef(new Set());
   const boardContainerRef = useRef(null);
   const [boardFit, setBoardFit] = useState({ width: 0, height: 0 });
+  const fullInvestigationAssets = useFullInvestigationAssets();
   const boardColumns = 8;
   const boardRows = Math.max(1, Math.ceil(tiles.length / boardColumns));
+  const emergencyIcon = emergencyState.event?.Icon || AlertTriangle;
+  const EmergencyIcon = emergencyIcon;
 
   const EventIcon = currentEvent?.icon ?? HelpCircle;
   const recoveredArtifacts = activeArtifacts.filter(artifact => excavatedIds.has(artifact.id));
-  const ancientRecoveredCount = recoveredArtifacts.filter(artifact => !artifact.isRedHerring).length;
-  const disturbanceCount = recoveredArtifacts.filter(artifact => artifact.isRedHerring).length;
   const isTwoPlayer = playerCount === 2;
   const playerTurnLabel = isTwoPlayer ? `Player ${currentPlayerIndex + 1}` : 'Explorer';
   const playerOneScore = playerScores[0] ?? 0;
@@ -110,7 +226,7 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
       if (!width || !height) return;
 
       const gapSize = window.matchMedia('(max-height: 820px), (max-width: 900px)').matches ? 4 : 5;
-      const maxTileSize = window.matchMedia('(max-height: 820px) and (min-width: 901px)').matches ? 132 : 150;
+      const maxTileSize = window.matchMedia('(max-height: 820px) and (min-width: 901px)').matches ? 120 : 142;
       const tileSize = Math.max(1, Math.floor(Math.min(
         (width - (gapSize * (boardColumns - 1))) / boardColumns,
         (height - (gapSize * (boardRows - 1))) / boardRows,
@@ -140,13 +256,133 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
     }
   }, []);
 
+  const getThreatenedArtifactIds = useCallback((event, threatZone) => {
+    const candidateIds = tiles
+      .map((tile, index) => ({ tile, index }))
+      .filter(({ tile, index }) => (
+        tile?.artifactId
+        && !tile.isMatched
+        && !excavatedIds.has(tile.artifactId)
+        && isTileInThreatZone(index, threatZone, boardColumns, boardRows)
+      ))
+      .map(({ tile }) => tile.artifactId);
+
+    return Array.from(new Set(candidateIds)).slice(0, timerMode === 'challenge' ? event.challengeAffected : event.exploreAffected);
+  }, [boardColumns, boardRows, excavatedIds, tiles, timerMode]);
+
+  const applyEmergencyImpact = useCallback((state) => {
+    if (!state.event || !state.threatZone) return;
+    const affectedIds = getThreatenedArtifactIds(state.event, state.threatZone);
+    setDisturbanceLevel(prev => prev + state.event.disturbance);
+
+    if (affectedIds.length > 0) {
+      setArtifactPressure(prev => {
+        const next = { ...prev };
+        affectedIds.forEach(id => {
+          next[id] = (next[id] || 0) + state.event.pressure;
+        });
+        return next;
+      });
+      setEmergencyAffectedEvidenceIds(prev => Array.from(new Set([...prev, ...affectedIds])));
+      setEmergencyImpactCount(prev => prev + affectedIds.length);
+    }
+
+    const impactMessage = affectedIds.length > 0
+      ? `${state.event.label} affected ${affectedIds.length} unrecovered find${affectedIds.length === 1 ? '' : 's'} in the ${state.threatZone.label}.`
+      : `${state.event.label} passed over the ${state.threatZone.label}. No unrecovered finds were exposed.`;
+
+    setEmergencyLog(prev => [...prev, {
+      id: state.event.id,
+      label: state.event.label,
+      zone: state.threatZone.label,
+      affectedCount: affectedIds.length,
+      affectedIds,
+      message: impactMessage,
+    }].slice(-6));
+    setFeedback({ message: impactMessage, isError: affectedIds.length > 0, tone: affectedIds.length > 0 ? 'warning' : 'accent' });
+  }, [getThreatenedArtifactIds]);
+
+  useEffect(() => {
+    const isComplete = activeArtifacts.length > 0 && excavatedIds.size === activeArtifacts.length;
+    if (!isPlaying || isTimeUp || isComplete || showStormWarning || showDebrief) return undefined;
+
+    const interval = setInterval(() => {
+      setEmergencyState(prev => {
+        if (prev.phase === 'warning') {
+          if (prev.secondsRemaining > 1) {
+            return { ...prev, secondsRemaining: prev.secondsRemaining - 1 };
+          }
+          return {
+            ...prev,
+            phase: 'active',
+            secondsRemaining: timerMode === 'challenge' ? 2 : 3,
+            message: prev.event?.active || '',
+          };
+        }
+
+        if (prev.phase === 'active') {
+          if (prev.secondsRemaining > 1) {
+            return { ...prev, secondsRemaining: prev.secondsRemaining - 1 };
+          }
+          return {
+            ...prev,
+            phase: 'resolved',
+            secondsRemaining: 3,
+            message: prev.event?.resolved || '',
+            impactKey: `${prev.cycleId}-${prev.event?.id || 'event'}`,
+          };
+        }
+
+        if (prev.phase === 'resolved') {
+          if (prev.secondsRemaining > 1) {
+            return { ...prev, secondsRemaining: prev.secondsRemaining - 1 };
+          }
+          return {
+            ...INITIAL_EMERGENCY_STATE,
+            cooldownRemaining: timerMode === 'challenge' ? 13 : 24,
+            cycleId: prev.cycleId + 1,
+          };
+        }
+
+        const nextCooldown = Math.max(0, (prev.cooldownRemaining || 0) - 1);
+        if (nextCooldown > 0) {
+          return { ...prev, cooldownRemaining: nextCooldown };
+        }
+
+        const event = pickEmergencyEvent(currentEvent, prev.cycleId);
+        const threatZone = getThreatZone(event, prev.cycleId, boardRows);
+        return {
+          phase: 'warning',
+          event,
+          threatZone,
+          secondsRemaining: timerMode === 'challenge' ? 5 : 7,
+          cooldownRemaining: 0,
+          message: event.warning,
+          impactKey: null,
+          cycleId: prev.cycleId,
+        };
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [activeArtifacts.length, boardRows, currentEvent, excavatedIds.size, isPlaying, isTimeUp, showDebrief, showStormWarning, timerMode]);
+
+  useEffect(() => {
+    if (emergencyState.phase !== 'resolved' || !emergencyState.impactKey) return;
+    if (appliedEmergencyImpactsRef.current.has(emergencyState.impactKey)) return;
+    appliedEmergencyImpactsRef.current.add(emergencyState.impactKey);
+    applyEmergencyImpact(emergencyState);
+  }, [applyEmergencyImpact, emergencyState]);
+
   const handleRadar = () => {
     const radarCost = timerMode === 'challenge' ? (challengeDuration === 300 ? 30 : challengeDuration === 180 ? 20 : 10) : 0;
     if ((timerMode === 'challenge' && timeLeft <= radarCost) || isLocked || !isPlaying) return;
     
     if (initAudio) initAudio();
     if (playTone) playTone(800, 'sine', 0.5, 0.1);
-    setFeedback({ message: 'Radar activated. Scanning sub-surface context...', isError: false, tone: 'neutral' });
+    setRadarUses(prev => prev + 1);
+    setDisturbanceLevel(prev => prev + 1);
+    setFeedback({ message: 'Radar activated. Survey help used; site disturbance increased slightly.', isError: false, tone: 'accent' });
     if (radarCost > 0) {
       setTimeLeft(prev => prev - radarCost);
     }
@@ -250,6 +486,15 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
           setIsLocked(false);
         }, 600);
       } else {
+        const missedArtifacts = [tiles[idx1]?.artifact, tiles[index]?.artifact].filter(Boolean);
+        setArtifactPressure(prev => {
+          const next = { ...prev };
+          missedArtifacts.forEach(artifact => {
+            next[artifact.id] = (next[artifact.id] || 0) + 1;
+          });
+          return next;
+        });
+        setDisturbanceLevel(prev => prev + 1);
         setTimeout(() => {
           if (playError) playError();
           if (isTwoPlayer) {
@@ -257,6 +502,12 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
             setCurrentPlayerIndex(nextPlayerIndex);
             setFeedback({
               message: `Turn passes to Player ${nextPlayerIndex + 1}.`,
+              isError: false,
+              tone: 'neutral',
+            });
+          } else {
+            setFeedback({
+              message: 'Careful. That mismatch disturbed the excavation context.',
               isError: false,
               tone: 'neutral',
             });
@@ -286,12 +537,109 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
   const timerLabel = timerMode === 'challenge' ? 'TIME LEFT' : 'TIME TAKEN';
   const timerModeLabel = timerMode === 'challenge' ? 'Challenge' : 'Explore';
   const challengeTimeLabel = challengeDuration === 300 ? '5 minutes' : challengeDuration === 180 ? '3 minutes' : '90 seconds';
+  const excavationTrayStyle = getAtlasRegionStyle(fullInvestigationAssets, 'excavationTray');
+  const cardBackStyle = getAtlasRegionStyle(fullInvestigationAssets, 'cardBack');
+  const minimumEvidenceTarget = Math.min(activeArtifacts.length, activeArtifacts.length >= 10 ? 10 : activeArtifacts.length);
+  const pressureBand = disturbanceLevel >= 8 ? 'high' : disturbanceLevel >= 4 ? 'medium' : 'low';
+  const pressureLabel = pressureBand === 'high' ? 'High disturbance' : pressureBand === 'medium' ? 'Care needed' : 'Careful dig';
+  const emergencyAffectedSet = new Set(emergencyAffectedEvidenceIds);
+  const getRecoveryCondition = (artifact, isRecovered) => {
+    const pressure = artifactPressure[artifact.id] || 0;
+    if (!isRecovered) return 'disturbed';
+    if (artifact.isRedHerring) return 'disturbed';
+    if (pressure >= 3 || disturbanceLevel >= 10) return 'damaged';
+    if (pressure >= 1 || disturbanceLevel >= 5 || radarUses > 0) return 'good';
+    return 'excellent';
+  };
+  const recoveryPackage = activeArtifacts.reduce((acc, artifact) => {
+    const isRecovered = excavatedIds.has(artifact.id);
+    const condition = getRecoveryCondition(artifact, isRecovered);
+    acc.conditions[artifact.id] = {
+      condition,
+      recoveredBy: isRecovered ? 'student' : 'field-team',
+      pressure: artifactPressure[artifact.id] || 0,
+      emergencyAffected: emergencyAffectedSet.has(artifact.id),
+      note: emergencyAffectedSet.has(artifact.id)
+        ? 'Recovery context was affected by an environmental emergency.'
+        : isRecovered
+          ? condition === 'excellent'
+            ? 'Recovered with strong context.'
+            : condition === 'good'
+              ? 'Recovered with usable field context.'
+              : condition === 'damaged'
+                ? 'Recovered after added excavation pressure.'
+                : 'Logged as site disturbance.'
+          : 'Transferred by the field team after the dig window closed.',
+    };
+    acc.counts[condition] += 1;
+    return acc;
+  }, {
+    artifacts: activeArtifacts,
+    conditions: {},
+    counts: { excellent: 0, good: 0, damaged: 0, disturbed: 0 },
+  });
+  const cleanRecoveryCount = recoveryPackage.counts.excellent + recoveryPackage.counts.good;
+  const recoverySummary = {
+    cleanRecoveryCount,
+    damagedRecoveryCount: recoveryPackage.counts.damaged,
+    disturbedRecoveryCount: recoveryPackage.counts.disturbed,
+    recoveredEvidenceCount: recoveredArtifacts.length,
+    guaranteedEvidenceCount: recoveryPackage.artifacts.length,
+    minimumEvidenceTarget,
+    digMinimumEvidenceMet: recoveryPackage.artifacts.length >= minimumEvidenceTarget,
+    attempts,
+    radarUses,
+    disturbanceLevel,
+    emergenciesFaced: emergencyLog.length,
+    emergencyImpactCount,
+    emergencyAffectedEvidenceIds,
+    timeMode: timerMode,
+    elapsedTime,
+    timeLeft,
+  };
+
+  useEffect(() => {
+    const renderDigToText = () => JSON.stringify({
+      mode: 'full-investigation',
+      phase: 'dig',
+      timerMode,
+      isPlaying,
+      activeEmergencyEvent: emergencyState.event?.label || null,
+      emergencyWarningActive: emergencyState.phase === 'warning',
+      emergencyThreatZone: emergencyState.threatZone?.label || null,
+      emergencyCooldown: emergencyState.cooldownRemaining || 0,
+      emergencyPhase: emergencyState.phase,
+      emergencyMessage: emergencyState.message,
+      emergencyImpactCount,
+      emergencyAffectedEvidenceIds,
+      evidenceConditions: recoveryPackage.conditions,
+      recoveredEvidenceCount: recoveredArtifacts.length,
+      guaranteedEvidenceCount: recoveryPackage.artifacts.length,
+      minimumEvidenceGuaranteeActive: true,
+      digMinimumEvidenceMet: recoverySummary.digMinimumEvidenceMet,
+      siteDisturbanceLevel: disturbanceLevel,
+      attempts,
+      radarUses,
+      timeLeft,
+      elapsedTime,
+    });
+    window.render_game_to_text = renderDigToText;
+    return () => {
+      if (window.render_game_to_text === renderDigToText) {
+        delete window.render_game_to_text;
+      }
+    };
+  }, [
+    attempts, disturbanceLevel, elapsedTime, emergencyAffectedEvidenceIds, emergencyImpactCount,
+    emergencyState, isPlaying, radarUses, recoveredArtifacts.length, recoveryPackage.artifacts.length,
+    recoveryPackage.conditions, recoverySummary.digMinimumEvidenceMet, timeLeft, timerMode
+  ]);
 
   return (
     <div className="phase-container dig-phase">
       {showStormWarning && (
-        <div className="modal-overlay">
-          <div className="modal-content warning-modal" style={{borderColor: currentEvent.dangerColor, boxShadow: `0 20px 60px rgba(0,0,0,0.9), 0 0 40px ${currentEvent.dangerColor}30`}}>
+        <div className="modal-overlay dig-setup-overlay">
+          <div className="modal-content warning-modal dig-setup-modal" style={{borderColor: currentEvent.dangerColor, boxShadow: `0 20px 60px rgba(0,0,0,0.9), 0 0 40px ${currentEvent.dangerColor}30`}}>
             <div style={{ color: currentEvent.dangerColor, marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <EventIcon size={64} style={{ animation: 'pulse 2s infinite', filter: `drop-shadow(0 0 15px ${currentEvent.dangerColor}60)` }} />
             </div>
@@ -367,6 +715,14 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
                 setTimeLeft(challengeDuration);
                 setIsTimeUp(false);
                 setShowDebrief(false);
+                setDisturbanceLevel(0);
+                setArtifactPressure({});
+                setRadarUses(0);
+                setEmergencyState({ ...INITIAL_EMERGENCY_STATE, cooldownRemaining: selectedDigMode === 'challenge' ? 8 : 14 });
+                setEmergencyImpactCount(0);
+                setEmergencyAffectedEvidenceIds([]);
+                setEmergencyLog([]);
+                appliedEmergencyImpactsRef.current = new Set();
                 setFeedback({ message: '', isError: false, tone: 'neutral' });
                 setShowStormWarning(false);
                 setIsPlaying(true);
@@ -379,7 +735,7 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
         </div>
       )}
 
-      {isTimeUp && (
+      {isTimeUp && !showDebrief && (
         <div className="modal-overlay">
           <div className="modal-content glass-card warning-modal" style={{borderColor: '#ef4444'}}>
             <EventIcon size={48} style={{ color: '#ef4444', marginBottom: '1rem' }} />
@@ -394,7 +750,7 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
         </div>
       )}
 
-      {perfectClear && (
+      {perfectClear && !showDebrief && (
       <div className="modal-overlay">
           <div className="modal-content glass-card warning-modal">
             <CheckCircle2 size={48} style={{ color: 'var(--success)', marginBottom: '1rem' }} />
@@ -417,18 +773,38 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
             <FileText size={48} style={{ color: 'var(--accent)', marginBottom: '1rem' }} />
             <h2 className="modal-title" style={{color: 'var(--accent)'}}>Field notebook</h2>
             <div className="field-note-summary">
-              <div className="field-note-stat"><strong>{ancientRecoveredCount}</strong><span>Ancient finds</span></div>
-              <div className="field-note-stat"><strong>{disturbanceCount}</strong><span>Disturbance items</span></div>
-              <div className="field-note-stat"><strong>{recoveredArtifacts.length}</strong><span>Total items</span></div>
+              <div className="field-note-stat"><strong>{cleanRecoveryCount}</strong><span>Clean recoveries</span></div>
+              <div className="field-note-stat"><strong>{recoveryPackage.counts.damaged}</strong><span>Damaged</span></div>
+              <div className="field-note-stat"><strong>{recoveryPackage.counts.disturbed}</strong><span>Disturbed</span></div>
             </div>
+            <div className="dig-debrief-note">
+              Your team recovered enough evidence to continue. Some finds were disturbed and may be less reliable in later analysis.
+            </div>
+            <div className="dig-debrief-mini">
+              <span>Student recovered: <strong>{recoveredArtifacts.length}</strong></span>
+              <span>Transferred forward: <strong>{recoveryPackage.artifacts.length}</strong></span>
+              <span>Minimum needed: <strong>{minimumEvidenceTarget}</strong></span>
+              <span>Attempts: <strong>{attempts}</strong></span>
+              <span>Radar uses: <strong>{radarUses}</strong></span>
+              <span>Disturbance: <strong>{disturbanceLevel}</strong></span>
+              <span>Emergencies: <strong>{emergencyLog.length}</strong></span>
+              <span>Finds affected: <strong>{emergencyImpactCount}</strong></span>
+            </div>
+            {emergencyLog.length > 0 && (
+              <div className="dig-emergency-debrief">
+                {emergencyLog.slice(-3).map((entry, index) => (
+                  <span key={`${entry.id}-${entry.zone}-${index}`}>{entry.message}</span>
+                ))}
+              </div>
+            )}
             <p style={{ margin: '0 0 1rem 0', color: 'var(--sand-200)' }}>
               {timerMode === 'challenge'
-                ? `You cleared the site in ${formatTime(displayTime)} of challenge time.`
-                : `You cleared the site in ${formatTime(displayTime)}.`}
+                ? `Challenge time recorded: ${formatTime(displayTime)}.`
+                : `Dig time recorded: ${formatTime(displayTime)}.`}
             </p>
             <button
               className="btn primary-btn"
-              onClick={() => onComplete(recoveredArtifacts)}
+              onClick={() => onComplete(recoveryPackage.artifacts, recoveryPackage.conditions, recoverySummary)}
             >
               Open Sorting Tent <Tent size={20} />
             </button>
@@ -482,6 +858,11 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
             <Radar size={16} /> Use radar (-{challengeDuration === 300 ? 30 : challengeDuration === 180 ? 20 : 10}s)
           </button>
         )}
+        <div className={`dig-pressure-chip pressure-${pressureBand}`} aria-label={`Site disturbance ${disturbanceLevel}`}>
+          <Activity size={15} />
+          <span>{pressureLabel}</span>
+          <strong>{disturbanceLevel}</strong>
+        </div>
       </div>
 
       <div className="dig-game-panel">
@@ -489,8 +870,26 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
           <Lightbulb size={16} className="instruction-icon" />
           <span>Match pairs to recover finds before time runs out.</span>
         </div>
+
+        {emergencyState.event && emergencyState.phase !== 'cooldown' && (
+          <div className={`dig-emergency-banner emergency-${emergencyState.phase}`} role="status" aria-live="polite">
+            <EmergencyIcon size={18} />
+            <div className="dig-emergency-copy">
+              <strong>{emergencyState.event.label}</strong>
+              <span>{emergencyState.message}</span>
+            </div>
+            <span className="dig-emergency-zone">
+              {emergencyState.threatZone?.label}
+              {emergencyState.phase !== 'resolved' && ` in ${emergencyState.secondsRemaining}s`}
+            </span>
+          </div>
+        )}
         
-        <div className="game-board-container" ref={boardContainerRef} style={{ position: 'relative' }}>
+        <div
+          className={`game-board-container ${excavationTrayStyle ? 'fi-asset-region fi-excavation-tray' : ''}`}
+          ref={boardContainerRef}
+          style={{ position: 'relative', ...(excavationTrayStyle || {}) }}
+        >
           {isSurveying && (
             <div className="surveying-overlay">
                <div className="surveying-content">
@@ -512,14 +911,19 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
             {tiles.map((tile, index) => {
               const isRevealed = tile.isFlipped || tile.isMatched;
               const tileTheme = getArtifactTheme(tile.artifact);
+              const isThreatened = emergencyState.event
+                && emergencyState.phase !== 'cooldown'
+                && emergencyState.phase !== 'resolved'
+                && isTileInThreatZone(index, emergencyState.threatZone, boardColumns, boardRows)
+                && !tile.isMatched;
               return (
                 <div 
                   key={tile.uniqueId} 
-                  className={`memory-tile ${isRevealed ? 'revealed' : ''} ${tile.isMatched ? 'matched' : ''}`} 
+                  className={`memory-tile ${isRevealed ? 'revealed' : ''} ${tile.isMatched ? 'matched' : ''} ${isThreatened ? `emergency-threat emergency-threat-${emergencyState.phase}` : ''}`}
                   onClick={() => handleTileClick(index)}
                 >
                   <div className="tile-inner">
-                    <div className="tile-front card-back-design">
+                    <div className={`tile-front card-back-design ${cardBackStyle ? 'fi-card-back-asset' : ''}`} style={cardBackStyle}>
                       <div className="card-back-pattern"></div>
                       <Pickaxe size={24} className="card-back-icon" />
                     </div>
@@ -550,6 +954,10 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
              <RefreshCw size={16} />
              <span>Attempts: <strong>{attempts}</strong></span>
           </div>
+          <div className="footer-stat-item">
+             <Activity size={16} />
+             <span>Disturbance: <strong>{disturbanceLevel}</strong></span>
+          </div>
           {isTwoPlayer && (
             <div className="footer-stat-item">
               <Users size={16} />
@@ -560,6 +968,9 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
         
         <button className="help-btn-compact" onClick={() => setFeedback({message: "Match two identical finds to recover them. Some finds are ancient evidence; others are modern disturbance.", isError: false, tone: 'neutral'})}>
            <HelpCircle size={18} /> Field guide
+        </button>
+        <button className="dig-menu-btn-compact" type="button" onClick={onBackToMenu}>
+          Back to menu
         </button>
       </div>      {feedback.message && (
         <div className={`sort-feedback ${feedback.tone === 'accent' ? 'accent' : feedback.isError ? 'error' : 'neutral'}`} style={{position: 'fixed', bottom: '80px', left: '50%', transform: 'translateX(-50%)', zIndex: 100}}>

@@ -8,6 +8,11 @@ import {
   CATEGORIES
 } from '../utils/gameLogic';
 
+const formatConditionLabel = (condition) => {
+  if (!condition) return '';
+  return condition.charAt(0).toUpperCase() + condition.slice(1);
+};
+
 export function ReportPhase({ 
   activeArtifacts, 
   itemsLocation, 
@@ -19,6 +24,8 @@ export function ReportPhase({
   curatedItems, 
   plaques, 
   finalExhibitionStatement, 
+  evidenceConditions = {},
+  digRecoverySummary = null,
   onBackToMenu 
 }) {
   const exhibitionSiteName = siteName?.replace(/^Mock\s*/i, '').trim() || siteName || 'Unknown Site';
@@ -96,6 +103,11 @@ export function ReportPhase({
               <Search size={16} />
               <span><strong>Total Finds:</strong> {activeArtifacts.length}</span>
             </div>
+            {digRecoverySummary && (
+              <div className="report-meta-item">
+                <span><strong>Dig Quality:</strong> {digRecoverySummary.cleanRecoveryCount} clean / {digRecoverySummary.disturbedRecoveryCount} disturbed</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -135,8 +147,11 @@ export function ReportPhase({
                        <img src={getEvidenceImagePath(item)} alt={item.name} />
                        <div className="museum-export-card-body">
                          <div className="museum-export-card-top">
-                           <div className="museum-export-category">{getCategoryTitle(item.type)}</div>
-                         </div>
+                         <div className="museum-export-category">{getCategoryTitle(item.type)}</div>
+                         {evidenceConditions[item.id]?.condition && (
+                           <div className="museum-export-category">{formatConditionLabel(evidenceConditions[item.id].condition)} recovery</div>
+                         )}
+                       </div>
                          <h4>{item.name}</h4>
                          <div className="museum-export-label">
                            <strong>Museum label</strong>
@@ -180,6 +195,11 @@ export function ReportPhase({
                       <div className="report-item-header">
                         <strong>{item.name}</strong>
                         <span className="report-clue">{item.clue}</span>
+                        {evidenceConditions[item.id]?.condition && (
+                          <span className={`condition-badge condition-${evidenceConditions[item.id].condition}`}>
+                            {formatConditionLabel(evidenceConditions[item.id].condition)} recovery
+                          </span>
+                        )}
                       </div>
                       {analysis && typeof analysis === 'object' && (
                         <>

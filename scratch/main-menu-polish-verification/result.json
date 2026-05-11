@@ -1,0 +1,65 @@
+{
+  "desktop": {
+    "title": "Lost Site Expedition",
+    "headerTitle": "Lost Site Expedition",
+    "saveNote": "Save and load files unlock after a mission starts.",
+    "cardCount": 4,
+    "cards": [
+      {
+        "title": "Archaeologist Training",
+        "left": 93,
+        "right": 377.75,
+        "top": 410.453125,
+        "bottom": 709.8125,
+        "width": 284.75,
+        "visible": true
+      },
+      {
+        "title": "Full Investigation",
+        "left": 391.40625,
+        "right": 676.171875,
+        "top": 410.453125,
+        "bottom": 709.8125,
+        "width": 284.765625,
+        "visible": true
+      },
+      {
+        "title": "Antiquities Bureau",
+        "left": 689.828125,
+        "right": 974.578125,
+        "top": 410.453125,
+        "bottom": 709.8125,
+        "width": 284.75,
+        "visible": true
+      },
+      {
+        "title": "Lost Site Expedition",
+        "left": 988.234375,
+        "right": 1273,
+        "top": 410.453125,
+        "bottom": 709.8125,
+        "width": 284.765625,
+        "visible": true
+      }
+    ],
+    "clippedCards": [],
+    "horizontalOverflow": false,
+    "lostSiteFullyVisible": true,
+    "cardBottomMax": 709.8125,
+    "viewportHeight": 768
+  },
+  "narrow": {
+    "cardCount": 4,
+    "clippedCards": [],
+    "horizontalOverflow": false
+  },
+  "routes": {
+    "trainingRoute": true,
+    "investigationRoute": true,
+    "bureauRoute": true,
+    "expeditionRoute": true
+  },
+  "consoleErrorCount": 0,
+  "consoleErrors": [],
+  "screenshots": "C:\\Users\\dmahe\\OneDrive\\Desktop\\Codex\\Archaeology-Dig-App1\\scratch\\main-menu-polish-verification"
+}

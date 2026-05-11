@@ -1,7 +1,4 @@
 import { useState, useEffect, useMemo, useReducer } from 'react';
-import { 
-  Archive, Pickaxe, Save, Upload 
-} from 'lucide-react';
 import './index.css';
 
 // Components
@@ -182,51 +179,14 @@ export default function App() {
   const [curatedItems, setCuratedItems] = useState(initialGame.curatedItems || []);
   const [plaques, setPlaques] = useState(initialGame.plaques || {});
   const [finalExhibitionStatement, setFinalExhibitionStatement] = useState(initialGame.finalExhibitionStatement || '');
+  const [evidenceConditions, setEvidenceConditions] = useState(initialGame.evidenceConditions || {});
+  const [digRecoverySummary, setDigRecoverySummary] = useState(initialGame.digRecoverySummary || null);
   const [trainingPlacements, setTrainingPlacements] = useState(initialGame.trainingPlacements || Array(TRAINING_STAGES.length).fill(null));
   const [bureauState, setBureauState] = useState(initialBureauGame);
-  const [saveMessage, setSaveMessage] = useState('');
   const [showDevTools, setShowDevTools] = useState(false);
   const [isSiteSelectionActive, setIsSiteSelectionActive] = useState(false);
-  const isBureauPhase = phase.startsWith('bureau');
-  const isExpeditionPhase = phase === 'expedition';
   const isMenuLanding = phase === 'menu' && !isSiteSelectionActive;
-  const isCompactHeader = !isMenuLanding;
-  const canUseProgressFiles = phase !== 'menu' && !isExpeditionPhase;
-
-  const phaseTitleMap = {
-    training: 'Archaeologist Training',
-    dig: 'Full Investigation',
-    sort: 'Full Investigation',
-    lab: 'Full Investigation',
-    museum: 'Full Investigation',
-    report: 'Full Investigation',
-    expedition: 'Lost Site Expedition',
-  };
-
-  const phaseSubtitleMap = {
-    training: 'Practice',
-    dig: 'Phase 1: Dig',
-    sort: 'Phase 2: Sort',
-    lab: 'Phase 3: Lab',
-    museum: 'Phase 4: Museum',
-    report: 'Phase 5: Report',
-    expedition: 'Solo Adventure',
-  };
-
-  const headerTitle = isSiteSelectionActive
-    ? 'Full Investigation'
-    : isBureauPhase
-      ? 'Antiquities Bureau'
-      : isMenuLanding
-        ? 'Lost Site Expedition'
-        : phaseTitleMap[phase] || 'Archaeology Challenge';
-  const headerSubtitle = isSiteSelectionActive
-    ? 'Site Selection'
-    : isBureauPhase
-      ? 'Case File'
-      : isMenuLanding
-        ? 'Archaeology Challenge'
-        : phaseSubtitleMap[phase] || 'Evidence Toolkit';
+  const isFullInvestigationPhase = ['dig', 'sort', 'lab', 'museum', 'report'].includes(phase);
 
   // Autosave Logic
   useEffect(() => {
@@ -238,7 +198,8 @@ export default function App() {
         : createSavePayload({
             mode: 'archaeology', phase, currentScenario, currentEvent, activeArtifacts,
             excavatedIds, itemsLocation, hypotheses, siteName, finalConclusion,
-            curatedItems, plaques, finalExhibitionStatement, trainingPlacements
+            curatedItems, plaques, finalExhibitionStatement, trainingPlacements,
+            evidenceConditions, digRecoverySummary
           });
       
       const currentFullSave = JSON.parse(window.localStorage.getItem(AUTOSAVE_KEY) || '{"archaeology": null, "bureau": null}');
@@ -258,7 +219,7 @@ export default function App() {
     }
   }, [
     activeArtifacts, currentEvent, currentScenario, curatedItems, excavatedIds,
-    finalConclusion, finalExhibitionStatement, hypotheses, itemsLocation,
+    digRecoverySummary, evidenceConditions, finalConclusion, finalExhibitionStatement, hypotheses, itemsLocation,
     bureauState, phase, plaques, siteName, trainingPlacements
   ]);
 
@@ -293,6 +254,8 @@ export default function App() {
       setCuratedItems(session.curatedItems);
       setPlaques(session.plaques);
       setFinalExhibitionStatement(session.finalExhibitionStatement);
+      setEvidenceConditions(session.evidenceConditions || {});
+      setDigRecoverySummary(session.digRecoverySummary || null);
       setTrainingPlacements(session.trainingPlacements);
     }
   };
@@ -324,100 +287,30 @@ export default function App() {
     setPhase('expedition');
   };
 
-  const handleSaveProgressFile = () => {
-    if (!canUseProgressFiles) {
-      setSaveMessage(isExpeditionPhase ? 'Expedition is a short mode and does not use save files.' : 'Choose an activity before saving.');
-      return;
-    }
-    const isBureau = phase.startsWith('bureau');
-    const payload = isBureau 
-      ? createSavePayload({ mode: 'bureau', phase, bureauState })
-      : createSavePayload({
-          mode: 'archaeology', phase, currentScenario, currentEvent, activeArtifacts,
-          excavatedIds, itemsLocation, hypotheses, siteName, finalConclusion,
-          curatedItems, plaques, finalExhibitionStatement, trainingPlacements
-        });
-    
-    const stamp = new Date().toISOString().slice(0, 16).replace('T', '-').replace(':', '');
-    const filename = isBureau ? `bureau-${stamp}.json` : `dig-${currentScenario.id}-${stamp}.json`;
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    link.click();
-    URL.revokeObjectURL(url);
-    setSaveMessage(`Saved as ${filename}`);
-  };
-
-  const handleLoadProgressFile = async (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    try {
-      const text = await file.text();
-      const session = rebuildSavedSession(JSON.parse(text));
-      applySavedSession(session);
-      setSaveMessage(`Loaded ${file.name}`);
-    } catch {
-      setSaveMessage('Invalid save file.');
-    }
-    event.target.value = '';
-  };
-
   return (
-    <div className={`app-wrapper app-wrapper--${phase} ${isCompactHeader ? 'app-wrapper--compact-header' : 'app-wrapper--menu-header'} ${isSiteSelectionActive ? 'app-wrapper--site-selection' : ''}`}>
-      <header className={`main-header hide-on-print ${isCompactHeader ? 'main-header--compact' : 'main-header--menu'}`}>
-        <div className="header-left">
-          <div className="header-icon-container">
-            {isBureauPhase ? <Archive size={isCompactHeader ? 18 : 28} className="header-main-icon" /> : <Pickaxe size={isCompactHeader ? 18 : 28} className="header-main-icon" />}
-          </div>
-          <div className="header-titles">
-            <h1>{headerTitle}</h1>
-            <p>{headerSubtitle}</p>
-          </div>
-        </div>
-        <div className="header-right">
-          {isMenuLanding ? (
-            <div className="save-controls save-controls--menu-note" role="note">
-              Save and load files unlock after a mission starts.
-            </div>
-          ) : canUseProgressFiles ? (
-            <div className="save-controls">
-              <button className="save-control-btn" onClick={handleSaveProgressFile} disabled={!canUseProgressFiles}>
-                <Save size={16} /> Save Progress
-              </button>
-              <label className={`save-control-btn ${!canUseProgressFiles ? 'is-disabled' : ''}`} aria-disabled={!canUseProgressFiles}>
-                <Upload size={16} /> Load Progress
-                <input type="file" accept=".json" onChange={handleLoadProgressFile} disabled={!canUseProgressFiles} hidden />
-              </label>
-            </div>
-          ) : (
-            <div className="save-controls save-controls--compact-note" role="note">
-              Save files unavailable here
-            </div>
-          )}
-          {phase !== 'menu' && phase !== 'training' && !isBureauPhase && !isExpeditionPhase && (
-            <nav className="phase-navigation" role="tablist">
-              {['Dig', 'Sort', 'Lab', 'Museum', 'Report'].map((p, i) => (
-                <button 
-                  key={p} 
-                  className={`phase-nav-item ${phase.toLowerCase() === p.toLowerCase() ? 'active' : ''}`}
-                  onClick={() => setPhase(p.toLowerCase())}
-                  role="tab"
-                  aria-selected={phase.toLowerCase() === p.toLowerCase()}
-                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', font: 'inherit', color: 'inherit' }}
-                >
-                  <span className="phase-num">{i + 1}</span> {p}
-                </button>
-              ))}
-            </nav>
-          )}
-        </div>
-      </header>
-
-      {saveMessage && <div className="save-message" role="status">{saveMessage}</div>}
-
+    <div className={`app-wrapper app-wrapper--${phase} app-wrapper--no-global-header ${isMenuLanding ? 'app-wrapper--menu-header' : ''} ${isSiteSelectionActive ? 'app-wrapper--site-selection' : ''}`}>
       <main className="main-content">
+        {isFullInvestigationPhase && (
+          <div className="mode-phase-strip hide-on-print" aria-label="Full Investigation phase progress">
+            <span className="mode-phase-title">Full Investigation</span>
+            <ol className="phase-navigation phase-navigation--readonly" aria-label="Current investigation phase">
+              {['Dig', 'Sort', 'Lab', 'Museum', 'Report'].map((p, i) => {
+                const phaseKey = p.toLowerCase();
+                const isActive = phase === phaseKey;
+                return (
+                  <li
+                    key={p}
+                    className={`phase-nav-item ${isActive ? 'active' : ''}`}
+                    aria-current={isActive ? 'step' : undefined}
+                  >
+                    <span className="phase-num">{i + 1}</span> {p}
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
+        )}
+
         {phase === 'menu' && (
           <ActivityMenu
             onStartInvestigation={handleStartInvestigation}
@@ -444,8 +337,10 @@ export default function App() {
             activeArtifacts={activeArtifacts} 
             excavatedIds={excavatedIds} 
             setExcavatedIds={setExcavatedIds} 
-            onComplete={(recoveredArtifacts) => {
+            onComplete={(recoveredArtifacts, recoveryConditions = {}, recoverySummary = null) => {
               setActiveArtifacts(recoveredArtifacts);
+              setEvidenceConditions(recoveryConditions);
+              setDigRecoverySummary(recoverySummary);
               setItemsLocation(recoveredArtifacts.reduce((acc, a) => ({ ...acc, [a.id]: 'inventory' }), {}));
               setPhase('sort');
             }} 
@@ -463,6 +358,7 @@ export default function App() {
             onComplete={() => setPhase('lab')} 
             onBackToMenu={() => setPhase('menu')} 
             currentScenario={currentScenario}
+            evidenceConditions={evidenceConditions}
           />
         )}
 
@@ -473,6 +369,7 @@ export default function App() {
             hypotheses={hypotheses} 
             setHypotheses={setHypotheses} 
             currentScenario={currentScenario} 
+            evidenceConditions={evidenceConditions}
             onComplete={(name, civId) => {
               setSiteName(name);
               setFinalConclusion(civId);
@@ -492,6 +389,7 @@ export default function App() {
             setPlaques={setPlaques} 
             finalExhibitionStatement={finalExhibitionStatement} 
             setFinalExhibitionStatement={setFinalExhibitionStatement} 
+            evidenceConditions={evidenceConditions}
             onComplete={() => setPhase('report')} 
             onBackToMenu={() => setPhase('menu')} 
           />
@@ -510,6 +408,8 @@ export default function App() {
             curatedItems={curatedItems} 
             plaques={plaques} 
             finalExhibitionStatement={finalExhibitionStatement} 
+            evidenceConditions={evidenceConditions}
+            digRecoverySummary={digRecoverySummary}
             onBackToMenu={() => setPhase('menu')} 
           />
         )}
@@ -539,6 +439,7 @@ export default function App() {
           setCurrentScenario={setCurrentScenario} setCurrentEvent={setCurrentEvent}
           setSiteName={setSiteName} setFinalConclusion={setFinalConclusion}
           setCuratedItems={setCuratedItems} setPlaques={setPlaques}
+          setEvidenceConditions={setEvidenceConditions} setDigRecoverySummary={setDigRecoverySummary}
           currentScenario={currentScenario}
           activeArtifacts={activeArtifacts}
           currentEvent={currentEvent}

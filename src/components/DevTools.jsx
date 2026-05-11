@@ -10,6 +10,7 @@ export function DevTools({
   currentPhase, setPhase, setBureauState, setExcavatedIds, setActiveArtifacts, 
   setItemsLocation, setHypotheses, setCurrentScenario, setCurrentEvent, 
   setSiteName, setFinalConclusion, setCuratedItems, setPlaques,
+  setEvidenceConditions, setDigRecoverySummary,
   currentScenario, activeArtifacts, currentEvent 
 }) {
   const jumpTo = (target) => {
@@ -25,9 +26,33 @@ export function DevTools({
       : [...(scen.evidence || []), (RED_HERRINGS && RED_HERRINGS.length > 0 ? RED_HERRINGS[0] : null)].filter(Boolean);
     
     const evt = currentEvent || (RANDOM_EVENTS && RANDOM_EVENTS.length > 0 ? RANDOM_EVENTS[0] : null);
+    const defaultConditions = artifacts.reduce((acc, artifact) => ({
+      ...acc,
+      [artifact.id]: {
+        condition: artifact.isRedHerring ? 'disturbed' : 'good',
+        recoveredBy: 'dev-tools',
+        pressure: 0,
+        note: artifact.isRedHerring ? 'Logged as site disturbance.' : 'Mock recovered with usable field context.',
+      },
+    }), {});
+    const defaultSummary = {
+      cleanRecoveryCount: artifacts.filter(artifact => !artifact.isRedHerring).length,
+      damagedRecoveryCount: 0,
+      disturbedRecoveryCount: artifacts.filter(artifact => artifact.isRedHerring).length,
+      recoveredEvidenceCount: artifacts.length,
+      guaranteedEvidenceCount: artifacts.length,
+      minimumEvidenceTarget: Math.min(artifacts.length, artifacts.length >= 10 ? 10 : artifacts.length),
+      digMinimumEvidenceMet: true,
+      attempts: 0,
+      radarUses: 0,
+      disturbanceLevel: 0,
+      timeMode: 'dev-tools',
+    };
     
     setCurrentScenario(scen);
     setCurrentEvent(evt);
+    if (typeof setEvidenceConditions === 'function') setEvidenceConditions(defaultConditions);
+    if (typeof setDigRecoverySummary === 'function') setDigRecoverySummary(defaultSummary);
     
     if (target === 'dig') {
       setActiveArtifacts(artifacts);

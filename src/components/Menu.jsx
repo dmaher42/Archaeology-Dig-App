@@ -159,6 +159,9 @@ export function ActivityMenu({
             <span>Museum Mystery</span>
           </div>
         </div>
+        <div className="menu-save-note" role="note">
+          Save/load unlocks after a mission starts.
+        </div>
         <div className="menu-hero-art" aria-hidden="true">
           <div className="menu-hero-sun" />
           <div

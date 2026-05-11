@@ -459,13 +459,6 @@ const TOOL_EFFECTS = {
     missingDesc: 'Identifying unfamiliar artifacts will be much slower and more prone to error.'
   },
 };
-const FIELD_GUIDE_HINTS = {
-  structure: 'Field Guide Hint: Features and structures are things people built or changed, like walls, roads, buildings or tombs.',
-  written_record: 'Field Guide Hint: Written sources often contain symbols, records, laws, names or stories.',
-  environmental: 'Field Guide Hint: Environmental evidence can show rivers, farming, climate, soil, plants or natural resources.',
-  material_culture: 'Field Guide Hint: Artefacts and objects are things people made, used, traded or valued.',
-  human_remains: 'Field Guide Hint: Human remains can show health, burial practices, diet or beliefs about death.',
-};
 const RANK_BANDS = [
   { min: 90, title: 'Lead Archaeologist' },
   { min: 75, title: 'Field Investigator' },
@@ -546,7 +539,7 @@ const getExcavationOutcome = (methodId, token, fieldKitEffects, mission) => {
       damaged: false,
       bonus: fieldKitEffects.trowelReady && suitedEvidence ? 2 : 0,
       feedback: method.feedback,
-      kitFeedback: fieldKitEffects.trowelReady && suitedEvidence ? 'Trowel from field kit used: structural or object evidence was excavated cleanly.' : '',
+      kitFeedback: fieldKitEffects.trowelReady && suitedEvidence ? 'Trowel from field kit used: the find was excavated cleanly.' : '',
     };
   }
 
@@ -1973,12 +1966,24 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         desertBackgroundAssetsLoaded: Boolean(journeySnapshot.desertBackgroundAssetsLoaded),
         desertBackgroundAssetsReady: Boolean(journeySnapshot.desertBackgroundAssetsReady),
         desertBackgroundFallbackActive: Boolean(journeySnapshot.desertBackgroundFallbackActive),
+        enemySpritesLoaded: Boolean(journeySnapshot.enemySpritesLoaded),
+        enemySpriteFallbackActive: Boolean(journeySnapshot.enemySpriteFallbackActive),
+        enemySpriteAtlasPath: journeySnapshot.enemySpriteAtlasPath || null,
+        visibleEnemySpriteFamilies: journeySnapshot.visibleEnemySpriteFamilies || [],
+        enemySpriteFrameStates: journeySnapshot.enemySpriteFrameStates || [],
         parallaxLayersActive: Boolean(journeySnapshot.parallaxLayersActive),
         activeBackgroundSection: journeySnapshot.activeBackgroundSection || null,
         backgroundDepthMode: journeySnapshot.backgroundDepthMode || null,
         visibleLabelCount: journeySnapshot.visibleLabelCount || 0,
         labelSuppressionActive: Boolean(journeySnapshot.labelSuppressionActive),
         platformVisualTuningActive: Boolean(journeySnapshot.platformVisualTuningActive),
+        assetGroundingPassActive: Boolean(journeySnapshot.assetGroundingPassActive),
+        assetGroundingVersion: journeySnapshot.assetGroundingVersion || null,
+        groundedPropCount: journeySnapshot.groundedPropCount || 0,
+        backgroundPropTintActive: Boolean(journeySnapshot.backgroundPropTintActive),
+        platformGroundingMode: journeySnapshot.platformGroundingMode || null,
+        propDrawOrderMode: journeySnapshot.propDrawOrderMode || null,
+        floatingAssetWarnings: journeySnapshot.floatingAssetWarnings || [],
         desertVisualTuningVersion: journeySnapshot.desertVisualTuningVersion || null,
         atlasTuningVersion: journeySnapshot.atlasTuningVersion || null,
         activeAtlasRegionIssues: journeySnapshot.activeAtlasRegionIssues || [],
@@ -2384,8 +2389,11 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
 
   if (expeditionStage === 'journey' && !baseCampOpen) {
     return (
-      <>
+      <div className="expedition-journey-mode-shell">
         {renderDevModeSwitcher()}
+        <button type="button" className="expedition-local-menu-btn" onClick={onBackToMenu}>
+          <ChevronLeft size={16} /> Back to Menu
+        </button>
         <ExpeditionJourney
           key={journeyRunId}
           mission={activeMission}
@@ -2394,7 +2402,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
           onSnapshotChange={handleJourneySnapshot}
           audioControls={audioControls}
         />
-      </>
+      </div>
     );
   }
 
@@ -2848,14 +2856,14 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
           <div className="bureau-briefing-modal expedition-inspection-modal">
             <div className="training-kicker">Inspect Evidence</div>
             <h2>{inspectionToken.name}</h2>
-            <div className="expedition-inspection-meta">{inspectionToken.category}</div>
+            <div className="expedition-inspection-meta">Unclassified field evidence</div>
             <p>{inspectionToken.clue}</p>
-            <div className="expedition-inspection-clue-group">Clue group: {inspectionToken.clueGroup}</div>
+            <div className="expedition-inspection-clue-group">Field context: {inspectionToken.zone}</div>
             {fieldKitEffects.fieldGuideAvailable && !inspectionFeedback && (
               <div className="expedition-tool-effect-hint">
                 <strong>Field Guide Hint</strong>
                 <span>
-                  {FIELD_GUIDE_HINTS[inspectionToken.missionType] || 'Field Guide Hint: Look at what this evidence shows before deciding if it matches the mission.'}
+                  Look at the material, shape, location and clue before deciding how to classify this evidence.
                 </span>
               </div>
             )}
@@ -2874,15 +2882,13 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
                 </p>
                 <div className="expedition-excavation-method-grid">
                   {EXCAVATION_METHODS.map(method => {
-                    const outcome = getExcavationOutcome(method.id, inspectionToken, fieldKitEffects, activeMission);
                     const costText = `${method.cost.investigation} investigation, ${method.cost.time} seconds`;
                     return (
                       <article key={method.id} className="expedition-excavation-method-card">
                         <strong>{method.name}</strong>
                         <span>{method.bestFor}</span>
                         <p>Cost: {costText}</p>
-                        <p>Likely quality: {outcome?.quality || method.baseQuality}</p>
-                        {outcome?.kitFeedback && <p className="expedition-method-kit-note">{outcome.kitFeedback}</p>}
+                        <p>Likely quality: depends on the find and method choice.</p>
                         <button type="button" className="btn primary-btn" onClick={() => chooseExcavationMethod(method.id)}>
                           Choose Method
                         </button>
@@ -2919,7 +2925,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
                   <div className="expedition-tool-effect-hint">
                     <strong>Field Guide Hint</strong>
                     <span>
-                      {FIELD_GUIDE_HINTS[inspectionToken.missionType] || 'Field Guide Hint: Look at what this evidence shows before deciding on its type.'}
+                      Use the clue and location record to choose the evidence type. The field guide will not choose the category for you.
                     </span>
                   </div>
                 )}

@@ -324,3 +324,176 @@ Remaining notes:
 - Browser checks confirmed app load, larger main-menu header, compact headers for Training, Full Investigation site selection, Dig, Antiquities Bureau, and Lost Site Expedition, no hidden content under the header, existing back/menu controls visible where supported, no horizontal overflow, no full-page vertical overflow in checked screens, and no console errors.
 - `npm.cmd run build` passed; `npm.cmd run lint` passed; `git diff --check` only reported the repo's LF-to-CRLF warnings.
 - Remaining risk: Dig still has a slightly taller compact header than other modes because the phase tracker remains in the global header; it is improved, but a future pass could move the phase tracker into the Dig HUD if more vertical space is needed.
+
+2026-05-10 update:
+- Removed the duplicate main menu global header so the landing screen no longer repeats `Lost Site Expedition / Archaeology Challenge` above the hero.
+- Kept the existing menu hero as the single main menu identity section with title, subtitle, mission description, badges, and hero sprite.
+- Moved the menu save/load note into the hero as a small secondary note so it no longer acts like a separate top banner.
+- Preserved compact global headers for in-game contexts, including Training, Full Investigation site selection, Bureau, Expedition, and Dig.
+- Browser checks confirmed app load, main menu open, no separate top global header on the landing screen, `Lost Site Expedition` appearing once, hero-only branding, secondary save/load note, all four cards/buttons visible, no horizontal or full-page vertical overflow, stable card hover, all four routes working, and no console errors.
+- `npm.cmd run build` passed; `npm.cmd run lint` passed; `git diff --check` only reported the repo's LF-to-CRLF warnings.
+- Remaining risk: the hero is now doing all landing identity work, so a projector pass should judge whether the small save/load note is noticeable enough without becoming distracting.
+
+2026-05-10 update:
+- Removed the global app header from all screens so the app relies on mode-specific identity and navigation instead of a repeated website-style banner.
+- Confirmed the global header source of truth was the single header block in `src/App.jsx`; no duplicate header system was created.
+- Kept the main menu hero banner as the app identity, including the Lost Site Expedition title, Archaeology Challenge subtitle, mission copy, and existing hero treatment.
+- Added small local navigation support where the removed header had been carrying navigation pressure, including a compact Dig footer menu button and a local Lost Site Expedition Journey Back to Menu button.
+- Moved Full Investigation phase navigation into a compact mode-owned strip rather than the global header, and removed old top spacing so screens move up cleanly.
+- Save/load notice is no longer global; it remains only as secondary landing-screen treatment from the menu hero.
+- `npm.cmd run build` passed; `npm.cmd run lint` passed; `git diff --check` only reported the repo's LF-to-CRLF warnings.
+- Remaining risk: file-based save/load controls were part of the removed global header, so a later pass may want a smaller mode-local save/load entry point if the classroom flow needs manual backup outside the menu.
+
+2026-05-10 update:
+- Completed the Full Investigation Setup Screen One-View Layout Pass.
+- Confirmed `src/components/DigPhase.jsx` controls the Phase 1 Dig setup screen; no separate Full Investigation setup component was created.
+- Added setup-specific modal classes, tightened the setup panel height, reduced heading/icon spacing, compacted section gaps, and softened the blurred background dominance while preserving the Approaching Night theme.
+- Made Crew Size, Excavation Strategy, and Time Authorization choices shorter, equal-height, readable, and stable on hover with clear selected states.
+- Tightened the Back to Menu and Start Explore/Start Challenge action row so the controls remain visible without scrolling.
+- Browser checks confirmed app load, main menu, Full Investigation start, setup screen display, one-viewport fit at 1366x768, no full-page vertical overflow, Solo/Team selection, Methodical/Emergency selection, Back to Menu, Start Explore opening the Dig board, and no console errors.
+- `npm.cmd run build` passed; `npm.cmd run lint` passed; `git diff --check` only reported the repo's LF-to-CRLF warnings.
+- Remaining risk: the setup is now compact for laptop/projector height, but a real projector check should still judge whether the smaller choice-card descriptions read clearly from the back of the room.
+
+2026-05-10 update:
+- Completed the Full Investigation Dig Phase Layout Polish Pass.
+- Confirmed `src/components/DigPhase.jsx` remains the canonical Dig/matching-board component.
+- Reduced laptop-height matching tiles from a 132px cap to a 120px cap, keeping all 3 rows readable while giving the bottom HUD more breathing room.
+- Tightened the Full Investigation phase strip, status/timer row, instruction bar, game panel padding, and board frame spacing without changing matching, scoring, or routing logic.
+- Improved footer breathing room by slightly increasing the compact HUD height/padding and spacing the Recovered, Attempts, Field Guide, and Back to Menu controls more consistently.
+- Browser checks confirmed app load, main menu, Full Investigation start, Dig launch, full 24-card grid visible, no full-page vertical or horizontal overflow at 1366x768, readable instruction/timer, visible footer HUD, clickable cards, Attempts update, Recovered update, Field Guide accessibility, Back to Menu, and no console errors.
+- `npm.cmd run build` passed; `npm.cmd run lint` passed; `git diff --check` only reported the repo's LF-to-CRLF warnings.
+- Remaining risk: the board now feels less squeezed on the checked laptop viewport, but projector readability should still be judged in the classroom because the tile labels are slightly smaller.
+
+2026-05-10 update:
+- Completed the Full Investigation Sort Phase One-Screen Layout Pass.
+- Confirmed `src/components/SortPhase.jsx` controls Phase 2 Evidence Processing, with routing mounted from `src/App.jsx`.
+- Tightened the Phase 2 status banner, Ancient Egypt badge, progress readout, and Main Menu/Open Lab actions into a lower-height evidence desk header.
+- Reworked the pending evidence tray into a compact scrollable filing tray, with a smaller completion state when all evidence is processed and a clear Finalize Lab Report action.
+- Restyled the five category bins as parchment evidence folders with folder tabs, tighter 3-column/2-row desktop layout, compact count badges, dashed drop zones, and clearer drag-over feedback.
+- Made missing item locations count as pending inventory so the phase tracker/dev route opens a usable Sort board instead of a false completed state; normal Dig-to-Sort handoff still behaves the same.
+- Browser checks confirmed app load, main menu, Full Investigation start, real Dig-to-Sort handoff, all five category folders visible, pending evidence visible, one-viewport fit at 1366x768 with no horizontal overflow, drag/drop sorting updates category count and progress, progress reaches 12/12, Finalize/Open Lab routes to Lab, Main Menu returns to the landing screen, and no console errors.
+- `npm.cmd run build` passed; `npm.cmd run lint` passed; `git diff --check` only reported the repo's LF-to-CRLF warnings.
+- Remaining risk: folder cards are deliberately dense to keep the whole evidence desk on one projector view; a classroom projector pass should still judge the smaller folder descriptions from the back of the room.
+
+2026-05-10 update:
+- Completed the Sort Instruction Modal Readability + Theme Pass.
+- Confirmed the instruction modal is controlled by the tutorial block in `src/components/SortPhase.jsx`.
+- Reworded the modal to `Categorisation Protocol`, with shorter Year 7-friendly instructions and a compact five-category reminder list.
+- Restyled the modal from a dark glass card into a parchment/dossier protocol card with dark ink text, red folder accents, readable category labels, and a polished red `Got it` button.
+- Tuned the overlay to keep focus on the modal without muddying the parchment contrast.
+- Browser checks confirmed app load, main menu, Full Investigation, Sort phase, modal appearance, readable title/body/category terms, `Got it` closing the modal, Sort board visible after closing, and no console errors.
+- `npm.cmd run build` passed; `npm.cmd run lint` passed; `git diff --check` only reported the repo's LF-to-CRLF warnings.
+- Remaining risk: the card is now much more readable on the laptop viewport, but a projector pass should still judge the category reminder text from the back of the room.
+
+2026-05-10 update:
+- Completed the Full Investigation Lab Phase Layout + Theme Consistency Pass.
+- Confirmed `src/components/LabPhase.jsx` controls Phase 3 Laboratory Analysis.
+- Tightened the Lab phase header, civilisation badge, progress bar, Main Menu action, and Final Review action so they read as a compact phase control strip.
+- Reworked Dossier Briefing into a compact parchment dossier note integrated with the lab workspace instead of a tall full-width band.
+- Tuned the evidence tray, selected state, workstation placeholder, analysis image panel, answer choices, prompt choices, note field, and action spacing for a denser one-screen lab desk layout.
+- Browser checks confirmed app load, main menu, Full Investigation start, Lab phase open through the phase navigation, compact dossier briefing, readable evidence tray, clear no-find placeholder, evidence selection opening workstation content, visible progress/Main Menu/Final Review controls, no full-page vertical overflow, no horizontal overflow or right-edge clipping at 1366x768, and no console errors. Screenshot saved at `scratch/lab-phase-polish-fixed.png`.
+- `npm.cmd run build` passed; `npm.cmd run lint` passed; `git diff --check` only reported the repo's LF-to-CRLF warnings.
+- Remaining risk: selected-evidence analysis content now scrolls inside the workstation panel to keep the full Lab desk on one screen; a projector pass should still judge the smaller answer/prompt text from the back of the room.
+
+2026-05-10 update:
+- Completed the project-wide evidence/classification Answer Leak Audit.
+- Checked Full Investigation Sort, Lost Site Expedition inspection/inventory/replacement UI, Antiquities Bureau clues/profiles/comparison UI, and Lab/Museum/Report post-classification displays.
+- Fixed the confirmed Sort leak by replacing category-specific pending-evidence icons/colours with one neutral evidence icon while preserving destination folder labels and post-sort category icons.
+- Fixed Expedition pre-answer leaks by replacing the inspection category label with `Unclassified field evidence`, replacing `Clue group` with neutral field context, making field-guide text non-answer-giving before classification, and removing token-specific likely-quality previews from excavation method cards.
+- Preserved post-answer/post-classification labels in Lab, Museum, Report, sorted folders, collected Expedition inventory, and Bureau feedback because those appear after the relevant thinking task or are needed for review.
+- Browser checks confirmed app load, Full Investigation Sort pending cards show only name/clue with neutral icons, destination folders remain labelled, sorting still updates folder counts and success feedback, Lost Site Expedition inspection opens and no longer shows category/clue-group/answer-like likely-quality before the method/classification steps, and no console errors in checked flows.
+- `npm.cmd run build` passed; `npm.cmd run lint` passed; `git diff --check` only reported the repo's LF-to-CRLF warnings.
+- Remaining risk: the Bureau case flow intentionally labels clue categories such as geography/society/legacy as part of the sentence-building mechanic; no change was made there because removing those labels would change the designed reasoning task.
+
+2026-05-10 update:
+- Completed the Sort Phase Feedback Message Placement + Readability Fix.
+- Confirmed `src/components/SortPhase.jsx` renders the Sort feedback; the old viewport-fixed `.sort-feedback` styling in `src/index.css` was causing the green/red message to sit across the bottom of the board.
+- Moved correct/incorrect feedback into the Sort phase layout as a compact, centred in-flow panel so it no longer covers category folders, drop zones, pending evidence, or action buttons.
+- Added explicit `Correct` / `Try again` text cues, compact check/alert icon treatment, readable green/red parchment-style panels, and clean text wrapping without changing sorting rules, scoring, evidence data, or category folders.
+- Preserved the answer-leak fix: pending evidence cards still use the neutral evidence icon and do not show category-specific icons/colours before sorting.
+- Browser checks confirmed app load, main menu, Full Investigation start, Sort phase open, tutorial close, incorrect feedback display, correct feedback display, no feedback overlap with category folders, counts/progress update, progress reaches 12/12, Open Lab routes to Lab, no full-page/horizontal scrolling at 1366x768, and no console errors.
+- `npm.cmd run build` passed; `npm.cmd run lint` passed; `git diff --check` only reported the repo's LF-to-CRLF warnings.
+- Remaining risk: the panel is deliberately compact to preserve one-screen play; a projector pass should still judge whether the longer wrong-attempt hints read comfortably from the back of the room.
+
+2026-05-11 update:
+- Completed the Full Investigation Curate Phase Layout + Readability Fix.
+- Confirmed `src/components/MuseumPhase.jsx` controls Phase 4 / Museum / Curate, including the curation tray, curated exhibit slots, plaque textareas, final exhibition statement, Main Menu action, and Final Report routing.
+- Restyled the Museum phase as a compact parchment curation desk with a lower-height phase header, clearer progress/action hierarchy, high-contrast text, and no full-page scrolling at the checked laptop viewport.
+- Reworked the curation tray cards so evidence titles, post-classification categories, thumbnails, selected state, and add/remove controls are clearer while preserving the existing three-find curation rule.
+- Added visible open exhibit slots, tightened curated display cards, improved lab-result/plaque readability, and kept the final exhibition statement/action available without creating a dark oversized panel.
+- Browser checks confirmed app load, main menu, Full Investigation start, Museum phase reached after Lab documentation, evidence list readable, curation controls working, progress updating to 2/3, plaque text retained into the final report, Final Report routing, Main Menu routing, no horizontal/full-page vertical scroll at 1366x768, and no console errors. Screenshot saved at `scratch/museum-curate-polish.png`.
+- `npm.cmd run build` passed with the existing large-chunk warning; `npm.cmd run lint` passed; `git diff --check` only reported the repo's LF-to-CRLF warnings.
+- Remaining risk: the exhibit cards use compact lab-result text to keep all three slots visible on a laptop/projector screen, so a projector pass should still judge whether the smaller lab-result snippets read clearly from the back of the room.
+
+2026-05-11 update:
+- Completed the first Full Investigation theme-balance pass focused on the Dig phase.
+- Confirmed the Dig mismatch was mainly visual: the matching board, phase strip, status bar, and footer had become very pale compared with the darker archaeology/classified expedition theme.
+- Rebalanced `src/index.css` Dig-only styling toward dark wood, excavation-table browns, aged parchment accents, bronze borders, and higher-contrast HUD text while preserving card grid sizing, matching logic, timer, scoring, Field Guide, and Back to Menu behavior.
+- Browser checks confirmed Full Investigation Dig opens, all 24 cards remain visible, the instruction remains readable, there is no horizontal/full-page vertical scrolling at 1366x768, and no console errors. Screenshots saved at `scratch/dig-theme-before.png` and `scratch/dig-theme-balanced.png`.
+- Remaining risk: this pass focuses on Dig first because it was the clearest mismatch; Sort/Lab/Museum may still benefit from a separate lighter-touch theme unification pass if the overall Full Investigation flow still feels too pale.
+
+2026-05-11 update:
+- Completed the Dig Phase Challenge + Minimum Evidence Guarantee pass.
+- Confirmed `src/components/DigPhase.jsx` remains the canonical memory-match Dig component, with Full Investigation handoff managed in `src/App.jsx`.
+- Added evidence condition tracking as metadata keyed by evidence id (`excellent`, `good`, `damaged`, `disturbed`) without changing the canonical evidence data or category answers.
+- Added site disturbance pressure from mismatches and radar use, plus compact Dig UI indicators and a field debrief showing clean, damaged, disturbed, attempts, radar use, disturbance, and transferred evidence.
+- Protected later phases by passing all active Dig evidence forward on completion or time-up, while marking unrecovered finds as field-team `disturbed` recoveries so Sort/Lab/Museum/Report still have enough evidence.
+- Added neutral post-Dig condition labels in Sort and review condition metadata in Lab, Museum, and Report without reintroducing category-answer leaks on pending Sort cards.
+- Browser checks confirmed app load, Full Investigation site mission launch, Dig setup/start, matching pairs, attempts, mismatch disturbance, radar disturbance, clean completion handoff with 12 evidence cards, incomplete timed challenge handoff with 12 transferred evidence cards and 10+ minimum evidence met, Sort pending evidence category neutrality, Lab/Museum/Report condition display, and no console errors in the checked flows.
+- `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning.
+- Remaining risk: the challenge consequences are intentionally light so the classroom flow is never blocked; a real student playtest should judge whether the disturbance thresholds feel motivating enough.
+
+2026-05-11 update:
+- Added the Full Investigation UI asset atlas at `public/assets/full-investigation/shared/full-investigation-ui-pack.png` with named metadata in `public/assets/full-investigation/shared/full-investigation-ui-pack.json`.
+- Added `src/components/full-investigation/fullInvestigationAssets.js` to load the Full Investigation PNG/JSON once, publish ready/error/fallback state, and expose named atlas regions for React/CSS use.
+- Integrated the first safe visual slice only: Dig card backs and excavation tray, Sort pending evidence cards and category folder backgrounds, and Museum wall/display/plinth/plaque framing.
+- Preserved existing real evidence photos by leaving `getEvidenceImagePath`, evidence image files, and all evidence photo paths untouched; the new atlas only frames UI containers.
+- Preserved learning integrity by keeping Pending Evidence icons neutral and avoiding category-specific colours/icons/labels on unsorted cards; destination folders still show their category labels as required.
+- Browser checks confirmed app load, Full Investigation launch, Dig card-back/tray atlas rendering, Dig matching/recovered count update, Sort atlas cards/folders, neutral pending-evidence cards with no category leak, Lab evidence photos still loading from existing museum paths, Museum atlas wall/display/plinth/plaque framing after curation, and no console errors in the checked flows.
+- `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning; `git diff --check` only reported the repo's LF-to-CRLF warnings.
+- Remaining risk: atlas region coordinates are approximate from the generated pack and should get one projector visual pass before expanding the atlas deeper into Lab/Report.
+
+2026-05-11 update:
+- Completed the Journey Asset Grounding + Scene Integration Pass for Lost Site Expedition.
+- Confirmed the floating/pasted-on look came from clean atlas props, route gates, hazards, and non-ground platforms being drawn without enough contact shadow, dust overlap, depth tinting, or underside grounding against the desert scene.
+- Added Journey asset grounding debug metadata via `render_game_to_text`, including `assetGroundingPassActive`, `groundedPropCount`, `backgroundPropTintActive`, `platformGroundingMode`, `propDrawOrderMode`, and `floatingAssetWarnings`.
+- Grounded decorative story props with per-prop size/anchor tuning, warm/stone/cool scene tinting, lowered background alpha, soft contact shadows, and sand dust lips so columns, ruins, camps, doors, statues, bridges, lights, and banners read as embedded in the scene.
+- Improved floating platform/ledge rendering with underside depth, top highlights, bottom shading, contact shadows, and sand overlap without changing platform collision boxes.
+- Added base contact shadows and dust overlap to route gates, final gate/base-camp gateway visuals, and grounded hazard assets while keeping hazards, collectibles, and the player visually readable.
+- Browser checks confirmed app load, Lost Site Expedition launch, Journey start, Desert Entry render, player visibility, environment assets loaded, grounding debug fields active, and no console errors. Screenshot saved at `scratch/journey-grounding-desert-entry.png`.
+- `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning; `git diff --check` only reported the repo's LF-to-CRLF warnings.
+- Remaining risk: the automated visual check focused on Desert Entry; Ruined Temple, Catacombs, Escape Sequence, and Dig Site Entrance should still get a human/projector spot-check because their prop density and camera framing differ.
+
+2026-05-11 update:
+- Removed the student-facing Full Investigation phase skip buttons from the shared phase strip.
+- Confirmed the skip-ahead controls were rendered in `src/App.jsx` as real buttons inside the Full Investigation phase strip, each calling `setPhase(...)` for Dig, Sort, Lab, Museum, and Report.
+- Changed the strip into a read-only ordered progress indicator with `aria-current="step"` on the active phase, preserving the visible phase status without exposing clickable navigation.
+- Updated `src/index.css` so the phase items behave like status labels rather than controls, with default cursor, no selectable text, and no hover affordance in the read-only strip.
+- Static checks confirmed the old `setPhase(p.toLowerCase())`, `role="tablist"`, and `aria-selected` phase-jump wiring is no longer present in `src/App.jsx`.
+- `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning; `git diff --check` only reported the repo's LF-to-CRLF warnings.
+- Remaining risk: an automated browser click-through was attempted but the local browser process hung during the route check; the code path and build/lint/static checks confirm the visible phase strip no longer contains buttons.
+
+2026-05-11 update:
+- Added Dig Phase Environmental Emergency Events to `src/components/DigPhase.jsx`.
+- Confirmed the canonical Dig systems remain in place: `activeArtifacts` still drive the evidence set, mismatches/radar still increase disturbance, evidence conditions are still tracked separately by evidence id, and the minimum evidence guarantee still transfers all active evidence forward.
+- Added a warning/active/resolved/cooldown emergency cycle with themed events for Approaching Night, Sandstorm, Flash Flood, and Falling Debris.
+- Added visible threat-zone cues on the board, including centre trench, lower trench, whole-site, and row-based emergency targets; cards remain clickable during warnings and impacts.
+- Emergency impacts affect only a small number of unrecovered finds by increasing their pressure and emergency metadata; evidence is never removed and later phases still receive enough evidence.
+- Explore mode uses slower, gentler emergencies; Emergency Rescue mode starts pressure sooner, cycles faster, and can affect more finds per impact while still preserving progression.
+- Added compact emergency status UI, condition-impact feedback, debug fields through `render_game_to_text`, and debrief summary lines for emergencies faced and finds affected.
+- Browser checks confirmed app load, site selection, Dig setup, Methodical Search start, periodic Sandstorm warning, visible centre-trench threat zone, zero phase-skip buttons in the read-only phase strip, no horizontal overflow, and no console errors. Screenshot saved at `scratch/dig-emergency-events-check.png`.
+- Challenge-mode browser state confirmed Flash Flood impact, lower-trench threat resolution, two unrecovered finds marked as emergency affected, disturbance increase, evidence availability protected at 12/12, and `digMinimumEvidenceMet: true`; the script timed out after printing state, so the emitted state was used as evidence.
+- `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning.
+- Remaining risk: automated checks verified warning and impact state, but a full student-style run through Sort/Lab/Museum/Report after an emergency-heavy Dig should still be played once to judge classroom pacing and wording.
+
+2026-05-11 update:
+- Completed the Lost Site Expedition small enemy sprite integration pass.
+- Added the uploaded enemy sprite sheet at `public/assets/expedition/enemies/small-enemy-sprites.png` and named atlas metadata at `public/assets/expedition/enemies/small-enemy-sprites.json`.
+- Added `src/components/expedition-journey/journeyEnemySprites.js` to load the sprite atlas once, expose ready/error/fallback state, map existing small enemy types to sprite families, and choose frames from existing combat state.
+- Mapped existing small scarab enemies to Desert Scarab frames, existing snake enemies to Sand Snake frames, and existing bat enemies to Temple Bat frames; guardian, looter, statue, and all mini-bosses remain on the existing renderer.
+- Preserved enemy gameplay behaviour: no enemy positions, health, damage, timing, attack logic, route gates, camera, player rendering, environment atlas, or Full Investigation systems were changed.
+- Added sprite debug fields to Journey `render_game_to_text`, including `enemySpritesLoaded`, `enemySpriteFallbackActive`, `enemySpriteAtlasPath`, `visibleEnemySpriteFamilies`, and `enemySpriteFrameStates`.
+- Browser checks confirmed app load, Lost Site Expedition launch, Journey start, enemy sprite sheet loaded, fallback inactive, visible scarab and snake sprite families, patrol/attack frame states, no console errors, and screenshot review at `scratch/journey-small-enemy-scarab-check.png`.
+- Atlas/static checks confirmed all 21 named scarab/snake/bat regions are present. Bat mapping is implemented and loaded, but a live bat encounter was not reached because it sits past route gates in the Catacombs.
+- `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning; `git diff --check` only reported the repo's LF-to-CRLF warnings.
+- Remaining risk: atlas coordinates are approximate first-pass crops and Temple Bat should get a manual Catacombs/projector spot-check once the route is reached or a dedicated journey-position test hook exists.

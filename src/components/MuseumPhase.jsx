@@ -1,29 +1,42 @@
 import { useState } from 'react';
-import { 
+import {
   Camera, CheckCircle2, ChevronRight, Search, Send
 } from 'lucide-react';
-import { 
-  getArtifactTheme, 
+import {
+  getArtifactTheme,
   getCategoryTitle,
   getEvidenceImagePath
 } from '../utils/gameLogic';
+import { getAtlasRegionStyle, useFullInvestigationAssets } from './full-investigation/fullInvestigationAssets';
 
-export function MuseumPhase({ 
-  activeArtifacts, 
-  hypotheses, 
-  curatedItems, 
-  setCuratedItems, 
-  plaques, 
-  setPlaques, 
-  finalExhibitionStatement, 
-  setFinalExhibitionStatement, 
-  onComplete, 
-  onBackToMenu 
+const formatConditionLabel = (condition) => {
+  if (!condition) return '';
+  return condition.charAt(0).toUpperCase() + condition.slice(1);
+};
+
+export function MuseumPhase({
+  activeArtifacts,
+  hypotheses,
+  curatedItems,
+  setCuratedItems,
+  plaques,
+  setPlaques,
+  finalExhibitionStatement,
+  setFinalExhibitionStatement,
+  evidenceConditions = {},
+  onComplete,
+  onBackToMenu
 }) {
   const [selectedArtifactId, setSelectedArtifactId] = useState(null);
+  const fullInvestigationAssets = useFullInvestigationAssets();
   const curatedSet = new Set(curatedItems.map(item => item.id));
-  
+
   const analysedArtifacts = activeArtifacts.filter(item => !!hypotheses[item.id]);
+  const emptySlots = Array.from({ length: Math.max(0, 3 - curatedItems.length) });
+  const displayPlinthStyle = getAtlasRegionStyle(fullInvestigationAssets, 'displayPlinth');
+  const exhibitFrameStyle = getAtlasRegionStyle(fullInvestigationAssets, 'exhibitFrame');
+  const plaqueCardStyle = getAtlasRegionStyle(fullInvestigationAssets, 'plaqueCard');
+  const museumWallStyle = getAtlasRegionStyle(fullInvestigationAssets, 'museumWallPanel');
 
   const toggleCuration = (artifact) => {
     if (curatedSet.has(artifact.id)) {
@@ -62,8 +75,8 @@ export function MuseumPhase({
         </div>
 
         <div className="status-panel-actions-compact">
-          <button className="btn" onClick={onBackToMenu}>Main Menu</button>
-          <button className="btn primary-btn" onClick={onComplete} disabled={curatedItems.length === 0}>
+          <button className="btn museum-menu-btn" onClick={onBackToMenu}>Main Menu</button>
+          <button className="btn primary-btn museum-final-report-btn" onClick={onComplete} disabled={curatedItems.length === 0}>
             Final Report <ChevronRight size={18} />
           </button>
         </div>
@@ -79,28 +92,47 @@ export function MuseumPhase({
               const isSelected = selectedArtifactId === item.id;
               const isCurated = curatedSet.has(item.id);
               const theme = getArtifactTheme(item);
+              const curationDisabled = !isCurated && curatedItems.length >= 3;
 
               return (
-                <button
+                <article
                   key={item.id}
                   className={`museum-curation-card ${isSelected ? 'active' : ''} ${isCurated ? 'curated' : ''}`}
-                  onClick={() => setSelectedArtifactId(item.id)}
                 >
-                  <div className="museum-curation-icon" style={{ color: theme.accent, overflow: 'hidden' }}>
-                    <img 
-                      src={getEvidenceImagePath(item)} 
-                      alt="" 
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                    />
-                  </div>
-                  <div className="museum-curation-copy">
-                    <div className="museum-curation-name">{item.name}</div>
-                    <div className="museum-curation-meta">{getCategoryTitle(item.type)}</div>
-                  </div>
-                  <div className="museum-curation-checkbox" onClick={(e) => { e.stopPropagation(); toggleCuration(item); }}>
+                  <button
+                    type="button"
+                    className="museum-curation-main"
+                    onClick={() => setSelectedArtifactId(item.id)}
+                    aria-pressed={isSelected}
+                  >
+                    <span className="museum-curation-icon" style={{ color: theme.accent, overflow: 'hidden' }}>
+                      <img
+                        src={getEvidenceImagePath(item)}
+                        alt=""
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    </span>
+                    <span className="museum-curation-copy">
+                      <span className="museum-curation-name">{item.name}</span>
+                      <span className="museum-curation-meta">{getCategoryTitle(item.type)}</span>
+                      {evidenceConditions[item.id]?.condition && (
+                        <span className={`condition-badge condition-${evidenceConditions[item.id].condition}`}>
+                          {formatConditionLabel(evidenceConditions[item.id].condition)}
+                        </span>
+                      )}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    className="museum-curation-checkbox"
+                    onClick={() => toggleCuration(item)}
+                    disabled={curationDisabled}
+                    aria-pressed={isCurated}
+                    aria-label={isCurated ? `Remove ${item.name} from exhibition` : `Add ${item.name} to exhibition`}
+                  >
                     {isCurated ? <CheckCircle2 size={18} /> : <div className="museum-checkbox-empty" />}
-                  </div>
-                </button>
+                  </button>
+                </article>
               );
             })}
             {analysedArtifacts.length === 0 && (
@@ -131,7 +163,11 @@ export function MuseumPhase({
           )}
         </section>
 
-        <section className="museum-panel museum-exhibit-panel">
+        <section
+          className={`museum-panel museum-exhibit-panel ${museumWallStyle ? 'fi-asset-region fi-museum-wall-panel' : ''}`}
+          data-fi-ui-asset={museumWallStyle ? 'museumWallPanel' : undefined}
+          style={museumWallStyle}
+        >
            <div className="museum-panel-heading">Exhibition Display</div>
            <p className="museum-panel-subheading">Write a plaque for each curated find.</p>
 
@@ -140,22 +176,36 @@ export function MuseumPhase({
                 const analysis = hypotheses[item.id];
 
                 return (
-                  <div key={item.id} className="museum-display-card">
+                  <div
+                    key={item.id}
+                    className={`museum-display-card ${exhibitFrameStyle ? 'fi-asset-region fi-exhibit-frame' : ''}`}
+                    data-fi-ui-asset={exhibitFrameStyle ? 'exhibitFrame' : undefined}
+                    style={exhibitFrameStyle}
+                  >
                     <div className="museum-display-header">
                        <div className="museum-display-number">Find {index + 1}</div>
                        <button className="museum-remove-btn" onClick={() => toggleCuration(item)}>Remove</button>
                     </div>
-                    <div className="museum-display-visual">
-                       <img 
-                         src={getEvidenceImagePath(item)} 
-                         alt={item.name} 
-                         style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '8px' }} 
+                    <div
+                      className={`museum-display-visual ${displayPlinthStyle ? 'fi-asset-region fi-display-plinth' : ''}`}
+                      data-fi-ui-asset={displayPlinthStyle ? 'displayPlinth' : undefined}
+                      style={displayPlinthStyle}
+                    >
+                       <img
+                         src={getEvidenceImagePath(item)}
+                         alt={item.name}
+                         style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '8px' }}
                        />
                     </div>
                     <div className="museum-display-body">
                        <h4>{item.name}</h4>
                        <div className="museum-display-analysis-box">
                           <strong>Lab Result:</strong>
+                          {evidenceConditions[item.id]?.condition && (
+                            <p className="museum-analysis-note">
+                              Field condition: {formatConditionLabel(evidenceConditions[item.id].condition)}
+                            </p>
+                          )}
                           {analysis ? (
                              <>
                                <p className="museum-analysis-answer">{analysis.answerText}</p>
@@ -165,7 +215,11 @@ export function MuseumPhase({
                              <p>No research note.</p>
                            )}
                        </div>
-                       <div className="museum-plaque-field">
+                       <div
+                         className={`museum-plaque-field ${plaqueCardStyle ? 'fi-asset-region fi-plaque-card' : ''}`}
+                         data-fi-ui-asset={plaqueCardStyle ? 'plaqueCard' : undefined}
+                         style={plaqueCardStyle}
+                       >
                           <label>Exhibition Label</label>
                           <textarea
                             value={plaques[item.id] || ''}
@@ -177,6 +231,20 @@ export function MuseumPhase({
                   </div>
                 );
               })}
+              {curatedItems.length > 0 && emptySlots.map((_, index) => (
+                <div
+                  key={`empty-slot-${index}`}
+                  className={`museum-display-card museum-display-slot ${displayPlinthStyle ? 'fi-asset-region fi-display-plinth' : ''}`}
+                  data-fi-ui-asset={displayPlinthStyle ? 'displayPlinth' : undefined}
+                  style={displayPlinthStyle}
+                >
+                  <div className="museum-display-number">Open Slot {curatedItems.length + index + 1}</div>
+                  <div className="museum-slot-placeholder">
+                    <Camera size={24} />
+                    <p>Select another find from the curation tray.</p>
+                  </div>
+                </div>
+              ))}
               {curatedItems.length === 0 && (
                 <div className="museum-empty-display">
                   <Camera size={32} />

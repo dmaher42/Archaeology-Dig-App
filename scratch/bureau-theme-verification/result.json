@@ -1,0 +1,23 @@
+{
+  "appLoaded": true,
+  "menuBack": true,
+  "expeditionVisible": true,
+  "investigationVisible": true,
+  "briefingVisible": true,
+  "caseTitle": "THE DESERT RIVER FILE",
+  "evidenceCards": 1,
+  "evidenceVisible": true,
+  "profileCards": 6,
+  "dossierTabs": [
+    "Dossier",
+    "Evidence",
+    "Profiles",
+    "Journal"
+  ],
+  "ruledOutCount": 1,
+  "revealWorked": true,
+  "noHorizontalClip": true,
+  "consoleErrorCount": 0,
+  "consoleErrors": [],
+  "screenshots": "C:\\Users\\dmahe\\OneDrive\\Desktop\\Codex\\Archaeology-Dig-App1\\scratch\\bureau-theme-verification"
+}

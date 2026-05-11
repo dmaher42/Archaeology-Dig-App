@@ -410,6 +410,8 @@ export const createSavePayload = ({
   plaques,
   finalExhibitionStatement,
   trainingPlacements,
+  evidenceConditions,
+  digRecoverySummary,
   bureauState,
 }) => ({
   app: SAVE_APP_ID,
@@ -433,6 +435,8 @@ export const createSavePayload = ({
     plaques,
     finalExhibitionStatement,
     trainingPlacements,
+    evidenceConditions,
+    digRecoverySummary,
   }),
 });
 
@@ -471,6 +475,8 @@ export const createNewGameSession = (mode = 'archaeology', phase = 'dig', prefer
     curatedItems: [],
     plaques: {},
     finalExhibitionStatement: '',
+    evidenceConditions: {},
+    digRecoverySummary: null,
   };
 };
 
@@ -516,6 +522,8 @@ export const rebuildSavedSession = (saved) => {
     curatedItems: saved.curatedItems || [],
     plaques: saved.plaques || {},
     finalExhibitionStatement: saved.finalExhibitionStatement || '',
+    evidenceConditions: saved.evidenceConditions || {},
+    digRecoverySummary: saved.digRecoverySummary || null,
     trainingPlacements: Array.from({ length: TRAINING_STAGES.length }, (_, index) => (
       Array.isArray(saved.trainingPlacements) ? saved.trainingPlacements[index] ?? null : null
     )),

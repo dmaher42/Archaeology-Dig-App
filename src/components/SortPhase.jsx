@@ -12,7 +12,7 @@ import {
   rectIntersection
 } from '@dnd-kit/core';
 import { 
-  CheckCircle2, AlertCircle, Tent, Beaker, HelpCircle
+  CheckCircle2, AlertCircle, Tent, Beaker, HelpCircle, Search
 } from 'lucide-react';
 import { 
   getArtifactTheme, 
@@ -21,6 +21,12 @@ import {
   CATEGORIES
 } from '../utils/gameLogic';
 import { getIcon } from './Icons';
+import { getAtlasRegionStyle, useFullInvestigationAssets } from './full-investigation/fullInvestigationAssets';
+
+const formatConditionLabel = (condition) => {
+  if (!condition) return '';
+  return condition.charAt(0).toUpperCase() + condition.slice(1);
+};
 
 const customCollisionDetection = (args) => {
   const pointerCollisions = pointerWithin(args);
@@ -28,11 +34,10 @@ const customCollisionDetection = (args) => {
   return rectIntersection(args);
 };
 
-function DraggableArtifact({ artifact }) {
+function DraggableArtifact({ artifact, condition, assetStyle }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: artifact.id,
   });
-  const theme = getArtifactTheme(artifact);
   const style = transform ? {
     transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
     zIndex: 1001,
@@ -41,29 +46,40 @@ function DraggableArtifact({ artifact }) {
   return (
     <div
       ref={setNodeRef}
-      style={style}
       {...listeners}
       {...attributes}
-      className={`sort-artifact-card ${isDragging ? 'dragging' : ''}`}
+      className={`sort-artifact-card ${assetStyle ? 'fi-asset-region fi-pending-evidence-card' : ''} ${isDragging ? 'dragging' : ''}`}
+      data-fi-ui-asset={assetStyle ? 'pendingEvidenceCard' : undefined}
+      style={{ ...(assetStyle || {}), ...(style || {}) }}
     >
-      <div className="sort-artifact-icon" style={{ color: theme.accent }}>
-        {getIcon(artifact.type, 24)}
+      <div className="sort-artifact-icon sort-artifact-icon--neutral" aria-hidden="true">
+        <Search size={22} />
       </div>
       <div className="sort-artifact-copy">
         <div className="sort-artifact-name">{artifact.name}</div>
         <div className="sort-artifact-clue">{artifact.clue}</div>
+        {condition?.condition && (
+          <div className={`sort-artifact-condition condition-${condition.condition}`}>
+            Field condition: {formatConditionLabel(condition.condition)}
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-function CategoryBin({ categoryId, title, description, items }) {
+function CategoryBin({ categoryId, title, description, items, assetStyle }) {
   const { isOver, setNodeRef } = useDroppable({
     id: categoryId,
   });
 
   return (
-    <div ref={setNodeRef} className={`category-bin ${isOver ? 'is-over' : ''}`}>
+    <div
+      ref={setNodeRef}
+      className={`category-bin ${assetStyle ? 'fi-asset-region fi-category-folder' : ''} ${isOver ? 'is-over' : ''}`}
+      data-fi-ui-asset={assetStyle ? 'categoryFolderBackground' : undefined}
+      style={assetStyle}
+    >
       <div className="category-bin-header">
         <div className="category-bin-header-copy">
           <span className="category-bin-title">{title}</span>
@@ -91,18 +107,19 @@ function CategoryBin({ categoryId, title, description, items }) {
   );
 }
 
-export function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, onComplete, onBackToMenu, currentScenario }) {
+export function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, onComplete, onBackToMenu, currentScenario, evidenceConditions = {} }) {
   const [activeArtifactId, setActiveArtifactId] = useState(null);
   const [feedback, setFeedback] = useState({ message: '', isError: false });
   const [attemptsMap, setAttemptsMap] = useState({});
   const [showTutorial, setShowTutorial] = useState(true);
+  const fullInvestigationAssets = useFullInvestigationAssets();
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 100, tolerance: 5 } })
   );
 
-  const inventory = activeArtifacts.filter(item => itemsLocation[item.id] === 'inventory');
+  const inventory = activeArtifacts.filter(item => !itemsLocation[item.id] || itemsLocation[item.id] === 'inventory');
   const bins = useMemo(() => {
     return CATEGORIES.map(cat => ({
       ...cat,
@@ -113,6 +130,14 @@ export function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, on
   const sortedCount = activeArtifacts.length - inventory.length;
   const progressPercent = (sortedCount / activeArtifacts.length) * 100;
   const activeArtifact = activeArtifactId ? activeArtifacts.find(a => a.id === activeArtifactId) : null;
+  const feedbackLabel = feedback.isError ? 'Try again' : 'Correct';
+  const feedbackText = feedback.isError
+    ? feedback.message.replace(/^Try again[:.]?\s*/i, '')
+    : feedback.message.replace(/^Correct\.\s*/i, '');
+  const pendingEvidenceStyle = getAtlasRegionStyle(fullInvestigationAssets, 'pendingEvidenceCard')
+    || getAtlasRegionStyle(fullInvestigationAssets, 'neutralEvidenceSlip');
+  const categoryFolderStyle = getAtlasRegionStyle(fullInvestigationAssets, 'categoryFolderBackground')
+    || getAtlasRegionStyle(fullInvestigationAssets, 'openEvidenceFolder');
 
   const handleDragStart = (event) => {
     setActiveArtifactId(event.active?.id ?? null);
@@ -153,7 +178,7 @@ export function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, on
               <Tent size={20} />
             </div>
             <div className="status-text-content-horizontal">
-              <div style={{display: 'flex', alignItems: 'baseline', gap: '10px'}}>
+              <div className="sort-status-title-row">
                 <h2>Phase 2: Evidence Processing</h2>
                 <span className="status-site-badge">{currentScenario?.civilization || 'Active Site'}</span>
               </div>
@@ -172,7 +197,7 @@ export function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, on
           </div>
 
           <div className="status-panel-actions-compact">
-            <button className="btn" onClick={onBackToMenu}>Main Menu</button>
+            <button className="btn sort-menu-btn" onClick={onBackToMenu}>Main Menu</button>
             <button className="btn primary-btn" onClick={onComplete} disabled={sortedCount < activeArtifacts.length}>
               Open Lab <Beaker size={18} />
             </button>
@@ -185,9 +210,9 @@ export function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, on
               <span className="sort-panel-label">Pending Evidence</span>
               <span className="sort-panel-hint">Process these into the correct folders</span>
             </div>
-            <div className="sort-tray-list">
+            <div className={`sort-tray-list ${inventory.length === 0 ? 'is-complete' : ''}`}>
               {inventory.map(item => (
-                <DraggableArtifact key={item.id} artifact={item} />
+                <DraggableArtifact key={item.id} artifact={item} condition={evidenceConditions[item.id]} assetStyle={pendingEvidenceStyle} />
               ))}
               {inventory.length === 0 && (
                 <div className="sort-tray-empty">
@@ -208,32 +233,49 @@ export function SortPhase({ activeArtifacts, itemsLocation, setItemsLocation, on
                   title={bin.title} 
                   description={bin.description} 
                   items={bin.items} 
+                  assetStyle={categoryFolderStyle}
                 />
               ))}
             </div>
           </section>
         </div>
 
+        {feedback.message && (
+          <div
+            className={`sort-feedback ${feedback.isError ? 'error' : 'success'}`}
+            role="status"
+            aria-live="polite"
+          >
+            <span className="sort-feedback-icon" aria-hidden="true">
+              {feedback.isError ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />}
+            </span>
+            <span className="sort-feedback-copy">
+              <strong>{feedbackLabel}</strong>
+              <span>{feedbackText}</span>
+            </span>
+          </div>
+        )}
+
         <DragOverlay dropAnimation={{ duration: 250, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>
-          {activeArtifact ? <DraggableArtifact artifact={activeArtifact} /> : null}
+          {activeArtifact ? <DraggableArtifact artifact={activeArtifact} condition={evidenceConditions[activeArtifact.id]} assetStyle={pendingEvidenceStyle} /> : null}
         </DragOverlay>
       </DndContext>
 
-      {feedback.message && (
-        <div className={`sort-feedback ${feedback.isError ? 'error' : 'success'}`}>
-          {feedback.isError ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />}
-          <span>{feedback.message}</span>
-        </div>
-      )}
-
       {showTutorial && sortedCount === 0 && (
         <div className="sort-tutorial-overlay" onClick={() => setShowTutorial(false)}>
-           <div className="sort-tutorial-card glass-card">
+           <div className="sort-tutorial-card glass-card" onClick={(event) => event.stopPropagation()}>
               <HelpCircle size={32} className="sort-tutorial-icon" />
-              <h3>Categorization Protocol</h3>
-              <p>Process each piece of evidence from the pending tray into its designated folder.</p>
-              <p><strong>Clues</strong> in the field notes will help you distinguish between <em>Artefacts, Human Remains, Features, Environmental Evidence,</em> or <em>Written Sources</em>.</p>
-              <button className="btn primary-btn">Got it</button>
+              <h3>Categorisation Protocol</h3>
+              <p>Sort each piece of evidence into the correct folder.</p>
+              <p>Use the field notes to decide whether the evidence is an artefact, human remain, structure, environmental clue, or written source.</p>
+              <ul className="sort-tutorial-categories" aria-label="Evidence category reminder">
+                <li><strong>Artefacts / Objects</strong><span>things people made or used</span></li>
+                <li><strong>Human Remains</strong><span>physical evidence from people</span></li>
+                <li><strong>Features / Structures</strong><span>built or changed places</span></li>
+                <li><strong>Environmental Evidence</strong><span>natural clues</span></li>
+                <li><strong>Written Sources</strong><span>writing, symbols or records</span></li>
+              </ul>
+              <button className="btn primary-btn" onClick={() => setShowTutorial(false)}>Got it</button>
            </div>
         </div>
       )}
