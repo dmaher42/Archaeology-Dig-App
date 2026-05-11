@@ -11976,24 +11976,32 @@ main {
 /* Notice Box Refinement */
 .expedition-journey-notice {
   position: absolute;
-  bottom: 2rem;
+  bottom: 0.75rem;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(15, 23, 42, 0.9);
-  backdrop-filter: blur(12px);
-  padding: 0.8rem 1.75rem;
-  border-radius: 99px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #fff;
-  font-weight: 600;
-  font-size: 0.9rem;
-  box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+  background: rgba(48, 32, 20, 0.82);
+  backdrop-filter: blur(8px);
+  padding: 0.5rem 0.8rem;
+  border-radius: 12px;
+  border: 1px solid rgba(245, 185, 96, 0.32);
+  color: #fff7ed;
+  font-weight: 700;
+  font-size: 0.78rem;
+  line-height: 1.25;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.34);
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  z-index: 100;
+  gap: 0.5rem;
+  z-index: 20;
   pointer-events: none;
-  max-width: 80%;
+  width: max-content;
+  max-width: min(560px, calc(100% - 2rem));
+  text-align: left;
+}
+
+.expedition-journey-notice svg {
+  flex: 0 0 auto;
+  color: #fbbf24;
 }
 
 /* Briefing Dossier Overlay */

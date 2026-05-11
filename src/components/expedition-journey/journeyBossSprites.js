@@ -1,0 +1,207 @@
+export const BOSS_SPRITE_BASE_PATH = 'assets/expedition/bosses/';
+export const BOSS_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}scarab-queen-sprites.json`;
+export const STONE_GUARDIAN_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}stone-guardian-sprites.json`;
+export const BOSS_SPRITE_ATLAS_VERSION = 'boss-sprites-scarab-queen-stone-guardian-2026-05-11';
+
+export const SCARAB_QUEEN_SPRITE_KEYS = [
+  'scarabQueenIdle',
+  'scarabQueenWalk1',
+  'scarabQueenWalk2',
+  'scarabQueenIntro',
+  'scarabQueenWindup',
+  'scarabQueenCharge',
+  'scarabQueenAreaAttack',
+  'scarabQueenShielded',
+  'scarabQueenCounterWindow',
+  'scarabQueenHit',
+  'scarabQueenDefeated',
+];
+
+export const STONE_GUARDIAN_SPRITE_KEYS = [
+  'stoneGuardianIdle',
+  'stoneGuardianWalk1',
+  'stoneGuardianWalk2',
+  'stoneGuardianAwakening',
+  'stoneGuardianWindup',
+  'stoneGuardianSlam',
+  'stoneGuardianShockwave',
+  'stoneGuardianShielded',
+  'stoneGuardianCounterWindow',
+  'stoneGuardianHit',
+  'stoneGuardianDefeated',
+];
+
+export const EXPECTED_BOSS_SPRITE_KEYS = [
+  ...SCARAB_QUEEN_SPRITE_KEYS,
+  ...STONE_GUARDIAN_SPRITE_KEYS,
+];
+
+const BOSS_SPRITE_PACKS = {
+  'scarab-queen': {
+    atlasPath: BOSS_SPRITE_ATLAS_JSON,
+    expectedKeys: SCARAB_QUEEN_SPRITE_KEYS,
+  },
+  'temple-guardian': {
+    atlasPath: STONE_GUARDIAN_SPRITE_ATLAS_JSON,
+    expectedKeys: STONE_GUARDIAN_SPRITE_KEYS,
+  },
+};
+
+export const createBossSpriteState = () => ({
+  packs: {},
+  loaded: false,
+  ready: false,
+  failed: false,
+  error: null,
+  atlasPath: BOSS_SPRITE_ATLAS_JSON,
+  atlasPaths: Object.fromEntries(
+    Object.entries(BOSS_SPRITE_PACKS).map(([bossId, pack]) => [bossId, pack.atlasPath]),
+  ),
+});
+
+export const getMissingBossSpriteAssets = (assets) => {
+  return Object.entries(BOSS_SPRITE_PACKS).flatMap(([bossId, packConfig]) => {
+    const pack = assets?.packs?.[bossId];
+    const regions = pack?.atlas?.regions || {};
+    return packConfig.expectedKeys
+      .filter(key => !regions[key])
+      .map(key => `${bossId}:${key}`);
+  });
+};
+
+export const getBossSpritePack = (assets, bossId) => {
+  const pack = assets?.packs?.[bossId];
+  if (!pack?.loaded || pack.failed) return null;
+  return pack;
+};
+
+export const loadBossSpritePack = ({ baseUrl = '/', onUpdate }) => {
+  let cancelled = false;
+
+  const loadSinglePack = ([bossId, packConfig]) => {
+    const atlasPath = `${baseUrl}${packConfig.atlasPath}`;
+    return fetch(atlasPath)
+      .then((response) => {
+        if (!response.ok) throw new Error(`${bossId} boss sprite atlas request failed: ${response.status}`);
+        return response.json();
+      })
+      .then((atlas) => new Promise((resolve) => {
+        const image = new Image();
+        image.onload = () => {
+          resolve([
+            bossId,
+            {
+              image,
+              atlas,
+              loaded: true,
+              ready: packConfig.expectedKeys.every(key => atlas?.regions?.[key]),
+              failed: false,
+              error: null,
+              atlasPath: packConfig.atlasPath,
+            },
+          ]);
+        };
+        image.onerror = () => {
+          resolve([
+            bossId,
+            {
+              image: null,
+              atlas,
+              loaded: false,
+              ready: false,
+              failed: true,
+              error: `${bossId} boss sprite image failed to load.`,
+              atlasPath: packConfig.atlasPath,
+            },
+          ]);
+        };
+        image.src = `${baseUrl}${BOSS_SPRITE_BASE_PATH}${atlas.image}`;
+      }))
+      .catch((error) => [
+        bossId,
+        {
+          image: null,
+          atlas: null,
+          loaded: false,
+          ready: false,
+          failed: true,
+          error: error?.message || `${bossId} boss sprites failed to load.`,
+          atlasPath: packConfig.atlasPath,
+        },
+      ]);
+  };
+
+  Promise.all(Object.entries(BOSS_SPRITE_PACKS).map(loadSinglePack)).then((packEntries) => {
+    if (cancelled) return;
+    const packs = Object.fromEntries(packEntries);
+    const next = {
+      ...createBossSpriteState(),
+      packs,
+      loaded: Object.values(packs).some(pack => pack.loaded),
+      ready: Object.values(packs).every(pack => pack.ready && !pack.failed),
+      failed: Object.values(packs).some(pack => pack.failed),
+      error: Object.values(packs).filter(pack => pack.error).map(pack => pack.error).join(' | ') || null,
+    };
+    onUpdate?.(next);
+  });
+
+  return () => {
+    cancelled = true;
+  };
+};
+
+export const getScarabQueenSpriteFrame = (boss, combatMode, bossVisualState = {}, now = 0) => {
+  if (boss?.id !== 'scarab-queen') return null;
+
+  if (combatMode === 'defeated') return 'scarabQueenDefeated';
+  if (boss.hitFlash > 0 || combatMode === 'stunned') return 'scarabQueenHit';
+  if (bossVisualState.shielded) return 'scarabQueenShielded';
+  if (bossVisualState.vulnerable) return 'scarabQueenCounterWindow';
+  if (combatMode === 'windup') return 'scarabQueenWindup';
+  if (combatMode === 'attacking') {
+    return bossVisualState.attackKind === 'area' ? 'scarabQueenAreaAttack' : 'scarabQueenCharge';
+  }
+  if (!boss.awakened) return 'scarabQueenIntro';
+
+  const frameToggle = Math.floor(now / 240) % 2;
+  return frameToggle ? 'scarabQueenWalk2' : 'scarabQueenWalk1';
+};
+
+export const getStoneGuardianSpriteFrame = (boss, combatMode, bossVisualState = {}, now = 0) => {
+  if (boss?.id !== 'temple-guardian') return null;
+
+  if (combatMode === 'defeated') return 'stoneGuardianDefeated';
+  if (boss.hitFlash > 0 || combatMode === 'stunned') return 'stoneGuardianHit';
+  if (bossVisualState.shielded) return 'stoneGuardianShielded';
+  if (bossVisualState.vulnerable) return 'stoneGuardianCounterWindow';
+  if (combatMode === 'windup') return 'stoneGuardianWindup';
+  if (combatMode === 'attacking') {
+    return bossVisualState.attackKind === 'area' ? 'stoneGuardianShockwave' : 'stoneGuardianSlam';
+  }
+  if (!boss.awakened) return 'stoneGuardianAwakening';
+
+  const frameToggle = Math.floor(now / 280) % 2;
+  return frameToggle ? 'stoneGuardianWalk2' : 'stoneGuardianWalk1';
+};
+
+export const getScarabQueenDrawBox = (boss, screenX) => {
+  const width = Math.max(124, boss.width * 2.45);
+  const height = Math.max(90, boss.height * 2.2);
+  return {
+    x: screenX + boss.width / 2 - width / 2,
+    y: boss.y + boss.height - height + boss.height * 0.1,
+    width,
+    height,
+  };
+};
+
+export const getStoneGuardianDrawBox = (boss, screenX) => {
+  const width = Math.max(118, boss.width * 2.18);
+  const height = Math.max(116, boss.height * 2.05);
+  return {
+    x: screenX + boss.width / 2 - width / 2,
+    y: boss.y + boss.height - height + boss.height * 0.06,
+    width,
+    height,
+  };
+};

@@ -123,7 +123,7 @@ export const getEnemySpriteDrawBox = (enemy, screenX, shakeX = 0) => {
 
   const width = Math.max(enemy.width, enemy.width * scale);
   const height = Math.max(enemy.height, enemy.height * scale);
-  const anchorLift = family === 'bat' ? enemy.height * 0.42 : enemy.height * 0.18;
+  const anchorLift = family === 'bat' ? enemy.height * 0.42 : enemy.height * 0.1;
   const x = screenX + enemy.width / 2 - width / 2 + shakeX;
   const y = enemy.y + enemy.height - height + anchorLift;
 

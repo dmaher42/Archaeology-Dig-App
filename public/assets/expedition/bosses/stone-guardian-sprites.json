@@ -1,0 +1,18 @@
+{
+  "image": "stone-guardian-sprites.png",
+  "source": "AI-generated Stone Guardian boss sprite sheet, integrated as a named atlas for Journey mini-boss rendering.",
+  "coordinateNote": "Coordinates are approximate first-pass crops from a 1536x1024 generated sheet and may need manual tuning after projector review.",
+  "regions": {
+    "stoneGuardianIdle": { "x": 42, "y": 76, "w": 245, "h": 242 },
+    "stoneGuardianWalk1": { "x": 332, "y": 78, "w": 255, "h": 238 },
+    "stoneGuardianWalk2": { "x": 626, "y": 82, "w": 255, "h": 234 },
+    "stoneGuardianAwakening": { "x": 910, "y": 70, "w": 275, "h": 258 },
+    "stoneGuardianWindup": { "x": 38, "y": 372, "w": 270, "h": 260 },
+    "stoneGuardianSlam": { "x": 606, "y": 392, "w": 286, "h": 250 },
+    "stoneGuardianShockwave": { "x": 910, "y": 382, "w": 292, "h": 255 },
+    "stoneGuardianShielded": { "x": 1212, "y": 72, "w": 278, "h": 255 },
+    "stoneGuardianCounterWindow": { "x": 330, "y": 392, "w": 270, "h": 238 },
+    "stoneGuardianHit": { "x": 340, "y": 716, "w": 276, "h": 240 },
+    "stoneGuardianDefeated": { "x": 920, "y": 765, "w": 282, "h": 168 }
+  }
+}

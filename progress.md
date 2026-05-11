@@ -497,3 +497,39 @@ Remaining notes:
 - Atlas/static checks confirmed all 21 named scarab/snake/bat regions are present. Bat mapping is implemented and loaded, but a live bat encounter was not reached because it sits past route gates in the Catacombs.
 - `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning; `git diff --check` only reported the repo's LF-to-CRLF warnings.
 - Remaining risk: atlas coordinates are approximate first-pass crops and Temple Bat should get a manual Catacombs/projector spot-check once the route is reached or a dedicated journey-position test hook exists.
+
+2026-05-11 update:
+- Completed the Scarab Queen boss sprite integration pass for Lost Site Expedition.
+- Added the uploaded Scarab Queen sprite sheet at `public/assets/expedition/bosses/scarab-queen-sprites.png` and named atlas metadata at `public/assets/expedition/bosses/scarab-queen-sprites.json`.
+- Added `src/components/expedition-journey/journeyBossSprites.js` to load the boss atlas once, expose ready/error/fallback state, map existing Scarab Queen boss states to sprite frames, and preserve fallback canvas rendering if the atlas fails.
+- Integrated only the `scarab-queen` boss in `src/components/ExpeditionJourney.jsx`; Stone Guardian, Giant Serpent, Rival Looter Captain, Ancient Construct, small enemies, player rendering, environment assets, route gates, collision, health, damage, timing, and boss rhythm logic were left unchanged.
+- Added boss sprite debug fields to Journey `render_game_to_text`, including `bossSpritesLoaded`, `bossSpriteFallbackActive`, `bossSpriteAtlasPath`, `activeBossSprite`, `activeBossSpriteFrame`, and `activeBossAnimationState`.
+- Browser checks confirmed app load, Lost Site Expedition launch, Journey start, Scarab Queen atlas loaded, fallback inactive, Scarab Queen sprite rendering, windup frame, shielded frame, counter-window frame, existing player hit behavior reducing boss health from 2 to 1, and no console errors in the checked flows.
+- Atlas/static checks confirmed all 11 named Scarab Queen regions are present.
+- `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning; `git diff --check` only reported the repo's LF-to-CRLF warnings.
+- Remaining risk: atlas coordinates and boss visual scale are approximate first-pass values; the defeated frame, full Desert Map Seal unlock, and Base Camp path should still get a complete manual boss-defeat playthrough.
+
+2026-05-11 update:
+- Completed a focused Journey side-scroller polish pass for Lost Site Expedition.
+- Confirmed the canonical Journey renderer remains `src/components/ExpeditionJourney.jsx`, with environment rendering helpers in `src/components/expedition-journey/journeyRenderAssets.js`, small enemy sprite helpers in `journeyEnemySprites.js`, and Scarab Queen sprite helpers in `journeyBossSprites.js`.
+- Preserved gameplay systems: no route gate requirements, player collision boxes, enemy/boss health, damage, attack timing, camera logic, evidence systems, Full Investigation phases, or Bureau systems were changed.
+- Improved platform/ledge solidity with small visual underside supports on atlas-drawn floating platforms while keeping collision boxes unchanged.
+- Improved hazard readability by replacing debug-like dashed fallback rectangles with softer rounded danger cues, adding atlas hazard warning outlines, and grounding non-flying hazards with subtle dust contact.
+- Tuned small enemy and Scarab Queen sprite visual anchoring/scale so sprites sit closer to their hitbox baselines without changing hitboxes or combat behaviour.
+- Tightened the Journey notice toast so route/objective messages no longer dominate the lower playfield during normal movement.
+- Added polish/debug fields through Journey and `render_game_to_text`, including `journeyPolishPassActive`, `journeyPolishVersion`, `hazardReadabilityMode`, `enemyVisualMode`, `bossVisualMode`, and `assetFallbackActive`.
+- Browser checks confirmed app load, Lost Site Expedition launch, Journey start, player visibility, grounded Desert Entry scene, compact objective notice, no visible console errors in the in-app browser, and the existing no-crash atlas/fallback rendering path.
+- `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning; `git diff --check` only reported the repo's LF-to-CRLF warnings.
+- Remaining risk: automated deep traversal across Ruined Temple, Catacombs, Escape Sequence, and Dig Site Entrance timed out in the headless browser harness, so those later sections still need a manual/projector spot-check even though the shared renderer changes apply across sections.
+
+2026-05-11 update:
+- Completed the Stone Guardian boss sprite integration pass for Lost Site Expedition.
+- Added the uploaded Stone Guardian sprite sheet at `public/assets/expedition/bosses/stone-guardian-sprites.png` and named atlas metadata at `public/assets/expedition/bosses/stone-guardian-sprites.json`.
+- Extended the existing `src/components/expedition-journey/journeyBossSprites.js` helper into a multi-boss atlas loader so Scarab Queen and Stone Guardian share one fallback-safe boss sprite system.
+- Mapped existing `temple-guardian` boss states to Stone Guardian frames: walk loop, awakening, windup, slam, shockwave, shielded, counter-window, hit, and defeated.
+- Integrated only the Stone Guardian boss rendering in `src/components/ExpeditionJourney.jsx`; Giant Serpent, Rival Looter Captain, Ancient Construct, small enemies, player rendering, environment assets, route gates, collision, health, damage, timing, and boss rhythm logic were left unchanged.
+- Added Stone Guardian debug fields to Journey `render_game_to_text`, including `stoneGuardianSpriteLoaded`, `stoneGuardianSpriteFrame`, and `stoneGuardianSpriteAtlasPath`.
+- Browser checks confirmed app load, Lost Site Expedition launch, Journey start, Stone Guardian JSON/PNG fetch, 11 atlas regions, Stone Guardian sprite loader ready, boss sprite fallback inactive, Scarab Queen boss sprite system still loaded, and no console errors in the checked flow.
+- Static frame checks confirmed Stone Guardian mappings for patrol, windup, slam, shockwave, shielded, counter-window, hit, and defeated.
+- `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning.
+- Remaining risk: the automated browser check verified loading and mappings, but the Ruined Temple Stone Guardian encounter itself still needs a live/manual route playthrough because reaching the Temple Route Seal requires clearing earlier Journey objectives.

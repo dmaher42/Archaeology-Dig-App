@@ -80,6 +80,20 @@ import {
 } from './expedition-journey/journeyBackgroundAssets';
 
 import {
+  BOSS_SPRITE_ATLAS_JSON,
+  BOSS_SPRITE_ATLAS_VERSION,
+  createBossSpriteState,
+  getBossSpritePack,
+  getMissingBossSpriteAssets,
+  getScarabQueenDrawBox,
+  getScarabQueenSpriteFrame,
+  getStoneGuardianDrawBox,
+  getStoneGuardianSpriteFrame,
+  loadBossSpritePack,
+  STONE_GUARDIAN_SPRITE_ATLAS_JSON,
+} from './expedition-journey/journeyBossSprites';
+
+import {
   createEnemySpriteState,
   ENEMY_SPRITE_ATLAS_JSON,
   ENEMY_SPRITE_ATLAS_VERSION,
@@ -167,6 +181,8 @@ const OBJECTIVE_SINGULAR_LABELS = {
   'escape-sequence': 'escape marker',
   'dig-site-entrance': 'guardian seal',
 };
+
+const JOURNEY_POLISH_VERSION = 'journey-polish-2026-05-11';
 
 const GATE_HINTS = {
   objective: {
@@ -313,6 +329,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
   const environmentAssetsRef = useRef(createEnvironmentAssetState());
   const desertBackgroundAssetsRef = useRef(createDesertBackgroundAssetState());
   const enemySpriteAssetsRef = useRef(createEnemySpriteState());
+  const bossSpriteAssetsRef = useRef(createBossSpriteState());
 
   // Sync ref for the physics loop
   useEffect(() => {
@@ -364,6 +381,14 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     baseUrl: import.meta.env.BASE_URL,
     onUpdate: (assets) => {
       enemySpriteAssetsRef.current = assets;
+      syncHud();
+    },
+  }), [syncHud]);
+
+  useEffect(() => loadBossSpritePack({
+    baseUrl: import.meta.env.BASE_URL,
+    onUpdate: (assets) => {
+      bossSpriteAssetsRef.current = assets;
       syncHud();
     },
   }), [syncHud]);
@@ -652,6 +677,9 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     const enemySpriteAssets = enemySpriteAssetsRef.current;
     const missingEnemySpriteAssets = getMissingEnemySpriteAssets(enemySpriteAssets);
     const enemySpriteFallbackActive = !enemySpriteAssets.loaded || enemySpriteAssets.failed || missingEnemySpriteAssets.length > 0;
+    const bossSpriteAssets = bossSpriteAssetsRef.current;
+    const missingBossSpriteAssets = getMissingBossSpriteAssets(bossSpriteAssets);
+    const bossSpriteFallbackActive = !bossSpriteAssets.loaded || bossSpriteAssets.failed || missingBossSpriteAssets.length > 0;
     const renderStats = current.renderStats || {};
     const playerAttackBox = current.playerAttackBox
       ? {
@@ -702,12 +730,29 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       missingEnemySpriteAssets,
       visibleEnemySpriteFamilies: renderStats.visibleEnemySpriteFamilies || [],
       enemySpriteFrameStates: renderStats.enemySpriteFrameStates || [],
+      bossSpritesLoaded: bossSpriteAssets.loaded,
+      bossSpriteFallbackActive,
+      bossSpriteAtlasPath: BOSS_SPRITE_ATLAS_JSON,
+      bossSpriteAtlasVersion: BOSS_SPRITE_ATLAS_VERSION,
+      missingBossSpriteAssets,
+      activeBossSprite: renderStats.activeBossSprite || null,
+      activeBossSpriteFrame: renderStats.activeBossSpriteFrame || null,
+      activeBossAnimationState: renderStats.activeBossAnimationState || null,
+      stoneGuardianSpriteLoaded: Boolean(bossSpriteAssets.packs?.['temple-guardian']?.loaded),
+      stoneGuardianSpriteFrame: renderStats.stoneGuardianSpriteFrame || null,
+      stoneGuardianSpriteAtlasPath: STONE_GUARDIAN_SPRITE_ATLAS_JSON,
       parallaxLayersActive: Boolean(renderStats.parallaxLayersActive),
       activeBackgroundSection: renderStats.activeBackgroundSection || null,
       backgroundDepthMode: renderStats.backgroundDepthMode || 'canvas-fallback',
       visibleLabelCount: renderStats.visibleLabelCount || 0,
       labelSuppressionActive: Boolean(renderStats.labelSuppressionActive),
       platformVisualTuningActive: Boolean(renderStats.platformVisualTuningActive),
+      journeyPolishPassActive: Boolean(renderStats.journeyPolishPassActive),
+      journeyPolishVersion: renderStats.journeyPolishVersion || JOURNEY_POLISH_VERSION,
+      hazardReadabilityMode: renderStats.hazardReadabilityMode || 'soft-warning-cues',
+      enemyVisualMode: renderStats.enemyVisualMode || 'sprite-atlas-with-grounding',
+      bossVisualMode: renderStats.bossVisualMode || 'multi-boss-atlas-fallback-safe',
+      assetFallbackActive: environmentFallbackActive || enemySpriteFallbackActive || bossSpriteFallbackActive || desertBackgroundFallbackActive,
       desertVisualTuningVersion: DESERT_VISUAL_TUNING_VERSION,
       atlasTuningVersion: ATLAS_TUNING_VERSION,
       activeAtlasRegionIssues: missingEnvironmentAssets,
@@ -1162,6 +1207,17 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       if (!isGround) {
         ctx.fillStyle = 'rgba(30, 18, 9, 0.3)';
         ctx.fillRect(x, platform.y + visualHeight - 7, platform.width, 7);
+        const supportSpacing = Math.max(42, Math.min(72, platform.width / 3));
+        ctx.fillStyle = 'rgba(37, 25, 14, 0.28)';
+        for (let supportX = x + 14; supportX < x + platform.width - 10; supportX += supportSpacing) {
+          ctx.beginPath();
+          ctx.moveTo(supportX - 5, platform.y + visualHeight - 2);
+          ctx.lineTo(supportX + 5, platform.y + visualHeight - 2);
+          ctx.lineTo(supportX + 1, platform.y + visualHeight + 12);
+          ctx.lineTo(supportX - 1, platform.y + visualHeight + 12);
+          ctx.closePath();
+          ctx.fill();
+        }
         ctx.fillStyle = 'rgba(92, 57, 23, 0.26)';
         ctx.fillRect(x + 5, platform.y + visualHeight - 2, platform.width - 10, 3);
         ctx.strokeStyle = 'rgba(255, 247, 212, 0.2)';
@@ -1781,6 +1837,14 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       ctx.ellipse(hx + hazard.width / 2, baseY + hazard.height / 2, hazard.width * 0.78, Math.max(18, hazard.height * 0.8), 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.globalAlpha = 1;
+      ctx.strokeStyle = hitActive ? '#ef4444' : visual.accent;
+      ctx.lineWidth = hitActive ? 4 : 2;
+      ctx.beginPath();
+      ctx.roundRect(hx - 6, baseY - 8, hazard.width + 12, hazard.height + 16, 12);
+      ctx.stroke();
+      if (hazard.id !== 'bat-cloud' && hazard.id !== 'dust-wave') {
+        drawGroundDustLip(ctx, hx + hazard.width / 2, baseY + hazard.height + 2, hazard.width * 0.76, 'rgba(185, 110, 45, 0.18)');
+      }
       ctx.fillStyle = visual.color;
       ctx.beginPath();
       ctx.moveTo(hx + hazard.width / 2, baseY - 25);
@@ -1896,10 +1960,14 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     }
 
     ctx.globalAlpha = 0.75 + pulse * 0.25;
-    ctx.strokeStyle = visual.accent;
-    ctx.setLineDash([5, 5]);
-    ctx.strokeRect(hx - 5, baseY - 7, hazard.width + 10, hazard.height + 14);
-    ctx.setLineDash([]);
+    ctx.strokeStyle = hitActive ? '#ef4444' : visual.accent;
+    ctx.lineWidth = hitActive ? 4 : 2;
+    ctx.beginPath();
+    ctx.roundRect(hx - 6, baseY - 8, hazard.width + 12, hazard.height + 16, 12);
+    ctx.stroke();
+    if (hazard.id !== 'bat-cloud' && hazard.id !== 'dust-wave') {
+      drawGroundDustLip(ctx, hx + hazard.width / 2, baseY + hazard.height + 2, hazard.width * 0.76, 'rgba(185, 110, 45, 0.18)');
+    }
 
     ctx.fillStyle = visual.color;
     ctx.beginPath();
@@ -1917,7 +1985,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       drawFieldNoteLabel(ctx, hx + hazard.width / 2, baseY - 34, visual.label, visual.color);
     }
     ctx.restore();
-  }, [drawContactShadow, drawFieldNoteLabel]);
+  }, [drawContactShadow, drawFieldNoteLabel, drawGroundDustLip]);
 
   const drawSmallEnemySprite = useCallback((ctx, enemy, screenX, now, shakeX = 0) => {
     const family = getEnemySpriteFamily(enemy);
@@ -1980,10 +2048,75 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     return drawn;
   }, [drawContactShadow, getCombatMode]);
 
+  const drawBossSprite = useCallback((ctx, boss, screenX, now, bossVisualState) => {
+    const supportedBoss = boss.id === 'scarab-queen' || boss.id === 'temple-guardian';
+    if (!supportedBoss) return false;
+    const combatMode = getCombatMode(boss);
+    const frameKey = boss.id === 'temple-guardian'
+      ? getStoneGuardianSpriteFrame(boss, combatMode, bossVisualState, now)
+      : getScarabQueenSpriteFrame(boss, combatMode, bossVisualState, now);
+    const drawBox = boss.id === 'temple-guardian'
+      ? getStoneGuardianDrawBox(boss, screenX)
+      : getScarabQueenDrawBox(boss, screenX);
+    const pack = getBossSpritePack(bossSpriteAssetsRef.current, boss.id);
+    if (!frameKey || !drawBox || !pack) return false;
+
+    const facing = (boss.attackTimer > 0 || boss.attackWindup > 0)
+      ? boss.attackDirection
+      : boss.direction;
+    const shouldFlip = facing > 0;
+    const centerX = screenX + boss.width / 2;
+    const baseY = boss.y + boss.height;
+
+    ctx.save();
+    drawContactShadow(ctx, centerX, baseY + 3, drawBox.width * (boss.id === 'temple-guardian' ? 0.86 : 0.78), boss.id === 'temple-guardian' ? 0.34 : 0.28, 1.5);
+    if (boss.id === 'temple-guardian' && (combatMode === 'attacking' || combatMode === 'windup')) {
+      drawGroundDustLip(ctx, centerX, baseY + 2, drawBox.width * 0.72, 'rgba(197, 148, 72, 0.28)');
+    }
+    ctx.shadowColor = bossVisualState?.shielded
+      ? 'rgba(125, 211, 252, 0.45)'
+      : bossVisualState?.vulnerable
+        ? 'rgba(74, 222, 128, 0.44)'
+        : 'rgba(15, 23, 42, 0.55)';
+    ctx.shadowBlur = bossVisualState?.shielded || bossVisualState?.vulnerable ? 16 : boss.id === 'temple-guardian' ? 12 : 10;
+    if (boss.hitFlash > 0 || combatMode === 'stunned') {
+      ctx.filter = 'brightness(1.28) saturate(1.12)';
+    }
+    if (shouldFlip) {
+      ctx.translate(drawBox.x + drawBox.width / 2, 0);
+      ctx.scale(-1, 1);
+    }
+    const drawn = drawAtlasRegion(
+      ctx,
+      pack,
+      frameKey,
+      {
+        x: shouldFlip ? -drawBox.width / 2 : drawBox.x,
+        y: drawBox.y,
+        width: drawBox.width,
+        height: drawBox.height,
+      },
+      { mode: 'contain' },
+    );
+    ctx.restore();
+
+    if (drawn && stateRef.current.renderStats) {
+      stateRef.current.renderStats.activeBossSprite = boss.id;
+      stateRef.current.renderStats.activeBossSpriteFrame = frameKey;
+      stateRef.current.renderStats.activeBossAnimationState = combatMode;
+      if (boss.id === 'temple-guardian') {
+        stateRef.current.renderStats.stoneGuardianSpriteFrame = frameKey;
+      }
+    }
+
+    return drawn;
+  }, [drawContactShadow, drawGroundDustLip, getCombatMode]);
+
   const drawMiniBoss = useCallback((ctx, boss, screenX, now, showLabel = true) => {
     const pulse = Math.sin(now / 400) * 0.12 + 0.88;
     const cx = screenX + boss.width / 2;
     const cy = boss.y + boss.height / 2;
+    const bossVisualState = getBossVulnerabilityState(boss);
 
     ctx.save();
     const bossAura = ctx.createRadialGradient(cx, cy, 18, cx, cy, 78 * pulse);
@@ -2006,7 +2139,11 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     ctx.strokeStyle = '#111827';
     ctx.lineWidth = 3;
 
-    if (boss.type === 'guardian' || boss.type === 'statue') {
+    const bossSpriteDrawn = drawBossSprite(ctx, boss, screenX, now, bossVisualState);
+
+    if (bossSpriteDrawn) {
+      // Sprite atlas handles supported boss body art; shared health/status UI below remains unchanged.
+    } else if (boss.type === 'guardian' || boss.type === 'statue') {
       ctx.fillStyle = '#64748b';
       ctx.beginPath();
       ctx.roundRect(screenX + 10, boss.y + 10, boss.width - 20, 22, 8);
@@ -2099,7 +2236,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       drawFieldNoteLabel(ctx, cx, boss.y - 40, boss.name, '#0f766e');
     }
     ctx.restore();
-  }, [drawFieldNoteLabel]);
+  }, [drawBossSprite, drawFieldNoteLabel, getBossVulnerabilityState]);
 
   const drawAttackArc = useCallback((ctx, box, cameraX, direction, color = '#facc15', label = 'STUN') => {
     if (!box) return;
@@ -2262,6 +2399,11 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       activeBackgroundSection: null,
       backgroundDepthMode: 'canvas-fallback',
       platformVisualTuningActive: true,
+      journeyPolishPassActive: true,
+      journeyPolishVersion: JOURNEY_POLISH_VERSION,
+      hazardReadabilityMode: 'soft-warning-cues',
+      enemyVisualMode: enemySpriteAssetsRef.current.loaded ? 'sprite-atlas-with-grounding' : 'canvas-fallback',
+      bossVisualMode: bossSpriteAssetsRef.current.loaded ? 'multi-boss-atlas-fallback-safe' : 'canvas-fallback',
       desertVisualTuningVersion: DESERT_VISUAL_TUNING_VERSION,
       assetGroundingPassActive: true,
       groundedPropCount: 0,
@@ -2272,6 +2414,10 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       assetGroundingVersion: JOURNEY_ASSET_GROUNDING_VERSION,
       visibleEnemySpriteFamilies: [],
       enemySpriteFrameStates: [],
+      activeBossSprite: null,
+      activeBossSpriteFrame: null,
+      activeBossAnimationState: null,
+      stoneGuardianSpriteFrame: null,
     };
     const showWorldLabel = (worldX, distance = 150, priority = 'normal') => {
       const near = isPlayerNear(worldX, distance);
