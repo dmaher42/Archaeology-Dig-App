@@ -25,9 +25,103 @@ import {
 
 // --- Advanced Audio Synthesis ---
 let audioCtx = null;
+let expeditionMusic = null;
+let expeditionMusicKey = null;
+let expeditionMusicFade = null;
+
+const EXPEDITION_AUDIO_TRACKS = {
+  music: {
+    desert: 'assets/expedition/audio/valley-of-the-stone-kings.mp3',
+    temple: 'assets/expedition/audio/egypt-temple-ambience.mp3',
+    catacombs: 'assets/expedition/audio/egypt-catacombs-ambience.mp3',
+    escape: 'assets/expedition/audio/egypt-escape-tension.mp3',
+    baseCamp: 'assets/expedition/audio/egypt-base-camp.mp3',
+    boss: 'assets/expedition/audio/egypt-boss-ambience.mp3',
+    fallback: 'assets/expedition/audio/first-light-over-stone.mp3',
+  },
+  stingers: {
+    evidenceDiscovery: 'assets/expedition/audio/evidence-discovery-stinger.mp3',
+    gateUnlock: 'assets/expedition/audio/gate-unlock-stinger.mp3',
+  },
+};
+
+const EXPEDITION_STINGER_DURATIONS = {
+  evidenceDiscovery: 3200,
+  gateUnlock: 4600,
+};
+
+const getAudioSrc = (path) => `${import.meta.env.BASE_URL}${path}`;
+
 const initAudio = () => {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   if (audioCtx.state === 'suspended') audioCtx.resume();
+};
+
+const getExpeditionMusic = () => {
+  if (!expeditionMusic) {
+    expeditionMusic = new Audio();
+    expeditionMusic.loop = true;
+    expeditionMusic.volume = 0;
+    expeditionMusic.preload = 'auto';
+  }
+  return expeditionMusic;
+};
+
+const fadeExpeditionMusicTo = (targetVolume, duration = 550) => {
+  const music = getExpeditionMusic();
+  if (expeditionMusicFade) window.clearInterval(expeditionMusicFade);
+  const startVolume = music.volume;
+  const startedAt = performance.now();
+  expeditionMusicFade = window.setInterval(() => {
+    const progress = Math.min(1, (performance.now() - startedAt) / duration);
+    music.volume = startVolume + ((targetVolume - startVolume) * progress);
+    if (progress >= 1) {
+      window.clearInterval(expeditionMusicFade);
+      expeditionMusicFade = null;
+    }
+  }, 30);
+};
+
+const playExpeditionMusic = (trackKey = 'desert') => {
+  const nextKey = EXPEDITION_AUDIO_TRACKS.music[trackKey] ? trackKey : 'fallback';
+  const music = getExpeditionMusic();
+  if (expeditionMusicKey !== nextKey) {
+    expeditionMusicKey = nextKey;
+    music.src = getAudioSrc(EXPEDITION_AUDIO_TRACKS.music[nextKey]);
+    music.currentTime = 0;
+  }
+  music.play().then(() => {
+    fadeExpeditionMusicTo(0.34);
+  }).catch((error) => {
+    console.warn('Expedition music could not start', error);
+  });
+};
+
+const stopExpeditionMusic = () => {
+  if (!expeditionMusic) return;
+  if (expeditionMusicFade) {
+    window.clearInterval(expeditionMusicFade);
+    expeditionMusicFade = null;
+  }
+  expeditionMusic.pause();
+  expeditionMusic.currentTime = 0;
+  expeditionMusic.volume = 0;
+  expeditionMusicKey = null;
+};
+
+const playExpeditionStinger = (stingerKey) => {
+  const path = EXPEDITION_AUDIO_TRACKS.stingers[stingerKey];
+  if (!path) return;
+  const stinger = new Audio(getAudioSrc(path));
+  stinger.volume = 0.42;
+  stinger.loop = false;
+  stinger.play().catch((error) => {
+    console.warn('Expedition stinger could not start', error);
+  });
+  window.setTimeout(() => {
+    stinger.pause();
+    stinger.currentTime = 0;
+  }, EXPEDITION_STINGER_DURATIONS[stingerKey] || 3500);
 };
 
 const playFlip = () => {
@@ -121,7 +215,7 @@ const playTone = (freq, type = 'sine', duration = 0.5, vol = 0.2) => {
   osc.stop(audioCtx.currentTime + duration);
 };
 
-const audioControls = { initAudio, playFlip, playMatch, playError, playWin, playTone };
+const audioControls = { initAudio, playFlip, playMatch, playError, playWin, playTone, playExpeditionMusic, stopExpeditionMusic, playExpeditionStinger };
 
 function loadAutosave() {
   try {
@@ -287,6 +381,11 @@ export default function App() {
     setPhase('expedition');
   };
 
+  const handleBackToMenu = () => {
+    audioControls.stopExpeditionMusic?.();
+    setPhase('menu');
+  };
+
   return (
     <div className={`app-wrapper app-wrapper--${phase} app-wrapper--no-global-header ${isMenuLanding ? 'app-wrapper--menu-header' : ''} ${isSiteSelectionActive ? 'app-wrapper--site-selection' : ''}`}>
       <main className="main-content">
@@ -415,8 +514,8 @@ export default function App() {
         )}
 
         {phase === 'expedition' && (
-          <ExpeditionMode 
-            onBackToMenu={() => setPhase('menu')} 
+          <ExpeditionMode
+            onBackToMenu={handleBackToMenu}
             audioControls={audioControls}
           />
         )}

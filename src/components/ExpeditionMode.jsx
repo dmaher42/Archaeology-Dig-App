@@ -28,6 +28,11 @@ import {
 } from './expedition/expeditionMapAssets';
 import { EXPEDITION_ROOM_CONNECTIONS, EXPEDITION_ROOM_ZONE_BY_ID } from './expedition/expeditionMapLayout';
 import { getZoneChallenge } from './expedition/expeditionZoneChallenges';
+import {
+  EXPEDITION_STAGE_HEADER_CHARACTERS,
+  EXPEDITION_STAGES,
+  PLAYABLE_EXPEDITION_STAGE_ID,
+} from './expedition/expeditionStages';
 
 const MAP_WIDTH = 800;
 const MAP_HEIGHT = 560;
@@ -755,6 +760,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
   const [resultOpen, setResultOpen] = useState(false);
   const [expeditionFailure, setExpeditionFailure] = useState(null);
   const [expeditionStage, setExpeditionStage] = useState('journey');
+  const [selectedExpedition, setSelectedExpedition] = useState(null);
+  const [previewExpedition, setPreviewExpedition] = useState(null);
   const [baseCampOpen, setBaseCampOpen] = useState(false);
   const [fieldKit, setFieldKit] = useState([]);
   const [journeyRunId, setJourneyRunId] = useState(0);
@@ -1313,6 +1320,19 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     setNotice('Survey the site first. Choose a promising dig zone before inspecting evidence.');
   };
 
+  const openExpeditionStage = (stage) => {
+    if (stage.route !== 'playable' || stage.id !== PLAYABLE_EXPEDITION_STAGE_ID) {
+      setPreviewExpedition(stage);
+      return;
+    }
+
+    audioControls.initAudio?.();
+    audioControls.playExpeditionMusic?.('desert');
+    setSelectedExpedition(stage);
+    setPreviewExpedition(null);
+    setNotice(activeMission.instruction);
+  };
+
   const handleJourneySnapshot = useCallback((snapshot) => {
     journeySnapshotRef.current = snapshot;
   }, []);
@@ -1321,9 +1341,10 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     setFieldKit(nextFieldKit);
     setBaseCampOpen(true);
     setNotice('Base Camp reached. Check your field kit before excavation.');
-  }, []);
+    audioControls.playExpeditionMusic?.('baseCamp');
+  }, [audioControls]);
 
-  const beginExcavationStage = () => {
+  const beginExcavationStage = useCallback(() => {
     keysRef.current = {};
     tickAccumulatorRef.current = 0;
     setExpeditionStage('excavation');
@@ -1348,7 +1369,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     setMappedFinds([]);
     nearbySurveyZoneRef.current = null;
     setNotice('Survey the site first. Choose a promising dig zone before inspecting evidence.');
-  };
+    audioControls.playExpeditionMusic?.('baseCamp');
+  }, [audioControls]);
 
   const closeInspection = () => {
     setInspectionToken(null);
@@ -1420,7 +1442,9 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       setNotice(`${token.name} added to your evidence satchel. +${investigationBonus} investigation points.`);
       if (missionEvidenceCount + 1 >= missionRequiredCount) {
         setNotice('You have enough evidence to support your claim. Return to the exit point.');
+        audioControls.playExpeditionStinger?.('gateUnlock');
       }
+      audioControls.playExpeditionStinger?.('evidenceDiscovery');
       audioControls.playMatch?.();
     } else {
       const trowelBonus = fieldKitEffects.trowelReady && ['structure', 'material_culture'].includes(token.missionType)
@@ -2053,6 +2077,32 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
   }, [activeMission.gateRequirement, activeZoneChallenge, audioControls, briefingOpen, completedZoneChallenges, draw, expeditionFailure, gridSetupOpen, inspectionToken, missionEvidenceCount, missionRequiredCount, openedGridSquares, selectedSurveyZone, surveyReportZone, syncResources]);
 
   useEffect(() => {
+    if (selectedExpedition) return undefined;
+
+    window.advanceTime = () => {};
+    window.render_game_to_text = () => JSON.stringify({
+      mode: 'Lost Site Expedition',
+      stage: 'stage-select',
+      selectedExpedition: null,
+      previewOpen: Boolean(previewExpedition),
+      previewExpeditionId: previewExpedition?.id || null,
+      playableStageId: PLAYABLE_EXPEDITION_STAGE_ID,
+      availableStages: EXPEDITION_STAGES.map(stage => ({
+        id: stage.id,
+        title: stage.title,
+        status: stage.status,
+        route: stage.route,
+      })),
+    });
+
+    return () => {
+      delete window.advanceTime;
+      delete window.render_game_to_text;
+    };
+  }, [previewExpedition, selectedExpedition]);
+
+  useEffect(() => {
+    if (!selectedExpedition) return undefined;
     if (expeditionStage === 'excavation') return undefined;
 
     window.advanceTime = (ms = 16) => {
@@ -2062,6 +2112,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       const journeySnapshot = journeySnapshotRef.current || {};
       return JSON.stringify({
         mode: 'Lost Site Expedition',
+        expeditionStageId: selectedExpedition.id,
+        expeditionStageTitle: selectedExpedition.title,
         stage: baseCampOpen ? 'base-camp' : 'journey',
         activeMission,
         missionTarget: activeMission,
@@ -2246,6 +2298,27 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         ancientConstructSpriteLoaded: Boolean(journeySnapshot.ancientConstructSpriteLoaded),
         ancientConstructSpriteFrame: journeySnapshot.ancientConstructSpriteFrame || null,
         ancientConstructSpriteAtlasPath: journeySnapshot.ancientConstructSpriteAtlasPath || null,
+        collectibleSpritesLoaded: Boolean(journeySnapshot.collectibleSpritesLoaded),
+        collectibleSpriteFallbackActive: Boolean(journeySnapshot.collectibleSpriteFallbackActive),
+        collectibleSpriteAtlasPath: journeySnapshot.collectibleSpriteAtlasPath || null,
+        visibleToolSprites: journeySnapshot.visibleToolSprites || [],
+        visibleShardSprites: journeySnapshot.visibleShardSprites || [],
+        visibleUpgradeSprites: journeySnapshot.visibleUpgradeSprites || [],
+        visibleObjectiveSprites: journeySnapshot.visibleObjectiveSprites || [],
+        visibleCollectibleCount: journeySnapshot.visibleCollectibleCount || 0,
+        collectibleScaleTuningVersion: journeySnapshot.collectibleScaleTuningVersion || null,
+        relicShardScale: journeySnapshot.relicShardScale ?? null,
+        fieldToolScale: journeySnapshot.fieldToolScale ?? null,
+        upgradeScale: journeySnapshot.upgradeScale ?? null,
+        objectiveMarkerScale: journeySnapshot.objectiveMarkerScale ?? null,
+        loreTabletScale: journeySnapshot.loreTabletScale ?? null,
+        pickupGlowScale: journeySnapshot.pickupGlowScale ?? null,
+        collectibleVisualMode: journeySnapshot.collectibleVisualMode || null,
+        playerWeaponSpriteLoaded: Boolean(journeySnapshot.playerWeaponSpriteLoaded),
+        playerWeaponSpriteFallbackActive: Boolean(journeySnapshot.playerWeaponSpriteFallbackActive),
+        playerWeaponAtlasPath: journeySnapshot.playerWeaponAtlasPath || null,
+        playerWeaponFrame: journeySnapshot.playerWeaponFrame || null,
+        playerWeaponVisualMode: journeySnapshot.playerWeaponVisualMode || null,
         parallaxLayersActive: Boolean(journeySnapshot.parallaxLayersActive),
         activeBackgroundSection: journeySnapshot.activeBackgroundSection || null,
         backgroundDepthMode: journeySnapshot.backgroundDepthMode || null,
@@ -2300,9 +2373,10 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       delete window.advanceTime;
       delete window.render_game_to_text;
     };
-  }, [activeMission, baseCampOpen, claimCorrect, evidenceSupportsClaim, excavationMethodHistory, excavationMethodOpen, excavationMethodRequired, expeditionFailure, expeditionStage, exitUnlocked, fieldKit, fieldKitBonus, fieldKitEffects, fieldKitImpact, finalRank, finalScore, getHiddenEvidence, getVisibleEvidence, gridSetupOpen, gridSquares, inspectionFeedback, inspectionToken, inventoryFullDecisionOpen, mappedFindsSummary, mappingAccuracySummary.accurate, mappingAccuracySummary.needsReview, mappingOpen, mappingRequired, missionComplete, missionEvidenceCount, missionRequiredCount, nearbySurveyZone, openedGridSquares, pendingEvidence, pendingMappedEvidence, resultOpen, satchelContents, selectedExcavationMethod, selectedGridSquare, selectedSurveyZone, surveyComplete, surveyedZones, surveyReportZone]);
+  }, [activeMission, baseCampOpen, claimCorrect, evidenceSupportsClaim, excavationMethodHistory, excavationMethodOpen, excavationMethodRequired, expeditionFailure, expeditionStage, exitUnlocked, fieldKit, fieldKitBonus, fieldKitEffects, fieldKitImpact, finalRank, finalScore, getHiddenEvidence, getVisibleEvidence, gridSetupOpen, gridSquares, inspectionFeedback, inspectionToken, inventoryFullDecisionOpen, mappedFindsSummary, mappingAccuracySummary.accurate, mappingAccuracySummary.needsReview, mappingOpen, mappingRequired, missionComplete, missionEvidenceCount, missionRequiredCount, nearbySurveyZone, openedGridSquares, pendingEvidence, pendingMappedEvidence, resultOpen, satchelContents, selectedExcavationMethod, selectedExpedition, selectedGridSquare, selectedSurveyZone, surveyComplete, surveyedZones, surveyReportZone]);
 
   useEffect(() => {
+    if (!selectedExpedition) return undefined;
     if (expeditionStage !== 'excavation') return undefined;
 
     const handleKeyDown = (event) => {
@@ -2349,6 +2423,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     };
     window.render_game_to_text = () => JSON.stringify({
       mode: 'Lost Site Expedition',
+      expeditionStageId: selectedExpedition.id,
+      expeditionStageTitle: selectedExpedition.title,
       stage: 'excavation',
       coordinateSystem: 'origin top-left, x right, y down',
       excavationMapAssetsLoaded: Boolean(excavationMapAssets.loaded),
@@ -2539,7 +2615,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       delete window.advanceTime;
       delete window.render_game_to_text;
     };
-  }, [activeChallengeData, activeMission, activeZoneChallenge, briefingOpen, canSurveySelectedZone, claimCorrect, completedZoneChallenges, draw, enteredMapZone, evidenceSupportsClaim, excavationMapAssets, excavationMethodHistory, excavationMethodOpen, excavationMethodRequired, expeditionFailure, expeditionStage, exitUnlocked, fieldKit, fieldKitBonus, fieldKitEffects, fieldKitImpact, fieldNotes, finalRank, finalScore, getHiddenEvidence, getVisibleEvidence, gridSetupOpen, gridSquares, inspectionFeedback, inspectionToken, inventoryFullDecisionOpen, mappedFindsSummary, mappingAccuracySummary.accurate, mappingAccuracySummary.needsReview, mappingOpen, mappingRequired, missionComplete, missionEvidenceCount, missionRequiredCount, nearbySurveyZone, openGridSetup, openInspection, openSurveyReport, openedGridSquares, pendingEvidence, pendingMappedEvidence, resultOpen, satchelContents, selectedExcavationMethod, selectedGridSquare, selectedMapZoneData, selectedSurveyZone, surveyComplete, surveyedZones, surveyReportZone, update, zoneChallengeFeedback]);
+  }, [activeChallengeData, activeMission, activeZoneChallenge, briefingOpen, canSurveySelectedZone, claimCorrect, completedZoneChallenges, draw, enteredMapZone, evidenceSupportsClaim, excavationMapAssets, excavationMethodHistory, excavationMethodOpen, excavationMethodRequired, expeditionFailure, expeditionStage, exitUnlocked, fieldKit, fieldKitBonus, fieldKitEffects, fieldKitImpact, fieldNotes, finalRank, finalScore, getHiddenEvidence, getVisibleEvidence, gridSetupOpen, gridSquares, inspectionFeedback, inspectionToken, inventoryFullDecisionOpen, mappedFindsSummary, mappingAccuracySummary.accurate, mappingAccuracySummary.needsReview, mappingOpen, mappingRequired, missionComplete, missionEvidenceCount, missionRequiredCount, nearbySurveyZone, openGridSetup, openInspection, openSurveyReport, openedGridSquares, pendingEvidence, pendingMappedEvidence, resultOpen, satchelContents, selectedExcavationMethod, selectedExpedition, selectedGridSquare, selectedMapZoneData, selectedSurveyZone, surveyComplete, surveyedZones, surveyReportZone, update, zoneChallengeFeedback]);
 
   const resetExpedition = () => {
     const nextMission = chooseEvidenceHuntMission(activeMission.id);
@@ -2599,7 +2675,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     draw();
   };
 
-  const devJumpToJourney = () => {
+  const devJumpToJourney = useCallback(() => {
     keysRef.current = {};
     tickAccumulatorRef.current = 0;
     setExpeditionStage('journey');
@@ -2608,9 +2684,10 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     setJourneyRunId(previous => previous + 1);
     journeySnapshotRef.current = null;
     setNotice(activeMission.instruction);
-  };
+    audioControls.playExpeditionMusic?.('desert');
+  }, [activeMission.instruction, audioControls]);
 
-  const devJumpToBaseCamp = () => {
+  const devJumpToBaseCamp = useCallback(() => {
     const snapshotFieldKit = journeySnapshotRef.current?.fieldKit || [];
     keysRef.current = {};
     tickAccumulatorRef.current = 0;
@@ -2619,9 +2696,10 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     setBaseCampOpen(true);
     setExpeditionFailure(null);
     setNotice('Developer mode: Base Camp opened.');
-  };
+    audioControls.playExpeditionMusic?.('baseCamp');
+  }, [audioControls, fieldKit]);
 
-  const devJumpToExcavation = () => {
+  const devJumpToExcavation = useCallback(() => {
     keysRef.current = {};
     tickAccumulatorRef.current = 0;
     if (fieldKit.length === 0 && journeySnapshotRef.current?.fieldKit?.length) {
@@ -2629,37 +2707,107 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     }
     beginExcavationStage();
     setNotice('Developer mode: Excavation opened.');
-  };
+  }, [beginExcavationStage, fieldKit.length]);
 
-  const renderDevModeSwitcher = () => {
-    const activeDevStage = baseCampOpen ? 'base-camp' : expeditionStage;
-    return (
-      <div className="expedition-dev-switcher" role="group" aria-label="Lost Site Expedition developer mode switcher">
-        <span>Dev mode</span>
-        <button
-          type="button"
-          className={activeDevStage === 'journey' ? 'is-active' : ''}
-          onClick={devJumpToJourney}
-        >
-          Journey
-        </button>
-        <button
-          type="button"
-          className={activeDevStage === 'base-camp' ? 'is-active' : ''}
-          onClick={devJumpToBaseCamp}
-        >
-          Base Camp
-        </button>
-        <button
-          type="button"
-          className={activeDevStage === 'excavation' ? 'is-active' : ''}
-          onClick={devJumpToExcavation}
-        >
-          Excavation
-        </button>
+  useEffect(() => {
+    const handleExpeditionDevJump = (event) => {
+      if (event.detail?.target === 'journey') devJumpToJourney();
+      if (event.detail?.target === 'base-camp') devJumpToBaseCamp();
+      if (event.detail?.target === 'excavation') devJumpToExcavation();
+    };
+
+    window.addEventListener('expedition-dev-jump', handleExpeditionDevJump);
+    return () => window.removeEventListener('expedition-dev-jump', handleExpeditionDevJump);
+  }, [devJumpToBaseCamp, devJumpToExcavation, devJumpToJourney]);
+
+  const renderStageSelect = () => (
+    <section className="phase-container bureau-phase expedition-phase">
+      <div className="expedition-shell expedition-stage-select-shell">
+        <header className="expedition-topbar expedition-stage-select-topbar">
+          <button type="button" className="bureau-hint-btn" onClick={onBackToMenu}>
+            <ChevronLeft size={18} /> Back to Menu
+          </button>
+          <div className="expedition-title">
+            <div className="training-kicker">Lost Site Expedition</div>
+            <h2>Choose an Expedition</h2>
+          </div>
+          <div className="expedition-stage-header-art" aria-label="Upcoming expedition character previews">
+            <div className="expedition-stage-character-strip" aria-hidden="true">
+              {EXPEDITION_STAGE_HEADER_CHARACTERS.map(character => (
+                <img
+                  key={character.id}
+                  src={`${import.meta.env.BASE_URL}${character.src}`}
+                  alt=""
+                  className={`expedition-stage-character expedition-stage-character--${character.id}`}
+                />
+              ))}
+            </div>
+            <div className="expedition-gate-badge unlocked">
+              <Compass size={16} />
+              <span>Campaign Map</span>
+              <small>Egypt playable now</small>
+            </div>
+          </div>
+        </header>
+
+        <div className="expedition-stage-grid" aria-label="Lost Site Expedition stage selection">
+          {EXPEDITION_STAGES.map(stage => (
+            <article key={stage.id} className={`expedition-stage-card expedition-stage-card--${stage.statusTone}`}>
+              <div className="expedition-stage-card-header">
+                <span className="expedition-stage-dossier-tag">{stage.dossierTag}</span>
+                <span className={`expedition-stage-status expedition-stage-status--${stage.statusTone}`}>
+                  {stage.status}
+                </span>
+              </div>
+              <div className="expedition-stage-card-body">
+                <h3>{stage.title}</h3>
+                <p>{stage.subtitle}</p>
+              </div>
+              <p className="expedition-stage-teaser">{stage.teaser}</p>
+              <button
+                type="button"
+                className={`btn ${stage.route === 'playable' ? 'primary-btn expedition-begin-btn' : 'secondary-btn'} expedition-stage-action`}
+                onClick={() => openExpeditionStage(stage)}
+              >
+                {stage.route === 'playable' ? <Sparkles size={16} /> : <BookOpen size={16} />}
+                {stage.actionLabel}
+              </button>
+            </article>
+          ))}
+        </div>
       </div>
-    );
-  };
+
+      {previewExpedition && (
+        <div className="modal-overlay expedition-briefing-overlay">
+          <div className="bureau-briefing-modal expedition-stage-preview-modal">
+            <div className="expedition-stage-preview-header">
+              <span className={`expedition-stage-status expedition-stage-status--${previewExpedition.statusTone}`}>
+                {previewExpedition.status}
+              </span>
+              <h2>{previewExpedition.title}</h2>
+              <p>{previewExpedition.subtitle}</p>
+            </div>
+            <div className="expedition-stage-preview-note">
+              <MapIcon size={20} />
+              <p>{previewExpedition.previewTeaser || previewExpedition.teaser}</p>
+            </div>
+            <p className="expedition-stage-preview-status">
+              This expedition is a preview only for now. It will not launch unfinished gameplay.
+            </p>
+            <div className="bureau-briefing-actions">
+              <button type="button" className="btn primary-btn" onClick={() => setPreviewExpedition(null)}>
+                Back
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+
+  if (!selectedExpedition) {
+    return renderStageSelect();
+  }
 
   const submitClaim = () => {
     const chosenEvidence = selectedEvidence;
@@ -2696,7 +2844,6 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
   if (expeditionStage === 'journey' && !baseCampOpen) {
     return (
       <div className="expedition-journey-mode-shell">
-        {renderDevModeSwitcher()}
         <button type="button" className="expedition-local-menu-btn" onClick={onBackToMenu}>
           <ChevronLeft size={16} /> Back to Menu
         </button>
@@ -2715,7 +2862,6 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
   if (baseCampOpen) {
     return (
       <section className="phase-container bureau-phase expedition-phase">
-        {renderDevModeSwitcher()}
         <div className="expedition-shell expedition-basecamp-shell">
           <header className="expedition-topbar">
             <button type="button" className="bureau-hint-btn" onClick={onBackToMenu}>
@@ -2813,7 +2959,6 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
 
   return (
     <section className="phase-container bureau-phase expedition-phase">
-      {renderDevModeSwitcher()}
       <div className={`expedition-shell ${briefingOpen ? 'briefing-paused' : ''}`}>
         <header className="expedition-topbar">
           <button type="button" className="bureau-hint-btn" onClick={onBackToMenu}>

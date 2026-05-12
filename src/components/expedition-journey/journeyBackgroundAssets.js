@@ -5,7 +5,7 @@ export const CATACOMBS_BACKGROUND_ATLAS_JSON = `${CATACOMBS_BACKGROUND_ATLAS_BAS
 export const ESCAPE_BACKGROUND_ATLAS_BASE_PATH = 'assets/expedition/backgrounds/escape-sequence/';
 export const ESCAPE_BACKGROUND_ATLAS_JSON = `${ESCAPE_BACKGROUND_ATLAS_BASE_PATH}escape-sequence-parallax-pack.json`;
 export const DIG_SITE_BACKGROUND_ATLAS_BASE_PATH = 'assets/expedition/backgrounds/dig-site-entrance/';
-export const DIG_SITE_BACKGROUND_ATLAS_JSON = `${DIG_SITE_BACKGROUND_ATLAS_BASE_PATH}dig-site-entrance-parallax-pack.json`;
+export const DIG_SITE_BACKGROUND_ATLAS_JSON = `${DIG_SITE_BACKGROUND_ATLAS_BASE_PATH}base-camp-parallax-pack.json`;
 
 export const EXPECTED_DESERT_BACKGROUND_KEYS = [
   'sky',
@@ -50,11 +50,11 @@ export const SECTION_BACKGROUND_PACKS = {
     basePath: DIG_SITE_BACKGROUND_ATLAS_BASE_PATH,
     atlasPath: DIG_SITE_BACKGROUND_ATLAS_JSON,
     expectedKeys: [
-      'sunsetAtmosphere',
-      'farExcavationLandscape',
-      'distantBaseCamp',
-      'midgroundBaseCamp',
-      'foregroundCampAtmosphere',
+      'skyLayer',
+      'farBackground',
+      'midBackground',
+      'nearBaseCamp',
+      'foregroundLayer',
     ],
   },
 };

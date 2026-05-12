@@ -1,12 +1,14 @@
 {
   "image": "escape-sequence-parallax-pack.png",
-  "source": "AI-generated Journey parallax background sheet, integrated for Escape Sequence section rendering.",
-  "coordinateNote": "Coordinates are approximate first-pass crops from the supplied 1536x1024 Escape Sequence layered sheet. Left-side generator labels are intentionally excluded from the draw regions.",
+  "source": "AI-generated label-free Journey parallax background sheet, upgraded for Escape Sequence section rendering.",
+  "imageWidth": 1672,
+  "imageHeight": 941,
+  "coordinateNote": "Coordinates are approximate first-pass crops from the upgraded 1672x941 layered sheet.",
   "regions": {
-    "dangerAtmosphere": { "x": 188, "y": 22, "w": 1160, "h": 152 },
-    "farCollapsingWalls": { "x": 188, "y": 202, "w": 1160, "h": 126 },
-    "distantRuinsDebris": { "x": 112, "y": 350, "w": 1320, "h": 138 },
-    "midgroundEscapeRuins": { "x": 118, "y": 506, "w": 1288, "h": 128 },
-    "foregroundDust": { "x": 90, "y": 824, "w": 1334, "h": 132 }
+    "dangerAtmosphere": { "x": 15, "y": 20, "w": 1642, "h": 173 },
+    "farCollapsingWalls": { "x": 15, "y": 210, "w": 1642, "h": 168 },
+    "distantRuinsDebris": { "x": 15, "y": 386, "w": 1642, "h": 153 },
+    "midgroundEscapeRuins": { "x": 15, "y": 553, "w": 1642, "h": 164 },
+    "foregroundDust": { "x": 15, "y": 729, "w": 1642, "h": 198 }
   }
 }

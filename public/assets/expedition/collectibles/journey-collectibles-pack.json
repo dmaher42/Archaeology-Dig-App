@@ -1,0 +1,33 @@
+{
+  "image": "journey-collectibles-pack.png",
+  "source": "ChatGPT Image May 12, 2026, 03_50_51 PM.png",
+  "size": {
+    "w": 1536,
+    "h": 1024
+  },
+  "coordinateNote": "Approximate first-pass atlas regions from the AI-generated Journey Collectibles + Field Kit Sprite Pack. Coordinates may need manual tuning after projector review.",
+  "regions": {
+    "brush": { "x": 44, "y": 48, "w": 170, "h": 150 },
+    "trowel": { "x": 268, "y": 40, "w": 172, "h": 156 },
+    "notebook": { "x": 493, "y": 34, "w": 174, "h": 166 },
+    "camera": { "x": 700, "y": 42, "w": 188, "h": 146 },
+    "measuringTape": { "x": 932, "y": 42, "w": 176, "h": 142 },
+    "fieldGuidePage": { "x": 1184, "y": 42, "w": 236, "h": 144 },
+    "relicShard": { "x": 50, "y": 252, "w": 170, "h": 178 },
+    "mapTablet": { "x": 300, "y": 272, "w": 216, "h": 136 },
+    "ancientSwitch": { "x": 594, "y": 270, "w": 162, "h": 146 },
+    "glyphFragment": { "x": 802, "y": 252, "w": 176, "h": 170 },
+    "escapeMarker": { "x": 1040, "y": 258, "w": 170, "h": 156 },
+    "loreTablet": { "x": 1260, "y": 264, "w": 184, "h": 148 },
+    "reinforcedBoots": { "x": 46, "y": 506, "w": 186, "h": 162 },
+    "ropeLauncher": { "x": 300, "y": 502, "w": 180, "h": 164 },
+    "torchUpgrade": { "x": 538, "y": 498, "w": 170, "h": 174 },
+    "historianVision": { "x": 1002, "y": 506, "w": 196, "h": 162 },
+    "ancientCompass": { "x": 1260, "y": 502, "w": 176, "h": 168 },
+    "pickupSparkle": { "x": 54, "y": 762, "w": 170, "h": 146 },
+    "collectedFlashRing": { "x": 286, "y": 764, "w": 196, "h": 140 },
+    "lockedDimOverlay": { "x": 560, "y": 770, "w": 142, "h": 132 },
+    "availableGlowRing": { "x": 802, "y": 756, "w": 194, "h": 154 },
+    "objectiveHighlightRing": { "x": 1038, "y": 740, "w": 210, "h": 176 }
+  }
+}

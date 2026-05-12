@@ -652,3 +652,179 @@ Remaining notes:
 - Visual/readability fix made: the Expedition inspection/result modal now has an explicit viewport-height cap and internal scrolling, with a more compact satchel decision layout for normal laptop/projector height.
 - `npm.cmd run build` passed with the existing large-chunk warning and runtime-resolved public CSS image URL notices.
 - Remaining risks: the blocker states were set up with the existing browser/React test harness to avoid another full long route; a later human playtest should still do one natural no-shortcut route for feel, but the previously blocking state transitions now have direct confirmation.
+
+2026-05-12 update:
+- Egypt Base Camp / Dig Site Entrance parallax background integrated from a clean cropped atlas that removes the visible labels from the supplied preview sheet.
+- Dig Site Entrance now uses the Base Camp sky, far background, mid background, near camp, and subtle foreground layers through the existing Journey background loader.
+- Existing Journey gameplay preserved: no collision boxes, hazards, enemies, boss logic, route gate requirements, player rendering, collectible logic, excavation, Full Investigation, or Bureau systems were intentionally changed for this pass.
+- Browser checks confirmed app load, Lost Site Expedition launch, Journey start, Dig Site Entrance using the new Base Camp background with assets loaded/ready and fallback inactive, Ancient Construct visible in the checked state, Base Camp accessible through the existing dev path, Begin Excavation opening the Egypt excavation map, movement/jump/attack still responding, and no console errors in the checked flow.
+- `npm.cmd run build` passed with the existing large-chunk warning and runtime-resolved public CSS image URL notices; `npm.cmd run lint` passed; `git diff --check` passed with only the repo's LF-to-CRLF warnings.
+- Remaining risks: atlas crops are approximate first-pass cuts from the supplied labelled preview and should still get a projector-scale human spot-check for parallax balance around the final seal and Ancient Construct.
+
+2026-05-12 update:
+- Confirmed the old Journey background assets were not removed; the original Desert Entry, Catacombs, Escape Sequence, and Dig Site Entrance parallax packs remain on disk.
+- Identified Ruined Temple as the missing-background case: it has no dedicated parallax pack and was relying on the canvas fallback backdrop.
+- Polished the Ruined Temple fallback backdrop with warmer temple wall gradients, darker ceiling depth, columns, stone insets, torch glows, and a grounded lower wall silhouette.
+- Tightened Desert Entry background rendering so the desert parallax pack no longer bleeds into the Ruined Temple checkpoint area and masks the temple-specific backdrop.
+- Existing Journey gameplay preserved: no collisions, hazards, enemies, boss logic, route gate requirements, movement, attack logic, collectibles, excavation, Full Investigation, or Bureau logic were intentionally changed.
+- Browser spot-check captured `scratch/base-camp-background-verification/16-ruined-temple-polish-final.png`; Ruined Temple now reports canvas fallback for that section with no console errors in the checked state.
+- `npm.cmd run build` passed with the existing large-chunk warning and runtime-resolved public CSS image URL notices; `npm.cmd run lint` passed; `git diff --check` passed with only the repo's LF-to-CRLF warnings.
+- Remaining risks: Ruined Temple still needs a proper dedicated parallax asset pack in a future pass if we want it to fully match Desert Entry, Catacombs, Escape Sequence, and Base Camp quality.
+
+2026-05-12 update:
+- Journey Collectibles + Field Kit Sprite Pack integrated into Lost Site Expedition Journey.
+- Added a fallback-safe collectible sprite loader and named atlas metadata under `public/assets/expedition/collectibles/`.
+- Tools, relic shards, upgrades, and objective collectibles now use sprite assets while preserving pickup/effect/progression logic.
+- Browser checks confirmed Journey loads, sprite fallback is inactive, early tools/shards/objectives render with atlas art, Brush/Trowel pickup still updates the Journey field kit, Base Camp opens, Begin Excavation enters the Egypt map, and no console errors appeared.
+- `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning and runtime-resolved public CSS image URL notices; `git diff --check` passed with only the repo's LF-to-CRLF warnings.
+- Remaining risk: collectible atlas coordinates are approximate first-pass crops and should still get a projector-scale tuning pass.
+
+2026-05-12 update:
+- Player weapon visual upgraded in Lost Site Expedition Journey.
+- Added the provided khopesh weapon sheet as a transparent runtime atlas under `public/assets/expedition/player/`.
+- Added a fallback-safe player weapon sprite loader and render-state fields for weapon load/fallback/frame/visual mode.
+- Replaced the player character's simple yellow hand-tool line with the khopesh sprite in the existing player render path; the old line remains as the fallback if the weapon atlas fails.
+- Preserved existing combat behaviour: attack timing, stamina cost, hitboxes, enemy/boss logic, movement, physics, route gates, Base Camp, excavation, Full Investigation, and Bureau code paths were not changed.
+- Browser check confirmed Journey loads, the weapon atlas loads with fallback inactive, the khopesh is visible on the player, and no console errors appeared.
+- `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning and runtime-resolved public CSS image URL notices; `git diff --check` passed with only the repo's LF-to-CRLF warnings.
+- Remaining risk: the generated transparent weapon atlas uses approximate background removal/crops from the parchment sheet, so a human projector-scale spot check may want small scale/position tuning.
+
+2026-05-12 update:
+- Journey collectible sprite visual tuning completed.
+- Relic shards were reduced to small fragment pickups with lower glow, tighter rings, smaller sparkles, and less visual priority than hazards/enemies/player.
+- Field tool pickups, upgrades, and objective markers now use separate scale groups with softer contact shadows, smaller glow rings, and reduced hover movement.
+- The player-held khopesh was pulled closer to the hand/body and made smaller/subtler at idle while preserving the existing attack hitbox and timing.
+- Added render-state tuning fields: `collectibleScaleTuningVersion`, `relicShardScale`, `fieldToolScale`, `upgradeScale`, `objectiveMarkerScale`, `loreTabletScale`, `pickupGlowScale`, and viewport-based `visibleCollectibleCount`.
+- Existing pickup and progression logic was preserved: tool pickup, shard pickup, upgrade pickup, objective progress, route-gate status, Base Camp, and Begin Excavation checks remained on the existing Journey/Expedition paths.
+- Browser checks confirmed app load, Lost Site Expedition launch, Journey start, smaller readable Brush/Trowel/shards/upgrades/objective sprites, hazard/enemy/player readability, tool/shard/upgrade/objective pickup state updates, Base Camp opening, Begin Excavation entering the Egypt map, and no console errors.
+- `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning and runtime-resolved public CSS image URL notices; `git diff --check` passed with only the repo's LF-to-CRLF warnings.
+- Remaining risk: a full natural route-gate playthrough was not rerun for this visual-only pass because no route-gate/gameplay logic changed; a human projector-scale pass may still want tiny per-item crop/offset tuning.
+
+2026-05-12 update:
+- Removed the oversized yellow guidance circle from relic shard targets in Journey so gems read as small collectible fragments instead of large marked objectives.
+- Kept shard collection positions, counts, route requirements, and pickup logic unchanged; only the visual marker/ring layer was suppressed.
+- Added platform-aware shard visual basing so gems that belong on platforms render above the platform surface instead of visually centring through the brick ledge.
+- Build/lint result: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning and runtime-resolved public CSS image URL notices; `git diff --check` passed with only the repo's LF-to-CRLF warnings.
+- Remaining risk: this was verified as a visual-only Journey pass; a classroom projector check may still want tiny atlas crop/offset tweaks.
+
+2026-05-12 update:
+- Added a Lost Site Expedition Stage Select screen after the main menu launch.
+- Egypt remains the only playable expedition and now routes through the new stage selector into the existing Journey -> Base Camp -> excavation -> final claim flow without changing the Egypt internals.
+- Added the campaign/stage config scaffold in `src/components/expedition/expeditionStages.js`, including four stage cards: Ancient Egypt, Ancient China, Ancient Rome, and Lake Mungo / Ancient Australia.
+- Added an Ancient China scaffold as preview-only with placeholders for the future China Journey stage, side-scroller background/art references, environment tile pack, top-down excavation room map, zone challenge UI, survey markers/gateways, enemies/guardian sprites, evidence set, and final claim.
+- Rome and Lake Mungo / Ancient Australia cards were added as coming-soon preview cards only; no unfinished gameplay is launched from those cards.
+- Browser verification on `http://127.0.0.1:5184/Archaeology-Dig-App/` confirmed main menu -> Lost Site Expedition -> Stage Select, all four cards render, Ancient Egypt launches the existing Journey with `Find Structural Evidence`, China/Rome/Lake Mungo previews open and return with Back, and no console errors appeared.
+- `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning plus runtime-resolved public CSS image URL notices; `git diff --check` passed with only the repo's LF-to-CRLF warnings.
+- Remaining risk: China is intentionally not playable yet; future work still needs real China data/assets wired into the existing Journey, excavation, evidence, challenge, and final-claim systems.
+
+2026-05-12 update:
+- Polished the new Lost Site Expedition Stage Select menu to better match the project's professional dossier UI.
+- Tightened the Stage Select shell width, header height, card spacing, card shadows, status labels, body typography, button sizing, and responsive layout.
+- Shortened card teaser copy so preview cards no longer rely on clipped ellipsis text, while keeping the full required Ancient China learning teaser in the preview modal.
+- Fixed the preview modal's inherited Bureau label/button styling so it now reads as `EXPEDITION PREVIEW` and uses warm dossier controls.
+- Browser verification on `http://127.0.0.1:5185/Archaeology-Dig-App/` confirmed desktop Stage Select, mobile Stage Select, Ancient China preview, Ancient Egypt launch into Journey, no horizontal overflow, and no console errors.
+- `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning plus runtime-resolved public CSS image URL notices; `git diff --check` passed with only the repo's LF-to-CRLF warnings.
+- Remaining risk: final visual judgement is still subjective, but the menu now has constrained width, tighter hierarchy, and cleaner responsive behaviour.
+
+2026-05-12 update:
+- Added generated character cutout assets for the future Ancient China, Ancient Rome, and Lake Mungo / Ancient Australia expeditions.
+- Stored the final transparent menu assets under `public/assets/expedition/stage-characters/`.
+- Added the three future-expedition characters to the Choose an Expedition header as a compact field-team vignette next to the existing Campaign Map badge.
+- Kept the assets presentation-only for now: no China/Rome/Australia gameplay sprite loading or unfinished level flow was enabled.
+- Browser verification on `http://127.0.0.1:5187/Archaeology-Dig-App/` confirmed the Stage Select header images load on desktop and mobile, no horizontal overflow appears, the Ancient China preview still opens and returns with Back, Ancient Egypt still launches the existing Journey with `Find Structural Evidence`, and no console errors appeared.
+- `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning plus runtime-resolved public CSS image URL notices; `git diff --check` passed with only the repo's LF-to-CRLF warnings.
+- Remaining risk: the generated character art is a first-pass visual set and may need style retuning if the later China/Rome/Australia level sprites require animation sheets rather than static menu cutouts.
+
+2026-05-12 update:
+- Added `docs/china-asset-pipeline.md` to document the Ancient China asset pipeline before any playable China work begins.
+- Audited the existing Egypt/Journey/Excavation asset packs, atlas paths, image paths, region keys, and canonical loader/import locations.
+- Defined the required China asset packs, exact proposed filenames/folders, transparency requirements, expected atlas region names, matching Egypt structures, future integration points, and ready-to-copy external image generator prompts.
+- Confirmed this is documentation-only: no gameplay files were wired to missing China assets, no broken imports were added, Egypt gameplay was not changed, and Stage Select behaviour remains unchanged.
+- `npm.cmd run build` passed with the existing large-chunk warning plus runtime-resolved public CSS image URL notices; `npm.cmd run lint` passed; `git diff --check` passed with only the repo's LF-to-CRLF warnings.
+
+2026-05-12 update:
+- Replaced the Egypt Desert Entry parallax background sheet with an upgraded generated five-band atlas at `public/assets/expedition/backgrounds/desert-entry/desert-entry-parallax-pack.png`.
+- Updated `desert-entry-parallax-pack.json` to match the new image dimensions and band crop regions for `sky`, `farDunes`, `distantRuins`, `midgroundRuins`, and `foregroundAtmosphere`.
+- Existing Journey background loading was preserved: no duplicate background loader was added and no gameplay, collision, enemy, route-gate, Stage Select, or excavation behaviour was intentionally changed.
+- Browser verification on `http://127.0.0.1:5188/Archaeology-Dig-App/` confirmed Ancient Egypt launches into Journey, the Desert Entry parallax background loads with ready true, fallback false, missing assets empty, and no console errors.
+- `npm.cmd run build` passed with the existing large-chunk warning plus runtime-resolved public CSS image URL notices; `npm.cmd run lint` passed; `git diff --check` passed with only the repo's LF-to-CRLF warnings.
+- Remaining risk: this is a first-pass generated art replacement, so a human projector-scale review may still want small crop or colour-balance tuning.
+
+2026-05-12 update:
+- Upgraded the Egypt Journey player character sprite sheet at `public/sprites/archaeologist-walk-cycle.png` with a higher-quality generated four-frame walk cycle while preserving the existing 1560x560 runtime format.
+- Upgraded the carried khopesh weapon atlas at `public/assets/expedition/player/khopesh-weapon-pack.png` and retuned `khopesh-weapon-pack.json` region crops for `khopeshIdle`, `khopeshWindup`, `khopeshSwing`, and `khopeshReady`.
+- Existing player rendering and combat logic were preserved: no animation system rewrite, hitbox change, movement change, attack timing change, route-gate change, Stage Select change, or excavation change was intentionally made.
+- Browser verification on `http://127.0.0.1:5189/Archaeology-Dig-App/` confirmed Ancient Egypt launches into Journey, the player sprite loads, the weapon atlas loads with fallback inactive, idle/walk/attack frames render, missing weapon assets are empty, and no console errors appeared.
+- `npm.cmd run build` passed with the existing large-chunk warning plus runtime-resolved public CSS image URL notices; `npm.cmd run lint` passed; `git diff --check` passed with only the repo's LF-to-CRLF warnings.
+- Remaining risk: generated animation quality is much stronger visually, but a human play feel pass may still want tiny weapon alignment or frame-pose tuning.
+
+2026-05-12 update:
+- Integrated `First_Light_Over_Stone.mp3` into the existing Lost Site Expedition / Ancient Egypt Journey audio path.
+- Stored the track at `public/assets/expedition/audio/first-light-over-stone.mp3` and added expedition music start/stop controls to the existing `audioControls` object in `src/App.jsx`.
+- Ancient Egypt Stage Select now starts the looping music from the same user click that launches the playable side-scroller, and Back to Menu stops/resets the track.
+- No duplicate audio system or separate game mode was added; existing Journey, Base Camp, excavation, and sound-effect hooks were preserved.
+- Verification: `npm.cmd run lint` passed, `npm.cmd run build` passed with existing warnings, `git diff --check` passed with only LF-to-CRLF warnings, and Playwright confirmed the MP3 request, successful `play()`, Journey render state, Back to Menu pause/reset, and screenshot `scratch/music-integration-journey.png`.
+
+2026-05-13 update:
+- Copied the completed Egypt audio tracks from `C:\Users\dmahe\OneDrive\Desktop\Archaeology-Dig-App\public\assets\expedition\Audio` into this app at `public/assets/expedition/audio/` with clean filenames.
+- Added a small Expedition soundtrack map in `src/App.jsx` for desert, temple, catacombs, escape, base camp, boss, evidence discovery, and gate unlock audio.
+- Extended the existing `audioControls` path so Journey can switch music by section, use boss ambience while a nearby mini-boss is active, play Base Camp music after the Journey is completed, and trigger stingers for evidence/objective discoveries and route-gate unlocks.
+- Browser audio decoding showed the two stinger-named files are full-length tracks rather than short effects, so their playback is capped to a few seconds to avoid long overlapping audio.
+- Kept the implementation inside the existing Expedition/Journey audio flow; no duplicate game mode or parallel audio system was added.
+- Verification: `npm.cmd run lint` passed, `npm.cmd run build` passed with existing large-chunk/runtime asset warnings, `git diff --check` passed with only LF-to-CRLF warnings, and Playwright confirmed the desert and Base Camp tracks were requested/played plus every copied audio file returned HTTP 200.
+
+2026-05-12 update:
+- Completed a Journey visual polish pass in the existing Lost Site Expedition renderer.
+- Replaced the Catacombs and Escape Sequence parallax background sheets with upgraded label-free generated PNGs and updated their atlas crop JSON.
+- Retuned route-gate drawing so gates sit on the ground plane with shadows/dust blending instead of floating above the scene.
+- Removed world-space labels from hazards, enemies, mini-boss names, missing-objective arrows, and combat/status arcs while preserving HUD/sidebar guidance.
+- Added a subtle section-boundary ground blend to soften area transitions without changing platform collision or route-gate logic.
+- Wired linked enemy sprites into the existing enemy draw path: guardian/statue enemies reuse the boss sprite packs, looters reuse the player sprite with a darker treatment, and scarab/snake/bat continue using the small-enemy atlas.
+- Retuned defeated enemy sprite grounding so defeated sprites/remains stay on the ground and no longer disappear, float, or flash unintentionally.
+- Gameplay behaviour was intentionally preserved: player movement, collision, attacks, enemy/boss logic, hazards, gates, objectives, Base Camp, excavation, Stage Select, and Egypt progression remain on the existing code paths.
+- Verification: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning and runtime-resolved public CSS image URL notices; `git diff --check` passed with only LF-to-CRLF warnings.
+- Browser verification on `http://127.0.0.1:5191/Archaeology-Dig-App/` confirmed Stage Select -> Ancient Egypt -> Journey, desert background/environment/enemy/boss assets loaded, gate/hazard atlas modes active, no missing environment assets, no console errors, no enemy/hazard labels in the world layer, the first route gate appears grounded, and a defeated snake renders with the grounded `snakeDefeated` frame.
+- Remaining risk: this pass verified the opening route, first gate area, enemy combat/death state, and upgraded background assets; a full natural all-route playthrough was not completed because it would require beating every gate/boss objective again.
+
+2026-05-13 update:
+- Enlarged the Lost Site Expedition Journey play area by moving the native side-scroller canvas from the old 900x420 ultra-wide baseline to a standard 16:9 960x540 baseline.
+- Kept the existing ExpeditionJourney renderer, Journey level data, gates, hazards, enemies, controls, Base Camp, excavation, Stage Select, and Egypt progression on the canonical code path.
+- Updated Journey CSS so the canvas preserves its 16:9 aspect ratio while using the available viewport width beside the expedition log/sidebar.
+- Shifted the authored Journey level object y-coordinates down with a shared vertical offset so platforms, gates, hazards, enemies, shards, markers, and objectives stay aligned with the taller 540px canvas.
+- Retuned the Journey background layer placement for the taller 16:9 frame so the Desert Entry, Catacombs, Escape Sequence, and Dig Site Entrance scenes fill the new playable area cleanly.
+- Browser verification on `http://127.0.0.1:5192/Archaeology-Dig-App/` confirmed the canvas now renders as a 960x540 native surface and displays at about 923x519 in a 1232x798 viewport, with the player grounded, route-gate area visible, enemy sprites active, environment assets loaded, and no console errors captured.
+- `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning and runtime-resolved public CSS image URL notices; `git diff --check` passed with only LF-to-CRLF warnings.
+- Remaining risk: 960x540 was chosen as the safest first industry-standard 16:9 baseline because it preserves the existing hand-authored level scale; a later 1280x720 pass would be possible but should include a broader camera, sidebar, art-scale, and projector-layout review.
+
+2026-05-13 update:
+- Completed a Journey layout foundation refactor as preparation for a future 1280x720 pass, without intentionally changing gameplay or visual feel.
+- Added `src/components/expedition-journey/journeyLayout.js` as the canonical home for viewport, world-layout, camera, HUD safe-area, visibility, canvas-scale, and ground-placement helpers.
+- Centralised the current 960x540 viewport assumptions, 16:9 aspect ratio, ground position, camera follow/boss-intro anchor ratios, camera smoothing/max-step values, and HUD safe-area assumptions.
+- Updated `ExpeditionJourney.jsx` to use the new helpers for camera target calculation, camera clamping, canvas attributes, horizontal visibility checks, route-gate ground placement, rescue fall bounds, and structured debug state.
+- Added lightweight Journey debug output for `viewport`, `worldLayout`, `cameraLayout`, `hudSafeArea`, `canvasScaleState`, `cameraBounds`, `playerGroundedState`, and route-gate `gateGroundedState`.
+- Intentionally did not change movement physics, collision, jump feel, enemy AI, combat timing, route-gate requirements, shard requirements, boss flow, Egypt progression, Stage Select, Base Camp, excavation, or final claim logic.
+- Browser verification on `http://127.0.0.1:5193/Archaeology-Dig-App/` confirmed Main Menu -> Stage Select -> Ancient Egypt -> Journey, native 960x540 canvas with preserved 16:9 display scaling, player foot aligned to ground, no missing Journey assets, no console errors, movement into Ruined Temple, hazard/enemy interaction, defeated snake state, and Base Camp dev-transition render.
+- `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning and runtime-resolved public CSS image URL notices.
+- Remaining risk before 1280x720: this refactor centralises the most important layout assumptions, but a true 1280x720 upgrade still needs a dedicated camera composition, sidebar/projector layout, background art placement, and authored-object review.
+
+2026-05-13 update:
+- Completed the first 1280x720 Journey render-target pass using a safe virtual-resolution approach.
+- Added `CANVAS_NATIVE_WIDTH = 1280` and `CANVAS_NATIVE_HEIGHT = 720` while preserving the existing 960x540 virtual gameplay viewport, authored coordinates, ground line, camera feel, collision boxes, movement physics, route gates, hazards, enemies, bosses, Stage Select, Base Camp, excavation, and final-claim flow.
+- Extended `journeyLayout.js` with `JOURNEY_RENDER_TARGET`, including the 1280x720 native target, 960x540 virtual viewport, 1.333 native scaling, and render-profile debug metadata.
+- Updated `ExpeditionJourney.jsx` so the canvas element now allocates a 1280x720 native surface and the renderer scales the existing 960x540 virtual game world into that native surface before drawing.
+- Added render-state reporting for `renderTarget` and expanded `canvasScaleState` so browser checks can confirm native size, virtual size, display size, aspect preservation, and native scale.
+- Browser verification on `http://127.0.0.1:5194/Archaeology-Dig-App/` confirmed Main Menu -> Stage Select -> Ancient Egypt -> Journey, canvas attributes are now 1280x720, displayed aspect ratio remains 16:9, the player remains grounded on the expected 960x540 virtual ground line, Journey assets are loaded with no missing-asset report, no console errors appeared, and the Base Camp dev-transition still renders with Begin Excavation available.
+- `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning and runtime-resolved public CSS image URL notices.
+- Remaining risk: this pass intentionally improves native rendering resolution without rescaling the gameplay world; a later composition pass can decide whether to expose more world at once, reduce the sidebar further, or create a fullscreen/projector presentation mode.
+
+2026-05-13 update:
+- Completed a Journey screen-space polish pass to make the visible world larger and reduce dead space around the side-scroller.
+- Expanded the virtual Journey viewport to 1120x630 while keeping the native render target at 1280x720, preserving a clean 16:9 scale path.
+- Moved the Journey ground line down to the bottom of the playable viewport and shifted authored Journey placements with the existing shared offset so platforms, gates, hazards, enemies, pickups, markers and the player remain grounded.
+- Slimmed the Expedition Journey sidebar and tightened Journey panel spacing so more horizontal room is available for the canvas.
+- Removed the persistent bottom movement-instruction strip from the play area; the start-of-run briefing still provides mission instructions.
+- Moved the controls help into a compact toggle inside the Journey sidebar, so controls are available without taking canvas space.
+- Removed the always-visible Expedition dev-mode strip from Journey/Base Camp/Excavation screens and added Journey, Base Camp and Excavation jump buttons to the existing Dev Panel instead.
+- Browser verification on `http://127.0.0.1:5195/Archaeology-Dig-App/` confirmed Main Menu -> Stage Select -> Ancient Egypt -> Journey, briefing dismissal, 1280x720 canvas attributes, larger displayed canvas, player grounded at the new bottom-aligned ground line, sidebar controls toggle working, no bottom controls strip, no initial bottom mission notice, no missing Journey environment assets, no active asset fallback, no console errors, and Dev Panel Expedition buttons visible with Base Camp jump reaching the real Base Camp screen.
+- `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning and runtime-resolved public CSS image URL notices; `git diff --check` passed with only LF-to-CRLF warnings.
+- Remaining risk: the canvas now uses the available width much better, but a fixed 16:9 canvas beside a visible sidebar cannot also fill all vertical screen height on every monitor; a true edge-to-edge presentation mode would require either a collapsible/overlay sidebar or a dedicated fullscreen layout.

@@ -111,19 +111,24 @@ export const getEnemySpriteFrame = (enemy, combatMode, now = 0) => {
   return `${family}Idle`;
 };
 
-export const getEnemySpriteDrawBox = (enemy, screenX, shakeX = 0) => {
+export const getEnemySpriteDrawBox = (enemy, screenX, shakeX = 0, combatMode = null) => {
   const family = getEnemySpriteFamily(enemy);
   if (!family) return null;
 
+  const defeated = combatMode === 'defeated' || enemy.defeated;
   const scale = {
-    scarab: 1.95,
-    snake: 1.9,
-    bat: 2.15,
+    scarab: defeated ? 2.08 : 2,
+    snake: defeated ? 2.02 : 1.96,
+    bat: defeated ? 2.05 : 2.18,
   }[family] || 1.8;
 
   const width = Math.max(enemy.width, enemy.width * scale);
   const height = Math.max(enemy.height, enemy.height * scale);
-  const anchorLift = family === 'bat' ? enemy.height * 0.42 : enemy.height * 0.1;
+  const anchorLift = defeated
+    ? (family === 'bat' ? -enemy.height * 0.04 : enemy.height * 0.02)
+    : family === 'bat'
+      ? enemy.height * 0.42
+      : enemy.height * 0.08;
   const x = screenX + enemy.width / 2 - width / 2 + shakeX;
   const y = enemy.y + enemy.height - height + anchorLift;
 

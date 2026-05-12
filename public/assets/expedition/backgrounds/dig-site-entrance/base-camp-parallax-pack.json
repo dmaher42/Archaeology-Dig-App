@@ -1,0 +1,37 @@
+{
+  "image": "base-camp-parallax-pack.png",
+  "source": "AI-generated Egypt/Base Camp parallax pack, cropped from the labelled preview so visible layer labels are excluded.",
+  "notes": "Atlas regions are approximate first-pass crops from the supplied sheet and may need projector-scale tuning.",
+  "regions": {
+    "skyLayer": {
+      "x": 25,
+      "y": 0,
+      "w": 930,
+      "h": 164
+    },
+    "farBackground": {
+      "x": 25,
+      "y": 172,
+      "w": 930,
+      "h": 168
+    },
+    "midBackground": {
+      "x": 25,
+      "y": 348,
+      "w": 930,
+      "h": 152
+    },
+    "nearBaseCamp": {
+      "x": 0,
+      "y": 508,
+      "w": 980,
+      "h": 165
+    },
+    "foregroundLayer": {
+      "x": 0,
+      "y": 681,
+      "w": 980,
+      "h": 154
+    }
+  }
+}

@@ -13,6 +13,17 @@ export function DevTools({
   setEvidenceConditions, setDigRecoverySummary,
   currentScenario, activeArtifacts, currentEvent 
 }) {
+  const jumpToExpeditionStage = (target) => {
+    const dispatchExpeditionJump = () => {
+      window.dispatchEvent(new CustomEvent('expedition-dev-jump', { detail: { target } }));
+    };
+
+    setPhase('expedition');
+    dispatchExpeditionJump();
+    window.setTimeout(dispatchExpeditionJump, 80);
+    window.setTimeout(dispatchExpeditionJump, 180);
+  };
+
   const jumpTo = (target) => {
     // Use current scenario if available, otherwise pick first as fallback
     const scen = currentScenario || (SCENARIOS && SCENARIOS.length > 0 ? SCENARIOS[0] : null);
@@ -120,6 +131,10 @@ export function DevTools({
       <button className={currentPhase === 'museum' ? 'active' : ''} onClick={() => jumpTo('museum')}>4. Curate</button>
       <button className={currentPhase === 'report' ? 'active' : ''} onClick={() => jumpTo('report')}>5. Report</button>
       <button className={currentPhase.startsWith('bureau') ? 'active' : ''} onClick={() => jumpTo('bureau')}>6. Bureau</button>
+      <div className="dev-tools-section-label">Expedition</div>
+      <button className={currentPhase === 'expedition' ? 'active' : ''} onClick={() => jumpToExpeditionStage('journey')}>Journey</button>
+      <button onClick={() => jumpToExpeditionStage('base-camp')}>Base Camp</button>
+      <button onClick={() => jumpToExpeditionStage('excavation')}>Excavation</button>
     </div>
   );
 }
