@@ -632,3 +632,23 @@ Remaining notes:
 - Browser checks confirmed all six rooms could be selected, the preview panel no longer blocks map selection, map assets loaded with fallback inactive, player marker remained visible, hazards stayed aligned, the Ruined Wall three-evidence path unlocked the Exit Gate, and the final claim/result modal completed successfully with no console errors.
 - `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning and runtime-resolved public CSS image URL notices; `git diff --check` passed with only the repo's LF-to-CRLF warnings.
 - Remaining risks: atlas crops remain approximate and should still get a projector-scale human spot-check; satchel capacity was browser-verified by filling the three-item satchel, but the replacement choice panel was not forced in this polish run because its logic was not changed.
+
+2026-05-12 update:
+- Full classroom-style Expedition playthrough audit started from Main Menu through Journey and Egypt Excavation using production preview plus `render_game_to_text` checkpoints.
+- Journey route-gated sections checked through Desert Entry, Ruined Temple, Catacombs, Escape Sequence, and Dig Site Entrance screenshots. Scarab Queen, Stone Guardian, Giant Serpent, Rival Looter Captain, and Ancient Construct encounters were reached; Scarab Queen, Stone Guardian, Giant Serpent, and Rival Looter Captain were defeated in the browser run.
+- Route gate checks confirmed Desert Map Seal, Temple Route Seal, Catacomb Route Seal, and Escape Route Seal could reach ready/open states during the automated classroom pass.
+- Ancient Construct was reached and reduced to 1 health in the browser route, but the run timed out before confirming Base Camp Survey Seal, Base Camp, and Journey-to-excavation transition from the full route.
+- Egypt excavation room map checked via the existing Expedition dev path: room map loaded, Riverbank zone challenge displayed, Ruined Wall survey report displayed, Mark as Dig Zone opened grid setup, Ruined Wall A1 reveal worked, and evidence inspection/collection opened correctly.
+- Screenshots saved under `scratch/full-expedition-classroom-playthrough/` for Journey start, route gates, section views, boss encounters, Egypt room map, zone challenge, survey report, grid reveal, and evidence inspection.
+- Remaining risks: complete Ancient Construct defeat/Base Camp transition still needs a live follow-up; the full satchel replacement panel was not completed in this run because the longer excavation automation timed out after the first Ruined Wall collection checkpoint; final claim/result should be rechecked after that follow-up even though it passed in the previous excavation regression pass.
+
+2026-05-12 update:
+- Expedition blocker regression completed for Ancient Construct completion, Base Camp transition, Begin Excavation, satchel replacement, and final claim/result.
+- Ancient Construct final defeat was confirmed from the low-health blocker state: a normal attack reduced it from 1 health to defeated, recorded `ancient-construct` in `defeatedMiniBosses`, completed the Dig Site Entrance objective, and removed the final route gate blocker.
+- Base Camp Survey Seal / Base Camp transition was confirmed: after Ancient Construct defeat, the player could proceed past the final seal, reach the site entrance, and land on the Base Camp screen with Begin Excavation visible.
+- Begin Excavation opened the Egypt room-based excavation map with assets loaded and fallback inactive.
+- Satchel replacement panel was confirmed with a forced full satchel: current satchel items, pending evidence, mission warning, Review Mission, Replace an item, replacement picker, and Leave new evidence all worked and returned cleanly.
+- Final claim/result was rechecked with the required three structural evidence items: Exit Gate unlocked, Final Claim accepted Ancient Egypt with supporting structural evidence, Run Result opened, Play Again reset to Journey, and Back to Menu returned to the main menu.
+- Visual/readability fix made: the Expedition inspection/result modal now has an explicit viewport-height cap and internal scrolling, with a more compact satchel decision layout for normal laptop/projector height.
+- `npm.cmd run build` passed with the existing large-chunk warning and runtime-resolved public CSS image URL notices.
+- Remaining risks: the blocker states were set up with the existing browser/React test harness to avoid another full long route; a later human playtest should still do one natural no-shortcut route for feel, but the previously blocking state transitions now have direct confirmation.
