@@ -20,6 +20,14 @@ import {
 import { SCENARIOS } from '../data';
 import { BUREAU_CASES, getCategoryTitle } from '../utils/gameLogic';
 import ExpeditionJourney from './ExpeditionJourney';
+import {
+  createExcavationMapAssetState,
+  drawExcavationMapRegion,
+  getMissingExcavationMapAssets,
+  loadExcavationMapAssetPack,
+} from './expedition/expeditionMapAssets';
+import { EXPEDITION_ROOM_CONNECTIONS, EXPEDITION_ROOM_ZONE_BY_ID } from './expedition/expeditionMapLayout';
+import { getZoneChallenge } from './expedition/expeditionZoneChallenges';
 
 const MAP_WIDTH = 800;
 const MAP_HEIGHT = 560;
@@ -34,6 +42,18 @@ const ZONES = [
   { id: 'wall', name: 'Ruined Wall', emoji: '🏛️', x: 320, y: 220, w: 260, h: 190, color: 'rgba(148, 163, 184, 0.18)' },
   { id: 'gate', name: 'Exit Gate', emoji: '🔒', x: 580, y: 220, w: 220, h: 340, color: 'rgba(74, 222, 128, 0.12)' },
 ];
+
+const EXCAVATION_TERRAIN_BY_ZONE = {
+  riverbank: 'roomMap:riverbankTerrain',
+  burial: 'roomMap:burialTerrain',
+  archive: 'roomMap:archiveTerrain',
+  market: 'roomMap:marketTerrain',
+  wall: 'roomMap:ruinedWallTerrain',
+  gate: 'roomMap:neutralExcavationTerrain',
+};
+
+const EXCAVATION_VISUAL_MODE = 'egypt-room-map-stage-1';
+const EXCAVATION_MAP_VISUAL_TUNING_VERSION = 'egypt-room-map-regression-tuning-2026-05-12';
 
 const SURVEY_COST = { investigation: -4, time: -8 };
 const SURVEY_ZONES = [
@@ -738,6 +758,17 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
   const [baseCampOpen, setBaseCampOpen] = useState(false);
   const [fieldKit, setFieldKit] = useState([]);
   const [journeyRunId, setJourneyRunId] = useState(0);
+  const [excavationMapAssets, setExcavationMapAssets] = useState(() => createExcavationMapAssetState());
+  const [selectedMapZone, setSelectedMapZone] = useState(null);
+  const [enteredMapZone, setEnteredMapZone] = useState(null);
+  const [completedZoneChallenges, setCompletedZoneChallenges] = useState(() => new Set());
+  const [activeZoneChallenge, setActiveZoneChallenge] = useState(null);
+  const [zoneChallengeFeedback, setZoneChallengeFeedback] = useState(null);
+
+  useEffect(() => loadExcavationMapAssetPack({
+    baseUrl: import.meta.env.BASE_URL || '/',
+    onUpdate: setExcavationMapAssets,
+  }), []);
 
   const trainingCivilisations = useMemo(() => (
     BUREAU_CASES
@@ -749,6 +780,10 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
   const missionRequiredCount = getMissionRequiredCount(activeMission);
   const exitUnlocked = missionEvidenceCount >= missionRequiredCount;
   const surveyComplete = Boolean(selectedSurveyZone);
+  const selectedMapZoneData = selectedMapZone ? (ZONES.find(zone => zone.id === selectedMapZone) || null) : null;
+  const selectedRoomData = selectedMapZone ? (EXPEDITION_ROOM_ZONE_BY_ID[selectedMapZone] || null) : null;
+  const activeChallengeData = activeZoneChallenge ? getZoneChallenge(activeZoneChallenge) : null;
+  const canSurveySelectedZone = Boolean(selectedMapZone && SURVEY_ZONE_BY_ID[selectedMapZone] && completedZoneChallenges.has(selectedMapZone));
   const gridSquares = useMemo(() => getGridSquaresForZone(selectedSurveyZone), [selectedSurveyZone]);
   const gridComplete = openedGridSquares.size > 0;
   const getVisibleEvidence = useCallback(() => (
@@ -1007,15 +1042,78 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     ));
   }, []);
 
-  const openSurveyReport = useCallback((zone = nearbySurveyZoneRef.current) => {
+  const startZoneChallenge = useCallback((zoneId) => {
+    const challenge = getZoneChallenge(zoneId);
+    if (!challenge) return;
+    setSelectedMapZone(zoneId);
+    setEnteredMapZone(zoneId);
+    setActiveZoneChallenge(zoneId);
+    setZoneChallengeFeedback(null);
+    setNotice(`${challenge.title}: complete the room check before surveying.`);
+  }, []);
+
+  const enterSelectedMapZone = useCallback((zoneId = selectedMapZone) => {
+    if (!zoneId) return;
+    setEnteredMapZone(zoneId);
+    if (!completedZoneChallenges.has(zoneId)) {
+      startZoneChallenge(zoneId);
+      return;
+    }
+    const zoneName = EXPEDITION_ROOM_ZONE_BY_ID[zoneId]?.name || getSurveyZoneName(zoneId) || 'selected zone';
+    setNotice(`${zoneName} entry check complete. Survey is ready.`);
+  }, [completedZoneChallenges, selectedMapZone, startZoneChallenge]);
+
+  const answerZoneChallenge = useCallback((answerId) => {
+    const challenge = activeZoneChallenge ? getZoneChallenge(activeZoneChallenge) : null;
+    if (!challenge) return;
+    const answer = challenge.answers.find(item => item.id === answerId);
+    const correct = answerId === challenge.correctAnswerId;
+    setZoneChallengeFeedback({
+      correct,
+      answerId,
+      message: answer?.feedback || (correct ? 'Correct.' : 'Try again.'),
+    });
+    if (correct) {
+      setCompletedZoneChallenges(previous => new Set([...previous, activeZoneChallenge]));
+      setNotice(`${challenge.title} complete. Survey is unlocked for this zone.`);
+    } else {
+      setNotice('Try the zone-entry challenge again.');
+    }
+  }, [activeZoneChallenge]);
+
+  const closeZoneChallenge = useCallback(() => {
+    setActiveZoneChallenge(null);
+    setZoneChallengeFeedback(null);
+  }, []);
+
+  const selectMapZoneAtPoint = useCallback((event) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = MAP_WIDTH / rect.width;
+    const scaleY = MAP_HEIGHT / rect.height;
+    const x = (event.clientX - rect.left) * scaleX;
+    const y = (event.clientY - rect.top) * scaleY;
+    const zone = ZONES.find(item => x >= item.x && x <= item.x + item.w && y >= item.y && y <= item.y + item.h);
+    if (!zone) return;
+    setSelectedMapZone(zone.id);
+    setNotice(`${zone.name} selected. Enter the zone to complete its room check.`);
+  }, []);
+
+  const openSurveyReport = useCallback((zone = nearbySurveyZoneRef.current, options = {}) => {
     if (briefingOpen || !zone || lockedRef.current || inspectionToken || expeditionFailure) return;
+    setSelectedMapZone(zone.id);
+    if (!options.skipChallenge && !completedZoneChallenges.has(zone.id)) {
+      startZoneChallenge(zone.id);
+      return;
+    }
     if (!surveyedZones.has(zone.id)) {
       syncResources(SURVEY_COST);
       setSurveyedZones(previous => new Set([...previous, zone.id]));
     }
     setSurveyReportZone(zone);
     setNotice(`Survey report opened for ${zone.name}.`);
-  }, [briefingOpen, expeditionFailure, inspectionToken, surveyedZones, syncResources]);
+  }, [briefingOpen, completedZoneChallenges, expeditionFailure, inspectionToken, startZoneChallenge, surveyedZones, syncResources]);
 
   const keepSurveying = () => {
     setSurveyReportZone(null);
@@ -1024,6 +1122,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
 
   const markSurveyZone = (zone = surveyReportZone) => {
     if (!zone) return;
+    setSelectedMapZone(zone.id);
+    setEnteredMapZone(zone.id);
     setSelectedSurveyZone(zone.id);
     setSurveyReportZone(null);
     setGridSetupOpen(true);
@@ -1233,6 +1333,11 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     setSurveyedZones(new Set());
     setNearbySurveyZone(null);
     setSurveyReportZone(null);
+    setSelectedMapZone(null);
+    setEnteredMapZone(null);
+    setCompletedZoneChallenges(new Set());
+    setActiveZoneChallenge(null);
+    setZoneChallengeFeedback(null);
     setGridSetupOpen(false);
     setSelectedGridSquare(null);
     setOpenedGridSquares(new Set());
@@ -1380,6 +1485,23 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     ctx.clearRect(0, 0, MAP_WIDTH, MAP_HEIGHT);
 
     const now = Date.now();
+    const assetsReady = excavationMapAssets.loaded && excavationMapAssets.image && !excavationMapAssets.failed;
+
+    const fillRoundRect = (x, y, w, h, radius) => {
+      const r = Math.min(radius, w / 2, h / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+      ctx.fill();
+    };
 
     // 1. Better Background (Subtle radial gradient)
     const bgGradient = ctx.createRadialGradient(MAP_WIDTH/2, MAP_HEIGHT/2, MAP_WIDTH/4, MAP_WIDTH/2, MAP_HEIGHT/2, MAP_WIDTH);
@@ -1387,6 +1509,15 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     bgGradient.addColorStop(1, '#d4c09d');
     ctx.fillStyle = bgGradient;
     ctx.fillRect(0, 0, MAP_WIDTH, MAP_HEIGHT);
+
+    if (assetsReady) {
+      for (let x = 0; x < MAP_WIDTH; x += 145) {
+        for (let y = 0; y < MAP_HEIGHT; y += 96) {
+          drawExcavationMapRegion(ctx, excavationMapAssets, 'roomMap:neutralExcavationTerrain', { x, y, w: 150, h: 100 }, { alpha: 0.12 });
+        }
+      }
+      drawExcavationMapRegion(ctx, excavationMapAssets, 'roomMap:gridOverlay', { x: 318, y: 230, w: 168, h: 110 }, { alpha: 0.18 });
+    }
 
     // 2. Map Grid (Ultra Faint)
     ctx.strokeStyle = 'rgba(100, 75, 50, 0.03)';
@@ -1398,93 +1529,185 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(MAP_WIDTH, y); ctx.stroke();
     }
 
+    if (assetsReady) {
+      for (let x = 18; x < MAP_WIDTH; x += 260) {
+        drawExcavationMapRegion(ctx, excavationMapAssets, 'roomMap:surveyStringHorizontal', { x, y: 212, w: 190, h: 7 }, { alpha: 0.3 });
+        drawExcavationMapRegion(ctx, excavationMapAssets, 'roomMap:surveyStringHorizontal', { x: x + 40, y: 414, w: 190, h: 7 }, { alpha: 0.26 });
+      }
+      for (let x = 252; x < MAP_WIDTH; x += 260) {
+        drawExcavationMapRegion(ctx, excavationMapAssets, 'roomMap:surveyStringVertical', { x, y: 24, w: 150, h: 6 }, { alpha: 0.26, rotation: Math.PI / 2 });
+      }
+      [
+        [260, 214], [522, 214], [318, 414], [580, 414], [720, 220],
+      ].forEach(([x, y]) => {
+        drawExcavationMapRegion(ctx, excavationMapAssets, 'roomMap:surveyPeg', { x, y, w: 14, h: 26 }, { alpha: 0.58, fit: 'contain' });
+      });
+    }
+
+    EXPEDITION_ROOM_CONNECTIONS.forEach((connection) => {
+      const points = connection.points;
+      for (let index = 0; index < points.length - 1; index += 1) {
+        const [x1, y1] = points[index];
+        const [x2, y2] = points[index + 1];
+        const x = Math.min(x1, x2) - 8;
+        const y = Math.min(y1, y2) - 8;
+        const w = Math.max(Math.abs(x2 - x1), 16) + 16;
+        const h = Math.max(Math.abs(y2 - y1), 16) + 16;
+        const horizontal = Math.abs(x2 - x1) >= Math.abs(y2 - y1);
+        if (!drawExcavationMapRegion(ctx, excavationMapAssets, horizontal ? 'roomMap:pathHorizontal' : 'roomMap:pathVertical', { x, y, w, h }, { alpha: 0.36 })) {
+          ctx.strokeStyle = 'rgba(115, 79, 42, 0.28)';
+          ctx.lineWidth = 10;
+          ctx.beginPath();
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.stroke();
+        }
+      }
+      const lastPoint = points[points.length - 1];
+      drawExcavationMapRegion(ctx, excavationMapAssets, 'gateway:carvedThreshold', { x: lastPoint[0] - 22, y: lastPoint[1] - 14, w: 44, h: 28 }, { alpha: 0.46, fit: 'contain' });
+    });
+
 
     // 3. Map Zones with transparent labels
     ZONES.forEach((zone) => {
-      ctx.fillStyle = zone.color;
+      const terrainKey = EXCAVATION_TERRAIN_BY_ZONE[zone.id] || 'roomMap:neutralExcavationTerrain';
+      const drewTerrain = drawExcavationMapRegion(
+        ctx,
+        excavationMapAssets,
+        terrainKey,
+        { x: zone.x + 3, y: zone.y + 3, w: zone.w - 6, h: zone.h - 6 },
+        { alpha: zone.id === 'gate' ? 0.34 : 0.82 },
+      );
+      if (!drewTerrain) {
+        ctx.fillStyle = zone.color;
+        ctx.fillRect(zone.x, zone.y, zone.w, zone.h);
+      }
+      ctx.fillStyle = 'rgba(244, 224, 187, 0.14)';
       ctx.fillRect(zone.x, zone.y, zone.w, zone.h);
-      ctx.strokeStyle = 'rgba(74, 54, 32, 0.2)';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(zone.x, zone.y, zone.w, zone.h);
-      
-      // Draw watermark emoji
-      ctx.fillStyle = 'rgba(74, 54, 32, 0.12)';
-      ctx.font = '72px Outfit, sans-serif';
-      ctx.fillText(zone.emoji, zone.x + zone.w / 2 - 36, zone.y + zone.h / 2 + 25);
+      if (zone.id !== 'gate') {
+        drawExcavationMapRegion(ctx, excavationMapAssets, 'roomMap:roomShadowOverlay', { x: zone.x + 2, y: zone.y + 2, w: zone.w - 4, h: zone.h - 4 }, { alpha: 0.16 });
+      }
+      ctx.strokeStyle = selectedSurveyZone === zone.id || selectedMapZone === zone.id
+        ? 'rgba(33, 77, 38, 0.95)'
+        : 'rgba(92, 64, 35, 0.38)';
+      ctx.lineWidth = selectedSurveyZone === zone.id || selectedMapZone === zone.id ? 3 : 1.5;
+      ctx.strokeRect(zone.x + 1, zone.y + 1, zone.w - 2, zone.h - 2);
+
+      if ((selectedSurveyZone === zone.id || selectedMapZone === zone.id) && assetsReady) {
+        ctx.save();
+        ctx.strokeStyle = 'rgba(250, 204, 21, 0.82)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([10, 6]);
+        ctx.strokeRect(zone.x + 8, zone.y + 8, zone.w - 16, zone.h - 16);
+        ctx.restore();
+        drawExcavationMapRegion(ctx, excavationMapAssets, 'surveyMarkers:highlightedSelectedZoneBorder', {
+          x: zone.x + zone.w - 88,
+          y: zone.y + 10,
+          w: 70,
+          h: 42,
+        }, { alpha: 0.86, fit: 'contain' });
+      }
 
       // Label background (Soft rounded card)
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-      const labelText = `${zone.emoji} ${zone.name}`;
+      const labelText = zone.name;
       ctx.font = '700 13px Outfit, sans-serif';
       const textWidth = ctx.measureText(labelText).width;
       
       const lx = zone.x + 8;
       const ly = zone.y + 8;
-      const lw = textWidth + 12;
+      const lw = textWidth + 18;
       const lh = 24;
       const lr = 4;
 
-      ctx.beginPath();
-      ctx.moveTo(lx + lr, ly); ctx.lineTo(lx + lw - lr, ly);
-      ctx.quadraticCurveTo(lx + lw, ly, lx + lw, ly + lr);
-      ctx.lineTo(lx + lw, ly + lh - lr);
-      ctx.quadraticCurveTo(lx + lw, ly + lh, lx + lw - lr, ly + lh);
-      ctx.lineTo(lx + lr, ly + lh);
-      ctx.quadraticCurveTo(lx, ly + lh, lx, ly + lr);
-      ctx.lineTo(lx, ly + lr);
-      ctx.quadraticCurveTo(lx, ly, lx + lr, ly);
-      ctx.closePath();
-      ctx.fill();
+      if (!drawExcavationMapRegion(ctx, excavationMapAssets, 'pinnedFieldLabel', { x: lx - 3, y: ly - 5, w: Math.max(lw + 20, 100), h: 38 }, { alpha: 0.86, fit: 'cover' })) {
+        ctx.fillStyle = 'rgba(255, 248, 232, 0.9)';
+        fillRoundRect(lx, ly, lw, lh, lr);
+      }
 
       ctx.fillStyle = '#3a2a18';
       ctx.fillText(labelText, lx + 6, ly + 17);
 
+      const roomMarker = surveyedZones.has(zone.id)
+        ? 'surveyMarkers:surveyedMarker'
+        : completedZoneChallenges.has(zone.id)
+          ? 'surveyMarkers:surveyReadyMarker'
+          : 'surveyMarkers:challengeRequiredMarker';
+      const markerSize = zone.id === 'gate' ? 32 : 27;
+      drawExcavationMapRegion(ctx, excavationMapAssets, roomMarker, {
+        x: zone.x + zone.w - markerSize - 12,
+        y: zone.y + zone.h - markerSize - 10,
+        w: markerSize,
+        h: markerSize,
+      }, { alpha: 0.88, fit: 'contain' });
+
       if (SURVEY_ZONE_BY_ID[zone.id]) {
-        const surveyLabel = selectedSurveyZone === zone.id
-          ? '🎯 Dig zone marked'
-          : surveyedZones.has(zone.id)
-            ? '✓ Surveyed'
-            : '📍 Survey area';
-            
-        // Placard background
-        ctx.fillStyle = selectedSurveyZone === zone.id
-          ? 'rgba(45, 90, 39, 0.9)'
-          : 'rgba(74, 54, 32, 0.85)';
-        
         const sX = zone.x + 10;
         const sY = zone.y + zone.h - 32;
-        const sW = 120;
-        const sH = 24;
-        const sR = 4;
-        
-        ctx.beginPath();
-        ctx.moveTo(sX + sR, sY); ctx.lineTo(sX + sW - sR, sY);
-        ctx.quadraticCurveTo(sX + sW, sY, sX + sW, sY + sR);
-        ctx.lineTo(sX + sW, sY + sH - sR);
-        ctx.quadraticCurveTo(sX + sW, sY + sH, sX + sW - sR, sY + sH);
-        ctx.lineTo(sX + sR, sY + sH);
-        ctx.quadraticCurveTo(sX, sY + sH, sX, sY + sR);
-        ctx.lineTo(sX, sY + sR);
-        ctx.quadraticCurveTo(sX, sY, sX + sR, sY);
-        ctx.closePath();
-        ctx.fill();
-        
-        ctx.fillStyle = '#fff7ed';
+        const surveyLabelText = selectedSurveyZone === zone.id
+          ? 'Dig zone marked'
+          : surveyedZones.has(zone.id)
+            ? 'Surveyed'
+            : completedZoneChallenges.has(zone.id)
+              ? 'Survey ready'
+              : 'Check needed';
+        const tagWidth = selectedSurveyZone === zone.id ? 136 : 124;
+        const tagAsset = surveyedZones.has(zone.id) ? 'surveyTag' : 'pinnedFieldLabel';
+        const drewTag = drawExcavationMapRegion(ctx, excavationMapAssets, tagAsset, { x: sX - 4, y: sY - 8, w: tagWidth, h: 42 }, { alpha: 0.9, fit: 'cover' });
+        if (!drewTag) {
+          ctx.fillStyle = selectedSurveyZone === zone.id
+            ? 'rgba(45, 90, 39, 0.9)'
+            : 'rgba(74, 54, 32, 0.86)';
+          fillRoundRect(sX, sY, tagWidth - 8, 24, 4);
+        }
+        if (selectedSurveyZone === zone.id || surveyedZones.has(zone.id)) {
+          drawExcavationMapRegion(ctx, excavationMapAssets, selectedSurveyZone === zone.id ? 'mapPin' : 'completedSurveyStamp', { x: sX + tagWidth - 36, y: sY - 12, w: 30, h: 30 }, { alpha: 0.88, fit: 'contain' });
+        } else if (completedZoneChallenges.has(zone.id)) {
+          drawExcavationMapRegion(ctx, excavationMapAssets, 'surveyMarkers:neutralUnlockIcon', { x: sX + tagWidth - 32, y: sY - 8, w: 24, h: 24 }, { alpha: 0.82, fit: 'contain' });
+        } else {
+          drawExcavationMapRegion(ctx, excavationMapAssets, 'surveyMarkers:neutralQuestionIcon', { x: sX + tagWidth - 32, y: sY - 8, w: 24, h: 24 }, { alpha: 0.82, fit: 'contain' });
+        }
+
+        ctx.fillStyle = selectedSurveyZone === zone.id ? '#214315' : '#4b341d';
         ctx.font = '800 11px Outfit, sans-serif';
-        ctx.fillText(surveyLabel, sX + 10, sY + 16);
+        ctx.fillText(surveyLabelText, sX + 10, sY + 16);
       }
     });
 
     // 4. Hazards (Simplified to reduce visual noise)
     HAZARDS.forEach((hazard) => {
-      // Draw watermark emoji
-      ctx.fillStyle = 'rgba(120, 53, 15, 0.25)';
-      ctx.font = '48px Outfit, sans-serif';
-      ctx.fillText(hazard.emoji, hazard.x + hazard.w / 2 - 24, hazard.y + hazard.h / 2 + 16);
+      const hazardAsset = {
+        sandstorm: 'sandstormPatch',
+        'falling-rocks': 'fallingRocksPatch',
+        'unstable-floor': 'unstableFloorCrack',
+      }[hazard.id];
+      const drewHazard = drawExcavationMapRegion(ctx, excavationMapAssets, hazardAsset, {
+        x: hazard.x - 6,
+        y: hazard.y - 8,
+        w: hazard.w + 12,
+        h: hazard.h + 16,
+      }, { alpha: 0.92, fit: 'contain' });
+      if (hazard.id === 'sandstorm') {
+        drawExcavationMapRegion(ctx, excavationMapAssets, 'dustCloudOverlay', {
+          x: hazard.x + 16,
+          y: hazard.y + 4,
+          w: hazard.w + 34,
+          h: hazard.h + 18,
+        }, { alpha: 0.32, fit: 'contain' });
+      }
+      if (!drewHazard) {
+        ctx.fillStyle = hazard.color;
+        fillRoundRect(hazard.x, hazard.y, hazard.w, hazard.h, 6);
+      }
+      drawExcavationMapRegion(ctx, excavationMapAssets, 'cautionIcon', {
+        x: hazard.x + hazard.w - 28,
+        y: hazard.y + hazard.h - 28,
+        w: 24,
+        h: 24,
+      }, { alpha: 0.78, fit: 'contain' });
 
       // Label background (Soft card)
       ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-      const labelText = `${hazard.emoji} ${hazard.name}`;
+      const labelText = hazard.name;
       ctx.font = '700 12px Outfit, sans-serif';
       const textWidth = ctx.measureText(labelText).width;
       
@@ -1517,9 +1740,13 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     ctx.shadowOffsetY = 3;
     
     WALLS.forEach((wall) => {
-      // Base stone color
-      ctx.fillStyle = '#968471'; 
-      ctx.fillRect(wall.x, wall.y, wall.w, wall.h);
+      const wallAsset = wall.w > wall.h * 1.8 ? 'stoneWallSegment' : 'buriedFoundationStones';
+      const drewWall = drawExcavationMapRegion(ctx, excavationMapAssets, wallAsset, { x: wall.x - 4, y: wall.y - 8, w: wall.w + 8, h: wall.h + 16 }, { alpha: 0.9 });
+      if (!drewWall) {
+        // Base stone color
+        ctx.fillStyle = '#968471';
+        ctx.fillRect(wall.x, wall.y, wall.w, wall.h);
+      }
       
       // Add stone highlights/texture
       ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
@@ -1549,16 +1776,25 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     const gateOpen = missionEvidenceCount >= missionRequiredCount;
     ctx.shadowColor = gateOpen ? 'rgba(74, 222, 128, 0.4)' : 'rgba(0,0,0,0.3)';
     ctx.shadowBlur = 10;
-    ctx.fillStyle = gateOpen ? 'rgba(74, 222, 128, 0.6)' : 'rgba(74, 54, 32, 0.8)';
-    ctx.fillRect(724, 258, 54, 108);
+    const gateAsset = gateOpen ? 'gateway:unlockedExitGate' : 'gateway:sealedExitGate';
+    const drewGate = drawExcavationMapRegion(ctx, excavationMapAssets, gateAsset, { x: 710, y: 238, w: 78, h: 132 }, { alpha: 0.96, fit: 'contain' });
+    if (!drewGate) {
+      ctx.fillStyle = gateOpen ? 'rgba(74, 222, 128, 0.6)' : 'rgba(74, 54, 32, 0.8)';
+      ctx.fillRect(724, 258, 54, 108);
+    }
+    if (!gateOpen) {
+      drawExcavationMapRegion(ctx, excavationMapAssets, 'gateway:lockedSealIcon', { x: 734, y: 298, w: 30, h: 28 }, { alpha: 0.92, fit: 'contain' });
+    } else {
+      drawExcavationMapRegion(ctx, excavationMapAssets, 'gateway:unlockedSealIcon', { x: 735, y: 296, w: 30, h: 28 }, { alpha: 0.9, fit: 'contain' });
+    }
     ctx.strokeStyle = gateOpen ? '#166534' : '#3a2a18';
-    ctx.lineWidth = 4;
+    ctx.lineWidth = gateOpen ? 2 : 3;
     ctx.strokeRect(724, 258, 54, 108);
     ctx.shadowColor = 'transparent';
 
     ctx.fillStyle = gateOpen ? '#064e3b' : '#fdf6e3';
     ctx.font = '800 13px Outfit, sans-serif';
-    ctx.fillText(gateOpen ? '🔓 EXIT' : '🔒 LOCKED', gateOpen ? 728 : 726, 316);
+    ctx.fillText(gateOpen ? 'OPEN' : 'LOCKED', gateOpen ? 736 : 728, 386);
     ctx.lineWidth = 1;
 
     // 7. Tokens (Floating/glowing)
@@ -1603,15 +1839,23 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       ctx.setLineDash([]);
 
       ctx.globalAlpha = 0.68 + shimmer * 0.24;
-      ctx.fillStyle = '#5b3b8c';
-      ctx.beginPath();
-      ctx.ellipse(guardian.x + guardian.w / 2, guardian.y + guardian.h / 2, 18, 21, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#efe3ff';
-      ctx.beginPath();
-      ctx.arc(guardian.x + 10, guardian.y + 11, 2.8, 0, Math.PI * 2);
-      ctx.arc(guardian.x + 20, guardian.y + 11, 2.8, 0, Math.PI * 2);
-      ctx.fill();
+      const drewGuardian = drawExcavationMapRegion(ctx, excavationMapAssets, 'guardianShadowMarker', {
+        x: guardian.x - 14,
+        y: guardian.y - 18,
+        w: guardian.w + 32,
+        h: guardian.h + 42,
+      }, { alpha: 0.82 + shimmer * 0.16, fit: 'contain' });
+      if (!drewGuardian) {
+        ctx.fillStyle = '#5b3b8c';
+        ctx.beginPath();
+        ctx.ellipse(guardian.x + guardian.w / 2, guardian.y + guardian.h / 2, 18, 21, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#efe3ff';
+        ctx.beginPath();
+        ctx.arc(guardian.x + 10, guardian.y + 11, 2.8, 0, Math.PI * 2);
+        ctx.arc(guardian.x + 20, guardian.y + 11, 2.8, 0, Math.PI * 2);
+        ctx.fill();
+      }
       ctx.restore();
 
       // Guardian label (Small rounded placard)
@@ -1619,9 +1863,9 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       ctx.font = '700 11px Outfit, sans-serif';
       const labelWidth = ctx.measureText(guardian.name).width;
       
-      const gx = guardian.x - 22;
-      const gy = guardian.y - 24;
       const gw = labelWidth + 14;
+      const gx = Math.min(Math.max(guardian.x - 22, 8), MAP_WIDTH - gw - 8);
+      const gy = guardian.y - 24;
       const gh = 18;
       const gr = 3;
 
@@ -1643,27 +1887,34 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
 
     // 9. Player Avatar
     const player = playerRef.current;
-    ctx.shadowColor = 'rgba(0,0,0,0.4)';
-    ctx.shadowBlur = 8;
-    ctx.shadowOffsetY = 3;
-    
-    // Draw a nice badge background for the player
-    ctx.fillStyle = '#2563eb';
-    ctx.beginPath();
-    ctx.arc(player.x + PLAYER_SIZE / 2, player.y + PLAYER_SIZE / 2, PLAYER_SIZE / 2 + 2, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 3;
-    ctx.stroke();
-    
-    ctx.shadowColor = 'transparent';
-    ctx.shadowOffsetY = 0;
-    ctx.font = '16px Outfit, sans-serif';
-    ctx.fillText('🕵️', player.x + 3, player.y + 17);
-  }, [missionEvidenceCount, missionRequiredCount, openedGridSquares, selectedSurveyZone, surveyedZones]);
+    const playerCentreX = player.x + PLAYER_SIZE / 2;
+    const playerCentreY = player.y + PLAYER_SIZE / 2;
+    if (assetsReady) {
+      drawExcavationMapRegion(ctx, excavationMapAssets, 'playerShadow', { x: playerCentreX - 20, y: playerCentreY + 7, w: 40, h: 18 }, { alpha: 0.34, fit: 'contain' });
+      drawExcavationMapRegion(ctx, excavationMapAssets, 'surveyMarkers:playerGlow', { x: playerCentreX - 23, y: playerCentreY - 24, w: 46, h: 46 }, { alpha: 0.5, fit: 'contain' });
+      drawExcavationMapRegion(ctx, excavationMapAssets, 'playerLocationRing', { x: playerCentreX - 20, y: playerCentreY - 16, w: 40, h: 35 }, { alpha: 0.98, fit: 'contain' });
+      drawExcavationMapRegion(ctx, excavationMapAssets, 'heroPortraitMarker', { x: playerCentreX - 15, y: playerCentreY - 21, w: 30, h: 33 }, { alpha: 0.98, fit: 'contain' });
+    } else {
+      ctx.shadowColor = 'rgba(0,0,0,0.4)';
+      ctx.shadowBlur = 8;
+      ctx.shadowOffsetY = 3;
+      ctx.fillStyle = '#2563eb';
+      ctx.beginPath();
+      ctx.arc(playerCentreX, playerCentreY, PLAYER_SIZE / 2 + 2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      ctx.shadowColor = 'transparent';
+      ctx.shadowOffsetY = 0;
+      ctx.font = '700 9px Outfit, sans-serif';
+      ctx.fillStyle = '#fff';
+      ctx.fillText('YOU', player.x + 2, player.y + 15);
+    }
+  }, [completedZoneChallenges, excavationMapAssets, missionEvidenceCount, missionRequiredCount, openedGridSquares, selectedMapZone, selectedSurveyZone, surveyedZones]);
 
   const update = useCallback((dt = 1 / 60) => {
-    if (briefingOpen || lockedRef.current || inspectionToken || surveyReportZone || gridSetupOpen || expeditionFailure) {
+    if (briefingOpen || lockedRef.current || inspectionToken || surveyReportZone || gridSetupOpen || activeZoneChallenge || expeditionFailure) {
       draw();
       return;
     }
@@ -1714,8 +1965,11 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     if (surveyZone !== nearbySurveyZoneRef.current) {
       nearbySurveyZoneRef.current = surveyZone;
       setNearbySurveyZone(surveyZone);
+      if (surveyZone) setSelectedMapZone(surveyZone.id);
       if (surveyZone && !nearbyTokenRef.current) {
-        setNotice('Press E to survey this area before digging.');
+        setNotice(completedZoneChallenges.has(surveyZone.id)
+          ? 'Press E to survey this area before digging.'
+          : 'Press E to complete this room check before surveying.');
       }
     }
 
@@ -1796,7 +2050,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     }
 
     draw();
-  }, [activeMission.gateRequirement, audioControls, briefingOpen, draw, expeditionFailure, gridSetupOpen, inspectionToken, missionEvidenceCount, missionRequiredCount, openedGridSquares, selectedSurveyZone, surveyReportZone, syncResources]);
+  }, [activeMission.gateRequirement, activeZoneChallenge, audioControls, briefingOpen, completedZoneChallenges, draw, expeditionFailure, gridSetupOpen, inspectionToken, missionEvidenceCount, missionRequiredCount, openedGridSquares, selectedSurveyZone, surveyReportZone, syncResources]);
 
   useEffect(() => {
     if (expeditionStage === 'excavation') return undefined;
@@ -1966,6 +2220,15 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         desertBackgroundAssetsLoaded: Boolean(journeySnapshot.desertBackgroundAssetsLoaded),
         desertBackgroundAssetsReady: Boolean(journeySnapshot.desertBackgroundAssetsReady),
         desertBackgroundFallbackActive: Boolean(journeySnapshot.desertBackgroundFallbackActive),
+        catacombsBackgroundAssetsLoaded: Boolean(journeySnapshot.catacombsBackgroundAssetsLoaded),
+        catacombsBackgroundAssetsReady: Boolean(journeySnapshot.catacombsBackgroundAssetsReady),
+        catacombsBackgroundFallbackActive: Boolean(journeySnapshot.catacombsBackgroundFallbackActive),
+        escapeBackgroundAssetsLoaded: Boolean(journeySnapshot.escapeBackgroundAssetsLoaded),
+        escapeBackgroundAssetsReady: Boolean(journeySnapshot.escapeBackgroundAssetsReady),
+        escapeBackgroundFallbackActive: Boolean(journeySnapshot.escapeBackgroundFallbackActive),
+        digSiteBackgroundAssetsLoaded: Boolean(journeySnapshot.digSiteBackgroundAssetsLoaded),
+        digSiteBackgroundAssetsReady: Boolean(journeySnapshot.digSiteBackgroundAssetsReady),
+        digSiteBackgroundFallbackActive: Boolean(journeySnapshot.digSiteBackgroundFallbackActive),
         enemySpritesLoaded: Boolean(journeySnapshot.enemySpritesLoaded),
         enemySpriteFallbackActive: Boolean(journeySnapshot.enemySpriteFallbackActive),
         enemySpriteAtlasPath: journeySnapshot.enemySpriteAtlasPath || null,
@@ -2045,7 +2308,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     const handleKeyDown = (event) => {
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(event.code)) {
         event.preventDefault();
-        if (briefingOpen || lockedRef.current || inspectionToken || surveyReportZone || gridSetupOpen || expeditionFailure) return;
+        if (briefingOpen || lockedRef.current || inspectionToken || surveyReportZone || gridSetupOpen || activeZoneChallenge || expeditionFailure) return;
         keysRef.current[event.code] = true;
       }
       if (event.code === 'KeyE') {
@@ -2088,6 +2351,26 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       mode: 'Lost Site Expedition',
       stage: 'excavation',
       coordinateSystem: 'origin top-left, x right, y down',
+      excavationMapAssetsLoaded: Boolean(excavationMapAssets.loaded),
+      excavationMapAssetsReady: Boolean(excavationMapAssets.ready),
+      excavationMapFallbackActive: !excavationMapAssets.loaded || excavationMapAssets.failed || !excavationMapAssets.ready,
+      excavationMapExpanded: true,
+      excavationVisualMode: excavationMapAssets.loaded && !excavationMapAssets.failed ? EXCAVATION_VISUAL_MODE : 'canvas-fallback',
+      excavationMapVisualTuningVersion: EXCAVATION_MAP_VISUAL_TUNING_VERSION,
+      excavationMapAtlasPath: excavationMapAssets.atlasPath,
+      missingExcavationMapAssets: getMissingExcavationMapAssets(excavationMapAssets),
+      selectedMapZone: selectedMapZoneData?.name || null,
+      enteredMapZone: enteredMapZone ? (EXPEDITION_ROOM_ZONE_BY_ID[enteredMapZone]?.name || getSurveyZoneName(enteredMapZone)) : null,
+      activeZoneChallenge: activeChallengeData ? {
+        zoneId: activeChallengeData.zoneId,
+        title: activeChallengeData.title,
+      } : null,
+      completedZoneChallenges: [...completedZoneChallenges].map(zoneId => EXPEDITION_ROOM_ZONE_BY_ID[zoneId]?.name || getSurveyZoneName(zoneId)),
+      zoneChallengeFeedback,
+      canSurveySelectedZone,
+      activeSurveyZone: getSurveyZoneName(selectedSurveyZone),
+      revealedZone: getSurveyZoneName(selectedSurveyZone),
+      exitGateVisualState: exitUnlocked ? 'unlockedExitGate' : 'sealedExitGate',
       fieldKit,
       fieldKitEffects,
       fieldNotes,
@@ -2256,7 +2539,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       delete window.advanceTime;
       delete window.render_game_to_text;
     };
-  }, [activeMission, briefingOpen, claimCorrect, draw, evidenceSupportsClaim, excavationMethodHistory, excavationMethodOpen, excavationMethodRequired, expeditionFailure, expeditionStage, exitUnlocked, fieldKit, fieldKitBonus, fieldKitEffects, fieldKitImpact, fieldNotes, finalRank, finalScore, getHiddenEvidence, getVisibleEvidence, gridSetupOpen, gridSquares, inspectionFeedback, inspectionToken, inventoryFullDecisionOpen, mappedFindsSummary, mappingAccuracySummary.accurate, mappingAccuracySummary.needsReview, mappingOpen, mappingRequired, missionComplete, missionEvidenceCount, missionRequiredCount, nearbySurveyZone, openGridSetup, openInspection, openSurveyReport, openedGridSquares, pendingEvidence, pendingMappedEvidence, resultOpen, satchelContents, selectedExcavationMethod, selectedGridSquare, selectedSurveyZone, surveyComplete, surveyedZones, surveyReportZone, update]);
+  }, [activeChallengeData, activeMission, activeZoneChallenge, briefingOpen, canSurveySelectedZone, claimCorrect, completedZoneChallenges, draw, enteredMapZone, evidenceSupportsClaim, excavationMapAssets, excavationMethodHistory, excavationMethodOpen, excavationMethodRequired, expeditionFailure, expeditionStage, exitUnlocked, fieldKit, fieldKitBonus, fieldKitEffects, fieldKitImpact, fieldNotes, finalRank, finalScore, getHiddenEvidence, getVisibleEvidence, gridSetupOpen, gridSquares, inspectionFeedback, inspectionToken, inventoryFullDecisionOpen, mappedFindsSummary, mappingAccuracySummary.accurate, mappingAccuracySummary.needsReview, mappingOpen, mappingRequired, missionComplete, missionEvidenceCount, missionRequiredCount, nearbySurveyZone, openGridSetup, openInspection, openSurveyReport, openedGridSquares, pendingEvidence, pendingMappedEvidence, resultOpen, satchelContents, selectedExcavationMethod, selectedGridSquare, selectedMapZoneData, selectedSurveyZone, surveyComplete, surveyedZones, surveyReportZone, update, zoneChallengeFeedback]);
 
   const resetExpedition = () => {
     const nextMission = chooseEvidenceHuntMission(activeMission.id);
@@ -2289,6 +2572,11 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     setSurveyedZones(new Set());
     setNearbySurveyZone(null);
     setSurveyReportZone(null);
+    setSelectedMapZone(null);
+    setEnteredMapZone(null);
+    setCompletedZoneChallenges(new Set());
+    setActiveZoneChallenge(null);
+    setZoneChallengeFeedback(null);
     setGridSetupOpen(false);
     setSelectedGridSquare(null);
     setOpenedGridSquares(new Set());
@@ -2554,7 +2842,37 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
               height={MAP_HEIGHT}
               aria-label="Top-down expedition map"
               className="expedition-canvas"
+              onClick={selectMapZoneAtPoint}
             />
+            {selectedMapZoneData && !inspectionToken && !surveyReportZone && !gridSetupOpen && !activeZoneChallenge && (
+              <div className="expedition-zone-preview">
+                <div>
+                  <span className="expedition-zone-preview-kicker">Selected room</span>
+                  <strong>{selectedMapZoneData.name}</strong>
+                  <p>{selectedRoomData?.description || selectedMapZoneData.name}</p>
+                </div>
+                <dl>
+                  <div>
+                    <dt>Entry check</dt>
+                    <dd>{completedZoneChallenges.has(selectedMapZone) ? 'Complete' : 'Required'}</dd>
+                  </div>
+                  <div>
+                    <dt>Survey</dt>
+                    <dd>{surveyedZones.has(selectedMapZone) ? 'Surveyed' : canSurveySelectedZone ? 'Ready' : 'Locked'}</dd>
+                  </div>
+                </dl>
+                <button
+                  type="button"
+                  className="btn primary-btn"
+                  onClick={() => {
+                    if (canSurveySelectedZone) openSurveyReport(SURVEY_ZONE_BY_ID[selectedMapZone]);
+                    else enterSelectedMapZone(selectedMapZone);
+                  }}
+                >
+                  {canSurveySelectedZone ? 'Survey Area' : completedZoneChallenges.has(selectedMapZone) ? 'Enter Zone' : 'Start Room Check'}
+                </button>
+              </div>
+            )}
             {nearbySurveyZone && !nearbyToken && !inspectionToken && !surveyReportZone && (
               <div className="expedition-inspect-prompt expedition-survey-prompt">
                 <div>
@@ -2562,7 +2880,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
                   <span>{nearbySurveyZone.prompt}</span>
                 </div>
                 <button type="button" className="btn primary-btn" onClick={() => openSurveyReport(nearbySurveyZone)}>
-                  Survey Area
+                  {completedZoneChallenges.has(nearbySurveyZone.id) ? 'Survey Area' : 'Room Check'}
                 </button>
                 <kbd>E</kbd>
               </div>
@@ -2809,6 +3127,66 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
               <button type="button" className="btn" onClick={keepSurveying}>
                 Keep Surveying
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeChallengeData && (
+        <div className="bureau-briefing-overlay expedition-zone-challenge-overlay">
+          <div className="bureau-briefing-modal expedition-zone-challenge-modal">
+            <div className="training-kicker">Zone Entry Check</div>
+            <h2>{activeChallengeData.title}</h2>
+            <p>{activeChallengeData.question}</p>
+
+            <div className="expedition-zone-challenge-layout">
+              <div className="expedition-zone-challenge-icon" aria-hidden="true" />
+              <div className="expedition-zone-answer-list">
+                {activeChallengeData.answers.map(answer => {
+                  const selected = zoneChallengeFeedback?.answerId === answer.id;
+                  const correct = selected && zoneChallengeFeedback.correct;
+                  const incorrect = selected && !zoneChallengeFeedback.correct;
+                  return (
+                    <button
+                      key={answer.id}
+                      type="button"
+                      className={`expedition-zone-answer ${selected ? 'is-selected' : ''} ${correct ? 'is-correct' : ''} ${incorrect ? 'is-incorrect' : ''}`}
+                      onClick={() => answerZoneChallenge(answer.id)}
+                      disabled={zoneChallengeFeedback?.correct}
+                    >
+                      {answer.text}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {zoneChallengeFeedback && (
+              <div className={`expedition-zone-feedback ${zoneChallengeFeedback.correct ? 'is-correct' : 'is-incorrect'}`}>
+                <strong>{zoneChallengeFeedback.correct ? 'Survey unlocked' : 'Try again'}</strong>
+                <span>{zoneChallengeFeedback.message}</span>
+              </div>
+            )}
+
+            <div className="bureau-briefing-actions">
+              {zoneChallengeFeedback?.correct ? (
+                <button
+                  type="button"
+                  className="btn primary-btn"
+                  onClick={() => {
+                    closeZoneChallenge();
+                    if (SURVEY_ZONE_BY_ID[activeChallengeData.zoneId]) {
+                      openSurveyReport(SURVEY_ZONE_BY_ID[activeChallengeData.zoneId], { skipChallenge: true });
+                    }
+                  }}
+                >
+                  Open Survey Report
+                </button>
+              ) : (
+                <button type="button" className="btn" onClick={closeZoneChallenge}>
+                  Return to Map
+                </button>
+              )}
             </div>
           </div>
         </div>

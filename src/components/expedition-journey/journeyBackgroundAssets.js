@@ -1,5 +1,11 @@
 export const DESERT_BACKGROUND_ATLAS_BASE_PATH = 'assets/expedition/backgrounds/desert-entry/';
 export const DESERT_BACKGROUND_ATLAS_JSON = `${DESERT_BACKGROUND_ATLAS_BASE_PATH}desert-entry-parallax-pack.json`;
+export const CATACOMBS_BACKGROUND_ATLAS_BASE_PATH = 'assets/expedition/backgrounds/catacombs/';
+export const CATACOMBS_BACKGROUND_ATLAS_JSON = `${CATACOMBS_BACKGROUND_ATLAS_BASE_PATH}catacombs-parallax-pack.json`;
+export const ESCAPE_BACKGROUND_ATLAS_BASE_PATH = 'assets/expedition/backgrounds/escape-sequence/';
+export const ESCAPE_BACKGROUND_ATLAS_JSON = `${ESCAPE_BACKGROUND_ATLAS_BASE_PATH}escape-sequence-parallax-pack.json`;
+export const DIG_SITE_BACKGROUND_ATLAS_BASE_PATH = 'assets/expedition/backgrounds/dig-site-entrance/';
+export const DIG_SITE_BACKGROUND_ATLAS_JSON = `${DIG_SITE_BACKGROUND_ATLAS_BASE_PATH}dig-site-entrance-parallax-pack.json`;
 
 export const EXPECTED_DESERT_BACKGROUND_KEYS = [
   'sky',
@@ -10,60 +16,153 @@ export const EXPECTED_DESERT_BACKGROUND_KEYS = [
 ];
 
 export const DESERT_BACKGROUND_DEPTH_MODE = 'desert-entry-parallax-v1';
+export const JOURNEY_BACKGROUND_DEPTH_MODE = 'journey-section-parallax-v2';
+
+export const SECTION_BACKGROUND_PACKS = {
+  'desert-entry': {
+    basePath: DESERT_BACKGROUND_ATLAS_BASE_PATH,
+    atlasPath: DESERT_BACKGROUND_ATLAS_JSON,
+    expectedKeys: EXPECTED_DESERT_BACKGROUND_KEYS,
+  },
+  catacombs: {
+    basePath: CATACOMBS_BACKGROUND_ATLAS_BASE_PATH,
+    atlasPath: CATACOMBS_BACKGROUND_ATLAS_JSON,
+    expectedKeys: [
+      'undergroundAtmosphere',
+      'farTunnelWalls',
+      'distantCatacombs',
+      'midgroundGlyphWalls',
+      'foregroundMist',
+    ],
+  },
+  'escape-sequence': {
+    basePath: ESCAPE_BACKGROUND_ATLAS_BASE_PATH,
+    atlasPath: ESCAPE_BACKGROUND_ATLAS_JSON,
+    expectedKeys: [
+      'dangerAtmosphere',
+      'farCollapsingWalls',
+      'distantRuinsDebris',
+      'midgroundEscapeRuins',
+      'foregroundDust',
+    ],
+  },
+  'dig-site-entrance': {
+    basePath: DIG_SITE_BACKGROUND_ATLAS_BASE_PATH,
+    atlasPath: DIG_SITE_BACKGROUND_ATLAS_JSON,
+    expectedKeys: [
+      'sunsetAtmosphere',
+      'farExcavationLandscape',
+      'distantBaseCamp',
+      'midgroundBaseCamp',
+      'foregroundCampAtmosphere',
+    ],
+  },
+};
 
 export const createDesertBackgroundAssetState = () => ({
-  image: null,
-  atlas: null,
+  packs: {},
   loaded: false,
   ready: false,
   failed: false,
   error: null,
   atlasPath: DESERT_BACKGROUND_ATLAS_JSON,
+  atlasPaths: Object.fromEntries(
+    Object.entries(SECTION_BACKGROUND_PACKS).map(([sectionId, pack]) => [sectionId, pack.atlasPath]),
+  ),
 });
 
 export const getMissingDesertBackgroundAssets = (assets) => {
-  const regions = assets?.atlas?.regions || {};
-  return EXPECTED_DESERT_BACKGROUND_KEYS.filter(key => !regions[key]);
+  return Object.entries(SECTION_BACKGROUND_PACKS).flatMap(([sectionId, packConfig]) => {
+    const pack = assets?.packs?.[sectionId];
+    const regions = pack?.atlas?.regions || {};
+    return packConfig.expectedKeys
+      .filter(key => !regions[key])
+      .map(key => `${sectionId}:${key}`);
+  });
+};
+
+export const getSectionBackgroundAssets = (assets, sectionId) => {
+  const pack = assets?.packs?.[sectionId];
+  if (!pack?.loaded || pack.failed) return null;
+  return pack;
+};
+
+export const getMissingSectionBackgroundAssets = (assets, sectionId) => {
+  const packConfig = SECTION_BACKGROUND_PACKS[sectionId];
+  if (!packConfig) return [];
+  const pack = assets?.packs?.[sectionId];
+  const regions = pack?.atlas?.regions || {};
+  return packConfig.expectedKeys.filter(key => !regions[key]);
 };
 
 export const loadDesertBackgroundAssetPack = ({ baseUrl = '/', onUpdate }) => {
   let cancelled = false;
-  const atlasPath = `${baseUrl}${DESERT_BACKGROUND_ATLAS_JSON}`;
 
-  const fail = (error) => {
-    if (cancelled) return;
-    onUpdate?.({
-      ...createDesertBackgroundAssetState(),
-      failed: true,
-      error: error?.message || 'Desert background assets failed to load.',
-      atlasPath: DESERT_BACKGROUND_ATLAS_JSON,
-    });
+  const loadSinglePack = ([sectionId, packConfig]) => {
+    const atlasPath = `${baseUrl}${packConfig.atlasPath}`;
+    return fetch(atlasPath)
+      .then((response) => {
+        if (!response.ok) throw new Error(`${sectionId} background atlas request failed: ${response.status}`);
+        return response.json();
+      })
+      .then((atlas) => new Promise((resolve) => {
+        const image = new Image();
+        image.onload = () => {
+          resolve([
+            sectionId,
+            {
+              image,
+              atlas,
+              loaded: true,
+              ready: packConfig.expectedKeys.every(key => atlas?.regions?.[key]),
+              failed: false,
+              error: null,
+              atlasPath: packConfig.atlasPath,
+            },
+          ]);
+        };
+        image.onerror = () => {
+          resolve([
+            sectionId,
+            {
+              image: null,
+              atlas,
+              loaded: false,
+              ready: false,
+              failed: true,
+              error: `${sectionId} background image failed to load.`,
+              atlasPath: packConfig.atlasPath,
+            },
+          ]);
+        };
+        image.src = `${baseUrl}${packConfig.basePath}${atlas.image}`;
+      }))
+      .catch((error) => [
+        sectionId,
+        {
+          image: null,
+          atlas: null,
+          loaded: false,
+          ready: false,
+          failed: true,
+          error: error?.message || `${sectionId} background assets failed to load.`,
+          atlasPath: packConfig.atlasPath,
+        },
+      ]);
   };
 
-  fetch(atlasPath)
-    .then((response) => {
-      if (!response.ok) throw new Error(`Desert background atlas request failed: ${response.status}`);
-      return response.json();
-    })
-    .then((atlas) => {
-      if (cancelled) return;
-      const image = new Image();
-      image.onload = () => {
-        if (cancelled) return;
-        onUpdate?.({
-          image,
-          atlas,
-          loaded: true,
-          ready: getMissingDesertBackgroundAssets({ atlas }).length === 0,
-          failed: false,
-          error: null,
-          atlasPath: DESERT_BACKGROUND_ATLAS_JSON,
-        });
-      };
-      image.onerror = () => fail(new Error('Desert background image failed to load.'));
-      image.src = `${baseUrl}${DESERT_BACKGROUND_ATLAS_BASE_PATH}${atlas.image}`;
-    })
-    .catch(fail);
+  Promise.all(Object.entries(SECTION_BACKGROUND_PACKS).map(loadSinglePack)).then((packEntries) => {
+    if (cancelled) return;
+    const packs = Object.fromEntries(packEntries);
+    onUpdate?.({
+      ...createDesertBackgroundAssetState(),
+      packs,
+      loaded: Object.values(packs).some(pack => pack.loaded),
+      ready: Object.values(packs).every(pack => pack.ready && !pack.failed),
+      failed: Object.values(packs).some(pack => pack.failed),
+      error: Object.values(packs).filter(pack => pack.error).map(pack => pack.error).join(' | ') || null,
+    });
+  });
 
   return () => {
     cancelled = true;

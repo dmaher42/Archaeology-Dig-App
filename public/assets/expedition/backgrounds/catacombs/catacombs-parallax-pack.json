@@ -1,0 +1,12 @@
+{
+  "image": "catacombs-parallax-pack.png",
+  "source": "AI-generated Journey parallax background sheet, integrated for Catacombs section rendering.",
+  "coordinateNote": "Coordinates are approximate first-pass crops from the supplied 1536x1024 layered sheet. Left-side generator labels are intentionally excluded from the draw regions.",
+  "regions": {
+    "undergroundAtmosphere": { "x": 188, "y": 22, "w": 1160, "h": 152 },
+    "farTunnelWalls": { "x": 188, "y": 202, "w": 1160, "h": 126 },
+    "distantCatacombs": { "x": 112, "y": 350, "w": 1320, "h": 138 },
+    "midgroundGlyphWalls": { "x": 118, "y": 506, "w": 1288, "h": 128 },
+    "foregroundMist": { "x": 90, "y": 824, "w": 1334, "h": 132 }
+  }
+}

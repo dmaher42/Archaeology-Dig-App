@@ -1,0 +1,28 @@
+{
+  "image": "egypt-gateway-pack.png",
+  "imageWidth": 1536,
+  "imageHeight": 1024,
+  "coordinateNotes": "Approximate first-pass atlas coordinates from the generated gateway sheet. Some source labels are visually noisy; game text remains HTML/canvas rendered.",
+  "regions": {
+    "openRoomDoorway": { "x": 45, "y": 66, "w": 203, "h": 135 },
+    "sealedRoomDoorway": { "x": 285, "y": 66, "w": 197, "h": 135 },
+    "brokenArchPassage": { "x": 530, "y": 66, "w": 197, "h": 135 },
+    "ropeMarkedEntrance": { "x": 777, "y": 74, "w": 215, "h": 102 },
+    "tentEntranceMarker": { "x": 1060, "y": 70, "w": 185, "h": 130 },
+    "narrowPassageConnector": { "x": 1290, "y": 66, "w": 180, "h": 135 },
+    "sealedExitGate": { "x": 50, "y": 515, "w": 315, "h": 160 },
+    "unlockedExitGate": { "x": 947, "y": 333, "w": 275, "h": 160 },
+    "glowingAncientSeal": { "x": 1260, "y": 330, "w": 170, "h": 160 },
+    "brokenUnlockedSeal": { "x": 1268, "y": 548, "w": 105, "h": 110 },
+    "lockedSealIcon": { "x": 1300, "y": 548, "w": 88, "h": 105 },
+    "unlockedSealIcon": { "x": 1398, "y": 548, "w": 80, "h": 105 },
+    "sandstoneWallSegment": { "x": 55, "y": 790, "w": 310, "h": 95 },
+    "crackedStoneWallSegment": { "x": 445, "y": 790, "w": 300, "h": 95 },
+    "buriedStoneFoundation": { "x": 785, "y": 535, "w": 120, "h": 118 },
+    "carvedThreshold": { "x": 980, "y": 585, "w": 220, "h": 70 },
+    "brokenPillarBase": { "x": 1268, "y": 548, "w": 105, "h": 110 },
+    "fallenLintelStone": { "x": 788, "y": 812, "w": 215, "h": 74 },
+    "rubblePile": { "x": 1065, "y": 812, "w": 160, "h": 74 },
+    "gateBaseDustShadow": { "x": 1260, "y": 812, "w": 180, "h": 74 }
+  }
+}
