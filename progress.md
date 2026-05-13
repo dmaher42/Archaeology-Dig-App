@@ -885,3 +885,10 @@ Remaining notes:
 - Updated the existing Ruined Temple atlas JSON to reference the full-scene image while preserving all expected region keys for fallback-safe loading.
 - Browser verification on `http://127.0.0.1:5173/Archaeology-Dig-App/` confirmed Ruined Temple renders from its pack, no asset fallback is active, no missing atlas regions were reported, and no console errors appeared.
 - Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset and large-chunk warnings; `git diff --check` passed with only LF-to-CRLF warnings.
+
+2026-05-13 update:
+- Added the next generated full-scene Journey background for Catacombs.
+- Copied the generated image into `public/assets/expedition/backgrounds/catacombs/catacombs-full-scene.png` and kept the original generated image in the Codex generated-images folder.
+- Updated the existing Catacombs atlas JSON to reference the full-scene image while preserving all expected region keys for fallback-safe loading.
+- Browser verification on `http://127.0.0.1:5173/Archaeology-Dig-App/` confirmed Catacombs renders from its pack, no asset fallback is active, no missing atlas regions were reported, and no console errors appeared.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset and large-chunk warnings; `git diff --check` passed with only LF-to-CRLF warnings.

@@ -389,26 +389,7 @@ export default function App() {
   return (
     <div className={`app-wrapper app-wrapper--${phase} app-wrapper--no-global-header ${showDevTools ? 'app-wrapper--dev-tools' : ''} ${isMenuLanding ? 'app-wrapper--menu-header' : ''} ${isSiteSelectionActive ? 'app-wrapper--site-selection' : ''}`}>
       <main className="main-content">
-        {isFullInvestigationPhase && (
-          <div className="mode-phase-strip hide-on-print" aria-label="Full Investigation phase progress">
-            <span className="mode-phase-title">Full Investigation</span>
-            <ol className="phase-navigation phase-navigation--readonly" aria-label="Current investigation phase">
-              {['Dig', 'Sort', 'Lab', 'Museum', 'Report'].map((p, i) => {
-                const phaseKey = p.toLowerCase();
-                const isActive = phase === phaseKey;
-                return (
-                  <li
-                    key={p}
-                    className={`phase-nav-item ${isActive ? 'active' : ''}`}
-                    aria-current={isActive ? 'step' : undefined}
-                  >
-                    <span className="phase-num">{i + 1}</span> {p}
-                  </li>
-                );
-              })}
-            </ol>
-          </div>
-        )}
+
 
         {phase === 'menu' && (
           <ActivityMenu

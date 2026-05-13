@@ -2531,7 +2531,7 @@ main {
   grid-template-columns: 340px 1fr;
   gap: 1.5rem;
   margin-top: 0.5rem;
-  height: calc(100vh - 160px);
+  height: calc(100vh - 110px);
   min-height: 600px;
 }
 
@@ -2872,7 +2872,7 @@ main {
 
 /* Museum Phase Layout */
 .museum-phase {
-  height: calc(100vh - 80px);
+  height: calc(100vh - 30px);
   gap: 0.65rem !important;
 }
 
@@ -4385,7 +4385,7 @@ main {
 .lab-phase {
   max-width: none;
   width: 100%;
-  height: calc(100vh - 100px);
+  height: calc(100vh - 50px);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -8671,7 +8671,7 @@ textarea.lab-note-textarea {
   overflow-y: auto;
   padding: 2rem 1rem;
   background: var(--arch-bg);
-  height: calc(100vh - 80px);
+  height: calc(100vh - 30px);
 }
 
 .report-card {

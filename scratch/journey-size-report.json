@@ -1,0 +1,34 @@
+{
+  "metrics": {
+    "viewport": {
+      "width": 1232,
+      "height": 798
+    },
+    "canvas": {
+      "x": 301,
+      "y": -45,
+      "width": 923,
+      "height": 431
+    },
+    "wrapper": {
+      "x": 296,
+      "y": -50,
+      "width": 933,
+      "height": 441
+    },
+    "sidebar": {
+      "x": 13,
+      "y": -50,
+      "width": 270,
+      "height": 798
+    },
+    "controls": {
+      "x": 296,
+      "y": 399,
+      "width": 923,
+      "height": 43
+    },
+    "stage": "journey"
+  },
+  "consoleMessages": []
+}
