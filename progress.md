@@ -878,3 +878,10 @@ Remaining notes:
 - Added a small single-composited-backdrop branch to the existing Desert Entry draw path so the new image renders once across the full canvas instead of being sliced into old parallax bands.
 - Browser verification on `http://127.0.0.1:5173/Archaeology-Dig-App/` confirmed Desert Entry renders from its pack, no asset fallback is active, no missing atlas regions were reported, and no console errors appeared.
 - Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset and large-chunk warnings; `git diff --check` passed with only LF-to-CRLF warnings.
+
+2026-05-13 update:
+- Added the next generated full-scene Journey background for Ruined Temple.
+- Copied the generated image into `public/assets/expedition/backgrounds/ruined-temple/ruined-temple-full-scene.png` and kept the original generated image in the Codex generated-images folder.
+- Updated the existing Ruined Temple atlas JSON to reference the full-scene image while preserving all expected region keys for fallback-safe loading.
+- Browser verification on `http://127.0.0.1:5173/Archaeology-Dig-App/` confirmed Ruined Temple renders from its pack, no asset fallback is active, no missing atlas regions were reported, and no console errors appeared.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset and large-chunk warnings; `git diff --check` passed with only LF-to-CRLF warnings.
