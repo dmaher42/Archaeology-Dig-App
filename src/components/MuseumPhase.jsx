@@ -7,7 +7,6 @@ import {
   getCategoryTitle,
   getEvidenceImagePath
 } from '../utils/gameLogic';
-import { getAtlasRegionStyle, useFullInvestigationAssets } from './full-investigation/fullInvestigationAssets';
 
 const formatConditionLabel = (condition) => {
   if (!condition) return '';
@@ -29,15 +28,10 @@ export function MuseumPhase({
 }) {
   const [selectedArtifactId, setSelectedArtifactId] = useState(null);
   const [previewArtifact, setPreviewArtifact] = useState(null);
-  const fullInvestigationAssets = useFullInvestigationAssets();
   const curatedSet = new Set(curatedItems.map(item => item.id));
 
   const analysedArtifacts = activeArtifacts.filter(item => !!hypotheses[item.id]);
   const emptySlots = Array.from({ length: Math.max(0, 3 - curatedItems.length) });
-  const displayPlinthStyle = getAtlasRegionStyle(fullInvestigationAssets, 'displayPlinth');
-  const exhibitFrameStyle = getAtlasRegionStyle(fullInvestigationAssets, 'exhibitFrame');
-  const plaqueCardStyle = getAtlasRegionStyle(fullInvestigationAssets, 'plaqueCard');
-  const museumWallStyle = getAtlasRegionStyle(fullInvestigationAssets, 'museumWallPanel');
 
   const toggleCuration = (artifact) => {
     if (curatedSet.has(artifact.id)) {
@@ -164,11 +158,7 @@ export function MuseumPhase({
           )}
         </section>
 
-        <section
-          className={`museum-panel museum-exhibit-panel ${museumWallStyle ? 'fi-asset-region fi-museum-wall-panel' : ''}`}
-          data-fi-ui-asset={museumWallStyle ? 'museumWallPanel' : undefined}
-          style={museumWallStyle}
-        >
+        <section className="museum-panel museum-dossier-panel">
            <div className="museum-panel-heading">Exhibition Display</div>
            <p className="museum-panel-subheading">Write a plaque for each curated find.</p>
 
@@ -177,21 +167,14 @@ export function MuseumPhase({
                 const analysis = hypotheses[item.id];
 
                 return (
-                  <div
-                    key={item.id}
-                    className={`museum-display-card ${exhibitFrameStyle ? 'fi-asset-region fi-exhibit-frame' : ''}`}
-                    data-fi-ui-asset={exhibitFrameStyle ? 'exhibitFrame' : undefined}
-                    style={exhibitFrameStyle}
-                  >
+                  <div key={item.id} className="museum-display-card">
                     <div className="museum-display-header">
                        <div className="museum-display-number">Find {index + 1}</div>
                        <button className="museum-remove-btn" onClick={() => toggleCuration(item)}>Remove</button>
                     </div>
                     <button
                       type="button"
-                      className={`museum-display-visual ${displayPlinthStyle ? 'fi-asset-region fi-display-plinth' : ''}`}
-                      data-fi-ui-asset={displayPlinthStyle ? 'displayPlinth' : undefined}
-                      style={displayPlinthStyle}
+                      className="museum-display-visual"
                       onClick={() => setPreviewArtifact(item)}
                       aria-label={`Inspect ${item.name} image`}
                     >
@@ -222,11 +205,7 @@ export function MuseumPhase({
                              <p>No research note.</p>
                            )}
                        </div>
-                       <div
-                         className={`museum-plaque-field ${plaqueCardStyle ? 'fi-asset-region fi-plaque-card' : ''}`}
-                         data-fi-ui-asset={plaqueCardStyle ? 'plaqueCard' : undefined}
-                         style={plaqueCardStyle}
-                       >
+                       <div className="museum-plaque-field">
                           <label>Exhibition Label</label>
                           <textarea
                             value={plaques[item.id] || ''}
@@ -241,9 +220,7 @@ export function MuseumPhase({
               {curatedItems.length > 0 && emptySlots.map((_, index) => (
                 <div
                   key={`empty-slot-${index}`}
-                  className={`museum-display-card museum-display-slot ${displayPlinthStyle ? 'fi-asset-region fi-display-plinth' : ''}`}
-                  data-fi-ui-asset={displayPlinthStyle ? 'displayPlinth' : undefined}
-                  style={displayPlinthStyle}
+                  className="museum-display-card museum-display-slot"
                 >
                   <div className="museum-display-number">Open Slot {curatedItems.length + index + 1}</div>
                   <div className="museum-slot-placeholder">
