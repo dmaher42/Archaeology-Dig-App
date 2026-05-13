@@ -3354,17 +3354,21 @@ main {
 }
 
 .museum-curation-card {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: stretch;
+  display: flex;
+  align-items: center;
   gap: 0.42rem;
-  padding: 0.36rem;
+  padding: 0.36rem 0.6rem;
   border-radius: 10px;
-  border-color: rgba(111, 78, 55, 0.18);
+  border: 1px solid rgba(111, 78, 55, 0.18);
   background: rgba(255, 252, 240, 0.62);
-  cursor: default;
+  cursor: pointer;
   min-width: 0;
   box-sizing: border-box;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  margin: 0;
+  outline: none;
 }
 
 .museum-curation-card:hover {
@@ -3386,24 +3390,12 @@ main {
 .museum-curation-card.disabled {
   opacity: 0.62;
   background: rgba(255, 252, 240, 0.42);
+  cursor: not-allowed;
 }
 
-.museum-curation-main {
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.52rem;
-  border: 0;
-  padding: 0;
-  background: transparent;
-  color: inherit;
-  text-align: left;
-  font: inherit;
-  cursor: pointer;
-}
+/* Removed .museum-curation-main */
 
-.museum-curation-main:focus-visible,
-.museum-curation-checkbox:focus-visible,
+.museum-curation-card:focus-visible,
 .museum-remove-btn:focus-visible,
 .museum-plaque-field textarea:focus-visible,
 .museum-statement-textarea:focus-visible {
@@ -3440,37 +3432,18 @@ main {
   line-height: 1.05;
 }
 
-.museum-curation-checkbox {
+.museum-curation-indicator {
   align-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 2rem;
   height: 2rem;
-  border: 1px solid rgba(111, 78, 55, 0.24);
   border-radius: 999px;
-  background: rgba(255, 250, 240, 0.85);
-  color: #7a5631;
-  cursor: pointer;
-}
-
-.museum-curation-checkbox:disabled {
-  cursor: not-allowed;
-  opacity: 0.46;
-}
-
-.museum-curation-card.curated .museum-curation-checkbox {
   background: #2f7a54;
-  border-color: rgba(47, 122, 84, 0.55);
+  border: 1px solid rgba(47, 122, 84, 0.55);
   color: #f6fff8;
-}
-
-.museum-checkbox-empty {
-  width: 18px;
-  height: 18px;
-  border-color: rgba(122, 34, 26, 0.32);
-}
-
-.museum-checkbox-empty::before,
-.museum-checkbox-empty::after {
-  background: rgba(122, 34, 26, 0.54);
+  margin-left: auto;
 }
 
 .museum-final-statement-box {

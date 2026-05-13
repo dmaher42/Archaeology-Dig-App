@@ -1,0 +1,49 @@
+{
+  "image": "temple-bat-sprites.png",
+  "source": "AI-generated Temple Bat sprite sheet, integrated as a dedicated named atlas for Journey rendering.",
+  "coordinateNote": "Crop rectangles avoid sprite-sheet guide lines and preserve generous wing padding so the bat is not clipped in flight.",
+  "regions": {
+    "batIdle": {
+      "x": 28,
+      "y": 118,
+      "w": 392,
+      "h": 225
+    },
+    "batFlap1": {
+      "x": 505,
+      "y": 41,
+      "w": 308,
+      "h": 310
+    },
+    "batFlap2": {
+      "x": 923,
+      "y": 143,
+      "w": 361,
+      "h": 225
+    },
+    "batWindup": {
+      "x": 1424,
+      "y": 149,
+      "w": 228,
+      "h": 247
+    },
+    "batAttack": {
+      "x": 32,
+      "y": 551,
+      "w": 361,
+      "h": 233
+    },
+    "batHit": {
+      "x": 465,
+      "y": 521,
+      "w": 321,
+      "h": 265
+    },
+    "batDefeated": {
+      "x": 930,
+      "y": 610,
+      "w": 329,
+      "h": 196
+    }
+  }
+}

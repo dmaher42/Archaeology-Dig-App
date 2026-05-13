@@ -27,7 +27,6 @@ export function MuseumPhase({
   onComplete,
   onBackToMenu
 }) {
-  const [selectedArtifactId, setSelectedArtifactId] = useState(null);
   const [previewArtifact, setPreviewArtifact] = useState(null);
   const curatedSet = new Set(curatedItems.map(item => item.id));
 
@@ -85,50 +84,40 @@ export function MuseumPhase({
 
           <div className="museum-curation-list">
             {analysedArtifacts.map(item => {
-              const isSelected = selectedArtifactId === item.id;
               const isCurated = curatedSet.has(item.id);
               const theme = getArtifactTheme(item);
               const curationDisabled = !isCurated && curatedItems.length >= 3;
 
               return (
-                <article
+                <button
                   key={item.id}
-                  className={`museum-curation-card ${isSelected ? 'active' : ''} ${isCurated ? 'curated' : ''} ${curationDisabled ? 'disabled' : ''}`}
+                  type="button"
+                  className={`museum-curation-card ${isCurated ? 'curated' : ''} ${curationDisabled ? 'disabled' : ''}`}
+                  onClick={() => toggleCuration(item)}
+                  disabled={curationDisabled}
+                  aria-pressed={isCurated}
+                  aria-label={isCurated ? `Remove ${item.name} from exhibition` : `Add ${item.name} to exhibition`}
                 >
-                  <button
-                    type="button"
-                    className="museum-curation-main"
-                    onClick={() => setSelectedArtifactId(item.id)}
-                    aria-pressed={isSelected}
-                  >
-                    <span className="museum-curation-icon" style={{ color: theme.accent, overflow: 'hidden' }}>
-                      <img
-                        src={getEvidenceImagePath(item)}
-                        alt=""
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
-                    </span>
-                    <span className="museum-curation-copy">
-                      <span className="museum-curation-name">{item.name}</span>
-                      <span className="museum-curation-meta">{getCategoryTitle(item.type)}</span>
-                      {evidenceConditions[item.id]?.condition && (
-                        <span className={`condition-badge condition-${evidenceConditions[item.id].condition}`}>
-                          {formatConditionLabel(evidenceConditions[item.id].condition)}
-                        </span>
-                      )}
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    className="museum-curation-checkbox"
-                    onClick={() => toggleCuration(item)}
-                    disabled={curationDisabled}
-                    aria-pressed={isCurated}
-                    aria-label={isCurated ? `Remove ${item.name} from exhibition` : `Add ${item.name} to exhibition`}
-                  >
-                    {isCurated ? <CheckCircle2 size={18} /> : <div className="museum-checkbox-empty" />}
-                  </button>
-                </article>
+                  <span className="museum-curation-icon" style={{ color: theme.accent, overflow: 'hidden' }}>
+                    <img
+                      src={getEvidenceImagePath(item)}
+                      alt=""
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                  </span>
+                  <span className="museum-curation-copy">
+                    <span className="museum-curation-name">{item.name}</span>
+                    <span className="museum-curation-meta">{getCategoryTitle(item.type)}</span>
+                    {evidenceConditions[item.id]?.condition && (
+                      <span className={`condition-badge condition-${evidenceConditions[item.id].condition}`}>
+                        {formatConditionLabel(evidenceConditions[item.id].condition)}
+                      </span>
+                    )}
+                  </span>
+                  <span className="museum-curation-indicator">
+                    {isCurated && <CheckCircle2 size={18} />}
+                  </span>
+                </button>
               );
             })}
             {analysedArtifacts.length === 0 && (

@@ -910,4 +910,20 @@ Remaining notes:
 - Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset and large-chunk warnings; `git diff --check` passed with only LF-to-CRLF warnings.
 
 2026-05-13 update:
+- Continued the Egypt Journey enemy polish by replacing the Giant Serpent mini-boss canvas fallback with a generated atlas-backed sprite pack.
+- Added `public/assets/expedition/bosses/giant-serpent-sprites.png` and `giant-serpent-sprites.json` with 11 boss-state regions for idle, slither, intro, windup, lunge, venom, shielded, counter-window, hit, and defeated poses.
+- Extended the existing boss sprite pipeline in `journeyBossSprites.js` and `ExpeditionJourney.jsx`; no duplicate enemy, boss, rendering, collision, or combat system was added.
+- Tightened the Giant Serpent atlas crops and draw box so the sprite reads at boss scale and stays grounded in the Catacombs encounter.
+- Removed visible boss attack-phase text from the world layer while preserving the non-text warning icon/range cue and HUD notice guidance.
+- Browser verification on `http://127.0.0.1:5173/Archaeology-Dig-App/` confirmed the Catacombs Giant Serpent sprite pack loads with no missing boss regions, no boss fallback active, the new serpent sprite renders in the encounter, and no console errors appeared.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset and large-chunk warnings; `git diff --check` passed with only LF-to-CRLF warnings.
+
+2026-05-13 update:
 - Changed Museum lab result wording from interpretation-giving text to evidence-based observation text, so students must use the lab result to make their own historical inference in the museum label.
+
+2026-05-13 update:
+- Continued the Egypt Journey enemy polish with a dedicated Temple Bat sprite pass.
+- Added `public/assets/expedition/enemies/temple-bat-sprites.png` and `temple-bat-sprites.json` as a separate bat atlas, leaving the existing scarab/snake small-enemy sheet untouched.
+- Extended the existing `journeyEnemySprites.js` pack loader so only bat enemies use the new Temple Bat atlas while looters and small enemies keep their existing paths.
+- Tuned the Temple Bat visual draw box so the enemy reads as an airborne creature instead of a folded sprite sitting on the ground; no hitboxes, damage, enemy AI, route gates, player movement, or Egypt progression were intentionally changed.
+- Browser verification on `http://127.0.0.1:5173/Archaeology-Dig-App/` confirmed the Catacombs route loads enemy sprite packs with no missing Temple Bat atlas regions, no enemy sprite fallback, and no console errors.

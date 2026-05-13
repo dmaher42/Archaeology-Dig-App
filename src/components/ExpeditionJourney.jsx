@@ -3628,7 +3628,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       const bx = worldToScreenX(boss.x, cameraX);
       if (!isHorizontallyVisible(boss.x, boss.width, cameraX, 100)) return;
       drawMiniBoss(ctx, boss, bx, now);
-      drawEnemyAttackTell(ctx, boss, bx, cameraX, now, true, crowdedGateActive);
+      drawEnemyAttackTell(ctx, boss, bx, cameraX, now, true, true);
     });
 
     const getShardVisualBaseY = (shard) => {

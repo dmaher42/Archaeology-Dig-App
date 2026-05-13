@@ -283,11 +283,11 @@ export const getStoneGuardianDrawBox = (boss, screenX) => {
 };
 
 export const getGiantSerpentDrawBox = (boss, screenX) => {
-  const width = Math.max(156, boss.width * 2.55);
-  const height = Math.max(104, boss.height * 2.1);
+  const width = Math.max(190, boss.width * 2.75);
+  const height = Math.max(124, boss.height * 2.25);
   return {
     x: screenX + boss.width / 2 - width / 2,
-    y: boss.y + boss.height - height + boss.height * 0.08,
+    y: boss.y + boss.height - height + boss.height * 0.04,
     width,
     height,
   };
