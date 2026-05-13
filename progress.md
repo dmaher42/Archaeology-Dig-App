@@ -927,3 +927,4 @@ Remaining notes:
 - Extended the existing `journeyEnemySprites.js` pack loader so only bat enemies use the new Temple Bat atlas while looters and small enemies keep their existing paths.
 - Tuned the Temple Bat visual draw box so the enemy reads as an airborne creature instead of a folded sprite sitting on the ground; no hitboxes, damage, enemy AI, route gates, player movement, or Egypt progression were intentionally changed.
 - Browser verification on `http://127.0.0.1:5173/Archaeology-Dig-App/` confirmed the Catacombs route loads enemy sprite packs with no missing Temple Bat atlas regions, no enemy sprite fallback, and no console errors.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset and large-chunk warnings; `git diff --check` passed.

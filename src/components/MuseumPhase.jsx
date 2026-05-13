@@ -114,9 +114,7 @@ export function MuseumPhase({
                       </span>
                     )}
                   </span>
-                  <span className="museum-curation-indicator">
-                    {isCurated && <CheckCircle2 size={18} />}
-                  </span>
+
                 </button>
               );
             })}

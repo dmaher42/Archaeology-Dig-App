@@ -4492,28 +4492,48 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
 
   return (
     <section className="expedition-journey-container" id="expedition-journey">
+      <div className="journey-top-hud" aria-label="Expedition status">
+        <div className="journey-top-hud-gems">
+          <Gem size={18} />
+          <strong>{gameState.relicShardCount}</strong>
+        </div>
+
+        <div className={`journey-top-hud-meter ${staminaWarningState !== 'stable' ? 'stamina-alert' : ''}`}>
+          <div className="journey-top-hud-meter-label">
+            <Gauge size={15} />
+            <span>Stamina</span>
+          </div>
+          <div className="journey-top-hud-bar">
+            <div className="journey-top-hud-fill stamina-fill" style={{ width: `${gameState.resources.stamina}%` }} />
+            {gameState.staminaFeedbackTimer > 0 && gameState.lastStaminaDelta < 0 && (
+              <span className="stamina-delta">-{Math.abs(gameState.lastStaminaDelta)}</span>
+            )}
+          </div>
+        </div>
+
+        <div className="journey-top-hud-meter">
+          <div className="journey-top-hud-meter-label">
+            <Sparkles size={15} />
+            <span>Time</span>
+          </div>
+          <div className="journey-top-hud-bar">
+            <div className="journey-top-hud-fill time-fill" style={{ width: `${(gameState.resources.time / 900) * 100}%` }} />
+          </div>
+        </div>
+
+        <div className="journey-top-hud-status">
+          <span>{SECTIONS.find(s => s.id === gameState.currentSectionId)?.name || 'Surveying'}</span>
+          <strong>{gameState.relicShardCount}/22</strong>
+        </div>
+      </div>
+
       <div className="expedition-journey-grid">
         <div className="expedition-sidebar">
           <div className="expedition-panel dossier-info">
             <h2 className="cinzel-header">Expedition Log</h2>
-            <div className="expedition-stat-card">
-              <div className="stat-label"><Gauge size={14} /> Stamina</div>
-              <div className={`expedition-stat-bar ${staminaWarningState !== 'stable' ? 'stamina-alert' : ''}`}>
-                <div className="expedition-stat-fill stamina-fill" style={{ width: `${gameState.resources.stamina}%` }} />
-                {gameState.staminaFeedbackTimer > 0 && gameState.lastStaminaDelta < 0 && (
-                  <span className="stamina-delta">-{Math.abs(gameState.lastStaminaDelta)}</span>
-                )}
-              </div>
-              {staminaWarningState === 'low' && (
-                <div className="stamina-warning-text">Low stamina</div>
-              )}
-            </div>
-            <div className="expedition-stat-card">
-              <div className="stat-label"><Sparkles size={14} /> Time</div>
-              <div className="expedition-stat-bar">
-                <div className="expedition-stat-fill time-fill" style={{ width: `${(gameState.resources.time / 900) * 100}%` }} />
-              </div>
-            </div>
+            {staminaWarningState === 'low' && (
+              <div className="stamina-warning-text">Low stamina</div>
+            )}
             <button
               type="button"
               className="journey-sidebar-toggle"
@@ -4587,15 +4607,6 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
               <div className="hud-shards">
                 <Gem size={18} className="text-amber-500" />
                 <span>{gameState.relicShardCount}</span>
-              </div>
-              <div className={`hud-stamina ${staminaWarningState !== 'stable' ? 'stamina-alert' : ''}`}>
-                <Gauge size={18} className="text-red-500" />
-                <div className="hud-bar-bg">
-                  <div className="hud-bar-fill stamina" style={{ width: `${gameState.resources.stamina}%` }} />
-                </div>
-                {gameState.staminaFeedbackTimer > 0 && gameState.lastStaminaDelta < 0 && (
-                  <span className="hud-stamina-delta">-{Math.abs(gameState.lastStaminaDelta)}</span>
-                )}
               </div>
             </div>
 
