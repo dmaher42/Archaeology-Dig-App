@@ -124,6 +124,7 @@ import {
   getEnemySpriteDrawBox,
   getEnemySpriteFamily,
   getEnemySpriteFrame,
+  getEnemySpritePack,
   getMissingEnemySpriteAssets,
   loadEnemySpritePack,
 } from './expedition-journey/journeyEnemySprites';
@@ -2863,7 +2864,8 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     if (!frameKey || !drawBox) return false;
 
     const assets = enemySpriteAssetsRef.current;
-    if (!assets.loaded || assets.failed) return false;
+    const spritePack = getEnemySpritePack(assets, family);
+    if (!spritePack?.loaded || spritePack.failed) return false;
 
     const centerX = screenX + enemy.width / 2 + shakeX;
     const baseY = enemy.y + enemy.height;
@@ -2896,7 +2898,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
 
     const drawn = drawAtlasRegion(
       ctx,
-      assets,
+      spritePack,
       frameKey,
       {
         x: shouldFlip ? -drawBox.width / 2 : drawBox.x,
@@ -3116,7 +3118,9 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     ctx.strokeStyle = '#111827';
     ctx.lineWidth = 3;
 
-    const bossSpriteDrawn = drawBossSprite(ctx, boss, screenX, now, bossVisualState);
+    const bossSpriteDrawn = boss.type === 'looter'
+      ? drawSmallEnemySprite(ctx, boss, screenX, now)
+      : drawBossSprite(ctx, boss, screenX, now, bossVisualState);
 
     if (bossSpriteDrawn) {
       // Sprite atlas handles supported boss body art; shared health/status UI below remains unchanged.
@@ -3208,7 +3212,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     }
 
     ctx.restore();
-  }, [drawBossSprite, getBossVulnerabilityState]);
+  }, [drawBossSprite, drawSmallEnemySprite, getBossVulnerabilityState]);
 
   const drawAttackArc = useCallback((ctx, box, cameraX, direction, color = '#facc15') => {
     if (!box) return;

@@ -47,7 +47,7 @@ export function MuseumPhase({
   };
 
   return (
-    <div className="phase-container museum-phase bureau-phase">
+    <div className="phase-container museum-phase">
       <div className="phase-status-panel-compact museum-status-panel">
         <div className="status-panel-info">
           <div className="status-icon-box-small">

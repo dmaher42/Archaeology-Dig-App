@@ -1,0 +1,17 @@
+{
+  "image": "looter-sprites.png",
+  "source": "AI-generated Rival Looter sprite sheet, integrated as a named atlas for Journey looter enemies and looter captain.",
+  "coordinateNote": "Generated as a clean 4x2 sprite sheet; regions use cell crops with generous transparent padding.",
+  "imageWidth": 1536,
+  "imageHeight": 1024,
+  "regions": {
+    "looterIdle": { "x": 0, "y": 0, "w": 384, "h": 512 },
+    "looterWalk1": { "x": 384, "y": 0, "w": 384, "h": 512 },
+    "looterWalk2": { "x": 768, "y": 0, "w": 384, "h": 512 },
+    "looterWindup": { "x": 1152, "y": 0, "w": 384, "h": 512 },
+    "looterAttack": { "x": 0, "y": 512, "w": 384, "h": 512 },
+    "looterHit": { "x": 384, "y": 512, "w": 384, "h": 512 },
+    "looterDefeated": { "x": 768, "y": 512, "w": 384, "h": 512 },
+    "looterCaptainIdle": { "x": 1152, "y": 512, "w": 384, "h": 512 }
+  }
+}

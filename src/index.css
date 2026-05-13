@@ -2873,7 +2873,8 @@ main {
 /* Museum Phase Layout */
 .museum-phase {
   height: calc(100vh - 30px);
-  gap: 0.65rem !important;
+  gap: 0.35rem !important;
+  padding-top: 0.25rem !important;
 }
 
 .museum-layout {
@@ -2895,7 +2896,7 @@ main {
 }
 
 .museum-panel-heading {
-  padding: 0.65rem 1.15rem 0.15rem;
+  padding: 0.45rem 1.15rem 0.1rem;
   font-family: 'Cinzel', serif;
   font-size: 1.05rem;
   font-weight: 700;
@@ -2903,7 +2904,7 @@ main {
 }
 
 .museum-panel-subheading {
-  padding: 0 1.15rem 0.85rem;
+  padding: 0 1.15rem 0.55rem;
   font-size: 0.75rem;
   color: var(--sand-500);
   border-bottom: 1px solid rgba(168, 134, 97, 0.1);
@@ -3218,8 +3219,8 @@ main {
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  padding: 0.34rem 0.85rem 0.52rem !important;
-  gap: 0.42rem !important;
+  padding: 0.25rem 0.5rem 0.52rem !important;
+  gap: 0.35rem !important;
   overflow: hidden;
 }
 
@@ -3227,12 +3228,12 @@ main {
   width: 100%;
   box-sizing: border-box;
   min-height: 0;
-  padding: 0.42rem 0.68rem !important;
-  gap: 0.65rem;
+  padding: 0.25rem 0.68rem !important;
+  gap: 0.5rem;
   align-items: center;
-  border-radius: 12px;
+  border-radius: 8px;
   background: rgba(255, 246, 225, 0.95);
-  box-shadow: 0 8px 22px rgba(38, 22, 12, 0.16);
+  box-shadow: 0 4px 12px rgba(38, 22, 12, 0.12);
 }
 
 .museum-phase .status-panel-info {
@@ -3311,15 +3312,7 @@ main {
   filter: grayscale(0.18);
 }
 
-.museum-layout {
-  width: 100%;
-  box-sizing: border-box;
-  grid-template-columns: minmax(270px, 0.72fr) minmax(0, 2.28fr);
-  gap: 0.65rem;
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: hidden;
-}
+/* Consolidated above */
 
 .app-wrapper--museum.app-wrapper--dev-tools .museum-layout {
   padding-right: 7.2rem;
@@ -10364,8 +10357,58 @@ main {
   white-space: nowrap;
 }
 
+.expedition-title {
+  min-width: 0;
+  text-align: center;
+}
+
+.expedition-title h2 {
+  margin: 0.15rem 0 0;
+  font-family: 'Cinzel', serif;
+  font-size: clamp(1.45rem, 2vw, 2.25rem);
+  color: var(--bureau-ink);
+}
+
+.expedition-gate-badge {
+  display: grid;
+  grid-auto-flow: row;
+  align-items: center;
+  justify-items: center;
+  gap: 0.4rem;
+  min-height: 2.25rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(139, 106, 72, 0.12);
+  border: 1px solid var(--bureau-gold-light);
+  color: var(--bureau-ink-muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.expedition-gate-badge.unlocked {
+  background: rgba(45, 90, 39, 0.12);
+  border-color: rgba(45, 90, 39, 0.35);
+  color: #2d5a27;
+}
+
+.expedition-gate-badge span,
+.expedition-gate-badge small {
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
 .expedition-gate-badge small {
   font-size: 0.67rem;
+}
+
+.museum-layout {
+  display: grid;
+  grid-template-columns: minmax(270px, 0.72fr) minmax(0, 2.28fr);
+  gap: 0.5rem;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  margin: 0 !important;
 }
 
 .expedition-layout {
