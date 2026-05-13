@@ -1,0 +1,41 @@
+{
+  "image": "escape-sequence-parallax-pack.png",
+  "source": "AI-generated label-free Journey parallax background sheet, upgraded for Escape Sequence section rendering.",
+  "imageWidth": 1600,
+  "imageHeight": 900,
+  "coordinateNote": "Runtime composited 16:9 backdrop; legacy region keys point to the full image so existing loaders stay fallback-safe.",
+  "regions": {
+    "dangerAtmosphere": {
+      "x": 0,
+      "y": 0,
+      "w": 1600,
+      "h": 900
+    },
+    "farCollapsingWalls": {
+      "x": 0,
+      "y": 0,
+      "w": 1600,
+      "h": 900
+    },
+    "distantRuinsDebris": {
+      "x": 0,
+      "y": 0,
+      "w": 1600,
+      "h": 900
+    },
+    "midgroundEscapeRuins": {
+      "x": 0,
+      "y": 0,
+      "w": 1600,
+      "h": 900
+    },
+    "foregroundDust": {
+      "x": 0,
+      "y": 0,
+      "w": 1600,
+      "h": 900
+    }
+  },
+  "runtimeMode": "single-composited-backdrop-no-striping",
+  "sourceComposite": "Generated from the section parallax source sheet to remove visible striping in gameplay."
+}

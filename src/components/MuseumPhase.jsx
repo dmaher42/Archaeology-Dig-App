@@ -1,29 +1,37 @@
 import { useState } from 'react';
-import { 
-  Camera, CheckCircle2, ChevronRight, Search, Send
+import {
+  Camera, ChevronRight, Maximize2, Search, Send, X
 } from 'lucide-react';
-import { 
-  getArtifactTheme, 
+import {
+  getArtifactTheme,
   getCategoryTitle,
-  getEvidenceImagePath
+  getEvidenceImagePath,
+  getObservableLabResult
 } from '../utils/gameLogic';
 
-export function MuseumPhase({ 
-  activeArtifacts, 
-  hypotheses, 
-  curatedItems, 
-  setCuratedItems, 
-  plaques, 
-  setPlaques, 
-  finalExhibitionStatement, 
-  setFinalExhibitionStatement, 
-  onComplete, 
-  onBackToMenu 
+const formatConditionLabel = (condition) => {
+  if (!condition) return '';
+  return condition.charAt(0).toUpperCase() + condition.slice(1);
+};
+
+export function MuseumPhase({
+  activeArtifacts,
+  hypotheses,
+  curatedItems,
+  setCuratedItems,
+  plaques,
+  setPlaques,
+  finalExhibitionStatement,
+  setFinalExhibitionStatement,
+  evidenceConditions = {},
+  onComplete,
+  onBackToMenu
 }) {
-  const [selectedArtifactId, setSelectedArtifactId] = useState(null);
+  const [previewArtifact, setPreviewArtifact] = useState(null);
   const curatedSet = new Set(curatedItems.map(item => item.id));
-  
+
   const analysedArtifacts = activeArtifacts.filter(item => !!hypotheses[item.id]);
+  const emptySlots = Array.from({ length: Math.max(0, 3 - curatedItems.length) });
 
   const toggleCuration = (artifact) => {
     if (curatedSet.has(artifact.id)) {
@@ -39,7 +47,7 @@ export function MuseumPhase({
   };
 
   return (
-    <div className="phase-container museum-phase bureau-phase">
+    <div className="phase-container museum-phase">
       <div className="phase-status-panel-compact museum-status-panel">
         <div className="status-panel-info">
           <div className="status-icon-box-small">
@@ -62,8 +70,8 @@ export function MuseumPhase({
         </div>
 
         <div className="status-panel-actions-compact">
-          <button className="btn" onClick={onBackToMenu}>Main Menu</button>
-          <button className="btn primary-btn" onClick={onComplete} disabled={curatedItems.length === 0}>
+          <button className="btn museum-menu-btn" onClick={onBackToMenu}>Main Menu</button>
+          <button className="btn primary-btn museum-final-report-btn" onClick={onComplete} disabled={curatedItems.length === 0}>
             Final Report <ChevronRight size={18} />
           </button>
         </div>
@@ -76,30 +84,37 @@ export function MuseumPhase({
 
           <div className="museum-curation-list">
             {analysedArtifacts.map(item => {
-              const isSelected = selectedArtifactId === item.id;
               const isCurated = curatedSet.has(item.id);
               const theme = getArtifactTheme(item);
+              const curationDisabled = !isCurated && curatedItems.length >= 3;
 
               return (
                 <button
                   key={item.id}
-                  className={`museum-curation-card ${isSelected ? 'active' : ''} ${isCurated ? 'curated' : ''}`}
-                  onClick={() => setSelectedArtifactId(item.id)}
+                  type="button"
+                  className={`museum-curation-card ${isCurated ? 'curated' : ''} ${curationDisabled ? 'disabled' : ''}`}
+                  onClick={() => toggleCuration(item)}
+                  disabled={curationDisabled}
+                  aria-pressed={isCurated}
+                  aria-label={isCurated ? `Remove ${item.name} from exhibition` : `Add ${item.name} to exhibition`}
                 >
-                  <div className="museum-curation-icon" style={{ color: theme.accent, overflow: 'hidden' }}>
-                    <img 
-                      src={getEvidenceImagePath(item)} 
-                      alt="" 
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                  <span className="museum-curation-icon" style={{ color: theme.accent, overflow: 'hidden' }}>
+                    <img
+                      src={getEvidenceImagePath(item)}
+                      alt=""
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
-                  </div>
-                  <div className="museum-curation-copy">
-                    <div className="museum-curation-name">{item.name}</div>
-                    <div className="museum-curation-meta">{getCategoryTitle(item.type)}</div>
-                  </div>
-                  <div className="museum-curation-checkbox" onClick={(e) => { e.stopPropagation(); toggleCuration(item); }}>
-                    {isCurated ? <CheckCircle2 size={18} /> : <div className="museum-checkbox-empty" />}
-                  </div>
+                  </span>
+                  <span className="museum-curation-copy">
+                    <span className="museum-curation-name">{item.name}</span>
+                    <span className="museum-curation-meta">{getCategoryTitle(item.type)}</span>
+                    {evidenceConditions[item.id]?.condition && (
+                      <span className={`condition-badge condition-${evidenceConditions[item.id].condition}`}>
+                        {formatConditionLabel(evidenceConditions[item.id].condition)}
+                      </span>
+                    )}
+                  </span>
+
                 </button>
               );
             })}
@@ -131,13 +146,14 @@ export function MuseumPhase({
           )}
         </section>
 
-        <section className="museum-panel museum-exhibit-panel">
+        <section className="museum-panel museum-dossier-panel">
            <div className="museum-panel-heading">Exhibition Display</div>
            <p className="museum-panel-subheading">Write a plaque for each curated find.</p>
 
            <div className="museum-display-grid">
               {curatedItems.map((item, index) => {
                 const analysis = hypotheses[item.id];
+                const labResultText = analysis?.labResultText || getObservableLabResult(item);
 
                 return (
                   <div key={item.id} className="museum-display-card">
@@ -145,38 +161,63 @@ export function MuseumPhase({
                        <div className="museum-display-number">Find {index + 1}</div>
                        <button className="museum-remove-btn" onClick={() => toggleCuration(item)}>Remove</button>
                     </div>
-                    <div className="museum-display-visual">
-                       <img 
-                         src={getEvidenceImagePath(item)} 
-                         alt={item.name} 
-                         style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '8px' }} 
+                    <button
+                      type="button"
+                      className="museum-display-visual"
+                      onClick={() => setPreviewArtifact(item)}
+                      aria-label={`Inspect ${item.name} image`}
+                    >
+                       <img
+                         src={getEvidenceImagePath(item)}
+                         alt={item.name}
+                         style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '8px' }}
                        />
-                    </div>
+                       <span className="museum-image-expand-chip">
+                         <Maximize2 size={13} />
+                       </span>
+                    </button>
                     <div className="museum-display-body">
                        <h4>{item.name}</h4>
                        <div className="museum-display-analysis-box">
                           <strong>Lab Result:</strong>
+                          {evidenceConditions[item.id]?.condition && (
+                            <p className="museum-analysis-note">
+                              Field condition: {formatConditionLabel(evidenceConditions[item.id].condition)}
+                            </p>
+                          )}
                           {analysis ? (
                              <>
-                               <p className="museum-analysis-answer">{analysis.answerText}</p>
-                               <p className="museum-analysis-note">{analysis.note}</p>
+                               <p className="museum-analysis-answer">{labResultText}</p>
                              </>
                            ) : (
                              <p>No research note.</p>
                            )}
                        </div>
                        <div className="museum-plaque-field">
-                          <label>Exhibition Label</label>
+                          <label>Your Interpretation</label>
+                          <p className="museum-plaque-helper">Use the lab result as evidence. What might this tell us about people's lives, beliefs, work, or society?</p>
                           <textarea
                             value={plaques[item.id] || ''}
                             onChange={(e) => handlePlaqueChange(item.id, e.target.value)}
-                            placeholder="Explain why this find is important for visitors to see..."
+                            placeholder="This might suggest..."
                           />
                        </div>
                     </div>
                   </div>
                 );
               })}
+              {curatedItems.length > 0 && emptySlots.map((_, index) => (
+                <div
+                  key={`empty-slot-${index}`}
+                  className="museum-display-card museum-display-slot"
+                >
+                  <div className="museum-display-number">Open Slot {curatedItems.length + index + 1}</div>
+                  <div className="museum-slot-placeholder">
+                    <Camera size={24} />
+                    <p>Select another find from the curation tray.</p>
+                  </div>
+                </div>
+              ))}
               {curatedItems.length === 0 && (
                 <div className="museum-empty-display">
                   <Camera size={32} />
@@ -186,6 +227,26 @@ export function MuseumPhase({
            </div>
         </section>
       </div>
+
+      {previewArtifact && (
+        <div className="museum-image-preview-backdrop" role="dialog" aria-modal="true" aria-label={`${previewArtifact.name} image preview`}>
+          <div className="museum-image-preview-card">
+            <button
+              type="button"
+              className="museum-image-preview-close"
+              onClick={() => setPreviewArtifact(null)}
+              aria-label="Close image preview"
+            >
+              <X size={18} />
+            </button>
+            <img src={getEvidenceImagePath(previewArtifact)} alt={previewArtifact.name} />
+            <div className="museum-image-preview-caption">
+              <strong>{previewArtifact.name}</strong>
+              <span>{getCategoryTitle(previewArtifact.type)}</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

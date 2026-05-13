@@ -1,0 +1,4 @@
+{"t":1778560087060,"event":"screenshot","name":"05-begin-excavation-map"}
+{"t":1778560087718,"event":"satchelSetup","done":[15,17,18,21,25,29,30,31,38,45,46,50,51,52]}
+{"t":1778560088124,"event":"screenshot","name":"06-full-satchel-replacement-panel"}
+{"t":1778560088143,"event":"satchelPanelText","contains":{"replace":false,"leave":false,"review":false,"mission":false}}

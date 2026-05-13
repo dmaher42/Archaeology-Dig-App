@@ -1,7 +1,4 @@
 import { useState, useEffect, useMemo, useReducer } from 'react';
-import { 
-  Archive, Pickaxe, Save, Upload 
-} from 'lucide-react';
 import './index.css';
 
 // Components
@@ -28,9 +25,103 @@ import {
 
 // --- Advanced Audio Synthesis ---
 let audioCtx = null;
+let expeditionMusic = null;
+let expeditionMusicKey = null;
+let expeditionMusicFade = null;
+
+const EXPEDITION_AUDIO_TRACKS = {
+  music: {
+    desert: 'assets/expedition/audio/valley-of-the-stone-kings.mp3',
+    temple: 'assets/expedition/audio/egypt-temple-ambience.mp3',
+    catacombs: 'assets/expedition/audio/egypt-catacombs-ambience.mp3',
+    escape: 'assets/expedition/audio/egypt-escape-tension.mp3',
+    baseCamp: 'assets/expedition/audio/egypt-base-camp.mp3',
+    boss: 'assets/expedition/audio/egypt-boss-ambience.mp3',
+    fallback: 'assets/expedition/audio/first-light-over-stone.mp3',
+  },
+  stingers: {
+    evidenceDiscovery: 'assets/expedition/audio/evidence-discovery-stinger.mp3',
+    gateUnlock: 'assets/expedition/audio/gate-unlock-stinger.mp3',
+  },
+};
+
+const EXPEDITION_STINGER_DURATIONS = {
+  evidenceDiscovery: 3200,
+  gateUnlock: 4600,
+};
+
+const getAudioSrc = (path) => `${import.meta.env.BASE_URL}${path}`;
+
 const initAudio = () => {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   if (audioCtx.state === 'suspended') audioCtx.resume();
+};
+
+const getExpeditionMusic = () => {
+  if (!expeditionMusic) {
+    expeditionMusic = new Audio();
+    expeditionMusic.loop = true;
+    expeditionMusic.volume = 0;
+    expeditionMusic.preload = 'auto';
+  }
+  return expeditionMusic;
+};
+
+const fadeExpeditionMusicTo = (targetVolume, duration = 550) => {
+  const music = getExpeditionMusic();
+  if (expeditionMusicFade) window.clearInterval(expeditionMusicFade);
+  const startVolume = music.volume;
+  const startedAt = performance.now();
+  expeditionMusicFade = window.setInterval(() => {
+    const progress = Math.min(1, (performance.now() - startedAt) / duration);
+    music.volume = startVolume + ((targetVolume - startVolume) * progress);
+    if (progress >= 1) {
+      window.clearInterval(expeditionMusicFade);
+      expeditionMusicFade = null;
+    }
+  }, 30);
+};
+
+const playExpeditionMusic = (trackKey = 'desert') => {
+  const nextKey = EXPEDITION_AUDIO_TRACKS.music[trackKey] ? trackKey : 'fallback';
+  const music = getExpeditionMusic();
+  if (expeditionMusicKey !== nextKey) {
+    expeditionMusicKey = nextKey;
+    music.src = getAudioSrc(EXPEDITION_AUDIO_TRACKS.music[nextKey]);
+    music.currentTime = 0;
+  }
+  music.play().then(() => {
+    fadeExpeditionMusicTo(0.34);
+  }).catch((error) => {
+    console.warn('Expedition music could not start', error);
+  });
+};
+
+const stopExpeditionMusic = () => {
+  if (!expeditionMusic) return;
+  if (expeditionMusicFade) {
+    window.clearInterval(expeditionMusicFade);
+    expeditionMusicFade = null;
+  }
+  expeditionMusic.pause();
+  expeditionMusic.currentTime = 0;
+  expeditionMusic.volume = 0;
+  expeditionMusicKey = null;
+};
+
+const playExpeditionStinger = (stingerKey) => {
+  const path = EXPEDITION_AUDIO_TRACKS.stingers[stingerKey];
+  if (!path) return;
+  const stinger = new Audio(getAudioSrc(path));
+  stinger.volume = 0.42;
+  stinger.loop = false;
+  stinger.play().catch((error) => {
+    console.warn('Expedition stinger could not start', error);
+  });
+  window.setTimeout(() => {
+    stinger.pause();
+    stinger.currentTime = 0;
+  }, EXPEDITION_STINGER_DURATIONS[stingerKey] || 3500);
 };
 
 const playFlip = () => {
@@ -124,7 +215,7 @@ const playTone = (freq, type = 'sine', duration = 0.5, vol = 0.2) => {
   osc.stop(audioCtx.currentTime + duration);
 };
 
-const audioControls = { initAudio, playFlip, playMatch, playError, playWin, playTone };
+const audioControls = { initAudio, playFlip, playMatch, playError, playWin, playTone, playExpeditionMusic, stopExpeditionMusic, playExpeditionStinger };
 
 function loadAutosave() {
   try {
@@ -182,13 +273,13 @@ export default function App() {
   const [curatedItems, setCuratedItems] = useState(initialGame.curatedItems || []);
   const [plaques, setPlaques] = useState(initialGame.plaques || {});
   const [finalExhibitionStatement, setFinalExhibitionStatement] = useState(initialGame.finalExhibitionStatement || '');
+  const [evidenceConditions, setEvidenceConditions] = useState(initialGame.evidenceConditions || {});
+  const [digRecoverySummary, setDigRecoverySummary] = useState(initialGame.digRecoverySummary || null);
   const [trainingPlacements, setTrainingPlacements] = useState(initialGame.trainingPlacements || Array(TRAINING_STAGES.length).fill(null));
   const [bureauState, setBureauState] = useState(initialBureauGame);
-  const [saveMessage, setSaveMessage] = useState('');
   const [showDevTools, setShowDevTools] = useState(false);
-  const isBureauPhase = phase.startsWith('bureau');
-  const isExpeditionPhase = phase === 'expedition';
-  const canUseProgressFiles = phase !== 'menu' && !isExpeditionPhase;
+  const [isSiteSelectionActive, setIsSiteSelectionActive] = useState(false);
+  const isMenuLanding = phase === 'menu' && !isSiteSelectionActive;
 
   // Autosave Logic
   useEffect(() => {
@@ -200,7 +291,8 @@ export default function App() {
         : createSavePayload({
             mode: 'archaeology', phase, currentScenario, currentEvent, activeArtifacts,
             excavatedIds, itemsLocation, hypotheses, siteName, finalConclusion,
-            curatedItems, plaques, finalExhibitionStatement, trainingPlacements
+            curatedItems, plaques, finalExhibitionStatement, trainingPlacements,
+            evidenceConditions, digRecoverySummary
           });
       
       const currentFullSave = JSON.parse(window.localStorage.getItem(AUTOSAVE_KEY) || '{"archaeology": null, "bureau": null}');
@@ -220,7 +312,7 @@ export default function App() {
     }
   }, [
     activeArtifacts, currentEvent, currentScenario, curatedItems, excavatedIds,
-    finalConclusion, finalExhibitionStatement, hypotheses, itemsLocation,
+    digRecoverySummary, evidenceConditions, finalConclusion, finalExhibitionStatement, hypotheses, itemsLocation,
     bureauState, phase, plaques, siteName, trainingPlacements
   ]);
 
@@ -239,6 +331,7 @@ export default function App() {
   // Persistence Actions
   const applySavedSession = (session) => {
     if (!session) return;
+    setIsSiteSelectionActive(false);
     setPhase(session.phase);
     if (session.mode === 'bureau') {
       setBureauState(session.bureauState);
@@ -254,6 +347,8 @@ export default function App() {
       setCuratedItems(session.curatedItems);
       setPlaques(session.plaques);
       setFinalExhibitionStatement(session.finalExhibitionStatement);
+      setEvidenceConditions(session.evidenceConditions || {});
+      setDigRecoverySummary(session.digRecoverySummary || null);
       setTrainingPlacements(session.trainingPlacements);
     }
   };
@@ -275,98 +370,26 @@ export default function App() {
 
   const handleStartBureau = () => {
     const next = createNewBureauSession('bureauBriefing');
+    setIsSiteSelectionActive(false);
     setBureauState(next);
     setPhase(next.phase);
   };
 
   const handleStartExpedition = () => {
+    setIsSiteSelectionActive(false);
     setPhase('expedition');
   };
 
-  const handleSaveProgressFile = () => {
-    if (!canUseProgressFiles) {
-      setSaveMessage(isExpeditionPhase ? 'Expedition is a short mode and does not use save files.' : 'Choose an activity before saving.');
-      return;
-    }
-    const isBureau = phase.startsWith('bureau');
-    const payload = isBureau 
-      ? createSavePayload({ mode: 'bureau', phase, bureauState })
-      : createSavePayload({
-          mode: 'archaeology', phase, currentScenario, currentEvent, activeArtifacts,
-          excavatedIds, itemsLocation, hypotheses, siteName, finalConclusion,
-          curatedItems, plaques, finalExhibitionStatement, trainingPlacements
-        });
-    
-    const stamp = new Date().toISOString().slice(0, 16).replace('T', '-').replace(':', '');
-    const filename = isBureau ? `bureau-${stamp}.json` : `dig-${currentScenario.id}-${stamp}.json`;
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    link.click();
-    URL.revokeObjectURL(url);
-    setSaveMessage(`Saved as ${filename}`);
-  };
-
-  const handleLoadProgressFile = async (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    try {
-      const text = await file.text();
-      const session = rebuildSavedSession(JSON.parse(text));
-      applySavedSession(session);
-      setSaveMessage(`Loaded ${file.name}`);
-    } catch {
-      setSaveMessage('Invalid save file.');
-    }
-    event.target.value = '';
+  const handleBackToMenu = () => {
+    audioControls.stopExpeditionMusic?.();
+    setPhase('menu');
   };
 
   return (
-    <div className="app-wrapper">
-      <header className="main-header hide-on-print">
-        <div className="header-left">
-          <div className="header-icon-container">
-            {isBureauPhase ? <Archive size={28} className="header-main-icon" /> : <Pickaxe size={28} className="header-main-icon" />}
-          </div>
-          <div className="header-titles">
-            <h1>{isBureauPhase ? 'The Antiquities Bureau' : isExpeditionPhase ? 'Lost Site Expedition' : 'Archaeology Challenge'}</h1>
-            <p>{isBureauPhase ? 'Ancient Civilisation Clues' : isExpeditionPhase ? 'Collect evidence, avoid site hazards, and make a claim.' : 'What can evidence tell us about the ancient past?'}</p>
-          </div>
-        </div>
-        <div className="header-right">
-          <div className="save-controls">
-            <button className="save-control-btn" onClick={handleSaveProgressFile} disabled={!canUseProgressFiles}>
-              <Save size={16} /> Save Progress
-            </button>
-            <label className={`save-control-btn ${!canUseProgressFiles ? 'is-disabled' : ''}`} aria-disabled={!canUseProgressFiles}>
-              <Upload size={16} /> Load Progress
-              <input type="file" accept=".json" onChange={handleLoadProgressFile} disabled={!canUseProgressFiles} hidden />
-            </label>
-          </div>
-          {phase !== 'menu' && phase !== 'training' && !isBureauPhase && !isExpeditionPhase && (
-            <nav className="phase-navigation" role="tablist">
-              {['Dig', 'Sort', 'Lab', 'Museum', 'Report'].map((p, i) => (
-                <button 
-                  key={p} 
-                  className={`phase-nav-item ${phase.toLowerCase() === p.toLowerCase() ? 'active' : ''}`}
-                  onClick={() => setPhase(p.toLowerCase())}
-                  role="tab"
-                  aria-selected={phase.toLowerCase() === p.toLowerCase()}
-                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', font: 'inherit', color: 'inherit' }}
-                >
-                  <span className="phase-num">{i + 1}</span> {p}
-                </button>
-              ))}
-            </nav>
-          )}
-        </div>
-      </header>
-
-      {saveMessage && <div className="save-message" role="status">{saveMessage}</div>}
-
+    <div className={`app-wrapper app-wrapper--${phase} app-wrapper--no-global-header ${showDevTools ? 'app-wrapper--dev-tools' : ''} ${isMenuLanding ? 'app-wrapper--menu-header' : ''} ${isSiteSelectionActive ? 'app-wrapper--site-selection' : ''}`}>
       <main className="main-content">
+
+
         {phase === 'menu' && (
           <ActivityMenu
             onStartInvestigation={handleStartInvestigation}
@@ -376,6 +399,7 @@ export default function App() {
             savedGames={savedGames}
             onResumeInvestigation={() => applySavedSession(savedGames.archaeology)}
             onResumeBureau={() => applySavedSession(savedGames.bureau)}
+            onSiteSelectionChange={setIsSiteSelectionActive}
           />
         )}
 
@@ -392,8 +416,10 @@ export default function App() {
             activeArtifacts={activeArtifacts} 
             excavatedIds={excavatedIds} 
             setExcavatedIds={setExcavatedIds} 
-            onComplete={(recoveredArtifacts) => {
+            onComplete={(recoveredArtifacts, recoveryConditions = {}, recoverySummary = null) => {
               setActiveArtifacts(recoveredArtifacts);
+              setEvidenceConditions(recoveryConditions);
+              setDigRecoverySummary(recoverySummary);
               setItemsLocation(recoveredArtifacts.reduce((acc, a) => ({ ...acc, [a.id]: 'inventory' }), {}));
               setPhase('sort');
             }} 
@@ -411,6 +437,7 @@ export default function App() {
             onComplete={() => setPhase('lab')} 
             onBackToMenu={() => setPhase('menu')} 
             currentScenario={currentScenario}
+            evidenceConditions={evidenceConditions}
           />
         )}
 
@@ -421,6 +448,7 @@ export default function App() {
             hypotheses={hypotheses} 
             setHypotheses={setHypotheses} 
             currentScenario={currentScenario} 
+            evidenceConditions={evidenceConditions}
             onComplete={(name, civId) => {
               setSiteName(name);
               setFinalConclusion(civId);
@@ -440,6 +468,7 @@ export default function App() {
             setPlaques={setPlaques} 
             finalExhibitionStatement={finalExhibitionStatement} 
             setFinalExhibitionStatement={setFinalExhibitionStatement} 
+            evidenceConditions={evidenceConditions}
             onComplete={() => setPhase('report')} 
             onBackToMenu={() => setPhase('menu')} 
           />
@@ -458,13 +487,15 @@ export default function App() {
             curatedItems={curatedItems} 
             plaques={plaques} 
             finalExhibitionStatement={finalExhibitionStatement} 
+            evidenceConditions={evidenceConditions}
+            digRecoverySummary={digRecoverySummary}
             onBackToMenu={() => setPhase('menu')} 
           />
         )}
 
         {phase === 'expedition' && (
-          <ExpeditionMode 
-            onBackToMenu={() => setPhase('menu')} 
+          <ExpeditionMode
+            onBackToMenu={handleBackToMenu}
             audioControls={audioControls}
           />
         )}
@@ -487,6 +518,7 @@ export default function App() {
           setCurrentScenario={setCurrentScenario} setCurrentEvent={setCurrentEvent}
           setSiteName={setSiteName} setFinalConclusion={setFinalConclusion}
           setCuratedItems={setCuratedItems} setPlaques={setPlaques}
+          setEvidenceConditions={setEvidenceConditions} setDigRecoverySummary={setDigRecoverySummary}
           currentScenario={currentScenario}
           activeArtifacts={activeArtifacts}
           currentEvent={currentEvent}

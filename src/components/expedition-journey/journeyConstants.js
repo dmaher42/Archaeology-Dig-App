@@ -1,7 +1,10 @@
-export const CANVAS_WIDTH = 900;
-export const CANVAS_HEIGHT = 420;
+export const CANVAS_WIDTH = 1120;
+export const CANVAS_HEIGHT = 630;
+export const CANVAS_NATIVE_WIDTH = 1280;
+export const CANVAS_NATIVE_HEIGHT = 720;
 export const WORLD_WIDTH = 7600;
-export const GROUND_Y = 360;
+export const GROUND_Y = 595;
+export const JOURNEY_VERTICAL_OFFSET = 235;
 export const PLAYER_WIDTH = 28;
 export const PLAYER_HEIGHT = 42;
 export const GRAVITY = 1850;
@@ -20,4 +23,4 @@ export const PLAYER_SPRITE_FRAME_HEIGHT = 560;
 export const PLAYER_SPRITE_DRAW_HEIGHT = 86;
 export const PLAYER_SPRITE_SCALE = PLAYER_SPRITE_DRAW_HEIGHT / PLAYER_SPRITE_FRAME_HEIGHT;
 
-export const INITIAL_JOURNEY_NOTICE = 'Reach Base Camp. Collect tools, relic shards, and upgrades along the way.';
+export const INITIAL_JOURNEY_NOTICE = '';

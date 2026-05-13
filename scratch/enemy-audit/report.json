@@ -1,0 +1,104 @@
+[
+  {
+    "label": "scarab-snake",
+    "visibleEnemySpriteFamilies": [
+      "scarab"
+    ],
+    "enemySpriteFrameStates": [
+      "scarab-1:scarab:cooldown:scarabCrawl2"
+    ],
+    "activeBossSprite": null,
+    "activeBossSpriteFrame": null,
+    "bossSpriteFallbackActive": false,
+    "enemySpriteFallbackActive": false,
+    "missingEnemySpriteAssets": [],
+    "missingBossSpriteAssets": [],
+    "consoleMessages": []
+  },
+  {
+    "label": "guardian-looter",
+    "visibleEnemySpriteFamilies": [
+      "scarab",
+      "snake"
+    ],
+    "enemySpriteFrameStates": [
+      "scarab-1:scarab:cooldown:scarabCrawl1",
+      "snake-1:snake:patrol:snakeSlither1"
+    ],
+    "activeBossSprite": "scarab-queen",
+    "activeBossSpriteFrame": "scarabQueenIntro",
+    "bossSpriteFallbackActive": false,
+    "enemySpriteFallbackActive": false,
+    "missingEnemySpriteAssets": [],
+    "missingBossSpriteAssets": [],
+    "consoleMessages": []
+  },
+  {
+    "label": "bat-serpent",
+    "visibleEnemySpriteFamilies": [
+      "scarab",
+      "snake"
+    ],
+    "enemySpriteFrameStates": [
+      "scarab-1:scarab:patrol:scarabCrawl2",
+      "snake-1:snake:patrol:snakeSlither2"
+    ],
+    "activeBossSprite": "scarab-queen",
+    "activeBossSpriteFrame": "scarabQueenIntro",
+    "bossSpriteFallbackActive": false,
+    "enemySpriteFallbackActive": false,
+    "missingEnemySpriteAssets": [],
+    "missingBossSpriteAssets": [],
+    "consoleMessages": []
+  },
+  {
+    "label": "statue",
+    "visibleEnemySpriteFamilies": [
+      "snake",
+      "guardian"
+    ],
+    "enemySpriteFrameStates": [
+      "snake-1:snake:patrol:snakeSlither1",
+      "guardian-1:guardian:patrol:stoneGuardianWalk1"
+    ],
+    "activeBossSprite": "scarab-queen",
+    "activeBossSpriteFrame": "scarabQueenIntro",
+    "bossSpriteFallbackActive": false,
+    "enemySpriteFallbackActive": false,
+    "missingEnemySpriteAssets": [],
+    "missingBossSpriteAssets": [],
+    "consoleMessages": []
+  },
+  {
+    "label": "looter-captain",
+    "visibleEnemySpriteFamilies": [
+      "guardian"
+    ],
+    "enemySpriteFrameStates": [
+      "guardian-1:guardian:patrol:stoneGuardianWalk1"
+    ],
+    "activeBossSprite": "temple-guardian",
+    "activeBossSpriteFrame": "stoneGuardianAwakening",
+    "bossSpriteFallbackActive": false,
+    "enemySpriteFallbackActive": false,
+    "missingEnemySpriteAssets": [],
+    "missingBossSpriteAssets": [],
+    "consoleMessages": []
+  },
+  {
+    "label": "ancient-construct",
+    "visibleEnemySpriteFamilies": [
+      "looter"
+    ],
+    "enemySpriteFrameStates": [
+      "looter-2:looter:windup:playerFrame2"
+    ],
+    "activeBossSprite": null,
+    "activeBossSpriteFrame": null,
+    "bossSpriteFallbackActive": false,
+    "enemySpriteFallbackActive": false,
+    "missingEnemySpriteAssets": [],
+    "missingBossSpriteAssets": [],
+    "consoleMessages": []
+  }
+]

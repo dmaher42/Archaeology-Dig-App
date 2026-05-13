@@ -8,12 +8,18 @@ import {
   getArtifactEraLabel,
   getEvidenceImagePath,
   shuffleArrayWithSeed,
+  getObservableLabResult,
   LAB_ANALYSIS_PROMPTS,
   LAB_NOTE_STEMS
 } from '../utils/gameLogic';
 import { getPromptIcon } from './Icons';
 
-export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypotheses, currentScenario, onComplete, onBackToMenu }) {
+const formatConditionLabel = (condition) => {
+  if (!condition) return '';
+  return condition.charAt(0).toUpperCase() + condition.slice(1);
+};
+
+export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypotheses, currentScenario, evidenceConditions = {}, onComplete, onBackToMenu }) {
   const currentScenarioData = currentScenario;
   const trayItems = useMemo(() => {
     const sortedItems = activeArtifacts.filter(item => itemsLocation[item.id] && itemsLocation[item.id] !== 'inventory');
@@ -55,6 +61,7 @@ export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypoth
     const analysisRecord = {
       answerIndex: selectedAnswerIndex,
       answerText: selectedArtifact.options?.[selectedAnswerIndex] ?? '',
+      labResultText: getObservableLabResult(selectedArtifact),
       answerIsCorrect: selectedAnswerIndex === selectedArtifact.correct,
       answerRationale: selectedArtifact.rationale,
       promptId: selectedPrompt.id,
@@ -65,6 +72,8 @@ export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypoth
       question: selectedArtifact.question,
       typeLabel: getCategoryTitle(selectedArtifact.type),
       eraLabel: getArtifactEraLabel(selectedArtifact),
+      recoveryCondition: evidenceConditions[selectedArtifact.id]?.condition || null,
+      recoveryNote: evidenceConditions[selectedArtifact.id]?.note || '',
     };
 
     setHypotheses(prev => ({
@@ -98,7 +107,7 @@ export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypoth
             <Search size={20} />
           </div>
           <div className="status-text-content-horizontal">
-            <div style={{display: 'flex', alignItems: 'baseline', gap: '10px'}}>
+            <div className="lab-status-title-row">
               <h2>Phase 3: Laboratory Analysis</h2>
               <span className="status-site-badge">{currentScenario?.civilization || 'Archaeological Site'}</span>
             </div>
@@ -117,8 +126,8 @@ export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypoth
         </div>
 
         <div className="status-panel-actions-compact">
-          <button className="btn" onClick={onBackToMenu}>Main Menu</button>
-          <button className="btn primary-btn" onClick={handleFinalise} disabled={!isComplete}>
+          <button className="btn lab-menu-btn" onClick={onBackToMenu}>Main Menu</button>
+          <button className="btn primary-btn lab-final-btn" onClick={handleFinalise} disabled={!isComplete}>
             Final Review <ChevronRight size={18} />
           </button>
         </div>
@@ -159,10 +168,15 @@ export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypoth
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                     />
                   </div>
-                  <div className="lab-tray-copy">
-                    <div className="lab-tray-name">{item.name}</div>
-                    <div className="lab-tray-meta">{getCategoryTitle(item.type)}</div>
-                  </div>
+                    <div className="lab-tray-copy">
+                      <div className="lab-tray-name">{item.name}</div>
+                      <div className="lab-tray-meta">{getCategoryTitle(item.type)}</div>
+                      {evidenceConditions[item.id]?.condition && (
+                        <div className={`condition-badge condition-${evidenceConditions[item.id].condition}`}>
+                          {formatConditionLabel(evidenceConditions[item.id].condition)}
+                        </div>
+                      )}
+                    </div>
                   {isAnalysed && <CheckCircle2 size={16} className="lab-tray-check" />}
                 </button>
               );
@@ -178,7 +192,7 @@ export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypoth
             <div className="lab-empty-state">
               <div className="lab-empty-icon"><Search size={26} /></div>
               <div className="lab-empty-title">No find selected</div>
-              <p>Select a find from the Evidence Tray to begin analysis.</p>
+              <p>Choose an item from the evidence tray to begin analysis.</p>
             </div>
           ) : (
             <div className="lab-bench-content">
@@ -197,6 +211,9 @@ export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypoth
                     <div className="lab-inspection-meta">
                       <span>{getCategoryTitle(selectedArtifact.type)}</span>
                       <span>{getArtifactEraLabel(selectedArtifact)}</span>
+                      {evidenceConditions[selectedArtifact.id]?.condition && (
+                        <span>{formatConditionLabel(evidenceConditions[selectedArtifact.id].condition)} recovery</span>
+                      )}
                     </div>
                     <div className="lab-artifact-clue" style={{ marginTop: '0.5rem' }}>
                       <strong>Evidence Clue:</strong> {selectedArtifact.clue}

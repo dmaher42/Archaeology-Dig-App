@@ -1,0 +1,15 @@
+{
+  "image": "desert-entry-full-scene.png",
+  "imageWidth": 1672,
+  "imageHeight": 941,
+  "notes": "Single full-scene generated Desert Entry backdrop wired through the existing Journey atlas pack.",
+  "regions": {
+    "sky": { "x": 0, "y": 0, "w": 1672, "h": 941 },
+    "farDunes": { "x": 0, "y": 0, "w": 1672, "h": 941 },
+    "distantRuins": { "x": 0, "y": 0, "w": 1672, "h": 941 },
+    "midgroundRuins": { "x": 0, "y": 0, "w": 1672, "h": 941 },
+    "foregroundAtmosphere": { "x": 0, "y": 0, "w": 1672, "h": 941 }
+  },
+  "runtimeMode": "single-composited-backdrop",
+  "coordinateNote": "Legacy region keys point to the full image so existing loaders stay fallback-safe."
+}

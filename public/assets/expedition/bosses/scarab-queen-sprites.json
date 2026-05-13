@@ -1,0 +1,18 @@
+{
+  "image": "scarab-queen-sprites.png",
+  "source": "AI-generated Scarab Queen boss sprite sheet, integrated as a named atlas for Journey mini-boss rendering.",
+  "coordinateNote": "Coordinates are approximate first-pass crops from a 1536x1024 generated sheet and may need manual tuning after projector review.",
+  "regions": {
+    "scarabQueenIdle": { "x": 196, "y": 70, "w": 305, "h": 185 },
+    "scarabQueenWalk1": { "x": 611, "y": 72, "w": 305, "h": 185 },
+    "scarabQueenWalk2": { "x": 966, "y": 78, "w": 310, "h": 178 },
+    "scarabQueenIntro": { "x": 582, "y": 338, "w": 335, "h": 205 },
+    "scarabQueenWindup": { "x": 183, "y": 330, "w": 335, "h": 200 },
+    "scarabQueenCharge": { "x": 972, "y": 340, "w": 365, "h": 190 },
+    "scarabQueenAreaAttack": { "x": 955, "y": 611, "w": 380, "h": 194 },
+    "scarabQueenShielded": { "x": 168, "y": 604, "w": 335, "h": 184 },
+    "scarabQueenCounterWindow": { "x": 552, "y": 604, "w": 352, "h": 190 },
+    "scarabQueenHit": { "x": 384, "y": 835, "w": 345, "h": 145 },
+    "scarabQueenDefeated": { "x": 820, "y": 838, "w": 340, "h": 136 }
+  }
+}

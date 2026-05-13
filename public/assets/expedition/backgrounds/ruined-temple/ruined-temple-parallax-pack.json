@@ -1,0 +1,41 @@
+{
+  "image": "ruined-temple-full-scene.png",
+  "source": "AI-generated full-scene Journey background for the Ruined Temple section.",
+  "imageWidth": 1672,
+  "imageHeight": 941,
+  "coordinateNote": "Runtime composited 16:9 backdrop; legacy region keys point to the full image so existing loaders stay fallback-safe.",
+  "regions": {
+    "templeSky": {
+      "x": 0,
+      "y": 0,
+      "w": 1672,
+      "h": 941
+    },
+    "farTempleWalls": {
+      "x": 0,
+      "y": 0,
+      "w": 1672,
+      "h": 941
+    },
+    "distantTempleRuins": {
+      "x": 0,
+      "y": 0,
+      "w": 1672,
+      "h": 941
+    },
+    "midgroundTempleDoors": {
+      "x": 0,
+      "y": 0,
+      "w": 1672,
+      "h": 941
+    },
+    "foregroundTempleDust": {
+      "x": 0,
+      "y": 0,
+      "w": 1672,
+      "h": 941
+    }
+  },
+  "runtimeMode": "single-composited-backdrop",
+  "sourceComposite": "Generated as a full 16:9 scene so gameplay no longer relies on source-sheet strips."
+}

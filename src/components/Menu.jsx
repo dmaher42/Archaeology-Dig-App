@@ -2,10 +2,33 @@ import { useState } from 'react';
 import { Pickaxe, MapPin, FileText, Dice5, ChevronLeft, Compass } from 'lucide-react';
 import { SCENARIOS } from '../data';
 import { WorldMap } from './WorldMap';
+import { PLAYER_SPRITE_SRC } from './expedition-journey/journeyConstants';
 
 
 const getSavedModeLabel = (mode) => (mode === 'bureau' ? 'Bureau case' : 'Investigation');
 const getResumeLabel = (mode) => (mode === 'bureau' ? 'Resume Bureau' : 'Resume Investigation');
+const SITE_SELECTION_COPY = {
+  egypt: {
+    location: 'Nile region, northeast Africa',
+    hook: 'Engineering and river life along the Nile.',
+    focus: 'Investigate engineering, river life and structural evidence along the Nile.',
+  },
+  mungo: {
+    location: 'Southeast Australia',
+    hook: 'Ancient remains and landscape evidence.',
+    focus: 'Investigate ancient remains, landscape evidence and cultural significance.',
+  },
+  rome: {
+    location: 'Italy and the Mediterranean',
+    hook: 'Roads, public works and civic life.',
+    focus: 'Investigate roads, public works and civic life.',
+  },
+  china: {
+    location: 'East Asia',
+    hook: 'Walls, writing systems and dynastic power.',
+    focus: 'Investigate walls, writing systems and dynastic power.',
+  },
+};
 
 export function ActivityMenu({ 
   onStartInvestigation, 
@@ -14,20 +37,36 @@ export function ActivityMenu({
   onStartExpedition,
   savedGames, 
   onResumeInvestigation, 
-  onResumeBureau 
+  onResumeBureau,
+  onSiteSelectionChange = () => {}
 }) {
   const [showCivSelection, setShowCivSelection] = useState(false);
   const [hoveredId, setHoveredId] = useState(null);
+  const [selectedSiteId, setSelectedSiteId] = useState('egypt');
   const hasSavedInvestigation = savedGames?.archaeology && savedGames.archaeology.phase !== 'menu';
   const hasSavedBureau = savedGames?.bureau;
 
+  const openSiteSelection = () => {
+    setShowCivSelection(true);
+    onSiteSelectionChange(true);
+  };
+
+  const closeSiteSelection = () => {
+    setShowCivSelection(false);
+    onSiteSelectionChange(false);
+  };
+
   if (showCivSelection) {
+    const selectedSite = SCENARIOS?.find(civ => civ.id === selectedSiteId) || SCENARIOS?.[0];
+    const selectedCopy = SITE_SELECTION_COPY[selectedSite?.id] || {};
+    const displaySiteId = hoveredId || selectedSite?.id;
+
     return (
       <section className="phase-container menu-phase selection-view">
         <div className="menu-hero glass-card">
           <button 
             className="back-to-modes-btn" 
-            onClick={() => setShowCivSelection(false)}
+            onClick={closeSiteSelection}
           >
             <ChevronLeft size={16} /> Back to Missions
           </button>
@@ -39,8 +78,9 @@ export function ActivityMenu({
         <div className="selection-layout">
           <div className="selection-map-area">
             <WorldMap 
-              onSelect={onStartInvestigation} 
-              activeId={hoveredId} 
+              onSelect={setSelectedSiteId}
+              activeId={displaySiteId}
+              selectedId={selectedSite?.id}
               onHover={setHoveredId}
             />
           </div>
@@ -59,19 +99,45 @@ export function ActivityMenu({
               {SCENARIOS && SCENARIOS.map(civ => (
                 <button 
                   key={civ.id}
-                  className={`sidebar-civ-item ${hoveredId === civ.id ? 'active' : ''}`}
-                  onClick={() => onStartInvestigation(civ.id)}
+                  className={`sidebar-civ-item ${selectedSiteId === civ.id ? 'selected' : ''} ${hoveredId === civ.id ? 'active' : ''}`}
+                  onClick={() => setSelectedSiteId(civ.id)}
                   onMouseEnter={() => setHoveredId(civ.id)}
                   onMouseLeave={() => setHoveredId(null)}
                 >
                   <div className="civ-item-info">
                     <span className="civ-item-name">{civ.name}</span>
                     <span className="civ-item-tag">{civ.civilization}</span>
+                    <span className="civ-item-hook">{SITE_SELECTION_COPY[civ.id]?.hook}</span>
                   </div>
                   <ChevronLeft className="rotate-180" size={14} />
                 </button>
               ))}
             </div>
+
+            {selectedSite && (
+              <div className="site-selected-dossier">
+                <div className="dossier-kicker">Pinned Dossier</div>
+                <h3>{selectedSite.name}</h3>
+                <p className="dossier-civilization">{selectedSite.civilization}</p>
+                <dl>
+                  <div>
+                    <dt>Location</dt>
+                    <dd>{selectedCopy.location}</dd>
+                  </div>
+                  <div>
+                    <dt>Mission focus</dt>
+                    <dd>{selectedCopy.focus || selectedCopy.hook || selectedSite.spark}</dd>
+                  </div>
+                </dl>
+                <button
+                  type="button"
+                  className="btn primary-btn selected-site-start"
+                  onClick={() => onStartInvestigation(selectedSite.id)}
+                >
+                  Begin Site Mission
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -83,9 +149,34 @@ export function ActivityMenu({
   return (
     <section className="phase-container menu-phase">
       <div className="menu-hero glass-card">
-        <div className="training-kicker">Welcome back, Historian</div>
-        <h2>What are we doing today?</h2>
-        <p>Choose an archaeological mission to begin or resume your progress.</p>
+        <div className="menu-hero-copy">
+          <div className="training-kicker">Archaeology Challenge</div>
+          <h2>Lost Site Expedition</h2>
+          <p>Choose your classroom mission: practise field skills, investigate a dig site, solve museum case files, or begin the solo adventure.</p>
+          <div className="menu-hero-badges" aria-label="Game features">
+            <span>Year 7 HASS</span>
+            <span>Evidence Skills</span>
+            <span>Museum Mystery</span>
+          </div>
+        </div>
+        <div className="menu-save-note" role="note">
+          Save/load unlocks after a mission starts.
+        </div>
+        <div className="menu-hero-art" aria-hidden="true">
+          <div className="menu-hero-sun" />
+          <div
+            className="menu-hero-sprite"
+            style={{ backgroundImage: `url(${import.meta.env.BASE_URL}${PLAYER_SPRITE_SRC})` }}
+          />
+        </div>
+      </div>
+
+      <div className="mission-selection-heading">
+        <div>
+          <div className="training-kicker">Mission Select</div>
+          <h3>Pick a path into the ancient world</h3>
+        </div>
+        <p>Four modes, one evidence toolkit. Start quick, go deep, or take the new platforming route.</p>
       </div>
 
       <div className="activity-menu-grid" aria-label="Choose an activity">
@@ -99,6 +190,7 @@ export function ActivityMenu({
           </div>
           <div className="activity-card-copy">
             <h3>Archaeologist Training</h3>
+            <div className="activity-mode-label">Practice</div>
             <p>Practise the five core investigation steps in isolation.</p>
           </div>
           <div className="activity-card-actions activity-card-button-group">
@@ -118,18 +210,19 @@ export function ActivityMenu({
           </div>
           <div className="activity-card-copy">
             <h3>Full Investigation</h3>
+            <div className="activity-mode-label">Site Mission</div>
             <p>Recover finds, sort evidence, and build a museum display.</p>
           </div>
           <div className="activity-card-actions activity-card-button-group">
             <button 
               type="button" 
               className={`btn primary-btn activity-card-action ${hasSavedInvestigation ? 'pulse-btn' : ''}`} 
-            onClick={hasSavedInvestigation ? onResumeInvestigation : () => setShowCivSelection(true)}
+            onClick={hasSavedInvestigation ? onResumeInvestigation : openSiteSelection}
           >
               {hasSavedInvestigation ? 'Resume Investigation' : 'Start Investigation'}
             </button>
             {hasSavedInvestigation && (
-              <button type="button" className="btn secondary-btn activity-card-action" onClick={() => setShowCivSelection(true)}>
+              <button type="button" className="btn secondary-btn activity-card-action" onClick={openSiteSelection}>
                 Start New Investigation
               </button>
             )}
@@ -146,7 +239,8 @@ export function ActivityMenu({
           </div>
           <div className="activity-card-copy">
             <h3>Antiquities Bureau</h3>
-            <p>Solve high-stakes civilisation cases using evidence clues.</p>
+            <div className="activity-mode-label">Deduction</div>
+            <p>Open classified museum case files and solve evidence mysteries.</p>
           </div>
           <div className="activity-card-actions activity-card-button-group">
             <button 
@@ -174,6 +268,7 @@ export function ActivityMenu({
           </div>
           <div className="activity-card-copy">
             <h3>Lost Site Expedition</h3>
+            <div className="activity-mode-label">Solo Adventure</div>
             <p>Explore ruins, navigate hazards, and identify the lost civilisation.</p>
           </div>
           <div className="activity-card-actions activity-card-button-group">

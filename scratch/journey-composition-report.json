@@ -1,0 +1,84 @@
+{
+  "domState": {
+    "canvasAttr": {
+      "width": 1280,
+      "height": 720
+    },
+    "canvasRect": {
+      "x": 243,
+      "y": 10,
+      "width": 985,
+      "height": 554
+    },
+    "wrapperRect": {
+      "x": 239,
+      "y": 6,
+      "width": 993,
+      "height": 562
+    },
+    "sidebarRect": {
+      "x": 8,
+      "y": 6,
+      "width": 222,
+      "height": 798
+    },
+    "controlsHintPresent": false,
+    "initialNoticePresent": false,
+    "controlsToggleRect": {
+      "x": 1119,
+      "y": 522,
+      "width": 92,
+      "height": 28
+    },
+    "bodyTextHasInitialInstruction": false
+  },
+  "controlsOpen": true,
+  "devPanelHasExpedition": false,
+  "journey": {
+    "viewport": {
+      "width": 1120,
+      "height": 630,
+      "aspectRatio": 1.7777777777777777,
+      "targetAspectRatio": "16:9"
+    },
+    "renderTarget": {
+      "nativeWidth": 1280,
+      "nativeHeight": 720,
+      "nativeAspectRatio": 1.7777777777777777,
+      "virtualToNativeScaleX": 1.1428571428571428,
+      "virtualToNativeScaleY": 1.1428571428571428,
+      "resolutionProfile": "1280x720-native / 1120x630-virtual"
+    },
+    "canvasScaleState": {
+      "nativeWidth": 1280,
+      "nativeHeight": 720,
+      "virtualWidth": 1120,
+      "virtualHeight": 630,
+      "displayWidth": 985,
+      "displayHeight": 554,
+      "displayAspectRatio": 1.778,
+      "preservesAspectRatio": true,
+      "nativeScaleX": 1.143,
+      "nativeScaleY": 1.143,
+      "resolutionProfile": "1280x720-native / 1120x630-virtual"
+    },
+    "playerGroundedState": {
+      "onGround": true,
+      "expectedGroundY": 535,
+      "playerFootY": 535
+    },
+    "currentSection": "Desert Entry",
+    "assetFallbackActive": false,
+    "missingEnvironmentAssets": [],
+    "routeGateStatus": {
+      "id": "desert-seal",
+      "distance": 1436,
+      "gateGroundedState": {
+        "expectedGroundY": 535,
+        "visualFootY": 535,
+        "authoredY": 261
+      }
+    }
+  },
+  "consoleMessages": []
+}

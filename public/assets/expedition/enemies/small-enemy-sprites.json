@@ -1,0 +1,133 @@
+{
+  "image": "small-enemy-sprites.png",
+  "source": "AI-generated small enemy sprite sheet, integrated as a named atlas for Journey rendering.",
+  "coordinateNote": "Hand-tuned from original atlas with modest crop padding so small enemy frames are not clipped while preserving the existing artwork.",
+  "regions": {
+    "scarabIdle": {
+      "x": 18,
+      "y": 50,
+      "w": 178,
+      "h": 122
+    },
+    "scarabCrawl1": {
+      "x": 210,
+      "y": 50,
+      "w": 178,
+      "h": 122
+    },
+    "scarabCrawl2": {
+      "x": 402,
+      "y": 50,
+      "w": 178,
+      "h": 122
+    },
+    "scarabWindup": {
+      "x": 770,
+      "y": 49,
+      "w": 182,
+      "h": 126
+    },
+    "scarabAttack": {
+      "x": 963,
+      "y": 40,
+      "w": 200,
+      "h": 136
+    },
+    "scarabHit": {
+      "x": 1167,
+      "y": 49,
+      "w": 176,
+      "h": 128
+    },
+    "scarabDefeated": {
+      "x": 1346,
+      "y": 56,
+      "w": 176,
+      "h": 116
+    },
+    "snakeIdle": {
+      "x": 868,
+      "y": 234,
+      "w": 175,
+      "h": 134
+    },
+    "snakeSlither1": {
+      "x": 12,
+      "y": 409,
+      "w": 190,
+      "h": 128
+    },
+    "snakeSlither2": {
+      "x": 204,
+      "y": 409,
+      "w": 190,
+      "h": 128
+    },
+    "snakeWindup": {
+      "x": 394,
+      "y": 408,
+      "w": 192,
+      "h": 130
+    },
+    "snakeAttack": {
+      "x": 568,
+      "y": 391,
+      "w": 208,
+      "h": 150
+    },
+    "snakeHit": {
+      "x": 1102,
+      "y": 418,
+      "w": 196,
+      "h": 116
+    },
+    "snakeDefeated": {
+      "x": 1290,
+      "y": 420,
+      "w": 200,
+      "h": 112
+    },
+    "batIdle": {
+      "x": 8,
+      "y": 600,
+      "w": 202,
+      "h": 130
+    },
+    "batFlap1": {
+      "x": 206,
+      "y": 598,
+      "w": 200,
+      "h": 134
+    },
+    "batFlap2": {
+      "x": 402,
+      "y": 600,
+      "w": 200,
+      "h": 130
+    },
+    "batWindup": {
+      "x": 580,
+      "y": 596,
+      "w": 210,
+      "h": 134
+    },
+    "batAttack": {
+      "x": 744,
+      "y": 596,
+      "w": 212,
+      "h": 136
+    },
+    "batHit": {
+      "x": 922,
+      "y": 612,
+      "w": 210,
+      "h": 120
+    },
+    "batDefeated": {
+      "x": 1288,
+      "y": 612,
+      "w": 204,
+      "h": 108
+    }
+  }
+}

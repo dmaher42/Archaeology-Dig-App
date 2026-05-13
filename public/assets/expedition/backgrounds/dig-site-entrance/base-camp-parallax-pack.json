@@ -1,0 +1,42 @@
+{
+  "image": "base-camp-parallax-pack.png",
+  "source": "AI-generated Egypt/Base Camp parallax pack, cropped from the labelled preview so visible layer labels are excluded.",
+  "notes": "Atlas regions are approximate first-pass crops from the supplied sheet and may need projector-scale tuning.",
+  "regions": {
+    "skyLayer": {
+      "x": 0,
+      "y": 0,
+      "w": 1600,
+      "h": 900
+    },
+    "farBackground": {
+      "x": 0,
+      "y": 0,
+      "w": 1600,
+      "h": 900
+    },
+    "midBackground": {
+      "x": 0,
+      "y": 0,
+      "w": 1600,
+      "h": 900
+    },
+    "nearBaseCamp": {
+      "x": 0,
+      "y": 0,
+      "w": 1600,
+      "h": 900
+    },
+    "foregroundLayer": {
+      "x": 0,
+      "y": 0,
+      "w": 1600,
+      "h": 900
+    }
+  },
+  "imageWidth": 1600,
+  "imageHeight": 900,
+  "runtimeMode": "single-composited-backdrop-no-striping",
+  "coordinateNote": "Runtime composited 16:9 backdrop; legacy region keys point to the full image so existing loaders stay fallback-safe.",
+  "sourceComposite": "Generated from the section parallax source sheet to remove visible striping in gameplay."
+}

@@ -1,0 +1,12 @@
+{
+  "image": "dig-site-entrance-parallax-pack.png",
+  "source": "AI-generated Journey parallax background sheet, integrated for Dig Site Entrance / Base Camp Approach section rendering.",
+  "coordinateNote": "Coordinates are approximate first-pass crops from the supplied 1774x887 Dig Site Entrance / Base Camp Approach layered sheet.",
+  "regions": {
+    "sunsetAtmosphere": { "x": 45, "y": 38, "w": 1696, "h": 140 },
+    "farExcavationLandscape": { "x": 45, "y": 244, "w": 1696, "h": 94 },
+    "distantBaseCamp": { "x": 45, "y": 416, "w": 1696, "h": 68 },
+    "midgroundBaseCamp": { "x": 45, "y": 542, "w": 1696, "h": 144 },
+    "foregroundCampAtmosphere": { "x": 45, "y": 746, "w": 1696, "h": 104 }
+  }
+}

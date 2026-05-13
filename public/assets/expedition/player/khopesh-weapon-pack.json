@@ -1,0 +1,12 @@
+﻿{
+  "image": "khopesh-weapon-pack.png",
+  "source": "generated-khopesh-weapon-pack-upgrade-2026-05-12",
+  "size": { "w": 512, "h": 512 },
+  "coordinateNote": "Transparent runtime atlas generated for the upgraded player weapon pass. Regions include small padding around alpha bounds for smoother draw scaling.",
+  "regions": {
+    "khopeshIdle": { "x": 48, "y": 0, "w": 110, "h": 256 },
+    "khopeshWindup": { "x": 298, "y": 0, "w": 148, "h": 230 },
+    "khopeshSwing": { "x": 0, "y": 286, "w": 294, "h": 226 },
+    "khopeshReady": { "x": 316, "y": 272, "w": 196, "h": 240 }
+  }
+}

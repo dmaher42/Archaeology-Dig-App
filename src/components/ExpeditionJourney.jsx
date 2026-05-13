@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Backpack,
+  CheckCircle2,
+  ChevronDown,
   Flag,
   Gauge,
   Gem,
@@ -57,16 +59,99 @@ import {
 } from './expedition-journey/journeyUtils';
 
 import {
+  clampCameraX,
+  getCameraFollowTarget as getLayoutCameraFollowTarget,
+  getCanvasScaleState,
+  isHorizontallyVisible,
+  JOURNEY_CAMERA,
+  JOURNEY_HUD_SAFE_AREA,
+  JOURNEY_RENDER_TARGET,
+  JOURNEY_VIEWPORT,
+  JOURNEY_WORLD_LAYOUT,
+  placeGateOnGround,
+  worldToScreenX,
+} from './expedition-journey/journeyLayout';
+
+import {
   ATLAS_TUNING_VERSION,
   createEnvironmentAssetState,
+  DESERT_VISUAL_TUNING_VERSION,
   drawAtlasRegion,
   ENVIRONMENT_ATLAS_JSON,
   getEnvironmentAssetKeyForHazard,
   getEnvironmentAssetKeyForPlatform,
   getEnvironmentAssetKeyForStoryProp,
   getMissingEnvironmentAssets,
+  JOURNEY_ASSET_GROUNDING_VERSION,
   loadEnvironmentAssetPack,
 } from './expedition-journey/journeyRenderAssets';
+
+import {
+  CATACOMBS_BACKGROUND_ATLAS_JSON,
+  createDesertBackgroundAssetState,
+  DESERT_BACKGROUND_DEPTH_MODE,
+  DIG_SITE_BACKGROUND_ATLAS_JSON,
+  drawDesertBackgroundLayer,
+  ESCAPE_BACKGROUND_ATLAS_JSON,
+  getMissingSectionBackgroundAssets,
+  getSectionBackgroundAssets,
+  JOURNEY_BACKGROUND_DEPTH_MODE,
+  loadDesertBackgroundAssetPack,
+  RUINED_TEMPLE_BACKGROUND_ATLAS_JSON,
+} from './expedition-journey/journeyBackgroundAssets';
+
+import {
+  ANCIENT_CONSTRUCT_SPRITE_ATLAS_JSON,
+  BOSS_SPRITE_ATLAS_JSON,
+  BOSS_SPRITE_ATLAS_VERSION,
+  createBossSpriteState,
+  getAncientConstructDrawBox,
+  getAncientConstructSpriteFrame,
+  getBossSpritePack,
+  getGiantSerpentDrawBox,
+  getGiantSerpentSpriteFrame,
+  getMissingBossSpriteAssets,
+  getScarabQueenDrawBox,
+  getScarabQueenSpriteFrame,
+  getStoneGuardianDrawBox,
+  getStoneGuardianSpriteFrame,
+  loadBossSpritePack,
+  STONE_GUARDIAN_SPRITE_ATLAS_JSON,
+} from './expedition-journey/journeyBossSprites';
+
+import {
+  createEnemySpriteState,
+  ENEMY_SPRITE_ATLAS_JSON,
+  ENEMY_SPRITE_ATLAS_VERSION,
+  getEnemySpriteDrawBox,
+  getEnemySpriteFamily,
+  getEnemySpriteFrame,
+  getEnemySpritePack,
+  getMissingEnemySpriteAssets,
+  loadEnemySpritePack,
+} from './expedition-journey/journeyEnemySprites';
+
+import {
+  COLLECTIBLE_ATLAS_JSON,
+  COLLECTIBLE_SPRITE_ATLAS_VERSION,
+  createCollectibleSpriteState,
+  drawCollectibleAtlasRegion,
+  getMissingCollectibleSpriteAssets,
+  getObjectiveSpriteKey,
+  getToolSpriteKey,
+  getUpgradeSpriteKey,
+  loadCollectibleSpritePack,
+} from './expedition-journey/journeyCollectibleSprites';
+
+import {
+  createPlayerWeaponSpriteState,
+  drawPlayerWeaponAtlasRegion,
+  getMissingPlayerWeaponSpriteAssets,
+  getPlayerWeaponFrameKey,
+  loadPlayerWeaponSpritePack,
+  PLAYER_WEAPON_ATLAS_JSON,
+  PLAYER_WEAPON_ATLAS_VERSION,
+} from './expedition-journey/journeyPlayerWeaponSprites';
 
 const DEFAULT_BOSS_ATTACK_PHASES = [
   {
@@ -123,6 +208,104 @@ const BOSS_ATTACK_PHASES = {
   ],
 };
 
+const COMBAT_CHALLENGE_MODE = 'skill-windows-v1';
+const PLAYER_ATTACK_STAMINA_COST = 1;
+const MISSED_ATTACK_EXTRA_STAMINA_COST = 1;
+const PROTECTED_HIT_EXTRA_STAMINA_COST = 1;
+
+const DEFAULT_ENEMY_ATTACK_PATTERN = {
+  id: 'strike',
+  label: 'Strike',
+  windup: 0.38,
+  duration: 0.26,
+  cooldown: 1.35,
+  recovery: 0.38,
+  vulnerableAfter: 0.42,
+  speed: 110,
+  range: 34,
+  height: 24,
+  protectedDuringAttack: true,
+  color: '#fb923c',
+};
+
+const ENEMY_ATTACK_PATTERNS = {
+  scarab: {
+    ...DEFAULT_ENEMY_ATTACK_PATTERN,
+    id: 'charge',
+    label: 'Charge',
+    windup: 0.3,
+    duration: 0.24,
+    cooldown: 1.25,
+    recovery: 0.34,
+    vulnerableAfter: 0.42,
+    speed: 170,
+  },
+  snake: {
+    ...DEFAULT_ENEMY_ATTACK_PATTERN,
+    id: 'lunge',
+    label: 'Lunge',
+    windup: 0.46,
+    duration: 0.3,
+    cooldown: 1.45,
+    recovery: 0.46,
+    vulnerableAfter: 0.5,
+    speed: 138,
+  },
+  bat: {
+    ...DEFAULT_ENEMY_ATTACK_PATTERN,
+    id: 'swoop',
+    label: 'Swoop',
+    windup: 0.36,
+    duration: 0.32,
+    cooldown: 1.42,
+    recovery: 0.48,
+    vulnerableAfter: 0.52,
+    speed: 190,
+    range: 38,
+    height: 30,
+  },
+  guardian: {
+    ...DEFAULT_ENEMY_ATTACK_PATTERN,
+    id: 'slam',
+    label: 'Heavy Slam',
+    windup: 0.72,
+    duration: 0.4,
+    cooldown: 1.7,
+    recovery: 0.72,
+    vulnerableAfter: 0.78,
+    speed: 68,
+    range: 46,
+    height: 32,
+    shieldDuringWindup: true,
+  },
+  looter: {
+    ...DEFAULT_ENEMY_ATTACK_PATTERN,
+    id: 'dash',
+    label: 'Dash',
+    windup: 0.3,
+    duration: 0.24,
+    cooldown: 1.2,
+    recovery: 0.34,
+    vulnerableAfter: 0.38,
+    speed: 165,
+    range: 36,
+  },
+  statue: {
+    ...DEFAULT_ENEMY_ATTACK_PATTERN,
+    id: 'pulse-slam',
+    label: 'Pulse Slam',
+    windup: 0.82,
+    duration: 0.42,
+    cooldown: 1.85,
+    recovery: 0.82,
+    vulnerableAfter: 0.88,
+    speed: 56,
+    range: 48,
+    height: 34,
+    shieldDuringWindup: true,
+  },
+};
+
 const OBJECTIVE_MARKER_IDS_BY_SECTION = {
   'desert-entry': ['map-tablet'],
   'ruined-temple': ['switch-1', 'switch-2', 'switch-3'],
@@ -144,6 +327,83 @@ const OBJECTIVE_SINGULAR_LABELS = {
   catacombs: 'glyph fragment',
   'escape-sequence': 'escape marker',
   'dig-site-entrance': 'guardian seal',
+};
+
+const SECTION_MUSIC_CUES = {
+  'desert-entry': 'desert',
+  'ruined-temple': 'temple',
+  catacombs: 'catacombs',
+  'escape-sequence': 'escape',
+  'dig-site-entrance': 'baseCamp',
+};
+
+const JOURNEY_POLISH_VERSION = 'journey-polish-2026-05-11';
+const COLLECTIBLE_SCALE_TUNING_VERSION = 'journey-collectible-scale-tuning-2026-05-12';
+const RELIC_SHARD_SCALE = 0.52;
+const FIELD_TOOL_SCALE = 0.72;
+const UPGRADE_SCALE = 0.76;
+const OBJECTIVE_MARKER_SCALE = 0.78;
+const LORE_TABLET_SCALE = 0.78;
+const PICKUP_GLOW_SCALE = 0.62;
+
+const COLLECTIBLE_VISUAL_BASE = {
+  relicShard: {
+    size: Math.round(32 * RELIC_SHARD_SCALE),
+    ringSize: 0,
+    glowAlpha: 0,
+    shadowAlpha: 0.09,
+    bobAmplitude: 2,
+    sparkleAlpha: 0.1,
+    sparkleSize: 7,
+    anchorYOffset: 18,
+    nearGlowDistance: 90,
+  },
+  fieldTool: {
+    size: Math.round(46 * FIELD_TOOL_SCALE),
+    fieldGuideSize: Math.round(52 * FIELD_TOOL_SCALE),
+    ringSize: 0,
+    glowAlpha: 0,
+    shadowAlpha: 0.18,
+    bobAmplitude: 2.4,
+    sparkleAlpha: 0.22,
+    sparkleSize: 11,
+    anchorYOffset: 22,
+    nearGlowDistance: 125,
+  },
+  upgrade: {
+    size: Math.round(46 * UPGRADE_SCALE),
+    ringSize: 0,
+    glowAlpha: 0,
+    shadowAlpha: 0.16,
+    bobAmplitude: 2.2,
+    sparkleAlpha: 0.2,
+    sparkleSize: 11,
+    anchorYOffset: 22,
+    nearGlowDistance: 120,
+  },
+  objective: {
+    size: Math.round(42 * OBJECTIVE_MARKER_SCALE),
+    mapTabletSize: Math.round(48 * OBJECTIVE_MARKER_SCALE),
+    ringSize: 0,
+    glowAlpha: 0,
+    shadowAlpha: 0.17,
+    bobAmplitude: 1.8,
+    sparkleAlpha: 0.14,
+    sparkleSize: 10,
+    anchorYOffset: 22,
+    nearGlowDistance: 150,
+  },
+  loreTablet: {
+    size: Math.round(42 * LORE_TABLET_SCALE),
+    ringSize: Math.round(54 * PICKUP_GLOW_SCALE),
+    glowAlpha: 0.24,
+    shadowAlpha: 0.15,
+    bobAmplitude: 1.8,
+    sparkleAlpha: 0.12,
+    sparkleSize: 10,
+    anchorYOffset: 22,
+    nearGlowDistance: 130,
+  },
 };
 
 const GATE_HINTS = {
@@ -233,6 +493,135 @@ const HAZARD_VISUALS = {
   },
 };
 
+const HAZARD_GROUNDING = {
+  'thorn-bush': {
+    xPad: 6,
+    yOffset: 12,
+    widthPad: 12,
+    heightPad: 20,
+    shadow: 0.2,
+    dustWidth: 0.88,
+    filter: 'sepia(8%) saturate(84%) brightness(90%)',
+    warning: 'none',
+  },
+  'sand-pit': {
+    xPad: 10,
+    yOffset: 2,
+    widthPad: 20,
+    heightPad: -2,
+    shadow: 0.08,
+    dustWidth: 1.08,
+    filter: 'sepia(12%) saturate(78%) brightness(94%)',
+    warning: 'none',
+  },
+  'spike-trap': {
+    xPad: 8,
+    yOffset: 8,
+    widthPad: 16,
+    heightPad: 14,
+    shadow: 0.24,
+    dustWidth: 0.9,
+    filter: 'sepia(10%) saturate(82%) brightness(88%)',
+    warning: 'none',
+  },
+  'rolling-stones': {
+    xPad: 9,
+    yOffset: 11,
+    widthPad: 18,
+    heightPad: 15,
+    shadow: 0.26,
+    dustWidth: 0.95,
+    filter: 'sepia(8%) saturate(80%) brightness(88%)',
+    warning: 'none',
+  },
+  'falling-blocks': {
+    xPad: 10,
+    yOffset: 10,
+    widthPad: 20,
+    heightPad: 14,
+    shadow: 0.25,
+    dustWidth: 0.94,
+    filter: 'sepia(8%) saturate(78%) brightness(88%)',
+    warning: 'none',
+  },
+  'dark-gap': {
+    xPad: 8,
+    yOffset: -1,
+    widthPad: 16,
+    heightPad: -2,
+    shadow: 0.06,
+    dustWidth: 1.04,
+    filter: 'sepia(6%) saturate(70%) brightness(82%)',
+    warning: 'none',
+  },
+  'dust-wave': {
+    xPad: 8,
+    yOffset: 1,
+    widthPad: 16,
+    heightPad: 6,
+    shadow: 0.08,
+    dustWidth: 1.08,
+    filter: 'sepia(14%) saturate(72%) brightness(96%) opacity(0.78)',
+    warning: 'none',
+  },
+  'bat-cloud': {
+    xPad: 2,
+    yOffset: 0,
+    widthPad: 4,
+    heightPad: 2,
+    shadow: 0.02,
+    dustWidth: 0,
+    filter: 'saturate(72%) brightness(82%) opacity(0.74)',
+    warning: 'none',
+  },
+  'loose-slope': {
+    xPad: 9,
+    yOffset: 3,
+    widthPad: 18,
+    heightPad: 4,
+    shadow: 0.1,
+    dustWidth: 1,
+    filter: 'sepia(10%) saturate(74%) brightness(90%)',
+    warning: 'none',
+  },
+};
+
+const PROP_GROUNDING_CONFIG = {
+  ruins: { width: 104, height: 94, yOffset: 92, alpha: 0.42, depth: 'background', tint: 'dust', shadow: 0.1, dust: 0.52 },
+  camp: { width: 86, height: 58, yOffset: 18, alpha: 0.64, depth: 'background', tint: 'dust', shadow: 0.12, dust: 0.58 },
+  door: { width: 118, height: 150, yOffset: 132, alpha: 0.48, depth: 'background', tint: 'dust', shadow: 0.12, dust: 0.58 },
+  statue: { width: 70, height: 90, yOffset: 54, alpha: 0.58, depth: 'background', tint: 'stone', shadow: 0.12, dust: 0.58 },
+  bridge: { width: 168, height: 62, yOffset: 20, alpha: 0.62, depth: 'midground', tint: 'warm', shadow: 0.2, dust: 0.72 },
+  lights: { width: 42, height: 62, yOffset: 18, alpha: 0.48, depth: 'background', tint: 'cool', shadow: 0.08, dust: 0.44 },
+  banners: { width: 76, height: 48, yOffset: 28, alpha: 0.5, depth: 'background', tint: 'dust', shadow: 0.08, dust: 0.48 },
+  mural: { depth: 'background' },
+  glyphs: { depth: 'background' },
+  eyes: { depth: 'background' },
+  sign: { depth: 'midground' },
+};
+
+const getStoryPropDepth = (prop) => (
+  (PROP_GROUNDING_CONFIG[prop.type] || {}).depth || 'midground'
+);
+
+const DECORATIVE_PROP_LAYER_MODE = 'background-midground-depth-v2';
+const PROP_DEPTH_TUNING_VERSION = 'journey-decorative-depth-2026-05-12';
+
+const SECTION_PARALLAX_LAYERS = {
+  'ruined-temple': [
+    { key: 'templeSky', y: 0, height: CANVAS_HEIGHT, parallax: 0, alpha: 1 },
+  ],
+  catacombs: [
+    { key: 'undergroundAtmosphere', y: 0, height: CANVAS_HEIGHT, parallax: 0, alpha: 1 },
+  ],
+  'escape-sequence': [
+    { key: 'dangerAtmosphere', y: 0, height: CANVAS_HEIGHT, parallax: 0, alpha: 1 },
+  ],
+  'dig-site-entrance': [
+    { key: 'skyLayer', y: 0, height: CANVAS_HEIGHT, parallax: 0, alpha: 1 },
+  ],
+};
+
 const getDirectionFromPlayer = (playerX, targetX) => {
   if (targetX == null) return 'nearby';
   if (targetX < playerX - 35) return 'left';
@@ -254,24 +643,34 @@ const formatMissingSummary = (missing) => {
 const getCameraFollowTarget = (current) => {
   const playerCenterX = current.player.x + current.player.width / 2;
   if (current.bossIntroTimer > 0 && current.bossIntro?.focusX) {
-    const focusX = current.bossIntro.focusX * 0.7 + playerCenterX * 0.3;
+    return getLayoutCameraFollowTarget({
+      playerCenterX,
+      bossIntroFocusX: current.bossIntro.focusX,
+    });
+  }
+
+  const nearbyBoss = current.miniBosses?.find(boss => (
+    boss.awakened
+    && !boss.defeated
+    && Math.abs((boss.x + boss.width / 2) - playerCenterX) < 620
+  ));
+  if (nearbyBoss) {
+    const bossCenterX = nearbyBoss.x + nearbyBoss.width / 2;
+    const focusX = playerCenterX * 0.45 + bossCenterX * 0.55;
     return {
-      mode: 'boss-intro',
-      focusTarget: Math.round(current.bossIntro.focusX),
-      targetCameraX: clamp(focusX - CANVAS_WIDTH * 0.48, 0, WORLD_WIDTH - CANVAS_WIDTH),
+      mode: 'boss-focus',
+      focusTarget: Math.round(bossCenterX),
+      targetCameraX: clampCameraX(focusX - CANVAS_WIDTH * 0.5),
     };
   }
 
-  return {
-    mode: 'follow',
-    focusTarget: Math.round(playerCenterX),
-    targetCameraX: clamp(playerCenterX - CANVAS_WIDTH * 0.38, 0, WORLD_WIDTH - CANVAS_WIDTH),
-  };
+  return getLayoutCameraFollowTarget({ playerCenterX });
 };
 
 export default function ExpeditionJourney({ mission, onComplete, onSnapshotChange, audioControls }) {
   const [gameState, setGameState] = useState(makeInitialState());
   const [briefingOpen, setBriefingOpen] = useState(true);
+  const [controlsOpen, setControlsOpen] = useState(false);
   const canvasRef = useRef(null);
   const stateRef = useRef(gameState);
   const keysRef = useRef({});
@@ -279,6 +678,11 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
   const animationRef = useRef(null);
   const playerSpriteRef = useRef({ image: null, loaded: false, failed: false });
   const environmentAssetsRef = useRef(createEnvironmentAssetState());
+  const desertBackgroundAssetsRef = useRef(createDesertBackgroundAssetState());
+  const enemySpriteAssetsRef = useRef(createEnemySpriteState());
+  const bossSpriteAssetsRef = useRef(createBossSpriteState());
+  const collectibleSpriteAssetsRef = useRef(createCollectibleSpriteState());
+  const playerWeaponSpriteRef = useRef(createPlayerWeaponSpriteState());
 
   // Sync ref for the physics loop
   useEffect(() => {
@@ -288,6 +692,21 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
   const syncHud = useCallback(() => {
     setGameState({ ...stateRef.current });
   }, []);
+
+  const currentMusicCue = (() => {
+    const current = gameState;
+    const section = getSectionForX(current.player.x);
+    const activeMiniBoss = current.miniBosses.some(boss => (
+      boss.awakened && !boss.defeated && Math.abs(boss.x - current.player.x) < 520
+    ));
+    if (activeMiniBoss) return 'boss';
+    return SECTION_MUSIC_CUES[section.id] || 'desert';
+  })();
+
+  useEffect(() => {
+    if (briefingOpen) return;
+    audioControls?.playExpeditionMusic?.(currentMusicCue);
+  }, [audioControls, briefingOpen, currentMusicCue]);
 
   useEffect(() => {
     let cancelled = false;
@@ -314,6 +733,46 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     baseUrl: import.meta.env.BASE_URL,
     onUpdate: (assets) => {
       environmentAssetsRef.current = assets;
+      syncHud();
+    },
+  }), [syncHud]);
+
+  useEffect(() => loadDesertBackgroundAssetPack({
+    baseUrl: import.meta.env.BASE_URL,
+    onUpdate: (assets) => {
+      desertBackgroundAssetsRef.current = assets;
+      syncHud();
+    },
+  }), [syncHud]);
+
+  useEffect(() => loadEnemySpritePack({
+    baseUrl: import.meta.env.BASE_URL,
+    onUpdate: (assets) => {
+      enemySpriteAssetsRef.current = assets;
+      syncHud();
+    },
+  }), [syncHud]);
+
+  useEffect(() => loadBossSpritePack({
+    baseUrl: import.meta.env.BASE_URL,
+    onUpdate: (assets) => {
+      bossSpriteAssetsRef.current = assets;
+      syncHud();
+    },
+  }), [syncHud]);
+
+  useEffect(() => loadCollectibleSpritePack({
+    baseUrl: import.meta.env.BASE_URL,
+    onUpdate: (assets) => {
+      collectibleSpriteAssetsRef.current = assets;
+      syncHud();
+    },
+  }), [syncHud]);
+
+  useEffect(() => loadPlayerWeaponSpritePack({
+    baseUrl: import.meta.env.BASE_URL,
+    onUpdate: (assets) => {
+      playerWeaponSpriteRef.current = assets;
       syncHud();
     },
   }), [syncHud]);
@@ -558,6 +1017,10 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     return phases.find(phase => phase.id === boss.attackPattern) || phases[boss.attackCycleIndex % phases.length] || phases[0];
   }, []);
 
+  const getEnemyPatternConfig = useCallback((enemy) => (
+    ENEMY_ATTACK_PATTERNS[enemy.type] || DEFAULT_ENEMY_ATTACK_PATTERN
+  ), []);
+
   const getBossVulnerabilityState = useCallback((boss) => {
     const phase = getBossPhaseConfig(boss);
     const shielded = boss.shieldTimer > 0 || (boss.attackWindup > 0 && phase?.shieldDuringWindup);
@@ -584,16 +1047,67 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     stunned: entity.stunTimer > 0,
     defeated: Boolean(entity.defeated),
     recovery: Number((entity.attackRecovery || 0).toFixed(2)),
+    vulnerable: Boolean(entity.vulnerabilityTimer > 0 || entity.attackRecovery > 0 || entity.stunTimer > 0),
+    shielded: Boolean(entity.shieldTimer > 0),
+    counterWindow: Number((entity.vulnerabilityTimer || 0).toFixed(2)),
     pattern: entity.attackPattern || null,
+    patternLabel: entity.attackPhaseLabel || null,
   }), [getCombatMode]);
 
   const createJourneySnapshot = useCallback((current = stateRef.current) => {
     const section = getSectionForX(current.player.x);
     const objective = getObjectiveProgress(section.id, current);
     const activeMiniBoss = current.miniBosses.find(boss => boss.awakened && !boss.defeated && Math.abs(boss.x - current.player.x) < 520);
+    const nearbyCombatEnemy = current.enemies
+      .filter(enemy => !enemy.defeated && Math.abs(enemy.x - current.player.x) < 520)
+      .sort((a, b) => Math.abs(a.x - current.player.x) - Math.abs(b.x - current.player.x))[0] || null;
+    const activeEnemyCounterWindow = current.enemies.find(enemy => !enemy.defeated && (enemy.vulnerabilityTimer > 0 || enemy.attackRecovery > 0));
+    const activeBossCounterWindow = current.miniBosses.find(boss => !boss.defeated && (boss.vulnerabilityTimer > 0 || boss.attackRecovery > 0));
     const environmentAssets = environmentAssetsRef.current;
     const missingEnvironmentAssets = getMissingEnvironmentAssets(environmentAssets);
     const environmentFallbackActive = !environmentAssets.loaded || environmentAssets.failed || missingEnvironmentAssets.length > 0;
+    const desertBackgroundAssets = desertBackgroundAssetsRef.current;
+    const desertPack = getSectionBackgroundAssets(desertBackgroundAssets, 'desert-entry');
+    const ruinedTemplePack = getSectionBackgroundAssets(desertBackgroundAssets, 'ruined-temple');
+    const catacombsPack = getSectionBackgroundAssets(desertBackgroundAssets, 'catacombs');
+    const escapePack = getSectionBackgroundAssets(desertBackgroundAssets, 'escape-sequence');
+    const digSitePack = getSectionBackgroundAssets(desertBackgroundAssets, 'dig-site-entrance');
+    const missingDesertBackgroundAssets = getMissingSectionBackgroundAssets(desertBackgroundAssets, 'desert-entry');
+    const missingRuinedTempleBackgroundAssets = getMissingSectionBackgroundAssets(desertBackgroundAssets, 'ruined-temple');
+    const missingCatacombsBackgroundAssets = getMissingSectionBackgroundAssets(desertBackgroundAssets, 'catacombs');
+    const missingEscapeBackgroundAssets = getMissingSectionBackgroundAssets(desertBackgroundAssets, 'escape-sequence');
+    const missingDigSiteBackgroundAssets = getMissingSectionBackgroundAssets(desertBackgroundAssets, 'dig-site-entrance');
+    const desertBackgroundFallbackActive = !desertPack?.loaded
+      || desertPack.failed
+      || missingDesertBackgroundAssets.length > 0;
+    const ruinedTempleBackgroundFallbackActive = !ruinedTemplePack?.loaded
+      || ruinedTemplePack.failed
+      || missingRuinedTempleBackgroundAssets.length > 0;
+    const catacombsBackgroundFallbackActive = !catacombsPack?.loaded
+      || catacombsPack.failed
+      || missingCatacombsBackgroundAssets.length > 0;
+    const escapeBackgroundFallbackActive = !escapePack?.loaded
+      || escapePack.failed
+      || missingEscapeBackgroundAssets.length > 0;
+    const digSiteBackgroundFallbackActive = !digSitePack?.loaded
+      || digSitePack.failed
+      || missingDigSiteBackgroundAssets.length > 0;
+    const enemySpriteAssets = enemySpriteAssetsRef.current;
+    const missingEnemySpriteAssets = getMissingEnemySpriteAssets(enemySpriteAssets);
+    const enemySpriteFallbackActive = !enemySpriteAssets.loaded || enemySpriteAssets.failed || missingEnemySpriteAssets.length > 0;
+    const bossSpriteAssets = bossSpriteAssetsRef.current;
+    const missingBossSpriteAssets = getMissingBossSpriteAssets(bossSpriteAssets);
+    const bossSpriteFallbackActive = !bossSpriteAssets.loaded || bossSpriteAssets.failed || missingBossSpriteAssets.length > 0;
+    const collectibleSpriteAssets = collectibleSpriteAssetsRef.current;
+    const missingCollectibleSpriteAssets = getMissingCollectibleSpriteAssets(collectibleSpriteAssets);
+    const collectibleSpriteFallbackActive = !collectibleSpriteAssets.loaded
+      || collectibleSpriteAssets.failed
+      || missingCollectibleSpriteAssets.length > 0;
+    const playerWeaponAssets = playerWeaponSpriteRef.current;
+    const missingPlayerWeaponSpriteAssets = getMissingPlayerWeaponSpriteAssets(playerWeaponAssets);
+    const playerWeaponSpriteFallbackActive = !playerWeaponAssets.loaded
+      || playerWeaponAssets.failed
+      || missingPlayerWeaponSpriteAssets.length > 0;
     const renderStats = current.renderStats || {};
     const playerAttackBox = current.playerAttackBox
       ? {
@@ -607,6 +1121,12 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     return {
       stage: 'journey',
       coordinateSystem: 'origin top-left, x right, y down',
+      viewport: JOURNEY_VIEWPORT,
+      renderTarget: JOURNEY_RENDER_TARGET,
+      worldLayout: JOURNEY_WORLD_LAYOUT,
+      cameraLayout: JOURNEY_CAMERA,
+      hudSafeArea: JOURNEY_HUD_SAFE_AREA,
+      canvasScaleState: getCanvasScaleState(canvasRef.current),
       player: {
         x: Math.round(current.player.x),
         y: Math.round(current.player.y),
@@ -627,11 +1147,125 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       platformArtMode: environmentAssets.loaded ? 'atlas' : 'canvas-fallback',
       hazardArtMode: environmentAssets.loaded ? 'atlas' : 'canvas-fallback',
       gateArtMode: environmentAssets.loaded ? 'atlas' : 'canvas-fallback',
+      assetGroundingPassActive: true,
+      assetGroundingVersion: JOURNEY_ASSET_GROUNDING_VERSION,
+      groundedPropCount: renderStats.groundedPropCount || 0,
+      backgroundPropTintActive: Boolean(renderStats.backgroundPropTintActive),
+      platformGroundingMode: renderStats.platformGroundingMode || 'contact-shadow-ledges',
+      propDrawOrderMode: renderStats.propDrawOrderMode || DECORATIVE_PROP_LAYER_MODE,
+      decorativePropLayerMode: renderStats.decorativePropLayerMode || DECORATIVE_PROP_LAYER_MODE,
+      propDepthTuningVersion: renderStats.propDepthTuningVersion || PROP_DEPTH_TUNING_VERSION,
+      floatingAssetWarnings: renderStats.floatingAssetWarnings || [],
+      desertBackgroundAssetsLoaded: Boolean(desertPack?.loaded),
+      desertBackgroundAssetsReady: Boolean(desertPack?.ready),
+      desertBackgroundFallbackActive,
+      ruinedTempleBackgroundAssetsLoaded: Boolean(ruinedTemplePack?.loaded),
+      ruinedTempleBackgroundAssetsReady: Boolean(ruinedTemplePack?.ready),
+      ruinedTempleBackgroundFallbackActive,
+      ruinedTempleBackgroundAtlasPath: RUINED_TEMPLE_BACKGROUND_ATLAS_JSON,
+      catacombsBackgroundAssetsLoaded: Boolean(catacombsPack?.loaded),
+      catacombsBackgroundAssetsReady: Boolean(catacombsPack?.ready),
+      catacombsBackgroundFallbackActive,
+      catacombsBackgroundAtlasPath: CATACOMBS_BACKGROUND_ATLAS_JSON,
+      escapeBackgroundAssetsLoaded: Boolean(escapePack?.loaded),
+      escapeBackgroundAssetsReady: Boolean(escapePack?.ready),
+      escapeBackgroundFallbackActive,
+      escapeBackgroundAtlasPath: ESCAPE_BACKGROUND_ATLAS_JSON,
+      digSiteBackgroundAssetsLoaded: Boolean(digSitePack?.loaded),
+      digSiteBackgroundAssetsReady: Boolean(digSitePack?.ready),
+      digSiteBackgroundFallbackActive,
+      digSiteBackgroundAtlasPath: DIG_SITE_BACKGROUND_ATLAS_JSON,
+      baseCampBackgroundAssetsLoaded: Boolean(digSitePack?.loaded),
+      baseCampBackgroundAssetsReady: Boolean(digSitePack?.ready),
+      baseCampBackgroundFallbackActive: digSiteBackgroundFallbackActive,
+      enemySpritesLoaded: enemySpriteAssets.loaded,
+      enemySpriteFallbackActive,
+      enemySpriteAtlasPath: ENEMY_SPRITE_ATLAS_JSON,
+      enemySpriteAtlasVersion: ENEMY_SPRITE_ATLAS_VERSION,
+      missingEnemySpriteAssets,
+      visibleEnemySpriteFamilies: renderStats.visibleEnemySpriteFamilies || [],
+      enemySpriteFrameStates: renderStats.enemySpriteFrameStates || [],
+      bossSpritesLoaded: bossSpriteAssets.loaded,
+      bossSpriteFallbackActive,
+      bossSpriteAtlasPath: BOSS_SPRITE_ATLAS_JSON,
+      bossSpriteAtlasVersion: BOSS_SPRITE_ATLAS_VERSION,
+      missingBossSpriteAssets,
+      activeBossSprite: renderStats.activeBossSprite || null,
+      activeBossSpriteFrame: renderStats.activeBossSpriteFrame || null,
+      activeBossAnimationState: renderStats.activeBossAnimationState || null,
+      stoneGuardianSpriteLoaded: Boolean(bossSpriteAssets.packs?.['temple-guardian']?.loaded),
+      stoneGuardianSpriteFrame: renderStats.stoneGuardianSpriteFrame || null,
+      stoneGuardianSpriteAtlasPath: STONE_GUARDIAN_SPRITE_ATLAS_JSON,
+      ancientConstructSpriteLoaded: Boolean(bossSpriteAssets.packs?.['ancient-construct']?.loaded),
+      ancientConstructSpriteFrame: renderStats.ancientConstructSpriteFrame || null,
+      ancientConstructSpriteAtlasPath: ANCIENT_CONSTRUCT_SPRITE_ATLAS_JSON,
+      collectibleSpritesLoaded: Boolean(collectibleSpriteAssets.loaded),
+      collectibleSpritesReady: Boolean(collectibleSpriteAssets.ready),
+      collectibleSpriteFallbackActive,
+      collectibleSpriteAtlasPath: collectibleSpriteAssets.atlasPath || COLLECTIBLE_ATLAS_JSON,
+      collectibleSpriteAtlasVersion: COLLECTIBLE_SPRITE_ATLAS_VERSION,
+      missingCollectibleSpriteAssets,
+      visibleToolSprites: renderStats.visibleToolSprites || [],
+      visibleShardSprites: renderStats.visibleShardSprites || [],
+      visibleUpgradeSprites: renderStats.visibleUpgradeSprites || [],
+      visibleObjectiveSprites: renderStats.visibleObjectiveSprites || [],
+      visibleCollectibleCount: renderStats.visibleCollectibleCount || 0,
+      collectibleScaleTuningVersion: COLLECTIBLE_SCALE_TUNING_VERSION,
+      relicShardScale: RELIC_SHARD_SCALE,
+      fieldToolScale: FIELD_TOOL_SCALE,
+      upgradeScale: UPGRADE_SCALE,
+      objectiveMarkerScale: OBJECTIVE_MARKER_SCALE,
+      loreTabletScale: LORE_TABLET_SCALE,
+      pickupGlowScale: PICKUP_GLOW_SCALE,
+      collectibleVisualMode: renderStats.collectibleVisualMode || (collectibleSpriteAssets.loaded ? 'sprite-atlas-with-fallback' : 'canvas-fallback'),
+      playerWeaponSpriteLoaded: Boolean(playerWeaponAssets.loaded),
+      playerWeaponSpriteReady: Boolean(playerWeaponAssets.ready),
+      playerWeaponSpriteFallbackActive,
+      playerWeaponAtlasPath: playerWeaponAssets.atlasPath || PLAYER_WEAPON_ATLAS_JSON,
+      playerWeaponAtlasVersion: PLAYER_WEAPON_ATLAS_VERSION,
+      missingPlayerWeaponSpriteAssets,
+      playerWeaponFrame: renderStats.playerWeaponFrame || getPlayerWeaponFrameKey(getPlayerAttackState(current)),
+      playerWeaponVisualMode: renderStats.playerWeaponVisualMode || (playerWeaponAssets.loaded ? 'khopesh-sprite-atlas' : 'canvas-fallback'),
+      parallaxLayersActive: Boolean(renderStats.parallaxLayersActive),
+      activeBackgroundSection: renderStats.activeBackgroundSection || null,
+      backgroundDepthMode: renderStats.backgroundDepthMode || 'canvas-fallback',
       visibleLabelCount: renderStats.visibleLabelCount || 0,
       labelSuppressionActive: Boolean(renderStats.labelSuppressionActive),
+      platformVisualTuningActive: Boolean(renderStats.platformVisualTuningActive),
+      journeyPolishPassActive: Boolean(renderStats.journeyPolishPassActive),
+      journeyPolishVersion: renderStats.journeyPolishVersion || JOURNEY_POLISH_VERSION,
+      hazardReadabilityMode: renderStats.hazardReadabilityMode || 'soft-warning-cues',
+      enemyVisualMode: renderStats.enemyVisualMode || 'sprite-atlas-with-grounding',
+      bossVisualMode: renderStats.bossVisualMode || 'multi-boss-atlas-fallback-safe',
+      assetFallbackActive: environmentFallbackActive || enemySpriteFallbackActive || bossSpriteFallbackActive || collectibleSpriteFallbackActive || playerWeaponSpriteFallbackActive || desertBackgroundFallbackActive || ruinedTempleBackgroundFallbackActive || catacombsBackgroundFallbackActive || escapeBackgroundFallbackActive || digSiteBackgroundFallbackActive,
+      desertVisualTuningVersion: DESERT_VISUAL_TUNING_VERSION,
       atlasTuningVersion: ATLAS_TUNING_VERSION,
       activeAtlasRegionIssues: missingEnvironmentAssets,
       playerAttackBox,
+      combatChallengeMode: COMBAT_CHALLENGE_MODE,
+      playerAttackStaminaCost: current.playerAttackStaminaCost || 0,
+      lastAttackResult: current.lastAttackResult || 'ready',
+      shieldedHitFeedback: current.shieldedHitFeedback || '',
+      activeEnemyCounterWindow: activeEnemyCounterWindow ? {
+        id: activeEnemyCounterWindow.id,
+        name: activeEnemyCounterWindow.name,
+        pattern: activeEnemyCounterWindow.attackPattern,
+        time: Number(Math.max(activeEnemyCounterWindow.vulnerabilityTimer || 0, activeEnemyCounterWindow.attackRecovery || 0).toFixed(2)),
+      } : null,
+      activeBossCounterWindow: activeBossCounterWindow ? {
+        id: activeBossCounterWindow.id,
+        name: activeBossCounterWindow.name,
+        pattern: activeBossCounterWindow.attackPattern,
+        time: Number(Math.max(activeBossCounterWindow.vulnerabilityTimer || 0, activeBossCounterWindow.attackRecovery || 0).toFixed(2)),
+      } : null,
+      currentEnemyPattern: nearbyCombatEnemy ? {
+        id: nearbyCombatEnemy.id,
+        name: nearbyCombatEnemy.name,
+        type: nearbyCombatEnemy.type,
+        pattern: nearbyCombatEnemy.attackPattern,
+        label: nearbyCombatEnemy.attackPhaseLabel || getEnemyPatternConfig(nearbyCombatEnemy).label,
+        state: getCombatMode(nearbyCombatEnemy),
+      } : null,
       playerInvulnerable: Number(current.player.invulnerable.toFixed(2)),
       invulnerabilityRemainingMs: Math.round(current.player.invulnerable * 1000),
       damageCooldownRemainingMs: Math.round(current.player.damageCooldownTimer * 1000),
@@ -647,9 +1281,18 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       targetCameraX: Math.round(current.targetCameraX),
       playerWorldX: Math.round(current.player.x),
       playerScreenX: Math.round(current.player.x - current.cameraX),
+      playerGroundedState: {
+        onGround: current.player.onGround,
+        expectedGroundY: JOURNEY_WORLD_LAYOUT.groundY,
+        playerFootY: Math.round(current.player.y + current.player.height),
+      },
       currentSection: section.name,
       cameraMode: current.cameraMode,
       cameraFocusTarget: current.cameraFocusTarget,
+      cameraBounds: {
+        min: 0,
+        max: WORLD_WIDTH - CANVAS_WIDTH,
+      },
       cameraShakeActive: current.cameraShakeTimer > 0,
       activeHazardsNearPlayer: getActiveHazardsNearPlayer(current),
       lastHazardHit: current.lastHazardHit,
@@ -716,6 +1359,8 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         lastDamage: current.player.lastDamage || 0,
         lastDamageSource: current.player.lastDamageSource,
         lastDamageTime: current.player.lastDamageTime,
+        lastAttackResult: current.lastAttackResult || 'ready',
+        attackStaminaCost: current.playerAttackStaminaCost || 0,
       },
       combatHitEffects: current.combatHitEffects.map(effect => ({
         type: effect.type,
@@ -745,6 +1390,21 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
           x: Math.round(enemy.x),
           ...getEntityCombatState(enemy),
         })),
+      enemyCombatStates: current.enemies
+        .filter(enemy => Math.abs(enemy.x - current.player.x) < 700 || current.defeatedEnemies.has(enemy.id))
+        .map(enemy => ({
+          id: enemy.id,
+          name: enemy.name,
+          type: enemy.type,
+          pattern: enemy.attackPattern,
+          label: enemy.attackPhaseLabel || getEnemyPatternConfig(enemy).label,
+          state: getCombatMode(enemy),
+          windup: Number((enemy.attackWindup || 0).toFixed(2)),
+          attack: Number((enemy.attackTimer || 0).toFixed(2)),
+          recovery: Number((enemy.attackRecovery || 0).toFixed(2)),
+          counterWindow: Number((enemy.vulnerabilityTimer || 0).toFixed(2)),
+          shielded: Boolean(enemy.shieldTimer > 0),
+        })),
       miniBossStates: current.miniBosses.map(boss => ({
         id: boss.id,
         name: boss.name,
@@ -763,6 +1423,11 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
           id: gate.id,
           name: gate.name,
           distance: Math.round(gate.x - current.player.x),
+          gateGroundedState: {
+            expectedGroundY: JOURNEY_WORLD_LAYOUT.groundY,
+            visualFootY: JOURNEY_WORLD_LAYOUT.groundY,
+            authoredY: Math.round(gate.y),
+          },
           requirements,
           complete: requirements.every(req => req.met),
           summary: `${requirements.filter(req => req.met).length}/${requirements.length} ready`,
@@ -796,7 +1461,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       failureReason: current.failureReason,
       notice: current.notice,
     };
-  }, [briefingOpen, getActiveHazardsNearPlayer, getBossVulnerabilityState, getEntityCombatState, getGateGuidance, getObjectiveProgress, getPlayerAttackState, getStaminaWarningState]);
+  }, [briefingOpen, getActiveHazardsNearPlayer, getBossVulnerabilityState, getCombatMode, getEnemyPatternConfig, getEntityCombatState, getGateGuidance, getObjectiveProgress, getPlayerAttackState, getStaminaWarningState]);
 
   // --- Rendering Helpers ---
   const drawFieldNoteLabel = useCallback((ctx, x, y, text, color) => {
@@ -819,6 +1484,177 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     ctx.restore();
   }, []);
 
+  const drawContactShadow = useCallback((ctx, x, y, width, intensity = 0.28, blur = 0) => {
+    ctx.save();
+    ctx.globalAlpha = intensity;
+    ctx.fillStyle = '#1f1308';
+    if (blur > 0) ctx.filter = `blur(${blur}px)`;
+    ctx.beginPath();
+    ctx.ellipse(x, y, Math.max(16, width / 2), Math.max(4, width / 16), 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }, []);
+
+  const drawGroundDustLip = useCallback((ctx, x, y, width, color = 'rgba(210, 160, 92, 0.28)') => {
+    ctx.save();
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.ellipse(x, y, Math.max(18, width / 2.4), Math.max(3, width / 24), 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }, []);
+
+  const drawHazardGroundApron = useCallback((ctx, x, y, width, sectionId, intensity = 1) => {
+    const sandColor = sectionId === 'catacombs'
+      ? 'rgba(74, 58, 42, 0.34)'
+      : sectionId === 'escape-sequence'
+        ? 'rgba(123, 72, 34, 0.34)'
+        : 'rgba(185, 119, 55, 0.34)';
+    const highlight = sectionId === 'catacombs'
+      ? 'rgba(156, 125, 86, 0.24)'
+      : 'rgba(226, 162, 83, 0.28)';
+    ctx.save();
+    ctx.globalAlpha = 0.85 * intensity;
+    ctx.fillStyle = sandColor;
+    ctx.beginPath();
+    ctx.ellipse(x, y, Math.max(24, width / 2.05), Math.max(5, width / 18), 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 0.7 * intensity;
+    ctx.strokeStyle = highlight;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x - width * 0.36, y - 2);
+    ctx.quadraticCurveTo(x - width * 0.08, y + 4, x + width * 0.22, y - 1);
+    ctx.quadraticCurveTo(x + width * 0.34, y - 4, x + width * 0.44, y + 1);
+    ctx.stroke();
+    ctx.restore();
+  }, []);
+
+  const drawDecorativeBaseBlend = useCallback((ctx, x, y, width, sectionId, depth = 'background', intensity = 1) => {
+    const base = sectionId === 'catacombs'
+      ? 'rgba(46, 37, 30, 0.36)'
+      : sectionId === 'escape-sequence'
+        ? 'rgba(112, 66, 33, 0.3)'
+        : sectionId === 'dig-site-entrance'
+          ? 'rgba(177, 120, 61, 0.24)'
+          : 'rgba(170, 111, 52, 0.28)';
+    const highlight = depth === 'background'
+      ? 'rgba(228, 171, 98, 0.12)'
+      : 'rgba(235, 178, 94, 0.2)';
+    ctx.save();
+    ctx.globalAlpha = intensity;
+    ctx.fillStyle = base;
+    ctx.beginPath();
+    ctx.ellipse(x, y, Math.max(18, width / 2.25), Math.max(4, width / 22), 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha *= 0.82;
+    ctx.strokeStyle = highlight;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(x - width * 0.32, y - 1);
+    ctx.quadraticCurveTo(x - width * 0.08, y + 3, x + width * 0.24, y);
+    ctx.stroke();
+    ctx.restore();
+  }, []);
+
+  const drawSectionTransitionBlend = useCallback((ctx, cameraX) => {
+    SECTIONS.slice(1).forEach((section) => {
+      const x = section.start - cameraX;
+      if (x < -140 || x > CANVAS_WIDTH + 140) return;
+      const previousSection = getSectionForX(section.start - 1);
+      const fromColor = previousSection.id === 'catacombs'
+        ? 'rgba(55, 42, 30, 0.34)'
+        : previousSection.id === 'escape-sequence'
+          ? 'rgba(126, 74, 35, 0.3)'
+          : 'rgba(177, 115, 54, 0.24)';
+      const toColor = section.id === 'catacombs'
+        ? 'rgba(55, 42, 30, 0.34)'
+        : section.id === 'escape-sequence'
+          ? 'rgba(126, 74, 35, 0.3)'
+          : 'rgba(177, 115, 54, 0.24)';
+      const gradient = ctx.createLinearGradient(x - 92, 0, x + 92, 0);
+      gradient.addColorStop(0, 'rgba(0,0,0,0)');
+      gradient.addColorStop(0.35, fromColor);
+      gradient.addColorStop(0.65, toColor);
+      gradient.addColorStop(1, 'rgba(0,0,0,0)');
+
+      ctx.save();
+      ctx.fillStyle = gradient;
+      ctx.fillRect(x - 96, GROUND_Y - 18, 192, CANVAS_HEIGHT - GROUND_Y + 28);
+      drawGroundDustLip(ctx, x, GROUND_Y + 2, 150, 'rgba(216, 154, 82, 0.22)');
+      ctx.globalAlpha = 0.42;
+      ctx.fillStyle = section.id === 'catacombs' ? '#5b4630' : '#b87835';
+      ctx.beginPath();
+      ctx.ellipse(x - 28, GROUND_Y + 3, 34, 5, -0.12, 0, Math.PI * 2);
+      ctx.ellipse(x + 36, GROUND_Y + 4, 42, 6, 0.08, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    });
+  }, [drawGroundDustLip]);
+
+  const drawPlayerWeaponFallback = useCallback((ctx, attackState, direction, scale = 1) => {
+    const attacking = attackState === 'swing';
+    const reach = attackState === 'windup' ? 11 : attacking ? 32 : attackState === 'recoil' ? 14 : 18;
+    const lift = attacking ? -10 : attackState === 'windup' ? 4 : -2;
+    ctx.save();
+    ctx.strokeStyle = '#facc15';
+    ctx.lineWidth = (attacking ? 5 : 3) * scale;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(direction * reach * scale, lift * scale);
+    ctx.stroke();
+    ctx.fillStyle = '#fff7ad';
+    ctx.beginPath();
+    ctx.arc(direction * (reach + 2) * scale, lift * scale, (attacking ? 4 : 3) * scale, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }, []);
+
+  const drawPlayerKhopesh = useCallback((ctx, anchorX, anchorY, attackState, direction = 1, scale = 1) => {
+    const assets = playerWeaponSpriteRef.current;
+    const frameKey = getPlayerWeaponFrameKey(attackState);
+    const ready = assets.loaded && assets.image && assets.atlas?.regions?.[frameKey];
+
+    if (!ready) {
+      drawPlayerWeaponFallback(ctx, attackState, direction, scale);
+      return false;
+    }
+
+    const frameConfig = {
+      khopeshIdle: { x: -5, y: -22, width: 14, height: 40, rotate: -0.1, alpha: 0.92 },
+      khopeshWindup: { x: -7, y: -28, width: 30, height: 42, rotate: -0.72, alpha: 1 },
+      khopeshSwing: { x: 2, y: -39, width: 64, height: 48, rotate: 0.08, alpha: 0.94 },
+      khopeshReady: { x: -5, y: -20, width: 14, height: 40, rotate: 0.2, alpha: 0.9 },
+    }[frameKey] || { x: 0, y: -24, width: 17, height: 48, rotate: 0, alpha: 1 };
+
+    ctx.save();
+    ctx.translate(anchorX, anchorY);
+    if (direction < 0) ctx.scale(-1, 1);
+    ctx.rotate(frameConfig.rotate);
+    ctx.globalAlpha *= frameConfig.alpha;
+    ctx.shadowColor = attackState === 'swing' ? 'rgba(250, 204, 21, 0.72)' : 'rgba(0, 0, 0, 0.28)';
+    ctx.shadowBlur = attackState === 'swing' ? 12 : 4;
+    const drawn = drawPlayerWeaponAtlasRegion(
+      ctx,
+      assets,
+      frameKey,
+      {
+        x: frameConfig.x * scale,
+        y: frameConfig.y * scale,
+        width: frameConfig.width * scale,
+        height: frameConfig.height * scale,
+      },
+    );
+    ctx.restore();
+
+    if (drawn && stateRef.current.renderStats) {
+      stateRef.current.renderStats.playerWeaponFrame = frameKey;
+      stateRef.current.renderStats.playerWeaponVisualMode = 'khopesh-sprite-atlas';
+    }
+    return drawn;
+  }, [drawPlayerWeaponFallback]);
+
   const drawPlayerFallbackCharacter = useCallback((ctx, x, y, w, h, direction, invuln, now) => {
     ctx.save();
     if (invuln > 0 && Math.floor(now / 100) % 2 === 0) ctx.globalAlpha = 0.3;
@@ -826,7 +1662,6 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     const bob = Math.sin(now / 150) * 2;
     const legSwing = Math.sin(now / 100) * 8;
     const attackState = getPlayerAttackState(stateRef.current);
-    const attacking = attackState === 'swing';
     const attackLean = attackState === 'windup'
       ? -direction * 3
       : attackState === 'swing'
@@ -905,19 +1740,9 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     ctx.roundRect(x + attackLean + (direction > 0 ? 20 : 0), y + 18 + bob, 10, 8, 2);
     ctx.fill();
 
-    // Field tool in hand
-    const handX = x + attackLean + (direction > 0 ? 27 : 3);
-    const reach = attackState === 'windup' ? 8 : attacking ? 28 : attackState === 'recoil' ? 10 : 12;
-    ctx.strokeStyle = '#facc15';
-    ctx.lineWidth = attacking ? 5 : 3;
-    ctx.beginPath();
-    ctx.moveTo(handX, y + 17 + bob);
-    ctx.lineTo(handX + direction * reach, y + (attacking ? 6 : attackState === 'windup' ? 20 : 12) + bob);
-    ctx.stroke();
-    ctx.fillStyle = '#fff7ad';
-    ctx.beginPath();
-    ctx.arc(handX + direction * (reach + 2), y + (attacking ? 6 : 11) + bob, attacking ? 4 : 3, 0, Math.PI * 2);
-    ctx.fill();
+    // Weapon in hand
+    const handX = x + attackLean + (direction > 0 ? 24 : 4);
+    drawPlayerKhopesh(ctx, handX, y + 19 + bob, attackState, direction, 0.9);
 
     // Legs and boots
     const moving = Math.abs(stateRef.current.player.vx) > 0.1;
@@ -939,7 +1764,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     }
     
     ctx.restore();
-  }, [getPlayerAttackState]);
+  }, [drawPlayerKhopesh, getPlayerAttackState]);
 
   const drawPlayerSprite = useCallback((ctx, x, y, w, h, direction, invuln, now) => {
     const sprite = playerSpriteRef.current;
@@ -989,18 +1814,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       drawHeight,
     );
 
-    if (attackState !== 'ready' && attackState !== 'cooldown') {
-      const handX = drawWidth * 0.42;
-      const handY = -drawHeight * 0.56;
-      const reach = attackState === 'swing' ? 28 : attackState === 'windup' ? 12 : 18;
-      ctx.strokeStyle = '#facc15';
-      ctx.lineWidth = attackState === 'swing' ? 5 : 3;
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      ctx.moveTo(handX, handY);
-      ctx.lineTo(handX + reach, handY - (attackState === 'swing' ? 10 : 2));
-      ctx.stroke();
-    }
+    drawPlayerKhopesh(ctx, drawWidth * 0.34, -drawHeight * 0.54, attackState, 1, 0.9);
 
     ctx.restore();
 
@@ -1012,11 +1826,11 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       ctx.fillText('!', x + w / 2, y - 18);
       ctx.restore();
     }
-  }, [drawPlayerFallbackCharacter, getPlayerAttackState]);
+  }, [drawPlayerFallbackCharacter, drawPlayerKhopesh, getPlayerAttackState]);
 
   const drawPlatform = useCallback((ctx, platform, cameraX, current) => {
-    const x = platform.x - cameraX;
-    if (x + platform.width < -50 || x > CANVAS_WIDTH + 50) return;
+    const x = worldToScreenX(platform.x, cameraX);
+    if (!isHorizontallyVisible(platform.x, platform.width, cameraX, 50)) return;
 
     ctx.save();
     if (platform.secret && !current.collectedUpgrades.has('ancient-compass')) {
@@ -1026,24 +1840,63 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     const isGround = platform.y === GROUND_Y;
     const section = getSectionForX(platform.x);
     const assetKey = getEnvironmentAssetKeyForPlatform(platform, section.id);
+    const visualHeight = isGround ? platform.height : Math.max(platform.height + 10, 28);
+    const visualY = platform.y;
+    const platformX = x - 2;
+    const platformWidth = platform.width + 4;
     ctx.fillStyle = isGround
       ? section.id === 'catacombs'
         ? '#2b211a'
         : '#9b7140'
       : '#5f4229';
-    ctx.fillRect(x - 1, platform.y, platform.width + 2, platform.height);
+    if (!isGround) {
+      drawContactShadow(ctx, x + platform.width / 2, platform.y + visualHeight + 5, platform.width * 0.94, 0.32, 1.5);
+      ctx.fillStyle = 'rgba(30, 18, 8, 0.34)';
+      ctx.fillRect(platformX, visualY + visualHeight - 8, platformWidth, 8);
+    }
+    ctx.fillStyle = isGround ? '#9b7140' : '#5f4229';
+    ctx.fillRect(platformX, visualY, platformWidth, visualHeight);
     const assetDrawn = drawAtlasRegion(
       ctx,
       environmentAssetsRef.current,
       assetKey,
-      { x: x - 1, y: platform.y, width: platform.width + 2, height: platform.height },
-      { mode: 'tileX', sourceInset: isGround ? 18 : 12, sourceInsetY: isGround ? 3 : 0, overlap: 2.5, tileScale: isGround ? 1.2 : 1 },
+      { x: platformX, y: visualY, width: platformWidth, height: visualHeight },
+      {
+        mode: 'tileX',
+        sourceInset: isGround ? 30 : 22,
+        sourceInsetY: isGround ? 5 : 4,
+        overlap: isGround ? 4 : 3,
+        tileScale: isGround ? 1.55 : 1.35,
+      },
     );
 
     if (assetDrawn) {
-      ctx.fillStyle = isGround ? 'rgba(69, 26, 3, 0.08)' : 'rgba(255, 255, 255, 0.08)';
-      ctx.fillRect(x, platform.y, platform.width, 3);
-      ctx.strokeStyle = 'rgba(37, 25, 14, 0.22)';
+      ctx.fillStyle = isGround ? 'rgba(69, 26, 3, 0.06)' : 'rgba(255, 247, 212, 0.2)';
+      ctx.fillRect(x, platform.y, platform.width, isGround ? 3 : 4);
+      if (!isGround) {
+        ctx.fillStyle = 'rgba(30, 18, 9, 0.3)';
+        ctx.fillRect(x, platform.y + visualHeight - 7, platform.width, 7);
+        const supportSpacing = Math.max(42, Math.min(72, platform.width / 3));
+        ctx.fillStyle = 'rgba(37, 25, 14, 0.28)';
+        for (let supportX = x + 14; supportX < x + platform.width - 10; supportX += supportSpacing) {
+          ctx.beginPath();
+          ctx.moveTo(supportX - 5, platform.y + visualHeight - 2);
+          ctx.lineTo(supportX + 5, platform.y + visualHeight - 2);
+          ctx.lineTo(supportX + 1, platform.y + visualHeight + 12);
+          ctx.lineTo(supportX - 1, platform.y + visualHeight + 12);
+          ctx.closePath();
+          ctx.fill();
+        }
+        ctx.fillStyle = 'rgba(92, 57, 23, 0.26)';
+        ctx.fillRect(x + 5, platform.y + visualHeight - 2, platform.width - 10, 3);
+        ctx.strokeStyle = 'rgba(255, 247, 212, 0.2)';
+        ctx.beginPath();
+        ctx.moveTo(x + 4, platform.y + 2);
+        ctx.lineTo(x + platform.width - 4, platform.y + 2);
+        ctx.stroke();
+        drawGroundDustLip(ctx, x + platform.width / 2, platform.y + visualHeight + 2, platform.width * 0.72, 'rgba(178, 117, 54, 0.2)');
+      }
+      ctx.strokeStyle = isGround ? 'rgba(37, 25, 14, 0.18)' : 'rgba(37, 25, 14, 0.34)';
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(x, platform.y + 1);
@@ -1080,42 +1933,67 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     ctx.lineWidth = 2;
     ctx.strokeRect(x, platform.y, platform.width, platform.height);
     ctx.restore();
-  }, []);
+  }, [drawContactShadow, drawGroundDustLip]);
 
-  const drawStoryProp = useCallback((ctx, prop, cameraX, now) => {
-    const x = prop.x - cameraX;
-    if (x + 200 < 0 || x - 200 > CANVAS_WIDTH) return;
+  const drawStoryProp = useCallback((ctx, prop, cameraX, now, requestedDepth = null) => {
+    const propDepth = getStoryPropDepth(prop);
+    if (requestedDepth && propDepth !== requestedDepth) return;
+    const x = worldToScreenX(prop.x, cameraX);
+    if (!isHorizontallyVisible(prop.x - 220, 440, cameraX)) return;
 
     ctx.save();
+    const section = getSectionForX(prop.x);
     const propAssetKey = getEnvironmentAssetKeyForStoryProp(prop);
     if (propAssetKey) {
-      const propSize = {
-        door: { width: 112, height: 112, yOffset: 18 },
-        statue: { width: 76, height: 102, yOffset: 0 },
-        bridge: { width: 178, height: 70, yOffset: 8 },
-        lights: { width: 42, height: 64, yOffset: 0 },
-        ruins: { width: 120, height: 118, yOffset: 8 },
-        camp: { width: 96, height: 70, yOffset: 2 },
-        banners: { width: 88, height: 52, yOffset: 0 },
-      }[prop.type] || { width: 72, height: 72, yOffset: 0 };
+      const propSize = PROP_GROUNDING_CONFIG[prop.type] || { width: 72, height: 72, yOffset: 0, alpha: 0.78, depth: 'midground', tint: 'warm' };
+      const drawX = x - propSize.width / 2;
+      const drawY = prop.y - propSize.height + propSize.yOffset;
+      const anchorY = drawY + propSize.height;
+      const dustWidth = propSize.width * (propSize.dust ?? 0.62);
+      drawContactShadow(ctx, x, anchorY + 2, propSize.width * (propSize.depth === 'background' ? 0.62 : 0.86), propSize.shadow ?? (propSize.depth === 'background' ? 0.1 : 0.22), 1.4);
+      drawDecorativeBaseBlend(ctx, x, anchorY + 2, dustWidth, section.id, propSize.depth, propSize.depth === 'background' ? 0.72 : 0.9);
+      ctx.globalAlpha = propSize.alpha ?? 0.82;
+      if (propSize.tint === 'stone') {
+        ctx.filter = propSize.depth === 'background'
+          ? 'sepia(14%) saturate(62%) brightness(82%) contrast(92%)'
+          : 'sepia(8%) saturate(78%) brightness(90%)';
+      } else if (propSize.tint === 'cool') {
+        ctx.filter = 'saturate(62%) brightness(78%) contrast(90%)';
+      } else if (propSize.tint === 'dust') {
+        ctx.filter = 'sepia(20%) saturate(58%) brightness(84%) contrast(88%)';
+      } else {
+        ctx.filter = propSize.depth === 'background'
+          ? 'sepia(18%) saturate(62%) brightness(84%) contrast(92%)'
+          : 'sepia(10%) saturate(86%) brightness(92%)';
+      }
       const drawn = drawAtlasRegion(
         ctx,
         environmentAssetsRef.current,
         propAssetKey,
         {
-          x: x - propSize.width / 2,
-          y: prop.y - propSize.height + propSize.yOffset,
+          x: drawX,
+          y: drawY,
           width: propSize.width,
           height: propSize.height,
         },
         { mode: 'contain' },
       );
       if (drawn) {
+        ctx.filter = 'none';
+        ctx.globalAlpha = 1;
+        drawDecorativeBaseBlend(ctx, x, anchorY + 1, dustWidth, section.id, propSize.depth, propSize.depth === 'background' ? 0.6 : 0.86);
+        drawGroundDustLip(ctx, x, anchorY + 1, dustWidth, propSize.depth === 'background' ? 'rgba(187, 128, 64, 0.12)' : 'rgba(187, 128, 64, 0.22)');
+        if (stateRef.current.renderStats) stateRef.current.renderStats.groundedPropCount += 1;
         ctx.restore();
         return;
       }
+      ctx.filter = 'none';
+      ctx.globalAlpha = 1;
     }
+    ctx.globalAlpha *= propDepth === 'background' ? 0.5 : 0.78;
     if (prop.type === 'ruins') {
+      drawContactShadow(ctx, x, prop.y + 66, 108, 0.12, 1.4);
+      drawDecorativeBaseBlend(ctx, x, prop.y + 66, 86, section.id, propDepth, 0.7);
       ctx.fillStyle = 'rgba(92, 64, 51, 0.32)';
       ctx.fillRect(x - 52, prop.y + 18, 104, 48);
       ctx.fillStyle = 'rgba(48, 31, 21, 0.28)';
@@ -1131,6 +2009,8 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       return;
     }
     if (prop.type === 'door') {
+      drawContactShadow(ctx, x, prop.y + 160, 128, 0.12, 1.4);
+      drawDecorativeBaseBlend(ctx, x, prop.y + 160, 92, section.id, propDepth, 0.7);
       ctx.fillStyle = 'rgba(42, 28, 20, 0.62)';
       ctx.fillRect(x - 62, prop.y, 124, 158);
       ctx.fillStyle = 'rgba(140, 98, 54, 0.68)';
@@ -1149,6 +2029,8 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       return;
     }
     if (prop.type === 'statue') {
+      drawContactShadow(ctx, x, prop.y + 84, 86, 0.14, 1.4);
+      drawDecorativeBaseBlend(ctx, x, prop.y + 84, 68, section.id, propDepth, 0.7);
       ctx.fillStyle = 'rgba(71, 85, 105, 0.62)';
       ctx.strokeStyle = 'rgba(15, 23, 42, 0.5)';
       ctx.lineWidth = 3;
@@ -1168,6 +2050,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       return;
     }
     if (prop.type === 'mural') {
+      drawDecorativeBaseBlend(ctx, x, prop.y + 64, 140, section.id, propDepth, 0.46);
       ctx.fillStyle = 'rgba(49, 32, 21, 0.55)';
       ctx.fillRect(x - 88, prop.y - 26, 176, 92);
       ctx.strokeStyle = 'rgba(250, 204, 21, 0.34)';
@@ -1185,6 +2068,8 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       return;
     }
     if (prop.type === 'camp') {
+      drawContactShadow(ctx, x, prop.y + 38, 88, 0.14, 1.4);
+      drawDecorativeBaseBlend(ctx, x, prop.y + 38, 66, section.id, propDepth, 0.72);
       ctx.fillStyle = 'rgba(120, 53, 15, 0.45)';
       ctx.fillRect(x - 38, prop.y + 18, 76, 18);
       ctx.strokeStyle = 'rgba(69, 26, 3, 0.55)';
@@ -1198,6 +2083,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       return;
     }
     if (prop.type === 'glyphs') {
+      drawDecorativeBaseBlend(ctx, x, prop.y + 62, 140, section.id, propDepth, 0.42);
       ctx.fillStyle = 'rgba(15, 23, 42, 0.52)';
       ctx.fillRect(x - 82, prop.y - 30, 164, 90);
       ctx.strokeStyle = `rgba(125, 211, 252, ${0.38 + Math.sin(now / 350) * 0.12})`;
@@ -1222,6 +2108,8 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       return;
     }
     if (prop.type === 'bridge') {
+      drawContactShadow(ctx, x, prop.y + 50, 164, 0.18, 1.2);
+      drawDecorativeBaseBlend(ctx, x, prop.y + 50, 128, section.id, propDepth, 0.76);
       ctx.strokeStyle = 'rgba(69, 26, 3, 0.62)';
       ctx.lineWidth = 6;
       ctx.beginPath();
@@ -1239,6 +2127,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       return;
     }
     if (prop.type === 'sign') {
+      drawDecorativeBaseBlend(ctx, x, prop.y + 36, 52, section.id, propDepth, 0.6);
       ctx.fillStyle = '#78350f';
       ctx.fillRect(x - 3, prop.y - 20, 6, 56);
       ctx.fillStyle = '#facc15';
@@ -1254,6 +2143,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       return;
     }
     if (prop.type === 'banners') {
+      drawDecorativeBaseBlend(ctx, x, prop.y + 58, 76, section.id, propDepth, 0.52);
       [-24, 24].forEach(offset => {
         ctx.fillStyle = '#451a03';
         ctx.fillRect(x + offset, prop.y - 38, 4, 96);
@@ -1275,7 +2165,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       ctx.fill();
     }
     ctx.restore();
-  }, []);
+  }, [drawContactShadow, drawDecorativeBaseBlend, drawGroundDustLip]);
 
   const drawParticles = useCallback((ctx, atmosphere, cameraX, now) => {
     ctx.save();
@@ -1304,20 +2194,128 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     ctx.restore();
   }, []);
 
-  const drawCollectible = useCallback((ctx, x, y, cameraX, now, label, color, hidden = false, isShard = false) => {
-    const screenX = x - cameraX;
-    const floatY = Math.sin((now / 220) + x) * 8;
+  const drawCollectibleSpriteGlow = useCallback((ctx, screenX, centerY, now, color, options = {}) => {
+    const pulse = Math.sin(now / (options.pulseSpeed || 340)) * 0.22 + 0.78;
+    const ringKey = options.ringKey || 'availableGlowRing';
+    const ringSize = options.ringSize || 46;
+    ctx.save();
+    ctx.globalAlpha = options.alpha ?? 0.68;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = options.shadowBlur || 14;
+    const drawnRing = drawCollectibleAtlasRegion(
+      ctx,
+      collectibleSpriteAssetsRef.current,
+      ringKey,
+      {
+        x: screenX - ringSize / 2,
+        y: centerY - ringSize / 2,
+        width: ringSize,
+        height: ringSize,
+      },
+    );
+    if (!drawnRing) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(screenX, centerY, (ringSize / 2 - 4) * pulse, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }, []);
+
+  const recordCollectibleSprite = useCallback((kind, key) => {
+    const stats = stateRef.current.renderStats;
+    if (!stats || !key) return;
+    const field = {
+      tool: 'visibleToolSprites',
+      shard: 'visibleShardSprites',
+      upgrade: 'visibleUpgradeSprites',
+      objective: 'visibleObjectiveSprites',
+    }[kind];
+    if (!field) return;
+    stats[field] = Array.from(new Set([...(stats[field] || []), key])).slice(-16);
+  }, []);
+
+  const drawCollectible = useCallback((ctx, x, y, cameraX, now, label, color, hidden = false, isShard = false, sprite = {}) => {
+    const screenX = worldToScreenX(x, cameraX);
+    if (!isHorizontallyVisible(x, 1, cameraX, 80)) return;
+    const spriteKey = sprite.key || null;
+    const spriteKind = sprite.kind || (isShard ? 'shard' : null);
+    const spriteSize = sprite.size || (isShard ? 34 : 42);
+    const bobAmplitude = sprite.bobAmplitude ?? (isShard ? 2 : 3);
+    const floatY = Math.sin((now / 260) + x) * bobAmplitude;
+    const baseY = sprite.baseY ?? (y + (sprite.anchorYOffset ?? (isShard ? 18 : 22)));
+    const centerY = sprite.anchor === 'center'
+      ? y + floatY
+      : baseY - spriteSize / 2 + floatY;
+    const current = stateRef.current;
+    const playerCenterX = current.player.x + current.player.width / 2;
+    const nearPlayer = Math.abs(playerCenterX - x) < (sprite.nearGlowDistance ?? 130);
+    const glowAlpha = hidden
+      ? 0.12
+      : nearPlayer
+        ? (sprite.glowAlpha ?? 0.28)
+        : (sprite.glowAlpha ?? 0.28) * 0.45;
+    if (current.renderStats) current.renderStats.visibleCollectibleCount += 1;
     ctx.save();
     ctx.globalAlpha = hidden ? 0.25 : 1;
-    
+
+    if (spriteKey && collectibleSpriteAssetsRef.current.loaded) {
+      drawContactShadow(ctx, screenX, baseY + 1, sprite.shadowWidth || spriteSize * 0.72, hidden ? 0.06 : (sprite.shadowAlpha ?? 0.15), 0.85);
+      if (!sprite.hideGlow && (sprite.ringSize ?? spriteSize + 8) > 0 && glowAlpha > 0) {
+        drawCollectibleSpriteGlow(ctx, screenX, centerY + (sprite.glowYOffset || 0), now, color, {
+          ringKey: sprite.ringKey || (spriteKind === 'objective' ? 'objectiveHighlightRing' : 'availableGlowRing'),
+          ringSize: sprite.ringSize || spriteSize + 8,
+          alpha: glowAlpha,
+          shadowBlur: sprite.shadowBlur ?? (isShard ? 5 : 8),
+        });
+      }
+
+      if (spriteKind !== 'objective' && (nearPlayer || !isShard)) {
+        const sparkleSize = sprite.sparkleSize ?? (isShard ? 9 : 11);
+        const sparkleOffset = Math.sin(now / 310 + x) * 1.5;
+        ctx.globalAlpha = hidden ? 0.08 : (sprite.sparkleAlpha ?? 0.18);
+        drawCollectibleAtlasRegion(
+          ctx,
+          collectibleSpriteAssetsRef.current,
+          'pickupSparkle',
+          {
+            x: screenX + spriteSize * 0.22,
+            y: centerY - spriteSize * 0.72 + sparkleOffset,
+            width: sparkleSize,
+            height: sparkleSize,
+          },
+        );
+        ctx.globalAlpha = hidden ? 0.25 : 1;
+      }
+
+      const drawn = drawCollectibleAtlasRegion(
+        ctx,
+        collectibleSpriteAssetsRef.current,
+        spriteKey,
+        {
+          x: screenX - spriteSize / 2,
+          y: centerY - spriteSize / 2,
+          width: spriteSize,
+          height: spriteSize,
+        },
+      );
+
+      if (drawn) {
+        recordCollectibleSprite(spriteKind, spriteKey);
+        ctx.restore();
+        return;
+      }
+    }
+
     // Core glow (Dynamic)
     const pulse = Math.sin(now / 300) * 0.3 + 0.7;
-    const innerGlow = ctx.createRadialGradient(screenX, y + floatY, 0, screenX, y + floatY, 25 * pulse);
+    const innerGlow = ctx.createRadialGradient(screenX, centerY, 0, screenX, centerY, 25 * pulse);
     innerGlow.addColorStop(0, `${color}88`);
     innerGlow.addColorStop(1, 'transparent');
     ctx.fillStyle = innerGlow;
     ctx.beginPath();
-    ctx.arc(screenX, y + floatY, 25 * pulse, 0, Math.PI * 2);
+    ctx.arc(screenX, centerY, 25 * pulse, 0, Math.PI * 2);
     ctx.fill();
 
     if (isShard) {
@@ -1325,18 +2323,18 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       ctx.shadowColor = '#f59e0b';
       ctx.shadowBlur = 12 * pulse;
       
-      const shardColor = ctx.createLinearGradient(screenX - 12, y + floatY - 14, screenX + 12, y + floatY + 16);
+      const shardColor = ctx.createLinearGradient(screenX - 12, centerY - 14, screenX + 12, centerY + 16);
       shardColor.addColorStop(0, '#fff7ad');
       shardColor.addColorStop(0.45, '#f59e0b');
       shardColor.addColorStop(1, '#78350f');
       
       ctx.fillStyle = shardColor;
       ctx.beginPath();
-      ctx.moveTo(screenX - 2, y + floatY - 16);
-      ctx.lineTo(screenX + 13, y + floatY - 4);
-      ctx.lineTo(screenX + 7, y + floatY + 15);
-      ctx.lineTo(screenX - 12, y + floatY + 8);
-      ctx.lineTo(screenX - 9, y + floatY - 8);
+      ctx.moveTo(screenX - 2, centerY - 16);
+      ctx.lineTo(screenX + 13, centerY - 4);
+      ctx.lineTo(screenX + 7, centerY + 15);
+      ctx.lineTo(screenX - 12, centerY + 8);
+      ctx.lineTo(screenX - 9, centerY - 8);
       ctx.closePath();
       ctx.fill();
       
@@ -1346,17 +2344,17 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       ctx.strokeStyle = 'rgba(255, 247, 212, 0.82)';
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.moveTo(screenX - 3, y + floatY - 8);
-      ctx.lineTo(screenX + 5, y + floatY - 2);
-      ctx.moveTo(screenX - 5, y + floatY + 4);
-      ctx.lineTo(screenX + 4, y + floatY + 8);
+      ctx.moveTo(screenX - 3, centerY - 8);
+      ctx.lineTo(screenX + 5, centerY - 2);
+      ctx.moveTo(screenX - 5, centerY + 4);
+      ctx.lineTo(screenX + 4, centerY + 8);
       ctx.stroke();
     } else {
       ctx.shadowColor = 'rgba(0,0,0,0.4)';
       ctx.shadowBlur = 12;
       
       // Premium Token
-      const tokenGrad = ctx.createRadialGradient(screenX, y + floatY, 5, screenX, y + floatY, 20);
+      const tokenGrad = ctx.createRadialGradient(screenX, centerY, 5, screenX, centerY, 20);
       tokenGrad.addColorStop(0, '#fffcf0');
       tokenGrad.addColorStop(1, '#e5e7eb');
       ctx.fillStyle = tokenGrad;
@@ -1364,62 +2362,195 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       ctx.strokeStyle = color;
       ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.roundRect(screenX - 18, y + floatY - 18, 36, 36, 8);
+      ctx.roundRect(screenX - 18, centerY - 18, 36, 36, 8);
       ctx.fill();
       ctx.stroke();
       
       ctx.fillStyle = '#1e293b';
       ctx.font = '800 20px Outfit';
       ctx.textAlign = 'center';
-      ctx.fillText(label, screenX, y + floatY + 7);
+      ctx.fillText(label, screenX, centerY + 7);
     }
     ctx.restore();
+  }, [drawCollectibleSpriteGlow, drawContactShadow, recordCollectibleSprite]);
+
+  const drawDesertEntryBackground = useCallback((ctx, section, cameraX) => {
+    const isNearDesertEntry = section.id === 'desert-entry';
+    const assets = getSectionBackgroundAssets(desertBackgroundAssetsRef.current, 'desert-entry');
+    if (!isNearDesertEntry || !assets?.ready) return false;
+
+    const layerOptions = { canvasWidth: CANVAS_WIDTH, cameraX };
+    if (assets.atlas?.runtimeMode === 'single-composited-backdrop') {
+      return drawDesertBackgroundLayer(
+        ctx,
+        assets,
+        'sky',
+        { y: 0, height: CANVAS_HEIGHT },
+        { ...layerOptions, parallax: 0, alpha: 1 },
+      );
+    }
+
+    const drawn = [
+      drawDesertBackgroundLayer(ctx, assets, 'sky', { y: 0, height: 375 }, { ...layerOptions, parallax: 0.03, alpha: 0.94 }),
+      drawDesertBackgroundLayer(ctx, assets, 'farDunes', { y: 288, height: 116 }, { ...layerOptions, parallax: 0.12, alpha: 0.48 }),
+      drawDesertBackgroundLayer(ctx, assets, 'distantRuins', { y: 326, height: 110 }, { ...layerOptions, parallax: 0.22, alpha: 0.42 }),
+      drawDesertBackgroundLayer(ctx, assets, 'midgroundRuins', { y: 360, height: 112 }, { ...layerOptions, parallax: 0.35, alpha: 0.46 }),
+    ];
+    return drawn.every(Boolean);
+  }, []);
+
+  const drawSectionParallaxBackground = useCallback((ctx, section, cameraX) => {
+    const layers = SECTION_PARALLAX_LAYERS[section.id];
+    if (!layers) return false;
+    const assets = getSectionBackgroundAssets(desertBackgroundAssetsRef.current, section.id);
+    if (!assets?.ready) return false;
+
+    const layerOptions = { canvasWidth: CANVAS_WIDTH, cameraX };
+    const drawn = layers
+      .filter(layer => !layer.foreground)
+      .map(layer => drawDesertBackgroundLayer(
+        ctx,
+        assets,
+        layer.key,
+        { y: layer.y, height: layer.height },
+        {
+          ...layerOptions,
+          parallax: layer.parallax,
+          alpha: layer.alpha,
+        },
+      ));
+    return drawn.every(Boolean);
+  }, []);
+
+  const drawSectionParallaxForeground = useCallback((ctx, section, cameraX) => {
+    const layers = SECTION_PARALLAX_LAYERS[section.id]?.filter(layer => layer.foreground);
+    if (!layers?.length) return false;
+    const assets = getSectionBackgroundAssets(desertBackgroundAssetsRef.current, section.id);
+    if (!assets?.ready) return false;
+
+    const layerOptions = { canvasWidth: CANVAS_WIDTH, cameraX };
+    const drawn = layers.map(layer => drawDesertBackgroundLayer(
+      ctx,
+      assets,
+      layer.key,
+      { y: layer.y, height: layer.height },
+      {
+        ...layerOptions,
+        parallax: layer.parallax,
+        alpha: layer.alpha,
+      },
+    ));
+    return drawn.every(Boolean);
+  }, []);
+
+  const drawDesertForegroundAtmosphere = useCallback((ctx, section, cameraX) => {
+    const isNearDesertEntry = section.id === 'desert-entry';
+    const assets = getSectionBackgroundAssets(desertBackgroundAssetsRef.current, 'desert-entry');
+    if (!isNearDesertEntry || !assets?.ready) return false;
+    return drawDesertBackgroundLayer(
+      ctx,
+      assets,
+      'foregroundAtmosphere',
+      { y: 318, height: 84 },
+      { canvasWidth: CANVAS_WIDTH, cameraX, parallax: 0.45, alpha: 0.18 },
+    );
   }, []);
 
   const drawTempleBackdrop = useCallback((ctx, section, cameraX) => {
     if (section.id !== 'ruined-temple') return;
 
     ctx.save();
-    ctx.fillStyle = 'rgba(34, 24, 18, 0.22)';
-    for (let worldX = section.start + 90; worldX < section.end; worldX += 180) {
-      const x = worldX - cameraX;
-      if (x < -120 || x > CANVAS_WIDTH + 120) continue;
-      ctx.fillRect(x - 18, 116, 36, 242);
-      ctx.fillStyle = 'rgba(255, 236, 180, 0.1)';
-      ctx.fillRect(x - 13, 126, 26, 18);
-      ctx.fillRect(x - 13, 176, 26, 18);
-      ctx.fillRect(x - 13, 226, 26, 18);
-      ctx.fillStyle = 'rgba(34, 24, 18, 0.22)';
+    const wallGradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
+    wallGradient.addColorStop(0, 'rgba(77, 58, 40, 0.88)');
+    wallGradient.addColorStop(0.38, 'rgba(94, 70, 45, 0.9)');
+    wallGradient.addColorStop(0.78, 'rgba(122, 86, 49, 0.52)');
+    wallGradient.addColorStop(1, 'rgba(157, 106, 55, 0.18)');
+    ctx.fillStyle = wallGradient;
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    ctx.fillStyle = 'rgba(20, 14, 10, 0.28)';
+    ctx.fillRect(0, 0, CANVAS_WIDTH, 96);
+
+    ctx.fillStyle = 'rgba(245, 200, 120, 0.08)';
+    for (let worldX = section.start + 120; worldX < section.end; worldX += 340) {
+      const x = worldX - cameraX * 0.42;
+      if (x < -260 || x > CANVAS_WIDTH + 260) continue;
+      ctx.beginPath();
+      ctx.ellipse(x, 214, 190, 74, 0, 0, Math.PI * 2);
+      ctx.fill();
     }
 
-    ctx.strokeStyle = 'rgba(255, 236, 180, 0.18)';
+    ctx.fillStyle = 'rgba(39, 25, 16, 0.42)';
+    for (let worldX = section.start + 100; worldX < section.end; worldX += 210) {
+      const x = worldX - cameraX;
+      if (x < -120 || x > CANVAS_WIDTH + 120) continue;
+      ctx.fillRect(x - 24, 100, 48, 238);
+      ctx.fillStyle = 'rgba(255, 220, 142, 0.11)';
+      ctx.fillRect(x - 16, 122, 32, 17);
+      ctx.fillRect(x - 16, 172, 32, 17);
+      ctx.fillRect(x - 16, 222, 32, 17);
+      ctx.fillStyle = 'rgba(22, 15, 11, 0.38)';
+      ctx.fillRect(x - 18, 266, 36, 72);
+      ctx.fillStyle = 'rgba(39, 25, 16, 0.42)';
+    }
+
+    ctx.strokeStyle = 'rgba(255, 226, 160, 0.2)';
     ctx.lineWidth = 2;
-    for (let worldX = section.start + 30; worldX < section.end; worldX += 90) {
+    for (let worldX = section.start + 42; worldX < section.end; worldX += 120) {
       const x = worldX - cameraX;
       if (x < -80 || x > CANVAS_WIDTH + 80) continue;
-      ctx.strokeRect(x, 156, 42, 24);
+      ctx.strokeRect(x, 154, 54, 28);
       ctx.beginPath();
-      ctx.moveTo(x + 8, 226);
-      ctx.lineTo(x + 35, 206);
-      ctx.lineTo(x + 47, 232);
+      ctx.moveTo(x + 8, 238);
+      ctx.lineTo(x + 37, 212);
+      ctx.lineTo(x + 52, 240);
       ctx.stroke();
     }
+
+    for (let worldX = section.start + 155; worldX < section.end; worldX += 360) {
+      const x = worldX - cameraX;
+      if (x < -140 || x > CANVAS_WIDTH + 140) continue;
+      const glow = ctx.createRadialGradient(x, 248, 0, x, 248, 78);
+      glow.addColorStop(0, 'rgba(251, 191, 36, 0.24)');
+      glow.addColorStop(1, 'rgba(251, 191, 36, 0)');
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(x, 248, 78, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255, 212, 112, 0.78)';
+      ctx.fillRect(x - 3, 240, 6, 16);
+    }
+
+    ctx.fillStyle = 'rgba(63, 39, 20, 0.3)';
+    ctx.beginPath();
+    ctx.moveTo(0, 365);
+    for (let i = 0; i <= CANVAS_WIDTH; i += 48) {
+      const worldX = i + cameraX * 0.22;
+      ctx.lineTo(i, 356 + Math.sin(worldX * 0.005) * 7 + Math.cos(worldX * 0.002) * 10);
+    }
+    ctx.lineTo(CANVAS_WIDTH, CANVAS_HEIGHT);
+    ctx.lineTo(0, CANVAS_HEIGHT);
+    ctx.closePath();
+    ctx.fill();
     ctx.restore();
   }, []);
 
   const drawRouteGate = useCallback((ctx, gate, screenX, current, complete) => {
     const gateCenter = screenX + gate.width / 2;
-    const top = gate.y - 22;
-    const height = gate.height + 22;
+    const fallbackHeight = 146;
+    const fallbackTop = placeGateOnGround(fallbackHeight);
     const glowColor = complete ? '#22c55e' : '#f59e0b';
 
     ctx.save();
+    const gateHeight = 142;
+    const gateWidth = Math.max(104, gate.width + 78);
     const gateVisual = {
-      x: screenX - 40,
-      y: gate.y + 112,
-      width: gate.width + 80,
-      height: 122,
+      x: gateCenter - gateWidth / 2,
+      y: placeGateOnGround(gateHeight),
+      width: gateWidth,
+      height: gateHeight,
     };
+    drawContactShadow(ctx, gateCenter, GROUND_Y + 2, gateVisual.width * 0.82, complete ? 0.22 : 0.3, 1.4);
     const gateDrawn = drawAtlasRegion(
       ctx,
       environmentAssetsRef.current,
@@ -1435,33 +2566,14 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         ctx,
         environmentAssetsRef.current,
         'ancientSeal',
-        { x: gateCenter - 22, y: gate.y + gate.height / 2 + 42, width: 44, height: 44 },
+        { x: gateCenter - 22, y: gateVisual.y + gateVisual.height * 0.52, width: 44, height: 44 },
         { mode: 'contain' },
       );
       ctx.globalAlpha = 1;
       ctx.shadowBlur = 0;
-
-      const guidance = getGateGuidance(gate, current);
-      const displayReqs = guidance.gateRequirements.slice(0, 4);
-      if (!complete && displayReqs.length > 0) {
-        const panelWidth = 132;
-        const panelHeight = 42;
-        const preferredX = gateCenter < CANVAS_WIDTH * 0.55 ? gateCenter + 44 : gateCenter - panelWidth - 44;
-        const panelX = clamp(preferredX, 18, CANVAS_WIDTH - panelWidth - 18);
-        const panelY = clamp(gate.y + gate.height - 70, 92, CANVAS_HEIGHT - panelHeight - 18);
-        ctx.fillStyle = 'rgba(255, 252, 235, 0.74)';
-        ctx.fillRect(panelX, panelY, panelWidth, panelHeight);
-        ctx.strokeStyle = 'rgba(120, 53, 15, 0.65)';
-        ctx.strokeRect(panelX, panelY, panelWidth, panelHeight);
-        ctx.fillStyle = '#78350f';
-        ctx.font = '800 8px Outfit, sans-serif';
-        ctx.textAlign = 'left';
-        displayReqs.slice(0, 3).forEach((req, index) => {
-          const mark = req.met ? 'OK' : 'NEED';
-          const label = req.checklistLabel || req.label;
-          ctx.fillText(`${mark} ${label}`.toUpperCase(), panelX + 8, panelY + 13 + index * 10);
-        });
-      }
+      drawGroundDustLip(ctx, gateCenter, GROUND_Y + 1, gateVisual.width * 0.7, 'rgba(184, 116, 52, 0.24)');
+      drawDecorativeBaseBlend(ctx, gateCenter, GROUND_Y + 2, gateVisual.width * 0.76, getSectionForX(gate.x).id, 'midground', 0.86);
+      if (current.renderStats) current.renderStats.groundedPropCount += 1;
       ctx.restore();
       return;
     }
@@ -1470,24 +2582,24 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     ctx.shadowBlur = complete ? 14 : 8;
     ctx.fillStyle = complete ? 'rgba(22, 101, 52, 0.28)' : 'rgba(69, 26, 3, 0.36)';
     ctx.beginPath();
-    ctx.roundRect(screenX - 14, top, gate.width + 28, height, 8);
+    ctx.roundRect(screenX - 14, fallbackTop, gate.width + 28, fallbackHeight, 8);
     ctx.fill();
 
     ctx.shadowBlur = 0;
     ctx.fillStyle = '#5f4938';
-    ctx.fillRect(screenX - 22, top + 4, 20, height - 4);
-    ctx.fillRect(screenX + gate.width + 2, top + 4, 20, height - 4);
+    ctx.fillRect(screenX - 22, fallbackTop + 4, 20, fallbackHeight - 4);
+    ctx.fillRect(screenX + gate.width + 2, fallbackTop + 4, 20, fallbackHeight - 4);
     ctx.fillStyle = '#7a5b3d';
-    ctx.fillRect(screenX - 26, top - 8, gate.width + 52, 18);
+    ctx.fillRect(screenX - 26, fallbackTop - 8, gate.width + 52, 18);
     ctx.fillStyle = '#3b2b22';
-    ctx.fillRect(screenX, top + 16, gate.width, height - 28);
+    ctx.fillRect(screenX, fallbackTop + 16, gate.width, fallbackHeight - 28);
 
     ctx.strokeStyle = glowColor;
     ctx.lineWidth = 3;
-    ctx.strokeRect(screenX + 4, top + 24, gate.width - 8, height - 44);
+    ctx.strokeRect(screenX + 4, fallbackTop + 24, gate.width - 8, fallbackHeight - 44);
     ctx.strokeStyle = 'rgba(255, 236, 180, 0.25)';
     ctx.lineWidth = 1;
-    for (let y = top + 38; y < top + height - 22; y += 22) {
+    for (let y = fallbackTop + 38; y < fallbackTop + fallbackHeight - 22; y += 22) {
       ctx.beginPath();
       ctx.moveTo(screenX + 8, y);
       ctx.lineTo(screenX + gate.width - 8, y + 5);
@@ -1496,7 +2608,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
 
     ctx.fillStyle = complete ? '#bbf7d0' : '#fef3c7';
     ctx.beginPath();
-    ctx.arc(gateCenter, gate.y + gate.height / 2, 17, 0, Math.PI * 2);
+    ctx.arc(gateCenter, fallbackTop + fallbackHeight * 0.56, 17, 0, Math.PI * 2);
     ctx.fill();
     ctx.strokeStyle = glowColor;
     ctx.lineWidth = 3;
@@ -1505,34 +2617,20 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     ctx.strokeStyle = '#3b2b22';
     ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.arc(gateCenter, gate.y + gate.height / 2 - 2, 8, Math.PI, 0);
+    ctx.arc(gateCenter, fallbackTop + fallbackHeight * 0.56 - 2, 8, Math.PI, 0);
     ctx.stroke();
     ctx.fillStyle = '#3b2b22';
-    ctx.fillRect(gateCenter - 9, gate.y + gate.height / 2 - 2, 18, 13);
-
-    const guidance = getGateGuidance(gate, current);
-    const displayReqs = guidance.gateRequirements.slice(0, 4);
-    drawFieldNoteLabel(ctx, gateCenter, top - 10, complete ? 'SEAL READY' : 'SEALED GATE', complete ? '#166534' : '#78350f');
-    if (!complete && displayReqs.length > 0) {
-      ctx.fillStyle = 'rgba(255, 252, 235, 0.84)';
-      ctx.fillRect(gateCenter - 74, top + height + 4, 148, 52);
-      ctx.strokeStyle = '#78350f';
-      ctx.strokeRect(gateCenter - 74, top + height + 4, 148, 52);
-      ctx.fillStyle = '#78350f';
-      ctx.font = '800 8px Outfit, sans-serif';
-      ctx.textAlign = 'left';
-      displayReqs.forEach((req, index) => {
-          const mark = req.met ? 'OK' : 'NEED';
-        ctx.fillText(`${mark} ${req.label}`.toUpperCase(), gateCenter - 66, top + height + 16 + index * 10);
-      });
-    }
+    ctx.fillRect(gateCenter - 9, fallbackTop + fallbackHeight * 0.56 - 2, 18, 13);
+    drawGroundDustLip(ctx, gateCenter, GROUND_Y + 1, gate.width + 54, 'rgba(184, 116, 52, 0.22)');
     ctx.restore();
-  }, [drawFieldNoteLabel, getGateGuidance]);
+  }, [drawContactShadow, drawDecorativeBaseBlend, drawGroundDustLip]);
 
-  const drawMissingObjectiveMarker = useCallback((ctx, guidance, cameraX, now, suppressLabel = false) => {
+  const drawMissingObjectiveMarker = useCallback((ctx, guidance, cameraX, now) => {
     if (!guidance?.activeGateLocked || !guidance.nearestMissingObjective) return;
     const target = guidance.nearestMissingObjective;
-    const targetScreenX = target.x - cameraX;
+    const isShardTarget = target.type === 'shards' || String(target.id || '').startsWith('shard-');
+    if (isShardTarget) return;
+    const targetScreenX = worldToScreenX(target.x, cameraX);
     const pulse = Math.sin(now / 140) * 0.25 + 0.75;
     ctx.save();
     ctx.strokeStyle = `rgba(251, 191, 36, ${pulse})`;
@@ -1540,11 +2638,8 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     ctx.lineWidth = 3;
     if (targetScreenX > 24 && targetScreenX < CANVAS_WIDTH - 24) {
       ctx.beginPath();
-      ctx.arc(targetScreenX, 292, 24 + pulse * 8, 0, Math.PI * 2);
+      ctx.arc(targetScreenX, 292, 20 + pulse * 6, 0, Math.PI * 2);
       ctx.stroke();
-      if (!suppressLabel) {
-        drawFieldNoteLabel(ctx, targetScreenX, 258, `Needed: ${target.label}`, '#78350f');
-      }
     } else {
       const arrowX = targetScreenX < 0 ? 30 : CANVAS_WIDTH - 30;
       const direction = targetScreenX < 0 ? -1 : 1;
@@ -1554,16 +2649,13 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       ctx.lineTo(arrowX - direction * 13, 126);
       ctx.closePath();
       ctx.fill();
-      if (!suppressLabel) {
-        drawFieldNoteLabel(ctx, arrowX + direction * 60, 92, `Need: ${target.label}`, '#78350f');
-      }
     }
     ctx.restore();
-  }, [drawFieldNoteLabel]);
+  }, []);
 
   const drawHazard = useCallback((ctx, hazard, cameraX, current, now) => {
-    const hx = hazard.x - cameraX;
-    if (hx + hazard.width < -50 || hx > CANVAS_WIDTH + 50) return;
+    const hx = worldToScreenX(hazard.x, cameraX);
+    if (!isHorizontallyVisible(hazard.x, hazard.width, cameraX, 50)) return;
 
     const visual = HAZARD_VISUALS[hazard.id] || {
       icon: '!',
@@ -1577,15 +2669,28 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     const pulse = Math.sin(now / 180 + hazard.x * 0.01) * 0.25 + 0.75;
     const hitActive = current.lastHazardHit?.id === hazard.id && current.staminaFeedbackTimer > 0;
     const baseY = hazard.y;
+    const section = getSectionForX(hazard.x);
+    const grounding = HAZARD_GROUNDING[hazard.id] || HAZARD_GROUNDING['spike-trap'];
+    const centerX = hx + hazard.width / 2;
+    const footY = baseY + hazard.height;
+    const dustWidth = hazard.width * (grounding.dustWidth || 0.9);
 
     ctx.save();
     const hazardAssetKey = getEnvironmentAssetKeyForHazard(hazard);
     const hazardDest = {
-      x: hx - 7,
-      y: baseY - (hazard.id === 'dark-gap' ? 22 : 18),
-      width: hazard.width + 14,
-      height: hazard.height + (hazard.id === 'dark-gap' ? 32 : 28),
+      x: hx - grounding.xPad,
+      y: baseY - grounding.yOffset,
+      width: hazard.width + grounding.widthPad,
+      height: Math.max(12, hazard.height + grounding.heightPad),
     };
+    if (hazard.id !== 'bat-cloud' && hazard.id !== 'dust-wave') {
+      drawContactShadow(ctx, centerX, footY + 3, hazard.width * 0.92, grounding.shadow, 0.9);
+    }
+    if (dustWidth > 0) {
+      drawGroundDustLip(ctx, centerX, footY + 1, dustWidth, 'rgba(122, 78, 37, 0.16)');
+    }
+    ctx.save();
+    ctx.filter = grounding.filter;
     const hazardDrawn = drawAtlasRegion(
       ctx,
       environmentAssetsRef.current,
@@ -1593,36 +2698,34 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       hazardDest,
       { mode: 'contain' },
     );
+    ctx.restore();
     if (hazardDrawn) {
-      const glow = ctx.createRadialGradient(
-        hx + hazard.width / 2,
-        baseY + hazard.height / 2,
-        4,
-        hx + hazard.width / 2,
-        baseY + hazard.height / 2,
-        Math.max(hazard.width, hazard.height) * 0.85,
-      );
-      glow.addColorStop(0, hitActive ? 'rgba(239, 68, 68, 0.3)' : 'rgba(250, 204, 21, 0.16)');
-      glow.addColorStop(1, 'transparent');
-      ctx.globalAlpha = 0.7 + pulse * 0.2;
-      ctx.fillStyle = glow;
-      ctx.beginPath();
-      ctx.ellipse(hx + hazard.width / 2, baseY + hazard.height / 2, hazard.width * 0.78, Math.max(18, hazard.height * 0.8), 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.globalAlpha = 1;
-      ctx.fillStyle = visual.color;
-      ctx.beginPath();
-      ctx.moveTo(hx + hazard.width / 2, baseY - 25);
-      ctx.lineTo(hx + hazard.width / 2 - 10, baseY - 7);
-      ctx.lineTo(hx + hazard.width / 2 + 10, baseY - 7);
-      ctx.closePath();
-      ctx.fill();
-      ctx.fillStyle = '#fff7ed';
-      ctx.font = '900 12px Outfit, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(visual.icon, hx + hazard.width / 2, baseY - 11);
-      if (nearPlayer && !hitActive && !current.renderStats?.labelSuppressionActive) {
-        drawFieldNoteLabel(ctx, hx + hazard.width / 2, baseY - 34, visual.label, visual.color);
+      if (dustWidth > 0) {
+        drawGroundDustLip(ctx, centerX, footY + 2, dustWidth * 0.82, 'rgba(209, 143, 72, 0.24)');
+        drawHazardGroundApron(ctx, centerX, footY + 4, dustWidth, section.id, hazard.id === 'sand-pit' || hazard.id === 'dark-gap' ? 1.2 : 0.82);
+      }
+      if (hitActive) {
+        ctx.strokeStyle = 'rgba(239, 68, 68, 0.62)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(hx + 10, footY + 4);
+        ctx.lineTo(hx + hazard.width - 10, footY + 4);
+        ctx.stroke();
+      }
+      if (grounding.warning === 'ground' && nearPlayer && current.hazardCooldown <= 0) {
+        ctx.globalAlpha = 0.68 + pulse * 0.16;
+        ctx.fillStyle = visual.color;
+        ctx.beginPath();
+        ctx.moveTo(hx + 8, footY - 4);
+        ctx.lineTo(hx + 16, footY - 18);
+        ctx.lineTo(hx + 24, footY - 4);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = '#fff7ed';
+        ctx.font = '900 9px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(visual.icon, hx + 16, footY - 7);
+        ctx.globalAlpha = 1;
       }
       ctx.restore();
       return;
@@ -1725,33 +2828,284 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     }
 
     ctx.globalAlpha = 0.75 + pulse * 0.25;
-    ctx.strokeStyle = visual.accent;
-    ctx.setLineDash([5, 5]);
-    ctx.strokeRect(hx - 5, baseY - 7, hazard.width + 10, hazard.height + 14);
-    ctx.setLineDash([]);
+    if (hazard.id !== 'bat-cloud' && hazard.id !== 'dust-wave') {
+      drawGroundDustLip(ctx, centerX, footY + 2, dustWidth * 0.82, 'rgba(185, 110, 45, 0.2)');
+      drawHazardGroundApron(ctx, centerX, footY + 4, dustWidth, section.id, hazard.id === 'sand-pit' || hazard.id === 'dark-gap' ? 1.2 : 0.82);
+    }
+    if (hitActive) {
+      ctx.strokeStyle = 'rgba(239, 68, 68, 0.62)';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(hx + 10, footY + 4);
+      ctx.lineTo(hx + hazard.width - 10, footY + 4);
+      ctx.stroke();
+    }
 
-    ctx.fillStyle = visual.color;
-    ctx.beginPath();
-    ctx.moveTo(hx + hazard.width / 2, baseY - 25);
-    ctx.lineTo(hx + hazard.width / 2 - 10, baseY - 7);
-    ctx.lineTo(hx + hazard.width / 2 + 10, baseY - 7);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = '#fff7ed';
-    ctx.font = '900 12px Outfit, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(visual.icon, hx + hazard.width / 2, baseY - 11);
-
-    if (nearPlayer && !hitActive && !current.renderStats?.labelSuppressionActive) {
-      drawFieldNoteLabel(ctx, hx + hazard.width / 2, baseY - 34, visual.label, visual.color);
+    if (grounding.warning === 'ground' && nearPlayer && current.hazardCooldown <= 0) {
+      ctx.fillStyle = visual.color;
+      ctx.beginPath();
+      ctx.moveTo(hx + 8, footY - 4);
+      ctx.lineTo(hx + 16, footY - 18);
+      ctx.lineTo(hx + 24, footY - 4);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = '#fff7ed';
+      ctx.font = '900 9px Outfit, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(visual.icon, hx + 16, footY - 7);
     }
     ctx.restore();
-  }, [drawFieldNoteLabel]);
+  }, [drawContactShadow, drawGroundDustLip, drawHazardGroundApron]);
 
-  const drawMiniBoss = useCallback((ctx, boss, screenX, now, showLabel = true) => {
+  const drawSmallEnemySprite = useCallback((ctx, enemy, screenX, now, shakeX = 0) => {
+    const family = getEnemySpriteFamily(enemy);
+    if (!family) return false;
+    const combatMode = getCombatMode(enemy);
+    const frameKey = getEnemySpriteFrame(enemy, combatMode, now);
+    const drawBox = getEnemySpriteDrawBox(enemy, screenX, shakeX, combatMode);
+    if (!frameKey || !drawBox) return false;
+
+    const assets = enemySpriteAssetsRef.current;
+    const spritePack = getEnemySpritePack(assets, family);
+    if (!spritePack?.loaded || spritePack.failed) return false;
+
+    const centerX = screenX + enemy.width / 2 + shakeX;
+    const baseY = enemy.y + enemy.height;
+    const facing = (enemy.attackTimer > 0 || enemy.attackWindup > 0)
+      ? enemy.attackDirection
+      : enemy.direction;
+    const shouldFlip = family === 'bat' ? facing < 0 : facing > 0;
+
+    ctx.save();
+    const shadowWidth = family === 'bat' ? drawBox.width * 0.72 : drawBox.width * 0.78;
+    drawContactShadow(ctx, centerX, baseY + (family === 'bat' ? 10 : 3), shadowWidth, family === 'bat' ? 0.16 : 0.24, 1);
+
+    ctx.shadowColor = family === 'bat'
+      ? 'rgba(250, 204, 21, 0.38)'
+      : 'rgba(15, 23, 42, 0.52)';
+    ctx.shadowBlur = family === 'bat' ? 12 : 8;
+    if (enemy.defeated) {
+      ctx.globalAlpha = family === 'bat' ? 0.78 : 0.84;
+      ctx.filter = 'saturate(0.86) brightness(0.92)';
+    } else if (enemy.hitFlash > 0) {
+      ctx.filter = 'brightness(1.35) saturate(1.15)';
+    } else if (family === 'bat') {
+      ctx.filter = 'brightness(1.12) contrast(1.08)';
+    }
+
+    if (shouldFlip) {
+      ctx.translate(drawBox.x + drawBox.width / 2, 0);
+      ctx.scale(-1, 1);
+    }
+
+    const drawn = drawAtlasRegion(
+      ctx,
+      spritePack,
+      frameKey,
+      {
+        x: shouldFlip ? -drawBox.width / 2 : drawBox.x,
+        y: drawBox.y,
+        width: drawBox.width,
+        height: drawBox.height,
+      },
+      { mode: 'contain' },
+    );
+    ctx.restore();
+
+    if (drawn && stateRef.current.renderStats) {
+      const stats = stateRef.current.renderStats;
+      stats.visibleEnemySpriteFamilies = Array.from(new Set([...(stats.visibleEnemySpriteFamilies || []), family]));
+      const frameState = `${enemy.id}:${family}:${combatMode}:${frameKey}`;
+      stats.enemySpriteFrameStates = [...(stats.enemySpriteFrameStates || []), frameState].slice(-12);
+    }
+
+    return drawn;
+  }, [drawContactShadow, getCombatMode]);
+
+  const drawLinkedEnemySprite = useCallback((ctx, enemy, screenX, now, shakeX = 0) => {
+    const combatMode = getCombatMode(enemy);
+    const centerX = screenX + enemy.width / 2 + shakeX;
+    const baseY = enemy.y + enemy.height;
+    const facing = (enemy.attackTimer > 0 || enemy.attackWindup > 0)
+      ? enemy.attackDirection
+      : enemy.direction;
+
+    if (enemy.type === 'guardian' || enemy.type === 'statue') {
+      const bossId = enemy.type === 'statue' ? 'ancient-construct' : 'temple-guardian';
+      const pack = getBossSpritePack(bossSpriteAssetsRef.current, bossId);
+      if (!pack) return false;
+      const frameKey = enemy.type === 'statue'
+        ? (combatMode === 'defeated' ? 'ancientConstructDefeated' : enemy.hitFlash > 0 || combatMode === 'stunned' ? 'ancientConstructHit' : combatMode === 'windup' ? 'ancientConstructWindup' : combatMode === 'attacking' ? 'ancientConstructSlam' : 'ancientConstructWalk1')
+        : (combatMode === 'defeated' ? 'stoneGuardianDefeated' : enemy.hitFlash > 0 || combatMode === 'stunned' ? 'stoneGuardianHit' : combatMode === 'windup' ? 'stoneGuardianWindup' : combatMode === 'attacking' ? 'stoneGuardianSlam' : 'stoneGuardianWalk1');
+      const width = enemy.type === 'statue' ? 82 : 76;
+      const height = enemy.type === 'statue' ? 82 : 78;
+      const drawBox = {
+        x: centerX - width / 2,
+        y: baseY - height + 4,
+        width,
+        height,
+      };
+      const shouldFlip = facing > 0;
+      ctx.save();
+      drawContactShadow(ctx, centerX, baseY + 3, width * 0.74, enemy.defeated ? 0.12 : 0.24, 1);
+      if (enemy.defeated) ctx.globalAlpha = 0.82;
+      if (enemy.hitFlash > 0) ctx.filter = 'brightness(1.26) saturate(1.08)';
+      if (shouldFlip) {
+        ctx.translate(drawBox.x + drawBox.width / 2, 0);
+        ctx.scale(-1, 1);
+      }
+      const drawn = drawAtlasRegion(
+        ctx,
+        pack,
+        frameKey,
+        {
+          x: shouldFlip ? -drawBox.width / 2 : drawBox.x,
+          y: drawBox.y,
+          width: drawBox.width,
+          height: drawBox.height,
+        },
+        { mode: 'contain' },
+      );
+      ctx.restore();
+      if (drawn && stateRef.current.renderStats) {
+        const stats = stateRef.current.renderStats;
+        stats.visibleEnemySpriteFamilies = Array.from(new Set([...(stats.visibleEnemySpriteFamilies || []), enemy.type]));
+        const frameState = `${enemy.id}:${enemy.type}:${combatMode}:${frameKey}`;
+        stats.enemySpriteFrameStates = [...(stats.enemySpriteFrameStates || []), frameState].slice(-12);
+      }
+      return drawn;
+    }
+
+    if (enemy.type === 'looter' && playerSpriteRef.current.loaded && playerSpriteRef.current.image) {
+      const frame = combatMode === 'defeated'
+        ? 1
+        : Math.floor(now / 180) % PLAYER_SPRITE_FRAME_COUNT;
+      const drawHeight = enemy.defeated ? 46 : 72;
+      const drawWidth = PLAYER_SPRITE_FRAME_WIDTH * (drawHeight / PLAYER_SPRITE_FRAME_HEIGHT);
+      const drawX = centerX - drawWidth / 2;
+      const drawY = baseY - drawHeight + (enemy.defeated ? 8 : 0);
+      const shouldFlip = facing > 0;
+      ctx.save();
+      drawContactShadow(ctx, centerX, baseY + 3, drawWidth * 0.56, enemy.defeated ? 0.11 : 0.2, 1);
+      ctx.filter = enemy.hitFlash > 0
+        ? 'brightness(1.22) sepia(40%) saturate(0.8)'
+        : 'sepia(38%) saturate(0.72) brightness(0.78)';
+      ctx.globalAlpha = enemy.defeated ? 0.72 : 0.92;
+      if (shouldFlip) {
+        ctx.translate(drawX + drawWidth / 2, 0);
+        ctx.scale(-1, 1);
+      }
+      ctx.drawImage(
+        playerSpriteRef.current.image,
+        frame * PLAYER_SPRITE_FRAME_WIDTH,
+        0,
+        PLAYER_SPRITE_FRAME_WIDTH,
+        PLAYER_SPRITE_FRAME_HEIGHT,
+        shouldFlip ? -drawWidth / 2 : drawX,
+        drawY,
+        drawWidth,
+        drawHeight,
+      );
+      ctx.restore();
+      if (stateRef.current.renderStats) {
+        const stats = stateRef.current.renderStats;
+        stats.visibleEnemySpriteFamilies = Array.from(new Set([...(stats.visibleEnemySpriteFamilies || []), 'looter']));
+        const frameState = `${enemy.id}:looter:${combatMode}:playerFrame${frame}`;
+        stats.enemySpriteFrameStates = [...(stats.enemySpriteFrameStates || []), frameState].slice(-12);
+      }
+      return true;
+    }
+
+    return false;
+  }, [drawContactShadow, getCombatMode]);
+
+  const drawBossSprite = useCallback((ctx, boss, screenX, now, bossVisualState) => {
+    const supportedBoss = boss.id === 'scarab-queen'
+      || boss.id === 'temple-guardian'
+      || boss.id === 'giant-serpent'
+      || boss.id === 'ancient-construct';
+    if (!supportedBoss) return false;
+    const combatMode = getCombatMode(boss);
+    const frameKey = boss.id === 'ancient-construct'
+      ? getAncientConstructSpriteFrame(boss, combatMode, bossVisualState, now)
+      : boss.id === 'temple-guardian'
+        ? getStoneGuardianSpriteFrame(boss, combatMode, bossVisualState, now)
+        : boss.id === 'giant-serpent'
+          ? getGiantSerpentSpriteFrame(boss, combatMode, bossVisualState, now)
+          : getScarabQueenSpriteFrame(boss, combatMode, bossVisualState, now);
+    const drawBox = boss.id === 'ancient-construct'
+      ? getAncientConstructDrawBox(boss, screenX)
+      : boss.id === 'temple-guardian'
+        ? getStoneGuardianDrawBox(boss, screenX)
+        : boss.id === 'giant-serpent'
+          ? getGiantSerpentDrawBox(boss, screenX)
+          : getScarabQueenDrawBox(boss, screenX);
+    const pack = getBossSpritePack(bossSpriteAssetsRef.current, boss.id);
+    if (!frameKey || !drawBox || !pack) return false;
+
+    const facing = (boss.attackTimer > 0 || boss.attackWindup > 0)
+      ? boss.attackDirection
+      : boss.direction;
+    const shouldFlip = facing > 0;
+    const centerX = screenX + boss.width / 2;
+    const baseY = boss.y + boss.height;
+
+    ctx.save();
+    const isStoneBoss = boss.id === 'temple-guardian' || boss.id === 'ancient-construct';
+    drawContactShadow(ctx, centerX, baseY + 3, drawBox.width * (isStoneBoss ? 0.86 : 0.78), isStoneBoss ? 0.34 : 0.28, 1.5);
+    if (isStoneBoss && (combatMode === 'attacking' || combatMode === 'windup')) {
+      drawGroundDustLip(ctx, centerX, baseY + 2, drawBox.width * 0.72, 'rgba(197, 148, 72, 0.28)');
+    }
+    ctx.shadowColor = bossVisualState?.shielded
+      ? 'rgba(125, 211, 252, 0.45)'
+      : bossVisualState?.vulnerable
+        ? 'rgba(74, 222, 128, 0.44)'
+        : 'rgba(15, 23, 42, 0.55)';
+    ctx.shadowBlur = bossVisualState?.shielded || bossVisualState?.vulnerable ? 16 : isStoneBoss ? 12 : 10;
+    if (boss.hitFlash > 0 || combatMode === 'stunned') {
+      ctx.filter = 'brightness(1.28) saturate(1.12)';
+    }
+    if (shouldFlip) {
+      ctx.translate(drawBox.x + drawBox.width / 2, 0);
+      ctx.scale(-1, 1);
+    }
+    const drawn = drawAtlasRegion(
+      ctx,
+      pack,
+      frameKey,
+      {
+        x: shouldFlip ? -drawBox.width / 2 : drawBox.x,
+        y: drawBox.y,
+        width: drawBox.width,
+        height: drawBox.height,
+      },
+      { mode: 'contain' },
+    );
+    ctx.restore();
+
+    if (drawn && stateRef.current.renderStats) {
+      stateRef.current.renderStats.activeBossSprite = boss.id;
+      stateRef.current.renderStats.activeBossSpriteFrame = frameKey;
+      stateRef.current.renderStats.activeBossAnimationState = combatMode;
+      if (boss.id === 'temple-guardian') {
+        stateRef.current.renderStats.stoneGuardianSpriteFrame = frameKey;
+      }
+      if (boss.id === 'ancient-construct') {
+        stateRef.current.renderStats.ancientConstructSpriteFrame = frameKey;
+      }
+      if (boss.id === 'giant-serpent') {
+        stateRef.current.renderStats.giantSerpentSpriteFrame = frameKey;
+      }
+    }
+
+    return drawn;
+  }, [drawContactShadow, drawGroundDustLip, getCombatMode]);
+
+  const drawMiniBoss = useCallback((ctx, boss, screenX, now) => {
     const pulse = Math.sin(now / 400) * 0.12 + 0.88;
     const cx = screenX + boss.width / 2;
     const cy = boss.y + boss.height / 2;
+    const bossVisualState = getBossVulnerabilityState(boss);
 
     ctx.save();
     const bossAura = ctx.createRadialGradient(cx, cy, 18, cx, cy, 78 * pulse);
@@ -1774,7 +3128,13 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     ctx.strokeStyle = '#111827';
     ctx.lineWidth = 3;
 
-    if (boss.type === 'guardian' || boss.type === 'statue') {
+    const bossSpriteDrawn = boss.type === 'looter'
+      ? drawSmallEnemySprite(ctx, boss, screenX, now)
+      : drawBossSprite(ctx, boss, screenX, now, bossVisualState);
+
+    if (bossSpriteDrawn) {
+      // Sprite atlas handles supported boss body art; shared health/status UI below remains unchanged.
+    } else if (boss.type === 'guardian' || boss.type === 'statue') {
       ctx.fillStyle = '#64748b';
       ctx.beginPath();
       ctx.roundRect(screenX + 10, boss.y + 10, boss.width - 20, 22, 8);
@@ -1853,23 +3213,18 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       ctx.beginPath();
       ctx.arc(cx, cy, 28 + Math.sin(now / 80) * 3, 0, Math.PI * 2);
       ctx.stroke();
-      ctx.font = '900 9px Outfit, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('SHIELD', cx, boss.y - 28);
     } else if (boss.vulnerabilityTimer > 0) {
-      ctx.fillStyle = '#bbf7d0';
-      ctx.font = '900 9px Outfit, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('OPEN!', cx, boss.y - 28);
+      ctx.strokeStyle = '#22c55e';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 34 + Math.sin(now / 90) * 4, 0, Math.PI * 2);
+      ctx.stroke();
     }
 
-    if (showLabel) {
-      drawFieldNoteLabel(ctx, cx, boss.y - 40, boss.name, '#0f766e');
-    }
     ctx.restore();
-  }, [drawFieldNoteLabel]);
+  }, [drawBossSprite, drawSmallEnemySprite, getBossVulnerabilityState]);
 
-  const drawAttackArc = useCallback((ctx, box, cameraX, direction, color = '#facc15', label = 'STUN') => {
+  const drawAttackArc = useCallback((ctx, box, cameraX, direction, color = '#facc15') => {
     if (!box) return;
     const x = box.x - cameraX;
     const cx = direction >= 0 ? x + 6 : x + box.width - 6;
@@ -1888,16 +3243,13 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     ctx.beginPath();
     ctx.arc(direction >= 0 ? x + box.width : x, box.y + 5, 4, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = color;
-    ctx.font = '800 8px Outfit, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(label, x + box.width / 2, box.y - 4);
     ctx.restore();
   }, []);
 
   const drawEnemyAttackTell = useCallback((ctx, entity, screenX, cameraX, now, isBoss = false, suppressLabels = false) => {
     const cx = screenX + entity.width / 2;
     const cy = entity.y + entity.height / 2;
+    const feetY = entity.y + entity.height + 3;
     const warning = entity.attackWindup > 0;
     const attacking = entity.attackTimer > 0;
     const shielded = isBoss && entity.shieldTimer > 0;
@@ -1906,30 +3258,50 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
 
     ctx.save();
     if (shielded) {
-      ctx.strokeStyle = 'rgba(125, 211, 252, 0.85)';
-      ctx.lineWidth = 4;
+      const glow = 0.55 + Math.sin(now / 90) * 0.18;
+      ctx.fillStyle = `rgba(125, 211, 252, ${glow})`;
       ctx.beginPath();
-      ctx.arc(cx, cy, 54 + Math.sin(now / 70) * 4, 0, Math.PI * 2);
+      ctx.moveTo(cx, cy - 22);
+      ctx.lineTo(cx + 14, cy - 8);
+      ctx.lineTo(cx + 8, cy + 12);
+      ctx.lineTo(cx - 8, cy + 12);
+      ctx.lineTo(cx - 14, cy - 8);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(3, 105, 161, 0.9)';
+      ctx.lineWidth = 2;
       ctx.stroke();
       if (!suppressLabels) {
-        drawFieldNoteLabel(ctx, cx, entity.y - 58, 'SHIELDED', '#0369a1');
+        drawFieldNoteLabel(ctx, cx, entity.y - 48, 'WAIT', '#0369a1');
       }
     } else if (vulnerable) {
-      ctx.strokeStyle = 'rgba(34, 197, 94, 0.82)';
-      ctx.lineWidth = 4;
+      ctx.fillStyle = 'rgba(34, 197, 94, 0.24)';
       ctx.beginPath();
-      ctx.arc(cx, cy, 50 + Math.sin(now / 90) * 5, 0, Math.PI * 2);
+      ctx.ellipse(cx, feetY, isBoss ? 48 : 30, 7, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(22, 101, 52, 0.72)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(cx - (isBoss ? 32 : 20), feetY - 3);
+      ctx.lineTo(cx + (isBoss ? 32 : 20), feetY - 3);
       ctx.stroke();
       if (!suppressLabels) {
-        drawFieldNoteLabel(ctx, cx, entity.y - 58, 'COUNTER WINDOW', '#166534');
+        drawFieldNoteLabel(ctx, cx, entity.y - 48, 'OPEN', '#166534');
       }
     }
     if (warning) {
       const pulse = Math.sin(now / 80) * 0.25 + 0.75;
-      ctx.strokeStyle = `rgba(248, 113, 113, ${pulse})`;
-      ctx.lineWidth = isBoss ? 5 : 3;
+      const reach = isBoss ? 44 : 28;
+      const dir = entity.attackDirection || entity.direction || 1;
+      ctx.fillStyle = `rgba(248, 113, 113, ${0.16 + pulse * 0.14})`;
       ctx.beginPath();
-      ctx.arc(cx, cy, (isBoss ? 46 : 30) + pulse * 5, 0, Math.PI * 2);
+      ctx.ellipse(cx + dir * reach * 0.62, feetY, reach, isBoss ? 9 : 6, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = `rgba(127, 29, 29, ${0.45 + pulse * 0.25})`;
+      ctx.lineWidth = isBoss ? 3 : 2;
+      ctx.beginPath();
+      ctx.moveTo(cx, feetY - 4);
+      ctx.lineTo(cx + dir * reach, feetY - 4);
       ctx.stroke();
       ctx.fillStyle = '#fee2e2';
       ctx.strokeStyle = '#7f1d1d';
@@ -1958,21 +3330,64 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
           height: 54,
         }
         : getAttackBox(entity, isRanged ? 122 : isBoss ? 58 : 36, isBoss ? 40 : 24, entity.attackDirection);
-      drawAttackArc(ctx, box, cameraX, entity.attackDirection, isBoss ? (isRanged ? '#7dd3fc' : isArea ? '#facc15' : '#fb923c') : '#f87171', suppressLabels ? '' : isBoss ? (entity.attackPhaseLabel || 'BOSS ATTACK') : 'ATTACK');
+      const dir = entity.attackDirection || 1;
+      const boxX = box.x - cameraX;
+      const attackColor = isBoss ? (isRanged ? 'rgba(125, 211, 252, 0.34)' : isArea ? 'rgba(250, 204, 21, 0.34)' : 'rgba(251, 146, 60, 0.34)') : 'rgba(248, 113, 113, 0.3)';
+      ctx.fillStyle = attackColor;
+      ctx.beginPath();
+      if (isArea) {
+        ctx.ellipse(boxX + box.width / 2, box.y + box.height - 4, box.width / 2, 9, 0, 0, Math.PI * 2);
+      } else {
+        ctx.moveTo(dir >= 0 ? boxX : boxX + box.width, box.y + box.height * 0.15);
+        ctx.lineTo(dir >= 0 ? boxX + box.width : boxX, box.y + box.height * 0.5);
+        ctx.lineTo(dir >= 0 ? boxX : boxX + box.width, box.y + box.height * 0.85);
+        ctx.closePath();
+      }
+      ctx.fill();
+      ctx.strokeStyle = isBoss ? 'rgba(120, 53, 15, 0.62)' : 'rgba(127, 29, 29, 0.58)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      if (isBoss && entity.attackPhaseLabel && !suppressLabels) {
+        drawFieldNoteLabel(ctx, cx, entity.y - 36, entity.attackPhaseLabel, '#b45309');
+      }
     }
     ctx.restore();
-  }, [drawAttackArc, drawFieldNoteLabel, getAttackBox]);
+  }, [drawFieldNoteLabel, getAttackBox]);
 
   const drawCombatEffects = useCallback((ctx, effects, cameraX, now) => {
     effects.forEach((effect) => {
       const progress = effect.timer / (effect.maxTimer || 0.35);
       const x = effect.x - cameraX;
       const y = effect.y;
+      const compactTypes = new Set([
+        'enemy-counter-window',
+        'boss-vulnerable',
+        'enemy-shield',
+        'boss-shield',
+        'boss-telegraph',
+        'attack-stamina',
+      ]);
       ctx.save();
       ctx.globalAlpha = Math.max(0, progress);
       ctx.strokeStyle = effect.color || '#facc15';
       ctx.fillStyle = effect.color || '#facc15';
       ctx.lineWidth = 3;
+      if (compactTypes.has(effect.type)) {
+        ctx.globalAlpha = Math.max(0, progress * 0.9);
+        ctx.beginPath();
+        ctx.ellipse(x, y + 14, 28 + (1 - progress) * 8, 5, 0, 0, Math.PI * 2);
+        ctx.fill();
+        if (effect.text) {
+          ctx.font = '900 12px Outfit, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.lineWidth = 4;
+          ctx.strokeStyle = 'rgba(15, 23, 42, 0.82)';
+          ctx.strokeText(effect.text, x, y - 18 - (1 - progress) * 10);
+          ctx.fillText(effect.text, x, y - 18 - (1 - progress) * 10);
+        }
+        ctx.restore();
+        return;
+      }
       const burst = 18 + (1 - progress) * 22;
       ctx.beginPath();
       ctx.arc(x, y, burst * 0.45, 0, Math.PI * 2);
@@ -2006,6 +3421,14 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     const current = stateRef.current;
+    ctx.setTransform(
+      JOURNEY_RENDER_TARGET.virtualToNativeScaleX,
+      0,
+      0,
+      JOURNEY_RENDER_TARGET.virtualToNativeScaleY,
+      0,
+      0,
+    );
     const player = current.player;
     const now = Date.now();
     const section = getSectionForX(player.x);
@@ -2013,7 +3436,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     const shake = current.cameraShakeTimer > 0
       ? Math.sin(now / 28) * current.cameraShakeStrength * 7
       : 0;
-    const cameraX = clamp((Number.isFinite(current.cameraX) ? current.cameraX : 0) + shake, 0, WORLD_WIDTH - CANVAS_WIDTH);
+    const cameraX = clampCameraX((Number.isFinite(current.cameraX) ? current.cameraX : 0) + shake);
     const isPlayerNear = (worldX, distance = 240) => Math.abs((player.x + player.width / 2) - worldX) < distance;
     const activeRouteGate = ROUTE_GATES.find(gate => !current.openedRouteGateIds.has(gate.id));
     const activeGateGuidance = activeRouteGate ? getGateGuidance(activeRouteGate, current) : null;
@@ -2026,69 +3449,122 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       labelSuppressionActive,
       atlasTuningVersion: ATLAS_TUNING_VERSION,
       activeAtlasRegionIssues: getMissingEnvironmentAssets(environmentAssetsRef.current),
+      parallaxLayersActive: false,
+      activeBackgroundSection: null,
+      backgroundDepthMode: 'canvas-fallback',
+      platformVisualTuningActive: true,
+      journeyPolishPassActive: true,
+      journeyPolishVersion: JOURNEY_POLISH_VERSION,
+      hazardReadabilityMode: 'soft-warning-cues',
+      enemyVisualMode: enemySpriteAssetsRef.current.loaded ? 'sprite-atlas-with-grounding' : 'canvas-fallback',
+      bossVisualMode: bossSpriteAssetsRef.current.loaded ? 'multi-boss-atlas-fallback-safe' : 'canvas-fallback',
+      collectibleVisualMode: collectibleSpriteAssetsRef.current.loaded ? 'sprite-atlas-with-fallback' : 'canvas-fallback',
+      playerWeaponVisualMode: playerWeaponSpriteRef.current.loaded ? 'khopesh-sprite-atlas' : 'canvas-fallback',
+      desertVisualTuningVersion: DESERT_VISUAL_TUNING_VERSION,
+      assetGroundingPassActive: true,
+      groundedPropCount: 0,
+      backgroundPropTintActive: true,
+      platformGroundingMode: 'contact-shadow-ledges',
+      propDrawOrderMode: DECORATIVE_PROP_LAYER_MODE,
+      decorativePropLayerMode: DECORATIVE_PROP_LAYER_MODE,
+      propDepthTuningVersion: PROP_DEPTH_TUNING_VERSION,
+      floatingAssetWarnings: [],
+      assetGroundingVersion: JOURNEY_ASSET_GROUNDING_VERSION,
+      visibleEnemySpriteFamilies: [],
+      enemySpriteFrameStates: [],
+      activeBossSprite: null,
+      activeBossSpriteFrame: null,
+      activeBossAnimationState: null,
+      stoneGuardianSpriteFrame: null,
+      ancientConstructSpriteFrame: null,
+      visibleToolSprites: [],
+      visibleShardSprites: [],
+      visibleUpgradeSprites: [],
+      visibleObjectiveSprites: [],
+      visibleCollectibleCount: 0,
+      playerWeaponFrame: getPlayerWeaponFrameKey(getPlayerAttackState(current)),
     };
     const showWorldLabel = (worldX, distance = 150, priority = 'normal') => {
       const near = isPlayerNear(worldX, distance);
-      if (priority === 'critical') return near && !labelSuppressionActive;
+      if (priority === 'critical') return near && !labelSuppressionActive && Math.abs(worldX - playerCenterX) < distance;
       if (priority === 'combat') return near && !labelSuppressionActive;
       return near && !labelSuppressionActive;
     };
 
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    // Sky
-    const skyGradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-    skyGradient.addColorStop(0, atmosphere.skyTop);
-    skyGradient.addColorStop(1, atmosphere.skyBottom);
-    ctx.fillStyle = skyGradient;
-    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    const desertBackgroundDrawn = drawDesertEntryBackground(ctx, section, cameraX);
+    const sectionParallaxDrawn = !desertBackgroundDrawn && drawSectionParallaxBackground(ctx, section, cameraX);
+    if (desertBackgroundDrawn) {
+      current.renderStats.parallaxLayersActive = true;
+      current.renderStats.activeBackgroundSection = 'desert-entry';
+      current.renderStats.backgroundDepthMode = DESERT_BACKGROUND_DEPTH_MODE;
+    } else if (sectionParallaxDrawn) {
+      current.renderStats.parallaxLayersActive = true;
+      current.renderStats.activeBackgroundSection = section.id;
+      current.renderStats.backgroundDepthMode = JOURNEY_BACKGROUND_DEPTH_MODE;
+    } else {
+      // Sky
+      const skyGradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
+      skyGradient.addColorStop(0, atmosphere.skyTop);
+      skyGradient.addColorStop(1, atmosphere.skyBottom);
+      ctx.fillStyle = skyGradient;
+      ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    // Parallax Hills
-    ctx.fillStyle = section.id === 'catacombs' ? 'rgba(0, 0, 0, 0.28)' : 'rgba(112, 73, 42, 0.16)';
-    for (let hill = -160; hill < WORLD_WIDTH; hill += 240) {
-      ctx.beginPath();
-      ctx.ellipse(hill - cameraX * 0.34, 355, 180, 45, 0, 0, Math.PI * 2);
-      ctx.fill();
+      // Parallax Hills
+      ctx.fillStyle = section.id === 'catacombs' ? 'rgba(0, 0, 0, 0.28)' : 'rgba(112, 73, 42, 0.16)';
+      for (let hill = -160; hill < WORLD_WIDTH; hill += 240) {
+        ctx.beginPath();
+        ctx.ellipse(hill - cameraX * 0.34, 355, 180, 45, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Parallax Ridges
+      ctx.fillStyle = section.id === 'dig-site-entrance' ? 'rgba(34, 84, 61, 0.18)' : 'rgba(53, 40, 30, 0.14)';
+      for (let ridge = -260; ridge < WORLD_WIDTH; ridge += 360) {
+        ctx.beginPath();
+        ctx.ellipse(ridge - cameraX * 0.18, 242, 220, 58, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
 
-    // Parallax Ridges
-    ctx.fillStyle = section.id === 'dig-site-entrance' ? 'rgba(34, 84, 61, 0.18)' : 'rgba(53, 40, 30, 0.14)';
-    for (let ridge = -260; ridge < WORLD_WIDTH; ridge += 360) {
-      ctx.beginPath();
-      ctx.ellipse(ridge - cameraX * 0.18, 242, 220, 58, 0, 0, Math.PI * 2);
-      ctx.fill();
-    }
+    const parallaxBackgroundDrawn = desertBackgroundDrawn || sectionParallaxDrawn;
 
     // --- Ground & Props ---
-    drawTempleBackdrop(ctx, section, cameraX);
-    STORY_PROPS.forEach((prop) => drawStoryProp(ctx, prop, cameraX, now));
+    if (!parallaxBackgroundDrawn) drawTempleBackdrop(ctx, section, cameraX);
+    STORY_PROPS.forEach((prop) => drawStoryProp(ctx, prop, cameraX, now, 'background'));
     drawParticles(ctx, atmosphere, cameraX, now);
 
     // --- Environment Layers (Parallax) ---
-    const renderParallaxLayer = (depth, color, heightMult) => {
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.moveTo(0, CANVAS_HEIGHT);
-      for (let i = 0; i <= CANVAS_WIDTH; i += 40) {
-        const worldX = i + cameraX * depth;
-        const y = CANVAS_HEIGHT - 60 - heightMult * (20 + Math.sin(worldX * 0.002) * 30 + Math.cos(worldX * 0.005) * 15);
-        ctx.lineTo(i, y);
-      }
-      ctx.lineTo(CANVAS_WIDTH, CANVAS_HEIGHT);
-      ctx.fill();
-    };
-    renderParallaxLayer(0.08, `${atmosphere.skyBottom}66`, 1.3);
-    renderParallaxLayer(0.18, `${atmosphere.skyBottom}99`, 0.9);
-    renderParallaxLayer(0.28, `${atmosphere.skyBottom}cc`, 0.5);
+    if (!parallaxBackgroundDrawn && section.id !== 'ruined-temple') {
+      const renderParallaxLayer = (depth, color, heightMult) => {
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(0, CANVAS_HEIGHT);
+        for (let i = 0; i <= CANVAS_WIDTH; i += 40) {
+          const worldX = i + cameraX * depth;
+          const y = CANVAS_HEIGHT - 60 - heightMult * (20 + Math.sin(worldX * 0.002) * 30 + Math.cos(worldX * 0.005) * 15);
+          ctx.lineTo(i, y);
+        }
+        ctx.lineTo(CANVAS_WIDTH, CANVAS_HEIGHT);
+        ctx.fill();
+      };
+      renderParallaxLayer(0.08, `${atmosphere.skyBottom}66`, 1.3);
+      renderParallaxLayer(0.18, `${atmosphere.skyBottom}99`, 0.9);
+      renderParallaxLayer(0.28, `${atmosphere.skyBottom}cc`, 0.5);
+    }
+    drawDesertForegroundAtmosphere(ctx, section, cameraX);
+    STORY_PROPS.forEach((prop) => drawStoryProp(ctx, prop, cameraX, now, 'midground'));
 
     // --- Entities ---
     PLATFORMS.forEach((platform) => drawPlatform(ctx, platform, cameraX, current));
+    drawSectionTransitionBlend(ctx, cameraX);
     
     HAZARDS.forEach((hazard) => drawHazard(ctx, hazard, cameraX, current, now));
 
     CHECKPOINTS.forEach((checkpoint) => {
-      const cx = checkpoint.x - cameraX;
-      if (cx < -80 || cx > CANVAS_WIDTH + 80) return;
+      const cx = worldToScreenX(checkpoint.x, cameraX);
+      if (!isHorizontallyVisible(checkpoint.x, 1, cameraX, 80)) return;
       const active = current.activeCheckpoint.id === checkpoint.id;
       ctx.save();
       ctx.fillStyle = active ? '#166534' : '#451a03';
@@ -2101,70 +3577,110 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
 
     ROUTE_GATES.forEach((gate) => {
       if (current.openedRouteGateIds.has(gate.id)) return;
-      const gx = gate.x - cameraX;
-      if (gx + gate.width < -100 || gx > CANVAS_WIDTH + 100) return;
+      const gx = worldToScreenX(gate.x, cameraX);
+      if (!isHorizontallyVisible(gate.x, gate.width, cameraX, 100)) return;
       const requirements = getGateRequirements(gate, current);
       const complete = requirements.every(r => r.met);
       drawRouteGate(ctx, gate, gx, current, complete);
     });
-    drawMissingObjectiveMarker(ctx, activeGateGuidance, cameraX, now, labelSuppressionActive);
+    drawMissingObjectiveMarker(ctx, activeGateGuidance, cameraX, now);
 
     current.enemies.forEach((enemy) => {
-      if (enemy.defeated) return;
-      const ex = enemy.x - cameraX;
-      if (ex + enemy.width < -50 || ex > CANVAS_WIDTH + 50) return;
+      const ex = worldToScreenX(enemy.x, cameraX);
+      if (!isHorizontallyVisible(enemy.x, enemy.width, cameraX, 50)) return;
       
       ctx.save();
       const shakeX = enemy.hitFlash > 0 ? Math.sin(now / 20) * 5 : 0;
-      drawEnemyAttackTell(ctx, enemy, ex, cameraX, now);
-      
-      // Enemy Aura
-      const aura = ctx.createRadialGradient(ex + enemy.width/2, enemy.y + enemy.height/2, 5, ex + enemy.width/2, enemy.y + enemy.height/2, 30);
-      aura.addColorStop(0, 'rgba(30, 41, 59, 0.2)');
-      aura.addColorStop(1, 'transparent');
-      ctx.fillStyle = aura;
-      ctx.beginPath();
-      ctx.arc(ex + enemy.width/2, enemy.y + enemy.height/2, 30, 0, Math.PI * 2);
-      ctx.fill();
+      if (!enemy.defeated) drawEnemyAttackTell(ctx, enemy, ex, cameraX, now, false, true);
 
       // Main Visual
-      ctx.font = '42px Outfit';
-      ctx.textAlign = 'center';
-      ctx.shadowColor = 'rgba(0,0,0,0.5)';
-      ctx.shadowBlur = 10;
-      ctx.fillText(enemy.emoji, ex + enemy.width / 2 + shakeX, enemy.y + enemy.height / 2 + 14);
+      const spriteDrawn = drawSmallEnemySprite(ctx, enemy, ex, now, shakeX)
+        || drawLinkedEnemySprite(ctx, enemy, ex, now, shakeX);
+      if (!spriteDrawn) {
+        if (enemy.defeated) {
+          drawContactShadow(ctx, ex + enemy.width / 2, enemy.y + enemy.height + 3, enemy.width * 0.62, 0.12, 0.75);
+          drawGroundDustLip(ctx, ex + enemy.width / 2, enemy.y + enemy.height + 2, enemy.width * 0.68, 'rgba(95, 58, 27, 0.24)');
+        } else {
+          drawContactShadow(ctx, ex + enemy.width / 2, enemy.y + enemy.height + 3, enemy.width * 0.72, 0.16, 0.75);
+          ctx.fillStyle = enemy.type === 'guardian' || enemy.type === 'statue' ? '#6b7280' : '#78350f';
+          ctx.strokeStyle = 'rgba(30, 18, 8, 0.45)';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.ellipse(ex + enemy.width / 2 + shakeX, enemy.y + enemy.height * 0.55, enemy.width * 0.45, enemy.height * 0.43, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+        }
+      }
       
       // Health Bar (Small)
-      if (enemy.health > 1) {
+      if (!enemy.defeated && enemy.health > 1) {
         ctx.fillStyle = 'rgba(0,0,0,0.5)';
         ctx.fillRect(ex, enemy.y - 12, enemy.width, 4);
         ctx.fillStyle = '#ef4444';
         ctx.fillRect(ex, enemy.y - 12, (enemy.health / 2) * enemy.width, 4);
       }
 
-      if (enemy.hitFlash > 0 || enemy.stunTimer > 0 || showWorldLabel(enemy.x + enemy.width / 2, 120, 'combat')) {
-        drawFieldNoteLabel(ctx, ex + enemy.width / 2, enemy.y - 20, enemy.name, '#1e293b');
-      }
       ctx.restore();
     });
 
     current.miniBosses.forEach((boss) => {
       if (boss.defeated) return;
-      const bx = boss.x - cameraX;
-      if (bx + boss.width < -100 || bx > CANVAS_WIDTH + 100) return;
-      drawMiniBoss(ctx, boss, bx, now, !crowdedGateActive);
-      drawEnemyAttackTell(ctx, boss, bx, cameraX, now, true, crowdedGateActive);
+      const bx = worldToScreenX(boss.x, cameraX);
+      if (!isHorizontallyVisible(boss.x, boss.width, cameraX, 100)) return;
+      drawMiniBoss(ctx, boss, bx, now);
+      drawEnemyAttackTell(ctx, boss, bx, cameraX, now, true, true);
     });
+
+    const getShardVisualBaseY = (shard) => {
+      const platform = PLATFORMS
+        .filter(p => p.y !== GROUND_Y)
+        .find(p => (
+          shard.x >= p.x - 8
+          && shard.x <= p.x + p.width + 8
+          && Math.abs(shard.y - (p.y + p.height)) <= 34
+        ));
+      if (platform) return platform.y - 4;
+      return shard.y + COLLECTIBLE_VISUAL_BASE.relicShard.anchorYOffset;
+    };
 
     RELIC_SHARDS.forEach(shard => {
       if (current.collectedShardIds.has(shard.id)) return;
       const visible = !shard.hidden || current.collectedUpgrades.has('historian-vision');
-      if (visible) drawCollectible(ctx, shard.x, shard.y, cameraX, now, '💎', '#b45309', shard.hidden, true);
+      if (visible) {
+        drawCollectible(ctx, shard.x, shard.y, cameraX, now, '💎', '#f59e0b', shard.hidden, true, {
+          key: 'relicShard',
+          kind: 'shard',
+          size: COLLECTIBLE_VISUAL_BASE.relicShard.size,
+          ringSize: COLLECTIBLE_VISUAL_BASE.relicShard.ringSize,
+          glowAlpha: COLLECTIBLE_VISUAL_BASE.relicShard.glowAlpha,
+          shadowAlpha: COLLECTIBLE_VISUAL_BASE.relicShard.shadowAlpha,
+          bobAmplitude: COLLECTIBLE_VISUAL_BASE.relicShard.bobAmplitude,
+          sparkleAlpha: COLLECTIBLE_VISUAL_BASE.relicShard.sparkleAlpha,
+          sparkleSize: COLLECTIBLE_VISUAL_BASE.relicShard.sparkleSize,
+          anchorYOffset: COLLECTIBLE_VISUAL_BASE.relicShard.anchorYOffset,
+          nearGlowDistance: COLLECTIBLE_VISUAL_BASE.relicShard.nearGlowDistance,
+          baseY: getShardVisualBaseY(shard),
+          hideGlow: true,
+        });
+      }
     });
 
     UPGRADES.forEach(upgrade => {
       if (!current.collectedUpgrades.has(upgrade.id)) {
-        drawCollectible(ctx, upgrade.x, upgrade.y, cameraX, now, upgrade.emoji, '#2563eb');
+        drawCollectible(ctx, upgrade.x, upgrade.y, cameraX, now, upgrade.emoji, '#2563eb', false, false, {
+          key: getUpgradeSpriteKey(upgrade.id),
+          kind: 'upgrade',
+          size: COLLECTIBLE_VISUAL_BASE.upgrade.size,
+          ringSize: COLLECTIBLE_VISUAL_BASE.upgrade.ringSize,
+          glowAlpha: COLLECTIBLE_VISUAL_BASE.upgrade.glowAlpha,
+          shadowAlpha: COLLECTIBLE_VISUAL_BASE.upgrade.shadowAlpha,
+          bobAmplitude: COLLECTIBLE_VISUAL_BASE.upgrade.bobAmplitude,
+          sparkleAlpha: COLLECTIBLE_VISUAL_BASE.upgrade.sparkleAlpha,
+          sparkleSize: COLLECTIBLE_VISUAL_BASE.upgrade.sparkleSize,
+          anchorYOffset: COLLECTIBLE_VISUAL_BASE.upgrade.anchorYOffset,
+          nearGlowDistance: COLLECTIBLE_VISUAL_BASE.upgrade.nearGlowDistance,
+          hideGlow: true,
+        });
         if (showWorldLabel(upgrade.x, 135, 'critical')) {
           drawFieldNoteLabel(ctx, upgrade.x - cameraX, upgrade.y - 30, upgrade.name, '#2563eb');
         }
@@ -2174,7 +3690,22 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     TOOL_LAYOUT.forEach(toolPos => {
       if (!current.collectedToolIds.has(toolPos.id)) {
         const tool = JOURNEY_TOOLS.find(t => t.id === toolPos.id);
-        drawCollectible(ctx, toolPos.x, toolPos.y, cameraX, now, tool.emoji, '#d4af37');
+        drawCollectible(ctx, toolPos.x, toolPos.y, cameraX, now, tool.emoji, '#d4af37', false, false, {
+          key: getToolSpriteKey(toolPos.id),
+          kind: 'tool',
+          size: toolPos.id === 'field-guide-page'
+            ? COLLECTIBLE_VISUAL_BASE.fieldTool.fieldGuideSize
+            : COLLECTIBLE_VISUAL_BASE.fieldTool.size,
+          ringSize: COLLECTIBLE_VISUAL_BASE.fieldTool.ringSize,
+          glowAlpha: COLLECTIBLE_VISUAL_BASE.fieldTool.glowAlpha,
+          shadowAlpha: COLLECTIBLE_VISUAL_BASE.fieldTool.shadowAlpha,
+          bobAmplitude: COLLECTIBLE_VISUAL_BASE.fieldTool.bobAmplitude,
+          sparkleAlpha: COLLECTIBLE_VISUAL_BASE.fieldTool.sparkleAlpha,
+          sparkleSize: COLLECTIBLE_VISUAL_BASE.fieldTool.sparkleSize,
+          anchorYOffset: COLLECTIBLE_VISUAL_BASE.fieldTool.anchorYOffset,
+          nearGlowDistance: COLLECTIBLE_VISUAL_BASE.fieldTool.nearGlowDistance,
+          hideGlow: true,
+        });
         if (showWorldLabel(toolPos.x, 125)) {
           drawFieldNoteLabel(ctx, toolPos.x - cameraX, toolPos.y - 30, tool.name, '#b45309');
         }
@@ -2183,14 +3714,27 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
 
     OBJECTIVE_MARKERS.forEach(marker => {
       if (current.collectedObjectiveIds.has(marker.id)) return;
-      const mx = marker.x - cameraX;
-      if (mx < -50 || mx > CANVAS_WIDTH + 50) return;
+      const mx = worldToScreenX(marker.x, cameraX);
+      if (!isHorizontallyVisible(marker.x, 1, cameraX, 50)) return;
       const emoji = marker.type === 'switch' ? '⚙️' : marker.type === 'glyph' ? '📜' : marker.type === 'escape' ? '🏃' : '🚩';
-      ctx.save();
-      ctx.font = '32px Outfit';
-      ctx.textAlign = 'center';
-      ctx.fillText(emoji, mx + 15, marker.y + 15);
       const markerNeeded = activeGateGuidance?.nearestMissingObjective?.id === marker.id;
+      ctx.save();
+      drawCollectible(ctx, marker.x + 15, marker.y + 12, cameraX, now, emoji, marker.color || '#b45309', false, false, {
+        key: getObjectiveSpriteKey(marker.type),
+        kind: 'objective',
+        size: marker.type === 'map-tablet'
+          ? COLLECTIBLE_VISUAL_BASE.objective.mapTabletSize
+          : COLLECTIBLE_VISUAL_BASE.objective.size,
+        ringSize: COLLECTIBLE_VISUAL_BASE.objective.ringSize,
+        glowAlpha: 0,
+        shadowAlpha: COLLECTIBLE_VISUAL_BASE.objective.shadowAlpha,
+        bobAmplitude: COLLECTIBLE_VISUAL_BASE.objective.bobAmplitude,
+        sparkleAlpha: COLLECTIBLE_VISUAL_BASE.objective.sparkleAlpha,
+        sparkleSize: COLLECTIBLE_VISUAL_BASE.objective.sparkleSize,
+        anchorYOffset: COLLECTIBLE_VISUAL_BASE.objective.anchorYOffset,
+        nearGlowDistance: COLLECTIBLE_VISUAL_BASE.objective.nearGlowDistance,
+        hideGlow: true,
+      });
       if (showWorldLabel(marker.x, markerNeeded ? 170 : 120, markerNeeded ? 'critical' : 'normal')) {
         drawFieldNoteLabel(ctx, mx + 15, marker.y - 15, marker.label, marker.color || '#b45309');
       }
@@ -2200,6 +3744,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     const gateX = GATE.x - cameraX;
     if (gateX > -200 && gateX < CANVAS_WIDTH + 200) {
       ctx.save();
+      drawContactShadow(ctx, gateX + GATE.width / 2, GATE.y + GATE.height + 2, GATE.width + 58, 0.28, 1.2);
       ctx.fillStyle = '#31543d';
       ctx.fillRect(gateX - 18, GATE.y - 20, GATE.width + 36, GATE.height + 20);
       ctx.fillStyle = '#facc15';
@@ -2209,6 +3754,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       ctx.strokeStyle = '#bbf7d0';
       ctx.lineWidth = 3;
       ctx.strokeRect(gateX + 10, GATE.y + 18, GATE.width - 20, GATE.height - 24);
+      drawGroundDustLip(ctx, gateX + GATE.width / 2, GATE.y + GATE.height + 1, GATE.width + 42, 'rgba(74, 130, 82, 0.18)');
       ctx.fillStyle = 'rgba(250, 204, 21, 0.32)';
       ctx.beginPath();
       ctx.arc(gateX + GATE.width / 2, GATE.y + 18, 36, 0, Math.PI * 2);
@@ -2217,10 +3763,11 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     }
 
     if (current.attackTimer > 0) {
-      drawAttackArc(ctx, current.playerAttackBox, cameraX, player.direction, '#facc15', 'TOOL SWING');
+      drawAttackArc(ctx, current.playerAttackBox, cameraX, player.direction, '#facc15', 'SWING');
     }
     drawPlayerSprite(ctx, player.x - cameraX, player.y, player.width, player.height, player.direction, player.invulnerable, now);
     drawCombatEffects(ctx, current.combatHitEffects, cameraX, now);
+    drawSectionParallaxForeground(ctx, section, cameraX);
 
     if (player.hitFeedbackTimer > 0) {
       ctx.save();
@@ -2248,7 +3795,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       ctx.fillText(featureCard.message || '', 450, 135);
       ctx.textAlign = 'start';
     }
-  }, [drawAttackArc, drawCollectible, drawCombatEffects, drawEnemyAttackTell, drawHazard, drawMiniBoss, drawMissingObjectiveMarker, drawParticles, drawPlatform, drawRouteGate, drawStoryProp, drawTempleBackdrop, getGateGuidance, getGateRequirements, drawPlayerSprite, drawFieldNoteLabel]);
+  }, [drawAttackArc, drawCollectible, drawCombatEffects, drawContactShadow, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawEnemyAttackTell, drawGroundDustLip, drawHazard, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawParticles, drawPlatform, drawRouteGate, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStoryProp, drawTempleBackdrop, getGateGuidance, getGateRequirements, getPlayerAttackState, drawPlayerSprite, drawFieldNoteLabel]);
 
   const queueAttack = useCallback(() => {
     const current = stateRef.current;
@@ -2266,6 +3813,24 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     const left = keys.ArrowLeft || keys.KeyA;
     const right = keys.ArrowRight || keys.KeyD;
     const jump = keys.ArrowUp || keys.KeyW || keys.Space;
+
+    const applyAttackStaminaCost = (amount, reason, text = null) => {
+      if (!amount) return;
+      current.resources.stamina = Math.max(1, current.resources.stamina - amount);
+      current.playerAttackStaminaCost = amount;
+      current.lastStaminaDelta = -amount;
+      current.lastStaminaLossReason = reason;
+      current.staminaFeedbackTimer = Math.max(current.staminaFeedbackTimer, 0.65);
+      if (text) {
+        addCombatEffect(current, {
+          type: 'attack-stamina',
+          x: player.x + player.width / 2,
+          y: player.y + 8,
+          text,
+          color: '#f59e0b',
+        });
+      }
+    };
 
     // Timers
     current.cinematicTimer = Math.max(0, current.cinematicTimer - dt);
@@ -2297,6 +3862,10 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       current.attackHitIds.clear();
     }
     if (wasSwinging && current.attackTimer <= 0 && current.attackRecoilTimer <= 0) {
+      if (current.attackHitIds.size === 0) {
+        current.lastAttackResult = 'missed';
+        applyAttackStaminaCost(MISSED_ATTACK_EXTRA_STAMINA_COST, 'Missed attack', '-1');
+      }
       current.attackRecoilTimer = ATTACK_RECOIL_DURATION;
     }
     if (wasRecoiling && current.attackRecoilTimer <= 0 && current.attackCooldown <= 0) {
@@ -2343,7 +3912,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
 
     // Bounds
     player.x = clamp(player.x, 0, WORLD_WIDTH - player.width);
-    if (player.y > CANVAS_HEIGHT + 100) {
+    if (player.y > JOURNEY_VIEWPORT.height + JOURNEY_WORLD_LAYOUT.rescueFallPadding) {
       triggerJourneyRescue('The team stumbled into a ravine. Field rescue required.');
     }
 
@@ -2399,6 +3968,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         const tool = JOURNEY_TOOLS.find(t => t.id === toolPos.id);
         current.fieldKit.push(tool);
         current.notice = `Field tool recovered: ${tool.name}. Report to Base Camp for registration.`;
+        audioControls?.playExpeditionStinger?.('evidenceDiscovery');
         audioControls?.playMatch?.();
       }
     });
@@ -2429,6 +3999,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         } else {
           current.notice = `Objective Progress: ${progress.count}/${progress.total} ${progress.itemLabel}.`;
         }
+        audioControls?.playExpeditionStinger?.('evidenceDiscovery');
         audioControls?.playSuccess?.();
       }
     });
@@ -2485,6 +4056,10 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       current.attackPhase = 'windup';
       current.attackCooldown = ATTACK_COOLDOWN;
       current.attackHitIds.clear();
+      current.attackRewarded = false;
+      current.lastAttackResult = 'started';
+      current.shieldedHitFeedback = '';
+      applyAttackStaminaCost(PLAYER_ATTACK_STAMINA_COST, 'Attack swing');
       audioControls?.playAction?.();
     }
     if (current.attackTimer > 0) {
@@ -2530,49 +4105,47 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       e.attackTimer = Math.max(0, e.attackTimer - dt);
       e.attackCooldown = Math.max(0, e.attackCooldown - dt);
       e.attackRecovery = Math.max(0, e.attackRecovery - dt);
+      e.vulnerabilityTimer = Math.max(0, (e.vulnerabilityTimer || 0) - dt);
+      e.shieldTimer = Math.max(0, (e.shieldTimer || 0) - dt);
       e.knockbackTimer = Math.max(0, e.knockbackTimer - dt);
       if (wasEnemyAttacking && e.attackTimer <= 0) {
-        e.attackRecovery = e.type === 'guardian' || e.type === 'statue' ? 0.42 : 0.28;
+        const pattern = getEnemyPatternConfig(e);
+        e.attackRecovery = pattern.recovery;
+        e.vulnerabilityTimer = pattern.vulnerableAfter;
+        addCombatEffect(current, {
+          type: 'enemy-counter-window',
+          x: e.x + e.width / 2,
+          y: e.y + e.height / 2,
+          color: '#22c55e',
+        });
       }
 
       const distanceToPlayer = (player.x + player.width / 2) - (e.x + e.width / 2);
       const nearPlayer = Math.abs(distanceToPlayer) < (e.type === 'bat' ? 145 : 110) && Math.abs(player.y - e.y) < 70;
 
       if (e.stunTimer <= 0 && e.attackTimer <= 0 && e.attackWindup <= 0 && nearPlayer && e.attackCooldown <= 0) {
-        e.attackWindup = e.type === 'guardian' || e.type === 'statue' ? 0.55 : 0.34;
+        const pattern = getEnemyPatternConfig(e);
+        e.attackWindup = pattern.windup;
         e.attackDirection = distanceToPlayer >= 0 ? 1 : -1;
         e.attackHasHit = false;
         e.attackReady = true;
-        e.attackPattern = e.type === 'scarab'
-          ? 'charge'
-          : e.type === 'snake'
-            ? 'lunge'
-            : e.type === 'bat'
-              ? 'swoop'
-              : e.type === 'looter'
-                ? 'shove'
-                : 'slam';
-        e.attackCooldown = e.type === 'scarab' ? 1.15 : e.type === 'bat' ? 1.35 : 1.45;
-        current.notice = `${e.name} is winding up. Move or stun it.`;
+        e.attackPattern = pattern.id;
+        e.attackPhaseLabel = pattern.label;
+        e.attackCooldown = pattern.cooldown;
+        e.vulnerabilityTimer = 0;
+        e.shieldTimer = pattern.shieldDuringWindup ? Math.min(0.45, pattern.windup * 0.7) : 0;
+        current.notice = `${e.name} winds up ${pattern.label}. Dodge, then counter.`;
       }
 
       if (e.attackReady && e.attackWindup <= 0 && e.attackTimer <= 0) {
-        e.attackTimer = e.type === 'guardian' || e.type === 'statue' ? 0.38 : 0.25;
+        e.attackTimer = getEnemyPatternConfig(e).duration;
         e.attackReady = false;
       }
 
       if (e.attackTimer > 0) {
-        const attackSpeed = e.type === 'scarab'
-          ? 160
-          : e.type === 'bat'
-            ? 185
-            : e.type === 'snake'
-              ? 130
-              : e.type === 'looter'
-                ? 150
-                : 70;
-        e.x += e.attackDirection * attackSpeed * dt;
-        const enemyAttackBox = getAttackBox(e, e.type === 'guardian' || e.type === 'statue' ? 44 : 34, e.type === 'bat' ? 30 : 24, e.attackDirection);
+        const pattern = getEnemyPatternConfig(e);
+        e.x += e.attackDirection * pattern.speed * dt;
+        const enemyAttackBox = getAttackBox(e, pattern.range, pattern.height, e.attackDirection);
         if (!e.attackHasHit && rectsOverlap(enemyAttackBox, player)) {
           e.attackHasHit = true;
           applyPlayerDamage(e.damage, `${e.name} attack connected. Stamina lost.`, e.attackDirection, e.name);
@@ -2589,7 +4162,34 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       }
       if (attackRect && !current.attackHitIds.has(e.id) && rectsOverlap(attackRect, e)) {
         current.attackHitIds.add(e.id);
+        const pattern = getEnemyPatternConfig(e);
+        const protectedEnemy = (e.shieldTimer > 0)
+          || (e.attackTimer > 0 && pattern.protectedDuringAttack && e.vulnerabilityTimer <= 0);
+        if (protectedEnemy) {
+          e.hitFlash = 0.14;
+          e.attackCooldown = Math.max(e.attackCooldown, 0.35);
+          current.attackRecoilTimer = Math.max(current.attackRecoilTimer, 0.1);
+          current.lastAttackResult = 'protected';
+          current.shieldedHitFeedback = `${e.name} blocked the rushed hit.`;
+          player.vx += -player.direction * 45;
+          applyAttackStaminaCost(PROTECTED_HIT_EXTRA_STAMINA_COST, 'Protected enemy blocked attack', '-1');
+          addCombatEffect(current, {
+            type: 'enemy-shield',
+            x: e.x + e.width / 2,
+            y: e.y + e.height / 2,
+            text: 'WAIT',
+            color: '#7dd3fc',
+          });
+          current.notice = `${e.name} blocked the rushed hit. Wait for an opening.`;
+          return;
+        }
         e.health -= 1;
+        if (!current.attackRewarded) {
+          current.resources.stamina = Math.min(100, current.resources.stamina + 1);
+          current.attackRewarded = true;
+        }
+        current.lastAttackResult = e.vulnerabilityTimer > 0 || e.attackRecovery > 0 ? 'counter-hit' : 'hit';
+        current.shieldedHitFeedback = '';
         e.stunTimer = 0.8;
         e.hitFlash = 0.25;
         e.attackWindup = 0;
@@ -2597,6 +4197,8 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         e.attackReady = false;
         e.attackCooldown = Math.max(e.attackCooldown, 0.6);
         e.attackRecovery = 0.45;
+        e.vulnerabilityTimer = 0.35;
+        e.shieldTimer = 0;
         e.knockbackTimer = 0.22;
         e.knockbackDirection = player.direction;
         e.x += player.direction * 18;
@@ -2716,20 +4318,33 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       }
       if (attackRect && !current.attackHitIds.has(b.id) && rectsOverlap(attackRect, b)) {
         current.attackHitIds.add(b.id);
-        const { shielded } = getBossVulnerabilityState(b);
-        if (shielded) {
+        const { shielded, vulnerable } = getBossVulnerabilityState(b);
+        const protectedBoss = shielded || ((b.attackWindup > 0 || b.attackTimer > 0) && !vulnerable);
+        if (protectedBoss) {
           b.hitFlash = 0.16;
           b.attackCooldown = Math.max(b.attackCooldown, 0.35);
+          current.attackRecoilTimer = Math.max(current.attackRecoilTimer, 0.12);
+          current.lastAttackResult = 'protected';
+          current.shieldedHitFeedback = `${b.name} protected itself.`;
+          player.vx += -player.direction * 55;
+          applyAttackStaminaCost(PROTECTED_HIT_EXTRA_STAMINA_COST, 'Protected boss blocked attack', '-1');
           addCombatEffect(current, {
             type: 'boss-shield',
             x: b.x + b.width / 2,
             y: b.y + b.height / 2,
+            text: 'WAIT',
             color: '#7dd3fc',
           });
-          current.notice = `${b.name}'s shield blocked the hit. Wait for the counter window.`;
+          current.notice = `${b.name} blocked the rushed hit. Wait for the counter window.`;
           return;
         }
         b.health -= 1;
+        if (!current.attackRewarded) {
+          current.resources.stamina = Math.min(100, current.resources.stamina + 1);
+          current.attackRewarded = true;
+        }
+        current.lastAttackResult = b.vulnerabilityTimer > 0 || b.attackRecovery > 0 ? 'counter-hit' : 'hit';
+        current.shieldedHitFeedback = '';
         b.hitFlash = 0.28;
         b.stunTimer = 0.75;
         b.attackWindup = 0;
@@ -2770,6 +4385,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         if (!guidance.activeGateLocked) {
           current.openedRouteGateIds.add(g.id);
           current.notice = `${g.name} opened.`;
+          audioControls?.playExpeditionStinger?.('gateUnlock');
         } else {
           player.x = g.x - player.width - 5;
           current.notice = guidance.notice;
@@ -2791,13 +4407,13 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     current.cameraMode = camera.mode;
     current.cameraFocusTarget = camera.focusTarget;
     if (!Number.isFinite(current.cameraX)) current.cameraX = camera.targetCameraX;
-    const smoothing = camera.mode === 'boss-intro' ? 0.055 : 0.11;
-    const cameraStep = clamp((current.targetCameraX - current.cameraX) * smoothing, -34, 34);
-    current.cameraX = clamp(
-      current.cameraX + cameraStep,
-      0,
-      WORLD_WIDTH - CANVAS_WIDTH,
+    const smoothing = camera.mode === 'boss-intro' ? JOURNEY_CAMERA.bossIntroSmoothing : JOURNEY_CAMERA.followSmoothing;
+    const cameraStep = clamp(
+      (current.targetCameraX - current.cameraX) * smoothing,
+      -JOURNEY_CAMERA.maxStep,
+      JOURNEY_CAMERA.maxStep,
     );
+    current.cameraX = clampCameraX(current.cameraX + cameraStep);
 
     // Time
     current.timeAccumulator += dt;
@@ -2807,7 +4423,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       if (current.resources.time <= 0) triggerJourneyRescue('Time expired. Field team rescued.');
     }
 
-  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, getAttackBox, getBossPhaseConfig, getBossVulnerabilityState, getObjectiveProgress, getGateGuidance, addCombatEffect, getPlayerAttackState, syncHud]);
+  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, getAttackBox, getBossPhaseConfig, getBossVulnerabilityState, getEnemyPatternConfig, getObjectiveProgress, getGateGuidance, addCombatEffect, getPlayerAttackState, syncHud]);
 
   const step = useCallback((ms) => {
     const dt = Math.min(ms / 1000, 0.05);
@@ -2820,9 +4436,26 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
   useEffect(() => {
     window.__advanceExpeditionJourney = step;
     window.__renderExpeditionJourneyState = () => createJourneySnapshot();
+    if (import.meta.env.DEV) {
+      window.__setExpeditionJourneyDebugPosition = (x) => {
+        const current = stateRef.current;
+        const nextX = Number(x);
+        if (!Number.isFinite(nextX)) return createJourneySnapshot(current);
+        current.player.x = clamp(nextX, 0, WORLD_WIDTH - current.player.width);
+        current.player.y = GROUND_Y - current.player.height;
+        current.player.vx = 0;
+        current.player.vy = 0;
+        current.player.onGround = true;
+        current.cameraX = clampCameraX(current.player.x - CANVAS_WIDTH * 0.42);
+        current.targetCameraX = current.cameraX;
+        step(0);
+        return createJourneySnapshot(current);
+      };
+    }
     return () => {
       delete window.__advanceExpeditionJourney;
       delete window.__renderExpeditionJourneyState;
+      delete window.__setExpeditionJourneyDebugPosition;
     };
   }, [createJourneySnapshot, step]);
 
@@ -2863,24 +4496,24 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         <div className="expedition-sidebar">
           <div className="expedition-panel dossier-info">
             <h2 className="cinzel-header">Expedition Log</h2>
-            <div className="expedition-stat-card">
-              <div className="stat-label"><Gauge size={14} /> Stamina</div>
-              <div className={`expedition-stat-bar ${staminaWarningState !== 'stable' ? 'stamina-alert' : ''}`}>
-                <div className="expedition-stat-fill stamina-fill" style={{ width: `${gameState.resources.stamina}%` }} />
-                {gameState.staminaFeedbackTimer > 0 && gameState.lastStaminaDelta < 0 && (
-                  <span className="stamina-delta">-{Math.abs(gameState.lastStaminaDelta)}</span>
-                )}
+            {staminaWarningState === 'low' && (
+              <div className="stamina-warning-text">Low stamina</div>
+            )}
+            <button
+              type="button"
+              className="journey-sidebar-toggle"
+              onClick={() => setControlsOpen(open => !open)}
+              aria-expanded={controlsOpen}
+            >
+              <ChevronDown size={14} />
+              Controls
+            </button>
+            {controlsOpen && (
+              <div className="journey-sidebar-controls" role="note" aria-label="Journey controls">
+                <div><kbd>W/A/S/D</kbd><span>Move and jump</span></div>
+                <div><kbd>J/K</kbd><span>Use tool</span></div>
               </div>
-              {staminaWarningState === 'low' && (
-                <div className="stamina-warning-text">Low stamina</div>
-              )}
-            </div>
-            <div className="expedition-stat-card">
-              <div className="stat-label"><Sparkles size={14} /> Time</div>
-              <div className="expedition-stat-bar">
-                <div className="expedition-stat-fill time-fill" style={{ width: `${(gameState.resources.time / 900) * 100}%` }} />
-              </div>
-            </div>
+            )}
           </div>
 
           <div className="expedition-panel inventory-panel">
@@ -2928,31 +4561,61 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
 
         <div className="expedition-main">
           <div className="canvas-wrapper">
-            <canvas ref={canvasRef} width={CANVAS_WIDTH} height={CANVAS_HEIGHT} className="expedition-canvas" />
-            
-            <div className="journey-hud-overlay">
-              <div className="hud-shards">
-                <Gem size={18} className="text-amber-500" />
-                <span>{gameState.relicShardCount}</span>
-              </div>
-              <div className={`hud-stamina ${staminaWarningState !== 'stable' ? 'stamina-alert' : ''}`}>
-                <Gauge size={18} className="text-red-500" />
-                <div className="hud-bar-bg">
-                  <div className="hud-bar-fill stamina" style={{ width: `${gameState.resources.stamina}%` }} />
+            <canvas
+              ref={canvasRef}
+              width={JOURNEY_RENDER_TARGET.nativeWidth}
+              height={JOURNEY_RENDER_TARGET.nativeHeight}
+              className="expedition-canvas"
+            />
+
+            <div className="journey-floating-hud" aria-label="Expedition status">
+              <div className="journey-floating-hud-cluster">
+                <div className="journey-floating-hud-gems">
+                  <Gem size={18} />
+                  <strong>{gameState.relicShardCount}</strong>
                 </div>
-                {gameState.staminaFeedbackTimer > 0 && gameState.lastStaminaDelta < 0 && (
-                  <span className="hud-stamina-delta">-{Math.abs(gameState.lastStaminaDelta)}</span>
-                )}
+                <div className="journey-floating-hud-status">
+                  {SECTIONS.find(s => s.id === gameState.currentSectionId)?.name || 'Surveying'}
+                </div>
+              </div>
+
+              <div className="journey-floating-hud-cluster journey-floating-hud-meters">
+                <div className={`journey-floating-hud-meter ${staminaWarningState !== 'stable' ? 'stamina-alert' : ''}`}>
+                  <div className="journey-floating-hud-meter-label">
+                    <Gauge size={15} />
+                    <span>Stamina</span>
+                  </div>
+                  <div className="journey-floating-hud-bar">
+                    <div className="journey-floating-hud-fill stamina-fill" style={{ width: `${gameState.resources.stamina}%` }} />
+                    {gameState.staminaFeedbackTimer > 0 && gameState.lastStaminaDelta < 0 && (
+                      <span className="stamina-delta">-{Math.abs(gameState.lastStaminaDelta)}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="journey-floating-hud-meter">
+                  <div className="journey-floating-hud-meter-label">
+                    <Sparkles size={15} />
+                    <span>Time</span>
+                  </div>
+                  <div className="journey-floating-hud-bar">
+                    <div className="journey-floating-hud-fill time-fill" style={{ width: `${(gameState.resources.time / 900) * 100}%` }} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="journey-floating-hud-cluster journey-floating-hud-count">
+                <strong>{gameState.relicShardCount}/22</strong>
               </div>
             </div>
-
+            
             {gameState.notice && (
               <div className="expedition-journey-notice animate-fade-in">
                 <Sparkles size={16} />
                 <span>{gameState.notice}</span>
               </div>
             )}
-            
+
             {gameState.failed && (
               <div className="expedition-failure-overlay">
                 <div className="expedition-panel failure-card">
@@ -2966,9 +4629,6 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
               </div>
             )}
           </div>
-          <div className="controls-hint">
-            <kbd>W/A/S/D</kbd> Move & Jump • <kbd>J/K</kbd> Use Tool
-          </div>
         </div>
       </div>
 
@@ -2976,20 +4636,57 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         <div className="expedition-briefing-overlay">
           <div className="expedition-briefing-card animate-slide-up">
             <div className="briefing-header">
-              <Flag className="text-amber-600" size={32} />
-              <h1 className="cinzel-header">Lost Site Expedition</h1>
-            </div>
-            <div className="briefing-content">
-              <p className="instruction-text">Navigate the ruins, recover relics, and secure the entrance to the dig site.</p>
-              <div className="mission-dossier">
-                <div className="dossier-tag">ACTIVE MISSION</div>
-                <h2 className="mission-title">{mission.title}</h2>
-                <p className="mission-desc">{mission.instruction}</p>
+              <div className="briefing-header-copy">
+                <div className="briefing-kicker">
+                  <Flag size={16} />
+                  Field Mission Dossier
+                </div>
+                <h1 className="cinzel-header">Lost Site Expedition</h1>
+                <p>Navigate the ruins, collect your field kit, and reach Base Camp.</p>
+              </div>
+              <div className="briefing-hero-mark" aria-hidden="true">
+                <span className="briefing-sun" />
+                <span
+                  className="briefing-hero-sprite"
+                  style={{ backgroundImage: `url(${PLAYER_SPRITE_SRC})` }}
+                />
               </div>
             </div>
-            <button className="expedition-begin-btn" onClick={() => setBriefingOpen(false)}>
-              Initialize Expedition
-            </button>
+            <div className="briefing-content">
+              <div className="mission-dossier expedition-start-dossier">
+                <div className="dossier-tag">ACTIVE MISSION</div>
+                <h2 className="mission-title">{mission.title}</h2>
+                <p className="mission-desc">
+                  Search for evidence that shows Ancient Egypt had advanced engineering and organised construction.
+                </p>
+              </div>
+              <div className="briefing-task-panel">
+                <div className="briefing-task-heading">
+                  <Map size={18} />
+                  <h2>Your task</h2>
+                </div>
+                <ul className="briefing-task-list">
+                  {[
+                    'Collect field tools',
+                    'Avoid hazards and conserve stamina',
+                    'Reach Base Camp',
+                    'Survey the site',
+                    'Find 3 pieces of structural evidence',
+                    'Make a claim using evidence',
+                  ].map(task => (
+                    <li key={task}>
+                      <CheckCircle2 size={16} />
+                      <span>{task}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+            <div className="briefing-actions">
+              <button type="button" className="expedition-begin-btn" onClick={() => setBriefingOpen(false)}>
+                Begin Expedition
+              </button>
+            </div>
           </div>
         </div>
       )}

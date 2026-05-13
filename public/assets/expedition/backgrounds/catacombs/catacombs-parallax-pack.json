@@ -1,0 +1,41 @@
+{
+  "image": "catacombs-full-scene.png",
+  "source": "AI-generated full-scene Journey background for the Catacombs section.",
+  "coordinateNote": "Runtime composited 16:9 backdrop; legacy region keys point to the full image so existing loaders stay fallback-safe.",
+  "regions": {
+    "undergroundAtmosphere": {
+      "x": 0,
+      "y": 0,
+      "w": 1672,
+      "h": 941
+    },
+    "farTunnelWalls": {
+      "x": 0,
+      "y": 0,
+      "w": 1672,
+      "h": 941
+    },
+    "distantCatacombs": {
+      "x": 0,
+      "y": 0,
+      "w": 1672,
+      "h": 941
+    },
+    "midgroundGlyphWalls": {
+      "x": 0,
+      "y": 0,
+      "w": 1672,
+      "h": 941
+    },
+    "foregroundMist": {
+      "x": 0,
+      "y": 0,
+      "w": 1672,
+      "h": 941
+    }
+  },
+  "imageWidth": 1672,
+  "imageHeight": 941,
+  "runtimeMode": "single-composited-backdrop",
+  "sourceComposite": "Generated as a full 16:9 scene so gameplay no longer relies on source-sheet strips."
+}

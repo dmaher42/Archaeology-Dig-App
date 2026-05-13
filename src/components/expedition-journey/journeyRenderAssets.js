@@ -1,6 +1,8 @@
 export const ENVIRONMENT_ATLAS_BASE_PATH = 'assets/expedition/environment/desert-temple/';
 export const ENVIRONMENT_ATLAS_JSON = `${ENVIRONMENT_ATLAS_BASE_PATH}desert-temple-pack.json`;
 export const ATLAS_TUNING_VERSION = 'environment-atlas-tuning-2026-05-10';
+export const DESERT_VISUAL_TUNING_VERSION = 'desert-entry-final-visual-tuning-2026-05-10';
+export const JOURNEY_ASSET_GROUNDING_VERSION = 'journey-asset-grounding-2026-05-11';
 
 export const EXPECTED_ENVIRONMENT_ASSET_KEYS = [
   'groundSand',
@@ -140,6 +142,7 @@ export const drawAtlasRegion = (ctx, assets, key, dest, options = {}) => {
 
 export const getEnvironmentAssetKeyForPlatform = (platform, sectionId) => {
   if (platform.label?.includes('bridge')) return 'brokenBridge';
+  if (sectionId === 'desert-entry' && platform.y < 350) return 'sandstoneBlock';
   if (platform.label?.includes('ledge') || platform.label?.includes('shelf')) return 'woodenPlatform';
   if (platform.label?.includes('plinth') || platform.label?.includes('step')) return 'sandstoneBlock';
   if (sectionId === 'catacombs') return 'catacombFloor';
