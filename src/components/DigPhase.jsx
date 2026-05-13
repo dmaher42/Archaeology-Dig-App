@@ -8,10 +8,13 @@ import {
   getArtifactTheme, 
   getArtifactEraLabel, 
   getCategoryTitle,
-  createDigTiles
+  createDigTiles,
+  resolveAssetPath
 } from '../utils/gameLogic';
 import { getIcon } from './Icons';
 import { getAtlasRegionStyle, useFullInvestigationAssets } from './full-investigation/fullInvestigationAssets';
+
+const ARCHAEOLOGY_CARD_BACK_PATH = 'assets/ui/archaeology-card-back.png';
 
 const INITIAL_EMERGENCY_STATE = {
   phase: 'cooldown',
@@ -153,7 +156,9 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
   const appliedEmergencyImpactsRef = useRef(new Set());
   const boardContainerRef = useRef(null);
   const [boardFit, setBoardFit] = useState({ width: 0, height: 0 });
+  const [premiumCardBackReady, setPremiumCardBackReady] = useState(false);
   const fullInvestigationAssets = useFullInvestigationAssets();
+  const archaeologyCardBackUrl = resolveAssetPath(ARCHAEOLOGY_CARD_BACK_PATH);
   const boardColumns = 8;
   const boardRows = Math.max(1, Math.ceil(tiles.length / boardColumns));
   const emergencyIcon = emergencyState.event?.Icon || AlertTriangle;
@@ -173,6 +178,21 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
     if (playerOneScore === playerTwoScore) return `It's a tie at ${playerOneScore} to ${playerTwoScore}.`;
     return `Player ${playerOneScore > playerTwoScore ? 1 : 2} wins ${Math.max(playerOneScore, playerTwoScore)} to ${Math.min(playerOneScore, playerTwoScore)}.`;
   };
+
+  useEffect(() => {
+    let active = true;
+    const image = new Image();
+    image.onload = () => {
+      if (active) setPremiumCardBackReady(true);
+    };
+    image.onerror = () => {
+      if (active) setPremiumCardBackReady(false);
+    };
+    image.src = archaeologyCardBackUrl;
+    return () => {
+      active = false;
+    };
+  }, [archaeologyCardBackUrl]);
 
   useEffect(() => {
     const isComplete = activeArtifacts.length > 0 && excavatedIds.size === activeArtifacts.length;
@@ -538,7 +558,9 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
   const timerModeLabel = timerMode === 'challenge' ? 'Challenge' : 'Explore';
   const challengeTimeLabel = challengeDuration === 300 ? '5 minutes' : challengeDuration === 180 ? '3 minutes' : '90 seconds';
   const excavationTrayStyle = getAtlasRegionStyle(fullInvestigationAssets, 'excavationTray');
-  const cardBackStyle = getAtlasRegionStyle(fullInvestigationAssets, 'cardBack');
+  const premiumCardBackStyle = premiumCardBackReady
+    ? { '--premium-card-back-image': `url("${archaeologyCardBackUrl}")` }
+    : undefined;
   const minimumEvidenceTarget = Math.min(activeArtifacts.length, activeArtifacts.length >= 10 ? 10 : activeArtifacts.length);
   const pressureBand = disturbanceLevel >= 8 ? 'high' : disturbanceLevel >= 4 ? 'medium' : 'low';
   const pressureLabel = pressureBand === 'high' ? 'High disturbance' : pressureBand === 'medium' ? 'Care needed' : 'Careful dig';
@@ -921,9 +943,20 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
                   key={tile.uniqueId} 
                   className={`memory-tile ${isRevealed ? 'revealed' : ''} ${tile.isMatched ? 'matched' : ''} ${isThreatened ? `emergency-threat emergency-threat-${emergencyState.phase}` : ''}`}
                   onClick={() => handleTileClick(index)}
+                  onKeyDown={(event) => {
+                    if (event.key !== 'Enter' && event.key !== ' ') return;
+                    event.preventDefault();
+                    handleTileClick(index);
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={isRevealed ? tile.artifact.name : 'Unrevealed evidence card'}
                 >
                   <div className="tile-inner">
-                    <div className={`tile-front card-back-design ${cardBackStyle ? 'fi-card-back-asset' : ''}`} style={cardBackStyle}>
+                    <div
+                      className={`tile-front card-back-design ${premiumCardBackReady ? 'has-premium-card-back' : ''}`}
+                      style={premiumCardBackStyle}
+                    >
                       <div className="card-back-pattern"></div>
                       <Pickaxe size={24} className="card-back-icon" />
                     </div>
@@ -931,8 +964,8 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
                       className={`tile-back artifact-texture artifact-texture--${tile.artifact.type} ${tile.artifact.isRedHerring ? 'artifact-texture--disturbance' : ''}`}
                       style={{ '--artifact-accent': tileTheme.accent, '--artifact-accent-soft': tileTheme.accentSoft }}
                     >
-                      <div className="artifact-icon" style={{ color: 'var(--artifact-accent)' }}>
-                        {getIcon(tile.artifact.type, 24)}
+                      <div className="artifact-icon" style={{ color: 'var(--artifact-accent)' }} aria-hidden="true">
+                        {getIcon(tile.artifact.type, 30, { strokeWidth: 2.15 })}
                       </div>
                       <div className="artifact-label">{tile.artifact.name}</div>
                     </div>

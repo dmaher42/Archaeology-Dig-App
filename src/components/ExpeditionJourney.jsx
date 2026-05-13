@@ -33,8 +33,11 @@ import {
 } from './expedition-journey/journeyConstants';
 
 import {
+  BOSS_KEY_ITEMS,
   CHECKPOINTS,
   HAZARDS,
+  GUARDIAN_KNOWLEDGE_CHALLENGES,
+  GUARDIAN_KNOWLEDGE_QUESTIONS,
   JOURNEY_TOOLS,
   OBJECTIVE_MARKERS,
   PLATFORMS,
@@ -213,6 +216,73 @@ const PLAYER_ATTACK_STAMINA_COST = 1;
 const MISSED_ATTACK_EXTRA_STAMINA_COST = 1;
 const PROTECTED_HIT_EXTRA_STAMINA_COST = 1;
 
+const KNOWLEDGE_CHALLENGE_SIZE = 3;
+const KNOWLEDGE_CHALLENGE_FEEDBACK = {
+  correct: 'Correct. Your field knowledge strengthens you.',
+  incorrect: 'Not quite. The guardian grows stronger.',
+};
+
+const getGuardianChallengeQuestions = (bossId) => {
+  const questionIds = GUARDIAN_KNOWLEDGE_CHALLENGES[bossId] || [];
+  const selected = questionIds
+    .map(id => GUARDIAN_KNOWLEDGE_QUESTIONS.find(question => question.id === id))
+    .filter(Boolean);
+  return selected.slice(0, KNOWLEDGE_CHALLENGE_SIZE);
+};
+
+const getGuardianBattleModifier = (correctCount) => {
+  if (correctCount >= 3) {
+    return {
+      id: 'field-mastery',
+      correctCount: 3,
+      playerDamageMultiplier: 1.25,
+      bossHealthMultiplier: 0.85,
+      bossDamageMultiplier: 1,
+      playerVisualScale: 1.08,
+      bossVisualScale: 1,
+      resultMessage: 'Your field knowledge strengthens you. The guardian weakens.',
+      label: 'Field knowledge advantage',
+    };
+  }
+  if (correctCount === 2) {
+    return {
+      id: 'field-advantage',
+      correctCount,
+      playerDamageMultiplier: 1.15,
+      bossHealthMultiplier: 1,
+      bossDamageMultiplier: 1,
+      playerVisualScale: 1.04,
+      bossVisualScale: 1,
+      resultMessage: 'Your field knowledge gives you an advantage.',
+      label: 'Small player boost',
+    };
+  }
+  if (correctCount === 1) {
+    return {
+      id: 'guardian-strength',
+      correctCount,
+      playerDamageMultiplier: 1,
+      bossHealthMultiplier: 1.1,
+      bossDamageMultiplier: 1,
+      playerVisualScale: 1,
+      bossVisualScale: 1.05,
+      resultMessage: 'The guardian has gained strength. Stay careful.',
+      label: 'Guardian health boost',
+    };
+  }
+  return {
+    id: 'guardian-empowered',
+    correctCount: 0,
+    playerDamageMultiplier: 1,
+    bossHealthMultiplier: 1.2,
+    bossDamageMultiplier: 1.1,
+    playerVisualScale: 1,
+    bossVisualScale: 1.1,
+    resultMessage: 'The guardian is empowered. Prepare carefully.',
+    label: 'Guardian empowered',
+  };
+};
+
 const DEFAULT_ENEMY_ATTACK_PATTERN = {
   id: 'strike',
   label: 'Strike',
@@ -338,23 +408,23 @@ const SECTION_MUSIC_CUES = {
 };
 
 const JOURNEY_POLISH_VERSION = 'journey-polish-2026-05-11';
-const COLLECTIBLE_SCALE_TUNING_VERSION = 'journey-collectible-scale-tuning-2026-05-12';
-const RELIC_SHARD_SCALE = 0.52;
-const FIELD_TOOL_SCALE = 0.72;
-const UPGRADE_SCALE = 0.76;
-const OBJECTIVE_MARKER_SCALE = 0.78;
-const LORE_TABLET_SCALE = 0.78;
-const PICKUP_GLOW_SCALE = 0.62;
+const COLLECTIBLE_SCALE_TUNING_VERSION = 'journey-collectible-scale-tuning-2026-05-14';
+const RELIC_SHARD_SCALE = 0.74;
+const FIELD_TOOL_SCALE = 0.86;
+const UPGRADE_SCALE = 0.86;
+const OBJECTIVE_MARKER_SCALE = 0.84;
+const LORE_TABLET_SCALE = 0.84;
+const PICKUP_GLOW_SCALE = 0.68;
 
 const COLLECTIBLE_VISUAL_BASE = {
   relicShard: {
     size: Math.round(32 * RELIC_SHARD_SCALE),
     ringSize: 0,
     glowAlpha: 0,
-    shadowAlpha: 0.09,
+    shadowAlpha: 0.11,
     bobAmplitude: 2,
-    sparkleAlpha: 0.1,
-    sparkleSize: 7,
+    sparkleAlpha: 0.14,
+    sparkleSize: 8,
     anchorYOffset: 18,
     nearGlowDistance: 90,
   },
@@ -804,6 +874,94 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     syncHud();
   }, [syncHud]);
 
+  const answerGuardianChallenge = useCallback((answerIndex) => {
+    const current = stateRef.current;
+    const challenge = current.activeGuardianChallenge;
+    if (!challenge || challenge.selectedAnswerIndex !== null || challenge.completed) return;
+    const question = challenge.questions[challenge.currentIndex];
+    if (!question) return;
+    const correct = answerIndex === question.correctIndex;
+    challenge.selectedAnswerIndex = answerIndex;
+    challenge.feedback = {
+      correct,
+      message: correct ? KNOWLEDGE_CHALLENGE_FEEDBACK.correct : KNOWLEDGE_CHALLENGE_FEEDBACK.incorrect,
+    };
+    challenge.answers = [...(challenge.answers || []), {
+      questionId: question.id,
+      answerIndex,
+      correct,
+    }];
+    challenge.correctCount += correct ? 1 : 0;
+
+    const isFinalQuestion = challenge.currentIndex >= challenge.questions.length - 1;
+    if (isFinalQuestion) {
+      const modifier = getGuardianBattleModifier(challenge.correctCount);
+      const boss = current.miniBosses.find(item => item.id === challenge.bossId);
+      challenge.completed = true;
+      challenge.modifier = modifier;
+      challenge.resultMessage = modifier.resultMessage;
+      current.guardianChallengeResults = {
+        ...(current.guardianChallengeResults || {}),
+        [challenge.bossId]: {
+          bossId: challenge.bossId,
+          bossName: challenge.bossName,
+          correctCount: challenge.correctCount,
+          totalQuestions: challenge.questions.length,
+          modifierId: modifier.id,
+          modifierLabel: modifier.label,
+          resultMessage: modifier.resultMessage,
+        },
+      };
+      current.guardianBattleModifiers = {
+        ...(current.guardianBattleModifiers || {}),
+        [challenge.bossId]: modifier,
+      };
+      if (boss) {
+        boss.knowledgeModifierId = modifier.id;
+        boss.playerDamageMultiplier = modifier.playerDamageMultiplier;
+        boss.bossDamageMultiplier = modifier.bossDamageMultiplier;
+        boss.visualScale = modifier.bossVisualScale;
+        boss.maxHealth = Math.max(1, Number((boss.maxHealth * modifier.bossHealthMultiplier).toFixed(2)));
+        boss.health = Math.min(boss.maxHealth, Math.max(1, Number((boss.health * modifier.bossHealthMultiplier).toFixed(2))));
+        boss.attackCooldown = Math.max(boss.attackCooldown, 1.2);
+      }
+      current.player.knowledgeVisualScale = modifier.playerVisualScale;
+      current.notice = modifier.resultMessage;
+      current.cinematicEvent = {
+        id: `${challenge.bossId}-knowledge-result`,
+        name: 'Knowledge Challenge Complete',
+        message: modifier.resultMessage,
+        temporary: true,
+      };
+      current.cinematicTimer = 2.4;
+      audioControls?.playLevelUp?.();
+    } else {
+      audioControls?.[correct ? 'playSuccess' : 'playError']?.();
+    }
+    syncHud();
+  }, [audioControls, syncHud]);
+
+  const continueGuardianChallenge = useCallback(() => {
+    const current = stateRef.current;
+    const challenge = current.activeGuardianChallenge;
+    if (!challenge || challenge.selectedAnswerIndex === null) return;
+    if (challenge.completed) {
+      current.completedGuardianChallengeIds.add(challenge.bossId);
+      current.activeGuardianChallenge = null;
+      current.bossIntroPauseTimer = 0;
+      current.notice = challenge.resultMessage || 'The guardian battle begins.';
+      current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.18);
+      current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.18);
+      audioControls?.playTransition?.();
+      syncHud();
+      return;
+    }
+    challenge.currentIndex += 1;
+    challenge.selectedAnswerIndex = null;
+    challenge.feedback = null;
+    syncHud();
+  }, [audioControls, syncHud]);
+
   const getObjectiveProgress = useCallback((sectionId, current) => {
     const config = SECTION_OBJECTIVES[sectionId];
     if (!config) return null;
@@ -881,6 +1039,35 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
           id: boss.id,
           label: boss.name,
           x: boss.x,
+          direction,
+        } : null,
+      });
+    }
+    if (gate.requires.keyItem) {
+      const keyItem = current.bossKeyItems?.find(item => item.id === gate.requires.keyItem)
+        || BOSS_KEY_ITEMS.find(item => item.id === gate.requires.keyItem);
+      const boss = current.miniBosses.find(item => item.id === keyItem?.bossId);
+      const collected = current.collectedBossKeyIds?.has(gate.requires.keyItem) || Boolean(keyItem?.collected);
+      const targetX = keyItem?.dropped ? keyItem.x : boss?.x;
+      const direction = getDirectionFromPlayer(current.player.x, targetX);
+      reqs.push({
+        type: 'toolPiece',
+        id: gate.requires.keyItem,
+        label: `${keyItem?.name || 'Key artefact'}: ${collected ? 'recovered' : 'needed'}`,
+        checklistLabel: keyItem?.name || 'Tool piece',
+        shortMissing: `recover ${keyItem?.name || 'the tool piece'}`,
+        met: collected,
+        found: collected ? 1 : 0,
+        required: 1,
+        hint: keyItem?.dropped
+          ? `${keyItem.name} is waiting ${getDirectionText(direction)}. Collect the tool piece to prepare the excavation kit.`
+          : `Defeat ${boss?.name || 'the guardian'} to reveal ${keyItem?.name || 'the tool piece'}.`,
+        targetX,
+        nearestObjective: targetX ? {
+          type: 'toolPiece',
+          id: keyItem?.id || gate.requires.keyItem,
+          label: keyItem?.name || 'Tool piece',
+          x: targetX,
           direction,
         } : null,
       });
@@ -1305,6 +1492,45 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       remainingTools: JOURNEY_TOOLS.filter(tool => !current.collectedToolIds.has(tool.id)).map(tool => tool.name),
       relicShardCount: current.relicShardCount,
       totalRelicShards: RELIC_SHARDS.length,
+      bossKeyItems: (current.bossKeyItems || []).map(item => ({
+        id: item.id,
+        name: item.name,
+        bossId: item.bossId,
+        gateId: item.gateId,
+        dropped: Boolean(item.dropped),
+        collected: current.collectedBossKeyIds?.has(item.id) || Boolean(item.collected),
+        x: Math.round(item.x || 0),
+      })),
+      collectedBossKeyItems: Array.from(current.collectedBossKeyIds || []),
+      bossToolPieces: (current.bossKeyItems || []).map(item => ({
+        id: item.id,
+        name: item.name,
+        bossId: item.bossId,
+        gateId: item.gateId,
+        dropped: Boolean(item.dropped),
+        collected: current.collectedBossKeyIds?.has(item.id) || Boolean(item.collected),
+        x: Math.round(item.x || 0),
+      })),
+      collectedBossToolPieces: Array.from(current.collectedBossKeyIds || []),
+      bossDomainState: current.bossDomain,
+      bossIntroPaused: current.bossIntroPauseTimer > 0,
+      guardianKnowledgeChallenge: current.activeGuardianChallenge ? {
+        bossId: current.activeGuardianChallenge.bossId,
+        bossName: current.activeGuardianChallenge.bossName,
+        title: current.activeGuardianChallenge.title,
+        currentIndex: current.activeGuardianChallenge.currentIndex,
+        totalQuestions: current.activeGuardianChallenge.questions.length,
+        correctCount: current.activeGuardianChallenge.correctCount,
+        selectedAnswerIndex: current.activeGuardianChallenge.selectedAnswerIndex,
+        feedback: current.activeGuardianChallenge.feedback,
+        completed: Boolean(current.activeGuardianChallenge.completed),
+        resultMessage: current.activeGuardianChallenge.resultMessage || null,
+        modifier: current.activeGuardianChallenge.modifier || null,
+        question: current.activeGuardianChallenge.questions[current.activeGuardianChallenge.currentIndex]?.question || null,
+      } : null,
+      completedGuardianKnowledgeChallenges: Array.from(current.completedGuardianChallengeIds || []),
+      guardianKnowledgeResults: current.guardianChallengeResults || {},
+      guardianBattleModifiers: current.guardianBattleModifiers || {},
       collectedUpgrades: Array.from(current.collectedUpgrades),
       activeCheckpoint: current.activeCheckpoint?.name,
       checkpointState: current.activeCheckpoint ? { id: current.activeCheckpoint.id, name: current.activeCheckpoint.name } : null,
@@ -1325,6 +1551,10 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         maxHealth: boss.maxHealth,
         awakened: boss.awakened,
         x: Math.round(boss.x),
+        knowledgeModifierId: boss.knowledgeModifierId || null,
+        playerDamageMultiplier: boss.playerDamageMultiplier || 1,
+        bossDamageMultiplier: boss.bossDamageMultiplier || 1,
+        visualScale: boss.visualScale || 1,
         ...getEntityCombatState(boss),
       })),
       activeMiniBoss: activeMiniBoss?.name || null,
@@ -1334,6 +1564,10 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         health: activeMiniBoss.health,
         maxHealth: activeMiniBoss.maxHealth,
         x: Math.round(activeMiniBoss.x),
+        knowledgeModifierId: activeMiniBoss.knowledgeModifierId || null,
+        playerDamageMultiplier: activeMiniBoss.playerDamageMultiplier || 1,
+        bossDamageMultiplier: activeMiniBoss.bossDamageMultiplier || 1,
+        visualScale: activeMiniBoss.visualScale || 1,
         ...getEntityCombatState(activeMiniBoss),
         ...getBossVulnerabilityState(activeMiniBoss),
       } : null,
@@ -1413,6 +1647,10 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         maxHealth: boss.maxHealth,
         awakened: boss.awakened,
         x: Math.round(boss.x),
+        knowledgeModifierId: boss.knowledgeModifierId || null,
+        playerDamageMultiplier: boss.playerDamageMultiplier || 1,
+        bossDamageMultiplier: boss.bossDamageMultiplier || 1,
+        visualScale: boss.visualScale || 1,
         ...getEntityCombatState(boss),
       })),
       routeGateStatus: ROUTE_GATES.find(gate => !current.openedRouteGateIds.has(gate.id)) ? (() => {
@@ -1791,6 +2029,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
           : 0;
     const jumpLift = current.player.animationState === 'jump' ? -2 : 0;
     const hurtShake = current.player.animationState === 'hurt' ? Math.sin(now / 24) * 2 : 0;
+    const knowledgeScale = current.player.knowledgeVisualScale || 1;
 
     ctx.save();
     if (invuln > 0 && Math.floor(now / 100) % 2 === 0) ctx.globalAlpha = 0.34;
@@ -1801,6 +2040,11 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     ctx.fill();
 
     ctx.translate(footX + attackLean + hurtShake, footY + jumpLift);
+    if (knowledgeScale > 1) {
+      ctx.shadowColor = 'rgba(250, 204, 21, 0.54)';
+      ctx.shadowBlur = 18;
+      ctx.scale(knowledgeScale, knowledgeScale);
+    }
     if (direction < 0) ctx.scale(-1, 1);
     ctx.drawImage(
       sprite.image,
@@ -3049,8 +3293,14 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     const shouldFlip = facing > 0;
     const centerX = screenX + boss.width / 2;
     const baseY = boss.y + boss.height;
+    const visualScale = boss.visualScale || 1;
 
     ctx.save();
+    if (visualScale > 1) {
+      ctx.translate(centerX, baseY);
+      ctx.scale(visualScale, visualScale);
+      ctx.translate(-centerX, -baseY);
+    }
     const isStoneBoss = boss.id === 'temple-guardian' || boss.id === 'ancient-construct';
     drawContactShadow(ctx, centerX, baseY + 3, drawBox.width * (isStoneBoss ? 0.86 : 0.78), isStoneBoss ? 0.34 : 0.28, 1.5);
     if (isStoneBoss && (combatMode === 'attacking' || combatMode === 'windup')) {
@@ -3115,6 +3365,13 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     ctx.beginPath();
     ctx.arc(cx, cy, 78 * pulse, 0, Math.PI * 2);
     ctx.fill();
+    if ((boss.visualScale || 1) > 1) {
+      ctx.strokeStyle = 'rgba(248, 113, 113, 0.68)';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 48 + Math.sin(now / 110) * 5, 0, Math.PI * 2);
+      ctx.stroke();
+    }
     if (boss.hitFlash > 0 || boss.stunTimer > 0) {
       ctx.strokeStyle = boss.hitFlash > 0 ? '#fff7ad' : '#7dd3fc';
       ctx.lineWidth = 4;
@@ -3198,12 +3455,28 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       ctx.fill();
     }
 
+    const barWidth = boss.awakened ? Math.max(132, boss.width + 96) : boss.width + 20;
+    const barHeight = boss.awakened ? 12 : 8;
+    const barX = cx - barWidth / 2;
+    const barY = boss.y - (boss.awakened ? 44 : 25);
     ctx.shadowBlur = 0;
+    if (boss.awakened) {
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.78)';
+      ctx.roundRect(barX - 10, barY - 20, barWidth + 20, 38, 8);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(250, 204, 21, 0.72)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.fillStyle = '#fef3c7';
+      ctx.font = '900 10px Outfit, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(`GUARDIAN - ${boss.name}`.toUpperCase(), cx, barY - 7);
+    }
     ctx.fillStyle = 'rgba(0,0,0,0.62)';
-    ctx.roundRect(screenX - 10, boss.y - 25, boss.width + 20, 8, 4);
+    ctx.roundRect(barX, barY, barWidth, barHeight, 5);
     ctx.fill();
     ctx.fillStyle = '#14b8a6';
-    ctx.roundRect(screenX - 10, boss.y - 25, (boss.health / boss.maxHealth) * (boss.width + 20), 8, 4);
+    ctx.roundRect(barX, barY, (boss.health / boss.maxHealth) * barWidth, barHeight, 5);
     ctx.fill();
 
     if (boss.shieldTimer > 0) {
@@ -3483,6 +3756,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       visibleObjectiveSprites: [],
       visibleCollectibleCount: 0,
       playerWeaponFrame: getPlayerWeaponFrameKey(getPlayerAttackState(current)),
+      bossDomainActive: Boolean(current.bossDomain),
     };
     const showWorldLabel = (worldX, distance = 150, priority = 'normal') => {
       const near = isPlayerNear(worldX, distance);
@@ -3555,6 +3829,44 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     }
     drawDesertForegroundAtmosphere(ctx, section, cameraX);
     STORY_PROPS.forEach((prop) => drawStoryProp(ctx, prop, cameraX, now, 'midground'));
+
+    const activeBossDomain = current.bossDomain
+      && !current.defeatedMiniBosses.has(current.bossDomain.bossId)
+      ? current.bossDomain
+      : null;
+    if (activeBossDomain) {
+      const domainStartX = worldToScreenX(activeBossDomain.arenaStart, cameraX);
+      const domainEndX = worldToScreenX(activeBossDomain.arenaEnd, cameraX);
+      const domainWidth = domainEndX - domainStartX;
+      if (domainEndX > -80 && domainStartX < CANVAS_WIDTH + 80) {
+        ctx.save();
+        ctx.fillStyle = activeBossDomain.tint || 'rgba(67, 24, 24, 0.16)';
+        ctx.fillRect(Math.max(0, domainStartX), 0, Math.min(CANVAS_WIDTH, domainWidth), CANVAS_HEIGHT);
+        ctx.strokeStyle = activeBossDomain.color || 'rgba(250, 204, 21, 0.72)';
+        ctx.lineWidth = 3;
+        [domainStartX, domainEndX].forEach((x) => {
+          if (x < -20 || x > CANVAS_WIDTH + 20) return;
+          ctx.beginPath();
+          ctx.moveTo(x, 92);
+          ctx.lineTo(x, GROUND_Y + 10);
+          ctx.stroke();
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.78)';
+          ctx.fillRect(x - 18, GROUND_Y - 74, 36, 44);
+          ctx.fillStyle = '#fef3c7';
+          ctx.font = '900 12px Outfit, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('!', x, GROUND_Y - 46);
+        });
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.72)';
+        ctx.roundRect(Math.max(20, domainStartX + 20), 102, 230, 34, 8);
+        ctx.fill();
+        ctx.fillStyle = '#fff4d4';
+        ctx.font = '900 11px Outfit, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText((activeBossDomain.name || 'Guardian Domain').toUpperCase(), Math.max(36, domainStartX + 36), 124);
+        ctx.restore();
+      }
+    }
 
     // --- Entities ---
     PLATFORMS.forEach((platform) => drawPlatform(ctx, platform, cameraX, current));
@@ -3629,6 +3941,25 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       if (!isHorizontallyVisible(boss.x, boss.width, cameraX, 100)) return;
       drawMiniBoss(ctx, boss, bx, now);
       drawEnemyAttackTell(ctx, boss, bx, cameraX, now, true, true);
+    });
+
+    (current.bossKeyItems || []).forEach((keyItem) => {
+      if (!keyItem.dropped || keyItem.collected) return;
+      drawCollectible(ctx, keyItem.x, keyItem.y, cameraX, now, keyItem.label || 'S', keyItem.color || '#b45309', false, false, {
+        key: 'loreTablet',
+        kind: 'objective',
+        size: 44,
+        ringSize: 54,
+        glowAlpha: 0.42,
+        shadowAlpha: 0.2,
+        bobAmplitude: 2,
+        anchor: 'center',
+        nearGlowDistance: 170,
+        ringKey: 'objectiveHighlightRing',
+      });
+      if (showWorldLabel(keyItem.x, 180, 'critical')) {
+        drawFieldNoteLabel(ctx, keyItem.x - cameraX, keyItem.y - 34, keyItem.name, keyItem.color || '#b45309');
+      }
     });
 
     const getShardVisualBaseY = (shard) => {
@@ -3785,14 +4116,20 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     // CINEMATIC CARDS
     const featureCard = current.bossIntro || current.sectionTransition || current.environmentEvent || current.cinematicEvent;
     if (featureCard) {
-      ctx.fillStyle = 'rgba(47, 37, 29, 0.9)';
-      ctx.fillRect(200, 80, 500, 80);
+      const isGuardianCard = Boolean(current.bossIntro);
+      ctx.fillStyle = isGuardianCard ? 'rgba(15, 23, 42, 0.92)' : 'rgba(47, 37, 29, 0.9)';
+      ctx.fillRect(200, 80, 500, isGuardianCard ? 92 : 80);
+      if (isGuardianCard) {
+        ctx.strokeStyle = 'rgba(250, 204, 21, 0.72)';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(204, 84, 492, 84);
+      }
       ctx.fillStyle = '#fff4d4';
-      ctx.font = '900 18px Outfit';
+      ctx.font = isGuardianCard ? '900 20px Outfit' : '900 18px Outfit';
       ctx.textAlign = 'center';
       ctx.fillText(featureCard.name || featureCard.title, 450, 110);
       ctx.font = '800 12px Outfit';
-      ctx.fillText(featureCard.message || '', 450, 135);
+      ctx.fillText(featureCard.message || '', 450, isGuardianCard ? 140 : 135);
       ctx.textAlign = 'start';
     }
   }, [drawAttackArc, drawCollectible, drawCombatEffects, drawContactShadow, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawEnemyAttackTell, drawGroundDustLip, drawHazard, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawParticles, drawPlatform, drawRouteGate, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStoryProp, drawTempleBackdrop, getGateGuidance, getGateRequirements, getPlayerAttackState, drawPlayerSprite, drawFieldNoteLabel]);
@@ -3878,6 +4215,14 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       .map(effect => ({ ...effect, timer: Math.max(0, effect.timer - dt) }))
       .filter(effect => effect.timer > 0);
     current.routeGateCooldown = Math.max(0, current.routeGateCooldown - dt);
+    current.bossIntroPauseTimer = Math.max(0, (current.bossIntroPauseTimer || 0) - dt);
+    if (current.activeGuardianChallenge || current.bossIntroPauseTimer > 0) {
+      current.attackQueued = false;
+      player.vx = 0;
+      player.vy = 0;
+      updatePlayerAnimation(current, dt);
+      return;
+    }
 
     // Movement
     player.vx = 0;
@@ -4000,6 +4345,24 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
           current.notice = `Objective Progress: ${progress.count}/${progress.total} ${progress.itemLabel}.`;
         }
         audioControls?.playExpeditionStinger?.('evidenceDiscovery');
+        audioControls?.playSuccess?.();
+      }
+    });
+
+    (current.bossKeyItems || []).forEach((keyItem) => {
+      if (!keyItem.dropped || keyItem.collected) return;
+      if (rectsOverlap(player, { x: keyItem.x - 16, y: keyItem.y - 18, width: 32, height: 36 })) {
+        keyItem.collected = true;
+        current.collectedBossKeyIds.add(keyItem.id);
+        current.notice = `${keyItem.name} recovered. ${keyItem.rewardDetail || 'This tool piece will help prepare the excavation kit.'}`;
+        current.cinematicEvent = {
+          id: `${keyItem.id}-recovered`,
+          name: `${keyItem.name} recovered`,
+          message: keyItem.rewardDetail || 'This tool piece will help prepare the excavation kit.',
+          temporary: true,
+        };
+        current.cinematicTimer = 2.4;
+        audioControls?.playExpeditionStinger?.('gateUnlock');
         audioControls?.playSuccess?.();
       }
     });
@@ -4249,8 +4612,78 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       if (!current.seenBossIntroIds.has(b.id) && Math.abs(b.x - player.x) < 400) {
         b.awakened = true;
         current.seenBossIntroIds.add(b.id);
-        current.bossIntro = { id: b.id, title: b.name, message: b.intro, focusX: b.x };
-        current.bossIntroTimer = 3;
+        const keyItem = current.bossKeyItems?.find(item => item.bossId === b.id);
+        const arenaStart = b.arenaStart ?? Math.max(0, b.x - 160);
+        const arenaEnd = b.arenaEnd ?? Math.min(WORLD_WIDTH, b.x + 180);
+        player.x = Math.max(arenaStart + 44, Math.min(player.x, arenaStart + 84));
+        player.y = GROUND_Y - player.height;
+        player.vx = 0;
+        player.vy = 0;
+        player.direction = 1;
+        b.x = Math.max(player.x + 180, arenaEnd - b.width - 72);
+        b.direction = -1;
+        b.patrolMin = Math.max(arenaStart + 90, b.patrolMin);
+        b.patrolMax = Math.min(arenaEnd - b.width - 24, b.patrolMax);
+        b.attackWindup = 0;
+        b.attackTimer = 0;
+        b.attackReady = false;
+        b.attackCooldown = Math.max(b.attackCooldown, 1.4);
+        current.bossDomain = {
+          bossId: b.id,
+          name: b.domainName || `${b.name} Domain`,
+          arenaStart,
+          arenaEnd,
+          playerStartX: Math.round(player.x),
+          bossStartX: Math.round(b.x),
+          color: keyItem?.color || '#facc15',
+          tint: b.sectionId === 'catacombs'
+            ? 'rgba(49, 46, 129, 0.16)'
+            : b.sectionId === 'escape-sequence'
+              ? 'rgba(127, 29, 29, 0.14)'
+              : 'rgba(120, 53, 15, 0.14)',
+        };
+        current.bossIntro = {
+          id: b.id,
+          title: `Guardian Encounter: ${b.name}`,
+          message: keyItem
+            ? b.dialogue || `Defeat the guardian to recover the ${keyItem.name}.`
+            : b.intro,
+          focusX: b.x,
+          dialogue: b.dialogue || null,
+          domainName: b.domainName || `${b.name} Domain`,
+          rewardName: keyItem?.name || null,
+        };
+        if (!current.completedGuardianChallengeIds?.has(b.id)) {
+          const questions = getGuardianChallengeQuestions(b.id);
+          if (questions.length) {
+            current.activeGuardianChallenge = {
+              bossId: b.id,
+              bossName: b.name,
+              title: 'Guardian Knowledge Challenge',
+              intro: 'Answer carefully. Your knowledge will decide the strength of the battle.',
+              questions,
+              currentIndex: 0,
+              correctCount: 0,
+              selectedAnswerIndex: null,
+              feedback: null,
+              answers: [],
+              completed: false,
+              modifier: null,
+              resultMessage: null,
+            };
+          }
+        }
+        current.bossIntroTimer = 3.2;
+        current.bossIntroPauseTimer = 1.1;
+        current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.35);
+        current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.32);
+        const arenaCamera = clampCameraX(((arenaStart + arenaEnd) / 2) - (CANVAS_WIDTH / 2));
+        current.cameraX = arenaCamera;
+        current.targetCameraX = arenaCamera;
+        current.cameraMode = 'boss-domain';
+        current.cameraFocusTarget = Math.round(b.x);
+        current.notice = current.bossIntro.message;
+        audioControls?.playTransition?.();
       } else if (current.seenBossIntroIds.has(b.id) && Math.abs(b.x - player.x) < 400) {
         b.awakened = true;
       }
@@ -4304,7 +4737,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
           : getAttackBox(b, phase.range, phase.height, b.attackDirection);
         if (!b.attackHasHit && rectsOverlap(bossAttackBox, player)) {
           b.attackHasHit = true;
-          applyPlayerDamage(Math.max(4, Math.round(b.damage * (phase.damageScale || 1))), `${b.name} ${phase.label} landed. Dodge the tell, then counter.`, b.attackDirection, b.name);
+          applyPlayerDamage(Math.max(4, Math.round(b.damage * (phase.damageScale || 1) * (b.bossDamageMultiplier || 1))), `${b.name} ${phase.label} landed. Dodge the tell, then counter.`, b.attackDirection, b.name);
         }
       }
 
@@ -4338,7 +4771,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
           current.notice = `${b.name} blocked the rushed hit. Wait for the counter window.`;
           return;
         }
-        b.health -= 1;
+        b.health -= (b.playerDamageMultiplier || 1);
         if (!current.attackRewarded) {
           current.resources.stamina = Math.min(100, current.resources.stamina + 1);
           current.attackRewarded = true;
@@ -4369,11 +4802,34 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         if (b.health <= 0) {
           b.defeated = true;
           current.defeatedMiniBosses.add(b.id);
+          if (current.guardianBattleModifiers?.[b.id]) {
+            current.guardianBattleModifiers = { ...current.guardianBattleModifiers };
+            delete current.guardianBattleModifiers[b.id];
+          }
+          current.player.knowledgeVisualScale = 1;
           if (b.sectionId === 'dig-site-entrance') {
             current.completedObjectiveIds.add(b.sectionId);
           }
           current.relicShardCount += b.shards;
-          current.notice = `${b.name} defeated. Path secured.`;
+          const keyItem = current.bossKeyItems?.find(item => item.bossId === b.id);
+          if (keyItem && !keyItem.collected) {
+            keyItem.dropped = true;
+            keyItem.x = b.x + b.width / 2;
+            keyItem.y = Math.max(96, b.y - 18);
+            current.notice = `${b.name} defeated. ${keyItem.name} revealed.`;
+            current.cinematicEvent = {
+              id: `${b.id}-seal-drop`,
+              name: `${keyItem.name} revealed`,
+              message: 'Collect the tool piece to prepare the excavation kit.',
+              temporary: true,
+            };
+            current.cinematicTimer = 2.8;
+          } else {
+            current.notice = `${b.name} defeated. Path secured.`;
+          }
+          if (current.bossDomain?.bossId === b.id) {
+            current.bossDomain = null;
+          }
         }
       }
     });
@@ -4449,6 +4905,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         current.cameraX = clampCameraX(current.player.x - CANVAS_WIDTH * 0.42);
         current.targetCameraX = current.cameraX;
         step(0);
+        syncHud();
         return createJourneySnapshot(current);
       };
     }
@@ -4457,11 +4914,11 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       delete window.__renderExpeditionJourneyState;
       delete window.__setExpeditionJourneyDebugPosition;
     };
-  }, [createJourneySnapshot, step]);
+  }, [createJourneySnapshot, step, syncHud]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (briefingOpen) return;
+      if (briefingOpen || stateRef.current.activeGuardianChallenge) return;
       if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'Space', 'KeyA', 'KeyD', 'KeyW', 'KeyJ', 'KeyK'].includes(e.code)) e.preventDefault();
       if (e.code === 'KeyJ' || e.code === 'KeyK') { queueAttack(); return; }
       keysRef.current[e.code] = true;
@@ -4489,6 +4946,8 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
   const activeHudGate = ROUTE_GATES.find(gate => !gameState.openedRouteGateIds.has(gate.id));
   const activeHudGateGuidance = activeHudGate ? getGateGuidance(activeHudGate, gameState) : null;
   const staminaWarningState = getStaminaWarningState(gameState);
+  const activeGuardianChallenge = gameState.activeGuardianChallenge;
+  const activeGuardianQuestion = activeGuardianChallenge?.questions?.[activeGuardianChallenge.currentIndex] || null;
 
   return (
     <section className="expedition-journey-container" id="expedition-journey">
@@ -4535,6 +4994,19 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
             <div className="objective-progress">
               <div>Shards: {gameState.relicShardCount} / 22</div>
               <div>Upgrades: {gameState.collectedUpgrades.size} / {UPGRADES.length}</div>
+            </div>
+            <div className="journey-key-items" aria-label="Recovered excavation kit pieces">
+              <div className="journey-key-items-title">Excavation Kit</div>
+              {BOSS_KEY_ITEMS.map(item => {
+                const recovered = gameState.collectedBossKeyIds?.has(item.id)
+                  || gameState.bossKeyItems?.some(keyItem => keyItem.id === item.id && keyItem.collected);
+                return (
+                  <div key={item.id} className={`journey-key-item ${recovered ? 'is-collected' : ''}`}>
+                    <span className="journey-key-mark">{item.label}</span>
+                    <span>{item.name}</span>
+                  </div>
+                );
+              })}
             </div>
             {activeHudGateGuidance && (
               <div className={`route-gate-hud ${activeHudGateGuidance.activeGateLocked ? 'is-locked' : 'is-ready'}`}>
@@ -4613,6 +5085,69 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
               <div className="expedition-journey-notice animate-fade-in">
                 <Sparkles size={16} />
                 <span>{gameState.notice}</span>
+              </div>
+            )}
+
+            {activeGuardianChallenge && activeGuardianQuestion && (
+              <div className="guardian-challenge-overlay" role="dialog" aria-modal="true" aria-label="Guardian Knowledge Challenge">
+                <div className="guardian-challenge-card">
+                  <div className="guardian-challenge-kicker">Guardian Knowledge Challenge</div>
+                  <h2>{activeGuardianChallenge.bossName}</h2>
+                  <p className="guardian-challenge-intro">
+                    {activeGuardianChallenge.intro}
+                  </p>
+                  <div className="guardian-challenge-progress">
+                    Question {activeGuardianChallenge.currentIndex + 1} of {activeGuardianChallenge.questions.length}
+                    <span>{activeGuardianChallenge.correctCount} correct</span>
+                  </div>
+                  <div className="guardian-challenge-question">
+                    {activeGuardianQuestion.question}
+                  </div>
+                  <div className="guardian-challenge-options">
+                    {activeGuardianQuestion.options.map((option, index) => {
+                      const selected = activeGuardianChallenge.selectedAnswerIndex === index;
+                      const correct = activeGuardianQuestion.correctIndex === index;
+                      const locked = activeGuardianChallenge.selectedAnswerIndex !== null;
+                      return (
+                        <button
+                          type="button"
+                          key={option}
+                          className={[
+                            'guardian-challenge-option',
+                            selected ? 'is-selected' : '',
+                            locked && correct ? 'is-correct' : '',
+                            locked && selected && !correct ? 'is-incorrect' : '',
+                          ].filter(Boolean).join(' ')}
+                          onClick={() => answerGuardianChallenge(index)}
+                          disabled={locked}
+                        >
+                          <strong>{String.fromCharCode(65 + index)}</strong>
+                          <span>{option}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {activeGuardianChallenge.feedback && (
+                    <div className={`guardian-challenge-feedback ${activeGuardianChallenge.feedback.correct ? 'is-correct' : 'is-incorrect'}`}>
+                      {activeGuardianChallenge.feedback.message}
+                    </div>
+                  )}
+                  {activeGuardianChallenge.completed && (
+                    <div className="guardian-challenge-result">
+                      {activeGuardianChallenge.resultMessage}
+                    </div>
+                  )}
+                  <div className="guardian-challenge-actions">
+                    <button
+                      type="button"
+                      className="expedition-begin-btn"
+                      onClick={continueGuardianChallenge}
+                      disabled={activeGuardianChallenge.selectedAnswerIndex === null}
+                    >
+                      {activeGuardianChallenge.completed ? 'Begin Guardian Fight' : 'Next Question'}
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
 

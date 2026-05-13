@@ -316,7 +316,7 @@ const BUREAU_CASES_RAW = [
       Rulers: ['rulers were linked to gods'],
       Buildings: ['pyramids were tombs'],
     },
-    keywords: ['Nile flood', 'pharaohs', 'pyramids'],
+    keywords: ['Nile Flood', 'Pharaohs', 'Pyramids'],
     explanation: 'Flooding, pharaohs, and pyramids point clearly to Ancient Egypt.',
   },
   {
@@ -348,7 +348,7 @@ const BUREAU_CASES_RAW = [
       Rulers: ['Athens used democracy'],
       Buildings: ['temples, theatres, and stone columns'],
     },
-    keywords: ['city-states', 'democracy', 'Sparta'],
+    keywords: ['City-States', 'Democracy', 'Sparta'],
     explanation: 'The city-states and ideas like democracy point clearly to Ancient Greece.',
   },
   {
@@ -380,7 +380,7 @@ const BUREAU_CASES_RAW = [
       Rulers: ['had a senate', 'became an empire'],
       Buildings: ['roads, aqueducts, and amphitheatres'],
     },
-    keywords: ['senate', 'laws', 'empire'],
+    keywords: ['Senate', 'Laws', 'Empire'],
     explanation: 'The senate, laws, and roads point clearly to Ancient Rome.',
   },
   {
@@ -412,7 +412,7 @@ const BUREAU_CASES_RAW = [
       Rulers: ['ruled by dynasties'],
       Inventions: ['invented paper', 'built early walls'],
     },
-    keywords: ['dynasties', 'paper', 'walls'],
+    keywords: ['Dynasties', 'Paper', 'Walls'],
     explanation: 'Dynasties, paper, and early walls point clearly to Ancient China.',
   },
   {
@@ -444,7 +444,7 @@ const BUREAU_CASES_RAW = [
       Beliefs: ['studied stars and planets', 'used calendars'],
       Buildings: ['built religious pyramids'],
     },
-    keywords: ['calendars', 'stars', 'pyramids'],
+    keywords: ['Calendars', 'Stars', 'Pyramids'],
     explanation: 'Calendars, astronomy, and religious pyramids point clearly to the Maya.',
   },
   {
@@ -476,7 +476,7 @@ const BUREAU_CASES_RAW = [
       Rulers: ['organised labour, roads, storehouses, and terrace farming'],
       Mysteries: ['used knotted cords to keep records', 'built mountain roads'],
     },
-    keywords: ['quipu', 'Andes', 'Machu Picchu'],
+    keywords: ['Quipu', 'Andes', 'Machu Picchu'],
     explanation: 'The Andes, quipu, and mountain roads point clearly to the Inca.',
   },
   {
@@ -507,7 +507,7 @@ const BUREAU_CASES_RAW = [
       Buildings: ['cities had drainage systems and straight streets'],
       Mysteries: ['writing has not been fully translated', 'used standard weights and seals'],
     },
-    keywords: ['drainage', 'untranslated writing', 'seals'],
+    keywords: ['Drainage', 'Untranslated Writing', 'Seals'],
     explanation: 'Drainage systems and the still-mysterious writing point clearly to the Indus Valley.',
   },
   {
@@ -538,7 +538,7 @@ const BUREAU_CASES_RAW = [
       Buildings: ['built temples and ziggurats'],
       Rulers: ['known for laws and scribes'],
     },
-    keywords: ['two rivers', 'laws', 'ziggurat'],
+    keywords: ['Two Rivers', 'Laws', 'Ziggurat'],
     explanation: 'The two rivers, laws, and ziggurats point clearly to Babylon / Mesopotamia.',
   },
   {
@@ -569,7 +569,7 @@ const BUREAU_CASES_RAW = [
       Rulers: ['used governors'],
       Beliefs: ['allowed different religions'],
     },
-    keywords: ['governors', 'religions', 'empire'],
+    keywords: ['Governors', 'Religions', 'Empire'],
     explanation: 'Governors, religious tolerance, and the large empire point clearly to Persia.',
   },
   {
@@ -631,7 +631,7 @@ const BUREAU_CASES_RAW = [
       Rulers: ['ruled by sultans'],
       Buildings: ['renamed Constantinople Istanbul'],
     },
-    keywords: ['sultans', 'Istanbul', 'crossroads'],
+    keywords: ['Sultans', 'Istanbul', 'Crossroads'],
     explanation: 'Sultans, Istanbul, and the crossroads location point clearly to the Ottoman Empire.',
   },
   {
@@ -662,7 +662,7 @@ const BUREAU_CASES_RAW = [
       Beliefs: ['sun was important'],
       Rulers: ['ruled by an emperor'],
     },
-    keywords: ['Tenochtitlan', 'sun', 'emperor'],
+    keywords: ['Tenochtitlan', 'Sun', 'Emperor'],
     explanation: 'The island capital, the sun, and the emperor point clearly to the Aztec.',
   },
 ];

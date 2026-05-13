@@ -1,17 +1,17 @@
 import { 
-  Package, Skull, Landmark, Leaf, ScrollText, Search,
-  Users, Beaker, MapPin, FileText
+  Amphora, Bone, Landmark, Sprout, ScrollText, SearchCheck,
+  Users, Beaker, Leaf, MapPin, FileText
 } from 'lucide-react';
 
-export const getIcon = (type, size = 20) => {
+export const getIcon = (type, size = 20, props = {}) => {
   switch(type) {
-    case 'objects': return <Package size={size} />;
-    case 'remains': return <Skull size={size} />;
-    case 'structures': return <Landmark size={size} />;
-    case 'environment': return <Leaf size={size} />;
-    case 'written': return <ScrollText size={size} />;
-    case 'mystery': return <Search size={size} />;
-    default: return <Search size={size} />;
+    case 'objects': return <Amphora size={size} {...props} />;
+    case 'remains': return <Bone size={size} {...props} />;
+    case 'structures': return <Landmark size={size} {...props} />;
+    case 'environment': return <Sprout size={size} {...props} />;
+    case 'written': return <ScrollText size={size} {...props} />;
+    case 'mystery': return <SearchCheck size={size} {...props} />;
+    default: return <SearchCheck size={size} {...props} />;
   }
 };
 

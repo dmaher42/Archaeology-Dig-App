@@ -1,0 +1,49 @@
+{
+  "image": "desert-scarab-sprites.png",
+  "source": "AI-generated Desert Scarab sprite sheet, integrated as a dedicated named atlas for Journey rendering.",
+  "coordinateNote": "Crop rectangles avoid sprite-sheet guide lines and keep shell, legs, and charge streaks comfortably inside each frame.",
+  "regions": {
+    "scarabIdle": {
+      "x": 81,
+      "y": 159,
+      "w": 294,
+      "h": 182
+    },
+    "scarabCrawl1": {
+      "x": 501,
+      "y": 153,
+      "w": 325,
+      "h": 201
+    },
+    "scarabCrawl2": {
+      "x": 947,
+      "y": 158,
+      "w": 310,
+      "h": 192
+    },
+    "scarabWindup": {
+      "x": 1398,
+      "y": 175,
+      "w": 301,
+      "h": 180
+    },
+    "scarabAttack": {
+      "x": 38,
+      "y": 581,
+      "w": 381,
+      "h": 182
+    },
+    "scarabHit": {
+      "x": 513,
+      "y": 496,
+      "w": 270,
+      "h": 289
+    },
+    "scarabDefeated": {
+      "x": 966,
+      "y": 607,
+      "w": 262,
+      "h": 187
+    }
+  }
+}

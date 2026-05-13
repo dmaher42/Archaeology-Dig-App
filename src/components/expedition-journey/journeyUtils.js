@@ -6,7 +6,7 @@ import {
   PLAYER_SPRITE_SCALE,
   PLAYER_WIDTH,
 } from './journeyConstants';
-import { CHECKPOINTS, ENEMIES, MINI_BOSSES, SECTIONS, SECTION_ATMOSPHERES } from './journeyLevelData';
+import { BOSS_KEY_ITEMS, CHECKPOINTS, ENEMIES, MINI_BOSSES, SECTIONS, SECTION_ATMOSPHERES } from './journeyLevelData';
 
 export const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
@@ -96,6 +96,14 @@ export const makeMiniBoss = (boss) => ({
   knockbackDirection: 0,
 });
 
+export const makeBossKeyItem = (item) => ({
+  ...item,
+  x: 0,
+  y: 0,
+  dropped: false,
+  collected: false,
+});
+
 export const makeInitialState = () => ({
   player: {
     x: 44,
@@ -127,8 +135,10 @@ export const makeInitialState = () => ({
   collectedUpgrades: new Set(),
   collectedTabletIds: new Set(),
   collectedObjectiveIds: new Set(),
+  collectedBossKeyIds: new Set(),
   enemies: ENEMIES.map(makeEnemy),
   miniBosses: MINI_BOSSES.map(makeMiniBoss),
+  bossKeyItems: BOSS_KEY_ITEMS.map(makeBossKeyItem),
   defeatedEnemies: new Set(),
   defeatedMiniBosses: new Set(),
   hiddenRoomsFound: new Set(),
@@ -139,7 +149,13 @@ export const makeInitialState = () => ({
   cinematicTimer: 0,
   bossIntro: null,
   bossIntroTimer: 0,
+  bossIntroPauseTimer: 0,
+  bossDomain: null,
   seenBossIntroIds: new Set(),
+  activeGuardianChallenge: null,
+  completedGuardianChallengeIds: new Set(),
+  guardianChallengeResults: {},
+  guardianBattleModifiers: {},
   environmentEvent: null,
   environmentEventTimer: 0,
   sectionTransition: {

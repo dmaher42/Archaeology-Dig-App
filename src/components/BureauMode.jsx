@@ -697,7 +697,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
                     ))}
                   </div>
 
-                  {isRuledOut && <div className="bureau-discarded-stamp">DISCARDED</div>}
+                  {isRuledOut && <div className="bureau-discarded-stamp">RULED OUT</div>}
                 </article>
               );
             })}

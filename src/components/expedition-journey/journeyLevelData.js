@@ -37,26 +37,36 @@ export const PLATFORMS = [
   { x: 360, y: JY(292), width: 175, height: 18, label: 'sun-baked ledge' },
   { x: 690, y: JY(276), width: 165, height: 18, label: 'broken column' },
   { x: 1180, y: JY(304), width: 150, height: 18, label: 'survey ridge' },
+  { x: 1345, y: JY(270), width: 120, height: 18, label: 'seal approach ledge' },
   { x: 1640, y: JY(292), width: 180, height: 18, label: 'temple plinth' },
   { x: 1940, y: JY(246), width: 150, height: 18, label: 'upper step' },
   { x: 2225, y: JY(204), width: 160, height: 18, label: 'rope shelf', requiresUpgrade: 'rope-launcher' },
   { x: 2500, y: JY(264), width: 210, height: 18, label: 'mural walkway' },
+  { x: 2715, y: JY(246), width: 145, height: 18, label: 'guardian approach' },
   { x: 2790, y: JY(222), width: 185, height: 18, label: 'archive ledge' },
   { x: 3310, y: JY(300), width: 180, height: 18, label: 'catacomb shelf' },
   { x: 3600, y: JY(252), width: 160, height: 18, label: 'hidden stair', secret: true, requiresUpgrade: 'torch-upgrade' },
   { x: 3890, y: JY(206), width: 160, height: 18, label: 'torch alcove', secret: true, requiresUpgrade: 'torch-upgrade' },
   { x: 4200, y: JY(278), width: 210, height: 18, label: 'bone-dry bridge' },
+  { x: 4440, y: JY(252), width: 155, height: 18, label: 'serpent watch ledge' },
   { x: 4590, y: JY(226), width: 170, height: 18, label: 'relic loft', secret: true, requiresUpgrade: 'historian-vision' },
   { x: 5160, y: JY(300), width: 160, height: 18, label: 'falling stair' },
   { x: 5440, y: JY(258), width: 155, height: 18, label: 'escape shelf' },
   { x: 5740, y: JY(222), width: 155, height: 18, label: 'collapsed arch' },
+  { x: 5965, y: JY(246), width: 140, height: 18, label: 'route warning ledge' },
   { x: 6045, y: JY(284), width: 180, height: 18, label: 'final run ledge' },
   { x: 6660, y: JY(302), width: 170, height: 18, label: 'camp overlook' },
   { x: 6950, y: JY(250), width: 160, height: 18, label: 'secret survey perch', secret: true, requiresUpgrade: 'ancient-compass' },
+  { x: 7075, y: JY(282), width: 145, height: 18, label: 'permit checkpoint' },
   { x: 7240, y: JY(302), width: 170, height: 18, label: 'last ledge' },
 ];
 
 export const HAZARDS = [
+  { id: 'sealed-sand', name: 'sealed sand', emoji: '!', x: 1280, y: JY(330), width: 62, height: 30, penalty: { time: 6 }, message: 'A marked patch of sealed sand slowed the approach.' },
+  { id: 'loose-temple-floor', name: 'loose temple floor', emoji: '!', x: 2660, y: JY(330), width: 72, height: 30, penalty: { stamina: 8 }, message: 'Loose temple stones made the guardian route harder.' },
+  { id: 'glyph-tripwire', name: 'glyph tripwire', emoji: '!', x: 4595, y: JY(330), width: 78, height: 30, penalty: { stamina: 8 }, message: 'A glyph tripwire flashed underfoot.' },
+  { id: 'warning-rubble', name: 'warning rubble', emoji: '!', x: 6140, y: JY(324), width: 80, height: 36, penalty: { stamina: 8 }, message: 'Warning rubble narrowed the route.' },
+  { id: 'survey-rope', name: 'survey rope', emoji: '!', x: 7135, y: JY(330), width: 76, height: 30, penalty: { time: 6 }, message: 'Survey ropes slowed the final site access path.' },
   { id: 'thorn-bush', name: 'thorn bush', emoji: '🌿', x: 560, y: JY(329), width: 54, height: 31, penalty: { stamina: 8 }, message: 'Thorn scrub slowed the team. Stamina reduced.' },
   { id: 'sand-pit', name: 'soft sand', emoji: '⏳', x: 1060, y: JY(330), width: 92, height: 30, penalty: { time: 10 }, message: 'Soft sand cost the team time.' },
   { id: 'spike-trap', name: 'temple trap', emoji: '🧱', x: 2050, y: JY(330), width: 70, height: 30, penalty: { stamina: 12 }, message: 'A temple trap clipped your route. Stamina reduced.' },
@@ -70,13 +80,13 @@ export const HAZARDS = [
 
 export const ENEMIES = [
   { id: 'scarab-1', name: 'Scarab', type: 'scarab', emoji: '🐞', x: 890, y: JY(334), width: 34, height: 26, patrolMin: 820, patrolMax: 1040, speed: 80, health: 1, damage: 8, shards: 2 },
-  { id: 'snake-1', name: 'Sand Snake', type: 'snake', emoji: '🐍', x: 1390, y: JY(330), width: 42, height: 30, patrolMin: 1320, patrolMax: 1470, speed: 62, health: 1, damage: 10, shards: 2 },
+  { id: 'snake-1', name: 'Sand Snake', type: 'snake', emoji: '🐍', x: 1245, y: JY(330), width: 42, height: 30, patrolMin: 1185, patrolMax: 1325, speed: 62, health: 1, damage: 10, shards: 2 },
   { id: 'guardian-1', name: 'Stone Guardian', type: 'guardian', emoji: '🗿', x: 2350, y: JY(318), width: 36, height: 42, patrolMin: 2240, patrolMax: 2580, speed: 72, health: 2, damage: 12, shards: 4 },
-  { id: 'looter-1', name: 'Rival Looter', type: 'looter', emoji: '👤', x: 3040, y: JY(318), width: 34, height: 42, patrolMin: 2920, patrolMax: 3140, speed: 90, health: 2, damage: 12, shards: 4 },
+  { id: 'looter-1', name: 'Rival Looter', type: 'looter', emoji: '👤', x: 2685, y: JY(318), width: 34, height: 42, patrolMin: 2600, patrolMax: 2815, speed: 90, health: 2, damage: 12, shards: 4 },
   { id: 'bat-1', name: 'Temple Bat', type: 'bat', emoji: '🦇', x: 3700, y: JY(304), width: 34, height: 28, patrolMin: 3600, patrolMax: 3870, speed: 118, health: 1, damage: 8, shards: 3, flying: true },
   { id: 'statue-1', name: 'Cursed Statue', type: 'statue', emoji: '🗽', x: 4700, y: JY(318), width: 42, height: 42, patrolMin: 4630, patrolMax: 4860, speed: 56, health: 3, damage: 14, shards: 6 },
   { id: 'scarab-2', name: 'Scarab Swarm', type: 'scarab', emoji: '🐝', x: 5240, y: JY(334), width: 44, height: 26, patrolMin: 5140, patrolMax: 5410, speed: 130, health: 2, damage: 10, shards: 4 },
-  { id: 'looter-2', name: 'Rival Looter', type: 'looter', emoji: '👤', x: 6330, y: JY(318), width: 34, height: 42, patrolMin: 6170, patrolMax: 6470, speed: 95, health: 2, damage: 12, shards: 4 },
+  { id: 'looter-2', name: 'Rival Looter', type: 'looter', emoji: '👤', x: 6150, y: JY(318), width: 34, height: 42, patrolMin: 6070, patrolMax: 6240, speed: 95, health: 2, damage: 12, shards: 4 },
   { id: 'guardian-2', name: 'Gate Guardian', type: 'guardian', emoji: '🗿', x: 7180, y: JY(318), width: 38, height: 42, patrolMin: 7060, patrolMax: 7350, speed: 78, health: 3, damage: 15, shards: 8 },
 ];
 
@@ -119,6 +129,7 @@ export const ROUTE_GATES = [
     requires: {
       objective: 'desert-entry',
       miniBoss: 'scarab-queen',
+      keyItem: 'brush-handle',
       shards: 4,
     },
   },
@@ -133,6 +144,7 @@ export const ROUTE_GATES = [
     requires: {
       objective: 'ruined-temple',
       miniBoss: 'temple-guardian',
+      keyItem: 'trowel-blade',
       shards: 8,
       upgrades: ['reinforced-boots'],
     },
@@ -148,6 +160,7 @@ export const ROUTE_GATES = [
     requires: {
       objective: 'catacombs',
       miniBoss: 'giant-serpent',
+      keyItem: 'measuring-cord',
       shards: 14,
       upgrades: ['torch-upgrade'],
     },
@@ -163,6 +176,7 @@ export const ROUTE_GATES = [
     requires: {
       objective: 'escape-sequence',
       miniBoss: 'looter-captain',
+      keyItem: 'field-notebook-clasp',
       shards: 20,
     },
   },
@@ -177,6 +191,7 @@ export const ROUTE_GATES = [
     requires: {
       objective: 'dig-site-entrance',
       miniBoss: 'ancient-construct',
+      keyItem: 'site-permit-seal',
       shards: 22,
       checkpoint: 'dig-site-entrance',
     },
@@ -236,12 +251,91 @@ export const OBJECTIVE_MARKERS = [
 ];
 
 export const MINI_BOSSES = [
-  { id: 'scarab-queen', sectionId: 'desert-entry', name: 'Scarab Queen', type: 'scarab', x: 1325, y: JY(318), width: 58, height: 42, patrolMin: 1250, patrolMax: 1430, speed: 66, health: 2, damage: 6, shards: 6, intro: 'Mini-boss: Scarab Queen guarding the desert map route.' },
-  { id: 'temple-guardian', sectionId: 'ruined-temple', name: 'Stone Guardian', type: 'guardian', x: 2875, y: JY(306), width: 54, height: 54, patrolMin: 2760, patrolMax: 3040, speed: 58, health: 2, damage: 6, shards: 8, intro: 'Mini-boss: Stone Guardian awakened beside the temple seal.' },
-  { id: 'giant-serpent', sectionId: 'catacombs', name: 'Giant Serpent', type: 'snake', x: 4750, y: JY(308), width: 72, height: 52, patrolMin: 4610, patrolMax: 4940, speed: 70, health: 2, damage: 6, shards: 8, intro: 'Mini-boss: Giant Serpent moving through the catacombs.' },
-  { id: 'looter-captain', sectionId: 'escape-sequence', name: 'Rival Looter Captain', type: 'looter', x: 6230, y: JY(306), width: 54, height: 54, patrolMin: 6120, patrolMax: 6420, speed: 86, health: 2, damage: 6, shards: 8, intro: 'Mini-boss: Rival Looter Captain blocking the escape route.' },
-  { id: 'ancient-construct', sectionId: 'dig-site-entrance', name: 'Ancient Construct', type: 'statue', x: 7250, y: JY(300), width: 62, height: 60, patrolMin: 7120, patrolMax: 7370, speed: 54, health: 3, damage: 7, shards: 10, intro: 'Final mini-boss: Ancient Construct guarding Base Camp.' },
+  { id: 'scarab-queen', sectionId: 'desert-entry', name: 'Scarab Queen', type: 'scarab', x: 1395, y: JY(318), width: 58, height: 42, patrolMin: 1335, patrolMax: 1460, speed: 66, health: 2, damage: 6, shards: 6, intro: 'Guardian Encounter: Scarab Queen. You will not pass while the desert seal remains buried.', dialogue: 'You will not pass while the desert seal remains buried.', domainName: 'Desert Seal Domain', arenaStart: 1265, arenaEnd: 1480 },
+  { id: 'temple-guardian', sectionId: 'ruined-temple', name: 'Stone Guardian', type: 'guardian', x: 2960, y: JY(306), width: 54, height: 54, patrolMin: 2860, patrolMax: 3060, speed: 58, health: 2, damage: 6, shards: 8, intro: 'Guardian Encounter: Stone Guardian. The temple tools are protected by stone and silence.', dialogue: 'The temple tools are protected by stone and silence.', domainName: 'Temple Tool Domain', arenaStart: 2785, arenaEnd: 3090 },
+  { id: 'giant-serpent', sectionId: 'catacombs', name: 'Giant Serpent', type: 'snake', x: 4860, y: JY(308), width: 72, height: 52, patrolMin: 4730, patrolMax: 4965, speed: 70, health: 2, damage: 6, shards: 8, intro: 'Guardian Encounter: Giant Serpent. The catacomb path belongs to those who prove they are careful.', dialogue: 'The catacomb path belongs to those who prove they are careful.', domainName: 'Catacomb Care Domain', arenaStart: 4625, arenaEnd: 4985 },
+  { id: 'looter-captain', sectionId: 'escape-sequence', name: 'Rival Looter Captain', type: 'looter', x: 6330, y: JY(306), width: 54, height: 54, patrolMin: 6200, patrolMax: 6435, speed: 86, health: 2, damage: 6, shards: 8, intro: 'Guardian Encounter: Rival Looter Captain. Careful records matter more than speed through this site.', dialogue: 'Careful records matter more than speed through this site.', domainName: 'Field Records Domain', arenaStart: 6110, arenaEnd: 6460 },
+  { id: 'ancient-construct', sectionId: 'dig-site-entrance', name: 'Ancient Construct', type: 'statue', x: 7305, y: JY(300), width: 62, height: 60, patrolMin: 7200, patrolMax: 7390, speed: 54, health: 3, damage: 7, shards: 10, intro: 'Guardian Encounter: Ancient Construct. No excavation begins until the final tool is restored.', dialogue: 'No excavation begins until the final tool is restored.', domainName: 'Final Site Access Domain', arenaStart: 7140, arenaEnd: 7405 },
 ];
+
+export const BOSS_KEY_ITEMS = [
+  { id: 'brush-handle', bossId: 'scarab-queen', gateId: 'desert-seal', sectionId: 'desert-entry', name: 'Brush Handle', shortName: 'Brush', label: 'B', color: '#b45309', rewardDetail: 'This tool piece will help prepare the excavation kit.' },
+  { id: 'trowel-blade', bossId: 'temple-guardian', gateId: 'temple-seal', sectionId: 'ruined-temple', name: 'Trowel Blade', shortName: 'Trowel', label: 'T', color: '#92400e', rewardDetail: 'The excavation kit is one step closer to complete.' },
+  { id: 'measuring-cord', bossId: 'giant-serpent', gateId: 'catacomb-seal', sectionId: 'catacombs', name: 'Measuring Cord', shortName: 'Measure', label: 'M', color: '#0f766e', rewardDetail: 'You can now record the site more carefully.' },
+  { id: 'field-notebook-clasp', bossId: 'looter-captain', gateId: 'escape-seal', sectionId: 'escape-sequence', name: 'Field Notebook Clasp', shortName: 'Notebook', label: 'N', color: '#b91c1c', rewardDetail: 'Field notes can be secured for careful investigation.' },
+  { id: 'site-permit-seal', bossId: 'ancient-construct', gateId: 'basecamp-seal', sectionId: 'dig-site-entrance', name: 'Site Permit Seal', shortName: 'Permit', label: 'P', color: '#166534', rewardDetail: 'Base Camp can now open the excavation site.' },
+];
+
+export const GUARDIAN_KNOWLEDGE_QUESTIONS = [
+  {
+    id: 'artefact-meaning',
+    question: 'What is an artefact?',
+    options: ['A human-made object from the past', 'A modern machine', 'A natural disaster', 'A type of animal bone only'],
+    correctIndex: 0,
+  },
+  {
+    id: 'brush-care',
+    question: 'Why do archaeologists use tools like brushes?',
+    options: ['To uncover evidence carefully without damaging it', 'To make artefacts look newer', 'To move faster through ruins', 'To guess answers quickly'],
+    correctIndex: 0,
+  },
+  {
+    id: 'evidence-history',
+    question: 'Why is evidence important in history?',
+    options: ['It helps historians build explanations about the past', 'It replaces thinking', 'It is only used in science', 'It makes ruins more dangerous'],
+    correctIndex: 0,
+  },
+  {
+    id: 'human-remains',
+    question: 'What can human remains help archaeologists understand?',
+    options: ['Health, diet, age, injury, or burial practices', 'Only a person\'s name', 'The exact words a person spoke', 'Nothing useful'],
+    correctIndex: 0,
+  },
+  {
+    id: 'preservation',
+    question: 'What does preservation mean?',
+    options: ['Something from the past survives over time', 'Something is destroyed quickly', 'Something is copied from a book', 'Something is guessed without evidence'],
+    correctIndex: 0,
+  },
+  {
+    id: 'claim-evidence',
+    question: 'What should historians do before making a claim?',
+    options: ['Look at evidence carefully', 'Guess quickly', 'Ignore small clues', 'Only use one source'],
+    correctIndex: 0,
+  },
+  {
+    id: 'primary-source',
+    question: 'What is a primary source?',
+    options: ['Evidence from the time being studied', 'A modern textbook only', 'A random opinion', 'A made-up story'],
+    correctIndex: 0,
+  },
+  {
+    id: 'more-evidence',
+    question: 'Why might one artefact not be enough evidence?',
+    options: ['More evidence helps make a stronger explanation', 'One artefact is always wrong', 'Artefacts cannot teach us anything', 'Historians do not use artefacts'],
+    correctIndex: 0,
+  },
+  {
+    id: 'written-source',
+    question: 'What can a written source help historians understand?',
+    options: ['Records, beliefs, laws, stories, or messages', 'Only the weather', 'Only what people ate', 'Nothing about the past'],
+    correctIndex: 0,
+  },
+  {
+    id: 'excavation',
+    question: 'What does excavation mean?',
+    options: ['Carefully uncovering and recording remains or artefacts', 'Running through a site quickly', 'Building a new monument', 'Throwing old objects away'],
+    correctIndex: 0,
+  },
+];
+
+export const GUARDIAN_KNOWLEDGE_CHALLENGES = {
+  'scarab-queen': ['artefact-meaning', 'brush-care', 'evidence-history'],
+  'temple-guardian': ['preservation', 'claim-evidence', 'primary-source'],
+  'giant-serpent': ['human-remains', 'more-evidence', 'excavation'],
+  'looter-captain': ['written-source', 'claim-evidence', 'more-evidence'],
+  'ancient-construct': ['primary-source', 'excavation', 'preservation'],
+};
 
 export const SECTION_ATMOSPHERES = {
   'desert-entry': {

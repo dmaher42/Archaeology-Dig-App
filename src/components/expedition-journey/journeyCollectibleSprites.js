@@ -2,7 +2,7 @@ import { drawAtlasRegion } from './journeyRenderAssets';
 
 export const COLLECTIBLE_ATLAS_BASE_PATH = 'assets/expedition/collectibles/';
 export const COLLECTIBLE_ATLAS_JSON = `${COLLECTIBLE_ATLAS_BASE_PATH}journey-collectibles-pack.json`;
-export const COLLECTIBLE_SPRITE_ATLAS_VERSION = 'journey-collectibles-pack-2026-05-12';
+export const COLLECTIBLE_SPRITE_ATLAS_VERSION = 'journey-collectibles-pack-2026-05-14';
 
 export const EXPECTED_COLLECTIBLE_ASSET_KEYS = [
   'brush',

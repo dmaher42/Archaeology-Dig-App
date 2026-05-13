@@ -1,0 +1,51 @@
+{
+  "image": "cursed-statue-sprites.png",
+  "source": "AI-generated Cursed Statue enemy sprite sheet, integrated as a dedicated atlas for regular Journey statue enemies.",
+  "coordinateNote": "Generated as seven side-by-side frames with chroma background removed; regions are padded content crops.",
+  "imageWidth": 2125,
+  "imageHeight": 740,
+  "regions": {
+    "cursedStatueIdle": {
+      "x": 37,
+      "y": 196,
+      "w": 240,
+      "h": 368
+    },
+    "cursedStatueWalk1": {
+      "x": 304,
+      "y": 201,
+      "w": 280,
+      "h": 366
+    },
+    "cursedStatueWalk2": {
+      "x": 607,
+      "y": 199,
+      "w": 279,
+      "h": 368
+    },
+    "cursedStatueWindup": {
+      "x": 911,
+      "y": 196,
+      "w": 303,
+      "h": 368
+    },
+    "cursedStatueAttack": {
+      "x": 1214,
+      "y": 256,
+      "w": 304,
+      "h": 318
+    },
+    "cursedStatueHit": {
+      "x": 1518,
+      "y": 222,
+      "w": 303,
+      "h": 342
+    },
+    "cursedStatueDefeated": {
+      "x": 1821,
+      "y": 413,
+      "w": 290,
+      "h": 163
+    }
+  }
+}

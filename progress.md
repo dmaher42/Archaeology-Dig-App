@@ -928,3 +928,56 @@ Remaining notes:
 - Tuned the Temple Bat visual draw box so the enemy reads as an airborne creature instead of a folded sprite sitting on the ground; no hitboxes, damage, enemy AI, route gates, player movement, or Egypt progression were intentionally changed.
 - Browser verification on `http://127.0.0.1:5173/Archaeology-Dig-App/` confirmed the Catacombs route loads enemy sprite packs with no missing Temple Bat atlas regions, no enemy sprite fallback, and no console errors.
 - Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset and large-chunk warnings; `git diff --check` passed.
+
+2026-05-13 update:
+- Continued the Egypt Journey enemy polish with a dedicated Desert Scarab sprite pass.
+- Added `public/assets/expedition/enemies/desert-scarab-sprites.png` and `desert-scarab-sprites.json` as a separate scarab atlas, leaving the existing snake/bat legacy small-enemy sheet available as fallback.
+- Extended the existing `journeyEnemySprites.js` pack loader so scarab enemies and the later scarab swarm use the new Desert Scarab atlas without changing enemy hitboxes, damage, AI, route gates, player movement, boss flow, or Egypt progression.
+- Browser verification on `http://127.0.0.1:5173/Archaeology-Dig-App/` confirmed the first scarab and later scarab swarm render from the new atlas with no missing scarab regions, no enemy sprite fallback, and no console errors.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset and large-chunk warnings; `git diff --check` passed.
+
+2026-05-13 update:
+- Continued the Egypt Journey enemy polish with a dedicated Sand Snake sprite pass.
+- Added `public/assets/expedition/enemies/sand-snake-sprites.png` and `sand-snake-sprites.json` as a separate snake atlas, leaving the original small-enemy sheet as a fallback only.
+- Extended the existing `journeyEnemySprites.js` pack loader so Sand Snake uses the new atlas while scarab, bat, looter, guardian, statue, and boss-linked enemies keep their established paths.
+- Browser verification on `http://127.0.0.1:5173/Archaeology-Dig-App/` confirmed the Sand Snake renders from the new atlas with no missing snake regions, no enemy sprite fallback, no boss sprite fallback, no asset fallback, and no console errors.
+- A full enemy-family sweep confirmed all current Journey enemy families now have sprite-backed rendering: scarab, snake, bat, looter, guardian, statue, Scarab Queen, Stone Guardian, Giant Serpent, and Ancient Construct.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset and large-chunk warnings; `git diff --check` passed.
+
+2026-05-14 update:
+- Wired the premium archaeology card-back asset into the Dig phase card grid at `public/assets/ui/archaeology-card-back.png`.
+- Improved unrevealed card visual styling with the premium card image, subtle lift/glow hover polish, and keyboard focus outline support.
+- Preserved fallback styling: if the premium image is missing or fails to load, unrevealed cards keep the existing brown CSS card-back and Pickaxe icon.
+- Card logic unchanged: no scoring, matching, reveal, click, game flow, or evidence logic was intentionally changed.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with existing Vite public-asset and chunk-size warnings; browser verification confirmed premium card backs load, click/reveal still works, missing-image fallback works, and no console errors appeared.
+
+2026-05-14 update:
+- Upgraded the Lost Site Expedition Journey collectible sprite atlas for gems, field tools, objective pickups, upgrade pickups, and pickup effect rings.
+- Replaced `public/assets/expedition/collectibles/journey-collectibles-pack.png` with a higher-quality generated atlas and retuned `journey-collectibles-pack.json` crop regions for all 22 expected collectible keys.
+- Updated `journeyCollectibleSprites.js` with a new collectible atlas version and tuned Journey collectible scales in `ExpeditionJourney.jsx` so relic shards and tools are more readable in the larger play area.
+- Browser verification on `http://127.0.0.1:5173/Archaeology-Dig-App/` confirmed upgraded shards, field tools, upgrades, and objective pickups render from the atlas with no collectible fallback, no missing regions, no asset fallback, and no console errors.
+
+2026-05-14 update:
+- Improved Journey mini-boss presentation inside the existing `ExpeditionJourney.jsx` boss-intro and mini-boss rendering path.
+- Added Guardian Encounter title-card wording, boss-name emphasis, brief camera shake/focus, and a larger awakened-boss health bar.
+- Added boss key-item rewards to the existing Journey state: Desert Seal, Temple Seal, Catacomb Seal, Escape Seal, and Excavation Seal.
+- Each route gate now requires its matching recovered seal through the existing `ROUTE_GATES` requirement/checklist logic; no parallel boss, inventory, or gate system was added.
+- Added visible seal drops after boss defeat, short Year 7 friendly recovery messages, Journey HUD/sidebar seal status, and render-state fields for `bossKeyItems` / `collectedBossKeyItems`.
+- Expanded route-to-boss pacing slightly by adding short ledges and mild hazards before guardian areas, and by shifting overlapping normal enemies so boss approaches are less cramped.
+- No Stage Select, Base Camp, Excavation, Museum, Lab, or Report flow was intentionally changed.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite public-asset runtime warnings and large chunk warning; `git diff --check` reported only existing LF-to-CRLF line-ending warnings.
+- Browser validation: local dev server launched at `http://127.0.0.1:5214/Archaeology-Dig-App/`; menu -> Stage Select -> Ancient Egypt -> Journey briefing opened, `render_game_to_text` confirmed Desert Seal is now a route requirement and all five boss key items are exposed. A longer Playwright combat bot attempted the Scarab Queen route but timed out before completing the defeat/route-opening pass, so a manual first-boss and later-boss playthrough is still recommended.
+- Remaining risk: key-item gating is implemented and build-verified, but the exact player feel of collecting each seal after defeat still needs a slower human/browser pass because the automated combat run did not complete cleanly in this session.
+- Validation: collectible/enemy atlas bounds checks passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset and large-chunk warnings; `git diff --check` passed after removing trailing whitespace from existing CSS changes.
+
+2026-05-14 update:
+- Reworked the Journey mini-boss reward layer from seal collectibles into excavation kit tool pieces while extending the same existing boss, drop, HUD, and route-gate logic.
+- Added boss-domain intro treatment for guardian encounters: title cards, Year 7 friendly guardian dialogue, arena framing, brief movement pause/camera focus, subtle boss-domain tinting, and boundary markers.
+- Added excavation tool-piece rewards for the current five Journey mini-bosses: Brush Handle, Trowel Blade, Measuring Cord, Field Notebook Clasp, and Site Permit Seal.
+- Each next route gate now requires the matching recovered tool piece through the existing route-gate checklist logic; no separate inventory, boss, or gate system was added.
+- Updated the Journey sidebar/HUD section to show a compact Excavation Kit checklist for recovered tool pieces.
+- Preserved the existing route-to-boss pacing changes with warning/calm lead-in space before guardian areas and no long empty running.
+- No Stage Select, Base Camp, Excavation, Museum, Lab, Report, or unrelated game systems were intentionally changed.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset and large chunk warnings; `git diff --check` passed with only LF-to-CRLF line-ending warnings on already-dirty files.
+- Browser notes: local Journey smoke testing confirmed the Ancient Egypt Journey opens, the Scarab Queen guardian title/dialogue appears, the Scarab Queen awakens on the opposite side of the boss space, the Brush Handle is required by the next route gate, the excavation kit tool pieces are exposed in render state, and no console errors appeared.
+- Remaining risk: automated browser play reached the first guardian intro and route-gate state, but did not complete a full live Scarab Queen defeat/collection pass; a later retest attempt on the local dev server timed out while loading the page, so a slower manual pass is still recommended once final boss/item art is added.

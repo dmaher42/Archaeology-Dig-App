@@ -1,0 +1,51 @@
+{
+  "image": "looter-captain-sprites.png",
+  "source": "AI-generated Rival Looter Captain sprite sheet, integrated as a dedicated atlas for the Journey rival captain enemy.",
+  "coordinateNote": "Generated as seven side-by-side frames with chroma background removed; regions are padded content crops.",
+  "imageWidth": 2125,
+  "imageHeight": 740,
+  "regions": {
+    "looterCaptainIdle": {
+      "x": 24,
+      "y": 173,
+      "w": 227,
+      "h": 414
+    },
+    "looterCaptainWalk1": {
+      "x": 304,
+      "y": 187,
+      "w": 303,
+      "h": 398
+    },
+    "looterCaptainWalk2": {
+      "x": 607,
+      "y": 187,
+      "w": 304,
+      "h": 400
+    },
+    "looterCaptainWindup": {
+      "x": 911,
+      "y": 179,
+      "w": 303,
+      "h": 408
+    },
+    "looterCaptainAttack": {
+      "x": 1214,
+      "y": 190,
+      "w": 304,
+      "h": 390
+    },
+    "looterCaptainHit": {
+      "x": 1518,
+      "y": 202,
+      "w": 303,
+      "h": 383
+    },
+    "looterCaptainDefeated": {
+      "x": 1821,
+      "y": 436,
+      "w": 304,
+      "h": 164
+    }
+  }
+}
