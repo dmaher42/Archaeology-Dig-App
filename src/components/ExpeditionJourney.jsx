@@ -4492,41 +4492,6 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
 
   return (
     <section className="expedition-journey-container" id="expedition-journey">
-      <div className="journey-top-hud" aria-label="Expedition status">
-        <div className="journey-top-hud-gems">
-          <Gem size={18} />
-          <strong>{gameState.relicShardCount}</strong>
-        </div>
-
-        <div className={`journey-top-hud-meter ${staminaWarningState !== 'stable' ? 'stamina-alert' : ''}`}>
-          <div className="journey-top-hud-meter-label">
-            <Gauge size={15} />
-            <span>Stamina</span>
-          </div>
-          <div className="journey-top-hud-bar">
-            <div className="journey-top-hud-fill stamina-fill" style={{ width: `${gameState.resources.stamina}%` }} />
-            {gameState.staminaFeedbackTimer > 0 && gameState.lastStaminaDelta < 0 && (
-              <span className="stamina-delta">-{Math.abs(gameState.lastStaminaDelta)}</span>
-            )}
-          </div>
-        </div>
-
-        <div className="journey-top-hud-meter">
-          <div className="journey-top-hud-meter-label">
-            <Sparkles size={15} />
-            <span>Time</span>
-          </div>
-          <div className="journey-top-hud-bar">
-            <div className="journey-top-hud-fill time-fill" style={{ width: `${(gameState.resources.time / 900) * 100}%` }} />
-          </div>
-        </div>
-
-        <div className="journey-top-hud-status">
-          <span>{SECTIONS.find(s => s.id === gameState.currentSectionId)?.name || 'Surveying'}</span>
-          <strong>{gameState.relicShardCount}/22</strong>
-        </div>
-      </div>
-
       <div className="expedition-journey-grid">
         <div className="expedition-sidebar">
           <div className="expedition-panel dossier-info">
@@ -4602,6 +4567,47 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
               height={JOURNEY_RENDER_TARGET.nativeHeight}
               className="expedition-canvas"
             />
+
+            <div className="journey-floating-hud" aria-label="Expedition status">
+              <div className="journey-floating-hud-cluster">
+                <div className="journey-floating-hud-gems">
+                  <Gem size={18} />
+                  <strong>{gameState.relicShardCount}</strong>
+                </div>
+                <div className="journey-floating-hud-status">
+                  {SECTIONS.find(s => s.id === gameState.currentSectionId)?.name || 'Surveying'}
+                </div>
+              </div>
+
+              <div className="journey-floating-hud-cluster journey-floating-hud-meters">
+                <div className={`journey-floating-hud-meter ${staminaWarningState !== 'stable' ? 'stamina-alert' : ''}`}>
+                  <div className="journey-floating-hud-meter-label">
+                    <Gauge size={15} />
+                    <span>Stamina</span>
+                  </div>
+                  <div className="journey-floating-hud-bar">
+                    <div className="journey-floating-hud-fill stamina-fill" style={{ width: `${gameState.resources.stamina}%` }} />
+                    {gameState.staminaFeedbackTimer > 0 && gameState.lastStaminaDelta < 0 && (
+                      <span className="stamina-delta">-{Math.abs(gameState.lastStaminaDelta)}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="journey-floating-hud-meter">
+                  <div className="journey-floating-hud-meter-label">
+                    <Sparkles size={15} />
+                    <span>Time</span>
+                  </div>
+                  <div className="journey-floating-hud-bar">
+                    <div className="journey-floating-hud-fill time-fill" style={{ width: `${(gameState.resources.time / 900) * 100}%` }} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="journey-floating-hud-cluster journey-floating-hud-count">
+                <strong>{gameState.relicShardCount}/22</strong>
+              </div>
+            </div>
             
             {gameState.notice && (
               <div className="expedition-journey-notice animate-fade-in">
