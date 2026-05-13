@@ -1,0 +1,20 @@
+{
+  "image": "giant-serpent-sprites.png",
+  "source": "AI-generated Giant Serpent mini-boss sprite sheet for the Catacombs section.",
+  "coordinateNote": "Generated as an 11-frame 4-column sprite sheet; regions use broad cell crops with transparent padding.",
+  "imageWidth": 1536,
+  "imageHeight": 1024,
+  "regions": {
+    "giantSerpentIdle": { "x": 0, "y": 0, "w": 384, "h": 341 },
+    "giantSerpentSlither1": { "x": 384, "y": 0, "w": 384, "h": 341 },
+    "giantSerpentSlither2": { "x": 768, "y": 0, "w": 384, "h": 341 },
+    "giantSerpentIntro": { "x": 1152, "y": 0, "w": 384, "h": 341 },
+    "giantSerpentWindup": { "x": 0, "y": 341, "w": 384, "h": 342 },
+    "giantSerpentLunge": { "x": 384, "y": 341, "w": 384, "h": 342 },
+    "giantSerpentVenom": { "x": 768, "y": 341, "w": 384, "h": 342 },
+    "giantSerpentShielded": { "x": 1152, "y": 341, "w": 384, "h": 342 },
+    "giantSerpentCounterWindow": { "x": 0, "y": 683, "w": 384, "h": 341 },
+    "giantSerpentHit": { "x": 384, "y": 683, "w": 384, "h": 341 },
+    "giantSerpentDefeated": { "x": 768, "y": 683, "w": 384, "h": 341 }
+  }
+}
