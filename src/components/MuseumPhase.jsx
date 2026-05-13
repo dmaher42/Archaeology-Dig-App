@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  Camera, CheckCircle2, ChevronRight, Maximize2, Search, Send, X
+  Camera, ChevronRight, Maximize2, Search, Send, X
 } from 'lucide-react';
 import {
   getArtifactTheme,
