@@ -3321,6 +3321,14 @@ main {
   overflow: hidden;
 }
 
+.app-wrapper--museum.app-wrapper--dev-tools .museum-layout {
+  padding-right: 7.2rem;
+}
+
+.app-wrapper--museum .dev-tools {
+  top: 7.15rem;
+}
+
 .museum-panel {
   min-height: 0;
   border-radius: 12px;
@@ -3347,6 +3355,7 @@ main {
 .museum-curation-list {
   gap: 0.42rem;
   padding: 0.5rem 0.52rem 0.6rem;
+  overflow-x: hidden;
 }
 
 .museum-curation-card {
@@ -3359,6 +3368,8 @@ main {
   border-color: rgba(111, 78, 55, 0.18);
   background: rgba(255, 252, 240, 0.62);
   cursor: default;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .museum-curation-card:hover {
@@ -3412,12 +3423,14 @@ main {
 .museum-curation-copy {
   display: grid;
   gap: 0.08rem;
+  min-width: 0;
 }
 
 .museum-curation-name {
   color: #2f2015;
   font-size: 0.75rem;
   line-height: 1.08;
+  overflow-wrap: anywhere;
 }
 
 .museum-curation-meta {
@@ -3519,11 +3532,12 @@ main {
 .museum-display-grid {
   height: 100%;
   min-height: 0;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(220px, 1fr));
   grid-auto-rows: minmax(0, 1fr);
   gap: 0.58rem;
   padding: 0.58rem;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .museum-display-card {
@@ -3535,6 +3549,18 @@ main {
   background: rgba(255, 252, 240, 0.78);
   box-shadow: 0 6px 16px rgba(42, 26, 12, 0.12);
   overflow: hidden;
+  min-width: 0;
+}
+
+.museum-exhibit-panel .museum-panel-heading {
+  color: #f7e8c8;
+  text-shadow: 0 2px 4px rgba(20, 13, 7, 0.55);
+}
+
+.museum-exhibit-panel .museum-panel-subheading {
+  color: #ead6ad;
+  border-bottom-color: rgba(247, 232, 200, 0.14);
+  text-shadow: 0 1px 3px rgba(20, 13, 7, 0.48);
 }
 
 .museum-display-header {
@@ -3568,6 +3594,7 @@ main {
   padding: 0.34rem;
   border-color: rgba(111, 78, 55, 0.18);
   background: #fffaf0;
+  box-shadow: inset 0 0 0 1px rgba(255, 252, 240, 0.68);
 }
 
 .museum-display-body {
@@ -3587,10 +3614,11 @@ main {
   margin-bottom: 0.42rem;
   padding: 0.42rem 0.52rem;
   border-left-color: #9c2d22;
-  background: rgba(255, 239, 191, 0.52);
+  background: rgba(255, 247, 219, 0.9);
   color: #3c2616;
   font-size: 0.67rem;
   line-height: 1.18;
+  box-shadow: 0 2px 7px rgba(42, 26, 12, 0.08);
 }
 
 .museum-display-analysis-box strong {
@@ -3613,6 +3641,9 @@ main {
 
 .museum-plaque-field {
   margin-top: auto;
+  background-color: rgba(255, 250, 237, 0.88);
+  background-blend-mode: screen;
+  border-radius: 9px;
 }
 
 .museum-plaque-field label {
@@ -3635,6 +3666,11 @@ main {
   background: rgba(255, 252, 240, 0.48);
 }
 
+.museum-display-slot.fi-display-plinth {
+  background-color: rgba(255, 250, 237, 0.82);
+  background-blend-mode: screen;
+}
+
 .museum-slot-placeholder,
 .museum-empty-tray,
 .museum-empty-display {
@@ -3652,7 +3688,8 @@ main {
   border: 1px dashed rgba(111, 78, 55, 0.2);
   border-radius: 9px;
   text-align: center;
-  background: rgba(255, 255, 255, 0.36);
+  background: rgba(255, 252, 240, 0.68);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.36);
 }
 
 .museum-slot-placeholder p,
@@ -3684,9 +3721,19 @@ main {
     grid-template-columns: minmax(245px, 0.8fr) minmax(0, 2.2fr);
   }
 
+  .app-wrapper--museum.app-wrapper--dev-tools .museum-layout {
+    padding-right: 7.8rem;
+  }
+
   .museum-display-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
     overflow-y: auto;
+  }
+}
+
+@media (max-width: 760px) {
+  .app-wrapper--museum.app-wrapper--dev-tools .museum-layout {
+    padding-right: 0;
   }
 }
 
@@ -12635,7 +12682,8 @@ main {
 /* Notice Box Refinement */
 .expedition-journey-notice {
   position: absolute;
-  bottom: 0.75rem;
+  top: 0.85rem;
+  bottom: auto;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(48, 32, 20, 0.82);

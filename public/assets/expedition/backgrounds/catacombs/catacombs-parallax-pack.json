@@ -1,12 +1,41 @@
 {
   "image": "catacombs-parallax-pack.png",
   "source": "AI-generated label-free Journey parallax background sheet, upgraded for Catacombs section rendering.",
-  "coordinateNote": "Coordinates are approximate first-pass crops from the upgraded 1536x1024 layered sheet.",
+  "coordinateNote": "Runtime composited 16:9 backdrop; legacy region keys point to the full image so existing loaders stay fallback-safe.",
   "regions": {
-    "undergroundAtmosphere": { "x": 8, "y": 8, "w": 1520, "h": 194 },
-    "farTunnelWalls": { "x": 8, "y": 218, "w": 1520, "h": 184 },
-    "distantCatacombs": { "x": 8, "y": 420, "w": 1520, "h": 190 },
-    "midgroundGlyphWalls": { "x": 8, "y": 628, "w": 1520, "h": 183 },
-    "foregroundMist": { "x": 8, "y": 833, "w": 1520, "h": 182 }
-  }
+    "undergroundAtmosphere": {
+      "x": 0,
+      "y": 0,
+      "w": 1600,
+      "h": 900
+    },
+    "farTunnelWalls": {
+      "x": 0,
+      "y": 0,
+      "w": 1600,
+      "h": 900
+    },
+    "distantCatacombs": {
+      "x": 0,
+      "y": 0,
+      "w": 1600,
+      "h": 900
+    },
+    "midgroundGlyphWalls": {
+      "x": 0,
+      "y": 0,
+      "w": 1600,
+      "h": 900
+    },
+    "foregroundMist": {
+      "x": 0,
+      "y": 0,
+      "w": 1600,
+      "h": 900
+    }
+  },
+  "imageWidth": 1600,
+  "imageHeight": 900,
+  "runtimeMode": "single-composited-backdrop-no-striping",
+  "sourceComposite": "Generated from the section parallax source sheet to remove visible striping in gameplay."
 }

@@ -97,6 +97,7 @@ import {
   getSectionBackgroundAssets,
   JOURNEY_BACKGROUND_DEPTH_MODE,
   loadDesertBackgroundAssetPack,
+  RUINED_TEMPLE_BACKGROUND_ATLAS_JSON,
 } from './expedition-journey/journeyBackgroundAssets';
 
 import {
@@ -604,26 +605,17 @@ const DECORATIVE_PROP_LAYER_MODE = 'background-midground-depth-v2';
 const PROP_DEPTH_TUNING_VERSION = 'journey-decorative-depth-2026-05-12';
 
 const SECTION_PARALLAX_LAYERS = {
+  'ruined-temple': [
+    { key: 'templeSky', y: 0, height: CANVAS_HEIGHT, parallax: 0, alpha: 1 },
+  ],
   catacombs: [
-    { key: 'undergroundAtmosphere', y: 0, height: 338, parallax: 0.04, alpha: 0.82 },
-    { key: 'farTunnelWalls', y: 246, height: 128, parallax: 0.12, alpha: 0.52 },
-    { key: 'distantCatacombs', y: 300, height: 132, parallax: 0.22, alpha: 0.5 },
-    { key: 'midgroundGlyphWalls', y: 352, height: 118, parallax: 0.34, alpha: 0.45 },
-    { key: 'foregroundMist', y: 412, height: 98, parallax: 0.45, alpha: 0.14 },
+    { key: 'undergroundAtmosphere', y: 0, height: CANVAS_HEIGHT, parallax: 0, alpha: 1 },
   ],
   'escape-sequence': [
-    { key: 'dangerAtmosphere', y: 0, height: 342, parallax: 0.04, alpha: 0.76 },
-    { key: 'farCollapsingWalls', y: 254, height: 128, parallax: 0.12, alpha: 0.5 },
-    { key: 'distantRuinsDebris', y: 304, height: 130, parallax: 0.22, alpha: 0.48 },
-    { key: 'midgroundEscapeRuins', y: 358, height: 118, parallax: 0.34, alpha: 0.42 },
-    { key: 'foregroundDust', y: 418, height: 92, parallax: 0.45, alpha: 0.16 },
+    { key: 'dangerAtmosphere', y: 0, height: CANVAS_HEIGHT, parallax: 0, alpha: 1 },
   ],
   'dig-site-entrance': [
-    { key: 'skyLayer', y: 0, height: 340, parallax: 0.02, alpha: 0.92 },
-    { key: 'farBackground', y: 232, height: 136, parallax: 0.1, alpha: 0.54 },
-    { key: 'midBackground', y: 300, height: 136, parallax: 0.2, alpha: 0.5 },
-    { key: 'nearBaseCamp', y: 338, height: 136, parallax: 0.3, alpha: 0.42 },
-    { key: 'foregroundLayer', y: 426, height: 82, parallax: 0.43, alpha: 0.08, foreground: true },
+    { key: 'skyLayer', y: 0, height: CANVAS_HEIGHT, parallax: 0, alpha: 1 },
   ],
 };
 
@@ -652,6 +644,21 @@ const getCameraFollowTarget = (current) => {
       playerCenterX,
       bossIntroFocusX: current.bossIntro.focusX,
     });
+  }
+
+  const nearbyBoss = current.miniBosses?.find(boss => (
+    boss.awakened
+    && !boss.defeated
+    && Math.abs((boss.x + boss.width / 2) - playerCenterX) < 620
+  ));
+  if (nearbyBoss) {
+    const bossCenterX = nearbyBoss.x + nearbyBoss.width / 2;
+    const focusX = playerCenterX * 0.45 + bossCenterX * 0.55;
+    return {
+      mode: 'boss-focus',
+      focusTarget: Math.round(bossCenterX),
+      targetCameraX: clampCameraX(focusX - CANVAS_WIDTH * 0.5),
+    };
   }
 
   return getLayoutCameraFollowTarget({ playerCenterX });
@@ -1058,16 +1065,21 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     const environmentFallbackActive = !environmentAssets.loaded || environmentAssets.failed || missingEnvironmentAssets.length > 0;
     const desertBackgroundAssets = desertBackgroundAssetsRef.current;
     const desertPack = getSectionBackgroundAssets(desertBackgroundAssets, 'desert-entry');
+    const ruinedTemplePack = getSectionBackgroundAssets(desertBackgroundAssets, 'ruined-temple');
     const catacombsPack = getSectionBackgroundAssets(desertBackgroundAssets, 'catacombs');
     const escapePack = getSectionBackgroundAssets(desertBackgroundAssets, 'escape-sequence');
     const digSitePack = getSectionBackgroundAssets(desertBackgroundAssets, 'dig-site-entrance');
     const missingDesertBackgroundAssets = getMissingSectionBackgroundAssets(desertBackgroundAssets, 'desert-entry');
+    const missingRuinedTempleBackgroundAssets = getMissingSectionBackgroundAssets(desertBackgroundAssets, 'ruined-temple');
     const missingCatacombsBackgroundAssets = getMissingSectionBackgroundAssets(desertBackgroundAssets, 'catacombs');
     const missingEscapeBackgroundAssets = getMissingSectionBackgroundAssets(desertBackgroundAssets, 'escape-sequence');
     const missingDigSiteBackgroundAssets = getMissingSectionBackgroundAssets(desertBackgroundAssets, 'dig-site-entrance');
     const desertBackgroundFallbackActive = !desertPack?.loaded
       || desertPack.failed
       || missingDesertBackgroundAssets.length > 0;
+    const ruinedTempleBackgroundFallbackActive = !ruinedTemplePack?.loaded
+      || ruinedTemplePack.failed
+      || missingRuinedTempleBackgroundAssets.length > 0;
     const catacombsBackgroundFallbackActive = !catacombsPack?.loaded
       || catacombsPack.failed
       || missingCatacombsBackgroundAssets.length > 0;
@@ -1144,6 +1156,10 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       desertBackgroundAssetsLoaded: Boolean(desertPack?.loaded),
       desertBackgroundAssetsReady: Boolean(desertPack?.ready),
       desertBackgroundFallbackActive,
+      ruinedTempleBackgroundAssetsLoaded: Boolean(ruinedTemplePack?.loaded),
+      ruinedTempleBackgroundAssetsReady: Boolean(ruinedTemplePack?.ready),
+      ruinedTempleBackgroundFallbackActive,
+      ruinedTempleBackgroundAtlasPath: RUINED_TEMPLE_BACKGROUND_ATLAS_JSON,
       catacombsBackgroundAssetsLoaded: Boolean(catacombsPack?.loaded),
       catacombsBackgroundAssetsReady: Boolean(catacombsPack?.ready),
       catacombsBackgroundFallbackActive,
@@ -1218,7 +1234,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       hazardReadabilityMode: renderStats.hazardReadabilityMode || 'soft-warning-cues',
       enemyVisualMode: renderStats.enemyVisualMode || 'sprite-atlas-with-grounding',
       bossVisualMode: renderStats.bossVisualMode || 'multi-boss-atlas-fallback-safe',
-      assetFallbackActive: environmentFallbackActive || enemySpriteFallbackActive || bossSpriteFallbackActive || collectibleSpriteFallbackActive || playerWeaponSpriteFallbackActive || desertBackgroundFallbackActive || catacombsBackgroundFallbackActive || escapeBackgroundFallbackActive || digSiteBackgroundFallbackActive,
+      assetFallbackActive: environmentFallbackActive || enemySpriteFallbackActive || bossSpriteFallbackActive || collectibleSpriteFallbackActive || playerWeaponSpriteFallbackActive || desertBackgroundFallbackActive || ruinedTempleBackgroundFallbackActive || catacombsBackgroundFallbackActive || escapeBackgroundFallbackActive || digSiteBackgroundFallbackActive,
       desertVisualTuningVersion: DESERT_VISUAL_TUNING_VERSION,
       atlasTuningVersion: ATLAS_TUNING_VERSION,
       activeAtlasRegionIssues: missingEnvironmentAssets,
@@ -2361,6 +2377,16 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     if (!isNearDesertEntry || !assets?.ready) return false;
 
     const layerOptions = { canvasWidth: CANVAS_WIDTH, cameraX };
+    if (assets.atlas?.runtimeMode === 'single-composited-backdrop') {
+      return drawDesertBackgroundLayer(
+        ctx,
+        assets,
+        'sky',
+        { y: 0, height: CANVAS_HEIGHT },
+        { ...layerOptions, parallax: 0, alpha: 1 },
+      );
+    }
+
     const drawn = [
       drawDesertBackgroundLayer(ctx, assets, 'sky', { y: 0, height: 375 }, { ...layerOptions, parallax: 0.03, alpha: 0.94 }),
       drawDesertBackgroundLayer(ctx, assets, 'farDunes', { y: 288, height: 116 }, { ...layerOptions, parallax: 0.12, alpha: 0.48 }),
@@ -3488,13 +3514,15 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       }
     }
 
+    const parallaxBackgroundDrawn = desertBackgroundDrawn || sectionParallaxDrawn;
+
     // --- Ground & Props ---
-    drawTempleBackdrop(ctx, section, cameraX);
+    if (!parallaxBackgroundDrawn) drawTempleBackdrop(ctx, section, cameraX);
     STORY_PROPS.forEach((prop) => drawStoryProp(ctx, prop, cameraX, now, 'background'));
     drawParticles(ctx, atmosphere, cameraX, now);
 
     // --- Environment Layers (Parallax) ---
-    if (section.id !== 'ruined-temple') {
+    if (!parallaxBackgroundDrawn && section.id !== 'ruined-temple') {
       const renderParallaxLayer = (depth, color, heightMult) => {
         ctx.fillStyle = color;
         ctx.beginPath();
@@ -4074,7 +4102,6 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
           type: 'enemy-counter-window',
           x: e.x + e.width / 2,
           y: e.y + e.height / 2,
-          text: 'OPEN',
           color: '#22c55e',
         });
       }
@@ -4395,9 +4422,26 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
   useEffect(() => {
     window.__advanceExpeditionJourney = step;
     window.__renderExpeditionJourneyState = () => createJourneySnapshot();
+    if (import.meta.env.DEV) {
+      window.__setExpeditionJourneyDebugPosition = (x) => {
+        const current = stateRef.current;
+        const nextX = Number(x);
+        if (!Number.isFinite(nextX)) return createJourneySnapshot(current);
+        current.player.x = clamp(nextX, 0, WORLD_WIDTH - current.player.width);
+        current.player.y = GROUND_Y - current.player.height;
+        current.player.vx = 0;
+        current.player.vy = 0;
+        current.player.onGround = true;
+        current.cameraX = clampCameraX(current.player.x - CANVAS_WIDTH * 0.42);
+        current.targetCameraX = current.cameraX;
+        step(0);
+        return createJourneySnapshot(current);
+      };
+    }
     return () => {
       delete window.__advanceExpeditionJourney;
       delete window.__renderExpeditionJourneyState;
+      delete window.__setExpeditionJourneyDebugPosition;
     };
   }, [createJourneySnapshot, step]);
 

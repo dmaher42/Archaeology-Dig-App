@@ -2,6 +2,8 @@ export const DESERT_BACKGROUND_ATLAS_BASE_PATH = 'assets/expedition/backgrounds/
 export const DESERT_BACKGROUND_ATLAS_JSON = `${DESERT_BACKGROUND_ATLAS_BASE_PATH}desert-entry-parallax-pack.json`;
 export const CATACOMBS_BACKGROUND_ATLAS_BASE_PATH = 'assets/expedition/backgrounds/catacombs/';
 export const CATACOMBS_BACKGROUND_ATLAS_JSON = `${CATACOMBS_BACKGROUND_ATLAS_BASE_PATH}catacombs-parallax-pack.json`;
+export const RUINED_TEMPLE_BACKGROUND_ATLAS_BASE_PATH = 'assets/expedition/backgrounds/ruined-temple/';
+export const RUINED_TEMPLE_BACKGROUND_ATLAS_JSON = `${RUINED_TEMPLE_BACKGROUND_ATLAS_BASE_PATH}ruined-temple-parallax-pack.json`;
 export const ESCAPE_BACKGROUND_ATLAS_BASE_PATH = 'assets/expedition/backgrounds/escape-sequence/';
 export const ESCAPE_BACKGROUND_ATLAS_JSON = `${ESCAPE_BACKGROUND_ATLAS_BASE_PATH}escape-sequence-parallax-pack.json`;
 export const DIG_SITE_BACKGROUND_ATLAS_BASE_PATH = 'assets/expedition/backgrounds/dig-site-entrance/';
@@ -23,6 +25,17 @@ export const SECTION_BACKGROUND_PACKS = {
     basePath: DESERT_BACKGROUND_ATLAS_BASE_PATH,
     atlasPath: DESERT_BACKGROUND_ATLAS_JSON,
     expectedKeys: EXPECTED_DESERT_BACKGROUND_KEYS,
+  },
+  'ruined-temple': {
+    basePath: RUINED_TEMPLE_BACKGROUND_ATLAS_BASE_PATH,
+    atlasPath: RUINED_TEMPLE_BACKGROUND_ATLAS_JSON,
+    expectedKeys: [
+      'templeSky',
+      'farTempleWalls',
+      'distantTempleRuins',
+      'midgroundTempleDoors',
+      'foregroundTempleDust',
+    ],
   },
   catacombs: {
     basePath: CATACOMBS_BACKGROUND_ATLAS_BASE_PATH,

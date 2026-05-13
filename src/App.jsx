@@ -387,7 +387,7 @@ export default function App() {
   };
 
   return (
-    <div className={`app-wrapper app-wrapper--${phase} app-wrapper--no-global-header ${isMenuLanding ? 'app-wrapper--menu-header' : ''} ${isSiteSelectionActive ? 'app-wrapper--site-selection' : ''}`}>
+    <div className={`app-wrapper app-wrapper--${phase} app-wrapper--no-global-header ${showDevTools ? 'app-wrapper--dev-tools' : ''} ${isMenuLanding ? 'app-wrapper--menu-header' : ''} ${isSiteSelectionActive ? 'app-wrapper--site-selection' : ''}`}>
       <main className="main-content">
         {isFullInvestigationPhase && (
           <div className="mode-phase-strip hide-on-print" aria-label="Full Investigation phase progress">

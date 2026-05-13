@@ -4,34 +4,39 @@
   "notes": "Atlas regions are approximate first-pass crops from the supplied sheet and may need projector-scale tuning.",
   "regions": {
     "skyLayer": {
-      "x": 25,
+      "x": 0,
       "y": 0,
-      "w": 930,
-      "h": 164
+      "w": 1600,
+      "h": 900
     },
     "farBackground": {
-      "x": 25,
-      "y": 172,
-      "w": 930,
-      "h": 168
+      "x": 0,
+      "y": 0,
+      "w": 1600,
+      "h": 900
     },
     "midBackground": {
-      "x": 25,
-      "y": 348,
-      "w": 930,
-      "h": 152
+      "x": 0,
+      "y": 0,
+      "w": 1600,
+      "h": 900
     },
     "nearBaseCamp": {
       "x": 0,
-      "y": 508,
-      "w": 980,
-      "h": 165
+      "y": 0,
+      "w": 1600,
+      "h": 900
     },
     "foregroundLayer": {
       "x": 0,
-      "y": 681,
-      "w": 980,
-      "h": 154
+      "y": 0,
+      "w": 1600,
+      "h": 900
     }
-  }
+  },
+  "imageWidth": 1600,
+  "imageHeight": 900,
+  "runtimeMode": "single-composited-backdrop-no-striping",
+  "coordinateNote": "Runtime composited 16:9 backdrop; legacy region keys point to the full image so existing loaders stay fallback-safe.",
+  "sourceComposite": "Generated from the section parallax source sheet to remove visible striping in gameplay."
 }

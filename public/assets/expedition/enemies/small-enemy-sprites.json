@@ -1,30 +1,133 @@
 {
   "image": "small-enemy-sprites.png",
   "source": "AI-generated small enemy sprite sheet, integrated as a named atlas for Journey rendering.",
-  "coordinateNote": "Coordinates are approximate first-pass crops from a 1536x1024 generated sheet and may need manual tuning after projector review.",
+  "coordinateNote": "Hand-tuned from original atlas with modest crop padding so small enemy frames are not clipped while preserving the existing artwork.",
   "regions": {
-    "scarabIdle": { "x": 26, "y": 56, "w": 162, "h": 112 },
-    "scarabCrawl1": { "x": 218, "y": 56, "w": 162, "h": 112 },
-    "scarabCrawl2": { "x": 410, "y": 56, "w": 162, "h": 112 },
-    "scarabWindup": { "x": 778, "y": 55, "w": 166, "h": 116 },
-    "scarabAttack": { "x": 975, "y": 48, "w": 176, "h": 124 },
-    "scarabHit": { "x": 1175, "y": 55, "w": 160, "h": 118 },
-    "scarabDefeated": { "x": 1354, "y": 62, "w": 160, "h": 106 },
-
-    "snakeIdle": { "x": 878, "y": 242, "w": 155, "h": 122 },
-    "snakeSlither1": { "x": 22, "y": 417, "w": 170, "h": 116 },
-    "snakeSlither2": { "x": 214, "y": 417, "w": 170, "h": 116 },
-    "snakeWindup": { "x": 404, "y": 416, "w": 172, "h": 118 },
-    "snakeAttack": { "x": 582, "y": 401, "w": 180, "h": 136 },
-    "snakeHit": { "x": 1112, "y": 426, "w": 176, "h": 104 },
-    "snakeDefeated": { "x": 1300, "y": 428, "w": 180, "h": 100 },
-
-    "batIdle": { "x": 20, "y": 608, "w": 178, "h": 118 },
-    "batFlap1": { "x": 218, "y": 606, "w": 176, "h": 122 },
-    "batFlap2": { "x": 414, "y": 608, "w": 176, "h": 118 },
-    "batWindup": { "x": 594, "y": 606, "w": 182, "h": 120 },
-    "batAttack": { "x": 760, "y": 606, "w": 180, "h": 122 },
-    "batHit": { "x": 936, "y": 622, "w": 182, "h": 106 },
-    "batDefeated": { "x": 1300, "y": 620, "w": 180, "h": 96 }
+    "scarabIdle": {
+      "x": 18,
+      "y": 50,
+      "w": 178,
+      "h": 122
+    },
+    "scarabCrawl1": {
+      "x": 210,
+      "y": 50,
+      "w": 178,
+      "h": 122
+    },
+    "scarabCrawl2": {
+      "x": 402,
+      "y": 50,
+      "w": 178,
+      "h": 122
+    },
+    "scarabWindup": {
+      "x": 770,
+      "y": 49,
+      "w": 182,
+      "h": 126
+    },
+    "scarabAttack": {
+      "x": 963,
+      "y": 40,
+      "w": 200,
+      "h": 136
+    },
+    "scarabHit": {
+      "x": 1167,
+      "y": 49,
+      "w": 176,
+      "h": 128
+    },
+    "scarabDefeated": {
+      "x": 1346,
+      "y": 56,
+      "w": 176,
+      "h": 116
+    },
+    "snakeIdle": {
+      "x": 868,
+      "y": 234,
+      "w": 175,
+      "h": 134
+    },
+    "snakeSlither1": {
+      "x": 12,
+      "y": 409,
+      "w": 190,
+      "h": 128
+    },
+    "snakeSlither2": {
+      "x": 204,
+      "y": 409,
+      "w": 190,
+      "h": 128
+    },
+    "snakeWindup": {
+      "x": 394,
+      "y": 408,
+      "w": 192,
+      "h": 130
+    },
+    "snakeAttack": {
+      "x": 568,
+      "y": 391,
+      "w": 208,
+      "h": 150
+    },
+    "snakeHit": {
+      "x": 1102,
+      "y": 418,
+      "w": 196,
+      "h": 116
+    },
+    "snakeDefeated": {
+      "x": 1290,
+      "y": 420,
+      "w": 200,
+      "h": 112
+    },
+    "batIdle": {
+      "x": 8,
+      "y": 600,
+      "w": 202,
+      "h": 130
+    },
+    "batFlap1": {
+      "x": 206,
+      "y": 598,
+      "w": 200,
+      "h": 134
+    },
+    "batFlap2": {
+      "x": 402,
+      "y": 600,
+      "w": 200,
+      "h": 130
+    },
+    "batWindup": {
+      "x": 580,
+      "y": 596,
+      "w": 210,
+      "h": 134
+    },
+    "batAttack": {
+      "x": 744,
+      "y": 596,
+      "w": 212,
+      "h": 136
+    },
+    "batHit": {
+      "x": 922,
+      "y": 612,
+      "w": 210,
+      "h": 120
+    },
+    "batDefeated": {
+      "x": 1288,
+      "y": 612,
+      "w": 204,
+      "h": 108
+    }
   }
 }

@@ -828,3 +828,53 @@ Remaining notes:
 - Browser verification on `http://127.0.0.1:5195/Archaeology-Dig-App/` confirmed Main Menu -> Stage Select -> Ancient Egypt -> Journey, briefing dismissal, 1280x720 canvas attributes, larger displayed canvas, player grounded at the new bottom-aligned ground line, sidebar controls toggle working, no bottom controls strip, no initial bottom mission notice, no missing Journey environment assets, no active asset fallback, no console errors, and Dev Panel Expedition buttons visible with Base Camp jump reaching the real Base Camp screen.
 - `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning and runtime-resolved public CSS image URL notices; `git diff --check` passed with only LF-to-CRLF warnings.
 - Remaining risk: the canvas now uses the available width much better, but a fixed 16:9 canvas beside a visible sidebar cannot also fill all vertical screen height on every monitor; a true edge-to-edge presentation mode would require either a collapsible/overlay sidebar or a dedicated fullscreen layout.
+
+2026-05-13 update:
+- Completed a Journey background coverage audit and fixed the remaining missing implemented background pack.
+- Confirmed the canonical Journey background path is `journeyBackgroundAssets.js` loading section atlas packs into `ExpeditionJourney.jsx`; no duplicate background system was added.
+- Added the missing Ruined Temple parallax background pack under `public/assets/expedition/backgrounds/ruined-temple/` with atlas regions for temple sky, far walls, distant ruins, midground doors, and foreground dust.
+- Wired `ruined-temple` into `SECTION_BACKGROUND_PACKS`, `SECTION_PARALLAX_LAYERS`, Journey render-state reporting, and fallback detection.
+- Confirmed all five Journey sections now have implemented atlas-backed background packs: Desert Entry, Ruined Temple, Catacombs, Escape Sequence, and Dig Site Entrance.
+- Browser verification on `http://127.0.0.1:5196/Archaeology-Dig-App/` confirmed all five background packs load and report ready, no background fallback is active, all background requests returned successfully, and no console errors appeared.
+- Static coverage check confirmed every `SECTIONS` id has a matching `SECTION_BACKGROUND_PACKS` entry and there are no extra background packs outside the Journey section list.
+- `npm.cmd run lint` passed.
+- Remaining risk: the Ruined Temple background is a procedural first-pass atlas and may deserve a generated-art replacement later for higher visual quality, but it is now implemented through the same runtime pipeline as the other sections.
+
+2026-05-13 update:
+- Wired the new high-quality Ruined Temple background image into the existing Journey section-background atlas pipeline at `public/assets/expedition/backgrounds/ruined-temple/`.
+- Polished the Catacombs, Escape Sequence, and Dig Site Entrance background PNGs to remove the obvious stacked-strip/banding artefacts visible in browser screenshots.
+- Kept the existing `journeyBackgroundAssets.js` and `ExpeditionJourney.jsx` pipeline as the canonical renderer; no duplicate background or section system was added.
+- Suppressed the older fallback-style parallax wash whenever an atlas-backed section background is active, so real background art is not overpainted by prototype layers.
+- Removed the remaining readable `OPEN` enemy counter label and kept the non-text visual counter cue.
+- Browser verification on `http://127.0.0.1:5197/Archaeology-Dig-App/` confirmed Ruined Temple, Catacombs, Escape Sequence, and Dig Site Entrance all render from their section packs with no fallback, no missing background assets, no console errors, and screenshots were visually inspected.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset and large-chunk warnings; `git diff --check` passed with only LF-to-CRLF warnings.
+- Moved the Journey notice toast from the bottom action lane to the top-middle of the play area so hazard/stamina messages no longer block the ground, player, or hazards.
+
+2026-05-13 update:
+- Investigated enemy sprites that appeared cut off in Journey.
+- Confirmed the small-enemy sprite issue came from first-pass atlas crop rectangles that were too tight around scarab, snake, and bat frames.
+- Retuned `small-enemy-sprites.json` with modest hand padding around the original artwork so small enemy frames have breathing room without changing enemy hitboxes or combat logic.
+- Added a small active-boss camera focus path so awakened nearby mini-bosses are framed with the player instead of sitting partly off the right edge of the screen.
+- Browser verification on `http://127.0.0.1:5199/Archaeology-Dig-App/` captured Desert Entry scarab/snake, Escape Sequence bat, and later guardian/construct areas with no missing enemy sprite assets and no fallback active.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset and large-chunk warnings; `git diff --check` passed with only LF-to-CRLF warnings.
+
+2026-05-13 update:
+- Brightened the Catacombs Journey background inside the existing atlas-backed background pack so the section remains cave-like but the playable band, walls, torches, player, and enemies read more clearly.
+- Kept the canonical Journey background pipeline unchanged: `journeyBackgroundAssets.js` still loads the Catacombs atlas and `ExpeditionJourney.jsx` renders the section through the existing section-background path.
+- Browser verification on `http://127.0.0.1:5200/Archaeology-Dig-App/` confirmed Catacombs renders from its pack with no background fallback, no missing assets, and no console errors.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset and large-chunk warnings; `git diff --check` passed with only LF-to-CRLF warnings.
+
+2026-05-13 update:
+- Completed another Journey background polish pass across the existing atlas-backed section packs.
+- Tuned Desert Entry, Ruined Temple, Catacombs, Escape Sequence, and Dig Site Entrance PNGs for clearer midground/playable-band contrast, less muddy darkness, and reduced source-sheet horizontal banding.
+- Kept all background loading and rendering on the existing `journeyBackgroundAssets.js` -> `ExpeditionJourney.jsx` path; no new background system, gameplay logic, gates, hazards, enemies, or progression behaviour were changed.
+- Browser verification on `http://127.0.0.1:5173/Archaeology-Dig-App/` captured Ruined Temple, Catacombs, Escape Sequence, and Dig Site Entrance after the polish pass; all section packs reported ready, no asset fallback was active, no missing atlas regions were reported, and no console errors appeared.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset and large-chunk warnings; `git diff --check` passed with only LF-to-CRLF warnings.
+
+2026-05-13 update:
+- Wired the first generated full-scene Journey background into Desert Entry.
+- Copied the generated image into `public/assets/expedition/backgrounds/desert-entry/desert-entry-full-scene.png` and kept the original generated image in the Codex generated-images folder.
+- Updated the existing Desert Entry atlas JSON to reference the full-scene image while preserving all expected region keys for fallback-safe loading.
+- Added a small single-composited-backdrop branch to the existing Desert Entry draw path so the new image renders once across the full canvas instead of being sliced into old parallax bands.
+- Browser verification on `http://127.0.0.1:5173/Archaeology-Dig-App/` confirmed Desert Entry renders from its pack, no asset fallback is active, no missing atlas regions were reported, and no console errors appeared.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset and large-chunk warnings; `git diff --check` passed with only LF-to-CRLF warnings.

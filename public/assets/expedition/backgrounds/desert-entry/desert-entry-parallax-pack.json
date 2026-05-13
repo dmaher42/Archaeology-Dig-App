@@ -1,13 +1,15 @@
 {
-  "image": "desert-entry-parallax-pack.png",
-  "imageWidth": 1665,
-  "imageHeight": 945,
-  "notes": "Approximate horizontal-band atlas from the upgraded Desert Entry Parallax Background Pack. Regions crop each clean horizontal band while leaving white sheet margins out of runtime rendering.",
+  "image": "desert-entry-full-scene.png",
+  "imageWidth": 1672,
+  "imageHeight": 941,
+  "notes": "Single full-scene generated Desert Entry backdrop wired through the existing Journey atlas pack.",
   "regions": {
-    "sky": { "x": 18, "y": 14, "w": 1629, "h": 202 },
-    "farDunes": { "x": 18, "y": 226, "w": 1629, "h": 154 },
-    "distantRuins": { "x": 18, "y": 390, "w": 1629, "h": 149 },
-    "midgroundRuins": { "x": 18, "y": 550, "w": 1629, "h": 162 },
-    "foregroundAtmosphere": { "x": 18, "y": 723, "w": 1629, "h": 202 }
-  }
+    "sky": { "x": 0, "y": 0, "w": 1672, "h": 941 },
+    "farDunes": { "x": 0, "y": 0, "w": 1672, "h": 941 },
+    "distantRuins": { "x": 0, "y": 0, "w": 1672, "h": 941 },
+    "midgroundRuins": { "x": 0, "y": 0, "w": 1672, "h": 941 },
+    "foregroundAtmosphere": { "x": 0, "y": 0, "w": 1672, "h": 941 }
+  },
+  "runtimeMode": "single-composited-backdrop",
+  "coordinateNote": "Legacy region keys point to the full image so existing loaders stay fallback-safe."
 }

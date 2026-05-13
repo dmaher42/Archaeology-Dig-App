@@ -1,35 +1,35 @@
 {
-  "image": "escape-sequence-parallax-pack.png",
-  "source": "AI-generated label-free Journey parallax background sheet, upgraded for Escape Sequence section rendering.",
+  "image": "ruined-temple-parallax-pack.png",
+  "source": "AI-generated label-free Journey parallax background sheet for the Ruined Temple section.",
   "imageWidth": 1600,
   "imageHeight": 900,
   "coordinateNote": "Runtime composited 16:9 backdrop; legacy region keys point to the full image so existing loaders stay fallback-safe.",
   "regions": {
-    "dangerAtmosphere": {
+    "templeSky": {
       "x": 0,
       "y": 0,
       "w": 1600,
       "h": 900
     },
-    "farCollapsingWalls": {
+    "farTempleWalls": {
       "x": 0,
       "y": 0,
       "w": 1600,
       "h": 900
     },
-    "distantRuinsDebris": {
+    "distantTempleRuins": {
       "x": 0,
       "y": 0,
       "w": 1600,
       "h": 900
     },
-    "midgroundEscapeRuins": {
+    "midgroundTempleDoors": {
       "x": 0,
       "y": 0,
       "w": 1600,
       "h": 900
     },
-    "foregroundDust": {
+    "foregroundTempleDust": {
       "x": 0,
       "y": 0,
       "w": 1600,
