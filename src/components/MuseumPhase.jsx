@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  Camera, CheckCircle2, ChevronRight, Search, Send
+  Camera, CheckCircle2, ChevronRight, Maximize2, Search, Send, X
 } from 'lucide-react';
 import {
   getArtifactTheme,
@@ -28,6 +28,7 @@ export function MuseumPhase({
   onBackToMenu
 }) {
   const [selectedArtifactId, setSelectedArtifactId] = useState(null);
+  const [previewArtifact, setPreviewArtifact] = useState(null);
   const fullInvestigationAssets = useFullInvestigationAssets();
   const curatedSet = new Set(curatedItems.map(item => item.id));
 
@@ -97,7 +98,7 @@ export function MuseumPhase({
               return (
                 <article
                   key={item.id}
-                  className={`museum-curation-card ${isSelected ? 'active' : ''} ${isCurated ? 'curated' : ''}`}
+                  className={`museum-curation-card ${isSelected ? 'active' : ''} ${isCurated ? 'curated' : ''} ${curationDisabled ? 'disabled' : ''}`}
                 >
                   <button
                     type="button"
@@ -186,17 +187,23 @@ export function MuseumPhase({
                        <div className="museum-display-number">Find {index + 1}</div>
                        <button className="museum-remove-btn" onClick={() => toggleCuration(item)}>Remove</button>
                     </div>
-                    <div
+                    <button
+                      type="button"
                       className={`museum-display-visual ${displayPlinthStyle ? 'fi-asset-region fi-display-plinth' : ''}`}
                       data-fi-ui-asset={displayPlinthStyle ? 'displayPlinth' : undefined}
                       style={displayPlinthStyle}
+                      onClick={() => setPreviewArtifact(item)}
+                      aria-label={`Inspect ${item.name} image`}
                     >
                        <img
                          src={getEvidenceImagePath(item)}
                          alt={item.name}
                          style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '8px' }}
                        />
-                    </div>
+                       <span className="museum-image-expand-chip">
+                         <Maximize2 size={13} />
+                       </span>
+                    </button>
                     <div className="museum-display-body">
                        <h4>{item.name}</h4>
                        <div className="museum-display-analysis-box">
@@ -254,6 +261,26 @@ export function MuseumPhase({
            </div>
         </section>
       </div>
+
+      {previewArtifact && (
+        <div className="museum-image-preview-backdrop" role="dialog" aria-modal="true" aria-label={`${previewArtifact.name} image preview`}>
+          <div className="museum-image-preview-card">
+            <button
+              type="button"
+              className="museum-image-preview-close"
+              onClick={() => setPreviewArtifact(null)}
+              aria-label="Close image preview"
+            >
+              <X size={18} />
+            </button>
+            <img src={getEvidenceImagePath(previewArtifact)} alt={previewArtifact.name} />
+            <div className="museum-image-preview-caption">
+              <strong>{previewArtifact.name}</strong>
+              <span>{getCategoryTitle(previewArtifact.type)}</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
