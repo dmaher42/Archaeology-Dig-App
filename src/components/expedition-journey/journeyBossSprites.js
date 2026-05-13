@@ -1,8 +1,9 @@
 export const BOSS_SPRITE_BASE_PATH = 'assets/expedition/bosses/';
 export const BOSS_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}scarab-queen-sprites.json`;
 export const STONE_GUARDIAN_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}stone-guardian-sprites.json`;
+export const GIANT_SERPENT_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}giant-serpent-sprites.json`;
 export const ANCIENT_CONSTRUCT_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}ancient-construct-sprites.json`;
-export const BOSS_SPRITE_ATLAS_VERSION = 'boss-sprites-scarab-queen-stone-guardian-ancient-construct-2026-05-11';
+export const BOSS_SPRITE_ATLAS_VERSION = 'boss-sprites-scarab-queen-stone-guardian-serpent-ancient-construct-2026-05-13';
 
 export const SCARAB_QUEEN_SPRITE_KEYS = [
   'scarabQueenIdle',
@@ -32,6 +33,20 @@ export const STONE_GUARDIAN_SPRITE_KEYS = [
   'stoneGuardianDefeated',
 ];
 
+export const GIANT_SERPENT_SPRITE_KEYS = [
+  'giantSerpentIdle',
+  'giantSerpentSlither1',
+  'giantSerpentSlither2',
+  'giantSerpentIntro',
+  'giantSerpentWindup',
+  'giantSerpentLunge',
+  'giantSerpentVenom',
+  'giantSerpentShielded',
+  'giantSerpentCounterWindow',
+  'giantSerpentHit',
+  'giantSerpentDefeated',
+];
+
 export const ANCIENT_CONSTRUCT_SPRITE_KEYS = [
   'ancientConstructIdle',
   'ancientConstructWalk1',
@@ -49,6 +64,7 @@ export const ANCIENT_CONSTRUCT_SPRITE_KEYS = [
 export const EXPECTED_BOSS_SPRITE_KEYS = [
   ...SCARAB_QUEEN_SPRITE_KEYS,
   ...STONE_GUARDIAN_SPRITE_KEYS,
+  ...GIANT_SERPENT_SPRITE_KEYS,
   ...ANCIENT_CONSTRUCT_SPRITE_KEYS,
 ];
 
@@ -60,6 +76,10 @@ const BOSS_SPRITE_PACKS = {
   'temple-guardian': {
     atlasPath: STONE_GUARDIAN_SPRITE_ATLAS_JSON,
     expectedKeys: STONE_GUARDIAN_SPRITE_KEYS,
+  },
+  'giant-serpent': {
+    atlasPath: GIANT_SERPENT_SPRITE_ATLAS_JSON,
+    expectedKeys: GIANT_SERPENT_SPRITE_KEYS,
   },
   'ancient-construct': {
     atlasPath: ANCIENT_CONSTRUCT_SPRITE_ATLAS_JSON,
@@ -204,6 +224,25 @@ export const getStoneGuardianSpriteFrame = (boss, combatMode, bossVisualState = 
   return frameToggle ? 'stoneGuardianWalk2' : 'stoneGuardianWalk1';
 };
 
+export const getGiantSerpentSpriteFrame = (boss, combatMode, bossVisualState = {}, now = 0) => {
+  if (boss?.id !== 'giant-serpent') return null;
+
+  if (combatMode === 'defeated') return 'giantSerpentDefeated';
+  if (boss.hitFlash > 0 || combatMode === 'stunned') return 'giantSerpentHit';
+  if (bossVisualState.shielded) return 'giantSerpentShielded';
+  if (bossVisualState.vulnerable) return 'giantSerpentCounterWindow';
+  if (combatMode === 'windup') return 'giantSerpentWindup';
+  if (combatMode === 'attacking') {
+    return bossVisualState.attackKind === 'area' || bossVisualState.attackKind === 'ranged'
+      ? 'giantSerpentVenom'
+      : 'giantSerpentLunge';
+  }
+  if (!boss.awakened) return 'giantSerpentIntro';
+
+  const frameToggle = Math.floor(now / 260) % 2;
+  return frameToggle ? 'giantSerpentSlither2' : 'giantSerpentSlither1';
+};
+
 export const getAncientConstructSpriteFrame = (boss, combatMode, bossVisualState = {}, now = 0) => {
   if (boss?.id !== 'ancient-construct') return null;
 
@@ -238,6 +277,17 @@ export const getStoneGuardianDrawBox = (boss, screenX) => {
   return {
     x: screenX + boss.width / 2 - width / 2,
     y: boss.y + boss.height - height + boss.height * 0.06,
+    width,
+    height,
+  };
+};
+
+export const getGiantSerpentDrawBox = (boss, screenX) => {
+  const width = Math.max(156, boss.width * 2.55);
+  const height = Math.max(104, boss.height * 2.1);
+  return {
+    x: screenX + boss.width / 2 - width / 2,
+    y: boss.y + boss.height - height + boss.height * 0.08,
     width,
     height,
   };

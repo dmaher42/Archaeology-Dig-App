@@ -108,6 +108,8 @@ import {
   getAncientConstructDrawBox,
   getAncientConstructSpriteFrame,
   getBossSpritePack,
+  getGiantSerpentDrawBox,
+  getGiantSerpentSpriteFrame,
   getMissingBossSpriteAssets,
   getScarabQueenDrawBox,
   getScarabQueenSpriteFrame,
@@ -3020,6 +3022,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
   const drawBossSprite = useCallback((ctx, boss, screenX, now, bossVisualState) => {
     const supportedBoss = boss.id === 'scarab-queen'
       || boss.id === 'temple-guardian'
+      || boss.id === 'giant-serpent'
       || boss.id === 'ancient-construct';
     if (!supportedBoss) return false;
     const combatMode = getCombatMode(boss);
@@ -3027,12 +3030,16 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       ? getAncientConstructSpriteFrame(boss, combatMode, bossVisualState, now)
       : boss.id === 'temple-guardian'
         ? getStoneGuardianSpriteFrame(boss, combatMode, bossVisualState, now)
-        : getScarabQueenSpriteFrame(boss, combatMode, bossVisualState, now);
+        : boss.id === 'giant-serpent'
+          ? getGiantSerpentSpriteFrame(boss, combatMode, bossVisualState, now)
+          : getScarabQueenSpriteFrame(boss, combatMode, bossVisualState, now);
     const drawBox = boss.id === 'ancient-construct'
       ? getAncientConstructDrawBox(boss, screenX)
       : boss.id === 'temple-guardian'
         ? getStoneGuardianDrawBox(boss, screenX)
-        : getScarabQueenDrawBox(boss, screenX);
+        : boss.id === 'giant-serpent'
+          ? getGiantSerpentDrawBox(boss, screenX)
+          : getScarabQueenDrawBox(boss, screenX);
     const pack = getBossSpritePack(bossSpriteAssetsRef.current, boss.id);
     if (!frameKey || !drawBox || !pack) return false;
 
@@ -3085,6 +3092,9 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       }
       if (boss.id === 'ancient-construct') {
         stateRef.current.renderStats.ancientConstructSpriteFrame = frameKey;
+      }
+      if (boss.id === 'giant-serpent') {
+        stateRef.current.renderStats.giantSerpentSpriteFrame = frameKey;
       }
     }
 
