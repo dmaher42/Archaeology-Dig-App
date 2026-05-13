@@ -3542,8 +3542,8 @@ main {
 
 .museum-display-card {
   min-height: 0;
-  gap: 0.42rem;
-  padding: 0.58rem;
+  gap: 0.36rem;
+  padding: 0.54rem;
   border-radius: 11px;
   border-color: rgba(111, 78, 55, 0.28);
   background: rgba(255, 252, 240, 0.78);
@@ -3553,14 +3553,17 @@ main {
 }
 
 .museum-exhibit-panel .museum-panel-heading {
+  padding-bottom: 0.22rem;
   color: #f7e8c8;
-  text-shadow: 0 2px 4px rgba(20, 13, 7, 0.55);
+  background: linear-gradient(90deg, rgba(23, 55, 53, 0.78), rgba(23, 55, 53, 0.42));
+  text-shadow: 0 2px 4px rgba(20, 13, 7, 0.62);
 }
 
 .museum-exhibit-panel .museum-panel-subheading {
-  color: #ead6ad;
+  color: #f2dec0;
+  background: linear-gradient(90deg, rgba(23, 55, 53, 0.74), rgba(23, 55, 53, 0.38));
   border-bottom-color: rgba(247, 232, 200, 0.14);
-  text-shadow: 0 1px 3px rgba(20, 13, 7, 0.48);
+  text-shadow: 0 2px 4px rgba(20, 13, 7, 0.58);
 }
 
 .museum-display-header {
@@ -3590,7 +3593,7 @@ main {
 }
 
 .museum-display-visual {
-  height: clamp(70px, 11vh, 96px);
+  height: clamp(132px, 21vh, 168px);
   padding: 0.34rem;
   border-color: rgba(111, 78, 55, 0.18);
   background: #fffaf0;
@@ -3604,26 +3607,28 @@ main {
 }
 
 .museum-display-body h4 {
-  margin: 0 0 0.3rem;
+  margin: 0 0 0.22rem;
   color: #3c2616;
-  font-size: 0.86rem;
+  font-size: 0.82rem;
   line-height: 1.08;
 }
 
 .museum-display-analysis-box {
-  margin-bottom: 0.42rem;
-  padding: 0.42rem 0.52rem;
+  margin-bottom: 0.36rem;
+  padding: 0.34rem 0.48rem;
   border-left-color: #9c2d22;
   background: rgba(255, 247, 219, 0.9);
   color: #3c2616;
-  font-size: 0.67rem;
-  line-height: 1.18;
+  font-size: 0.54rem;
+  line-height: 1.12;
   box-shadow: 0 2px 7px rgba(42, 26, 12, 0.08);
+  max-height: 86px;
+  overflow: hidden;
 }
 
 .museum-display-analysis-box strong {
   color: #7a221a;
-  font-size: 0.55rem;
+  font-size: 0.46rem;
 }
 
 .museum-analysis-answer,
@@ -3631,12 +3636,19 @@ main {
   margin: 0;
 }
 
-.museum-analysis-note {
+.museum-analysis-answer {
   display: -webkit-box;
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
-  margin-top: 0.18rem;
+}
+
+.museum-analysis-note {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  margin-top: 0.12rem;
 }
 
 .museum-plaque-field {
@@ -3653,11 +3665,11 @@ main {
 }
 
 .museum-plaque-field textarea {
-  min-height: 58px;
-  max-height: 82px;
-  padding: 0.5rem 0.58rem;
-  font-size: 0.72rem;
-  line-height: 1.24;
+  min-height: clamp(92px, 15vh, 124px);
+  max-height: none;
+  padding: 0.58rem 0.64rem;
+  font-size: 0.84rem;
+  line-height: 1.28;
   resize: none;
 }
 
