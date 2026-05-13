@@ -12584,6 +12584,7 @@ main {
 .journey-top-hud {
   width: min(100%, 1260px);
   margin: 0 auto;
+  box-sizing: border-box;
   min-height: 3.15rem;
   display: grid;
   grid-template-columns: auto minmax(140px, 0.9fr) minmax(140px, 0.9fr) auto;
@@ -12596,6 +12597,12 @@ main {
   color: #f8efe1;
   box-shadow: 0 10px 22px rgba(0, 0, 0, 0.32);
   backdrop-filter: blur(8px);
+}
+
+.expedition-journey-mode-shell .journey-top-hud {
+  width: min(calc(100% - 9.6rem), 1120px);
+  margin-left: 9rem;
+  margin-right: 0.5rem;
 }
 
 .journey-top-hud-gems,
@@ -12671,6 +12678,46 @@ main {
 .journey-top-hud-status strong {
   color: #e7dac9;
   font-size: 0.82rem;
+}
+
+@media (max-height: 820px), (max-width: 1100px) {
+  .journey-top-hud {
+    grid-template-columns: auto minmax(120px, 1fr) minmax(120px, 1fr) auto;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    padding: 0.38rem 0.56rem;
+  }
+
+  .journey-top-hud-meter {
+    gap: 0.34rem;
+  }
+
+  .journey-top-hud-status span {
+    padding-inline: 0.45rem;
+  }
+}
+
+@media (max-width: 760px) {
+  .expedition-journey-mode-shell .journey-top-hud {
+    width: min(100%, calc(100% - 0.5rem));
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 2.6rem;
+  }
+
+  .journey-top-hud {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .journey-top-hud-gems,
+  .journey-top-hud-status {
+    justify-content: center;
+  }
+
+  .journey-top-hud-meter {
+    grid-template-columns: 1fr;
+    gap: 0.22rem;
+  }
 }
 
 .expedition-journey-grid {
@@ -16478,6 +16525,11 @@ main {
 
 .sort-phase .status-text-content-horizontal {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.15rem;
 }
 
 .sort-phase .status-text-content-horizontal h2 {
@@ -16486,8 +16538,11 @@ main {
 }
 
 .sort-phase .status-text-content-horizontal p {
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   line-height: 1.2;
+  color: var(--text-ink);
+  opacity: 0.85;
+  margin: 0;
 }
 
 .sort-phase .status-site-badge {
@@ -17004,11 +17059,13 @@ main {
 }
 
 .category-bin-count {
-  padding: 0.14rem 0.35rem;
+  padding: 0.14rem 0.4rem;
   border-radius: 999px;
-  background: rgba(122, 34, 26, 0.1);
-  font-size: 0.58rem;
+  background: var(--arch-accent);
+  color: #fff;
+  font-size: 0.62rem;
   white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
 }
 
 .category-bin-list {
@@ -17038,8 +17095,9 @@ main {
 .category-bin-empty {
   min-height: 2.25rem;
   padding: 0.45rem;
-  color: #7a5631;
-  font-size: 0.66rem;
+  color: var(--text-ink-muted);
+  opacity: 0.8;
+  font-size: 0.72rem;
 }
 
 .sort-feedback {

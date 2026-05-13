@@ -4603,13 +4603,6 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
               className="expedition-canvas"
             />
             
-            <div className="journey-hud-overlay">
-              <div className="hud-shards">
-                <Gem size={18} className="text-amber-500" />
-                <span>{gameState.relicShardCount}</span>
-              </div>
-            </div>
-
             {gameState.notice && (
               <div className="expedition-journey-notice animate-fade-in">
                 <Sparkles size={16} />
