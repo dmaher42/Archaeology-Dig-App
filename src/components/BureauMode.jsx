@@ -11,6 +11,7 @@ import {
   getBureauCasesForSession,
   getBureauEvidenceSentenceOptions,
   getBureauClaimValidationMessage,
+  resolveAssetPath,
 } from '../utils/gameLogic';
 
 const BUREAU_TAG_LABELS = {
@@ -91,10 +92,15 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
     ? BUREAU_CIVILISATIONS 
     : getUnlockedCivilisations();
 
-  const suspectStatuses = availableCivilisations.map(civilisation => ({
-    civilisation,
-    isRuledOut: (evidenceFilter[civilisation] || 'unsure') === 'discard',
-  }));
+  const suspectStatuses = availableCivilisations.map(civilisation => {
+    const caseData = BUREAU_CASES.find(c => c.civilisation === civilisation);
+    return {
+      civilisation,
+      isRuledOut: (evidenceFilter[civilisation] || 'unsure') === 'discard',
+      thumbnail: caseData?.thumbnail,
+      keywords: caseData?.keywords || [],
+    };
+  });
 
   const revealedEvidenceText = currentClueTiers
     .filter(item => item.tier <= bureauState.currentTier)
@@ -625,7 +631,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
           </div>
 
           <div className="bureau-suspect-grid">
-            {suspectStatuses.map(({ civilisation, isRuledOut }, index) => {
+            {suspectStatuses.map(({ civilisation, isRuledOut, thumbnail, keywords }, index) => {
               return (
                 <article 
                   key={civilisation} 
@@ -633,6 +639,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
                   style={{ '--deal-order': index }}
                   aria-pressed={isRuledOut}
                   aria-label={`${civilisation}. ${isRuledOut ? 'Ruled out.' : 'Still possible.'}`}
+                  onClick={() => toggleSuspectRuleOut(civilisation)}
                 >
                   <button 
                     className="bureau-discard-btn" 
@@ -642,11 +649,32 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
                       toggleSuspectRuleOut(civilisation);
                     }}
                   >
-                    X
+                    {isRuledOut ? '+' : '×'}
                   </button>
+
+                  <div className="bureau-suspect-image-container">
+                    {thumbnail ? (
+                      <img 
+                        src={resolveAssetPath(thumbnail)} 
+                        alt="" 
+                        className="bureau-suspect-image"
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                    ) : (
+                      <div className="bureau-suspect-image-placeholder">
+                        <Landmark size={32} strokeWidth={1.5} />
+                      </div>
+                    )}
+                  </div>
                   
                   <div className="bureau-suspect-name">
                     {civilisation}
+                  </div>
+
+                  <div className="bureau-suspect-tags">
+                    {keywords.slice(0, 3).map(tag => (
+                      <span key={tag} className="bureau-suspect-tag">{tag}</span>
+                    ))}
                   </div>
 
                   {isRuledOut && <div className="bureau-discarded-stamp">DISCARDED</div>}

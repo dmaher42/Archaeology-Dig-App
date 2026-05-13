@@ -291,6 +291,7 @@ const BUREAU_CASES_RAW = [
     id: 'bureau_1',
     civilisation: 'Ancient Egypt',
     round: 'training',
+    thumbnail: 'assets/civilisations/profile-egypt.png',
     caseTitle: 'The Desert River File',
     dateRange: '3150 BC - 30 BC',
     clueTiers: [
@@ -322,6 +323,7 @@ const BUREAU_CASES_RAW = [
     id: 'bureau_2',
     civilisation: 'Ancient Greece',
     round: 'training',
+    thumbnail: 'assets/civilisations/profile-greece.png',
     caseTitle: 'The Harbour File',
     dateRange: '800 BC - 146 BC',
     clueTiers: [
@@ -353,6 +355,7 @@ const BUREAU_CASES_RAW = [
     id: 'bureau_3',
     civilisation: 'Ancient Rome',
     round: 'training',
+    thumbnail: 'assets/civilisations/profile-rome.png',
     caseTitle: 'The Road File',
     dateRange: '753 BC - 476 AD',
     clueTiers: [
@@ -384,6 +387,7 @@ const BUREAU_CASES_RAW = [
     id: 'bureau_4',
     civilisation: 'Ancient China',
     round: 'training',
+    thumbnail: 'assets/civilisations/profile-china.png',
     caseTitle: 'The River Dynasty File',
     dateRange: '1600 BC - 220 AD',
     clueTiers: [
@@ -415,6 +419,7 @@ const BUREAU_CASES_RAW = [
     id: 'bureau_5',
     civilisation: 'Maya',
     round: 'training',
+    thumbnail: 'assets/civilisations/profile-maya.png',
     caseTitle: 'The Temple Sky File',
     dateRange: '2000 BC - 1500 AD',
     clueTiers: [
@@ -446,6 +451,7 @@ const BUREAU_CASES_RAW = [
     id: 'bureau_6',
     civilisation: 'Inca',
     round: 'training',
+    thumbnail: 'assets/civilisations/profile-inca.png',
     caseTitle: 'The Mountain Cord File',
     dateRange: '1438 AD - 1533 AD',
     clueTiers: [

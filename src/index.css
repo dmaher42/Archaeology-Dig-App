@@ -8246,7 +8246,7 @@ textarea.lab-note-textarea:focus {
   background-image: 
     url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)' opacity='0.05'/%3E%3C/svg%3E") !important;
   border: 1px solid #ddd !important;
-  padding: 1rem 1rem 3.5rem 1rem !important;
+  padding: 0.75rem !important;
   box-shadow: 0 8px 20px rgba(0,0,0,0.15) !important;
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
   transform: rotate(var(--random-rot, -1deg));
@@ -8254,9 +8254,11 @@ textarea.lab-note-textarea:focus {
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 0.5rem;
   animation: dealCard 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   animation-delay: calc(var(--deal-order) * 0.08s);
   opacity: 0;
+  min-height: 220px;
 }
 
 @keyframes dealCard {
@@ -8314,10 +8316,61 @@ textarea.lab-note-textarea:focus {
 .bureau-suspect-name {
   font-family: "Courier New", Courier, monospace !important;
   font-weight: 900 !important;
-  font-size: 1.1rem !important;
+  font-size: 0.95rem !important;
   color: #1a1510 !important;
-  margin-top: 1rem;
+  margin: 0.25rem 0;
   text-transform: uppercase;
+  text-align: center;
+}
+
+/* New Image Styles */
+.bureau-suspect-image-container {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: #fdfaf3;
+  border: 1px solid rgba(0,0,0,0.1);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+}
+
+.bureau-suspect-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: sepia(0.3) contrast(1.1) brightness(0.95);
+}
+
+.bureau-suspect-image-placeholder {
+  color: #ccc;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Keyword Tags */
+.bureau-suspect-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  justify-content: center;
+  margin-top: auto;
+  width: 100%;
+}
+
+.bureau-suspect-tag {
+  font-size: 0.65rem;
+  font-family: "Courier New", Courier, monospace;
+  background: rgba(139, 106, 72, 0.08);
+  color: var(--bureau-ink-muted);
+  padding: 0.15rem 0.4rem;
+  border-radius: 12px;
+  border: 1px solid rgba(139, 106, 72, 0.15);
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 /* Matching Evidence Dots */
