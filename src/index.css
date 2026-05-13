@@ -3666,10 +3666,7 @@ main {
 }
 
 .museum-analysis-answer {
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  overflow: visible;
 }
 
 .museum-analysis-note {
@@ -3691,6 +3688,13 @@ main {
   color: #7a5631;
   font-size: 0.56rem;
   margin-bottom: 0.24rem;
+}
+
+.museum-plaque-helper {
+  margin: 0 0 0.35rem;
+  color: #5b4128;
+  font-size: 0.68rem;
+  line-height: 1.25;
 }
 
 .museum-plaque-field textarea {

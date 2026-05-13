@@ -2,7 +2,8 @@ import {
   SCENARIOS, 
   RED_HERRINGS, 
   RANDOM_EVENTS, 
-  createNewBureauSession 
+  createNewBureauSession,
+  getObservableLabResult,
 } from '../utils/gameLogic'; 
 
 
@@ -92,7 +93,8 @@ export function DevTools({
         [a.id]: {
           answerIndex: a.correct || 0,
           answerText: a.options?.[a.correct || 0] || 'Mock identification',
-          note: `Research shows that this ${a.name} is significant to our understanding of the site.`,
+          labResultText: getObservableLabResult(a),
+          note: `Use the lab result to explain what ${a.name} might tell us about the past.`,
           answerIsCorrect: true
         } 
       }), {});

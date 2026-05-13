@@ -8,6 +8,7 @@ import {
   getArtifactEraLabel,
   getEvidenceImagePath,
   shuffleArrayWithSeed,
+  getObservableLabResult,
   LAB_ANALYSIS_PROMPTS,
   LAB_NOTE_STEMS
 } from '../utils/gameLogic';
@@ -60,6 +61,7 @@ export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypoth
     const analysisRecord = {
       answerIndex: selectedAnswerIndex,
       answerText: selectedArtifact.options?.[selectedAnswerIndex] ?? '',
+      labResultText: getObservableLabResult(selectedArtifact),
       answerIsCorrect: selectedAnswerIndex === selectedArtifact.correct,
       answerRationale: selectedArtifact.rationale,
       promptId: selectedPrompt.id,

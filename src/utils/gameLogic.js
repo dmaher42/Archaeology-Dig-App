@@ -135,6 +135,33 @@ export const LAB_NOTE_STEMS = [
   'This helps historians understand...',
 ];
 
+const OBSERVATION_LEADS = {
+  objects: 'This object shows',
+  remains: 'The evidence shows',
+  structures: 'This structure shows',
+  environment: 'The evidence shows',
+  written: 'This source shows',
+  default: 'This find shows',
+};
+
+const lowerCaseFirstWord = (text = '') => {
+  if (!text) return '';
+  return text.charAt(0).toLowerCase() + text.slice(1);
+};
+
+export const getObservableLabResult = (artifact = {}) => {
+  if (artifact.labResult) return artifact.labResult;
+
+  const clue = String(artifact.clue || '').trim();
+  if (!clue) {
+    return 'This find has visible features that can be recorded and used as evidence.';
+  }
+
+  const lead = OBSERVATION_LEADS[artifact.type] || OBSERVATION_LEADS.default;
+  const observation = lowerCaseFirstWord(clue).replace(/[.!?]+$/, '');
+  return `${lead} ${observation}. Record its visible features as evidence.`;
+};
+
 export const getArtifactHash = (input = '') => {
   let hash = 0;
   for (let i = 0; i < input.length; i += 1) {

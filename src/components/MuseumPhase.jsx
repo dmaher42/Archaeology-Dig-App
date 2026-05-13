@@ -5,7 +5,8 @@ import {
 import {
   getArtifactTheme,
   getCategoryTitle,
-  getEvidenceImagePath
+  getEvidenceImagePath,
+  getObservableLabResult
 } from '../utils/gameLogic';
 
 const formatConditionLabel = (condition) => {
@@ -165,6 +166,7 @@ export function MuseumPhase({
            <div className="museum-display-grid">
               {curatedItems.map((item, index) => {
                 const analysis = hypotheses[item.id];
+                const labResultText = analysis?.labResultText || getObservableLabResult(item);
 
                 return (
                   <div key={item.id} className="museum-display-card">
@@ -198,19 +200,19 @@ export function MuseumPhase({
                           )}
                           {analysis ? (
                              <>
-                               <p className="museum-analysis-answer">{analysis.answerText}</p>
-                               <p className="museum-analysis-note">{analysis.note}</p>
+                               <p className="museum-analysis-answer">{labResultText}</p>
                              </>
                            ) : (
                              <p>No research note.</p>
                            )}
                        </div>
                        <div className="museum-plaque-field">
-                          <label>Exhibition Label</label>
+                          <label>Your Interpretation</label>
+                          <p className="museum-plaque-helper">Use the lab result as evidence. What might this tell us about people's lives, beliefs, work, or society?</p>
                           <textarea
                             value={plaques[item.id] || ''}
                             onChange={(e) => handlePlaqueChange(item.id, e.target.value)}
-                            placeholder="Explain why this find is important for visitors to see..."
+                            placeholder="This might suggest..."
                           />
                        </div>
                     </div>

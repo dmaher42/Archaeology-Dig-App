@@ -908,3 +908,6 @@ Remaining notes:
 - Added a compact asset preview grid to the Ancient China preview modal so the uploaded China images are visible from the campaign screen while the stage remains preview-only.
 - Browser verification on `http://127.0.0.1:5173/Archaeology-Dig-App/` confirmed the China preview opens from Stage Select, all four China source images load, no China gameplay is selected or launched, and no console errors appeared.
 - Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset and large-chunk warnings; `git diff --check` passed with only LF-to-CRLF warnings.
+
+2026-05-13 update:
+- Changed Museum lab result wording from interpretation-giving text to evidence-based observation text, so students must use the lab result to make their own historical inference in the museum label.
