@@ -280,7 +280,6 @@ export default function App() {
   const [showDevTools, setShowDevTools] = useState(false);
   const [isSiteSelectionActive, setIsSiteSelectionActive] = useState(false);
   const isMenuLanding = phase === 'menu' && !isSiteSelectionActive;
-  const isFullInvestigationPhase = ['dig', 'sort', 'lab', 'museum', 'report'].includes(phase);
 
   // Autosave Logic
   useEffect(() => {

@@ -2791,6 +2791,20 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
               <MapIcon size={20} />
               <p>{previewExpedition.previewTeaser || previewExpedition.teaser}</p>
             </div>
+            {previewExpedition.scaffold?.sourceAssets?.length > 0 && (
+              <div className="expedition-stage-preview-assets" aria-label={`${previewExpedition.title} source asset previews`}>
+                {previewExpedition.scaffold.sourceAssets.map(asset => (
+                  <figure key={asset.id} className="expedition-stage-preview-asset">
+                    <img
+                      src={`${import.meta.env.BASE_URL}${asset.src}`}
+                      alt={asset.title}
+                      loading="lazy"
+                    />
+                    <figcaption>{asset.title}</figcaption>
+                  </figure>
+                ))}
+              </div>
+            )}
             <p className="expedition-stage-preview-status">
               This expedition is a preview only for now. It will not launch unfinished gameplay.
             </p>

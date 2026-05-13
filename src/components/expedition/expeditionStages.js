@@ -5,6 +5,33 @@ export const EXPEDITION_STAGE_IDS = {
   LAKE_MUNGO: 'lake-mungo',
 };
 
+export const CHINA_EXPEDITION_SOURCE_ASSETS = [
+  {
+    id: 'china-river-valley-parallax-v2',
+    title: 'River valley parallax pack',
+    src: 'assets/expedition/china-source/china-river-valley-parallax-pack-v2.png',
+    role: 'future-journey-background',
+  },
+  {
+    id: 'china-river-valley-environment-v2',
+    title: 'River valley environment pack',
+    src: 'assets/expedition/china-source/china-river-valley-environment-pack-v2.png',
+    role: 'future-environment-tiles',
+  },
+  {
+    id: 'china-river-valley-parallax-source',
+    title: 'Original parallax source',
+    src: 'assets/expedition/china-source/china-river-valley-parallax-pack.png',
+    role: 'source-reference',
+  },
+  {
+    id: 'china-river-valley-environment-source',
+    title: 'Original environment source',
+    src: 'assets/expedition/china-source/china-river-valley-environment-pack.png',
+    role: 'source-reference',
+  },
+];
+
 export const CHINA_EXPEDITION_SCAFFOLD = {
   title: 'Ancient China Expedition',
   subtitle: 'River valleys, dynasties, oracle bones and early civilisation',
@@ -36,6 +63,7 @@ export const CHINA_EXPEDITION_SCAFFOLD = {
     'fantasy dragons as the main theme',
     'anime or martial arts fantasy styling',
   ],
+  sourceAssets: CHINA_EXPEDITION_SOURCE_ASSETS,
   implementationSlots: {
     journeyStage: 'china-journey-stage-placeholder',
     journeyBackgroundArt: 'china-river-valley-background-placeholder',

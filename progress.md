@@ -892,3 +892,19 @@ Remaining notes:
 - Updated the existing Catacombs atlas JSON to reference the full-scene image while preserving all expected region keys for fallback-safe loading.
 - Browser verification on `http://127.0.0.1:5173/Archaeology-Dig-App/` confirmed Catacombs renders from its pack, no asset fallback is active, no missing atlas regions were reported, and no console errors appeared.
 - Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset and large-chunk warnings; `git diff --check` passed with only LF-to-CRLF warnings.
+
+2026-05-13 update:
+- Completed the Rival Looter enemy sprite pass inside the existing Journey enemy sprite pipeline.
+- Added `public/assets/expedition/enemies/looter-sprites.png` and `looter-sprites.json` as a named looter/captain atlas alongside the existing small-enemy atlas.
+- Extended `journeyEnemySprites.js` to load both enemy sprite packs, map looter enemies to looter frames, and preserve the existing small scarab/snake/bat sprite path.
+- Updated the existing Journey renderer so regular looters and the Rival Looter Captain use the looter atlas instead of the temporary player-sprite/placeholder fallback.
+- Preserved gameplay behaviour: no enemy positions, hitboxes, health, attacks, gates, boss logic, player movement, backgrounds, Stage Select, Base Camp, or excavation systems were intentionally changed.
+- Browser verification on `http://127.0.0.1:5173/Archaeology-Dig-App/` confirmed enemy sprites load with no missing looter regions, regular looter and looter captain frames render from the atlas, no player-frame fallback is reported, and no console errors appeared.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset and large-chunk warnings; `git diff --check` passed with only LF-to-CRLF warnings.
+
+2026-05-13 update:
+- Wired the existing Ancient China source image packs into the Stage Select scaffold without making China playable.
+- Added China source asset metadata in `expeditionStages.js` for the river valley parallax pack, environment pack, and original source references under `public/assets/expedition/china-source/`.
+- Added a compact asset preview grid to the Ancient China preview modal so the uploaded China images are visible from the campaign screen while the stage remains preview-only.
+- Browser verification on `http://127.0.0.1:5173/Archaeology-Dig-App/` confirmed the China preview opens from Stage Select, all four China source images load, no China gameplay is selected or launched, and no console errors appeared.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset and large-chunk warnings; `git diff --check` passed with only LF-to-CRLF warnings.
