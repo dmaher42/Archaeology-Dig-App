@@ -411,6 +411,24 @@ const getBossRewardProgress = (current) => {
   };
 };
 
+const shuffleGuardianQuestionOptions = (question) => {
+  const options = question.options.map((text, originalIndex) => ({
+    id: `${question.id}-${originalIndex}`,
+    text,
+    originalIndex,
+  }));
+
+  for (let index = options.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [options[index], options[swapIndex]] = [options[swapIndex], options[index]];
+  }
+
+  return {
+    ...question,
+    shuffledOptions: options,
+  };
+};
+
 const SECTION_MUSIC_CUES = {
   'desert-entry': 'desert',
   'ruined-temple': 'temple',
@@ -1585,6 +1603,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         resultMessage: current.activeGuardianChallenge.resultMessage || null,
         modifier: current.activeGuardianChallenge.modifier || null,
         question: current.activeGuardianChallenge.questions[current.activeGuardianChallenge.currentIndex]?.question || null,
+        optionOrder: current.activeGuardianChallenge.questions[current.activeGuardianChallenge.currentIndex]?.shuffledOptions?.map(option => option.originalIndex) || null,
       } : null,
       completedGuardianKnowledgeChallenges: Array.from(current.completedGuardianChallengeIds || []),
       guardianKnowledgeResults: current.guardianChallengeResults || {},
@@ -4697,6 +4716,9 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         b.attackTimer = 0;
         b.attackReady = false;
         b.attackCooldown = Math.max(b.attackCooldown, 1.4);
+        const guardianQuestions = !current.completedGuardianChallengeIds?.has(b.id)
+          ? getGuardianChallengeQuestions(b.id).map(shuffleGuardianQuestionOptions)
+          : [];
         current.bossDomain = {
           bossId: b.id,
           name: b.domainName || `${b.name} Domain`,
@@ -4723,14 +4745,13 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
           rewardName: keyItem?.name || null,
         };
         if (!current.completedGuardianChallengeIds?.has(b.id)) {
-          const questions = getGuardianChallengeQuestions(b.id);
-          if (questions.length) {
+          if (guardianQuestions.length) {
             current.pendingGuardianChallenge = {
               bossId: b.id,
               bossName: b.name,
               title: 'Guardian Knowledge Challenge',
               intro: 'Answer carefully. Your knowledge will decide the strength of the battle.',
-              questions,
+              questions: guardianQuestions,
               currentIndex: 0,
               correctCount: 0,
               selectedAnswerIndex: null,
@@ -5190,25 +5211,29 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
                     {activeGuardianQuestion.question}
                   </div>
                   <div className="guardian-challenge-options">
-                    {activeGuardianQuestion.options.map((option, index) => {
-                      const selected = activeGuardianChallenge.selectedAnswerIndex === index;
-                      const correct = activeGuardianQuestion.correctIndex === index;
+                    {(activeGuardianQuestion.shuffledOptions || activeGuardianQuestion.options.map((text, index) => ({
+                      id: `${activeGuardianQuestion.id}-${index}`,
+                      text,
+                      originalIndex: index,
+                    }))).map((option, index) => {
+                      const selected = activeGuardianChallenge.selectedAnswerIndex === option.originalIndex;
+                      const correct = activeGuardianQuestion.correctIndex === option.originalIndex;
                       const locked = activeGuardianChallenge.selectedAnswerIndex !== null;
                       return (
                         <button
                           type="button"
-                          key={option}
+                          key={option.id}
                           className={[
                             'guardian-challenge-option',
                             selected ? 'is-selected' : '',
                             locked && correct ? 'is-correct' : '',
                             locked && selected && !correct ? 'is-incorrect' : '',
                           ].filter(Boolean).join(' ')}
-                          onClick={() => answerGuardianChallenge(index)}
+                          onClick={() => answerGuardianChallenge(option.originalIndex)}
                           disabled={locked}
                         >
                           <strong>{String.fromCharCode(65 + index)}</strong>
-                          <span>{option}</span>
+                          <span>{option.text}</span>
                         </button>
                       );
                     })}
