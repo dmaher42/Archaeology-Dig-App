@@ -4954,7 +4954,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
               (b.arenaStart ?? 0) + 24,
               (b.arenaEnd ?? WORLD_WIDTH) - 48,
             );
-            keyItem.y = Math.max(96, b.y - 18);
+            keyItem.y = GROUND_Y - 24;
             const rewardMoment = buildBossRewardMoment(current, keyItem, 'revealed');
             current.postBossReward = rewardMoment;
             current.postBossRewardTimer = 4.6;

@@ -1034,6 +1034,17 @@ Remaining notes:
 - Remaining risk: automated browser checks verified the intro state and framing, but did not complete a full manual-feel pass through intro -> challenge answers -> boss defeat -> tool-piece pickup.
 
 2026-05-14 update:
+- First boss combat defeat verified and hardened inside the existing Journey boss/key-piece flow.
+- Brush Handle reward drop/reachability confirmed: Scarab Queen defeat now places the dropped tool piece on the ground pickup band before the Desert Map Seal, while preserving the existing x clamp that keeps it on the player side of the gate.
+- Reward clamp/gate safety confirmed: the Brush Handle dropped at `x=1432`, safely before the `desert-seal` gate at `x=1480`, and could be collected by walking to it.
+- Guardian Challenge handoff remains stable: browser testing confirmed intro -> Guardian Knowledge Challenge -> completed questions -> resumed boss fight with no repeated challenge loop.
+- Next route progression confirmed: after Scarab Queen defeat, Brush Handle pickup, relic shard requirement, and Map Tablet completion, the Desert Map Seal opened and the next active route gate became the Temple Route Seal.
+- No new boss mechanics, question data, reward system, inventory system, gate system, Stage Select, Base Camp, Excavation, Museum, Lab, Report, or unrelated UI was changed.
+- Validation: `npm.cmd run lint`, `npm.cmd run build`, and `git diff --check` run after this pass.
+- Browser test notes: local browser verification on `http://127.0.0.1:5173/Archaeology-Dig-App/` used a clean Egypt Journey, entered the Scarab Queen domain, completed the Guardian Knowledge Challenge, defeated the boss with normal attack input, collected Brush Handle, verified Excavation Kit progress changed to `1 / 5`, and verified route progression to the Temple Route Seal with no console errors.
+- Remaining risk: retry/death behavior was not exhaustively played through manually after the reward pickup; existing state guards prevent the defeated boss and completed Guardian Challenge from reappearing in the verified path.
+
+2026-05-14 update:
 - Post-boss reward clarity pass completed inside the existing Journey boss/key-piece flow.
 - Reward messages improved for each excavation kit piece so students see what was revealed/recovered and why it matters for careful archaeology work.
 - Added a short parchment-style post-boss reward banner that shows the tool-piece badge, item name, archaeology explanation, excavation kit progress, and the next objective.
