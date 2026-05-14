@@ -3433,6 +3433,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     const cx = screenX + boss.width / 2;
     const cy = boss.y + boss.height / 2;
     const bossVisualState = getBossVulnerabilityState(boss);
+    const introActive = stateRef.current.bossIntroTimer > 0 && stateRef.current.bossIntro?.id === boss.id;
 
     ctx.save();
     const bossAura = ctx.createRadialGradient(cx, cy, 18, cx, cy, 78 * pulse);
@@ -3442,6 +3443,20 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     ctx.beginPath();
     ctx.arc(cx, cy, 78 * pulse, 0, Math.PI * 2);
     ctx.fill();
+    if (introActive) {
+      ctx.strokeStyle = 'rgba(250, 204, 21, 0.82)';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([8, 7]);
+      ctx.beginPath();
+      ctx.arc(cx, cy, 58 + Math.sin(now / 120) * 6, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = 'rgba(250, 204, 21, 0.18)';
+      ctx.beginPath();
+      ctx.arc(cx, cy, 50 + Math.sin(now / 180) * 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
     if ((boss.visualScale || 1) > 1) {
       ctx.strokeStyle = 'rgba(248, 113, 113, 0.68)';
       ctx.lineWidth = 4;
@@ -3916,9 +3931,38 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       const domainEndX = worldToScreenX(activeBossDomain.arenaEnd, cameraX);
       const domainWidth = domainEndX - domainStartX;
       if (domainEndX > -80 && domainStartX < CANVAS_WIDTH + 80) {
+        const introProgress = current.bossIntroTimer > 0 && current.bossIntro?.id === activeBossDomain.bossId
+          ? Math.min(1, current.bossIntroTimer / 3.2)
+          : 0;
         ctx.save();
         ctx.fillStyle = activeBossDomain.tint || 'rgba(67, 24, 24, 0.16)';
         ctx.fillRect(Math.max(0, domainStartX), 0, Math.min(CANVAS_WIDTH, domainWidth), CANVAS_HEIGHT);
+        if (introProgress > 0) {
+          ctx.fillStyle = `rgba(12, 8, 5, ${0.22 + introProgress * 0.2})`;
+          ctx.fillRect(Math.max(0, domainStartX), 0, Math.min(CANVAS_WIDTH, domainWidth), CANVAS_HEIGHT);
+          [
+            { x: current.player.x + current.player.width / 2, label: 'FIELD TEAM' },
+            { x: current.bossIntro.focusX, label: 'GUARDIAN' },
+          ].forEach(marker => {
+            const markerX = worldToScreenX(marker.x, cameraX);
+            if (markerX < -80 || markerX > CANVAS_WIDTH + 80) return;
+            const pulse = Math.sin(now / 180) * 0.12 + 0.88;
+            const glow = ctx.createRadialGradient(markerX, GROUND_Y - 58, 10, markerX, GROUND_Y - 58, 92 * pulse);
+            glow.addColorStop(0, `${activeBossDomain.color || '#facc15'}66`);
+            glow.addColorStop(1, 'transparent');
+            ctx.fillStyle = glow;
+            ctx.beginPath();
+            ctx.arc(markerX, GROUND_Y - 58, 92 * pulse, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.78)';
+            ctx.roundRect(markerX - 48, GROUND_Y - 126, 96, 20, 6);
+            ctx.fill();
+            ctx.fillStyle = '#fff4d4';
+            ctx.font = '900 9px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(marker.label, markerX, GROUND_Y - 112);
+          });
+        }
         ctx.strokeStyle = activeBossDomain.color || 'rgba(250, 204, 21, 0.72)';
         ctx.lineWidth = 3;
         [domainStartX, domainEndX].forEach((x) => {
@@ -4703,15 +4747,21 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         const keyItem = current.bossKeyItems?.find(item => item.bossId === b.id);
         const arenaStart = b.arenaStart ?? Math.max(0, b.x - 160);
         const arenaEnd = b.arenaEnd ?? Math.min(WORLD_WIDTH, b.x + 180);
-        player.x = Math.max(arenaStart + 44, Math.min(player.x, arenaStart + 84));
+        const playerDomainStartX = arenaStart + 44;
+        player.x = playerDomainStartX;
         player.y = GROUND_Y - player.height;
         player.vx = 0;
         player.vy = 0;
         player.direction = 1;
-        b.x = Math.max(player.x + 180, arenaEnd - b.width - 72);
+        const bossArenaMin = Math.max(arenaStart + 90, b.patrolMin);
+        const bossArenaMax = Math.max(
+          bossArenaMin,
+          Math.min(arenaEnd - b.width - 24, b.patrolMax),
+        );
+        b.x = bossArenaMax;
         b.direction = -1;
-        b.patrolMin = Math.max(arenaStart + 90, b.patrolMin);
-        b.patrolMax = Math.min(arenaEnd - b.width - 24, b.patrolMax);
+        b.patrolMin = bossArenaMin;
+        b.patrolMax = bossArenaMax;
         b.attackWindup = 0;
         b.attackTimer = 0;
         b.attackReady = false;
@@ -4904,7 +4954,11 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
           const keyItem = current.bossKeyItems?.find(item => item.bossId === b.id);
           if (keyItem && !keyItem.collected) {
             keyItem.dropped = true;
-            keyItem.x = b.x + b.width / 2;
+            keyItem.x = clamp(
+              b.x + b.width / 2,
+              (b.arenaStart ?? 0) + 24,
+              (b.arenaEnd ?? WORLD_WIDTH) - 48,
+            );
             keyItem.y = Math.max(96, b.y - 18);
             const rewardMoment = buildBossRewardMoment(current, keyItem, 'revealed');
             current.postBossReward = rewardMoment;
