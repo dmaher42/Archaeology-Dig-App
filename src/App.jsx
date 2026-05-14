@@ -43,6 +43,29 @@ const EXPEDITION_AUDIO_TRACKS = {
     evidenceDiscovery: 'assets/expedition/audio/evidence-discovery-stinger.mp3',
     gateUnlock: 'assets/expedition/audio/gate-unlock-stinger.mp3',
   },
+  sfx: {
+    footstepSand: [
+      { path: 'assets/expedition/sfx/footstep-sand-1.ogg', volume: 0.2 },
+      { path: 'assets/expedition/sfx/footstep-sand-2.ogg', volume: 0.2 },
+      { path: 'assets/expedition/sfx/footstep-sand-3.ogg', volume: 0.2 },
+      { path: 'assets/expedition/sfx/footstep-sand-4.ogg', volume: 0.2 },
+    ],
+    jump: { path: 'assets/expedition/sfx/land-soft.ogg', volume: 0.18, playbackRate: 1.28 },
+    land: { path: 'assets/expedition/sfx/land-soft.ogg', volume: 0.28 },
+    pickupTool: [
+      { path: 'assets/expedition/sfx/satchel-leather.ogg', volume: 0.26 },
+      { path: 'assets/expedition/sfx/satchel-buckle.ogg', volume: 0.18, delay: 55 },
+      { path: 'assets/expedition/sfx/metal-click.ogg', volume: 0.2, delay: 95, playbackRate: 1.08 },
+    ],
+    pickupShard: { path: 'assets/expedition/sfx/relic-shard.ogg', volume: 0.24, playbackRate: 1.08 },
+    pickupUpgrade: { path: 'assets/expedition/sfx/metal-click.ogg', volume: 0.26, playbackRate: 0.92 },
+    gateUnlock: { path: 'assets/expedition/sfx/stone-gate-open.ogg', volume: 0.34 },
+    gateBlocked: { path: 'assets/expedition/sfx/stone-gate-blocked.ogg', volume: 0.28 },
+    attackSwing: { path: 'assets/expedition/sfx/khopesh-swing.ogg', volume: 0.22, playbackRate: 1.12 },
+    enemyHit: { path: 'assets/expedition/sfx/enemy-hit.ogg', volume: 0.26 },
+    playerHit: { path: 'assets/expedition/sfx/player-hit.ogg', volume: 0.26 },
+    bossWarning: { path: 'assets/expedition/sfx/boss-warning.ogg', volume: 0.2 },
+  },
 };
 
 const EXPEDITION_STINGER_DURATIONS = {
@@ -122,6 +145,32 @@ const playExpeditionStinger = (stingerKey) => {
     stinger.pause();
     stinger.currentTime = 0;
   }, EXPEDITION_STINGER_DURATIONS[stingerKey] || 3500);
+};
+
+const playExpeditionSfx = (sfxKey, options = {}) => {
+  const config = EXPEDITION_AUDIO_TRACKS.sfx[sfxKey];
+  if (!config) return;
+  const clips = Array.isArray(config) ? config : [config];
+  const selectedClips = sfxKey === 'footstepSand'
+    ? [clips[Math.floor(Math.random() * clips.length)]]
+    : clips;
+
+  selectedClips.forEach((clip) => {
+    const playClip = () => {
+      const sound = new Audio(getAudioSrc(clip.path));
+      sound.volume = Math.min(1, (clip.volume ?? 0.3) * (options.volume ?? 1));
+      sound.playbackRate = (clip.playbackRate ?? 1) * (options.playbackRate ?? 1);
+      sound.play().catch((error) => {
+        console.warn('Expedition SFX could not start', error);
+      });
+    };
+
+    if (clip.delay) {
+      window.setTimeout(playClip, clip.delay);
+    } else {
+      playClip();
+    }
+  });
 };
 
 const playFlip = () => {
@@ -215,7 +264,7 @@ const playTone = (freq, type = 'sine', duration = 0.5, vol = 0.2) => {
   osc.stop(audioCtx.currentTime + duration);
 };
 
-const audioControls = { initAudio, playFlip, playMatch, playError, playWin, playTone, playExpeditionMusic, stopExpeditionMusic, playExpeditionStinger };
+const baseAudioControls = { initAudio, playFlip, playMatch, playError, playWin, playTone, playExpeditionMusic, stopExpeditionMusic, playExpeditionStinger, playExpeditionSfx };
 
 function loadAutosave() {
   try {
@@ -279,7 +328,18 @@ export default function App() {
   const [bureauState, setBureauState] = useState(initialBureauGame);
   const [showDevTools, setShowDevTools] = useState(false);
   const [isSiteSelectionActive, setIsSiteSelectionActive] = useState(false);
+  const [expeditionMusicEnabled, setExpeditionMusicEnabled] = useState(false);
   const isMenuLanding = phase === 'menu' && !isSiteSelectionActive;
+  const audioControls = useMemo(() => ({
+    ...baseAudioControls,
+    playExpeditionMusic: (trackKey) => {
+      if (!expeditionMusicEnabled) {
+        baseAudioControls.stopExpeditionMusic?.();
+        return;
+      }
+      baseAudioControls.playExpeditionMusic?.(trackKey);
+    },
+  }), [expeditionMusicEnabled]);
 
   // Autosave Logic
   useEffect(() => {
@@ -380,6 +440,13 @@ export default function App() {
     setPhase('expedition');
   };
 
+  const handleExpeditionMusicToggle = () => {
+    setExpeditionMusicEnabled((enabled) => {
+      if (enabled) baseAudioControls.stopExpeditionMusic?.();
+      return !enabled;
+    });
+  };
+
   const handleBackToMenu = () => {
     audioControls.stopExpeditionMusic?.();
     setPhase('menu');
@@ -400,6 +467,8 @@ export default function App() {
             onResumeInvestigation={() => applySavedSession(savedGames.archaeology)}
             onResumeBureau={() => applySavedSession(savedGames.bureau)}
             onSiteSelectionChange={setIsSiteSelectionActive}
+            expeditionMusicEnabled={expeditionMusicEnabled}
+            onExpeditionMusicToggle={handleExpeditionMusicToggle}
           />
         )}
 

@@ -260,12 +260,17 @@ export const getAncientConstructSpriteFrame = (boss, combatMode, bossVisualState
   return frameToggle ? 'ancientConstructWalk2' : 'ancientConstructWalk1';
 };
 
+export const shouldFlipBossSprite = (bossId, facing = 1) => {
+  if (bossId === 'scarab-queen') return facing > 0;
+  return facing < 0;
+};
+
 export const getScarabQueenDrawBox = (boss, screenX) => {
   const width = Math.max(124, boss.width * 2.45);
   const height = Math.max(90, boss.height * 2.2);
   return {
     x: screenX + boss.width / 2 - width / 2,
-    y: boss.y + boss.height - height + boss.height * 0.1,
+    y: boss.y + boss.height - height + 8,
     width,
     height,
   };
@@ -276,7 +281,7 @@ export const getStoneGuardianDrawBox = (boss, screenX) => {
   const height = Math.max(116, boss.height * 2.05);
   return {
     x: screenX + boss.width / 2 - width / 2,
-    y: boss.y + boss.height - height + boss.height * 0.06,
+    y: boss.y + boss.height - height + 8,
     width,
     height,
   };
@@ -287,7 +292,7 @@ export const getGiantSerpentDrawBox = (boss, screenX) => {
   const height = Math.max(124, boss.height * 2.25);
   return {
     x: screenX + boss.width / 2 - width / 2,
-    y: boss.y + boss.height - height + boss.height * 0.04,
+    y: boss.y + boss.height - height + 10,
     width,
     height,
   };
@@ -298,7 +303,7 @@ export const getAncientConstructDrawBox = (boss, screenX) => {
   const height = Math.max(128, boss.height * 2.15);
   return {
     x: screenX + boss.width / 2 - width / 2,
-    y: boss.y + boss.height - height + boss.height * 0.05,
+    y: boss.y + boss.height - height + 9,
     width,
     height,
   };

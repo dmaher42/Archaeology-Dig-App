@@ -1064,3 +1064,30 @@ Remaining notes:
 - Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite public-asset and large-chunk warnings; `git diff --check` passed with only LF-to-CRLF line-ending warnings on the two touched Journey files.
 - Browser notes: local browser smoke testing confirmed Main Menu -> Stage Select -> Ancient Egypt -> Begin Expedition opens, the first boss remains inactive before the new 30-second trigger point, the Scarab Queen guardian intro/domain starts just after the trigger point, and no console errors appeared.
 - Remaining risk: this was a pacing/layout pass, not a full manual completion of every stretched section; a feel pass through all five guardian approaches is still recommended to tune density if any stretch feels too empty.
+
+2026-05-14 update:
+- Sourced a small CC0 Expedition SFX set from Kenney RPG Audio and copied the curated files into `public/assets/expedition/sfx/` with the license text.
+- Added a reusable Expedition SFX player to the existing `audioControls` path instead of creating a second audio system.
+- Wired sourced effects into the current Journey and Expedition flows: sand footsteps, jump/land, satchel/tool pickup, relic shard pickup, upgrade click, khopesh swing, enemy hit, player hit, boss warning, gate open, and gate blocked.
+- Tuned SFX volumes low so they support the classroom game without overpowering the existing music and stingers.
+- Validation: `npm.cmd run lint` passed before the final build pass; `npm.cmd run build` passed with the existing Vite public-asset and large-chunk warnings; `git diff --check` passed with only LF-to-CRLF working-copy warnings.
+- Browser notes: local browser verification on `http://127.0.0.1:5190/Archaeology-Dig-App/` confirmed Journey starts, movement requests random footstep SFX, Space requests jump/land SFX, J requests khopesh swing SFX, and all SFX files return successfully from the dev server.
+- Remaining risk: the sound choices are safe and working, but kid-facing feel still needs a quick listen/play pass to decide whether the mix should be more arcade-like, more modern, or more subtle.
+
+2026-05-14 update:
+- Added a main-menu Expedition music toggle that starts in the off state on a fresh app load.
+- Kept music opt-in only: Expedition music cues now stop/skip when the toggle is off, while short SFX still play normally.
+- The toggle lives in the existing `ActivityMenu` hero controls and uses the app-level `audioControls` path rather than adding a separate audio system.
+- Validation: `npm.cmd run lint`, `npm.cmd run build`, and `git diff --check` passed; Vite still reports the existing public-asset and large-chunk warnings, and Git still reports LF-to-CRLF working-copy warnings.
+- Browser notes: local browser verification confirmed the menu shows `Music Off` with `aria-pressed=false` by default, starting Expedition with music off made zero Expedition `.mp3` play calls, toggling to `Music On` changed `aria-pressed=true`, and then Expedition music started during the Journey flow with no console errors.
+- Remaining risk: no persistence was added for the music preference, so it intentionally resets to off on a page reload.
+
+2026-05-14 update:
+- Completed a Journey enemy/boss visual polish pass in the existing sprite render path.
+- Corrected sprite-facing logic so generated right-facing enemy sheets flip only when travelling/attacking left, while the Scarab Queen keeps its left-facing native orientation.
+- Re-grounded enemy and boss sprite draw boxes so live and defeated sprites sit more naturally on the floor.
+- Cleared hit-flash, stun, attack, vulnerability, shield, and knockback timers at enemy/boss defeat so defeated bodies use a still defeated frame instead of wobbling or flashing.
+- Repositioned normal enemy health bars from visible sprite bounds instead of the smaller collision box, and clamped enemy/boss health bars inside the canvas.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite public-asset and large-chunk warnings; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Browser notes: local browser screenshots confirmed the Egypt Journey opens, visible scarab enemy floor alignment/facing improved, Scarab Queen intro/domain still triggers, and no console errors appeared.
+- Remaining risk: automated defeat input did not reliably land a hit on a moving scarab during this pass, so a short manual fight check is still useful for feel, but the defeated-state timer cleanup is in the canonical update path.

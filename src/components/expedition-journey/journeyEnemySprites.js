@@ -285,6 +285,8 @@ export const getEnemySpriteFrame = (enemy, combatMode, now = 0) => {
   return `${family}Idle`;
 };
 
+export const shouldFlipEnemySprite = (_family, facing = 1) => facing < 0;
+
 export const getEnemySpriteDrawBox = (enemy, screenX, shakeX = 0, combatMode = null) => {
   const family = getEnemySpriteFamily(enemy);
   if (!family) return null;
@@ -302,15 +304,17 @@ export const getEnemySpriteDrawBox = (enemy, screenX, shakeX = 0, combatMode = n
 
   const width = Math.max(enemy.width, enemy.width * scale);
   const height = Math.max(enemy.height, enemy.height * scale);
-  const anchorLift = defeated
-    ? (family === 'bat' ? -enemy.height * 0.04 : enemy.height * 0.02)
-    : family === 'bat'
-      ? -enemy.height * 0.24
-      : family === 'looter' || family === 'looterCaptain' || family === 'cursedStatue' || family === 'stoneGuardianEnemy'
-        ? enemy.height * 0.02
-      : enemy.height * 0.08;
+  const groundOffset = {
+    scarab: defeated ? 10 : 8,
+    snake: defeated ? 12 : 10,
+    bat: defeated ? 4 : -8,
+    looter: defeated ? 16 : 11,
+    looterCaptain: defeated ? 16 : 11,
+    cursedStatue: defeated ? 14 : 9,
+    stoneGuardianEnemy: defeated ? 14 : 9,
+  }[family] ?? 8;
   const x = screenX + enemy.width / 2 - width / 2 + shakeX;
-  const y = enemy.y + enemy.height - height + anchorLift;
+  const y = enemy.y + enemy.height - height + groundOffset;
 
   return { x, y, width, height, family };
 };

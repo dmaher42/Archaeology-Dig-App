@@ -118,6 +118,7 @@ import {
   getStoneGuardianDrawBox,
   getStoneGuardianSpriteFrame,
   loadBossSpritePack,
+  shouldFlipBossSprite,
   STONE_GUARDIAN_SPRITE_ATLAS_JSON,
 } from './expedition-journey/journeyBossSprites';
 
@@ -131,6 +132,7 @@ import {
   getEnemySpritePack,
   getMissingEnemySpriteAssets,
   loadEnemySpritePack,
+  shouldFlipEnemySprite,
 } from './expedition-journey/journeyEnemySprites';
 
 import {
@@ -783,6 +785,8 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
   const bossSpriteAssetsRef = useRef(createBossSpriteState());
   const collectibleSpriteAssetsRef = useRef(createCollectibleSpriteState());
   const playerWeaponSpriteRef = useRef(createPlayerWeaponSpriteState());
+  const footstepTimerRef = useRef(0);
+  const wasGroundedRef = useRef(false);
 
   const syncHud = useCallback(() => {
     const nextState = { ...stateRef.current };
@@ -3178,19 +3182,20 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     if (!family) return false;
     const combatMode = getCombatMode(enemy);
     const frameKey = getEnemySpriteFrame(enemy, combatMode, now);
-    const drawBox = getEnemySpriteDrawBox(enemy, screenX, shakeX, combatMode);
+    const stableShakeX = enemy.defeated ? 0 : shakeX;
+    const drawBox = getEnemySpriteDrawBox(enemy, screenX, stableShakeX, combatMode);
     if (!frameKey || !drawBox) return false;
 
     const assets = enemySpriteAssetsRef.current;
     const spritePack = getEnemySpritePack(assets, family);
     if (!spritePack?.loaded || spritePack.failed) return false;
 
-    const centerX = screenX + enemy.width / 2 + shakeX;
+    const centerX = screenX + enemy.width / 2 + stableShakeX;
     const baseY = enemy.y + enemy.height;
     const facing = (enemy.attackTimer > 0 || enemy.attackWindup > 0)
       ? enemy.attackDirection
       : enemy.direction;
-    const shouldFlip = family === 'bat' ? facing < 0 : facing > 0;
+    const shouldFlip = shouldFlipEnemySprite(family, facing);
 
     ctx.save();
     const shadowWidth = family === 'bat' ? drawBox.width * 0.72 : drawBox.width * 0.78;
@@ -3240,7 +3245,8 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
 
   const drawLinkedEnemySprite = useCallback((ctx, enemy, screenX, now, shakeX = 0) => {
     const combatMode = getCombatMode(enemy);
-    const centerX = screenX + enemy.width / 2 + shakeX;
+    const stableShakeX = enemy.defeated ? 0 : shakeX;
+    const centerX = screenX + enemy.width / 2 + stableShakeX;
     const baseY = enemy.y + enemy.height;
     const facing = (enemy.attackTimer > 0 || enemy.attackWindup > 0)
       ? enemy.attackDirection
@@ -3261,7 +3267,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         width,
         height,
       };
-      const shouldFlip = facing > 0;
+      const shouldFlip = shouldFlipBossSprite(bossId, facing);
       ctx.save();
       drawContactShadow(ctx, centerX, baseY + 3, width * 0.74, enemy.defeated ? 0.12 : 0.24, 1);
       if (enemy.defeated) ctx.globalAlpha = 0.82;
@@ -3300,7 +3306,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       const drawWidth = PLAYER_SPRITE_FRAME_WIDTH * (drawHeight / PLAYER_SPRITE_FRAME_HEIGHT);
       const drawX = centerX - drawWidth / 2;
       const drawY = baseY - drawHeight + (enemy.defeated ? 8 : 0);
-      const shouldFlip = facing > 0;
+      const shouldFlip = shouldFlipEnemySprite('looter', facing);
       ctx.save();
       drawContactShadow(ctx, centerX, baseY + 3, drawWidth * 0.56, enemy.defeated ? 0.11 : 0.2, 1);
       ctx.filter = enemy.hitFlash > 0
@@ -3362,7 +3368,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     const facing = (boss.attackTimer > 0 || boss.attackWindup > 0)
       ? boss.attackDirection
       : boss.direction;
-    const shouldFlip = facing > 0;
+    const shouldFlip = shouldFlipBossSprite(boss.id, facing);
     const centerX = screenX + boss.width / 2;
     const baseY = boss.y + boss.height;
     const visualScale = boss.visualScale || 1;
@@ -3422,6 +3428,19 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
 
     return drawn;
   }, [drawContactShadow, drawGroundDustLip, getCombatMode]);
+
+  const getBossVisibleDrawBox = useCallback((boss, screenX) => {
+    if (boss.id === 'ancient-construct') return getAncientConstructDrawBox(boss, screenX);
+    if (boss.id === 'temple-guardian') return getStoneGuardianDrawBox(boss, screenX);
+    if (boss.id === 'giant-serpent') return getGiantSerpentDrawBox(boss, screenX);
+    if (boss.id === 'scarab-queen') return getScarabQueenDrawBox(boss, screenX);
+    return {
+      x: screenX,
+      y: boss.y,
+      width: boss.width,
+      height: boss.height,
+    };
+  }, []);
 
   const drawMiniBoss = useCallback((ctx, boss, screenX, now) => {
     const pulse = Math.sin(now / 400) * 0.12 + 0.88;
@@ -3542,10 +3561,12 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       ctx.fill();
     }
 
-    const barWidth = boss.awakened ? Math.max(132, boss.width + 96) : boss.width + 20;
+    const visibleBox = getBossVisibleDrawBox(boss, screenX);
+    const healthCenterX = visibleBox.x + visibleBox.width / 2;
+    const barWidth = boss.awakened ? Math.max(132, visibleBox.width * 0.78) : Math.max(boss.width + 20, visibleBox.width * 0.55);
     const barHeight = boss.awakened ? 12 : 8;
-    const barX = cx - barWidth / 2;
-    const barY = boss.y - (boss.awakened ? 44 : 25);
+    const barX = clamp(healthCenterX - barWidth / 2, 18, CANVAS_WIDTH - barWidth - 18);
+    const barY = Math.max(18, visibleBox.y - (boss.awakened ? 36 : 16));
     ctx.shadowBlur = 0;
     if (boss.awakened) {
       ctx.fillStyle = 'rgba(15, 23, 42, 0.78)';
@@ -3557,7 +3578,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       ctx.fillStyle = '#fef3c7';
       ctx.font = '900 10px Outfit, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(`GUARDIAN - ${boss.name}`.toUpperCase(), cx, barY - 7);
+      ctx.fillText(`GUARDIAN - ${boss.name}`.toUpperCase(), healthCenterX, barY - 7);
     }
     ctx.fillStyle = 'rgba(0,0,0,0.62)';
     ctx.roundRect(barX, barY, barWidth, barHeight, 5);
@@ -3582,7 +3603,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     }
 
     ctx.restore();
-  }, [drawBossSprite, drawSmallEnemySprite, getBossVulnerabilityState]);
+  }, [drawBossSprite, drawSmallEnemySprite, getBossVisibleDrawBox, getBossVulnerabilityState]);
 
   const drawAttackArc = useCallback((ctx, box, cameraX, direction, color = '#facc15') => {
     if (!box) return;
@@ -4042,10 +4063,20 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       
       // Health Bar (Small)
       if (!enemy.defeated && enemy.health > 1) {
+        const enemyDrawBox = getEnemySpriteDrawBox(enemy, ex, 0, getCombatMode(enemy)) || {
+          x: ex,
+          y: enemy.y,
+          width: enemy.width,
+          height: enemy.height,
+        };
+        const enemyBarWidth = Math.max(34, enemyDrawBox.width * 0.56);
+        const enemyBarX = clamp(enemyDrawBox.x + enemyDrawBox.width / 2 - enemyBarWidth / 2, 10, CANVAS_WIDTH - enemyBarWidth - 10);
+        const enemyBarY = Math.max(18, enemyDrawBox.y - 9);
+        const enemyHealthRatio = clamp(enemy.health / enemy.maxHealth, 0, 1);
         ctx.fillStyle = 'rgba(0,0,0,0.5)';
-        ctx.fillRect(ex, enemy.y - 12, enemy.width, 4);
+        ctx.fillRect(enemyBarX, enemyBarY, enemyBarWidth, 4);
         ctx.fillStyle = '#ef4444';
-        ctx.fillRect(ex, enemy.y - 12, (enemy.health / 2) * enemy.width, 4);
+        ctx.fillRect(enemyBarX, enemyBarY, enemyHealthRatio * enemyBarWidth, 4);
       }
 
       ctx.restore();
@@ -4248,7 +4279,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       ctx.fillText(featureCard.message || '', 450, isGuardianCard ? 140 : 135);
       ctx.textAlign = 'start';
     }
-  }, [drawAttackArc, drawCollectible, drawCombatEffects, drawContactShadow, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawEnemyAttackTell, drawGroundDustLip, drawHazard, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawParticles, drawPlatform, drawRouteGate, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStoryProp, drawTempleBackdrop, getGateGuidance, getGateRequirements, getPlayerAttackState, drawPlayerSprite, drawFieldNoteLabel]);
+  }, [drawAttackArc, drawCollectible, drawCombatEffects, drawContactShadow, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawEnemyAttackTell, drawGroundDustLip, drawHazard, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawParticles, drawPlatform, drawRouteGate, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStoryProp, drawTempleBackdrop, getCombatMode, getGateGuidance, getGateRequirements, getPlayerAttackState, drawPlayerSprite, drawFieldNoteLabel]);
 
   const queueAttack = useCallback(() => {
     const current = stateRef.current;
@@ -4365,10 +4396,12 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         player.vy = -JUMP_SPEED;
         player.onGround = false;
         player.airJumpsUsed = 0;
+        audioControls?.playExpeditionSfx?.('jump');
         audioControls?.playJump?.();
       } else if (current.collectedUpgrades.has('rope-launcher') && player.airJumpsUsed < 1) {
         player.vy = -JUMP_SPEED * 0.85;
         player.airJumpsUsed += 1;
+        audioControls?.playExpeditionSfx?.('jump', { volume: 0.8, playbackRate: 1.08 });
         audioControls?.playJump?.();
       }
     }
@@ -4395,6 +4428,20 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         player.onGround = true;
       }
     });
+
+    if (player.onGround && !wasGroundedRef.current) {
+      audioControls?.playExpeditionSfx?.('land');
+    }
+    if (player.onGround && Math.abs(player.vx) > 20) {
+      footstepTimerRef.current -= dt;
+      if (footstepTimerRef.current <= 0) {
+        audioControls?.playExpeditionSfx?.('footstepSand');
+        footstepTimerRef.current = 0.34;
+      }
+    } else {
+      footstepTimerRef.current = 0;
+    }
+    wasGroundedRef.current = player.onGround;
 
     // Sections
     const section = getSectionForX(player.x);
@@ -4437,6 +4484,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         const tool = JOURNEY_TOOLS.find(t => t.id === toolPos.id);
         current.fieldKit.push(tool);
         current.notice = `Field tool recovered: ${tool.name}. Report to Base Camp for registration.`;
+        audioControls?.playExpeditionSfx?.('pickupTool');
         audioControls?.playExpeditionStinger?.('evidenceDiscovery');
         audioControls?.playMatch?.();
       }
@@ -4446,6 +4494,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       if (!current.collectedShardIds.has(shard.id) && rectsOverlap(player, { ...shard, width: 24, height: 24 })) {
         current.collectedShardIds.add(shard.id);
         current.relicShardCount += 1;
+        audioControls?.playExpeditionSfx?.('pickupShard');
         audioControls?.playSuccess?.();
       }
     });
@@ -4454,6 +4503,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       if (!current.collectedUpgrades.has(u.id) && rectsOverlap(player, { ...u, width: 36, height: 36 })) {
         current.collectedUpgrades.add(u.id);
         current.notice = `Field Upgrade: ${u.name}. ${u.effect}`;
+        audioControls?.playExpeditionSfx?.('pickupUpgrade');
         audioControls?.playLevelUp?.();
       }
     });
@@ -4530,6 +4580,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
             color: staminaLoss ? '#ef4444' : '#f59e0b',
           });
           current.notice = `${visual.message || h.message}${staminaLoss ? ` -${staminaLoss} stamina.` : timeLoss ? ` -${timeLoss} seconds.` : ''}`;
+          audioControls?.playExpeditionSfx?.('playerHit', { volume: 0.85 });
           audioControls?.playError?.();
           if (current.resources.stamina <= 0) triggerJourneyRescue('Team stamina exhausted. Rescue dispatched.');
         }
@@ -4550,6 +4601,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       current.lastAttackResult = 'started';
       current.shieldedHitFeedback = '';
       applyAttackStaminaCost(PLAYER_ATTACK_STAMINA_COST, 'Attack swing');
+      audioControls?.playExpeditionSfx?.('attackSwing');
       audioControls?.playAction?.();
     }
     if (current.attackTimer > 0) {
@@ -4581,6 +4633,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         direction,
         color: '#f87171',
       });
+      audioControls?.playExpeditionSfx?.('playerHit');
       audioControls?.playError?.();
       if (current.resources.stamina <= 0) triggerJourneyRescue(message);
     };
@@ -4671,6 +4724,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
             color: '#7dd3fc',
           });
           current.notice = `${e.name} blocked the rushed hit. Wait for an opening.`;
+          audioControls?.playExpeditionSfx?.('gateBlocked', { volume: 0.7, playbackRate: 1.15 });
           return;
         }
         e.health -= 1;
@@ -4700,8 +4754,19 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
           direction: player.direction,
           color: e.health <= 0 ? '#facc15' : '#7dd3fc',
         });
+        audioControls?.playExpeditionSfx?.('enemyHit');
         if (e.health <= 0) {
           e.defeated = true;
+          e.hitFlash = 0;
+          e.stunTimer = 0;
+          e.attackWindup = 0;
+          e.attackTimer = 0;
+          e.attackReady = false;
+          e.attackRecovery = 0;
+          e.vulnerabilityTimer = 0;
+          e.shieldTimer = 0;
+          e.knockbackTimer = 0;
+          e.knockbackDirection = 0;
           current.defeatedEnemies.add(e.id);
           current.relicShardCount += e.shards;
           current.notice = `${e.name} defeated. +${e.shards} shards.`;
@@ -4847,6 +4912,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
           y: b.y + b.height / 2,
           color: phase.color || '#fb923c',
         });
+        audioControls?.playExpeditionSfx?.('bossWarning');
         audioControls?.playAction?.();
         current.notice = `${b.name} telegraphs ${phase.label}. Watch, dodge, then counter.`;
       }
@@ -4904,6 +4970,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
             color: '#7dd3fc',
           });
           current.notice = `${b.name} blocked the rushed hit. Wait for the counter window.`;
+          audioControls?.playExpeditionSfx?.('gateBlocked', { volume: 0.75, playbackRate: 0.9 });
           return;
         }
         b.health -= (b.playerDamageMultiplier || 1);
@@ -4933,9 +5000,20 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
           direction: player.direction,
           color: b.health <= 0 ? '#facc15' : '#fb923c',
         });
+        audioControls?.playExpeditionSfx?.('enemyHit', { volume: b.health <= 0 ? 1.2 : 1 });
         current.notice = `${b.name} staggered.`;
         if (b.health <= 0) {
           b.defeated = true;
+          b.hitFlash = 0;
+          b.stunTimer = 0;
+          b.attackWindup = 0;
+          b.attackTimer = 0;
+          b.attackReady = false;
+          b.attackRecovery = 0;
+          b.vulnerabilityTimer = 0;
+          b.shieldTimer = 0;
+          b.knockbackTimer = 0;
+          b.knockbackDirection = 0;
           current.defeatedMiniBosses.add(b.id);
           if (current.guardianBattleModifiers?.[b.id]) {
             current.guardianBattleModifiers = { ...current.guardianBattleModifiers };
@@ -4984,10 +5062,12 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         if (!guidance.activeGateLocked) {
           current.openedRouteGateIds.add(g.id);
           current.notice = `${g.name} opened.`;
+          audioControls?.playExpeditionSfx?.('gateUnlock');
           audioControls?.playExpeditionStinger?.('gateUnlock');
         } else {
           player.x = g.x - player.width - 5;
           current.notice = guidance.notice;
+          audioControls?.playExpeditionSfx?.('gateBlocked');
         }
       }
     });

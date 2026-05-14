@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pickaxe, MapPin, FileText, Dice5, ChevronLeft, Compass } from 'lucide-react';
+import { Pickaxe, MapPin, FileText, Dice5, ChevronLeft, Compass, Volume2, VolumeX } from 'lucide-react';
 import { SCENARIOS } from '../data';
 import { WorldMap } from './WorldMap';
 import { PLAYER_SPRITE_SRC } from './expedition-journey/journeyConstants';
@@ -38,7 +38,9 @@ export function ActivityMenu({
   savedGames, 
   onResumeInvestigation, 
   onResumeBureau,
-  onSiteSelectionChange = () => {}
+  onSiteSelectionChange = () => {},
+  expeditionMusicEnabled = false,
+  onExpeditionMusicToggle = () => {}
 }) {
   const [showCivSelection, setShowCivSelection] = useState(false);
   const [hoveredId, setHoveredId] = useState(null);
@@ -162,6 +164,16 @@ export function ActivityMenu({
         <div className="menu-save-note" role="note">
           Save/load unlocks after a mission starts.
         </div>
+        <button
+          type="button"
+          className={`menu-music-toggle ${expeditionMusicEnabled ? 'is-on' : 'is-off'}`}
+          onClick={onExpeditionMusicToggle}
+          aria-pressed={expeditionMusicEnabled}
+          aria-label={`Expedition music ${expeditionMusicEnabled ? 'on' : 'off'}`}
+        >
+          {expeditionMusicEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+          <span>Music {expeditionMusicEnabled ? 'On' : 'Off'}</span>
+        </button>
         <div className="menu-hero-art" aria-hidden="true">
           <div className="menu-hero-sun" />
           <div

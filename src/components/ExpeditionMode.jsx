@@ -1447,8 +1447,10 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       setNotice(`${token.name} added to your evidence satchel. +${investigationBonus} investigation points.`);
       if (missionEvidenceCount + 1 >= missionRequiredCount) {
         setNotice('You have enough evidence to support your claim. Return to the exit point.');
+        audioControls.playExpeditionSfx?.('gateUnlock');
         audioControls.playExpeditionStinger?.('gateUnlock');
       }
+      audioControls.playExpeditionSfx?.('pickupTool');
       audioControls.playExpeditionStinger?.('evidenceDiscovery');
       audioControls.playMatch?.();
     } else {
@@ -1470,6 +1472,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         text: `${activeMission.mismatchFeedback} Excavation method: ${token.excavationMethodName}. Evidence quality: ${token.evidenceQuality}.${toolFeedback ? ` ${toolFeedback}` : ''}`,
       });
       setNotice(`${token.name} added to your evidence satchel.`);
+      audioControls.playExpeditionSfx?.('pickupShard');
       audioControls.playError?.();
     }
     if (fieldKitEffects.notebookReady) {
@@ -2008,6 +2011,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         hazardCooldownRef.current[hazard.id] = 2.5;
         syncResources(hazard.penalty);
         setNotice(hazard.message);
+        audioControls.playExpeditionSfx?.('playerHit');
         audioControls.playError?.();
       }
     });
@@ -2042,6 +2046,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
           playerRef.current = pushed;
         }
         setNotice(guardian.message);
+        audioControls.playExpeditionSfx?.('playerHit');
         audioControls.playError?.();
       }
     });
@@ -2073,8 +2078,13 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         lockedRef.current = true;
         setClaimOpen(true);
         setNotice('Exit Gate reached. Make your final claim.');
+        audioControls.playExpeditionSfx?.('gateUnlock');
       } else {
         setNotice(activeMission.gateRequirement);
+        if (!hazardCooldownRef.current.exitGateBlocked) {
+          hazardCooldownRef.current.exitGateBlocked = 1.6;
+          audioControls.playExpeditionSfx?.('gateBlocked');
+        }
       }
     }
 
