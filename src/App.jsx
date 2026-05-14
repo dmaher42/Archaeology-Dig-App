@@ -1,17 +1,26 @@
-import { useState, useEffect, useMemo, useReducer } from 'react';
+import { lazy, Suspense, useState, useEffect, useMemo, useReducer } from 'react';
 import './index.css';
 
 // Components
 import { ActivityMenu } from './components/Menu';
 import { TrainingPhase } from './components/TrainingPhase';
-import { DigPhase } from './components/DigPhase';
 import { SortPhase } from './components/SortPhase';
 import { LabPhase } from './components/LabPhase';
 import { MuseumPhase } from './components/MuseumPhase';
 import { ReportPhase } from './components/ReportPhase';
-import { BureauMode } from './components/BureauMode';
-import { ExpeditionMode } from './components/ExpeditionMode';
 import { DevTools } from './components/DevTools';
+
+const DigPhase = lazy(() => import('./components/DigPhase').then((module) => ({
+  default: module.DigPhase,
+})));
+
+const BureauMode = lazy(() => import('./components/BureauMode').then((module) => ({
+  default: module.BureauMode,
+})));
+
+const ExpeditionMode = lazy(() => import('./components/ExpeditionMode').then((module) => ({
+  default: module.ExpeditionMode,
+})));
 
 // Utilities & Data
 import { 
@@ -282,6 +291,17 @@ const playTone = (freq, type = 'sine', duration = 0.5, vol = 0.2) => {
 
 const baseAudioControls = { initAudio, playFlip, playMatch, playError, playWin, playTone, playExpeditionMusic, stopExpeditionMusic, playExpeditionStinger, playExpeditionSfx, unlockExpeditionSfx };
 
+function ModeLoadingFallback({ label = 'Loading activity...' }) {
+  return (
+    <section className="phase-container mode-loading-phase">
+      <div className="mode-loading-card glass-card">
+        <div className="mode-loading-kicker">Preparing</div>
+        <div className="mode-loading-title">{label}</div>
+      </div>
+    </section>
+  );
+}
+
 function loadAutosave() {
   try {
     const raw = window.localStorage.getItem(AUTOSAVE_KEY);
@@ -505,21 +525,23 @@ export default function App() {
         )}
 
         {phase === 'dig' && currentEvent && (
-          <DigPhase 
-            activeArtifacts={activeArtifacts} 
-            excavatedIds={excavatedIds} 
-            setExcavatedIds={setExcavatedIds} 
-            onComplete={(recoveredArtifacts, recoveryConditions = {}, recoverySummary = null) => {
-              setActiveArtifacts(recoveredArtifacts);
-              setEvidenceConditions(recoveryConditions);
-              setDigRecoverySummary(recoverySummary);
-              setItemsLocation(recoveredArtifacts.reduce((acc, a) => ({ ...acc, [a.id]: 'inventory' }), {}));
-              setPhase('sort');
-            }} 
-            currentEvent={currentEvent} 
-            onBackToMenu={() => setPhase('menu')}
-            audioControls={audioControls}
-          />
+          <Suspense fallback={<ModeLoadingFallback label="Loading dig site..." />}>
+            <DigPhase
+              activeArtifacts={activeArtifacts}
+              excavatedIds={excavatedIds}
+              setExcavatedIds={setExcavatedIds}
+              onComplete={(recoveredArtifacts, recoveryConditions = {}, recoverySummary = null) => {
+                setActiveArtifacts(recoveredArtifacts);
+                setEvidenceConditions(recoveryConditions);
+                setDigRecoverySummary(recoverySummary);
+                setItemsLocation(recoveredArtifacts.reduce((acc, a) => ({ ...acc, [a.id]: 'inventory' }), {}));
+                setPhase('sort');
+              }}
+              currentEvent={currentEvent}
+              onBackToMenu={() => setPhase('menu')}
+              audioControls={audioControls}
+            />
+          </Suspense>
         )}
 
         {phase === 'sort' && (
@@ -587,19 +609,23 @@ export default function App() {
         )}
 
         {phase === 'expedition' && (
-          <ExpeditionMode
-            onBackToMenu={handleBackToMenu}
-            audioControls={audioControls}
-          />
+          <Suspense fallback={<ModeLoadingFallback label="Loading expedition..." />}>
+            <ExpeditionMode
+              onBackToMenu={handleBackToMenu}
+              audioControls={audioControls}
+            />
+          </Suspense>
         )}
 
         {phase.startsWith('bureau') && (
-          <BureauMode 
-            bureauState={bureauState} 
-            setBureauState={setBureauState} 
-            onBackToMenu={() => setPhase('menu')} 
-            audioControls={audioControls}
-          />
+          <Suspense fallback={<ModeLoadingFallback label="Loading bureau case..." />}>
+            <BureauMode
+              bureauState={bureauState}
+              setBureauState={setBureauState}
+              onBackToMenu={() => setPhase('menu')}
+              audioControls={audioControls}
+            />
+          </Suspense>
         )}
       </main>
 

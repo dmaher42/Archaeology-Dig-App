@@ -1217,3 +1217,42 @@ Remaining notes:
 - Egypt regression notes: Ancient Egypt Journey still loads the desert temple environment, reports active civilisation `Ancient Egypt`, shows `scarab` enemies and Egypt boss names (`Scarab Queen`, `Stone Guardian`, `Giant Serpent`), with enemy/boss fallback inactive and no console errors.
 - Tooling note: the `develop-web-game` helper still fails with `ERR_MODULE_NOT_FOUND: Cannot find package 'playwright'` from the user skill folder, so browser verification used the repo-available Playwright path.
 - Remaining risks/follow-up tasks: China now has unique regular mobs and a shared clay guardian boss sprite family, but full classroom polish still needs China-specific Journey objective/gate copy, China-specific Guardian Knowledge questions, China collectible/relic sprites, later guardian visual variants beyond the shared clay guardian atlas, and a full natural no-dev-jump China playthrough through Journey, Base Camp, excavation, evidence, and final claim.
+
+2026-05-15 follow-up:
+- Refined the Archaeologist Training layout for focus and screen density after classroom-use feedback.
+- Collapsed the large header into a slim orientation strip with title, short instruction, progress, and Back to Menu on one row.
+- Removed the duplicate ordering header and removed the in-play feedback panel so students see only the stage cards, drop targets, progress badge, and menu action while working.
+- Changed the five drop targets from narrow vertical columns into five wide notebook rows, making each target closer to the shape of the draggable stage cards and reducing hesitation about where to drop.
+- Kept completion lightweight: `5/5 correct`, green `In place` labels, and confetti confirm success without adding a large bottom panel.
+- No drag/drop logic, correct order, scoring, dependencies, or navigation behaviour was intentionally changed.
+- Validation: `npm.cmd run lint`, `npm.cmd run build`, and `git diff --check` passed; build still reports the existing Vite public-asset runtime warnings and large bundle warning.
+- Browser notes: local browser verification at 1280x720 confirmed the slim header, all five stage cards, all five wide drop rows visible on the first screen, successful Survey/Grid/Excavate/Map/Lab drag order, `5/5 correct`, Back to Menu behaviour, and no console errors.
+- Remaining layout risk: the wide row layout is tuned for normal laptop/projector widths; narrow windows fall back to stacked layout and may still require scrolling.
+
+2026-05-15 follow-up:
+- Darkened the Archaeologist Training activity after the first compact pass still read too bright/white.
+- Replaced the pale header with a compact dark HUD strip and removed the instruction sentence from the header to save vertical space.
+- Shifted the card tray, stage cards, and drop rows from white parchment toward warmer tan/dossier colours so the screen feels less like a worksheet.
+- Kept the wide row drop targets, progress badge, Back to Menu action, correct order, scoring, and drag/drop behaviour unchanged.
+- Browser notes: refreshed the LocalCodex dev server on port 5173, confirmed the darker compact UI is visible, dragged all five cards into order, reached `5/5 correct`, and found no console errors.
+
+2026-05-15 follow-up:
+- Fixed the Archaeologist Training screen opening at a carried-over scroll position from the menu, which could hide the compact top HUD strip on first entry.
+- Added a narrow mount-time scroll reset inside the existing `TrainingPhase.jsx` component so the current Training activity opens at the top without changing the app shell or drag/drop system.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset and large bundle warnings.
+- Browser notes: verified the scrolled-menu-to-Start-Training path now opens with the Training HUD visible, then dragged Survey, Grid, Excavate, Map, and Lab into order and reached `5/5 correct`.
+
+2026-05-15 follow-up:
+- Added the first safe bundle split by lazy-loading the existing `ExpeditionMode` branch from `src/App.jsx` with `React.lazy` and `Suspense`.
+- Kept the current app shell, phase system, ExpeditionMode, ExpeditionJourney, save/load, Bureau, inventory, evidence, and gameplay logic unchanged.
+- Added a small dossier-style loading fallback for the Expedition chunk.
+- Bundle comparison: before split, production build emitted `index-5l6dWpyB.js` at 750.72 kB / 216.11 kB gzip and showed Vite's large-chunk warning; after split, production build emitted `index-DQtsmO5R.js` at 437.25 kB / 132.52 kB gzip plus `ExpeditionMode-CXIxc3YD.js` at 315.26 kB / 84.71 kB gzip, with the large-chunk warning gone.
+- Validation: `npm.cmd run lint`, `npm.cmd run build`, and `git diff --check` passed; diff check only reported the usual LF-to-CRLF working-copy warnings.
+- Browser notes: local smoke tests confirmed the main menu opens, Training opens and returns to menu, Lost Site Expedition opens through the lazy chunk, Ancient China Expedition opens to its mission briefing, the ordinary Ancient China investigation route opens to the dig setup modal, Bureau opens, and no browser console warnings/errors were reported during the final check.
+
+2026-05-15 follow-up:
+- Extended the same narrow lazy-loading pattern to the next large mode components imported by `src/App.jsx`: `DigPhase` and `BureauMode`.
+- Preserved the existing App phase/mode system and kept all Dig, Bureau, Expedition, save/load, inventory, evidence, and gameplay logic in their current components.
+- Bundle comparison after this pass: production build emitted `index-BobaB1xb.js` at 308.41 kB / 95.20 kB gzip, `ExpeditionMode-DooiEOa1.js` at 315.38 kB / 84.76 kB gzip, `DigPhase-CqqZbwpV.js` at 27.06 kB / 8.51 kB gzip, `BureauMode-CP5tuuRa.js` at 24.04 kB / 6.17 kB gzip, and a shared `gameLogic-C8uO50mE.js` chunk at 78.16 kB / 25.43 kB gzip.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing runtime-public-asset warnings only.
+- Browser notes: local smoke tests confirmed main menu, Training, Expedition, Dig setup, and Bureau all open through the current app flow with no browser console warnings/errors.

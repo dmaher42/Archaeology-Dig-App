@@ -94,6 +94,35 @@ body {
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
 }
 
+.mode-loading-phase {
+  min-height: 100%;
+  justify-content: center;
+  align-items: center;
+}
+
+.mode-loading-card {
+  display: grid;
+  gap: 0.35rem;
+  width: min(100%, 28rem);
+  padding: 1rem 1.15rem;
+  text-align: center;
+}
+
+.mode-loading-kicker {
+  color: var(--accent-stamp);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mode-loading-title {
+  color: var(--text-ink);
+  font-family: 'Cinzel', serif;
+  font-size: clamp(1.1rem, 2vw, 1.45rem);
+  font-weight: 800;
+}
+
 .premium-text-glow {
   font-family: 'Cinzel', serif;
   text-transform: uppercase;
@@ -1404,14 +1433,14 @@ main {
 }
 
 .training-phase {
-  gap: 0.65rem;
+  gap: 0.4rem;
   min-height: 0;
-  padding-block: 0.65rem 0.8rem;
+  padding-block: 0.28rem 0.42rem;
   background:
-    linear-gradient(90deg, rgba(232, 158, 93, 0.08) 1px, transparent 1px),
-    linear-gradient(0deg, rgba(232, 158, 93, 0.06) 1px, transparent 1px),
-    radial-gradient(circle at 12% 0%, rgba(232, 158, 93, 0.13), transparent 32%),
-    linear-gradient(135deg, rgba(41, 29, 17, 0.72), rgba(18, 13, 8, 0.88));
+    linear-gradient(90deg, rgba(197, 137, 74, 0.08) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(197, 137, 74, 0.06) 1px, transparent 1px),
+    radial-gradient(circle at 12% 0%, rgba(124, 74, 32, 0.16), transparent 32%),
+    linear-gradient(135deg, rgba(36, 25, 15, 0.94), rgba(12, 9, 6, 0.96));
   background-size: 42px 42px, 42px 42px, auto, auto;
 }
 
@@ -1421,15 +1450,14 @@ main {
 .training-summary {
   position: relative;
   overflow: hidden;
-  padding: 0.88rem 1rem;
+  padding: 0.58rem 0.68rem;
   border-radius: 10px;
   border: 1px solid rgba(168, 134, 97, 0.62);
   background:
-    linear-gradient(90deg, rgba(80, 51, 24, 0.08) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.65), rgba(244, 236, 225, 0.94)),
-    var(--paper);
+    linear-gradient(90deg, rgba(80, 51, 24, 0.09) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(235, 211, 176, 0.96), rgba(203, 169, 122, 0.96));
   background-size: 32px 32px, auto, auto;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.32), inset 0 0 0 1px rgba(255, 255, 255, 0.68);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.36), inset 0 0 0 1px rgba(255, 244, 220, 0.35);
   color: var(--text-ink);
 }
 
@@ -1472,16 +1500,23 @@ main {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-  padding-block: 0.78rem;
+  gap: 0.55rem;
+  flex-wrap: nowrap;
+  min-height: 38px;
+  padding: 0.28rem 0.58rem;
+  border-color: rgba(168, 134, 97, 0.52);
+  background:
+    linear-gradient(90deg, rgba(232, 158, 93, 0.1) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(40, 29, 17, 0.98), rgba(24, 17, 10, 0.98));
+  color: var(--sand-100);
 }
 
 .training-hero-copy {
-  display: grid;
-  gap: 0.3rem;
-  min-width: min(100%, 420px);
-  flex: 1 1 420px;
+  display: flex;
+  align-items: baseline;
+  gap: 0.65rem;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .training-kicker,
@@ -1496,18 +1531,20 @@ main {
 
 .training-hero-copy h2 {
   margin: 0;
-  color: var(--text-ink);
+  color: var(--sand-100);
   font-family: 'Cinzel', serif;
-  font-size: clamp(1.35rem, 2vw, 1.8rem);
+  font-size: clamp(0.92rem, 1.12vw, 1.08rem);
   line-height: 1.1;
+  white-space: nowrap;
 }
 
 .training-hero-copy p {
   margin: 0;
   max-width: 54ch;
   color: var(--text-ink-muted);
-  line-height: 1.45;
-  font-size: 0.95rem;
+  line-height: 1.2;
+  font-size: 0.9rem;
+  white-space: nowrap;
 }
 
 .training-hero-actions,
@@ -1515,14 +1552,14 @@ main {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.65rem;
-  flex-wrap: wrap;
+  gap: 0.45rem;
+  flex-wrap: nowrap;
 }
 
 .training-layout {
   display: grid;
-  grid-template-columns: minmax(320px, 1fr) minmax(0, 1.4fr);
-  gap: 0.9rem;
+  grid-template-columns: minmax(310px, 0.78fr) minmax(0, 1.5fr);
+  gap: 0.5rem;
   align-items: start;
   min-height: 0;
 }
@@ -1532,7 +1569,7 @@ main {
 .training-summary {
   display: flex;
   flex-direction: column;
-  gap: 0.62rem;
+  gap: 0.42rem;
   min-height: 0;
 }
 
@@ -1565,36 +1602,36 @@ main {
 .training-progress {
   flex: 0 0 auto;
   display: grid;
-  gap: 0.12rem;
-  min-width: 122px;
-  padding: 0.42rem 0.72rem 0.46rem;
+  gap: 0.05rem;
+  min-width: 94px;
+  padding: 0.24rem 0.5rem 0.28rem;
   border-radius: 8px;
-  border: 1px solid rgba(123, 75, 34, 0.34);
-  background: linear-gradient(180deg, rgba(255, 248, 230, 0.92), rgba(212, 188, 163, 0.34));
-  color: #5d381c;
+  border: 1px solid rgba(232, 158, 93, 0.36);
+  background: linear-gradient(180deg, rgba(82, 55, 29, 0.92), rgba(43, 29, 17, 0.96));
+  color: var(--sand-100);
   font-size: 0.76rem;
   font-weight: 800;
   white-space: nowrap;
   text-align: right;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.62), 0 4px 10px rgba(80, 51, 24, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(255, 231, 190, 0.08), 0 4px 10px rgba(0, 0, 0, 0.22);
 }
 
 .training-progress-label {
-  color: var(--text-ink-muted);
-  font-size: 0.6rem;
+  color: var(--sand-300);
+  font-size: 0.55rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .training-progress strong {
-  color: #673a18;
-  font-size: 0.9rem;
+  color: var(--sand-100);
+  font-size: 0.82rem;
   line-height: 1;
 }
 
 .training-tray-list {
   display: grid;
-  gap: 0.55rem;
+  gap: 0.42rem;
 }
 
 .training-stage-card {
@@ -1602,12 +1639,13 @@ main {
   align-items: center;
   gap: 0.8rem;
   width: 100%;
-  padding: 0.68rem 0.78rem;
+  min-height: 78px;
+  padding: 0.62rem 0.7rem;
   border-radius: 10px;
   border: 1px solid rgba(94, 63, 31, 0.28);
   background:
-    linear-gradient(90deg, rgba(123, 75, 34, 0.08) 1px, transparent 1px),
-    linear-gradient(180deg, #fff7e5, #e8d7bf);
+    linear-gradient(90deg, rgba(83, 52, 25, 0.08) 1px, transparent 1px),
+    linear-gradient(180deg, #ead6b7, #d1ad79);
   background-size: 24px 24px, auto;
   box-shadow: 0 7px 14px rgba(80, 51, 24, 0.16), inset 3px 0 0 rgba(123, 75, 34, 0.42);
   color: var(--text-ink);
@@ -1629,18 +1667,18 @@ main {
 }
 
 .training-stage-card.compact {
-  padding: 0.56rem 0.62rem;
+  padding: 0.52rem 0.62rem;
   border-radius: 9px;
   gap: 0.5rem;
   background:
     linear-gradient(90deg, rgba(30, 60, 44, 0.08) 1px, transparent 1px),
-    linear-gradient(180deg, #fff8e8, #ead9c0);
+    linear-gradient(180deg, #e7d1ac, #cda66d);
   background-size: 22px 22px, auto;
   box-shadow: 0 5px 10px rgba(80, 51, 24, 0.14), inset 3px 0 0 rgba(34, 92, 60, 0.42);
 }
 
 .training-slot .training-stage-card.compact {
-  min-height: 62px;
+  min-height: 58px;
   align-items: center;
 }
 
@@ -1649,8 +1687,10 @@ main {
   height: 34px;
 }
 
-.training-stage-card.compact .training-stage-purpose {
-  display: none;
+.training-slot .training-stage-card.compact .training-stage-purpose {
+  display: block;
+  font-size: 0.76rem;
+  line-height: 1.22;
 }
 
 .training-stage-card.compact .training-stage-title {
@@ -1698,22 +1738,23 @@ main {
 
 .training-slots {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 0.55rem;
+  grid-template-columns: 1fr;
+  gap: 0.42rem;
   min-height: 0;
 }
 
 .training-slot {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  min-height: 112px;
-  padding: 0.48rem;
+  display: grid;
+  grid-template-columns: 4.6rem minmax(0, 1fr);
+  align-items: stretch;
+  gap: 0.5rem;
+  min-height: 76px;
+  padding: 0.46rem;
   border-radius: 10px;
   border: 1px dashed rgba(123, 75, 34, 0.42);
   background:
-    linear-gradient(90deg, rgba(80, 51, 24, 0.06) 1px, transparent 1px),
-    rgba(255, 250, 235, 0.56);
+    linear-gradient(90deg, rgba(77, 50, 25, 0.09) 1px, transparent 1px),
+    rgba(209, 174, 123, 0.62);
   background-size: 20px 20px;
   transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
 }
@@ -1727,8 +1768,8 @@ main {
 .training-slot.filled {
   border-style: solid;
   background:
-    linear-gradient(180deg, rgba(255, 253, 245, 0.82), rgba(232, 215, 191, 0.68)),
-    rgba(255, 250, 235, 0.8);
+    linear-gradient(180deg, rgba(226, 201, 159, 0.88), rgba(195, 153, 98, 0.76)),
+    rgba(209, 174, 123, 0.82);
 }
 
 .training-slot.is-correct {
@@ -1743,9 +1784,10 @@ main {
 
 .training-slot-label {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.35rem;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.2rem;
   color: #6a4527;
   font-size: 0.7rem;
   font-weight: 900;
@@ -1772,25 +1814,25 @@ main {
   display: grid;
   place-items: center;
   text-align: center;
-  min-height: 62px;
+  min-height: 58px;
   border-radius: 8px;
   border: 1px dashed rgba(123, 75, 34, 0.28);
-  background: rgba(255, 255, 255, 0.28);
-  color: #82603d;
+  background: rgba(92, 59, 28, 0.12);
+  color: #694421;
   font-size: 0.82rem;
   line-height: 1.35;
 }
 
 .training-summary {
-  padding-top: 0.62rem;
-  padding-bottom: 0.68rem;
+  padding-top: 0.42rem;
+  padding-bottom: 0.46rem;
 }
 
 .training-summary-copy {
   display: grid;
-  grid-template-columns: minmax(9rem, auto) 1fr auto;
+  grid-template-columns: minmax(8rem, auto) 1fr auto;
   align-items: center;
-  gap: 0.65rem;
+  gap: 0.5rem;
 }
 
 .training-summary-copy p,
@@ -1801,12 +1843,12 @@ main {
 .training-summary-copy p,
 .training-summary-note {
   color: var(--text-ink-muted);
-  font-size: 0.9rem;
-  line-height: 1.35;
+  font-size: 0.84rem;
+  line-height: 1.2;
 }
 
 .training-summary-note {
-  padding: 0.42rem 0.65rem;
+  padding: 0.3rem 0.56rem;
   border-radius: 8px;
   border: 1px solid rgba(123, 75, 34, 0.25);
   background: rgba(255, 248, 230, 0.76);
@@ -1897,17 +1939,20 @@ main {
 }
 
 .training-back-btn {
-  border-color: rgba(123, 75, 34, 0.34) !important;
-  background: rgba(255, 248, 230, 0.88) !important;
-  color: #5d381c !important;
-  box-shadow: inset 0 -2px 0 rgba(123, 75, 34, 0.12), 0 5px 14px rgba(80, 51, 24, 0.12);
+  border-color: rgba(232, 158, 93, 0.38) !important;
+  background: rgba(63, 42, 24, 0.96) !important;
+  color: var(--sand-100) !important;
+  box-shadow: inset 0 -2px 0 rgba(232, 158, 93, 0.12), 0 4px 12px rgba(0, 0, 0, 0.18);
+  min-height: 1.85rem;
+  padding: 0.26rem 0.62rem !important;
+  white-space: nowrap;
 }
 
 .training-back-btn:hover,
 .training-back-btn:focus-visible {
-  border-color: rgba(123, 75, 34, 0.58) !important;
-  background: #fff7e5 !important;
-  color: var(--text-ink) !important;
+  border-color: rgba(232, 158, 93, 0.68) !important;
+  background: rgba(89, 58, 30, 0.98) !important;
+  color: var(--sand-100) !important;
 }
 
 .training-phase .training-hero,
@@ -1917,12 +1962,18 @@ main {
   border-radius: 10px;
   border: 1px solid rgba(168, 134, 97, 0.62);
   background:
-    linear-gradient(90deg, rgba(80, 51, 24, 0.08) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.68), rgba(244, 236, 225, 0.95)),
-    var(--paper);
+    linear-gradient(90deg, rgba(80, 51, 24, 0.09) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(235, 211, 176, 0.96), rgba(203, 169, 122, 0.96));
   background-size: 32px 32px, auto, auto;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.32), inset 0 0 0 1px rgba(255, 255, 255, 0.68);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.36), inset 0 0 0 1px rgba(255, 244, 220, 0.35);
   color: var(--text-ink);
+}
+
+.training-phase .training-hero {
+  background:
+    linear-gradient(90deg, rgba(232, 158, 93, 0.1) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(40, 29, 17, 0.98), rgba(24, 17, 10, 0.98));
+  color: var(--sand-100);
 }
 
 @media (max-width: 1000px) {
@@ -2533,7 +2584,11 @@ main {
   }
 
   .training-slot {
-    min-height: 122px;
+    min-height: 88px;
+  }
+
+  .training-slot-empty {
+    min-height: 64px;
   }
 
   .training-stage-card {

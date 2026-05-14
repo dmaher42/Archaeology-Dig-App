@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { 
   DndContext, 
   useSensor, 
@@ -119,6 +119,7 @@ function TrainingTray({ stages }) {
 export function TrainingPhase({ trainingPlacements, setTrainingPlacements, onBackToMenu }) {
   const [activeStageId, setActiveStageId] = useState(null);
   const didCelebrateRef = useRef(false);
+  const phaseRef = useRef(null);
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
@@ -144,6 +145,16 @@ export function TrainingPhase({ trainingPlacements, setTrainingPlacements, onBac
       didCelebrateRef.current = false;
     }
   }, [isComplete]);
+
+  useLayoutEffect(() => {
+    const phase = phaseRef.current;
+    if (!phase) return;
+
+    phase.scrollIntoView({ block: 'start', inline: 'nearest' });
+    phase.closest('.main-content')?.scrollTo({ top: 0, left: 0 });
+    phase.closest('main')?.scrollTo({ top: 0, left: 0 });
+    document.scrollingElement?.scrollTo({ top: 0, left: 0 });
+  }, []);
 
   const handleDragStart = (event) => {
     setActiveStageId(event.active?.id ?? null);
@@ -177,7 +188,7 @@ export function TrainingPhase({ trainingPlacements, setTrainingPlacements, onBac
   };
 
   return (
-    <section className="phase-container training-phase">
+    <section ref={phaseRef} className="phase-container training-phase">
       <DndContext
         sensors={sensors}
         collisionDetection={customCollisionDetection}
@@ -186,13 +197,13 @@ export function TrainingPhase({ trainingPlacements, setTrainingPlacements, onBac
       >
         <div className="training-hero glass-card">
           <div className="training-hero-copy">
-            <div className="training-kicker">Archaeologist Training</div>
             <h2>How Do We Investigate the Past?</h2>
-            <p>
-              Put the five archaeology stages in order.
-            </p>
           </div>
           <div className="training-hero-actions">
+            <div className="training-progress">
+              <span className="training-progress-label">Progress</span>
+              <strong>{correctCount}/5 correct</strong>
+            </div>
             <button className="btn training-back-btn" type="button" onClick={onBackToMenu}>Back to menu</button>
           </div>
         </div>
@@ -200,17 +211,6 @@ export function TrainingPhase({ trainingPlacements, setTrainingPlacements, onBac
         <div className="training-layout">
           <TrainingTray stages={trayStages} />
           <div className="training-board glass-card">
-            <div className="training-board-header">
-              <div>
-                <div className="training-panel-kicker">Put these in order</div>
-                <h3>Survey, Grid, Excavate, Map, Lab</h3>
-              </div>
-              <div className="training-progress">
-                <span className="training-progress-label">Training progress</span>
-                <strong>{correctCount}/5 correct</strong>
-              </div>
-            </div>
-
             <div className="training-slots">
               {TRAINING_STAGES.map((stage, index) => (
                 <TrainingSlot
@@ -221,33 +221,6 @@ export function TrainingPhase({ trainingPlacements, setTrainingPlacements, onBac
               ))}
             </div>
           </div>
-        </div>
-
-        <div className={`training-summary glass-card ${isComplete ? 'is-complete' : ''}`}>
-          {isComplete ? (
-            <>
-              <div className="training-success-message">You are ready to investigate the ancient past.</div>
-              <p className="training-prompt">Why does the order matter?</p>
-              <div className="training-answer-starter">
-                If archaeologists move evidence before recording it, then...
-              </div>
-              <div className="training-summary-actions">
-                <button className="btn training-back-btn" type="button" onClick={onBackToMenu}>
-                  Back to menu
-                </button>
-              </div>
-            </>
-          ) : (
-            <div className="training-summary-copy">
-              <span className="training-summary-title">Field notebook check</span>
-              <p>
-                Keep placing the cards until the investigation sequence matches real fieldwork.
-              </p>
-              <div className="training-summary-note">
-                {correctCount}/5 stages are in the right place.
-              </div>
-            </div>
-          )}
         </div>
 
         <DragOverlay dropAnimation={{ duration: 250, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>

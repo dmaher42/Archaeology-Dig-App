@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Local verification and source scratch material
+output/
+scratch/sfx-source/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
