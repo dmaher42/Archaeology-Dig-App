@@ -1192,7 +1192,7 @@ const buildExpeditionEvidence = (content = getExpeditionMapContent()) => {
   });
 };
 
-export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
+export function ExpeditionMode({ onBackToMenu, onStartEvidenceLoop, audioControls = {} }) {
   const canvasRef = useRef(null);
   const keysRef = useRef({});
   const playerRef = useRef({ x: 42, y: 498 });
@@ -1824,6 +1824,11 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
 
   const openExpeditionStage = useCallback((stage) => {
     const content = getExpeditionMapContent(stage.id);
+    if (stage.route === 'evidence-loop') {
+      onStartEvidenceLoop?.(stage.scenarioId);
+      return;
+    }
+
     const canOpenPlayableStage = stage.route === 'playable' || stage.route === 'map-playable';
     if (!canOpenPlayableStage || !content) {
       setPreviewExpedition(stage);
@@ -1889,7 +1894,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     setClaimResult(null);
     setResultOpen(false);
     setExpeditionFailure(null);
-  }, [audioControls]);
+  }, [audioControls, onStartEvidenceLoop]);
 
   const handleJourneySnapshot = useCallback((snapshot) => {
     journeySnapshotRef.current = snapshot;
@@ -2660,6 +2665,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         title: stage.title,
         status: stage.status,
         route: stage.route,
+        scenarioId: stage.scenarioId || null,
       })),
     });
 
@@ -3357,10 +3363,10 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
               <p className="expedition-stage-teaser">{stage.teaser}</p>
               <button
                 type="button"
-                className={`btn ${stage.route === 'playable' || stage.route === 'map-playable' ? 'primary-btn expedition-begin-btn' : 'secondary-btn'} expedition-stage-action`}
+                className={`btn ${stage.route === 'playable' || stage.route === 'map-playable' || stage.route === 'evidence-loop' ? 'primary-btn expedition-begin-btn' : 'secondary-btn'} expedition-stage-action`}
                 onClick={() => openExpeditionStage(stage)}
               >
-                {stage.route === 'playable' || stage.route === 'map-playable' ? <Sparkles size={16} /> : <BookOpen size={16} />}
+                {stage.route === 'playable' || stage.route === 'map-playable' || stage.route === 'evidence-loop' ? <Sparkles size={16} /> : <BookOpen size={16} />}
                 {stage.actionLabel}
               </button>
             </article>

@@ -438,6 +438,11 @@ export default function App() {
     const next = createNewGameSession('archaeology', 'dig', scenarioId);
     applySavedSession(next);
   };
+
+  const handleStartEvidenceLoop = (scenarioId) => {
+    const next = createNewGameSession('archaeology', 'sort', scenarioId);
+    applySavedSession(next);
+  };
   
   const handleStartTraining = () => {
     const next = createNewGameSession('archaeology', 'training');
@@ -589,6 +594,7 @@ export default function App() {
         {phase === 'expedition' && (
           <ExpeditionMode
             onBackToMenu={handleBackToMenu}
+            onStartEvidenceLoop={handleStartEvidenceLoop}
             audioControls={audioControls}
           />
         )}
