@@ -14524,6 +14524,21 @@ main {
   text-align: right;
 }
 
+.mission-selection-heading-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.mission-selection-heading .menu-music-toggle {
+  position: static;
+  flex: 0 0 auto;
+  min-height: 2.1rem;
+  white-space: nowrap;
+  background: rgba(18, 15, 11, 0.84);
+}
+
 .activity-menu-grid {
   width: min(1180px, 100%) !important;
   max-width: 1180px !important;
@@ -14730,6 +14745,14 @@ main {
   .mission-selection-heading {
     align-items: start;
     flex-direction: column;
+  }
+
+  .mission-selection-heading-actions {
+    width: 100%;
+    align-items: flex-start;
+    justify-content: flex-start;
+    flex-direction: column;
+    gap: 0.5rem;
   }
 
   .mission-selection-heading p {

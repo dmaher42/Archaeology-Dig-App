@@ -164,16 +164,6 @@ export function ActivityMenu({
         <div className="menu-save-note" role="note">
           Save/load unlocks after a mission starts.
         </div>
-        <button
-          type="button"
-          className={`menu-music-toggle ${expeditionMusicEnabled ? 'is-on' : 'is-off'}`}
-          onClick={onExpeditionMusicToggle}
-          aria-pressed={expeditionMusicEnabled}
-          aria-label={`Expedition music ${expeditionMusicEnabled ? 'on' : 'off'}`}
-        >
-          {expeditionMusicEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
-          <span>Music {expeditionMusicEnabled ? 'On' : 'Off'}</span>
-        </button>
         <div className="menu-hero-art" aria-hidden="true">
           <div className="menu-hero-sun" />
           <div
@@ -188,7 +178,19 @@ export function ActivityMenu({
           <div className="training-kicker">Mission Select</div>
           <h3>Pick a path into the ancient world</h3>
         </div>
-        <p>Four modes, one evidence toolkit. Start quick, go deep, or take the new platforming route.</p>
+        <div className="mission-selection-heading-actions">
+          <p>Four modes, one evidence toolkit. Start quick, go deep, or take the new platforming route.</p>
+          <button
+            type="button"
+            className={`menu-music-toggle ${expeditionMusicEnabled ? 'is-on' : 'is-off'}`}
+            onClick={onExpeditionMusicToggle}
+            aria-pressed={expeditionMusicEnabled}
+            aria-label={`Expedition music ${expeditionMusicEnabled ? 'on' : 'off'}`}
+          >
+            {expeditionMusicEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+            <span>Expedition Music: {expeditionMusicEnabled ? 'On' : 'Off'}</span>
+          </button>
+        </div>
       </div>
 
       <div className="activity-menu-grid" aria-label="Choose an activity">

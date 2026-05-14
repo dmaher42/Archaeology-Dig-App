@@ -1083,6 +1083,11 @@ Remaining notes:
 - Remaining risk: no persistence was added for the music preference, so it intentionally resets to off on a page reload.
 
 2026-05-14 update:
+- Moved the Expedition music control out of the hero corner and into the main Mission Select heading row so it is easier to find.
+- The control now reads `Expedition Music: Off` by default, then switches to `Expedition Music: On` when enabled.
+- No music behavior changed in this follow-up: background music is still opt-in, and SFX still play normally.
+
+2026-05-14 update:
 - Completed a Journey enemy/boss visual polish pass in the existing sprite render path.
 - Corrected sprite-facing logic so generated right-facing enemy sheets flip only when travelling/attacking left, while the Scarab Queen keeps its left-facing native orientation.
 - Re-grounded enemy and boss sprite draw boxes so live and defeated sprites sit more naturally on the floor.
