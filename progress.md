@@ -79,6 +79,39 @@ Remaining notes:
 - Browser/state checks confirmed Lost Site Expedition opens, Journey starts, objective and mini-boss state appears in `render_game_to_text`, all five route gates can be cleared, Base Camp opens, and Begin Excavation still enters the existing excavation stage.
 - Remaining risk: automated testing covered a guided route and one viewport; a human classroom playtest is still useful for timing, difficulty feel, and optional-route discovery.
 
+2026-05-14 update:
+- Added the first real Ancient China runtime asset packs without making Ancient China playable.
+- Created `public/assets/expedition/backgrounds/china-river-valley/china-river-valley-parallax-pack.png` plus its JSON atlas with the five expected river-valley parallax regions.
+- Created `public/assets/expedition/environment/china-river-valley/china-river-valley-environment-pack.png` plus its JSON atlas with the expected side-scroller terrain, hazard, gate and prop region keys.
+- Registered the China background pack as a future Journey background pack and registered the China environment pack in the environment asset-pack registry while keeping Egypt as the default active Journey pack.
+- Updated the China scaffold preview to show the new runtime packs instead of only source-reference images, and changed only the completed China implementation slots from placeholders to runtime asset ids.
+- `npm.cmd run lint` passed.
+- `npm.cmd run build` passed; Vite still reports the existing runtime-resolution warnings for two Egypt excavation images and the large bundle warning.
+- Browser verification confirmed the China card is still Preview Only, the modal displays both runtime China assets at 1536x1024, Egypt still launches as `ancient-egypt`, and the active Egypt Journey still uses `assets/expedition/environment/desert-temple/desert-temple-pack.json` with `assetFallbackActive: false`.
+- Remaining blockers before China can be playable: China Journey level data/section ids, stage-aware Journey selection, China environment mapping helpers, excavation map assets/layout, zone challenge content, evidence/final-claim data, enemies/guardians, and full end-to-end browser playthroughs.
+
+2026-05-14 update:
+- Started Ancient China playability as a map-only prototype, without wiring the China Journey route.
+- Created `public/assets/expedition/excavation/china-room-map-pack.png` plus its JSON atlas with the expected China top-down excavation regions.
+- Registered the China room-map pack in the canonical excavation asset loader and kept Egypt's room-map packs unchanged.
+- Made `ExpeditionMode.jsx` stage-aware for map content so Ancient Egypt still starts in Journey, while Ancient China opens the existing excavation-map runtime with China zones, survey copy, grid clues, mission text, evidence tokens, hazard labels, guardian label, and final-claim target.
+- Left `PLAYABLE_EXPEDITION_STAGE_ID` pointing at Ancient Egypt; Ancient China is labelled `Map Playable / Journey In Development`.
+- `npm.cmd run lint` passed.
+- `npm.cmd run build` passed; Vite still reports the existing runtime-resolution warnings for two Egypt excavation images and the large bundle warning.
+- Remaining blockers before full China playability: China Journey level data/section ids, stage-aware Journey route selection, China-specific zone challenge questions/UI art, China enemies/guardians, broader evidence/final-claim tuning, and full end-to-end China playthrough verification.
+
+2026-05-14 update:
+- Wired Ancient China through the existing Lost Site Expedition Journey route instead of jumping straight to the excavation map.
+- `ExpeditionJourney.jsx` now accepts stage-aware `targetCivilisation`, `environmentPackId`, and `backgroundPackId` props.
+- Ancient China Journey now loads `assets/expedition/environment/china-river-valley/china-river-valley-environment-pack.json` and the `china-river-valley` parallax background pack with fallback off.
+- Added China-facing section display labels so the opening Journey route reports `River Valley` instead of `Desert Entry`.
+- Ancient China now flows Stage Select -> Journey -> Base Camp -> China excavation map through the existing ExpeditionMode state path.
+- Ancient Egypt still launches with `egypt-desert-temple` Journey assets and remains fallback-free in browser verification.
+- `npm.cmd run lint` passed.
+- `npm.cmd run build` passed; Vite still reports the existing runtime-resolution warnings for two Egypt excavation images and the large bundle warning.
+- Browser verification confirmed China Journey asset pack ids, China background pack readiness, China Base Camp handoff via the existing dev jump, China excavation map loading with `china-room-map-stage-1`, and Egypt Journey regression.
+- Remaining risk: China still reuses much of the Egypt-authored Journey progression model under the hood, including objective/gate/boss structure. A future pass should make the Journey objectives, boss/enemy names, and natural route completion fully China-specific before calling it classroom-finished.
+
 2026-05-09 update:
 - Added Journey Arcade Spectacle Phase 3 to the existing `ExpeditionJourney.jsx` side-scroller.
 - Added cinematic boss intro states, section atmosphere palettes, particles, parallax/story props, environmental event cards, camera shake/focus, stronger section transitions, and HUD/render-state fields for spectacle checks.
@@ -1111,3 +1144,44 @@ Remaining notes:
 - Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite public-asset and large-chunk warnings.
 - Browser notes: local screenshots confirmed the enlarged scarab and rival looter render larger, stay grounded, keep their health bars aligned, and produce no console errors.
 - Remaining risk: this is a visual-only scale increase; a manual play feel pass should decide whether any specific enemy family should be dialled slightly up or down.
+
+2026-05-14 update:
+- Reduced empty Egypt Journey walking spaces by adding short micro-challenge beats across Desert Entry, Ruined Temple, Catacombs, Escape Sequence, and Dig Site Entrance.
+- Added small raised platform routes, mild timing hazards, extra spaced enemies, and safe pause ledges before harder guardian areas.
+- Added optional risk/reward relic shard pickups near upper routes and mild hazards so students can choose between safe progress and extra collection.
+- Added archaeology clue/marker props and short route notices such as ancient marks, unstable site warnings, guardian territory, and evidence reminders.
+- Kept the existing boss, route gate, Guardian Knowledge Challenge, reward, progression, Stage Select, Base Camp, Excavation, and final claim systems unchanged.
+- Validation: `npm.cmd run lint` passed with existing React hook warnings in `ExpeditionJourney.jsx`; `npm.cmd run build` passed with the existing Vite public-asset and large-chunk warnings; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Browser notes: local browser verification confirmed Main Menu -> Stage Select -> Ancient Egypt -> Begin Expedition works, the first playable section now presents an early hazard/reward beat, sampled later sections show the new short clue notices, Scarab Queen intro still triggers, Guardian Knowledge Challenge still opens, and no console errors appeared.
+- Remaining risks/follow-up tasks: this pass was authored and spot-checked with browser automation rather than a full 10-15 minute manual playthrough; a live classroom-feel pass should tune exact enemy/hazard density if any section feels too busy or too easy.
+
+2026-05-14 update:
+- Completed a whole Egypt Journey map polish pass after sampling Desert Entry, Ruined Temple, Catacombs, Escape Sequence, and Dig Site Entrance in the browser.
+- Cleaned up the early Desert Entry challenge beat by removing the extra low-thorn hazard that crowded the trowel pickup, scarab scout, and reward path.
+- Centered the in-canvas section and guardian encounter cards so they read like intentional presentation beats across all sections.
+- Prevented floating notice overlays from appearing at the same time as cinematic section/guardian cards, avoiding HUD/card overlap.
+- Added then pruned final-approach set dressing where the existing banner/camp prop atlas read incorrectly as a stray rope coil near the player.
+- Kept gameplay systems unchanged: movement, collision, combat, route gates, boss flow, Guardian Knowledge Challenge, rewards, Base Camp, Excavation, and final claim were not rewritten.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite public-asset and large-chunk warnings; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Browser notes: local browser spot checks confirmed the cleaned Desert Entry, Ruined Temple, Catacombs, Escape Sequence, Dig Site Entrance, Scarab Queen card, and final dig-site approach render with no console errors.
+- Remaining risk: the final dig-site approach remains visually quieter than the earlier temple/catacomb sections because the current available prop atlas has limited camp-specific pieces; a future asset pass should add proper base-camp foreground props.
+
+2026-05-14 update:
+- Added the first Ancient China excavation marker/gateway/UI runtime packs beside the existing China Journey background, China Journey environment, and China room-map packs.
+- New files: `public/assets/expedition/excavation/china-zone-challenge-ui-pack.png/.json` and `public/assets/expedition/excavation/china-survey-marker-gateway-pack.png/.json`.
+- Registered `chinaChallengeUi` and `chinaSurveyGateway` in the canonical excavation map asset loader with exact expected atlas keys.
+- Made excavation map drawing stage-aware for marker, gateway, and map UI packs so China uses `chinaRoomMap`, `chinaSurveyGateway`, and `chinaChallengeUi`, while Egypt continues using `roomMap`, `surveyMarkers`, `gateway`, `legacy`, and `challengeUi`.
+- Preserved the existing Journey, Base Camp, excavation mechanics, evidence flow, survey/grid flow, hazards, guardians, and final-claim path rather than adding a duplicate China runtime.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Egypt public-asset runtime warnings and large bundle warning.
+- Browser notes: local browser verification confirmed China Stage Select -> dev-jumped excavation uses the China pack IDs with `excavationMapAssetsReady=true`, fallback inactive, zero missing atlas regions, and no console errors; screenshot check confirmed China map markers/gates/hazards render. Egypt excavation regression confirmed Egypt pack IDs unchanged, fallback inactive, zero missing atlas regions, and no console errors.
+- Remaining risks/follow-up tasks: China is playable as a prototype through the existing Egypt-grade mechanics, but full China playability still needs China-specific Journey route objectives/gates/enemy names, China challenge content, China enemy/guardian sprite art, final-claim tuning, and a full natural playthrough without dev jumps.
+
+2026-05-14 update:
+- Completed a China excavation map polish pass in the existing map renderer.
+- Added stage-aware map visual tuning so China uses a warmer river-valley/bronze-jade palette, stronger terrain contrast, clearer survey strings, lighter wash overlays, and higher marker readability while Egypt keeps its existing tuning.
+- Added China-specific wall/collision rectangles for the map so the rendered timber/rammed-earth barriers better match the China art.
+- Updated China excavation header text to `Ancient China Expedition Map`, changed the off-room fallback from `Open Trench` to `Survey Trench`, and shortened the China guardian map label to `Site Watcher`.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Egypt public-asset runtime warnings and large bundle warning.
+- Browser notes: local browser verification confirmed China excavation remains on `china-room-map-stage-1`, all China packs are ready, fallback inactive, zero missing atlas regions, no console errors, and the polished map title/labels render. Egypt excavation regression confirmed its title, pack IDs, fallback state, and missing-region count remain unchanged with no console errors.
+- Tooling note: the `develop-web-game` Playwright helper still fails to import `playwright` from the user skill folder, so browser verification used the repo-available Playwright path through the local automation layer.
+- Remaining risks/follow-up tasks: China still needs a full natural playthrough after China-specific Journey objectives/gates/enemies/challenges are authored; this pass was visual polish plus smoke/regression verification.

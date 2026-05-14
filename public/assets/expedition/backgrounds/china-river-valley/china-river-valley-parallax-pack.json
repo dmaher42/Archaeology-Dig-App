@@ -1,0 +1,41 @@
+{
+  "image": "china-river-valley-parallax-pack.png",
+  "source": "Ancient China river valley parallax source promoted from public/assets/expedition/china-source/china-river-valley-parallax-pack-v2.png.",
+  "notes": "First runtime China Journey background atlas. Ancient China remains preview-only; this pack is registered for scaffold/runtime metadata but is not used by the playable Egypt Journey.",
+  "regions": {
+    "skyLayer": {
+      "x": 0,
+      "y": 0,
+      "w": 1536,
+      "h": 202
+    },
+    "farMountains": {
+      "x": 0,
+      "y": 207,
+      "w": 1536,
+      "h": 201
+    },
+    "riverValley": {
+      "x": 0,
+      "y": 413,
+      "w": 1536,
+      "h": 201
+    },
+    "watchtowerRidge": {
+      "x": 0,
+      "y": 619,
+      "w": 1536,
+      "h": 200
+    },
+    "foregroundMist": {
+      "x": 0,
+      "y": 824,
+      "w": 1536,
+      "h": 200
+    }
+  },
+  "imageWidth": 1536,
+  "imageHeight": 1024,
+  "runtimeMode": "five-strip-parallax-atlas",
+  "coordinateNote": "Coordinates exclude the dark separator lines between generated parallax strips."
+}

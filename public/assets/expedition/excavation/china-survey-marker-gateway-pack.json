@@ -1,0 +1,356 @@
+{
+  "image": "china-survey-marker-gateway-pack.png",
+  "imageWidth": 1536,
+  "imageHeight": 1024,
+  "source": "Generated high-quality classroom-safe Ancient China excavation atlas.",
+  "regions": {
+    "explorerToken": {
+      "x": 40,
+      "y": 40,
+      "w": 96,
+      "h": 96
+    },
+    "heroPortraitMarker": {
+      "x": 170,
+      "y": 35,
+      "w": 120,
+      "h": 126
+    },
+    "playerLocationRing": {
+      "x": 330,
+      "y": 60,
+      "w": 96,
+      "h": 76
+    },
+    "playerShadow": {
+      "x": 460,
+      "y": 70,
+      "w": 180,
+      "h": 62
+    },
+    "playerGlow": {
+      "x": 680,
+      "y": 50,
+      "w": 116,
+      "h": 116
+    },
+    "lockedRoomMarker": {
+      "x": 850,
+      "y": 50,
+      "w": 72,
+      "h": 72
+    },
+    "challengeRequiredMarker": {
+      "x": 950,
+      "y": 50,
+      "w": 72,
+      "h": 72
+    },
+    "challengeCompleteMarker": {
+      "x": 1050,
+      "y": 50,
+      "w": 72,
+      "h": 72
+    },
+    "surveyReadyMarker": {
+      "x": 1150,
+      "y": 50,
+      "w": 72,
+      "h": 72
+    },
+    "surveyedMarker": {
+      "x": 1250,
+      "y": 50,
+      "w": 72,
+      "h": 72
+    },
+    "activeRoomMarker": {
+      "x": 1350,
+      "y": 50,
+      "w": 72,
+      "h": 72
+    },
+    "completedRoomMarker": {
+      "x": 40,
+      "y": 190,
+      "w": 72,
+      "h": 72
+    },
+    "surveyPin": {
+      "x": 140,
+      "y": 180,
+      "w": 70,
+      "h": 90
+    },
+    "surveyFlag": {
+      "x": 240,
+      "y": 180,
+      "w": 72,
+      "h": 94
+    },
+    "surveyPeg": {
+      "x": 340,
+      "y": 180,
+      "w": 42,
+      "h": 92
+    },
+    "pinnedFieldTag": {
+      "x": 420,
+      "y": 180,
+      "w": 180,
+      "h": 74
+    },
+    "pinnedFieldLabel": {
+      "x": 620,
+      "y": 180,
+      "w": 180,
+      "h": 74
+    },
+    "blankRoomLabel": {
+      "x": 820,
+      "y": 180,
+      "w": 200,
+      "h": 74
+    },
+    "highlightedSelectedZoneBorder": {
+      "x": 1050,
+      "y": 178,
+      "w": 190,
+      "h": 92
+    },
+    "pulsingRing": {
+      "x": 1280,
+      "y": 175,
+      "w": 100,
+      "h": 100
+    },
+    "neutralQuestionIcon": {
+      "x": 40,
+      "y": 315,
+      "w": 70,
+      "h": 70
+    },
+    "neutralWarningIcon": {
+      "x": 130,
+      "y": 315,
+      "w": 70,
+      "h": 70
+    },
+    "neutralCheckIcon": {
+      "x": 220,
+      "y": 315,
+      "w": 70,
+      "h": 70
+    },
+    "neutralRetryIcon": {
+      "x": 310,
+      "y": 315,
+      "w": 70,
+      "h": 70
+    },
+    "neutralEvidenceCheckIcon": {
+      "x": 400,
+      "y": 315,
+      "w": 70,
+      "h": 70
+    },
+    "neutralLockIcon": {
+      "x": 490,
+      "y": 315,
+      "w": 70,
+      "h": 70
+    },
+    "neutralUnlockIcon": {
+      "x": 580,
+      "y": 315,
+      "w": 70,
+      "h": 70
+    },
+    "openRoomDoorway": {
+      "x": 40,
+      "y": 430,
+      "w": 130,
+      "h": 110
+    },
+    "sealedRoomDoorway": {
+      "x": 200,
+      "y": 430,
+      "w": 130,
+      "h": 110
+    },
+    "timberGatePassage": {
+      "x": 360,
+      "y": 415,
+      "w": 160,
+      "h": 130
+    },
+    "ropeMarkedEntrance": {
+      "x": 550,
+      "y": 430,
+      "w": 140,
+      "h": 90
+    },
+    "narrowPassageConnector": {
+      "x": 720,
+      "y": 430,
+      "w": 150,
+      "h": 80
+    },
+    "sealedExitGate": {
+      "x": 900,
+      "y": 390,
+      "w": 155,
+      "h": 190
+    },
+    "unlockedExitGate": {
+      "x": 1090,
+      "y": 390,
+      "w": 155,
+      "h": 190
+    },
+    "bronzeSealIcon": {
+      "x": 1280,
+      "y": 430,
+      "w": 80,
+      "h": 80
+    },
+    "jadeUnlockedSealIcon": {
+      "x": 1380,
+      "y": 430,
+      "w": 80,
+      "h": 80
+    },
+    "rammedEarthWallSegment": {
+      "x": 40,
+      "y": 640,
+      "w": 290,
+      "h": 92
+    },
+    "crackedEarthWallSegment": {
+      "x": 360,
+      "y": 640,
+      "w": 290,
+      "h": 92
+    },
+    "buriedFoundation": {
+      "x": 690,
+      "y": 640,
+      "w": 240,
+      "h": 96
+    },
+    "carvedThreshold": {
+      "x": 970,
+      "y": 640,
+      "w": 145,
+      "h": 78
+    },
+    "fallenTimberLintel": {
+      "x": 1140,
+      "y": 640,
+      "w": 220,
+      "h": 80
+    },
+    "rubblePile": {
+      "x": 40,
+      "y": 780,
+      "w": 170,
+      "h": 110
+    },
+    "gateBaseDustShadow": {
+      "x": 240,
+      "y": 810,
+      "w": 220,
+      "h": 64
+    },
+    "sandstormPatch": {
+      "x": 500,
+      "y": 780,
+      "w": 180,
+      "h": 120
+    },
+    "fallingRocksPatch": {
+      "x": 710,
+      "y": 780,
+      "w": 170,
+      "h": 120
+    },
+    "unstableFloorCrack": {
+      "x": 910,
+      "y": 780,
+      "w": 150,
+      "h": 112
+    },
+    "guardianShadowMarker": {
+      "x": 1090,
+      "y": 760,
+      "w": 130,
+      "h": 135
+    },
+    "dustCloudOverlay": {
+      "x": 1250,
+      "y": 790,
+      "w": 220,
+      "h": 90
+    },
+    "cautionIcon": {
+      "x": 40,
+      "y": 910,
+      "w": 82,
+      "h": 82
+    },
+    "stoneWallSegment": {
+      "x": 150,
+      "y": 915,
+      "w": 260,
+      "h": 80
+    },
+    "brokenPillarTop": {
+      "x": 440,
+      "y": 900,
+      "w": 90,
+      "h": 110
+    },
+    "buriedFoundationStones": {
+      "x": 560,
+      "y": 910,
+      "w": 220,
+      "h": 90
+    },
+    "surveyTag": {
+      "x": 820,
+      "y": 910,
+      "w": 170,
+      "h": 70
+    },
+    "mapPin": {
+      "x": 1020,
+      "y": 900,
+      "w": 80,
+      "h": 95
+    },
+    "selectedZoneHighlight": {
+      "x": 1125,
+      "y": 905,
+      "w": 130,
+      "h": 80
+    },
+    "completedSurveyStamp": {
+      "x": 1280,
+      "y": 890,
+      "w": 120,
+      "h": 120
+    },
+    "lockedSealIcon": {
+      "x": 1420,
+      "y": 905,
+      "w": 70,
+      "h": 70
+    },
+    "unlockedSealIcon": {
+      "x": 1420,
+      "y": 805,
+      "w": 70,
+      "h": 70
+    }
+  }
+}

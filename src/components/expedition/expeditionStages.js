@@ -32,6 +32,23 @@ export const CHINA_EXPEDITION_SOURCE_ASSETS = [
   },
 ];
 
+export const CHINA_EXPEDITION_RUNTIME_ASSETS = [
+  {
+    id: 'china-river-valley-parallax-runtime',
+    title: 'Runtime river valley parallax pack',
+    src: 'assets/expedition/backgrounds/china-river-valley/china-river-valley-parallax-pack.png',
+    atlas: 'assets/expedition/backgrounds/china-river-valley/china-river-valley-parallax-pack.json',
+    role: 'journey-background',
+  },
+  {
+    id: 'china-river-valley-environment-runtime',
+    title: 'Runtime river valley environment tiles',
+    src: 'assets/expedition/environment/china-river-valley/china-river-valley-environment-pack.png',
+    atlas: 'assets/expedition/environment/china-river-valley/china-river-valley-environment-pack.json',
+    role: 'journey-environment-tiles',
+  },
+];
+
 export const CHINA_EXPEDITION_SCAFFOLD = {
   title: 'Ancient China Expedition',
   subtitle: 'River valleys, dynasties, oracle bones and early civilisation',
@@ -64,10 +81,11 @@ export const CHINA_EXPEDITION_SCAFFOLD = {
     'anime or martial arts fantasy styling',
   ],
   sourceAssets: CHINA_EXPEDITION_SOURCE_ASSETS,
+  runtimeAssets: CHINA_EXPEDITION_RUNTIME_ASSETS,
   implementationSlots: {
-    journeyStage: 'china-journey-stage-placeholder',
-    journeyBackgroundArt: 'china-river-valley-background-placeholder',
-    environmentTilePack: 'china-environment-tile-pack-placeholder',
+    journeyStage: 'china-journey-stage-runtime-prototype',
+    journeyBackgroundArt: 'china-river-valley-parallax-runtime',
+    environmentTilePack: 'china-river-valley-environment-runtime',
     excavationRoomMap: 'china-top-down-excavation-map-placeholder',
     zoneChallengeUi: 'china-zone-challenge-ui-placeholder',
     surveyMarkersAndGateways: 'china-survey-marker-gateway-placeholder',
@@ -98,12 +116,12 @@ export const EXPEDITION_STAGES = [
     id: EXPEDITION_STAGE_IDS.CHINA,
     title: 'Ancient China',
     subtitle: CHINA_EXPEDITION_SCAFFOLD.subtitle,
-    status: 'Coming Soon / In Development',
+    status: 'Playable Prototype',
     statusTone: 'development',
-    actionLabel: 'Preview Only',
-    route: 'preview',
-    dossierTag: 'Scaffold Ready',
-    teaser: 'Preview a future investigation of river valleys, dynasties, bronze, jade and early writing.',
+    actionLabel: 'Start Expedition',
+    route: 'playable',
+    dossierTag: 'Prototype Expedition',
+    teaser: 'Play the first Ancient China Journey route into the excavation map.',
     previewTeaser: CHINA_EXPEDITION_SCAFFOLD.learningTeaser,
     scaffold: CHINA_EXPEDITION_SCAFFOLD,
   },

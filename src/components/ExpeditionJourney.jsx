@@ -80,6 +80,7 @@ import {
   DESERT_VISUAL_TUNING_VERSION,
   drawAtlasRegion,
   ENVIRONMENT_ATLAS_JSON,
+  ENVIRONMENT_ASSET_PACK_IDS,
   getEnvironmentAssetKeyForHazard,
   getEnvironmentAssetKeyForPlatform,
   getEnvironmentAssetKeyForStoryProp,
@@ -90,6 +91,7 @@ import {
 
 import {
   CATACOMBS_BACKGROUND_ATLAS_JSON,
+  CHINA_RIVER_VALLEY_BACKGROUND_ATLAS_JSON,
   createDesertBackgroundAssetState,
   DESERT_BACKGROUND_DEPTH_MODE,
   DIG_SITE_BACKGROUND_ATLAS_JSON,
@@ -188,6 +190,29 @@ const DEFAULT_BOSS_ATTACK_PHASES = [
     color: '#facc15',
   },
 ];
+
+const CHINA_SECTION_COPY = {
+  'desert-entry': {
+    name: 'River Valley',
+    title: 'The river valley opens toward an ancient settlement.',
+  },
+  'ruined-temple': {
+    name: 'Bronze Workshop',
+    title: 'Workshop ruins show traces of skilled bronze and timber work.',
+  },
+  catacombs: {
+    name: 'Oracle Archive',
+    title: 'Stored records and broken vessels mark the archive path.',
+  },
+  'escape-sequence': {
+    name: 'Rammed Earth Works',
+    title: 'Loose earth and old construction lines make the route unstable.',
+  },
+  'dig-site-entrance': {
+    name: 'Excavation Approach',
+    title: 'The Ancient China excavation site is in sight.',
+  },
+};
 
 const BOSS_ATTACK_PHASES = {
   'scarab-queen': [
@@ -688,6 +713,37 @@ const HAZARD_GROUNDING = {
   },
 };
 
+const HAZARD_VISUAL_ALIASES = {
+  'desert-soft-ridge': 'sand-pit',
+  'temple-floor-crack': 'spike-trap',
+  'temple-falling-chip': 'falling-blocks',
+  'catacomb-gap-2': 'dark-gap',
+  'catacomb-bat-pocket': 'bat-cloud',
+  'escape-falling-chip': 'falling-blocks',
+  'escape-dust-pocket': 'dust-wave',
+  'dig-site-loose-rope': 'loose-slope',
+  'dig-site-loose-slope-2': 'loose-slope',
+};
+
+const getHazardVisualId = (hazard) => HAZARD_VISUAL_ALIASES[hazard.id] || hazard.id;
+
+const getHazardVisualConfig = (hazard) => {
+  const baseId = getHazardVisualId(hazard);
+  return HAZARD_VISUALS[baseId] || {
+    icon: '!',
+    label: hazard.name,
+    color: '#7f1d1d',
+    fill: 'rgba(127, 29, 29, 0.24)',
+    accent: '#facc15',
+    message: hazard.message,
+  };
+};
+
+const getHazardGroundingConfig = (hazard) => {
+  const baseId = getHazardVisualId(hazard);
+  return HAZARD_GROUNDING[baseId] || HAZARD_GROUNDING['spike-trap'];
+};
+
 const PROP_GROUNDING_CONFIG = {
   ruins: { width: 104, height: 94, yOffset: 92, alpha: 0.42, depth: 'background', tint: 'dust', shadow: 0.1, dust: 0.52 },
   camp: { width: 86, height: 58, yOffset: 18, alpha: 0.64, depth: 'background', tint: 'dust', shadow: 0.12, dust: 0.58 },
@@ -769,7 +825,16 @@ const getCameraFollowTarget = (current) => {
   return getLayoutCameraFollowTarget({ playerCenterX });
 };
 
-export default function ExpeditionJourney({ mission, onComplete, onSnapshotChange, audioControls, paused = false }) {
+export default function ExpeditionJourney({
+  mission,
+  onComplete,
+  onSnapshotChange,
+  audioControls,
+  paused = false,
+  targetCivilisation = 'Ancient Egypt',
+  environmentPackId = ENVIRONMENT_ASSET_PACK_IDS.EGYPT_DESERT_TEMPLE,
+  backgroundPackId = null,
+}) {
   const [gameState, setGameState] = useState(makeInitialState());
   const [briefingOpen, setBriefingOpen] = useState(true);
   const [guardianChallengeUi, setGuardianChallengeUi] = useState(null);
@@ -779,7 +844,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
   const lastFrameRef = useRef(0);
   const animationRef = useRef(null);
   const playerSpriteRef = useRef({ image: null, loaded: false, failed: false });
-  const environmentAssetsRef = useRef(createEnvironmentAssetState());
+  const environmentAssetsRef = useRef(createEnvironmentAssetState(environmentPackId));
   const desertBackgroundAssetsRef = useRef(createDesertBackgroundAssetState());
   const enemySpriteAssetsRef = useRef(createEnemySpriteState());
   const bossSpriteAssetsRef = useRef(createBossSpriteState());
@@ -809,6 +874,30 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     return SECTION_MUSIC_CUES[section.id] || 'desert';
   })();
 
+  const getSectionDisplayName = useCallback((sectionId) => (
+    backgroundPackId === 'china-river-valley'
+      ? CHINA_SECTION_COPY[sectionId]?.name || SECTIONS.find(section => section.id === sectionId)?.name || sectionId
+      : SECTIONS.find(section => section.id === sectionId)?.name || sectionId
+  ), [backgroundPackId]);
+
+  const getSectionDisplayTitle = useCallback((sectionId) => (
+    backgroundPackId === 'china-river-valley'
+      ? CHINA_SECTION_COPY[sectionId]?.title || SECTION_ATMOSPHERES[sectionId]?.title || ''
+      : SECTION_ATMOSPHERES[sectionId]?.title || ''
+  ), [backgroundPackId]);
+
+  useEffect(() => {
+    const current = stateRef.current;
+    if (!current.sectionTransition) return;
+    current.sectionTransition = {
+      ...current.sectionTransition,
+      name: getSectionDisplayName(current.sectionTransition.id),
+      message: getSectionDisplayTitle(current.sectionTransition.id),
+    };
+    current.notice = getSectionDisplayTitle(current.currentSectionId || current.sectionTransition.id) || current.notice;
+    syncHud();
+  }, [getSectionDisplayName, getSectionDisplayTitle, syncHud]);
+
   useEffect(() => {
     if (briefingOpen) return;
     audioControls?.playExpeditionMusic?.(currentMusicCue);
@@ -837,11 +926,12 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
 
   useEffect(() => loadEnvironmentAssetPack({
     baseUrl: import.meta.env.BASE_URL,
+    packId: environmentPackId,
     onUpdate: (assets) => {
       environmentAssetsRef.current = assets;
       syncHud();
     },
-  }), [syncHud]);
+  }), [environmentPackId, syncHud]);
 
   useEffect(() => loadDesertBackgroundAssetPack({
     baseUrl: import.meta.env.BASE_URL,
@@ -1327,6 +1417,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     const environmentFallbackActive = !environmentAssets.loaded || environmentAssets.failed || missingEnvironmentAssets.length > 0;
     const desertBackgroundAssets = desertBackgroundAssetsRef.current;
     const desertPack = getSectionBackgroundAssets(desertBackgroundAssets, 'desert-entry');
+    const chinaRiverValleyPack = getSectionBackgroundAssets(desertBackgroundAssets, 'china-river-valley');
     const ruinedTemplePack = getSectionBackgroundAssets(desertBackgroundAssets, 'ruined-temple');
     const catacombsPack = getSectionBackgroundAssets(desertBackgroundAssets, 'catacombs');
     const escapePack = getSectionBackgroundAssets(desertBackgroundAssets, 'escape-sequence');
@@ -1379,6 +1470,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
 
     return {
       stage: 'journey',
+      targetCivilisation,
       coordinateSystem: 'origin top-left, x right, y down',
       viewport: JOURNEY_VIEWPORT,
       renderTarget: JOURNEY_RENDER_TARGET,
@@ -1400,6 +1492,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       playerSpriteScale: Number((current.player.spriteScale || PLAYER_SPRITE_SCALE).toFixed(3)),
       environmentAssetsLoaded: Boolean(environmentAssets.loaded),
       environmentAssetsReady: Boolean(environmentAssets.ready),
+      environmentPackId: environmentAssets.packId,
       environmentAtlasPath: environmentAssets.atlasPath || ENVIRONMENT_ATLAS_JSON,
       missingEnvironmentAssets,
       environmentFallbackActive,
@@ -1437,6 +1530,10 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       baseCampBackgroundAssetsLoaded: Boolean(digSitePack?.loaded),
       baseCampBackgroundAssetsReady: Boolean(digSitePack?.ready),
       baseCampBackgroundFallbackActive: digSiteBackgroundFallbackActive,
+      chinaRiverValleyBackgroundAssetsLoaded: Boolean(chinaRiverValleyPack?.loaded),
+      chinaRiverValleyBackgroundAssetsReady: Boolean(chinaRiverValleyPack?.ready),
+      chinaRiverValleyBackgroundFallbackActive: backgroundPackId === 'china-river-valley' && !chinaRiverValleyPack?.ready,
+      chinaRiverValleyBackgroundAtlasPath: CHINA_RIVER_VALLEY_BACKGROUND_ATLAS_JSON,
       enemySpritesLoaded: enemySpriteAssets.loaded,
       enemySpriteFallbackActive,
       enemySpriteAtlasPath: ENEMY_SPRITE_ATLAS_JSON,
@@ -1496,7 +1593,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       hazardReadabilityMode: renderStats.hazardReadabilityMode || 'soft-warning-cues',
       enemyVisualMode: renderStats.enemyVisualMode || 'sprite-atlas-with-grounding',
       bossVisualMode: renderStats.bossVisualMode || 'multi-boss-atlas-fallback-safe',
-      assetFallbackActive: environmentFallbackActive || enemySpriteFallbackActive || bossSpriteFallbackActive || collectibleSpriteFallbackActive || playerWeaponSpriteFallbackActive || desertBackgroundFallbackActive || ruinedTempleBackgroundFallbackActive || catacombsBackgroundFallbackActive || escapeBackgroundFallbackActive || digSiteBackgroundFallbackActive,
+      assetFallbackActive: environmentFallbackActive || enemySpriteFallbackActive || bossSpriteFallbackActive || collectibleSpriteFallbackActive || playerWeaponSpriteFallbackActive || (backgroundPackId === 'china-river-valley' ? !chinaRiverValleyPack?.ready : (desertBackgroundFallbackActive || ruinedTempleBackgroundFallbackActive || catacombsBackgroundFallbackActive || escapeBackgroundFallbackActive || digSiteBackgroundFallbackActive)),
       desertVisualTuningVersion: DESERT_VISUAL_TUNING_VERSION,
       atlasTuningVersion: ATLAS_TUNING_VERSION,
       activeAtlasRegionIssues: missingEnvironmentAssets,
@@ -1532,7 +1629,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       lastDamageSource: current.player.lastDamageSource,
       lastDamageTime: current.player.lastDamageTime,
       playerAttackState: getPlayerAttackState(current),
-      journeySection: section.name,
+      journeySection: getSectionDisplayName(section.id),
       worldProgressPercent: Math.round((current.player.x / WORLD_WIDTH) * 100),
       resources: current.resources,
       playerStamina: current.resources.stamina,
@@ -1545,7 +1642,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         expectedGroundY: JOURNEY_WORLD_LAYOUT.groundY,
         playerFootY: Math.round(current.player.y + current.player.height),
       },
-      currentSection: section.name,
+      currentSection: getSectionDisplayName(section.id),
       cameraMode: current.cameraMode,
       cameraFocusTarget: current.cameraFocusTarget,
       cameraBounds: {
@@ -1763,10 +1860,10 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       activeParticles: SECTION_ATMOSPHERES[section.id]?.particle || null,
       activeAtmosphere: {
         sectionId: section.id,
-        sectionName: section.name,
+        sectionName: getSectionDisplayName(section.id),
         particle: SECTION_ATMOSPHERES[section.id]?.particle || null,
         mood: SECTION_ATMOSPHERES[section.id]?.mood || null,
-        title: SECTION_ATMOSPHERES[section.id]?.title || null,
+        title: getSectionDisplayTitle(section.id) || null,
       },
       hazards: HAZARDS.map(hazard => hazard.name),
       endGateReached: current.completed,
@@ -1775,7 +1872,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       failureReason: current.failureReason,
       notice: current.notice,
     };
-  }, [briefingOpen, getActiveHazardsNearPlayer, getBossVulnerabilityState, getCombatMode, getEnemyPatternConfig, getEntityCombatState, getGateGuidance, getObjectiveProgress, getPlayerAttackState, getStaminaWarningState]);
+  }, [backgroundPackId, briefingOpen, getActiveHazardsNearPlayer, getBossVulnerabilityState, getCombatMode, getEnemyPatternConfig, getEntityCombatState, getGateGuidance, getObjectiveProgress, getPlayerAttackState, getSectionDisplayName, getSectionDisplayTitle, getStaminaWarningState, targetCivilisation]);
 
   // --- Rendering Helpers ---
   const drawFieldNoteLabel = useCallback((ctx, x, y, text, color) => {
@@ -2159,7 +2256,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
 
     const isGround = platform.y === GROUND_Y;
     const section = getSectionForX(platform.x);
-    const assetKey = getEnvironmentAssetKeyForPlatform(platform, section.id);
+    const assetKey = getEnvironmentAssetKeyForPlatform(platform, section.id, environmentAssetsRef.current.packId);
     const visualHeight = isGround ? platform.height : Math.max(platform.height + 10, 28);
     const visualY = platform.y;
     const platformX = x - 2;
@@ -2263,7 +2360,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
 
     ctx.save();
     const section = getSectionForX(prop.x);
-    const propAssetKey = getEnvironmentAssetKeyForStoryProp(prop);
+      const propAssetKey = getEnvironmentAssetKeyForStoryProp(prop, environmentAssetsRef.current.packId);
     if (propAssetKey) {
       const propSize = PROP_GROUNDING_CONFIG[prop.type] || { width: 72, height: 72, yOffset: 0, alpha: 0.78, depth: 'midground', tint: 'warm' };
       const drawX = x - propSize.width / 2;
@@ -2719,6 +2816,20 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     return drawn.every(Boolean);
   }, []);
 
+  const drawChinaRiverValleyBackground = useCallback((ctx, cameraX) => {
+    if (backgroundPackId !== 'china-river-valley') return false;
+    const assets = getSectionBackgroundAssets(desertBackgroundAssetsRef.current, 'china-river-valley');
+    if (!assets?.ready) return false;
+    const layerOptions = { canvasWidth: CANVAS_WIDTH, cameraX };
+    const drawn = [
+      drawDesertBackgroundLayer(ctx, assets, 'skyLayer', { y: 0, height: 338 }, { ...layerOptions, parallax: 0.02, alpha: 0.96 }),
+      drawDesertBackgroundLayer(ctx, assets, 'farMountains', { y: 170, height: 170 }, { ...layerOptions, parallax: 0.09, alpha: 0.62 }),
+      drawDesertBackgroundLayer(ctx, assets, 'riverValley', { y: 282, height: 145 }, { ...layerOptions, parallax: 0.18, alpha: 0.68 }),
+      drawDesertBackgroundLayer(ctx, assets, 'watchtowerRidge', { y: 320, height: 150 }, { ...layerOptions, parallax: 0.3, alpha: 0.58 }),
+    ];
+    return drawn.every(Boolean);
+  }, [backgroundPackId]);
+
   const drawSectionParallaxBackground = useCallback((ctx, section, cameraX) => {
     const layers = SECTION_PARALLAX_LAYERS[section.id];
     if (!layers) return false;
@@ -2764,6 +2875,17 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
   }, []);
 
   const drawDesertForegroundAtmosphere = useCallback((ctx, section, cameraX) => {
+    if (backgroundPackId === 'china-river-valley') {
+      const assets = getSectionBackgroundAssets(desertBackgroundAssetsRef.current, 'china-river-valley');
+      if (!assets?.ready) return false;
+      return drawDesertBackgroundLayer(
+        ctx,
+        assets,
+        'foregroundMist',
+        { y: 320, height: 104 },
+        { canvasWidth: CANVAS_WIDTH, cameraX, parallax: 0.42, alpha: 0.24 },
+      );
+    }
     const isNearDesertEntry = section.id === 'desert-entry';
     const assets = getSectionBackgroundAssets(desertBackgroundAssetsRef.current, 'desert-entry');
     if (!isNearDesertEntry || !assets?.ready) return false;
@@ -2774,7 +2896,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       { y: 318, height: 84 },
       { canvasWidth: CANVAS_WIDTH, cameraX, parallax: 0.45, alpha: 0.18 },
     );
-  }, []);
+  }, [backgroundPackId]);
 
   const drawTempleBackdrop = useCallback((ctx, section, cameraX) => {
     if (section.id !== 'ruined-temple') return;
@@ -2977,33 +3099,27 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     const hx = worldToScreenX(hazard.x, cameraX);
     if (!isHorizontallyVisible(hazard.x, hazard.width, cameraX, 50)) return;
 
-    const visual = HAZARD_VISUALS[hazard.id] || {
-      icon: '!',
-      label: hazard.name,
-      color: '#7f1d1d',
-      fill: 'rgba(127, 29, 29, 0.24)',
-      accent: '#facc15',
-      message: hazard.message,
-    };
+    const visualHazardId = getHazardVisualId(hazard);
+    const visual = getHazardVisualConfig(hazard);
     const nearPlayer = Math.abs((current.player.x + current.player.width / 2) - (hazard.x + hazard.width / 2)) < 210;
     const pulse = Math.sin(now / 180 + hazard.x * 0.01) * 0.25 + 0.75;
     const hitActive = current.lastHazardHit?.id === hazard.id && current.staminaFeedbackTimer > 0;
     const baseY = hazard.y;
     const section = getSectionForX(hazard.x);
-    const grounding = HAZARD_GROUNDING[hazard.id] || HAZARD_GROUNDING['spike-trap'];
+    const grounding = getHazardGroundingConfig(hazard);
     const centerX = hx + hazard.width / 2;
     const footY = baseY + hazard.height;
     const dustWidth = hazard.width * (grounding.dustWidth || 0.9);
 
     ctx.save();
-    const hazardAssetKey = getEnvironmentAssetKeyForHazard(hazard);
+    const hazardAssetKey = getEnvironmentAssetKeyForHazard(hazard, environmentAssetsRef.current.packId);
     const hazardDest = {
       x: hx - grounding.xPad,
       y: baseY - grounding.yOffset,
       width: hazard.width + grounding.widthPad,
       height: Math.max(12, hazard.height + grounding.heightPad),
     };
-    if (hazard.id !== 'bat-cloud' && hazard.id !== 'dust-wave') {
+    if (visualHazardId !== 'bat-cloud' && visualHazardId !== 'dust-wave') {
       drawContactShadow(ctx, centerX, footY + 3, hazard.width * 0.92, grounding.shadow, 0.9);
     }
     if (dustWidth > 0) {
@@ -3022,7 +3138,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     if (hazardDrawn) {
       if (dustWidth > 0) {
         drawGroundDustLip(ctx, centerX, footY + 2, dustWidth * 0.82, 'rgba(209, 143, 72, 0.24)');
-        drawHazardGroundApron(ctx, centerX, footY + 4, dustWidth, section.id, hazard.id === 'sand-pit' || hazard.id === 'dark-gap' ? 1.2 : 0.82);
+        drawHazardGroundApron(ctx, centerX, footY + 4, dustWidth, section.id, visualHazardId === 'sand-pit' || visualHazardId === 'dark-gap' ? 1.2 : 0.82);
       }
       if (hitActive) {
         ctx.strokeStyle = 'rgba(239, 68, 68, 0.62)';
@@ -3056,7 +3172,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     ctx.fillStyle = visual.fill;
     ctx.globalAlpha = hitActive ? 0.98 : 0.88;
 
-    if (hazard.id === 'dark-gap') {
+    if (visualHazardId === 'dark-gap') {
       const gradient = ctx.createRadialGradient(hx + hazard.width / 2, baseY + hazard.height / 2, 6, hx + hazard.width / 2, baseY + hazard.height / 2, hazard.width / 1.5);
       gradient.addColorStop(0, '#020617');
       gradient.addColorStop(1, 'rgba(15, 23, 42, 0.72)');
@@ -3067,7 +3183,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       ctx.stroke();
       ctx.fillStyle = 'rgba(56, 189, 248, 0.6)';
       ctx.fillRect(hx + 8, baseY + 3, hazard.width - 16, 2);
-    } else if (hazard.id === 'thorn-bush') {
+    } else if (visualHazardId === 'thorn-bush') {
       ctx.beginPath();
       ctx.roundRect(hx, baseY + 8, hazard.width, hazard.height - 4, 8);
       ctx.fill();
@@ -3080,7 +3196,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         ctx.lineTo(hx + i + 12, baseY + hazard.height + 2);
         ctx.stroke();
       }
-    } else if (hazard.id === 'sand-pit') {
+    } else if (visualHazardId === 'sand-pit') {
       ctx.beginPath();
       ctx.ellipse(hx + hazard.width / 2, baseY + hazard.height / 2, hazard.width / 2, hazard.height / 2, 0, 0, Math.PI * 2);
       ctx.fill();
@@ -3091,7 +3207,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         ctx.arc(hx + 18 + i * 18, baseY + 15 + Math.sin(now / 220 + i) * 3, 5 + pulse * 2, 0, Math.PI * 2);
         ctx.stroke();
       }
-    } else if (hazard.id === 'spike-trap') {
+    } else if (visualHazardId === 'spike-trap') {
       ctx.fillRect(hx, baseY + 10, hazard.width, hazard.height - 8);
       ctx.strokeRect(hx, baseY + 10, hazard.width, hazard.height - 8);
       ctx.fillStyle = visual.accent;
@@ -3104,7 +3220,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         ctx.fill();
         ctx.stroke();
       }
-    } else if (hazard.id === 'rolling-stones' || hazard.id === 'falling-blocks') {
+    } else if (visualHazardId === 'rolling-stones' || visualHazardId === 'falling-blocks') {
       ctx.fillRect(hx, baseY + 10, hazard.width, hazard.height - 8);
       ctx.strokeRect(hx, baseY + 10, hazard.width, hazard.height - 8);
       ctx.strokeStyle = visual.accent;
@@ -3119,7 +3235,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         ctx.arc(hx + 18 + i * 22, baseY + 6 + Math.sin(now / 160 + i) * 4, 5 + i, 0, Math.PI * 2);
         ctx.fill();
       }
-    } else if (hazard.id === 'bat-cloud' || hazard.id === 'dust-wave') {
+    } else if (visualHazardId === 'bat-cloud' || visualHazardId === 'dust-wave') {
       ctx.beginPath();
       ctx.roundRect(hx, baseY, hazard.width, hazard.height, 18);
       ctx.fill();
@@ -3148,9 +3264,9 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     }
 
     ctx.globalAlpha = 0.75 + pulse * 0.25;
-    if (hazard.id !== 'bat-cloud' && hazard.id !== 'dust-wave') {
+    if (visualHazardId !== 'bat-cloud' && visualHazardId !== 'dust-wave') {
       drawGroundDustLip(ctx, centerX, footY + 2, dustWidth * 0.82, 'rgba(185, 110, 45, 0.2)');
-      drawHazardGroundApron(ctx, centerX, footY + 4, dustWidth, section.id, hazard.id === 'sand-pit' || hazard.id === 'dark-gap' ? 1.2 : 0.82);
+      drawHazardGroundApron(ctx, centerX, footY + 4, dustWidth, section.id, visualHazardId === 'sand-pit' || visualHazardId === 'dark-gap' ? 1.2 : 0.82);
     }
     if (hitActive) {
       ctx.strokeStyle = 'rgba(239, 68, 68, 0.62)';
@@ -3875,9 +3991,14 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
 
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    const desertBackgroundDrawn = drawDesertEntryBackground(ctx, section, cameraX);
-    const sectionParallaxDrawn = !desertBackgroundDrawn && drawSectionParallaxBackground(ctx, section, cameraX);
-    if (desertBackgroundDrawn) {
+    const chinaBackgroundDrawn = drawChinaRiverValleyBackground(ctx, cameraX);
+    const desertBackgroundDrawn = !chinaBackgroundDrawn && drawDesertEntryBackground(ctx, section, cameraX);
+    const sectionParallaxDrawn = !chinaBackgroundDrawn && !desertBackgroundDrawn && drawSectionParallaxBackground(ctx, section, cameraX);
+    if (chinaBackgroundDrawn) {
+      current.renderStats.parallaxLayersActive = true;
+      current.renderStats.activeBackgroundSection = 'china-river-valley';
+      current.renderStats.backgroundDepthMode = 'china-river-valley-parallax-v1';
+    } else if (desertBackgroundDrawn) {
       current.renderStats.parallaxLayersActive = true;
       current.renderStats.activeBackgroundSection = 'desert-entry';
       current.renderStats.backgroundDepthMode = DESERT_BACKGROUND_DEPTH_MODE;
@@ -3910,7 +4031,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       }
     }
 
-    const parallaxBackgroundDrawn = desertBackgroundDrawn || sectionParallaxDrawn;
+    const parallaxBackgroundDrawn = chinaBackgroundDrawn || desertBackgroundDrawn || sectionParallaxDrawn;
 
     // --- Ground & Props ---
     if (!parallaxBackgroundDrawn) drawTempleBackdrop(ctx, section, cameraX);
@@ -4264,22 +4385,27 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     const featureCard = current.bossIntro || current.sectionTransition || current.environmentEvent || current.cinematicEvent;
     if (featureCard) {
       const isGuardianCard = Boolean(current.bossIntro);
+      const cardWidth = isGuardianCard ? 540 : 520;
+      const cardHeight = isGuardianCard ? 92 : 76;
+      const cardX = (CANVAS_WIDTH - cardWidth) / 2;
+      const cardY = 78;
+      const cardCenterX = cardX + cardWidth / 2;
       ctx.fillStyle = isGuardianCard ? 'rgba(15, 23, 42, 0.92)' : 'rgba(47, 37, 29, 0.9)';
-      ctx.fillRect(200, 80, 500, isGuardianCard ? 92 : 80);
+      ctx.fillRect(cardX, cardY, cardWidth, cardHeight);
       if (isGuardianCard) {
         ctx.strokeStyle = 'rgba(250, 204, 21, 0.72)';
         ctx.lineWidth = 3;
-        ctx.strokeRect(204, 84, 492, 84);
+        ctx.strokeRect(cardX + 4, cardY + 4, cardWidth - 8, cardHeight - 8);
       }
       ctx.fillStyle = '#fff4d4';
       ctx.font = isGuardianCard ? '900 20px Outfit' : '900 18px Outfit';
       ctx.textAlign = 'center';
-      ctx.fillText(featureCard.name || featureCard.title, 450, 110);
+      ctx.fillText(featureCard.name || featureCard.title, cardCenterX, cardY + 30);
       ctx.font = '800 12px Outfit';
-      ctx.fillText(featureCard.message || '', 450, isGuardianCard ? 140 : 135);
+      ctx.fillText(featureCard.message || '', cardCenterX, cardY + (isGuardianCard ? 60 : 56));
       ctx.textAlign = 'start';
     }
-  }, [drawAttackArc, drawCollectible, drawCombatEffects, drawContactShadow, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawEnemyAttackTell, drawGroundDustLip, drawHazard, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawParticles, drawPlatform, drawRouteGate, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStoryProp, drawTempleBackdrop, getCombatMode, getGateGuidance, getGateRequirements, getPlayerAttackState, drawPlayerSprite, drawFieldNoteLabel]);
+  }, [drawAttackArc, drawCollectible, drawCombatEffects, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawEnemyAttackTell, drawGroundDustLip, drawHazard, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawParticles, drawPlatform, drawRouteGate, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStoryProp, drawTempleBackdrop, getCombatMode, getGateGuidance, getGateRequirements, getPlayerAttackState, drawPlayerSprite, drawFieldNoteLabel]);
 
   const queueAttack = useCallback(() => {
     const current = stateRef.current;
@@ -4447,10 +4573,11 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     const section = getSectionForX(player.x);
     if (section.id !== current.lastSectionId) {
       const atmosphere = SECTION_ATMOSPHERES[section.id];
-      current.sectionTransition = { id: section.id, name: section.name, message: atmosphere.title };
+      const sectionTitle = getSectionDisplayTitle(section.id) || atmosphere.title;
+      current.sectionTransition = { id: section.id, name: getSectionDisplayName(section.id), message: sectionTitle };
       current.sectionTransitionTimer = 2.6;
       current.lastSectionId = section.id;
-      current.notice = atmosphere.title;
+      current.notice = sectionTitle;
       audioControls?.playLevelUp?.();
     }
 
@@ -5102,7 +5229,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       if (current.resources.time <= 0) triggerJourneyRescue('Time expired. Field team rescued.');
     }
 
-  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, buildBossRewardMoment, getAttackBox, getBossPhaseConfig, getBossVulnerabilityState, getEnemyPatternConfig, getObjectiveProgress, getGateGuidance, addCombatEffect, getPlayerAttackState, syncHud]);
+  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, buildBossRewardMoment, getAttackBox, getBossPhaseConfig, getBossVulnerabilityState, getEnemyPatternConfig, getObjectiveProgress, getGateGuidance, addCombatEffect, getPlayerAttackState, getSectionDisplayName, getSectionDisplayTitle, syncHud]);
 
   const step = useCallback((ms) => {
     const dt = Math.min(ms / 1000, 0.05);
@@ -5202,7 +5329,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
           <div className="expedition-panel objective-panel">
             <h3 className="section-title"><Map size={16} /> Status</h3>
             <div className="current-section-badge">
-              {SECTIONS.find(s => s.id === gameState.currentSectionId)?.name || 'Surveying'}
+              {getSectionDisplayName(gameState.currentSectionId) || 'Surveying'}
             </div>
             <div className="objective-progress">
               <div>Shards: {gameState.relicShardCount} / 22</div>
@@ -5260,7 +5387,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
                   <strong>{gameState.relicShardCount}</strong>
                 </div>
                 <div className="journey-floating-hud-status">
-                  {SECTIONS.find(s => s.id === gameState.currentSectionId)?.name || 'Surveying'}
+                  {getSectionDisplayName(gameState.currentSectionId) || 'Surveying'}
                 </div>
               </div>
 
@@ -5294,7 +5421,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
               </div>
             </div>
             
-            {gameState.notice && (
+            {gameState.notice && !gameState.bossIntro && !gameState.sectionTransition && !gameState.environmentEvent && !gameState.cinematicEvent && (
               <div className="expedition-journey-notice animate-fade-in">
                 <Sparkles size={16} />
                 <span>{gameState.notice}</span>
@@ -5418,7 +5545,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
                   Field Mission Dossier
                 </div>
                 <h1 className="cinzel-header">Lost Site Expedition</h1>
-                <p>Navigate the ruins, collect your field kit, and reach Base Camp.</p>
+                <p>Navigate the route, collect your field kit, and reach Base Camp.</p>
               </div>
               <div className="briefing-hero-mark" aria-hidden="true">
                 <span className="briefing-sun" />
@@ -5433,7 +5560,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
                 <div className="dossier-tag">ACTIVE MISSION</div>
                 <h2 className="mission-title">{mission.title}</h2>
                 <p className="mission-desc">
-                  Search for evidence that shows Ancient Egypt had advanced engineering and organised construction.
+                  {mission.instruction || `Search for evidence that supports ${targetCivilisation}.`}
                 </p>
               </div>
               <div className="briefing-task-panel">

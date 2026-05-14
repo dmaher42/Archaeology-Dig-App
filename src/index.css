@@ -13009,7 +13009,7 @@ main {
 /* Notice Box Refinement */
 .expedition-journey-notice {
   position: absolute;
-  top: 0.85rem;
+  top: 3.55rem;
   bottom: auto;
   left: 50%;
   transform: translateX(-50%);

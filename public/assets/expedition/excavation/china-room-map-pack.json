@@ -1,0 +1,179 @@
+{
+  "image": "china-room-map-pack.png",
+  "source": "First runtime Ancient China top-down excavation room map atlas for Lost Site Expedition.",
+  "size": {
+    "w": 1536,
+    "h": 1024
+  },
+  "notes": "Transparent room-map atlas with China terrain, path and overlay regions. The active China map uses this pack while reusing the existing Expedition map runtime.",
+  "regions": {
+    "riverbankTerrain": {
+      "x": 35,
+      "y": 45,
+      "w": 245,
+      "h": 160
+    },
+    "rammedEarthWallTerrain": {
+      "x": 315,
+      "y": 45,
+      "w": 250,
+      "h": 160
+    },
+    "archiveTerrain": {
+      "x": 600,
+      "y": 45,
+      "w": 250,
+      "h": 160
+    },
+    "workshopTerrain": {
+      "x": 885,
+      "y": 45,
+      "w": 250,
+      "h": 160
+    },
+    "tombEdgeTerrain": {
+      "x": 1170,
+      "y": 45,
+      "w": 250,
+      "h": 160
+    },
+    "neutralExcavationTerrain": {
+      "x": 35,
+      "y": 240,
+      "w": 250,
+      "h": 160
+    },
+    "pathHorizontal": {
+      "x": 315,
+      "y": 265,
+      "w": 255,
+      "h": 90
+    },
+    "pathVertical": {
+      "x": 590,
+      "y": 255,
+      "w": 90,
+      "h": 180
+    },
+    "pathCorner": {
+      "x": 880,
+      "y": 270,
+      "w": 230,
+      "h": 145
+    },
+    "doorwayThreshold": {
+      "x": 1170,
+      "y": 265,
+      "w": 255,
+      "h": 95
+    },
+    "timberGateThreshold": {
+      "x": 1170,
+      "y": 265,
+      "w": 255,
+      "h": 95
+    },
+    "passageConnector": {
+      "x": 315,
+      "y": 265,
+      "w": 255,
+      "h": 90
+    },
+    "ropeBoundary": {
+      "x": 315,
+      "y": 490,
+      "w": 255,
+      "h": 36
+    },
+    "excavationBoundaryLine": {
+      "x": 315,
+      "y": 490,
+      "w": 255,
+      "h": 36
+    },
+    "gridOverlay": {
+      "x": 40,
+      "y": 465,
+      "w": 235,
+      "h": 105
+    },
+    "surveyStringHorizontal": {
+      "x": 315,
+      "y": 490,
+      "w": 255,
+      "h": 36
+    },
+    "surveyStringVertical": {
+      "x": 590,
+      "y": 455,
+      "w": 65,
+      "h": 150
+    },
+    "surveyPeg": {
+      "x": 880,
+      "y": 455,
+      "w": 58,
+      "h": 78
+    },
+    "surveyFlag": {
+      "x": 1160,
+      "y": 455,
+      "w": 180,
+      "h": 110
+    },
+    "mapSquareOverlay": {
+      "x": 40,
+      "y": 465,
+      "w": 235,
+      "h": 105
+    },
+    "potteryFragments": {
+      "x": 45,
+      "y": 625,
+      "w": 245,
+      "h": 92
+    },
+    "bronzeFragmentPile": {
+      "x": 330,
+      "y": 620,
+      "w": 170,
+      "h": 105
+    },
+    "oracleBoneFragments": {
+      "x": 595,
+      "y": 610,
+      "w": 155,
+      "h": 105
+    },
+    "jadeChipScatter": {
+      "x": 750,
+      "y": 610,
+      "w": 140,
+      "h": 105
+    },
+    "trenchEdge": {
+      "x": 905,
+      "y": 610,
+      "w": 180,
+      "h": 125
+    },
+    "siltMound": {
+      "x": 1170,
+      "y": 610,
+      "w": 180,
+      "h": 120
+    },
+    "shadedArchiveAlcove": {
+      "x": 35,
+      "y": 785,
+      "w": 245,
+      "h": 155
+    },
+    "roomShadowOverlay": {
+      "x": 1180,
+      "y": 770,
+      "w": 260,
+      "h": 200
+    }
+  }
+}

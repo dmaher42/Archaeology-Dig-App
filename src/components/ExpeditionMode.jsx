@@ -33,6 +33,7 @@ import {
 import { EXPEDITION_ROOM_CONNECTIONS, EXPEDITION_ROOM_ZONE_BY_ID } from './expedition/expeditionMapLayout';
 import { getZoneChallenge } from './expedition/expeditionZoneChallenges';
 import {
+  EXPEDITION_STAGE_IDS,
   EXPEDITION_STAGE_HEADER_CHARACTERS,
   EXPEDITION_STAGES,
   PLAYABLE_EXPEDITION_STAGE_ID,
@@ -63,6 +64,68 @@ const EXCAVATION_TERRAIN_BY_ZONE = {
 
 const EXCAVATION_VISUAL_MODE = 'egypt-room-map-stage-1';
 const EXCAVATION_MAP_VISUAL_TUNING_VERSION = 'egypt-room-map-regression-tuning-2026-05-12';
+const DEFAULT_EXCAVATION_MAP_THEME = {
+  backgroundInner: '#ebdaba',
+  backgroundOuter: '#d4c09d',
+  neutralTileAlpha: 0.12,
+  gridOverlayAlpha: 0.18,
+  gridLineColor: 'rgba(100, 75, 50, 0.03)',
+  surveyLineAlpha: 0.3,
+  surveyLineSecondaryAlpha: 0.26,
+  surveyPegAlpha: 0.58,
+  pathAlpha: 0.36,
+  thresholdAlpha: 0.46,
+  terrainAlpha: 0.82,
+  gateTerrainAlpha: 0.34,
+  terrainWash: 'rgba(244, 224, 187, 0.14)',
+  roomShadowAlpha: 0.16,
+  labelAssetAlpha: 0.86,
+  labelText: '#3a2a18',
+  surveyLabelText: '#4b341d',
+  selectedSurveyLabelText: '#214315',
+  selectedStroke: 'rgba(33, 77, 38, 0.95)',
+  idleStroke: 'rgba(92, 64, 35, 0.38)',
+  selectedDashStroke: 'rgba(250, 204, 21, 0.82)',
+  markerAlpha: 0.88,
+  hazardAlpha: 0.92,
+  hazardLabelBackground: 'rgba(255, 255, 255, 0.85)',
+  hazardLabelText: '#5b2b16',
+  wallAlpha: 0.9,
+  wallStroke: 'rgba(74, 54, 32, 0.35)',
+  playerGlowAlpha: 0.5,
+};
+
+const CHINA_EXCAVATION_MAP_THEME = {
+  ...DEFAULT_EXCAVATION_MAP_THEME,
+  backgroundInner: '#ead9b2',
+  backgroundOuter: '#bfa36d',
+  neutralTileAlpha: 0.18,
+  gridOverlayAlpha: 0.14,
+  gridLineColor: 'rgba(43, 76, 54, 0.055)',
+  surveyLineAlpha: 0.36,
+  surveyLineSecondaryAlpha: 0.32,
+  surveyPegAlpha: 0.72,
+  pathAlpha: 0.48,
+  thresholdAlpha: 0.62,
+  terrainAlpha: 0.94,
+  gateTerrainAlpha: 0.42,
+  terrainWash: 'rgba(255, 239, 202, 0.055)',
+  roomShadowAlpha: 0.1,
+  labelAssetAlpha: 0.96,
+  labelText: '#2f2617',
+  surveyLabelText: '#3b321f',
+  selectedSurveyLabelText: '#174934',
+  selectedStroke: 'rgba(23, 73, 52, 0.98)',
+  idleStroke: 'rgba(77, 60, 33, 0.5)',
+  selectedDashStroke: 'rgba(50, 143, 102, 0.8)',
+  markerAlpha: 0.94,
+  hazardAlpha: 0.88,
+  hazardLabelBackground: 'rgba(255, 251, 236, 0.92)',
+  hazardLabelText: '#4a321d',
+  wallAlpha: 0.96,
+  wallStroke: 'rgba(82, 58, 29, 0.46)',
+  playerGlowAlpha: 0.58,
+};
 
 const SURVEY_COST = { investigation: -4, time: -8 };
 const SURVEY_ZONES = [
@@ -299,6 +362,255 @@ const GRID_ZONE_CONFIGS = {
     },
   ],
 };
+
+const CHINA_ZONES = [
+  { id: 'riverbank', name: 'River Valley', emoji: '', x: 0, y: 0, w: 260, h: 220, color: 'rgba(56, 189, 148, 0.16)' },
+  { id: 'burial', name: 'Tomb Edge', emoji: '', x: 260, y: 0, w: 260, h: 220, color: 'rgba(154, 126, 93, 0.18)' },
+  { id: 'archive', name: 'Oracle Archive', emoji: '', x: 520, y: 0, w: 280, h: 220, color: 'rgba(185, 141, 66, 0.16)' },
+  { id: 'market', name: 'Bronze Workshop', emoji: '', x: 0, y: 220, w: 320, h: 190, color: 'rgba(168, 112, 57, 0.15)' },
+  { id: 'wall', name: 'Rammed Earth Wall', emoji: '', x: 320, y: 220, w: 260, h: 190, color: 'rgba(142, 119, 84, 0.18)' },
+  { id: 'gate', name: 'Timber Exit Gate', emoji: '', x: 580, y: 220, w: 220, h: 340, color: 'rgba(74, 222, 128, 0.12)' },
+];
+
+const CHINA_EXCAVATION_TERRAIN_BY_ZONE = {
+  riverbank: 'chinaRoomMap:riverbankTerrain',
+  burial: 'chinaRoomMap:tombEdgeTerrain',
+  archive: 'chinaRoomMap:archiveTerrain',
+  market: 'chinaRoomMap:workshopTerrain',
+  wall: 'chinaRoomMap:rammedEarthWallTerrain',
+  gate: 'chinaRoomMap:neutralExcavationTerrain',
+};
+
+const CHINA_SURVEY_ZONES = [
+  {
+    id: 'riverbank',
+    name: 'River Valley',
+    prompt: 'Silt layers and plant traces sit near a broad river channel.',
+    clue: 'You notice damp silt and plant remains. This area may show how river valleys shaped farming and settlement.',
+    risk: 'Survey cost: -4 investigation points and -8 seconds.',
+    likelyEvidence: 'Possible environmental evidence linked to food, farming and river settlement.',
+    missionHint: 'Useful context, but it may not be the strongest place for structural evidence.',
+  },
+  {
+    id: 'burial',
+    name: 'Tomb Edge',
+    prompt: 'A cut edge in the ground leads toward a protected burial area.',
+    clue: 'You notice a planned tomb edge and traces of high-status objects. This area may include ritual or status evidence.',
+    risk: 'Survey cost: -4 investigation points and -8 seconds.',
+    likelyEvidence: 'Possible burial structures plus objects or remains.',
+    missionHint: 'This area could help, but the mission evidence may be mixed with non-target finds.',
+  },
+  {
+    id: 'archive',
+    name: 'Oracle Archive',
+    prompt: 'Fragments of bone, bamboo and sealed containers sit near a shaded wall.',
+    clue: 'You notice stored records and carved marks. This area may preserve early writing evidence.',
+    risk: 'Survey cost: -4 investigation points and -8 seconds.',
+    likelyEvidence: 'Possible written evidence such as oracle bone or bamboo records.',
+    missionHint: 'Important for understanding belief and government, but probably not the strongest match for structural evidence.',
+  },
+  {
+    id: 'market',
+    name: 'Bronze Workshop',
+    prompt: 'Broken vessels, ash and workshop debris sit beside compacted floor marks.',
+    clue: 'You notice craft debris and everyday activity traces. This area may show production, technology and objects.',
+    risk: 'Survey cost: -4 investigation points and -8 seconds.',
+    likelyEvidence: 'Possible artefacts, workshop objects and production evidence.',
+    missionHint: 'Useful for technology evidence, but only some finds may answer the current mission.',
+  },
+  {
+    id: 'wall',
+    name: 'Rammed Earth Wall',
+    prompt: 'Compacted earth layers run in a planned line across the trench.',
+    clue: 'You notice repeated packed-earth layers and foundation traces. This area may show organised building work.',
+    risk: 'Survey cost: -4 investigation points and -8 seconds.',
+    likelyEvidence: 'Possible structures or construction evidence.',
+    missionHint: 'This area looks promising for the current Bureau mission.',
+  },
+];
+
+const CHINA_SURVEY_ZONE_BY_ID = Object.fromEntries(CHINA_SURVEY_ZONES.map(zone => [zone.id, zone]));
+const CHINA_SURVEY_REVEAL_LINKS = {
+  ch_13: ['archive'],
+  ch_7: ['wall'],
+  ch_10: ['riverbank'],
+  ch_8: ['wall', 'burial'],
+  ch_1: ['market', 'burial'],
+  ch_9: ['market', 'wall'],
+};
+const CHINA_GRID_ZONE_CONFIGS = {
+  wall: [
+    {
+      id: 'A1',
+      clue: 'Layered compacted earth runs in a straight line.',
+      risk: 'Low',
+      possibleEvidenceHint: 'Possible rammed-earth wall evidence.',
+      linkedEvidenceIds: ['ch_7'],
+      openFeedback: 'Grid A1 opened. Compacted wall evidence can now be inspected.',
+    },
+    {
+      id: 'A2',
+      clue: 'A square post base suggests a tall timber structure once stood here.',
+      risk: 'Low',
+      possibleEvidenceHint: 'Possible foundation evidence.',
+      linkedEvidenceIds: ['ch_8'],
+      openFeedback: 'Grid A2 opened. A building foundation can now be inspected.',
+    },
+    {
+      id: 'B1',
+      clue: 'Loose rubble and mixed fill make this patch slower to read.',
+      risk: 'Medium',
+      possibleEvidenceHint: 'Unclear disturbed surface.',
+      linkedEvidenceIds: [],
+      openFeedback: 'Grid B1 opened. The surface is mixed and does not reveal strong mission evidence yet.',
+    },
+    {
+      id: 'B2',
+      clue: 'Heat-marked clay appears beside a built feature.',
+      risk: 'Medium',
+      possibleEvidenceHint: 'Possible kiln or workshop structure.',
+      linkedEvidenceIds: ['ch_9'],
+      openFeedback: 'Grid B2 opened. A built kiln feature can now be inspected.',
+    },
+  ],
+  burial: [
+    {
+      id: 'A1',
+      clue: 'A packed edge leads toward a protected tomb area.',
+      risk: 'Low',
+      possibleEvidenceHint: 'Possible foundation or burial feature.',
+      linkedEvidenceIds: ['ch_8'],
+      openFeedback: 'Grid A1 opened. Foundation evidence may be recorded here.',
+    },
+    {
+      id: 'A2',
+      clue: 'High-status vessel fragments sit beside the tomb edge.',
+      risk: 'Medium',
+      possibleEvidenceHint: 'Possible ritual object evidence.',
+      linkedEvidenceIds: ['ch_1'],
+      openFeedback: 'Grid A2 opened. A bronze object can now be inspected.',
+    },
+    {
+      id: 'B1',
+      clue: 'The surface is compact but has few clear features.',
+      risk: 'Low',
+      possibleEvidenceHint: 'Weak context evidence.',
+      linkedEvidenceIds: [],
+      openFeedback: 'Grid B1 opened. This square gives context but not a strong mission lead.',
+    },
+    {
+      id: 'B2',
+      clue: 'Dark fill suggests a protected edge below the surface.',
+      risk: 'Medium',
+      possibleEvidenceHint: 'Possible built edge or tomb cut.',
+      linkedEvidenceIds: [],
+      openFeedback: 'Grid B2 opened. The area needs care but reveals no clear target evidence yet.',
+    },
+  ],
+  archive: [
+    {
+      id: 'A1',
+      clue: 'Carved bone fragments sit near a storage alcove.',
+      risk: 'Low',
+      possibleEvidenceHint: 'Possible written record evidence.',
+      linkedEvidenceIds: ['ch_13'],
+      openFeedback: 'Grid A1 opened. Written evidence can now be inspected here.',
+    },
+    {
+      id: 'A2',
+      clue: 'Bamboo fragments are mixed with loose dust.',
+      risk: 'Low',
+      possibleEvidenceHint: 'Possible archive evidence.',
+      linkedEvidenceIds: [],
+      openFeedback: 'Grid A2 opened. This square adds archive context but no strong mission evidence.',
+    },
+    {
+      id: 'B1',
+      clue: 'Shelf collapse makes the surface harder to interpret.',
+      risk: 'Medium',
+      possibleEvidenceHint: 'Mixed archive debris.',
+      linkedEvidenceIds: [],
+      openFeedback: 'Grid B1 opened. The surface is disturbed here.',
+    },
+    {
+      id: 'B2',
+      clue: 'A sealed container rests near a wall base.',
+      risk: 'Medium',
+      possibleEvidenceHint: 'Possible record storage context.',
+      linkedEvidenceIds: [],
+      openFeedback: 'Grid B2 opened. This square gives useful context but not a direct mission match.',
+    },
+  ],
+  riverbank: [
+    {
+      id: 'A1',
+      clue: 'Burnt grain sits in damp river silt.',
+      risk: 'Low',
+      possibleEvidenceHint: 'Possible farming or food evidence.',
+      linkedEvidenceIds: ['ch_10'],
+      openFeedback: 'Grid A1 opened. River-valley farming evidence can now be inspected.',
+    },
+    {
+      id: 'A2',
+      clue: 'Plant traces cling to wet soil.',
+      risk: 'Low',
+      possibleEvidenceHint: 'Possible plant evidence.',
+      linkedEvidenceIds: [],
+      openFeedback: 'Grid A2 opened. This square adds environmental context to the site.',
+    },
+    {
+      id: 'B1',
+      clue: 'The bank has slumped and disturbed the surface.',
+      risk: 'Medium',
+      possibleEvidenceHint: 'Limited clear finds.',
+      linkedEvidenceIds: [],
+      openFeedback: 'Grid B1 opened. The unstable bank limits what can be recorded here.',
+    },
+    {
+      id: 'B2',
+      clue: 'Washed-in debris sits beside a shallow channel.',
+      risk: 'Medium',
+      possibleEvidenceHint: 'Possible mixed objects or plant remains.',
+      linkedEvidenceIds: [],
+      openFeedback: 'Grid B2 opened. The square gives context, but not a strong mission lead.',
+    },
+  ],
+  market: [
+    {
+      id: 'A1',
+      clue: 'A bronze vessel fragment sits near workshop ash.',
+      risk: 'Low',
+      possibleEvidenceHint: 'Possible object or technology evidence.',
+      linkedEvidenceIds: ['ch_1'],
+      openFeedback: 'Grid A1 opened. Bronze object evidence can now be inspected.',
+    },
+    {
+      id: 'A2',
+      clue: 'A heat-marked built oven cuts into the surface.',
+      risk: 'Medium',
+      possibleEvidenceHint: 'Possible production structure.',
+      linkedEvidenceIds: ['ch_9'],
+      openFeedback: 'Grid A2 opened. A kiln structure can now be inspected.',
+    },
+    {
+      id: 'B1',
+      clue: 'Compacted floor traces suggest repeated workshop movement.',
+      risk: 'Low',
+      possibleEvidenceHint: 'Possible activity evidence.',
+      linkedEvidenceIds: [],
+      openFeedback: 'Grid B1 opened. This square explains workshop use but is not direct mission evidence.',
+    },
+    {
+      id: 'B2',
+      clue: 'Mixed debris makes the square slower to clear.',
+      risk: 'Medium',
+      possibleEvidenceHint: 'Mixed workshop evidence.',
+      linkedEvidenceIds: [],
+      openFeedback: 'Grid B2 opened. This square is cluttered and slower to investigate.',
+    },
+  ],
+};
+
 const EXCAVATION_METHODS = [
   {
     id: 'brush',
@@ -352,6 +664,13 @@ const WALLS = [
   { x: 618, y: 120, w: 32, h: 98, label: 'scorpion path obstacle' },
 ];
 
+const CHINA_WALLS = [
+  { x: 322, y: 238, w: 178, h: 34, label: 'rammed earth spine' },
+  { x: 92, y: 342, w: 220, h: 24, label: 'workshop timber edge' },
+  { x: 600, y: 360, w: 126, h: 28, label: 'gate approach beam' },
+  { x: 618, y: 120, w: 32, h: 98, label: 'archive threshold' },
+];
+
 const HAZARDS = [
   {
     id: 'sandstorm',
@@ -391,6 +710,45 @@ const HAZARDS = [
   },
 ];
 
+const CHINA_HAZARDS = [
+  {
+    id: 'sandstorm',
+    name: 'river silt',
+    emoji: 'silt',
+    x: 84,
+    y: 96,
+    w: 120,
+    h: 70,
+    color: 'rgba(74, 124, 89, 0.28)',
+    penalty: { time: -15 },
+    message: 'River silt slowed the survey. Time drops by 15 seconds.',
+  },
+  {
+    id: 'falling-rocks',
+    name: 'loose rubble',
+    emoji: 'rubble',
+    x: 388,
+    y: 292,
+    w: 110,
+    h: 78,
+    color: 'rgba(148, 163, 184, 0.32)',
+    penalty: { investigation: -8 },
+    message: 'Loose rubble disrupted the trench. Investigation points drop by 8.',
+  },
+  {
+    id: 'unstable-floor',
+    name: 'soft trench',
+    emoji: 'trench',
+    x: 196,
+    y: 454,
+    w: 118,
+    h: 70,
+    color: 'rgba(166, 94, 46, 0.24)',
+    penalty: { stamina: -18 },
+    message: 'Soft trench edge: stamina drops by 18.',
+  },
+];
+
 const EXCAVATION_GUARDIANS = [
   {
     id: 'tomb-guardian-shadow',
@@ -409,6 +767,27 @@ const EXCAVATION_GUARDIANS = [
     speed: 54,
     penalty: { investigation: -6, time: -8 },
     message: 'Tomb Guardian Shadow disrupted your survey. Investigation points and time reduced.',
+  },
+];
+
+const CHINA_EXCAVATION_GUARDIANS = [
+  {
+    id: 'site-watcher-shadow',
+    name: 'Site Watcher',
+    emoji: 'watcher',
+    x: 620,
+    y: 420,
+    w: 30,
+    h: 30,
+    path: [
+      { x: 620, y: 420 },
+      { x: 708, y: 420 },
+      { x: 708, y: 286 },
+      { x: 620, y: 286 },
+    ],
+    speed: 54,
+    penalty: { investigation: -6, time: -8 },
+    message: 'Site Watcher Shadow disrupted your survey. Investigation points and time reduced.',
   },
 ];
 
@@ -514,6 +893,110 @@ const EVIDENCE_HUNT_MISSIONS = [
   },
 ];
 
+const CHINA_EVIDENCE_HUNT_MISSIONS = [
+  {
+    id: 'china-structural-organisation',
+    title: 'Find Structural Evidence',
+    inquiryQuestion: 'What evidence shows that Ancient China had organised construction and specialised building knowledge?',
+    instruction: 'Search for evidence that shows Ancient China had organised construction and specialised building knowledge.',
+    targetEvidenceType: 'structure',
+    targetCategoryId: 'structure',
+    targetCategoryTitle: 'Features / Structures',
+    evidenceLabel: 'Structural evidence',
+    requiredTargetCount: 3,
+    gateRequirement: 'The Timber Exit Gate needs 3 pieces of structural evidence.',
+    keepSearchingNotice: 'Keep searching for evidence of walls, foundations, kilns or other built features.',
+    matchFeedback: 'Mission evidence found: this supports your inquiry about Ancient China.',
+    mismatchFeedback: 'Interesting discovery, but it does not directly answer this mission question.',
+    briefingRule: 'Find 3 pieces of structural evidence to unlock the Timber Exit Gate.',
+  },
+];
+
+const EGYPT_EVIDENCE_PICKS = [
+  { id: 'eg_13', x: 690, y: 94, zone: 'Archive Corner', clueGroup: 'Legacy' },
+  { id: 'eg_7', x: 548, y: 340, zone: 'Ruined Wall', clueGroup: 'Society' },
+  { id: 'eg_11', x: 128, y: 142, zone: 'Riverbank', clueGroup: 'Geography' },
+  { id: 'eg_8', x: 350, y: 310, zone: 'Ruined Wall', clueGroup: 'Society' },
+  { id: 'eg_10', x: 140, y: 330, zone: 'Market Area', clueGroup: 'Society' },
+  { id: 'eg_9', x: 532, y: 330, zone: 'Ruined Wall', clueGroup: 'Society' },
+];
+
+const CHINA_EVIDENCE_PICKS = [
+  { id: 'ch_13', x: 690, y: 94, zone: 'Oracle Archive', clueGroup: 'Writing' },
+  { id: 'ch_7', x: 548, y: 340, zone: 'Rammed Earth Wall', clueGroup: 'Organisation' },
+  { id: 'ch_10', x: 128, y: 142, zone: 'River Valley', clueGroup: 'Geography' },
+  { id: 'ch_8', x: 350, y: 310, zone: 'Rammed Earth Wall', clueGroup: 'Engineering' },
+  { id: 'ch_1', x: 140, y: 330, zone: 'Bronze Workshop', clueGroup: 'Power' },
+  { id: 'ch_9', x: 532, y: 330, zone: 'Rammed Earth Wall', clueGroup: 'Technology' },
+];
+
+const EXPEDITION_MAP_CONTENT = {
+  [EXPEDITION_STAGE_IDS.EGYPT]: {
+    id: EXPEDITION_STAGE_IDS.EGYPT,
+    targetCivilisation: TARGET_CIVILISATION,
+    startsAt: 'journey',
+    zones: ZONES,
+    terrainByZone: EXCAVATION_TERRAIN_BY_ZONE,
+    surveyZones: SURVEY_ZONES,
+    surveyZoneById: SURVEY_ZONE_BY_ID,
+    surveyRevealLinks: SURVEY_REVEAL_LINKS,
+    gridZoneConfigs: GRID_ZONE_CONFIGS,
+    hazards: HAZARDS,
+    walls: WALLS,
+    guardians: EXCAVATION_GUARDIANS,
+    missions: EVIDENCE_HUNT_MISSIONS,
+    evidencePicks: EGYPT_EVIDENCE_PICKS,
+    roomMapPackId: 'roomMap',
+    markerPackId: 'surveyMarkers',
+    gatewayPackId: 'gateway',
+    mapUiPackId: 'legacy',
+    challengeUiPackId: 'challengeUi',
+    mapTheme: DEFAULT_EXCAVATION_MAP_THEME,
+    defaultZoneName: 'Open Trench',
+    visualMode: EXCAVATION_VISUAL_MODE,
+    journeyEnvironmentPackId: 'egypt-desert-temple',
+    journeyBackgroundPackId: null,
+    mapTitle: 'Lost Site Expedition',
+    routeMusicCue: 'desert',
+    excavationMusicCue: 'baseCamp',
+    briefingIntro: 'Survey the site first, choose a dig zone, collect evidence, and prove which civilisation lived here.',
+  },
+  [EXPEDITION_STAGE_IDS.CHINA]: {
+    id: EXPEDITION_STAGE_IDS.CHINA,
+    targetCivilisation: 'Ancient China',
+    startsAt: 'journey',
+    zones: CHINA_ZONES,
+    terrainByZone: CHINA_EXCAVATION_TERRAIN_BY_ZONE,
+    surveyZones: CHINA_SURVEY_ZONES,
+    surveyZoneById: CHINA_SURVEY_ZONE_BY_ID,
+    surveyRevealLinks: CHINA_SURVEY_REVEAL_LINKS,
+    gridZoneConfigs: CHINA_GRID_ZONE_CONFIGS,
+    hazards: CHINA_HAZARDS,
+    walls: CHINA_WALLS,
+    guardians: CHINA_EXCAVATION_GUARDIANS,
+    missions: CHINA_EVIDENCE_HUNT_MISSIONS,
+    evidencePicks: CHINA_EVIDENCE_PICKS,
+    roomMapPackId: 'chinaRoomMap',
+    markerPackId: 'chinaSurveyGateway',
+    gatewayPackId: 'chinaSurveyGateway',
+    mapUiPackId: 'chinaSurveyGateway',
+    challengeUiPackId: 'chinaChallengeUi',
+    mapTheme: CHINA_EXCAVATION_MAP_THEME,
+    defaultZoneName: 'Survey Trench',
+    visualMode: 'china-room-map-stage-1',
+    journeyEnvironmentPackId: 'china-river-valley',
+    journeyBackgroundPackId: 'china-river-valley',
+    mapTitle: 'Ancient China Expedition Map',
+    routeMusicCue: 'desert',
+    excavationMusicCue: 'baseCamp',
+    briefingIntro: 'Survey the river-valley site, choose a dig zone, collect evidence, and prove this Ancient China investigation.',
+  },
+};
+
+const getExpeditionMapContent = (stageId = PLAYABLE_EXPEDITION_STAGE_ID) => (
+  EXPEDITION_MAP_CONTENT[stageId] || EXPEDITION_MAP_CONTENT[PLAYABLE_EXPEDITION_STAGE_ID]
+);
+
 const normaliseEvidenceTypeForMission = (type) => (
   type === 'environment' ? 'environmental' : type
 );
@@ -617,15 +1100,15 @@ const getResourceFailureMessage = (resources) => {
   return 'Field rescue needed. Restart the expedition and try a safer route.';
 };
 
-const chooseEvidenceHuntMission = (previousMissionId = null) => {
-  const choices = EVIDENCE_HUNT_MISSIONS.filter(mission => mission.id !== previousMissionId);
-  const pool = choices.length > 0 ? choices : EVIDENCE_HUNT_MISSIONS;
+const chooseEvidenceHuntMission = (previousMissionId = null, missions = EVIDENCE_HUNT_MISSIONS) => {
+  const choices = missions.filter(mission => mission.id !== previousMissionId);
+  const pool = choices.length > 0 ? choices : missions;
   return pool[Math.floor(Math.random() * pool.length)];
 };
 
 const getMissionRequiredCount = (mission) => mission?.requiredTargetCount || 1;
 
-const buildExcavationGuardians = () => EXCAVATION_GUARDIANS.map(guardian => ({
+const buildExcavationGuardians = (guardians = EXCAVATION_GUARDIANS) => guardians.map(guardian => ({
   ...guardian,
   targetIndex: 1,
 }));
@@ -646,61 +1129,53 @@ const getPlayerRect = (player) => ({
   h: PLAYER_SIZE,
 });
 
-const getZoneName = (player) => {
+const getZoneName = (player, zones = ZONES, fallbackName = 'Open Trench') => {
   const centre = { x: player.x + PLAYER_SIZE / 2, y: player.y + PLAYER_SIZE / 2 };
-  return ZONES.find(zone => (
+  return zones.find(zone => (
     centre.x >= zone.x && centre.x <= zone.x + zone.w &&
     centre.y >= zone.y && centre.y <= zone.y + zone.h
-  ))?.name || 'Open Trench';
+  ))?.name || fallbackName;
 };
 
-const getSurveyZoneAtPlayer = (player) => {
+const getSurveyZoneAtPlayer = (player, surveyZones = SURVEY_ZONES, zones = ZONES) => {
   const centre = { x: player.x + PLAYER_SIZE / 2, y: player.y + PLAYER_SIZE / 2 };
-  const zone = SURVEY_ZONES.find(item => {
-    const mapZone = ZONES.find(mapItem => mapItem.id === item.id);
+  const zone = surveyZones.find(item => {
+    const mapZone = zones.find(mapItem => mapItem.id === item.id);
     return mapZone && centre.x >= mapZone.x && centre.x <= mapZone.x + mapZone.w &&
       centre.y >= mapZone.y && centre.y <= mapZone.y + mapZone.h;
   });
   return zone || null;
 };
 
-const getGridSquaresForZone = (zoneId) => GRID_ZONE_CONFIGS[zoneId] || [];
+const getGridSquaresForZone = (zoneId, gridZoneConfigs = GRID_ZONE_CONFIGS) => gridZoneConfigs[zoneId] || [];
 
-const evidenceVisibleForGrid = (token, selectedSurveyZone, openedGridSquares) => {
-  if (!selectedSurveyZone || !SURVEY_REVEAL_LINKS[token.id]?.includes(selectedSurveyZone)) {
+const evidenceVisibleForGrid = (token, selectedSurveyZone, openedGridSquares, surveyRevealLinks = SURVEY_REVEAL_LINKS, gridZoneConfigs = GRID_ZONE_CONFIGS) => {
+  if (!selectedSurveyZone || !surveyRevealLinks[token.id]?.includes(selectedSurveyZone)) {
     return false;
   }
   if (!openedGridSquares || openedGridSquares.size === 0) {
     return false;
   }
-  return getGridSquaresForZone(selectedSurveyZone).some(square => (
+  return getGridSquaresForZone(selectedSurveyZone, gridZoneConfigs).some(square => (
     openedGridSquares.has(square.id) && square.linkedEvidenceIds.includes(token.id)
   ));
 };
 
-const getOpenedGridSquareForEvidence = (token, selectedSurveyZone, openedGridSquares) => (
-  getGridSquaresForZone(selectedSurveyZone).find(square => (
+const getOpenedGridSquareForEvidence = (token, selectedSurveyZone, openedGridSquares, gridZoneConfigs = GRID_ZONE_CONFIGS) => (
+  getGridSquaresForZone(selectedSurveyZone, gridZoneConfigs).find(square => (
     openedGridSquares?.has(square.id) && square.linkedEvidenceIds.includes(token.id)
   ))?.id || null
 );
 
-const getSurveyZoneName = (zoneId) => (
-  zoneId ? SURVEY_ZONE_BY_ID[zoneId]?.name || zoneId : null
+const getSurveyZoneName = (zoneId, surveyZoneById = SURVEY_ZONE_BY_ID) => (
+  zoneId ? surveyZoneById[zoneId]?.name || zoneId : null
 );
 
-const buildExpeditionEvidence = () => {
-  const egypt = SCENARIOS.find(scenario => scenario.civilization === TARGET_CIVILISATION);
-  const byId = new Map((egypt?.evidence || []).map(item => [item.id, item]));
-  const picks = [
-    { id: 'eg_13', x: 690, y: 94, zone: 'Archive Corner', clueGroup: 'Legacy' },
-    { id: 'eg_7', x: 548, y: 340, zone: 'Ruined Wall', clueGroup: 'Society' },
-    { id: 'eg_11', x: 128, y: 142, zone: 'Riverbank', clueGroup: 'Geography' },
-    { id: 'eg_8', x: 350, y: 310, zone: 'Ruined Wall', clueGroup: 'Society' },
-    { id: 'eg_10', x: 140, y: 330, zone: 'Market Area', clueGroup: 'Society' },
-    { id: 'eg_9', x: 532, y: 330, zone: 'Ruined Wall', clueGroup: 'Society' },
-  ];
+const buildExpeditionEvidence = (content = getExpeditionMapContent()) => {
+  const scenario = SCENARIOS.find(item => item.civilization === content.targetCivilisation);
+  const byId = new Map((scenario?.evidence || []).map(item => [item.id, item]));
 
-  return picks.map((pick, index) => {
+  return content.evidencePicks.map((pick, index) => {
     const source = byId.get(pick.id);
     return {
       ...pick,
@@ -711,7 +1186,7 @@ const buildExpeditionEvidence = () => {
       category: getCategoryTitle(source?.type),
       clue: source?.clue || 'A clue from the site.',
       rationale: source?.rationale || 'This evidence helps explain the site.',
-      supports: TARGET_CIVILISATION,
+      supports: content.targetCivilisation,
       collected: false,
     };
   });
@@ -782,28 +1257,50 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     onUpdate: setExcavationMapAssets,
   }), []);
 
+  const selectedStageId = selectedExpedition?.id || PLAYABLE_EXPEDITION_STAGE_ID;
+  const stageContent = useMemo(() => getExpeditionMapContent(selectedStageId), [selectedStageId]);
+  const targetCivilisation = stageContent.targetCivilisation;
+  const mapZones = stageContent.zones;
+  const terrainByZone = stageContent.terrainByZone;
+  const surveyZones = stageContent.surveyZones;
+  const surveyZoneById = stageContent.surveyZoneById;
+  const surveyRevealLinks = stageContent.surveyRevealLinks;
+  const gridZoneConfigs = stageContent.gridZoneConfigs;
+  const mapHazards = stageContent.hazards;
+  const mapWalls = stageContent.walls;
+  const mapTheme = stageContent.mapTheme;
+  const defaultZoneName = stageContent.defaultZoneName;
+  const roomMapPackId = stageContent.roomMapPackId;
+  const markerPackId = stageContent.markerPackId;
+  const gatewayPackId = stageContent.gatewayPackId;
+  const mapUiPackId = stageContent.mapUiPackId;
+  const challengeUiPackId = stageContent.challengeUiPackId;
+
   const trainingCivilisations = useMemo(() => (
     BUREAU_CASES
       .filter(item => item.round === 'training')
       .map(item => item.civilisation)
       .filter(civilisation => CLAIM_OPTIONS.includes(civilisation))
   ), []);
+  const claimCivilisations = useMemo(() => (
+    [...new Set([...trainingCivilisations, targetCivilisation])]
+  ), [targetCivilisation, trainingCivilisations]);
 
   const missionRequiredCount = getMissionRequiredCount(activeMission);
   const exitUnlocked = missionEvidenceCount >= missionRequiredCount;
   const surveyComplete = Boolean(selectedSurveyZone);
-  const selectedMapZoneData = selectedMapZone ? (ZONES.find(zone => zone.id === selectedMapZone) || null) : null;
+  const selectedMapZoneData = selectedMapZone ? (mapZones.find(zone => zone.id === selectedMapZone) || null) : null;
   const selectedRoomData = selectedMapZone ? (EXPEDITION_ROOM_ZONE_BY_ID[selectedMapZone] || null) : null;
   const activeChallengeData = activeZoneChallenge ? getZoneChallenge(activeZoneChallenge) : null;
-  const canSurveySelectedZone = Boolean(selectedMapZone && SURVEY_ZONE_BY_ID[selectedMapZone] && completedZoneChallenges.has(selectedMapZone));
-  const gridSquares = useMemo(() => getGridSquaresForZone(selectedSurveyZone), [selectedSurveyZone]);
+  const canSurveySelectedZone = Boolean(selectedMapZone && surveyZoneById[selectedMapZone] && completedZoneChallenges.has(selectedMapZone));
+  const gridSquares = useMemo(() => getGridSquaresForZone(selectedSurveyZone, gridZoneConfigs), [gridZoneConfigs, selectedSurveyZone]);
   const gridComplete = openedGridSquares.size > 0;
   const getVisibleEvidence = useCallback(() => (
-    tokensRef.current.filter(token => !token.collected && evidenceVisibleForGrid(token, selectedSurveyZone, openedGridSquares))
-  ), [openedGridSquares, selectedSurveyZone]);
+    tokensRef.current.filter(token => !token.collected && evidenceVisibleForGrid(token, selectedSurveyZone, openedGridSquares, surveyRevealLinks, gridZoneConfigs))
+  ), [gridZoneConfigs, openedGridSquares, selectedSurveyZone, surveyRevealLinks]);
   const getHiddenEvidence = useCallback(() => (
-    tokensRef.current.filter(token => !token.collected && !evidenceVisibleForGrid(token, selectedSurveyZone, openedGridSquares))
-  ), [openedGridSquares, selectedSurveyZone]);
+    tokensRef.current.filter(token => !token.collected && !evidenceVisibleForGrid(token, selectedSurveyZone, openedGridSquares, surveyRevealLinks, gridZoneConfigs))
+  ), [gridZoneConfigs, openedGridSquares, selectedSurveyZone, surveyRevealLinks]);
   const fieldKitSet = useMemo(() => new Set(fieldKit), [fieldKit]);
   const fieldKitEffects = useMemo(() => ({
     fieldGuideAvailable: fieldKitSet.has('field-guide-page'),
@@ -837,12 +1334,12 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
   const pendingMappedEvidence = useMemo(() => (
     inspectionToken ? {
       ...inspectionToken,
-      selectedSurveyZone: getSurveyZoneName(selectedSurveyZone),
-      selectedGridSquare: getOpenedGridSquareForEvidence(inspectionToken, selectedSurveyZone, openedGridSquares) || selectedGridSquare,
+      selectedSurveyZone: getSurveyZoneName(selectedSurveyZone, surveyZoneById),
+      selectedGridSquare: getOpenedGridSquareForEvidence(inspectionToken, selectedSurveyZone, openedGridSquares, gridZoneConfigs) || selectedGridSquare,
       mappedEvidenceType: inspectionToken.mappedEvidenceType ? getMapEvidenceTypeName(inspectionToken.mappedEvidenceType) : null,
       mappingAccurate: inspectionToken.mappingAccurate ?? null,
     } : null
-  ), [inspectionToken, openedGridSquares, selectedGridSquare, selectedSurveyZone]);
+  ), [gridZoneConfigs, inspectionToken, openedGridSquares, selectedGridSquare, selectedSurveyZone, surveyZoneById]);
   const inventoryFullDecisionOpen = Boolean(inspectionToken && ['capacity', 'replace', 'mission'].includes(inspectionStep));
   const evidenceQualitySummary = useMemo(() => (
     collectedEvidence.reduce((summary, item) => {
@@ -904,8 +1401,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     const bonus = (mappingAccuracySummary.accurate * 2) - mappingAccuracySummary.needsReview + (fieldKitEffects.measuringTapeReady ? 1 : 0);
     return clamp(bonus, -10, 10);
   }, [claimResult, fieldKitEffects.measuringTapeReady, mappingAccuracySummary]);
-  const claimCorrect = claimResult ? selectedCivilisation === TARGET_CIVILISATION : false;
-  const evidenceSupportsClaim = claimResult ? selectedEvidence?.supports === TARGET_CIVILISATION : false;
+  const claimCorrect = claimResult ? selectedCivilisation === targetCivilisation : false;
+  const evidenceSupportsClaim = claimResult ? selectedEvidence?.supports === targetCivilisation : false;
   const missionComplete = missionEvidenceCount >= missionRequiredCount;
   const finalScore = useMemo(() => {
     if (!claimResult) return null;
@@ -1071,9 +1568,9 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       startZoneChallenge(zoneId);
       return;
     }
-    const zoneName = EXPEDITION_ROOM_ZONE_BY_ID[zoneId]?.name || getSurveyZoneName(zoneId) || 'selected zone';
+    const zoneName = mapZones.find(zone => zone.id === zoneId)?.name || getSurveyZoneName(zoneId, surveyZoneById) || 'selected zone';
     setNotice(`${zoneName} entry check complete. Survey is ready.`);
-  }, [completedZoneChallenges, selectedMapZone, startZoneChallenge]);
+  }, [completedZoneChallenges, mapZones, selectedMapZone, startZoneChallenge, surveyZoneById]);
 
   const answerZoneChallenge = useCallback((answerId) => {
     const challenge = activeZoneChallenge ? getZoneChallenge(activeZoneChallenge) : null;
@@ -1106,11 +1603,11 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     const scaleY = MAP_HEIGHT / rect.height;
     const x = (event.clientX - rect.left) * scaleX;
     const y = (event.clientY - rect.top) * scaleY;
-    const zone = ZONES.find(item => x >= item.x && x <= item.x + item.w && y >= item.y && y <= item.y + item.h);
+    const zone = mapZones.find(item => x >= item.x && x <= item.x + item.w && y >= item.y && y <= item.y + item.h);
     if (!zone) return;
     setSelectedMapZone(zone.id);
     setNotice(`${zone.name} selected. Enter the zone to complete its room check.`);
-  }, []);
+  }, [mapZones]);
 
   const openSurveyReport = useCallback((zone = nearbySurveyZoneRef.current, options = {}) => {
     if (briefingOpen || !zone || lockedRef.current || inspectionToken || expeditionFailure) return;
@@ -1155,12 +1652,12 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
   const openGridSetup = useCallback(() => {
     if (!selectedSurveyZone || briefingOpen || lockedRef.current || expeditionFailure) return;
     setGridSetupOpen(true);
-    setNotice(`Grid setup opened for ${getSurveyZoneName(selectedSurveyZone)}.`);
-  }, [briefingOpen, expeditionFailure, selectedSurveyZone]);
+    setNotice(`Grid setup opened for ${getSurveyZoneName(selectedSurveyZone, surveyZoneById)}.`);
+  }, [briefingOpen, expeditionFailure, selectedSurveyZone, surveyZoneById]);
 
   const openGridSquare = useCallback((square) => {
     if (!square || !selectedSurveyZone) return;
-    const zoneName = getSurveyZoneName(selectedSurveyZone);
+    const zoneName = getSurveyZoneName(selectedSurveyZone, surveyZoneById);
     const alreadyOpened = openedGridSquares.has(square.id);
 
     if (!alreadyOpened) {
@@ -1184,18 +1681,18 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       ? ' This square was already opened, so no extra resources were used.'
       : '';
     setNotice(`${square.openFeedback}${repeatNote}${measuringTapeNote}`);
-  }, [fieldKitEffects.measuringTapeReady, fieldKitEffects.notebookReady, openedGridSquares, recordGridFieldNote, selectedSurveyZone, syncResources]);
+  }, [fieldKitEffects.measuringTapeReady, fieldKitEffects.notebookReady, openedGridSquares, recordGridFieldNote, selectedSurveyZone, surveyZoneById, syncResources]);
 
   const openInspection = useCallback((token = nearbyTokenRef.current) => {
     if (briefingOpen || !surveyComplete || !gridComplete || !token || token.collected || lockedRef.current) return;
-    if (!evidenceVisibleForGrid(token, selectedSurveyZone, openedGridSquares)) return;
+    if (!evidenceVisibleForGrid(token, selectedSurveyZone, openedGridSquares, surveyRevealLinks, gridZoneConfigs)) return;
     setInspectionToken(token);
     setInspectionStep(token.excavationMethod ? (token.mappedEvidenceType ? 'review' : 'map') : 'excavate');
     setInspectionFeedback(null);
     setMappingFeedback(null);
     setSelectedExcavationMethod(token.excavationMethod || null);
     setNotice(`Inspecting ${token.name}. Choose an excavation method before deciding if it matches the mission.`);
-  }, [briefingOpen, gridComplete, openedGridSquares, selectedSurveyZone, surveyComplete]);
+  }, [briefingOpen, gridComplete, gridZoneConfigs, openedGridSquares, selectedSurveyZone, surveyComplete, surveyRevealLinks]);
 
   const chooseExcavationMethod = useCallback((methodId) => {
     if (!inspectionToken || inspectionToken.collected) return;
@@ -1261,8 +1758,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     const evidenceTypeId = selectedMappedEvidenceType;
     const evidenceTypeName = getMapEvidenceTypeName(evidenceTypeId);
     const accurate = isMappingAccurate(inspectionToken, evidenceTypeId);
-    const zoneName = getSurveyZoneName(selectedSurveyZone);
-    const gridSquare = getOpenedGridSquareForEvidence(inspectionToken, selectedSurveyZone, openedGridSquares) || selectedGridSquare || 'Unknown';
+    const zoneName = getSurveyZoneName(selectedSurveyZone, surveyZoneById);
+    const gridSquare = getOpenedGridSquareForEvidence(inspectionToken, selectedSurveyZone, openedGridSquares, gridZoneConfigs) || selectedGridSquare || 'Unknown';
     const mapping = {
       id: inspectionToken.id,
       name: inspectionToken.name,
@@ -1316,7 +1813,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       : accurate
         ? 'Mapping complete. You recorded the evidence accurately.'
         : 'Mapping recorded, but the evidence type may need review.');
-  }, [fieldKitEffects.measuringTapeReady, fieldKitEffects.notebookReady, inspectionToken, openedGridSquares, recordMappingNote, selectedGridSquare, selectedMappedEvidenceType, selectedSurveyZone, syncResources]);
+  }, [fieldKitEffects.measuringTapeReady, fieldKitEffects.notebookReady, gridZoneConfigs, inspectionToken, openedGridSquares, recordMappingNote, selectedGridSquare, selectedMappedEvidenceType, selectedSurveyZone, surveyZoneById, syncResources]);
 
   const beginExpedition = () => {
     keysRef.current = {};
@@ -1325,18 +1822,74 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     setNotice('Survey the site first. Choose a promising dig zone before inspecting evidence.');
   };
 
-  const openExpeditionStage = (stage) => {
-    if (stage.route !== 'playable' || stage.id !== PLAYABLE_EXPEDITION_STAGE_ID) {
+  const openExpeditionStage = useCallback((stage) => {
+    const content = getExpeditionMapContent(stage.id);
+    const canOpenPlayableStage = stage.route === 'playable' || stage.route === 'map-playable';
+    if (!canOpenPlayableStage || !content) {
       setPreviewExpedition(stage);
       return;
     }
 
+    const nextMission = chooseEvidenceHuntMission(null, content.missions);
     audioControls.initAudio?.();
-    audioControls.playExpeditionMusic?.('desert');
+    audioControls.playExpeditionMusic?.(content.routeMusicCue);
     setSelectedExpedition(stage);
     setPreviewExpedition(null);
-    setNotice(activeMission.instruction);
-  };
+    setExpeditionStage(content.startsAt === 'excavation' ? 'excavation' : 'journey');
+    setBaseCampOpen(false);
+    setJourneyPaused(false);
+    setFieldKit(content.startsAt === 'excavation' ? ['field-guide-page', 'notebook', 'brush', 'trowel', 'camera', 'measuring-tape'] : []);
+    setActiveMission(nextMission);
+    setJourneyRunId(previous => previous + 1);
+    journeySnapshotRef.current = null;
+    playerRef.current = { x: 42, y: 498 };
+    tokensRef.current = buildExpeditionEvidence(content);
+    guardiansRef.current = buildExcavationGuardians(content.guardians);
+    collectedRef.current = [];
+    resourcesRef.current = INITIAL_RESOURCES;
+    hazardCooldownRef.current = {};
+    guardianCooldownRef.current = {};
+    lockedRef.current = false;
+    tickAccumulatorRef.current = 0;
+    nearbyTokenRef.current = null;
+    nearbySurveyZoneRef.current = null;
+    dismissedTokenRef.current = null;
+    keysRef.current = {};
+    setCollectedEvidence([]);
+    setFieldNotes([]);
+    setResources(INITIAL_RESOURCES);
+    setCurrentZone(content.zones.find(zone => zone.id === 'market')?.name || content.zones[0]?.name || 'Expedition Site');
+    setNotice(nextMission.instruction);
+    setBriefingOpen(true);
+    setNearbyToken(null);
+    setSelectedSurveyZone(null);
+    setSurveyedZones(new Set());
+    setNearbySurveyZone(null);
+    setSurveyReportZone(null);
+    setSelectedMapZone(null);
+    setEnteredMapZone(null);
+    setCompletedZoneChallenges(new Set());
+    setActiveZoneChallenge(null);
+    setZoneChallengeFeedback(null);
+    setGridSetupOpen(false);
+    setSelectedGridSquare(null);
+    setOpenedGridSquares(new Set());
+    setInspectionToken(null);
+    setInspectionStep('review');
+    setInspectionFeedback(null);
+    setSelectedExcavationMethod(null);
+    setExcavationMethodHistory([]);
+    setSelectedMappedEvidenceType('');
+    setMappingFeedback(null);
+    setMappedFinds([]);
+    setMissionEvidenceCount(0);
+    setClaimOpen(false);
+    setSelectedCivilisation('');
+    setSelectedEvidenceId('');
+    setClaimResult(null);
+    setResultOpen(false);
+    setExpeditionFailure(null);
+  }, [audioControls]);
 
   const handleJourneySnapshot = useCallback((snapshot) => {
     journeySnapshotRef.current = snapshot;
@@ -1418,8 +1971,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     token.collected = true;
     token.isMissionEvidence = isMissionEvidence;
     token.evidenceQuality = token.evidenceQuality || 'good';
-    token.mappedZone = token.mappedZone || getSurveyZoneName(selectedSurveyZone);
-    token.mappedGridSquare = token.mappedGridSquare || getOpenedGridSquareForEvidence(token, selectedSurveyZone, openedGridSquares) || selectedGridSquare;
+    token.mappedZone = token.mappedZone || getSurveyZoneName(selectedSurveyZone, surveyZoneById);
+    token.mappedGridSquare = token.mappedGridSquare || getOpenedGridSquareForEvidence(token, selectedSurveyZone, openedGridSquares, gridZoneConfigs) || selectedGridSquare;
     token.mappedEvidenceType = token.mappedEvidenceType || getMapEvidenceTypeName(token.studentMappedType || getMapEvidenceTypeIdForToken(token));
     token.mappingAccurate = token.mappingAccurate ?? (token.studentMappedType ? isMappingAccurate(token, token.studentMappedType) : true);
     nextInventory.push(token);
@@ -1537,22 +2090,22 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
 
     // 1. Better Background (Subtle radial gradient)
     const bgGradient = ctx.createRadialGradient(MAP_WIDTH/2, MAP_HEIGHT/2, MAP_WIDTH/4, MAP_WIDTH/2, MAP_HEIGHT/2, MAP_WIDTH);
-    bgGradient.addColorStop(0, '#ebdaba');
-    bgGradient.addColorStop(1, '#d4c09d');
+    bgGradient.addColorStop(0, mapTheme.backgroundInner);
+    bgGradient.addColorStop(1, mapTheme.backgroundOuter);
     ctx.fillStyle = bgGradient;
     ctx.fillRect(0, 0, MAP_WIDTH, MAP_HEIGHT);
 
     if (assetsReady) {
       for (let x = 0; x < MAP_WIDTH; x += 145) {
         for (let y = 0; y < MAP_HEIGHT; y += 96) {
-          drawExcavationMapRegion(ctx, excavationMapAssets, 'roomMap:neutralExcavationTerrain', { x, y, w: 150, h: 100 }, { alpha: 0.12 });
+          drawExcavationMapRegion(ctx, excavationMapAssets, `${roomMapPackId}:neutralExcavationTerrain`, { x, y, w: 150, h: 100 }, { alpha: mapTheme.neutralTileAlpha });
         }
       }
-      drawExcavationMapRegion(ctx, excavationMapAssets, 'roomMap:gridOverlay', { x: 318, y: 230, w: 168, h: 110 }, { alpha: 0.18 });
+      drawExcavationMapRegion(ctx, excavationMapAssets, `${roomMapPackId}:gridOverlay`, { x: 318, y: 230, w: 168, h: 110 }, { alpha: mapTheme.gridOverlayAlpha });
     }
 
     // 2. Map Grid (Ultra Faint)
-    ctx.strokeStyle = 'rgba(100, 75, 50, 0.03)';
+    ctx.strokeStyle = mapTheme.gridLineColor;
     ctx.lineWidth = 1;
     for (let x = 0; x <= MAP_WIDTH; x += 40) {
       ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, MAP_HEIGHT); ctx.stroke();
@@ -1563,16 +2116,16 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
 
     if (assetsReady) {
       for (let x = 18; x < MAP_WIDTH; x += 260) {
-        drawExcavationMapRegion(ctx, excavationMapAssets, 'roomMap:surveyStringHorizontal', { x, y: 212, w: 190, h: 7 }, { alpha: 0.3 });
-        drawExcavationMapRegion(ctx, excavationMapAssets, 'roomMap:surveyStringHorizontal', { x: x + 40, y: 414, w: 190, h: 7 }, { alpha: 0.26 });
+        drawExcavationMapRegion(ctx, excavationMapAssets, `${roomMapPackId}:surveyStringHorizontal`, { x, y: 212, w: 190, h: 7 }, { alpha: mapTheme.surveyLineAlpha });
+        drawExcavationMapRegion(ctx, excavationMapAssets, `${roomMapPackId}:surveyStringHorizontal`, { x: x + 40, y: 414, w: 190, h: 7 }, { alpha: mapTheme.surveyLineSecondaryAlpha });
       }
       for (let x = 252; x < MAP_WIDTH; x += 260) {
-        drawExcavationMapRegion(ctx, excavationMapAssets, 'roomMap:surveyStringVertical', { x, y: 24, w: 150, h: 6 }, { alpha: 0.26, rotation: Math.PI / 2 });
+        drawExcavationMapRegion(ctx, excavationMapAssets, `${roomMapPackId}:surveyStringVertical`, { x, y: 24, w: 150, h: 6 }, { alpha: mapTheme.surveyLineSecondaryAlpha, rotation: Math.PI / 2 });
       }
       [
         [260, 214], [522, 214], [318, 414], [580, 414], [720, 220],
       ].forEach(([x, y]) => {
-        drawExcavationMapRegion(ctx, excavationMapAssets, 'roomMap:surveyPeg', { x, y, w: 14, h: 26 }, { alpha: 0.58, fit: 'contain' });
+        drawExcavationMapRegion(ctx, excavationMapAssets, `${roomMapPackId}:surveyPeg`, { x, y, w: 14, h: 26 }, { alpha: mapTheme.surveyPegAlpha, fit: 'contain' });
       });
     }
 
@@ -1586,7 +2139,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         const w = Math.max(Math.abs(x2 - x1), 16) + 16;
         const h = Math.max(Math.abs(y2 - y1), 16) + 16;
         const horizontal = Math.abs(x2 - x1) >= Math.abs(y2 - y1);
-        if (!drawExcavationMapRegion(ctx, excavationMapAssets, horizontal ? 'roomMap:pathHorizontal' : 'roomMap:pathVertical', { x, y, w, h }, { alpha: 0.36 })) {
+        if (!drawExcavationMapRegion(ctx, excavationMapAssets, horizontal ? `${roomMapPackId}:pathHorizontal` : `${roomMapPackId}:pathVertical`, { x, y, w, h }, { alpha: mapTheme.pathAlpha })) {
           ctx.strokeStyle = 'rgba(115, 79, 42, 0.28)';
           ctx.lineWidth = 10;
           ctx.beginPath();
@@ -1596,48 +2149,48 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         }
       }
       const lastPoint = points[points.length - 1];
-      drawExcavationMapRegion(ctx, excavationMapAssets, 'gateway:carvedThreshold', { x: lastPoint[0] - 22, y: lastPoint[1] - 14, w: 44, h: 28 }, { alpha: 0.46, fit: 'contain' });
+      drawExcavationMapRegion(ctx, excavationMapAssets, `${gatewayPackId}:carvedThreshold`, { x: lastPoint[0] - 22, y: lastPoint[1] - 14, w: 44, h: 28 }, { alpha: mapTheme.thresholdAlpha, fit: 'contain' });
     });
 
 
     // 3. Map Zones with transparent labels
-    ZONES.forEach((zone) => {
-      const terrainKey = EXCAVATION_TERRAIN_BY_ZONE[zone.id] || 'roomMap:neutralExcavationTerrain';
+    mapZones.forEach((zone) => {
+      const terrainKey = terrainByZone[zone.id] || `${roomMapPackId}:neutralExcavationTerrain`;
       const drewTerrain = drawExcavationMapRegion(
         ctx,
         excavationMapAssets,
         terrainKey,
         { x: zone.x + 3, y: zone.y + 3, w: zone.w - 6, h: zone.h - 6 },
-        { alpha: zone.id === 'gate' ? 0.34 : 0.82 },
+        { alpha: zone.id === 'gate' ? mapTheme.gateTerrainAlpha : mapTheme.terrainAlpha },
       );
       if (!drewTerrain) {
         ctx.fillStyle = zone.color;
         ctx.fillRect(zone.x, zone.y, zone.w, zone.h);
       }
-      ctx.fillStyle = 'rgba(244, 224, 187, 0.14)';
+      ctx.fillStyle = mapTheme.terrainWash;
       ctx.fillRect(zone.x, zone.y, zone.w, zone.h);
       if (zone.id !== 'gate') {
-        drawExcavationMapRegion(ctx, excavationMapAssets, 'roomMap:roomShadowOverlay', { x: zone.x + 2, y: zone.y + 2, w: zone.w - 4, h: zone.h - 4 }, { alpha: 0.16 });
+        drawExcavationMapRegion(ctx, excavationMapAssets, `${roomMapPackId}:roomShadowOverlay`, { x: zone.x + 2, y: zone.y + 2, w: zone.w - 4, h: zone.h - 4 }, { alpha: mapTheme.roomShadowAlpha });
       }
       ctx.strokeStyle = selectedSurveyZone === zone.id || selectedMapZone === zone.id
-        ? 'rgba(33, 77, 38, 0.95)'
-        : 'rgba(92, 64, 35, 0.38)';
+        ? mapTheme.selectedStroke
+        : mapTheme.idleStroke;
       ctx.lineWidth = selectedSurveyZone === zone.id || selectedMapZone === zone.id ? 3 : 1.5;
       ctx.strokeRect(zone.x + 1, zone.y + 1, zone.w - 2, zone.h - 2);
 
       if ((selectedSurveyZone === zone.id || selectedMapZone === zone.id) && assetsReady) {
         ctx.save();
-        ctx.strokeStyle = 'rgba(250, 204, 21, 0.82)';
+        ctx.strokeStyle = mapTheme.selectedDashStroke;
         ctx.lineWidth = 2;
         ctx.setLineDash([10, 6]);
         ctx.strokeRect(zone.x + 8, zone.y + 8, zone.w - 16, zone.h - 16);
         ctx.restore();
-        drawExcavationMapRegion(ctx, excavationMapAssets, 'surveyMarkers:highlightedSelectedZoneBorder', {
+        drawExcavationMapRegion(ctx, excavationMapAssets, `${markerPackId}:highlightedSelectedZoneBorder`, {
           x: zone.x + zone.w - 88,
           y: zone.y + 10,
           w: 70,
           h: 42,
-        }, { alpha: 0.86, fit: 'contain' });
+        }, { alpha: mapTheme.markerAlpha, fit: 'contain' });
       }
 
       // Label background (Soft rounded card)
@@ -1651,28 +2204,28 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       const lh = 24;
       const lr = 4;
 
-      if (!drawExcavationMapRegion(ctx, excavationMapAssets, 'pinnedFieldLabel', { x: lx - 3, y: ly - 5, w: Math.max(lw + 20, 100), h: 38 }, { alpha: 0.86, fit: 'cover' })) {
+      if (!drawExcavationMapRegion(ctx, excavationMapAssets, `${mapUiPackId}:pinnedFieldLabel`, { x: lx - 3, y: ly - 5, w: Math.max(lw + 20, 100), h: 38 }, { alpha: mapTheme.labelAssetAlpha, fit: 'cover' })) {
         ctx.fillStyle = 'rgba(255, 248, 232, 0.9)';
         fillRoundRect(lx, ly, lw, lh, lr);
       }
 
-      ctx.fillStyle = '#3a2a18';
+      ctx.fillStyle = mapTheme.labelText;
       ctx.fillText(labelText, lx + 6, ly + 17);
 
       const roomMarker = surveyedZones.has(zone.id)
-        ? 'surveyMarkers:surveyedMarker'
+        ? `${markerPackId}:surveyedMarker`
         : completedZoneChallenges.has(zone.id)
-          ? 'surveyMarkers:surveyReadyMarker'
-          : 'surveyMarkers:challengeRequiredMarker';
+          ? `${markerPackId}:surveyReadyMarker`
+          : `${markerPackId}:challengeRequiredMarker`;
       const markerSize = zone.id === 'gate' ? 32 : 27;
       drawExcavationMapRegion(ctx, excavationMapAssets, roomMarker, {
         x: zone.x + zone.w - markerSize - 12,
         y: zone.y + zone.h - markerSize - 10,
         w: markerSize,
         h: markerSize,
-      }, { alpha: 0.88, fit: 'contain' });
+      }, { alpha: mapTheme.markerAlpha, fit: 'contain' });
 
-      if (SURVEY_ZONE_BY_ID[zone.id]) {
+      if (surveyZoneById[zone.id]) {
         const sX = zone.x + 10;
         const sY = zone.y + zone.h - 32;
         const surveyLabelText = selectedSurveyZone === zone.id
@@ -1683,8 +2236,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
               ? 'Survey ready'
               : 'Check needed';
         const tagWidth = selectedSurveyZone === zone.id ? 136 : 124;
-        const tagAsset = surveyedZones.has(zone.id) ? 'surveyTag' : 'pinnedFieldLabel';
-        const drewTag = drawExcavationMapRegion(ctx, excavationMapAssets, tagAsset, { x: sX - 4, y: sY - 8, w: tagWidth, h: 42 }, { alpha: 0.9, fit: 'cover' });
+        const tagAsset = surveyedZones.has(zone.id) ? `${mapUiPackId}:surveyTag` : `${mapUiPackId}:pinnedFieldLabel`;
+        const drewTag = drawExcavationMapRegion(ctx, excavationMapAssets, tagAsset, { x: sX - 4, y: sY - 8, w: tagWidth, h: 42 }, { alpha: mapTheme.labelAssetAlpha, fit: 'cover' });
         if (!drewTag) {
           ctx.fillStyle = selectedSurveyZone === zone.id
             ? 'rgba(45, 90, 39, 0.9)'
@@ -1692,34 +2245,34 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
           fillRoundRect(sX, sY, tagWidth - 8, 24, 4);
         }
         if (selectedSurveyZone === zone.id || surveyedZones.has(zone.id)) {
-          drawExcavationMapRegion(ctx, excavationMapAssets, selectedSurveyZone === zone.id ? 'mapPin' : 'completedSurveyStamp', { x: sX + tagWidth - 36, y: sY - 12, w: 30, h: 30 }, { alpha: 0.88, fit: 'contain' });
+          drawExcavationMapRegion(ctx, excavationMapAssets, selectedSurveyZone === zone.id ? `${mapUiPackId}:mapPin` : `${mapUiPackId}:completedSurveyStamp`, { x: sX + tagWidth - 36, y: sY - 12, w: 30, h: 30 }, { alpha: 0.88, fit: 'contain' });
         } else if (completedZoneChallenges.has(zone.id)) {
-          drawExcavationMapRegion(ctx, excavationMapAssets, 'surveyMarkers:neutralUnlockIcon', { x: sX + tagWidth - 32, y: sY - 8, w: 24, h: 24 }, { alpha: 0.82, fit: 'contain' });
+          drawExcavationMapRegion(ctx, excavationMapAssets, `${markerPackId}:neutralUnlockIcon`, { x: sX + tagWidth - 32, y: sY - 8, w: 24, h: 24 }, { alpha: 0.82, fit: 'contain' });
         } else {
-          drawExcavationMapRegion(ctx, excavationMapAssets, 'surveyMarkers:neutralQuestionIcon', { x: sX + tagWidth - 32, y: sY - 8, w: 24, h: 24 }, { alpha: 0.82, fit: 'contain' });
+          drawExcavationMapRegion(ctx, excavationMapAssets, `${markerPackId}:neutralQuestionIcon`, { x: sX + tagWidth - 32, y: sY - 8, w: 24, h: 24 }, { alpha: 0.82, fit: 'contain' });
         }
 
-        ctx.fillStyle = selectedSurveyZone === zone.id ? '#214315' : '#4b341d';
+        ctx.fillStyle = selectedSurveyZone === zone.id ? mapTheme.selectedSurveyLabelText : mapTheme.surveyLabelText;
         ctx.font = '800 11px Outfit, sans-serif';
         ctx.fillText(surveyLabelText, sX + 10, sY + 16);
       }
     });
 
     // 4. Hazards (Simplified to reduce visual noise)
-    HAZARDS.forEach((hazard) => {
+    mapHazards.forEach((hazard) => {
       const hazardAsset = {
-        sandstorm: 'sandstormPatch',
-        'falling-rocks': 'fallingRocksPatch',
-        'unstable-floor': 'unstableFloorCrack',
+        sandstorm: `${mapUiPackId}:sandstormPatch`,
+        'falling-rocks': `${mapUiPackId}:fallingRocksPatch`,
+        'unstable-floor': `${mapUiPackId}:unstableFloorCrack`,
       }[hazard.id];
       const drewHazard = drawExcavationMapRegion(ctx, excavationMapAssets, hazardAsset, {
         x: hazard.x - 6,
         y: hazard.y - 8,
         w: hazard.w + 12,
         h: hazard.h + 16,
-      }, { alpha: 0.92, fit: 'contain' });
+      }, { alpha: mapTheme.hazardAlpha, fit: 'contain' });
       if (hazard.id === 'sandstorm') {
-        drawExcavationMapRegion(ctx, excavationMapAssets, 'dustCloudOverlay', {
+        drawExcavationMapRegion(ctx, excavationMapAssets, `${mapUiPackId}:dustCloudOverlay`, {
           x: hazard.x + 16,
           y: hazard.y + 4,
           w: hazard.w + 34,
@@ -1730,7 +2283,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         ctx.fillStyle = hazard.color;
         fillRoundRect(hazard.x, hazard.y, hazard.w, hazard.h, 6);
       }
-      drawExcavationMapRegion(ctx, excavationMapAssets, 'cautionIcon', {
+      drawExcavationMapRegion(ctx, excavationMapAssets, `${mapUiPackId}:cautionIcon`, {
         x: hazard.x + hazard.w - 28,
         y: hazard.y + hazard.h - 28,
         w: 24,
@@ -1738,7 +2291,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       }, { alpha: 0.78, fit: 'contain' });
 
       // Label background (Soft card)
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+      ctx.fillStyle = mapTheme.hazardLabelBackground;
       const labelText = hazard.name;
       ctx.font = '700 12px Outfit, sans-serif';
       const textWidth = ctx.measureText(labelText).width;
@@ -1762,7 +2315,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       ctx.closePath();
       ctx.fill();
 
-      ctx.fillStyle = '#5b2b16';
+      ctx.fillStyle = mapTheme.hazardLabelText;
       ctx.fillText(labelText, hX + 6, hY + 15);
     });
 
@@ -1771,9 +2324,9 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     ctx.shadowBlur = 4;
     ctx.shadowOffsetY = 3;
     
-    WALLS.forEach((wall) => {
-      const wallAsset = wall.w > wall.h * 1.8 ? 'stoneWallSegment' : 'buriedFoundationStones';
-      const drewWall = drawExcavationMapRegion(ctx, excavationMapAssets, wallAsset, { x: wall.x - 4, y: wall.y - 8, w: wall.w + 8, h: wall.h + 16 }, { alpha: 0.9 });
+    mapWalls.forEach((wall) => {
+      const wallAsset = wall.w > wall.h * 1.8 ? `${mapUiPackId}:stoneWallSegment` : `${mapUiPackId}:buriedFoundationStones`;
+      const drewWall = drawExcavationMapRegion(ctx, excavationMapAssets, wallAsset, { x: wall.x - 4, y: wall.y - 8, w: wall.w + 8, h: wall.h + 16 }, { alpha: mapTheme.wallAlpha });
       if (!drewWall) {
         // Base stone color
         ctx.fillStyle = '#968471';
@@ -1796,7 +2349,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         ctx.stroke();
       }
 
-      ctx.strokeStyle = 'rgba(74, 54, 32, 0.35)';
+      ctx.strokeStyle = mapTheme.wallStroke;
       ctx.lineWidth = 1.5;
       ctx.strokeRect(wall.x, wall.y, wall.w, wall.h);
     });
@@ -1808,16 +2361,16 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     const gateOpen = missionEvidenceCount >= missionRequiredCount;
     ctx.shadowColor = gateOpen ? 'rgba(74, 222, 128, 0.4)' : 'rgba(0,0,0,0.3)';
     ctx.shadowBlur = 10;
-    const gateAsset = gateOpen ? 'gateway:unlockedExitGate' : 'gateway:sealedExitGate';
+    const gateAsset = gateOpen ? `${gatewayPackId}:unlockedExitGate` : `${gatewayPackId}:sealedExitGate`;
     const drewGate = drawExcavationMapRegion(ctx, excavationMapAssets, gateAsset, { x: 710, y: 238, w: 78, h: 132 }, { alpha: 0.96, fit: 'contain' });
     if (!drewGate) {
       ctx.fillStyle = gateOpen ? 'rgba(74, 222, 128, 0.6)' : 'rgba(74, 54, 32, 0.8)';
       ctx.fillRect(724, 258, 54, 108);
     }
     if (!gateOpen) {
-      drawExcavationMapRegion(ctx, excavationMapAssets, 'gateway:lockedSealIcon', { x: 734, y: 298, w: 30, h: 28 }, { alpha: 0.92, fit: 'contain' });
+      drawExcavationMapRegion(ctx, excavationMapAssets, `${gatewayPackId}:lockedSealIcon`, { x: 734, y: 298, w: 30, h: 28 }, { alpha: 0.92, fit: 'contain' });
     } else {
-      drawExcavationMapRegion(ctx, excavationMapAssets, 'gateway:unlockedSealIcon', { x: 735, y: 296, w: 30, h: 28 }, { alpha: 0.9, fit: 'contain' });
+      drawExcavationMapRegion(ctx, excavationMapAssets, `${gatewayPackId}:unlockedSealIcon`, { x: 735, y: 296, w: 30, h: 28 }, { alpha: 0.9, fit: 'contain' });
     }
     ctx.strokeStyle = gateOpen ? '#166534' : '#3a2a18';
     ctx.lineWidth = gateOpen ? 2 : 3;
@@ -1831,7 +2384,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
 
     // 7. Tokens (Floating/glowing)
     tokensRef.current.forEach((token, index) => {
-      if (token.collected || !evidenceVisibleForGrid(token, selectedSurveyZone, openedGridSquares)) return;
+      if (token.collected || !evidenceVisibleForGrid(token, selectedSurveyZone, openedGridSquares, surveyRevealLinks, gridZoneConfigs)) return;
       
       const floatY = Math.sin((now / 200) + index) * 3;
       
@@ -1871,7 +2424,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       ctx.setLineDash([]);
 
       ctx.globalAlpha = 0.68 + shimmer * 0.24;
-      const drewGuardian = drawExcavationMapRegion(ctx, excavationMapAssets, 'guardianShadowMarker', {
+      const drewGuardian = drawExcavationMapRegion(ctx, excavationMapAssets, `${mapUiPackId}:guardianShadowMarker`, {
         x: guardian.x - 14,
         y: guardian.y - 18,
         w: guardian.w + 32,
@@ -1922,10 +2475,10 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     const playerCentreX = player.x + PLAYER_SIZE / 2;
     const playerCentreY = player.y + PLAYER_SIZE / 2;
     if (assetsReady) {
-      drawExcavationMapRegion(ctx, excavationMapAssets, 'playerShadow', { x: playerCentreX - 20, y: playerCentreY + 7, w: 40, h: 18 }, { alpha: 0.34, fit: 'contain' });
-      drawExcavationMapRegion(ctx, excavationMapAssets, 'surveyMarkers:playerGlow', { x: playerCentreX - 23, y: playerCentreY - 24, w: 46, h: 46 }, { alpha: 0.5, fit: 'contain' });
-      drawExcavationMapRegion(ctx, excavationMapAssets, 'playerLocationRing', { x: playerCentreX - 20, y: playerCentreY - 16, w: 40, h: 35 }, { alpha: 0.98, fit: 'contain' });
-      drawExcavationMapRegion(ctx, excavationMapAssets, 'heroPortraitMarker', { x: playerCentreX - 15, y: playerCentreY - 21, w: 30, h: 33 }, { alpha: 0.98, fit: 'contain' });
+      drawExcavationMapRegion(ctx, excavationMapAssets, `${markerPackId}:playerShadow`, { x: playerCentreX - 20, y: playerCentreY + 7, w: 40, h: 18 }, { alpha: 0.34, fit: 'contain' });
+      drawExcavationMapRegion(ctx, excavationMapAssets, `${markerPackId}:playerGlow`, { x: playerCentreX - 23, y: playerCentreY - 24, w: 46, h: 46 }, { alpha: mapTheme.playerGlowAlpha, fit: 'contain' });
+      drawExcavationMapRegion(ctx, excavationMapAssets, `${markerPackId}:playerLocationRing`, { x: playerCentreX - 20, y: playerCentreY - 16, w: 40, h: 35 }, { alpha: 0.98, fit: 'contain' });
+      drawExcavationMapRegion(ctx, excavationMapAssets, `${markerPackId}:heroPortraitMarker`, { x: playerCentreX - 15, y: playerCentreY - 21, w: 30, h: 33 }, { alpha: 0.98, fit: 'contain' });
     } else {
       ctx.shadowColor = 'rgba(0,0,0,0.4)';
       ctx.shadowBlur = 8;
@@ -1943,7 +2496,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       ctx.fillStyle = '#fff';
       ctx.fillText('YOU', player.x + 2, player.y + 15);
     }
-  }, [completedZoneChallenges, excavationMapAssets, missionEvidenceCount, missionRequiredCount, openedGridSquares, selectedMapZone, selectedSurveyZone, surveyedZones]);
+  }, [completedZoneChallenges, excavationMapAssets, gatewayPackId, gridZoneConfigs, mapHazards, mapTheme, mapUiPackId, mapWalls, mapZones, markerPackId, missionEvidenceCount, missionRequiredCount, openedGridSquares, roomMapPackId, selectedMapZone, selectedSurveyZone, surveyRevealLinks, surveyedZones, surveyZoneById, terrainByZone]);
 
   const update = useCallback((dt = 1 / 60) => {
     if (briefingOpen || lockedRef.current || inspectionToken || surveyReportZone || gridSetupOpen || activeZoneChallenge || expeditionFailure) {
@@ -1986,14 +2539,14 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       y: clamp(current.y + dy, 0, MAP_HEIGHT - PLAYER_SIZE),
     };
     const nextRect = getPlayerRect(next);
-    const hitWall = WALLS.some(wall => rectsOverlap(nextRect, wall));
+    const hitWall = mapWalls.some(wall => rectsOverlap(nextRect, wall));
     if (!hitWall) {
       playerRef.current = next;
     }
 
-    const zoneName = getZoneName(playerRef.current);
+    const zoneName = getZoneName(playerRef.current, mapZones, defaultZoneName);
     setCurrentZone(previous => previous === zoneName ? previous : zoneName);
-    const surveyZone = getSurveyZoneAtPlayer(playerRef.current);
+    const surveyZone = getSurveyZoneAtPlayer(playerRef.current, surveyZones, mapZones);
     if (surveyZone !== nearbySurveyZoneRef.current) {
       nearbySurveyZoneRef.current = surveyZone;
       setNearbySurveyZone(surveyZone);
@@ -2006,7 +2559,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     }
 
     const playerRect = getPlayerRect(playerRef.current);
-    HAZARDS.forEach((hazard) => {
+    mapHazards.forEach((hazard) => {
       if (rectsOverlap(playerRect, hazard) && !hazardCooldownRef.current[hazard.id]) {
         hazardCooldownRef.current[hazard.id] = 2.5;
         syncResources(hazard.penalty);
@@ -2042,7 +2595,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
           x: clamp(playerRef.current.x + pushDirection * 54, 0, MAP_WIDTH - PLAYER_SIZE),
           y: playerRef.current.y,
         };
-        if (!WALLS.some(wall => rectsOverlap(getPlayerRect(pushed), wall))) {
+        if (!mapWalls.some(wall => rectsOverlap(getPlayerRect(pushed), wall))) {
           playerRef.current = pushed;
         }
         setNotice(guardian.message);
@@ -2053,7 +2606,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
 
     const nearestToken = tokensRef.current.find((token) => {
       if (token.collected) return;
-      if (!evidenceVisibleForGrid(token, selectedSurveyZone, openedGridSquares)) return;
+      if (!evidenceVisibleForGrid(token, selectedSurveyZone, openedGridSquares, surveyRevealLinks, gridZoneConfigs)) return;
       const dxToken = playerRef.current.x + PLAYER_SIZE / 2 - token.x;
       const dyToken = playerRef.current.y + PLAYER_SIZE / 2 - token.y;
       return Math.hypot(dxToken, dyToken) <= 31;
@@ -2089,7 +2642,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     }
 
     draw();
-  }, [activeMission.gateRequirement, activeZoneChallenge, audioControls, briefingOpen, completedZoneChallenges, draw, expeditionFailure, gridSetupOpen, inspectionToken, missionEvidenceCount, missionRequiredCount, openedGridSquares, selectedSurveyZone, surveyReportZone, syncResources]);
+  }, [activeMission.gateRequirement, activeZoneChallenge, audioControls, briefingOpen, completedZoneChallenges, defaultZoneName, draw, expeditionFailure, gridSetupOpen, gridZoneConfigs, inspectionToken, mapHazards, mapWalls, mapZones, missionEvidenceCount, missionRequiredCount, openedGridSquares, selectedSurveyZone, surveyReportZone, surveyRevealLinks, surveyZones, syncResources]);
 
   useEffect(() => {
     if (selectedExpedition) return undefined;
@@ -2143,7 +2696,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         exitUnlocked,
         surveyRequired: true,
         surveyComplete,
-        selectedSurveyZone: getSurveyZoneName(selectedSurveyZone),
+        targetCivilisation,
+        selectedSurveyZone: getSurveyZoneName(selectedSurveyZone, surveyZoneById),
         gridRequired: surveyComplete,
         gridOpen: Boolean(gridSetupOpen),
         selectedGridSquare,
@@ -2157,7 +2711,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
           opened: openedGridSquares.has(square.id),
         })),
         nearbySurveyZone: nearbySurveyZone ? nearbySurveyZone.name : null,
-        surveyedZones: [...surveyedZones].map(getSurveyZoneName),
+        surveyedZones: [...surveyedZones].map(zoneId => getSurveyZoneName(zoneId, surveyZoneById)),
         surveyReportOpen: Boolean(surveyReportZone),
         excavationMethodRequired,
         selectedExcavationMethod,
@@ -2398,7 +2952,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       delete window.advanceTime;
       delete window.render_game_to_text;
     };
-  }, [activeMission, baseCampOpen, claimCorrect, evidenceSupportsClaim, excavationMethodHistory, excavationMethodOpen, excavationMethodRequired, expeditionFailure, expeditionStage, exitUnlocked, fieldKit, fieldKitBonus, fieldKitEffects, fieldKitImpact, finalRank, finalScore, getHiddenEvidence, getVisibleEvidence, gridSetupOpen, gridSquares, inspectionFeedback, inspectionToken, inventoryFullDecisionOpen, mappedFindsSummary, mappingAccuracySummary.accurate, mappingAccuracySummary.needsReview, mappingOpen, mappingRequired, missionComplete, missionEvidenceCount, missionRequiredCount, nearbySurveyZone, openedGridSquares, pendingEvidence, pendingMappedEvidence, resultOpen, satchelContents, selectedExcavationMethod, selectedExpedition, selectedGridSquare, selectedSurveyZone, surveyComplete, surveyedZones, surveyReportZone]);
+  }, [activeMission, baseCampOpen, claimCorrect, evidenceSupportsClaim, excavationMethodHistory, excavationMethodOpen, excavationMethodRequired, expeditionFailure, expeditionStage, exitUnlocked, fieldKit, fieldKitBonus, fieldKitEffects, fieldKitImpact, finalRank, finalScore, getHiddenEvidence, getVisibleEvidence, gridSetupOpen, gridSquares, inspectionFeedback, inspectionToken, inventoryFullDecisionOpen, mappedFindsSummary, mappingAccuracySummary.accurate, mappingAccuracySummary.needsReview, mappingOpen, mappingRequired, missionComplete, missionEvidenceCount, missionRequiredCount, nearbySurveyZone, openedGridSquares, pendingEvidence, pendingMappedEvidence, resultOpen, satchelContents, selectedExcavationMethod, selectedExpedition, selectedGridSquare, selectedSurveyZone, surveyComplete, surveyedZones, surveyReportZone, surveyZoneById, targetCivilisation]);
 
   useEffect(() => {
     if (!selectedExpedition) return undefined;
@@ -2450,32 +3004,38 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       mode: 'Lost Site Expedition',
       expeditionStageId: selectedExpedition.id,
       expeditionStageTitle: selectedExpedition.title,
+      targetCivilisation,
       stage: 'excavation',
       coordinateSystem: 'origin top-left, x right, y down',
       excavationMapAssetsLoaded: Boolean(excavationMapAssets.loaded),
       excavationMapAssetsReady: Boolean(excavationMapAssets.ready),
       excavationMapFallbackActive: !excavationMapAssets.loaded || excavationMapAssets.failed || !excavationMapAssets.ready,
       excavationMapExpanded: true,
-      excavationVisualMode: excavationMapAssets.loaded && !excavationMapAssets.failed ? EXCAVATION_VISUAL_MODE : 'canvas-fallback',
+      excavationVisualMode: excavationMapAssets.loaded && !excavationMapAssets.failed ? stageContent.visualMode : 'canvas-fallback',
       excavationMapVisualTuningVersion: EXCAVATION_MAP_VISUAL_TUNING_VERSION,
       excavationMapAtlasPath: excavationMapAssets.atlasPath,
+      excavationRoomMapPackId: roomMapPackId,
+      excavationMarkerPackId: markerPackId,
+      excavationGatewayPackId: gatewayPackId,
+      excavationMapUiPackId: mapUiPackId,
+      excavationChallengeUiPackId: challengeUiPackId,
       missingExcavationMapAssets: getMissingExcavationMapAssets(excavationMapAssets),
       selectedMapZone: selectedMapZoneData?.name || null,
-      enteredMapZone: enteredMapZone ? (EXPEDITION_ROOM_ZONE_BY_ID[enteredMapZone]?.name || getSurveyZoneName(enteredMapZone)) : null,
+      enteredMapZone: enteredMapZone ? (EXPEDITION_ROOM_ZONE_BY_ID[enteredMapZone]?.name || getSurveyZoneName(enteredMapZone, surveyZoneById)) : null,
       activeZoneChallenge: activeChallengeData ? {
         zoneId: activeChallengeData.zoneId,
         title: activeChallengeData.title,
       } : null,
-      completedZoneChallenges: [...completedZoneChallenges].map(zoneId => EXPEDITION_ROOM_ZONE_BY_ID[zoneId]?.name || getSurveyZoneName(zoneId)),
+      completedZoneChallenges: [...completedZoneChallenges].map(zoneId => EXPEDITION_ROOM_ZONE_BY_ID[zoneId]?.name || getSurveyZoneName(zoneId, surveyZoneById)),
       zoneChallengeFeedback,
       canSurveySelectedZone,
-      activeSurveyZone: getSurveyZoneName(selectedSurveyZone),
-      revealedZone: getSurveyZoneName(selectedSurveyZone),
+      activeSurveyZone: getSurveyZoneName(selectedSurveyZone, surveyZoneById),
+      revealedZone: getSurveyZoneName(selectedSurveyZone, surveyZoneById),
       exitGateVisualState: exitUnlocked ? 'unlockedExitGate' : 'sealedExitGate',
       fieldKit,
       fieldKitEffects,
       fieldNotes,
-      player: { ...playerRef.current, size: PLAYER_SIZE, zone: getZoneName(playerRef.current) },
+      player: { ...playerRef.current, size: PLAYER_SIZE, zone: getZoneName(playerRef.current, mapZones, defaultZoneName) },
       resources: resourcesRef.current,
       collectedEvidence: collectedRef.current.map(item => ({
         id: item.id,
@@ -2503,7 +3063,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         missionType: item.missionType,
         clueGroup: item.clueGroup,
       })),
-      hazards: HAZARDS.map(item => ({ id: item.id, name: item.name, x: item.x, y: item.y, w: item.w, h: item.h })),
+      hazards: mapHazards.map(item => ({ id: item.id, name: item.name, x: item.x, y: item.y, w: item.w, h: item.h })),
       guardians: guardiansRef.current.map(item => ({
         id: item.id,
         name: item.name,
@@ -2525,7 +3085,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       exitUnlocked,
       surveyRequired: true,
       surveyComplete,
-      selectedSurveyZone: getSurveyZoneName(selectedSurveyZone),
+      selectedSurveyZone: getSurveyZoneName(selectedSurveyZone, surveyZoneById),
       gridRequired: surveyComplete,
       gridOpen: Boolean(gridSetupOpen),
       selectedGridSquare,
@@ -2539,7 +3099,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         opened: openedGridSquares.has(square.id),
       })),
       nearbySurveyZone: nearbySurveyZone ? nearbySurveyZone.name : null,
-      surveyedZones: [...surveyedZones].map(getSurveyZoneName),
+      surveyedZones: [...surveyedZones].map(zoneId => getSurveyZoneName(zoneId, surveyZoneById)),
       surveyReportOpen: Boolean(surveyReportZone),
       surveyReport: surveyReportZone,
       excavationMethodRequired,
@@ -2640,20 +3200,20 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       delete window.advanceTime;
       delete window.render_game_to_text;
     };
-  }, [activeChallengeData, activeMission, activeZoneChallenge, briefingOpen, canSurveySelectedZone, claimCorrect, completedZoneChallenges, draw, enteredMapZone, evidenceSupportsClaim, excavationMapAssets, excavationMethodHistory, excavationMethodOpen, excavationMethodRequired, expeditionFailure, expeditionStage, exitUnlocked, fieldKit, fieldKitBonus, fieldKitEffects, fieldKitImpact, fieldNotes, finalRank, finalScore, getHiddenEvidence, getVisibleEvidence, gridSetupOpen, gridSquares, inspectionFeedback, inspectionToken, inventoryFullDecisionOpen, mappedFindsSummary, mappingAccuracySummary.accurate, mappingAccuracySummary.needsReview, mappingOpen, mappingRequired, missionComplete, missionEvidenceCount, missionRequiredCount, nearbySurveyZone, openGridSetup, openInspection, openSurveyReport, openedGridSquares, pendingEvidence, pendingMappedEvidence, resultOpen, satchelContents, selectedExcavationMethod, selectedExpedition, selectedGridSquare, selectedMapZoneData, selectedSurveyZone, surveyComplete, surveyedZones, surveyReportZone, update, zoneChallengeFeedback]);
+  }, [activeChallengeData, activeMission, activeZoneChallenge, briefingOpen, canSurveySelectedZone, challengeUiPackId, claimCorrect, completedZoneChallenges, defaultZoneName, draw, enteredMapZone, evidenceSupportsClaim, excavationMapAssets, excavationMethodHistory, excavationMethodOpen, excavationMethodRequired, expeditionFailure, expeditionStage, exitUnlocked, fieldKit, fieldKitBonus, fieldKitEffects, fieldKitImpact, fieldNotes, finalRank, finalScore, gatewayPackId, getHiddenEvidence, getVisibleEvidence, gridSetupOpen, gridSquares, inspectionFeedback, inspectionToken, inventoryFullDecisionOpen, mapHazards, mapUiPackId, mapZones, mappedFindsSummary, mappingAccuracySummary.accurate, mappingAccuracySummary.needsReview, mappingOpen, mappingRequired, markerPackId, missionComplete, missionEvidenceCount, missionRequiredCount, nearbySurveyZone, openGridSetup, openInspection, openSurveyReport, openedGridSquares, pendingEvidence, pendingMappedEvidence, resultOpen, roomMapPackId, satchelContents, selectedExcavationMethod, selectedExpedition, selectedGridSquare, selectedMapZoneData, selectedSurveyZone, stageContent.visualMode, surveyComplete, surveyedZones, surveyReportZone, surveyZoneById, targetCivilisation, update, zoneChallengeFeedback]);
 
   const resetExpedition = () => {
-    const nextMission = chooseEvidenceHuntMission(activeMission.id);
-    setExpeditionStage('journey');
+    const nextMission = chooseEvidenceHuntMission(activeMission.id, stageContent.missions);
+    setExpeditionStage(stageContent.startsAt === 'excavation' ? 'excavation' : 'journey');
     setBaseCampOpen(false);
     setJourneyPaused(false);
-    setFieldKit([]);
+    setFieldKit(stageContent.startsAt === 'excavation' ? ['field-guide-page', 'notebook', 'brush', 'trowel', 'camera', 'measuring-tape'] : []);
     setActiveMission(nextMission);
     setJourneyRunId(previous => previous + 1);
     journeySnapshotRef.current = null;
     playerRef.current = { x: 42, y: 498 };
-    tokensRef.current = buildExpeditionEvidence();
-    guardiansRef.current = buildExcavationGuardians();
+    tokensRef.current = buildExpeditionEvidence(stageContent);
+    guardiansRef.current = buildExcavationGuardians(stageContent.guardians);
     collectedRef.current = [];
     resourcesRef.current = INITIAL_RESOURCES;
     hazardCooldownRef.current = {};
@@ -2666,7 +3226,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     setCollectedEvidence([]);
     setFieldNotes([]);
     setResources(INITIAL_RESOURCES);
-    setCurrentZone('Market Area');
+    setCurrentZone(stageContent.zones.find(zone => zone.id === 'market')?.name || stageContent.zones[0]?.name || 'Expedition Site');
     setNotice(nextMission.instruction);
     setBriefingOpen(true);
     setNearbyToken(null);
@@ -2747,6 +3307,10 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     return () => window.removeEventListener('expedition-dev-jump', handleExpeditionDevJump);
   }, [devJumpToBaseCamp, devJumpToExcavation, devJumpToJourney]);
 
+  const previewScaffoldAssets = previewExpedition?.scaffold?.runtimeAssets?.length > 0
+    ? previewExpedition.scaffold.runtimeAssets
+    : previewExpedition?.scaffold?.sourceAssets || [];
+
   const renderStageSelect = () => (
     <section className="phase-container bureau-phase expedition-phase">
       <div className="expedition-shell expedition-stage-select-shell">
@@ -2793,10 +3357,10 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
               <p className="expedition-stage-teaser">{stage.teaser}</p>
               <button
                 type="button"
-                className={`btn ${stage.route === 'playable' ? 'primary-btn expedition-begin-btn' : 'secondary-btn'} expedition-stage-action`}
+                className={`btn ${stage.route === 'playable' || stage.route === 'map-playable' ? 'primary-btn expedition-begin-btn' : 'secondary-btn'} expedition-stage-action`}
                 onClick={() => openExpeditionStage(stage)}
               >
-                {stage.route === 'playable' ? <Sparkles size={16} /> : <BookOpen size={16} />}
+                {stage.route === 'playable' || stage.route === 'map-playable' ? <Sparkles size={16} /> : <BookOpen size={16} />}
                 {stage.actionLabel}
               </button>
             </article>
@@ -2818,9 +3382,9 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
               <MapIcon size={20} />
               <p>{previewExpedition.previewTeaser || previewExpedition.teaser}</p>
             </div>
-            {previewExpedition.scaffold?.sourceAssets?.length > 0 && (
-              <div className="expedition-stage-preview-assets" aria-label={`${previewExpedition.title} source asset previews`}>
-                {previewExpedition.scaffold.sourceAssets.map(asset => (
+            {previewScaffoldAssets.length > 0 && (
+              <div className="expedition-stage-preview-assets" aria-label={`${previewExpedition.title} asset previews`}>
+                {previewScaffoldAssets.map(asset => (
                   <figure key={asset.id} className="expedition-stage-preview-asset">
                     <img
                       src={`${import.meta.env.BASE_URL}${asset.src}`}
@@ -2861,15 +3425,15 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       return;
     }
 
-    const civilisationCorrect = selectedCivilisation === TARGET_CIVILISATION;
-    const evidenceCorrect = chosenEvidence.supports === TARGET_CIVILISATION;
+    const civilisationCorrect = selectedCivilisation === targetCivilisation;
+    const evidenceCorrect = chosenEvidence.supports === targetCivilisation;
     const sentence = `I think this site belongs to ${selectedCivilisation} because ${chosenEvidence.name}.`;
 
     setClaimResult({
       correct: civilisationCorrect && evidenceCorrect,
       sentence,
       feedback: civilisationCorrect && evidenceCorrect
-        ? `${chosenEvidence.name} supports ${TARGET_CIVILISATION}: ${chosenEvidence.rationale}`
+        ? `${chosenEvidence.name} supports ${targetCivilisation}: ${chosenEvidence.rationale}`
         : `${chosenEvidence.name} does not support ${selectedCivilisation}. Its clue points to ${chosenEvidence.supports} because ${chosenEvidence.clue}`,
     });
     setResultOpen(true);
@@ -2913,13 +3477,16 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
           </div>
         )}
         <ExpeditionJourney
-          key={journeyRunId}
+          key={`${selectedStageId}-${journeyRunId}`}
           mission={activeMission}
           onBackToMenu={onBackToMenu}
           onComplete={handleJourneyComplete}
           onSnapshotChange={handleJourneySnapshot}
           audioControls={audioControls}
           paused={journeyPaused}
+          targetCivilisation={targetCivilisation}
+          environmentPackId={stageContent.journeyEnvironmentPackId}
+          backgroundPackId={stageContent.journeyBackgroundPackId}
         />
       </div>
     );
@@ -3032,7 +3599,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
           </button>
           <div className="expedition-title">
             <div className="training-kicker">10-15 mins | Solo Adventure</div>
-            <h2>Lost Site Expedition</h2>
+            <h2>{stageContent.mapTitle}</h2>
           </div>
           <div className={`expedition-gate-badge ${exitUnlocked ? 'unlocked' : ''}`}>
             <Sparkles size={16} />
@@ -3076,7 +3643,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
                   type="button"
                   className="btn primary-btn"
                   onClick={() => {
-                    if (canSurveySelectedZone) openSurveyReport(SURVEY_ZONE_BY_ID[selectedMapZone]);
+                    if (canSurveySelectedZone) openSurveyReport(surveyZoneById[selectedMapZone]);
                     else enterSelectedMapZone(selectedMapZone);
                   }}
                 >
@@ -3099,7 +3666,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
             {selectedSurveyZone && !gridComplete && !nearbyToken && !inspectionToken && !surveyReportZone && !gridSetupOpen && (
               <div className="expedition-inspect-prompt expedition-grid-prompt">
                 <div>
-                  <strong>{SURVEY_ZONE_BY_ID[selectedSurveyZone]?.name} grid ready</strong>
+                  <strong>{surveyZoneById[selectedSurveyZone]?.name} grid ready</strong>
                   <span>Open a grid square before evidence can be inspected.</span>
                 </div>
                 <button type="button" className="btn primary-btn" onClick={openGridSetup}>
@@ -3139,7 +3706,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
             <section className="expedition-panel">
               <h3><MapIcon size={17} /> Survey Before Digging</h3>
               <div className="expedition-mission-card">
-                <strong>{surveyComplete ? `${SURVEY_ZONE_BY_ID[selectedSurveyZone]?.name} marked` : 'Survey required'}</strong>
+                <strong>{surveyComplete ? `${surveyZoneById[selectedSurveyZone]?.name} marked` : 'Survey required'}</strong>
                 <span>Survey, choose a dig zone, then set up a grid</span>
                 <p>
                   {surveyComplete
@@ -3147,7 +3714,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
                     : 'Evidence is hidden until you survey an area and mark a dig zone.'}
                 </p>
                 <div className="expedition-mission-progress">
-                  Surveyed zones: <span>{surveyedZones.size}/{SURVEY_ZONES.length}</span>
+                  Surveyed zones: <span>{surveyedZones.size}/{surveyZones.length}</span>
                 </div>
               </div>
             </section>
@@ -3155,7 +3722,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
             <section className="expedition-panel">
               <h3><MapIcon size={17} /> Grid Before Excavating</h3>
               <div className="expedition-mission-card">
-                <strong>{selectedSurveyZone ? `${SURVEY_ZONE_BY_ID[selectedSurveyZone]?.name} grid` : 'Grid not ready yet'}</strong>
+                <strong>{selectedSurveyZone ? `${surveyZoneById[selectedSurveyZone]?.name} grid` : 'Grid not ready yet'}</strong>
                 <span>Mark squares to record where evidence was found</span>
                 <p>
                   {selectedSurveyZone
@@ -3386,8 +3953,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
                   className="btn primary-btn"
                   onClick={() => {
                     closeZoneChallenge();
-                    if (SURVEY_ZONE_BY_ID[activeChallengeData.zoneId]) {
-                      openSurveyReport(SURVEY_ZONE_BY_ID[activeChallengeData.zoneId], { skipChallenge: true });
+                    if (surveyZoneById[activeChallengeData.zoneId]) {
+                      openSurveyReport(surveyZoneById[activeChallengeData.zoneId], { skipChallenge: true });
                     }
                   }}
                 >
@@ -3407,14 +3974,14 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         <div className="bureau-briefing-overlay">
           <div className="bureau-briefing-modal expedition-grid-modal">
             <div className="training-kicker">Grid Setup</div>
-            <h2>{SURVEY_ZONE_BY_ID[selectedSurveyZone]?.name}</h2>
+            <h2>{surveyZoneById[selectedSurveyZone]?.name}</h2>
             <p>
               Archaeologists divide a dig site into grid squares so they can record exactly where evidence was found.
             </p>
 
             <div className="expedition-mission-card expedition-grid-explainer">
               <strong>Selected dig zone</strong>
-              <span>{SURVEY_ZONE_BY_ID[selectedSurveyZone]?.name}</span>
+              <span>{surveyZoneById[selectedSurveyZone]?.name}</span>
               <p>Open one square at a time. Only evidence linked to opened squares will become visible.</p>
             </div>
 
@@ -3516,7 +4083,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
                 <div className="expedition-map-summary">
                   <section>
                     <strong>Zone</strong>
-                    <span>{getSurveyZoneName(selectedSurveyZone) || 'Unknown'}</span>
+                    <span>{getSurveyZoneName(selectedSurveyZone, surveyZoneById) || 'Unknown'}</span>
                   </section>
                   <section>
                     <strong>Grid Square</strong>
@@ -3776,7 +4343,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
               <span>Civilisation</span>
               <select value={selectedCivilisation} onChange={(event) => setSelectedCivilisation(event.target.value)}>
                 <option value="">Choose a civilisation</option>
-                {trainingCivilisations.map(civilisation => (
+                {claimCivilisations.map(civilisation => (
                   <option key={civilisation} value={civilisation}>{civilisation}</option>
                 ))}
               </select>
@@ -3854,9 +4421,9 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
                 <h3>Final Claim</h3>
                 <dl>
                   <div><dt>Civilisation</dt><dd>{selectedCivilisation || 'Not chosen'}</dd></div>
-                  <div><dt>Ancient Egypt match</dt><dd>{claimCorrect ? 'Yes' : 'No'}</dd></div>
+                  <div><dt>{targetCivilisation} match</dt><dd>{claimCorrect ? 'Yes' : 'No'}</dd></div>
                   <div><dt>Supporting evidence</dt><dd>{selectedEvidence?.name || 'Not chosen'}</dd></div>
-                  <div><dt>Evidence support</dt><dd>{evidenceSupportsClaim ? 'Supports Ancient Egypt' : 'Does not support Ancient Egypt'}</dd></div>
+                  <div><dt>Evidence support</dt><dd>{evidenceSupportsClaim ? `Supports ${targetCivilisation}` : `Does not support ${targetCivilisation}`}</dd></div>
                 </dl>
                 {claimResult && (
                   <div className={`expedition-claim-feedback ${claimResult.correct ? 'correct' : 'incorrect'}`}>

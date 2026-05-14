@@ -1,8 +1,8 @@
 # Ancient China Asset Pipeline
 
-Status: planning document only.
+Status: first runtime asset step started. The China Journey parallax background pack and side-scroller environment tile pack now have runtime PNG and JSON atlas files, but Ancient China remains preview-only.
 
-This document prepares the Ancient China expedition asset pipeline without making China playable, adding runtime imports, or changing the current Ancient Egypt flow. The canonical campaign/stage config is `src/components/expedition/expeditionStages.js`; Ancient Egypt remains the only playable Lost Site Expedition stage.
+This document prepares the Ancient China expedition asset pipeline without making China playable or changing the current Ancient Egypt flow. The canonical campaign/stage config is `src/components/expedition/expeditionStages.js`; Ancient Egypt remains the only playable Lost Site Expedition stage.
 
 ## Source Of Truth
 
@@ -135,7 +135,8 @@ These are the exact external image-generation targets to make next. Do not impor
 - Format: atlas image with five wide background regions
 - Expected region names: `skyLayer`, `farMountains`, `riverValley`, `watchtowerRidge`, `foregroundMist`
 - Match structurally: `public/assets/expedition/backgrounds/dig-site-entrance/base-camp-parallax-pack.json`
-- Future loader location: add to `SECTION_BACKGROUND_PACKS` in `src/components/expedition-journey/journeyBackgroundAssets.js` only after a China Journey section id exists
+- Runtime registration: `FUTURE_JOURNEY_BACKGROUND_PACKS['china-river-valley']` in `src/components/expedition-journey/journeyBackgroundAssets.js`
+- Future active loader location: add to `SECTION_BACKGROUND_PACKS` only after a China Journey section id exists
 
 Prompt:
 
@@ -152,7 +153,8 @@ Create a Lost Site Expedition style parallax background atlas for a modern styli
 - Format: sprite/atlas sheet of terrain, hazard, gate, and prop regions
 - Expected region names: `riverbankGround`, `rammedEarthGround`, `packedClayGround`, `stonePathFloor`, `archiveFloor`, `rammedEarthBlock`, `timberPlatform`, `bambooBridge`, `brokenBridge`, `reedPatch`, `mudPit`, `fallingRoofTiles`, `looseEarth`, `collapsingFloor`, `darkPit`, `watchtowerPost`, `bronzeLamp`, `jadeMarker`, `oracleBoneShard`, `archiveJar`, `sealedTimberGate`, `bronzeSeal`, `routeDoor`
 - Match structurally: `public/assets/expedition/environment/desert-temple/desert-temple-pack.json`
-- Future loader location: stage-aware extension of `src/components/expedition-journey/journeyRenderAssets.js`; future mapping helpers should mirror `getEnvironmentAssetKeyForPlatform`, `getEnvironmentAssetKeyForHazard`, and `getEnvironmentAssetKeyForStoryProp`
+- Runtime registration: `ENVIRONMENT_ASSET_PACKS['china-river-valley']` in `src/components/expedition-journey/journeyRenderAssets.js`
+- Future active loader location: pass the China pack id from stage-aware Journey config; future mapping helpers should mirror `getEnvironmentAssetKeyForPlatform`, `getEnvironmentAssetKeyForHazard`, and `getEnvironmentAssetKeyForStoryProp`
 
 Prompt:
 
@@ -260,21 +262,29 @@ Generate these first, in this order:
 
 After each image is generated, create matching JSON atlas files with the exact region keys listed above. The app should not load any of these files until both the image and atlas JSON are present and the stage-aware loader work is implemented.
 
+## Current Runtime Integration Status
+
+- `china-river-valley-parallax-pack.png` and `.json` now exist and are registered as the future Ancient China Journey background pack.
+- `china-river-valley-environment-pack.png` and `.json` now exist and are registered as the future Ancient China side-scroller environment pack.
+- `china-room-map-pack.png` and `.json` now exist and are registered as the first Ancient China top-down excavation room-map pack.
+- `china-zone-challenge-ui-pack.png` and `.json` now exist and are registered as the Ancient China zone challenge UI pack.
+- `china-survey-marker-gateway-pack.png` and `.json` now exist and are registered as the Ancient China survey marker, player marker, hazard, wall, and gateway pack.
+- Ancient China can now enter the existing Journey runtime from Stage Select using the China river-valley parallax background pack and China river-valley side-scroller environment pack, then hand off through Base Camp into the China excavation-map runtime.
+- Ancient China excavation now uses stage-aware `chinaRoomMap`, `chinaSurveyGateway`, and `chinaChallengeUi` pack IDs instead of borrowing Egypt markers/gateway/UI regions where China-specific runtime assets exist.
+- Ancient Egypt remains the canonical fully playable expedition and `PLAYABLE_EXPEDITION_STAGE_ID` remains `Ancient Egypt`.
+
 ## Future Integration Plan
 
-1. Generate the China asset images externally using the prompts above.
-2. Add the atlas PNG and JSON files under the proposed `public/assets/expedition/` folders.
-3. Verify atlas region names match the expected keys before touching runtime code.
-4. Add a stage-aware China Journey prototype by extending the existing Journey data/loader pattern, not by duplicating `ExpeditionJourney.jsx`.
-5. Add China excavation room layout, zone challenges, and map assets by extending the existing `expeditionMapAssets.js`, `expeditionMapLayout.js`, and `expeditionZoneChallenges.js` pattern.
-6. Add China evidence data and final-claim rules using the existing evidence/final-claim flow.
-7. Run browser verification through Stage Select, Egypt Journey, China preview, and the new China dev/prototype path.
-8. Only after Journey, excavation, evidence, and final claim are complete should `expeditionStages.js` change Ancient China from preview-only to playable.
+1. Replace remaining Egypt-authored Journey progression copy with China-specific objectives, route gates, enemy/boss names, and field-tool guidance while keeping the same Journey engine.
+2. Add China-specific zone challenge content and connect the registered `chinaChallengeUi` visual regions to challenge surfaces where the existing UI architecture supports atlas-backed styling.
+3. Expand China evidence coverage and final-claim tuning using the existing evidence/final-claim flow.
+4. Add China enemies/guardians and any China-specific sprite art after the Journey route is stable.
+5. Run full natural browser playthroughs through Stage Select, China Journey, Base Camp, China excavation evidence collection, and final claim.
 
 ## Guardrails
 
 - Do not add imports or loader constants for China files until those files exist.
-- Do not change `PLAYABLE_EXPEDITION_STAGE_ID`; Egypt stays playable and China stays preview-only.
+- Do not change `PLAYABLE_EXPEDITION_STAGE_ID`; Egypt stays the canonical fully playable expedition while China is a playable prototype.
 - Do not replace the Egypt asset packs.
 - Do not add a parallel Expedition or Journey runtime.
-- Do not make China playable from Stage Select until the full China flow exists and passes browser checks.
+- Do not duplicate `ExpeditionJourney.jsx`; continue routing China through the existing Journey component and stage-aware pack props.

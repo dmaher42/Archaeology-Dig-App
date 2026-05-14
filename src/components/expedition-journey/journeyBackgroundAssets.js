@@ -8,6 +8,8 @@ export const ESCAPE_BACKGROUND_ATLAS_BASE_PATH = 'assets/expedition/backgrounds/
 export const ESCAPE_BACKGROUND_ATLAS_JSON = `${ESCAPE_BACKGROUND_ATLAS_BASE_PATH}escape-sequence-parallax-pack.json`;
 export const DIG_SITE_BACKGROUND_ATLAS_BASE_PATH = 'assets/expedition/backgrounds/dig-site-entrance/';
 export const DIG_SITE_BACKGROUND_ATLAS_JSON = `${DIG_SITE_BACKGROUND_ATLAS_BASE_PATH}base-camp-parallax-pack.json`;
+export const CHINA_RIVER_VALLEY_BACKGROUND_ATLAS_BASE_PATH = 'assets/expedition/backgrounds/china-river-valley/';
+export const CHINA_RIVER_VALLEY_BACKGROUND_ATLAS_JSON = `${CHINA_RIVER_VALLEY_BACKGROUND_ATLAS_BASE_PATH}china-river-valley-parallax-pack.json`;
 
 export const EXPECTED_DESERT_BACKGROUND_KEYS = [
   'sky',
@@ -19,6 +21,21 @@ export const EXPECTED_DESERT_BACKGROUND_KEYS = [
 
 export const DESERT_BACKGROUND_DEPTH_MODE = 'desert-entry-parallax-v1';
 export const JOURNEY_BACKGROUND_DEPTH_MODE = 'journey-section-parallax-v2';
+
+export const EXPECTED_CHINA_RIVER_VALLEY_BACKGROUND_KEYS = [
+  'skyLayer',
+  'farMountains',
+  'riverValley',
+  'watchtowerRidge',
+  'foregroundMist',
+];
+
+export const CHINA_RIVER_VALLEY_BACKGROUND_PACK = {
+  id: 'china-river-valley',
+  basePath: CHINA_RIVER_VALLEY_BACKGROUND_ATLAS_BASE_PATH,
+  atlasPath: CHINA_RIVER_VALLEY_BACKGROUND_ATLAS_JSON,
+  expectedKeys: EXPECTED_CHINA_RIVER_VALLEY_BACKGROUND_KEYS,
+};
 
 export const SECTION_BACKGROUND_PACKS = {
   'desert-entry': {
@@ -70,6 +87,11 @@ export const SECTION_BACKGROUND_PACKS = {
       'foregroundLayer',
     ],
   },
+  'china-river-valley': CHINA_RIVER_VALLEY_BACKGROUND_PACK,
+};
+
+export const FUTURE_JOURNEY_BACKGROUND_PACKS = {
+  'china-river-valley': CHINA_RIVER_VALLEY_BACKGROUND_PACK,
 };
 
 export const createDesertBackgroundAssetState = () => ({

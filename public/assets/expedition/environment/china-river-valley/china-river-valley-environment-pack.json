@@ -1,0 +1,149 @@
+{
+  "image": "china-river-valley-environment-pack.png",
+  "source": "First runtime Ancient China side-scroller environment atlas created for the Lost Site Expedition scaffold.",
+  "size": {
+    "w": 1536,
+    "h": 1024
+  },
+  "notes": "Transparent runtime atlas with named terrain, hazard, gate and prop regions. Ancient China remains preview-only; this pack is registered for future stage-aware Journey loading but is not used by the active Egypt Journey.",
+  "regions": {
+    "riverbankGround": {
+      "x": 30,
+      "y": 35,
+      "w": 250,
+      "h": 125
+    },
+    "rammedEarthGround": {
+      "x": 325,
+      "y": 45,
+      "w": 210,
+      "h": 100
+    },
+    "packedClayGround": {
+      "x": 545,
+      "y": 45,
+      "w": 225,
+      "h": 100
+    },
+    "stonePathFloor": {
+      "x": 770,
+      "y": 45,
+      "w": 235,
+      "h": 100
+    },
+    "archiveFloor": {
+      "x": 990,
+      "y": 45,
+      "w": 220,
+      "h": 100
+    },
+    "rammedEarthBlock": {
+      "x": 1215,
+      "y": 45,
+      "w": 260,
+      "h": 110
+    },
+    "timberPlatform": {
+      "x": 1005,
+      "y": 205,
+      "w": 220,
+      "h": 95
+    },
+    "bambooBridge": {
+      "x": 230,
+      "y": 370,
+      "w": 190,
+      "h": 90
+    },
+    "brokenBridge": {
+      "x": 460,
+      "y": 370,
+      "w": 205,
+      "h": 95
+    },
+    "reedPatch": {
+      "x": 955,
+      "y": 380,
+      "w": 130,
+      "h": 105
+    },
+    "mudPit": {
+      "x": 1305,
+      "y": 375,
+      "w": 175,
+      "h": 120
+    },
+    "fallingRoofTiles": {
+      "x": 1235,
+      "y": 215,
+      "w": 220,
+      "h": 95
+    },
+    "looseEarth": {
+      "x": 1115,
+      "y": 375,
+      "w": 165,
+      "h": 125
+    },
+    "collapsingFloor": {
+      "x": 705,
+      "y": 375,
+      "w": 210,
+      "h": 95
+    },
+    "darkPit": {
+      "x": 1235,
+      "y": 215,
+      "w": 220,
+      "h": 105
+    },
+    "watchtowerPost": {
+      "x": 35,
+      "y": 335,
+      "w": 155,
+      "h": 210
+    },
+    "bronzeLamp": {
+      "x": 925,
+      "y": 505,
+      "w": 95,
+      "h": 130
+    },
+    "jadeMarker": {
+      "x": 1305,
+      "y": 505,
+      "w": 100,
+      "h": 140
+    },
+    "oracleBoneShard": {
+      "x": 1065,
+      "y": 500,
+      "w": 115,
+      "h": 115
+    },
+    "archiveJar": {
+      "x": 535,
+      "y": 705,
+      "w": 280,
+      "h": 215
+    },
+    "sealedTimberGate": {
+      "x": 45,
+      "y": 700,
+      "w": 320,
+      "h": 235
+    },
+    "bronzeSeal": {
+      "x": 800,
+      "y": 720,
+      "w": 155,
+      "h": 160
+    },
+    "routeDoor": {
+      "x": 1250,
+      "y": 670,
+      "w": 260,
+      "h": 285
+    }
+  }
+}

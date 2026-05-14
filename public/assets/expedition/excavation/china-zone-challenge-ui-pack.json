@@ -1,0 +1,170 @@
+{
+  "image": "china-zone-challenge-ui-pack.png",
+  "imageWidth": 1536,
+  "imageHeight": 1024,
+  "source": "Generated high-quality classroom-safe Ancient China excavation atlas.",
+  "regions": {
+    "challengeCard": {
+      "x": 40,
+      "y": 40,
+      "w": 430,
+      "h": 245
+    },
+    "fieldNotebookPage": {
+      "x": 510,
+      "y": 40,
+      "w": 380,
+      "h": 245
+    },
+    "challengeHeaderStrip": {
+      "x": 930,
+      "y": 40,
+      "w": 320,
+      "h": 70
+    },
+    "questionPanel": {
+      "x": 930,
+      "y": 130,
+      "w": 420,
+      "h": 130
+    },
+    "answerChoiceNormal": {
+      "x": 40,
+      "y": 330,
+      "w": 300,
+      "h": 72
+    },
+    "answerChoiceSelected": {
+      "x": 370,
+      "y": 330,
+      "w": 300,
+      "h": 72
+    },
+    "answerChoiceCorrect": {
+      "x": 700,
+      "y": 330,
+      "w": 300,
+      "h": 72
+    },
+    "answerChoiceIncorrect": {
+      "x": 1030,
+      "y": 330,
+      "w": 300,
+      "h": 72
+    },
+    "feedbackPanel": {
+      "x": 40,
+      "y": 440,
+      "w": 430,
+      "h": 130
+    },
+    "challengeCompleteStamp": {
+      "x": 510,
+      "y": 430,
+      "w": 140,
+      "h": 120
+    },
+    "challengeRetryStamp": {
+      "x": 690,
+      "y": 430,
+      "w": 140,
+      "h": 120
+    },
+    "warningTag": {
+      "x": 870,
+      "y": 430,
+      "w": 170,
+      "h": 70
+    },
+    "successTag": {
+      "x": 1070,
+      "y": 430,
+      "w": 170,
+      "h": 70
+    },
+    "neutralHintTag": {
+      "x": 1270,
+      "y": 430,
+      "w": 170,
+      "h": 70
+    },
+    "riverbankChallengeIcon": {
+      "x": 40,
+      "y": 620,
+      "w": 120,
+      "h": 110
+    },
+    "rammedEarthChallengeIcon": {
+      "x": 190,
+      "y": 620,
+      "w": 120,
+      "h": 110
+    },
+    "archiveChallengeIcon": {
+      "x": 340,
+      "y": 620,
+      "w": 120,
+      "h": 110
+    },
+    "workshopChallengeIcon": {
+      "x": 490,
+      "y": 620,
+      "w": 120,
+      "h": 110
+    },
+    "tombChallengeIcon": {
+      "x": 640,
+      "y": 620,
+      "w": 120,
+      "h": 110
+    },
+    "exitGateChallengeIcon": {
+      "x": 790,
+      "y": 620,
+      "w": 120,
+      "h": 110
+    },
+    "paperclip": {
+      "x": 960,
+      "y": 620,
+      "w": 70,
+      "h": 90
+    },
+    "bronzeCornerClip": {
+      "x": 1060,
+      "y": 620,
+      "w": 90,
+      "h": 90
+    },
+    "jadeAccentMark": {
+      "x": 1180,
+      "y": 620,
+      "w": 90,
+      "h": 90
+    },
+    "mapPin": {
+      "x": 1300,
+      "y": 620,
+      "w": 80,
+      "h": 95
+    },
+    "compassAccent": {
+      "x": 1400,
+      "y": 620,
+      "w": 90,
+      "h": 90
+    },
+    "tornPaperDivider": {
+      "x": 40,
+      "y": 790,
+      "w": 430,
+      "h": 54
+    },
+    "blankLabelRibbon": {
+      "x": 510,
+      "y": 790,
+      "w": 250,
+      "h": 70
+    }
+  }
+}
