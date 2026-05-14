@@ -54,9 +54,14 @@ import {
 
 import {
   clamp,
+  getCollectibleHitbox,
+  getHazardHitbox,
+  getPlayerBodyHitbox,
   getSectionForX,
+  isLandingOnPlatform,
   makeInitialState,
   rectsOverlap,
+  resolveEnemyContact,
   updatePlayerAnimation,
 } from './expedition-journey/journeyUtils';
 
@@ -4506,6 +4511,7 @@ export default function ExpeditionJourney({
     }
 
     // Movement
+    const previousPlayer = { ...player };
     player.vx = 0;
     if (left) { player.vx -= MOVE_SPEED; player.direction = -1; }
     if (right) { player.vx += MOVE_SPEED; player.direction = 1; }
@@ -4548,7 +4554,7 @@ export default function ExpeditionJourney({
     player.onGround = false;
     const available = PLATFORMS.filter(p => !p.requiresUpgrade || current.collectedUpgrades.has(p.requiresUpgrade));
     available.forEach(p => {
-      if (player.vy >= 0 && rectsOverlap(player, p) && player.y + player.height - player.vy * dt <= p.y + 6) {
+      if (isLandingOnPlatform(player, previousPlayer, p)) {
         player.y = p.y - player.height;
         player.vy = 0;
         player.onGround = true;
@@ -4606,7 +4612,7 @@ export default function ExpeditionJourney({
 
     // Collectibles
     TOOL_LAYOUT.forEach(toolPos => {
-      if (!current.collectedToolIds.has(toolPos.id) && rectsOverlap(player, { ...toolPos, width: 30, height: 30 })) {
+      if (!current.collectedToolIds.has(toolPos.id) && rectsOverlap(getPlayerBodyHitbox(player), getCollectibleHitbox(toolPos, { width: 30, height: 30 }))) {
         current.collectedToolIds.add(toolPos.id);
         const tool = JOURNEY_TOOLS.find(t => t.id === toolPos.id);
         current.fieldKit.push(tool);
@@ -4618,7 +4624,7 @@ export default function ExpeditionJourney({
     });
 
     RELIC_SHARDS.forEach(shard => {
-      if (!current.collectedShardIds.has(shard.id) && rectsOverlap(player, { ...shard, width: 24, height: 24 })) {
+      if (!current.collectedShardIds.has(shard.id) && rectsOverlap(getPlayerBodyHitbox(player), getCollectibleHitbox(shard, { width: 24, height: 24 }))) {
         current.collectedShardIds.add(shard.id);
         current.relicShardCount += 1;
         audioControls?.playExpeditionSfx?.('pickupShard');
@@ -4627,7 +4633,7 @@ export default function ExpeditionJourney({
     });
 
     UPGRADES.forEach(u => {
-      if (!current.collectedUpgrades.has(u.id) && rectsOverlap(player, { ...u, width: 36, height: 36 })) {
+      if (!current.collectedUpgrades.has(u.id) && rectsOverlap(getPlayerBodyHitbox(player), getCollectibleHitbox(u, { width: 36, height: 36 }))) {
         current.collectedUpgrades.add(u.id);
         current.notice = `Field Upgrade: ${u.name}. ${u.effect}`;
         audioControls?.playExpeditionSfx?.('pickupUpgrade');
@@ -4636,7 +4642,7 @@ export default function ExpeditionJourney({
     });
 
     OBJECTIVE_MARKERS.forEach(m => {
-      if (!current.collectedObjectiveIds.has(m.id) && rectsOverlap(player, { ...m, width: 30, height: 30 })) {
+      if (!current.collectedObjectiveIds.has(m.id) && rectsOverlap(getPlayerBodyHitbox(player), getCollectibleHitbox(m, { width: 30, height: 30 }))) {
         current.collectedObjectiveIds.add(m.id);
         const progress = getObjectiveProgress(m.sectionId, current);
         if (progress.count >= progress.total) {
@@ -4652,7 +4658,7 @@ export default function ExpeditionJourney({
 
     (current.bossKeyItems || []).forEach((keyItem) => {
       if (!keyItem.dropped || keyItem.collected) return;
-      if (rectsOverlap(player, { x: keyItem.x - 16, y: keyItem.y - 18, width: 32, height: 36 })) {
+      if (rectsOverlap(getPlayerBodyHitbox(player), getCollectibleHitbox({ x: keyItem.x - 16, y: keyItem.y - 18 }, { width: 32, height: 36 }))) {
         keyItem.collected = true;
         current.collectedBossKeyIds.add(keyItem.id);
         const rewardMoment = buildBossRewardMoment(current, keyItem, 'recovered');
@@ -4674,7 +4680,7 @@ export default function ExpeditionJourney({
     // Hazards
     if (current.hazardCooldown <= 0) {
       HAZARDS.forEach(h => {
-        if (rectsOverlap(player, h)) {
+        if (rectsOverlap(getPlayerBodyHitbox(player), getHazardHitbox(h))) {
           const staminaLoss = h.penalty.stamina || 0;
           const timeLoss = h.penalty.time || 0;
           const visual = HAZARD_VISUALS[h.id] || {};
@@ -4765,6 +4771,43 @@ export default function ExpeditionJourney({
       if (current.resources.stamina <= 0) triggerJourneyRescue(message);
     };
 
+    const applyEnemyStomp = (enemy) => {
+      enemy.health -= 1;
+      enemy.stunTimer = enemy.health <= 0 ? 0 : 0.9;
+      enemy.hitFlash = enemy.health <= 0 ? 0 : 0.25;
+      enemy.attackWindup = 0;
+      enemy.attackTimer = 0;
+      enemy.attackReady = false;
+      enemy.attackRecovery = enemy.health <= 0 ? 0 : 0.45;
+      enemy.vulnerabilityTimer = enemy.health <= 0 ? 0 : 0.5;
+      enemy.shieldTimer = 0;
+      enemy.knockbackTimer = enemy.health <= 0 ? 0 : 0.18;
+      enemy.knockbackDirection = player.direction;
+      player.vy = -JUMP_SPEED * 0.42;
+      player.onGround = false;
+      current.hitStopTimer = 0.04;
+      addCombatEffect(current, {
+        type: enemy.health <= 0 ? 'defeat' : 'enemy-hit',
+        x: enemy.x + enemy.width / 2,
+        y: enemy.y,
+        text: 'BOUNCE',
+        direction: player.direction,
+        color: enemy.health <= 0 ? '#facc15' : '#7dd3fc',
+      });
+      audioControls?.playExpeditionSfx?.('enemyHit', { volume: 0.9, playbackRate: 1.08 });
+      if (enemy.health <= 0) {
+        enemy.defeated = true;
+        enemy.stunTimer = 0;
+        enemy.knockbackTimer = 0;
+        enemy.knockbackDirection = 0;
+        current.defeatedEnemies.add(enemy.id);
+        current.relicShardCount += enemy.shards;
+        current.notice = `${enemy.name} safely cleared. +${enemy.shards} shards.`;
+      } else {
+        current.notice = `${enemy.name} stunned by a careful jump.`;
+      }
+    };
+
     // Enemies
     current.enemies.forEach(e => {
       if (e.defeated) return;
@@ -4816,9 +4859,14 @@ export default function ExpeditionJourney({
         const pattern = getEnemyPatternConfig(e);
         e.x += e.attackDirection * pattern.speed * dt;
         const enemyAttackBox = getAttackBox(e, pattern.range, pattern.height, e.attackDirection);
-        if (!e.attackHasHit && rectsOverlap(enemyAttackBox, player)) {
+        const contact = resolveEnemyContact(player, previousPlayer, e);
+        if (contact.type === 'stomp') {
+          applyEnemyStomp(e);
+          return;
+        }
+        if (!e.attackHasHit && contact.type === 'damage' && rectsOverlap(enemyAttackBox, getPlayerBodyHitbox(player))) {
           e.attackHasHit = true;
-          applyPlayerDamage(e.damage, `${e.name} attack connected. Stamina lost.`, e.attackDirection, e.name);
+          applyPlayerDamage(e.damage, `${e.name} made clear contact. Stamina lost.`, contact.direction || e.attackDirection, e.name);
         }
       }
 
@@ -4829,6 +4877,11 @@ export default function ExpeditionJourney({
       if (e.stunTimer <= 0 && e.attackWindup <= 0 && e.attackTimer <= 0 && e.attackRecovery <= 0) {
         e.x += e.direction * e.speed * dt;
         if (e.x <= e.patrolMin || e.x >= e.patrolMax) e.direction *= -1;
+      }
+      const contact = resolveEnemyContact(player, previousPlayer, e);
+      if (contact.type === 'stomp') {
+        applyEnemyStomp(e);
+        return;
       }
       if (attackRect && !current.attackHitIds.has(e.id) && rectsOverlap(attackRect, e)) {
         current.attackHitIds.add(e.id);

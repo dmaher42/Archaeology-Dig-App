@@ -17,6 +17,125 @@ export const rectsOverlap = (a, b) => (
   && a.y + a.height > b.y
 );
 
+export const JOURNEY_HITBOX_TUNING = {
+  // Player body trims the drawn sprite edges so unclear shoulder/backpack touches do not punish students.
+  playerBody: { insetX: 5, topInset: 4, bottomInset: 2 },
+  // Feet are a shallow strip used only for ground, platform, and stomp checks.
+  playerFeet: { insetX: 3, height: 9, yPad: 2 },
+  // Platform tops get a small ledge margin so visible landings do not slip through.
+  platformLanding: { xPad: 10, topPad: 12, bottomPad: 8, previousFootTolerance: 14 },
+  // Enemy side damage is smaller than the visible sprite, especially for low scarab bodies.
+  enemyDamage: { insetXRatio: 0.2, topInsetRatio: 0.26, bottomInsetRatio: 0.22 },
+  // Stomps use the enemy's top band and a small above-head buffer for reliable jump landings.
+  enemyStomp: { insetXRatio: 0.08, yPad: 10, heightRatio: 0.36, previousFootTolerance: 12 },
+  // Collectibles are intentionally generous because clear visual contact should be enough.
+  collectible: { padX: 10, padY: 10 },
+  // Hazards stay slightly inset so warning art can be touched at the edges without penalty.
+  hazard: { insetX: 8, topInset: 5, bottomInset: 4 },
+};
+
+const insetRect = (rect, { x = 0, y = 0, bottom = y } = {}) => ({
+  x: rect.x + x,
+  y: rect.y + y,
+  width: Math.max(1, rect.width - x * 2),
+  height: Math.max(1, rect.height - y - bottom),
+});
+
+const expandRect = (rect, { x = 0, y = 0 } = {}) => ({
+  x: rect.x - x,
+  y: rect.y - y,
+  width: rect.width + x * 2,
+  height: rect.height + y * 2,
+});
+
+export const getPlayerBodyHitbox = (player) => insetRect(player, {
+  x: JOURNEY_HITBOX_TUNING.playerBody.insetX,
+  y: JOURNEY_HITBOX_TUNING.playerBody.topInset,
+  bottom: JOURNEY_HITBOX_TUNING.playerBody.bottomInset,
+});
+
+export const getPlayerFeetHitbox = (player) => {
+  const tuning = JOURNEY_HITBOX_TUNING.playerFeet;
+  return {
+    x: player.x + tuning.insetX,
+    y: player.y + player.height - tuning.height - tuning.yPad,
+    width: Math.max(1, player.width - tuning.insetX * 2),
+    height: tuning.height + tuning.yPad,
+  };
+};
+
+export const getPlatformLandingHitbox = (platform) => {
+  const tuning = JOURNEY_HITBOX_TUNING.platformLanding;
+  return {
+    x: platform.x - tuning.xPad,
+    y: platform.y - tuning.topPad,
+    width: platform.width + tuning.xPad * 2,
+    height: tuning.topPad + Math.min(platform.height, tuning.bottomPad),
+  };
+};
+
+export const isLandingOnPlatform = (player, previousPlayer, platform) => {
+  if (player.vy < 0) return false;
+  const feet = getPlayerFeetHitbox(player);
+  const previousFeetY = previousPlayer.y + previousPlayer.height;
+  return rectsOverlap(feet, getPlatformLandingHitbox(platform))
+    && previousFeetY <= platform.y + JOURNEY_HITBOX_TUNING.platformLanding.previousFootTolerance;
+};
+
+export const getEnemyDamageHitbox = (enemy) => {
+  const tuning = JOURNEY_HITBOX_TUNING.enemyDamage;
+  const insetX = Math.max(4, enemy.width * tuning.insetXRatio);
+  const topInset = Math.max(3, enemy.height * tuning.topInsetRatio);
+  const bottomInset = Math.max(3, enemy.height * tuning.bottomInsetRatio);
+  return insetRect(enemy, { x: insetX, y: topInset, bottom: bottomInset });
+};
+
+export const getEnemyStompHitbox = (enemy) => {
+  const tuning = JOURNEY_HITBOX_TUNING.enemyStomp;
+  const insetX = Math.max(3, enemy.width * tuning.insetXRatio);
+  return {
+    x: enemy.x + insetX,
+    y: enemy.y - tuning.yPad,
+    width: Math.max(1, enemy.width - insetX * 2),
+    height: Math.max(8, enemy.height * tuning.heightRatio + tuning.yPad),
+  };
+};
+
+export const getCollectibleHitbox = (item, size = {}) => expandRect({
+  x: item.x,
+  y: item.y,
+  width: size.width ?? item.width ?? 24,
+  height: size.height ?? item.height ?? 24,
+}, { x: JOURNEY_HITBOX_TUNING.collectible.padX, y: JOURNEY_HITBOX_TUNING.collectible.padY });
+
+export const getHazardHitbox = (hazard) => insetRect(hazard, {
+  x: Math.min(JOURNEY_HITBOX_TUNING.hazard.insetX, hazard.width / 4),
+  y: Math.min(JOURNEY_HITBOX_TUNING.hazard.topInset, hazard.height / 3),
+  bottom: Math.min(JOURNEY_HITBOX_TUNING.hazard.bottomInset, hazard.height / 3),
+});
+
+export const resolveEnemyContact = (player, previousPlayer, enemy) => {
+  if (enemy.defeated) return { type: 'none' };
+  const playerFeet = getPlayerFeetHitbox(player);
+  const previousFeetY = previousPlayer.y + previousPlayer.height;
+  if (
+    player.vy >= 0
+    && previousFeetY <= enemy.y + JOURNEY_HITBOX_TUNING.enemyStomp.previousFootTolerance
+    && rectsOverlap(playerFeet, getEnemyStompHitbox(enemy))
+  ) {
+    return { type: 'stomp' };
+  }
+
+  if (rectsOverlap(getPlayerBodyHitbox(player), getEnemyDamageHitbox(enemy))) {
+    return {
+      type: 'damage',
+      direction: (player.x + player.width / 2) >= (enemy.x + enemy.width / 2) ? 1 : -1,
+    };
+  }
+
+  return { type: 'none' };
+};
+
 export const getSectionForX = (x) => (
   SECTIONS.find((section) => x >= section.start && x < section.end) || SECTIONS[SECTIONS.length - 1]
 );
