@@ -784,11 +784,6 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
   const collectibleSpriteAssetsRef = useRef(createCollectibleSpriteState());
   const playerWeaponSpriteRef = useRef(createPlayerWeaponSpriteState());
 
-  // Sync ref for the physics loop
-  useEffect(() => {
-    stateRef.current = gameState;
-  }, [gameState]);
-
   const syncHud = useCallback(() => {
     const nextState = { ...stateRef.current };
     setGameState(nextState);
