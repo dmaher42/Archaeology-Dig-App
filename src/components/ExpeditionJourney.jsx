@@ -398,6 +398,19 @@ const OBJECTIVE_SINGULAR_LABELS = {
   'dig-site-entrance': 'guardian seal',
 };
 
+const getBossRewardProgress = (current) => {
+  const recoveredCount = BOSS_KEY_ITEMS.filter(item => (
+    current.collectedBossKeyIds?.has(item.id)
+      || current.bossKeyItems?.some(keyItem => keyItem.id === item.id && keyItem.collected)
+  )).length;
+
+  return {
+    recoveredCount,
+    totalCount: BOSS_KEY_ITEMS.length,
+    complete: recoveredCount >= BOSS_KEY_ITEMS.length,
+  };
+};
+
 const SECTION_MUSIC_CUES = {
   'desert-entry': 'desert',
   'ruined-temple': 'temple',
@@ -1152,7 +1165,43 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       missingSummary: formatMissingSummary(missingRequirements),
       notice: missingRequirements.length > 0
         ? `${gate.name} locked: ${formatMissingSummary(missingRequirements)}. ${hint}`
-        : `${gate.name} ready: all route tasks complete.`,
+      : `${gate.name} ready: all route tasks complete.`,
+    };
+  }, [getGateRequirements]);
+
+  const buildBossRewardMoment = useCallback((current, keyItem, phase = 'recovered') => {
+    const progress = getBossRewardProgress(current);
+    const routeGate = ROUTE_GATES.find(gate => gate.id === keyItem.gateId);
+    const gateReady = routeGate
+      ? getGateRequirements(routeGate, current).every(req => req.met)
+      : false;
+    const title = phase === 'revealed'
+      ? `${keyItem.name} revealed.`
+      : `${keyItem.name} recovered.`;
+    const detail = phase === 'revealed'
+      ? `Collect it to add this piece to the excavation kit. ${keyItem.rewardDetail || ''}`.trim()
+      : keyItem.rewardDetail || 'This tool piece helps prepare the excavation kit.';
+    const nextObjective = progress.complete
+      ? 'Excavation Kit complete. Base Camp can now open the excavation site.'
+      : gateReady
+        ? 'The next expedition route is now open.'
+        : phase === 'revealed'
+          ? 'Collect the tool piece, then return to the route gate.'
+          : 'Return to the route gate. This tool piece helps prepare the excavation kit.';
+
+    return {
+      id: `${keyItem.id}-${phase}-${Date.now()}`,
+      phase,
+      itemId: keyItem.id,
+      itemName: keyItem.name,
+      itemLabel: keyItem.label,
+      color: keyItem.color || '#b45309',
+      title,
+      detail,
+      nextObjective,
+      progressText: `Excavation Kit: ${progress.recoveredCount} / ${progress.totalCount} pieces recovered`,
+      kitComplete: progress.complete,
+      gateReady,
     };
   }, [getGateRequirements]);
 
@@ -1520,6 +1569,9 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       collectedBossToolPieces: Array.from(current.collectedBossKeyIds || []),
       bossDomainState: current.bossDomain,
       bossIntroPaused: current.bossIntroPauseTimer > 0,
+      postBossReward: current.postBossReward,
+      postBossRewardVisible: Boolean(current.postBossReward),
+      postBossRewardTimer: Number((current.postBossRewardTimer || 0).toFixed(2)),
       guardianKnowledgeChallenge: current.activeGuardianChallenge ? {
         bossId: current.activeGuardianChallenge.bossId,
         bossName: current.activeGuardianChallenge.bossName,
@@ -4178,6 +4230,8 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     // Timers
     current.cinematicTimer = Math.max(0, current.cinematicTimer - dt);
     if (current.cinematicTimer <= 0 && current.cinematicEvent?.temporary) current.cinematicEvent = null;
+    current.postBossRewardTimer = Math.max(0, (current.postBossRewardTimer || 0) - dt);
+    if (current.postBossRewardTimer <= 0 && current.postBossReward) current.postBossReward = null;
     current.bossIntroTimer = Math.max(0, current.bossIntroTimer - dt);
     if (current.bossIntroTimer <= 0) {
       if (current.bossIntro) current.bossIntro = null;
@@ -4366,14 +4420,17 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       if (rectsOverlap(player, { x: keyItem.x - 16, y: keyItem.y - 18, width: 32, height: 36 })) {
         keyItem.collected = true;
         current.collectedBossKeyIds.add(keyItem.id);
-        current.notice = `${keyItem.name} recovered. ${keyItem.rewardDetail || 'This tool piece will help prepare the excavation kit.'}`;
+        const rewardMoment = buildBossRewardMoment(current, keyItem, 'recovered');
+        current.postBossReward = rewardMoment;
+        current.postBossRewardTimer = 5.2;
+        current.notice = `${rewardMoment.title} ${rewardMoment.nextObjective}`;
         current.cinematicEvent = {
           id: `${keyItem.id}-recovered`,
           name: `${keyItem.name} recovered`,
-          message: keyItem.rewardDetail || 'This tool piece will help prepare the excavation kit.',
+          message: rewardMoment.nextObjective,
           temporary: true,
         };
-        current.cinematicTimer = 2.4;
+        current.cinematicTimer = 3.2;
         audioControls?.playExpeditionStinger?.('gateUnlock');
         audioControls?.playSuccess?.();
       }
@@ -4828,14 +4885,18 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
             keyItem.dropped = true;
             keyItem.x = b.x + b.width / 2;
             keyItem.y = Math.max(96, b.y - 18);
-            current.notice = `${b.name} defeated. ${keyItem.name} revealed.`;
+            const rewardMoment = buildBossRewardMoment(current, keyItem, 'revealed');
+            current.postBossReward = rewardMoment;
+            current.postBossRewardTimer = 4.6;
+            current.bossIntroPauseTimer = Math.max(current.bossIntroPauseTimer || 0, 1.05);
+            current.notice = `${b.name} defeated. ${rewardMoment.title} ${rewardMoment.nextObjective}`;
             current.cinematicEvent = {
               id: `${b.id}-tool-piece-drop`,
-              name: `${keyItem.name} revealed`,
-              message: 'Collect the tool piece to prepare the excavation kit.',
+              name: rewardMoment.title,
+              message: rewardMoment.nextObjective,
               temporary: true,
             };
-            current.cinematicTimer = 2.8;
+            current.cinematicTimer = 3.2;
           } else {
             current.notice = `${b.name} defeated. Path secured.`;
           }
@@ -4891,7 +4952,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       if (current.resources.time <= 0) triggerJourneyRescue('Time expired. Field team rescued.');
     }
 
-  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, getAttackBox, getBossPhaseConfig, getBossVulnerabilityState, getEnemyPatternConfig, getObjectiveProgress, getGateGuidance, addCombatEffect, getPlayerAttackState, syncHud]);
+  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, buildBossRewardMoment, getAttackBox, getBossPhaseConfig, getBossVulnerabilityState, getEnemyPatternConfig, getObjectiveProgress, getGateGuidance, addCombatEffect, getPlayerAttackState, syncHud]);
 
   const step = useCallback((ms) => {
     const dt = Math.min(ms / 1000, 0.05);
@@ -5086,6 +5147,30 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
               <div className="expedition-journey-notice animate-fade-in">
                 <Sparkles size={16} />
                 <span>{gameState.notice}</span>
+              </div>
+            )}
+
+            {gameState.postBossReward && (
+              <div
+                className={`journey-boss-reward-banner ${gameState.postBossReward.kitComplete ? 'is-complete' : ''}`}
+                style={{ '--reward-accent': gameState.postBossReward.color }}
+                role="status"
+                aria-live="polite"
+              >
+                <div className="journey-boss-reward-badge" aria-hidden="true">
+                  {gameState.postBossReward.itemLabel || 'K'}
+                </div>
+                <div className="journey-boss-reward-copy">
+                  <div className="journey-boss-reward-kicker">
+                    {gameState.postBossReward.phase === 'revealed' ? 'Tool piece revealed' : 'Tool piece recovered'}
+                  </div>
+                  <strong>{gameState.postBossReward.title}</strong>
+                  <span>{gameState.postBossReward.detail}</span>
+                  <em>{gameState.postBossReward.nextObjective}</em>
+                </div>
+                <div className="journey-boss-reward-progress">
+                  {gameState.postBossReward.progressText}
+                </div>
               </div>
             )}
 

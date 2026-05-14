@@ -13038,6 +13038,112 @@ main {
   color: #fbbf24;
 }
 
+.journey-boss-reward-banner {
+  --reward-accent: #b45309;
+  position: absolute;
+  top: 4.3rem;
+  left: 50%;
+  z-index: 42;
+  width: min(34rem, calc(100% - 2rem));
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.62rem 0.8rem;
+  align-items: center;
+  transform: translateX(-50%);
+  padding: 0.72rem 0.82rem;
+  border: 1px solid color-mix(in srgb, var(--reward-accent) 54%, #fff0c2 24%);
+  border-radius: 9px;
+  background:
+    radial-gradient(circle at 14% 20%, color-mix(in srgb, var(--reward-accent) 24%, transparent), transparent 32%),
+    linear-gradient(145deg, rgba(255, 248, 228, 0.96), rgba(232, 207, 156, 0.95));
+  color: #3a2514;
+  box-shadow: 0 14px 32px rgba(22, 13, 7, 0.32);
+  pointer-events: none;
+  animation: rewardBannerIn 0.28s ease-out both;
+}
+
+.journey-boss-reward-banner.is-complete {
+  border-color: rgba(34, 197, 94, 0.62);
+}
+
+.journey-boss-reward-badge {
+  width: 3rem;
+  height: 3rem;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 2px solid color-mix(in srgb, var(--reward-accent) 72%, #fff3c4 16%);
+  background:
+    radial-gradient(circle at 35% 25%, rgba(255, 255, 255, 0.46), transparent 30%),
+    linear-gradient(145deg, color-mix(in srgb, var(--reward-accent) 62%, #f8dfa4), #392616);
+  color: #fff7d6;
+  font-family: 'Cinzel', serif;
+  font-size: 1.1rem;
+  font-weight: 900;
+  box-shadow:
+    0 0 18px color-mix(in srgb, var(--reward-accent) 32%, transparent),
+    inset 0 -8px 14px rgba(0, 0, 0, 0.24);
+}
+
+.journey-boss-reward-copy {
+  min-width: 0;
+  display: grid;
+  gap: 0.16rem;
+}
+
+.journey-boss-reward-kicker {
+  color: #8a4f1d;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.journey-boss-reward-copy strong {
+  color: #28180c;
+  font-family: 'Cinzel', serif;
+  font-size: 1rem;
+  line-height: 1.1;
+}
+
+.journey-boss-reward-copy span,
+.journey-boss-reward-copy em {
+  color: #54371d;
+  font-size: 0.78rem;
+  font-style: normal;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.journey-boss-reward-copy em {
+  color: #7a221a;
+}
+
+.journey-boss-reward-progress {
+  grid-column: 2;
+  width: fit-content;
+  padding: 0.22rem 0.48rem;
+  border-radius: 999px;
+  background: rgba(64, 42, 21, 0.1);
+  color: #3b2715;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+@keyframes rewardBannerIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -0.35rem);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
 .journey-sidebar-toggle {
   width: 100%;
   margin-top: 0.25rem;

@@ -1032,3 +1032,14 @@ Remaining notes:
 - Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset and large chunk warnings; `git diff --check` passed with only LF-to-CRLF warnings.
 - Browser notes: Journey smoke using the first boss confirmed `Guardian Encounter: Scarab Queen`, the new Scarab Queen dialogue, the Desert Seal Domain tint/state, player and boss starting positions on opposite sides of the arena, and no console errors.
 - Remaining risk: automated browser checks verified the intro state and framing, but did not complete a full manual-feel pass through intro -> challenge answers -> boss defeat -> tool-piece pickup.
+
+2026-05-14 update:
+- Post-boss reward clarity pass completed inside the existing Journey boss/key-piece flow.
+- Reward messages improved for each excavation kit piece so students see what was revealed/recovered and why it matters for careful archaeology work.
+- Added a short parchment-style post-boss reward banner that shows the tool-piece badge, item name, archaeology explanation, excavation kit progress, and the next objective.
+- Excavation kit progress is now shown in the reward banner as recovered pieces out of the existing five-piece kit.
+- Next objective messaging now distinguishes between collecting the revealed piece, returning to the route gate, the route opening, and the final excavation-site access step.
+- No unrelated systems changed: boss combat, dropped-piece state, route gates, Stage Select, Base Camp, Excavation, Museum, Lab, Report, and unrelated screens were preserved.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset, large chunk, and plugin timing warnings; `git diff --check` passed with only LF-to-CRLF working-copy warnings.
+- Browser test notes: local Journey browser probing reached the Scarab Queen reward state once and confirmed the post-boss reward payload appeared in Journey state with no console errors. A separate local pass confirmed the app opens and Journey starts. The full live defeat/pickup loop remains slow and brittle under automation because it must pass through intro/challenge/combat timing.
+- Remaining risks/follow-up tasks: run a short manual Scarab Queen defeat and Brush Handle pickup pass for feel, then spot-check a later guardian and the Ancient Construct handoff to Base Camp.

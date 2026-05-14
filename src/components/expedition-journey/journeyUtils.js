@@ -147,6 +147,8 @@ export const makeInitialState = () => ({
   triggeredEnvironmentEventIds: new Set(),
   cinematicEvent: null,
   cinematicTimer: 0,
+  postBossReward: null,
+  postBossRewardTimer: 0,
   bossIntro: null,
   bossIntroTimer: 0,
   bossIntroPauseTimer: 0,
