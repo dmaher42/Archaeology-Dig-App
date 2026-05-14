@@ -981,3 +981,44 @@ Remaining notes:
 - Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset and large chunk warnings; `git diff --check` passed with only LF-to-CRLF line-ending warnings on already-dirty files.
 - Browser notes: local Journey smoke testing confirmed the Ancient Egypt Journey opens, the Scarab Queen guardian title/dialogue appears, the Scarab Queen awakens on the opposite side of the boss space, the Brush Handle is required by the next route gate, the excavation kit tool pieces are exposed in render state, and no console errors appeared.
 - Remaining risk: automated browser play reached the first guardian intro and route-gate state, but did not complete a full live Scarab Queen defeat/collection pass; a later retest attempt on the local dev server timed out while loading the page, so a slower manual pass is still recommended once final boss/item art is added.
+
+2026-05-14 update:
+- Continued the Egypt Journey enemy polish until the remaining normal enemy families no longer borrow unfinished or mismatched art.
+- Added dedicated enemy sprite atlases for Rival Looter Captain, Cursed Statue, and regular Stone/Gate Guardian enemies:
+  - `public/assets/expedition/enemies/looter-captain-sprites.png` / `.json`
+  - `public/assets/expedition/enemies/cursed-statue-sprites.png` / `.json`
+  - `public/assets/expedition/enemies/stone-guardian-enemy-sprites.png` / `.json`
+- Extended the existing `journeyEnemySprites.js` pack loader with the new atlas packs, expected region keys, frame selection, and draw-scale tuning; no new enemy rendering system was added.
+- Preserved gameplay behaviour: enemy positions, hitboxes, health, damage, AI, boss flow, route gates, player movement, Stage Select, Base Camp, and excavation flow were not intentionally changed.
+- Browser verification on `http://127.0.0.1:5173/Archaeology-Dig-App/` confirmed scarab, snake, bat, looter, looter captain, cursed statue, and stone/gate guardian families load from sprite packs with no enemy fallback, no boss fallback, no missing enemy regions, no asset fallback, and no console errors.
+- Validation: enemy atlas bounds/empty-region checks passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset and large-chunk warnings; `git diff --check` passed with only LF-to-CRLF working-copy warnings.
+
+2026-05-14 update:
+- Added a Guardian Knowledge Challenge before Journey mini-boss fights inside the existing `ExpeditionJourney.jsx` boss-domain intro flow.
+- Added a 3-question multiple-choice round for each current Journey mini-boss, with Year 7 friendly archaeology/HASS questions stored beside the Journey boss data in `journeyLevelData.js`.
+- Correct and incorrect answers now receive immediate feedback: correct answers strengthen the player, while incorrect answers strengthen the guardian.
+- Applied current-fight battle modifiers only: 3 correct gives player damage +25%, boss health -15%, and a subtle player glow/scale; 2 correct gives player damage +15% and a smaller player glow/scale; 1 correct gives boss health +10% and boss glow/scale; 0 correct gives boss health +20%, boss damage +10%, and stronger boss glow/scale.
+- Boss combat and player movement pause while the Guardian Knowledge Challenge panel is active, then resume after the result message and Begin Guardian Fight action.
+- Challenge completion/results are exposed through the Journey render-state snapshot for browser regression checks.
+- Preserved boss tool-piece drops, existing route gates, Stage Select, Base Camp, Excavation, Museum, Lab, Report, and unrelated UI.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset and large chunk warnings; `git diff --check` passed with only an LF-to-CRLF warning on an already-dirty sprite file.
+- Browser notes: local browser testing confirmed the Ancient Egypt Journey opens and the Scarab Queen Guardian Knowledge Challenge is created in Journey state with the first question and no console errors. Playwright DOM clicking against the challenge panel was flaky because the active Journey loop re-rendered the panel during clicks, so a manual click-through of the three visible options is still recommended.
+- Remaining risk: automated browser state verified challenge creation, but did not reliably complete the full UI answer/result/fight-start sequence or a full boss defeat after the modifier.
+
+2026-05-14 follow-up:
+- Tightened the Guardian Knowledge Challenge panel rendering so the active challenge is mirrored into a small React UI state while gameplay state remains in the existing Journey state object.
+- Reduced per-frame React re-rendering while the knowledge panel is active; the challenge now syncs when it opens and when answers/continue actions change it, instead of forcing a HUD update every animation frame.
+- No question data, battle modifier rules, boss reward/tool-piece drops, gates, Stage Select, Base Camp, Excavation, Museum, Lab, Report, or unrelated screens were changed in this follow-up.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset and large chunk warnings; `git diff --check` passed with only LF-to-CRLF warnings on existing dirty files.
+- Browser notes: the real movement path to the first guardian briefly rendered the Guardian Knowledge Challenge overlay with four options and no console errors. Browser automation still could not complete a reliable full click-through before timing out, so manual verification of the answer/result/fight-start sequence remains the main follow-up risk.
+
+2026-05-14 update:
+- Confirmed boss-dropped excavation tool pieces are wired through the existing Journey boss defeat, pickup, HUD, and route-gate logic.
+- Tightened tool-piece reward wording so each recovered item explains its archaeology purpose: fragile evidence care, careful excavation, accurate site recording, secure field records, and Base Camp site access.
+- Kept the current five-boss Journey structure: Brush Handle from Scarab Queen, Trowel Blade from Stone Guardian, Measuring Cord from Giant Serpent, Field Notebook Clasp from Rival Looter Captain, and Site Permit Seal from Ancient Construct.
+- Each next Journey route gate requires the matching recovered tool piece through the existing `ROUTE_GATES` checklist; the Base Camp route requires the Site Permit Seal.
+- The Journey sidebar/HUD continues to show the compact Excavation Kit checklist, and dropped pieces use the existing collectible marker rendering as placeholder art.
+- No duplicate inventory, boss, pickup, gate, Stage Select, Base Camp, Excavation, Museum, Lab, Report, or unrelated UI system was added or changed.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset and large chunk warnings; `git diff --check` passed with only LF-to-CRLF warnings.
+- Browser notes: local Journey smoke confirmed all five tool pieces are exposed in render state, the first gate requires Brush Handle as a `toolPiece`, the sidebar DOM contains the Excavation Kit list, and no console errors appeared.
+- Remaining risk: browser automation did not complete a live boss defeat/collection pass in this run, so a short manual Scarab Queen defeat and Brush Handle pickup pass is still recommended.

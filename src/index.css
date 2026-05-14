@@ -9277,7 +9277,7 @@ textarea.lab-note-textarea {
 /* New Image Styles */
 .bureau-suspect-image-container {
   width: calc(100% + 1.5rem);
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 4 / 3;
   background: #fdfaf3;
   border-bottom: 1px solid rgba(0,0,0,0.1);
   overflow: hidden;

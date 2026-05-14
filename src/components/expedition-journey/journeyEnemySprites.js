@@ -6,7 +6,8 @@ export const TEMPLE_BAT_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}temple-bat
 export const DESERT_SCARAB_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}desert-scarab-sprites.json`;
 export const SAND_SNAKE_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}sand-snake-sprites.json`;
 export const CURSED_STATUE_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}cursed-statue-sprites.json`;
-export const ENEMY_SPRITE_ATLAS_VERSION = 'enemy-sprite-packs-2026-05-14-cursed-statue';
+export const STONE_GUARDIAN_ENEMY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}stone-guardian-enemy-sprites.json`;
+export const ENEMY_SPRITE_ATLAS_VERSION = 'enemy-sprite-packs-2026-05-14-guardian-enemy';
 
 export const EXPECTED_ENEMY_SPRITE_KEYS = [
   'scarabIdle',
@@ -93,6 +94,16 @@ export const EXPECTED_CURSED_STATUE_SPRITE_KEYS = [
   'cursedStatueDefeated',
 ];
 
+export const EXPECTED_STONE_GUARDIAN_ENEMY_SPRITE_KEYS = [
+  'stoneGuardianEnemyIdle',
+  'stoneGuardianEnemyWalk1',
+  'stoneGuardianEnemyWalk2',
+  'stoneGuardianEnemyWindup',
+  'stoneGuardianEnemyAttack',
+  'stoneGuardianEnemyHit',
+  'stoneGuardianEnemyDefeated',
+];
+
 const ENEMY_SPRITE_PACKS = {
   small: {
     atlasPath: ENEMY_SPRITE_ATLAS_JSON,
@@ -121,6 +132,10 @@ const ENEMY_SPRITE_PACKS = {
   cursedStatue: {
     atlasPath: CURSED_STATUE_SPRITE_ATLAS_JSON,
     expectedKeys: EXPECTED_CURSED_STATUE_SPRITE_KEYS,
+  },
+  stoneGuardianEnemy: {
+    atlasPath: STONE_GUARDIAN_ENEMY_SPRITE_ATLAS_JSON,
+    expectedKeys: EXPECTED_STONE_GUARDIAN_ENEMY_SPRITE_KEYS,
   },
 };
 
@@ -233,6 +248,7 @@ export const getEnemySpritePack = (assets, family) => {
   if (family === 'scarab') return assets?.packs?.scarab || assets?.packs?.small || assets || null;
   if (family === 'snake') return assets?.packs?.snake || assets?.packs?.small || assets || null;
   if (family === 'cursedStatue') return assets?.packs?.cursedStatue || null;
+  if (family === 'stoneGuardianEnemy') return assets?.packs?.stoneGuardianEnemy || null;
   return assets?.packs?.small || assets || null;
 };
 
@@ -244,6 +260,7 @@ export const getEnemySpriteFamily = (enemy) => {
   if (enemy.type === 'bat' || name.includes('bat')) return 'bat';
   if (enemy.id === 'looter-captain' || name.includes('captain')) return 'looterCaptain';
   if (enemy.type === 'statue' || name.includes('statue')) return 'cursedStatue';
+  if (enemy.type === 'guardian' || name.includes('guardian')) return 'stoneGuardianEnemy';
   if (enemy.type === 'looter' || name.includes('looter')) return 'looter';
   return null;
 };
@@ -264,6 +281,7 @@ export const getEnemySpriteFrame = (enemy, combatMode, now = 0) => {
   if (family === 'looterCaptain') return frameToggle ? 'looterCaptainWalk2' : 'looterCaptainWalk1';
   if (family === 'looter') return frameToggle ? 'looterWalk2' : 'looterWalk1';
   if (family === 'cursedStatue') return frameToggle ? 'cursedStatueWalk2' : 'cursedStatueWalk1';
+  if (family === 'stoneGuardianEnemy') return frameToggle ? 'stoneGuardianEnemyWalk2' : 'stoneGuardianEnemyWalk1';
   return `${family}Idle`;
 };
 
@@ -279,6 +297,7 @@ export const getEnemySpriteDrawBox = (enemy, screenX, shakeX = 0, combatMode = n
     looter: defeated ? 1.32 : 1.72,
     looterCaptain: defeated ? 1.36 : 1.86,
     cursedStatue: defeated ? 1.42 : 1.78,
+    stoneGuardianEnemy: defeated ? 1.38 : 1.74,
   }[family] || 1.8;
 
   const width = Math.max(enemy.width, enemy.width * scale);
@@ -287,7 +306,7 @@ export const getEnemySpriteDrawBox = (enemy, screenX, shakeX = 0, combatMode = n
     ? (family === 'bat' ? -enemy.height * 0.04 : enemy.height * 0.02)
     : family === 'bat'
       ? -enemy.height * 0.24
-      : family === 'looter' || family === 'looterCaptain' || family === 'cursedStatue'
+      : family === 'looter' || family === 'looterCaptain' || family === 'cursedStatue' || family === 'stoneGuardianEnemy'
         ? enemy.height * 0.02
       : enemy.height * 0.08;
   const x = screenX + enemy.width / 2 - width / 2 + shakeX;

@@ -1,0 +1,51 @@
+{
+  "image": "stone-guardian-enemy-sprites.png",
+  "source": "AI-generated Stone Guardian regular enemy sprite sheet, integrated as a dedicated atlas for non-boss Journey guardian enemies.",
+  "coordinateNote": "Generated as seven side-by-side frames with chroma background removed; regions are padded content crops.",
+  "imageWidth": 2125,
+  "imageHeight": 740,
+  "regions": {
+    "stoneGuardianEnemyIdle": {
+      "x": 33,
+      "y": 213,
+      "w": 254,
+      "h": 349
+    },
+    "stoneGuardianEnemyWalk1": {
+      "x": 304,
+      "y": 212,
+      "w": 293,
+      "h": 353
+    },
+    "stoneGuardianEnemyWalk2": {
+      "x": 607,
+      "y": 213,
+      "w": 304,
+      "h": 352
+    },
+    "stoneGuardianEnemyWindup": {
+      "x": 911,
+      "y": 186,
+      "w": 303,
+      "h": 375
+    },
+    "stoneGuardianEnemyAttack": {
+      "x": 1214,
+      "y": 247,
+      "w": 304,
+      "h": 326
+    },
+    "stoneGuardianEnemyHit": {
+      "x": 1518,
+      "y": 237,
+      "w": 303,
+      "h": 325
+    },
+    "stoneGuardianEnemyDefeated": {
+      "x": 1821,
+      "y": 401,
+      "w": 282,
+      "h": 171
+    }
+  }
+}

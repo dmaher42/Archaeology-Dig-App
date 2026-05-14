@@ -741,6 +741,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
   const [gameState, setGameState] = useState(makeInitialState());
   const [briefingOpen, setBriefingOpen] = useState(true);
   const [controlsOpen, setControlsOpen] = useState(false);
+  const [guardianChallengeUi, setGuardianChallengeUi] = useState(null);
   const canvasRef = useRef(null);
   const stateRef = useRef(gameState);
   const keysRef = useRef({});
@@ -760,7 +761,14 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
   }, [gameState]);
 
   const syncHud = useCallback(() => {
-    setGameState({ ...stateRef.current });
+    const nextState = { ...stateRef.current };
+    setGameState(nextState);
+    setGuardianChallengeUi(nextState.activeGuardianChallenge
+      ? {
+        ...nextState.activeGuardianChallenge,
+        questions: [...nextState.activeGuardianChallenge.questions],
+      }
+      : null);
   }, []);
 
   const currentMusicCue = (() => {
@@ -4818,7 +4826,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
             keyItem.y = Math.max(96, b.y - 18);
             current.notice = `${b.name} defeated. ${keyItem.name} revealed.`;
             current.cinematicEvent = {
-              id: `${b.id}-seal-drop`,
+              id: `${b.id}-tool-piece-drop`,
               name: `${keyItem.name} revealed`,
               message: 'Collect the tool piece to prepare the excavation kit.',
               temporary: true,
@@ -4883,10 +4891,13 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
 
   const step = useCallback((ms) => {
     const dt = Math.min(ms / 1000, 0.05);
+    const hadGuardianChallenge = Boolean(stateRef.current.activeGuardianChallenge);
     update(dt);
     draw();
     onSnapshotChange?.(createJourneySnapshot());
-    syncHud();
+    if (!stateRef.current.activeGuardianChallenge || !hadGuardianChallenge) {
+      syncHud();
+    }
   }, [createJourneySnapshot, draw, onSnapshotChange, syncHud, update]);
 
   useEffect(() => {
@@ -4946,7 +4957,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
   const activeHudGate = ROUTE_GATES.find(gate => !gameState.openedRouteGateIds.has(gate.id));
   const activeHudGateGuidance = activeHudGate ? getGateGuidance(activeHudGate, gameState) : null;
   const staminaWarningState = getStaminaWarningState(gameState);
-  const activeGuardianChallenge = gameState.activeGuardianChallenge;
+  const activeGuardianChallenge = guardianChallengeUi || gameState.activeGuardianChallenge;
   const activeGuardianQuestion = activeGuardianChallenge?.questions?.[activeGuardianChallenge.currentIndex] || null;
 
   return (
