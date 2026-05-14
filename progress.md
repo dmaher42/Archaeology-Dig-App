@@ -1054,3 +1054,13 @@ Remaining notes:
 - Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset, large chunk, and plugin timing warnings; `git diff --check` passed with only LF-to-CRLF working-copy warnings.
 - Browser test notes: local Journey browser probing reached the Scarab Queen reward state once and confirmed the post-boss reward payload appeared in Journey state with no console errors. A separate local pass confirmed the app opens and Journey starts. The full live defeat/pickup loop remains slow and brittle under automation because it must pass through intro/challenge/combat timing.
 - Remaining risks/follow-up tasks: run a short manual Scarab Queen defeat and Brush Handle pickup pass for feel, then spot-check a later guardian and the Ancient Construct handoff to Base Camp.
+
+2026-05-14 update:
+- Extended the Egypt Journey pacing before guardian fights inside the existing Journey data/config path.
+- Added a canonical horizontal Journey scale helper in `journeyConstants.js` and applied it to authored Journey x-positions in `journeyLevelData.js`, preserving the current movement speed, collision system, combat, route gates, boss flow, Stage Select, Base Camp, and excavation flow.
+- Ground spans now stretch with the scaled world so the player does not hit gaps while moving through the longer route.
+- The Ancient Construct, final Base Camp Survey Seal, final banners, and Journey exit gate were shifted later so the final boss approach also clears the 30-second pacing target.
+- Straight-walk guardian trigger spacing is now approximately: Scarab Queen 30.5s, Stone Guardian 36.1s, Giant Serpent 43.8s, Rival Looter Captain 33.9s, Ancient Construct 32.7s.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite public-asset and large-chunk warnings; `git diff --check` passed with only LF-to-CRLF line-ending warnings on the two touched Journey files.
+- Browser notes: local browser smoke testing confirmed Main Menu -> Stage Select -> Ancient Egypt -> Begin Expedition opens, the first boss remains inactive before the new 30-second trigger point, the Scarab Queen guardian intro/domain starts just after the trigger point, and no console errors appeared.
+- Remaining risk: this was a pacing/layout pass, not a full manual completion of every stretched section; a feel pass through all five guardian approaches is still recommended to tune density if any stretch feels too empty.
