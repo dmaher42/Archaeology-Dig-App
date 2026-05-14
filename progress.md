@@ -1022,3 +1022,13 @@ Remaining notes:
 - Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset and large chunk warnings; `git diff --check` passed with only LF-to-CRLF warnings.
 - Browser notes: local Journey smoke confirmed all five tool pieces are exposed in render state, the first gate requires Brush Handle as a `toolPiece`, the sidebar DOM contains the Excavation Kit list, and no console errors appeared.
 - Remaining risk: browser automation did not complete a live boss defeat/collection pass in this run, so a short manual Scarab Queen defeat and Brush Handle pickup pass is still recommended.
+
+2026-05-14 update:
+- Tightened the Journey boss-domain intro flow so the Guardian Encounter title/dialogue plays before the Guardian Knowledge Challenge opens.
+- Updated boss-domain dialogue for the main guardian bosses: Scarab Queen warns the player not to disturb what the desert buried, Stone Guardian only allows careful investigators to pass, Giant Serpent says the catacombs protect their secrets, and Ancient Construct requires the final seal before excavation begins.
+- Preserved existing arena framing: on first boss-domain entry the player is staged on one side of the arena, the boss is staged opposite, the camera frames the domain, and a subtle tinted arena boundary is drawn.
+- Extended the intro pause to match the short title-card moment, then hands off to the existing Guardian Knowledge Challenge when available; if a boss has no challenge questions, the fight continues after the intro pause.
+- Kept boss tool-piece rewards and route-gate requirements compatible; no boss, reward, pickup, route, Stage Select, Base Camp, Excavation, Museum, Lab, Report, or unrelated screen system was rewritten.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset and large chunk warnings; `git diff --check` passed with only LF-to-CRLF warnings.
+- Browser notes: Journey smoke using the first boss confirmed `Guardian Encounter: Scarab Queen`, the new Scarab Queen dialogue, the Desert Seal Domain tint/state, player and boss starting positions on opposite sides of the arena, and no console errors.
+- Remaining risk: automated browser checks verified the intro state and framing, but did not complete a full manual-feel pass through intro -> challenge answers -> boss defeat -> tool-piece pickup.

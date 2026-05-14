@@ -15,6 +15,10 @@ import {
   Ruler,
   Compass,
   Hammer,
+  Home,
+  Keyboard,
+  Pause,
+  Play,
   Target,
 } from 'lucide-react';
 import { SCENARIOS } from '../data';
@@ -765,6 +769,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
   const [baseCampOpen, setBaseCampOpen] = useState(false);
   const [fieldKit, setFieldKit] = useState([]);
   const [journeyRunId, setJourneyRunId] = useState(0);
+  const [journeyPaused, setJourneyPaused] = useState(false);
   const [excavationMapAssets, setExcavationMapAssets] = useState(() => createExcavationMapAssetState());
   const [selectedMapZone, setSelectedMapZone] = useState(null);
   const [enteredMapZone, setEnteredMapZone] = useState(null);
@@ -2631,6 +2636,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     const nextMission = chooseEvidenceHuntMission(activeMission.id);
     setExpeditionStage('journey');
     setBaseCampOpen(false);
+    setJourneyPaused(false);
     setFieldKit([]);
     setActiveMission(nextMission);
     setJourneyRunId(previous => previous + 1);
@@ -2691,6 +2697,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     setExpeditionStage('journey');
     setBaseCampOpen(false);
     setExpeditionFailure(null);
+    setJourneyPaused(false);
     setJourneyRunId(previous => previous + 1);
     journeySnapshotRef.current = null;
     setNotice(activeMission.instruction);
@@ -2867,10 +2874,34 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
 
   if (expeditionStage === 'journey' && !baseCampOpen) {
     return (
-      <div className="expedition-journey-mode-shell">
-        <button type="button" className="expedition-local-menu-btn" onClick={onBackToMenu}>
-          <ChevronLeft size={16} /> Back to Menu
+      <div className={`expedition-journey-mode-shell ${journeyPaused ? 'is-paused' : ''}`}>
+        <button
+          type="button"
+          className="expedition-local-menu-btn"
+          onClick={() => setJourneyPaused(open => !open)}
+          aria-label={journeyPaused ? 'Resume expedition' : 'Pause expedition'}
+          aria-expanded={journeyPaused}
+          title={journeyPaused ? 'Resume' : 'Pause'}
+        >
+          {journeyPaused ? <Play size={18} /> : <Pause size={18} />}
         </button>
+        {journeyPaused && (
+          <div className="journey-pause-menu" role="dialog" aria-modal="true" aria-label="Expedition options">
+            <div className="journey-pause-card">
+              <div className="journey-pause-title">Paused</div>
+              <button type="button" className="journey-pause-primary" onClick={() => setJourneyPaused(false)}>
+                <Play size={16} /> Resume
+              </button>
+              <div className="journey-pause-controls" aria-label="Controls">
+                <div><Keyboard size={15} /><span><kbd>W/A/S/D</kbd> Move and jump</span></div>
+                <div><Keyboard size={15} /><span><kbd>J/K</kbd> Use tool</span></div>
+              </div>
+              <button type="button" className="journey-pause-secondary" onClick={onBackToMenu}>
+                <Home size={16} /> Back to menu
+              </button>
+            </div>
+          </div>
+        )}
         <ExpeditionJourney
           key={journeyRunId}
           mission={activeMission}
@@ -2878,6 +2909,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
           onComplete={handleJourneyComplete}
           onSnapshotChange={handleJourneySnapshot}
           audioControls={audioControls}
+          paused={journeyPaused}
         />
       </div>
     );

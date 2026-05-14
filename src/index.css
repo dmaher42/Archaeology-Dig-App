@@ -697,11 +697,8 @@ main {
   align-items: center;
   margin-top: 1rem;
   gap: 1rem;
-  position: sticky;
-  bottom: 0.75rem;
-  padding: 0.85rem 0 0.15rem;
-  background: linear-gradient(180deg, rgba(253, 246, 227, 0), rgba(253, 246, 227, 0.96) 30%);
-  z-index: 3;
+  /* Removed sticky positioning to fix overlap */
+  padding-bottom: 0.5rem;
 }
 
 .primary-btn {
@@ -12785,29 +12782,33 @@ main {
 
 .journey-floating-hud {
   position: absolute;
-  top: 0.85rem;
-  left: 0.85rem;
-  right: 0.85rem;
+  top: 0.55rem;
+  left: 4.05rem;
+  right: 1.05rem;
   z-index: 30;
   display: grid;
-  grid-template-columns: auto minmax(280px, 0.62fr) auto;
+  grid-template-columns: auto minmax(320px, 0.54fr) auto;
   align-items: start;
-  gap: 0.65rem;
+  gap: 0.45rem;
   pointer-events: none;
 }
 
 .journey-floating-hud-cluster {
   display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
-  min-height: 2.55rem;
-  padding: 0.42rem 0.62rem;
+  gap: 0.45rem;
+  min-height: 2rem;
+  padding: 0.25rem 0.52rem;
   border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 10px;
-  background: rgba(26, 26, 24, 0.78);
+  border-radius: 9px;
+  background: rgba(26, 26, 24, 0.72);
   color: #fff7ed;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.32);
-  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.26);
+  backdrop-filter: blur(7px);
+}
+
+.journey-floating-hud-cluster:not(.journey-floating-hud-meters) {
+  width: max-content;
 }
 
 .journey-floating-hud-gems,
@@ -12820,23 +12821,23 @@ main {
 .journey-floating-hud-gems {
   display: inline-flex;
   align-items: center;
-  gap: 0.36rem;
+  gap: 0.3rem;
   color: #f8e0a2;
-  font-size: 0.9rem;
+  font-size: 0.82rem;
 }
 
 .journey-floating-hud-gems strong,
 .journey-floating-hud-count strong {
   color: #fffaf0;
-  font-size: 1.02rem;
+  font-size: 0.94rem;
 }
 
 .journey-floating-hud-status {
-  padding: 0.18rem 0.42rem;
-  border-radius: 6px;
+  padding: 0.12rem 0.36rem;
+  border-radius: 5px;
   background: rgba(255, 255, 255, 0.08);
   color: #f8efe1;
-  font-size: 0.72rem;
+  font-size: 0.64rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -12846,25 +12847,25 @@ main {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-self: start;
-  width: min(100%, 32rem);
+  width: min(100%, 28rem);
   justify-self: center;
-  padding-inline: 0.7rem;
+  padding-inline: 0.55rem;
 }
 
 .journey-floating-hud-meter {
   min-width: 0;
   display: grid;
-  grid-template-columns: auto minmax(82px, 1fr);
+  grid-template-columns: auto minmax(78px, 1fr);
   align-items: center;
-  gap: 0.42rem;
+  gap: 0.34rem;
 }
 
 .journey-floating-hud-meter-label {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.24rem;
   color: #efe3d1;
-  font-size: 0.68rem;
+  font-size: 0.61rem;
   font-weight: 900;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -12872,7 +12873,7 @@ main {
 
 .journey-floating-hud-bar {
   position: relative;
-  height: 0.52rem;
+  height: 0.38rem;
   min-width: 0;
   overflow: hidden;
   border-radius: 999px;
@@ -12891,7 +12892,7 @@ main {
 }
 
 .expedition-journey-mode-shell .journey-floating-hud {
-  left: 10.1rem;
+  left: 4.05rem;
 }
 
 @media (max-height: 760px) {
@@ -12931,7 +12932,7 @@ main {
 
   .expedition-journey-mode-shell .journey-floating-hud,
   .journey-floating-hud {
-    top: 3.9rem;
+    top: 3.15rem;
     left: 0.65rem;
     right: 0.65rem;
     grid-template-columns: 1fr;
@@ -14010,12 +14011,16 @@ main {
 .bureau-case-actions,
 .bureau-briefing-actions {
   display: flex !important;
-  flex-wrap: wrap !important;
-  gap: 0.65rem !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  padding-top: 0.9rem !important;
-  border-top: 1px solid rgba(0, 0, 0, 0.1) !important;
+  flex-direction: column !important;
+  gap: 0.8rem !important;
+  align-items: stretch !important;
+  justify-content: center !important;
+  padding-top: 1.2rem !important;
+  margin-top: 1.5rem !important;
+  border-top: 1px dashed rgba(0, 0, 0, 0.15) !important;
+  position: relative !important;
+  background: transparent !important;
+  z-index: 10 !important;
 }
 
 .bureau-case-actions .btn,
@@ -16462,35 +16467,137 @@ main {
 
 .expedition-local-menu-btn {
   position: absolute;
-  top: 1.85rem;
-  left: 0.9rem;
+  top: 0.55rem;
+  left: 1rem;
   z-index: 1200;
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  min-height: 2.05rem;
-  padding: 0.3rem 0.72rem;
-  border: 1px solid rgba(94, 46, 18, 0.42);
+  justify-content: center;
+  width: 2.35rem;
+  height: 2.35rem;
+  padding: 0;
+  border: 1px solid rgba(255, 226, 170, 0.24);
   border-radius: 999px;
-  background: rgba(255, 242, 203, 0.9);
-  color: #5c3218;
-  box-shadow: 0 8px 18px rgba(42, 20, 8, 0.18);
+  background: rgba(33, 30, 25, 0.76);
+  color: #fff2c9;
+  box-shadow: 0 8px 18px rgba(10, 6, 3, 0.32);
+  backdrop-filter: blur(7px);
   font: inherit;
-  font-size: 0.76rem;
   font-weight: 900;
   cursor: pointer;
 }
 
 .expedition-local-menu-btn:hover,
 .expedition-local-menu-btn:focus-visible {
-  border-color: rgba(156, 45, 34, 0.56);
-  background: rgba(255, 232, 169, 0.96);
-  color: #7a221a;
+  border-color: rgba(255, 210, 124, 0.58);
+  background: rgba(52, 43, 32, 0.9);
+  color: #ffffff;
 }
 
 .expedition-local-menu-btn:focus-visible {
   outline: 3px solid rgba(255, 210, 124, 0.95);
   outline-offset: 3px;
+}
+
+.journey-pause-menu {
+  position: absolute;
+  inset: 0;
+  z-index: 1100;
+  display: grid;
+  place-items: start center;
+  padding-top: 4.1rem;
+  pointer-events: auto;
+  background: linear-gradient(180deg, rgba(17, 13, 10, 0.28), rgba(17, 13, 10, 0.06) 38%, transparent 70%);
+}
+
+.journey-pause-card {
+  width: min(23rem, calc(100vw - 2rem));
+  display: grid;
+  gap: 0.62rem;
+  padding: 0.82rem;
+  border: 1px solid rgba(255, 226, 170, 0.34);
+  border-radius: 12px;
+  background: rgba(35, 29, 22, 0.92);
+  color: #fff4d8;
+  box-shadow: 0 18px 40px rgba(10, 6, 3, 0.42);
+  backdrop-filter: blur(10px);
+}
+
+.journey-pause-title {
+  font-family: 'Cinzel', serif;
+  font-size: 0.92rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.journey-pause-primary,
+.journey-pause-secondary {
+  min-height: 2.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.42rem;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.journey-pause-primary {
+  border: 1px solid rgba(255, 218, 139, 0.54);
+  background: rgba(255, 214, 126, 0.18);
+  color: #fff8e6;
+}
+
+.journey-pause-secondary {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  color: #f8e7c4;
+}
+
+.journey-pause-primary:hover,
+.journey-pause-primary:focus-visible,
+.journey-pause-secondary:hover,
+.journey-pause-secondary:focus-visible {
+  border-color: rgba(255, 226, 170, 0.72);
+  background: rgba(255, 224, 159, 0.22);
+}
+
+.journey-pause-primary:focus-visible,
+.journey-pause-secondary:focus-visible {
+  outline: 3px solid rgba(255, 210, 124, 0.95);
+  outline-offset: 3px;
+}
+
+.journey-pause-controls {
+  display: grid;
+  gap: 0.34rem;
+  padding: 0.58rem;
+  border: 1px solid rgba(255, 226, 170, 0.16);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.journey-pause-controls div {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #f5dfb7;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.journey-pause-controls kbd {
+  display: inline-flex;
+  margin-right: 0.25rem;
+  padding: 0.08rem 0.32rem;
+  border-radius: 4px;
+  background: rgba(255, 246, 220, 0.16);
+  color: #fff7dd;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.68rem;
 }
 
 .dig-menu-btn-compact {
@@ -17272,3 +17379,6 @@ main {
 .bureau-briefing-modal.expedition-inspection-modal .expedition-satchel-decision .expedition-evidence-item {
   padding: 0.45rem 0.55rem;
 }
+
+
+.bureau-case-actions .btn { max-width: 400px; margin: 0 auto; width: 100%; }

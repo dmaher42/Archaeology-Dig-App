@@ -153,6 +153,7 @@ export const makeInitialState = () => ({
   bossDomain: null,
   seenBossIntroIds: new Set(),
   activeGuardianChallenge: null,
+  pendingGuardianChallenge: null,
   completedGuardianChallengeIds: new Set(),
   guardianChallengeResults: {},
   guardianBattleModifiers: {},

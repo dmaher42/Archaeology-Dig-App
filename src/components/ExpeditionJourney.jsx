@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Backpack,
   CheckCircle2,
-  ChevronDown,
   Flag,
   Gauge,
   Gem,
@@ -737,10 +736,9 @@ const getCameraFollowTarget = (current) => {
   return getLayoutCameraFollowTarget({ playerCenterX });
 };
 
-export default function ExpeditionJourney({ mission, onComplete, onSnapshotChange, audioControls }) {
+export default function ExpeditionJourney({ mission, onComplete, onSnapshotChange, audioControls, paused = false }) {
   const [gameState, setGameState] = useState(makeInitialState());
   const [briefingOpen, setBriefingOpen] = useState(true);
-  const [controlsOpen, setControlsOpen] = useState(false);
   const [guardianChallengeUi, setGuardianChallengeUi] = useState(null);
   const canvasRef = useRef(null);
   const stateRef = useRef(gameState);
@@ -4181,7 +4179,13 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     current.cinematicTimer = Math.max(0, current.cinematicTimer - dt);
     if (current.cinematicTimer <= 0 && current.cinematicEvent?.temporary) current.cinematicEvent = null;
     current.bossIntroTimer = Math.max(0, current.bossIntroTimer - dt);
-    if (current.bossIntroTimer <= 0 && current.bossIntro) current.bossIntro = null;
+    if (current.bossIntroTimer <= 0) {
+      if (current.bossIntro) current.bossIntro = null;
+      if (current.pendingGuardianChallenge && !current.activeGuardianChallenge) {
+        current.activeGuardianChallenge = current.pendingGuardianChallenge;
+        current.pendingGuardianChallenge = null;
+      }
+    }
     current.environmentEventTimer = Math.max(0, current.environmentEventTimer - dt);
     if (current.environmentEventTimer <= 0 && current.environmentEvent) current.environmentEvent = null;
     current.sectionTransitionTimer = Math.max(0, current.sectionTransitionTimer - dt);
@@ -4224,7 +4228,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       .filter(effect => effect.timer > 0);
     current.routeGateCooldown = Math.max(0, current.routeGateCooldown - dt);
     current.bossIntroPauseTimer = Math.max(0, (current.bossIntroPauseTimer || 0) - dt);
-    if (current.activeGuardianChallenge || current.bossIntroPauseTimer > 0) {
+    if (current.activeGuardianChallenge || current.pendingGuardianChallenge || current.bossIntroPauseTimer > 0) {
       current.attackQueued = false;
       player.vx = 0;
       player.vy = 0;
@@ -4664,7 +4668,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
         if (!current.completedGuardianChallengeIds?.has(b.id)) {
           const questions = getGuardianChallengeQuestions(b.id);
           if (questions.length) {
-            current.activeGuardianChallenge = {
+            current.pendingGuardianChallenge = {
               bossId: b.id,
               bossName: b.name,
               title: 'Guardian Knowledge Challenge',
@@ -4682,7 +4686,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
           }
         }
         current.bossIntroTimer = 3.2;
-        current.bossIntroPauseTimer = 1.1;
+        current.bossIntroPauseTimer = 3.2;
         current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.35);
         current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.32);
         const arenaCamera = clampCameraX(((arenaStart + arenaEnd) / 2) - (CANVAS_WIDTH / 2));
@@ -4929,7 +4933,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (briefingOpen || stateRef.current.activeGuardianChallenge) return;
+      if (paused || briefingOpen || stateRef.current.activeGuardianChallenge) return;
       if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'Space', 'KeyA', 'KeyD', 'KeyW', 'KeyJ', 'KeyK'].includes(e.code)) e.preventDefault();
       if (e.code === 'KeyJ' || e.code === 'KeyK') { queueAttack(); return; }
       keysRef.current[e.code] = true;
@@ -4941,7 +4945,9 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     
     const frame = (t) => {
       if (!lastFrameRef.current) lastFrameRef.current = t;
-      step(t - lastFrameRef.current);
+      if (!paused) {
+        step(t - lastFrameRef.current);
+      }
       lastFrameRef.current = t;
       animationRef.current = requestAnimationFrame(frame);
     };
@@ -4952,7 +4958,13 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       window.removeEventListener('keyup', handleKeyUp);
       cancelAnimationFrame(animationRef.current);
     };
-  }, [briefingOpen, queueAttack, step]);
+  }, [briefingOpen, paused, queueAttack, step]);
+
+  useEffect(() => {
+    if (paused) {
+      keysRef.current = {};
+    }
+  }, [paused]);
 
   const activeHudGate = ROUTE_GATES.find(gate => !gameState.openedRouteGateIds.has(gate.id));
   const activeHudGateGuidance = activeHudGate ? getGateGuidance(activeHudGate, gameState) : null;
@@ -4964,28 +4976,6 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     <section className="expedition-journey-container" id="expedition-journey">
       <div className="expedition-journey-grid">
         <div className="expedition-sidebar">
-          <div className="expedition-panel dossier-info">
-            <h2 className="cinzel-header">Expedition Log</h2>
-            {staminaWarningState === 'low' && (
-              <div className="stamina-warning-text">Low stamina</div>
-            )}
-            <button
-              type="button"
-              className="journey-sidebar-toggle"
-              onClick={() => setControlsOpen(open => !open)}
-              aria-expanded={controlsOpen}
-            >
-              <ChevronDown size={14} />
-              Controls
-            </button>
-            {controlsOpen && (
-              <div className="journey-sidebar-controls" role="note" aria-label="Journey controls">
-                <div><kbd>W/A/S/D</kbd><span>Move and jump</span></div>
-                <div><kbd>J/K</kbd><span>Use tool</span></div>
-              </div>
-            )}
-          </div>
-
           <div className="expedition-panel inventory-panel">
             <h3 className="section-title"><Backpack size={16} /> Field Kit</h3>
             <ul className="expedition-tool-list">
