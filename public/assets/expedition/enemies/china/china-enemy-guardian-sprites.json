@@ -1,0 +1,171 @@
+{
+  "image": "china-enemy-guardian-sprites.png",
+  "meta": {
+    "type": "transparent sprite atlas",
+    "theme": "Ancient China river valley expedition enemy and guardian sprites",
+    "frameWidth": 224,
+    "frameHeight": 196,
+    "columns": 5,
+    "rows": 5,
+    "generatedAt": "2026-05-15",
+    "constraints": [
+      "no text",
+      "no numbers",
+      "no gore",
+      "no photorealism",
+      "no Egyptian imagery"
+    ]
+  },
+  "regions": {
+    "riverCrabIdle": {
+      "x": 0,
+      "y": 0,
+      "w": 224,
+      "h": 196
+    },
+    "riverCrabWalk1": {
+      "x": 224,
+      "y": 0,
+      "w": 224,
+      "h": 196
+    },
+    "riverCrabWalk2": {
+      "x": 448,
+      "y": 0,
+      "w": 224,
+      "h": 196
+    },
+    "riverCrabWindup": {
+      "x": 672,
+      "y": 0,
+      "w": 224,
+      "h": 196
+    },
+    "riverCrabAttack": {
+      "x": 896,
+      "y": 0,
+      "w": 224,
+      "h": 196
+    },
+    "riverCrabHit": {
+      "x": 0,
+      "y": 196,
+      "w": 224,
+      "h": 196
+    },
+    "riverCrabDefeated": {
+      "x": 224,
+      "y": 196,
+      "w": 224,
+      "h": 196
+    },
+    "watchtowerSentryIdle": {
+      "x": 448,
+      "y": 196,
+      "w": 224,
+      "h": 196
+    },
+    "watchtowerSentryWalk1": {
+      "x": 672,
+      "y": 196,
+      "w": 224,
+      "h": 196
+    },
+    "watchtowerSentryWalk2": {
+      "x": 896,
+      "y": 196,
+      "w": 224,
+      "h": 196
+    },
+    "watchtowerSentryWindup": {
+      "x": 0,
+      "y": 392,
+      "w": 224,
+      "h": 196
+    },
+    "watchtowerSentryAttack": {
+      "x": 224,
+      "y": 392,
+      "w": 224,
+      "h": 196
+    },
+    "watchtowerSentryHit": {
+      "x": 448,
+      "y": 392,
+      "w": 224,
+      "h": 196
+    },
+    "watchtowerSentryDefeated": {
+      "x": 672,
+      "y": 392,
+      "w": 224,
+      "h": 196
+    },
+    "clayGuardianIdle": {
+      "x": 896,
+      "y": 392,
+      "w": 224,
+      "h": 196
+    },
+    "clayGuardianWalk1": {
+      "x": 0,
+      "y": 588,
+      "w": 224,
+      "h": 196
+    },
+    "clayGuardianWalk2": {
+      "x": 224,
+      "y": 588,
+      "w": 224,
+      "h": 196
+    },
+    "clayGuardianIntro": {
+      "x": 448,
+      "y": 588,
+      "w": 224,
+      "h": 196
+    },
+    "clayGuardianWindup": {
+      "x": 672,
+      "y": 588,
+      "w": 224,
+      "h": 196
+    },
+    "clayGuardianSlam": {
+      "x": 896,
+      "y": 588,
+      "w": 224,
+      "h": 196
+    },
+    "clayGuardianPulse": {
+      "x": 0,
+      "y": 784,
+      "w": 224,
+      "h": 196
+    },
+    "clayGuardianShielded": {
+      "x": 224,
+      "y": 784,
+      "w": 224,
+      "h": 196
+    },
+    "clayGuardianCounterWindow": {
+      "x": 448,
+      "y": 784,
+      "w": 224,
+      "h": 196
+    },
+    "clayGuardianHit": {
+      "x": 672,
+      "y": 784,
+      "w": 224,
+      "h": 196
+    },
+    "clayGuardianDefeated": {
+      "x": 896,
+      "y": 784,
+      "w": 224,
+      "h": 196
+    }
+  }
+}

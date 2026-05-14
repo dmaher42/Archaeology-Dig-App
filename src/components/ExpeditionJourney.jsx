@@ -113,10 +113,14 @@ import {
   ANCIENT_CONSTRUCT_SPRITE_ATLAS_JSON,
   BOSS_SPRITE_ATLAS_JSON,
   BOSS_SPRITE_ATLAS_VERSION,
+  CHINA_CLAY_GUARDIAN_BOSS_ID,
+  CHINA_CLAY_GUARDIAN_SPRITE_ATLAS_JSON,
   createBossSpriteState,
   getAncientConstructDrawBox,
   getAncientConstructSpriteFrame,
   getBossSpritePack,
+  getClayGuardianDrawBox,
+  getClayGuardianSpriteFrame,
   getGiantSerpentDrawBox,
   getGiantSerpentSpriteFrame,
   getMissingBossSpriteAssets,
@@ -130,9 +134,11 @@ import {
 } from './expedition-journey/journeyBossSprites';
 
 import {
+  CHINA_ENEMY_GUARDIAN_SPRITE_ATLAS_JSON,
   createEnemySpriteState,
   ENEMY_SPRITE_ATLAS_JSON,
   ENEMY_SPRITE_ATLAS_VERSION,
+  EXPECTED_CHINA_ENEMY_GUARDIAN_SPRITE_KEYS,
   getEnemySpriteDrawBox,
   getEnemySpriteFamily,
   getEnemySpriteFrame,
@@ -840,7 +846,7 @@ export default function ExpeditionJourney({
   environmentPackId = ENVIRONMENT_ASSET_PACK_IDS.EGYPT_DESERT_TEMPLE,
   backgroundPackId = null,
 }) {
-  const [gameState, setGameState] = useState(makeInitialState());
+  const [gameState, setGameState] = useState(() => makeInitialState({ targetCivilisation }));
   const [briefingOpen, setBriefingOpen] = useState(true);
   const [guardianChallengeUi, setGuardianChallengeUi] = useState(null);
   const canvasRef = useRef(null);
@@ -1449,9 +1455,16 @@ export default function ExpeditionJourney({
       || missingDigSiteBackgroundAssets.length > 0;
     const enemySpriteAssets = enemySpriteAssetsRef.current;
     const missingEnemySpriteAssets = getMissingEnemySpriteAssets(enemySpriteAssets);
+    const chinaEnemyGuardianPack = enemySpriteAssets.packs?.chinaEnemyGuardian || null;
+    const missingChinaEnemyGuardianSpriteAssets = EXPECTED_CHINA_ENEMY_GUARDIAN_SPRITE_KEYS
+      .filter(key => !chinaEnemyGuardianPack?.atlas?.regions?.[key]);
+    const chinaEnemyGuardianFallbackActive = !chinaEnemyGuardianPack?.loaded
+      || chinaEnemyGuardianPack.failed
+      || missingChinaEnemyGuardianSpriteAssets.length > 0;
     const enemySpriteFallbackActive = !enemySpriteAssets.loaded || enemySpriteAssets.failed || missingEnemySpriteAssets.length > 0;
     const bossSpriteAssets = bossSpriteAssetsRef.current;
     const missingBossSpriteAssets = getMissingBossSpriteAssets(bossSpriteAssets);
+    const chinaClayGuardianBossPack = bossSpriteAssets.packs?.[CHINA_CLAY_GUARDIAN_BOSS_ID] || null;
     const bossSpriteFallbackActive = !bossSpriteAssets.loaded || bossSpriteAssets.failed || missingBossSpriteAssets.length > 0;
     const collectibleSpriteAssets = collectibleSpriteAssetsRef.current;
     const missingCollectibleSpriteAssets = getMissingCollectibleSpriteAssets(collectibleSpriteAssets);
@@ -1476,6 +1489,7 @@ export default function ExpeditionJourney({
     return {
       stage: 'journey',
       targetCivilisation,
+      activeCivilisation: targetCivilisation,
       coordinateSystem: 'origin top-left, x right, y down',
       viewport: JOURNEY_VIEWPORT,
       renderTarget: JOURNEY_RENDER_TARGET,
@@ -1544,6 +1558,10 @@ export default function ExpeditionJourney({
       enemySpriteAtlasPath: ENEMY_SPRITE_ATLAS_JSON,
       enemySpriteAtlasVersion: ENEMY_SPRITE_ATLAS_VERSION,
       missingEnemySpriteAssets,
+      chinaEnemyGuardianSpriteAtlasPath: CHINA_ENEMY_GUARDIAN_SPRITE_ATLAS_JSON,
+      chinaEnemyGuardianSpritesLoaded: Boolean(chinaEnemyGuardianPack?.loaded),
+      chinaEnemyGuardianSpriteFallbackActive: chinaEnemyGuardianFallbackActive,
+      missingChinaEnemyGuardianSpriteAssets,
       visibleEnemySpriteFamilies: renderStats.visibleEnemySpriteFamilies || [],
       enemySpriteFrameStates: renderStats.enemySpriteFrameStates || [],
       bossSpritesLoaded: bossSpriteAssets.loaded,
@@ -1554,6 +1572,9 @@ export default function ExpeditionJourney({
       activeBossSprite: renderStats.activeBossSprite || null,
       activeBossSpriteFrame: renderStats.activeBossSpriteFrame || null,
       activeBossAnimationState: renderStats.activeBossAnimationState || null,
+      chinaClayGuardianSpriteLoaded: Boolean(chinaClayGuardianBossPack?.loaded),
+      chinaClayGuardianSpriteFrame: renderStats.chinaClayGuardianSpriteFrame || null,
+      chinaClayGuardianSpriteAtlasPath: CHINA_CLAY_GUARDIAN_SPRITE_ATLAS_JSON,
       stoneGuardianSpriteLoaded: Boolean(bossSpriteAssets.packs?.['temple-guardian']?.loaded),
       stoneGuardianSpriteFrame: renderStats.stoneGuardianSpriteFrame || null,
       stoneGuardianSpriteAtlasPath: STONE_GUARDIAN_SPRITE_ATLAS_JSON,
@@ -3463,33 +3484,39 @@ export default function ExpeditionJourney({
   }, [drawContactShadow, getCombatMode]);
 
   const drawBossSprite = useCallback((ctx, boss, screenX, now, bossVisualState) => {
-    const supportedBoss = boss.id === 'scarab-queen'
+    const spriteBossId = boss.spriteBossId || boss.id;
+    const supportedBoss = spriteBossId === CHINA_CLAY_GUARDIAN_BOSS_ID
+      || boss.id === 'scarab-queen'
       || boss.id === 'temple-guardian'
       || boss.id === 'giant-serpent'
       || boss.id === 'ancient-construct';
     if (!supportedBoss) return false;
     const combatMode = getCombatMode(boss);
-    const frameKey = boss.id === 'ancient-construct'
+    const frameKey = spriteBossId === CHINA_CLAY_GUARDIAN_BOSS_ID
+      ? getClayGuardianSpriteFrame(boss, combatMode, bossVisualState, now)
+      : boss.id === 'ancient-construct'
       ? getAncientConstructSpriteFrame(boss, combatMode, bossVisualState, now)
       : boss.id === 'temple-guardian'
         ? getStoneGuardianSpriteFrame(boss, combatMode, bossVisualState, now)
         : boss.id === 'giant-serpent'
           ? getGiantSerpentSpriteFrame(boss, combatMode, bossVisualState, now)
           : getScarabQueenSpriteFrame(boss, combatMode, bossVisualState, now);
-    const drawBox = boss.id === 'ancient-construct'
+    const drawBox = spriteBossId === CHINA_CLAY_GUARDIAN_BOSS_ID
+      ? getClayGuardianDrawBox(boss, screenX)
+      : boss.id === 'ancient-construct'
       ? getAncientConstructDrawBox(boss, screenX)
       : boss.id === 'temple-guardian'
         ? getStoneGuardianDrawBox(boss, screenX)
         : boss.id === 'giant-serpent'
           ? getGiantSerpentDrawBox(boss, screenX)
           : getScarabQueenDrawBox(boss, screenX);
-    const pack = getBossSpritePack(bossSpriteAssetsRef.current, boss.id);
+    const pack = getBossSpritePack(bossSpriteAssetsRef.current, spriteBossId);
     if (!frameKey || !drawBox || !pack) return false;
 
     const facing = (boss.attackTimer > 0 || boss.attackWindup > 0)
       ? boss.attackDirection
       : boss.direction;
-    const shouldFlip = shouldFlipBossSprite(boss.id, facing);
+    const shouldFlip = shouldFlipBossSprite(spriteBossId, facing);
     const centerX = screenX + boss.width / 2;
     const baseY = boss.y + boss.height;
     const visualScale = boss.visualScale || 1;
@@ -3500,7 +3527,7 @@ export default function ExpeditionJourney({
       ctx.scale(visualScale, visualScale);
       ctx.translate(-centerX, -baseY);
     }
-    const isStoneBoss = boss.id === 'temple-guardian' || boss.id === 'ancient-construct';
+    const isStoneBoss = spriteBossId === CHINA_CLAY_GUARDIAN_BOSS_ID || boss.id === 'temple-guardian' || boss.id === 'ancient-construct';
     drawContactShadow(ctx, centerX, baseY + 3, drawBox.width * (isStoneBoss ? 0.86 : 0.78), isStoneBoss ? 0.34 : 0.28, 1.5);
     if (isStoneBoss && (combatMode === 'attacking' || combatMode === 'windup')) {
       drawGroundDustLip(ctx, centerX, baseY + 2, drawBox.width * 0.72, 'rgba(197, 148, 72, 0.28)');
@@ -3533,9 +3560,12 @@ export default function ExpeditionJourney({
     ctx.restore();
 
     if (drawn && stateRef.current.renderStats) {
-      stateRef.current.renderStats.activeBossSprite = boss.id;
+      stateRef.current.renderStats.activeBossSprite = spriteBossId;
       stateRef.current.renderStats.activeBossSpriteFrame = frameKey;
       stateRef.current.renderStats.activeBossAnimationState = combatMode;
+      if (spriteBossId === CHINA_CLAY_GUARDIAN_BOSS_ID) {
+        stateRef.current.renderStats.chinaClayGuardianSpriteFrame = frameKey;
+      }
       if (boss.id === 'temple-guardian') {
         stateRef.current.renderStats.stoneGuardianSpriteFrame = frameKey;
       }
@@ -3551,6 +3581,7 @@ export default function ExpeditionJourney({
   }, [drawContactShadow, drawGroundDustLip, getCombatMode]);
 
   const getBossVisibleDrawBox = useCallback((boss, screenX) => {
+    if (boss.spriteBossId === CHINA_CLAY_GUARDIAN_BOSS_ID) return getClayGuardianDrawBox(boss, screenX);
     if (boss.id === 'ancient-construct') return getAncientConstructDrawBox(boss, screenX);
     if (boss.id === 'temple-guardian') return getStoneGuardianDrawBox(boss, screenX);
     if (boss.id === 'giant-serpent') return getGiantSerpentDrawBox(boss, screenX);
@@ -3567,8 +3598,11 @@ export default function ExpeditionJourney({
     const pulse = Math.sin(now / 400) * 0.12 + 0.88;
     const cx = screenX + boss.width / 2;
     const cy = boss.y + boss.height / 2;
-    const bossVisualState = getBossVulnerabilityState(boss);
     const introActive = stateRef.current.bossIntroTimer > 0 && stateRef.current.bossIntro?.id === boss.id;
+    const bossVisualState = {
+      ...getBossVulnerabilityState(boss),
+      introActive,
+    };
 
     ctx.save();
     const bossAura = ctx.createRadialGradient(cx, cy, 18, cx, cy, 78 * pulse);

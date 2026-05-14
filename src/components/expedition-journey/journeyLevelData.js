@@ -123,6 +123,25 @@ export const ENEMIES = [
   { id: 'guardian-2', name: 'Gate Guardian', type: 'guardian', emoji: '🗿', x: X(7180), y: JY(318), width: 38, height: 42, patrolMin: X(7060), patrolMax: X(7350), speed: 78, health: 3, damage: 15, shards: 8 },
 ];
 
+export const CHINA_ENEMIES = [
+  { id: 'scarab-scout-1', name: 'River Crab Scout', type: 'river-crab', emoji: 'C', x: X(705), y: JY(334), width: 36, height: 26, patrolMin: X(650), patrolMax: X(815), speed: 74, health: 1, damage: 7, shards: 2 },
+  { id: 'scarab-1', name: 'River Crab', type: 'river-crab', emoji: 'C', x: X(890), y: JY(334), width: 36, height: 26, patrolMin: X(820), patrolMax: X(1040), speed: 80, health: 1, damage: 8, shards: 2 },
+  { id: 'snake-1', name: 'Mudbank Crab', type: 'river-crab', emoji: 'C', x: X(1245), y: JY(334), width: 38, height: 28, patrolMin: X(1185), patrolMax: X(1325), speed: 62, health: 1, damage: 10, shards: 2 },
+  { id: 'snake-temple-1', name: 'Riverbank Crab', type: 'river-crab', emoji: 'C', x: X(1860), y: JY(334), width: 38, height: 28, patrolMin: X(1780), patrolMax: X(1965), speed: 60, health: 1, damage: 9, shards: 2 },
+  { id: 'looter-temple-2', name: 'Watchtower Sentry', type: 'watchtower-sentry', emoji: 'S', x: X(2145), y: JY(318), width: 34, height: 42, patrolMin: X(2070), patrolMax: X(2290), speed: 82, health: 2, damage: 10, shards: 3 },
+  { id: 'guardian-1', name: 'Bronze Post Sentry', type: 'watchtower-sentry', emoji: 'S', x: X(2350), y: JY(318), width: 36, height: 42, patrolMin: X(2240), patrolMax: X(2580), speed: 72, health: 2, damage: 12, shards: 4 },
+  { id: 'looter-1', name: 'Archive Sentry', type: 'watchtower-sentry', emoji: 'S', x: X(2685), y: JY(318), width: 34, height: 42, patrolMin: X(2600), patrolMax: X(2815), speed: 90, health: 2, damage: 12, shards: 4 },
+  { id: 'bat-1', name: 'Watchtower Sentry', type: 'watchtower-sentry', emoji: 'S', x: X(3700), y: JY(318), width: 34, height: 42, patrolMin: X(3600), patrolMax: X(3870), speed: 118, health: 1, damage: 8, shards: 3 },
+  { id: 'bat-2', name: 'River Patrol Sentry', type: 'watchtower-sentry', emoji: 'S', x: X(4025), y: JY(318), width: 34, height: 42, patrolMin: X(3930), patrolMax: X(4150), speed: 104, health: 1, damage: 8, shards: 3 },
+  { id: 'snake-catacomb-2', name: 'Mudbank Crab', type: 'river-crab', emoji: 'C', x: X(4320), y: JY(334), width: 38, height: 28, patrolMin: X(4240), patrolMax: X(4440), speed: 66, health: 1, damage: 10, shards: 3 },
+  { id: 'statue-1', name: 'Clay Guardian Sentry', type: 'watchtower-sentry', emoji: 'S', x: X(4700), y: JY(318), width: 42, height: 42, patrolMin: X(4630), patrolMax: X(4860), speed: 56, health: 3, damage: 14, shards: 6 },
+  { id: 'scarab-2', name: 'River Crab Cluster', type: 'river-crab', emoji: 'C', x: X(5240), y: JY(334), width: 44, height: 26, patrolMin: X(5140), patrolMax: X(5410), speed: 130, health: 2, damage: 10, shards: 4 },
+  { id: 'scarab-escape-3', name: 'River Crab Cluster', type: 'river-crab', emoji: 'C', x: X(5540), y: JY(334), width: 44, height: 26, patrolMin: X(5455), patrolMax: X(5665), speed: 112, health: 2, damage: 10, shards: 4 },
+  { id: 'looter-2', name: 'Watchtower Sentry', type: 'watchtower-sentry', emoji: 'S', x: X(6150), y: JY(318), width: 34, height: 42, patrolMin: X(6070), patrolMax: X(6240), speed: 95, health: 2, damage: 12, shards: 4 },
+  { id: 'looter-dig-3', name: 'Survey Sentry', type: 'watchtower-sentry', emoji: 'S', x: X(6845), y: JY(318), width: 34, height: 42, patrolMin: X(6760), patrolMax: X(6960), speed: 80, health: 2, damage: 10, shards: 4 },
+  { id: 'guardian-2', name: 'Gate Sentry', type: 'watchtower-sentry', emoji: 'S', x: X(7180), y: JY(318), width: 38, height: 42, patrolMin: X(7060), patrolMax: X(7350), speed: 78, health: 3, damage: 15, shards: 8 },
+];
+
 export const RELIC_SHARDS = [
   310, 455, 620, 820, 980, 1240, 1430, 1660, 1840, 2020, 2265, 2440, 2600, 2835,
   3015, 3260, 3430, 3615, 3765, 3925, 4210, 4360, 4565, 4720, 4890, 5165, 5320,
@@ -291,6 +310,14 @@ export const MINI_BOSSES = [
   { id: 'giant-serpent', sectionId: 'catacombs', name: 'Giant Serpent', type: 'snake', x: X(4860), y: JY(308), width: 72, height: 52, patrolMin: X(4730), patrolMax: X(4965), speed: 70, health: 2, damage: 6, shards: 8, intro: 'Guardian Encounter: Giant Serpent. The catacombs protect their secrets.', dialogue: 'The catacombs protect their secrets.', domainName: 'Catacomb Care Domain', arenaStart: X(4625), arenaEnd: X(4985) },
   { id: 'looter-captain', sectionId: 'escape-sequence', name: 'Rival Looter Captain', type: 'looter', x: X(6330), y: JY(306), width: 54, height: 54, patrolMin: X(6200), patrolMax: X(6435), speed: 86, health: 2, damage: 6, shards: 8, intro: 'Guardian Encounter: Rival Looter Captain. Careful records matter more than speed through this site.', dialogue: 'Careful records matter more than speed through this site.', domainName: 'Field Records Domain', arenaStart: X(6110), arenaEnd: X(6460) },
   { id: 'ancient-construct', sectionId: 'dig-site-entrance', name: 'Ancient Construct', type: 'statue', x: X(7750), y: JY(300), width: 62, height: 60, patrolMin: X(7650), patrolMax: X(7935), speed: 54, health: 3, damage: 7, shards: 10, intro: 'Guardian Encounter: Ancient Construct. No excavation begins until the final seal is restored.', dialogue: 'No excavation begins until the final seal is restored.', domainName: 'Final Site Access Domain', arenaStart: X(7560), arenaEnd: X(7950) },
+];
+
+export const CHINA_MINI_BOSSES = [
+  { id: 'scarab-queen', sectionId: 'desert-entry', name: 'Clay Guardian', type: 'china-guardian', spriteBossId: 'china-clay-guardian', x: X(1395), y: JY(306), width: 58, height: 54, patrolMin: X(1335), patrolMax: X(1460), speed: 66, health: 2, damage: 6, shards: 6, intro: 'Guardian Encounter: Clay Guardian. The river valley path opens only to careful investigators.', dialogue: 'The river valley path opens only to careful investigators.', domainName: 'River Valley Seal Domain', arenaStart: X(1265), arenaEnd: X(1480) },
+  { id: 'temple-guardian', sectionId: 'ruined-temple', name: 'Bronze Gate Warden', type: 'china-guardian', spriteBossId: 'china-clay-guardian', x: X(2960), y: JY(306), width: 54, height: 54, patrolMin: X(2860), patrolMax: X(3060), speed: 58, health: 2, damage: 6, shards: 8, intro: 'Guardian Encounter: Bronze Gate Warden. Record the evidence before the archive gate opens.', dialogue: 'Record the evidence before the archive gate opens.', domainName: 'Bronze Gate Domain', arenaStart: X(2785), arenaEnd: X(3090) },
+  { id: 'giant-serpent', sectionId: 'catacombs', name: 'Jade Seal Guardian', type: 'china-guardian', spriteBossId: 'china-clay-guardian', x: X(4860), y: JY(306), width: 72, height: 54, patrolMin: X(4730), patrolMax: X(4965), speed: 70, health: 2, damage: 6, shards: 8, intro: 'Guardian Encounter: Jade Seal Guardian. The archive chamber protects its sources.', dialogue: 'The archive chamber protects its sources.', domainName: 'Jade Archive Domain', arenaStart: X(4625), arenaEnd: X(4985) },
+  { id: 'looter-captain', sectionId: 'escape-sequence', name: 'Archive Sentry Captain', type: 'china-guardian', spriteBossId: 'china-clay-guardian', x: X(6330), y: JY(306), width: 54, height: 54, patrolMin: X(6200), patrolMax: X(6435), speed: 86, health: 2, damage: 6, shards: 8, intro: 'Guardian Encounter: Archive Sentry Captain. Careful records matter more than rushing the route.', dialogue: 'Careful records matter more than rushing the route.', domainName: 'Field Records Domain', arenaStart: X(6110), arenaEnd: X(6460) },
+  { id: 'ancient-construct', sectionId: 'dig-site-entrance', name: 'Rammed-Earth Sentinel', type: 'china-guardian', spriteBossId: 'china-clay-guardian', x: X(7750), y: JY(300), width: 62, height: 60, patrolMin: X(7650), patrolMax: X(7935), speed: 54, health: 3, damage: 7, shards: 10, intro: 'Guardian Encounter: Rammed-Earth Sentinel. Base Camp opens after the final seal is restored.', dialogue: 'Base Camp opens after the final seal is restored.', domainName: 'Final Site Access Domain', arenaStart: X(7560), arenaEnd: X(7950) },
 ];
 
 export const BOSS_KEY_ITEMS = [
@@ -495,5 +522,17 @@ export const BOSS_INTROS = {
     effect: 'camp light surge',
   },
 };
+
+export const isChinaJourneyCivilisation = (targetCivilisation = '') => (
+  String(targetCivilisation).toLowerCase().includes('china')
+);
+
+export const getJourneyEnemies = (targetCivilisation) => (
+  isChinaJourneyCivilisation(targetCivilisation) ? CHINA_ENEMIES : ENEMIES
+);
+
+export const getJourneyMiniBosses = (targetCivilisation) => (
+  isChinaJourneyCivilisation(targetCivilisation) ? CHINA_MINI_BOSSES : MINI_BOSSES
+);
 
 export const GATE = { x: X(8040), y: JY(282), width: 56, height: 78 };

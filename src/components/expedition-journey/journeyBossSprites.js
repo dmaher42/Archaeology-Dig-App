@@ -3,7 +3,9 @@ export const BOSS_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}scarab-queen-spri
 export const STONE_GUARDIAN_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}stone-guardian-sprites.json`;
 export const GIANT_SERPENT_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}giant-serpent-sprites.json`;
 export const ANCIENT_CONSTRUCT_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}ancient-construct-sprites.json`;
-export const BOSS_SPRITE_ATLAS_VERSION = 'boss-sprites-scarab-queen-stone-guardian-serpent-ancient-construct-2026-05-13';
+export const CHINA_CLAY_GUARDIAN_SPRITE_ATLAS_JSON = 'assets/expedition/enemies/china/china-enemy-guardian-sprites.json';
+export const CHINA_CLAY_GUARDIAN_BOSS_ID = 'china-clay-guardian';
+export const BOSS_SPRITE_ATLAS_VERSION = 'boss-sprites-china-clay-guardian-2026-05-15';
 
 export const SCARAB_QUEEN_SPRITE_KEYS = [
   'scarabQueenIdle',
@@ -61,11 +63,26 @@ export const ANCIENT_CONSTRUCT_SPRITE_KEYS = [
   'ancientConstructDefeated',
 ];
 
+export const CLAY_GUARDIAN_SPRITE_KEYS = [
+  'clayGuardianIdle',
+  'clayGuardianWalk1',
+  'clayGuardianWalk2',
+  'clayGuardianIntro',
+  'clayGuardianWindup',
+  'clayGuardianSlam',
+  'clayGuardianPulse',
+  'clayGuardianShielded',
+  'clayGuardianCounterWindow',
+  'clayGuardianHit',
+  'clayGuardianDefeated',
+];
+
 export const EXPECTED_BOSS_SPRITE_KEYS = [
   ...SCARAB_QUEEN_SPRITE_KEYS,
   ...STONE_GUARDIAN_SPRITE_KEYS,
   ...GIANT_SERPENT_SPRITE_KEYS,
   ...ANCIENT_CONSTRUCT_SPRITE_KEYS,
+  ...CLAY_GUARDIAN_SPRITE_KEYS,
 ];
 
 const BOSS_SPRITE_PACKS = {
@@ -85,6 +102,17 @@ const BOSS_SPRITE_PACKS = {
     atlasPath: ANCIENT_CONSTRUCT_SPRITE_ATLAS_JSON,
     expectedKeys: ANCIENT_CONSTRUCT_SPRITE_KEYS,
   },
+  [CHINA_CLAY_GUARDIAN_BOSS_ID]: {
+    atlasPath: CHINA_CLAY_GUARDIAN_SPRITE_ATLAS_JSON,
+    expectedKeys: CLAY_GUARDIAN_SPRITE_KEYS,
+  },
+};
+
+const getAtlasImagePath = (atlasPath, imageName) => {
+  if (!imageName) return null;
+  if (imageName.startsWith('/') || imageName.startsWith('assets/')) return imageName;
+  const atlasDir = atlasPath.includes('/') ? atlasPath.slice(0, atlasPath.lastIndexOf('/') + 1) : '';
+  return `${atlasDir}${imageName}`;
 };
 
 export const createBossSpriteState = () => ({
@@ -155,7 +183,7 @@ export const loadBossSpritePack = ({ baseUrl = '/', onUpdate }) => {
             },
           ]);
         };
-        image.src = `${baseUrl}${BOSS_SPRITE_BASE_PATH}${atlas.image}`;
+        image.src = `${baseUrl}${getAtlasImagePath(packConfig.atlasPath, atlas.image)}`;
       }))
       .catch((error) => [
         bossId,
@@ -260,6 +288,25 @@ export const getAncientConstructSpriteFrame = (boss, combatMode, bossVisualState
   return frameToggle ? 'ancientConstructWalk2' : 'ancientConstructWalk1';
 };
 
+export const getClayGuardianSpriteFrame = (boss, combatMode, bossVisualState = {}, now = 0) => {
+  if (boss?.spriteBossId !== CHINA_CLAY_GUARDIAN_BOSS_ID && boss?.id !== CHINA_CLAY_GUARDIAN_BOSS_ID) return null;
+
+  if (combatMode === 'defeated') return 'clayGuardianDefeated';
+  if (boss.hitFlash > 0 || combatMode === 'stunned') return 'clayGuardianHit';
+  if (bossVisualState.shielded) return 'clayGuardianShielded';
+  if (bossVisualState.vulnerable) return 'clayGuardianCounterWindow';
+  if (combatMode === 'windup') return 'clayGuardianWindup';
+  if (combatMode === 'attacking') {
+    return bossVisualState.attackKind === 'area' || bossVisualState.attackKind === 'ranged'
+      ? 'clayGuardianPulse'
+      : 'clayGuardianSlam';
+  }
+  if (bossVisualState.introActive || !boss.awakened) return 'clayGuardianIntro';
+
+  const frameToggle = Math.floor(now / 280) % 2;
+  return frameToggle ? 'clayGuardianWalk2' : 'clayGuardianWalk1';
+};
+
 export const shouldFlipBossSprite = (bossId, facing = 1) => {
   if (bossId === 'scarab-queen') return facing > 0;
   return facing < 0;
@@ -301,6 +348,17 @@ export const getGiantSerpentDrawBox = (boss, screenX) => {
 export const getAncientConstructDrawBox = (boss, screenX) => {
   const width = Math.max(132, boss.width * 2.25);
   const height = Math.max(128, boss.height * 2.15);
+  return {
+    x: screenX + boss.width / 2 - width / 2,
+    y: boss.y + boss.height - height + 9,
+    width,
+    height,
+  };
+};
+
+export const getClayGuardianDrawBox = (boss, screenX) => {
+  const width = Math.max(134, boss.width * 2.34);
+  const height = Math.max(132, boss.height * 2.18);
   return {
     x: screenX + boss.width / 2 - width / 2,
     y: boss.y + boss.height - height + 9,

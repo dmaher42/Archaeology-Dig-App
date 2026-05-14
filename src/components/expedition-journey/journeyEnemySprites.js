@@ -7,7 +7,8 @@ export const DESERT_SCARAB_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}desert-
 export const SAND_SNAKE_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}sand-snake-sprites.json`;
 export const CURSED_STATUE_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}cursed-statue-sprites.json`;
 export const STONE_GUARDIAN_ENEMY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}stone-guardian-enemy-sprites.json`;
-export const ENEMY_SPRITE_ATLAS_VERSION = 'enemy-sprite-packs-2026-05-14-guardian-enemy';
+export const CHINA_ENEMY_GUARDIAN_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-enemy-guardian-sprites.json`;
+export const ENEMY_SPRITE_ATLAS_VERSION = 'enemy-sprite-packs-2026-05-15-china-mobs';
 
 export const EXPECTED_ENEMY_SPRITE_KEYS = [
   'scarabIdle',
@@ -104,6 +105,34 @@ export const EXPECTED_STONE_GUARDIAN_ENEMY_SPRITE_KEYS = [
   'stoneGuardianEnemyDefeated',
 ];
 
+export const EXPECTED_CHINA_ENEMY_GUARDIAN_SPRITE_KEYS = [
+  'riverCrabIdle',
+  'riverCrabWalk1',
+  'riverCrabWalk2',
+  'riverCrabWindup',
+  'riverCrabAttack',
+  'riverCrabHit',
+  'riverCrabDefeated',
+  'watchtowerSentryIdle',
+  'watchtowerSentryWalk1',
+  'watchtowerSentryWalk2',
+  'watchtowerSentryWindup',
+  'watchtowerSentryAttack',
+  'watchtowerSentryHit',
+  'watchtowerSentryDefeated',
+  'clayGuardianIdle',
+  'clayGuardianWalk1',
+  'clayGuardianWalk2',
+  'clayGuardianIntro',
+  'clayGuardianWindup',
+  'clayGuardianSlam',
+  'clayGuardianPulse',
+  'clayGuardianShielded',
+  'clayGuardianCounterWindow',
+  'clayGuardianHit',
+  'clayGuardianDefeated',
+];
+
 const ENEMY_SPRITE_PACKS = {
   small: {
     atlasPath: ENEMY_SPRITE_ATLAS_JSON,
@@ -137,6 +166,17 @@ const ENEMY_SPRITE_PACKS = {
     atlasPath: STONE_GUARDIAN_ENEMY_SPRITE_ATLAS_JSON,
     expectedKeys: EXPECTED_STONE_GUARDIAN_ENEMY_SPRITE_KEYS,
   },
+  chinaEnemyGuardian: {
+    atlasPath: CHINA_ENEMY_GUARDIAN_SPRITE_ATLAS_JSON,
+    expectedKeys: EXPECTED_CHINA_ENEMY_GUARDIAN_SPRITE_KEYS,
+  },
+};
+
+const getAtlasImagePath = (atlasPath, imageName) => {
+  if (!imageName) return null;
+  if (imageName.startsWith('/') || imageName.startsWith('assets/')) return imageName;
+  const atlasDir = atlasPath.includes('/') ? atlasPath.slice(0, atlasPath.lastIndexOf('/') + 1) : '';
+  return `${atlasDir}${imageName}`;
 };
 
 export const createEnemySpriteState = () => ({
@@ -203,7 +243,7 @@ export const loadEnemySpritePack = ({ baseUrl = '/', onUpdate }) => {
             },
           ]);
         };
-        image.src = `${baseUrl}${ENEMY_SPRITE_BASE_PATH}${atlas.image}`;
+        image.src = `${baseUrl}${getAtlasImagePath(packConfig.atlasPath, atlas.image)}`;
       }))
       .catch((error) => [
         packId,
@@ -249,6 +289,9 @@ export const getEnemySpritePack = (assets, family) => {
   if (family === 'snake') return assets?.packs?.snake || assets?.packs?.small || assets || null;
   if (family === 'cursedStatue') return assets?.packs?.cursedStatue || null;
   if (family === 'stoneGuardianEnemy') return assets?.packs?.stoneGuardianEnemy || null;
+  if (family === 'riverCrab' || family === 'watchtowerSentry' || family === 'clayGuardian') {
+    return assets?.packs?.chinaEnemyGuardian || null;
+  }
   return assets?.packs?.small || assets || null;
 };
 
@@ -259,6 +302,9 @@ export const getEnemySpriteFamily = (enemy) => {
   if (enemy.type === 'snake' || name.includes('snake') || name.includes('serpent')) return 'snake';
   if (enemy.type === 'bat' || name.includes('bat')) return 'bat';
   if (enemy.id === 'looter-captain' || name.includes('captain')) return 'looterCaptain';
+  if (enemy.type === 'river-crab' || name.includes('river crab') || name.includes('mudbank crab')) return 'riverCrab';
+  if (enemy.type === 'watchtower-sentry' || name.includes('watchtower') || name.includes('sentry')) return 'watchtowerSentry';
+  if (enemy.type === 'clay-guardian' || name.includes('clay guardian')) return 'clayGuardian';
   if (enemy.type === 'statue' || name.includes('statue')) return 'cursedStatue';
   if (enemy.type === 'guardian' || name.includes('guardian')) return 'stoneGuardianEnemy';
   if (enemy.type === 'looter' || name.includes('looter')) return 'looter';
@@ -282,6 +328,9 @@ export const getEnemySpriteFrame = (enemy, combatMode, now = 0) => {
   if (family === 'looter') return frameToggle ? 'looterWalk2' : 'looterWalk1';
   if (family === 'cursedStatue') return frameToggle ? 'cursedStatueWalk2' : 'cursedStatueWalk1';
   if (family === 'stoneGuardianEnemy') return frameToggle ? 'stoneGuardianEnemyWalk2' : 'stoneGuardianEnemyWalk1';
+  if (family === 'riverCrab') return frameToggle ? 'riverCrabWalk2' : 'riverCrabWalk1';
+  if (family === 'watchtowerSentry') return frameToggle ? 'watchtowerSentryWalk2' : 'watchtowerSentryWalk1';
+  if (family === 'clayGuardian') return frameToggle ? 'clayGuardianWalk2' : 'clayGuardianWalk1';
   return `${family}Idle`;
 };
 
@@ -300,6 +349,9 @@ export const getEnemySpriteDrawBox = (enemy, screenX, shakeX = 0, combatMode = n
     looterCaptain: defeated ? 1.82 : 2.48,
     cursedStatue: defeated ? 1.84 : 2.34,
     stoneGuardianEnemy: defeated ? 1.82 : 2.38,
+    riverCrab: defeated ? 2.18 : 2.32,
+    watchtowerSentry: defeated ? 1.78 : 2.28,
+    clayGuardian: defeated ? 1.82 : 2.42,
   }[family] || 1.8;
 
   const width = Math.max(enemy.width, enemy.width * scale);
@@ -312,6 +364,9 @@ export const getEnemySpriteDrawBox = (enemy, screenX, shakeX = 0, combatMode = n
     looterCaptain: defeated ? 16 : 11,
     cursedStatue: defeated ? 14 : 9,
     stoneGuardianEnemy: defeated ? 14 : 9,
+    riverCrab: defeated ? 12 : 9,
+    watchtowerSentry: defeated ? 15 : 10,
+    clayGuardian: defeated ? 14 : 9,
   }[family] ?? 8;
   const x = screenX + enemy.width / 2 - width / 2 + shakeX;
   const y = enemy.y + enemy.height - height + groundOffset;

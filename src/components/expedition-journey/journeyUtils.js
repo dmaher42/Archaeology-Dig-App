@@ -6,7 +6,7 @@ import {
   PLAYER_SPRITE_SCALE,
   PLAYER_WIDTH,
 } from './journeyConstants';
-import { BOSS_KEY_ITEMS, CHECKPOINTS, ENEMIES, MINI_BOSSES, SECTIONS, SECTION_ATMOSPHERES } from './journeyLevelData';
+import { BOSS_KEY_ITEMS, CHECKPOINTS, getJourneyEnemies, getJourneyMiniBosses, SECTIONS, SECTION_ATMOSPHERES } from './journeyLevelData';
 
 export const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
@@ -223,7 +223,7 @@ export const makeBossKeyItem = (item) => ({
   collected: false,
 });
 
-export const makeInitialState = () => ({
+export const makeInitialState = ({ targetCivilisation } = {}) => ({
   player: {
     x: 44,
     y: GROUND_Y - PLAYER_HEIGHT,
@@ -255,8 +255,8 @@ export const makeInitialState = () => ({
   collectedTabletIds: new Set(),
   collectedObjectiveIds: new Set(),
   collectedBossKeyIds: new Set(),
-  enemies: ENEMIES.map(makeEnemy),
-  miniBosses: MINI_BOSSES.map(makeMiniBoss),
+  enemies: getJourneyEnemies(targetCivilisation).map(makeEnemy),
+  miniBosses: getJourneyMiniBosses(targetCivilisation).map(makeMiniBoss),
   bossKeyItems: BOSS_KEY_ITEMS.map(makeBossKeyItem),
   defeatedEnemies: new Set(),
   defeatedMiniBosses: new Set(),
