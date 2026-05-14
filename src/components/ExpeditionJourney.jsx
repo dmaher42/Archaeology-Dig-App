@@ -5146,6 +5146,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
     const handleKeyDown = (e) => {
       if (paused || briefingOpen || stateRef.current.activeGuardianChallenge) return;
       if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'Space', 'KeyA', 'KeyD', 'KeyW', 'KeyJ', 'KeyK'].includes(e.code)) e.preventDefault();
+      audioControls?.unlockExpeditionSfx?.();
       if (e.code === 'KeyJ' || e.code === 'KeyK') { queueAttack(); return; }
       keysRef.current[e.code] = true;
     };
@@ -5169,7 +5170,7 @@ export default function ExpeditionJourney({ mission, onComplete, onSnapshotChang
       window.removeEventListener('keyup', handleKeyUp);
       cancelAnimationFrame(animationRef.current);
     };
-  }, [briefingOpen, paused, queueAttack, step]);
+  }, [audioControls, briefingOpen, paused, queueAttack, step]);
 
   useEffect(() => {
     if (paused) {

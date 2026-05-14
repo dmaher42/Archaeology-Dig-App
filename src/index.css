@@ -14539,6 +14539,33 @@ main {
   background: rgba(18, 15, 11, 0.84);
 }
 
+.menu-sound-test {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.42rem;
+  min-height: 2.1rem;
+  padding: 0.32rem 0.72rem;
+  border-radius: 999px;
+  border: 1px solid rgba(125, 211, 252, 0.42);
+  background: rgba(9, 35, 49, 0.78);
+  color: #e0f2fe;
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.74rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 0.45rem 1.4rem rgba(0, 0, 0, 0.22);
+}
+
+.menu-sound-test:hover,
+.menu-sound-test:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(125, 211, 252, 0.78);
+  background: rgba(14, 57, 79, 0.92);
+}
+
 .activity-menu-grid {
   width: min(1180px, 100%) !important;
   max-width: 1180px !important;

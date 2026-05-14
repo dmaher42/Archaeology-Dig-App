@@ -28,6 +28,7 @@ let audioCtx = null;
 let expeditionMusic = null;
 let expeditionMusicKey = null;
 let expeditionMusicFade = null;
+let expeditionSfxUnlocked = false;
 
 const EXPEDITION_AUDIO_TRACKS = {
   music: {
@@ -45,26 +46,26 @@ const EXPEDITION_AUDIO_TRACKS = {
   },
   sfx: {
     footstepSand: [
-      { path: 'assets/expedition/sfx/footstep-sand-1.ogg', volume: 0.2 },
-      { path: 'assets/expedition/sfx/footstep-sand-2.ogg', volume: 0.2 },
-      { path: 'assets/expedition/sfx/footstep-sand-3.ogg', volume: 0.2 },
-      { path: 'assets/expedition/sfx/footstep-sand-4.ogg', volume: 0.2 },
+      { path: 'assets/expedition/sfx/footstep-sand-1.ogg', volume: 0.34 },
+      { path: 'assets/expedition/sfx/footstep-sand-2.ogg', volume: 0.34 },
+      { path: 'assets/expedition/sfx/footstep-sand-3.ogg', volume: 0.34 },
+      { path: 'assets/expedition/sfx/footstep-sand-4.ogg', volume: 0.34 },
     ],
-    jump: { path: 'assets/expedition/sfx/land-soft.ogg', volume: 0.18, playbackRate: 1.28 },
-    land: { path: 'assets/expedition/sfx/land-soft.ogg', volume: 0.28 },
+    jump: { path: 'assets/expedition/sfx/land-soft.ogg', volume: 0.3, playbackRate: 1.28 },
+    land: { path: 'assets/expedition/sfx/land-soft.ogg', volume: 0.4 },
     pickupTool: [
-      { path: 'assets/expedition/sfx/satchel-leather.ogg', volume: 0.26 },
-      { path: 'assets/expedition/sfx/satchel-buckle.ogg', volume: 0.18, delay: 55 },
-      { path: 'assets/expedition/sfx/metal-click.ogg', volume: 0.2, delay: 95, playbackRate: 1.08 },
+      { path: 'assets/expedition/sfx/satchel-leather.ogg', volume: 0.4 },
+      { path: 'assets/expedition/sfx/satchel-buckle.ogg', volume: 0.3, delay: 55 },
+      { path: 'assets/expedition/sfx/metal-click.ogg', volume: 0.34, delay: 95, playbackRate: 1.08 },
     ],
-    pickupShard: { path: 'assets/expedition/sfx/relic-shard.ogg', volume: 0.24, playbackRate: 1.08 },
-    pickupUpgrade: { path: 'assets/expedition/sfx/metal-click.ogg', volume: 0.26, playbackRate: 0.92 },
-    gateUnlock: { path: 'assets/expedition/sfx/stone-gate-open.ogg', volume: 0.34 },
-    gateBlocked: { path: 'assets/expedition/sfx/stone-gate-blocked.ogg', volume: 0.28 },
-    attackSwing: { path: 'assets/expedition/sfx/khopesh-swing.ogg', volume: 0.22, playbackRate: 1.12 },
-    enemyHit: { path: 'assets/expedition/sfx/enemy-hit.ogg', volume: 0.26 },
-    playerHit: { path: 'assets/expedition/sfx/player-hit.ogg', volume: 0.26 },
-    bossWarning: { path: 'assets/expedition/sfx/boss-warning.ogg', volume: 0.2 },
+    pickupShard: { path: 'assets/expedition/sfx/relic-shard.ogg', volume: 0.42, playbackRate: 1.08 },
+    pickupUpgrade: { path: 'assets/expedition/sfx/metal-click.ogg', volume: 0.42, playbackRate: 0.92 },
+    gateUnlock: { path: 'assets/expedition/sfx/stone-gate-open.ogg', volume: 0.52 },
+    gateBlocked: { path: 'assets/expedition/sfx/stone-gate-blocked.ogg', volume: 0.44 },
+    attackSwing: { path: 'assets/expedition/sfx/khopesh-swing.ogg', volume: 0.42, playbackRate: 1.12 },
+    enemyHit: { path: 'assets/expedition/sfx/enemy-hit.ogg', volume: 0.42 },
+    playerHit: { path: 'assets/expedition/sfx/player-hit.ogg', volume: 0.42 },
+    bossWarning: { path: 'assets/expedition/sfx/boss-warning.ogg', volume: 0.38 },
   },
 };
 
@@ -147,7 +148,22 @@ const playExpeditionStinger = (stingerKey) => {
   }, EXPEDITION_STINGER_DURATIONS[stingerKey] || 3500);
 };
 
+const unlockExpeditionSfx = () => {
+  initAudio();
+  if (expeditionSfxUnlocked) return;
+  const primer = new Audio(getAudioSrc('assets/expedition/sfx/metal-click.ogg'));
+  primer.volume = 0.02;
+  primer.play().then(() => {
+    primer.pause();
+    primer.currentTime = 0;
+    expeditionSfxUnlocked = true;
+  }).catch((error) => {
+    console.warn('Expedition SFX unlock could not start', error);
+  });
+};
+
 const playExpeditionSfx = (sfxKey, options = {}) => {
+  initAudio();
   const config = EXPEDITION_AUDIO_TRACKS.sfx[sfxKey];
   if (!config) return;
   const clips = Array.isArray(config) ? config : [config];
@@ -264,7 +280,7 @@ const playTone = (freq, type = 'sine', duration = 0.5, vol = 0.2) => {
   osc.stop(audioCtx.currentTime + duration);
 };
 
-const baseAudioControls = { initAudio, playFlip, playMatch, playError, playWin, playTone, playExpeditionMusic, stopExpeditionMusic, playExpeditionStinger, playExpeditionSfx };
+const baseAudioControls = { initAudio, playFlip, playMatch, playError, playWin, playTone, playExpeditionMusic, stopExpeditionMusic, playExpeditionStinger, playExpeditionSfx, unlockExpeditionSfx };
 
 function loadAutosave() {
   try {
@@ -436,15 +452,22 @@ export default function App() {
   };
 
   const handleStartExpedition = () => {
+    baseAudioControls.unlockExpeditionSfx?.();
     setIsSiteSelectionActive(false);
     setPhase('expedition');
   };
 
   const handleExpeditionMusicToggle = () => {
+    baseAudioControls.unlockExpeditionSfx?.();
     setExpeditionMusicEnabled((enabled) => {
       if (enabled) baseAudioControls.stopExpeditionMusic?.();
       return !enabled;
     });
+  };
+
+  const handleExpeditionSoundTest = () => {
+    baseAudioControls.unlockExpeditionSfx?.();
+    baseAudioControls.playExpeditionSfx?.('pickupTool', { volume: 1.35 });
   };
 
   const handleBackToMenu = () => {
@@ -469,6 +492,7 @@ export default function App() {
             onSiteSelectionChange={setIsSiteSelectionActive}
             expeditionMusicEnabled={expeditionMusicEnabled}
             onExpeditionMusicToggle={handleExpeditionMusicToggle}
+            onExpeditionSoundTest={handleExpeditionSoundTest}
           />
         )}
 

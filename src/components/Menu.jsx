@@ -40,7 +40,8 @@ export function ActivityMenu({
   onResumeBureau,
   onSiteSelectionChange = () => {},
   expeditionMusicEnabled = false,
-  onExpeditionMusicToggle = () => {}
+  onExpeditionMusicToggle = () => {},
+  onExpeditionSoundTest = () => {}
 }) {
   const [showCivSelection, setShowCivSelection] = useState(false);
   const [hoveredId, setHoveredId] = useState(null);
@@ -189,6 +190,15 @@ export function ActivityMenu({
           >
             {expeditionMusicEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
             <span>Expedition Music: {expeditionMusicEnabled ? 'On' : 'Off'}</span>
+          </button>
+          <button
+            type="button"
+            className="menu-sound-test"
+            onClick={onExpeditionSoundTest}
+            aria-label="Test expedition sound effects"
+          >
+            <Volume2 size={16} />
+            <span>Test Sound</span>
           </button>
         </div>
       </div>
