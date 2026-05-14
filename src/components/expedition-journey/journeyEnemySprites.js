@@ -293,13 +293,13 @@ export const getEnemySpriteDrawBox = (enemy, screenX, shakeX = 0, combatMode = n
 
   const defeated = combatMode === 'defeated' || enemy.defeated;
   const scale = {
-    scarab: defeated ? 2.08 : 2,
-    snake: defeated ? 2.2 : 2.18,
-    bat: defeated ? 2.05 : 2.45,
-    looter: defeated ? 1.32 : 1.72,
-    looterCaptain: defeated ? 1.36 : 1.86,
-    cursedStatue: defeated ? 1.42 : 1.78,
-    stoneGuardianEnemy: defeated ? 1.38 : 1.74,
+    scarab: defeated ? 2.45 : 2.42,
+    snake: defeated ? 2.58 : 2.55,
+    bat: defeated ? 2.36 : 2.86,
+    looter: defeated ? 1.74 : 2.34,
+    looterCaptain: defeated ? 1.82 : 2.48,
+    cursedStatue: defeated ? 1.84 : 2.34,
+    stoneGuardianEnemy: defeated ? 1.82 : 2.38,
   }[family] || 1.8;
 
   const width = Math.max(enemy.width, enemy.width * scale);

@@ -1088,6 +1088,13 @@ Remaining notes:
 - No music behavior changed in this follow-up: background music is still opt-in, and SFX still play normally.
 
 2026-05-14 update:
+- Hardened Expedition SFX playback after user reported they could not hear sound effects.
+- Added an explicit SFX unlock path on Expedition start, music toggle, Journey keydown, and the new menu sound-test control so browsers have a direct user gesture before game-loop SFX fire.
+- Added a visible `Test Sound` button beside the Expedition music toggle on the main menu.
+- Raised the quiet SFX mix levels for footsteps, jump/land, pickups, hits, gates, boss warning, and khopesh swing while keeping background music opt-in.
+- No duplicate audio system was added; the changes extend the existing `audioControls` and SFX file map.
+
+2026-05-14 update:
 - Completed a Journey enemy/boss visual polish pass in the existing sprite render path.
 - Corrected sprite-facing logic so generated right-facing enemy sheets flip only when travelling/attacking left, while the Scarab Queen keeps its left-facing native orientation.
 - Re-grounded enemy and boss sprite draw boxes so live and defeated sprites sit more naturally on the floor.
@@ -1096,3 +1103,11 @@ Remaining notes:
 - Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite public-asset and large-chunk warnings; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
 - Browser notes: local browser screenshots confirmed the Egypt Journey opens, visible scarab enemy floor alignment/facing improved, Scarab Queen intro/domain still triggers, and no console errors appeared.
 - Remaining risk: automated defeat input did not reliably land a hit on a moving scarab during this pass, so a short manual fight check is still useful for feel, but the defeated-state timer cleanup is in the canonical update path.
+
+2026-05-14 update:
+- Increased normal Journey enemy visual scale in `journeyEnemySprites.js` so enemies read as more challenging beside the player.
+- Enlarged scarabs, snakes, bats, rival looters, looter captain, cursed statue enemies, and stone guardian enemies through the existing sprite draw-box helper only.
+- Preserved gameplay behaviour: hitboxes, health, damage, patrol logic, boss flow, route gates, Stage Select, Base Camp, and excavation were not intentionally changed.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite public-asset and large-chunk warnings.
+- Browser notes: local screenshots confirmed the enlarged scarab and rival looter render larger, stay grounded, keep their health bars aligned, and produce no console errors.
+- Remaining risk: this is a visual-only scale increase; a manual play feel pass should decide whether any specific enemy family should be dialled slightly up or down.
