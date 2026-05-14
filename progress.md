@@ -119,6 +119,13 @@ Remaining notes:
 - Browser/state checks confirmed boss intros, environment events, section transition states, section atmosphere changes, route-to-Base-Camp completion, and Begin Excavation still entering the existing excavation stage.
 - Remaining risk: spectacle timing and readability should still be classroom-playtested on a projector, especially in the darker Catacombs and faster Escape Sequence sections.
 
+2026-05-15 update:
+- Re-routed the Ancient China stage card to the existing archaeology evidence loop instead of treating the China Journey prototype as the classroom-safe path.
+- Egypt remains the playable Lost Site Expedition Journey route.
+- Ancient China now starts a normal archaeology session at Evidence Processing using the `china` scenario from `src/data.js`, so the playable loop is Sort -> Lab -> Museum -> Report.
+- `npm.cmd run lint`, `npm.cmd run build`, and `git diff --check` passed; diff check only reported the repo's usual LF-to-CRLF warnings.
+- Browser verification confirmed Stage Select -> Ancient China -> Sort, 12/12 sorted, 3/3 lab notes documented, Museum curation, and final Ancient China report. Egypt regression still opens the Ancient Egypt Lost Site Expedition route.
+
 2026-05-09 update:
 - Completed an `ExpeditionJourney.jsx` refactor without intending gameplay behaviour changes.
 - Created `src/components/expedition-journey/journeyConstants.js`, `journeyLevelData.js`, and `journeyUtils.js` for constants, static level data, and pure state/helper functions.
@@ -1185,3 +1192,16 @@ Remaining notes:
 - Browser notes: local browser verification confirmed China excavation remains on `china-room-map-stage-1`, all China packs are ready, fallback inactive, zero missing atlas regions, no console errors, and the polished map title/labels render. Egypt excavation regression confirmed its title, pack IDs, fallback state, and missing-region count remain unchanged with no console errors.
 - Tooling note: the `develop-web-game` Playwright helper still fails to import `playwright` from the user skill folder, so browser verification used the repo-available Playwright path through the local automation layer.
 - Remaining risks/follow-up tasks: China still needs a full natural playthrough after China-specific Journey objectives/gates/enemies/challenges are authored; this pass was visual polish plus smoke/regression verification.
+
+2026-05-15 update:
+- Archaeologist Training UI polish completed for `How Do We Investigate the Past?`.
+- Improved the stage cards with a field-training card treatment, clearer icon alignment, tighter card spacing, subtle depth, and hover/drag states.
+- Improved the drop zones into clearer numbered field slots with `Step 1` through `Step 5`, more inviting empty states, and locked-in visual states for placed cards.
+- Reduced and refined the feedback panel so it reads as a compact field notebook check and still reports progress such as `0/5 stages are in the right place`.
+- Polished the `0/5 correct` progress badge into a cleaner training progress badge.
+- Kept the Back to Menu button visible and restyled it to match the parchment/dossier training UI.
+- Added subtle CSS-only archaeology theming: notebook/grid texture, parchment panels, bronze separators, and corner-bracket details.
+- No drag/drop logic, correct order, scoring, activity routing, or Back to Menu behaviour was intentionally changed.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite public-asset runtime warnings and large bundle warning; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Browser notes: local browser verification opened Archaeologist Training, confirmed all five cards display, dragged Survey to Step 1, Grid to Step 2, Excavate to Step 3, Map to Step 4, and Lab to Step 5, confirmed progress reached `5/5 correct`, confirmed the feedback panel stayed readable and compact, confirmed Back to Menu returned to the activity menu, and found no console errors.
+- Remaining layout risk: the screen was checked at the normal 1280x720 in-app browser/laptop viewport; very narrow or unusually zoomed classroom devices may still need a quick visual pass.

@@ -71,15 +71,25 @@ function TrainingSlot({ index, stage }) {
   const { isOver, setNodeRef } = useDroppable({
     id: `training-slot-${index}`,
   });
+  const slotStateClass = stage
+    ? stage.id === TRAINING_STAGES[index].id ? 'is-correct' : 'needs-review'
+    : '';
 
   return (
-    <div ref={setNodeRef} className={`training-slot ${isOver ? 'is-over' : ''} ${stage ? 'filled' : ''}`}>
-      <div className="training-slot-label">Step {index + 1}</div>
+    <div ref={setNodeRef} className={`training-slot ${isOver ? 'is-over' : ''} ${stage ? 'filled' : ''} ${slotStateClass}`}>
+      <div className="training-slot-label">
+        <span>Step {index + 1}</span>
+        {stage && (
+          <span className="training-slot-check">
+            {stage.id === TRAINING_STAGES[index].id ? 'In place' : 'Review'}
+          </span>
+        )}
+      </div>
       {stage ? (
         <TrainingStageCard stage={stage} compact />
       ) : (
         <div className="training-slot-empty">
-          <span>Drop stage here</span>
+          <span>Drop a stage here</span>
         </div>
       )}
     </div>
@@ -183,7 +193,7 @@ export function TrainingPhase({ trainingPlacements, setTrainingPlacements, onBac
             </p>
           </div>
           <div className="training-hero-actions">
-            <button className="btn" type="button" onClick={onBackToMenu}>Back to menu</button>
+            <button className="btn training-back-btn" type="button" onClick={onBackToMenu}>Back to menu</button>
           </div>
         </div>
 
@@ -196,7 +206,8 @@ export function TrainingPhase({ trainingPlacements, setTrainingPlacements, onBac
                 <h3>Survey, Grid, Excavate, Map, Lab</h3>
               </div>
               <div className="training-progress">
-                {correctCount}/5 correct
+                <span className="training-progress-label">Training progress</span>
+                <strong>{correctCount}/5 correct</strong>
               </div>
             </div>
 
@@ -212,7 +223,7 @@ export function TrainingPhase({ trainingPlacements, setTrainingPlacements, onBac
           </div>
         </div>
 
-        <div className="training-summary glass-card">
+        <div className={`training-summary glass-card ${isComplete ? 'is-complete' : ''}`}>
           {isComplete ? (
             <>
               <div className="training-success-message">You are ready to investigate the ancient past.</div>
@@ -221,16 +232,16 @@ export function TrainingPhase({ trainingPlacements, setTrainingPlacements, onBac
                 If archaeologists move evidence before recording it, then...
               </div>
               <div className="training-summary-actions">
-                <button className="btn primary-btn" type="button" onClick={onBackToMenu}>
+                <button className="btn training-back-btn" type="button" onClick={onBackToMenu}>
                   Back to menu
                 </button>
               </div>
             </>
           ) : (
             <div className="training-summary-copy">
-              <span className="training-summary-title">Keep going</span>
+              <span className="training-summary-title">Field notebook check</span>
               <p>
-                Use the tray on the left to place each stage in the correct order.
+                Keep placing the cards until the investigation sequence matches real fieldwork.
               </p>
               <div className="training-summary-note">
                 {correctCount}/5 stages are in the right place.
