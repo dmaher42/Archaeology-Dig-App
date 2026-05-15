@@ -1,11 +1,11 @@
 {
   "image": "china-river-valley-environment-pack.png",
-  "source": "First runtime Ancient China side-scroller environment atlas created for the Lost Site Expedition scaffold.",
+  "source": "AI-generated Ancient China background art and derived high-quality terrain/platform atlas, integrated May 15 2026.",
   "size": {
     "w": 1536,
     "h": 1024
   },
-  "notes": "Transparent runtime atlas with named terrain, hazard, gate and prop regions. Ancient China remains preview-only; this pack is registered for future stage-aware Journey loading but is not used by the active Egypt Journey.",
+  "notes": "Runtime atlas upgraded from prototype strips/flat blocks to painterly riverbank ground, rammed-earth blocks, timber platforms, bamboo bridges, hazards, gates and archaeology markers. Regions preserve existing keys so gameplay systems are unchanged.",
   "regions": {
     "riverbankGround": {
       "x": 30,

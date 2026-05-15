@@ -1354,3 +1354,27 @@ Remaining notes:
 - Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with existing runtime-public-asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
 - Browser notes: clean-save smoke opened Ancient Egypt Journey, simulated the first route movement, sampled start positions around 170, 330, 690, 900, 1185, and 1375 base units, confirmed collectibles/shards, mild hazards, ambient life, camera values, route gate state, and Scarab Queen intro still work. Headless browser reported audio autoplay warnings only; no gameplay/runtime exception was found.
 - Remaining risks/follow-up tasks: browser verification used deterministic movement/debug sampling rather than a full natural classroom playthrough; the section title card briefly overlays the start-route screenshot before fading, so a later UX pass could shorten the opening card if it still feels intrusive.
+
+2026-05-15 follow-up:
+- Upgraded the China Journey background, ground, and platform visuals from prototype-looking strip/block art to project-local PNG assets.
+- Used the image generation skill to create a high-quality Ancient China river valley backdrop with layered mountains, river, settlement, watchtowers, rammed-earth walls, reeds, and a natural lower playfield.
+- Replaced the old five-strip China background atlas with a single composited 16:9 backdrop in `public/assets/expedition/backgrounds/china-river-valley/china-river-valley-parallax-pack.png` and updated the atlas JSON to `runtimeMode: single-composited-backdrop`.
+- Updated the China-only Journey renderer so the composited backdrop is drawn once, avoiding the hard horizontal seams and glass-panel look shown in the screenshot.
+- Rebuilt `public/assets/expedition/environment/china-river-valley/china-river-valley-environment-pack.png` with richer riverbank ground, rammed-earth blocks, timber platforms, bamboo bridge pieces, hazards, gates, and archaeology marker art while preserving existing region keys.
+- Completed a final China terrain polish pass with worn edges, reeds, embedded stones, rammed-earth texture, plank grain, and bamboo/timber detail so the lower route and platforms no longer read as flat prototype blocks.
+- Kept gameplay systems unchanged: no route logic, enemy logic, boss logic, Stage Select, Base Camp, Excavation, Museum, Lab, Report, save/load, inventory, or Egypt asset changes were intentionally made in this pass.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Browser/asset notes: local dev server returned the new China background PNG and environment PNG with HTTP 200. Full browser visual automation could not be rerun in this turn because CDP was not reachable and the bundled Playwright import is missing `playwright-core`.
+
+2026-05-15 update:
+- Added Base Camp Shop to the existing Lost Site Expedition Base Camp screen as an expedition outfitting station, without changing Stage Select, Museum, Lab, Report, boss, save/load, or excavation systems.
+- Integrated existing relic shards as the shop currency. Journey shards remain collected in the Journey state, and the Base Camp progression layer stores a persistent shard bank for purchases.
+- Added permanent progression support in `src/components/expedition/baseCampShop.js` with first stock for Field Gear, Expedition Upgrades, Cosmetics, and Journal Unlock placeholders.
+- Added first permanent archaeology upgrades: Reinforced Boots, Climbing Gloves, and Reinforced Backpack. Effects are intentionally small: higher jump, slightly better air control, reduced knockback baseline support, and a higher stamina cap where purchased.
+- Added cosmetic unlock framework for Expedition Hat, Curator Journal Cover, and Bronze Backpack. Visual swapping is not wired yet; cosmetics are tracked as persistent unlocks for a later player-visual pass.
+- Added purchase feedback with shard deduction, owned/locked/not-enough-shards states, and an Upgrade Purchased confirmation/glow.
+- Added focused Node tests for shop purchase rules, duplicate purchase protection, cosmetic purchases, and upgrade stat effects.
+- Progression persistence uses `localStorage` key `archaeology-dig-app:lost-site-expedition:base-camp-progression:v1`, separate from the existing classroom file save/load systems so it does not corrupt current archaeology/Bureau saves.
+- Validation: `node --test src\components\expedition\baseCampShop.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with existing runtime-public-asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Browser notes: Playwright smoke test launched Ancient Egypt, confirmed Journey shard collection through `render_game_to_text`, opened Base Camp through the existing dev jump hook, purchased Reinforced Boots from a seeded shard bank, confirmed shards dropped from 20 to 5, reloaded, and confirmed the next Journey run included `permanentUpgrades: ["reinforced-boots"]` with a jump multiplier above 1 and no console/page errors.
+- Remaining risks/follow-up tasks: cosmetic visual swapping is intentionally deferred; Rope Launcher and Survey Goggles are shop placeholders only until hidden-route and hidden-clue content exists; a full natural classroom playthrough should still check long-route balance after several upgrades are owned.

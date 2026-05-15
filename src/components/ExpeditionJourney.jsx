@@ -506,7 +506,7 @@ const SECTION_MUSIC_CUES = {
 };
 
 const JOURNEY_POLISH_VERSION = 'journey-polish-2026-05-11';
-const CHINA_BACKGROUND_POLISH_VERSION = 'china-background-seam-reduction-2026-05-15';
+const CHINA_BACKGROUND_POLISH_VERSION = 'china-background-composited-art-2026-05-15';
 const EGYPT_AMBIENT_LIFE_VERSION = 'egypt-ambient-life-start-route-2026-05-15';
 const COLLECTIBLE_SCALE_TUNING_VERSION = 'journey-collectible-scale-tuning-2026-05-14';
 const RELIC_SHARD_SCALE = 0.74;
@@ -2997,6 +2997,47 @@ export default function ExpeditionJourney({
     const assets = getSectionBackgroundAssets(desertBackgroundAssetsRef.current, 'china-river-valley');
     if (!assets?.ready) return false;
     const layerOptions = { canvasWidth: CANVAS_WIDTH, cameraX };
+    if (assets.atlas?.runtimeMode === 'single-composited-backdrop') {
+      const backdropDrawn = drawDesertBackgroundLayer(
+        ctx,
+        assets,
+        'skyLayer',
+        { y: 0, height: CANVAS_HEIGHT },
+        { ...layerOptions, parallax: 0, alpha: 1 },
+      );
+      if (!backdropDrawn) return false;
+
+      ctx.save();
+      const depthWash = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
+      depthWash.addColorStop(0, 'rgba(226, 238, 232, 0.03)');
+      depthWash.addColorStop(0.45, 'rgba(218, 210, 181, 0.05)');
+      depthWash.addColorStop(0.74, 'rgba(122, 94, 57, 0.08)');
+      depthWash.addColorStop(1, 'rgba(40, 30, 20, 0.16)');
+      ctx.fillStyle = depthWash;
+      ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+      const playableMist = ctx.createLinearGradient(0, 342, 0, 520);
+      playableMist.addColorStop(0, 'rgba(226, 224, 203, 0)');
+      playableMist.addColorStop(0.34, 'rgba(226, 224, 203, 0.1)');
+      playableMist.addColorStop(0.72, 'rgba(172, 145, 103, 0.08)');
+      playableMist.addColorStop(1, 'rgba(172, 145, 103, 0)');
+      ctx.fillStyle = playableMist;
+      ctx.fillRect(0, 338, CANVAS_WIDTH, 190);
+
+      ctx.strokeStyle = 'rgba(76, 57, 32, 0.1)';
+      ctx.lineWidth = 1.1;
+      [514, 548, 580].forEach((y, index) => {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        for (let x = 0; x <= CANVAS_WIDTH; x += 78) {
+          ctx.lineTo(x, y + Math.sin((x + cameraX * 0.12 + index * 76) * 0.014) * 3);
+        }
+        ctx.stroke();
+      });
+      ctx.restore();
+
+      return true;
+    }
     const drawn = [
       drawDesertBackgroundLayer(ctx, assets, 'skyLayer', { y: 0, height: CANVAS_HEIGHT }, { ...layerOptions, parallax: 0.01, alpha: 0.98 }),
       drawDesertBackgroundLayer(ctx, assets, 'farMountains', { y: 184, height: 228 }, { ...layerOptions, parallax: 0.06, alpha: 0.42 }),
@@ -3130,6 +3171,18 @@ export default function ExpeditionJourney({
     if (backgroundPackId === 'china-river-valley') {
       const assets = getSectionBackgroundAssets(desertBackgroundAssetsRef.current, 'china-river-valley');
       if (!assets?.ready) return false;
+      if (assets.atlas?.runtimeMode === 'single-composited-backdrop') {
+        ctx.save();
+        const mist = ctx.createLinearGradient(0, 270, 0, 480);
+        mist.addColorStop(0, 'rgba(229, 232, 211, 0)');
+        mist.addColorStop(0.36, 'rgba(229, 232, 211, 0.09)');
+        mist.addColorStop(0.76, 'rgba(187, 171, 132, 0.07)');
+        mist.addColorStop(1, 'rgba(187, 171, 132, 0)');
+        ctx.fillStyle = mist;
+        ctx.fillRect(0, 270, CANVAS_WIDTH, 220);
+        ctx.restore();
+        return true;
+      }
       const mistDrawn = [
         drawDesertBackgroundLayer(
           ctx,
