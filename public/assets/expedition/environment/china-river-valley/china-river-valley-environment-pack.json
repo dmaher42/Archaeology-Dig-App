@@ -1,11 +1,11 @@
 {
   "image": "china-river-valley-environment-pack.png",
-  "source": "AI-generated Ancient China background art and derived high-quality terrain/platform atlas, integrated May 15 2026.",
+  "source": "AI-generated Ancient China environment prop, ground-floor, and platform atlas from the imagegen skill, integrated May 15 2026.",
   "size": {
     "w": 1536,
     "h": 1024
   },
-  "notes": "Runtime atlas upgraded from prototype strips/flat blocks to painterly riverbank ground, rammed-earth blocks, timber platforms, bamboo bridges, hazards, gates and archaeology markers. Regions preserve existing keys so gameplay systems are unchanged.",
+  "notes": "High-quality transparent runtime atlas for China Journey: riverbank and rammed-earth ground floors, stone/archive floors, platforms, bamboo bridges, hazards, gates, and archaeology props. Existing region keys are preserved so gameplay and collision are unchanged.",
   "regions": {
     "riverbankGround": {
       "x": 30,

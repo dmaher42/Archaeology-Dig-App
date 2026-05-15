@@ -17,6 +17,12 @@ import {
   INVULNERABLE_DURATION,
   JUMP_SPEED,
   MOVE_SPEED,
+  MOVE_ACCELERATION,
+  MOVE_DECELERATION,
+  AIR_ACCELERATION,
+  AIR_DECELERATION,
+  COYOTE_TIME,
+  JUMP_BUFFER_TIME,
   WORLD_WIDTH,
   GRAVITY,
   ATTACK_DURATION,
@@ -37,15 +43,18 @@ import {
   BOSS_KEY_ITEMS,
   CHECKPOINTS,
   HAZARDS,
+  HIDDEN_ROUTES,
   GUARDIAN_KNOWLEDGE_CHALLENGES,
   GUARDIAN_KNOWLEDGE_QUESTIONS,
   JOURNEY_TOOLS,
+  LORE_TABLETS,
   OBJECTIVE_MARKERS,
   PLATFORMS,
   RELIC_SHARDS,
   ROUTE_GATES,
   SECTIONS,
   SECTION_ATMOSPHERES,
+  SECRET_COLLECTIBLES,
   STORY_PROPS,
   TOOL_LAYOUT,
   UPGRADES,
@@ -130,6 +139,7 @@ import {
   getScarabQueenSpriteFrame,
   getStoneGuardianDrawBox,
   getStoneGuardianSpriteFrame,
+  isChinaGuardianBossSpriteId,
   loadBossSpritePack,
   shouldFlipBossSprite,
   STONE_GUARDIAN_SPRITE_ATLAS_JSON,
@@ -508,6 +518,37 @@ const SECTION_MUSIC_CUES = {
 const JOURNEY_POLISH_VERSION = 'journey-polish-2026-05-11';
 const CHINA_BACKGROUND_POLISH_VERSION = 'china-background-composited-art-2026-05-15';
 const EGYPT_AMBIENT_LIFE_VERSION = 'egypt-ambient-life-start-route-2026-05-15';
+
+const seededStepRandom = (seed = 1, cycle = 0, salt = 0) => {
+  const value = Math.sin(seed * 12.9898 + cycle * 78.233 + salt * 37.719) * 43758.5453;
+  return value - Math.floor(value);
+};
+
+const updateHostileStepMultiplier = (hostile, dt, { boss = false } = {}) => {
+  hostile.stepTimer = (hostile.stepTimer || 0) + dt;
+  hostile.stepShiftTimer = Math.max(0, (hostile.stepShiftTimer || 0) - dt);
+  hostile.stepPauseTimer = Math.max(0, (hostile.stepPauseTimer || 0) - dt);
+
+  if (hostile.stepShiftTimer <= 0) {
+    hostile.stepCycle = (hostile.stepCycle || 0) + 1;
+    const speedRoll = seededStepRandom(hostile.stepSeed, hostile.stepCycle, 1);
+    const durationRoll = seededStepRandom(hostile.stepSeed, hostile.stepCycle, 2);
+    const pauseRoll = seededStepRandom(hostile.stepSeed, hostile.stepCycle, 3);
+    hostile.stepSpeedMultiplier = boss
+      ? 0.9 + speedRoll * 0.22
+      : 0.8 + speedRoll * 0.34;
+    hostile.stepShiftTimer = boss
+      ? 0.85 + durationRoll * 1.15
+      : 0.55 + durationRoll * 0.9;
+    hostile.stepPauseTimer = pauseRoll > (boss ? 0.78 : 0.68)
+      ? (boss ? 0.12 + pauseRoll * 0.1 : 0.14 + pauseRoll * 0.16)
+      : 0;
+  }
+
+  const rhythm = 1 + Math.sin((hostile.stepCycle || 0) + hostile.stepSeed * 0.01 + hostile.stepTimer * (hostile.stepRhythm || 1.5)) * (boss ? 0.07 : 0.11);
+  const pauseMultiplier = hostile.stepPauseTimer > 0 ? (boss ? 0.45 : 0.28) : 1;
+  return Math.max(boss ? 0.7 : 0.55, (hostile.stepSpeedMultiplier || 1) * rhythm * pauseMultiplier);
+};
 const COLLECTIBLE_SCALE_TUNING_VERSION = 'journey-collectible-scale-tuning-2026-05-14';
 const RELIC_SHARD_SCALE = 0.74;
 const FIELD_TOOL_SCALE = 0.86;
@@ -882,8 +923,14 @@ export default function ExpeditionJourney({
   targetCivilisation = 'Ancient Egypt',
   environmentPackId = ENVIRONMENT_ASSET_PACK_IDS.EGYPT_DESERT_TEMPLE,
   backgroundPackId = null,
+  permanentUpgradeIds = [],
+  permanentUpgradeEffects = {},
 }) {
-  const [gameState, setGameState] = useState(() => makeInitialState({ targetCivilisation }));
+  const [gameState, setGameState] = useState(() => makeInitialState({
+    targetCivilisation,
+    permanentUpgradeIds,
+    permanentUpgradeEffects,
+  }));
   const [briefingOpen, setBriefingOpen] = useState(true);
   const [guardianChallengeUi, setGuardianChallengeUi] = useState(null);
   const canvasRef = useRef(null);
@@ -1037,7 +1084,7 @@ export default function ExpeditionJourney({
     current.player.y = cp.y - current.player.height;
     current.player.vx = 0;
     current.player.vy = 0;
-    current.resources.stamina = Math.max(current.resources.stamina, 40);
+    current.resources.stamina = Math.max(current.resources.stamina, Math.min(current.upgradeEffects?.maxStamina || 100, 40));
     const camera = getCameraFollowTarget(current);
     current.cameraX = camera.targetCameraX;
     current.targetCameraX = camera.targetCameraX;
@@ -1367,13 +1414,25 @@ export default function ExpeditionJourney({
     height,
   }), []);
 
+  const getAttackHurtbox = useCallback((hostile, { boss = false } = {}) => {
+    const insetX = Math.max(boss ? 6 : 5, hostile.width * (boss ? 0.1 : 0.16));
+    const topInset = Math.max(boss ? 5 : 4, hostile.height * (boss ? 0.08 : 0.12));
+    const bottomInset = Math.max(boss ? 4 : 3, hostile.height * (boss ? 0.08 : 0.1));
+    return {
+      x: hostile.x + insetX,
+      y: hostile.y + topInset,
+      width: Math.max(1, hostile.width - insetX * 2),
+      height: Math.max(1, hostile.height - topInset - bottomInset),
+    };
+  }, []);
+
   const addCombatEffect = useCallback((current, effect) => {
     current.combatHitEffects.push({
       timer: 0.35,
       maxTimer: 0.35,
       ...effect,
     });
-    if (current.combatHitEffects.length > 12) current.combatHitEffects.shift();
+    if (current.combatHitEffects.length > 18) current.combatHitEffects.shift();
   }, []);
 
   const getCombatMode = useCallback((entity) => {
@@ -1408,6 +1467,14 @@ export default function ExpeditionJourney({
     if (current.staminaFeedbackTimer > 0) return 'recent-loss';
     return 'stable';
   }, []);
+
+  const getActiveHiddenRoutes = useCallback(() => (
+    HIDDEN_ROUTES.filter(route => route.civilisation === targetCivilisation)
+  ), [targetCivilisation]);
+
+  const getActiveSecretCollectibles = useCallback(() => (
+    SECRET_COLLECTIBLES.filter(item => item.civilisation === targetCivilisation)
+  ), [targetCivilisation]);
 
   const getBossPhaseConfig = useCallback((boss) => {
     const phases = BOSS_ATTACK_PHASES[boss.id] || DEFAULT_BOSS_ATTACK_PHASES;
@@ -1460,6 +1527,8 @@ export default function ExpeditionJourney({
       .sort((a, b) => Math.abs(a.x - current.player.x) - Math.abs(b.x - current.player.x))[0] || null;
     const activeEnemyCounterWindow = current.enemies.find(enemy => !enemy.defeated && (enemy.vulnerabilityTimer > 0 || enemy.attackRecovery > 0));
     const activeBossCounterWindow = current.miniBosses.find(boss => !boss.defeated && (boss.vulnerabilityTimer > 0 || boss.attackRecovery > 0));
+    const activeHiddenRoutes = getActiveHiddenRoutes();
+    const activeSecretCollectibles = getActiveSecretCollectibles();
     const environmentAssets = environmentAssetsRef.current;
     const missingEnvironmentAssets = getMissingEnvironmentAssets(environmentAssets);
     const environmentFallbackActive = !environmentAssets.loaded || environmentAssets.failed || missingEnvironmentAssets.length > 0;
@@ -1540,6 +1609,8 @@ export default function ExpeditionJourney({
         vx: Math.round(current.player.vx),
         vy: Math.round(current.player.vy),
         onGround: current.player.onGround,
+        coyoteTimer: Number((current.player.coyoteTimer || 0).toFixed(2)),
+        jumpBufferTimer: Number((current.player.jumpBufferTimer || 0).toFixed(2)),
       },
       playerFacing: current.player.direction >= 0 ? 'right' : 'left',
       playerSpriteLoaded: Boolean(playerSpriteRef.current.loaded),
@@ -1700,6 +1771,9 @@ export default function ExpeditionJourney({
       worldProgressPercent: Math.round((current.player.x / WORLD_WIDTH) * 100),
       resources: current.resources,
       playerStamina: current.resources.stamina,
+      maxStamina: current.upgradeEffects?.maxStamina || 100,
+      permanentUpgrades: Array.from(current.permanentUpgrades || []),
+      permanentUpgradeEffects: current.upgradeEffects || {},
       cameraX: Math.round(current.cameraX),
       targetCameraX: Math.round(current.targetCameraX),
       playerWorldX: Math.round(current.player.x),
@@ -1814,6 +1888,29 @@ export default function ExpeditionJourney({
       defeatedEnemies: Array.from(current.defeatedEnemies),
       defeatedMiniBosses: Array.from(current.defeatedMiniBosses),
       hiddenRoomsFound: Array.from(current.hiddenRoomsFound),
+      discoveredHiddenRoutes: Array.from(current.discoveredHiddenRouteIds || []),
+      hiddenRoutesAvailable: activeHiddenRoutes.map(route => ({
+        id: route.id,
+        name: route.name,
+        sectionId: route.sectionId,
+        optional: route.optional,
+        discovered: current.discoveredHiddenRouteIds?.has(route.id) || false,
+        futureUpgradeHook: route.futureUpgradeHook || null,
+      })),
+      secretCollectibles: activeSecretCollectibles.map(item => ({
+        id: item.id,
+        name: item.name,
+        setId: item.setId,
+        routeId: item.routeId,
+        collected: current.collectedSecretIds?.has(item.id) || false,
+      })),
+      collectedSecretCollectibles: Array.from(current.collectedSecretIds || []),
+      secretCollectibleCount: current.collectedSecretIds?.size || 0,
+      completedCollectionSets: Array.from(current.completedCollectionSetIds || []),
+      loreTablets: LORE_TABLETS.map(tablet => ({
+        id: tablet.id,
+        collected: current.collectedTabletIds.has(tablet.id),
+      })),
       loreTabletCount: current.collectedTabletIds.size,
       playerCombatState: {
         attacking: current.attackTimer > 0,
@@ -1843,15 +1940,32 @@ export default function ExpeditionJourney({
         timer: Number(effect.timer.toFixed(2)),
         text: effect.text || null,
       })),
+      rewardFeedbackEffects: current.combatHitEffects
+        .filter(effect => ['reward-pulse', 'shard-pickup', 'secret-found', 'checkpoint-pulse', 'collection-complete', 'boss-reward-pulse', 'upgrade-pulse'].includes(effect.type))
+        .map(effect => ({
+          type: effect.type,
+          text: effect.text || null,
+          timer: Number(effect.timer.toFixed(2)),
+        })),
       knockbackState: {
         playerKnockback: current.player.knockbackTimer > 0,
         playerDirection: current.player.knockbackDirection,
+        playerTimer: Number((current.player.knockbackTimer || 0).toFixed(2)),
         enemies: current.enemies
           .filter(enemy => enemy.knockbackTimer > 0)
           .map(enemy => ({ id: enemy.id, direction: enemy.knockbackDirection, timer: Number(enemy.knockbackTimer.toFixed(2)) })),
         bosses: current.miniBosses
           .filter(boss => boss.knockbackTimer > 0)
           .map(boss => ({ id: boss.id, direction: boss.knockbackDirection, timer: Number(boss.knockbackTimer.toFixed(2)) })),
+      },
+      movementFeelState: {
+        coyoteTimeSeconds: COYOTE_TIME,
+        jumpBufferSeconds: JUMP_BUFFER_TIME,
+        landingFeedback: Number((current.player.landingFeedbackTimer || 0).toFixed(2)),
+        movementDustTimer: Number((current.player.movementDustTimer || 0).toFixed(2)),
+        activeJuiceEffects: current.combatHitEffects
+          .filter(effect => ['movement-dust', 'landing-dust', 'jump-dust', 'attack-burst', 'knockback-dust'].includes(effect.type))
+          .map(effect => effect.type),
       },
       enemyStates: current.enemies
         .filter(enemy => Math.abs(enemy.x - current.player.x) < 700 || current.defeatedEnemies.has(enemy.id))
@@ -1939,7 +2053,7 @@ export default function ExpeditionJourney({
       failureReason: current.failureReason,
       notice: current.notice,
     };
-  }, [backgroundPackId, briefingOpen, getActiveHazardsNearPlayer, getBossVulnerabilityState, getCombatMode, getEnemyPatternConfig, getEntityCombatState, getGateGuidance, getObjectiveProgress, getPlayerAttackState, getSectionDisplayName, getSectionDisplayTitle, getStaminaWarningState, targetCivilisation]);
+  }, [backgroundPackId, briefingOpen, getActiveHazardsNearPlayer, getActiveHiddenRoutes, getActiveSecretCollectibles, getBossVulnerabilityState, getCombatMode, getEnemyPatternConfig, getEntityCombatState, getGateGuidance, getObjectiveProgress, getPlayerAttackState, getSectionDisplayName, getSectionDisplayTitle, getStaminaWarningState, targetCivilisation]);
 
   // --- Rendering Helpers ---
   const drawFieldNoteLabel = useCallback((ctx, x, y, text, color) => {
@@ -2650,6 +2764,35 @@ export default function ExpeditionJourney({
     }
     ctx.restore();
   }, [drawContactShadow, drawDecorativeBaseBlend, drawGroundDustLip]);
+
+  const drawHiddenRouteHint = useCallback((ctx, route, cameraX, current, now) => {
+    if (!isHorizontallyVisible(route.x, route.width, cameraX, 80)) return;
+    const x = worldToScreenX(route.x, cameraX);
+    const discovered = current.discoveredHiddenRouteIds?.has(route.id);
+    const pulse = 0.78 + Math.sin(now / 360 + route.x * 0.002) * 0.18;
+    ctx.save();
+    ctx.globalAlpha = discovered ? 0.78 : 0.36;
+    ctx.fillStyle = discovered ? 'rgba(250, 204, 21, 0.08)' : 'rgba(15, 23, 42, 0.08)';
+    ctx.strokeStyle = discovered ? 'rgba(250, 204, 21, 0.74)' : 'rgba(255, 247, 212, 0.34)';
+    ctx.lineWidth = discovered ? 2.5 : 1.5;
+    ctx.setLineDash(discovered ? [] : [8, 9]);
+    ctx.beginPath();
+    ctx.roundRect(x, route.y, route.width, route.height, 14);
+    ctx.fill();
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = discovered ? `rgba(250, 204, 21, ${0.2 * pulse})` : `rgba(255, 247, 212, ${0.13 * pulse})`;
+    ctx.beginPath();
+    ctx.ellipse(x + route.width * 0.5, route.y + route.height - 10, Math.min(120, route.width * 0.34), 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    if (discovered) {
+      ctx.fillStyle = 'rgba(255, 247, 212, 0.88)';
+      ctx.font = '700 12px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Hidden route mapped', x + route.width * 0.5, route.y - 10);
+    }
+    ctx.restore();
+  }, []);
 
   const drawParticles = useCallback((ctx, atmosphere, cameraX, now) => {
     ctx.save();
@@ -3844,14 +3987,15 @@ export default function ExpeditionJourney({
 
   const drawBossSprite = useCallback((ctx, boss, screenX, now, bossVisualState) => {
     const spriteBossId = boss.spriteBossId || boss.id;
-    const supportedBoss = spriteBossId === CHINA_CLAY_GUARDIAN_BOSS_ID
+    const isChinaGuardianBoss = isChinaGuardianBossSpriteId(spriteBossId);
+    const supportedBoss = isChinaGuardianBoss
       || boss.id === 'scarab-queen'
       || boss.id === 'temple-guardian'
       || boss.id === 'giant-serpent'
       || boss.id === 'ancient-construct';
     if (!supportedBoss) return false;
     const combatMode = getCombatMode(boss);
-    const frameKey = spriteBossId === CHINA_CLAY_GUARDIAN_BOSS_ID
+    const frameKey = isChinaGuardianBoss
       ? getClayGuardianSpriteFrame(boss, combatMode, bossVisualState, now)
       : boss.id === 'ancient-construct'
       ? getAncientConstructSpriteFrame(boss, combatMode, bossVisualState, now)
@@ -3860,7 +4004,7 @@ export default function ExpeditionJourney({
         : boss.id === 'giant-serpent'
           ? getGiantSerpentSpriteFrame(boss, combatMode, bossVisualState, now)
           : getScarabQueenSpriteFrame(boss, combatMode, bossVisualState, now);
-    const drawBox = spriteBossId === CHINA_CLAY_GUARDIAN_BOSS_ID
+    const drawBox = isChinaGuardianBoss
       ? getClayGuardianDrawBox(boss, screenX)
       : boss.id === 'ancient-construct'
       ? getAncientConstructDrawBox(boss, screenX)
@@ -3886,7 +4030,7 @@ export default function ExpeditionJourney({
       ctx.scale(visualScale, visualScale);
       ctx.translate(-centerX, -baseY);
     }
-    const isStoneBoss = spriteBossId === CHINA_CLAY_GUARDIAN_BOSS_ID || boss.id === 'temple-guardian' || boss.id === 'ancient-construct';
+    const isStoneBoss = isChinaGuardianBoss || boss.id === 'temple-guardian' || boss.id === 'ancient-construct';
     drawContactShadow(ctx, centerX, baseY + 3, drawBox.width * (isStoneBoss ? 0.86 : 0.78), isStoneBoss ? 0.34 : 0.28, 1.5);
     if (isStoneBoss && (combatMode === 'attacking' || combatMode === 'windup')) {
       drawGroundDustLip(ctx, centerX, baseY + 2, drawBox.width * 0.72, 'rgba(197, 148, 72, 0.28)');
@@ -3922,7 +4066,7 @@ export default function ExpeditionJourney({
       stateRef.current.renderStats.activeBossSprite = spriteBossId;
       stateRef.current.renderStats.activeBossSpriteFrame = frameKey;
       stateRef.current.renderStats.activeBossAnimationState = combatMode;
-      if (spriteBossId === CHINA_CLAY_GUARDIAN_BOSS_ID) {
+      if (isChinaGuardianBoss) {
         stateRef.current.renderStats.chinaClayGuardianSpriteFrame = frameKey;
       }
       if (boss.id === 'temple-guardian') {
@@ -3940,7 +4084,7 @@ export default function ExpeditionJourney({
   }, [drawContactShadow, drawGroundDustLip, getCombatMode]);
 
   const getBossVisibleDrawBox = useCallback((boss, screenX) => {
-    if (boss.spriteBossId === CHINA_CLAY_GUARDIAN_BOSS_ID) return getClayGuardianDrawBox(boss, screenX);
+    if (isChinaGuardianBossSpriteId(boss.spriteBossId)) return getClayGuardianDrawBox(boss, screenX);
     if (boss.id === 'ancient-construct') return getAncientConstructDrawBox(boss, screenX);
     if (boss.id === 'temple-guardian') return getStoneGuardianDrawBox(boss, screenX);
     if (boss.id === 'giant-serpent') return getGiantSerpentDrawBox(boss, screenX);
@@ -4267,6 +4411,92 @@ export default function ExpeditionJourney({
       ctx.strokeStyle = effect.color || '#facc15';
       ctx.fillStyle = effect.color || '#facc15';
       ctx.lineWidth = 3;
+      if (['movement-dust', 'landing-dust', 'jump-dust', 'knockback-dust'].includes(effect.type)) {
+        const direction = effect.direction || 1;
+        const dustWidth = effect.type === 'landing-dust' ? 44 : effect.type === 'jump-dust' ? 34 : 28;
+        ctx.globalAlpha = Math.max(0, progress * (effect.type === 'movement-dust' ? 0.38 : 0.58));
+        ctx.fillStyle = effect.color || 'rgba(217, 161, 88, 0.62)';
+        for (let i = 0; i < 4; i += 1) {
+          const offset = (i - 1.5) * 9 * direction + (1 - progress) * direction * (8 + i * 4);
+          ctx.beginPath();
+          ctx.ellipse(
+            x - direction * 10 + offset,
+            y + 16 - i * 2,
+            (dustWidth / 4) * (0.8 + i * 0.16) * (1.15 - progress * 0.25),
+            4 + (1 - progress) * 4,
+            -0.08 * direction,
+            0,
+            Math.PI * 2,
+          );
+          ctx.fill();
+        }
+        ctx.restore();
+        return;
+      }
+      if (['reward-pulse', 'shard-pickup', 'secret-found', 'checkpoint-pulse', 'collection-complete', 'boss-reward-pulse', 'upgrade-pulse'].includes(effect.type)) {
+        const radius = effect.radius || (
+          effect.type === 'shard-pickup' ? 22
+            : effect.type === 'checkpoint-pulse' ? 54
+              : effect.type === 'boss-reward-pulse' ? 68
+                : effect.type === 'collection-complete' ? 62
+                  : 44
+        );
+        const alpha = Math.max(0, progress);
+        ctx.globalAlpha = Math.min(0.82, alpha * (effect.alpha || 0.72));
+        ctx.lineWidth = effect.type === 'shard-pickup' ? 2 : 3;
+        ctx.strokeStyle = effect.color || '#facc15';
+        ctx.fillStyle = effect.fill || 'rgba(250, 204, 21, 0.12)';
+        ctx.beginPath();
+        ctx.arc(x, y, radius * (1.02 + (1 - progress) * 0.55), 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.globalAlpha = Math.min(0.45, alpha * 0.38);
+        ctx.beginPath();
+        ctx.arc(x, y, radius * (0.38 + (1 - progress) * 0.2), 0, Math.PI * 2);
+        ctx.fill();
+        const sparkleCount = effect.type === 'shard-pickup' ? 4 : 7;
+        ctx.globalAlpha = Math.min(0.86, alpha * 0.72);
+        for (let i = 0; i < sparkleCount; i += 1) {
+          const angle = now / 240 + i * ((Math.PI * 2) / sparkleCount);
+          const distance = radius * (0.62 + (1 - progress) * 0.5);
+          const sx = x + Math.cos(angle) * distance;
+          const sy = y + Math.sin(angle) * distance * 0.7;
+          ctx.beginPath();
+          ctx.moveTo(sx - 3, sy);
+          ctx.lineTo(sx + 3, sy);
+          ctx.moveTo(sx, sy - 3);
+          ctx.lineTo(sx, sy + 3);
+          ctx.stroke();
+        }
+        if (effect.text) {
+          ctx.globalAlpha = Math.min(1, alpha);
+          ctx.font = effect.type === 'shard-pickup' ? '900 11px Outfit, sans-serif' : '900 13px Outfit, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.lineWidth = 4;
+          ctx.strokeStyle = 'rgba(41, 26, 12, 0.82)';
+          const textY = y - radius * 0.72 - (1 - progress) * 12;
+          ctx.strokeText(effect.text, x, textY);
+          ctx.fillStyle = effect.color || '#facc15';
+          ctx.fillText(effect.text, x, textY);
+        }
+        ctx.restore();
+        return;
+      }
+      if (effect.type === 'attack-burst') {
+        const direction = effect.direction || 1;
+        ctx.globalAlpha = Math.max(0, progress * 0.72);
+        ctx.strokeStyle = effect.color || '#facc15';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(x - direction * 8, y - 10);
+        ctx.quadraticCurveTo(x + direction * 28, y - 24 - (1 - progress) * 8, x + direction * 58, y + 2);
+        ctx.stroke();
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(x + direction * 36, y + 2, 14 + (1 - progress) * 18, -0.6, 0.7);
+        ctx.stroke();
+        ctx.restore();
+        return;
+      }
       if (compactTypes.has(effect.type)) {
         ctx.globalAlpha = Math.max(0, progress * 0.9);
         ctx.beginPath();
@@ -4532,6 +4762,7 @@ export default function ExpeditionJourney({
 
     // --- Entities ---
     PLATFORMS.forEach((platform) => drawPlatform(ctx, platform, cameraX, current));
+    getActiveHiddenRoutes().forEach(route => drawHiddenRouteHint(ctx, route, cameraX, current, now));
     drawSectionTransitionBlend(ctx, cameraX);
     
     HAZARDS.forEach((hazard) => drawHazard(ctx, hazard, cameraX, current, now));
@@ -4666,6 +4897,47 @@ export default function ExpeditionJourney({
           hideGlow: true,
         });
       }
+    });
+
+    getActiveSecretCollectibles().forEach(secret => {
+      if (current.collectedSecretIds?.has(secret.id)) return;
+      const discoveredRoute = current.discoveredHiddenRouteIds?.has(secret.routeId);
+      if (!discoveredRoute && Math.abs(secret.x - current.player.x) > 260) return;
+      drawCollectible(ctx, secret.x, secret.y, cameraX, now, secret.shortName?.slice(0, 1) || 'S', secret.color || '#b45309', true, false, {
+        key: 'loreTablet',
+        kind: 'objective',
+        size: 34,
+        ringSize: 48,
+        glowAlpha: discoveredRoute ? 0.42 : 0.22,
+        shadowAlpha: 0.18,
+        bobAmplitude: 2,
+        sparkleAlpha: 0.55,
+        sparkleSize: 2.5,
+        anchor: 'center',
+        nearGlowDistance: 190,
+        ringKey: 'objectiveHighlightRing',
+      });
+      if (showWorldLabel(secret.x, 120, 'critical')) {
+        drawFieldNoteLabel(ctx, secret.x - cameraX, secret.y - 30, secret.shortName || secret.name, secret.color || '#b45309');
+      }
+    });
+
+    LORE_TABLETS.forEach(tablet => {
+      if (current.collectedTabletIds?.has(tablet.id)) return;
+      drawCollectible(ctx, tablet.x, tablet.y, cameraX, now, 'T', '#facc15', true, false, {
+        key: 'loreTablet',
+        kind: 'objective',
+        size: 30,
+        ringSize: 42,
+        glowAlpha: 0.28,
+        shadowAlpha: 0.14,
+        bobAmplitude: 1.6,
+        sparkleAlpha: 0.42,
+        sparkleSize: 2,
+        anchor: 'center',
+        nearGlowDistance: 150,
+        ringKey: 'objectiveHighlightRing',
+      });
     });
 
     UPGRADES.forEach(upgrade => {
@@ -4809,7 +5081,7 @@ export default function ExpeditionJourney({
       ctx.fillText(featureCard.message || '', cardCenterX, cardY + (isGuardianCard ? 60 : 56));
       ctx.textAlign = 'start';
     }
-  }, [backgroundPackId, drawAttackArc, drawCollectible, drawCombatEffects, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawEgyptAmbientLife, drawEnemyAttackTell, drawGroundDustLip, drawHazard, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawParticles, drawPlatform, drawRouteGate, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStoryProp, drawTempleBackdrop, getCombatMode, getGateGuidance, getGateRequirements, getPlayerAttackState, drawPlayerSprite, drawFieldNoteLabel]);
+  }, [backgroundPackId, drawAttackArc, drawCollectible, drawCombatEffects, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawEgyptAmbientLife, drawEnemyAttackTell, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawParticles, drawPlatform, drawRouteGate, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStoryProp, drawTempleBackdrop, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getGateGuidance, getGateRequirements, getPlayerAttackState, drawPlayerSprite, drawFieldNoteLabel]);
 
   const queueAttack = useCallback(() => {
     const current = stateRef.current;
@@ -4823,10 +5095,18 @@ export default function ExpeditionJourney({
     if (briefingOpen || current.completed || current.failed) return;
 
     const player = current.player;
+    const upgradeEffects = current.upgradeEffects || {};
+    const maxStamina = upgradeEffects.maxStamina || 100;
+    const knockbackMultiplier = upgradeEffects.knockbackMultiplier || 1;
     const keys = keysRef.current;
     const left = keys.ArrowLeft || keys.KeyA;
     const right = keys.ArrowRight || keys.KeyD;
     const jump = keys.ArrowUp || keys.KeyW || keys.Space;
+    const approach = (value, target, amount) => {
+      if (value < target) return Math.min(value + amount, target);
+      if (value > target) return Math.max(value - amount, target);
+      return value;
+    };
 
     const applyAttackStaminaCost = (amount, reason, text = null) => {
       if (!amount) return;
@@ -4843,6 +5123,43 @@ export default function ExpeditionJourney({
           text,
           color: '#f59e0b',
         });
+      }
+    };
+    const addRewardPulse = (type, x, y, text, options = {}) => {
+      addCombatEffect(current, {
+        type,
+        x,
+        y,
+        text,
+        color: options.color || '#facc15',
+        fill: options.fill,
+        radius: options.radius,
+        alpha: options.alpha,
+        timer: options.timer || 0.58,
+        maxTimer: options.maxTimer || options.timer || 0.58,
+      });
+    };
+    const markSecretSetProgress = (secret) => {
+      if (!secret?.setId || current.completedCollectionSetIds?.has(secret.setId)) return;
+      const setItems = getActiveSecretCollectibles().filter(item => item.setId === secret.setId);
+      if (setItems.length > 0 && setItems.every(item => current.collectedSecretIds?.has(item.id))) {
+        current.completedCollectionSetIds.add(secret.setId);
+        current.notice = `Collection Complete: ${secret.setId === 'china-secrets' ? 'Ancient China secret finds' : 'Ancient Egypt secret finds'}.`;
+        current.cinematicEvent = {
+          id: `${secret.setId}-complete`,
+          name: 'Collection Complete',
+          message: 'The field journal now holds a complete set of hidden discoveries.',
+          temporary: true,
+        };
+        current.cinematicTimer = 2.9;
+        current.hitStopTimer = Math.max(current.hitStopTimer, 0.045);
+        addRewardPulse('collection-complete', secret.x, secret.y, 'COLLECTION COMPLETE', {
+          color: '#22c55e',
+          fill: 'rgba(34, 197, 94, 0.11)',
+          radius: 64,
+          timer: 0.82,
+        });
+        audioControls?.playLevelUp?.();
       }
     };
 
@@ -4867,6 +5184,10 @@ export default function ExpeditionJourney({
     if (current.cameraShakeTimer <= 0) current.cameraShakeStrength = 0;
     player.invulnerable = Math.max(0, player.invulnerable - dt);
     player.damageCooldownTimer = Math.max(0, player.damageCooldownTimer - dt);
+    player.coyoteTimer = Math.max(0, (player.coyoteTimer || 0) - dt);
+    player.jumpBufferTimer = Math.max(0, (player.jumpBufferTimer || 0) - dt);
+    player.landingFeedbackTimer = Math.max(0, (player.landingFeedbackTimer || 0) - dt);
+    player.movementDustTimer = Math.max(0, (player.movementDustTimer || 0) - dt);
     current.hazardCooldown = Math.max(0, current.hazardCooldown - dt);
     current.staminaFeedbackTimer = Math.max(0, current.staminaFeedbackTimer - dt);
     current.enemyCooldown = Math.max(0, current.enemyCooldown - dt);
@@ -4911,30 +5232,62 @@ export default function ExpeditionJourney({
 
     // Movement
     const previousPlayer = { ...player };
-    player.vx = 0;
-    if (left) { player.vx -= MOVE_SPEED; player.direction = -1; }
-    if (right) { player.vx += MOVE_SPEED; player.direction = 1; }
-    if (current.collectedUpgrades.has('reinforced-boots')) player.vx *= 1.05;
-    if (current.attackWindupTimer > 0) player.vx *= 0.45;
-    if (current.attackRecoilTimer > 0) player.vx += -player.direction * 55;
+    const wasGrounded = player.onGround;
+    if (wasGrounded) player.coyoteTimer = COYOTE_TIME;
+
+    let targetVx = 0;
+    if (left) { targetVx -= MOVE_SPEED; player.direction = -1; }
+    if (right) { targetVx += MOVE_SPEED; player.direction = 1; }
+    if (!player.onGround) targetVx *= Math.max(1, upgradeEffects.airControlMultiplier || 1);
+    if (current.attackWindupTimer > 0) targetVx *= 0.45;
+    const hasHorizontalInput = left || right;
+    const acceleration = player.onGround
+      ? (hasHorizontalInput ? MOVE_ACCELERATION : MOVE_DECELERATION)
+      : (hasHorizontalInput ? AIR_ACCELERATION : AIR_DECELERATION);
+    player.vx = approach(player.vx, targetVx, acceleration * dt);
+    if (current.attackRecoilTimer > 0) player.vx += -player.direction * 45 * dt * 12;
     if (player.knockbackTimer > 0) {
       player.knockbackTimer = Math.max(0, player.knockbackTimer - dt);
-      player.vx += player.knockbackDirection * 150;
+      const knockbackProgress = player.knockbackTimer / Math.max(0.01, player.knockbackMaxTimer || 0.22);
+      player.vx += player.knockbackDirection * (110 + knockbackProgress * 85) * knockbackMultiplier;
     }
 
-    if (jump && !keys.jumpHeld) {
-      if (player.onGround) {
-        player.vy = -JUMP_SPEED;
-        player.onGround = false;
-        player.airJumpsUsed = 0;
-        audioControls?.playExpeditionSfx?.('jump');
-        audioControls?.playJump?.();
-      } else if (current.collectedUpgrades.has('rope-launcher') && player.airJumpsUsed < 1) {
-        player.vy = -JUMP_SPEED * 0.85;
-        player.airJumpsUsed += 1;
-        audioControls?.playExpeditionSfx?.('jump', { volume: 0.8, playbackRate: 1.08 });
-        audioControls?.playJump?.();
-      }
+    const jumpPressed = jump && !keys.jumpHeld;
+    if (jumpPressed) player.jumpBufferTimer = JUMP_BUFFER_TIME;
+    const canGroundJump = player.jumpBufferTimer > 0 && (player.onGround || player.coyoteTimer > 0);
+    const canRopeJump = player.jumpBufferTimer > 0 && !canGroundJump && current.collectedUpgrades.has('rope-launcher') && player.airJumpsUsed < 1;
+    if (canGroundJump) {
+      player.vy = -JUMP_SPEED * (upgradeEffects.jumpMultiplier || 1);
+      player.onGround = false;
+      player.coyoteTimer = 0;
+      player.jumpBufferTimer = 0;
+      player.airJumpsUsed = 0;
+      addCombatEffect(current, {
+        type: 'jump-dust',
+        x: player.x + player.width / 2,
+        y: player.y + player.height - 6,
+        direction: -player.direction,
+        color: 'rgba(230, 173, 96, 0.68)',
+        timer: 0.28,
+        maxTimer: 0.28,
+      });
+      audioControls?.playExpeditionSfx?.('jump');
+      audioControls?.playJump?.();
+    } else if (canRopeJump) {
+      player.vy = -JUMP_SPEED * 0.85 * (upgradeEffects.jumpMultiplier || 1);
+      player.jumpBufferTimer = 0;
+      player.airJumpsUsed += 1;
+      addCombatEffect(current, {
+        type: 'jump-dust',
+        x: player.x + player.width / 2,
+        y: player.y + player.height - 4,
+        direction: -player.direction,
+        color: 'rgba(125, 211, 252, 0.58)',
+        timer: 0.25,
+        maxTimer: 0.25,
+      });
+      audioControls?.playExpeditionSfx?.('jump', { volume: 0.8, playbackRate: 1.08 });
+      audioControls?.playJump?.();
     }
     keys.jumpHeld = jump;
 
@@ -4951,16 +5304,34 @@ export default function ExpeditionJourney({
 
     // Platforms
     player.onGround = false;
+    let landedThisFrame = false;
     const available = PLATFORMS.filter(p => !p.requiresUpgrade || current.collectedUpgrades.has(p.requiresUpgrade));
     available.forEach(p => {
       if (isLandingOnPlatform(player, previousPlayer, p)) {
+        const landingImpact = Math.max(0, previousPlayer.vy || player.vy || 0);
         player.y = p.y - player.height;
         player.vy = 0;
         player.onGround = true;
+        player.coyoteTimer = COYOTE_TIME;
+        player.airJumpsUsed = 0;
+        landedThisFrame = true;
+        player.lastLandingImpact = landingImpact;
       }
     });
 
-    if (player.onGround && !wasGroundedRef.current) {
+    if (landedThisFrame && !wasGroundedRef.current) {
+      player.landingFeedbackTimer = Math.min(0.22, 0.1 + (player.lastLandingImpact || 0) / 9000);
+      addCombatEffect(current, {
+        type: 'landing-dust',
+        x: player.x + player.width / 2,
+        y: player.y + player.height - 5,
+        direction: player.direction,
+        color: 'rgba(210, 150, 78, 0.62)',
+        timer: 0.34,
+        maxTimer: 0.34,
+      });
+      current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.05);
+      current.cameraShakeStrength = Math.max(current.cameraShakeStrength, Math.min(0.12, (player.lastLandingImpact || 0) / 5200));
       audioControls?.playExpeditionSfx?.('land');
     }
     if (player.onGround && Math.abs(player.vx) > 20) {
@@ -4968,6 +5339,19 @@ export default function ExpeditionJourney({
       if (footstepTimerRef.current <= 0) {
         audioControls?.playExpeditionSfx?.('footstepSand');
         footstepTimerRef.current = 0.34;
+      }
+      player.movementDustTimer -= dt;
+      if (player.movementDustTimer <= 0 && Math.abs(player.vx) > 90) {
+        addCombatEffect(current, {
+          type: 'movement-dust',
+          x: player.x + player.width / 2,
+          y: player.y + player.height - 4,
+          direction: player.vx >= 0 ? -1 : 1,
+          color: 'rgba(203, 139, 68, 0.5)',
+          timer: 0.28,
+          maxTimer: 0.28,
+        });
+        player.movementDustTimer = 0.18;
       }
     } else {
       footstepTimerRef.current = 0;
@@ -4991,8 +5375,15 @@ export default function ExpeditionJourney({
       .at(-1);
     if (reachedCheckpoint && current.activeCheckpoint.id !== reachedCheckpoint.id) {
       current.activeCheckpoint = reachedCheckpoint;
-      current.resources.stamina = Math.max(current.resources.stamina, 85);
+      current.resources.stamina = Math.max(current.resources.stamina, Math.min(maxStamina, 85));
       current.notice = `Checkpoint reached: ${reachedCheckpoint.name}.`;
+      current.hitStopTimer = Math.max(current.hitStopTimer, 0.025);
+      addRewardPulse('checkpoint-pulse', reachedCheckpoint.x, reachedCheckpoint.y || (GROUND_Y - 46), 'CHECKPOINT', {
+        color: '#38bdf8',
+        fill: 'rgba(56, 189, 248, 0.1)',
+        radius: 52,
+        timer: 0.62,
+      });
       audioControls?.playSuccess?.();
     }
 
@@ -5006,6 +5397,37 @@ export default function ExpeditionJourney({
         current.cameraShakeStrength = ev.shake;
         current.notice = ev.message;
         audioControls?.playTransition?.();
+      }
+    });
+
+    getActiveHiddenRoutes().forEach(route => {
+      if (current.discoveredHiddenRouteIds?.has(route.id)) return;
+      if (rectsOverlap(getPlayerBodyHitbox(player), route)) {
+        current.discoveredHiddenRouteIds.add(route.id);
+        current.notice = 'Secret Route Discovered.';
+        current.cinematicEvent = {
+          id: `${route.id}-discovered`,
+          name: route.name?.includes('Archive') ? 'Hidden Archive Found' : 'Secret Route Discovered',
+          message: route.rewardHint,
+          temporary: true,
+        };
+        current.cinematicTimer = 2.6;
+        current.hitStopTimer = Math.max(current.hitStopTimer, 0.035);
+        current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.08);
+        current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.14);
+        addCombatEffect(current, {
+          type: 'secret-found',
+          x: route.x + route.width / 2,
+          y: route.y + Math.min(42, route.height / 2),
+          text: 'SECRET ROUTE',
+          color: '#facc15',
+          fill: 'rgba(250, 204, 21, 0.12)',
+          radius: 58,
+          timer: 0.72,
+          maxTimer: 0.72,
+        });
+        audioControls?.playExpeditionStinger?.('evidenceDiscovery');
+        audioControls?.playSuccess?.();
       }
     });
 
@@ -5026,7 +5448,75 @@ export default function ExpeditionJourney({
       if (!current.collectedShardIds.has(shard.id) && rectsOverlap(getPlayerBodyHitbox(player), getCollectibleHitbox(shard, { width: 24, height: 24 }))) {
         current.collectedShardIds.add(shard.id);
         current.relicShardCount += 1;
+        addRewardPulse('shard-pickup', shard.x, shard.y, '+1 SHARD', {
+          color: '#f59e0b',
+          fill: 'rgba(245, 158, 11, 0.14)',
+          radius: shard.hidden ? 32 : 24,
+          timer: 0.46,
+        });
+        if (shard.hidden) {
+          current.notice = 'Hidden relic shard recovered.';
+          current.hitStopTimer = Math.max(current.hitStopTimer, 0.025);
+        }
         audioControls?.playExpeditionSfx?.('pickupShard');
+        audioControls?.playSuccess?.();
+      }
+    });
+
+    getActiveSecretCollectibles().forEach(secret => {
+      if (current.collectedSecretIds?.has(secret.id)) return;
+      if (rectsOverlap(getPlayerBodyHitbox(player), getCollectibleHitbox(secret, { width: 32, height: 32 }))) {
+        current.collectedSecretIds.add(secret.id);
+        current.notice = 'Collection Piece Recovered.';
+        current.cinematicEvent = {
+          id: `${secret.id}-collected`,
+          name: 'Secret Found',
+          message: `${secret.name} has been added to the field journal.`,
+          temporary: true,
+        };
+        current.cinematicTimer = 2.8;
+        current.hitStopTimer = Math.max(current.hitStopTimer, 0.04);
+        addCombatEffect(current, {
+          type: 'secret-found',
+          x: secret.x,
+          y: secret.y,
+          text: 'SECRET FOUND',
+          color: secret.color || '#facc15',
+          fill: 'rgba(250, 204, 21, 0.12)',
+          radius: 48,
+          timer: 0.76,
+          maxTimer: 0.76,
+        });
+        markSecretSetProgress(secret);
+        audioControls?.playExpeditionStinger?.('evidenceDiscovery');
+        audioControls?.playSuccess?.();
+      }
+    });
+
+    LORE_TABLETS.forEach(tablet => {
+      if (current.collectedTabletIds?.has(tablet.id)) return;
+      if (rectsOverlap(getPlayerBodyHitbox(player), getCollectibleHitbox(tablet, { width: 30, height: 30 }))) {
+        current.collectedTabletIds.add(tablet.id);
+        const loreMessage = tablet.text.replace(/^Tablet found:\s*/i, '');
+        current.notice = tablet.text;
+        current.cinematicEvent = {
+          id: `${tablet.id}-lore`,
+          name: 'Lore found',
+          message: loreMessage,
+          temporary: true,
+        };
+        current.cinematicTimer = 2.6;
+        addCombatEffect(current, {
+          type: 'secret-found',
+          x: tablet.x,
+          y: tablet.y,
+          text: 'LORE RECOVERED',
+          color: '#facc15',
+          radius: 42,
+          timer: 0.62,
+          maxTimer: 0.62,
+        });
+        audioControls?.playExpeditionStinger?.('evidenceDiscovery');
         audioControls?.playSuccess?.();
       }
     });
@@ -5034,7 +5524,14 @@ export default function ExpeditionJourney({
     UPGRADES.forEach(u => {
       if (!current.collectedUpgrades.has(u.id) && rectsOverlap(getPlayerBodyHitbox(player), getCollectibleHitbox(u, { width: 36, height: 36 }))) {
         current.collectedUpgrades.add(u.id);
-        current.notice = `Field Upgrade: ${u.name}. ${u.effect}`;
+        current.notice = `Expedition Upgrade Acquired: ${u.name}.`;
+        current.hitStopTimer = Math.max(current.hitStopTimer, 0.035);
+        addRewardPulse('upgrade-pulse', u.x, u.y, 'UPGRADE', {
+          color: '#2563eb',
+          fill: 'rgba(37, 99, 235, 0.1)',
+          radius: 48,
+          timer: 0.7,
+        });
         audioControls?.playExpeditionSfx?.('pickupUpgrade');
         audioControls?.playLevelUp?.();
       }
@@ -5047,8 +5544,20 @@ export default function ExpeditionJourney({
         if (progress.count >= progress.total) {
           current.completedObjectiveIds.add(m.sectionId);
           current.notice = `Objective Complete: ${progress.title}`;
+          current.hitStopTimer = Math.max(current.hitStopTimer, 0.035);
+          addRewardPulse('collection-complete', m.x, m.y, 'OBJECTIVE COMPLETE', {
+            color: '#22c55e',
+            fill: 'rgba(34, 197, 94, 0.1)',
+            radius: 54,
+            timer: 0.68,
+          });
         } else {
           current.notice = `Objective Progress: ${progress.count}/${progress.total} ${progress.itemLabel}.`;
+          addRewardPulse('reward-pulse', m.x, m.y, 'RECORDED', {
+            color: m.color || '#b45309',
+            radius: 36,
+            timer: 0.46,
+          });
         }
         audioControls?.playExpeditionStinger?.('evidenceDiscovery');
         audioControls?.playSuccess?.();
@@ -5066,11 +5575,18 @@ export default function ExpeditionJourney({
         current.notice = `${rewardMoment.title} ${rewardMoment.nextObjective}`;
         current.cinematicEvent = {
           id: `${keyItem.id}-recovered`,
-          name: `${keyItem.name} recovered`,
+          name: 'Boss Reward Recovered',
           message: rewardMoment.nextObjective,
           temporary: true,
         };
         current.cinematicTimer = 3.2;
+        current.hitStopTimer = Math.max(current.hitStopTimer, 0.045);
+        addRewardPulse('boss-reward-pulse', keyItem.x, keyItem.y, 'REWARD SECURED', {
+          color: keyItem.color || '#b45309',
+          fill: 'rgba(180, 83, 9, 0.12)',
+          radius: 68,
+          timer: 0.86,
+        });
         audioControls?.playExpeditionStinger?.('gateUnlock');
         audioControls?.playSuccess?.();
       }
@@ -5080,7 +5596,7 @@ export default function ExpeditionJourney({
     if (current.hazardCooldown <= 0) {
       HAZARDS.forEach(h => {
         if (rectsOverlap(getPlayerBodyHitbox(player), getHazardHitbox(h))) {
-          const staminaLoss = h.penalty.stamina || 0;
+          const staminaLoss = Math.ceil((h.penalty.stamina || 0) * (upgradeEffects.hazardStaminaMultiplier || 1));
           const timeLoss = h.penalty.time || 0;
           const visual = HAZARD_VISUALS[h.id] || {};
           if (staminaLoss) current.resources.stamina = Math.max(0, current.resources.stamina - staminaLoss);
@@ -5099,7 +5615,7 @@ export default function ExpeditionJourney({
           if (staminaLoss) {
             player.hitFeedbackTimer = 0.85;
             player.lastDamage = staminaLoss;
-            player.knockbackTimer = Math.max(player.knockbackTimer, 0.12);
+            player.knockbackTimer = Math.max(player.knockbackTimer, 0.12 * knockbackMultiplier);
             player.knockbackDirection = player.direction >= 0 ? -1 : 1;
           }
           current.cameraShakeTimer = Math.max(current.cameraShakeTimer, staminaLoss ? 0.16 : 0.08);
@@ -5133,6 +5649,15 @@ export default function ExpeditionJourney({
       current.lastAttackResult = 'started';
       current.shieldedHitFeedback = '';
       applyAttackStaminaCost(PLAYER_ATTACK_STAMINA_COST, 'Attack swing');
+      addCombatEffect(current, {
+        type: 'attack-burst',
+        x: player.x + player.width / 2 + player.direction * 12,
+        y: player.y + 23,
+        direction: player.direction,
+        color: '#fde68a',
+        timer: 0.22,
+        maxTimer: 0.22,
+      });
       audioControls?.playExpeditionSfx?.('attackSwing');
       audioControls?.playAction?.();
     }
@@ -5152,9 +5677,10 @@ export default function ExpeditionJourney({
       player.lastDamage = amount;
       player.lastDamageSource = source;
       player.lastDamageTime = Date.now();
-      player.knockbackTimer = 0.22;
+      player.knockbackMaxTimer = Math.max(0.12, 0.2 * knockbackMultiplier);
+      player.knockbackTimer = player.knockbackMaxTimer;
       player.knockbackDirection = direction;
-      player.vx += direction * 115;
+      player.vx = approach(player.vx, direction * 165 * knockbackMultiplier, 220);
       current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.18);
       current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.35);
       current.notice = message;
@@ -5164,6 +5690,15 @@ export default function ExpeditionJourney({
         y: player.y + player.height / 2,
         direction,
         color: '#f87171',
+      });
+      addCombatEffect(current, {
+        type: 'knockback-dust',
+        x: player.x + player.width / 2,
+        y: player.y + player.height - 4,
+        direction: -direction,
+        color: 'rgba(248, 113, 113, 0.42)',
+        timer: 0.32,
+        maxTimer: 0.32,
       });
       audioControls?.playExpeditionSfx?.('playerHit');
       audioControls?.playError?.();
@@ -5184,7 +5719,11 @@ export default function ExpeditionJourney({
       enemy.knockbackDirection = player.direction;
       player.vy = -JUMP_SPEED * 0.42;
       player.onGround = false;
-      current.hitStopTimer = 0.04;
+      player.coyoteTimer = 0;
+      player.jumpBufferTimer = 0;
+      current.hitStopTimer = Math.max(current.hitStopTimer, enemy.health <= 0 ? 0.06 : 0.045);
+      current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.06);
+      current.cameraShakeStrength = Math.max(current.cameraShakeStrength, enemy.health <= 0 ? 0.16 : 0.1);
       addCombatEffect(current, {
         type: enemy.health <= 0 ? 'defeat' : 'enemy-hit',
         x: enemy.x + enemy.width / 2,
@@ -5274,15 +5813,24 @@ export default function ExpeditionJourney({
       }
 
       if (e.stunTimer <= 0 && e.attackWindup <= 0 && e.attackTimer <= 0 && e.attackRecovery <= 0) {
-        e.x += e.direction * e.speed * dt;
-        if (e.x <= e.patrolMin || e.x >= e.patrolMax) e.direction *= -1;
+        const patrolSpeed = (e.baseSpeed || e.speed) * updateHostileStepMultiplier(e, dt);
+        e.x += e.direction * patrolSpeed * dt;
+        if (e.x <= e.patrolMin) {
+          e.x = e.patrolMin;
+          e.direction = 1;
+          e.stepShiftTimer = 0;
+        } else if (e.x >= e.patrolMax) {
+          e.x = e.patrolMax;
+          e.direction = -1;
+          e.stepShiftTimer = 0;
+        }
       }
       const contact = resolveEnemyContact(player, previousPlayer, e);
       if (contact.type === 'stomp') {
         applyEnemyStomp(e);
         return;
       }
-      if (attackRect && !current.attackHitIds.has(e.id) && rectsOverlap(attackRect, e)) {
+      if (attackRect && !current.attackHitIds.has(e.id) && rectsOverlap(attackRect, getAttackHurtbox(e))) {
         current.attackHitIds.add(e.id);
         const pattern = getEnemyPatternConfig(e);
         const protectedEnemy = (e.shieldTimer > 0)
@@ -5308,13 +5856,13 @@ export default function ExpeditionJourney({
         }
         e.health -= 1;
         if (!current.attackRewarded) {
-          current.resources.stamina = Math.min(100, current.resources.stamina + 1);
+          current.resources.stamina = Math.min(current.upgradeEffects?.maxStamina || 100, current.resources.stamina + 1);
           current.attackRewarded = true;
         }
         current.lastAttackResult = e.vulnerabilityTimer > 0 || e.attackRecovery > 0 ? 'counter-hit' : 'hit';
         current.shieldedHitFeedback = '';
         e.stunTimer = 0.8;
-        e.hitFlash = 0.25;
+        e.hitFlash = 0.34;
         e.attackWindup = 0;
         e.attackTimer = 0;
         e.attackReady = false;
@@ -5322,14 +5870,17 @@ export default function ExpeditionJourney({
         e.attackRecovery = 0.45;
         e.vulnerabilityTimer = 0.35;
         e.shieldTimer = 0;
-        e.knockbackTimer = 0.22;
+        e.knockbackTimer = 0.24;
         e.knockbackDirection = player.direction;
-        e.x += player.direction * 18;
-        current.hitStopTimer = 0.05;
+        e.x += player.direction * 22;
+        current.hitStopTimer = Math.max(current.hitStopTimer, e.health <= 0 ? 0.075 : 0.055);
+        current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.07);
+        current.cameraShakeStrength = Math.max(current.cameraShakeStrength, e.health <= 0 ? 0.18 : 0.11);
         addCombatEffect(current, {
           type: e.health <= 0 ? 'defeat' : 'enemy-hit',
           x: e.x + e.width / 2,
           y: e.y + e.height / 2,
+          text: e.health <= 0 ? 'CLEAR' : 'HIT',
           direction: player.direction,
           color: e.health <= 0 ? '#facc15' : '#7dd3fc',
         });
@@ -5526,10 +6077,19 @@ export default function ExpeditionJourney({
       }
 
       if (b.awakened && b.stunTimer <= 0 && b.attackWindup <= 0 && b.attackTimer <= 0 && b.attackRecovery <= 0) {
-        b.x += b.direction * b.speed * dt;
-        if (b.x <= b.patrolMin || b.x >= b.patrolMax) b.direction *= -1;
+        const patrolSpeed = (b.baseSpeed || b.speed) * updateHostileStepMultiplier(b, dt, { boss: true });
+        b.x += b.direction * patrolSpeed * dt;
+        if (b.x <= b.patrolMin) {
+          b.x = b.patrolMin;
+          b.direction = 1;
+          b.stepShiftTimer = 0;
+        } else if (b.x >= b.patrolMax) {
+          b.x = b.patrolMax;
+          b.direction = -1;
+          b.stepShiftTimer = 0;
+        }
       }
-      if (attackRect && !current.attackHitIds.has(b.id) && rectsOverlap(attackRect, b)) {
+      if (attackRect && !current.attackHitIds.has(b.id) && rectsOverlap(attackRect, getAttackHurtbox(b, { boss: true }))) {
         current.attackHitIds.add(b.id);
         const { shielded, vulnerable } = getBossVulnerabilityState(b);
         const protectedBoss = shielded || ((b.attackWindup > 0 || b.attackTimer > 0) && !vulnerable);
@@ -5554,12 +6114,12 @@ export default function ExpeditionJourney({
         }
         b.health -= (b.playerDamageMultiplier || 1);
         if (!current.attackRewarded) {
-          current.resources.stamina = Math.min(100, current.resources.stamina + 1);
+          current.resources.stamina = Math.min(current.upgradeEffects?.maxStamina || 100, current.resources.stamina + 1);
           current.attackRewarded = true;
         }
         current.lastAttackResult = b.vulnerabilityTimer > 0 || b.attackRecovery > 0 ? 'counter-hit' : 'hit';
         current.shieldedHitFeedback = '';
-        b.hitFlash = 0.28;
+        b.hitFlash = 0.36;
         b.stunTimer = 0.75;
         b.attackWindup = 0;
         b.attackTimer = 0;
@@ -5568,14 +6128,17 @@ export default function ExpeditionJourney({
         b.attackRecovery = 0.75;
         b.vulnerabilityTimer = 0.55;
         b.shieldTimer = 0;
-        b.knockbackTimer = 0.18;
+        b.knockbackTimer = 0.22;
         b.knockbackDirection = player.direction;
-        b.x += player.direction * 12;
-        current.hitStopTimer = 0.06;
+        b.x += player.direction * 16;
+        current.hitStopTimer = Math.max(current.hitStopTimer, b.health <= 0 ? 0.09 : 0.065);
+        current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.08);
+        current.cameraShakeStrength = Math.max(current.cameraShakeStrength, b.health <= 0 ? 0.24 : 0.14);
         addCombatEffect(current, {
           type: b.health <= 0 ? 'boss-defeat' : 'boss-hit',
           x: b.x + b.width / 2,
           y: b.y + b.height / 2,
+          text: b.health <= 0 ? 'KIT FOUND' : 'HIT',
           direction: player.direction,
           color: b.health <= 0 ? '#facc15' : '#fb923c',
         });
@@ -5619,11 +6182,17 @@ export default function ExpeditionJourney({
             current.notice = `${b.name} defeated. ${rewardMoment.title} ${rewardMoment.nextObjective}`;
             current.cinematicEvent = {
               id: `${b.id}-tool-piece-drop`,
-              name: rewardMoment.title,
+              name: 'Boss Reward Revealed',
               message: rewardMoment.nextObjective,
               temporary: true,
             };
             current.cinematicTimer = 3.2;
+            addRewardPulse('boss-reward-pulse', keyItem.x, keyItem.y, 'REWARD REVEALED', {
+              color: keyItem.color || '#b45309',
+              fill: 'rgba(180, 83, 9, 0.12)',
+              radius: 70,
+              timer: 0.9,
+            });
           } else {
             current.notice = `${b.name} defeated. Path secured.`;
           }
@@ -5681,7 +6250,7 @@ export default function ExpeditionJourney({
       if (current.resources.time <= 0) triggerJourneyRescue('Time expired. Field team rescued.');
     }
 
-  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, buildBossRewardMoment, getAttackBox, getBossPhaseConfig, getBossVulnerabilityState, getEnemyPatternConfig, getObjectiveProgress, getGateGuidance, addCombatEffect, getPlayerAttackState, getSectionDisplayName, getSectionDisplayTitle, syncHud]);
+  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, buildBossRewardMoment, getActiveHiddenRoutes, getActiveSecretCollectibles, getAttackBox, getAttackHurtbox, getBossPhaseConfig, getBossVulnerabilityState, getEnemyPatternConfig, getObjectiveProgress, getGateGuidance, addCombatEffect, getPlayerAttackState, getSectionDisplayName, getSectionDisplayTitle, syncHud]);
 
   const step = useCallback((ms) => {
     const dt = Math.min(ms / 1000, 0.05);
@@ -5698,17 +6267,64 @@ export default function ExpeditionJourney({
     window.__advanceExpeditionJourney = step;
     window.__renderExpeditionJourneyState = () => createJourneySnapshot();
     if (import.meta.env.DEV) {
-      window.__setExpeditionJourneyDebugPosition = (x) => {
+      window.__setExpeditionJourneyDebugPosition = (x, y = null) => {
         const current = stateRef.current;
         const nextX = Number(x);
         if (!Number.isFinite(nextX)) return createJourneySnapshot(current);
+        const nextY = Number(y);
         current.player.x = clamp(nextX, 0, WORLD_WIDTH - current.player.width);
-        current.player.y = GROUND_Y - current.player.height;
+        current.player.y = Number.isFinite(nextY)
+          ? clamp(nextY, 0, GROUND_Y - current.player.height)
+          : GROUND_Y - current.player.height;
         current.player.vx = 0;
         current.player.vy = 0;
-        current.player.onGround = true;
+        current.player.onGround = current.player.y >= GROUND_Y - current.player.height - 1;
         current.cameraX = clampCameraX(current.player.x - CANVAS_WIDTH * 0.42);
         current.targetCameraX = current.cameraX;
+        step(0);
+        syncHud();
+        return createJourneySnapshot(current);
+      };
+      window.__triggerExpeditionRewardDebug = (kind = 'boss-reward') => {
+        const current = stateRef.current;
+        const player = current.player;
+        if (kind === 'boss-reward') {
+          const keyItem = current.bossKeyItems?.[0] || BOSS_KEY_ITEMS[0];
+          const rewardMoment = buildBossRewardMoment(current, keyItem, 'revealed');
+          current.postBossReward = rewardMoment;
+          current.postBossRewardTimer = 4.6;
+          current.cinematicEvent = {
+            id: 'debug-boss-reward',
+            name: 'Boss Reward Revealed',
+            message: rewardMoment.nextObjective,
+            temporary: true,
+          };
+          current.cinematicTimer = 2.8;
+          addCombatEffect(current, {
+            type: 'boss-reward-pulse',
+            x: player.x + player.width / 2,
+            y: player.y + player.height / 2,
+            text: 'REWARD REVEALED',
+            color: rewardMoment.color || '#b45309',
+            fill: 'rgba(180, 83, 9, 0.12)',
+            radius: 70,
+            timer: 0.9,
+            maxTimer: 0.9,
+          });
+        }
+        if (kind === 'collection-complete') {
+          addCombatEffect(current, {
+            type: 'collection-complete',
+            x: player.x + player.width / 2,
+            y: player.y,
+            text: 'COLLECTION COMPLETE',
+            color: '#22c55e',
+            fill: 'rgba(34, 197, 94, 0.11)',
+            radius: 64,
+            timer: 0.82,
+            maxTimer: 0.82,
+          });
+        }
         step(0);
         syncHud();
         return createJourneySnapshot(current);
@@ -5718,8 +6334,9 @@ export default function ExpeditionJourney({
       delete window.__advanceExpeditionJourney;
       delete window.__renderExpeditionJourneyState;
       delete window.__setExpeditionJourneyDebugPosition;
+      delete window.__triggerExpeditionRewardDebug;
     };
-  }, [createJourneySnapshot, step, syncHud]);
+  }, [addCombatEffect, buildBossRewardMoment, createJourneySnapshot, step, syncHud]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -5760,6 +6377,7 @@ export default function ExpeditionJourney({
   const activeHudGate = ROUTE_GATES.find(gate => !gameState.openedRouteGateIds.has(gate.id));
   const activeHudGateGuidance = activeHudGate ? getGateGuidance(activeHudGate, gameState) : null;
   const staminaWarningState = getStaminaWarningState(gameState);
+  const staminaPercent = Math.min(100, Math.round((gameState.resources.stamina / (gameState.upgradeEffects?.maxStamina || 100)) * 100));
   const activeGuardianChallenge = guardianChallengeUi || gameState.activeGuardianChallenge;
   const activeGuardianQuestion = activeGuardianChallenge?.questions?.[activeGuardianChallenge.currentIndex] || null;
 
@@ -5784,8 +6402,10 @@ export default function ExpeditionJourney({
               {getSectionDisplayName(gameState.currentSectionId) || 'Surveying'}
             </div>
             <div className="objective-progress">
-              <div>Shards: {gameState.relicShardCount} / 22</div>
+              <div>Shards: {gameState.relicShardCount} / {RELIC_SHARDS.length}</div>
               <div>Upgrades: {gameState.collectedUpgrades.size} / {UPGRADES.length}</div>
+              <div>Hidden Routes: {gameState.discoveredHiddenRouteIds?.size || 0} / {getActiveHiddenRoutes().length}</div>
+              <div>Secrets: {gameState.collectedSecretIds?.size || 0} / {getActiveSecretCollectibles().length}</div>
             </div>
             <div className="journey-key-items" aria-label="Recovered excavation kit pieces">
               <div className="journey-key-items-title">Excavation Kit</div>
@@ -5850,7 +6470,7 @@ export default function ExpeditionJourney({
                     <span>Stamina</span>
                   </div>
                   <div className="journey-floating-hud-bar">
-                    <div className="journey-floating-hud-fill stamina-fill" style={{ width: `${gameState.resources.stamina}%` }} />
+                    <div className="journey-floating-hud-fill stamina-fill" style={{ width: `${staminaPercent}%` }} />
                     {gameState.staminaFeedbackTimer > 0 && gameState.lastStaminaDelta < 0 && (
                       <span className="stamina-delta">-{Math.abs(gameState.lastStaminaDelta)}</span>
                     )}
@@ -5869,7 +6489,7 @@ export default function ExpeditionJourney({
               </div>
 
               <div className="journey-floating-hud-cluster journey-floating-hud-count">
-                <strong>{gameState.relicShardCount}/22</strong>
+                <strong>{gameState.relicShardCount}/{RELIC_SHARDS.length}</strong>
               </div>
             </div>
             

@@ -19,6 +19,7 @@ import {
   Keyboard,
   Pause,
   Play,
+  Gem,
   Target,
 } from 'lucide-react';
 import { SCENARIOS } from '../data';
@@ -31,6 +32,17 @@ import {
   loadExcavationMapAssetPack,
 } from './expedition/expeditionMapAssets';
 import { EXPEDITION_ROOM_CONNECTIONS, EXPEDITION_ROOM_ZONE_BY_ID } from './expedition/expeditionMapLayout';
+import {
+  BASE_CAMP_PROGRESSION_STORAGE_KEY,
+  BASE_CAMP_SHOP_ITEMS,
+  BASE_CAMP_SHOP_SECTIONS,
+  applyJourneyShardDeposit,
+  applyShopPurchase,
+  createDefaultProgression,
+  getActiveUpgradeEffects,
+  getOwnedItemIds,
+  normalizeBaseCampProgression,
+} from './expedition/baseCampShop';
 import { getZoneChallenge } from './expedition/expeditionZoneChallenges';
 import {
   EXPEDITION_STAGE_IDS,
@@ -1171,6 +1183,28 @@ const getSurveyZoneName = (zoneId, surveyZoneById = SURVEY_ZONE_BY_ID) => (
   zoneId ? surveyZoneById[zoneId]?.name || zoneId : null
 );
 
+const loadBaseCampProgression = () => {
+  if (typeof window === 'undefined') return createDefaultProgression();
+  try {
+    const saved = window.localStorage.getItem(BASE_CAMP_PROGRESSION_STORAGE_KEY);
+    return normalizeBaseCampProgression(saved ? JSON.parse(saved) : null);
+  } catch {
+    return createDefaultProgression();
+  }
+};
+
+const saveBaseCampProgression = (progression) => {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(
+      BASE_CAMP_PROGRESSION_STORAGE_KEY,
+      JSON.stringify(normalizeBaseCampProgression(progression))
+    );
+  } catch {
+    // localStorage can be unavailable in strict browser modes; the run still works without persistence.
+  }
+};
+
 const buildExpeditionEvidence = (content = getExpeditionMapContent()) => {
   const scenario = SCENARIOS.find(item => item.civilization === content.targetCivilisation);
   const byId = new Map((scenario?.evidence || []).map(item => [item.id, item]));
@@ -1245,6 +1279,9 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
   const [fieldKit, setFieldKit] = useState([]);
   const [journeyRunId, setJourneyRunId] = useState(0);
   const [journeyPaused, setJourneyPaused] = useState(false);
+  const [baseCampProgression, setBaseCampProgression] = useState(loadBaseCampProgression);
+  const [shopFeedback, setShopFeedback] = useState(null);
+  const baseCampProgressionRef = useRef(baseCampProgression);
   const [excavationMapAssets, setExcavationMapAssets] = useState(() => createExcavationMapAssetState());
   const [selectedMapZone, setSelectedMapZone] = useState(null);
   const [enteredMapZone, setEnteredMapZone] = useState(null);
@@ -1256,6 +1293,11 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     baseUrl: import.meta.env.BASE_URL || '/',
     onUpdate: setExcavationMapAssets,
   }), []);
+
+  useEffect(() => {
+    baseCampProgressionRef.current = baseCampProgression;
+    saveBaseCampProgression(baseCampProgression);
+  }, [baseCampProgression]);
 
   const selectedStageId = selectedExpedition?.id || PLAYABLE_EXPEDITION_STAGE_ID;
   const stageContent = useMemo(() => getExpeditionMapContent(selectedStageId), [selectedStageId]);
@@ -1294,6 +1336,16 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
   const activeChallengeData = activeZoneChallenge ? getZoneChallenge(activeZoneChallenge) : null;
   const canSurveySelectedZone = Boolean(selectedMapZone && surveyZoneById[selectedMapZone] && completedZoneChallenges.has(selectedMapZone));
   const gridSquares = useMemo(() => getGridSquaresForZone(selectedSurveyZone, gridZoneConfigs), [gridZoneConfigs, selectedSurveyZone]);
+  const baseCampOwnedItemIds = useMemo(() => getOwnedItemIds(baseCampProgression), [baseCampProgression]);
+  const permanentUpgradeEffects = useMemo(() => (
+    getActiveUpgradeEffects(baseCampProgression.purchasedUpgrades)
+  ), [baseCampProgression.purchasedUpgrades]);
+  const shopItemsBySection = useMemo(() => (
+    BASE_CAMP_SHOP_SECTIONS.map(section => ({
+      section,
+      items: BASE_CAMP_SHOP_ITEMS.filter(item => item.section === section),
+    })).filter(group => group.items.length > 0)
+  ), []);
   const gridComplete = openedGridSquares.size > 0;
   const getVisibleEvidence = useCallback(() => (
     tokensRef.current.filter(token => !token.collected && evidenceVisibleForGrid(token, selectedSurveyZone, openedGridSquares, surveyRevealLinks, gridZoneConfigs))
@@ -1889,6 +1941,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     setClaimResult(null);
     setResultOpen(false);
     setExpeditionFailure(null);
+    setShopFeedback(null);
   }, [audioControls]);
 
   const handleJourneySnapshot = useCallback((snapshot) => {
@@ -1896,10 +1949,64 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
   }, []);
 
   const handleJourneyComplete = useCallback((nextFieldKit) => {
+    const journeyShardCount = Math.max(0, Number(journeySnapshotRef.current?.relicShardCount) || 0);
+    const depositRunId = `${selectedStageId}-${journeyRunId}`;
+    const depositResult = applyJourneyShardDeposit(baseCampProgressionRef.current, {
+      runId: depositRunId,
+      shardCount: journeyShardCount,
+    });
     setFieldKit(nextFieldKit);
+    baseCampProgressionRef.current = depositResult.progress;
+    setBaseCampProgression(depositResult.progress);
+    if (depositResult?.deposited) {
+      setShopFeedback({
+        type: 'deposit',
+        title: 'Relic Shards Banked',
+        message: `${depositResult.amount} relic shards added to Base Camp supplies.`,
+        itemId: null,
+      });
+    } else if (journeyShardCount > 0) {
+      setShopFeedback({
+        type: 'deposit',
+        title: 'Relic Shards Ready',
+        message: `${journeyShardCount} relic shards are already recorded for this run.`,
+        itemId: null,
+      });
+    }
     setBaseCampOpen(true);
     setNotice('Base Camp reached. Check your field kit before excavation.');
     audioControls.playExpeditionMusic?.('baseCamp');
+  }, [audioControls, journeyRunId, selectedStageId]);
+
+  const purchaseShopItem = useCallback((itemId) => {
+    const purchaseResult = applyShopPurchase(baseCampProgressionRef.current, itemId);
+    baseCampProgressionRef.current = purchaseResult.progress;
+    setBaseCampProgression(purchaseResult.progress);
+    if (purchaseResult?.ok) {
+      setShopFeedback({
+        type: 'purchase',
+        title: purchaseResult.item.type === 'upgrade' ? 'Expedition Upgrade Acquired' : 'Collection Unlock Acquired',
+        message: `${purchaseResult.item.name} added to your Base Camp kit.`,
+        itemId: purchaseResult.item.id,
+      });
+      audioControls.playLevelUp?.();
+      audioControls.playSuccess?.();
+      return;
+    }
+
+    const messageByReason = {
+      owned: `${purchaseResult?.item?.name || 'This item'} is already unlocked.`,
+      shards: `Collect more relic shards before buying ${purchaseResult?.item?.name || 'this item'}.`,
+      locked: `${purchaseResult?.item?.name || 'This item'} is planned for a future expedition route.`,
+      missing: 'That shop item is not available.',
+    };
+    setShopFeedback({
+      type: 'blocked',
+      title: 'Purchase Not Available',
+      message: messageByReason[purchaseResult?.reason] || 'Purchase not available.',
+      itemId,
+    });
+    audioControls.playError?.();
   }, [audioControls]);
 
   const beginExcavationStage = useCallback(() => {
@@ -2802,6 +2909,15 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         fieldKit,
         fieldKitEffects,
         baseCampOpen,
+        baseCampShop: {
+          relicShards: baseCampProgression.relicShards,
+          purchasedUpgrades: baseCampProgression.purchasedUpgrades,
+          unlockedCosmetics: baseCampProgression.unlockedCosmetics,
+          journalUnlocks: baseCampProgression.journalUnlocks,
+          shopFeedback,
+          activeUpgradeEffects: permanentUpgradeEffects,
+          storageKey: BASE_CAMP_PROGRESSION_STORAGE_KEY,
+        },
         journeySection: journeySnapshot.journeySection || null,
         currentObjective: journeySnapshot.currentObjective || null,
         objectiveProgress: journeySnapshot.objectiveProgress || null,
@@ -2821,6 +2937,11 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         defeatedEnemies: journeySnapshot.defeatedEnemies || [],
         defeatedMiniBosses: journeySnapshot.defeatedMiniBosses || [],
         hiddenRoomsFound: journeySnapshot.hiddenRoomsFound || [],
+        discoveredHiddenRoutes: journeySnapshot.discoveredHiddenRoutes || [],
+        hiddenRoutesAvailable: journeySnapshot.hiddenRoutesAvailable || [],
+        secretCollectibles: journeySnapshot.secretCollectibles || [],
+        collectedSecretCollectibles: journeySnapshot.collectedSecretCollectibles || [],
+        secretCollectibleCount: journeySnapshot.secretCollectibleCount || 0,
         loreTabletCount: journeySnapshot.loreTabletCount || 0,
         cinematicEventState: journeySnapshot.cinematicEventState || null,
         cinematicState: journeySnapshot.cinematicState || journeySnapshot.cinematicEventState || null,
@@ -2950,6 +3071,9 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         staminaWarningState: journeySnapshot.staminaWarningState || null,
         hazardFeedbackCooldown: journeySnapshot.hazardFeedbackCooldown || 0,
         playerStamina: journeySnapshot.playerStamina ?? journeySnapshot.resources?.stamina ?? null,
+        maxStamina: journeySnapshot.maxStamina ?? permanentUpgradeEffects.maxStamina,
+        permanentUpgrades: journeySnapshot.permanentUpgrades || baseCampProgression.purchasedUpgrades,
+        permanentUpgradeEffects: journeySnapshot.permanentUpgradeEffects || permanentUpgradeEffects,
         enemyStates: journeySnapshot.enemyStates || [],
         worldProgressPercent: journeySnapshot.worldProgressPercent || 0,
         journey: journeySnapshot,
@@ -2960,7 +3084,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       delete window.advanceTime;
       delete window.render_game_to_text;
     };
-  }, [activeMission, baseCampOpen, claimCorrect, evidenceSupportsClaim, excavationMethodHistory, excavationMethodOpen, excavationMethodRequired, expeditionFailure, expeditionStage, exitUnlocked, fieldKit, fieldKitBonus, fieldKitEffects, fieldKitImpact, finalRank, finalScore, getHiddenEvidence, getVisibleEvidence, gridSetupOpen, gridSquares, inspectionFeedback, inspectionToken, inventoryFullDecisionOpen, mappedFindsSummary, mappingAccuracySummary.accurate, mappingAccuracySummary.needsReview, mappingOpen, mappingRequired, missionComplete, missionEvidenceCount, missionRequiredCount, nearbySurveyZone, openedGridSquares, pendingEvidence, pendingMappedEvidence, resultOpen, satchelContents, selectedExcavationMethod, selectedExpedition, selectedGridSquare, selectedSurveyZone, surveyComplete, surveyedZones, surveyReportZone, surveyZoneById, targetCivilisation]);
+  }, [activeMission, baseCampOpen, baseCampProgression, claimCorrect, evidenceSupportsClaim, excavationMethodHistory, excavationMethodOpen, excavationMethodRequired, expeditionFailure, expeditionStage, exitUnlocked, fieldKit, fieldKitBonus, fieldKitEffects, fieldKitImpact, finalRank, finalScore, getHiddenEvidence, getVisibleEvidence, gridSetupOpen, gridSquares, inspectionFeedback, inspectionToken, inventoryFullDecisionOpen, mappedFindsSummary, mappingAccuracySummary.accurate, mappingAccuracySummary.needsReview, mappingOpen, mappingRequired, missionComplete, missionEvidenceCount, missionRequiredCount, nearbySurveyZone, openedGridSquares, pendingEvidence, pendingMappedEvidence, permanentUpgradeEffects, resultOpen, satchelContents, selectedExcavationMethod, selectedExpedition, selectedGridSquare, selectedSurveyZone, shopFeedback, surveyComplete, surveyedZones, surveyReportZone, surveyZoneById, targetCivilisation]);
 
   useEffect(() => {
     if (!selectedExpedition) return undefined;
@@ -3495,6 +3619,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
           targetCivilisation={targetCivilisation}
           environmentPackId={stageContent.journeyEnvironmentPackId}
           backgroundPackId={stageContent.journeyBackgroundPackId}
+          permanentUpgradeIds={baseCampProgression.purchasedUpgrades}
+          permanentUpgradeEffects={permanentUpgradeEffects}
         />
       </div>
     );
@@ -3550,6 +3676,72 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
                 <span className="mission-category-tag">{activeMission.targetCategoryTitle}</span>
                 <p className="mission-question"><strong>Inquiry:</strong> {activeMission.inquiryQuestion}</p>
                 <p className="mission-instruction">{activeMission.instruction}</p>
+              </div>
+            </section>
+
+            <section className="basecamp-shop-section">
+              <header className="basecamp-section-header">
+                <div className="section-icon-circle">
+                  <Gem size={20} />
+                </div>
+                <div>
+                  <p className="phase-kicker">Base Camp Shop</p>
+                  <h3>Expedition Outfitting Station</h3>
+                </div>
+              </header>
+              <div className="basecamp-shop-summary">
+                <div className={`basecamp-shard-bank ${shopFeedback?.type === 'purchase' || shopFeedback?.type === 'deposit' ? 'is-rewarding' : ''}`}>
+                  <Gem size={18} />
+                  <span>Relic Shards</span>
+                  <strong>{baseCampProgression.relicShards}</strong>
+                </div>
+                <p>Spend collected relic shards on permanent field gear and expedition identity unlocks.</p>
+              </div>
+              {shopFeedback && (
+                <div className={`basecamp-shop-feedback ${shopFeedback.type}`}>
+                  <strong>{shopFeedback.title}</strong>
+                  <span>{shopFeedback.message}</span>
+                </div>
+              )}
+              <div className="basecamp-shop-grid">
+                {shopItemsBySection.map(group => (
+                  <div key={group.section} className="basecamp-shop-category">
+                    <h4>{group.section}</h4>
+                    <div className="basecamp-shop-items">
+                      {group.items.map((item) => {
+                        const owned = baseCampOwnedItemIds.has(item.id);
+                        const affordable = baseCampProgression.relicShards >= item.cost;
+                        const highlighted = shopFeedback?.itemId === item.id && shopFeedback.type === 'purchase';
+                        return (
+                          <article
+                            key={item.id}
+                            className={`basecamp-shop-item ${owned ? 'is-owned' : ''} ${highlighted ? 'just-purchased' : ''} ${item.locked ? 'is-locked' : ''}`}
+                          >
+                            <div className="basecamp-shop-item-main">
+                              <div>
+                                <strong>{item.name}</strong>
+                                <span>{item.shortEffect}</span>
+                              </div>
+                              <div className="basecamp-shop-cost">
+                                <Gem size={14} />
+                                {item.cost}
+                              </div>
+                            </div>
+                            <p>{item.description}</p>
+                            <button
+                              type="button"
+                              className="btn basecamp-shop-buy-btn"
+                              onClick={() => purchaseShopItem(item.id)}
+                              disabled={owned || item.locked || !affordable}
+                            >
+                              {owned ? 'Owned' : item.locked ? 'Future' : affordable ? 'Buy' : 'Need Shards'}
+                            </button>
+                          </article>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
               </div>
             </section>
 

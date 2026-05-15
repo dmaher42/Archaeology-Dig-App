@@ -101,6 +101,54 @@ export const getEnemyStompHitbox = (enemy) => {
   };
 };
 
+const hashEnemyIdentity = (enemy) => {
+  const source = `${enemy.id || enemy.name || enemy.type || 'enemy'}:${enemy.x || 0}:${enemy.y || 0}`;
+  let hash = 0;
+  for (let index = 0; index < source.length; index += 1) {
+    hash = ((hash << 5) - hash) + source.charCodeAt(index);
+    hash |= 0;
+  }
+  return Math.abs(hash) || 1;
+};
+
+const ENEMY_TOUGHNESS_BONUS = {
+  scarab: 1,
+  scorpion: 1,
+  'sand-wisp': 1,
+  snake: 1,
+  bat: 1,
+  looter: 2,
+  guardian: 2,
+  statue: 2,
+  'river-crab': 1,
+  'watchtower-sentry': 2,
+  'clay-guardian': 2,
+};
+
+const tuneEnemyHealth = (enemy) => {
+  const bonus = ENEMY_TOUGHNESS_BONUS[enemy.type] ?? 1;
+  return Math.max(enemy.health + bonus, Math.ceil(enemy.health * 1.3));
+};
+
+const tuneEnemyDamage = (enemy) => (
+  Math.max(enemy.damage + 1, Math.ceil(enemy.damage * 1.12))
+);
+
+const makeStepProfile = (entity, { boss = false } = {}) => {
+  const seed = hashEnemyIdentity(entity);
+  const seedRatio = (seed % 997) / 997;
+  return {
+    baseSpeed: entity.speed,
+    stepSeed: seed,
+    stepTimer: 0,
+    stepCycle: 0,
+    stepShiftTimer: 0.45 + seedRatio * 0.8,
+    stepSpeedMultiplier: boss ? 0.94 + seedRatio * 0.16 : 0.88 + seedRatio * 0.24,
+    stepPauseTimer: 0,
+    stepRhythm: boss ? 1.05 + seedRatio * 0.55 : 1.35 + seedRatio * 0.85,
+  };
+};
+
 export const getCollectibleHitbox = (item, size = {}) => expandRect({
   x: item.x,
   y: item.y,
@@ -170,7 +218,9 @@ export const updatePlayerAnimation = (current, dt) => {
 export const makeEnemy = (enemy) => ({
   ...enemy,
   direction: 1,
-  maxHealth: enemy.health,
+  health: tuneEnemyHealth(enemy),
+  maxHealth: tuneEnemyHealth(enemy),
+  damage: tuneEnemyDamage(enemy),
   defeated: false,
   stunTimer: 0,
   hitFlash: 0,
@@ -187,12 +237,15 @@ export const makeEnemy = (enemy) => ({
   shieldTimer: 0,
   knockbackTimer: 0,
   knockbackDirection: 0,
+  ...makeStepProfile(enemy),
 });
 
 export const makeMiniBoss = (boss) => ({
   ...boss,
   direction: 1,
-  maxHealth: boss.health,
+  health: Math.max(boss.health + 1, Math.ceil(boss.health * 1.35)),
+  maxHealth: Math.max(boss.health + 1, Math.ceil(boss.health * 1.35)),
+  damage: Math.max(boss.damage + 1, Math.ceil(boss.damage * 1.1)),
   defeated: false,
   awakened: false,
   stunTimer: 0,
@@ -213,6 +266,7 @@ export const makeMiniBoss = (boss) => ({
   patternHistory: [],
   knockbackTimer: 0,
   knockbackDirection: 0,
+  ...makeStepProfile(boss, { boss: true }),
 });
 
 export const makeBossKeyItem = (item) => ({
@@ -223,7 +277,7 @@ export const makeBossKeyItem = (item) => ({
   collected: false,
 });
 
-export const makeInitialState = ({ targetCivilisation } = {}) => ({
+export const makeInitialState = ({ targetCivilisation, permanentUpgradeIds = [], permanentUpgradeEffects = {} } = {}) => ({
   player: {
     x: 44,
     y: GROUND_Y - PLAYER_HEIGHT,
@@ -241,7 +295,13 @@ export const makeInitialState = ({ targetCivilisation } = {}) => ({
     lastDamageSource: null,
     lastDamageTime: null,
     knockbackTimer: 0,
+    knockbackMaxTimer: 0,
     knockbackDirection: 0,
+    coyoteTimer: 0,
+    jumpBufferTimer: 0,
+    landingFeedbackTimer: 0,
+    movementDustTimer: 0,
+    lastLandingImpact: 0,
     animationState: 'idle',
     animationFrame: 1,
     walkCycleDistance: 0,
@@ -251,8 +311,21 @@ export const makeInitialState = ({ targetCivilisation } = {}) => ({
   collectedToolIds: new Set(),
   collectedShardIds: new Set(),
   relicShardCount: 0,
-  collectedUpgrades: new Set(),
+  permanentUpgrades: new Set(permanentUpgradeIds),
+  upgradeEffects: {
+    jumpMultiplier: 1,
+    airControlMultiplier: 1,
+    knockbackMultiplier: 1,
+    maxStamina: 100,
+    hazardStaminaMultiplier: 1,
+    hiddenClueHighlights: false,
+    hiddenRouteAccess: false,
+    ...permanentUpgradeEffects,
+  },
+  collectedUpgrades: new Set(permanentUpgradeIds),
   collectedTabletIds: new Set(),
+  discoveredHiddenRouteIds: new Set(),
+  collectedSecretIds: new Set(),
   collectedObjectiveIds: new Set(),
   collectedBossKeyIds: new Set(),
   enemies: getJourneyEnemies(targetCivilisation).map(makeEnemy),
@@ -261,6 +334,7 @@ export const makeInitialState = ({ targetCivilisation } = {}) => ({
   defeatedEnemies: new Set(),
   defeatedMiniBosses: new Set(),
   hiddenRoomsFound: new Set(),
+  completedCollectionSetIds: new Set(),
   openedRouteGateIds: new Set(),
   completedObjectiveIds: new Set(),
   triggeredEnvironmentEventIds: new Set(),
@@ -295,7 +369,7 @@ export const makeInitialState = ({ targetCivilisation } = {}) => ({
   lastSectionId: SECTIONS[0].id,
   activeCheckpoint: CHECKPOINTS[0],
   resources: {
-    stamina: 100,
+    stamina: permanentUpgradeEffects.maxStamina || 100,
     time: 900,
   },
   notice: INITIAL_JOURNEY_NOTICE,

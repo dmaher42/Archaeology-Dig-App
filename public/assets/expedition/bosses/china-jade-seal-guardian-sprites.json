@@ -1,8 +1,8 @@
 {
-  "image": "china-rammed-earth-sentinel-sprites.png",
-  "source": "AI-generated unique Ancient China Rammed-Earth Sentinel boss sprite atlas, chroma-key removed and integrated May 15 2026.",
+  "image": "china-jade-seal-guardian-sprites.png",
+  "source": "AI-generated unique Ancient China Jade Seal Guardian boss sprite atlas, chroma-key removed and integrated May 15 2026.",
   "coordinateNote": "Generated unique boss cutout expanded into a consistent 11-frame runtime atlas with pose/tint variants and transparent background. Frame keys match the existing clayGuardian animation contract.",
-  "bossId": "china-rammed-earth-sentinel",
+  "bossId": "china-jade-seal-guardian",
   "regions": {
     "clayGuardianIdle": {
       "x": 0,

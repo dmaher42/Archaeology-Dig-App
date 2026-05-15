@@ -1366,6 +1366,27 @@ Remaining notes:
 - Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
 - Browser/asset notes: local dev server returned the new China background PNG and environment PNG with HTTP 200. Full browser visual automation could not be rerun in this turn because CDP was not reachable and the bundled Playwright import is missing `playwright-core`.
 
+2026-05-15 follow-up:
+- Used the image generation skill to create a high-quality Ancient China environment atlas covering props, ground floors, platforms, bridge pieces, hazards, gates, and route markers.
+- Replaced the China runtime environment PNG while preserving the existing atlas region keys, so platform collision, hazard collision, story props, gates, and Journey layout logic remain unchanged.
+- Used the image generation skill to create five distinct Ancient China boss guardians: Clay River Guardian, Bronze Gate Warden, Jade Seal Guardian, Archive Sentry Captain, and Rammed-Earth Sentinel.
+- Added separate China boss PNG+JSON atlas pairs for each guardian under `public/assets/expedition/bosses/`.
+- Updated the boss sprite loader so each China boss id can load its own dedicated sprite atlas while reusing the existing `clayGuardian*` animation frame contract.
+- Updated China Journey boss data so each boss points to its unique `spriteBossId` instead of all five reusing the same clay guardian sprite.
+- Kept gameplay systems unchanged: no new boss framework, no boss attack logic rewrite, no route logic changes, no Stage Select changes, and no Egypt boss asset changes were intentionally made.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only; a local atlas key check confirmed all China environment and boss sprite regions are present.
+- Browser/asset notes: local dev server returned HTTP 200 for the upgraded China environment PNG and all five China boss PNG sprite sheets. Full browser visual automation could not be rerun because CDP was not reachable.
+
+2026-05-15 follow-up:
+- Ran a China boss visual sizing/grounding pass across the shared boss and enemy draw-box helpers.
+- Raised boss draw boxes so every China boss renders at about 190px tall, above the required 2x player height threshold (player sprite draw height is 86px; required boss minimum is 172px).
+- Raised regular enemy sprite draw boxes to a minimum of 86px tall so small China enemies such as river crabs no longer render smaller than the player.
+- Kept boss and enemy art bottom-anchored to the actor feet/ground point so the larger visuals do not float above platforms.
+- Tightened the five China boss sprite sheets so rotated/defeated frames have padding and are not clipped by atlas frame edges.
+- Validation: static size check confirmed all China bosses are at least 2x player height and sampled China enemies are at least player height; static crop check confirmed no blank or edge-clipped frames in the five China boss atlases.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Browser/asset notes: local dev server returned HTTP 200 for all five China boss PNG sprite sheets. Full browser visual automation could not be rerun because CDP was not reachable.
+
 2026-05-15 update:
 - Added Base Camp Shop to the existing Lost Site Expedition Base Camp screen as an expedition outfitting station, without changing Stage Select, Museum, Lab, Report, boss, save/load, or excavation systems.
 - Integrated existing relic shards as the shop currency. Journey shards remain collected in the Journey state, and the Base Camp progression layer stores a persistent shard bank for purchases.
@@ -1378,3 +1399,51 @@ Remaining notes:
 - Validation: `node --test src\components\expedition\baseCampShop.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with existing runtime-public-asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
 - Browser notes: Playwright smoke test launched Ancient Egypt, confirmed Journey shard collection through `render_game_to_text`, opened Base Camp through the existing dev jump hook, purchased Reinforced Boots from a seeded shard bank, confirmed shards dropped from 20 to 5, reloaded, and confirmed the next Journey run included `permanentUpgrades: ["reinforced-boots"]` with a jump multiplier above 1 and no console/page errors.
 - Remaining risks/follow-up tasks: cosmetic visual swapping is intentionally deferred; Rope Launcher and Survey Goggles are shop placeholders only until hidden-route and hidden-clue content exists; a full natural classroom playthrough should still check long-route balance after several upgrades are owned.
+
+2026-05-15 update:
+- Added a Hidden Routes and Secret Discovery pass to the existing Journey layout/data instead of rewriting `ExpeditionJourney`.
+- Added optional exploration paths for Egypt and China: upper survey/watchtower routes, cracked-wall/archive passages, hidden cave ledges, hidden excavation chamber style alcoves, and a collapsed-arch shortcut.
+- Added hidden route metadata for future upgrade compatibility: Rope Launcher, Survey Goggles, and Excavation Hammer hooks are recorded but not required yet.
+- Added hidden relic shards and civilisation-specific secret collectibles: Egypt Scarab Fragments, Tomb Seals, Papyrus Pages; China Oracle Bone Fragments, Dynasty Tablets, Bronze Seals, and a Hidden Scroll.
+- Added discovery reward feedback through existing Journey notices, cinematic cards, glow/route hints, combat-effect text, and success/stinger audio calls.
+- Added Journey snapshot/HUD tracking for discovered hidden routes, secret collectible sets, and lore tablet collection so browser tests and future systems can read the progression.
+- Kept main progression, route gates, bosses, Base Camp, Stage Select, Excavation, Museum, Lab, Report, save/load, and unrelated screens unchanged except for compatibility/debug snapshot exposure.
+- Validation: `node --test src\components\expedition-journey\journeySecrets.test.js` passed; `node --test src\components\expedition\baseCampShop.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with existing runtime-public-asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Browser notes: Playwright smoke launched Ancient Egypt Journey, discovered `desert-upper-survey-route`, collected `egypt-scarab-fragment-1`, confirmed Base Camp still opens, launched Ancient China Journey, discovered `river-watchtower-route`, collected `china-oracle-bone-1`, and reported no console/page errors.
+- Remaining risks/follow-up tasks: hidden routes are first-pass readable exploration zones, not full upgrade-gated rooms yet; later passes can connect Rope Launcher, Survey Goggles, and Excavation Hammer to unlock/reveal more routes and collection rewards.
+
+2026-05-15 update:
+- Added a Journey movement feel polish pass inside the existing `ExpeditionJourney` update/render loop; no Journey rewrite or large layout changes were made.
+- Added coyote time and jump buffering with short, readable timing windows so jumps feel fairer without making the player floaty.
+- Replaced instant horizontal velocity changes with acceleration/deceleration and slightly smoother air control while keeping the existing top speed.
+- Improved landing and jump feel with small dust puffs, landing feedback timing, short camera feedback, and existing land/jump audio hooks.
+- Improved attack feel with a brief attack emphasis arc, clearer hit text, slightly stronger hit stop, enemy flash, boss hit feedback, and more eased player knockback.
+- Added movement-feel fields to the Journey debug snapshot for verification: coyote time, jump buffer, landing feedback, movement dust, and active movement juice effects.
+- Validation: `node --test src\components\expedition-journey\journeySecrets.test.js` passed; `node --test src\components\expedition\baseCampShop.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with existing runtime-public-asset warnings only.
+- Browser notes: local Playwright smoke opened Ancient Egypt Journey, confirmed right movement builds velocity, jump leaves the ground with upward velocity, the player lands safely, attack state advances, movement-feel snapshot fields are present, movement/jump dust effects appear in state, screenshot was visually checked, and no console/page errors were reported.
+- Remaining risks/follow-up tasks: the automated browser pass confirms responsiveness and no immediate collision errors, but a longer natural playthrough across later optional platforms should still tune exact acceleration/landing numbers by feel.
+
+2026-05-15 update:
+- Added a reward juice and discovery feedback polish pass inside the existing Journey and Base Camp systems; no gameplay rewrite or new progression framework was added.
+- Improved relic shard pickups with a small gold pulse, `+1 SHARD` text, and subtle hidden-shard emphasis.
+- Improved hidden route and secret collectible discovery feedback with `Secret Route Discovered`, `Hidden Archive Found`, `Secret Found`, and `Collection Piece Recovered` moments using the existing notice/cinematic/audio paths.
+- Added collection-set completion tracking and a quiet collection fanfare pulse for completed secret collectible sets.
+- Improved checkpoint activation with a blue checkpoint pulse and brief emphasis.
+- Improved boss reward feedback with reward reveal/recovered pulses and a stronger but still restrained boss reward banner/badge animation.
+- Improved Base Camp shop purchase feedback with `Expedition Upgrade Acquired`, shard-bank pulse, purchase sparkle, and existing shard deduction/persistence behavior.
+- Added reward feedback state to the Journey debug snapshot so browser checks can confirm shard, secret, checkpoint, boss reward, upgrade, and collection-completion effects without relying only on visuals.
+- Kept Stage Select, Excavation, Museum, Lab, Report, save/load, boss systems, Journey layout size, and unrelated screens unchanged except for compatibility/debug feedback exposure.
+- Validation: `node --test src\components\expedition-journey\journeySecrets.test.js` passed; `node --test src\components\expedition\baseCampShop.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with existing runtime-public-asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Browser notes: local Playwright smoke opened Ancient Egypt Journey, picked up a shard, discovered `desert-upper-survey-route`, collected `egypt-scarab-fragment-1`, activated the Ruined Temple checkpoint, triggered the boss reward feedback path through the dev-only debug hook, jumped to Base Camp, purchased Reinforced Boots, visually checked the purchase feedback screenshot, and reported no console/page errors.
+- Remaining risks/follow-up tasks: the boss reward check used a dev-only reward hook instead of a full boss defeat playthrough; collection completion feedback is wired and state-backed, but a later content pass should add more completeable sets per civilisation so students see it more often.
+
+2026-05-15 update:
+- Added a Journey enemy difficulty pass inside the existing enemy setup and shared Journey update loop; no new combat system or duplicate enemy system was added.
+- Increased regular enemy health and contact damage from the shared `makeEnemy` helper so Egypt and China enemies are harder to defeat without hand-editing every layout row.
+- Increased mini-boss health and damage slightly from the existing `makeMiniBoss` helper so guardian encounters also take more care.
+- Tightened the player attack hurtbox against enemies and bosses, so swings must connect more cleanly instead of counting broad edge overlap as a hit.
+- Added seeded patrol step variation for regular enemies and bosses: movement speed now shifts in short cycles with occasional brief hesitations, making enemy steps less predictable while staying deterministic per enemy.
+- Kept Stage Select, Base Camp, Excavation, Museum, Lab, Report, save/load, route gates, enemy placement, boss placement, and asset wiring unchanged.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing runtime-public-asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Browser notes: live browser verification was not completed in this pass because the browser automation connector was not available in the current toolset. A short manual or Playwright Journey smoke test is still recommended to tune exact difficulty feel.
+- Remaining risks/follow-up tasks: this is a global difficulty bump, so a later classroom-feel pass may need to soften the earliest two start-area enemies if Year 7 players find the opening too punishing.

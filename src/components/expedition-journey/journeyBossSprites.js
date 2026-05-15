@@ -3,9 +3,27 @@ export const BOSS_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}scarab-queen-spri
 export const STONE_GUARDIAN_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}stone-guardian-sprites.json`;
 export const GIANT_SERPENT_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}giant-serpent-sprites.json`;
 export const ANCIENT_CONSTRUCT_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}ancient-construct-sprites.json`;
-export const CHINA_CLAY_GUARDIAN_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}china-rammed-earth-sentinel-sprites.json`;
-export const CHINA_CLAY_GUARDIAN_BOSS_ID = 'china-clay-guardian';
-export const BOSS_SPRITE_ATLAS_VERSION = 'boss-sprites-china-dedicated-guardian-2026-05-15';
+export const CHINA_CLAY_RIVER_GUARDIAN_BOSS_ID = 'china-clay-river-guardian';
+export const CHINA_BRONZE_GATE_WARDEN_BOSS_ID = 'china-bronze-gate-warden';
+export const CHINA_JADE_SEAL_GUARDIAN_BOSS_ID = 'china-jade-seal-guardian';
+export const CHINA_ARCHIVE_SENTRY_CAPTAIN_BOSS_ID = 'china-archive-sentry-captain';
+export const CHINA_RAMMED_EARTH_SENTINEL_BOSS_ID = 'china-rammed-earth-sentinel';
+export const CHINA_CLAY_GUARDIAN_BOSS_ID = CHINA_CLAY_RIVER_GUARDIAN_BOSS_ID;
+export const CHINA_CLAY_RIVER_GUARDIAN_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}china-clay-river-guardian-sprites.json`;
+export const CHINA_BRONZE_GATE_WARDEN_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}china-bronze-gate-warden-sprites.json`;
+export const CHINA_JADE_SEAL_GUARDIAN_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}china-jade-seal-guardian-sprites.json`;
+export const CHINA_ARCHIVE_SENTRY_CAPTAIN_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}china-archive-sentry-captain-sprites.json`;
+export const CHINA_RAMMED_EARTH_SENTINEL_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}china-rammed-earth-sentinel-sprites.json`;
+export const CHINA_CLAY_GUARDIAN_SPRITE_ATLAS_JSON = CHINA_CLAY_RIVER_GUARDIAN_SPRITE_ATLAS_JSON;
+export const BOSS_SPRITE_ATLAS_VERSION = 'boss-sprites-china-unique-guardians-2026-05-15';
+
+export const MIN_BOSS_DRAW_HEIGHT = 176;
+const getGroundedBossDrawBox = (boss, screenX, width, height, footSink = 4) => ({
+  x: screenX + boss.width / 2 - width / 2,
+  y: boss.y + boss.height - height + footSink,
+  width,
+  height,
+});
 
 export const SCARAB_QUEEN_SPRITE_KEYS = [
   'scarabQueenIdle',
@@ -102,11 +120,37 @@ const BOSS_SPRITE_PACKS = {
     atlasPath: ANCIENT_CONSTRUCT_SPRITE_ATLAS_JSON,
     expectedKeys: ANCIENT_CONSTRUCT_SPRITE_KEYS,
   },
-  [CHINA_CLAY_GUARDIAN_BOSS_ID]: {
-    atlasPath: CHINA_CLAY_GUARDIAN_SPRITE_ATLAS_JSON,
+  [CHINA_CLAY_RIVER_GUARDIAN_BOSS_ID]: {
+    atlasPath: CHINA_CLAY_RIVER_GUARDIAN_SPRITE_ATLAS_JSON,
+    expectedKeys: CLAY_GUARDIAN_SPRITE_KEYS,
+  },
+  [CHINA_BRONZE_GATE_WARDEN_BOSS_ID]: {
+    atlasPath: CHINA_BRONZE_GATE_WARDEN_SPRITE_ATLAS_JSON,
+    expectedKeys: CLAY_GUARDIAN_SPRITE_KEYS,
+  },
+  [CHINA_JADE_SEAL_GUARDIAN_BOSS_ID]: {
+    atlasPath: CHINA_JADE_SEAL_GUARDIAN_SPRITE_ATLAS_JSON,
+    expectedKeys: CLAY_GUARDIAN_SPRITE_KEYS,
+  },
+  [CHINA_ARCHIVE_SENTRY_CAPTAIN_BOSS_ID]: {
+    atlasPath: CHINA_ARCHIVE_SENTRY_CAPTAIN_SPRITE_ATLAS_JSON,
+    expectedKeys: CLAY_GUARDIAN_SPRITE_KEYS,
+  },
+  [CHINA_RAMMED_EARTH_SENTINEL_BOSS_ID]: {
+    atlasPath: CHINA_RAMMED_EARTH_SENTINEL_SPRITE_ATLAS_JSON,
     expectedKeys: CLAY_GUARDIAN_SPRITE_KEYS,
   },
 };
+
+export const CHINA_GUARDIAN_BOSS_IDS = [
+  CHINA_CLAY_RIVER_GUARDIAN_BOSS_ID,
+  CHINA_BRONZE_GATE_WARDEN_BOSS_ID,
+  CHINA_JADE_SEAL_GUARDIAN_BOSS_ID,
+  CHINA_ARCHIVE_SENTRY_CAPTAIN_BOSS_ID,
+  CHINA_RAMMED_EARTH_SENTINEL_BOSS_ID,
+];
+
+export const isChinaGuardianBossSpriteId = (bossId) => CHINA_GUARDIAN_BOSS_IDS.includes(bossId);
 
 const getAtlasImagePath = (atlasPath, imageName) => {
   if (!imageName) return null;
@@ -289,7 +333,7 @@ export const getAncientConstructSpriteFrame = (boss, combatMode, bossVisualState
 };
 
 export const getClayGuardianSpriteFrame = (boss, combatMode, bossVisualState = {}, now = 0) => {
-  if (boss?.spriteBossId !== CHINA_CLAY_GUARDIAN_BOSS_ID && boss?.id !== CHINA_CLAY_GUARDIAN_BOSS_ID) return null;
+  if (!isChinaGuardianBossSpriteId(boss?.spriteBossId) && !isChinaGuardianBossSpriteId(boss?.id)) return null;
 
   if (combatMode === 'defeated') return 'clayGuardianDefeated';
   if (boss.hitFlash > 0 || combatMode === 'stunned') return 'clayGuardianHit';
@@ -313,56 +357,31 @@ export const shouldFlipBossSprite = (bossId, facing = 1) => {
 };
 
 export const getScarabQueenDrawBox = (boss, screenX) => {
-  const width = Math.max(124, boss.width * 2.45);
-  const height = Math.max(90, boss.height * 2.2);
-  return {
-    x: screenX + boss.width / 2 - width / 2,
-    y: boss.y + boss.height - height + 8,
-    width,
-    height,
-  };
+  const height = Math.max(MIN_BOSS_DRAW_HEIGHT, boss.height * 3.85);
+  const width = Math.max(190, boss.width * 3.35);
+  return getGroundedBossDrawBox(boss, screenX, width, height, 4);
 };
 
 export const getStoneGuardianDrawBox = (boss, screenX) => {
-  const width = Math.max(118, boss.width * 2.18);
-  const height = Math.max(116, boss.height * 2.05);
-  return {
-    x: screenX + boss.width / 2 - width / 2,
-    y: boss.y + boss.height - height + 8,
-    width,
-    height,
-  };
+  const height = Math.max(188, boss.height * 3.34);
+  const width = Math.max(176, boss.width * 3.08);
+  return getGroundedBossDrawBox(boss, screenX, width, height, 4);
 };
 
 export const getGiantSerpentDrawBox = (boss, screenX) => {
-  const width = Math.max(190, boss.width * 2.75);
-  const height = Math.max(124, boss.height * 2.25);
-  return {
-    x: screenX + boss.width / 2 - width / 2,
-    y: boss.y + boss.height - height + 10,
-    width,
-    height,
-  };
+  const height = Math.max(MIN_BOSS_DRAW_HEIGHT, boss.height * 3.15);
+  const width = Math.max(252, boss.width * 3.55);
+  return getGroundedBossDrawBox(boss, screenX, width, height, 5);
 };
 
 export const getAncientConstructDrawBox = (boss, screenX) => {
-  const width = Math.max(132, boss.width * 2.25);
-  const height = Math.max(128, boss.height * 2.15);
-  return {
-    x: screenX + boss.width / 2 - width / 2,
-    y: boss.y + boss.height - height + 9,
-    width,
-    height,
-  };
+  const height = Math.max(194, boss.height * 3.12);
+  const width = Math.max(190, boss.width * 3.08);
+  return getGroundedBossDrawBox(boss, screenX, width, height, 4);
 };
 
 export const getClayGuardianDrawBox = (boss, screenX) => {
-  const width = Math.max(134, boss.width * 2.34);
-  const height = Math.max(132, boss.height * 2.18);
-  return {
-    x: screenX + boss.width / 2 - width / 2,
-    y: boss.y + boss.height - height + 9,
-    width,
-    height,
-  };
+  const height = Math.max(190, boss.height * 3.18);
+  const width = Math.max(190, boss.width * 3.05);
+  return getGroundedBossDrawBox(boss, screenX, width, height, 4);
 };

@@ -12,6 +12,7 @@ export const CHINA_RIVER_CRAB_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}chin
 export const CHINA_WATCHTOWER_SENTRY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-watchtower-sentry-sprites.json`;
 export const CHINA_CLAY_GUARDIAN_ENEMY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-clay-guardian-enemy-sprites.json`;
 export const ENEMY_SPRITE_ATLAS_VERSION = 'enemy-sprite-packs-2026-05-15-china-dedicated-mobs';
+export const MIN_ENEMY_DRAW_HEIGHT = 86;
 
 export const EXPECTED_ENEMY_SPRITE_KEYS = [
   'scarabIdle',
@@ -399,8 +400,10 @@ export const getEnemySpriteDrawBox = (enemy, screenX, shakeX = 0, combatMode = n
     clayGuardian: defeated ? 1.82 : 2.42,
   }[family] || 1.8;
 
-  const width = Math.max(enemy.width, enemy.width * scale);
-  const height = Math.max(enemy.height, enemy.height * scale);
+  const scaledWidth = Math.max(enemy.width, enemy.width * scale);
+  const scaledHeight = Math.max(enemy.height, enemy.height * scale);
+  const height = Math.max(MIN_ENEMY_DRAW_HEIGHT, scaledHeight);
+  const width = Math.max(scaledWidth, enemy.width * (height / Math.max(1, enemy.height)));
   const groundOffset = {
     scarab: defeated ? 10 : 8,
     snake: defeated ? 12 : 10,
