@@ -349,6 +349,34 @@ const ENEMY_ATTACK_PATTERNS = {
     vulnerableAfter: 0.42,
     speed: 170,
   },
+  scorpion: {
+    ...DEFAULT_ENEMY_ATTACK_PATTERN,
+    id: 'sting',
+    label: 'Sting',
+    windup: 0.48,
+    duration: 0.26,
+    cooldown: 1.5,
+    recovery: 0.5,
+    vulnerableAfter: 0.58,
+    speed: 92,
+    range: 32,
+    height: 20,
+    color: '#d97706',
+  },
+  'sand-wisp': {
+    ...DEFAULT_ENEMY_ATTACK_PATTERN,
+    id: 'sand-burst',
+    label: 'Sand Burst',
+    windup: 0.4,
+    duration: 0.28,
+    cooldown: 1.38,
+    recovery: 0.48,
+    vulnerableAfter: 0.5,
+    speed: 132,
+    range: 40,
+    height: 30,
+    color: '#facc15',
+  },
   snake: {
     ...DEFAULT_ENEMY_ATTACK_PATTERN,
     id: 'lunge',
@@ -3601,6 +3629,76 @@ export default function ExpeditionJourney({
     const facing = (enemy.attackTimer > 0 || enemy.attackWindup > 0)
       ? enemy.attackDirection
       : enemy.direction;
+
+    if (enemy.type === 'scorpion' || enemy.type === 'sand-wisp') {
+      const pulse = Math.sin(now / 140) * 0.5 + 0.5;
+      const defeated = combatMode === 'defeated';
+      const stunned = enemy.hitFlash > 0 || combatMode === 'stunned';
+      const frameKey = `${enemy.type}-${combatMode}-${Math.floor(now / 220) % 2}`;
+      ctx.save();
+      if (enemy.type === 'scorpion') {
+        const bodyY = baseY - 13 + (defeated ? 5 : 0);
+        drawContactShadow(ctx, centerX, baseY + 3, enemy.width * 0.78, defeated ? 0.1 : 0.18, 0.9);
+        ctx.globalAlpha = defeated ? 0.58 : 0.96;
+        ctx.strokeStyle = stunned ? '#fed7aa' : '#7c2d12';
+        ctx.fillStyle = stunned ? '#fbbf24' : '#a16207';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.ellipse(centerX, bodyY, enemy.width * 0.38, enemy.height * 0.34, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#78350f';
+        ctx.beginPath();
+        ctx.ellipse(centerX + facing * enemy.width * 0.27, bodyY - 2, enemy.width * 0.18, enemy.height * 0.22, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.strokeStyle = '#92400e';
+        for (let i = -1; i <= 1; i += 1) {
+          ctx.beginPath();
+          ctx.moveTo(centerX - enemy.width * 0.08, bodyY + i * 3);
+          ctx.lineTo(centerX - enemy.width * 0.38, bodyY + i * 5 + 4);
+          ctx.moveTo(centerX + enemy.width * 0.08, bodyY + i * 3);
+          ctx.lineTo(centerX + enemy.width * 0.38, bodyY + i * 5 + 4);
+          ctx.stroke();
+        }
+        ctx.beginPath();
+        ctx.moveTo(centerX - facing * enemy.width * 0.22, bodyY - 8);
+        ctx.quadraticCurveTo(centerX - facing * enemy.width * 0.36, bodyY - 25, centerX - facing * enemy.width * 0.05, bodyY - 25 - pulse * 2);
+        ctx.stroke();
+        ctx.fillStyle = '#f97316';
+        ctx.beginPath();
+        ctx.arc(centerX - facing * enemy.width * 0.03, bodyY - 25 - pulse * 2, 3.4, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        const floatY = centerX % 2 === 0 ? baseY - 33 - pulse * 5 : baseY - 31 - pulse * 5;
+        drawContactShadow(ctx, centerX, baseY + 4, enemy.width * 0.66, defeated ? 0.06 : 0.12, 0.65);
+        ctx.globalAlpha = defeated ? 0.42 : 0.86;
+        const glow = ctx.createRadialGradient(centerX, floatY, 2, centerX, floatY, enemy.width * 0.55);
+        glow.addColorStop(0, stunned ? 'rgba(254, 240, 138, 0.95)' : 'rgba(253, 224, 71, 0.9)');
+        glow.addColorStop(0.55, 'rgba(251, 191, 36, 0.35)');
+        glow.addColorStop(1, 'rgba(180, 83, 9, 0)');
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(centerX, floatY, enemy.width * 0.58, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = stunned ? '#fff7ed' : '#facc15';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(centerX, floatY, enemy.width * 0.28 + pulse * 2, Math.PI * 0.1, Math.PI * 1.55);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(centerX + 3, floatY + 2, enemy.width * 0.17, Math.PI * 1.1, Math.PI * 2.1);
+        ctx.stroke();
+      }
+      ctx.restore();
+      if (stateRef.current.renderStats) {
+        const stats = stateRef.current.renderStats;
+        stats.visibleEnemySpriteFamilies = Array.from(new Set([...(stats.visibleEnemySpriteFamilies || []), enemy.type]));
+        const frameState = `${enemy.id}:${enemy.type}:${combatMode}:${frameKey}`;
+        stats.enemySpriteFrameStates = [...(stats.enemySpriteFrameStates || []), frameState].slice(-12);
+      }
+      return true;
+    }
 
     if (enemy.type === 'guardian' || enemy.type === 'statue') {
       const bossId = enemy.type === 'statue' ? 'ancient-construct' : 'temple-guardian';

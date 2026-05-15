@@ -1,0 +1,18 @@
+{
+  "image": "china-rammed-earth-sentinel-sprites.png",
+  "source": "AI-generated Ancient China rammed-earth sentinel boss sprite sheet, chroma-key removed and saved as a transparent PNG.",
+  "coordinateNote": "First-pass full-cell atlas regions from a generated 5-column by 2-row boss sheet. The counter-window frame reuses the shielded pose until a dedicated frame is generated.",
+  "regions": {
+    "clayGuardianIdle": { "x": 0, "y": 0, "w": 396, "h": 396 },
+    "clayGuardianWalk1": { "x": 396, "y": 0, "w": 396, "h": 396 },
+    "clayGuardianWalk2": { "x": 792, "y": 0, "w": 396, "h": 396 },
+    "clayGuardianIntro": { "x": 1188, "y": 0, "w": 396, "h": 396 },
+    "clayGuardianWindup": { "x": 1584, "y": 0, "w": 399, "h": 396 },
+    "clayGuardianSlam": { "x": 0, "y": 396, "w": 396, "h": 397 },
+    "clayGuardianPulse": { "x": 396, "y": 396, "w": 396, "h": 397 },
+    "clayGuardianShielded": { "x": 792, "y": 396, "w": 396, "h": 397 },
+    "clayGuardianCounterWindow": { "x": 792, "y": 396, "w": 396, "h": 397 },
+    "clayGuardianHit": { "x": 1188, "y": 396, "w": 396, "h": 397 },
+    "clayGuardianDefeated": { "x": 1584, "y": 396, "w": 399, "h": 397 }
+  }
+}

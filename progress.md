@@ -1312,3 +1312,26 @@ Remaining notes:
 - Kept the existing China parallax atlas and Journey gameplay intact, but changed the China-only canvas draw stack so the sky fills the full backdrop, the mountain/valley/watchtower layers overlap more softly, and the foreground mist is lower-alpha.
 - Removed the visible oval haze bands from the first polish pass and replaced them with broad horizon/valley dust gradients, a warmer dig-site ground transition, and subtle contour lines in the lower playfield.
 - Updated the render snapshot marker to `china-river-valley-parallax-v3-seam-reduced`.
+
+2026-05-15 follow-up:
+- Added a start-of-Journey monster-density overhaul in the existing `journeyLevelData.js` enemy arrays.
+- Added four extra early Egypt scarab encounters before the first boss path: Start Path Scarab, Ridge Scarab, Upper Route Scarab, and Guardian Path Scarab.
+- Added eight extra early Ancient China river-crab encounters before the first guardian path, using the existing China river-crab sprite family and keeping damage low in the opening stretch.
+- Raised the original early China river-crab enemies to two health so the opening has more enemies to defeat rather than mostly one-hit contacts.
+- Kept gameplay systems unchanged: no new combat framework, no boss logic changes, no route gate changes, no save/load changes, and no asset replacement.
+
+2026-05-15 follow-up:
+- Used the image generation skill to create dedicated Ancient China PNG sprite sheets matching the Egypt asset pattern.
+- Added transparent PNG+JSON atlas pairs for China river crabs, watchtower sentries, and clay guardian regular enemies under `public/assets/expedition/enemies/china/`.
+- Added a transparent PNG+JSON atlas pair for the China rammed-earth sentinel boss under `public/assets/expedition/bosses/`.
+- Updated the Journey sprite loaders so China enemies now prefer the dedicated China sheets and fall back to the older combined China enemy/guardian sheet if needed.
+- Updated the China boss sprite pack to use the dedicated boss sheet instead of the combined enemy/guardian sheet.
+- Kept gameplay rules, enemy placement, boss data, route gates, Stage Select, save/load, and Egypt assets unchanged in this pass.
+
+2026-05-15 follow-up:
+- Added more start-of-Journey platforming in the existing `PLATFORMS` layout: a first survey step, upper survey chip, seal path rest, and warning slab path.
+- Added two new early Egypt monster types in the existing `ENEMIES` array: Sand Scorpion/Stone Scorpion and Sand Wisp/Ledge Sand Wisp.
+- Added small existing-combat attack patterns for the new monster types without changing player attack, stomp, boss, gate, reward, save/load, inventory, or evidence systems.
+- Drew the new monster types through the existing `ExpeditionJourney.jsx` canvas enemy renderer instead of adding a new bitmap/atlas pipeline.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Browser notes: local smoke opened Ancient Egypt Journey, confirmed the debug route is active, checked early positions around 505, 760, 1010, and 1170 base units, and confirmed `scorpion` and `sand-wisp` render in `visibleEnemySpriteFamilies` with two-health enemy states.

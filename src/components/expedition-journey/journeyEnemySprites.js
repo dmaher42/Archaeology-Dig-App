@@ -8,7 +8,10 @@ export const SAND_SNAKE_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}sand-snake
 export const CURSED_STATUE_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}cursed-statue-sprites.json`;
 export const STONE_GUARDIAN_ENEMY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}stone-guardian-enemy-sprites.json`;
 export const CHINA_ENEMY_GUARDIAN_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-enemy-guardian-sprites.json`;
-export const ENEMY_SPRITE_ATLAS_VERSION = 'enemy-sprite-packs-2026-05-15-china-mobs';
+export const CHINA_RIVER_CRAB_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-river-crab-sprites.json`;
+export const CHINA_WATCHTOWER_SENTRY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-watchtower-sentry-sprites.json`;
+export const CHINA_CLAY_GUARDIAN_ENEMY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-clay-guardian-enemy-sprites.json`;
+export const ENEMY_SPRITE_ATLAS_VERSION = 'enemy-sprite-packs-2026-05-15-china-dedicated-mobs';
 
 export const EXPECTED_ENEMY_SPRITE_KEYS = [
   'scarabIdle',
@@ -133,6 +136,36 @@ export const EXPECTED_CHINA_ENEMY_GUARDIAN_SPRITE_KEYS = [
   'clayGuardianDefeated',
 ];
 
+export const EXPECTED_CHINA_RIVER_CRAB_SPRITE_KEYS = [
+  'riverCrabIdle',
+  'riverCrabWalk1',
+  'riverCrabWalk2',
+  'riverCrabWindup',
+  'riverCrabAttack',
+  'riverCrabHit',
+  'riverCrabDefeated',
+];
+
+export const EXPECTED_CHINA_WATCHTOWER_SENTRY_SPRITE_KEYS = [
+  'watchtowerSentryIdle',
+  'watchtowerSentryWalk1',
+  'watchtowerSentryWalk2',
+  'watchtowerSentryWindup',
+  'watchtowerSentryAttack',
+  'watchtowerSentryHit',
+  'watchtowerSentryDefeated',
+];
+
+export const EXPECTED_CHINA_CLAY_GUARDIAN_ENEMY_SPRITE_KEYS = [
+  'clayGuardianIdle',
+  'clayGuardianWalk1',
+  'clayGuardianWalk2',
+  'clayGuardianWindup',
+  'clayGuardianAttack',
+  'clayGuardianHit',
+  'clayGuardianDefeated',
+];
+
 const ENEMY_SPRITE_PACKS = {
   small: {
     atlasPath: ENEMY_SPRITE_ATLAS_JSON,
@@ -169,6 +202,18 @@ const ENEMY_SPRITE_PACKS = {
   chinaEnemyGuardian: {
     atlasPath: CHINA_ENEMY_GUARDIAN_SPRITE_ATLAS_JSON,
     expectedKeys: EXPECTED_CHINA_ENEMY_GUARDIAN_SPRITE_KEYS,
+  },
+  chinaRiverCrab: {
+    atlasPath: CHINA_RIVER_CRAB_SPRITE_ATLAS_JSON,
+    expectedKeys: EXPECTED_CHINA_RIVER_CRAB_SPRITE_KEYS,
+  },
+  chinaWatchtowerSentry: {
+    atlasPath: CHINA_WATCHTOWER_SENTRY_SPRITE_ATLAS_JSON,
+    expectedKeys: EXPECTED_CHINA_WATCHTOWER_SENTRY_SPRITE_KEYS,
+  },
+  chinaClayGuardianEnemy: {
+    atlasPath: CHINA_CLAY_GUARDIAN_ENEMY_SPRITE_ATLAS_JSON,
+    expectedKeys: EXPECTED_CHINA_CLAY_GUARDIAN_ENEMY_SPRITE_KEYS,
   },
 };
 
@@ -289,9 +334,9 @@ export const getEnemySpritePack = (assets, family) => {
   if (family === 'snake') return assets?.packs?.snake || assets?.packs?.small || assets || null;
   if (family === 'cursedStatue') return assets?.packs?.cursedStatue || null;
   if (family === 'stoneGuardianEnemy') return assets?.packs?.stoneGuardianEnemy || null;
-  if (family === 'riverCrab' || family === 'watchtowerSentry' || family === 'clayGuardian') {
-    return assets?.packs?.chinaEnemyGuardian || null;
-  }
+  if (family === 'riverCrab') return assets?.packs?.chinaRiverCrab || assets?.packs?.chinaEnemyGuardian || null;
+  if (family === 'watchtowerSentry') return assets?.packs?.chinaWatchtowerSentry || assets?.packs?.chinaEnemyGuardian || null;
+  if (family === 'clayGuardian') return assets?.packs?.chinaClayGuardianEnemy || assets?.packs?.chinaEnemyGuardian || null;
   return assets?.packs?.small || assets || null;
 };
 

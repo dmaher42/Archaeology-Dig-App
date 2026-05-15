@@ -3,9 +3,9 @@ export const BOSS_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}scarab-queen-spri
 export const STONE_GUARDIAN_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}stone-guardian-sprites.json`;
 export const GIANT_SERPENT_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}giant-serpent-sprites.json`;
 export const ANCIENT_CONSTRUCT_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}ancient-construct-sprites.json`;
-export const CHINA_CLAY_GUARDIAN_SPRITE_ATLAS_JSON = 'assets/expedition/enemies/china/china-enemy-guardian-sprites.json';
+export const CHINA_CLAY_GUARDIAN_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}china-rammed-earth-sentinel-sprites.json`;
 export const CHINA_CLAY_GUARDIAN_BOSS_ID = 'china-clay-guardian';
-export const BOSS_SPRITE_ATLAS_VERSION = 'boss-sprites-china-clay-guardian-2026-05-15';
+export const BOSS_SPRITE_ATLAS_VERSION = 'boss-sprites-china-dedicated-guardian-2026-05-15';
 
 export const SCARAB_QUEEN_SPRITE_KEYS = [
   'scarabQueenIdle',

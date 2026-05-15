@@ -1,0 +1,14 @@
+{
+  "image": "china-river-crab-sprites.png",
+  "source": "AI-generated Ancient China river crab enemy sprite sheet, chroma-key removed and saved as a transparent PNG.",
+  "coordinateNote": "First-pass full-cell atlas regions from a 7-frame horizontal generated sheet. Crops may be tightened after browser review.",
+  "regions": {
+    "riverCrabIdle": { "x": 0, "y": 0, "w": 253, "h": 887 },
+    "riverCrabWalk1": { "x": 253, "y": 0, "w": 253, "h": 887 },
+    "riverCrabWalk2": { "x": 506, "y": 0, "w": 253, "h": 887 },
+    "riverCrabWindup": { "x": 759, "y": 0, "w": 253, "h": 887 },
+    "riverCrabAttack": { "x": 1012, "y": 0, "w": 253, "h": 887 },
+    "riverCrabHit": { "x": 1265, "y": 0, "w": 253, "h": 887 },
+    "riverCrabDefeated": { "x": 1518, "y": 0, "w": 256, "h": 887 }
+  }
+}

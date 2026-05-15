@@ -36,8 +36,8 @@ The largest remaining asset issue is not missing files. It is mixed reuse: the C
 | China room/excavation map assets | `public/assets/expedition/excavation/china-room-map-pack.png` + `.json` | Real PNG runtime atlas, 1536x1024, 28 regions | China excavation terrain and overlays through `roomMapPackId: 'chinaRoomMap'` | Already present; keep | P2 done |
 | China challenge UI assets | `public/assets/expedition/excavation/china-zone-challenge-ui-pack.png` + `.json` | Real PNG runtime atlas, 1536x1024, 27 regions | Zone-entry challenge cards and answer panels through `challengeUiPackId: 'chinaChallengeUi'` | Already present; keep | P2 done |
 | China survey marker/gateway assets | `public/assets/expedition/excavation/china-survey-marker-gateway-pack.png` + `.json` | Real PNG runtime atlas, 1536x1024, 58 regions | Player marker, survey pins, room markers, gateways, exit gate, wall/gate map pieces | Already present; keep | P2 done |
-| China enemy sprites | `public/assets/expedition/enemies/china/china-enemy-guardian-sprites.png` + `.json` | Real PNG runtime atlas, 1120x980, 25 regions | China Journey regular enemies: river crabs, watchtower sentries, and clay guardian sentries | Present for prototype; later enemy variety can improve polish | P1 done / P3 variety |
-| China guardian sprites | Same shared `china-enemy-guardian-sprites.png` atlas | Real PNG, but one shared clay guardian visual is reused for all five named guardians | China mini-bosses: Clay Guardian, Bronze Gate Warden, Jade Seal Guardian, Archive Sentry Captain, Rammed-Earth Sentinel | Playable now, but repeated boss visual weakens classroom finish | P1 for first guardian done; P3 for distinct later guardians |
+| China enemy sprites | `public/assets/expedition/enemies/china/china-river-crab-sprites.png`, `china-watchtower-sentry-sprites.png`, `china-clay-guardian-enemy-sprites.png` + `.json`; fallback `china-enemy-guardian-sprites.png` | Real transparent PNG runtime atlases, now split by enemy family | China Journey regular enemies: river crabs, watchtower sentries, and clay guardian sentries | Present and now closer to the Egypt multi-pack pattern | P1 done |
+| China guardian sprites | `public/assets/expedition/bosses/china-rammed-earth-sentinel-sprites.png` + `.json`; fallback `china-enemy-guardian-sprites.png` | Real transparent PNG boss atlas, still shared by the five China guardian encounters through `china-clay-guardian` | China mini-bosses: Clay Guardian, Bronze Gate Warden, Jade Seal Guardian, Archive Sentry Captain, Rammed-Earth Sentinel | Playable now, but repeated boss visual still weakens later-guardian variety | P1 done / P3 distinct later guardians |
 | China collectibles/tools/relic assets | `public/assets/expedition/collectibles/journey-collectibles-pack.png` + `.json`; `public/assets/expedition/player/khopesh-weapon-pack.png` + `.json` | Real PNG atlases, but reused generic/Egypt-leaning assets. Khopesh is explicitly Egypt-themed. | Journey tools, relic shards, objective markers, upgrades, weapon swing | Replacing khopesh is important for China visual identity; collectibles can wait | P1 weapon, P3 collectibles |
 | China evidence/museum images | `public/museum/china_*.jpg`, `china_*.png`; fallback `public/museum/china_generic.svg` | All China evidence image paths in `src/data.js` exist as real JPG/PNG files. Fallback is SVG. | Archaeology evidence cards, Lab/Museum/report image flow, Expedition evidence tokens by `ch_*` ids | Real evidence images are present; fallback only matters if an image is omitted later | P2 done; P3 replace fallback SVG |
 | China civilisation profile image | `public/assets/civilisations/profile-china.png` | Real PNG, 1024x1024 | Bureau training profile / civilisation case image from `src/data.js` | Already present; keep | P3 done |
@@ -55,6 +55,10 @@ No missing China runtime PNG/JSON files were found for currently wired China pac
 - `china-zone-challenge-ui-pack.png/.json`
 - `china-survey-marker-gateway-pack.png/.json`
 - `china-enemy-guardian-sprites.png/.json`
+- `china-river-crab-sprites.png/.json`
+- `china-watchtower-sentry-sprites.png/.json`
+- `china-clay-guardian-enemy-sprites.png/.json`
+- `china-rammed-earth-sentinel-sprites.png/.json`
 - `ancient-china-character.png`
 - `profile-china.png`
 
@@ -63,7 +67,7 @@ No missing `src/data.js` China evidence image paths were found. The audited evid
 The missing or not-yet-China-specific visual sets are:
 
 - A China-specific player weapon pack to replace `khopesh-weapon-pack.png`.
-- Optional distinct China guardian boss variants beyond the shared clay guardian atlas.
+- Optional distinct China guardian boss variants beyond the shared rammed-earth sentinel boss atlas.
 - Optional China-specific Journey collectible/relic/tool variants if the generic archaeology pack feels too Egypt-coded.
 - A PNG fallback replacement for `public/museum/china_generic.svg` if the app should avoid SVG fallbacks entirely.
 
@@ -94,6 +98,10 @@ Already present and wired:
 - `public/assets/expedition/excavation/china-zone-challenge-ui-pack.png`
 - `public/assets/expedition/excavation/china-survey-marker-gateway-pack.png`
 - `public/assets/expedition/enemies/china/china-enemy-guardian-sprites.png`
+- `public/assets/expedition/enemies/china/china-river-crab-sprites.png`
+- `public/assets/expedition/enemies/china/china-watchtower-sentry-sprites.png`
+- `public/assets/expedition/enemies/china/china-clay-guardian-enemy-sprites.png`
+- `public/assets/expedition/bosses/china-rammed-earth-sentinel-sprites.png`
 - `public/assets/expedition/stage-characters/ancient-china-character.png`
 - `public/assets/civilisations/profile-china.png`
 
@@ -107,8 +115,6 @@ Recommended new files:
 - `public/assets/expedition/bosses/china-bronze-gate-warden-sprites.json`
 - `public/assets/expedition/bosses/china-jade-seal-guardian-sprites.png`
 - `public/assets/expedition/bosses/china-jade-seal-guardian-sprites.json`
-- `public/assets/expedition/bosses/china-rammed-earth-sentinel-sprites.png`
-- `public/assets/expedition/bosses/china-rammed-earth-sentinel-sprites.json`
 - `public/museum/china_generic.png`
 
 ## Priority Order
@@ -127,7 +133,7 @@ P2 required for China Excavation/Museum to feel complete:
 
 P3 polish only:
 
-1. Add distinct boss sprite packs for later China guardians instead of using the shared clay guardian for all five encounters.
+1. Add distinct boss sprite packs for later China guardians instead of using the shared rammed-earth sentinel pack for all five encounters.
 2. Add China-specific collectible/relic/tool variants if the shared archaeology pack feels too generic or Egypt-coded.
 3. Add bespoke excavation hazard/Site Watcher sprites if the map needs stronger visual identity.
 4. Add China-specific audio cues later; this audit focused on image assets, but `routeMusicCue: 'desert'` is a visible code smell for a later audiovisual pass.
@@ -136,5 +142,5 @@ P3 polish only:
 
 1. Do a no-gameplay data/copy pass in the existing Journey data files: China route labels, objectives, route gate names/messages, boss intro cards, event names, field-kit copy, and scaffold slot labels.
 2. Add and wire a China-specific field-tool weapon atlas through the existing player weapon loader. Do not add a new combat system.
-3. Optional after that: split the shared clay guardian into distinct China boss atlases while keeping the existing boss state machine and `spriteBossId` pattern.
+3. Optional after that: split the shared rammed-earth sentinel into distinct China boss atlases while keeping the existing boss state machine and `spriteBossId` pattern.
 4. Finish with a browser-verified natural China playthrough and an Egypt regression check.
