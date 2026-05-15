@@ -725,13 +725,18 @@ const HAZARD_GROUNDING = {
 };
 
 const HAZARD_VISUAL_ALIASES = {
+  'desert-low-ridge': 'sand-pit',
   'desert-soft-ridge': 'sand-pit',
+  'temple-loose-step': 'spike-trap',
   'temple-floor-crack': 'spike-trap',
   'temple-falling-chip': 'falling-blocks',
+  'catacomb-small-gap': 'dark-gap',
   'catacomb-gap-2': 'dark-gap',
   'catacomb-bat-pocket': 'bat-cloud',
+  'escape-cracked-step': 'falling-blocks',
   'escape-falling-chip': 'falling-blocks',
   'escape-dust-pocket': 'dust-wave',
+  'camp-low-rope': 'loose-slope',
   'dig-site-loose-rope': 'loose-slope',
   'dig-site-loose-slope-2': 'loose-slope',
 };

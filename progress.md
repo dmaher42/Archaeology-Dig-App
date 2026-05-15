@@ -1256,3 +1256,14 @@ Remaining notes:
 - Bundle comparison after this pass: production build emitted `index-BobaB1xb.js` at 308.41 kB / 95.20 kB gzip, `ExpeditionMode-DooiEOa1.js` at 315.38 kB / 84.76 kB gzip, `DigPhase-CqqZbwpV.js` at 27.06 kB / 8.51 kB gzip, `BureauMode-CP5tuuRa.js` at 24.04 kB / 6.17 kB gzip, and a shared `gameLogic-C8uO50mE.js` chunk at 78.16 kB / 25.43 kB gzip.
 - Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing runtime-public-asset warnings only.
 - Browser notes: local smoke tests confirmed main menu, Training, Expedition, Dig setup, and Bureau all open through the current app flow with no browser console warnings/errors.
+
+2026-05-15 follow-up:
+- Reduced empty Egypt Journey walking spaces in the existing level data without shortening the route.
+- Added small micro-challenge beats across the desert entry, ruined temple, catacombs, escape route, and dig-site approach: raised steps, broken-bridge ledges, mild low hazards, and safe pause platforms.
+- Added optional risk/reward relic shards on slightly more involved paths while keeping the lower route usable for steady progress.
+- Added archaeology markers and short field-note style prompts such as pottery markers, survey flags, boundary markers, and evidence markers.
+- Kept boss approaches readable by placing safe pauses before guardian/boss areas and using mild penalties for new hazards.
+- No boss logic, Guardian Knowledge Challenge logic, boss rewards, route gates, Stage Select, Base Camp, Excavation, Museum, Lab, Report, save/load, inventory, or evidence systems were intentionally changed.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Browser notes: local browser/CDP verification opened Ancient Egypt Journey, confirmed early empty walking is reduced, visually checked pottery/survey markers, raised platforms, mild hazards, and optional shards, triggered the Scarab Queen boss intro, completed the Guardian Knowledge Challenge, defeated the boss, confirmed the Brush Handle reward drop, collected it, opened the first route gate to the Temple Route Seal, and confirmed the Base Camp Checklist still loads through the existing dev jump. No console errors were reported during the CDP checks.
+- Remaining risks/follow-up tasks: the pass was smoke-tested with debug positioning for speed rather than a full natural 10-15 minute no-dev-jump playthrough; a later polish pass should do a full controller/keyboard run through all Egypt gates and tune shard density if students collect too many early optional shards.
