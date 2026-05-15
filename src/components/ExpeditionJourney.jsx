@@ -507,7 +507,7 @@ const SECTION_MUSIC_CUES = {
 
 const JOURNEY_POLISH_VERSION = 'journey-polish-2026-05-11';
 const CHINA_BACKGROUND_POLISH_VERSION = 'china-background-seam-reduction-2026-05-15';
-const EGYPT_AMBIENT_LIFE_VERSION = 'egypt-ambient-life-2026-05-15';
+const EGYPT_AMBIENT_LIFE_VERSION = 'egypt-ambient-life-start-route-2026-05-15';
 const COLLECTIBLE_SCALE_TUNING_VERSION = 'journey-collectible-scale-tuning-2026-05-14';
 const RELIC_SHARD_SCALE = 0.74;
 const FIELD_TOOL_SCALE = 0.86;
@@ -2752,8 +2752,8 @@ export default function ExpeditionJourney({
     };
 
     if (section.id === 'desert-entry') {
-      [360, 640, 960, 1260].forEach((x, index) => drawSoftDust(baseX(x), GROUND_Y - 6, 130 + index * 12, 0.14, 0.75));
-      [520, 650, 1260, 1360].forEach((x, index) => drawFlutterPennant(baseX(x), baseY(306), index % 2 ? '#f59e0b' : '#facc15'));
+      [250, 360, 640, 790, 960, 1260].forEach((x, index) => drawSoftDust(baseX(x), GROUND_Y - 6, 118 + index * 8, index < 2 ? 0.1 : 0.14, index < 2 ? 0.55 : 0.75));
+      [250, 520, 650, 885, 1260, 1360].forEach((x, index) => drawFlutterPennant(baseX(x), baseY(306), index % 2 ? '#f59e0b' : '#facc15'));
       if (stats) stats.ambientLifeMode = 'desert-survey-activity';
     } else if (section.id === 'ruined-temple') {
       [1605, 2145, 2890].forEach((x, index) => drawFlutterPennant(baseX(x), baseY(306), index === 2 ? '#dc2626' : '#d97706'));

@@ -35,17 +35,24 @@ export const PLATFORMS = [
   { x: X(3150), y: GROUND_Y, width: X(1900), height: 60, label: 'catacomb path' },
   { x: X(5050), y: GROUND_Y, width: X(1450), height: 60, label: 'escape road' },
   { x: X(6500), y: GROUND_Y, width: WORLD_WIDTH - X(6500), height: 60, label: 'dig-site rise' },
+  { x: X(145), y: JY(326), width: 92, height: 18, label: 'starter survey stone' },
   { x: X(220), y: JY(318), width: 118, height: 18, label: 'first survey step' },
+  { x: X(285), y: JY(300), width: 118, height: 18, label: 'broken flag step' },
   { x: X(500), y: JY(306), width: 128, height: 18, label: 'survey marker step' },
   { x: X(360), y: JY(292), width: 175, height: 18, label: 'sun-baked ledge' },
   { x: X(570), y: JY(272), width: 118, height: 18, label: 'upper survey chip' },
+  { x: X(640), y: JY(246), width: 112, height: 18, label: 'upper clue perch' },
   { x: X(690), y: JY(276), width: 165, height: 18, label: 'broken column' },
+  { x: X(735), y: JY(246), width: 128, height: 18, label: 'upper route choice' },
   { x: X(800), y: JY(310), width: 112, height: 18, label: 'pottery rest step' },
+  { x: X(835), y: JY(270), width: 116, height: 18, label: 'upper seal chip' },
   { x: X(930), y: JY(286), width: 150, height: 18, label: 'pottery clue ledge' },
   { x: X(1015), y: JY(306), width: 118, height: 18, label: 'seal path rest' },
+  { x: X(1040), y: JY(282), width: 116, height: 18, label: 'lower route rejoin' },
   { x: X(1085), y: JY(252), width: 125, height: 18, label: 'upper shard path' },
   { x: X(1145), y: JY(264), width: 120, height: 18, label: 'warning slab path' },
   { x: X(1180), y: JY(304), width: 150, height: 18, label: 'survey ridge' },
+  { x: X(1235), y: JY(250), width: 112, height: 18, label: 'guardian lookout perch' },
   { x: X(1265), y: JY(286), width: 104, height: 18, label: 'guardian warning step' },
   { x: X(1345), y: JY(270), width: 120, height: 18, label: 'seal approach ledge' },
   { x: X(1555), y: JY(310), width: 118, height: 18, label: 'entry pause step' },
@@ -106,8 +113,10 @@ export const HAZARDS = [
   { id: 'warning-rubble', name: 'warning rubble', emoji: '!', x: X(6140), y: JY(324), width: 80, height: 36, penalty: { stamina: 8 }, message: 'Warning rubble narrowed the route.' },
   { id: 'survey-rope', name: 'survey rope', emoji: '!', x: X(7135), y: JY(330), width: 76, height: 30, penalty: { time: 6 }, message: 'Survey ropes slowed the final site access path.' },
   { id: 'desert-low-ridge', name: 'low sand ridge', emoji: '!', x: X(430), y: JY(330), width: 64, height: 30, penalty: { time: 4 }, message: 'A low sand ridge slowed the survey line.' },
-  { id: 'thorn-bush', name: 'thorn bush', emoji: '🌿', x: X(560), y: JY(329), width: 54, height: 31, penalty: { stamina: 8 }, message: 'Thorn scrub slowed the team. Stamina reduced.' },
-  { id: 'sand-pit', name: 'soft sand', emoji: '⏳', x: X(1060), y: JY(330), width: 92, height: 30, penalty: { time: 10 }, message: 'Soft sand cost the team time.' },
+  { id: 'thorn-bush', name: 'thorn bush', emoji: '🌿', x: X(560), y: JY(329), width: 54, height: 31, penalty: { stamina: 5 }, message: 'Thorn scrub slowed the team. Stamina reduced.' },
+  { id: 'entry-sand-gust-line', name: 'sand gust line', emoji: '!', x: X(735), y: JY(328), width: 82, height: 32, penalty: { time: 4 }, message: 'A light sand gust crossed the lower route.' },
+  { id: 'entry-unstable-chip', name: 'unstable stone chip', emoji: '!', x: X(895), y: JY(330), width: 58, height: 30, penalty: { stamina: 4 }, message: 'A small stone chip shifted underfoot.' },
+  { id: 'sand-pit', name: 'soft sand', emoji: '⏳', x: X(1060), y: JY(330), width: 92, height: 30, penalty: { time: 6 }, message: 'Soft sand cost the team time.' },
   { id: 'spike-trap', name: 'temple trap', emoji: '🧱', x: X(2050), y: JY(330), width: 70, height: 30, penalty: { stamina: 12 }, message: 'A temple trap clipped your route. Stamina reduced.' },
   { id: 'temple-loose-step', name: 'loose stone step', emoji: '!', x: X(1715), y: JY(330), width: 62, height: 30, penalty: { stamina: 5 }, message: 'A loose stone shifted underfoot.' },
   { id: 'rolling-stones', name: 'rolling stones', emoji: '🪨', x: X(2925), y: JY(318), width: 70, height: 42, penalty: { stamina: 12, time: 5 }, message: 'Rolling stones forced a scramble.' },
@@ -119,7 +128,7 @@ export const HAZARDS = [
   { id: 'dust-wave', name: 'dust wave', emoji: '💨', x: X(5960), y: JY(316), width: 130, height: 44, penalty: { time: 12 }, message: 'Dust reduced visibility. Time reduced.' },
   { id: 'camp-low-rope', name: 'low survey rope', emoji: '!', x: X(6715), y: JY(330), width: 62, height: 30, penalty: { time: 4 }, message: 'A low survey rope slowed the final approach.' },
   { id: 'loose-slope', name: 'loose slope', emoji: '📉', x: X(6910), y: JY(330), width: 110, height: 30, penalty: { stamina: 10 }, message: 'Loose stones made the final climb harder.' },
-  { id: 'desert-soft-ridge', name: 'soft sand ridge', emoji: '!', x: X(1125), y: JY(330), width: 86, height: 30, penalty: { time: 6 }, message: 'A soft sand ridge slowed the upper route.' },
+  { id: 'desert-soft-ridge', name: 'soft sand ridge', emoji: '!', x: X(1125), y: JY(330), width: 86, height: 30, penalty: { time: 4 }, message: 'A soft sand ridge slowed the upper route.' },
   { id: 'temple-floor-crack', name: 'floor crack', emoji: '!', x: X(1885), y: JY(330), width: 70, height: 30, penalty: { stamina: 8 }, message: 'Cracked floor stones shifted underfoot.' },
   { id: 'temple-falling-chip', name: 'falling stone chip', emoji: '!', x: X(2465), y: JY(318), width: 70, height: 42, penalty: { stamina: 8, time: 3 }, message: 'Small stones fell from the temple wall.' },
   { id: 'catacomb-gap-2', name: 'narrow dark gap', emoji: '!', x: X(3665), y: JY(344), width: 90, height: 18, penalty: { stamina: 8 }, message: 'A narrow gap interrupted the catacomb path.' },
@@ -193,17 +202,26 @@ export const CHINA_ENEMIES = [
   { id: 'guardian-2', name: 'Rammed-Earth Guardian', type: 'clay-guardian', emoji: 'G', x: X(7180), y: JY(312), width: 44, height: 48, patrolMin: X(7060), patrolMax: X(7350), speed: 70, health: 3, damage: 15, shards: 8 },
 ];
 
-export const RELIC_SHARDS = [
+const RELIC_SHARD_LAYOUT = [
   310, 455, 520, 620, 820, 980, 1240, 1315, 1430, 1660, 1760, 1840, 2020, 2265, 2360, 2440, 2600, 2835,
   3015, 3260, 3430, 3615, 3765, 3925, 4210, 4360, 4565, 4720, 4890, 5165, 5320,
   5490, 5660, 5710, 5835, 6060, 6220, 6400, 6610, 6780, 6900, 6965, 7130, 7280, 7425,
   935, 1105, 1885, 2090, 2465, 2588, 3450, 3755, 4068, 4395, 5215, 5530, 5865,
   6770, 7055, 7455,
-].map((x, index) => ({
+  { x: 170, y: 320 },
+  { x: 330, y: 286 },
+  { x: 690, y: 250 },
+  { x: 900, y: 286 },
+  { x: 760, y: 232 },
+  { x: 1045, y: 268 },
+  { x: 1195, y: 250 },
+];
+
+export const RELIC_SHARDS = RELIC_SHARD_LAYOUT.map((entry, index) => ({
   id: `shard-${index + 1}`,
-  x: X(x),
-  y: JY(index % 5 === 0 ? 244 : index % 3 === 0 ? 284 : 320),
-  hidden: [17, 18, 19, 24, 25, 36].includes(index + 1),
+  x: X(typeof entry === 'number' ? entry : entry.x),
+  y: JY(typeof entry === 'number' ? (index % 5 === 0 ? 244 : index % 3 === 0 ? 284 : 320) : entry.y),
+  hidden: typeof entry === 'number' ? [17, 18, 19, 24, 25, 36].includes(index + 1) : Boolean(entry.hidden),
 }));
 
 export const UPGRADES = [
@@ -505,10 +523,14 @@ export const SECTION_ATMOSPHERES = {
 
 export const STORY_PROPS = [
   { id: 'distant-ruins', sectionId: 'desert-entry', type: 'ruins', x: X(210), y: JY(236), label: 'distant ruins' },
+  { id: 'starter-route-marker', sectionId: 'desert-entry', type: 'sign', x: X(250), y: JY(308), label: 'route marker' },
   { id: 'half-buried-pottery-marker', sectionId: 'desert-entry', type: 'camp', x: X(420), y: JY(312), label: 'half-buried pottery marker' },
   { id: 'survey-flag-marker', sectionId: 'desert-entry', type: 'sign', x: X(520), y: JY(306), label: 'expedition flag' },
   { id: 'desert-boundary-marker', sectionId: 'desert-entry', type: 'sign', x: X(650), y: JY(306), label: 'ancient boundary marker' },
+  { id: 'sand-seal-route-marker', sectionId: 'desert-entry', type: 'statue', x: X(790), y: JY(292), label: 'sand-covered seal mark' },
+  { id: 'upper-route-note-marker', sectionId: 'desert-entry', type: 'sign', x: X(885), y: JY(306), label: 'upper route evidence marker' },
   { id: 'abandoned-camp', sectionId: 'desert-entry', type: 'camp', x: X(970), y: JY(312), label: 'abandoned survey camp' },
+  { id: 'survey-note-cache-start', sectionId: 'desert-entry', type: 'camp', x: X(1040), y: JY(312), label: 'expedition note marker' },
   { id: 'broken-seal-marker', sectionId: 'desert-entry', type: 'statue', x: X(1120), y: JY(286), label: 'broken seal marker' },
   { id: 'desert-evidence-flag', sectionId: 'desert-entry', type: 'sign', x: X(1260), y: JY(306), label: 'look for evidence marker' },
   { id: 'scarab-warning-marker', sectionId: 'desert-entry', type: 'sign', x: X(1360), y: JY(306), label: 'guardian warning marker' },
@@ -543,9 +565,11 @@ export const STORY_PROPS = [
 ];
 
 export const ENVIRONMENT_EVENTS = [
+  { id: 'starter-route-note', sectionId: 'desert-entry', x: X(255), name: 'Route Marker', message: 'Route marker ahead.', type: 'arrival', duration: 1.8, shake: 0.08 },
   { id: 'desert-pottery-clue', sectionId: 'desert-entry', x: X(410), name: 'Pottery Marker', message: 'Look for evidence before moving on.', type: 'arrival', duration: 2.2, shake: 0.15 },
   { id: 'sand-gust', sectionId: 'desert-entry', x: X(520), name: 'Sand Gust', message: 'A sheet of sand sweeps across the entry route.', type: 'gust', duration: 2.4, shake: 0.4 },
   { id: 'desert-marker', sectionId: 'desert-entry', x: X(700), name: 'Ancient Marker', message: 'Ancient marks ahead.', type: 'arrival', duration: 2.2, shake: 0.2 },
+  { id: 'upper-route-choice', sectionId: 'desert-entry', x: X(880), name: 'Evidence Route', message: 'Upper route has evidence.', type: 'arrival', duration: 2.0, shake: 0.12 },
   { id: 'temple-doors', sectionId: 'ruined-temple', x: X(1530), name: 'Temple Doors', message: 'Ancient doors groan open as the team enters.', type: 'doors', duration: 3.2, shake: 0.7 },
   { id: 'temple-instability', sectionId: 'ruined-temple', x: X(1890), name: 'Temple Instability', message: 'The site is becoming unstable.', type: 'collapse', duration: 2.8, shake: 0.5 },
   { id: 'temple-field-note', sectionId: 'ruined-temple', x: X(2295), name: 'Field Note Cache', message: 'Ancient marks ahead.', type: 'arrival', duration: 2.2, shake: 0.15 },

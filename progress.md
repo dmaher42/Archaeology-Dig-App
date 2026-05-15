@@ -1329,9 +1329,28 @@ Remaining notes:
 - Kept gameplay rules, enemy placement, boss data, route gates, Stage Select, save/load, and Egypt assets unchanged in this pass.
 
 2026-05-15 follow-up:
+- Tightened the new China enemy and boss atlas JSON regions to alpha-bounded sprite crops instead of full generated cells.
+- Confirmed the regular China enemy loader now resolves river crabs, watchtower sentries, and clay guardians to the dedicated China PNG sheets first, with the older combined China atlas retained as fallback.
+- Confirmed China guardian bosses resolve through the existing `china-clay-guardian` boss id to the dedicated `china-rammed-earth-sentinel-sprites.png` boss atlas.
+
+2026-05-15 follow-up:
 - Added more start-of-Journey platforming in the existing `PLATFORMS` layout: a first survey step, upper survey chip, seal path rest, and warning slab path.
 - Added two new early Egypt monster types in the existing `ENEMIES` array: Sand Scorpion/Stone Scorpion and Sand Wisp/Ledge Sand Wisp.
 - Added small existing-combat attack patterns for the new monster types without changing player attack, stomp, boss, gate, reward, save/load, inventory, or evidence systems.
 - Drew the new monster types through the existing `ExpeditionJourney.jsx` canvas enemy renderer instead of adding a new bitmap/atlas pipeline.
 - Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
 - Browser notes: local smoke opened Ancient Egypt Journey, confirmed the debug route is active, checked early positions around 505, 760, 1010, and 1170 base units, and confirmed `scorpion` and `sand-wisp` render in `visibleEnemySpriteFamilies` with two-health enemy states.
+
+2026-05-15 follow-up:
+- Journey start-area liveliness pass completed in the existing Journey layout/renderer files.
+- Added early route platforms: starter survey stone, broken flag step, upper clue perch, upper seal chip, and guardian lookout perch.
+- Added a readable lower/upper route choice: lower route stays direct with mild hazards; upper route gives safer traversal and extra shard/clue opportunities.
+- Added micro-rewards near the first 60-90 seconds of play: one easy main-path shard, one optional platform shard, one upper-route shard, and one slightly riskier shard near the unstable stone area.
+- Added archaeology markers/clues: route marker, sand-covered seal mark, upper route evidence marker, and expedition note marker.
+- Added two mild early hazards with small penalties: a light sand gust line and an unstable stone chip.
+- Extended the existing Egypt ambient life pass with extra start-route dust and fluttering survey markers; no new heavy effects or systems were added.
+- Empty opening walking was reduced while keeping the first checkpoint clear and the first boss route intact.
+- No Stage Select, Base Camp, Excavation, Museum, Lab, Report, save/load, inventory, evidence, route gate, boss, or Guardian Knowledge Challenge systems were changed.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with existing runtime-public-asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Browser notes: clean-save smoke opened Ancient Egypt Journey, simulated the first route movement, sampled start positions around 170, 330, 690, 900, 1185, and 1375 base units, confirmed collectibles/shards, mild hazards, ambient life, camera values, route gate state, and Scarab Queen intro still work. Headless browser reported audio autoplay warnings only; no gameplay/runtime exception was found.
+- Remaining risks/follow-up tasks: browser verification used deterministic movement/debug sampling rather than a full natural classroom playthrough; the section title card briefly overlays the start-route screenshot before fading, so a later UX pass could shorten the opening card if it still feels intrusive.

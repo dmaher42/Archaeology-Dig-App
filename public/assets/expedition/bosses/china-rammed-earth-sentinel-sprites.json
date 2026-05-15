@@ -1,18 +1,18 @@
 {
   "image": "china-rammed-earth-sentinel-sprites.png",
   "source": "AI-generated Ancient China rammed-earth sentinel boss sprite sheet, chroma-key removed and saved as a transparent PNG.",
-  "coordinateNote": "First-pass full-cell atlas regions from a generated 5-column by 2-row boss sheet. The counter-window frame reuses the shielded pose until a dedicated frame is generated.",
+  "coordinateNote": "Alpha-bounded crops from a generated 5-column by 2-row boss sheet, with small padding to preserve antialiasing and effects. The counter-window frame reuses the shielded pose until a dedicated frame is generated.",
   "regions": {
-    "clayGuardianIdle": { "x": 0, "y": 0, "w": 396, "h": 396 },
-    "clayGuardianWalk1": { "x": 396, "y": 0, "w": 396, "h": 396 },
-    "clayGuardianWalk2": { "x": 792, "y": 0, "w": 396, "h": 396 },
-    "clayGuardianIntro": { "x": 1188, "y": 0, "w": 396, "h": 396 },
-    "clayGuardianWindup": { "x": 1584, "y": 0, "w": 399, "h": 396 },
-    "clayGuardianSlam": { "x": 0, "y": 396, "w": 396, "h": 397 },
-    "clayGuardianPulse": { "x": 396, "y": 396, "w": 396, "h": 397 },
-    "clayGuardianShielded": { "x": 792, "y": 396, "w": 396, "h": 397 },
-    "clayGuardianCounterWindow": { "x": 792, "y": 396, "w": 396, "h": 397 },
-    "clayGuardianHit": { "x": 1188, "y": 396, "w": 396, "h": 397 },
-    "clayGuardianDefeated": { "x": 1584, "y": 396, "w": 399, "h": 397 }
+    "clayGuardianIdle": { "x": 42, "y": 28, "w": 264, "h": 352 },
+    "clayGuardianWalk1": { "x": 407, "y": 29, "w": 307, "h": 354 },
+    "clayGuardianWalk2": { "x": 817, "y": 29, "w": 288, "h": 354 },
+    "clayGuardianIntro": { "x": 1200, "y": 29, "w": 384, "h": 351 },
+    "clayGuardianWindup": { "x": 1584, "y": 84, "w": 313, "h": 293 },
+    "clayGuardianSlam": { "x": 7, "y": 423, "w": 389, "h": 307 },
+    "clayGuardianPulse": { "x": 396, "y": 452, "w": 396, "h": 308 },
+    "clayGuardianShielded": { "x": 792, "y": 414, "w": 337, "h": 333 },
+    "clayGuardianCounterWindow": { "x": 792, "y": 414, "w": 337, "h": 333 },
+    "clayGuardianHit": { "x": 1188, "y": 417, "w": 396, "h": 330 },
+    "clayGuardianDefeated": { "x": 1584, "y": 453, "w": 393, "h": 299 }
   }
 }

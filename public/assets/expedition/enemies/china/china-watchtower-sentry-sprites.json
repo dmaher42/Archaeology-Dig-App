@@ -1,14 +1,14 @@
 {
   "image": "china-watchtower-sentry-sprites.png",
   "source": "AI-generated Ancient China watchtower sentry enemy sprite sheet, chroma-key removed and saved as a transparent PNG.",
-  "coordinateNote": "First-pass full-cell atlas regions from a 7-frame horizontal generated sheet. Crops may be tightened after browser review.",
+  "coordinateNote": "Alpha-bounded crops from a 7-frame horizontal generated sheet, with small padding to preserve antialiasing and effects.",
   "regions": {
-    "watchtowerSentryIdle": { "x": 0, "y": 0, "w": 265, "h": 848 },
-    "watchtowerSentryWalk1": { "x": 265, "y": 0, "w": 265, "h": 848 },
-    "watchtowerSentryWalk2": { "x": 530, "y": 0, "w": 265, "h": 848 },
-    "watchtowerSentryWindup": { "x": 795, "y": 0, "w": 265, "h": 848 },
-    "watchtowerSentryAttack": { "x": 1060, "y": 0, "w": 265, "h": 848 },
-    "watchtowerSentryHit": { "x": 1325, "y": 0, "w": 265, "h": 848 },
-    "watchtowerSentryDefeated": { "x": 1590, "y": 0, "w": 265, "h": 848 }
+    "watchtowerSentryIdle": { "x": 32, "y": 211, "w": 233, "h": 408 },
+    "watchtowerSentryWalk1": { "x": 265, "y": 245, "w": 265, "h": 372 },
+    "watchtowerSentryWalk2": { "x": 530, "y": 231, "w": 265, "h": 385 },
+    "watchtowerSentryWindup": { "x": 795, "y": 245, "w": 265, "h": 373 },
+    "watchtowerSentryAttack": { "x": 1060, "y": 286, "w": 265, "h": 327 },
+    "watchtowerSentryHit": { "x": 1325, "y": 298, "w": 265, "h": 320 },
+    "watchtowerSentryDefeated": { "x": 1590, "y": 406, "w": 261, "h": 233 }
   }
 }

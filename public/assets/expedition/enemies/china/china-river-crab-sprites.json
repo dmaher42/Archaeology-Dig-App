@@ -1,14 +1,14 @@
 {
   "image": "china-river-crab-sprites.png",
   "source": "AI-generated Ancient China river crab enemy sprite sheet, chroma-key removed and saved as a transparent PNG.",
-  "coordinateNote": "First-pass full-cell atlas regions from a 7-frame horizontal generated sheet. Crops may be tightened after browser review.",
+  "coordinateNote": "Alpha-bounded crops from a 7-frame horizontal generated sheet, with small padding to preserve antialiasing and effects.",
   "regions": {
-    "riverCrabIdle": { "x": 0, "y": 0, "w": 253, "h": 887 },
-    "riverCrabWalk1": { "x": 253, "y": 0, "w": 253, "h": 887 },
-    "riverCrabWalk2": { "x": 506, "y": 0, "w": 253, "h": 887 },
-    "riverCrabWindup": { "x": 759, "y": 0, "w": 253, "h": 887 },
-    "riverCrabAttack": { "x": 1012, "y": 0, "w": 253, "h": 887 },
-    "riverCrabHit": { "x": 1265, "y": 0, "w": 253, "h": 887 },
-    "riverCrabDefeated": { "x": 1518, "y": 0, "w": 256, "h": 887 }
+    "riverCrabIdle": { "x": 14, "y": 397, "w": 239, "h": 162 },
+    "riverCrabWalk1": { "x": 253, "y": 387, "w": 253, "h": 167 },
+    "riverCrabWalk2": { "x": 506, "y": 393, "w": 253, "h": 165 },
+    "riverCrabWindup": { "x": 759, "y": 283, "w": 253, "h": 275 },
+    "riverCrabAttack": { "x": 1012, "y": 349, "w": 253, "h": 213 },
+    "riverCrabHit": { "x": 1265, "y": 335, "w": 253, "h": 225 },
+    "riverCrabDefeated": { "x": 1518, "y": 402, "w": 245, "h": 169 }
   }
 }

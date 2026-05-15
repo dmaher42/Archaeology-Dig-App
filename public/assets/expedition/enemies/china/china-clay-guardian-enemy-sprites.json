@@ -1,14 +1,14 @@
 {
   "image": "china-clay-guardian-enemy-sprites.png",
   "source": "AI-generated Ancient China clay guardian enemy sprite sheet, chroma-key removed and saved as a transparent PNG.",
-  "coordinateNote": "First-pass full-cell atlas regions from a 7-frame horizontal generated sheet. Crops may be tightened after browser review.",
+  "coordinateNote": "Alpha-bounded crops from a 7-frame horizontal generated sheet, with small padding to preserve antialiasing and effects.",
   "regions": {
-    "clayGuardianIdle": { "x": 0, "y": 0, "w": 313, "h": 717 },
-    "clayGuardianWalk1": { "x": 313, "y": 0, "w": 313, "h": 717 },
-    "clayGuardianWalk2": { "x": 626, "y": 0, "w": 313, "h": 717 },
-    "clayGuardianWindup": { "x": 939, "y": 0, "w": 313, "h": 717 },
-    "clayGuardianAttack": { "x": 1252, "y": 0, "w": 313, "h": 717 },
-    "clayGuardianHit": { "x": 1565, "y": 0, "w": 313, "h": 717 },
-    "clayGuardianDefeated": { "x": 1878, "y": 0, "w": 316, "h": 717 }
+    "clayGuardianIdle": { "x": 40, "y": 141, "w": 273, "h": 430 },
+    "clayGuardianWalk1": { "x": 313, "y": 150, "w": 313, "h": 420 },
+    "clayGuardianWalk2": { "x": 626, "y": 147, "w": 313, "h": 424 },
+    "clayGuardianWindup": { "x": 939, "y": 158, "w": 313, "h": 413 },
+    "clayGuardianAttack": { "x": 1252, "y": 212, "w": 313, "h": 373 },
+    "clayGuardianHit": { "x": 1565, "y": 184, "w": 313, "h": 387 },
+    "clayGuardianDefeated": { "x": 1878, "y": 383, "w": 305, "h": 210 }
   }
 }
