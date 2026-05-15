@@ -478,7 +478,7 @@ const SECTION_MUSIC_CUES = {
 };
 
 const JOURNEY_POLISH_VERSION = 'journey-polish-2026-05-11';
-const CHINA_BACKGROUND_POLISH_VERSION = 'china-background-depth-polish-2026-05-15';
+const CHINA_BACKGROUND_POLISH_VERSION = 'china-background-seam-reduction-2026-05-15';
 const EGYPT_AMBIENT_LIFE_VERSION = 'egypt-ambient-life-2026-05-15';
 const COLLECTIBLE_SCALE_TUNING_VERSION = 'journey-collectible-scale-tuning-2026-05-14';
 const RELIC_SHARD_SCALE = 0.74;
@@ -2970,19 +2970,19 @@ export default function ExpeditionJourney({
     if (!assets?.ready) return false;
     const layerOptions = { canvasWidth: CANVAS_WIDTH, cameraX };
     const drawn = [
-      drawDesertBackgroundLayer(ctx, assets, 'skyLayer', { y: 0, height: 338 }, { ...layerOptions, parallax: 0.02, alpha: 0.96 }),
-      drawDesertBackgroundLayer(ctx, assets, 'farMountains', { y: 170, height: 170 }, { ...layerOptions, parallax: 0.09, alpha: 0.62 }),
-      drawDesertBackgroundLayer(ctx, assets, 'riverValley', { y: 282, height: 145 }, { ...layerOptions, parallax: 0.18, alpha: 0.68 }),
-      drawDesertBackgroundLayer(ctx, assets, 'watchtowerRidge', { y: 320, height: 150 }, { ...layerOptions, parallax: 0.3, alpha: 0.58 }),
+      drawDesertBackgroundLayer(ctx, assets, 'skyLayer', { y: 0, height: CANVAS_HEIGHT }, { ...layerOptions, parallax: 0.01, alpha: 0.98 }),
+      drawDesertBackgroundLayer(ctx, assets, 'farMountains', { y: 184, height: 228 }, { ...layerOptions, parallax: 0.06, alpha: 0.42 }),
+      drawDesertBackgroundLayer(ctx, assets, 'riverValley', { y: 258, height: 224 }, { ...layerOptions, parallax: 0.14, alpha: 0.46 }),
+      drawDesertBackgroundLayer(ctx, assets, 'watchtowerRidge', { y: 314, height: 236 }, { ...layerOptions, parallax: 0.24, alpha: 0.64 }),
     ];
     if (!drawn.every(Boolean)) return false;
 
     ctx.save();
     const skyWash = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-    skyWash.addColorStop(0, 'rgba(222, 244, 231, 0.18)');
-    skyWash.addColorStop(0.42, 'rgba(180, 203, 171, 0.08)');
-    skyWash.addColorStop(0.72, 'rgba(116, 87, 54, 0.07)');
-    skyWash.addColorStop(1, 'rgba(42, 34, 24, 0.16)');
+    skyWash.addColorStop(0, 'rgba(225, 242, 230, 0.14)');
+    skyWash.addColorStop(0.36, 'rgba(197, 211, 183, 0.08)');
+    skyWash.addColorStop(0.66, 'rgba(181, 155, 105, 0.08)');
+    skyWash.addColorStop(1, 'rgba(57, 43, 25, 0.16)');
     ctx.fillStyle = skyWash;
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
@@ -2994,21 +2994,21 @@ export default function ExpeditionJourney({
     ctx.fillStyle = morningGlow;
     ctx.fillRect(0, 0, CANVAS_WIDTH, 330);
 
-    ctx.fillStyle = 'rgba(229, 241, 224, 0.13)';
-    for (let band = -180; band < CANVAS_WIDTH + 260; band += 260) {
-      const x = band - ((cameraX * 0.055) % 260);
-      ctx.beginPath();
-      ctx.ellipse(x, 236 + Math.sin((band + cameraX) * 0.002) * 8, 180, 22, -0.05, 0, Math.PI * 2);
-      ctx.fill();
-    }
+    const horizonBlend = ctx.createLinearGradient(0, 186, 0, 430);
+    horizonBlend.addColorStop(0, 'rgba(229, 232, 211, 0)');
+    horizonBlend.addColorStop(0.22, 'rgba(229, 232, 211, 0.16)');
+    horizonBlend.addColorStop(0.48, 'rgba(214, 207, 177, 0.2)');
+    horizonBlend.addColorStop(1, 'rgba(214, 207, 177, 0)');
+    ctx.fillStyle = horizonBlend;
+    ctx.fillRect(0, 180, CANVAS_WIDTH, 270);
 
-    ctx.fillStyle = 'rgba(57, 74, 49, 0.14)';
-    for (let ridge = -260; ridge < CANVAS_WIDTH + 320; ridge += 360) {
-      const x = ridge - ((cameraX * 0.11) % 360);
-      ctx.beginPath();
-      ctx.ellipse(x, 360, 210, 42, 0, 0, Math.PI * 2);
-      ctx.fill();
-    }
+    const valleyDust = ctx.createLinearGradient(0, 292, 0, 540);
+    valleyDust.addColorStop(0, 'rgba(229, 225, 201, 0)');
+    valleyDust.addColorStop(0.38, 'rgba(218, 207, 176, 0.18)');
+    valleyDust.addColorStop(0.78, 'rgba(189, 165, 119, 0.2)');
+    valleyDust.addColorStop(1, 'rgba(189, 165, 119, 0)');
+    ctx.fillStyle = valleyDust;
+    ctx.fillRect(0, 286, CANVAS_WIDTH, 270);
 
     const riverSheen = ctx.createLinearGradient(0, 292, 0, 410);
     riverSheen.addColorStop(0, 'rgba(174, 225, 205, 0)');
@@ -3017,7 +3017,7 @@ export default function ExpeditionJourney({
     ctx.fillStyle = riverSheen;
     ctx.fillRect(0, 286, CANVAS_WIDTH, 126);
 
-    ctx.fillStyle = 'rgba(248, 246, 221, 0.08)';
+    ctx.fillStyle = 'rgba(248, 246, 221, 0.045)';
     for (let ripple = -80; ripple < CANVAS_WIDTH + 120; ripple += 94) {
       const x = ripple - ((cameraX * 0.22) % 94);
       ctx.beginPath();
@@ -3025,9 +3025,28 @@ export default function ExpeditionJourney({
       ctx.fill();
     }
 
-    const floorVignette = ctx.createLinearGradient(0, 360, 0, CANVAS_HEIGHT);
+    const sitePlain = ctx.createLinearGradient(0, 402, 0, CANVAS_HEIGHT);
+    sitePlain.addColorStop(0, 'rgba(204, 187, 143, 0)');
+    sitePlain.addColorStop(0.34, 'rgba(205, 188, 145, 0.22)');
+    sitePlain.addColorStop(0.72, 'rgba(180, 151, 103, 0.34)');
+    sitePlain.addColorStop(1, 'rgba(75, 52, 30, 0.16)');
+    ctx.fillStyle = sitePlain;
+    ctx.fillRect(0, 396, CANVAS_WIDTH, CANVAS_HEIGHT - 396);
+
+    ctx.strokeStyle = 'rgba(103, 81, 46, 0.12)';
+    ctx.lineWidth = 1.2;
+    [438, 472, 508].forEach((y, index) => {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      for (let x = 0; x <= CANVAS_WIDTH; x += 80) {
+        ctx.lineTo(x, y + Math.sin((x + cameraX * 0.12 + index * 90) * 0.012) * 3);
+      }
+      ctx.stroke();
+    });
+
+    const floorVignette = ctx.createLinearGradient(0, 390, 0, CANVAS_HEIGHT);
     floorVignette.addColorStop(0, 'rgba(23, 34, 25, 0)');
-    floorVignette.addColorStop(1, 'rgba(23, 22, 16, 0.22)');
+    floorVignette.addColorStop(1, 'rgba(23, 22, 16, 0.18)');
     ctx.fillStyle = floorVignette;
     ctx.fillRect(0, 340, CANVAS_WIDTH, CANVAS_HEIGHT - 340);
     ctx.restore();
@@ -3083,13 +3102,23 @@ export default function ExpeditionJourney({
     if (backgroundPackId === 'china-river-valley') {
       const assets = getSectionBackgroundAssets(desertBackgroundAssetsRef.current, 'china-river-valley');
       if (!assets?.ready) return false;
-      return drawDesertBackgroundLayer(
-        ctx,
-        assets,
-        'foregroundMist',
-        { y: 320, height: 104 },
-        { canvasWidth: CANVAS_WIDTH, cameraX, parallax: 0.42, alpha: 0.24 },
-      );
+      const mistDrawn = [
+        drawDesertBackgroundLayer(
+          ctx,
+          assets,
+          'foregroundMist',
+          { y: 260, height: 190 },
+          { canvasWidth: CANVAS_WIDTH, cameraX, parallax: 0.34, alpha: 0.1 },
+        ),
+        drawDesertBackgroundLayer(
+          ctx,
+          assets,
+          'foregroundMist',
+          { y: 374, height: 130 },
+          { canvasWidth: CANVAS_WIDTH, cameraX, parallax: 0.48, alpha: 0.08 },
+        ),
+      ];
+      return mistDrawn.some(Boolean);
     }
     const isNearDesertEntry = section.id === 'desert-entry';
     const assets = getSectionBackgroundAssets(desertBackgroundAssetsRef.current, 'desert-entry');
@@ -4220,7 +4249,7 @@ export default function ExpeditionJourney({
     if (chinaBackgroundDrawn) {
       current.renderStats.parallaxLayersActive = true;
       current.renderStats.activeBackgroundSection = 'china-river-valley';
-      current.renderStats.backgroundDepthMode = 'china-river-valley-parallax-v2-polished';
+      current.renderStats.backgroundDepthMode = 'china-river-valley-parallax-v3-seam-reduced';
     } else if (desertBackgroundDrawn) {
       current.renderStats.parallaxLayersActive = true;
       current.renderStats.activeBackgroundSection = 'desert-entry';

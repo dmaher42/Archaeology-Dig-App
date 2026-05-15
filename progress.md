@@ -1299,3 +1299,16 @@ Remaining notes:
 - Kept the first boss approach, boss systems, Guardian Knowledge Challenge, route gates, Base Camp, excavation, evidence, save/load, and inventory systems unchanged.
 - Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
 - Browser notes: clean local-storage CDP smoke opened Ancient Egypt Journey, checked the early Desert Entry positions around 365, 535, 625, 705, 890, and 1095 base units, confirmed the expected scarab sprite frames render, visually checked the start route screenshot, and found no console errors.
+
+2026-05-15 follow-up:
+- Tuned regular Egypt Journey enemies so they no longer die in one hit.
+- Raised most scarabs, snakes, and bats from one health to two health; raised regular rival/guardian-style enemies to two or three health where appropriate.
+- Kept player attack/stomp logic, boss logic, Guardian Knowledge Challenge, rewards, route gates, Base Camp, excavation, evidence, save/load, and inventory systems unchanged.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Browser notes: clean local-storage CDP smoke opened Ancient Egypt Journey, confirmed Pottery Scarab starts at 2/2 health, one player hit reduced it to 1/2 instead of defeating it, and found no console errors.
+
+2026-05-15 follow-up:
+- Tuned the China Journey background renderer after a screenshot showed hard horizontal strip seams and a flat lower playfield.
+- Kept the existing China parallax atlas and Journey gameplay intact, but changed the China-only canvas draw stack so the sky fills the full backdrop, the mountain/valley/watchtower layers overlap more softly, and the foreground mist is lower-alpha.
+- Removed the visible oval haze bands from the first polish pass and replaced them with broad horizon/valley dust gradients, a warmer dig-site ground transition, and subtle contour lines in the lower playfield.
+- Updated the render snapshot marker to `china-river-valley-parallax-v3-seam-reduced`.
