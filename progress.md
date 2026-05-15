@@ -1258,6 +1258,12 @@ Remaining notes:
 - Browser notes: local smoke tests confirmed main menu, Training, Expedition, Dig setup, and Bureau all open through the current app flow with no browser console warnings/errors.
 
 2026-05-15 follow-up:
+- Started a China Journey background polish pass inside the existing `ExpeditionJourney.jsx` canvas renderer.
+- Added China-only background depth treatment after the runtime parallax atlas draws: soft morning sky wash, river haze bands, distant ridge silhouettes, subtle water sheen/ripples, and a lower vignette to ground the playable area.
+- Kept gameplay, Journey route data, Stage Select, Egypt assets, excavation, enemies, and asset files unchanged.
+- Exposed the pass through `chinaBackgroundPolishVersion` and updated the active China background depth mode to `china-river-valley-parallax-v2-polished`.
+
+2026-05-15 follow-up:
 - Reduced empty Egypt Journey walking spaces in the existing level data without shortening the route.
 - Added small micro-challenge beats across the desert entry, ruined temple, catacombs, escape route, and dig-site approach: raised steps, broken-bridge ledges, mild low hazards, and safe pause platforms.
 - Added optional risk/reward relic shards on slightly more involved paths while keeping the lower route usable for steady progress.
@@ -1267,3 +1273,27 @@ Remaining notes:
 - Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
 - Browser notes: local browser/CDP verification opened Ancient Egypt Journey, confirmed early empty walking is reduced, visually checked pottery/survey markers, raised platforms, mild hazards, and optional shards, triggered the Scarab Queen boss intro, completed the Guardian Knowledge Challenge, defeated the boss, confirmed the Brush Handle reward drop, collected it, opened the first route gate to the Temple Route Seal, and confirmed the Base Camp Checklist still loads through the existing dev jump. No console errors were reported during the CDP checks.
 - Remaining risks/follow-up tasks: the pass was smoke-tested with debug positioning for speed rather than a full natural 10-15 minute no-dev-jump playthrough; a later polish pass should do a full controller/keyboard run through all Egypt gates and tune shard density if students collect too many early optional shards.
+
+2026-05-15 follow-up:
+- Added a small Egypt Journey enemy-density pass inside the existing `ENEMIES` level-data array.
+- Added six low-stakes regular enemies in the newly active route spaces: Pottery Scarab, Temple Step Snake, Rival Scout near the field-note route, Torch Bat, Dust Scarab, and Rival Lookout.
+- Kept the added enemies mostly at one health with short patrol routes and low-to-moderate damage so the Journey feels more alive without becoming a combat slog.
+- Preserved the existing boss, Guardian Knowledge Challenge, boss reward, route gate, Base Camp, Excavation, Museum, Lab, Report, save/load, inventory, and evidence systems.
+- Preserved the existing uncommitted China enemy variant edits in the same file; this pass only added Egypt regular enemy entries.
+- Validation: `npm.cmd run lint` passed with the existing China background hook dependency warning only; `npm.cmd run build` passed with the existing Vite runtime-public-asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Browser notes: local CDP smoke opened Ancient Egypt Journey, checked the six added enemy positions with the existing Journey debug hook, confirmed Egypt remained the active civilisation, confirmed the expected enemy sprite families appeared at those positions, visually checked the late-route Rival Lookout placement, and found no console errors.
+- Remaining risks/follow-up tasks: this was a placed-enemy smoke test rather than a full natural combat playthrough; if the route starts feeling too busy in class, tune the first and temple additions before touching boss areas.
+
+2026-05-15 follow-up:
+- Added an Egypt ambient world-life pass inside the existing `ExpeditionJourney.jsx` canvas renderer.
+- Added visual-only section activity: desert survey dust and fluttering flags, temple torch glow and small falling stone flecks, catacomb glyph/torch glows, escape dust/rubble motion, and base-camp survey light/flag activity.
+- Exposed the pass in the Journey render snapshot fields with `ambientLifePassActive`, `ambientLifeVersion`, `ambientLifeMode`, and `ambientLifeDetailCount`.
+- Kept gameplay rules unchanged: no movement, collision, enemy, boss, Guardian Knowledge Challenge, route gate, reward, Base Camp, Excavation, Museum, Lab, Report, save/load, inventory, or evidence systems were intentionally changed.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Browser notes: local CDP smoke opened Ancient Egypt Journey, checked screenshots across Desert Entry, Ruined Temple, Catacombs, Escape Sequence, and Dig Site Entrance, confirmed the ambient effects are visible but subtle, confirmed Ancient Egypt remained active, and found no console errors.
+- Remaining risks/follow-up tasks: ambient effects were visually checked by debug-position smoke rather than a full natural playthrough; if classroom devices struggle, reduce particle/detail counts before changing gameplay.
+
+2026-05-15 follow-up:
+- Added three more low-stakes Egypt enemies at the start of Desert Entry after feedback that the opening still felt too empty.
+- Added Dune Scarab, Survey Scarab, and Seal Path Scarab with one health, short patrol routes, low damage, and small shard rewards.
+- Kept the first boss approach, boss systems, Guardian Knowledge Challenge, route gates, Base Camp, excavation, evidence, save/load, and inventory systems unchanged.

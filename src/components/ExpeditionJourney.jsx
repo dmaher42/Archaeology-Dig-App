@@ -29,6 +29,8 @@ import {
   PLAYER_SPRITE_FRAME_WIDTH,
   PLAYER_SPRITE_SCALE,
   PLAYER_SPRITE_SRC,
+  JOURNEY_VERTICAL_OFFSET,
+  scaleJourneyX,
 } from './expedition-journey/journeyConstants';
 
 import {
@@ -476,6 +478,8 @@ const SECTION_MUSIC_CUES = {
 };
 
 const JOURNEY_POLISH_VERSION = 'journey-polish-2026-05-11';
+const CHINA_BACKGROUND_POLISH_VERSION = 'china-background-depth-polish-2026-05-15';
+const EGYPT_AMBIENT_LIFE_VERSION = 'egypt-ambient-life-2026-05-15';
 const COLLECTIBLE_SCALE_TUNING_VERSION = 'journey-collectible-scale-tuning-2026-05-14';
 const RELIC_SHARD_SCALE = 0.74;
 const FIELD_TOOL_SCALE = 0.86;
@@ -1621,6 +1625,10 @@ export default function ExpeditionJourney({
       platformVisualTuningActive: Boolean(renderStats.platformVisualTuningActive),
       journeyPolishPassActive: Boolean(renderStats.journeyPolishPassActive),
       journeyPolishVersion: renderStats.journeyPolishVersion || JOURNEY_POLISH_VERSION,
+      ambientLifePassActive: Boolean(renderStats.ambientLifePassActive),
+      ambientLifeVersion: renderStats.ambientLifeVersion || null,
+      ambientLifeMode: renderStats.ambientLifeMode || null,
+      ambientLifeDetailCount: renderStats.ambientLifeDetailCount || 0,
       hazardReadabilityMode: renderStats.hazardReadabilityMode || 'soft-warning-cues',
       enemyVisualMode: renderStats.enemyVisualMode || 'sprite-atlas-with-grounding',
       bossVisualMode: renderStats.bossVisualMode || 'multi-boss-atlas-fallback-safe',
@@ -2642,6 +2650,115 @@ export default function ExpeditionJourney({
     ctx.restore();
   }, []);
 
+  const drawEgyptAmbientLife = useCallback((ctx, section, cameraX, now) => {
+    if (backgroundPackId === 'china-river-valley') return 0;
+    let activeDetails = 0;
+    const stats = stateRef.current.renderStats;
+    const time = now / 1000;
+    const baseX = (x) => scaleJourneyX(x);
+    const baseY = (y) => y + JOURNEY_VERTICAL_OFFSET;
+    const drawSoftDust = (worldX, baseY, width, alpha = 0.18, speed = 1) => {
+      const x = worldToScreenX(worldX, cameraX);
+      if (x < -width || x > CANVAS_WIDTH + width) return;
+      activeDetails += 1;
+      ctx.save();
+      ctx.fillStyle = `rgba(244, 202, 134, ${alpha})`;
+      for (let i = 0; i < 4; i += 1) {
+        const drift = ((time * 22 * speed + i * 41 + worldX * 0.01) % width) - width / 2;
+        const y = baseY - 8 - i * 4 + Math.sin(time * 1.4 + i + worldX * 0.004) * 4;
+        ctx.beginPath();
+        ctx.ellipse(x + drift, y, 18 + i * 5, 3.2, -0.08, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    };
+    const drawFlutterPennant = (worldX, y, color = '#facc15') => {
+      const x = worldToScreenX(worldX, cameraX);
+      if (x < -80 || x > CANVAS_WIDTH + 80) return;
+      activeDetails += 1;
+      const flutter = Math.sin(time * 5.4 + worldX * 0.02) * 5;
+      ctx.save();
+      ctx.strokeStyle = 'rgba(69, 26, 3, 0.52)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x, y - 26);
+      ctx.lineTo(x, y + 22);
+      ctx.stroke();
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(x + 2, y - 24);
+      ctx.quadraticCurveTo(x + 28, y - 28 + flutter, x + 44, y - 18);
+      ctx.quadraticCurveTo(x + 22, y - 14 - flutter * 0.3, x + 2, y - 8);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    };
+    const drawTinyRubble = (worldX, y, color = 'rgba(136, 90, 48, 0.42)') => {
+      const x = worldToScreenX(worldX, cameraX);
+      if (x < -80 || x > CANVAS_WIDTH + 80) return;
+      activeDetails += 1;
+      ctx.save();
+      ctx.fillStyle = color;
+      for (let i = 0; i < 5; i += 1) {
+        const fall = (time * 34 + i * 23 + worldX * 0.015) % 72;
+        ctx.beginPath();
+        ctx.ellipse(x + i * 15 - 30, y + fall, 3 + (i % 2), 2.2, 0.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    };
+    const drawGlowPulse = (worldX, y, color, radius = 72) => {
+      const x = worldToScreenX(worldX, cameraX);
+      if (x < -radius || x > CANVAS_WIDTH + radius) return;
+      activeDetails += 1;
+      const pulse = 0.72 + Math.sin(time * 3 + worldX * 0.01) * 0.18;
+      const glow = ctx.createRadialGradient(x, y, 4, x, y, radius * pulse);
+      glow.addColorStop(0, color);
+      glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.save();
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(x, y, radius * pulse, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    };
+
+    if (section.id === 'desert-entry') {
+      [360, 640, 960, 1260].forEach((x, index) => drawSoftDust(baseX(x), GROUND_Y - 6, 130 + index * 12, 0.14, 0.75));
+      [520, 650, 1260, 1360].forEach((x, index) => drawFlutterPennant(baseX(x), baseY(306), index % 2 ? '#f59e0b' : '#facc15'));
+      if (stats) stats.ambientLifeMode = 'desert-survey-activity';
+    } else if (section.id === 'ruined-temple') {
+      [1605, 2145, 2890].forEach((x, index) => drawFlutterPennant(baseX(x), baseY(306), index === 2 ? '#dc2626' : '#d97706'));
+      [1860, 2640].forEach(x => drawGlowPulse(baseX(x), baseY(232), 'rgba(250, 204, 21, 0.16)', 84));
+      [1715, 2380, 2925].forEach(x => drawTinyRubble(baseX(x), baseY(236), 'rgba(164, 113, 61, 0.34)'));
+      if (stats) stats.ambientLifeMode = 'temple-torch-and-stone-motion';
+    } else if (section.id === 'catacombs') {
+      [3440, 4020, 4250].forEach(x => drawGlowPulse(baseX(x), baseY(232), 'rgba(125, 211, 252, 0.18)', 92));
+      [3195, 3985, 4740].forEach((x, index) => drawFlutterPennant(baseX(x), baseY(306), index === 2 ? '#dc2626' : '#38bdf8'));
+      [3705, 4310].forEach(x => drawSoftDust(baseX(x), baseY(326), 100, 0.1, 0.45));
+      if (stats) stats.ambientLifeMode = 'catacomb-glyph-and-torch-motion';
+    } else if (section.id === 'escape-sequence') {
+      [5200, 5315, 5600, 6030, 6260].forEach((x, index) => {
+        if (index % 2 === 0) drawTinyRubble(baseX(x), baseY(220), 'rgba(190, 119, 62, 0.42)');
+        drawSoftDust(baseX(x), GROUND_Y - 6, 150, 0.18, 1.25);
+      });
+      [5315, 5600, 6260].forEach(x => drawFlutterPennant(baseX(x), baseY(306), '#dc2626'));
+      if (stats) stats.ambientLifeMode = 'escape-dust-and-warning-motion';
+    } else if (section.id === 'dig-site-entrance') {
+      [6700, 7505].forEach(x => drawGlowPulse(baseX(x), baseY(288), 'rgba(254, 240, 138, 0.2)', 120));
+      [6750, 6870, 7040, 7330].forEach((x, index) => drawFlutterPennant(baseX(x), baseY(306), index === 3 ? '#dc2626' : '#22c55e'));
+      [6680, 6870, 7330].forEach(x => drawSoftDust(baseX(x), GROUND_Y - 5, 130, 0.12, 0.55));
+      if (stats) stats.ambientLifeMode = 'base-camp-survey-activity';
+    }
+
+    if (activeDetails > 0 && stats) {
+      stats.ambientLifePassActive = true;
+      stats.ambientLifeVersion = EGYPT_AMBIENT_LIFE_VERSION;
+      stats.ambientLifeDetailCount = activeDetails;
+    }
+    return activeDetails;
+  }, [backgroundPackId]);
+
   const drawCollectibleSpriteGlow = useCallback((ctx, screenX, centerY, now, color, options = {}) => {
     const pulse = Math.sin(now / (options.pulseSpeed || 340)) * 0.22 + 0.78;
     const ringKey = options.ringKey || 'availableGlowRing';
@@ -2858,7 +2975,64 @@ export default function ExpeditionJourney({
       drawDesertBackgroundLayer(ctx, assets, 'riverValley', { y: 282, height: 145 }, { ...layerOptions, parallax: 0.18, alpha: 0.68 }),
       drawDesertBackgroundLayer(ctx, assets, 'watchtowerRidge', { y: 320, height: 150 }, { ...layerOptions, parallax: 0.3, alpha: 0.58 }),
     ];
-    return drawn.every(Boolean);
+    if (!drawn.every(Boolean)) return false;
+
+    ctx.save();
+    const skyWash = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
+    skyWash.addColorStop(0, 'rgba(222, 244, 231, 0.18)');
+    skyWash.addColorStop(0.42, 'rgba(180, 203, 171, 0.08)');
+    skyWash.addColorStop(0.72, 'rgba(116, 87, 54, 0.07)');
+    skyWash.addColorStop(1, 'rgba(42, 34, 24, 0.16)');
+    ctx.fillStyle = skyWash;
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    const sunX = CANVAS_WIDTH * 0.68 - (cameraX * 0.015) % 90;
+    const morningGlow = ctx.createRadialGradient(sunX, 132, 8, sunX, 132, 280);
+    morningGlow.addColorStop(0, 'rgba(255, 232, 178, 0.24)');
+    morningGlow.addColorStop(0.46, 'rgba(244, 194, 112, 0.1)');
+    morningGlow.addColorStop(1, 'rgba(244, 194, 112, 0)');
+    ctx.fillStyle = morningGlow;
+    ctx.fillRect(0, 0, CANVAS_WIDTH, 330);
+
+    ctx.fillStyle = 'rgba(229, 241, 224, 0.13)';
+    for (let band = -180; band < CANVAS_WIDTH + 260; band += 260) {
+      const x = band - ((cameraX * 0.055) % 260);
+      ctx.beginPath();
+      ctx.ellipse(x, 236 + Math.sin((band + cameraX) * 0.002) * 8, 180, 22, -0.05, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.fillStyle = 'rgba(57, 74, 49, 0.14)';
+    for (let ridge = -260; ridge < CANVAS_WIDTH + 320; ridge += 360) {
+      const x = ridge - ((cameraX * 0.11) % 360);
+      ctx.beginPath();
+      ctx.ellipse(x, 360, 210, 42, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    const riverSheen = ctx.createLinearGradient(0, 292, 0, 410);
+    riverSheen.addColorStop(0, 'rgba(174, 225, 205, 0)');
+    riverSheen.addColorStop(0.46, 'rgba(174, 225, 205, 0.12)');
+    riverSheen.addColorStop(1, 'rgba(48, 78, 62, 0)');
+    ctx.fillStyle = riverSheen;
+    ctx.fillRect(0, 286, CANVAS_WIDTH, 126);
+
+    ctx.fillStyle = 'rgba(248, 246, 221, 0.08)';
+    for (let ripple = -80; ripple < CANVAS_WIDTH + 120; ripple += 94) {
+      const x = ripple - ((cameraX * 0.22) % 94);
+      ctx.beginPath();
+      ctx.ellipse(x, 344 + Math.sin((ripple + cameraX) * 0.018) * 5, 42, 3.6, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    const floorVignette = ctx.createLinearGradient(0, 360, 0, CANVAS_HEIGHT);
+    floorVignette.addColorStop(0, 'rgba(23, 34, 25, 0)');
+    floorVignette.addColorStop(1, 'rgba(23, 22, 16, 0.22)');
+    ctx.fillStyle = floorVignette;
+    ctx.fillRect(0, 340, CANVAS_WIDTH, CANVAS_HEIGHT - 340);
+    ctx.restore();
+
+    return true;
   }, [backgroundPackId]);
 
   const drawSectionParallaxBackground = useCallback((ctx, section, cameraX) => {
@@ -3996,6 +4170,11 @@ export default function ExpeditionJourney({
       platformVisualTuningActive: true,
       journeyPolishPassActive: true,
       journeyPolishVersion: JOURNEY_POLISH_VERSION,
+      chinaBackgroundPolishVersion: backgroundPackId === 'china-river-valley' ? CHINA_BACKGROUND_POLISH_VERSION : null,
+      ambientLifePassActive: false,
+      ambientLifeVersion: null,
+      ambientLifeMode: null,
+      ambientLifeDetailCount: 0,
       hazardReadabilityMode: 'soft-warning-cues',
       enemyVisualMode: enemySpriteAssetsRef.current.loaded ? 'sprite-atlas-with-grounding' : 'canvas-fallback',
       bossVisualMode: bossSpriteAssetsRef.current.loaded ? 'multi-boss-atlas-fallback-safe' : 'canvas-fallback',
@@ -4041,7 +4220,7 @@ export default function ExpeditionJourney({
     if (chinaBackgroundDrawn) {
       current.renderStats.parallaxLayersActive = true;
       current.renderStats.activeBackgroundSection = 'china-river-valley';
-      current.renderStats.backgroundDepthMode = 'china-river-valley-parallax-v1';
+      current.renderStats.backgroundDepthMode = 'china-river-valley-parallax-v2-polished';
     } else if (desertBackgroundDrawn) {
       current.renderStats.parallaxLayersActive = true;
       current.renderStats.activeBackgroundSection = 'desert-entry';
@@ -4102,6 +4281,7 @@ export default function ExpeditionJourney({
     }
     drawDesertForegroundAtmosphere(ctx, section, cameraX);
     STORY_PROPS.forEach((prop) => drawStoryProp(ctx, prop, cameraX, now, 'midground'));
+    drawEgyptAmbientLife(ctx, section, cameraX, now);
 
     const activeBossDomain = current.bossDomain
       && !current.defeatedMiniBosses.has(current.bossDomain.bossId)
@@ -4449,7 +4629,7 @@ export default function ExpeditionJourney({
       ctx.fillText(featureCard.message || '', cardCenterX, cardY + (isGuardianCard ? 60 : 56));
       ctx.textAlign = 'start';
     }
-  }, [drawAttackArc, drawCollectible, drawCombatEffects, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawEnemyAttackTell, drawGroundDustLip, drawHazard, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawParticles, drawPlatform, drawRouteGate, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStoryProp, drawTempleBackdrop, getCombatMode, getGateGuidance, getGateRequirements, getPlayerAttackState, drawPlayerSprite, drawFieldNoteLabel]);
+  }, [backgroundPackId, drawAttackArc, drawCollectible, drawCombatEffects, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawEgyptAmbientLife, drawEnemyAttackTell, drawGroundDustLip, drawHazard, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawParticles, drawPlatform, drawRouteGate, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStoryProp, drawTempleBackdrop, getCombatMode, getGateGuidance, getGateRequirements, getPlayerAttackState, drawPlayerSprite, drawFieldNoteLabel]);
 
   const queueAttack = useCallback(() => {
     const current = stateRef.current;
