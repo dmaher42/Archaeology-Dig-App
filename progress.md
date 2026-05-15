@@ -1297,3 +1297,5 @@ Remaining notes:
 - Added three more low-stakes Egypt enemies at the start of Desert Entry after feedback that the opening still felt too empty.
 - Added Dune Scarab, Survey Scarab, and Seal Path Scarab with one health, short patrol routes, low damage, and small shard rewards.
 - Kept the first boss approach, boss systems, Guardian Knowledge Challenge, route gates, Base Camp, excavation, evidence, save/load, and inventory systems unchanged.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Browser notes: clean local-storage CDP smoke opened Ancient Egypt Journey, checked the early Desert Entry positions around 365, 535, 625, 705, 890, and 1095 base units, confirmed the expected scarab sprite frames render, visually checked the start route screenshot, and found no console errors.
