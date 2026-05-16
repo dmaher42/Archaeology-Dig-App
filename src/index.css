@@ -17322,6 +17322,16 @@ main {
   outline-offset: 3px;
 }
 
+.expedition-local-sound-btn {
+  left: 3.85rem;
+}
+
+.expedition-local-sound-btn[aria-pressed="true"] {
+  border-color: rgba(125, 211, 252, 0.62);
+  background: rgba(14, 116, 144, 0.62);
+  color: #ecfeff;
+}
+
 .journey-pause-menu {
   position: absolute;
   inset: 0;

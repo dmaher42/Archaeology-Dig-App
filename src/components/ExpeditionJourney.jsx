@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Backpack,
   CheckCircle2,
@@ -35,6 +35,11 @@ import {
   PLAYER_SPRITE_FRAME_COUNT,
   PLAYER_SPRITE_FRAME_HEIGHT,
   PLAYER_SPRITE_FRAME_WIDTH,
+  PLAYER_CHINA_HERO_SPRITE_ATLAS_JSON,
+  PLAYER_CHINA_HERO_SPRITE_VERSION,
+  PLAYER_HERO_SPRITE_ATLAS_JSON,
+  PLAYER_HERO_SPRITE_VERSION,
+  PLAYER_LEGACY_SPRITE_SRC,
   PLAYER_SPRITE_SCALE,
   PLAYER_SPRITE_SRC,
   JOURNEY_VERTICAL_OFFSET,
@@ -350,6 +355,77 @@ const getGuardianBattleModifier = (correctCount) => {
     resultMessage: 'The guardian is empowered. Prepare carefully.',
     label: 'Guardian empowered',
   };
+};
+
+const getAtlasImagePath = (atlasPath, imageName) => {
+  if (!imageName) return null;
+  if (imageName.startsWith('/') || imageName.startsWith('assets/') || imageName.startsWith('sprites/')) return imageName;
+  const atlasDir = atlasPath.includes('/') ? atlasPath.slice(0, atlasPath.lastIndexOf('/') + 1) : '';
+  return `${atlasDir}${imageName}`;
+};
+
+const getHeroSpriteRow = (atlas, rowName) => atlas?.rows?.find(row => row.name === rowName) || null;
+
+const isPlayerAttackVisualPhase = (attackState) => (
+  attackState === 'windup' || attackState === 'swing' || attackState === 'recoil'
+);
+
+const getPlayerHeroSpriteConfig = ({ targetCivilisation, backgroundPackId }) => {
+  const isChinaJourney = backgroundPackId === 'china-river-valley'
+    || String(targetCivilisation || '').toLowerCase().includes('china');
+  if (isChinaJourney) {
+    return {
+      characterId: 'china-female-archaeologist',
+      atlasPath: PLAYER_CHINA_HERO_SPRITE_ATLAS_JSON,
+      version: PLAYER_CHINA_HERO_SPRITE_VERSION,
+      fallbackSrc: PLAYER_LEGACY_SPRITE_SRC,
+    };
+  }
+  return {
+    characterId: 'egypt-archaeologist-hero',
+    atlasPath: PLAYER_HERO_SPRITE_ATLAS_JSON,
+    version: PLAYER_HERO_SPRITE_VERSION,
+    fallbackSrc: PLAYER_LEGACY_SPRITE_SRC,
+  };
+};
+
+const getHeroSpriteFrameKey = (current, atlas, now) => {
+  const animationState = current.player.animationState || 'idle';
+  const walkCycleDistance = current.player.walkCycleDistance || 0;
+  const attackState = current.attackPhase
+    || (current.attackWindupTimer > 0 ? 'windup'
+      : current.attackTimer > 0 ? 'swing'
+        : current.attackRecoilTimer > 0 ? 'recoil'
+          : current.attackCooldown > 0 ? 'cooldown'
+            : 'ready');
+
+  if (animationState === 'hurt') {
+    const row = getHeroSpriteRow(atlas, 'hurt');
+    return row?.frames?.[Math.floor(now / 90) % Math.max(1, row.frameCount)] || 'hurt_00';
+  }
+
+  if (animationState === 'attack' || isPlayerAttackVisualPhase(attackState)) {
+    const row = getHeroSpriteRow(atlas, 'attack_pick_swing');
+    if (!row) return null;
+    const frameCount = Math.max(1, row.frameCount || row.frames?.length || 1);
+    if (attackState === 'windup') return row.frames?.[0] || 'attack_pick_swing_00';
+    if (attackState === 'recoil') return row.frames?.[frameCount - 1] || `attack_pick_swing_${String(frameCount - 1).padStart(2, '0')}`;
+    const progress = clamp((ATTACK_DURATION - Math.max(0, current.attackTimer || 0)) / ATTACK_DURATION, 0, 1);
+    return row.frames?.[Math.min(frameCount - 1, Math.floor(progress * frameCount))] || null;
+  }
+
+  const rowName = animationState === 'survey-walk' ? 'survey_walk' : animationState;
+  const row = getHeroSpriteRow(atlas, rowName) || getHeroSpriteRow(atlas, 'idle');
+  if (!row) return null;
+  const frameCount = Math.max(1, row.frameCount || row.frames?.length || 1);
+  if (row.loop) {
+    const frame = rowName === 'idle'
+      ? Math.floor(now / 180) % frameCount
+      : Math.floor(walkCycleDistance / (rowName === 'run' ? 15 : rowName === 'survey_walk' ? 34 : 22)) % frameCount;
+    return row.frames?.[frame] || null;
+  }
+  const frame = Math.min(frameCount - 1, current.player.animationFrame ?? 0);
+  return row.frames?.[frame] || null;
 };
 
 const DEFAULT_ENEMY_ATTACK_PATTERN = {
@@ -994,6 +1070,10 @@ export default function ExpeditionJourney({
   permanentUpgradeIds = [],
   permanentUpgradeEffects = {},
 }) {
+  const playerHeroSpriteConfig = useMemo(() => getPlayerHeroSpriteConfig({
+    targetCivilisation,
+    backgroundPackId,
+  }), [backgroundPackId, targetCivilisation]);
   const [gameState, setGameState] = useState(() => makeInitialState({
     targetCivilisation,
     permanentUpgradeIds,
@@ -1006,7 +1086,19 @@ export default function ExpeditionJourney({
   const keysRef = useRef({});
   const lastFrameRef = useRef(0);
   const animationRef = useRef(null);
-  const playerSpriteRef = useRef({ image: null, loaded: false, failed: false });
+  const playerSpriteRef = useRef({
+    image: null,
+    atlas: null,
+    legacyImage: null,
+    loaded: false,
+    heroLoaded: false,
+    legacyLoaded: false,
+    failed: false,
+    mode: 'loading',
+    atlasPath: playerHeroSpriteConfig.atlasPath,
+    characterId: playerHeroSpriteConfig.characterId,
+    fallbackSrc: playerHeroSpriteConfig.fallbackSrc,
+  });
   const environmentAssetsRef = useRef(createEnvironmentAssetState(environmentPackId));
   const desertBackgroundAssetsRef = useRef(createDesertBackgroundAssetState());
   const enemySpriteAssetsRef = useRef(createEnemySpriteState());
@@ -1069,24 +1161,68 @@ export default function ExpeditionJourney({
 
   useEffect(() => {
     let cancelled = false;
-    const image = new Image();
-    image.onload = () => {
-      if (cancelled) return;
-      playerSpriteRef.current = { image, loaded: true, failed: false };
-      stateRef.current.playerSpriteLoaded = true;
-      syncHud();
+    const baseUrl = import.meta.env.BASE_URL;
+    const { atlasPath, characterId, fallbackSrc } = playerHeroSpriteConfig;
+    const loadLegacySprite = (heroState = {}) => {
+      const legacyImage = new Image();
+      legacyImage.onload = () => {
+        if (cancelled) return;
+        const useHero = Boolean(heroState.image && heroState.atlas);
+        playerSpriteRef.current = {
+          image: useHero ? heroState.image : legacyImage,
+          atlas: heroState.atlas || null,
+          legacyImage,
+          loaded: true,
+          heroLoaded: useHero,
+          legacyLoaded: true,
+          failed: false,
+          mode: useHero ? 'hero-atlas' : 'legacy-strip',
+          atlasPath,
+          characterId,
+          fallbackSrc,
+        };
+        stateRef.current.playerSpriteLoaded = true;
+        syncHud();
+      };
+      legacyImage.onerror = () => {
+        if (cancelled) return;
+        const useHero = Boolean(heroState.image && heroState.atlas);
+        playerSpriteRef.current = {
+          image: heroState.image || null,
+          atlas: heroState.atlas || null,
+          legacyImage: null,
+          loaded: useHero,
+          heroLoaded: useHero,
+          legacyLoaded: false,
+          failed: !useHero,
+          mode: useHero ? 'hero-atlas' : 'canvas-fallback',
+          atlasPath,
+          characterId,
+          fallbackSrc,
+        };
+        stateRef.current.playerSpriteLoaded = useHero;
+        syncHud();
+      };
+      legacyImage.src = `${baseUrl}${fallbackSrc}`;
     };
-    image.onerror = () => {
-      if (cancelled) return;
-      playerSpriteRef.current = { image: null, loaded: false, failed: true };
-      stateRef.current.playerSpriteLoaded = false;
-      syncHud();
-    };
-    image.src = `${import.meta.env.BASE_URL}${PLAYER_SPRITE_SRC}`;
+
+    fetch(`${baseUrl}${atlasPath}`)
+      .then((response) => {
+        if (!response.ok) throw new Error(`Player hero atlas request failed: ${response.status}`);
+        return response.json();
+      })
+      .then((atlas) => new Promise((resolve) => {
+        const image = new Image();
+        image.onload = () => resolve({ image, atlas });
+        image.onerror = () => resolve({});
+        image.src = `${baseUrl}${getAtlasImagePath(atlasPath, atlas.image)}`;
+      }))
+      .then(loadLegacySprite)
+      .catch(() => loadLegacySprite());
     return () => {
       cancelled = true;
     };
-  }, [syncHud]);
+  }, [playerHeroSpriteConfig, syncHud]);
 
   useEffect(() => loadEnvironmentAssetPack({
     baseUrl: import.meta.env.BASE_URL,
@@ -1752,6 +1888,14 @@ export default function ExpeditionJourney({
       },
       playerFacing: current.player.direction >= 0 ? 'right' : 'left',
       playerSpriteLoaded: Boolean(playerSpriteRef.current.loaded),
+      playerHeroSpriteLoaded: Boolean(playerSpriteRef.current.heroLoaded),
+      playerLegacySpriteLoaded: Boolean(playerSpriteRef.current.legacyLoaded),
+      playerSpriteCharacterId: playerSpriteRef.current.characterId || playerHeroSpriteConfig.characterId,
+      playerSpriteAtlasPath: playerSpriteRef.current.atlasPath || playerHeroSpriteConfig.atlasPath,
+      playerSpriteVersion: playerHeroSpriteConfig.version,
+      playerSpriteVisualMode: renderStats.playerSpriteVisualMode || playerSpriteRef.current.mode || 'canvas-fallback',
+      playerSpriteFrame: renderStats.playerSpriteFrame || null,
+      playerSpriteFallbackSrc: playerSpriteRef.current.fallbackSrc || playerHeroSpriteConfig.fallbackSrc,
       playerAnimationState: current.player.animationState || 'idle',
       playerAnimationFrame: current.player.animationFrame ?? 1,
       playerSpriteScale: Number((current.player.spriteScale || PLAYER_SPRITE_SCALE).toFixed(3)),
@@ -2254,7 +2398,7 @@ export default function ExpeditionJourney({
       failureDetail: current.failureDetail,
       notice: current.notice,
     };
-  }, [backgroundPackId, briefingOpen, getActiveHazardsNearPlayer, getActiveHiddenRoutes, getActiveSecretCollectibles, getBossVulnerabilityState, getCombatMode, getEnemyPatternConfig, getEntityCombatState, getGateGuidance, getObjectiveProgress, getPlayerAttackState, getRouteAccessState, getSectionDisplayName, getSectionDisplayTitle, getStaminaWarningState, isRouteRewardAccessible, targetCivilisation]);
+  }, [backgroundPackId, briefingOpen, getActiveHazardsNearPlayer, getActiveHiddenRoutes, getActiveSecretCollectibles, getBossVulnerabilityState, getCombatMode, getEnemyPatternConfig, getEntityCombatState, getGateGuidance, getObjectiveProgress, getPlayerAttackState, getRouteAccessState, getSectionDisplayName, getSectionDisplayTitle, getStaminaWarningState, isRouteRewardAccessible, playerHeroSpriteConfig, targetCivilisation]);
 
   // --- Rendering Helpers ---
   const drawFieldNoteLabel = useCallback((ctx, x, y, text, color) => {
@@ -2610,13 +2754,23 @@ export default function ExpeditionJourney({
     }
 
     const current = stateRef.current;
+    const heroAtlas = sprite.mode === 'hero-atlas' ? sprite.atlas : null;
+    const heroFrameKey = heroAtlas ? getHeroSpriteFrameKey(current, heroAtlas, now) : null;
+    const heroRegion = heroFrameKey ? heroAtlas?.regions?.[heroFrameKey] : null;
     const frame = clamp(current.player.animationFrame ?? 1, 0, PLAYER_SPRITE_FRAME_COUNT - 1);
-    const drawHeight = PLAYER_SPRITE_DRAW_HEIGHT;
-    const drawWidth = PLAYER_SPRITE_FRAME_WIDTH * PLAYER_SPRITE_SCALE;
+    const frameWidth = heroRegion?.w || PLAYER_SPRITE_FRAME_WIDTH;
+    const frameHeight = heroRegion?.h || PLAYER_SPRITE_FRAME_HEIGHT;
+    const heroDrawHeight = Number(heroAtlas?.draw?.height) || PLAYER_SPRITE_DRAW_HEIGHT;
+    const drawHeight = heroRegion ? heroDrawHeight : PLAYER_SPRITE_DRAW_HEIGHT;
+    const drawScale = drawHeight / frameHeight;
+    const drawWidth = frameWidth * drawScale;
     const footX = x + w / 2;
     const footY = y + h + 1;
     const drawX = -drawWidth / 2;
-    const drawY = -drawHeight;
+    const regionGroundLineY = Number(heroRegion?.groundLineY);
+    const drawY = heroRegion && Number.isFinite(regionGroundLineY)
+      ? -regionGroundLineY * drawScale
+      : -drawHeight;
     const attackState = getPlayerAttackState(current);
     const attackLean = attackState === 'windup'
       ? -direction * 3
@@ -2653,17 +2807,27 @@ export default function ExpeditionJourney({
     if (direction < 0) ctx.scale(-1, 1);
     ctx.drawImage(
       sprite.image,
-      frame * PLAYER_SPRITE_FRAME_WIDTH,
-      0,
-      PLAYER_SPRITE_FRAME_WIDTH,
-      PLAYER_SPRITE_FRAME_HEIGHT,
+      heroRegion?.x ?? frame * PLAYER_SPRITE_FRAME_WIDTH,
+      heroRegion?.y ?? 0,
+      frameWidth,
+      frameHeight,
       drawX,
       drawY,
       drawWidth,
       drawHeight,
     );
+    if (current.renderStats && heroFrameKey) {
+      current.renderStats.playerSpriteFrame = heroFrameKey;
+      current.renderStats.playerSpriteVisualMode = 'hero-atlas';
+    }
 
-    drawPlayerKhopesh(ctx, drawWidth * 0.34, -drawHeight * 0.54, attackState, 1, 0.9);
+    const suppressExternalWeapon = heroAtlas?.draw?.suppressExternalWeaponDuringAttack
+      && isPlayerAttackVisualPhase(attackState);
+    if (!suppressExternalWeapon) {
+      drawPlayerKhopesh(ctx, drawWidth * 0.34, -drawHeight * 0.54, attackState, 1, 0.9);
+    } else if (current.renderStats) {
+      current.renderStats.playerWeaponVisualMode = 'integrated-hero-atlas';
+    }
 
     ctx.restore();
 
@@ -5945,6 +6109,8 @@ export default function ExpeditionJourney({
       visibleObjectiveSprites: [],
       visibleCollectibleCount: 0,
       playerWeaponFrame: getPlayerWeaponFrameKey(getPlayerAttackState(current)),
+      playerSpriteFrame: null,
+      playerSpriteVisualMode: playerSpriteRef.current.mode || 'canvas-fallback',
       bossDomainActive: Boolean(current.bossDomain),
     };
     const showWorldLabel = (worldX, distance = 150, priority = 'normal') => {
@@ -6384,8 +6550,12 @@ export default function ExpeditionJourney({
 
     drawDiscoveryEntrance(ctx, DISCOVERY_ENTRANCE, cameraX, current, now);
 
-    if (current.attackTimer > 0) {
+    const suppressRuntimeAttackArc = playerSpriteRef.current.mode === 'hero-atlas'
+      && playerSpriteRef.current.atlas?.draw?.suppressRuntimeAttackArc;
+    if (current.attackTimer > 0 && !suppressRuntimeAttackArc) {
       drawAttackArc(ctx, current.playerAttackBox, cameraX, player.direction, '#facc15', getPlayerAttackState(current));
+    } else if (current.attackTimer > 0 && current.renderStats) {
+      current.renderStats.playerAttackArcMode = 'integrated-hero-atlas';
     }
     drawPlayerSprite(ctx, player.x - cameraX, player.y, player.width, player.height, player.direction, player.invulnerable, now);
     drawCombatEffects(ctx, current.combatHitEffects, cameraX, now);
@@ -6825,7 +6995,7 @@ export default function ExpeditionJourney({
       footstepTimerRef.current -= dt;
       if (footstepTimerRef.current <= 0) {
         audioControls?.playExpeditionSfx?.('footstepSand');
-        footstepTimerRef.current = 0.52;
+        footstepTimerRef.current = 0.42;
       }
       player.movementDustTimer -= dt;
       if (player.movementDustTimer <= 0 && Math.abs(player.vx) > 90) {

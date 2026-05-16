@@ -39,6 +39,7 @@ let expeditionMusicKey = null;
 let expeditionMusicFade = null;
 let expeditionSfxUnlocked = false;
 const expeditionSfxLastPlayedAt = new Map();
+const expeditionSyntheticSfxVariants = new Map();
 
 const EXPEDITION_AUDIO_TRACKS = {
   music: {
@@ -56,12 +57,13 @@ const EXPEDITION_AUDIO_TRACKS = {
   },
   sfx: {
     footstepSand: {
+      synth: 'dustStep',
+      synthVolume: 1.22,
       randomize: true,
-      cooldownMs: 420,
+      cooldownMs: 360,
       clips: [
-        { path: 'assets/expedition/sfx/land-soft.ogg', volume: 0.12, playbackRate: 1.22 },
-        { path: 'assets/expedition/sfx/satchel-leather.ogg', volume: 0.1, playbackRate: 1.08 },
-        { path: 'assets/expedition/sfx/land-soft.ogg', volume: 0.1, playbackRate: 0.92 },
+        { path: 'assets/expedition/sfx/land-soft.ogg', volume: 0.13, playbackRate: 0.88 },
+        { path: 'assets/expedition/sfx/satchel-leather.ogg', volume: 0.1, playbackRate: 0.9 },
       ],
     },
     jump: { path: 'assets/expedition/sfx/land-soft.ogg', volume: 0.3, playbackRate: 1.28 },
@@ -83,9 +85,11 @@ const EXPEDITION_AUDIO_TRACKS = {
     gateUnlock: { path: 'assets/expedition/sfx/stone-gate-open.ogg', volume: 0.52 },
     gateBlocked: { path: 'assets/expedition/sfx/stone-gate-blocked.ogg', volume: 0.44 },
     attackSwing: {
+      synth: 'softSwing',
+      synthVolume: 1.3,
       cooldownMs: 260,
       clips: [
-        { path: 'assets/expedition/sfx/satchel-leather.ogg', volume: 0.18, playbackRate: 1.24 },
+        { path: 'assets/expedition/sfx/satchel-leather.ogg', volume: 0.12, delay: 32, playbackRate: 0.96 },
       ],
     },
     enemyHit: { path: 'assets/expedition/sfx/enemy-hit.ogg', volume: 0.42 },
@@ -187,6 +191,96 @@ const unlockExpeditionSfx = () => {
   });
 };
 
+const playExpeditionSyntheticSfx = (type, options = {}) => {
+  if (!audioCtx) return;
+  const now = audioCtx.currentTime;
+  const volume = options.volume ?? 1;
+  const variant = expeditionSyntheticSfxVariants.get(type) || 0;
+  expeditionSyntheticSfxVariants.set(type, variant + 1);
+  const variation = (variant % 4) - 1.5;
+
+  if (type === 'dustStep') {
+    const duration = 0.16;
+    const buffer = audioCtx.createBuffer(1, Math.floor(audioCtx.sampleRate * duration), audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i += 1) {
+      const progress = i / data.length;
+      const fade = Math.max(0, 1 - progress);
+      data[i] = (Math.random() * 2 - 1) * fade * fade;
+    }
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buffer;
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(430 + variation * 28, now);
+    filter.frequency.linearRampToValueAtTime(620 + variation * 18, now + duration);
+    filter.Q.value = 0.82;
+    const noiseGain = audioCtx.createGain();
+    noiseGain.gain.setValueAtTime(0.0001, now);
+    noiseGain.gain.linearRampToValueAtTime(0.082 * volume, now + 0.018);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+    noise.connect(filter);
+    filter.connect(noiseGain);
+    noiseGain.connect(audioCtx.destination);
+    noise.start(now);
+    noise.stop(now + duration);
+
+    const thump = audioCtx.createOscillator();
+    thump.type = 'sine';
+    thump.frequency.setValueAtTime(96 + variation * 4, now);
+    thump.frequency.exponentialRampToValueAtTime(58 + variation * 2, now + 0.09);
+    const thumpGain = audioCtx.createGain();
+    thumpGain.gain.setValueAtTime(0.0001, now);
+    thumpGain.gain.linearRampToValueAtTime(0.042 * volume, now + 0.008);
+    thumpGain.gain.exponentialRampToValueAtTime(0.001, now + 0.11);
+    thump.connect(thumpGain);
+    thumpGain.connect(audioCtx.destination);
+    thump.start(now);
+    thump.stop(now + 0.12);
+    return;
+  }
+
+  if (type === 'softSwing') {
+    const duration = 0.22;
+    const buffer = audioCtx.createBuffer(1, Math.floor(audioCtx.sampleRate * duration), audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i += 1) {
+      const attack = Math.min(1, i / (data.length * 0.22));
+      const decay = 1 - (i / data.length);
+      data[i] = (Math.random() * 2 - 1) * attack * decay;
+    }
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buffer;
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(1080 + variation * 45, now);
+    filter.frequency.linearRampToValueAtTime(390 + variation * 18, now + duration);
+    filter.Q.value = 0.9;
+    const noiseGain = audioCtx.createGain();
+    noiseGain.gain.setValueAtTime(0.0001, now);
+    noiseGain.gain.linearRampToValueAtTime(0.105 * volume, now + 0.045);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+    noise.connect(filter);
+    filter.connect(noiseGain);
+    noiseGain.connect(audioCtx.destination);
+    noise.start(now);
+    noise.stop(now + duration);
+
+    const body = audioCtx.createOscillator();
+    body.type = 'triangle';
+    body.frequency.setValueAtTime(176 + variation * 5, now + 0.025);
+    body.frequency.exponentialRampToValueAtTime(124 + variation * 3, now + 0.15);
+    const bodyGain = audioCtx.createGain();
+    bodyGain.gain.setValueAtTime(0.0001, now + 0.02);
+    bodyGain.gain.linearRampToValueAtTime(0.035 * volume, now + 0.05);
+    bodyGain.gain.exponentialRampToValueAtTime(0.001, now + 0.17);
+    body.connect(bodyGain);
+    bodyGain.connect(audioCtx.destination);
+    body.start(now + 0.02);
+    body.stop(now + 0.18);
+  }
+};
+
 const playExpeditionSfx = (sfxKey, options = {}) => {
   initAudio();
   const config = EXPEDITION_AUDIO_TRACKS.sfx[sfxKey];
@@ -206,6 +300,13 @@ const playExpeditionSfx = (sfxKey, options = {}) => {
   const selectedClips = config.randomize || sfxKey === 'footstepSand'
     ? [clips[Math.floor(Math.random() * clips.length)]]
     : clips;
+
+  if (!Array.isArray(config) && config.synth) {
+    playExpeditionSyntheticSfx(config.synth, {
+      ...options,
+      volume: (options.volume ?? 1) * (config.synthVolume ?? 1),
+    });
+  }
 
   selectedClips.forEach((clip) => {
     const playClip = () => {
@@ -392,6 +493,7 @@ export default function App() {
   const [showDevTools, setShowDevTools] = useState(false);
   const [isSiteSelectionActive, setIsSiteSelectionActive] = useState(false);
   const [expeditionMusicEnabled, setExpeditionMusicEnabled] = useState(false);
+  const [expeditionSfxEnabled, setExpeditionSfxEnabled] = useState(true);
   const isMenuLanding = phase === 'menu' && !isSiteSelectionActive;
   const audioControls = useMemo(() => ({
     ...baseAudioControls,
@@ -402,7 +504,27 @@ export default function App() {
       }
       baseAudioControls.playExpeditionMusic?.(trackKey);
     },
-  }), [expeditionMusicEnabled]);
+    playExpeditionSfx: (sfxKey, options) => {
+      if (!expeditionSfxEnabled) return;
+      baseAudioControls.playExpeditionSfx?.(sfxKey, options);
+    },
+    playExpeditionStinger: (stingerKey) => {
+      if (!expeditionSfxEnabled) return;
+      baseAudioControls.playExpeditionStinger?.(stingerKey);
+    },
+    unlockExpeditionSfx: () => {
+      if (!expeditionSfxEnabled) return;
+      baseAudioControls.unlockExpeditionSfx?.();
+    },
+    expeditionSfxEnabled,
+    toggleExpeditionSfx: () => {
+      setExpeditionSfxEnabled((enabled) => {
+        const nextEnabled = !enabled;
+        if (nextEnabled) baseAudioControls.unlockExpeditionSfx?.();
+        return nextEnabled;
+      });
+    },
+  }), [expeditionMusicEnabled, expeditionSfxEnabled]);
 
   // Autosave Logic
   useEffect(() => {
@@ -499,21 +621,31 @@ export default function App() {
   };
 
   const handleStartExpedition = () => {
-    baseAudioControls.unlockExpeditionSfx?.();
+    if (expeditionSfxEnabled) baseAudioControls.unlockExpeditionSfx?.();
     setIsSiteSelectionActive(false);
     setPhase('expedition');
   };
 
   const handleExpeditionMusicToggle = () => {
-    baseAudioControls.unlockExpeditionSfx?.();
     setExpeditionMusicEnabled((enabled) => {
       if (enabled) baseAudioControls.stopExpeditionMusic?.();
       return !enabled;
     });
   };
 
+  const handleExpeditionSfxToggle = () => {
+    setExpeditionSfxEnabled((enabled) => {
+      const nextEnabled = !enabled;
+      if (nextEnabled) baseAudioControls.unlockExpeditionSfx?.();
+      return nextEnabled;
+    });
+  };
+
   const handleExpeditionSoundTest = () => {
-    baseAudioControls.unlockExpeditionSfx?.();
+    if (!expeditionSfxEnabled) {
+      setExpeditionSfxEnabled(true);
+      baseAudioControls.unlockExpeditionSfx?.();
+    }
     baseAudioControls.playExpeditionSfx?.('pickupTool', { volume: 1.35 });
   };
 
@@ -538,7 +670,9 @@ export default function App() {
             onResumeBureau={() => applySavedSession(savedGames.bureau)}
             onSiteSelectionChange={setIsSiteSelectionActive}
             expeditionMusicEnabled={expeditionMusicEnabled}
+            expeditionSfxEnabled={expeditionSfxEnabled}
             onExpeditionMusicToggle={handleExpeditionMusicToggle}
+            onExpeditionSfxToggle={handleExpeditionSfxToggle}
             onExpeditionSoundTest={handleExpeditionSoundTest}
           />
         )}

@@ -40,7 +40,9 @@ export function ActivityMenu({
   onResumeBureau,
   onSiteSelectionChange = () => {},
   expeditionMusicEnabled = false,
+  expeditionSfxEnabled = false,
   onExpeditionMusicToggle = () => {},
+  onExpeditionSfxToggle = () => {},
   onExpeditionSoundTest = () => {}
 }) {
   const [showCivSelection, setShowCivSelection] = useState(false);
@@ -199,6 +201,16 @@ export function ActivityMenu({
           >
             <Volume2 size={16} />
             <span>Test Sound</span>
+          </button>
+          <button
+            type="button"
+            className={`menu-music-toggle ${expeditionSfxEnabled ? 'is-on' : 'is-off'}`}
+            onClick={onExpeditionSfxToggle}
+            aria-pressed={expeditionSfxEnabled}
+            aria-label={`Expedition sound effects ${expeditionSfxEnabled ? 'on' : 'off'}`}
+          >
+            {expeditionSfxEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+            <span>Expedition Sounds: {expeditionSfxEnabled ? 'On' : 'Off'}</span>
           </button>
         </div>
       </div>

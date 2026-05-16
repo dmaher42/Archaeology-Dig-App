@@ -10,6 +10,7 @@ import {
 
 const source = readFileSync(new URL('./journeyLevelData.js', import.meta.url), 'utf8');
 const journeyUtilsSource = readFileSync(new URL('./journeyUtils.js', import.meta.url), 'utf8');
+const journeyConstantsSource = readFileSync(new URL('./journeyConstants.js', import.meta.url), 'utf8');
 const journeyComponentSource = readFileSync(new URL('../ExpeditionJourney.jsx', import.meta.url), 'utf8');
 const extractExportedArray = (name) => {
   const startToken = `export const ${name} = [`;
@@ -123,6 +124,18 @@ test('player polish extends the canonical Journey animation and weapon paths', (
   assert.match(journeyComponentSource, /playerAttackBox/);
   assert.doesNotMatch(journeyUtilsSource, /PLAYER_WIDTH\s*=/);
   assert.doesNotMatch(journeyUtilsSource, /PLAYER_HEIGHT\s*=/);
+});
+
+test('China Journey uses a unique female player atlas through the existing player renderer', () => {
+  assert.match(journeyConstantsSource, /PLAYER_CHINA_HERO_SPRITE_ATLAS_JSON/);
+  assert.match(journeyConstantsSource, /china-female-archaeologist-production-spritesheet\.json/);
+  assert.match(journeyComponentSource, /china-female-archaeologist/);
+  assert.match(journeyComponentSource, /backgroundPackId === 'china-river-valley'/);
+  assert.match(journeyComponentSource, /playerHeroSpriteConfig/);
+  assert.match(journeyComponentSource, /fallbackSrc/);
+  assert.match(journeyComponentSource, /suppressExternalWeaponDuringAttack/);
+  assert.match(journeyComponentSource, /suppressRuntimeAttackArc/);
+  assert.match(journeyComponentSource, /groundLineY/);
 });
 
 test('environment interactions include reactive foreground and movement elements', () => {

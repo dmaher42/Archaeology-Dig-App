@@ -79,6 +79,14 @@ Remaining notes:
 - Browser/state checks confirmed Lost Site Expedition opens, Journey starts, objective and mini-boss state appears in `render_game_to_text`, all five route gates can be cleared, Base Camp opens, and Begin Excavation still enters the existing excavation stage.
 - Remaining risk: automated testing covered a guided route and one viewport; a human classroom playtest is still useful for timing, difficulty feel, and optional-route discovery.
 
+2026-05-16 update:
+- Completed a focused China Journey player sprite polish pass in the existing Journey renderer.
+- The production China female archaeologist atlas is wired through the canonical hero-atlas path; no duplicate player controller, movement model, hitbox model, or expedition flow was added.
+- Tightened the production atlas metadata so idle, walk, run, jump, fall, land, and attack regions are cut to their transparent row bands instead of pulling in neighbouring animation rows.
+- The China atlas now suppresses the old separate weapon and runtime attack arc during integrated pick-swing frames, so the painted pick and golden swing effect own the attack presentation.
+- `node --test src\components\expedition-journey\journeySecrets.test.js`, `npm.cmd run lint`, and `npm.cmd run build` passed.
+- Browser smoke verified Menu -> Start Expedition -> Ancient China -> Begin Expedition, plus idle, run, and attack screenshots in `output/china-sprite-polish-final-*.png`; no browser console errors were reported.
+
 2026-05-14 update:
 - Added the first real Ancient China runtime asset packs without making Ancient China playable.
 - Created `public/assets/expedition/backgrounds/china-river-valley/china-river-valley-parallax-pack.png` plus its JSON atlas with the five expected river-valley parallax regions.
@@ -111,6 +119,12 @@ Remaining notes:
 - `npm.cmd run build` passed; Vite still reports the existing runtime-resolution warnings for two Egypt excavation images and the large bundle warning.
 - Browser verification confirmed China Journey asset pack ids, China background pack readiness, China Base Camp handoff via the existing dev jump, China excavation map loading with `china-room-map-stage-1`, and Egypt Journey regression.
 - Remaining risk: China still reuses much of the Egypt-authored Journey progression model under the hood, including objective/gate/boss structure. A future pass should make the Journey objectives, boss/enemy names, and natural route completion fully China-specific before calling it classroom-finished.
+
+2026-05-16 update:
+- Upgraded Journey repeated player sounds inside the existing `App.jsx` expedition audio controls.
+- Walking now layers a warmer generated dust-step/thump with quiet existing soft clips and a safer cooldown.
+- J/K attack swing now layers a soft generated whoosh/wood body with a quieter leather detail, avoiding the old scraping weapon sound.
+- Expedition Sounds remain on by default with the visible Journey/menu toggle still available for classroom muting.
 
 2026-05-09 update:
 - Added Journey Arcade Spectacle Phase 3 to the existing `ExpeditionJourney.jsx` side-scroller.

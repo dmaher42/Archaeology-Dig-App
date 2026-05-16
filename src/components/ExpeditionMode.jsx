@@ -21,6 +21,8 @@ import {
   Play,
   Gem,
   Target,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 import { SCENARIOS } from '../data';
 import { BUREAU_CASES, getCategoryTitle } from '../utils/gameLogic';
@@ -2968,6 +2970,13 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         activeAtmosphere: journeySnapshot.activeAtmosphere || null,
         playerCombatState: journeySnapshot.playerCombatState || null,
         playerSpriteLoaded: Boolean(journeySnapshot.playerSpriteLoaded),
+        playerHeroSpriteLoaded: Boolean(journeySnapshot.playerHeroSpriteLoaded),
+        playerLegacySpriteLoaded: Boolean(journeySnapshot.playerLegacySpriteLoaded),
+        playerSpriteAtlasPath: journeySnapshot.playerSpriteAtlasPath || null,
+        playerSpriteVersion: journeySnapshot.playerSpriteVersion || null,
+        playerSpriteVisualMode: journeySnapshot.playerSpriteVisualMode || null,
+        playerSpriteFrame: journeySnapshot.playerSpriteFrame || null,
+        playerSpriteFallbackSrc: journeySnapshot.playerSpriteFallbackSrc || null,
         playerAnimationState: journeySnapshot.playerAnimationState || null,
         playerAnimationFrame: journeySnapshot.playerAnimationFrame ?? null,
         playerFacing: journeySnapshot.playerFacing || null,
@@ -3646,6 +3655,16 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
           title={journeyPaused ? 'Resume' : 'Pause'}
         >
           {journeyPaused ? <Play size={18} /> : <Pause size={18} />}
+        </button>
+        <button
+          type="button"
+          className="expedition-local-menu-btn expedition-local-sound-btn"
+          onClick={() => audioControls.toggleExpeditionSfx?.()}
+          aria-label={`Expedition sounds ${audioControls.expeditionSfxEnabled ? 'on' : 'off'}`}
+          aria-pressed={Boolean(audioControls.expeditionSfxEnabled)}
+          title={`Sounds ${audioControls.expeditionSfxEnabled ? 'On' : 'Off'}`}
+        >
+          {audioControls.expeditionSfxEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
         </button>
         {journeyPaused && (
           <div className="journey-pause-menu" role="dialog" aria-modal="true" aria-label="Expedition options">
