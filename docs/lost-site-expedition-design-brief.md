@@ -96,6 +96,28 @@ Design requirements:
 - Avoid pausing the first run for a worksheet-like explanation.
 - Reuse existing Journey cinematic, event, camera, boss/guardian, and checkpoint systems where possible.
 
+## Archaeologist And Warrior-Guide Story Direction
+
+The Egypt Journey can begin with the archaeologist arriving first. The archaeologist represents discovery, evidence, excavation, and interpretation.
+
+The ancient Egyptian warrior-guide enters the story after the archaeologist realises they cannot pass the sealed route alone. The warrior-guide represents protection, passage, and cultural heritage. They should not feel like a generic combat character; their role is to help protect the site and its precious artefacts.
+
+The guardian or boss challenges the archaeologist and blocks the excavation site. The player must gather shards, recover tools, defeat guardians, and open the route to the excavation site.
+
+Possible short story lines:
+
+Guardian:
+
+> “You are not ready, explorer. My guardians hold the shards and tools of passage. Without them, the excavation site will remain sealed.”
+
+Warrior-guide:
+
+> “Then I will guide you. These artefacts must not be lost. Gather the shards, recover the tools, and we will open the way below.”
+
+After the Journey and Discovery Entrance, the archaeologist role becomes central again through Base Camp, excavation, lab analysis, and report writing.
+
+Keep this story short, dramatic, classroom-friendly, and replayable.
+
 ## Guardian And Boss Direction
 
 Boss fights should feel like game encounters first.
