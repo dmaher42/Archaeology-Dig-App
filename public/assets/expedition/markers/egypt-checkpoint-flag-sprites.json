@@ -1,0 +1,33 @@
+{
+  "image": "egypt-checkpoint-flag-sprites.png",
+  "source": "Codex imagegen Ancient Egypt checkpoint and route marker sprite sheet, chroma-key removed 2026-05-17.",
+  "coordinateNote": "Regions were alpha-trimmed from the generated transparent sheet. Checkpoints occupy the top row; route flags occupy the bottom row.",
+  "draw": {
+    "checkpointHeight": 76,
+    "flagHeight": 82
+  },
+  "animations": {
+    "checkpoint": {
+      "frameDurationMs": 260,
+      "loop": true,
+      "frames": ["checkpoint_00", "checkpoint_01", "checkpoint_02", "checkpoint_03"]
+    },
+    "flag": {
+      "frameDurationMs": 170,
+      "loop": true,
+      "frames": ["flag_00", "flag_01", "flag_02", "flag_03", "flag_04", "flag_05"]
+    }
+  },
+  "regions": {
+    "checkpoint_00": { "x": 32, "y": 99, "w": 392, "h": 266 },
+    "checkpoint_01": { "x": 470, "y": 99, "w": 392, "h": 266 },
+    "checkpoint_02": { "x": 907, "y": 99, "w": 393, "h": 266 },
+    "checkpoint_03": { "x": 1346, "y": 99, "w": 392, "h": 266 },
+    "flag_00": { "x": 19, "y": 482, "w": 254, "h": 305 },
+    "flag_01": { "x": 291, "y": 483, "w": 290, "h": 304 },
+    "flag_02": { "x": 581, "y": 483, "w": 289, "h": 304 },
+    "flag_03": { "x": 871, "y": 483, "w": 292, "h": 304 },
+    "flag_04": { "x": 1162, "y": 483, "w": 287, "h": 304 },
+    "flag_05": { "x": 1447, "y": 482, "w": 263, "h": 305 }
+  }
+}

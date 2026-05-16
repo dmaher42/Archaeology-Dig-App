@@ -1,0 +1,834 @@
+{
+  "image": "egypt-warrior-guide-spritesheet.png",
+  "source": "user-provided-warrior-guide-sheet-2026-05-17-transparent-cleanup",
+  "status": "temporary-playable-atlas",
+  "description": "Temporary Ancient Egypt warrior/protector player atlas prepared from user-provided art. Uses existing Journey player atlas renderer and can be replaced by a purpose-built archaeologist atlas later.",
+  "frame": {
+    "width": 160,
+    "height": 190,
+    "groundLineY": 181,
+    "facing": "right"
+  },
+  "draw": {
+    "height": 94,
+    "sourceHeight": 190,
+    "integratedAttackTool": true,
+    "suppressExternalWeapon": true,
+    "suppressExternalWeaponDuringAttack": true,
+    "suppressRuntimeAttackArc": true
+  },
+  "rows": [
+    {
+      "name": "idle",
+      "row": 0,
+      "frameCount": 1,
+      "loop": true,
+      "frames": [
+        "idle_00"
+      ]
+    },
+    {
+      "name": "walk",
+      "row": 1,
+      "frameCount": 8,
+      "loop": true,
+      "frames": [
+        "walk_00",
+        "walk_01",
+        "walk_02",
+        "walk_03",
+        "walk_04",
+        "walk_05",
+        "walk_06",
+        "walk_07"
+      ]
+    },
+    {
+      "name": "run",
+      "row": 2,
+      "frameCount": 8,
+      "loop": true,
+      "frames": [
+        "run_00",
+        "run_01",
+        "run_02",
+        "run_03",
+        "run_04",
+        "run_05",
+        "run_06",
+        "run_07"
+      ]
+    },
+    {
+      "name": "survey_walk",
+      "row": 3,
+      "frameCount": 8,
+      "loop": true,
+      "frames": [
+        "survey_walk_00",
+        "survey_walk_01",
+        "survey_walk_02",
+        "survey_walk_03",
+        "survey_walk_04",
+        "survey_walk_05",
+        "survey_walk_06",
+        "survey_walk_07"
+      ]
+    },
+    {
+      "name": "jump",
+      "row": 4,
+      "frameCount": 4,
+      "loop": false,
+      "frames": [
+        "jump_00",
+        "jump_01",
+        "jump_02",
+        "jump_03"
+      ]
+    },
+    {
+      "name": "fall",
+      "row": 5,
+      "frameCount": 4,
+      "loop": false,
+      "frames": [
+        "fall_00",
+        "fall_01",
+        "fall_02",
+        "fall_03"
+      ]
+    },
+    {
+      "name": "land",
+      "row": 6,
+      "frameCount": 4,
+      "loop": false,
+      "frames": [
+        "land_00",
+        "land_01",
+        "land_02",
+        "land_03"
+      ]
+    },
+    {
+      "name": "attack_pick_swing",
+      "row": 7,
+      "frameCount": 8,
+      "loop": false,
+      "frames": [
+        "attack_pick_swing_00",
+        "attack_pick_swing_01",
+        "attack_pick_swing_02",
+        "attack_pick_swing_03",
+        "attack_pick_swing_04",
+        "attack_pick_swing_05",
+        "attack_pick_swing_06",
+        "attack_pick_swing_07"
+      ]
+    },
+    {
+      "name": "hurt",
+      "row": 8,
+      "frameCount": 4,
+      "loop": false,
+      "frames": [
+        "hurt_00",
+        "hurt_01",
+        "hurt_02",
+        "hurt_03"
+      ]
+    }
+  ],
+  "regions": {
+    "idle_00": {
+      "x": 33,
+      "y": 3,
+      "w": 112,
+      "h": 195,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 92,
+        "h": 175
+      },
+      "groundLineY": 186
+    },
+    "idle_01": {
+      "x": 162,
+      "y": 3,
+      "w": 113,
+      "h": 195,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 93,
+        "h": 175
+      },
+      "groundLineY": 186
+    },
+    "idle_02": {
+      "x": 282,
+      "y": 3,
+      "w": 129,
+      "h": 194,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 109,
+        "h": 174
+      },
+      "groundLineY": 185
+    },
+    "idle_03": {
+      "x": 416,
+      "y": 4,
+      "w": 130,
+      "h": 193,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 110,
+        "h": 173
+      },
+      "groundLineY": 184
+    },
+    "idle_04": {
+      "x": 538,
+      "y": 4,
+      "w": 139,
+      "h": 193,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 119,
+        "h": 173
+      },
+      "groundLineY": 184
+    },
+    "walk_00": {
+      "x": 162,
+      "y": 3,
+      "w": 113,
+      "h": 195,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 93,
+        "h": 175
+      },
+      "groundLineY": 186
+    },
+    "walk_01": {
+      "x": 282,
+      "y": 3,
+      "w": 129,
+      "h": 194,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 109,
+        "h": 174
+      },
+      "groundLineY": 185
+    },
+    "walk_02": {
+      "x": 416,
+      "y": 4,
+      "w": 130,
+      "h": 193,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 110,
+        "h": 173
+      },
+      "groundLineY": 184
+    },
+    "walk_03": {
+      "x": 538,
+      "y": 4,
+      "w": 139,
+      "h": 193,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 119,
+        "h": 173
+      },
+      "groundLineY": 184
+    },
+    "walk_04": {
+      "x": 671,
+      "y": 3,
+      "w": 134,
+      "h": 195,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 114,
+        "h": 175
+      },
+      "groundLineY": 186
+    },
+    "walk_05": {
+      "x": 808,
+      "y": 4,
+      "w": 137,
+      "h": 194,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 117,
+        "h": 174
+      },
+      "groundLineY": 185
+    },
+    "walk_06": {
+      "x": 938,
+      "y": 5,
+      "w": 137,
+      "h": 193,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 117,
+        "h": 173
+      },
+      "groundLineY": 184
+    },
+    "walk_07": {
+      "x": 1081,
+      "y": 5,
+      "w": 138,
+      "h": 192,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 118,
+        "h": 172
+      },
+      "groundLineY": 183
+    },
+    "run_00": {
+      "x": 13,
+      "y": 388,
+      "w": 147,
+      "h": 165,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 127,
+        "h": 145
+      },
+      "groundLineY": 156
+    },
+    "run_01": {
+      "x": 152,
+      "y": 389,
+      "w": 159,
+      "h": 164,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 139,
+        "h": 144
+      },
+      "groundLineY": 155
+    },
+    "run_02": {
+      "x": 306,
+      "y": 389,
+      "w": 165,
+      "h": 164,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 145,
+        "h": 144
+      },
+      "groundLineY": 155
+    },
+    "run_03": {
+      "x": 465,
+      "y": 390,
+      "w": 160,
+      "h": 164,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 140,
+        "h": 144
+      },
+      "groundLineY": 155
+    },
+    "run_04": {
+      "x": 632,
+      "y": 404,
+      "w": 143,
+      "h": 150,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 123,
+        "h": 130
+      },
+      "groundLineY": 141
+    },
+    "run_05": {
+      "x": 785,
+      "y": 404,
+      "w": 139,
+      "h": 150,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 119,
+        "h": 130
+      },
+      "groundLineY": 141
+    },
+    "run_06": {
+      "x": 934,
+      "y": 401,
+      "w": 145,
+      "h": 153,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 125,
+        "h": 133
+      },
+      "groundLineY": 144
+    },
+    "run_07": {
+      "x": 1079,
+      "y": 401,
+      "w": 143,
+      "h": 154,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 123,
+        "h": 134
+      },
+      "groundLineY": 145
+    },
+    "survey_walk_00": {
+      "x": 162,
+      "y": 3,
+      "w": 113,
+      "h": 195,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 93,
+        "h": 175
+      },
+      "groundLineY": 186
+    },
+    "survey_walk_01": {
+      "x": 282,
+      "y": 3,
+      "w": 129,
+      "h": 194,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 109,
+        "h": 174
+      },
+      "groundLineY": 185
+    },
+    "survey_walk_02": {
+      "x": 416,
+      "y": 4,
+      "w": 130,
+      "h": 193,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 110,
+        "h": 173
+      },
+      "groundLineY": 184
+    },
+    "survey_walk_03": {
+      "x": 538,
+      "y": 4,
+      "w": 139,
+      "h": 193,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 119,
+        "h": 173
+      },
+      "groundLineY": 184
+    },
+    "survey_walk_04": {
+      "x": 671,
+      "y": 3,
+      "w": 134,
+      "h": 195,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 114,
+        "h": 175
+      },
+      "groundLineY": 186
+    },
+    "survey_walk_05": {
+      "x": 808,
+      "y": 4,
+      "w": 137,
+      "h": 194,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 117,
+        "h": 174
+      },
+      "groundLineY": 185
+    },
+    "survey_walk_06": {
+      "x": 938,
+      "y": 5,
+      "w": 137,
+      "h": 193,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 117,
+        "h": 173
+      },
+      "groundLineY": 184
+    },
+    "survey_walk_07": {
+      "x": 1081,
+      "y": 5,
+      "w": 138,
+      "h": 192,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 118,
+        "h": 172
+      },
+      "groundLineY": 183
+    },
+    "jump_00": {
+      "x": 327,
+      "y": 546,
+      "w": 150,
+      "h": 231,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 130,
+        "h": 211
+      },
+      "groundLineY": 222
+    },
+    "jump_01": {
+      "x": 486,
+      "y": 552,
+      "w": 146,
+      "h": 184,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 126,
+        "h": 164
+      },
+      "groundLineY": 175
+    },
+    "jump_02": {
+      "x": 649,
+      "y": 547,
+      "w": 136,
+      "h": 218,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 116,
+        "h": 198
+      },
+      "groundLineY": 209
+    },
+    "jump_03": {
+      "x": 806,
+      "y": 582,
+      "w": 140,
+      "h": 169,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 120,
+        "h": 149
+      },
+      "groundLineY": 160
+    },
+    "fall_00": {
+      "x": 37,
+      "y": 649,
+      "w": 120,
+      "h": 129,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 100,
+        "h": 109
+      },
+      "groundLineY": 120
+    },
+    "fall_01": {
+      "x": 158,
+      "y": 623,
+      "w": 141,
+      "h": 155,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 121,
+        "h": 135
+      },
+      "groundLineY": 146
+    },
+    "fall_02": {
+      "x": 943,
+      "y": 646,
+      "w": 122,
+      "h": 132,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 102,
+        "h": 112
+      },
+      "groundLineY": 123
+    },
+    "fall_03": {
+      "x": 1093,
+      "y": 649,
+      "w": 124,
+      "h": 129,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 104,
+        "h": 109
+      },
+      "groundLineY": 120
+    },
+    "land_00": {
+      "x": 496,
+      "y": 819,
+      "w": 149,
+      "h": 110,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 129,
+        "h": 90
+      },
+      "groundLineY": 101
+    },
+    "land_01": {
+      "x": 656,
+      "y": 815,
+      "w": 155,
+      "h": 117,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 135,
+        "h": 97
+      },
+      "groundLineY": 108
+    },
+    "land_02": {
+      "x": 801,
+      "y": 823,
+      "w": 159,
+      "h": 110,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 139,
+        "h": 90
+      },
+      "groundLineY": 101
+    },
+    "land_03": {
+      "x": 955,
+      "y": 825,
+      "w": 135,
+      "h": 110,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 115,
+        "h": 90
+      },
+      "groundLineY": 101
+    },
+    "attack_pick_swing_00": {
+      "x": 26,
+      "y": 938,
+      "w": 197,
+      "h": 171,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 177,
+        "h": 151
+      },
+      "groundLineY": 162
+    },
+    "attack_pick_swing_01": {
+      "x": 176,
+      "y": 943,
+      "w": 218,
+      "h": 168,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 198,
+        "h": 148
+      },
+      "groundLineY": 159
+    },
+    "attack_pick_swing_02": {
+      "x": 326,
+      "y": 932,
+      "w": 213,
+      "h": 179,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 193,
+        "h": 159
+      },
+      "groundLineY": 170
+    },
+    "attack_pick_swing_03": {
+      "x": 478,
+      "y": 918,
+      "w": 214,
+      "h": 194,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 194,
+        "h": 174
+      },
+      "groundLineY": 185
+    },
+    "attack_pick_swing_04": {
+      "x": 645,
+      "y": 954,
+      "w": 223,
+      "h": 159,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 203,
+        "h": 139
+      },
+      "groundLineY": 150
+    },
+    "attack_pick_swing_05": {
+      "x": 802,
+      "y": 935,
+      "w": 199,
+      "h": 178,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 179,
+        "h": 158
+      },
+      "groundLineY": 169
+    },
+    "attack_pick_swing_06": {
+      "x": 967,
+      "y": 947,
+      "w": 147,
+      "h": 166,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 127,
+        "h": 146
+      },
+      "groundLineY": 157
+    },
+    "attack_pick_swing_07": {
+      "x": 1103,
+      "y": 949,
+      "w": 139,
+      "h": 165,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 119,
+        "h": 145
+      },
+      "groundLineY": 156
+    },
+    "hurt_00": {
+      "x": 25,
+      "y": 1115,
+      "w": 133,
+      "h": 139,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 113,
+        "h": 119
+      },
+      "groundLineY": 130
+    },
+    "hurt_01": {
+      "x": 165,
+      "y": 1118,
+      "w": 135,
+      "h": 136,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 115,
+        "h": 116
+      },
+      "groundLineY": 127
+    },
+    "hurt_02": {
+      "x": 298,
+      "y": 1116,
+      "w": 134,
+      "h": 138,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 114,
+        "h": 118
+      },
+      "groundLineY": 129
+    },
+    "hurt_03": {
+      "x": 441,
+      "y": 1115,
+      "w": 136,
+      "h": 139,
+      "drawBounds": {
+        "x": 10,
+        "y": 10,
+        "w": 116,
+        "h": 119
+      },
+      "groundLineY": 130
+    }
+  }
+}

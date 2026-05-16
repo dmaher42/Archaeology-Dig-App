@@ -12,9 +12,13 @@ const source = readFileSync(new URL('./journeyLevelData.js', import.meta.url), '
 const journeyUtilsSource = readFileSync(new URL('./journeyUtils.js', import.meta.url), 'utf8');
 const journeyConstantsSource = readFileSync(new URL('./journeyConstants.js', import.meta.url), 'utf8');
 const journeyEnemySpritesSource = readFileSync(new URL('./journeyEnemySprites.js', import.meta.url), 'utf8');
+const journeyMarkerSpritesSource = readFileSync(new URL('./journeyMarkerSprites.js', import.meta.url), 'utf8');
 const journeyComponentSource = readFileSync(new URL('../ExpeditionJourney.jsx', import.meta.url), 'utf8');
 const egyptPlayerAtlas = JSON.parse(
-  readFileSync(new URL('../../../public/assets/expedition/player/archaeologist-hero-spritesheet.json', import.meta.url), 'utf8'),
+  readFileSync(new URL('../../../public/assets/expedition/player/egypt-warrior-guide-spritesheet.json', import.meta.url), 'utf8'),
+);
+const egyptMarkerAtlas = JSON.parse(
+  readFileSync(new URL('../../../public/assets/expedition/markers/egypt-checkpoint-flag-sprites.json', import.meta.url), 'utf8'),
 );
 const extractExportedArray = (name) => {
   const startToken = `export const ${name} = [`;
@@ -96,6 +100,12 @@ test('story props include recurring expedition markers across sections', () => {
   assert.match(storyProps, /type:\s*'cart'/);
   assert.match(storyProps, /broken supply cart/);
   assert.match(storyProps, /base camp supply cart/);
+  assert.match(journeyComponentSource, /STORY_PROP_GROUNDING_OVERRIDES/);
+  assert.match(journeyComponentSource, /'upper-route-broken-stone-cue':\s*\{[\s\S]*?tint:\s*'buried-stone'[\s\S]*?bury:\s*0\.48/);
+  assert.match(journeyComponentSource, /STORY_PROP_GROUNDING_OVERRIDES\[prop\.id\]\?\.depth/);
+  assert.match(journeyComponentSource, /propSize\.bury/);
+  assert.match(journeyComponentSource, /useNaturalUpperRouteHint/);
+  assert.match(journeyComponentSource, /route\.id === 'desert-upper-survey-route'/);
 });
 
 test('Egypt opening ambient life stays in the existing Journey renderer', () => {
@@ -122,6 +132,9 @@ test('player polish extends the canonical Journey animation and weapon paths', (
   });
   assert.match(journeyUtilsSource, /getPlayerMovementVisualStyle/);
   assert.match(journeyUtilsSource, /visualWalkStyle/);
+  assert.match(journeyConstantsSource, /ATTACK_DURATION = 0\.42/);
+  assert.match(journeyConstantsSource, /ATTACK_WINDUP_DURATION = 0\.12/);
+  assert.match(journeyConstantsSource, /ATTACK_RECOIL_DURATION = 0\.18/);
   assert.match(journeyComponentSource, /drawPlayerSprite/);
   assert.match(journeyComponentSource, /drawPlayerKhopesh/);
   assert.match(journeyComponentSource, /weapon-hit-spark/);
@@ -142,17 +155,34 @@ test('China Journey uses a unique female player atlas through the existing playe
   assert.match(journeyComponentSource, /groundLineY/);
 });
 
-test('Egypt Journey uses the prepared archaeologist atlas through the existing player renderer', () => {
+test('Egypt Journey uses the temporary warrior guide atlas through the existing player renderer', () => {
   assert.match(journeyConstantsSource, /PLAYER_HERO_SPRITE_ATLAS_JSON/);
-  assert.match(journeyConstantsSource, /archaeologist-hero-spritesheet\.json/);
-  assert.match(journeyComponentSource, /characterId:\s*'egypt-archaeologist-hero'/);
+  assert.match(journeyConstantsSource, /egypt-warrior-guide-spritesheet\.json/);
+  assert.match(journeyComponentSource, /characterId:\s*'egypt-warrior-guide'/);
   assert.match(journeyComponentSource, /atlasPath:\s*PLAYER_HERO_SPRITE_ATLAS_JSON/);
   assert.match(journeyComponentSource, /version:\s*PLAYER_HERO_SPRITE_VERSION/);
   assert.match(journeyComponentSource, /fallbackSrc:\s*PLAYER_LEGACY_SPRITE_SRC/);
   assert.match(journeyComponentSource, /if\s*\(!atlasPath\)\s*\{\s*loadLegacySprite\(\);/);
   assert.equal(egyptPlayerAtlas.draw.suppressExternalWeapon, true);
   assert.equal(egyptPlayerAtlas.draw.suppressRuntimeAttackArc, true);
+  assert.equal(egyptPlayerAtlas.draw.sourceHeight, 190);
+  assert.ok(egyptPlayerAtlas.regions.run_00.drawBounds);
+  assert.match(journeyComponentSource, /heroRegion\?\.drawBounds/);
+  assert.match(journeyComponentSource, /nominalFrameHeight/);
+  assert.match(journeyComponentSource, /boundedGroundLineY/);
   assert.match(journeyComponentSource, /heroAtlas\?\.draw\?\.suppressExternalWeapon/);
+});
+
+test('Egypt Journey uses purpose-built marker sprites for checkpoints and route flags', () => {
+  assert.match(journeyMarkerSpritesSource, /MARKER_SPRITE_ATLAS_JSON/);
+  assert.match(journeyMarkerSpritesSource, /egypt-checkpoint-flag-sprites\.json/);
+  assert.ok(egyptMarkerAtlas.regions.checkpoint_00);
+  assert.ok(egyptMarkerAtlas.regions.flag_00);
+  assert.match(journeyComponentSource, /loadMarkerSpritePack/);
+  assert.match(journeyComponentSource, /drawMarkerSprite\([\s\S]*?'checkpoint'/);
+  assert.match(journeyComponentSource, /drawMarkerSprite\([\s\S]*?'flag'/);
+  assert.match(journeyComponentSource, /fixedPoleRegion[\s\S]*?flag_00/);
+  assert.doesNotMatch(journeyComponentSource, /fillText\('CHECKPOINT'/);
 });
 
 test('Egypt opening loop makes the first seal require enemies, shards, and the map objective', () => {
@@ -186,13 +216,17 @@ test('Egypt Journey explains shard purpose and adds an optional Base Camp vouche
 
 test('Egypt Journey loads visible sprites for all default Egypt enemy families', () => {
   assert.match(journeyEnemySpritesSource, /WITHHELD_EGYPT_CREATURE_SPRITE_FAMILIES/);
-  assert.match(journeyEnemySpritesSource, /WITHHELD_EGYPT_CREATURE_SPRITE_FAMILIES = new Set\(\)/);
+  assert.match(journeyEnemySpritesSource, /WITHHELD_EGYPT_CREATURE_SPRITE_FAMILIES = new Set\(\[\s*'cursedStatue',\s*'stoneGuardianEnemy',\s*\]\)/);
   assert.match(journeyEnemySpritesSource, /DESERT_SCARAB_SPRITE_ATLAS_JSON/);
   assert.match(journeyEnemySpritesSource, /SAND_SNAKE_SPRITE_ATLAS_JSON/);
   assert.match(journeyEnemySpritesSource, /SCORPION_SPRITE_ATLAS_JSON/);
   assert.match(journeyEnemySpritesSource, /SAND_WISP_SPRITE_ATLAS_JSON/);
+  assert.match(journeyEnemySpritesSource, /restoredTwoPoseWalkFamilies/);
+  assert.match(journeyEnemySpritesSource, /new Set\(\['scarab', 'snake', 'bat'\]\)/);
   assert.match(journeyEnemySpritesSource, /shouldUseEnemySpritePack/);
   assert.match(journeyComponentSource, /if\s*\(!shouldUseEnemySpritePack\(enemy\)\)\s*return false/);
+  assert.match(journeyComponentSource, /enemy\.type === 'guardian' \|\| enemy\.type === 'statue'/);
+  assert.match(journeyComponentSource, /getBossSpritePack\(bossSpriteAssetsRef\.current, bossId\)/);
   assert.match(journeyComponentSource, /enemy\.type === 'scarab'/);
   assert.match(journeyComponentSource, /enemy\.type === 'snake'/);
   assert.match(journeyComponentSource, /enemy\.type === 'scorpion'/);

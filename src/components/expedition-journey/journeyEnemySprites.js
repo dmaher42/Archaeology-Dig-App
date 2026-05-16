@@ -15,7 +15,10 @@ export const CHINA_WATCHTOWER_SENTRY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PA
 export const CHINA_CLAY_GUARDIAN_ENEMY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-clay-guardian-enemy-sprites.json`;
 export const ENEMY_SPRITE_ATLAS_VERSION = 'enemy-sprite-packs-2026-05-16-upgraded-regular-enemies';
 export const MIN_ENEMY_DRAW_HEIGHT = 34;
-export const WITHHELD_EGYPT_CREATURE_SPRITE_FAMILIES = new Set();
+export const WITHHELD_EGYPT_CREATURE_SPRITE_FAMILIES = new Set([
+  'cursedStatue',
+  'stoneGuardianEnemy',
+]);
 
 export const EXPECTED_ENEMY_SPRITE_KEYS = [
   'scarabIdle',
@@ -417,7 +420,9 @@ export const getEnemySpriteFrame = (enemy, combatMode, now = 0) => {
   const family = getEnemySpriteFamily(enemy);
   if (!family) return null;
 
-  const walkFrame = (Math.floor(now / (family === 'bat' || family === 'sandWisp' ? 135 : 180)) % 3) + 1;
+  const restoredTwoPoseWalkFamilies = new Set(['scarab', 'snake', 'bat']);
+  const walkPoseCount = restoredTwoPoseWalkFamilies.has(family) ? 2 : 3;
+  const walkFrame = (Math.floor(now / (family === 'bat' || family === 'sandWisp' ? 135 : 180)) % walkPoseCount) + 1;
   if (combatMode === 'defeated') return `${family}Defeated`;
   if (combatMode === 'stunned') return `${family}Hit`;
   if (combatMode === 'windup') return `${family}Windup`;

@@ -203,6 +203,15 @@ import {
   usesPaintedDynamicWorldEffect,
 } from './expedition-journey/journeyDynamicWorldAssets';
 
+import {
+  createMarkerSpriteState,
+  drawMarkerSprite,
+  getMissingMarkerSpriteAssets,
+  loadMarkerSpritePack,
+  MARKER_SPRITE_ATLAS_JSON,
+  MARKER_SPRITE_VERSION,
+} from './expedition-journey/journeyMarkerSprites';
+
 const DEFAULT_BOSS_ATTACK_PHASES = [
   {
     id: 'heavy-swipe',
@@ -384,7 +393,7 @@ const getPlayerHeroSpriteConfig = ({ targetCivilisation, backgroundPackId }) => 
     };
   }
   return {
-    characterId: 'egypt-archaeologist-hero',
+    characterId: 'egypt-warrior-guide',
     atlasPath: PLAYER_HERO_SPRITE_ATLAS_JSON,
     version: PLAYER_HERO_SPRITE_VERSION,
     fallbackSrc: PLAYER_LEGACY_SPRITE_SRC,
@@ -995,6 +1004,7 @@ const getHazardGroundingConfig = (hazard) => {
 const PROP_GROUNDING_CONFIG = {
   ruins: { width: 104, height: 94, yOffset: 92, alpha: 0.42, depth: 'background', tint: 'dust', shadow: 0.1, dust: 0.52 },
   camp: { width: 86, height: 58, yOffset: 18, alpha: 0.64, depth: 'background', tint: 'dust', shadow: 0.12, dust: 0.58 },
+  column: { width: 96, height: 86, yOffset: 62, alpha: 0.62, depth: 'midground', tint: 'buried-stone', shadow: 0.18, dust: 0.86, bury: 0.3 },
   cart: { depth: 'midground' },
   door: { width: 118, height: 150, yOffset: 132, alpha: 0.48, depth: 'background', tint: 'dust', shadow: 0.12, dust: 0.58 },
   statue: { width: 70, height: 90, yOffset: 54, alpha: 0.58, depth: 'background', tint: 'stone', shadow: 0.12, dust: 0.58 },
@@ -1007,8 +1017,24 @@ const PROP_GROUNDING_CONFIG = {
   sign: { depth: 'midground' },
 };
 
+const STORY_PROP_GROUNDING_OVERRIDES = {
+  'upper-route-broken-stone-cue': {
+    width: 116,
+    height: 74,
+    yOffset: 76,
+    alpha: 0.64,
+    depth: 'midground',
+    tint: 'buried-stone',
+    shadow: 0.22,
+    dust: 1.05,
+    bury: 0.48,
+  },
+};
+
 const getStoryPropDepth = (prop) => (
-  (PROP_GROUNDING_CONFIG[prop.type] || {}).depth || 'midground'
+  STORY_PROP_GROUNDING_OVERRIDES[prop.id]?.depth
+  || (PROP_GROUNDING_CONFIG[prop.type] || {}).depth
+  || 'midground'
 );
 
 const DECORATIVE_PROP_LAYER_MODE = 'background-midground-depth-v2';
@@ -1126,6 +1152,7 @@ export default function ExpeditionJourney({
   const collectibleSpriteAssetsRef = useRef(createCollectibleSpriteState());
   const playerWeaponSpriteRef = useRef(createPlayerWeaponSpriteState());
   const dynamicWorldAssetsRef = useRef(createDynamicWorldAssetState());
+  const markerSpriteAssetsRef = useRef(createMarkerSpriteState());
   const footstepTimerRef = useRef(0);
   const wasGroundedRef = useRef(false);
 
@@ -1304,6 +1331,14 @@ export default function ExpeditionJourney({
     baseUrl: import.meta.env.BASE_URL,
     onUpdate: (assets) => {
       playerWeaponSpriteRef.current = assets;
+      syncHud();
+    },
+  }), [syncHud]);
+
+  useEffect(() => loadMarkerSpritePack({
+    baseUrl: import.meta.env.BASE_URL,
+    onUpdate: (assets) => {
+      markerSpriteAssetsRef.current = assets;
       syncHud();
     },
   }), [syncHud]);
@@ -1903,6 +1938,11 @@ export default function ExpeditionJourney({
     const playerWeaponSpriteFallbackActive = !playerWeaponAssets.loaded
       || playerWeaponAssets.failed
       || missingPlayerWeaponSpriteAssets.length > 0;
+    const markerSpriteAssets = markerSpriteAssetsRef.current;
+    const missingMarkerSpriteAssets = getMissingMarkerSpriteAssets(markerSpriteAssets);
+    const markerSpriteFallbackActive = !markerSpriteAssets.loaded
+      || markerSpriteAssets.failed
+      || missingMarkerSpriteAssets.length > 0;
     const dynamicWorldAssets = dynamicWorldAssetsRef.current;
     const renderStats = current.renderStats || {};
     const playerAttackBox = current.playerAttackBox
@@ -2046,6 +2086,12 @@ export default function ExpeditionJourney({
       playerWeaponAtlasPath: playerWeaponAssets.atlasPath || PLAYER_WEAPON_ATLAS_JSON,
       playerWeaponAtlasVersion: PLAYER_WEAPON_ATLAS_VERSION,
       missingPlayerWeaponSpriteAssets,
+      markerSpritesLoaded: Boolean(markerSpriteAssets.loaded),
+      markerSpritesReady: Boolean(markerSpriteAssets.ready),
+      markerSpriteFallbackActive,
+      markerSpriteAtlasPath: markerSpriteAssets.atlasPath || MARKER_SPRITE_ATLAS_JSON,
+      markerSpriteAtlasVersion: MARKER_SPRITE_VERSION,
+      missingMarkerSpriteAssets,
       playerWeaponFrame: renderStats.playerWeaponFrame || getPlayerWeaponFrameKey(getPlayerAttackState(current)),
       playerWeaponVisualMode: renderStats.playerWeaponVisualMode || (playerWeaponAssets.loaded ? 'khopesh-sprite-atlas' : 'canvas-fallback'),
       parallaxLayersActive: Boolean(renderStats.parallaxLayersActive),
@@ -2811,19 +2857,28 @@ export default function ExpeditionJourney({
     const heroFrameKey = heroAtlas ? getHeroSpriteFrameKey(current, heroAtlas, now) : null;
     const heroRegion = heroFrameKey ? heroAtlas?.regions?.[heroFrameKey] : null;
     const frame = clamp(current.player.animationFrame ?? 1, 0, PLAYER_SPRITE_FRAME_COUNT - 1);
-    const frameWidth = heroRegion?.w || PLAYER_SPRITE_FRAME_WIDTH;
-    const frameHeight = heroRegion?.h || PLAYER_SPRITE_FRAME_HEIGHT;
+    const heroDrawBounds = heroRegion?.drawBounds || null;
+    const sourceX = (heroRegion?.x ?? frame * PLAYER_SPRITE_FRAME_WIDTH) + (heroDrawBounds?.x || 0);
+    const sourceY = (heroRegion?.y ?? 0) + (heroDrawBounds?.y || 0);
+    const frameWidth = heroDrawBounds?.w || heroRegion?.w || PLAYER_SPRITE_FRAME_WIDTH;
+    const frameHeight = heroDrawBounds?.h || heroRegion?.h || PLAYER_SPRITE_FRAME_HEIGHT;
     const heroDrawHeight = Number(heroAtlas?.draw?.height) || PLAYER_SPRITE_DRAW_HEIGHT;
-    const drawHeight = heroRegion ? heroDrawHeight : PLAYER_SPRITE_DRAW_HEIGHT;
-    const drawScale = drawHeight / frameHeight;
+    const nominalFrameHeight = heroRegion
+      ? Number(heroAtlas?.draw?.sourceHeight) || Number(heroAtlas?.frame?.height) || heroRegion.h || frameHeight
+      : frameHeight;
+    const drawScale = heroDrawHeight / nominalFrameHeight;
     const drawWidth = frameWidth * drawScale;
+    const renderedHeight = frameHeight * drawScale;
     const footX = x + w / 2;
     const footY = y + h + 1;
     const drawX = -drawWidth / 2;
     const regionGroundLineY = Number(heroRegion?.groundLineY);
-    const drawY = heroRegion && Number.isFinite(regionGroundLineY)
-      ? -regionGroundLineY * drawScale
-      : -drawHeight;
+    const boundedGroundLineY = Number.isFinite(regionGroundLineY)
+      ? regionGroundLineY - (heroDrawBounds?.y || 0)
+      : null;
+    const drawY = heroRegion && Number.isFinite(boundedGroundLineY)
+      ? -boundedGroundLineY * drawScale
+      : -renderedHeight;
     const attackState = getPlayerAttackState(current);
     const attackLean = attackState === 'windup'
       ? -direction * 3
@@ -2860,14 +2915,14 @@ export default function ExpeditionJourney({
     if (direction < 0) ctx.scale(-1, 1);
     ctx.drawImage(
       sprite.image,
-      heroRegion?.x ?? frame * PLAYER_SPRITE_FRAME_WIDTH,
-      heroRegion?.y ?? 0,
+      sourceX,
+      sourceY,
       frameWidth,
       frameHeight,
       drawX,
       drawY,
       drawWidth,
-      drawHeight,
+      renderedHeight,
     );
     if (current.renderStats && heroFrameKey) {
       current.renderStats.playerSpriteFrame = heroFrameKey;
@@ -2878,7 +2933,7 @@ export default function ExpeditionJourney({
       || (heroAtlas?.draw?.suppressExternalWeaponDuringAttack
         && isPlayerAttackVisualPhase(attackState));
     if (!suppressExternalWeapon) {
-      drawPlayerKhopesh(ctx, drawWidth * 0.34, -drawHeight * 0.54, attackState, 1, 0.9);
+      drawPlayerKhopesh(ctx, drawWidth * 0.34, -renderedHeight * 0.54, attackState, 1, 0.9);
     } else if (current.renderStats) {
       current.renderStats.playerWeaponVisualMode = 'integrated-hero-atlas';
     }
@@ -3037,7 +3092,10 @@ export default function ExpeditionJourney({
     const section = getSectionForX(prop.x);
       const propAssetKey = getEnvironmentAssetKeyForStoryProp(prop, environmentAssetsRef.current.packId);
     if (propAssetKey) {
-      const propSize = PROP_GROUNDING_CONFIG[prop.type] || { width: 72, height: 72, yOffset: 0, alpha: 0.78, depth: 'midground', tint: 'warm' };
+      const propSize = {
+        ...(PROP_GROUNDING_CONFIG[prop.type] || { width: 72, height: 72, yOffset: 0, alpha: 0.78, depth: 'midground', tint: 'warm' }),
+        ...(STORY_PROP_GROUNDING_OVERRIDES[prop.id] || {}),
+      };
       const drawX = x - propSize.width / 2;
       const drawY = prop.y - propSize.height + propSize.yOffset;
       const anchorY = drawY + propSize.height;
@@ -3053,6 +3111,8 @@ export default function ExpeditionJourney({
         ctx.filter = 'saturate(62%) brightness(78%) contrast(90%)';
       } else if (propSize.tint === 'dust') {
         ctx.filter = 'sepia(20%) saturate(58%) brightness(84%) contrast(88%)';
+      } else if (propSize.tint === 'buried-stone') {
+        ctx.filter = 'sepia(28%) saturate(72%) brightness(78%) contrast(88%)';
       } else {
         ctx.filter = propSize.depth === 'background'
           ? 'sepia(18%) saturate(62%) brightness(84%) contrast(92%)'
@@ -3075,6 +3135,18 @@ export default function ExpeditionJourney({
         ctx.globalAlpha = 1;
         drawDecorativeBaseBlend(ctx, x, anchorY + 1, dustWidth, section.id, propSize.depth, propSize.depth === 'background' ? 0.6 : 0.86);
         drawGroundDustLip(ctx, x, anchorY + 1, dustWidth, propSize.depth === 'background' ? 'rgba(187, 128, 64, 0.12)' : 'rgba(187, 128, 64, 0.22)');
+        if (propSize.bury) {
+          const buryHeight = Math.max(8, propSize.height * propSize.bury);
+          const sand = ctx.createLinearGradient(0, anchorY - buryHeight, 0, anchorY + 8);
+          sand.addColorStop(0, 'rgba(218, 155, 75, 0)');
+          sand.addColorStop(0.42, 'rgba(205, 139, 61, 0.54)');
+          sand.addColorStop(1, 'rgba(134, 82, 35, 0.72)');
+          ctx.fillStyle = sand;
+          ctx.beginPath();
+          ctx.ellipse(x, anchorY - buryHeight * 0.22, dustWidth * 0.54, buryHeight * 0.38, -0.04, 0, Math.PI * 2);
+          ctx.fill();
+          drawGroundDustLip(ctx, x, anchorY - buryHeight * 0.52, dustWidth * 0.68, 'rgba(231, 172, 91, 0.34)');
+        }
         if (stateRef.current.renderStats) stateRef.current.renderStats.groundedPropCount += 1;
         ctx.restore();
         return;
@@ -3243,6 +3315,51 @@ export default function ExpeditionJourney({
       return;
     }
     if (prop.type === 'sign') {
+      const flagHeight = 104;
+      const flagWidth = 96;
+      const flagBaseY = prop.y + 42;
+      drawContactShadow(ctx, x, flagBaseY + 1, 44, 0.14, 1);
+      const flagDest = {
+        x: x - flagWidth / 2,
+        y: flagBaseY - flagHeight,
+        width: flagWidth,
+        height: flagHeight,
+      };
+      const flagDrawn = drawMarkerSprite(
+        ctx,
+        markerSpriteAssetsRef.current,
+        'flag',
+        flagDest,
+        now + prop.x * 0.04,
+      );
+      if (flagDrawn) {
+        const assets = markerSpriteAssetsRef.current;
+        const fixedPoleRegion = assets?.atlas?.regions?.flag_00;
+        if (assets?.image && fixedPoleRegion) {
+          const containScale = Math.min(flagDest.width / fixedPoleRegion.w, flagDest.height / fixedPoleRegion.h);
+          const renderedWidth = fixedPoleRegion.w * containScale;
+          const renderedHeight = fixedPoleRegion.h * containScale;
+          const renderX = flagDest.x + (flagDest.width - renderedWidth) / 2;
+          const renderY = flagDest.y + (flagDest.height - renderedHeight) / 2;
+          const poleSourceWidth = fixedPoleRegion.w * 0.38;
+          ctx.drawImage(
+            assets.image,
+            fixedPoleRegion.x,
+            fixedPoleRegion.y,
+            poleSourceWidth,
+            fixedPoleRegion.h,
+            renderX,
+            renderY,
+            poleSourceWidth * containScale,
+            renderedHeight,
+          );
+        }
+        drawDecorativeBaseBlend(ctx, x, flagBaseY + 1, 54, section.id, propDepth, 0.74);
+        drawGroundDustLip(ctx, x, flagBaseY + 1, 42, 'rgba(187, 128, 64, 0.18)');
+        if (stateRef.current.renderStats) stateRef.current.renderStats.groundedPropCount += 1;
+        ctx.restore();
+        return;
+      }
       drawDecorativeBaseBlend(ctx, x, prop.y + 36, 52, section.id, propDepth, 0.6);
       ctx.fillStyle = '#78350f';
       ctx.fillRect(x - 3, prop.y - 20, 6, 56);
@@ -3329,6 +3446,7 @@ export default function ExpeditionJourney({
     const section = getSectionForX(landmark.x);
     const viewSection = getSectionForX(cameraX + CANVAS_WIDTH / 2);
     if (section.id !== viewSection.id) return false;
+    if (section.id === 'desert-entry' && ['gate', 'tower'].includes(landmark.type)) return false;
 
     const width = landmark.width || 120;
     const height = landmark.height || 100;
@@ -3372,14 +3490,35 @@ export default function ExpeditionJourney({
       ctx.fillStyle = 'rgba(250, 204, 21, 0.18)';
       ctx.fillRect(x - 8, baseY - height * 0.72, 16, 22);
     } else if (landmark.type === 'gate') {
-      ctx.fillStyle = 'rgba(39, 29, 22, 0.56)';
-      ctx.fillRect(x - width * 0.42, baseY - height * 0.84, width * 0.2, height * 0.84);
-      ctx.fillRect(x + width * 0.22, baseY - height * 0.84, width * 0.2, height * 0.84);
-      ctx.fillRect(x - width * 0.48, baseY - height * 0.92, width * 0.96, height * 0.18);
-      ctx.strokeStyle = 'rgba(250, 204, 21, 0.17)';
-      ctx.lineWidth = 3;
+      const ruinGradient = ctx.createLinearGradient(x, baseY - height, x, baseY);
+      ruinGradient.addColorStop(0, 'rgba(123, 82, 42, 0.2)');
+      ruinGradient.addColorStop(1, 'rgba(86, 55, 31, 0.34)');
+      ctx.fillStyle = ruinGradient;
+      [
+        { left: -0.39, right: -0.22, lean: -0.04 },
+        { left: 0.22, right: 0.39, lean: 0.035 },
+      ].forEach((pillar) => {
+        ctx.beginPath();
+        ctx.moveTo(x + width * (pillar.left + pillar.lean), baseY - height * 0.82);
+        ctx.lineTo(x + width * (pillar.right + pillar.lean), baseY - height * 0.8);
+        ctx.lineTo(x + width * pillar.right, baseY - height * 0.08);
+        ctx.lineTo(x + width * pillar.left, baseY - height * 0.04);
+        ctx.closePath();
+        ctx.fill();
+      });
+      ctx.fillStyle = 'rgba(139, 92, 45, 0.24)';
       ctx.beginPath();
-      ctx.arc(x, baseY - height * 0.2, width * 0.26, Math.PI, 0);
+      ctx.moveTo(x - width * 0.5, baseY - height * 0.86);
+      ctx.lineTo(x - width * 0.18, baseY - height * 0.96);
+      ctx.lineTo(x + width * 0.47, baseY - height * 0.85);
+      ctx.lineTo(x + width * 0.4, baseY - height * 0.74);
+      ctx.lineTo(x - width * 0.48, baseY - height * 0.72);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(111, 78, 42, 0.28)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(x, baseY - height * 0.22, width * 0.25, Math.PI, 0);
       ctx.stroke();
     } else if (landmark.type === 'bridge') {
       ctx.strokeStyle = 'rgba(80, 43, 24, 0.5)';
@@ -3398,15 +3537,27 @@ export default function ExpeditionJourney({
         ctx.stroke();
       }
     } else if (landmark.type === 'guardian-ruin') {
-      ctx.fillStyle = 'rgba(51, 65, 85, 0.42)';
-      ctx.fillRect(x - width * 0.28, baseY - height * 0.68, width * 0.56, height * 0.58);
+      ctx.fillStyle = 'rgba(98, 74, 48, 0.3)';
       ctx.beginPath();
-      ctx.roundRect(x - width * 0.22, baseY - height * 0.94, width * 0.44, height * 0.28, 9);
+      ctx.moveTo(x - width * 0.3, baseY - height * 0.1);
+      ctx.lineTo(x - width * 0.24, baseY - height * 0.62);
+      ctx.lineTo(x + width * 0.04, baseY - height * 0.72);
+      ctx.lineTo(x + width * 0.3, baseY - height * 0.18);
+      ctx.closePath();
+      ctx.fill();
+      ctx.beginPath();
+      ctx.roundRect(x - width * 0.2, baseY - height * 0.92, width * 0.4, height * 0.22, 8);
       ctx.fill();
       ctx.fillStyle = `rgba(45, 212, 191, ${0.14 * pulse})`;
-      ctx.fillRect(x - 10, baseY - height * 0.46, 20, 18);
+      ctx.beginPath();
+      ctx.ellipse(x, baseY - height * 0.46, 10, 8, 0, 0, Math.PI * 2);
+      ctx.fill();
       ctx.strokeStyle = 'rgba(255, 247, 212, 0.16)';
-      ctx.strokeRect(x - width * 0.33, baseY - height * 0.1, width * 0.66, 12);
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x - width * 0.32, baseY - height * 0.11);
+      ctx.lineTo(x + width * 0.32, baseY - height * 0.14);
+      ctx.stroke();
     } else if (landmark.type === 'excavation-camp') {
       ctx.fillStyle = `rgba(254, 240, 138, ${0.18 * pulse})`;
       ctx.beginPath();
@@ -3853,33 +4004,66 @@ export default function ExpeditionJourney({
     const routeCenterX = x + route.width * 0.5;
     const labelX = clamp(routeCenterX, 130, CANVAS_WIDTH - 130);
     const pulse = 0.78 + Math.sin(now / 360 + route.x * 0.002) * 0.18;
+    const useNaturalUpperRouteHint = route.id === 'desert-upper-survey-route';
     ctx.save();
-    ctx.globalAlpha = discovered ? 0.78 : locked ? 0.5 : 0.42;
-    ctx.fillStyle = discovered
-      ? 'rgba(250, 204, 21, 0.08)'
-      : locked
-        ? 'rgba(14, 116, 144, 0.08)'
-        : 'rgba(15, 23, 42, 0.08)';
-    ctx.strokeStyle = discovered
-      ? 'rgba(250, 204, 21, 0.74)'
-      : locked
-        ? 'rgba(125, 211, 252, 0.48)'
-        : 'rgba(255, 247, 212, 0.34)';
-    ctx.lineWidth = discovered ? 2.5 : locked ? 2 : 1.5;
-    ctx.setLineDash(discovered ? [] : locked ? [12, 7, 3, 7] : [8, 9]);
-    ctx.beginPath();
-    ctx.roundRect(x, route.y, route.width, route.height, 14);
-    ctx.fill();
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle = discovered
-      ? `rgba(250, 204, 21, ${0.2 * pulse})`
-      : locked
-        ? `rgba(125, 211, 252, ${0.16 * pulse})`
-        : `rgba(255, 247, 212, ${0.13 * pulse})`;
-    ctx.beginPath();
-    ctx.ellipse(x + route.width * 0.5, route.y + route.height - 10, Math.min(120, route.width * 0.34), 12, 0, 0, Math.PI * 2);
-    ctx.fill();
+    if (useNaturalUpperRouteHint) {
+      const baseY = route.y + route.height - 5;
+      const sandTrail = ctx.createLinearGradient(x, baseY - 38, x, baseY + 8);
+      sandTrail.addColorStop(0, 'rgba(226, 167, 91, 0)');
+      sandTrail.addColorStop(0.55, discovered ? 'rgba(226, 172, 84, 0.2)' : 'rgba(206, 143, 69, 0.16)');
+      sandTrail.addColorStop(1, 'rgba(130, 79, 36, 0.22)');
+      ctx.globalAlpha = discovered ? 0.84 : locked ? 0.66 : 0.58;
+      ctx.fillStyle = sandTrail;
+      ctx.beginPath();
+      ctx.ellipse(routeCenterX, baseY - 7, Math.min(210, route.width * 0.32), 22, -0.04, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = discovered
+        ? `rgba(250, 204, 21, ${0.13 * pulse})`
+        : `rgba(166, 105, 48, ${0.12 * pulse})`;
+      ctx.beginPath();
+      ctx.ellipse(routeCenterX + 26, baseY - 15, Math.min(120, route.width * 0.18), 9, -0.05, 0, Math.PI * 2);
+      ctx.fill();
+      const stoneColor = discovered ? 'rgba(142, 91, 45, 0.34)' : 'rgba(119, 76, 42, 0.26)';
+      [-210, -132, -54, 38, 128, 214].forEach((offset, index) => {
+        const stoneX = routeCenterX + offset;
+        if (stoneX < -30 || stoneX > CANVAS_WIDTH + 30) return;
+        ctx.fillStyle = stoneColor;
+        ctx.beginPath();
+        ctx.ellipse(stoneX, baseY - 10 + (index % 2) * 4, 18 - (index % 3) * 3, 6, 0.08, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      if (!discovered && !locked) {
+        ctx.restore();
+        return;
+      }
+    } else {
+      ctx.globalAlpha = discovered ? 0.78 : locked ? 0.5 : 0.42;
+      ctx.fillStyle = discovered
+        ? 'rgba(250, 204, 21, 0.08)'
+        : locked
+          ? 'rgba(14, 116, 144, 0.08)'
+          : 'rgba(15, 23, 42, 0.08)';
+      ctx.strokeStyle = discovered
+        ? 'rgba(250, 204, 21, 0.74)'
+        : locked
+          ? 'rgba(125, 211, 252, 0.48)'
+          : 'rgba(255, 247, 212, 0.34)';
+      ctx.lineWidth = discovered ? 2.5 : locked ? 2 : 1.5;
+      ctx.setLineDash(discovered ? [] : locked ? [12, 7, 3, 7] : [8, 9]);
+      ctx.beginPath();
+      ctx.roundRect(x, route.y, route.width, route.height, 14);
+      ctx.fill();
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = discovered
+        ? `rgba(250, 204, 21, ${0.2 * pulse})`
+        : locked
+          ? `rgba(125, 211, 252, ${0.16 * pulse})`
+          : `rgba(255, 247, 212, ${0.13 * pulse})`;
+      ctx.beginPath();
+      ctx.ellipse(x + route.width * 0.5, route.y + route.height - 10, Math.min(120, route.width * 0.34), 12, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
     if (discovered || locked) {
       const routeLabel = discovered ? 'Hidden route mapped' : `Needs ${getShopItemDisplayName(access.requiredUpgradeId)}`;
       ctx.font = '800 12px Inter, sans-serif';
@@ -4322,7 +4506,27 @@ export default function ExpeditionJourney({
     ctx.arc(screenX, centerY, 25 * pulse, 0, Math.PI * 2);
     ctx.fill();
 
-    if (isShard) {
+    if (spriteKind === 'objective') {
+      drawContactShadow(ctx, screenX, baseY + 1, 34, 0.12, 0.8);
+      ctx.shadowColor = 'rgba(69, 26, 3, 0.36)';
+      ctx.shadowBlur = 6;
+      ctx.fillStyle = '#b89768';
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(screenX - 14, centerY - 12, 28, 24, 4);
+      ctx.fill();
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = 'rgba(69, 26, 3, 0.56)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(screenX - 8, centerY - 3);
+      ctx.lineTo(screenX + 8, centerY - 6);
+      ctx.moveTo(screenX - 7, centerY + 5);
+      ctx.lineTo(screenX + 6, centerY + 4);
+      ctx.stroke();
+    } else if (isShard) {
       // Amber archaeology shard with carved glyph lines.
       ctx.shadowColor = '#f59e0b';
       ctx.shadowBlur = 12 * pulse;
@@ -4615,6 +4819,7 @@ export default function ExpeditionJourney({
     const isNearDesertEntry = section.id === 'desert-entry';
     const assets = getSectionBackgroundAssets(desertBackgroundAssetsRef.current, 'desert-entry');
     if (!isNearDesertEntry || !assets?.ready) return false;
+    if (assets.atlas?.runtimeMode === 'single-composited-backdrop') return false;
     return drawDesertBackgroundLayer(
       ctx,
       assets,
@@ -4705,8 +4910,6 @@ export default function ExpeditionJourney({
 
   const drawRouteGate = useCallback((ctx, gate, screenX, current, complete) => {
     const gateCenter = screenX + gate.width / 2;
-    const fallbackHeight = 146;
-    const fallbackTop = placeGateOnGround(fallbackHeight);
     const glowColor = complete ? '#22c55e' : '#f59e0b';
     const gateRequirementLabel = gate.requires?.shards
       ? `${current.relicShardCount}/${gate.requires.shards} relic shards`
@@ -4722,88 +4925,56 @@ export default function ExpeditionJourney({
     };
 
     ctx.save();
-    const gateHeight = 142;
-    const gateWidth = Math.max(104, gate.width + 78);
-    const gateVisual = {
-      x: gateCenter - gateWidth / 2,
-      y: placeGateOnGround(gateHeight),
-      width: gateWidth,
-      height: gateHeight,
-    };
-    drawContactShadow(ctx, gateCenter, GROUND_Y + 2, gateVisual.width * 0.82, complete ? 0.22 : 0.3, 1.4);
-    const gateDrawn = drawAtlasRegion(
-      ctx,
-      environmentAssetsRef.current,
-      complete ? 'routeDoor' : 'sealedGate',
-      gateVisual,
-      { mode: 'stretch' },
-    );
-    if (gateDrawn) {
-      ctx.shadowColor = glowColor;
-      ctx.shadowBlur = complete ? 18 : 10;
-      ctx.globalAlpha = complete ? 0.72 : 0.92;
-      drawAtlasRegion(
-        ctx,
-        environmentAssetsRef.current,
-        'ancientSeal',
-        { x: gateCenter - 22, y: gateVisual.y + gateVisual.height * 0.52, width: 44, height: 44 },
-        { mode: 'contain' },
-      );
-      ctx.globalAlpha = 1;
-      ctx.shadowBlur = 0;
-      drawGroundDustLip(ctx, gateCenter, GROUND_Y + 1, gateVisual.width * 0.7, 'rgba(184, 116, 52, 0.24)');
-      drawDecorativeBaseBlend(ctx, gateCenter, GROUND_Y + 2, gateVisual.width * 0.76, getSectionForX(gate.x).id, 'midground', 0.86);
-      drawGateLabel(gateVisual.y - 18);
-      if (current.renderStats) current.renderStats.groundedPropCount += 1;
-      ctx.restore();
-      return;
-    }
+    const gateHeight = 116;
+    const gateWidth = 70;
+    const gateTop = placeGateOnGround(gateHeight);
+    drawContactShadow(ctx, gateCenter, GROUND_Y + 2, gateWidth * 0.9, complete ? 0.18 : 0.24, 1.15);
+    drawDecorativeBaseBlend(ctx, gateCenter, GROUND_Y + 2, gateWidth * 0.86, getSectionForX(gate.x).id, 'midground', 0.74);
+
+    const stone = ctx.createLinearGradient(gateCenter - gateWidth / 2, gateTop, gateCenter + gateWidth / 2, GROUND_Y);
+    stone.addColorStop(0, complete ? '#d8c092' : '#b89768');
+    stone.addColorStop(0.55, complete ? '#a98455' : '#806242');
+    stone.addColorStop(1, '#4f3825');
+    ctx.fillStyle = stone;
+    ctx.strokeStyle = 'rgba(58, 35, 18, 0.76)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(gateCenter - gateWidth * 0.36, GROUND_Y);
+    ctx.lineTo(gateCenter - gateWidth * 0.3, gateTop + 28);
+    ctx.quadraticCurveTo(gateCenter, gateTop - 8, gateCenter + gateWidth * 0.3, gateTop + 28);
+    ctx.lineTo(gateCenter + gateWidth * 0.36, GROUND_Y);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
 
     ctx.shadowColor = glowColor;
-    ctx.shadowBlur = complete ? 14 : 8;
-    ctx.fillStyle = complete ? 'rgba(22, 101, 52, 0.28)' : 'rgba(69, 26, 3, 0.36)';
+    ctx.shadowBlur = complete ? 18 : 9;
+    ctx.fillStyle = complete ? 'rgba(187, 247, 208, 0.88)' : 'rgba(254, 243, 199, 0.82)';
     ctx.beginPath();
-    ctx.roundRect(screenX - 14, fallbackTop, gate.width + 28, fallbackHeight, 8);
+    ctx.ellipse(gateCenter, gateTop + 58, 18, 23, 0, 0, Math.PI * 2);
     ctx.fill();
-
     ctx.shadowBlur = 0;
-    ctx.fillStyle = '#5f4938';
-    ctx.fillRect(screenX - 22, fallbackTop + 4, 20, fallbackHeight - 4);
-    ctx.fillRect(screenX + gate.width + 2, fallbackTop + 4, 20, fallbackHeight - 4);
-    ctx.fillStyle = '#7a5b3d';
-    ctx.fillRect(screenX - 26, fallbackTop - 8, gate.width + 52, 18);
-    ctx.fillStyle = '#3b2b22';
-    ctx.fillRect(screenX, fallbackTop + 16, gate.width, fallbackHeight - 28);
-
-    ctx.strokeStyle = glowColor;
-    ctx.lineWidth = 3;
-    ctx.strokeRect(screenX + 4, fallbackTop + 24, gate.width - 8, fallbackHeight - 44);
-    ctx.strokeStyle = 'rgba(255, 236, 180, 0.25)';
-    ctx.lineWidth = 1;
-    for (let y = fallbackTop + 38; y < fallbackTop + fallbackHeight - 22; y += 22) {
-      ctx.beginPath();
-      ctx.moveTo(screenX + 8, y);
-      ctx.lineTo(screenX + gate.width - 8, y + 5);
-      ctx.stroke();
-    }
-
-    ctx.fillStyle = complete ? '#bbf7d0' : '#fef3c7';
-    ctx.beginPath();
-    ctx.arc(gateCenter, fallbackTop + fallbackHeight * 0.56, 17, 0, Math.PI * 2);
-    ctx.fill();
     ctx.strokeStyle = glowColor;
     ctx.lineWidth = 3;
     ctx.stroke();
 
-    ctx.strokeStyle = '#3b2b22';
-    ctx.lineWidth = 3;
+    ctx.strokeStyle = 'rgba(69, 26, 3, 0.62)';
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(gateCenter, fallbackTop + fallbackHeight * 0.56 - 2, 8, Math.PI, 0);
+    ctx.moveTo(gateCenter - 18, gateTop + 32);
+    ctx.lineTo(gateCenter + 18, gateTop + 32);
+    ctx.moveTo(gateCenter - 20, gateTop + 86);
+    ctx.lineTo(gateCenter + 20, gateTop + 86);
     ctx.stroke();
-    ctx.fillStyle = '#3b2b22';
-    ctx.fillRect(gateCenter - 9, fallbackTop + fallbackHeight * 0.56 - 2, 18, 13);
-    drawGroundDustLip(ctx, gateCenter, GROUND_Y + 1, gate.width + 54, 'rgba(184, 116, 52, 0.22)');
-    drawGateLabel(fallbackTop - 18);
+
+    ctx.fillStyle = 'rgba(69, 26, 3, 0.72)';
+    ctx.beginPath();
+    ctx.arc(gateCenter, gateTop + 55, 6, Math.PI, 0);
+    ctx.stroke();
+    ctx.fillRect(gateCenter - 7, gateTop + 55, 14, 10);
+    drawGroundDustLip(ctx, gateCenter, GROUND_Y + 1, gateWidth * 0.82, 'rgba(184, 116, 52, 0.22)');
+    drawGateLabel(gateTop - 18);
+    if (current.renderStats) current.renderStats.groundedPropCount += 1;
     ctx.restore();
   }, [drawContactShadow, drawDecorativeBaseBlend, drawFieldNoteLabel, drawGroundDustLip]);
 
@@ -6419,13 +6590,62 @@ export default function ExpeditionJourney({
 
     CHECKPOINTS.forEach((checkpoint) => {
       const cx = worldToScreenX(checkpoint.x, cameraX);
-      if (!isHorizontallyVisible(checkpoint.x, 1, cameraX, 80)) return;
+      if (!isHorizontallyVisible(checkpoint.x, 1, cameraX, 130)) return;
       const active = current.activeCheckpoint.id === checkpoint.id;
       ctx.save();
-      ctx.fillStyle = active ? '#166534' : '#451a03';
-      ctx.fillRect(cx - 2, checkpoint.y, 4, 80);
+      const checkpointHeight = active ? 128 : 118;
+      const checkpointWidth = checkpointHeight * 1.48;
+      const checkpointDrawn = drawMarkerSprite(
+        ctx,
+        markerSpriteAssetsRef.current,
+        'checkpoint',
+        {
+          x: cx - checkpointWidth / 2,
+          y: GROUND_Y - checkpointHeight + 6,
+          width: checkpointWidth,
+          height: checkpointHeight,
+        },
+        now,
+      );
+      if (checkpointDrawn) {
+        drawContactShadow(ctx, cx, GROUND_Y + 1, checkpointWidth * 0.62, active ? 0.18 : 0.12, 1);
+        drawGroundDustLip(ctx, cx, GROUND_Y + 1, checkpointWidth * 0.48, 'rgba(116, 72, 36, 0.2)');
+        if (!active && showWorldLabel(checkpoint.x, 130)) {
+          drawFieldNoteLabel(ctx, cx, checkpoint.y - 20, checkpoint.name, '#78350f');
+        }
+        ctx.restore();
+        return;
+      }
+      drawContactShadow(ctx, cx, GROUND_Y + 1, 66, active ? 0.22 : 0.14, 1);
+      drawGroundDustLip(ctx, cx, GROUND_Y + 1, 56, 'rgba(116, 72, 36, 0.24)');
+      ctx.fillStyle = active ? '#d2b277' : '#9f7646';
+      ctx.strokeStyle = active ? 'rgba(22, 101, 52, 0.86)' : 'rgba(69, 26, 3, 0.62)';
+      ctx.lineWidth = active ? 2.25 : 1.75;
+      [
+        { x: -22, y: -13, w: 26, h: 13 },
+        { x: 1, y: -17, w: 24, h: 17 },
+        { x: -11, y: -33, w: 22, h: 17 },
+      ].forEach((stone, index) => {
+        ctx.beginPath();
+        ctx.roundRect(cx + stone.x, GROUND_Y + stone.y, stone.w, stone.h, 3);
+        ctx.globalAlpha = active ? 1 : 0.9 - index * 0.04;
+        ctx.fill();
+        ctx.stroke();
+      });
+      ctx.globalAlpha = 1;
+      if (active) {
+        ctx.strokeStyle = 'rgba(22, 101, 52, 0.74)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(cx, GROUND_Y - 31, 20 + Math.sin(now / 280) * 1.5, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(22, 101, 52, 0.62)';
+        ctx.beginPath();
+        ctx.ellipse(cx, GROUND_Y - 28, 8 + Math.sin(now / 260), 4.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
       if (active || showWorldLabel(checkpoint.x, 130)) {
-        drawFieldNoteLabel(ctx, cx, checkpoint.y - 20, active ? 'CHECKPOINT' : checkpoint.name, active ? '#166534' : '#78350f');
+        drawFieldNoteLabel(ctx, cx, checkpoint.y - 20, active ? 'Checkpoint' : checkpoint.name, active ? '#166534' : '#78350f');
       }
       ctx.restore();
     });
