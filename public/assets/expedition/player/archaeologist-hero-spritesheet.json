@@ -1,863 +1,835 @@
-﻿{
-    "image":  "archaeologist-hero-spritesheet.png",
-    "source":  "imagegen-production-egypt-archaeologist-hero-2026-05-16",
-    "sourceImage":  "C:\\Users\\dmahe\\.codex\\generated_images\\019e2faa-f5a9-7b31-ac2f-d897bd94e546\\ig_08b2a48987cedef0016a083f8c70fc8191a1467ce4d09f0dd6.png",
-    "status":  "production-candidate-wired-to-egypt-journey",
-    "description":  "Higher-quality transparent Egypt-stage archaeologist hero sprite atlas. Uses alpha-trimmed variable atlas regions so the expressive face, stronger silhouette, running poses, and golden pick-swing frames are preserved.",
-    "frame":  {
-                  "width":  null,
-                  "height":  null,
-                  "groundLineY":  "per-region",
-                  "facing":  "right"
-              },
-    "draw":  {
-                 "height":  88,
-                 "integratedAttackTool":  true,
-                 "suppressExternalWeaponDuringAttack":  true,
-                 "suppressRuntimeAttackArc":  true
-             },
-    "size":  {
-                 "w":  1536,
-                 "h":  1024
-             },
-    "rows":  [
-                 {
-                     "name":  "idle",
-                     "row":  0,
-                     "frameCount":  6,
-                     "loop":  true,
-                     "frames":  [
-                                    "idle_00",
-                                    "idle_01",
-                                    "idle_02",
-                                    "idle_03",
-                                    "idle_04",
-                                    "idle_05"
-                                ]
-                 },
-                 {
-                     "name":  "walk",
-                     "row":  1,
-                     "frameCount":  8,
-                     "loop":  true,
-                     "frames":  [
-                                    "walk_00",
-                                    "walk_01",
-                                    "walk_02",
-                                    "walk_03",
-                                    "walk_04",
-                                    "walk_05",
-                                    "walk_06",
-                                    "walk_07"
-                                ]
-                 },
-                 {
-                     "name":  "run",
-                     "row":  2,
-                     "frameCount":  8,
-                     "loop":  true,
-                     "frames":  [
-                                    "run_00",
-                                    "run_01",
-                                    "run_02",
-                                    "run_03",
-                                    "run_04",
-                                    "run_05",
-                                    "run_06",
-                                    "run_07"
-                                ]
-                 },
-                 {
-                     "name":  "survey_walk",
-                     "row":  3,
-                     "frameCount":  8,
-                     "loop":  true,
-                     "frames":  [
-                                    "survey_walk_00",
-                                    "survey_walk_01",
-                                    "survey_walk_02",
-                                    "survey_walk_03",
-                                    "survey_walk_04",
-                                    "survey_walk_05",
-                                    "survey_walk_06",
-                                    "survey_walk_07"
-                                ]
-                 },
-                 {
-                     "name":  "jump",
-                     "row":  4,
-                     "frameCount":  4,
-                     "loop":  false,
-                     "frames":  [
-                                    "jump_00",
-                                    "jump_01",
-                                    "jump_02",
-                                    "jump_03"
-                                ]
-                 },
-                 {
-                     "name":  "fall",
-                     "row":  5,
-                     "frameCount":  4,
-                     "loop":  false,
-                     "frames":  [
-                                    "fall_00",
-                                    "fall_01",
-                                    "fall_02",
-                                    "fall_03"
-                                ]
-                 },
-                 {
-                     "name":  "land",
-                     "row":  6,
-                     "frameCount":  4,
-                     "loop":  false,
-                     "frames":  [
-                                    "land_00",
-                                    "land_01",
-                                    "land_02",
-                                    "land_03"
-                                ]
-                 },
-                 {
-                     "name":  "attack_pick_swing",
-                     "row":  7,
-                     "frameCount":  8,
-                     "loop":  false,
-                     "frames":  [
-                                    "attack_pick_swing_00",
-                                    "attack_pick_swing_01",
-                                    "attack_pick_swing_02",
-                                    "attack_pick_swing_03",
-                                    "attack_pick_swing_04",
-                                    "attack_pick_swing_05",
-                                    "attack_pick_swing_06",
-                                    "attack_pick_swing_07"
-                                ]
-                 },
-                 {
-                     "name":  "hurt",
-                     "row":  8,
-                     "frameCount":  4,
-                     "loop":  false,
-                     "frames":  [
-                                    "hurt_00",
-                                    "hurt_01",
-                                    "hurt_02",
-                                    "hurt_03"
-                                ]
-                 }
-             ],
-    "regions":  {
-                    "idle_00":  {
-                                    "x":  85,
-                                    "y":  15,
-                                    "w":  82,
-                                    "h":  137,
-                                    "drawBounds":  {
-                                                       "x":  0,
-                                                       "y":  0,
-                                                       "w":  82,
-                                                       "h":  137
-                                                   },
-                                    "groundLineY":  132
-                                },
-                    "idle_01":  {
-                                    "x":  194,
-                                    "y":  13,
-                                    "w":  84,
-                                    "h":  139,
-                                    "drawBounds":  {
-                                                       "x":  0,
-                                                       "y":  0,
-                                                       "w":  84,
-                                                       "h":  139
-                                                   },
-                                    "groundLineY":  134
-                                },
-                    "idle_02":  {
-                                    "x":  303,
-                                    "y":  13,
-                                    "w":  81,
-                                    "h":  139,
-                                    "drawBounds":  {
-                                                       "x":  0,
-                                                       "y":  0,
-                                                       "w":  81,
-                                                       "h":  139
-                                                   },
-                                    "groundLineY":  134
-                                },
-                    "idle_03":  {
-                                    "x":  407,
-                                    "y":  14,
-                                    "w":  85,
-                                    "h":  139,
-                                    "drawBounds":  {
-                                                       "x":  0,
-                                                       "y":  0,
-                                                       "w":  85,
-                                                       "h":  139
-                                                   },
-                                    "groundLineY":  134
-                                },
-                    "idle_04":  {
-                                    "x":  516,
-                                    "y":  13,
-                                    "w":  80,
-                                    "h":  139,
-                                    "drawBounds":  {
-                                                       "x":  0,
-                                                       "y":  0,
-                                                       "w":  80,
-                                                       "h":  139
-                                                   },
-                                    "groundLineY":  134
-                                },
-                    "idle_05":  {
-                                    "x":  620,
-                                    "y":  12,
-                                    "w":  78,
-                                    "h":  140,
-                                    "drawBounds":  {
-                                                       "x":  0,
-                                                       "y":  0,
-                                                       "w":  78,
-                                                       "h":  140
-                                                   },
-                                    "groundLineY":  135
-                                },
-                    "walk_00":  {
-                                    "x":  87,
-                                    "y":  150,
-                                    "w":  89,
-                                    "h":  127,
-                                    "drawBounds":  {
-                                                       "x":  0,
-                                                       "y":  0,
-                                                       "w":  89,
-                                                       "h":  127
-                                                   },
-                                    "groundLineY":  122
-                                },
-                    "walk_01":  {
-                                    "x":  222,
-                                    "y":  151,
-                                    "w":  86,
-                                    "h":  130,
-                                    "drawBounds":  {
-                                                       "x":  0,
-                                                       "y":  0,
-                                                       "w":  86,
-                                                       "h":  130
-                                                   },
-                                    "groundLineY":  125
-                                },
-                    "walk_02":  {
-                                    "x":  337,
-                                    "y":  152,
-                                    "w":  90,
-                                    "h":  126,
-                                    "drawBounds":  {
-                                                       "x":  0,
-                                                       "y":  0,
-                                                       "w":  90,
-                                                       "h":  126
-                                                   },
-                                    "groundLineY":  121
-                                },
-                    "walk_03":  {
-                                    "x":  450,
-                                    "y":  152,
-                                    "w":  99,
-                                    "h":  125,
-                                    "drawBounds":  {
-                                                       "x":  0,
-                                                       "y":  0,
-                                                       "w":  99,
-                                                       "h":  125
-                                                   },
-                                    "groundLineY":  120
-                                },
-                    "walk_04":  {
-                                    "x":  576,
-                                    "y":  154,
-                                    "w":  86,
-                                    "h":  124,
-                                    "drawBounds":  {
-                                                       "x":  0,
-                                                       "y":  0,
-                                                       "w":  86,
-                                                       "h":  124
-                                                   },
-                                    "groundLineY":  119
-                                },
-                    "walk_05":  {
-                                    "x":  709,
-                                    "y":  156,
-                                    "w":  80,
-                                    "h":  123,
-                                    "drawBounds":  {
-                                                       "x":  0,
-                                                       "y":  0,
-                                                       "w":  80,
-                                                       "h":  123
-                                                   },
-                                    "groundLineY":  118
-                                },
-                    "walk_06":  {
-                                    "x":  811,
-                                    "y":  157,
-                                    "w":  91,
-                                    "h":  120,
-                                    "drawBounds":  {
-                                                       "x":  0,
-                                                       "y":  0,
-                                                       "w":  91,
-                                                       "h":  120
-                                                   },
-                                    "groundLineY":  115
-                                },
-                    "walk_07":  {
-                                    "x":  927,
-                                    "y":  156,
-                                    "w":  81,
-                                    "h":  122,
-                                    "drawBounds":  {
-                                                       "x":  0,
-                                                       "y":  0,
-                                                       "w":  81,
-                                                       "h":  122
-                                                   },
-                                    "groundLineY":  117
-                                },
-                    "run_00":  {
-                                   "x":  84,
-                                   "y":  275,
-                                   "w":  117,
-                                   "h":  117,
-                                   "drawBounds":  {
-                                                      "x":  0,
-                                                      "y":  0,
-                                                      "w":  117,
-                                                      "h":  117
-                                                  },
-                                   "groundLineY":  112
-                               },
-                    "run_01":  {
-                                   "x":  213,
-                                   "y":  277,
-                                   "w":  122,
-                                   "h":  116,
-                                   "drawBounds":  {
-                                                      "x":  0,
-                                                      "y":  0,
-                                                      "w":  122,
-                                                      "h":  116
-                                                  },
-                                   "groundLineY":  111
-                               },
-                    "run_02":  {
-                                   "x":  345,
-                                   "y":  277,
-                                   "w":  123,
-                                   "h":  116,
-                                   "drawBounds":  {
-                                                      "x":  0,
-                                                      "y":  0,
-                                                      "w":  123,
-                                                      "h":  116
-                                                  },
-                                   "groundLineY":  111
-                               },
-                    "run_03":  {
-                                   "x":  480,
-                                   "y":  276,
-                                   "w":  122,
-                                   "h":  115,
-                                   "drawBounds":  {
-                                                      "x":  0,
-                                                      "y":  0,
-                                                      "w":  122,
-                                                      "h":  115
-                                                  },
-                                   "groundLineY":  110
-                               },
-                    "run_04":  {
-                                   "x":  614,
-                                   "y":  275,
-                                   "w":  119,
-                                   "h":  119,
-                                   "drawBounds":  {
-                                                      "x":  0,
-                                                      "y":  0,
-                                                      "w":  119,
-                                                      "h":  119
-                                                  },
-                                   "groundLineY":  114
-                               },
-                    "run_05":  {
-                                   "x":  752,
-                                   "y":  281,
-                                   "w":  115,
-                                   "h":  114,
-                                   "drawBounds":  {
-                                                      "x":  0,
-                                                      "y":  0,
-                                                      "w":  115,
-                                                      "h":  114
-                                                  },
-                                   "groundLineY":  109
-                               },
-                    "run_06":  {
-                                   "x":  895,
-                                   "y":  280,
-                                   "w":  122,
-                                   "h":  115,
-                                   "drawBounds":  {
-                                                      "x":  0,
-                                                      "y":  0,
-                                                      "w":  122,
-                                                      "h":  115
-                                                  },
-                                   "groundLineY":  110
-                               },
-                    "run_07":  {
-                                   "x":  1030,
-                                   "y":  280,
-                                   "w":  123,
-                                   "h":  116,
-                                   "drawBounds":  {
-                                                      "x":  0,
-                                                      "y":  0,
-                                                      "w":  123,
-                                                      "h":  116
-                                                  },
-                                   "groundLineY":  111
-                               },
-                    "survey_walk_00":  {
-                                           "x":  85,
-                                           "y":  387,
-                                           "w":  89,
-                                           "h":  119,
-                                           "drawBounds":  {
-                                                              "x":  0,
-                                                              "y":  0,
-                                                              "w":  89,
-                                                              "h":  119
-                                                          },
-                                           "groundLineY":  114
-                                       },
-                    "survey_walk_01":  {
-                                           "x":  215,
-                                           "y":  386,
-                                           "w":  88,
-                                           "h":  120,
-                                           "drawBounds":  {
-                                                              "x":  0,
-                                                              "y":  0,
-                                                              "w":  88,
-                                                              "h":  120
-                                                          },
-                                           "groundLineY":  115
-                                       },
-                    "survey_walk_02":  {
-                                           "x":  349,
-                                           "y":  387,
-                                           "w":  84,
-                                           "h":  119,
-                                           "drawBounds":  {
-                                                              "x":  0,
-                                                              "y":  0,
-                                                              "w":  84,
-                                                              "h":  119
-                                                          },
-                                           "groundLineY":  114
-                                       },
-                    "survey_walk_03":  {
-                                           "x":  483,
-                                           "y":  387,
-                                           "w":  87,
-                                           "h":  120,
-                                           "drawBounds":  {
-                                                              "x":  0,
-                                                              "y":  0,
-                                                              "w":  87,
-                                                              "h":  120
-                                                          },
-                                           "groundLineY":  115
-                                       },
-                    "survey_walk_04":  {
-                                           "x":  617,
-                                           "y":  391,
-                                           "w":  86,
-                                           "h":  116,
-                                           "drawBounds":  {
-                                                              "x":  0,
-                                                              "y":  0,
-                                                              "w":  86,
-                                                              "h":  116
-                                                          },
-                                           "groundLineY":  111
-                                       },
-                    "survey_walk_05":  {
-                                           "x":  739,
-                                           "y":  391,
-                                           "w":  92,
-                                           "h":  117,
-                                           "drawBounds":  {
-                                                              "x":  0,
-                                                              "y":  0,
-                                                              "w":  92,
-                                                              "h":  117
-                                                          },
-                                           "groundLineY":  112
-                                       },
-                    "survey_walk_06":  {
-                                           "x":  863,
-                                           "y":  393,
-                                           "w":  88,
-                                           "h":  116,
-                                           "drawBounds":  {
-                                                              "x":  0,
-                                                              "y":  0,
-                                                              "w":  88,
-                                                              "h":  116
-                                                          },
-                                           "groundLineY":  111
-                                       },
-                    "survey_walk_07":  {
-                                           "x":  997,
-                                           "y":  393,
-                                           "w":  86,
-                                           "h":  117,
-                                           "drawBounds":  {
-                                                              "x":  0,
-                                                              "y":  0,
-                                                              "w":  86,
-                                                              "h":  117
-                                                          },
-                                           "groundLineY":  112
-                                       },
-                    "jump_00":  {
-                                    "x":  86,
-                                    "y":  511,
-                                    "w":  96,
-                                    "h":  107,
-                                    "drawBounds":  {
-                                                       "x":  0,
-                                                       "y":  0,
-                                                       "w":  96,
-                                                       "h":  107
-                                                   },
-                                    "groundLineY":  102
-                                },
-                    "jump_01":  {
-                                    "x":  219,
-                                    "y":  511,
-                                    "w":  100,
-                                    "h":  119,
-                                    "drawBounds":  {
-                                                       "x":  0,
-                                                       "y":  0,
-                                                       "w":  100,
-                                                       "h":  119
-                                                   },
-                                    "groundLineY":  114
-                                },
-                    "jump_02":  {
-                                    "x":  340,
-                                    "y":  502,
-                                    "w":  84,
-                                    "h":  104,
-                                    "drawBounds":  {
-                                                       "x":  0,
-                                                       "y":  0,
-                                                       "w":  84,
-                                                       "h":  104
-                                                   },
-                                    "groundLineY":  99
-                                },
-                    "jump_03":  {
-                                    "x":  461,
-                                    "y":  507,
-                                    "w":  94,
-                                    "h":  115,
-                                    "drawBounds":  {
-                                                       "x":  0,
-                                                       "y":  0,
-                                                       "w":  94,
-                                                       "h":  115
-                                                   },
-                                    "groundLineY":  110
-                                },
-                    "fall_00":  {
-                                    "x":  75,
-                                    "y":  628,
-                                    "w":  116,
-                                    "h":  92,
-                                    "drawBounds":  {
-                                                       "x":  0,
-                                                       "y":  0,
-                                                       "w":  116,
-                                                       "h":  92
-                                                   },
-                                    "groundLineY":  87
-                                },
-                    "fall_01":  {
-                                    "x":  224,
-                                    "y":  642,
-                                    "w":  108,
-                                    "h":  82,
-                                    "drawBounds":  {
-                                                       "x":  0,
-                                                       "y":  0,
-                                                       "w":  108,
-                                                       "h":  82
-                                                   },
-                                    "groundLineY":  77
-                                },
-                    "fall_02":  {
-                                    "x":  402,
-                                    "y":  632,
-                                    "w":  109,
-                                    "h":  88,
-                                    "drawBounds":  {
-                                                       "x":  0,
-                                                       "y":  0,
-                                                       "w":  109,
-                                                       "h":  88
-                                                   },
-                                    "groundLineY":  83
-                                },
-                    "fall_03":  {
-                                    "x":  542,
-                                    "y":  636,
-                                    "w":  125,
-                                    "h":  87,
-                                    "drawBounds":  {
-                                                       "x":  0,
-                                                       "y":  0,
-                                                       "w":  125,
-                                                       "h":  87
-                                                   },
-                                    "groundLineY":  82
-                                },
-                    "land_00":  {
-                                    "x":  73,
-                                    "y":  732,
-                                    "w":  109,
-                                    "h":  87,
-                                    "drawBounds":  {
-                                                       "x":  0,
-                                                       "y":  0,
-                                                       "w":  109,
-                                                       "h":  87
-                                                   },
-                                    "groundLineY":  82
-                                },
-                    "land_01":  {
-                                    "x":  240,
-                                    "y":  726,
-                                    "w":  111,
-                                    "h":  88,
-                                    "drawBounds":  {
-                                                       "x":  0,
-                                                       "y":  0,
-                                                       "w":  111,
-                                                       "h":  88
-                                                   },
-                                    "groundLineY":  83
-                                },
-                    "land_02":  {
-                                    "x":  402,
-                                    "y":  725,
-                                    "w":  121,
-                                    "h":  87,
-                                    "drawBounds":  {
-                                                       "x":  0,
-                                                       "y":  0,
-                                                       "w":  121,
-                                                       "h":  87
-                                                   },
-                                    "groundLineY":  82
-                                },
-                    "land_03":  {
-                                    "x":  551,
-                                    "y":  727,
-                                    "w":  116,
-                                    "h":  87,
-                                    "drawBounds":  {
-                                                       "x":  0,
-                                                       "y":  0,
-                                                       "w":  116,
-                                                       "h":  87
-                                                   },
-                                    "groundLineY":  82
-                                },
-                    "attack_pick_swing_00":  {
-                                                 "x":  80,
-                                                 "y":  802,
-                                                 "w":  128,
-                                                 "h":  113,
-                                                 "drawBounds":  {
-                                                                    "x":  0,
-                                                                    "y":  0,
-                                                                    "w":  128,
-                                                                    "h":  113
-                                                                },
-                                                 "groundLineY":  108
-                                             },
-                    "attack_pick_swing_01":  {
-                                                 "x":  209,
-                                                 "y":  802,
-                                                 "w":  124,
-                                                 "h":  117,
-                                                 "drawBounds":  {
-                                                                    "x":  0,
-                                                                    "y":  0,
-                                                                    "w":  124,
-                                                                    "h":  117
-                                                                },
-                                                 "groundLineY":  112
-                                             },
-                    "attack_pick_swing_02":  {
-                                                 "x":  341,
-                                                 "y":  810,
-                                                 "w":  165,
-                                                 "h":  111,
-                                                 "drawBounds":  {
-                                                                    "x":  0,
-                                                                    "y":  0,
-                                                                    "w":  165,
-                                                                    "h":  111
-                                                                },
-                                                 "groundLineY":  106
-                                             },
-                    "attack_pick_swing_03":  {
-                                                 "x":  495,
-                                                 "y":  802,
-                                                 "w":  161,
-                                                 "h":  119,
-                                                 "drawBounds":  {
-                                                                    "x":  0,
-                                                                    "y":  0,
-                                                                    "w":  161,
-                                                                    "h":  119
-                                                                },
-                                                 "groundLineY":  114
-                                             },
-                    "attack_pick_swing_04":  {
-                                                 "x":  645,
-                                                 "y":  810,
-                                                 "w":  161,
-                                                 "h":  112,
-                                                 "drawBounds":  {
-                                                                    "x":  0,
-                                                                    "y":  0,
-                                                                    "w":  161,
-                                                                    "h":  112
-                                                                },
-                                                 "groundLineY":  107
-                                             },
-                    "attack_pick_swing_05":  {
-                                                 "x":  795,
-                                                 "y":  809,
-                                                 "w":  166,
-                                                 "h":  114,
-                                                 "drawBounds":  {
-                                                                    "x":  0,
-                                                                    "y":  0,
-                                                                    "w":  166,
-                                                                    "h":  114
-                                                                },
-                                                 "groundLineY":  109
-                                             },
-                    "attack_pick_swing_06":  {
-                                                 "x":  1035,
-                                                 "y":  802,
-                                                 "w":  108,
-                                                 "h":  122,
-                                                 "drawBounds":  {
-                                                                    "x":  0,
-                                                                    "y":  0,
-                                                                    "w":  108,
-                                                                    "h":  122
-                                                                },
-                                                 "groundLineY":  117
-                                             },
-                    "attack_pick_swing_07":  {
-                                                 "x":  1322,
-                                                 "y":  812,
-                                                 "w":  85,
-                                                 "h":  113,
-                                                 "drawBounds":  {
-                                                                    "x":  0,
-                                                                    "y":  0,
-                                                                    "w":  85,
-                                                                    "h":  113
-                                                                },
-                                                 "groundLineY":  108
-                                             },
-                    "hurt_00":  {
-                                    "x":  70,
-                                    "y":  919,
-                                    "w":  124,
-                                    "h":  95,
-                                    "drawBounds":  {
-                                                       "x":  0,
-                                                       "y":  0,
-                                                       "w":  124,
-                                                       "h":  95
-                                                   },
-                                    "groundLineY":  90
-                                },
-                    "hurt_01":  {
-                                    "x":  216,
-                                    "y":  917,
-                                    "w":  114,
-                                    "h":  101,
-                                    "drawBounds":  {
-                                                       "x":  0,
-                                                       "y":  0,
-                                                       "w":  114,
-                                                       "h":  101
-                                                   },
-                                    "groundLineY":  96
-                                },
-                    "hurt_02":  {
-                                    "x":  355,
-                                    "y":  919,
-                                    "w":  111,
-                                    "h":  94,
-                                    "drawBounds":  {
-                                                       "x":  0,
-                                                       "y":  0,
-                                                       "w":  111,
-                                                       "h":  94
-                                                   },
-                                    "groundLineY":  89
-                                },
-                    "hurt_03":  {
-                                    "x":  492,
-                                    "y":  922,
-                                    "w":  112,
-                                    "h":  96,
-                                    "drawBounds":  {
-                                                       "x":  0,
-                                                       "y":  0,
-                                                       "w":  112,
-                                                       "h":  96
-                                                   },
-                                    "groundLineY":  91
-                                }
-                },
-    "runtimeNotes":  [
-                         "Uses existing Journey row-aware player renderer with alpha-trimmed variable atlas regions.",
-                         "Egypt-specific visual identity only; no duplicate player controller, hitbox model, or animation state machine.",
-                         "Ground line is stored per region so larger production art lands cleanly on the platform.",
-                         "Integrated attack frames own the archaeology pick and golden swing arc; the runtime suppresses duplicate external weapon/arc during attack.",
-                         "Runtime regions are cut to transparent row bands so movement frames do not pull in neighbouring animation rows.",
-                         "Legacy sprite fallback remains available through the existing loader."
-                     ]
+{
+  "image": "archaeologist-hero-spritesheet.png",
+  "source": "transparent-cleanup-from-user-provided-archaeologist-hero-concept-2026-05-16",
+  "status": "prepared-game-ready-atlas",
+  "description": "Game-ready transparent player sprite atlas prepared from the archaeologist hero concept sheet. Labels, UI panels, palette blocks, row dividers, and the dark concept-sheet background were removed.",
+  "frame": {
+    "width": 128,
+    "height": 128,
+    "groundLineY": 113,
+    "facing": "right"
+  },
+  "rows": [
+    {
+      "name": "idle",
+      "row": 0,
+      "frameCount": 5,
+      "loop": true,
+      "frames": [
+        "idle_00",
+        "idle_01",
+        "idle_02",
+        "idle_03",
+        "idle_04"
+      ]
+    },
+    {
+      "name": "walk",
+      "row": 1,
+      "frameCount": 8,
+      "loop": true,
+      "frames": [
+        "walk_00",
+        "walk_01",
+        "walk_02",
+        "walk_03",
+        "walk_04",
+        "walk_05",
+        "walk_06",
+        "walk_07"
+      ]
+    },
+    {
+      "name": "run",
+      "row": 2,
+      "frameCount": 8,
+      "loop": true,
+      "frames": [
+        "run_00",
+        "run_01",
+        "run_02",
+        "run_03",
+        "run_04",
+        "run_05",
+        "run_06",
+        "run_07"
+      ]
+    },
+    {
+      "name": "survey_walk",
+      "row": 3,
+      "frameCount": 8,
+      "loop": true,
+      "frames": [
+        "survey_walk_00",
+        "survey_walk_01",
+        "survey_walk_02",
+        "survey_walk_03",
+        "survey_walk_04",
+        "survey_walk_05",
+        "survey_walk_06",
+        "survey_walk_07"
+      ]
+    },
+    {
+      "name": "jump",
+      "row": 4,
+      "frameCount": 4,
+      "loop": false,
+      "frames": [
+        "jump_00",
+        "jump_01",
+        "jump_02",
+        "jump_03"
+      ]
+    },
+    {
+      "name": "fall",
+      "row": 5,
+      "frameCount": 4,
+      "loop": false,
+      "frames": [
+        "fall_00",
+        "fall_01",
+        "fall_02",
+        "fall_03"
+      ]
+    },
+    {
+      "name": "land",
+      "row": 6,
+      "frameCount": 4,
+      "loop": false,
+      "frames": [
+        "land_00",
+        "land_01",
+        "land_02",
+        "land_03"
+      ]
+    },
+    {
+      "name": "attack_pick_swing",
+      "row": 7,
+      "frameCount": 8,
+      "loop": false,
+      "frames": [
+        "attack_pick_swing_00",
+        "attack_pick_swing_01",
+        "attack_pick_swing_02",
+        "attack_pick_swing_03",
+        "attack_pick_swing_04",
+        "attack_pick_swing_05",
+        "attack_pick_swing_06",
+        "attack_pick_swing_07"
+      ]
+    },
+    {
+      "name": "hurt",
+      "row": 8,
+      "frameCount": 4,
+      "loop": false,
+      "frames": [
+        "hurt_00",
+        "hurt_01",
+        "hurt_02",
+        "hurt_03"
+      ]
+    }
+  ],
+  "regions": {
+    "idle_00": {
+      "x": 0,
+      "y": 0,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 35,
+        "y": 2,
+        "w": 57,
+        "h": 114
+      },
+      "groundLineY": 113
+    },
+    "idle_01": {
+      "x": 128,
+      "y": 0,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 32,
+        "y": 2,
+        "w": 64,
+        "h": 112
+      },
+      "groundLineY": 113
+    },
+    "idle_02": {
+      "x": 256,
+      "y": 0,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 32,
+        "y": 2,
+        "w": 63,
+        "h": 113
+      },
+      "groundLineY": 113
+    },
+    "idle_03": {
+      "x": 384,
+      "y": 0,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 28,
+        "y": 2,
+        "w": 71,
+        "h": 113
+      },
+      "groundLineY": 113
+    },
+    "idle_04": {
+      "x": 512,
+      "y": 0,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 28,
+        "y": 2,
+        "w": 72,
+        "h": 113
+      },
+      "groundLineY": 113
+    },
+    "walk_00": {
+      "x": 0,
+      "y": 128,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 35,
+        "y": 2,
+        "w": 57,
+        "h": 111
+      },
+      "groundLineY": 113
+    },
+    "walk_01": {
+      "x": 128,
+      "y": 128,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 32,
+        "y": 2,
+        "w": 63,
+        "h": 114
+      },
+      "groundLineY": 113
+    },
+    "walk_02": {
+      "x": 256,
+      "y": 128,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 35,
+        "y": 2,
+        "w": 58,
+        "h": 114
+      },
+      "groundLineY": 113
+    },
+    "walk_03": {
+      "x": 384,
+      "y": 128,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 35,
+        "y": 2,
+        "w": 58,
+        "h": 114
+      },
+      "groundLineY": 113
+    },
+    "walk_04": {
+      "x": 512,
+      "y": 128,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 34,
+        "y": 2,
+        "w": 59,
+        "h": 114
+      },
+      "groundLineY": 113
+    },
+    "walk_05": {
+      "x": 640,
+      "y": 128,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 36,
+        "y": 2,
+        "w": 56,
+        "h": 114
+      },
+      "groundLineY": 113
+    },
+    "walk_06": {
+      "x": 768,
+      "y": 128,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 32,
+        "y": 2,
+        "w": 64,
+        "h": 114
+      },
+      "groundLineY": 113
+    },
+    "walk_07": {
+      "x": 896,
+      "y": 128,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 35,
+        "y": 2,
+        "w": 57,
+        "h": 114
+      },
+      "groundLineY": 113
+    },
+    "run_00": {
+      "x": 0,
+      "y": 256,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 17,
+        "y": 2,
+        "w": 94,
+        "h": 114
+      },
+      "groundLineY": 113
+    },
+    "run_01": {
+      "x": 128,
+      "y": 256,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 20,
+        "y": 2,
+        "w": 87,
+        "h": 113
+      },
+      "groundLineY": 113
+    },
+    "run_02": {
+      "x": 256,
+      "y": 256,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 20,
+        "y": 2,
+        "w": 87,
+        "h": 112
+      },
+      "groundLineY": 113
+    },
+    "run_03": {
+      "x": 384,
+      "y": 256,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 24,
+        "y": 2,
+        "w": 80,
+        "h": 113
+      },
+      "groundLineY": 113
+    },
+    "run_04": {
+      "x": 512,
+      "y": 256,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 23,
+        "y": 4,
+        "w": 81,
+        "h": 109
+      },
+      "groundLineY": 113
+    },
+    "run_05": {
+      "x": 640,
+      "y": 256,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 21,
+        "y": 2,
+        "w": 86,
+        "h": 114
+      },
+      "groundLineY": 113
+    },
+    "run_06": {
+      "x": 768,
+      "y": 256,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 24,
+        "y": 2,
+        "w": 79,
+        "h": 114
+      },
+      "groundLineY": 113
+    },
+    "run_07": {
+      "x": 896,
+      "y": 256,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 21,
+        "y": 2,
+        "w": 86,
+        "h": 114
+      },
+      "groundLineY": 113
+    },
+    "survey_walk_00": {
+      "x": 0,
+      "y": 384,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 30,
+        "y": 4,
+        "w": 67,
+        "h": 109
+      },
+      "groundLineY": 113
+    },
+    "survey_walk_01": {
+      "x": 128,
+      "y": 384,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 29,
+        "y": 2,
+        "w": 70,
+        "h": 114
+      },
+      "groundLineY": 113
+    },
+    "survey_walk_02": {
+      "x": 256,
+      "y": 384,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 29,
+        "y": 2,
+        "w": 70,
+        "h": 111
+      },
+      "groundLineY": 113
+    },
+    "survey_walk_03": {
+      "x": 384,
+      "y": 384,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 32,
+        "y": 2,
+        "w": 64,
+        "h": 114
+      },
+      "groundLineY": 113
+    },
+    "survey_walk_04": {
+      "x": 512,
+      "y": 384,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 27,
+        "y": 2,
+        "w": 73,
+        "h": 114
+      },
+      "groundLineY": 113
+    },
+    "survey_walk_05": {
+      "x": 640,
+      "y": 384,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 27,
+        "y": 2,
+        "w": 73,
+        "h": 114
+      },
+      "groundLineY": 113
+    },
+    "survey_walk_06": {
+      "x": 768,
+      "y": 384,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 28,
+        "y": 2,
+        "w": 72,
+        "h": 114
+      },
+      "groundLineY": 113
+    },
+    "survey_walk_07": {
+      "x": 896,
+      "y": 384,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 28,
+        "y": 2,
+        "w": 71,
+        "h": 114
+      },
+      "groundLineY": 113
+    },
+    "jump_00": {
+      "x": 0,
+      "y": 512,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 31,
+        "y": 21,
+        "w": 65,
+        "h": 92
+      },
+      "groundLineY": 113
+    },
+    "jump_01": {
+      "x": 128,
+      "y": 512,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 30,
+        "y": 17,
+        "w": 67,
+        "h": 96
+      },
+      "groundLineY": 113
+    },
+    "jump_02": {
+      "x": 256,
+      "y": 512,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 27,
+        "y": 28,
+        "w": 73,
+        "h": 85
+      },
+      "groundLineY": 113
+    },
+    "jump_03": {
+      "x": 384,
+      "y": 512,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 25,
+        "y": 37,
+        "w": 77,
+        "h": 76
+      },
+      "groundLineY": 113
+    },
+    "fall_00": {
+      "x": 0,
+      "y": 640,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 30,
+        "y": 33,
+        "w": 68,
+        "h": 80
+      },
+      "groundLineY": 113
+    },
+    "fall_01": {
+      "x": 128,
+      "y": 640,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 30,
+        "y": 33,
+        "w": 68,
+        "h": 80
+      },
+      "groundLineY": 113
+    },
+    "fall_02": {
+      "x": 256,
+      "y": 640,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 28,
+        "y": 41,
+        "w": 72,
+        "h": 72
+      },
+      "groundLineY": 113
+    },
+    "fall_03": {
+      "x": 384,
+      "y": 640,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 28,
+        "y": 35,
+        "w": 72,
+        "h": 78
+      },
+      "groundLineY": 113
+    },
+    "land_00": {
+      "x": 0,
+      "y": 768,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 31,
+        "y": 23,
+        "w": 66,
+        "h": 90
+      },
+      "groundLineY": 113
+    },
+    "land_01": {
+      "x": 128,
+      "y": 768,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 32,
+        "y": 13,
+        "w": 63,
+        "h": 100
+      },
+      "groundLineY": 113
+    },
+    "land_02": {
+      "x": 256,
+      "y": 768,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 30,
+        "y": 17,
+        "w": 67,
+        "h": 96
+      },
+      "groundLineY": 113
+    },
+    "land_03": {
+      "x": 384,
+      "y": 768,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 32,
+        "y": 13,
+        "w": 64,
+        "h": 100
+      },
+      "groundLineY": 113
+    },
+    "attack_pick_swing_00": {
+      "x": 0,
+      "y": 896,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 7,
+        "y": 5,
+        "w": 114,
+        "h": 108
+      },
+      "groundLineY": 113
+    },
+    "attack_pick_swing_01": {
+      "x": 128,
+      "y": 896,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 7,
+        "y": 31,
+        "w": 114,
+        "h": 82
+      },
+      "groundLineY": 113
+    },
+    "attack_pick_swing_02": {
+      "x": 256,
+      "y": 896,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 7,
+        "y": 33,
+        "w": 114,
+        "h": 80
+      },
+      "groundLineY": 113
+    },
+    "attack_pick_swing_03": {
+      "x": 384,
+      "y": 896,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 7,
+        "y": 35,
+        "w": 114,
+        "h": 78
+      },
+      "groundLineY": 113
+    },
+    "attack_pick_swing_04": {
+      "x": 512,
+      "y": 896,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 7,
+        "y": 33,
+        "w": 114,
+        "h": 80
+      },
+      "groundLineY": 113
+    },
+    "attack_pick_swing_05": {
+      "x": 640,
+      "y": 896,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 7,
+        "y": 27,
+        "w": 114,
+        "h": 86
+      },
+      "groundLineY": 113
+    },
+    "attack_pick_swing_06": {
+      "x": 768,
+      "y": 896,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 7,
+        "y": 32,
+        "w": 114,
+        "h": 81
+      },
+      "groundLineY": 113
+    },
+    "attack_pick_swing_07": {
+      "x": 896,
+      "y": 896,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 7,
+        "y": 16,
+        "w": 114,
+        "h": 97
+      },
+      "groundLineY": 113
+    },
+    "hurt_00": {
+      "x": 0,
+      "y": 1024,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 33,
+        "y": 19,
+        "w": 61,
+        "h": 94
+      },
+      "groundLineY": 113
+    },
+    "hurt_01": {
+      "x": 128,
+      "y": 1024,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 30,
+        "y": 33,
+        "w": 68,
+        "h": 80
+      },
+      "groundLineY": 113
+    },
+    "hurt_02": {
+      "x": 256,
+      "y": 1024,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 30,
+        "y": 33,
+        "w": 68,
+        "h": 80
+      },
+      "groundLineY": 113
+    },
+    "hurt_03": {
+      "x": 384,
+      "y": 1024,
+      "w": 128,
+      "h": 128,
+      "drawBounds": {
+        "x": 28,
+        "y": 41,
+        "w": 72,
+        "h": 72
+      },
+      "groundLineY": 113
+    }
+  },
+  "runtimeNotes": [
+    "Existing Journey player renderer currently uses public/sprites/archaeologist-walk-cycle.png as a 4-frame horizontal strip.",
+    "The atlas is row-aware and can be used by the Journey renderer without changing player hitbox constants.",
+    "When wiring, add row-aware frame lookup instead of changing player hitbox constants."
+  ]
 }
