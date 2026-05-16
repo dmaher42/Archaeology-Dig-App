@@ -13394,6 +13394,14 @@ main {
   font-size: 0.82rem;
 }
 
+.journey-floating-hud-gems span,
+.journey-floating-hud-count span {
+  color: rgba(248, 239, 225, 0.76);
+  font-size: 0.58rem;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
 .journey-floating-hud-gems strong,
 .journey-floating-hud-count strong {
   color: #fffaf0;
@@ -13456,6 +13464,9 @@ main {
 }
 
 .journey-floating-hud-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
   justify-self: end;
 }
 
@@ -14196,7 +14207,21 @@ main {
   font-family: 'Playfair Display', serif;
   font-size: 1.1rem;
   color: #7f1d1d;
-  margin-bottom: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.failure-reason {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  padding: 0.22rem 0.5rem;
+  border-radius: 6px;
+  background: rgba(127, 29, 29, 0.08);
+  color: #7f1d1d;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
 /* Animations */

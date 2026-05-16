@@ -1606,3 +1606,41 @@ Remaining notes:
 - Validation: `node --test src\components\expedition-journey\journeySecrets.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with existing runtime-public-asset warnings only.
 - Browser notes: local Edge/Playwright smoke opened Ancient Egypt Journey, confirmed `dynamicWorldAssetsLoaded: true`, confirmed `dynamicWorldAssetMode: painted-raster-effects`, confirmed active early dust-gust event, captured `output/dynamic-world-painted-asset-smoke-warm.png`, and reported no console/page errors.
 - Remaining risks/follow-up tasks: the Egypt dust/birds/shrine/rockfall assets are now visible high-quality raster art; future China-specific dynamic world moments should get their own matching Ancient China asset sheet rather than reusing Egypt art.
+
+2026-05-16 gameplay audit:
+- Inspected the current Journey source of truth without editing gameplay code: `ExpeditionJourney.jsx`, `journeyLevelData.js`, `journeyUtils.js`, `ExpeditionMode.jsx`, and `baseCampShop.js`.
+- Confirmed first-route rushing has no hard pre-boss fight gate, but the natural no-attack browser rush was stopped by repeated opening-enemy contact and knockback before reaching the first mini-boss.
+- Confirmed enemy contact currently removes stamina, records the damage source, applies hit/knockback feedback, and triggers Field Rescue only when stamina reaches zero.
+- Confirmed the first route gate requires the section objective, Scarab Queen defeat, Brush Handle recovery, and 4 relic shards; reaching the gate without those still reports all missing requirements.
+- Confirmed relic shards are used for route gates during Journey and are banked into Base Camp supplies after reaching Base Camp; Base Camp shop purchases can then add permanent upgrades for future Journey runs.
+- Confirmed normal Journey tools feed the excavation field kit, while boss tool pieces are gate/progression keys and reward feedback items.
+- Browser smoke used local Vite on `http://127.0.0.1:5176/Archaeology-Dig-App/`: started Journey, ran a no-attack rush, sampled enemy hit consequence, verified Brush/shard/map-tablet collection through Journey state, triggered the first Guardian Knowledge Challenge, and checked the first gate missing requirements.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the known runtime-resolved Egypt asset warnings only.
+- Safest next gameplay fixes: make the first route's pressure clearer without trapping the player in repeated knockback, make shard/tool collection purpose more explicit in the HUD/Base Camp handoff, and add a stronger stamina-failure recovery explanation before changing difficulty.
+
+2026-05-16 opening enemy tuning:
+- Tuned the Start Path Scarab only, keeping the existing Journey data/update/combat architecture and leaving boss systems unchanged.
+- Moved the first scarab slightly later, shortened and slowed its patrol, gave it a slower/shorter first charge tell, and reduced only its player knockback so it teaches danger without repeatedly bouncing the player backward.
+- Browser smoke confirmed: the first scarab can be fought and defeated cleanly, a timed jump can pass it with no stamina loss, and the early upper/lower route remains usable while later enemies still provide pressure.
+- Validation: `node --test src\components\expedition-journey\journeySecrets.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with the known runtime-resolved Egypt asset warnings only.
+- Screenshots captured: `output/opening-scarab-fight-clean-after.png`, `output/opening-scarab-jump-past-after.png`, and `output/opening-scarab-alternate-route-after.png`.
+
+2026-05-16 Journey item purpose clarity:
+- Clarified Journey pickup and reward wording without adding item systems or changing education quiz content.
+- Relic shard pickups and enemy shard rewards now tell students that shards are spent at Base Camp; Base Camp deposit feedback now says supplies were updated for shop upgrades.
+- Field tool pickups now say the tool was added and will help during excavation; HUD copy labels the field kit as excavation prep.
+- Boss tool piece reward copy now names the excavation kit connection and the boss reward banner labels progress as excavation kit pieces.
+- Added a short item-purpose notice timer so pickup/reward purpose messages are not immediately overwritten by enemy wind-up or environmental notices.
+- Browser smoke confirmed the shard pickup notice, field tool notice, boss reward banner copy, Base Camp shop handoff text, and Base Camp relic-shard deposit feedback on local Vite.
+- Validation: `node --test src\components\expedition-journey\journeySecrets.test.js` passed; `node --test src\components\expedition\baseCampShop.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with the known runtime-resolved Egypt asset warnings only.
+- Screenshots captured: `output/item-purpose-field-tool-smoke.png`, `output/item-purpose-shard-smoke.png`, `output/item-purpose-boss-piece-smoke.png`, and `output/item-purpose-base-camp-smoke.png`.
+
+2026-05-16 stamina danger and Field Rescue clarity:
+- Improved Journey stamina messaging without changing damage values, checkpoint logic, rescue rules, or adding a new failure system.
+- Enemy and hazard damage notices now include the stamina loss amount, and low stamina appends `Stamina low - avoid another hit.`
+- Added a short damage-notice protection timer so hazard/enemy damage feedback is not immediately overwritten by routine enemy wind-up messages.
+- Added a low-stamina warning line to the Journey stamina HUD when stamina is in the danger range.
+- Field Rescue now explains the setback clearly: the player was forced back to the last checkpoint and can recover and try again; the button now reads `Retry from Checkpoint`.
+- Browser smoke confirmed hazard stamina loss, enemy hit wording, low-stamina warning state, Field Rescue overlay, and retry from checkpoint restoring stamina to 40 at Desert Entry.
+- Validation: `node --test src\components\expedition-journey\journeySecrets.test.js` passed; `node --test src\components\expedition\baseCampShop.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with the known runtime-resolved Egypt asset warnings only.
+- Screenshots captured: `output/stamina-hazard-damage-smoke.png`, `output/stamina-low-warning-smoke.png`, `output/stamina-field-rescue-smoke.png`, and `output/stamina-retry-checkpoint-smoke.png`.

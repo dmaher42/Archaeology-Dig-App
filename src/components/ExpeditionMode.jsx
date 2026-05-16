@@ -1967,22 +1967,24 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     baseCampProgressionRef.current = depositResult.progress;
     setBaseCampProgression(depositResult.progress);
     if (depositResult?.deposited) {
+      const shardLabel = depositResult.amount === 1 ? 'relic shard' : 'relic shards';
       setShopFeedback({
         type: 'deposit',
-        title: 'Relic Shards Banked',
-        message: `${depositResult.amount} relic shards added to Base Camp supplies.`,
+        title: 'Base Camp supplies updated',
+        message: `${depositResult.amount} ${shardLabel} banked for shop upgrades.`,
         itemId: null,
       });
     } else if (journeyShardCount > 0) {
+      const shardLabel = journeyShardCount === 1 ? 'relic shard' : 'relic shards';
       setShopFeedback({
         type: 'deposit',
-        title: 'Relic Shards Ready',
-        message: `${journeyShardCount} relic shards are already recorded for this run.`,
+        title: 'Base Camp supplies updated',
+        message: `${journeyShardCount} ${shardLabel} already recorded for shop upgrades.`,
         itemId: null,
       });
     }
     setBaseCampOpen(true);
-    setNotice('Base Camp reached. Check your field kit before excavation.');
+    setNotice('Base Camp reached. Relic shards buy upgrades; field tools prepare excavation.');
     audioControls.playExpeditionMusic?.('baseCamp');
   }, [audioControls, journeyRunId, selectedStageId]);
 
@@ -3516,7 +3518,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
             <div className="expedition-gate-badge unlocked">
               <Compass size={16} />
               <span>Campaign Map</span>
-              <small>Egypt playable now</small>
+              <small>Egypt playable, China prototype</small>
             </div>
           </div>
         </header>
@@ -3750,7 +3752,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
                   <strong>{baseCampProgression.relicShards}</strong>
                 </div>
                 <div className="basecamp-shop-summary-copy">
-                  <p>Spend collected relic shards on permanent field gear and expedition identity unlocks.</p>
+                  <p>Relic shards collected in Journey become Base Camp supplies for permanent upgrades.</p>
                   <div className="basecamp-active-kit">
                     <span>Active kit</span>
                     {activeBaseCampKitSummary.length > 0 ? (

@@ -140,7 +140,7 @@ export const HAZARDS = [
 ];
 
 export const ENEMIES = [
-  { id: 'scarab-start-1', name: 'Start Path Scarab', type: 'scarab', emoji: 'B', x: X(255), y: JY(334), width: 30, height: 24, patrolMin: X(220), patrolMax: X(315), speed: 46, health: 1, damage: 2, openingRouteRamp: true, shards: 1 },
+  { id: 'scarab-start-1', name: 'Start Path Scarab', type: 'scarab', emoji: 'B', x: X(292), y: JY(334), width: 30, height: 24, patrolMin: X(275), patrolMax: X(335), speed: 38, health: 1, damage: 2, openingRouteRamp: true, initialAttackCooldown: 1.15, playerKnockbackMultiplier: 0.45, attackPatternTuning: { windup: 0.52, duration: 0.22, cooldown: 1.55, speed: 105, range: 26 }, shards: 1 },
   { id: 'scarab-dune-1', name: 'Dune Scarab', type: 'scarab', emoji: '🐞', x: X(365), y: JY(334), width: 30, height: 24, patrolMin: X(320), patrolMax: X(435), speed: 52, health: 1, damage: 3, openingRouteRamp: true, shards: 1 },
   { id: 'scarab-ridge-1', name: 'Ridge Scarab', type: 'scarab', emoji: 'B', x: X(455), y: JY(334), width: 30, height: 24, patrolMin: X(420), patrolMax: X(505), speed: 48, health: 1, damage: 3, openingRouteRamp: true, shards: 1 },
   { id: 'scorpion-start-1', name: 'Sand Scorpion', type: 'scorpion', emoji: 'S', x: X(505), y: JY(336), width: 36, height: 22, patrolMin: X(470), patrolMax: X(560), speed: 48, health: 1, damage: 4, openingRouteRamp: true, shards: 2, encounterRole: 'hazard guard', pressureHint: 'Guards the first sand ridge and forces a jump or counter choice.' },
