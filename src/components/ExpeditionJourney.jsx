@@ -3162,25 +3162,36 @@ export default function ExpeditionJourney({
       ctx.fill();
     } else if (event.type === 'dust-gust' || event.type === 'moving-fog') {
       const fog = event.type === 'moving-fog';
-      ctx.globalAlpha = (fog ? 0.42 : 0.48) * progress * visibility;
-      ctx.fillStyle = fog ? 'rgba(191, 219, 254, 0.28)' : 'rgba(244, 202, 134, 0.32)';
+      ctx.globalAlpha = (fog ? 0.42 : 0.66) * progress * visibility;
+      ctx.fillStyle = fog ? 'rgba(191, 219, 254, 0.28)' : 'rgba(245, 158, 11, 0.32)';
       for (let i = 0; i < 6; i += 1) {
         const drift = reveal * (110 + i * 26);
         ctx.beginPath();
-        ctx.ellipse(x - 120 + drift + i * 38, fog ? GROUND_Y - 170 + i * 16 : GROUND_Y - 78 + i * 9, 82 - i * 5, fog ? 14 : 8, -0.08, 0, Math.PI * 2);
+        ctx.ellipse(x - 120 + drift + i * 38, fog ? GROUND_Y - 170 + i * 16 : GROUND_Y - 108 + i * 12, 112 - i * 6, fog ? 14 : 10, -0.08, 0, Math.PI * 2);
         ctx.fill();
       }
+      if (!fog) {
+        ctx.strokeStyle = 'rgba(255, 247, 212, 0.38)';
+        ctx.lineWidth = 2;
+        for (let i = 0; i < 4; i += 1) {
+          const drift = reveal * (90 + i * 24);
+          ctx.beginPath();
+          ctx.moveTo(x - 150 + drift, GROUND_Y - 130 + i * 17);
+          ctx.quadraticCurveTo(x - 45 + drift, GROUND_Y - 146 + i * 10, x + 92 + drift, GROUND_Y - 118 + i * 12);
+          ctx.stroke();
+        }
+      }
     } else if (event.type === 'birds-scatter') {
-      ctx.globalAlpha = 0.68 * progress * visibility;
-      ctx.strokeStyle = 'rgba(255, 247, 212, 0.5)';
-      ctx.lineWidth = 1.6;
+      ctx.globalAlpha = 0.78 * progress * visibility;
+      ctx.strokeStyle = 'rgba(69, 26, 3, 0.58)';
+      ctx.lineWidth = 2.2;
       for (let i = 0; i < 6; i += 1) {
         const bx = x + reveal * (70 + i * 16) + i * 16;
         const by = GROUND_Y - 270 - reveal * (50 + i * 5) + Math.sin(now / 120 + i) * 6;
         ctx.beginPath();
-        ctx.moveTo(bx - 7, by);
+        ctx.moveTo(bx - 10, by);
         ctx.lineTo(bx, by - 4);
-        ctx.lineTo(bx + 7, by);
+        ctx.lineTo(bx + 10, by);
         ctx.stroke();
       }
     } else if (event.type === 'ruin-collapse') {

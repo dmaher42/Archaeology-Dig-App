@@ -1279,9 +1279,11 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
   const [fieldKit, setFieldKit] = useState([]);
   const [journeyRunId, setJourneyRunId] = useState(0);
   const [journeyPaused, setJourneyPaused] = useState(false);
+  const [journeyCursorHidden, setJourneyCursorHidden] = useState(false);
   const [baseCampProgression, setBaseCampProgression] = useState(loadBaseCampProgression);
   const [shopFeedback, setShopFeedback] = useState(null);
   const baseCampProgressionRef = useRef(baseCampProgression);
+  const journeyCursorTimerRef = useRef(null);
   const [excavationMapAssets, setExcavationMapAssets] = useState(() => createExcavationMapAssetState());
   const [selectedMapZone, setSelectedMapZone] = useState(null);
   const [enteredMapZone, setEnteredMapZone] = useState(null);
@@ -3445,6 +3447,46 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     return () => window.removeEventListener('expedition-dev-jump', handleExpeditionDevJump);
   }, [devJumpToBaseCamp, devJumpToExcavation, devJumpToJourney]);
 
+  useEffect(() => () => {
+    if (journeyCursorTimerRef.current) window.clearTimeout(journeyCursorTimerRef.current);
+  }, []);
+
+  useEffect(() => {
+    const journeyActive = Boolean(selectedExpedition && expeditionStage === 'journey' && !baseCampOpen && !journeyPaused);
+    if (!journeyActive || journeyCursorHidden) {
+      if (journeyCursorTimerRef.current) {
+        window.clearTimeout(journeyCursorTimerRef.current);
+        journeyCursorTimerRef.current = null;
+      }
+      return;
+    }
+
+    journeyCursorTimerRef.current = window.setTimeout(() => {
+      setJourneyCursorHidden(true);
+      journeyCursorTimerRef.current = null;
+    }, 1200);
+
+    return () => {
+      if (journeyCursorTimerRef.current) {
+        window.clearTimeout(journeyCursorTimerRef.current);
+        journeyCursorTimerRef.current = null;
+      }
+    };
+  }, [baseCampOpen, expeditionStage, journeyCursorHidden, journeyPaused, selectedExpedition]);
+
+  const handleJourneyMouseMove = useCallback(() => {
+    if (journeyPaused) {
+      setJourneyCursorHidden(false);
+      return;
+    }
+    setJourneyCursorHidden(false);
+    if (journeyCursorTimerRef.current) window.clearTimeout(journeyCursorTimerRef.current);
+    journeyCursorTimerRef.current = window.setTimeout(() => {
+      setJourneyCursorHidden(true);
+      journeyCursorTimerRef.current = null;
+    }, 1200);
+  }, [journeyPaused]);
+
   const previewScaffoldAssets = previewExpedition?.scaffold?.runtimeAssets?.length > 0
     ? previewExpedition.scaffold.runtimeAssets
     : previewExpedition?.scaffold?.sourceAssets || [];
@@ -3584,9 +3626,15 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     }
   };
 
+  const journeyCursorShouldHide = journeyCursorHidden && !journeyPaused;
+
   if (expeditionStage === 'journey' && !baseCampOpen) {
     return (
-      <div className={`expedition-journey-mode-shell ${journeyPaused ? 'is-paused' : ''}`}>
+      <div
+        className={`expedition-journey-mode-shell ${journeyPaused ? 'is-paused' : ''} ${journeyCursorShouldHide ? 'is-cursor-hidden' : ''}`}
+        onMouseMove={handleJourneyMouseMove}
+        onMouseDown={handleJourneyMouseMove}
+      >
         <button
           type="button"
           className="expedition-local-menu-btn"

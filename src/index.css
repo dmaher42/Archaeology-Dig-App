@@ -17258,6 +17258,11 @@ main {
   min-height: 100dvh;
 }
 
+.expedition-journey-mode-shell.is-cursor-hidden,
+.expedition-journey-mode-shell.is-cursor-hidden * {
+  cursor: none !important;
+}
+
 .expedition-local-menu-btn {
   position: absolute;
   top: 0.55rem;

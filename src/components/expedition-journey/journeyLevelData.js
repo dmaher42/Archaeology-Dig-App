@@ -1028,6 +1028,8 @@ export const ENVIRONMENT_INTERACTIONS = [
 
 export const ENVIRONMENT_EVENTS = [
   { id: 'starter-route-note', sectionId: 'desert-entry', x: X(255), name: 'Route Marker', message: 'Route marker ahead.', type: 'arrival', duration: 1.8, shake: 0.08 },
+  { id: 'desert-first-dust-preview', sectionId: 'desert-entry', x: X(300), name: 'Dust Gust', message: 'A dust gust curls through the first survey markers.', type: 'dust-gust', duration: 2.8, shake: 0.18, dynamic: true, card: false },
+  { id: 'desert-start-birds-scatter', sectionId: 'desert-entry', x: X(340), name: 'Birds Scatter', message: 'Birds lift from the first ruined stones.', type: 'birds-scatter', duration: 2.6, shake: 0.06, dynamic: true, card: false },
   { id: 'desert-pottery-clue', sectionId: 'desert-entry', x: X(410), name: 'Pottery Marker', message: 'Look for evidence before moving on.', type: 'arrival', duration: 2.2, shake: 0.15 },
   { id: 'sand-gust', sectionId: 'desert-entry', x: X(520), name: 'Sand Gust', message: 'A sheet of sand sweeps across the entry route.', type: 'gust', duration: 2.4, shake: 0.4 },
   { id: 'desert-distant-rockfall', sectionId: 'desert-entry', x: X(1125), name: 'Distant Rockfall', message: 'Stone shifts somewhere beyond the ridge.', type: 'rockfall', duration: 2.8, shake: 0.18, dynamic: true, card: false },

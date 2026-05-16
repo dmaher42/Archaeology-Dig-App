@@ -1537,6 +1537,14 @@ Remaining notes:
 - Remaining risk/follow-up tasks: the crab PNG is now real art and wired correctly; a later pass can tune exact crab draw scale if the classroom screen feels too busy.
 
 2026-05-16 update:
+- Added Journey-only mouse cursor auto-hide while actively playing.
+- The cursor now hides after 1.2 seconds of no mouse movement in the Journey screen, reappears on mouse movement/click, and remains visible while the Journey pause menu is open.
+- Kept Stage Select, Base Camp, Excavation, Museum, Lab, Report, and other screens unchanged.
+- Browser verification: launched Ancient China Journey on `http://127.0.0.1:5176/Archaeology-Dig-App/`, confirmed the Journey wrapper starts with a normal cursor, switches to `cursor: none` after idle, returns to normal after mouse movement, and stays normal when paused. Captured `output/cursor-auto-hide-journey-check.png`.
+- Validation: `node --test src\components\expedition-journey\journeySecrets.test.js` passed; `node --test src\components\expedition\baseCampShop.test.js` passed; `npm.cmd run lint` passed after tightening the effect logic; `npm.cmd run build` passed with existing runtime-public-asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Remaining risk/follow-up tasks: cursor hiding is currently scoped to Journey gameplay only; excavation/map phases still keep the cursor visible because they use mouse selection.
+
+2026-05-16 update:
 - Added a focused combat impact and encounter-intensity pass inside the existing Journey combat loop; no combat rewrite, enemy health spike, boss rewrite, or unrelated screen change was made.
 - Improved player attack feedback with a brighter sweep/trail, stronger impact pulses, slightly longer hit pause, stronger camera shake, and clearer counter-hit/clear text when enemies or bosses are struck.
 - Improved enemy danger readability by letting regular enemies use the existing shield/open/windup tell renderer, strengthening warning reach cues, and exposing combat readability state in the Journey snapshot.
@@ -1564,3 +1572,16 @@ Remaining notes:
 - Validation: `node --test src\components\expedition-journey\journeySecrets.test.js` passed; `node --test src\components\expedition\baseCampShop.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with existing runtime-public-asset warnings only.
 - Browser notes: local Edge/Playwright smoke opened Ancient Egypt Journey, triggered the desert distant rockfall and Ruined Temple shrine glow with the existing Journey debug hook, confirmed dynamic world snapshot fields and visible event tracking, captured `output/dynamic-world-rockfall-smoke.png` and `output/dynamic-world-shrine-smoke.png`, and reported no page errors. One audio source warning appeared during the shrine stinger path, matching existing unsupported-audio behavior rather than a new rendering failure.
 - Remaining risks/follow-up tasks: browser verification sampled two dynamic events using deterministic debug positioning rather than a full natural route playthrough; later tuning should sample every event in Egypt and China once the wider route content settles.
+
+2026-05-16 visibility follow-up:
+- Increased dynamic world event visibility after user feedback that the new features were hard to see.
+- Added persistent low-key previews for nearby dynamic world events while they are in the viewport, so players can notice rockfalls, fog, shrine glows, and unstable areas before they hit the exact trigger point.
+- Widened dynamic event trigger windows and added crossing detection so normal movement is less likely to skip an event between frames.
+- Strengthened dynamic event alpha/scale for rockfall dust, dust gusts, moving fog, shrine glows, ruin collapse, birds scattering, and unstable excavation cracks while keeping them non-blocking and non-chaotic.
+- Validation: `node --test src\components\expedition-journey\journeySecrets.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with existing runtime-public-asset warnings only.
+- Browser notes: local Edge/Playwright smoke confirmed the desert rockfall is visible as a pre-trigger preview, then triggers reliably, with `visibleDynamicWorldEvents` and `activeDynamicWorldEvent` populated and no console/page errors. Screenshot captured at `output/dynamic-world-visible-preview-smoke.png`.
+
+2026-05-16 visibility follow-up:
+- Made the first Egypt dynamic world moment easier to see by firing a dust gust near the opening survey markers before the subtler bird scatter event.
+- Browser notes: local Edge/Playwright smoke opened Ancient Egypt Journey, confirmed early dynamic previews `desert-first-dust-preview` and `desert-start-birds-scatter`, confirmed active event `desert-first-dust-preview`, captured `output/dynamic-world-early-dust-visible-smoke.png`, and reported no console/page errors.
+- Validation: `node --test src\components\expedition-journey\journeySecrets.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with existing runtime-public-asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
