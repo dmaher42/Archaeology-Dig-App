@@ -14,7 +14,7 @@ export const CHINA_RIVER_CRAB_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}chin
 export const CHINA_WATCHTOWER_SENTRY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-watchtower-sentry-sprites.json`;
 export const CHINA_CLAY_GUARDIAN_ENEMY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-clay-guardian-enemy-sprites.json`;
 export const ENEMY_SPRITE_ATLAS_VERSION = 'enemy-sprite-packs-2026-05-16-upgraded-regular-enemies';
-export const MIN_ENEMY_DRAW_HEIGHT = 86;
+export const MIN_ENEMY_DRAW_HEIGHT = 34;
 
 export const EXPECTED_ENEMY_SPRITE_KEYS = [
   'scarabIdle',
@@ -438,23 +438,37 @@ export const getEnemySpriteDrawBox = (enemy, screenX, shakeX = 0, combatMode = n
 
   const defeated = combatMode === 'defeated' || enemy.defeated;
   const scale = {
-    scarab: defeated ? 2.45 : 2.42,
-    snake: defeated ? 2.58 : 2.55,
-    bat: defeated ? 2.36 : 2.86,
-    scorpion: defeated ? 2.42 : 2.55,
-    sandWisp: defeated ? 2.24 : 2.62,
-    looter: defeated ? 1.74 : 2.34,
-    looterCaptain: defeated ? 1.82 : 2.48,
-    cursedStatue: defeated ? 1.84 : 2.34,
-    stoneGuardianEnemy: defeated ? 1.82 : 2.38,
-    riverCrab: defeated ? 2.18 : 2.32,
-    watchtowerSentry: defeated ? 1.78 : 2.28,
-    clayGuardian: defeated ? 1.82 : 2.42,
-  }[family] || 1.8;
+    scarab: defeated ? 1.32 : 1.48,
+    snake: defeated ? 1.38 : 1.55,
+    bat: defeated ? 1.5 : 1.68,
+    scorpion: defeated ? 1.42 : 1.62,
+    sandWisp: defeated ? 1.46 : 1.78,
+    looter: defeated ? 1.32 : 1.62,
+    looterCaptain: defeated ? 1.38 : 1.72,
+    cursedStatue: defeated ? 1.36 : 1.7,
+    stoneGuardianEnemy: defeated ? 1.36 : 1.72,
+    riverCrab: defeated ? 1.34 : 1.54,
+    watchtowerSentry: defeated ? 1.34 : 1.62,
+    clayGuardian: defeated ? 1.38 : 1.72,
+  }[family] || 1.55;
 
+  const minHeight = {
+    scarab: 34,
+    snake: 42,
+    bat: 42,
+    scorpion: 42,
+    sandWisp: 48,
+    looter: 76,
+    looterCaptain: 82,
+    cursedStatue: 78,
+    stoneGuardianEnemy: 80,
+    riverCrab: 44,
+    watchtowerSentry: 78,
+    clayGuardian: 80,
+  }[family] || MIN_ENEMY_DRAW_HEIGHT;
   const scaledWidth = Math.max(enemy.width, enemy.width * scale);
   const scaledHeight = Math.max(enemy.height, enemy.height * scale);
-  const height = Math.max(MIN_ENEMY_DRAW_HEIGHT, scaledHeight);
+  const height = Math.max(minHeight, scaledHeight);
   const width = Math.max(scaledWidth, enemy.width * (height / Math.max(1, enemy.height)));
   const groundOffset = {
     scarab: defeated ? 10 : 8,
