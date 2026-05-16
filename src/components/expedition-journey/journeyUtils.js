@@ -189,29 +189,48 @@ export const getSectionForX = (x) => (
   SECTIONS.find((section) => x >= section.start && x < section.end) || SECTIONS[SECTIONS.length - 1]
 );
 
+export const getPlayerMovementVisualStyle = (player) => {
+  const speed = Math.abs(player.vx || 0);
+  if (speed <= 8) return 'none';
+  if (speed < 95) return 'survey-walk';
+  if (speed > 190) return 'run';
+  return 'walk';
+};
+
 export const getPlayerAnimationState = (current) => {
   if (current.player.hitFeedbackTimer > 0 || current.player.knockbackTimer > 0) return 'hurt';
   if (current.attackWindupTimer > 0 || current.attackTimer > 0 || current.attackRecoilTimer > 0) return 'attack';
-  if (!current.player.onGround) return 'jump';
-  if (Math.abs(current.player.vx) > 8) return 'walk';
+  if (!current.player.onGround) return current.player.vy > 40 ? 'fall' : 'jump';
+  if (current.player.landingFeedbackTimer > 0) return 'land';
+  const movementStyle = getPlayerMovementVisualStyle(current.player);
+  if (movementStyle !== 'none') return movementStyle;
   return 'idle';
 };
 
 export const getPlayerAnimationFrame = (animationState, walkCycleDistance = 0) => {
+  if (animationState === 'survey-walk') {
+    return Math.floor(walkCycleDistance / 34) % PLAYER_SPRITE_FRAME_COUNT;
+  }
   if (animationState === 'walk') {
     return Math.floor(walkCycleDistance / 22) % PLAYER_SPRITE_FRAME_COUNT;
   }
-  if (animationState === 'jump' || animationState === 'attack') return 2;
+  if (animationState === 'run') {
+    return Math.floor(walkCycleDistance / 15) % PLAYER_SPRITE_FRAME_COUNT;
+  }
+  if (animationState === 'jump' || animationState === 'fall') return 2;
+  if (animationState === 'attack') return 3;
   if (animationState === 'hurt') return 0;
   return 1;
 };
 
 export const updatePlayerAnimation = (current, dt) => {
   const animationState = getPlayerAnimationState(current);
-  if (animationState === 'walk') {
+  const visualWalkStyle = getPlayerMovementVisualStyle(current.player);
+  if (['survey-walk', 'walk', 'run'].includes(animationState)) {
     current.player.walkCycleDistance += Math.abs(current.player.vx) * dt;
   }
   current.player.animationState = animationState;
+  current.player.visualWalkStyle = visualWalkStyle;
   current.player.animationFrame = getPlayerAnimationFrame(animationState, current.player.walkCycleDistance);
   current.player.spriteScale = PLAYER_SPRITE_SCALE;
 };
@@ -300,11 +319,13 @@ export const makeInitialState = ({ targetCivilisation, permanentUpgradeIds = [],
     knockbackDirection: 0,
     coyoteTimer: 0,
     jumpBufferTimer: 0,
+    jumpCutFeedbackTimer: 0,
     landingFeedbackTimer: 0,
     movementDustTimer: 0,
     lastLandingImpact: 0,
     animationState: 'idle',
     animationFrame: 1,
+    visualWalkStyle: 'none',
     walkCycleDistance: 0,
     spriteScale: PLAYER_SPRITE_SCALE,
   },
@@ -363,6 +384,9 @@ export const makeInitialState = ({ targetCivilisation, permanentUpgradeIds = [],
   environmentEventTimer: 0,
   dynamicEnvironmentEvent: null,
   dynamicEnvironmentEventTimer: 0,
+  discoveryEntranceActive: false,
+  discoveryEntranceTimer: 0,
+  discoveryEntranceHandoffStarted: false,
   sectionTransition: {
     id: 'desert-entry',
     name: SECTIONS[0].name,

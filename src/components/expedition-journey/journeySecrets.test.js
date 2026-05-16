@@ -10,6 +10,7 @@ import {
 
 const source = readFileSync(new URL('./journeyLevelData.js', import.meta.url), 'utf8');
 const journeyUtilsSource = readFileSync(new URL('./journeyUtils.js', import.meta.url), 'utf8');
+const journeyComponentSource = readFileSync(new URL('../ExpeditionJourney.jsx', import.meta.url), 'utf8');
 const extractExportedArray = (name) => {
   const startToken = `export const ${name} = [`;
   const start = source.indexOf(startToken);
@@ -83,10 +84,45 @@ test('story props include recurring expedition markers across sections', () => {
   const storyProps = extractExportedArray('STORY_PROPS');
 
   assert.match(storyProps, /survey-flag-marker/);
+  assert.match(storyProps, /opening-footprint-trail/);
+  assert.match(storyProps, /opening-rope-line/);
+  assert.match(storyProps, /upper-route-broken-stone-cue/);
   assert.match(storyProps, /abandoned-camp/);
   assert.match(storyProps, /type:\s*'cart'/);
   assert.match(storyProps, /broken supply cart/);
   assert.match(storyProps, /base camp supply cart/);
+});
+
+test('Egypt opening ambient life stays in the existing Journey renderer', () => {
+  assert.match(journeyComponentSource, /drawEgyptAmbientLife/);
+  assert.match(journeyComponentSource, /drawDistantExpeditionWorker/);
+  assert.match(journeyComponentSource, /drawKneelingSurveyor/);
+  assert.match(journeyComponentSource, /drawTentFlap/);
+  assert.match(journeyComponentSource, /drawRopedDigActivity/);
+  assert.match(journeyComponentSource, /desert-survey-camp-life/);
+});
+
+test('player polish extends the canonical Journey animation and weapon paths', () => {
+  [
+    'survey-walk',
+    'walk',
+    'run',
+    'jump',
+    'fall',
+    'land',
+    'attack',
+    'hurt',
+  ].forEach((state) => {
+    assert.match(journeyUtilsSource, new RegExp(`'${state}'`));
+  });
+  assert.match(journeyUtilsSource, /getPlayerMovementVisualStyle/);
+  assert.match(journeyUtilsSource, /visualWalkStyle/);
+  assert.match(journeyComponentSource, /drawPlayerSprite/);
+  assert.match(journeyComponentSource, /drawPlayerKhopesh/);
+  assert.match(journeyComponentSource, /weapon-hit-spark/);
+  assert.match(journeyComponentSource, /playerAttackBox/);
+  assert.doesNotMatch(journeyUtilsSource, /PLAYER_WIDTH\s*=/);
+  assert.doesNotMatch(journeyUtilsSource, /PLAYER_HEIGHT\s*=/);
 });
 
 test('environment interactions include reactive foreground and movement elements', () => {
@@ -146,6 +182,25 @@ test('dynamic world events add mystery and atmosphere without new level systems'
   ].forEach((label) => {
     assert.match(storyProps, new RegExp(label));
   });
+});
+
+test('Discovery Entrance upgrades the final Journey handoff without replacing Base Camp', () => {
+  const events = extractExportedArray('ENVIRONMENT_EVENTS');
+  const storyProps = extractExportedArray('STORY_PROPS');
+
+  assert.match(source, /export const DISCOVERY_ENTRANCE = \{/);
+  assert.match(source, /Discovery Entrance Found/);
+  assert.match(source, /You have located a sealed archaeological site\./);
+  assert.match(source, /Return to Base Camp to prepare the excavation\./);
+  assert.match(events, /id:\s*'discovery-entrance-reveal'/);
+  assert.match(events, /type:\s*'shrine-glow'/);
+  assert.match(storyProps, /sealed entrance lamps/);
+  assert.match(storyProps, /buried stairway marker/);
+
+  assert.match(journeyComponentSource, /DISCOVERY_ENTRANCE_REVEAL_SECONDS/);
+  assert.match(journeyComponentSource, /drawDiscoveryEntrance/);
+  assert.match(journeyComponentSource, /discoveryEntranceActive/);
+  assert.match(journeyComponentSource, /onComplete\?\.\(\[\.\.\.current\.fieldKit\]\)/);
 });
 
 test('dynamic world events use a project-bound painted asset sheet', () => {

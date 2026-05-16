@@ -40,10 +40,10 @@ export const PLATFORMS = [
   { x: X(285), y: JY(300), width: 118, height: 18, label: 'broken flag step' },
   { x: X(500), y: JY(306), width: 128, height: 18, label: 'survey marker step' },
   { x: X(360), y: JY(292), width: 175, height: 18, label: 'sun-baked ledge' },
-  { x: X(570), y: JY(272), width: 118, height: 18, label: 'upper survey chip' },
-  { x: X(640), y: JY(246), width: 112, height: 18, label: 'upper clue perch' },
+  { x: X(548), y: JY(274), width: 138, height: 18, label: 'upper survey chip' },
+  { x: X(642), y: JY(250), width: 128, height: 18, label: 'upper clue perch' },
   { x: X(690), y: JY(276), width: 165, height: 18, label: 'broken column' },
-  { x: X(735), y: JY(246), width: 128, height: 18, label: 'upper route choice' },
+  { x: X(748), y: JY(250), width: 136, height: 18, label: 'upper route choice' },
   { x: X(800), y: JY(310), width: 112, height: 18, label: 'pottery rest step' },
   { x: X(835), y: JY(270), width: 116, height: 18, label: 'upper seal chip' },
   { x: X(930), y: JY(286), width: 150, height: 18, label: 'pottery clue ledge' },
@@ -210,7 +210,7 @@ const RELIC_SHARD_LAYOUT = [
   6770, 7055, 7455,
   { x: 170, y: 320 },
   { x: 330, y: 286 },
-  { x: 690, y: 250 },
+  { x: 610, y: 258 },
   { x: 900, y: 286 },
   { x: 760, y: 232 },
   { x: 1045, y: 268 },
@@ -345,13 +345,10 @@ export const HIDDEN_ROUTES = [
     x: X(625),
     y: JY(204),
     width: X(720),
-    height: 150,
-    rewardHint: 'A scarab fragment glints above the lower sand route.',
+    height: 108,
+    rewardHint: 'A relic glints along the broken stones above the lower sand route.',
     discoveryMessage: 'Hidden Route Found: Upper Survey Route.',
-    futureUpgradeHook: 'rope-launcher',
-    gateType: 'high ledge',
-    requiredUpgradeId: 'rope-launcher',
-    lockedMessage: 'A narrow route continues above. You may need a Rope Launcher.',
+    gateType: 'broken step-up',
     teaseVisible: true,
     rewardSummary: 'Scarab Fragment and hidden shard cache',
   },
@@ -785,8 +782,11 @@ export const SECTION_ATMOSPHERES = {
 export const STORY_PROPS = [
   { id: 'distant-ruins', sectionId: 'desert-entry', type: 'ruins', x: X(210), y: JY(236), label: 'distant ruins' },
   { id: 'starter-route-marker', sectionId: 'desert-entry', type: 'sign', x: X(250), y: JY(308), label: 'route marker' },
+  { id: 'opening-footprint-trail', sectionId: 'desert-entry', type: 'footprints', x: X(305), y: JY(338), label: 'fresh expedition footprints' },
   { id: 'half-buried-pottery-marker', sectionId: 'desert-entry', type: 'camp', x: X(420), y: JY(312), label: 'half-buried pottery marker' },
   { id: 'survey-flag-marker', sectionId: 'desert-entry', type: 'sign', x: X(520), y: JY(306), label: 'expedition flag' },
+  { id: 'opening-rope-line', sectionId: 'desert-entry', type: 'survey-rope', x: X(590), y: JY(318), label: 'survey rope line' },
+  { id: 'upper-route-broken-stone-cue', sectionId: 'desert-entry', type: 'ruins', x: X(625), y: JY(286), label: 'fallen stones below upper survey route' },
   { id: 'desert-boundary-marker', sectionId: 'desert-entry', type: 'sign', x: X(650), y: JY(306), label: 'ancient boundary marker' },
   { id: 'sand-seal-route-marker', sectionId: 'desert-entry', type: 'statue', x: X(790), y: JY(292), label: 'sand-covered seal mark' },
   { id: 'upper-route-note-marker', sectionId: 'desert-entry', type: 'sign', x: X(885), y: JY(306), label: 'upper route evidence marker' },
@@ -833,6 +833,8 @@ export const STORY_PROPS = [
   { id: 'permit-clue-marker', sectionId: 'dig-site-entrance', type: 'banners', x: X(7040), y: JY(252), label: 'permit clue marker' },
   { id: 'construct-warning-marker', sectionId: 'dig-site-entrance', type: 'sign', x: X(7330), y: JY(306), label: 'guardian approach marker' },
   { id: 'final-survey-lights', sectionId: 'dig-site-entrance', type: 'lights', x: X(7505), y: JY(268), label: 'final survey lights' },
+  { id: 'sealed-entrance-survey-lamps', sectionId: 'dig-site-entrance', type: 'lights', x: X(7850), y: JY(260), label: 'sealed entrance lamps' },
+  { id: 'buried-stairway-marker', sectionId: 'dig-site-entrance', type: 'gate', x: X(7945), y: JY(226), label: 'buried stairway marker' },
   { id: 'base-banners', sectionId: 'dig-site-entrance', type: 'banners', x: X(7910), y: JY(244), label: 'base camp banners' },
 ];
 
@@ -1056,6 +1058,7 @@ export const ENVIRONMENT_EVENTS = [
   { id: 'site-boundary-pause', sectionId: 'dig-site-entrance', x: X(6870), name: 'Site Boundary', message: 'Look for evidence before moving on.', type: 'arrival', duration: 2.2, shake: 0.15 },
   { id: 'dig-hidden-shrine-glow', sectionId: 'dig-site-entrance', x: X(7180), name: 'Ancient Shrine Discovered', message: 'A distant shrine glows beyond Base Camp.', type: 'shrine-glow', duration: 3.2, shake: 0.1, dynamic: true, card: false },
   { id: 'final-boundary', sectionId: 'dig-site-entrance', x: X(7330), name: 'Evidence Marker', message: 'Look for evidence before moving on.', type: 'arrival', duration: 2.6, shake: 0.25 },
+  { id: 'discovery-entrance-reveal', sectionId: 'dig-site-entrance', x: X(7970), name: 'Discovery Entrance Found', message: 'You have located a sealed archaeological site.', type: 'shrine-glow', duration: 3.2, shake: 0.18, dynamic: true, card: false },
 ];
 
 export const BOSS_INTROS = {
@@ -1099,3 +1102,19 @@ export const getJourneyMiniBosses = (targetCivilisation) => (
 );
 
 export const GATE = { x: X(8040), y: JY(282), width: 56, height: 78 };
+
+export const DISCOVERY_ENTRANCE = {
+  id: 'sealed-tomb-entrance',
+  sectionId: 'dig-site-entrance',
+  name: 'Discovery Entrance Found',
+  title: 'Sealed Tomb Entrance',
+  message: 'You have located a sealed archaeological site.',
+  handoffMessage: 'Return to Base Camp to prepare the excavation.',
+  x: X(7968),
+  y: JY(182),
+  width: X(150),
+  height: 178,
+  glowColor: '#facc15',
+  stoneColor: '#31543d',
+  accentColor: '#bbf7d0',
+};

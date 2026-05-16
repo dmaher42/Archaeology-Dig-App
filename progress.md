@@ -218,6 +218,7 @@ Remaining notes:
 - The flash timer now counts down on `player.invulnerable`, a short non-flashing damage cooldown prevents contact/attack chains from making the player appear permanently flashing, and `render_game_to_text` exposes flash state, remaining invulnerability milliseconds, damage cooldown, last damage source, and last damage time.
 - Browser/state checks confirmed a Scarab hit starts flashing, the flash reaches `false` after the invulnerability window, later hits can start a new finite flash, Base Camp opens, and Begin Excavation still enters the existing excavation stage.
 - `npm.cmd run build` passed; `npm.cmd run lint` passed after adding lint-only CommonJS globals to the tracked scratch map generator scripts; `git diff --check` only reported LF-to-CRLF warnings.
+
 - Remaining risk: repeated-hit timing was checked against the first Scarab/Scarab Queen route, but late-section mini-boss hits should still be spot-checked during the next full Journey classroom playtest.
 
 2026-05-10 update:
@@ -1644,3 +1645,48 @@ Remaining notes:
 - Browser smoke confirmed hazard stamina loss, enemy hit wording, low-stamina warning state, Field Rescue overlay, and retry from checkpoint restoring stamina to 40 at Desert Entry.
 - Validation: `node --test src\components\expedition-journey\journeySecrets.test.js` passed; `node --test src\components\expedition\baseCampShop.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with the known runtime-resolved Egypt asset warnings only.
 - Screenshots captured: `output/stamina-hazard-damage-smoke.png`, `output/stamina-low-warning-smoke.png`, `output/stamina-field-rescue-smoke.png`, and `output/stamina-retry-checkpoint-smoke.png`.
+
+2026-05-16 Journey platformer audit and short-hop tuning:
+- Audited the current Journey Platformer source of truth before changing it.
+- Confirmed the Journey platformer already lives in `src/components/ExpeditionJourney.jsx` with level data/helpers/assets in `src/components/expedition-journey/`, and it is launched through the existing `ExpeditionMode.jsx` Journey -> Base Camp -> Excavation flow.
+- Added the first small feel improvement in the canonical Journey movement loop: releasing jump early now cuts upward velocity for more responsive short hops, while holding jump preserves the existing full-height jump.
+- Exposed the jump-cut feedback timer and multiplier in the existing Journey snapshot for browser/state checks.
+- `npm.cmd run lint` passed.
+- `npm.cmd run build` passed; the known runtime-resolution warnings for two Egypt excavation image paths still appear.
+- Browser verification on `http://127.0.0.1:5173/Archaeology-Dig-App/` confirmed Menu -> Start Expedition -> Ancient Egypt Journey -> Begin Expedition, the existing canvas visuals still render, early jump release cuts upward velocity, the Journey snapshot exposes `jumpCutFeedbackTimer`, and no page errors appeared.
+- Remaining risk: this was a short first-screen jump feel check, not a full end-to-end Journey route playtest.
+
+2026-05-16 Journey Discovery Entrance pass:
+- Continued from the existing Journey platformer audit and short-hop tuning, keeping the canonical `ExpeditionJourney.jsx` / `journeyLevelData.js` / `journeyUtils.js` architecture.
+- Upgraded the final Journey endpoint from a small exit marker into a named `Discovery Entrance Found` moment with a sealed tomb entrance, buried stairway styling, lamps, glow, dust, a discovery pulse, and a short reveal beat.
+- Preserved the existing Journey -> Base Camp handoff: after the reveal timer finishes, the same `onComplete([...fieldKit])` callback still opens Base Camp and deposits relic shards through the existing Base Camp shop progression.
+- Kept the optional route/reward systems unchanged and verified Egypt's `desert-upper-survey-route` still unlocks through the existing route gate/upgrades and rewards the `Scarab Fragment`.
+- Validation: `node --test src\components\expedition-journey\journeySecrets.test.js` passed; `node --test src\components\expedition\baseCampShop.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with the known runtime-resolved Egypt asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Browser notes: local Chrome/Playwright smoke opened Ancient Egypt Journey, confirmed the optional route/reward state, triggered the Discovery Entrance reveal, confirmed the Base Camp checklist appeared after the reveal, and reported no console/page errors.
+- Screenshots captured: `output/journey-egypt-optional-route-reward-after.png`, `output/journey-egypt-discovery-entrance-reveal-after.png`, and `output/journey-egypt-discovery-base-camp-handoff-after.png`.
+
+2026-05-16 Journey opening expedition-life pass:
+- Preserved the existing Ancient Egypt Journey visual identity and extended only the current Journey renderer/data.
+- Added subtle opening background-life details through the existing `drawEgyptAmbientLife` pass: distant tent flap movement, a small crate carrier, a kneeling surveyor, roped dig activity, and a distant worker silhouette.
+- Added two low-key opening story props through the existing `STORY_PROPS` pipeline: a footprint trail and a survey rope line. These are decorative cues only and do not block movement or create new gameplay systems.
+- Kept the current opening platforms, relic shard layout, hidden upper route, checkpoint logic, Base Camp, excavation, lab, museum, report, Bureau, save/load, and claim/result systems unchanged.
+- Validation: `node --test src\components\expedition-journey\journeySecrets.test.js` passed; `node --test src\components\expedition\baseCampShop.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with the known runtime-resolved Egypt asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Browser notes: local Chrome/Playwright smoke opened Ancient Egypt Journey, confirmed `ambientLifeMode: desert-survey-camp-life`, played the opening movement/jump stretch, collected the first relic shard, confirmed the Desert Survey Checkpoint still activates, and reported no console/page errors.
+- Screenshots captured: `output/journey-egypt-opening-life-start.png`, `output/journey-egypt-opening-life-movement.png`, `output/journey-egypt-opening-first-reward.png`, and `output/journey-egypt-opening-checkpoint.png`.
+- Note: the bundled `develop-web-game` Playwright client could not run because its skill-folder script could not resolve the `playwright` package on this machine, so verification used the working local Playwright browser path instead.
+
+2026-05-16 Journey player presentation polish:
+- Inspected the existing Journey player rendering path before editing: the archaeologist is drawn from `public/sprites/archaeologist-walk-cycle.png` when loaded, with a canvas fallback and a separate khopesh/field-tool weapon atlas in `public/assets/expedition/player/`.
+- Extended only the current Journey animation resolver and renderer. Added visual states for cautious survey walk, normal walk, run, jump, fall, land, attack, and hurt, while leaving movement physics and hitboxes unchanged.
+- Improved the weapon presentation through the existing khopesh drawing path with wind-up/swing/recoil trails, attack lean, landing squash, run/survey posture, and a short hit spark on confirmed enemy or boss hits.
+- Kept Base Camp, excavation, inventory, evidence, boss, route-gate, pickup, hazard, and Journey completion systems unchanged.
+- Validation: `node --test src\components\expedition-journey\journeySecrets.test.js` passed; `node --test src\components\expedition\baseCampShop.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with the known runtime-resolved Egypt asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Browser notes: local browser smoke opened Menu -> Start Expedition -> Ancient Egypt -> Begin Expedition, checked idle, run, short-hop/fall, attack, moving attack, first collectible, and a Start Path Scarab hit/defeat. No page errors appeared.
+- Screenshots captured: `output/journey-player-polish-smoke-idle.png`, `output/journey-player-polish-smoke-run.png`, `output/journey-player-polish-smoke-jump-fall.png`, `output/journey-player-polish-smoke-swing.png`, `output/journey-player-polish-smoke-forward-attack.png`, and `output/journey-player-polish-smoke-hit-spark.png`.
+
+2026-05-16 first optional upper-route readability:
+- Kept the change inside existing Journey data systems only: platforms, relic shards, hidden route data, and story props.
+- Made the first Ancient Egypt upper route read as an immediately discoverable broken-stone step-up instead of an opening Rope Launcher lock.
+- Softened the first upper-step spacing, moved one visible relic shard into the climb line, and added a broken-stone story prop cue below the route.
+- Tightened the hidden-route discovery rectangle so normal lower-path movement does not accidentally map the route.
+- Browser smoke confirmed the lower path stays clear, the upper route can be discovered, the route reward can be collected, and the player can return to the main path without leaving Journey.

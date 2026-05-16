@@ -16,6 +16,8 @@ import {
   GROUND_Y,
   INVULNERABLE_DURATION,
   JUMP_SPEED,
+  JUMP_CUT_MULTIPLIER,
+  JUMP_CUT_FEEDBACK_TIME,
   MOVE_SPEED,
   MOVE_ACCELERATION,
   MOVE_DECELERATION,
@@ -62,6 +64,7 @@ import {
   WORLD_CONTINUITY_LANDMARKS,
   WORLD_TRANSITION_STORY_MARKERS,
   GATE,
+  DISCOVERY_ENTRANCE,
   ENVIRONMENT_EVENTS,
   SECTION_OBJECTIVES,
 } from './expedition-journey/journeyLevelData';
@@ -917,6 +920,7 @@ const PROP_DEPTH_TUNING_VERSION = 'journey-decorative-depth-2026-05-12';
 const WORLD_CONTINUITY_VERSION = 'connected-expedition-world-2026-05-16';
 const REACTIVE_ENVIRONMENT_VERSION = 'reactive-expedition-world-2026-05-16';
 const DYNAMIC_WORLD_VERSION = 'dynamic-expedition-world-storytelling-2026-05-16';
+const DISCOVERY_ENTRANCE_REVEAL_SECONDS = 2.2;
 
 const SECTION_PARALLAX_LAYERS = {
   'ruined-temple': [
@@ -1744,6 +1748,7 @@ export default function ExpeditionJourney({
         onGround: current.player.onGround,
         coyoteTimer: Number((current.player.coyoteTimer || 0).toFixed(2)),
         jumpBufferTimer: Number((current.player.jumpBufferTimer || 0).toFixed(2)),
+        jumpCutFeedbackTimer: Number((current.player.jumpCutFeedbackTimer || 0).toFixed(2)),
       },
       playerFacing: current.player.direction >= 0 ? 'right' : 'left',
       playerSpriteLoaded: Boolean(playerSpriteRef.current.loaded),
@@ -2098,6 +2103,7 @@ export default function ExpeditionJourney({
         facing: current.player.direction >= 0 ? 'right' : 'left',
         animationState: current.player.animationState || 'idle',
         animationFrame: current.player.animationFrame ?? 1,
+        visualWalkStyle: current.player.visualWalkStyle || 'none',
         invulnerable: Number(current.player.invulnerable.toFixed(2)),
         invulnerabilityRemainingMs: Math.round(current.player.invulnerable * 1000),
         damageCooldownRemainingMs: Math.round(current.player.damageCooldownTimer * 1000),
@@ -2136,6 +2142,8 @@ export default function ExpeditionJourney({
       movementFeelState: {
         coyoteTimeSeconds: COYOTE_TIME,
         jumpBufferSeconds: JUMP_BUFFER_TIME,
+        jumpCutMultiplier: JUMP_CUT_MULTIPLIER,
+        jumpCutFeedback: Number((current.player.jumpCutFeedbackTimer || 0).toFixed(2)),
         landingFeedback: Number((current.player.landingFeedbackTimer || 0).toFixed(2)),
         movementDustTimer: Number((current.player.movementDustTimer || 0).toFixed(2)),
         activeJuiceEffects: current.combatHitEffects
@@ -2218,6 +2226,17 @@ export default function ExpeditionJourney({
       bossIntroState: current.bossIntro,
       environmentEventState: current.environmentEvent,
       dynamicEnvironmentEventState: current.dynamicEnvironmentEvent,
+      discoveryEntranceState: {
+        id: DISCOVERY_ENTRANCE.id,
+        title: DISCOVERY_ENTRANCE.name,
+        siteType: DISCOVERY_ENTRANCE.title,
+        message: DISCOVERY_ENTRANCE.message,
+        handoffMessage: DISCOVERY_ENTRANCE.handoffMessage,
+        active: Boolean(current.discoveryEntranceActive),
+        reached: Boolean(current.discoveryEntranceActive || current.discoveryEntranceHandoffStarted || current.completed),
+        timer: Number((current.discoveryEntranceTimer || 0).toFixed(2)),
+      },
+      discoveryEntranceFound: Boolean(current.discoveryEntranceActive || current.discoveryEntranceHandoffStarted || current.completed),
       sectionTransitionState: current.sectionTransition,
       activeParticles: SECTION_ATMOSPHERES[section.id]?.particle || null,
       activeAtmosphere: {
@@ -2228,7 +2247,7 @@ export default function ExpeditionJourney({
         title: getSectionDisplayTitle(section.id) || null,
       },
       hazards: HAZARDS.map(hazard => hazard.name),
-      endGateReached: current.completed,
+      endGateReached: current.completed || current.discoveryEntranceActive,
       briefingOpen,
       failed: current.failed,
       failureReason: current.failureReason,
@@ -2371,6 +2390,18 @@ export default function ExpeditionJourney({
     const reach = attackState === 'windup' ? 11 : attacking ? 32 : attackState === 'recoil' ? 14 : 18;
     const lift = attacking ? -10 : attackState === 'windup' ? 4 : -2;
     ctx.save();
+    if (attackState === 'windup' || attacking || attackState === 'recoil') {
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = attacking ? 0.52 : attackState === 'windup' ? 0.26 : 0.18;
+      ctx.strokeStyle = attacking ? 'rgba(255, 247, 173, 0.92)' : 'rgba(250, 204, 21, 0.62)';
+      ctx.lineWidth = (attacking ? 6 : 3) * scale;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.arc(direction * 12 * scale, -8 * scale, 28 * scale, direction > 0 ? -1.38 : Math.PI + 1.38, direction > 0 ? 0.34 : Math.PI - 0.34, direction < 0);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'source-over';
+    }
     ctx.strokeStyle = '#facc15';
     ctx.lineWidth = (attacking ? 5 : 3) * scale;
     ctx.lineCap = 'round';
@@ -2405,6 +2436,29 @@ export default function ExpeditionJourney({
     ctx.save();
     ctx.translate(anchorX, anchorY);
     if (direction < 0) ctx.scale(-1, 1);
+    if (attackState === 'windup' || attackState === 'swing' || attackState === 'recoil') {
+      const trailAlpha = attackState === 'swing' ? 0.58 : attackState === 'windup' ? 0.28 : 0.18;
+      const trailWidth = attackState === 'swing' ? 9 : 5;
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = trailAlpha;
+      ctx.strokeStyle = attackState === 'swing' ? 'rgba(255, 247, 173, 0.92)' : 'rgba(250, 204, 21, 0.68)';
+      ctx.lineWidth = trailWidth * scale;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      if (attackState === 'windup') {
+        ctx.arc(8 * scale, -16 * scale, 26 * scale, -2.15, -0.62);
+      } else if (attackState === 'recoil') {
+        ctx.arc(16 * scale, -14 * scale, 24 * scale, -0.12, 0.82);
+      } else {
+        ctx.arc(22 * scale, -18 * scale, 38 * scale, -1.28, 0.55);
+      }
+      ctx.stroke();
+      ctx.lineWidth = Math.max(1.5, trailWidth * 0.28) * scale;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.86)';
+      ctx.stroke();
+      ctx.restore();
+    }
     ctx.rotate(frameConfig.rotate);
     ctx.globalAlpha *= frameConfig.alpha;
     ctx.shadowColor = attackState === 'swing' ? 'rgba(250, 204, 21, 0.72)' : 'rgba(0, 0, 0, 0.28)';
@@ -2433,9 +2487,16 @@ export default function ExpeditionJourney({
     ctx.save();
     if (invuln > 0 && Math.floor(now / 100) % 2 === 0) ctx.globalAlpha = 0.3;
     
-    const bob = Math.sin(now / 150) * 2;
-    const legSwing = Math.sin(now / 100) * 8;
-    const attackState = getPlayerAttackState(stateRef.current);
+    const current = stateRef.current;
+    const walkStyle = current.player.visualWalkStyle || 'none';
+    const animationState = current.player.animationState || 'idle';
+    const walkTempo = walkStyle === 'run' ? 72 : walkStyle === 'survey-walk' ? 180 : 105;
+    const bob = animationState === 'land'
+      ? 2
+      : Math.sin(now / walkTempo) * (walkStyle === 'run' ? 3 : walkStyle === 'survey-walk' ? 1 : 2);
+    const legSwing = Math.sin(now / Math.max(54, walkTempo * 0.72)) * (walkStyle === 'run' ? 11 : walkStyle === 'survey-walk' ? 5 : 8);
+    const attackState = getPlayerAttackState(current);
+    const movementLean = walkStyle === 'run' ? direction * 2 : walkStyle === 'survey-walk' ? -direction * 1.2 : 0;
     const attackLean = attackState === 'windup'
       ? -direction * 3
       : attackState === 'swing'
@@ -2443,6 +2504,7 @@ export default function ExpeditionJourney({
         : attackState === 'recoil'
           ? -direction * 4
           : 0;
+    const totalLean = attackLean + movementLean;
 
     // Readability shadow and outline
     ctx.fillStyle = 'rgba(0,0,0,0.36)';
@@ -2454,16 +2516,16 @@ export default function ExpeditionJourney({
     ctx.lineWidth = 4;
     ctx.lineJoin = 'round';
     ctx.beginPath();
-    ctx.roundRect(x + 3 + attackLean, y + 5 + bob, 24, 28, 6);
+    ctx.roundRect(x + 3 + totalLean, y + 5 + bob, 24, 28, 6);
     ctx.stroke();
     ctx.beginPath();
-    ctx.arc(x + w / 2 + attackLean, y + 4 + bob, 8, 0, Math.PI * 2);
+    ctx.arc(x + w / 2 + totalLean, y + 4 + bob, 8, 0, Math.PI * 2);
     ctx.stroke();
 
     // Body
     ctx.fillStyle = '#1f4f5f';
     ctx.beginPath();
-    ctx.roundRect(x + 2 + attackLean, y + 8 + bob, 26, 25, 7);
+    ctx.roundRect(x + 2 + totalLean, y + 8 + bob, 26, 25, 7);
     ctx.fill();
     ctx.strokeStyle = '#05111f';
     ctx.lineWidth = 2;
@@ -2471,13 +2533,13 @@ export default function ExpeditionJourney({
 
     ctx.fillStyle = '#f2c36b';
     ctx.beginPath();
-    ctx.arc(x + w / 2 + attackLean, y + 18 + bob, 5, 0, Math.PI * 2);
+    ctx.arc(x + w / 2 + totalLean, y + 18 + bob, 5, 0, Math.PI * 2);
     ctx.fill();
 
     // Head
     ctx.fillStyle = '#d69a5f';
     ctx.beginPath();
-    ctx.arc(x + w / 2 + attackLean, y + 1 + bob, 8, 0, Math.PI * 2);
+    ctx.arc(x + w / 2 + totalLean, y + 1 + bob, 8, 0, Math.PI * 2);
     ctx.fill();
     ctx.strokeStyle = '#3a2416';
     ctx.lineWidth = 2;
@@ -2487,8 +2549,8 @@ export default function ExpeditionJourney({
     ctx.strokeStyle = '#3a2416';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(x + attackLean + (direction > 0 ? 8 : 22), y + 11 + bob);
-    ctx.lineTo(x + attackLean + (direction > 0 ? 22 : 8), y + 29 + bob);
+    ctx.moveTo(x + totalLean + (direction > 0 ? 8 : 22), y + 11 + bob);
+    ctx.lineTo(x + totalLean + (direction > 0 ? 22 : 8), y + 29 + bob);
     ctx.stroke();
 
     // Hat
@@ -2496,30 +2558,30 @@ export default function ExpeditionJourney({
     ctx.strokeStyle = '#fff7d6';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.roundRect(x + attackLean + (direction > 0 ? -6 : 0), y - 5 + bob, 36, 5, 2);
+    ctx.roundRect(x + totalLean + (direction > 0 ? -6 : 0), y - 5 + bob, 36, 5, 2);
     ctx.fill();
     ctx.stroke();
     ctx.beginPath();
-    ctx.roundRect(x + attackLean + (direction > 0 ? 4 : 8), y - 13 + bob, 20, 10, 3);
+    ctx.roundRect(x + totalLean + (direction > 0 ? 4 : 8), y - 13 + bob, 20, 10, 3);
     ctx.fill();
     ctx.stroke();
 
     // Backpack and satchel
     ctx.fillStyle = '#7c3f18';
     ctx.beginPath();
-    ctx.roundRect(x + attackLean + (direction > 0 ? -2 : 21), y + 13 + bob, 9, 16, 3);
+    ctx.roundRect(x + totalLean + (direction > 0 ? -2 : 21), y + 13 + bob, 9, 16, 3);
     ctx.fill();
     ctx.fillStyle = '#b45309';
     ctx.beginPath();
-    ctx.roundRect(x + attackLean + (direction > 0 ? 20 : 0), y + 18 + bob, 10, 8, 2);
+    ctx.roundRect(x + totalLean + (direction > 0 ? 20 : 0), y + 18 + bob, 10, 8, 2);
     ctx.fill();
 
     // Weapon in hand
-    const handX = x + attackLean + (direction > 0 ? 24 : 4);
+    const handX = x + totalLean + (direction > 0 ? 24 : 4);
     drawPlayerKhopesh(ctx, handX, y + 19 + bob, attackState, direction, 0.9);
 
     // Legs and boots
-    const moving = Math.abs(stateRef.current.player.vx) > 0.1;
+    const moving = Math.abs(current.player.vx) > 0.1;
     const leftLegX = x + 7 + (moving ? (direction > 0 ? legSwing : -legSwing) * 0.25 : 0);
     const rightLegX = x + 17 + (moving ? (direction > 0 ? -legSwing : legSwing) * 0.25 : 0);
     ctx.fillStyle = '#10233b';
@@ -2563,8 +2625,14 @@ export default function ExpeditionJourney({
         : attackState === 'recoil'
           ? -direction * 4
           : 0;
-    const jumpLift = current.player.animationState === 'jump' ? -2 : 0;
-    const hurtShake = current.player.animationState === 'hurt' ? Math.sin(now / 24) * 2 : 0;
+    const animationState = current.player.animationState || 'idle';
+    const walkStyle = current.player.visualWalkStyle || 'none';
+    const movementLean = walkStyle === 'run' ? direction * 2.5 : walkStyle === 'survey-walk' ? -direction * 1.25 : 0;
+    const jumpLift = animationState === 'jump' ? -3 : animationState === 'fall' ? 1 : animationState === 'land' ? 2 : 0;
+    const hurtShake = animationState === 'hurt' ? Math.sin(now / 24) * 2 : 0;
+    const landingPulse = clamp((current.player.landingFeedbackTimer || 0) / 0.16, 0, 1);
+    const squashX = 1 + landingPulse * 0.045;
+    const squashY = 1 - landingPulse * 0.035;
     const knowledgeScale = current.player.knowledgeVisualScale || 1;
 
     ctx.save();
@@ -2575,12 +2643,13 @@ export default function ExpeditionJourney({
     ctx.ellipse(footX, footY + 1, w * 1.05, 5, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.translate(footX + attackLean + hurtShake, footY + jumpLift);
+    ctx.translate(footX + attackLean + movementLean + hurtShake, footY + jumpLift);
     if (knowledgeScale > 1) {
       ctx.shadowColor = 'rgba(250, 204, 21, 0.54)';
       ctx.shadowBlur = 18;
       ctx.scale(knowledgeScale, knowledgeScale);
     }
+    ctx.scale(squashX, squashY);
     if (direction < 0) ctx.scale(-1, 1);
     ctx.drawImage(
       sprite.image,
@@ -2963,6 +3032,47 @@ export default function ExpeditionJourney({
       ctx.fill();
       ctx.fillStyle = '#7f1d1d';
       ctx.fillRect(x - 3, prop.y - 8, 6, 14);
+      ctx.restore();
+      return;
+    }
+    if (prop.type === 'footprints') {
+      drawDecorativeBaseBlend(ctx, x, prop.y + 10, 150, section.id, propDepth, 0.42);
+      ctx.fillStyle = 'rgba(92, 64, 51, 0.18)';
+      for (let i = 0; i < 7; i += 1) {
+        const offsetX = i * 18 - 60;
+        const offsetY = (i % 2) * 8;
+        ctx.beginPath();
+        ctx.ellipse(x + offsetX, prop.y + offsetY, 7, 3.2, -0.28, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(x + offsetX + 8, prop.y + offsetY + 4, 6, 3, -0.08, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+      return;
+    }
+    if (prop.type === 'survey-rope') {
+      drawDecorativeBaseBlend(ctx, x, prop.y + 20, 128, section.id, propDepth, 0.5);
+      const sag = Math.sin(now / 520 + prop.x * 0.01) * 2;
+      ctx.strokeStyle = 'rgba(92, 49, 18, 0.5)';
+      ctx.lineWidth = 3;
+      [-56, 56].forEach(offset => {
+        ctx.fillStyle = 'rgba(69, 26, 3, 0.48)';
+        ctx.fillRect(x + offset - 2, prop.y - 20, 4, 44);
+      });
+      ctx.beginPath();
+      ctx.moveTo(x - 56, prop.y - 8);
+      ctx.quadraticCurveTo(x, prop.y + 4 + sag, x + 56, prop.y - 8);
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(250, 204, 21, 0.4)';
+      [-56, 56].forEach(offset => {
+        ctx.beginPath();
+        ctx.moveTo(x + offset + 2, prop.y - 20);
+        ctx.lineTo(x + offset + 24, prop.y - 15 + sag);
+        ctx.lineTo(x + offset + 2, prop.y - 8);
+        ctx.closePath();
+        ctx.fill();
+      });
       ctx.restore();
       return;
     }
@@ -3626,6 +3736,7 @@ export default function ExpeditionJourney({
     const time = now / 1000;
     const baseX = (x) => scaleJourneyX(x);
     const baseY = (y) => y + JOURNEY_VERTICAL_OFFSET;
+    const parallaxX = (x, factor = 0.22) => scaleJourneyX(x) - cameraX * factor;
     const drawSoftDust = (worldX, baseY, width, alpha = 0.18, speed = 1) => {
       const x = worldToScreenX(worldX, cameraX);
       if (x < -width || x > CANVAS_WIDTH + width) return;
@@ -3639,6 +3750,136 @@ export default function ExpeditionJourney({
         ctx.ellipse(x + drift, y, 18 + i * 5, 3.2, -0.08, 0, Math.PI * 2);
         ctx.fill();
       }
+      ctx.restore();
+    };
+    const drawDistantExpeditionWorker = (authoredX, y, options = {}) => {
+      const x = parallaxX(authoredX, options.parallax ?? 0.18);
+      if (x < -80 || x > CANVAS_WIDTH + 80) return;
+      activeDetails += 1;
+      const scale = options.scale ?? 0.62;
+      const walk = Math.sin(time * (options.speed ?? 1.1) + authoredX * 0.02);
+      const bodyY = baseY(y);
+      ctx.save();
+      ctx.globalAlpha = options.alpha ?? 0.42;
+      ctx.translate(x, bodyY);
+      ctx.scale(scale, scale);
+      ctx.strokeStyle = 'rgba(69, 42, 18, 0.62)';
+      ctx.fillStyle = 'rgba(49, 32, 21, 0.56)';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(0, -28, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = options.hatColor || 'rgba(250, 204, 21, 0.5)';
+      ctx.fillRect(-10, -36, 20, 4);
+      ctx.strokeStyle = options.clothColor || 'rgba(120, 53, 15, 0.56)';
+      ctx.beginPath();
+      ctx.moveTo(0, -22);
+      ctx.lineTo(0, 0);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(-8, -14);
+      ctx.lineTo(8, -8);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(-7 + walk * 3, 16);
+      ctx.moveTo(0, 0);
+      ctx.lineTo(8 - walk * 3, 16);
+      ctx.stroke();
+      if (options.carryingCrate) {
+        ctx.fillStyle = 'rgba(120, 53, 15, 0.45)';
+        ctx.fillRect(8, -18, 18, 13);
+        ctx.strokeStyle = 'rgba(69, 26, 3, 0.42)';
+        ctx.strokeRect(8, -18, 18, 13);
+      }
+      ctx.restore();
+    };
+    const drawKneelingSurveyor = (authoredX, y) => {
+      const x = parallaxX(authoredX, 0.2);
+      if (x < -80 || x > CANVAS_WIDTH + 80) return;
+      activeDetails += 1;
+      const hand = Math.sin(time * 2.2 + authoredX * 0.01) * 3;
+      ctx.save();
+      ctx.globalAlpha = 0.46;
+      ctx.translate(x, baseY(y));
+      ctx.scale(0.58, 0.58);
+      ctx.fillStyle = 'rgba(49, 32, 21, 0.58)';
+      ctx.beginPath();
+      ctx.arc(0, -24, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(250, 204, 21, 0.48)';
+      ctx.fillRect(-10, -32, 20, 4);
+      ctx.strokeStyle = 'rgba(69, 42, 18, 0.6)';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(0, -18);
+      ctx.lineTo(-10, -2);
+      ctx.lineTo(8, 4);
+      ctx.moveTo(-5, -8);
+      ctx.lineTo(16 + hand, -3);
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(22, 101, 52, 0.36)';
+      ctx.fillRect(18, -5, 13, 4);
+      ctx.restore();
+    };
+    const drawTentFlap = (authoredX, y, width = 72) => {
+      const x = parallaxX(authoredX, 0.16);
+      if (x < -120 || x > CANVAS_WIDTH + 120) return;
+      activeDetails += 1;
+      const flap = Math.sin(time * 2.8 + authoredX * 0.02) * 6;
+      ctx.save();
+      ctx.globalAlpha = 0.34;
+      ctx.fillStyle = 'rgba(245, 158, 11, 0.28)';
+      ctx.strokeStyle = 'rgba(92, 49, 18, 0.28)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x - width / 2, baseY(y));
+      ctx.lineTo(x, baseY(y - 42));
+      ctx.lineTo(x + width / 2, baseY(y));
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(255, 247, 212, 0.18)';
+      ctx.beginPath();
+      ctx.moveTo(x - 4, baseY(y - 34));
+      ctx.quadraticCurveTo(x + 16 + flap, baseY(y - 18), x + 4, baseY(y));
+      ctx.lineTo(x - 5, baseY(y));
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    };
+    const drawRopedDigActivity = (authoredX, y) => {
+      const x = parallaxX(authoredX, 0.21);
+      if (x < -120 || x > CANVAS_WIDTH + 120) return;
+      activeDetails += 1;
+      const brush = Math.sin(time * 3.4 + authoredX * 0.01) * 5;
+      ctx.save();
+      ctx.globalAlpha = 0.36;
+      ctx.strokeStyle = 'rgba(92, 49, 18, 0.42)';
+      ctx.lineWidth = 2;
+      [-38, 38].forEach(offset => {
+        ctx.fillStyle = 'rgba(69, 26, 3, 0.38)';
+        ctx.fillRect(x + offset - 2, baseY(y - 24), 4, 30);
+      });
+      ctx.beginPath();
+      ctx.moveTo(x - 38, baseY(y - 18));
+      ctx.quadraticCurveTo(x, baseY(y - 9), x + 38, baseY(y - 18));
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(92, 64, 51, 0.26)';
+      ctx.beginPath();
+      ctx.ellipse(x, baseY(y + 6), 32, 6, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(69, 42, 18, 0.52)';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(x - 12, baseY(y - 30), 4, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x - 12, baseY(y - 24));
+      ctx.lineTo(x - 20, baseY(y - 8));
+      ctx.moveTo(x - 16, baseY(y - 14));
+      ctx.lineTo(x + 2 + brush, baseY(y - 4));
+      ctx.stroke();
       ctx.restore();
     };
     const drawFlutterPennant = (worldX, y, color = '#facc15') => {
@@ -3693,9 +3934,15 @@ export default function ExpeditionJourney({
     };
 
     if (section.id === 'desert-entry') {
+      drawTentFlap(128, 154, 92);
+      drawTentFlap(182, 160, 74);
+      drawDistantExpeditionWorker(150, 188, { carryingCrate: true, scale: 0.5, parallax: 0.18, speed: 0.72 });
+      drawKneelingSurveyor(206, 190);
+      drawRopedDigActivity(245, 206);
+      drawDistantExpeditionWorker(320, 198, { scale: 0.44, parallax: 0.14, alpha: 0.32, clothColor: 'rgba(15, 118, 110, 0.44)' });
       [250, 360, 640, 790, 960, 1260].forEach((x, index) => drawSoftDust(baseX(x), GROUND_Y - 6, 118 + index * 8, index < 2 ? 0.1 : 0.14, index < 2 ? 0.55 : 0.75));
       [250, 520, 650, 885, 1260, 1360].forEach((x, index) => drawFlutterPennant(baseX(x), baseY(306), index % 2 ? '#f59e0b' : '#facc15'));
-      if (stats) stats.ambientLifeMode = 'desert-survey-activity';
+      if (stats) stats.ambientLifeMode = 'desert-survey-camp-life';
     } else if (section.id === 'ruined-temple') {
       [1605, 2145, 2890].forEach((x, index) => drawFlutterPennant(baseX(x), baseY(306), index === 2 ? '#dc2626' : '#d97706'));
       [1860, 2640].forEach(x => drawGlowPulse(baseX(x), baseY(232), 'rgba(250, 204, 21, 0.16)', 84));
@@ -5108,23 +5355,25 @@ export default function ExpeditionJourney({
     ctx.restore();
   }, [drawBossSprite, drawSmallEnemySprite, getBossVisibleDrawBox, getBossVulnerabilityState]);
 
-  const drawAttackArc = useCallback((ctx, box, cameraX, direction, color = '#facc15') => {
+  const drawAttackArc = useCallback((ctx, box, cameraX, direction, color = '#facc15', attackState = 'swing') => {
     if (!box) return;
     const x = box.x - cameraX;
     const cx = direction >= 0 ? x + 8 : x + box.width - 8;
     const cy = box.y + box.height / 2;
     const edgeX = direction >= 0 ? x + box.width : x;
+    const phaseAlpha = attackState === 'swing' ? 0.88 : attackState === 'windup' ? 0.32 : 0.46;
+    const phaseWidth = attackState === 'swing' ? 5 : 3;
 
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
-    ctx.globalAlpha = 0.88;
+    ctx.globalAlpha = phaseAlpha;
     ctx.fillStyle = `${color}22`;
     ctx.strokeStyle = color;
-    ctx.lineWidth = 5;
+    ctx.lineWidth = phaseWidth;
     ctx.beginPath();
     ctx.ellipse(cx, cy, box.width * 0.62, box.height * 0.86, direction >= 0 ? -0.18 : 0.18, -Math.PI * 0.48, Math.PI * 0.48);
     ctx.stroke();
-    ctx.globalAlpha = 0.42;
+    ctx.globalAlpha = attackState === 'swing' ? 0.42 : 0.16;
     ctx.fillRect(x, box.y + 3, box.width, box.height - 6);
     ctx.globalAlpha = 0.72;
     ctx.lineWidth = 2;
@@ -5137,6 +5386,15 @@ export default function ExpeditionJourney({
     ctx.beginPath();
     ctx.arc(edgeX, box.y + 5, 5, 0, Math.PI * 2);
     ctx.fill();
+    if (attackState === 'swing') {
+      ctx.globalAlpha = 0.28;
+      ctx.lineWidth = 8;
+      ctx.strokeStyle = 'rgba(255, 247, 173, 0.7)';
+      ctx.beginPath();
+      ctx.moveTo(x + (direction >= 0 ? 1 : box.width - 1), cy + 20);
+      ctx.quadraticCurveTo(x + box.width * 0.52, cy + 34, edgeX, cy + 5);
+      ctx.stroke();
+    }
     ctx.restore();
   }, []);
 
@@ -5385,6 +5643,31 @@ export default function ExpeditionJourney({
         ctx.restore();
         return;
       }
+      if (effect.type === 'weapon-hit-spark') {
+        const direction = effect.direction || 1;
+        ctx.globalAlpha = Math.max(0, progress * 0.88);
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.strokeStyle = effect.color || '#fff7ad';
+        ctx.fillStyle = effect.fill || 'rgba(250, 204, 21, 0.2)';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(x, y, 10 + (1 - progress) * 16, 0, Math.PI * 2);
+        ctx.stroke();
+        for (let i = 0; i < 6; i += 1) {
+          const angle = -0.55 + i * 0.22 + (direction < 0 ? Math.PI : 0);
+          const length = 10 + i * 2 + (1 - progress) * 16;
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(x + Math.cos(angle) * length, y + Math.sin(angle) * length);
+          ctx.stroke();
+        }
+        ctx.globalAlpha = Math.max(0, progress * 0.44);
+        ctx.beginPath();
+        ctx.ellipse(x - direction * 10, y + 18, 28, 6, -0.1 * direction, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        return;
+      }
       if (['combat-impact', 'enemy-pressure', 'stamina-danger'].includes(effect.type)) {
         const radius = effect.type === 'stamina-danger' ? 34 : 24;
         ctx.globalAlpha = Math.max(0, progress * 0.78);
@@ -5454,6 +5737,125 @@ export default function ExpeditionJourney({
       ctx.restore();
     });
   }, []);
+
+  const drawDiscoveryEntrance = useCallback((ctx, entrance, cameraX, current, now) => {
+    const screenX = entrance.x - cameraX;
+    const centerX = screenX + entrance.width / 2;
+    const footY = GATE.y + GATE.height;
+    if (screenX > CANVAS_WIDTH + 260 || screenX + entrance.width < -260) return;
+
+    const revealProgress = current.discoveryEntranceActive
+      ? 1 - clamp((current.discoveryEntranceTimer || 0) / DISCOVERY_ENTRANCE_REVEAL_SECONDS, 0, 1)
+      : 0;
+    const pulse = 0.5 + Math.sin(now / 210) * 0.5;
+    const glowAlpha = 0.16 + pulse * 0.08 + revealProgress * 0.2;
+    const lampFlicker = 0.82 + Math.sin(now / 95) * 0.1;
+
+    ctx.save();
+    drawContactShadow(ctx, centerX, footY + 4, entrance.width * 0.9, 0.34, 1.2);
+
+    const aura = ctx.createRadialGradient(centerX, entrance.y + 82, 18, centerX, entrance.y + 82, entrance.width * 0.84);
+    aura.addColorStop(0, `rgba(250, 204, 21, ${glowAlpha})`);
+    aura.addColorStop(0.48, `rgba(187, 247, 208, ${0.12 + revealProgress * 0.12})`);
+    aura.addColorStop(1, 'rgba(6, 78, 59, 0)');
+    ctx.fillStyle = aura;
+    ctx.beginPath();
+    ctx.ellipse(centerX, entrance.y + 82, entrance.width * 0.72, entrance.height * 0.62, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.28)';
+    ctx.beginPath();
+    ctx.ellipse(centerX + 12, footY + 13, entrance.width * 0.56, 13, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    const leftPillarX = screenX + 18;
+    const rightPillarX = screenX + entrance.width - 46;
+    const pillarGradient = ctx.createLinearGradient(screenX, entrance.y, screenX + entrance.width, entrance.y);
+    pillarGradient.addColorStop(0, '#1f3f2e');
+    pillarGradient.addColorStop(0.45, entrance.stoneColor);
+    pillarGradient.addColorStop(1, '#163425');
+    ctx.fillStyle = pillarGradient;
+    ctx.strokeStyle = 'rgba(187, 247, 208, 0.34)';
+    ctx.lineWidth = 2;
+    [leftPillarX, rightPillarX].forEach((pillarX) => {
+      ctx.beginPath();
+      ctx.roundRect(pillarX, entrance.y + 30, 28, entrance.height - 26, 6);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(250, 204, 21, 0.18)';
+      ctx.fillRect(pillarX + 6, entrance.y + 52, 16, entrance.height - 84);
+      ctx.fillStyle = pillarGradient;
+    });
+
+    ctx.beginPath();
+    ctx.moveTo(screenX + 18, entrance.y + 56);
+    ctx.quadraticCurveTo(centerX, entrance.y - 8, screenX + entrance.width - 18, entrance.y + 56);
+    ctx.lineTo(screenX + entrance.width - 6, entrance.y + 86);
+    ctx.quadraticCurveTo(centerX, entrance.y + 22, screenX + 6, entrance.y + 86);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    const doorGradient = ctx.createLinearGradient(centerX, entrance.y + 40, centerX, footY);
+    doorGradient.addColorStop(0, 'rgba(6, 78, 59, 0.9)');
+    doorGradient.addColorStop(0.58, '#10291f');
+    doorGradient.addColorStop(1, '#07150f');
+    ctx.fillStyle = doorGradient;
+    ctx.beginPath();
+    ctx.roundRect(centerX - 31, entrance.y + 54, 62, entrance.height - 42, 24);
+    ctx.fill();
+    ctx.strokeStyle = `rgba(250, 204, 21, ${0.38 + revealProgress * 0.24})`;
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    ctx.fillStyle = `rgba(250, 204, 21, ${0.38 + revealProgress * 0.28})`;
+    ctx.beginPath();
+    ctx.arc(centerX, entrance.y + 104, 12 + revealProgress * 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255, 247, 237, 0.52)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    for (let index = 0; index < 5; index += 1) {
+      const stairY = footY - 2 + index * 8;
+      const stairWidth = entrance.width * (0.52 + index * 0.08);
+      ctx.fillStyle = `rgba(49, 84, 61, ${0.86 - index * 0.06})`;
+      ctx.fillRect(centerX - stairWidth / 2, stairY, stairWidth, 5);
+      ctx.fillStyle = 'rgba(250, 204, 21, 0.08)';
+      ctx.fillRect(centerX - stairWidth / 2, stairY, stairWidth, 1);
+    }
+
+    [-1, 1].forEach((side) => {
+      const torchX = centerX + side * 54;
+      ctx.fillStyle = '#5c4033';
+      ctx.fillRect(torchX - 3, entrance.y + 82, 6, 28);
+      ctx.fillStyle = `rgba(250, 204, 21, ${0.74 * lampFlicker})`;
+      ctx.beginPath();
+      ctx.ellipse(torchX, entrance.y + 76, 7 + revealProgress * 2, 14, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = `rgba(255, 247, 237, ${0.38 * lampFlicker})`;
+      ctx.beginPath();
+      ctx.ellipse(torchX, entrance.y + 78, 3, 7, 0, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    ctx.strokeStyle = 'rgba(187, 247, 208, 0.28)';
+    ctx.lineWidth = 1;
+    for (let index = 0; index < 6; index += 1) {
+      const crackX = screenX + 34 + index * 18;
+      ctx.beginPath();
+      ctx.moveTo(crackX, entrance.y + 46 + (index % 2) * 12);
+      ctx.lineTo(crackX + 7, entrance.y + 72 + (index % 3) * 8);
+      ctx.lineTo(crackX + 3, entrance.y + 102 + (index % 2) * 10);
+      ctx.stroke();
+    }
+
+    drawGroundDustLip(ctx, centerX, footY + 3, entrance.width * 0.78, 'rgba(250, 204, 21, 0.2)');
+    if (Math.abs((current.player.x + current.player.width / 2) - (entrance.x + entrance.width / 2)) < 240) {
+      drawFieldNoteLabel(ctx, centerX, entrance.y - 16, entrance.title, entrance.glowColor);
+    }
+    ctx.restore();
+  }, [drawContactShadow, drawFieldNoteLabel, drawGroundDustLip]);
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -5980,29 +6382,10 @@ export default function ExpeditionJourney({
       ctx.restore();
     });
 
-    const gateX = GATE.x - cameraX;
-    if (gateX > -200 && gateX < CANVAS_WIDTH + 200) {
-      ctx.save();
-      drawContactShadow(ctx, gateX + GATE.width / 2, GATE.y + GATE.height + 2, GATE.width + 58, 0.28, 1.2);
-      ctx.fillStyle = '#31543d';
-      ctx.fillRect(gateX - 18, GATE.y - 20, GATE.width + 36, GATE.height + 20);
-      ctx.fillStyle = '#facc15';
-      ctx.fillRect(gateX - 28, GATE.y - 28, GATE.width + 56, 10);
-      ctx.fillStyle = '#1f3f2e';
-      ctx.fillRect(gateX + 8, GATE.y + 12, GATE.width - 16, GATE.height - 12);
-      ctx.strokeStyle = '#bbf7d0';
-      ctx.lineWidth = 3;
-      ctx.strokeRect(gateX + 10, GATE.y + 18, GATE.width - 20, GATE.height - 24);
-      drawGroundDustLip(ctx, gateX + GATE.width / 2, GATE.y + GATE.height + 1, GATE.width + 42, 'rgba(74, 130, 82, 0.18)');
-      ctx.fillStyle = 'rgba(250, 204, 21, 0.32)';
-      ctx.beginPath();
-      ctx.arc(gateX + GATE.width / 2, GATE.y + 18, 36, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    }
+    drawDiscoveryEntrance(ctx, DISCOVERY_ENTRANCE, cameraX, current, now);
 
     if (current.attackTimer > 0) {
-      drawAttackArc(ctx, current.playerAttackBox, cameraX, player.direction, '#facc15', 'SWING');
+      drawAttackArc(ctx, current.playerAttackBox, cameraX, player.direction, '#facc15', getPlayerAttackState(current));
     }
     drawPlayerSprite(ctx, player.x - cameraX, player.y, player.width, player.height, player.direction, player.invulnerable, now);
     drawCombatEffects(ctx, current.combatHitEffects, cameraX, now);
@@ -6089,7 +6472,7 @@ export default function ExpeditionJourney({
       ctx.fillText(featureCard.message || '', cardCenterX, cardY + (isGuardianCard ? 60 : isSectionCard ? 42 : 54));
       ctx.textAlign = 'start';
     }
-  }, [backgroundPackId, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawParticles, drawPlatform, drawRouteGate, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStoryProp, drawTempleBackdrop, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getGateGuidance, getGateRequirements, getPlayerAttackState, isRouteRewardAccessible, drawPlayerSprite, drawFieldNoteLabel]);
+  }, [backgroundPackId, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawParticles, drawPlatform, drawRouteGate, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStoryProp, drawTempleBackdrop, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getGateGuidance, getGateRequirements, getPlayerAttackState, isRouteRewardAccessible, drawPlayerSprite, drawFieldNoteLabel]);
 
   const queueAttack = useCallback(() => {
     const current = stateRef.current;
@@ -6190,6 +6573,7 @@ export default function ExpeditionJourney({
     if (current.environmentEventTimer <= 0 && current.environmentEvent) current.environmentEvent = null;
     current.dynamicEnvironmentEventTimer = Math.max(0, (current.dynamicEnvironmentEventTimer || 0) - dt);
     if (current.dynamicEnvironmentEventTimer <= 0 && current.dynamicEnvironmentEvent) current.dynamicEnvironmentEvent = null;
+    current.discoveryEntranceTimer = Math.max(0, (current.discoveryEntranceTimer || 0) - dt);
     current.sectionTransitionTimer = Math.max(0, current.sectionTransitionTimer - dt);
     if (current.sectionTransitionTimer <= 0 && current.sectionTransition) current.sectionTransition = null;
     current.cameraShakeTimer = Math.max(0, current.cameraShakeTimer - dt);
@@ -6198,6 +6582,7 @@ export default function ExpeditionJourney({
     player.damageCooldownTimer = Math.max(0, player.damageCooldownTimer - dt);
     player.coyoteTimer = Math.max(0, (player.coyoteTimer || 0) - dt);
     player.jumpBufferTimer = Math.max(0, (player.jumpBufferTimer || 0) - dt);
+    player.jumpCutFeedbackTimer = Math.max(0, (player.jumpCutFeedbackTimer || 0) - dt);
     player.landingFeedbackTimer = Math.max(0, (player.landingFeedbackTimer || 0) - dt);
     player.movementDustTimer = Math.max(0, (player.movementDustTimer || 0) - dt);
     current.hazardCooldown = Math.max(0, current.hazardCooldown - dt);
@@ -6275,6 +6660,21 @@ export default function ExpeditionJourney({
       }
     });
     current.routeGateCooldown = Math.max(0, current.routeGateCooldown - dt);
+    if (current.discoveryEntranceActive) {
+      current.attackQueued = false;
+      player.vx = 0;
+      player.vy = 0;
+      updatePlayerAnimation(current, dt);
+      if (current.discoveryEntranceTimer <= 0 && !current.discoveryEntranceHandoffStarted) {
+        current.discoveryEntranceHandoffStarted = true;
+        current.discoveryEntranceActive = false;
+        current.completed = true;
+        current.notice = DISCOVERY_ENTRANCE.handoffMessage;
+        syncHud();
+        onComplete?.([...current.fieldKit]);
+      }
+      return;
+    }
     current.bossIntroPauseTimer = Math.max(0, (current.bossIntroPauseTimer || 0) - dt);
     if (current.activeGuardianChallenge || current.pendingGuardianChallenge || current.bossIntroPauseTimer > 0) {
       current.attackQueued = false;
@@ -6342,6 +6742,10 @@ export default function ExpeditionJourney({
       });
       audioControls?.playExpeditionSfx?.('jump', { volume: 0.8, playbackRate: 1.08 });
       audioControls?.playJump?.();
+    }
+    if (!jump && keys.jumpHeld && player.vy < 0) {
+      player.vy *= JUMP_CUT_MULTIPLIER;
+      player.jumpCutFeedbackTimer = JUMP_CUT_FEEDBACK_TIME;
     }
     keys.jumpHeld = jump;
 
@@ -6421,7 +6825,7 @@ export default function ExpeditionJourney({
       footstepTimerRef.current -= dt;
       if (footstepTimerRef.current <= 0) {
         audioControls?.playExpeditionSfx?.('footstepSand');
-        footstepTimerRef.current = 0.34;
+        footstepTimerRef.current = 0.52;
       }
       player.movementDustTimer -= dt;
       if (player.movementDustTimer <= 0 && Math.abs(player.vx) > 90) {
@@ -7080,6 +7484,16 @@ export default function ExpeditionJourney({
           direction: player.direction,
           color: e.health <= 0 ? '#facc15' : '#7dd3fc',
         });
+        addCombatEffect(current, {
+          type: 'weapon-hit-spark',
+          x: e.x + e.width / 2 - player.direction * 6,
+          y: e.y + e.height * 0.42,
+          direction: player.direction,
+          color: current.lastAttackResult === 'counter-hit' ? '#bbf7d0' : '#fff7ad',
+          fill: current.lastAttackResult === 'counter-hit' ? 'rgba(34, 197, 94, 0.18)' : 'rgba(250, 204, 21, 0.2)',
+          timer: 0.24,
+          maxTimer: 0.24,
+        });
         audioControls?.playExpeditionSfx?.('enemyHit');
         if (e.health <= 0) {
           e.defeated = true;
@@ -7339,6 +7753,16 @@ export default function ExpeditionJourney({
           direction: player.direction,
           color: b.health <= 0 ? '#facc15' : '#fb923c',
         });
+        addCombatEffect(current, {
+          type: 'weapon-hit-spark',
+          x: b.x + b.width / 2 - player.direction * 8,
+          y: b.y + b.height * 0.42,
+          direction: player.direction,
+          color: current.lastAttackResult === 'counter-hit' ? '#bbf7d0' : '#fff7ad',
+          fill: current.lastAttackResult === 'counter-hit' ? 'rgba(34, 197, 94, 0.18)' : 'rgba(251, 146, 60, 0.2)',
+          timer: 0.26,
+          maxTimer: 0.26,
+        });
         audioControls?.playExpeditionSfx?.('enemyHit', { volume: b.health <= 0 ? 1.2 : 1 });
         current.notice = `${b.name} staggered.`;
         if (b.health <= 0) {
@@ -7419,11 +7843,37 @@ export default function ExpeditionJourney({
     });
 
     // Final Goal
-    if (rectsOverlap(player, GATE)) {
-      current.completed = true;
-      current.notice = 'Site Entrance reached. Report to Base Camp.';
+    if (rectsOverlap(player, GATE) && !current.discoveryEntranceActive && !current.discoveryEntranceHandoffStarted) {
+      current.discoveryEntranceActive = true;
+      current.discoveryEntranceTimer = DISCOVERY_ENTRANCE_REVEAL_SECONDS;
+      current.notice = `${DISCOVERY_ENTRANCE.name}. ${DISCOVERY_ENTRANCE.handoffMessage}`;
+      current.cinematicEvent = {
+        id: DISCOVERY_ENTRANCE.id,
+        name: DISCOVERY_ENTRANCE.name,
+        message: DISCOVERY_ENTRANCE.message,
+        temporary: false,
+      };
+      current.cinematicTimer = DISCOVERY_ENTRANCE_REVEAL_SECONDS;
+      current.dynamicEnvironmentEvent = {
+        id: 'discovery-entrance-reveal',
+        type: 'shrine-glow',
+        x: GATE.x + GATE.width / 2,
+        name: DISCOVERY_ENTRANCE.name,
+        duration: DISCOVERY_ENTRANCE_REVEAL_SECONDS,
+      };
+      current.dynamicEnvironmentEventTimer = DISCOVERY_ENTRANCE_REVEAL_SECONDS;
+      current.hitStopTimer = Math.max(current.hitStopTimer, 0.05);
+      current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.16);
+      current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.16);
+      addRewardPulse('collection-complete', GATE.x + GATE.width / 2, GATE.y + 18, 'DISCOVERY FOUND', {
+        color: DISCOVERY_ENTRANCE.glowColor,
+        fill: 'rgba(250, 204, 21, 0.14)',
+        radius: 82,
+        timer: 0.92,
+      });
+      audioControls?.playExpeditionStinger?.('evidenceDiscovery');
+      audioControls?.playSuccess?.();
       syncHud();
-      onComplete?.([...current.fieldKit]);
     }
 
     // Camera

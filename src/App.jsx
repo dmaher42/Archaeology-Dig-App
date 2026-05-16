@@ -38,6 +38,7 @@ let expeditionMusic = null;
 let expeditionMusicKey = null;
 let expeditionMusicFade = null;
 let expeditionSfxUnlocked = false;
+const expeditionSfxLastPlayedAt = new Map();
 
 const EXPEDITION_AUDIO_TRACKS = {
   music: {
@@ -54,12 +55,15 @@ const EXPEDITION_AUDIO_TRACKS = {
     gateUnlock: 'assets/expedition/audio/gate-unlock-stinger.mp3',
   },
   sfx: {
-    footstepSand: [
-      { path: 'assets/expedition/sfx/footstep-sand-1.ogg', volume: 0.34 },
-      { path: 'assets/expedition/sfx/footstep-sand-2.ogg', volume: 0.34 },
-      { path: 'assets/expedition/sfx/footstep-sand-3.ogg', volume: 0.34 },
-      { path: 'assets/expedition/sfx/footstep-sand-4.ogg', volume: 0.34 },
-    ],
+    footstepSand: {
+      randomize: true,
+      cooldownMs: 420,
+      clips: [
+        { path: 'assets/expedition/sfx/land-soft.ogg', volume: 0.12, playbackRate: 1.22 },
+        { path: 'assets/expedition/sfx/satchel-leather.ogg', volume: 0.1, playbackRate: 1.08 },
+        { path: 'assets/expedition/sfx/land-soft.ogg', volume: 0.1, playbackRate: 0.92 },
+      ],
+    },
     jump: { path: 'assets/expedition/sfx/land-soft.ogg', volume: 0.3, playbackRate: 1.28 },
     land: { path: 'assets/expedition/sfx/land-soft.ogg', volume: 0.4 },
     pickupTool: [
@@ -67,11 +71,23 @@ const EXPEDITION_AUDIO_TRACKS = {
       { path: 'assets/expedition/sfx/satchel-buckle.ogg', volume: 0.3, delay: 55 },
       { path: 'assets/expedition/sfx/metal-click.ogg', volume: 0.34, delay: 95, playbackRate: 1.08 },
     ],
-    pickupShard: { path: 'assets/expedition/sfx/relic-shard.ogg', volume: 0.42, playbackRate: 1.08 },
+    pickupShard: {
+      cooldownMs: 120,
+      clips: [
+        { path: 'assets/expedition/sfx/relic-shard.ogg', volume: 0.28, playbackRate: 0.96 },
+        { path: 'assets/expedition/sfx/metal-click.ogg', volume: 0.16, delay: 70, playbackRate: 1.18 },
+        { path: 'assets/expedition/sfx/relic-shard.ogg', volume: 0.14, delay: 125, playbackRate: 1.28 },
+      ],
+    },
     pickupUpgrade: { path: 'assets/expedition/sfx/metal-click.ogg', volume: 0.42, playbackRate: 0.92 },
     gateUnlock: { path: 'assets/expedition/sfx/stone-gate-open.ogg', volume: 0.52 },
     gateBlocked: { path: 'assets/expedition/sfx/stone-gate-blocked.ogg', volume: 0.44 },
-    attackSwing: { path: 'assets/expedition/sfx/khopesh-swing.ogg', volume: 0.42, playbackRate: 1.12 },
+    attackSwing: {
+      cooldownMs: 260,
+      clips: [
+        { path: 'assets/expedition/sfx/satchel-leather.ogg', volume: 0.18, playbackRate: 1.24 },
+      ],
+    },
     enemyHit: { path: 'assets/expedition/sfx/enemy-hit.ogg', volume: 0.42 },
     playerHit: { path: 'assets/expedition/sfx/player-hit.ogg', volume: 0.42 },
     bossWarning: { path: 'assets/expedition/sfx/boss-warning.ogg', volume: 0.38 },
@@ -175,8 +191,19 @@ const playExpeditionSfx = (sfxKey, options = {}) => {
   initAudio();
   const config = EXPEDITION_AUDIO_TRACKS.sfx[sfxKey];
   if (!config) return;
-  const clips = Array.isArray(config) ? config : [config];
-  const selectedClips = sfxKey === 'footstepSand'
+  const cooldownMs = options.cooldownMs ?? config.cooldownMs ?? 0;
+  if (cooldownMs > 0) {
+    const now = performance.now();
+    const lastPlayedAt = expeditionSfxLastPlayedAt.get(sfxKey) || 0;
+    if (now - lastPlayedAt < cooldownMs) return;
+    expeditionSfxLastPlayedAt.set(sfxKey, now);
+  }
+  const clips = Array.isArray(config)
+    ? config
+    : Array.isArray(config.clips)
+      ? config.clips
+      : [config];
+  const selectedClips = config.randomize || sfxKey === 'footstepSand'
     ? [clips[Math.floor(Math.random() * clips.length)]]
     : clips;
 
