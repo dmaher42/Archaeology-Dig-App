@@ -3137,14 +3137,18 @@ export default function ExpeditionJourney({
     if (!event || timer <= 0) return false;
     const x = worldToScreenX(event.x, cameraX);
     if (x < -220 || x > CANVAS_WIDTH + 220) return false;
-    const progress = clamp(timer / Math.max(0.1, event.duration || 1), 0, 1);
-    const reveal = 1 - progress;
+    const preview = Boolean(event.preview);
+    const progress = preview
+      ? 0.62 + Math.sin(now / 520 + event.x * 0.003) * 0.1
+      : clamp(timer / Math.max(0.1, event.duration || 1), 0, 1);
+    const reveal = preview ? 0.46 + Math.sin(now / 620 + event.x * 0.004) * 0.18 : 1 - progress;
+    const visibility = preview ? 0.62 : 1;
     const pulse = 0.75 + Math.sin(now / 220 + event.x * 0.01) * 0.18;
     const baseY = GROUND_Y - 46;
 
     ctx.save();
     if (event.type === 'rockfall') {
-      ctx.globalAlpha = 0.44 * progress;
+      ctx.globalAlpha = 0.58 * progress * visibility;
       ctx.fillStyle = 'rgba(100, 76, 52, 0.66)';
       for (let i = 0; i < 7; i += 1) {
         const fall = reveal * (50 + i * 18);
@@ -3152,14 +3156,14 @@ export default function ExpeditionJourney({
         ctx.ellipse(x + i * 18 - 54, baseY - 150 + fall, 4 + (i % 3), 3, 0.2, 0, Math.PI * 2);
         ctx.fill();
       }
-      ctx.fillStyle = 'rgba(217, 161, 88, 0.18)';
+      ctx.fillStyle = 'rgba(217, 161, 88, 0.26)';
       ctx.beginPath();
-      ctx.ellipse(x, baseY - 16, 96 + reveal * 36, 10, -0.08, 0, Math.PI * 2);
+      ctx.ellipse(x, baseY - 16, 128 + reveal * 44, 13, -0.08, 0, Math.PI * 2);
       ctx.fill();
     } else if (event.type === 'dust-gust' || event.type === 'moving-fog') {
       const fog = event.type === 'moving-fog';
-      ctx.globalAlpha = fog ? 0.3 * progress : 0.36 * progress;
-      ctx.fillStyle = fog ? 'rgba(191, 219, 254, 0.2)' : 'rgba(244, 202, 134, 0.24)';
+      ctx.globalAlpha = (fog ? 0.42 : 0.48) * progress * visibility;
+      ctx.fillStyle = fog ? 'rgba(191, 219, 254, 0.28)' : 'rgba(244, 202, 134, 0.32)';
       for (let i = 0; i < 6; i += 1) {
         const drift = reveal * (110 + i * 26);
         ctx.beginPath();
@@ -3167,7 +3171,7 @@ export default function ExpeditionJourney({
         ctx.fill();
       }
     } else if (event.type === 'birds-scatter') {
-      ctx.globalAlpha = 0.54 * progress;
+      ctx.globalAlpha = 0.68 * progress * visibility;
       ctx.strokeStyle = 'rgba(255, 247, 212, 0.5)';
       ctx.lineWidth = 1.6;
       for (let i = 0; i < 6; i += 1) {
@@ -3180,7 +3184,7 @@ export default function ExpeditionJourney({
         ctx.stroke();
       }
     } else if (event.type === 'ruin-collapse') {
-      ctx.globalAlpha = 0.38 * progress;
+      ctx.globalAlpha = 0.5 * progress * visibility;
       ctx.fillStyle = 'rgba(61, 45, 31, 0.58)';
       ctx.fillRect(x - 30, baseY - 170 + reveal * 18, 24, 132);
       ctx.fillRect(x + 14, baseY - 138 + reveal * 26, 22, 98);
@@ -3191,10 +3195,10 @@ export default function ExpeditionJourney({
         ctx.fill();
       }
     } else if (event.type === 'shrine-glow') {
-      ctx.globalAlpha = 0.68 * progress;
+      ctx.globalAlpha = 0.92 * progress * visibility;
       const glow = ctx.createRadialGradient(x, baseY - 126, 8, x, baseY - 126, 92 * pulse);
-      glow.addColorStop(0, 'rgba(250, 204, 21, 0.34)');
-      glow.addColorStop(0.42, 'rgba(45, 212, 191, 0.16)');
+      glow.addColorStop(0, 'rgba(250, 204, 21, 0.46)');
+      glow.addColorStop(0.42, 'rgba(45, 212, 191, 0.24)');
       glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
       ctx.fillStyle = glow;
       ctx.beginPath();
@@ -3206,7 +3210,7 @@ export default function ExpeditionJourney({
       ctx.arc(x, baseY - 126, 28 + reveal * 18, 0, Math.PI * 2);
       ctx.stroke();
     } else if (event.type === 'unstable-excavation') {
-      ctx.globalAlpha = 0.5 * progress;
+      ctx.globalAlpha = 0.64 * progress * visibility;
       ctx.strokeStyle = 'rgba(248, 113, 113, 0.42)';
       ctx.lineWidth = 3;
       for (let i = 0; i < 5; i += 1) {
@@ -5432,6 +5436,14 @@ export default function ExpeditionJourney({
     ENVIRONMENT_INTERACTIONS.forEach((item) => drawEnvironmentInteraction(ctx, item, cameraX, now, current));
     drawEgyptAmbientLife(ctx, section, cameraX, now);
     drawConnectedWorldAmbientLife(ctx, section, cameraX, now);
+    ENVIRONMENT_EVENTS
+      .filter(event => event.dynamic && event.id !== current.dynamicEnvironmentEvent?.id)
+      .forEach((event) => {
+        const eventSection = getSectionForX(event.x);
+        if (eventSection.id !== section.id) return;
+        if (!isHorizontallyVisible(event.x, 1, cameraX, 180)) return;
+        drawDynamicEnvironmentEvent(ctx, { ...event, preview: true }, cameraX, now, (event.duration || 2.5) * 0.62);
+      });
     drawDynamicEnvironmentEvent(ctx, current.dynamicEnvironmentEvent, cameraX, now, current.dynamicEnvironmentEventTimer);
 
     const activeBossDomain = current.bossDomain
@@ -6245,7 +6257,9 @@ export default function ExpeditionJourney({
 
     // Events
     ENVIRONMENT_EVENTS.forEach(ev => {
-      if (!current.triggeredEnvironmentEventIds.has(ev.id) && Math.abs(player.x - ev.x) < 50) {
+      const triggerRange = ev.dynamic ? 145 : 70;
+      const crossedEvent = (previousPlayer.x <= ev.x && player.x >= ev.x) || (previousPlayer.x >= ev.x && player.x <= ev.x);
+      if (!current.triggeredEnvironmentEventIds.has(ev.id) && (Math.abs(player.x - ev.x) < triggerRange || crossedEvent)) {
         current.triggeredEnvironmentEventIds.add(ev.id);
         if (ev.dynamic || ev.card === false) {
           current.dynamicEnvironmentEvent = ev;
