@@ -1704,3 +1704,172 @@ Remaining notes:
 - Softened the first upper-step spacing, moved one visible relic shard into the climb line, and added a broken-stone story prop cue below the route.
 - Tightened the hidden-route discovery rectangle so normal lower-path movement does not accidentally map the route.
 - Browser smoke confirmed the lower path stays clear, the upper route can be discovered, the route reward can be collected, and the player can return to the main path without leaving Journey.
+
+2026-05-16 Broken Ruins Route platformer section:
+- Continued the Ancient Egypt Journey platformer work inside the canonical Journey files only.
+- Kept the newly generated Egypt archaeologist hero atlas as a prototype/reference asset only; Egypt Journey now uses the existing legacy archaeologist strip as the live player path, while the generated atlas file remains in `public/assets/expedition/player/` for possible later technical review.
+- Added a new small Broken Ruins Route after the first upper-route reward area and before the Scarab Queen arena, using existing platforms, hazard, relic shard, story prop, environment event, and environment atlas systems.
+- Added three readable terrain pieces: `broken ruins route entry`, `half-buried lintel`, and `ruins recovery step`.
+- Added one light existing-system hazard, `broken-ruins-loose-stones`, mapped to the current falling-rocks/falling-roof asset language.
+- Added one optional shard on the route plus collapsed-stone, trail-marker, and survey-rope cues to make the path read as half-buried ruins rather than a new mechanic.
+- Added Journey data tests proving the route stays in existing systems and does not become a hidden route or duplicate system.
+- Browser smoke opened Menu -> Start Expedition -> Ancient Egypt -> Begin Expedition, sampled the opening, confirmed the lower path does not discover the first upper route, confirmed the upper route/reward still works, confirmed the Broken Ruins shard can be collected, confirmed the loose-stone hazard is visible in state, and confirmed moving onward reaches the existing Scarab Queen sequence rather than a dead end.
+- Validation: `node --test src/components/expedition-journey/journeySecrets.test.js` passed; `node --test src/components/expedition/baseCampShop.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with the known runtime-resolved Egypt excavation image warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Screenshots captured: `output/broken-ruins-resmoke-opening.png`, `output/broken-ruins-resmoke-lower-no-hidden.png`, `output/broken-ruins-resmoke-upper-route.png`, `output/broken-ruins-resmoke-entry.png`, `output/broken-ruins-resmoke-shard.png`, `output/broken-ruins-resmoke-hazard.png`, and `output/broken-ruins-forward-focused.png`.
+- Remaining risk/follow-up: browser verification used debug positioning for mid-route checkpoints to avoid replaying the full guardian fight chain. A later pass should naturally defeat the Scarab Queen and continue from Broken Ruins into the temple to tune the handoff pace.
+
+2026-05-16 Temple Threshold Climb platformer section:
+- Continued the Ancient Egypt Journey platformer work immediately after the Scarab Queen gate, inside the existing Journey data/render/test systems only.
+- Added a short `Temple Threshold Climb` after the desert seal: a safe threshold plinth, the existing temple plinth, and a switch-teaching plinth leading toward Switch 1.
+- Added a visible three-shard reward line that points the player upward and forward toward the existing first-switch objective without adding a new reward system.
+- Added a non-lethal `temple-threshold-hairline-crack` cue that uses a time-only penalty and a cracked-ground visual, preparing players for the harder temple floor crack ahead.
+- Added existing-system story cues: a switch trail marker and fine crack warning marks, keeping the temple threshold readable without cluttering the background.
+- Kept the prototype/generated archaeologist atlas out of the live Egypt player path; browser state still reports `egypt-legacy-archaeologist`, `playerSpriteAtlasPath: null`, and `legacy-strip`.
+- Added Journey data tests for the threshold plinths, reward line, non-lethal crack cue, story props, event, and connection to the existing `switch-1` objective marker.
+- Browser smoke opened Menu -> Start Expedition -> Ancient Egypt -> Begin Expedition, sampled Broken Ruins through the scaled post-gate temple threshold, confirmed the new section is in `Ruined Temple`, confirmed the crack cue appears as `temple-threshold-hairline-crack` with `{ time: 3 }`, confirmed the reward line shards can be collected, and confirmed moving forward reaches the existing harder `temple-floor-crack` area with no page errors.
+- Validation: `node --test src/components/expedition-journey/journeySecrets.test.js` passed; `node --test src/components/expedition/baseCampShop.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with the known runtime-resolved Egypt excavation image warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Screenshots captured: `output/temple-threshold-scaled-gate-context.png`, `output/temple-threshold-scaled-threshold-entry.png`, `output/temple-threshold-scaled-crack-cue.png`, `output/temple-threshold-scaled-reward-line.png`, `output/temple-threshold-scaled-switch-approach.png`, and `output/temple-threshold-scaled-forward-harder-temple.png`.
+- Remaining risk/follow-up: browser verification used scaled debug positioning past the Scarab Queen gate, not a natural full Scarab Queen defeat run. A later tuning pass should play the full boss-to-temple handoff and adjust pacing if it feels too abrupt.
+
+2026-05-16 Sandfall / Collapsing Stone platformer section:
+- Added one hazard-focused Ancient Egypt Journey section after the Broken Ruins / Scarab gate flow, in the Ruined Temple approach before the route gets more demanding.
+- Kept the work in existing Journey systems only: platform data, hazard data, relic shards, story props, environment events, environment atlas hazard mappings, and Journey data tests.
+- Added three terrain pieces: `sandfall warning slab`, `collapsing column step`, and `buried recovery stair`.
+- Added a readable hazard sequence: `sandfall-warning-dust` as the safe warning cue, `sandfall-collapsing-stones` as the main falling-stone hazard, and `sandfall-soft-pit` as a forgiving recovery slowdown.
+- Added one optional visible relic shard near the danger line, plus a warning marker, broken-column sandfall cue, and survey-rope boundary to communicate unstable ruins without clutter.
+- Corrected the first placement after browser smoke showed it overlapped the Scarab Queen arena; the final placement sits in Ruined Temple so the boss intro no longer steals the hazard beat.
+- Preserved the live Egypt player path: browser state still reports `egypt-legacy-archaeologist`, `playerSpriteAtlasPath: null`, and `legacy-strip`.
+- Browser smoke opened Menu -> Start Expedition -> Ancient Egypt -> Begin Expedition, confirmed lower-path movement does not discover the upper route, confirmed Broken Ruins still reads, confirmed the Sandfall warning/collapsing/recovery hazards are visible in Ruined Temple, confirmed the optional shard can be collected, confirmed forward continuation, and reported no console/page errors.
+- Validation: `node --test src/components/expedition-journey/journeySecrets.test.js` passed; `node --test src/components/expedition/baseCampShop.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with the known runtime-resolved Egypt excavation image warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Screenshots captured: `output/sandfall-corrected-lower-no-hidden.png`, `output/sandfall-corrected-broken-ruins-context.png`, `output/sandfall-corrected-temple-threshold-context.png`, `output/sandfall-corrected-warning-cue.png`, `output/sandfall-corrected-collapsing-stones.png`, `output/sandfall-corrected-recovery-step.png`, `output/sandfall-corrected-forward-clear.png`, and `output/sandfall-corrected-reward-pickup.png`.
+- Remaining risk/follow-up: this used debug positioning for the post-gate temple segment. A later natural playthrough should defeat Scarab Queen and walk into the temple to tune how the Sandfall beat feels after the boss.
+
+2026-05-16 Guardian quiz decoupling:
+- Preserved the existing guardian knowledge question bank and challenge mapping in `journeyLevelData.js` for future reuse.
+- Stopped boss fights from using the quizzes by adding a single disabled flag in `ExpeditionJourney.jsx`; boss encounters can still show their Guardian Encounter intro/domain but no longer create `pendingGuardianChallenge` or open the quiz overlay.
+- Added a Journey data test proving the quiz content still exists while boss-fight quiz wiring is disabled.
+- Browser smoke opened Ancient Egypt Journey and triggered the Scarab Queen encounter; the Guardian intro/domain appeared, `guardianKnowledgeChallenge` stayed `null`, quiz results/modifiers stayed empty, and no `.guardian-challenge-overlay` rendered.
+- Validation: `node --test src/components/expedition-journey/journeySecrets.test.js` passed; `node --test src/components/expedition/baseCampShop.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with the known runtime-resolved Egypt excavation image warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Screenshots captured: `output/boss-no-quiz-intro.png` and `output/boss-no-quiz-after-intro.png`.
+
+2026-05-16 Egypt regular enemy sprite quality correction:
+- Confirmed the blue beetles seen locally and on the live site were not a missing-asset fallback; they were the current `desert-scarab-sprites.png` regular enemy atlas being loaded as designed.
+- Kept the low-quality generated player sheet out of the final Egypt player path and also withheld the rough generated Egypt creature atlases for scarabs, snakes, scorpions, and sand wisps from live regular enemy drawing.
+- Preserved the existing enemy systems: boss sprites, looter sprites, China enemy sprites, combat, hitboxes, patrols, hazards, rewards, Base Camp, excavation, lab, museum, and report flows remain on the same paths.
+- Extended the existing linked/canvas enemy drawing fallback for regular scarabs and snakes so the opening enemies stay visible and readable without the bright cyan placeholder look.
+- Added a Journey test that locks the rough Egypt creature sprite sheets out of live play until better production-quality replacements are ready.
+- Validation: `node --test src/components/expedition-journey/journeySecrets.test.js` passed; `node --test src/components/expedition/baseCampShop.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with the known runtime-resolved Egypt excavation image warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Browser smoke opened Menu -> Start Expedition -> Ancient Egypt -> Begin Expedition, positioned at the first regular scarab enemies, confirmed the bright blue beetle sprite sheet no longer appears, and reported no console/page errors.
+- Screenshot captured: `output/enemy-sprite-quality-first-enemies.png`.
+
+2026-05-16 restored high-quality Egypt enemy sprites:
+- Recovered the older high-quality Egypt enemy sheets from Git history before commit `5f3ea29` overwrote them with tiny placeholder-style sprite files.
+- Restored `desert-scarab-sprites.png`, `sand-snake-sprites.png`, `small-enemy-sprites.png`, and `temple-bat-sprites.png`.
+- Updated their atlas JSON files with current renderer aliases: scarab crawl frames now also provide `scarabWalk1/2/3`, snake slither frames now also provide `snakeWalk1/2/3`, and bat flap frames now also provide `batWalk1/2/3`.
+- Re-enabled restored scarab and snake sprite packs in live Egypt Journey while keeping rough-only scorpion and sand-wisp sheets withheld until better production art exists.
+- Added/updated Journey tests so the restored high-quality scarab and snake sheets are expected, and rough-only creature sheets remain blocked.
+- Browser smoke opened Menu -> Start Expedition -> Ancient Egypt -> Begin Expedition, confirmed restored scarab sprites load in the opening and restored snake sprites load near the first snake route with no missing enemy sprite assets or console/page errors.
+- Validation: `node --test src/components/expedition-journey/journeySecrets.test.js` passed; `node --test src/components/expedition/baseCampShop.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with the known runtime-resolved Egypt excavation image warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Screenshots captured: `output/restored-egypt-scarab-smoke.png` and `output/restored-egypt-snake-smoke.png`.
+
+2026-05-16 Egypt player atlas wiring:
+- Switched Ancient Egypt Journey from the legacy four-frame archaeologist strip to the prepared player atlas in `public/assets/expedition/player/archaeologist-hero-spritesheet.json`.
+- Kept the existing row-aware player renderer and kept `public/sprites/archaeologist-walk-cycle.png` as the fallback source if the atlas fails to load.
+- Updated the Journey test so Egypt now expects `egypt-archaeologist-hero`, `PLAYER_HERO_SPRITE_ATLAS_JSON`, and the legacy fallback instead of the previous legacy-only path.
+- Browser smoke opened Menu -> Start Expedition -> Ancient Egypt -> Begin Expedition and confirmed `playerSpriteCharacterId: egypt-archaeologist-hero`, `playerSpriteAtlasPath: assets/expedition/player/archaeologist-hero-spritesheet.json`, `playerSpriteVisualMode: hero-atlas`, and `playerHeroSpriteLoaded: true`.
+- Validation: `node --test src/components/expedition-journey/journeySecrets.test.js` passed; `node --test src/components/expedition/baseCampShop.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with the known runtime-resolved Egypt excavation image warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Screenshots captured: `output/egypt-player-atlas-idle.png` and `output/egypt-player-atlas-run.png`.
+
+2026-05-16 Egypt player sprite overlap fix:
+- Confirmed the apparent player flashing/double-rendering was caused by the new Egypt hero atlas being drawn at the same time as the older external khopesh weapon layer.
+- Added draw metadata to `archaeologist-hero-spritesheet.json` so the Egypt atlas can suppress the external weapon and runtime attack arc through the existing player renderer.
+- Updated `ExpeditionJourney.jsx` to respect a full-atlas `suppressExternalWeapon` flag while keeping the existing attack-only suppression path for other atlases.
+- Added a Journey test so the Egypt player atlas must keep the weapon/arc suppression metadata.
+- Browser smoke opened Menu -> Start Expedition -> Ancient Egypt -> Begin Expedition and confirmed the player now renders as one clean hero atlas without the floating extra weapon layer.
+- Validation: `node --test src/components/expedition-journey/journeySecrets.test.js` passed; `node --test src/components/expedition/baseCampShop.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with the known runtime-resolved Egypt excavation image warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Screenshots captured: `output/player-sprite-fix-idle.png` and `output/player-sprite-fix-run.png`.
+
+2026-05-16 Egypt opening gameplay loop pass:
+- Diagnosed the skippable opening: enemies already dropped shards, objectives already gated route seals, and relic shards already fed gate/shop progress, but the first Desert Map Seal only required 4 shards. Defeating the Scarab Queen awarded 6 shards, so the shard requirement became meaningless.
+- Confirmed enemy sprite loading locally: scarab/snake/bat/enemy sheets load with no failed browser requests and scarabs render as sprite atlas art. Scorpion and sand-wisp remain on polished canvas fallback because no older high-quality sheets exist in the pre-placeholder Git snapshot.
+- Kept all changes in existing Journey systems: `ROUTE_GATES`, `OBJECTIVE_MARKERS`, `ENEMIES`, relic shard pickup feedback, enemy shard drops, existing HUD, and existing tests.
+- Raised the first `desert-seal` shard requirement to 10 so the player needs pre-boss shard progress instead of getting enough from the boss alone.
+- Moved the existing `map-tablet` objective into the early guarded route near the first scarab/scorpion cache so the opening now asks the player to engage, dodge, or explore before the boss.
+- Marked the early scorpion/scarab cluster as guarding the shard cache/map tablet using existing encounter-role metadata.
+- Increased relic shard readability with a brighter sprite/glow tuning and changed shard pickup/enemy-defeat notices to say how many shards are needed for the next seal.
+- Replaced the floating HUD's unclear total shard count with a compact `Next seal` readout, e.g. `Desert Map Seal - 1/10 shards + Map Tablet`.
+- Browser smoke opened Menu -> Start Expedition -> Ancient Egypt -> Begin Expedition, confirmed the opening HUD explains the next seal, confirmed shard pickup says `Relic Shard 1/10: needed for Desert Map Seal`, confirmed scarab sprite atlas art appears in the guarded route, confirmed the early map tablet is visible near enemies, confirmed the first seal blocks a rushed under-collected player, and reported no console/page errors.
+- Validation: `node --test src/components/expedition-journey/journeySecrets.test.js` passed; `node --test src/components/expedition/baseCampShop.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with the known runtime-resolved Egypt excavation image warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Screenshots captured: `output/gameplay-loop-opening-hud.png`, `output/gameplay-loop-shard-purpose-pickup.png`, `output/gameplay-loop-guarded-cache.png`, and `output/gameplay-loop-first-seal-blocked.png`.
+- Remaining risk/follow-up: the first boss and post-boss seal should get a natural full playthrough after this tuning to confirm the 10-shard requirement feels fair rather than grindy.
+
+2026-05-16 Egypt first required shard gate:
+- Added a new early `Temple Approach Seal` before the larger Desert Map Seal so the first Egypt Journey section now requires relic shards before the player can continue.
+- Kept the change inside the existing Journey systems: `ROUTE_GATES`, `RELIC_SHARDS`, relic pickup state, route-gate guidance, floating HUD, gate canvas labels, existing enemy placement metadata, and Journey tests.
+- The new seal requires 4 relic shards and appears after the opening shard/enemy route instead of at the starting line.
+- The floating HUD now points at `Temple Approach Seal` first, shard pickups report progress toward that seal, and the gate itself labels the current shard count.
+- Browser smoke confirmed the seal blocks a rushed 0-shard player with a clear `Temple Approach Seal locked` message, collecting enough real shard pickups changes the seal to ready, and crossing the seal opens it and advances the active route objective to `Desert Map Seal`.
+- Enemy sprite loading stayed healthy in the browser smoke: `enemySpritesLoaded: true`, `enemySpriteFallbackActive: false`, and no missing enemy sprite assets were reported.
+- Validation: `node --test src/components/expedition-journey/journeySecrets.test.js` passed; `node --test src/components/expedition/baseCampShop.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with the known runtime-resolved Egypt excavation image warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Screenshots captured: `output/early-shard-gate-opening-after-fix.png`, `output/early-shard-gate-blocked-after-fix.png`, `output/early-shard-gate-four-shards-after-fix.png`, and `output/early-shard-gate-opened-after-fix.png`.
+- Remaining risk/follow-up: the four-shard open confirmation used debug positioning to speed up collection through the real pickup collision zones. A natural student-paced tuning pass should adjust the first four shard placements and enemy spacing if the route feels too slow or too busy.
+
+2026-05-16 Egypt enemy sprite and shard-guard pass:
+- Diagnosed the remaining "missing sprite" feeling: scarab, snake, bat, looter, guardian, and statue sprite paths were wired, but scorpion and sand-wisp were still deliberately withheld from the live sprite-pack path from the previous quality-protection pass.
+- Re-enabled the existing `scorpion-sprites` and `sand-wisp-sprites` atlas packs through the same enemy sprite loader instead of adding a new renderer or duplicate fallback.
+- Marked the early scarab line and seal-path scarab as existing-system guards for `Temple Approach Seal`, so the first shard gate path reads as watched rather than decorative.
+- Added one-time enemy-type stake notices through the existing Journey notice/HUD path, e.g. scarabs warn that they charge and can be cleared for relic shards.
+- Changed existing enemy defeat shard messaging to say `Enemy dropped ... relic shard(s)` and tie that drop to the active seal progress.
+- Browser smoke confirmed `enemySpritesLoaded: true`, `enemySpriteFallbackActive: false`, `missingEnemySpriteAssets: []`, visible atlas frame states for scarab, scorpion, sand-wisp, and snake, the first scarab warning notice, and the first gate still blocks an under-collected player.
+- Validation: `node --test src/components/expedition-journey/journeySecrets.test.js` passed; `node --test src/components/expedition/baseCampShop.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with the known runtime-resolved Egypt excavation image warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Screenshots captured: `output/enemy-stakes-first-encounter.png`, `output/enemy-sprite-scarab-smoke.png`, `output/enemy-sprite-scorpion-smoke.png`, `output/enemy-sprite-sandWisp-smoke.png`, `output/enemy-sprite-snake-smoke.png`, and `output/enemy-drop-shard-message.png`.
+- Remaining risk/follow-up: the browser smoke verified the enemy sprite families and warning path, but the deterministic combat script did not land a clean defeat in time. The defeat/drop text is covered in the existing defeat code path and source test, but the next natural playtest should tune attack spacing so students can reliably clear the first scarabs.
+
+2026-05-16 Egypt shard purpose and optional cache loop:
+- Added an early relic shard purpose note using the existing Journey story prop/environment event path: `Relic shards unlock seals and fund Base Camp upgrades. Collect them from ruins and enemies.`
+- Added an optional `Upgrade Voucher Cache` on the early upper branch using the existing upgrade pickup path. It costs 2 relic shards to open and rewards +6 Base Camp shards through the existing shard bank instead of adding a new inventory system.
+- Added a nearby cache marker prop so the optional reward reads as intentional exploration rather than a random pickup.
+- Made shard/cache pickup feedback keep priority over one-time enemy warnings, so close enemy notices no longer overwrite the shard goal message.
+- Added a small pulse state to the floating shard counter while shard/cache purpose notices are active.
+- Updated Base Camp copy and shop costs so relic shards are explicitly described as supplies for permanent upgrades, route tools and excavation support, and shop item costs now say `shards`.
+- Browser smoke opened Menu -> Start Expedition -> Ancient Egypt -> Begin Expedition, confirmed the purpose note appears, confirmed the optional cache is locked at 0 shards, confirmed shard pickups say `Relic Shard 1/4` and `2/4` for `Temple Approach Seal`, confirmed the cache opens after 2 shards and awards the voucher reward, confirmed the HUD counter pulses, confirmed enemy sprites still report loaded, and confirmed Base Camp shop copy/cost labels explain shard use with no console errors.
+- Validation: `node --test src/components/expedition-journey/journeySecrets.test.js` passed; `node --test src/components/expedition/baseCampShop.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with the known runtime-resolved Egypt excavation image warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Screenshot captured: `output/playwright/shard-purpose-final-smoke.png`.
+- Remaining risk/follow-up: the optional cache reward is represented as extra Base Camp shard value rather than a separate voucher item, deliberately avoiding a new voucher inventory. A later pass can add a named voucher inventory only if the wider excavation layer truly needs it.
+
+2026-05-16 Egypt first five-minute vertical-slice playtest:
+- Ran a fresh-start browser playtest from Menu -> Start Expedition -> Ancient Egypt -> Begin Expedition using live keyboard movement plus Journey snapshot hooks.
+- Confirmed the first visible HUD objective is the `Temple Approach Seal` shard requirement and enemy sprite loading remains healthy (`enemySpritesLoaded: true`, no missing enemy sprite assets).
+- Found one remaining clarity issue: the opening center notice still said only `The desert dunes stretch toward the lost temple`, which looked atmospheric but did not immediately tell a new player what to do.
+- Tuned the existing Desert Entry atmosphere title to `Collect 4 relic shards to open the Temple Approach Seal.` No new UI or systems were added.
+- Tested a straight sprint path: the player reached the first seal with 3/4 shards, had taken stamina loss from enemy pressure, and was blocked with `Temple Approach Seal locked: collect 1 more relic shard...`.
+- Tested the successful route: after collecting four real shard pickups, the first seal opened and the active HUD moved on to `Desert Map Seal` with Map Tablet, Scarab Queen, Brush Handle, and 10-shard requirements.
+- Confirmed the optional reward loop from the previous pass still exists; the early cache remains the exploration reward for spending shards rather than a required path.
+- Validation: `node --test src/components/expedition-journey/journeySecrets.test.js` passed; `node --test src/components/expedition/baseCampShop.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with the known runtime-resolved Egypt excavation image warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Screenshots captured: `output/playwright/vertical-slice-final-start.png`, `output/playwright/vertical-slice-final-sprint-blocked.png`, and `output/playwright/vertical-slice-final-first-seal-opened.png`.
+- Remaining risk/follow-up: the first seal now blocks sprinting, but the next natural playtest should focus on making the first scarab fight feel satisfying enough that students choose combat instead of only hunting loose shards.
+
+2026-05-16 Switch 1 temple mechanism response:
+- Inspected the existing Journey switch path: Switch 1 is an `OBJECTIVE_MARKERS` entry, collected through the existing objective pickup collision, counted by `getObjectiveProgress('ruined-temple')`, and previously only produced generic objective progress feedback.
+- Added one switch-gated continuation platform, `switch-1-raised-return-plinth`, using the existing platform renderer/collision path with a small `requiresObjective: 'switch-1'` visibility rule.
+- Kept the response in existing systems: objective marker pickup, HUD notice, reward pulse, combat/environment dust effect, platform drawing/collision, and Journey snapshot/debug state.
+- Switch 1 now says `Stone mechanism activated. Switches 1/3. A return plinth rises.` and triggers a short `MECHANISM` pulse plus dust at the raised plinth.
+- The raised plinth gets a small gold top glow so the temple visibly changes after activation without adding decorative-only platforms or a new mechanic framework.
+- Browser smoke from a fresh launch confirmed: before activation `visibleMechanismPlatforms` is empty, after Switch 1 it contains `switch-1-raised-return-plinth`, objective progress changes to `1/3 switches`, no enemy sprite assets are missing, and the player can land on the raised plinth.
+- Validation: `node --test src/components/expedition-journey/journeySecrets.test.js` passed; `node --test src/components/expedition/baseCampShop.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with the known runtime-resolved Egypt excavation image warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Screenshots captured: `output/playwright/switch1-final-before.png`, `output/playwright/switch1-final-after.png`, and `output/playwright/switch1-final-route.png`.
+- Remaining risk/follow-up: the browser check used debug positioning to reach Switch 1 quickly; a natural post-boss run should tune whether the raised plinth is obvious enough without the debug camera jump.
+## 2026-05-16 First boss preparation gate
+
+- Inspected the first mini-boss flow in `ExpeditionJourney.jsx` and `journeyLevelData.js`.
+- Confirmed the Scarab Queen was triggered by proximity alone; the following `desert-seal` already required the boss, Brush Handle, Map Tablet, and shards, but the fight itself did not require preparation.
+- Added a normal Journey route gate, `guardian-prep-seal`, before the Scarab Queen trigger. It requires the existing Map Tablet objective and 6 relic shards.
+- Added an existing story-prop sign and environment-event warning: "Guardian Seal: recover the Map Tablet and 6 relic shards before the Scarab Queen."
+- Improved boss reward wording so defeating the boss points the player back toward the named route gate and collecting the tool piece says what it unlocks next.
+- Added Journey coverage asserting the prep seal sits before the desert seal and uses existing route gate/objective/shard systems.
+- Verification: `node --test src/components/expedition-journey/journeySecrets.test.js`, `node --test src/components/expedition/baseCampShop.test.js`, `npm.cmd run lint`, `npm.cmd run build`, and `git diff --check` passed. Build still has the known runtime-resolved excavation image warnings.
+- Browser smoke from a fresh Expedition start used debug positioning to verify the underprepared rush and prepared path quickly:
+  - Underprepared rush: Guardian Prep Seal blocked access before the Scarab Queen and the boss stayed asleep.
+  - Prepared path: Map Tablet + 6 shards opened Guardian Prep Seal; entering the next area woke Scarab Queen and showed the boss intro.
+  - Screenshot: `output/playwright/guardian-prep-seal-browser.png`.
+  - Console had no page errors; existing audio stinger warnings still appear in headless Chromium.

@@ -1960,6 +1960,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
 
   const handleJourneyComplete = useCallback((nextFieldKit) => {
     const journeyShardCount = Math.max(0, Number(journeySnapshotRef.current?.relicShardCount) || 0);
+    const foundUpgradeVoucher = (journeySnapshotRef.current?.collectedUpgrades || []).includes('basecamp-upgrade-voucher');
     const depositRunId = `${selectedStageId}-${journeyRunId}`;
     const depositResult = applyJourneyShardDeposit(baseCampProgressionRef.current, {
       runId: depositRunId,
@@ -1973,7 +1974,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       setShopFeedback({
         type: 'deposit',
         title: 'Base Camp supplies updated',
-        message: `${depositResult.amount} ${shardLabel} banked for shop upgrades.`,
+        message: `${depositResult.amount} ${shardLabel} banked for shop upgrades${foundUpgradeVoucher ? ' including the optional cache voucher' : ''}.`,
         itemId: null,
       });
     } else if (journeyShardCount > 0) {
@@ -1986,7 +1987,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       });
     }
     setBaseCampOpen(true);
-    setNotice('Base Camp reached. Relic shards buy upgrades; field tools prepare excavation.');
+    setNotice('Base Camp reached. Spend relic shards on upgrades, route tools and excavation support.');
     audioControls.playExpeditionMusic?.('baseCamp');
   }, [audioControls, journeyRunId, selectedStageId]);
 
@@ -3771,7 +3772,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
                   <strong>{baseCampProgression.relicShards}</strong>
                 </div>
                 <div className="basecamp-shop-summary-copy">
-                  <p>Relic shards collected in Journey become Base Camp supplies for permanent upgrades.</p>
+                  <p>Relic shards collected in Journey become Base Camp supplies for permanent upgrades, route tools and excavation support.</p>
                   <div className="basecamp-active-kit">
                     <span>Active kit</span>
                     {activeBaseCampKitSummary.length > 0 ? (
@@ -3811,7 +3812,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
                               </div>
                               <div className="basecamp-shop-cost">
                                 <Gem size={14} />
-                                {item.cost}
+                                <strong>{item.cost}</strong>
+                                <span>shards</span>
                               </div>
                             </div>
                             {item.routeUse && (

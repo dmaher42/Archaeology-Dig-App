@@ -11,7 +11,11 @@ import {
 const source = readFileSync(new URL('./journeyLevelData.js', import.meta.url), 'utf8');
 const journeyUtilsSource = readFileSync(new URL('./journeyUtils.js', import.meta.url), 'utf8');
 const journeyConstantsSource = readFileSync(new URL('./journeyConstants.js', import.meta.url), 'utf8');
+const journeyEnemySpritesSource = readFileSync(new URL('./journeyEnemySprites.js', import.meta.url), 'utf8');
 const journeyComponentSource = readFileSync(new URL('../ExpeditionJourney.jsx', import.meta.url), 'utf8');
+const egyptPlayerAtlas = JSON.parse(
+  readFileSync(new URL('../../../public/assets/expedition/player/archaeologist-hero-spritesheet.json', import.meta.url), 'utf8'),
+);
 const extractExportedArray = (name) => {
   const startToken = `export const ${name} = [`;
   const start = source.indexOf(startToken);
@@ -136,6 +140,194 @@ test('China Journey uses a unique female player atlas through the existing playe
   assert.match(journeyComponentSource, /suppressExternalWeaponDuringAttack/);
   assert.match(journeyComponentSource, /suppressRuntimeAttackArc/);
   assert.match(journeyComponentSource, /groundLineY/);
+});
+
+test('Egypt Journey uses the prepared archaeologist atlas through the existing player renderer', () => {
+  assert.match(journeyConstantsSource, /PLAYER_HERO_SPRITE_ATLAS_JSON/);
+  assert.match(journeyConstantsSource, /archaeologist-hero-spritesheet\.json/);
+  assert.match(journeyComponentSource, /characterId:\s*'egypt-archaeologist-hero'/);
+  assert.match(journeyComponentSource, /atlasPath:\s*PLAYER_HERO_SPRITE_ATLAS_JSON/);
+  assert.match(journeyComponentSource, /version:\s*PLAYER_HERO_SPRITE_VERSION/);
+  assert.match(journeyComponentSource, /fallbackSrc:\s*PLAYER_LEGACY_SPRITE_SRC/);
+  assert.match(journeyComponentSource, /if\s*\(!atlasPath\)\s*\{\s*loadLegacySprite\(\);/);
+  assert.equal(egyptPlayerAtlas.draw.suppressExternalWeapon, true);
+  assert.equal(egyptPlayerAtlas.draw.suppressRuntimeAttackArc, true);
+  assert.match(journeyComponentSource, /heroAtlas\?\.draw\?\.suppressExternalWeapon/);
+});
+
+test('Egypt opening loop makes the first seal require enemies, shards, and the map objective', () => {
+  assert.match(source, /id:\s*'temple-approach-seal'[\s\S]*?name:\s*'Temple Approach Seal'[\s\S]*?shards:\s*4/);
+  assert.match(source, /id:\s*'temple-approach-seal'[\s\S]*?id:\s*'desert-seal'/);
+  assert.match(source, /id:\s*'desert-seal'[\s\S]*?shards:\s*10/);
+  assert.match(source, /id:\s*'map-tablet'[\s\S]*?x:\s*X\(610\)/);
+  assert.match(source, /id:\s*'scarab-start-1'[\s\S]*?protectsRouteId:\s*'temple-approach-seal'/);
+  assert.match(source, /id:\s*'scarab-scout-1'[\s\S]*?protectsRouteId:\s*'temple-approach-seal'/);
+  assert.match(source, /protectsRouteId:\s*'desert-opening-shard-cache'/);
+  assert.match(source, /protectsRouteId:\s*'desert-opening-map-tablet'/);
+  assert.match(journeyComponentSource, /getActiveShardGateProgress/);
+  assert.match(journeyComponentSource, /Relic Shard/);
+  assert.match(journeyComponentSource, /Enemy dropped/);
+  assert.match(journeyComponentSource, /ENEMY_TYPE_STAKE_MESSAGES/);
+  assert.match(journeyComponentSource, /seenEnemyTypeNoticeIds/);
+  assert.match(journeyComponentSource, /gateRequirementLabel/);
+  assert.match(journeyComponentSource, /journey-floating-hud-gate/);
+  assert.match(journeyComponentSource, /journey-collectible-purpose-tuning-2026-05-16/);
+});
+
+test('Egypt Journey explains shard purpose and adds an optional Base Camp voucher cache', () => {
+  assert.match(source, /id:\s*'relic-shard-purpose-note'/);
+  assert.match(source, /Relic shards unlock seals and fund Base Camp upgrades\. Collect them from ruins and enemies\./);
+  assert.match(source, /id:\s*'basecamp-upgrade-voucher'[\s\S]*?shardCost:\s*2[\s\S]*?rewardShards:\s*6[\s\S]*?cacheReward:\s*true/);
+  assert.match(source, /id:\s*'early-voucher-cache-marker'/);
+  assert.match(journeyComponentSource, /Cache opened! Upgrade Voucher earned/);
+  assert.match(journeyComponentSource, /journey-floating-hud-gems/);
+  assert.match(journeyComponentSource, /is-rewarding/);
+});
+
+test('Egypt Journey loads visible sprites for all default Egypt enemy families', () => {
+  assert.match(journeyEnemySpritesSource, /WITHHELD_EGYPT_CREATURE_SPRITE_FAMILIES/);
+  assert.match(journeyEnemySpritesSource, /WITHHELD_EGYPT_CREATURE_SPRITE_FAMILIES = new Set\(\)/);
+  assert.match(journeyEnemySpritesSource, /DESERT_SCARAB_SPRITE_ATLAS_JSON/);
+  assert.match(journeyEnemySpritesSource, /SAND_SNAKE_SPRITE_ATLAS_JSON/);
+  assert.match(journeyEnemySpritesSource, /SCORPION_SPRITE_ATLAS_JSON/);
+  assert.match(journeyEnemySpritesSource, /SAND_WISP_SPRITE_ATLAS_JSON/);
+  assert.match(journeyEnemySpritesSource, /shouldUseEnemySpritePack/);
+  assert.match(journeyComponentSource, /if\s*\(!shouldUseEnemySpritePack\(enemy\)\)\s*return false/);
+  assert.match(journeyComponentSource, /enemy\.type === 'scarab'/);
+  assert.match(journeyComponentSource, /enemy\.type === 'snake'/);
+  assert.match(journeyComponentSource, /enemy\.type === 'scorpion'/);
+  assert.match(journeyComponentSource, /enemy\.type === 'sand-wisp'/);
+});
+
+test('guardian knowledge quizzes stay available but are no longer used by boss fights', () => {
+  assert.match(source, /export const GUARDIAN_KNOWLEDGE_QUESTIONS = \[/);
+  assert.match(source, /export const GUARDIAN_KNOWLEDGE_CHALLENGES = \{/);
+  assert.match(source, /question:\s*'What is an artefact\?'/);
+  assert.match(journeyComponentSource, /const GUARDIAN_KNOWLEDGE_CHALLENGES_ENABLED = false;/);
+  assert.match(
+    journeyComponentSource,
+    /const guardianQuestions = GUARDIAN_KNOWLEDGE_CHALLENGES_ENABLED && !current\.completedGuardianChallengeIds\?\.has\(b\.id\)/,
+  );
+});
+
+test('Broken Ruins Route extends the Egypt opening with existing platformer systems', () => {
+  const platforms = extractExportedArray('PLATFORMS');
+  const hazards = extractExportedArray('HAZARDS');
+  const shards = source.slice(source.indexOf('const RELIC_SHARD_LAYOUT = ['), source.indexOf('export const RELIC_SHARDS'));
+  const storyProps = extractExportedArray('STORY_PROPS');
+  const events = extractExportedArray('ENVIRONMENT_EVENTS');
+  const hiddenRoutes = extractExportedArray('HIDDEN_ROUTES');
+
+  [
+    'broken ruins route entry',
+    'half-buried lintel',
+    'ruins recovery step',
+  ].forEach((label) => {
+    assert.match(platforms, new RegExp(label));
+  });
+  assert.match(hazards, /broken-ruins-loose-stones/);
+  assert.match(hazards, /Loose ruin stones shifted underfoot/);
+  assert.match(shards, /\{\s*x:\s*1245,\s*y:\s*274\s*\}/);
+  assert.match(storyProps, /broken-ruins-route-stones/);
+  assert.match(storyProps, /Broken Ruins Route trail marker/);
+  assert.match(storyProps, /survey rope beside half-buried structure/);
+  assert.match(events, /id:\s*'broken-ruins-route'/);
+  assert.match(events, /Collapsed stones mark a careful route deeper toward the tomb/);
+  assert.doesNotMatch(hiddenRoutes, /broken-ruins-route/);
+});
+
+test('Sandfall Collapsing Stone section adds a fair hazard beat after Broken Ruins', () => {
+  const platforms = extractExportedArray('PLATFORMS');
+  const hazards = extractExportedArray('HAZARDS');
+  const shards = source.slice(source.indexOf('const RELIC_SHARD_LAYOUT = ['), source.indexOf('export const RELIC_SHARDS'));
+  const storyProps = extractExportedArray('STORY_PROPS');
+  const events = extractExportedArray('ENVIRONMENT_EVENTS');
+  const hiddenRoutes = extractExportedArray('HIDDEN_ROUTES');
+
+  [
+    'sandfall warning slab',
+    'collapsing column step',
+    'buried recovery stair',
+  ].forEach((label) => {
+    assert.match(platforms, new RegExp(label));
+  });
+  assert.match(hazards, /sandfall-warning-dust/);
+  assert.match(hazards, /falling sand warned that the stones ahead were unstable/i);
+  assert.match(hazards, /sandfall-collapsing-stones/);
+  assert.match(hazards, /penalty:\s*\{\s*stamina:\s*8,\s*time:\s*3\s*\}/);
+  assert.match(hazards, /sandfall-soft-pit/);
+  assert.match(shards, /\{\s*x:\s*2025,\s*y:\s*238\s*\}/);
+  assert.match(storyProps, /sandfall-warning-marker/);
+  assert.match(storyProps, /broken column shedding sand/);
+  assert.match(storyProps, /survey rope around unstable stones/);
+  assert.match(events, /id:\s*'sandfall-collapsing-stone-section'/);
+  assert.match(events, /Falling sand marks unstable stones before the deeper temple route\./);
+  assert.doesNotMatch(hiddenRoutes, /sandfall/);
+});
+
+test('Temple Threshold Climb teaches the first switch route with fair existing systems', () => {
+  const platforms = extractExportedArray('PLATFORMS');
+  const hazards = extractExportedArray('HAZARDS');
+  const shards = source.slice(source.indexOf('const RELIC_SHARD_LAYOUT = ['), source.indexOf('export const RELIC_SHARDS'));
+  const storyProps = extractExportedArray('STORY_PROPS');
+  const events = extractExportedArray('ENVIRONMENT_EVENTS');
+  const markers = extractExportedArray('OBJECTIVE_MARKERS');
+
+  [
+    'temple threshold safe plinth',
+    'temple plinth',
+    'switch teaching plinth',
+  ].forEach((label) => {
+    assert.match(platforms, new RegExp(label));
+  });
+  assert.match(hazards, /temple-threshold-hairline-crack/);
+  assert.match(hazards, /penalty:\s*\{\s*time:\s*3\s*\}/);
+  assert.match(hazards, /A hairline crack warned the team to step carefully\./);
+  [
+    /\{\s*x:\s*1548,\s*y:\s*306\s*\}/,
+    /\{\s*x:\s*1638,\s*y:\s*274\s*\}/,
+    /\{\s*x:\s*1748,\s*y:\s*294\s*\}/,
+  ].forEach((rewardPoint) => {
+    assert.match(shards, rewardPoint);
+  });
+  assert.match(storyProps, /temple-threshold-switch-trail/);
+  assert.match(storyProps, /fine crack warning marks/);
+  assert.match(events, /id:\s*'temple-threshold-climb'/);
+  assert.match(events, /Relic shards mark the way toward the first switch\./);
+  assert.match(markers, /id:\s*'switch-1'/);
+  assert.match(markers, /x:\s*X\(1765\)/);
+});
+
+test('Switch 1 creates a visible temple mechanism response through existing Journey systems', () => {
+  const platforms = extractExportedArray('PLATFORMS');
+  assert.match(platforms, /id:\s*'switch-1-raised-return-plinth'/);
+  assert.match(platforms, /label:\s*'switch raised return plinth'/);
+  assert.match(platforms, /requiresObjective:\s*'switch-1'/);
+  assert.match(journeyComponentSource, /const isPlatformAvailable = \(platform, current\) =>/);
+  assert.match(journeyComponentSource, /platform\.requiresObjective/);
+  assert.match(journeyComponentSource, /current\.collectedObjectiveIds\.has\(platform\.requiresObjective\)/);
+  assert.match(journeyComponentSource, /visibleMechanismPlatforms/);
+  assert.match(journeyComponentSource, /Stone mechanism activated\. Switches 1\/3\. A return plinth rises\./);
+  assert.match(journeyComponentSource, /switch-1-response/);
+  assert.match(journeyComponentSource, /A return plinth rises ahead\./);
+});
+
+test('first mini-boss is gated by preparation and rewards the next route', () => {
+  const routeGates = extractExportedArray('ROUTE_GATES');
+  const storyProps = extractExportedArray('STORY_PROPS');
+  const events = extractExportedArray('ENVIRONMENT_EVENTS');
+
+  assert.match(routeGates, /id:\s*'guardian-prep-seal'/);
+  assert.match(routeGates, /name:\s*'Guardian Prep Seal'/);
+  assert.match(routeGates, /x:\s*X\(1018\)/);
+  assert.match(routeGates, /requires:\s*\{\s*objective:\s*'desert-entry',\s*shards:\s*6/);
+  assert.match(routeGates, /id:\s*'guardian-prep-seal'[\s\S]*?id:\s*'desert-seal'/);
+  assert.match(source, /id:\s*'scarab-queen'[\s\S]*?arenaStart:\s*X\(1265\)/);
+  assert.match(storyProps, /Guardian Prep Seal: needs Map Tablet and 6 relic shards/);
+  assert.match(events, /Guardian Seal: recover the Map Tablet and 6 relic shards before the Scarab Queen\./);
+  assert.match(journeyComponentSource, /Collect the tool piece, then return to \$\{routeGateName \|\| 'the route gate'\}/);
+  assert.match(journeyComponentSource, /current\.notice = `\$\{b\.name\} defeated\. \$\{rewardMoment\.title\} \$\{rewardMoment\.nextObjective\}`/);
+  assert.match(journeyComponentSource, /current\.notice = `\$\{rewardMoment\.title\} \$\{rewardMoment\.nextObjective\}`/);
 });
 
 test('environment interactions include reactive foreground and movement elements', () => {

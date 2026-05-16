@@ -1,78 +1,67 @@
 {
   "image": "desert-scarab-sprites.png",
-  "source": "Codex-generated upgraded regular enemy sprite sheet with fixed transparent cells and consistent baseline.",
-  "coordinateNote": "Eight fixed cells: Idle, Walk1, Walk2, Walk3, Windup, Attack, Hit, Defeated. Regions share one bottom-center anchor.",
-  "frameContract": [
-    "Idle",
-    "Walk1",
-    "Walk2",
-    "Walk3",
-    "Windup",
-    "Attack",
-    "Hit",
-    "Defeated"
-  ],
-  "baseline": "bottom-center shared per family; no baked large shadow",
+  "source": "Restored high-quality Desert Scarab sprite sheet from the pre-generated-placeholder Journey enemy art.",
+  "coordinateNote": "Crop rectangles avoid sprite-sheet guide lines and keep shell, legs, and charge streaks comfortably inside each frame. Walk keys alias the original crawl poses for the current renderer contract.",
   "regions": {
     "scarabIdle": {
-      "x": 60,
-      "y": 200,
-      "w": 324,
-      "h": 133
-    },
-    "scarabWalk1": {
-      "x": 444,
-      "y": 200,
-      "w": 324,
-      "h": 133
+      "x": 81,
+      "y": 159,
+      "w": 294,
+      "h": 182
     },
     "scarabCrawl1": {
-      "x": 444,
-      "y": 200,
-      "w": 324,
-      "h": 133
+      "x": 501,
+      "y": 153,
+      "w": 325,
+      "h": 201
     },
-    "scarabWalk2": {
-      "x": 828,
-      "y": 200,
-      "w": 324,
-      "h": 133
+    "scarabWalk1": {
+      "x": 501,
+      "y": 153,
+      "w": 325,
+      "h": 201
     },
     "scarabCrawl2": {
-      "x": 828,
-      "y": 200,
-      "w": 324,
-      "h": 133
+      "x": 947,
+      "y": 158,
+      "w": 310,
+      "h": 192
+    },
+    "scarabWalk2": {
+      "x": 947,
+      "y": 158,
+      "w": 310,
+      "h": 192
     },
     "scarabWalk3": {
-      "x": 1212,
-      "y": 200,
-      "w": 324,
-      "h": 133
+      "x": 81,
+      "y": 159,
+      "w": 294,
+      "h": 182
     },
     "scarabWindup": {
-      "x": 1596,
-      "y": 200,
-      "w": 324,
-      "h": 133
+      "x": 1398,
+      "y": 175,
+      "w": 301,
+      "h": 180
     },
     "scarabAttack": {
-      "x": 1980,
-      "y": 200,
-      "w": 324,
-      "h": 133
+      "x": 38,
+      "y": 581,
+      "w": 381,
+      "h": 182
     },
     "scarabHit": {
-      "x": 2364,
-      "y": 200,
-      "w": 324,
-      "h": 133
+      "x": 513,
+      "y": 496,
+      "w": 270,
+      "h": 289
     },
     "scarabDefeated": {
-      "x": 2748,
-      "y": 200,
-      "w": 324,
-      "h": 133
+      "x": 966,
+      "y": 607,
+      "w": 262,
+      "h": 187
     }
   }
 }

@@ -169,6 +169,7 @@ import {
   getMissingEnemySpriteAssets,
   loadEnemySpritePack,
   shouldFlipEnemySprite,
+  shouldUseEnemySpritePack,
 } from './expedition-journey/journeyEnemySprites';
 import { getShopItemDisplayName } from './expedition/baseCampShop';
 
@@ -287,6 +288,7 @@ const MISSED_ATTACK_EXTRA_STAMINA_COST = 1;
 const PROTECTED_HIT_EXTRA_STAMINA_COST = 1;
 
 const KNOWLEDGE_CHALLENGE_SIZE = 3;
+const GUARDIAN_KNOWLEDGE_CHALLENGES_ENABLED = false;
 const KNOWLEDGE_CHALLENGE_FEEDBACK = {
   correct: 'Correct. Your field knowledge strengthens you.',
   incorrect: 'Not quite. The guardian grows stronger.',
@@ -549,6 +551,17 @@ const ENEMY_ATTACK_PATTERNS = {
   },
 };
 
+const ENEMY_TYPE_STAKE_MESSAGES = {
+  scarab: 'Beware: Scarabs charge. Clear them for relic shards.',
+  scorpion: 'Beware: Scorpion stings reduce stamina. Dodge, then counter.',
+  'sand-wisp': 'Beware: Sand Wisps burst forward. Wait for the opening.',
+  snake: 'Beware: Snakes lunge low. Jump or counter after the strike.',
+  bat: 'Beware: Bats swoop across gaps. Watch the warning flash.',
+  looter: 'Beware: Rival scouts dash quickly. Counter after they miss.',
+  guardian: 'Beware: Stone guardians block rushed hits. Wait for the opening.',
+  statue: 'Beware: Cursed statues hit hard. Move carefully.',
+};
+
 const OBJECTIVE_MARKER_IDS_BY_SECTION = {
   'desert-entry': ['map-tablet'],
   'ruined-temple': ['switch-1', 'switch-2', 'switch-3'],
@@ -589,12 +602,19 @@ const CHINA_OBJECTIVE_SINGULAR_LABELS = {
 };
 
 const CHINA_GATE_NAMES = {
+  'guardian-prep-seal': 'Guardian Prep Seal',
   'desert-seal': 'River Valley Seal',
   'temple-seal': 'Bronze Archive Seal',
   'catacomb-seal': 'Jade Archive Seal',
   'escape-seal': 'Field Records Seal',
   'final-gate': 'Rammed-Earth Site Gate',
 };
+
+const isPlatformAvailable = (platform, current) => (
+  (!platform.requiresUpgrade || current.collectedUpgrades.has(platform.requiresUpgrade))
+  && (!platform.requiresObjective || current.collectedObjectiveIds.has(platform.requiresObjective))
+  && !current.collapsedPlatformIds?.has(platform.id || platform.label)
+);
 
 const CHINA_GATE_HINTS = {
   objective: {
@@ -688,8 +708,8 @@ const updateHostileStepMultiplier = (hostile, dt, { boss = false } = {}) => {
   const pauseMultiplier = hostile.stepPauseTimer > 0 ? (boss ? 0.45 : 0.28) : 1;
   return Math.max(boss ? 0.7 : 0.55, (hostile.stepSpeedMultiplier || 1) * rhythm * pauseMultiplier);
 };
-const COLLECTIBLE_SCALE_TUNING_VERSION = 'journey-collectible-scale-tuning-2026-05-14';
-const RELIC_SHARD_SCALE = 0.74;
+const COLLECTIBLE_SCALE_TUNING_VERSION = 'journey-collectible-purpose-tuning-2026-05-16';
+const RELIC_SHARD_SCALE = 0.9;
 const FIELD_TOOL_SCALE = 0.86;
 const UPGRADE_SCALE = 0.86;
 const OBJECTIVE_MARKER_SCALE = 0.84;
@@ -699,14 +719,14 @@ const PICKUP_GLOW_SCALE = 0.68;
 const COLLECTIBLE_VISUAL_BASE = {
   relicShard: {
     size: Math.round(32 * RELIC_SHARD_SCALE),
-    ringSize: 0,
-    glowAlpha: 0,
-    shadowAlpha: 0.11,
+    ringSize: Math.round(38 * PICKUP_GLOW_SCALE),
+    glowAlpha: 0.24,
+    shadowAlpha: 0.18,
     bobAmplitude: 2,
-    sparkleAlpha: 0.14,
-    sparkleSize: 8,
+    sparkleAlpha: 0.34,
+    sparkleSize: 10,
     anchorYOffset: 18,
-    nearGlowDistance: 90,
+    nearGlowDistance: 150,
   },
   fieldTool: {
     size: Math.round(46 * FIELD_TOOL_SCALE),
@@ -1206,6 +1226,13 @@ export default function ExpeditionJourney({
       legacyImage.src = `${baseUrl}${fallbackSrc}`;
     };
 
+    if (!atlasPath) {
+      loadLegacySprite();
+      return () => {
+        cancelled = true;
+      };
+    }
+
     fetch(`${baseUrl}${atlasPath}`)
       .then((response) => {
         if (!response.ok) throw new Error(`Player hero atlas request failed: ${response.status}`);
@@ -1600,6 +1627,23 @@ export default function ExpeditionJourney({
     };
   }, [backgroundPackId, getGateRequirements]);
 
+  const getActiveShardGateProgress = useCallback((current) => {
+    const gate = ROUTE_GATES.find(item => (
+      !current.openedRouteGateIds.has(item.id) && Number.isFinite(item.requires?.shards)
+    ));
+    if (!gate) return null;
+    const gateName = backgroundPackId === 'china-river-valley'
+      ? CHINA_GATE_NAMES[gate.id] || gate.name
+      : gate.name;
+    return {
+      gate,
+      gateName,
+      found: current.relicShardCount,
+      required: gate.requires.shards,
+      complete: current.relicShardCount >= gate.requires.shards,
+    };
+  }, [backgroundPackId]);
+
   const buildBossRewardMoment = useCallback((current, keyItem, phase = 'recovered') => {
     const progress = getBossRewardProgress(current);
     const routeGate = ROUTE_GATES.find(gate => gate.id === keyItem.gateId);
@@ -1612,16 +1656,21 @@ export default function ExpeditionJourney({
     const title = phase === 'revealed'
       ? `${keyItemName} revealed.`
       : `${keyItemName} recovered.`;
+    const routeGateName = routeGate
+      ? (backgroundPackId === 'china-river-valley'
+        ? CHINA_GATE_NAMES[routeGate.id] || routeGate.name
+        : routeGate.name)
+      : null;
     const detail = phase === 'revealed'
-      ? `Collect it to add this piece to the excavation kit. ${keyItem.rewardDetail || ''}`.trim()
-      : `${keyItemName} is required for the excavation kit. ${keyItem.rewardDetail || ''}`.trim();
+      ? `Collect it to add this piece to the excavation kit. ${routeGateName ? `${routeGateName} needs it.` : ''} ${keyItem.rewardDetail || ''}`.trim()
+      : `${keyItemName} is required for the excavation kit. ${routeGateName ? `${routeGateName} can read this discovery.` : ''} ${keyItem.rewardDetail || ''}`.trim();
     const nextObjective = progress.complete
       ? 'Excavation Kit complete. Base Camp can now open the excavation site.'
       : gateReady
         ? 'The next expedition route is now open.'
         : phase === 'revealed'
-          ? 'Collect the tool piece, then return to the route gate.'
-          : 'Return to the route gate. This piece helps prepare the excavation kit.';
+          ? `Collect the tool piece, then return to ${routeGateName || 'the route gate'}.`
+          : `Return to ${routeGateName || 'the route gate'}. This piece helps prepare the excavation kit.`;
 
     return {
       id: `${keyItem.id}-${phase}-${Date.now()}`,
@@ -2031,6 +2080,9 @@ export default function ExpeditionJourney({
       brokenEnvironmentInteractions: Array.from(current.brokenEnvironmentIds || []),
       triggeredEnvironmentInteractions: Array.from(current.triggeredEnvironmentIds || []),
       collapsedPlatformIds: Array.from(current.collapsedPlatformIds || []),
+      visibleMechanismPlatforms: PLATFORMS
+        .filter(platform => platform.requiresObjective && isPlatformAvailable(platform, current))
+        .map(platform => platform.id || platform.label),
       activeReactivePlatformTimers: Object.entries(current.reactivePlatformTimers || {}).map(([id, timer]) => ({
         id,
         timer: Number(timer.toFixed(2)),
@@ -2203,6 +2255,7 @@ export default function ExpeditionJourney({
         ...getBossVulnerabilityState(activeMiniBoss),
       } : null,
       defeatedEnemies: Array.from(current.defeatedEnemies),
+      seenEnemyTypeNoticeIds: Array.from(current.seenEnemyTypeNoticeIds || []),
       defeatedMiniBosses: Array.from(current.defeatedMiniBosses),
       hiddenRoomsFound: Array.from(current.hiddenRoomsFound),
       discoveredHiddenRoutes: Array.from(current.discoveredHiddenRouteIds || []),
@@ -2821,8 +2874,9 @@ export default function ExpeditionJourney({
       current.renderStats.playerSpriteVisualMode = 'hero-atlas';
     }
 
-    const suppressExternalWeapon = heroAtlas?.draw?.suppressExternalWeaponDuringAttack
-      && isPlayerAttackVisualPhase(attackState);
+    const suppressExternalWeapon = heroAtlas?.draw?.suppressExternalWeapon
+      || (heroAtlas?.draw?.suppressExternalWeaponDuringAttack
+        && isPlayerAttackVisualPhase(attackState));
     if (!suppressExternalWeapon) {
       drawPlayerKhopesh(ctx, drawWidth * 0.34, -drawHeight * 0.54, attackState, 1, 0.9);
     } else if (current.renderStats) {
@@ -2905,6 +2959,11 @@ export default function ExpeditionJourney({
       if (!isGround) {
         ctx.fillStyle = 'rgba(30, 18, 9, 0.3)';
         ctx.fillRect(x, platform.y + visualHeight - 7, platform.width, 7);
+        if (platform.requiresObjective) {
+          const glow = 0.26 + Math.sin(Date.now() / 180) * 0.08;
+          ctx.fillStyle = `rgba(250, 204, 21, ${glow})`;
+          ctx.fillRect(x + 6, platform.y - 3, platform.width - 12, 5);
+        }
         const supportSpacing = Math.max(42, Math.min(72, platform.width / 3));
         ctx.fillStyle = 'rgba(37, 25, 14, 0.28)';
         for (let supportX = x + 14; supportX < x + platform.width - 10; supportX += supportSpacing) {
@@ -4649,6 +4708,18 @@ export default function ExpeditionJourney({
     const fallbackHeight = 146;
     const fallbackTop = placeGateOnGround(fallbackHeight);
     const glowColor = complete ? '#22c55e' : '#f59e0b';
+    const gateRequirementLabel = gate.requires?.shards
+      ? `${current.relicShardCount}/${gate.requires.shards} relic shards`
+      : complete ? 'Ready' : 'Locked';
+    const drawGateLabel = (labelY) => {
+      drawFieldNoteLabel(
+        ctx,
+        gateCenter,
+        labelY,
+        `${gate.name}: ${gateRequirementLabel}`,
+        complete ? '#166534' : '#92400e',
+      );
+    };
 
     ctx.save();
     const gateHeight = 142;
@@ -4682,6 +4753,7 @@ export default function ExpeditionJourney({
       ctx.shadowBlur = 0;
       drawGroundDustLip(ctx, gateCenter, GROUND_Y + 1, gateVisual.width * 0.7, 'rgba(184, 116, 52, 0.24)');
       drawDecorativeBaseBlend(ctx, gateCenter, GROUND_Y + 2, gateVisual.width * 0.76, getSectionForX(gate.x).id, 'midground', 0.86);
+      drawGateLabel(gateVisual.y - 18);
       if (current.renderStats) current.renderStats.groundedPropCount += 1;
       ctx.restore();
       return;
@@ -4731,8 +4803,9 @@ export default function ExpeditionJourney({
     ctx.fillStyle = '#3b2b22';
     ctx.fillRect(gateCenter - 9, fallbackTop + fallbackHeight * 0.56 - 2, 18, 13);
     drawGroundDustLip(ctx, gateCenter, GROUND_Y + 1, gate.width + 54, 'rgba(184, 116, 52, 0.22)');
+    drawGateLabel(fallbackTop - 18);
     ctx.restore();
-  }, [drawContactShadow, drawDecorativeBaseBlend, drawGroundDustLip]);
+  }, [drawContactShadow, drawDecorativeBaseBlend, drawFieldNoteLabel, drawGroundDustLip]);
 
   const drawMissingObjectiveMarker = useCallback((ctx, guidance, cameraX, now) => {
     if (!guidance?.activeGateLocked || !guidance.nearestMissingObjective) return;
@@ -4963,6 +5036,7 @@ export default function ExpeditionJourney({
   const drawSmallEnemySprite = useCallback((ctx, enemy, screenX, now, shakeX = 0) => {
     const family = getEnemySpriteFamily(enemy);
     if (!family) return false;
+    if (!shouldUseEnemySpritePack(enemy)) return false;
     const combatMode = getCombatMode(enemy);
     const frameKey = getEnemySpriteFrame(enemy, combatMode, now);
     const stableShakeX = enemy.defeated ? 0 : shakeX;
@@ -5082,13 +5156,76 @@ export default function ExpeditionJourney({
       ? enemy.attackDirection
       : enemy.direction;
 
-    if (enemy.type === 'scorpion' || enemy.type === 'sand-wisp') {
+    if (enemy.type === 'scarab' || enemy.type === 'snake' || enemy.type === 'scorpion' || enemy.type === 'sand-wisp') {
       const pulse = Math.sin(now / 140) * 0.5 + 0.5;
       const defeated = combatMode === 'defeated';
       const stunned = enemy.hitFlash > 0 || combatMode === 'stunned';
       const frameKey = `${enemy.type}-${combatMode}-${Math.floor(now / 220) % 2}`;
       ctx.save();
-      if (enemy.type === 'scorpion') {
+      if (enemy.type === 'scarab') {
+        const bodyY = baseY - 11 + (defeated ? 5 : 0);
+        const shellPulse = defeated ? 0 : Math.sin(now / 190) * 0.8;
+        drawContactShadow(ctx, centerX, baseY + 3, enemy.width * 0.82, defeated ? 0.1 : 0.2, 0.9);
+        ctx.globalAlpha = defeated ? 0.5 : 0.96;
+        ctx.strokeStyle = stunned ? '#fde68a' : '#4a2b12';
+        ctx.lineWidth = 2;
+        const shell = ctx.createLinearGradient(centerX, bodyY - 16, centerX, bodyY + 11);
+        shell.addColorStop(0, stunned ? '#fbbf24' : '#b77932');
+        shell.addColorStop(0.48, stunned ? '#d97706' : '#7c3f16');
+        shell.addColorStop(1, '#3f2411');
+        ctx.fillStyle = shell;
+        ctx.beginPath();
+        ctx.ellipse(centerX, bodyY, enemy.width * 0.68, enemy.height * 0.42 + shellPulse, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.strokeStyle = stunned ? '#fef3c7' : 'rgba(146, 64, 14, 0.9)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(centerX, bodyY - enemy.height * 0.34);
+        ctx.lineTo(centerX, bodyY + enemy.height * 0.34);
+        ctx.moveTo(centerX - enemy.width * 0.42, bodyY - 1);
+        ctx.quadraticCurveTo(centerX - enemy.width * 0.18, bodyY + 5, centerX, bodyY + 4);
+        ctx.quadraticCurveTo(centerX + enemy.width * 0.18, bodyY + 5, centerX + enemy.width * 0.42, bodyY - 1);
+        ctx.stroke();
+        ctx.strokeStyle = '#5b3516';
+        ctx.lineWidth = 2;
+        for (let i = -1; i <= 1; i += 1) {
+          ctx.beginPath();
+          ctx.moveTo(centerX - enemy.width * 0.18, bodyY + i * 4);
+          ctx.lineTo(centerX - enemy.width * 0.5, bodyY + i * 6 + 5);
+          ctx.moveTo(centerX + enemy.width * 0.18, bodyY + i * 4);
+          ctx.lineTo(centerX + enemy.width * 0.5, bodyY + i * 6 + 5);
+          ctx.stroke();
+        }
+        ctx.fillStyle = '#451a03';
+        ctx.beginPath();
+        ctx.arc(centerX + facing * enemy.width * 0.22, bodyY - 5, 2.4, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (enemy.type === 'snake') {
+        const bodyY = baseY - 13 + (defeated ? 6 : 0);
+        drawContactShadow(ctx, centerX, baseY + 3, enemy.width * 0.76, defeated ? 0.08 : 0.16, 0.8);
+        ctx.globalAlpha = defeated ? 0.48 : 0.94;
+        ctx.strokeStyle = stunned ? '#fde68a' : '#4d7c0f';
+        ctx.fillStyle = stunned ? '#a3e635' : '#365314';
+        ctx.lineWidth = 2;
+        for (let i = 0; i < 4; i += 1) {
+          const segmentX = centerX - facing * (enemy.width * 0.26 - i * enemy.width * 0.17);
+          const segmentY = bodyY + Math.sin(now / 180 + i) * 2;
+          ctx.beginPath();
+          ctx.ellipse(segmentX, segmentY, enemy.width * (i === 3 ? 0.2 : 0.24), enemy.height * 0.26, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+        }
+        ctx.fillStyle = '#84cc16';
+        ctx.beginPath();
+        ctx.ellipse(centerX + facing * enemy.width * 0.34, bodyY - 3, enemy.width * 0.22, enemy.height * 0.22, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#fef3c7';
+        ctx.beginPath();
+        ctx.arc(centerX + facing * enemy.width * 0.4, bodyY - 5, 2.2, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (enemy.type === 'scorpion') {
         const bodyY = baseY - 13 + (defeated ? 5 : 0);
         drawContactShadow(ctx, centerX, baseY + 3, enemy.width * 0.78, defeated ? 0.1 : 0.18, 0.9);
         ctx.globalAlpha = defeated ? 0.58 : 0.96;
@@ -6273,7 +6410,7 @@ export default function ExpeditionJourney({
 
     // --- Entities ---
     PLATFORMS
-      .filter(platform => !current.collapsedPlatformIds?.has(platform.id || platform.label))
+      .filter(platform => isPlatformAvailable(platform, current))
       .forEach((platform) => drawPlatform(ctx, platform, cameraX, current));
     getActiveHiddenRoutes().forEach(route => drawHiddenRouteHint(ctx, route, cameraX, current, now));
     drawSectionTransitionBlend(ctx, cameraX);
@@ -6395,7 +6532,7 @@ export default function ExpeditionJourney({
 
     const getShardVisualBaseY = (shard) => {
       const platform = PLATFORMS
-        .filter(p => p.y !== GROUND_Y)
+        .filter(p => p.y !== GROUND_Y && isPlatformAvailable(p, current))
         .find(p => (
           shard.x >= p.x - 8
           && shard.x <= p.x + p.width + 8
@@ -6933,10 +7070,7 @@ export default function ExpeditionJourney({
     // Platforms
     player.onGround = false;
     let landedThisFrame = false;
-    const available = PLATFORMS.filter(p => (
-      (!p.requiresUpgrade || current.collectedUpgrades.has(p.requiresUpgrade))
-      && !current.collapsedPlatformIds?.has(p.id || p.label)
-    ));
+    const available = PLATFORMS.filter(p => isPlatformAvailable(p, current));
     available.forEach(p => {
       if (isLandingOnPlatform(player, previousPlayer, p)) {
         const landingImpact = Math.max(0, previousPlayer.vy || player.vy || 0);
@@ -7137,6 +7271,7 @@ export default function ExpeditionJourney({
       if (!current.collectedShardIds.has(shard.id) && rectsOverlap(getPlayerBodyHitbox(player), getCollectibleHitbox(shard, { width: 24, height: 24 }))) {
         current.collectedShardIds.add(shard.id);
         current.relicShardCount += 1;
+        const shardGateProgress = getActiveShardGateProgress(current);
         addRewardPulse('shard-pickup', shard.x, shard.y, '+1 SHARD', {
           color: '#f59e0b',
           fill: 'rgba(245, 158, 11, 0.14)',
@@ -7144,10 +7279,14 @@ export default function ExpeditionJourney({
           timer: 0.46,
         });
         if (shard.hidden) {
-          current.notice = 'Hidden relic shard recovered. Spend these at Base Camp.';
+          current.notice = shardGateProgress
+            ? `Hidden Relic Shard ${Math.min(current.relicShardCount, shardGateProgress.required)}/${shardGateProgress.required}: needed for ${shardGateProgress.gateName}.`
+            : 'Hidden relic shard recovered. Spend these at Base Camp.';
           current.hitStopTimer = Math.max(current.hitStopTimer, 0.025);
         } else {
-          current.notice = 'Relic shard recovered. Spend these at Base Camp.';
+          current.notice = shardGateProgress
+            ? `Relic Shard ${Math.min(current.relicShardCount, shardGateProgress.required)}/${shardGateProgress.required}: needed for ${shardGateProgress.gateName}.`
+            : 'Relic shard recovered. Spend these at Base Camp.';
         }
         current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 1.8);
         audioControls?.playExpeditionSfx?.('pickupShard');
@@ -7217,10 +7356,24 @@ export default function ExpeditionJourney({
 
     UPGRADES.forEach(u => {
       if (!current.collectedUpgrades.has(u.id) && rectsOverlap(getPlayerBodyHitbox(player), getCollectibleHitbox(u, { width: 36, height: 36 }))) {
+        if (u.shardCost && current.relicShardCount < u.shardCost) {
+          current.notice = `${u.name}: need ${u.shardCost} relic shards to open this optional cache.`;
+          current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 1.8);
+          return;
+        }
+        if (u.shardCost) {
+          current.relicShardCount = Math.max(0, current.relicShardCount - u.shardCost);
+        }
+        if (u.rewardShards) {
+          current.relicShardCount += u.rewardShards;
+        }
         current.collectedUpgrades.add(u.id);
-        current.notice = `Expedition Upgrade Acquired: ${u.name}.`;
+        current.notice = u.cacheReward
+          ? `Cache opened! Upgrade Voucher earned: +${u.rewardShards} Base Camp shards.`
+          : `Expedition Upgrade Acquired: ${u.name}.`;
+        current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 2.1);
         current.hitStopTimer = Math.max(current.hitStopTimer, 0.035);
-        addRewardPulse('upgrade-pulse', u.x, u.y, 'UPGRADE', {
+        addRewardPulse('upgrade-pulse', u.x, u.y, u.cacheReward ? 'VOUCHER' : 'UPGRADE', {
           color: '#2563eb',
           fill: 'rgba(37, 99, 235, 0.1)',
           radius: 48,
@@ -7235,7 +7388,33 @@ export default function ExpeditionJourney({
       if (!current.collectedObjectiveIds.has(m.id) && rectsOverlap(getPlayerBodyHitbox(player), getCollectibleHitbox(m, { width: 30, height: 30 }))) {
         current.collectedObjectiveIds.add(m.id);
         const progress = getObjectiveProgress(m.sectionId, current);
-        if (progress.count >= progress.total) {
+        if (m.id === 'switch-1') {
+          current.notice = 'Stone mechanism activated. Switches 1/3. A return plinth rises.';
+          current.cinematicEvent = {
+            id: 'switch-1-raised-return-plinth',
+            name: 'Stone Mechanism',
+            message: 'A return plinth rises ahead.',
+            temporary: true,
+          };
+          current.cinematicTimer = 2.2;
+          current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 2.1);
+          current.hitStopTimer = Math.max(current.hitStopTimer, 0.045);
+          addRewardPulse('switch-1-response', m.x, m.y, 'MECHANISM', {
+            color: m.color || '#92400e',
+            fill: 'rgba(146, 64, 14, 0.12)',
+            radius: 58,
+            timer: 0.7,
+          });
+          addCombatEffect(current, {
+            type: 'environment-dust',
+            x: m.x + 96,
+            y: m.y - 6,
+            text: 'RISE',
+            color: 'rgba(203, 139, 68, 0.64)',
+            timer: 0.78,
+            maxTimer: 0.78,
+          });
+        } else if (progress.count >= progress.total) {
           current.completedObjectiveIds.add(m.sectionId);
           current.notice = `Objective Complete: ${progress.title}`;
           current.hitStopTimer = Math.max(current.hitStopTimer, 0.035);
@@ -7266,7 +7445,7 @@ export default function ExpeditionJourney({
         const rewardMoment = buildBossRewardMoment(current, keyItem, 'recovered');
         current.postBossReward = rewardMoment;
         current.postBossRewardTimer = 5.2;
-        current.notice = `${rewardMoment.title} Required for the excavation kit.`;
+        current.notice = `${rewardMoment.title} ${rewardMoment.nextObjective}`;
         current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 2.2);
         current.cinematicEvent = {
           id: `${keyItem.id}-recovered`,
@@ -7493,7 +7672,10 @@ export default function ExpeditionJourney({
         enemy.knockbackDirection = 0;
         current.defeatedEnemies.add(enemy.id);
         current.relicShardCount += enemy.shards;
-        current.notice = `${enemy.name} safely cleared. Relic shards recovered (+${enemy.shards}). Spend these at Base Camp.`;
+        const shardGateProgress = getActiveShardGateProgress(current);
+        current.notice = shardGateProgress
+          ? `Enemy dropped ${enemy.shards} relic shard${enemy.shards === 1 ? '' : 's'}: ${Math.min(current.relicShardCount, shardGateProgress.required)}/${shardGateProgress.required} for ${shardGateProgress.gateName}.`
+          : `Enemy dropped ${enemy.shards} relic shard${enemy.shards === 1 ? '' : 's'}. Spend these at Base Camp.`;
         current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 1.8);
       } else {
         current.notice = `${enemy.name} stunned by a careful jump.`;
@@ -7528,6 +7710,19 @@ export default function ExpeditionJourney({
       const distanceToPlayer = (player.x + player.width / 2) - (e.x + e.width / 2);
       const pressureReachBonus = e.encounterRole ? 26 : 0;
       const nearPlayer = Math.abs(distanceToPlayer) < ((e.type === 'bat' || e.flying ? 145 : 110) + pressureReachBonus) && Math.abs(player.y - e.y) < 70 + (e.encounterRole ? 10 : 0);
+      if (!current.seenEnemyTypeNoticeIds) current.seenEnemyTypeNoticeIds = new Set();
+      const stakeMessage = ENEMY_TYPE_STAKE_MESSAGES[e.type];
+      if (
+        stakeMessage
+        && !current.seenEnemyTypeNoticeIds.has(e.type)
+        && (current.itemPurposeNoticeTimer || 0) <= 0
+        && Math.abs(distanceToPlayer) < (e.flying ? 210 : 165)
+        && Math.abs(player.y - e.y) < 96
+      ) {
+        current.seenEnemyTypeNoticeIds.add(e.type);
+        current.notice = stakeMessage;
+        current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 1.9);
+      }
 
       if (e.stunTimer <= 0 && e.attackTimer <= 0 && e.attackWindup <= 0 && nearPlayer && e.attackCooldown <= 0) {
         const pattern = getEnemyPatternConfig(e);
@@ -7679,7 +7874,10 @@ export default function ExpeditionJourney({
           e.knockbackDirection = 0;
           current.defeatedEnemies.add(e.id);
           current.relicShardCount += e.shards;
-          current.notice = `${e.name} defeated. Relic shards recovered (+${e.shards}). Spend these at Base Camp.`;
+          const shardGateProgress = getActiveShardGateProgress(current);
+          current.notice = shardGateProgress
+            ? `Enemy dropped ${e.shards} relic shard${e.shards === 1 ? '' : 's'}: ${Math.min(current.relicShardCount, shardGateProgress.required)}/${shardGateProgress.required} for ${shardGateProgress.gateName}.`
+            : `Enemy dropped ${e.shards} relic shard${e.shards === 1 ? '' : 's'}. Spend these at Base Camp.`;
           current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 1.8);
         } else {
           current.notice = `${e.name} stunned.`;
@@ -7737,7 +7935,7 @@ export default function ExpeditionJourney({
         b.attackTimer = 0;
         b.attackReady = false;
         b.attackCooldown = Math.max(b.attackCooldown, 1.4);
-        const guardianQuestions = !current.completedGuardianChallengeIds?.has(b.id)
+        const guardianQuestions = GUARDIAN_KNOWLEDGE_CHALLENGES_ENABLED && !current.completedGuardianChallengeIds?.has(b.id)
           ? getGuardianChallengeQuestions(b.id).map(shuffleGuardianQuestionOptions)
           : [];
         current.bossDomain = {
@@ -7970,7 +8168,7 @@ export default function ExpeditionJourney({
             current.postBossReward = rewardMoment;
             current.postBossRewardTimer = 4.6;
             current.bossIntroPauseTimer = Math.max(current.bossIntroPauseTimer || 0, 1.05);
-            current.notice = `${b.name} defeated. ${rewardMoment.title} Required for the excavation kit.`;
+            current.notice = `${b.name} defeated. ${rewardMoment.title} ${rewardMoment.nextObjective}`;
             current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 2.2);
             current.cinematicEvent = {
               id: `${b.id}-tool-piece-drop`,
@@ -7997,7 +8195,9 @@ export default function ExpeditionJourney({
 
     // Gates
     ROUTE_GATES.forEach(g => {
-      if (!current.openedRouteGateIds.has(g.id) && rectsOverlap(player, g)) {
+      const reachedGate = rectsOverlap(player, g)
+        || (player.x + player.width > g.x && player.x < g.x + g.width + 18);
+      if (!current.openedRouteGateIds.has(g.id) && reachedGate) {
         const guidance = getGateGuidance(g, current);
         if (!guidance.activeGateLocked) {
           current.openedRouteGateIds.add(g.id);
@@ -8068,7 +8268,7 @@ export default function ExpeditionJourney({
       if (current.resources.time <= 0) triggerJourneyRescue('Time expired. Field team rescued.');
     }
 
-  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, buildBossRewardMoment, getActiveHiddenRoutes, getActiveSecretCollectibles, getAttackBox, getAttackHurtbox, getBossPhaseConfig, getBossVulnerabilityState, getEnemyPatternConfig, getObjectiveProgress, getGateGuidance, getRouteAccessState, isRouteRewardAccessible, isLowStamina, addCombatEffect, recordEnvironmentInteraction, getPlayerAttackState, getSectionDisplayName, getSectionDisplayTitle, syncHud]);
+  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, buildBossRewardMoment, getActiveHiddenRoutes, getActiveSecretCollectibles, getActiveShardGateProgress, getAttackBox, getAttackHurtbox, getBossPhaseConfig, getBossVulnerabilityState, getEnemyPatternConfig, getObjectiveProgress, getGateGuidance, getRouteAccessState, isRouteRewardAccessible, isLowStamina, addCombatEffect, recordEnvironmentInteraction, getPlayerAttackState, getSectionDisplayName, getSectionDisplayTitle, syncHud]);
 
   const step = useCallback((ms) => {
     const dt = Math.min(ms / 1000, 0.05);
@@ -8194,6 +8394,8 @@ export default function ExpeditionJourney({
 
   const activeHudGate = ROUTE_GATES.find(gate => !gameState.openedRouteGateIds.has(gate.id));
   const activeHudGateGuidance = activeHudGate ? getGateGuidance(activeHudGate, gameState) : null;
+  const activeHudShardRequirement = activeHudGateGuidance?.gateRequirements.find(req => req.type === 'shards') || null;
+  const activeHudFirstMissing = activeHudGateGuidance?.gateMissingRequirements?.[0] || null;
   const staminaWarningState = getStaminaWarningState(gameState);
   const staminaPercent = Math.min(100, Math.round((gameState.resources.stamina / (gameState.upgradeEffects?.maxStamina || 100)) * 100));
   const activeGuardianChallenge = guardianChallengeUi || gameState.activeGuardianChallenge;
@@ -8272,7 +8474,7 @@ export default function ExpeditionJourney({
 
             <div className="journey-floating-hud" aria-label="Expedition status">
               <div className="journey-floating-hud-cluster">
-                <div className="journey-floating-hud-gems">
+                <div className={`journey-floating-hud-gems ${gameState.itemPurposeNoticeTimer > 0 ? 'is-rewarding' : ''}`}>
                   <Gem size={18} />
                   <strong>{gameState.relicShardCount}</strong>
                   <span>Base Camp shards</span>
@@ -8310,9 +8512,17 @@ export default function ExpeditionJourney({
                 </div>
               </div>
 
-              <div className="journey-floating-hud-cluster journey-floating-hud-count">
-                <span>Relic shards</span>
-                <strong>{gameState.relicShardCount}/{RELIC_SHARDS.length}</strong>
+              <div className="journey-floating-hud-cluster journey-floating-hud-count journey-floating-hud-gate">
+                <span>Next seal</span>
+                <strong>{activeHudGateGuidance?.activeGateName || 'Route Seal'}</strong>
+                <em>
+                  {activeHudShardRequirement
+                    ? `${activeHudShardRequirement.found}/${activeHudShardRequirement.required} shards`
+                    : `${gameState.relicShardCount}/${RELIC_SHARDS.length} shards`}
+                  {activeHudFirstMissing && activeHudFirstMissing.type !== 'shards'
+                    ? ` + ${activeHudFirstMissing.checklistLabel}`
+                    : ''}
+                </em>
               </div>
             </div>
             

@@ -9,6 +9,13 @@
     "groundLineY": 113,
     "facing": "right"
   },
+  "draw": {
+    "height": 88,
+    "integratedAttackTool": true,
+    "suppressExternalWeapon": true,
+    "suppressExternalWeaponDuringAttack": true,
+    "suppressRuntimeAttackArc": true
+  },
   "rows": [
     {
       "name": "idle",

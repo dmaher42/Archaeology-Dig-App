@@ -15,6 +15,7 @@ export const CHINA_WATCHTOWER_SENTRY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PA
 export const CHINA_CLAY_GUARDIAN_ENEMY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-clay-guardian-enemy-sprites.json`;
 export const ENEMY_SPRITE_ATLAS_VERSION = 'enemy-sprite-packs-2026-05-16-upgraded-regular-enemies';
 export const MIN_ENEMY_DRAW_HEIGHT = 34;
+export const WITHHELD_EGYPT_CREATURE_SPRITE_FAMILIES = new Set();
 
 export const EXPECTED_ENEMY_SPRITE_KEYS = [
   'scarabIdle',
@@ -403,6 +404,13 @@ export const getEnemySpriteFamily = (enemy) => {
   if (enemy.type === 'guardian' || name.includes('guardian')) return 'stoneGuardianEnemy';
   if (enemy.type === 'looter' || name.includes('looter')) return 'looter';
   return null;
+};
+
+export const shouldUseEnemySpritePack = (enemy) => {
+  const family = getEnemySpriteFamily(enemy);
+  if (!family) return false;
+  if (WITHHELD_EGYPT_CREATURE_SPRITE_FAMILIES.has(family)) return false;
+  return true;
 };
 
 export const getEnemySpriteFrame = (enemy, combatMode, now = 0) => {

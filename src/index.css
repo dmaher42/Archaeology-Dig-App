@@ -12610,6 +12610,12 @@ main {
   white-space: nowrap;
 }
 
+.basecamp-shop-cost span {
+  color: #92400e;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+}
+
 .basecamp-shop-item p {
   margin: 0;
   color: var(--bureau-ink-muted);
@@ -13394,6 +13400,18 @@ main {
   font-size: 0.82rem;
 }
 
+.journey-floating-hud-gems.is-rewarding {
+  animation: shardCounterPulse 0.7s ease-out;
+  color: #facc15;
+  text-shadow: 0 0 14px rgba(250, 204, 21, 0.55);
+}
+
+@keyframes shardCounterPulse {
+  0% { transform: scale(1); }
+  38% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
 .journey-floating-hud-gems span,
 .journey-floating-hud-count span {
   color: rgba(248, 239, 225, 0.76);
@@ -13406,6 +13424,22 @@ main {
 .journey-floating-hud-count strong {
   color: #fffaf0;
   font-size: 0.94rem;
+}
+
+.journey-floating-hud-gate {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 0.1rem;
+  max-width: 18rem;
+}
+
+.journey-floating-hud-gate em {
+  color: #f8e0a2;
+  font-size: 0.62rem;
+  font-style: normal;
+  font-weight: 900;
+  line-height: 1.1;
+  text-transform: uppercase;
 }
 
 .journey-floating-hud-status {
