@@ -356,6 +356,8 @@ test('first mini-boss is gated by preparation and rewards the next route', () =>
   assert.match(routeGates, /x:\s*X\(1018\)/);
   assert.match(routeGates, /requires:\s*\{\s*objective:\s*'desert-entry',\s*shards:\s*6/);
   assert.match(routeGates, /id:\s*'guardian-prep-seal'[\s\S]*?id:\s*'desert-seal'/);
+  assert.match(routeGates, /readyHint:\s*'Desert Map Seal is open\. Move through it into the ruined temple entry\.'/);
+  assert.match(source, /routeOpenMessage:\s*'Desert Map Seal is open\. Continue into the ruined temple entry\.'/);
   assert.match(source, /id:\s*'scarab-queen'[\s\S]*?arenaStart:\s*X\(1265\)/);
   assert.match(storyProps, /Guardian Prep Seal: needs Map Tablet and 6 relic shards/);
   assert.match(events, /Guardian Seal: recover the Map Tablet and 6 relic shards before the Scarab Queen\./);

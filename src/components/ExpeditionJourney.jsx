@@ -269,8 +269,8 @@ const CHINA_SECTION_COPY = {
 
 const BOSS_ATTACK_PHASES = {
   'scarab-queen': [
-    { ...DEFAULT_BOSS_ATTACK_PHASES[0], id: 'queen-charge', label: 'Sand Charge', speed: 145, cooldown: 1.65 },
-    { ...DEFAULT_BOSS_ATTACK_PHASES[1], id: 'scarab-burst', label: 'Scarab Burst', kind: 'area', cooldown: 2, damageScale: 0.75 },
+    { ...DEFAULT_BOSS_ATTACK_PHASES[0], id: 'queen-charge', label: 'Sand Charge', speed: 118, cooldown: 1.85, vulnerableAfter: 1.05 },
+    { ...DEFAULT_BOSS_ATTACK_PHASES[1], id: 'scarab-burst', label: 'Scarab Burst', kind: 'area', cooldown: 2.2, vulnerableAfter: 1.15, damageScale: 0.65 },
   ],
   'temple-guardian': [
     { ...DEFAULT_BOSS_ATTACK_PHASES[0], id: 'stone-swipe', label: 'Stone Swipe', windup: 0.9, duration: 0.42, speed: 58 },
@@ -1583,7 +1583,13 @@ export default function ExpeditionJourney({
     }
     if (gate.requires.shards) {
       const missing = Math.max(0, gate.requires.shards - current.relicShardCount);
-      const shard = RELIC_SHARDS.find(item => !current.collectedShardIds.has(item.id) && item.x < gate.x);
+      const shard = RELIC_SHARDS
+        .filter(item => (
+          !current.collectedShardIds.has(item.id)
+          && item.x < gate.x
+          && (!item.routeId || current.discoveredHiddenRouteIds?.has(item.routeId))
+        ))
+        .sort((a, b) => Math.abs(a.x - current.player.x) - Math.abs(b.x - current.player.x))[0];
       const direction = getDirectionFromPlayer(current.player.x, shard?.x);
       reqs.push({
         type: 'shards',
@@ -1645,7 +1651,7 @@ export default function ExpeditionJourney({
     const gateName = backgroundPackId === 'china-river-valley'
       ? CHINA_GATE_NAMES[gate.id] || gate.name
       : gate.name;
-    const hint = missingRequirements[0]?.hint || `${gateName} is ready. Move through the open seal.`;
+    const hint = missingRequirements[0]?.hint || gate.readyHint || `${gateName} is ready. Move through the open seal.`;
     return {
       activeGateName: gateName,
       activeGateLocked: missingRequirements.length > 0,
@@ -1702,7 +1708,7 @@ export default function ExpeditionJourney({
     const nextObjective = progress.complete
       ? 'Excavation Kit complete. Base Camp can now open the excavation site.'
       : gateReady
-        ? 'The next expedition route is now open.'
+        ? keyItem.routeOpenMessage || 'The next expedition route is now open.'
         : phase === 'revealed'
           ? `Collect the tool piece, then return to ${routeGateName || 'the route gate'}.`
           : `Return to ${routeGateName || 'the route gate'}. This piece helps prepare the excavation kit.`;
@@ -2593,6 +2599,169 @@ export default function ExpeditionJourney({
     ctx.restore();
   }, []);
 
+  const drawRouteGroundApron = useCallback((ctx, x, y, width, sectionId, intensity = 1, detailSeed = 0) => {
+    const isCatacombs = sectionId === 'catacombs';
+    const isEscape = sectionId === 'escape-sequence';
+    const base = isCatacombs
+      ? 'rgba(65, 51, 38, 0.38)'
+      : isEscape
+        ? 'rgba(138, 79, 36, 0.34)'
+        : 'rgba(185, 119, 55, 0.34)';
+    const warmEdge = isCatacombs
+      ? 'rgba(143, 112, 76, 0.24)'
+      : 'rgba(235, 174, 91, 0.28)';
+    const shadow = isCatacombs
+      ? 'rgba(24, 18, 13, 0.18)'
+      : 'rgba(70, 38, 15, 0.15)';
+
+    ctx.save();
+    ctx.globalAlpha = 0.86 * intensity;
+    ctx.fillStyle = base;
+    ctx.beginPath();
+    ctx.ellipse(x, y + 2, Math.max(34, width / 2), Math.max(8, width / 18), 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.globalAlpha = 0.58 * intensity;
+    ctx.fillStyle = shadow;
+    ctx.beginPath();
+    ctx.ellipse(x + width * 0.08, y + 7, Math.max(28, width / 2.6), Math.max(5, width / 28), -0.04, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.globalAlpha = 0.72 * intensity;
+    ctx.strokeStyle = warmEdge;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x - width * 0.42, y - 1);
+    ctx.quadraticCurveTo(x - width * 0.18, y + 5, x + width * 0.1, y + 1);
+    ctx.quadraticCurveTo(x + width * 0.28, y - 3, x + width * 0.44, y + 2);
+    ctx.stroke();
+
+    ctx.globalAlpha = 0.5 * intensity;
+    ctx.fillStyle = isCatacombs ? 'rgba(100, 78, 55, 0.28)' : 'rgba(135, 82, 35, 0.22)';
+    for (let i = 0; i < 4; i += 1) {
+      const offset = ((detailSeed + i * 37) % 100) / 100;
+      const rockX = x - width * 0.34 + width * 0.68 * offset;
+      const rockY = y + 1 + ((detailSeed + i * 17) % 5);
+      ctx.beginPath();
+      ctx.ellipse(rockX, rockY, 4 + (i % 2) * 2, 2.2, 0.16 * (i - 1), 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }, []);
+
+  const drawAncientRouteGround = useCallback((ctx, section, cameraX, now, current) => {
+    const isCatacombs = section.id === 'catacombs';
+    const isEscape = section.id === 'escape-sequence';
+    const pathTop = GROUND_Y - (isCatacombs ? 24 : 28);
+    const pathBottom = CANVAS_HEIGHT;
+    const routeGradient = ctx.createLinearGradient(0, pathTop - 20, 0, pathBottom);
+    if (isCatacombs) {
+      routeGradient.addColorStop(0, 'rgba(78, 60, 42, 0)');
+      routeGradient.addColorStop(0.16, 'rgba(78, 60, 42, 0.34)');
+      routeGradient.addColorStop(0.62, 'rgba(57, 42, 29, 0.66)');
+      routeGradient.addColorStop(1, 'rgba(32, 23, 16, 0.84)');
+    } else if (isEscape) {
+      routeGradient.addColorStop(0, 'rgba(174, 96, 39, 0)');
+      routeGradient.addColorStop(0.16, 'rgba(174, 96, 39, 0.28)');
+      routeGradient.addColorStop(0.62, 'rgba(129, 73, 34, 0.58)');
+      routeGradient.addColorStop(1, 'rgba(76, 43, 22, 0.76)');
+    } else {
+      routeGradient.addColorStop(0, 'rgba(214, 145, 66, 0)');
+      routeGradient.addColorStop(0.15, 'rgba(214, 145, 66, 0.28)');
+      routeGradient.addColorStop(0.58, 'rgba(181, 111, 47, 0.52)');
+      routeGradient.addColorStop(1, 'rgba(98, 56, 24, 0.72)');
+    }
+
+    ctx.save();
+    ctx.fillStyle = routeGradient;
+    ctx.beginPath();
+    ctx.moveTo(0, pathBottom);
+    ctx.lineTo(0, pathTop + Math.sin(cameraX * 0.006) * 2);
+    for (let sx = 0; sx <= CANVAS_WIDTH + 32; sx += 32) {
+      const worldX = cameraX + sx;
+      const wave = Math.sin(worldX * 0.009) * 3 + Math.cos(worldX * 0.004) * 4;
+      ctx.lineTo(sx, pathTop + wave);
+    }
+    ctx.lineTo(CANVAS_WIDTH, pathBottom);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.globalAlpha = 0.46;
+    ctx.strokeStyle = isCatacombs ? 'rgba(160, 128, 86, 0.22)' : 'rgba(255, 205, 123, 0.24)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let sx = -12; sx <= CANVAS_WIDTH + 12; sx += 36) {
+      const worldX = cameraX + sx;
+      const y = pathTop + 5 + Math.sin(worldX * 0.01) * 2;
+      if (sx === -12) ctx.moveTo(sx, y);
+      else ctx.lineTo(sx, y);
+    }
+    ctx.stroke();
+
+    const sectionStart = Math.max(section.start, cameraX - 160);
+    const sectionEnd = Math.min(section.end, cameraX + CANVAS_WIDTH + 160);
+    const firstStone = Math.floor(sectionStart / 96) * 96;
+    for (let worldX = firstStone; worldX <= sectionEnd; worldX += 96) {
+      const sx = worldToScreenX(worldX, cameraX);
+      const seed = Math.abs(Math.sin(worldX * 0.037)) * 100;
+      const stoneY = GROUND_Y - 13 + Math.sin(worldX * 0.017 + now / 2800) * 2;
+      const stoneWidth = 28 + (seed % 18);
+      ctx.globalAlpha = 0.12 + (seed % 4) * 0.018;
+      ctx.fillStyle = isCatacombs ? '#8a6b49' : '#b77a3a';
+      ctx.beginPath();
+      ctx.roundRect(sx - stoneWidth / 2, stoneY, stoneWidth, 6 + (seed % 5), 3);
+      ctx.fill();
+    }
+
+    const blendPoints = [
+      ...CHECKPOINTS.map((checkpoint) => ({ x: checkpoint.x, width: 210, kind: 'checkpoint' })),
+      ...PLATFORMS
+        .filter((platform) => platform.y !== GROUND_Y && isPlatformAvailable(platform, current))
+        .map((platform) => ({ x: platform.x + platform.width / 2, width: Math.min(220, platform.width * 1.35), kind: 'platform' })),
+    ];
+    blendPoints.forEach((item) => {
+      if (!isHorizontallyVisible(item.x - item.width / 2, item.width, cameraX, 80)) return;
+      const sx = worldToScreenX(item.x, cameraX);
+      drawRouteGroundApron(ctx, sx, GROUND_Y - 3, item.width, section.id, item.kind === 'checkpoint' ? 0.82 : 0.56, Math.round(item.x));
+    });
+
+    if (current.renderStats) current.renderStats.routeGroundVisualMode = 'wide-sand-stone-apron';
+    ctx.restore();
+  }, [drawRouteGroundApron]);
+
+  const drawForegroundSettlingDetails = useCallback((ctx, x, y, width, sectionId, options = {}) => {
+    const intensity = options.intensity ?? 1;
+    const seed = options.seed ?? 0;
+    const isCatacombs = sectionId === 'catacombs';
+    const stoneColor = isCatacombs ? 'rgba(105, 82, 56, 0.42)' : 'rgba(126, 77, 34, 0.36)';
+    const highlight = isCatacombs ? 'rgba(178, 145, 96, 0.2)' : 'rgba(238, 184, 101, 0.24)';
+
+    ctx.save();
+    drawRouteGroundApron(ctx, x, y, width, sectionId, 0.56 * intensity, seed);
+
+    ctx.globalAlpha = 0.64 * intensity;
+    ctx.fillStyle = stoneColor;
+    const stoneCount = options.stones ?? 5;
+    for (let i = 0; i < stoneCount; i += 1) {
+      const t = stoneCount <= 1 ? 0.5 : i / (stoneCount - 1);
+      const jitter = Math.sin(seed * 0.07 + i * 1.9);
+      const stoneX = x - width * 0.42 + width * 0.84 * t + jitter * 8;
+      const stoneY = y + 4 + Math.cos(seed * 0.05 + i) * 3;
+      ctx.beginPath();
+      ctx.roundRect(stoneX - 6, stoneY - 3, 10 + (i % 3) * 3, 5 + (i % 2) * 2, 2);
+      ctx.fill();
+    }
+
+    ctx.globalAlpha = 0.72 * intensity;
+    ctx.strokeStyle = highlight;
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(x - width * 0.32, y + 1);
+    ctx.quadraticCurveTo(x - width * 0.08, y + 7, x + width * 0.24, y + 3);
+    ctx.stroke();
+    ctx.restore();
+  }, [drawRouteGroundApron]);
+
   const drawSectionTransitionBlend = useCallback((ctx, cameraX) => {
     SECTIONS.slice(1).forEach((section) => {
       const x = section.start - cameraX;
@@ -2977,6 +3146,11 @@ export default function ExpeditionJourney({
         : '#9b7140'
       : '#5f4229';
     if (!isGround) {
+      drawForegroundSettlingDetails(ctx, x + platform.width / 2, platform.y + visualHeight + 4, platform.width * 1.28, section.id, {
+        intensity: 0.74,
+        seed: Math.round(platform.x),
+        stones: 6,
+      });
       drawContactShadow(ctx, x + platform.width / 2, platform.y + visualHeight + 5, platform.width * 0.94, 0.32, 1.5);
       ctx.fillStyle = 'rgba(30, 18, 8, 0.34)';
       ctx.fillRect(platformX, visualY + visualHeight - 8, platformWidth, 8);
@@ -2998,8 +3172,24 @@ export default function ExpeditionJourney({
     );
 
     if (assetDrawn) {
-      ctx.fillStyle = isGround ? 'rgba(69, 26, 3, 0.06)' : 'rgba(255, 247, 212, 0.2)';
-      ctx.fillRect(x, platform.y, platform.width, isGround ? 3 : 4);
+      if (isGround) {
+        const edgeGradient = ctx.createLinearGradient(0, platform.y - 10, 0, platform.y + 10);
+        edgeGradient.addColorStop(0, 'rgba(230, 171, 88, 0)');
+        edgeGradient.addColorStop(0.42, 'rgba(230, 171, 88, 0.2)');
+        edgeGradient.addColorStop(1, 'rgba(97, 55, 24, 0.08)');
+        ctx.fillStyle = edgeGradient;
+        ctx.fillRect(x, platform.y - 8, platform.width, 18);
+        ctx.fillStyle = 'rgba(238, 183, 101, 0.16)';
+        for (let sx = x - 8; sx < x + platform.width + 12; sx += 34) {
+          const wave = Math.sin((sx + cameraX) * 0.035) * 2;
+          ctx.beginPath();
+          ctx.ellipse(sx + 12, platform.y - 2 + wave, 18, 3.2, -0.05, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      } else {
+        ctx.fillStyle = 'rgba(255, 247, 212, 0.2)';
+        ctx.fillRect(x, platform.y, platform.width, 4);
+      }
       if (reactiveActive) {
         ctx.fillStyle = `rgba(248, 113, 113, ${0.16 + reactivePulse * 0.14})`;
         ctx.fillRect(x, platform.y - 2, platform.width, 5);
@@ -3032,6 +3222,14 @@ export default function ExpeditionJourney({
         }
         ctx.fillStyle = 'rgba(92, 57, 23, 0.26)';
         ctx.fillRect(x + 5, platform.y + visualHeight - 2, platform.width - 10, 3);
+        const sandLip = ctx.createLinearGradient(0, platform.y + visualHeight - 10, 0, platform.y + visualHeight + 10);
+        sandLip.addColorStop(0, 'rgba(218, 152, 73, 0)');
+        sandLip.addColorStop(0.48, 'rgba(205, 135, 58, 0.44)');
+        sandLip.addColorStop(1, 'rgba(122, 71, 31, 0.56)');
+        ctx.fillStyle = sandLip;
+        ctx.beginPath();
+        ctx.ellipse(x + platform.width / 2, platform.y + visualHeight + 1, platform.width * 0.5, 8, -0.02, 0, Math.PI * 2);
+        ctx.fill();
         ctx.strokeStyle = 'rgba(255, 247, 212, 0.2)';
         ctx.beginPath();
         ctx.moveTo(x + 4, platform.y + 2);
@@ -3039,12 +3237,14 @@ export default function ExpeditionJourney({
         ctx.stroke();
         drawGroundDustLip(ctx, x + platform.width / 2, platform.y + visualHeight + 2, platform.width * 0.72, 'rgba(178, 117, 54, 0.2)');
       }
-      ctx.strokeStyle = isGround ? 'rgba(37, 25, 14, 0.18)' : 'rgba(37, 25, 14, 0.34)';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(x, platform.y + 1);
-      ctx.lineTo(x + platform.width, platform.y + 1);
-      ctx.stroke();
+      if (!isGround) {
+        ctx.strokeStyle = 'rgba(37, 25, 14, 0.34)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x, platform.y + 1);
+        ctx.lineTo(x + platform.width, platform.y + 1);
+        ctx.stroke();
+      }
       ctx.restore();
       return;
     }
@@ -3080,7 +3280,7 @@ export default function ExpeditionJourney({
     ctx.lineWidth = 2;
     ctx.strokeRect(x, visualY, platform.width, platform.height);
     ctx.restore();
-  }, [drawContactShadow, drawGroundDustLip]);
+  }, [drawContactShadow, drawForegroundSettlingDetails, drawGroundDustLip]);
 
   const drawStoryProp = useCallback((ctx, prop, cameraX, now, requestedDepth = null) => {
     const propDepth = getStoryPropDepth(prop);
@@ -3318,7 +3518,12 @@ export default function ExpeditionJourney({
       const flagHeight = 104;
       const flagWidth = 96;
       const flagBaseY = prop.y + 42;
-      drawContactShadow(ctx, x, flagBaseY + 1, 44, 0.14, 1);
+      drawForegroundSettlingDetails(ctx, x, flagBaseY + 1, 74, section.id, {
+        intensity: propDepth === 'background' ? 0.52 : 0.78,
+        seed: Math.round(prop.x),
+        stones: 4,
+      });
+      drawContactShadow(ctx, x, flagBaseY + 1, 52, 0.15, 1);
       const flagDest = {
         x: x - flagWidth / 2,
         y: flagBaseY - flagHeight,
@@ -3354,13 +3559,22 @@ export default function ExpeditionJourney({
             renderedHeight,
           );
         }
-        drawDecorativeBaseBlend(ctx, x, flagBaseY + 1, 54, section.id, propDepth, 0.74);
-        drawGroundDustLip(ctx, x, flagBaseY + 1, 42, 'rgba(187, 128, 64, 0.18)');
+        ctx.fillStyle = 'rgba(92, 49, 18, 0.34)';
+        ctx.beginPath();
+        ctx.roundRect(x - 10, flagBaseY - 4, 20, 10, 4);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(180, 116, 52, 0.34)';
+        ctx.beginPath();
+        ctx.ellipse(x - 15, flagBaseY + 1, 8, 4, -0.2, 0, Math.PI * 2);
+        ctx.ellipse(x + 14, flagBaseY + 2, 9, 4, 0.15, 0, Math.PI * 2);
+        ctx.fill();
+        drawDecorativeBaseBlend(ctx, x, flagBaseY + 2, 66, section.id, propDepth, 0.62);
+        drawGroundDustLip(ctx, x, flagBaseY + 1, 54, 'rgba(187, 128, 64, 0.22)');
         if (stateRef.current.renderStats) stateRef.current.renderStats.groundedPropCount += 1;
         ctx.restore();
         return;
       }
-      drawDecorativeBaseBlend(ctx, x, prop.y + 36, 52, section.id, propDepth, 0.6);
+      drawDecorativeBaseBlend(ctx, x, prop.y + 36, 64, section.id, propDepth, 0.6);
       ctx.fillStyle = '#78350f';
       ctx.fillRect(x - 3, prop.y - 20, 6, 56);
       ctx.fillStyle = '#facc15';
@@ -3439,7 +3653,7 @@ export default function ExpeditionJourney({
       ctx.fill();
     }
     ctx.restore();
-  }, [drawContactShadow, drawDecorativeBaseBlend, drawGroundDustLip]);
+  }, [drawContactShadow, drawDecorativeBaseBlend, drawForegroundSettlingDetails, drawGroundDustLip]);
 
   const drawWorldContinuityLandmark = useCallback((ctx, landmark, cameraX, now) => {
     const parallax = landmark.parallax ?? 0.2;
@@ -6511,6 +6725,7 @@ export default function ExpeditionJourney({
         drawDynamicEnvironmentEvent(ctx, { ...event, preview: true }, cameraX, now, (event.duration || 2.5) * 0.62);
       });
     drawDynamicEnvironmentEvent(ctx, current.dynamicEnvironmentEvent, cameraX, now, current.dynamicEnvironmentEventTimer);
+    drawAncientRouteGround(ctx, section, cameraX, now, current);
 
     const activeBossDomain = current.bossDomain
       && !current.defeatedMiniBosses.has(current.bossDomain.bossId)
@@ -6593,7 +6808,7 @@ export default function ExpeditionJourney({
       if (!isHorizontallyVisible(checkpoint.x, 1, cameraX, 130)) return;
       const active = current.activeCheckpoint.id === checkpoint.id;
       ctx.save();
-      const checkpointHeight = active ? 128 : 118;
+      const checkpointHeight = active ? 160 : 148;
       const checkpointWidth = checkpointHeight * 1.48;
       const checkpointDrawn = drawMarkerSprite(
         ctx,
@@ -6601,23 +6816,22 @@ export default function ExpeditionJourney({
         'checkpoint',
         {
           x: cx - checkpointWidth / 2,
-          y: GROUND_Y - checkpointHeight + 6,
+          y: GROUND_Y - checkpointHeight + 10,
           width: checkpointWidth,
           height: checkpointHeight,
         },
         now,
       );
       if (checkpointDrawn) {
-        drawContactShadow(ctx, cx, GROUND_Y + 1, checkpointWidth * 0.62, active ? 0.18 : 0.12, 1);
-        drawGroundDustLip(ctx, cx, GROUND_Y + 1, checkpointWidth * 0.48, 'rgba(116, 72, 36, 0.2)');
-        if (!active && showWorldLabel(checkpoint.x, 130)) {
-          drawFieldNoteLabel(ctx, cx, checkpoint.y - 20, checkpoint.name, '#78350f');
-        }
+        drawRouteGroundApron(ctx, cx, GROUND_Y - 1, checkpointWidth * 0.9, getSectionForX(checkpoint.x).id, active ? 0.96 : 0.8, Math.round(checkpoint.x));
+        drawContactShadow(ctx, cx, GROUND_Y + 2, checkpointWidth * 0.76, active ? 0.22 : 0.16, 1.1);
+        drawGroundDustLip(ctx, cx, GROUND_Y + 2, checkpointWidth * 0.72, 'rgba(116, 72, 36, 0.24)');
         ctx.restore();
         return;
       }
-      drawContactShadow(ctx, cx, GROUND_Y + 1, 66, active ? 0.22 : 0.14, 1);
-      drawGroundDustLip(ctx, cx, GROUND_Y + 1, 56, 'rgba(116, 72, 36, 0.24)');
+      drawRouteGroundApron(ctx, cx, GROUND_Y - 1, 92, getSectionForX(checkpoint.x).id, active ? 0.86 : 0.7, Math.round(checkpoint.x));
+      drawContactShadow(ctx, cx, GROUND_Y + 1, 76, active ? 0.22 : 0.14, 1);
+      drawGroundDustLip(ctx, cx, GROUND_Y + 1, 70, 'rgba(116, 72, 36, 0.24)');
       ctx.fillStyle = active ? '#d2b277' : '#9f7646';
       ctx.strokeStyle = active ? 'rgba(22, 101, 52, 0.86)' : 'rgba(69, 26, 3, 0.62)';
       ctx.lineWidth = active ? 2.25 : 1.75;
@@ -6999,7 +7213,7 @@ export default function ExpeditionJourney({
       ctx.fillText(featureCard.message || '', cardCenterX, cardY + (isGuardianCard ? 60 : isSectionCard ? 42 : 54));
       ctx.textAlign = 'start';
     }
-  }, [backgroundPackId, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawParticles, drawPlatform, drawRouteGate, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStoryProp, drawTempleBackdrop, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getGateGuidance, getGateRequirements, getPlayerAttackState, isRouteRewardAccessible, drawPlayerSprite, drawFieldNoteLabel]);
+  }, [backgroundPackId, drawAncientRouteGround, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawParticles, drawPlatform, drawRouteGate, drawRouteGroundApron, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStoryProp, drawTempleBackdrop, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getGateGuidance, getGateRequirements, getPlayerAttackState, isRouteRewardAccessible, drawPlayerSprite, drawFieldNoteLabel]);
 
   const queueAttack = useCallback(() => {
     const current = stateRef.current;
@@ -7389,7 +7603,7 @@ export default function ExpeditionJourney({
       current.resources.stamina = Math.max(current.resources.stamina, Math.min(maxStamina, 85));
       current.notice = `Checkpoint reached: ${reachedCheckpoint.name}.`;
       current.hitStopTimer = Math.max(current.hitStopTimer, 0.025);
-      addRewardPulse('checkpoint-pulse', reachedCheckpoint.x, reachedCheckpoint.y || (GROUND_Y - 46), 'CHECKPOINT', {
+      addRewardPulse('checkpoint-pulse', reachedCheckpoint.x, reachedCheckpoint.y || (GROUND_Y - 46), 'Checkpoint reached', {
         color: '#38bdf8',
         fill: 'rgba(56, 189, 248, 0.1)',
         radius: 52,
@@ -8674,9 +8888,7 @@ export default function ExpeditionJourney({
                   ))}
                 </ul>
                 <p className="route-gate-hint">
-                  {activeHudGateGuidance.activeGateLocked
-                    ? activeHudGateGuidance.gateHint
-                    : 'All route tasks are complete. Move through the seal.'}
+                  {activeHudGateGuidance.gateHint}
                 </p>
               </div>
             )}

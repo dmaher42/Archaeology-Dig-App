@@ -3,7 +3,7 @@ export const ENEMY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}small-enemy-spr
 export const LOOTER_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}looter-sprites.json`;
 export const LOOTER_CAPTAIN_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}looter-captain-sprites.json`;
 export const TEMPLE_BAT_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}temple-bat-sprites.json`;
-export const DESERT_SCARAB_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}desert-scarab-sprites.json`;
+export const DESERT_SCARAB_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}desert-scarab-intimidating-sprites.json`;
 export const SAND_SNAKE_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}sand-snake-sprites.json`;
 export const SCORPION_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}scorpion-sprites.json`;
 export const SAND_WISP_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}sand-wisp-sprites.json`;
@@ -13,8 +13,9 @@ export const CHINA_ENEMY_GUARDIAN_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}
 export const CHINA_RIVER_CRAB_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-river-crab-sprites.json`;
 export const CHINA_WATCHTOWER_SENTRY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-watchtower-sentry-sprites.json`;
 export const CHINA_CLAY_GUARDIAN_ENEMY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-clay-guardian-enemy-sprites.json`;
-export const ENEMY_SPRITE_ATLAS_VERSION = 'enemy-sprite-packs-2026-05-16-upgraded-regular-enemies';
+export const ENEMY_SPRITE_ATLAS_VERSION = 'enemy-sprite-packs-2026-05-17-larger-intimidating-scarab';
 export const MIN_ENEMY_DRAW_HEIGHT = 34;
+export const ENEMY_VISUAL_SIZE_MULTIPLIER = 2;
 export const WITHHELD_EGYPT_CREATURE_SPRITE_FAMILIES = new Set([
   'cursedStatue',
   'stoneGuardianEnemy',
@@ -481,7 +482,7 @@ export const getEnemySpriteDrawBox = (enemy, screenX, shakeX = 0, combatMode = n
   }[family] || MIN_ENEMY_DRAW_HEIGHT;
   const scaledWidth = Math.max(enemy.width, enemy.width * scale);
   const scaledHeight = Math.max(enemy.height, enemy.height * scale);
-  const height = Math.max(minHeight, scaledHeight);
+  const height = Math.max(minHeight, scaledHeight) * ENEMY_VISUAL_SIZE_MULTIPLIER;
   const width = Math.max(scaledWidth, enemy.width * (height / Math.max(1, enemy.height)));
   const groundOffset = {
     scarab: defeated ? 10 : 8,

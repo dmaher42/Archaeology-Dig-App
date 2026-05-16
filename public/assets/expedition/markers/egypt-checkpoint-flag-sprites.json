@@ -1,7 +1,7 @@
 {
-  "image": "egypt-checkpoint-flag-sprites.png",
-  "source": "Codex imagegen Ancient Egypt checkpoint and route marker sprite sheet, chroma-key removed 2026-05-17.",
-  "coordinateNote": "Regions were alpha-trimmed from the generated transparent sheet. Checkpoints occupy the top row; route flags occupy the bottom row.",
+  "image": "egypt-checkpoint-hieroglyphic-flag-sprites.png",
+  "source": "Codex imagegen Ancient Egypt checkpoint statue with decorative hieroglyphic-style markings, composited with existing route flags 2026-05-17.",
+  "coordinateNote": "Checkpoint regions use the hieroglyphic statue frames; route flag regions preserve the existing flag frames.",
   "draw": {
     "checkpointHeight": 76,
     "flagHeight": 82

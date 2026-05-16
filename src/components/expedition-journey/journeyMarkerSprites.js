@@ -2,7 +2,7 @@ import { drawAtlasRegion } from './journeyRenderAssets';
 
 export const MARKER_SPRITE_BASE_PATH = 'assets/expedition/markers/';
 export const MARKER_SPRITE_ATLAS_JSON = `${MARKER_SPRITE_BASE_PATH}egypt-checkpoint-flag-sprites.json`;
-export const MARKER_SPRITE_VERSION = 'egypt-checkpoint-flag-sprites-2026-05-17';
+export const MARKER_SPRITE_VERSION = 'egypt-checkpoint-hieroglyphic-flag-sprites-2026-05-17';
 
 export const EXPECTED_MARKER_SPRITE_KEYS = [
   'checkpoint_00',

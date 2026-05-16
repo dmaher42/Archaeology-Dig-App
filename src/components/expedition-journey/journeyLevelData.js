@@ -301,6 +301,7 @@ export const ROUTE_GATES = [
     width: 34,
     height: 274,
     message: 'Complete the desert approach before entering the ruined temple.',
+    readyHint: 'Desert Map Seal is open. Move through it into the ruined temple entry.',
     requires: {
       objective: 'desert-entry',
       miniBoss: 'scarab-queen',
@@ -388,9 +389,9 @@ export const HIDDEN_ROUTES = [
     name: 'Upper Survey Route',
     optional: true,
     x: X(625),
-    y: JY(204),
+    y: JY(170),
     width: X(720),
-    height: 108,
+    height: 50,
     rewardHint: 'A relic glints along the broken stones above the lower sand route.',
     discoveryMessage: 'Hidden Route Found: Upper Survey Route.',
     gateType: 'broken step-up',
@@ -677,7 +678,7 @@ export const OBJECTIVE_MARKERS = [
 ];
 
 export const MINI_BOSSES = [
-  { id: 'scarab-queen', sectionId: 'desert-entry', name: 'Scarab Queen', type: 'scarab', x: X(1395), y: JY(318), width: 58, height: 42, patrolMin: X(1335), patrolMax: X(1460), speed: 66, health: 2, damage: 6, shards: 6, intro: 'Guardian Encounter: Scarab Queen. You will not disturb what the desert has buried.', dialogue: 'You will not disturb what the desert has buried.', domainName: 'Desert Seal Domain', arenaStart: X(1265), arenaEnd: X(1480) },
+  { id: 'scarab-queen', sectionId: 'desert-entry', name: 'Scarab Queen', type: 'scarab', x: X(1395), y: JY(318), width: 58, height: 42, patrolMin: X(1335), patrolMax: X(1460), speed: 66, health: 1, damage: 4, shards: 6, intro: 'Guardian Encounter: Scarab Queen. You will not disturb what the desert has buried.', dialogue: 'You will not disturb what the desert has buried.', domainName: 'Desert Seal Domain', arenaStart: X(1265), arenaEnd: X(1480) },
   { id: 'temple-guardian', sectionId: 'ruined-temple', name: 'Stone Guardian', type: 'guardian', x: X(2960), y: JY(306), width: 54, height: 54, patrolMin: X(2860), patrolMax: X(3060), speed: 58, health: 2, damage: 6, shards: 8, intro: 'Guardian Encounter: Stone Guardian. Only careful investigators may pass this temple.', dialogue: 'Only careful investigators may pass this temple.', domainName: 'Temple Tool Domain', arenaStart: X(2785), arenaEnd: X(3090) },
   { id: 'giant-serpent', sectionId: 'catacombs', name: 'Giant Serpent', type: 'snake', x: X(4860), y: JY(308), width: 72, height: 52, patrolMin: X(4730), patrolMax: X(4965), speed: 70, health: 2, damage: 6, shards: 8, intro: 'Guardian Encounter: Giant Serpent. The catacombs protect their secrets.', dialogue: 'The catacombs protect their secrets.', domainName: 'Catacomb Care Domain', arenaStart: X(4625), arenaEnd: X(4985) },
   { id: 'looter-captain', sectionId: 'escape-sequence', name: 'Rival Looter Captain', type: 'looter', x: X(6330), y: JY(306), width: 54, height: 54, patrolMin: X(6200), patrolMax: X(6435), speed: 86, health: 2, damage: 6, shards: 8, intro: 'Guardian Encounter: Rival Looter Captain. Careful records matter more than speed through this site.', dialogue: 'Careful records matter more than speed through this site.', domainName: 'Field Records Domain', arenaStart: X(6110), arenaEnd: X(6460) },
@@ -693,7 +694,7 @@ export const CHINA_MINI_BOSSES = [
 ];
 
 export const BOSS_KEY_ITEMS = [
-  { id: 'brush-handle', bossId: 'scarab-queen', gateId: 'desert-seal', sectionId: 'desert-entry', name: 'Brush Handle', shortName: 'Brush', label: 'B', color: '#b45309', rewardDetail: 'This will help uncover fragile evidence during excavation.' },
+  { id: 'brush-handle', bossId: 'scarab-queen', gateId: 'desert-seal', sectionId: 'desert-entry', name: 'Brush Handle', shortName: 'Brush', label: 'B', color: '#b45309', rewardDetail: 'This will help uncover fragile evidence during excavation.', routeOpenMessage: 'Desert Map Seal is open. Continue into the ruined temple entry.' },
   { id: 'trowel-blade', bossId: 'temple-guardian', gateId: 'temple-seal', sectionId: 'ruined-temple', name: 'Trowel Blade', shortName: 'Trowel', label: 'T', color: '#92400e', rewardDetail: 'This will help remove soil carefully at the dig site.' },
   { id: 'measuring-cord', bossId: 'giant-serpent', gateId: 'catacomb-seal', sectionId: 'catacombs', name: 'Measuring Cord', shortName: 'Measure', label: 'M', color: '#0f766e', rewardDetail: 'This will help record where evidence was found.' },
   { id: 'field-notebook-clasp', bossId: 'looter-captain', gateId: 'escape-seal', sectionId: 'escape-sequence', name: 'Field Notebook Clasp', shortName: 'Notebook', label: 'N', color: '#b91c1c', rewardDetail: 'This will help keep field records secure during excavation.' },
