@@ -5,9 +5,11 @@ import {
   DYNAMIC_WORLD_EFFECT_REGIONS,
   DYNAMIC_WORLD_EFFECTS_SRC,
   DYNAMIC_WORLD_EFFECTS_VERSION,
+  usesPaintedDynamicWorldEffect,
 } from './journeyDynamicWorldAssets.js';
 
 const source = readFileSync(new URL('./journeyLevelData.js', import.meta.url), 'utf8');
+const journeyUtilsSource = readFileSync(new URL('./journeyUtils.js', import.meta.url), 'utf8');
 const extractExportedArray = (name) => {
   const startToken = `export const ${name} = [`;
   const start = source.indexOf(startToken);
@@ -160,6 +162,15 @@ test('dynamic world events use a project-bound painted asset sheet', () => {
   );
 });
 
+test('painted dynamic effects stay limited to moments that read clearly as static art', () => {
+  ['shrine-glow', 'rockfall', 'ruin-collapse'].forEach((type) => {
+    assert.equal(usesPaintedDynamicWorldEffect(type), true, `${type} should use the painted effect sheet`);
+  });
+  ['dust-gust', 'birds-scatter', 'moving-fog', 'unstable-excavation'].forEach((type) => {
+    assert.equal(usesPaintedDynamicWorldEffect(type), false, `${type} should use procedural motion cues`);
+  });
+});
+
 test('combat pressure encounters guard optional rewards without blocking progression', () => {
   const egyptEnemies = extractExportedArray('ENEMIES');
   const chinaEnemies = extractExportedArray('CHINA_ENEMIES');
@@ -180,4 +191,42 @@ test('combat pressure encounters guard optional rewards without blocking progres
   assert.match(allEnemies, /upper-route pressure/);
   assert.match(allEnemies, /watchtower pressure/);
   assert.match(allEnemies, /collapsing-bridge pressure/);
+});
+
+test('Egypt opening combat ramps gently before the first route seal', () => {
+  const egyptEnemies = extractExportedArray('ENEMIES');
+  const openingRows = egyptEnemies
+    .split('\n')
+    .filter(row => /x:\s*X\((\d+)\)/.test(row))
+    .filter((row) => Number(row.match(/x:\s*X\((\d+)\)/)?.[1] || 0) < 1480);
+
+  const teachingRows = openingRows
+    .filter((row) => Number(row.match(/x:\s*X\((\d+)\)/)?.[1] || 0) <= 705);
+  const totalOpeningHealth = openingRows
+    .reduce((total, row) => total + Number(row.match(/health:\s*(\d+)/)?.[1] || 0), 0);
+  const totalOpeningDamage = openingRows
+    .reduce((total, row) => total + Number(row.match(/damage:\s*(\d+)/)?.[1] || 0), 0);
+  const highDamageOpeningRows = openingRows
+    .filter((row) => Number(row.match(/damage:\s*(\d+)/)?.[1] || 0) > 8);
+
+  assert.ok(teachingRows.length >= 6, 'opening route should still teach multiple enemy reads');
+  assert.equal(
+    openingRows.every(row => /openingRouteRamp:\s*true/.test(row)),
+    true,
+    'Egypt enemies before the first seal should opt into the classroom opening-route tuning',
+  );
+  assert.match(journeyUtilsSource, /if\s*\(enemy\.openingRouteRamp\)\s*return enemy\.health/);
+  assert.match(journeyUtilsSource, /enemy\.openingRouteRamp\s*\?\s*enemy\.damage/);
+  assert.equal(
+    teachingRows.every(row => /health:\s*1/.test(row) && Number(row.match(/damage:\s*(\d+)/)?.[1] || 0) <= 5),
+    true,
+    'first teaching enemies should be one-hit, low-damage encounters',
+  );
+  assert.ok(totalOpeningHealth <= 24, 'first seal should not require too many regular enemy hits before the guardian');
+  assert.ok(totalOpeningDamage <= 64, 'opening regular enemy damage budget should leave room for classroom mistakes');
+  assert.equal(highDamageOpeningRows.length, 0, 'opening route should avoid high-damage regular enemies before the first seal');
+
+  const checkpoints = extractExportedArray('CHECKPOINTS');
+  assert.match(checkpoints, /id:\s*'desert-survey-marker'/);
+  assert.match(checkpoints, /x:\s*X\(705\)/);
 });

@@ -191,6 +191,7 @@ import {
   DYNAMIC_WORLD_EFFECTS_VERSION,
   getDynamicWorldEffectRegion,
   loadDynamicWorldAssetPack,
+  usesPaintedDynamicWorldEffect,
 } from './expedition-journey/journeyDynamicWorldAssets';
 
 const DEFAULT_BOSS_ATTACK_PHASES = [
@@ -3176,7 +3177,7 @@ export default function ExpeditionJourney({
     ctx.save();
     const effectAssets = dynamicWorldAssetsRef.current;
     const effectRegion = getDynamicWorldEffectRegion(event.type);
-    if (effectAssets.loaded && effectAssets.image && effectRegion) {
+    if (usesPaintedDynamicWorldEffect(event.type) && effectAssets.loaded && effectAssets.image && effectRegion) {
       const assetAlpha = (preview ? 0.82 : 1) * (0.82 + pulse * 0.12);
       const drawEffect = (width, height, offsetX, offsetY, options = {}) => {
         ctx.save();

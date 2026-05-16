@@ -126,12 +126,13 @@ const ENEMY_TOUGHNESS_BONUS = {
 };
 
 const tuneEnemyHealth = (enemy) => {
+  if (enemy.openingRouteRamp) return enemy.health;
   const bonus = ENEMY_TOUGHNESS_BONUS[enemy.type] ?? 1;
   return Math.max(enemy.health + bonus, Math.ceil(enemy.health * 1.3));
 };
 
 const tuneEnemyDamage = (enemy) => (
-  Math.max(enemy.damage + 1, Math.ceil(enemy.damage * 1.12))
+  enemy.openingRouteRamp ? enemy.damage : Math.max(enemy.damage + 1, Math.ceil(enemy.damage * 1.12))
 );
 
 const makeStepProfile = (entity, { boss = false } = {}) => {

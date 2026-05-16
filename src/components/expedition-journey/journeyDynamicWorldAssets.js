@@ -47,11 +47,13 @@ export const loadDynamicWorldAssetPack = ({ baseUrl = '/', onUpdate } = {}) => {
 };
 
 export const getDynamicWorldEffectRegion = (type) => {
-  if (type === 'dust-gust' || type === 'moving-fog' || type === 'unstable-excavation') {
-    return DYNAMIC_WORLD_EFFECT_REGIONS.dustGust;
-  }
-  if (type === 'birds-scatter') return DYNAMIC_WORLD_EFFECT_REGIONS.birdsScatter;
   if (type === 'shrine-glow') return DYNAMIC_WORLD_EFFECT_REGIONS.shrineGlow;
   if (type === 'rockfall' || type === 'ruin-collapse') return DYNAMIC_WORLD_EFFECT_REGIONS.rockfall;
   return null;
 };
+
+export const usesPaintedDynamicWorldEffect = (type) => (
+  type === 'shrine-glow'
+  || type === 'rockfall'
+  || type === 'ruin-collapse'
+);
