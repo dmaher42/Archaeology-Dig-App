@@ -1,51 +1,66 @@
 {
   "image": "cursed-statue-sprites.png",
-  "source": "AI-generated Cursed Statue enemy sprite sheet, integrated as a dedicated atlas for regular Journey statue enemies.",
-  "coordinateNote": "Generated as seven side-by-side frames with chroma background removed; regions are padded content crops.",
-  "imageWidth": 2125,
-  "imageHeight": 740,
+  "source": "Codex-generated upgraded regular enemy sprite sheet with fixed transparent cells and consistent baseline.",
+  "coordinateNote": "Eight fixed cells: Idle, Walk1, Walk2, Walk3, Windup, Attack, Hit, Defeated. Regions share one bottom-center anchor.",
+  "frameContract": [
+    "Idle",
+    "Walk1",
+    "Walk2",
+    "Walk3",
+    "Windup",
+    "Attack",
+    "Hit",
+    "Defeated"
+  ],
+  "baseline": "bottom-center shared per family; no baked large shadow",
   "regions": {
     "cursedStatueIdle": {
-      "x": 37,
-      "y": 196,
-      "w": 240,
-      "h": 368
+      "x": 45,
+      "y": 64,
+      "w": 302,
+      "h": 267
     },
     "cursedStatueWalk1": {
-      "x": 304,
-      "y": 201,
-      "w": 280,
-      "h": 366
+      "x": 429,
+      "y": 64,
+      "w": 302,
+      "h": 267
     },
     "cursedStatueWalk2": {
-      "x": 607,
-      "y": 199,
-      "w": 279,
-      "h": 368
+      "x": 813,
+      "y": 64,
+      "w": 302,
+      "h": 267
+    },
+    "cursedStatueWalk3": {
+      "x": 1197,
+      "y": 64,
+      "w": 302,
+      "h": 267
     },
     "cursedStatueWindup": {
-      "x": 911,
-      "y": 196,
-      "w": 303,
-      "h": 368
+      "x": 1581,
+      "y": 64,
+      "w": 302,
+      "h": 267
     },
     "cursedStatueAttack": {
-      "x": 1214,
-      "y": 256,
-      "w": 304,
-      "h": 318
+      "x": 1965,
+      "y": 64,
+      "w": 302,
+      "h": 267
     },
     "cursedStatueHit": {
-      "x": 1518,
-      "y": 222,
-      "w": 303,
-      "h": 342
+      "x": 2349,
+      "y": 64,
+      "w": 302,
+      "h": 267
     },
     "cursedStatueDefeated": {
-      "x": 1821,
-      "y": 413,
-      "w": 290,
-      "h": 163
+      "x": 2733,
+      "y": 64,
+      "w": 302,
+      "h": 267
     }
   }
 }

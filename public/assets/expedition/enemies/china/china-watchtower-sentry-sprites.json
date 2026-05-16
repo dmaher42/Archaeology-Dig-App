@@ -1,14 +1,66 @@
 {
   "image": "china-watchtower-sentry-sprites.png",
-  "source": "AI-generated Ancient China watchtower sentry enemy sprite sheet, chroma-key removed and saved as a transparent PNG.",
-  "coordinateNote": "Alpha-bounded crops from a 7-frame horizontal generated sheet, with small padding to preserve antialiasing and effects.",
+  "source": "Codex-generated upgraded regular enemy sprite sheet with fixed transparent cells and consistent baseline.",
+  "coordinateNote": "Eight fixed cells: Idle, Walk1, Walk2, Walk3, Windup, Attack, Hit, Defeated. Regions share one bottom-center anchor.",
+  "frameContract": [
+    "Idle",
+    "Walk1",
+    "Walk2",
+    "Walk3",
+    "Windup",
+    "Attack",
+    "Hit",
+    "Defeated"
+  ],
+  "baseline": "bottom-center shared per family; no baked large shadow",
   "regions": {
-    "watchtowerSentryIdle": { "x": 32, "y": 211, "w": 233, "h": 408 },
-    "watchtowerSentryWalk1": { "x": 265, "y": 245, "w": 265, "h": 372 },
-    "watchtowerSentryWalk2": { "x": 530, "y": 231, "w": 265, "h": 385 },
-    "watchtowerSentryWindup": { "x": 795, "y": 245, "w": 265, "h": 373 },
-    "watchtowerSentryAttack": { "x": 1060, "y": 286, "w": 265, "h": 327 },
-    "watchtowerSentryHit": { "x": 1325, "y": 298, "w": 265, "h": 320 },
-    "watchtowerSentryDefeated": { "x": 1590, "y": 406, "w": 261, "h": 233 }
+    "watchtowerSentryIdle": {
+      "x": 84,
+      "y": 176,
+      "w": 253,
+      "h": 164
+    },
+    "watchtowerSentryWalk1": {
+      "x": 468,
+      "y": 176,
+      "w": 253,
+      "h": 164
+    },
+    "watchtowerSentryWalk2": {
+      "x": 852,
+      "y": 176,
+      "w": 253,
+      "h": 164
+    },
+    "watchtowerSentryWalk3": {
+      "x": 1236,
+      "y": 176,
+      "w": 253,
+      "h": 164
+    },
+    "watchtowerSentryWindup": {
+      "x": 1620,
+      "y": 176,
+      "w": 253,
+      "h": 164
+    },
+    "watchtowerSentryAttack": {
+      "x": 2004,
+      "y": 176,
+      "w": 253,
+      "h": 164
+    },
+    "watchtowerSentryHit": {
+      "x": 2388,
+      "y": 176,
+      "w": 253,
+      "h": 164
+    },
+    "watchtowerSentryDefeated": {
+      "x": 2772,
+      "y": 176,
+      "w": 253,
+      "h": 164
+    }
   }
 }

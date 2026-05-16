@@ -1,14 +1,66 @@
 {
   "image": "china-river-crab-sprites.png",
-  "source": "AI-generated Ancient China river crab enemy sprite sheet, chroma-key removed and saved as a transparent PNG.",
-  "coordinateNote": "Alpha-bounded crops from a 7-frame horizontal generated sheet, with small padding to preserve antialiasing and effects.",
+  "source": "Codex imagegen polished Ancient China river crab sprite sheet normalized from chroma-key source to transparent fixed cells.",
+  "coordinateNote": "Eight fixed cells: Idle, Walk1, Walk2, Walk3, Windup, Attack, Hit, Defeated. Each frame is bottom-center aligned to one shared baseline with transparent padding.",
+  "frameContract": [
+    "Idle",
+    "Walk1",
+    "Walk2",
+    "Walk3",
+    "Windup",
+    "Attack",
+    "Hit",
+    "Defeated"
+  ],
+  "baseline": "bottom-center shared per family; renderer adds contact shadow/visibility support",
   "regions": {
-    "riverCrabIdle": { "x": 14, "y": 397, "w": 239, "h": 162 },
-    "riverCrabWalk1": { "x": 253, "y": 387, "w": 253, "h": 167 },
-    "riverCrabWalk2": { "x": 506, "y": 393, "w": 253, "h": 165 },
-    "riverCrabWindup": { "x": 759, "y": 283, "w": 253, "h": 275 },
-    "riverCrabAttack": { "x": 1012, "y": 349, "w": 253, "h": 213 },
-    "riverCrabHit": { "x": 1265, "y": 335, "w": 253, "h": 225 },
-    "riverCrabDefeated": { "x": 1518, "y": 402, "w": 245, "h": 169 }
+    "riverCrabIdle": {
+      "x": 0,
+      "y": 0,
+      "w": 384,
+      "h": 320
+    },
+    "riverCrabWalk1": {
+      "x": 384,
+      "y": 0,
+      "w": 384,
+      "h": 320
+    },
+    "riverCrabWalk2": {
+      "x": 768,
+      "y": 0,
+      "w": 384,
+      "h": 320
+    },
+    "riverCrabWalk3": {
+      "x": 1152,
+      "y": 0,
+      "w": 384,
+      "h": 320
+    },
+    "riverCrabWindup": {
+      "x": 1536,
+      "y": 0,
+      "w": 384,
+      "h": 320
+    },
+    "riverCrabAttack": {
+      "x": 1920,
+      "y": 0,
+      "w": 384,
+      "h": 320
+    },
+    "riverCrabHit": {
+      "x": 2304,
+      "y": 0,
+      "w": 384,
+      "h": 320
+    },
+    "riverCrabDefeated": {
+      "x": 2688,
+      "y": 0,
+      "w": 384,
+      "h": 320
+    }
   }
 }

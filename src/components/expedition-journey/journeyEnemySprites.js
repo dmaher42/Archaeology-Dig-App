@@ -5,33 +5,38 @@ export const LOOTER_CAPTAIN_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}looter
 export const TEMPLE_BAT_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}temple-bat-sprites.json`;
 export const DESERT_SCARAB_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}desert-scarab-sprites.json`;
 export const SAND_SNAKE_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}sand-snake-sprites.json`;
+export const SCORPION_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}scorpion-sprites.json`;
+export const SAND_WISP_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}sand-wisp-sprites.json`;
 export const CURSED_STATUE_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}cursed-statue-sprites.json`;
 export const STONE_GUARDIAN_ENEMY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}stone-guardian-enemy-sprites.json`;
 export const CHINA_ENEMY_GUARDIAN_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-enemy-guardian-sprites.json`;
 export const CHINA_RIVER_CRAB_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-river-crab-sprites.json`;
 export const CHINA_WATCHTOWER_SENTRY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-watchtower-sentry-sprites.json`;
 export const CHINA_CLAY_GUARDIAN_ENEMY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-clay-guardian-enemy-sprites.json`;
-export const ENEMY_SPRITE_ATLAS_VERSION = 'enemy-sprite-packs-2026-05-15-china-dedicated-mobs';
+export const ENEMY_SPRITE_ATLAS_VERSION = 'enemy-sprite-packs-2026-05-16-upgraded-regular-enemies';
 export const MIN_ENEMY_DRAW_HEIGHT = 86;
 
 export const EXPECTED_ENEMY_SPRITE_KEYS = [
   'scarabIdle',
-  'scarabCrawl1',
-  'scarabCrawl2',
+  'scarabWalk1',
+  'scarabWalk2',
+  'scarabWalk3',
   'scarabWindup',
   'scarabAttack',
   'scarabHit',
   'scarabDefeated',
   'snakeIdle',
-  'snakeSlither1',
-  'snakeSlither2',
+  'snakeWalk1',
+  'snakeWalk2',
+  'snakeWalk3',
   'snakeWindup',
   'snakeAttack',
   'snakeHit',
   'snakeDefeated',
   'batIdle',
-  'batFlap1',
-  'batFlap2',
+  'batWalk1',
+  'batWalk2',
+  'batWalk3',
   'batWindup',
   'batAttack',
   'batHit',
@@ -42,17 +47,18 @@ export const EXPECTED_LOOTER_SPRITE_KEYS = [
   'looterIdle',
   'looterWalk1',
   'looterWalk2',
+  'looterWalk3',
   'looterWindup',
   'looterAttack',
   'looterHit',
   'looterDefeated',
-  'looterCaptainIdle',
 ];
 
 export const EXPECTED_LOOTER_CAPTAIN_SPRITE_KEYS = [
   'looterCaptainIdle',
   'looterCaptainWalk1',
   'looterCaptainWalk2',
+  'looterCaptainWalk3',
   'looterCaptainWindup',
   'looterCaptainAttack',
   'looterCaptainHit',
@@ -61,8 +67,9 @@ export const EXPECTED_LOOTER_CAPTAIN_SPRITE_KEYS = [
 
 export const EXPECTED_TEMPLE_BAT_SPRITE_KEYS = [
   'batIdle',
-  'batFlap1',
-  'batFlap2',
+  'batWalk1',
+  'batWalk2',
+  'batWalk3',
   'batWindup',
   'batAttack',
   'batHit',
@@ -71,8 +78,9 @@ export const EXPECTED_TEMPLE_BAT_SPRITE_KEYS = [
 
 export const EXPECTED_DESERT_SCARAB_SPRITE_KEYS = [
   'scarabIdle',
-  'scarabCrawl1',
-  'scarabCrawl2',
+  'scarabWalk1',
+  'scarabWalk2',
+  'scarabWalk3',
   'scarabWindup',
   'scarabAttack',
   'scarabHit',
@@ -81,18 +89,42 @@ export const EXPECTED_DESERT_SCARAB_SPRITE_KEYS = [
 
 export const EXPECTED_SAND_SNAKE_SPRITE_KEYS = [
   'snakeIdle',
-  'snakeSlither1',
-  'snakeSlither2',
+  'snakeWalk1',
+  'snakeWalk2',
+  'snakeWalk3',
   'snakeWindup',
   'snakeAttack',
   'snakeHit',
   'snakeDefeated',
 ];
 
+export const EXPECTED_SCORPION_SPRITE_KEYS = [
+  'scorpionIdle',
+  'scorpionWalk1',
+  'scorpionWalk2',
+  'scorpionWalk3',
+  'scorpionWindup',
+  'scorpionAttack',
+  'scorpionHit',
+  'scorpionDefeated',
+];
+
+export const EXPECTED_SAND_WISP_SPRITE_KEYS = [
+  'sandWispIdle',
+  'sandWispWalk1',
+  'sandWispWalk2',
+  'sandWispWalk3',
+  'sandWispWindup',
+  'sandWispAttack',
+  'sandWispHit',
+  'sandWispDefeated',
+];
+
 export const EXPECTED_CURSED_STATUE_SPRITE_KEYS = [
   'cursedStatueIdle',
   'cursedStatueWalk1',
   'cursedStatueWalk2',
+  'cursedStatueWalk3',
   'cursedStatueWindup',
   'cursedStatueAttack',
   'cursedStatueHit',
@@ -103,6 +135,7 @@ export const EXPECTED_STONE_GUARDIAN_ENEMY_SPRITE_KEYS = [
   'stoneGuardianEnemyIdle',
   'stoneGuardianEnemyWalk1',
   'stoneGuardianEnemyWalk2',
+  'stoneGuardianEnemyWalk3',
   'stoneGuardianEnemyWindup',
   'stoneGuardianEnemyAttack',
   'stoneGuardianEnemyHit',
@@ -141,6 +174,7 @@ export const EXPECTED_CHINA_RIVER_CRAB_SPRITE_KEYS = [
   'riverCrabIdle',
   'riverCrabWalk1',
   'riverCrabWalk2',
+  'riverCrabWalk3',
   'riverCrabWindup',
   'riverCrabAttack',
   'riverCrabHit',
@@ -151,6 +185,7 @@ export const EXPECTED_CHINA_WATCHTOWER_SENTRY_SPRITE_KEYS = [
   'watchtowerSentryIdle',
   'watchtowerSentryWalk1',
   'watchtowerSentryWalk2',
+  'watchtowerSentryWalk3',
   'watchtowerSentryWindup',
   'watchtowerSentryAttack',
   'watchtowerSentryHit',
@@ -161,6 +196,7 @@ export const EXPECTED_CHINA_CLAY_GUARDIAN_ENEMY_SPRITE_KEYS = [
   'clayGuardianIdle',
   'clayGuardianWalk1',
   'clayGuardianWalk2',
+  'clayGuardianWalk3',
   'clayGuardianWindup',
   'clayGuardianAttack',
   'clayGuardianHit',
@@ -191,6 +227,14 @@ const ENEMY_SPRITE_PACKS = {
   snake: {
     atlasPath: SAND_SNAKE_SPRITE_ATLAS_JSON,
     expectedKeys: EXPECTED_SAND_SNAKE_SPRITE_KEYS,
+  },
+  scorpion: {
+    atlasPath: SCORPION_SPRITE_ATLAS_JSON,
+    expectedKeys: EXPECTED_SCORPION_SPRITE_KEYS,
+  },
+  sandWisp: {
+    atlasPath: SAND_WISP_SPRITE_ATLAS_JSON,
+    expectedKeys: EXPECTED_SAND_WISP_SPRITE_KEYS,
   },
   cursedStatue: {
     atlasPath: CURSED_STATUE_SPRITE_ATLAS_JSON,
@@ -333,6 +377,8 @@ export const getEnemySpritePack = (assets, family) => {
   if (family === 'bat') return assets?.packs?.bat || assets?.packs?.small || assets || null;
   if (family === 'scarab') return assets?.packs?.scarab || assets?.packs?.small || assets || null;
   if (family === 'snake') return assets?.packs?.snake || assets?.packs?.small || assets || null;
+  if (family === 'scorpion') return assets?.packs?.scorpion || null;
+  if (family === 'sandWisp') return assets?.packs?.sandWisp || null;
   if (family === 'cursedStatue') return assets?.packs?.cursedStatue || null;
   if (family === 'stoneGuardianEnemy') return assets?.packs?.stoneGuardianEnemy || null;
   if (family === 'riverCrab') return assets?.packs?.chinaRiverCrab || assets?.packs?.chinaEnemyGuardian || null;
@@ -347,6 +393,8 @@ export const getEnemySpriteFamily = (enemy) => {
   if (enemy.type === 'scarab' || name.includes('scarab') || name.includes('beetle')) return 'scarab';
   if (enemy.type === 'snake' || name.includes('snake') || name.includes('serpent')) return 'snake';
   if (enemy.type === 'bat' || name.includes('bat')) return 'bat';
+  if (enemy.type === 'scorpion' || name.includes('scorpion')) return 'scorpion';
+  if (enemy.type === 'sand-wisp' || name.includes('sand wisp')) return 'sandWisp';
   if (enemy.id === 'looter-captain' || name.includes('captain')) return 'looterCaptain';
   if (enemy.type === 'river-crab' || name.includes('river crab') || name.includes('mudbank crab')) return 'riverCrab';
   if (enemy.type === 'watchtower-sentry' || name.includes('watchtower') || name.includes('sentry')) return 'watchtowerSentry';
@@ -361,22 +409,24 @@ export const getEnemySpriteFrame = (enemy, combatMode, now = 0) => {
   const family = getEnemySpriteFamily(enemy);
   if (!family) return null;
 
-  const frameToggle = Math.floor(now / (family === 'bat' ? 150 : 230)) % 2;
+  const walkFrame = (Math.floor(now / (family === 'bat' || family === 'sandWisp' ? 135 : 180)) % 3) + 1;
   if (combatMode === 'defeated') return `${family}Defeated`;
   if (combatMode === 'stunned') return `${family}Hit`;
   if (combatMode === 'windup') return `${family}Windup`;
   if (combatMode === 'attacking') return `${family}Attack`;
 
-  if (family === 'scarab') return frameToggle ? 'scarabCrawl2' : 'scarabCrawl1';
-  if (family === 'snake') return frameToggle ? 'snakeSlither2' : 'snakeSlither1';
-  if (family === 'bat') return frameToggle ? 'batFlap2' : 'batFlap1';
-  if (family === 'looterCaptain') return frameToggle ? 'looterCaptainWalk2' : 'looterCaptainWalk1';
-  if (family === 'looter') return frameToggle ? 'looterWalk2' : 'looterWalk1';
-  if (family === 'cursedStatue') return frameToggle ? 'cursedStatueWalk2' : 'cursedStatueWalk1';
-  if (family === 'stoneGuardianEnemy') return frameToggle ? 'stoneGuardianEnemyWalk2' : 'stoneGuardianEnemyWalk1';
-  if (family === 'riverCrab') return frameToggle ? 'riverCrabWalk2' : 'riverCrabWalk1';
-  if (family === 'watchtowerSentry') return frameToggle ? 'watchtowerSentryWalk2' : 'watchtowerSentryWalk1';
-  if (family === 'clayGuardian') return frameToggle ? 'clayGuardianWalk2' : 'clayGuardianWalk1';
+  if (family === 'scarab') return `scarabWalk${walkFrame}`;
+  if (family === 'snake') return `snakeWalk${walkFrame}`;
+  if (family === 'bat') return `batWalk${walkFrame}`;
+  if (family === 'scorpion') return `scorpionWalk${walkFrame}`;
+  if (family === 'sandWisp') return `sandWispWalk${walkFrame}`;
+  if (family === 'looterCaptain') return `looterCaptainWalk${walkFrame}`;
+  if (family === 'looter') return `looterWalk${walkFrame}`;
+  if (family === 'cursedStatue') return `cursedStatueWalk${walkFrame}`;
+  if (family === 'stoneGuardianEnemy') return `stoneGuardianEnemyWalk${walkFrame}`;
+  if (family === 'riverCrab') return `riverCrabWalk${walkFrame}`;
+  if (family === 'watchtowerSentry') return `watchtowerSentryWalk${walkFrame}`;
+  if (family === 'clayGuardian') return `clayGuardianWalk${walkFrame}`;
   return `${family}Idle`;
 };
 
@@ -391,6 +441,8 @@ export const getEnemySpriteDrawBox = (enemy, screenX, shakeX = 0, combatMode = n
     scarab: defeated ? 2.45 : 2.42,
     snake: defeated ? 2.58 : 2.55,
     bat: defeated ? 2.36 : 2.86,
+    scorpion: defeated ? 2.42 : 2.55,
+    sandWisp: defeated ? 2.24 : 2.62,
     looter: defeated ? 1.74 : 2.34,
     looterCaptain: defeated ? 1.82 : 2.48,
     cursedStatue: defeated ? 1.84 : 2.34,
@@ -408,6 +460,8 @@ export const getEnemySpriteDrawBox = (enemy, screenX, shakeX = 0, combatMode = n
     scarab: defeated ? 10 : 8,
     snake: defeated ? 12 : 10,
     bat: defeated ? 4 : -8,
+    scorpion: defeated ? 12 : 9,
+    sandWisp: defeated ? 4 : -6,
     looter: defeated ? 16 : 11,
     looterCaptain: defeated ? 16 : 11,
     cursedStatue: defeated ? 14 : 9,

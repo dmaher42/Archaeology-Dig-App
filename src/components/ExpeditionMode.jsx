@@ -1346,6 +1346,12 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       items: BASE_CAMP_SHOP_ITEMS.filter(item => item.section === section),
     })).filter(group => group.items.length > 0)
   ), []);
+  const activeBaseCampKitSummary = useMemo(() => (
+    BASE_CAMP_SHOP_ITEMS
+      .filter(item => item.type === 'upgrade' && baseCampProgression.purchasedUpgrades.includes(item.id))
+      .map(item => item.activeSummary || item.shortEffect)
+      .slice(0, 5)
+  ), [baseCampProgression.purchasedUpgrades]);
   const gridComplete = openedGridSquares.size > 0;
   const getVisibleEvidence = useCallback(() => (
     tokensRef.current.filter(token => !token.collected && evidenceVisibleForGrid(token, selectedSurveyZone, openedGridSquares, surveyRevealLinks, gridZoneConfigs))
@@ -3695,7 +3701,19 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
                   <span>Relic Shards</span>
                   <strong>{baseCampProgression.relicShards}</strong>
                 </div>
-                <p>Spend collected relic shards on permanent field gear and expedition identity unlocks.</p>
+                <div className="basecamp-shop-summary-copy">
+                  <p>Spend collected relic shards on permanent field gear and expedition identity unlocks.</p>
+                  <div className="basecamp-active-kit">
+                    <span>Active kit</span>
+                    {activeBaseCampKitSummary.length > 0 ? (
+                      activeBaseCampKitSummary.map(summary => (
+                        <strong key={summary}>{summary}</strong>
+                      ))
+                    ) : (
+                      <em>No permanent gear fitted yet</em>
+                    )}
+                  </div>
+                </div>
               </div>
               {shopFeedback && (
                 <div className={`basecamp-shop-feedback ${shopFeedback.type}`}>
@@ -3727,6 +3745,12 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
                                 {item.cost}
                               </div>
                             </div>
+                            {item.routeUse && (
+                              <div className="basecamp-shop-route-tag">
+                                <Compass size={12} />
+                                <span>{item.routeUse}</span>
+                              </div>
+                            )}
                             <p>{item.description}</p>
                             <button
                               type="button"

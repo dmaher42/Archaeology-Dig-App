@@ -1,51 +1,66 @@
 {
   "image": "stone-guardian-enemy-sprites.png",
-  "source": "AI-generated Stone Guardian regular enemy sprite sheet, integrated as a dedicated atlas for non-boss Journey guardian enemies.",
-  "coordinateNote": "Generated as seven side-by-side frames with chroma background removed; regions are padded content crops.",
-  "imageWidth": 2125,
-  "imageHeight": 740,
+  "source": "Codex-generated upgraded regular enemy sprite sheet with fixed transparent cells and consistent baseline.",
+  "coordinateNote": "Eight fixed cells: Idle, Walk1, Walk2, Walk3, Windup, Attack, Hit, Defeated. Regions share one bottom-center anchor.",
+  "frameContract": [
+    "Idle",
+    "Walk1",
+    "Walk2",
+    "Walk3",
+    "Windup",
+    "Attack",
+    "Hit",
+    "Defeated"
+  ],
+  "baseline": "bottom-center shared per family; no baked large shadow",
   "regions": {
     "stoneGuardianEnemyIdle": {
-      "x": 33,
-      "y": 213,
-      "w": 254,
-      "h": 349
+      "x": 45,
+      "y": 64,
+      "w": 302,
+      "h": 267
     },
     "stoneGuardianEnemyWalk1": {
-      "x": 304,
-      "y": 212,
-      "w": 293,
-      "h": 353
+      "x": 429,
+      "y": 64,
+      "w": 302,
+      "h": 267
     },
     "stoneGuardianEnemyWalk2": {
-      "x": 607,
-      "y": 213,
-      "w": 304,
-      "h": 352
+      "x": 813,
+      "y": 64,
+      "w": 302,
+      "h": 267
+    },
+    "stoneGuardianEnemyWalk3": {
+      "x": 1197,
+      "y": 64,
+      "w": 302,
+      "h": 267
     },
     "stoneGuardianEnemyWindup": {
-      "x": 911,
-      "y": 186,
-      "w": 303,
-      "h": 375
+      "x": 1581,
+      "y": 64,
+      "w": 302,
+      "h": 267
     },
     "stoneGuardianEnemyAttack": {
-      "x": 1214,
-      "y": 247,
-      "w": 304,
-      "h": 326
+      "x": 1965,
+      "y": 64,
+      "w": 302,
+      "h": 267
     },
     "stoneGuardianEnemyHit": {
-      "x": 1518,
-      "y": 237,
-      "w": 303,
-      "h": 325
+      "x": 2349,
+      "y": 64,
+      "w": 302,
+      "h": 267
     },
     "stoneGuardianEnemyDefeated": {
-      "x": 1821,
-      "y": 401,
-      "w": 282,
-      "h": 171
+      "x": 2733,
+      "y": 64,
+      "w": 302,
+      "h": 267
     }
   }
 }

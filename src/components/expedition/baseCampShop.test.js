@@ -6,6 +6,7 @@ import {
   applyShopPurchase,
   createDefaultProgression,
   getActiveUpgradeEffects,
+  getShopItemDisplayName,
 } from './baseCampShop.js';
 
 test('applyShopPurchase spends relic shards and records a permanent upgrade', () => {
@@ -40,6 +41,39 @@ test('getActiveUpgradeEffects returns small balanced movement and survival bonus
   assert.equal(effects.airControlMultiplier, 1.08);
   assert.equal(effects.maxStamina, 112);
   assert.ok(effects.knockbackMultiplier < 1);
+});
+
+test('route exploration upgrades can be purchased from Base Camp', () => {
+  const routeUpgradeIds = ['rope-launcher', 'survey-goggles', 'excavation-hammer', 'climbing-gloves'];
+  routeUpgradeIds.forEach((upgradeId) => {
+    const item = BASE_CAMP_SHOP_ITEMS.find(shopItem => shopItem.id === upgradeId);
+    assert.ok(item, `${upgradeId} should be in the Base Camp shop`);
+    assert.equal(item.type, 'upgrade');
+    assert.equal(item.locked, undefined);
+    assert.match(item.shortEffect, /route|clue|bridge/i);
+    assert.equal(item.routeUse, 'Unlocks optional route');
+    assert.ok(item.activeSummary);
+  });
+
+  const progress = createDefaultProgression({ relicShards: 100 });
+  const result = applyShopPurchase(progress, 'excavation-hammer');
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.progress.purchasedUpgrades, ['excavation-hammer']);
+});
+
+test('route exploration upgrades expose route access effects', () => {
+  const effects = getActiveUpgradeEffects(['rope-launcher', 'survey-goggles', 'excavation-hammer']);
+
+  assert.equal(effects.hiddenRouteAccess, true);
+  assert.equal(effects.hiddenClueHighlights, true);
+  assert.equal(effects.fragileWallAccess, true);
+});
+
+test('shop item display names keep Journey route labels classroom-readable', () => {
+  assert.equal(getShopItemDisplayName('rope-launcher'), 'Rope Launcher');
+  assert.equal(getShopItemDisplayName('survey-goggles'), 'Survey Goggles');
+  assert.equal(getShopItemDisplayName('future-field-kit'), 'Future Field Kit');
 });
 
 test('cosmetic purchases use the same relic shard bank', () => {

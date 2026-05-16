@@ -1,0 +1,66 @@
+{
+  "image": "scorpion-sprites.png",
+  "source": "Codex-generated upgraded regular enemy sprite sheet with fixed transparent cells and consistent baseline.",
+  "coordinateNote": "Eight fixed cells: Idle, Walk1, Walk2, Walk3, Windup, Attack, Hit, Defeated. Regions share one bottom-center anchor.",
+  "frameContract": [
+    "Idle",
+    "Walk1",
+    "Walk2",
+    "Walk3",
+    "Windup",
+    "Attack",
+    "Hit",
+    "Defeated"
+  ],
+  "baseline": "bottom-center shared per family; no baked large shadow",
+  "regions": {
+    "scorpionIdle": {
+      "x": 82,
+      "y": 132,
+      "w": 245,
+      "h": 199
+    },
+    "scorpionWalk1": {
+      "x": 466,
+      "y": 132,
+      "w": 245,
+      "h": 199
+    },
+    "scorpionWalk2": {
+      "x": 850,
+      "y": 132,
+      "w": 245,
+      "h": 199
+    },
+    "scorpionWalk3": {
+      "x": 1234,
+      "y": 132,
+      "w": 245,
+      "h": 199
+    },
+    "scorpionWindup": {
+      "x": 1618,
+      "y": 132,
+      "w": 245,
+      "h": 199
+    },
+    "scorpionAttack": {
+      "x": 2002,
+      "y": 132,
+      "w": 245,
+      "h": 199
+    },
+    "scorpionHit": {
+      "x": 2386,
+      "y": 132,
+      "w": 245,
+      "h": 199
+    },
+    "scorpionDefeated": {
+      "x": 2770,
+      "y": 132,
+      "w": 245,
+      "h": 199
+    }
+  }
+}

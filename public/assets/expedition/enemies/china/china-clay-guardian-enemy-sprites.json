@@ -1,14 +1,66 @@
 {
   "image": "china-clay-guardian-enemy-sprites.png",
-  "source": "AI-generated Ancient China clay guardian enemy sprite sheet, chroma-key removed and saved as a transparent PNG.",
-  "coordinateNote": "Alpha-bounded crops from a 7-frame horizontal generated sheet, with small padding to preserve antialiasing and effects.",
+  "source": "Codex-generated upgraded regular enemy sprite sheet with fixed transparent cells and consistent baseline.",
+  "coordinateNote": "Eight fixed cells: Idle, Walk1, Walk2, Walk3, Windup, Attack, Hit, Defeated. Regions share one bottom-center anchor.",
+  "frameContract": [
+    "Idle",
+    "Walk1",
+    "Walk2",
+    "Walk3",
+    "Windup",
+    "Attack",
+    "Hit",
+    "Defeated"
+  ],
+  "baseline": "bottom-center shared per family; no baked large shadow",
   "regions": {
-    "clayGuardianIdle": { "x": 40, "y": 141, "w": 273, "h": 430 },
-    "clayGuardianWalk1": { "x": 313, "y": 150, "w": 313, "h": 420 },
-    "clayGuardianWalk2": { "x": 626, "y": 147, "w": 313, "h": 424 },
-    "clayGuardianWindup": { "x": 939, "y": 158, "w": 313, "h": 413 },
-    "clayGuardianAttack": { "x": 1252, "y": 212, "w": 313, "h": 373 },
-    "clayGuardianHit": { "x": 1565, "y": 184, "w": 313, "h": 387 },
-    "clayGuardianDefeated": { "x": 1878, "y": 383, "w": 305, "h": 210 }
+    "clayGuardianIdle": {
+      "x": 45,
+      "y": 64,
+      "w": 302,
+      "h": 267
+    },
+    "clayGuardianWalk1": {
+      "x": 429,
+      "y": 64,
+      "w": 302,
+      "h": 267
+    },
+    "clayGuardianWalk2": {
+      "x": 813,
+      "y": 64,
+      "w": 302,
+      "h": 267
+    },
+    "clayGuardianWalk3": {
+      "x": 1197,
+      "y": 64,
+      "w": 302,
+      "h": 267
+    },
+    "clayGuardianWindup": {
+      "x": 1581,
+      "y": 64,
+      "w": 302,
+      "h": 267
+    },
+    "clayGuardianAttack": {
+      "x": 1965,
+      "y": 64,
+      "w": 302,
+      "h": 267
+    },
+    "clayGuardianHit": {
+      "x": 2349,
+      "y": 64,
+      "w": 302,
+      "h": 267
+    },
+    "clayGuardianDefeated": {
+      "x": 2733,
+      "y": 64,
+      "w": 302,
+      "h": 267
+    }
   }
 }

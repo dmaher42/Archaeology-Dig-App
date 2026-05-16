@@ -1437,6 +1437,19 @@ Remaining notes:
 - Browser notes: local Playwright smoke opened Ancient Egypt Journey, picked up a shard, discovered `desert-upper-survey-route`, collected `egypt-scarab-fragment-1`, activated the Ruined Temple checkpoint, triggered the boss reward feedback path through the dev-only debug hook, jumped to Base Camp, purchased Reinforced Boots, visually checked the purchase feedback screenshot, and reported no console/page errors.
 - Remaining risks/follow-up tasks: the boss reward check used a dev-only reward hook instead of a full boss defeat playthrough; collection completion feedback is wired and state-backed, but a later content pass should add more completeable sets per civilisation so students see it more often.
 
+2026-05-16 update:
+- Added ability-gated exploration to the existing Journey hidden-route system; no Journey rewrite, open-world map, or main-route progression changes were made.
+- Added visible gated route metadata for high ledges, cracked walls, unstable bridges, blocked excavation tunnels, and narrow crawl routes.
+- Connected route access to Base Camp upgrades: Rope Launcher, Survey Goggles, Excavation Hammer, and Climbing Gloves.
+- Made Rope Launcher and Survey Goggles real purchasable Base Camp upgrades and added Excavation Hammer as a purchasable expedition upgrade.
+- Added subtle locked-route tease messaging such as `A narrow route continues above. You may need a Rope Launcher.` and `This wall looks fragile. An Excavation Hammer could open it carefully.`
+- Kept gated routes optional: locked routes stay visible but undiscovered, and their hidden shards, lore tablets, and secret collectibles remain unavailable until the matching upgrade is owned.
+- Added Journey snapshot data for gated routes: gate type, required upgrade, locked message, reward summary, tease visibility, and unlocked/discovered state.
+- Added focused tests for gated route types, required upgrades, shop availability, and route-access upgrade effects.
+- Validation: `node --test src\components\expedition-journey\journeySecrets.test.js` passed; `node --test src\components\expedition\baseCampShop.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with existing runtime-public-asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Browser notes: local Playwright smoke confirmed the Egypt high-ledge route is visible but locked without Rope Launcher, shows a readable clue message, remains undiscovered, and does not grant the secret collectible. With Rope Launcher seeded as a Base Camp upgrade, the same route unlocks, discovers safely, collects `egypt-scarab-fragment-1`, triggers reward feedback, and reports no console/page errors.
+- Remaining risks/follow-up tasks: browser verification covered the first Egypt gated route in locked and unlocked states; later playthrough tuning should check every gated route naturally across Egypt and China for reachability and reward pacing.
+
 2026-05-15 update:
 - Added a Journey enemy difficulty pass inside the existing enemy setup and shared Journey update loop; no new combat system or duplicate enemy system was added.
 - Increased regular enemy health and contact damage from the shared `makeEnemy` helper so Egypt and China enemies are harder to defeat without hand-editing every layout row.
@@ -1447,3 +1460,107 @@ Remaining notes:
 - Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing runtime-public-asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
 - Browser notes: live browser verification was not completed in this pass because the browser automation connector was not available in the current toolset. A short manual or Playwright Journey smoke test is still recommended to tune exact difficulty feel.
 - Remaining risks/follow-up tasks: this is a global difficulty bump, so a later classroom-feel pass may need to soften the earliest two start-area enemies if Year 7 players find the opening too punishing.
+
+2026-05-16 update:
+- Added a Journey enemy visual grounding pass inside the existing enemy renderer.
+- Adjusted linked enemy sprite draw boxes to respect the loaded atlas frame aspect ratio before drawing, reducing hidden `contain` padding that could make visible feet sit above the floor/platform.
+- Added a subtle non-bat ground contact dust/lip under active linked enemy sprites so grounded enemies read as planted on the route surface.
+- Kept enemy gameplay, placement, health, movement, boss logic, Stage Select, Base Camp, Excavation, Museum, Lab, Report, and asset files unchanged in this pass.
+- Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing runtime-public-asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Remaining visual upgrade ideas: regenerate enemy sprite sheets with consistent foot baseline markers, add two or three true walking frames per enemy, add small contact shadows baked into the atlas, and create separate platform/ground color variants so enemies sit naturally on China grass, timber, and rammed-earth surfaces.
+
+2026-05-16 update:
+- Implemented the upgraded regular enemy sprite-sheet pass for Lost Site Expedition using the existing Journey enemy atlas pipeline.
+- Rebuilt regular enemy PNG/JSON atlases for scarab, snake, bat, looter, looter captain, cursed statue, stone guardian enemy, China river crab, China watchtower sentry, and China clay guardian sentry.
+- Added new dedicated transparent PNG/JSON atlases for scorpion and sand wisp so they no longer rely only on fallback canvas drawing.
+- Standardised upgraded regular enemy packs around an 8-frame contract: Idle, Walk1, Walk2, Walk3, Windup, Attack, Hit, Defeated.
+- Updated `journeyEnemySprites.js` to load the new scorpion and sand wisp packs, use 3-frame walk cycling, and keep existing China/Egypt enemy family routing.
+- Added `scripts/generate_enemy_sprite_sheets.py` for repeatable transparent atlas generation and `scripts/validate_enemy_sprite_sheets.py` for static checks covering required regions, alpha, crop edges, and baseline drift.
+- Kept gameplay systems unchanged: no enemy placement, health, patrol, hitbox, boss, Stage Select, Base Camp, Excavation, Museum, Lab, Report, or save/load changes were intentionally made.
+- Validation: `scripts/validate_enemy_sprite_sheets.py` passed for 13 upgraded atlases; `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing runtime-public-asset warnings only.
+- Remaining risk: browser/playtest verification still needs to confirm the new 3-frame cycles and grounded feet in live Egypt and China Journey scenes.
+
+2026-05-16 update:
+- Added a Journey world-continuity pass on top of the existing ability-gated exploration work; no Journey rewrite, open-world map, route-size expansion, or section progression changes were made.
+- Added distant landmark metadata and lightweight canvas silhouettes for temple towers, future gates, guardian ruins, broken bridge lines, excavation camp lights, Base Camp lanterns, and distant survey mountains.
+- Added transition storytelling markers at major section boundaries: collapsed desert road into the temple, warning seals into catacombs, broken supports into the escape route, and camp lights/flags over the final rise.
+- Added recurring expedition markers through the existing story-prop renderer, including broken supply carts and base camp supply carts alongside the existing flags, signs, survey markers, camps, lights, and banners.
+- Added a small connected-world ambient layer with subtle birds, drifting dust, marker motion, and section-appropriate atmosphere; it records active details in the Journey snapshot for browser verification.
+- Added Journey snapshot fields for `worldContinuityPassActive`, continuity version, visible world landmarks, visible transition markers, and connected ambient detail count.
+- Added focused tests proving continuity landmarks, transition markers, and recurring expedition markers exist in the canonical Journey data.
+- Kept Stage Select, Base Camp, Excavation, Museum, Lab, Report, save/load, route gates, hidden-route rewards, boss systems, and Journey collision rules unchanged in this pass.
+- Validation: `node --test src\components\expedition-journey\journeySecrets.test.js` passed; `node --test src\components\expedition\baseCampShop.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing runtime-public-asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Browser notes: local Playwright smoke opened Ancient Egypt Journey, dismissed the mission dossier, sampled Desert Entry, Ruined Temple, Catacombs, Escape Sequence, and Dig Site Entrance using the Journey debug hook, confirmed continuity snapshot fields were active, confirmed section-specific landmarks and transition markers appeared without leaking into unrelated sections, captured `output/world-continuity-clean-shot.png`, and reported no console/page errors.
+- Remaining risks/follow-up tasks: browser verification used deterministic debug positioning rather than a natural end-to-end classroom playthrough; the new silhouettes are deliberately subtle, so a later art pass could tune exact opacity per background after student testing.
+
+2026-05-16 update:
+- Added a focused reactive environmental interaction pass inside the existing Journey data/render/update loop; no Journey rewrite, large level expansion, or heavy particle system was added.
+- Added foreground interaction metadata for breakable crates, loose rocks, hanging ropes, swinging banners, bridge cables, collapsing bridge props, climbable watchtower sections, rippling water, and blowing grass.
+- Added lightweight canvas rendering for those elements with small wind/sway/ripple movement so the world feels alive without hiding routes, rewards, hazards, or enemies.
+- Added reactive feedback using existing Journey effect and camera-shake systems: crates break when struck, loose rocks and bridge props kick up dust/debris, unstable structures vibrate subtly, and recent interactions are exposed in the Journey snapshot.
+- Added timed reactive platform support for selected optional/short-route platforms: unstable ledges and bridge pieces start a countdown when stood on, collapse briefly, then respawn so there is no softlock.
+- Added debug snapshot fields for the reactive environment pass, visible interactions, broken interactions, triggered interactions, collapsed platform ids, active platform timers, and recent interactions.
+- Added focused Journey data tests covering interactive foreground elements, environmental movement elements, and reactive platform metadata.
+- Kept Stage Select, Base Camp, Excavation, Museum, Lab, Report, save/load, boss systems, route gates, enemy logic, and main Journey progression unchanged.
+- Validation: `node --test src\components\expedition-journey\journeySecrets.test.js` passed; `node --test src\components\expedition\baseCampShop.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with existing runtime-public-asset warnings only.
+- Browser notes: local Playwright smoke opened Ancient Egypt Journey, confirmed `reactiveEnvironmentPassActive`, saw the desert breakable crate in `visibleEnvironmentInteractions`, broke the crate with the existing attack input, armed the escape falling-stair platform, confirmed it collapsed into `collapsedPlatformIds`, confirmed it respawned safely, captured `output/reactive-platform-collapse-smoke.png`, and reported no console/page errors.
+- Remaining risks/follow-up tasks: the browser pass used deterministic debug positioning for the escape platform; a natural full-route playthrough should tune exact collapse delays and decide whether later China-specific foreground pieces need bespoke art.
+
+2026-05-16 update:
+- Checked the new Base Camp upgrade wiring and completed a focused polish pass without changing Journey gameplay, route placement, enemy balance, Stage Select, Excavation, Museum, Lab, Report, or save/load.
+- Clarified permanent upgrade card wording so route tools explain their real use: Rope Launcher for high ledges, Survey Goggles for faint safe-route clues, Excavation Hammer for cracked wall routes, and Climbing Gloves for unstable bridge routes.
+- Added active-kit summary chips to the Base Camp shop so purchased permanent upgrades are visible as fitted expedition gear instead of only appearing as owned buttons.
+- Added route-use tags to upgrade cards so optional-route unlocks are easier to spot in the shop.
+- Updated locked Journey hidden-route labels to use the shared shop display names, so labels read like `Needs Rope Launcher` instead of relying on raw upgrade id formatting.
+- Added a near-route optional-reward hint line for locked hidden routes so students understand the route is optional and worth returning to later.
+- Added focused Base Camp shop tests for route upgrade labels, route unlock metadata, active summary metadata, and classroom-readable display names.
+- Validation: `node --test src\components\expedition\baseCampShop.test.js` passed; `node --test src\components\expedition-journey\journeySecrets.test.js` passed; bundled Python `scripts\validate_enemy_sprite_sheets.py` passed for 13 upgraded enemy atlases; `npm.cmd run lint` passed; `npm.cmd run build` passed with existing runtime-public-asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Browser notes: local Vite dev server started on `http://127.0.0.1:5175/Archaeology-Dig-App/` and returned HTTP 200. Full browser automation was unavailable in this session because the Playwright package was not available to the Node REPL.
+- Remaining risk/follow-up tasks: a human or browser-automation visual pass should confirm the Base Camp chip wrapping and locked-route hint placement at classroom projector sizes before these upgrade UI changes are considered fully visually signed off.
+
+2026-05-16 update:
+- Fixed the reported issue where China Journey enemies were present but not visibly readable against the upgraded background.
+- Kept enemy placement, health, damage, patrol, boss systems, route locks, Stage Select, Base Camp, Excavation, Museum, Lab, Report, and save/load unchanged.
+- Added an enemy visibility assist inside the existing linked enemy sprite renderer: the draw state now resets before enemy art, contact shadows remain renderer-side, and each atlas enemy gets a low-opacity high-contrast silhouette under the PNG so it cannot disappear against detailed scenery.
+- Exposed `enemyVisibilityAssistActive` in the Journey debug snapshot for browser verification.
+- Browser verification: launched Ancient China Journey on local Vite, jumped to the early river route, confirmed `visibleEnemySpriteFamilies: ["riverCrab"]`, confirmed live frame states such as `riverCrabWalk1`, captured `output/enemy-visibility-china-route-after-fix.png`, and saw river crab enemies visibly grounded on the route with no console/page errors.
+- Validation: `node --test src\components\expedition-journey\journeySecrets.test.js` passed; `node --test src\components\expedition\baseCampShop.test.js` passed; bundled Python `scripts\validate_enemy_sprite_sheets.py` passed for 13 upgraded enemy atlases; `npm.cmd run lint` passed; `npm.cmd run build` passed with existing runtime-public-asset warnings only.
+- Remaining risk/follow-up tasks: the enemy art is now readable, but the generated river crab scale is quite large in the opening route. A later visual tuning pass could reduce crab scale slightly while preserving the new no-vanish visibility guard.
+
+2026-05-16 update:
+- Replaced the placeholder-looking China river crab sheet with a real polished PNG sprite sheet generated through the imagegen workflow.
+- Removed the flat chroma-key background locally, normalised the sheet into eight transparent fixed cells, and rewrote `china-river-crab-sprites.json` to point at the new `riverCrabIdle`, `riverCrabWalk1`, `riverCrabWalk2`, `riverCrabWalk3`, `riverCrabWindup`, `riverCrabAttack`, `riverCrabHit`, and `riverCrabDefeated` regions.
+- Kept the existing enemy atlas pipeline and route/enemy gameplay unchanged.
+- Removed the visibility-assist silhouette for river crabs specifically, so the live China route now shows the actual PNG crab art rather than the earlier shape-like support layer.
+- Browser verification: launched Ancient China Journey, jumped to the early river route, confirmed `enemySpritesLoaded: true`, `enemySpriteFallbackActive: false`, `visibleEnemySpriteFamilies: ["riverCrab"]`, and live `riverCrabWalk1` frame states, then captured `output/china-river-crab-real-png-wired-clean.png`.
+- Validation: `scripts\validate_enemy_sprite_sheets.py` passed for 13 upgraded enemy atlases; `node --test src\components\expedition-journey\journeySecrets.test.js` passed; `node --test src\components\expedition\baseCampShop.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with existing runtime-public-asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+- Remaining risk/follow-up tasks: the crab PNG is now real art and wired correctly; a later pass can tune exact crab draw scale if the classroom screen feels too busy.
+
+2026-05-16 update:
+- Added a focused combat impact and encounter-intensity pass inside the existing Journey combat loop; no combat rewrite, enemy health spike, boss rewrite, or unrelated screen change was made.
+- Improved player attack feedback with a brighter sweep/trail, stronger impact pulses, slightly longer hit pause, stronger camera shake, and clearer counter-hit/clear text when enemies or bosses are struck.
+- Improved enemy danger readability by letting regular enemies use the existing shield/open/windup tell renderer, strengthening warning reach cues, and exposing combat readability state in the Journey snapshot.
+- Improved knockback feel for player, regular enemy, stomp, and boss impacts while keeping the values small enough to avoid softlocks or frustration.
+- Added restrained stamina danger feedback: low stamina now records danger state, shows a subtle red edge pulse, and can emit a `LOW STAMINA` feedback pulse after damage.
+- Added encounter-pressure metadata to selected Egypt and China enemies so they guard optional routes/rewards, upper paths, bridge caches, and final approaches without blocking the main route.
+- Added pressure-enemy visual grounding rings and `WATCH` feedback when those enemies begin a windup near the player.
+- Added Journey snapshot fields for `combatIntensityPassActive`, combat intensity version, readability mode, visible pressure enemies, danger feedback, and enemy pressure metadata.
+- Added focused Journey data tests proving pressure encounters guard optional rewards/routes across Egypt and China.
+- Kept Stage Select, Base Camp, Excavation, Museum, Lab, Report, save/load, boss rewards, route gates, and level size unchanged except for compatibility/debug snapshot exposure.
+- Validation: `node --test src\components\expedition-journey\journeySecrets.test.js` passed; `node --test src\components\expedition\baseCampShop.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with existing runtime-public-asset warnings only.
+- Browser notes: local Edge/Playwright smoke opened Ancient Egypt Journey, used the existing Journey debug hook to sample the first pressure enemy, confirmed combat intensity snapshot fields, visible pressure enemy tracking, enemy windup pressure feedback, player damage feedback, attack sweep visuals in `output/combat-intensity-smoke.png`, and no console/page errors.
+- Remaining risks/follow-up tasks: the browser pass used deterministic debug positioning around the first Egypt pressure encounter rather than a full natural combat playthrough; a later classroom tuning pass should verify boss combat and each China pressure encounter in motion.
+
+2026-05-16 update:
+- Added a dynamic expedition world and environmental storytelling pass inside the existing Journey data/render/update loop; no open-world rewrite, Journey system rewrite, or level-size expansion was made.
+- Added card-free dynamic environmental events for distant rockfalls, dust gusts, birds scattering, moving fog, distant ruin collapse, glowing shrine effects, and unstable excavation areas.
+- Added lightweight canvas rendering for those events so they feel alive without blocking hazards, routes, rewards, or enemies.
+- Added more environmental storytelling props: damaged field equipment, warning banners, collapsed tower remains, old journal cache, sealed blocked tunnel, destroyed bridge remains, and broken excavation tools.
+- Added more world mystery through distant/unreachable landmarks: hidden watchtower silhouette, distant shrine glow, blocked tunnel glimpse, and distant collapsed ruin.
+- Strengthened hidden-route discovery atmosphere by triggering a matching subtle dynamic event when a secret route is found, while keeping the existing `Hidden Archive Found` / `Secret Route Discovered` reward flow.
+- Added Journey snapshot fields for `dynamicWorldPassActive`, dynamic world version, visible dynamic world events, active dynamic world event, and dynamic environment event state.
+- Added focused Journey data tests for the new dynamic event types, storytelling props, shrine/tunnel landmarks, and card-free atmosphere behavior.
+- Kept Stage Select, Base Camp, Excavation, Museum, Lab, Report, save/load, boss systems, route gates, enemy systems, and main Journey progression unchanged.
+- Validation: `node --test src\components\expedition-journey\journeySecrets.test.js` passed; `node --test src\components\expedition\baseCampShop.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with existing runtime-public-asset warnings only.
+- Browser notes: local Edge/Playwright smoke opened Ancient Egypt Journey, triggered the desert distant rockfall and Ruined Temple shrine glow with the existing Journey debug hook, confirmed dynamic world snapshot fields and visible event tracking, captured `output/dynamic-world-rockfall-smoke.png` and `output/dynamic-world-shrine-smoke.png`, and reported no page errors. One audio source warning appeared during the shrine stinger path, matching existing unsupported-audio behavior rather than a new rendering failure.
+- Remaining risks/follow-up tasks: browser verification sampled two dynamic events using deterministic debug positioning rather than a full natural route playthrough; later tuning should sample every event in Egypt and China once the wider route content settles.

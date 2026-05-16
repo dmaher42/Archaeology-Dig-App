@@ -8,6 +8,8 @@ export const BASE_CAMP_SHOP_ITEMS = [
     name: 'Reinforced Boots',
     cost: 15,
     shortEffect: 'Slightly stronger jumps',
+    activeSummary: 'Higher safe jumps',
+    routeUse: 'Movement support',
     description: 'Field boots with firmer soles for careful jumps across broken ground.',
   },
   {
@@ -16,8 +18,10 @@ export const BASE_CAMP_SHOP_ITEMS = [
     type: 'upgrade',
     name: 'Climbing Gloves',
     cost: 20,
-    shortEffect: 'Slightly better air control',
-    description: 'Grip gloves that help the archaeologist adjust safely after a jump.',
+    shortEffect: 'Cross unstable bridge routes',
+    activeSummary: 'Unstable bridge routes',
+    routeUse: 'Unlocks optional route',
+    description: 'Grip gloves that help the archaeologist adjust safely after a jump and cross unstable optional routes.',
   },
   {
     id: 'reinforced-backpack',
@@ -26,6 +30,8 @@ export const BASE_CAMP_SHOP_ITEMS = [
     name: 'Reinforced Backpack',
     cost: 25,
     shortEffect: 'More stamina for long routes',
+    activeSummary: 'Extra route stamina',
+    routeUse: 'Survival support',
     description: 'A balanced field pack that lets the team carry supplies with less strain.',
   },
   {
@@ -57,13 +63,14 @@ export const BASE_CAMP_SHOP_ITEMS = [
   },
   {
     id: 'survey-goggles',
-    section: 'Journal Unlocks',
-    type: 'journal',
-    name: 'Survey Goggles Notes',
+    section: 'Expedition Upgrades',
+    type: 'upgrade',
+    name: 'Survey Goggles',
     cost: 30,
-    shortEffect: 'Future clue support',
-    description: 'Research notes for a future safe hidden-clue highlight upgrade.',
-    locked: true,
+    shortEffect: 'Read faint safe-route clues',
+    activeSummary: 'Hidden route clue reading',
+    routeUse: 'Unlocks optional route',
+    description: 'Careful survey lenses that make faint safe-route clues and narrow crawl paths easier to read.',
   },
   {
     id: 'rope-launcher',
@@ -71,9 +78,21 @@ export const BASE_CAMP_SHOP_ITEMS = [
     type: 'upgrade',
     name: 'Rope Launcher',
     cost: 35,
-    shortEffect: 'Future hidden-route support',
-    description: 'A planned route tool for later hidden paths. Not installed yet.',
-    locked: true,
+    shortEffect: 'Reach high ledge routes',
+    activeSummary: 'High ledge route access',
+    routeUse: 'Unlocks optional route',
+    description: 'A compact field rope for reaching optional high ledges safely.',
+  },
+  {
+    id: 'excavation-hammer',
+    section: 'Expedition Upgrades',
+    type: 'upgrade',
+    name: 'Excavation Hammer',
+    cost: 30,
+    shortEffect: 'Open cracked wall routes',
+    activeSummary: 'Cracked wall route access',
+    routeUse: 'Unlocks optional route',
+    description: 'A careful excavation hammer for fragile cracked walls and blocked tunnels.',
   },
 ];
 
@@ -87,6 +106,7 @@ const DEFAULT_EFFECTS = {
   hazardStaminaMultiplier: 1,
   hiddenClueHighlights: false,
   hiddenRouteAccess: false,
+  fragileWallAccess: false,
 };
 
 const UPGRADE_EFFECTS = {
@@ -112,6 +132,9 @@ const UPGRADE_EFFECTS = {
   'rope-launcher': {
     hiddenRouteAccess: true,
   },
+  'excavation-hammer': {
+    fragileWallAccess: true,
+  },
 };
 
 const unique = (items = []) => [...new Set(items.filter(Boolean))];
@@ -131,6 +154,16 @@ export const normalizeBaseCampProgression = (value) => {
 };
 
 export const getShopItemById = (itemId) => BASE_CAMP_SHOP_ITEMS.find(item => item.id === itemId) || null;
+
+export const getShopItemDisplayName = (itemId) => {
+  const item = getShopItemById(itemId);
+  if (item?.name) return item.name;
+  return String(itemId || 'field gear')
+    .split('-')
+    .filter(Boolean)
+    .map(word => word[0]?.toUpperCase() + word.slice(1))
+    .join(' ') || 'Field Gear';
+};
 
 export const getOwnedItemIds = (progression) => {
   const progress = normalizeBaseCampProgression(progression);
@@ -214,6 +247,7 @@ export const getActiveUpgradeEffects = (upgradeIds = []) => (
       hazardStaminaMultiplier: Math.min(effects.hazardStaminaMultiplier, upgrade.hazardStaminaMultiplier || DEFAULT_EFFECTS.hazardStaminaMultiplier),
       hiddenClueHighlights: effects.hiddenClueHighlights || Boolean(upgrade.hiddenClueHighlights),
       hiddenRouteAccess: effects.hiddenRouteAccess || Boolean(upgrade.hiddenRouteAccess),
+      fragileWallAccess: effects.fragileWallAccess || Boolean(upgrade.fragileWallAccess),
     };
   }, DEFAULT_EFFECTS)
 );
