@@ -87,6 +87,14 @@ Remaining notes:
 - `node --test src\components\expedition-journey\journeySecrets.test.js`, `npm.cmd run lint`, and `npm.cmd run build` passed.
 - Browser smoke verified Menu -> Start Expedition -> Ancient China -> Begin Expedition, plus idle, run, and attack screenshots in `output/china-sprite-polish-final-*.png`; no browser console errors were reported.
 
+2026-05-16 update:
+- Upgraded the Egypt Journey hero sprite sheet in the existing hero-atlas path.
+- Replaced the weaker Egypt sprite atlas image with a cleaner transparent production sheet: stronger silhouette, more expressive face, richer shading, better run frames, and integrated golden archaeology-pick attack frames.
+- Rebuilt `archaeologist-hero-spritesheet.json` with alpha-trimmed variable regions, per-region ground lines, and the same integrated attack suppression flags used by the China production atlas.
+- No player controller, hitbox, movement, Base Camp, excavation, inventory, evidence, or claim/result systems were changed.
+- `node --test src\components\expedition-journey\journeySecrets.test.js`, `npm.cmd run lint`, and `npm.cmd run build` passed.
+- Browser smoke verified Menu -> Start Expedition -> Ancient Egypt -> Begin Expedition, plus idle, run, and attack screenshots in `output/egypt-sprite-upgrade-*.png`; no browser console errors were reported.
+
 2026-05-14 update:
 - Added the first real Ancient China runtime asset packs without making Ancient China playable.
 - Created `public/assets/expedition/backgrounds/china-river-valley/china-river-valley-parallax-pack.png` plus its JSON atlas with the five expected river-valley parallax regions.
