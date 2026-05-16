@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import test from 'node:test';
+import {
+  DYNAMIC_WORLD_EFFECT_REGIONS,
+  DYNAMIC_WORLD_EFFECTS_SRC,
+  DYNAMIC_WORLD_EFFECTS_VERSION,
+} from './journeyDynamicWorldAssets.js';
 
 const source = readFileSync(new URL('./journeyLevelData.js', import.meta.url), 'utf8');
 const extractExportedArray = (name) => {
@@ -139,6 +144,20 @@ test('dynamic world events add mystery and atmosphere without new level systems'
   ].forEach((label) => {
     assert.match(storyProps, new RegExp(label));
   });
+});
+
+test('dynamic world events use a project-bound painted asset sheet', () => {
+  assert.match(DYNAMIC_WORLD_EFFECTS_VERSION, /painted-dynamic-world-effects/);
+  assert.match(DYNAMIC_WORLD_EFFECTS_SRC, /assets\/expedition\/environment\/dynamic-world\/egypt-dynamic-world-effects\.png/);
+  ['dustGust', 'birdsScatter', 'shrineGlow', 'rockfall'].forEach((key) => {
+    assert.ok(DYNAMIC_WORLD_EFFECT_REGIONS[key], `${key} region should be mapped`);
+    assert.ok(DYNAMIC_WORLD_EFFECT_REGIONS[key].w > 0);
+    assert.ok(DYNAMIC_WORLD_EFFECT_REGIONS[key].h > 0);
+  });
+  assert.ok(
+    existsSync(new URL('../../../public/assets/expedition/environment/dynamic-world/egypt-dynamic-world-effects.png', import.meta.url)),
+    'painted dynamic world asset should exist in public assets',
+  );
 });
 
 test('combat pressure encounters guard optional rewards without blocking progression', () => {

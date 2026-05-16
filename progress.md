@@ -1585,3 +1585,14 @@ Remaining notes:
 - Made the first Egypt dynamic world moment easier to see by firing a dust gust near the opening survey markers before the subtler bird scatter event.
 - Browser notes: local Edge/Playwright smoke opened Ancient Egypt Journey, confirmed early dynamic previews `desert-first-dust-preview` and `desert-start-birds-scatter`, confirmed active event `desert-first-dust-preview`, captured `output/dynamic-world-early-dust-visible-smoke.png`, and reported no console/page errors.
 - Validation: `node --test src\components\expedition-journey\journeySecrets.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with existing runtime-public-asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
+
+2026-05-16 UI/visual/UX polish pass:
+- Continued the existing Journey polish path rather than creating a new UI or gameplay system.
+- Wired the painted dynamic-world effect PNG through the existing Journey renderer with a canvas fallback, and exposed loaded/asset-mode fields in the Journey debug snapshot.
+- Added static test coverage for the dynamic-world painted effect sheet path and required atlas regions.
+- Polished Journey feature cards so section/location messages are smaller, rounded, semi-transparent, and less blocking over the upgraded backgrounds.
+- Improved locked hidden-route labels with readable backing pills and a clearer optional-reward hint, so `Needs Rope Launcher` and similar route guidance no longer blends into busy scenery.
+- Kept Stage Select, Base Camp, Excavation, Museum, Lab, Report, save/load, enemy stats, boss systems, platforms, hazards, and route layout unchanged.
+- Validation: `node --test src\components\expedition-journey\journeySecrets.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with existing runtime-public-asset warnings only.
+- Browser notes: local Edge/Playwright smoke opened Ancient Egypt Journey, confirmed `dynamicWorldAssetsLoaded: true`, confirmed `dynamicWorldAssetMode: painted-raster-effects`, confirmed active early dust-gust event, captured `output/dynamic-world-painted-asset-smoke-warm.png`, and reported no console/page errors.
+- Remaining risks/follow-up tasks: the Egypt dust/birds/shrine/rockfall assets are now visible high-quality raster art; future China-specific dynamic world moments should get their own matching Ancient China asset sheet rather than reusing Egypt art.
