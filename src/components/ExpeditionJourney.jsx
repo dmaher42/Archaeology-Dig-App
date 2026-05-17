@@ -2787,8 +2787,11 @@ export default function ExpeditionJourney({
     );
     const visibleLines = lines.slice(0, visibleLineCount);
     const boxHeight = 54 + visibleLines.length * 20;
-    const boxX = clamp(screenX + 44, 26, CANVAS_WIDTH - boxWidth - 26);
-    const boxY = clamp(screenY + 44, 176, CANVAS_HEIGHT - boxHeight - 28);
+    const placeLeftOfSphinx = screenX > CANVAS_WIDTH * 0.55;
+    const boxX = placeLeftOfSphinx
+      ? clamp(screenX - boxWidth - 56, 26, CANVAS_WIDTH - boxWidth - 26)
+      : clamp(screenX + 56, 26, CANVAS_WIDTH - boxWidth - 26);
+    const boxY = clamp(screenY + 58, 152, CANVAS_HEIGHT - boxHeight - 28);
 
     ctx.save();
     ctx.globalAlpha = alpha;
@@ -2816,9 +2819,15 @@ export default function ExpeditionJourney({
       ctx.fillText(line, boxX + 18, boxY + 50 + index * 18);
     });
     ctx.beginPath();
-    ctx.moveTo(boxX + 30, boxY + 10);
-    ctx.lineTo(screenX + 38, screenY + 22);
-    ctx.lineTo(boxX + 74, boxY + 10);
+    if (placeLeftOfSphinx) {
+      ctx.moveTo(boxX + boxWidth - 74, boxY + 12);
+      ctx.lineTo(screenX - 36, screenY + 34);
+      ctx.lineTo(boxX + boxWidth - 30, boxY + 12);
+    } else {
+      ctx.moveTo(boxX + 30, boxY + 12);
+      ctx.lineTo(screenX + 36, screenY + 34);
+      ctx.lineTo(boxX + 74, boxY + 12);
+    }
     ctx.closePath();
     ctx.fillStyle = 'rgba(42, 31, 24, 0.9)';
     ctx.fill();
@@ -9393,6 +9402,7 @@ export default function ExpeditionJourney({
             
             {gameState.notice
               && !gameState.bossIntro
+              && !gameState.openingSphinxEncounterState
               && !gameState.sectionTransition
               && (!gameState.environmentEvent || gameState.itemPurposeNoticeTimer > 0)
               && (!gameState.cinematicEvent || gameState.itemPurposeNoticeTimer > 0) && (

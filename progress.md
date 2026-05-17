@@ -2201,3 +2201,5 @@ Remaining notes:
 - Removed the old artificial blue ring/glow reveal from the opening Sphinx draw pass, leaving only grounded sand/dust and a contact shadow.
 - Added render-state fields so browser checks can confirm the opening Sphinx model, atlas, load state, and active frame.
 - Browser verification triggered the Scarab Seal opening scene and confirmed `spriteModel: ancient-construct`, `spriteFrame: ancientConstructIntro`, and `spriteLoaded: true`; screenshot saved to `output/opening-sphinx-model-browser.png`.
+- Follow-up: moved the Sphinx speech bubble beside the model instead of over it and suppressed the top notice overlay while the opening Sphinx encounter is active.
+- Browser follow-up confirmed the Sphinx model is no longer behind the large notice or speech box; screenshot saved to `output/opening-sphinx-no-text-overlap-browser.png`.

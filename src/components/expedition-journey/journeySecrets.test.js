@@ -271,6 +271,7 @@ test('opening Scarab Seal climb triggers a boss confrontation without completing
   assert.match(journeyComponentSource, /shouldFlipBossSprite\(OPENING_SPHINX_SPRITE_BOSS_ID,\s*-1\)/);
   assert.match(journeyComponentSource, /openingSphinxSpriteFrame/);
   assert.match(journeyComponentSource, /openingSphinxEncounterState:/);
+  assert.match(journeyComponentSource, /&& !gameState\.openingSphinxEncounterState/);
   assert.match(journeyComponentSource, /spriteAtlasPath:\s*ANCIENT_CONSTRUCT_SPRITE_ATLAS_JSON/);
   assert.match(journeyComponentSource, /spriteLoaded:\s*Boolean\(bossSpriteAssets\.packs\?\.\[OPENING_SPHINX_SPRITE_BOSS_ID\]\?\.loaded\)/);
   assert.match(journeyComponentSource, /openingSphinxEncounter\.timer[\s\S]*?OPENING_SPHINX_EXIT_SECONDS/);
