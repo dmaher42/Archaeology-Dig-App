@@ -10,7 +10,7 @@
     "facing": "right"
   },
   "draw": {
-    "height": 94,
+    "height": 118,
     "sourceHeight": 190,
     "integratedAttackTool": true,
     "suppressExternalWeapon": true,

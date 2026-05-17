@@ -86,7 +86,7 @@ test('world continuity landmarks foreshadow future expedition sections', () => {
   assert.match(worldLandmarks, /larger-expedition-world/);
   assert.ok((transitionMarkers.match(/id:/g) || []).length >= 4);
   assert.match(transitionMarkers, /collapsed road leading to the temple doors/);
-  assert.match(transitionMarkers, /camp lights and flags over the final rise/);
+  assert.match(transitionMarkers, /camp lamps and carved stone over the final rise/);
 });
 
 test('story props include recurring expedition markers across sections', () => {
@@ -106,6 +106,32 @@ test('story props include recurring expedition markers across sections', () => {
   assert.match(journeyComponentSource, /propSize\.bury/);
   assert.match(journeyComponentSource, /useNaturalUpperRouteHint/);
   assert.match(journeyComponentSource, /route\.id === 'desert-upper-survey-route'/);
+});
+
+test('Ancient Egypt opening stages archaeologist arrival and warrior-guide story with existing Journey systems', () => {
+  const storyProps = extractExportedArray('STORY_PROPS');
+  const events = extractExportedArray('ENVIRONMENT_EVENTS');
+  const routeGates = extractExportedArray('ROUTE_GATES');
+
+  assert.match(storyProps, /id:\s*'opening-archaeologist-field-kit'/);
+  assert.match(storyProps, /id:\s*'opening-guardian-warning-plinth'/);
+  assert.match(storyProps, /id:\s*'opening-warrior-guide-marker'/);
+  ['camp', 'ceremonial-offering', 'survey-rope'].forEach((type) => {
+    assert.match(storyProps, new RegExp(`type:\\s*'${type}'`));
+  });
+
+  assert.match(events, /id:\s*'opening-archaeologist-arrival'/);
+  assert.match(events, /The archaeologist reaches the sealed site\./);
+  assert.match(events, /id:\s*'opening-guardian-challenge'/);
+  assert.match(events, /This is a protected place\. Move with care and earn the right to pass\./);
+  assert.match(events, /id:\s*'opening-warrior-guide-entry'/);
+  assert.match(events, /I will guide you\. Gather shards, recover tools, and treat the ancient site with respect\./);
+  assert.match(events, /card:\s*false/);
+
+  assert.match(routeGates, /id:\s*'temple-approach-seal'[\s\S]*?requires:\s*\{\s*shards:\s*4/);
+  assert.match(routeGates, /id:\s*'guardian-prep-seal'[\s\S]*?requires:\s*\{\s*objective:\s*'desert-entry',\s*shards:\s*6/);
+  assert.match(routeGates, /id:\s*'desert-seal'[\s\S]*?requires:\s*\{\s*objective:\s*'desert-entry',\s*miniBoss:\s*'scarab-queen',\s*keyItem:\s*'brush-handle',\s*shards:\s*10/);
+  assert.match(journeyComponentSource, /const GUARDIAN_KNOWLEDGE_CHALLENGES_ENABLED = false;/);
 });
 
 test('Egypt opening ambient life stays in the existing Journey renderer', () => {
@@ -414,7 +440,7 @@ test('dynamic world events add mystery and atmosphere without new level systems'
 
   [
     'damaged field equipment',
-    'warning banners',
+    'paired ceremonial lamps',
     'collapsed tower remains',
     'old field journal cache',
     'sealed blocked tunnel',
