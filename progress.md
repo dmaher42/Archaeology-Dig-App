@@ -2204,3 +2204,4 @@ Remaining notes:
 - Follow-up: moved the Sphinx speech bubble beside the model instead of over it and suppressed the top notice overlay while the opening Sphinx encounter is active.
 - Browser follow-up confirmed the Sphinx model is no longer behind the large notice or speech box; screenshot saved to `output/opening-sphinx-no-text-overlap-browser.png`.
 - Follow-up: lowered the opening Sphinx model by a named screen offset so it sits closer to the middle of the canvas instead of near the top HUD.
+- Browser follow-up confirmed the lowered Sphinx placement; screenshot saved to `output/opening-sphinx-lowered-browser.png`.
