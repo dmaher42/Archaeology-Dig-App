@@ -1901,3 +1901,47 @@ Remaining notes:
 - Browser smoke from a fresh Ancient Egypt Journey start confirmed the opening props are visible near the start, the arrival/challenge/warrior-guide messages trigger naturally while moving, control continues quickly, the first Brush pickup still works, and the Temple Approach Seal still blocks the player until shards are collected.
 - Validation: `node --test src/components/expedition-journey/journeySecrets.test.js`, `node --test src/components/expedition/baseCampShop.test.js`, `node --test src/components/expedition-journey/journeyEnemySprites.test.js`, `npm.cmd run lint`, `npm.cmd run build`, and `git diff --check` passed. Build still has the known runtime-resolved Egypt excavation image warnings; `git diff --check` still reports LF-to-CRLF working-copy warnings only.
 - Remaining risk/follow-up: this is only the Step 1 staging pass, not the full cinematic opening. Step 2 should tune presentation timing and visual specificity around the guardian block and warrior-guide entry without changing the player controller or early shard/seal loop.
+
+## 2026-05-17 Ancient Egypt sacred threshold opening pass
+
+- Added Step 2 of the dramatic Ancient Egypt Journey opening inside existing Journey data only.
+- Added a visible sacred guardian threshold prop near the Temple Approach Seal using the existing story prop renderer and jackal-statue prop type.
+- Added two short non-card event notices: `The guardian watches. Prove you can move with care.` near the sacred threshold, and `Good. Evidence and tools open the path - not force.` after the first shard/tool route beat.
+- Reused the existing environment event shake path for a subtle threshold rumble, and added source coverage proving the event shake still flows into the Journey snapshot camera-shake state.
+- Preserved Temple Approach Seal, Guardian Prep Seal, Desert Map Seal, Scarab Queen, Brush Handle, Base Camp, excavation, and China systems.
+
+## 2026-05-17 Scarab Queen sacred boss asset pass
+
+- Regenerated `public/assets/expedition/bosses/scarab-queen-sprites.png` and atlas JSON in place, preserving every existing Scarab Queen frame key used by `journeyBossSprites.js`.
+- Extended the existing enemy sprite generation/validation scripts rather than creating a parallel boss asset pipeline; the Scarab Queen can now be rebuilt with `generate_enemy_sprite_sheets.py --scarab-queen-only`.
+- Matched the Queen to the upgraded intimidating desert scarab family by deriving her base pose from `desert-scarab-intimidating-sprites.png`, then adding larger boss scale, lapis/gold shell markings, glyph rings, shield effects, readable charge, area pulse, counter-window weak point, hit feedback, and non-gory defeated state.
+- Audit next: Stone Guardian should update next for sacred paired-guardian language; Giant Serpent and Ancient Construct should follow for cleaner transparent fixed-cell atlases; Rival Looter Captain is optional polish unless the escape section needs a more ceremonial non-random human antagonist; Egypt traps need a future dedicated sacred defence pack for pressure plates, glyph tripwires, sealed doors, guardian seals, and sacred pedestals.
+
+## 2026-05-17 Scarab Queen opening-payoff story pass
+
+- Strengthened the Egypt opening-to-boss story connection inside the existing Journey data only.
+- Updated the Scarab Queen intro/dialogue to connect the protected-site warning to the first guardian test: `The seal stirs. Move with care, archaeologist - the guardian is awake.`
+- Tightened the Temple Approach Seal, Guardian Prep Seal, and Desert Map Seal messages so they reinforce careful shard/evidence/tool collection and not forcing the site open.
+- Updated the Brush Handle route-open reward message to say the player passed the first guardian test and should record what they found before moving deeper.
+- Preserved Scarab Queen health, damage, route requirements, boss mechanics, Base Camp, excavation, and China systems.
+
+## 2026-05-17 Egypt sacred trap asset audit
+
+- Audited current Egypt Journey hazards and reactive platforms against the sacred protected-pyramid direction.
+- Confirmed the existing renderer already asks the desert-temple environment atlas for hazard/platform/story-prop art, then falls back to canvas drawing when a region is missing.
+- Added `docs/egypt-sacred-trap-asset-plan.md` as a docs-only asset brief rather than faking atlas registration before the art exists.
+- The plan identifies the highest-value missing asset keys: guardian seal, sacred pedestal, pressure plate, cracked platform states, falling stone states, glyph tripwire states, and sealed door states.
+- Preserved all trap collision, damage, timing, route layout, route gate, story prop, and reactive platform systems.
+
+## 2026-05-17 Guardian Seal trigger planning pass
+
+- Inspected the current final approach source of truth: Ancient Construct mini-boss data, `site-permit-seal`, `basecamp-seal`, the `dig-site-entrance` objective, final approach story props/events, boss intro/camera shake flow, and Ancient Construct sprite keys.
+- Added `docs/guardian-seal-trigger-plan.md` as a docs-only design/implementation brief for a future Guardian Seal trigger and Ancient Construct awakening sequence.
+- Recommended reusing existing objective marker/story prop/event notice/boss intro systems, with no new cutscene, dialogue, route gate, boss, reward, or excavation systems.
+- Deliberately did not implement the trigger yet because the Guardian Seal/pedestal assets do not exist and the real awakening needs careful browser verification.
+
+## 2026-05-17 Egypt Journey opening/guardian handover
+
+- Added `docs/egypt-journey-opening-guardian-handover.md` as the clean current handover for the Step 1 opening, Step 2 guardian threshold, Scarab Queen asset pass, Scarab Queen story payoff, sacred trap asset plan, and Guardian Seal trigger plan.
+- Confirmed all six listed items are complete in this local worktree; Guardian Seal remains planning-only by design.
+- Recommended the next task as the first sacred defence asset pack, starting with `guardianSealIdle`, `guardianSealActivated`, `sacredPedestalIdle`, and `sacredPedestalActivated`, before any Guardian Seal trigger implementation.

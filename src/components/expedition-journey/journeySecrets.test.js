@@ -112,10 +112,14 @@ test('Ancient Egypt opening stages archaeologist arrival and warrior-guide story
   const storyProps = extractExportedArray('STORY_PROPS');
   const events = extractExportedArray('ENVIRONMENT_EVENTS');
   const routeGates = extractExportedArray('ROUTE_GATES');
+  const miniBosses = extractExportedArray('MINI_BOSSES');
+  const bossKeyItems = extractExportedArray('BOSS_KEY_ITEMS');
 
   assert.match(storyProps, /id:\s*'opening-archaeologist-field-kit'/);
   assert.match(storyProps, /id:\s*'opening-guardian-warning-plinth'/);
   assert.match(storyProps, /id:\s*'opening-warrior-guide-marker'/);
+  assert.match(storyProps, /id:\s*'opening-sacred-threshold-guardian'/);
+  assert.match(storyProps, /sacred guardian threshold before Temple Approach Seal/);
   ['camp', 'ceremonial-offering', 'survey-rope'].forEach((type) => {
     assert.match(storyProps, new RegExp(`type:\\s*'${type}'`));
   });
@@ -126,11 +130,25 @@ test('Ancient Egypt opening stages archaeologist arrival and warrior-guide story
   assert.match(events, /This is a protected place\. Move with care and earn the right to pass\./);
   assert.match(events, /id:\s*'opening-warrior-guide-entry'/);
   assert.match(events, /I will guide you\. Gather shards, recover tools, and treat the ancient site with respect\./);
+  assert.match(events, /id:\s*'opening-guide-careful-tools'/);
+  assert.match(events, /Good\. Evidence and tools open the path - not force\./);
+  assert.match(events, /id:\s*'opening-sacred-threshold-watch'/);
+  assert.match(events, /The guardian watches\. Prove you can move with care\./);
   assert.match(events, /card:\s*false/);
+  assert.match(journeyComponentSource, /current\.cameraShakeTimer = ev\.duration \* 0\.4;/);
+  assert.match(journeyComponentSource, /current\.cameraShakeStrength = ev\.shake;/);
+  assert.match(journeyComponentSource, /cameraShakeActive: current\.cameraShakeTimer > 0/);
 
   assert.match(routeGates, /id:\s*'temple-approach-seal'[\s\S]*?requires:\s*\{\s*shards:\s*4/);
+  assert.match(routeGates, /Collect relic shards with care to earn passage through the first temple approach\./);
   assert.match(routeGates, /id:\s*'guardian-prep-seal'[\s\S]*?requires:\s*\{\s*objective:\s*'desert-entry',\s*shards:\s*6/);
+  assert.match(routeGates, /Recover the Map Tablet and 6 relic shards before waking the guardian\. Do not force the site open\./);
   assert.match(routeGates, /id:\s*'desert-seal'[\s\S]*?requires:\s*\{\s*objective:\s*'desert-entry',\s*miniBoss:\s*'scarab-queen',\s*keyItem:\s*'brush-handle',\s*shards:\s*10/);
+  assert.match(routeGates, /Recover evidence, shards, and the Brush Handle to earn passage into the ruined temple\./);
+  assert.match(routeGates, /Record what you found, then move into the ruined temple entry\./);
+  assert.match(miniBosses, /id:\s*'scarab-queen'[\s\S]*?health:\s*1,\s*damage:\s*4/);
+  assert.match(miniBosses, /The seal stirs\. Move with care, archaeologist - the guardian is awake\./);
+  assert.match(bossKeyItems, /id:\s*'brush-handle'[\s\S]*?You passed the first guardian test\. Record what you found before moving deeper\. Desert Map Seal is open\./);
   assert.match(journeyComponentSource, /const GUARDIAN_KNOWLEDGE_CHALLENGES_ENABLED = false;/);
 });
 
@@ -382,8 +400,8 @@ test('first mini-boss is gated by preparation and rewards the next route', () =>
   assert.match(routeGates, /x:\s*X\(1018\)/);
   assert.match(routeGates, /requires:\s*\{\s*objective:\s*'desert-entry',\s*shards:\s*6/);
   assert.match(routeGates, /id:\s*'guardian-prep-seal'[\s\S]*?id:\s*'desert-seal'/);
-  assert.match(routeGates, /readyHint:\s*'Desert Map Seal is open\. Move through it into the ruined temple entry\.'/);
-  assert.match(source, /routeOpenMessage:\s*'Desert Map Seal is open\. Continue into the ruined temple entry\.'/);
+  assert.match(routeGates, /readyHint:\s*'Desert Map Seal is open\. Record what you found, then move into the ruined temple entry\.'/);
+  assert.match(source, /routeOpenMessage:\s*'You passed the first guardian test\. Record what you found before moving deeper\. Desert Map Seal is open\.'/);
   assert.match(source, /id:\s*'scarab-queen'[\s\S]*?arenaStart:\s*X\(1265\)/);
   assert.match(storyProps, /Guardian Prep Seal: needs Map Tablet and 6 relic shards/);
   assert.match(events, /Guardian Seal: recover the Map Tablet and 6 relic shards before the Scarab Queen\./);

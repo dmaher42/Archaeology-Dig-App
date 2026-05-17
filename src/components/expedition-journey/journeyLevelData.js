@@ -275,7 +275,7 @@ export const ROUTE_GATES = [
     y: JY(86),
     width: 34,
     height: 274,
-    message: 'Collect enough relic shards to open the first temple approach.',
+    message: 'Collect relic shards with care to earn passage through the first temple approach.',
     requires: {
       shards: 4,
     },
@@ -287,7 +287,7 @@ export const ROUTE_GATES = [
     y: JY(86),
     width: 34,
     height: 274,
-    message: 'Prepare before challenging the guardian.',
+    message: 'Recover the Map Tablet and 6 relic shards before waking the guardian. Do not force the site open.',
     requires: {
       objective: 'desert-entry',
       shards: 6,
@@ -300,8 +300,8 @@ export const ROUTE_GATES = [
     y: JY(86),
     width: 34,
     height: 274,
-    message: 'Complete the desert approach before entering the ruined temple.',
-    readyHint: 'Desert Map Seal is open. Move through it into the ruined temple entry.',
+    message: 'Recover evidence, shards, and the Brush Handle to earn passage into the ruined temple.',
+    readyHint: 'Desert Map Seal is open. Record what you found, then move into the ruined temple entry.',
     requires: {
       objective: 'desert-entry',
       miniBoss: 'scarab-queen',
@@ -678,7 +678,7 @@ export const OBJECTIVE_MARKERS = [
 ];
 
 export const MINI_BOSSES = [
-  { id: 'scarab-queen', sectionId: 'desert-entry', name: 'Scarab Queen', type: 'scarab', x: X(1395), y: JY(318), width: 58, height: 42, patrolMin: X(1335), patrolMax: X(1460), speed: 66, health: 1, damage: 4, shards: 6, intro: 'Guardian Encounter: Scarab Queen. You will not disturb what the desert has buried.', dialogue: 'You will not disturb what the desert has buried.', domainName: 'Desert Seal Domain', arenaStart: X(1265), arenaEnd: X(1480) },
+  { id: 'scarab-queen', sectionId: 'desert-entry', name: 'Scarab Queen', type: 'scarab', x: X(1395), y: JY(318), width: 58, height: 42, patrolMin: X(1335), patrolMax: X(1460), speed: 66, health: 1, damage: 4, shards: 6, intro: 'Guardian Encounter: Scarab Queen. The seal stirs. Move with care, archaeologist - the guardian is awake.', dialogue: 'The seal stirs. Move with care, archaeologist - the guardian is awake.', domainName: 'Desert Seal Domain', arenaStart: X(1265), arenaEnd: X(1480) },
   { id: 'temple-guardian', sectionId: 'ruined-temple', name: 'Stone Guardian', type: 'guardian', x: X(2960), y: JY(306), width: 54, height: 54, patrolMin: X(2860), patrolMax: X(3060), speed: 58, health: 2, damage: 6, shards: 8, intro: 'Guardian Encounter: Stone Guardian. Only careful investigators may pass this temple.', dialogue: 'Only careful investigators may pass this temple.', domainName: 'Temple Tool Domain', arenaStart: X(2785), arenaEnd: X(3090) },
   { id: 'giant-serpent', sectionId: 'catacombs', name: 'Giant Serpent', type: 'snake', x: X(4860), y: JY(308), width: 72, height: 52, patrolMin: X(4730), patrolMax: X(4965), speed: 70, health: 2, damage: 6, shards: 8, intro: 'Guardian Encounter: Giant Serpent. The catacombs protect their secrets.', dialogue: 'The catacombs protect their secrets.', domainName: 'Catacomb Care Domain', arenaStart: X(4625), arenaEnd: X(4985) },
   { id: 'looter-captain', sectionId: 'escape-sequence', name: 'Rival Looter Captain', type: 'looter', x: X(6330), y: JY(306), width: 54, height: 54, patrolMin: X(6200), patrolMax: X(6435), speed: 86, health: 2, damage: 6, shards: 8, intro: 'Guardian Encounter: Rival Looter Captain. Careful records matter more than speed through this site.', dialogue: 'Careful records matter more than speed through this site.', domainName: 'Field Records Domain', arenaStart: X(6110), arenaEnd: X(6460) },
@@ -694,7 +694,7 @@ export const CHINA_MINI_BOSSES = [
 ];
 
 export const BOSS_KEY_ITEMS = [
-  { id: 'brush-handle', bossId: 'scarab-queen', gateId: 'desert-seal', sectionId: 'desert-entry', name: 'Brush Handle', shortName: 'Brush', label: 'B', color: '#b45309', rewardDetail: 'This will help uncover fragile evidence during excavation.', routeOpenMessage: 'Desert Map Seal is open. Continue into the ruined temple entry.' },
+  { id: 'brush-handle', bossId: 'scarab-queen', gateId: 'desert-seal', sectionId: 'desert-entry', name: 'Brush Handle', shortName: 'Brush', label: 'B', color: '#b45309', rewardDetail: 'This will help uncover fragile evidence during excavation.', routeOpenMessage: 'You passed the first guardian test. Record what you found before moving deeper. Desert Map Seal is open.' },
   { id: 'trowel-blade', bossId: 'temple-guardian', gateId: 'temple-seal', sectionId: 'ruined-temple', name: 'Trowel Blade', shortName: 'Trowel', label: 'T', color: '#92400e', rewardDetail: 'This will help remove soil carefully at the dig site.' },
   { id: 'measuring-cord', bossId: 'giant-serpent', gateId: 'catacomb-seal', sectionId: 'catacombs', name: 'Measuring Cord', shortName: 'Measure', label: 'M', color: '#0f766e', rewardDetail: 'This will help record where evidence was found.' },
   { id: 'field-notebook-clasp', bossId: 'looter-captain', gateId: 'escape-seal', sectionId: 'escape-sequence', name: 'Field Notebook Clasp', shortName: 'Notebook', label: 'N', color: '#b91c1c', rewardDetail: 'This will help keep field records secure during excavation.' },
@@ -838,6 +838,7 @@ export const STORY_PROPS = [
   { id: 'opening-rope-line', sectionId: 'desert-entry', type: 'survey-rope', x: X(590), y: JY(318), label: 'survey rope line' },
   { id: 'upper-route-broken-stone-cue', sectionId: 'desert-entry', type: 'ruins', x: X(625), y: JY(286), label: 'fallen stones below upper survey route' },
   { id: 'desert-boundary-marker', sectionId: 'desert-entry', type: 'sign', x: X(650), y: JY(306), label: 'ancient boundary marker' },
+  { id: 'opening-sacred-threshold-guardian', sectionId: 'desert-entry', type: 'jackal-statue', x: X(610), y: JY(292), label: 'sacred guardian threshold before Temple Approach Seal' },
   { id: 'early-voucher-cache-marker', sectionId: 'desert-entry', type: 'camp', x: X(680), y: JY(286), label: 'optional shard cache: spend 2 shards for an upgrade voucher' },
   { id: 'sand-seal-route-marker', sectionId: 'desert-entry', type: 'jackal-statue', x: X(760), y: JY(292), label: 'first jackal threshold statue' },
   { id: 'upper-route-note-marker', sectionId: 'desert-entry', type: 'sign', x: X(885), y: JY(306), label: 'upper route evidence marker' },
@@ -1134,11 +1135,13 @@ export const ENVIRONMENT_EVENTS = [
   { id: 'starter-route-note', sectionId: 'desert-entry', x: X(255), name: 'Route Marker', message: 'Route marker ahead.', type: 'arrival', duration: 1.8, shake: 0.08 },
   { id: 'desert-first-dust-preview', sectionId: 'desert-entry', x: X(300), name: 'Dust Gust', message: 'A dust gust curls through the first survey markers.', type: 'dust-gust', duration: 2.8, shake: 0.18, dynamic: true, card: false },
   { id: 'desert-start-birds-scatter', sectionId: 'desert-entry', x: X(340), name: 'Birds Scatter', message: 'Birds lift from the first ruined stones.', type: 'birds-scatter', duration: 2.6, shake: 0.06, dynamic: true, card: false },
+  { id: 'opening-guide-careful-tools', sectionId: 'desert-entry', x: X(380), name: 'Guide Reminder', message: 'Good. Evidence and tools open the path - not force.', type: 'dust-gust', duration: 2.0, shake: 0.04, card: false },
   { id: 'desert-pottery-clue', sectionId: 'desert-entry', x: X(410), name: 'Pottery Marker', message: 'Look for evidence before moving on.', type: 'arrival', duration: 2.2, shake: 0.15 },
   { id: 'sand-gust', sectionId: 'desert-entry', x: X(520), name: 'Sand Gust', message: 'A sheet of sand sweeps across the entry route.', type: 'gust', duration: 2.4, shake: 0.4 },
   { id: 'desert-distant-rockfall', sectionId: 'desert-entry', x: X(1125), name: 'Distant Rockfall', message: 'Stone shifts somewhere beyond the ridge.', type: 'rockfall', duration: 2.8, shake: 0.18, dynamic: true, card: false },
   { id: 'desert-birds-scatter', sectionId: 'desert-entry', x: X(1320), name: 'Birds Scatter', message: 'Birds scatter from the far ruins.', type: 'birds-scatter', duration: 2.4, shake: 0.08, dynamic: true, card: false },
   { id: 'desert-marker', sectionId: 'desert-entry', x: X(700), name: 'Threshold Marker', message: 'A jackal guardian marks the threshold into the ancient site.', type: 'arrival', duration: 2.2, shake: 0.1 },
+  { id: 'opening-sacred-threshold-watch', sectionId: 'desert-entry', x: X(590), name: 'Sacred Threshold', message: 'The guardian watches. Prove you can move with care.', type: 'arrival', duration: 2.1, shake: 0.08, card: false },
   { id: 'upper-route-choice', sectionId: 'desert-entry', x: X(880), name: 'Evidence Route', message: 'Upper route has evidence.', type: 'arrival', duration: 2.0, shake: 0.12 },
   { id: 'guardian-prep-warning', sectionId: 'desert-entry', x: X(1018), name: 'Guardian Prep Seal', message: 'Guardian Seal: recover the Map Tablet and 6 relic shards before the Scarab Queen.', type: 'arrival', duration: 2.6, shake: 0.12 },
   { id: 'broken-ruins-route', sectionId: 'desert-entry', x: X(1240), name: 'Broken Ruins Route', message: 'Collapsed stones mark a careful route deeper toward the tomb.', type: 'rockfall', duration: 2.6, shake: 0.12, dynamic: true, card: false },

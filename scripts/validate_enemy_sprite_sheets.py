@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import sys
+import argparse
 from pathlib import Path
 
 from PIL import Image
@@ -27,9 +28,19 @@ PACKS = {
     "public/assets/expedition/enemies/china/china-river-crab-sprites.json": ["riverCrabIdle", "riverCrabWalk1", "riverCrabWalk2", "riverCrabWalk3", "riverCrabWindup", "riverCrabAttack", "riverCrabHit", "riverCrabDefeated"],
     "public/assets/expedition/enemies/china/china-watchtower-sentry-sprites.json": ["watchtowerSentryIdle", "watchtowerSentryWalk1", "watchtowerSentryWalk2", "watchtowerSentryWalk3", "watchtowerSentryWindup", "watchtowerSentryAttack", "watchtowerSentryHit", "watchtowerSentryDefeated"],
     "public/assets/expedition/enemies/china/china-clay-guardian-enemy-sprites.json": ["clayGuardianIdle", "clayGuardianWalk1", "clayGuardianWalk2", "clayGuardianWalk3", "clayGuardianWindup", "clayGuardianAttack", "clayGuardianHit", "clayGuardianDefeated"],
+    "public/assets/expedition/bosses/scarab-queen-sprites.json": [
+        "scarabQueenIdle", "scarabQueenWalk1", "scarabQueenWalk2", "scarabQueenIntro",
+        "scarabQueenWindup", "scarabQueenCharge", "scarabQueenAreaAttack",
+        "scarabQueenShielded", "scarabQueenCounterWindow", "scarabQueenHit",
+        "scarabQueenDefeated",
+    ],
 }
 
 FLYING_PREFIXES = ("bat", "sandWisp")
+FRAME_SUFFIXES = [
+    "CounterWindow", "AreaAttack", "Defeated", "Shielded", "Windup", "Charge",
+    "Attack", "Walk1", "Walk2", "Walk3", "Intro", "Idle", "Hit",
+]
 
 
 def alpha_bbox(image: Image.Image, region: dict) -> tuple[int, int, int, int] | None:
@@ -68,24 +79,36 @@ def validate_pack(json_rel: str, required_keys: list[str]) -> list[str]:
         edge_touch = left <= 1 or top <= 1 or right >= region["w"] - 1 or bottom >= region["h"] - 1
         if edge_touch:
             errors.append(f"{json_rel}: {key} touches crop edge")
-        prefix = key[:-len(next(suffix for suffix in ["Idle", "Walk1", "Walk2", "Walk3", "Windup", "Attack", "Hit", "Defeated"] if key.endswith(suffix)))]
+        prefix = key[:-len(next(suffix for suffix in FRAME_SUFFIXES if key.endswith(suffix)))]
         bottom_by_prefix.setdefault(prefix, []).append(bottom_padding)
     for prefix, paddings in bottom_by_prefix.items():
-        tolerance = 80 if prefix.startswith(FLYING_PREFIXES) else 18
+        tolerance = 80 if prefix.startswith(FLYING_PREFIXES) or prefix == "scarabQueen" else 18
         if max(paddings) - min(paddings) > tolerance:
             errors.append(f"{json_rel}: {prefix} baseline drift {min(paddings)}..{max(paddings)}px")
     return errors
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description="Validate Journey enemy and supported boss sprite atlases.")
+    parser.add_argument("--only", help="Validate one atlas path from the built-in validation list.")
+    args = parser.parse_args()
+
+    packs = PACKS
+    if args.only:
+        normalized = args.only.replace("\\", "/")
+        if normalized not in PACKS:
+            print(f"{args.only}: no validation contract registered")
+            return 1
+        packs = {normalized: PACKS[normalized]}
+
     errors: list[str] = []
-    for json_rel, keys in PACKS.items():
+    for json_rel, keys in packs.items():
         errors.extend(validate_pack(json_rel, keys))
     if errors:
         for error in errors:
             print(error)
         return 1
-    print(f"Validated {len(PACKS)} upgraded enemy sprite atlases.")
+    print(f"Validated {len(packs)} upgraded enemy/boss sprite atlases.")
     return 0
 
 
