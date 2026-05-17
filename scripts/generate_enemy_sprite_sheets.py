@@ -269,17 +269,17 @@ def render_scarab_queen_frame(frame_key, _source_key):
     draw = ImageDraw.Draw(cell)
     ground_y = SCARAB_QUEEN_CELL_H - 42
     frame_offsets = {
-        "scarabQueenIdle": (0, 0, 1.46),
-        "scarabQueenWalk1": (-8, 2, 1.46),
-        "scarabQueenWalk2": (8, -2, 1.46),
-        "scarabQueenIntro": (0, -4, 1.46),
-        "scarabQueenWindup": (-10, 16, 1.48),
-        "scarabQueenCharge": (24, -4, 1.5),
-        "scarabQueenAreaAttack": (0, -2, 1.48),
-        "scarabQueenShielded": (0, 0, 1.46),
-        "scarabQueenCounterWindow": (0, 4, 1.44),
-        "scarabQueenHit": (-20, 8, 1.44),
-        "scarabQueenDefeated": (0, 38, 1.3),
+        "scarabQueenIdle": (0, 0, 1.12),
+        "scarabQueenWalk1": (-8, 2, 1.12),
+        "scarabQueenWalk2": (8, -2, 1.12),
+        "scarabQueenIntro": (0, -4, 1.12),
+        "scarabQueenWindup": (-10, 16, 1.14),
+        "scarabQueenCharge": (22, -4, 1.16),
+        "scarabQueenAreaAttack": (0, -2, 1.14),
+        "scarabQueenShielded": (0, 0, 1.12),
+        "scarabQueenCounterWindow": (0, 4, 1.1),
+        "scarabQueenHit": (-20, 8, 1.1),
+        "scarabQueenDefeated": (0, 38, 1.0),
     }
 
     if frame_key == "scarabQueenIntro":
