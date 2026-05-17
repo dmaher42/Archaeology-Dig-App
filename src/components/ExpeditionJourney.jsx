@@ -60,6 +60,7 @@ import {
   PLATFORMS,
   RELIC_SHARDS,
   ROUTE_GATES,
+  SCARAB_SEAL_TRIGGER,
   SECTIONS,
   SECTION_ATMOSPHERES,
   SECRET_COLLECTIBLES,
@@ -1008,11 +1009,15 @@ const PROP_GROUNDING_CONFIG = {
   cart: { depth: 'midground' },
   door: { width: 118, height: 150, yOffset: 132, alpha: 0.48, depth: 'background', tint: 'dust', shadow: 0.12, dust: 0.58 },
   statue: { width: 70, height: 90, yOffset: 54, alpha: 0.58, depth: 'background', tint: 'stone', shadow: 0.12, dust: 0.58 },
+  'jackal-statue': { width: 82, height: 122, yOffset: 88, alpha: 0.96, depth: 'midground', tint: 'stone', shadow: 0.28, dust: 0.9, bury: 0.14 },
+  'damaged-jackal-statue': { width: 92, height: 118, yOffset: 88, alpha: 0.9, depth: 'midground', tint: 'stone', shadow: 0.26, dust: 0.9, bury: 0.18 },
   bridge: { width: 168, height: 62, yOffset: 20, alpha: 0.62, depth: 'midground', tint: 'warm', shadow: 0.2, dust: 0.72 },
   lights: { width: 42, height: 62, yOffset: 18, alpha: 0.48, depth: 'background', tint: 'cool', shadow: 0.08, dust: 0.44 },
   banners: { width: 76, height: 48, yOffset: 28, alpha: 0.5, depth: 'background', tint: 'dust', shadow: 0.08, dust: 0.48 },
   'sacred-pedestal': { width: 84, height: 72, yOffset: 38, alpha: 0.88, depth: 'midground', tint: 'warm', shadow: 0.22, dust: 0.78 },
+  'sacred-pedestal-activated': { width: 84, height: 72, yOffset: 38, alpha: 1, depth: 'midground', tint: 'warm', shadow: 0.28, dust: 0.84 },
   'guardian-seal': { width: 46, height: 46, yOffset: 8, alpha: 0.92, depth: 'midground', tint: 'warm', shadow: 0.12, dust: 0.42 },
+  'guardian-seal-activated': { width: 52, height: 52, yOffset: 10, alpha: 1, depth: 'midground', tint: 'warm', shadow: 0.18, dust: 0.48 },
   mural: { depth: 'background' },
   glyphs: { depth: 'background' },
   eyes: { depth: 'background' },
@@ -1021,15 +1026,15 @@ const PROP_GROUNDING_CONFIG = {
 
 const STORY_PROP_GROUNDING_OVERRIDES = {
   'upper-route-broken-stone-cue': {
-    width: 116,
-    height: 74,
-    yOffset: 76,
-    alpha: 0.64,
+    width: 132,
+    height: 96,
+    yOffset: 98,
+    alpha: 0.94,
     depth: 'midground',
     tint: 'buried-stone',
-    shadow: 0.22,
-    dust: 1.05,
-    bury: 0.48,
+    shadow: 0.3,
+    dust: 1.18,
+    bury: 0.58,
   },
 };
 
@@ -2145,6 +2150,19 @@ export default function ExpeditionJourney({
         name: current.dynamicEnvironmentEvent.name,
         timer: Number((current.dynamicEnvironmentEventTimer || 0).toFixed(2)),
       } : null,
+      scarabSealState: {
+        id: SCARAB_SEAL_TRIGGER.id,
+        name: SCARAB_SEAL_TRIGGER.name,
+        activated: Boolean(current.scarabSealActivated),
+        bossId: SCARAB_SEAL_TRIGGER.bossId,
+        x: Math.round(SCARAB_SEAL_TRIGGER.x),
+        y: Math.round(SCARAB_SEAL_TRIGGER.y),
+        visualRegionKey: current.scarabSealActivated ? 'guardianSealActivated' : 'guardianSealIdle',
+        confrontationSeen: Boolean(current.openingConfrontationSeen),
+        bossIntroLine: SCARAB_SEAL_TRIGGER.bossIntroLine,
+        guideFollowUpLine: SCARAB_SEAL_TRIGGER.guideFollowUpLine,
+        messages: SCARAB_SEAL_TRIGGER.messages,
+      },
       reactiveEnvironmentPassActive: Boolean(renderStats.reactiveEnvironmentPassActive),
       reactiveEnvironmentVersion: renderStats.reactiveEnvironmentVersion || REACTIVE_ENVIRONMENT_VERSION,
       visibleEnvironmentInteractions: renderStats.visibleEnvironmentInteractions || [],
@@ -3309,12 +3327,18 @@ export default function ExpeditionJourney({
 
     ctx.save();
     const section = getSectionForX(prop.x);
-    const sacredTrapPropAssetKey = getEnvironmentAssetKeyForStoryProp(prop, ENVIRONMENT_ASSET_PACK_IDS.EGYPT_SACRED_TRAPS);
+    const scarabSealActivated = Boolean(stateRef.current.scarabSealActivated);
+    const propForAsset = prop.id === 'early-scarab-seal' && scarabSealActivated
+      ? { ...prop, type: 'guardian-seal-activated' }
+      : prop.id === 'early-scarab-seal-pedestal' && scarabSealActivated
+        ? { ...prop, type: 'sacred-pedestal-activated' }
+        : prop;
+    const sacredTrapPropAssetKey = getEnvironmentAssetKeyForStoryProp(propForAsset, ENVIRONMENT_ASSET_PACK_IDS.EGYPT_SACRED_TRAPS);
     const propAssetKey = sacredTrapPropAssetKey
-      || getEnvironmentAssetKeyForStoryProp(prop, environmentAssetsRef.current.packId);
+      || getEnvironmentAssetKeyForStoryProp(propForAsset, environmentAssetsRef.current.packId);
     if (propAssetKey) {
       const propSize = {
-        ...(PROP_GROUNDING_CONFIG[prop.type] || { width: 72, height: 72, yOffset: 0, alpha: 0.78, depth: 'midground', tint: 'warm' }),
+        ...(PROP_GROUNDING_CONFIG[propForAsset.type] || { width: 72, height: 72, yOffset: 0, alpha: 0.78, depth: 'midground', tint: 'warm' }),
         ...(STORY_PROP_GROUNDING_OVERRIDES[prop.id] || {}),
       };
       const propAssets = sacredTrapPropAssetKey ? sacredTrapEnvironmentAssetsRef.current : environmentAssetsRef.current;
@@ -3557,7 +3581,7 @@ export default function ExpeditionJourney({
         markerSpriteAssetsRef.current,
         'flag',
         flagDest,
-        now + prop.x * 0.04,
+        0,
       );
       if (flagDrawn) {
         const assets = markerSpriteAssetsRef.current;
@@ -6830,28 +6854,29 @@ export default function ExpeditionJourney({
       if (!isHorizontallyVisible(checkpoint.x, 1, cameraX, 130)) return;
       const active = current.activeCheckpoint.id === checkpoint.id;
       ctx.save();
+      const checkpointSection = getSectionForX(checkpoint.x);
       const checkpointHeight = active ? 160 : 148;
       const checkpointWidth = checkpointHeight * 1.48;
       const checkpointDrawn = drawMarkerSprite(
-        ctx,
-        markerSpriteAssetsRef.current,
-        'checkpoint',
-        {
-          x: cx - checkpointWidth / 2,
-          y: GROUND_Y - checkpointHeight + 10,
-          width: checkpointWidth,
-          height: checkpointHeight,
-        },
-        now,
-      );
+          ctx,
+          markerSpriteAssetsRef.current,
+          'checkpoint',
+          {
+            x: cx - checkpointWidth / 2,
+            y: GROUND_Y - checkpointHeight + 10,
+            width: checkpointWidth,
+            height: checkpointHeight,
+          },
+          0,
+        );
       if (checkpointDrawn) {
-        drawRouteGroundApron(ctx, cx, GROUND_Y - 1, checkpointWidth * 0.9, getSectionForX(checkpoint.x).id, active ? 0.96 : 0.8, Math.round(checkpoint.x));
+        drawRouteGroundApron(ctx, cx, GROUND_Y - 1, checkpointWidth * 0.9, checkpointSection.id, active ? 0.96 : 0.8, Math.round(checkpoint.x));
         drawContactShadow(ctx, cx, GROUND_Y + 2, checkpointWidth * 0.76, active ? 0.22 : 0.16, 1.1);
         drawGroundDustLip(ctx, cx, GROUND_Y + 2, checkpointWidth * 0.72, 'rgba(116, 72, 36, 0.24)');
         ctx.restore();
         return;
       }
-      drawRouteGroundApron(ctx, cx, GROUND_Y - 1, 92, getSectionForX(checkpoint.x).id, active ? 0.86 : 0.7, Math.round(checkpoint.x));
+      drawRouteGroundApron(ctx, cx, GROUND_Y - 1, 92, checkpointSection.id, active ? 0.86 : 0.7, Math.round(checkpoint.x));
       drawContactShadow(ctx, cx, GROUND_Y + 1, 76, active ? 0.22 : 0.14, 1);
       drawGroundDustLip(ctx, cx, GROUND_Y + 1, 70, 'rgba(116, 72, 36, 0.24)');
       ctx.fillStyle = active ? '#d2b277' : '#9f7646';
@@ -7658,6 +7683,49 @@ export default function ExpeditionJourney({
       }
     });
 
+    if (backgroundPackId !== 'china-river-valley' && !current.scarabSealActivated) {
+      const scarabSealHitbox = {
+        x: SCARAB_SEAL_TRIGGER.x - SCARAB_SEAL_TRIGGER.width / 2,
+        y: SCARAB_SEAL_TRIGGER.y - SCARAB_SEAL_TRIGGER.height / 2,
+        width: SCARAB_SEAL_TRIGGER.width,
+        height: SCARAB_SEAL_TRIGGER.height,
+      };
+      if (rectsOverlap(getPlayerBodyHitbox(player), scarabSealHitbox)) {
+        current.scarabSealActivated = true;
+        current.triggeredEnvironmentEventIds.add(SCARAB_SEAL_TRIGGER.id);
+        current.dynamicEnvironmentEvent = {
+          id: SCARAB_SEAL_TRIGGER.id,
+          sectionId: SCARAB_SEAL_TRIGGER.sectionId,
+          type: SCARAB_SEAL_TRIGGER.eventType,
+          x: SCARAB_SEAL_TRIGGER.x,
+          name: SCARAB_SEAL_TRIGGER.eventName,
+          message: SCARAB_SEAL_TRIGGER.messages.join(' '),
+          duration: SCARAB_SEAL_TRIGGER.duration,
+          shake: SCARAB_SEAL_TRIGGER.shake,
+          card: false,
+        };
+        current.dynamicEnvironmentEventTimer = SCARAB_SEAL_TRIGGER.duration;
+        current.cinematicEvent = {
+          id: 'scarab-seal-guide-follow-up',
+          name: 'Warrior-Guide',
+          message: SCARAB_SEAL_TRIGGER.guideFollowUpLine,
+          temporary: true,
+        };
+        current.cinematicTimer = 5.2;
+        current.cameraShakeTimer = Math.max(current.cameraShakeTimer, SCARAB_SEAL_TRIGGER.duration * 0.45);
+        current.cameraShakeStrength = Math.max(current.cameraShakeStrength, SCARAB_SEAL_TRIGGER.shake);
+        current.notice = SCARAB_SEAL_TRIGGER.messages[SCARAB_SEAL_TRIGGER.messages.length - 1];
+        current.hitStopTimer = Math.max(current.hitStopTimer, 0.04);
+        addRewardPulse('scarab-seal-awakening', SCARAB_SEAL_TRIGGER.x, SCARAB_SEAL_TRIGGER.y, 'SEAL AWAKENS', {
+          color: '#38bdf8',
+          fill: 'rgba(56, 189, 248, 0.14)',
+          radius: 58,
+          timer: 0.78,
+        });
+        audioControls?.playExpeditionStinger?.('evidenceDiscovery');
+      }
+    }
+
     getActiveHiddenRoutes().forEach(route => {
       if (current.discoveredHiddenRouteIds?.has(route.id)) return;
       if (rectsOverlap(getPlayerBodyHitbox(player), route)) {
@@ -8366,10 +8434,20 @@ export default function ExpeditionJourney({
         });
       }
       if (!current.seenBossIntroIds) current.seenBossIntroIds = new Set();
-      if (!current.seenBossIntroIds.has(b.id) && Math.abs(b.x - player.x) < 400) {
+      const scarabSealRequired = backgroundPackId !== 'china-river-valley'
+        && b.id === SCARAB_SEAL_TRIGGER.bossId;
+      if (scarabSealRequired && !current.scarabSealActivated) return;
+      const openingScarabConfrontationPending = scarabSealRequired
+        && current.scarabSealActivated
+        && !current.openingConfrontationSeen;
+      if (!current.seenBossIntroIds.has(b.id) && (Math.abs(b.x - player.x) < 400 || openingScarabConfrontationPending)) {
         b.awakened = true;
+        if (openingScarabConfrontationPending) current.openingConfrontationSeen = true;
         current.seenBossIntroIds.add(b.id);
         const keyItem = current.bossKeyItems?.find(item => item.bossId === b.id);
+        const scarabSealBossIntroLine = b.id === SCARAB_SEAL_TRIGGER.bossId && current.scarabSealActivated
+          ? SCARAB_SEAL_TRIGGER.bossIntroLine
+          : null;
         const arenaStart = b.arenaStart ?? Math.max(0, b.x - 160);
         const arenaEnd = b.arenaEnd ?? Math.min(WORLD_WIDTH, b.x + 180);
         const playerDomainStartX = arenaStart + 44;
@@ -8411,11 +8489,11 @@ export default function ExpeditionJourney({
         current.bossIntro = {
           id: b.id,
           title: `Guardian Encounter: ${b.name}`,
-          message: keyItem
+          message: scarabSealBossIntroLine || (keyItem
             ? b.dialogue || `Defeat the guardian to recover the ${keyItem.name}.`
-            : b.intro,
+            : b.intro),
           focusX: b.x,
-          dialogue: b.dialogue || null,
+          dialogue: scarabSealBossIntroLine || b.dialogue || null,
           domainName: b.domainName || `${b.name} Domain`,
           rewardName: keyItem?.name || null,
         };
@@ -8724,7 +8802,7 @@ export default function ExpeditionJourney({
       if (current.resources.time <= 0) triggerJourneyRescue('Time expired. Field team rescued.');
     }
 
-  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, buildBossRewardMoment, getActiveHiddenRoutes, getActiveSecretCollectibles, getActiveShardGateProgress, getAttackBox, getAttackHurtbox, getBossPhaseConfig, getBossVulnerabilityState, getEnemyPatternConfig, getObjectiveProgress, getGateGuidance, getRouteAccessState, isRouteRewardAccessible, isLowStamina, addCombatEffect, recordEnvironmentInteraction, getPlayerAttackState, getSectionDisplayName, getSectionDisplayTitle, syncHud]);
+  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, backgroundPackId, buildBossRewardMoment, getActiveHiddenRoutes, getActiveSecretCollectibles, getActiveShardGateProgress, getAttackBox, getAttackHurtbox, getBossPhaseConfig, getBossVulnerabilityState, getEnemyPatternConfig, getObjectiveProgress, getGateGuidance, getRouteAccessState, isRouteRewardAccessible, isLowStamina, addCombatEffect, recordEnvironmentInteraction, getPlayerAttackState, getSectionDisplayName, getSectionDisplayTitle, syncHud]);
 
   const step = useCallback((ms) => {
     const dt = Math.min(ms / 1000, 0.05);

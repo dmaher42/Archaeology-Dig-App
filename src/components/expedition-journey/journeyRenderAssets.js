@@ -313,7 +313,9 @@ export const getEnvironmentAssetKeyForStoryProp = (prop, packId = DEFAULT_ENVIRO
   if (packId === ENVIRONMENT_ASSET_PACK_IDS.EGYPT_SACRED_TRAPS) {
     return ({
       'sacred-pedestal': 'sacredPedestalIdle',
+      'sacred-pedestal-activated': 'sacredPedestalActivated',
       'guardian-seal': 'guardianSealIdle',
+      'guardian-seal-activated': 'guardianSealActivated',
     }[prop.type] || null);
   }
   if (packId === ENVIRONMENT_ASSET_PACK_IDS.CHINA_RIVER_VALLEY) {
@@ -337,6 +339,8 @@ export const getEnvironmentAssetKeyForStoryProp = (prop, packId = DEFAULT_ENVIRO
     camp: 'pottery',
     door: 'routeDoor',
     statue: 'catStatue',
+    'jackal-statue': 'lionStatue',
+    'damaged-jackal-statue': 'lionStatue',
     torch: 'torch',
     column: 'brokenColumn',
     bridge: 'brokenBridge',

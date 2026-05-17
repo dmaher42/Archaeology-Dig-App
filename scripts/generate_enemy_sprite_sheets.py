@@ -113,90 +113,260 @@ def place_source_scarab(cell, source_key, scale=1.26, dx=0, dy=0):
     return x, y, target_w, target_h
 
 
-def render_scarab_queen_frame(frame_key, source_key):
+def draw_queen_leg(draw, root, joint, foot, color, outline, width=12):
+    draw.line([root, joint, foot], fill=outline, width=width + 6, joint="curve")
+    draw.line([root, joint, foot], fill=color, width=width, joint="curve")
+    fx, fy = foot
+    draw.polygon([(fx, fy), (fx + 18, fy - 6), (fx + 5, fy + 10)], fill=rgba("#d8a02f"), outline=outline)
+
+
+def draw_queen_eye(draw, cx, cy, intense=False):
+    glow = rgba("#facc15", 82 if intense else 46)
+    eye = rgba("#fde68a" if intense else "#f59e0b", 245)
+    draw.ellipse([cx - 15, cy - 12, cx + 15, cy + 12], fill=glow)
+    draw.ellipse([cx - 7, cy - 5, cx + 7, cy + 5], fill=eye, outline=rgba("#2a1a0b"), width=2)
+
+
+def draw_queen_shell(draw, x, y, w, h, active=False, cracked=False, open_shell=False):
+    outline = rgba("#2a1a0b")
+    dark = rgba("#1b2630")
+    bronze = rgba("#8a5a2b")
+    gold = rgba("#f5c451")
+    lapis = rgba("#0891b2", 235 if active else 190)
+    if open_shell:
+        draw.ellipse([x - 32, y - 10, x + w * 0.58, y + h], fill=rgba("#263544"), outline=outline, width=8)
+        draw.ellipse([x + w * 0.34, y - 18, x + w + 24, y + h - 2], fill=rgba("#263544"), outline=outline, width=8)
+        draw.ellipse([x + w * 0.36, y + h * 0.22, x + w * 0.64, y + h * 0.62], fill=rgba("#22d3ee", 205), outline=rgba("#fef3c7"), width=5)
+    else:
+        draw.ellipse([x, y, x + w, y + h], fill=dark, outline=outline, width=9)
+        draw.ellipse([x + 20, y + 12, x + w - 14, y + h - 16], fill=bronze, outline=outline, width=5)
+        draw.pieslice([x + 20, y + 8, x + w - 10, y + h - 10], 190, 353, fill=rgba("#111827"), outline=outline, width=4)
+    draw.arc([x + 36, y + 18, x + w - 24, y + h - 6], 202, 340, fill=gold, width=7)
+    draw.arc([x + 54, y + 36, x + w - 42, y + h - 20], 202, 338, fill=lapis, width=7)
+    draw.line([(x + w * 0.52, y + 12), (x + w * 0.49, y + h - 18)], fill=lapis, width=5)
+    for offset in (0.25, 0.42, 0.62, 0.78):
+        sx = x + w * offset
+        draw.line([(sx, y + h * 0.22), (sx - 20, y + h * 0.76)], fill=rgba("#f7d774", 190), width=3)
+    draw.ellipse([x + w * 0.42, y + 20, x + w * 0.58, y + 58], fill=rgba("#d8a02f"), outline=outline, width=3)
+    for wing_offset in (-12, 0, 12):
+        draw.arc([x + w * 0.41 + wing_offset, y + 12, x + w * 0.61 + wing_offset, y + 92], 205, 335, fill=gold, width=3)
+    if cracked:
+        draw.line([(x + w * 0.46, y + 42), (x + w * 0.56, y + 78), (x + w * 0.5, y + 118)], fill=rgba("#fef3c7", 210), width=4)
+        draw.line([(x + w * 0.64, y + 50), (x + w * 0.58, y + 98)], fill=rgba("#fef3c7", 180), width=3)
+
+
+def draw_scarab_queen_body(draw, frame_key):
+    outline = rgba("#2a1a0b")
+    dark = rgba("#111827")
+    bronze = rgba("#8a5a2b")
+    leg = rgba("#7c4a20")
+    gold = rgba("#f5c451")
+    lapis = rgba("#0891b2")
+    active = frame_key in {"scarabQueenWindup", "scarabQueenAreaAttack", "scarabQueenCounterWindow"}
+    defeated = frame_key == "scarabQueenDefeated"
+    windup = frame_key == "scarabQueenWindup"
+    charge = frame_key == "scarabQueenCharge"
+    hit = frame_key == "scarabQueenHit"
+    open_shell = frame_key == "scarabQueenCounterWindow"
+
+    x = 118
+    y = 146
+    if frame_key == "scarabQueenWalk1":
+        x -= 6
+    elif frame_key == "scarabQueenWalk2":
+        x += 6
+    elif frame_key == "scarabQueenIntro":
+        y -= 6
+    elif windup:
+        x -= 8
+        y += 24
+    elif charge:
+        x += 18
+        y -= 2
+    elif frame_key == "scarabQueenAreaAttack":
+        y -= 8
+    elif hit:
+        x -= 24
+        y += 12
+    elif defeated:
+        x -= 18
+        y += 58
+
+    body_w = 300
+    body_h = 148 if not windup else 128
+    shell_w = 246
+    shell_h = 150 if not windup else 126
+
+    if defeated:
+        draw.ellipse([100, 344, 452, 382], fill=rgba("#8b5e34", 80))
+        draw.ellipse([x + 16, y + 30, x + body_w - 8, y + body_h + 28], fill=rgba("#1b2630"), outline=outline, width=8)
+        draw_queen_shell(draw, x + 20, y - 26, shell_w, shell_h, active=False, cracked=True)
+        for root_x in (x + 60, x + 120, x + 196):
+            draw_queen_leg(draw, (root_x, y + body_h - 10), (root_x - 24, y + body_h + 8), (root_x + 38, 350), leg, outline, 9)
+        draw.line([(x + 118, y + 30), (x + 160, y + 76), (x + 144, y + 118)], fill=rgba("#f7d774", 165), width=5)
+        draw.arc([x + 24, y - 28, x + body_w + 8, y + body_h + 36], 205, 342, fill=rgba("#22d3ee", 90), width=5)
+        return
+
+    leg_roots = [
+        (x + 50, y + body_h - 18),
+        (x + 104, y + body_h - 8),
+        (x + 168, y + body_h - 6),
+        (x + 226, y + body_h - 20),
+    ]
+    foot_offsets = [(-46, 50), (-24, 62), (36, 60), (78, 44)]
+    if frame_key == "scarabQueenWalk1":
+        foot_offsets = [(-58, 44), (-12, 66), (24, 52), (90, 52)]
+    elif frame_key == "scarabQueenWalk2":
+        foot_offsets = [(-34, 58), (-42, 50), (50, 66), (66, 36)]
+    elif windup:
+        foot_offsets = [(-76, 38), (-54, 60), (54, 60), (100, 36)]
+    elif charge:
+        foot_offsets = [(-88, 54), (-66, 68), (78, 54), (128, 28)]
+    elif hit:
+        foot_offsets = [(-28, 52), (-6, 64), (34, 64), (62, 48)]
+
+    for (root_x, root_y), (fx, fy) in zip(leg_roots, foot_offsets):
+        joint = (root_x + fx * 0.45, root_y + fy * 0.34 - 20)
+        foot = (root_x + fx, min(350, root_y + fy))
+        draw_queen_leg(draw, (root_x, root_y), joint, foot, leg, outline, 10)
+
+    head_x = x + body_w - 28
+    head_y = y + body_h * 0.47
+    draw.ellipse([x + 36, y + 46, x + body_w, y + body_h + 36], fill=dark, outline=outline, width=8)
+    draw.ellipse([head_x - 20, head_y - 42, head_x + 88, head_y + 44], fill=dark, outline=outline, width=8)
+    draw_queen_shell(draw, x + 20, y - 52, shell_w, shell_h, active=active, cracked=hit, open_shell=open_shell)
+
+    eye_y = head_y - 10
+    draw_queen_eye(draw, head_x + 42, eye_y, intense=active)
+    draw_queen_eye(draw, head_x + 78, eye_y + 2, intense=active)
+
+    mandible_open = windup or charge or frame_key == "scarabQueenAreaAttack"
+    upper_tip = (head_x + (104 if charge else 130), head_y - (58 if mandible_open else 36))
+    lower_tip = (head_x + (106 if charge else 132), head_y + (62 if mandible_open else 34))
+    draw.line([(head_x + 68, head_y + 4), (head_x + 98, head_y - 24), upper_tip], fill=outline, width=10, joint="curve")
+    draw.line([(head_x + 68, head_y + 4), (head_x + 98, head_y - 24), upper_tip], fill=gold, width=6, joint="curve")
+    draw.line([(head_x + 62, head_y + 18), (head_x + 102, head_y + 30), lower_tip], fill=outline, width=10, joint="curve")
+    draw.line([(head_x + 62, head_y + 18), (head_x + 102, head_y + 30), lower_tip], fill=gold, width=6, joint="curve")
+    draw.line([(head_x + 16, head_y + 58), (head_x + 82, head_y + 92)], fill=outline, width=12)
+    draw.line([(head_x + 16, head_y + 58), (head_x + 82, head_y + 92)], fill=leg, width=7)
+    if charge:
+        draw.polygon([(head_x + 90, head_y - 16), (head_x + 142, head_y - 30), (head_x + 112, head_y + 22)], fill=rgba("#facc15", 160), outline=outline)
+        draw.line([(82, 226), (32, 212)], fill=rgba("#facc15", 135), width=7)
+        draw.line([(104, 282), (42, 288)], fill=rgba("#22d3ee", 120), width=6)
+    if windup:
+        draw.line([(head_x + 20, head_y + 62), (head_x + 108, head_y + 26)], fill=rgba("#facc15", 210), width=8)
+        draw.line([(head_x + 20, head_y + 76), (head_x + 112, head_y + 88)], fill=rgba("#facc15", 210), width=8)
+    if frame_key == "scarabQueenIntro":
+        draw.polygon([(x + 126, y - 78), (x + 162, y - 110), (x + 202, y - 76)], fill=rgba("#d8a02f"), outline=outline)
+    else:
+        draw.polygon([(x + 126, y - 74), (x + 164, y - 108), (x + 202, y - 74)], fill=rgba("#d8a02f"), outline=outline)
+    if open_shell:
+        draw.ellipse([x + 142, y + 22, x + 210, y + 96], fill=rgba("#22d3ee", 210), outline=rgba("#fef3c7"), width=5)
+
+
+def render_scarab_queen_frame(frame_key, _source_key):
     cell = Image.new("RGBA", (SCARAB_QUEEN_CELL_W, SCARAB_QUEEN_CELL_H), (0, 0, 0, 0))
     draw = ImageDraw.Draw(cell)
     ground_y = SCARAB_QUEEN_CELL_H - 42
+    frame_offsets = {
+        "scarabQueenIdle": (0, 0, 1.46),
+        "scarabQueenWalk1": (-8, 2, 1.46),
+        "scarabQueenWalk2": (8, -2, 1.46),
+        "scarabQueenIntro": (0, -4, 1.46),
+        "scarabQueenWindup": (-10, 16, 1.48),
+        "scarabQueenCharge": (24, -4, 1.5),
+        "scarabQueenAreaAttack": (0, -2, 1.48),
+        "scarabQueenShielded": (0, 0, 1.46),
+        "scarabQueenCounterWindow": (0, 4, 1.44),
+        "scarabQueenHit": (-20, 8, 1.44),
+        "scarabQueenDefeated": (0, 38, 1.3),
+    }
 
     if frame_key == "scarabQueenIntro":
-        draw_glyph_ring(draw, (276, 210), 170, rgba("#f7d774", 130), width=5)
-        draw.ellipse([116, 52, 444, 358], fill=rgba("#111827", 52))
+        draw_glyph_ring(draw, (276, 220), 150, rgba("#f7d774", 130), width=5)
     if frame_key == "scarabQueenWindup":
         draw_sacred_sand(draw, ground_y, rgba("#d97706", 72), intense=False)
-        draw_glyph_ring(draw, (276, 232), 128, rgba("#facc15", 160), width=4, active=True)
+        draw_glyph_ring(draw, (276, 252), 126, rgba("#facc15", 155), width=4, active=True)
     if frame_key == "scarabQueenCharge":
-        draw_sacred_sand(draw, ground_y, rgba("#d97706", 96), intense=True)
-        draw.line([(92, 210), (38, 192)], fill=rgba("#facc15", 130), width=5)
-        draw.line([(116, 262), (48, 268)], fill=rgba("#facc15", 110), width=6)
+        draw_sacred_sand(draw, ground_y, rgba("#d97706", 92), intense=True)
     if frame_key == "scarabQueenAreaAttack":
-        draw_glyph_ring(draw, (276, 222), 158, rgba("#facc15", 190), width=7, active=True)
-        draw_glyph_ring(draw, (276, 222), 112, rgba("#22d3ee", 140), width=5, active=True)
-        draw_sacred_sand(draw, ground_y, rgba("#facc15", 100), intense=True)
+        draw_glyph_ring(draw, (276, 222), 160, rgba("#facc15", 190), width=7, active=True)
+        draw_glyph_ring(draw, (276, 222), 112, rgba("#22d3ee", 145), width=5, active=True)
+        draw.ellipse([94, 252, 466, 374], outline=rgba("#22d3ee", 130), width=5)
+        draw.ellipse([142, 270, 418, 356], outline=rgba("#facc15", 200), width=8)
+        draw_sacred_sand(draw, ground_y, rgba("#facc15", 96), intense=True)
     if frame_key == "scarabQueenShielded":
-        draw.ellipse([54, 32, 506, 374], fill=rgba("#22d3ee", 42), outline=rgba("#67e8f9", 170), width=9)
-        draw.ellipse([78, 56, 482, 354], outline=rgba("#facc15", 130), width=5)
+        draw.ellipse([50, 32, 510, 374], fill=rgba("#22d3ee", 42), outline=rgba("#67e8f9", 175), width=9)
+        draw.ellipse([76, 56, 484, 354], outline=rgba("#facc15", 135), width=5)
     if frame_key == "scarabQueenCounterWindow":
         draw_glyph_ring(draw, (280, 220), 122, rgba("#22d3ee", 150), width=5, active=True)
     if frame_key == "scarabQueenHit":
-        draw.line([(98, 96), (150, 144)], fill=rgba("#f97316", 180), width=8)
-        draw.line([(426, 94), (380, 150)], fill=rgba("#f97316", 170), width=8)
+        draw.line([(92, 96), (152, 148)], fill=rgba("#f97316", 175), width=8)
+        draw.line([(438, 96), (376, 152)], fill=rgba("#f97316", 170), width=8)
     if frame_key == "scarabQueenDefeated":
-        draw_sacred_sand(draw, ground_y + 8, rgba("#8b5e34", 80), intense=False)
+        draw_sacred_sand(draw, ground_y + 8, rgba("#8b5e34", 86), intense=False)
 
-    scale = 1.34
-    dx = 0
-    dy = 0
-    if frame_key == "scarabQueenIntro":
-        scale = 1.3
-        dy = 2
-    elif frame_key == "scarabQueenWindup":
-        scale = 1.33
-        dy = 18
-    elif frame_key == "scarabQueenCharge":
-        scale = 1.16
-        dx = -8
-        dy = 8
-    elif frame_key == "scarabQueenAreaAttack":
-        scale = 1.22
-        dy = -14
-    elif frame_key == "scarabQueenCounterWindow":
-        scale = 1.28
-        dy = 12
-    elif frame_key == "scarabQueenHit":
-        scale = 1.29
-        dy = 10
-    elif frame_key == "scarabQueenDefeated":
-        scale = 1.32
-        dy = 26
+    dx, dy, scale = frame_offsets.get(frame_key, (0, 0, 1.46))
+    scarab_x, scarab_y, scarab_w, scarab_h = place_source_scarab(cell, _source_key, scale=scale, dx=dx, dy=dy)
+    head_x = scarab_x + scarab_w * 0.82
+    head_y = scarab_y + scarab_h * 0.44
+    shell_x = scarab_x + scarab_w * 0.38
+    shell_y = scarab_y + scarab_h * 0.14
+    crown_y = max(20, scarab_y - 34)
+    outline = rgba("#2a1a0b")
+    gold = rgba("#facc15", 205)
+    lapis = rgba("#22d3ee", 170)
 
-    x, y, w, h = place_source_scarab(cell, source_key, scale=scale, dx=dx, dy=dy)
-    draw = ImageDraw.Draw(cell)
-
-    if frame_key != "scarabQueenDefeated":
-        draw_lapis_shell_marks(draw, x + 116, y + 20, w * 0.54, h * 0.45, active=frame_key in {"scarabQueenWindup", "scarabQueenCounterWindow", "scarabQueenAreaAttack"})
-        eye_color = rgba("#fde68a", 235) if frame_key in {"scarabQueenWindup", "scarabQueenAreaAttack"} else rgba("#f59e0b", 205)
-        draw.ellipse([x + w * 0.74, y + h * 0.35, x + w * 0.78, y + h * 0.40], fill=eye_color)
-        draw.ellipse([x + w * 0.82, y + h * 0.35, x + w * 0.86, y + h * 0.40], fill=eye_color)
-        draw.polygon([(x + w * 0.56, y + 6), (x + w * 0.62, y - 20), (x + w * 0.69, y + 8)], fill=rgba("#d8a02f", 225), outline=rgba("#2a1a0b", 230))
+    draw.polygon(
+        [
+            (shell_x - 22, crown_y + 32),
+            (shell_x + 28, crown_y - 18),
+            (shell_x + 82, crown_y + 32),
+        ],
+        fill=rgba("#d8a02f", 220),
+        outline=outline,
+    )
+    draw.arc(
+        [shell_x - 42, scarab_y + 18, shell_x + 136, scarab_y + 154],
+        202,
+        340,
+        fill=gold,
+        width=5,
+    )
+    draw.line(
+        [(shell_x + 46, scarab_y + 18), (shell_x + 36, scarab_y + scarab_h * 0.58)],
+        fill=lapis,
+        width=5,
+    )
+    for offset in (-24, 0, 24):
+        draw.arc(
+            [shell_x - 2 + offset, scarab_y + 6, shell_x + 92 + offset, scarab_y + 120],
+            208,
+            336,
+            fill=rgba("#f7d774", 175),
+            width=3,
+        )
 
     if frame_key == "scarabQueenWindup":
-        draw.line([(x + w * 0.72, y + h * 0.58), (x + w * 0.94, y + h * 0.44)], fill=rgba("#facc15", 210), width=8)
-        draw.line([(x + w * 0.7, y + h * 0.64), (x + w * 0.92, y + h * 0.72)], fill=rgba("#facc15", 210), width=8)
+        draw.line([(head_x - 8, head_y + 18), (head_x + 72, head_y - 22)], fill=gold, width=7)
+        draw.line([(head_x - 2, head_y + 34), (head_x + 76, head_y + 48)], fill=gold, width=7)
+        draw.ellipse([head_x - 8, head_y - 14, head_x + 20, head_y + 12], fill=rgba("#facc15", 120))
     if frame_key == "scarabQueenCharge":
-        draw.polygon([(x + w * 0.88, y + h * 0.46), (x + w + 42, y + h * 0.36), (x + w * 0.94, y + h * 0.62)], fill=rgba("#f5c451", 180), outline=rgba("#2a1a0b", 190))
-    if frame_key == "scarabQueenAreaAttack":
-        draw.ellipse([162, 238, 398, 342], outline=rgba("#facc15", 190), width=8)
-        draw.ellipse([112, 212, 448, 366], outline=rgba("#22d3ee", 130), width=5)
+        draw.polygon(
+            [(head_x + 42, head_y - 16), (head_x + 112, head_y - 34), (head_x + 76, head_y + 24)],
+            fill=rgba("#facc15", 150),
+            outline=outline,
+        )
+        draw.line([(scarab_x + 16, scarab_y + scarab_h * 0.56), (scarab_x - 48, scarab_y + scarab_h * 0.5)], fill=rgba("#22d3ee", 135), width=6)
     if frame_key == "scarabQueenCounterWindow":
-        draw.ellipse([x + w * 0.47, y + h * 0.2, x + w * 0.62, y + h * 0.42], fill=rgba("#22d3ee", 190), outline=rgba("#fef3c7", 230), width=5)
-        draw.line([(x + w * 0.42, y + h * 0.22), (x + w * 0.36, y + h * 0.44)], fill=rgba("#fef3c7", 190), width=4)
+        draw.ellipse(
+            [shell_x + 12, scarab_y + 58, shell_x + 86, scarab_y + 132],
+            fill=rgba("#22d3ee", 180),
+            outline=rgba("#fef3c7", 230),
+            width=5,
+        )
     if frame_key == "scarabQueenHit":
-        draw.line([(x + w * 0.46, y + h * 0.18), (x + w * 0.57, y + h * 0.34)], fill=rgba("#fef3c7", 220), width=4)
-        draw.line([(x + w * 0.6, y + h * 0.2), (x + w * 0.54, y + h * 0.44)], fill=rgba("#fef3c7", 210), width=4)
-    if frame_key == "scarabQueenDefeated":
-        draw.line([(x + w * 0.42, y + h * 0.28), (x + w * 0.55, y + h * 0.48), (x + w * 0.5, y + h * 0.62)], fill=rgba("#f7d774", 160), width=5)
-        draw.arc([x + 34, y + 32, x + w - 24, y + h + 6], 202, 342, fill=rgba("#22d3ee", 80), width=4)
-
+        draw.line([(scarab_x + 80, scarab_y + 24), (scarab_x + 132, scarab_y + 88)], fill=rgba("#fef3c7", 190), width=5)
     return cell
 
 

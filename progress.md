@@ -1980,3 +1980,23 @@ Remaining notes:
 - Confirmed `egypt-sacred-traps-pack.png/json` exists and validates with `guardianSealIdle`, `guardianSealActivated`, `sacredPedestalIdle`, and `sacredPedestalActivated`.
 - Confirmed passive final-route placement is complete, while the Guardian Seal trigger and Ancient Construct awakening implementation remain pending by design.
 - Confirmed Ancient Construct data, route gates, Base Camp handoff, excavation, and China were not changed by this handover pass.
+
+## 2026-05-17 Scarab Queen classroom-friendly attack asset refresh
+
+- Refreshed the Scarab Queen boss atlas in place through the existing `generate_enemy_sprite_sheets.py --scarab-queen-only` path.
+- Preserved all eleven canonical Scarab Queen frame keys and the existing `public/assets/expedition/bosses/scarab-queen-sprites.json` atlas contract.
+- Reworked the generated Queen frames into a cleaner stylised sacred-scarab boss: bronze/gold shell plates, lapis-blue accents, clear eyes/mandibles/front legs, stronger windup brace, forward charge, glyph/sand area pulse, exposed counter-window weak point, hit reaction, and non-gory defeated guardian pose.
+- Deliberately did not change Journey gameplay, route gates, Scarab Queen health/damage, Step 1/Step 2 opening systems, Base Camp, excavation, China, or Guardian Seal trigger logic.
+
+## 2026-05-17 Early Scarab Seal awakening scene
+
+- Added the missing early Scarab Seal climb/trigger beat before the Scarab Queen encounter using existing `PLATFORMS`, `STORY_PROPS`, dynamic environment notices, camera shake, boss intro, and Journey snapshot paths.
+- The Sacred Scarab Seal starts inactive, activates once on contact, swaps the early seal/pedestal to activated visuals, shows the warning sequence, and then allows the existing Scarab Queen intro/domain flow to start.
+- Scarab Queen defeat, Brush Handle reward, Desert Map Seal requirements, Temple Approach Seal, Guardian Prep Seal, Base Camp, excavation, China, and the final Guardian Seal / Ancient Construct trigger were deliberately not changed.
+
+## 2026-05-17 Egypt interactive opening correction
+
+- Corrected the Scarab Seal beat into the intended interactive opening: the player now sees a simple upward platform path near the Egypt entry, climbs toward a false artefact, and triggers the awakening by touching it.
+- Moved the false Sacred Scarab Seal trigger to the top of the opening climb around `X(600)` and changed the confrontation text to `You will never reach the expedition site.`
+- Added the guide follow-up purpose line so the Journey frames shards, tools, upgrades, and evidence as preparation to pass the guardian and reach the expedition site.
+- Reused the existing Scarab Queen boss intro/domain flow for the cutscene-style confrontation and preserved all existing route-gate, Brush Handle, Base Camp, excavation, China, and final Guardian Seal / Ancient Construct behaviour.

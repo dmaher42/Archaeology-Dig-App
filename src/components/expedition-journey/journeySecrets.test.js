@@ -97,16 +97,17 @@ test('world continuity landmarks foreshadow future expedition sections', () => {
 test('story props include recurring expedition markers across sections', () => {
   const storyProps = extractExportedArray('STORY_PROPS');
 
-  assert.match(storyProps, /survey-flag-marker/);
+  assert.doesNotMatch(storyProps, /survey-flag-marker/);
   assert.match(storyProps, /opening-footprint-trail/);
-  assert.match(storyProps, /opening-rope-line/);
+  assert.match(storyProps, /opening-threshold-offering/);
   assert.match(storyProps, /upper-route-broken-stone-cue/);
   assert.match(storyProps, /abandoned-camp/);
   assert.match(storyProps, /type:\s*'cart'/);
   assert.match(storyProps, /broken supply cart/);
   assert.match(storyProps, /base camp supply cart/);
   assert.match(journeyComponentSource, /STORY_PROP_GROUNDING_OVERRIDES/);
-  assert.match(journeyComponentSource, /'upper-route-broken-stone-cue':\s*\{[\s\S]*?tint:\s*'buried-stone'[\s\S]*?bury:\s*0\.48/);
+  assert.match(journeyComponentSource, /'upper-route-broken-stone-cue':\s*\{[\s\S]*?tint:\s*'buried-stone'[\s\S]*?bury:\s*0\.58/);
+  assert.match(journeyComponentSource, /'jackal-statue':\s*\{[\s\S]*?alpha:\s*0\.96[\s\S]*?depth:\s*'midground'/);
   assert.match(journeyComponentSource, /STORY_PROP_GROUNDING_OVERRIDES\[prop\.id\]\?\.depth/);
   assert.match(journeyComponentSource, /propSize\.bury/);
   assert.match(journeyComponentSource, /useNaturalUpperRouteHint/);
@@ -123,9 +124,10 @@ test('Ancient Egypt opening stages archaeologist arrival and warrior-guide story
   assert.match(storyProps, /id:\s*'opening-archaeologist-field-kit'/);
   assert.match(storyProps, /id:\s*'opening-guardian-warning-plinth'/);
   assert.match(storyProps, /id:\s*'opening-warrior-guide-marker'/);
+  assert.match(storyProps, /warrior-guide protective seal marker/);
   assert.match(storyProps, /id:\s*'opening-sacred-threshold-guardian'/);
   assert.match(storyProps, /sacred guardian threshold before Temple Approach Seal/);
-  ['camp', 'ceremonial-offering', 'survey-rope'].forEach((type) => {
+  ['camp', 'ceremonial-offering', 'sacred-pedestal'].forEach((type) => {
     assert.match(storyProps, new RegExp(`type:\\s*'${type}'`));
   });
 
@@ -155,6 +157,51 @@ test('Ancient Egypt opening stages archaeologist arrival and warrior-guide story
   assert.match(miniBosses, /The seal stirs\. Move with care, archaeologist - the guardian is awake\./);
   assert.match(bossKeyItems, /id:\s*'brush-handle'[\s\S]*?You passed the first guardian test\. Record what you found before moving deeper\. Desert Map Seal is open\./);
   assert.match(journeyComponentSource, /const GUARDIAN_KNOWLEDGE_CHALLENGES_ENABLED = false;/);
+});
+
+test('opening Scarab Seal climb triggers a boss confrontation without completing progression', () => {
+  const storyProps = extractExportedArray('STORY_PROPS');
+  const platforms = extractExportedArray('PLATFORMS');
+  const routeGates = extractExportedArray('ROUTE_GATES');
+  const miniBosses = extractExportedArray('MINI_BOSSES');
+  const bossKeyItems = extractExportedArray('BOSS_KEY_ITEMS');
+  const events = extractExportedArray('ENVIRONMENT_EVENTS');
+
+  assert.match(source, /export const SCARAB_SEAL_TRIGGER = \{/);
+  assert.match(source, /id:\s*'scarab-seal-trigger'/);
+  assert.match(source, /name:\s*'Sacred Scarab Seal'/);
+  assert.match(source, /bossId:\s*'scarab-queen'/);
+  assert.match(source, /x:\s*X\(600\)/);
+  assert.match(source, /y:\s*JY\(8\)/);
+  assert.match(source, /You found an artefact\./);
+  assert.match(source, /The stone seal cracks open\./);
+  assert.match(source, /This was not treasure\. It was a warning\./);
+  assert.match(source, /The Scarab Queen awakens\./);
+  assert.match(source, /You will never reach the expedition site\./);
+  assert.match(source, /Then we must prove we can pass\. Gather shards, recover tools, and move with care\./);
+  assert.match(platforms, /opening scarab seal climb/i);
+  assert.match(platforms, /opening scarab seal summit/i);
+  assert.match(storyProps, /id:\s*'early-scarab-seal-pedestal'/);
+  assert.match(storyProps, /id:\s*'early-scarab-seal'/);
+  assert.match(storyProps, /id:\s*'early-scarab-seal'[\s\S]*?x:\s*X\(600\)[\s\S]*?y:\s*JY\(8\)/);
+  assert.match(events, /id:\s*'opening-scarab-seal-climb'/);
+
+  assert.match(journeyUtilsSource, /scarabSealActivated:\s*false/);
+  assert.match(journeyComponentSource, /scarabSealState:/);
+  assert.match(journeyComponentSource, /current\.scarabSealActivated = true/);
+  assert.match(journeyComponentSource, /current\.openingConfrontationSeen = true/);
+  assert.match(journeyComponentSource, /current\.triggeredEnvironmentEventIds\.add\(SCARAB_SEAL_TRIGGER\.id\)/);
+  assert.match(journeyComponentSource, /b\.id === SCARAB_SEAL_TRIGGER\.bossId[\s\S]*?!current\.scarabSealActivated/);
+  assert.match(journeyComponentSource, /SCARAB_SEAL_TRIGGER\.bossIntroLine/);
+  assert.match(journeyComponentSource, /SCARAB_SEAL_TRIGGER\.guideFollowUpLine/);
+  assert.match(journeyComponentSource, /guardianSealActivated/);
+
+  assert.match(routeGates, /id:\s*'desert-seal'[\s\S]*?miniBoss:\s*'scarab-queen'[\s\S]*?keyItem:\s*'brush-handle'/);
+  assert.match(miniBosses, /id:\s*'scarab-queen'[\s\S]*?health:\s*1,\s*damage:\s*4/);
+  assert.match(bossKeyItems, /id:\s*'brush-handle'[\s\S]*?bossId:\s*'scarab-queen'[\s\S]*?gateId:\s*'desert-seal'/);
+  assert.doesNotMatch(journeyComponentSource, /current\.defeatedMiniBosses\.add\(SCARAB_SEAL_TRIGGER\.bossId\)/);
+  assert.doesNotMatch(journeyComponentSource, /current\.collectedBossKeyIds\.add\('brush-handle'\)/);
+  assert.match(source, /export const CHINA_MINI_BOSSES = \[/);
 });
 
 test('Egypt opening ambient life stays in the existing Journey renderer', () => {
@@ -283,10 +330,10 @@ test('Guardian Seal passive placement uses existing story props and idle sacred 
   assert.match(journeyRenderAssetsSource, /'guardian-seal':\s*'guardianSealIdle'/);
   assert.match(journeyComponentSource, /sacredTrapEnvironmentAssetsRef/);
   assert.match(journeyComponentSource, /packId:\s*ENVIRONMENT_ASSET_PACK_IDS\.EGYPT_SACRED_TRAPS/);
-  assert.match(journeyComponentSource, /getEnvironmentAssetKeyForStoryProp\(prop,\s*ENVIRONMENT_ASSET_PACK_IDS\.EGYPT_SACRED_TRAPS\)/);
+  assert.match(journeyComponentSource, /getEnvironmentAssetKeyForStoryProp\(propForAsset,\s*ENVIRONMENT_ASSET_PACK_IDS\.EGYPT_SACRED_TRAPS\)/);
   assert.doesNotMatch(journeyComponentSource, /guardian-seal-trigger/);
-  assert.doesNotMatch(journeyComponentSource, /guardianSealActivated/);
-  assert.doesNotMatch(journeyComponentSource, /sacredPedestalActivated/);
+  assert.doesNotMatch(journeyComponentSource, /guardian-seal-passive' && scarabSealActivated/);
+  assert.doesNotMatch(journeyComponentSource, /guardian-seal-pedestal-passive' && scarabSealActivated/);
 });
 
 test('Egypt Journey explains shard purpose and adds an optional Base Camp voucher cache', () => {

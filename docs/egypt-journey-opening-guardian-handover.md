@@ -48,6 +48,7 @@ All requested opening/guardian/scarab/trap planning items are complete in this l
 - The first sacred defence atlas now exists with these exact region keys: `guardianSealIdle`, `guardianSealActivated`, `sacredPedestalIdle`, and `sacredPedestalActivated`.
 - The sacred defence atlas is registered as the passive/future environment pack id `egypt-sacred-traps`.
 - Passive final-route placement now shows the idle Guardian Seal and sacred pedestal near the planned final approach point using existing `STORY_PROPS` and the existing story-prop renderer.
+- The early Sacred Scarab Seal awakening beat now exists as an interactive opening climb near the Egypt entry: the player climbs to a false artefact, triggers the awakening, and gets a Scarab Queen confrontation through the existing boss intro/domain flow.
 
 ## Deliberately Not Changed
 
@@ -58,6 +59,7 @@ All requested opening/guardian/scarab/trap planning items are complete in this l
 - No China changes.
 - No Base Camp or excavation changes.
 - No Scarab Queen health/damage/route requirement changes in the story payoff pass.
+- No Scarab Queen health/damage/route requirement changes in the early Scarab Seal awakening pass.
 - No trap collision, damage, timing, platform, or route gate behavior changes in the trap planning pass.
 - No Guardian Seal trigger implementation yet.
 - No Guardian Seal pickup, activation, or Ancient Construct awakening sequence yet.
@@ -99,6 +101,7 @@ The sacred seal/pedestal handover pass also confirmed:
 ## Remaining Risks
 
 - A full natural, human-paced playthrough from Brush Handle pickup through Desert Map Seal, temple entry, Switch 1, final approach, Ancient Construct, Base Camp, and excavation is still recommended.
+- The early Scarab Seal scene has source and browser-smoke coverage, but classroom pacing and climb readability should still be reviewed in a natural playthrough.
 - The Scarab Queen asset has been regenerated and validated, but longer classroom-projector review would still help judge readability during real combat.
 - Sacred trap work is still only partially implemented: the first Guardian Seal and sacred pedestal assets exist, but pressure plate, cracked platform, falling stone, glyph tripwire, and sealed door regions remain pending.
 - Guardian Seal trigger work is still planning only; implementation should reuse the passive placement and existing event/boss intro paths when it starts.
@@ -107,7 +110,7 @@ The sacred seal/pedestal handover pass also confirmed:
 
 ## Recommended Next Task
 
-Implement the Guardian Seal trigger only after first locking the current final-route requirements in tests, or continue the sacred defence asset set with non-gameplay trap art if the trigger should wait.
+Implement the Guardian Seal trigger only after first locking the current final-route requirements in tests, or continue the sacred defence asset set with non-gameplay trap art if the trigger should wait. Do not revisit the early Scarab Seal unless a playthrough shows climb readability or pacing problems.
 
 Recommended next Codex prompt:
 
