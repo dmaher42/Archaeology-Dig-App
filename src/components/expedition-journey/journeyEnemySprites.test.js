@@ -26,6 +26,7 @@ test('regular enemy sprite draw boxes stay close to gameplay hitbox scale', () =
   assert.ok(drawBox.height >= 68, `scarab draw height should show the larger visual size boost, received ${drawBox.height}`);
   assert.ok(drawBox.width <= 180, `scarab draw width should stay readable, received ${drawBox.width}`);
   assert.ok(drawBox.height <= 126, `scarab draw height should stay readable, received ${drawBox.height}`);
+  assert.equal(drawBox.y + drawBox.height, scarab.y + scarab.height + 14, 'scarab sprite should be lowered enough that the visible PNG feet touch the sand');
   assert.equal(scarab.width, 30, 'visual size boost should not mutate the combat width');
   assert.equal(scarab.height, 24, 'visual size boost should not mutate the combat height');
 });
@@ -55,5 +56,6 @@ test('Scarab Queen draw box matches the fixed atlas ratio closely enough to stay
 });
 
 test('scarabs rely on their PNG art instead of the generic visibility-assist oval', () => {
-  assert.match(journeyComponentSource, /!\['riverCrab', 'scarab'\]\.includes\(family\)/);
+  assert.match(journeyComponentSource, /const drawEnemyAttackTell = useCallback\(\(\) => \{\}, \[\]\)/);
+  assert.doesNotMatch(journeyComponentSource, /enemyVisibilityAssistActive = true/);
 });

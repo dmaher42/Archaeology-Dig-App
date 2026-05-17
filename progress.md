@@ -218,6 +218,24 @@ Remaining notes:
 - Browser/state checks confirmed the updated dev server mounts, Lost Site Expedition starts, Desert/Temple/Catacomb gate guidance data renders, Temple backtracking recovery works, Base Camp opens through the dev switcher, and Begin Excavation still enters the existing excavation stage.
 - Remaining risk: the exact Temple case is much clearer now, but later-section gates should still get a slower human classroom playtest for whether each hint is specific enough without becoming a full walkthrough.
 
+2026-05-18 update:
+- Started Phase 1 of the Desert Entry visual upgrade as a blended cinematic/playable opening, without replacing the existing Journey system.
+- Generated and wired `public/assets/expedition/backgrounds/desert-entry/desert-entry-opening-benchmark.png` as the active Desert Entry benchmark backdrop through the existing parallax atlas JSON.
+- Kept the current single-composited background mode for this first benchmark so the first playable screen gets the golden sunset, pyramid stairway, visible Scarab Seal, layered ruins, and Sphinx promise before Phase 2 true layer separation.
+- Added a short opening camera reveal in the existing Journey state: after the mission briefing closes, the camera briefly pans toward the Scarab Seal and then returns control.
+- `npm.cmd run lint` passed and `npm.cmd run build` passed; Vite still reports the existing runtime-resolution warnings for two Egypt excavation images.
+- Browser verification used `http://127.0.0.1:5174/Archaeology-Dig-App/` and confirmed Menu -> Lost Site Expedition -> Ancient Egypt -> Begin Expedition renders the new first-screen benchmark with no console errors. Screenshot saved to `output/desert-entry-phase1-benchmark-browser.png`.
+- Remaining risk: Phase 1 is a single full-scene benchmark, not a true separated parallax pack yet. Phase 2 should split/replace the Desert Entry layers and tune the playable collision art against the new visual language.
+
+2026-05-18 update:
+- Completed Phase 2 of the Desert Entry visual upgrade as a true layered parallax pass for the first Desert Entry benchmark.
+- Rebuilt `public/assets/expedition/backgrounds/desert-entry/desert-entry-parallax-pack.png` as a six-strip atlas: sky, far pyramids/dunes, distant ruins, midground ruins/columns, foreground dust, and light shafts.
+- Updated `desert-entry-parallax-pack.json` from `single-composited-backdrop` to `layered-parallax-backdrop`, with full-frame regions for each layer.
+- Updated the existing Journey renderer to draw the Desert Entry layers at different parallax speeds, add foreground dust/light shafts, and warm the playable Desert Entry ledges so they sit closer to the sunset ruin palette.
+- `npm.cmd run lint`, `npm.cmd run build`, and `node --test src\components\expedition-journey\journeySecrets.test.js` passed. Build still reports the existing runtime-resolution warnings for two Egypt excavation images.
+- Browser verification used `http://127.0.0.1:5174/Archaeology-Dig-App/` and confirmed the Phase 2 layered opening renders with no console errors. Screenshot saved to `output/desert-entry-phase2-layered-parallax-browser.png`.
+- Remaining risk: the parallax split is derived from the Phase 1 benchmark rather than manually painted from separate source layers. It is visually coherent and safer for this pass, but a later art pass could replace each strip with hand-authored layer art for even cleaner depth separation.
+
 2026-05-10 update:
 - Completed the Journey hazard readability + stamina feedback pass.
 - Replaced emoji-only hazard rendering with clearer danger-zone shapes, outlines, caution markers, pulse accents, and nearby labels for thorn bush, soft sand, traps, rolling/falling stones, dark gaps, bat/dust clouds, and loose slopes.
@@ -2082,3 +2100,104 @@ Remaining notes:
 - Changed the Scarab Seal trigger so the summit platform disappears through the existing collapsed-platform system, dropping the player toward the start-side route.
 - Added a hidden opening reset trap that is only revealed after the seal activates; stepping forward into it pushes the player back to the Desert Entry start instead of skipping the level.
 - Kept the bypass as a skill challenge: the player can walk back, reclimb the opening platforms, and cross above the revealed trap without changing route gates, boss rewards, Base Camp, excavation, or China.
+
+## 2026-05-18 Realistic Journey indicator cleanup
+
+- Removed artificial playfield indicators from the existing `ExpeditionJourney.jsx` renderer without changing enemy, trap, stamina, combat, or progression logic.
+- Hazard sprites/props no longer get extra glowing outlines, exclamation badges, hit underlines, or circular warning marks.
+- Enemy and boss sprites no longer get visibility ellipses, aura rings, glow shadows, attack-tell overlays, floating combat words, or player attack-arc overlays.
+- Kept natural grounding cues such as sprite art, contact shadows, dust lips, movement dust, debris, camera shake, notices, HUD meters, and the existing route/objective systems.
+- Updated `journeySecrets.test.js` so the regression checks now protect the realistic no-indicator renderer path.
+- `node --test src\components\expedition-journey\journeySecrets.test.js`, `npm.cmd run lint`, and `npm.cmd run build` passed.
+- Browser smoke confirmed Ancient Egypt Journey opens and renders without console errors. The first screen no longer shows the removed trap/enemy indicator layer; the route seal still has its own prop lighting/emblem because it is a goal object rather than an enemy/trap marker.
+- The dedicated `develop-web-game` Playwright helper could not run because its local Playwright package is unavailable in this checkout; in-app browser verification was used instead.
+
+## 2026-05-18 Opening pyramid stairway layout
+
+- Reworked the Ancient Egypt opening Scarab Seal climb in `journeyLevelData.js` into a broad pyramid-trap stairway: sealed base, lower collapsed stair, carved pressure slab, middle recovery slab, cracked summit trap slab, and summit platform.
+- Moved the false Scarab Seal trigger, pedestal, and visible seal prop onto the summit so the first screen reads toward one clear focal point.
+- Kept the existing summit platform id, Sphinx encounter logic, Scarab Queen progression, Brush Handle, Desert Map Seal, route gates, Base Camp, excavation flow, China route, and boss sprite creation unchanged.
+- Slowed the two opening reactive slabs so the trap timing is fairer and both slabs respawn for retries.
+- Browser visual check confirmed the first screen now reads as a single diagonal/zigzag pyramid stairway with no console errors.
+- `node --test src\components\expedition-journey\journeySecrets.test.js` passed after updating the placement assertions for the moved summit seal.
+
+## 2026-05-18 Enemy visual size increase
+
+- Increased the shared Journey enemy sprite visual multiplier from `2` to `2.7`, making atlas-rendered enemies 35% larger without changing enemy data, hitboxes, damage, health, boss ids, route gates, Base Camp, excavation, or China progression.
+- Updated the enemy sprite atlas version string and the Journey secrets regression check so the larger enemy scale is protected.
+- `node --test src\components\expedition-journey\journeySecrets.test.js` passed.
+- Browser check confirmed Ancient Egypt Journey still opens and renders without console errors after the sprite-size change.
+
+## 2026-05-18 Stronger enemy tactics pass
+
+- Raised the non-tutorial Journey enemy baseline in `journeyUtils.js`: regular enemies now receive larger health and damage bumps at runtime, while `openingRouteRamp` enemies keep the classroom-safe training values.
+- Added `ENEMY_TACTICAL_PRESSURE` in `ExpeditionJourney.jsx` so non-tutorial enemies react from farther away, face the player when pressing, chase a little harder inside patrol bounds, attack slightly faster, and in some human/sentry cases block rushed hits during windup.
+- Kept the existing attack pattern, patrol, shield, counter-window, hitbox, boss, route gate, Base Camp, excavation, China progression, and reward systems. No duplicate combat system was added.
+- `node --test src\components\expedition-journey\journeySecrets.test.js` and `npm.cmd run lint` passed.
+- Browser smoke confirmed Ancient Egypt Journey starts and renders without console errors after the tougher enemy tuning.
+
+## 2026-05-18 Jump bounce and enemy hit budget
+
+- Changed the existing Journey stomp/contact branch so landing on an enemy only bounces the player, briefly interrupts the enemy, and tells the player to use J or K; it no longer removes health, defeats the enemy, or awards relic shards.
+- Tuned regular enemy runtime health through `journeyUtils.js` so opening-route enemies become at least three-hit fights and later regular enemies clamp to a three-to-five-hit budget after the current toughness bonus.
+- Kept weapon attacks as the defeat path, with one attack still removing one health point.
+- Added Journey regression coverage for bounce-only stomp behaviour and the three-to-five-hit health clamp.
+
+## 2026-05-18 Enemy sprite grounding pass
+
+- Lowered the Journey enemy sprite draw boxes for grounded enemies after the 35% visual size increase made several enemies read as hovering above the sand.
+- Adjusted scarab, snake, scorpion, looter, guardian, river crab, watchtower sentry, and clay guardian visual grounding offsets in `journeyEnemySprites.js` without changing combat hitboxes, enemy y positions, health, damage, route gates, bosses, or progression.
+- Left bats and sand wisps intentionally airborne/floating.
+- Added regression coverage so the scarab draw box stays visually grounded after the larger sprite scaling.
+
+## 2026-05-18 Desert Entry cinematic benchmark and platform integration
+
+- Generated the Phase 1 Desert Entry benchmark backdrop and saved it as `public/assets/expedition/backgrounds/desert-entry/desert-entry-opening-benchmark.png`.
+- Replaced the Desert Entry parallax pack with a layered atlas: sky/sunset glow, far dunes and pyramids, distant ruins, mid ruins and columns, foreground dust, and light shafts.
+- Added a short opening camera reveal through the existing Journey camera loop so the first screen briefly stages the golden sunset, pyramid stairway, visible Scarab Seal goal, and Sphinx encounter promise before normal play.
+- Added Desert Entry-only ruin supports behind non-ground platforms in the existing `ExpeditionJourney.jsx` renderer: sandstone columns, broken wall bases, caps, block joints, shadows, and dust so the playable ledges read as built into the ruin instead of floating.
+- Kept platform collision, progression, route gates, Sphinx encounter logic, Scarab Queen progression, Base Camp, excavation, China route, and boss systems unchanged.
+- `npm.cmd run lint`, `npm.cmd run build`, and `node --test src\components\expedition-journey\journeySecrets.test.js` passed. The build still reports the existing runtime-resolved excavation image warnings.
+- Browser verification confirmed the Ancient Egypt Journey opens into the upgraded Desert Entry reveal without console errors; screenshot saved to `output/desert-entry-platform-integration-browser.png`.
+- Remaining risk: the support structures are renderer-generated rather than bespoke hand-painted platform pieces, so a later art pass could replace them with exact authored ruin chunks if higher fidelity is needed.
+
+## 2026-05-18 Desert Entry duplicate platform cleanup
+
+- Rebuilt the Desert Entry parallax atlas so the painted background no longer contains a second visible platform stairway behind the playable route.
+- Kept the golden desert atmosphere, layered ruins, foreground dust, and light-shaft overlay, but moved the climb readability back to the actual Journey platforms only.
+- Preserved the existing platform collision, camera reveal, Scarab Seal prop, Sphinx encounter promise, route gates, boss progression, Base Camp, excavation, and China route systems.
+- Browser verification confirmed the opening now reads as one playable path instead of two competing platform layouts; screenshot saved to `output/desert-entry-single-platform-path-browser.png`.
+- `npm.cmd run lint`, `npm.cmd run build`, and `node --test src\components\expedition-journey\journeySecrets.test.js` passed. The build still reports the existing runtime-resolved excavation image warnings.
+
+## 2026-05-18 Desert Entry no-platform cinematic regeneration
+
+- Generated a fresh Desert Entry benchmark image with the previous cinematic sunset, pyramids, Sphinx promise, carved scarab doorway, layered ruins, dust, and warm light, but with no baked jump route or platform stairway.
+- Saved the clean source art at `public/assets/expedition/backgrounds/desert-entry/desert-entry-opening-benchmark-no-platforms.png`.
+- Rebuilt `desert-entry-parallax-pack.png` from that no-platform source so the background carries the atmosphere while the existing Journey platform renderer remains the only climb.
+- Browser verification confirmed the opening keeps the cinematic look without showing a second platform path; screenshot saved to `output/desert-entry-regenerated-no-platforms-browser.png`.
+- `npm.cmd run lint`, `npm.cmd run build`, and `node --test src\components\expedition-journey\journeySecrets.test.js` passed. The build still reports the existing runtime-resolved excavation image warnings.
+
+## 2026-05-18 Desert Entry checkpoint marker reposition
+
+- Moved the visible Desert Entry checkpoint statue marker out of the immediate opening view while preserving the hidden start respawn position.
+- Regenerated the no-platform Desert Entry benchmark background again so the left side no longer contains a large scarab doorway or scarab checkpoint-looking monument.
+- Rebuilt `desert-entry-parallax-pack.png` from the cleaner source so the first screen keeps the cinematic Sphinx/pyramid atmosphere without confusing the checkpoint marker with the opening scene.
+- Browser verification confirmed the opening no longer shows the scarab checkpoint statue on the left; screenshot saved to `output/desert-entry-scarab-marker-moved-browser.png`.
+- `npm.cmd run lint`, `npm.cmd run build`, and `node --test src\components\expedition-journey\journeySecrets.test.js` passed. The build still reports the existing runtime-resolved excavation image warnings.
+
+## 2026-05-18 Desert Entry opening platform and column upgrade
+
+- Upgraded the first-screen Desert Entry platforms in the existing Journey renderer so the playable slabs have carved block faces, stronger sandstone caps, warmer highlights, darker undersides, and clearer stone joints.
+- Strengthened the opening support columns with thicker tapered shafts, heavier capitals and bases, carved block lines, warm rim light, and subtle Egyptian colour bands so the route feels built into the ruins.
+- Kept the same platform coordinates, collision, checkpoint logic, Scarab Seal prop, Sphinx promise, route gates, boss progression, Base Camp, excavation, and China route systems.
+- Browser verification confirmed the opening route renders with the upgraded platforms and columns; screenshot saved to `output/desert-entry-platform-column-upgrade-browser.png`.
+- `npm.cmd run lint`, `npm.cmd run build`, and `node --test src\components\expedition-journey\journeySecrets.test.js` passed. The build still reports the existing runtime-resolved excavation image warnings.
+
+## 2026-05-18 Opening Sphinx model wiring
+
+- Wired the opening Scarab Seal confrontation to the existing `ancient-construct` Sphinx sprite atlas instead of the old hand-drawn canvas Sphinx.
+- Kept the Scarab Seal trigger, Sphinx encounter timer, dialogue, exit movement, Scarab Queen progression, route gates, and boss ids unchanged.
+- Flipped the opening Sphinx sprite so it appears opposite the player and faces back toward them after the seal trigger.
+- Removed the old artificial blue ring/glow reveal from the opening Sphinx draw pass, leaving only grounded sand/dust and a contact shadow.
+- Added render-state fields so browser checks can confirm the opening Sphinx model, atlas, load state, and active frame.
+- Browser verification triggered the Scarab Seal opening scene and confirmed `spriteModel: ancient-construct`, `spriteFrame: ancientConstructIntro`, and `spriteLoaded: true`; screenshot saved to `output/opening-sphinx-model-browser.png`.

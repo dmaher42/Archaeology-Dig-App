@@ -1,7 +1,7 @@
 {
   "image": "scorpion-sprites.png",
-  "source": "Codex-generated upgraded regular enemy sprite sheet with fixed transparent cells and consistent baseline.",
-  "coordinateNote": "Eight fixed cells: Idle, Walk1, Walk2, Walk3, Windup, Attack, Hit, Defeated. Regions share one bottom-center anchor.",
+  "source": "ImageGen-created upgraded scorpion enemy sheet, chroma-key cleaned and normalized into fixed transparent cells for the existing Journey enemy sprite system.",
+  "coordinateNote": "Eight fixed cells: Idle, Walk1, Walk2, Walk3, Windup, Attack, Hit, Defeated. Regions share one bottom-center anchor and consistent ground baseline.",
   "frameContract": [
     "Idle",
     "Walk1",
@@ -15,52 +15,52 @@
   "baseline": "bottom-center shared per family; no baked large shadow",
   "regions": {
     "scorpionIdle": {
-      "x": 82,
-      "y": 132,
-      "w": 245,
-      "h": 199
+      "x": 0,
+      "y": 0,
+      "w": 384,
+      "h": 256
     },
     "scorpionWalk1": {
-      "x": 466,
-      "y": 132,
-      "w": 245,
-      "h": 199
+      "x": 384,
+      "y": 0,
+      "w": 384,
+      "h": 256
     },
     "scorpionWalk2": {
-      "x": 850,
-      "y": 132,
-      "w": 245,
-      "h": 199
+      "x": 768,
+      "y": 0,
+      "w": 384,
+      "h": 256
     },
     "scorpionWalk3": {
-      "x": 1234,
-      "y": 132,
-      "w": 245,
-      "h": 199
+      "x": 1152,
+      "y": 0,
+      "w": 384,
+      "h": 256
     },
     "scorpionWindup": {
-      "x": 1618,
-      "y": 132,
-      "w": 245,
-      "h": 199
+      "x": 1536,
+      "y": 0,
+      "w": 384,
+      "h": 256
     },
     "scorpionAttack": {
-      "x": 2002,
-      "y": 132,
-      "w": 245,
-      "h": 199
+      "x": 1920,
+      "y": 0,
+      "w": 384,
+      "h": 256
     },
     "scorpionHit": {
-      "x": 2386,
-      "y": 132,
-      "w": 245,
-      "h": 199
+      "x": 2304,
+      "y": 0,
+      "w": 384,
+      "h": 256
     },
     "scorpionDefeated": {
-      "x": 2770,
-      "y": 132,
-      "w": 245,
-      "h": 199
+      "x": 2688,
+      "y": 0,
+      "w": 384,
+      "h": 256
     }
   }
 }

@@ -13,9 +13,10 @@ export const CHINA_ENEMY_GUARDIAN_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}
 export const CHINA_RIVER_CRAB_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-river-crab-sprites.json`;
 export const CHINA_WATCHTOWER_SENTRY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-watchtower-sentry-sprites.json`;
 export const CHINA_CLAY_GUARDIAN_ENEMY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-clay-guardian-enemy-sprites.json`;
-export const ENEMY_SPRITE_ATLAS_VERSION = 'enemy-sprite-packs-2026-05-17-larger-intimidating-scarab';
+export const ENEMY_SPRITE_ATLAS_VERSION = 'enemy-sprite-packs-2026-05-18-35-percent-larger';
+export const ENEMY_SPRITE_GROUNDING_VERSION = 'enemy-sprite-grounding-2026-05-18';
 export const MIN_ENEMY_DRAW_HEIGHT = 34;
-export const ENEMY_VISUAL_SIZE_MULTIPLIER = 2;
+export const ENEMY_VISUAL_SIZE_MULTIPLIER = 2.7;
 export const WITHHELD_EGYPT_CREATURE_SPRITE_FAMILIES = new Set([
   'cursedStatue',
   'stoneGuardianEnemy',
@@ -485,18 +486,18 @@ export const getEnemySpriteDrawBox = (enemy, screenX, shakeX = 0, combatMode = n
   const height = Math.max(minHeight, scaledHeight) * ENEMY_VISUAL_SIZE_MULTIPLIER;
   const width = Math.max(scaledWidth, enemy.width * (height / Math.max(1, enemy.height)));
   const groundOffset = {
-    scarab: defeated ? 10 : 8,
-    snake: defeated ? 12 : 10,
+    scarab: defeated ? 16 : 14,
+    snake: defeated ? 18 : 16,
     bat: defeated ? 4 : -8,
-    scorpion: defeated ? 12 : 9,
+    scorpion: defeated ? 18 : 15,
     sandWisp: defeated ? 4 : -6,
-    looter: defeated ? 16 : 11,
-    looterCaptain: defeated ? 16 : 11,
-    cursedStatue: defeated ? 14 : 9,
-    stoneGuardianEnemy: defeated ? 14 : 9,
-    riverCrab: defeated ? 12 : 9,
-    watchtowerSentry: defeated ? 15 : 10,
-    clayGuardian: defeated ? 14 : 9,
+    looter: defeated ? 19 : 14,
+    looterCaptain: defeated ? 19 : 14,
+    cursedStatue: defeated ? 19 : 14,
+    stoneGuardianEnemy: defeated ? 19 : 14,
+    riverCrab: defeated ? 18 : 15,
+    watchtowerSentry: defeated ? 20 : 15,
+    clayGuardian: defeated ? 19 : 14,
   }[family] ?? 8;
   const x = screenX + enemy.width / 2 - width / 2 + shakeX;
   const y = enemy.y + enemy.height - height + groundOffset;

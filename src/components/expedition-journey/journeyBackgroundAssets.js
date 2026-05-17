@@ -17,9 +17,10 @@ export const EXPECTED_DESERT_BACKGROUND_KEYS = [
   'distantRuins',
   'midgroundRuins',
   'foregroundAtmosphere',
+  'lightShafts',
 ];
 
-export const DESERT_BACKGROUND_DEPTH_MODE = 'desert-entry-parallax-v1';
+export const DESERT_BACKGROUND_DEPTH_MODE = 'desert-entry-layered-parallax-v2';
 export const JOURNEY_BACKGROUND_DEPTH_MODE = 'journey-section-parallax-v2';
 
 export const EXPECTED_CHINA_RIVER_VALLEY_BACKGROUND_KEYS = [

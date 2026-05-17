@@ -217,7 +217,7 @@ test('opening Scarab Seal climb triggers a boss confrontation without completing
   assert.match(source, /id:\s*'scarab-seal-trigger'/);
   assert.match(source, /name:\s*'Sacred Scarab Seal'/);
   assert.match(source, /bossId:\s*'scarab-queen'/);
-  assert.match(source, /x:\s*X\(205\)/);
+  assert.match(source, /x:\s*X\(168\)/);
   assert.match(source, /y:\s*JY\(8\)/);
   assert.match(source, /You have touched a sealed artefact\./);
   assert.match(source, /The Sphinx watches from beyond the sand\./);
@@ -225,23 +225,20 @@ test('opening Scarab Seal climb triggers a boss confrontation without completing
   assert.match(source, /You will never reach the expedition site\./);
   assert.match(source, /eventName:\s*'The Sphinx'/);
   assert.match(source, /Then we must prove we can pass\. Gather shards, recover tools, and move with care\./);
-  assert.match(platforms, /opening scarab seal left launch/i);
-  assert.match(platforms, /opening scarab seal right leap/i);
-  assert.match(platforms, /opening scarab seal recovery ledge/i);
-  assert.match(platforms, /opening scarab seal left trap/i);
-  assert.match(platforms, /opening scarab seal right cracked step/i);
-  assert.match(platforms, /opening scarab seal retry shelf/i);
-  assert.match(platforms, /opening scarab seal high left/i);
-  assert.match(platforms, /opening scarab seal climb/i);
-  assert.match(platforms, /opening scarab seal summit/i);
+  assert.match(platforms, /sealed scarab pyramid base/i);
+  assert.match(platforms, /lower collapsed pyramid stair/i);
+  assert.match(platforms, /carved pressure stair slab/i);
+  assert.match(platforms, /middle recovery temple slab/i);
+  assert.match(platforms, /cracked summit trap slab/i);
+  assert.match(platforms, /scarab seal summit platform/i);
   assert.match(platforms, /id:\s*'opening-scarab-seal-summit'/);
-  assert.match(platforms, /x:\s*X\(34\)[\s\S]*?opening scarab seal left launch/);
-  assert.match(platforms, /id:\s*'opening-scarab-left-trap'[\s\S]*?reactive:\s*\{[\s\S]*?type:\s*'unstable ledge'[\s\S]*?respawn:\s*1\.8/);
-  assert.match(platforms, /id:\s*'opening-scarab-right-cracked-step'[\s\S]*?reactive:\s*\{[\s\S]*?type:\s*'collapsing bridge piece'[\s\S]*?respawn:\s*2/);
+  assert.match(platforms, /x:\s*X\(38\)[\s\S]*?sealed scarab pyramid base/);
+  assert.match(platforms, /id:\s*'opening-scarab-left-trap'[\s\S]*?reactive:\s*\{[\s\S]*?type:\s*'unstable ledge'[\s\S]*?delay:\s*1\.8[\s\S]*?respawn:\s*2\.6/);
+  assert.match(platforms, /id:\s*'opening-scarab-right-cracked-step'[\s\S]*?reactive:\s*\{[\s\S]*?type:\s*'collapsing bridge piece'[\s\S]*?delay:\s*1\.75[\s\S]*?respawn:\s*2\.75/);
   assert.match(storyProps, /id:\s*'early-scarab-seal-pedestal'/);
   assert.match(storyProps, /id:\s*'early-scarab-seal'/);
-  assert.match(storyProps, /id:\s*'early-scarab-seal-pedestal'[\s\S]*?x:\s*X\(205\)[\s\S]*?y:\s*JY\(55\)/);
-  assert.match(storyProps, /id:\s*'early-scarab-seal'[\s\S]*?x:\s*X\(205\)[\s\S]*?y:\s*JY\(28\)/);
+  assert.match(storyProps, /id:\s*'early-scarab-seal-pedestal'[\s\S]*?x:\s*X\(168\)[\s\S]*?y:\s*JY\(55\)/);
+  assert.match(storyProps, /id:\s*'early-scarab-seal'[\s\S]*?x:\s*X\(168\)[\s\S]*?y:\s*JY\(28\)/);
   assert.match(journeyComponentSource, /'early-scarab-seal-pedestal':\s*\{[\s\S]*?width:\s*54[\s\S]*?height:\s*42[\s\S]*?yOffset:\s*0/);
   assert.match(journeyComponentSource, /'early-scarab-seal':\s*\{[\s\S]*?width:\s*38[\s\S]*?height:\s*38[\s\S]*?yOffset:\s*0/);
   assert.match(journeyComponentSource, /OPENING_SCARAB_SEAL_IMAGE_SRC = 'assets\/expedition\/environment\/egypt-opening\/scarab-seal-opening\.png'/);
@@ -257,9 +254,25 @@ test('opening Scarab Seal climb triggers a boss confrontation without completing
   assert.match(journeyComponentSource, /current\.collapsedPlatformIds\.add\('opening-scarab-seal-summit'\)/);
   assert.match(journeyComponentSource, /current\.triggeredEnvironmentEventIds\.add\(SCARAB_SEAL_TRIGGER\.id\)/);
   assert.match(journeyComponentSource, /current\.openingSphinxEncounter = \{/);
+  assert.match(journeyComponentSource, /const OPENING_SPHINX_DURATION = 8\.4;/);
+  assert.match(journeyComponentSource, /const OPENING_SPHINX_EXIT_SECONDS = 2\.35;/);
+  assert.match(journeyComponentSource, /const OPENING_SPHINX_ARRIVAL_SECONDS = 1\.05;/);
+  assert.match(journeyComponentSource, /const OPENING_SPHINX_LINE_SECONDS = 1\.55;/);
+  assert.match(journeyComponentSource, /const OPENING_SPHINX_SPRITE_BOSS_ID = 'ancient-construct';/);
+  assert.match(journeyComponentSource, /const OPENING_SPHINX_SPRITE_VERSION = 'opening-sphinx-model-2026-05-18';/);
   assert.match(journeyComponentSource, /message:\s*SCARAB_SEAL_TRIGGER\.messages\.slice\(2\)\.concat\(\[\s*'Only those who prove themselves may pass\.'\s*\]\)\.join\(' '\)/);
+  assert.match(journeyComponentSource, /lines:\s*SCARAB_SEAL_TRIGGER\.messages\.slice\(2\)\.concat\(\[/);
+  assert.match(journeyComponentSource, /visibleLineCount/);
+  assert.match(journeyComponentSource, /dynamicEnvironmentEvent[\s\S]*?message:\s*''/);
+  assert.match(journeyComponentSource, /current\.hitStopTimer = Math\.max\(current\.hitStopTimer, 0\.12\)/);
   assert.match(journeyComponentSource, /drawOpeningSphinxEncounter/);
+  assert.match(journeyComponentSource, /getBossSpritePack\(bossSpriteAssetsRef\.current,\s*OPENING_SPHINX_SPRITE_BOSS_ID\)/);
+  assert.match(journeyComponentSource, /drawAtlasRegion\([\s\S]*?spritePack[\s\S]*?frameKey[\s\S]*?\{\s*mode:\s*'contain',\s*alignY:\s*'bottom'\s*\}/);
+  assert.match(journeyComponentSource, /shouldFlipBossSprite\(OPENING_SPHINX_SPRITE_BOSS_ID,\s*-1\)/);
+  assert.match(journeyComponentSource, /openingSphinxSpriteFrame/);
   assert.match(journeyComponentSource, /openingSphinxEncounterState:/);
+  assert.match(journeyComponentSource, /spriteAtlasPath:\s*ANCIENT_CONSTRUCT_SPRITE_ATLAS_JSON/);
+  assert.match(journeyComponentSource, /spriteLoaded:\s*Boolean\(bossSpriteAssets\.packs\?\.\[OPENING_SPHINX_SPRITE_BOSS_ID\]\?\.loaded\)/);
   assert.match(journeyComponentSource, /openingSphinxEncounter\.timer[\s\S]*?OPENING_SPHINX_EXIT_SECONDS/);
   assert.match(journeyComponentSource, /openingSphinxEncounter\.playerX/);
   assert.match(journeyComponentSource, /drawOpeningSphinxDialogue/);
@@ -274,7 +287,7 @@ test('opening Scarab Seal climb triggers a boss confrontation without completing
   assert.match(journeyComponentSource, /if \(h\.pushToStart\) \{/);
   assert.match(journeyComponentSource, /player\.x = startCheckpoint\.x/);
   assert.match(journeyRenderAssetsSource, /'opening-seal-reset-trap':\s*'softSand'/);
-  assert.match(journeyComponentSource, /visualHazardId === 'opening-seal-reset-trap'[\s\S]*?ellipse/);
+  assert.doesNotMatch(journeyComponentSource, /visualHazardId === 'opening-seal-reset-trap'[\s\S]*?strokeStyle = 'rgba\(250, 204, 21/);
   assert.doesNotMatch(journeyComponentSource, /openingScarabConfrontationPending/);
   assert.doesNotMatch(journeyComponentSource, /player\.x = playerDomainStartX[\s\S]*?SCARAB_SEAL_TRIGGER\.bossId/);
 
@@ -436,6 +449,10 @@ test('Egypt Journey loads visible sprites for all default Egypt enemy families',
   assert.match(journeyEnemySpritesSource, /SAND_SNAKE_SPRITE_ATLAS_JSON/);
   assert.match(journeyEnemySpritesSource, /SCORPION_SPRITE_ATLAS_JSON/);
   assert.match(journeyEnemySpritesSource, /SAND_WISP_SPRITE_ATLAS_JSON/);
+  assert.match(journeyEnemySpritesSource, /ENEMY_VISUAL_SIZE_MULTIPLIER = 2\.7/);
+  assert.match(journeyEnemySpritesSource, /ENEMY_SPRITE_GROUNDING_VERSION = 'enemy-sprite-grounding-2026-05-18'/);
+  assert.match(journeyEnemySpritesSource, /scarab:\s*defeated \? 16 : 14/);
+  assert.match(journeyEnemySpritesSource, /scorpion:\s*defeated \? 18 : 15/);
   assert.match(journeyEnemySpritesSource, /restoredTwoPoseWalkFamilies/);
   assert.match(journeyEnemySpritesSource, /new Set\(\['scarab', 'snake', 'bat'\]\)/);
   assert.match(journeyEnemySpritesSource, /shouldUseEnemySpritePack/);
@@ -641,9 +658,11 @@ test('platform polish creates purposeful jump challenges with checkpoint rescue 
   assert.match(journeyRenderAssetsSource, /'entry-cracked-floor-trap':\s*'groundCracked'/);
   assert.match(journeyComponentSource, /'entry-pressure-plate':\s*\{[\s\S]*?warning:\s*'ground'/);
   assert.match(journeyComponentSource, /'entry-cracked-floor-trap':\s*\{[\s\S]*?warning:\s*'ground'/);
-  assert.match(journeyComponentSource, /visualHazardId === 'entry-pressure-plate'[\s\S]*?roundRect/);
-  assert.match(journeyComponentSource, /visualHazardId === 'entry-cracked-floor-trap'[\s\S]*?strokeRect/);
-  assert.match(journeyComponentSource, /hazard\.id === 'sand-pit'[\s\S]*?ellipse/);
+  assert.doesNotMatch(journeyComponentSource, /visualHazardId === 'entry-pressure-plate'[\s\S]*?ctx\.roundRect/);
+  assert.doesNotMatch(journeyComponentSource, /visualHazardId === 'entry-cracked-floor-trap'[\s\S]*?ctx\.strokeRect/);
+  assert.doesNotMatch(journeyComponentSource, /hazard\.id === 'sand-pit'[\s\S]*?ctx\.arc/);
+  assert.match(journeyComponentSource, /const drawEnemyAttackTell = useCallback\(\(\) => \{\}, \[\]\)/);
+  assert.match(journeyComponentSource, /const drawAttackArc = useCallback\(\(\) => \{\}, \[\]\)/);
 
   assert.match(upgrades, /id:\s*'basecamp-upgrade-voucher'[\s\S]*?x:\s*X\(925\)[\s\S]*?y:\s*JY\(210\)/);
   assert.match(upgrades, /id:\s*'reinforced-boots'[\s\S]*?x:\s*X\(1240\)[\s\S]*?y:\s*JY\(232\)/);
@@ -751,6 +770,16 @@ test('combat pressure encounters guard optional rewards without blocking progres
   assert.match(allEnemies, /upper-route pressure/);
   assert.match(allEnemies, /watchtower pressure/);
   assert.match(allEnemies, /collapsing-bridge pressure/);
+  assert.match(journeyUtilsSource, /scarab:\s*2/);
+  assert.match(journeyUtilsSource, /looter:\s*3/);
+  assert.match(journeyUtilsSource, /return clamp\(Math\.max\(enemy\.health \+ bonus, Math\.ceil\(enemy\.health \* 1\.55\)\), 3, 5\)/);
+  assert.match(journeyUtilsSource, /Math\.ceil\(enemy\.health \* 1\.55\)/);
+  assert.match(journeyUtilsSource, /Math\.ceil\(enemy\.damage \* 1\.22\)/);
+  assert.match(journeyComponentSource, /const ENEMY_TACTICAL_PRESSURE = \{/);
+  assert.match(journeyComponentSource, /awarenessMultiplier/);
+  assert.match(journeyComponentSource, /chaseMultiplier/);
+  assert.match(journeyComponentSource, /shieldDuringWindup: basePattern\.shieldDuringWindup \|\| Boolean\(pressure\.shieldDuringWindup\)/);
+  assert.match(journeyComponentSource, /if \(isPressingPlayer\) \{[\s\S]*?e\.direction = distanceToPlayer >= 0 \? 1 : -1;/);
 });
 
 test('Egypt opening combat ramps gently before the first route seal', () => {
@@ -775,12 +804,12 @@ test('Egypt opening combat ramps gently before the first route seal', () => {
     true,
     'Egypt enemies before the first seal should opt into the classroom opening-route tuning',
   );
-  assert.match(journeyUtilsSource, /if\s*\(enemy\.openingRouteRamp\)\s*return enemy\.health/);
+  assert.match(journeyUtilsSource, /if\s*\(enemy\.openingRouteRamp\)\s*return Math\.max\(3, enemy\.health\)/);
   assert.match(journeyUtilsSource, /enemy\.openingRouteRamp\s*\?\s*enemy\.damage/);
   assert.equal(
-    teachingRows.every(row => /health:\s*1/.test(row) && Number(row.match(/damage:\s*(\d+)/)?.[1] || 0) <= 5),
+    teachingRows.every(row => Number(row.match(/health:\s*(\d+)/)?.[1] || 0) <= 2 && Number(row.match(/damage:\s*(\d+)/)?.[1] || 0) <= 5),
     true,
-    'first teaching enemies should be one-hit, low-damage encounters',
+    'first teaching enemies should keep low authored damage while runtime tuning lifts them to three-hit fights',
   );
   assert.ok(totalOpeningHealth <= 24, 'first seal should not require too many regular enemy hits before the guardian');
   assert.ok(totalOpeningDamage <= 64, 'opening regular enemy damage budget should leave room for classroom mistakes');
@@ -789,4 +818,14 @@ test('Egypt opening combat ramps gently before the first route seal', () => {
   const checkpoints = extractExportedArray('CHECKPOINTS');
   assert.match(checkpoints, /id:\s*'desert-survey-marker'/);
   assert.match(checkpoints, /x:\s*X\(930\)/);
+});
+
+test('jump contact only bounces enemies while attacks defeat them in three to five hits', () => {
+  assert.match(journeyComponentSource, /const applyEnemyStomp = \(enemy\) => \{[\s\S]*?text:\s*'BOUNCE'/);
+  assert.match(journeyComponentSource, /current\.notice = `\$\{enemy\.name\} bounced away\. Use J or K to defeat it\.`/);
+  assert.doesNotMatch(journeyComponentSource, /const applyEnemyStomp = \(enemy\) => \{[\s\S]*?enemy\.health -= 1[\s\S]*?\};/);
+  assert.doesNotMatch(journeyComponentSource, /const applyEnemyStomp = \(enemy\) => \{[\s\S]*?current\.defeatedEnemies\.add\(enemy\.id\)[\s\S]*?\};/);
+  assert.match(journeyComponentSource, /if \(attackRect && !current\.attackHitIds\.has\(e\.id\) && rectsOverlap\(attackRect, getAttackHurtbox\(e\)\)\) \{[\s\S]*?e\.health -= 1/);
+  assert.match(journeyUtilsSource, /if\s*\(enemy\.openingRouteRamp\)\s*return Math\.max\(3, enemy\.health\)/);
+  assert.match(journeyUtilsSource, /return clamp\(Math\.max\(enemy\.health \+ bonus, Math\.ceil\(enemy\.health \* 1\.55\)\), 3, 5\)/);
 });

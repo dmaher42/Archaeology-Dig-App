@@ -1,15 +1,16 @@
 {
-  "image": "desert-entry-full-scene.png",
+  "image": "desert-entry-parallax-pack.png",
   "imageWidth": 1672,
-  "imageHeight": 941,
-  "notes": "Single full-scene generated Desert Entry backdrop wired through the existing Journey atlas pack.",
+  "imageHeight": 5646,
+  "notes": "Phase 2 layered Desert Entry parallax atlas derived from the Phase 1 benchmark. Regions are full-frame strips stacked vertically for stable 16:9 drawing through the existing Journey renderer.",
   "regions": {
     "sky": { "x": 0, "y": 0, "w": 1672, "h": 941 },
-    "farDunes": { "x": 0, "y": 0, "w": 1672, "h": 941 },
-    "distantRuins": { "x": 0, "y": 0, "w": 1672, "h": 941 },
-    "midgroundRuins": { "x": 0, "y": 0, "w": 1672, "h": 941 },
-    "foregroundAtmosphere": { "x": 0, "y": 0, "w": 1672, "h": 941 }
+    "farDunes": { "x": 0, "y": 941, "w": 1672, "h": 941 },
+    "distantRuins": { "x": 0, "y": 1882, "w": 1672, "h": 941 },
+    "midgroundRuins": { "x": 0, "y": 2823, "w": 1672, "h": 941 },
+    "foregroundAtmosphere": { "x": 0, "y": 3764, "w": 1672, "h": 941 },
+    "lightShafts": { "x": 0, "y": 4705, "w": 1672, "h": 941 }
   },
-  "runtimeMode": "single-composited-backdrop",
-  "coordinateNote": "Legacy region keys point to the full image so existing loaders stay fallback-safe."
+  "runtimeMode": "layered-parallax-backdrop",
+  "coordinateNote": "Each region is a complete 1672x941 layer. Transparent pixels are preserved for depth overlays."
 }

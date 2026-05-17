@@ -112,27 +112,27 @@ const hashEnemyIdentity = (enemy) => {
 };
 
 const ENEMY_TOUGHNESS_BONUS = {
-  scarab: 1,
-  scorpion: 1,
-  'sand-wisp': 1,
-  snake: 1,
-  bat: 1,
-  looter: 2,
-  guardian: 2,
-  statue: 2,
-  'river-crab': 1,
-  'watchtower-sentry': 2,
-  'clay-guardian': 2,
+  scarab: 2,
+  scorpion: 2,
+  'sand-wisp': 2,
+  snake: 2,
+  bat: 2,
+  looter: 3,
+  guardian: 3,
+  statue: 3,
+  'river-crab': 2,
+  'watchtower-sentry': 3,
+  'clay-guardian': 3,
 };
 
 const tuneEnemyHealth = (enemy) => {
-  if (enemy.openingRouteRamp) return enemy.health;
+  if (enemy.openingRouteRamp) return Math.max(3, enemy.health);
   const bonus = ENEMY_TOUGHNESS_BONUS[enemy.type] ?? 1;
-  return Math.max(enemy.health + bonus, Math.ceil(enemy.health * 1.3));
+  return clamp(Math.max(enemy.health + bonus, Math.ceil(enemy.health * 1.55)), 3, 5);
 };
 
 const tuneEnemyDamage = (enemy) => (
-  enemy.openingRouteRamp ? enemy.damage : Math.max(enemy.damage + 1, Math.ceil(enemy.damage * 1.12))
+  enemy.openingRouteRamp ? enemy.damage : Math.max(enemy.damage + 2, Math.ceil(enemy.damage * 1.22))
 );
 
 const makeStepProfile = (entity, { boss = false } = {}) => {
@@ -363,6 +363,8 @@ export const makeInitialState = ({ targetCivilisation, permanentUpgradeIds = [],
   triggeredEnvironmentEventIds: new Set(),
   scarabSealActivated: false,
   openingConfrontationSeen: false,
+  openingCameraRevealTimer: 3.2,
+  openingCameraRevealDuration: 3.2,
   brokenEnvironmentIds: new Set(),
   triggeredEnvironmentIds: new Set(),
   collapsedPlatformIds: new Set(),
