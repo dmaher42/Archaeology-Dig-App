@@ -313,6 +313,7 @@ const OPENING_SPHINX_ARRIVAL_SECONDS = 1.05;
 const OPENING_SPHINX_LINE_SECONDS = 1.55;
 const OPENING_SPHINX_SPRITE_BOSS_ID = 'ancient-construct';
 const OPENING_SPHINX_SPRITE_VERSION = 'opening-sphinx-model-2026-05-18';
+const OPENING_SPHINX_SCREEN_Y_OFFSET = 112;
 const OPENING_SCARAB_SEAL_IMAGE_SRC = 'assets/expedition/environment/egypt-opening/scarab-seal-opening.png';
 const OPENING_CAMERA_REVEAL_DURATION = 3.2;
 const OPENING_CAMERA_REVEAL_PAN_SECONDS = 1.05;
@@ -2871,7 +2872,7 @@ export default function ExpeditionJourney({
     const easedReveal = 1 - Math.pow(1 - reveal, 3);
     const arrivalLift = (1 - easedReveal) * 46;
     const sx = baseScreenX + exitProgress * 220;
-    const sy = encounter.y + arrivalLift + Math.sin(now / 260) * 4 - exitProgress * 190;
+    const sy = encounter.y + OPENING_SPHINX_SCREEN_Y_OFFSET + arrivalLift + Math.sin(now / 260) * 4 - exitProgress * 190;
     if (sx < -220 || sx > CANVAS_WIDTH + 220) return;
 
     ctx.save();

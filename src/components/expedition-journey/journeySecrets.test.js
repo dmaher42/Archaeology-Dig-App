@@ -260,6 +260,7 @@ test('opening Scarab Seal climb triggers a boss confrontation without completing
   assert.match(journeyComponentSource, /const OPENING_SPHINX_LINE_SECONDS = 1\.55;/);
   assert.match(journeyComponentSource, /const OPENING_SPHINX_SPRITE_BOSS_ID = 'ancient-construct';/);
   assert.match(journeyComponentSource, /const OPENING_SPHINX_SPRITE_VERSION = 'opening-sphinx-model-2026-05-18';/);
+  assert.match(journeyComponentSource, /const OPENING_SPHINX_SCREEN_Y_OFFSET = 112;/);
   assert.match(journeyComponentSource, /message:\s*SCARAB_SEAL_TRIGGER\.messages\.slice\(2\)\.concat\(\[\s*'Only those who prove themselves may pass\.'\s*\]\)\.join\(' '\)/);
   assert.match(journeyComponentSource, /lines:\s*SCARAB_SEAL_TRIGGER\.messages\.slice\(2\)\.concat\(\[/);
   assert.match(journeyComponentSource, /visibleLineCount/);
