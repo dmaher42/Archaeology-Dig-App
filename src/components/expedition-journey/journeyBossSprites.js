@@ -2,7 +2,7 @@ export const BOSS_SPRITE_BASE_PATH = 'assets/expedition/bosses/';
 export const BOSS_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}scarab-queen-sprites.json`;
 export const STONE_GUARDIAN_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}stone-guardian-sprites.json`;
 export const GIANT_SERPENT_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}giant-serpent-sprites.json`;
-export const ANCIENT_CONSTRUCT_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}ancient-construct-sprites.json`;
+export const ANCIENT_CONSTRUCT_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}sphinx-sprites.json`;
 export const CHINA_CLAY_RIVER_GUARDIAN_BOSS_ID = 'china-clay-river-guardian';
 export const CHINA_BRONZE_GATE_WARDEN_BOSS_ID = 'china-bronze-gate-warden';
 export const CHINA_JADE_SEAL_GUARDIAN_BOSS_ID = 'china-jade-seal-guardian';
@@ -15,7 +15,7 @@ export const CHINA_JADE_SEAL_GUARDIAN_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PA
 export const CHINA_ARCHIVE_SENTRY_CAPTAIN_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}china-archive-sentry-captain-sprites.json`;
 export const CHINA_RAMMED_EARTH_SENTINEL_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}china-rammed-earth-sentinel-sprites.json`;
 export const CHINA_CLAY_GUARDIAN_SPRITE_ATLAS_JSON = CHINA_CLAY_RIVER_GUARDIAN_SPRITE_ATLAS_JSON;
-export const BOSS_SPRITE_ATLAS_VERSION = 'boss-sprites-china-unique-guardians-2026-05-15';
+export const BOSS_SPRITE_ATLAS_VERSION = 'boss-sprites-egypt-sphinx-ancient-construct-2026-05-17';
 
 export const MIN_BOSS_DRAW_HEIGHT = 176;
 const getGroundedBossDrawBox = (boss, screenX, width, height, footSink = 4) => ({
@@ -374,9 +374,9 @@ export const getGiantSerpentDrawBox = (boss, screenX) => {
 };
 
 export const getAncientConstructDrawBox = (boss, screenX) => {
-  const height = Math.max(194, boss.height * 3.12);
-  const width = Math.max(190, boss.width * 3.08);
-  return getGroundedBossDrawBox(boss, screenX, width, height, 4);
+  const height = Math.max(220, boss.height * 3.6);
+  const width = Math.max(272, boss.width * 4.35);
+  return getGroundedBossDrawBox(boss, screenX, width, height, 5);
 };
 
 export const getClayGuardianDrawBox = (boss, screenX) => {

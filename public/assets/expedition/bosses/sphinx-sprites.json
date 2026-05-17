@@ -1,0 +1,180 @@
+{
+  "image": "sphinx-sprites.png",
+  "source": "Approved ImageGen Sphinx sprite sheet normalized for the Egypt ancient-construct visual slot.",
+  "coordinateNote": "Thirteen fixed transparent Sphinx cells. Ancient Construct frame aliases are included so existing Journey boss state selection can use the Sphinx art without renaming the internal boss id.",
+  "frameContract": [
+    "sphinxDormant",
+    "sphinxAwakening",
+    "sphinxIdle",
+    "sphinxStep1",
+    "sphinxStep2",
+    "sphinxWindup",
+    "sphinxPawSlam",
+    "sphinxSandRoar",
+    "sphinxGlyphBeam",
+    "sphinxShielded",
+    "sphinxCounterWindow",
+    "sphinxHit",
+    "sphinxDefeated"
+  ],
+  "journeyAliasContract": {
+    "ancientConstructIntro": "sphinxDormant",
+    "ancientConstructIdle": "sphinxIdle",
+    "ancientConstructWalk1": "sphinxStep1",
+    "ancientConstructWalk2": "sphinxStep2",
+    "ancientConstructWindup": "sphinxWindup",
+    "ancientConstructSlam": "sphinxPawSlam",
+    "ancientConstructPulse": "sphinxSandRoar",
+    "ancientConstructShielded": "sphinxShielded",
+    "ancientConstructCounterWindow": "sphinxCounterWindow",
+    "ancientConstructHit": "sphinxHit",
+    "ancientConstructDefeated": "sphinxDefeated"
+  },
+  "baseline": "bottom-center fixed per frame; transparent normalized cells derived from the approved Sphinx strip",
+  "regions": {
+    "sphinxDormant": {
+      "x": 0,
+      "y": 0,
+      "w": 320,
+      "h": 260
+    },
+    "sphinxAwakening": {
+      "x": 320,
+      "y": 0,
+      "w": 320,
+      "h": 260
+    },
+    "sphinxIdle": {
+      "x": 640,
+      "y": 0,
+      "w": 320,
+      "h": 260
+    },
+    "sphinxStep1": {
+      "x": 960,
+      "y": 0,
+      "w": 320,
+      "h": 260
+    },
+    "sphinxStep2": {
+      "x": 1280,
+      "y": 0,
+      "w": 320,
+      "h": 260
+    },
+    "sphinxWindup": {
+      "x": 1600,
+      "y": 0,
+      "w": 320,
+      "h": 260
+    },
+    "sphinxPawSlam": {
+      "x": 1920,
+      "y": 0,
+      "w": 320,
+      "h": 260
+    },
+    "sphinxSandRoar": {
+      "x": 2240,
+      "y": 0,
+      "w": 320,
+      "h": 260
+    },
+    "sphinxGlyphBeam": {
+      "x": 2560,
+      "y": 0,
+      "w": 320,
+      "h": 260
+    },
+    "sphinxShielded": {
+      "x": 2880,
+      "y": 0,
+      "w": 320,
+      "h": 260
+    },
+    "sphinxCounterWindow": {
+      "x": 3200,
+      "y": 0,
+      "w": 320,
+      "h": 260
+    },
+    "sphinxHit": {
+      "x": 3520,
+      "y": 0,
+      "w": 320,
+      "h": 260
+    },
+    "sphinxDefeated": {
+      "x": 3840,
+      "y": 0,
+      "w": 320,
+      "h": 260
+    },
+    "ancientConstructIntro": {
+      "x": 0,
+      "y": 0,
+      "w": 320,
+      "h": 260
+    },
+    "ancientConstructIdle": {
+      "x": 640,
+      "y": 0,
+      "w": 320,
+      "h": 260
+    },
+    "ancientConstructWalk1": {
+      "x": 960,
+      "y": 0,
+      "w": 320,
+      "h": 260
+    },
+    "ancientConstructWalk2": {
+      "x": 1280,
+      "y": 0,
+      "w": 320,
+      "h": 260
+    },
+    "ancientConstructWindup": {
+      "x": 1600,
+      "y": 0,
+      "w": 320,
+      "h": 260
+    },
+    "ancientConstructSlam": {
+      "x": 1920,
+      "y": 0,
+      "w": 320,
+      "h": 260
+    },
+    "ancientConstructPulse": {
+      "x": 2240,
+      "y": 0,
+      "w": 320,
+      "h": 260
+    },
+    "ancientConstructShielded": {
+      "x": 2880,
+      "y": 0,
+      "w": 320,
+      "h": 260
+    },
+    "ancientConstructCounterWindow": {
+      "x": 3200,
+      "y": 0,
+      "w": 320,
+      "h": 260
+    },
+    "ancientConstructHit": {
+      "x": 3520,
+      "y": 0,
+      "w": 320,
+      "h": 260
+    },
+    "ancientConstructDefeated": {
+      "x": 3840,
+      "y": 0,
+      "w": 320,
+      "h": 260
+    }
+  }
+}

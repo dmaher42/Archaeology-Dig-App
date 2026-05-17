@@ -2000,3 +2000,85 @@ Remaining notes:
 - Moved the false Sacred Scarab Seal trigger to the top of the opening climb around `X(600)` and changed the confrontation text to `You will never reach the expedition site.`
 - Added the guide follow-up purpose line so the Journey frames shards, tools, upgrades, and evidence as preparation to pass the guardian and reach the expedition site.
 - Reused the existing Scarab Queen boss intro/domain flow for the cutscene-style confrontation and preserved all existing route-gate, Brush Handle, Base Camp, excavation, China, and final Guardian Seal / Ancient Construct behaviour.
+
+## 2026-05-17 Egypt opening climb reposition pass
+
+- Moved the Scarab Seal climb to the immediate Egypt start so the player sees the upward challenge as soon as the scene begins.
+- Reworked the climb from a simple rightward staircase into a left/right platform route that asks the player to run and jump across the opening space before reaching the false artefact.
+- Added two opening trap platforms using the existing reactive platform system: one unstable left ledge and one cracked right step.
+- Kept the Scarab Seal trigger, activated visuals, Scarab Queen confrontation, route gates, boss rewards, Base Camp, excavation, China, and final Guardian Seal trigger behaviour unchanged.
+
+## 2026-05-17 Egypt boss identity upgrade planning
+
+- Audited the current Egypt boss ids, boss/key item gate dependencies, boss sprite loader, enemy sprite loader, existing boss/enemy asset folders, Scarab Seal opening trigger, and available validation scripts.
+- Added `docs/egypt-boss-identity-upgrade-plan.md` as the planning source for a Sphinx / Griffin / Uraeus / Anubis / Bes guardian identity upgrade.
+- Recommended preserving internal boss ids first and changing display/story copy before asset replacement because China already reuses those ids with different display identities.
+- Recommended keeping the recently refreshed Scarab Queen as an early servant/miniboss until a Griffin sprite pack exists, with The Sphinx introduced as an opening protector presence and final boss identity.
+- Refined the plan to explicitly preserve the final Guardian Seal trigger, player controller, and boss rendering architecture until a later implementation pass.
+- Deliberately did not change gameplay, boss ids, stats, route requirements, key item rewards, Base Camp, excavation, China, or sprite-loader contracts in this planning pass.
+
+## 2026-05-17 Egypt boss identity Phase 1 text pass
+
+- Implemented the Phase 1 display/story update inside existing Egypt Journey data only.
+- Reframed the opening Scarab Seal warning so The Sphinx is the distant protector: sealed artefact, Sphinx watching beyond the sand, protected artefacts, and the expedition-site threat.
+- Kept `scarab-queen` as Scarab Queen, now framed as the Sphinx's first guardian; renamed Egypt display identities to Anubis, The Uraeus, Bes, and The Sphinx for the later guardian slots.
+- Updated Egypt boss intro/dialogue/domain text only; preserved every internal boss id, boss stat, position, route requirement, key item reward, sprite atlas, Base Camp handoff, excavation handoff, China boss name, player controller, final Guardian Seal trigger, and boss rendering path.
+- Added Journey source coverage proving the Phase 1 names landed while boss ids, key item links, route gates, Scarab Queen / Brush Handle / Desert Map Seal progression, and China display names stayed stable.
+
+## 2026-05-17 Rejected Sphinx draft cleanup
+
+- Rejected and removed the first procedural `sphinx-sprites.png/json` draft because it did not read as The Sphinx and looked too much like a mechanical sarcophagus / boat / drone.
+- Removed the temporary Sphinx generation and validation hooks from the existing sprite scripts so the failed draft cannot be regenerated or validated as an approved asset by accident.
+- Added `docs/sphinx-boss-visual-brief.md` as the new source brief for a future high-quality Sphinx sprite sheet attempt.
+- Confirmed the existing Ancient Construct atlas remains the temporary placeholder for the stable `ancient-construct` boss id; no boss ids, route gates, key rewards, Base Camp, excavation, China, opening scene logic, checkpoint logic, or progression were changed in this cleanup.
+
+## 2026-05-17 Egypt opening Sphinx confrontation correction
+
+- Moved the Scarab Seal climb further into the immediate first-screen start area, with the first launch platform at `X(34)` and the false artefact at the summit around `X(205)`.
+- Added stable recovery ledges around the opening trap platforms and shortened the reactive platform respawn timing so students can fall, retry, and still reach the top.
+- Changed the Scarab Seal trigger so it plays the Sphinx opening warning without forcing the player into the Scarab Queen arena/domain.
+- Preserved normal Desert Entry progression: Scarab Queen still has to be reached and defeated later for the Brush Handle and Desert Map Seal path.
+
+## 2026-05-17 Egypt opening Sphinx on-screen encounter
+
+- Changed the Scarab Seal trigger from a top-centre warning card into a scoped in-world Sphinx encounter drawn beside the summit platform.
+- Added a large temporary Sphinx placeholder visual, attached dialogue bubble, and short upward/right fade-away exit using the existing Journey canvas render/update loop.
+- Kept the player in the same opening area after the scene and preserved Scarab Queen, Brush Handle, Desert Map Seal, route gates, Base Camp, excavation, China, and final Guardian Seal / Ancient Construct behaviour.
+
+## 2026-05-17 Opening Scarab Seal image asset
+
+- Generated a new ancient Egyptian Scarab Seal PNG for the opening fake artefact, with gold/bronze framing, lapis-blue scarab detail, and transparent background.
+- Saved the asset at `public/assets/expedition/environment/egypt-opening/scarab-seal-opening.png` and wired the existing opening story prop renderer to draw it before falling back to the simple canvas placeholder.
+- Preserved Scarab Seal trigger logic, Sphinx encounter flow, route gates, boss rewards, Base Camp, excavation, China, and final Guardian Seal / Ancient Construct behaviour.
+
+## 2026-05-17 Egypt final Sphinx boss wiring
+
+- Wired the approved Sphinx sprite atlas into the existing Egypt `ancient-construct` boss sprite slot without renaming the internal boss id.
+- Added `public/assets/expedition/bosses/sphinx-sprites.png` and `public/assets/expedition/bosses/sphinx-sprites.json`, including Sphinx frame keys plus existing Ancient Construct frame aliases for the current boss selector.
+- Tuned the Ancient Construct draw box so the Sphinx reads as a large grounded final guardian while still using the existing boss renderer.
+- Confirmed China continues to use its separate `china-rammed-earth-sentinel` sprite id and atlas.
+
+## 2026-05-17 Journey platform purpose polish
+
+- Added named platform challenge routes in Egypt using the existing Journey platform, reactive ledge, checkpoint, and rescue systems rather than adding a new platform engine.
+- Moved several upgrades onto higher platform routes so players must climb and time jumps to reach them: Voucher Cache, Reinforced Boots, Rope Launcher, Torch Upgrade, and Ancient Compass.
+- Added unstable/cracked challenge ledges across the desert high-shard route, temple sandfall climb, catacomb torch climb, and final site permit climb.
+- Added a lightweight missed-jump rescue hook: once a player commits to one of these challenge routes, dropping below the safe line triggers the existing Field Rescue panel and retries from the active checkpoint.
+- Verified the Desert Survey Checkpoint retry flow and sampled the new desert, temple, and catacomb platform layouts in the browser with no console errors.
+
+## 2026-05-17 Opening checkpoint reposition
+
+- Moved the Desert Survey Checkpoint marker from `X(705)` to `X(930)` so the checkpoint statue/flag sits in the early shard-and-platform stretch instead of crowding the Scarab Seal opening scene.
+- Kept the same checkpoint id, name, y-position, rescue behaviour, route gates, boss progression, Base Camp, excavation, China, and opening Sphinx trigger logic unchanged.
+
+## 2026-05-17 Early Egypt trap challenge tuning
+
+- Reworked the early lower-route trap line into larger, clearer pyramid-defence hazards: a pressure plate, cracked floor trap, and wider soft sand trap.
+- Increased the ground-route penalties so pushing straight through the traps feels like a real challenge, while preserving the upper platform route as the skill-based alternative.
+- Reused existing hazard drawing, atlas mapping, reactive platform, checkpoint, and rescue systems; no new trap, route gate, boss, Base Camp, excavation, or China systems were added.
+
+## 2026-05-17 Opening seal reset trap pass
+
+- Changed the Scarab Seal trigger so the summit platform disappears through the existing collapsed-platform system, dropping the player toward the start-side route.
+- Added a hidden opening reset trap that is only revealed after the seal activates; stepping forward into it pushes the player back to the Desert Entry start instead of skipping the level.
+- Kept the bypass as a skill challenge: the player can walk back, reclimb the opening platforms, and cross above the revealed trap without changing route gates, boss rewards, Base Camp, excavation, or China.

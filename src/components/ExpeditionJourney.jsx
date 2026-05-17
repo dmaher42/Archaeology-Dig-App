@@ -307,6 +307,9 @@ const KNOWLEDGE_CHALLENGE_FEEDBACK = {
 const LOW_STAMINA_WARNING = 'Stamina low - avoid another hit.';
 const FIELD_RESCUE_MESSAGE = 'You were forced back to the last checkpoint. Recover and try again.';
 const FIELD_RESCUE_STAMINA_REASON = 'Stamina hit zero.';
+const OPENING_SPHINX_DURATION = 6.2;
+const OPENING_SPHINX_EXIT_SECONDS = 1.7;
+const OPENING_SCARAB_SEAL_IMAGE_SRC = 'assets/expedition/environment/egypt-opening/scarab-seal-opening.png';
 
 const getGuardianChallengeQuestions = (bossId) => {
   const questionIds = GUARDIAN_KNOWLEDGE_CHALLENGES[bossId] || [];
@@ -626,6 +629,10 @@ const isPlatformAvailable = (platform, current) => (
   && !current.collapsedPlatformIds?.has(platform.id || platform.label)
 );
 
+const isHazardAvailable = (hazard, current) => (
+  !hazard.revealedByScarabSeal || current.scarabSealActivated
+);
+
 const CHINA_GATE_HINTS = {
   objective: {
     'desert-entry': 'The river survey tablet is still behind you on the valley route.',
@@ -871,6 +878,30 @@ const HAZARD_VISUALS = {
     accent: '#f59e0b',
     message: 'Loose stones made the climb harder.',
   },
+  'entry-pressure-plate': {
+    icon: '!',
+    label: 'Pressure Plate',
+    color: '#92400e',
+    fill: 'rgba(202, 138, 4, 0.28)',
+    accent: '#1d4ed8',
+    message: 'Pressure plate triggered.',
+  },
+  'entry-cracked-floor-trap': {
+    icon: '!',
+    label: 'Cracked Floor',
+    color: '#7c2d12',
+    fill: 'rgba(120, 53, 15, 0.32)',
+    accent: '#facc15',
+    message: 'Cracked floor gave way.',
+  },
+  'opening-seal-reset-trap': {
+    icon: '!',
+    label: 'Seal Trap',
+    color: '#0f766e',
+    fill: 'rgba(14, 116, 144, 0.28)',
+    accent: '#facc15',
+    message: 'Seal trap pushed you back.',
+  },
 };
 
 const HAZARD_GROUNDING = {
@@ -964,6 +995,36 @@ const HAZARD_GROUNDING = {
     filter: 'sepia(10%) saturate(74%) brightness(90%)',
     warning: 'none',
   },
+  'entry-pressure-plate': {
+    xPad: 12,
+    yOffset: 4,
+    widthPad: 24,
+    heightPad: 2,
+    shadow: 0.16,
+    dustWidth: 1.08,
+    filter: 'sepia(8%) saturate(96%) brightness(102%)',
+    warning: 'ground',
+  },
+  'entry-cracked-floor-trap': {
+    xPad: 10,
+    yOffset: 6,
+    widthPad: 20,
+    heightPad: 7,
+    shadow: 0.2,
+    dustWidth: 1,
+    filter: 'sepia(10%) saturate(86%) brightness(92%)',
+    warning: 'ground',
+  },
+  'opening-seal-reset-trap': {
+    xPad: 12,
+    yOffset: 4,
+    widthPad: 24,
+    heightPad: 4,
+    shadow: 0.18,
+    dustWidth: 1.12,
+    filter: 'sepia(6%) saturate(112%) brightness(102%)',
+    warning: 'ground',
+  },
 };
 
 const HAZARD_VISUAL_ALIASES = {
@@ -1025,6 +1086,26 @@ const PROP_GROUNDING_CONFIG = {
 };
 
 const STORY_PROP_GROUNDING_OVERRIDES = {
+  'early-scarab-seal-pedestal': {
+    width: 54,
+    height: 42,
+    yOffset: 0,
+    alpha: 0.98,
+    depth: 'midground',
+    tint: 'warm',
+    shadow: 0.16,
+    dust: 0.54,
+  },
+  'early-scarab-seal': {
+    width: 38,
+    height: 38,
+    yOffset: 0,
+    alpha: 1,
+    depth: 'midground',
+    tint: 'warm',
+    shadow: 0.08,
+    dust: 0.32,
+  },
   'upper-route-broken-stone-cue': {
     width: 132,
     height: 96,
@@ -1037,6 +1118,11 @@ const STORY_PROP_GROUNDING_OVERRIDES = {
     bury: 0.58,
   },
 };
+
+const SACRED_DEFENCE_STORY_PROP_IDS = new Set([
+  'guardian-seal-pedestal-passive',
+  'guardian-seal-passive',
+]);
 
 const getStoryPropDepth = (prop) => (
   STORY_PROP_GROUNDING_OVERRIDES[prop.id]?.depth
@@ -1161,6 +1247,7 @@ export default function ExpeditionJourney({
   const playerWeaponSpriteRef = useRef(createPlayerWeaponSpriteState());
   const dynamicWorldAssetsRef = useRef(createDynamicWorldAssetState());
   const markerSpriteAssetsRef = useRef(createMarkerSpriteState());
+  const openingScarabSealImageRef = useRef({ image: null, loaded: false, failed: false });
   const footstepTimerRef = useRef(0);
   const wasGroundedRef = useRef(false);
 
@@ -1174,6 +1261,24 @@ export default function ExpeditionJourney({
       }
       : null);
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const image = new Image();
+    image.onload = () => {
+      if (cancelled) return;
+      openingScarabSealImageRef.current = { image, loaded: true, failed: false };
+      syncHud();
+    };
+    image.onerror = () => {
+      if (cancelled) return;
+      openingScarabSealImageRef.current = { image: null, loaded: false, failed: true };
+    };
+    image.src = `${import.meta.env.BASE_URL}${OPENING_SCARAB_SEAL_IMAGE_SRC}`;
+    return () => {
+      cancelled = true;
+    };
+  }, [syncHud]);
 
   const currentMusicCue = (() => {
     const current = gameState;
@@ -1805,6 +1910,7 @@ export default function ExpeditionJourney({
   }, []);
 
   const getActiveHazardsNearPlayer = useCallback((current) => HAZARDS
+    .filter(hazard => isHazardAvailable(hazard, current))
     .filter(hazard => Math.abs((hazard.x + hazard.width / 2) - (current.player.x + current.player.width / 2)) < 150)
     .map(hazard => ({
       id: hazard.id,
@@ -2163,6 +2269,15 @@ export default function ExpeditionJourney({
         guideFollowUpLine: SCARAB_SEAL_TRIGGER.guideFollowUpLine,
         messages: SCARAB_SEAL_TRIGGER.messages,
       },
+      openingSphinxEncounterState: current.openingSphinxEncounter ? {
+        active: true,
+        name: current.openingSphinxEncounter.name,
+        message: current.openingSphinxEncounter.message,
+        playerX: Math.round(current.openingSphinxEncounter.playerX),
+        x: Math.round(current.openingSphinxEncounter.x),
+        y: Math.round(current.openingSphinxEncounter.y),
+        timer: Number(current.openingSphinxEncounter.timer.toFixed(2)),
+      } : null,
       reactiveEnvironmentPassActive: Boolean(renderStats.reactiveEnvironmentPassActive),
       reactiveEnvironmentVersion: renderStats.reactiveEnvironmentVersion || REACTIVE_ENVIRONMENT_VERSION,
       visibleEnvironmentInteractions: renderStats.visibleEnvironmentInteractions || [],
@@ -2241,6 +2356,10 @@ export default function ExpeditionJourney({
         expectedGroundY: JOURNEY_WORLD_LAYOUT.groundY,
         playerFootY: Math.round(current.player.y + current.player.height),
       },
+      activePlatformChallenge: current.activePlatformChallenge ? {
+        id: current.activePlatformChallenge.id,
+        failY: Math.round(current.activePlatformChallenge.failY),
+      } : null,
       currentSection: getSectionDisplayName(section.id),
       cameraMode: current.cameraMode,
       cameraFocusTarget: current.cameraFocusTarget,
@@ -2532,7 +2651,7 @@ export default function ExpeditionJourney({
         mood: SECTION_ATMOSPHERES[section.id]?.mood || null,
         title: getSectionDisplayTitle(section.id) || null,
       },
-      hazards: HAZARDS.map(hazard => hazard.name),
+      hazards: HAZARDS.filter(hazard => isHazardAvailable(hazard, current)).map(hazard => hazard.name),
       endGateReached: current.completed || current.discoveryEntranceActive,
       briefingOpen,
       failed: current.failed,
@@ -2563,6 +2682,52 @@ export default function ExpeditionJourney({
     ctx.restore();
   }, []);
 
+  const drawOpeningSphinxDialogue = useCallback((ctx, encounter, screenX, screenY, alpha) => {
+    const boxWidth = 360;
+    const boxHeight = 96;
+    const boxX = clamp(screenX + 44, 26, CANVAS_WIDTH - boxWidth - 26);
+    const boxY = clamp(screenY + 44, 176, CANVAS_HEIGHT - boxHeight - 28);
+    const lines = [
+      'These artefacts are protected.',
+      'You will never reach the expedition site.',
+      'Only those who prove themselves may pass.',
+    ];
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.38)';
+    ctx.shadowBlur = 18;
+    ctx.shadowOffsetY = 8;
+    const bubbleGradient = ctx.createLinearGradient(boxX, boxY, boxX + boxWidth, boxY + boxHeight);
+    bubbleGradient.addColorStop(0, 'rgba(15, 23, 42, 0.9)');
+    bubbleGradient.addColorStop(1, 'rgba(69, 45, 21, 0.9)');
+    ctx.fillStyle = bubbleGradient;
+    ctx.beginPath();
+    ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 12);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = 'rgba(250, 204, 21, 0.7)';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+    ctx.fillStyle = '#facc15';
+    ctx.font = '900 15px Outfit, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(encounter.name || SCARAB_SEAL_TRIGGER.eventName, boxX + 18, boxY + 25);
+    ctx.fillStyle = '#fff4d4';
+    ctx.font = '800 12px Outfit, sans-serif';
+    lines.forEach((line, index) => {
+      ctx.fillText(line, boxX + 18, boxY + 50 + index * 18);
+    });
+    ctx.beginPath();
+    ctx.moveTo(boxX + 30, boxY + 10);
+    ctx.lineTo(screenX + 38, screenY + 22);
+    ctx.lineTo(boxX + 74, boxY + 10);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(42, 31, 24, 0.9)';
+    ctx.fill();
+    ctx.restore();
+  }, []);
+
   const drawContactShadow = useCallback((ctx, x, y, width, intensity = 0.28, blur = 0) => {
     ctx.save();
     ctx.globalAlpha = intensity;
@@ -2573,6 +2738,92 @@ export default function ExpeditionJourney({
     ctx.fill();
     ctx.restore();
   }, []);
+
+  const drawOpeningSphinxEncounter = useCallback((ctx, encounter, cameraX, now) => {
+    if (!encounter || encounter.timer <= 0) return;
+    const elapsed = encounter.duration - encounter.timer;
+    const reveal = clamp(elapsed / 0.7, 0, 1);
+    const exitProgress = clamp((OPENING_SPHINX_EXIT_SECONDS - encounter.timer) / OPENING_SPHINX_EXIT_SECONDS, 0, 1);
+    const alpha = clamp(reveal * (1 - exitProgress * 0.86), 0, 1);
+    if (alpha <= 0.02) return;
+
+    const baseScreenX = worldToScreenX(encounter.x, cameraX);
+    const sx = baseScreenX + exitProgress * 160;
+    const sy = encounter.y + Math.sin(now / 260) * 4 - exitProgress * 150;
+    if (sx < -220 || sx > CANVAS_WIDTH + 220) return;
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    drawContactShadow(ctx, sx, sy + 120, 128, 0.18 * (1 - exitProgress), 1.2);
+    const aura = ctx.createRadialGradient(sx, sy + 34, 10, sx, sy + 34, 138);
+    aura.addColorStop(0, 'rgba(56, 189, 248, 0.18)');
+    aura.addColorStop(0.5, 'rgba(250, 204, 21, 0.1)');
+    aura.addColorStop(1, 'rgba(56, 189, 248, 0)');
+    ctx.fillStyle = aura;
+    ctx.beginPath();
+    ctx.arc(sx, sy + 34, 138, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.translate(sx, sy);
+    ctx.scale(1.08, 1.08);
+    const wingLift = Math.sin(now / 180) * 7 - exitProgress * 18;
+    ctx.strokeStyle = 'rgba(44, 27, 12, 0.78)';
+    ctx.lineWidth = 3;
+    ctx.fillStyle = '#c69242';
+    ctx.beginPath();
+    ctx.moveTo(-62, 26);
+    ctx.quadraticCurveTo(-122, -24 + wingLift, -48, -18 + wingLift);
+    ctx.quadraticCurveTo(-28, 2 + wingLift, -44, 30);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(28, 26);
+    ctx.quadraticCurveTo(112, -36 + wingLift, 74, 38);
+    ctx.quadraticCurveTo(48, 10 + wingLift, 22, 20);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#b7792e';
+    ctx.beginPath();
+    ctx.ellipse(-10, 52, 82, 36, -0.05, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#d6a354';
+    ctx.beginPath();
+    ctx.ellipse(48, 30, 34, 26, 0.12, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#f2c86b';
+    ctx.beginPath();
+    ctx.roundRect(24, -4, 42, 34, 8);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#0f766e';
+    ctx.beginPath();
+    ctx.moveTo(21, 7);
+    ctx.lineTo(68, 7);
+    ctx.lineTo(61, 17);
+    ctx.lineTo(28, 17);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#67e8f9';
+    ctx.beginPath();
+    ctx.arc(58, 10, 3.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#654321';
+    [-48, -12, 24, 58].forEach((legX) => {
+      ctx.beginPath();
+      ctx.roundRect(legX, 72, 12, 42, 5);
+      ctx.fill();
+      ctx.stroke();
+    });
+    ctx.restore();
+
+    drawOpeningSphinxDialogue(ctx, encounter, sx, sy, alpha);
+  }, [drawContactShadow, drawOpeningSphinxDialogue]);
 
   const drawGroundDustLip = useCallback((ctx, x, y, width, color = 'rgba(210, 160, 92, 0.28)') => {
     ctx.save();
@@ -3328,12 +3579,68 @@ export default function ExpeditionJourney({
     ctx.save();
     const section = getSectionForX(prop.x);
     const scarabSealActivated = Boolean(stateRef.current.scarabSealActivated);
+    if (prop.id === 'early-scarab-seal-pedestal') {
+      const baseY = prop.y;
+      drawContactShadow(ctx, x, baseY + 3, 54, 0.14, 1.1);
+      drawDecorativeBaseBlend(ctx, x, baseY + 2, 58, section.id, propDepth, 0.6);
+      ctx.fillStyle = 'rgba(96, 58, 28, 0.76)';
+      ctx.beginPath();
+      ctx.roundRect(x - 28, baseY - 18, 56, 18, 4);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(181, 128, 58, 0.72)';
+      ctx.beginPath();
+      ctx.roundRect(x - 22, baseY - 28, 44, 12, 4);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(14, 116, 144, 0.42)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x - 18, baseY - 21);
+      ctx.lineTo(x + 18, baseY - 21);
+      ctx.stroke();
+      ctx.restore();
+      return;
+    }
+    if (prop.id === 'early-scarab-seal') {
+      const sealImage = openingScarabSealImageRef.current;
+      const pulse = scarabSealActivated ? 0.82 + Math.sin(now / 180) * 0.16 : 0.58 + Math.sin(now / 420) * 0.08;
+      const glowColor = scarabSealActivated ? 'rgba(56, 189, 248,' : 'rgba(250, 204, 21,';
+      ctx.fillStyle = `${glowColor} ${0.18 + pulse * 0.18})`;
+      ctx.beginPath();
+      ctx.arc(x, prop.y, scarabSealActivated ? 26 : 20, 0, Math.PI * 2);
+      ctx.fill();
+      if (sealImage.loaded && sealImage.image) {
+        const drawSize = scarabSealActivated ? 44 : 38;
+        ctx.drawImage(sealImage.image, x - drawSize / 2, prop.y - drawSize / 2, drawSize, drawSize);
+        ctx.restore();
+        return;
+      }
+      ctx.fillStyle = scarabSealActivated ? '#67e8f9' : '#facc15';
+      ctx.beginPath();
+      ctx.ellipse(x, prop.y, 12, 16, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = scarabSealActivated ? '#0e7490' : '#7c4a12';
+      ctx.beginPath();
+      ctx.ellipse(x, prop.y - 2, 7, 10, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(15, 23, 42, 0.72)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x - 14, prop.y - 4);
+      ctx.lineTo(x + 14, prop.y - 4);
+      ctx.moveTo(x - 10, prop.y + 6);
+      ctx.lineTo(x + 10, prop.y + 6);
+      ctx.stroke();
+      ctx.restore();
+      return;
+    }
     const propForAsset = prop.id === 'early-scarab-seal' && scarabSealActivated
       ? { ...prop, type: 'guardian-seal-activated' }
       : prop.id === 'early-scarab-seal-pedestal' && scarabSealActivated
         ? { ...prop, type: 'sacred-pedestal-activated' }
         : prop;
-    const sacredTrapPropAssetKey = getEnvironmentAssetKeyForStoryProp(propForAsset, ENVIRONMENT_ASSET_PACK_IDS.EGYPT_SACRED_TRAPS);
+    const sacredTrapPropAssetKey = SACRED_DEFENCE_STORY_PROP_IDS.has(prop.id)
+      ? getEnvironmentAssetKeyForStoryProp(propForAsset, ENVIRONMENT_ASSET_PACK_IDS.EGYPT_SACRED_TRAPS)
+      : null;
     const propAssetKey = sacredTrapPropAssetKey
       || getEnvironmentAssetKeyForStoryProp(propForAsset, environmentAssetsRef.current.packId);
     if (propAssetKey) {
@@ -5311,6 +5618,70 @@ export default function ExpeditionJourney({
         drawGroundDustLip(ctx, centerX, footY + 2, dustWidth * 0.82, 'rgba(209, 143, 72, 0.24)');
         drawHazardGroundApron(ctx, centerX, footY + 4, dustWidth, section.id, visualHazardId === 'sand-pit' || visualHazardId === 'dark-gap' ? 1.2 : 0.82);
       }
+      if (visualHazardId === 'opening-seal-reset-trap') {
+        ctx.globalAlpha = 0.84 + pulse * 0.14;
+        ctx.strokeStyle = 'rgba(250, 204, 21, 0.9)';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.ellipse(hazardDest.x + hazardDest.width / 2, hazardDest.y + hazardDest.height / 2, hazardDest.width * 0.38, Math.max(11, hazardDest.height * 0.32), 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.strokeStyle = 'rgba(14, 116, 144, 0.72)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(hazardDest.x + 18, hazardDest.y + hazardDest.height / 2);
+        ctx.lineTo(hazardDest.x + hazardDest.width - 18, hazardDest.y + hazardDest.height / 2);
+        ctx.moveTo(hazardDest.x + hazardDest.width / 2, hazardDest.y + 8);
+        ctx.lineTo(hazardDest.x + hazardDest.width / 2, hazardDest.y + hazardDest.height - 8);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      } else if (visualHazardId === 'entry-pressure-plate') {
+        ctx.globalAlpha = 0.78 + pulse * 0.16;
+        ctx.strokeStyle = 'rgba(29, 78, 216, 0.72)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.roundRect(hazardDest.x + 8, hazardDest.y + 7, hazardDest.width - 16, Math.max(14, hazardDest.height - 14), 12);
+        ctx.stroke();
+        ctx.strokeStyle = 'rgba(250, 204, 21, 0.84)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(hazardDest.x + 24, hazardDest.y + hazardDest.height / 2);
+        ctx.lineTo(hazardDest.x + hazardDest.width - 24, hazardDest.y + hazardDest.height / 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(hazardDest.x + hazardDest.width / 2, hazardDest.y + hazardDest.height / 2, 8 + pulse * 2, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      } else if (visualHazardId === 'entry-cracked-floor-trap') {
+        ctx.globalAlpha = 0.82;
+        ctx.strokeStyle = 'rgba(68, 35, 18, 0.78)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(hazardDest.x + 18, hazardDest.y + 12);
+        ctx.lineTo(hazardDest.x + hazardDest.width * 0.38, hazardDest.y + hazardDest.height * 0.46);
+        ctx.lineTo(hazardDest.x + hazardDest.width * 0.5, hazardDest.y + 11);
+        ctx.lineTo(hazardDest.x + hazardDest.width * 0.7, hazardDest.y + hazardDest.height - 10);
+        ctx.lineTo(hazardDest.x + hazardDest.width - 16, hazardDest.y + hazardDest.height * 0.55);
+        ctx.stroke();
+        ctx.strokeStyle = 'rgba(250, 204, 21, 0.5)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(hazardDest.x + 9, hazardDest.y + 8, hazardDest.width - 18, hazardDest.height - 12);
+        ctx.globalAlpha = 1;
+      } else if (hazard.id === 'sand-pit') {
+        ctx.globalAlpha = 0.72 + pulse * 0.12;
+        ctx.strokeStyle = 'rgba(255, 247, 212, 0.82)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.ellipse(hazardDest.x + hazardDest.width / 2, hazardDest.y + hazardDest.height / 2, hazardDest.width * 0.42, Math.max(10, hazardDest.height * 0.32), -0.04, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.strokeStyle = 'rgba(146, 64, 14, 0.48)';
+        ctx.lineWidth = 2;
+        for (let i = 0; i < 3; i += 1) {
+          ctx.beginPath();
+          ctx.arc(hazardDest.x + 26 + i * 32, hazardDest.y + hazardDest.height / 2 + Math.sin(now / 260 + i) * 3, 6 + pulse * 1.5, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+      }
       if (hitActive) {
         ctx.strokeStyle = 'rgba(239, 68, 68, 0.62)';
         ctx.lineWidth = 3;
@@ -6847,7 +7218,7 @@ export default function ExpeditionJourney({
     getActiveHiddenRoutes().forEach(route => drawHiddenRouteHint(ctx, route, cameraX, current, now));
     drawSectionTransitionBlend(ctx, cameraX);
     
-    HAZARDS.forEach((hazard) => drawHazard(ctx, hazard, cameraX, current, now));
+    HAZARDS.filter(hazard => isHazardAvailable(hazard, current)).forEach((hazard) => drawHazard(ctx, hazard, cameraX, current, now));
 
     CHECKPOINTS.forEach((checkpoint) => {
       const cx = worldToScreenX(checkpoint.x, cameraX);
@@ -7176,6 +7547,7 @@ export default function ExpeditionJourney({
       current.renderStats.playerAttackArcMode = 'integrated-hero-atlas';
     }
     drawPlayerSprite(ctx, player.x - cameraX, player.y, player.width, player.height, player.direction, player.invulnerable, now);
+    drawOpeningSphinxEncounter(ctx, current.openingSphinxEncounter, cameraX, now);
     drawCombatEffects(ctx, current.combatHitEffects, cameraX, now);
     drawSectionParallaxForeground(ctx, section, cameraX);
 
@@ -7260,7 +7632,7 @@ export default function ExpeditionJourney({
       ctx.fillText(featureCard.message || '', cardCenterX, cardY + (isGuardianCard ? 60 : isSectionCard ? 42 : 54));
       ctx.textAlign = 'start';
     }
-  }, [backgroundPackId, drawAncientRouteGround, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawParticles, drawPlatform, drawRouteGate, drawRouteGroundApron, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStoryProp, drawTempleBackdrop, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getGateGuidance, getGateRequirements, getPlayerAttackState, isRouteRewardAccessible, drawPlayerSprite, drawFieldNoteLabel]);
+  }, [backgroundPackId, drawAncientRouteGround, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningSphinxEncounter, drawParticles, drawPlatform, drawRouteGate, drawRouteGroundApron, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStoryProp, drawTempleBackdrop, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getGateGuidance, getGateRequirements, getPlayerAttackState, isRouteRewardAccessible, drawPlayerSprite, drawFieldNoteLabel]);
 
   const queueAttack = useCallback(() => {
     const current = stateRef.current;
@@ -7359,6 +7731,10 @@ export default function ExpeditionJourney({
     }
     current.environmentEventTimer = Math.max(0, current.environmentEventTimer - dt);
     if (current.environmentEventTimer <= 0 && current.environmentEvent) current.environmentEvent = null;
+    if (current.openingSphinxEncounter) {
+      current.openingSphinxEncounter.timer = Math.max(0, current.openingSphinxEncounter.timer - dt);
+      if (current.openingSphinxEncounter.timer <= 0) current.openingSphinxEncounter = null;
+    }
     current.dynamicEnvironmentEventTimer = Math.max(0, (current.dynamicEnvironmentEventTimer || 0) - dt);
     if (current.dynamicEnvironmentEventTimer <= 0 && current.dynamicEnvironmentEvent) current.dynamicEnvironmentEvent = null;
     current.discoveryEntranceTimer = Math.max(0, (current.discoveryEntranceTimer || 0) - dt);
@@ -7562,6 +7938,25 @@ export default function ExpeditionJourney({
         player.airJumpsUsed = 0;
         landedThisFrame = true;
         player.lastLandingImpact = landingImpact;
+        if (p.challengeId) {
+          current.activePlatformChallenge = {
+            id: p.challengeId,
+            failY: p.challengeFailY || (GROUND_Y - 18),
+            message: p.challengeFailMessage || 'You missed the platform route. Retry from the checkpoint.',
+          };
+        }
+        if (p.challengeComplete && current.activePlatformChallenge?.id === p.challengeComplete) {
+          current.activePlatformChallenge = null;
+          addCombatEffect(current, {
+            type: 'environment-dust',
+            x: player.x + player.width / 2,
+            y: p.y + 5,
+            text: 'SAFE',
+            color: 'rgba(56, 189, 248, 0.62)',
+            timer: 0.36,
+            maxTimer: 0.36,
+          });
+        }
         if (p.reactive) {
           const platformId = p.id || p.label;
           if (!current.reactivePlatformTimers[platformId]) {
@@ -7605,6 +8000,16 @@ export default function ExpeditionJourney({
       current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.05);
       current.cameraShakeStrength = Math.max(current.cameraShakeStrength, Math.min(0.12, (player.lastLandingImpact || 0) / 5200));
       audioControls?.playExpeditionSfx?.('land');
+    }
+    if (
+      current.activePlatformChallenge
+      && !current.failed
+      && player.vy >= 0
+      && player.y + player.height >= current.activePlatformChallenge.failY
+    ) {
+      const challengeMessage = current.activePlatformChallenge.message;
+      current.activePlatformChallenge = null;
+      triggerJourneyRescue('Missed platform jump. Field rescue required.', challengeMessage);
     }
     if (player.onGround && Math.abs(player.vx) > 20) {
       footstepTimerRef.current -= dt;
@@ -7692,7 +8097,27 @@ export default function ExpeditionJourney({
       };
       if (rectsOverlap(getPlayerBodyHitbox(player), scarabSealHitbox)) {
         current.scarabSealActivated = true;
+        current.openingConfrontationSeen = true;
+        current.collapsedPlatformIds.add('opening-scarab-seal-summit');
         current.triggeredEnvironmentEventIds.add(SCARAB_SEAL_TRIGGER.id);
+        const sphinxX = Math.min(player.x + 290, SCARAB_SEAL_TRIGGER.x + 360);
+        current.openingSphinxEncounter = {
+          id: 'opening-sphinx-encounter',
+          name: SCARAB_SEAL_TRIGGER.eventName,
+          playerX: player.x,
+          x: sphinxX,
+          y: Math.max(132, player.y - 156),
+          message: SCARAB_SEAL_TRIGGER.messages.slice(2).concat([
+            'Only those who prove themselves may pass.'
+          ]).join(' '),
+          guideFollowUpLine: SCARAB_SEAL_TRIGGER.guideFollowUpLine,
+          duration: OPENING_SPHINX_DURATION,
+          timer: OPENING_SPHINX_DURATION,
+        };
+        current.sectionTransition = null;
+        current.sectionTransitionTimer = 0;
+        current.environmentEvent = null;
+        current.environmentEventTimer = 0;
         current.dynamicEnvironmentEvent = {
           id: SCARAB_SEAL_TRIGGER.id,
           sectionId: SCARAB_SEAL_TRIGGER.sectionId,
@@ -7705,16 +8130,11 @@ export default function ExpeditionJourney({
           card: false,
         };
         current.dynamicEnvironmentEventTimer = SCARAB_SEAL_TRIGGER.duration;
-        current.cinematicEvent = {
-          id: 'scarab-seal-guide-follow-up',
-          name: 'Warrior-Guide',
-          message: SCARAB_SEAL_TRIGGER.guideFollowUpLine,
-          temporary: true,
-        };
-        current.cinematicTimer = 5.2;
+        current.cinematicEvent = null;
+        current.cinematicTimer = 0;
         current.cameraShakeTimer = Math.max(current.cameraShakeTimer, SCARAB_SEAL_TRIGGER.duration * 0.45);
         current.cameraShakeStrength = Math.max(current.cameraShakeStrength, SCARAB_SEAL_TRIGGER.shake);
-        current.notice = SCARAB_SEAL_TRIGGER.messages[SCARAB_SEAL_TRIGGER.messages.length - 1];
+        current.notice = '';
         current.hitStopTimer = Math.max(current.hitStopTimer, 0.04);
         addRewardPulse('scarab-seal-awakening', SCARAB_SEAL_TRIGGER.x, SCARAB_SEAL_TRIGGER.y, 'SEAL AWAKENS', {
           color: '#38bdf8',
@@ -7992,11 +8412,49 @@ export default function ExpeditionJourney({
 
     // Hazards
     if (current.hazardCooldown <= 0) {
-      HAZARDS.forEach(h => {
+      HAZARDS.filter(hazard => isHazardAvailable(hazard, current)).forEach(h => {
         if (rectsOverlap(getPlayerBodyHitbox(player), getHazardHitbox(h))) {
           const staminaLoss = Math.ceil((h.penalty.stamina || 0) * (upgradeEffects.hazardStaminaMultiplier || 1));
           const timeLoss = h.penalty.time || 0;
           const visual = HAZARD_VISUALS[h.id] || {};
+          if (h.pushToStart) {
+            const startCheckpoint = CHECKPOINTS[0];
+            player.x = startCheckpoint.x;
+            player.y = startCheckpoint.y - player.height;
+            player.vx = 0;
+            player.vy = 0;
+            player.onGround = true;
+            current.cameraX = clampCameraX(player.x - CANVAS_WIDTH * 0.42);
+            current.targetCameraX = current.cameraX;
+            current.hazardCooldown = 1.4;
+            current.lastHazardHit = {
+              id: h.id,
+              name: h.name,
+              message: h.message,
+              staminaDelta: 0,
+              timeDelta: -timeLoss,
+            };
+            if (timeLoss) current.resources.time = Math.max(0, current.resources.time - timeLoss);
+            current.lastStaminaDelta = 0;
+            current.lastStaminaLossReason = h.message;
+            current.staminaFeedbackTimer = 0.9;
+            current.notice = h.message;
+            current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.28);
+            current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.26);
+            addCombatEffect(current, {
+              type: 'hazard-warning',
+              x: h.x + h.width / 2,
+              y: h.y,
+              text: 'RESET',
+              color: '#facc15',
+              fill: 'rgba(14, 116, 144, 0.18)',
+              radius: 70,
+              timer: 0.72,
+              maxTimer: 0.72,
+            });
+            audioControls?.playExpeditionSfx?.('gateBlocked');
+            return;
+          }
           if (staminaLoss) current.resources.stamina = Math.max(0, current.resources.stamina - staminaLoss);
           if (timeLoss) current.resources.time = Math.max(0, current.resources.time - timeLoss);
           current.hazardCooldown = 1.2;
@@ -8437,12 +8895,8 @@ export default function ExpeditionJourney({
       const scarabSealRequired = backgroundPackId !== 'china-river-valley'
         && b.id === SCARAB_SEAL_TRIGGER.bossId;
       if (scarabSealRequired && !current.scarabSealActivated) return;
-      const openingScarabConfrontationPending = scarabSealRequired
-        && current.scarabSealActivated
-        && !current.openingConfrontationSeen;
-      if (!current.seenBossIntroIds.has(b.id) && (Math.abs(b.x - player.x) < 400 || openingScarabConfrontationPending)) {
+      if (!current.seenBossIntroIds.has(b.id) && Math.abs(b.x - player.x) < 400) {
         b.awakened = true;
-        if (openingScarabConfrontationPending) current.openingConfrontationSeen = true;
         current.seenBossIntroIds.add(b.id);
         const keyItem = current.bossKeyItems?.find(item => item.bossId === b.id);
         const scarabSealBossIntroLine = b.id === SCARAB_SEAL_TRIGGER.bossId && current.scarabSealActivated
