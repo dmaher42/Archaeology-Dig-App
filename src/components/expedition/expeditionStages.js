@@ -49,6 +49,16 @@ export const CHINA_EXPEDITION_RUNTIME_ASSETS = [
   },
 ];
 
+export const EGYPT_EXPEDITION_FUTURE_ASSETS = [
+  {
+    id: 'egypt-sacred-traps-runtime',
+    title: 'Egypt sacred seal and pedestal pack',
+    src: 'assets/expedition/environment/desert-temple/egypt-sacred-traps-pack.png',
+    atlas: 'assets/expedition/environment/desert-temple/egypt-sacred-traps-pack.json',
+    role: 'future-journey-sacred-defence',
+  },
+];
+
 export const CHINA_EXPEDITION_SCAFFOLD = {
   title: 'Ancient China Expedition',
   subtitle: 'River valleys, dynasties, oracle bones and early civilisation',
@@ -110,6 +120,7 @@ export const EXPEDITION_STAGES = [
       journeyStage: 'existing-egypt-journey',
       excavationRoomMap: 'existing-egypt-room-map',
       finalClaim: 'existing-egypt-final-claim',
+      futureAssets: EGYPT_EXPEDITION_FUTURE_ASSETS,
     },
   },
   {

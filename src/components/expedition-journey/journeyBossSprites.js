@@ -352,13 +352,12 @@ export const getClayGuardianSpriteFrame = (boss, combatMode, bossVisualState = {
 };
 
 export const shouldFlipBossSprite = (bossId, facing = 1) => {
-  if (bossId === 'scarab-queen') return facing > 0;
   return facing < 0;
 };
 
 export const getScarabQueenDrawBox = (boss, screenX) => {
   const height = Math.max(MIN_BOSS_DRAW_HEIGHT, boss.height * 3.85);
-  const width = Math.max(190, boss.width * 3.35);
+  const width = Math.max(260, boss.width * 4.45);
   return getGroundedBossDrawBox(boss, screenX, width, height, 4);
 };
 

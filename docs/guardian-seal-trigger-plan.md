@@ -214,6 +214,15 @@ Suggested flow:
 
 These should align with `docs/egypt-sacred-trap-asset-plan.md` so the final feature and trap set share one sacred visual family.
 
+First asset pack now available:
+
+- `public/assets/expedition/environment/desert-temple/egypt-sacred-traps-pack.png`
+- `public/assets/expedition/environment/desert-temple/egypt-sacred-traps-pack.json`
+
+This pack currently provides the Guardian Seal and sacred pedestal states only. The future trigger should still wait for a separate gameplay wiring pass.
+
+Loader status: the pack is registered as passive/future environment pack id `egypt-sacred-traps`. It is available for validation and preview readiness, but the active Egypt Journey still uses `egypt-desert-temple`.
+
 - `guardianSealIdle`
   - A readable seal collectible sitting on or above a stone pedestal.
   - Should look like evidence/ritual mechanism, not loot.
@@ -266,6 +275,22 @@ These should align with `docs/egypt-sacred-trap-asset-plan.md` so the final feat
 - No rewrite of `ExpeditionJourney.jsx`.
 
 ## Future Implementation Tasks
+
+### Completed Passive Visual Staging
+
+Files:
+
+- Modified: `src/components/expedition-journey/journeyLevelData.js`
+- Modified: `src/components/ExpeditionJourney.jsx`
+- Modified: `src/components/expedition-journey/journeyRenderAssets.js`
+- Modified: `src/components/expedition-journey/journeySecrets.test.js`
+
+Status:
+
+- Passive story props now place `sacred-pedestal` and `guardian-seal` near `X(7330)` in the `dig-site-entrance` final approach.
+- The existing Journey story-prop renderer loads the `egypt-sacred-traps` atlas as a supplemental passive visual pack.
+- Only idle regions are used: `sacredPedestalIdle` and `guardianSealIdle`.
+- No Guardian Seal pickup, trigger, activated state, Ancient Construct awakening change, route-gate change, boss change, Base Camp change, excavation change, or China change has been implemented.
 
 ### Task 1: Lock Existing Behavior With Tests
 

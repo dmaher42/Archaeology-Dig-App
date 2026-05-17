@@ -1916,6 +1916,7 @@ Remaining notes:
 - Extended the existing enemy sprite generation/validation scripts rather than creating a parallel boss asset pipeline; the Scarab Queen can now be rebuilt with `generate_enemy_sprite_sheets.py --scarab-queen-only`.
 - Matched the Queen to the upgraded intimidating desert scarab family by deriving her base pose from `desert-scarab-intimidating-sprites.png`, then adding larger boss scale, lapis/gold shell markings, glyph rings, shield effects, readable charge, area pulse, counter-window weak point, hit feedback, and non-gory defeated state.
 - Audit next: Stone Guardian should update next for sacred paired-guardian language; Giant Serpent and Ancient Construct should follow for cleaner transparent fixed-cell atlases; Rival Looter Captain is optional polish unless the escape section needs a more ceremonial non-random human antagonist; Egypt traps need a future dedicated sacred defence pack for pressure plates, glyph tripwires, sealed doors, guardian seals, and sacred pedestals.
+- Follow-up correction: fixed the new Scarab Queen orientation and grounding by removing the outdated Queen-only flip rule, widening her boss draw box to match the fixed atlas ratio, and bottom-aligning sprite atlas draws so the Queen and regular scarabs stay visually planted on the ground.
 
 ## 2026-05-17 Scarab Queen opening-payoff story pass
 
@@ -1945,3 +1946,37 @@ Remaining notes:
 - Added `docs/egypt-journey-opening-guardian-handover.md` as the clean current handover for the Step 1 opening, Step 2 guardian threshold, Scarab Queen asset pass, Scarab Queen story payoff, sacred trap asset plan, and Guardian Seal trigger plan.
 - Confirmed all six listed items are complete in this local worktree; Guardian Seal remains planning-only by design.
 - Recommended the next task as the first sacred defence asset pack, starting with `guardianSealIdle`, `guardianSealActivated`, `sacredPedestalIdle`, and `sacredPedestalActivated`, before any Guardian Seal trigger implementation.
+
+## 2026-05-17 Egypt sacred defence first asset pack
+
+- Created the first Egypt sacred defence atlas at `public/assets/expedition/environment/desert-temple/egypt-sacred-traps-pack.png` with matching JSON regions for `guardianSealIdle`, `guardianSealActivated`, `sacredPedestalIdle`, and `sacredPedestalActivated`.
+- Added focused generation and validation scripts for this atlas so later trap/Guardian Seal passes can regenerate and check the art without changing the enemy or boss sprite pipeline.
+- Updated the sacred trap and Guardian Seal planning docs to mark the first four visual regions as available.
+- Deliberately did not wire the atlas into Journey gameplay, route gates, boss logic, excavation, or China.
+
+## 2026-05-17 Egypt sacred defence validation and preview readiness
+
+- Validated the sacred seal/pedestal atlas and confirmed all four required region keys exist with non-empty transparent-safe 256px regions.
+- Registered the pack as passive future environment pack id `egypt-sacred-traps` in the existing Journey environment asset registry and added it to the Egypt scaffold as a future asset reference.
+- Added source coverage proving the pack is registered and not selected as the active Journey gameplay environment pack.
+- Deliberately did not map the assets onto hazards, route gates, story props, Guardian Seal triggers, boss logic, excavation, or China.
+
+## 2026-05-17 Guardian Seal passive placement plan
+
+- Added `docs/guardian-seal-placement-plan.md` as a docs-only placement handoff for the future Guardian Seal and sacred pedestal in the Egypt final route.
+- Confirmed the current final-route source of truth: Ancient Construct at `X(7750)`, `site-permit-seal`, `basecamp-seal`, the `dig-site-entrance` objective, and existing final approach props/events.
+- Recommended the first passive visual placement around `X(7330)`, just before the current Ancient Construct proximity wake boundary, so the seal/pedestal can read as a warning before any future trigger work.
+- Deliberately did not change route gates, objective requirements, pickup logic, awakening logic, boss logic, excavation, or China.
+
+## 2026-05-17 Guardian Seal passive visual placement
+
+- Added passive `STORY_PROPS` for the sacred pedestal and Guardian Seal at the planned final-route warning point around `X(7330)`.
+- Loaded the existing `egypt-sacred-traps` environment atlas as a supplemental visual pack and mapped only the idle `sacredPedestalIdle` and `guardianSealIdle` regions for these props.
+- Added source coverage proving the placement uses the existing story-prop renderer and does not add Guardian Seal trigger, pickup, activated-state, route-gate, boss, Base Camp, excavation, or China changes.
+
+## 2026-05-17 Sacred defence seal/pedestal handover
+
+- Updated the existing Egypt Journey opening/guardian handover with the latest sacred seal/pedestal asset and passive placement status.
+- Confirmed `egypt-sacred-traps-pack.png/json` exists and validates with `guardianSealIdle`, `guardianSealActivated`, `sacredPedestalIdle`, and `sacredPedestalActivated`.
+- Confirmed passive final-route placement is complete, while the Guardian Seal trigger and Ancient Construct awakening implementation remain pending by design.
+- Confirmed Ancient Construct data, route gates, Base Camp handoff, excavation, and China were not changed by this handover pass.

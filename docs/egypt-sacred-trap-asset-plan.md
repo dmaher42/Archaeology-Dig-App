@@ -68,6 +68,13 @@ Recommended atlas file:
 - `public/assets/expedition/environment/desert-temple/egypt-sacred-traps-pack.png`
 - `public/assets/expedition/environment/desert-temple/egypt-sacred-traps-pack.json`
 
+Created first pack status:
+
+- `guardianSealIdle`, `guardianSealActivated`, `sacredPedestalIdle`, and `sacredPedestalActivated` now exist in the atlas above.
+- The pack is registered as a passive future environment pack id, `egypt-sacred-traps`, so the existing Journey environment loader can validate/load it by id without changing the active Egypt Journey pack.
+- The remaining pressure plate, cracked platform, falling stone, glyph tripwire, and sealed door regions are still pending.
+- The atlas is intentionally not wired into Journey gameplay yet; later passes should map these regions through the existing environment asset paths without changing collision, route, or boss logic.
+
 Exact region keys:
 
 - `pressurePlateIdle`

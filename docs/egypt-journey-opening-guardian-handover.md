@@ -13,7 +13,10 @@ All requested opening/guardian/scarab/trap planning items are complete in this l
 | Scarab Queen asset pass | Complete | `scarab-queen-sprites.png/json` regenerated in place; generator and validator scripts extended; frame keys preserved. |
 | Scarab Queen story payoff | Complete | `journeyLevelData.js` updates Scarab Queen intro/dialogue, early seal text, Desert Map Seal copy, and Brush Handle route-open message. |
 | Sacred trap asset plan | Complete | `docs/egypt-sacred-trap-asset-plan.md`. |
-| Guardian Seal trigger plan | Complete as planning only | `docs/guardian-seal-trigger-plan.md`; implementation intentionally not started. |
+| Sacred defence seal/pedestal asset pack | Complete | `public/assets/expedition/environment/desert-temple/egypt-sacred-traps-pack.png` and `.json`; validation script confirms four regions. |
+| Guardian Seal passive placement plan | Complete | `docs/guardian-seal-placement-plan.md`; final-route placement chosen near `X(7330)`. |
+| Guardian Seal passive placement | Complete | `journeyLevelData.js` adds passive `guardian-seal-pedestal-passive` and `guardian-seal-passive` story props; `ExpeditionJourney.jsx` renders idle regions through the existing story-prop path. |
+| Guardian Seal trigger plan | Complete as planning only | `docs/guardian-seal-trigger-plan.md`; trigger/awakening implementation intentionally not started. |
 
 ## Source Of Truth
 
@@ -27,7 +30,9 @@ All requested opening/guardian/scarab/trap planning items are complete in this l
 - Scarab Queen boss assets: `public/assets/expedition/bosses/scarab-queen-sprites.png` and `.json`
 - Enemy/scarab assets: `public/assets/expedition/enemies/`
 - Environment atlas currently used by hazards/props/gates: `public/assets/expedition/environment/desert-temple/desert-temple-pack.png` and `.json`
-- Current planning docs: `docs/egypt-sacred-trap-asset-plan.md`, `docs/guardian-seal-trigger-plan.md`, this handover note
+- Sacred defence seal/pedestal atlas: `public/assets/expedition/environment/desert-temple/egypt-sacred-traps-pack.png` and `.json`
+- Sacred defence asset scripts: `scripts/generate_egypt_sacred_trap_assets.py` and `scripts/validate_egypt_sacred_trap_assets.py`
+- Current planning docs: `docs/egypt-sacred-trap-asset-plan.md`, `docs/guardian-seal-trigger-plan.md`, `docs/guardian-seal-placement-plan.md`, this handover note
 - Durable work log: `progress.md`
 
 ## What Changed
@@ -40,6 +45,9 @@ All requested opening/guardian/scarab/trap planning items are complete in this l
 - The Brush Handle route-open reward now says the player passed the first guardian test and should record findings before moving deeper.
 - The sacred trap plan audits all current hazards and reactive platforms, then defines the missing trap/defence asset keys and priorities.
 - The Guardian Seal trigger plan defines a future final Ancient Construct awakening feature without implementing it.
+- The first sacred defence atlas now exists with these exact region keys: `guardianSealIdle`, `guardianSealActivated`, `sacredPedestalIdle`, and `sacredPedestalActivated`.
+- The sacred defence atlas is registered as the passive/future environment pack id `egypt-sacred-traps`.
+- Passive final-route placement now shows the idle Guardian Seal and sacred pedestal near the planned final approach point using existing `STORY_PROPS` and the existing story-prop renderer.
 
 ## Deliberately Not Changed
 
@@ -52,6 +60,8 @@ All requested opening/guardian/scarab/trap planning items are complete in this l
 - No Scarab Queen health/damage/route requirement changes in the story payoff pass.
 - No trap collision, damage, timing, platform, or route gate behavior changes in the trap planning pass.
 - No Guardian Seal trigger implementation yet.
+- No Guardian Seal pickup, activation, or Ancient Construct awakening sequence yet.
+- No route gate, Base Camp, excavation, or China changes were made by the seal/pedestal asset or passive placement passes.
 
 ## Tests Passed
 
@@ -71,6 +81,14 @@ The final handover pass reran:
 - `npm.cmd run build`
 - `git diff --check`
 
+The sacred seal/pedestal handover pass also confirmed:
+
+- `scripts/validate_egypt_sacred_trap_assets.py` passes with the bundled Python runtime.
+- `guardianSealIdle` exists.
+- `guardianSealActivated` exists.
+- `sacredPedestalIdle` exists.
+- `sacredPedestalActivated` exists.
+
 ## Known Warnings
 
 - `npm.cmd run build` still reports the known runtime-resolved Egypt excavation image warnings for:
@@ -82,28 +100,25 @@ The final handover pass reran:
 
 - A full natural, human-paced playthrough from Brush Handle pickup through Desert Map Seal, temple entry, Switch 1, final approach, Ancient Construct, Base Camp, and excavation is still recommended.
 - The Scarab Queen asset has been regenerated and validated, but longer classroom-projector review would still help judge readability during real combat.
-- Sacred trap work is planning only; actual trap/pedestal/seal assets do not exist yet.
-- Guardian Seal trigger work is planning only; implementation should wait until Guardian Seal and sacred pedestal art exists.
+- Sacred trap work is still only partially implemented: the first Guardian Seal and sacred pedestal assets exist, but pressure plate, cracked platform, falling stone, glyph tripwire, and sealed door regions remain pending.
+- Guardian Seal trigger work is still planning only; implementation should reuse the passive placement and existing event/boss intro paths when it starts.
+- The passive Guardian Seal/pedestal can look meaningful before it does anything, so the next trigger pass must avoid player confusion and preserve low replay friction.
 - `progress.md` and the Journey files are part of an intentionally dirty worktree with prior uncommitted work. Preserve that work unless the user explicitly asks to commit, discard, or split it.
 
 ## Recommended Next Task
 
-Create the first sacred defence asset pack before implementing any new Guardian Seal behavior.
+Implement the Guardian Seal trigger only after first locking the current final-route requirements in tests, or continue the sacred defence asset set with non-gameplay trap art if the trigger should wait.
 
 Recommended next Codex prompt:
 
 ```text
 Use C:\Users\dmahe\Documents\LocalCodex\Archaeology-Dig-App as the repo.
 
-First read AGENTS.md, progress.md, docs/egypt-journey-opening-guardian-handover.md, docs/egypt-sacred-trap-asset-plan.md, git status, and the current diff.
+First read AGENTS.md, progress.md, docs/egypt-journey-opening-guardian-handover.md, docs/egypt-sacred-trap-asset-plan.md, docs/guardian-seal-trigger-plan.md, docs/guardian-seal-placement-plan.md, git status, and the current diff.
 
-Do not create new gameplay systems. Create the first sacred Egypt trap/defence asset pack only, starting with Guardian Seal and sacred pedestal assets. Preserve existing Journey gameplay, route gates, Scarab Queen, Base Camp, excavation, and China systems.
+Important: only start if the sacred seal/pedestal passive placement is complete and the worktree is safe.
 
-Target assets:
-- guardianSealIdle
-- guardianSealActivated
-- sacredPedestalIdle
-- sacredPedestalActivated
+Task: start the Guardian Seal trigger implementation with the smallest safe existing-system change.
 
-Use the existing environment asset style and prepare atlas JSON/PNG so a later pass can wire the assets into the existing Journey environment atlas path.
+Before changing gameplay, add tests locking Ancient Construct health/damage, `site-permit-seal`, and `basecamp-seal` requirements. Then reuse the existing story prop, event notice, camera shake, and boss intro systems so the passive Guardian Seal becomes a trigger without creating a new cutscene, dialogue, boss, route gate, inventory, Base Camp, excavation, or China system.
 ```

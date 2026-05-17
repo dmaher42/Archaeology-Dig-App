@@ -1,0 +1,35 @@
+{
+  "image": "egypt-sacred-traps-pack.png",
+  "source": "scripts/generate_egypt_sacred_trap_assets.py",
+  "size": {
+    "w": 512,
+    "h": 512
+  },
+  "mappingNote": "First Egypt sacred defence asset regions. Prepared for later Journey environment wiring; not wired into gameplay by this asset pass.",
+  "regions": {
+    "guardianSealIdle": {
+      "x": 0,
+      "y": 0,
+      "w": 256,
+      "h": 256
+    },
+    "guardianSealActivated": {
+      "x": 256,
+      "y": 0,
+      "w": 256,
+      "h": 256
+    },
+    "sacredPedestalIdle": {
+      "x": 0,
+      "y": 256,
+      "w": 256,
+      "h": 256
+    },
+    "sacredPedestalActivated": {
+      "x": 256,
+      "y": 256,
+      "w": 256,
+      "h": 256
+    }
+  }
+}

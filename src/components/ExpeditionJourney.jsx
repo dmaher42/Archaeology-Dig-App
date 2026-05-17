@@ -1011,6 +1011,8 @@ const PROP_GROUNDING_CONFIG = {
   bridge: { width: 168, height: 62, yOffset: 20, alpha: 0.62, depth: 'midground', tint: 'warm', shadow: 0.2, dust: 0.72 },
   lights: { width: 42, height: 62, yOffset: 18, alpha: 0.48, depth: 'background', tint: 'cool', shadow: 0.08, dust: 0.44 },
   banners: { width: 76, height: 48, yOffset: 28, alpha: 0.5, depth: 'background', tint: 'dust', shadow: 0.08, dust: 0.48 },
+  'sacred-pedestal': { width: 84, height: 72, yOffset: 38, alpha: 0.88, depth: 'midground', tint: 'warm', shadow: 0.22, dust: 0.78 },
+  'guardian-seal': { width: 46, height: 46, yOffset: 8, alpha: 0.92, depth: 'midground', tint: 'warm', shadow: 0.12, dust: 0.42 },
   mural: { depth: 'background' },
   glyphs: { depth: 'background' },
   eyes: { depth: 'background' },
@@ -1146,6 +1148,7 @@ export default function ExpeditionJourney({
     fallbackSrc: playerHeroSpriteConfig.fallbackSrc,
   });
   const environmentAssetsRef = useRef(createEnvironmentAssetState(environmentPackId));
+  const sacredTrapEnvironmentAssetsRef = useRef(createEnvironmentAssetState(ENVIRONMENT_ASSET_PACK_IDS.EGYPT_SACRED_TRAPS));
   const desertBackgroundAssetsRef = useRef(createDesertBackgroundAssetState());
   const enemySpriteAssetsRef = useRef(createEnemySpriteState());
   const bossSpriteAssetsRef = useRef(createBossSpriteState());
@@ -1286,6 +1289,15 @@ export default function ExpeditionJourney({
       syncHud();
     },
   }), [environmentPackId, syncHud]);
+
+  useEffect(() => loadEnvironmentAssetPack({
+    baseUrl: import.meta.env.BASE_URL,
+    packId: ENVIRONMENT_ASSET_PACK_IDS.EGYPT_SACRED_TRAPS,
+    onUpdate: (assets) => {
+      sacredTrapEnvironmentAssetsRef.current = assets;
+      syncHud();
+    },
+  }), [syncHud]);
 
   useEffect(() => loadDesertBackgroundAssetPack({
     baseUrl: import.meta.env.BASE_URL,
@@ -1894,6 +1906,8 @@ export default function ExpeditionJourney({
     const environmentAssets = environmentAssetsRef.current;
     const missingEnvironmentAssets = getMissingEnvironmentAssets(environmentAssets);
     const environmentFallbackActive = !environmentAssets.loaded || environmentAssets.failed || missingEnvironmentAssets.length > 0;
+    const sacredTrapEnvironmentAssets = sacredTrapEnvironmentAssetsRef.current;
+    const missingSacredTrapEnvironmentAssets = getMissingEnvironmentAssets(sacredTrapEnvironmentAssets);
     const desertBackgroundAssets = desertBackgroundAssetsRef.current;
     const desertPack = getSectionBackgroundAssets(desertBackgroundAssets, 'desert-entry');
     const chinaRiverValleyPack = getSectionBackgroundAssets(desertBackgroundAssets, 'china-river-valley');
@@ -2000,6 +2014,11 @@ export default function ExpeditionJourney({
       environmentAtlasPath: environmentAssets.atlasPath || ENVIRONMENT_ATLAS_JSON,
       missingEnvironmentAssets,
       environmentFallbackActive,
+      sacredTrapEnvironmentAssetsLoaded: Boolean(sacredTrapEnvironmentAssets.loaded),
+      sacredTrapEnvironmentAssetsReady: Boolean(sacredTrapEnvironmentAssets.ready),
+      sacredTrapEnvironmentPackId: sacredTrapEnvironmentAssets.packId,
+      sacredTrapEnvironmentAtlasPath: sacredTrapEnvironmentAssets.atlasPath || null,
+      missingSacredTrapEnvironmentAssets,
       platformArtMode: environmentAssets.loaded ? 'atlas' : 'canvas-fallback',
       hazardArtMode: environmentAssets.loaded ? 'atlas' : 'canvas-fallback',
       gateArtMode: environmentAssets.loaded ? 'atlas' : 'canvas-fallback',
@@ -3290,12 +3309,15 @@ export default function ExpeditionJourney({
 
     ctx.save();
     const section = getSectionForX(prop.x);
-      const propAssetKey = getEnvironmentAssetKeyForStoryProp(prop, environmentAssetsRef.current.packId);
+    const sacredTrapPropAssetKey = getEnvironmentAssetKeyForStoryProp(prop, ENVIRONMENT_ASSET_PACK_IDS.EGYPT_SACRED_TRAPS);
+    const propAssetKey = sacredTrapPropAssetKey
+      || getEnvironmentAssetKeyForStoryProp(prop, environmentAssetsRef.current.packId);
     if (propAssetKey) {
       const propSize = {
         ...(PROP_GROUNDING_CONFIG[prop.type] || { width: 72, height: 72, yOffset: 0, alpha: 0.78, depth: 'midground', tint: 'warm' }),
         ...(STORY_PROP_GROUNDING_OVERRIDES[prop.id] || {}),
       };
+      const propAssets = sacredTrapPropAssetKey ? sacredTrapEnvironmentAssetsRef.current : environmentAssetsRef.current;
       const drawX = x - propSize.width / 2;
       const drawY = prop.y - propSize.height + propSize.yOffset;
       const anchorY = drawY + propSize.height;
@@ -3320,7 +3342,7 @@ export default function ExpeditionJourney({
       }
       const drawn = drawAtlasRegion(
         ctx,
-        environmentAssetsRef.current,
+        propAssets,
         propAssetKey,
         {
           x: drawX,
@@ -5457,7 +5479,7 @@ export default function ExpeditionJourney({
       drawGroundDustLip(ctx, centerX, baseY + 2, groundedDrawBox.width * 0.64, 'rgba(95, 58, 27, 0.22)');
     }
 
-    if (family !== 'riverCrab') {
+    if (!['riverCrab', 'scarab'].includes(family)) {
       const visibilityColors = {
         scarab: ['rgba(120, 53, 15, 0.5)', 'rgba(250, 204, 21, 0.42)'],
         snake: ['rgba(34, 83, 45, 0.48)', 'rgba(187, 247, 208, 0.42)'],
@@ -5517,7 +5539,7 @@ export default function ExpeditionJourney({
         width: groundedDrawBox.width,
         height: groundedDrawBox.height,
       },
-      { mode: 'contain' },
+      { mode: 'contain', alignY: 'bottom' },
     );
     ctx.restore();
 
@@ -5836,7 +5858,7 @@ export default function ExpeditionJourney({
         width: drawBox.width,
         height: drawBox.height,
       },
-      { mode: 'contain' },
+      { mode: 'contain', alignY: 'bottom' },
     );
     ctx.restore();
 

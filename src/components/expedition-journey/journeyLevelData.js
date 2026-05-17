@@ -894,6 +894,8 @@ export const STORY_PROPS = [
   { id: 'permit-clue-marker', sectionId: 'dig-site-entrance', type: 'carved-wall', x: X(7040), y: JY(238), label: 'carved permit wall marker' },
   { id: 'pyramid-base-guardian-fragment', sectionId: 'dig-site-entrance', type: 'guardian-fragment', x: X(7105), y: JY(226), label: 'giant broken guardian piece near pyramid base' },
   { id: 'construct-warning-marker', sectionId: 'dig-site-entrance', type: 'sign', x: X(7330), y: JY(306), label: 'guardian approach marker' },
+  { id: 'guardian-seal-pedestal-passive', sectionId: 'dig-site-entrance', type: 'sacred-pedestal', x: X(7330), y: JY(306), label: 'Guardian Seal resting on a sacred pedestal' },
+  { id: 'guardian-seal-passive', sectionId: 'dig-site-entrance', type: 'guardian-seal', x: X(7330), y: JY(286), label: 'Guardian Seal warning symbol' },
   { id: 'final-survey-lights', sectionId: 'dig-site-entrance', type: 'lights', x: X(7505), y: JY(268), label: 'final survey lights' },
   { id: 'sealed-entrance-survey-lamps', sectionId: 'dig-site-entrance', type: 'sacred-lamps', x: X(7850), y: JY(274), label: 'paired sealed entrance lamps' },
   { id: 'buried-stairway-marker', sectionId: 'dig-site-entrance', type: 'gate', x: X(7945), y: JY(226), label: 'buried stairway marker' },

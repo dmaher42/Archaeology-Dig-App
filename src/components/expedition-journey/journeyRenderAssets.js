@@ -1,5 +1,6 @@
 export const ENVIRONMENT_ATLAS_BASE_PATH = 'assets/expedition/environment/desert-temple/';
 export const ENVIRONMENT_ATLAS_JSON = `${ENVIRONMENT_ATLAS_BASE_PATH}desert-temple-pack.json`;
+export const EGYPT_SACRED_TRAPS_ATLAS_JSON = `${ENVIRONMENT_ATLAS_BASE_PATH}egypt-sacred-traps-pack.json`;
 export const CHINA_RIVER_VALLEY_ENVIRONMENT_ATLAS_BASE_PATH = 'assets/expedition/environment/china-river-valley/';
 export const CHINA_RIVER_VALLEY_ENVIRONMENT_ATLAS_JSON = `${CHINA_RIVER_VALLEY_ENVIRONMENT_ATLAS_BASE_PATH}china-river-valley-environment-pack.json`;
 export const ATLAS_TUNING_VERSION = 'environment-atlas-tuning-2026-05-10';
@@ -60,8 +61,16 @@ export const EXPECTED_CHINA_RIVER_VALLEY_ENVIRONMENT_KEYS = [
   'routeDoor',
 ];
 
+export const EXPECTED_EGYPT_SACRED_TRAP_ASSET_KEYS = [
+  'guardianSealIdle',
+  'guardianSealActivated',
+  'sacredPedestalIdle',
+  'sacredPedestalActivated',
+];
+
 export const ENVIRONMENT_ASSET_PACK_IDS = {
   EGYPT_DESERT_TEMPLE: 'egypt-desert-temple',
+  EGYPT_SACRED_TRAPS: 'egypt-sacred-traps',
   CHINA_RIVER_VALLEY: 'china-river-valley',
 };
 
@@ -71,6 +80,12 @@ export const ENVIRONMENT_ASSET_PACKS = {
     basePath: ENVIRONMENT_ATLAS_BASE_PATH,
     atlasPath: ENVIRONMENT_ATLAS_JSON,
     expectedKeys: EXPECTED_ENVIRONMENT_ASSET_KEYS,
+  },
+  [ENVIRONMENT_ASSET_PACK_IDS.EGYPT_SACRED_TRAPS]: {
+    id: ENVIRONMENT_ASSET_PACK_IDS.EGYPT_SACRED_TRAPS,
+    basePath: ENVIRONMENT_ATLAS_BASE_PATH,
+    atlasPath: EGYPT_SACRED_TRAPS_ATLAS_JSON,
+    expectedKeys: EXPECTED_EGYPT_SACRED_TRAP_ASSET_KEYS,
   },
   [ENVIRONMENT_ASSET_PACK_IDS.CHINA_RIVER_VALLEY]: {
     id: ENVIRONMENT_ASSET_PACK_IDS.CHINA_RIVER_VALLEY,
@@ -198,7 +213,9 @@ export const drawAtlasRegion = (ctx, assets, key, dest, options = {}) => {
     const drawWidth = useWidth ? width : height * sourceRatio;
     const drawHeight = useWidth ? width / sourceRatio : height;
     const drawX = x + (width - drawWidth) / 2;
-    const drawY = y + (height - drawHeight) / 2;
+    const drawY = options.alignY === 'bottom'
+      ? y + height - drawHeight
+      : y + (height - drawHeight) / 2;
     return drawRegionOnce(ctx, assets.image, region, region.x, region.y, region.w, region.h, drawX, drawY, drawWidth, drawHeight);
   }
 
@@ -293,6 +310,12 @@ export const getEnvironmentAssetKeyForHazard = (hazard, packId = DEFAULT_ENVIRON
 };
 
 export const getEnvironmentAssetKeyForStoryProp = (prop, packId = DEFAULT_ENVIRONMENT_ASSET_PACK_ID) => {
+  if (packId === ENVIRONMENT_ASSET_PACK_IDS.EGYPT_SACRED_TRAPS) {
+    return ({
+      'sacred-pedestal': 'sacredPedestalIdle',
+      'guardian-seal': 'guardianSealIdle',
+    }[prop.type] || null);
+  }
   if (packId === ENVIRONMENT_ASSET_PACK_IDS.CHINA_RIVER_VALLEY) {
     return ({
       ruins: 'watchtowerPost',

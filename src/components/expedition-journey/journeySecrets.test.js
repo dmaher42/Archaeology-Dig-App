@@ -13,12 +13,17 @@ const journeyUtilsSource = readFileSync(new URL('./journeyUtils.js', import.meta
 const journeyConstantsSource = readFileSync(new URL('./journeyConstants.js', import.meta.url), 'utf8');
 const journeyEnemySpritesSource = readFileSync(new URL('./journeyEnemySprites.js', import.meta.url), 'utf8');
 const journeyMarkerSpritesSource = readFileSync(new URL('./journeyMarkerSprites.js', import.meta.url), 'utf8');
+const journeyRenderAssetsSource = readFileSync(new URL('./journeyRenderAssets.js', import.meta.url), 'utf8');
+const expeditionStagesSource = readFileSync(new URL('../expedition/expeditionStages.js', import.meta.url), 'utf8');
 const journeyComponentSource = readFileSync(new URL('../ExpeditionJourney.jsx', import.meta.url), 'utf8');
 const egyptPlayerAtlas = JSON.parse(
   readFileSync(new URL('../../../public/assets/expedition/player/egypt-warrior-guide-spritesheet.json', import.meta.url), 'utf8'),
 );
 const egyptMarkerAtlas = JSON.parse(
   readFileSync(new URL('../../../public/assets/expedition/markers/egypt-checkpoint-flag-sprites.json', import.meta.url), 'utf8'),
+);
+const egyptSacredTrapAtlas = JSON.parse(
+  readFileSync(new URL('../../../public/assets/expedition/environment/desert-temple/egypt-sacred-traps-pack.json', import.meta.url), 'utf8'),
 );
 const extractExportedArray = (name) => {
   const startToken = `export const ${name} = [`;
@@ -246,6 +251,42 @@ test('Egypt opening loop makes the first seal require enemies, shards, and the m
   assert.match(journeyComponentSource, /gateRequirementLabel/);
   assert.match(journeyComponentSource, /journey-floating-hud-gate/);
   assert.match(journeyComponentSource, /journey-collectible-purpose-tuning-2026-05-16/);
+});
+
+test('Egypt sacred trap seal and pedestal pack is registered as a future asset only', () => {
+  [
+    'guardianSealIdle',
+    'guardianSealActivated',
+    'sacredPedestalIdle',
+    'sacredPedestalActivated',
+  ].forEach((key) => {
+    assert.ok(egyptSacredTrapAtlas.regions[key], `${key} should exist in the sacred trap atlas`);
+    assert.match(journeyRenderAssetsSource, new RegExp(`'${key}'`));
+  });
+
+  assert.equal(egyptSacredTrapAtlas.image, 'egypt-sacred-traps-pack.png');
+  assert.match(journeyRenderAssetsSource, /EGYPT_SACRED_TRAPS:\s*'egypt-sacred-traps'/);
+  assert.match(journeyRenderAssetsSource, /EGYPT_SACRED_TRAPS_ATLAS_JSON/);
+  assert.match(journeyRenderAssetsSource, /EXPECTED_EGYPT_SACRED_TRAP_ASSET_KEYS/);
+  assert.match(expeditionStagesSource, /EGYPT_EXPEDITION_FUTURE_ASSETS/);
+  assert.match(expeditionStagesSource, /future-journey-sacred-defence/);
+  assert.match(expeditionStagesSource, /egypt-sacred-traps-pack\.json/);
+  assert.doesNotMatch(journeyComponentSource, /environmentPackId=['"]egypt-sacred-traps['"]/);
+});
+
+test('Guardian Seal passive placement uses existing story props and idle sacred defence atlas regions', () => {
+  const storyProps = extractExportedArray('STORY_PROPS');
+
+  assert.match(storyProps, /id:\s*'guardian-seal-pedestal-passive'[\s\S]*?sectionId:\s*'dig-site-entrance'[\s\S]*?type:\s*'sacred-pedestal'[\s\S]*?x:\s*X\(7330\)[\s\S]*?y:\s*JY\(306\)/);
+  assert.match(storyProps, /id:\s*'guardian-seal-passive'[\s\S]*?sectionId:\s*'dig-site-entrance'[\s\S]*?type:\s*'guardian-seal'[\s\S]*?x:\s*X\(7330\)[\s\S]*?y:\s*JY\(286\)/);
+  assert.match(journeyRenderAssetsSource, /'sacred-pedestal':\s*'sacredPedestalIdle'/);
+  assert.match(journeyRenderAssetsSource, /'guardian-seal':\s*'guardianSealIdle'/);
+  assert.match(journeyComponentSource, /sacredTrapEnvironmentAssetsRef/);
+  assert.match(journeyComponentSource, /packId:\s*ENVIRONMENT_ASSET_PACK_IDS\.EGYPT_SACRED_TRAPS/);
+  assert.match(journeyComponentSource, /getEnvironmentAssetKeyForStoryProp\(prop,\s*ENVIRONMENT_ASSET_PACK_IDS\.EGYPT_SACRED_TRAPS\)/);
+  assert.doesNotMatch(journeyComponentSource, /guardian-seal-trigger/);
+  assert.doesNotMatch(journeyComponentSource, /guardianSealActivated/);
+  assert.doesNotMatch(journeyComponentSource, /sacredPedestalActivated/);
 });
 
 test('Egypt Journey explains shard purpose and adds an optional Base Camp voucher cache', () => {
