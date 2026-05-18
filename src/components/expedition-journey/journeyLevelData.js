@@ -282,7 +282,7 @@ export const UPGRADES = [
 ];
 
 export const CHECKPOINTS = [
-  { id: 'desert-entry', name: 'Desert Entry', x: X(80), markerX: X(520), y: JY(282) },
+  { id: 'desert-entry', name: 'Desert Entry', x: X(80), markerX: X(122), y: JY(282) },
   { id: 'desert-survey-marker', name: 'Desert Survey Checkpoint', x: X(930), y: JY(282) },
   { id: 'ruined-temple', name: 'Ruined Temple', x: X(1560), y: JY(282) },
   { id: 'catacombs', name: 'Catacombs', x: X(3220), y: JY(282) },

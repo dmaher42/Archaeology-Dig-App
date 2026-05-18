@@ -7107,26 +7107,33 @@ export default function ExpeditionJourney({
       const cx = worldToScreenX(markerX, cameraX);
       if (!isHorizontallyVisible(markerX, 1, cameraX, 130)) return;
       const active = current.activeCheckpoint.id === checkpoint.id;
+      const openingCheckpointMarker = checkpoint.id === 'desert-entry';
       ctx.save();
       const checkpointSection = getSectionForX(markerX);
-      const checkpointHeight = active ? 160 : 148;
-      const checkpointWidth = checkpointHeight * 1.48;
+      const checkpointHeight = openingCheckpointMarker ? 126 : active ? 160 : 148;
+      const checkpointWidth = checkpointHeight * (openingCheckpointMarker ? 1.32 : 1.48);
+      if (openingCheckpointMarker) {
+        ctx.globalAlpha = 0.9;
+        ctx.filter = 'sepia(18%) saturate(82%) brightness(86%) contrast(96%)';
+      }
       const checkpointDrawn = drawMarkerSprite(
           ctx,
           markerSpriteAssetsRef.current,
           'checkpoint',
           {
             x: cx - checkpointWidth / 2,
-            y: GROUND_Y - checkpointHeight + 10,
+            y: GROUND_Y - checkpointHeight + (openingCheckpointMarker ? 18 : 10),
             width: checkpointWidth,
             height: checkpointHeight,
           },
           0,
         );
+      ctx.filter = 'none';
+      ctx.globalAlpha = 1;
       if (checkpointDrawn) {
-        drawRouteGroundApron(ctx, cx, GROUND_Y - 1, checkpointWidth * 0.9, checkpointSection.id, active ? 0.96 : 0.8, Math.round(markerX));
-        drawContactShadow(ctx, cx, GROUND_Y + 2, checkpointWidth * 0.76, active ? 0.22 : 0.16, 1.1);
-        drawGroundDustLip(ctx, cx, GROUND_Y + 2, checkpointWidth * 0.72, 'rgba(116, 72, 36, 0.24)');
+        drawRouteGroundApron(ctx, cx, GROUND_Y - 1, checkpointWidth * (openingCheckpointMarker ? 0.72 : 0.9), checkpointSection.id, openingCheckpointMarker ? 0.58 : active ? 0.96 : 0.8, Math.round(markerX));
+        drawContactShadow(ctx, cx, GROUND_Y + 2, checkpointWidth * (openingCheckpointMarker ? 0.58 : 0.76), openingCheckpointMarker ? 0.16 : active ? 0.22 : 0.16, 1.1);
+        drawGroundDustLip(ctx, cx, GROUND_Y + 2, checkpointWidth * (openingCheckpointMarker ? 0.56 : 0.72), openingCheckpointMarker ? 'rgba(160, 96, 39, 0.2)' : 'rgba(116, 72, 36, 0.24)');
         ctx.restore();
         return;
       }
@@ -7159,7 +7166,7 @@ export default function ExpeditionJourney({
         ctx.ellipse(cx, GROUND_Y - 28, 8 + Math.sin(now / 260), 4.5, 0, 0, Math.PI * 2);
         ctx.fill();
       }
-      if (active || showWorldLabel(markerX, 130)) {
+      if (!openingCheckpointMarker && (active || showWorldLabel(markerX, 130))) {
         drawFieldNoteLabel(ctx, cx, checkpoint.y - 20, active ? 'Checkpoint' : checkpoint.name, active ? '#166534' : '#78350f');
       }
       ctx.restore();

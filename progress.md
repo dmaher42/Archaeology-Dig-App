@@ -2193,6 +2193,13 @@ Remaining notes:
 - Browser verification confirmed the opening route renders with the upgraded platforms and columns; screenshot saved to `output/desert-entry-platform-column-upgrade-browser.png`.
 - `npm.cmd run lint`, `npm.cmd run build`, and `node --test src\components\expedition-journey\journeySecrets.test.js` passed. The build still reports the existing runtime-resolved excavation image warnings.
 
+## 2026-05-18 Desert Entry checkpoint statue restored
+
+- Restored the visible Desert Entry checkpoint statue beside the first opening platform while keeping the hidden start respawn point unchanged.
+- Tuned the opening checkpoint marker render so it is smaller, warmer, less label-like, and blended into the ruin/platform visuals rather than reading as a floating UI marker.
+- Browser verification confirmed the statue is visible again at the opening and does not cover the player or add a second platform path; screenshots saved to `output/desert-entry-checkpoint-statue-restored-browser.png` and `output/desert-entry-checkpoint-statue-restored-settled-browser.png`.
+- `npm.cmd run lint`, `npm.cmd run build`, and `node --test src\components\expedition-journey\journeySecrets.test.js` passed. The build still reports the existing runtime-resolved excavation image warnings.
+
 ## 2026-05-18 Opening Sphinx model wiring
 
 - Wired the opening Scarab Seal confrontation to the existing `ancient-construct` Sphinx sprite atlas instead of the old hand-drawn canvas Sphinx.
