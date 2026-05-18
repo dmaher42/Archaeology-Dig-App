@@ -237,8 +237,8 @@ test('opening Scarab Seal climb triggers a boss confrontation without completing
   assert.match(platforms, /id:\s*'opening-scarab-right-cracked-step'[\s\S]*?reactive:\s*\{[\s\S]*?type:\s*'collapsing bridge piece'[\s\S]*?delay:\s*1\.75[\s\S]*?respawn:\s*2\.75/);
   assert.match(storyProps, /id:\s*'early-scarab-seal-pedestal'/);
   assert.match(storyProps, /id:\s*'early-scarab-seal'/);
-  assert.match(storyProps, /id:\s*'early-scarab-seal-pedestal'[\s\S]*?x:\s*X\(168\)[\s\S]*?y:\s*JY\(55\)/);
-  assert.match(storyProps, /id:\s*'early-scarab-seal'[\s\S]*?x:\s*X\(168\)[\s\S]*?y:\s*JY\(28\)/);
+  assert.match(storyProps, /id:\s*'early-scarab-seal-pedestal'[\s\S]*?x:\s*X\(470\)[\s\S]*?y:\s*JY\(55\)/);
+  assert.match(storyProps, /id:\s*'early-scarab-seal'[\s\S]*?x:\s*X\(470\)[\s\S]*?y:\s*JY\(28\)/);
   assert.match(journeyComponentSource, /'early-scarab-seal-pedestal':\s*\{[\s\S]*?width:\s*54[\s\S]*?height:\s*42[\s\S]*?yOffset:\s*0/);
   assert.match(journeyComponentSource, /'early-scarab-seal':\s*\{[\s\S]*?width:\s*38[\s\S]*?height:\s*38[\s\S]*?yOffset:\s*0/);
   assert.match(journeyComponentSource, /OPENING_SCARAB_SEAL_IMAGE_SRC = 'assets\/expedition\/environment\/egypt-opening\/scarab-seal-opening\.png'/);
@@ -272,7 +272,7 @@ test('opening Scarab Seal climb triggers a boss confrontation without completing
   assert.match(journeyComponentSource, /shouldFlipBossSprite\(OPENING_SPHINX_SPRITE_BOSS_ID,\s*-1\)/);
   assert.match(journeyComponentSource, /openingSphinxSpriteFrame/);
   assert.match(journeyComponentSource, /openingSphinxEncounterState:/);
-  assert.match(journeyComponentSource, /&& !gameState\.openingSphinxEncounterState/);
+  assert.match(journeyComponentSource, /&& !gameState\.openingSphinxEncounter/);
   assert.match(journeyComponentSource, /spriteAtlasPath:\s*ANCIENT_CONSTRUCT_SPRITE_ATLAS_JSON/);
   assert.match(journeyComponentSource, /spriteLoaded:\s*Boolean\(bossSpriteAssets\.packs\?\.\[OPENING_SPHINX_SPRITE_BOSS_ID\]\?\.loaded\)/);
   assert.match(journeyComponentSource, /openingSphinxEncounter\.timer[\s\S]*?OPENING_SPHINX_EXIT_SECONDS/);

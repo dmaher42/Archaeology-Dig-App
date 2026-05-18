@@ -3549,36 +3549,47 @@ export default function ExpeditionJourney({
     if (topY >= GROUND_Y - 10) return;
 
     const centerX = screenX + platform.width / 2;
-    const supportHeight = Math.max(28, GROUND_Y - topY);
     const openingSetPiece = platform.x < 720;
-    const columnCount = platform.width >= 250 ? 3 : platform.width >= 160 ? 2 : 1;
-    const columnWidth = openingSetPiece ? 42 : 30;
-    const baseAlpha = openingSetPiece ? 0.96 : 0.62;
-    const blockHeight = openingSetPiece ? 18 : 14;
+    const compactOpeningSupport = openingSetPiece && (
+      platform.width <= 170
+      || platform.label?.includes('return')
+      || platform.label?.includes('recovery')
+    );
+    const floatingOpeningSupport = openingSetPiece && topY < GROUND_Y - 150;
+    const supportBottom = openingSetPiece
+      ? Math.min(GROUND_Y - 4, topY + (floatingOpeningSupport ? 118 : 160))
+      : GROUND_Y - 4;
+    const supportHeight = Math.max(28, supportBottom - topY);
+    const columnCount = compactOpeningSupport ? 1 : platform.width >= 250 ? 3 : platform.width >= 160 ? 2 : 1;
+    const columnWidth = compactOpeningSupport ? 26 : openingSetPiece ? 38 : 30;
+    const baseAlpha = compactOpeningSupport ? 0.58 : openingSetPiece ? 0.86 : 0.62;
+    const blockHeight = compactOpeningSupport ? 16 : openingSetPiece ? 18 : 14;
 
     ctx.save();
     ctx.globalAlpha = baseAlpha;
-    drawDecorativeBaseBlend(ctx, centerX, GROUND_Y + 2, platform.width * 0.98, 'desert-entry', 'midground', openingSetPiece ? 0.7 : 0.52);
+    drawDecorativeBaseBlend(ctx, centerX, supportBottom + 6, platform.width * 0.88, 'desert-entry', 'midground', openingSetPiece ? 0.28 : 0.52);
 
-    const backShadow = ctx.createLinearGradient(0, topY, 0, GROUND_Y);
-    backShadow.addColorStop(0, openingSetPiece ? 'rgba(45, 25, 11, 0.58)' : 'rgba(55, 31, 14, 0.44)');
-    backShadow.addColorStop(0.72, openingSetPiece ? 'rgba(95, 55, 24, 0.34)' : 'rgba(95, 55, 24, 0.24)');
-    backShadow.addColorStop(1, 'rgba(95, 55, 24, 0)');
-    ctx.fillStyle = backShadow;
-    ctx.beginPath();
-    ctx.moveTo(screenX + platform.width * 0.08, topY + 2);
-    ctx.lineTo(screenX + platform.width * 0.92, topY + 2);
-    ctx.lineTo(screenX + platform.width * 0.72, GROUND_Y + 8);
-    ctx.lineTo(screenX + platform.width * 0.24, GROUND_Y + 8);
-    ctx.closePath();
-    ctx.fill();
+    if (!openingSetPiece) {
+      const backShadow = ctx.createLinearGradient(0, topY, 0, supportBottom);
+      backShadow.addColorStop(0, 'rgba(55, 31, 14, 0.44)');
+      backShadow.addColorStop(0.72, 'rgba(95, 55, 24, 0.24)');
+      backShadow.addColorStop(1, 'rgba(95, 55, 24, 0)');
+      ctx.fillStyle = backShadow;
+      ctx.beginPath();
+      ctx.moveTo(screenX + platform.width * 0.08, topY + 2);
+      ctx.lineTo(screenX + platform.width * 0.92, topY + 2);
+      ctx.lineTo(screenX + platform.width * 0.72, supportBottom + 8);
+      ctx.lineTo(screenX + platform.width * 0.24, supportBottom + 8);
+      ctx.closePath();
+      ctx.fill();
+    }
 
     for (let index = 0; index < columnCount; index += 1) {
       const t = columnCount === 1 ? 0.5 : index / (columnCount - 1);
       const columnX = screenX + platform.width * (0.18 + t * 0.64);
       const lean = Math.sin(platform.x * 0.01 + index) * 4;
-      const columnTop = topY + (openingSetPiece ? 8 : 4) + (index % 2) * 5;
-      const columnBottom = GROUND_Y - 4;
+      const columnTop = topY + (compactOpeningSupport ? 12 : openingSetPiece ? 8 : 4) + (index % 2) * 5;
+      const columnBottom = supportBottom;
       const columnHeight = Math.max(22, columnBottom - columnTop);
       const columnGradient = ctx.createLinearGradient(0, columnTop, 0, columnBottom);
       columnGradient.addColorStop(0, openingSetPiece ? 'rgb(184, 118, 57)' : 'rgb(157, 98, 46)');
@@ -3602,10 +3613,10 @@ export default function ExpeditionJourney({
       ctx.fill();
       ctx.stroke();
 
-      ctx.fillStyle = openingSetPiece ? 'rgba(238, 171, 86, 0.82)' : 'rgba(229, 158, 75, 0.62)';
-      ctx.fillRect(left - 10, columnTop - 7, columnWidth + 20, openingSetPiece ? 12 : 9);
+      ctx.fillStyle = compactOpeningSupport ? 'rgba(238, 171, 86, 0.46)' : openingSetPiece ? 'rgba(238, 171, 86, 0.82)' : 'rgba(229, 158, 75, 0.62)';
+      ctx.fillRect(left - 10, columnTop - 7, columnWidth + 20, compactOpeningSupport ? 8 : openingSetPiece ? 12 : 9);
       ctx.fillStyle = openingSetPiece ? 'rgba(92, 52, 22, 0.72)' : 'rgba(57, 31, 13, 0.42)';
-      ctx.fillRect(left - 12, columnBottom - 8, columnWidth + 24, openingSetPiece ? 10 : 8);
+      ctx.fillRect(left - 12, columnBottom - 8, columnWidth + 24, compactOpeningSupport ? 7 : openingSetPiece ? 10 : 8);
       ctx.fillStyle = openingSetPiece ? 'rgba(37, 21, 9, 0.28)' : 'rgba(38, 22, 10, 0.2)';
       ctx.fillRect(left + columnWidth * 0.58, columnTop + 4, columnWidth * 0.35, Math.max(18, columnHeight - 10));
       ctx.strokeStyle = openingSetPiece ? 'rgba(255, 216, 139, 0.22)' : 'rgba(255, 207, 128, 0.14)';
@@ -3614,7 +3625,7 @@ export default function ExpeditionJourney({
       ctx.lineTo(left + 7, columnBottom - 10);
       ctx.stroke();
 
-      if (openingSetPiece) {
+      if (openingSetPiece && !compactOpeningSupport) {
         ctx.fillStyle = 'rgba(22, 118, 126, 0.2)';
         ctx.fillRect(left + 5, columnTop + 17, columnWidth - 10, 5);
         ctx.fillStyle = 'rgba(183, 73, 39, 0.16)';
@@ -3635,13 +3646,13 @@ export default function ExpeditionJourney({
       }
     }
 
-    if (platform.width >= 180) {
-      const wallTop = Math.min(GROUND_Y - 64, topY + supportHeight * 0.52);
-      const wallHeight = Math.max(28, GROUND_Y - wallTop - 2);
+    if (platform.width >= 180 && !openingSetPiece) {
+      const wallTop = Math.min(supportBottom - 42, topY + supportHeight * 0.52);
+      const wallHeight = Math.max(28, supportBottom - wallTop - 2);
       const wallWidth = platform.width * 0.52;
       const wallX = centerX - wallWidth / 2 + Math.sin(platform.x * 0.004) * 14;
       ctx.globalAlpha = baseAlpha * 0.82;
-      const wallGradient = ctx.createLinearGradient(0, wallTop, 0, GROUND_Y);
+      const wallGradient = ctx.createLinearGradient(0, wallTop, 0, supportBottom);
       wallGradient.addColorStop(0, 'rgba(131, 78, 35, 0.82)');
       wallGradient.addColorStop(1, 'rgba(64, 36, 16, 0.7)');
       ctx.fillStyle = wallGradient;
@@ -3675,7 +3686,7 @@ export default function ExpeditionJourney({
       ctx.fill();
     }
 
-    drawGroundDustLip(ctx, centerX, GROUND_Y + 1, platform.width * 0.78, 'rgba(171, 103, 42, 0.2)');
+    drawGroundDustLip(ctx, centerX, supportBottom + 1, platform.width * 0.72, 'rgba(171, 103, 42, 0.16)');
     ctx.restore();
   }, [drawDecorativeBaseBlend, drawGroundDustLip]);
 
@@ -5532,7 +5543,6 @@ export default function ExpeditionJourney({
       drawDesertBackgroundLayer(ctx, assets, 'farDunes', { y: 0, height: CANVAS_HEIGHT }, { ...layerOptions, parallax: 0.035, alpha: 0.78 }),
       drawDesertBackgroundLayer(ctx, assets, 'distantRuins', { y: 0, height: CANVAS_HEIGHT }, { ...layerOptions, parallax: 0.1, alpha: 0.68 }),
       drawDesertBackgroundLayer(ctx, assets, 'midgroundRuins', { y: 0, height: CANVAS_HEIGHT }, { ...layerOptions, parallax: 0.2, alpha: 0.74 }),
-      drawDesertBackgroundLayer(ctx, assets, 'lightShafts', { y: 0, height: CANVAS_HEIGHT }, { ...layerOptions, parallax: 0.015, alpha: 0.2 }),
     ];
     return drawn.every(Boolean);
   }, []);
@@ -5758,14 +5768,7 @@ export default function ExpeditionJourney({
       { y: 0, height: CANVAS_HEIGHT },
       { ...layerOptions, parallax: 0.38, alpha: 0.32 },
     );
-    const shaftsDrawn = drawDesertBackgroundLayer(
-      ctx,
-      assets,
-      'lightShafts',
-      { y: 0, height: CANVAS_HEIGHT },
-      { ...layerOptions, parallax: 0.06, alpha: 0.12 },
-    );
-    return dustDrawn || shaftsDrawn;
+    return dustDrawn;
   }, [backgroundPackId]);
 
   const drawTempleBackdrop = useCallback((ctx, section, cameraX) => {
@@ -7110,11 +7113,20 @@ export default function ExpeditionJourney({
       const openingCheckpointMarker = checkpoint.id === 'desert-entry';
       ctx.save();
       const checkpointSection = getSectionForX(markerX);
-      const checkpointHeight = openingCheckpointMarker ? 126 : active ? 160 : 148;
-      const checkpointWidth = checkpointHeight * (openingCheckpointMarker ? 1.32 : 1.48);
+      const checkpointHeight = openingCheckpointMarker ? 178 : active ? 160 : 148;
+      const checkpointWidth = checkpointHeight * (openingCheckpointMarker ? 1.38 : 1.48);
       if (openingCheckpointMarker) {
-        ctx.globalAlpha = 0.9;
-        ctx.filter = 'sepia(18%) saturate(82%) brightness(86%) contrast(96%)';
+        const pulse = 0.92 + Math.sin(now / 360) * 0.08;
+        const sacredGlow = ctx.createRadialGradient(cx, GROUND_Y - 72, 18, cx, GROUND_Y - 72, checkpointWidth * 0.68 * pulse);
+        sacredGlow.addColorStop(0, 'rgba(250, 204, 21, 0.34)');
+        sacredGlow.addColorStop(0.34, 'rgba(45, 212, 191, 0.14)');
+        sacredGlow.addColorStop(1, 'rgba(250, 204, 21, 0)');
+        ctx.fillStyle = sacredGlow;
+        ctx.beginPath();
+        ctx.ellipse(cx, GROUND_Y - 72, checkpointWidth * 0.58 * pulse, checkpointHeight * 0.5 * pulse, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 0.98;
+        ctx.filter = 'sepia(10%) saturate(112%) brightness(104%) contrast(106%) drop-shadow(0 0 12px rgba(250, 204, 21, 0.38))';
       }
       const checkpointDrawn = drawMarkerSprite(
           ctx,
@@ -7122,7 +7134,7 @@ export default function ExpeditionJourney({
           'checkpoint',
           {
             x: cx - checkpointWidth / 2,
-            y: GROUND_Y - checkpointHeight + (openingCheckpointMarker ? 18 : 10),
+            y: GROUND_Y - checkpointHeight + (openingCheckpointMarker ? 20 : 10),
             width: checkpointWidth,
             height: checkpointHeight,
           },
@@ -7131,9 +7143,9 @@ export default function ExpeditionJourney({
       ctx.filter = 'none';
       ctx.globalAlpha = 1;
       if (checkpointDrawn) {
-        drawRouteGroundApron(ctx, cx, GROUND_Y - 1, checkpointWidth * (openingCheckpointMarker ? 0.72 : 0.9), checkpointSection.id, openingCheckpointMarker ? 0.58 : active ? 0.96 : 0.8, Math.round(markerX));
-        drawContactShadow(ctx, cx, GROUND_Y + 2, checkpointWidth * (openingCheckpointMarker ? 0.58 : 0.76), openingCheckpointMarker ? 0.16 : active ? 0.22 : 0.16, 1.1);
-        drawGroundDustLip(ctx, cx, GROUND_Y + 2, checkpointWidth * (openingCheckpointMarker ? 0.56 : 0.72), openingCheckpointMarker ? 'rgba(160, 96, 39, 0.2)' : 'rgba(116, 72, 36, 0.24)');
+        drawRouteGroundApron(ctx, cx, GROUND_Y - 1, checkpointWidth * (openingCheckpointMarker ? 0.84 : 0.9), checkpointSection.id, openingCheckpointMarker ? 0.78 : active ? 0.96 : 0.8, Math.round(markerX));
+        drawContactShadow(ctx, cx, GROUND_Y + 2, checkpointWidth * (openingCheckpointMarker ? 0.72 : 0.76), openingCheckpointMarker ? 0.24 : active ? 0.22 : 0.16, 1.1);
+        drawGroundDustLip(ctx, cx, GROUND_Y + 2, checkpointWidth * (openingCheckpointMarker ? 0.68 : 0.72), openingCheckpointMarker ? 'rgba(226, 151, 56, 0.28)' : 'rgba(116, 72, 36, 0.24)');
         ctx.restore();
         return;
       }
@@ -9410,7 +9422,7 @@ export default function ExpeditionJourney({
             
             {gameState.notice
               && !gameState.bossIntro
-              && !gameState.openingSphinxEncounterState
+              && !gameState.openingSphinxEncounter
               && !gameState.sectionTransition
               && (!gameState.environmentEvent || gameState.itemPurposeNoticeTimer > 0)
               && (!gameState.cinematicEvent || gameState.itemPurposeNoticeTimer > 0) && (

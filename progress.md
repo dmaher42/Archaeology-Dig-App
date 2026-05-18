@@ -2212,3 +2212,35 @@ Remaining notes:
 - Browser follow-up confirmed the Sphinx model is no longer behind the large notice or speech box; screenshot saved to `output/opening-sphinx-no-text-overlap-browser.png`.
 - Follow-up: lowered the opening Sphinx model by a named screen offset so it sits closer to the middle of the canvas instead of near the top HUD.
 - Browser follow-up confirmed the lowered Sphinx placement; screenshot saved to `output/opening-sphinx-lowered-browser.png`.
+
+## 2026-05-18 Desert Entry opening platform overlap cleanup
+
+- Removed the extra opening return ledge that was reading as a second platform layer under the first-screen route.
+- Re-spaced the Desert Entry opening slabs into a clearer left-to-right stairway while keeping the existing Journey platform, reactive ledge, Scarab Seal trigger, checkpoint, and Sphinx encounter systems.
+- Shortened and softened the first-screen support rendering so upper slabs use ruin braces instead of full-height walls that visually collide with lower platforms.
+- Moved the opening Scarab Seal prop and trigger with the summit stone so the goal stays aligned with the cleaned-up route.
+- Browser verification confirmed the first-screen opening no longer shows the most obvious overlapping platform stack; screenshots saved to `output/desert-entry-overlap-fixed-fresh-browser.png` and `output/desert-entry-overlap-fixed-early-browser.png`.
+- `npm.cmd run lint`, `npm.cmd run build`, and `node --test src\components\expedition-journey\journeySecrets.test.js` passed. The build still reports the existing runtime-resolved excavation image warnings.
+
+## 2026-05-18 Desert Entry checkpoint wow pass
+
+- Moved the visible Desert Entry checkpoint monument into the start area beside the first platform, matching the marked player-side circle.
+- Enlarged the opening checkpoint render and added a warm sacred glow/drop-shadow treatment so it attracts attention instead of blending into the background.
+- Kept the hidden checkpoint respawn position, Journey checkpoint system, platform route, Scarab Seal trigger, and Sphinx encounter logic unchanged.
+- Browser verification confirmed the larger checkpoint monument is visible in the opening start area; screenshot saved to `output/desert-entry-checkpoint-wow-start-browser.png`.
+- `npm.cmd run lint`, `npm.cmd run build`, and `node --test src\components\expedition-journey\journeySecrets.test.js` passed. The build still reports the existing runtime-resolved excavation image warnings.
+
+## 2026-05-18 Egypt opening 60-second playtest
+
+- Ran a focused browser playtest of the Egypt opening reveal, first-screen platform stairway, checkpoint statue, Scarab Seal trigger, Sphinx encounter, and post-scene resume.
+- Confirmed the opening platform route reads as a clear ruin-built stairway with the Scarab Seal as the focal point, and the checkpoint statue is visible without blocking the player.
+- Fixed one presentation issue in `ExpeditionJourney.jsx`: the top HUD notice now checks the live `openingSphinxEncounter` state, so pickup/combat notices do not visually stack over the Sphinx speech bubble while the Sphinx is speaking.
+- Browser verification confirmed the Sphinx still triggers, uses the Sphinx sprite, shows the dialogue bubble without top-notice overlap, and does not defeat Scarab Queen, award boss tools/key items, or open the route gate.
+- Remaining risk: enemies can still act underneath the Sphinx moment if the player falls into them during the scene; pausing combat during the Sphinx encounter would be a separate gameplay-behaviour pass.
+
+## 2026-05-18 Desert Entry background overlap cleanup
+
+- Investigated the reported overlapping background visual in the first Egypt screen and traced the strongest rectangular overlap to the Desert Entry parallax `lightShafts` layer.
+- Removed the `lightShafts` background draw from the live Desert Entry layered backdrop and kept the regular sky, dunes, ruins, and midground layers intact.
+- Softened the opening stairway support rendering by removing broad translucent backing panels from the opening set-piece platforms, while keeping the visible stone slab/brace style.
+- Browser verification confirmed the first-screen Egypt background no longer shows the obvious vertical overlapping light-shaft image, and the Scarab Seal/Sphinx trigger still works without progression skips.
