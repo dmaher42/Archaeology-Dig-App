@@ -1,0 +1,400 @@
+I’ll treat this as a design direction rather than a coding change: keep the platformer strong enough to stand alone, but make each completed expedition unlock the slower archaeology loop instead of replacing it.
+
+Yes — that is the better version.
+
+The platformer should not feel like a short transition level. It should be a proper game in its own right, with the excavation system as the deeper reward layer after major progress.
+
+The structure becomes:
+
+Full Expedition Platformer Stage → Discovery Entrance → Base Camp → Excavation Site → Lab/Report Reward → Next Expedition
+
+So the platformer is not just “walk to the tomb.” It becomes the main adventure experience.
+
+The new plan
+1. Platformer = the main playable adventure
+
+Each expedition should take time. Not 2–3 minutes. More like a proper stage with sections.
+
+A good target would be:
+
+Type	Length
+Short classroom demo stage	5–8 minutes
+Normal expedition stage	12–20 minutes
+Major civilisation expedition	20–35 minutes
+Full Egypt/Tutankhamun arc	multiple stages
+
+This means students can play across multiple lessons, and it feels like a real game rather than a quick activity.
+
+2. Each expedition should have zones
+
+Instead of one small side-scrolling level, each expedition should be made of connected areas.
+
+Example: Egypt Expedition
+
+Stage 1: Desert Approach
+
+Purpose: movement, jumping, hazards, basic enemies
+Reward: first map fragment
+
+Stage 2: Valley of the Kings
+
+Purpose: vertical platforms, caves, hidden routes, stronger hazards
+Reward: tomb location clue
+
+Stage 3: Sealed Stairway
+
+Purpose: puzzle-platforming, switches, locked doors, ancient mechanisms
+Reward: discovery entrance unlocked
+
+Stage 4: Tomb Threshold
+
+Purpose: tense, slower platforming, fragile chambers, final guardian
+Reward: excavation site unlocked
+
+Then:
+
+Discovery Entrance → Base Camp → Excavation Site → Lab/Report
+
+That gives the platformer proper length and importance.
+
+3. The platformer should have its own progression
+
+The platformer needs reasons to keep playing even if the educational layer was removed.
+
+So it needs:
+
+health system
+checkpoints
+upgrades
+movement abilities
+enemies/guardians
+collectibles
+secrets
+optional rooms
+level goals
+boss or escape sequences
+performance ratings
+
+The game should be fun because of:
+
+movement
+exploration
+challenge
+reward
+atmosphere
+progression
+
+Not because students are being asked questions.
+
+4. Make platforming rewards feed the archaeology system
+
+This is how the two parts connect without weakening either one.
+
+During platforming, students collect things that help later at the excavation site.
+
+Examples:
+
+Platformer item	Later use
+Map fragment	Reveals likely excavation grid
+Lens piece	Improves photography score
+Brush kit	Reduces artefact damage
+Notebook page	Unlocks extra interpretation clue
+Seal fragment	Opens chamber entrance
+Supply crate	Gives more excavation attempts
+Ancient inscription shard	Helps lab interpretation
+Relic dust / currency	Upgrades Base Camp
+
+This keeps the platformer game-focused, but it still matters to the archaeology loop.
+
+5. Use “Discovery Entrance” as the major transition moment
+
+This should be a big emotional reward.
+
+After a long platforming stage, the player reaches something like:
+
+sealed tomb door
+buried stairway
+collapsed archive gate
+ancient cave entrance
+lost city wall
+ceremonial site marker
+
+Then the game slows down and says:
+
+“You have found the site. Return to Base Camp to prepare the excavation.”
+
+This gives the player a strong sense of achievement.
+
+6. Base Camp becomes the bridge between fun and learning
+
+Base Camp should not feel like a worksheet screen. It should feel like a game hub.
+
+At Base Camp, players can:
+
+upgrade tools
+view collected relics
+choose next expedition
+prepare excavation kit
+check mission objectives
+talk to team members
+review evidence board
+unlock new areas
+improve camp facilities
+
+This gives you a Diablo-style loop:
+
+Go out → survive → collect → return → upgrade → go deeper
+
+But archaeology-themed.
+
+7. Excavation becomes the “high-value reward mode”
+
+The excavation should feel like opening the treasure chest after a long dungeon — but with archaeology rules.
+
+After the platformer expedition, the player earns access to a site.
+
+Then they must:
+
+survey
+place grid
+excavate carefully
+photograph in situ
+catalogue
+preserve
+send to lab
+make interpretation
+
+This matches the unit plan’s excavation sequence: survey, grids, excavate, map and lab analysis.
+
+So the platformer gives the excitement.
+The excavation gives the meaning.
+
+The ideal full gameplay loop
+Step 1: Choose Expedition
+
+Player chooses:
+
+Egypt
+China
+Mungo / Ancient Australia
+Indus
+Rome
+Greece
+Step 2: Play Long Platformer Stage
+
+They explore a proper adventure level:
+
+multiple zones
+hazards
+guardians
+hidden rooms
+collectibles
+puzzle rooms
+final discovery
+Step 3: Reach Discovery Entrance
+
+They uncover the entrance to the important site.
+
+Step 4: Return to Base Camp
+
+They spend rewards:
+
+upgrade tools
+prepare equipment
+read short mission notes
+choose excavation strategy
+Step 5: Excavation Site
+
+They carefully uncover evidence.
+
+Step 6: Lab/Report Reward
+
+They analyse evidence and unlock:
+
+story
+museum display
+upgraded rank
+new tool
+next expedition
+new playable stage
+What this means for the platformer design
+
+The platformer should be built like a proper 2D adventure game.
+
+Each expedition needs:
+A. Movement identity
+
+Each civilisation area should feel different to play.
+
+Example:
+
+Expedition	Platformer feel
+Egypt	sand slides, collapsing blocks, tomb traps
+China	bamboo bridges, river crossings, wall towers
+Mungo	open landscape, careful navigation, environmental clues
+Greece	temple ruins, columns, vertical climbing
+Rome	aqueducts, crumbling roads, underground tunnels
+Indus	water channels, brick city platforms, drainage tunnels
+B. Enemy/hazard identity
+
+Not everything needs to be combat. Hazards can carry the challenge.
+
+Examples:
+
+falling rocks
+bats
+scarabs
+snakes
+unstable bridges
+collapsing floors
+mud pits
+rolling stones
+dust storms
+flood channels
+ancient mechanisms
+C. Secrets
+
+This is what makes students replay.
+
+Each stage should include:
+
+hidden artefact rooms
+optional challenge paths
+secret relics
+alternate route
+rare evidence fragment
+bonus chamber
+shortcut unlocked later with upgrades
+D. Ratings
+
+At the end of each platformer stage, give a game-style rating:
+
+time
+relics found
+secrets found
+damage taken
+evidence fragments recovered
+site discovery rank
+
+Example:
+
+Expedition Complete
+Relics: 8/12
+Secrets: 2/4
+Damage: Low
+Discovery Rank: A
+New excavation site unlocked: Tutankhamun’s Antechamber
+
+This makes it feel like a real game.
+
+How to make it stand alone
+
+To make the platformer stand alone, a player should be able to play it and enjoy it even if they ignore the learning.
+
+That means:
+
+It must have:
+polished movement
+satisfying jumping
+responsive controls
+readable level design
+memorable stages
+good music
+good feedback sounds
+secrets
+meaningful upgrades
+challenge without frustration
+It must avoid:
+constant quizzes
+stopping gameplay with long explanations
+too much text
+educational pop-ups every few seconds
+making the player feel punished for not reading
+
+The educational layer should mostly happen:
+
+after discovery
+at Base Camp
+during excavation
+in lab/report mode
+Best overall structure
+
+I would now define your game like this:
+
+Lost Site Expedition is a 2D archaeology adventure platformer where players explore dangerous ancient environments, discover lost sites, return to Base Camp, and carefully excavate evidence to uncover historical mysteries.
+
+That gives it a clear identity.
+
+Not just:
+
+educational game
+
+But:
+
+adventure platformer with archaeology systems
+
+Recommended build priority
+Phase 1: Make platformer feel excellent
+
+Before adding more educational complexity:
+
+polish movement
+improve jumping
+improve collisions
+improve enemy/hazard feedback
+add checkpoints
+add longer stage structure
+add secrets and collectibles
+add ratings
+Phase 2: Build one full expedition arc
+
+Do not build ten shallow levels.
+
+Build one excellent arc:
+
+Egypt Expedition → Discovery Entrance → Base Camp → Tutankhamun Excavation → Lab Report
+
+This becomes the model for every future civilisation.
+
+Phase 3: Expand with civilisation-specific expeditions
+
+Once Egypt works, copy the structure:
+
+China expedition
+Mungo expedition
+Indus expedition
+Greece expedition
+Rome expedition
+Phase 4: Deepen excavation/lab systems
+
+Add:
+
+evidence quality
+in situ photography
+cataloguing
+mapping
+interpretation
+contestability
+conservation choices
+My updated recommendation
+
+Keep the full system:
+
+Journey Platformer → Discovery Entrance → Base Camp → Excavation Site → Lab/Report Reward
+
+But change the emphasis:
+
+Old idea
+
+Platformer is the intro. Excavation is the main game.
+
+Better idea
+
+Platformer is the main adventure game. Excavation is the major reward and meaning layer.
+
+That gives you the best of both:
+
+students want to play it
+it has genuine game quality
+it still teaches the unit properly
+the archaeology learning feels earned rather than forced.

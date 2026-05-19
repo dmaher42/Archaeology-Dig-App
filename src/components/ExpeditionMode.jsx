@@ -1299,6 +1299,10 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
   }), []);
 
   useEffect(() => {
+    window.DEBUG_EXPEDITION = { setExpeditionStage, setBaseCampOpen, setSelectedExpedition };
+  }, [setExpeditionStage, setBaseCampOpen, setSelectedExpedition]);
+
+  useEffect(() => {
     baseCampProgressionRef.current = baseCampProgression;
     saveBaseCampProgression(baseCampProgression);
   }, [baseCampProgression]);

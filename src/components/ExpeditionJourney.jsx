@@ -37,6 +37,8 @@ import {
   PLAYER_SPRITE_FRAME_WIDTH,
   PLAYER_CHINA_HERO_SPRITE_ATLAS_JSON,
   PLAYER_CHINA_HERO_SPRITE_VERSION,
+  PLAYER_HERO_FALLBACK_SPRITE_ATLAS_JSON,
+  PLAYER_HERO_FALLBACK_SPRITE_VERSION,
   PLAYER_HERO_SPRITE_ATLAS_JSON,
   PLAYER_HERO_SPRITE_VERSION,
   PLAYER_LEGACY_SPRITE_SRC,
@@ -315,9 +317,111 @@ const OPENING_SPHINX_SPRITE_BOSS_ID = 'ancient-construct';
 const OPENING_SPHINX_SPRITE_VERSION = 'opening-sphinx-model-2026-05-18';
 const OPENING_SPHINX_SCREEN_Y_OFFSET = 112;
 const OPENING_SCARAB_SEAL_IMAGE_SRC = 'assets/expedition/environment/egypt-opening/scarab-seal-opening.png';
-const OPENING_CAMERA_REVEAL_DURATION = 3.2;
-const OPENING_CAMERA_REVEAL_PAN_SECONDS = 1.05;
-const OPENING_CAMERA_REVEAL_HOLD_SECONDS = 0.45;
+const OPENING_PYRAMID_CLIMB_PACK_SRC = 'assets/expedition/environment/egypt-opening/pyramid-climb-pack.png';
+const OPENING_PYRAMID_FACADE_SRC = 'assets/expedition/environment/egypt-opening/opening-pyramid-facade.png';
+const OPENING_TRAP_DECAL_PACK_SRC = 'assets/expedition/environment/egypt-opening/opening-trap-decals.png';
+const OPENING_HAZARD_DECAL_PACK_SRC = 'assets/expedition/environment/egypt-opening/opening-hazard-decals.png';
+const OPENING_CAMERA_REVEAL_DURATION = 1.55;
+const OPENING_CAMERA_REVEAL_PAN_SECONDS = 0.55;
+const OPENING_CAMERA_REVEAL_HOLD_SECONDS = 0.18;
+const OPENING_PYRAMID_ASSET_VERSION = 'opening-pyramid-climb-pack-2026-05-18';
+const OPENING_PYRAMID_FACADE_VERSION = 'opening-pyramid-facade-2026-05-19';
+const OPENING_TRAP_DECAL_ASSET_VERSION = 'egypt-trap-hazard-decal-packs-2026-05-19';
+const OPENING_PYRAMID_ASSET_REGIONS = {
+  leftStairFace: { x: 24, y: 419, w: 430, h: 160 },
+  rightStairFace: { x: 486, y: 418, w: 402, h: 164 },
+  terraceWall: { x: 807, y: 259, w: 320, h: 130 },
+  trapSlab: { x: 1258, y: 432, w: 315, h: 72 },
+  crackedBlock: { x: 1255, y: 538, w: 325, h: 82 },
+  carvedColumn: { x: 1022, y: 424, w: 76, h: 164 },
+  paintedColumn: { x: 1109, y: 423, w: 74, h: 166 },
+  pedestal: { x: 1160, y: 91, w: 148, h: 128 },
+  seal: { x: 1332, y: 26, w: 178, h: 178 },
+  rubble: { x: 1005, y: 667, w: 128, h: 58 },
+  dust: { x: 953, y: 884, w: 250, h: 60 },
+};
+const OPENING_TRAP_DECAL_REGIONS = {
+  pressurePlate: { x: 54, y: 135, w: 382, h: 286 },
+  crackedFloor: { x: 558, y: 130, w: 376, h: 286 },
+  scarabSealTrap: { x: 1012, y: 118, w: 438, h: 316 },
+  glyphTripwire: { x: 44, y: 640, w: 466, h: 186 },
+  fallingStoneWarning: { x: 610, y: 514, w: 342, h: 364 },
+  softSandPit: { x: 1040, y: 542, w: 434, h: 346 },
+};
+const OPENING_HAZARD_DECAL_REGIONS = {
+  thornScrub: { x: 42, y: 174, w: 332, h: 254 },
+  darkGap: { x: 410, y: 174, w: 344, h: 270 },
+  batCloud: { x: 760, y: 166, w: 340, h: 286 },
+  dustWave: { x: 1116, y: 166, w: 340, h: 278 },
+  looseSlope: { x: 30, y: 582, w: 348, h: 250 },
+  surveyRope: { x: 430, y: 604, w: 330, h: 214 },
+  warningRubble: { x: 812, y: 598, w: 326, h: 230 },
+  fallingStoneWarning: { x: 1172, y: 532, w: 320, h: 334 },
+};
+const OPENING_TRAP_DECAL_BY_HAZARD = {
+  'sealed-sand': 'scarabSealTrap',
+  'loose-temple-floor': 'crackedFloor',
+  'glyph-tripwire': 'glyphTripwire',
+  'entry-pressure-plate': 'pressurePlate',
+  'entry-cracked-floor-trap': 'crackedFloor',
+  'opening-seal-reset-trap': 'scarabSealTrap',
+  'temple-threshold-hairline-crack': 'crackedFloor',
+  'temple-floor-crack': 'crackedFloor',
+  'spike-trap': 'pressurePlate',
+  'temple-loose-step': 'crackedFloor',
+  'sand-pit': 'softSandPit',
+  'desert-low-ridge': 'softSandPit',
+  'desert-soft-ridge': 'softSandPit',
+  'sandfall-soft-pit': 'softSandPit',
+};
+const OPENING_HAZARD_DECAL_BY_HAZARD = {
+  'thorn-bush': 'thornScrub',
+  'dark-gap': 'darkGap',
+  'catacomb-small-gap': 'darkGap',
+  'catacomb-gap-2': 'darkGap',
+  'bat-cloud': 'batCloud',
+  'catacomb-bat-pocket': 'batCloud',
+  'dust-wave': 'dustWave',
+  'escape-dust-pocket': 'dustWave',
+  'loose-slope': 'looseSlope',
+  'dig-site-loose-slope-2': 'looseSlope',
+  'survey-rope': 'surveyRope',
+  'camp-low-rope': 'surveyRope',
+  'dig-site-loose-rope': 'surveyRope',
+  'warning-rubble': 'warningRubble',
+  'broken-ruins-loose-stones': 'warningRubble',
+  'falling-blocks': 'fallingStoneWarning',
+  'rolling-stones': 'fallingStoneWarning',
+  'sandfall-warning-dust': 'fallingStoneWarning',
+  'sandfall-collapsing-stones': 'fallingStoneWarning',
+  'temple-falling-chip': 'fallingStoneWarning',
+  'escape-falling-chip': 'fallingStoneWarning',
+  'escape-cracked-step': 'fallingStoneWarning',
+};
+const EGYPT_HAZARD_DECAL_PLACEMENT = {
+  pressurePlate: { xPad: 14, widthPad: 28, height: 74, footInset: 2 },
+  crackedFloor: { xPad: 16, widthPad: 32, height: 68, footInset: 1 },
+  scarabSealTrap: { xPad: 22, widthPad: 44, height: 94, footInset: 3 },
+  glyphTripwire: { xPad: 28, widthPad: 56, height: 66, footInset: 3 },
+  fallingStoneWarning: { xPad: 24, widthPad: 48, height: 122, footInset: 2 },
+  softSandPit: { xPad: 20, widthPad: 40, height: 72, footInset: 1 },
+  thornScrub: { xPad: 22, widthPad: 44, height: 88, footInset: 1 },
+  darkGap: { xPad: 20, widthPad: 40, height: 82, footInset: 0 },
+  batCloud: { xPad: 24, widthPad: 48, height: 96, footInset: 2 },
+  dustWave: { xPad: 28, widthPad: 56, height: 90, footInset: 1 },
+  looseSlope: { xPad: 24, widthPad: 52, height: 92, footInset: 0 },
+  surveyRope: { xPad: 24, widthPad: 48, height: 72, footInset: 1 },
+  warningRubble: { xPad: 20, widthPad: 46, height: 90, footInset: 0 },
+};
+const openingJourneyY = (y) => y + JOURNEY_VERTICAL_OFFSET;
+const OPENING_PYRAMID_FACADE_TIERS = [
+  { x: 128, y: openingJourneyY(312), width: 1560, height: 92, inset: 116, alpha: 0.9 },
+  { x: 230, y: openingJourneyY(270), width: 1370, height: 98, inset: 132, alpha: 0.92 },
+  { x: 350, y: openingJourneyY(228), width: 1150, height: 106, inset: 144, alpha: 0.94 },
+  { x: 490, y: openingJourneyY(186), width: 910, height: 112, inset: 142, alpha: 0.95 },
+  { x: 650, y: openingJourneyY(144), width: 650, height: 118, inset: 126, alpha: 0.94 },
+  { x: 830, y: openingJourneyY(102), width: 390, height: 132, inset: 96, alpha: 0.95 },
+];
 
 const getGuardianChallengeQuestions = (bossId) => {
   const questionIds = GUARDIAN_KNOWLEDGE_CHALLENGES[bossId] || [];
@@ -405,9 +509,12 @@ const getPlayerHeroSpriteConfig = ({ targetCivilisation, backgroundPackId }) => 
     };
   }
   return {
-    characterId: 'egypt-warrior-guide',
+    characterId: 'asha-egypt-archaeologist',
     atlasPath: PLAYER_HERO_SPRITE_ATLAS_JSON,
     version: PLAYER_HERO_SPRITE_VERSION,
+    fallbackAtlasPath: PLAYER_HERO_FALLBACK_SPRITE_ATLAS_JSON,
+    fallbackAtlasVersion: PLAYER_HERO_FALLBACK_SPRITE_VERSION,
+    fallbackCharacterId: 'egypt-warrior-guide',
     fallbackSrc: PLAYER_LEGACY_SPRITE_SRC,
   };
 };
@@ -443,7 +550,7 @@ const getHeroSpriteFrameKey = (current, atlas, now) => {
   const frameCount = Math.max(1, row.frameCount || row.frames?.length || 1);
   if (row.loop) {
     const frame = rowName === 'idle'
-      ? Math.floor(now / 180) % frameCount
+      ? 0
       : Math.floor(walkCycleDistance / (rowName === 'run' ? 15 : rowName === 'survey_walk' ? 34 : 22)) % frameCount;
     return row.frames?.[frame] || null;
   }
@@ -1068,6 +1175,27 @@ const HAZARD_VISUAL_ALIASES = {
 
 const getHazardVisualId = (hazard) => HAZARD_VISUAL_ALIASES[hazard.id] || hazard.id;
 
+const getEgyptHazardDecalDescriptor = (hazard) => {
+  const visualId = getHazardVisualId(hazard);
+  const trapRegionKey = OPENING_TRAP_DECAL_BY_HAZARD[hazard.id] || OPENING_TRAP_DECAL_BY_HAZARD[visualId] || null;
+  if (trapRegionKey) return { pack: 'trap', regionKey: trapRegionKey };
+  const hazardRegionKey = OPENING_HAZARD_DECAL_BY_HAZARD[hazard.id] || OPENING_HAZARD_DECAL_BY_HAZARD[visualId] || null;
+  if (hazardRegionKey) return { pack: 'hazard', regionKey: hazardRegionKey };
+  return null;
+};
+
+const getEgyptHazardDecalDest = (hazard, screenX, footY, regionKey) => {
+  const placement = EGYPT_HAZARD_DECAL_PLACEMENT[regionKey] || {};
+  const width = Math.max(28, hazard.width + (placement.widthPad ?? 28));
+  const height = Math.max(24, placement.height ?? hazard.height + 32);
+  return {
+    x: screenX - (placement.xPad ?? 14),
+    y: footY - height + (placement.footInset ?? 0),
+    width,
+    height,
+  };
+};
+
 const getHazardVisualConfig = (hazard) => {
   const baseId = getHazardVisualId(hazard);
   return HAZARD_VISUALS[baseId] || {
@@ -1239,7 +1367,10 @@ const getOpeningCameraRevealTarget = (current) => {
   const playerCenterX = current.player.x + current.player.width / 2;
   const startCameraX = getLayoutCameraFollowTarget({ playerCenterX }).targetCameraX;
   const sealFocusX = SCARAB_SEAL_TRIGGER.x + SCARAB_SEAL_TRIGGER.width / 2;
-  const sealCameraX = clampCameraX(sealFocusX - CANVAS_WIDTH * 0.64);
+  const sealCameraX = Math.min(
+    clampCameraX(sealFocusX - CANVAS_WIDTH * 0.64),
+    clampCameraX(startCameraX + CANVAS_WIDTH * 0.18),
+  );
 
   let revealWeight = 1;
   if (elapsed < OPENING_CAMERA_REVEAL_PAN_SECONDS) {
@@ -1309,6 +1440,10 @@ export default function ExpeditionJourney({
   const dynamicWorldAssetsRef = useRef(createDynamicWorldAssetState());
   const markerSpriteAssetsRef = useRef(createMarkerSpriteState());
   const openingScarabSealImageRef = useRef({ image: null, loaded: false, failed: false });
+  const openingPyramidClimbPackRef = useRef({ image: null, loaded: false, failed: false });
+  const openingPyramidFacadeRef = useRef({ image: null, loaded: false, failed: false });
+  const openingTrapDecalPackRef = useRef({ image: null, loaded: false, failed: false });
+  const openingHazardDecalPackRef = useRef({ image: null, loaded: false, failed: false });
   const footstepTimerRef = useRef(0);
   const wasGroundedRef = useRef(false);
 
@@ -1336,6 +1471,78 @@ export default function ExpeditionJourney({
       openingScarabSealImageRef.current = { image: null, loaded: false, failed: true };
     };
     image.src = `${import.meta.env.BASE_URL}${OPENING_SCARAB_SEAL_IMAGE_SRC}`;
+    return () => {
+      cancelled = true;
+    };
+  }, [syncHud]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const image = new Image();
+    image.onload = () => {
+      if (cancelled) return;
+      openingHazardDecalPackRef.current = { image, loaded: true, failed: false };
+      syncHud();
+    };
+    image.onerror = () => {
+      if (cancelled) return;
+      openingHazardDecalPackRef.current = { image: null, loaded: false, failed: true };
+    };
+    image.src = `${import.meta.env.BASE_URL}${OPENING_HAZARD_DECAL_PACK_SRC}`;
+    return () => {
+      cancelled = true;
+    };
+  }, [syncHud]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const image = new Image();
+    image.onload = () => {
+      if (cancelled) return;
+      openingTrapDecalPackRef.current = { image, loaded: true, failed: false };
+      syncHud();
+    };
+    image.onerror = () => {
+      if (cancelled) return;
+      openingTrapDecalPackRef.current = { image: null, loaded: false, failed: true };
+    };
+    image.src = `${import.meta.env.BASE_URL}${OPENING_TRAP_DECAL_PACK_SRC}`;
+    return () => {
+      cancelled = true;
+    };
+  }, [syncHud]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const image = new Image();
+    image.onload = () => {
+      if (cancelled) return;
+      openingPyramidClimbPackRef.current = { image, loaded: true, failed: false };
+      syncHud();
+    };
+    image.onerror = () => {
+      if (cancelled) return;
+      openingPyramidClimbPackRef.current = { image: null, loaded: false, failed: true };
+    };
+    image.src = `${import.meta.env.BASE_URL}${OPENING_PYRAMID_CLIMB_PACK_SRC}`;
+    return () => {
+      cancelled = true;
+    };
+  }, [syncHud]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const image = new Image();
+    image.onload = () => {
+      if (cancelled) return;
+      openingPyramidFacadeRef.current = { image, loaded: true, failed: false };
+      syncHud();
+    };
+    image.onerror = () => {
+      if (cancelled) return;
+      openingPyramidFacadeRef.current = { image: null, loaded: false, failed: true };
+    };
+    image.src = `${import.meta.env.BASE_URL}${OPENING_PYRAMID_FACADE_SRC}`;
     return () => {
       cancelled = true;
     };
@@ -1383,7 +1590,13 @@ export default function ExpeditionJourney({
   useEffect(() => {
     let cancelled = false;
     const baseUrl = import.meta.env.BASE_URL;
-    const { atlasPath, characterId, fallbackSrc } = playerHeroSpriteConfig;
+    const {
+      atlasPath,
+      characterId,
+      fallbackAtlasPath,
+      fallbackCharacterId,
+      fallbackSrc,
+    } = playerHeroSpriteConfig;
     const loadLegacySprite = (heroState = {}) => {
       const legacyImage = new Image();
       legacyImage.onload = () => {
@@ -1398,8 +1611,8 @@ export default function ExpeditionJourney({
           legacyLoaded: true,
           failed: false,
           mode: useHero ? 'hero-atlas' : 'legacy-strip',
-          atlasPath,
-          characterId,
+          atlasPath: heroState.atlasPath || atlasPath,
+          characterId: heroState.characterId || characterId,
           fallbackSrc,
         };
         stateRef.current.playerSpriteLoaded = true;
@@ -1417,8 +1630,8 @@ export default function ExpeditionJourney({
           legacyLoaded: false,
           failed: !useHero,
           mode: useHero ? 'hero-atlas' : 'canvas-fallback',
-          atlasPath,
-          characterId,
+          atlasPath: heroState.atlasPath || atlasPath,
+          characterId: heroState.characterId || characterId,
           fallbackSrc,
         };
         stateRef.current.playerSpriteLoaded = useHero;
@@ -1427,6 +1640,23 @@ export default function ExpeditionJourney({
       legacyImage.src = `${baseUrl}${fallbackSrc}`;
     };
 
+    const loadHeroAtlas = (heroAtlasPath, heroCharacterId) => fetch(`${baseUrl}${heroAtlasPath}`)
+      .then((response) => {
+        if (!response.ok) throw new Error(`Player hero atlas request failed: ${response.status}`);
+        return response.json();
+      })
+      .then((atlas) => new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve({
+          image,
+          atlas,
+          atlasPath: heroAtlasPath,
+          characterId: heroCharacterId,
+        });
+        image.onerror = () => reject(new Error(`Player hero image request failed: ${atlas.image}`));
+        image.src = `${baseUrl}${getAtlasImagePath(heroAtlasPath, atlas.image)}`;
+      }));
+
     if (!atlasPath) {
       loadLegacySprite();
       return () => {
@@ -1434,18 +1664,11 @@ export default function ExpeditionJourney({
       };
     }
 
-    fetch(`${baseUrl}${atlasPath}`)
-      .then((response) => {
-        if (!response.ok) throw new Error(`Player hero atlas request failed: ${response.status}`);
-        return response.json();
-      })
-      .then((atlas) => new Promise((resolve) => {
-        const image = new Image();
-        image.onload = () => resolve({ image, atlas });
-        image.onerror = () => resolve({});
-        image.src = `${baseUrl}${getAtlasImagePath(atlasPath, atlas.image)}`;
-      }))
-      .then(loadLegacySprite)
+    loadHeroAtlas(atlasPath, characterId)
+      .catch(() => (fallbackAtlasPath
+        ? loadHeroAtlas(fallbackAtlasPath, fallbackCharacterId || characterId)
+        : null))
+      .then((heroState) => loadLegacySprite(heroState || {}))
       .catch(() => loadLegacySprite());
     return () => {
       cancelled = true;
@@ -2381,6 +2604,9 @@ export default function ExpeditionJourney({
       ambientLifeMode: renderStats.ambientLifeMode || null,
       ambientLifeDetailCount: renderStats.ambientLifeDetailCount || 0,
       hazardReadabilityMode: renderStats.hazardReadabilityMode || 'soft-warning-cues',
+      openingTrapDecalAssetLoaded: Boolean(openingTrapDecalPackRef.current.loaded),
+      openingHazardDecalAssetLoaded: Boolean(openingHazardDecalPackRef.current.loaded),
+      openingTrapDecalAssetVersion: OPENING_TRAP_DECAL_ASSET_VERSION,
       enemyVisualMode: renderStats.enemyVisualMode || 'sprite-atlas-with-grounding',
       bossVisualMode: renderStats.bossVisualMode || 'multi-boss-atlas-fallback-safe',
       assetFallbackActive: environmentFallbackActive || enemySpriteFallbackActive || bossSpriteFallbackActive || collectibleSpriteFallbackActive || playerWeaponSpriteFallbackActive || (backgroundPackId === 'china-river-valley' ? !chinaRiverValleyPack?.ready : (desertBackgroundFallbackActive || ruinedTempleBackgroundFallbackActive || catacombsBackgroundFallbackActive || escapeBackgroundFallbackActive || digSiteBackgroundFallbackActive)),
@@ -3544,12 +3770,220 @@ export default function ExpeditionJourney({
     }
   }, [drawPlayerFallbackCharacter, drawPlayerKhopesh, getPlayerAttackState]);
 
+  const drawOpeningPyramidAssetRegion = useCallback((ctx, regionKey, dest, options = {}) => {
+    const pack = openingPyramidClimbPackRef.current;
+    const region = OPENING_PYRAMID_ASSET_REGIONS[regionKey];
+    if (!pack.loaded || !pack.image || !region) return false;
+    const alpha = options.alpha ?? 1;
+    ctx.save();
+    ctx.globalAlpha *= alpha;
+    if (options.filter) ctx.filter = options.filter;
+    if (options.flipX) {
+      ctx.translate(dest.x + dest.width / 2, dest.y + dest.height / 2);
+      ctx.scale(-1, 1);
+      ctx.drawImage(pack.image, region.x, region.y, region.w, region.h, -dest.width / 2, -dest.height / 2, dest.width, dest.height);
+    } else {
+      ctx.drawImage(pack.image, region.x, region.y, region.w, region.h, dest.x, dest.y, dest.width, dest.height);
+    }
+    ctx.restore();
+    return true;
+  }, []);
+
+  const drawOpeningHazardDecalRegion = useCallback((ctx, descriptor, dest, options = {}) => {
+    if (!descriptor) return false;
+    const pack = descriptor.pack === 'hazard'
+      ? openingHazardDecalPackRef.current
+      : openingTrapDecalPackRef.current;
+    const regions = descriptor.pack === 'hazard'
+      ? OPENING_HAZARD_DECAL_REGIONS
+      : OPENING_TRAP_DECAL_REGIONS;
+    const region = regions[descriptor.regionKey];
+    if (!pack.loaded || !pack.image || !region) return false;
+    const alpha = options.alpha ?? 1;
+    ctx.save();
+    ctx.globalAlpha *= alpha;
+    if (options.filter) ctx.filter = options.filter;
+    ctx.drawImage(pack.image, region.x, region.y, region.w, region.h, dest.x, dest.y, dest.width, dest.height);
+    ctx.restore();
+    return true;
+  }, []);
+
+  const drawOpeningPyramidFacade = useCallback((ctx, cameraX) => {
+    const facade = openingPyramidFacadeRef.current;
+    if (!facade.loaded || !facade.image) return false;
+    const x = worldToScreenX(-82, cameraX);
+    const y = -4;
+    const width = 1208;
+    const height = 664;
+    if (x > CANVAS_WIDTH + 80 || x + width < -80) return false;
+    ctx.save();
+    ctx.globalAlpha = 0.98;
+    ctx.filter = 'sepia(4%) saturate(98%) brightness(91%) contrast(102%)';
+    ctx.drawImage(facade.image, x, y, width, height);
+    ctx.filter = 'none';
+    const baseFade = ctx.createLinearGradient(0, GROUND_Y - 52, 0, GROUND_Y + 24);
+    baseFade.addColorStop(0, 'rgba(171, 103, 42, 0)');
+    baseFade.addColorStop(0.74, 'rgba(171, 103, 42, 0.24)');
+    baseFade.addColorStop(1, 'rgba(91, 51, 21, 0.32)');
+    ctx.fillStyle = baseFade;
+    ctx.fillRect(Math.max(-40, x), GROUND_Y - 52, Math.min(width + 80, CANVAS_WIDTH + 80), 82);
+    ctx.restore();
+    return true;
+  }, []);
+
+  const drawOpeningPyramidMasonryBack = useCallback((ctx, cameraX) => {
+    if (drawOpeningPyramidFacade(ctx, cameraX)) return;
+    const facadeStartX = 80;
+    const facadeEndX = 1760;
+    if (!isHorizontallyVisible(facadeStartX, facadeEndX - facadeStartX, cameraX, 180)) return;
+    const baseY = GROUND_Y + 12;
+    ctx.save();
+
+    OPENING_PYRAMID_FACADE_TIERS.forEach((tier, index) => {
+      const sx = worldToScreenX(tier.x, cameraX);
+      const topY = tier.y;
+      const tierBottom = Math.min(baseY, tier.y + tier.height);
+      const height = tierBottom - topY;
+      if (sx > CANVAS_WIDTH + 160 || sx + tier.width < -160 || height <= 0) return;
+
+      ctx.save();
+      ctx.globalAlpha = tier.alpha;
+      ctx.beginPath();
+      ctx.moveTo(sx + tier.inset, topY);
+      ctx.lineTo(sx + tier.width - tier.inset * 0.3, topY);
+      ctx.lineTo(sx + tier.width, tierBottom);
+      ctx.lineTo(sx, tierBottom);
+      ctx.closePath();
+      ctx.clip();
+
+      const faceGradient = ctx.createLinearGradient(0, topY, 0, tierBottom);
+      faceGradient.addColorStop(0, 'rgb(183, 117, 49)');
+      faceGradient.addColorStop(0.5, 'rgb(110, 63, 27)');
+      faceGradient.addColorStop(1, 'rgb(58, 34, 16)');
+      ctx.fillStyle = faceGradient;
+      ctx.fillRect(sx, topY, tier.width, height);
+
+      const region = index < 3 ? 'leftStairFace' : index < 5 ? 'rightStairFace' : 'terraceWall';
+      drawOpeningPyramidAssetRegion(ctx, region, {
+        x: sx - 10,
+        y: topY - 5,
+        width: tier.width + 20,
+        height: height + 18,
+      }, {
+        alpha: 0.58,
+        filter: 'sepia(10%) saturate(88%) brightness(70%) contrast(112%)',
+      });
+
+      ctx.globalAlpha = tier.alpha * 0.86;
+      ctx.strokeStyle = 'rgba(48, 27, 12, 0.42)';
+      ctx.lineWidth = 1.2;
+      for (let rowY = topY + 13; rowY < tierBottom - 8; rowY += 16) {
+        ctx.beginPath();
+        ctx.moveTo(sx + 18, rowY);
+        ctx.lineTo(sx + tier.width - 18, rowY + Math.sin(rowY * 0.09 + index) * 1.4);
+        ctx.stroke();
+        for (let jointX = sx + 42 + ((index * 23 + rowY) % 58); jointX < sx + tier.width - 36; jointX += 72) {
+          ctx.beginPath();
+          ctx.moveTo(jointX, rowY - 13);
+          ctx.lineTo(jointX + Math.sin(jointX * 0.04) * 5, rowY - 2);
+          ctx.stroke();
+        }
+      }
+
+      ctx.globalCompositeOperation = 'screen';
+      ctx.globalAlpha = tier.alpha * 0.34;
+      ctx.fillStyle = 'rgba(255, 220, 142, 0.9)';
+      ctx.fillRect(sx + tier.inset * 0.7, topY, tier.width - tier.inset, 6);
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.globalAlpha = tier.alpha * 0.2;
+      ctx.fillStyle = 'rgba(41, 23, 9, 0.95)';
+      ctx.fillRect(sx + tier.width * 0.42, topY + 8, tier.width * 0.58, Math.max(12, height - 10));
+      ctx.restore();
+    });
+
+    const summitX = worldToScreenX(scaleJourneyX(488), cameraX);
+    drawOpeningPyramidAssetRegion(ctx, 'terraceWall', {
+      x: summitX - 84,
+      y: openingJourneyY(98),
+      width: 246,
+      height: 86,
+    }, { alpha: 0.82, filter: 'sepia(8%) saturate(92%) brightness(82%) contrast(102%)' });
+    drawOpeningPyramidAssetRegion(ctx, 'carvedColumn', {
+      x: summitX - 58,
+      y: openingJourneyY(129),
+      width: 54,
+      height: 118,
+    }, { alpha: 0.64, filter: 'sepia(8%) saturate(86%) brightness(80%) contrast(96%)' });
+    drawOpeningPyramidAssetRegion(ctx, 'paintedColumn', {
+      x: summitX + 84,
+      y: openingJourneyY(128),
+      width: 54,
+      height: 120,
+    }, { alpha: 0.6, filter: 'sepia(8%) saturate(86%) brightness(80%) contrast(96%)' });
+
+    const stagedPromiseX = worldToScreenX(980, cameraX);
+    if (stagedPromiseX > -120 && stagedPromiseX < CANVAS_WIDTH + 120) {
+      ctx.save();
+      const beaconY = openingJourneyY(96);
+      const glow = ctx.createRadialGradient(stagedPromiseX, beaconY, 12, stagedPromiseX, beaconY, 86);
+      glow.addColorStop(0, 'rgba(56, 189, 248, 0.34)');
+      glow.addColorStop(0.34, 'rgba(250, 204, 21, 0.22)');
+      glow.addColorStop(1, 'rgba(250, 204, 21, 0)');
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.ellipse(stagedPromiseX, beaconY, 82, 92, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+      drawOpeningPyramidAssetRegion(ctx, 'pedestal', {
+        x: stagedPromiseX - 46,
+        y: openingJourneyY(112),
+        width: 92,
+        height: 72,
+      }, { alpha: 0.72, filter: 'sepia(8%) saturate(88%) brightness(82%) contrast(98%)' });
+      drawOpeningPyramidAssetRegion(ctx, 'seal', {
+        x: stagedPromiseX - 27,
+        y: beaconY - 31,
+        width: 54,
+        height: 54,
+      }, { alpha: 0.88, filter: 'saturate(112%) brightness(108%) contrast(104%)' });
+    }
+
+    const lowerX = worldToScreenX(scaleJourneyX(110), cameraX);
+    drawOpeningPyramidAssetRegion(ctx, 'carvedColumn', {
+      x: lowerX + 20,
+      y: openingJourneyY(270),
+      width: 58,
+      height: 118,
+    }, { alpha: 0.48, filter: 'sepia(8%) saturate(84%) brightness(78%) contrast(96%)' });
+    drawOpeningPyramidAssetRegion(ctx, 'paintedColumn', {
+      x: lowerX + 318,
+      y: openingJourneyY(226),
+      width: 58,
+      height: 122,
+    }, { alpha: 0.48, filter: 'sepia(8%) saturate(84%) brightness(78%) contrast(96%)' });
+
+    const x = worldToScreenX(scaleJourneyX(84), cameraX);
+    drawOpeningPyramidAssetRegion(ctx, 'rubble', {
+      x: x + 510,
+      y: GROUND_Y - 64,
+      width: 128,
+      height: 58,
+    }, { alpha: 0.74 });
+    drawOpeningPyramidAssetRegion(ctx, 'dust', {
+      x: x + 80,
+      y: GROUND_Y - 42,
+      width: 520,
+      height: 58,
+    }, { alpha: 0.3 });
+    ctx.restore();
+  }, [drawOpeningPyramidAssetRegion, drawOpeningPyramidFacade]);
+
   const drawDesertEntryPlatformSupport = useCallback((ctx, platform, screenX, visualY, visualHeight, reactiveActive = false) => {
     const topY = visualY + visualHeight - 4;
     if (topY >= GROUND_Y - 10) return;
 
     const centerX = screenX + platform.width / 2;
-    const openingSetPiece = platform.x < 720;
+    const openingSetPiece = platform.x < scaleJourneyX(720);
     const compactOpeningSupport = openingSetPiece && (
       platform.width <= 170
       || platform.label?.includes('return')
@@ -3557,17 +3991,23 @@ export default function ExpeditionJourney({
     );
     const floatingOpeningSupport = openingSetPiece && topY < GROUND_Y - 150;
     const supportBottom = openingSetPiece
-      ? Math.min(GROUND_Y - 4, topY + (floatingOpeningSupport ? 118 : 160))
+      ? Math.min(GROUND_Y - 8, topY + (floatingOpeningSupport ? 82 : 118))
       : GROUND_Y - 4;
     const supportHeight = Math.max(28, supportBottom - topY);
     const columnCount = compactOpeningSupport ? 1 : platform.width >= 250 ? 3 : platform.width >= 160 ? 2 : 1;
     const columnWidth = compactOpeningSupport ? 26 : openingSetPiece ? 38 : 30;
-    const baseAlpha = compactOpeningSupport ? 0.58 : openingSetPiece ? 0.86 : 0.62;
+    const baseAlpha = compactOpeningSupport ? 0.42 : openingSetPiece ? 0.58 : 0.62;
     const blockHeight = compactOpeningSupport ? 16 : openingSetPiece ? 18 : 14;
 
     ctx.save();
     ctx.globalAlpha = baseAlpha;
     drawDecorativeBaseBlend(ctx, centerX, supportBottom + 6, platform.width * 0.88, 'desert-entry', 'midground', openingSetPiece ? 0.28 : 0.52);
+
+    if (openingSetPiece && openingPyramidClimbPackRef.current.loaded) {
+      drawGroundDustLip(ctx, centerX, Math.min(GROUND_Y - 6, supportBottom + 1), platform.width * 0.58, 'rgba(171, 103, 42, 0.12)');
+      ctx.restore();
+      return;
+    }
 
     if (!openingSetPiece) {
       const backShadow = ctx.createLinearGradient(0, topY, 0, supportBottom);
@@ -3591,6 +4031,16 @@ export default function ExpeditionJourney({
       const columnTop = topY + (compactOpeningSupport ? 12 : openingSetPiece ? 8 : 4) + (index % 2) * 5;
       const columnBottom = supportBottom;
       const columnHeight = Math.max(22, columnBottom - columnTop);
+      if (openingSetPiece && openingPyramidClimbPackRef.current.loaded) {
+        const columnRegion = index % 2 ? 'paintedColumn' : 'carvedColumn';
+        drawOpeningPyramidAssetRegion(ctx, columnRegion, {
+          x: columnX - columnWidth / 2 + lean - 12,
+          y: columnTop - 9,
+          width: columnWidth + 24,
+          height: columnHeight + 15,
+        }, { alpha: compactOpeningSupport ? 0.34 : 0.46, filter: 'sepia(8%) saturate(84%) brightness(84%) contrast(92%)' });
+        continue;
+      }
       const columnGradient = ctx.createLinearGradient(0, columnTop, 0, columnBottom);
       columnGradient.addColorStop(0, openingSetPiece ? 'rgb(184, 118, 57)' : 'rgb(157, 98, 46)');
       columnGradient.addColorStop(0.48, openingSetPiece ? 'rgb(126, 74, 34)' : 'rgb(113, 67, 31)');
@@ -3688,10 +4138,10 @@ export default function ExpeditionJourney({
 
     drawGroundDustLip(ctx, centerX, supportBottom + 1, platform.width * 0.72, 'rgba(171, 103, 42, 0.16)');
     ctx.restore();
-  }, [drawDecorativeBaseBlend, drawGroundDustLip]);
+  }, [drawDecorativeBaseBlend, drawGroundDustLip, drawOpeningPyramidAssetRegion]);
 
   const drawDesertOpeningPlatformFace = useCallback((ctx, platform, x, visualY, visualHeight, reactiveActive = false) => {
-    const isOpeningPlatform = platform.x < 720;
+    const isOpeningPlatform = platform.x < scaleJourneyX(720);
     if (!isOpeningPlatform) return;
 
     const topY = visualY;
@@ -3702,6 +4152,71 @@ export default function ExpeditionJourney({
 
     ctx.save();
     ctx.globalCompositeOperation = 'source-over';
+    if (openingPyramidFacadeRef.current.loaded) {
+      const hiddenFacadeTread = /stair tread|stair helper|pressure stair slab|cracked summit trap slab/i.test(platform.label || '');
+      if (hiddenFacadeTread) {
+        ctx.restore();
+        return;
+      }
+      ctx.globalAlpha = reactiveActive ? 0.62 : 0.16;
+      const edgeGradient = ctx.createLinearGradient(0, topY - 3, 0, topY + 9);
+      edgeGradient.addColorStop(0, 'rgba(255, 225, 145, 0.38)');
+      edgeGradient.addColorStop(0.55, 'rgba(159, 92, 35, 0.16)');
+      edgeGradient.addColorStop(1, 'rgba(53, 30, 12, 0)');
+      ctx.fillStyle = edgeGradient;
+      ctx.fillRect(x + 12, topY - 2, platform.width - 24, 8);
+      ctx.strokeStyle = reactiveActive ? 'rgba(255, 202, 138, 0.58)' : 'rgba(255, 222, 154, 0.18)';
+      ctx.lineWidth = reactiveActive ? 2 : 1.4;
+      if (reactiveActive) ctx.setLineDash([10, 7]);
+      ctx.beginPath();
+      ctx.moveTo(x + 18, topY + 1);
+      ctx.lineTo(x + platform.width - 18, topY + 1);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+      return;
+    }
+
+    const sourceKey = platform.reactive
+      ? 'trapSlab'
+      : platform.label?.includes('summit')
+        ? 'terraceWall'
+        : platform.label?.includes('base')
+          ? 'crackedBlock'
+          : 'terraceWall';
+    if (openingPyramidClimbPackRef.current.loaded) {
+      const embeddedAlpha = platform.label?.includes('summit')
+        ? 0.94
+        : platform.reactive
+          ? 0.88
+          : 0.78;
+      drawOpeningPyramidAssetRegion(ctx, sourceKey, {
+        x: x - 4,
+        y: topY - 7,
+        width: platform.width + 8,
+        height: Math.max(36, visualHeight + 13),
+      }, {
+        alpha: reactiveActive ? Math.min(1, embeddedAlpha + 0.08) : embeddedAlpha,
+        filter: reactiveActive ? 'saturate(112%) brightness(108%)' : 'sepia(6%) saturate(96%) brightness(94%) contrast(98%)',
+      });
+      ctx.save();
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.fillStyle = 'rgba(99, 55, 24, 0.18)';
+      ctx.fillRect(x, topY + 8, platform.width, Math.max(9, visualHeight - 7));
+      ctx.restore();
+      if (reactiveActive) {
+        ctx.strokeStyle = 'rgba(255, 202, 138, 0.46)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([10, 7]);
+        ctx.beginPath();
+        ctx.moveTo(x + 12, topY + 18);
+        ctx.lineTo(x + platform.width - 12, topY + 24);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+      ctx.restore();
+      return;
+    }
 
     const faceGradient = ctx.createLinearGradient(0, topY, 0, bottomY);
     faceGradient.addColorStop(0, 'rgba(205, 141, 69, 0.24)');
@@ -3757,7 +4272,7 @@ export default function ExpeditionJourney({
     }
 
     ctx.restore();
-  }, []);
+  }, [drawOpeningPyramidAssetRegion]);
 
   const drawPlatform = useCallback((ctx, platform, cameraX, current) => {
     const x = worldToScreenX(platform.x, cameraX);
@@ -3781,6 +4296,24 @@ export default function ExpeditionJourney({
     const platformX = x - 2;
     const platformWidth = platform.width + 4;
     const desertSetPiecePlatform = section.id === 'desert-entry' && !isGround;
+    const embeddedOpeningPyramidPlatform = desertSetPiecePlatform
+      && platform.x < scaleJourneyX(720)
+      && (openingPyramidFacadeRef.current.loaded || openingPyramidClimbPackRef.current.loaded);
+    const facadeIntegratedOpeningPlatform = desertSetPiecePlatform
+      && platform.x < scaleJourneyX(720)
+      && openingPyramidFacadeRef.current.loaded;
+    if (facadeIntegratedOpeningPlatform) {
+      const hiddenFacadeTread = /stair tread|stair helper|pressure stair slab|cracked summit trap slab/i.test(platform.label || '');
+      drawDesertOpeningPlatformFace(ctx, platform, x, visualY, visualHeight, reactiveActive);
+      if (reactiveActive && !hiddenFacadeTread) {
+        ctx.save();
+        ctx.fillStyle = `rgba(248, 113, 113, ${0.16 + reactivePulse * 0.14})`;
+        ctx.fillRect(x + 10, platform.y - 2, platform.width - 20, 4);
+        ctx.restore();
+      }
+      ctx.restore();
+      return;
+    }
     ctx.fillStyle = isGround
       ? section.id === 'catacombs'
         ? '#2b211a'
@@ -3800,6 +4333,9 @@ export default function ExpeditionJourney({
       ctx.fillRect(platformX, visualY + visualHeight - 8, platformWidth, 8);
     }
     ctx.fillStyle = isGround ? '#9b7140' : '#5f4229';
+    if (embeddedOpeningPyramidPlatform) {
+      ctx.globalAlpha *= facadeIntegratedOpeningPlatform ? 0.18 : 0.62;
+    }
     ctx.fillRect(platformX, visualY, platformWidth, visualHeight);
     if (desertSetPiecePlatform) {
       ctx.filter = 'sepia(16%) saturate(78%) brightness(84%) contrast(96%)';
@@ -3823,12 +4359,12 @@ export default function ExpeditionJourney({
       if (desertSetPiecePlatform) {
         ctx.save();
         ctx.globalCompositeOperation = 'multiply';
-        ctx.fillStyle = platform.x < 720 ? 'rgba(142, 78, 31, 0.18)' : 'rgba(167, 101, 42, 0.22)';
+        ctx.fillStyle = platform.x < scaleJourneyX(720) ? 'rgba(142, 78, 31, 0.18)' : 'rgba(167, 101, 42, 0.22)';
         ctx.fillRect(platformX, visualY, platformWidth, visualHeight);
         ctx.restore();
         ctx.save();
         ctx.globalCompositeOperation = 'screen';
-        ctx.fillStyle = platform.x < 720 ? 'rgba(255, 220, 146, 0.14)' : 'rgba(255, 205, 130, 0.08)';
+        ctx.fillStyle = platform.x < scaleJourneyX(720) ? 'rgba(255, 220, 146, 0.14)' : 'rgba(255, 205, 130, 0.08)';
         ctx.fillRect(platformX, visualY, platformWidth, Math.max(5, visualHeight * 0.24));
         ctx.restore();
         drawDesertOpeningPlatformFace(ctx, platform, x, visualY, visualHeight, reactiveActive);
@@ -3863,7 +4399,7 @@ export default function ExpeditionJourney({
         ctx.setLineDash([]);
       }
       if (!isGround) {
-        ctx.fillStyle = desertSetPiecePlatform ? (platform.x < 720 ? 'rgba(23, 13, 6, 0.48)' : 'rgba(30, 18, 9, 0.4)') : 'rgba(30, 18, 9, 0.3)';
+        ctx.fillStyle = desertSetPiecePlatform ? (platform.x < scaleJourneyX(720) ? 'rgba(23, 13, 6, 0.48)' : 'rgba(30, 18, 9, 0.4)') : 'rgba(30, 18, 9, 0.3)';
         ctx.fillRect(x, platform.y + visualHeight - 7, platform.width, 7);
         if (platform.requiresObjective) {
           const glow = 0.26 + Math.sin(Date.now() / 180) * 0.08;
@@ -3956,6 +4492,16 @@ export default function ExpeditionJourney({
       const baseY = prop.y;
       drawContactShadow(ctx, x, baseY + 3, 54, 0.14, 1.1);
       drawDecorativeBaseBlend(ctx, x, baseY + 2, 58, section.id, propDepth, 0.6);
+      if (openingPyramidClimbPackRef.current.loaded) {
+        drawOpeningPyramidAssetRegion(ctx, 'pedestal', {
+          x: x - 45,
+          y: baseY - 48,
+          width: 90,
+          height: 72,
+        }, { alpha: 0.96 });
+        ctx.restore();
+        return;
+      }
       ctx.fillStyle = 'rgba(96, 58, 28, 0.76)';
       ctx.beginPath();
       ctx.roundRect(x - 28, baseY - 18, 56, 18, 4);
@@ -3981,6 +4527,17 @@ export default function ExpeditionJourney({
       ctx.beginPath();
       ctx.arc(x, prop.y, scarabSealActivated ? 26 : 20, 0, Math.PI * 2);
       ctx.fill();
+      if (openingPyramidClimbPackRef.current.loaded) {
+        const drawSize = scarabSealActivated ? 54 : 48;
+        drawOpeningPyramidAssetRegion(ctx, 'seal', {
+          x: x - drawSize / 2,
+          y: prop.y - drawSize / 2,
+          width: drawSize,
+          height: drawSize,
+        }, { alpha: 1 });
+        ctx.restore();
+        return;
+      }
       if (sealImage.loaded && sealImage.image) {
         const drawSize = scarabSealActivated ? 44 : 38;
         ctx.drawImage(sealImage.image, x - drawSize / 2, prop.y - drawSize / 2, drawSize, drawSize);
@@ -4379,7 +4936,7 @@ export default function ExpeditionJourney({
       ctx.fill();
     }
     ctx.restore();
-  }, [drawContactShadow, drawDecorativeBaseBlend, drawForegroundSettlingDetails, drawGroundDustLip]);
+  }, [drawContactShadow, drawDecorativeBaseBlend, drawForegroundSettlingDetails, drawGroundDustLip, drawOpeningPyramidAssetRegion]);
 
   const drawWorldContinuityLandmark = useCallback((ctx, landmark, cameraX, now) => {
     const parallax = landmark.parallax ?? 0.2;
@@ -5542,7 +6099,6 @@ export default function ExpeditionJourney({
       drawDesertBackgroundLayer(ctx, assets, 'sky', { y: 0, height: CANVAS_HEIGHT }, { ...layerOptions, parallax: 0, alpha: 1 }),
       drawDesertBackgroundLayer(ctx, assets, 'farDunes', { y: 0, height: CANVAS_HEIGHT }, { ...layerOptions, parallax: 0.035, alpha: 0.78 }),
       drawDesertBackgroundLayer(ctx, assets, 'distantRuins', { y: 0, height: CANVAS_HEIGHT }, { ...layerOptions, parallax: 0.1, alpha: 0.68 }),
-      drawDesertBackgroundLayer(ctx, assets, 'midgroundRuins', { y: 0, height: CANVAS_HEIGHT }, { ...layerOptions, parallax: 0.2, alpha: 0.74 }),
     ];
     return drawn.every(Boolean);
   }, []);
@@ -5971,11 +6527,43 @@ export default function ExpeditionJourney({
       width: hazard.width + grounding.widthPad,
       height: Math.max(12, hazard.height + grounding.heightPad),
     };
+    const decalDescriptor = getEgyptHazardDecalDescriptor(hazard);
+    const decalDest = decalDescriptor
+      ? getEgyptHazardDecalDest(hazard, hx, footY, decalDescriptor.regionKey)
+      : hazardDest;
     if (visualHazardId !== 'bat-cloud' && visualHazardId !== 'dust-wave') {
       drawContactShadow(ctx, centerX, footY + 3, hazard.width * 0.92, grounding.shadow, 0.9);
     }
     if (dustWidth > 0) {
       drawGroundDustLip(ctx, centerX, footY + 1, dustWidth, 'rgba(122, 78, 37, 0.16)');
+    }
+    if (decalDescriptor) {
+      const warningAlpha = hitActive ? 0.34 : 0.16 + pulse * 0.06;
+      ctx.save();
+      ctx.fillStyle = `rgba(34, 211, 238, ${warningAlpha})`;
+      ctx.beginPath();
+      ctx.ellipse(centerX, footY - 5, decalDest.width * 0.42, Math.max(7, decalDest.height * 0.12), 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+      const decalDrawn = drawOpeningHazardDecalRegion(ctx, decalDescriptor, decalDest, {
+        alpha: hitActive ? 1 : 0.94,
+        filter: hitActive ? 'saturate(122%) brightness(108%)' : grounding.filter,
+      });
+      if (decalDrawn) {
+        if (hitActive) {
+          ctx.strokeStyle = 'rgba(248, 113, 113, 0.78)';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.roundRect(decalDest.x + 4, decalDest.y + 4, decalDest.width - 8, decalDest.height - 8, 8);
+          ctx.stroke();
+        }
+        if (dustWidth > 0) {
+          drawGroundDustLip(ctx, centerX, footY + 2, dustWidth * 0.82, 'rgba(209, 143, 72, 0.24)');
+          drawHazardGroundApron(ctx, centerX, footY + 4, dustWidth, section.id, visualHazardId === 'sand-pit' || visualHazardId === 'dark-gap' ? 1.2 : 0.82);
+        }
+        ctx.restore();
+        return;
+      }
     }
     ctx.save();
     ctx.filter = grounding.filter;
@@ -6098,7 +6686,7 @@ export default function ExpeditionJourney({
       drawHazardGroundApron(ctx, centerX, footY + 4, dustWidth, section.id, visualHazardId === 'sand-pit' || visualHazardId === 'dark-gap' ? 1.2 : 0.82);
     }
     ctx.restore();
-  }, [drawContactShadow, drawGroundDustLip, drawHazardGroundApron]);
+  }, [drawContactShadow, drawGroundDustLip, drawHazardGroundApron, drawOpeningHazardDecalRegion]);
 
   const drawSmallEnemySprite = useCallback((ctx, enemy, screenX, now, shakeX = 0) => {
     const family = getEnemySpriteFamily(enemy);
@@ -6900,7 +7488,9 @@ export default function ExpeditionJourney({
       ambientLifeVersion: null,
       ambientLifeMode: null,
       ambientLifeDetailCount: 0,
-      hazardReadabilityMode: 'soft-warning-cues',
+      hazardReadabilityMode: openingTrapDecalPackRef.current.loaded && openingHazardDecalPackRef.current.loaded
+        ? 'painted-egypt-trap-decals-complete'
+        : 'soft-warning-cues',
       combatIntensityPassActive: true,
       combatIntensityVersion: COMBAT_INTENSITY_VERSION,
       combatReadabilityMode: 'windup-vulnerable-pressure-v1',
@@ -6911,6 +7501,13 @@ export default function ExpeditionJourney({
       collectibleVisualMode: collectibleSpriteAssetsRef.current.loaded ? 'sprite-atlas-with-fallback' : 'canvas-fallback',
       playerWeaponVisualMode: playerWeaponSpriteRef.current.loaded ? 'khopesh-sprite-atlas' : 'canvas-fallback',
       desertVisualTuningVersion: DESERT_VISUAL_TUNING_VERSION,
+      openingPyramidAssetVersion: OPENING_PYRAMID_ASSET_VERSION,
+      openingPyramidAssetLoaded: openingPyramidClimbPackRef.current.loaded,
+      openingPyramidFacadeVersion: OPENING_PYRAMID_FACADE_VERSION,
+      openingPyramidFacadeLoaded: openingPyramidFacadeRef.current.loaded,
+      openingTrapDecalAssetVersion: OPENING_TRAP_DECAL_ASSET_VERSION,
+      openingTrapDecalAssetLoaded: openingTrapDecalPackRef.current.loaded,
+      openingHazardDecalAssetLoaded: openingHazardDecalPackRef.current.loaded,
       assetGroundingPassActive: true,
       groundedPropCount: 0,
       backgroundPropTintActive: true,
@@ -7014,6 +7611,7 @@ export default function ExpeditionJourney({
       renderParallaxLayer(0.28, `${atmosphere.skyBottom}cc`, 0.5);
     }
     drawDesertForegroundAtmosphere(ctx, section, cameraX);
+    drawOpeningPyramidMasonryBack(ctx, cameraX);
     STORY_PROPS.forEach((prop) => drawStoryProp(ctx, prop, cameraX, now, 'midground'));
     ENVIRONMENT_INTERACTIONS.forEach((item) => drawEnvironmentInteraction(ctx, item, cameraX, now, current));
     drawEgyptAmbientLife(ctx, section, cameraX, now);
@@ -7113,8 +7711,8 @@ export default function ExpeditionJourney({
       const openingCheckpointMarker = checkpoint.id === 'desert-entry';
       ctx.save();
       const checkpointSection = getSectionForX(markerX);
-      const checkpointHeight = openingCheckpointMarker ? 178 : active ? 160 : 148;
-      const checkpointWidth = checkpointHeight * (openingCheckpointMarker ? 1.38 : 1.48);
+      const checkpointHeight = openingCheckpointMarker ? 154 : active ? 160 : 148;
+      const checkpointWidth = checkpointHeight * (openingCheckpointMarker ? 1.36 : 1.48);
       if (openingCheckpointMarker) {
         const pulse = 0.92 + Math.sin(now / 360) * 0.08;
         const sacredGlow = ctx.createRadialGradient(cx, GROUND_Y - 72, 18, cx, GROUND_Y - 72, checkpointWidth * 0.68 * pulse);
@@ -7534,7 +8132,7 @@ export default function ExpeditionJourney({
       ctx.fillText(featureCard.message || '', cardCenterX, cardY + (isGuardianCard ? 60 : isSectionCard ? 42 : 54));
       ctx.textAlign = 'start';
     }
-  }, [backgroundPackId, drawAncientRouteGround, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningSphinxEncounter, drawParticles, drawPlatform, drawRouteGate, drawRouteGroundApron, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStoryProp, drawTempleBackdrop, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getGateGuidance, getGateRequirements, getPlayerAttackState, isRouteRewardAccessible, drawPlayerSprite, drawFieldNoteLabel]);
+  }, [backgroundPackId, drawAncientRouteGround, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawParticles, drawPlatform, drawRouteGate, drawRouteGroundApron, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStoryProp, drawTempleBackdrop, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getGateGuidance, getGateRequirements, getPlayerAttackState, isRouteRewardAccessible, drawPlayerSprite, drawFieldNoteLabel]);
 
   const queueAttack = useCallback(() => {
     const current = stateRef.current;
@@ -7552,10 +8150,9 @@ export default function ExpeditionJourney({
     const maxStamina = upgradeEffects.maxStamina || 100;
     const knockbackMultiplier = upgradeEffects.knockbackMultiplier || 1;
     const keys = keysRef.current;
-    const openingRevealActive = (current.openingCameraRevealTimer || 0) > 0;
-    const left = !openingRevealActive && (keys.ArrowLeft || keys.KeyA);
-    const right = !openingRevealActive && (keys.ArrowRight || keys.KeyD);
-    const jump = !openingRevealActive && (keys.ArrowUp || keys.KeyW || keys.Space);
+    const left = keys.ArrowLeft || keys.KeyA;
+    const right = keys.ArrowRight || keys.KeyD;
+    const jump = keys.ArrowUp || keys.KeyW || keys.Space;
     const approach = (value, target, amount) => {
       if (value < target) return Math.min(value + amount, target);
       if (value > target) return Math.max(value - amount, target);

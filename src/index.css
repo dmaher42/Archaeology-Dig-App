@@ -12348,7 +12348,10 @@ main {
 }
 
 .expedition-basecamp-card {
-  background: var(--bureau-parchment);
+  background:
+    linear-gradient(rgba(244, 238, 224, 0.85), rgba(244, 238, 224, 0.85)),
+    url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E"),
+    var(--bureau-parchment);
   border: 1px solid #c2b29a;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
   padding: 2.5rem;
@@ -12357,6 +12360,14 @@ main {
   display: flex;
   flex-direction: column;
   gap: 2.5rem;
+}
+
+.expedition-basecamp-card::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border: 1px solid rgba(139, 106, 72, 0.15);
+  pointer-events: none;
 }
 
 .expedition-basecamp-card::after {
@@ -12560,14 +12571,7 @@ main {
   gap: 0.6rem;
 }
 
-.basecamp-shop-item {
-  display: grid;
-  gap: 0.58rem;
-  padding: 0.75rem;
-  border: 1px solid rgba(139, 106, 72, 0.2);
-  border-radius: 7px;
-  background: rgba(255, 255, 255, 0.48);
-}
+.basecamp-shop-item { display: grid; gap: 0.58rem; padding: 0.75rem; border: 1px solid rgba(139, 106, 72, 0.25); border-radius: 4px; background: #fdfcfa; }
 
 .basecamp-shop-item.is-owned {
   border-color: rgba(45, 90, 39, 0.32);
@@ -12711,13 +12715,7 @@ main {
   }
 }
 
-.expedition-mission-card {
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px dashed var(--bureau-gold-muted);
-  padding: 1.5rem;
-  border-radius: 8px;
-  position: relative;
-}
+.expedition-mission-card { background: rgba(255, 255, 255, 0.6); border: 1px solid var(--bureau-gold-muted); border-left: 4px solid var(--bureau-red, #9d2e24); padding: 1.5rem; border-radius: 4px; position: relative; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }
 
 .mission-category-tag {
   display: inline-block;
@@ -12753,12 +12751,7 @@ main {
   gap: 1.25rem;
 }
 
-.expedition-field-kit-impact {
-  padding: 1.25rem;
-  background: rgba(255, 255, 255, 0.4);
-  border: 1px solid rgba(139, 106, 72, 0.2);
-  border-radius: 8px;
-  display: flex;
+.expedition-field-kit-impact { padding: 1.25rem; background: #fdfcfa; border: 1px solid rgba(139, 106, 72, 0.25); border-radius: 4px; display: flex;
   flex-direction: column;
   gap: 1rem;
   transition: all 0.2s ease;
@@ -18246,6 +18239,5 @@ main {
 .bureau-briefing-modal.expedition-inspection-modal .expedition-satchel-decision .expedition-evidence-item {
   padding: 0.45rem 0.55rem;
 }
-
 
 .bureau-case-actions .btn { max-width: 400px; margin: 0 auto; width: 100%; }

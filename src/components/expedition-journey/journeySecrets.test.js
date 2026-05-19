@@ -17,6 +17,9 @@ const journeyRenderAssetsSource = readFileSync(new URL('./journeyRenderAssets.js
 const expeditionStagesSource = readFileSync(new URL('../expedition/expeditionStages.js', import.meta.url), 'utf8');
 const journeyComponentSource = readFileSync(new URL('../ExpeditionJourney.jsx', import.meta.url), 'utf8');
 const egyptPlayerAtlas = JSON.parse(
+  readFileSync(new URL('../../../public/assets/expedition/player/asha-player-production-spritesheet.json', import.meta.url), 'utf8'),
+);
+const egyptPlayerFallbackAtlas = JSON.parse(
   readFileSync(new URL('../../../public/assets/expedition/player/egypt-warrior-guide-spritesheet.json', import.meta.url), 'utf8'),
 );
 const egyptMarkerAtlas = JSON.parse(
@@ -25,6 +28,8 @@ const egyptMarkerAtlas = JSON.parse(
 const egyptSacredTrapAtlas = JSON.parse(
   readFileSync(new URL('../../../public/assets/expedition/environment/desert-temple/egypt-sacred-traps-pack.json', import.meta.url), 'utf8'),
 );
+const egyptOpeningTrapDecalsPath = new URL('../../../public/assets/expedition/environment/egypt-opening/opening-trap-decals.png', import.meta.url);
+const egyptOpeningHazardDecalsPath = new URL('../../../public/assets/expedition/environment/egypt-opening/opening-hazard-decals.png', import.meta.url);
 const extractExportedArray = (name) => {
   const startToken = `export const ${name} = [`;
   const start = source.indexOf(startToken);
@@ -217,8 +222,8 @@ test('opening Scarab Seal climb triggers a boss confrontation without completing
   assert.match(source, /id:\s*'scarab-seal-trigger'/);
   assert.match(source, /name:\s*'Sacred Scarab Seal'/);
   assert.match(source, /bossId:\s*'scarab-queen'/);
-  assert.match(source, /x:\s*X\(168\)/);
-  assert.match(source, /y:\s*JY\(8\)/);
+  assert.match(source, /x:\s*1030/);
+  assert.match(source, /y:\s*JY\(-164\)/);
   assert.match(source, /You have touched a sealed artefact\./);
   assert.match(source, /The Sphinx watches from beyond the sand\./);
   assert.match(source, /These artefacts are protected for a reason\./);
@@ -226,19 +231,26 @@ test('opening Scarab Seal climb triggers a boss confrontation without completing
   assert.match(source, /eventName:\s*'The Sphinx'/);
   assert.match(source, /Then we must prove we can pass\. Gather shards, recover tools, and move with care\./);
   assert.match(platforms, /sealed scarab pyramid base/i);
-  assert.match(platforms, /lower collapsed pyramid stair/i);
-  assert.match(platforms, /carved pressure stair slab/i);
+  assert.match(platforms, /visible lower pyramid step block/i);
+  assert.match(platforms, /visible second pyramid step block/i);
+  assert.match(platforms, /visible third pyramid step block/i);
+  assert.match(platforms, /visible upper pyramid step block/i);
   assert.match(platforms, /middle recovery temple slab/i);
-  assert.match(platforms, /cracked summit trap slab/i);
+  assert.match(platforms, /visible upper temple step block/i);
+  assert.match(platforms, /visible summit approach step block/i);
+  assert.match(platforms, /visible summit stair block/i);
   assert.match(platforms, /scarab seal summit platform/i);
   assert.match(platforms, /id:\s*'opening-scarab-seal-summit'/);
-  assert.match(platforms, /x:\s*X\(38\)[\s\S]*?sealed scarab pyramid base/);
-  assert.match(platforms, /id:\s*'opening-scarab-left-trap'[\s\S]*?reactive:\s*\{[\s\S]*?type:\s*'unstable ledge'[\s\S]*?delay:\s*1\.8[\s\S]*?respawn:\s*2\.6/);
-  assert.match(platforms, /id:\s*'opening-scarab-right-cracked-step'[\s\S]*?reactive:\s*\{[\s\S]*?type:\s*'collapsing bridge piece'[\s\S]*?delay:\s*1\.75[\s\S]*?respawn:\s*2\.75/);
+  assert.match(platforms, /x:\s*145[\s\S]*?sealed scarab pyramid base/);
+  assert.doesNotMatch(platforms, /lower pyramid stair tread/i);
+  assert.doesNotMatch(platforms, /carved pressure stair slab/i);
+  assert.doesNotMatch(platforms, /upper lower-stair tread/i);
+  assert.doesNotMatch(platforms, /upper pyramid stair helper/i);
+  assert.doesNotMatch(platforms, /cracked summit trap slab/i);
   assert.match(storyProps, /id:\s*'early-scarab-seal-pedestal'/);
   assert.match(storyProps, /id:\s*'early-scarab-seal'/);
-  assert.match(storyProps, /id:\s*'early-scarab-seal-pedestal'[\s\S]*?x:\s*X\(470\)[\s\S]*?y:\s*JY\(55\)/);
-  assert.match(storyProps, /id:\s*'early-scarab-seal'[\s\S]*?x:\s*X\(470\)[\s\S]*?y:\s*JY\(28\)/);
+  assert.match(storyProps, /id:\s*'early-scarab-seal-pedestal'[\s\S]*?x:\s*1030[\s\S]*?y:\s*JY\(-137\)/);
+  assert.match(storyProps, /id:\s*'early-scarab-seal'[\s\S]*?x:\s*1030[\s\S]*?y:\s*JY\(-164\)/);
   assert.match(journeyComponentSource, /'early-scarab-seal-pedestal':\s*\{[\s\S]*?width:\s*54[\s\S]*?height:\s*42[\s\S]*?yOffset:\s*0/);
   assert.match(journeyComponentSource, /'early-scarab-seal':\s*\{[\s\S]*?width:\s*38[\s\S]*?height:\s*38[\s\S]*?yOffset:\s*0/);
   assert.match(journeyComponentSource, /OPENING_SCARAB_SEAL_IMAGE_SRC = 'assets\/expedition\/environment\/egypt-opening\/scarab-seal-opening\.png'/);
@@ -349,22 +361,32 @@ test('China Journey uses a unique female player atlas through the existing playe
   assert.match(journeyComponentSource, /groundLineY/);
 });
 
-test('Egypt Journey uses the temporary warrior guide atlas through the existing player renderer', () => {
+test('Egypt Journey uses the Asha atlas through the existing player renderer', () => {
   assert.match(journeyConstantsSource, /PLAYER_HERO_SPRITE_ATLAS_JSON/);
+  assert.match(journeyConstantsSource, /asha-player-production-spritesheet\.json/);
+  assert.match(journeyConstantsSource, /PLAYER_HERO_FALLBACK_SPRITE_ATLAS_JSON/);
   assert.match(journeyConstantsSource, /egypt-warrior-guide-spritesheet\.json/);
-  assert.match(journeyComponentSource, /characterId:\s*'egypt-warrior-guide'/);
+  assert.match(journeyComponentSource, /characterId:\s*'asha-egypt-archaeologist'/);
   assert.match(journeyComponentSource, /atlasPath:\s*PLAYER_HERO_SPRITE_ATLAS_JSON/);
   assert.match(journeyComponentSource, /version:\s*PLAYER_HERO_SPRITE_VERSION/);
+  assert.match(journeyComponentSource, /fallbackAtlasPath:\s*PLAYER_HERO_FALLBACK_SPRITE_ATLAS_JSON/);
+  assert.match(journeyComponentSource, /fallbackCharacterId:\s*'egypt-warrior-guide'/);
   assert.match(journeyComponentSource, /fallbackSrc:\s*PLAYER_LEGACY_SPRITE_SRC/);
   assert.match(journeyComponentSource, /if\s*\(!atlasPath\)\s*\{\s*loadLegacySprite\(\);/);
   assert.equal(egyptPlayerAtlas.draw.suppressExternalWeapon, true);
   assert.equal(egyptPlayerAtlas.draw.suppressRuntimeAttackArc, true);
-  assert.equal(egyptPlayerAtlas.draw.sourceHeight, 190);
+  assert.equal(egyptPlayerAtlas.draw.height, 148);
+  assert.equal(egyptPlayerAtlas.draw.sourceHeight, 128);
+  assert.equal(egyptPlayerAtlas.rows.find(row => row.name === 'idle')?.frameCount, 1);
+  assert.equal(egyptPlayerAtlas.rows.length, 12);
+  assert.equal(Object.keys(egyptPlayerAtlas.regions).length, 96);
+  assert.ok(egyptPlayerFallbackAtlas.regions.idle_00);
   assert.ok(egyptPlayerAtlas.regions.run_00.drawBounds);
   assert.match(journeyComponentSource, /heroRegion\?\.drawBounds/);
   assert.match(journeyComponentSource, /nominalFrameHeight/);
   assert.match(journeyComponentSource, /boundedGroundLineY/);
   assert.match(journeyComponentSource, /heroAtlas\?\.draw\?\.suppressExternalWeapon/);
+  assert.match(journeyComponentSource, /rowName === 'idle'\s*\?\s*0/);
 });
 
 test('Egypt Journey uses purpose-built marker sprites for checkpoints and route flags', () => {
@@ -671,6 +693,44 @@ test('platform polish creates purposeful jump challenges with checkpoint rescue 
   assert.match(upgrades, /id:\s*'rope-launcher'[\s\S]*?x:\s*X\(2075\)[\s\S]*?y:\s*JY\(210\)/);
   assert.match(upgrades, /id:\s*'torch-upgrade'[\s\S]*?x:\s*X\(3545\)[\s\S]*?y:\s*JY\(252\)/);
   assert.match(upgrades, /id:\s*'ancient-compass'[\s\S]*?x:\s*X\(7045\)[\s\S]*?y:\s*JY\(220\)/);
+});
+
+test('Egypt hazard traps use painted decal assets with ground-aligned placement', () => {
+  const hazards = extractExportedArray('HAZARDS');
+  const hazardIds = [...hazards.matchAll(/id:\s*'([^']+)'/g)].map(match => match[1]);
+
+  assert.ok(existsSync(egyptOpeningTrapDecalsPath), 'opening trap decal sheet should exist');
+  assert.ok(existsSync(egyptOpeningHazardDecalsPath), 'opening hazard decal sheet should exist');
+  assert.match(journeyComponentSource, /OPENING_TRAP_DECAL_PACK_SRC/);
+  assert.match(journeyComponentSource, /OPENING_HAZARD_DECAL_PACK_SRC/);
+  assert.match(journeyComponentSource, /painted-egypt-trap-decals-complete/);
+  assert.match(journeyComponentSource, /getEgyptHazardDecalDest\(hazard,\s*hx,\s*footY,\s*decalDescriptor\.regionKey\)/);
+
+  hazardIds.forEach((id) => {
+    assert.match(
+      journeyComponentSource,
+      new RegExp(`'${id}':\\s*'[^']+'`),
+      `${id} should map to a painted Egypt hazard decal`,
+    );
+  });
+
+  [
+    'pressurePlate',
+    'crackedFloor',
+    'scarabSealTrap',
+    'glyphTripwire',
+    'fallingStoneWarning',
+    'softSandPit',
+    'thornScrub',
+    'darkGap',
+    'batCloud',
+    'dustWave',
+    'looseSlope',
+    'surveyRope',
+    'warningRubble',
+  ].forEach((regionKey) => {
+    assert.match(journeyComponentSource, new RegExp(`${regionKey}:\\s*\\{[\\s\\S]*?height:`));
+  });
 });
 
 test('dynamic world events add mystery and atmosphere without new level systems', () => {

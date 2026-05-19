@@ -1,42 +1,42 @@
 {
-  "image": "base-camp-parallax-pack.png",
-  "source": "AI-generated Egypt/Base Camp parallax pack, cropped from the labelled preview so visible layer labels are excluded.",
-  "notes": "Atlas regions are approximate first-pass crops from the supplied sheet and may need projector-scale tuning.",
+  "image": "dig-site-entrance-final-backdrop.png",
+  "source": "AI-generated final full-scene Journey background for the Dig Site Entrance / Base Camp approach, aligned to the Desert Entry cinematic benchmark.",
+  "notes": "Single full-scene backdrop with legacy atlas keys preserved for the existing Journey background loader.",
   "regions": {
     "skyLayer": {
       "x": 0,
       "y": 0,
-      "w": 1600,
-      "h": 900
+      "w": 1672,
+      "h": 941
     },
     "farBackground": {
       "x": 0,
       "y": 0,
-      "w": 1600,
-      "h": 900
+      "w": 1672,
+      "h": 941
     },
     "midBackground": {
       "x": 0,
       "y": 0,
-      "w": 1600,
-      "h": 900
+      "w": 1672,
+      "h": 941
     },
     "nearBaseCamp": {
       "x": 0,
       "y": 0,
-      "w": 1600,
-      "h": 900
+      "w": 1672,
+      "h": 941
     },
     "foregroundLayer": {
       "x": 0,
       "y": 0,
-      "w": 1600,
-      "h": 900
+      "w": 1672,
+      "h": 941
     }
   },
-  "imageWidth": 1600,
-  "imageHeight": 900,
-  "runtimeMode": "single-composited-backdrop-no-striping",
+  "imageWidth": 1672,
+  "imageHeight": 941,
+  "runtimeMode": "single-composited-backdrop",
   "coordinateNote": "Runtime composited 16:9 backdrop; legacy region keys point to the full image so existing loaders stay fallback-safe.",
-  "sourceComposite": "Generated from the section parallax source sheet to remove visible striping in gameplay."
+  "sourceComposite": "Generated as a final 16:9 scene so the final route reads as a pyramid-foot excavation camp and sealed site entrance."
 }

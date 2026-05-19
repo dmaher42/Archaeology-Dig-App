@@ -2244,3 +2244,171 @@ Remaining notes:
 - Removed the `lightShafts` background draw from the live Desert Entry layered backdrop and kept the regular sky, dunes, ruins, and midground layers intact.
 - Softened the opening stairway support rendering by removing broad translucent backing panels from the opening set-piece platforms, while keeping the visible stone slab/brace style.
 - Browser verification confirmed the first-screen Egypt background no longer shows the obvious vertical overlapping light-shaft image, and the Scarab Seal/Sphinx trigger still works without progression skips.
+
+## 2026-05-18 Egypt opening first-minute playtest tune
+
+- Ran a focused browser playtest of the Egypt opening climb, checkpoint statue, Scarab Seal trigger, Sphinx encounter, and early gameplay resume.
+- Fixed the opening camera timing so the player stays visible and can move immediately instead of the view panning away from them during the first playable seconds.
+- Tightened the first-screen pyramid stairway so the first slab starts closer to the player, the climb reads as a single intentional route, and the Scarab Seal peeks in as the summit goal.
+- Browser verification confirmed the Sphinx encounter still triggers from the Scarab Seal, the Sphinx sprite/dialogue appears, and Scarab Queen, Brush Handle, and route gate progression remain unchanged.
+- Follow-up: removed the Desert Entry `midgroundRuins` parallax overlay from the live background draw because its rectangular alpha edge was still visible over the clean painted scene.
+- Follow-up: copied the photorealistic Sphinx desert concept into the Desert Entry background folder and switched the existing atlas JSON to a single composited backdrop so the opening uses one clean image instead of layered transparent overlays.
+- Follow-up: updated the Desert Entry background asset registry to expect the single photoreal backdrop region, preventing fallback to the old canvas background.
+
+## 2026-05-18 Desert Entry start checkpoint and stairway promise
+
+- Moved the large Desert Entry checkpoint monument to the player start side of the scene while scaling it so it draws attention without hiding the first stone platform.
+- Reworked the first opening slabs into a tighter 2-3 jump stairway that climbs cleanly from the start platform toward the Scarab Seal promise.
+- Brought the visible Scarab Seal prop and trigger back into the first-screen route promise by aligning them with the summit slab of the opening stairway.
+- Shortened the opening camera reveal timing so the cinematic promise lands quickly and the player regains control without waiting through a long pan.
+- Live browser verification saved screenshots to `output/desert-entry-live-playtest-23-final-reveal-settled.png`, `output/desert-entry-live-playtest-24-final-first-platform-jump.png`, and `output/desert-entry-live-playtest-25-final-controlled-climb.png`.
+
+## 2026-05-18 Desert Entry pyramid climb shape pass
+
+- Reshaped the opening Desert Entry slabs from a loose stairway into a broader pyramid-style climb with a wide base, progressively higher stone tiers, and the Scarab Seal at the summit.
+- Kept the large checkpoint monument beside the player start and shifted the first climb step far enough right that the monument does not hide the playable platform.
+- Preserved the existing Journey platform, checkpoint, Scarab Seal trigger, Sphinx encounter, boss progression, and route-gate systems.
+- Live browser verification saved screenshots to `output/desert-entry-pyramid-climb-01-start.png`, `output/desert-entry-pyramid-climb-02-mid.png`, and `output/desert-entry-pyramid-climb-03-summit-promise.png`.
+- `npm.cmd run lint`, `npm.cmd run build`, and `node --test src\components\expedition-journey\journeySecrets.test.js` passed. The build still reports the existing runtime-resolved excavation image warnings.
+
+## 2026-05-18 Desert Entry purpose-built pyramid asset pack wiring
+
+- Copied the generated pyramid climb source sheet into `public/assets/expedition/environment/egypt-opening/pyramid-climb-pack-source.png` and created a transparent runtime sheet at `public/assets/expedition/environment/egypt-opening/pyramid-climb-pack.png`.
+- Loaded the new sheet inside the existing Journey renderer and used its carved masonry, columns, stair-face, pedestal, seal, rubble, and dust regions to skin the first-screen pyramid climb.
+- Kept the existing collision platforms, checkpoint system, Scarab Seal trigger, Sphinx encounter, boss progression, and route gates unchanged.
+- Added render-state diagnostics for `openingPyramidAssetVersion` and whether the pyramid pack has loaded.
+- Live browser verification confirmed the pack is visible in the opening scene; screenshots saved to `output/desert-entry-pyramid-pack-wired-01-start.png` and `output/desert-entry-pyramid-pack-wired-02-first-step.png`.
+- `npm.cmd run lint`, `npm.cmd run build`, and `node --test src\components\expedition-journey\journeySecrets.test.js` passed. The build still reports the existing runtime-resolved excavation image warnings.
+
+## 2026-05-18 Desert Entry pyramid asset placement tuning
+
+- Shifted the decorative pyramid masonry mass away from the checkpoint and reduced its opacity so it supports the route without crowding the start area.
+- Lowered, shortened, and softened the generated column supports under the opening platforms so the scene reads less like stacked bridges and more like ruin-built steps.
+- Kept the playable collision platforms, checkpoint placement, Scarab Seal trigger, Sphinx encounter, and route progression unchanged.
+- Live browser verification saved screenshots to `output/desert-entry-pyramid-placement-tuned-01-start.png` and `output/desert-entry-pyramid-placement-tuned-02-first-step.png`.
+- `npm.cmd run lint`, `npm.cmd run build`, and `node --test src\components\expedition-journey\journeySecrets.test.js` passed. The build still reports the existing runtime-resolved excavation image warnings.
+
+## 2026-05-18 Desert Entry stronger pyramid facade experiment
+
+- Reworked the opening pyramid art from small decorative pieces into a larger layered masonry facade so the player starts beside a visible pyramid body rather than isolated platforms.
+- Shifted the first climb and Scarab Seal target onto the pyramid mass so the route and visual structure are better aligned.
+- Browser screenshots saved to `output/desert-entry-layered-pyramid-art-01-start.png`, `output/desert-entry-layered-pyramid-art-02-first-step.png`, `output/desert-entry-pyramid-aligned-route-01-start.png`, and `output/desert-entry-pyramid-aligned-route-02-first-climb.png`.
+- Confirmed this is closer but still not the final reference quality: the modular asset sheet cannot cleanly create the cohesive full pyramid-temple silhouette shown in the benchmark without either a purpose-built full facade asset or a more involved renderer rewrite.
+- `npm.cmd run lint`, `npm.cmd run build`, and `node --test src\components\expedition-journey\journeySecrets.test.js` passed. The build still reports the existing runtime-resolved excavation image warnings.
+
+## 2026-05-18 Desert Entry staged pyramid facade pass
+
+- Reworked the opening pyramid facade into a staged first-screen composition instead of trying to stretch the long world-space route into the opening camera view.
+- Added a broad stepped masonry body under the first-screen climb, stronger carved wall faces, darker block joints, and a visible Scarab Seal promise on the upper terrace.
+- Kept the canonical Journey platform collision, checkpoint, Scarab Seal trigger, Sphinx encounter, boss progression, and route gates intact.
+- Browser verification saved the final start screenshot to `output/desert-entry-pyramid-facade-pass-16-final-start.png`.
+- `npm.cmd run lint`, `npm.cmd run build`, and `node --test src\components\expedition-journey\journeySecrets.test.js` passed. The build still reports the existing runtime-resolved excavation image warnings.
+
+## 2026-05-19 Desert Entry custom full-facade asset pass
+
+- Generated a single purpose-built pyramid-temple facade asset for the Desert Entry opening instead of relying on procedural staged masonry and small modular pieces.
+- Saved the original generated source to `public/assets/expedition/environment/egypt-opening/opening-pyramid-facade-source.png` and the transparent runtime version to `public/assets/expedition/environment/egypt-opening/opening-pyramid-facade.png`.
+- Wired the facade into the existing Journey renderer as the primary first-screen pyramid layer, with render diagnostics for `openingPyramidFacadeVersion` and `openingPyramidFacadeLoaded`.
+- Reduced first-screen platform visuals to subtle landing highlights when the facade is loaded, so the level reads as climbing a pyramid-temple structure rather than jumping across pasted slabs.
+- Browser verification saved screenshots to `output/desert-entry-custom-facade-01-start.png` and `output/desert-entry-custom-facade-02-climb.png`; no browser console errors were reported.
+- `npm.cmd run lint`, `node --test src\components\expedition-journey\journeySecrets.test.js`, and `npm.cmd run build` passed. The build still reports the existing runtime-resolved excavation image warnings.
+
+## 2026-05-19 Desert Entry facade ledge alignment pass
+
+- Moved the first six opening collision ledges into the same first-screen coordinate space as the custom pyramid facade.
+- Tuned the base, lower stair, pressure slab, recovery slab, cracked slab, and summit collision positions to follow the visible facade terraces/ramp instead of the older long-distance scaffold spacing.
+- Moved the opening Scarab Seal trigger and story props onto the visible summit area so the first-screen promise and actual encounter line up.
+- Browser verification saved screenshots to `output/desert-entry-ledges-aligned-01-start.png` and `output/desert-entry-ledges-aligned-05-extended-climb.png`; the player lands on the first visible base terrace and no browser console errors were reported.
+- `npm.cmd run lint`, `node --test src\components\expedition-journey\journeySecrets.test.js`, and `npm.cmd run build` passed. The build still reports the existing runtime-resolved excavation image warnings.
+
+## 2026-05-19 Desert Entry ghost platform removal pass
+
+- Removed the old atlas/support/lip drawing path for first-screen facade-integrated platforms when the custom pyramid facade is loaded.
+- Kept the collision platforms active but made the facade itself carry the visible platform art, with only a very subtle top-edge highlight for readability.
+- Browser verification saved `output/desert-entry-platform-bars-hidden-01.png`; the player now appears grounded on the visible pyramid stone instead of standing on translucent horizontal bars.
+- `npm.cmd run lint`, `node --test src\components\expedition-journey\journeySecrets.test.js`, and `npm.cmd run build` passed. The build still reports the existing runtime-resolved excavation image warnings.
+
+## 2026-05-19 Desert Entry purple-line pyramid alignment pass
+
+- Retuned the first-screen Desert Entry collision route to follow the user-marked pyramid facade ledges: base terrace, short stair treads, middle terrace, upper helper, cracked summit step, and summit seal platform.
+- Replaced the broad invisible strip across the sloped pyramid face with short stair-tread collision boxes so the first jumps read as climbing the pyramid stonework rather than standing on a hidden bridge.
+- Suppressed visual edge marks on the hidden stair helpers when the custom pyramid facade is loaded, leaving the facade itself to carry the visible climb surfaces.
+- Browser verification saved `output/desert-entry-pyramid-align-final-start.png`, `output/desert-entry-pyramid-align-final-lower-climb.png`, `output/desert-entry-pyramid-align-final-middle-ledge.png`, and `output/desert-entry-pyramid-align-final-summit.png`.
+- `npm.cmd run lint`, `node --test src\components\expedition-journey\journeySecrets.test.js`, and `npm.cmd run build` passed. The build still reports the existing runtime-resolved excavation image warnings.
+
+## 2026-05-18 Egypt opening trap decal asset pass
+
+- Inspected the existing trap source of truth: opening reactive slabs and hazard zones are defined in `journeyLevelData.js`, while `ExpeditionJourney.jsx` draws the platform faces and hazard visuals.
+- Generated and converted a transparent trap-decal sheet at `public/assets/expedition/environment/egypt-opening/opening-trap-decals.png`.
+- Wired the decal sheet into the existing Journey renderer for pressure plates, cracked floor traps, the revealed Scarab Seal reset trap, glyph tripwires, falling-stone warnings, and sand pits.
+- Kept trap collision, timing, penalties, route gates, boss progression, Base Camp, excavation, and China unchanged.
+- Remaining risk: the current falling-stone warning tile includes a symbol-like warning mark from the generated art; it is readable for gameplay, but a future art-only pass could replace that tile with a pure glyph/stone cue.
+
+## 2026-05-19 Egypt hazard production decal pass
+
+- Audited every `HAZARDS` entry in `journeyLevelData.js` against the Journey hazard renderer.
+- Generated a second transparent hazard sheet at `public/assets/expedition/environment/egypt-opening/opening-hazard-decals.png` for the trap families missed by the first pass: thorn scrub, dark gaps, bat pockets, dust waves, loose slopes, survey ropes, warning rubble, and falling/collapsing stones.
+- Added a complete hazard-to-decal mapping in `ExpeditionJourney.jsx` so every current Egypt hazard id resolves to a painted trap/hazard decal before falling back to the generic environment atlas.
+- Added bottom-aligned decal placement rules so the hazards are embedded into the ground line instead of floating in the middle of their collision rectangles.
+- Added Journey test coverage that checks every hazard id maps to a painted Egypt decal and that both decal sheets exist.
+- Browser verification covered desert ground traps, temple stone traps, catacomb gaps/bat pockets, escape falling/dust hazards, and final route rope/slope hazards with `assetFallbackActive: false`.
+
+## 2026-05-19 Journey background production alignment audit
+
+- Read `docs/lost-site-expedition-design-brief.md` and inspected the live Journey background asset loader in `journeyBackgroundAssets.js`, the section draw path in `ExpeditionJourney.jsx`, and all Egypt background atlas JSON/image files.
+- Confirmed Desert Entry is the current visual benchmark using `desert-entry-photoreal-sphinx-backdrop.png` through the single-backdrop atlas path.
+- Confirmed Ruined Temple and Catacombs already use stronger full-scene images and are acceptable/final for the current Egypt vertical slice.
+- Confirmed Escape Sequence and Dig Site Entrance are correctly wired and fallback-free, but their current assets are still below the Desert Entry cinematic standard: Escape reads as orange haze more than collapsing ruins, and Dig Site Entrance reads as a flat camp wash rather than a memorable pyramid-foot expedition site.
+- No existing replacement asset in the repo is strong enough to wire safely for Escape Sequence or Dig Site Entrance; the older Dig Site parallax sheet remains source-like rather than final live art.
+- Browser smoke saved section captures to `output/background-alignment-live-desert-entry.png`, `output/background-alignment-live-ruined-temple.png`, `output/background-alignment-live-catacombs.png`, `output/background-alignment-live-escape-sequence.png`, and `output/background-alignment-live-dig-site-entrance.png`; all live section backgrounds reported `assetFallbackActive: false`.
+
+## 2026-05-19 Escape and Dig Site final background asset pass
+
+- Generated final benchmark-style full-scene background art for Escape Sequence and Dig Site Entrance using the Desert Entry cinematic standard as the quality target.
+- Added `public/assets/expedition/backgrounds/escape-sequence/escape-sequence-final-backdrop.png` and wired the existing escape atlas JSON to it while preserving the legacy region keys.
+- Added `public/assets/expedition/backgrounds/dig-site-entrance/dig-site-entrance-final-backdrop.png` and wired the existing Base Camp / Dig Site Entrance atlas JSON to it while preserving the legacy region keys.
+- Kept Journey gameplay, platforms, collisions, hazards, gates, shards, enemies, bosses, Base Camp, excavation, and China unchanged.
+
+## 2026-05-19 Asha player sprite sheet readiness audit
+
+- Inspected the user-provided Asha concept sheet against the current Egypt player atlas JSON contract and Journey player renderer requirements.
+- Confirmed the sheet is useful as style direction but is not engine-ready: it appears to use a black background, has inconsistent frame spacing/ground lines, mixes props into character frames, and cannot be sliced reliably into the current atlas format.
+- Did not wire the sheet into the game.
+- Added `docs/asha-player-sprite-atlas-prep-report.md` with the required fixes and an exact prompt for a clean transparent, fixed-grid production atlas.
+
+## 2026-05-19 Asha production atlas candidate
+
+- Generated a new fixed-grid Asha player sprite sheet candidate with the required 12 animation rows and 8 frames per row.
+- Saved the source image to `public/assets/expedition/player/asha-player-production-spritesheet-source.png` and the transparent runtime image to `public/assets/expedition/player/asha-player-production-spritesheet.png`.
+- Created `public/assets/expedition/player/asha-player-production-spritesheet.json` with 96 measured frame regions for the existing Journey player atlas renderer.
+- Kept the current Egypt warrior guide sprite active for now; the Asha atlas is prepared for the next browser-scale wiring pass rather than silently replacing the player mid-pass.
+
+## 2026-05-19 Asha player atlas wiring pass
+
+- Wired `asha-player-production-spritesheet.json` as the active Ancient Egypt Journey player atlas through the existing `PLAYER_HERO_SPRITE_ATLAS_JSON` path.
+- Retained the previous Egypt warrior guide atlas as the hero-atlas fallback if the Asha atlas or image fails to load, before falling back to the legacy strip/canvas path.
+- Did not change player controls, movement, combat, route gates, bosses, Base Camp, excavation, or China.
+- Follow-up tuning: locked the Asha idle row to `idle_00` so the player no longer scrolls through idle images while standing still, and increased the rendered Asha draw height from 118 to 148 pixels.
+- Follow-up video check: confirmed the recording showed the player cycling through visibly different atlas poses while standing; hardened the hero sprite renderer so idle always holds the first idle frame for any player atlas.
+
+## 2026-05-19 Desert Entry micro alignment nudge
+
+- Nudged the first-screen pyramid collision surfaces down by 6-8 pixels so the player feet sit closer to the visible stone ledges in the user screenshots.
+- Moved the opening Scarab Seal trigger and pedestal down by the same summit offset so the seal remains tied to the top platform.
+- Suppressed the remaining reactive warning strip on facade-hidden stair helpers; the platform collision stays active, but the pyramid art now remains visually clean.
+- Browser verification saved `output/desert-entry-final-nudge-lower-tread-clean.png`, `output/desert-entry-final-nudge-middle-ledge-clean.png`, and `output/desert-entry-final-nudge-summit-clean.png`.
+- `npm.cmd run lint`, `node --test src\components\expedition-journey\journeySecrets.test.js`, and `npm.cmd run build` passed. The build still reports the existing runtime-resolved excavation image warnings.
+
+## 2026-05-19 Desert Entry hidden helper platform removal
+
+- Removed the first-screen helper collision boxes that did not sit on clear visible stone ledges: the lower stair tread, pressure stair slab, upper lower-stair tread, upper helper, and cracked summit step.
+- Kept only the visible base terrace, middle temple ledge, and summit seal platform for the first-screen pyramid facade route.
+- Updated Journey regression coverage to assert those hidden helper labels are not present in the opening platform data.
+- Browser verification saved `output/desert-entry-hidden-platform-removed-old-air-spot.png` and `output/desert-entry-hidden-platform-removed-visible-middle.png`; the old air spot no longer catches the player.
+
+## 2026-05-19 Desert Entry reachable visible-step route
+
+- Rebuilt the opening climb after the hidden helper removal by adding short collision boxes only on visible pyramid/temple step blocks.
+- Added lower pyramid step blocks, upper temple step blocks, and summit approach step blocks between the base terrace, middle ledge, and Scarab summit.
+- Kept the removed hidden-helper labels out of the level data so the route is no longer supported by invisible air platforms.
+- Browser verification saved `output/desert-entry-reachable-aligned-lower-step.png`, `output/desert-entry-reachable-aligned-third-step.png`, `output/desert-entry-reachable-aligned-middle-ledge.png`, `output/desert-entry-reachable-aligned-summit-stair.png`, and `output/desert-entry-reachable-aligned-summit.png`.

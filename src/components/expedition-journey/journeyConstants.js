@@ -27,8 +27,10 @@ export const ATTACK_WINDUP_DURATION = 0.12;
 export const ATTACK_RECOIL_DURATION = 0.18;
 export const INVULNERABLE_DURATION = 1.05;
 
-export const PLAYER_HERO_SPRITE_ATLAS_JSON = 'assets/expedition/player/egypt-warrior-guide-spritesheet.json';
-export const PLAYER_HERO_SPRITE_VERSION = 'egypt-warrior-guide-spritesheet-2026-05-17';
+export const PLAYER_HERO_SPRITE_ATLAS_JSON = 'assets/expedition/player/asha-player-production-spritesheet.json';
+export const PLAYER_HERO_SPRITE_VERSION = 'asha-player-production-spritesheet-2026-05-19';
+export const PLAYER_HERO_FALLBACK_SPRITE_ATLAS_JSON = 'assets/expedition/player/egypt-warrior-guide-spritesheet.json';
+export const PLAYER_HERO_FALLBACK_SPRITE_VERSION = 'egypt-warrior-guide-spritesheet-2026-05-17';
 export const PLAYER_CHINA_HERO_SPRITE_ATLAS_JSON = 'assets/expedition/player/china-female-archaeologist-production-spritesheet.json';
 export const PLAYER_CHINA_HERO_SPRITE_VERSION = 'china-female-archaeologist-production-spritesheet-2026-05-16';
 export const PLAYER_LEGACY_SPRITE_SRC = 'sprites/archaeologist-walk-cycle.png';

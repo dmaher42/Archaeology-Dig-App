@@ -1,41 +1,41 @@
 {
-  "image": "escape-sequence-parallax-pack.png",
-  "source": "AI-generated label-free Journey parallax background sheet, upgraded for Escape Sequence section rendering.",
-  "imageWidth": 1600,
-  "imageHeight": 900,
+  "image": "escape-sequence-final-backdrop.png",
+  "source": "AI-generated final full-scene Journey background for the Escape Sequence section, aligned to the Desert Entry cinematic benchmark.",
+  "imageWidth": 1672,
+  "imageHeight": 941,
   "coordinateNote": "Runtime composited 16:9 backdrop; legacy region keys point to the full image so existing loaders stay fallback-safe.",
   "regions": {
     "dangerAtmosphere": {
       "x": 0,
       "y": 0,
-      "w": 1600,
-      "h": 900
+      "w": 1672,
+      "h": 941
     },
     "farCollapsingWalls": {
       "x": 0,
       "y": 0,
-      "w": 1600,
-      "h": 900
+      "w": 1672,
+      "h": 941
     },
     "distantRuinsDebris": {
       "x": 0,
       "y": 0,
-      "w": 1600,
-      "h": 900
+      "w": 1672,
+      "h": 941
     },
     "midgroundEscapeRuins": {
       "x": 0,
       "y": 0,
-      "w": 1600,
-      "h": 900
+      "w": 1672,
+      "h": 941
     },
     "foregroundDust": {
       "x": 0,
       "y": 0,
-      "w": 1600,
-      "h": 900
+      "w": 1672,
+      "h": 941
     }
   },
-  "runtimeMode": "single-composited-backdrop-no-striping",
-  "sourceComposite": "Generated from the section parallax source sheet to remove visible striping in gameplay."
+  "runtimeMode": "single-composited-backdrop",
+  "sourceComposite": "Generated as a final 16:9 scene so the escape route reads as collapsing Egyptian ruins rather than orange haze."
 }
