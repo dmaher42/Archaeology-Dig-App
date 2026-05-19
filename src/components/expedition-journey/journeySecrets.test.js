@@ -239,9 +239,11 @@ test('opening Scarab Seal climb triggers a boss confrontation without completing
   assert.match(platforms, /visible upper temple step block/i);
   assert.match(platforms, /visible summit approach step block/i);
   assert.match(platforms, /visible summit stair block/i);
+  assert.match(platforms, /visible capstone stair block/i);
+  assert.match(platforms, /visible seal pedestal step block/i);
   assert.match(platforms, /scarab seal summit platform/i);
   assert.match(platforms, /id:\s*'opening-scarab-seal-summit'/);
-  assert.match(platforms, /x:\s*145[\s\S]*?sealed scarab pyramid base/);
+  assert.match(platforms, /x:\s*120[\s\S]*?sealed scarab pyramid base/);
   assert.doesNotMatch(platforms, /lower pyramid stair tread/i);
   assert.doesNotMatch(platforms, /carved pressure stair slab/i);
   assert.doesNotMatch(platforms, /upper lower-stair tread/i);
@@ -314,6 +316,58 @@ test('opening Scarab Seal climb triggers a boss confrontation without completing
   assert.match(source, /export const CHINA_MINI_BOSSES = \[/);
 });
 
+test('opening pyramid climb platforms form a reachable terrace route to the Scarab Seal', () => {
+  const platforms = extractExportedArray('PLATFORMS');
+  const sealTrigger = source.slice(source.indexOf('export const SCARAB_SEAL_TRIGGER = {'), source.indexOf('export const STORY_PROPS = ['));
+  const getOpeningPlatform = (label) => {
+    const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const match = platforms.match(new RegExp(`\\{[^}]*x:\\s*(\\d+)[^}]*y:\\s*JY\\((-?\\d+)\\)[^}]*width:\\s*(\\d+)[^}]*label:\\s*'${escapedLabel}'`, 'i'));
+    assert.ok(match, `${label} should exist`);
+    return {
+      label,
+      x: Number(match[1]),
+      y: Number(match[2]),
+      width: Number(match[3]),
+    };
+  };
+  const climbLabels = [
+    'sealed scarab pyramid base',
+    'visible lower pyramid step block',
+    'visible second pyramid step block',
+    'visible third pyramid step block',
+    'visible upper pyramid step block',
+    'middle recovery temple slab',
+    'visible upper temple step block',
+    'visible summit approach step block',
+    'visible summit stair block',
+    'visible capstone stair block',
+    'visible seal pedestal step block',
+    'scarab seal summit platform',
+  ];
+  const route = climbLabels.map(getOpeningPlatform);
+
+  for (let index = 1; index < route.length; index += 1) {
+    const previous = route[index - 1];
+    const next = route[index];
+    const upwardGap = Math.max(0, previous.y - next.y);
+    const horizontalGap = Math.max(
+      0,
+      next.x - (previous.x + previous.width),
+      previous.x - (next.x + next.width),
+    );
+    assert.ok(upwardGap <= 90, `${previous.label} to ${next.label} should stay within jump height`);
+    assert.ok(horizontalGap <= 95, `${previous.label} to ${next.label} should keep enough overlap/reach`);
+  }
+
+  const summit = route.at(-1);
+  const sealX = Number(sealTrigger.match(/x:\s*(\d+)/)?.[1] || NaN);
+  const sealWidth = Number(sealTrigger.match(/width:\s*(\d+)/)?.[1] || NaN);
+  assert.ok(
+    sealX >= summit.x && sealX + sealWidth <= summit.x + summit.width,
+    'Scarab Seal trigger should sit on the reachable summit platform',
+  );
+});
+
 test('Egypt opening ambient life stays in the existing Journey renderer', () => {
   assert.match(journeyComponentSource, /drawEgyptAmbientLife/);
   assert.match(journeyComponentSource, /drawDistantExpeditionWorker/);
@@ -378,6 +432,9 @@ test('Egypt Journey uses the Asha atlas through the existing player renderer', (
   assert.equal(egyptPlayerAtlas.draw.height, 148);
   assert.equal(egyptPlayerAtlas.draw.sourceHeight, 128);
   assert.equal(egyptPlayerAtlas.rows.find(row => row.name === 'idle')?.frameCount, 1);
+  assert.equal(egyptPlayerAtlas.rows.find(row => row.name === 'walk')?.frameCount, 1);
+  assert.equal(egyptPlayerAtlas.rows.find(row => row.name === 'run')?.frameCount, 1);
+  assert.equal(egyptPlayerAtlas.rows.find(row => row.name === 'survey_walk')?.frameCount, 1);
   assert.equal(egyptPlayerAtlas.rows.length, 12);
   assert.equal(Object.keys(egyptPlayerAtlas.regions).length, 96);
   assert.ok(egyptPlayerFallbackAtlas.regions.idle_00);

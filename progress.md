@@ -2390,6 +2390,7 @@ Remaining notes:
 - Did not change player controls, movement, combat, route gates, bosses, Base Camp, excavation, or China.
 - Follow-up tuning: locked the Asha idle row to `idle_00` so the player no longer scrolls through idle images while standing still, and increased the rendered Asha draw height from 118 to 148 pixels.
 - Follow-up video check: confirmed the recording showed the player cycling through visibly different atlas poses while standing; hardened the hero sprite renderer so idle always holds the first idle frame for any player atlas.
+- Follow-up movement fix: inspected Asha frame bounds and confirmed the generated movement cells clip at their 128px edges, causing ghosty/double-looking motion; locked the live Asha walk, run, and survey-walk rows to their first clean frames until a replacement movement sheet is generated.
 
 ## 2026-05-19 Desert Entry micro alignment nudge
 
@@ -2412,3 +2413,9 @@ Remaining notes:
 - Added lower pyramid step blocks, upper temple step blocks, and summit approach step blocks between the base terrace, middle ledge, and Scarab summit.
 - Kept the removed hidden-helper labels out of the level data so the route is no longer supported by invisible air platforms.
 - Browser verification saved `output/desert-entry-reachable-aligned-lower-step.png`, `output/desert-entry-reachable-aligned-third-step.png`, `output/desert-entry-reachable-aligned-middle-ledge.png`, `output/desert-entry-reachable-aligned-summit-stair.png`, and `output/desert-entry-reachable-aligned-summit.png`.
+
+## 2026-05-19 Desert Entry full climb realignment
+
+- Realigned the first-screen pyramid climb into wider, overlapping visible terraces so the player can climb from the starting base stones up to the Scarab Seal summit.
+- Added capstone and seal-pedestal step collisions near the top to remove the hard final vertical jump into the artefact.
+- Added regression coverage that checks the opening climb sequence stays within reachable vertical and horizontal gaps, and that the Scarab Seal trigger sits on the reachable summit platform.

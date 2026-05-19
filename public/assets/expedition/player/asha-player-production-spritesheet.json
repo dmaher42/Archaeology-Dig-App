@@ -1,8 +1,8 @@
 {
   "image": "asha-player-production-spritesheet.png",
   "source": "imagegen-asha-production-atlas-2026-05-19",
-  "status": "active-egypt-journey-atlas",
-  "description": "Generated Asha player sprite atlas. Fixed 8-column by 12-row transparent sheet prepared for and wired through the existing Journey player atlas renderer, with the previous Egypt warrior guide atlas retained as fallback.",
+  "status": "active-egypt-journey-atlas-stable-frame-tuned",
+  "description": "Generated Asha player sprite atlas wired through the existing Journey player atlas renderer. The live movement rows are temporarily locked to stable first frames because the generated moving cells clip at their 128px boundaries; the previous Egypt warrior guide atlas remains available as fallback.",
   "frame": {
     "width": 128,
     "height": 128,
@@ -30,49 +30,28 @@
     {
       "name": "walk",
       "row": 1,
-      "frameCount": 8,
+      "frameCount": 1,
       "loop": true,
       "frames": [
-        "walk_00",
-        "walk_01",
-        "walk_02",
-        "walk_03",
-        "walk_04",
-        "walk_05",
-        "walk_06",
-        "walk_07"
+        "walk_00"
       ]
     },
     {
       "name": "run",
       "row": 2,
-      "frameCount": 8,
+      "frameCount": 1,
       "loop": true,
       "frames": [
-        "run_00",
-        "run_01",
-        "run_02",
-        "run_03",
-        "run_04",
-        "run_05",
-        "run_06",
-        "run_07"
+        "run_00"
       ]
     },
     {
       "name": "survey_walk",
       "row": 3,
-      "frameCount": 8,
+      "frameCount": 1,
       "loop": true,
       "frames": [
-        "survey_walk_00",
-        "survey_walk_01",
-        "survey_walk_02",
-        "survey_walk_03",
-        "survey_walk_04",
-        "survey_walk_05",
-        "survey_walk_06",
-        "survey_walk_07"
+        "survey_walk_00"
       ]
     },
     {
