@@ -174,8 +174,13 @@ def paste_sprite_cell(
     max_source_height: int,
 ) -> dict[str, int]:
     fitted = trim_to_visible(sprite)
-    if fitted.height > max_source_height:
-        scale = max_source_height / fitted.height
+    max_source_width = cell_w - 24
+    scale = min(
+        1,
+        max_source_height / fitted.height if fitted.height > 0 else 1,
+        max_source_width / fitted.width if fitted.width > 0 else 1,
+    )
+    if scale < 1:
         fitted = fitted.resize(
             (max(1, round(fitted.width * scale)), max(1, round(fitted.height * scale))),
             Image.Resampling.LANCZOS,
