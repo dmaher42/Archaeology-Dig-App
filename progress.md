@@ -2391,6 +2391,7 @@ Remaining notes:
 - Follow-up tuning: locked the Asha idle row to `idle_00` so the player no longer scrolls through idle images while standing still, and increased the rendered Asha draw height from 118 to 148 pixels.
 - Follow-up video check: confirmed the recording showed the player cycling through visibly different atlas poses while standing; hardened the hero sprite renderer so idle always holds the first idle frame for any player atlas.
 - Follow-up movement fix: inspected Asha frame bounds and confirmed the generated movement cells clip at their 128px edges, causing ghosty/double-looking motion; locked the live Asha walk, run, and survey-walk rows to their first clean frames until a replacement movement sheet is generated.
+- Follow-up regeneration: generated a cleaner Asha sheet, keyed it, extracted each character pose as a whole component, and repacked the active runtime atlas into 192px cells; walk/run/survey rows remain locked to stable first frames until the moving cells are visually clean in live play.
 
 ## 2026-05-19 Desert Entry micro alignment nudge
 
@@ -2419,3 +2420,153 @@ Remaining notes:
 - Realigned the first-screen pyramid climb into wider, overlapping visible terraces so the player can climb from the starting base stones up to the Scarab Seal summit.
 - Added capstone and seal-pedestal step collisions near the top to remove the hard final vertical jump into the artefact.
 - Added regression coverage that checks the opening climb sequence stays within reachable vertical and horizontal gaps, and that the Scarab Seal trigger sits on the reachable summit platform.
+
+## 2026-05-19 Desert Entry opening pyramid whitelist
+
+- Confirmed the intentional first-screen Scarab Seal climb is the visible platform block from the desert track through the scarab seal summit platform.
+- Checked the later Desert Entry challenge platforms and kept them in place because they support the high-shard challenge, upper reward path, broken-ruins route, and Scarab Queen approach rather than the clean opening pyramid set.
+- Added regression coverage that fails if any non-whitelisted platform appears in the first-screen opening pyramid zone.
+
+## 2026-05-19 Desert Entry obsolete platform removal
+
+- Removed the obsolete post-summit Desert Entry challenge platforms so the opening screen now only uses the visible pyramid-aligned climb platforms.
+- Moved the nearby shard/upgrades that had depended on the removed ledges down to the lower route so they do not float after the cleanup.
+- Updated Journey coverage to assert the old extra platform labels and `desert-high-shard-climb` route do not return.
+
+## 2026-05-19 Desert Entry three invisible pyramid ledges
+
+- Simplified the first-screen pyramid collision to three invisible ledges aligned to the lower, middle, and summit pyramid walkways.
+- Added a tiny platform renderer guard so `invisible: true` platforms still support movement but do not draw extra stone blocks over the pyramid art.
+- Updated Journey coverage so the opening pyramid zone allows only the desert ground plus the three invisible pyramid ledges.
+
+## 2026-05-19 Desert Entry invisible foothold reachability fix
+
+- Added four invisible footholds along the drawn pyramid slope so the player can actually climb from the lower walkway to the middle and summit pyramid surfaces.
+- Kept the footholds invisible, using the existing platform collision system only, so no extra floating blocks draw over the pyramid art.
+- Updated Journey coverage to assert each invisible foothold gap stays within a fair jump range.
+
+## 2026-05-19 Asha AAA sprite sheet regeneration
+
+- Generated a new high-detail Asha sprite sheet on flat chroma key, copied the source into the project, and converted it into a transparent runtime asset.
+- Repacked each whole pose into larger 192px cells with a component mask so movement frames do not clip into neighbouring cells.
+- Re-enabled eight-frame walk, run, and survey-walk rows now that the active atlas has clean cell padding.
+- The generated source supplied eleven clean visual rows; the active atlas intentionally reuses the safe fall/landing row for `land` rather than inventing a broken extra row.
+
+## 2026-05-19 Opening Sphinx apparition asset
+
+- Generated a dedicated opening Sphinx apparition cutout for the Scarab Seal confrontation so the scene no longer reuses the full seated boss/statue sprite.
+- Added `public/assets/expedition/bosses/opening-sphinx-apparition.png` plus its chroma-key source, and wired the opening encounter renderer to prefer this PNG through the existing image preload/ref pattern.
+- Kept the existing ancient-construct boss atlas as the fallback only; no boss ids, stats, route gates, Scarab Queen progression, Brush Handle, Desert Map Seal, Base Camp, excavation, or China systems were changed.
+- Added regression coverage that the opening scene uses the new apparition asset path while preserving the existing boss-atlas fallback.
+
+## 2026-05-19 Scarab Queen production boss polish
+
+- Read the Lost Site Expedition design brief and confirmed the Scarab Queen belongs in the existing boss atlas pipeline rather than a duplicate boss or rendering system.
+- Generated a high-quality Scarab Queen reference sheet with ImageGen, saved it as `public/assets/expedition/bosses/scarab-queen-production-source.png`, and used it as visual direction only after confirming the direct strip was not clean enough to wire as runtime frames.
+- Extended `scripts/generate_enemy_sprite_sheets.py` in place so the canonical Scarab Queen atlas keeps the exact 11 frame keys and a reproducible production reference note.
+- Regenerated `public/assets/expedition/bosses/scarab-queen-sprites.png/json` with cleaner sacred scarab presentation, reduced UI-looking floating symbols, and clearer windup/charge/area/counter/hit/defeated state readability.
+
+## 2026-05-19 Egypt warrior-explorer player production reference
+
+- Read the Lost Site Expedition design brief and confirmed the active Egypt player must stay inside the existing Journey hero-atlas renderer.
+- Generated `public/assets/expedition/player/asha-warrior-explorer-production-reference.png` as the mythic archaeology warrior/explorer visual target, with its chroma-key source preserved beside it.
+- Did not wire the raw reference sheet directly because it contains only four poses and a stone prop, so it is not a complete engine-ready 12-row animation atlas.
+- Updated the active Asha atlas metadata and Journey character id to the warrior/explorer role while preserving the existing atlas path, fallback atlas, controls, combat, route gates, Base Camp, excavation, evidence, lab, report, and China systems.
+- Added `scripts/validate_player_sprite_atlas.py` so the active player atlas now has an explicit readiness check for rows, 96 regions, draw bounds, transparency, cell edges, ground line, and production reference availability.
+- Follow-up hooded direction: generated `public/assets/expedition/player/asha-hooded-warrior-explorer-reference.png` from the supplied hooded explorer reference as an original Ancient Egyptian warrior/explorer target. Kept it as production reference only because it is not a complete 12-row runtime atlas.
+- Runtime hooded atlas: generated `public/assets/expedition/player/asha-hooded-warrior-explorer-generated-sheet.png`, repacked its detected character poses into `asha-hooded-warrior-explorer-spritesheet.png/json`, and wired that atlas through the existing `PLAYER_HERO_SPRITE_ATLAS_JSON` path. The old `asha-player-production-spritesheet` remains in the repo as the previous production atlas, with the existing warrior-guide fallback still unchanged.
+
+## 2026-05-19 Asha player production-quality pose repack
+
+- Read `docs/lost-site-expedition-design-brief.md` first and confirmed the character work must stay inside the existing Journey hero-atlas path.
+- Rebuilt the already-active `asha-player-production-spritesheet.png` from the clean transparent individual pose files in `public/assets/expedition/player/asha-option-a-source/poses/`.
+- Kept the existing filename, atlas JSON contract, frame keys, 192px cell size, fallback atlas, movement controller, hitboxes, Journey progression, Base Camp, excavation, evidence, lab/report, and save/state systems unchanged.
+- Updated `asha-player-production-spritesheet.json` to describe the clean-pose production pass, complete measured draw bounds, eight-frame walk/run/survey rows, and the slightly taller live draw scale needed for projector readability.
+- Browser smoke captured `output/asha-player-production-smoke/asha-idle.png`, `output/asha-player-production-smoke/asha-run.png`, `output/asha-player-production-smoke/asha-attack.png`, and `output/asha-player-production-smoke/asha-jump.png`; Asha loaded through `hero-atlas`, used `assets/expedition/player/asha-player-production-spritesheet.json`, and reported no console errors.
+- `node --test src\components\expedition-journey\journeySecrets.test.js`, `npm.cmd run lint`, `npm.cmd run build`, and `git diff --check` passed. The build still reports the known runtime-resolved excavation image warnings, and `git diff --check` still reports only normal LF-to-CRLF warnings.
+- Remaining risk: the browser smoke confirms the live first-screen character presentation, but a longer human playthrough should still judge scale around dense enemies, bosses, and later sections before calling every animation row final.
+
+## 2026-05-19 Post-pyramid Guardian Prep platform route
+
+- Added the first visible platform gameplay feature after the opening pyramid, keeping the pyramid climb itself on its existing invisible collision ledges.
+- Added a short Guardian Prep route with a survey plinth, field-kit stepping stone, unstable cracked ledge, and safe marker before the temple threshold.
+- Reused the existing platform challenge, unstable ledge, checkpoint rescue, completion feedback, and desert-temple atlas rendering paths instead of adding a new platform system or new assets.
+- Updated Journey regression coverage so the post-pyramid route is locked as a purposeful platform challenge.
+- Verified with `node --test src\components\expedition-journey\journeySecrets.test.js`, `npm.cmd run lint`, and `npm.cmd run build`.
+- Browser smoke checked the post-pyramid area and saved `output/post-pyramid-guardian-prep-platform-smoke.png`.
+
+## 2026-05-19 Asha Option A high-res pose atlas
+
+- Created an Option A source pack under `public/assets/expedition/player/asha-option-a-source/` with a master reference, locomotion source, action source, utility source, transparent copies, and extracted large pose PNGs.
+- Rebuilt the active `asha-player-production-spritesheet.png` from the extracted high-resolution poses rather than a single generated contact sheet.
+- Upgraded the runtime atlas to 256px cells with measured draw bounds, controlled downscale sharpening, and `imageSmoothingQuality: high` for smoother in-game rendering.
+- Updated the Egypt player sprite version to `asha-player-production-spritesheet-option-a-2026-05-19`.
+- Follow-up: moved the Reinforced Boots onto the post-pyramid platform route so the route now carries a practical reward before later temple ledges.
+- Browser smoke confirmed the route can show `reinforcedBoots`, missing the route triggers field rescue, and the cleaned screenshot was saved as `output/post-pyramid-boots-platform-route-smoke.png`.
+
+## 2026-05-19 Opening pyramid invisible shelf cleanup
+
+- Removed the broad invisible middle-pyramid walkway that let Asha stand over empty air on the temple face.
+- Tightened the remaining middle-slope invisible foothold and added a small upper-lip foothold so the climb still has a playable collision route without a long hidden shelf.
+- Verified with `node --test src\components\expedition-journey\journeySecrets.test.js`, `npm.cmd run lint`, and `npm.cmd run build`.
+- Browser smoke confirmed the old air-shelf test point now drops down to the lower visible pyramid ledge; screenshot saved as `output/opening-pyramid-invisible-platform-removed.png`.
+- Follow-up: realigned the opening-pyramid invisible platforms into short ledge strips that match the marked pyramid masonry ledges only: lower base, lower roof, middle ramp, middle roof, upper ramp, upper roof, and scarab artefact ledge.
+- Browser smoke rechecked the old unsupported point and saved `output/opening-pyramid-marked-ledges-aligned.png`.
+- Polish pass: nudged the middle and upper opening-pyramid ledges upward to sit closer to the visible masonry shelf tops, widened the lower and middle roof strips only along the marked stone ledges, and kept the route jump gaps within tested reach.
+- Browser overlay check saved `output/opening-pyramid-ledge-overlay-polished.png`; clean browser screenshot saved `output/opening-pyramid-ledges-polished.png`.
+- Debug-position checks confirmed each ledge center supports the player at the expected foot height, including the scarab artefact ledge before/at activation.
+
+## 2026-05-20 Opening pyramid four-platform reachability pass
+
+- Continued the live first-pyramid route check with the current four marked invisible platforms only.
+- Confirmed by live state/physics that the first two marked transitions are reachable with a normal held-right jump, but the remaining marked vertical gaps exceed the normal jump height.
+- Kept the four platform entries unchanged in `journeyLevelData.js`; no stairs, helper ledges, or alternative platforms were added.
+- Added a scoped opening-pyramid air-jump assist inside the existing Journey jump/air-jump pathway, active only for Ancient Egypt before the Scarab Seal is triggered and only inside the opening pyramid zone.
+- Added regression coverage that locks the four marked platforms, rejects stairs/helper platforms, and checks the scoped double-jump assist remains in the existing Journey component.
+- `node --test src\components\expedition-journey\journeySecrets.test.js` passed after the change.
+- Remaining risk: live Playwright verification was partially blocked by slow/stale dev-server/browser behaviour during repeated route sweeps; rerun a human-feel browser pass once the wider dirty worktree is stabilised.
+
+## 2026-05-20 Opening pyramid ledge-foot alignment pass
+
+- Browser-checked Asha standing on all four marked invisible pyramid platforms.
+- Confirmed the summit collision was visually wrong: Asha was clipped at the top of the screen instead of standing on the stone ledge below the Scarab Seal.
+- Kept exactly the same four platform entries and did not add stairs, helper platforms, or alternative platforms.
+- Nudged only the four existing platform top heights so Asha's feet sit on the visible pyramid masonry ledges, with the largest correction on the Scarab artefact platform.
+
+## 2026-05-20 Egypt Asha hooded first-minute playtest
+
+- Read `AGENTS.md`, `docs/lost-site-expedition-design-brief.md`, `progress.md`, `git status`, and the current diff before testing.
+- Confirmed the active Ancient Egypt Journey player atlas is `assets/expedition/player/asha-hooded-warrior-explorer-spritesheet.json` through `PLAYER_HERO_SPRITE_ATLAS_JSON`; the old warrior-guide atlas remains fallback only.
+- Validated the hooded atlas with `scripts/validate_player_sprite_atlas.py` using the bundled Python runtime because the Windows `python`/`py` launchers were unavailable.
+- Browser smoke covered Menu -> Lost Site Expedition -> Ancient Egypt -> Begin Expedition, then idle, movement taps, jump, attack, and a short climb toward the opening Scarab Seal.
+- Observed page assets showed the hooded Asha JSON and PNG loaded; no warrior-guide fallback asset was observed in the live page asset list.
+- Asha's idle pose was stable, the attack frame read clearly with integrated shield/khopesh, jump/fall/land did not show obvious clipping or ghost frames, and scale felt appropriate against the pyramid, seal, and first-screen UI.
+- No sprite JSON tuning was made. The current draw height/source height and frame mapping felt good enough for the first-minute pass.
+- Screenshots saved: `output/egypt-asha-hooded-first-minute-idle.png`, `output/egypt-asha-hooded-first-minute-attack.png`, and `output/egypt-asha-hooded-first-minute-climb.png`.
+- Verification passed: atlas validator, `node --test src/components/expedition-journey/journeySecrets.test.js`, `npm.cmd run lint`, `npm.cmd run build`, and `git diff --check`.
+
+## 2026-05-20 Asha hooded jump/fall/land tuning
+
+- Reviewed the supplied 9.9 second movement recording and extracted frame sheets into `output/video-review-20260519-2134/`.
+- Confirmed the crawling-looking motion came from low frames in the hooded atlas `fall` and `land` row mapping, not from movement physics.
+- Tuned only `public/assets/expedition/player/asha-hooded-warrior-explorer-spritesheet.json`: kept idle unchanged, remapped `jump`, `fall`, and `land` to cleaner upright/action frames, and reduced draw height from 148 to 142.
+- Updated the Journey regression test to lock the hooded atlas draw height and cleaned frame mappings.
+- Browser smoke saved `output/egypt-asha-hooded-tuned-jump-smoke.png`; observed player assets loaded the hooded Asha JSON/PNG and no warrior-guide fallback asset.
+
+## 2026-05-20 Asha hooded grounded run tuning
+
+- Follow-up playtest feedback said held movement did not show a readable walk and made Asha look like she was flying.
+- Confirmed the existing Journey animation state can select the `run` row during normal fast ground movement, while the hooded `run` row was made from low, airborne-looking sprint poses.
+- Tuned only the active hooded player atlas JSON: remapped the live `run` loop to grounded walk poses and changed the landing recovery frames away from the low run crouches.
+- Left idle, movement physics, controls, route gates, opening Scarab Seal logic, Base Camp, excavation, China, and save/state systems unchanged.
+- Browser smoke confirmed Ancient Egypt Journey reaches gameplay, held-right movement reports `animationState: "run"` with `playerSpriteFrame: "walk_03"`, and the hooded atlas JSON/PNG load with fallback inactive. Screenshot saved at `output/egypt-asha-hooded-grounded-run-smoke.png`.
+- Verification passed: player atlas validator, Journey secrets test, lint, build, and `git diff --check`.
+
+## 2026-05-20 Base Camp Reward & Economy Pass
+
+- Extended the outfitting catalog to incorporate the six core excavation tools as purchaseable upgrades, aligning prices and classroom-friendly descriptions to explicitly show their excavation bonuses.
+- Dynamically merged the active `fieldKit` items into `baseCampOwnedItemIds` within `ExpeditionMode.jsx`. If the player collects a tool in the Journey platformer, the shop immediately lists it as "Owned", preventing redundant purchases.
+- Updated `purchaseShopItem` in `ExpeditionMode.jsx` to immediately append purchased tools to `fieldKit`. This lets the player buy missing tools and immediately outfit them.
+- Wired `fieldKit` initialization and reset hooks in `openExpeditionStage` and `resetExpedition` so tools previously purchased at Base Camp are carried over into active runs.
+- Fixed a legacy UI property-mapping bug in the excavation sidebar panel so tool states accurately display as "Secured" or "Missing" in real-time.
+- Verified all additions and updates with `npm run lint` (0 errors, 0 warnings) and `npm run build` (clean green compilation).

@@ -32,6 +32,7 @@ SCARAB_QUEEN_FRAMES = [
 ]
 SCARAB_QUEEN_CELL_W = 560
 SCARAB_QUEEN_CELL_H = 390
+SCARAB_QUEEN_PRODUCTION_SOURCE = BOSS_DIR / "scarab-queen-production-source.png"
 
 
 def rgba(hex_color: str, alpha: int = 255) -> tuple[int, int, int, int]:
@@ -64,10 +65,6 @@ def draw_glyph_ring(draw, center, radius, color, width=5, active=False):
         x2 = cx + math.cos(angle) * outer
         y2 = cy + math.sin(angle) * outer * 0.54
         draw.line([(x1, y1), (x2, y2)], fill=color, width=3)
-        if index % 3 == 0:
-            gx = cx + math.cos(angle) * (radius + 20)
-            gy = cy + math.sin(angle) * (radius + 20) * 0.54
-            draw.rectangle([gx - 7, gy - 5, gx + 7, gy + 5], outline=color, width=2)
 
 
 def draw_sacred_sand(draw, y, color, intense=False):
@@ -76,8 +73,8 @@ def draw_sacred_sand(draw, y, color, intense=False):
         h = 18 + (index % 3) * 7
         draw.ellipse([x, y - h, x + 70, y + 12], fill=color)
     if intense:
-        draw.arc([58, y - 70, 502, y + 48], 198, 340, fill=rgba("#facc15", 175), width=8)
-        draw.arc([34, y - 92, 526, y + 66], 198, 340, fill=rgba("#38bdf8", 120), width=4)
+        draw.arc([78, y - 54, 482, y + 36], 198, 340, fill=rgba("#facc15", 132), width=6)
+        draw.arc([58, y - 72, 502, y + 48], 198, 340, fill=rgba("#38bdf8", 88), width=3)
 
 
 def draw_lapis_shell_marks(draw, x, y, w, h, active=False):
@@ -111,6 +108,44 @@ def place_source_scarab(cell, source_key, scale=1.26, dx=0, dy=0):
     y = SCARAB_QUEEN_CELL_H - target_h - 34 + dy
     cell.alpha_composite(source, (x, y))
     return x, y, target_w, target_h
+
+
+def remove_flat_green_background(image):
+    """Convert the ImageGen chroma-key source into transparent sprite pixels."""
+    image = image.convert("RGBA")
+    pixels = image.load()
+    for y in range(image.height):
+        for x in range(image.width):
+            r, g, b, a = pixels[x, y]
+            if a == 0:
+                continue
+            if g > 130 and g > r * 1.24 and g > b * 1.24:
+                pixels[x, y] = (r, g, b, 0)
+            elif g > 105 and g > r * 1.08 and g > b * 1.08:
+                pixels[x, y] = (r, min(g, max(r, b) + 14), b, max(0, a - 120))
+    return image
+
+
+def render_scarab_queen_production_frame(index):
+    source = Image.open(SCARAB_QUEEN_PRODUCTION_SOURCE)
+    frame_w = source.width / len(SCARAB_QUEEN_FRAMES)
+    left = int(round(index * frame_w))
+    right = int(round((index + 1) * frame_w))
+    frame = remove_flat_green_background(source.crop((left, 0, right, source.height)))
+    bbox = frame.getchannel("A").getbbox()
+    cell = Image.new("RGBA", (SCARAB_QUEEN_CELL_W, SCARAB_QUEEN_CELL_H), (0, 0, 0, 0))
+    if not bbox:
+        return cell
+    frame = frame.crop(bbox)
+    max_w = SCARAB_QUEEN_CELL_W - 46
+    max_h = SCARAB_QUEEN_CELL_H - 42
+    scale = min(max_w / frame.width, max_h / frame.height)
+    target_size = (max(1, int(frame.width * scale)), max(1, int(frame.height * scale)))
+    frame = frame.resize(target_size, Image.Resampling.LANCZOS)
+    x = (SCARAB_QUEEN_CELL_W - frame.width) // 2
+    y = SCARAB_QUEEN_CELL_H - frame.height - 24
+    cell.alpha_composite(frame, (x, y))
+    return cell
 
 
 def draw_queen_leg(draw, root, joint, foot, color, outline, width=12):
@@ -279,27 +314,26 @@ def render_scarab_queen_frame(frame_key, _source_key):
         "scarabQueenShielded": (0, 0, 0.82),
         "scarabQueenCounterWindow": (0, 4, 0.8),
         "scarabQueenHit": (-12, 8, 0.8),
-        "scarabQueenDefeated": (0, 38, 0.76),
+        "scarabQueenDefeated": (0, -4, 0.70),
     }
 
     if frame_key == "scarabQueenIntro":
-        draw_glyph_ring(draw, (276, 220), 150, rgba("#f7d774", 130), width=5)
+        draw_glyph_ring(draw, (276, 260), 92, rgba("#f7d774", 76), width=3)
     if frame_key == "scarabQueenWindup":
         draw_sacred_sand(draw, ground_y, rgba("#d97706", 72), intense=False)
-        draw_glyph_ring(draw, (276, 252), 126, rgba("#facc15", 155), width=4, active=True)
+        draw_glyph_ring(draw, (276, 266), 96, rgba("#facc15", 128), width=4, active=True)
     if frame_key == "scarabQueenCharge":
         draw_sacred_sand(draw, ground_y, rgba("#d97706", 92), intense=True)
     if frame_key == "scarabQueenAreaAttack":
-        draw_glyph_ring(draw, (276, 222), 160, rgba("#facc15", 190), width=7, active=True)
-        draw_glyph_ring(draw, (276, 222), 112, rgba("#22d3ee", 145), width=5, active=True)
-        draw.ellipse([94, 252, 466, 374], outline=rgba("#22d3ee", 130), width=5)
-        draw.ellipse([142, 270, 418, 356], outline=rgba("#facc15", 200), width=8)
+        draw_glyph_ring(draw, (276, 278), 90, rgba("#facc15", 126), width=4, active=True)
+        draw.ellipse([98, 294, 462, 362], outline=rgba("#22d3ee", 98), width=4)
+        draw.ellipse([138, 304, 422, 352], outline=rgba("#facc15", 150), width=5)
         draw_sacred_sand(draw, ground_y, rgba("#facc15", 96), intense=True)
     if frame_key == "scarabQueenShielded":
-        draw.ellipse([50, 32, 510, 374], fill=rgba("#22d3ee", 42), outline=rgba("#67e8f9", 175), width=9)
-        draw.ellipse([76, 56, 484, 354], outline=rgba("#facc15", 135), width=5)
+        draw.ellipse([94, 82, 466, 352], fill=rgba("#22d3ee", 22), outline=rgba("#67e8f9", 112), width=5)
+        draw.ellipse([118, 104, 442, 336], outline=rgba("#facc15", 92), width=3)
     if frame_key == "scarabQueenCounterWindow":
-        draw_glyph_ring(draw, (280, 220), 122, rgba("#22d3ee", 150), width=5, active=True)
+        draw_glyph_ring(draw, (280, 230), 92, rgba("#22d3ee", 128), width=4, active=True)
     if frame_key == "scarabQueenHit":
         draw.line([(92, 96), (152, 148)], fill=rgba("#f97316", 175), width=8)
         draw.line([(438, 96), (376, 152)], fill=rgba("#f97316", 170), width=8)
@@ -312,39 +346,17 @@ def render_scarab_queen_frame(frame_key, _source_key):
     head_y = scarab_y + scarab_h * 0.44
     shell_x = scarab_x + scarab_w * 0.38
     shell_y = scarab_y + scarab_h * 0.14
-    crown_y = max(20, scarab_y - 34)
     outline = rgba("#2a1a0b")
     gold = rgba("#facc15", 205)
     lapis = rgba("#22d3ee", 170)
 
-    draw.polygon(
-        [
-            (shell_x - 22, crown_y + 32),
-            (shell_x + 28, crown_y - 18),
-            (shell_x + 82, crown_y + 32),
-        ],
-        fill=rgba("#d8a02f", 220),
-        outline=outline,
-    )
-    draw.arc(
-        [shell_x - 42, scarab_y + 18, shell_x + 136, scarab_y + 154],
-        202,
-        340,
-        fill=gold,
-        width=5,
-    )
-    draw.line(
-        [(shell_x + 46, scarab_y + 18), (shell_x + 36, scarab_y + scarab_h * 0.58)],
-        fill=lapis,
-        width=5,
-    )
-    for offset in (-24, 0, 24):
-        draw.arc(
-            [shell_x - 2 + offset, scarab_y + 6, shell_x + 92 + offset, scarab_y + 120],
-            208,
-            336,
-            fill=rgba("#f7d774", 175),
-            width=3,
+    draw.arc([shell_x + 4, shell_y + 20, shell_x + 104, shell_y + 112], 210, 334, fill=rgba("#facc15", 138), width=3)
+    if frame_key == "scarabQueenCounterWindow":
+        draw.ellipse(
+            [shell_x + 36, shell_y + 26, shell_x + 68, shell_y + 58],
+            fill=rgba("#22d3ee", 185),
+            outline=rgba("#fef3c7", 230),
+            width=4,
         )
 
     if frame_key == "scarabQueenWindup":
@@ -374,8 +386,9 @@ def write_scarab_queen_boss():
     BOSS_DIR.mkdir(parents=True, exist_ok=True)
     atlas = Image.new("RGBA", (SCARAB_QUEEN_CELL_W * len(SCARAB_QUEEN_FRAMES), SCARAB_QUEEN_CELL_H), (0, 0, 0, 0))
     regions = {}
+    production_source_used = False
     for index, (frame_key, source_key) in enumerate(SCARAB_QUEEN_FRAMES):
-        frame = render_scarab_queen_frame(frame_key, source_key)
+        frame = render_scarab_queen_production_frame(index) if production_source_used else render_scarab_queen_frame(frame_key, source_key)
         atlas.alpha_composite(frame, (index * SCARAB_QUEEN_CELL_W, 0))
         regions[frame_key] = {
             "x": index * SCARAB_QUEEN_CELL_W,
@@ -392,6 +405,7 @@ def write_scarab_queen_boss():
         "coordinateNote": "Eleven fixed transparent cells preserving the canonical Journey boss frame keys.",
         "frameContract": [frame_key for frame_key, _source_key in SCARAB_QUEEN_FRAMES],
         "baseline": "bottom-center fixed per frame; sacred warning and area effects stay inside the same boss draw box",
+        "productionReference": SCARAB_QUEEN_PRODUCTION_SOURCE.name if SCARAB_QUEEN_PRODUCTION_SOURCE.exists() else None,
         "regions": regions,
     }, indent=2), encoding="utf-8")
 

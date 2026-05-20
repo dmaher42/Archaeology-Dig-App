@@ -4,6 +4,8 @@ import {
   Backpack,
   CheckCircle2,
   ChevronLeft,
+  ChevronRight,
+  RotateCcw,
   Clock,
   Gauge,
   Map as MapIcon,
@@ -48,7 +50,6 @@ import {
 import { getZoneChallenge } from './expedition/expeditionZoneChallenges';
 import {
   EXPEDITION_STAGE_IDS,
-  EXPEDITION_STAGE_HEADER_CHARACTERS,
   EXPEDITION_STAGES,
   PLAYABLE_EXPEDITION_STAGE_ID,
 } from './expedition/expeditionStages';
@@ -59,20 +60,20 @@ const PLAYER_SIZE = 22;
 const TARGET_CIVILISATION = 'Ancient Egypt';
 
 const ZONES = [
-  { id: 'riverbank', name: 'Riverbank', emoji: '🌊', x: 0, y: 0, w: 260, h: 220, color: 'rgba(56, 189, 248, 0.18)' },
-  { id: 'burial', name: 'Burial Area', emoji: '🏺', x: 260, y: 0, w: 260, h: 220, color: 'rgba(160, 120, 90, 0.2)' },
-  { id: 'archive', name: 'Archive Corner', emoji: '📜', x: 520, y: 0, w: 280, h: 220, color: 'rgba(232, 158, 93, 0.16)' },
-  { id: 'market', name: 'Market Area', emoji: '⛺', x: 0, y: 220, w: 320, h: 190, color: 'rgba(245, 158, 11, 0.14)' },
-  { id: 'wall', name: 'Ruined Wall', emoji: '🏛️', x: 320, y: 220, w: 260, h: 190, color: 'rgba(148, 163, 184, 0.18)' },
-  { id: 'gate', name: 'Exit Gate', emoji: '🔒', x: 580, y: 220, w: 220, h: 340, color: 'rgba(74, 222, 128, 0.12)' },
+  { id: 'riverbank', name: 'Entry Corridor', emoji: '👣', x: 0, y: 0, w: 260, h: 220, color: 'rgba(212, 175, 55, 0.15)' },
+  { id: 'burial', name: 'Burial Chamber', emoji: '⚰️', x: 260, y: 0, w: 260, h: 220, color: 'rgba(180, 110, 80, 0.18)' },
+  { id: 'archive', name: 'The Treasury', emoji: '👑', x: 520, y: 0, w: 280, h: 220, color: 'rgba(230, 185, 90, 0.15)' },
+  { id: 'market', name: 'The Annex', emoji: '📦', x: 0, y: 220, w: 320, h: 190, color: 'rgba(240, 190, 110, 0.12)' },
+  { id: 'wall', name: 'The Antechamber', emoji: '🛋️', x: 320, y: 220, w: 260, h: 190, color: 'rgba(160, 160, 140, 0.16)' },
+  { id: 'gate', name: 'Sealed Entrance', emoji: '🔒', x: 580, y: 220, w: 220, h: 340, color: 'rgba(74, 222, 128, 0.12)' },
 ];
 
 const EXCAVATION_TERRAIN_BY_ZONE = {
-  riverbank: 'roomMap:riverbankTerrain',
-  burial: 'roomMap:burialTerrain',
-  archive: 'roomMap:archiveTerrain',
-  market: 'roomMap:marketTerrain',
-  wall: 'roomMap:ruinedWallTerrain',
+  riverbank: 'roomMap:corridorTerrain',
+  burial: 'roomMap:burialChamberTerrain',
+  archive: 'roomMap:treasuryTerrain',
+  market: 'roomMap:annexTerrain',
+  wall: 'roomMap:antechamberTerrain',
   gate: 'roomMap:neutralExcavationTerrain',
 };
 
@@ -145,48 +146,48 @@ const SURVEY_COST = { investigation: -4, time: -8 };
 const SURVEY_ZONES = [
   {
     id: 'riverbank',
-    name: 'Riverbank',
-    prompt: 'Dark river mud and reed marks sit near the edge of the site.',
-    clue: 'You notice layers of river silt and plant traces. This area may show how the natural environment shaped where people lived.',
+    name: 'Entry Corridor',
+    prompt: 'The deep entrance passage is filled with rubble and dried mud layers.',
+    clue: 'You notice layers of ancient mud silt that washed down the tomb entrance. It preserves organic plant traces and seeds from old valley floods.',
     risk: 'Survey cost: -4 investigation points and -8 seconds.',
-    likelyEvidence: 'Possible environmental evidence from water, soil or plants.',
-    missionHint: 'This may help explain the site, but it does not look like the strongest place for structural evidence.',
+    likelyEvidence: 'Possible environmental evidence (silt layers or wild seeds) washed into the entrance passage.',
+    missionHint: 'Interesting context, but not the strongest place for structural remains.',
   },
   {
     id: 'burial',
-    name: 'Burial Area',
-    prompt: 'Sunken ground and stone edges suggest an old protected space.',
-    clue: 'You notice a cut edge in the ground and signs of a hidden chamber. This area may include a built burial feature, but not every clue here will match the mission.',
+    name: 'Burial Chamber',
+    prompt: 'A massive stone sarcophagus outline sits in the centre of a painted room.',
+    clue: 'You observe giant, precisely cut stone blocks and mummified remains. The walls show ritual painting. This is a highly protected sacred chamber.',
     risk: 'Survey cost: -4 investigation points and -8 seconds.',
-    likelyEvidence: 'Possible burial structures plus other evidence linked to beliefs or records.',
-    missionHint: 'This area could help, but the mission evidence may be mixed with non-target finds.',
+    likelyEvidence: 'Possible monumental structures (limestone blocks) and human remains.',
+    missionHint: 'This looks like a very promising spot for finding monumental structures!',
   },
   {
     id: 'archive',
-    name: 'Archive Corner',
-    prompt: 'Broken shelves and sealed jars cluster near a shaded wall.',
-    clue: 'You notice scraps, sealed containers and marks that look recorded rather than built. This area may preserve messages or records.',
+    name: 'The Treasury',
+    prompt: 'A golden shrine chest and chest cases are piled beside the wall.',
+    clue: 'You notice sealed boxes, scrolls, and jars with animal-headed lids. This area holds official records and symbolic offerings.',
     risk: 'Survey cost: -4 investigation points and -8 seconds.',
-    likelyEvidence: 'Possible written evidence, symbols or records.',
-    missionHint: 'Useful for understanding people, but probably not the best match for structural evidence.',
+    likelyEvidence: 'Possible written evidence (papyrus scrolls) and ritual objects.',
+    missionHint: 'Highly valuable for cultural artifacts, but less likely to have massive structural walls.',
   },
   {
     id: 'market',
-    name: 'Market Area',
-    prompt: 'Scattered everyday materials sit near an old activity space.',
-    clue: 'You notice small objects and traces of daily work. This area may show what people used, traded or made.',
+    name: 'The Annex',
+    prompt: 'A cluttered pile of alabaster oil jars, stools, and seed baskets.',
+    clue: 'You observe everyday household items and organic offerings scattered in heaps. This room shows what items were packed for the afterlife.',
     risk: 'Survey cost: -4 investigation points and -8 seconds.',
-    likelyEvidence: 'Possible artefacts, objects or everyday activity evidence.',
-    missionHint: 'This area may produce useful discoveries, but it is not the strongest match for the current mission.',
+    likelyEvidence: 'Possible everyday objects (amulets, baskets, seeds) and materials.',
+    missionHint: 'Contains many small finds, but it is not the main structural focus of the tomb.',
   },
   {
     id: 'wall',
-    name: 'Ruined Wall',
-    prompt: 'Stone lines and compacted foundations run across the trench.',
-    clue: 'You notice a line of stone blocks and compacted foundations. This area may show where people built, changed or protected the site.',
+    name: 'The Antechamber',
+    prompt: 'Heavy plastered walls and three large golden animal couches dominate the room.',
+    clue: 'You find thick mudbrick blocking-walls and plastered partition structures. This chamber shows strong evidence of official tomb construction.',
     risk: 'Survey cost: -4 investigation points and -8 seconds.',
-    likelyEvidence: 'Possible structures or construction evidence.',
-    missionHint: 'This area looks promising for the current Bureau mission.',
+    likelyEvidence: 'Possible building structures (mudbrick walls, shafts) or carved walls.',
+    missionHint: 'This area contains solid mudbrick partition structures and is an excellent fit for the mission!',
   },
 ];
 
@@ -672,10 +673,10 @@ const MAP_EVIDENCE_TYPE_BY_MISSION_TYPE = {
 };
 
 const WALLS = [
-  { x: 322, y: 238, w: 178, h: 34, label: 'low ruined wall' },
-  { x: 98, y: 366, w: 210, h: 28, label: 'broken market stall' },
-  { x: 602, y: 360, w: 118, h: 28, label: 'fallen archive shelf' },
-  { x: 618, y: 120, w: 32, h: 98, label: 'scorpion path obstacle' },
+  { x: 322, y: 238, w: 178, h: 34, label: 'plastered brick partition' },
+  { x: 98, y: 366, w: 210, h: 28, label: 'golden couch supports' },
+  { x: 602, y: 360, w: 118, h: 28, label: 'collapsed shrine base' },
+  { x: 618, y: 120, w: 32, h: 98, label: 'rubble blocking wall' },
 ];
 
 const CHINA_WALLS = [
@@ -688,19 +689,19 @@ const CHINA_WALLS = [
 const HAZARDS = [
   {
     id: 'sandstorm',
-    name: 'sandstorm',
-    emoji: '🌪️',
+    name: 'tomb dust',
+    emoji: '💨',
     x: 84,
     y: 96,
     w: 120,
     h: 70,
     color: 'rgba(232, 158, 93, 0.35)',
     penalty: { time: -15 },
-    message: 'Sandstorm: time drops by 15 seconds.',
+    message: 'Tomb dust: time drops by 15 seconds.',
   },
   {
     id: 'falling-rocks',
-    name: 'falling rocks',
+    name: 'ceiling rubble',
     emoji: '🪨',
     x: 388,
     y: 292,
@@ -708,11 +709,11 @@ const HAZARDS = [
     h: 78,
     color: 'rgba(148, 163, 184, 0.32)',
     penalty: { investigation: -8 },
-    message: 'Falling rocks: investigation points drop by 8.',
+    message: 'Ceiling rubble: investigation points drop by 8.',
   },
   {
     id: 'unstable-floor',
-    name: 'unstable floor',
+    name: 'crumbling floor',
     emoji: '⚠️',
     x: 196,
     y: 454,
@@ -720,7 +721,7 @@ const HAZARDS = [
     h: 70,
     color: 'rgba(239, 68, 68, 0.25)',
     penalty: { stamina: -18 },
-    message: 'Unstable floor: stamina drops by 18.',
+    message: 'Crumbling floor: stamina drops by 18.',
   },
 ];
 
@@ -767,7 +768,7 @@ const EXCAVATION_GUARDIANS = [
   {
     id: 'tomb-guardian-shadow',
     name: 'Tomb Guardian Shadow',
-    emoji: '👤',
+    emoji: 'ðŸ‘¤',
     x: 620,
     y: 420,
     w: 30,
@@ -927,12 +928,12 @@ const CHINA_EVIDENCE_HUNT_MISSIONS = [
 ];
 
 const EGYPT_EVIDENCE_PICKS = [
-  { id: 'eg_13', x: 690, y: 94, zone: 'Archive Corner', clueGroup: 'Legacy' },
-  { id: 'eg_7', x: 548, y: 340, zone: 'Ruined Wall', clueGroup: 'Society' },
-  { id: 'eg_11', x: 128, y: 142, zone: 'Riverbank', clueGroup: 'Geography' },
-  { id: 'eg_8', x: 350, y: 310, zone: 'Ruined Wall', clueGroup: 'Society' },
-  { id: 'eg_10', x: 140, y: 330, zone: 'Market Area', clueGroup: 'Society' },
-  { id: 'eg_9', x: 532, y: 330, zone: 'Ruined Wall', clueGroup: 'Society' },
+  { id: 'eg_13', x: 690, y: 94, zone: 'The Treasury', clueGroup: 'Legacy' },
+  { id: 'eg_7', x: 548, y: 340, zone: 'The Antechamber', clueGroup: 'Society' },
+  { id: 'eg_11', x: 128, y: 142, zone: 'Entry Corridor', clueGroup: 'Geography' },
+  { id: 'eg_8', x: 350, y: 310, zone: 'The Antechamber', clueGroup: 'Society' },
+  { id: 'eg_10', x: 140, y: 330, zone: 'The Annex', clueGroup: 'Society' },
+  { id: 'eg_9', x: 532, y: 330, zone: 'The Antechamber', clueGroup: 'Society' },
 ];
 
 const CHINA_EVIDENCE_PICKS = [
@@ -970,10 +971,10 @@ const EXPEDITION_MAP_CONTENT = {
     visualMode: EXCAVATION_VISUAL_MODE,
     journeyEnvironmentPackId: 'egypt-desert-temple',
     journeyBackgroundPackId: null,
-    mapTitle: 'Lost Site Expedition',
+    mapTitle: 'Tomb of Tutankhamun (KV62)',
     routeMusicCue: 'desert',
     excavationMusicCue: 'baseCamp',
-    briefingIntro: 'Survey the site first, choose a dig zone, collect evidence, and prove which civilisation lived here.',
+    briefingIntro: 'Survey the underground chambers first, choose a dig zone, collect structural evidence to unlock the seal, and prove which civilisation constructed this tomb.',
   },
   [EXPEDITION_STAGE_IDS.CHINA]: {
     id: EXPEDITION_STAGE_IDS.CHINA,
@@ -1228,7 +1229,7 @@ const buildExpeditionEvidence = (content = getExpeditionMapContent()) => {
   });
 };
 
-export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
+export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }) {
   const canvasRef = useRef(null);
   const keysRef = useRef({});
   const playerRef = useRef({ x: 42, y: 498 });
@@ -1344,7 +1345,11 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
   const activeChallengeData = activeZoneChallenge ? getZoneChallenge(activeZoneChallenge) : null;
   const canSurveySelectedZone = Boolean(selectedMapZone && surveyZoneById[selectedMapZone] && completedZoneChallenges.has(selectedMapZone));
   const gridSquares = useMemo(() => getGridSquaresForZone(selectedSurveyZone, gridZoneConfigs), [gridZoneConfigs, selectedSurveyZone]);
-  const baseCampOwnedItemIds = useMemo(() => getOwnedItemIds(baseCampProgression), [baseCampProgression]);
+  const baseCampOwnedItemIds = useMemo(() => {
+    const owned = getOwnedItemIds(baseCampProgression);
+    fieldKit.forEach(toolId => owned.add(toolId));
+    return owned;
+  }, [baseCampProgression, fieldKit]);
   const permanentUpgradeEffects = useMemo(() => (
     getActiveUpgradeEffects(baseCampProgression.purchasedUpgrades)
   ), [baseCampProgression.purchasedUpgrades]);
@@ -1904,7 +1909,10 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     setExpeditionStage(content.startsAt === 'excavation' ? 'excavation' : 'journey');
     setBaseCampOpen(false);
     setJourneyPaused(false);
-    setFieldKit(content.startsAt === 'excavation' ? ['field-guide-page', 'notebook', 'brush', 'trowel', 'camera', 'measuring-tape'] : []);
+    const savedTools = (baseCampProgressionRef.current?.purchasedUpgrades || []).filter(id =>
+      ['brush', 'trowel', 'camera', 'notebook', 'measuring-tape', 'field-guide-page'].includes(id)
+    );
+    setFieldKit(content.startsAt === 'excavation' ? ['field-guide-page', 'notebook', 'brush', 'trowel', 'camera', 'measuring-tape'] : savedTools);
     setActiveMission(nextMission);
     setJourneyRunId(previous => previous + 1);
     journeySnapshotRef.current = null;
@@ -2000,6 +2008,9 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     baseCampProgressionRef.current = purchaseResult.progress;
     setBaseCampProgression(purchaseResult.progress);
     if (purchaseResult?.ok) {
+      if (['brush', 'trowel', 'camera', 'notebook', 'measuring-tape', 'field-guide-page'].includes(itemId)) {
+        setFieldKit(prev => [...new Set([...prev, itemId])]);
+      }
       setShopFeedback({
         type: 'purchase',
         title: purchaseResult.item.type === 'upgrade' ? 'Expedition Upgrade Acquired' : 'Collection Unlock Acquired',
@@ -2321,7 +2332,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       const labelText = zone.name;
       ctx.font = '700 13px Outfit, sans-serif';
       const textWidth = ctx.measureText(labelText).width;
-      
+
       const lx = zone.x + 8;
       const ly = zone.y + 8;
       const lw = textWidth + 18;
@@ -2419,7 +2430,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       const labelText = hazard.name;
       ctx.font = '700 12px Outfit, sans-serif';
       const textWidth = ctx.measureText(labelText).width;
-      
+
       // Rounded rect for hazard label
       const hX = hazard.x + 4;
       const hY = hazard.y + 4;
@@ -2447,7 +2458,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
     ctx.shadowBlur = 4;
     ctx.shadowOffsetY = 3;
-    
+
     mapWalls.forEach((wall) => {
       const wallAsset = wall.w > wall.h * 1.8 ? `${mapUiPackId}:stoneWallSegment` : `${mapUiPackId}:buriedFoundationStones`;
       const drewWall = drawExcavationMapRegion(ctx, excavationMapAssets, wallAsset, { x: wall.x - 4, y: wall.y - 8, w: wall.w + 8, h: wall.h + 16 }, { alpha: mapTheme.wallAlpha });
@@ -2456,13 +2467,13 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
         ctx.fillStyle = '#968471';
         ctx.fillRect(wall.x, wall.y, wall.w, wall.h);
       }
-      
+
       // Add stone highlights/texture
       ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
       ctx.fillRect(wall.x, wall.y, wall.w, 2); // Top highlight
       ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
       ctx.fillRect(wall.x, wall.y + wall.h - 2, wall.w, 2); // Bottom shadow
-      
+
       // Cracks / Stone blocks
       ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
       ctx.lineWidth = 1;
@@ -2509,24 +2520,24 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     // 7. Tokens (Floating/glowing)
     tokensRef.current.forEach((token, index) => {
       if (token.collected || !evidenceVisibleForGrid(token, selectedSurveyZone, openedGridSquares, surveyRevealLinks, gridZoneConfigs)) return;
-      
+
       const floatY = Math.sin((now / 200) + index) * 3;
-      
+
       ctx.shadowColor = 'rgba(232, 158, 93, 0.8)';
       ctx.shadowBlur = 12;
-      
+
       ctx.fillStyle = '#e89e5d';
       ctx.beginPath();
       ctx.arc(token.x, token.y + floatY, 15, 0, Math.PI * 2);
       ctx.fill();
-      
+
       ctx.shadowColor = 'transparent';
       ctx.strokeStyle = '#fff';
       ctx.lineWidth = 2;
       ctx.stroke();
-      
-      const tokenEmoji = '🔍'; // Keep generic so students must inspect to find out what it is
-      
+
+      const tokenEmoji = 'ðŸ”'; // Keep generic so students must inspect to find out what it is
+
       ctx.font = '15px Outfit, sans-serif';
       ctx.fillText(tokenEmoji, token.x - 7, token.y + 5 + floatY);
     });
@@ -2571,7 +2582,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       ctx.fillStyle = 'rgba(255, 250, 240, 0.85)';
       ctx.font = '700 11px Outfit, sans-serif';
       const labelWidth = ctx.measureText(guardian.name).width;
-      
+
       const gw = labelWidth + 14;
       const gx = Math.min(Math.max(guardian.x - 22, 8), MAP_WIDTH - gw - 8);
       const gy = guardian.y - 24;
@@ -3363,7 +3374,10 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     setExpeditionStage(stageContent.startsAt === 'excavation' ? 'excavation' : 'journey');
     setBaseCampOpen(false);
     setJourneyPaused(false);
-    setFieldKit(stageContent.startsAt === 'excavation' ? ['field-guide-page', 'notebook', 'brush', 'trowel', 'camera', 'measuring-tape'] : []);
+    const savedTools = (baseCampProgressionRef.current?.purchasedUpgrades || []).filter(id =>
+      ['brush', 'trowel', 'camera', 'notebook', 'measuring-tape', 'field-guide-page'].includes(id)
+    );
+    setFieldKit(stageContent.startsAt === 'excavation' ? ['field-guide-page', 'notebook', 'brush', 'trowel', 'camera', 'measuring-tape'] : savedTools);
     setActiveMission(nextMission);
     setJourneyRunId(previous => previous + 1);
     journeySnapshotRef.current = null;
@@ -3508,95 +3522,108 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
     : previewExpedition?.scaffold?.sourceAssets || [];
 
   const renderStageSelect = () => (
-    <section className="phase-container bureau-phase expedition-phase">
-      <div className="expedition-shell expedition-stage-select-shell">
-        <header className="expedition-topbar expedition-stage-select-topbar">
-          <button type="button" className="bureau-hint-btn" onClick={onBackToMenu}>
-            <ChevronLeft size={18} /> Back to Menu
+    <section className="expedition-fullscreen-room expedition-stageselect-room" aria-label="Expedition Stage Selection">
+      <header className="expedition-fullscreen-header">
+        <div className="header-left">
+          <button type="button" className="fullscreen-back-btn" onClick={onBackToMenu}>
+            <ChevronLeft size={16} /> Exit to Menu
           </button>
-          <div className="expedition-title">
-            <div className="training-kicker">Lost Site Expedition</div>
-            <h2>Choose an Expedition</h2>
+        </div>
+        <div className="header-center">
+          <div className="fullscreen-kicker">Antiquities Bureau - Lost Site Expedition</div>
+          <h1 className="fullscreen-title">Choose an Expedition</h1>
+        </div>
+        <div className="header-right">
+          <div className="fullscreen-badge status-ready">
+            <Compass size={14} className="badge-icon pulse" />
+            <span>Campaign Map</span>
           </div>
-          <div className="expedition-stage-header-art" aria-label="Upcoming expedition character previews">
-            <div className="expedition-stage-character-strip" aria-hidden="true">
-              {EXPEDITION_STAGE_HEADER_CHARACTERS.map(character => (
-                <img
-                  key={character.id}
-                  src={`${import.meta.env.BASE_URL}${character.src}`}
-                  alt=""
-                  className={`expedition-stage-character expedition-stage-character--${character.id}`}
-                />
-              ))}
-            </div>
-            <div className="expedition-gate-badge unlocked">
-              <Compass size={16} />
-              <span>Campaign Map</span>
-              <small>Egypt playable, China prototype</small>
-            </div>
-          </div>
-        </header>
+        </div>
+      </header>
 
-        <div className="expedition-stage-grid" aria-label="Lost Site Expedition stage selection">
-          {EXPEDITION_STAGES.map(stage => (
-            <article key={stage.id} className={`expedition-stage-card expedition-stage-card--${stage.statusTone}`}>
-              <div className="expedition-stage-card-header">
-                <span className="expedition-stage-dossier-tag">{stage.dossierTag}</span>
-                <span className={`expedition-stage-status expedition-stage-status--${stage.statusTone}`}>
-                  {stage.status}
-                </span>
-              </div>
-              <div className="expedition-stage-card-body">
-                <h3>{stage.title}</h3>
-                <p>{stage.subtitle}</p>
-              </div>
-              <p className="expedition-stage-teaser">{stage.teaser}</p>
-              <button
-                type="button"
-                className={`btn ${stage.route === 'playable' || stage.route === 'map-playable' ? 'primary-btn expedition-begin-btn' : 'secondary-btn'} expedition-stage-action`}
-                onClick={() => openExpeditionStage(stage)}
-              >
-                {stage.route === 'playable' || stage.route === 'map-playable' ? <Sparkles size={16} /> : <BookOpen size={16} />}
-                {stage.actionLabel}
-              </button>
-            </article>
-          ))}
+      <div className="expedition-fullscreen-content" style={{ gridTemplateColumns: '1fr', padding: '2rem 3rem' }}>
+        <div className="fullscreen-card lobby-card">
+          <div className="card-header flex-header" style={{ borderBottom: '1px solid rgba(139, 106, 72, 0.25)' }}>
+            <div className="title-area">
+              <MapIcon size={20} className="card-icon gold-glow" />
+              <h2>Available Target Locations</h2>
+            </div>
+            <span style={{ fontSize: '0.85rem', color: '#cda869', fontWeight: 600 }}>Egypt Playable | China Preview</span>
+          </div>
+
+          <div className="card-body" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem', padding: '2rem', overflowY: 'auto' }}>
+            {EXPEDITION_STAGES.map(stage => {
+              const isPlayable = stage.route === 'playable' || stage.route === 'map-playable';
+              return (
+                <article key={stage.id} className={`fullscreen-shop-item-card ${isPlayable ? 'is-owned' : 'is-locked'}`} style={{ minHeight: '340px', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', border: '1px solid rgba(139, 106, 72, 0.3)', background: 'rgba(22, 18, 14, 0.85)' }}>
+                  <div className="card-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span className="mission-badge" style={{ background: isPlayable ? 'rgba(16, 185, 129, 0.12)' : 'rgba(229, 213, 183, 0.05)', color: isPlayable ? '#34d399' : '#8b6a48', borderColor: isPlayable ? '#10b981' : '#2d261e' }}>{stage.dossierTag}</span>
+                    <span className="tool-status" style={{ color: isPlayable ? '#34d399' : '#f87171' }}>{stage.status}</span>
+                  </div>
+
+                  <div className="stage-meta" style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    <h3 className="item-name" style={{ fontSize: '1.4rem', color: '#fff', fontFamily: 'Cinzel, serif', margin: 0 }}>{stage.title}</h3>
+                    <span className="item-effect" style={{ fontSize: '0.8rem', color: '#cda869' }}>{stage.subtitle}</span>
+                  </div>
+
+                  <p className="item-description" style={{ fontSize: '0.88rem', color: '#ebdcb9', lineHeight: 1.5, flex: 1, margin: 0 }}>{stage.teaser}</p>
+
+                  <div className="item-actions" style={{ borderTop: '1px solid rgba(139, 106, 72, 0.2)', paddingTop: '1rem', display: 'flex', justifyContent: 'flex-end' }}>
+                    <button
+                      type="button"
+                      className={`footer-btn ${isPlayable ? 'primary-btn' : 'secondary-btn'}`}
+                      onClick={() => openExpeditionStage(stage)}
+                      style={{ width: '100%', minHeight: '38px', height: '38px', padding: '0 1rem', fontSize: '0.85rem' }}
+                    >
+                      {isPlayable ? <Sparkles size={14} style={{ marginRight: '0.5rem' }} /> : <BookOpen size={14} style={{ marginRight: '0.5rem' }} />}
+                      {stage.actionLabel}
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
         </div>
       </div>
 
       {previewExpedition && (
-        <div className="modal-overlay expedition-briefing-overlay">
-          <div className="bureau-briefing-modal expedition-stage-preview-modal">
+        <div className="modal-overlay expedition-briefing-overlay" style={{ zIndex: 100000 }}>
+          <div className="bureau-briefing-modal expedition-stage-preview-modal" style={{ background: '#120f0c', border: '2px solid #8b6a48', borderRadius: '8px' }}>
             <div className="expedition-stage-preview-header">
-              <span className={`expedition-stage-status expedition-stage-status--${previewExpedition.statusTone}`}>
+              <span className={`expedition-stage-status expedition-stage-status--${previewExpedition.statusTone}`} style={{ display: 'inline-block', marginBottom: '0.5rem' }}>
                 {previewExpedition.status}
               </span>
-              <h2>{previewExpedition.title}</h2>
-              <p>{previewExpedition.subtitle}</p>
+              <h2 style={{ fontFamily: 'Cinzel, serif', color: '#f7e9cc', margin: '0 0 0.5rem' }}>{previewExpedition.title}</h2>
+              <p style={{ color: '#cda869', margin: 0 }}>{previewExpedition.subtitle}</p>
             </div>
-            <div className="expedition-stage-preview-note">
-              <MapIcon size={20} />
-              <p>{previewExpedition.previewTeaser || previewExpedition.teaser}</p>
+
+            <div className="expedition-stage-preview-note" style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start', background: 'rgba(139,106,72,0.1)', padding: '1rem', borderRadius: '6px', margin: '1rem 0' }}>
+              <MapIcon size={20} className="card-icon" />
+              <p style={{ margin: 0, fontSize: '0.88rem', color: '#ebdcb9', lineHeight: 1.4 }}>{previewExpedition.previewTeaser || previewExpedition.teaser}</p>
             </div>
+
             {previewScaffoldAssets.length > 0 && (
-              <div className="expedition-stage-preview-assets" aria-label={`${previewExpedition.title} asset previews`}>
+              <div className="expedition-stage-preview-assets" aria-label={`${previewExpedition.title} asset previews`} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '1rem', margin: '1rem 0' }}>
                 {previewScaffoldAssets.map(asset => (
-                  <figure key={asset.id} className="expedition-stage-preview-asset">
+                  <figure key={asset.id} className="expedition-stage-preview-asset" style={{ margin: 0, textAlign: 'center', background: 'rgba(0,0,0,0.3)', padding: '0.5rem', borderRadius: '4px', border: '1px solid rgba(139,106,72,0.15)' }}>
                     <img
                       src={`${import.meta.env.BASE_URL}${asset.src}`}
                       alt={asset.title}
                       loading="lazy"
+                      style={{ maxWidth: '100%', height: 'auto', borderRadius: '3px' }}
                     />
-                    <figcaption>{asset.title}</figcaption>
+                    <figcaption style={{ fontSize: '0.75rem', color: '#a89a7f', marginTop: '0.4rem' }}>{asset.title}</figcaption>
                   </figure>
                 ))}
               </div>
             )}
-            <p className="expedition-stage-preview-status">
+
+            <p className="expedition-stage-preview-status" style={{ fontSize: '0.78rem', color: '#8b6a48', fontStyle: 'italic', margin: '1rem 0' }}>
               This expedition is a preview only for now. It will not launch unfinished gameplay.
             </p>
-            <div className="bureau-briefing-actions">
-              <button type="button" className="btn primary-btn" onClick={() => setPreviewExpedition(null)}>
+
+            <div className="bureau-briefing-actions" style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid rgba(139,106,72,0.15)', paddingTop: '1rem' }}>
+              <button type="button" className="btn footer-btn secondary-btn" onClick={() => setPreviewExpedition(null)} style={{ minHeight: '36px', height: '36px', padding: '0 1.5rem' }}>
                 Back
               </button>
             </div>
@@ -3708,133 +3735,104 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
 
   if (baseCampOpen) {
     return (
-      <section className="phase-container bureau-phase expedition-phase">
-        <div className="expedition-shell expedition-basecamp-shell">
-          <header className="expedition-topbar">
-            <button type="button" className="bureau-hint-btn" onClick={onBackToMenu}>
-              <ChevronLeft size={18} /> Back to Menu
+      <section className="expedition-fullscreen-room expedition-basecamp-room" aria-label="Base Camp">
+        <header className="expedition-fullscreen-header">
+          <div className="header-left">
+            <button type="button" className="fullscreen-back-btn" onClick={onBackToMenu}>
+              <ChevronLeft size={16} /> Exit to Menu
             </button>
-            <div className="expedition-title">
-              <div className="training-kicker">Lost Site Expedition</div>
-              <h2>Base Camp Checklist</h2>
+          </div>
+          <div className="header-center">
+            <div className="fullscreen-kicker">Antiquities Bureau - Lost Site Expedition</div>
+            <h1 className="fullscreen-title">Base Camp Checklist</h1>
+          </div>
+          <div className="header-right">
+            <div className="fullscreen-badge status-ready">
+              <Sparkles size={14} className="badge-icon pulse" />
+              <span>Excavation Ready</span>
             </div>
-            <div className="expedition-gate-badge unlocked">
-              <Sparkles size={16} />
-              <span>Dig Site Reached</span>
-              <small>Prepare for excavation</small>
-            </div>
-          </header>
+          </div>
+        </header>
 
-          <div className="expedition-basecamp-card">
-            <section className="basecamp-intro-section">
-              <header className="basecamp-section-header">
-                <div className="section-icon-circle">
-                  <Backpack size={20} />
-                </div>
-                <div>
-                  <p className="phase-kicker">Expedition Status</p>
-                  <h3>Field Kit & Equipment Report</h3>
-                </div>
-              </header>
-              <p className="basecamp-section-description">
-                Tools collected on the journey now help with careful excavation, field notes,
-                mapping and evidence checks. Missing tools mean the team loses that advantage.
-              </p>
-            </section>
-
-            <section className="basecamp-mission-section">
-              <header className="basecamp-section-header">
-                <div className="section-icon-circle">
-                  <Target size={20} />
-                </div>
-                <div>
-                  <p className="phase-kicker">Mission Objective</p>
-                  <h3>{activeMission.title}</h3>
-                </div>
-              </header>
-              <div className="expedition-mission-card">
-                <span className="mission-category-tag">{activeMission.targetCategoryTitle}</span>
-                <p className="mission-question"><strong>Inquiry:</strong> {activeMission.inquiryQuestion}</p>
-                <p className="mission-instruction">{activeMission.instruction}</p>
+        <div className="expedition-fullscreen-content">
+          <aside className="basecamp-column basecamp-briefing-col">
+            <div className="fullscreen-card briefing-card">
+              <div className="card-ribbon">Dossier</div>
+              <div className="card-header">
+                <Target size={20} className="card-icon" />
+                <h2>Active Mission</h2>
               </div>
-            </section>
-
-            <section className="basecamp-shop-section">
-              <header className="basecamp-section-header">
-                <div className="section-icon-circle">
-                  <Gem size={20} />
+              <div className="card-body">
+                <div className="mission-badge">{activeMission.targetCategoryTitle}</div>
+                <h3 className="mission-title">{activeMission.title}</h3>
+                <div className="mission-divider"></div>
+                <div className="mission-inquiry">
+                  <span className="label">Inquiry Question</span>
+                  <p className="value">{activeMission.inquiryQuestion}</p>
                 </div>
-                <div>
-                  <p className="phase-kicker">Base Camp Shop</p>
-                  <h3>Expedition Outfitting Station</h3>
-                </div>
-              </header>
-              <div className="basecamp-shop-summary">
-                <div className={`basecamp-shard-bank ${shopFeedback?.type === 'purchase' || shopFeedback?.type === 'deposit' ? 'is-rewarding' : ''}`}>
-                  <Gem size={18} />
-                  <span>Relic Shards</span>
-                  <strong>{baseCampProgression.relicShards}</strong>
-                </div>
-                <div className="basecamp-shop-summary-copy">
-                  <p>Relic shards collected in Journey become Base Camp supplies for permanent upgrades, route tools and excavation support.</p>
-                  <div className="basecamp-active-kit">
-                    <span>Active kit</span>
-                    {activeBaseCampKitSummary.length > 0 ? (
-                      activeBaseCampKitSummary.map(summary => (
-                        <strong key={summary}>{summary}</strong>
-                      ))
-                    ) : (
-                      <em>No permanent gear fitted yet</em>
-                    )}
-                  </div>
+                <div className="mission-instruction-box">
+                  <span className="label">Field Instructions</span>
+                  <p className="value">{activeMission.instruction}</p>
                 </div>
               </div>
+              <div className="card-footer-note">
+                Ensure your field kit contains the correct equipment before proceeding.
+              </div>
+            </div>
+          </aside>
+
+          <main className="basecamp-column basecamp-shop-col">
+            <div className="fullscreen-card shop-card">
+              <div className="card-header flex-header">
+                <div className="title-area">
+                  <Gem size={20} className="card-icon gold-glow" />
+                  <h2>Outfitting Station</h2>
+                </div>
+                <div className={`fullscreen-shard-bank ${shopFeedback?.type === 'purchase' || shopFeedback?.type === 'deposit' ? 'is-rewarding' : ''}`}>
+                  <Gem size={16} className="shard-icon" />
+                  <span className="shard-label">Relic Shards</span>
+                  <strong className="shard-count">{baseCampProgression.relicShards}</strong>
+                </div>
+              </div>
+
               {shopFeedback && (
-                <div className={`basecamp-shop-feedback ${shopFeedback.type}`}>
+                <div className={`fullscreen-shop-feedback ${shopFeedback.type}`}>
                   <strong>{shopFeedback.title}</strong>
                   <span>{shopFeedback.message}</span>
                 </div>
               )}
-              <div className="basecamp-shop-grid">
+
+              <div className="fullscreen-shop-grid-container">
                 {shopItemsBySection.map(group => (
-                  <div key={group.section} className="basecamp-shop-category">
-                    <h4>{group.section}</h4>
-                    <div className="basecamp-shop-items">
+                  <div key={group.section} className="fullscreen-shop-category">
+                    <h3 className="category-title">{group.section}</h3>
+                    <div className="fullscreen-shop-items-grid">
                       {group.items.map((item) => {
                         const owned = baseCampOwnedItemIds.has(item.id);
                         const affordable = baseCampProgression.relicShards >= item.cost;
                         const highlighted = shopFeedback?.itemId === item.id && shopFeedback.type === 'purchase';
                         return (
-                          <article
-                            key={item.id}
-                            className={`basecamp-shop-item ${owned ? 'is-owned' : ''} ${highlighted ? 'just-purchased' : ''} ${item.locked ? 'is-locked' : ''}`}
-                          >
-                            <div className="basecamp-shop-item-main">
-                              <div>
-                                <strong>{item.name}</strong>
-                                <span>{item.shortEffect}</span>
-                              </div>
-                              <div className="basecamp-shop-cost">
-                                <Gem size={14} />
-                                <strong>{item.cost}</strong>
-                                <span>shards</span>
-                              </div>
+                          <article key={item.id} className={`fullscreen-shop-item-card ${owned ? 'is-owned' : ''} ${highlighted ? 'just-purchased' : ''} ${item.locked ? 'is-locked' : ''}`}>
+                            <div className="item-meta">
+                              <span className="item-name">{item.name}</span>
+                              <span className="item-effect">{item.shortEffect}</span>
                             </div>
+                            <p className="item-description">{item.description}</p>
                             {item.routeUse && (
-                              <div className="basecamp-shop-route-tag">
-                                <Compass size={12} />
+                              <div className="item-route-use">
+                                <Compass size={12} className="route-icon" />
                                 <span>{item.routeUse}</span>
                               </div>
                             )}
-                            <p>{item.description}</p>
-                            <button
-                              type="button"
-                              className="btn basecamp-shop-buy-btn"
-                              onClick={() => purchaseShopItem(item.id)}
-                              disabled={owned || item.locked || !affordable}
-                            >
-                              {owned ? 'Owned' : item.locked ? 'Future' : affordable ? 'Buy' : 'Need Shards'}
-                            </button>
+                            <div className="item-actions">
+                              <div className="item-cost-pill">
+                                <Gem size={12} />
+                                <strong>{item.cost}</strong>
+                              </div>
+                              <button type="button" className="fullscreen-shop-btn" onClick={() => purchaseShopItem(item.id)} disabled={owned || item.locked || !affordable}>
+                                {owned ? 'Owned' : item.locked ? 'Locked' : affordable ? 'Buy' : 'Need Shards'}
+                              </button>
+                            </div>
                           </article>
                         );
                       })}
@@ -3842,49 +3840,56 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
                   </div>
                 ))}
               </div>
-            </section>
+            </div>
+          </main>
 
-            <div className="expedition-field-kit-impact-grid">
-              {fieldKitImpact.map((tool) => (
-                <div key={tool.id} className={`expedition-field-kit-impact ${tool.isCollected ? 'is-collected' : ''}`}>
-                  <div className="expedition-impact-header">
-                    <div className="expedition-tool-icon-wrapper">
-                      <tool.icon size={28} />
-                    </div>
-                    <div className="expedition-impact-meta">
-                      <div className="status-label-row">
-                        {tool.isCollected ? (
-                          <CheckCircle2 size={12} className="status-icon" />
-                        ) : (
-                          <ShieldAlert size={12} className="status-icon" />
-                        )}
-                        <span className="status-label">
-                          {tool.isCollected ? 'Equipment Secured' : 'Gear Missing'}
-                        </span>
+          <aside className="basecamp-column basecamp-kit-col">
+            <div className="fullscreen-card kit-card">
+              <div className="card-header">
+                <Backpack size={20} className="card-icon" />
+                <h2>Field Kit Report</h2>
+              </div>
+              <div className="fullscreen-kit-list">
+                {fieldKitImpact.map((tool) => (
+                  <div key={tool.id} className={`fullscreen-kit-item ${tool.isCollected ? 'is-collected' : ''}`}>
+                    <div className="tool-main-row">
+                      <div className="tool-icon-box"><tool.icon size={20} /></div>
+                      <div className="tool-meta">
+                        <span className="tool-title">{tool.shortTitle}</span>
+                        <span className="tool-status">{tool.isCollected ? 'Secured' : 'Missing'}</span>
                       </div>
-                      <strong>{tool.shortTitle}</strong>
+                      <div className="tool-status-indicator">
+                        <div className={`indicator-dot ${tool.isCollected ? 'secured' : 'missing animate-pulse'}`}></div>
+                      </div>
+                    </div>
+                    <div className="tool-impact-detail">
+                      <p className="impact-text"><strong>Impact:</strong> {tool.impact}</p>
                     </div>
                   </div>
-                  <p className="expedition-impact-description">
-                    {tool.isCollected ? tool.collectedDesc : tool.missingDesc}
-                  </p>
-                  <p className="expedition-impact-description">
-                    <strong>Field Impact:</strong> {tool.impact}
-                  </p>
+                ))}
+              </div>
+              <div className="active-gear-box">
+                <span className="gear-box-label">Fitted Permanent Upgrades</span>
+                <div className="gear-pills">
+                  {activeBaseCampKitSummary.length > 0 ? (
+                    activeBaseCampKitSummary.map(summary => <span key={summary} className="gear-pill">{summary}</span>)
+                  ) : (
+                    <span className="gear-pill em">No permanent gear active</span>
+                  )}
                 </div>
-              ))}
+              </div>
             </div>
-
-            <div className="bureau-briefing-actions">
-              <button type="button" className="btn primary-btn expedition-begin-btn" onClick={beginExcavationStage}>
-                Begin Excavation
-              </button>
-              <button type="button" className="btn" onClick={resetExpedition}>
-                Restart Journey
-              </button>
-            </div>
-          </div>
+          </aside>
         </div>
+
+        <footer className="expedition-fullscreen-footer">
+          <button type="button" className="footer-btn secondary-btn" onClick={resetExpedition}>
+            <RotateCcw size={16} /> Restart Journey
+          </button>
+          <button type="button" className="footer-btn primary-btn pulse-glow" onClick={beginExcavationStage}>
+            Begin Excavation <ChevronRight size={18} />
+          </button>
+        </footer>
       </section>
     );
   }
@@ -4054,10 +4059,10 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
               <h3><Backpack size={17} /> Field Kit</h3>
               <ul className="expedition-tool-list expedition-tool-impact-list compact">
                 {fieldKitImpact.map((tool) => (
-                  <li key={tool.id} className={tool.collected ? 'is-collected' : ''}>
+                  <li key={tool.id} className={tool.isCollected ? 'is-collected' : ''}>
                     <span>{tool.name}</span>
-                    <strong>{tool.collected ? tool.effect : 'Missing'}</strong>
-                    <p>{tool.collected ? tool.detail : tool.baseCampMissing}</p>
+                    <strong>{tool.isCollected ? tool.impact : 'Missing'}</strong>
+                    <p>{tool.isCollected ? tool.collectedDesc : tool.missingDesc}</p>
                   </li>
                 ))}
               </ul>
@@ -4115,709 +4120,1445 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {} }) {
       </div>
 
       {briefingOpen && (
-        <div className="bureau-briefing-overlay expedition-briefing-overlay">
-          <div className="bureau-briefing-modal expedition-mission-briefing-modal">
-            <div className="expedition-briefing-stamp">Top Secret</div>
-            <h2>Operation: Lost Site Expedition</h2>
-            <p>Survey the site first, choose a dig zone, collect evidence, and prove which civilisation lived here.</p>
-            
-            <div className="expedition-mission-card expedition-briefing-mission">
-              <strong>{activeMission.title}</strong>
-              <p><strong>Inquiry question:</strong> {activeMission.inquiryQuestion}</p>
-              <p><strong>Evidence type:</strong> {activeMission.targetCategoryTitle}</p>
-              <p><strong>Needed:</strong> {missionRequiredCount} correct evidence items</p>
-              <p>{activeMission.instruction}</p>
-            </div>
-
-            <div className="expedition-briefing-rules" aria-label="Mission Rules">
-              <ul style={{ paddingLeft: '1.2rem', margin: 0, display: 'grid', gap: '0.4rem' }}>
-                <li><strong>Search</strong>: {activeMission.briefingRule}</li>
-                <li><strong>Survey First</strong>: Evidence is hidden until you survey an area and mark a dig zone.</li>
-                <li><strong>Grid Next</strong>: Open grid squares to record where evidence was found before inspecting it.</li>
-                <li><strong>Choose Carefully</strong>: Your evidence satchel can only hold 3 items, so you may need to replace weaker evidence.</li>
-                <li><strong>Survive</strong>: Avoid hazards that drain your time and stamina.</li>
-                <li><strong>Prove</strong>: Make your final claim at the exit using your evidence.</li>
-              </ul>
-            </div>
-
-            <div className="bureau-briefing-actions">
-              <button type="button" className="btn primary-btn expedition-begin-btn" onClick={beginExpedition}>
-                Begin Expedition
+        <section className="expedition-fullscreen-room expedition-briefing-room" aria-label="Expedition Briefing">
+          <header className="expedition-fullscreen-header">
+            <div className="header-left">
+              <button type="button" className="fullscreen-back-btn" onClick={onBackToMenu}>
+                <ChevronLeft size={16} /> Exit to Menu
               </button>
             </div>
+            <div className="header-center">
+              <div className="fullscreen-kicker">Antiquities Bureau - Lost Site Expedition</div>
+              <h1 className="fullscreen-title">Operation Briefing</h1>
+            </div>
+            <div className="header-right">
+              <div className="fullscreen-badge status-ready" style={{ background: 'rgba(197, 160, 89, 0.12)', borderColor: '#c5a059', color: '#ebdcb9' }}>
+                <ShieldAlert size={14} className="badge-icon" />
+                <span>CLASSIFIED</span>
+              </div>
+            </div>
+          </header>
+
+          <div className="expedition-fullscreen-content" style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr 1fr', gap: '1.5rem', padding: '1.5rem 2rem' }}>
+            {/* Left Column: Stamps and Rules */}
+            <aside className="basecamp-column" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div className="fullscreen-card briefing-card" style={{ borderLeft: '3px solid #8b6a48' }}>
+                <div className="card-ribbon" style={{ background: '#ef4444', color: '#fff' }}>TOP SECRET</div>
+                <div className="card-header">
+                  <BookOpen size={20} className="card-icon" />
+                  <h2>Expedition Mandate</h2>
+                </div>
+                <div className="card-body" style={{ overflowY: 'auto', gap: '1.25rem', padding: '1.25rem' }}>
+                  <p style={{ margin: 0, fontSize: '0.85rem', color: '#a89a7f', lineHeight: 1.5 }}>
+                    You are deploying to a restricted historical quadrant. Survey the site first, choose a dig zone, collect evidence, and formulate a solid claim to prove which civilisation occupied this site.
+                  </p>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', color: '#c5a059', letterSpacing: '0.06rem' }}>Field Directives</span>
+                    <ul style={{ paddingLeft: '1.1rem', margin: 0, display: 'grid', gap: '0.5rem', fontSize: '0.78rem', color: '#a89a7f', lineHeight: 1.45 }}>
+                      <li><strong>Search</strong>: {activeMission.briefingRule}</li>
+                      <li><strong>Survey First</strong>: Evidence is hidden until you survey and mark a dig zone.</li>
+                      <li><strong>Grid Mapping</strong>: Open grid squares to record coordinates before collecting items.</li>
+                      <li><strong>Satchel Capacity</strong>: Max 3 items. Replace weaker items carefully.</li>
+                      <li><strong>Hazard Control</strong>: Manage time and stamina; avoid traps and monsters.</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </aside>
+
+            {/* Center Column: Active Mission */}
+            <main className="basecamp-column">
+              <div className="fullscreen-card shop-card" style={{ borderTop: '2px solid #c5a059' }}>
+                <div className="card-header">
+                  <Target size={20} className="card-icon gold-glow" />
+                  <h2>Active Bureau Dossier</h2>
+                </div>
+
+                <div className="card-body" style={{ overflowY: 'auto', gap: '1.5rem', padding: '1.5rem' }}>
+                  <div className="mission-badge" style={{ alignSelf: 'flex-start' }}>{activeMission.targetCategoryTitle}</div>
+                  <h3 style={{ fontFamily: 'Cinzel, serif', fontSize: '1.4rem', color: '#fff', margin: 0 }}>{activeMission.title}</h3>
+
+                  <div className="mission-divider"></div>
+
+                  <div className="mission-inquiry">
+                    <span className="label" style={{ fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', color: '#8b6a48' }}>Inquiry Question</span>
+                    <p className="value" style={{ margin: 0, fontFamily: 'Playfair Display, Georgia, serif', fontSize: '1.15rem', color: '#ebdcb9', lineHeight: 1.5 }}>
+                      {activeMission.inquiryQuestion}
+                    </p>
+                  </div>
+
+                  <div className="mission-instruction-box" style={{ background: 'rgba(26, 22, 17, 0.4)', padding: '1rem', border: '1px solid rgba(139, 106, 72, 0.15)', borderRadius: '6px' }}>
+                    <span className="label" style={{ fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', color: '#8b6a48', display: 'block', marginBottom: '0.35rem' }}>Instructions</span>
+                    <p className="value" style={{ margin: 0, fontFamily: 'Courier New, monospace', fontSize: '0.82rem', color: '#a89a7f', fontStyle: 'italic', lineHeight: 1.45 }}>
+                      {activeMission.instruction}
+                    </p>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', background: 'rgba(12, 10, 8, 0.3)', padding: '0.85rem', borderRadius: '6px', border: '1px solid rgba(139,106,72,0.1)' }}>
+                    <div>
+                      <span style={{ display: 'block', fontSize: '0.68rem', color: '#8b6a48', textTransform: 'uppercase', fontWeight: 800 }}>Required Target</span>
+                      <strong style={{ display: 'block', fontSize: '1.25rem', color: '#ebdcb9', fontFamily: 'Cinzel, serif', marginTop: '0.2rem' }}>{missionRequiredCount} Finds</strong>
+                    </div>
+                    <div>
+                      <span style={{ display: 'block', fontSize: '0.68rem', color: '#8b6a48', textTransform: 'uppercase', fontWeight: 800 }}>Evidence Type</span>
+                      <strong style={{ display: 'block', fontSize: '0.88rem', color: '#ebdcb9', textTransform: 'uppercase', letterSpacing: '0.04em', marginTop: '0.3rem' }}>{activeMission.evidenceLabel || 'Structural'}</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </main>
+
+            {/* Right Column: Asha Dossier / Teaser */}
+            <aside className="basecamp-column" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div className="fullscreen-card kit-card" style={{ borderRight: '2px solid #8b6a48' }}>
+                <div className="card-header">
+                  <Backpack size={20} className="card-icon" />
+                  <h2>Explorer Profile</h2>
+                </div>
+
+                <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', padding: '1.25rem', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+                  <div style={{ position: 'relative', width: '100px', height: '100px', borderRadius: '8px', border: '2px solid #c5a059', background: 'rgba(26,22,17,0.8)', display: 'grid', placeItems: 'center', boxShadow: '0 4px 15px rgba(0,0,0,0.5)', overflow: 'hidden' }}>
+                    <span style={{ fontSize: '3rem' }}>ðŸ•µï¸â€â™€ï¸</span>
+                  </div>
+                  <div>
+                    <h3 style={{ fontFamily: 'Cinzel, serif', fontSize: '1.25rem', color: '#fff', margin: '0 0 0.25rem' }}>Asha</h3>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', color: '#c5a059', letterSpacing: '0.08em' }}>Warrior Explorer</span>
+                  </div>
+                  <p style={{ margin: 0, fontSize: '0.78rem', color: '#a89a7f', lineHeight: 1.45 }}>
+                    Equipped for harsh Egyptian sands. Fits all collected tools and coordinates the expedition with absolute precision.
+                  </p>
+                </div>
+              </div>
+            </aside>
           </div>
-        </div>
+
+          <footer className="expedition-fullscreen-footer">
+            <button type="button" className="footer-btn secondary-btn" onClick={onBackToMenu}>
+              <ChevronLeft size={16} /> Exit to Menu
+            </button>
+            <button type="button" className="footer-btn primary-btn pulse-glow" onClick={beginExpedition}>
+              Begin Expedition <ChevronRight size={16} style={{ marginLeft: '0.5rem' }} />
+            </button>
+          </footer>
+        </section>
       )}
 
       {expeditionFailure && (
-        <div className="bureau-briefing-overlay">
-          <div className="bureau-briefing-modal expedition-rescue-modal">
-            <div className="training-kicker">Field Rescue</div>
-            <h2>Restart Needed</h2>
-            <p>{expeditionFailure.message}</p>
-            <p>
-              Hazards and monsters can end the expedition if your investigation points,
-              stamina or time run out. Restart and plan a safer route through the site.
-            </p>
-            <div className="bureau-briefing-actions">
-              <button type="button" className="btn primary-btn" onClick={resetExpedition}>
-                Restart Expedition
-              </button>
-              <button type="button" className="btn" onClick={onBackToMenu}>
-                Back to Menu
+        <section className="expedition-fullscreen-room expedition-failure-room" aria-label="Rescue Station">
+          <header className="expedition-fullscreen-header">
+            <div className="header-left">
+              <button type="button" className="fullscreen-back-btn" onClick={onBackToMenu}>
+                <ChevronLeft size={16} /> Exit to Menu
               </button>
             </div>
+            <div className="header-center">
+              <div className="fullscreen-kicker">Field Rescue Station</div>
+              <h1 className="fullscreen-title">Emergency Rescue</h1>
+            </div>
+            <div className="header-right">
+              <div className="fullscreen-badge status-ready" style={{ background: 'rgba(239, 68, 68, 0.12)', borderColor: '#ef4444', color: '#f87171' }}>
+                <AlertTriangle size={14} className="badge-icon pulse" />
+                <span>EXPEDITION FAILED</span>
+              </div>
+            </div>
+          </header>
+
+          <div className="expedition-fullscreen-content" style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr 1fr', gap: '1.5rem', padding: '1.5rem 2rem' }}>
+            {/* Left Column: Operation Status Stamp */}
+            <aside className="basecamp-column" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div className="fullscreen-card briefing-card" style={{ borderLeft: '3px solid #ef4444' }}>
+                <div className="card-ribbon" style={{ background: '#ef4444', color: '#fff' }}>INCOMPLETE</div>
+                <div className="card-header">
+                  <ShieldAlert size={20} className="card-icon" style={{ color: '#ef4444' }} />
+                  <h2>Mission Interrupted</h2>
+                </div>
+                <div className="card-body" style={{ overflowY: 'auto', gap: '1.25rem', padding: '1.25rem', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
+                  <div style={{ fontSize: '4rem', margin: '1rem 0' }}>⚠️</div>
+                  <strong style={{ color: '#f87171', fontSize: '1.1rem', fontFamily: 'Cinzel, serif' }}>Field Rescue Triggered</strong>
+                  <p style={{ margin: 0, fontSize: '0.82rem', color: '#a89a7f', lineHeight: 1.5 }}>
+                    Your expedition was halted due to excessive hazards. The Bureau dispatch team has retrieved you safely from the sector.
+                  </p>
+                </div>
+              </div>
+            </aside>
+
+            {/* Center Column: Warning Details and Tips */}
+            <main className="basecamp-column">
+              <div className="fullscreen-card shop-card" style={{ borderTop: '2px solid #ef4444' }}>
+                <div className="card-header">
+                  <AlertTriangle size={20} className="card-icon" style={{ color: '#f59e0b' }} />
+                  <h2>Rescue Details</h2>
+                </div>
+                <div className="card-body" style={{ overflowY: 'auto', gap: '1.5rem', padding: '1.5rem' }}>
+                  <div style={{ background: 'rgba(239, 68, 68, 0.08)', padding: '1.25rem', border: '1px solid rgba(239, 68, 68, 0.25)', borderRadius: '6px' }}>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', color: '#f87171', display: 'block', marginBottom: '0.5rem' }}>Reason for Failure</span>
+                    <p style={{ margin: 0, fontFamily: 'Playfair Display, Georgia, serif', fontSize: '1.1rem', color: '#ebdcb9', lineHeight: 1.5 }}>
+                      {expeditionFailure.message}
+                    </p>
+                  </div>
+
+                  <div>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', color: '#c5a059', display: 'block', marginBottom: '0.5rem' }}>Survival Guidance</span>
+                    <p style={{ margin: 0, fontSize: '0.85rem', color: '#a89a7f', lineHeight: 1.5 }}>
+                      Hazards, traps, and monsters can end the expedition if your investigation points, stamina, or time run out. Plan a safer route through the site, equip protective gear from the camp shop, and take your time when surveying and mapping grid cells.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </main>
+
+            {/* Right Column: Explorer Dossier & Fit-kit guidance */}
+            <aside className="basecamp-column" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div className="fullscreen-card kit-card" style={{ borderRight: '2px solid #8b6a48' }}>
+                <div className="card-header">
+                  <Backpack size={20} className="card-icon" />
+                  <h2>Field Fit-Kit Guide</h2>
+                </div>
+                <div className="card-body" style={{ overflowY: 'auto', gap: '1rem', padding: '1rem', fontSize: '0.82rem' }}>
+                  <p style={{ margin: 0, color: '#a89a7f', lineHeight: 1.45 }}>
+                    Ensure you purchase proper tools from the Base Camp next time:
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
+                    <strong style={{ color: '#ebdcb9' }}>🛠️ Brush & Trowel</strong>
+                    <p style={{ margin: 0, color: '#a89a7f', paddingLeft: '1rem' }}>Improves excavation safety and guarantees higher-quality evidence.</p>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <strong style={{ color: '#ebdcb9' }}>📖 Explorer Field Guide</strong>
+                    <p style={{ margin: 0, color: '#a89a7f', paddingLeft: '1rem' }}>Provides valuable classification hints when identifying artefacts.</p>
+                  </div>
+                </div>
+              </div>
+            </aside>
           </div>
-        </div>
+
+          <footer className="expedition-fullscreen-footer">
+            <button type="button" className="footer-btn secondary-btn" onClick={onBackToMenu}>
+              <ChevronLeft size={16} /> Exit to Menu
+            </button>
+            <button type="button" className="footer-btn primary-btn pulse-glow" onClick={resetExpedition}>
+              Restart Expedition <RotateCcw size={16} style={{ marginLeft: '0.5rem' }} />
+            </button>
+          </footer>
+        </section>
       )}
 
       {surveyReportZone && (
-        <div className="bureau-briefing-overlay">
-          <div className="bureau-briefing-modal expedition-survey-modal">
-            <div className="training-kicker">Survey Report</div>
-            <h2>{surveyReportZone.name}</h2>
-            <p>{surveyReportZone.clue}</p>
-
-            <div className="expedition-survey-report-grid">
-              <section>
-                <strong>Likely evidence</strong>
-                <span>{surveyReportZone.likelyEvidence}</span>
-              </section>
-              <section>
-                <strong>Mission hint</strong>
-                <span>{surveyReportZone.missionHint}</span>
-              </section>
-              <section>
-                <strong>Risk / cost</strong>
-                <span>{surveyReportZone.risk}</span>
-              </section>
-            </div>
-
-            <p className="expedition-survey-process-note">
-              Archaeologists survey before digging so they can choose where evidence is most likely to answer the question.
-            </p>
-
-            <div className="bureau-briefing-actions">
-              <button type="button" className="btn primary-btn" onClick={() => markSurveyZone(surveyReportZone)}>
-                Mark as Dig Zone
-              </button>
-              <button type="button" className="btn" onClick={keepSurveying}>
-                Keep Surveying
+        <section className="expedition-fullscreen-room expedition-survey-room" aria-label="Survey Report">
+          <header className="expedition-fullscreen-header">
+            <div className="header-left">
+              <button type="button" className="fullscreen-back-btn" onClick={keepSurveying}>
+                <ChevronLeft size={16} /> Return to Map
               </button>
             </div>
+            <div className="header-center">
+              <div className="fullscreen-kicker">Antiquities Bureau - Site Survey</div>
+              <h1 className="fullscreen-title">{surveyReportZone.name}</h1>
+            </div>
+            <div className="header-right">
+              <div className="fullscreen-badge status-ready" style={{ background: 'rgba(197, 160, 89, 0.12)', borderColor: '#c5a059', color: '#ebdcb9' }}>
+                <Compass size={14} className="badge-icon" />
+                <span>Sector Surveyed</span>
+              </div>
+            </div>
+          </header>
+
+          <div className="expedition-fullscreen-content" style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr 1fr', gap: '1.5rem', padding: '1.5rem 2rem' }}>
+            {/* Left Column: Sector Mapping Notes */}
+            <aside className="basecamp-column" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div className="fullscreen-card briefing-card" style={{ borderLeft: '3px solid #ebdcb9' }}>
+                <div className="card-ribbon" style={{ background: '#ebdcb9', color: '#0b0a08' }}>SURVEY</div>
+                <div className="card-header">
+                  <Compass size={20} className="card-icon" />
+                  <h2>Sector Analysis</h2>
+                </div>
+                <div className="card-body" style={{ overflowY: 'auto', gap: '1.25rem', padding: '1.25rem' }}>
+                  <p style={{ margin: 0, fontSize: '0.85rem', color: '#ebdcb9', fontStyle: 'italic', lineHeight: 1.5 }}>
+                    "{surveyReportZone.clue}"
+                  </p>
+                  <p style={{ margin: 0, fontSize: '0.78rem', color: '#a89a7f', lineHeight: 1.45 }}>
+                    Archaeologists survey quadrants before digging to select areas most likely to answer their core historical inquiry.
+                  </p>
+                </div>
+              </div>
+            </aside>
+
+            {/* Center Column: Survey Details */}
+            <main className="basecamp-column">
+              <div className="fullscreen-card shop-card" style={{ borderTop: '2px solid #c5a059' }}>
+                <div className="card-header">
+                  <BookOpen size={20} className="card-icon gold-glow" />
+                  <h2>Survey Details & Clues</h2>
+                </div>
+                <div className="card-body" style={{ overflowY: 'auto', gap: '1.5rem', padding: '1.5rem' }}>
+                  <div style={{ display: 'grid', gridTemplateRows: 'repeat(3, auto)', gap: '1rem' }}>
+                    <div style={{ background: 'rgba(26, 22, 17, 0.4)', padding: '0.85rem', border: '1px solid rgba(139,106,72,0.15)', borderRadius: '6px' }}>
+                      <span style={{ display: 'block', fontSize: '0.68rem', color: '#8b6a48', textTransform: 'uppercase', fontWeight: 800 }}>Likely Evidence Type</span>
+                      <strong style={{ display: 'block', fontSize: '1.1rem', color: '#ebdcb9', fontFamily: 'Cinzel, serif', marginTop: '0.2rem' }}>
+                        {surveyReportZone.likelyEvidence}
+                      </strong>
+                    </div>
+
+                    <div style={{ background: 'rgba(26, 22, 17, 0.4)', padding: '0.85rem', border: '1px solid rgba(139,106,72,0.15)', borderRadius: '6px' }}>
+                      <span style={{ display: 'block', fontSize: '0.68rem', color: '#8b6a48', textTransform: 'uppercase', fontWeight: 800 }}>Bureau Field Hint</span>
+                      <strong style={{ display: 'block', fontSize: '0.88rem', color: '#ebdcb9', lineHeight: 1.4, marginTop: '0.2rem', fontWeight: 500 }}>
+                        {surveyReportZone.missionHint}
+                      </strong>
+                    </div>
+
+                    <div style={{ background: 'rgba(239, 68, 68, 0.05)', padding: '0.85rem', border: '1px solid rgba(239, 68, 68, 0.15)', borderRadius: '6px' }}>
+                      <span style={{ display: 'block', fontSize: '0.68rem', color: '#ef4444', textTransform: 'uppercase', fontWeight: 800 }}>Hazard Level / Costs</span>
+                      <strong style={{ display: 'block', fontSize: '0.88rem', color: '#f87171', marginTop: '0.2rem', fontWeight: 600 }}>
+                        {surveyReportZone.risk}
+                      </strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </main>
+
+            {/* Right Column: Mission Tracker */}
+            <aside className="basecamp-column" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div className="fullscreen-card kit-card" style={{ borderRight: '2px solid #8b6a48' }}>
+                <div className="card-header">
+                  <Target size={20} className="card-icon" />
+                  <h2>Active Inquiry</h2>
+                </div>
+                <div className="card-body" style={{ overflowY: 'auto', gap: '1rem', padding: '1rem', fontSize: '0.82rem' }}>
+                  <div className="mission-badge" style={{ alignSelf: 'flex-start' }}>{activeMission.targetCategoryTitle}</div>
+                  <strong style={{ color: '#ebdcb9', fontFamily: 'Cinzel, serif', display: 'block', marginTop: '0.5rem' }}>{activeMission.title}</strong>
+                  <p style={{ margin: 0, color: '#a89a7f', lineHeight: 1.4 }}>
+                    {activeMission.inquiryQuestion}
+                  </p>
+                  <div style={{ borderTop: '1px solid rgba(139,106,72,0.15)', paddingTop: '0.75rem', marginTop: '0.5rem' }}>
+                    <small style={{ color: '#c5a059', display: 'block', fontWeight: 700, textTransform: 'uppercase', fontSize: '0.65rem', marginBottom: '0.25rem' }}>Mission Directive</small>
+                    <small style={{ color: '#a89a7f', lineHeight: 1.3, display: 'block' }}>{activeMission.briefingRule}</small>
+                  </div>
+                </div>
+              </div>
+            </aside>
           </div>
-        </div>
+
+          <footer className="expedition-fullscreen-footer">
+            <button type="button" className="footer-btn secondary-btn" onClick={keepSurveying}>
+              Keep Surveying
+            </button>
+            <button type="button" className="footer-btn primary-btn pulse-glow" onClick={() => markSurveyZone(surveyReportZone)}>
+              Mark as Dig Zone <Compass size={16} style={{ marginLeft: '0.5rem' }} />
+            </button>
+          </footer>
+        </section>
       )}
 
       {activeChallengeData && (
-        <div className="bureau-briefing-overlay expedition-zone-challenge-overlay">
-          <div className="bureau-briefing-modal expedition-zone-challenge-modal">
-            <div className="training-kicker">Zone Entry Check</div>
-            <h2>{activeChallengeData.title}</h2>
-            <p>{activeChallengeData.question}</p>
-
-            <div className="expedition-zone-challenge-layout">
-              <div className="expedition-zone-challenge-icon" aria-hidden="true" />
-              <div className="expedition-zone-answer-list">
-                {activeChallengeData.answers.map(answer => {
-                  const selected = zoneChallengeFeedback?.answerId === answer.id;
-                  const correct = selected && zoneChallengeFeedback.correct;
-                  const incorrect = selected && !zoneChallengeFeedback.correct;
-                  return (
-                    <button
-                      key={answer.id}
-                      type="button"
-                      className={`expedition-zone-answer ${selected ? 'is-selected' : ''} ${correct ? 'is-correct' : ''} ${incorrect ? 'is-incorrect' : ''}`}
-                      onClick={() => answerZoneChallenge(answer.id)}
-                      disabled={zoneChallengeFeedback?.correct}
-                    >
-                      {answer.text}
-                    </button>
-                  );
-                })}
+        <section className="expedition-fullscreen-room expedition-challenge-room" aria-label="Zone Challenge">
+          <header className="expedition-fullscreen-header">
+            <div className="header-left">
+              <button type="button" className="fullscreen-back-btn" onClick={closeZoneChallenge}>
+                <ChevronLeft size={16} /> Return to Map
+              </button>
+            </div>
+            <div className="header-center">
+              <div className="fullscreen-kicker">Antiquities Bureau - Decipherment Crypt</div>
+              <h1 className="fullscreen-title">{activeChallengeData.title}</h1>
+            </div>
+            <div className="header-right">
+              <div className="fullscreen-badge status-ready" style={{ background: 'rgba(197, 160, 89, 0.12)', borderColor: '#c5a059', color: '#ebdcb9' }}>
+                <Gauge size={14} className="badge-icon" />
+                <span>Zone Locked</span>
               </div>
             </div>
+          </header>
 
-            {zoneChallengeFeedback && (
-              <div className={`expedition-zone-feedback ${zoneChallengeFeedback.correct ? 'is-correct' : 'is-incorrect'}`}>
-                <strong>{zoneChallengeFeedback.correct ? 'Survey unlocked' : 'Try again'}</strong>
-                <span>{zoneChallengeFeedback.message}</span>
+          <div className="expedition-fullscreen-content" style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr 1fr', gap: '1.5rem', padding: '1.5rem 2rem' }}>
+            {/* Left Column: Crypt Profile */}
+            <aside className="basecamp-column" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div className="fullscreen-card briefing-card" style={{ borderLeft: '3px solid #cda869' }}>
+                <div className="card-ribbon" style={{ background: '#cda869', color: '#0b0a08' }}>CRYPT</div>
+                <div className="card-header">
+                  <ShieldAlert size={20} className="card-icon" />
+                  <h2>Sector Seal</h2>
+                </div>
+                <div className="card-body" style={{ overflowY: 'auto', gap: '1.25rem', padding: '1.25rem' }}>
+                  <p style={{ margin: 0, fontSize: '0.85rem', color: '#a89a7f', lineHeight: 1.5 }}>
+                    This sector is sealed behind an ancient cryptographic gate. You must decipher the historical query to unlock the survey reports for this quadrant.
+                  </p>
+                  <div style={{ background: 'rgba(26,22,17,0.4)', border: '1px solid rgba(139,106,72,0.15)', borderRadius: '6px', padding: '0.85rem' }}>
+                    <small style={{ color: '#c5a059', fontWeight: 800, textTransform: 'uppercase', fontSize: '0.65rem', display: 'block', marginBottom: '0.25rem' }}>Active Sector</small>
+                    <span style={{ fontSize: '0.9rem', color: '#ebdcb9', fontWeight: 700 }}>{surveyZoneById[activeChallengeData.zoneId]?.name || 'Ancient Quadrant'}</span>
+                  </div>
+                </div>
               </div>
-            )}
+            </aside>
 
-            <div className="bureau-briefing-actions">
-              {zoneChallengeFeedback?.correct ? (
-                <button
-                  type="button"
-                  className="btn primary-btn"
-                  onClick={() => {
-                    closeZoneChallenge();
-                    if (surveyZoneById[activeChallengeData.zoneId]) {
-                      openSurveyReport(surveyZoneById[activeChallengeData.zoneId], { skipChallenge: true });
-                    }
-                  }}
-                >
-                  Open Survey Report
-                </button>
-              ) : (
-                <button type="button" className="btn" onClick={closeZoneChallenge}>
-                  Return to Map
-                </button>
-              )}
-            </div>
+            {/* Center Column: Decipherment Challenge */}
+            <main className="basecamp-column">
+              <div className="fullscreen-card shop-card" style={{ borderTop: '2px solid #c5a059' }}>
+                <div className="card-header">
+                  <Sparkles size={20} className="card-icon gold-glow" />
+                  <h2>Decipher the Query</h2>
+                </div>
+                <div className="card-body" style={{ overflowY: 'auto', gap: '1.5rem', padding: '1.5rem' }}>
+                  <div style={{ background: 'rgba(26, 22, 17, 0.4)', padding: '1.25rem', border: '1px solid rgba(139, 106, 72, 0.15)', borderRadius: '6px' }}>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', color: '#8b6a48', display: 'block', marginBottom: '0.5rem' }}>Inquiry Question</span>
+                    <p style={{ margin: 0, fontFamily: 'Playfair Display, Georgia, serif', fontSize: '1.1rem', color: '#ebdcb9', lineHeight: 1.5 }}>
+                      {activeChallengeData.question}
+                    </p>
+                  </div>
+
+                  <div className="expedition-zone-answer-list" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.75rem' }}>
+                    {activeChallengeData.answers.map(answer => {
+                      const selected = zoneChallengeFeedback?.answerId === answer.id;
+                      const correct = selected && zoneChallengeFeedback.correct;
+                      const incorrect = selected && !zoneChallengeFeedback.correct;
+                      return (
+                        <button
+                          key={answer.id}
+                          type="button"
+                          className={`expedition-zone-answer ${selected ? 'is-selected' : ''} ${correct ? 'is-correct' : ''} ${incorrect ? 'is-incorrect' : ''}`}
+                          onClick={() => answerZoneChallenge(answer.id)}
+                          disabled={zoneChallengeFeedback?.correct}
+                          style={{
+                            padding: '1rem',
+                            textAlign: 'left',
+                            background: selected ? (correct ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)') : 'rgba(22, 18, 14, 0.6)',
+                            border: `1px solid ${selected ? (correct ? '#10b981' : '#ef4444') : 'rgba(139, 106, 72, 0.2)'}`,
+                            borderRadius: '6px',
+                            color: selected ? (correct ? '#34d399' : '#f87171') : '#a89a7f',
+                            cursor: zoneChallengeFeedback?.correct ? 'not-allowed' : 'pointer',
+                            fontSize: '0.88rem',
+                            fontWeight: 600,
+                            transition: 'all 0.15s ease'
+                          }}
+                        >
+                          {answer.text}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {zoneChallengeFeedback && (
+                    <div style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.25rem',
+                      background: zoneChallengeFeedback.correct ? 'rgba(16, 185, 129, 0.08)' : 'rgba(239, 68, 68, 0.08)',
+                      border: `1px solid ${zoneChallengeFeedback.correct ? '#10b981' : '#ef4444'}`,
+                      borderRadius: '6px',
+                      padding: '0.85rem'
+                    }}>
+                      <strong style={{ color: zoneChallengeFeedback.correct ? '#34d399' : '#f87171', fontSize: '0.82rem', textTransform: 'uppercase' }}>
+                        {zoneChallengeFeedback.correct ? '🔓 Crypt Deciphered' : '⚠️ Incorrect Decipherment'}
+                      </strong>
+                      <span style={{ fontSize: '0.82rem', color: '#a89a7f' }}>{zoneChallengeFeedback.message}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </main>
+
+            {/* Right Column: Clue Reference Guide */}
+            <aside className="basecamp-column" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div className="fullscreen-card kit-card" style={{ borderRight: '2px solid #8b6a48' }}>
+                <div className="card-header">
+                  <BookOpen size={20} className="card-icon" />
+                  <h2>Decipherment Clues</h2>
+                </div>
+                <div className="card-body" style={{ overflowY: 'auto', gap: '1rem', padding: '1rem', fontSize: '0.82rem' }}>
+                  <p style={{ margin: 0, color: '#a89a7f', lineHeight: 1.45 }}>
+                    Read the question carefully. Connect the historical clues with your knowledge of Ancient Egypt civilisations before choosing your answer.
+                  </p>
+                  <div style={{ borderTop: '1px solid rgba(139,106,72,0.15)', paddingTop: '0.75rem', marginTop: '0.5rem' }}>
+                    <small style={{ color: '#c5a059', display: 'block', fontWeight: 700, textTransform: 'uppercase', fontSize: '0.65rem', marginBottom: '0.25rem' }}>Site Clue</small>
+                    <small style={{ color: '#a89a7f', lineHeight: 1.3, display: 'block' }}>
+                      {surveyZoneById[activeChallengeData.zoneId]?.clue || 'No additional clues registered.'}
+                    </small>
+                  </div>
+                </div>
+              </div>
+            </aside>
           </div>
-        </div>
+
+          <footer className="expedition-fullscreen-footer">
+            {zoneChallengeFeedback?.correct ? (
+              <button
+                type="button"
+                className="footer-btn primary-btn pulse-glow"
+                onClick={() => {
+                  closeZoneChallenge();
+                  if (surveyZoneById[activeChallengeData.zoneId]) {
+                    openSurveyReport(surveyZoneById[activeChallengeData.zoneId], { skipChallenge: true });
+                  }
+                }}
+              >
+                Open Survey Report <ChevronRight size={16} style={{ marginLeft: '0.5rem' }} />
+              </button>
+            ) : (
+              <button type="button" className="footer-btn secondary-btn" onClick={closeZoneChallenge}>
+                Return to Map
+              </button>
+            )}
+          </footer>
+        </section>
       )}
 
       {gridSetupOpen && selectedSurveyZone && (
-        <div className="bureau-briefing-overlay">
-          <div className="bureau-briefing-modal expedition-grid-modal">
-            <div className="training-kicker">Grid Setup</div>
-            <h2>{surveyZoneById[selectedSurveyZone]?.name}</h2>
-            <p>
-              Archaeologists divide a dig site into grid squares so they can record exactly where evidence was found.
-            </p>
-
-            <div className="expedition-mission-card expedition-grid-explainer">
-              <strong>Selected dig zone</strong>
-              <span>{surveyZoneById[selectedSurveyZone]?.name}</span>
-              <p>Open one square at a time. Only evidence linked to opened squares will become visible.</p>
-            </div>
-
-            <div className="expedition-grid-square-list">
-              {gridSquares.map(square => {
-                const isOpened = openedGridSquares.has(square.id);
-                const cost = GRID_COSTS[square.risk] || GRID_COSTS.Low;
-                return (
-                  <article key={square.id} className={`expedition-grid-square ${isOpened ? 'is-opened' : ''}`}>
-                    <strong>{square.id}</strong>
-                    <span>Risk: {square.risk}</span>
-                    <p>{square.clue}</p>
-                    <div className="expedition-grid-square-meta">
-                      <small>{square.possibleEvidenceHint}</small>
-                      <small>
-                        Cost: {cost.investigation} investigation, {cost.time} seconds
-                      </small>
-                    </div>
-                    <button type="button" className="btn primary-btn" onClick={() => openGridSquare(square)}>
-                      {isOpened ? 'Open Grid Square Again' : 'Open Grid Square'}
-                    </button>
-                  </article>
-                );
-              })}
-            </div>
-
-            <div className="expedition-grid-review">
-              <strong>{activeMission.title}</strong>
-              <span>{activeMission.instruction}</span>
-            </div>
-
-            <div className="bureau-briefing-actions">
-              <button type="button" className="btn primary-btn" onClick={keepExploringGrid}>
-                Keep Exploring
-              </button>
-              <button type="button" className="btn" onClick={() => setNotice(`${activeMission.title}: ${activeMission.instruction}`)}>
-                Review Mission
+        <section className="expedition-fullscreen-room expedition-grid-room" aria-label="Grid Setup Matrix">
+          <header className="expedition-fullscreen-header">
+            <div className="header-left">
+              <button type="button" className="fullscreen-back-btn" onClick={keepExploringGrid}>
+                <ChevronLeft size={16} /> Return to Map
               </button>
             </div>
+            <div className="header-center">
+              <div className="fullscreen-kicker">Antiquities Bureau - Excavation Grid</div>
+              <h1 className="fullscreen-title">{surveyZoneById[selectedSurveyZone]?.name}</h1>
+            </div>
+            <div className="header-right">
+              <div className="fullscreen-badge status-ready" style={{ background: 'rgba(197, 160, 89, 0.12)', borderColor: '#c5a059', color: '#ebdcb9' }}>
+                <Ruler size={14} className="badge-icon" />
+                <span>Grid Setup Active</span>
+              </div>
+            </div>
+          </header>
+
+          <div className="expedition-fullscreen-content" style={{ display: 'grid', gridTemplateColumns: '1.1fr 1.6fr 1.1fr', gap: '1.5rem', padding: '1.5rem 2rem' }}>
+            {/* Left Column: Zone Details & Resource Details */}
+            <aside className="basecamp-column" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div className="fullscreen-card briefing-card" style={{ borderLeft: '3px solid #c5a059' }}>
+                <div className="card-ribbon" style={{ background: '#ebdcb9', color: '#0b0a08' }}>GRID</div>
+                <div className="card-header">
+                  <Ruler size={20} className="card-icon" />
+                  <h2>Dig Site Info</h2>
+                </div>
+                <div className="card-body" style={{ overflowY: 'auto', gap: '1.15rem', padding: '1.15rem' }}>
+                  <p style={{ margin: 0, fontSize: '0.82rem', color: '#a89a7f', lineHeight: 1.45 }}>
+                    Archaeologists divide a dig site into grid squares to record exactly where evidence was found. This helps maintain spatial context and stratigraphic integrity.
+                  </p>
+
+                  <div style={{ background: 'rgba(26,22,17,0.4)', border: '1px solid rgba(139,106,72,0.15)', borderRadius: '6px', padding: '0.85rem' }}>
+                    <small style={{ color: '#c5a059', fontWeight: 800, textTransform: 'uppercase', fontSize: '0.65rem', display: 'block', marginBottom: '0.25rem' }}>Selected Quadrant</small>
+                    <span style={{ fontSize: '0.9rem', color: '#ebdcb9', fontWeight: 700 }}>{surveyZoneById[selectedSurveyZone]?.name}</span>
+                  </div>
+
+                  <div style={{ background: 'rgba(26,22,17,0.4)', border: '1px solid rgba(139,106,72,0.15)', borderRadius: '6px', padding: '0.85rem' }}>
+                    <small style={{ color: '#c5a059', fontWeight: 800, textTransform: 'uppercase', fontSize: '0.65rem', display: 'block', marginBottom: '0.25rem' }}>Site Instructions</small>
+                    <p style={{ margin: 0, fontSize: '0.78rem', color: '#a89a7f', lineHeight: 1.35 }}>
+                      Open one square at a time. Only evidence linked to opened squares will become visible.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </aside>
+
+            {/* Center Column: Interactive Grid Squares Matrix */}
+            <main className="basecamp-column">
+              <div className="fullscreen-card shop-card" style={{ borderTop: '2px solid #c5a059' }}>
+                <div className="card-header">
+                  <MapIcon size={20} className="card-icon gold-glow" />
+                  <h2>Grid Squares Matrix</h2>
+                </div>
+                <div className="card-body" style={{ overflowY: 'auto', gap: '1.25rem', padding: '1.25rem' }}>
+                  <div className="expedition-grid-square-list" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                    {gridSquares.map(square => {
+                      const isOpened = openedGridSquares.has(square.id);
+                      const cost = GRID_COSTS[square.risk] || GRID_COSTS.Low;
+                      return (
+                        <article
+                          key={square.id}
+                          className={`expedition-grid-square ${isOpened ? 'is-opened' : ''}`}
+                          style={{
+                            background: isOpened ? 'rgba(197, 160, 89, 0.05)' : 'rgba(22, 18, 14, 0.6)',
+                            border: `1px solid ${isOpened ? 'rgba(197, 160, 89, 0.4)' : 'rgba(139, 106, 72, 0.18)'}`,
+                            borderRadius: '8px',
+                            padding: '1rem',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '0.5rem',
+                            position: 'relative',
+                            transition: 'all 0.2s ease'
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <strong style={{ color: '#ebdcb9', fontFamily: 'Cinzel, serif', fontSize: '1.1rem' }}>Square {square.id}</strong>
+                            <span style={{
+                              fontSize: '0.68rem',
+                              fontWeight: 800,
+                              textTransform: 'uppercase',
+                              padding: '0.15rem 0.45rem',
+                              borderRadius: '4px',
+                              background: square.risk === 'High' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+                              color: square.risk === 'High' ? '#f87171' : '#34d399',
+                              border: `1px solid ${square.risk === 'High' ? 'rgba(239, 68, 68, 0.3)' : 'rgba(16, 185, 129, 0.3)'}`
+                            }}>
+                              Risk: {square.risk}
+                            </span>
+                          </div>
+
+                          <p style={{ margin: 0, fontSize: '0.78rem', color: '#a89a7f', lineHeight: 1.35, flexGrow: 1 }}>{square.clue}</p>
+
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', padding: '0.5rem 0', borderTop: '1px solid rgba(139, 106, 72, 0.1)' }}>
+                            <small style={{ color: '#c5a059', fontSize: '0.7rem', fontStyle: 'italic' }}>{square.possibleEvidenceHint}</small>
+                            <small style={{ color: '#ebdcb9', fontSize: '0.68rem', fontWeight: 600 }}>
+                              Cost: {cost.investigation} invest., {cost.time}s
+                            </small>
+                          </div>
+
+                          <button
+                            type="button"
+                            className={`btn ${isOpened ? 'secondary-btn' : 'primary-btn'}`}
+                            onClick={() => openGridSquare(square)}
+                            style={{ width: '100%', fontSize: '0.78rem', padding: '0.45rem' }}
+                          >
+                            {isOpened ? 'Excavate Square Again' : 'Excavate Square'}
+                          </button>
+                        </article>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </main>
+
+            {/* Right Column: Satchel and Fitted Tools */}
+            <aside className="basecamp-column" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div className="fullscreen-card kit-card" style={{ borderRight: '2px solid #8b6a48' }}>
+                <div className="card-header">
+                  <Backpack size={20} className="card-icon" />
+                  <h2>Mission Objective</h2>
+                </div>
+                <div className="card-body" style={{ overflowY: 'auto', gap: '1rem', padding: '1rem', fontSize: '0.82rem' }}>
+                  <div className="mission-badge" style={{ alignSelf: 'flex-start' }}>{activeMission.targetCategoryTitle}</div>
+                  <strong style={{ color: '#ebdcb9', fontFamily: 'Cinzel, serif', display: 'block', marginTop: '0.5rem' }}>{activeMission.title}</strong>
+                  <p style={{ margin: 0, color: '#a89a7f', lineHeight: 1.45 }}>
+                    {activeMission.instruction}
+                  </p>
+
+                  <div style={{ borderTop: '1px solid rgba(139,106,72,0.15)', paddingTop: '0.75rem', marginTop: '0.5rem' }}>
+                    <small style={{ color: '#ebdcb9', display: 'block', fontWeight: 700, textTransform: 'uppercase', fontSize: '0.68rem', marginBottom: '0.25rem' }}>Fitted Tools Ready</small>
+                    <p style={{ margin: 0, color: '#a89a7f', lineHeight: 1.35 }}>
+                      {fieldKitEffects.measuringTapeReady ? '📏 Measuring Tape equipped (location precision active)' : '❌ Measuring Tape missing'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </aside>
           </div>
-        </div>
+
+          <footer className="expedition-fullscreen-footer">
+            <button type="button" className="footer-btn secondary-btn" onClick={() => setNotice(`${activeMission.title}: ${activeMission.instruction}`)}>
+              Review Mission
+            </button>
+            <button type="button" className="footer-btn primary-btn pulse-glow" onClick={keepExploringGrid}>
+              Keep Exploring <ChevronRight size={16} style={{ marginLeft: '0.5rem' }} />
+            </button>
+          </footer>
+        </section>
       )}
 
       {inspectionToken && (
-        <div className="bureau-briefing-overlay">
-          <div className="bureau-briefing-modal expedition-inspection-modal">
-            <div className="training-kicker">Inspect Evidence</div>
-            <h2>{inspectionToken.name}</h2>
-            <div className="expedition-inspection-meta">Unclassified field evidence</div>
-            <p>{inspectionToken.clue}</p>
-            <div className="expedition-inspection-clue-group">Field context: {inspectionToken.zone}</div>
-            {fieldKitEffects.fieldGuideAvailable && !inspectionFeedback && (
-              <div className="expedition-tool-effect-hint">
-                <strong>Field Guide Hint</strong>
-                <span>
-                  Look at the material, shape, location and clue before deciding how to classify this evidence.
-                </span>
+        <section className="expedition-fullscreen-room expedition-lab-room" aria-label="Evidence Workbench">
+          <header className="expedition-fullscreen-header">
+            <div className="header-left">
+              <button type="button" className="fullscreen-back-btn" onClick={closeInspection}>
+                <ChevronLeft size={16} /> Return to Site
+              </button>
+            </div>
+            <div className="header-center">
+              <div className="fullscreen-kicker">Antiquities Bureau - Conservation Lab</div>
+              <h1 className="fullscreen-title">{inspectionToken.name}</h1>
+            </div>
+            <div className="header-right">
+              <div className="fullscreen-badge status-ready" style={{ background: 'rgba(197, 160, 89, 0.12)', borderColor: '#c5a059', color: '#ebdcb9' }}>
+                <Gem size={14} className="badge-icon" />
+                <span>Field Analysis Active</span>
               </div>
-            )}
-            {fieldKitEffects.notebookReady && !inspectionFeedback && (
-              <div className="expedition-tool-effect-hint">
-                <strong>Notebook Ready</strong>
-                <span>Excavation method choices and rejected evidence are recorded as field notes.</span>
-              </div>
-            )}
+            </div>
+          </header>
 
-            {!inspectionFeedback && inspectionStep === 'excavate' && (
-              <div className="expedition-excavation-method-panel">
-                <div className="expedition-inspection-question">Choose an excavation method before collecting evidence.</div>
-                <p className="expedition-survey-process-note">
-                  Archaeologists excavate carefully so the evidence and its location stay useful.
-                </p>
-                <div className="expedition-excavation-method-grid">
-                  {EXCAVATION_METHODS.map(method => {
-                    const costText = `${method.cost.investigation} investigation, ${method.cost.time} seconds`;
-                    return (
-                      <article key={method.id} className="expedition-excavation-method-card">
-                        <strong>{method.name}</strong>
-                        <span>{method.bestFor}</span>
-                        <p>Cost: {costText}</p>
-                        <p>Likely quality: depends on the find and method choice.</p>
-                        <button type="button" className="btn primary-btn" onClick={() => chooseExcavationMethod(method.id)}>
-                          Choose Method
-                        </button>
-                      </article>
-                    );
-                  })}
+          <div className="expedition-fullscreen-content" style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr 1fr', gap: '1.5rem', padding: '1.5rem 2rem' }}>
+            {/* Left Column: Artifact Profile */}
+            <aside className="basecamp-column" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div className="fullscreen-card briefing-card" style={{ borderLeft: '3px solid #ebdcb9' }}>
+                <div className="card-ribbon" style={{ background: '#ebdcb9', color: '#0b0a08' }}>UNCLASSIFIED</div>
+                <div className="card-header">
+                  <Gem size={20} className="card-icon" />
+                  <h2>Artifact Dossier</h2>
                 </div>
-              </div>
-            )}
+                <div className="card-body" style={{ overflowY: 'auto', gap: '1.25rem', padding: '1.25rem' }}>
+                  <p style={{ margin: 0, fontSize: '0.85rem', color: '#a89a7f', lineHeight: 1.5 }}>
+                    <strong>Clue context:</strong> "{inspectionToken.clue}"
+                  </p>
 
-            {!inspectionFeedback && inspectionStep === 'map' && (
-              <div className="expedition-map-panel">
-                <div className="expedition-inspection-question">Map the Find</div>
-                <p className="expedition-survey-process-note">
-                  Archaeologists record where evidence is found. This helps them understand the evidence in context.
-                </p>
-
-                <div className="expedition-map-summary">
-                  <section>
-                    <strong>Zone</strong>
-                    <span>{getSurveyZoneName(selectedSurveyZone, surveyZoneById) || 'Unknown'}</span>
-                  </section>
-                  <section>
-                    <strong>Grid Square</strong>
-                    <span>{selectedGridSquare || 'Unknown'}</span>
-                  </section>
-                  <section>
-                    <strong>Evidence Type</strong>
-                    <span>{selectedMappedEvidenceType ? getMapEvidenceTypeName(selectedMappedEvidenceType) : 'Choose one below'}</span>
-                  </section>
-                </div>
-
-                {fieldKitEffects.fieldGuideAvailable && (
-                  <div className="expedition-tool-effect-hint">
-                    <strong>Field Guide Hint</strong>
-                    <span>
-                      Use the clue and location record to choose the evidence type. The field guide will not choose the category for you.
-                    </span>
-                  </div>
-                )}
-
-                <div className="expedition-map-type-grid">
-                  {MAP_EVIDENCE_TYPES.map(type => (
-                    <button
-                      key={type.id}
-                      type="button"
-                      className={`expedition-map-type-btn ${selectedMappedEvidenceType === type.id ? 'is-selected' : ''}`}
-                      onClick={() => setSelectedMappedEvidenceType(type.id)}
-                    >
-                      {type.name}
-                    </button>
-                  ))}
-                </div>
-
-                {mappingFeedback && (
-                  <div className={`expedition-claim-feedback ${mappingFeedback.accurate ? 'correct' : 'incorrect'}`}>
-                    <CheckCircle2 size={20} />
-                    <div>
-                      <strong>{mappingFeedback.accurate ? 'Mapping complete' : 'Mapping recorded'}</strong>
-                      <p>{mappingFeedback.text}</p>
+                  <div style={{ background: 'rgba(26,22,17,0.4)', border: '1px solid rgba(139,106,72,0.15)', borderRadius: '6px', padding: '0.85rem', fontSize: '0.8rem' }}>
+                    <div style={{ marginBottom: '0.5rem' }}>
+                      <strong style={{ color: '#ebdcb9', display: 'block', textTransform: 'uppercase', fontSize: '0.7rem' }}>Field Sector</strong>
+                      <span style={{ color: '#a89a7f' }}>{inspectionToken.zone}</span>
                     </div>
+                    {inspectionToken.evidenceQuality && (
+                      <div>
+                        <strong style={{ color: '#ebdcb9', display: 'block', textTransform: 'uppercase', fontSize: '0.7rem' }}>Excavated Quality</strong>
+                        <span style={{ color: '#ebdcb9', fontWeight: 'bold' }}>{inspectionToken.evidenceQuality.toUpperCase()}</span>
+                      </div>
+                    )}
                   </div>
-                )}
 
-                <div className="bureau-briefing-actions">
-                  <button
-                    type="button"
-                    className="btn primary-btn"
-                    onClick={recordMappedFind}
-                    disabled={!selectedMappedEvidenceType}
-                  >
-                    Record Map
-                  </button>
+                  {fieldKitEffects.fieldGuideAvailable && !inspectionFeedback && (
+                    <div style={{ background: 'rgba(197, 160, 89, 0.08)', border: '1px solid rgba(197, 160, 89, 0.25)', borderRadius: '6px', padding: '0.85rem', fontSize: '0.78rem' }}>
+                      <strong style={{ color: '#ebdcb9', display: 'block', marginBottom: '0.2rem' }}>📖 Field Guide Hint</strong>
+                      <span style={{ color: '#a89a7f', lineHeight: 1.4 }}>
+                        Look at the material, shape, location and clue before deciding how to classify this evidence.
+                      </span>
+                    </div>
+                  )}
+
+                  {fieldKitEffects.notebookReady && !inspectionFeedback && (
+                    <div style={{ background: 'rgba(197, 160, 89, 0.08)', border: '1px solid rgba(197, 160, 89, 0.25)', borderRadius: '6px', padding: '0.85rem', fontSize: '0.78rem' }}>
+                      <strong style={{ color: '#ebdcb9', display: 'block', marginBottom: '0.2rem' }}>📓 Field Notebook Active</strong>
+                      <span style={{ color: '#a89a7f', lineHeight: 1.4 }}>
+                        Excavation method choices and rejected evidence are fully logged in your field notes.
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
-            )}
+            </aside>
 
-            {selectedExcavationMethod && !inspectionFeedback && inspectionStep !== 'excavate' && (
-              <div className="expedition-tool-effect-hint match">
-                <strong>{selectedExcavationMethod.methodName} used</strong>
-                <span>
-                  Evidence quality: {selectedExcavationMethod.quality}. {selectedExcavationMethod.feedback}
-                  {selectedExcavationMethod.kitFeedback ? ` ${selectedExcavationMethod.kitFeedback}` : ''}
-                </span>
-              </div>
-            )}
-
-            {inspectionStep === 'review' && mappingFeedback && !inspectionFeedback && (
-              <div className={`expedition-tool-effect-hint ${mappingFeedback.accurate ? 'match' : 'miss'}`}>
-                <strong>{mappingFeedback.accurate ? 'Mapping accurate' : 'Mapping needs review'}</strong>
-                <span>{mappingFeedback.text}</span>
-              </div>
-            )}
-
-            {inspectionStep === 'review' && (
-              <div className="expedition-inspection-question">Does this evidence match your mission?</div>
-            )}
-
-            {!inspectionFeedback && inspectionStep === 'review' && (
-              <div className="expedition-inspection-actions">
-                <button
-                  type="button"
-                  className="btn primary-btn"
-                  onClick={() => inspectMissionChoice(true)}
-                >
-                  Secure as mission evidence
-                </button>
-                <button
-                  type="button"
-                  className="btn"
-                  onClick={() => inspectMissionChoice(false)}
-                >
-                  Not mission evidence - keep searching
-                </button>
-              </div>
-            )}
-
-            {!inspectionFeedback && inspectionStep === 'capacity' && pendingEvidence && (
-              <div className="expedition-satchel-decision">
-                <div className="expedition-satchel-mission-banner">
-                  <div className="training-kicker">Bureau Mission</div>
-                  <strong>{activeMission.title}</strong>
-                  <p className="inquiry"><strong>Inquiry:</strong> {activeMission.inquiryQuestion}</p>
-                  <div className="expedition-mission-progress">
-                    Progress: <span>{missionEvidenceCount} / {missionRequiredCount} {activeMission.evidenceLabel} secured</span>
-                  </div>
+            {/* Center Column: Lab Workbench Process Steps */}
+            <main className="basecamp-column">
+              <div className="fullscreen-card shop-card" style={{ borderTop: '2px solid #c5a059' }}>
+                <div className="card-header">
+                  <Sparkles size={20} className="card-icon gold-glow" />
+                  <h2>Analysis Workbench</h2>
                 </div>
 
-                <p className="expedition-satchel-decision-note">
-                  <strong>Satchel Full!</strong> Archaeologists must choose evidence that answers the inquiry question. Review the items below.
-                </p>
+                <div className="card-body" style={{ overflowY: 'auto', gap: '1.25rem', padding: '1.25rem' }}>
+                  {/* Step 1: Excavate */}
+                  {!inspectionFeedback && inspectionStep === 'excavate' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      <strong style={{ color: '#ebdcb9', fontSize: '1.05rem', fontFamily: 'Cinzel, serif' }}>Choose Excavation Method</strong>
+                      <p style={{ margin: 0, fontSize: '0.82rem', color: '#a89a7f', lineHeight: 1.4 }}>
+                        Archaeologists select their excavation tools carefully depending on the fragility of the artifacts and surrounding strata.
+                      </p>
 
-                <div className="expedition-satchel-decision-columns">
-                  <section className="expedition-satchel-column">
-                    <h3>Current Satchel (3/3)</h3>
-                    <div className="expedition-evidence-list">
-                      {satchelContents.map(item => (
-                        <article key={item.id} className={`expedition-evidence-item ${item.matchesMission ? 'is-mission' : 'is-general'}`}>
-                          <div className={`item-label ${item.matchesMission ? 'mission' : 'general'}`}>
-                            {item.matchesMission ? 'Mission Evidence' : 'General Discovery'}
+                      <div className="expedition-excavation-method-grid" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.85rem' }}>
+                        {EXCAVATION_METHODS.map(method => {
+                          const costText = `${method.cost.investigation} investigation, ${method.cost.time} seconds`;
+                          return (
+                            <article
+                              key={method.id}
+                              className="expedition-excavation-method-card"
+                              style={{
+                                background: 'rgba(22, 18, 14, 0.6)',
+                                border: '1px solid rgba(139, 106, 72, 0.2)',
+                                borderRadius: '6px',
+                                padding: '0.85rem',
+                                display: 'grid',
+                                gridTemplateColumns: '1fr 130px',
+                                gap: '1rem',
+                                alignItems: 'center'
+                              }}
+                            >
+                              <div>
+                                <strong style={{ color: '#ebdcb9', display: 'block', fontSize: '0.9rem' }}>{method.name}</strong>
+                                <span style={{ color: '#c5a059', display: 'block', fontSize: '0.72rem', fontStyle: 'italic', marginBottom: '0.25rem' }}>{method.bestFor}</span>
+                                <p style={{ margin: 0, fontSize: '0.75rem', color: '#a89a7f' }}>Cost: {costText}</p>
+                              </div>
+                              <button
+                                type="button"
+                                className="btn primary-btn"
+                                onClick={() => chooseExcavationMethod(method.id)}
+                                style={{ padding: '0.45rem 0.75rem', fontSize: '0.78rem' }}
+                              >
+                                Select Tool
+                              </button>
+                            </article>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Step 2: Map the Find */}
+                  {!inspectionFeedback && inspectionStep === 'map' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                      <strong style={{ color: '#ebdcb9', fontSize: '1.05rem', fontFamily: 'Cinzel, serif' }}>Map & Record Coordinates</strong>
+                      <p style={{ margin: 0, fontSize: '0.82rem', color: '#a89a7f', lineHeight: 1.45 }}>
+                        Precise provenance is essential. Categorise the find and associate it with the correct stratigraphic profile.
+                      </p>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', background: 'rgba(26,22,17,0.4)', padding: '0.85rem', borderRadius: '6px', border: '1px solid rgba(139,106,72,0.1)' }}>
+                        <div style={{ textAlign: 'center' }}>
+                          <span style={{ display: 'block', fontSize: '0.62rem', color: '#8b6a48', textTransform: 'uppercase' }}>Zone</span>
+                          <strong style={{ color: '#ebdcb9', fontSize: '0.78rem' }}>{getSurveyZoneName(selectedSurveyZone, surveyZoneById) || 'Unknown'}</strong>
+                        </div>
+                        <div style={{ textAlign: 'center', borderLeft: '1px solid rgba(139,106,72,0.15)', borderRight: '1px solid rgba(139,106,72,0.15)' }}>
+                          <span style={{ display: 'block', fontSize: '0.62rem', color: '#8b6a48', textTransform: 'uppercase' }}>Grid Square</span>
+                          <strong style={{ color: '#ebdcb9', fontSize: '0.78rem' }}>{selectedGridSquare || 'Unknown'}</strong>
+                        </div>
+                        <div style={{ textAlign: 'center' }}>
+                          <span style={{ display: 'block', fontSize: '0.62rem', color: '#8b6a48', textTransform: 'uppercase' }}>Classification</span>
+                          <strong style={{ color: '#cda869', fontSize: '0.78rem' }}>
+                            {selectedMappedEvidenceType ? getMapEvidenceTypeName(selectedMappedEvidenceType) : 'Pending'}
+                          </strong>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem' }}>
+                        {MAP_EVIDENCE_TYPES.map(type => (
+                          <button
+                            key={type.id}
+                            type="button"
+                            className={`expedition-map-type-btn ${selectedMappedEvidenceType === type.id ? 'is-selected' : ''}`}
+                            onClick={() => setSelectedMappedEvidenceType(type.id)}
+                            style={{
+                              padding: '0.65rem 0.85rem',
+                              background: selectedMappedEvidenceType === type.id ? 'rgba(197, 160, 89, 0.15)' : 'rgba(22,18,14,0.6)',
+                              border: `1px solid ${selectedMappedEvidenceType === type.id ? '#c5a059' : 'rgba(139,106,72,0.2)'}`,
+                              borderRadius: '6px',
+                              color: selectedMappedEvidenceType === type.id ? '#fff' : '#a89a7f',
+                              fontSize: '0.78rem',
+                              cursor: 'pointer',
+                              fontWeight: selectedMappedEvidenceType === type.id ? 'bold' : 'normal',
+                              textAlign: 'center',
+                              transition: 'all 0.15s ease'
+                            }}
+                          >
+                            {type.name}
+                          </button>
+                        ))}
+                      </div>
+
+                      {mappingFeedback && (
+                        <div style={{
+                          display: 'flex',
+                          gap: '0.5rem',
+                          background: mappingFeedback.accurate ? 'rgba(16, 185, 129, 0.08)' : 'rgba(239, 68, 68, 0.08)',
+                          border: `1px solid ${mappingFeedback.accurate ? '#10b981' : '#ef4444'}`,
+                          borderRadius: '6px',
+                          padding: '0.75rem',
+                          alignItems: 'center'
+                        }}>
+                          <CheckCircle2 size={16} style={{ color: mappingFeedback.accurate ? '#34d399' : '#f87171' }} />
+                          <div style={{ fontSize: '0.78rem' }}>
+                            <strong style={{ color: mappingFeedback.accurate ? '#34d399' : '#f87171', display: 'block' }}>
+                              {mappingFeedback.accurate ? 'Mapping Verified' : 'Mapping Logged'}
+                            </strong>
+                            <p style={{ margin: 0, color: '#a89a7f' }}>{mappingFeedback.text}</p>
                           </div>
-                          <strong>{item.name}</strong>
-                          <span>{item.category} | {item.zone}</span>
-                          {item.evidenceQuality && <span>Quality: {item.evidenceQuality}</span>}
-                          <p>{item.clue}</p>
-                        </article>
-                      ))}
-                    </div>
-                  </section>
+                        </div>
+                      )}
 
-                  <section className="expedition-satchel-column new-evidence-column">
-                    <h3>New Evidence</h3>
-                    <article className={`expedition-evidence-item new-evidence-card ${pendingEvidence.matchesMission ? 'is-mission' : 'is-general'}`}>
-                      <div className={`item-label ${pendingEvidence.matchesMission ? 'mission' : 'general'}`}>
-                        {pendingEvidence.matchesMission ? 'Mission Evidence' : 'General Discovery'}
-                      </div>
-                      <strong>{pendingEvidence.name}</strong>
-                      <span>{pendingEvidence.category} | {pendingEvidence.zone}</span>
-                      {pendingEvidence.evidenceQuality && <span>Quality: {pendingEvidence.evidenceQuality}</span>}
-                      <p>{pendingEvidence.clue}</p>
-                      <div className={`new-evidence-advice ${pendingEvidence.matchesMission ? 'positive' : 'negative'}`}>
-                        {pendingEvidence.matchesMission 
-                          ? '✅ This answers the inquiry question.' 
-                          : '❌ This does not answer the inquiry question.'}
-                      </div>
-                    </article>
-                    
-                    <div className="expedition-inventory-choice-actions stack-actions">
                       <button
                         type="button"
                         className="btn primary-btn"
-                        onClick={() => setInspectionStep('replace')}
+                        onClick={recordMappedFind}
+                        disabled={!selectedMappedEvidenceType}
+                        style={{ width: '100%', padding: '0.65rem' }}
                       >
-                        Replace an item
-                      </button>
-                      <button
-                        type="button"
-                        className="btn"
-                        onClick={() => rejectInspectedEvidence(inspectionToken)}
-                      >
-                        Leave new evidence
-                      </button>
-                      <button
-                        type="button"
-                        className="btn outline-btn"
-                        onClick={() => setInspectionStep('mission')}
-                      >
-                        Review mission
+                        Record Map
                       </button>
                     </div>
-                  </section>
+                  )}
+
+                  {/* Mid-step helper text */}
+                  {selectedExcavationMethod && !inspectionFeedback && inspectionStep !== 'excavate' && (
+                    <div style={{ background: 'rgba(197, 160, 89, 0.06)', border: '1px solid rgba(197, 160, 89, 0.25)', borderRadius: '6px', padding: '0.75rem', fontSize: '0.78rem' }}>
+                      <strong style={{ color: '#ebdcb9' }}>{selectedExcavationMethod.methodName} used</strong>
+                      <p style={{ margin: '0.2rem 0 0 0', color: '#a89a7f', lineHeight: 1.35 }}>
+                        Quality: <strong style={{ color: '#c5a059' }}>{selectedExcavationMethod.quality}</strong>. {selectedExcavationMethod.feedback}
+                        {selectedExcavationMethod.kitFeedback ? ` ${selectedExcavationMethod.kitFeedback}` : ''}
+                      </p>
+                    </div>
+                  )}
+
+                  {inspectionStep === 'review' && mappingFeedback && !inspectionFeedback && (
+                    <div style={{
+                      background: mappingFeedback.accurate ? 'rgba(16, 185, 129, 0.06)' : 'rgba(239, 68, 68, 0.06)',
+                      border: `1px solid ${mappingFeedback.accurate ? '#10b981' : '#ef4444'}`,
+                      borderRadius: '6px',
+                      padding: '0.75rem',
+                      fontSize: '0.78rem'
+                    }}>
+                      <strong>{mappingFeedback.accurate ? 'Mapping Accurate' : 'Stratigraphy Discrepancy'}</strong>
+                      <p style={{ margin: '0.2rem 0 0 0', color: '#a89a7f', lineHeight: 1.35 }}>{mappingFeedback.text}</p>
+                    </div>
+                  )}
+
+                  {/* Step 3: Review */}
+                  {!inspectionFeedback && inspectionStep === 'review' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      <strong style={{ color: '#ebdcb9', fontSize: '1.05rem', fontFamily: 'Cinzel, serif' }}>Verify & Secure Find</strong>
+                      <p style={{ margin: 0, fontSize: '0.82rem', color: '#a89a7f', lineHeight: 1.4 }}>
+                        Evaluate if this artifact matches your active inquiry dossier. Secure relevant evidence, or discard weaker findings.
+                      </p>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                        <button
+                          type="button"
+                          className="btn primary-btn"
+                          onClick={() => inspectMissionChoice(true)}
+                          style={{ padding: '0.85rem' }}
+                        >
+                          Secure as Mission Evidence
+                        </button>
+                        <button
+                          type="button"
+                          className="btn secondary-btn"
+                          onClick={() => inspectMissionChoice(false)}
+                          style={{ padding: '0.85rem' }}
+                        >
+                          Not Mission Evidence - Keep Searching
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Step 4: Satchel Capacity Decision */}
+                  {!inspectionFeedback && inspectionStep === 'capacity' && pendingEvidence && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      <strong style={{ color: '#f87171', fontSize: '1.05rem', fontFamily: 'Cinzel, serif' }}>🎒 Satchel Overflow!</strong>
+                      <p style={{ margin: 0, fontSize: '0.78rem', color: '#a89a7f', lineHeight: 1.4 }}>
+                        Your explorer satchel is full (3/3). You must choose to discard an existing piece of evidence or reject the new find.
+                      </p>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                        {/* Satchel contents list */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                          <span style={{ fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', color: '#c5a059' }}>Current Satchel Items</span>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '180px', overflowY: 'auto' }}>
+                            {satchelContents.map(item => (
+                              <div key={item.id} style={{ background: 'rgba(26,22,17,0.5)', border: '1px solid rgba(139,106,72,0.15)', borderRadius: '4px', padding: '0.5rem', fontSize: '0.72rem' }}>
+                                <strong style={{ color: '#ebdcb9', display: 'block' }}>{item.name}</strong>
+                                <span style={{ color: '#8b6a48' }}>{item.evidenceQuality || 'good'}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* New evidence profile */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                          <span style={{ fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', color: '#ef4444' }}>New Artifact</span>
+                          <div style={{ background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.25)', borderRadius: '4px', padding: '0.5rem', fontSize: '0.72rem' }}>
+                            <strong style={{ color: '#ebdcb9', display: 'block' }}>{pendingEvidence.name}</strong>
+                            <span style={{ color: '#f87171' }}>{pendingEvidence.evidenceQuality || 'good'}</span>
+                            <small style={{ display: 'block', color: '#ebdcb9', marginTop: '0.25rem' }}>
+                              {pendingEvidence.matchesMission ? '✅ Answers Inquiry' : '❌ Irrelevant'}
+                            </small>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
+                        <button type="button" className="btn primary-btn" onClick={() => setInspectionStep('replace')} style={{ padding: '0.55rem' }}>
+                          Replace an Item
+                        </button>
+                        <button type="button" className="btn secondary-btn" onClick={() => rejectInspectedEvidence(inspectionToken)} style={{ padding: '0.55rem' }}>
+                          Discard New Evidence
+                        </button>
+                        <button type="button" className="btn outline-btn" onClick={() => setInspectionStep('mission')} style={{ padding: '0.55rem' }}>
+                          Review Dossier
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Step 5: Mission Review from Satchel overflow */}
+                  {!inspectionFeedback && inspectionStep === 'mission' && pendingEvidence && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      <strong style={{ color: '#ebdcb9', fontSize: '1.05rem', fontFamily: 'Cinzel, serif' }}>Review Active Mission Dossier</strong>
+                      <div style={{ background: 'rgba(26,22,17,0.4)', border: '1px solid rgba(139,106,72,0.15)', borderRadius: '6px', padding: '1rem', fontSize: '0.82rem' }}>
+                        <strong style={{ color: '#ebdcb9', display: 'block' }}>{activeMission.title}</strong>
+                        <p style={{ margin: '0.25rem 0 0.5rem 0', color: '#ebdcb9', fontStyle: 'italic' }}>Question: {activeMission.inquiryQuestion}</p>
+                        <small style={{ color: '#a89a7f', display: 'block', lineHeight: 1.35 }}>Target Type: {activeMission.targetEvidenceType}</small>
+                        <small style={{ color: '#a89a7f', display: 'block', lineHeight: 1.35 }}>Directive: {activeMission.briefingRule}</small>
+                      </div>
+                      <button type="button" className="btn" onClick={() => setInspectionStep('capacity')} style={{ padding: '0.55rem' }}>
+                        Return to Decision
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Step 6: Replacement Picker */}
+                  {!inspectionFeedback && inspectionStep === 'replace' && pendingEvidence && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      <strong style={{ color: '#ebdcb9', fontSize: '1.05rem', fontFamily: 'Cinzel, serif' }}>Select Satchel Item to Discard</strong>
+
+                      <div className="expedition-replacement-grid" style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                        {satchelContents.map(item => (
+                          <button
+                            key={item.id}
+                            type="button"
+                            className="expedition-replacement-card"
+                            onClick={() => finishInspection(inspectionToken, item.id)}
+                            style={{
+                              background: 'rgba(22, 18, 14, 0.6)',
+                              border: '1px solid rgba(139, 106, 72, 0.25)',
+                              borderRadius: '6px',
+                              padding: '0.75rem',
+                              textAlign: 'left',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              transition: 'all 0.15s ease'
+                            }}
+                          >
+                            <div>
+                              <strong style={{ color: '#ebdcb9', display: 'block' }}>{item.name}</strong>
+                              <span style={{ color: '#a89a7f', fontSize: '0.72rem' }}>{item.category} | {item.evidenceQuality || 'good'}</span>
+                            </div>
+                            <span style={{ fontSize: '0.72rem', color: '#f87171', fontWeight: 'bold', textTransform: 'uppercase' }}>Discard ➔</span>
+                          </button>
+                        ))}
+                      </div>
+
+                      <button type="button" className="btn" onClick={() => setInspectionStep('capacity')} style={{ padding: '0.55rem' }}>
+                        Back
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Step 7: Feedback / Verification Stamp */}
+                  {inspectionFeedback && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', position: 'relative' }}>
+                      <div style={{
+                        display: 'flex',
+                        gap: '0.75rem',
+                        background: inspectionFeedback.correct ? 'rgba(16, 185, 129, 0.08)' : 'rgba(239, 68, 68, 0.08)',
+                        border: `1px solid ${inspectionFeedback.correct ? '#10b981' : '#ef4444'}`,
+                        borderRadius: '6px',
+                        padding: '1.25rem',
+                        alignItems: 'center',
+                        position: 'relative',
+                        overflow: 'hidden'
+                      }}>
+                        {inspectionFeedback.correct ? <CheckCircle2 size={24} style={{ color: '#34d399' }} /> : <AlertTriangle size={24} style={{ color: '#f87171' }} />}
+                        <div>
+                          <strong style={{ color: inspectionFeedback.correct ? '#34d399' : '#f87171', fontSize: '1.05rem', display: 'block', fontFamily: 'Cinzel, serif' }}>
+                            {inspectionFeedback.correct ? 'Evidence Verified' : 'Evidence Logged'}
+                          </strong>
+                          <p style={{ margin: '0.25rem 0 0 0', color: '#ebdcb9', fontSize: '0.85rem', lineHeight: 1.4 }}>{inspectionFeedback.text}</p>
+                        </div>
+
+                        {/* Stamp watermark */}
+                        <div style={{
+                          position: 'absolute',
+                          right: '-10px',
+                          bottom: '-15px',
+                          opacity: 0.12,
+                          transform: 'rotate(-15deg)',
+                          fontFamily: 'Cinzel, serif',
+                          fontSize: '3rem',
+                          fontWeight: 900,
+                          textTransform: 'uppercase',
+                          color: inspectionFeedback.correct ? '#10b981' : '#ef4444',
+                          pointerEvents: 'none'
+                        }}>
+                          {inspectionFeedback.stamp}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
-            )}
+            </main>
 
-            {!inspectionFeedback && inspectionStep === 'mission' && pendingEvidence && (
-              <div className="expedition-mission-review">
-                <div className="expedition-mission-card expedition-satchel-summary-card">
-                  <strong>{activeMission.title}</strong>
-                  <span>{activeMission.targetCategoryTitle}</span>
-                  <p><strong>Inquiry question:</strong> {activeMission.inquiryQuestion}</p>
-                  <p><strong>Target evidence type:</strong> {activeMission.targetEvidenceType}</p>
-                  <p><strong>Mission rule:</strong> {activeMission.briefingRule}</p>
-                  <p>{activeMission.instruction}</p>
+            {/* Right Column: Satchel / Mission Reference */}
+            <aside className="basecamp-column" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div className="fullscreen-card kit-card" style={{ borderRight: '2px solid #8b6a48' }}>
+                <div className="card-header">
+                  <Backpack size={20} className="card-icon" />
+                  <h2>Mission Dossier</h2>
                 </div>
-                <p className="expedition-mission-review-note">This review does not change your satchel. It just helps you decide what evidence matters most.</p>
-                <button type="button" className="btn" onClick={() => setInspectionStep('capacity')}>
-                  Back to satchel decision
-                </button>
-              </div>
-            )}
+                <div className="card-body" style={{ overflowY: 'auto', gap: '1rem', padding: '1rem', fontSize: '0.82rem' }}>
+                  <div className="mission-badge" style={{ alignSelf: 'flex-start' }}>{activeMission.targetCategoryTitle}</div>
+                  <strong style={{ color: '#ebdcb9', fontFamily: 'Cinzel, serif', display: 'block', marginTop: '0.5rem' }}>{activeMission.title}</strong>
+                  <p style={{ margin: 0, color: '#a89a7f', lineHeight: 1.4 }}>
+                    {activeMission.inquiryQuestion}
+                  </p>
 
-            {!inspectionFeedback && inspectionStep === 'replace' && pendingEvidence && (
-              <div className="expedition-replacement-picker">
-                <p>Choose one item to replace with the new evidence.</p>
-                <div className="expedition-replacement-grid">
-                  {satchelContents.map(item => (
-                    <button
-                      type="button"
-                      key={item.id}
-                      className="expedition-replacement-card"
-                      onClick={() => finishInspection(inspectionToken, item.id)}
-                    >
-                      <strong>{item.name}</strong>
-                      <span>{item.category} | {item.zone}</span>
-                      {item.evidenceQuality && <span>Quality: {item.evidenceQuality}</span>}
-                      <span className="expedition-evidence-clue-group">{item.missionLabel}</span>
-                      <span className="expedition-replacement-action">Replace {item.name}</span>
-                    </button>
-                  ))}
+                  <div style={{ background: 'rgba(26, 22, 17, 0.4)', padding: '0.75rem', borderRadius: '4px', border: '1px solid rgba(139,106,72,0.1)', marginTop: '0.5rem' }}>
+                    <small style={{ color: '#ebdcb9', display: 'block', fontWeight: 800, textTransform: 'uppercase', fontSize: '0.65rem', marginBottom: '0.25rem' }}>Secured Finds</small>
+                    <span style={{ fontSize: '1rem', color: '#c5a059', fontWeight: 'bold' }}>{missionEvidenceCount} / {missionRequiredCount}</span>
+                  </div>
                 </div>
-                <button type="button" className="btn" onClick={() => setInspectionStep('capacity')}>
-                  Back
-                </button>
               </div>
-            )}
-
-            {inspectionFeedback && (
-              <div className={`expedition-claim-feedback ${inspectionFeedback.correct ? 'correct' : 'incorrect'}`}>
-                {inspectionFeedback.correct ? <CheckCircle2 size={22} /> : <AlertTriangle size={22} />}
-                <div>
-                  <strong>{inspectionFeedback.correct ? 'Evidence verified' : 'Evidence collected'}</strong>
-                  <p>{inspectionFeedback.text}</p>
-                </div>
-                <span className={`expedition-evidence-stamp ${inspectionFeedback.correct ? 'verified' : 'collected'}`}>
-                  {inspectionFeedback.stamp}
-                </span>
-              </div>
-            )}
-
-            {inspectionStep === 'mission' && !inspectionFeedback && (
-              <div className="bureau-briefing-actions">
-                <button type="button" className="btn" onClick={() => setInspectionStep('capacity')}>
-                  Return to satchel decision
-                </button>
-              </div>
-            )}
-
-            {(inspectionFeedback || inspectionStep === 'review') && (
-              <div className="bureau-briefing-actions">
-                <button type="button" className="btn" onClick={closeInspection}>
-                  {inspectionFeedback ? 'Continue Expedition' : 'Keep Looking'}
-                </button>
-              </div>
-            )}
+            </aside>
           </div>
-        </div>
+
+          <footer className="expedition-fullscreen-footer">
+            {(inspectionFeedback || inspectionStep === 'review') ? (
+              <button type="button" className="footer-btn primary-btn pulse-glow" onClick={closeInspection}>
+                {inspectionFeedback ? 'Continue Expedition' : 'Keep Looking'} <ChevronRight size={16} style={{ marginLeft: '0.5rem' }} />
+              </button>
+            ) : (
+              <button type="button" className="footer-btn secondary-btn" onClick={closeInspection}>
+                Return to Site
+              </button>
+            )}
+          </footer>
+        </section>
       )}
 
       {claimOpen && (
-        <div className="bureau-briefing-overlay">
-          <div className="bureau-briefing-modal expedition-claim-modal">
-            <div className="training-kicker">Final Expedition Claim</div>
-            <h2>Identify the Lost Site</h2>
-            <p>Choose the civilisation and the collected evidence that best supports your claim.</p>
-
-            <label className="expedition-claim-field">
-              <span>Civilisation</span>
-              <select value={selectedCivilisation} onChange={(event) => setSelectedCivilisation(event.target.value)}>
-                <option value="">Choose a civilisation</option>
-                {claimCivilisations.map(civilisation => (
-                  <option key={civilisation} value={civilisation}>{civilisation}</option>
-                ))}
-              </select>
-            </label>
-
-            <label className="expedition-claim-field">
-              <span>Best supporting evidence</span>
-              <select value={selectedEvidenceId} onChange={(event) => setSelectedEvidenceId(event.target.value)}>
-                <option value="">Choose collected evidence</option>
-                {collectedEvidence.map(item => (
-                  <option key={item.id} value={item.id}>{item.name}</option>
-                ))}
-              </select>
-            </label>
-
-            {claimResult && (
-              <div className={`expedition-claim-feedback ${claimResult.correct ? 'correct' : 'incorrect'}`}>
-                {claimResult.correct ? <CheckCircle2 size={22} /> : <AlertTriangle size={22} />}
-                <div>
-                  <strong>{claimResult.sentence}</strong>
-                  <p>{claimResult.feedback}</p>
-                </div>
-              </div>
-            )}
-
-            <div className="bureau-briefing-actions">
-              <button type="button" className="btn primary-btn" onClick={submitClaim}>
-                Submit Claim
-              </button>
-              {claimResult?.correct ? (
-                <button type="button" className="btn" onClick={resetExpedition}>
-                  Play Again
-                </button>
-              ) : (
-                <button type="button" className="btn" onClick={() => {
+        <section className="expedition-fullscreen-room expedition-claim-room" aria-label="Bureau Hypothesis Board">
+          <header className="expedition-fullscreen-header">
+            <div className="header-left">
+              <button
+                type="button"
+                className="fullscreen-back-btn"
+                onClick={() => {
                   playerRef.current = { x: 676, y: 304 };
                   lockedRef.current = false;
                   setClaimOpen(false);
-                }}>
+                }}
+              >
+                <ChevronLeft size={16} /> Return to Site
+              </button>
+            </div>
+            <div className="header-center">
+              <div className="fullscreen-kicker">Antiquities Bureau - Final Claim</div>
+              <h1 className="fullscreen-title">Identify the Lost Site</h1>
+            </div>
+            <div className="header-right">
+              <div className="fullscreen-badge status-ready" style={{ background: 'rgba(197, 160, 89, 0.12)', borderColor: '#c5a059', color: '#ebdcb9' }}>
+                <ShieldAlert size={14} className="badge-icon" />
+                <span>Verification Active</span>
+              </div>
+            </div>
+          </header>
+
+          <div className="expedition-fullscreen-content" style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr 1fr', gap: '1.5rem', padding: '1.5rem 2rem' }}>
+            {/* Left Column: Bureau Directives */}
+            <aside className="basecamp-column" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div className="fullscreen-card briefing-card" style={{ borderLeft: '3px solid #8b6a48' }}>
+                <div className="card-ribbon" style={{ background: '#ef4444', color: '#fff' }}>CLASSIFIED</div>
+                <div className="card-header">
+                  <BookOpen size={20} className="card-icon" />
+                  <h2>Claim Instructions</h2>
+                </div>
+                <div className="card-body" style={{ overflowY: 'auto', gap: '1.25rem', padding: '1.25rem' }}>
+                  <p style={{ margin: 0, fontSize: '0.85rem', color: '#a89a7f', lineHeight: 1.5 }}>
+                    Formulate your final archaeological claim. You must specify the precise civilisation that established this site and provide your best piece of supporting context evidence from your satchel.
+                  </p>
+                  <div style={{ background: 'rgba(26,22,17,0.4)', padding: '0.75rem', borderRadius: '4px', border: '1px solid rgba(139,106,72,0.1)', fontSize: '0.78rem', color: '#a89a7f' }}>
+                    <strong>Warning:</strong> Rushed or unsupported hypotheses will be rejected by the Bureau council.
+                  </div>
+                </div>
+              </div>
+            </aside>
+
+            {/* Center Column: Hypothesis Board Selector Form */}
+            <main className="basecamp-column">
+              <div className="fullscreen-card shop-card" style={{ borderTop: '2px solid #c5a059' }}>
+                <div className="card-header">
+                  <Target size={20} className="card-icon gold-glow" />
+                  <h2>Hypothesis Board</h2>
+                </div>
+                <div className="card-body" style={{ overflowY: 'auto', gap: '1.5rem', padding: '1.5rem' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      <label style={{ fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', color: '#c5a059', letterSpacing: '0.04em' }}>Civilisation</label>
+                      <select
+                        value={selectedCivilisation}
+                        onChange={(event) => setSelectedCivilisation(event.target.value)}
+                        style={{
+                          background: 'rgba(22, 18, 14, 0.8)',
+                          border: '1px solid rgba(139, 106, 72, 0.3)',
+                          borderRadius: '6px',
+                          color: '#ebdcb9',
+                          padding: '0.75rem',
+                          fontFamily: 'Cinzel, serif',
+                          fontSize: '1rem',
+                          outline: 'none',
+                          cursor: 'pointer',
+                          width: '100%'
+                        }}
+                      >
+                        <option value="">Choose a civilisation</option>
+                        {claimCivilisations.map(civilisation => (
+                          <option key={civilisation} value={civilisation}>{civilisation}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      <label style={{ fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', color: '#c5a059', letterSpacing: '0.04em' }}>Supporting Evidence</label>
+                      <select
+                        value={selectedEvidenceId}
+                        onChange={(event) => setSelectedEvidenceId(event.target.value)}
+                        style={{
+                          background: 'rgba(22, 18, 14, 0.8)',
+                          border: '1px solid rgba(139, 106, 72, 0.3)',
+                          borderRadius: '6px',
+                          color: '#ebdcb9',
+                          padding: '0.75rem',
+                          fontSize: '0.9rem',
+                          outline: 'none',
+                          cursor: 'pointer',
+                          width: '100%'
+                        }}
+                      >
+                        <option value="">Choose collected evidence</option>
+                        {collectedEvidence.map(item => (
+                          <option key={item.id} value={item.id}>{item.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {claimResult && (
+                    <div style={{
+                      display: 'flex',
+                      gap: '0.75rem',
+                      background: claimResult.correct ? 'rgba(16, 185, 129, 0.08)' : 'rgba(239, 68, 68, 0.08)',
+                      border: `1px solid ${claimResult.correct ? '#10b981' : '#ef4444'}`,
+                      borderRadius: '6px',
+                      padding: '1rem',
+                      alignItems: 'center',
+                      marginTop: '0.5rem'
+                    }}>
+                      {claimResult.correct ? <CheckCircle2 size={22} style={{ color: '#34d399' }} /> : <AlertTriangle size={22} style={{ color: '#f87171' }} />}
+                      <div>
+                        <strong style={{ color: claimResult.correct ? '#34d399' : '#f87171', display: 'block', fontSize: '0.9rem' }}>
+                          {claimResult.sentence}
+                        </strong>
+                        <p style={{ margin: '0.15rem 0 0 0', color: '#a89a7f', fontSize: '0.82rem', lineHeight: 1.4 }}>
+                          {claimResult.feedback}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </main>
+
+            {/* Right Column: Satchel Overview */}
+            <aside className="basecamp-column" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div className="fullscreen-card kit-card" style={{ borderRight: '2px solid #8b6a48' }}>
+                <div className="card-header">
+                  <Backpack size={20} className="card-icon" />
+                  <h2>Active satchel</h2>
+                </div>
+                <div className="card-body" style={{ overflowY: 'auto', gap: '0.85rem', padding: '1rem', fontSize: '0.82rem' }}>
+                  {collectedEvidence.length > 0 ? (
+                    collectedEvidence.map(item => (
+                      <div key={item.id} style={{ background: 'rgba(26, 22, 17, 0.5)', border: '1px solid rgba(139, 106, 72, 0.15)', borderRadius: '4px', padding: '0.55rem', display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                        <strong style={{ color: '#ebdcb9' }}>{item.name}</strong>
+                        <small style={{ color: '#8b6a48' }}>Quality: {item.evidenceQuality || 'good'}</small>
+                        <span style={{ fontSize: '0.72rem', color: '#a89a7f', fontStyle: 'italic', display: 'block', marginTop: '0.2rem' }}>"{item.clue}"</span>
+                      </div>
+                    ))
+                  ) : (
+                    <p style={{ margin: 0, color: '#a89a7f', fontStyle: 'italic' }}>No evidence collected yet.</p>
+                  )}
+                </div>
+              </div>
+            </aside>
+          </div>
+
+          <footer className="expedition-fullscreen-footer">
+            {claimResult?.correct ? (
+              <button type="button" className="footer-btn primary-btn pulse-glow" onClick={resetExpedition}>
+                Play Again <RotateCcw size={16} style={{ marginLeft: '0.5rem' }} />
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className="footer-btn secondary-btn"
+                  onClick={() => {
+                    playerRef.current = { x: 676, y: 304 };
+                    lockedRef.current = false;
+                    setClaimOpen(false);
+                  }}
+                >
                   Return to Site
                 </button>
-              )}
-            </div>
-          </div>
-        </div>
+                <button type="button" className="footer-btn primary-btn" onClick={submitClaim}>
+                  Submit Claim <ChevronRight size={16} style={{ marginLeft: '0.5rem' }} />
+                </button>
+              </>
+            )}
+          </footer>
+        </section>
       )}
 
       {resultOpen && (
-        <div className="bureau-briefing-overlay">
-          <div className="bureau-briefing-modal expedition-result-modal">
-            <div className="training-kicker">Run Result</div>
-            <div className="expedition-result-header">
-              <div>
-                <h2>{finalRank}</h2>
-                <p>{resultFeedback}</p>
-              </div>
-              <div className="expedition-score-badge">
-                <strong>{finalScore}</strong>
-                <span>/100</span>
+        <section className="expedition-fullscreen-room expedition-result-room" aria-label="Expedition Results">
+          <header className="expedition-fullscreen-header">
+            <div className="header-left">
+              <button type="button" className="fullscreen-back-btn" onClick={onBackToMenu}>
+                <ChevronLeft size={16} /> Exit to Menu
+              </button>
+            </div>
+            <div className="header-center">
+              <div className="fullscreen-kicker">Antiquities Bureau - Lost Site Expedition</div>
+              <h1 className="fullscreen-title">Mission Report & Results</h1>
+            </div>
+            <div className="header-right">
+              <div className="fullscreen-badge status-ready" style={{ background: 'rgba(197, 160, 89, 0.12)', borderColor: '#c5a059', color: '#ebdcb9' }}>
+                <Sparkles size={14} className="badge-icon pulse" />
+                <span>Expedition Completed</span>
               </div>
             </div>
+          </header>
 
-            <div className="expedition-result-grid">
-              <section className="expedition-result-card">
-                <h3>Mission Result</h3>
-                <dl>
-                  <div><dt>Mission</dt><dd>{activeMission.title}</dd></div>
-                  <div><dt>Mission evidence</dt><dd>{missionComplete ? 'Secured' : 'Not secured'}</dd></div>
-                  <div><dt>Collected</dt><dd>{missionEvidenceCount}/{missionRequiredCount} {activeMission.targetCategoryTitle}</dd></div>
-                  <div><dt>Exit Gate</dt><dd>{exitUnlocked ? 'Unlocked' : 'Locked'}</dd></div>
-                </dl>
-              </section>
+          <div className="expedition-fullscreen-content" style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr 1.2fr', gap: '1.5rem', padding: '1.5rem 2rem' }}>
+            {/* Left Column: Summary and Score */}
+            <aside className="basecamp-column" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div className="fullscreen-card briefing-card" style={{ borderLeft: '3px solid #c5a059' }}>
+                <div className="card-ribbon" style={{ background: '#34d399' }}>Finished</div>
+                <div className="card-header">
+                  <Target size={20} className="card-icon" />
+                  <h2>Final Assessment</h2>
+                </div>
+                <div className="card-body" style={{ alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '2rem 1.5rem' }}>
+                  <div className="expedition-score-badge" style={{ width: '130px', height: '130px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(197,160,89,0.15) 0%, rgba(0,0,0,0.5) 100%)', border: '3px solid #c5a059', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 20px rgba(197,160,89,0.25)', marginBottom: '1.5rem' }}>
+                    <strong style={{ fontSize: '3rem', fontFamily: 'Cinzel, serif', color: '#fff', lineHeight: 1 }}>{finalScore}</strong>
+                    <span style={{ fontSize: '0.85rem', color: '#cda869', fontWeight: 600 }}>/ 100 PTS</span>
+                  </div>
 
-              <section className="expedition-result-card">
-                <h3>Final Claim</h3>
-                <dl>
-                  <div><dt>Civilisation</dt><dd>{selectedCivilisation || 'Not chosen'}</dd></div>
-                  <div><dt>{targetCivilisation} match</dt><dd>{claimCorrect ? 'Yes' : 'No'}</dd></div>
-                  <div><dt>Supporting evidence</dt><dd>{selectedEvidence?.name || 'Not chosen'}</dd></div>
-                  <div><dt>Evidence support</dt><dd>{evidenceSupportsClaim ? `Supports ${targetCivilisation}` : `Does not support ${targetCivilisation}`}</dd></div>
-                </dl>
-                {claimResult && (
-                  <div className={`expedition-claim-feedback ${claimResult.correct ? 'correct' : 'incorrect'}`}>
-                    {claimResult.correct ? <CheckCircle2 size={20} /> : <AlertTriangle size={20} />}
-                    <div>
-                      <strong>{claimResult.sentence}</strong>
-                      <p>{claimResult.feedback}</p>
+                  <h3 style={{ fontFamily: 'Cinzel, serif', fontSize: '1.6rem', color: '#ebdcb9', margin: '0 0 0.75rem' }}>{finalRank}</h3>
+                  <p style={{ fontSize: '0.92rem', color: '#a89a7f', lineHeight: 1.5, margin: 0 }}>{resultFeedback}</p>
+                </div>
+              </div>
+            </aside>
+
+            {/* Middle Column: Detailed Stats */}
+            <main className="basecamp-column">
+              <div className="fullscreen-card shop-card" style={{ borderTop: '2px solid #8b6a48' }}>
+                <div className="card-header">
+                  <Backpack size={20} className="card-icon" />
+                  <h2>Field Performance Statistics</h2>
+                </div>
+
+                <div className="card-body" style={{ overflowY: 'auto', gap: '1.5rem', padding: '1.5rem' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+                    <div style={{ background: 'rgba(22, 18, 14, 0.6)', border: '1px solid rgba(139,106,72,0.18)', borderRadius: '6px', padding: '1rem', textAlign: 'center' }}>
+                      <span style={{ fontSize: '0.72rem', color: '#8b6a48', fontWeight: 800, textTransform: 'uppercase' }}>Remaining Time</span>
+                      <strong style={{ display: 'block', fontSize: '1.5rem', color: '#ebdcb9', fontFamily: 'Cinzel, serif', marginTop: '0.25rem' }}>{resources.time}s</strong>
+                    </div>
+                    <div style={{ background: 'rgba(22, 18, 14, 0.6)', border: '1px solid rgba(139,106,72,0.18)', borderRadius: '6px', padding: '1rem', textAlign: 'center' }}>
+                      <span style={{ fontSize: '0.72rem', color: '#8b6a48', fontWeight: 800, textTransform: 'uppercase' }}>Stamina Left</span>
+                      <strong style={{ display: 'block', fontSize: '1.5rem', color: '#ebdcb9', fontFamily: 'Cinzel, serif', marginTop: '0.25rem' }}>{resources.stamina}</strong>
+                    </div>
+                    <div style={{ background: 'rgba(22, 18, 14, 0.6)', border: '1px solid rgba(139,106,72,0.18)', borderRadius: '6px', padding: '1rem', textAlign: 'center' }}>
+                      <span style={{ fontSize: '0.72rem', color: '#8b6a48', fontWeight: 800, textTransform: 'uppercase' }}>Investigation</span>
+                      <strong style={{ display: 'block', fontSize: '1.5rem', color: '#ebdcb9', fontFamily: 'Cinzel, serif', marginTop: '0.25rem' }}>{resources.investigation}</strong>
                     </div>
                   </div>
-                )}
-              </section>
 
-              <section className="expedition-result-card expedition-result-card-wide">
-                <h3>Field Performance</h3>
-                <div className="expedition-result-stats">
-                  <span>Time: <strong>{resources.time}s</strong></span>
-                  <span>Stamina: <strong>{resources.stamina}</strong></span>
-                  <span>Investigation: <strong>{resources.investigation}</strong></span>
-                  <span>Evidence: <strong>{collectedEvidence.length}/{MAX_EVIDENCE_ITEMS}</strong></span>
-                  <span>Field notes: <strong>{fieldNotes.length}</strong></span>
-                  <span>Tool bonus: <strong>+{fieldKitBonus}</strong></span>
-                  <span>Quality impact: <strong>{evidenceQualityBonus >= 0 ? `+${evidenceQualityBonus}` : evidenceQualityBonus}</strong></span>
+                  <section className="expedition-result-card" style={{ background: 'rgba(26,22,17,0.3)', border: '1px solid rgba(139,106,72,0.15)', borderRadius: '6px', padding: '1rem' }}>
+                    <h3 style={{ fontFamily: 'Cinzel, serif', fontSize: '0.95rem', margin: '0 0 0.75rem', color: '#cda869', borderBottom: '1px solid rgba(139,106,72,0.15)', paddingBottom: '0.35rem' }}>Mission Review</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: '#8b6a48' }}>Active Objective:</span><strong style={{ color: '#fff' }}>{activeMission.title}</strong></div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: '#8b6a48' }}>Mission Evidence:</span><strong style={{ color: '#34d399' }}>{missionComplete ? 'Secured' : 'Not secured'}</strong></div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: '#8b6a48' }}>Target Collected:</span><strong style={{ color: '#fff' }}>{missionEvidenceCount} / {missionRequiredCount} {activeMission.targetCategoryTitle}</strong></div>
+                    </div>
+                  </section>
+
+                  <section className="expedition-result-card" style={{ background: 'rgba(26,22,17,0.3)', border: '1px solid rgba(139,106,72,0.15)', borderRadius: '6px', padding: '1rem' }}>
+                    <h3 style={{ fontFamily: 'Cinzel, serif', fontSize: '0.95rem', margin: '0 0 0.75rem', color: '#cda869', borderBottom: '1px solid rgba(139,106,72,0.15)', paddingBottom: '0.35rem' }}>Historical Hypothesis</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: '#8b6a48' }}>Target Civilisation:</span><strong style={{ color: '#fff' }}>{targetCivilisation}</strong></div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: '#8b6a48' }}>Your Claim:</span><strong style={{ color: claimCorrect ? '#34d399' : '#f87171' }}>{selectedCivilisation || 'Not chosen'}</strong></div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: '#8b6a48' }}>Claim Verdict:</span><strong style={{ color: claimCorrect ? '#34d399' : '#f87171' }}>{claimCorrect ? 'VERIFIED' : 'FAILED'}</strong></div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: '#8b6a48' }}>Best Support Clue:</span><strong style={{ color: '#ebdcb9' }}>{selectedEvidence?.name || 'Not chosen'}</strong></div>
+                    </div>
+                    {claimResult && (
+                      <div className={`expedition-claim-feedback ${claimResult.correct ? 'correct' : 'incorrect'}`} style={{ marginTop: '0.85rem', padding: '0.75rem', borderRadius: '4px', border: '1px solid', borderColor: claimResult.correct ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)', background: claimResult.correct ? 'rgba(16,185,129,0.05)' : 'rgba(239,68,68,0.05)', color: claimResult.correct ? '#34d399' : '#f87171' }}>
+                        <div style={{ fontSize: '0.82rem', lineHeight: 1.4 }}>
+                          <strong style={{ display: 'block', textTransform: 'uppercase', marginBottom: '0.15rem' }}>{claimResult.sentence}</strong>
+                          <p style={{ margin: 0 }}>{claimResult.feedback}</p>
+                        </div>
+                      </div>
+                    )}
+                  </section>
+
+                  <section className="expedition-result-card" style={{ background: 'rgba(26,22,17,0.3)', border: '1px solid rgba(139,106,72,0.15)', borderRadius: '6px', padding: '1rem' }}>
+                    <h3 style={{ fontFamily: 'Cinzel, serif', fontSize: '0.95rem', margin: '0 0 0.75rem', color: '#cda869', borderBottom: '1px solid rgba(139,106,72,0.15)', paddingBottom: '0.35rem' }}>Evidence Catalog & Quality</h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                      <div style={{ background: 'rgba(22, 18, 14, 0.4)', borderRadius: '4px', padding: '0.5rem', textAlign: 'center', fontSize: '0.8rem' }}>Excellent: <strong style={{ color: '#34d399' }}>{evidenceQualitySummary.excellent}</strong></div>
+                      <div style={{ background: 'rgba(22, 18, 14, 0.4)', borderRadius: '4px', padding: '0.5rem', textAlign: 'center', fontSize: '0.8rem' }}>Good: <strong style={{ color: '#ebdcb9' }}>{evidenceQualitySummary.good}</strong></div>
+                      <div style={{ background: 'rgba(22, 18, 14, 0.4)', borderRadius: '4px', padding: '0.5rem', textAlign: 'center', fontSize: '0.8rem' }}>Damaged: <strong style={{ color: '#f87171' }}>{evidenceQualitySummary.damaged}</strong></div>
+                    </div>
+                    <p style={{ margin: 0, fontSize: '0.78rem', color: '#a89a7f', fontStyle: 'italic', lineHeight: 1.4 }}>
+                      {evidenceQualitySummary.damaged > 0
+                        ? 'âš ï¸ Some evidence was damaged by rushed excavation. It can still support a claim, but careful excavation is more reliable.'
+                        : 'âœ… Perfect, careful excavation improved the reliability and score weight of your evidence.'}
+                    </p>
+                  </section>
                 </div>
-                <div className="expedition-result-lists">
-                  <div>
-                    <strong>Tools collected</strong>
-                    <p>{collectedTools.length > 0 ? collectedTools.map(tool => tool.name).join(', ') : 'No tools collected'}</p>
+              </div>
+            </main>
+
+            {/* Right Column: Kit and Catalog */}
+            <aside className="basecamp-column" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div className="fullscreen-card kit-card" style={{ borderRight: '2px solid #8b6a48' }}>
+                <div className="card-header">
+                  <Gem size={20} className="card-icon" />
+                  <h2>Dossier Details</h2>
+                </div>
+
+                <div className="card-body" style={{ overflowY: 'auto', gap: '1rem', padding: '1rem', fontSize: '0.82rem' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <strong style={{ color: '#ebdcb9', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.04rem' }}>Fitted Tools</strong>
+                    <p style={{ margin: 0, color: '#a89a7f', lineHeight: 1.4 }}>
+                      {collectedTools.length > 0 ? collectedTools.map(tool => tool.name).join(', ') : 'None'}
+                    </p>
                   </div>
-                  <div>
-                    <strong>Missing tools</strong>
-                    <p>{missingTools.length > 0 ? missingTools.map(tool => tool.name).join(', ') : 'No tools missing'}</p>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <strong style={{ color: '#f87171', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.04rem' }}>Missing Tools</strong>
+                    <p style={{ margin: 0, color: '#a89a7f', lineHeight: 1.4 }}>
+                      {missingTools.length > 0 ? missingTools.map(tool => tool.name).join(', ') : 'None'}
+                    </p>
                   </div>
-                  <div>
-                    <strong>Evidence collected</strong>
-                    <p>{collectedEvidence.length > 0 ? collectedEvidence.map(item => `${item.name} (${item.evidenceQuality || 'good'})`).join(', ') : 'No evidence collected'}</p>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <strong style={{ color: '#ebdcb9', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.04rem' }}>Evidence Satchel</strong>
+                    <p style={{ margin: 0, color: '#a89a7f', lineHeight: 1.4 }}>
+                      {collectedEvidence.length > 0 ? collectedEvidence.map(item => `${item.name} (${item.evidenceQuality || 'good'})`).join(', ') : 'Empty'}
+                    </p>
                   </div>
-                  <div>
-                    <strong>Field notes recorded</strong>
-                    <p>{fieldNotes.length > 0 ? fieldNotes.map(note => note.name).join(', ') : 'No field notes recorded'}</p>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <strong style={{ color: '#ebdcb9', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.04rem' }}>Field Journal Notes</strong>
+                    <p style={{ margin: 0, color: '#a89a7f', lineHeight: 1.4 }}>
+                      {fieldNotes.length > 0 ? fieldNotes.map(note => note.name).join(', ') : 'None recorded'}
+                    </p>
                   </div>
                 </div>
-              </section>
-
-              <section className="expedition-result-card expedition-result-card-wide">
-                <h3>Evidence Quality</h3>
-                <div className="expedition-result-stats">
-                  <span>Excellent: <strong>{evidenceQualitySummary.excellent}</strong></span>
-                  <span>Good: <strong>{evidenceQualitySummary.good}</strong></span>
-                  <span>Damaged: <strong>{evidenceQualitySummary.damaged}</strong></span>
-                </div>
-                <p className="expedition-quality-feedback">
-                  {evidenceQualitySummary.damaged > 0
-                    ? 'Some evidence was damaged by rushed excavation. It can still support a claim, but careful excavation is more reliable.'
-                  : 'Careful excavation improved the reliability of your evidence.'}
-                </p>
-              </section>
-
-              <section className="expedition-result-card expedition-result-card-wide">
-                <h3>Mapping Accuracy</h3>
-                <div className="expedition-result-stats">
-                  <span>Mapped finds: <strong>{mappingAccuracySummary.mapped}</strong></span>
-                  <span>Accurate: <strong>{mappingAccuracySummary.accurate}</strong></span>
-                  <span>Needs review: <strong>{mappingAccuracySummary.needsReview}</strong></span>
-                </div>
-                <p className="expedition-quality-feedback">
-                  {fieldKitEffects.measuringTapeReady
-                    ? 'Measuring Tape used: grid locations were recorded clearly.'
-                    : 'Measuring Tape was not collected, so location records were a little less precise.'}
-                </p>
-              </section>
-
-              <section className="expedition-result-card expedition-result-card-wide">
-                <h3>Field Kit Impact</h3>
-                <div className="expedition-field-kit-impact-grid">
-                  {fieldKitImpact.map((tool) => (
-                    <article key={tool.id} className={`expedition-field-kit-impact ${tool.collected ? 'is-collected' : ''}`}>
-                      <strong>{tool.name}</strong>
-                      <span>{tool.collected ? tool.effect : 'Missed advantage'}</span>
-                      <p>{tool.detail}</p>
-                    </article>
-                  ))}
-                </div>
-              </section>
-            </div>
-
-            <div className="bureau-briefing-actions">
-              <button type="button" className="btn primary-btn" onClick={resetExpedition}>
-                Play Again
-              </button>
-              <button type="button" className="btn" onClick={onBackToMenu}>
-                Back to Menu
-              </button>
-            </div>
+              </div>
+            </aside>
           </div>
-        </div>
+
+          <footer className="expedition-fullscreen-footer">
+            <button type="button" className="footer-btn secondary-btn" onClick={onBackToMenu}>
+              <ChevronLeft size={16} /> Exit to Menu
+            </button>
+            {onSendToLab && claimCorrect ? (
+              <button
+                type="button"
+                className="footer-btn primary-btn pulse-glow"
+                style={{
+                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                  boxShadow: '0 0 15px rgba(16, 185, 129, 0.4)',
+                  border: '1px solid #34d399',
+                }}
+                onClick={() => onSendToLab(collectedEvidence, fieldNotes)}
+              >
+                Send to Lab & Build Report <Sparkles size={16} style={{ marginLeft: '0.5rem' }} />
+              </button>
+            ) : (
+              <button type="button" className="footer-btn primary-btn pulse-glow" onClick={resetExpedition}>
+                Play Again <RotateCcw size={16} style={{ marginLeft: '0.5rem' }} />
+              </button>
+            )}
+          </footer>
+        </section>
       )}
     </section>
   );

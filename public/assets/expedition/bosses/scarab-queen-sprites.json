@@ -16,6 +16,7 @@
     "scarabQueenDefeated"
   ],
   "baseline": "bottom-center fixed per frame; sacred warning and area effects stay inside the same boss draw box",
+  "productionReference": "scarab-queen-production-source.png",
   "regions": {
     "scarabQueenIdle": {
       "x": 0,

@@ -30,6 +30,8 @@ import {
   createNewBureauSession,
   rebuildSavedSession,
   createSavePayload,
+  SCENARIOS,
+  RANDOM_EVENTS,
 } from './utils/gameLogic';
 
 // --- Advanced Audio Synthesis ---
@@ -774,6 +776,56 @@ export default function App() {
             <ExpeditionMode
               onBackToMenu={handleBackToMenu}
               audioControls={audioControls}
+              onSendToLab={(collectedEvidence, fieldNotes) => {
+                const egyptScenario = SCENARIOS.find(s => s.id === 'egypt');
+                if (!egyptScenario) return;
+
+                // Hydrate collected evidence into full activeArtifacts
+                const activeArtifacts = collectedEvidence.map(item => {
+                  const fullArtifact = egyptScenario.evidence.find(e => e.id === item.id);
+                  return fullArtifact ? { ...fullArtifact } : { ...item };
+                });
+
+                // Populate itemsLocation (everything starts in inventory)
+                const itemsLocation = activeArtifacts.reduce((acc, a) => ({ ...acc, [a.id]: 'inventory' }), {});
+
+                // Populate evidenceConditions with detailed notes compiled from the excavation
+                const evidenceConditions = {};
+                collectedEvidence.forEach(item => {
+                  const methodNote = fieldNotes.find(fn => fn.evidenceId === item.id && fn.reason === 'excavation-method');
+                  const mappingNote = fieldNotes.find(fn => fn.evidenceId === item.id && fn.reason === 'mapping');
+
+                  let note = '';
+                  if (methodNote) note += methodNote.note;
+                  if (mappingNote) note += (note ? ' ' : '') + mappingNote.note;
+                  if (!note) {
+                    note = `${item.name} was excavated from the ${item.mappedZone || 'tomb'} (Grid ${item.mappedGridSquare || 'unknown'}).`;
+                  }
+
+                  evidenceConditions[item.id] = {
+                    condition: item.evidenceQuality || 'good',
+                    note: note
+                  };
+                });
+
+                // Calculate digRecoverySummary (clean vs disturbed)
+                const cleanCount = collectedEvidence.filter(item => item.evidenceQuality !== 'damaged').length;
+                const disturbedCount = collectedEvidence.filter(item => item.evidenceQuality === 'damaged').length;
+                const digRecoverySummary = {
+                  cleanRecoveryCount: cleanCount,
+                  disturbedRecoveryCount: disturbedCount
+                };
+
+                // Hydrate App state for the laboratory phase
+                setCurrentScenario(egyptScenario);
+                setCurrentEvent(RANDOM_EVENTS[0]); // default storm/flood event
+                setActiveArtifacts(activeArtifacts);
+                setItemsLocation(itemsLocation);
+                setEvidenceConditions(evidenceConditions);
+                setDigRecoverySummary(digRecoverySummary);
+                setHypotheses({}); // clear out previous hypotheses
+                setPhase('lab');
+              }}
             />
           </Suspense>
         )}

@@ -17,7 +17,7 @@ const journeyRenderAssetsSource = readFileSync(new URL('./journeyRenderAssets.js
 const expeditionStagesSource = readFileSync(new URL('../expedition/expeditionStages.js', import.meta.url), 'utf8');
 const journeyComponentSource = readFileSync(new URL('../ExpeditionJourney.jsx', import.meta.url), 'utf8');
 const egyptPlayerAtlas = JSON.parse(
-  readFileSync(new URL('../../../public/assets/expedition/player/asha-player-production-spritesheet.json', import.meta.url), 'utf8'),
+  readFileSync(new URL('../../../public/assets/expedition/player/asha-hooded-warrior-explorer-spritesheet.json', import.meta.url), 'utf8'),
 );
 const egyptPlayerFallbackAtlas = JSON.parse(
   readFileSync(new URL('../../../public/assets/expedition/player/egypt-warrior-guide-spritesheet.json', import.meta.url), 'utf8'),
@@ -230,20 +230,18 @@ test('opening Scarab Seal climb triggers a boss confrontation without completing
   assert.match(source, /You will never reach the expedition site\./);
   assert.match(source, /eventName:\s*'The Sphinx'/);
   assert.match(source, /Then we must prove we can pass\. Gather shards, recover tools, and move with care\./);
-  assert.match(platforms, /sealed scarab pyramid base/i);
-  assert.match(platforms, /visible lower pyramid step block/i);
-  assert.match(platforms, /visible second pyramid step block/i);
-  assert.match(platforms, /visible third pyramid step block/i);
-  assert.match(platforms, /visible upper pyramid step block/i);
-  assert.match(platforms, /middle recovery temple slab/i);
-  assert.match(platforms, /visible upper temple step block/i);
-  assert.match(platforms, /visible summit approach step block/i);
-  assert.match(platforms, /visible summit stair block/i);
-  assert.match(platforms, /visible capstone stair block/i);
-  assert.match(platforms, /visible seal pedestal step block/i);
-  assert.match(platforms, /scarab seal summit platform/i);
+  assert.match(platforms, /invisible marked lower pyramid ledge/i);
+  assert.match(platforms, /invisible marked first pyramid terrace/i);
+  assert.match(platforms, /invisible marked second pyramid terrace/i);
+  assert.match(platforms, /invisible marked scarab artefact platform/i);
   assert.match(platforms, /id:\s*'opening-scarab-seal-summit'/);
-  assert.match(platforms, /x:\s*120[\s\S]*?sealed scarab pyramid base/);
+  assert.match(platforms, /x:\s*126[\s\S]*?invisible marked lower pyramid ledge/);
+  assert.doesNotMatch(platforms, /invisible lower pyramid stair ledge/i);
+  assert.doesNotMatch(platforms, /invisible lower pyramid roof ledge/i);
+  assert.doesNotMatch(platforms, /invisible middle pyramid terrace ledge/i);
+  assert.doesNotMatch(platforms, /invisible middle pyramid roof ledge/i);
+  assert.doesNotMatch(platforms, /invisible upper pyramid terrace ledge/i);
+  assert.doesNotMatch(platforms, /invisible scarab artefact ledge/i);
   assert.doesNotMatch(platforms, /lower pyramid stair tread/i);
   assert.doesNotMatch(platforms, /carved pressure stair slab/i);
   assert.doesNotMatch(platforms, /upper lower-stair tread/i);
@@ -273,7 +271,8 @@ test('opening Scarab Seal climb triggers a boss confrontation without completing
   assert.match(journeyComponentSource, /const OPENING_SPHINX_ARRIVAL_SECONDS = 1\.05;/);
   assert.match(journeyComponentSource, /const OPENING_SPHINX_LINE_SECONDS = 1\.55;/);
   assert.match(journeyComponentSource, /const OPENING_SPHINX_SPRITE_BOSS_ID = 'ancient-construct';/);
-  assert.match(journeyComponentSource, /const OPENING_SPHINX_SPRITE_VERSION = 'opening-sphinx-model-2026-05-18';/);
+  assert.match(journeyComponentSource, /const OPENING_SPHINX_APPARITION_SRC = 'assets\/expedition\/bosses\/opening-sphinx-apparition\.png';/);
+  assert.match(journeyComponentSource, /const OPENING_SPHINX_SPRITE_VERSION = 'opening-sphinx-apparition-2026-05-19';/);
   assert.match(journeyComponentSource, /const OPENING_SPHINX_SCREEN_Y_OFFSET = 112;/);
   assert.match(journeyComponentSource, /message:\s*SCARAB_SEAL_TRIGGER\.messages\.slice\(2\)\.concat\(\[\s*'Only those who prove themselves may pass\.'\s*\]\)\.join\(' '\)/);
   assert.match(journeyComponentSource, /lines:\s*SCARAB_SEAL_TRIGGER\.messages\.slice\(2\)\.concat\(\[/);
@@ -281,14 +280,18 @@ test('opening Scarab Seal climb triggers a boss confrontation without completing
   assert.match(journeyComponentSource, /dynamicEnvironmentEvent[\s\S]*?message:\s*''/);
   assert.match(journeyComponentSource, /current\.hitStopTimer = Math\.max\(current\.hitStopTimer, 0\.12\)/);
   assert.match(journeyComponentSource, /drawOpeningSphinxEncounter/);
+  assert.match(journeyComponentSource, /openingSphinxApparitionRef = useRef\(\{ image: null, loaded: false, failed: false \}\)/);
+  assert.match(journeyComponentSource, /openingSphinxApparitionRef\.current = \{ image, loaded: true, failed: false \}/);
+  assert.match(journeyComponentSource, /ctx\.drawImage\(apparitionAsset\.image,\s*drawBox\.x,\s*drawBox\.y,\s*drawBox\.width,\s*drawBox\.height\)/);
+  assert.match(journeyComponentSource, /openingSphinxSpriteModel = 'opening-sphinx-apparition'/);
   assert.match(journeyComponentSource, /getBossSpritePack\(bossSpriteAssetsRef\.current,\s*OPENING_SPHINX_SPRITE_BOSS_ID\)/);
   assert.match(journeyComponentSource, /drawAtlasRegion\([\s\S]*?spritePack[\s\S]*?frameKey[\s\S]*?\{\s*mode:\s*'contain',\s*alignY:\s*'bottom'\s*\}/);
   assert.match(journeyComponentSource, /shouldFlipBossSprite\(OPENING_SPHINX_SPRITE_BOSS_ID,\s*-1\)/);
   assert.match(journeyComponentSource, /openingSphinxSpriteFrame/);
   assert.match(journeyComponentSource, /openingSphinxEncounterState:/);
   assert.match(journeyComponentSource, /&& !gameState\.openingSphinxEncounter/);
-  assert.match(journeyComponentSource, /spriteAtlasPath:\s*ANCIENT_CONSTRUCT_SPRITE_ATLAS_JSON/);
-  assert.match(journeyComponentSource, /spriteLoaded:\s*Boolean\(bossSpriteAssets\.packs\?\.\[OPENING_SPHINX_SPRITE_BOSS_ID\]\?\.loaded\)/);
+  assert.match(journeyComponentSource, /spriteAtlasPath:\s*renderStats\.openingSphinxSpriteAtlasPath\s*\|\|\s*ANCIENT_CONSTRUCT_SPRITE_ATLAS_JSON/);
+  assert.match(journeyComponentSource, /spriteLoaded:\s*renderStats\.openingSphinxSpriteLoaded[\s\S]*?Boolean\(bossSpriteAssets\.packs\?\.\[OPENING_SPHINX_SPRITE_BOSS_ID\]\?\.loaded\)/);
   assert.match(journeyComponentSource, /openingSphinxEncounter\.timer[\s\S]*?OPENING_SPHINX_EXIT_SECONDS/);
   assert.match(journeyComponentSource, /openingSphinxEncounter\.playerX/);
   assert.match(journeyComponentSource, /drawOpeningSphinxDialogue/);
@@ -316,12 +319,12 @@ test('opening Scarab Seal climb triggers a boss confrontation without completing
   assert.match(source, /export const CHINA_MINI_BOSSES = \[/);
 });
 
-test('opening pyramid climb platforms form a reachable terrace route to the Scarab Seal', () => {
+test('opening pyramid uses exactly four invisible platforms aligned to the marked ledges', () => {
   const platforms = extractExportedArray('PLATFORMS');
   const sealTrigger = source.slice(source.indexOf('export const SCARAB_SEAL_TRIGGER = {'), source.indexOf('export const STORY_PROPS = ['));
   const getOpeningPlatform = (label) => {
     const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const match = platforms.match(new RegExp(`\\{[^}]*x:\\s*(\\d+)[^}]*y:\\s*JY\\((-?\\d+)\\)[^}]*width:\\s*(\\d+)[^}]*label:\\s*'${escapedLabel}'`, 'i'));
+    const match = platforms.match(new RegExp(`\\{[^}]*x:\\s*(\\d+)[^}]*y:\\s*JY\\((-?\\d+)\\)[^}]*width:\\s*(\\d+)[^}]*label:\\s*'${escapedLabel}'[^}]*invisible:\\s*true`, 'i'));
     assert.ok(match, `${label} should exist`);
     return {
       label,
@@ -331,6 +334,101 @@ test('opening pyramid climb platforms form a reachable terrace route to the Scar
     };
   };
   const climbLabels = [
+    'invisible marked lower pyramid ledge',
+    'invisible marked first pyramid terrace',
+    'invisible marked second pyramid terrace',
+    'invisible marked scarab artefact platform',
+  ];
+  const route = climbLabels.map(getOpeningPlatform);
+
+  assert.deepEqual(
+    route.map(({ x, y, width }) => ({ x, y, width })),
+    [
+      { x: 126, y: 326, width: 114 },
+      { x: 248, y: 251, width: 374 },
+      { x: 430, y: 91, width: 522 },
+      { x: 690, y: -92, width: 448 },
+    ],
+  );
+
+  const summit = route.at(-1);
+  const sealX = Number(sealTrigger.match(/x:\s*(\d+)/)?.[1] || NaN);
+  const sealWidth = Number(sealTrigger.match(/width:\s*(\d+)/)?.[1] || NaN);
+  assert.ok(
+    sealX >= summit.x && sealX + sealWidth <= summit.x + summit.width,
+    'Scarab Seal trigger should sit on the invisible summit platform',
+  );
+  assert.match(journeyComponentSource, /if \(platform\.invisible\) return;/);
+});
+
+test('opening pyramid marked ledges use a scoped double-jump assist instead of extra platforms', () => {
+  const platforms = extractExportedArray('PLATFORMS');
+  assert.match(journeyComponentSource, /OPENING_PYRAMID_AIR_JUMP_ASSIST_ZONE/);
+  assert.match(journeyComponentSource, /OPENING_PYRAMID_AIR_JUMP_MULTIPLIER\s*=\s*1\.18/);
+  assert.match(journeyComponentSource, /isOpeningPyramidAirJumpAssistAvailable/);
+  assert.match(journeyComponentSource, /current\.openingPyramidAssistJumpAvailable/);
+  assert.match(journeyComponentSource, /openingPyramidAssistJump/);
+  assert.match(journeyComponentSource, /player\.vy = -JUMP_SPEED \* OPENING_PYRAMID_AIR_JUMP_MULTIPLIER/);
+  assert.doesNotMatch(platforms, /pyramid stair/i);
+  assert.doesNotMatch(platforms, /helper platform/i);
+});
+
+test('opening pyramid facade stays solid and scrolls naturally off screen', () => {
+  assert.match(journeyComponentSource, /OPENING_PYRAMID_FACADE_WORLD_LEFT_X\s*=\s*-82/);
+  assert.match(
+    journeyComponentSource,
+    /if \(x > CANVAS_WIDTH \+ 80 \|\| x \+ width < -80\) return false;[\s\S]*?ctx\.globalAlpha = 0\.98;/,
+  );
+  assert.match(journeyComponentSource, /drawOpeningPyramidMasonryBack\(ctx, cameraX\)/);
+  assert.doesNotMatch(journeyComponentSource, /clipRight/);
+  assert.doesNotMatch(journeyComponentSource, /OPENING_PYRAMID_FACADE_MIN_VISIBLE_WIDTH/);
+  assert.doesNotMatch(journeyComponentSource, /OPENING_PYRAMID_FACADE_FADE_START_X/);
+  assert.doesNotMatch(journeyComponentSource, /OPENING_PYRAMID_FACADE_PLAYER_FADE_START_X/);
+  assert.doesNotMatch(journeyComponentSource, /OPENING_PYRAMID_FACADE_HIDE_AFTER_X/);
+  assert.doesNotMatch(journeyComponentSource, /OPENING_PYRAMID_FACADE_PLAYER_HIDE_AFTER_X/);
+  assert.doesNotMatch(journeyComponentSource, /OPENING_PYRAMID_FACADE_WORLD_RIGHT_X/);
+});
+
+test('opening pyramid zone only contains the intentional first-screen stairway platforms', () => {
+  const platforms = extractExportedArray('PLATFORMS');
+  const allowedOpeningLabels = new Set([
+    'desert track',
+    'invisible marked lower pyramid ledge',
+    'invisible marked first pyramid terrace',
+    'invisible marked second pyramid terrace',
+    'invisible marked scarab artefact platform',
+  ]);
+  const platformLines = platforms
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith('{') && line.includes('label:'));
+  const horizontalScale = Number(journeyConstantsSource.match(/JOURNEY_HORIZONTAL_SCALE\s*=\s*([\d.]+)/)?.[1] || NaN);
+  assert.ok(Number.isFinite(horizontalScale), 'Journey horizontal scale should be parseable');
+  const openingZonePlatforms = platformLines
+    .map((line) => {
+      const rawXMatch = line.match(/x:\s*(\d+)/);
+      const scaledXMatch = line.match(/x:\s*X\((\d+)\)/);
+      const labelMatch = line.match(/label:\s*'([^']+)'/);
+      const rawX = rawXMatch ? Number(rawXMatch[1]) : null;
+      const scaledX = scaledXMatch ? Number(scaledXMatch[1]) * horizontalScale : null;
+      return {
+        label: labelMatch?.[1] || 'unknown platform',
+        x: rawX ?? scaledX ?? Number.POSITIVE_INFINITY,
+      };
+    })
+    .filter((platform) => platform.x <= 1200);
+
+  const unexpectedLabels = openingZonePlatforms
+    .filter((platform) => !allowedOpeningLabels.has(platform.label))
+    .map((platform) => platform.label);
+
+  assert.deepEqual(unexpectedLabels, []);
+  assert.equal(openingZonePlatforms.filter((platform) => platform.label !== 'desert track').length, 4);
+});
+
+test('obsolete Desert Entry challenge platforms do not crowd the opening pyramid', () => {
+  const platforms = extractExportedArray('PLATFORMS');
+  [
     'sealed scarab pyramid base',
     'visible lower pyramid step block',
     'visible second pyramid step block',
@@ -343,29 +441,25 @@ test('opening pyramid climb platforms form a reachable terrace route to the Scar
     'visible capstone stair block',
     'visible seal pedestal step block',
     'scarab seal summit platform',
-  ];
-  const route = climbLabels.map(getOpeningPlatform);
-
-  for (let index = 1; index < route.length; index += 1) {
-    const previous = route[index - 1];
-    const next = route[index];
-    const upwardGap = Math.max(0, previous.y - next.y);
-    const horizontalGap = Math.max(
-      0,
-      next.x - (previous.x + previous.width),
-      previous.x - (next.x + next.width),
-    );
-    assert.ok(upwardGap <= 90, `${previous.label} to ${next.label} should stay within jump height`);
-    assert.ok(horizontalGap <= 95, `${previous.label} to ${next.label} should keep enough overlap/reach`);
-  }
-
-  const summit = route.at(-1);
-  const sealX = Number(sealTrigger.match(/x:\s*(\d+)/)?.[1] || NaN);
-  const sealWidth = Number(sealTrigger.match(/width:\s*(\d+)/)?.[1] || NaN);
-  assert.ok(
-    sealX >= summit.x && sealX + sealWidth <= summit.x + summit.width,
-    'Scarab Seal trigger should sit on the reachable summit platform',
-  );
+    'desert checkpoint launch',
+    'desert high shard cracked step',
+    'desert high shard landing',
+    'desert high shard unstable ledge',
+    'lower route rejoin',
+    'upper shard path',
+    'warning slab path',
+    'survey ridge',
+    'guardian lookout perch',
+    'scarab seal climb capstone',
+    'guardian warning step',
+    'seal approach ledge',
+    'broken ruins route entry',
+    'half-buried lintel',
+    'ruins recovery step',
+  ].forEach((label) => {
+    assert.doesNotMatch(platforms, new RegExp(label));
+  });
+  assert.doesNotMatch(platforms, /desert-high-shard-climb/);
 });
 
 test('Egypt opening ambient life stays in the existing Journey renderer', () => {
@@ -417,10 +511,10 @@ test('China Journey uses a unique female player atlas through the existing playe
 
 test('Egypt Journey uses the Asha atlas through the existing player renderer', () => {
   assert.match(journeyConstantsSource, /PLAYER_HERO_SPRITE_ATLAS_JSON/);
-  assert.match(journeyConstantsSource, /asha-player-production-spritesheet\.json/);
+  assert.match(journeyConstantsSource, /asha-hooded-warrior-explorer-spritesheet\.json/);
   assert.match(journeyConstantsSource, /PLAYER_HERO_FALLBACK_SPRITE_ATLAS_JSON/);
   assert.match(journeyConstantsSource, /egypt-warrior-guide-spritesheet\.json/);
-  assert.match(journeyComponentSource, /characterId:\s*'asha-egypt-archaeologist'/);
+  assert.match(journeyComponentSource, /characterId:\s*'asha-egypt-warrior-explorer'/);
   assert.match(journeyComponentSource, /atlasPath:\s*PLAYER_HERO_SPRITE_ATLAS_JSON/);
   assert.match(journeyComponentSource, /version:\s*PLAYER_HERO_SPRITE_VERSION/);
   assert.match(journeyComponentSource, /fallbackAtlasPath:\s*PLAYER_HERO_FALLBACK_SPRITE_ATLAS_JSON/);
@@ -429,12 +523,56 @@ test('Egypt Journey uses the Asha atlas through the existing player renderer', (
   assert.match(journeyComponentSource, /if\s*\(!atlasPath\)\s*\{\s*loadLegacySprite\(\);/);
   assert.equal(egyptPlayerAtlas.draw.suppressExternalWeapon, true);
   assert.equal(egyptPlayerAtlas.draw.suppressRuntimeAttackArc, true);
-  assert.equal(egyptPlayerAtlas.draw.height, 148);
-  assert.equal(egyptPlayerAtlas.draw.sourceHeight, 128);
+  assert.equal(egyptPlayerAtlas.status, 'active-egypt-hooded-warrior-explorer-atlas-production-ready');
+  assert.equal(egyptPlayerAtlas.productionReference, 'asha-hooded-warrior-explorer-reference.png');
+  assert.equal(egyptPlayerAtlas.draw.height, 142);
+  assert.equal(egyptPlayerAtlas.draw.sourceHeight, 224);
+  assert.equal(egyptPlayerAtlas.frame.width, 256);
+  assert.equal(egyptPlayerAtlas.frame.height, 256);
   assert.equal(egyptPlayerAtlas.rows.find(row => row.name === 'idle')?.frameCount, 1);
-  assert.equal(egyptPlayerAtlas.rows.find(row => row.name === 'walk')?.frameCount, 1);
-  assert.equal(egyptPlayerAtlas.rows.find(row => row.name === 'run')?.frameCount, 1);
-  assert.equal(egyptPlayerAtlas.rows.find(row => row.name === 'survey_walk')?.frameCount, 1);
+  assert.equal(egyptPlayerAtlas.rows.find(row => row.name === 'walk')?.frameCount, 8);
+  assert.equal(egyptPlayerAtlas.rows.find(row => row.name === 'run')?.frameCount, 8);
+  assert.equal(egyptPlayerAtlas.rows.find(row => row.name === 'survey_walk')?.frameCount, 8);
+  assert.deepEqual(egyptPlayerAtlas.rows.find(row => row.name === 'run')?.frames, [
+    'walk_00',
+    'walk_01',
+    'walk_03',
+    'walk_04',
+    'walk_05',
+    'walk_07',
+    'walk_05',
+    'walk_03',
+  ]);
+  assert.deepEqual(egyptPlayerAtlas.rows.find(row => row.name === 'jump')?.frames, [
+    'jump_01',
+    'jump_02',
+    'jump_03',
+    'jump_04',
+    'jump_05',
+    'jump_06',
+    'jump_07',
+    'jump_07',
+  ]);
+  assert.deepEqual(egyptPlayerAtlas.rows.find(row => row.name === 'fall')?.frames, [
+    'jump_04',
+    'jump_05',
+    'jump_06',
+    'jump_07',
+    'run_05',
+    'run_06',
+    'run_07',
+    'jump_07',
+  ]);
+  assert.deepEqual(egyptPlayerAtlas.rows.find(row => row.name === 'land')?.frames, [
+    'land_04',
+    'walk_00',
+    'walk_01',
+    'walk_03',
+    'walk_01',
+    'idle_00',
+    'idle_00',
+    'idle_00',
+  ]);
   assert.equal(egyptPlayerAtlas.rows.length, 12);
   assert.equal(Object.keys(egyptPlayerAtlas.regions).length, 96);
   assert.ok(egyptPlayerFallbackAtlas.regions.idle_00);
@@ -570,11 +708,11 @@ test('Broken Ruins Route extends the Egypt opening with existing platformer syst
     'half-buried lintel',
     'ruins recovery step',
   ].forEach((label) => {
-    assert.match(platforms, new RegExp(label));
+    assert.doesNotMatch(platforms, new RegExp(label));
   });
   assert.match(hazards, /broken-ruins-loose-stones/);
   assert.match(hazards, /Loose ruin stones shifted underfoot/);
-  assert.match(shards, /\{\s*x:\s*1245,\s*y:\s*274\s*\}/);
+  assert.match(shards, /\{\s*x:\s*1245,\s*y:\s*320\s*\}/);
   assert.match(storyProps, /broken-ruins-route-stones/);
   assert.match(storyProps, /Broken Ruins Route trail marker/);
   assert.match(storyProps, /survey rope beside half-buried structure/);
@@ -708,7 +846,7 @@ test('platform polish creates purposeful jump challenges with checkpoint rescue 
   const hazards = extractExportedArray('HAZARDS');
 
   [
-    'desert-high-shard-climb',
+    'post-pyramid-guardian-prep-route',
     'temple-sandfall-climb',
     'catacomb-torch-climb',
     'final-site-permit-climb',
@@ -717,14 +855,18 @@ test('platform polish creates purposeful jump challenges with checkpoint rescue 
   });
 
   [
-    'desert high shard cracked step',
-    'desert high shard unstable ledge',
+    'post-pyramid survey plinth',
+    'field kit stepping stone',
+    'guardian prep cracked ledge',
+    'guardian prep safe marker',
     'collapsing column step',
     'torch safe ledge',
     'survey rope ledge',
   ].forEach((label) => {
     assert.match(platforms, new RegExp(label));
   });
+  assert.match(platforms, /guardian-prep-cracked-ledge[\s\S]*reactive:\s*\{\s*type:\s*'unstable ledge'/);
+  assert.match(platforms, /guardian-prep-safe-marker[\s\S]*challengeComplete:\s*'post-pyramid-guardian-prep-route'/);
 
   assert.match(platforms, /challengeFailMessage:/);
   assert.match(journeyComponentSource, /current\.activePlatformChallenge/);
@@ -733,8 +875,8 @@ test('platform polish creates purposeful jump challenges with checkpoint rescue 
   assert.match(hazards, /id:\s*'entry-pressure-plate'[\s\S]*?width:\s*126[\s\S]*?penalty:\s*\{\s*stamina:\s*8,\s*time:\s*3\s*\}/);
   assert.match(hazards, /id:\s*'entry-cracked-floor-trap'[\s\S]*?penalty:\s*\{\s*stamina:\s*9\s*\}/);
   assert.match(hazards, /id:\s*'sand-pit'[\s\S]*?width:\s*132[\s\S]*?penalty:\s*\{\s*time:\s*9\s*\}/);
-  assert.match(hazards, /Try the upper route or jump cleanly/);
-  assert.match(hazards, /The upper path avoids the worst of it/);
+  assert.match(hazards, /Step around it or jump cleanly/);
+  assert.match(hazards, /Use the clear stone path around it/);
   assert.match(journeyRenderAssetsSource, /'entry-pressure-plate':\s*'softSand'/);
   assert.match(journeyRenderAssetsSource, /'entry-cracked-floor-trap':\s*'groundCracked'/);
   assert.match(journeyComponentSource, /'entry-pressure-plate':\s*\{[\s\S]*?warning:\s*'ground'/);
@@ -745,8 +887,8 @@ test('platform polish creates purposeful jump challenges with checkpoint rescue 
   assert.match(journeyComponentSource, /const drawEnemyAttackTell = useCallback\(\(\) => \{\}, \[\]\)/);
   assert.match(journeyComponentSource, /const drawAttackArc = useCallback\(\(\) => \{\}, \[\]\)/);
 
-  assert.match(upgrades, /id:\s*'basecamp-upgrade-voucher'[\s\S]*?x:\s*X\(925\)[\s\S]*?y:\s*JY\(210\)/);
-  assert.match(upgrades, /id:\s*'reinforced-boots'[\s\S]*?x:\s*X\(1240\)[\s\S]*?y:\s*JY\(232\)/);
+  assert.match(upgrades, /id:\s*'basecamp-upgrade-voucher'[\s\S]*?x:\s*X\(925\)[\s\S]*?y:\s*JY\(320\)/);
+  assert.match(upgrades, /id:\s*'reinforced-boots'[\s\S]*?x:\s*X\(1310\)[\s\S]*?y:\s*JY\(270\)/);
   assert.match(upgrades, /id:\s*'rope-launcher'[\s\S]*?x:\s*X\(2075\)[\s\S]*?y:\s*JY\(210\)/);
   assert.match(upgrades, /id:\s*'torch-upgrade'[\s\S]*?x:\s*X\(3545\)[\s\S]*?y:\s*JY\(252\)/);
   assert.match(upgrades, /id:\s*'ancient-compass'[\s\S]*?x:\s*X\(7045\)[\s\S]*?y:\s*JY\(220\)/);

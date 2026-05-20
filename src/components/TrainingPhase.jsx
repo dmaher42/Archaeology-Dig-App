@@ -209,7 +209,31 @@ export function TrainingPhase({ trainingPlacements, setTrainingPlacements, onBac
         </div>
 
         <div className="training-layout">
-          <TrainingTray stages={trayStages} />
+          {isComplete ? (
+            <div className="training-success-panel glass-card animate-fade-in">
+              <div className="training-success-header">
+                <span className="training-panel-kicker success-text">✓ Training Complete</span>
+                <h3>Ready for the Field!</h3>
+              </div>
+              <div className="training-success-body">
+                <p className="success-intro">Great work! You have mastered the scientific sequence of an archaeological investigation.</p>
+                <div className="reflection-box">
+                  <span className="reflection-label">Year 7 HASS Reflection Check:</span>
+                  <p className="reflection-question">Why does this specific order matter in real archaeology?</p>
+                  <div className="reflection-prompt">
+                    <em>"If archaeologists move evidence before mapping and recording it, then..."</em>
+                  </div>
+                </div>
+              </div>
+              <div className="training-success-footer">
+                <button className="btn training-back-btn pulse-glow" type="button" onClick={onBackToMenu}>
+                  Begin Investigation
+                </button>
+              </div>
+            </div>
+          ) : (
+            <TrainingTray stages={trayStages} />
+          )}
           <div className="training-board glass-card">
             <div className="training-slots">
               {TRAINING_STAGES.map((stage, index) => (

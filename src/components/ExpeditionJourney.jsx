@@ -314,7 +314,8 @@ const OPENING_SPHINX_EXIT_SECONDS = 2.35;
 const OPENING_SPHINX_ARRIVAL_SECONDS = 1.05;
 const OPENING_SPHINX_LINE_SECONDS = 1.55;
 const OPENING_SPHINX_SPRITE_BOSS_ID = 'ancient-construct';
-const OPENING_SPHINX_SPRITE_VERSION = 'opening-sphinx-model-2026-05-18';
+const OPENING_SPHINX_APPARITION_SRC = 'assets/expedition/bosses/opening-sphinx-apparition.png';
+const OPENING_SPHINX_SPRITE_VERSION = 'opening-sphinx-apparition-2026-05-19';
 const OPENING_SPHINX_SCREEN_Y_OFFSET = 112;
 const OPENING_SCARAB_SEAL_IMAGE_SRC = 'assets/expedition/environment/egypt-opening/scarab-seal-opening.png';
 const OPENING_PYRAMID_CLIMB_PACK_SRC = 'assets/expedition/environment/egypt-opening/pyramid-climb-pack.png';
@@ -326,6 +327,14 @@ const OPENING_CAMERA_REVEAL_PAN_SECONDS = 0.55;
 const OPENING_CAMERA_REVEAL_HOLD_SECONDS = 0.18;
 const OPENING_PYRAMID_ASSET_VERSION = 'opening-pyramid-climb-pack-2026-05-18';
 const OPENING_PYRAMID_FACADE_VERSION = 'opening-pyramid-facade-2026-05-19';
+const OPENING_PYRAMID_FACADE_WORLD_LEFT_X = -82;
+const OPENING_PYRAMID_AIR_JUMP_MULTIPLIER = 1.18;
+const OPENING_PYRAMID_AIR_JUMP_ASSIST_ZONE = {
+  minX: 126,
+  maxX: 1138,
+  minFootY: 90,
+  maxFootY: 570,
+};
 const OPENING_TRAP_DECAL_ASSET_VERSION = 'egypt-trap-hazard-decal-packs-2026-05-19';
 const OPENING_PYRAMID_ASSET_REGIONS = {
   leftStairFace: { x: 24, y: 419, w: 430, h: 160 },
@@ -509,7 +518,7 @@ const getPlayerHeroSpriteConfig = ({ targetCivilisation, backgroundPackId }) => 
     };
   }
   return {
-    characterId: 'asha-egypt-archaeologist',
+    characterId: 'asha-egypt-warrior-explorer',
     atlasPath: PLAYER_HERO_SPRITE_ATLAS_JSON,
     version: PLAYER_HERO_SPRITE_VERSION,
     fallbackAtlasPath: PLAYER_HERO_FALLBACK_SPRITE_ATLAS_JSON,
@@ -743,6 +752,15 @@ const isPlatformAvailable = (platform, current) => (
   && (!platform.requiresObjective || current.collectedObjectiveIds.has(platform.requiresObjective))
   && !current.collapsedPlatformIds?.has(platform.id || platform.label)
 );
+
+const isOpeningPyramidAirJumpAssistAvailable = (current, player, targetCivilisation) => {
+  if (targetCivilisation !== 'Ancient Egypt' || current.scarabSealActivated) return false;
+  const footY = player.y + player.height;
+  return player.x >= OPENING_PYRAMID_AIR_JUMP_ASSIST_ZONE.minX
+    && player.x <= OPENING_PYRAMID_AIR_JUMP_ASSIST_ZONE.maxX
+    && footY >= OPENING_PYRAMID_AIR_JUMP_ASSIST_ZONE.minFootY
+    && footY <= OPENING_PYRAMID_AIR_JUMP_ASSIST_ZONE.maxFootY;
+};
 
 const isHazardAvailable = (hazard, current) => (
   !hazard.revealedByScarabSeal || current.scarabSealActivated
@@ -1440,6 +1458,7 @@ export default function ExpeditionJourney({
   const dynamicWorldAssetsRef = useRef(createDynamicWorldAssetState());
   const markerSpriteAssetsRef = useRef(createMarkerSpriteState());
   const openingScarabSealImageRef = useRef({ image: null, loaded: false, failed: false });
+  const openingSphinxApparitionRef = useRef({ image: null, loaded: false, failed: false });
   const openingPyramidClimbPackRef = useRef({ image: null, loaded: false, failed: false });
   const openingPyramidFacadeRef = useRef({ image: null, loaded: false, failed: false });
   const openingTrapDecalPackRef = useRef({ image: null, loaded: false, failed: false });
@@ -1471,6 +1490,24 @@ export default function ExpeditionJourney({
       openingScarabSealImageRef.current = { image: null, loaded: false, failed: true };
     };
     image.src = `${import.meta.env.BASE_URL}${OPENING_SCARAB_SEAL_IMAGE_SRC}`;
+    return () => {
+      cancelled = true;
+    };
+  }, [syncHud]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const image = new Image();
+    image.onload = () => {
+      if (cancelled) return;
+      openingSphinxApparitionRef.current = { image, loaded: true, failed: false };
+      syncHud();
+    };
+    image.onerror = () => {
+      if (cancelled) return;
+      openingSphinxApparitionRef.current = { image: null, loaded: false, failed: true };
+    };
+    image.src = `${import.meta.env.BASE_URL}${OPENING_SPHINX_APPARITION_SRC}`;
     return () => {
       cancelled = true;
     };
@@ -2580,10 +2617,11 @@ export default function ExpeditionJourney({
         x: Math.round(current.openingSphinxEncounter.x),
         y: Math.round(current.openingSphinxEncounter.y),
         timer: Number(current.openingSphinxEncounter.timer.toFixed(2)),
-        spriteModel: OPENING_SPHINX_SPRITE_BOSS_ID,
+        spriteModel: renderStats.openingSphinxSpriteModel || OPENING_SPHINX_SPRITE_BOSS_ID,
         spriteFrame: renderStats.openingSphinxSpriteFrame || null,
-        spriteAtlasPath: ANCIENT_CONSTRUCT_SPRITE_ATLAS_JSON,
-        spriteLoaded: Boolean(bossSpriteAssets.packs?.[OPENING_SPHINX_SPRITE_BOSS_ID]?.loaded),
+        spriteAtlasPath: renderStats.openingSphinxSpriteAtlasPath || ANCIENT_CONSTRUCT_SPRITE_ATLAS_JSON,
+        spriteLoaded: renderStats.openingSphinxSpriteLoaded
+          ?? Boolean(bossSpriteAssets.packs?.[OPENING_SPHINX_SPRITE_BOSS_ID]?.loaded),
       } : null,
       reactiveEnvironmentPassActive: Boolean(renderStats.reactiveEnvironmentPassActive),
       reactiveEnvironmentVersion: renderStats.reactiveEnvironmentVersion || REACTIVE_ENVIRONMENT_VERSION,
@@ -2864,6 +2902,8 @@ export default function ExpeditionJourney({
         coyoteTimeSeconds: COYOTE_TIME,
         jumpBufferSeconds: JUMP_BUFFER_TIME,
         jumpCutMultiplier: JUMP_CUT_MULTIPLIER,
+        openingPyramidAssistJumpAvailable: Boolean(current.openingPyramidAssistJumpAvailable),
+        openingPyramidAirJumpMultiplier: OPENING_PYRAMID_AIR_JUMP_MULTIPLIER,
         jumpCutFeedback: Number((current.player.jumpCutFeedbackTimer || 0).toFixed(2)),
         landingFeedback: Number((current.player.landingFeedbackTimer || 0).toFixed(2)),
         movementDustTimer: Number((current.player.movementDustTimer || 0).toFixed(2)),
@@ -3114,19 +3154,45 @@ export default function ExpeditionJourney({
       ctx.restore();
     }
 
+    const apparitionAsset = openingSphinxApparitionRef.current;
     const spritePack = getBossSpritePack(bossSpriteAssetsRef.current, OPENING_SPHINX_SPRITE_BOSS_ID);
     const frameKey = getOpeningSphinxSpriteFrame(encounter, now);
-    const spriteHeight = 226;
-    const spriteWidth = 278;
-    const drawBox = {
-      x: sx - spriteWidth / 2,
-      y: sy + 126 - spriteHeight,
-      width: spriteWidth,
-      height: spriteHeight,
+    const apparitionHeight = 318;
+    const apparitionWidth = apparitionAsset.loaded && apparitionAsset.image
+      ? apparitionHeight * (apparitionAsset.image.naturalWidth / apparitionAsset.image.naturalHeight)
+      : 246;
+    let drawBox = {
+      x: sx - apparitionWidth / 2,
+      y: sy + 126 - apparitionHeight,
+      width: apparitionWidth,
+      height: apparitionHeight,
     };
-    const shouldFlip = shouldFlipBossSprite(OPENING_SPHINX_SPRITE_BOSS_ID, -1);
     let sphinxSpriteDrawn = false;
-    if (spritePack) {
+
+    if (apparitionAsset.loaded && apparitionAsset.image) {
+      ctx.save();
+      ctx.shadowColor = 'rgba(70, 214, 235, 0.2)';
+      ctx.shadowBlur = 12 + reveal * 8;
+      ctx.drawImage(apparitionAsset.image, drawBox.x, drawBox.y, drawBox.width, drawBox.height);
+      ctx.restore();
+      sphinxSpriteDrawn = true;
+      if (stateRef.current.renderStats) {
+        stateRef.current.renderStats.openingSphinxSpriteLoaded = true;
+        stateRef.current.renderStats.openingSphinxSpriteVersion = OPENING_SPHINX_SPRITE_VERSION;
+        stateRef.current.renderStats.openingSphinxSpriteModel = 'opening-sphinx-apparition';
+        stateRef.current.renderStats.openingSphinxSpriteFrame = 'openingSphinxApparition';
+        stateRef.current.renderStats.openingSphinxSpriteAtlasPath = OPENING_SPHINX_APPARITION_SRC;
+      }
+    } else if (spritePack) {
+      const spriteHeight = 226;
+      const spriteWidth = 278;
+      drawBox = {
+        x: sx - spriteWidth / 2,
+        y: sy + 126 - spriteHeight,
+        width: spriteWidth,
+        height: spriteHeight,
+      };
+      const shouldFlip = shouldFlipBossSprite(OPENING_SPHINX_SPRITE_BOSS_ID, -1);
       ctx.save();
       if (shouldFlip) {
         ctx.translate(drawBox.x + drawBox.width / 2, 0);
@@ -3147,10 +3213,12 @@ export default function ExpeditionJourney({
       ctx.restore();
     }
 
-    if (sphinxSpriteDrawn && stateRef.current.renderStats) {
+    if (sphinxSpriteDrawn && !apparitionAsset.loaded && stateRef.current.renderStats) {
+      stateRef.current.renderStats.openingSphinxSpriteLoaded = true;
       stateRef.current.renderStats.openingSphinxSpriteVersion = OPENING_SPHINX_SPRITE_VERSION;
       stateRef.current.renderStats.openingSphinxSpriteModel = OPENING_SPHINX_SPRITE_BOSS_ID;
       stateRef.current.renderStats.openingSphinxSpriteFrame = frameKey;
+      stateRef.current.renderStats.openingSphinxSpriteAtlasPath = ANCIENT_CONSTRUCT_SPRITE_ATLAS_JSON;
     }
 
     if (!sphinxSpriteDrawn) {
@@ -3733,6 +3801,10 @@ export default function ExpeditionJourney({
     }
     ctx.scale(squashX, squashY);
     if (direction < 0) ctx.scale(-1, 1);
+    ctx.imageSmoothingEnabled = true;
+    if (heroAtlas?.draw?.imageSmoothingQuality) {
+      ctx.imageSmoothingQuality = heroAtlas.draw.imageSmoothingQuality;
+    }
     ctx.drawImage(
       sprite.image,
       sourceX,
@@ -3811,7 +3883,7 @@ export default function ExpeditionJourney({
   const drawOpeningPyramidFacade = useCallback((ctx, cameraX) => {
     const facade = openingPyramidFacadeRef.current;
     if (!facade.loaded || !facade.image) return false;
-    const x = worldToScreenX(-82, cameraX);
+    const x = worldToScreenX(OPENING_PYRAMID_FACADE_WORLD_LEFT_X, cameraX);
     const y = -4;
     const width = 1208;
     const height = 664;
@@ -4277,6 +4349,7 @@ export default function ExpeditionJourney({
   const drawPlatform = useCallback((ctx, platform, cameraX, current) => {
     const x = worldToScreenX(platform.x, cameraX);
     if (!isHorizontallyVisible(platform.x, platform.width, cameraX, 50)) return;
+    if (platform.invisible) return;
 
     ctx.save();
     if (platform.secret && !current.collectedUpgrades.has('ancient-compass')) {
@@ -8374,6 +8447,12 @@ export default function ExpeditionJourney({
     const jumpPressed = jump && !keys.jumpHeld;
     if (jumpPressed) player.jumpBufferTimer = JUMP_BUFFER_TIME;
     const canGroundJump = player.jumpBufferTimer > 0 && (player.onGround || player.coyoteTimer > 0);
+    const openingPyramidAssistJump = player.jumpBufferTimer > 0
+      && !canGroundJump
+      && !current.collectedUpgrades.has('rope-launcher')
+      && player.airJumpsUsed < 1
+      && isOpeningPyramidAirJumpAssistAvailable(current, player, targetCivilisation);
+    current.openingPyramidAssistJumpAvailable = openingPyramidAssistJump;
     const canRopeJump = player.jumpBufferTimer > 0 && !canGroundJump && current.collectedUpgrades.has('rope-launcher') && player.airJumpsUsed < 1;
     if (canGroundJump) {
       player.vy = -JUMP_SPEED * (upgradeEffects.jumpMultiplier || 1);
@@ -8391,6 +8470,21 @@ export default function ExpeditionJourney({
         maxTimer: 0.28,
       });
       audioControls?.playExpeditionSfx?.('jump');
+      audioControls?.playJump?.();
+    } else if (openingPyramidAssistJump) {
+      player.vy = -JUMP_SPEED * OPENING_PYRAMID_AIR_JUMP_MULTIPLIER;
+      player.jumpBufferTimer = 0;
+      player.airJumpsUsed += 1;
+      addCombatEffect(current, {
+        type: 'jump-dust',
+        x: player.x + player.width / 2,
+        y: player.y + player.height - 4,
+        direction: -player.direction,
+        color: 'rgba(251, 191, 36, 0.5)',
+        timer: 0.25,
+        maxTimer: 0.25,
+      });
+      audioControls?.playExpeditionSfx?.('jump', { volume: 0.76, playbackRate: 1.1 });
       audioControls?.playJump?.();
     } else if (canRopeJump) {
       player.vy = -JUMP_SPEED * 0.85 * (upgradeEffects.jumpMultiplier || 1);
@@ -9761,7 +9855,7 @@ export default function ExpeditionJourney({
       if (current.resources.time <= 0) triggerJourneyRescue('Time expired. Field team rescued.');
     }
 
-  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, backgroundPackId, buildBossRewardMoment, getActiveHiddenRoutes, getActiveSecretCollectibles, getActiveShardGateProgress, getAttackBox, getAttackHurtbox, getBossPhaseConfig, getBossVulnerabilityState, getEnemyPatternConfig, getObjectiveProgress, getGateGuidance, getRouteAccessState, isRouteRewardAccessible, isLowStamina, addCombatEffect, recordEnvironmentInteraction, getPlayerAttackState, getSectionDisplayName, getSectionDisplayTitle, syncHud]);
+  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, backgroundPackId, targetCivilisation, buildBossRewardMoment, getActiveHiddenRoutes, getActiveSecretCollectibles, getActiveShardGateProgress, getAttackBox, getAttackHurtbox, getBossPhaseConfig, getBossVulnerabilityState, getEnemyPatternConfig, getObjectiveProgress, getGateGuidance, getRouteAccessState, isRouteRewardAccessible, isLowStamina, addCombatEffect, recordEnvironmentInteraction, getPlayerAttackState, getSectionDisplayName, getSectionDisplayTitle, syncHud]);
 
   const step = useCallback((ms) => {
     const dt = Math.min(ms / 1000, 0.05);

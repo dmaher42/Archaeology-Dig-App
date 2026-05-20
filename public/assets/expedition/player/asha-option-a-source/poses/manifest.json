@@ -1,0 +1,290 @@
+[
+  {
+    "name": "idle_ready",
+    "group": "locomotion",
+    "file": "public/assets/expedition/player/asha-option-a-source/poses/idle_ready.png",
+    "size": [
+      233,
+      437
+    ],
+    "bbox": [
+      89,
+      143,
+      322,
+      580
+    ],
+    "area": 52953
+  },
+  {
+    "name": "idle_breathe",
+    "group": "locomotion",
+    "file": "public/assets/expedition/player/asha-option-a-source/poses/idle_breathe.png",
+    "size": [
+      227,
+      439
+    ],
+    "bbox": [
+      435,
+      141,
+      662,
+      580
+    ],
+    "area": 52223
+  },
+  {
+    "name": "walk_contact",
+    "group": "locomotion",
+    "file": "public/assets/expedition/player/asha-option-a-source/poses/walk_contact.png",
+    "size": [
+      238,
+      430
+    ],
+    "bbox": [
+      757,
+      149,
+      995,
+      579
+    ],
+    "area": 52153
+  },
+  {
+    "name": "walk_pass",
+    "group": "locomotion",
+    "file": "public/assets/expedition/player/asha-option-a-source/poses/walk_pass.png",
+    "size": [
+      270,
+      425
+    ],
+    "bbox": [
+      1084,
+      148,
+      1354,
+      573
+    ],
+    "area": 51347
+  },
+  {
+    "name": "run_contact",
+    "group": "locomotion",
+    "file": "public/assets/expedition/player/asha-option-a-source/poses/run_contact.png",
+    "size": [
+      321,
+      387
+    ],
+    "bbox": [
+      1412,
+      188,
+      1733,
+      575
+    ],
+    "area": 48680
+  },
+  {
+    "name": "run_airborne",
+    "group": "locomotion",
+    "file": "public/assets/expedition/player/asha-option-a-source/poses/run_airborne.png",
+    "size": [
+      319,
+      359
+    ],
+    "bbox": [
+      1775,
+      150,
+      2094,
+      509
+    ],
+    "area": 46098
+  },
+  {
+    "name": "jump_takeoff",
+    "group": "action",
+    "file": "public/assets/expedition/player/asha-option-a-source/poses/jump_takeoff.png",
+    "size": [
+      334,
+      269
+    ],
+    "bbox": [
+      31,
+      362,
+      365,
+      631
+    ],
+    "area": 43255
+  },
+  {
+    "name": "jump_rise",
+    "group": "action",
+    "file": "public/assets/expedition/player/asha-option-a-source/poses/jump_rise.png",
+    "size": [
+      273,
+      425
+    ],
+    "bbox": [
+      420,
+      181,
+      693,
+      606
+    ],
+    "area": 44861
+  },
+  {
+    "name": "jump_apex",
+    "group": "action",
+    "file": "public/assets/expedition/player/asha-option-a-source/poses/jump_apex.png",
+    "size": [
+      265,
+      435
+    ],
+    "bbox": [
+      769,
+      47,
+      1034,
+      482
+    ],
+    "area": 43836
+  },
+  {
+    "name": "fall_controlled",
+    "group": "action",
+    "file": "public/assets/expedition/player/asha-option-a-source/poses/fall_controlled.png",
+    "size": [
+      294,
+      375
+    ],
+    "bbox": [
+      1049,
+      199,
+      1343,
+      574
+    ],
+    "area": 45432
+  },
+  {
+    "name": "land_recovery",
+    "group": "action",
+    "file": "public/assets/expedition/player/asha-option-a-source/poses/land_recovery.png",
+    "size": [
+      306,
+      254
+    ],
+    "bbox": [
+      1374,
+      377,
+      1680,
+      631
+    ],
+    "area": 41977
+  },
+  {
+    "name": "attack_swing",
+    "group": "action",
+    "file": "public/assets/expedition/player/asha-option-a-source/poses/attack_swing.png",
+    "size": [
+      394,
+      369
+    ],
+    "bbox": [
+      1742,
+      262,
+      2136,
+      631
+    ],
+    "area": 45846
+  },
+  {
+    "name": "survey_cautious",
+    "group": "utility",
+    "file": "public/assets/expedition/player/asha-option-a-source/poses/survey_cautious.png",
+    "size": [
+      274,
+      400
+    ],
+    "bbox": [
+      48,
+      206,
+      322,
+      606
+    ],
+    "area": 52570
+  },
+  {
+    "name": "interact_reach",
+    "group": "utility",
+    "file": "public/assets/expedition/player/asha-option-a-source/poses/interact_reach.png",
+    "size": [
+      318,
+      412
+    ],
+    "bbox": [
+      422,
+      194,
+      740,
+      606
+    ],
+    "area": 50118
+  },
+  {
+    "name": "climb_start",
+    "group": "utility",
+    "file": "public/assets/expedition/player/asha-option-a-source/poses/climb_start.png",
+    "size": [
+      224,
+      476
+    ],
+    "bbox": [
+      825,
+      129,
+      1049,
+      605
+    ],
+    "area": 43799
+  },
+  {
+    "name": "climb_pullup",
+    "group": "utility",
+    "file": "public/assets/expedition/player/asha-option-a-source/poses/climb_pullup.png",
+    "size": [
+      249,
+      376
+    ],
+    "bbox": [
+      1128,
+      98,
+      1377,
+      474
+    ],
+    "area": 44213
+  },
+  {
+    "name": "push_brace",
+    "group": "utility",
+    "file": "public/assets/expedition/player/asha-option-a-source/poses/push_brace.png",
+    "size": [
+      380,
+      364
+    ],
+    "bbox": [
+      1400,
+      243,
+      1780,
+      607
+    ],
+    "area": 46941
+  },
+  {
+    "name": "hurt_stagger",
+    "group": "utility",
+    "file": "public/assets/expedition/player/asha-option-a-source/poses/hurt_stagger.png",
+    "size": [
+      240,
+      400
+    ],
+    "bbox": [
+      1867,
+      205,
+      2107,
+      605
+    ],
+    "area": 53649
+  }
+]
