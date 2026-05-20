@@ -2,7 +2,8 @@
   "image": "egypt-survey-marker-pack.png",
   "imageWidth": 1536,
   "imageHeight": 1024,
-  "coordinateNotes": "Approximate first-pass atlas coordinates from the generated survey marker sheet. Tuning may be needed after projector-scale review.",
+  "source": "imagegen-egypt-barrier-lock-markers-2026-05-20",
+  "coordinateNotes": "Approximate first-pass atlas coordinates from the generated survey marker sheet. Lock regions were replaced with the dedicated Egypt barrier art.",
   "regions": {
     "explorerToken": { "x": 610, "y": 833, "w": 89, "h": 91 },
     "heroPortraitMarker": { "x": 757, "y": 823, "w": 116, "h": 122 },

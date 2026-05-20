@@ -410,7 +410,7 @@ const OPENING_HAZARD_DECAL_BY_HAZARD = {
 };
 const EGYPT_HAZARD_DECAL_PLACEMENT = {
   pressurePlate: { xPad: 14, widthPad: 28, height: 74, footInset: 2 },
-  crackedFloor: { xPad: 16, widthPad: 32, height: 68, footInset: 1 },
+  crackedFloor: { xPad: 16, widthPad: 32, height: 62, footInset: 14 },
   scarabSealTrap: { xPad: 22, widthPad: 44, height: 94, footInset: 3 },
   glyphTripwire: { xPad: 28, widthPad: 56, height: 66, footInset: 3 },
   fallingStoneWarning: { xPad: 24, widthPad: 48, height: 122, footInset: 2 },
@@ -6591,11 +6591,11 @@ export default function ExpeditionJourney({
         ctx.beginPath();
         ctx.ellipse(centerX, footY - drawHeight * 0.28, drawWidth * 0.5, drawHeight * 0.5, 0, 0, Math.PI * 2);
         ctx.clip();
-        ctx.globalAlpha = hitActive ? 0.74 : 0.54;
-        ctx.filter = hitActive ? 'sepia(14%) saturate(100%) brightness(92%) contrast(92%)' : 'sepia(24%) saturate(62%) brightness(82%) contrast(80%)';
+        ctx.globalAlpha = 1;
+        ctx.filter = hitActive ? 'sepia(10%) saturate(108%) brightness(96%) contrast(98%)' : 'sepia(16%) saturate(78%) brightness(90%) contrast(90%)';
         ctx.drawImage(trapSealImage.image, drawX, drawY, drawWidth, drawHeight);
         ctx.globalCompositeOperation = 'source-atop';
-        ctx.fillStyle = hitActive ? 'rgba(190, 126, 58, 0.46)' : 'rgba(194, 134, 66, 0.58)';
+        ctx.fillStyle = hitActive ? 'rgba(190, 126, 58, 0.18)' : 'rgba(194, 134, 66, 0.24)';
         ctx.fillRect(drawX, drawY, drawWidth, drawHeight);
         ctx.restore();
         ctx.save();

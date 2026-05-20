@@ -12952,13 +12952,15 @@ main {
 /* --- Lost Site Expedition Journey: High Fidelity UI --- */
 
 .expedition-journey-container {
+  --journey-stage-inline-padding: 0.4rem;
+  --journey-stage-height-limit: calc(100dvh - (var(--journey-stage-inline-padding) * 2));
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
   height: 100dvh;
   max-width: none;
   margin: 0 auto;
-  padding: 0.4rem;
+  padding: var(--journey-stage-inline-padding);
   gap: 0;
   animation: fadeIn 0.8s ease-out;
 }
@@ -12977,7 +12979,7 @@ main {
 .expedition-sidebar {
   position: absolute;
   left: auto;
-  right: max(1.05rem, calc(50% - ((100dvh - 0.8rem) * 0.8889) + 1.05rem));
+  right: max(1.05rem, calc(((100% - min(100%, calc(var(--journey-stage-height-limit) * 1.7778))) / 2) + 1.05rem));
   bottom: 1.05rem;
   z-index: 35;
   display: grid;
@@ -13429,10 +13431,11 @@ main {
 .canvas-wrapper {
   position: relative;
   flex: 0 0 auto;
-  width: min(100%, calc((100dvh - 0.8rem) * 1.7778));
+  width: 100%;
+  max-width: calc(var(--journey-stage-height-limit) * 1.7778);
   min-height: 0;
   aspect-ratio: 16 / 9;
-  max-height: calc(100dvh - 0.8rem);
+  max-height: var(--journey-stage-height-limit);
   background: #0f172a;
   border-radius: 10px;
   border: 4px solid #334155;

@@ -1,11 +1,11 @@
 {
   "image": "egypt-sacred-traps-pack.png",
-  "source": "scripts/generate_egypt_sacred_trap_assets.py",
+  "source": "imagegen-egypt-barrier-atlas-2026-05-20",
   "size": {
     "w": 512,
     "h": 512
   },
-  "mappingNote": "First Egypt sacred defence asset regions. Prepared for later Journey environment wiring; not wired into gameplay by this asset pass.",
+  "mappingNote": "Top-row guardian seal regions updated to the imagegen Egypt barrier art while pedestal regions remain in place.",
   "regions": {
     "guardianSealIdle": {
       "x": 0,

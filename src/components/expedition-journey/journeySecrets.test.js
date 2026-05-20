@@ -85,6 +85,7 @@ test('secret collectibles support Egypt and China discovery sets', () => {
 test('world continuity landmarks foreshadow future expedition sections', () => {
   const worldLandmarks = extractExportedArray('WORLD_CONTINUITY_LANDMARKS');
   const transitionMarkers = extractExportedArray('WORLD_TRANSITION_STORY_MARKERS');
+  const stageEntranceFeatures = extractExportedArray('STAGE_ENTRANCE_FEATURES');
 
   assert.ok((worldLandmarks.match(/id:/g) || []).length >= 8);
   ['tower', 'mountains', 'excavation-camp', 'guardian-ruin', 'bridge', 'gate'].forEach((type) => {
@@ -97,6 +98,21 @@ test('world continuity landmarks foreshadow future expedition sections', () => {
   assert.ok((transitionMarkers.match(/id:/g) || []).length >= 4);
   assert.match(transitionMarkers, /collapsed road leading to the temple doors/);
   assert.match(transitionMarkers, /camp lamps and carved stone over the final rise/);
+
+  assert.equal((stageEntranceFeatures.match(/id:/g) || []).length, 4);
+  [
+    'ruined-temple-colossus-gate',
+    'catacomb-descent-doorway',
+    'escape-breach-gate',
+    'dig-site-arrival-gate',
+  ].forEach((id) => {
+    assert.match(stageEntranceFeatures, new RegExp(`id:\\s*'${id}'`));
+  });
+  ['ruined-temple', 'catacombs', 'escape-sequence', 'dig-site-entrance'].forEach((sectionId) => {
+    assert.match(stageEntranceFeatures, new RegExp(`to:\\s*'${sectionId}'`));
+  });
+  assert.match(journeyComponentSource, /drawStageEntranceFeature/);
+  assert.match(journeyComponentSource, /STAGE_ENTRANCE_FEATURES\.forEach/);
 });
 
 test('story props include recurring expedition markers across sections', () => {
@@ -293,7 +309,7 @@ test('opening Scarab Seal climb triggers a boss confrontation without completing
   assert.match(journeyComponentSource, /shouldFlipBossSprite\(OPENING_SPHINX_SPRITE_BOSS_ID,\s*-1\)/);
   assert.match(journeyComponentSource, /openingSphinxSpriteFrame/);
   assert.match(journeyComponentSource, /openingSphinxEncounterState:/);
-  assert.match(journeyComponentSource, /&& !gameState\.openingSphinxEncounter/);
+  assert.doesNotMatch(journeyComponentSource, /expedition-journey-notice/);
   assert.match(journeyComponentSource, /spriteAtlasPath:\s*renderStats\.openingSphinxSpriteAtlasPath\s*\|\|\s*ANCIENT_CONSTRUCT_SPRITE_ATLAS_JSON/);
   assert.match(journeyComponentSource, /spriteLoaded:\s*renderStats\.openingSphinxSpriteLoaded[\s\S]*?Boolean\(bossSpriteAssets\.packs\?\.\[OPENING_SPHINX_SPRITE_BOSS_ID\]\?\.loaded\)/);
   assert.match(journeyComponentSource, /openingSphinxEncounter\.timer[\s\S]*?OPENING_SPHINX_EXIT_SECONDS/);
@@ -630,6 +646,7 @@ test('Egypt sacred trap seal and pedestal pack is registered as a future asset o
   });
 
   assert.equal(egyptSacredTrapAtlas.image, 'egypt-sacred-traps-pack.png');
+  assert.equal(egyptSacredTrapAtlas.source, 'imagegen-egypt-barrier-atlas-2026-05-20');
   assert.match(journeyRenderAssetsSource, /EGYPT_SACRED_TRAPS:\s*'egypt-sacred-traps'/);
   assert.match(journeyRenderAssetsSource, /EGYPT_SACRED_TRAPS_ATLAS_JSON/);
   assert.match(journeyRenderAssetsSource, /EXPECTED_EGYPT_SACRED_TRAP_ASSET_KEYS/);
@@ -863,7 +880,10 @@ test('platform polish creates purposeful jump challenges with checkpoint rescue 
     'guardian prep cracked ledge',
     'guardian prep safe marker',
     'collapsing column step',
+    'sandfall recovery shelf',
+    'archive reward step',
     'torch safe ledge',
+    'bat dodge perch',
     'survey rope ledge',
   ].forEach((label) => {
     assert.match(platforms, new RegExp(label));
