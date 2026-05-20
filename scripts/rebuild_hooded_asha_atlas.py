@@ -213,6 +213,56 @@ def sheet_cell(source: Image.Image, *, rows: int, row: int, column: int) -> Imag
     return source.crop((left, top, right, bottom))
 
 
+def visible_component_cells(source: Image.Image, *, expected_count: int) -> list[Image.Image]:
+    rgba = source.convert("RGBA")
+    alpha = rgba.getchannel("A").point(lambda value: 255 if value > 72 else 0)
+    width, height = rgba.size
+    seen = bytearray(width * height)
+    alpha_pixels = alpha.load()
+    components: list[tuple[int, int, int, int, int]] = []
+
+    for start_y in range(height):
+        for start_x in range(width):
+            start_index = start_y * width + start_x
+            if seen[start_index] or alpha_pixels[start_x, start_y] == 0:
+                continue
+            queue = [(start_x, start_y)]
+            seen[start_index] = 1
+            count = 0
+            min_x = max_x = start_x
+            min_y = max_y = start_y
+            for x, y in queue:
+                count += 1
+                min_x = min(min_x, x)
+                max_x = max(max_x, x)
+                min_y = min(min_y, y)
+                max_y = max(max_y, y)
+                for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+                    if 0 <= nx < width and 0 <= ny < height:
+                        index = ny * width + nx
+                        if not seen[index] and alpha_pixels[nx, ny] != 0:
+                            seen[index] = 1
+                            queue.append((nx, ny))
+            if count > 500:
+                components.append((count, min_x, min_y, max_x + 1, max_y + 1))
+
+    components = sorted(components, key=lambda component: component[1])
+    if len(components) != expected_count:
+        raise ValueError(f"Expected {expected_count} sprite components, found {len(components)}")
+
+    cells = []
+    for _count, left, top, right, bottom in components:
+        pad = 10
+        box = (
+            max(0, left - pad),
+            max(0, top - pad),
+            min(width, right + pad),
+            min(height, bottom + pad),
+        )
+        cells.append(rgba.crop(box))
+    return cells
+
+
 def attack_source_cell(source: Image.Image, source_column: int) -> Image.Image:
     cell = sheet_cell(source, rows=1, row=0, column=source_column)
     return keep_largest_visible_component(remove_chroma_green_background(cell))
@@ -250,8 +300,10 @@ def main() -> None:
     source_image = Image.open(UTILITY_SOURCE_PNG).convert("RGBA")
     locomotion_source = remove_chroma_green_background(remove_checkerboard_background(Image.open(LOCOMOTION_SOURCE)))
     sprint_source = remove_chroma_green_background(Image.open(SPRINT_SOURCE))
+    sprint_cells = visible_component_cells(sprint_source, expected_count=8)
     air_source = remove_chroma_green_background(Image.open(AIR_SOURCE))
     attack_source = Image.open(ATTACK_SOURCE).convert("RGBA")
+    attack_cells = visible_component_cells(remove_chroma_green_background(attack_source), expected_count=8)
     cell_w = utility_metadata["frame"]["width"]
     cell_h = utility_metadata["frame"]["height"]
     ground_line_y = utility_metadata["frame"]["groundLineY"]
@@ -311,7 +363,7 @@ def main() -> None:
 
     for column in range(8):
         target_key = frame_key("run", column)
-        sprite = keep_largest_visible_component(sheet_cell(sprint_source, rows=1, row=0, column=column))
+        sprite = keep_largest_visible_component(sprint_cells[column])
         rebuilt_regions[target_key] = paste_sprite_cell(
             rebuilt_image,
             sprite,
@@ -341,7 +393,7 @@ def main() -> None:
 
     for column, source_column in enumerate(ATTACK_SOURCE_COLUMNS):
         target_key = frame_key("attack_pick_swing", column)
-        sprite = attack_source_cell(attack_source, source_column)
+        sprite = keep_largest_visible_component(attack_cells[source_column])
         rebuilt_regions[target_key] = paste_sprite_cell(
             rebuilt_image,
             sprite,
