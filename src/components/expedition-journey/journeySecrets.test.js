@@ -551,7 +551,7 @@ test('Egypt Journey uses the Asha atlas through the existing player renderer', (
   assert.equal(egyptPlayerAtlas.frame.height, 256);
   assert.equal(
     egyptPlayerAtlas.source,
-    'imagegen-locomotion-source-repacked-into-hooded-asha-atlas-2026-05-20',
+    'controlled-hybrid-production-asha-atlas-2026-05-20',
   );
   assert.equal(egyptPlayerAtlas.rows.find(row => row.name === 'idle')?.frameCount, 1);
   assert.equal(egyptPlayerAtlas.rows.find(row => row.name === 'walk')?.frameCount, 8);
@@ -581,14 +581,15 @@ test('Egypt Journey uses the Asha atlas through the existing player renderer', (
     egyptPlayerAtlas.rows.find(row => row.name === 'land')?.frames,
     Array.from({ length: 8 }, (_, index) => `land_${String(index).padStart(2, '0')}`),
   );
-  assert.equal(egyptPlayerAtlas.poseSources.run_00, 'locomotion_source_row_1_col_0');
-  assert.equal(egyptPlayerAtlas.poseSources.run_03, 'locomotion_source_row_1_col_3');
-  assert.equal(egyptPlayerAtlas.poseSources.walk_03, 'locomotion_source_row_0_col_3');
+  assert.equal(egyptPlayerAtlas.poseSources.run_00, 'production_sprint_source_col_0');
+  assert.equal(egyptPlayerAtlas.poseSources.run_03, 'production_sprint_source_col_3');
+  assert.equal(egyptPlayerAtlas.poseSources.walk_03, 'production_locomotion_source_row_0_col_3');
   assert.equal(egyptPlayerAtlas.poseSources.attack_pick_swing_00, 'attack_source_col_0');
   assert.equal(egyptPlayerAtlas.poseSources.attack_pick_swing_03, 'attack_source_col_3');
   assert.equal(egyptPlayerAtlas.poseSources.attack_pick_swing_07, 'attack_source_col_7');
-  assert.equal(egyptPlayerAtlas.poseSources.fall_04, 'jump_07');
-  assert.equal(egyptPlayerAtlas.poseSources.land_02, 'jump_07');
+  assert.equal(egyptPlayerAtlas.poseSources.jump_04, 'production_air_source_row_0_col_4');
+  assert.equal(egyptPlayerAtlas.poseSources.fall_04, 'production_air_source_row_0_col_7');
+  assert.equal(egyptPlayerAtlas.poseSources.land_02, 'production_air_source_row_1_col_2');
   assert.equal(egyptPlayerAtlas.rows.length, 12);
   assert.equal(Object.keys(egyptPlayerAtlas.regions).length, 96);
   assert.equal(Object.keys(egyptPlayerAtlas.poseSources).length, 96);
@@ -597,6 +598,10 @@ test('Egypt Journey uses the Asha atlas through the existing player renderer', (
   assert.match(journeyComponentSource, /heroRegion\?\.drawBounds/);
   assert.match(journeyComponentSource, /nominalFrameHeight/);
   assert.match(journeyComponentSource, /boundedGroundLineY/);
+  assert.match(journeyUtilsSource, /if \(animationState === 'jump'\) \{/);
+  assert.match(journeyUtilsSource, /if \(animationState === 'fall'\) \{/);
+  assert.match(journeyUtilsSource, /if \(animationState === 'land'\) \{/);
+  assert.match(journeyUtilsSource, /player\.landingFeedbackTimer/);
   assert.match(journeyComponentSource, /heroAtlas\?\.draw\?\.suppressExternalWeapon/);
   assert.match(journeyComponentSource, /rowName === 'idle'\s*\?\s*0/);
   assert.match(journeyComponentSource, /firstSwingFrame/);

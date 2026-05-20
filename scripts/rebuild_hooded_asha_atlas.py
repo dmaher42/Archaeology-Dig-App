@@ -11,8 +11,10 @@ from PIL import Image, ImageChops
 ROOT = Path(__file__).resolve().parents[1]
 ATLAS_JSON = ROOT / "public/assets/expedition/player/asha-hooded-warrior-explorer-spritesheet.json"
 ATLAS_PNG = ROOT / "public/assets/expedition/player/asha-hooded-warrior-explorer-spritesheet.png"
-LOCOMOTION_SOURCE = ROOT / "public/assets/expedition/player/asha-hooded-warrior-explorer-locomotion-source.png"
-ATTACK_SOURCE = ROOT / "public/assets/expedition/player/asha-hooded-warrior-explorer-attack-source.png"
+LOCOMOTION_SOURCE = ROOT / "public/assets/expedition/player/asha-hooded-warrior-explorer-production-locomotion-source.png"
+SPRINT_SOURCE = ROOT / "public/assets/expedition/player/asha-hooded-warrior-explorer-production-sprint-source.png"
+AIR_SOURCE = ROOT / "public/assets/expedition/player/asha-hooded-warrior-explorer-production-air-source.png"
+ATTACK_SOURCE = ROOT / "public/assets/expedition/player/asha-hooded-warrior-explorer-production-attack-source.png"
 LEGACY_SOURCE = ROOT / "public/assets/expedition/player/asha-hooded-warrior-explorer-generated-sheet.png"
 UTILITY_SOURCE_JSON = ROOT / "public/assets/expedition/player/asha-hooded-warrior-explorer-utility-source.json"
 UTILITY_SOURCE_PNG = ROOT / "public/assets/expedition/player/asha-hooded-warrior-explorer-utility-source.png"
@@ -36,26 +38,20 @@ ROW_INDEX = {
 
 GENERATED_ROWS = {
     "walk": 0,
-    "run": 1,
     "survey_walk": 0,
-    "jump": 2,
 }
 
 BASE_ROWS = ["idle", "hurt", "interact", "climb", "push_pull"]
 ATTACK_SOURCE_COLUMNS = list(range(8))
-ATTACK_SOURCE_WINDOWS = [
-    (0, 280),
-    (245, 560),
-    (510, 825),
-    (780, 1145),
-    (1045, 1385),
-    (1320, 1645),
-    (1600, 1905),
-    (1875, 2172),
-]
-
-FALL_FROM_JUMP_COLUMNS = [3, 4, 5, 6, 7, 6, 5, 4]
-LAND_FROM_JUMP_COLUMNS = [6, 7, 7, 6, 0, 0, 0, 0]
+JUMP_AIR_COLUMNS = list(range(8))
+FALL_AIR_COLUMNS = [3, 4, 5, 6, 7, 6, 5, 4]
+LAND_AIR_COLUMNS = [0, 1, 2, 3, 3, 3, 3, 3]
+UTILITY_ROW_SOURCE_COLUMNS = {
+    "hurt": [4, 4, 4, 4, 4, 4, 4, 4],
+    "interact": [3, 3, 3, 3, 3, 3, 3, 3],
+    "climb": [5, 5, 5, 5, 5, 5, 5, 5],
+    "push_pull": [6, 6, 6, 6, 6, 6, 6, 6],
+}
 
 
 def frame_key(row_name: str, index: int) -> str:
@@ -83,9 +79,9 @@ def remove_chroma_green_background(image: Image.Image) -> Image.Image:
     for y in range(rgba.height):
         for x in range(rgba.width):
             r, g, b, a = pixels[x, y]
-            if g > 170 and r < 95 and b < 95:
+            if g > 150 and g > r * 1.35 and g > b * 1.35:
                 pixels[x, y] = (r, g, b, 0)
-            elif g > 145 and r < 120 and b < 120:
+            elif g > 120 and g > r * 1.18 and g > b * 1.18:
                 pixels[x, y] = (r, g, b, min(a, 60))
     return rgba
 
@@ -218,11 +214,7 @@ def sheet_cell(source: Image.Image, *, rows: int, row: int, column: int) -> Imag
 
 
 def attack_source_cell(source: Image.Image, source_column: int) -> Image.Image:
-    if source_column < len(ATTACK_SOURCE_WINDOWS):
-        left, right = ATTACK_SOURCE_WINDOWS[source_column]
-        cell = source.crop((left, 0, min(right, source.width), source.height))
-    else:
-        cell = sheet_cell(source, rows=1, row=0, column=source_column)
+    cell = sheet_cell(source, rows=1, row=0, column=source_column)
     return keep_largest_visible_component(remove_chroma_green_background(cell))
 
 
@@ -256,7 +248,9 @@ def main() -> None:
     metadata = json.loads(ATLAS_JSON.read_text(encoding="utf-8"))
     utility_metadata = json.loads(UTILITY_SOURCE_JSON.read_text(encoding="utf-8"))
     source_image = Image.open(UTILITY_SOURCE_PNG).convert("RGBA")
-    locomotion_source = remove_checkerboard_background(Image.open(LOCOMOTION_SOURCE))
+    locomotion_source = remove_chroma_green_background(remove_checkerboard_background(Image.open(LOCOMOTION_SOURCE)))
+    sprint_source = remove_chroma_green_background(Image.open(SPRINT_SOURCE))
+    air_source = remove_chroma_green_background(Image.open(AIR_SOURCE))
     attack_source = Image.open(ATTACK_SOURCE).convert("RGBA")
     cell_w = utility_metadata["frame"]["width"]
     cell_h = utility_metadata["frame"]["height"]
@@ -267,7 +261,7 @@ def main() -> None:
     rebuilt_regions = {}
     pose_sources = {}
 
-    for row_name in BASE_ROWS:
+    for row_name in ["idle"]:
         target_row = ROW_INDEX[row_name]
         for column in range(8):
             source_key = frame_key(row_name, 0 if row_name == "idle" else column)
@@ -283,6 +277,22 @@ def main() -> None:
             )
             pose_sources[target_key] = source_key
 
+    for row_name, source_columns in UTILITY_ROW_SOURCE_COLUMNS.items():
+        for column, source_column in enumerate(source_columns):
+            target_key = frame_key(row_name, column)
+            sprite = keep_largest_visible_component(sheet_cell(air_source, rows=2, row=1, column=source_column))
+            rebuilt_regions[target_key] = paste_sprite_cell(
+                rebuilt_image,
+                sprite,
+                row_index=ROW_INDEX[row_name],
+                column=column,
+                cell_w=cell_w,
+                cell_h=cell_h,
+                ground_line_y=ground_line_y,
+                max_source_height=max_source_height,
+            )
+            pose_sources[target_key] = f"production_air_source_row_1_col_{source_column}"
+
     for row_name, source_row in GENERATED_ROWS.items():
         for column in range(8):
             target_key = frame_key(row_name, column)
@@ -297,7 +307,37 @@ def main() -> None:
                 ground_line_y=ground_line_y,
                 max_source_height=max_source_height,
             )
-            pose_sources[target_key] = f"locomotion_source_row_{source_row}_col_{column}"
+            pose_sources[target_key] = f"production_locomotion_source_row_{source_row}_col_{column}"
+
+    for column in range(8):
+        target_key = frame_key("run", column)
+        sprite = keep_largest_visible_component(sheet_cell(sprint_source, rows=1, row=0, column=column))
+        rebuilt_regions[target_key] = paste_sprite_cell(
+            rebuilt_image,
+            sprite,
+            row_index=ROW_INDEX["run"],
+            column=column,
+            cell_w=cell_w,
+            cell_h=cell_h,
+            ground_line_y=ground_line_y,
+            max_source_height=max_source_height,
+        )
+        pose_sources[target_key] = f"production_sprint_source_col_{column}"
+
+    for column, source_column in enumerate(JUMP_AIR_COLUMNS):
+        target_key = frame_key("jump", column)
+        sprite = keep_largest_visible_component(sheet_cell(air_source, rows=2, row=0, column=source_column))
+        rebuilt_regions[target_key] = paste_sprite_cell(
+            rebuilt_image,
+            sprite,
+            row_index=ROW_INDEX["jump"],
+            column=column,
+            cell_w=cell_w,
+            cell_h=cell_h,
+            ground_line_y=ground_line_y,
+            max_source_height=max_source_height,
+        )
+        pose_sources[target_key] = f"production_air_source_row_0_col_{source_column}"
 
     for column, source_column in enumerate(ATTACK_SOURCE_COLUMNS):
         target_key = frame_key("attack_pick_swing", column)
@@ -314,36 +354,35 @@ def main() -> None:
         )
         pose_sources[target_key] = f"attack_source_col_{source_column}"
 
-    for column, source_column in enumerate(FALL_FROM_JUMP_COLUMNS):
+    for column, source_column in enumerate(FALL_AIR_COLUMNS):
         target_key = frame_key("fall", column)
-        source_key = frame_key("jump", source_column)
-        rebuilt_regions[target_key] = copy_existing_cell(
+        sprite = keep_largest_visible_component(sheet_cell(air_source, rows=2, row=0, column=source_column))
+        rebuilt_regions[target_key] = paste_sprite_cell(
             rebuilt_image,
-            rebuilt_image,
-            rebuilt_regions[source_key],
-            target_row=ROW_INDEX["fall"],
+            sprite,
+            row_index=ROW_INDEX["fall"],
             column=column,
             cell_w=cell_w,
             cell_h=cell_h,
+            ground_line_y=ground_line_y,
+            max_source_height=max_source_height,
         )
-        pose_sources[target_key] = source_key
+        pose_sources[target_key] = f"production_air_source_row_0_col_{source_column}"
 
-    for column, source_column in enumerate(LAND_FROM_JUMP_COLUMNS):
+    for column, source_column in enumerate(LAND_AIR_COLUMNS):
         target_key = frame_key("land", column)
-        if column >= 4:
-            source_key = "idle_00"
-        else:
-            source_key = frame_key("jump", source_column)
-        rebuilt_regions[target_key] = copy_existing_cell(
+        sprite = keep_largest_visible_component(sheet_cell(air_source, rows=2, row=1, column=source_column))
+        rebuilt_regions[target_key] = paste_sprite_cell(
             rebuilt_image,
-            rebuilt_image,
-            rebuilt_regions[source_key],
-            target_row=ROW_INDEX["land"],
+            sprite,
+            row_index=ROW_INDEX["land"],
             column=column,
             cell_w=cell_w,
             cell_h=cell_h,
+            ground_line_y=ground_line_y,
+            max_source_height=max_source_height,
         )
-        pose_sources[target_key] = source_key
+        pose_sources[target_key] = f"production_air_source_row_1_col_{source_column}"
 
     rebuilt_rows = []
     for row in metadata["rows"]:
@@ -358,13 +397,12 @@ def main() -> None:
             rebuilt_row["frameCount"] = 8
         rebuilt_rows.append(rebuilt_row)
 
-    metadata["source"] = "imagegen-locomotion-source-repacked-into-hooded-asha-atlas-2026-05-20"
+    metadata["source"] = "controlled-hybrid-production-asha-atlas-2026-05-20"
     metadata["description"] = (
-        "Complete Ancient Egypt hooded warrior/explorer runtime atlas regenerated from a new production "
-        "locomotion/action source sheet using the approved hooded Asha character design. Walk, run, jump, "
-        "fall, and land rows are real atlas cells with clearer leg/action frames; the shield/khopesh "
-        "attack row is rebuilt from a dedicated attack source strip; "
-        "stable idle and utility rows remain inside the existing Journey hero-atlas contract."
+        "Complete Ancient Egypt hooded warrior/explorer runtime atlas rebuilt through a controlled hybrid "
+        "production pipeline using the approved hooded Asha character design. Locomotion, air, landing, "
+        "utility, and shield/khopesh combat rows are repacked from dedicated purpose-generated source strips "
+        "while the existing Journey hero-atlas contract, renderer, controls, hitboxes, and progression remain unchanged."
     )
     metadata["rows"] = rebuilt_rows
     metadata["regions"] = rebuilt_regions

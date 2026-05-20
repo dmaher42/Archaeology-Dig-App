@@ -207,7 +207,7 @@ export const getPlayerAnimationState = (current) => {
   return 'idle';
 };
 
-export const getPlayerAnimationFrame = (animationState, walkCycleDistance = 0) => {
+export const getPlayerAnimationFrame = (animationState, walkCycleDistance = 0, player = {}) => {
   if (animationState === 'survey-walk') {
     return Math.floor(walkCycleDistance / 34) % PLAYER_SPRITE_FRAME_COUNT;
   }
@@ -217,7 +217,25 @@ export const getPlayerAnimationFrame = (animationState, walkCycleDistance = 0) =
   if (animationState === 'run') {
     return Math.floor(walkCycleDistance / 15) % PLAYER_SPRITE_FRAME_COUNT;
   }
-  if (animationState === 'jump' || animationState === 'fall') return 2;
+  if (animationState === 'jump') {
+    const vy = player.vy || 0;
+    if (vy < -620) return 0;
+    if (vy < -430) return 1;
+    if (vy < -230) return 2;
+    return 3;
+  }
+  if (animationState === 'fall') {
+    const vy = player.vy || 0;
+    if (vy < 160) return 3;
+    if (vy < 320) return 4;
+    if (vy < 520) return 5;
+    if (vy < 700) return 6;
+    return 7;
+  }
+  if (animationState === 'land') {
+    const landingProgress = 1 - Math.max(0, Math.min(1, (player.landingFeedbackTimer || 0) / 0.22));
+    return Math.min(3, Math.floor(landingProgress * 4));
+  }
   if (animationState === 'attack') return 3;
   if (animationState === 'hurt') return 0;
   return 1;
@@ -231,7 +249,7 @@ export const updatePlayerAnimation = (current, dt) => {
   }
   current.player.animationState = animationState;
   current.player.visualWalkStyle = visualWalkStyle;
-  current.player.animationFrame = getPlayerAnimationFrame(animationState, current.player.walkCycleDistance);
+  current.player.animationFrame = getPlayerAnimationFrame(animationState, current.player.walkCycleDistance, current.player);
   current.player.spriteScale = PLAYER_SPRITE_SCALE;
 };
 
@@ -363,6 +381,7 @@ export const makeInitialState = ({ targetCivilisation, permanentUpgradeIds = [],
   triggeredEnvironmentEventIds: new Set(),
   scarabSealActivated: false,
   openingConfrontationSeen: false,
+  openingThresholdScene: null,
   openingCameraRevealTimer: 0,
   openingCameraRevealDuration: 1.55,
   brokenEnvironmentIds: new Set(),
