@@ -13752,18 +13752,18 @@ main {
 /* Notice Box Refinement */
 .expedition-journey-notice {
   position: absolute;
-  top: auto;
-  bottom: 3.35rem;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 3.15rem;
+  bottom: auto;
+  left: 4.15rem;
+  transform: none;
   background: rgba(38, 27, 20, 0.76);
   backdrop-filter: blur(7px);
-  padding: 0.42rem 0.68rem;
+  padding: 0.34rem 0.56rem;
   border-radius: 9px;
   border: 1px solid rgba(245, 185, 96, 0.24);
   color: #fff7ed;
   font-weight: 700;
-  font-size: 0.72rem;
+  font-size: 0.66rem;
   line-height: 1.25;
   box-shadow: 0 7px 16px rgba(0,0,0,0.28);
   display: flex;
@@ -13772,7 +13772,7 @@ main {
   z-index: 20;
   pointer-events: none;
   width: max-content;
-  max-width: min(34rem, calc(100% - 2rem));
+  max-width: min(25rem, calc(100% - 8rem));
   text-align: left;
 }
 
