@@ -2313,7 +2313,7 @@ export default function ExpeditionJourney({
       awarenessMultiplier: pressure.awareness ?? 1,
       chaseMultiplier: pressure.chase ?? 1,
     };
-  }, [drawOpeningPyramidAssetRegion]);
+  }, []);
 
   const getBossVulnerabilityState = useCallback((boss) => {
     const phase = getBossPhaseConfig(boss);
@@ -3967,7 +3967,7 @@ export default function ExpeditionJourney({
     ctx.fillRect(Math.max(-40, x), GROUND_Y - 52, Math.min(width + 80, CANVAS_WIDTH + 80), 82);
     ctx.restore();
     return true;
-  }, []);
+  }, [drawOpeningPyramidAssetRegion]);
 
   const drawOpeningPyramidMasonryBack = useCallback((ctx, cameraX) => {
     if (drawOpeningPyramidFacade(ctx, cameraX)) return;
