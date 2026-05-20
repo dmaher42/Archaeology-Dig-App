@@ -10122,18 +10122,6 @@ export default function ExpeditionJourney({
               </div>
             </div>
             
-            {gameState.notice
-              && !gameState.bossIntro
-              && !gameState.openingSphinxEncounter
-              && !gameState.sectionTransition
-              && (!gameState.environmentEvent || gameState.itemPurposeNoticeTimer > 0)
-              && (!gameState.cinematicEvent || gameState.itemPurposeNoticeTimer > 0) && (
-              <div className="expedition-journey-notice animate-fade-in">
-                <Sparkles size={16} />
-                <span>{gameState.notice}</span>
-              </div>
-            )}
-
             {gameState.postBossReward && (
               <div
                 className={`journey-boss-reward-banner ${gameState.postBossReward.kitComplete ? 'is-complete' : ''}`}

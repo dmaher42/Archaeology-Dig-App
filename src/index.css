@@ -12431,21 +12431,6 @@ main {
   aspect-ratio: 900 / 420;
 }
 
-.expedition-journey-notice {
-  position: absolute;
-  left: 1rem;
-  right: 1rem;
-  bottom: 1rem;
-  padding: 0.6rem 0.75rem;
-  border: 1px solid rgba(139, 106, 72, 0.35);
-  border-radius: 6px;
-  background: rgba(255, 250, 240, 0.94);
-  color: var(--bureau-ink);
-  font-size: 0.86rem;
-  font-weight: 800;
-  box-shadow: 0 10px 24px rgba(0,0,0,0.2);
-}
-
 .expedition-panel-stack {
   display: grid;
   gap: 0.75rem;
@@ -13748,39 +13733,6 @@ main {
 }
 
 .hud-bar-fill.stamina { background: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.5); }
-
-/* Notice Box Refinement */
-.expedition-journey-notice {
-  position: absolute;
-  top: auto;
-  right: 0.95rem;
-  bottom: 4.95rem;
-  left: auto;
-  transform: none;
-  background: rgba(38, 27, 20, 0.76);
-  backdrop-filter: blur(7px);
-  padding: 0.34rem 0.56rem;
-  border-radius: 9px;
-  border: 1px solid rgba(245, 185, 96, 0.24);
-  color: #fff7ed;
-  font-weight: 700;
-  font-size: 0.66rem;
-  line-height: 1.25;
-  box-shadow: 0 7px 16px rgba(0,0,0,0.28);
-  display: flex;
-  align-items: center;
-  gap: 0.42rem;
-  z-index: 20;
-  pointer-events: none;
-  width: max-content;
-  max-width: min(23rem, calc(100% - 2rem));
-  text-align: left;
-}
-
-.expedition-journey-notice svg {
-  flex: 0 0 auto;
-  color: #fbbf24;
-}
 
 .journey-boss-reward-banner {
   --reward-accent: #b45309;
