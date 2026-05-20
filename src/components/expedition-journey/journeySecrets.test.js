@@ -15,6 +15,9 @@ const journeyEnemySpritesSource = readFileSync(new URL('./journeyEnemySprites.js
 const journeyMarkerSpritesSource = readFileSync(new URL('./journeyMarkerSprites.js', import.meta.url), 'utf8');
 const journeyRenderAssetsSource = readFileSync(new URL('./journeyRenderAssets.js', import.meta.url), 'utf8');
 const expeditionStagesSource = readFileSync(new URL('../expedition/expeditionStages.js', import.meta.url), 'utf8');
+const devToolsSource = readFileSync(new URL('../DevTools.jsx', import.meta.url), 'utf8');
+const expeditionModeSource = readFileSync(new URL('../ExpeditionMode.jsx', import.meta.url), 'utf8');
+const appSource = readFileSync(new URL('../../App.jsx', import.meta.url), 'utf8');
 const journeyComponentSource = readFileSync(new URL('../ExpeditionJourney.jsx', import.meta.url), 'utf8');
 const egyptPlayerAtlas = JSON.parse(
   readFileSync(new URL('../../../public/assets/expedition/player/asha-hooded-warrior-explorer-spritesheet.json', import.meta.url), 'utf8'),
@@ -111,8 +114,42 @@ test('world continuity landmarks foreshadow future expedition sections', () => {
   ['ruined-temple', 'catacombs', 'escape-sequence', 'dig-site-entrance'].forEach((sectionId) => {
     assert.match(stageEntranceFeatures, new RegExp(`to:\\s*'${sectionId}'`));
   });
+  assert.match(stageEntranceFeatures, /type:\s*'tomb-doorway'/);
+  assert.match(stageEntranceFeatures, /width:\s*1260/);
+  assert.match(stageEntranceFeatures, /height:\s*630/);
+  assert.match(stageEntranceFeatures, /focusDistance:\s*560/);
+  assert.match(journeyComponentSource, /STAGE_ENTRANCE_DOORWAY_SRC = 'assets\/expedition\/environment\/stage-entrances\/egypt-tomb-doorway-transition\.png'/);
+  assert.match(journeyComponentSource, /STAGE_ENTRANCE_DOORWAY_VERSION = 'imagegen-egypt-tomb-doorway-transition-2026-05-20'/);
+  assert.match(journeyComponentSource, /stageEntranceDoorwayRef/);
+  assert.match(journeyComponentSource, /ctx\.drawImage\(doorwayAsset\.image/);
+  assert.match(journeyComponentSource, /mode:\s*'stage-entrance'/);
+  assert.match(journeyComponentSource, /nearbyStageEntrance\.x - CANVAS_WIDTH \* 0\.5/);
   assert.match(journeyComponentSource, /drawStageEntranceFeature/);
   assert.match(journeyComponentSource, /STAGE_ENTRANCE_FEATURES\.forEach/);
+});
+
+test('developer tools can jump to the start of every journey section', () => {
+  const sections = extractExportedArray('SECTIONS');
+
+  assert.match(devToolsSource, /import\s+\{\s*SECTIONS\s*\}\s+from\s+'\.\/expedition-journey\/journeyLevelData'/);
+  assert.match(devToolsSource, /JOURNEY_SECTION_DEV_JUMPS\s*=\s*SECTIONS\.map/);
+  assert.match(devToolsSource, /jumpToExpeditionStage\('journey-section-start'/);
+  assert.match(devToolsSource, /sectionId:\s*jump\.id/);
+  assert.match(devToolsSource, /Journey Starts/);
+
+  assert.match(expeditionModeSource, /event\.detail\?\.target === 'journey-section-start'/);
+  assert.match(journeyComponentSource, /handleExpeditionDevJump/);
+  assert.match(journeyComponentSource, /target !== 'journey-section-start'/);
+  assert.match(journeyComponentSource, /SECTIONS\.find\(section => section\.id === sectionId\)/);
+  assert.match(journeyComponentSource, /const sectionCheckpoint = CHECKPOINTS\.find\(checkpoint => checkpoint\.id === section\.id\)/);
+  assert.match(journeyComponentSource, /const jumpX = sectionCheckpoint\?\.x \?\? section\.start \+ 24/);
+  assert.match(journeyComponentSource, /current\.activeCheckpoint = sectionCheckpoint \|\| current\.activeCheckpoint/);
+  assert.match(journeyComponentSource, /current\.completedObjectiveIds\.add\(item\.id\)/);
+  assert.match(journeyComponentSource, /current\.openedRouteGateIds\.add\(gate\.id\)/);
+
+  ['desert-entry', 'ruined-temple', 'catacombs', 'escape-sequence', 'dig-site-entrance'].forEach((sectionId) => {
+    assert.match(sections, new RegExp(`id:\\s*'${sectionId}'`));
+  });
 });
 
 test('story props include recurring expedition markers across sections', () => {
@@ -225,7 +262,7 @@ test('Egypt Phase 1 boss identity changes preserve progression ids and China nam
   assert.match(routeGates, /id:\s*'basecamp-seal'[\s\S]*?miniBoss:\s*'ancient-construct'[\s\S]*?keyItem:\s*'site-permit-seal'/);
 });
 
-test('opening Scarab Seal climb triggers a boss confrontation without completing progression', () => {
+test('opening Scarab Seal becomes a restrained false-discovery threshold scene', () => {
   const storyProps = extractExportedArray('STORY_PROPS');
   const platforms = extractExportedArray('PLATFORMS');
   const routeGates = extractExportedArray('ROUTE_GATES');
@@ -242,12 +279,15 @@ test('opening Scarab Seal climb triggers a boss confrontation without completing
   assert.match(source, /y:\s*JY\(-117\)/);
   assert.match(source, /width:\s*160/);
   assert.match(source, /height:\s*90/);
-  assert.match(source, /You have touched a sealed artefact\./);
-  assert.match(source, /The Sphinx watches from beyond the sand\./);
-  assert.match(source, /These artefacts are protected for a reason\./);
-  assert.match(source, /You will never reach the expedition site\./);
+  assert.match(source, /So\.\.\./);
+  assert.match(source, /Another seeker reaches the gate\./);
+  assert.match(source, /I'm not here for treasure\./);
+  assert.match(source, /They all said that\./);
+  assert.match(source, /This isn't the real relic\./);
+  assert.match(source, /\.\.\.few recognize the decoy\./);
+  assert.match(source, /The ruins remember every careless step\./);
   assert.match(source, /eventName:\s*'The Sphinx'/);
-  assert.match(source, /Then we must prove we can pass\. Gather shards, recover tools, and move with care\./);
+  assert.match(source, /stairwellRevealLine:\s*'A hidden stairwell opens beneath the ruins\.'/);
   assert.match(platforms, /invisible marked lower pyramid ledge/i);
   assert.match(platforms, /invisible marked first pyramid terrace/i);
   assert.match(platforms, /invisible marked second pyramid terrace/i);
@@ -283,19 +323,54 @@ test('opening Scarab Seal climb triggers a boss confrontation without completing
   assert.match(journeyComponentSource, /scarabSealState:/);
   assert.match(journeyComponentSource, /current\.scarabSealActivated = true/);
   assert.match(journeyComponentSource, /current\.openingConfrontationSeen = true/);
+  assert.match(journeyComponentSource, /current\.openingThresholdScene = \{/);
+  assert.match(journeyComponentSource, /phase:\s*'false-discovery'/);
+  assert.match(journeyComponentSource, /lockMovement:\s*true/);
+  assert.match(journeyComponentSource, /transitionTargetSectionId:\s*'desert-entry'/);
+  assert.match(journeyComponentSource, /OPENING_THRESHOLD_SCENE_DURATION = 34/);
+  assert.match(journeyComponentSource, /OPENING_THRESHOLD_FADE_SECONDS = 1\.6/);
+  assert.match(journeyComponentSource, /OPENING_THRESHOLD_STAIR_REVEAL_SECONDS = 11\.5/);
+  assert.match(journeyComponentSource, /drawOpeningThresholdScene/);
+  assert.match(journeyComponentSource, /getOpeningThresholdDialogueLine/);
+  assert.match(journeyComponentSource, /current\.openingThresholdScene\.timer/);
+  assert.match(journeyComponentSource, /completeOpeningThresholdScene\(current\)/);
+  assert.match(journeyComponentSource, /window\.__setExpeditionOpeningThresholdTimer/);
+  assert.match(journeyComponentSource, /const openingCheckpoint = CHECKPOINTS\.find\(checkpoint => checkpoint\.id === 'desert-entry'\)/);
+  assert.match(journeyComponentSource, /current\.activeCheckpoint = openingCheckpoint/);
+  assert.match(journeyComponentSource, /current\.sectionTransition = null/);
+  assert.match(journeyComponentSource, /current\.lastSectionId = openingSection\?\.id \|\| 'desert-entry'/);
+  assert.doesNotMatch(journeyComponentSource, /current\.openedRouteGateIds\.add\('temple-approach-seal'\)/);
+  assert.doesNotMatch(journeyComponentSource, /current\.seenBossIntroIds\.add\(SCARAB_SEAL_TRIGGER\.bossId\)/);
   assert.match(journeyComponentSource, /current\.collapsedPlatformIds\.add\('opening-scarab-seal-summit'\)/);
   assert.match(journeyComponentSource, /current\.triggeredEnvironmentEventIds\.add\(SCARAB_SEAL_TRIGGER\.id\)/);
   assert.match(journeyComponentSource, /current\.openingSphinxEncounter = \{/);
-  assert.match(journeyComponentSource, /const OPENING_SPHINX_DURATION = 8\.4;/);
+  assert.match(journeyComponentSource, /const OPENING_SPHINX_DURATION = 34;/);
   assert.match(journeyComponentSource, /const OPENING_SPHINX_EXIT_SECONDS = 2\.35;/);
   assert.match(journeyComponentSource, /const OPENING_SPHINX_ARRIVAL_SECONDS = 1\.05;/);
-  assert.match(journeyComponentSource, /const OPENING_SPHINX_LINE_SECONDS = 1\.55;/);
+  assert.match(journeyComponentSource, /const OPENING_SPHINX_LINE_SECONDS = 1\.4;/);
   assert.match(journeyComponentSource, /const OPENING_SPHINX_SPRITE_BOSS_ID = 'ancient-construct';/);
   assert.match(journeyComponentSource, /const OPENING_SPHINX_APPARITION_SRC = 'assets\/expedition\/bosses\/opening-sphinx-apparition\.png';/);
   assert.match(journeyComponentSource, /const OPENING_SPHINX_SPRITE_VERSION = 'opening-sphinx-apparition-2026-05-19';/);
   assert.match(journeyComponentSource, /const OPENING_SPHINX_SCREEN_Y_OFFSET = 112;/);
-  assert.match(journeyComponentSource, /message:\s*SCARAB_SEAL_TRIGGER\.messages\.slice\(2\)\.concat\(\[\s*'Only those who prove themselves may pass\.'\s*\]\)\.join\(' '\)/);
-  assert.match(journeyComponentSource, /lines:\s*SCARAB_SEAL_TRIGGER\.messages\.slice\(2\)\.concat\(\[/);
+  assert.match(journeyComponentSource, /silhouetteReveal:\s*true/);
+  assert.match(journeyComponentSource, /projectionReveal/);
+  assert.match(journeyComponentSource, /projectionBuild/);
+  assert.match(journeyComponentSource, /eyeGlint/);
+  assert.match(journeyComponentSource, /cueTimes = \[6\.2,\s*10\.8,\s*14\.8,\s*18\.6,\s*22\.8,\s*26\.5,\s*31\.5\]/);
+  assert.match(journeyComponentSource, /fissureCues = \[11\.9,\s*18\.6,\s*26\.5,\s*29\.8\]/);
+  assert.match(journeyComponentSource, /playExpeditionSfx\?\.\('openingThresholdAtmosphere'\)/);
+  assert.match(journeyComponentSource, /playExpeditionSfx\?\.\('openingThresholdStoneShift'\)/);
+  assert.match(journeyComponentSource, /stoneShiftSfxPlayed:\s*false/);
+  assert.match(journeyComponentSource, /stoneShiftSfxPlayed:\s*Boolean\(current\.openingThresholdScene\.stoneShiftSfxPlayed\)/);
+  assert.match(appSource, /openingThresholdAtmosphere:\s*\{/);
+  assert.match(appSource, /openingThresholdStoneShift:\s*\{/);
+  assert.match(appSource, /opening-desert-wind\.ogg/);
+  assert.match(appSource, /opening-deep-rumble\.ogg/);
+  assert.match(appSource, /opening-earth-shake\.flac/);
+  assert.match(journeyComponentSource, /1\.2,\s*3\.2,\s*5\.4,\s*7\.2,\s*9\.5/);
+  assert.match(journeyComponentSource, /29\.2,\s*30\.8,\s*32\.2/);
+  assert.match(journeyComponentSource, /message:\s*SCARAB_SEAL_TRIGGER\.messages\.join\(' '\)/);
+  assert.match(journeyComponentSource, /lines:\s*SCARAB_SEAL_TRIGGER\.messages/);
   assert.match(journeyComponentSource, /visibleLineCount/);
   assert.match(journeyComponentSource, /dynamicEnvironmentEvent[\s\S]*?message:\s*''/);
   assert.match(journeyComponentSource, /current\.hitStopTimer = Math\.max\(current\.hitStopTimer, 0\.12\)/);
@@ -317,6 +392,7 @@ test('opening Scarab Seal climb triggers a boss confrontation without completing
   assert.match(journeyComponentSource, /drawOpeningSphinxDialogue/);
   assert.doesNotMatch(journeyComponentSource, /current\.environmentEvent = \{[\s\S]*?name:\s*SCARAB_SEAL_TRIGGER\.eventName[\s\S]*?message:\s*SCARAB_SEAL_TRIGGER\.messages\.slice\(1\)\.join\(' '\)/);
   assert.match(journeyComponentSource, /b\.id === SCARAB_SEAL_TRIGGER\.bossId[\s\S]*?!current\.scarabSealActivated/);
+  assert.match(journeyComponentSource, /scarabSealRequired && current\.openingThresholdScene/);
   assert.match(journeyComponentSource, /SCARAB_SEAL_TRIGGER\.bossIntroLine/);
   assert.match(journeyComponentSource, /SCARAB_SEAL_TRIGGER\.guideFollowUpLine/);
   assert.match(journeyComponentSource, /guardianSealActivated/);
@@ -912,7 +988,8 @@ test('platform polish creates purposeful jump challenges with checkpoint rescue 
   assert.doesNotMatch(journeyComponentSource, /visualHazardId === 'entry-pressure-plate'[\s\S]*?ctx\.roundRect/);
   assert.doesNotMatch(journeyComponentSource, /visualHazardId === 'entry-cracked-floor-trap'[\s\S]*?ctx\.strokeRect/);
   assert.doesNotMatch(journeyComponentSource, /hazard\.id === 'sand-pit'[\s\S]*?ctx\.arc/);
-  assert.match(journeyComponentSource, /const drawEnemyAttackTell = useCallback\(\(\) => \{\}, \[\]\)/);
+  assert.match(journeyComponentSource, /const drawEnemyAttackTell = useCallback\(\(ctx, enemy, screenX, _cameraX, now, boss = false\) => \{/);
+  assert.match(journeyComponentSource, /drawCounterWindow/);
   assert.match(journeyComponentSource, /const drawAttackArc = useCallback\(\(\) => \{\}, \[\]\)/);
 
   assert.match(upgrades, /id:\s*'basecamp-upgrade-voucher'[\s\S]*?x:\s*X\(925\)[\s\S]*?y:\s*JY\(320\)/);
@@ -1064,6 +1141,7 @@ test('combat pressure encounters guard optional rewards without blocking progres
   assert.match(journeyUtilsSource, /return clamp\(Math\.max\(enemy\.health \+ bonus, Math\.ceil\(enemy\.health \* 1\.55\)\), 3, 5\)/);
   assert.match(journeyUtilsSource, /Math\.ceil\(enemy\.health \* 1\.55\)/);
   assert.match(journeyUtilsSource, /Math\.ceil\(enemy\.damage \* 1\.22\)/);
+  assert.match(journeyUtilsSource, /baseSpeed: entity\.speed \* \(entity\.openingRouteRamp \? 1\.12 : 1\.18\)/);
   assert.match(journeyComponentSource, /const ENEMY_TACTICAL_PRESSURE = \{/);
   assert.match(journeyComponentSource, /awarenessMultiplier/);
   assert.match(journeyComponentSource, /chaseMultiplier/);
@@ -1091,7 +1169,7 @@ test('Egypt opening combat ramps gently before the first route seal', () => {
   assert.equal(
     openingRows.every(row => /openingRouteRamp:\s*true/.test(row)),
     true,
-    'Egypt enemies before the first seal should opt into the classroom opening-route tuning',
+    'Egypt enemies before the first seal should opt into the opening-route safety tuning',
   );
   assert.match(journeyUtilsSource, /if\s*\(enemy\.openingRouteRamp\)\s*return Math\.max\(3, enemy\.health\)/);
   assert.match(journeyUtilsSource, /enemy\.openingRouteRamp\s*\?\s*enemy\.damage/);
@@ -1101,12 +1179,40 @@ test('Egypt opening combat ramps gently before the first route seal', () => {
     'first teaching enemies should keep low authored damage while runtime tuning lifts them to three-hit fights',
   );
   assert.ok(totalOpeningHealth <= 24, 'first seal should not require too many regular enemy hits before the guardian');
-  assert.ok(totalOpeningDamage <= 64, 'opening regular enemy damage budget should leave room for classroom mistakes');
+  assert.ok(totalOpeningDamage <= 64, 'opening regular enemy damage budget should leave room for early-route mistakes');
   assert.equal(highDamageOpeningRows.length, 0, 'opening route should avoid high-damage regular enemies before the first seal');
 
   const checkpoints = extractExportedArray('CHECKPOINTS');
   assert.match(checkpoints, /id:\s*'desert-survey-marker'/);
   assert.match(checkpoints, /x:\s*X\(930\)/);
+});
+
+test('regular enemy families use distinct combat role timings without a new AI system', () => {
+  assert.match(journeyComponentSource, /const ENEMY_ATTACK_PATTERNS = \{/);
+  assert.match(journeyComponentSource, /const ENEMY_AGGRO_MEMORY_SECONDS = 3\.6/);
+  assert.match(journeyComponentSource, /const ENEMY_AGGRO_PATROL_PADDING = 220/);
+  assert.match(journeyComponentSource, /scarab:\s*\{[\s\S]*?id:\s*'charge'[\s\S]*?windup:\s*0\.42[\s\S]*?speed:\s*185[\s\S]*?range:\s*38/);
+  assert.match(journeyComponentSource, /scorpion:\s*\{[\s\S]*?id:\s*'sting'[\s\S]*?windup:\s*0\.6[\s\S]*?duration:\s*0\.3[\s\S]*?speed:\s*54[\s\S]*?range:\s*28[\s\S]*?height:\s*58[\s\S]*?yOffset:\s*-34[\s\S]*?backReach:\s*38[\s\S]*?damageScale:\s*1\.45/);
+  assert.match(journeyComponentSource, /snake:\s*\{[\s\S]*?id:\s*'lunge'[\s\S]*?windup:\s*0\.62[\s\S]*?speed:\s*166[\s\S]*?range:\s*52/);
+  assert.match(journeyComponentSource, /'sand-wisp':\s*\{[\s\S]*?id:\s*'sand-burst'[\s\S]*?windup:\s*0\.5[\s\S]*?speed:\s*150/);
+  assert.match(journeyComponentSource, /guardian:\s*\{[\s\S]*?id:\s*'slam'[\s\S]*?windup:\s*0\.84[\s\S]*?speed:\s*52[\s\S]*?shieldDuringWindup:\s*true/);
+  assert.match(journeyComponentSource, /if \(e\.attackTimer > 0\) \{[\s\S]*?e\.x \+= e\.attackDirection \* pattern\.speed \* dt/);
+  assert.match(journeyComponentSource, /e\.attackRecovery = pattern\.recovery;[\s\S]*?e\.vulnerabilityTimer = pattern\.vulnerableAfter;/);
+  assert.match(journeyComponentSource, /e\.aggroMemoryTimer = Math\.max\(e\.aggroMemoryTimer \|\| 0, ENEMY_AGGRO_MEMORY_SECONDS \* \(tacticalPattern\.aggroMemoryMultiplier \|\| 1\)\)/);
+  assert.match(journeyComponentSource, /const isAggroChasing = \(e\.aggroMemoryTimer \|\| 0\) > 0/);
+  assert.match(journeyComponentSource, /const chaseSpeedMultiplier = isAggroChasing \? tacticalPattern\.chaseMultiplier \|\| 1\.35 : 1/);
+  assert.match(journeyComponentSource, /const movementMin = isAggroChasing \? e\.patrolMin - ENEMY_AGGRO_PATROL_PADDING : e\.patrolMin/);
+});
+
+test('opening enemy role overrides preserve first-route fairness and readable counters', () => {
+  const egyptEnemies = extractExportedArray('ENEMIES');
+  assert.match(egyptEnemies, /id:\s*'scarab-start-1'[\s\S]*?attackPatternTuning:\s*\{[\s\S]*?windup:\s*0\.58[\s\S]*?vulnerableAfter:\s*0\.72[\s\S]*?speed:\s*112/);
+  assert.match(egyptEnemies, /id:\s*'scorpion-start-1'[\s\S]*?width:\s*44[\s\S]*?height:\s*30[\s\S]*?attackPatternTuning:\s*\{[\s\S]*?windup:\s*0\.66[\s\S]*?duration:\s*0\.34[\s\S]*?range:\s*26[\s\S]*?height:\s*62[\s\S]*?yOffset:\s*-38[\s\S]*?backReach:\s*42[\s\S]*?damageScale:\s*1\.5/);
+  assert.match(egyptEnemies, /id:\s*'sand-wisp-start-1'[\s\S]*?damage:\s*4[\s\S]*?attackPatternTuning:\s*\{[\s\S]*?vulnerableAfter:\s*0\.72/);
+  assert.match(egyptEnemies, /id:\s*'snake-1'[\s\S]*?attackPatternTuning:\s*\{[\s\S]*?windup:\s*0\.68[\s\S]*?range:\s*48/);
+  assert.match(journeyComponentSource, /Scarab charges\. Move or jump, then strike\./);
+  assert.match(journeyComponentSource, /Scorpion stings high\. Step back before jumping over it\./);
+  assert.match(journeyComponentSource, /Snake lunges from mid-range\. Watch the coil\./);
 });
 
 test('jump contact only bounces enemies while attacks defeat them in three to five hits', () => {

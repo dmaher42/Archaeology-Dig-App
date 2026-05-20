@@ -97,6 +97,22 @@ const EXPEDITION_AUDIO_TRACKS = {
     enemyHit: { path: 'assets/expedition/sfx/enemy-hit.ogg', volume: 0.42 },
     playerHit: { path: 'assets/expedition/sfx/player-hit.ogg', volume: 0.42 },
     bossWarning: { path: 'assets/expedition/sfx/boss-warning.ogg', volume: 0.38 },
+    openingThresholdAtmosphere: {
+      cooldownMs: 36000,
+      clips: [
+        { path: 'assets/expedition/sfx/opening/opening-desert-wind.ogg', volume: 0.34, playbackRate: 0.92 },
+        { path: 'assets/expedition/sfx/opening/opening-deep-rumble.ogg', volume: 0.28, delay: 900, playbackRate: 0.72 },
+        { path: 'assets/expedition/sfx/opening/opening-earth-shake.flac', volume: 0.32, delay: 11800, playbackRate: 0.86 },
+        { path: 'assets/expedition/sfx/opening/opening-deep-rumble.ogg', volume: 0.22, delay: 22600, playbackRate: 0.58 },
+      ],
+    },
+    openingThresholdStoneShift: {
+      cooldownMs: 24000,
+      clips: [
+        { path: 'assets/expedition/sfx/opening/opening-earth-shake.flac', volume: 0.22, playbackRate: 0.72 },
+        { path: 'assets/expedition/sfx/opening/opening-deep-rumble.ogg', volume: 0.2, delay: 850, playbackRate: 0.52 },
+      ],
+    },
   },
 };
 

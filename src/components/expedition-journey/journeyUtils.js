@@ -18,7 +18,7 @@ export const rectsOverlap = (a, b) => (
 );
 
 export const JOURNEY_HITBOX_TUNING = {
-  // Player body trims the drawn sprite edges so unclear shoulder/backpack touches do not punish students.
+  // Player body trims the drawn sprite edges so unclear shoulder/backpack touches do not punish players.
   playerBody: { insetX: 5, topInset: 4, bottomInset: 2 },
   // Feet are a shallow strip used only for ground, platform, and stomp checks.
   playerFeet: { insetX: 3, height: 9, yPad: 2 },
@@ -139,7 +139,7 @@ const makeStepProfile = (entity, { boss = false } = {}) => {
   const seed = hashEnemyIdentity(entity);
   const seedRatio = (seed % 997) / 997;
   return {
-    baseSpeed: entity.speed,
+    baseSpeed: entity.speed * (entity.openingRouteRamp ? 1.12 : 1.18),
     stepSeed: seed,
     stepTimer: 0,
     stepCycle: 0,
@@ -271,6 +271,7 @@ export const makeEnemy = (enemy) => ({
   attackRecovery: 0,
   attackPattern: 'patrol',
   attackPhaseLabel: 'Patrol',
+  aggroMemoryTimer: 0,
   vulnerabilityTimer: 0,
   shieldTimer: 0,
   knockbackTimer: 0,

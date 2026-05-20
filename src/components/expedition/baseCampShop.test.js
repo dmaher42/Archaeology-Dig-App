@@ -70,7 +70,7 @@ test('route exploration upgrades expose route access effects', () => {
   assert.equal(effects.fragileWallAccess, true);
 });
 
-test('shop item display names keep Journey route labels classroom-readable', () => {
+test('shop item display names keep Journey route labels adventure-readable', () => {
   assert.equal(getShopItemDisplayName('rope-launcher'), 'Rope Launcher');
   assert.equal(getShopItemDisplayName('survey-goggles'), 'Survey Goggles');
   assert.equal(getShopItemDisplayName('future-field-kit'), 'Future Field Kit');

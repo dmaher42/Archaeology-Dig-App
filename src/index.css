@@ -507,7 +507,7 @@ main {
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 1.5rem;
   width: 100%;
-  max-width: 1400px;
+  max-width: none;
   margin: 0 auto 4rem;
   padding: 0 1.5rem;
 }
@@ -15070,8 +15070,8 @@ main {
 }
 
 .menu-hero {
-  width: min(1180px, 100%) !important;
-  max-width: 1180px !important;
+  width: 100% !important;
+  max-width: none !important;
   min-height: clamp(10.75rem, 23vh, 14rem) !important;
   margin: 0 auto !important;
   padding: clamp(1.15rem, 2.2vw, 2rem) !important;
@@ -15239,7 +15239,7 @@ main {
 }
 
 .mission-selection-heading {
-  width: min(1180px, 100%);
+  width: 100%;
   margin: 0 auto;
   display: flex;
   align-items: end;
@@ -15307,8 +15307,8 @@ main {
 }
 
 .activity-menu-grid {
-  width: min(1180px, 100%) !important;
-  max-width: 1180px !important;
+  width: 100% !important;
+  max-width: none !important;
   margin: 0 auto 1rem !important;
   display: grid !important;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 245px), 1fr)) !important;

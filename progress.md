@@ -79,6 +79,22 @@ Remaining notes:
 - Browser/state checks confirmed Lost Site Expedition opens, Journey starts, objective and mini-boss state appears in `render_game_to_text`, all five route gates can be cleared, Base Camp opens, and Begin Excavation still enters the existing excavation stage.
 - Remaining risk: automated testing covered a guided route and one viewport; a human classroom playtest is still useful for timing, difficulty feel, and optional-route discovery.
 
+2026-05-20 update:
+- Reworked the first Scarab Seal beat into a locked false-discovery threshold scene inside the existing Journey flow.
+- The opening now pauses traversal at the decoy scarab, uses short Sphinx/Asha lines, reveals the Sphinx as a restrained projection first, opens a hidden blue-lit stairwell, then fades into Ruined Temple.
+- The old immediate Scarab Queen confrontation is bypassed for this opening beat so the first scene stays quiet and mysterious.
+- `node --test src\components\expedition-journey\journeySecrets.test.js`, `npm.cmd run lint`, and `npm.cmd run build` passed.
+- Browser smoke confirmed the movement lock, stairwell reveal, fade transition, Ruined Temple checkpoint handoff, and no console errors.
+- Follow-up fix: the opening dialogue now releases Asha back to Desert Entry at the pyramid start instead of transporting her to Ruined Temple, and it leaves the Temple Approach Seal locked for normal progression.
+- Follow-up pacing fix: the first Sphinx/Asha dialogue now runs over 34 seconds with wider pauses between lines, so the opening reads as a slower cinematic encounter instead of a fast text dump.
+- Restrained atmosphere pass: added early Sphinx eye glints, subtle glyph/sand pause cues, and a licensed opening SFX layer using downloaded CC0 wind, deep rumble, and earth-shake files wired through the existing expedition SFX system.
+
+2026-05-20 update:
+- Added Dev Panel Journey Starts buttons generated from the canonical Journey `SECTIONS` list.
+- Section-start jumps now route through the existing `expedition-dev-jump` debug event, open Journey if needed, move the player to the matching checkpoint, and mark earlier route gates/objectives as passed for coherent HUD state.
+- Verified with `node --test src\components\expedition-journey\journeySecrets.test.js`, `npm.cmd run lint`, `npm.cmd run build`, and a Playwright smoke jump to Catacombs.
+- Browser smoke screenshot: `output/devtools-level-jump-smoke/04-catacombs-jump-checkpoint-aligned.png`.
+
 2026-05-16 update:
 - Completed a focused China Journey player sprite polish pass in the existing Journey renderer.
 - The production China female archaeologist atlas is wired through the canonical hero-atlas path; no duplicate player controller, movement model, hitbox model, or expedition flow was added.
@@ -2653,3 +2669,70 @@ Remaining notes:
 - Moved the generated flat embedded seal asset onto the `opening-seal-reset-trap` hazard instead of the summit prop.
 - Moved the Scarab Seal trigger hitbox onto the ground trap so stepping on the ground seal still activates the Sphinx/Scarab sequence and the push-back trap.
 - Hid the old summit pedestal/seal story props in the renderer so the ground trap is the single visible seal cue.
+
+## 2026-05-20 Combat readability tell pass
+
+- Filled the existing normal-enemy attack tell renderer instead of adding a new combat system.
+- Added subtle canvas telegraphs for scarab charge lanes, scorpion sting danger, snake lunge/coil reads, sand-wisp pulse danger, and guardian/statue heavy slam pressure using existing windup, active, recovery, shield, vulnerable, stun, direction, and type state.
+- Added a small counter-window cue during recovery, vulnerability, and stun so timed attacks read more clearly.
+- Kept controls, enemy AI, health, damage, shard drops, boss phases, route gates, Base Camp, excavation, lab, evidence, and report systems unchanged.
+- Browser probes reached Ancient Egypt Journey combat and captured visible scarab, scorpion, sand-wisp, and snake tell/counter states with no console errors recorded in the successful probes.
+
+## 2026-05-20 Combat Pass 2 role differentiation
+
+- Tuned the existing normal-enemy attack pattern values so scarabs read as chargers, scorpions as short-range punishers, snakes as medium-range lungers, sand wisps as timing/position pressure, and guardian/statue enemies as slower blockers.
+- Added opening-route `attackPatternTuning` overrides for the first scarab, scorpion, sand wisps, and first snake so the first five-minute loop stays readable and forgiving while still teaching different enemy decisions.
+- Kept player controls, combat state machine, boss phases, enemy list, route gates, shard progression, Base Camp, excavation, lab, evidence, and report systems unchanged.
+- Browser probes captured scarab, scorpion, sand-wisp, snake, and Guardian Prep area screenshots in `output/combat-pass-2/`; the later Queen-area probe timed out after the Guardian Prep area, so Queen coverage remains automated/source-test only for this pass.
+
+## 2026-05-20 Combat Pass 3 natural-route feel check
+
+- Ran a fresh no-debug browser route into the opening combat loop. The run reached the first shard/scarab area with no gameplay console errors, but the automation repeatedly hit the ground Scarab Seal trap and did not naturally continue through the Temple Approach route before timeout.
+- Ran assisted browser probes through the existing collection, gate, Scarab Seal, and Scarab Queen paths to check the later-route combat state without adding shortcuts to gameplay code.
+- Confirmed the Guardian Prep -> Scarab Queen route can awaken the Queen and expose her Sand Charge tell state, but the automated fight did not fully defeat her or collect the Brush Handle before timeout.
+- Fixed a Scarab Queen readability issue by drawing stage entrance doorway art before enemies and mini-bosses, so the Queen and her combat tells render in front of the doorway instead of being visually buried by it.
+- Kept player controls, combat state machines, enemy families, boss design, progression, route gates, Base Camp, excavation, lab, evidence, and report systems unchanged.
+
+## 2026-05-20 Combat Pass 4 Scarab Queen completion probe
+
+- Focused only on Scarab Queen completion readability and did not add new combat systems, enemies, controls, combos, progression, or Base Camp/excavation changes.
+- Browser diagnosis confirmed the opening ground Scarab Seal currently starts the false-discovery threshold scene; while that scene is active, the Queen cannot be fought, and completing it moves the player onward instead of naturally proving the Guardian Prep -> Queen -> Brush Handle route.
+- Used an explicitly assisted Queen-ready browser setup to isolate the existing boss fight/reward path, then let the existing attack queue, boss hit logic, defeat drop, and boss-key pickup logic complete normally.
+- Confirmed the Scarab Queen can be defeated, the Brush Handle drops, pickup marks `brush-handle` collected, and the reward message clearly says: "You passed the first guardian test. Record what you found before moving deeper. Desert Map Seal is open."
+- Screenshots and state logs saved in `output/combat-pass-4/`, including `queen-completion-probe.json`, `brush-pickup-after-queen.png`, and `queen-pass4-final.png`.
+- No Queen timing or reward-UI tuning was made because the isolated boss/reward feedback is readable; the remaining risk is route clarity, not the boss reward code itself.
+
+## 2026-05-20 Combat hitbox readability pass
+
+- Kept the existing combat system, player controls, enemy roles, boss phases, shard drops, route gates, Base Camp, excavation, lab, evidence, and report systems unchanged.
+- Aligned the normal-enemy attack tell renderer with the same tuned `range` and `height` values used by the active attack boxes, so scarab lanes, scorpion stings, snake lunges, wisp bursts, guardian slams, and active strike effects better match the upgraded combat tuning.
+- Anchored scarab/charge lane tells from the actual forward attack edge and kept the lane length tied to the real attack range, with subtle dust pips added inside that range for projector readability.
+- Updated active normal-enemy attack damage to use the existing forward attack rectangle against the trimmed player body hitbox, instead of requiring separate side-body contact with the enemy sprite.
+- Updated boss active damage checks to use the same trimmed player body hitbox instead of the full player sprite rectangle, making Queen/guardian hits more consistent with the readable body collision rules.
+- Added regression coverage in `journeyEnemySprites.test.js` so future tell art does not drift away from the tuned hitbox ranges again.
+
+## 2026-05-20 Scorpion anti-jump sting pass
+
+- Kept the existing enemy pattern system and did not create a new combat system, control scheme, enemy family, progression path, or boss flow.
+- Made scorpions larger in their live data and sprite draw tuning so they read as a close-range punisher rather than a small low obstacle.
+- Gave the scorpion sting a taller upward attack box and a small overhead/back reach through the existing pattern config, so jumping directly over a striking scorpion is no longer a safe answer.
+- Added scorpion sting damage scaling through the existing attack pattern lookup, so the sting hits harder only when the active sting connects.
+- Updated scorpion purpose text to teach "step back before jumping over it" in concise adventure-readable wording.
+## 2026-05-20 Standalone game direction update
+
+- Updated the durable direction: Lost Site Expedition is now framed as a standalone archaeology adventure platformer, with excavation, Base Camp, lab, evidence, and report systems acting as add-on/reward layers after major discoveries.
+- Removed Year 7/classroom-safe as the default tuning target from the active handover, source-of-truth brief, game-direction note, menu framing, training reflection label, and current test/comment wording.
+- Future passes should prioritise game feel, mastery, secrets, combat readability, boss pacing, route completion, upgrades, replayability, and adventure identity first; excavation and report systems should support that loop rather than constrain it.
+
+## 2026-05-20 Enemy aggression pressure pass
+
+- Increased normal enemy base movement slightly through the existing Journey enemy profile instead of editing every enemy row or creating a new AI system.
+- Added existing-state aggro memory so enemies notice from farther away, keep following briefly after contact, and chase outside their narrow patrol pocket instead of becoming skippable obstacles.
+- Boosted chase pressure per enemy family while preserving the current attack patterns, tells, recovery windows, knockback, invulnerability, shard drops, bosses, route gates, Base Camp, excavation, lab, evidence, and report systems.
+- Opening-route enemies now get pursuit pressure without a damage spike, so they are harder to ignore but still use the opening safety tuning.
+
+## 2026-05-20 Opening atmosphere pass 2
+
+- Continued the restrained opening atmosphere layer inside the existing Journey threshold scene.
+- Added a low-opacity seal-to-Sphinx projection beam, pause-timed ground fissure pulses, and a one-shot stone-shift rumble when the hidden stairwell reveal begins.
+- Kept the new sound cue wired through the existing expedition SFX config and reused the downloaded CC0 wind/rumble/earth-shake files rather than adding another audio pathway.

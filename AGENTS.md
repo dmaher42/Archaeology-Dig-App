@@ -19,7 +19,7 @@ C:\Users\dmahe\OneDrive\Desktop\Codex\Archaeology-Dig-App1
 - Keep changes small and in the canonical files already used by the app.
 - Preserve uncommitted work unless the user explicitly asks to discard it.
 - If a feature already exists partially, repair or extend it in place instead of replacing it with a parallel version.
-- Use plain Year 7 classroom-friendly wording.
+- Use concise, readable adventure-game wording. Do not default to Year 7 or classroom-safe tuning unless the user explicitly asks for a classroom mode.
 - For UI/game changes, verify in the browser where possible.
 
 ## Current Source Of Truth
@@ -50,7 +50,7 @@ The visible current change appears to be a Training Phase layout/style pass:
 - the Training Phase header and summary were simplified
 - progress was moved into the hero action area
 - slot/card layout and CSS spacing were tightened
-- the page was made more compact and projector-friendly
+- the page was made more compact and large-screen friendly
 
 Before continuing that work, review the diff and run the app locally.
 

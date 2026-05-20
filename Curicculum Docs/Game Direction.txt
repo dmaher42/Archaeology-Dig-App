@@ -18,12 +18,12 @@ Each expedition should take time. Not 2–3 minutes. More like a proper stage wi
 A good target would be:
 
 Type	Length
-Short classroom demo stage	5–8 minutes
+Short demo stage	5–8 minutes
 Normal expedition stage	12–20 minutes
 Major civilisation expedition	20–35 minutes
 Full Egypt/Tutankhamun arc	multiple stages
 
-This means students can play across multiple lessons, and it feels like a real game rather than a quick activity.
+This means players can keep returning across multiple sessions, and it feels like a real game rather than a quick activity.
 
 2. Each expedition should have zones
 
@@ -59,7 +59,7 @@ That gives the platformer proper length and importance.
 
 3. The platformer should have its own progression
 
-The platformer needs reasons to keep playing even if the educational layer was removed.
+The platformer needs reasons to keep playing even if the archaeology add-on layer was removed.
 
 So it needs:
 
@@ -84,13 +84,13 @@ reward
 atmosphere
 progression
 
-Not because students are being asked questions.
+Not because players are being asked questions.
 
 4. Make platforming rewards feed the archaeology system
 
 This is how the two parts connect without weakening either one.
 
-During platforming, students collect things that help later at the excavation site.
+During platforming, players collect things that help later at the excavation site.
 
 Examples:
 
@@ -125,7 +125,7 @@ Then the game slows down and says:
 
 This gives the player a strong sense of achievement.
 
-6. Base Camp becomes the bridge between fun and learning
+6. Base Camp becomes the bridge between adventure and archaeology
 
 Base Camp should not feel like a worksheet screen. It should feel like a game hub.
 
@@ -164,10 +164,10 @@ preserve
 send to lab
 make interpretation
 
-This matches the unit plan’s excavation sequence: survey, grids, excavate, map and lab analysis.
+This matches the archaeology process: survey, grids, excavate, map and lab analysis.
 
 So the platformer gives the excitement.
-The excavation gives the meaning.
+The excavation gives deeper archaeology meaning.
 
 The ideal full gameplay loop
 Step 1: Choose Expedition
@@ -254,7 +254,7 @@ flood channels
 ancient mechanisms
 C. Secrets
 
-This is what makes students replay.
+This is what makes players replay.
 
 Each stage should include:
 
@@ -289,7 +289,7 @@ This makes it feel like a real game.
 
 How to make it stand alone
 
-To make the platformer stand alone, a player should be able to play it and enjoy it even if they ignore the learning.
+To make the platformer stand alone, a player should be able to play it and enjoy it even if they ignore the archaeology layer.
 
 That means:
 
@@ -308,10 +308,10 @@ It must avoid:
 constant quizzes
 stopping gameplay with long explanations
 too much text
-educational pop-ups every few seconds
+instructional pop-ups every few seconds
 making the player feel punished for not reading
 
-The educational layer should mostly happen:
+The archaeology add-on layer should mostly happen:
 
 after discovery
 at Base Camp
@@ -327,7 +327,7 @@ That gives it a clear identity.
 
 Not just:
 
-educational game
+classroom learning app
 
 But:
 
@@ -336,7 +336,7 @@ adventure platformer with archaeology systems
 Recommended build priority
 Phase 1: Make platformer feel excellent
 
-Before adding more educational complexity:
+Before adding more archaeology-system complexity:
 
 polish movement
 improve jumping
@@ -394,7 +394,7 @@ Platformer is the main adventure game. Excavation is the major reward and meanin
 
 That gives you the best of both:
 
-students want to play it
+players want to play it
 it has genuine game quality
-it still teaches the unit properly
-the archaeology learning feels earned rather than forced.
+it still supports archaeology understanding
+the archaeology layer feels earned rather than forced.

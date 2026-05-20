@@ -218,7 +218,7 @@ export function TrainingPhase({ trainingPlacements, setTrainingPlacements, onBac
               <div className="training-success-body">
                 <p className="success-intro">Great work! You have mastered the scientific sequence of an archaeological investigation.</p>
                 <div className="reflection-box">
-                  <span className="reflection-label">Year 7 HASS Reflection Check:</span>
+                  <span className="reflection-label">Field Reflection Check:</span>
                   <p className="reflection-question">Why does this specific order matter in real archaeology?</p>
                   <div className="reflection-prompt">
                     <em>"If archaeologists move evidence before mapping and recording it, then..."</em>

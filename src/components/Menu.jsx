@@ -157,9 +157,9 @@ export function ActivityMenu({
         <div className="menu-hero-copy">
           <div className="training-kicker">Archaeology Challenge</div>
           <h2>Lost Site Expedition</h2>
-          <p>Choose your classroom mission: practise field skills, investigate a dig site, solve museum case files, or begin the solo adventure.</p>
+          <p>Choose your path: train field skills, investigate a dig site, solve museum case files, or begin the adventure.</p>
           <div className="menu-hero-badges" aria-label="Game features">
-            <span>Year 7 HASS</span>
+            <span>Adventure Archaeology</span>
             <span>Evidence Skills</span>
             <span>Museum Mystery</span>
           </div>

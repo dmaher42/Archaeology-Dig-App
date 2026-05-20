@@ -2472,7 +2472,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      const tokenEmoji = 'ðŸ”'; // Keep generic so students must inspect to find out what it is
+      const tokenEmoji = 'ðŸ”'; // Keep generic so players must inspect to find out what it is
 
       ctx.font = '15px Outfit, sans-serif';
       ctx.fillText(tokenEmoji, token.x - 7, token.y + 5 + floatY);
@@ -3472,13 +3472,19 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
   useEffect(() => {
     const handleExpeditionDevJump = (event) => {
       if (event.detail?.target === 'journey') devJumpToJourney();
+      if (
+        event.detail?.target === 'journey-section-start'
+        && (expeditionStage !== 'journey' || baseCampOpen)
+      ) {
+        devJumpToJourney();
+      }
       if (event.detail?.target === 'base-camp') devJumpToBaseCamp();
       if (event.detail?.target === 'excavation') devJumpToExcavation();
     };
 
     window.addEventListener('expedition-dev-jump', handleExpeditionDevJump);
     return () => window.removeEventListener('expedition-dev-jump', handleExpeditionDevJump);
-  }, [devJumpToBaseCamp, devJumpToExcavation, devJumpToJourney]);
+  }, [baseCampOpen, devJumpToBaseCamp, devJumpToExcavation, devJumpToJourney, expeditionStage]);
 
   useEffect(() => () => {
     if (journeyCursorTimerRef.current) window.clearTimeout(journeyCursorTimerRef.current);

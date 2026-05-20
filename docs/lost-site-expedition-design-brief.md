@@ -2,7 +2,7 @@
 
 This document is the design source of truth for future Codex work on Lost Site Expedition in Archaeology-Dig-App.
 
-The project is a Year 7 HASS Ancient History / archaeology adventure game. The design priority is to make it feel like a real game first, then embed the learning through the things the player does: survey, tools, evidence, excavation, mapping, cataloguing, lab analysis, interpretation, and reporting.
+Lost Site Expedition is now a standalone archaeology adventure platformer. The platformer is the main game; excavation, Base Camp, lab, evidence, and report systems are add-on and reward layers that deepen the adventure after major discoveries.
 
 ## Current Source Of Truth
 
@@ -20,17 +20,17 @@ Do not create parallel systems for progression, economy, player control, animati
 
 ## Design Vision
 
-Lost Site Expedition should feel like a polished archaeology adventure, not a worksheet or quiz game.
+Lost Site Expedition should feel like a polished archaeology adventure, not a classroom activity wrapped in game UI.
 
 The player should feel like an expedition hero entering an ancient site, gathering tools and evidence, overcoming guardians, unlocking seals, discovering a tomb entrance, returning to Base Camp, then excavating and analysing evidence.
 
-Education should emerge through play. The player should learn archaeology by doing archaeology-like actions inside a game loop, not by being stopped repeatedly for disconnected questions.
+Archaeology should emerge through play. The player should understand the field work by doing archaeology-like actions inside the game loop, not by being stopped repeatedly for disconnected questions.
 
 ## Core Experience
 
 The current high-level flow is:
 
-1. Journey Platformer
+1. Standalone Adventure Platformer
 2. Discovery Entrance
 3. Base Camp
 4. Excavation Site
@@ -67,7 +67,7 @@ The next gameplay milestone is the Guardian Prep Seal / Scarab Queen readiness p
 
 ## Gameplay Principles
 
-- Game first, education embedded.
+- Standalone game first, archaeology embedded through rewards, tools, world verbs, and discovery.
 - No quiz spam during core platforming.
 - Every collectible must have a purpose.
 - Enemies should guard routes, rewards, tools, or objectives.
@@ -76,7 +76,9 @@ The next gameplay milestone is the Guardian Prep Seal / Scarab Queen readiness p
 - Bosses should feel earned through preparation.
 - Discovery moments should feel cinematic and memorable.
 - Systems should be extended, not duplicated.
-- Wording should stay plain, classroom-friendly, and Year 7 readable.
+- Wording should stay concise, atmospheric, and readable without flattening challenge.
+- Challenge, mastery, secrets, upgrades, boss readability, and replayability are valid goals.
+- Do not soften combat, platforming, exploration, or pacing only because the project began as a classroom app.
 
 ## Opening Scene Direction
 
@@ -116,7 +118,7 @@ Warrior-guide:
 
 After the Journey and Discovery Entrance, the archaeologist role becomes central again through Base Camp, excavation, lab analysis, and report writing.
 
-Keep this story short, dramatic, classroom-friendly, and replayable.
+Keep this story short, dramatic, and replayable.
 
 ## Guardian And Boss Direction
 
@@ -137,7 +139,7 @@ The Scarab Queen readiness pass should check:
 
 The Discovery Entrance Sequence is a later staging milestone after the dramatic opening scene.
 
-It should turn route progress into a memorable site-opening moment. It should connect the Journey Platformer to Base Camp and the excavation layer.
+It should turn route progress into a memorable site-opening moment. It should connect the standalone adventure platformer to Base Camp and the excavation add-on layer.
 
 Use in-world cues where possible:
 
@@ -168,9 +170,9 @@ Base Camp should support:
 
 Do not create a duplicate currency or voucher inventory unless the excavation layer proves it needs one.
 
-## Excavation Layer Direction
+## Excavation Add-On Direction
 
-The future excavation layer should feel Diablo-inspired but archaeology-focused.
+The excavation layer should feel like a high-value reward mode: a slower, archaeology-focused add-on earned through platformer progress.
 
 The intended loop is:
 
@@ -196,11 +198,11 @@ This should align with the archaeology process:
 - interpret
 - report
 
-The excavation layer should be game-like: route choice, risk, rewards, tools, readable feedback, and meaningful evidence decisions. It should not become a static quiz or worksheet.
+The excavation layer should be game-like: route choice, risk, rewards, tools, readable feedback, and meaningful evidence decisions. It should not become a static quiz or worksheet, and it should support the adventure rather than replace it.
 
-## Education Layer Direction
+## Archaeology Layer Direction
 
-Learning should be carried by the game verbs.
+Archaeology should be carried by the game verbs.
 
 Prefer:
 
@@ -217,7 +219,7 @@ Avoid:
 - frequent detached quiz popups
 - long text lectures during action
 - disconnected trivia checks
-- educational UI that interrupts core movement or combat without a strong reason
+- detached instruction UI that interrupts core movement or combat without a strong reason
 
 ## Audio Direction
 
@@ -235,11 +237,11 @@ Preferred sound palette:
 - low temple rumbles
 - short dramatic boss encounter stingers
 
-Audio should be classroom-friendly and not irritating over repeated play. Prefer short cues, soft loops, and clear event stingers over loud constant tracks.
+Audio should be long-session friendly and not fatiguing over repeated play. Prefer short cues, soft loops, and clear event stingers over loud constant tracks.
 
 ## Art And Asset Direction
 
-Target a high-quality cinematic desert archaeology style that remains readable on a classroom projector.
+Target a high-quality cinematic desert archaeology style with clear silhouettes and strong large-screen readability.
 
 Art direction principles:
 
@@ -281,6 +283,8 @@ Rules for future Codex work:
 - Do not create duplicate boss or guardian systems.
 - Do not create duplicate excavation, evidence, lab, museum, or report systems.
 - Extend existing Journey, Base Camp, excavation, evidence, lab, museum, and report systems.
+- Do not treat Year 7 classroom suitability as the default balance or wording target.
+- If standalone adventure feel and excavation support ever conflict, preserve the platformer feel first unless the user explicitly chooses otherwise.
 - Preserve working tests.
 - Use small, testable changes.
 - Document uncertainty.
@@ -307,10 +311,11 @@ Future design notes should update this brief or `progress.md` depending on purpo
 
 ## Current Milestones
 
-1. Guardian Prep Seal / Scarab Queen readiness pass
-2. Dramatic opening scene with story-embedded instructions
-3. Discovery Entrance Sequence
-4. Base Camp reward/economy pass
-5. Tutankhamun / excavation prototype
-6. Lab/report reward loop
-7. Future civilisation expansion only after Egypt vertical slice works
+1. Standalone Egypt adventure feel, combat readability, and hitbox polish
+2. Guardian Prep Seal / Scarab Queen / Desert Map route completion
+3. Dramatic opening scene with story-embedded instructions
+4. Discovery Entrance Sequence
+5. Base Camp as an optional preparation and upgrade hub
+6. Tutankhamun excavation add-on prototype
+7. Lab/report reward layer
+8. Future civilisation expansion only after Egypt adventure loop works
