@@ -3,7 +3,7 @@
   "source": "imagegen-locomotion-source-repacked-into-hooded-asha-atlas-2026-05-20",
   "status": "active-egypt-hooded-warrior-explorer-atlas-production-ready",
   "productionReference": "asha-hooded-warrior-explorer-reference.png",
-  "description": "Complete Ancient Egypt hooded warrior/explorer runtime atlas regenerated from a new production locomotion/action source sheet using the approved hooded Asha character design. Walk, run, jump, fall, land, and shield/khopesh attack rows are real atlas cells with clearer leg/action frames; stable idle and utility rows remain inside the existing Journey hero-atlas contract.",
+  "description": "Complete Ancient Egypt hooded warrior/explorer runtime atlas regenerated from a new production locomotion/action source sheet using the approved hooded Asha character design. Walk, run, jump, fall, and land rows are real atlas cells with clearer leg/action frames; the shield/khopesh attack row is rebuilt from a dedicated attack source strip; stable idle and utility rows remain inside the existing Journey hero-atlas contract.",
   "frame": {
     "width": 256,
     "height": 256,
@@ -1149,10 +1149,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 56,
-        "y": 69,
-        "w": 144,
-        "h": 167
+        "x": 40,
+        "y": 12,
+        "w": 175,
+        "h": 224
       },
       "groundLineY": 236
     },
@@ -1162,10 +1162,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 56,
-        "y": 67,
-        "w": 145,
-        "h": 169
+        "x": 18,
+        "y": 12,
+        "w": 221,
+        "h": 224
       },
       "groundLineY": 236
     },
@@ -1175,10 +1175,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 54,
-        "y": 67,
-        "w": 148,
-        "h": 169
+        "x": 50,
+        "y": 12,
+        "w": 157,
+        "h": 224
       },
       "groundLineY": 236
     },
@@ -1188,10 +1188,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 38,
-        "y": 79,
-        "w": 181,
-        "h": 157
+        "x": -17,
+        "y": 12,
+        "w": 290,
+        "h": 224
       },
       "groundLineY": 236
     },
@@ -1201,10 +1201,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 39,
-        "y": 68,
-        "w": 178,
-        "h": 168
+        "x": 5,
+        "y": 12,
+        "w": 246,
+        "h": 224
       },
       "groundLineY": 236
     },
@@ -1214,10 +1214,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 38,
-        "y": 79,
-        "w": 179,
-        "h": 157
+        "x": 28,
+        "y": 12,
+        "w": 200,
+        "h": 224
       },
       "groundLineY": 236
     },
@@ -1227,10 +1227,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 59,
-        "y": 70,
-        "w": 138,
-        "h": 166
+        "x": 40,
+        "y": 12,
+        "w": 176,
+        "h": 224
       },
       "groundLineY": 236
     },
@@ -1240,10 +1240,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 59,
-        "y": 70,
-        "w": 138,
-        "h": 166
+        "x": 50,
+        "y": 12,
+        "w": 157,
+        "h": 224
       },
       "groundLineY": 236
     },
@@ -1529,14 +1529,14 @@
     "jump_05": "locomotion_source_row_2_col_5",
     "jump_06": "locomotion_source_row_2_col_6",
     "jump_07": "locomotion_source_row_2_col_7",
-    "attack_pick_swing_00": "locomotion_source_row_3_col_0",
-    "attack_pick_swing_01": "locomotion_source_row_3_col_1",
-    "attack_pick_swing_02": "locomotion_source_row_3_col_2",
-    "attack_pick_swing_03": "locomotion_source_row_3_col_3",
-    "attack_pick_swing_04": "locomotion_source_row_3_col_5",
-    "attack_pick_swing_05": "locomotion_source_row_3_col_6",
-    "attack_pick_swing_06": "locomotion_source_row_3_col_7",
-    "attack_pick_swing_07": "locomotion_source_row_3_col_7",
+    "attack_pick_swing_00": "attack_source_col_0",
+    "attack_pick_swing_01": "attack_source_col_1",
+    "attack_pick_swing_02": "attack_source_col_2",
+    "attack_pick_swing_03": "attack_source_col_3",
+    "attack_pick_swing_04": "attack_source_col_4",
+    "attack_pick_swing_05": "attack_source_col_5",
+    "attack_pick_swing_06": "attack_source_col_6",
+    "attack_pick_swing_07": "attack_source_col_7",
     "fall_00": "jump_03",
     "fall_01": "jump_04",
     "fall_02": "jump_05",

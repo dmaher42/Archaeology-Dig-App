@@ -13467,29 +13467,31 @@ main {
 
 .journey-floating-hud {
   position: absolute;
-  top: 0.55rem;
-  left: 4.05rem;
-  right: 1.05rem;
+  top: 0.42rem;
+  left: 4.15rem;
+  right: 0.7rem;
+  bottom: 0.7rem;
   z-index: 30;
   display: grid;
-  grid-template-columns: auto minmax(320px, 0.54fr) auto;
+  grid-template-columns: auto minmax(210px, 22rem);
   align-items: start;
-  gap: 0.45rem;
+  justify-content: space-between;
+  gap: 0.38rem;
   pointer-events: none;
 }
 
 .journey-floating-hud-cluster {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  min-height: 2rem;
-  padding: 0.25rem 0.52rem;
+  gap: 0.35rem;
+  min-height: 1.7rem;
+  padding: 0.18rem 0.42rem;
   border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 9px;
-  background: rgba(26, 26, 24, 0.72);
+  border-radius: 7px;
+  background: rgba(26, 26, 24, 0.58);
   color: #fff7ed;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.26);
-  backdrop-filter: blur(7px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(6px);
 }
 
 .journey-floating-hud-cluster:not(.journey-floating-hud-meters) {
@@ -13506,9 +13508,9 @@ main {
 .journey-floating-hud-gems {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.24rem;
   color: #f8e0a2;
-  font-size: 0.82rem;
+  font-size: 0.74rem;
 }
 
 .journey-floating-hud-gems.is-rewarding {
@@ -13526,7 +13528,7 @@ main {
 .journey-floating-hud-gems span,
 .journey-floating-hud-count span {
   color: rgba(248, 239, 225, 0.76);
-  font-size: 0.58rem;
+  font-size: 0.52rem;
   line-height: 1;
   text-transform: uppercase;
 }
@@ -13534,19 +13536,28 @@ main {
 .journey-floating-hud-gems strong,
 .journey-floating-hud-count strong {
   color: #fffaf0;
-  font-size: 0.94rem;
+  font-size: 0.82rem;
 }
 
 .journey-floating-hud-gate {
+  position: absolute;
+  right: 0;
+  bottom: 0;
   align-items: flex-start;
   flex-direction: column;
-  gap: 0.1rem;
-  max-width: 18rem;
+  gap: 0.02rem;
+  max-width: min(15rem, 38%);
+  min-height: 0;
+  padding: 0.38rem 0.55rem;
+  background: rgba(26, 26, 24, 0.5);
+  border-color: rgba(255, 255, 255, 0.12);
+  border-radius: 7px;
+  opacity: 0.88;
 }
 
 .journey-floating-hud-gate em {
   color: #f8e0a2;
-  font-size: 0.62rem;
+  font-size: 0.56rem;
   font-style: normal;
   font-weight: 900;
   line-height: 1.1;
@@ -13554,11 +13565,11 @@ main {
 }
 
 .journey-floating-hud-status {
-  padding: 0.12rem 0.36rem;
-  border-radius: 5px;
+  padding: 0.08rem 0.28rem;
+  border-radius: 4px;
   background: rgba(255, 255, 255, 0.08);
   color: #f8efe1;
-  font-size: 0.64rem;
+  font-size: 0.56rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -13568,25 +13579,25 @@ main {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-self: start;
-  width: min(100%, 28rem);
+  width: min(100%, 22rem);
   justify-self: center;
-  padding-inline: 0.55rem;
+  padding-inline: 0.44rem;
 }
 
 .journey-floating-hud-meter {
   min-width: 0;
   display: grid;
-  grid-template-columns: auto minmax(78px, 1fr);
+  grid-template-columns: auto minmax(62px, 1fr);
   align-items: center;
-  gap: 0.34rem;
+  gap: 0.28rem;
 }
 
 .journey-floating-hud-meter-label {
   display: inline-flex;
   align-items: center;
-  gap: 0.24rem;
+  gap: 0.18rem;
   color: #efe3d1;
-  font-size: 0.61rem;
+  font-size: 0.54rem;
   font-weight: 900;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -13594,7 +13605,7 @@ main {
 
 .journey-floating-hud-bar {
   position: relative;
-  height: 0.38rem;
+  height: 0.3rem;
   min-width: 0;
   overflow: hidden;
   border-radius: 999px;
@@ -13611,7 +13622,7 @@ main {
 .journey-floating-hud-count {
   display: inline-flex;
   align-items: center;
-  gap: 0.32rem;
+  gap: 0.22rem;
   justify-self: end;
 }
 
@@ -13637,11 +13648,11 @@ main {
 
 @media (max-width: 1060px) {
   .journey-floating-hud {
-    grid-template-columns: auto minmax(230px, 1fr);
+    grid-template-columns: auto minmax(180px, 1fr);
   }
 
-  .journey-floating-hud-count {
-    display: none;
+  .journey-floating-hud-gate {
+    max-width: min(13rem, 48%);
   }
 
   .expedition-sidebar {
@@ -13656,21 +13667,29 @@ main {
 
   .expedition-journey-mode-shell .journey-floating-hud,
   .journey-floating-hud {
-    top: 3.15rem;
+    top: 3.05rem;
     left: 0.65rem;
     right: 0.65rem;
+    bottom: 0.65rem;
     grid-template-columns: 1fr;
   }
 
   .journey-floating-hud-cluster {
-    min-height: 2.2rem;
-    padding: 0.34rem 0.48rem;
+    min-height: 1.9rem;
+    padding: 0.28rem 0.44rem;
   }
 
   .journey-floating-hud-meters {
     grid-template-columns: 1fr;
     gap: 0.34rem;
     width: 100%;
+  }
+
+  .journey-floating-hud-gate {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    max-width: min(14rem, 72%);
   }
 
   .expedition-sidebar {
@@ -13733,27 +13752,27 @@ main {
 /* Notice Box Refinement */
 .expedition-journey-notice {
   position: absolute;
-  top: 3.55rem;
-  bottom: auto;
+  top: auto;
+  bottom: 3.35rem;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(48, 32, 20, 0.82);
-  backdrop-filter: blur(8px);
-  padding: 0.5rem 0.8rem;
-  border-radius: 12px;
-  border: 1px solid rgba(245, 185, 96, 0.32);
+  background: rgba(38, 27, 20, 0.76);
+  backdrop-filter: blur(7px);
+  padding: 0.42rem 0.68rem;
+  border-radius: 9px;
+  border: 1px solid rgba(245, 185, 96, 0.24);
   color: #fff7ed;
   font-weight: 700;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   line-height: 1.25;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.34);
+  box-shadow: 0 7px 16px rgba(0,0,0,0.28);
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.42rem;
   z-index: 20;
   pointer-events: none;
   width: max-content;
-  max-width: min(560px, calc(100% - 2rem));
+  max-width: min(34rem, calc(100% - 2rem));
   text-align: left;
 }
 

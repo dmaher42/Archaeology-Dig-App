@@ -551,7 +551,11 @@ const getHeroSpriteFrameKey = (current, atlas, now) => {
     if (attackState === 'windup') return row.frames?.[0] || 'attack_pick_swing_00';
     if (attackState === 'recoil') return row.frames?.[frameCount - 1] || `attack_pick_swing_${String(frameCount - 1).padStart(2, '0')}`;
     const progress = clamp((ATTACK_DURATION - Math.max(0, current.attackTimer || 0)) / ATTACK_DURATION, 0, 1);
-    return row.frames?.[Math.min(frameCount - 1, Math.floor(progress * frameCount))] || null;
+    const firstSwingFrame = Math.min(1, frameCount - 1);
+    const lastSwingFrame = Math.max(firstSwingFrame, frameCount - 2);
+    const swingFrameCount = Math.max(1, lastSwingFrame - firstSwingFrame + 1);
+    const swingFrameIndex = firstSwingFrame + Math.min(swingFrameCount - 1, Math.floor(progress * swingFrameCount));
+    return row.frames?.[swingFrameIndex] || null;
   }
 
   const rowName = animationState === 'survey-walk' ? 'survey_walk' : animationState;
@@ -2309,7 +2313,7 @@ export default function ExpeditionJourney({
       awarenessMultiplier: pressure.awareness ?? 1,
       chaseMultiplier: pressure.chase ?? 1,
     };
-  }, []);
+  }, [drawOpeningPyramidAssetRegion]);
 
   const getBossVulnerabilityState = useCallback((boss) => {
     const phase = getBossPhaseConfig(boss);
@@ -3928,6 +3932,33 @@ export default function ExpeditionJourney({
     ctx.ellipse(summitCoverX + 41, summitCoverY + 64, 70, 9, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
+    const scarabSealX = worldToScreenX(SCARAB_SEAL_TRIGGER.x, cameraX);
+    if (scarabSealX > -120 && scarabSealX < CANVAS_WIDTH + 120) {
+      const beaconY = SCARAB_SEAL_TRIGGER.y - 44;
+      const activated = Boolean(stateRef.current.scarabSealActivated);
+      const glow = ctx.createRadialGradient(scarabSealX, beaconY, 10, scarabSealX, beaconY, 78);
+      glow.addColorStop(0, activated ? 'rgba(56, 189, 248, 0.42)' : 'rgba(250, 204, 21, 0.34)');
+      glow.addColorStop(0.36, activated ? 'rgba(56, 189, 248, 0.24)' : 'rgba(250, 204, 21, 0.18)');
+      glow.addColorStop(1, 'rgba(250, 204, 21, 0)');
+      ctx.save();
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.ellipse(scarabSealX, beaconY, 72, 76, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+      drawOpeningPyramidAssetRegion(ctx, 'pedestal', {
+        x: scarabSealX - 43,
+        y: beaconY + 10,
+        width: 86,
+        height: 68,
+      }, { alpha: 0.74, filter: 'sepia(8%) saturate(88%) brightness(84%) contrast(98%)' });
+      drawOpeningPyramidAssetRegion(ctx, 'seal', {
+        x: scarabSealX - 27,
+        y: beaconY - 30,
+        width: 54,
+        height: 54,
+      }, { alpha: activated ? 1 : 0.9, filter: 'saturate(112%) brightness(108%) contrast(104%)' });
+    }
     const baseFade = ctx.createLinearGradient(0, GROUND_Y - 52, 0, GROUND_Y + 24);
     baseFade.addColorStop(0, 'rgba(171, 103, 42, 0)');
     baseFade.addColorStop(0.74, 'rgba(171, 103, 42, 0.24)');
@@ -4568,7 +4599,7 @@ export default function ExpeditionJourney({
 
     ctx.save();
     const section = getSectionForX(prop.x);
-    if (prop.id === 'early-scarab-seal-pedestal' || prop.id === 'early-scarab-seal') {
+    if (prop.id === 'opening-warrior-guide-marker') {
       ctx.restore();
       return;
     }
@@ -6536,7 +6567,7 @@ export default function ExpeditionJourney({
     const decalDest = decalDescriptor
       ? getEgyptHazardDecalDest(hazard, hx, footY, decalDescriptor.regionKey)
       : hazardDest;
-    if (visualHazardId !== 'bat-cloud' && visualHazardId !== 'dust-wave') {
+    if (visualHazardId !== 'bat-cloud' && visualHazardId !== 'dust-wave' && hazard.id !== 'opening-seal-reset-trap') {
       drawContactShadow(ctx, centerX, footY + 3, hazard.width * 0.92, grounding.shadow, 0.9);
     }
     if (dustWidth > 0) {
@@ -6545,22 +6576,46 @@ export default function ExpeditionJourney({
     if (hazard.id === 'opening-seal-reset-trap') {
       const trapSealImage = openingScarabSealImageRef.current;
       if (trapSealImage.loaded && trapSealImage.image) {
-        const drawWidth = hazard.width + 72;
-        const drawHeight = Math.round(drawWidth * (trapSealImage.image.naturalHeight / trapSealImage.image.naturalWidth));
+        const drawWidth = hazard.width + 86;
+        const drawHeight = Math.max(hazard.height + 8, Math.round(drawWidth * 0.22));
         const drawX = centerX - drawWidth / 2;
-        const drawY = footY - drawHeight + 18;
+        const drawY = footY - drawHeight + 2;
+        drawHazardGroundApron(ctx, centerX, footY + 2, drawWidth * 0.98, section.id, 0.82);
         ctx.save();
-        ctx.globalAlpha = hitActive ? 1 : 0.96;
-        ctx.filter = hitActive ? 'saturate(124%) brightness(108%)' : 'sepia(4%) saturate(106%) brightness(98%)';
-        ctx.drawImage(trapSealImage.image, drawX, drawY, drawWidth, drawHeight);
+        ctx.fillStyle = 'rgba(75, 44, 20, 0.22)';
+        ctx.beginPath();
+        ctx.ellipse(centerX, footY - drawHeight * 0.4, drawWidth * 0.5, drawHeight * 0.46, 0, 0, Math.PI * 2);
+        ctx.fill();
         ctx.restore();
-        drawGroundDustLip(ctx, centerX, footY + 2, drawWidth * 0.76, 'rgba(209, 143, 72, 0.24)');
+        ctx.save();
+        ctx.beginPath();
+        ctx.ellipse(centerX, footY - drawHeight * 0.42, drawWidth * 0.5, drawHeight * 0.48, 0, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.globalAlpha = hitActive ? 0.86 : 0.68;
+        ctx.filter = hitActive ? 'sepia(8%) saturate(108%) brightness(94%)' : 'sepia(18%) saturate(76%) brightness(84%) contrast(86%)';
+        ctx.drawImage(trapSealImage.image, drawX, drawY, drawWidth, drawHeight);
+        ctx.globalCompositeOperation = 'source-atop';
+        ctx.fillStyle = hitActive ? 'rgba(167, 98, 38, 0.28)' : 'rgba(168, 104, 46, 0.42)';
+        ctx.fillRect(drawX, drawY, drawWidth, drawHeight);
+        ctx.restore();
+        ctx.save();
+        ctx.strokeStyle = hitActive ? 'rgba(34, 211, 238, 0.26)' : 'rgba(82, 48, 22, 0.42)';
+        ctx.lineWidth = hitActive ? 3 : 2;
+        ctx.beginPath();
+        ctx.ellipse(centerX, footY - drawHeight * 0.42, drawWidth * 0.49, drawHeight * 0.46, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(106, 62, 27, 0.2)';
+        ctx.beginPath();
+        ctx.ellipse(centerX, footY - drawHeight * 0.18, drawWidth * 0.46, drawHeight * 0.1, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        drawGroundDustLip(ctx, centerX, footY - 2, drawWidth * 0.98, 'rgba(188, 119, 50, 0.34)');
         if (hitActive) {
           ctx.save();
-          ctx.strokeStyle = 'rgba(248, 113, 113, 0.78)';
-          ctx.lineWidth = 3;
+          ctx.strokeStyle = 'rgba(248, 113, 113, 0.58)';
+          ctx.lineWidth = 2;
           ctx.beginPath();
-          ctx.ellipse(centerX, footY - 24, drawWidth * 0.38, Math.max(10, drawHeight * 0.2), 0, 0, Math.PI * 2);
+          ctx.ellipse(centerX, footY - drawHeight * 0.42, drawWidth * 0.42, drawHeight * 0.34, 0, 0, Math.PI * 2);
           ctx.stroke();
           ctx.restore();
         }
@@ -7745,17 +7800,10 @@ export default function ExpeditionJourney({
       const checkpointHeight = openingCheckpointMarker ? 154 : active ? 160 : 148;
       const checkpointWidth = checkpointHeight * (openingCheckpointMarker ? 1.36 : 1.48);
       if (openingCheckpointMarker) {
-        const pulse = 0.92 + Math.sin(now / 360) * 0.08;
-        const sacredGlow = ctx.createRadialGradient(cx, GROUND_Y - 72, 18, cx, GROUND_Y - 72, checkpointWidth * 0.68 * pulse);
-        sacredGlow.addColorStop(0, 'rgba(250, 204, 21, 0.34)');
-        sacredGlow.addColorStop(0.34, 'rgba(45, 212, 191, 0.14)');
-        sacredGlow.addColorStop(1, 'rgba(250, 204, 21, 0)');
-        ctx.fillStyle = sacredGlow;
-        ctx.beginPath();
-        ctx.ellipse(cx, GROUND_Y - 72, checkpointWidth * 0.58 * pulse, checkpointHeight * 0.5 * pulse, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.globalAlpha = 0.98;
-        ctx.filter = 'sepia(10%) saturate(112%) brightness(104%) contrast(106%) drop-shadow(0 0 12px rgba(250, 204, 21, 0.38))';
+        drawRouteGroundApron(ctx, cx, GROUND_Y - 1, checkpointWidth * 0.52, checkpointSection.id, 0.42, Math.round(markerX));
+        drawGroundDustLip(ctx, cx, GROUND_Y + 2, checkpointWidth * 0.44, 'rgba(226, 151, 56, 0.18)');
+        ctx.restore();
+        return;
       }
       const checkpointDrawn = drawMarkerSprite(
           ctx,
@@ -8117,7 +8165,7 @@ export default function ExpeditionJourney({
     }
 
     // CINEMATIC CARDS
-    const featureCard = current.bossIntro || current.sectionTransition || current.environmentEvent || current.cinematicEvent;
+    const featureCard = current.bossIntro || current.environmentEvent || current.cinematicEvent;
     if (featureCard) {
       const isGuardianCard = Boolean(current.bossIntro);
       const isSectionCard = Boolean(current.sectionTransition);

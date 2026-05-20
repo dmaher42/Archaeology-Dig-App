@@ -222,10 +222,10 @@ test('opening Scarab Seal climb triggers a boss confrontation without completing
   assert.match(source, /id:\s*'scarab-seal-trigger'/);
   assert.match(source, /name:\s*'Sacred Scarab Seal'/);
   assert.match(source, /bossId:\s*'scarab-queen'/);
-  assert.match(source, /x:\s*X\(248\)\s*\+\s*67/);
-  assert.match(source, /y:\s*JY\(326\)\s*\+\s*17/);
-  assert.match(source, /width:\s*134/);
-  assert.match(source, /height:\s*34/);
+  assert.match(source, /x:\s*925/);
+  assert.match(source, /y:\s*JY\(-117\)/);
+  assert.match(source, /width:\s*160/);
+  assert.match(source, /height:\s*90/);
   assert.match(source, /You have touched a sealed artefact\./);
   assert.match(source, /The Sphinx watches from beyond the sand\./);
   assert.match(source, /These artefacts are protected for a reason\./);
@@ -251,13 +251,13 @@ test('opening Scarab Seal climb triggers a boss confrontation without completing
   assert.doesNotMatch(platforms, /cracked summit trap slab/i);
   assert.match(storyProps, /id:\s*'early-scarab-seal-pedestal'/);
   assert.match(storyProps, /id:\s*'early-scarab-seal'/);
-  assert.match(storyProps, /id:\s*'early-scarab-seal-pedestal'[\s\S]*?x:\s*1030[\s\S]*?y:\s*JY\(-137\)/);
-  assert.match(storyProps, /id:\s*'early-scarab-seal'[\s\S]*?x:\s*1030[\s\S]*?y:\s*JY\(-164\)/);
+  assert.match(storyProps, /id:\s*'early-scarab-seal-pedestal'[\s\S]*?x:\s*925[\s\S]*?y:\s*JY\(-137\)/);
+  assert.match(storyProps, /id:\s*'early-scarab-seal'[\s\S]*?x:\s*925[\s\S]*?y:\s*JY\(-164\)/);
   assert.match(journeyComponentSource, /'early-scarab-seal-pedestal':\s*\{[\s\S]*?width:\s*54[\s\S]*?height:\s*42[\s\S]*?yOffset:\s*0/);
   assert.match(journeyComponentSource, /'early-scarab-seal':\s*\{[\s\S]*?width:\s*38[\s\S]*?height:\s*38[\s\S]*?yOffset:\s*0/);
   assert.match(journeyComponentSource, /OPENING_SCARAB_SEAL_IMAGE_SRC = 'assets\/expedition\/environment\/egypt-opening\/scarab-seal-ground-embedded\.png'/);
   assert.match(journeyComponentSource, /openingScarabSealImageRef/);
-  assert.match(journeyComponentSource, /prop\.id === 'early-scarab-seal-pedestal' \|\| prop\.id === 'early-scarab-seal'/);
+  assert.doesNotMatch(journeyComponentSource, /prop\.id === 'early-scarab-seal-pedestal' \|\| prop\.id === 'early-scarab-seal'/);
   assert.match(journeyComponentSource, /hazard\.id === 'opening-seal-reset-trap'/);
   assert.match(journeyComponentSource, /ctx\.drawImage\(trapSealImage\.image/);
   assert.match(events, /id:\s*'opening-scarab-seal-climb'/);
@@ -356,10 +356,10 @@ test('opening pyramid uses exactly four invisible platforms aligned to the marke
     ],
   );
 
-  assert.match(sealTrigger, /x:\s*X\(248\)\s*\+\s*67/);
-  assert.match(sealTrigger, /y:\s*JY\(326\)\s*\+\s*17/);
-  assert.match(sealTrigger, /width:\s*134/);
-  assert.match(sealTrigger, /height:\s*34/);
+  assert.match(sealTrigger, /x:\s*925/);
+  assert.match(sealTrigger, /y:\s*JY\(-117\)/);
+  assert.match(sealTrigger, /width:\s*160/);
+  assert.match(sealTrigger, /height:\s*90/);
   assert.match(journeyComponentSource, /if \(platform\.invisible\) return;/);
 });
 
@@ -568,6 +568,9 @@ test('Egypt Journey uses the Asha atlas through the existing player renderer', (
   assert.equal(egyptPlayerAtlas.poseSources.run_00, 'locomotion_source_row_1_col_0');
   assert.equal(egyptPlayerAtlas.poseSources.run_03, 'locomotion_source_row_1_col_3');
   assert.equal(egyptPlayerAtlas.poseSources.walk_03, 'locomotion_source_row_0_col_3');
+  assert.equal(egyptPlayerAtlas.poseSources.attack_pick_swing_00, 'attack_source_col_0');
+  assert.equal(egyptPlayerAtlas.poseSources.attack_pick_swing_03, 'attack_source_col_3');
+  assert.equal(egyptPlayerAtlas.poseSources.attack_pick_swing_07, 'attack_source_col_7');
   assert.equal(egyptPlayerAtlas.poseSources.fall_04, 'jump_07');
   assert.equal(egyptPlayerAtlas.poseSources.land_02, 'jump_07');
   assert.equal(egyptPlayerAtlas.rows.length, 12);
@@ -580,6 +583,8 @@ test('Egypt Journey uses the Asha atlas through the existing player renderer', (
   assert.match(journeyComponentSource, /boundedGroundLineY/);
   assert.match(journeyComponentSource, /heroAtlas\?\.draw\?\.suppressExternalWeapon/);
   assert.match(journeyComponentSource, /rowName === 'idle'\s*\?\s*0/);
+  assert.match(journeyComponentSource, /firstSwingFrame/);
+  assert.match(journeyComponentSource, /lastSwingFrame/);
 });
 
 test('Egypt Journey uses purpose-built marker sprites for checkpoints and route flags', () => {

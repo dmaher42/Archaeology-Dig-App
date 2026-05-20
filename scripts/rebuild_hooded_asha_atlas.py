@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 from copy import deepcopy
 from pathlib import Path
 
@@ -11,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ATLAS_JSON = ROOT / "public/assets/expedition/player/asha-hooded-warrior-explorer-spritesheet.json"
 ATLAS_PNG = ROOT / "public/assets/expedition/player/asha-hooded-warrior-explorer-spritesheet.png"
 LOCOMOTION_SOURCE = ROOT / "public/assets/expedition/player/asha-hooded-warrior-explorer-locomotion-source.png"
+ATTACK_SOURCE = ROOT / "public/assets/expedition/player/asha-hooded-warrior-explorer-attack-source.png"
 LEGACY_SOURCE = ROOT / "public/assets/expedition/player/asha-hooded-warrior-explorer-generated-sheet.png"
 UTILITY_SOURCE_JSON = ROOT / "public/assets/expedition/player/asha-hooded-warrior-explorer-utility-source.json"
 UTILITY_SOURCE_PNG = ROOT / "public/assets/expedition/player/asha-hooded-warrior-explorer-utility-source.png"
@@ -40,7 +42,17 @@ GENERATED_ROWS = {
 }
 
 BASE_ROWS = ["idle", "hurt", "interact", "climb", "push_pull"]
-ATTACK_SOURCE_COLUMNS = [0, 1, 2, 3, 5, 6, 7, 7]
+ATTACK_SOURCE_COLUMNS = list(range(8))
+ATTACK_SOURCE_WINDOWS = [
+    (0, 280),
+    (245, 560),
+    (510, 825),
+    (780, 1145),
+    (1045, 1385),
+    (1320, 1645),
+    (1600, 1905),
+    (1875, 2172),
+]
 
 FALL_FROM_JUMP_COLUMNS = [3, 4, 5, 6, 7, 6, 5, 4]
 LAND_FROM_JUMP_COLUMNS = [6, 7, 7, 6, 0, 0, 0, 0]
@@ -61,6 +73,19 @@ def remove_checkerboard_background(image: Image.Image) -> Image.Image:
             if brightest > 214 and brightest - darkest < 28:
                 pixels[x, y] = (r, g, b, 0)
             elif brightest > 196 and brightest - darkest < 18:
+                pixels[x, y] = (r, g, b, min(a, 60))
+    return rgba
+
+
+def remove_chroma_green_background(image: Image.Image) -> Image.Image:
+    rgba = image.convert("RGBA")
+    pixels = rgba.load()
+    for y in range(rgba.height):
+        for x in range(rgba.width):
+            r, g, b, a = pixels[x, y]
+            if g > 170 and r < 95 and b < 95:
+                pixels[x, y] = (r, g, b, 0)
+            elif g > 145 and r < 120 and b < 120:
                 pixels[x, y] = (r, g, b, min(a, 60))
     return rgba
 
@@ -104,6 +129,20 @@ def keep_largest_visible_component(image: Image.Image) -> Image.Image:
     kept.alpha_composite(rgba)
     kept.putalpha(ImageChops.multiply(rgba.getchannel("A"), mask))
     return kept
+
+
+def keep_cyan_slash_effect(image: Image.Image) -> Image.Image:
+    rgba = image.convert("RGBA")
+    pixels = rgba.load()
+    for y in range(rgba.height):
+        for x in range(rgba.width):
+            r, g, b, a = pixels[x, y]
+            if a == 0:
+                continue
+            is_slash = b >= 145 and g >= 120 and b >= r + 18
+            if not is_slash:
+                pixels[x, y] = (r, g, b, 0)
+    return keep_largest_visible_component(rgba)
 
 
 def trim_to_visible(image: Image.Image) -> Image.Image:
@@ -173,6 +212,15 @@ def sheet_cell(source: Image.Image, *, rows: int, row: int, column: int) -> Imag
     return source.crop((left, top, right, bottom))
 
 
+def attack_source_cell(source: Image.Image, source_column: int) -> Image.Image:
+    if source_column < len(ATTACK_SOURCE_WINDOWS):
+        left, right = ATTACK_SOURCE_WINDOWS[source_column]
+        cell = source.crop((left, 0, min(right, source.width), source.height))
+    else:
+        cell = sheet_cell(source, rows=1, row=0, column=source_column)
+    return keep_largest_visible_component(remove_chroma_green_background(cell))
+
+
 def copy_existing_cell(
     target: Image.Image,
     source_image: Image.Image,
@@ -204,6 +252,7 @@ def main() -> None:
     utility_metadata = json.loads(UTILITY_SOURCE_JSON.read_text(encoding="utf-8"))
     source_image = Image.open(UTILITY_SOURCE_PNG).convert("RGBA")
     locomotion_source = remove_checkerboard_background(Image.open(LOCOMOTION_SOURCE))
+    attack_source = Image.open(ATTACK_SOURCE).convert("RGBA")
     cell_w = utility_metadata["frame"]["width"]
     cell_h = utility_metadata["frame"]["height"]
     ground_line_y = utility_metadata["frame"]["groundLineY"]
@@ -247,7 +296,7 @@ def main() -> None:
 
     for column, source_column in enumerate(ATTACK_SOURCE_COLUMNS):
         target_key = frame_key("attack_pick_swing", column)
-        sprite = keep_largest_visible_component(sheet_cell(locomotion_source, rows=4, row=3, column=source_column))
+        sprite = attack_source_cell(attack_source, source_column)
         rebuilt_regions[target_key] = paste_sprite_cell(
             rebuilt_image,
             sprite,
@@ -258,7 +307,7 @@ def main() -> None:
             ground_line_y=ground_line_y,
             max_source_height=max_source_height,
         )
-        pose_sources[target_key] = f"locomotion_source_row_3_col_{source_column}"
+        pose_sources[target_key] = f"attack_source_col_{source_column}"
 
     for column, source_column in enumerate(FALL_FROM_JUMP_COLUMNS):
         target_key = frame_key("fall", column)
@@ -308,14 +357,18 @@ def main() -> None:
     metadata["description"] = (
         "Complete Ancient Egypt hooded warrior/explorer runtime atlas regenerated from a new production "
         "locomotion/action source sheet using the approved hooded Asha character design. Walk, run, jump, "
-        "fall, land, and shield/khopesh attack rows are real atlas cells with clearer leg/action frames; "
+        "fall, and land rows are real atlas cells with clearer leg/action frames; the shield/khopesh "
+        "attack row is rebuilt from a dedicated attack source strip; "
         "stable idle and utility rows remain inside the existing Journey hero-atlas contract."
     )
     metadata["rows"] = rebuilt_rows
     metadata["regions"] = rebuilt_regions
     metadata["poseSources"] = pose_sources
 
-    rebuilt_image.save(ATLAS_PNG)
+    temp_atlas_png = ATLAS_PNG.with_suffix(".tmp.png")
+    rebuilt_image.save(temp_atlas_png)
+    shutil.copyfile(temp_atlas_png, ATLAS_PNG)
+    temp_atlas_png.unlink(missing_ok=True)
     ATLAS_JSON.write_text(f"{json.dumps(metadata, indent=2)}\n", encoding="utf-8")
     print(f"Rebuilt {ATLAS_PNG.relative_to(ROOT)}")
     print(f"Updated {ATLAS_JSON.relative_to(ROOT)}")

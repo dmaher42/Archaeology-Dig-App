@@ -2545,6 +2545,12 @@ Remaining notes:
 - Raised the already-scoped opening-pyramid air-jump assist from 1.18 to 1.6 after live movement showed the corrected flat-ledge climb was short once the platforms matched the artwork.
 - Added a 1.32 opening-pyramid-only ground-jump lift so the corrected flat ledges can be reached with held movement instead of relying on browser-perfect double-jump timing.
 
+## 2026-05-20 Sacred Scarab summit trigger repair
+
+- Moved the opening Sphinx trigger back onto the reachable summit Sacred Scarab area instead of the ground reset trap.
+- Restored the summit Scarab Seal story prop rendering on the existing pyramid platform, while leaving the ground seal trap as its own hazard.
+- Restored a small summit scarab seal/pedestal visual on the same trigger point so students have a clear reachable cue.
+
 ## 2026-05-20 Egypt Asha hooded first-minute playtest
 
 - Read `AGENTS.md`, `docs/lost-site-expedition-design-brief.md`, `progress.md`, `git status`, and the current diff before testing.
@@ -2607,6 +2613,23 @@ Remaining notes:
 - Review sheet saved at `output/asha-hooded-imagegen-locomotion-atlas-review.png`.
 - Browser smoke reached Ancient Egypt Journey and captured the implemented atlas in motion at `output/egypt-asha-hooded-imagegen-locomotion-smoke.png`; the live browser scene also reached gameplay during the final verification pass.
 - Verification passed: player atlas validator, Journey secrets test, lint, build, and `git diff --check`.
+
+## 2026-05-20 Asha hooded attack animation fix
+
+- Fixed the active hooded Asha attack row inside the existing hero-atlas pipeline instead of changing combat gameplay.
+- Reordered the shield/khopesh attack cells into a clearer ready -> draw back -> overhead -> slash -> follow-through -> recovery sequence, compositing the slash effect source over the character pose without keeping stray generated body fragments.
+- Adjusted the existing Journey hero-atlas frame selector so windup, swing, and recoil use distinct parts of the attack row rather than repeating the windup frame at the start of the swing.
+- Kept movement physics, attack timing, hitboxes, route gates, Scarab Seal/Sphinx flow, boss, Base Camp, excavation, China, fallback atlas, and save/state systems unchanged.
+- Review sheet saved at `output/asha-attack-fixed-review.png`.
+- Browser smoke reached Ancient Egypt Journey, triggered attack input, and reported no browser console errors.
+
+## 2026-05-20 Asha dedicated attack generation pass
+
+- Generated a brand-new 8-frame hooded Asha shield/khopesh attack strip and saved it as `public/assets/expedition/player/asha-hooded-warrior-explorer-attack-source.png`.
+- Updated `scripts/rebuild_hooded_asha_atlas.py` so the active hooded Asha atlas pulls only the attack row from the dedicated attack source, while walk/run/jump/fall/land continue using the locomotion source and idle/utility rows remain unchanged.
+- Added chroma-green removal and measured attack crop windows so the large slash frame does not clip at equal-slot boundaries.
+- Kept the existing Journey renderer, attack timing, hitboxes, movement physics, route gates, Scarab Seal/Sphinx flow, boss, Base Camp, excavation, China, fallback atlas, and save/state systems unchanged.
+- Review sheet saved at `output/asha-attack-new-generation-review.png`.
 
 ## 2026-05-20 Base Camp Reward & Economy Pass
 
