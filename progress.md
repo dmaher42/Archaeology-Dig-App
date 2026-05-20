@@ -2533,6 +2533,18 @@ Remaining notes:
 - Kept exactly the same four platform entries and did not add stairs, helper platforms, or alternative platforms.
 - Nudged only the four existing platform top heights so Asha's feet sit on the visible pyramid masonry ledges, with the largest correction on the Scarab artefact platform.
 
+## 2026-05-20 Asha visual scale reduction
+
+- Reduced the active hooded Asha Journey atlas draw height from 142 to 107, shrinking the rendered character by about 25%.
+- Kept the existing player hitbox, movement, platform positions, sprite rows, fallback atlas, combat, Journey progression, and pyramid ledge alignment unchanged.
+
+## 2026-05-20 Opening pyramid flat-ledge alignment correction
+
+- Moved the four existing invisible opening-pyramid platforms onto the flat masonry ledges in the rendered pyramid artwork instead of the diagonal ramp face.
+- Preserved the four-platform-only rule, did not add stairs or helper platforms, and left the Asha size reduction unchanged.
+- Raised the already-scoped opening-pyramid air-jump assist from 1.18 to 1.6 after live movement showed the corrected flat-ledge climb was short once the platforms matched the artwork.
+- Added a 1.32 opening-pyramid-only ground-jump lift so the corrected flat ledges can be reached with held movement instead of relying on browser-perfect double-jump timing.
+
 ## 2026-05-20 Egypt Asha hooded first-minute playtest
 
 - Read `AGENTS.md`, `docs/lost-site-expedition-design-brief.md`, `progress.md`, `git status`, and the current diff before testing.
@@ -2562,6 +2574,40 @@ Remaining notes:
 - Browser smoke confirmed Ancient Egypt Journey reaches gameplay, held-right movement reports `animationState: "run"` with `playerSpriteFrame: "walk_03"`, and the hooded atlas JSON/PNG load with fallback inactive. Screenshot saved at `output/egypt-asha-hooded-grounded-run-smoke.png`.
 - Verification passed: player atlas validator, Journey secrets test, lint, build, and `git diff --check`.
 
+## 2026-05-20 Asha hooded walk-cycle tuning
+
+- Tuned the live hooded Asha ground loops so `walk`, `run`, and `survey_walk` all use the same cleaner grounded walk cycle instead of any airborne-looking walk or sprint frames.
+- Removed `walk_02`, `walk_03`, `walk_06`, and original `run_*` sprint poses from live ground movement and landing recovery mapping; the raw regions remain in the atlas for future retuning.
+- Updated `fall` recovery mapping away from original low sprint poses so landing/falling transitions do not reintroduce the floating run look.
+- Kept idle, draw height, physics, controls, opening Scarab Seal/Sphinx flow, route gates, Base Camp, excavation, China, and save/state systems unchanged.
+
+## 2026-05-20 Asha hooded leg-cycle tuning
+
+- Follow-up tuning pass after the grounded cycle improved but still lacked a clear leg walk/run cycle.
+- Kept original `run_*` sprint regions out of live ground movement, but reintroduced selected `walk_02`, `walk_03`, and `walk_06` stride poses so the legs visibly alternate instead of repeating near-identical stances.
+- Split the movement rows again: `walk` now uses a fuller leg cycle, `run` uses a punchier stride order, and `survey_walk` uses slower cautious survey poses without the sword-raised frames.
+- Left idle, draw height, movement physics, controls, route gates, Scarab Seal/Sphinx flow, Base Camp, excavation, China, and save/state systems unchanged.
+- Browser smoke confirmed held-right movement reports `animationState: "run"` with `playerSpriteFrame: "walk_06"`, the hooded hero atlas loaded in `hero-atlas` mode, and fallback stayed inactive. Screenshot saved at `output/egypt-asha-hooded-leg-cycle-loaded-smoke.png`.
+
+## 2026-05-20 Asha hooded atlas regeneration
+
+- Regenerated the active hooded Asha runtime atlas PNG/JSON from the existing approved hooded Asha art so the corrected locomotion frames are real row cells, not cross-row JSON borrowing.
+- Added `scripts/rebuild_hooded_asha_atlas.py` as a reproducible repack utility for the existing Journey hero-atlas contract.
+- Kept the live filename and `PLAYER_HERO_SPRITE_ATLAS_JSON` path unchanged: `assets/expedition/player/asha-hooded-warrior-explorer-spritesheet.json`.
+- The regenerated atlas records `poseSources` for all 96 cells so future tuning can see exactly which approved source pose produced each runtime frame.
+- `walk`, `run`, `survey_walk`, `jump`, `fall`, and `land` rows now expose their normal row-local frame keys again while preserving the exact hooded character design, scale, shield/khopesh attack art, fallback path, controls, physics, route gates, Scarab Seal/Sphinx flow, Base Camp, excavation, China, and save/state systems.
+- Review sheet saved at `output/asha-hooded-regenerated-atlas-review.png`.
+- Browser smoke confirmed held-right movement reports `animationState: "run"` with `playerSpriteFrame: "run_02"`, the regenerated hooded atlas loads in `hero-atlas` mode, and fallback remains inactive. Screenshot saved at `output/egypt-asha-hooded-regenerated-atlas-smoke.png`.
+
+## 2026-05-20 Asha imagegen locomotion implementation
+
+- Implemented the final AI-generated hooded Asha locomotion/action sheet as the active Ancient Egypt Journey hero atlas, keeping the same live atlas path: `assets/expedition/player/asha-hooded-warrior-explorer-spritesheet.json`.
+- Rebuilt `asha-hooded-warrior-explorer-spritesheet.png/json` through `scripts/rebuild_hooded_asha_atlas.py` so `walk`, `run`, `survey_walk`, `jump`, `fall`, `land`, and `attack` use cleaner row-local runtime cells while idle stays unchanged.
+- Preserved the existing Journey renderer, controller, movement physics, route gates, Scarab Seal/Sphinx flow, boss, Base Camp, excavation, China, fallback atlas, and save/state systems.
+- Review sheet saved at `output/asha-hooded-imagegen-locomotion-atlas-review.png`.
+- Browser smoke reached Ancient Egypt Journey and captured the implemented atlas in motion at `output/egypt-asha-hooded-imagegen-locomotion-smoke.png`; the live browser scene also reached gameplay during the final verification pass.
+- Verification passed: player atlas validator, Journey secrets test, lint, build, and `git diff --check`.
+
 ## 2026-05-20 Base Camp Reward & Economy Pass
 
 - Extended the outfitting catalog to incorporate the six core excavation tools as purchaseable upgrades, aligning prices and classroom-friendly descriptions to explicitly show their excavation bonuses.
@@ -2570,3 +2616,17 @@ Remaining notes:
 - Wired `fieldKit` initialization and reset hooks in `openExpeditionStage` and `resetExpedition` so tools previously purchased at Base Camp are carried over into active runs.
 - Fixed a legacy UI property-mapping bug in the excavation sidebar panel so tool states accurately display as "Secured" or "Missing" in real-time.
 - Verified all additions and updates with `npm run lint` (0 errors, 0 warnings) and `npm run build` (clean green compilation).
+
+## 2026-05-20 Embedded Scarab Seal asset wiring
+
+- Copied the newly generated ground-embedded Scarab Seal image into `public/assets/expedition/environment/egypt-opening/scarab-seal-ground-embedded.png`.
+- Reused the existing early Scarab Seal image loading path in `ExpeditionJourney.jsx` instead of adding a parallel asset system.
+- Changed the early Scarab Seal pedestal draw branch so the generated art renders as a sandy ground decal on the existing summit prop, with the separate trigger glow kept in place for feedback.
+- Updated the Journey regression check to lock the new asset path.
+
+## 2026-05-20 Ground trap Scarab Seal correction
+
+- Corrected the Scarab Seal visual direction after review: the active seal is the existing `opening-seal-reset-trap` ground decal, not a new summit artefact.
+- Moved the generated flat embedded seal asset onto the `opening-seal-reset-trap` hazard instead of the summit prop.
+- Moved the Scarab Seal trigger hitbox onto the ground trap so stepping on the ground seal still activates the Sphinx/Scarab sequence and the push-back trap.
+- Hid the old summit pedestal/seal story props in the renderer so the ground trap is the single visible seal cue.

@@ -811,9 +811,9 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 70,
+        "x": 69,
         "y": 53,
-        "w": 117,
+        "w": 118,
         "h": 183
       },
       "groundLineY": 236
@@ -864,9 +864,9 @@
       "h": 256,
       "drawBounds": {
         "x": 44,
-        "y": 71,
-        "w": 167,
-        "h": 165
+        "y": 44,
+        "w": 168,
+        "h": 192
       },
       "groundLineY": 236
     },
@@ -877,9 +877,9 @@
       "h": 256,
       "drawBounds": {
         "x": 44,
-        "y": 75,
+        "y": 48,
         "w": 167,
-        "h": 161
+        "h": 188
       },
       "groundLineY": 236
     },
@@ -891,7 +891,7 @@
       "drawBounds": {
         "x": 48,
         "y": 74,
-        "w": 159,
+        "w": 160,
         "h": 162
       },
       "groundLineY": 236
@@ -1019,9 +1019,9 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 70,
+        "x": 69,
         "y": 53,
-        "w": 117,
+        "w": 118,
         "h": 183
       },
       "groundLineY": 236
@@ -1059,9 +1059,9 @@
       "h": 256,
       "drawBounds": {
         "x": 58,
-        "y": 74,
+        "y": 32,
         "w": 140,
-        "h": 162
+        "h": 204
       },
       "groundLineY": 236
     },
@@ -1071,10 +1071,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 60,
-        "y": 70,
-        "w": 135,
-        "h": 166
+        "x": 56,
+        "y": 15,
+        "w": 145,
+        "h": 221
       },
       "groundLineY": 236
     },
@@ -1084,9 +1084,9 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 61,
+        "x": 58,
         "y": 83,
-        "w": 134,
+        "w": 140,
         "h": 153
       },
       "groundLineY": 236
@@ -1097,10 +1097,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 60,
-        "y": 73,
-        "w": 135,
-        "h": 163
+        "x": 37,
+        "y": 22,
+        "w": 182,
+        "h": 214
       },
       "groundLineY": 236
     },
@@ -1175,9 +1175,9 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 54,
+        "x": 36,
         "y": 67,
-        "w": 148,
+        "w": 184,
         "h": 169
       },
       "groundLineY": 236
@@ -1201,10 +1201,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 39,
-        "y": 68,
-        "w": 178,
-        "h": 168
+        "x": 17,
+        "y": 67,
+        "w": 222,
+        "h": 169
       },
       "groundLineY": 236
     },
@@ -1214,10 +1214,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 38,
-        "y": 79,
-        "w": 179,
-        "h": 157
+        "x": 36,
+        "y": 68,
+        "w": 185,
+        "h": 168
       },
       "groundLineY": 236
     },
@@ -1227,10 +1227,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 59,
-        "y": 70,
-        "w": 138,
-        "h": 166
+        "x": 35,
+        "y": 79,
+        "w": 186,
+        "h": 157
       },
       "groundLineY": 236
     },
@@ -1240,9 +1240,9 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 59,
+        "x": 58,
         "y": 70,
-        "w": 138,
+        "w": 139,
         "h": 166
       },
       "groundLineY": 236
@@ -1253,9 +1253,9 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 61,
+        "x": 58,
         "y": 83,
-        "w": 134,
+        "w": 140,
         "h": 153
       },
       "groundLineY": 236
@@ -1266,10 +1266,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 60,
-        "y": 73,
-        "w": 135,
-        "h": 163
+        "x": 37,
+        "y": 22,
+        "w": 182,
+        "h": 214
       },
       "groundLineY": 236
     },
@@ -1344,10 +1344,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 60,
-        "y": 73,
-        "w": 135,
-        "h": 163
+        "x": 37,
+        "y": 22,
+        "w": 182,
+        "h": 214
       },
       "groundLineY": 236
     },
@@ -1533,9 +1533,9 @@
     "attack_pick_swing_01": "locomotion_source_row_3_col_1",
     "attack_pick_swing_02": "locomotion_source_row_3_col_2",
     "attack_pick_swing_03": "locomotion_source_row_3_col_3",
-    "attack_pick_swing_04": "locomotion_source_row_3_col_5",
-    "attack_pick_swing_05": "locomotion_source_row_3_col_6",
-    "attack_pick_swing_06": "locomotion_source_row_3_col_7",
+    "attack_pick_swing_04": "locomotion_source_row_3_col_4",
+    "attack_pick_swing_05": "locomotion_source_row_3_col_5",
+    "attack_pick_swing_06": "locomotion_source_row_3_col_6",
     "attack_pick_swing_07": "locomotion_source_row_3_col_7",
     "fall_00": "jump_03",
     "fall_01": "jump_04",

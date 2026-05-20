@@ -2288,7 +2288,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
     });
 
 
-    // 3. Map Zones with transparent labels
+    // 3. Map Zones (Terrain background and borders ONLY. Labels are drawn in a final overlay pass)
     mapZones.forEach((zone) => {
       const terrainKey = terrainByZone[zone.id] || `${roomMapPackId}:neutralExcavationTerrain`;
       const drewTerrain = drawExcavationMapRegion(
@@ -2326,70 +2326,6 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
           w: 70,
           h: 42,
         }, { alpha: mapTheme.markerAlpha, fit: 'contain' });
-      }
-
-      // Label background (Soft rounded card)
-      const labelText = zone.name;
-      ctx.font = '700 13px Outfit, sans-serif';
-      const textWidth = ctx.measureText(labelText).width;
-
-      const lx = zone.x + 8;
-      const ly = zone.y + 8;
-      const lw = textWidth + 18;
-      const lh = 24;
-      const lr = 4;
-
-      if (!drawExcavationMapRegion(ctx, excavationMapAssets, `${mapUiPackId}:pinnedFieldLabel`, { x: lx - 3, y: ly - 5, w: Math.max(lw + 20, 100), h: 38 }, { alpha: mapTheme.labelAssetAlpha, fit: 'cover' })) {
-        ctx.fillStyle = 'rgba(255, 248, 232, 0.9)';
-        fillRoundRect(lx, ly, lw, lh, lr);
-      }
-
-      ctx.fillStyle = mapTheme.labelText;
-      ctx.fillText(labelText, lx + 6, ly + 17);
-
-      const roomMarker = surveyedZones.has(zone.id)
-        ? `${markerPackId}:surveyedMarker`
-        : completedZoneChallenges.has(zone.id)
-          ? `${markerPackId}:surveyReadyMarker`
-          : `${markerPackId}:challengeRequiredMarker`;
-      const markerSize = zone.id === 'gate' ? 32 : 27;
-      drawExcavationMapRegion(ctx, excavationMapAssets, roomMarker, {
-        x: zone.x + zone.w - markerSize - 12,
-        y: zone.y + zone.h - markerSize - 10,
-        w: markerSize,
-        h: markerSize,
-      }, { alpha: mapTheme.markerAlpha, fit: 'contain' });
-
-      if (surveyZoneById[zone.id]) {
-        const sX = zone.x + 10;
-        const sY = zone.y + zone.h - 32;
-        const surveyLabelText = selectedSurveyZone === zone.id
-          ? 'Dig zone marked'
-          : surveyedZones.has(zone.id)
-            ? 'Surveyed'
-            : completedZoneChallenges.has(zone.id)
-              ? 'Survey ready'
-              : 'Check needed';
-        const tagWidth = selectedSurveyZone === zone.id ? 136 : 124;
-        const tagAsset = surveyedZones.has(zone.id) ? `${mapUiPackId}:surveyTag` : `${mapUiPackId}:pinnedFieldLabel`;
-        const drewTag = drawExcavationMapRegion(ctx, excavationMapAssets, tagAsset, { x: sX - 4, y: sY - 8, w: tagWidth, h: 42 }, { alpha: mapTheme.labelAssetAlpha, fit: 'cover' });
-        if (!drewTag) {
-          ctx.fillStyle = selectedSurveyZone === zone.id
-            ? 'rgba(45, 90, 39, 0.9)'
-            : 'rgba(74, 54, 32, 0.86)';
-          fillRoundRect(sX, sY, tagWidth - 8, 24, 4);
-        }
-        if (selectedSurveyZone === zone.id || surveyedZones.has(zone.id)) {
-          drawExcavationMapRegion(ctx, excavationMapAssets, selectedSurveyZone === zone.id ? `${mapUiPackId}:mapPin` : `${mapUiPackId}:completedSurveyStamp`, { x: sX + tagWidth - 36, y: sY - 12, w: 30, h: 30 }, { alpha: 0.88, fit: 'contain' });
-        } else if (completedZoneChallenges.has(zone.id)) {
-          drawExcavationMapRegion(ctx, excavationMapAssets, `${markerPackId}:neutralUnlockIcon`, { x: sX + tagWidth - 32, y: sY - 8, w: 24, h: 24 }, { alpha: 0.82, fit: 'contain' });
-        } else {
-          drawExcavationMapRegion(ctx, excavationMapAssets, `${markerPackId}:neutralQuestionIcon`, { x: sX + tagWidth - 32, y: sY - 8, w: 24, h: 24 }, { alpha: 0.82, fit: 'contain' });
-        }
-
-        ctx.fillStyle = selectedSurveyZone === zone.id ? mapTheme.selectedSurveyLabelText : mapTheme.surveyLabelText;
-        ctx.font = '800 11px Outfit, sans-serif';
-        ctx.fillText(surveyLabelText, sX + 10, sY + 16);
       }
     });
 
@@ -2631,6 +2567,73 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
       ctx.fillStyle = '#fff';
       ctx.fillText('YOU', player.x + 2, player.y + 15);
     }
+
+    // 10. Late Pass Overlays (Room labels, status markers, and survey tags float on top of everything)
+    mapZones.forEach((zone) => {
+      // Label background (Soft rounded card)
+      const labelText = zone.name;
+      ctx.font = '700 13px Outfit, sans-serif';
+      const textWidth = ctx.measureText(labelText).width;
+
+      const lx = zone.x + 8;
+      const ly = zone.y + 8;
+      const lw = textWidth + 18;
+      const lh = 24;
+      const lr = 4;
+
+      if (!drawExcavationMapRegion(ctx, excavationMapAssets, `${mapUiPackId}:pinnedFieldLabel`, { x: lx - 3, y: ly - 5, w: Math.max(lw + 20, 100), h: 38 }, { alpha: mapTheme.labelAssetAlpha, fit: 'cover' })) {
+        ctx.fillStyle = 'rgba(255, 248, 232, 0.9)';
+        fillRoundRect(lx, ly, lw, lh, lr);
+      }
+
+      ctx.fillStyle = mapTheme.labelText;
+      ctx.fillText(labelText, lx + 6, ly + 17);
+
+      const roomMarker = surveyedZones.has(zone.id)
+        ? `${markerPackId}:surveyedMarker`
+        : completedZoneChallenges.has(zone.id)
+          ? `${markerPackId}:surveyReadyMarker`
+          : `${markerPackId}:challengeRequiredMarker`;
+      const markerSize = zone.id === 'gate' ? 32 : 27;
+      drawExcavationMapRegion(ctx, excavationMapAssets, roomMarker, {
+        x: zone.x + zone.w - markerSize - 12,
+        y: zone.y + zone.h - markerSize - 10,
+        w: markerSize,
+        h: markerSize,
+      }, { alpha: mapTheme.markerAlpha, fit: 'contain' });
+
+      if (surveyZoneById[zone.id]) {
+        const sX = zone.x + 10;
+        const sY = zone.y + zone.h - 32;
+        const surveyLabelText = selectedSurveyZone === zone.id
+          ? 'Dig zone marked'
+          : surveyedZones.has(zone.id)
+            ? 'Surveyed'
+            : completedZoneChallenges.has(zone.id)
+              ? 'Survey ready'
+              : 'Check needed';
+        const tagWidth = selectedSurveyZone === zone.id ? 136 : 124;
+        const tagAsset = surveyedZones.has(zone.id) ? `${mapUiPackId}:surveyTag` : `${mapUiPackId}:pinnedFieldLabel`;
+        const drewTag = drawExcavationMapRegion(ctx, excavationMapAssets, tagAsset, { x: sX - 4, y: sY - 8, w: tagWidth, h: 42 }, { alpha: mapTheme.labelAssetAlpha, fit: 'cover' });
+        if (!drewTag) {
+          ctx.fillStyle = selectedSurveyZone === zone.id
+            ? 'rgba(45, 90, 39, 0.9)'
+            : 'rgba(74, 54, 32, 0.86)';
+          fillRoundRect(sX, sY, tagWidth - 8, 24, 4);
+        }
+        if (selectedSurveyZone === zone.id || surveyedZones.has(zone.id)) {
+          drawExcavationMapRegion(ctx, excavationMapAssets, selectedSurveyZone === zone.id ? `${mapUiPackId}:mapPin` : `${mapUiPackId}:completedSurveyStamp`, { x: sX + tagWidth - 36, y: sY - 12, w: 30, h: 30 }, { alpha: 0.88, fit: 'contain' });
+        } else if (completedZoneChallenges.has(zone.id)) {
+          drawExcavationMapRegion(ctx, excavationMapAssets, `${markerPackId}:neutralUnlockIcon`, { x: sX + tagWidth - 32, y: sY - 8, w: 24, h: 24 }, { alpha: 0.82, fit: 'contain' });
+        } else {
+          drawExcavationMapRegion(ctx, excavationMapAssets, `${markerPackId}:neutralQuestionIcon`, { x: sX + tagWidth - 32, y: sY - 8, w: 24, h: 24 }, { alpha: 0.82, fit: 'contain' });
+        }
+
+        ctx.fillStyle = selectedSurveyZone === zone.id ? mapTheme.selectedSurveyLabelText : mapTheme.surveyLabelText;
+        ctx.font = '800 11px Outfit, sans-serif';
+        ctx.fillText(surveyLabelText, sX + 10, sY + 16);
+      }
+    });
   }, [completedZoneChallenges, excavationMapAssets, gatewayPackId, gridZoneConfigs, mapHazards, mapTheme, mapUiPackId, mapWalls, mapZones, markerPackId, missionEvidenceCount, missionRequiredCount, openedGridSquares, roomMapPackId, selectedMapZone, selectedSurveyZone, surveyRevealLinks, surveyedZones, surveyZoneById, terrainByZone]);
 
   const update = useCallback((dt = 1 / 60) => {

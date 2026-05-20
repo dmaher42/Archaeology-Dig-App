@@ -317,7 +317,7 @@ const OPENING_SPHINX_SPRITE_BOSS_ID = 'ancient-construct';
 const OPENING_SPHINX_APPARITION_SRC = 'assets/expedition/bosses/opening-sphinx-apparition.png';
 const OPENING_SPHINX_SPRITE_VERSION = 'opening-sphinx-apparition-2026-05-19';
 const OPENING_SPHINX_SCREEN_Y_OFFSET = 112;
-const OPENING_SCARAB_SEAL_IMAGE_SRC = 'assets/expedition/environment/egypt-opening/scarab-seal-opening.png';
+const OPENING_SCARAB_SEAL_IMAGE_SRC = 'assets/expedition/environment/egypt-opening/scarab-seal-ground-embedded.png';
 const OPENING_PYRAMID_CLIMB_PACK_SRC = 'assets/expedition/environment/egypt-opening/pyramid-climb-pack.png';
 const OPENING_PYRAMID_FACADE_SRC = 'assets/expedition/environment/egypt-opening/opening-pyramid-facade.png';
 const OPENING_TRAP_DECAL_PACK_SRC = 'assets/expedition/environment/egypt-opening/opening-trap-decals.png';
@@ -328,7 +328,8 @@ const OPENING_CAMERA_REVEAL_HOLD_SECONDS = 0.18;
 const OPENING_PYRAMID_ASSET_VERSION = 'opening-pyramid-climb-pack-2026-05-18';
 const OPENING_PYRAMID_FACADE_VERSION = 'opening-pyramid-facade-2026-05-19';
 const OPENING_PYRAMID_FACADE_WORLD_LEFT_X = -82;
-const OPENING_PYRAMID_AIR_JUMP_MULTIPLIER = 1.18;
+const OPENING_PYRAMID_GROUND_JUMP_MULTIPLIER = 1.32;
+const OPENING_PYRAMID_AIR_JUMP_MULTIPLIER = 1.6;
 const OPENING_PYRAMID_AIR_JUMP_ASSIST_ZONE = {
   minX: 126,
   maxX: 1138,
@@ -3893,6 +3894,40 @@ export default function ExpeditionJourney({
     ctx.filter = 'sepia(4%) saturate(98%) brightness(91%) contrast(102%)';
     ctx.drawImage(facade.image, x, y, width, height);
     ctx.filter = 'none';
+    const summitCoverX = x + 980;
+    const summitCoverY = y + 4;
+    const stoneRows = [
+      { x: -28, y: 60, w: 142, h: 22, color: '#8b5a2f' },
+      { x: -18, y: 39, w: 120, h: 23, color: '#9b6535' },
+      { x: -4, y: 18, w: 92, h: 23, color: '#a66d39' },
+      { x: 15, y: -2, w: 58, h: 22, color: '#b57b45' },
+    ];
+    ctx.save();
+    ctx.globalAlpha = 0.96;
+    stoneRows.forEach((stone, rowIndex) => {
+      const segments = rowIndex === 0 ? 4 : rowIndex === 1 ? 3 : 2;
+      const segmentWidth = stone.w / segments;
+      for (let i = 0; i < segments; i += 1) {
+        const sx = summitCoverX + stone.x + i * segmentWidth;
+        const sy = summitCoverY + stone.y + (i % 2) * 1.5;
+        const gradient = ctx.createLinearGradient(sx, sy, sx, sy + stone.h);
+        gradient.addColorStop(0, '#d6a562');
+        gradient.addColorStop(0.46, stone.color);
+        gradient.addColorStop(1, '#5f3b22');
+        ctx.fillStyle = gradient;
+        ctx.strokeStyle = 'rgba(58, 35, 18, 0.58)';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.roundRect(sx, sy, segmentWidth + 1, stone.h, 3);
+        ctx.fill();
+        ctx.stroke();
+      }
+    });
+    ctx.fillStyle = 'rgba(83, 48, 24, 0.22)';
+    ctx.beginPath();
+    ctx.ellipse(summitCoverX + 41, summitCoverY + 64, 70, 9, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
     const baseFade = ctx.createLinearGradient(0, GROUND_Y - 52, 0, GROUND_Y + 24);
     baseFade.addColorStop(0, 'rgba(171, 103, 42, 0)');
     baseFade.addColorStop(0.74, 'rgba(171, 103, 42, 0.24)');
@@ -3992,33 +4027,6 @@ export default function ExpeditionJourney({
       width: 54,
       height: 120,
     }, { alpha: 0.6, filter: 'sepia(8%) saturate(86%) brightness(80%) contrast(96%)' });
-
-    const stagedPromiseX = worldToScreenX(980, cameraX);
-    if (stagedPromiseX > -120 && stagedPromiseX < CANVAS_WIDTH + 120) {
-      ctx.save();
-      const beaconY = openingJourneyY(96);
-      const glow = ctx.createRadialGradient(stagedPromiseX, beaconY, 12, stagedPromiseX, beaconY, 86);
-      glow.addColorStop(0, 'rgba(56, 189, 248, 0.34)');
-      glow.addColorStop(0.34, 'rgba(250, 204, 21, 0.22)');
-      glow.addColorStop(1, 'rgba(250, 204, 21, 0)');
-      ctx.fillStyle = glow;
-      ctx.beginPath();
-      ctx.ellipse(stagedPromiseX, beaconY, 82, 92, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-      drawOpeningPyramidAssetRegion(ctx, 'pedestal', {
-        x: stagedPromiseX - 46,
-        y: openingJourneyY(112),
-        width: 92,
-        height: 72,
-      }, { alpha: 0.72, filter: 'sepia(8%) saturate(88%) brightness(82%) contrast(98%)' });
-      drawOpeningPyramidAssetRegion(ctx, 'seal', {
-        x: stagedPromiseX - 27,
-        y: beaconY - 31,
-        width: 54,
-        height: 54,
-      }, { alpha: 0.88, filter: 'saturate(112%) brightness(108%) contrast(104%)' });
-    }
 
     const lowerX = worldToScreenX(scaleJourneyX(110), cameraX);
     drawOpeningPyramidAssetRegion(ctx, 'carvedColumn', {
@@ -4560,87 +4568,11 @@ export default function ExpeditionJourney({
 
     ctx.save();
     const section = getSectionForX(prop.x);
-    const scarabSealActivated = Boolean(stateRef.current.scarabSealActivated);
-    if (prop.id === 'early-scarab-seal-pedestal') {
-      const baseY = prop.y;
-      drawContactShadow(ctx, x, baseY + 3, 54, 0.14, 1.1);
-      drawDecorativeBaseBlend(ctx, x, baseY + 2, 58, section.id, propDepth, 0.6);
-      if (openingPyramidClimbPackRef.current.loaded) {
-        drawOpeningPyramidAssetRegion(ctx, 'pedestal', {
-          x: x - 45,
-          y: baseY - 48,
-          width: 90,
-          height: 72,
-        }, { alpha: 0.96 });
-        ctx.restore();
-        return;
-      }
-      ctx.fillStyle = 'rgba(96, 58, 28, 0.76)';
-      ctx.beginPath();
-      ctx.roundRect(x - 28, baseY - 18, 56, 18, 4);
-      ctx.fill();
-      ctx.fillStyle = 'rgba(181, 128, 58, 0.72)';
-      ctx.beginPath();
-      ctx.roundRect(x - 22, baseY - 28, 44, 12, 4);
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(14, 116, 144, 0.42)';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(x - 18, baseY - 21);
-      ctx.lineTo(x + 18, baseY - 21);
-      ctx.stroke();
+    if (prop.id === 'early-scarab-seal-pedestal' || prop.id === 'early-scarab-seal') {
       ctx.restore();
       return;
     }
-    if (prop.id === 'early-scarab-seal') {
-      const sealImage = openingScarabSealImageRef.current;
-      const pulse = scarabSealActivated ? 0.82 + Math.sin(now / 180) * 0.16 : 0.58 + Math.sin(now / 420) * 0.08;
-      const glowColor = scarabSealActivated ? 'rgba(56, 189, 248,' : 'rgba(250, 204, 21,';
-      ctx.fillStyle = `${glowColor} ${0.18 + pulse * 0.18})`;
-      ctx.beginPath();
-      ctx.arc(x, prop.y, scarabSealActivated ? 26 : 20, 0, Math.PI * 2);
-      ctx.fill();
-      if (openingPyramidClimbPackRef.current.loaded) {
-        const drawSize = scarabSealActivated ? 54 : 48;
-        drawOpeningPyramidAssetRegion(ctx, 'seal', {
-          x: x - drawSize / 2,
-          y: prop.y - drawSize / 2,
-          width: drawSize,
-          height: drawSize,
-        }, { alpha: 1 });
-        ctx.restore();
-        return;
-      }
-      if (sealImage.loaded && sealImage.image) {
-        const drawSize = scarabSealActivated ? 44 : 38;
-        ctx.drawImage(sealImage.image, x - drawSize / 2, prop.y - drawSize / 2, drawSize, drawSize);
-        ctx.restore();
-        return;
-      }
-      ctx.fillStyle = scarabSealActivated ? '#67e8f9' : '#facc15';
-      ctx.beginPath();
-      ctx.ellipse(x, prop.y, 12, 16, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = scarabSealActivated ? '#0e7490' : '#7c4a12';
-      ctx.beginPath();
-      ctx.ellipse(x, prop.y - 2, 7, 10, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(15, 23, 42, 0.72)';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(x - 14, prop.y - 4);
-      ctx.lineTo(x + 14, prop.y - 4);
-      ctx.moveTo(x - 10, prop.y + 6);
-      ctx.lineTo(x + 10, prop.y + 6);
-      ctx.stroke();
-      ctx.restore();
-      return;
-    }
-    const propForAsset = prop.id === 'early-scarab-seal' && scarabSealActivated
-      ? { ...prop, type: 'guardian-seal-activated' }
-      : prop.id === 'early-scarab-seal-pedestal' && scarabSealActivated
-        ? { ...prop, type: 'sacred-pedestal-activated' }
-        : prop;
+    const propForAsset = prop;
     const sacredTrapPropAssetKey = SACRED_DEFENCE_STORY_PROP_IDS.has(prop.id)
       ? getEnvironmentAssetKeyForStoryProp(propForAsset, ENVIRONMENT_ASSET_PACK_IDS.EGYPT_SACRED_TRAPS)
       : null;
@@ -5009,7 +4941,7 @@ export default function ExpeditionJourney({
       ctx.fill();
     }
     ctx.restore();
-  }, [drawContactShadow, drawDecorativeBaseBlend, drawForegroundSettlingDetails, drawGroundDustLip, drawOpeningPyramidAssetRegion]);
+  }, [drawContactShadow, drawDecorativeBaseBlend, drawForegroundSettlingDetails, drawGroundDustLip]);
 
   const drawWorldContinuityLandmark = useCallback((ctx, landmark, cameraX, now) => {
     const parallax = landmark.parallax ?? 0.2;
@@ -6609,6 +6541,32 @@ export default function ExpeditionJourney({
     }
     if (dustWidth > 0) {
       drawGroundDustLip(ctx, centerX, footY + 1, dustWidth, 'rgba(122, 78, 37, 0.16)');
+    }
+    if (hazard.id === 'opening-seal-reset-trap') {
+      const trapSealImage = openingScarabSealImageRef.current;
+      if (trapSealImage.loaded && trapSealImage.image) {
+        const drawWidth = hazard.width + 72;
+        const drawHeight = Math.round(drawWidth * (trapSealImage.image.naturalHeight / trapSealImage.image.naturalWidth));
+        const drawX = centerX - drawWidth / 2;
+        const drawY = footY - drawHeight + 18;
+        ctx.save();
+        ctx.globalAlpha = hitActive ? 1 : 0.96;
+        ctx.filter = hitActive ? 'saturate(124%) brightness(108%)' : 'sepia(4%) saturate(106%) brightness(98%)';
+        ctx.drawImage(trapSealImage.image, drawX, drawY, drawWidth, drawHeight);
+        ctx.restore();
+        drawGroundDustLip(ctx, centerX, footY + 2, drawWidth * 0.76, 'rgba(209, 143, 72, 0.24)');
+        if (hitActive) {
+          ctx.save();
+          ctx.strokeStyle = 'rgba(248, 113, 113, 0.78)';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.ellipse(centerX, footY - 24, drawWidth * 0.38, Math.max(10, drawHeight * 0.2), 0, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+        }
+        ctx.restore();
+        return;
+      }
     }
     if (decalDescriptor) {
       const warningAlpha = hitActive ? 0.34 : 0.16 + pulse * 0.06;
@@ -8447,6 +8405,11 @@ export default function ExpeditionJourney({
     const jumpPressed = jump && !keys.jumpHeld;
     if (jumpPressed) player.jumpBufferTimer = JUMP_BUFFER_TIME;
     const canGroundJump = player.jumpBufferTimer > 0 && (player.onGround || player.coyoteTimer > 0);
+    const openingPyramidGroundJumpMultiplier = canGroundJump
+      && !current.collectedUpgrades.has('rope-launcher')
+      && isOpeningPyramidAirJumpAssistAvailable(current, player, targetCivilisation)
+      ? OPENING_PYRAMID_GROUND_JUMP_MULTIPLIER
+      : 1;
     const openingPyramidAssistJump = player.jumpBufferTimer > 0
       && !canGroundJump
       && !current.collectedUpgrades.has('rope-launcher')
@@ -8455,7 +8418,7 @@ export default function ExpeditionJourney({
     current.openingPyramidAssistJumpAvailable = openingPyramidAssistJump;
     const canRopeJump = player.jumpBufferTimer > 0 && !canGroundJump && current.collectedUpgrades.has('rope-launcher') && player.airJumpsUsed < 1;
     if (canGroundJump) {
-      player.vy = -JUMP_SPEED * (upgradeEffects.jumpMultiplier || 1);
+      player.vy = -JUMP_SPEED * (upgradeEffects.jumpMultiplier || 1) * openingPyramidGroundJumpMultiplier;
       player.onGround = false;
       player.coyoteTimer = 0;
       player.jumpBufferTimer = 0;
