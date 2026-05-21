@@ -2837,6 +2837,15 @@ Remaining notes:
 - Extended regression coverage and the browser audio smoke to include the new trap cues.
 - Verification passed: Journey secrets test, lint, production build, and `output/combat-audio-smoke/combat-audio-smoke.cjs`.
 
+## 2026-05-21 Regenerated Journey trap assets
+
+- Abandoned the Gemini JPG crop-cleaning path because the sheet backgrounds were too destructive for clean trap sprites.
+- Generated a purpose-built Ancient Egyptian trap sprite sheet with spike trap, pressure plate, cracked floor, scarab seal trap, glyph tripwire, sand pit, falling stone, and rubble slope assets.
+- Saved the generated source at `public/assets/expedition/environment/egypt-opening/egypt-trap-hazards-generated-source.png` and used chroma-key removal to build clean transparent atlas slots.
+- Rebuilt the existing `opening-trap-decals.png` and trap-like slots in `opening-hazard-decals.png` instead of adding a duplicate hazard renderer.
+- Added a dedicated `spikeTrap` region and mapped `spike-trap` to it, so spike hazards no longer reuse pressure-plate art.
+- Verification passed: alpha/corner asset validation, Journey secrets test, lint, and production build.
+
 ## 2026-05-21 Enemy asset layout scale pass
 
 - Completed a narrow pass on the oversized Journey enemy foreground assets shown in the boss/encounter screenshots.
@@ -2867,3 +2876,23 @@ Remaining notes:
 - Added non-colliding atmosphere props across desert entry, ruined temple, catacombs, escape, and dig-site sections: jars, chests, scrolls, coins, rubble, dust, broken columns, torches, door frames, and seal panels.
 - Browser-checked the live Journey route at multiple debug positions and tightened the cutouts after the first pass showed visible sheet-background haze.
 - Verification passed: Journey secrets tests, lint, production build, `git diff --check`, and local browser screenshots in `output/atmosphere-*.png`.
+
+## 2026-05-21 Permanent floor grounding for atmosphere props
+
+- Fixed the floating look on small atmosphere assets by making jars, chests, coins, scrolls, rubble, fallen columns, and cap pieces ground-locked by asset role rather than tuned per prop.
+- Added a dedicated `grounded` story-prop depth drawn after the route ground, so small floor objects share the same floor plane as the player/enemies instead of behaving like distant background dressing.
+- The renderer now lifts these assets into the floor plane automatically using a central allow-list, stronger contact shadows, and sand burial rules; future props using those asset keys inherit the fix.
+- Verification passed: Journey secrets tests, lint, production build, `git diff --check`, and a browser camera-movement smoke with screenshots in `output/ground-lock-jars-camera-*.png`.
+
+## 2026-05-21 Route ground haze fix
+
+- Removed the full-height bottom route wash from the Journey ground renderer after it showed as a visible haze band across the lower screen.
+- Replaced it with a narrow floor-edge band plus the existing local ground aprons around checkpoints and platforms, so grounding still reads without tinting the full bottom of the canvas.
+- Added render debug/version fields and regression coverage to keep the fix permanent rather than tuned per camera position or prop.
+
+## 2026-05-21 Journey flag removal
+
+- Removed the yellow route flag visuals from the existing Journey story-prop renderer by disabling the flag marker draw path centrally.
+- Disabled checkpoint flag sprites as well, leaving checkpoint gameplay, labels, rescue logic, and the existing stone/cairn fallback intact.
+- Disabled the ambient-life flutter pennants that were separately painting yellow flags over the desert and temple route.
+- Added render debug fields and regression coverage so the route stays flag-free without deleting marker assets that may still be useful elsewhere.

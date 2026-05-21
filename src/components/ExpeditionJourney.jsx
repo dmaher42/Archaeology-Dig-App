@@ -348,7 +348,7 @@ const OPENING_PYRAMID_AIR_JUMP_ASSIST_ZONE = {
   minFootY: 90,
   maxFootY: 570,
 };
-const OPENING_TRAP_DECAL_ASSET_VERSION = 'egypt-trap-hazard-decal-packs-2026-05-19';
+const OPENING_TRAP_DECAL_ASSET_VERSION = 'egypt-trap-hazard-generated-packs-2026-05-21';
 const OPENING_PYRAMID_ASSET_REGIONS = {
   leftStairFace: { x: 24, y: 419, w: 430, h: 160 },
   rightStairFace: { x: 486, y: 418, w: 402, h: 164 },
@@ -363,7 +363,8 @@ const OPENING_PYRAMID_ASSET_REGIONS = {
   dust: { x: 953, y: 884, w: 250, h: 60 },
 };
 const OPENING_TRAP_DECAL_REGIONS = {
-  pressurePlate: { x: 54, y: 135, w: 382, h: 286 },
+  spikeTrap: { x: 36, y: 78, w: 430, h: 196 },
+  pressurePlate: { x: 54, y: 300, w: 382, h: 132 },
   crackedFloor: { x: 558, y: 130, w: 376, h: 286 },
   scarabSealTrap: { x: 1012, y: 118, w: 438, h: 316 },
   glyphTripwire: { x: 44, y: 640, w: 466, h: 186 },
@@ -389,7 +390,7 @@ const OPENING_TRAP_DECAL_BY_HAZARD = {
   'opening-seal-reset-trap': 'scarabSealTrap',
   'temple-threshold-hairline-crack': 'crackedFloor',
   'temple-floor-crack': 'crackedFloor',
-  'spike-trap': 'pressurePlate',
+  'spike-trap': 'spikeTrap',
   'temple-loose-step': 'crackedFloor',
   'sand-pit': 'softSandPit',
   'desert-low-ridge': 'softSandPit',
@@ -421,6 +422,7 @@ const OPENING_HAZARD_DECAL_BY_HAZARD = {
   'escape-cracked-step': 'fallingStoneWarning',
 };
 const EGYPT_HAZARD_DECAL_PLACEMENT = {
+  spikeTrap: { xPad: 28, widthPad: 56, height: 82, footInset: 0 },
   pressurePlate: { xPad: 14, widthPad: 28, height: 74, footInset: 2 },
   crackedFloor: { xPad: 16, widthPad: 32, height: 62, footInset: 14 },
   scarabSealTrap: { xPad: 22, widthPad: 44, height: 94, footInset: 3 },
@@ -1443,20 +1445,45 @@ const SACRED_DEFENCE_STORY_PROP_IDS = new Set([
   'guardian-seal-passive',
 ]);
 
-const getStoryPropDepth = (prop) => (
-  STORY_PROP_GROUNDING_OVERRIDES[prop.id]?.depth
-  || (PROP_GROUNDING_CONFIG[prop.type] || {}).depth
-  || 'midground'
+const ATMOSPHERE_GROUND_LOCK_MARGIN = 5;
+const ATMOSPHERE_GROUND_LOCKED_ASSET_KEYS = new Set([
+  'supplyJars',
+  'fieldChest',
+  'coinPile',
+  'scrollCache',
+  'rubbleScatter',
+  'rubbleDustSmall',
+  'fallenColumn',
+  'pillarCaps',
+]);
+
+const isGroundLockedAtmosphereProp = (prop) => (
+  prop?.type === 'atmosphere-prop'
+  && ATMOSPHERE_GROUND_LOCKED_ASSET_KEYS.has(prop.atmosphereAssetKey)
 );
 
-const DECORATIVE_PROP_LAYER_MODE = 'background-midground-depth-v2';
-const PROP_DEPTH_TUNING_VERSION = 'journey-decorative-depth-2026-05-12';
+const getStoryPropDepth = (prop) => {
+  if (isGroundLockedAtmosphereProp(prop)) return 'grounded';
+  return STORY_PROP_GROUNDING_OVERRIDES[prop.id]?.depth
+    || (PROP_GROUNDING_CONFIG[prop.type] || {}).depth
+    || 'midground';
+};
+
+const DECORATIVE_PROP_LAYER_MODE = 'background-midground-grounded-depth-v3';
+const PROP_DEPTH_TUNING_VERSION = 'journey-ground-locked-atmosphere-props-2026-05-21';
+const ROUTE_GROUND_VISUAL_MODE = 'edge-and-local-aprons-no-full-width-haze';
+const ROUTE_GROUND_HAZE_FIX_VERSION = 'route-ground-no-bottom-haze-2026-05-21';
+const DRAW_JOURNEY_FLAG_MARKERS = false;
+const JOURNEY_FLAG_VISUAL_MODE = 'flags-removed-stone-cairns-v1';
 const WORLD_CONTINUITY_VERSION = 'connected-expedition-world-2026-05-16';
 const REACTIVE_ENVIRONMENT_VERSION = 'reactive-expedition-world-2026-05-16';
 const DYNAMIC_WORLD_VERSION = 'dynamic-expedition-world-storytelling-2026-05-16';
 const DISCOVERY_ENTRANCE_REVEAL_SECONDS = 2.2;
 
 const SECTION_PARALLAX_LAYERS = {
+  'desert-entry': [
+    { key: 'foregroundParallax', y: 0, height: CANVAS_HEIGHT, parallax: 0.18, alpha: 0.92, foreground: true },
+  ],
   'ruined-temple': [
     { key: 'templeSky', y: 0, height: CANVAS_HEIGHT, parallax: 0, alpha: 1 },
   ],
@@ -2733,12 +2760,18 @@ export default function ExpeditionJourney({
       assetGroundingVersion: JOURNEY_ASSET_GROUNDING_VERSION,
       groundedPropCount: renderStats.groundedPropCount || 0,
       atmospherePropCount: renderStats.atmospherePropCount || 0,
+      groundLockedAtmospherePropCount: renderStats.groundLockedAtmospherePropCount || 0,
       atmosphereAssetVersion: EGYPT_ATMOSPHERE_ASSET_VERSION,
+      atmosphereGroundingMode: renderStats.atmosphereGroundingMode || 'ground-locked-floor-assets',
       backgroundPropTintActive: Boolean(renderStats.backgroundPropTintActive),
       platformGroundingMode: renderStats.platformGroundingMode || 'contact-shadow-ledges',
       propDrawOrderMode: renderStats.propDrawOrderMode || DECORATIVE_PROP_LAYER_MODE,
       decorativePropLayerMode: renderStats.decorativePropLayerMode || DECORATIVE_PROP_LAYER_MODE,
       propDepthTuningVersion: renderStats.propDepthTuningVersion || PROP_DEPTH_TUNING_VERSION,
+      routeGroundVisualMode: renderStats.routeGroundVisualMode || ROUTE_GROUND_VISUAL_MODE,
+      routeGroundHazeFixVersion: renderStats.routeGroundHazeFixVersion || ROUTE_GROUND_HAZE_FIX_VERSION,
+      journeyFlagVisualMode: renderStats.journeyFlagVisualMode || JOURNEY_FLAG_VISUAL_MODE,
+      removedRouteFlagCount: renderStats.removedRouteFlagCount || 0,
       floatingAssetWarnings: renderStats.floatingAssetWarnings || [],
       desertBackgroundAssetsLoaded: Boolean(desertPack?.loaded),
       desertBackgroundAssetsReady: Boolean(desertPack?.ready),
@@ -3936,37 +3969,34 @@ export default function ExpeditionJourney({
   const drawAncientRouteGround = useCallback((ctx, section, cameraX, now, current) => {
     const isCatacombs = section.id === 'catacombs';
     const isEscape = section.id === 'escape-sequence';
-    const pathTop = GROUND_Y - (isCatacombs ? 24 : 28);
-    const pathBottom = CANVAS_HEIGHT;
-    const routeGradient = ctx.createLinearGradient(0, pathTop - 20, 0, pathBottom);
+    const floorBandTop = GROUND_Y - (isCatacombs ? 18 : 20);
+    const floorBandBottom = GROUND_Y + (isCatacombs ? 16 : 18);
+    const routeGradient = ctx.createLinearGradient(0, floorBandTop - 8, 0, floorBandBottom);
     if (isCatacombs) {
       routeGradient.addColorStop(0, 'rgba(78, 60, 42, 0)');
-      routeGradient.addColorStop(0.16, 'rgba(78, 60, 42, 0.34)');
-      routeGradient.addColorStop(0.62, 'rgba(57, 42, 29, 0.66)');
-      routeGradient.addColorStop(1, 'rgba(32, 23, 16, 0.84)');
+      routeGradient.addColorStop(0.36, 'rgba(78, 60, 42, 0.2)');
+      routeGradient.addColorStop(1, 'rgba(39, 28, 20, 0.34)');
     } else if (isEscape) {
       routeGradient.addColorStop(0, 'rgba(174, 96, 39, 0)');
-      routeGradient.addColorStop(0.16, 'rgba(174, 96, 39, 0.28)');
-      routeGradient.addColorStop(0.62, 'rgba(129, 73, 34, 0.58)');
-      routeGradient.addColorStop(1, 'rgba(76, 43, 22, 0.76)');
+      routeGradient.addColorStop(0.34, 'rgba(174, 96, 39, 0.18)');
+      routeGradient.addColorStop(1, 'rgba(91, 50, 25, 0.3)');
     } else {
       routeGradient.addColorStop(0, 'rgba(214, 145, 66, 0)');
-      routeGradient.addColorStop(0.15, 'rgba(214, 145, 66, 0.28)');
-      routeGradient.addColorStop(0.58, 'rgba(181, 111, 47, 0.52)');
-      routeGradient.addColorStop(1, 'rgba(98, 56, 24, 0.72)');
+      routeGradient.addColorStop(0.34, 'rgba(214, 145, 66, 0.16)');
+      routeGradient.addColorStop(1, 'rgba(121, 69, 30, 0.28)');
     }
 
     ctx.save();
     ctx.fillStyle = routeGradient;
     ctx.beginPath();
-    ctx.moveTo(0, pathBottom);
-    ctx.lineTo(0, pathTop + Math.sin(cameraX * 0.006) * 2);
+    ctx.moveTo(0, floorBandBottom);
+    ctx.lineTo(0, floorBandTop + Math.sin(cameraX * 0.006) * 2);
     for (let sx = 0; sx <= CANVAS_WIDTH + 32; sx += 32) {
       const worldX = cameraX + sx;
       const wave = Math.sin(worldX * 0.009) * 3 + Math.cos(worldX * 0.004) * 4;
-      ctx.lineTo(sx, pathTop + wave);
+      ctx.lineTo(sx, floorBandTop + wave);
     }
-    ctx.lineTo(CANVAS_WIDTH, pathBottom);
+    ctx.lineTo(CANVAS_WIDTH, floorBandBottom);
     ctx.closePath();
     ctx.fill();
 
@@ -3976,7 +4006,7 @@ export default function ExpeditionJourney({
     ctx.beginPath();
     for (let sx = -12; sx <= CANVAS_WIDTH + 12; sx += 36) {
       const worldX = cameraX + sx;
-      const y = pathTop + 5 + Math.sin(worldX * 0.01) * 2;
+      const y = floorBandTop + 5 + Math.sin(worldX * 0.01) * 2;
       if (sx === -12) ctx.moveTo(sx, y);
       else ctx.lineTo(sx, y);
     }
@@ -4009,7 +4039,10 @@ export default function ExpeditionJourney({
       drawRouteGroundApron(ctx, sx, GROUND_Y - 3, item.width, section.id, item.kind === 'checkpoint' ? 0.82 : 0.56, Math.round(item.x));
     });
 
-    if (current.renderStats) current.renderStats.routeGroundVisualMode = 'wide-sand-stone-apron';
+    if (current.renderStats) {
+      current.renderStats.routeGroundVisualMode = ROUTE_GROUND_VISUAL_MODE;
+      current.renderStats.routeGroundHazeFixVersion = ROUTE_GROUND_HAZE_FIX_VERSION;
+    }
     ctx.restore();
   }, [drawRouteGroundApron]);
 
@@ -5206,14 +5239,24 @@ export default function ExpeditionJourney({
         ...(propForAsset.depth ? { depth: propForAsset.depth } : {}),
         ...(propForAsset.tint ? { tint: propForAsset.tint } : {}),
       };
+      if (propDepth === 'grounded') {
+        propSize.depth = 'grounded';
+        propSize.alpha = Math.max(propSize.alpha ?? 0.82, 0.86);
+        propSize.shadow = Math.max(propSize.shadow ?? 0.14, 0.2);
+        propSize.dust = Math.max(propSize.dust ?? 0.72, 0.84);
+        propSize.bury = Math.max(propSize.bury ?? 0.12, 0.2);
+      }
       const propAssets = sacredTrapPropAssetKey
         ? sacredTrapEnvironmentAssetsRef.current
         : atmospherePropAssetKey
           ? atmosphereEnvironmentAssetsRef.current
           : environmentAssetsRef.current;
       const drawX = x - propSize.width / 2;
-      const drawY = prop.y - propSize.height + propSize.yOffset;
-      const anchorY = drawY + propSize.height;
+      const rawAnchorY = prop.y + (propSize.yOffset || 0);
+      const anchorY = propDepth === 'grounded'
+        ? Math.max(rawAnchorY, GROUND_Y - ATMOSPHERE_GROUND_LOCK_MARGIN)
+        : rawAnchorY;
+      const drawY = anchorY - propSize.height;
       const dustWidth = propSize.width * (propSize.dust ?? 0.62);
       drawContactShadow(ctx, x, anchorY + 2, propSize.width * (propSize.depth === 'background' ? 0.62 : 0.86), propSize.shadow ?? (propSize.depth === 'background' ? 0.1 : 0.22), 1.4);
       drawDecorativeBaseBlend(ctx, x, anchorY + 2, dustWidth, section.id, propSize.depth, propSize.depth === 'background' ? 0.72 : 0.9);
@@ -5263,7 +5306,10 @@ export default function ExpeditionJourney({
           drawGroundDustLip(ctx, x, anchorY - buryHeight * 0.52, dustWidth * 0.68, 'rgba(231, 172, 91, 0.34)');
         }
         if (stateRef.current.renderStats) stateRef.current.renderStats.groundedPropCount += 1;
-        if (atmospherePropAssetKey && stateRef.current.renderStats) stateRef.current.renderStats.atmospherePropCount += 1;
+        if (atmospherePropAssetKey && stateRef.current.renderStats) {
+          stateRef.current.renderStats.atmospherePropCount += 1;
+          if (propDepth === 'grounded') stateRef.current.renderStats.groundLockedAtmospherePropCount += 1;
+        }
         ctx.restore();
         return;
       }
@@ -5431,6 +5477,14 @@ export default function ExpeditionJourney({
       return;
     }
     if (prop.type === 'sign') {
+      if (!DRAW_JOURNEY_FLAG_MARKERS) {
+        if (stateRef.current.renderStats) {
+          stateRef.current.renderStats.journeyFlagVisualMode = JOURNEY_FLAG_VISUAL_MODE;
+          stateRef.current.renderStats.removedRouteFlagCount += 1;
+        }
+        ctx.restore();
+        return;
+      }
       const flagHeight = 104;
       const flagWidth = 96;
       const flagBaseY = prop.y + 42;
@@ -6466,6 +6520,13 @@ export default function ExpeditionJourney({
       ctx.restore();
     };
     const drawFlutterPennant = (worldX, y, color = '#facc15') => {
+      if (!DRAW_JOURNEY_FLAG_MARKERS) {
+        if (stats) {
+          stats.journeyFlagVisualMode = JOURNEY_FLAG_VISUAL_MODE;
+          stats.removedRouteFlagCount += 1;
+        }
+        return;
+      }
       const x = worldToScreenX(worldX, cameraX);
       if (x < -80 || x > CANVAS_WIDTH + 80) return;
       activeDetails += 1;
@@ -6765,13 +6826,14 @@ export default function ExpeditionJourney({
 
     const layerOptions = { canvasWidth: CANVAS_WIDTH, cameraX };
     if (assets.atlas?.runtimeMode === 'single-composited-backdrop') {
-      return drawDesertBackgroundLayer(
+      const backdropDrawn = drawDesertBackgroundLayer(
         ctx,
         assets,
         'sky',
         { y: 0, height: CANVAS_HEIGHT },
         { ...layerOptions, parallax: 0, alpha: 1 },
       );
+      return backdropDrawn;
     }
 
     const drawn = [
@@ -6994,7 +7056,15 @@ export default function ExpeditionJourney({
     const isNearDesertEntry = section.id === 'desert-entry';
     const assets = getSectionBackgroundAssets(desertBackgroundAssetsRef.current, 'desert-entry');
     if (!isNearDesertEntry || !assets?.ready) return false;
-    if (assets.atlas?.runtimeMode === 'single-composited-backdrop') return false;
+    if (assets.atlas?.runtimeMode === 'single-composited-backdrop') {
+      return drawDesertBackgroundLayer(
+        ctx,
+        assets,
+        'dustOverlay',
+        { y: 0, height: CANVAS_HEIGHT },
+        { canvasWidth: CANVAS_WIDTH, cameraX, parallax: 0.14, alpha: 0.16 },
+      );
+    }
     const layerOptions = { canvasWidth: CANVAS_WIDTH, cameraX };
     const dustDrawn = drawDesertBackgroundLayer(
       ctx,
@@ -8479,13 +8549,19 @@ export default function ExpeditionJourney({
       assetGroundingPassActive: true,
       groundedPropCount: 0,
       atmospherePropCount: 0,
+      groundLockedAtmospherePropCount: 0,
       atmosphereAssetVersion: EGYPT_ATMOSPHERE_ASSET_VERSION,
       atmosphereAssetLoaded: atmosphereEnvironmentAssetsRef.current.loaded,
+      atmosphereGroundingMode: 'ground-locked-floor-assets',
       backgroundPropTintActive: true,
       platformGroundingMode: 'contact-shadow-ledges',
       propDrawOrderMode: DECORATIVE_PROP_LAYER_MODE,
       decorativePropLayerMode: DECORATIVE_PROP_LAYER_MODE,
       propDepthTuningVersion: PROP_DEPTH_TUNING_VERSION,
+      routeGroundVisualMode: ROUTE_GROUND_VISUAL_MODE,
+      routeGroundHazeFixVersion: ROUTE_GROUND_HAZE_FIX_VERSION,
+      journeyFlagVisualMode: JOURNEY_FLAG_VISUAL_MODE,
+      removedRouteFlagCount: 0,
       floatingAssetWarnings: [],
       assetGroundingVersion: JOURNEY_ASSET_GROUNDING_VERSION,
       visibleEnemySpriteFamilies: [],
@@ -8597,6 +8673,7 @@ export default function ExpeditionJourney({
       });
     drawDynamicEnvironmentEvent(ctx, current.dynamicEnvironmentEvent, cameraX, now, current.dynamicEnvironmentEventTimer);
     drawAncientRouteGround(ctx, section, cameraX, now, current);
+    STORY_PROPS.forEach((prop) => drawStoryProp(ctx, prop, cameraX, now, 'grounded'));
 
     const activeBossDomain = current.bossDomain
       && !current.defeatedMiniBosses.has(current.bossDomain.bossId)
@@ -8690,7 +8767,7 @@ export default function ExpeditionJourney({
         ctx.restore();
         return;
       }
-      const checkpointDrawn = drawMarkerSprite(
+      const checkpointDrawn = DRAW_JOURNEY_FLAG_MARKERS && drawMarkerSprite(
           ctx,
           markerSpriteAssetsRef.current,
           'checkpoint',

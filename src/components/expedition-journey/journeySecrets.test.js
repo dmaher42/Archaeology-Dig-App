@@ -735,13 +735,19 @@ test('Egypt Journey uses the Asha atlas through the existing player renderer', (
   assert.match(journeyComponentSource, /lastSwingFrame/);
 });
 
-test('Egypt Journey uses purpose-built marker sprites for checkpoints and route flags', () => {
+test('Egypt Journey keeps marker assets available but removes flag visuals from the route', () => {
   assert.match(journeyMarkerSpritesSource, /MARKER_SPRITE_ATLAS_JSON/);
   assert.match(journeyMarkerSpritesSource, /egypt-checkpoint-flag-sprites\.json/);
   assert.ok(egyptMarkerAtlas.regions.checkpoint_00);
   assert.ok(egyptMarkerAtlas.regions.flag_00);
   assert.match(journeyComponentSource, /loadMarkerSpritePack/);
-  assert.match(journeyComponentSource, /drawMarkerSprite\([\s\S]*?'checkpoint'/);
+  assert.match(journeyComponentSource, /DRAW_JOURNEY_FLAG_MARKERS = false/);
+  assert.match(journeyComponentSource, /JOURNEY_FLAG_VISUAL_MODE = 'flags-removed-stone-cairns-v1'/);
+  assert.match(journeyComponentSource, /if \(!DRAW_JOURNEY_FLAG_MARKERS\) \{[\s\S]*?removedRouteFlagCount \+= 1/);
+  assert.match(journeyComponentSource, /const drawFlutterPennant = \(worldX, y, color = '#facc15'\) => \{[\s\S]*?if \(!DRAW_JOURNEY_FLAG_MARKERS\)/);
+  assert.match(journeyComponentSource, /const checkpointDrawn = DRAW_JOURNEY_FLAG_MARKERS && drawMarkerSprite\(/);
+  assert.match(journeyComponentSource, /journeyFlagVisualMode/);
+  assert.match(journeyComponentSource, /removedRouteFlagCount/);
   assert.match(journeyComponentSource, /drawMarkerSprite\([\s\S]*?'flag'/);
   assert.match(journeyComponentSource, /fixedPoleRegion[\s\S]*?flag_00/);
   assert.doesNotMatch(journeyComponentSource, /fillText\('CHECKPOINT'/);
@@ -1076,6 +1082,7 @@ test('Egypt hazard traps use painted decal assets with ground-aligned placement'
   });
 
   [
+    'spikeTrap',
     'pressurePlate',
     'crackedFloor',
     'scarabSealTrap',
@@ -1221,6 +1228,44 @@ test('Egypt atmosphere layout fills each Journey section without changing gamepl
   assert.doesNotMatch(storyProps, /type:\s*'atmosphere-prop'[\s\S]{0,220}damage:/);
   assert.doesNotMatch(storyProps, /type:\s*'atmosphere-prop'[\s\S]{0,220}collectible:/);
   assert.doesNotMatch(storyProps, /type:\s*'atmosphere-prop'[\s\S]{0,220}requiresObjective:/);
+});
+
+test('small atmosphere floor assets are permanently ground-locked instead of background-tuned', () => {
+  [
+    'supplyJars',
+    'fieldChest',
+    'coinPile',
+    'scrollCache',
+    'rubbleScatter',
+    'rubbleDustSmall',
+    'fallenColumn',
+    'pillarCaps',
+  ].forEach((key) => {
+    assert.match(journeyComponentSource, new RegExp(`'${key}'`));
+  });
+
+  assert.match(journeyComponentSource, /ATMOSPHERE_GROUND_LOCKED_ASSET_KEYS = new Set/);
+  assert.match(journeyComponentSource, /isGroundLockedAtmosphereProp\(prop\)/);
+  assert.match(journeyComponentSource, /return 'grounded'/);
+  assert.match(journeyComponentSource, /drawStoryProp\(ctx, prop, cameraX, now, 'grounded'\)/);
+  assert.match(journeyComponentSource, /Math\.max\(rawAnchorY, GROUND_Y - ATMOSPHERE_GROUND_LOCK_MARGIN\)/);
+  assert.match(journeyComponentSource, /groundLockedAtmospherePropCount/);
+  assert.match(journeyComponentSource, /atmosphereGroundingMode:\s*'ground-locked-floor-assets'/);
+  assert.doesNotMatch(journeyComponentSource, /groundLocked.*parallax/);
+});
+
+test('route ground uses a narrow floor edge instead of a full-width bottom haze', () => {
+  assert.match(journeyComponentSource, /ROUTE_GROUND_VISUAL_MODE = 'edge-and-local-aprons-no-full-width-haze'/);
+  assert.match(journeyComponentSource, /ROUTE_GROUND_HAZE_FIX_VERSION = 'route-ground-no-bottom-haze-2026-05-21'/);
+  assert.match(journeyComponentSource, /const floorBandTop = GROUND_Y -/);
+  assert.match(journeyComponentSource, /const floorBandBottom = GROUND_Y \+/);
+  assert.match(journeyComponentSource, /ctx\.moveTo\(0, floorBandBottom\)/);
+  assert.match(journeyComponentSource, /ctx\.lineTo\(CANVAS_WIDTH, floorBandBottom\)/);
+  assert.match(journeyComponentSource, /routeGroundVisualMode: ROUTE_GROUND_VISUAL_MODE/);
+  assert.match(journeyComponentSource, /routeGroundHazeFixVersion: ROUTE_GROUND_HAZE_FIX_VERSION/);
+  assert.doesNotMatch(journeyComponentSource, /const pathBottom = CANVAS_HEIGHT/);
+  assert.doesNotMatch(journeyComponentSource, /ctx\.lineTo\(CANVAS_WIDTH, pathBottom\)/);
+  assert.doesNotMatch(journeyComponentSource, /routeGroundVisualMode = 'wide-sand-stone-apron'/);
 });
 
 test('painted dynamic effects stay limited to moments that read clearly as static art', () => {

@@ -13,6 +13,8 @@ export const CHINA_RIVER_VALLEY_BACKGROUND_ATLAS_JSON = `${CHINA_RIVER_VALLEY_BA
 
 export const EXPECTED_DESERT_BACKGROUND_KEYS = [
   'sky',
+  'dustOverlay',
+  'foregroundParallax',
 ];
 
 export const DESERT_BACKGROUND_DEPTH_MODE = 'desert-entry-photoreal-single-backdrop-v1';
@@ -137,36 +139,35 @@ export const loadDesertBackgroundAssetPack = ({ baseUrl = '/', onUpdate }) => {
         return response.json();
       })
       .then((atlas) => new Promise((resolve) => {
-        const image = new Image();
-        image.onload = () => {
+        const imageNames = Array.from(new Set([
+          atlas.image,
+          ...Object.values(atlas?.regions || {}).map(region => region?.image).filter(Boolean),
+        ].filter(Boolean)));
+        const loadImage = (imageName) => new Promise((imageResolve) => {
+          const image = new Image();
+          image.onload = () => imageResolve([imageName, { image, failed: false }]);
+          image.onerror = () => imageResolve([imageName, { image: null, failed: true }]);
+          image.src = `${baseUrl}${packConfig.basePath}${imageName}`;
+        });
+        Promise.all(imageNames.map(loadImage)).then((imageEntries) => {
+          const images = Object.fromEntries(imageEntries.map(([imageName, result]) => [imageName, result.image]));
+          const failedImages = imageEntries.filter(([, result]) => result.failed).map(([imageName]) => imageName);
           resolve([
             sectionId,
             {
-              image,
+              image: images[atlas.image] || null,
+              images,
               atlas,
-              loaded: true,
-              ready: packConfig.expectedKeys.every(key => atlas?.regions?.[key]),
-              failed: false,
-              error: null,
+              loaded: failedImages.length === 0,
+              ready: failedImages.length === 0 && packConfig.expectedKeys.every(key => atlas?.regions?.[key]),
+              failed: failedImages.length > 0,
+              error: failedImages.length
+                ? `${sectionId} background image failed to load: ${failedImages.join(', ')}.`
+                : null,
               atlasPath: packConfig.atlasPath,
             },
           ]);
-        };
-        image.onerror = () => {
-          resolve([
-            sectionId,
-            {
-              image: null,
-              atlas,
-              loaded: false,
-              ready: false,
-              failed: true,
-              error: `${sectionId} background image failed to load.`,
-              atlasPath: packConfig.atlasPath,
-            },
-          ]);
-        };
-        image.src = `${baseUrl}${packConfig.basePath}${atlas.image}`;
+        });
       }))
       .catch((error) => [
         sectionId,
@@ -203,9 +204,11 @@ export const loadDesertBackgroundAssetPack = ({ baseUrl = '/', onUpdate }) => {
 const getRegion = (assets, key) => assets?.atlas?.regions?.[key] || null;
 
 export const drawDesertBackgroundLayer = (ctx, assets, key, dest, options = {}) => {
-  if (!assets?.loaded || !assets.image) return false;
+  if (!assets?.loaded) return false;
   const region = getRegion(assets, key);
   if (!region) return false;
+  const image = region.image ? assets.images?.[region.image] : assets.image;
+  if (!image) return false;
 
   const {
     canvasWidth,
@@ -226,7 +229,7 @@ export const drawDesertBackgroundLayer = (ctx, assets, key, dest, options = {}) 
   ctx.globalAlpha = alpha;
   while (x > 0) x -= drawWidth - 1;
   for (; x < canvasWidth; x += drawWidth - 1) {
-    ctx.drawImage(assets.image, region.x, region.y, region.w, region.h, x, y, drawWidth + 1, drawHeight);
+    ctx.drawImage(image, region.x, region.y, region.w, region.h, x, y, drawWidth + 1, drawHeight);
   }
   ctx.restore();
   return true;
