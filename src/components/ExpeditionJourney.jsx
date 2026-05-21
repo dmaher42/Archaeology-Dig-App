@@ -299,8 +299,8 @@ const COMBAT_INTENSITY_VERSION = 'combat-impact-pressure-2026-05-16';
 const PLAYER_ATTACK_STAMINA_COST = 1;
 const MISSED_ATTACK_EXTRA_STAMINA_COST = 1;
 const PROTECTED_HIT_EXTRA_STAMINA_COST = 1;
-const ENEMY_AGGRO_MEMORY_SECONDS = 3.6;
-const ENEMY_AGGRO_PATROL_PADDING = 220;
+const ENEMY_AGGRO_MEMORY_SECONDS = 4.6;
+const ENEMY_AGGRO_PATROL_PADDING = 320;
 
 const KNOWLEDGE_CHALLENGE_SIZE = 3;
 const GUARDIAN_KNOWLEDGE_CHALLENGES_ENABLED = false;
@@ -312,17 +312,20 @@ const KNOWLEDGE_CHALLENGE_FEEDBACK = {
 const LOW_STAMINA_WARNING = 'Stamina low - avoid another hit.';
 const FIELD_RESCUE_MESSAGE = 'You were forced back to the last checkpoint. Recover and try again.';
 const FIELD_RESCUE_STAMINA_REASON = 'Stamina hit zero.';
-const OPENING_THRESHOLD_SCENE_DURATION = 34;
-const OPENING_THRESHOLD_FADE_SECONDS = 1.6;
-const OPENING_THRESHOLD_STAIR_REVEAL_SECONDS = 11.5;
-const OPENING_SPHINX_DURATION = 34;
+const OPENING_THRESHOLD_SCENE_DURATION = 46;
+const OPENING_THRESHOLD_FADE_SECONDS = 2;
+const OPENING_THRESHOLD_STAIR_REVEAL_SECONDS = 13.5;
+const OPENING_THRESHOLD_FALL_DELAY_SECONDS = 0.45;
+const OPENING_THRESHOLD_FALL_DURATION_SECONDS = 4.4;
+const OPENING_SPHINX_DURATION = 46;
 const OPENING_SPHINX_EXIT_SECONDS = 2.35;
 const OPENING_SPHINX_ARRIVAL_SECONDS = 1.05;
-const OPENING_SPHINX_LINE_SECONDS = 1.4;
+const OPENING_SPHINX_LINE_SECONDS = 2.15;
 const OPENING_SPHINX_SPRITE_BOSS_ID = 'ancient-construct';
-const OPENING_SPHINX_APPARITION_SRC = 'assets/expedition/bosses/opening-sphinx-apparition.png';
-const OPENING_SPHINX_SPRITE_VERSION = 'opening-sphinx-apparition-2026-05-19';
+const OPENING_SPHINX_APPARITION_SRC = 'assets/expedition/bosses/anubis-apparition.png';
+const OPENING_SPHINX_SPRITE_VERSION = 'opening-anubis-apparition-2026-05-21';
 const OPENING_SPHINX_SCREEN_Y_OFFSET = 112;
+const OPENING_SPHINX_FOOT_Y = GROUND_Y - 10;
 const OPENING_SCARAB_SEAL_IMAGE_SRC = 'assets/expedition/environment/egypt-opening/scarab-seal-ground-embedded.png';
 const OPENING_PYRAMID_CLIMB_PACK_SRC = 'assets/expedition/environment/egypt-opening/pyramid-climb-pack.png';
 const OPENING_PYRAMID_FACADE_SRC = 'assets/expedition/environment/egypt-opening/opening-pyramid-facade.png';
@@ -515,11 +518,93 @@ const isPlayerAttackVisualPhase = (attackState) => (
   attackState === 'windup' || attackState === 'swing' || attackState === 'recoil'
 );
 
-const getPlayerHeroSpriteConfig = ({ targetCivilisation, backgroundPackId }) => {
+const CHARACTER_LOADER_STORAGE_KEY = 'expedition-character-loader-choice';
+const CHARACTER_LOADER_VISIBILITY_STORAGE_KEY = 'expedition-character-loader-visible-v2';
+const PLAYER_CHARACTER_PRESETS = [
+  {
+    id: 'auto',
+    label: 'Auto',
+    description: 'Use the character chosen by the current expedition.',
+  },
+  {
+    id: 'asha-production',
+    label: 'Asha Production',
+    description: 'Current playable Ancient Egypt Asha atlas.',
+    characterId: 'asha-egypt-warrior-explorer',
+    atlasPath: PLAYER_HERO_SPRITE_ATLAS_JSON,
+    version: PLAYER_HERO_SPRITE_VERSION,
+    fallbackAtlasPath: PLAYER_HERO_FALLBACK_SPRITE_ATLAS_JSON,
+    fallbackAtlasVersion: PLAYER_HERO_FALLBACK_SPRITE_VERSION,
+    fallbackCharacterId: 'egypt-warrior-guide',
+    fallbackSrc: PLAYER_LEGACY_SPRITE_SRC,
+  },
+  {
+    id: 'asha-v2-candidate',
+    label: 'Asha V2 Candidate',
+    description: 'New semi-realistic Asha V2 atlas for in-game review.',
+    characterId: 'asha-v2-production-candidate',
+    atlasPath: 'assets/expedition/player/asha-v2-production-candidate-spritesheet.json',
+    version: 'asha-v2-production-candidate-2026-05-21',
+    fallbackAtlasPath: PLAYER_HERO_SPRITE_ATLAS_JSON,
+    fallbackAtlasVersion: PLAYER_HERO_SPRITE_VERSION,
+    fallbackCharacterId: 'asha-egypt-warrior-explorer',
+    fallbackSrc: PLAYER_LEGACY_SPRITE_SRC,
+  },
+  {
+    id: 'asha-v3-gemini-candidate',
+    label: 'Asha V3 Gemini Candidate',
+    description: 'Gemini-inspired Asha V3 atlas for visual comparison.',
+    characterId: 'asha-v3-gemini-candidate',
+    atlasPath: 'assets/expedition/player/asha-v3-production-candidate-spritesheet.json',
+    version: 'asha-v3-gemini-candidate-2026-05-21',
+    fallbackAtlasPath: PLAYER_HERO_SPRITE_ATLAS_JSON,
+    fallbackAtlasVersion: PLAYER_HERO_SPRITE_VERSION,
+    fallbackCharacterId: 'asha-egypt-warrior-explorer',
+    fallbackSrc: PLAYER_LEGACY_SPRITE_SRC,
+  },
+  {
+    id: 'egypt-warrior-guide',
+    label: 'Egypt Guide Test',
+    description: 'Older playable Egypt warrior-guide atlas.',
+    characterId: 'egypt-warrior-guide',
+    atlasPath: PLAYER_HERO_FALLBACK_SPRITE_ATLAS_JSON,
+    version: PLAYER_HERO_FALLBACK_SPRITE_VERSION,
+    fallbackSrc: PLAYER_LEGACY_SPRITE_SRC,
+  },
+  {
+    id: 'china-archaeologist',
+    label: 'China Archaeologist',
+    description: 'Playable China archaeologist atlas for comparison.',
+    characterId: 'china-female-archaeologist',
+    atlasPath: PLAYER_CHINA_HERO_SPRITE_ATLAS_JSON,
+    version: PLAYER_CHINA_HERO_SPRITE_VERSION,
+    fallbackSrc: PLAYER_LEGACY_SPRITE_SRC,
+  },
+  {
+    id: 'legacy-strip',
+    label: 'Legacy Strip',
+    description: 'Original fallback strip, useful as a scale check.',
+    characterId: 'legacy-archaeologist-strip',
+    atlasPath: null,
+    version: 'legacy-archaeologist-walk-cycle',
+    fallbackSrc: PLAYER_LEGACY_SPRITE_SRC,
+  },
+];
+
+const getPlayerCharacterPreset = (presetId) => (
+  PLAYER_CHARACTER_PRESETS.find(preset => preset.id === presetId) || PLAYER_CHARACTER_PRESETS[0]
+);
+
+const getPlayerHeroSpriteConfig = ({ targetCivilisation, backgroundPackId, characterPresetId = 'auto' }) => {
+  const selectedPreset = getPlayerCharacterPreset(characterPresetId);
+  if (selectedPreset.id !== 'auto') {
+    return selectedPreset;
+  }
   const isChinaJourney = backgroundPackId === 'china-river-valley'
     || String(targetCivilisation || '').toLowerCase().includes('china');
   if (isChinaJourney) {
     return {
+      id: 'auto',
       characterId: 'china-female-archaeologist',
       atlasPath: PLAYER_CHINA_HERO_SPRITE_ATLAS_JSON,
       version: PLAYER_CHINA_HERO_SPRITE_VERSION,
@@ -527,6 +612,7 @@ const getPlayerHeroSpriteConfig = ({ targetCivilisation, backgroundPackId }) => 
     };
   }
   return {
+    id: 'auto',
     characterId: 'asha-egypt-warrior-explorer',
     atlasPath: PLAYER_HERO_SPRITE_ATLAS_JSON,
     version: PLAYER_HERO_SPRITE_VERSION,
@@ -690,6 +776,24 @@ const ENEMY_ATTACK_PATTERNS = {
     speed: 165,
     range: 36,
   },
+  mummy: {
+    ...DEFAULT_ENEMY_ATTACK_PATTERN,
+    id: 'khopesh-sweep',
+    label: 'Khopesh Sweep',
+    windup: 0.76,
+    duration: 0.34,
+    cooldown: 1.85,
+    recovery: 0.78,
+    vulnerableAfter: 0.86,
+    speed: 58,
+    range: 44,
+    height: 58,
+    yOffset: -24,
+    backReach: 24,
+    damageScale: 1.25,
+    shieldDuringWindup: true,
+    color: '#d9a441',
+  },
   statue: {
     ...DEFAULT_ENEMY_ATTACK_PATTERN,
     id: 'pulse-slam',
@@ -713,6 +817,7 @@ const ENEMY_TYPE_STAKE_MESSAGES = {
   snake: 'Snake lunges from mid-range. Watch the coil.',
   bat: 'Beware: Bats swoop across gaps. Watch the warning flash.',
   looter: 'Beware: Rival scouts dash quickly. Counter after they miss.',
+  mummy: 'Warrior mummies guard the threshold. Wait for the sweep, then counter.',
   guardian: 'Stone guardians are slow blockers. Wait for the opening.',
   statue: 'Cursed statues slam hard. Move carefully.',
 };
@@ -876,8 +981,8 @@ const updateHostileStepMultiplier = (hostile, dt, { boss = false } = {}) => {
   const pauseMultiplier = hostile.stepPauseTimer > 0 ? (boss ? 0.45 : 0.28) : 1;
   return Math.max(boss ? 0.7 : 0.55, (hostile.stepSpeedMultiplier || 1) * rhythm * pauseMultiplier);
 };
-const COLLECTIBLE_SCALE_TUNING_VERSION = 'journey-collectible-purpose-tuning-2026-05-16';
-const RELIC_SHARD_SCALE = 0.9;
+const COLLECTIBLE_SCALE_TUNING_VERSION = 'journey-collectible-shard-atlas-upgrade-2026-05-21';
+const RELIC_SHARD_SCALE = 1.08;
 const FIELD_TOOL_SCALE = 0.86;
 const UPGRADE_SCALE = 0.86;
 const OBJECTIVE_MARKER_SCALE = 0.84;
@@ -887,14 +992,14 @@ const PICKUP_GLOW_SCALE = 0.68;
 const COLLECTIBLE_VISUAL_BASE = {
   relicShard: {
     size: Math.round(32 * RELIC_SHARD_SCALE),
-    ringSize: Math.round(38 * PICKUP_GLOW_SCALE),
-    glowAlpha: 0.24,
-    shadowAlpha: 0.18,
-    bobAmplitude: 2,
-    sparkleAlpha: 0.34,
-    sparkleSize: 10,
+    ringSize: Math.round(54 * PICKUP_GLOW_SCALE),
+    glowAlpha: 0.42,
+    shadowAlpha: 0.24,
+    bobAmplitude: 2.4,
+    sparkleAlpha: 0.46,
+    sparkleSize: 12,
     anchorYOffset: 18,
-    nearGlowDistance: 150,
+    nearGlowDistance: 170,
   },
   fieldTool: {
     size: Math.round(46 * FIELD_TOOL_SCALE),
@@ -1056,17 +1161,18 @@ const HAZARD_VISUALS = {
 };
 
 const ENEMY_TACTICAL_PRESSURE = {
-  scarab: { windup: 0.96, cooldown: 0.9, speed: 1.18, range: 1.08, recovery: 0.96, vulnerableAfter: 0.95, awareness: 1.42, chase: 1.48 },
-  scorpion: { windup: 1, cooldown: 0.94, speed: 0.86, range: 0.88, recovery: 1.04, vulnerableAfter: 1.03, awareness: 1.28, chase: 1.24 },
-  'sand-wisp': { windup: 0.92, cooldown: 0.9, speed: 1.16, range: 1.08, recovery: 0.96, vulnerableAfter: 0.96, awareness: 1.5, chase: 1.5 },
-  snake: { windup: 0.98, cooldown: 0.92, speed: 1.14, range: 1.18, recovery: 1.02, vulnerableAfter: 1, awareness: 1.42, chase: 1.34 },
-  bat: { windup: 0.9, cooldown: 0.84, speed: 1.14, range: 1.12, recovery: 0.92, vulnerableAfter: 0.9, awareness: 1.46, chase: 1.5 },
-  looter: { windup: 0.88, cooldown: 0.8, speed: 1.16, range: 1.12, recovery: 0.9, vulnerableAfter: 0.88, awareness: 1.42, chase: 1.42, shieldDuringWindup: true },
-  guardian: { windup: 1, cooldown: 0.94, speed: 0.86, range: 1.08, recovery: 1.05, vulnerableAfter: 1.04, awareness: 1.26, chase: 1.18 },
-  statue: { windup: 1, cooldown: 0.96, speed: 0.84, range: 1.08, recovery: 1.06, vulnerableAfter: 1.05, awareness: 1.24, chase: 1.14 },
-  'river-crab': { windup: 0.94, cooldown: 0.86, speed: 1.1, range: 1.12, recovery: 0.94, vulnerableAfter: 0.92, awareness: 1.38, chase: 1.4 },
-  'watchtower-sentry': { windup: 0.88, cooldown: 0.8, speed: 1.16, range: 1.12, recovery: 0.9, vulnerableAfter: 0.88, awareness: 1.42, chase: 1.42, shieldDuringWindup: true },
-  'clay-guardian': { windup: 1, cooldown: 0.94, speed: 0.86, range: 1.08, recovery: 1.05, vulnerableAfter: 1.04, awareness: 1.26, chase: 1.18 },
+  scarab: { windup: 0.96, cooldown: 0.9, speed: 1.18, range: 1.08, recovery: 0.96, vulnerableAfter: 0.95, awareness: 1.55, chase: 2.05 },
+  scorpion: { windup: 1, cooldown: 0.94, speed: 0.86, range: 0.88, recovery: 1.04, vulnerableAfter: 1.03, awareness: 1.45, chase: 1.85 },
+  'sand-wisp': { windup: 0.92, cooldown: 0.9, speed: 1.16, range: 1.08, recovery: 0.96, vulnerableAfter: 0.96, awareness: 1.6, chase: 2 },
+  snake: { windup: 0.98, cooldown: 0.92, speed: 1.14, range: 1.18, recovery: 1.02, vulnerableAfter: 1, awareness: 1.54, chase: 1.8 },
+  bat: { windup: 0.9, cooldown: 0.84, speed: 1.14, range: 1.12, recovery: 0.92, vulnerableAfter: 0.9, awareness: 1.58, chase: 1.95 },
+  looter: { windup: 0.88, cooldown: 0.8, speed: 1.16, range: 1.12, recovery: 0.9, vulnerableAfter: 0.88, awareness: 1.54, chase: 1.82, shieldDuringWindup: true },
+  mummy: { windup: 0.96, cooldown: 0.94, speed: 0.92, range: 1.08, recovery: 1.02, vulnerableAfter: 1, awareness: 1.42, chase: 1.56, shieldDuringWindup: true },
+  guardian: { windup: 1, cooldown: 0.94, speed: 0.86, range: 1.08, recovery: 1.05, vulnerableAfter: 1.04, awareness: 1.36, chase: 1.48 },
+  statue: { windup: 1, cooldown: 0.96, speed: 0.84, range: 1.08, recovery: 1.06, vulnerableAfter: 1.05, awareness: 1.32, chase: 1.42 },
+  'river-crab': { windup: 0.94, cooldown: 0.86, speed: 1.1, range: 1.12, recovery: 0.94, vulnerableAfter: 0.92, awareness: 1.5, chase: 1.85 },
+  'watchtower-sentry': { windup: 0.88, cooldown: 0.8, speed: 1.16, range: 1.12, recovery: 0.9, vulnerableAfter: 0.88, awareness: 1.54, chase: 1.82, shieldDuringWindup: true },
+  'clay-guardian': { windup: 1, cooldown: 0.94, speed: 0.86, range: 1.08, recovery: 1.05, vulnerableAfter: 1.04, awareness: 1.36, chase: 1.48 },
 };
 
 const HAZARD_GROUNDING = {
@@ -1463,10 +1569,21 @@ export default function ExpeditionJourney({
   permanentUpgradeIds = [],
   permanentUpgradeEffects = {},
 }) {
+  const [selectedCharacterPresetId, setSelectedCharacterPresetId] = useState(() => {
+    if (typeof window === 'undefined') return 'auto';
+    const saved = window.localStorage.getItem(CHARACTER_LOADER_STORAGE_KEY);
+    return PLAYER_CHARACTER_PRESETS.some(preset => preset.id === saved) ? saved : 'auto';
+  });
+  const [characterLoaderVisible, setCharacterLoaderVisible] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.localStorage.getItem(CHARACTER_LOADER_VISIBILITY_STORAGE_KEY) === 'true';
+  });
   const playerHeroSpriteConfig = useMemo(() => getPlayerHeroSpriteConfig({
     targetCivilisation,
     backgroundPackId,
-  }), [backgroundPackId, targetCivilisation]);
+    characterPresetId: selectedCharacterPresetId,
+  }), [backgroundPackId, selectedCharacterPresetId, targetCivilisation]);
+  const selectedCharacterPreset = getPlayerCharacterPreset(selectedCharacterPresetId);
   const [gameState, setGameState] = useState(() => makeInitialState({
     targetCivilisation,
     permanentUpgradeIds,
@@ -1520,6 +1637,24 @@ export default function ExpeditionJourney({
         questions: [...nextState.activeGuardianChallenge.questions],
       }
       : null);
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(CHARACTER_LOADER_STORAGE_KEY, selectedCharacterPresetId);
+  }, [selectedCharacterPresetId]);
+
+  useEffect(() => {
+    window.localStorage.setItem(CHARACTER_LOADER_VISIBILITY_STORAGE_KEY, characterLoaderVisible ? 'true' : 'false');
+  }, [characterLoaderVisible]);
+
+  useEffect(() => {
+    const handleCharacterLoaderHotkey = (event) => {
+      if (!event.ctrlKey || !event.altKey || event.code !== 'KeyC') return;
+      event.preventDefault();
+      setCharacterLoaderVisible(visible => !visible);
+    };
+    window.addEventListener('keydown', handleCharacterLoaderHotkey);
+    return () => window.removeEventListener('keydown', handleCharacterLoaderHotkey);
   }, []);
 
   useEffect(() => {
@@ -2708,7 +2843,15 @@ export default function ExpeditionJourney({
         timer: Number(current.openingThresholdScene.timer.toFixed(2)),
         duration: current.openingThresholdScene.duration,
         stairwellRevealActive: current.openingThresholdScene.timer <= OPENING_THRESHOLD_STAIR_REVEAL_SECONDS,
+        fallProgress: Number(clamp(
+          ((current.openingThresholdScene.duration || 0) - (current.openingThresholdScene.timer || 0) - (current.openingThresholdScene.playerFallDelay ?? OPENING_THRESHOLD_FALL_DELAY_SECONDS))
+          / (current.openingThresholdScene.playerFallDuration ?? OPENING_THRESHOLD_FALL_DURATION_SECONDS),
+          0,
+          1,
+        ).toFixed(2)),
+        fallSfxPlayed: Boolean(current.openingThresholdScene.fallSfxPlayed),
         stoneShiftSfxPlayed: Boolean(current.openingThresholdScene.stoneShiftSfxPlayed),
+        finalPulseSfxPlayed: Boolean(current.openingThresholdScene.finalPulseSfxPlayed),
         fading: current.openingThresholdScene.timer <= OPENING_THRESHOLD_FADE_SECONDS,
         transitionTargetSectionId: current.openingThresholdScene.transitionTargetSectionId,
       } : null,
@@ -3263,10 +3406,10 @@ export default function ExpeditionJourney({
         ? clamp((elapsed - 2.4) / 4.2, 0, 1)
         : 1;
       const apparitionAlpha = encounter.silhouetteReveal
-        ? 0.18 + projectionReveal * 0.62
+        ? 0.3 + projectionReveal * 0.58
         : 1;
       const projectionClipHeight = encounter.silhouetteReveal
-        ? drawBox.height * (0.42 + projectionReveal * 0.58)
+        ? drawBox.height * (0.62 + projectionReveal * 0.38)
         : drawBox.height;
       ctx.save();
       ctx.globalAlpha *= apparitionAlpha;
@@ -3295,8 +3438,8 @@ export default function ExpeditionJourney({
       if (stateRef.current.renderStats) {
         stateRef.current.renderStats.openingSphinxSpriteLoaded = true;
         stateRef.current.renderStats.openingSphinxSpriteVersion = OPENING_SPHINX_SPRITE_VERSION;
-        stateRef.current.renderStats.openingSphinxSpriteModel = 'opening-sphinx-apparition';
-        stateRef.current.renderStats.openingSphinxSpriteFrame = 'openingSphinxApparition';
+        stateRef.current.renderStats.openingSphinxSpriteModel = 'opening-anubis-apparition';
+        stateRef.current.renderStats.openingSphinxSpriteFrame = 'openingAnubisApparition';
         stateRef.current.renderStats.openingSphinxSpriteAtlasPath = OPENING_SPHINX_APPARITION_SRC;
       }
     } else if (spritePack) {
@@ -3488,56 +3631,138 @@ export default function ExpeditionJourney({
 
     if (elapsed > 2.4) {
       const rumble = Math.sin(now / 84) * 2.5;
-      ctx.globalAlpha = 0.22 + reveal * 0.38;
-      const stairGlow = ctx.createRadialGradient(sealX, GROUND_Y - 54 + rumble, 8, sealX, GROUND_Y - 54 + rumble, 210);
+      const revealEase = reveal * reveal * (3 - 2 * reveal);
+      const stairX = sealX - 10;
+      const mouthY = GROUND_Y - 22;
+      const shaftTopY = GROUND_Y - 126 - revealEase * 18;
+      const halfMouthWidth = 94 + revealEase * 50;
+      const stairGlow = ctx.createRadialGradient(stairX, GROUND_Y - 58 + rumble, 8, stairX, GROUND_Y - 58 + rumble, 226);
       stairGlow.addColorStop(0, 'rgba(125, 211, 252, 0.72)');
       stairGlow.addColorStop(0.45, 'rgba(14, 165, 233, 0.22)');
       stairGlow.addColorStop(1, 'rgba(14, 116, 144, 0)');
+      ctx.globalAlpha = 0.18 + revealEase * 0.34;
       ctx.fillStyle = stairGlow;
-      ctx.fillRect(sealX - 240, GROUND_Y - 250, 480, 280);
-      ctx.globalAlpha = 0.5 + reveal * 0.32;
-      ctx.fillStyle = 'rgba(5, 18, 28, 0.82)';
+      ctx.fillRect(stairX - 252, GROUND_Y - 270, 504, 306);
+
+      ctx.globalAlpha = 0.2 + revealEase * 0.46;
+      const shaftGradient = ctx.createLinearGradient(stairX, shaftTopY, stairX, mouthY + 18);
+      shaftGradient.addColorStop(0, 'rgba(14, 116, 144, 0.5)');
+      shaftGradient.addColorStop(0.46, 'rgba(8, 47, 73, 0.72)');
+      shaftGradient.addColorStop(1, 'rgba(2, 6, 23, 0.9)');
+      ctx.fillStyle = shaftGradient;
       ctx.beginPath();
-      ctx.ellipse(sealX, GROUND_Y - 22, 118 + reveal * 46, 26 + reveal * 10, 0, 0, Math.PI * 2);
+      ctx.moveTo(stairX - 50 - revealEase * 36, shaftTopY);
+      ctx.lineTo(stairX + 50 + revealEase * 36, shaftTopY);
+      ctx.lineTo(stairX + halfMouthWidth, mouthY + 9);
+      ctx.lineTo(stairX - halfMouthWidth, mouthY + 9);
+      ctx.closePath();
       ctx.fill();
-      ctx.globalAlpha = 0.28 + reveal * 0.3;
+
+      ctx.globalAlpha = 0.46 + revealEase * 0.32;
+      ctx.fillStyle = 'rgba(5, 18, 28, 0.72)';
+      ctx.beginPath();
+      ctx.ellipse(stairX, mouthY, halfMouthWidth, 23 + revealEase * 9, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.globalAlpha = 0.52 + revealEase * 0.26;
+      ctx.strokeStyle = 'rgba(211, 170, 98, 0.62)';
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.ellipse(stairX, mouthY - 2, halfMouthWidth + 12, 28 + revealEase * 8, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.globalAlpha = 0.24 + revealEase * 0.28;
+      ctx.strokeStyle = 'rgba(255, 236, 179, 0.54)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.ellipse(stairX, mouthY - 6, halfMouthWidth + 22, 34 + revealEase * 8, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.globalAlpha = 0.32 + revealEase * 0.42;
       ctx.strokeStyle = 'rgba(125, 211, 252, 0.72)';
-      ctx.lineWidth = 3;
-      for (let index = 0; index < 5; index += 1) {
-        const y = GROUND_Y - 38 - index * 20;
+      ctx.lineWidth = 2.4;
+      for (let index = 0; index < 7; index += 1) {
+        const stepDepth = index / 6;
+        const y = mouthY - 18 - index * (14 + revealEase * 2.5);
+        const stepHalfWidth = 52 + stepDepth * 68 + revealEase * 14;
         ctx.beginPath();
-        ctx.moveTo(sealX - 70 - index * 14, y);
-        ctx.lineTo(sealX + 70 + index * 14, y);
+        ctx.moveTo(stairX - stepHalfWidth, y + Math.sin(now / 180 + index) * 0.8);
+        ctx.lineTo(stairX + stepHalfWidth, y + Math.sin(now / 180 + index) * 0.8);
         ctx.stroke();
+        ctx.globalAlpha *= 0.94;
+      }
+
+      [-1, 1].forEach((side) => {
+        const torchX = stairX + side * (82 + revealEase * 18);
+        const flameY = mouthY - 64 + Math.sin(now / 170 + side) * 2;
+        ctx.globalAlpha = (0.16 + revealEase * 0.34) * (0.82 + Math.sin(now / 120 + side) * 0.12);
+        ctx.fillStyle = 'rgba(96, 165, 250, 0.78)';
+        ctx.beginPath();
+        ctx.ellipse(torchX, flameY, 7 + revealEase * 3, 24, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(250, 204, 21, 0.42)';
+        ctx.beginPath();
+        ctx.ellipse(torchX, flameY + 4, 3.5, 12, 0, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      if (scene.playerX != null && scene.playerY != null) {
+        const playerScreenX = worldToScreenX(scene.playerX + 18, cameraX);
+        const playerScreenY = scene.playerFallEndY ?? scene.playerY;
+        const clarityGradient = ctx.createRadialGradient(
+          playerScreenX,
+          playerScreenY + 42,
+          16,
+          playerScreenX,
+          playerScreenY + 42,
+          78,
+        );
+        clarityGradient.addColorStop(0, 'rgba(252, 211, 77, 0.16)');
+        clarityGradient.addColorStop(0.55, 'rgba(252, 211, 77, 0.06)');
+        clarityGradient.addColorStop(1, 'rgba(252, 211, 77, 0)');
+        ctx.globalAlpha = 0.65;
+        ctx.fillStyle = clarityGradient;
+        ctx.fillRect(playerScreenX - 86, playerScreenY - 18, 172, 138);
       }
       ctx.globalAlpha = 1;
     }
 
     if (activeLine) {
-      const boxWidth = activeLine.speaker === 'Sphinx' ? 430 : 380;
-      const boxX = activeLine.speaker === 'Sphinx'
-        ? clamp(sealX + 82, 26, CANVAS_WIDTH - boxWidth - 26)
-        : clamp(sealX - boxWidth - 72, 26, CANVAS_WIDTH - boxWidth - 26);
-      const boxY = activeLine.speaker === 'Sphinx' ? 142 : 420;
+      const guardianSpeaker = activeLine.speaker === 'Anubis' || activeLine.speaker === 'Sphinx';
+      const boxWidth = guardianSpeaker ? 430 : 390;
+      const textMaxWidth = boxWidth - 36;
+      ctx.font = '900 18px Georgia, serif';
+      const words = activeLine.text.split(' ');
+      const wrappedLines = words.reduce((lines, word) => {
+        const currentLine = lines[lines.length - 1] || '';
+        const candidate = currentLine ? `${currentLine} ${word}` : word;
+        return ctx.measureText(candidate).width <= textMaxWidth
+          ? [...lines.slice(0, -1), candidate]
+          : [...lines, word];
+      }, ['']).filter(Boolean);
+      const dialogueBoxHeight = 54 + Math.max(1, wrappedLines.length) * 24;
+      const boxX = guardianSpeaker ? 42 : 54;
+      const boxY = 112;
       ctx.globalAlpha = clamp((elapsed - activeLine.at) * 1.8, 0, 1);
-      ctx.fillStyle = activeLine.speaker === 'Sphinx'
+      ctx.fillStyle = guardianSpeaker
         ? 'rgba(15, 23, 42, 0.84)'
         : 'rgba(255, 248, 225, 0.86)';
-      ctx.strokeStyle = activeLine.speaker === 'Sphinx'
+      ctx.strokeStyle = guardianSpeaker
         ? 'rgba(125, 211, 252, 0.62)'
         : 'rgba(146, 64, 14, 0.38)';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.roundRect(boxX, boxY, boxWidth, 74, 10);
+      ctx.roundRect(boxX, boxY, boxWidth, dialogueBoxHeight, 10);
       ctx.fill();
       ctx.stroke();
-      ctx.fillStyle = activeLine.speaker === 'Sphinx' ? '#93c5fd' : '#92400e';
+      ctx.fillStyle = guardianSpeaker ? '#93c5fd' : '#92400e';
       ctx.font = '900 12px Outfit, sans-serif';
       ctx.textAlign = 'left';
       ctx.fillText(activeLine.speaker.toUpperCase(), boxX + 18, boxY + 24);
-      ctx.fillStyle = activeLine.speaker === 'Sphinx' ? '#fff7ed' : '#3f2a18';
+      ctx.fillStyle = guardianSpeaker ? '#fff7ed' : '#3f2a18';
       ctx.font = '900 18px Georgia, serif';
-      ctx.fillText(activeLine.text, boxX + 18, boxY + 52);
+      wrappedLines.forEach((line, index) => {
+        ctx.fillText(line, boxX + 18, boxY + 52 + index * 23);
+      });
       ctx.globalAlpha = 1;
     }
 
@@ -4174,7 +4399,7 @@ export default function ExpeditionJourney({
     return true;
   }, []);
 
-  const drawOpeningPyramidFacade = useCallback((ctx, cameraX) => {
+  const drawOpeningPyramidFacade = useCallback((ctx, cameraX, now = 0) => {
     const facade = openingPyramidFacadeRef.current;
     if (!facade.loaded || !facade.image) return false;
     const x = worldToScreenX(OPENING_PYRAMID_FACADE_WORLD_LEFT_X, cameraX);
@@ -4225,15 +4450,29 @@ export default function ExpeditionJourney({
     if (scarabSealX > -120 && scarabSealX < CANVAS_WIDTH + 120) {
       const beaconY = SCARAB_SEAL_TRIGGER.y - 44;
       const activated = Boolean(stateRef.current.scarabSealActivated);
+      const lurePulse = activated ? 0 : 0.5 + Math.sin(now / 360) * 0.5;
+      const lureBreath = activated ? 0 : 0.55 + Math.sin(now / 620) * 0.45;
       const glow = ctx.createRadialGradient(scarabSealX, beaconY, 10, scarabSealX, beaconY, 78);
-      glow.addColorStop(0, activated ? 'rgba(56, 189, 248, 0.42)' : 'rgba(250, 204, 21, 0.34)');
-      glow.addColorStop(0.36, activated ? 'rgba(56, 189, 248, 0.24)' : 'rgba(250, 204, 21, 0.18)');
+      glow.addColorStop(0, activated ? 'rgba(56, 189, 248, 0.42)' : `rgba(250, 204, 21, ${0.4 + lurePulse * 0.2})`);
+      glow.addColorStop(0.36, activated ? 'rgba(56, 189, 248, 0.24)' : `rgba(250, 204, 21, ${0.2 + lurePulse * 0.13})`);
       glow.addColorStop(1, 'rgba(250, 204, 21, 0)');
       ctx.save();
       ctx.fillStyle = glow;
       ctx.beginPath();
-      ctx.ellipse(scarabSealX, beaconY, 72, 76, 0, 0, Math.PI * 2);
+      ctx.ellipse(scarabSealX, beaconY, 78 + lureBreath * 18, 80 + lureBreath * 16, 0, 0, Math.PI * 2);
       ctx.fill();
+      if (!activated) {
+        ctx.strokeStyle = `rgba(253, 224, 71, ${0.3 + lurePulse * 0.28})`;
+        ctx.lineWidth = 2.4;
+        [0, 1, 2].forEach((ring) => {
+          const ringProgress = (lurePulse + ring * 0.34) % 1;
+          ctx.globalAlpha = 1 - ringProgress * 0.72;
+          ctx.beginPath();
+          ctx.ellipse(scarabSealX, beaconY, 42 + ringProgress * 58, 26 + ringProgress * 42, 0, 0, Math.PI * 2);
+          ctx.stroke();
+        });
+        ctx.globalAlpha = 1;
+      }
       ctx.restore();
       drawOpeningPyramidAssetRegion(ctx, 'pedestal', {
         x: scarabSealX - 43,
@@ -4246,7 +4485,12 @@ export default function ExpeditionJourney({
         y: beaconY - 30,
         width: 54,
         height: 54,
-      }, { alpha: activated ? 1 : 0.9, filter: 'saturate(112%) brightness(108%) contrast(104%)' });
+      }, {
+        alpha: activated ? 1 : 0.94 + lurePulse * 0.06,
+        filter: activated
+          ? 'saturate(118%) brightness(112%) contrast(104%) drop-shadow(0 0 12px rgba(56,189,248,0.5))'
+          : `saturate(122%) brightness(${112 + lurePulse * 12}%) contrast(106%) drop-shadow(0 0 ${12 + lurePulse * 12}px rgba(250,204,21,0.68))`,
+      });
     }
     const baseFade = ctx.createLinearGradient(0, GROUND_Y - 52, 0, GROUND_Y + 24);
     baseFade.addColorStop(0, 'rgba(171, 103, 42, 0)');
@@ -4258,8 +4502,8 @@ export default function ExpeditionJourney({
     return true;
   }, [drawOpeningPyramidAssetRegion]);
 
-  const drawOpeningPyramidMasonryBack = useCallback((ctx, cameraX) => {
-    if (drawOpeningPyramidFacade(ctx, cameraX)) return;
+  const drawOpeningPyramidMasonryBack = useCallback((ctx, cameraX, now = 0) => {
+    if (drawOpeningPyramidFacade(ctx, cameraX, now)) return;
     const facadeStartX = 80;
     const facadeEndX = 1760;
     if (!isHorizontallyVisible(facadeStartX, facadeEndX - facadeStartX, cameraX, 180)) return;
@@ -7656,7 +7900,7 @@ export default function ExpeditionJourney({
       if (enemy.type === 'scorpion') return 'stinger';
       if (enemy.type === 'snake') return 'lunger';
       if (enemy.type === 'sand-wisp' || enemy.type === 'bat' || enemy.flying) return 'ambush';
-      if (enemy.type === 'looter' || enemy.type === 'watchtower-sentry') return 'charger';
+      if (enemy.type === 'looter' || enemy.type === 'watchtower-sentry' || enemy.type === 'mummy') return 'charger';
       return 'charger';
     })();
     const palette = {
@@ -8271,7 +8515,7 @@ export default function ExpeditionJourney({
       renderParallaxLayer(0.28, `${atmosphere.skyBottom}cc`, 0.5);
     }
     drawDesertForegroundAtmosphere(ctx, section, cameraX);
-    drawOpeningPyramidMasonryBack(ctx, cameraX);
+    drawOpeningPyramidMasonryBack(ctx, cameraX, now);
     STORY_PROPS.forEach((prop) => drawStoryProp(ctx, prop, cameraX, now, 'midground'));
     ENVIRONMENT_INTERACTIONS.forEach((item) => drawEnvironmentInteraction(ctx, item, cameraX, now, current));
     drawEgyptAmbientLife(ctx, section, cameraX, now);
@@ -8568,7 +8812,8 @@ export default function ExpeditionJourney({
           anchorYOffset: COLLECTIBLE_VISUAL_BASE.relicShard.anchorYOffset,
           nearGlowDistance: COLLECTIBLE_VISUAL_BASE.relicShard.nearGlowDistance,
           baseY: getShardVisualBaseY(shard),
-          hideGlow: true,
+          ringKey: 'availableGlowRing',
+          shadowBlur: 8,
         });
       }
     });
@@ -8801,14 +9046,13 @@ export default function ExpeditionJourney({
     const openingCheckpoint = CHECKPOINTS.find(checkpoint => checkpoint.id === 'desert-entry');
     const openingSection = SECTIONS.find(section => section.id === 'desert-entry');
     if (openingCheckpoint) {
-      current.player.x = clamp(openingCheckpoint.x, 0, WORLD_WIDTH - current.player.width);
-      current.player.y = GROUND_Y - current.player.height;
       current.player.vx = 0;
       current.player.vy = 0;
-      current.player.onGround = true;
       current.player.direction = 1;
+      current.player.y = current.openingThresholdScene?.playerFallEndY ?? current.player.y;
+      current.player.onGround = true;
       current.activeCheckpoint = openingCheckpoint;
-      current.cameraX = clampCameraX(current.player.x - CANVAS_WIDTH * 0.18);
+      current.cameraX = clampCameraX(current.player.x - CANVAS_WIDTH * 0.42);
       current.targetCameraX = current.cameraX;
     }
     current.openingThresholdScene = null;
@@ -8923,10 +9167,26 @@ export default function ExpeditionJourney({
     if (current.openingThresholdScene) {
       current.openingThresholdScene.timer = Math.max(0, current.openingThresholdScene.timer - dt);
       current.openingThresholdScene.activeLine = getOpeningThresholdDialogueLine(current.openingThresholdScene);
+      const thresholdElapsed = clamp(
+        (current.openingThresholdScene.duration || 0) - (current.openingThresholdScene.timer || 0),
+        0,
+        current.openingThresholdScene.duration || 0,
+      );
+      const fallDelay = current.openingThresholdScene.playerFallDelay ?? OPENING_THRESHOLD_FALL_DELAY_SECONDS;
+      const fallDuration = current.openingThresholdScene.playerFallDuration ?? OPENING_THRESHOLD_FALL_DURATION_SECONDS;
+      const thresholdFallProgress = clamp((thresholdElapsed - fallDelay) / fallDuration, 0, 1);
+      if (thresholdFallProgress > 0 && !current.openingThresholdScene.fallSfxPlayed) {
+        current.openingThresholdScene.fallSfxPlayed = true;
+        audioControls?.playExpeditionSfx?.('openingThresholdFall');
+      }
       current.openingThresholdScene.stairwellRevealActive = current.openingThresholdScene.timer <= OPENING_THRESHOLD_STAIR_REVEAL_SECONDS;
       if (current.openingThresholdScene.stairwellRevealActive && !current.openingThresholdScene.stoneShiftSfxPlayed) {
         current.openingThresholdScene.stoneShiftSfxPlayed = true;
         audioControls?.playExpeditionSfx?.('openingThresholdStoneShift');
+      }
+      if (current.openingThresholdScene.timer <= 4.5 && !current.openingThresholdScene.finalPulseSfxPlayed) {
+        current.openingThresholdScene.finalPulseSfxPlayed = true;
+        audioControls?.playExpeditionSfx?.('openingThresholdFinalPulse');
       }
       current.cameraShakeTimer = Math.max(current.cameraShakeTimer, current.openingThresholdScene.stairwellRevealActive ? 0.08 : 0);
       current.cameraShakeStrength = Math.max(current.cameraShakeStrength, current.openingThresholdScene.stairwellRevealActive ? 0.06 : 0);
@@ -9039,11 +9299,22 @@ export default function ExpeditionJourney({
       return;
     }
     if (current.openingThresholdScene?.lockMovement) {
+      const scene = current.openingThresholdScene;
+      const sceneElapsed = clamp((scene.duration || 0) - (scene.timer || 0), 0, scene.duration || 0);
+      const fallDelay = scene.playerFallDelay ?? OPENING_THRESHOLD_FALL_DELAY_SECONDS;
+      const fallDuration = scene.playerFallDuration ?? OPENING_THRESHOLD_FALL_DURATION_SECONDS;
+      const fallProgress = clamp((sceneElapsed - fallDelay) / fallDuration, 0, 1);
+      const easedFall = fallProgress < 0.5
+        ? 4 * fallProgress * fallProgress * fallProgress
+        : 1 - Math.pow(-2 * fallProgress + 2, 3) / 2;
+      const startY = scene.playerStartY ?? scene.playerY ?? player.y;
+      const endY = scene.playerFallEndY ?? (GROUND_Y - player.height);
       current.attackQueued = false;
       player.vx = 0;
       player.vy = 0;
-      player.onGround = true;
-      player.y = GROUND_Y - player.height;
+      player.x = scene.playerX ?? player.x;
+      player.y = startY + (endY - startY) * easedFall;
+      player.onGround = fallProgress >= 1;
       updatePlayerAnimation(current, dt);
       return;
     }
@@ -9075,7 +9346,7 @@ export default function ExpeditionJourney({
     if (player.knockbackTimer > 0) {
       player.knockbackTimer = Math.max(0, player.knockbackTimer - dt);
       const knockbackProgress = player.knockbackTimer / Math.max(0.01, player.knockbackMaxTimer || 0.22);
-      player.vx += player.knockbackDirection * (110 + knockbackProgress * 85) * knockbackMultiplier;
+      player.vx += player.knockbackDirection * (55 + knockbackProgress * 42.5) * knockbackMultiplier;
     }
 
     const jumpPressed = jump && !keys.jumpHeld;
@@ -9337,13 +9608,13 @@ export default function ExpeditionJourney({
         const sphinxX = Math.min(player.x + 360, SCARAB_SEAL_TRIGGER.x + 430);
         const thresholdLines = SCARAB_SEAL_TRIGGER.messages.map((text, index) => ({
           speaker: [
-            'Sphinx', 'Sphinx', 'Asha', 'Sphinx', 'Asha', 'Sphinx', 'Asha', 'Asha', 'Sphinx',
-            'Asha', 'Sphinx', 'Sphinx', 'Asha', 'Sphinx', 'Sphinx', 'Sphinx', 'Sphinx',
-          ][index] || 'Sphinx',
+            'Anubis', 'Anubis', 'Asha', 'Anubis', 'Asha', 'Anubis', 'Asha', 'Asha', 'Anubis',
+            'Asha', 'Anubis', 'Anubis', 'Asha', 'Anubis', 'Anubis', 'Anubis', 'Anubis',
+          ][index] || 'Anubis',
           text,
           at: [
-            1.2, 3.2, 5.4, 7.2, 9.5, 11.6, 13.8, 15.8, 17.7,
-            19.6, 21.8, 23.7, 25.7, 27.5, 29.2, 30.8, 32.2,
+            1.6, 4.2, 7.3, 9.9, 12.8, 15.6, 18.5, 21.0, 23.5,
+            25.9, 29.0, 31.9, 34.6, 37.4, 40.0, 42.2, 43.8,
           ][index] || index * 1.9,
         }));
         current.openingThresholdScene = {
@@ -9351,20 +9622,28 @@ export default function ExpeditionJourney({
           phase: 'false-discovery',
           lockMovement: true,
           playerX: player.x,
+          playerY: player.y,
+          playerStartY: player.y,
+          playerFallEndY: GROUND_Y - player.height,
+          playerFallDelay: OPENING_THRESHOLD_FALL_DELAY_SECONDS,
+          playerFallDuration: OPENING_THRESHOLD_FALL_DURATION_SECONDS,
+          playerOnGround: false,
           focusX: SCARAB_SEAL_TRIGGER.x,
           transitionTargetSectionId: 'desert-entry',
           stairwellRevealLine: SCARAB_SEAL_TRIGGER.stairwellRevealLine,
           lines: thresholdLines,
           duration: OPENING_THRESHOLD_SCENE_DURATION,
           timer: OPENING_THRESHOLD_SCENE_DURATION,
+          fallSfxPlayed: false,
           stoneShiftSfxPlayed: false,
+          finalPulseSfxPlayed: false,
         };
         current.openingSphinxEncounter = {
           id: 'opening-sphinx-encounter',
           name: SCARAB_SEAL_TRIGGER.eventName,
           playerX: player.x,
           x: sphinxX,
-          y: Math.max(132, player.y - 156),
+          y: OPENING_SPHINX_FOOT_Y - OPENING_SPHINX_SCREEN_Y_OFFSET - 126,
           lines: SCARAB_SEAL_TRIGGER.messages,
           message: SCARAB_SEAL_TRIGGER.messages.join(' '),
           guideFollowUpLine: SCARAB_SEAL_TRIGGER.guideFollowUpLine,
@@ -9835,10 +10114,10 @@ export default function ExpeditionJourney({
       player.lastDamage = amount;
       player.lastDamageSource = source;
       player.lastDamageTime = Date.now();
-      player.knockbackMaxTimer = Math.max(0.1, 0.24 * effectiveKnockbackMultiplier);
+      player.knockbackMaxTimer = Math.max(0.06, 0.12 * effectiveKnockbackMultiplier);
       player.knockbackTimer = player.knockbackMaxTimer;
       player.knockbackDirection = direction;
-      player.vx = approach(player.vx, direction * 190 * effectiveKnockbackMultiplier, 260);
+      player.vx = approach(player.vx, direction * 95 * effectiveKnockbackMultiplier, 160);
       current.hitStopTimer = Math.max(current.hitStopTimer, 0.055);
       current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.2);
       current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.4);
@@ -10023,7 +10302,7 @@ export default function ExpeditionJourney({
         if (isPressingPlayer) {
           e.direction = distanceToPlayer >= 0 ? 1 : -1;
         }
-        const chaseSpeedMultiplier = isAggroChasing ? tacticalPattern.chaseMultiplier || 1.35 : 1;
+        const chaseSpeedMultiplier = isAggroChasing ? tacticalPattern.chaseMultiplier || 1.65 : 1;
         const patrolSpeed = (e.baseSpeed || e.speed) * updateHostileStepMultiplier(e, dt) * chaseSpeedMultiplier;
         e.x += e.direction * patrolSpeed * dt;
         const movementMin = isAggroChasing ? e.patrolMin - ENEMY_AGGRO_PATROL_PADDING : e.patrolMin;
@@ -10577,7 +10856,89 @@ export default function ExpeditionJourney({
         return createJourneySnapshot(current);
       };
       handleExpeditionDevJump = (event) => {
-        const { target, sectionId } = event.detail || {};
+        const { target, sectionId, bossId } = event.detail || {};
+        setBriefingOpen(false);
+        if (target === 'journey-boss-start') {
+          const current = stateRef.current;
+          const boss = current.miniBosses.find(item => item.id === bossId);
+          if (!boss) return;
+          const arenaStart = boss.arenaStart ?? Math.max(0, boss.x - 160);
+          const arenaEnd = boss.arenaEnd ?? Math.min(WORLD_WIDTH, boss.x + 180);
+          const section = SECTIONS.find(item => item.id === boss.sectionId);
+          const sectionCheckpoint = CHECKPOINTS.find(checkpoint => checkpoint.id === boss.sectionId);
+          if (boss.id === SCARAB_SEAL_TRIGGER.bossId && backgroundPackId !== 'china-river-valley') {
+            current.scarabSealActivated = true;
+            current.openingConfrontationSeen = true;
+            current.collapsedPlatformIds.add('opening-scarab-seal-summit');
+            current.triggeredEnvironmentEventIds.add(SCARAB_SEAL_TRIGGER.id);
+          }
+          current.openingThresholdScene = null;
+          current.openingSphinxEncounter = null;
+          current.openingSphinxTimer = 0;
+          current.dynamicEnvironmentEvent = null;
+          current.dynamicEnvironmentEventTimer = 0;
+          current.environmentEvent = null;
+          current.environmentEventTimer = 0;
+          current.bossIntro = null;
+          current.bossIntroTimer = 0;
+          current.bossIntroPauseTimer = 0;
+          current.seenBossIntroIds?.add(boss.id);
+          current.defeatedMiniBosses.delete(boss.id);
+          current.bossKeyItems
+            ?.filter(item => item.bossId === boss.id)
+            .forEach((item) => {
+              item.dropped = false;
+              item.collected = false;
+            });
+          boss.defeated = false;
+          boss.awakened = true;
+          boss.health = boss.maxHealth || boss.health || 1;
+          boss.x = Math.min(arenaEnd - boss.width - 24, Math.max(arenaStart + 90, boss.patrolMax));
+          boss.y = GROUND_Y - boss.height;
+          boss.direction = -1;
+          boss.attackWindup = 0;
+          boss.attackTimer = 0;
+          boss.attackReady = false;
+          boss.attackCooldown = 0.2;
+          boss.attackRecovery = 0;
+          boss.vulnerabilityTimer = 0;
+          boss.shieldTimer = 0;
+          boss.stunTimer = 0;
+          boss.hitFlash = 0;
+          boss.attackCycleIndex = 0;
+          boss.patternHistory = [];
+          current.player.x = clamp(boss.x - 92, 0, WORLD_WIDTH - current.player.width);
+          current.player.y = GROUND_Y - current.player.height;
+          current.player.vx = 0;
+          current.player.vy = 0;
+          current.player.direction = 1;
+          current.player.onGround = true;
+          current.activeCheckpoint = sectionCheckpoint || current.activeCheckpoint;
+          if (section) {
+            SECTIONS
+              .filter(item => item.end <= section.start)
+              .forEach(item => current.completedObjectiveIds.add(item.id));
+          }
+          ROUTE_GATES
+            .filter(gate => gate.x < arenaStart)
+            .forEach(gate => current.openedRouteGateIds.add(gate.id));
+          current.bossDomain = {
+            bossId: boss.id,
+            name: boss.domainName || `${boss.name} Domain`,
+            arenaStart,
+            arenaEnd,
+            playerStartX: Math.round(current.player.x),
+            bossStartX: Math.round(boss.x),
+            color: '#facc15',
+            tint: 'rgba(120, 53, 15, 0.14)',
+          };
+          current.cameraX = clampCameraX(((arenaStart + arenaEnd) / 2) - (CANVAS_WIDTH / 2));
+          current.targetCameraX = current.cameraX;
+          current.notice = `Developer mode: ${boss.name} encounter ready.`;
+          step(0);
+          syncHud();
+          return;
+        }
         if (target !== 'journey-section-start') return;
         const section = SECTIONS.find(section => section.id === sectionId);
         if (!section) return;
@@ -10658,7 +11019,7 @@ export default function ExpeditionJourney({
         window.removeEventListener('expedition-dev-jump', handleExpeditionDevJump);
       }
     };
-  }, [addCombatEffect, buildBossRewardMoment, createJourneySnapshot, step, syncHud]);
+  }, [addCombatEffect, backgroundPackId, buildBossRewardMoment, createJourneySnapshot, step, syncHud]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -10704,9 +11065,10 @@ export default function ExpeditionJourney({
   const staminaPercent = Math.min(100, Math.round((gameState.resources.stamina / (gameState.upgradeEffects?.maxStamina || 100)) * 100));
   const activeGuardianChallenge = guardianChallengeUi || gameState.activeGuardianChallenge;
   const activeGuardianQuestion = activeGuardianChallenge?.questions?.[activeGuardianChallenge.currentIndex] || null;
+  const openingCinematicActive = Boolean(gameState.openingThresholdScene);
 
   return (
-    <section className="expedition-journey-container" id="expedition-journey">
+    <section className={`expedition-journey-container ${openingCinematicActive ? 'is-opening-cinematic' : ''}`} id="expedition-journey">
       <div className="expedition-journey-grid">
         <div className="expedition-sidebar">
           <div className="expedition-panel inventory-panel">
@@ -10774,6 +11136,7 @@ export default function ExpeditionJourney({
               className="expedition-canvas"
             />
 
+            {!openingCinematicActive && (
             <div className="journey-floating-hud" aria-label="Expedition status">
               <div className="journey-floating-hud-cluster">
                 <div className={`journey-floating-hud-gems ${gameState.itemPurposeNoticeTimer > 0 ? 'is-rewarding' : ''}`}>
@@ -10827,6 +11190,26 @@ export default function ExpeditionJourney({
                 </em>
               </div>
             </div>
+            )}
+
+            {characterLoaderVisible && (
+              <div className="journey-character-loader" aria-label="Character loader">
+                <label htmlFor="journey-character-loader-select">Character Loader</label>
+                <select
+                  id="journey-character-loader-select"
+                  value={selectedCharacterPresetId}
+                  onChange={(event) => setSelectedCharacterPresetId(event.target.value)}
+                >
+                  {PLAYER_CHARACTER_PRESETS.map(preset => (
+                    <option key={preset.id} value={preset.id}>{preset.label}</option>
+                  ))}
+                </select>
+                <p>{selectedCharacterPreset.description}</p>
+                <small>
+                  Ctrl+Alt+C hides or shows this loader. Concept sheets need a sprite atlas first.
+                </small>
+              </div>
+            )}
             
             {gameState.postBossReward && (
               <div

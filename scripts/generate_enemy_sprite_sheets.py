@@ -627,6 +627,60 @@ def draw_crab(draw, frame, base_y):
         draw.line([(92, base_y - 6), (292, base_y - 6)], fill=dark, width=10)
 
 
+def draw_mummy(draw, frame, base_y):
+    hit = frame == "Hit"
+    defeated = frame == "Defeated"
+    attack = frame == "Attack"
+    windup = frame == "Windup"
+    phase = {"Walk1": 0, "Walk2": 1, "Walk3": 2}.get(frame, 0)
+    dark = rgba("#31251c")
+    linen = rgba("#d6c19a" if not hit else "#f59e0b")
+    shadow_linen = rgba("#9f7f55")
+    gold = rgba("#d9a441")
+    rust = rgba("#7c2d12")
+    glow = rgba("#38bdf8", 220)
+    if defeated:
+        draw.rounded_rectangle([96, base_y - 38, 284, base_y - 10], radius=16, fill=linen, outline=dark, width=6)
+        draw.line([(118, base_y - 28), (264, base_y - 18)], fill=shadow_linen, width=5)
+        draw.ellipse([254, base_y - 55, 314, base_y - 4], fill=linen, outline=dark, width=4)
+        return
+
+    leg_shift = [-12, 12, -4][phase]
+    torso_y = base_y - 196
+    draw_leg(draw, 174, base_y - 74, -22 + leg_shift, 70, linen, dark, 11)
+    draw_leg(draw, 212, base_y - 74, 24 - leg_shift, 70, linen, dark, 11)
+    draw.rounded_rectangle([138, torso_y + 52, 246, torso_y + 154], radius=24, fill=linen, outline=dark, width=7)
+    for offset in range(0, 92, 18):
+        draw.line([(142, torso_y + 62 + offset), (244, torso_y + 48 + offset)], fill=shadow_linen, width=4)
+    draw.polygon([(156, torso_y + 58), (226, torso_y + 58), (206, torso_y + 116), (176, torso_y + 116)], fill=rgba("#5b2e1b", 210), outline=dark)
+    draw.rectangle([170, torso_y + 106, 212, torso_y + 124], fill=gold, outline=dark, width=3)
+    head_y = torso_y + 4
+    draw.ellipse([154, head_y, 230, head_y + 72], fill=linen, outline=dark, width=5)
+    for offset in (12, 28, 44, 58):
+        draw.line([(158, head_y + offset), (228, head_y + offset - 10)], fill=shadow_linen, width=4)
+    draw.ellipse([176, head_y + 29, 186, head_y + 39], fill=glow)
+    draw.ellipse([204, head_y + 29, 214, head_y + 39], fill=glow)
+    draw.polygon([(146, head_y + 14), (238, head_y + 12), (222, head_y - 12), (164, head_y - 10)], fill=gold, outline=dark)
+
+    arm_l = [(146, torso_y + 78), (98 if windup else 114, torso_y + 110), (108, torso_y + 148)]
+    arm_r = [(240, torso_y + 80), (296 if attack else 270, torso_y + 104), (330 if attack else 276, torso_y + 136)]
+    draw.line(arm_l, fill=dark, width=20, joint="curve")
+    draw.line(arm_l, fill=linen, width=12, joint="curve")
+    draw.line(arm_r, fill=dark, width=20, joint="curve")
+    draw.line(arm_r, fill=linen, width=12, joint="curve")
+    weapon_start = (274 if not attack else 296, torso_y + 98)
+    weapon_end = (312 if not attack else 354, torso_y + 52)
+    draw.line([weapon_start, weapon_end], fill=dark, width=8)
+    draw.line([weapon_start, weapon_end], fill=rust, width=4)
+    draw.polygon([
+        (weapon_end[0] - 8, weapon_end[1] + 4),
+        (weapon_end[0] + 18, weapon_end[1] - 24),
+        (weapon_end[0] + 12, weapon_end[1] + 10),
+    ], fill=gold, outline=dark)
+    if windup or attack:
+        draw.arc([258, torso_y + 30, 366, torso_y + 160], 220, 316, fill=rgba("#facc15", 150), width=5)
+
+
 FAMILIES = {
     "scarab": {
         "path": ENEMY_DIR / "desert-scarab-sprites",
@@ -703,6 +757,12 @@ FAMILIES = {
         "path": CHINA_DIR / "china-clay-guardian-enemy-sprites",
         "prefix": "clayGuardian",
         "draw": lambda d, f, b: draw_guardian(d, f, b, china=True),
+        "base_y": 324,
+    },
+    "mummy": {
+        "path": ENEMY_DIR / "warrior-mummy-sprites",
+        "prefix": "mummy",
+        "draw": draw_mummy,
         "base_y": 324,
     },
 }
@@ -802,10 +862,15 @@ def main():
     parser = argparse.ArgumentParser(description="Generate Journey enemy and boss sprite sheets.")
     parser.add_argument("--scarab-queen-only", action="store_true", help="Only regenerate the Scarab Queen boss atlas.")
     parser.add_argument("--include-bosses", action="store_true", help="Also regenerate boss atlases supported by this script.")
+    parser.add_argument("--family", choices=sorted(FAMILIES), help="Only regenerate one regular enemy family.")
     args = parser.parse_args()
 
     if args.scarab_queen_only:
         write_scarab_queen_boss()
+        return
+
+    if args.family:
+        write_family(args.family, FAMILIES[args.family])
         return
 
     for name, config in FAMILIES.items():

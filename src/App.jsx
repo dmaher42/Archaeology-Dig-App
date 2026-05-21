@@ -100,17 +100,32 @@ const EXPEDITION_AUDIO_TRACKS = {
     openingThresholdAtmosphere: {
       cooldownMs: 36000,
       clips: [
-        { path: 'assets/expedition/sfx/opening/opening-desert-wind.ogg', volume: 0.34, playbackRate: 0.92 },
-        { path: 'assets/expedition/sfx/opening/opening-deep-rumble.ogg', volume: 0.28, delay: 900, playbackRate: 0.72 },
-        { path: 'assets/expedition/sfx/opening/opening-earth-shake.flac', volume: 0.32, delay: 11800, playbackRate: 0.86 },
-        { path: 'assets/expedition/sfx/opening/opening-deep-rumble.ogg', volume: 0.22, delay: 22600, playbackRate: 0.58 },
+        { path: 'assets/expedition/sfx/opening/opening-desert-wind.ogg', volume: 0.3, playbackRate: 0.92 },
+        { path: 'assets/expedition/sfx/opening/opening-deep-rumble.ogg', volume: 0.2, delay: 350, playbackRate: 0.68 },
+        { path: 'assets/expedition/sfx/opening/opening-deep-rumble.ogg', volume: 0.14, delay: 9000, playbackRate: 0.58 },
+        { path: 'assets/expedition/sfx/opening/opening-deep-rumble.ogg', volume: 0.13, delay: 18500, playbackRate: 0.52 },
+        { path: 'assets/expedition/sfx/opening/opening-deep-rumble.ogg', volume: 0.16, delay: 29200, playbackRate: 0.48 },
+      ],
+    },
+    openingThresholdFall: {
+      cooldownMs: 12000,
+      clips: [
+        { path: 'assets/expedition/sfx/opening/opening-deep-rumble.ogg', volume: 0.22, playbackRate: 0.62 },
+        { path: 'assets/expedition/sfx/opening/opening-earth-shake.flac', volume: 0.18, delay: 4050, playbackRate: 0.82 },
       ],
     },
     openingThresholdStoneShift: {
       cooldownMs: 24000,
       clips: [
-        { path: 'assets/expedition/sfx/opening/opening-earth-shake.flac', volume: 0.22, playbackRate: 0.72 },
-        { path: 'assets/expedition/sfx/opening/opening-deep-rumble.ogg', volume: 0.2, delay: 850, playbackRate: 0.52 },
+        { path: 'assets/expedition/sfx/opening/opening-earth-shake.flac', volume: 0.3, playbackRate: 0.64 },
+        { path: 'assets/expedition/sfx/opening/opening-deep-rumble.ogg', volume: 0.24, delay: 450, playbackRate: 0.48 },
+        { path: 'assets/expedition/sfx/opening/opening-earth-shake.flac', volume: 0.16, delay: 1350, playbackRate: 0.82 },
+      ],
+    },
+    openingThresholdFinalPulse: {
+      cooldownMs: 12000,
+      clips: [
+        { path: 'assets/expedition/sfx/opening/opening-deep-rumble.ogg', volume: 0.18, playbackRate: 0.45 },
       ],
     },
   },

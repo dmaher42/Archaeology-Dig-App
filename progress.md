@@ -2731,8 +2731,107 @@ Remaining notes:
 - Boosted chase pressure per enemy family while preserving the current attack patterns, tells, recovery windows, knockback, invulnerability, shard drops, bosses, route gates, Base Camp, excavation, lab, evidence, and report systems.
 - Opening-route enemies now get pursuit pressure without a damage spike, so they are harder to ignore but still use the opening safety tuning.
 
+## 2026-05-21 Enemy chase speed and scorpion density pass
+
+- Increased aggro memory, aggro chase bounds, and chase multipliers so enemies close distance faster once they notice the player.
+- Replaced three existing Egypt scarab placements with scorpions instead of adding new enemy count, keeping shard/progression totals stable while adding more anti-jump pressure.
+- Preserved the existing combat system, player controls, enemy attack tells, recovery/counter windows, knockback, invulnerability, boss systems, route gates, Base Camp, excavation, lab, evidence, and report systems.
+
 ## 2026-05-20 Opening atmosphere pass 2
 
 - Continued the restrained opening atmosphere layer inside the existing Journey threshold scene.
 - Added a low-opacity seal-to-Sphinx projection beam, pause-timed ground fissure pulses, and a one-shot stone-shift rumble when the hidden stairwell reveal begins.
 - Kept the new sound cue wired through the existing expedition SFX config and reused the downloaded CC0 wind/rumble/earth-shake files rather than adding another audio pathway.
+
+## 2026-05-21 Anubis opening protector pass
+
+- Created a transparent Anubis apparition asset for the opening threshold scene and preserved the Sphinx asset for later story use.
+- Wired the opening Scarab Seal apparition to `anubis-apparition.png`, changed the opening protector voice to Anubis, and reframed the first Scarab Queen trial as set by Anubis.
+- Kept stable internal Journey ids for now so the change is story/asset-facing rather than a risky boss/progression migration.
+
+## 2026-05-21 Enemy damage and short knockback pass
+
+- Increased normal-enemy runtime damage through the existing Journey enemy tuning, including a smaller opening-route lift and a stronger non-opening lift.
+- Increased mini-boss runtime damage through the existing boss factory instead of editing every boss row.
+- Halved the player hit pushback timer and knockback velocity so enemy hits hurt more without throwing the player far away from the fight.
+- Preserved the existing combat system, player controls, enemy roles, attack tells, recovery/counter windows, invulnerability, shard drops, boss systems, route gates, Base Camp, excavation, lab, evidence, and report systems.
+
+## 2026-05-21 Scarab Queen production atlas replacement
+
+- Treated the Scarab Queen as an asset-direction pipeline rather than wiring the first generated sheet into gameplay.
+- Rejected early generated animation sheets because they were not final production quality: fake transparency, uneven slicing, cropped/fragmented frames, or chroma artifacts.
+- Generated and approved a single Scarab Queen master reference first, then produced a canonical 11-state boss atlas matching the existing Journey boss frame contract.
+- Replaced only `public/assets/expedition/bosses/scarab-queen-sprites.png` and `.json`, preserving the previous live atlas in `output/sprites/scarab-queen/previous-live-backup/`.
+- Kept the existing boss ids, renderer, frame keys, combat state machine, route gates, rewards, Base Camp, excavation, lab, evidence, and report systems unchanged.
+- Verification passed: Scarab Queen atlas validator, `npm.cmd run lint`, `npm.cmd run build`, local preview load, and served asset checks for the base-path JSON/PNG.
+
+## 2026-05-21 Anubis full sprite candidate pass
+
+- Rejected the first generated Anubis sheet because it read as scarab/insect imagery rather than Anubis.
+- Kept the second generated sheet because the jackal-headed Anubis identity, costume, and action states read clearly at game scale.
+- Normalized the approved candidate into fixed transparent cells and created a review-only atlas/json pair with future Journey aliases, but did not wire it into gameplay.
+- Created a game-scale review preview in `output/anubis-sprite-review/` so the sheet can be judged before implementation.
+
+## 2026-05-21 Anubis sprite wiring pass
+
+- Wired the approved Anubis full sprite sheet through the existing `temple-guardian` boss sprite slot instead of creating a parallel Anubis boss renderer.
+- Kept the existing `stoneGuardian*` frame contract as aliases in the Anubis atlas so Journey combat states, boss gates, rewards, and progression ids stay stable.
+- Promoted the approved asset to final `anubis-sprites.png` / `anubis-sprites.json` filenames and updated regression coverage so the Anubis fight does not silently fall back to the old stone guardian art.
+
+## 2026-05-21 Opening scene smoke and cinematic polish
+
+- Smoke-tested the opening Journey scene in-browser at `1536x864`, including arrival framing, scarab threshold trigger, Anubis voice/projection, dialogue mid-scene, stairwell reveal, and fade.
+- Fixed the Journey shell so the game fills the viewport width and height without page scroll or duplicated panels around the canvas.
+- Slowed the opening threshold dialogue/scene timing and extended the existing atmosphere SFX sequence so the Anubis reveal, pauses, rumble, stairwell reveal, and fade breathe more clearly.
+- Hid the character loader by default with a new visibility key, and suppressed gameplay HUD/pause/sound controls during the opening threshold cinematic so the story moment reads cleanly.
+- Added a reusable browser smoke script plus captured reference frames in `output/opening-smoke/`.
+
+## 2026-05-21 Opening scarab scene polish follow-up
+
+- Fixed the scarab threshold lock so Asha stays at the scarab/platform position instead of snapping down to the ground while the dialogue plays.
+- Stopped the opening completion handler from teleporting Asha back to the desert-entry floor; the smoke script now guards against that regression.
+- Grounded the Anubis apparition on the scene floor rather than deriving its height from Asha's upper-platform position.
+- Moved opening dialogue into a consistent upper subtitle lane so it does not cover Asha, Anubis, or the stairwell reveal.
+
+## 2026-05-21 Opening scarab lure and fall revision
+
+- Reframed the scarab interaction as intentional: the scarab now pulses with stronger gold rings and glow before activation so players are drawn toward it.
+- Changed the threshold lock into a controlled cinematic fall, easing Asha from the scarab platform down to the ground as the awakening begins.
+- Left Asha grounded after the opening completes and updated the smoke script to verify the dramatic fall instead of preventing it.
+
+## 2026-05-21 Scarab Queen dev attack and scale fix
+
+- Diagnosed the non-attacking Scarab Queen report against the existing Journey boss flow instead of adding a second combat system.
+- Confirmed the normal Scarab Queen attack loop exists, but dev-tool skipping could leave the Journey briefing open and did not stage the Scarab Seal / boss-ready state for direct attack testing.
+- Added a dev-panel Scarab Queen boss jump through the existing `expedition-dev-jump` event path. It now closes the Journey briefing, activates the required Scarab Seal state, resets the Queen reward/fight state, places the player in the current boss arena, and enters the existing combat loop with the Queen awakened.
+- Normal player progression still uses the proper Scarab Seal story scene and boss intro; the direct combat-ready setup is dev-only.
+- Enlarged the live Scarab Queen atlas content inside the existing 11 fixed cells so the boss reads as intimidating without changing hitboxes, frame keys, JSON regions, route gates, or collision.
+- Live Edge verification confirmed the dev Scarab Queen route reaches `scarabQueenWindup` with the notice `Scarab Queen telegraphs Sand Charge. Watch, dodge, then counter.`
+
+## 2026-05-21 Opening audio sync polish
+
+- Retimed the opening threshold audio inside the existing Expedition SFX registry so ambient wind, low rumbles, Asha's fall, the stairwell reveal, and the final warning each sit on clearer scene beats.
+- Added scene-level one-shot flags for the fall cue, stone-shift cue, and final pulse through the existing Journey threshold state instead of adding a second audio manager.
+- Extended the opening smoke test to assert those cue flags while capturing the same Anubis voice, stairwell reveal, and fade frames.
+- Verification passed: Journey secrets test, lint, production build, and the browser opening smoke at `1536x864`.
+
+## 2026-05-21 Opening stairwell reveal polish
+
+- Polished the hidden stairwell reveal inside the existing opening threshold renderer so it reads more like a carved tomb opening rather than a flat dark oval.
+- Added a stone rim, perspective stair treads, blue underlight, small torch glows, and a warmer clarity pass around Asha so the threshold effect does not completely swallow the player.
+- Verification passed: Journey secrets test, lint, production build, and the browser opening smoke at `1536x864`.
+
+## 2026-05-21 Enemy asset layout scale pass
+
+- Completed a narrow pass on the oversized Journey enemy foreground assets shown in the boss/encounter screenshots.
+- Replaced the single oversized normal-enemy sprite multiplier with family-specific visual sizing in the existing enemy sprite draw helper, so scarabs, scorpions, snakes, bats, wisps, humanoids, mummies, and guardians stay readable without becoming boss-scale foreground clutter.
+- Kept gameplay hitboxes, patrol data, damage, boss systems, pickups, route gates, rewards, Base Camp, excavation, lab, evidence, and report systems unchanged.
+- Updated the existing enemy sprite regression tests so scarab, scorpion, and mummy draw boxes remain grounded and bounded to game scale.
+- Verification passed: enemy sprite tests, Journey secrets tests, lint, and production build.
+- Browser screenshot automation could not be completed in this pass because temporary Playwright resolution failed without adding a project dependency.
+
+## 2026-05-21 Scarab and scorpion scale correction
+
+- Restored scarab and scorpion enemy sprite sizing to the previous deliberately large visual presence after art-direction feedback that these enemies are meant to feel oversized and threatening.
+- Kept the family-specific sizing cleanup for other enemy families, especially humanoids/mummies, so the overall foreground layout remains less crowded without shrinking the signature desert creatures.
+- Updated the existing enemy sprite regression tests to lock scarabs and scorpions as large, grounded threat silhouettes.

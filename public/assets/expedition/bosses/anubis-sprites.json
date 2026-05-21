@@ -1,0 +1,167 @@
+{
+  "image": "anubis-sprites.png",
+  "source": "Production Anubis sprite sheet normalized from the approved ImageGen strip and wired through the existing Egypt temple-guardian Journey slot.",
+  "status": "approved-for-journey-wiring",
+  "coordinateNote": "Eleven fixed transparent Anubis cells, bottom-centered. Includes future Journey stoneGuardian aliases so implementation can be a single atlas swap after approval.",
+  "frameContract": [
+    "anubisIdle",
+    "anubisWalk1",
+    "anubisWalk2",
+    "anubisAwakening",
+    "anubisWindup",
+    "anubisSlam",
+    "anubisJudgementPulse",
+    "anubisShielded",
+    "anubisCounterWindow",
+    "anubisHit",
+    "anubisDefeated"
+  ],
+  "journeyAliasContract": {
+    "stoneGuardianIdle": "anubisIdle",
+    "stoneGuardianWalk1": "anubisWalk1",
+    "stoneGuardianWalk2": "anubisWalk2",
+    "stoneGuardianAwakening": "anubisAwakening",
+    "stoneGuardianWindup": "anubisWindup",
+    "stoneGuardianSlam": "anubisSlam",
+    "stoneGuardianShockwave": "anubisJudgementPulse",
+    "stoneGuardianShielded": "anubisShielded",
+    "stoneGuardianCounterWindow": "anubisCounterWindow",
+    "stoneGuardianHit": "anubisHit",
+    "stoneGuardianDefeated": "anubisDefeated"
+  },
+  "baseline": "bottom-center fixed per frame; transparent normalized cells with detached edge fragments manually removed after visual review",
+  "regions": {
+    "anubisIdle": {
+      "x": 0,
+      "y": 0,
+      "w": 320,
+      "h": 460
+    },
+    "anubisWalk1": {
+      "x": 320,
+      "y": 0,
+      "w": 320,
+      "h": 460
+    },
+    "anubisWalk2": {
+      "x": 640,
+      "y": 0,
+      "w": 320,
+      "h": 460
+    },
+    "anubisAwakening": {
+      "x": 960,
+      "y": 0,
+      "w": 320,
+      "h": 460
+    },
+    "anubisWindup": {
+      "x": 1280,
+      "y": 0,
+      "w": 320,
+      "h": 460
+    },
+    "anubisSlam": {
+      "x": 1600,
+      "y": 0,
+      "w": 320,
+      "h": 460
+    },
+    "anubisJudgementPulse": {
+      "x": 1920,
+      "y": 0,
+      "w": 320,
+      "h": 460
+    },
+    "anubisShielded": {
+      "x": 2240,
+      "y": 0,
+      "w": 320,
+      "h": 460
+    },
+    "anubisCounterWindow": {
+      "x": 2560,
+      "y": 0,
+      "w": 320,
+      "h": 460
+    },
+    "anubisHit": {
+      "x": 2880,
+      "y": 0,
+      "w": 320,
+      "h": 460
+    },
+    "anubisDefeated": {
+      "x": 3200,
+      "y": 0,
+      "w": 320,
+      "h": 460
+    },
+    "stoneGuardianIdle": {
+      "x": 0,
+      "y": 0,
+      "w": 320,
+      "h": 460
+    },
+    "stoneGuardianWalk1": {
+      "x": 320,
+      "y": 0,
+      "w": 320,
+      "h": 460
+    },
+    "stoneGuardianWalk2": {
+      "x": 640,
+      "y": 0,
+      "w": 320,
+      "h": 460
+    },
+    "stoneGuardianAwakening": {
+      "x": 960,
+      "y": 0,
+      "w": 320,
+      "h": 460
+    },
+    "stoneGuardianWindup": {
+      "x": 1280,
+      "y": 0,
+      "w": 320,
+      "h": 460
+    },
+    "stoneGuardianSlam": {
+      "x": 1600,
+      "y": 0,
+      "w": 320,
+      "h": 460
+    },
+    "stoneGuardianShockwave": {
+      "x": 1920,
+      "y": 0,
+      "w": 320,
+      "h": 460
+    },
+    "stoneGuardianShielded": {
+      "x": 2240,
+      "y": 0,
+      "w": 320,
+      "h": 460
+    },
+    "stoneGuardianCounterWindow": {
+      "x": 2560,
+      "y": 0,
+      "w": 320,
+      "h": 460
+    },
+    "stoneGuardianHit": {
+      "x": 2880,
+      "y": 0,
+      "w": 320,
+      "h": 460
+    },
+    "stoneGuardianDefeated": {
+      "x": 3200,
+      "y": 0,
+      "w": 320,
+      "h": 460
+    }
+  }
+}

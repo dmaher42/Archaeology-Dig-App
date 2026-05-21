@@ -9,6 +9,7 @@ export const SCORPION_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}scorpion-spr
 export const SAND_WISP_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}sand-wisp-sprites.json`;
 export const CURSED_STATUE_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}cursed-statue-sprites.json`;
 export const STONE_GUARDIAN_ENEMY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}stone-guardian-enemy-sprites.json`;
+export const WARRIOR_MUMMY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}warrior-mummy-sprites.json`;
 export const CHINA_ENEMY_GUARDIAN_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-enemy-guardian-sprites.json`;
 export const CHINA_RIVER_CRAB_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-river-crab-sprites.json`;
 export const CHINA_WATCHTOWER_SENTRY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-watchtower-sentry-sprites.json`;
@@ -16,7 +17,22 @@ export const CHINA_CLAY_GUARDIAN_ENEMY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_
 export const ENEMY_SPRITE_ATLAS_VERSION = 'enemy-sprite-packs-2026-05-18-35-percent-larger';
 export const ENEMY_SPRITE_GROUNDING_VERSION = 'enemy-sprite-grounding-2026-05-18';
 export const MIN_ENEMY_DRAW_HEIGHT = 34;
-export const ENEMY_VISUAL_SIZE_MULTIPLIER = 2.7;
+export const ENEMY_VISUAL_SIZE_MULTIPLIER = 1.5;
+const ENEMY_VISUAL_SIZE_MULTIPLIERS = {
+  scarab: 2.7,
+  snake: 1.42,
+  bat: 1.48,
+  scorpion: 2.7,
+  sandWisp: 1.42,
+  looter: 1.12,
+  looterCaptain: 1.16,
+  cursedStatue: 1.14,
+  stoneGuardianEnemy: 1.16,
+  mummy: 1.12,
+  riverCrab: 1.42,
+  watchtowerSentry: 1.12,
+  clayGuardian: 1.16,
+};
 export const WITHHELD_EGYPT_CREATURE_SPRITE_FAMILIES = new Set([
   'cursedStatue',
   'stoneGuardianEnemy',
@@ -148,6 +164,17 @@ export const EXPECTED_STONE_GUARDIAN_ENEMY_SPRITE_KEYS = [
   'stoneGuardianEnemyDefeated',
 ];
 
+export const EXPECTED_WARRIOR_MUMMY_SPRITE_KEYS = [
+  'mummyIdle',
+  'mummyWalk1',
+  'mummyWalk2',
+  'mummyWalk3',
+  'mummyWindup',
+  'mummyAttack',
+  'mummyHit',
+  'mummyDefeated',
+];
+
 export const EXPECTED_CHINA_ENEMY_GUARDIAN_SPRITE_KEYS = [
   'riverCrabIdle',
   'riverCrabWalk1',
@@ -249,6 +276,10 @@ const ENEMY_SPRITE_PACKS = {
   stoneGuardianEnemy: {
     atlasPath: STONE_GUARDIAN_ENEMY_SPRITE_ATLAS_JSON,
     expectedKeys: EXPECTED_STONE_GUARDIAN_ENEMY_SPRITE_KEYS,
+  },
+  mummy: {
+    atlasPath: WARRIOR_MUMMY_SPRITE_ATLAS_JSON,
+    expectedKeys: EXPECTED_WARRIOR_MUMMY_SPRITE_KEYS,
   },
   chinaEnemyGuardian: {
     atlasPath: CHINA_ENEMY_GUARDIAN_SPRITE_ATLAS_JSON,
@@ -387,6 +418,7 @@ export const getEnemySpritePack = (assets, family) => {
   if (family === 'sandWisp') return assets?.packs?.sandWisp || null;
   if (family === 'cursedStatue') return assets?.packs?.cursedStatue || null;
   if (family === 'stoneGuardianEnemy') return assets?.packs?.stoneGuardianEnemy || null;
+  if (family === 'mummy') return assets?.packs?.mummy || null;
   if (family === 'riverCrab') return assets?.packs?.chinaRiverCrab || assets?.packs?.chinaEnemyGuardian || null;
   if (family === 'watchtowerSentry') return assets?.packs?.chinaWatchtowerSentry || assets?.packs?.chinaEnemyGuardian || null;
   if (family === 'clayGuardian') return assets?.packs?.chinaClayGuardianEnemy || assets?.packs?.chinaEnemyGuardian || null;
@@ -405,6 +437,7 @@ export const getEnemySpriteFamily = (enemy) => {
   if (enemy.type === 'river-crab' || name.includes('river crab') || name.includes('mudbank crab')) return 'riverCrab';
   if (enemy.type === 'watchtower-sentry' || name.includes('watchtower') || name.includes('sentry')) return 'watchtowerSentry';
   if (enemy.type === 'clay-guardian' || name.includes('clay guardian')) return 'clayGuardian';
+  if (enemy.type === 'mummy' || name.includes('mummy')) return 'mummy';
   if (enemy.type === 'statue' || name.includes('statue')) return 'cursedStatue';
   if (enemy.type === 'guardian' || name.includes('guardian')) return 'stoneGuardianEnemy';
   if (enemy.type === 'looter' || name.includes('looter')) return 'looter';
@@ -439,6 +472,7 @@ export const getEnemySpriteFrame = (enemy, combatMode, now = 0) => {
   if (family === 'looter') return `looterWalk${walkFrame}`;
   if (family === 'cursedStatue') return `cursedStatueWalk${walkFrame}`;
   if (family === 'stoneGuardianEnemy') return `stoneGuardianEnemyWalk${walkFrame}`;
+  if (family === 'mummy') return `mummyWalk${walkFrame}`;
   if (family === 'riverCrab') return `riverCrabWalk${walkFrame}`;
   if (family === 'watchtowerSentry') return `watchtowerSentryWalk${walkFrame}`;
   if (family === 'clayGuardian') return `clayGuardianWalk${walkFrame}`;
@@ -462,6 +496,7 @@ export const getEnemySpriteDrawBox = (enemy, screenX, shakeX = 0, combatMode = n
     looterCaptain: defeated ? 1.38 : 1.72,
     cursedStatue: defeated ? 1.36 : 1.7,
     stoneGuardianEnemy: defeated ? 1.36 : 1.72,
+    mummy: defeated ? 1.36 : 1.7,
     riverCrab: defeated ? 1.34 : 1.54,
     watchtowerSentry: defeated ? 1.34 : 1.62,
     clayGuardian: defeated ? 1.38 : 1.72,
@@ -477,13 +512,15 @@ export const getEnemySpriteDrawBox = (enemy, screenX, shakeX = 0, combatMode = n
     looterCaptain: 82,
     cursedStatue: 78,
     stoneGuardianEnemy: 80,
+    mummy: 78,
     riverCrab: 44,
     watchtowerSentry: 78,
     clayGuardian: 80,
   }[family] || MIN_ENEMY_DRAW_HEIGHT;
   const scaledWidth = Math.max(enemy.width, enemy.width * scale);
   const scaledHeight = Math.max(enemy.height, enemy.height * scale);
-  const height = Math.max(minHeight, scaledHeight) * ENEMY_VISUAL_SIZE_MULTIPLIER;
+  const visualMultiplier = ENEMY_VISUAL_SIZE_MULTIPLIERS[family] || ENEMY_VISUAL_SIZE_MULTIPLIER;
+  const height = Math.max(minHeight, scaledHeight) * visualMultiplier;
   const width = Math.max(scaledWidth, enemy.width * (height / Math.max(1, enemy.height)));
   const groundOffset = {
     scarab: defeated ? 16 : 14,
@@ -495,6 +532,7 @@ export const getEnemySpriteDrawBox = (enemy, screenX, shakeX = 0, combatMode = n
     looterCaptain: defeated ? 19 : 14,
     cursedStatue: defeated ? 19 : 14,
     stoneGuardianEnemy: defeated ? 19 : 14,
+    mummy: defeated ? 20 : 15,
     riverCrab: defeated ? 18 : 15,
     watchtowerSentry: defeated ? 20 : 15,
     clayGuardian: defeated ? 19 : 14,

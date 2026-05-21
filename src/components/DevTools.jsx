@@ -142,6 +142,13 @@ export function DevTools({
       <button className={currentPhase === 'expedition' ? 'active' : ''} onClick={() => jumpToExpeditionStage('journey')}>Journey</button>
       <button onClick={() => jumpToExpeditionStage('base-camp')}>Base Camp</button>
       <button onClick={() => jumpToExpeditionStage('excavation')}>Excavation</button>
+      <div className="dev-tools-section-label">Journey Bosses</div>
+      <button
+        className="dev-tools-subbutton"
+        onClick={() => jumpToExpeditionStage('journey-boss-start', { bossId: 'scarab-queen' })}
+      >
+        Scarab Queen
+      </button>
       <div className="dev-tools-section-label">Journey Starts</div>
       {JOURNEY_SECTION_DEV_JUMPS.map(jump => (
         <button

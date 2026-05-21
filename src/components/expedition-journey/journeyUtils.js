@@ -118,6 +118,7 @@ const ENEMY_TOUGHNESS_BONUS = {
   snake: 2,
   bat: 2,
   looter: 3,
+  mummy: 3,
   guardian: 3,
   statue: 3,
   'river-crab': 2,
@@ -132,7 +133,9 @@ const tuneEnemyHealth = (enemy) => {
 };
 
 const tuneEnemyDamage = (enemy) => (
-  enemy.openingRouteRamp ? enemy.damage : Math.max(enemy.damage + 2, Math.ceil(enemy.damage * 1.22))
+  enemy.openingRouteRamp
+    ? Math.max(enemy.damage + 1, Math.ceil(enemy.damage * 1.25))
+    : Math.max(enemy.damage + 4, Math.ceil(enemy.damage * 1.45))
 );
 
 const makeStepProfile = (entity, { boss = false } = {}) => {
@@ -284,7 +287,7 @@ export const makeMiniBoss = (boss) => ({
   direction: 1,
   health: Math.max(boss.health + 1, Math.ceil(boss.health * 1.35)),
   maxHealth: Math.max(boss.health + 1, Math.ceil(boss.health * 1.35)),
-  damage: Math.max(boss.damage + 1, Math.ceil(boss.damage * 1.1)),
+  damage: Math.max(boss.damage + 2, Math.ceil(boss.damage * 1.3)),
   defeated: false,
   awakened: false,
   stunTimer: 0,

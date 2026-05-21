@@ -1,6 +1,6 @@
 {
   "image": "scarab-queen-sprites.png",
-  "source": "Codex-generated Scarab Queen boss sheet, derived from the upgraded intimidating desert scarab family and extended with sacred Egyptian boss states.",
+  "source": "Production Scarab Queen boss atlas candidate v1, generated from approved master reference and normalized into the canonical Journey boss frame contract.",
   "coordinateNote": "Eleven fixed transparent cells preserving the canonical Journey boss frame keys.",
   "frameContract": [
     "scarabQueenIdle",
@@ -16,7 +16,7 @@
     "scarabQueenDefeated"
   ],
   "baseline": "bottom-center fixed per frame; sacred warning and area effects stay inside the same boss draw box",
-  "productionReference": "scarab-queen-production-source.png",
+  "productionReference": "../reference/scarab-queen-master-reference-candidate-v2-transparent.png",
   "regions": {
     "scarabQueenIdle": {
       "x": 0,

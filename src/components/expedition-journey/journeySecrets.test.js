@@ -12,6 +12,7 @@ const source = readFileSync(new URL('./journeyLevelData.js', import.meta.url), '
 const journeyUtilsSource = readFileSync(new URL('./journeyUtils.js', import.meta.url), 'utf8');
 const journeyConstantsSource = readFileSync(new URL('./journeyConstants.js', import.meta.url), 'utf8');
 const journeyEnemySpritesSource = readFileSync(new URL('./journeyEnemySprites.js', import.meta.url), 'utf8');
+const journeyBossSpritesSource = readFileSync(new URL('./journeyBossSprites.js', import.meta.url), 'utf8');
 const journeyMarkerSpritesSource = readFileSync(new URL('./journeyMarkerSprites.js', import.meta.url), 'utf8');
 const journeyRenderAssetsSource = readFileSync(new URL('./journeyRenderAssets.js', import.meta.url), 'utf8');
 const expeditionStagesSource = readFileSync(new URL('../expedition/expeditionStages.js', import.meta.url), 'utf8');
@@ -30,6 +31,9 @@ const egyptMarkerAtlas = JSON.parse(
 );
 const egyptSacredTrapAtlas = JSON.parse(
   readFileSync(new URL('../../../public/assets/expedition/environment/desert-temple/egypt-sacred-traps-pack.json', import.meta.url), 'utf8'),
+);
+const anubisBossAtlas = JSON.parse(
+  readFileSync(new URL('../../../public/assets/expedition/bosses/anubis-sprites.json', import.meta.url), 'utf8'),
 );
 const egyptOpeningTrapDecalsPath = new URL('../../../public/assets/expedition/environment/egypt-opening/opening-trap-decals.png', import.meta.url);
 const egyptOpeningHazardDecalsPath = new URL('../../../public/assets/expedition/environment/egypt-opening/opening-hazard-decals.png', import.meta.url);
@@ -212,7 +216,7 @@ test('Ancient Egypt opening stages archaeologist arrival and warrior-guide story
   assert.match(routeGates, /Recover evidence, shards, and the Brush Handle to earn passage into the ruined temple\./);
   assert.match(routeGates, /Record what you found, then move into the ruined temple entry\./);
   assert.match(miniBosses, /id:\s*'scarab-queen'[\s\S]*?health:\s*1,\s*damage:\s*4/);
-  assert.match(miniBosses, /The Scarab Queen rises from the sand\. The Sphinx has sent its first guardian\./);
+  assert.match(miniBosses, /The Scarab Queen rises from the sand\. Anubis has set the first trial\./);
   assert.match(bossKeyItems, /id:\s*'brush-handle'[\s\S]*?You passed the first guardian test\. Record what you found before moving deeper\. Desert Map Seal is open\./);
   assert.match(journeyComponentSource, /const GUARDIAN_KNOWLEDGE_CHALLENGES_ENABLED = false;/);
 });
@@ -232,7 +236,7 @@ test('Egypt Phase 1 boss identity changes preserve progression ids and China nam
   ].forEach((pattern) => assert.match(miniBosses, pattern));
 
   [
-    'The Scarab Queen rises from the sand. The Sphinx has sent its first guardian.',
+    'The Scarab Queen rises from the sand. Anubis has set the first trial.',
     'Anubis stands at the temple path. Only those who move with respect may pass.',
     'The Uraeus coils around the sacred seal. The path forward is protected.',
     'Bes blocks the broken passage with a fierce grin. This place will not be rushed.',
@@ -262,6 +266,32 @@ test('Egypt Phase 1 boss identity changes preserve progression ids and China nam
   assert.match(routeGates, /id:\s*'basecamp-seal'[\s\S]*?miniBoss:\s*'ancient-construct'[\s\S]*?keyItem:\s*'site-permit-seal'/);
 });
 
+test('Anubis boss uses the approved Anubis sprite atlas through the existing temple-guardian slot', () => {
+  assert.match(
+    journeyBossSpritesSource,
+    /STONE_GUARDIAN_SPRITE_ATLAS_JSON\s*=\s*`\$\{BOSS_SPRITE_BASE_PATH\}anubis-sprites\.json`/,
+  );
+  assert.equal(anubisBossAtlas.image, 'anubis-sprites.png');
+  assert.equal(anubisBossAtlas.status, 'approved-for-journey-wiring');
+  [
+    'stoneGuardianIdle',
+    'stoneGuardianWalk1',
+    'stoneGuardianWalk2',
+    'stoneGuardianAwakening',
+    'stoneGuardianWindup',
+    'stoneGuardianSlam',
+    'stoneGuardianShockwave',
+    'stoneGuardianShielded',
+    'stoneGuardianCounterWindow',
+    'stoneGuardianHit',
+    'stoneGuardianDefeated',
+  ].forEach((key) => {
+    const target = anubisBossAtlas.journeyAliasContract[key];
+    assert.ok(target, `${key} should alias to an Anubis frame`);
+    assert.deepEqual(anubisBossAtlas.regions[key], anubisBossAtlas.regions[target]);
+  });
+});
+
 test('opening Scarab Seal becomes a restrained false-discovery threshold scene', () => {
   const storyProps = extractExportedArray('STORY_PROPS');
   const platforms = extractExportedArray('PLATFORMS');
@@ -286,7 +316,8 @@ test('opening Scarab Seal becomes a restrained false-discovery threshold scene',
   assert.match(source, /This isn't the real relic\./);
   assert.match(source, /\.\.\.few recognize the decoy\./);
   assert.match(source, /The ruins remember every careless step\./);
-  assert.match(source, /eventName:\s*'The Sphinx'/);
+  assert.match(source, /eventName:\s*'Anubis'/);
+  assert.doesNotMatch(source.slice(source.indexOf('export const SCARAB_SEAL_TRIGGER = {'), source.indexOf('export const HAZARDS = [')), /The Sphinx has sent its first guardian/);
   assert.match(source, /stairwellRevealLine:\s*'A hidden stairwell opens beneath the ruins\.'/);
   assert.match(platforms, /invisible marked lower pyramid ledge/i);
   assert.match(platforms, /invisible marked first pyramid terrace/i);
@@ -327,9 +358,9 @@ test('opening Scarab Seal becomes a restrained false-discovery threshold scene',
   assert.match(journeyComponentSource, /phase:\s*'false-discovery'/);
   assert.match(journeyComponentSource, /lockMovement:\s*true/);
   assert.match(journeyComponentSource, /transitionTargetSectionId:\s*'desert-entry'/);
-  assert.match(journeyComponentSource, /OPENING_THRESHOLD_SCENE_DURATION = 34/);
-  assert.match(journeyComponentSource, /OPENING_THRESHOLD_FADE_SECONDS = 1\.6/);
-  assert.match(journeyComponentSource, /OPENING_THRESHOLD_STAIR_REVEAL_SECONDS = 11\.5/);
+  assert.match(journeyComponentSource, /OPENING_THRESHOLD_SCENE_DURATION = 46/);
+  assert.match(journeyComponentSource, /OPENING_THRESHOLD_FADE_SECONDS = 2/);
+  assert.match(journeyComponentSource, /OPENING_THRESHOLD_STAIR_REVEAL_SECONDS = 13\.5/);
   assert.match(journeyComponentSource, /drawOpeningThresholdScene/);
   assert.match(journeyComponentSource, /getOpeningThresholdDialogueLine/);
   assert.match(journeyComponentSource, /current\.openingThresholdScene\.timer/);
@@ -344,13 +375,13 @@ test('opening Scarab Seal becomes a restrained false-discovery threshold scene',
   assert.match(journeyComponentSource, /current\.collapsedPlatformIds\.add\('opening-scarab-seal-summit'\)/);
   assert.match(journeyComponentSource, /current\.triggeredEnvironmentEventIds\.add\(SCARAB_SEAL_TRIGGER\.id\)/);
   assert.match(journeyComponentSource, /current\.openingSphinxEncounter = \{/);
-  assert.match(journeyComponentSource, /const OPENING_SPHINX_DURATION = 34;/);
+  assert.match(journeyComponentSource, /const OPENING_SPHINX_DURATION = 46;/);
   assert.match(journeyComponentSource, /const OPENING_SPHINX_EXIT_SECONDS = 2\.35;/);
   assert.match(journeyComponentSource, /const OPENING_SPHINX_ARRIVAL_SECONDS = 1\.05;/);
-  assert.match(journeyComponentSource, /const OPENING_SPHINX_LINE_SECONDS = 1\.4;/);
+  assert.match(journeyComponentSource, /const OPENING_SPHINX_LINE_SECONDS = 2\.15;/);
   assert.match(journeyComponentSource, /const OPENING_SPHINX_SPRITE_BOSS_ID = 'ancient-construct';/);
-  assert.match(journeyComponentSource, /const OPENING_SPHINX_APPARITION_SRC = 'assets\/expedition\/bosses\/opening-sphinx-apparition\.png';/);
-  assert.match(journeyComponentSource, /const OPENING_SPHINX_SPRITE_VERSION = 'opening-sphinx-apparition-2026-05-19';/);
+  assert.match(journeyComponentSource, /const OPENING_SPHINX_APPARITION_SRC = 'assets\/expedition\/bosses\/anubis-apparition\.png';/);
+  assert.match(journeyComponentSource, /const OPENING_SPHINX_SPRITE_VERSION = 'opening-anubis-apparition-2026-05-21';/);
   assert.match(journeyComponentSource, /const OPENING_SPHINX_SCREEN_Y_OFFSET = 112;/);
   assert.match(journeyComponentSource, /silhouetteReveal:\s*true/);
   assert.match(journeyComponentSource, /projectionReveal/);
@@ -359,16 +390,24 @@ test('opening Scarab Seal becomes a restrained false-discovery threshold scene',
   assert.match(journeyComponentSource, /cueTimes = \[6\.2,\s*10\.8,\s*14\.8,\s*18\.6,\s*22\.8,\s*26\.5,\s*31\.5\]/);
   assert.match(journeyComponentSource, /fissureCues = \[11\.9,\s*18\.6,\s*26\.5,\s*29\.8\]/);
   assert.match(journeyComponentSource, /playExpeditionSfx\?\.\('openingThresholdAtmosphere'\)/);
+  assert.match(journeyComponentSource, /playExpeditionSfx\?\.\('openingThresholdFall'\)/);
   assert.match(journeyComponentSource, /playExpeditionSfx\?\.\('openingThresholdStoneShift'\)/);
+  assert.match(journeyComponentSource, /playExpeditionSfx\?\.\('openingThresholdFinalPulse'\)/);
+  assert.match(journeyComponentSource, /fallSfxPlayed:\s*false/);
   assert.match(journeyComponentSource, /stoneShiftSfxPlayed:\s*false/);
+  assert.match(journeyComponentSource, /finalPulseSfxPlayed:\s*false/);
+  assert.match(journeyComponentSource, /fallSfxPlayed:\s*Boolean\(current\.openingThresholdScene\.fallSfxPlayed\)/);
   assert.match(journeyComponentSource, /stoneShiftSfxPlayed:\s*Boolean\(current\.openingThresholdScene\.stoneShiftSfxPlayed\)/);
+  assert.match(journeyComponentSource, /finalPulseSfxPlayed:\s*Boolean\(current\.openingThresholdScene\.finalPulseSfxPlayed\)/);
   assert.match(appSource, /openingThresholdAtmosphere:\s*\{/);
+  assert.match(appSource, /openingThresholdFall:\s*\{/);
   assert.match(appSource, /openingThresholdStoneShift:\s*\{/);
+  assert.match(appSource, /openingThresholdFinalPulse:\s*\{/);
   assert.match(appSource, /opening-desert-wind\.ogg/);
   assert.match(appSource, /opening-deep-rumble\.ogg/);
   assert.match(appSource, /opening-earth-shake\.flac/);
-  assert.match(journeyComponentSource, /1\.2,\s*3\.2,\s*5\.4,\s*7\.2,\s*9\.5/);
-  assert.match(journeyComponentSource, /29\.2,\s*30\.8,\s*32\.2/);
+  assert.match(journeyComponentSource, /1\.6,\s*4\.2,\s*7\.3,\s*9\.9,\s*12\.8/);
+  assert.match(journeyComponentSource, /40\.0,\s*42\.2,\s*43\.8/);
   assert.match(journeyComponentSource, /message:\s*SCARAB_SEAL_TRIGGER\.messages\.join\(' '\)/);
   assert.match(journeyComponentSource, /lines:\s*SCARAB_SEAL_TRIGGER\.messages/);
   assert.match(journeyComponentSource, /visibleLineCount/);
@@ -378,7 +417,8 @@ test('opening Scarab Seal becomes a restrained false-discovery threshold scene',
   assert.match(journeyComponentSource, /openingSphinxApparitionRef = useRef\(\{ image: null, loaded: false, failed: false \}\)/);
   assert.match(journeyComponentSource, /openingSphinxApparitionRef\.current = \{ image, loaded: true, failed: false \}/);
   assert.match(journeyComponentSource, /ctx\.drawImage\(apparitionAsset\.image,\s*drawBox\.x,\s*drawBox\.y,\s*drawBox\.width,\s*drawBox\.height\)/);
-  assert.match(journeyComponentSource, /openingSphinxSpriteModel = 'opening-sphinx-apparition'/);
+  assert.match(journeyComponentSource, /openingSphinxSpriteModel = 'opening-anubis-apparition'/);
+  assert.match(journeyComponentSource, /openingSphinxSpriteFrame = 'openingAnubisApparition'/);
   assert.match(journeyComponentSource, /getBossSpritePack\(bossSpriteAssetsRef\.current,\s*OPENING_SPHINX_SPRITE_BOSS_ID\)/);
   assert.match(journeyComponentSource, /drawAtlasRegion\([\s\S]*?spritePack[\s\S]*?frameKey[\s\S]*?\{\s*mode:\s*'contain',\s*alignY:\s*'bottom'\s*\}/);
   assert.match(journeyComponentSource, /shouldFlipBossSprite\(OPENING_SPHINX_SPRITE_BOSS_ID,\s*-1\)/);
@@ -393,6 +433,10 @@ test('opening Scarab Seal becomes a restrained false-discovery threshold scene',
   assert.doesNotMatch(journeyComponentSource, /current\.environmentEvent = \{[\s\S]*?name:\s*SCARAB_SEAL_TRIGGER\.eventName[\s\S]*?message:\s*SCARAB_SEAL_TRIGGER\.messages\.slice\(1\)\.join\(' '\)/);
   assert.match(journeyComponentSource, /b\.id === SCARAB_SEAL_TRIGGER\.bossId[\s\S]*?!current\.scarabSealActivated/);
   assert.match(journeyComponentSource, /scarabSealRequired && current\.openingThresholdScene/);
+  assert.match(journeyComponentSource, /target === 'journey-boss-start'/);
+  assert.match(journeyComponentSource, /setBriefingOpen\(false\)/);
+  assert.match(journeyComponentSource, /current\.scarabSealActivated = true[\s\S]*?Developer mode: \$\{boss\.name\} encounter ready\./);
+  assert.match(journeyComponentSource, /current\.seenBossIntroIds\?\.add\(boss\.id\)/);
   assert.match(journeyComponentSource, /SCARAB_SEAL_TRIGGER\.bossIntroLine/);
   assert.match(journeyComponentSource, /SCARAB_SEAL_TRIGGER\.guideFollowUpLine/);
   assert.match(journeyComponentSource, /guardianSealActivated/);
@@ -405,7 +449,11 @@ test('opening Scarab Seal becomes a restrained false-discovery threshold scene',
   assert.match(journeyRenderAssetsSource, /'opening-seal-reset-trap':\s*'softSand'/);
   assert.doesNotMatch(journeyComponentSource, /visualHazardId === 'opening-seal-reset-trap'[\s\S]*?strokeStyle = 'rgba\(250, 204, 21/);
   assert.doesNotMatch(journeyComponentSource, /openingScarabConfrontationPending/);
-  assert.doesNotMatch(journeyComponentSource, /player\.x = playerDomainStartX[\s\S]*?SCARAB_SEAL_TRIGGER\.bossId/);
+  const openingSealRuntimeBlock = journeyComponentSource.slice(
+    journeyComponentSource.indexOf("if (backgroundPackId !== 'china-river-valley' && !current.scarabSealActivated)"),
+    journeyComponentSource.indexOf('getActiveHiddenRoutes().forEach'),
+  );
+  assert.doesNotMatch(openingSealRuntimeBlock, /player\.x = playerDomainStartX/);
 
   assert.match(routeGates, /id:\s*'desert-seal'[\s\S]*?miniBoss:\s*'scarab-queen'[\s\S]*?keyItem:\s*'brush-handle'/);
   assert.match(routeGates, /id:\s*'desert-seal'[\s\S]*?requires:\s*\{\s*objective:\s*'desert-entry',\s*miniBoss:\s*'scarab-queen',\s*keyItem:\s*'brush-handle',\s*shards:\s*10/);
@@ -475,7 +523,7 @@ test('opening pyramid facade stays solid and scrolls naturally off screen', () =
     journeyComponentSource,
     /if \(x > CANVAS_WIDTH \+ 80 \|\| x \+ width < -80\) return false;[\s\S]*?ctx\.globalAlpha = 0\.98;/,
   );
-  assert.match(journeyComponentSource, /drawOpeningPyramidMasonryBack\(ctx, cameraX\)/);
+  assert.match(journeyComponentSource, /drawOpeningPyramidMasonryBack\(ctx, cameraX, now\)/);
   assert.doesNotMatch(journeyComponentSource, /clipRight/);
   assert.doesNotMatch(journeyComponentSource, /OPENING_PYRAMID_FACADE_MIN_VISIBLE_WIDTH/);
   assert.doesNotMatch(journeyComponentSource, /OPENING_PYRAMID_FACADE_FADE_START_X/);
@@ -701,7 +749,7 @@ test('Egypt opening loop makes the first seal require enemies, shards, and the m
   assert.match(source, /id:\s*'temple-approach-seal'[\s\S]*?id:\s*'desert-seal'/);
   assert.match(source, /id:\s*'desert-seal'[\s\S]*?shards:\s*10/);
   assert.match(source, /id:\s*'map-tablet'[\s\S]*?x:\s*X\(610\)/);
-  assert.match(source, /id:\s*'scarab-start-1'[\s\S]*?protectsRouteId:\s*'temple-approach-seal'/);
+  assert.match(source, /id:\s*'warrior-mummy-start-1'[\s\S]*?protectsRouteId:\s*'temple-approach-seal'/);
   assert.match(source, /id:\s*'scarab-scout-1'[\s\S]*?protectsRouteId:\s*'temple-approach-seal'/);
   assert.match(source, /protectsRouteId:\s*'desert-opening-shard-cache'/);
   assert.match(source, /protectsRouteId:\s*'desert-opening-map-tablet'/);
@@ -712,7 +760,9 @@ test('Egypt opening loop makes the first seal require enemies, shards, and the m
   assert.match(journeyComponentSource, /seenEnemyTypeNoticeIds/);
   assert.match(journeyComponentSource, /gateRequirementLabel/);
   assert.match(journeyComponentSource, /journey-floating-hud-gate/);
-  assert.match(journeyComponentSource, /journey-collectible-purpose-tuning-2026-05-16/);
+  assert.match(journeyComponentSource, /journey-collectible-shard-atlas-upgrade-2026-05-21/);
+  assert.match(journeyComponentSource, /relicShard:\s*\{[\s\S]*?ringSize:\s*Math\.round\(54 \* PICKUP_GLOW_SCALE\)/);
+  assert.match(journeyComponentSource, /key:\s*'relicShard'[\s\S]*?ringKey:\s*'availableGlowRing'/);
 });
 
 test('Egypt sacred trap seal and pedestal pack is registered as a future asset only', () => {
@@ -769,7 +819,10 @@ test('Egypt Journey loads visible sprites for all default Egypt enemy families',
   assert.match(journeyEnemySpritesSource, /SAND_SNAKE_SPRITE_ATLAS_JSON/);
   assert.match(journeyEnemySpritesSource, /SCORPION_SPRITE_ATLAS_JSON/);
   assert.match(journeyEnemySpritesSource, /SAND_WISP_SPRITE_ATLAS_JSON/);
-  assert.match(journeyEnemySpritesSource, /ENEMY_VISUAL_SIZE_MULTIPLIER = 2\.7/);
+  assert.match(journeyEnemySpritesSource, /WARRIOR_MUMMY_SPRITE_ATLAS_JSON/);
+  assert.match(journeyEnemySpritesSource, /EXPECTED_WARRIOR_MUMMY_SPRITE_KEYS/);
+  assert.match(journeyEnemySpritesSource, /ENEMY_VISUAL_SIZE_MULTIPLIER = 1\.5/);
+  assert.match(journeyEnemySpritesSource, /ENEMY_VISUAL_SIZE_MULTIPLIERS = \{/);
   assert.match(journeyEnemySpritesSource, /ENEMY_SPRITE_GROUNDING_VERSION = 'enemy-sprite-grounding-2026-05-18'/);
   assert.match(journeyEnemySpritesSource, /scarab:\s*defeated \? 16 : 14/);
   assert.match(journeyEnemySpritesSource, /scorpion:\s*defeated \? 18 : 15/);
@@ -783,6 +836,7 @@ test('Egypt Journey loads visible sprites for all default Egypt enemy families',
   assert.match(journeyComponentSource, /enemy\.type === 'snake'/);
   assert.match(journeyComponentSource, /enemy\.type === 'scorpion'/);
   assert.match(journeyComponentSource, /enemy\.type === 'sand-wisp'/);
+  assert.match(journeyComponentSource, /enemy\.type === 'mummy'/);
 });
 
 test('guardian knowledge quizzes stay available but are no longer used by boss fights', () => {
@@ -1140,7 +1194,8 @@ test('combat pressure encounters guard optional rewards without blocking progres
   assert.match(journeyUtilsSource, /looter:\s*3/);
   assert.match(journeyUtilsSource, /return clamp\(Math\.max\(enemy\.health \+ bonus, Math\.ceil\(enemy\.health \* 1\.55\)\), 3, 5\)/);
   assert.match(journeyUtilsSource, /Math\.ceil\(enemy\.health \* 1\.55\)/);
-  assert.match(journeyUtilsSource, /Math\.ceil\(enemy\.damage \* 1\.22\)/);
+  assert.match(journeyUtilsSource, /enemy\.openingRouteRamp\s*\?\s*Math\.max\(enemy\.damage \+ 1, Math\.ceil\(enemy\.damage \* 1\.25\)\)/);
+  assert.match(journeyUtilsSource, /Math\.ceil\(enemy\.damage \* 1\.45\)/);
   assert.match(journeyUtilsSource, /baseSpeed: entity\.speed \* \(entity\.openingRouteRamp \? 1\.12 : 1\.18\)/);
   assert.match(journeyComponentSource, /const ENEMY_TACTICAL_PRESSURE = \{/);
   assert.match(journeyComponentSource, /awarenessMultiplier/);
@@ -1172,7 +1227,7 @@ test('Egypt opening combat ramps gently before the first route seal', () => {
     'Egypt enemies before the first seal should opt into the opening-route safety tuning',
   );
   assert.match(journeyUtilsSource, /if\s*\(enemy\.openingRouteRamp\)\s*return Math\.max\(3, enemy\.health\)/);
-  assert.match(journeyUtilsSource, /enemy\.openingRouteRamp\s*\?\s*enemy\.damage/);
+  assert.match(journeyUtilsSource, /enemy\.openingRouteRamp\s*\?\s*Math\.max\(enemy\.damage \+ 1, Math\.ceil\(enemy\.damage \* 1\.25\)\)/);
   assert.equal(
     teachingRows.every(row => Number(row.match(/health:\s*(\d+)/)?.[1] || 0) <= 2 && Number(row.match(/damage:\s*(\d+)/)?.[1] || 0) <= 5),
     true,
@@ -1189,8 +1244,10 @@ test('Egypt opening combat ramps gently before the first route seal', () => {
 
 test('regular enemy families use distinct combat role timings without a new AI system', () => {
   assert.match(journeyComponentSource, /const ENEMY_ATTACK_PATTERNS = \{/);
-  assert.match(journeyComponentSource, /const ENEMY_AGGRO_MEMORY_SECONDS = 3\.6/);
-  assert.match(journeyComponentSource, /const ENEMY_AGGRO_PATROL_PADDING = 220/);
+  assert.match(journeyComponentSource, /const ENEMY_AGGRO_MEMORY_SECONDS = 4\.6/);
+  assert.match(journeyComponentSource, /const ENEMY_AGGRO_PATROL_PADDING = 320/);
+  assert.match(journeyComponentSource, /scarab:\s*\{[\s\S]*?awareness:\s*1\.55[\s\S]*?chase:\s*2\.05/);
+  assert.match(journeyComponentSource, /scorpion:\s*\{[\s\S]*?awareness:\s*1\.45[\s\S]*?chase:\s*1\.85/);
   assert.match(journeyComponentSource, /scarab:\s*\{[\s\S]*?id:\s*'charge'[\s\S]*?windup:\s*0\.42[\s\S]*?speed:\s*185[\s\S]*?range:\s*38/);
   assert.match(journeyComponentSource, /scorpion:\s*\{[\s\S]*?id:\s*'sting'[\s\S]*?windup:\s*0\.6[\s\S]*?duration:\s*0\.3[\s\S]*?speed:\s*54[\s\S]*?range:\s*28[\s\S]*?height:\s*58[\s\S]*?yOffset:\s*-34[\s\S]*?backReach:\s*38[\s\S]*?damageScale:\s*1\.45/);
   assert.match(journeyComponentSource, /snake:\s*\{[\s\S]*?id:\s*'lunge'[\s\S]*?windup:\s*0\.62[\s\S]*?speed:\s*166[\s\S]*?range:\s*52/);
@@ -1200,18 +1257,30 @@ test('regular enemy families use distinct combat role timings without a new AI s
   assert.match(journeyComponentSource, /e\.attackRecovery = pattern\.recovery;[\s\S]*?e\.vulnerabilityTimer = pattern\.vulnerableAfter;/);
   assert.match(journeyComponentSource, /e\.aggroMemoryTimer = Math\.max\(e\.aggroMemoryTimer \|\| 0, ENEMY_AGGRO_MEMORY_SECONDS \* \(tacticalPattern\.aggroMemoryMultiplier \|\| 1\)\)/);
   assert.match(journeyComponentSource, /const isAggroChasing = \(e\.aggroMemoryTimer \|\| 0\) > 0/);
-  assert.match(journeyComponentSource, /const chaseSpeedMultiplier = isAggroChasing \? tacticalPattern\.chaseMultiplier \|\| 1\.35 : 1/);
+  assert.match(journeyComponentSource, /const chaseSpeedMultiplier = isAggroChasing \? tacticalPattern\.chaseMultiplier \|\| 1\.65 : 1/);
   assert.match(journeyComponentSource, /const movementMin = isAggroChasing \? e\.patrolMin - ENEMY_AGGRO_PATROL_PADDING : e\.patrolMin/);
+});
+
+test('enemy hits land harder while player pushback stays short', () => {
+  assert.match(journeyUtilsSource, /enemy\.openingRouteRamp\s*\?\s*Math\.max\(enemy\.damage \+ 1, Math\.ceil\(enemy\.damage \* 1\.25\)\)/);
+  assert.match(journeyUtilsSource, /Math\.max\(enemy\.damage \+ 4, Math\.ceil\(enemy\.damage \* 1\.45\)\)/);
+  assert.match(journeyComponentSource, /player\.knockbackMaxTimer = Math\.max\(0\.06, 0\.12 \* effectiveKnockbackMultiplier\)/);
+  assert.match(journeyComponentSource, /player\.vx = approach\(player\.vx, direction \* 95 \* effectiveKnockbackMultiplier, 160\)/);
+  assert.match(journeyComponentSource, /player\.vx \+= player\.knockbackDirection \* \(55 \+ knockbackProgress \* 42\.5\) \* knockbackMultiplier/);
 });
 
 test('opening enemy role overrides preserve first-route fairness and readable counters', () => {
   const egyptEnemies = extractExportedArray('ENEMIES');
-  assert.match(egyptEnemies, /id:\s*'scarab-start-1'[\s\S]*?attackPatternTuning:\s*\{[\s\S]*?windup:\s*0\.58[\s\S]*?vulnerableAfter:\s*0\.72[\s\S]*?speed:\s*112/);
+  assert.match(egyptEnemies, /id:\s*'warrior-mummy-start-1'[\s\S]*?type:\s*'mummy'[\s\S]*?attackPatternTuning:\s*\{[\s\S]*?windup:\s*0\.82[\s\S]*?vulnerableAfter:\s*0\.82[\s\S]*?speed:\s*52/);
   assert.match(egyptEnemies, /id:\s*'scorpion-start-1'[\s\S]*?width:\s*44[\s\S]*?height:\s*30[\s\S]*?attackPatternTuning:\s*\{[\s\S]*?windup:\s*0\.66[\s\S]*?duration:\s*0\.34[\s\S]*?range:\s*26[\s\S]*?height:\s*62[\s\S]*?yOffset:\s*-38[\s\S]*?backReach:\s*42[\s\S]*?damageScale:\s*1\.5/);
+  assert.match(egyptEnemies, /id:\s*'scorpion-pottery-1'[\s\S]*?name:\s*'Pottery Scorpion'[\s\S]*?type:\s*'scorpion'[\s\S]*?protectsRouteId:\s*'desert-opening-shard-cache'/);
+  assert.match(egyptEnemies, /id:\s*'scorpion-seal-path-1'[\s\S]*?name:\s*'Seal Path Scorpion'[\s\S]*?type:\s*'scorpion'[\s\S]*?protectsRouteId:\s*'temple-approach-seal'/);
+  assert.match(egyptEnemies, /id:\s*'scorpion-guardian-path-1'[\s\S]*?name:\s*'Guardian Path Scorpion'[\s\S]*?type:\s*'scorpion'[\s\S]*?x:\s*X\(1375\)/);
   assert.match(egyptEnemies, /id:\s*'sand-wisp-start-1'[\s\S]*?damage:\s*4[\s\S]*?attackPatternTuning:\s*\{[\s\S]*?vulnerableAfter:\s*0\.72/);
   assert.match(egyptEnemies, /id:\s*'snake-1'[\s\S]*?attackPatternTuning:\s*\{[\s\S]*?windup:\s*0\.68[\s\S]*?range:\s*48/);
   assert.match(journeyComponentSource, /Scarab charges\. Move or jump, then strike\./);
   assert.match(journeyComponentSource, /Scorpion stings high\. Step back before jumping over it\./);
+  assert.match(journeyComponentSource, /Warrior mummies guard the threshold\. Wait for the sweep, then counter\./);
   assert.match(journeyComponentSource, /Snake lunges from mid-range\. Watch the coil\./);
 });
 

@@ -3473,7 +3473,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
     const handleExpeditionDevJump = (event) => {
       if (event.detail?.target === 'journey') devJumpToJourney();
       if (
-        event.detail?.target === 'journey-section-start'
+        (event.detail?.target === 'journey-section-start' || event.detail?.target === 'journey-boss-start')
         && (expeditionStage !== 'journey' || baseCampOpen)
       ) {
         devJumpToJourney();

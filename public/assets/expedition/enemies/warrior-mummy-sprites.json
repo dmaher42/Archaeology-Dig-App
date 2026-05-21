@@ -1,0 +1,66 @@
+{
+  "image": "warrior-mummy-sprites.png",
+  "source": "Codex-generated upgraded regular enemy sprite sheet with fixed transparent cells and consistent baseline.",
+  "coordinateNote": "Eight fixed cells: Idle, Walk1, Walk2, Walk3, Windup, Attack, Hit, Defeated. Regions share one bottom-center anchor.",
+  "frameContract": [
+    "Idle",
+    "Walk1",
+    "Walk2",
+    "Walk3",
+    "Windup",
+    "Attack",
+    "Hit",
+    "Defeated"
+  ],
+  "baseline": "bottom-center shared per family; no baked large shadow",
+  "regions": {
+    "mummyIdle": {
+      "x": 75,
+      "y": 106,
+      "w": 309,
+      "h": 231
+    },
+    "mummyWalk1": {
+      "x": 459,
+      "y": 106,
+      "w": 309,
+      "h": 231
+    },
+    "mummyWalk2": {
+      "x": 843,
+      "y": 106,
+      "w": 309,
+      "h": 231
+    },
+    "mummyWalk3": {
+      "x": 1227,
+      "y": 106,
+      "w": 309,
+      "h": 231
+    },
+    "mummyWindup": {
+      "x": 1611,
+      "y": 106,
+      "w": 309,
+      "h": 231
+    },
+    "mummyAttack": {
+      "x": 1995,
+      "y": 106,
+      "w": 309,
+      "h": 231
+    },
+    "mummyHit": {
+      "x": 2379,
+      "y": 106,
+      "w": 309,
+      "h": 231
+    },
+    "mummyDefeated": {
+      "x": 2763,
+      "y": 106,
+      "w": 309,
+      "h": 231
+    }
+  }
+}

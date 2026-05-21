@@ -22,8 +22,8 @@ test('regular enemy sprite draw boxes stay close to gameplay hitbox scale', () =
   const drawBox = getEnemySpriteDrawBox(scarab, 255, 0, 'patrol');
 
   assert.ok(drawBox, 'scarab draw box should resolve');
-  assert.ok(drawBox.width >= 82, `scarab draw width should show the larger visual size boost, received ${drawBox.width}`);
-  assert.ok(drawBox.height >= 68, `scarab draw height should show the larger visual size boost, received ${drawBox.height}`);
+  assert.ok(drawBox.width >= 82, `scarab draw width should keep its deliberately large threat silhouette, received ${drawBox.width}`);
+  assert.ok(drawBox.height >= 68, `scarab draw height should keep its deliberately large threat silhouette, received ${drawBox.height}`);
   assert.ok(drawBox.width <= 180, `scarab draw width should stay readable, received ${drawBox.width}`);
   assert.ok(drawBox.height <= 126, `scarab draw height should stay readable, received ${drawBox.height}`);
   assert.equal(drawBox.y + drawBox.height, scarab.y + scarab.height + 14, 'scarab sprite should be lowered enough that the visible PNG feet touch the sand');
@@ -46,10 +46,10 @@ test('scorpion sprites read larger than before while staying grounded', () => {
   const drawBox = getEnemySpriteDrawBox(scorpion, 320, 0, 'windup');
 
   assert.ok(drawBox, 'scorpion draw box should resolve');
-  assert.ok(drawBox.width >= 96, `scorpion draw width should feel larger and readable, received ${drawBox.width}`);
-  assert.ok(drawBox.height >= 80, `scorpion draw height should feel larger and readable, received ${drawBox.height}`);
-  assert.ok(drawBox.width <= 230, `scorpion draw width should avoid boss-scale clutter, received ${drawBox.width}`);
-  assert.ok(drawBox.height <= 155, `scorpion draw height should avoid boss-scale clutter, received ${drawBox.height}`);
+  assert.ok(drawBox.width >= 96, `scorpion draw width should keep its deliberately large anti-jump silhouette, received ${drawBox.width}`);
+  assert.ok(drawBox.height >= 80, `scorpion draw height should keep its deliberately large anti-jump silhouette, received ${drawBox.height}`);
+  assert.ok(drawBox.width <= 230, `scorpion draw width should stay readable, received ${drawBox.width}`);
+  assert.ok(drawBox.height <= 155, `scorpion draw height should stay readable, received ${drawBox.height}`);
   assert.equal(drawBox.y + drawBox.height, scorpion.y + scorpion.height + 15, 'scorpion sprite should stay grounded to the sand');
 });
 
@@ -61,6 +61,26 @@ test('scorpion sting is a high anti-jump attack that hits harder through existin
   assert.match(journeyComponentSource, /width: range \+ trailingReach,/);
   assert.match(journeyComponentSource, /getAttackBox\(e, pattern\.range, pattern\.height, e\.attackDirection, pattern\.yOffset \|\| 0, pattern\.backReach \|\| 0\)/);
   assert.match(journeyComponentSource, /Math\.max\(e\.damage, Math\.round\(e\.damage \* \(pattern\.damageScale \|\| 1\)\)\)/);
+});
+
+test('warrior mummy sprite draw box resolves as a grounded humanoid enemy', () => {
+  const mummy = {
+    id: 'warrior-mummy-start-1',
+    name: 'Warrior Mummy',
+    type: 'mummy',
+    x: 292,
+    y: 318,
+    width: 34,
+    height: 42,
+  };
+
+  const drawBox = getEnemySpriteDrawBox(mummy, 292, 0, 'patrol');
+
+  assert.ok(drawBox, 'warrior mummy draw box should resolve');
+  assert.equal(drawBox.family, 'mummy');
+  assert.ok(drawBox.height >= 84, `warrior mummy should read as a tall humanoid, received ${drawBox.height}`);
+  assert.ok(drawBox.height <= 120, `warrior mummy should not become boss-scale clutter, received ${drawBox.height}`);
+  assert.equal(drawBox.y + drawBox.height, mummy.y + mummy.height + 15, 'warrior mummy sprite should stay grounded');
 });
 
 test('scarabs use the same right-facing sprite orientation rules', () => {
