@@ -94,8 +94,94 @@ const EXPEDITION_AUDIO_TRACKS = {
         { path: 'assets/expedition/sfx/satchel-leather.ogg', volume: 0.12, delay: 32, playbackRate: 0.96 },
       ],
     },
-    enemyHit: { path: 'assets/expedition/sfx/enemy-hit.ogg', volume: 0.42 },
-    playerHit: { path: 'assets/expedition/sfx/player-hit.ogg', volume: 0.42 },
+    combatDeflect: {
+      synth: 'combatDeflect',
+      synthVolume: 1.18,
+      cooldownMs: 180,
+      clips: [
+        { path: 'assets/expedition/sfx/metal-click.ogg', volume: 0.16, playbackRate: 1.28 },
+      ],
+    },
+    enemyHit: {
+      synth: 'creatureHit',
+      synthVolume: 1.08,
+      cooldownMs: 120,
+      clips: [
+        { path: 'assets/expedition/sfx/enemy-hit.ogg', volume: 0.2, playbackRate: 1.12 },
+      ],
+    },
+    scarabHit: {
+      synth: 'scarabShellHit',
+      synthVolume: 1.22,
+      cooldownMs: 120,
+      clips: [
+        { path: 'assets/expedition/sfx/enemy-hit.ogg', volume: 0.16, playbackRate: 1.38 },
+      ],
+    },
+    scorpionHit: {
+      synth: 'scorpionHit',
+      synthVolume: 1.12,
+      cooldownMs: 120,
+      clips: [
+        { path: 'assets/expedition/sfx/enemy-hit.ogg', volume: 0.14, playbackRate: 1.52 },
+      ],
+    },
+    snakeHit: {
+      synth: 'snakeHit',
+      synthVolume: 1.04,
+      cooldownMs: 120,
+      clips: [
+        { path: 'assets/expedition/sfx/enemy-hit.ogg', volume: 0.12, playbackRate: 1.62 },
+      ],
+    },
+    sandWispHit: {
+      synth: 'sandWispHit',
+      synthVolume: 1.12,
+      cooldownMs: 120,
+      clips: [
+        { path: 'assets/expedition/sfx/enemy-hit.ogg', volume: 0.1, playbackRate: 0.88 },
+      ],
+    },
+    bossHit: {
+      synth: 'bossHit',
+      synthVolume: 1.18,
+      cooldownMs: 160,
+      clips: [
+        { path: 'assets/expedition/sfx/enemy-hit.ogg', volume: 0.22, playbackRate: 0.82 },
+      ],
+    },
+    playerHit: {
+      synth: 'playerImpact',
+      synthVolume: 1.16,
+      cooldownMs: 220,
+      clips: [
+        { path: 'assets/expedition/sfx/player-hit.ogg', volume: 0.22, playbackRate: 0.96 },
+      ],
+    },
+    trapReset: {
+      synth: 'trapReset',
+      synthVolume: 1.16,
+      cooldownMs: 360,
+      clips: [
+        { path: 'assets/expedition/sfx/land-soft.ogg', volume: 0.18, playbackRate: 0.7 },
+      ],
+    },
+    trapStoneTrigger: {
+      synth: 'trapStoneTrigger',
+      synthVolume: 1.1,
+      cooldownMs: 260,
+      clips: [
+        { path: 'assets/expedition/sfx/land-soft.ogg', volume: 0.13, playbackRate: 0.76 },
+      ],
+    },
+    trapSandTrigger: {
+      synth: 'trapSandTrigger',
+      synthVolume: 1.08,
+      cooldownMs: 260,
+      clips: [
+        { path: 'assets/expedition/sfx/land-soft.ogg', volume: 0.12, playbackRate: 0.9 },
+      ],
+    },
     bossWarning: { path: 'assets/expedition/sfx/boss-warning.ogg', volume: 0.38 },
     openingThresholdAtmosphere: {
       cooldownMs: 36000,
@@ -231,6 +317,63 @@ const playExpeditionSyntheticSfx = (type, options = {}) => {
   const variant = expeditionSyntheticSfxVariants.get(type) || 0;
   expeditionSyntheticSfxVariants.set(type, variant + 1);
   const variation = (variant % 4) - 1.5;
+  const makeNoiseBurst = ({
+    duration = 0.12,
+    frequency = 1200,
+    endFrequency = frequency,
+    q = 1,
+    gain = 0.08,
+    delay = 0,
+    type: filterType = 'bandpass',
+  }) => {
+    const start = now + delay;
+    const buffer = audioCtx.createBuffer(1, Math.floor(audioCtx.sampleRate * duration), audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i += 1) {
+      const progress = i / data.length;
+      const attack = Math.min(1, progress / 0.12);
+      const decay = Math.max(0, 1 - progress);
+      data[i] = (Math.random() * 2 - 1) * attack * decay * decay;
+    }
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buffer;
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = filterType;
+    filter.frequency.setValueAtTime(frequency + variation * 26, start);
+    filter.frequency.linearRampToValueAtTime(endFrequency + variation * 18, start + duration);
+    filter.Q.value = q;
+    const noiseGain = audioCtx.createGain();
+    noiseGain.gain.setValueAtTime(0.0001, start);
+    noiseGain.gain.linearRampToValueAtTime(gain * volume, start + Math.min(0.025, duration * 0.24));
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, start + duration);
+    noise.connect(filter);
+    filter.connect(noiseGain);
+    noiseGain.connect(audioCtx.destination);
+    noise.start(start);
+    noise.stop(start + duration);
+  };
+  const makeToneHit = ({
+    frequency = 180,
+    endFrequency = frequency * 0.55,
+    gain = 0.045,
+    duration = 0.12,
+    delay = 0,
+    wave = 'triangle',
+  }) => {
+    const start = now + delay;
+    const tone = audioCtx.createOscillator();
+    tone.type = wave;
+    tone.frequency.setValueAtTime(frequency + variation * 4, start);
+    tone.frequency.exponentialRampToValueAtTime(Math.max(28, endFrequency + variation * 2), start + duration);
+    const toneGain = audioCtx.createGain();
+    toneGain.gain.setValueAtTime(0.0001, start);
+    toneGain.gain.linearRampToValueAtTime(gain * volume, start + Math.min(0.018, duration * 0.2));
+    toneGain.gain.exponentialRampToValueAtTime(0.001, start + duration);
+    tone.connect(toneGain);
+    toneGain.connect(audioCtx.destination);
+    tone.start(start);
+    tone.stop(start + duration);
+  };
 
   if (type === 'dustStep') {
     const duration = 0.16;
@@ -311,6 +454,77 @@ const playExpeditionSyntheticSfx = (type, options = {}) => {
     bodyGain.connect(audioCtx.destination);
     body.start(now + 0.02);
     body.stop(now + 0.18);
+    return;
+  }
+
+  if (type === 'combatDeflect') {
+    makeNoiseBurst({ duration: 0.09, frequency: 2400, endFrequency: 1250, q: 2.2, gain: 0.105 });
+    makeNoiseBurst({ duration: 0.12, frequency: 980, endFrequency: 680, q: 1.4, gain: 0.055, delay: 0.018 });
+    makeToneHit({ frequency: 420, endFrequency: 210, gain: 0.032, duration: 0.11, wave: 'square' });
+    return;
+  }
+
+  if (type === 'creatureHit') {
+    makeNoiseBurst({ duration: 0.11, frequency: 1320, endFrequency: 820, q: 1.25, gain: 0.09 });
+    makeToneHit({ frequency: 176, endFrequency: 82, gain: 0.038, duration: 0.12 });
+    return;
+  }
+
+  if (type === 'scarabShellHit') {
+    makeNoiseBurst({ duration: 0.07, frequency: 3150, endFrequency: 1850, q: 2.8, gain: 0.095 });
+    makeNoiseBurst({ duration: 0.1, frequency: 1180, endFrequency: 740, q: 1.8, gain: 0.07, delay: 0.018 });
+    makeToneHit({ frequency: 260, endFrequency: 120, gain: 0.03, duration: 0.09, wave: 'square' });
+    return;
+  }
+
+  if (type === 'scorpionHit') {
+    makeNoiseBurst({ duration: 0.08, frequency: 3600, endFrequency: 2300, q: 3.2, gain: 0.075 });
+    makeNoiseBurst({ duration: 0.12, frequency: 1450, endFrequency: 1020, q: 1.8, gain: 0.06, delay: 0.015 });
+    return;
+  }
+
+  if (type === 'snakeHit') {
+    makeNoiseBurst({ duration: 0.12, frequency: 4200, endFrequency: 1900, q: 1.05, gain: 0.065 });
+    makeToneHit({ frequency: 230, endFrequency: 115, gain: 0.026, duration: 0.08, wave: 'sawtooth' });
+    return;
+  }
+
+  if (type === 'sandWispHit') {
+    makeNoiseBurst({ duration: 0.19, frequency: 1900, endFrequency: 540, q: 0.82, gain: 0.078 });
+    makeToneHit({ frequency: 540, endFrequency: 720, gain: 0.024, duration: 0.16, wave: 'sine' });
+    return;
+  }
+
+  if (type === 'bossHit') {
+    makeNoiseBurst({ duration: 0.14, frequency: 980, endFrequency: 540, q: 1.1, gain: 0.105 });
+    makeToneHit({ frequency: 112, endFrequency: 54, gain: 0.062, duration: 0.18 });
+    makeNoiseBurst({ duration: 0.08, frequency: 2500, endFrequency: 1500, q: 2.1, gain: 0.055, delay: 0.025 });
+    return;
+  }
+
+  if (type === 'playerImpact') {
+    makeNoiseBurst({ duration: 0.12, frequency: 760, endFrequency: 460, q: 1, gain: 0.09 });
+    makeToneHit({ frequency: 92, endFrequency: 48, gain: 0.06, duration: 0.16 });
+    return;
+  }
+
+  if (type === 'trapReset') {
+    makeNoiseBurst({ duration: 0.2, frequency: 520, endFrequency: 230, q: 0.72, gain: 0.11 });
+    makeNoiseBurst({ duration: 0.16, frequency: 1550, endFrequency: 680, q: 1.25, gain: 0.05, delay: 0.025 });
+    makeToneHit({ frequency: 86, endFrequency: 42, gain: 0.07, duration: 0.22 });
+    return;
+  }
+
+  if (type === 'trapStoneTrigger') {
+    makeNoiseBurst({ duration: 0.12, frequency: 980, endFrequency: 420, q: 1.2, gain: 0.08 });
+    makeNoiseBurst({ duration: 0.08, frequency: 2600, endFrequency: 1300, q: 2.4, gain: 0.045, delay: 0.018 });
+    makeToneHit({ frequency: 132, endFrequency: 64, gain: 0.046, duration: 0.14 });
+    return;
+  }
+
+  if (type === 'trapSandTrigger') {
+    makeNoiseBurst({ duration: 0.22, frequency: 680, endFrequency: 260, q: 0.68, gain: 0.095 });
+    makeNoiseBurst({ duration: 0.14, frequency: 1450, endFrequency: 540, q: 0.9, gain: 0.038, delay: 0.025 });
   }
 };
 
@@ -324,6 +538,16 @@ const playExpeditionSfx = (sfxKey, options = {}) => {
     const lastPlayedAt = expeditionSfxLastPlayedAt.get(sfxKey) || 0;
     if (now - lastPlayedAt < cooldownMs) return;
     expeditionSfxLastPlayedAt.set(sfxKey, now);
+  }
+  if (import.meta.env.DEV && typeof window !== 'undefined') {
+    window.__expeditionSfxLog = [
+      ...(window.__expeditionSfxLog || []),
+      {
+        key: sfxKey,
+        synth: Array.isArray(config) ? null : config.synth || null,
+        at: Math.round(performance.now()),
+      },
+    ].slice(-40);
   }
   const clips = Array.isArray(config)
     ? config
@@ -558,6 +782,18 @@ export default function App() {
       });
     },
   }), [expeditionMusicEnabled, expeditionSfxEnabled]);
+
+  useEffect(() => {
+    if (!import.meta.env.DEV || typeof window === 'undefined') return undefined;
+    window.__playExpeditionSfxDebug = (sfxKey, options) => {
+      baseAudioControls.unlockExpeditionSfx?.();
+      baseAudioControls.playExpeditionSfx?.(sfxKey, options);
+      return window.__expeditionSfxLog || [];
+    };
+    return () => {
+      delete window.__playExpeditionSfxDebug;
+    };
+  }, []);
 
   // Autosave Logic
   useEffect(() => {

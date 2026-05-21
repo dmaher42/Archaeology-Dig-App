@@ -1,11 +1,14 @@
 export const ENVIRONMENT_ATLAS_BASE_PATH = 'assets/expedition/environment/desert-temple/';
 export const ENVIRONMENT_ATLAS_JSON = `${ENVIRONMENT_ATLAS_BASE_PATH}desert-temple-pack.json`;
 export const EGYPT_SACRED_TRAPS_ATLAS_JSON = `${ENVIRONMENT_ATLAS_BASE_PATH}egypt-sacred-traps-pack.json`;
+export const EGYPT_ATMOSPHERE_ATLAS_BASE_PATH = 'assets/expedition/environment/egypt-atmosphere/';
+export const EGYPT_ATMOSPHERE_ATLAS_JSON = `${EGYPT_ATMOSPHERE_ATLAS_BASE_PATH}egypt-atmosphere-pack.json`;
 export const CHINA_RIVER_VALLEY_ENVIRONMENT_ATLAS_BASE_PATH = 'assets/expedition/environment/china-river-valley/';
 export const CHINA_RIVER_VALLEY_ENVIRONMENT_ATLAS_JSON = `${CHINA_RIVER_VALLEY_ENVIRONMENT_ATLAS_BASE_PATH}china-river-valley-environment-pack.json`;
 export const ATLAS_TUNING_VERSION = 'environment-atlas-tuning-2026-05-10';
 export const DESERT_VISUAL_TUNING_VERSION = 'desert-entry-final-visual-tuning-2026-05-10';
 export const JOURNEY_ASSET_GROUNDING_VERSION = 'journey-asset-grounding-2026-05-11';
+export const EGYPT_ATMOSPHERE_ASSET_VERSION = 'gemini-egypt-atmosphere-props-2026-05-21';
 
 export const EXPECTED_ENVIRONMENT_ASSET_KEYS = [
   'groundSand',
@@ -68,9 +71,30 @@ export const EXPECTED_EGYPT_SACRED_TRAP_ASSET_KEYS = [
   'sacredPedestalActivated',
 ];
 
+export const EXPECTED_EGYPT_ATMOSPHERE_ASSET_KEYS = [
+  'supplyJars',
+  'fieldChest',
+  'coinPile',
+  'scrollCache',
+  'torchStand',
+  'stoneTablet',
+  'rubbleScatter',
+  'standingPillar',
+  'brokenPillarTall',
+  'fallenColumn',
+  'pillarCaps',
+  'rubbleDustSmall',
+  'rubbleDustBurst',
+  'fallingDebris',
+  'stoneDoorFrame',
+  'sealedWallPanel',
+  'ankhSealPanel',
+];
+
 export const ENVIRONMENT_ASSET_PACK_IDS = {
   EGYPT_DESERT_TEMPLE: 'egypt-desert-temple',
   EGYPT_SACRED_TRAPS: 'egypt-sacred-traps',
+  EGYPT_ATMOSPHERE: 'egypt-atmosphere',
   CHINA_RIVER_VALLEY: 'china-river-valley',
 };
 
@@ -86,6 +110,12 @@ export const ENVIRONMENT_ASSET_PACKS = {
     basePath: ENVIRONMENT_ATLAS_BASE_PATH,
     atlasPath: EGYPT_SACRED_TRAPS_ATLAS_JSON,
     expectedKeys: EXPECTED_EGYPT_SACRED_TRAP_ASSET_KEYS,
+  },
+  [ENVIRONMENT_ASSET_PACK_IDS.EGYPT_ATMOSPHERE]: {
+    id: ENVIRONMENT_ASSET_PACK_IDS.EGYPT_ATMOSPHERE,
+    basePath: EGYPT_ATMOSPHERE_ATLAS_BASE_PATH,
+    atlasPath: EGYPT_ATMOSPHERE_ATLAS_JSON,
+    expectedKeys: EXPECTED_EGYPT_ATMOSPHERE_ASSET_KEYS,
   },
   [ENVIRONMENT_ASSET_PACK_IDS.CHINA_RIVER_VALLEY]: {
     id: ENVIRONMENT_ASSET_PACK_IDS.CHINA_RIVER_VALLEY,
@@ -316,6 +346,9 @@ export const getEnvironmentAssetKeyForHazard = (hazard, packId = DEFAULT_ENVIRON
 };
 
 export const getEnvironmentAssetKeyForStoryProp = (prop, packId = DEFAULT_ENVIRONMENT_ASSET_PACK_ID) => {
+  if (packId === ENVIRONMENT_ASSET_PACK_IDS.EGYPT_ATMOSPHERE) {
+    return prop.atmosphereAssetKey || null;
+  }
   if (packId === ENVIRONMENT_ASSET_PACK_IDS.EGYPT_SACRED_TRAPS) {
     return ({
       'sacred-pedestal': 'sacredPedestalIdle',

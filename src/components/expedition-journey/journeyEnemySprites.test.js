@@ -3,9 +3,11 @@ import test from 'node:test';
 
 import { getScarabQueenDrawBox, shouldFlipBossSprite } from './journeyBossSprites.js';
 import { getEnemySpriteDrawBox, shouldFlipEnemySprite } from './journeyEnemySprites.js';
+import { PLAYER_SPRITE_DRAW_HEIGHT } from './journeyConstants.js';
 import { readFileSync } from 'node:fs';
 
 const journeyComponentSource = readFileSync(new URL('../ExpeditionJourney.jsx', import.meta.url), 'utf8');
+const enemySpriteGeneratorSource = readFileSync(new URL('../../../scripts/generate_enemy_sprite_sheets.py', import.meta.url), 'utf8');
 
 test('regular enemy sprite draw boxes stay close to gameplay hitbox scale', () => {
   const scarab = {
@@ -78,9 +80,15 @@ test('warrior mummy sprite draw box resolves as a grounded humanoid enemy', () =
 
   assert.ok(drawBox, 'warrior mummy draw box should resolve');
   assert.equal(drawBox.family, 'mummy');
-  assert.ok(drawBox.height >= 84, `warrior mummy should read as a tall humanoid, received ${drawBox.height}`);
-  assert.ok(drawBox.height <= 120, `warrior mummy should not become boss-scale clutter, received ${drawBox.height}`);
+  assert.ok(drawBox.height > PLAYER_SPRITE_DRAW_HEIGHT, `warrior mummy should draw slightly taller than Asha, received ${drawBox.height}`);
+  assert.ok(drawBox.height <= PLAYER_SPRITE_DRAW_HEIGHT + 28, `warrior mummy should not become boss-scale clutter, received ${drawBox.height}`);
   assert.equal(drawBox.y + drawBox.height, mummy.y + mummy.height + 15, 'warrior mummy sprite should stay grounded');
+});
+
+test('warrior mummy atlas is generated from the Gemini sprite sheet source', () => {
+  assert.match(enemySpriteGeneratorSource, /Mummy Warrior3\.jpg/);
+  assert.match(enemySpriteGeneratorSource, /render_gemini_mummy_cell/);
+  assert.doesNotMatch(enemySpriteGeneratorSource, /PROJECT_MUMMY_SOURCE = ROOT \/ "public" \/ "museum" \/ "egypt_mummy\.png"/);
 });
 
 test('scarabs use the same right-facing sprite orientation rules', () => {

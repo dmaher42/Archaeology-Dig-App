@@ -32,6 +32,9 @@ const egyptMarkerAtlas = JSON.parse(
 const egyptSacredTrapAtlas = JSON.parse(
   readFileSync(new URL('../../../public/assets/expedition/environment/desert-temple/egypt-sacred-traps-pack.json', import.meta.url), 'utf8'),
 );
+const egyptAtmosphereAtlas = JSON.parse(
+  readFileSync(new URL('../../../public/assets/expedition/environment/egypt-atmosphere/egypt-atmosphere-pack.json', import.meta.url), 'utf8'),
+);
 const anubisBossAtlas = JSON.parse(
   readFileSync(new URL('../../../public/assets/expedition/bosses/anubis-sprites.json', import.meta.url), 'utf8'),
 );
@@ -1161,6 +1164,65 @@ test('dynamic world events use a project-bound painted asset sheet', () => {
   );
 });
 
+test('Egypt atmosphere prop pack is registered and drawn through existing story props', () => {
+  const storyProps = extractExportedArray('STORY_PROPS');
+
+  assert.equal(egyptAtmosphereAtlas.image, 'egypt-atmosphere-pack.png');
+  assert.match(egyptAtmosphereAtlas.source, /Gemini Assets curated atmosphere pass 2026-05-21/);
+  [
+    'supplyJars',
+    'fieldChest',
+    'coinPile',
+    'scrollCache',
+    'torchStand',
+    'rubbleScatter',
+    'standingPillar',
+    'brokenPillarTall',
+    'stoneDoorFrame',
+    'ankhSealPanel',
+  ].forEach((key) => {
+    assert.ok(egyptAtmosphereAtlas.regions[key], `${key} should exist in the atmosphere atlas`);
+    assert.match(journeyRenderAssetsSource, new RegExp(`'${key}'`));
+    assert.match(storyProps, new RegExp(`atmosphereAssetKey:\\s*'${key}'`));
+  });
+
+  assert.ok(
+    existsSync(new URL('../../../public/assets/expedition/environment/egypt-atmosphere/egypt-atmosphere-pack.png', import.meta.url)),
+    'curated atmosphere atlas image should exist in public assets',
+  );
+  assert.match(journeyRenderAssetsSource, /EGYPT_ATMOSPHERE:\s*'egypt-atmosphere'/);
+  assert.match(journeyRenderAssetsSource, /EGYPT_ATMOSPHERE_ASSET_VERSION = 'gemini-egypt-atmosphere-props-2026-05-21'/);
+  assert.match(journeyComponentSource, /atmosphereEnvironmentAssetsRef/);
+  assert.match(journeyComponentSource, /packId:\s*ENVIRONMENT_ASSET_PACK_IDS\.EGYPT_ATMOSPHERE/);
+  assert.match(journeyComponentSource, /atmospherePropCount/);
+  assert.match(journeyComponentSource, /propForAsset\.atmosphereAssetKey/);
+  assert.doesNotMatch(journeyComponentSource, /new Atmosphere|class Atmosphere|createAtmosphereSystem/);
+});
+
+test('Egypt atmosphere layout fills each Journey section without changing gameplay systems', () => {
+  const storyProps = extractExportedArray('STORY_PROPS');
+
+  [
+    'desert-entry',
+    'ruined-temple',
+    'catacombs',
+    'escape-sequence',
+    'dig-site-entrance',
+  ].forEach((sectionId) => {
+    assert.match(
+      storyProps,
+      new RegExp(`sectionId:\\s*'${sectionId}'[\\s\\S]*?type:\\s*'atmosphere-prop'`),
+      `${sectionId} should include decorative atmosphere props`,
+    );
+  });
+
+  const atmospherePropMatches = [...storyProps.matchAll(/type:\s*'atmosphere-prop'/g)];
+  assert.ok(atmospherePropMatches.length >= 24, 'atmosphere pass should add a meaningful number of non-colliding props');
+  assert.doesNotMatch(storyProps, /type:\s*'atmosphere-prop'[\s\S]{0,220}damage:/);
+  assert.doesNotMatch(storyProps, /type:\s*'atmosphere-prop'[\s\S]{0,220}collectible:/);
+  assert.doesNotMatch(storyProps, /type:\s*'atmosphere-prop'[\s\S]{0,220}requiresObjective:/);
+});
+
 test('painted dynamic effects stay limited to moments that read clearly as static art', () => {
   ['shrine-glow', 'rockfall', 'ruin-collapse'].forEach((type) => {
     assert.equal(usesPaintedDynamicWorldEffect(type), true, `${type} should use the painted effect sheet`);
@@ -1259,6 +1321,43 @@ test('regular enemy families use distinct combat role timings without a new AI s
   assert.match(journeyComponentSource, /const isAggroChasing = \(e\.aggroMemoryTimer \|\| 0\) > 0/);
   assert.match(journeyComponentSource, /const chaseSpeedMultiplier = isAggroChasing \? tacticalPattern\.chaseMultiplier \|\| 1\.65 : 1/);
   assert.match(journeyComponentSource, /const movementMin = isAggroChasing \? e\.patrolMin - ENEMY_AGGRO_PATROL_PADDING : e\.patrolMin/);
+});
+
+test('combat audio uses creature and deflection cues instead of gate sounds', () => {
+  assert.match(appSource, /combatDeflect:\s*\{/);
+  assert.match(appSource, /scarabHit:\s*\{/);
+  assert.match(appSource, /scorpionHit:\s*\{/);
+  assert.match(appSource, /snakeHit:\s*\{/);
+  assert.match(appSource, /sandWispHit:\s*\{/);
+  assert.match(appSource, /bossHit:\s*\{/);
+  assert.match(appSource, /playerImpact/);
+  assert.match(appSource, /scarabShellHit/);
+  assert.match(appSource, /window\.__playExpeditionSfxDebug/);
+  assert.match(appSource, /window\.__expeditionSfxLog/);
+  assert.match(journeyComponentSource, /const ENEMY_HIT_SFX_BY_TYPE = \{/);
+  assert.match(journeyComponentSource, /scarab:\s*'scarabHit'/);
+  assert.match(journeyComponentSource, /scorpion:\s*'scorpionHit'/);
+  assert.match(journeyComponentSource, /snake:\s*'snakeHit'/);
+  assert.match(journeyComponentSource, /'sand-wisp':\s*'sandWispHit'/);
+  assert.match(journeyComponentSource, /getEnemyHitSfxKey\(e\)/);
+  assert.match(journeyComponentSource, /playExpeditionSfx\?\.\('combatDeflect'/);
+  assert.match(journeyComponentSource, /playExpeditionSfx\?\.\('bossHit'/);
+  assert.doesNotMatch(journeyComponentSource, /blocked the rushed hit[\s\S]{0,180}playExpeditionSfx\?\.\('gateBlocked'/);
+});
+
+test('hazards and traps use trap audio instead of door sounds', () => {
+  assert.match(appSource, /trapReset:\s*\{/);
+  assert.match(appSource, /trapStoneTrigger:\s*\{/);
+  assert.match(appSource, /trapSandTrigger:\s*\{/);
+  assert.match(appSource, /trapReset/);
+  assert.match(appSource, /trapStoneTrigger/);
+  assert.match(appSource, /trapSandTrigger/);
+  assert.match(journeyComponentSource, /const SAND_TRAP_HAZARD_IDS = new Set/);
+  assert.match(journeyComponentSource, /const getHazardSfxKey = \(hazard\) =>/);
+  assert.match(journeyComponentSource, /hazard\?\.pushToStart\) return 'trapReset'/);
+  assert.match(journeyComponentSource, /return 'trapStoneTrigger'/);
+  assert.match(journeyComponentSource, /playExpeditionSfx\?\.\(getHazardSfxKey\(h\)/);
+  assert.doesNotMatch(journeyComponentSource, /pushToStart[\s\S]{0,1600}playExpeditionSfx\?\.\('gateBlocked'/);
 });
 
 test('enemy hits land harder while player pushback stays short', () => {

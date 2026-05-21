@@ -5,13 +5,14 @@ import math
 import argparse
 from pathlib import Path
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageEnhance, ImageFilter
 
 
 ROOT = Path(__file__).resolve().parents[1]
 ENEMY_DIR = ROOT / "public" / "assets" / "expedition" / "enemies"
 CHINA_DIR = ENEMY_DIR / "china"
 BOSS_DIR = ROOT / "public" / "assets" / "expedition" / "bosses"
+GEMINI_MUMMY_SOURCE = ENEMY_DIR / "warrior-mummy-source.jpg"
 CELL_W = 384
 CELL_H = 340
 SCALE = 1
@@ -33,6 +34,7 @@ SCARAB_QUEEN_FRAMES = [
 SCARAB_QUEEN_CELL_W = 560
 SCARAB_QUEEN_CELL_H = 390
 SCARAB_QUEEN_PRODUCTION_SOURCE = BOSS_DIR / "scarab-queen-production-source.png"
+_GEMINI_MUMMY_FRAMES = {}
 
 
 def rgba(hex_color: str, alpha: int = 255) -> tuple[int, int, int, int]:
@@ -681,6 +683,144 @@ def draw_mummy(draw, frame, base_y):
         draw.arc([258, torso_y + 30, 366, torso_y + 160], 220, 316, fill=rgba("#facc15", 150), width=5)
 
 
+def trim_alpha(image: Image.Image, padding: int = 0) -> Image.Image:
+    bbox = image.getchannel("A").getbbox()
+    if not bbox:
+        return image
+    left = max(0, bbox[0] - padding)
+    top = max(0, bbox[1] - padding)
+    right = min(image.width, bbox[2] + padding)
+    bottom = min(image.height, bbox[3] + padding)
+    return image.crop((left, top, right, bottom))
+
+
+GEMINI_MUMMY_FRAME_CROPS = {
+    "Idle": (48, 27, 258, 428),
+    "Walk1": (469, 29, 624, 428),
+    "Walk2": (615, 29, 778, 428),
+    "Walk3": (778, 29, 940, 428),
+    "Windup": (486, 458, 767, 854),
+    "Attack": (748, 458, 1025, 854),
+    "Hit": (248, 458, 446, 854),
+    "Defeated": (1067, 599, 1559, 856),
+}
+
+
+def remove_gemini_gray_background(image: Image.Image, bg=None) -> Image.Image:
+    """Key out the neutral grey Gemini sheet background without touching bandages."""
+    image = image.convert("RGBA")
+    if bg is None:
+        sample_points = [
+            (2, 2),
+            (image.width - 3, 2),
+            (2, image.height - 3),
+            (image.width - 3, image.height - 3),
+        ]
+        samples = [image.getpixel(point)[:3] for point in sample_points]
+        bg = tuple(sum(sample[index] for sample in samples) // len(samples) for index in range(3))
+    pixels = image.load()
+    for y in range(image.height):
+        for x in range(image.width):
+            r, g, b, a = pixels[x, y]
+            if a == 0:
+                continue
+            distance = math.sqrt((r - bg[0]) ** 2 + (g - bg[1]) ** 2 + (b - bg[2]) ** 2)
+            color_spread = max(r, g, b) - min(r, g, b)
+            if distance < 40 and color_spread < 34:
+                pixels[x, y] = (r, g, b, 0)
+            elif distance < 60 and color_spread < 42:
+                pixels[x, y] = (r, g, b, max(0, a - 190))
+    alpha = image.getchannel("A")
+    alpha = alpha.filter(ImageFilter.MedianFilter(3))
+    alpha = alpha.point(lambda value: 0 if value < 48 else min(255, value + 28))
+    image.putalpha(alpha)
+    return trim_alpha(image, 4)
+
+
+def keep_largest_alpha_component(image: Image.Image) -> Image.Image:
+    """Remove stray source-sheet notes and silhouettes that survived chroma keying."""
+    image = image.convert("RGBA")
+    alpha = image.getchannel("A")
+    width, height = image.size
+    visited = bytearray(width * height)
+    best = []
+    for start_y in range(height):
+        for start_x in range(width):
+            start_index = start_y * width + start_x
+            if visited[start_index] or alpha.getpixel((start_x, start_y)) <= 0:
+                continue
+            stack = [(start_x, start_y)]
+            visited[start_index] = 1
+            component = []
+            while stack:
+                x, y = stack.pop()
+                component.append((x, y))
+                for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+                    if 0 <= nx < width and 0 <= ny < height:
+                        index = ny * width + nx
+                        if not visited[index] and alpha.getpixel((nx, ny)) > 0:
+                            visited[index] = 1
+                            stack.append((nx, ny))
+            if len(component) > len(best):
+                best = component
+
+    if not best:
+        return image
+
+    cleaned_alpha = Image.new("L", image.size, 0)
+    pixels = cleaned_alpha.load()
+    for x, y in best:
+        pixels[x, y] = alpha.getpixel((x, y))
+    image.putalpha(cleaned_alpha)
+    return trim_alpha(image, 4)
+
+
+def get_gemini_mummy_frame(frame: str) -> Image.Image:
+    if frame in _GEMINI_MUMMY_FRAMES:
+        return _GEMINI_MUMMY_FRAMES[frame].copy()
+
+    # Source was copied from Gemini Assets/Mummy Warrior3.jpg into the active repo.
+    source = Image.open(GEMINI_MUMMY_SOURCE).convert("RGBA")
+    cropped = source.crop(GEMINI_MUMMY_FRAME_CROPS[frame])
+    sprite = remove_gemini_gray_background(cropped, bg=source.getpixel((2, 2))[:3])
+    sprite = keep_largest_alpha_component(sprite)
+    sprite = ImageEnhance.Contrast(sprite).enhance(1.08)
+    sprite = ImageEnhance.Color(sprite).enhance(0.92)
+    sprite = ImageEnhance.Sharpness(sprite).enhance(1.16)
+    _GEMINI_MUMMY_FRAMES[frame] = sprite
+    return sprite.copy()
+
+
+def alpha_paste(base: Image.Image, sprite: Image.Image, x: int, y: int):
+    base.alpha_composite(sprite, (round(x), round(y)))
+
+
+def render_gemini_mummy_cell(frame, base_y):
+    cell = Image.new("RGBA", (CELL_W * SCALE, CELL_H * SCALE), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(cell)
+    defeated = frame == "Defeated"
+    hit = frame == "Hit"
+    sprite = get_gemini_mummy_frame(frame)
+    target_h = 118 if defeated else 238
+    target_w = max(1, round(sprite.width * target_h / max(1, sprite.height)))
+    max_w = 286 if defeated else 168
+    if target_w > max_w:
+        target_w = max_w
+        target_h = max(1, round(sprite.height * target_w / max(1, sprite.width)))
+    sprite = sprite.resize((target_w, target_h), Image.Resampling.LANCZOS)
+    if hit:
+        flash = Image.new("RGBA", sprite.size, rgba("#f59e0b", 72))
+        flash.putalpha(sprite.getchannel("A").point(lambda alpha: min(alpha, 72)))
+        sprite = Image.alpha_composite(sprite, flash)
+
+    x = CELL_W / 2 - sprite.width / 2 + {"Walk1": -12, "Walk2": 0, "Walk3": 12, "Windup": -18, "Attack": 14}.get(frame, 0)
+    y = base_y - sprite.height - (4 if defeated else 10) + (4 if hit else 0)
+    draw.ellipse([x + 8, base_y - 17, x + sprite.width - 8, base_y + 5], fill=rgba("#120c07", 82))
+    alpha_paste(cell, sprite, x, y)
+
+    return cell
+
+
 FAMILIES = {
     "scarab": {
         "path": ENEMY_DIR / "desert-scarab-sprites",
@@ -763,6 +903,8 @@ FAMILIES = {
         "path": ENEMY_DIR / "warrior-mummy-sprites",
         "prefix": "mummy",
         "draw": draw_mummy,
+        "render_cell": render_gemini_mummy_cell,
+        "source": "Gemini mummy warrior atlas generated from public/assets/expedition/enemies/warrior-mummy-source.jpg, copied from Gemini Assets/Mummy Warrior3.jpg and normalized into the existing Journey enemy frame contract.",
         "base_y": 324,
     },
 }
@@ -772,9 +914,12 @@ def render_family(config, frames=FRAMES):
     scale_size = (CELL_W * len(frames) * SCALE, CELL_H * SCALE)
     large = Image.new("RGBA", scale_size, (0, 0, 0, 0))
     for index, frame in enumerate(frames):
-        cell = Image.new("RGBA", (CELL_W * SCALE, CELL_H * SCALE), (0, 0, 0, 0))
-        draw = ImageDraw.Draw(cell)
-        config["draw"](draw, frame, config["base_y"] * SCALE)
+        if config.get("render_cell"):
+            cell = config["render_cell"](frame, config["base_y"] * SCALE)
+        else:
+            cell = Image.new("RGBA", (CELL_W * SCALE, CELL_H * SCALE), (0, 0, 0, 0))
+            draw = ImageDraw.Draw(cell)
+            config["draw"](draw, frame, config["base_y"] * SCALE)
         large.alpha_composite(cell, (index * CELL_W * SCALE, 0))
     return large.resize((CELL_W * len(frames), CELL_H), Image.Resampling.LANCZOS)
 
@@ -822,7 +967,7 @@ def write_family(name, config):
     base_region = get_family_region(image)
     atlas = {
         "image": png_path.name,
-        "source": "Codex-generated upgraded regular enemy sprite sheet with fixed transparent cells and consistent baseline.",
+        "source": config.get("source", "Codex-generated upgraded regular enemy sprite sheet with fixed transparent cells and consistent baseline."),
         "coordinateNote": "Eight fixed cells: Idle, Walk1, Walk2, Walk3, Windup, Attack, Hit, Defeated. Regions share one bottom-center anchor.",
         "frameContract": FRAMES,
         "baseline": "bottom-center shared per family; no baked large shadow",

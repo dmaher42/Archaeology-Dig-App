@@ -28,7 +28,7 @@ const ENEMY_VISUAL_SIZE_MULTIPLIERS = {
   looterCaptain: 1.16,
   cursedStatue: 1.14,
   stoneGuardianEnemy: 1.16,
-  mummy: 1.12,
+  mummy: 1.72,
   riverCrab: 1.42,
   watchtowerSentry: 1.12,
   clayGuardian: 1.16,

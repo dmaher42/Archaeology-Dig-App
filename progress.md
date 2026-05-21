@@ -2821,6 +2821,22 @@ Remaining notes:
 - Added a stone rim, perspective stair treads, blue underlight, small torch glows, and a warmer clarity pass around Asha so the threshold effect does not completely swallow the player.
 - Verification passed: Journey secrets test, lint, production build, and the browser opening smoke at `1536x864`.
 
+## 2026-05-21 Combat audio polish
+
+- Replaced protected combat hits that were using the stone `gateBlocked` cue with a dedicated `combatDeflect` sound so Scarabs no longer read like a closing door.
+- Added short synthetic combat layers through the existing Expedition SFX engine for scarab shell hits, scorpion scrapes, snake snaps, sand-wisp hits, boss impacts, and player impacts.
+- Routed normal enemy hit audio by enemy type in the existing Journey combat loop, while bosses use a heavier `bossHit` cue.
+- Added a dev-only combat audio smoke hook and browser smoke script to confirm the new combat cue keys fire without console errors.
+- Verification passed: Journey secrets test, lint, production build, and `output/combat-audio-smoke/combat-audio-smoke.cjs`.
+
+## 2026-05-21 Trap audio polish
+
+- Confirmed the opening seal reset trap still used the stone `gateBlocked` cue, which made traps sound like doors.
+- Added dedicated trap cues through the existing Expedition SFX engine: `trapReset`, `trapStoneTrigger`, and `trapSandTrigger`.
+- Routed Journey hazards through a small hazard-to-SFX helper so push-back traps, sand traps, and stone/cracked-floor traps no longer borrow door sounds; real locked route gates still use `gateBlocked`.
+- Extended regression coverage and the browser audio smoke to include the new trap cues.
+- Verification passed: Journey secrets test, lint, production build, and `output/combat-audio-smoke/combat-audio-smoke.cjs`.
+
 ## 2026-05-21 Enemy asset layout scale pass
 
 - Completed a narrow pass on the oversized Journey enemy foreground assets shown in the boss/encounter screenshots.
@@ -2835,3 +2851,19 @@ Remaining notes:
 - Restored scarab and scorpion enemy sprite sizing to the previous deliberately large visual presence after art-direction feedback that these enemies are meant to feel oversized and threatening.
 - Kept the family-specific sizing cleanup for other enemy families, especially humanoids/mummies, so the overall foreground layout remains less crowded without shrinking the signature desert creatures.
 - Updated the existing enemy sprite regression tests to lock scarabs and scorpions as large, grounded threat silhouettes.
+
+## 2026-05-21 Relic shard gem swap
+
+- Found the new generated collectibles sheet at `C:\Users\dmahe\OneDrive\Desktop\Codex\Archaeology-Dig-App1\Gemini Assets\collectables.jpg`.
+- Replaced only the `relicShard` slot inside the existing live Journey collectible atlas with the new blue gem, preserving the current atlas dimensions, JSON region, pickup logic, hitboxes, shard counts, Base Camp spend flow, and collectible renderer.
+- Style-polished the gem with softer teal/gold lighting, reduced synthetic icon sharpness, a transparent cutout, and a tighter pickup glow so it sits with the existing Journey collectible art without a black box.
+- Updated the collectible atlas metadata/version so browser debug state reflects the polished Gemini gem pass.
+
+## 2026-05-21 Journey atmosphere asset pass
+
+- Audited the newly generated Gemini prop, debris, pillar, gate, platform, trap, and collectible sheets and selected the assets that read best at gameplay distance.
+- Built a curated transparent atmosphere atlas at `public/assets/expedition/environment/egypt-atmosphere/egypt-atmosphere-pack.png` with matching JSON metadata.
+- Registered the new pack through the existing Journey environment asset loader and story-prop renderer instead of adding a new decoration or gameplay system.
+- Added non-colliding atmosphere props across desert entry, ruined temple, catacombs, escape, and dig-site sections: jars, chests, scrolls, coins, rubble, dust, broken columns, torches, door frames, and seal panels.
+- Browser-checked the live Journey route at multiple debug positions and tightened the cutouts after the first pass showed visible sheet-background haze.
+- Verification passed: Journey secrets tests, lint, production build, `git diff --check`, and local browser screenshots in `output/atmosphere-*.png`.

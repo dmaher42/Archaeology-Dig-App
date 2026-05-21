@@ -110,6 +110,7 @@ import {
   createEnvironmentAssetState,
   DESERT_VISUAL_TUNING_VERSION,
   drawAtlasRegion,
+  EGYPT_ATMOSPHERE_ASSET_VERSION,
   ENVIRONMENT_ATLAS_JSON,
   ENVIRONMENT_ASSET_PACK_IDS,
   getEnvironmentAssetKeyForHazard,
@@ -1175,6 +1176,31 @@ const ENEMY_TACTICAL_PRESSURE = {
   'clay-guardian': { windup: 1, cooldown: 0.94, speed: 0.86, range: 1.08, recovery: 1.05, vulnerableAfter: 1.04, awareness: 1.36, chase: 1.48 },
 };
 
+const ENEMY_HIT_SFX_BY_TYPE = {
+  scarab: 'scarabHit',
+  scorpion: 'scorpionHit',
+  snake: 'snakeHit',
+  'sand-wisp': 'sandWispHit',
+};
+
+const getEnemyHitSfxKey = (enemy) => ENEMY_HIT_SFX_BY_TYPE[enemy?.type] || 'enemyHit';
+
+const SAND_TRAP_HAZARD_IDS = new Set([
+  'sealed-sand',
+  'sand-pit',
+  'desert-low-ridge',
+  'desert-soft-ridge',
+  'sandfall-soft-pit',
+  'sandfall-warning-dust',
+  'escape-dust-pocket',
+]);
+
+const getHazardSfxKey = (hazard) => {
+  if (hazard?.pushToStart) return 'trapReset';
+  if (SAND_TRAP_HAZARD_IDS.has(hazard?.id)) return 'trapSandTrigger';
+  return 'trapStoneTrigger';
+};
+
 const HAZARD_GROUNDING = {
   'thorn-bush': {
     xPad: 6,
@@ -1371,6 +1397,7 @@ const PROP_GROUNDING_CONFIG = {
   'sacred-pedestal-activated': { width: 84, height: 72, yOffset: 38, alpha: 1, depth: 'midground', tint: 'warm', shadow: 0.28, dust: 0.84 },
   'guardian-seal': { width: 46, height: 46, yOffset: 8, alpha: 0.92, depth: 'midground', tint: 'warm', shadow: 0.12, dust: 0.42 },
   'guardian-seal-activated': { width: 52, height: 52, yOffset: 10, alpha: 1, depth: 'midground', tint: 'warm', shadow: 0.18, dust: 0.48 },
+  'atmosphere-prop': { width: 96, height: 82, yOffset: 0, alpha: 0.82, depth: 'midground', tint: 'dust', shadow: 0.14, dust: 0.72, bury: 0.12 },
   mural: { depth: 'background' },
   glyphs: { depth: 'background' },
   eyes: { depth: 'background' },
@@ -1611,6 +1638,7 @@ export default function ExpeditionJourney({
   });
   const environmentAssetsRef = useRef(createEnvironmentAssetState(environmentPackId));
   const sacredTrapEnvironmentAssetsRef = useRef(createEnvironmentAssetState(ENVIRONMENT_ASSET_PACK_IDS.EGYPT_SACRED_TRAPS));
+  const atmosphereEnvironmentAssetsRef = useRef(createEnvironmentAssetState(ENVIRONMENT_ASSET_PACK_IDS.EGYPT_ATMOSPHERE));
   const desertBackgroundAssetsRef = useRef(createDesertBackgroundAssetState());
   const enemySpriteAssetsRef = useRef(createEnemySpriteState());
   const bossSpriteAssetsRef = useRef(createBossSpriteState());
@@ -1924,6 +1952,15 @@ export default function ExpeditionJourney({
     packId: ENVIRONMENT_ASSET_PACK_IDS.EGYPT_SACRED_TRAPS,
     onUpdate: (assets) => {
       sacredTrapEnvironmentAssetsRef.current = assets;
+      syncHud();
+    },
+  }), [syncHud]);
+
+  useEffect(() => loadEnvironmentAssetPack({
+    baseUrl: import.meta.env.BASE_URL,
+    packId: ENVIRONMENT_ASSET_PACK_IDS.EGYPT_ATMOSPHERE,
+    onUpdate: (assets) => {
+      atmosphereEnvironmentAssetsRef.current = assets;
       syncHud();
     },
   }), [syncHud]);
@@ -2571,6 +2608,8 @@ export default function ExpeditionJourney({
     const environmentFallbackActive = !environmentAssets.loaded || environmentAssets.failed || missingEnvironmentAssets.length > 0;
     const sacredTrapEnvironmentAssets = sacredTrapEnvironmentAssetsRef.current;
     const missingSacredTrapEnvironmentAssets = getMissingEnvironmentAssets(sacredTrapEnvironmentAssets);
+    const atmosphereEnvironmentAssets = atmosphereEnvironmentAssetsRef.current;
+    const missingAtmosphereEnvironmentAssets = getMissingEnvironmentAssets(atmosphereEnvironmentAssets);
     const desertBackgroundAssets = desertBackgroundAssetsRef.current;
     const desertPack = getSectionBackgroundAssets(desertBackgroundAssets, 'desert-entry');
     const chinaRiverValleyPack = getSectionBackgroundAssets(desertBackgroundAssets, 'china-river-valley');
@@ -2682,12 +2721,19 @@ export default function ExpeditionJourney({
       sacredTrapEnvironmentPackId: sacredTrapEnvironmentAssets.packId,
       sacredTrapEnvironmentAtlasPath: sacredTrapEnvironmentAssets.atlasPath || null,
       missingSacredTrapEnvironmentAssets,
+      atmosphereEnvironmentAssetsLoaded: Boolean(atmosphereEnvironmentAssets.loaded),
+      atmosphereEnvironmentAssetsReady: Boolean(atmosphereEnvironmentAssets.ready),
+      atmosphereEnvironmentPackId: atmosphereEnvironmentAssets.packId,
+      atmosphereEnvironmentAtlasPath: atmosphereEnvironmentAssets.atlasPath || null,
+      missingAtmosphereEnvironmentAssets,
       platformArtMode: environmentAssets.loaded ? 'atlas' : 'canvas-fallback',
       hazardArtMode: environmentAssets.loaded ? 'atlas' : 'canvas-fallback',
       gateArtMode: environmentAssets.loaded ? 'atlas' : 'canvas-fallback',
       assetGroundingPassActive: true,
       assetGroundingVersion: JOURNEY_ASSET_GROUNDING_VERSION,
       groundedPropCount: renderStats.groundedPropCount || 0,
+      atmospherePropCount: renderStats.atmospherePropCount || 0,
+      atmosphereAssetVersion: EGYPT_ATMOSPHERE_ASSET_VERSION,
       backgroundPropTintActive: Boolean(renderStats.backgroundPropTintActive),
       platformGroundingMode: renderStats.platformGroundingMode || 'contact-shadow-ledges',
       propDrawOrderMode: renderStats.propDrawOrderMode || DECORATIVE_PROP_LAYER_MODE,
@@ -5140,14 +5186,31 @@ export default function ExpeditionJourney({
     const sacredTrapPropAssetKey = SACRED_DEFENCE_STORY_PROP_IDS.has(prop.id)
       ? getEnvironmentAssetKeyForStoryProp(propForAsset, ENVIRONMENT_ASSET_PACK_IDS.EGYPT_SACRED_TRAPS)
       : null;
+    const atmospherePropAssetKey = propForAsset.atmosphereAssetKey
+      ? getEnvironmentAssetKeyForStoryProp(propForAsset, ENVIRONMENT_ASSET_PACK_IDS.EGYPT_ATMOSPHERE)
+      : null;
     const propAssetKey = sacredTrapPropAssetKey
+      || atmospherePropAssetKey
       || getEnvironmentAssetKeyForStoryProp(propForAsset, environmentAssetsRef.current.packId);
     if (propAssetKey) {
       const propSize = {
         ...(PROP_GROUNDING_CONFIG[propForAsset.type] || { width: 72, height: 72, yOffset: 0, alpha: 0.78, depth: 'midground', tint: 'warm' }),
         ...(STORY_PROP_GROUNDING_OVERRIDES[prop.id] || {}),
+        ...(Number.isFinite(propForAsset.width) ? { width: propForAsset.width } : {}),
+        ...(Number.isFinite(propForAsset.height) ? { height: propForAsset.height } : {}),
+        ...(Number.isFinite(propForAsset.yOffset) ? { yOffset: propForAsset.yOffset } : {}),
+        ...(Number.isFinite(propForAsset.alpha) ? { alpha: propForAsset.alpha } : {}),
+        ...(Number.isFinite(propForAsset.shadow) ? { shadow: propForAsset.shadow } : {}),
+        ...(Number.isFinite(propForAsset.dust) ? { dust: propForAsset.dust } : {}),
+        ...(Number.isFinite(propForAsset.bury) ? { bury: propForAsset.bury } : {}),
+        ...(propForAsset.depth ? { depth: propForAsset.depth } : {}),
+        ...(propForAsset.tint ? { tint: propForAsset.tint } : {}),
       };
-      const propAssets = sacredTrapPropAssetKey ? sacredTrapEnvironmentAssetsRef.current : environmentAssetsRef.current;
+      const propAssets = sacredTrapPropAssetKey
+        ? sacredTrapEnvironmentAssetsRef.current
+        : atmospherePropAssetKey
+          ? atmosphereEnvironmentAssetsRef.current
+          : environmentAssetsRef.current;
       const drawX = x - propSize.width / 2;
       const drawY = prop.y - propSize.height + propSize.yOffset;
       const anchorY = drawY + propSize.height;
@@ -5200,6 +5263,7 @@ export default function ExpeditionJourney({
           drawGroundDustLip(ctx, x, anchorY - buryHeight * 0.52, dustWidth * 0.68, 'rgba(231, 172, 91, 0.34)');
         }
         if (stateRef.current.renderStats) stateRef.current.renderStats.groundedPropCount += 1;
+        if (atmospherePropAssetKey && stateRef.current.renderStats) stateRef.current.renderStats.atmospherePropCount += 1;
         ctx.restore();
         return;
       }
@@ -8414,6 +8478,9 @@ export default function ExpeditionJourney({
       openingHazardDecalAssetLoaded: openingHazardDecalPackRef.current.loaded,
       assetGroundingPassActive: true,
       groundedPropCount: 0,
+      atmospherePropCount: 0,
+      atmosphereAssetVersion: EGYPT_ATMOSPHERE_ASSET_VERSION,
+      atmosphereAssetLoaded: atmosphereEnvironmentAssetsRef.current.loaded,
       backgroundPropTintActive: true,
       platformGroundingMode: 'contact-shadow-ledges',
       propDrawOrderMode: DECORATIVE_PROP_LAYER_MODE,
@@ -9990,7 +10057,7 @@ export default function ExpeditionJourney({
               timer: 0.72,
               maxTimer: 0.72,
             });
-            audioControls?.playExpeditionSfx?.('gateBlocked');
+            audioControls?.playExpeditionSfx?.(getHazardSfxKey(h), { volume: 1.04 });
             return;
           }
           if (staminaLoss) current.resources.stamina = Math.max(0, current.resources.stamina - staminaLoss);
@@ -10026,7 +10093,9 @@ export default function ExpeditionJourney({
             : '';
           current.notice = `${visual.message || h.message}${staminaLoss ? ` -${staminaLoss} stamina.` : timeLoss ? ` -${timeLoss} seconds.` : ''}${dangerWarning}`;
           current.damageNoticeTimer = Math.max(current.damageNoticeTimer || 0, 1.4);
-          audioControls?.playExpeditionSfx?.('playerHit', { volume: 0.85 });
+          audioControls?.playExpeditionSfx?.(getHazardSfxKey(h), {
+            volume: staminaLoss ? 0.96 : 0.82,
+          });
           audioControls?.playError?.();
           if (current.resources.stamina <= 0) triggerJourneyRescue(FIELD_RESCUE_STAMINA_REASON);
         }
@@ -10343,7 +10412,7 @@ export default function ExpeditionJourney({
             color: '#7dd3fc',
           });
           current.notice = `${e.name} blocked the rushed hit. Wait for an opening.`;
-          audioControls?.playExpeditionSfx?.('gateBlocked', { volume: 0.7, playbackRate: 1.15 });
+          audioControls?.playExpeditionSfx?.('combatDeflect', { volume: e.type === 'scarab' ? 0.92 : 0.78 });
           return;
         }
         e.health -= 1;
@@ -10386,7 +10455,9 @@ export default function ExpeditionJourney({
           timer: 0.24,
           maxTimer: 0.24,
         });
-        audioControls?.playExpeditionSfx?.('enemyHit');
+        audioControls?.playExpeditionSfx?.(getEnemyHitSfxKey(e), {
+          volume: e.health <= 0 ? 1.12 : current.lastAttackResult === 'counter-hit' ? 1.02 : 0.92,
+        });
         if (e.health <= 0) {
           e.defeated = true;
           e.hitFlash = 0;
@@ -10622,7 +10693,7 @@ export default function ExpeditionJourney({
             color: '#7dd3fc',
           });
           current.notice = `${b.name} blocked the rushed hit. Wait for the counter window.`;
-          audioControls?.playExpeditionSfx?.('gateBlocked', { volume: 0.75, playbackRate: 0.9 });
+          audioControls?.playExpeditionSfx?.('combatDeflect', { volume: 1.04, playbackRate: 0.88 });
           return;
         }
         b.health -= (b.playerDamageMultiplier || 1);
@@ -10665,7 +10736,7 @@ export default function ExpeditionJourney({
           timer: 0.26,
           maxTimer: 0.26,
         });
-        audioControls?.playExpeditionSfx?.('enemyHit', { volume: b.health <= 0 ? 1.2 : 1 });
+        audioControls?.playExpeditionSfx?.('bossHit', { volume: b.health <= 0 ? 1.2 : 1 });
         current.notice = `${b.name} staggered.`;
         if (b.health <= 0) {
           b.defeated = true;
