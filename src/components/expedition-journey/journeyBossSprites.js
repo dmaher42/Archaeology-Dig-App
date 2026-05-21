@@ -356,8 +356,8 @@ export const shouldFlipBossSprite = (bossId, facing = 1) => {
 };
 
 export const getScarabQueenDrawBox = (boss, screenX) => {
-  const height = Math.max(MIN_BOSS_DRAW_HEIGHT, boss.height * 3.85);
-  const width = Math.max(260, boss.width * 4.45);
+  const height = Math.max(MIN_BOSS_DRAW_HEIGHT * 1.5, boss.height * 5.775);
+  const width = Math.max(390, boss.width * 6.675);
   return getGroundedBossDrawBox(boss, screenX, width, height, 4);
 };
 

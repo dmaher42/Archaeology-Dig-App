@@ -2846,6 +2846,14 @@ Remaining notes:
 - Added a dedicated `spikeTrap` region and mapped `spike-trap` to it, so spike hazards no longer reuse pressure-plate art.
 - Verification passed: alpha/corner asset validation, Journey secrets test, lint, and production build.
 
+## 2026-05-21 Opening tomb stairwell asset pass
+
+- Generated a purpose-built cinematic Ancient Egyptian tomb stairwell asset for the false-scarab reveal instead of relying only on canvas-drawn ellipses and step lines.
+- Saved the generated source at `public/assets/expedition/environment/egypt-opening/opening-tomb-stairwell-source.png` and the transparent game asset at `public/assets/expedition/environment/egypt-opening/opening-tomb-stairwell.png`.
+- Wired the asset into the existing `drawOpeningThresholdScene` path with the old canvas stairwell retained as a fallback if the image fails to load.
+- Removed the hand-drawn stacked brick cover behind the scarab artefact on the opening pyramid facade so the relic reads cleaner.
+- Verification passed: alpha/corner asset validation, Journey secrets test, lint, and production build.
+
 ## 2026-05-21 Enemy asset layout scale pass
 
 - Completed a narrow pass on the oversized Journey enemy foreground assets shown in the boss/encounter screenshots.
@@ -2896,3 +2904,73 @@ Remaining notes:
 - Disabled checkpoint flag sprites as well, leaving checkpoint gameplay, labels, rescue logic, and the existing stone/cairn fallback intact.
 - Disabled the ambient-life flutter pennants that were separately painting yellow flags over the desert and temple route.
 - Added render debug fields and regression coverage so the route stays flag-free without deleting marker assets that may still be useful elsewhere.
+
+## 2026-05-21 Generated Expedition SFX pass
+
+- Added a deterministic local SFX generator at `scripts/generate_expedition_sfx.py` for short Journey action sounds.
+- Generated WAV files under `public/assets/expedition/sfx/generated/` for landing, leather/satchel movement, metal clicks, shard pickup, enemy hit, player hit, boss warning, and stone gate cues.
+- Repointed the existing `EXPEDITION_AUDIO_TRACKS.sfx` map in `src/App.jsx` to the generated WAV files, preserving the current Journey trigger keys and audio-control flow.
+- Kept the older Kenney CC0 OGG clips in place as sourced fallback/history assets, but the active Journey SFX now use generated files.
+- Verification passed: generated WAV metadata check, lint, and production build.
+
+## 2026-05-21 Opening low trap replacement pass
+
+- Replaced the oversized early mummy obstacle cluster with a low generated spike-floor trap in the existing Journey hazard route.
+- Moved the trap out of the reset-trap overlap, reduced its live hitbox, and reduced the generated spike decal draw size so it reads as a fair jump obstacle instead of a full-height blocker.
+- Follow-up correction: replaced the original `opening-seal-reset-trap` grey oval/scarab-seal render path with the generated low spike trap art and removed the extra duplicate spike trap from the opening lane.
+- Follow-up tuning: widened the opening reset trap by 50% and added a trap-specific decal placement override so the spike base is buried into the ground plane instead of floating above it.
+- Follow-up motion pass: lowered the trap further into the sand at rest and added a triggered pop-up visual that raises the spikes when the hazard is walked onto.
+- Follow-up behavior change: removed the start-reset behavior from the opening buried spike trap; it now jabs up and causes stamina damage through the existing hazard damage branch.
+- Follow-up visual cleanup: removed the cyan transparent warning circle behind the opening buried spike trap so only the physical spikes and sand contact are visible.
+- Removed the grey `atmosphere-entry-rubble-scatter` decorative prop from the desert opening after it read as a flat floating shape rather than natural buried debris.
+- Removed additional desert-entry ghost overlays that were double-painting semi-transparent ruins/background atmosphere props over the already detailed background: `distant-ruins`, `upper-route-broken-stone-cue`, `atmosphere-entry-distant-rubble`, `broken-ruins-route-stones`, and `atmosphere-entry-far-door-frame`.
+- Restored the active opening pyramid masonry/facade draw call after review confirmed it is an important opening gameplay landmark; the ghost-overlay cleanup remains limited to stray decorative background props.
+- Kept the existing generated trap atlas, hazard logic, audio triggers, route gates, shard flow, enemy systems, and transition systems intact.
+
+## 2026-05-21 Cinematic trailer pass
+
+- Added an isolated Remotion trailer composition under `src/trailer/` without changing gameplay systems.
+- Built a 28-second cinematic Lost Site Expedition trailer using existing Expedition backgrounds, Asha/player pose art, Anubis/Sphinx/boss assets, the Expedition music track, and generated SFX cues.
+- Added repeatable package scripts: `npm.cmd run trailer:still` for a still preview and `npm.cmd run trailer:render` for the MP4 render.
+- Rendered the trailer to `output/game-trailer.mp4`, with preview stills at `output/game-trailer-preview.png` and `output/game-trailer-title-preview.png`.
+- Verification passed: Remotion still render, full MP4 render, lint, and production build.
+
+## 2026-05-21 Trailer story clarity pass
+
+- Rewrote the trailer captions from abstract mood lines into a clearer cause-and-effect story: the seal breaks, a lost site opens, guardians wake, the route may collapse, evidence could be buried, and Asha must recover shards and seal the route.
+- Added supporting subtitle lines to each trailer beat so the viewer understands what is happening and why it has to be stopped.
+- Re-rendered the story preview, title preview, and final MP4 at `output/game-trailer.mp4`.
+- Verification passed: Remotion story/title still renders, full MP4 render, lint, and production build.
+
+## 2026-05-21 Mythic cinematic trailer pass
+
+- Reworked the trailer again from a gameplay-process outline into a mythic cinematic premise: the Pharaohs' treasures were sealed away, the seals are breaking, shadow forces are emerging, ancient warriors are being unleashed, and removing the treasures would spread chaos beyond the ruins.
+- Extended the Remotion composition to 36 seconds so the story has time to build tension before the final hero question.
+- Added new trailer beats for the waiting shadow forces, unleashed warriors, world-breaking stakes, the hero's charge to restore the seals, and the final "Are you the hero?" call.
+- Re-rendered the cinematic MP4 at `output/game-trailer.mp4` plus preview stills for the seal, shadow, and title-card beats.
+- Verification passed: Remotion still renders, full MP4 render, lint, and production build. Lint still reports one warning in `src/components/ExpeditionJourney.jsx` about an unrelated hook dependency from the active gameplay worktree.
+
+## 2026-05-21 Egypt Journey coherent prop-cluster pass
+
+- Extended the existing `STORY_PROPS` atmosphere path only; no new decoration renderer, collision layer, progression rule, or gameplay system was added.
+- Used the current Egypt atmosphere atlas rather than generating new art because the existing production atlas already contains suitable cinema-style jars, chests, tablets, pillars, rubble, wall panels, torches, and doorway pieces.
+- Added logical prop clusters for the expedition arrival edge, false scarab staging, temple approach seal, collapsed temple, catacomb warning route, escape instability, and dig-site survey boundary.
+- Kept props decorative and story-led: survey supplies, warning tablets, offering remnants, broken seal panels, fallen columns, burial jars, fresh debris, and excavation-map markers.
+- Added regression coverage so key cluster IDs remain in `STORY_PROPS` and the atmosphere pass continues through the existing Journey prop renderer.
+- Verification passed: Journey secrets tests, targeted lint, production build, `git diff --check`, dev server HTTP smoke, and a live Playwright canvas smoke through Journey debug positions with screenshots in `output/prop-cluster-smoke/`.
+
+## 2026-05-21 Egypt Journey in-game prop audit cleanup
+
+- Audited the live Journey prop placement against the rule that props must support archaeology, danger, expedition context, or protected-site storytelling.
+- Removed random coin-pile/offering props from the curated Egypt Journey layout so the route does not drift toward generic treasure-dungeon clutter.
+- Removed duplicate or mismatched atmosphere props: the false-scarab extra coin pile, the dig-site coin pile, the field-chest-as-offering-table, and a duplicate catacomb evidence cache.
+- Updated Journey regression coverage so coin piles remain available in the atlas but are not used in the curated Egypt prop layout.
+
+## 2026-05-21 Egypt Journey trap audit and grounding pass
+
+- Audited every live Journey hazard and gave each trap a clear purpose group: buried spike floors, pressure/seal triggers, unstable cracked floors, soft sand, loose rubble, overhead collapse, air/visibility hazards, dark gaps, survey-site obstacles, and natural scrub.
+- Reused the existing production trap/environment asset path rather than generating new art; the existing atlas already had the required cinema-style spike, cracked-floor, pressure-plate, rubble, rope, dust, gap, and airborne hazard visuals.
+- Repaired mismatched trap visuals so loose temple steps and bridge cracks use cracked-floor art, survey ropes use rope art, rolling/collapsing stones use grounded rubble, and airborne collapse/dust hazards remain visually connected to the instability beat.
+- Tuned decal placement so floor hazards are embedded into the walking surface instead of floating, while dust/bats/falling debris remain intentionally airborne.
+- Added regression coverage so every hazard must now have an in-game purpose and the known mismatched trap aliases cannot silently return.
+- Verification passed: Journey secrets tests, targeted lint, and live Playwright Journey smoke screenshots in `output/trap-audit-smoke/`.

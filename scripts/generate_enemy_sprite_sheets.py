@@ -12,7 +12,8 @@ ROOT = Path(__file__).resolve().parents[1]
 ENEMY_DIR = ROOT / "public" / "assets" / "expedition" / "enemies"
 CHINA_DIR = ENEMY_DIR / "china"
 BOSS_DIR = ROOT / "public" / "assets" / "expedition" / "bosses"
-GEMINI_MUMMY_SOURCE = ENEMY_DIR / "warrior-mummy-source.jpg"
+PRODUCTION_MUMMY_SOURCE = ENEMY_DIR / "warrior-mummy-production-source-alpha.png"
+PRODUCTION_FLYING_SCARAB_SOURCE = ENEMY_DIR / "flying-scarab-production-source-alpha.png"
 CELL_W = 384
 CELL_H = 340
 SCALE = 1
@@ -34,7 +35,8 @@ SCARAB_QUEEN_FRAMES = [
 SCARAB_QUEEN_CELL_W = 560
 SCARAB_QUEEN_CELL_H = 390
 SCARAB_QUEEN_PRODUCTION_SOURCE = BOSS_DIR / "scarab-queen-production-source.png"
-_GEMINI_MUMMY_FRAMES = {}
+_PRODUCTION_MUMMY_FRAMES = {}
+_PRODUCTION_FLYING_SCARAB_FRAMES = {}
 
 
 def rgba(hex_color: str, alpha: int = 255) -> tuple[int, int, int, int]:
@@ -694,49 +696,6 @@ def trim_alpha(image: Image.Image, padding: int = 0) -> Image.Image:
     return image.crop((left, top, right, bottom))
 
 
-GEMINI_MUMMY_FRAME_CROPS = {
-    "Idle": (48, 27, 258, 428),
-    "Walk1": (469, 29, 624, 428),
-    "Walk2": (615, 29, 778, 428),
-    "Walk3": (778, 29, 940, 428),
-    "Windup": (486, 458, 767, 854),
-    "Attack": (748, 458, 1025, 854),
-    "Hit": (248, 458, 446, 854),
-    "Defeated": (1067, 599, 1559, 856),
-}
-
-
-def remove_gemini_gray_background(image: Image.Image, bg=None) -> Image.Image:
-    """Key out the neutral grey Gemini sheet background without touching bandages."""
-    image = image.convert("RGBA")
-    if bg is None:
-        sample_points = [
-            (2, 2),
-            (image.width - 3, 2),
-            (2, image.height - 3),
-            (image.width - 3, image.height - 3),
-        ]
-        samples = [image.getpixel(point)[:3] for point in sample_points]
-        bg = tuple(sum(sample[index] for sample in samples) // len(samples) for index in range(3))
-    pixels = image.load()
-    for y in range(image.height):
-        for x in range(image.width):
-            r, g, b, a = pixels[x, y]
-            if a == 0:
-                continue
-            distance = math.sqrt((r - bg[0]) ** 2 + (g - bg[1]) ** 2 + (b - bg[2]) ** 2)
-            color_spread = max(r, g, b) - min(r, g, b)
-            if distance < 40 and color_spread < 34:
-                pixels[x, y] = (r, g, b, 0)
-            elif distance < 60 and color_spread < 42:
-                pixels[x, y] = (r, g, b, max(0, a - 190))
-    alpha = image.getchannel("A")
-    alpha = alpha.filter(ImageFilter.MedianFilter(3))
-    alpha = alpha.point(lambda value: 0 if value < 48 else min(255, value + 28))
-    image.putalpha(alpha)
-    return trim_alpha(image, 4)
-
-
 def keep_largest_alpha_component(image: Image.Image) -> Image.Image:
     """Remove stray source-sheet notes and silhouettes that survived chroma keying."""
     image = image.convert("RGBA")
@@ -775,19 +734,21 @@ def keep_largest_alpha_component(image: Image.Image) -> Image.Image:
     return trim_alpha(image, 4)
 
 
-def get_gemini_mummy_frame(frame: str) -> Image.Image:
-    if frame in _GEMINI_MUMMY_FRAMES:
-        return _GEMINI_MUMMY_FRAMES[frame].copy()
+def get_production_mummy_frame(frame: str) -> Image.Image:
+    if frame in _PRODUCTION_MUMMY_FRAMES:
+        return _PRODUCTION_MUMMY_FRAMES[frame].copy()
 
-    # Source was copied from Gemini Assets/Mummy Warrior3.jpg into the active repo.
-    source = Image.open(GEMINI_MUMMY_SOURCE).convert("RGBA")
-    cropped = source.crop(GEMINI_MUMMY_FRAME_CROPS[frame])
-    sprite = remove_gemini_gray_background(cropped, bg=source.getpixel((2, 2))[:3])
+    source = Image.open(PRODUCTION_MUMMY_SOURCE).convert("RGBA")
+    frame_index = FRAMES.index(frame)
+    frame_width = source.width / len(FRAMES)
+    left = int(round(frame_index * frame_width))
+    right = int(round((frame_index + 1) * frame_width))
+    sprite = trim_alpha(source.crop((left, 0, right, source.height)), 4)
     sprite = keep_largest_alpha_component(sprite)
     sprite = ImageEnhance.Contrast(sprite).enhance(1.08)
     sprite = ImageEnhance.Color(sprite).enhance(0.92)
     sprite = ImageEnhance.Sharpness(sprite).enhance(1.16)
-    _GEMINI_MUMMY_FRAMES[frame] = sprite
+    _PRODUCTION_MUMMY_FRAMES[frame] = sprite
     return sprite.copy()
 
 
@@ -795,12 +756,12 @@ def alpha_paste(base: Image.Image, sprite: Image.Image, x: int, y: int):
     base.alpha_composite(sprite, (round(x), round(y)))
 
 
-def render_gemini_mummy_cell(frame, base_y):
+def render_production_mummy_cell(frame, base_y):
     cell = Image.new("RGBA", (CELL_W * SCALE, CELL_H * SCALE), (0, 0, 0, 0))
     draw = ImageDraw.Draw(cell)
     defeated = frame == "Defeated"
     hit = frame == "Hit"
-    sprite = get_gemini_mummy_frame(frame)
+    sprite = get_production_mummy_frame(frame)
     target_h = 118 if defeated else 238
     target_w = max(1, round(sprite.width * target_h / max(1, sprite.height)))
     max_w = 286 if defeated else 168
@@ -818,6 +779,54 @@ def render_gemini_mummy_cell(frame, base_y):
     draw.ellipse([x + 8, base_y - 17, x + sprite.width - 8, base_y + 5], fill=rgba("#120c07", 82))
     alpha_paste(cell, sprite, x, y)
 
+    return cell
+
+
+def get_production_flying_scarab_frame(frame: str) -> Image.Image:
+    if frame in _PRODUCTION_FLYING_SCARAB_FRAMES:
+        return _PRODUCTION_FLYING_SCARAB_FRAMES[frame].copy()
+
+    source = Image.open(PRODUCTION_FLYING_SCARAB_SOURCE).convert("RGBA")
+    frame_index = FRAMES.index(frame)
+    frame_width = source.width / len(FRAMES)
+    left = int(round(frame_index * frame_width))
+    right = int(round((frame_index + 1) * frame_width))
+    sprite = trim_alpha(source.crop((left, 0, right, source.height)), 4)
+    sprite = ImageEnhance.Contrast(sprite).enhance(1.06)
+    sprite = ImageEnhance.Color(sprite).enhance(0.98)
+    sprite = ImageEnhance.Sharpness(sprite).enhance(1.12)
+    _PRODUCTION_FLYING_SCARAB_FRAMES[frame] = sprite
+    return sprite.copy()
+
+
+def render_production_flying_scarab_cell(frame, base_y):
+    cell = Image.new("RGBA", (CELL_W * SCALE, CELL_H * SCALE), (0, 0, 0, 0))
+    hit = frame == "Hit"
+    defeated = frame == "Defeated"
+    sprite = get_production_flying_scarab_frame(frame)
+    max_w = 300 if not defeated else 240
+    max_h = 150 if not defeated else 118
+    scale = min(max_w / max(1, sprite.width), max_h / max(1, sprite.height))
+    target_size = (max(1, round(sprite.width * scale)), max(1, round(sprite.height * scale)))
+    sprite = sprite.resize(target_size, Image.Resampling.LANCZOS)
+    if hit:
+        flash = Image.new("RGBA", sprite.size, rgba("#facc15", 54))
+        flash.putalpha(sprite.getchannel("A").point(lambda alpha: min(alpha, 54)))
+        sprite = Image.alpha_composite(sprite, flash)
+
+    offsets = {
+        "Walk1": (-6, -7),
+        "Walk2": (0, 5),
+        "Walk3": (6, -4),
+        "Windup": (-10, 6),
+        "Attack": (18, -2),
+        "Hit": (-16, 8),
+        "Defeated": (4, 28),
+    }
+    dx, dy = offsets.get(frame, (0, 0))
+    x = CELL_W / 2 - sprite.width / 2 + dx
+    y = base_y - sprite.height - (30 if not defeated else 0) + dy
+    alpha_paste(cell, sprite, x, y)
     return cell
 
 
@@ -854,6 +863,8 @@ FAMILIES = {
         "path": ENEMY_DIR / "sand-wisp-sprites",
         "prefix": "sandWisp",
         "draw": draw_wisp,
+        "render_cell": render_production_flying_scarab_cell,
+        "source": "Production flying scarab atlas generated from public/assets/expedition/enemies/flying-scarab-production-source-alpha.png and normalized into the existing sand-wisp Journey enemy frame contract.",
         "base_y": 252,
         "flying": True,
     },
@@ -903,8 +914,8 @@ FAMILIES = {
         "path": ENEMY_DIR / "warrior-mummy-sprites",
         "prefix": "mummy",
         "draw": draw_mummy,
-        "render_cell": render_gemini_mummy_cell,
-        "source": "Gemini mummy warrior atlas generated from public/assets/expedition/enemies/warrior-mummy-source.jpg, copied from Gemini Assets/Mummy Warrior3.jpg and normalized into the existing Journey enemy frame contract.",
+        "render_cell": render_production_mummy_cell,
+        "source": "Production warrior mummy atlas generated from public/assets/expedition/enemies/warrior-mummy-production-source-alpha.png and normalized into the existing Journey enemy frame contract.",
         "base_y": 324,
     },
 }

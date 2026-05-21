@@ -64,34 +64,34 @@ const EXPEDITION_AUDIO_TRACKS = {
       randomize: true,
       cooldownMs: 360,
       clips: [
-        { path: 'assets/expedition/sfx/land-soft.ogg', volume: 0.13, playbackRate: 0.88 },
-        { path: 'assets/expedition/sfx/satchel-leather.ogg', volume: 0.1, playbackRate: 0.9 },
+        { path: 'assets/expedition/sfx/generated/land-soft.wav', volume: 0.13, playbackRate: 0.88 },
+        { path: 'assets/expedition/sfx/generated/satchel-leather.wav', volume: 0.1, playbackRate: 0.9 },
       ],
     },
-    jump: { path: 'assets/expedition/sfx/land-soft.ogg', volume: 0.3, playbackRate: 1.28 },
-    land: { path: 'assets/expedition/sfx/land-soft.ogg', volume: 0.4 },
+    jump: { path: 'assets/expedition/sfx/generated/land-soft.wav', volume: 0.3, playbackRate: 1.28 },
+    land: { path: 'assets/expedition/sfx/generated/land-soft.wav', volume: 0.4 },
     pickupTool: [
-      { path: 'assets/expedition/sfx/satchel-leather.ogg', volume: 0.4 },
-      { path: 'assets/expedition/sfx/satchel-buckle.ogg', volume: 0.3, delay: 55 },
-      { path: 'assets/expedition/sfx/metal-click.ogg', volume: 0.34, delay: 95, playbackRate: 1.08 },
+      { path: 'assets/expedition/sfx/generated/satchel-leather.wav', volume: 0.4 },
+      { path: 'assets/expedition/sfx/generated/satchel-buckle.wav', volume: 0.3, delay: 55 },
+      { path: 'assets/expedition/sfx/generated/metal-click.wav', volume: 0.34, delay: 95, playbackRate: 1.08 },
     ],
     pickupShard: {
       cooldownMs: 120,
       clips: [
-        { path: 'assets/expedition/sfx/relic-shard.ogg', volume: 0.28, playbackRate: 0.96 },
-        { path: 'assets/expedition/sfx/metal-click.ogg', volume: 0.16, delay: 70, playbackRate: 1.18 },
-        { path: 'assets/expedition/sfx/relic-shard.ogg', volume: 0.14, delay: 125, playbackRate: 1.28 },
+        { path: 'assets/expedition/sfx/generated/relic-shard.wav', volume: 0.28, playbackRate: 0.96 },
+        { path: 'assets/expedition/sfx/generated/metal-click.wav', volume: 0.16, delay: 70, playbackRate: 1.18 },
+        { path: 'assets/expedition/sfx/generated/relic-shard.wav', volume: 0.14, delay: 125, playbackRate: 1.28 },
       ],
     },
-    pickupUpgrade: { path: 'assets/expedition/sfx/metal-click.ogg', volume: 0.42, playbackRate: 0.92 },
-    gateUnlock: { path: 'assets/expedition/sfx/stone-gate-open.ogg', volume: 0.52 },
-    gateBlocked: { path: 'assets/expedition/sfx/stone-gate-blocked.ogg', volume: 0.44 },
+    pickupUpgrade: { path: 'assets/expedition/sfx/generated/metal-click.wav', volume: 0.42, playbackRate: 0.92 },
+    gateUnlock: { path: 'assets/expedition/sfx/generated/stone-gate-open.wav', volume: 0.52 },
+    gateBlocked: { path: 'assets/expedition/sfx/generated/stone-gate-blocked.wav', volume: 0.44 },
     attackSwing: {
       synth: 'softSwing',
       synthVolume: 1.3,
       cooldownMs: 260,
       clips: [
-        { path: 'assets/expedition/sfx/satchel-leather.ogg', volume: 0.12, delay: 32, playbackRate: 0.96 },
+        { path: 'assets/expedition/sfx/generated/satchel-leather.wav', volume: 0.12, delay: 32, playbackRate: 0.96 },
       ],
     },
     combatDeflect: {
@@ -99,7 +99,7 @@ const EXPEDITION_AUDIO_TRACKS = {
       synthVolume: 1.18,
       cooldownMs: 180,
       clips: [
-        { path: 'assets/expedition/sfx/metal-click.ogg', volume: 0.16, playbackRate: 1.28 },
+        { path: 'assets/expedition/sfx/generated/metal-click.wav', volume: 0.16, playbackRate: 1.28 },
       ],
     },
     enemyHit: {
@@ -107,7 +107,7 @@ const EXPEDITION_AUDIO_TRACKS = {
       synthVolume: 1.08,
       cooldownMs: 120,
       clips: [
-        { path: 'assets/expedition/sfx/enemy-hit.ogg', volume: 0.2, playbackRate: 1.12 },
+        { path: 'assets/expedition/sfx/generated/enemy-hit.wav', volume: 0.2, playbackRate: 1.12 },
       ],
     },
     scarabHit: {
@@ -115,7 +115,7 @@ const EXPEDITION_AUDIO_TRACKS = {
       synthVolume: 1.22,
       cooldownMs: 120,
       clips: [
-        { path: 'assets/expedition/sfx/enemy-hit.ogg', volume: 0.16, playbackRate: 1.38 },
+        { path: 'assets/expedition/sfx/generated/enemy-hit.wav', volume: 0.16, playbackRate: 1.38 },
       ],
     },
     scorpionHit: {
@@ -123,7 +123,7 @@ const EXPEDITION_AUDIO_TRACKS = {
       synthVolume: 1.12,
       cooldownMs: 120,
       clips: [
-        { path: 'assets/expedition/sfx/enemy-hit.ogg', volume: 0.14, playbackRate: 1.52 },
+        { path: 'assets/expedition/sfx/generated/enemy-hit.wav', volume: 0.14, playbackRate: 1.52 },
       ],
     },
     snakeHit: {
@@ -131,7 +131,7 @@ const EXPEDITION_AUDIO_TRACKS = {
       synthVolume: 1.04,
       cooldownMs: 120,
       clips: [
-        { path: 'assets/expedition/sfx/enemy-hit.ogg', volume: 0.12, playbackRate: 1.62 },
+        { path: 'assets/expedition/sfx/generated/enemy-hit.wav', volume: 0.12, playbackRate: 1.62 },
       ],
     },
     sandWispHit: {
@@ -139,7 +139,7 @@ const EXPEDITION_AUDIO_TRACKS = {
       synthVolume: 1.12,
       cooldownMs: 120,
       clips: [
-        { path: 'assets/expedition/sfx/enemy-hit.ogg', volume: 0.1, playbackRate: 0.88 },
+        { path: 'assets/expedition/sfx/generated/enemy-hit.wav', volume: 0.1, playbackRate: 0.88 },
       ],
     },
     bossHit: {
@@ -147,7 +147,7 @@ const EXPEDITION_AUDIO_TRACKS = {
       synthVolume: 1.18,
       cooldownMs: 160,
       clips: [
-        { path: 'assets/expedition/sfx/enemy-hit.ogg', volume: 0.22, playbackRate: 0.82 },
+        { path: 'assets/expedition/sfx/generated/enemy-hit.wav', volume: 0.22, playbackRate: 0.82 },
       ],
     },
     playerHit: {
@@ -155,7 +155,7 @@ const EXPEDITION_AUDIO_TRACKS = {
       synthVolume: 1.16,
       cooldownMs: 220,
       clips: [
-        { path: 'assets/expedition/sfx/player-hit.ogg', volume: 0.22, playbackRate: 0.96 },
+        { path: 'assets/expedition/sfx/generated/player-hit.wav', volume: 0.22, playbackRate: 0.96 },
       ],
     },
     trapReset: {
@@ -163,7 +163,7 @@ const EXPEDITION_AUDIO_TRACKS = {
       synthVolume: 1.16,
       cooldownMs: 360,
       clips: [
-        { path: 'assets/expedition/sfx/land-soft.ogg', volume: 0.18, playbackRate: 0.7 },
+        { path: 'assets/expedition/sfx/generated/land-soft.wav', volume: 0.18, playbackRate: 0.7 },
       ],
     },
     trapStoneTrigger: {
@@ -171,7 +171,7 @@ const EXPEDITION_AUDIO_TRACKS = {
       synthVolume: 1.1,
       cooldownMs: 260,
       clips: [
-        { path: 'assets/expedition/sfx/land-soft.ogg', volume: 0.13, playbackRate: 0.76 },
+        { path: 'assets/expedition/sfx/generated/land-soft.wav', volume: 0.13, playbackRate: 0.76 },
       ],
     },
     trapSandTrigger: {
@@ -179,10 +179,10 @@ const EXPEDITION_AUDIO_TRACKS = {
       synthVolume: 1.08,
       cooldownMs: 260,
       clips: [
-        { path: 'assets/expedition/sfx/land-soft.ogg', volume: 0.12, playbackRate: 0.9 },
+        { path: 'assets/expedition/sfx/generated/land-soft.wav', volume: 0.12, playbackRate: 0.9 },
       ],
     },
-    bossWarning: { path: 'assets/expedition/sfx/boss-warning.ogg', volume: 0.38 },
+    bossWarning: { path: 'assets/expedition/sfx/generated/boss-warning.wav', volume: 0.38 },
     openingThresholdAtmosphere: {
       cooldownMs: 36000,
       clips: [
@@ -299,7 +299,7 @@ const playExpeditionStinger = (stingerKey) => {
 const unlockExpeditionSfx = () => {
   initAudio();
   if (expeditionSfxUnlocked) return;
-  const primer = new Audio(getAudioSrc('assets/expedition/sfx/metal-click.ogg'));
+  const primer = new Audio(getAudioSrc('assets/expedition/sfx/generated/metal-click.wav'));
   primer.volume = 0.02;
   primer.play().then(() => {
     primer.pause();

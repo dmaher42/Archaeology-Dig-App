@@ -1,6 +1,6 @@
 {
   "image": "sand-wisp-sprites.png",
-  "source": "Codex-generated upgraded regular enemy sprite sheet with fixed transparent cells and consistent baseline.",
+  "source": "Production flying scarab atlas generated from public/assets/expedition/enemies/flying-scarab-production-source-alpha.png and normalized into the existing sand-wisp Journey enemy frame contract.",
   "coordinateNote": "Eight fixed cells: Idle, Walk1, Walk2, Walk3, Windup, Attack, Hit, Defeated. Regions share one bottom-center anchor.",
   "frameContract": [
     "Idle",
@@ -15,52 +15,52 @@
   "baseline": "bottom-center shared per family; no baked large shadow",
   "regions": {
     "sandWispIdle": {
-      "x": 98,
-      "y": 85,
-      "w": 229,
-      "h": 250
+      "x": 61,
+      "y": 51,
+      "w": 280,
+      "h": 237
     },
     "sandWispWalk1": {
-      "x": 482,
-      "y": 85,
-      "w": 229,
-      "h": 250
+      "x": 445,
+      "y": 51,
+      "w": 280,
+      "h": 237
     },
     "sandWispWalk2": {
-      "x": 866,
-      "y": 85,
-      "w": 229,
-      "h": 250
+      "x": 829,
+      "y": 51,
+      "w": 280,
+      "h": 237
     },
     "sandWispWalk3": {
-      "x": 1250,
-      "y": 85,
-      "w": 229,
-      "h": 250
+      "x": 1213,
+      "y": 51,
+      "w": 280,
+      "h": 237
     },
     "sandWispWindup": {
-      "x": 1634,
-      "y": 85,
-      "w": 229,
-      "h": 250
+      "x": 1597,
+      "y": 51,
+      "w": 280,
+      "h": 237
     },
     "sandWispAttack": {
-      "x": 2018,
-      "y": 85,
-      "w": 229,
-      "h": 250
+      "x": 1981,
+      "y": 51,
+      "w": 280,
+      "h": 237
     },
     "sandWispHit": {
-      "x": 2402,
-      "y": 85,
-      "w": 229,
-      "h": 250
+      "x": 2365,
+      "y": 51,
+      "w": 280,
+      "h": 237
     },
     "sandWispDefeated": {
-      "x": 2786,
-      "y": 85,
-      "w": 229,
-      "h": 250
+      "x": 2749,
+      "y": 51,
+      "w": 280,
+      "h": 237
     }
   }
 }

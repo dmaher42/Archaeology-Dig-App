@@ -1,3 +1,5 @@
+import { PLAYER_SPRITE_DRAW_HEIGHT } from './journeyConstants.js';
+
 export const ENEMY_SPRITE_BASE_PATH = 'assets/expedition/enemies/';
 export const ENEMY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}small-enemy-sprites.json`;
 export const LOOTER_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}looter-sprites.json`;
@@ -18,12 +20,13 @@ export const ENEMY_SPRITE_ATLAS_VERSION = 'enemy-sprite-packs-2026-05-18-35-perc
 export const ENEMY_SPRITE_GROUNDING_VERSION = 'enemy-sprite-grounding-2026-05-18';
 export const MIN_ENEMY_DRAW_HEIGHT = 34;
 export const ENEMY_VISUAL_SIZE_MULTIPLIER = 1.5;
+export const MUMMY_ASHA_SIZE_MULTIPLIER = 1.1;
 const ENEMY_VISUAL_SIZE_MULTIPLIERS = {
   scarab: 2.7,
   snake: 1.42,
   bat: 1.48,
   scorpion: 2.7,
-  sandWisp: 1.42,
+  sandWisp: 1.633,
   looter: 1.12,
   looterCaptain: 1.16,
   cursedStatue: 1.14,
@@ -428,11 +431,11 @@ export const getEnemySpritePack = (assets, family) => {
 export const getEnemySpriteFamily = (enemy) => {
   if (!enemy) return null;
   const name = (enemy.name || '').toLowerCase();
+  if (enemy.type === 'sand-wisp' || name.includes('sand wisp')) return 'sandWisp';
   if (enemy.type === 'scarab' || name.includes('scarab') || name.includes('beetle')) return 'scarab';
   if (enemy.type === 'snake' || name.includes('snake') || name.includes('serpent')) return 'snake';
   if (enemy.type === 'bat' || name.includes('bat')) return 'bat';
   if (enemy.type === 'scorpion' || name.includes('scorpion')) return 'scorpion';
-  if (enemy.type === 'sand-wisp' || name.includes('sand wisp')) return 'sandWisp';
   if (enemy.id === 'looter-captain' || name.includes('captain')) return 'looterCaptain';
   if (enemy.type === 'river-crab' || name.includes('river crab') || name.includes('mudbank crab')) return 'riverCrab';
   if (enemy.type === 'watchtower-sentry' || name.includes('watchtower') || name.includes('sentry')) return 'watchtowerSentry';
@@ -520,8 +523,12 @@ export const getEnemySpriteDrawBox = (enemy, screenX, shakeX = 0, combatMode = n
   const scaledWidth = Math.max(enemy.width, enemy.width * scale);
   const scaledHeight = Math.max(enemy.height, enemy.height * scale);
   const visualMultiplier = ENEMY_VISUAL_SIZE_MULTIPLIERS[family] || ENEMY_VISUAL_SIZE_MULTIPLIER;
-  const height = Math.max(minHeight, scaledHeight) * visualMultiplier;
-  const width = Math.max(scaledWidth, enemy.width * (height / Math.max(1, enemy.height)));
+  const height = family === 'mummy' && !defeated
+    ? PLAYER_SPRITE_DRAW_HEIGHT * MUMMY_ASHA_SIZE_MULTIPLIER
+    : Math.max(minHeight, scaledHeight) * visualMultiplier;
+  const width = family === 'sandWisp'
+    ? Math.max(scaledWidth, height * (defeated ? 1.7 : 1.95))
+    : Math.max(scaledWidth, enemy.width * (height / Math.max(1, enemy.height)));
   const groundOffset = {
     scarab: defeated ? 16 : 14,
     snake: defeated ? 18 : 16,

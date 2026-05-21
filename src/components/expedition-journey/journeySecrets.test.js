@@ -40,6 +40,7 @@ const anubisBossAtlas = JSON.parse(
 );
 const egyptOpeningTrapDecalsPath = new URL('../../../public/assets/expedition/environment/egypt-opening/opening-trap-decals.png', import.meta.url);
 const egyptOpeningHazardDecalsPath = new URL('../../../public/assets/expedition/environment/egypt-opening/opening-hazard-decals.png', import.meta.url);
+const egyptOpeningTombStairwellPath = new URL('../../../public/assets/expedition/environment/egypt-opening/opening-tomb-stairwell.png', import.meta.url);
 const extractExportedArray = (name) => {
   const startToken = `export const ${name} = [`;
   const start = source.indexOf(startToken);
@@ -109,7 +110,7 @@ test('world continuity landmarks foreshadow future expedition sections', () => {
   assert.match(transitionMarkers, /collapsed road leading to the temple doors/);
   assert.match(transitionMarkers, /camp lamps and carved stone over the final rise/);
 
-  assert.equal((stageEntranceFeatures.match(/id:/g) || []).length, 4);
+  assert.equal((stageEntranceFeatures.match(/^\s{4}id:/gm) || []).length, 4);
   [
     'ruined-temple-colossus-gate',
     'catacomb-descent-doorway',
@@ -165,13 +166,16 @@ test('story props include recurring expedition markers across sections', () => {
   assert.doesNotMatch(storyProps, /survey-flag-marker/);
   assert.match(storyProps, /opening-footprint-trail/);
   assert.match(storyProps, /opening-threshold-offering/);
-  assert.match(storyProps, /upper-route-broken-stone-cue/);
+  assert.doesNotMatch(storyProps, /upper-route-broken-stone-cue/);
+  assert.doesNotMatch(storyProps, /distant-ruins/);
+  assert.doesNotMatch(storyProps, /atmosphere-entry-distant-rubble/);
+  assert.doesNotMatch(storyProps, /atmosphere-entry-far-door-frame/);
   assert.match(storyProps, /abandoned-camp/);
   assert.match(storyProps, /type:\s*'cart'/);
   assert.match(storyProps, /broken supply cart/);
   assert.match(storyProps, /base camp supply cart/);
   assert.match(journeyComponentSource, /STORY_PROP_GROUNDING_OVERRIDES/);
-  assert.match(journeyComponentSource, /'upper-route-broken-stone-cue':\s*\{[\s\S]*?tint:\s*'buried-stone'[\s\S]*?bury:\s*0\.58/);
+  assert.doesNotMatch(journeyComponentSource, /'upper-route-broken-stone-cue':\s*\{/);
   assert.match(journeyComponentSource, /'jackal-statue':\s*\{[\s\S]*?alpha:\s*0\.96[\s\S]*?depth:\s*'midground'/);
   assert.match(journeyComponentSource, /STORY_PROP_GROUNDING_OVERRIDES\[prop\.id\]\?\.depth/);
   assert.match(journeyComponentSource, /propSize\.bury/);
@@ -348,8 +352,8 @@ test('opening Scarab Seal becomes a restrained false-discovery threshold scene',
   assert.match(journeyComponentSource, /OPENING_SCARAB_SEAL_IMAGE_SRC = 'assets\/expedition\/environment\/egypt-opening\/scarab-seal-ground-embedded\.png'/);
   assert.match(journeyComponentSource, /openingScarabSealImageRef/);
   assert.doesNotMatch(journeyComponentSource, /prop\.id === 'early-scarab-seal-pedestal' \|\| prop\.id === 'early-scarab-seal'/);
-  assert.match(journeyComponentSource, /hazard\.id === 'opening-seal-reset-trap'/);
-  assert.match(journeyComponentSource, /ctx\.drawImage\(trapSealImage\.image/);
+  assert.match(journeyComponentSource, /'opening-seal-reset-trap':\s*'spikeTrap'/);
+  assert.doesNotMatch(journeyComponentSource, /ctx\.drawImage\(trapSealImage\.image/);
   assert.match(events, /id:\s*'opening-scarab-seal-climb'/);
   assert.match(events, /id:\s*'opening-scarab-seal-climb'[\s\S]*?x:\s*X\(95\)/);
 
@@ -392,6 +396,14 @@ test('opening Scarab Seal becomes a restrained false-discovery threshold scene',
   assert.match(journeyComponentSource, /eyeGlint/);
   assert.match(journeyComponentSource, /cueTimes = \[6\.2,\s*10\.8,\s*14\.8,\s*18\.6,\s*22\.8,\s*26\.5,\s*31\.5\]/);
   assert.match(journeyComponentSource, /fissureCues = \[11\.9,\s*18\.6,\s*26\.5,\s*29\.8\]/);
+  assert.ok(existsSync(egyptOpeningTombStairwellPath), 'opening tomb stairwell asset should exist');
+  assert.match(journeyComponentSource, /OPENING_TOMB_STAIRWELL_SRC = 'assets\/expedition\/environment\/egypt-opening\/opening-tomb-stairwell\.png'/);
+  assert.match(journeyComponentSource, /OPENING_TOMB_STAIRWELL_VERSION = 'opening-tomb-stairwell-generated-2026-05-21'/);
+  assert.match(journeyComponentSource, /openingTombStairwellRef/);
+  assert.match(journeyComponentSource, /ctx\.drawImage\(tombStairwellAsset\.image/);
+  assert.match(journeyComponentSource, /openingTombStairwellAssetLoaded = true/);
+  assert.doesNotMatch(journeyComponentSource, /const stoneRows = \[/);
+  assert.doesNotMatch(journeyComponentSource, /summitCoverX/);
   assert.match(journeyComponentSource, /playExpeditionSfx\?\.\('openingThresholdAtmosphere'\)/);
   assert.match(journeyComponentSource, /playExpeditionSfx\?\.\('openingThresholdFall'\)/);
   assert.match(journeyComponentSource, /playExpeditionSfx\?\.\('openingThresholdStoneShift'\)/);
@@ -443,13 +455,14 @@ test('opening Scarab Seal becomes a restrained false-discovery threshold scene',
   assert.match(journeyComponentSource, /SCARAB_SEAL_TRIGGER\.bossIntroLine/);
   assert.match(journeyComponentSource, /SCARAB_SEAL_TRIGGER\.guideFollowUpLine/);
   assert.match(journeyComponentSource, /guardianSealActivated/);
-  assert.match(hazards, /id:\s*'opening-seal-reset-trap'[\s\S]*?name:\s*'ground seal trap'[\s\S]*?pushToStart:\s*true/);
+  assert.match(hazards, /id:\s*'opening-seal-reset-trap'[\s\S]*?name:\s*'buried spike trap'[\s\S]*?x:\s*X\(250\)[\s\S]*?width:\s*87[\s\S]*?height:\s*16[\s\S]*?penalty:\s*\{\s*stamina:\s*8\s*\}/);
+  assert.doesNotMatch(hazards, /id:\s*'opening-seal-reset-trap'[\s\S]*?pushToStart:\s*true/);
   assert.doesNotMatch(hazards, /id:\s*'opening-seal-reset-trap'[\s\S]*?revealedByScarabSeal:\s*true/);
-  assert.match(hazards, /The ground seal trap pushed you back to the start\. Climb back up and cross above it\./);
+  assert.match(hazards, /Buried spikes jabbed out of the sand\. Jump cleanly over them\./);
   assert.match(journeyComponentSource, /isHazardAvailable\(hazard, current\)/);
   assert.match(journeyComponentSource, /if \(h\.pushToStart\) \{/);
   assert.match(journeyComponentSource, /player\.x = startCheckpoint\.x/);
-  assert.match(journeyRenderAssetsSource, /'opening-seal-reset-trap':\s*'softSand'/);
+  assert.match(journeyRenderAssetsSource, /'opening-seal-reset-trap':\s*'spikeTrap'/);
   assert.doesNotMatch(journeyComponentSource, /visualHazardId === 'opening-seal-reset-trap'[\s\S]*?strokeStyle = 'rgba\(250, 204, 21/);
   assert.doesNotMatch(journeyComponentSource, /openingScarabConfrontationPending/);
   const openingSealRuntimeBlock = journeyComponentSource.slice(
@@ -520,7 +533,7 @@ test('opening pyramid marked ledges use a scoped double-jump assist instead of e
   assert.doesNotMatch(platforms, /helper platform/i);
 });
 
-test('opening pyramid facade stays solid and scrolls naturally off screen', () => {
+test('opening pyramid facade stays active as the opening gameplay landmark', () => {
   assert.match(journeyComponentSource, /OPENING_PYRAMID_FACADE_WORLD_LEFT_X\s*=\s*-82/);
   assert.match(
     journeyComponentSource,
@@ -758,7 +771,11 @@ test('Egypt opening loop makes the first seal require enemies, shards, and the m
   assert.match(source, /id:\s*'temple-approach-seal'[\s\S]*?id:\s*'desert-seal'/);
   assert.match(source, /id:\s*'desert-seal'[\s\S]*?shards:\s*10/);
   assert.match(source, /id:\s*'map-tablet'[\s\S]*?x:\s*X\(610\)/);
-  assert.match(source, /id:\s*'warrior-mummy-start-1'[\s\S]*?protectsRouteId:\s*'temple-approach-seal'/);
+  assert.match(source, /id:\s*'opening-seal-reset-trap'[\s\S]*?x:\s*X\(250\)[\s\S]*?width:\s*87[\s\S]*?height:\s*16/);
+  assert.doesNotMatch(source, /id:\s*'opening-spike-floor-trap'/);
+  assert.doesNotMatch(source, /id:\s*'warrior-mummy-start-1'/);
+  assert.doesNotMatch(source, /id:\s*'warrior-mummy-dune-1'/);
+  assert.doesNotMatch(source, /id:\s*'warrior-mummy-ridge-1'/);
   assert.match(source, /id:\s*'scarab-scout-1'[\s\S]*?protectsRouteId:\s*'temple-approach-seal'/);
   assert.match(source, /protectsRouteId:\s*'desert-opening-shard-cache'/);
   assert.match(source, /protectsRouteId:\s*'desert-opening-map-tablet'/);
@@ -845,7 +862,7 @@ test('Egypt Journey loads visible sprites for all default Egypt enemy families',
   assert.match(journeyComponentSource, /enemy\.type === 'snake'/);
   assert.match(journeyComponentSource, /enemy\.type === 'scorpion'/);
   assert.match(journeyComponentSource, /enemy\.type === 'sand-wisp'/);
-  assert.match(journeyComponentSource, /enemy\.type === 'mummy'/);
+  assert.match(journeyEnemySpritesSource, /if \(enemy\.type === 'mummy' \|\| name\.includes\('mummy'\)\) return 'mummy'/);
 });
 
 test('guardian knowledge quizzes stay available but are no longer used by boss fights', () => {
@@ -877,7 +894,7 @@ test('Broken Ruins Route extends the Egypt opening with existing platformer syst
   assert.match(hazards, /broken-ruins-loose-stones/);
   assert.match(hazards, /Loose ruin stones shifted underfoot/);
   assert.match(shards, /\{\s*x:\s*1245,\s*y:\s*320\s*\}/);
-  assert.match(storyProps, /broken-ruins-route-stones/);
+  assert.doesNotMatch(storyProps, /broken-ruins-route-stones/);
   assert.match(storyProps, /Broken Ruins Route trail marker/);
   assert.match(storyProps, /survey rope beside half-buried structure/);
   assert.match(events, /id:\s*'broken-ruins-route'/);
@@ -1044,15 +1061,14 @@ test('platform polish creates purposeful jump challenges with checkpoint rescue 
   assert.match(hazards, /id:\s*'sand-pit'[\s\S]*?width:\s*132[\s\S]*?penalty:\s*\{\s*time:\s*9\s*\}/);
   assert.match(hazards, /Step around it or jump cleanly/);
   assert.match(hazards, /Use the clear stone path around it/);
-  assert.match(journeyRenderAssetsSource, /'entry-pressure-plate':\s*'softSand'/);
+  assert.match(journeyRenderAssetsSource, /'entry-pressure-plate':\s*'groundCracked'/);
   assert.match(journeyRenderAssetsSource, /'entry-cracked-floor-trap':\s*'groundCracked'/);
   assert.match(journeyComponentSource, /'entry-pressure-plate':\s*\{[\s\S]*?warning:\s*'ground'/);
   assert.match(journeyComponentSource, /'entry-cracked-floor-trap':\s*\{[\s\S]*?warning:\s*'ground'/);
   assert.doesNotMatch(journeyComponentSource, /visualHazardId === 'entry-pressure-plate'[\s\S]*?ctx\.roundRect/);
   assert.doesNotMatch(journeyComponentSource, /visualHazardId === 'entry-cracked-floor-trap'[\s\S]*?ctx\.strokeRect/);
   assert.doesNotMatch(journeyComponentSource, /hazard\.id === 'sand-pit'[\s\S]*?ctx\.arc/);
-  assert.match(journeyComponentSource, /const drawEnemyAttackTell = useCallback\(\(ctx, enemy, screenX, _cameraX, now, boss = false\) => \{/);
-  assert.match(journeyComponentSource, /drawCounterWindow/);
+  assert.match(journeyComponentSource, /const drawEnemyAttackTell = useCallback\(\(\) => \{\}, \[\]\)/);
   assert.match(journeyComponentSource, /const drawAttackArc = useCallback\(\(\) => \{\}, \[\]\)/);
 
   assert.match(upgrades, /id:\s*'basecamp-upgrade-voucher'[\s\S]*?x:\s*X\(925\)[\s\S]*?y:\s*JY\(320\)/);
@@ -1064,6 +1080,7 @@ test('platform polish creates purposeful jump challenges with checkpoint rescue 
 
 test('Egypt hazard traps use painted decal assets with ground-aligned placement', () => {
   const hazards = extractExportedArray('HAZARDS');
+  const hazardPurposes = source.slice(source.indexOf('export const HAZARD_PURPOSES = {'), source.indexOf('export const ENEMIES = ['));
   const hazardIds = [...hazards.matchAll(/id:\s*'([^']+)'/g)].map(match => match[1]);
 
   assert.ok(existsSync(egyptOpeningTrapDecalsPath), 'opening trap decal sheet should exist');
@@ -1074,6 +1091,11 @@ test('Egypt hazard traps use painted decal assets with ground-aligned placement'
   assert.match(journeyComponentSource, /getEgyptHazardDecalDest\(hazard,\s*hx,\s*footY,\s*decalDescriptor\.regionKey\)/);
 
   hazardIds.forEach((id) => {
+    assert.match(
+      hazardPurposes,
+      new RegExp(`'${id}'`),
+      `${id} should have a defined in-game trap purpose`,
+    );
     assert.match(
       journeyComponentSource,
       new RegExp(`'${id}':\\s*'[^']+'`),
@@ -1099,6 +1121,25 @@ test('Egypt hazard traps use painted decal assets with ground-aligned placement'
   ].forEach((regionKey) => {
     assert.match(journeyComponentSource, new RegExp(`${regionKey}:\\s*\\{[\\s\\S]*?height:`));
   });
+
+  assert.match(hazardPurposes, /buried-spike-floor[\s\S]*?teaches jump timing/);
+  assert.match(hazardPurposes, /pressure-and-seal-trigger[\s\S]*?testing entry/);
+  assert.match(hazardPurposes, /unstable-floor[\s\S]*?cracked temple floors/);
+  assert.match(hazardPurposes, /survey-site-obstacles[\s\S]*?expedition activity becoming a hazard/);
+  assert.match(journeyComponentSource, /'temple-loose-step':\s*'crackedFloor'/);
+  assert.match(journeyComponentSource, /'temple-floor-crack':\s*'crackedFloor'/);
+  assert.match(journeyComponentSource, /'escape-cracked-step':\s*'entry-cracked-floor-trap'/);
+  assert.match(journeyComponentSource, /'camp-low-rope':\s*'survey-rope'/);
+  assert.match(journeyComponentSource, /'dig-site-loose-rope':\s*'survey-rope'/);
+  assert.match(journeyComponentSource, /'rolling-stones':\s*'warningRubble'/);
+  assert.match(journeyComponentSource, /'sandfall-collapsing-stones':\s*'warningRubble'/);
+  assert.match(journeyRenderAssetsSource, /'temple-loose-step':\s*'groundCracked'/);
+  assert.match(journeyRenderAssetsSource, /'temple-floor-crack':\s*'groundCracked'/);
+  assert.match(journeyRenderAssetsSource, /'escape-cracked-step':\s*'groundCracked'/);
+  assert.match(journeyRenderAssetsSource, /'camp-low-rope':\s*'rope'/);
+  assert.match(journeyRenderAssetsSource, /'dig-site-loose-rope':\s*'rope'/);
+  assert.doesNotMatch(journeyRenderAssetsSource, /'temple-loose-step':\s*'spikeTrap'/);
+  assert.doesNotMatch(journeyRenderAssetsSource, /'temple-floor-crack':\s*'spikeTrap'/);
 });
 
 test('dynamic world events add mystery and atmosphere without new level systems', () => {
@@ -1179,7 +1220,6 @@ test('Egypt atmosphere prop pack is registered and drawn through existing story 
   [
     'supplyJars',
     'fieldChest',
-    'coinPile',
     'scrollCache',
     'torchStand',
     'rubbleScatter',
@@ -1192,6 +1232,9 @@ test('Egypt atmosphere prop pack is registered and drawn through existing story 
     assert.match(journeyRenderAssetsSource, new RegExp(`'${key}'`));
     assert.match(storyProps, new RegExp(`atmosphereAssetKey:\\s*'${key}'`));
   });
+  assert.ok(egyptAtmosphereAtlas.regions.coinPile, 'coinPile remains available in the atlas but should not be used in the curated Journey layout');
+  assert.match(journeyRenderAssetsSource, /'coinPile'/);
+  assert.doesNotMatch(storyProps, /atmosphereAssetKey:\s*'coinPile'/);
 
   assert.ok(
     existsSync(new URL('../../../public/assets/expedition/environment/egypt-atmosphere/egypt-atmosphere-pack.png', import.meta.url)),
@@ -1223,8 +1266,22 @@ test('Egypt atmosphere layout fills each Journey section without changing gamepl
     );
   });
 
+  [
+    'desert-entry-survey-chest-1',
+    'scarab-seal-warning-glyph-1',
+    'temple-approach-threshold-tablet-1',
+    'temple-approach-obelisk-fragment-1',
+    'ruined-temple-fallen-column-1',
+    'catacomb-warning-urns-1',
+    'escape-cracked-pillar-1',
+    'dig-site-survey-grid-cache-1',
+  ].forEach((propId) => {
+    assert.match(storyProps, new RegExp(`id:\\s*'${propId}'`), `${propId} should be placed through STORY_PROPS`);
+  });
+
   const atmospherePropMatches = [...storyProps.matchAll(/type:\s*'atmosphere-prop'/g)];
-  assert.ok(atmospherePropMatches.length >= 24, 'atmosphere pass should add a meaningful number of non-colliding props');
+  assert.ok(atmospherePropMatches.length >= 38, 'atmosphere pass should add coherent non-colliding prop clusters');
+  assert.doesNotMatch(storyProps, /id:\s*'(atmosphere-entry-coin-offering|scarab-seal-broken-offering-2|atmosphere-dig-coin-offering|ruined-temple-offering-table-1|catacomb-marker-flag-cache-1)'/);
   assert.doesNotMatch(storyProps, /type:\s*'atmosphere-prop'[\s\S]{0,220}damage:/);
   assert.doesNotMatch(storyProps, /type:\s*'atmosphere-prop'[\s\S]{0,220}collectible:/);
   assert.doesNotMatch(storyProps, /type:\s*'atmosphere-prop'[\s\S]{0,220}requiresObjective:/);
@@ -1327,7 +1384,8 @@ test('Egypt opening combat ramps gently before the first route seal', () => {
   const highDamageOpeningRows = openingRows
     .filter((row) => Number(row.match(/damage:\s*(\d+)/)?.[1] || 0) > 8);
 
-  assert.ok(teachingRows.length >= 6, 'opening route should still teach multiple enemy reads');
+  assert.ok(teachingRows.length >= 4, 'opening route should teach smaller creature reads after the low trap replacement');
+  assert.match(source, /id:\s*'opening-seal-reset-trap'[\s\S]*?penalty:\s*\{\s*stamina:\s*8\s*\}/);
   assert.equal(
     openingRows.every(row => /openingRouteRamp:\s*true/.test(row)),
     true,
@@ -1415,7 +1473,17 @@ test('enemy hits land harder while player pushback stays short', () => {
 
 test('opening enemy role overrides preserve first-route fairness and readable counters', () => {
   const egyptEnemies = extractExportedArray('ENEMIES');
-  assert.match(egyptEnemies, /id:\s*'warrior-mummy-start-1'[\s\S]*?type:\s*'mummy'[\s\S]*?attackPatternTuning:\s*\{[\s\S]*?windup:\s*0\.82[\s\S]*?vulnerableAfter:\s*0\.82[\s\S]*?speed:\s*52/);
+  assert.doesNotMatch(egyptEnemies, /id:\s*'warrior-mummy-(start|dune|ridge)-1'/);
+  assert.match(egyptEnemies, /id:\s*'warrior-mummy-threshold-1'[\s\S]*?name:\s*'Threshold Warrior Mummy'[\s\S]*?type:\s*'mummy'[\s\S]*?attackPatternTuning:\s*\{[\s\S]*?id:\s*'snake-temple-step-1'/);
+  assert.match(egyptEnemies, /id:\s*'warrior-mummy-relic-guard-1'[\s\S]*?type:\s*'mummy'[\s\S]*?protectsRouteId:\s*'temple-cracked-wall-passage'/);
+  assert.match(egyptEnemies, /id:\s*'warrior-mummy-catacomb-1'[\s\S]*?name:\s*'Catacomb Warrior Mummy'[\s\S]*?type:\s*'mummy'/);
+  assert.match(journeyComponentSource, /'opening-seal-reset-trap':\s*'spikeTrap'/);
+  assert.match(journeyComponentSource, /'opening-seal-reset-trap':\s*\{\s*xPad:\s*18,\s*widthPad:\s*36,\s*height:\s*42,\s*footInset:\s*28\s*\}/);
+  assert.doesNotMatch(journeyComponentSource, /warningAlpha/);
+  assert.doesNotMatch(journeyComponentSource, /hitActive[\s\S]{0,240}strokeStyle = 'rgba\(248, 113, 113/);
+  assert.doesNotMatch(journeyComponentSource, /text:\s*'BOUNCE'/);
+  assert.doesNotMatch(journeyComponentSource, /text:\s*'RESET'/);
+  assert.match(journeyComponentSource, /spikeTrap:\s*\{\s*xPad:\s*12,\s*widthPad:\s*24,\s*height:\s*46/);
   assert.match(egyptEnemies, /id:\s*'scorpion-start-1'[\s\S]*?width:\s*44[\s\S]*?height:\s*30[\s\S]*?attackPatternTuning:\s*\{[\s\S]*?windup:\s*0\.66[\s\S]*?duration:\s*0\.34[\s\S]*?range:\s*26[\s\S]*?height:\s*62[\s\S]*?yOffset:\s*-38[\s\S]*?backReach:\s*42[\s\S]*?damageScale:\s*1\.5/);
   assert.match(egyptEnemies, /id:\s*'scorpion-pottery-1'[\s\S]*?name:\s*'Pottery Scorpion'[\s\S]*?type:\s*'scorpion'[\s\S]*?protectsRouteId:\s*'desert-opening-shard-cache'/);
   assert.match(egyptEnemies, /id:\s*'scorpion-seal-path-1'[\s\S]*?name:\s*'Seal Path Scorpion'[\s\S]*?type:\s*'scorpion'[\s\S]*?protectsRouteId:\s*'temple-approach-seal'/);
@@ -1423,13 +1491,14 @@ test('opening enemy role overrides preserve first-route fairness and readable co
   assert.match(egyptEnemies, /id:\s*'sand-wisp-start-1'[\s\S]*?damage:\s*4[\s\S]*?attackPatternTuning:\s*\{[\s\S]*?vulnerableAfter:\s*0\.72/);
   assert.match(egyptEnemies, /id:\s*'snake-1'[\s\S]*?attackPatternTuning:\s*\{[\s\S]*?windup:\s*0\.68[\s\S]*?range:\s*48/);
   assert.match(journeyComponentSource, /Scarab charges\. Move or jump, then strike\./);
-  assert.match(journeyComponentSource, /Scorpion stings high\. Step back before jumping over it\./);
+  assert.match(journeyComponentSource, /Scorpion tails block the path\. Defeat them before moving forward\./);
   assert.match(journeyComponentSource, /Warrior mummies guard the threshold\. Wait for the sweep, then counter\./);
   assert.match(journeyComponentSource, /Snake lunges from mid-range\. Watch the coil\./);
 });
 
 test('jump contact only bounces enemies while attacks defeat them in three to five hits', () => {
-  assert.match(journeyComponentSource, /const applyEnemyStomp = \(enemy\) => \{[\s\S]*?text:\s*'BOUNCE'/);
+  assert.match(journeyComponentSource, /const applyEnemyStomp = \(enemy\) => \{/);
+  assert.doesNotMatch(journeyComponentSource, /const applyEnemyStomp = \(enemy\) => \{[\s\S]*?text:\s*'BOUNCE'/);
   assert.match(journeyComponentSource, /current\.notice = `\$\{enemy\.name\} bounced away\. Use J or K to defeat it\.`/);
   assert.doesNotMatch(journeyComponentSource, /const applyEnemyStomp = \(enemy\) => \{[\s\S]*?enemy\.health -= 1[\s\S]*?\};/);
   assert.doesNotMatch(journeyComponentSource, /const applyEnemyStomp = \(enemy\) => \{[\s\S]*?current\.defeatedEnemies\.add\(enemy\.id\)[\s\S]*?\};/);

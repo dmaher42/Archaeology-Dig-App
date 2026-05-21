@@ -7,6 +7,7 @@ import { PLAYER_SPRITE_DRAW_HEIGHT } from './journeyConstants.js';
 import { readFileSync } from 'node:fs';
 
 const journeyComponentSource = readFileSync(new URL('../ExpeditionJourney.jsx', import.meta.url), 'utf8');
+const journeyUtilsSource = readFileSync(new URL('./journeyUtils.js', import.meta.url), 'utf8');
 const enemySpriteGeneratorSource = readFileSync(new URL('../../../scripts/generate_enemy_sprite_sheets.py', import.meta.url), 'utf8');
 
 test('regular enemy sprite draw boxes stay close to gameplay hitbox scale', () => {
@@ -65,6 +66,15 @@ test('scorpion sting is a high anti-jump attack that hits harder through existin
   assert.match(journeyComponentSource, /Math\.max\(e\.damage, Math\.round\(e\.damage \* \(pattern\.damageScale \|\| 1\)\)\)/);
 });
 
+test('scorpion tail blocks movement until defeated instead of allowing stomp bypass', () => {
+  assert.match(journeyUtilsSource, /scorpion:\s*\{[\s\S]*?blocker:\s*\{[\s\S]*?minHeight:\s*220/);
+  assert.match(journeyUtilsSource, /scorpion:\s*\{[\s\S]*?stomp:\s*\{\s*disabled:\s*true\s*\}/);
+  assert.match(journeyUtilsSource, /export const getEnemyMovementBlockHitbox = \(enemy\) =>/);
+  assert.match(journeyUtilsSource, /if \(enemy\.defeated\) return \{ type: 'none' \};[\s\S]*?const movementBlockHitbox = getEnemyMovementBlockHitbox\(enemy\);/);
+  assert.match(journeyUtilsSource, /movementBlockHitbox && rectsOverlap\(getPlayerBodyHitbox\(player\), movementBlockHitbox\)/);
+  assert.match(journeyUtilsSource, /blocked:\s*true/);
+});
+
 test('warrior mummy sprite draw box resolves as a grounded humanoid enemy', () => {
   const mummy = {
     id: 'warrior-mummy-start-1',
@@ -80,15 +90,38 @@ test('warrior mummy sprite draw box resolves as a grounded humanoid enemy', () =
 
   assert.ok(drawBox, 'warrior mummy draw box should resolve');
   assert.equal(drawBox.family, 'mummy');
-  assert.ok(drawBox.height > PLAYER_SPRITE_DRAW_HEIGHT, `warrior mummy should draw slightly taller than Asha, received ${drawBox.height}`);
-  assert.ok(drawBox.height <= PLAYER_SPRITE_DRAW_HEIGHT + 28, `warrior mummy should not become boss-scale clutter, received ${drawBox.height}`);
+  assert.equal(drawBox.height, PLAYER_SPRITE_DRAW_HEIGHT * 1.1, 'warrior mummy should draw exactly 10% taller than Asha');
   assert.equal(drawBox.y + drawBox.height, mummy.y + mummy.height + 15, 'warrior mummy sprite should stay grounded');
 });
 
-test('warrior mummy atlas is generated from the Gemini sprite sheet source', () => {
-  assert.match(enemySpriteGeneratorSource, /Mummy Warrior3\.jpg/);
-  assert.match(enemySpriteGeneratorSource, /render_gemini_mummy_cell/);
+test('warrior mummy atlas is generated from the production sprite sheet source', () => {
+  assert.match(enemySpriteGeneratorSource, /warrior-mummy-production-source-alpha\.png/);
+  assert.match(enemySpriteGeneratorSource, /render_production_mummy_cell/);
+  assert.doesNotMatch(enemySpriteGeneratorSource, /Mummy Warrior3\.jpg/);
   assert.doesNotMatch(enemySpriteGeneratorSource, /PROJECT_MUMMY_SOURCE = ROOT \/ "public" \/ "museum" \/ "egypt_mummy\.png"/);
+});
+
+test('sand-wisp flying enemy now renders from the production flying scarab PNG source', () => {
+  const flyingScarab = {
+    id: 'sand-wisp-start-1',
+    name: 'Flying Scarab',
+    type: 'sand-wisp',
+    x: 760,
+    y: 304,
+    width: 32,
+    height: 30,
+    flying: true,
+  };
+
+  const drawBox = getEnemySpriteDrawBox(flyingScarab, 760, 0, 'patrol');
+
+  assert.ok(drawBox, 'flying scarab draw box should resolve through the existing sand-wisp enemy family');
+  assert.equal(drawBox.family, 'sandWisp');
+  assert.ok(Math.abs(drawBox.height - 87.2022) < 0.001, `flying scarab should draw 15% larger than the first scarab pass, received ${drawBox.height}`);
+  assert.ok(drawBox.width >= drawBox.height * 1.8, `flying scarab should keep a wide winged silhouette, received ${drawBox.width}x${drawBox.height}`);
+  assert.match(enemySpriteGeneratorSource, /flying-scarab-production-source-alpha\.png/);
+  assert.match(enemySpriteGeneratorSource, /render_production_flying_scarab_cell/);
+  assert.match(enemySpriteGeneratorSource, /"sandWisp": \{[\s\S]*?"render_cell": render_production_flying_scarab_cell,[\s\S]*?"source": "Production flying scarab atlas/);
 });
 
 test('scarabs use the same right-facing sprite orientation rules', () => {
@@ -111,24 +144,24 @@ test('Scarab Queen draw box matches the fixed atlas ratio closely enough to stay
   const atlasRatio = 560 / 390;
   const drawRatio = drawBox.width / drawBox.height;
 
+  assert.ok(drawBox.width >= 390, `Queen draw width should be 50% larger and intimidating, received ${drawBox.width}`);
+  assert.ok(drawBox.height >= 264, `Queen draw height should be 50% larger and intimidating, received ${drawBox.height}`);
   assert.ok(drawBox.width >= drawBox.height * atlasRatio * 0.95, `Queen draw box should be wide enough for fixed-cell atlas, received ratio ${drawRatio}`);
   assert.ok(Math.abs((drawBox.y + drawBox.height) - (boss.y + boss.height + 4)) < 0.001, 'Queen draw box should stay grounded to boss feet');
 });
 
-test('enemy attack tells stay in the dedicated renderer instead of generic visibility-assist ovals', () => {
-  assert.match(journeyComponentSource, /const drawEnemyAttackTell = useCallback\(\(ctx, enemy, screenX, _cameraX, now, boss = false\) => \{/);
-  assert.match(journeyComponentSource, /const drawChargeLane = \(\) => \{/);
-  assert.match(journeyComponentSource, /const drawCounterWindow = \(\) => \{/);
+test('enemy attack tells stay disabled so combat reads through sprite animation', () => {
+  assert.match(journeyComponentSource, /const drawEnemyAttackTell = useCallback\(\(\) => \{\}, \[\]\)/);
+  assert.doesNotMatch(journeyComponentSource, /const drawChargeLane = \(\) => \{/);
+  assert.doesNotMatch(journeyComponentSource, /const drawCounterWindow = \(\) => \{/);
   assert.doesNotMatch(journeyComponentSource, /enemyVisibilityAssistActive = true/);
 });
 
-test('enemy attack tells use the same tuned range and height as combat hitboxes', () => {
-  assert.match(journeyComponentSource, /const attackConfig = boss \? getBossPhaseConfig\(enemy\) : getEnemyPatternConfig\(enemy\);/);
-  assert.match(journeyComponentSource, /const tellRange = Math\.max\(18, attackConfig\?\.range \|\| \(boss \? 58 : 42\)\);/);
-  assert.match(journeyComponentSource, /const tellHeight = Math\.max\(12, attackConfig\?\.height \|\| \(boss \? 40 : 24\)\);/);
-  assert.match(journeyComponentSource, /const laneLength = Math\.max\(boss \? 52 : 24, tellRange\);/);
-  assert.match(journeyComponentSource, /const startX = direction >= 0 \? screenX \+ enemy\.width : screenX;/);
-  assert.match(journeyComponentSource, /const reach = Math\.max\(boss \? 52 : 24, tellRange \+ \(boss \? 6 : 3\)\);/);
+test('combat feedback avoids arcade text labels in the playfield', () => {
+  assert.doesNotMatch(journeyComponentSource, /text:\s*'BOUNCE'/);
+  assert.doesNotMatch(journeyComponentSource, /text:\s*'RESET'/);
+  assert.doesNotMatch(journeyComponentSource, /text:\s*'WAIT'/);
+  assert.doesNotMatch(journeyComponentSource, /text:\s*'HIT'/);
 });
 
 test('active attack damage checks use the player body hitbox rather than the full sprite rectangle', () => {
@@ -136,4 +169,15 @@ test('active attack damage checks use the player body hitbox rather than the ful
   assert.match(journeyComponentSource, /if \(!e\.attackHasHit && rectsOverlap\(enemyAttackBox, playerBodyHitbox\)\) \{/);
   assert.match(journeyComponentSource, /if \(!b\.attackHasHit && rectsOverlap\(bossAttackBox, getPlayerBodyHitbox\(player\)\)\) \{/);
   assert.doesNotMatch(journeyComponentSource, /contact\.type === 'damage' && rectsOverlap\(enemyAttackBox, getPlayerBodyHitbox\(player\)\)/);
+});
+
+test('collision boxes use type-aware tuning for the updated Asha and enemy sprites', () => {
+  assert.match(journeyUtilsSource, /playerBody:\s*\{\s*insetX:\s*4,\s*topInset:\s*3,\s*bottomInset:\s*1\s*\}/);
+  assert.match(journeyUtilsSource, /export const ENEMY_HITBOX_PROFILES = \{/);
+  assert.match(journeyUtilsSource, /scarab:\s*\{[\s\S]*?damage:\s*\{[\s\S]*?widthScale:\s*1\.42[\s\S]*?stomp:\s*\{[\s\S]*?widthScale:\s*1\.34/);
+  assert.match(journeyUtilsSource, /sandWisp:\s*\{[\s\S]*?damage:\s*\{[\s\S]*?widthScale:\s*1\.86[\s\S]*?minWidth:\s*62[\s\S]*?hurt:\s*\{[\s\S]*?minHeight:\s*38/);
+  assert.match(journeyUtilsSource, /mummy:\s*\{[\s\S]*?damage:\s*\{[\s\S]*?heightScale:\s*1\.42[\s\S]*?hurt:\s*\{[\s\S]*?minHeight:\s*58/);
+  assert.match(journeyUtilsSource, /export const getEnemyAttackHurtbox = \(enemy, \{ boss = false \} = \{\}\) => \{/);
+  assert.match(journeyComponentSource, /getEnemyAttackHurtbox/);
+  assert.match(journeyComponentSource, /return getEnemyAttackHurtbox\(hostile, \{ boss \}\);/);
 });

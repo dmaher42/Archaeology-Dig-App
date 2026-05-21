@@ -19,7 +19,7 @@ export const rectsOverlap = (a, b) => (
 
 export const JOURNEY_HITBOX_TUNING = {
   // Player body trims the drawn sprite edges so unclear shoulder/backpack touches do not punish players.
-  playerBody: { insetX: 5, topInset: 4, bottomInset: 2 },
+  playerBody: { insetX: 4, topInset: 3, bottomInset: 1 },
   // Feet are a shallow strip used only for ground, platform, and stomp checks.
   playerFeet: { insetX: 3, height: 9, yPad: 2 },
   // Platform tops get a small ledge margin so visible landings do not slip through.
@@ -32,6 +32,83 @@ export const JOURNEY_HITBOX_TUNING = {
   collectible: { padX: 10, padY: 10 },
   // Hazards stay slightly inset so warning art can be touched at the edges without penalty.
   hazard: { insetX: 8, topInset: 5, bottomInset: 4 },
+};
+
+const getEnemyHitboxFamily = (enemy = {}) => {
+  const name = (enemy.name || '').toLowerCase();
+  if (enemy.type === 'sand-wisp' || name.includes('sand wisp') || name.includes('flying scarab')) return 'sandWisp';
+  if (enemy.type === 'scarab' || name.includes('scarab') || name.includes('beetle')) return 'scarab';
+  if (enemy.type === 'scorpion' || name.includes('scorpion')) return 'scorpion';
+  if (enemy.type === 'snake' || name.includes('snake') || name.includes('serpent')) return 'snake';
+  if (enemy.type === 'mummy' || name.includes('mummy')) return 'mummy';
+  if (enemy.type === 'guardian' || enemy.type === 'statue' || name.includes('guardian') || name.includes('statue')) return 'guardian';
+  if (enemy.type === 'looter' || enemy.type === 'watchtower-sentry' || name.includes('looter') || name.includes('sentry')) return 'humanoid';
+  return 'default';
+};
+
+export const ENEMY_HITBOX_PROFILES = {
+  scarab: {
+    damage: { widthScale: 1.42, heightScale: 0.92, minWidth: 42, minHeight: 22, footInset: 1 },
+    stomp: { widthScale: 1.34, heightScale: 0.44, minWidth: 38, minHeight: 12, topPad: 8 },
+    hurt: { widthScale: 1.38, heightScale: 0.96, minWidth: 40, minHeight: 24, footInset: 0 },
+  },
+  scorpion: {
+    damage: { widthScale: 1.74, heightScale: 6.8, minWidth: 66, minHeight: 190, footInset: -2 },
+    blocker: { widthScale: 1.86, heightScale: 7.4, minWidth: 72, minHeight: 220, footInset: -2 },
+    stomp: { disabled: true },
+    hurt: { widthScale: 1.46, heightScale: 1.06, minWidth: 52, minHeight: 32, footInset: 0 },
+  },
+  snake: {
+    damage: { widthScale: 1.48, heightScale: 0.82, minWidth: 48, minHeight: 20, footInset: 2 },
+    stomp: { widthScale: 1.26, heightScale: 0.34, minWidth: 42, minHeight: 10, topPad: 7 },
+    hurt: { widthScale: 1.48, heightScale: 0.84, minWidth: 48, minHeight: 22, footInset: 1 },
+  },
+  sandWisp: {
+    damage: { widthScale: 1.86, heightScale: 1.34, minWidth: 62, minHeight: 40, centerYOffset: -0.08 },
+    stomp: { widthScale: 1.42, heightScale: 0.5, minWidth: 48, minHeight: 16, centerYOffset: -0.18 },
+    hurt: { widthScale: 1.78, heightScale: 1.26, minWidth: 58, minHeight: 38, centerYOffset: -0.08 },
+  },
+  mummy: {
+    damage: { widthScale: 1.2, heightScale: 1.42, minWidth: 38, minHeight: 56, footInset: -2 },
+    stomp: { widthScale: 1.02, heightScale: 0.28, minWidth: 32, minHeight: 13, topPad: 9 },
+    hurt: { widthScale: 1.22, heightScale: 1.5, minWidth: 40, minHeight: 58, footInset: -2 },
+  },
+  guardian: {
+    damage: { widthScale: 1.18, heightScale: 1.34, minWidth: 48, minHeight: 62, footInset: -2 },
+    stomp: { widthScale: 0.95, heightScale: 0.24, minWidth: 38, minHeight: 13, topPad: 10 },
+    hurt: { widthScale: 1.2, heightScale: 1.42, minWidth: 50, minHeight: 64, footInset: -2 },
+  },
+  humanoid: {
+    damage: { widthScale: 1.12, heightScale: 1.22, minWidth: 34, minHeight: 48, footInset: 0 },
+    stomp: { widthScale: 0.96, heightScale: 0.28, minWidth: 28, minHeight: 12, topPad: 8 },
+    hurt: { widthScale: 1.14, heightScale: 1.28, minWidth: 34, minHeight: 50, footInset: 0 },
+  },
+};
+
+const getEnemyHitboxProfile = (enemy) => ENEMY_HITBOX_PROFILES[getEnemyHitboxFamily(enemy)] || null;
+
+const buildEnemyHitbox = (enemy, tuning = {}) => {
+  const width = Math.max(tuning.minWidth || 1, enemy.width * (tuning.widthScale || 1));
+  const height = Math.max(tuning.minHeight || 1, enemy.height * (tuning.heightScale || 1));
+  const centerX = enemy.x + enemy.width / 2;
+
+  if (Number.isFinite(tuning.centerYOffset)) {
+    const centerY = enemy.y + enemy.height / 2 + enemy.height * tuning.centerYOffset;
+    return {
+      x: centerX - width / 2,
+      y: centerY - height / 2,
+      width,
+      height,
+    };
+  }
+
+  const footY = enemy.y + enemy.height - (tuning.footInset || 0);
+  return {
+    x: centerX - width / 2,
+    y: footY - height,
+    width,
+    height,
+  };
 };
 
 const insetRect = (rect, { x = 0, y = 0, bottom = y } = {}) => ({
@@ -83,6 +160,9 @@ export const isLandingOnPlatform = (player, previousPlayer, platform) => {
 };
 
 export const getEnemyDamageHitbox = (enemy) => {
+  const profile = getEnemyHitboxProfile(enemy)?.damage;
+  if (profile) return buildEnemyHitbox(enemy, profile);
+
   const tuning = JOURNEY_HITBOX_TUNING.enemyDamage;
   const insetX = Math.max(4, enemy.width * tuning.insetXRatio);
   const topInset = Math.max(3, enemy.height * tuning.topInsetRatio);
@@ -91,6 +171,26 @@ export const getEnemyDamageHitbox = (enemy) => {
 };
 
 export const getEnemyStompHitbox = (enemy) => {
+  const profile = getEnemyHitboxProfile(enemy)?.stomp;
+  if (profile?.disabled) {
+    return {
+      x: enemy.x + enemy.width / 2,
+      y: enemy.y,
+      width: 1,
+      height: 1,
+    };
+  }
+  if (profile) {
+    const hitbox = buildEnemyHitbox(enemy, profile);
+    if (Number.isFinite(profile.topPad)) {
+      return {
+        ...hitbox,
+        y: enemy.y - profile.topPad,
+      };
+    }
+    return hitbox;
+  }
+
   const tuning = JOURNEY_HITBOX_TUNING.enemyStomp;
   const insetX = Math.max(3, enemy.width * tuning.insetXRatio);
   return {
@@ -99,6 +199,29 @@ export const getEnemyStompHitbox = (enemy) => {
     width: Math.max(1, enemy.width - insetX * 2),
     height: Math.max(8, enemy.height * tuning.heightRatio + tuning.yPad),
   };
+};
+
+export const getEnemyMovementBlockHitbox = (enemy) => {
+  const profile = getEnemyHitboxProfile(enemy)?.blocker;
+  if (!profile) return null;
+  return buildEnemyHitbox(enemy, profile);
+};
+
+export const getEnemyAttackHurtbox = (enemy, { boss = false } = {}) => {
+  if (boss) {
+    const insetX = Math.max(6, enemy.width * 0.1);
+    const topInset = Math.max(5, enemy.height * 0.08);
+    const bottomInset = Math.max(4, enemy.height * 0.08);
+    return insetRect(enemy, { x: insetX, y: topInset, bottom: bottomInset });
+  }
+
+  const profile = getEnemyHitboxProfile(enemy)?.hurt;
+  if (profile) return buildEnemyHitbox(enemy, profile);
+
+  const insetX = Math.max(5, enemy.width * 0.16);
+  const topInset = Math.max(4, enemy.height * 0.12);
+  const bottomInset = Math.max(3, enemy.height * 0.1);
+  return insetRect(enemy, { x: insetX, y: topInset, bottom: bottomInset });
 };
 
 const hashEnemyIdentity = (enemy) => {
@@ -168,6 +291,15 @@ export const getHazardHitbox = (hazard) => insetRect(hazard, {
 
 export const resolveEnemyContact = (player, previousPlayer, enemy) => {
   if (enemy.defeated) return { type: 'none' };
+  const movementBlockHitbox = getEnemyMovementBlockHitbox(enemy);
+  if (movementBlockHitbox && rectsOverlap(getPlayerBodyHitbox(player), movementBlockHitbox)) {
+    return {
+      type: 'damage',
+      direction: (player.x + player.width / 2) >= (enemy.x + enemy.width / 2) ? 1 : -1,
+      blocked: true,
+    };
+  }
+
   const playerFeet = getPlayerFeetHitbox(player);
   const previousFeetY = previousPlayer.y + previousPlayer.height;
   if (
@@ -386,6 +518,7 @@ export const makeInitialState = ({ targetCivilisation, permanentUpgradeIds = [],
   scarabSealActivated: false,
   openingConfrontationSeen: false,
   openingThresholdScene: null,
+  templeThresholdTransition: null,
   openingCameraRevealTimer: 0,
   openingCameraRevealDuration: 1.55,
   brokenEnvironmentIds: new Set(),

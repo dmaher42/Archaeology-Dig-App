@@ -1,6 +1,6 @@
 {
   "image": "warrior-mummy-sprites.png",
-  "source": "Gemini mummy warrior atlas generated from public/assets/expedition/enemies/warrior-mummy-source.jpg, copied from Gemini Assets/Mummy Warrior3.jpg and normalized into the existing Journey enemy frame contract.",
+  "source": "Production warrior mummy atlas generated from public/assets/expedition/enemies/warrior-mummy-production-source-alpha.png and normalized into the existing Journey enemy frame contract.",
   "coordinateNote": "Eight fixed cells: Idle, Walk1, Walk2, Walk3, Windup, Attack, Hit, Defeated. Regions share one bottom-center anchor.",
   "frameContract": [
     "Idle",
@@ -15,51 +15,51 @@
   "baseline": "bottom-center shared per family; no baked large shadow",
   "regions": {
     "mummyIdle": {
-      "x": 63,
+      "x": 37,
       "y": 62,
-      "w": 258,
+      "w": 308,
       "h": 278
     },
     "mummyWalk1": {
-      "x": 447,
+      "x": 421,
       "y": 62,
-      "w": 258,
+      "w": 308,
       "h": 278
     },
     "mummyWalk2": {
-      "x": 831,
+      "x": 805,
       "y": 62,
-      "w": 258,
+      "w": 308,
       "h": 278
     },
     "mummyWalk3": {
-      "x": 1215,
+      "x": 1189,
       "y": 62,
-      "w": 258,
+      "w": 308,
       "h": 278
     },
     "mummyWindup": {
-      "x": 1599,
+      "x": 1573,
       "y": 62,
-      "w": 258,
+      "w": 308,
       "h": 278
     },
     "mummyAttack": {
-      "x": 1983,
+      "x": 1957,
       "y": 62,
-      "w": 258,
+      "w": 308,
       "h": 278
     },
     "mummyHit": {
-      "x": 2367,
+      "x": 2341,
       "y": 62,
-      "w": 258,
+      "w": 308,
       "h": 278
     },
     "mummyDefeated": {
-      "x": 2751,
+      "x": 2725,
       "y": 62,
-      "w": 258,
+      "w": 308,
       "h": 278
     }
   }
