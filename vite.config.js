@@ -6,4 +6,15 @@ export default defineConfig({
   // GitHub Pages project site base path
   base: '/Archaeology-Dig-App/',
   plugins: [react()],
+  server: {
+    watch: {
+      ignored: [
+        '**/.playwright-cli/**',
+        '**/dist/**',
+        '**/output/**',
+        '**/scratch/**',
+        '**/test-results/**',
+      ],
+    },
+  },
 })

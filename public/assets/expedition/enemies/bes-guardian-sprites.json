@@ -1,0 +1,66 @@
+{
+  "image": "bes-guardian-sprites.png",
+  "source": "Production Bes guardian atlas generated from Bes source sheets and normalized into the existing Journey enemy frame contract.",
+  "coordinateNote": "Eight fixed cells: Idle, Walk1, Walk2, Walk3, Windup, Attack, Hit, Defeated. Regions share one bottom-center anchor.",
+  "frameContract": [
+    "Idle",
+    "Walk1",
+    "Walk2",
+    "Walk3",
+    "Windup",
+    "Attack",
+    "Hit",
+    "Defeated"
+  ],
+  "baseline": "bottom-center shared per family; no baked large shadow",
+  "regions": {
+    "besGuardianIdle": {
+      "x": 30,
+      "y": 38,
+      "w": 356,
+      "h": 330
+    },
+    "besGuardianWalk1": {
+      "x": 446,
+      "y": 38,
+      "w": 356,
+      "h": 330
+    },
+    "besGuardianWalk2": {
+      "x": 862,
+      "y": 38,
+      "w": 356,
+      "h": 330
+    },
+    "besGuardianWalk3": {
+      "x": 1278,
+      "y": 38,
+      "w": 356,
+      "h": 330
+    },
+    "besGuardianWindup": {
+      "x": 1694,
+      "y": 38,
+      "w": 356,
+      "h": 330
+    },
+    "besGuardianAttack": {
+      "x": 2110,
+      "y": 38,
+      "w": 356,
+      "h": 330
+    },
+    "besGuardianHit": {
+      "x": 2526,
+      "y": 38,
+      "w": 356,
+      "h": 330
+    },
+    "besGuardianDefeated": {
+      "x": 2942,
+      "y": 38,
+      "w": 356,
+      "h": 330
+    }
+  }
+}

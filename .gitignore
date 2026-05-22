@@ -13,6 +13,7 @@ dist-ssr
 *.local
 
 # Local verification and source scratch material
+.playwright-cli/
 output/
 scratch/sfx-source/
 test-results/

@@ -23,8 +23,8 @@ assert.equal(getPlayerBodyHitbox(player).width < player.width, true, 'player bod
 assert.equal(getPlayerFeetHitbox(player).height < player.height / 3, true, 'feet check should only cover the landing edge');
 
 const enemyDamage = getEnemyDamageHitbox(enemy);
-assert.equal(enemyDamage.width < enemy.width, true, 'enemy damage should be smaller than visible enemy width');
-assert.equal(enemyDamage.height < enemy.height, true, 'enemy damage should be smaller than visible enemy height');
+assert.equal(enemyDamage.width > enemy.width, true, 'scarab damage reach should cover the readable sprite silhouette');
+assert.equal(enemyDamage.height < enemy.height, true, 'scarab damage height should stay below the visible enemy height');
 
 const enemyStomp = getEnemyStompHitbox(enemy);
 assert.equal(enemyStomp.y < enemy.y + enemy.height / 2, true, 'stomp zone should sit on the enemy top half');

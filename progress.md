@@ -103,6 +103,21 @@ Remaining notes:
 - Removed the locked desert-to-temple doorway ghost overlay so the large stage entrance does not cover the player before the route is earned.
 - Added/updated Journey tests for guarded platform-route progression and current combat tuning expectations.
 
+2026-05-22 update:
+- Completed a focused combat-purpose and vertical-route clarity pass for the early Egypt Journey guard routes.
+- Renamed the required early guards as seal/route wardens so the forced combat reads as protection duty rather than random mobs.
+- Reworded Temple Approach Seal and Guardian Prep Seal guidance so the player sees that shards alone are not enough while guardians remain.
+- Added existing story-prop markers near the Temple Approach Seal, upper route, and Guardian Prep Seal to visually connect the required fights to seal mechanisms and Anubis's protected-site story.
+- Preserved the existing `requires.enemies` / `defeatedEnemies` progression path and added Journey regression coverage for the warden wording and visible route mechanisms.
+- Verified the live Egypt Journey start in headless Chrome: the HUD shows `0/4 shards + Route Guards defeated`, and `render_game_to_text` reports `Scarab Seal Warden still guards the seal route ahead`.
+
+2026-05-22 update:
+- Added a low-power playtest workflow for laptop heat: `npm run playtest` now builds once and serves `dist` from a tiny Node static server on `127.0.0.1:5186` without Vite's watcher or hot reload connection.
+- Added Vite dev-server watch ignores for generated/local artifact folders: `.playwright-cli`, `dist`, `output`, `scratch`, and `test-results`.
+- Added `.playwright-cli/` to `.gitignore` and kept ESLint from scanning local browser-helper artifacts.
+- Journey and expedition-map animation loops now skip simulation updates while the tab is hidden, so background playtest tabs should not keep advancing game work.
+- Recommended workflow: use `npm.cmd run dev -- --host 127.0.0.1 --port 5173 --strictPort` only while actively coding; use `npm.cmd run playtest` for longer Codex/human playtesting.
+
 2026-05-16 update:
 - Completed a focused China Journey player sprite polish pass in the existing Journey renderer.
 - The production China female archaeologist atlas is wired through the canonical hero-atlas path; no duplicate player controller, movement model, hitbox model, or expedition flow was added.
@@ -3007,3 +3022,58 @@ Remaining notes:
 - Updated the normal `trailer:render` script with Remotion's longer timeout because the heavier 50-second render exceeded the default per-frame timeout during full video rendering.
 - Verification passed: Remotion preview stills, final MP4 render, lint, and production build.
 - Follow-up: removed the collectibles atlas from the trial and buried-memory beats because it appeared in-video as a random prop sheet rather than a purposeful cinematic object.
+
+## 2026-05-22 Egypt Journey early vertical route pass
+
+- Converted the first Desert Entry scarab climb from mostly invisible collision ledges into visible sandstone/glyph/fallen-column platform ledges using the existing Journey platform renderer and desert-temple atlas keys.
+- Moved the required Map Tablet onto the elevated opening terrace and kept required relic shards on upper ledges so early progress now asks Asha to climb rather than run along a flat path.
+- Moved the Scarab Seal Warden onto the upper opening terrace and bound the Temple Approach Seal to that defeated enemy as before, so the first route cannot be bypassed by sprinting under the climb.
+- Added a multi-level Temple Approach route with half-buried stairs, a guard terrace, and an elevated Switch 1 ledge; the Temple Route Seal now also requires the Temple Switch Warden to be defeated through the existing `requires.enemies` / `defeatedEnemies` gate path.
+- Added grounded story-prop support around the ruin climb, false relic bait, and temple switch ledge using the existing Egypt atmosphere atlas rather than a new decoration system.
+- Updated Journey regression coverage for visible elevated platforms, elevated required items, elevated route guards, platform atlas keys, and required enemy gates.
+- Verification passed: Journey secrets test, full lint, production build, and live browser smoke on `127.0.0.1:5173` showing visible multi-height Desert Entry platforms with no console errors.
+
+## 2026-05-22 Egypt Journey platform foreground fix
+
+- Fixed the opening pyramid/facade draw path so authored Desert Entry platforms with `assetKey` render as foreground platform art instead of being blended into the facade as faint helper treads.
+- Tightened the Map Tablet and shard ledge support so required elevated pickups are physically on their visible platforms.
+- Moved the new ruin/false-relic/temple route props into the midground layer with stronger alpha so they are not hidden behind the cinematic background.
+- Added regression coverage for the foreground platform render branch and route prop depth.
+- Browser smoke screenshot: `output/egypt-vertical-platform-smoke/desert-entry-platforms-final-cropped.png`.
+
+## 2026-05-22 Egypt Journey route-edge prop visibility fix
+
+- Fixed the story-prop depth resolver so props authored with `depth: 'route-edge'` stay in the route-edge draw pass instead of being reclassified as grounded atmosphere scenery.
+- Drew route-edge story props immediately after playable platforms, so broken columns and glyph slabs sit on the platform/path edge instead of reading as distant background decoration.
+- Reinstated route-edge Egypt prop placements for the opening ruin climb, false relic bait ledge, and temple switch path using existing atmosphere atlas keys: `fallenColumn`, `stoneTablet`, and `ankhSealPanel`.
+- Restored early route guard gate requirements on the Temple Approach Seal and Guardian Prep Seal so upper-route combat remains required through the existing `defeatedEnemies` gate path.
+- Browser smoke screenshot: `output/egypt-vertical-platform-smoke/desert-entry-route-edge-props-current-gameplay-cropped.png`.
+
+## 2026-05-22 Egypt Journey prop smoke and polish pass
+
+- Smoke-tested the live browser opening route and confirmed the earlier prop pass was still partly reading as background scenery because the visible first-screen ledges use unscaled opening-facade coordinates.
+- Moved the opening broken-ruin platform art, Map Tablet, Map Tablet guard, fallen column, glyph slab, and false-relic marker onto the actual first-screen route edge coordinates.
+- Kept the same Journey platform, story prop, objective marker, enemy, and route-gate systems; no duplicate renderer or gameplay path was added.
+- Removed the debug-looking rectangular prop matte and replaced it with natural shadow/contrast treatment for `route-edge` props.
+- Verification passed: Journey secrets test, full lint, production build, and browser smoke with no console errors.
+- Browser smoke screenshot: `output/egypt-prop-smoke-polish/09-final-polished-opening-route-cropped.png`.
+
+## 2026-05-23 Egypt Journey opening-scene cleanup
+
+- Re-checked the live first screen against the intended cinematic pyramid/facade composition and left the four invisible opening alignment ledges untouched.
+- Cleared the newly added Map Tablet, Map Tablet guard, fallen-column edge prop, and glyph slab out of the first-screen coordinate space.
+- Moved that required Map Tablet climb beat back into scaled Desert Entry route space so it still uses the existing platform, objective marker, enemy, route-edge prop, and defeated-enemy systems without cluttering the opening scene.
+- Updated regression coverage so the opening pyramid zone only counts the original four invisible ledges, while the later Map Tablet ruin climb remains guarded and required.
+- Verification passed: Journey secrets test, lint, production build, and browser smoke screenshots at `output/egypt-opening-cleanup/02-opening-scene-cleaned-no-briefing.png` and `output/egypt-opening-cleanup/03-moved-map-tablet-route-props.png`.
+
+## 2026-05-22 Lost Site Expedition Diablo-style visual overhaul
+
+- Redesigned the top-down excavation map inside `ExpeditionMode.jsx` to show only one chamber (room) at a time in Diablo-style ambient exploration.
+- Added a smooth camera panning/lerping camera focus centered on the player's active room using a dampening factor of $5 \times \Delta t$.
+- Shrouded inactive rooms in deep pitch-black tomb darkness (`#050403`) with a morphing boundary transition ($6 \times \Delta t$) that sweeps along with the camera.
+- Highlighted the active chamber in culture-specific double glowing outlines (golden amber for Ancient Egypt, jade green for Ancient China).
+- Added a beautiful, warm radial torchlight vignette centered on the player avatar and clipped perfectly to the active chamber bounds.
+- Calibrated canvas click translation by offsetting coordinates by camera positions to preserve 100% accurate zone clicks.
+- Implemented background simulation skipping during tab inactivity (`document.hidden`) to prevent battery drain.
+- Fixed a test suite undefined variable error for `getDataRowById` inside `journeySecrets.test.js` to ensure 100% clean test suite runs.
+- Verification passed: 53/53 node tests passing, 0 errors/warnings on `npm run lint`, and successful compilation of production `npm run build`.

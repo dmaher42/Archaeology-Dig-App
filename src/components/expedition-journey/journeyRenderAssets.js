@@ -253,6 +253,7 @@ export const drawAtlasRegion = (ctx, assets, key, dest, options = {}) => {
 };
 
 export const getEnvironmentAssetKeyForPlatform = (platform, sectionId, packId = DEFAULT_ENVIRONMENT_ASSET_PACK_ID) => {
+  if (platform.assetKey) return platform.assetKey;
   if (packId === ENVIRONMENT_ASSET_PACK_IDS.CHINA_RIVER_VALLEY) {
     if (platform.label?.includes('bridge')) return 'bambooBridge';
     if (platform.label?.includes('archive')) return 'archiveFloor';

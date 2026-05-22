@@ -39,6 +39,8 @@ import {
   PLAYER_CHINA_HERO_SPRITE_VERSION,
   PLAYER_HERO_FALLBACK_SPRITE_ATLAS_JSON,
   PLAYER_HERO_FALLBACK_SPRITE_VERSION,
+  PLAYER_HERO_PREVIOUS_SPRITE_ATLAS_JSON,
+  PLAYER_HERO_PREVIOUS_SPRITE_VERSION,
   PLAYER_HERO_SPRITE_ATLAS_JSON,
   PLAYER_HERO_SPRITE_VERSION,
   PLAYER_LEGACY_SPRITE_SRC,
@@ -611,11 +613,23 @@ const PLAYER_CHARACTER_PRESETS = [
   },
   {
     id: 'asha-production',
-    label: 'Asha Production',
-    description: 'Current playable Ancient Egypt Asha atlas.',
-    characterId: 'asha-egypt-warrior-explorer',
+    label: 'Asha Final Production',
+    description: 'Final playable Asha with warrior sword combat.',
+    characterId: 'asha-final-production',
     atlasPath: PLAYER_HERO_SPRITE_ATLAS_JSON,
     version: PLAYER_HERO_SPRITE_VERSION,
+    fallbackAtlasPath: PLAYER_HERO_PREVIOUS_SPRITE_ATLAS_JSON,
+    fallbackAtlasVersion: PLAYER_HERO_PREVIOUS_SPRITE_VERSION,
+    fallbackCharacterId: 'asha-egypt-warrior-explorer',
+    fallbackSrc: PLAYER_LEGACY_SPRITE_SRC,
+  },
+  {
+    id: 'asha-hooded-production',
+    label: 'Asha Hooded Previous',
+    description: 'Previous hooded Egypt Asha atlas for comparison.',
+    characterId: 'asha-egypt-warrior-explorer',
+    atlasPath: PLAYER_HERO_PREVIOUS_SPRITE_ATLAS_JSON,
+    version: PLAYER_HERO_PREVIOUS_SPRITE_VERSION,
     fallbackAtlasPath: PLAYER_HERO_FALLBACK_SPRITE_ATLAS_JSON,
     fallbackAtlasVersion: PLAYER_HERO_FALLBACK_SPRITE_VERSION,
     fallbackCharacterId: 'egypt-warrior-guide',
@@ -696,12 +710,12 @@ const getPlayerHeroSpriteConfig = ({ targetCivilisation, backgroundPackId, chara
   }
   return {
     id: 'auto',
-    characterId: 'asha-egypt-warrior-explorer',
+    characterId: 'asha-final-production',
     atlasPath: PLAYER_HERO_SPRITE_ATLAS_JSON,
     version: PLAYER_HERO_SPRITE_VERSION,
-    fallbackAtlasPath: PLAYER_HERO_FALLBACK_SPRITE_ATLAS_JSON,
-    fallbackAtlasVersion: PLAYER_HERO_FALLBACK_SPRITE_VERSION,
-    fallbackCharacterId: 'egypt-warrior-guide',
+    fallbackAtlasPath: PLAYER_HERO_PREVIOUS_SPRITE_ATLAS_JSON,
+    fallbackAtlasVersion: PLAYER_HERO_PREVIOUS_SPRITE_VERSION,
+    fallbackCharacterId: 'asha-egypt-warrior-explorer',
     fallbackSrc: PLAYER_LEGACY_SPRITE_SRC,
   };
 };
@@ -858,6 +872,23 @@ const ENEMY_ATTACK_PATTERNS = {
     vulnerableAfter: 0.38,
     speed: 165,
     range: 36,
+  },
+  bes: {
+    ...DEFAULT_ENEMY_ATTACK_PATTERN,
+    id: 'guardian-swipe',
+    label: 'Guardian Swipe',
+    windup: 0.64,
+    duration: 0.34,
+    cooldown: 1.72,
+    recovery: 0.72,
+    vulnerableAfter: 0.82,
+    speed: 74,
+    range: 50,
+    height: 64,
+    yOffset: -28,
+    backReach: 28,
+    damageScale: 1.28,
+    shieldDuringWindup: true,
   },
   mummy: {
     ...DEFAULT_ENEMY_ATTACK_PATTERN,
@@ -1250,6 +1281,7 @@ const ENEMY_TACTICAL_PRESSURE = {
   snake: { windup: 0.98, cooldown: 0.92, speed: 1.14, range: 1.18, recovery: 1.02, vulnerableAfter: 1, awareness: 1.54, chase: 1.8 },
   bat: { windup: 0.9, cooldown: 0.84, speed: 1.14, range: 1.12, recovery: 0.92, vulnerableAfter: 0.9, awareness: 1.58, chase: 1.95 },
   looter: { windup: 0.88, cooldown: 0.8, speed: 1.16, range: 1.12, recovery: 0.9, vulnerableAfter: 0.88, awareness: 1.54, chase: 1.82, shieldDuringWindup: true },
+  bes: { windup: 0.94, cooldown: 0.9, speed: 0.96, range: 1.14, recovery: 1, vulnerableAfter: 1, awareness: 1.5, chase: 1.62, shieldDuringWindup: true },
   mummy: { windup: 0.96, cooldown: 0.94, speed: 0.92, range: 1.08, recovery: 1.02, vulnerableAfter: 1, awareness: 1.42, chase: 1.56, shieldDuringWindup: true },
   guardian: { windup: 1, cooldown: 0.94, speed: 0.86, range: 1.08, recovery: 1.05, vulnerableAfter: 1.04, awareness: 1.36, chase: 1.48 },
   statue: { windup: 1, cooldown: 0.96, speed: 0.84, range: 1.08, recovery: 1.06, vulnerableAfter: 1.05, awareness: 1.32, chase: 1.42 },
@@ -1586,6 +1618,7 @@ const isGroundLockedAtmosphereProp = (prop) => (
 );
 
 const getStoryPropDepth = (prop) => {
+  if (prop.depth === 'route-edge') return 'route-edge';
   if (isGroundLockedAtmosphereProp(prop)) return 'grounded';
   return STORY_PROP_GROUNDING_OVERRIDES[prop.id]?.depth
     || (PROP_GROUNDING_CONFIG[prop.type] || {}).depth
@@ -2486,7 +2519,7 @@ export default function ExpeditionJourney({
         found: requiredEnemies.length - missingEnemies.length,
         required: requiredEnemies.length,
         hint: nearestEnemy
-          ? `${nearestEnemy.name} still guards the platform route ${getDirectionText(direction)}. Clear it before forcing the seal.`
+          ? `${nearestEnemy.name} still guards the seal route ${getDirectionText(direction)}. Clear it before forcing the seal.`
           : 'Clear the route guards before forcing the seal.',
         targetX: nearestEnemy?.x,
         nearestObjective: nearestEnemy ? {
@@ -2975,6 +3008,7 @@ export default function ExpeditionJourney({
       atmosphereGroundingMode: renderStats.atmosphereGroundingMode || 'ground-locked-floor-assets',
       backgroundPropTintActive: Boolean(renderStats.backgroundPropTintActive),
       platformGroundingMode: renderStats.platformGroundingMode || 'contact-shadow-ledges',
+      visibleElevatedPlatforms: renderStats.visibleElevatedPlatforms || [],
       propDrawOrderMode: renderStats.propDrawOrderMode || DECORATIVE_PROP_LAYER_MODE,
       decorativePropLayerMode: renderStats.decorativePropLayerMode || DECORATIVE_PROP_LAYER_MODE,
       propDepthTuningVersion: renderStats.propDepthTuningVersion || PROP_DEPTH_TUNING_VERSION,
@@ -5282,6 +5316,20 @@ export default function ExpeditionJourney({
 
     const isGround = platform.y === GROUND_Y;
     const section = getSectionForX(platform.x);
+    if (!isGround && current.renderStats) {
+      current.renderStats.visibleElevatedPlatforms = [
+        ...(current.renderStats.visibleElevatedPlatforms || []),
+        {
+          id: platform.id || platform.label,
+          label: platform.label,
+          x: Math.round(platform.x),
+          y: Math.round(platform.y),
+          width: Math.round(platform.width),
+          assetKey: getEnvironmentAssetKeyForPlatform(platform, section.id, environmentAssetsRef.current.packId),
+          sectionId: section.id,
+        },
+      ].slice(-18);
+    }
     const platformId = platform.id || platform.label;
     const reactiveTimer = platform.reactive ? current.reactivePlatformTimers?.[platformId] : null;
     const reactiveActive = Number.isFinite(reactiveTimer);
@@ -5294,9 +5342,11 @@ export default function ExpeditionJourney({
     const platformWidth = platform.width + 4;
     const desertSetPiecePlatform = section.id === 'desert-entry' && !isGround;
     const embeddedOpeningPyramidPlatform = desertSetPiecePlatform
+      && !platform.assetKey
       && platform.x < scaleJourneyX(720)
       && (openingPyramidFacadeRef.current.loaded || openingPyramidClimbPackRef.current.loaded);
     const facadeIntegratedOpeningPlatform = desertSetPiecePlatform
+      && !platform.assetKey
       && platform.x < scaleJourneyX(720)
       && openingPyramidFacadeRef.current.loaded;
     if (facadeIntegratedOpeningPlatform) {
@@ -5534,7 +5584,12 @@ export default function ExpeditionJourney({
       drawContactShadow(ctx, x, anchorY + 2, propSize.width * (propSize.depth === 'background' ? 0.62 : 0.86), propSize.shadow ?? (propSize.depth === 'background' ? 0.1 : 0.22), 1.4);
       drawDecorativeBaseBlend(ctx, x, anchorY + 2, dustWidth, section.id, propSize.depth, propSize.depth === 'background' ? 0.72 : 0.9);
       ctx.globalAlpha = propSize.alpha ?? 0.82;
-      if (propSize.tint === 'stone') {
+      if (propSize.depth === 'route-edge') {
+        ctx.filter = 'sepia(2%) saturate(122%) brightness(112%) contrast(116%)';
+        ctx.shadowColor = 'rgba(35, 21, 10, 0.62)';
+        ctx.shadowBlur = 10;
+        ctx.shadowOffsetY = 3;
+      } else if (propSize.tint === 'stone') {
         ctx.filter = propSize.depth === 'background'
           ? 'sepia(14%) saturate(62%) brightness(82%) contrast(92%)'
           : 'sepia(8%) saturate(78%) brightness(90%)';
@@ -5563,6 +5618,9 @@ export default function ExpeditionJourney({
       );
       if (drawn) {
         ctx.filter = 'none';
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetY = 0;
         ctx.globalAlpha = 1;
         drawDecorativeBaseBlend(ctx, x, anchorY + 1, dustWidth, section.id, propSize.depth, propSize.depth === 'background' ? 0.6 : 0.86);
         drawGroundDustLip(ctx, x, anchorY + 1, dustWidth, propSize.depth === 'background' ? 'rgba(187, 128, 64, 0.12)' : 'rgba(187, 128, 64, 0.22)');
@@ -8234,7 +8292,7 @@ export default function ExpeditionJourney({
     ctx.strokeStyle = '#111827';
     ctx.lineWidth = 3;
 
-    const bossSpriteDrawn = boss.type === 'looter'
+    const bossSpriteDrawn = boss.type === 'looter' || boss.type === 'bes'
       ? drawSmallEnemySprite(ctx, boss, screenX, now)
       : drawBossSprite(ctx, boss, screenX, now, bossVisualState);
 
@@ -8315,7 +8373,7 @@ export default function ExpeditionJourney({
     ctx.fillStyle = 'rgba(0,0,0,0.62)';
     ctx.roundRect(barX, barY, barWidth, barHeight, 5);
     ctx.fill();
-    ctx.fillStyle = '#14b8a6';
+    ctx.fillStyle = boss.awakened ? '#dc2626' : '#b45309';
     ctx.roundRect(barX, barY, (boss.health / boss.maxHealth) * barWidth, barHeight, 5);
     ctx.fill();
 
@@ -8638,6 +8696,7 @@ export default function ExpeditionJourney({
       atmosphereGroundingMode: 'ground-locked-floor-assets',
       backgroundPropTintActive: true,
       platformGroundingMode: 'contact-shadow-ledges',
+      visibleElevatedPlatforms: [],
       propDrawOrderMode: DECORATIVE_PROP_LAYER_MODE,
       decorativePropLayerMode: DECORATIVE_PROP_LAYER_MODE,
       propDepthTuningVersion: PROP_DEPTH_TUNING_VERSION,
@@ -8766,6 +8825,7 @@ export default function ExpeditionJourney({
 
     const activeBossDomain = current.bossDomain
       && !current.defeatedMiniBosses.has(current.bossDomain.bossId)
+      && !current.bossDomain.suppressVisuals
       ? current.bossDomain
       : null;
     if (activeBossDomain) {
@@ -8835,6 +8895,7 @@ export default function ExpeditionJourney({
     PLATFORMS
       .filter(platform => isPlatformAvailable(platform, current))
       .forEach((platform) => drawPlatform(ctx, platform, cameraX, current));
+    STORY_PROPS.forEach((prop) => drawStoryProp(ctx, prop, cameraX, now, 'route-edge'));
     getActiveHiddenRoutes().forEach(route => drawHiddenRouteHint(ctx, route, cameraX, current, now));
     drawSectionTransitionBlend(ctx, cameraX);
     
@@ -9448,6 +9509,33 @@ export default function ExpeditionJourney({
         timer: options.timer || 0.58,
         maxTimer: options.maxTimer || options.timer || 0.58,
       });
+    };
+    const activateScarabSealForQueenEncounter = () => {
+      current.scarabSealActivated = true;
+      current.openingConfrontationSeen = true;
+      current.collapsedPlatformIds.add('opening-scarab-seal-summit');
+      current.triggeredEnvironmentEventIds.add(SCARAB_SEAL_TRIGGER.id);
+      current.dynamicEnvironmentEvent = {
+        id: SCARAB_SEAL_TRIGGER.id,
+        sectionId: SCARAB_SEAL_TRIGGER.sectionId,
+        type: SCARAB_SEAL_TRIGGER.eventType,
+        x: SCARAB_SEAL_TRIGGER.x,
+        name: SCARAB_SEAL_TRIGGER.eventName,
+        message: '',
+        duration: Math.min(SCARAB_SEAL_TRIGGER.duration, 1.4),
+        shake: SCARAB_SEAL_TRIGGER.shake,
+        card: false,
+      };
+      current.dynamicEnvironmentEventTimer = current.dynamicEnvironmentEvent.duration;
+      current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.24);
+      current.cameraShakeStrength = Math.max(current.cameraShakeStrength, SCARAB_SEAL_TRIGGER.shake * 0.7);
+      addRewardPulse('scarab-seal-awakening', SCARAB_SEAL_TRIGGER.x, SCARAB_SEAL_TRIGGER.y, 'SEAL AWAKENS', {
+        color: '#b45309',
+        fill: 'rgba(180, 83, 9, 0.12)',
+        radius: 58,
+        timer: 0.72,
+      });
+      audioControls?.playExpeditionSfx?.('openingThresholdAtmosphere');
     };
     const markSecretSetProgress = (secret) => {
       if (!secret?.setId || current.completedCollectionSetIds?.has(secret.setId)) return;
@@ -10817,9 +10905,13 @@ export default function ExpeditionJourney({
       if (!current.seenBossIntroIds) current.seenBossIntroIds = new Set();
       const scarabSealRequired = backgroundPackId !== 'china-river-valley'
         && b.id === SCARAB_SEAL_TRIGGER.bossId;
-      if (scarabSealRequired && !current.scarabSealActivated) return;
       if (scarabSealRequired && current.openingThresholdScene) return;
-      if (!current.seenBossIntroIds.has(b.id) && Math.abs(b.x - player.x) < 400) {
+      const playerNearBossIntro = Math.abs(b.x - player.x) < 400;
+      if (scarabSealRequired && !current.scarabSealActivated) {
+        if (!playerNearBossIntro) return;
+        activateScarabSealForQueenEncounter();
+      }
+      if (!current.seenBossIntroIds.has(b.id) && playerNearBossIntro) {
         b.awakened = true;
         current.seenBossIntroIds.add(b.id);
         const keyItem = current.bossKeyItems?.find(item => item.bossId === b.id);
@@ -10863,6 +10955,7 @@ export default function ExpeditionJourney({
             : b.sectionId === 'escape-sequence'
               ? 'rgba(127, 29, 29, 0.14)'
               : 'rgba(120, 53, 15, 0.14)',
+          suppressVisuals: b.id === SCARAB_SEAL_TRIGGER.bossId,
         };
         current.bossIntro = {
           id: b.id,
@@ -11433,7 +11526,7 @@ export default function ExpeditionJourney({
     
     const frame = (t) => {
       if (!lastFrameRef.current) lastFrameRef.current = t;
-      if (!paused) {
+      if (!document.hidden && !paused) {
         step(t - lastFrameRef.current);
       }
       lastFrameRef.current = t;

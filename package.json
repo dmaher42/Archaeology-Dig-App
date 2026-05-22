@@ -8,6 +8,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "playtest:serve": "node scripts/serve-dist.mjs --host 127.0.0.1 --port 5186",
+    "playtest": "npm run build && npm run playtest:serve",
     "trailer:still": "remotion still src/trailer/index.jsx GameTrailer --scale=0.25 --frame=40 output/game-trailer-preview.png",
     "trailer:render": "remotion render src/trailer/index.jsx GameTrailer output/game-trailer.mp4 --codec=h264 --overwrite --timeout=120000"
   },

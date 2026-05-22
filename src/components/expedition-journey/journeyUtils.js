@@ -5,8 +5,8 @@ import {
   PLAYER_SPRITE_FRAME_COUNT,
   PLAYER_SPRITE_SCALE,
   PLAYER_WIDTH,
-} from './journeyConstants';
-import { BOSS_KEY_ITEMS, CHECKPOINTS, getJourneyEnemies, getJourneyMiniBosses, SECTIONS, SECTION_ATMOSPHERES } from './journeyLevelData';
+} from './journeyConstants.js';
+import { BOSS_KEY_ITEMS, CHECKPOINTS, getJourneyEnemies, getJourneyMiniBosses, SECTIONS, SECTION_ATMOSPHERES } from './journeyLevelData.js';
 
 export const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 

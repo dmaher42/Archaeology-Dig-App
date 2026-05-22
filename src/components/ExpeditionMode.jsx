@@ -1152,6 +1152,30 @@ const getZoneName = (player, zones = ZONES, fallbackName = 'Open Trench') => {
   ))?.name || fallbackName;
 };
 
+const getActiveZone = (player, zones = ZONES) => {
+  const centre = { x: player.x + PLAYER_SIZE / 2, y: player.y + PLAYER_SIZE / 2 };
+  const insideZone = zones.find(zone => (
+    centre.x >= zone.x && centre.x <= zone.x + zone.w &&
+    centre.y >= zone.y && centre.y <= zone.y + zone.h
+  ));
+  if (insideZone) return insideZone;
+
+  // Fallback: find the closest zone by distance from center
+  let closestZone = zones[0];
+  let minDistance = Infinity;
+  zones.forEach(zone => {
+    const zoneCenterX = zone.x + zone.w / 2;
+    const zoneCenterY = zone.y + zone.h / 2;
+    const dist = Math.hypot(centre.x - zoneCenterX, centre.y - zoneCenterY);
+    if (dist < minDistance) {
+      minDistance = dist;
+      closestZone = zone;
+    }
+  });
+  return closestZone;
+};
+
+
 const getSurveyZoneAtPlayer = (player, surveyZones = SURVEY_ZONES, zones = ZONES) => {
   const centre = { x: player.x + PLAYER_SIZE / 2, y: player.y + PLAYER_SIZE / 2 };
   const zone = surveyZones.find(item => {
@@ -1245,6 +1269,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
   const nearbyTokenRef = useRef(null);
   const nearbySurveyZoneRef = useRef(null);
   const dismissedTokenRef = useRef(null);
+  const cameraRef = useRef({ x: 0, y: 0 });
+  const shroudRectRef = useRef({ x: 0, y: 0, w: MAP_WIDTH, h: MAP_HEIGHT });
   const [collectedEvidence, setCollectedEvidence] = useState([]);
   const [fieldNotes, setFieldNotes] = useState([]);
   const [resources, setResources] = useState(INITIAL_RESOURCES);
@@ -1672,8 +1698,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
     const rect = canvas.getBoundingClientRect();
     const scaleX = MAP_WIDTH / rect.width;
     const scaleY = MAP_HEIGHT / rect.height;
-    const x = (event.clientX - rect.left) * scaleX;
-    const y = (event.clientY - rect.top) * scaleY;
+    const x = (event.clientX - rect.left) * scaleX + cameraRef.current.x;
+    const y = (event.clientY - rect.top) * scaleY + cameraRef.current.y;
     const zone = mapZones.find(item => x >= item.x && x <= item.x + item.w && y >= item.y && y <= item.y + item.h);
     if (!zone) return;
     setSelectedMapZone(zone.id);
@@ -1917,6 +1943,16 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
     setJourneyRunId(previous => previous + 1);
     journeySnapshotRef.current = null;
     playerRef.current = { x: 42, y: 498 };
+    if (content && content.zones && content.zones.length > 0) {
+      const startZone = content.zones.find(zone => zone.id === 'market') || content.zones[0];
+      const startCamX = (startZone.x + startZone.w / 2) - 400;
+      const startCamY = (startZone.y + startZone.h / 2) - 280;
+      cameraRef.current = { x: startCamX, y: startCamY };
+      shroudRectRef.current = { x: startZone.x, y: startZone.y, w: startZone.w, h: startZone.h };
+    } else {
+      cameraRef.current = { x: 0, y: 0 };
+      shroudRectRef.current = { x: 0, y: 0, w: MAP_WIDTH, h: MAP_HEIGHT };
+    }
     tokensRef.current = buildExpeditionEvidence(content);
     guardiansRef.current = buildExcavationGuardians(content.guardians);
     collectedRef.current = [];
@@ -2229,6 +2265,10 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
     bgGradient.addColorStop(1, mapTheme.backgroundOuter);
     ctx.fillStyle = bgGradient;
     ctx.fillRect(0, 0, MAP_WIDTH, MAP_HEIGHT);
+
+    // Camera translation start
+    ctx.save();
+    ctx.translate(-cameraRef.current.x, -cameraRef.current.y);
 
     if (assetsReady) {
       for (let x = 0; x < MAP_WIDTH; x += 145) {
@@ -2634,7 +2674,61 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
         ctx.fillText(surveyLabelText, sX + 10, sY + 16);
       }
     });
-  }, [completedZoneChallenges, excavationMapAssets, gatewayPackId, gridZoneConfigs, mapHazards, mapTheme, mapUiPackId, mapWalls, mapZones, markerPackId, missionEvidenceCount, missionRequiredCount, openedGridSquares, roomMapPackId, selectedMapZone, selectedSurveyZone, surveyRevealLinks, surveyedZones, surveyZoneById, terrainByZone]);
+
+    // --- DIABLO-STYLE VISUAL OVERLAYS (SHROUD, OUTLINES, AND SPOTLIGHT) ---
+    const r = shroudRectRef.current;
+
+    // 1. Draw shroud void (deep blackish-brown tomb darkness) in world coordinates
+    ctx.fillStyle = '#050403'; // deep pitch black-brown tomb darkness
+    ctx.fillRect(r.x - 3000, r.y - 3000, r.w + 6000, 3000); // top
+    ctx.fillRect(r.x - 3000, r.y + r.h, r.w + 6000, 3000); // bottom
+    ctx.fillRect(r.x - 3000, r.y, 3000, r.h); // left
+    ctx.fillRect(r.x + r.w, r.y, 3000, r.h); // right
+
+    // 2. Draw double glowing outlines (gold for Egypt, jade for China)
+    const isChina = targetCivilisation && targetCivilisation.toLowerCase().includes('china');
+    const mainColor = isChina ? '#38bd94' : '#d4af37';
+    const glowColor = isChina ? 'rgba(56, 189, 148, 0.35)' : 'rgba(212, 175, 55, 0.35)';
+
+    ctx.save();
+    // Outer glow border
+    ctx.strokeStyle = glowColor;
+    ctx.lineWidth = 6;
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = mainColor;
+    ctx.strokeRect(r.x, r.y, r.w, r.h);
+
+    // Inner sharp border
+    ctx.strokeStyle = mainColor;
+    ctx.lineWidth = 2.5;
+    ctx.shadowBlur = 0; // reset
+    ctx.strokeRect(r.x, r.y, r.w, r.h);
+    ctx.restore();
+
+    // 3. Draw warm radial torchlight vignette centered on the player avatar (clipped to active room)
+
+    ctx.save();
+    // Clip the spotlight overlay to the active room boundary
+    ctx.beginPath();
+    ctx.rect(r.x, r.y, r.w, r.h);
+    ctx.clip();
+
+    // Create the warm radial vignette centered on the player
+    const vignetteGrad = ctx.createRadialGradient(
+      playerCentreX, playerCentreY, 40,
+      playerCentreX, playerCentreY, 260
+    );
+    vignetteGrad.addColorStop(0, 'rgba(253, 224, 185, 0.05)'); // warm tint center
+    vignetteGrad.addColorStop(0.3, 'rgba(180, 110, 50, 0.15)'); // warm ambient glow
+    vignetteGrad.addColorStop(0.7, 'rgba(5, 4, 3, 0.7)');       // fade to tomb dark
+    vignetteGrad.addColorStop(1, '#050403');                     // tomb dark
+    ctx.fillStyle = vignetteGrad;
+    ctx.fillRect(r.x - 10, r.y - 10, r.w + 20, r.h + 20);
+    ctx.restore();
+
+    // Camera translation end
+    ctx.restore();
+  }, [completedZoneChallenges, excavationMapAssets, gatewayPackId, gridZoneConfigs, mapHazards, mapTheme, mapUiPackId, mapWalls, mapZones, markerPackId, missionEvidenceCount, missionRequiredCount, openedGridSquares, roomMapPackId, selectedMapZone, selectedSurveyZone, surveyRevealLinks, surveyedZones, surveyZoneById, terrainByZone, targetCivilisation]);
 
   const update = useCallback((dt = 1 / 60) => {
     if (briefingOpen || lockedRef.current || inspectionToken || surveyReportZone || gridSetupOpen || activeZoneChallenge || expeditionFailure) {
@@ -2777,6 +2871,23 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
           audioControls.playExpeditionSfx?.('gateBlocked');
         }
       }
+    }
+
+    // Diablo-style Smooth Camera and Shroud Panning
+    const activeZone = getActiveZone(playerRef.current, mapZones);
+    if (activeZone) {
+      const targetCamX = (activeZone.x + activeZone.w / 2) - 400;
+      const targetCamY = (activeZone.y + activeZone.h / 2) - 280;
+
+      // Lerp camera (5 * dt)
+      cameraRef.current.x += (targetCamX - cameraRef.current.x) * 5 * dt;
+      cameraRef.current.y += (targetCamY - cameraRef.current.y) * 5 * dt;
+
+      // Lerp shroud (6 * dt) for morphing transition
+      shroudRectRef.current.x += (activeZone.x - shroudRectRef.current.x) * 6 * dt;
+      shroudRectRef.current.y += (activeZone.y - shroudRectRef.current.y) * 6 * dt;
+      shroudRectRef.current.w += (activeZone.w - shroudRectRef.current.w) * 6 * dt;
+      shroudRectRef.current.h += (activeZone.h - shroudRectRef.current.h) * 6 * dt;
     }
 
     draw();
@@ -3159,7 +3270,9 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
     const loop = (time) => {
       const dt = Math.min(0.05, (time - lastTime) / 1000 || 1 / 60);
       lastTime = time;
-      update(dt);
+      if (!document.hidden) {
+        update(dt);
+      }
       frameId = requestAnimationFrame(loop);
     };
 
@@ -3385,6 +3498,16 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
     setJourneyRunId(previous => previous + 1);
     journeySnapshotRef.current = null;
     playerRef.current = { x: 42, y: 498 };
+    if (stageContent && stageContent.zones && stageContent.zones.length > 0) {
+      const startZone = stageContent.zones.find(zone => zone.id === 'market') || stageContent.zones[0];
+      const startCamX = (startZone.x + startZone.w / 2) - 400;
+      const startCamY = (startZone.y + startZone.h / 2) - 280;
+      cameraRef.current = { x: startCamX, y: startCamY };
+      shroudRectRef.current = { x: startZone.x, y: startZone.y, w: startZone.w, h: startZone.h };
+    } else {
+      cameraRef.current = { x: 0, y: 0 };
+      shroudRectRef.current = { x: 0, y: 0, w: MAP_WIDTH, h: MAP_HEIGHT };
+    }
     tokensRef.current = buildExpeditionEvidence(stageContent);
     guardiansRef.current = buildExcavationGuardians(stageContent.guardians);
     collectedRef.current = [];

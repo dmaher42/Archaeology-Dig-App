@@ -21,6 +21,9 @@ const expeditionModeSource = readFileSync(new URL('../ExpeditionMode.jsx', impor
 const appSource = readFileSync(new URL('../../App.jsx', import.meta.url), 'utf8');
 const journeyComponentSource = readFileSync(new URL('../ExpeditionJourney.jsx', import.meta.url), 'utf8');
 const egyptPlayerAtlas = JSON.parse(
+  readFileSync(new URL('../../../public/assets/expedition/player/asha-final-production-spritesheet.json', import.meta.url), 'utf8'),
+);
+const egyptPreviousPlayerAtlas = JSON.parse(
   readFileSync(new URL('../../../public/assets/expedition/player/asha-hooded-warrior-explorer-spritesheet.json', import.meta.url), 'utf8'),
 );
 const egyptPlayerFallbackAtlas = JSON.parse(
@@ -38,6 +41,9 @@ const egyptAtmosphereAtlas = JSON.parse(
 const anubisBossAtlas = JSON.parse(
   readFileSync(new URL('../../../public/assets/expedition/bosses/anubis-sprites.json', import.meta.url), 'utf8'),
 );
+const besEnemyAtlas = JSON.parse(
+  readFileSync(new URL('../../../public/assets/expedition/enemies/bes-guardian-sprites.json', import.meta.url), 'utf8'),
+);
 const egyptOpeningTrapDecalsPath = new URL('../../../public/assets/expedition/environment/egypt-opening/opening-trap-decals.png', import.meta.url);
 const egyptOpeningHazardDecalsPath = new URL('../../../public/assets/expedition/environment/egypt-opening/opening-hazard-decals.png', import.meta.url);
 const egyptOpeningTombStairwellPath = new URL('../../../public/assets/expedition/environment/egypt-opening/opening-tomb-stairwell.png', import.meta.url);
@@ -54,6 +60,49 @@ const extractExportedArray = (name) => {
     if (depth === 0) return source.slice(bodyStart, index + 1);
   }
   throw new Error(`${name} export should close its array`);
+};
+
+const getDataRowById = (arraySource, id) => {
+  const idPattern = new RegExp(`id:\\s*'${id}'`);
+  const match = arraySource.match(idPattern);
+  if (!match) return '';
+  const idIndex = match.index;
+  let startBracket = -1;
+  for (let i = idIndex; i >= 0; i -= 1) {
+    if (arraySource[i] === '{') {
+      startBracket = i;
+      break;
+    }
+  }
+  if (startBracket === -1) return '';
+  let depth = 0;
+  for (let i = startBracket; i < arraySource.length; i += 1) {
+    if (arraySource[i] === '{') depth += 1;
+    if (arraySource[i] === '}') {
+      depth -= 1;
+      if (depth === 0) return arraySource.slice(startBracket, i + 1);
+    }
+  }
+  return '';
+};
+
+const parseDataRect = (rowSource) => {
+  const horizontalScale = Number(journeyConstantsSource.match(/JOURNEY_HORIZONTAL_SCALE\s*=\s*([\d.]+)/)?.[1] || 1);
+  const verticalOffset = Number(journeyConstantsSource.match(/JOURNEY_VERTICAL_OFFSET\s*=\s*([\d.]+)/)?.[1] || 0);
+  const readValue = (name) => {
+    const scaled = rowSource.match(new RegExp(`${name}:\\s*X\\((-?\\d+)\\)`));
+    if (scaled) return Number(scaled[1]) * horizontalScale;
+    const journeyY = rowSource.match(new RegExp(`${name}:\\s*JY\\((-?\\d+)\\)`));
+    if (journeyY) return Number(journeyY[1]) + verticalOffset;
+    const raw = rowSource.match(new RegExp(`${name}:\\s*(-?\\d+)`));
+    return raw ? Number(raw[1]) : 0;
+  };
+  return {
+    x: readValue('x'),
+    y: readValue('y'),
+    width: readValue('width'),
+    height: readValue('height'),
+  };
 };
 
 test('hidden routes are optional and never required for main progression', () => {
@@ -215,10 +264,10 @@ test('Ancient Egypt opening stages archaeologist arrival and warrior-guide story
   assert.match(journeyComponentSource, /current\.cameraShakeStrength = ev\.shake;/);
   assert.match(journeyComponentSource, /cameraShakeActive: current\.cameraShakeTimer > 0/);
 
-  assert.match(routeGates, /id:\s*'temple-approach-seal'[\s\S]*?requires:\s*\{[\s\S]*?enemies:\s*\[\s*'scarab-scout-1'\s*\][\s\S]*?shards:\s*4/);
-  assert.match(routeGates, /Clear the scarab scout and collect relic shards to earn passage through the first temple approach\./);
-  assert.match(routeGates, /id:\s*'guardian-prep-seal'[\s\S]*?requires:\s*\{\s*objective:\s*'desert-entry'[\s\S]*?enemies:\s*\[\s*'sand-wisp-start-1',\s*'sand-wisp-ledge-1'\s*\][\s\S]*?shards:\s*6/);
-  assert.match(routeGates, /Clear the upper-route wisps, recover the Map Tablet, and collect 6 relic shards before waking the guardian\./);
+  assert.match(routeGates, /id:\s*'temple-approach-seal'[\s\S]*?requires:\s*\{[\s\S]*?shards:\s*4/);
+  assert.match(routeGates, /Collect 4 relic shards to earn passage through the first temple approach\./);
+  assert.match(routeGates, /id:\s*'guardian-prep-seal'[\s\S]*?requires:\s*\{\s*objective:\s*'desert-entry'[\s\S]*?shards:\s*6/);
+  assert.match(routeGates, /Recover the Map Tablet and collect 6 relic shards before waking the guardian\./);
   assert.match(routeGates, /id:\s*'desert-seal'[\s\S]*?requires:\s*\{\s*objective:\s*'desert-entry',\s*miniBoss:\s*'scarab-queen',\s*keyItem:\s*'brush-handle',\s*shards:\s*10/);
   assert.match(routeGates, /Recover evidence, shards, and the Brush Handle to earn passage into the ruined temple\./);
   assert.match(routeGates, /Record what you found, then move into the ruined temple entry\./);
@@ -296,6 +345,33 @@ test('Anubis boss uses the approved Anubis sprite atlas through the existing tem
     const target = anubisBossAtlas.journeyAliasContract[key];
     assert.ok(target, `${key} should alias to an Anubis frame`);
     assert.deepEqual(anubisBossAtlas.regions[key], anubisBossAtlas.regions[target]);
+  });
+});
+
+test('Bes uses a dedicated guardian sprite pack through the existing mini-boss slot', () => {
+  const miniBosses = extractExportedArray('MINI_BOSSES');
+
+  assert.match(miniBosses, /id:\s*'looter-captain'[\s\S]*?name:\s*'Bes'/);
+  assert.match(miniBosses, /id:\s*'looter-captain'[\s\S]*?type:\s*'bes'/);
+  assert.match(
+    journeyEnemySpritesSource,
+    /BES_GUARDIAN_SPRITE_ATLAS_JSON\s*=\s*`\$\{ENEMY_SPRITE_BASE_PATH\}bes-guardian-sprites\.json`/,
+  );
+  assert.match(journeyEnemySpritesSource, /besGuardian:\s*\{[\s\S]*?atlasPath:\s*BES_GUARDIAN_SPRITE_ATLAS_JSON/);
+  assert.match(journeyEnemySpritesSource, /if \(enemy\.type === 'bes' \|\| name\.includes\('bes'\)\) return 'besGuardian';/);
+  assert.match(journeyComponentSource, /boss\.type === 'looter' \|\| boss\.type === 'bes'/);
+  assert.equal(besEnemyAtlas.image, 'bes-guardian-sprites.png');
+  [
+    'besGuardianIdle',
+    'besGuardianWalk1',
+    'besGuardianWalk2',
+    'besGuardianWalk3',
+    'besGuardianWindup',
+    'besGuardianAttack',
+    'besGuardianHit',
+    'besGuardianDefeated',
+  ].forEach((key) => {
+    assert.ok(besEnemyAtlas.regions[key], `${key} should exist in the Bes atlas`);
   });
 });
 
@@ -549,6 +625,32 @@ test('opening pyramid facade stays active as the opening gameplay landmark', () 
   assert.doesNotMatch(journeyComponentSource, /OPENING_PYRAMID_FACADE_WORLD_RIGHT_X/);
 });
 
+test('route props render on platform edges instead of distant background layers', () => {
+  const storyProps = extractExportedArray('STORY_PROPS');
+
+  [
+    'opening-ruin-climb-fallen-column',
+    'opening-ruin-climb-glyph-slab',
+  ].forEach((id) => {
+    const escapedId = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    assert.match(storyProps, new RegExp(`id:\\s*'${escapedId}'[^}]*?yOffset:\\s*0[^}]*?depth:\\s*'route-edge'`));
+    assert.doesNotMatch(storyProps, new RegExp(`id:\\s*'${escapedId}'[^}]*?depth:\\s*'(background|midground)'`));
+  });
+  [
+    'false-relic-bait-seal-stones',
+    'temple-upper-switch-glyph-slab',
+    'temple-upper-switch-fallen-column',
+  ].forEach((id) => {
+    const escapedId = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    assert.doesNotMatch(storyProps, new RegExp(`id:\\s*'${escapedId}'`));
+  });
+  assert.match(
+    journeyComponentSource,
+    /PLATFORMS[\s\S]*?\.forEach\(\(platform\) => drawPlatform\(ctx, platform, cameraX, current\)\);[\s\S]*?STORY_PROPS\.forEach\(\(prop\) => drawStoryProp\(ctx, prop, cameraX, now, 'route-edge'\)\)/,
+  );
+  assert.match(journeyComponentSource, /if \(prop\.depth === 'route-edge'\) return 'route-edge';/);
+});
+
 test('opening pyramid zone only contains the intentional first-screen stairway platforms', () => {
   const platforms = extractExportedArray('PLATFORMS');
   const allowedOpeningLabels = new Set([
@@ -557,6 +659,9 @@ test('opening pyramid zone only contains the intentional first-screen stairway p
     'invisible marked first pyramid terrace',
     'invisible marked second pyramid terrace',
     'invisible marked scarab artefact platform',
+    'facade-marked broken ruin lower climb',
+    'facade-marked broken ruin middle climb',
+    'facade-marked Map Tablet ledge',
   ]);
   const platformLines = platforms
     .split('\n')
@@ -671,28 +776,33 @@ test('China Journey uses a unique female player atlas through the existing playe
 
 test('Egypt Journey uses the Asha atlas through the existing player renderer', () => {
   assert.match(journeyConstantsSource, /PLAYER_HERO_SPRITE_ATLAS_JSON/);
+  assert.match(journeyConstantsSource, /asha-final-production-spritesheet\.json/);
+  assert.match(journeyConstantsSource, /PLAYER_HERO_PREVIOUS_SPRITE_ATLAS_JSON/);
   assert.match(journeyConstantsSource, /asha-hooded-warrior-explorer-spritesheet\.json/);
   assert.match(journeyConstantsSource, /PLAYER_HERO_FALLBACK_SPRITE_ATLAS_JSON/);
   assert.match(journeyConstantsSource, /egypt-warrior-guide-spritesheet\.json/);
-  assert.match(journeyComponentSource, /characterId:\s*'asha-egypt-warrior-explorer'/);
+  assert.match(journeyComponentSource, /characterId:\s*'asha-final-production'/);
+  assert.match(journeyComponentSource, /label:\s*'Asha Final Production'/);
+  assert.match(journeyComponentSource, /label:\s*'Asha Hooded Previous'/);
   assert.match(journeyComponentSource, /atlasPath:\s*PLAYER_HERO_SPRITE_ATLAS_JSON/);
   assert.match(journeyComponentSource, /version:\s*PLAYER_HERO_SPRITE_VERSION/);
-  assert.match(journeyComponentSource, /fallbackAtlasPath:\s*PLAYER_HERO_FALLBACK_SPRITE_ATLAS_JSON/);
-  assert.match(journeyComponentSource, /fallbackCharacterId:\s*'egypt-warrior-guide'/);
+  assert.match(journeyComponentSource, /fallbackAtlasPath:\s*PLAYER_HERO_PREVIOUS_SPRITE_ATLAS_JSON/);
+  assert.match(journeyComponentSource, /fallbackCharacterId:\s*'asha-egypt-warrior-explorer'/);
   assert.match(journeyComponentSource, /fallbackSrc:\s*PLAYER_LEGACY_SPRITE_SRC/);
   assert.match(journeyComponentSource, /if\s*\(!atlasPath\)\s*\{\s*loadLegacySprite\(\);/);
   assert.equal(egyptPlayerAtlas.draw.suppressExternalWeapon, true);
   assert.equal(egyptPlayerAtlas.draw.suppressRuntimeAttackArc, true);
-  assert.equal(egyptPlayerAtlas.status, 'active-egypt-hooded-warrior-explorer-atlas-production-ready');
-  assert.equal(egyptPlayerAtlas.productionReference, 'asha-hooded-warrior-explorer-reference.png');
-  assert.equal(egyptPlayerAtlas.draw.height, 107);
+  assert.equal(egyptPlayerAtlas.status, 'production-candidate-final-asha-warrior-sword');
+  assert.equal(egyptPlayerAtlas.productionReference, 'asha-final-production-reference.png');
+  assert.equal(egyptPlayerAtlas.draw.height, 136);
   assert.equal(egyptPlayerAtlas.draw.sourceHeight, 224);
   assert.equal(egyptPlayerAtlas.frame.width, 256);
   assert.equal(egyptPlayerAtlas.frame.height, 256);
   assert.equal(
     egyptPlayerAtlas.source,
-    'controlled-hybrid-production-asha-atlas-2026-05-20',
+    'imagegen-final-production-asha-separated-sheets-2026-05-22',
   );
+  assert.equal(egyptPreviousPlayerAtlas.status, 'active-egypt-hooded-warrior-explorer-atlas-production-ready');
   assert.equal(egyptPlayerAtlas.rows.find(row => row.name === 'idle')?.frameCount, 1);
   assert.equal(egyptPlayerAtlas.rows.find(row => row.name === 'walk')?.frameCount, 8);
   assert.equal(egyptPlayerAtlas.rows.find(row => row.name === 'run')?.frameCount, 8);
@@ -721,15 +831,15 @@ test('Egypt Journey uses the Asha atlas through the existing player renderer', (
     egyptPlayerAtlas.rows.find(row => row.name === 'land')?.frames,
     Array.from({ length: 8 }, (_, index) => `land_${String(index).padStart(2, '0')}`),
   );
-  assert.equal(egyptPlayerAtlas.poseSources.run_00, 'production_sprint_source_col_0');
-  assert.equal(egyptPlayerAtlas.poseSources.run_03, 'production_sprint_source_col_3');
-  assert.equal(egyptPlayerAtlas.poseSources.walk_03, 'production_locomotion_source_row_0_col_3');
-  assert.equal(egyptPlayerAtlas.poseSources.attack_pick_swing_00, 'attack_source_col_0');
-  assert.equal(egyptPlayerAtlas.poseSources.attack_pick_swing_03, 'attack_source_col_3');
-  assert.equal(egyptPlayerAtlas.poseSources.attack_pick_swing_07, 'attack_source_col_7');
-  assert.equal(egyptPlayerAtlas.poseSources.jump_04, 'production_air_source_row_0_col_4');
-  assert.equal(egyptPlayerAtlas.poseSources.fall_04, 'production_air_source_row_0_col_7');
-  assert.equal(egyptPlayerAtlas.poseSources.land_02, 'production_air_source_row_1_col_2');
+  assert.equal(egyptPlayerAtlas.poseSources.run_00, 'asha-final-run-source.png:frame_00');
+  assert.equal(egyptPlayerAtlas.poseSources.run_03, 'asha-final-run-source.png:frame_03');
+  assert.equal(egyptPlayerAtlas.poseSources.walk_03, 'asha-final-run-source.png:frame_03');
+  assert.equal(egyptPlayerAtlas.poseSources.attack_pick_swing_00, 'asha-final-warrior-sword-attack-source.png:frame_00');
+  assert.equal(egyptPlayerAtlas.poseSources.attack_pick_swing_03, 'asha-final-warrior-sword-attack-source.png:frame_03');
+  assert.equal(egyptPlayerAtlas.poseSources.attack_pick_swing_07, 'asha-final-warrior-sword-attack-source.png:frame_07');
+  assert.equal(egyptPlayerAtlas.poseSources.jump_04, 'asha-final-jump-source.png:frame_03');
+  assert.equal(egyptPlayerAtlas.poseSources.fall_04, 'asha-final-jump-source.png:frame_04');
+  assert.equal(egyptPlayerAtlas.poseSources.land_02, 'asha-final-jump-source.png:frame_05');
   assert.equal(egyptPlayerAtlas.rows.length, 12);
   assert.equal(Object.keys(egyptPlayerAtlas.regions).length, 96);
   assert.equal(Object.keys(egyptPlayerAtlas.poseSources).length, 96);
@@ -770,7 +880,7 @@ test('Egypt opening loop makes the first seal require enemies, shards, and the m
   assert.match(source, /id:\s*'temple-approach-seal'[\s\S]*?name:\s*'Temple Approach Seal'[\s\S]*?shards:\s*4/);
   assert.match(source, /id:\s*'temple-approach-seal'[\s\S]*?id:\s*'desert-seal'/);
   assert.match(source, /id:\s*'desert-seal'[\s\S]*?shards:\s*10/);
-  assert.match(source, /id:\s*'map-tablet'[\s\S]*?x:\s*X\(610\)/);
+  assert.match(source, /id:\s*'map-tablet'[\s\S]*?x:\s*X\(625\)/);
   assert.match(source, /id:\s*'opening-seal-reset-trap'[\s\S]*?x:\s*X\(250\)[\s\S]*?width:\s*87[\s\S]*?height:\s*16/);
   assert.doesNotMatch(source, /id:\s*'opening-spike-floor-trap'/);
   assert.doesNotMatch(source, /id:\s*'warrior-mummy-start-1'/);
@@ -931,7 +1041,7 @@ test('Sandfall Collapsing Stone section adds a fair hazard beat after Broken Rui
   assert.doesNotMatch(hiddenRoutes, /sandfall/);
 });
 
-test('Temple Threshold Climb teaches the first switch route with fair existing systems', () => {
+test('Temple Threshold route keeps the first switch readable without clutter platforms', () => {
   const platforms = extractExportedArray('PLATFORMS');
   const hazards = extractExportedArray('HAZARDS');
   const shards = source.slice(source.indexOf('const RELIC_SHARD_LAYOUT = ['), source.indexOf('export const RELIC_SHARDS'));
@@ -941,18 +1051,21 @@ test('Temple Threshold Climb teaches the first switch route with fair existing s
 
   [
     'temple threshold safe plinth',
+    'entry pause step',
     'temple plinth',
     'switch teaching plinth',
+    'fallen block step',
+    'carved seal step',
   ].forEach((label) => {
-    assert.match(platforms, new RegExp(label));
+    assert.doesNotMatch(platforms, new RegExp(label));
   });
   assert.match(hazards, /temple-threshold-hairline-crack/);
   assert.match(hazards, /penalty:\s*\{\s*time:\s*3\s*\}/);
   assert.match(hazards, /A hairline crack warned the team to step carefully\./);
   [
-    /\{\s*x:\s*1548,\s*y:\s*306\s*\}/,
-    /\{\s*x:\s*1638,\s*y:\s*274\s*\}/,
-    /\{\s*x:\s*1748,\s*y:\s*294\s*\}/,
+    /\{\s*x:\s*1548,\s*y:\s*320\s*\}/,
+    /\{\s*x:\s*1638,\s*y:\s*320\s*\}/,
+    /\{\s*x:\s*1748,\s*y:\s*320\s*\}/,
   ].forEach((rewardPoint) => {
     assert.match(shards, rewardPoint);
   });
@@ -978,19 +1091,66 @@ test('Switch 1 creates a visible temple mechanism response through existing Jour
   assert.match(journeyComponentSource, /A return plinth rises ahead\./);
 });
 
-test('early vertical platform routes require guarded enemy clears before seals open', () => {
+test('early route gates avoid filler enemy requirements while preserving enemy-clear support for later routes', () => {
   const routeGates = extractExportedArray('ROUTE_GATES');
   const enemies = extractExportedArray('ENEMIES');
 
-  assert.match(routeGates, /id:\s*'temple-approach-seal'[\s\S]*?enemies:\s*\[\s*'scarab-scout-1'\s*\]/);
-  assert.match(routeGates, /id:\s*'guardian-prep-seal'[\s\S]*?enemies:\s*\[\s*'sand-wisp-start-1',\s*'sand-wisp-ledge-1'\s*\]/);
+  assert.doesNotMatch(routeGates, /id:\s*'temple-approach-seal'[\s\S]*?enemies:\s*\[\s*'scarab-scout-1'\s*\]/);
+  assert.doesNotMatch(routeGates, /id:\s*'guardian-prep-seal'[\s\S]*?enemies:\s*\[\s*'sand-wisp-start-1',\s*'sand-wisp-ledge-1'\s*\]/);
+  assert.doesNotMatch(routeGates, /id:\s*'temple-seal'[\s\S]*?enemies:\s*\[\s*'warrior-mummy-threshold-1'\s*\]/);
+  assert.match(enemies, /id:\s*'scarab-survey-1'[\s\S]*?protectsRouteId:\s*'desert-opening-map-tablet'/);
   assert.match(enemies, /id:\s*'scarab-scout-1'[\s\S]*?protectsRouteId:\s*'temple-approach-seal'/);
   assert.match(enemies, /id:\s*'sand-wisp-start-1'[\s\S]*?protectsRouteId:\s*'desert-upper-survey-route'/);
   assert.match(enemies, /id:\s*'sand-wisp-ledge-1'[\s\S]*?protectsRouteId:\s*'guardian-prep-seal'/);
   assert.match(journeyComponentSource, /requirements\.enemies/);
   assert.match(journeyComponentSource, /current\.defeatedEnemies\?\.has\(enemyId\)/);
   assert.match(journeyComponentSource, /type:\s*'enemyClear'/);
-  assert.match(journeyComponentSource, /shortMissing:\s*`defeat \$\{missingEnemies\.length\} route guard/);
+});
+
+test('early verticality is limited to the purposeful Map Tablet ruin climb', () => {
+  const platforms = extractExportedArray('PLATFORMS');
+  const markers = extractExportedArray('OBJECTIVE_MARKERS');
+  const enemies = extractExportedArray('ENEMIES');
+  const shards = source.slice(source.indexOf('const RELIC_SHARD_LAYOUT = ['), source.indexOf('export const RELIC_SHARDS ='));
+  const findPlatform = (id) => parseDataRect(getDataRowById(platforms, id));
+  const findMarker = (id) => parseDataRect(getDataRowById(markers, id));
+  const findEnemy = (id) => parseDataRect(getDataRowById(enemies, id));
+  const tabletLedge = findPlatform('desert-broken-ruin-tablet-ledge');
+  const tablet = findMarker('map-tablet');
+  const surveyScarab = findEnemy('scarab-survey-1');
+  const itemSitsOnPlatform = (item, platform, xPad = 24, yPad = 18) => (
+    item.x >= platform.x - xPad
+    && item.x <= platform.x + platform.width + xPad
+    && Math.abs(item.y - platform.y) <= yPad
+  );
+  const enemySitsOnPlatform = (enemy, platform, xPad = 18, yPad = 10) => (
+    enemy.x >= platform.x - xPad
+    && enemy.x <= platform.x + platform.width + xPad
+    && Math.abs((enemy.y + enemy.height) - platform.y) <= yPad
+  );
+
+  [
+    'desert-broken-ruin-lower-climb',
+    'desert-broken-ruin-middle-climb',
+    'desert-broken-ruin-tablet-ledge',
+  ].forEach((id) => {
+    assert.match(platforms, new RegExp(`id:\\s*'${id}'[\\s\\S]*?invisible:\\s*true`));
+    assert.doesNotMatch(getDataRowById(platforms, id), /assetKey:\s*'sandstoneBlock'/);
+  });
+  [
+    'desert-broken-ruin-upper-ledge',
+    'desert-seal-warden-ledge',
+    'desert-false-relic-lower-step',
+    'desert-false-relic-middle-step',
+    'desert-false-relic-high-step',
+    'guardian-prep-warden-ledge',
+    'temple-approach-switch-ledge',
+  ].forEach((id) => {
+    assert.doesNotMatch(platforms, new RegExp(`id:\\s*'${id}'`));
+  });
+  assert.equal(itemSitsOnPlatform(tablet, tabletLedge), true, 'Map Tablet should sit on the one elevated required route');
+  assert.match(shards, /\{\s*x:\s*590,\s*y:\s*226\s*\}/);
+  assert.equal(enemySitsOnPlatform(surveyScarab, tabletLedge), true, 'Survey Scarab should guard the Map Tablet ledge');
 });
 
 test('first mini-boss is gated by preparation and rewards the next route', () => {
@@ -1001,7 +1161,7 @@ test('first mini-boss is gated by preparation and rewards the next route', () =>
   assert.match(routeGates, /id:\s*'guardian-prep-seal'/);
   assert.match(routeGates, /name:\s*'Guardian Prep Seal'/);
   assert.match(routeGates, /x:\s*X\(1018\)/);
-  assert.match(routeGates, /requires:\s*\{\s*objective:\s*'desert-entry'[\s\S]*?enemies:\s*\[\s*'sand-wisp-start-1',\s*'sand-wisp-ledge-1'\s*\][\s\S]*?shards:\s*6/);
+  assert.match(routeGates, /requires:\s*\{\s*objective:\s*'desert-entry'[\s\S]*?shards:\s*6/);
   assert.match(routeGates, /id:\s*'guardian-prep-seal'[\s\S]*?id:\s*'desert-seal'/);
   assert.match(routeGates, /readyHint:\s*'Desert Map Seal is open\. Record what you found, then move into the ruined temple entry\.'/);
   assert.match(source, /routeOpenMessage:\s*'You passed the first guardian test\. Record what you found before moving deeper\. Desert Map Seal is open\.'/);
@@ -1381,7 +1541,7 @@ test('combat pressure encounters guard optional rewards without blocking progres
   ].forEach((routeId) => {
     assert.match(allEnemies, new RegExp(`protectsRouteId:\\s*'${routeId}'`));
   });
-  assert.match(allEnemies, /upper-route pressure/);
+  assert.match(allEnemies, /route pressure/);
   assert.match(allEnemies, /watchtower pressure/);
   assert.match(allEnemies, /collapsing-bridge pressure/);
   assert.match(journeyUtilsSource, /scarab:\s*2/);
@@ -1400,13 +1560,18 @@ test('combat pressure encounters guard optional rewards without blocking progres
 
 test('Egypt opening combat ramps gently before the first route seal', () => {
   const egyptEnemies = extractExportedArray('ENEMIES');
+  const readAuthoredX = (row) => {
+    const scaled = row.match(/x:\s*X\((\d+)\)/);
+    if (scaled) return Number(scaled[1]);
+    return Number(row.match(/x:\s*(\d+)/)?.[1] || Number.POSITIVE_INFINITY);
+  };
   const openingRows = egyptEnemies
     .split('\n')
-    .filter(row => /x:\s*X\((\d+)\)/.test(row))
-    .filter((row) => Number(row.match(/x:\s*X\((\d+)\)/)?.[1] || 0) < 1480);
+    .filter(row => /x:\s*(?:X\()?(\d+)/.test(row))
+    .filter((row) => readAuthoredX(row) < 1480);
 
   const teachingRows = openingRows
-    .filter((row) => Number(row.match(/x:\s*X\((\d+)\)/)?.[1] || 0) <= 705);
+    .filter((row) => readAuthoredX(row) <= 705);
   const totalOpeningHealth = openingRows
     .reduce((total, row) => total + Number(row.match(/health:\s*(\d+)/)?.[1] || 0), 0);
   const totalOpeningDamage = openingRows

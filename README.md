@@ -212,6 +212,22 @@ npm run build
 npm run preview
 ```
 
+### Low-power playtest
+
+For longer playtests, build once and serve the finished `dist` folder without Vite's file watcher or hot reload connection:
+
+```bash
+npm run playtest
+```
+
+Open:
+
+```text
+http://127.0.0.1:5186/Archaeology-Dig-App/
+```
+
+Use `npm run dev` when actively editing code. Use `npm run playtest` when Codex or a human just needs to try the current built game and keep laptop heat down.
+
 ### Lint
 
 ```bash

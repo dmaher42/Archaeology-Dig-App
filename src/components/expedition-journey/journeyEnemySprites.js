@@ -12,11 +12,12 @@ export const SAND_WISP_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}sand-wisp-s
 export const CURSED_STATUE_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}cursed-statue-sprites.json`;
 export const STONE_GUARDIAN_ENEMY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}stone-guardian-enemy-sprites.json`;
 export const WARRIOR_MUMMY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}warrior-mummy-sprites.json`;
+export const BES_GUARDIAN_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}bes-guardian-sprites.json`;
 export const CHINA_ENEMY_GUARDIAN_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-enemy-guardian-sprites.json`;
 export const CHINA_RIVER_CRAB_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-river-crab-sprites.json`;
 export const CHINA_WATCHTOWER_SENTRY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-watchtower-sentry-sprites.json`;
 export const CHINA_CLAY_GUARDIAN_ENEMY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-clay-guardian-enemy-sprites.json`;
-export const ENEMY_SPRITE_ATLAS_VERSION = 'enemy-sprite-packs-2026-05-22-cinematic-sand-wisp';
+export const ENEMY_SPRITE_ATLAS_VERSION = 'enemy-sprite-packs-2026-05-23-bes-guardian';
 export const ENEMY_SPRITE_GROUNDING_VERSION = 'enemy-sprite-grounding-2026-05-18';
 export const MIN_ENEMY_DRAW_HEIGHT = 34;
 export const ENEMY_VISUAL_SIZE_MULTIPLIER = 1.5;
@@ -32,6 +33,7 @@ const ENEMY_VISUAL_SIZE_MULTIPLIERS = {
   cursedStatue: 1.14,
   stoneGuardianEnemy: 1.16,
   mummy: 1.72,
+  besGuardian: 1.82,
   riverCrab: 1.42,
   watchtowerSentry: 1.12,
   clayGuardian: 1.16,
@@ -178,6 +180,17 @@ export const EXPECTED_WARRIOR_MUMMY_SPRITE_KEYS = [
   'mummyDefeated',
 ];
 
+export const EXPECTED_BES_GUARDIAN_SPRITE_KEYS = [
+  'besGuardianIdle',
+  'besGuardianWalk1',
+  'besGuardianWalk2',
+  'besGuardianWalk3',
+  'besGuardianWindup',
+  'besGuardianAttack',
+  'besGuardianHit',
+  'besGuardianDefeated',
+];
+
 export const EXPECTED_CHINA_ENEMY_GUARDIAN_SPRITE_KEYS = [
   'riverCrabIdle',
   'riverCrabWalk1',
@@ -283,6 +296,10 @@ const ENEMY_SPRITE_PACKS = {
   mummy: {
     atlasPath: WARRIOR_MUMMY_SPRITE_ATLAS_JSON,
     expectedKeys: EXPECTED_WARRIOR_MUMMY_SPRITE_KEYS,
+  },
+  besGuardian: {
+    atlasPath: BES_GUARDIAN_SPRITE_ATLAS_JSON,
+    expectedKeys: EXPECTED_BES_GUARDIAN_SPRITE_KEYS,
   },
   chinaEnemyGuardian: {
     atlasPath: CHINA_ENEMY_GUARDIAN_SPRITE_ATLAS_JSON,
@@ -423,6 +440,7 @@ export const getEnemySpritePack = (assets, family) => {
   if (family === 'cursedStatue') return assets?.packs?.cursedStatue || null;
   if (family === 'stoneGuardianEnemy') return assets?.packs?.stoneGuardianEnemy || null;
   if (family === 'mummy') return assets?.packs?.mummy || null;
+  if (family === 'besGuardian') return assets?.packs?.besGuardian || null;
   if (family === 'riverCrab') return assets?.packs?.chinaRiverCrab || assets?.packs?.chinaEnemyGuardian || null;
   if (family === 'watchtowerSentry') return assets?.packs?.chinaWatchtowerSentry || assets?.packs?.chinaEnemyGuardian || null;
   if (family === 'clayGuardian') return assets?.packs?.chinaClayGuardianEnemy || assets?.packs?.chinaEnemyGuardian || null;
@@ -432,6 +450,7 @@ export const getEnemySpritePack = (assets, family) => {
 export const getEnemySpriteFamily = (enemy) => {
   if (!enemy) return null;
   const name = (enemy.name || '').toLowerCase();
+  if (enemy.type === 'bes' || name.includes('bes')) return 'besGuardian';
   if (enemy.type === 'sand-wisp' || name.includes('sand wisp')) return 'sandWisp';
   if (enemy.type === 'scarab' || name.includes('scarab') || name.includes('beetle')) return 'scarab';
   if (enemy.type === 'snake' || name.includes('snake') || name.includes('serpent')) return 'snake';
@@ -477,6 +496,7 @@ export const getEnemySpriteFrame = (enemy, combatMode, now = 0) => {
   if (family === 'cursedStatue') return `cursedStatueWalk${walkFrame}`;
   if (family === 'stoneGuardianEnemy') return `stoneGuardianEnemyWalk${walkFrame}`;
   if (family === 'mummy') return `mummyWalk${walkFrame}`;
+  if (family === 'besGuardian') return `besGuardianWalk${walkFrame}`;
   if (family === 'riverCrab') return `riverCrabWalk${walkFrame}`;
   if (family === 'watchtowerSentry') return `watchtowerSentryWalk${walkFrame}`;
   if (family === 'clayGuardian') return `clayGuardianWalk${walkFrame}`;
@@ -501,6 +521,7 @@ export const getEnemySpriteDrawBox = (enemy, screenX, shakeX = 0, combatMode = n
     cursedStatue: defeated ? 1.36 : 1.7,
     stoneGuardianEnemy: defeated ? 1.36 : 1.72,
     mummy: defeated ? 1.36 : 1.7,
+    besGuardian: defeated ? 1.36 : 1.76,
     riverCrab: defeated ? 1.34 : 1.54,
     watchtowerSentry: defeated ? 1.34 : 1.62,
     clayGuardian: defeated ? 1.38 : 1.72,
@@ -517,6 +538,7 @@ export const getEnemySpriteDrawBox = (enemy, screenX, shakeX = 0, combatMode = n
     cursedStatue: 78,
     stoneGuardianEnemy: 80,
     mummy: 78,
+    besGuardian: 82,
     riverCrab: 44,
     watchtowerSentry: 78,
     clayGuardian: 80,
@@ -541,6 +563,7 @@ export const getEnemySpriteDrawBox = (enemy, screenX, shakeX = 0, combatMode = n
     cursedStatue: defeated ? 19 : 14,
     stoneGuardianEnemy: defeated ? 19 : 14,
     mummy: defeated ? 20 : 15,
+    besGuardian: defeated ? 21 : 15,
     riverCrab: defeated ? 18 : 15,
     watchtowerSentry: defeated ? 20 : 15,
     clayGuardian: defeated ? 19 : 14,
