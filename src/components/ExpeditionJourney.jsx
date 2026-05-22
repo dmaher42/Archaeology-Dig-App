@@ -301,6 +301,10 @@ const COMBAT_INTENSITY_VERSION = 'combat-impact-pressure-2026-05-16';
 const PLAYER_ATTACK_STAMINA_COST = 1;
 const MISSED_ATTACK_EXTRA_STAMINA_COST = 1;
 const PROTECTED_HIT_EXTRA_STAMINA_COST = 1;
+const PLAYER_HIT_SCREEN_SHAKE_DURATION = 0.22;
+const PLAYER_HIT_SCREEN_SHAKE_PIXELS = 2.4;
+const SCORPION_ATTACK_RANGE_MULTIPLIER = 1.4;
+const SCORPION_CHASE_SPEED_MULTIPLIER = 1.15;
 const ENEMY_AGGRO_MEMORY_SECONDS = 4.6;
 const ENEMY_AGGRO_PATROL_PADDING = 320;
 
@@ -334,7 +338,6 @@ const TEMPLE_THRESHOLD_BLACK_HOLD_SECONDS = 0.55;
 const TEMPLE_THRESHOLD_FADE_IN_SECONDS = 1.05;
 const TEMPLE_THRESHOLD_SWITCH_SECONDS = TEMPLE_THRESHOLD_FADE_OUT_SECONDS + TEMPLE_THRESHOLD_BLACK_HOLD_SECONDS;
 const TEMPLE_THRESHOLD_ANUBIS_START_SECONDS = TEMPLE_THRESHOLD_SWITCH_SECONDS + TEMPLE_THRESHOLD_FADE_IN_SECONDS + 0.25;
-const TEMPLE_THRESHOLD_TRIGGER_LEAD_DISTANCE = 84;
 const OPENING_SCARAB_SEAL_IMAGE_SRC = 'assets/expedition/environment/egypt-opening/scarab-seal-ground-embedded.png';
 const OPENING_PYRAMID_CLIMB_PACK_SRC = 'assets/expedition/environment/egypt-opening/pyramid-climb-pack.png';
 const OPENING_PYRAMID_FACADE_SRC = 'assets/expedition/environment/egypt-opening/opening-pyramid-facade.png';
@@ -343,8 +346,8 @@ const OPENING_HAZARD_DECAL_PACK_SRC = 'assets/expedition/environment/egypt-openi
 const OPENING_TOMB_STAIRWELL_SRC = 'assets/expedition/environment/egypt-opening/opening-tomb-stairwell.png';
 const STAGE_ENTRANCE_DOORWAY_SRC = 'assets/expedition/environment/stage-entrances/egypt-tomb-doorway-transition.png';
 const STAGE_ENTRANCE_DOORWAY_VERSION = 'imagegen-egypt-tomb-doorway-transition-2026-05-20';
-const DESERT_END_GATEWAY_SRC = 'assets/expedition/environment/stage-entrances/desert-end-gateway.png';
-const DESERT_END_GATEWAY_VERSION = 'imagegen-desert-end-gateway-2026-05-21';
+const DESERT_END_GATEWAY_SRC = 'assets/expedition/environment/stage-entrances/desert-end-threshold-angled.png';
+const DESERT_END_GATEWAY_VERSION = 'imagegen-desert-end-threshold-angled-2026-05-22';
 const OPENING_CAMERA_REVEAL_DURATION = 1.55;
 const OPENING_CAMERA_REVEAL_PAN_SECONDS = 0.55;
 const OPENING_CAMERA_REVEAL_HOLD_SECONDS = 0.18;
@@ -374,6 +377,13 @@ const getStageEntranceForGate = (gate) => (
   STAGE_ENTRANCE_FEATURES.find(feature => feature.routeGateId === gate?.id && feature.levelTransition)
 );
 
+const getStageEntranceTriggerX = (feature) => {
+  if (!feature) return Number.NaN;
+  const width = feature.width || CANVAS_WIDTH * 1.12;
+  const passageVisual = feature.passageVisual || {};
+  return feature.x - width / 2 + width * (feature.walkThroughTriggerX ?? passageVisual.centerX ?? 0.5);
+};
+
 const areRouteGateRequirementsMetForState = (gate, current) => {
   if (!gate?.requires) return true;
   const requirements = gate.requires;
@@ -384,6 +394,7 @@ const areRouteGateRequirementsMetForState = (gate, current) => {
       || current.bossKeyItems?.some(item => item.id === requirements.keyItem && item.collected);
     if (!collected) return false;
   }
+  if (requirements.enemies?.some(enemyId => !current.defeatedEnemies?.has(enemyId))) return false;
   if (Number.isFinite(requirements.shards) && (current.relicShardCount || 0) < requirements.shards) return false;
   if (requirements.upgrades?.some(upgradeId => !current.permanentUpgradeIds?.has(upgradeId))) return false;
   if (requirements.checkpoint && current.activeCheckpoint?.id !== requirements.checkpoint) return false;
@@ -397,6 +408,10 @@ const isStageEntranceAvailableForState = (feature, current) => {
   if (!gate) return true;
   return current.openedRouteGateIds?.has(gate.id) || areRouteGateRequirementsMetForState(gate, current);
 };
+
+const isStageEntranceVisibleForState = (feature, current) => (
+  Boolean(feature?.visibleWhenLocked) || isStageEntranceAvailableForState(feature, current)
+);
 
 const OPENING_PYRAMID_AIR_JUMP_ASSIST_ZONE = {
   minX: 126,
@@ -881,7 +896,7 @@ const ENEMY_ATTACK_PATTERNS = {
 const ENEMY_TYPE_STAKE_MESSAGES = {
   scarab: 'Scarab charges. Move or jump, then strike.',
   scorpion: 'Scorpion tails block the path. Defeat them before moving forward.',
-  'sand-wisp': 'Flying scarabs tense before they burst. Wait for the opening.',
+  'sand-wisp': 'Sand wisps tense before they burst. Wait for the opening.',
   snake: 'Snake lunges from mid-range. Watch the coil.',
   bat: 'Beware: Bats swoop across gaps. Watch their movement.',
   looter: 'Beware: Rival scouts dash quickly. Counter after they miss.',
@@ -1639,6 +1654,16 @@ const getCameraFollowTarget = (current) => {
       playerCenterX,
       bossIntroFocusX: current.bossIntro.focusX,
     });
+  }
+
+  if (current.bossDomain && !current.defeatedMiniBosses?.has(current.bossDomain.bossId)) {
+    const arenaStart = current.bossDomain.arenaStart ?? playerCenterX - CANVAS_WIDTH * 0.5;
+    const arenaEnd = current.bossDomain.arenaEnd ?? playerCenterX + CANVAS_WIDTH * 0.5;
+    return {
+      mode: 'boss-domain',
+      focusTarget: Math.round((arenaStart + arenaEnd) / 2),
+      targetCameraX: clampCameraX(((arenaStart + arenaEnd) / 2) - CANVAS_WIDTH * 0.5),
+    };
   }
 
   const nearbyBoss = current.miniBosses?.find(boss => (
@@ -2443,6 +2468,36 @@ export default function ExpeditionJourney({
         } : null,
       });
     }
+    if (gate.requires.enemies?.length) {
+      const requiredEnemies = gate.requires.enemies
+        .map(enemyId => current.enemies.find(enemy => enemy.id === enemyId))
+        .filter(Boolean);
+      const missingEnemies = requiredEnemies.filter(enemy => !current.defeatedEnemies?.has(enemy.id));
+      const nearestEnemy = missingEnemies
+        .sort((a, b) => Math.abs(a.x - current.player.x) - Math.abs(b.x - current.player.x))[0] || null;
+      const direction = getDirectionFromPlayer(current.player.x, nearestEnemy?.x);
+      reqs.push({
+        type: 'enemyClear',
+        id: `${gate.id}-route-guards`,
+        label: `Route Guards: ${requiredEnemies.length - missingEnemies.length}/${requiredEnemies.length}`,
+        checklistLabel: 'Route Guards defeated',
+        shortMissing: `defeat ${missingEnemies.length} route guard${missingEnemies.length === 1 ? '' : 's'}`,
+        met: missingEnemies.length === 0,
+        found: requiredEnemies.length - missingEnemies.length,
+        required: requiredEnemies.length,
+        hint: nearestEnemy
+          ? `${nearestEnemy.name} still guards the platform route ${getDirectionText(direction)}. Clear it before forcing the seal.`
+          : 'Clear the route guards before forcing the seal.',
+        targetX: nearestEnemy?.x,
+        nearestObjective: nearestEnemy ? {
+          type: 'enemyClear',
+          id: nearestEnemy.id,
+          label: nearestEnemy.name,
+          x: nearestEnemy.x,
+          direction,
+        } : null,
+      });
+    }
     if (gate.requires.shards) {
       const missing = Math.max(0, gate.requires.shards - current.relicShardCount);
       const shard = RELIC_SHARDS
@@ -2705,30 +2760,36 @@ export default function ExpeditionJourney({
       ...(ENEMY_ATTACK_PATTERNS[enemy.type] || DEFAULT_ENEMY_ATTACK_PATTERN),
       ...(enemy.attackPatternTuning || {}),
     };
+    const tunedPattern = enemy.type === 'scorpion'
+      ? {
+        ...basePattern,
+        range: basePattern.range * SCORPION_ATTACK_RANGE_MULTIPLIER,
+      }
+      : basePattern;
     const pressure = ENEMY_TACTICAL_PRESSURE[enemy.type] || null;
     if (enemy.openingRouteRamp) {
       return {
-        ...basePattern,
-        awarenessMultiplier: basePattern.awarenessMultiplier ?? 1.28,
-        chaseMultiplier: basePattern.chaseMultiplier ?? 1.28,
+        ...tunedPattern,
+        awarenessMultiplier: tunedPattern.awarenessMultiplier ?? 1.28,
+        chaseMultiplier: tunedPattern.chaseMultiplier ?? 1.28,
         aggroMemoryMultiplier: 0.88,
       };
     }
-    if (!pressure) return basePattern;
+    if (!pressure) return tunedPattern;
     return {
-      ...basePattern,
-      windup: Math.max(0.24, basePattern.windup * (pressure.windup ?? 1)),
-      duration: Math.max(0.2, basePattern.duration * (pressure.duration ?? 1)),
-      cooldown: Math.max(0.82, basePattern.cooldown * (pressure.cooldown ?? 1)),
-      recovery: Math.max(0.28, basePattern.recovery * (pressure.recovery ?? 1)),
-      vulnerableAfter: Math.max(0.32, basePattern.vulnerableAfter * (pressure.vulnerableAfter ?? 1)),
-      speed: basePattern.speed * (pressure.speed ?? 1),
-      range: basePattern.range * (pressure.range ?? 1),
-      height: basePattern.height * (pressure.height ?? 1),
-      yOffset: basePattern.yOffset ?? 0,
-      backReach: basePattern.backReach ?? 0,
-      damageScale: basePattern.damageScale ?? 1,
-      shieldDuringWindup: basePattern.shieldDuringWindup || Boolean(pressure.shieldDuringWindup),
+      ...tunedPattern,
+      windup: Math.max(0.24, tunedPattern.windup * (pressure.windup ?? 1)),
+      duration: Math.max(0.2, tunedPattern.duration * (pressure.duration ?? 1)),
+      cooldown: Math.max(0.82, tunedPattern.cooldown * (pressure.cooldown ?? 1)),
+      recovery: Math.max(0.28, tunedPattern.recovery * (pressure.recovery ?? 1)),
+      vulnerableAfter: Math.max(0.32, tunedPattern.vulnerableAfter * (pressure.vulnerableAfter ?? 1)),
+      speed: tunedPattern.speed * (pressure.speed ?? 1),
+      range: tunedPattern.range * (pressure.range ?? 1),
+      height: tunedPattern.height * (pressure.height ?? 1),
+      yOffset: tunedPattern.yOffset ?? 0,
+      backReach: tunedPattern.backReach ?? 0,
+      damageScale: tunedPattern.damageScale ?? 1,
+      shieldDuringWindup: tunedPattern.shieldDuringWindup || Boolean(pressure.shieldDuringWindup),
       awarenessMultiplier: pressure.awareness ?? 1,
       chaseMultiplier: pressure.chase ?? 1,
       aggroMemoryMultiplier: pressure.aggroMemory ?? 1,
@@ -3156,6 +3217,7 @@ export default function ExpeditionJourney({
       invulnerabilityRemainingMs: Math.round(current.player.invulnerable * 1000),
       damageCooldownRemainingMs: Math.round(current.player.damageCooldownTimer * 1000),
       playerFlashActive: current.player.invulnerable > 0,
+      playerHitScreenShakeActive: (current.player.impactShakeTimer || 0) > 0,
       lastDamageSource: current.player.lastDamageSource,
       lastDamageTime: current.player.lastDamageTime,
       playerAttackState: getPlayerAttackState(current),
@@ -4790,7 +4852,10 @@ export default function ExpeditionJourney({
   }, [drawOpeningPyramidAssetRegion]);
 
   const drawOpeningPyramidMasonryBack = useCallback((ctx, cameraX, now = 0) => {
-    if (drawOpeningPyramidFacade(ctx, cameraX, now)) return;
+    if (openingPyramidFacadeRef.current.loaded && openingPyramidFacadeRef.current.image) {
+      drawOpeningPyramidFacade(ctx, cameraX, now);
+      return;
+    }
     const facadeStartX = 80;
     const facadeEndX = 1760;
     if (!isHorizontallyVisible(facadeStartX, facadeEndX - facadeStartX, cameraX, 180)) return;
@@ -6067,7 +6132,14 @@ export default function ExpeditionJourney({
     const pulse = 0.72 + Math.sin(now / 580 + feature.x * 0.006) * 0.08;
     const revealDistance = Math.abs(centerX - CANVAS_WIDTH * 0.5);
     const focus = clamp(1 - revealDistance / (CANVAS_WIDTH * 0.72), 0, 1);
-    const doorwayCenterY = drawY + height * 0.54;
+    const current = stateRef.current;
+    const routeGate = ROUTE_GATES.find(item => item.id === feature.routeGateId);
+    const doorwayUnlocked = !routeGate || current.openedRouteGateIds?.has(routeGate.id) || areRouteGateRequirementsMetForState(routeGate, current);
+    const passageVisual = feature.passageVisual || {};
+    const doorwayCenterX = drawX + width * (passageVisual.centerX ?? 0.5);
+    const doorwayCenterY = drawY + height * (passageVisual.centerY ?? 0.54);
+    const doorwayRadiusX = width * (passageVisual.radiusX ?? 0.14);
+    const doorwayRadiusY = height * (passageVisual.radiusY ?? 0.25);
 
     ctx.save();
     drawRouteGroundApron(ctx, centerX, floorY - 2, width * 0.72, sectionId, 0.78, Math.round(feature.x));
@@ -6099,19 +6171,36 @@ export default function ExpeditionJourney({
       ctx.globalAlpha = 1;
     }
 
-    const vignette = ctx.createRadialGradient(centerX, doorwayCenterY, width * 0.1, centerX, doorwayCenterY, width * 0.56);
-    vignette.addColorStop(0, `rgba(20, 184, 166, ${0.08 + focus * 0.1})`);
+    const vignette = ctx.createRadialGradient(doorwayCenterX, doorwayCenterY, width * 0.08, doorwayCenterX, doorwayCenterY, width * 0.5);
+    vignette.addColorStop(0, `rgba(20, 184, 166, ${doorwayUnlocked ? 0.08 + focus * 0.1 : 0.03})`);
     vignette.addColorStop(0.5, 'rgba(20, 10, 5, 0)');
     vignette.addColorStop(1, `rgba(18, 10, 6, ${0.08 + focus * 0.18})`);
     ctx.fillStyle = vignette;
     ctx.fillRect(drawX, drawY, width, height);
 
-    ctx.globalAlpha = 0.18 + focus * 0.16 + pulse * 0.04;
-    ctx.fillStyle = 'rgba(8, 18, 24, 0.72)';
+    ctx.globalAlpha = doorwayUnlocked ? 0.18 + focus * 0.16 + pulse * 0.04 : 0.32 + focus * 0.08;
+    ctx.fillStyle = doorwayUnlocked ? 'rgba(8, 18, 24, 0.72)' : 'rgba(18, 13, 9, 0.82)';
     ctx.beginPath();
-    ctx.ellipse(centerX, drawY + height * 0.56, width * 0.14, height * 0.25, 0, 0, Math.PI * 2);
+    ctx.ellipse(doorwayCenterX, doorwayCenterY, doorwayRadiusX, doorwayRadiusY, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.globalAlpha = 1;
+
+    if (!doorwayUnlocked) {
+      const lockPulse = 0.7 + Math.sin(now / 260) * 0.12;
+      ctx.globalAlpha = 0.78;
+      ctx.fillStyle = 'rgba(30, 19, 10, 0.72)';
+      ctx.beginPath();
+      ctx.roundRect(doorwayCenterX - 38, doorwayCenterY - 34, 76, 76, 12);
+      ctx.fill();
+      ctx.strokeStyle = `rgba(250, 204, 21, ${0.48 + lockPulse * 0.24})`;
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      ctx.fillStyle = `rgba(250, 204, 21, ${0.34 + lockPulse * 0.2})`;
+      ctx.beginPath();
+      ctx.ellipse(doorwayCenterX, doorwayCenterY + 2, 22, 28, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
 
     drawGroundDustLip(ctx, centerX, floorY, width * 0.72, 'rgba(216, 154, 82, 0.26)');
     const stats = stateRef.current.renderStats;
@@ -6121,6 +6210,60 @@ export default function ExpeditionJourney({
     ctx.restore();
     return true;
   }, [drawContactShadow, drawGroundDustLip, drawRouteGroundApron]);
+
+  const drawStageEntranceForegroundOccluder = useCallback((ctx, feature, cameraX) => {
+    const occluders = feature.foregroundOccluders || (feature.foregroundOccluder ? [feature.foregroundOccluder] : []);
+    if (!occluders.length) return false;
+    const doorwayAsset = feature.assetKey === 'desertEndGateway'
+      ? desertEndGatewayRef.current
+      : stageEntranceDoorwayRef.current;
+    if (!doorwayAsset.loaded || !doorwayAsset.image) return false;
+    const centerX = worldToScreenX(feature.x, cameraX);
+    const width = feature.width || CANVAS_WIDTH * 1.12;
+    const height = feature.height || CANVAS_HEIGHT;
+    if (centerX < -width * 0.58 || centerX > CANVAS_WIDTH + width * 0.58) return false;
+
+    const drawX = centerX - width / 2;
+    const drawY = Math.min(0, CANVAS_HEIGHT - height);
+    const current = stateRef.current;
+    const playerCenterX = current.player.x + current.player.width / 2;
+    const passageVisual = feature.passageVisual || {};
+    const doorwayCenterX = drawX + width * (passageVisual.centerX ?? 0.5);
+    let drewLayer = false;
+
+    occluders.forEach((occluder) => {
+      const sourceX = doorwayAsset.image.width * occluder.sourceX;
+      const sourceY = doorwayAsset.image.height * occluder.sourceY;
+      const sourceWidth = doorwayAsset.image.width * occluder.sourceWidth;
+      const sourceHeight = doorwayAsset.image.height * occluder.sourceHeight;
+      const destX = drawX + width * occluder.destX;
+      const destY = drawY + height * occluder.destY;
+      const destWidth = width * occluder.destWidth;
+      const destHeight = height * occluder.destHeight;
+      const nearRadius = occluder.nearRadius ?? width * 0.18;
+      const playerNearAmount = clamp(1 - Math.abs(worldToScreenX(playerCenterX, cameraX) - doorwayCenterX) / nearRadius, 0, 1);
+      const layerAlpha = (occluder.alpha ?? 1) * (occluder.onlyWhenPlayerNear ? playerNearAmount : 1);
+
+      if (layerAlpha <= 0.02) return;
+      ctx.save();
+      ctx.globalAlpha = layerAlpha;
+      ctx.filter = STAGE_ENTRANCE_THEME_FILTERS[feature.structureTheme] || 'drop-shadow(0 16px 16px rgba(34, 18, 8, 0.24))';
+      ctx.drawImage(
+        doorwayAsset.image,
+        sourceX,
+        sourceY,
+        sourceWidth,
+        sourceHeight,
+        destX,
+        destY,
+        destWidth,
+        destHeight,
+      );
+      ctx.restore();
+      drewLayer = true;
+    });
+    return drewLayer;
+  }, []);
 
   const drawConnectedWorldAmbientLife = useCallback((ctx, section, cameraX, now) => {
     const stats = stateRef.current.renderStats;
@@ -8422,6 +8565,16 @@ export default function ExpeditionJourney({
       ? Math.sin(now / 28) * current.cameraShakeStrength * 7
       : 0;
     const cameraX = clampCameraX((Number.isFinite(current.cameraX) ? current.cameraX : 0) + shake);
+    const playerImpactShakeProgress = player.impactShakeTimer > 0
+      ? clamp(player.impactShakeTimer / PLAYER_HIT_SCREEN_SHAKE_DURATION, 0, 1)
+      : 0;
+    const playerImpactShakeDirection = player.knockbackDirection || -player.direction || 1;
+    const playerImpactShakeX = playerImpactShakeProgress > 0
+      ? Math.sin(now / 17) * PLAYER_HIT_SCREEN_SHAKE_PIXELS * playerImpactShakeProgress * playerImpactShakeDirection
+      : 0;
+    const playerImpactShakeY = playerImpactShakeProgress > 0
+      ? Math.cos(now / 23) * PLAYER_HIT_SCREEN_SHAKE_PIXELS * 0.38 * playerImpactShakeProgress
+      : 0;
     const isPlayerNear = (worldX, distance = 240) => Math.abs((player.x + player.width / 2) - worldX) < distance;
     const activeRouteGate = ROUTE_GATES.find(gate => !current.openedRouteGateIds.has(gate.id));
     const activeGateGuidance = activeRouteGate ? getGateGuidance(activeRouteGate, current) : null;
@@ -8510,6 +8663,7 @@ export default function ExpeditionJourney({
       playerSpriteFrame: null,
       playerSpriteVisualMode: playerSpriteRef.current.mode || 'canvas-fallback',
       bossDomainActive: Boolean(current.bossDomain),
+      playerHitScreenShakeActive: playerImpactShakeProgress > 0,
     };
     const showWorldLabel = (worldX, distance = 150, priority = 'normal') => {
       const near = isPlayerNear(worldX, distance);
@@ -8519,6 +8673,10 @@ export default function ExpeditionJourney({
     };
 
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    ctx.save();
+    if (playerImpactShakeProgress > 0) {
+      ctx.translate(playerImpactShakeX, playerImpactShakeY);
+    }
 
     const chinaBackgroundDrawn = drawChinaRiverValleyBackground(ctx, cameraX);
     const desertBackgroundDrawn = !chinaBackgroundDrawn && drawDesertEntryBackground(ctx, section, cameraX);
@@ -8765,7 +8923,7 @@ export default function ExpeditionJourney({
     drawMissingObjectiveMarker(ctx, activeGateGuidance, cameraX, now);
 
     STAGE_ENTRANCE_FEATURES.forEach((feature) => {
-      if (!isStageEntranceAvailableForState(feature, current)) return;
+      if (!isStageEntranceVisibleForState(feature, current)) return;
       drawStageEntranceFeature(ctx, feature, cameraX, now);
     });
 
@@ -9018,6 +9176,10 @@ export default function ExpeditionJourney({
     drawOpeningSphinxEncounter(ctx, current.openingSphinxEncounter, cameraX, now);
     drawCombatEffects(ctx, current.combatHitEffects, cameraX, now);
     drawPlayerSprite(ctx, player.x - cameraX, player.y, player.width, player.height, player.direction, player.invulnerable, now);
+    STAGE_ENTRANCE_FEATURES.forEach((feature) => {
+      if (!isStageEntranceVisibleForState(feature, current)) return;
+      drawStageEntranceForegroundOccluder(ctx, feature, cameraX, now);
+    });
     drawOpeningThresholdScene(ctx, current.openingThresholdScene, cameraX, now);
     drawTempleThresholdTransition(ctx, current.templeThresholdTransition, now);
 
@@ -9054,6 +9216,8 @@ export default function ExpeditionJourney({
       ctx.strokeText(`-${player.lastDamage} STAMINA`, px, player.y - 24 - player.hitFeedbackTimer * 8);
       ctx.restore();
     }
+
+    ctx.restore();
 
     // CINEMATIC CARDS
     const featureCard = current.bossIntro || current.environmentEvent || current.cinematicEvent;
@@ -9102,7 +9266,7 @@ export default function ExpeditionJourney({
       ctx.fillText(featureCard.message || '', cardCenterX, cardY + (isGuardianCard ? 60 : isSectionCard ? 42 : 54));
       ctx.textAlign = 'start';
     }
-  }, [backgroundPackId, drawAncientRouteGround, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawRouteGate, drawRouteGroundApron, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getGateGuidance, getGateRequirements, getPlayerAttackState, isRouteRewardAccessible, drawPlayerSprite, drawFieldNoteLabel]);
+  }, [backgroundPackId, drawAncientRouteGround, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawRouteGate, drawRouteGroundApron, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getGateGuidance, getGateRequirements, getPlayerAttackState, isRouteRewardAccessible, drawPlayerSprite, drawFieldNoteLabel]);
 
   const queueAttack = useCallback(() => {
     const current = stateRef.current;
@@ -9392,6 +9556,7 @@ export default function ExpeditionJourney({
     player.coyoteTimer = Math.max(0, (player.coyoteTimer || 0) - dt);
     player.jumpBufferTimer = Math.max(0, (player.jumpBufferTimer || 0) - dt);
     player.jumpCutFeedbackTimer = Math.max(0, (player.jumpCutFeedbackTimer || 0) - dt);
+    player.impactShakeTimer = Math.max(0, (player.impactShakeTimer || 0) - dt);
     player.landingFeedbackTimer = Math.max(0, (player.landingFeedbackTimer || 0) - dt);
     player.movementDustTimer = Math.max(0, (player.movementDustTimer || 0) - dt);
     current.hazardCooldown = Math.max(0, current.hazardCooldown - dt);
@@ -9619,6 +9784,20 @@ export default function ExpeditionJourney({
 
     // Bounds
     player.x = clamp(player.x, 0, WORLD_WIDTH - player.width);
+    const activeBossDomainBounds = current.bossDomain
+      && !current.defeatedMiniBosses.has(current.bossDomain.bossId)
+      ? current.bossDomain
+      : null;
+    if (activeBossDomainBounds) {
+      player.x = clamp(
+        player.x,
+        (activeBossDomainBounds.arenaStart ?? 0) + 16,
+        Math.max(
+          (activeBossDomainBounds.arenaStart ?? 0) + 16,
+          (activeBossDomainBounds.arenaEnd ?? WORLD_WIDTH) - player.width - 16,
+        ),
+      );
+    }
     if (player.y > JOURNEY_VIEWPORT.height + JOURNEY_WORLD_LAYOUT.rescueFallPadding) {
       triggerJourneyRescue('The team stumbled into a ravine. Field rescue required.');
     }
@@ -9933,7 +10112,7 @@ export default function ExpeditionJourney({
       feature.levelTransition
       && feature.from === currentSectionId
       && !current.templeThresholdTransition
-      && !current.openedRouteGateIds.has(feature.routeGateId)
+      && isStageEntranceAvailableForState(feature, current)
     ));
     const activeLevelGate = activeLevelEntrance
       ? ROUTE_GATES.find(gate => gate.id === activeLevelEntrance.routeGateId)
@@ -9943,7 +10122,7 @@ export default function ExpeditionJourney({
       && activeLevelGate
       && Number.isFinite(activeLevelEntrance.x)
       && backgroundPackId !== 'china-river-valley'
-      && player.x + player.width >= activeLevelEntrance.x - TEMPLE_THRESHOLD_TRIGGER_LEAD_DISTANCE
+      && player.x + player.width / 2 >= getStageEntranceTriggerX(activeLevelEntrance)
     ) {
       const guidance = getGateGuidance(activeLevelGate, current);
       if (!guidance.activeGateLocked) {
@@ -10316,6 +10495,7 @@ export default function ExpeditionJourney({
       player.invulnerable = INVULNERABLE_DURATION;
       player.damageCooldownTimer = INVULNERABLE_DURATION + 0.65;
       player.hitFeedbackTimer = 0.75;
+      player.impactShakeTimer = Math.max(player.impactShakeTimer || 0, PLAYER_HIT_SCREEN_SHAKE_DURATION);
       player.lastDamage = amount;
       player.lastDamageSource = source;
       player.lastDamageTime = Date.now();
@@ -10412,6 +10592,11 @@ export default function ExpeditionJourney({
       const awarenessMultiplier = tacticalPattern.awarenessMultiplier || 1;
       const baseNearPlayerX = (e.type === 'bat' || e.flying ? 220 : 180) + pressureReachBonus;
       const nearPlayer = Math.abs(distanceToPlayer) < (baseNearPlayerX * awarenessMultiplier) && Math.abs(player.y - e.y) < 104 + (e.encounterRole ? 14 : 0);
+      const attackDirectionToPlayer = distanceToPlayer >= 0 ? 1 : -1;
+      const scorpionStingCanReach = e.type !== 'scorpion' || rectsOverlap(
+        getAttackBox(e, tacticalPattern.range, tacticalPattern.height, attackDirectionToPlayer, tacticalPattern.yOffset || 0, tacticalPattern.backReach || 0),
+        getPlayerBodyHitbox(player),
+      );
       if (nearPlayer) {
         e.aggroMemoryTimer = Math.max(e.aggroMemoryTimer || 0, ENEMY_AGGRO_MEMORY_SECONDS * (tacticalPattern.aggroMemoryMultiplier || 1));
       }
@@ -10429,10 +10614,10 @@ export default function ExpeditionJourney({
         current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 1.9);
       }
 
-      if (e.stunTimer <= 0 && e.attackTimer <= 0 && e.attackWindup <= 0 && nearPlayer && e.attackCooldown <= 0) {
-        const pattern = getEnemyPatternConfig(e);
+      if (e.stunTimer <= 0 && e.attackTimer <= 0 && e.attackWindup <= 0 && nearPlayer && scorpionStingCanReach && e.attackCooldown <= 0) {
+        const pattern = tacticalPattern;
         e.attackWindup = pattern.windup;
-        e.attackDirection = distanceToPlayer >= 0 ? 1 : -1;
+        e.attackDirection = attackDirectionToPlayer;
         e.attackHasHit = false;
         e.attackReady = true;
         e.attackPattern = pattern.id;
@@ -10493,7 +10678,9 @@ export default function ExpeditionJourney({
         if (isPressingPlayer) {
           e.direction = distanceToPlayer >= 0 ? 1 : -1;
         }
-        const chaseSpeedMultiplier = isAggroChasing ? tacticalPattern.chaseMultiplier || 1.65 : 1;
+        const chaseSpeedMultiplier = isAggroChasing
+          ? (tacticalPattern.chaseMultiplier || 1.65) * (e.type === 'scorpion' ? SCORPION_CHASE_SPEED_MULTIPLIER : 1)
+          : 1;
         const patrolSpeed = (e.baseSpeed || e.speed) * updateHostileStepMultiplier(e, dt) * chaseSpeedMultiplier;
         e.x += e.direction * patrolSpeed * dt;
         const movementMin = isAggroChasing ? e.patrolMin - ENEMY_AGGRO_PATROL_PADDING : e.patrolMin;
@@ -10927,10 +11114,6 @@ export default function ExpeditionJourney({
           current.notice = `${guidance.activeGateName} opened.`;
           audioControls?.playExpeditionSfx?.('gateUnlock');
           audioControls?.playExpeditionStinger?.('gateUnlock');
-          const transitionEntrance = getStageEntranceForGate(g);
-          if (transitionEntrance && backgroundPackId !== 'china-river-valley' && !current.templeThresholdTransition) {
-            startTempleThresholdTransition(current, g, transitionEntrance);
-          }
         } else {
           player.x = g.x - player.width - 5;
           current.notice = guidance.notice;
@@ -11054,7 +11237,8 @@ export default function ExpeditionJourney({
         const feature = getStageEntranceForGate(gate);
         if (!gate || !feature) return createJourneySnapshot(current);
         current.openedRouteGateIds.add(gate.id);
-        current.player.x = Math.max(0, (feature.x ?? gate.x) - current.player.width - 10);
+        const triggerX = getStageEntranceTriggerX(feature);
+        current.player.x = Math.max(0, (Number.isFinite(triggerX) ? triggerX : (feature.x ?? gate.x)) - current.player.width / 2);
         current.player.y = GROUND_Y - current.player.height;
         current.player.vx = 0;
         current.player.vy = 0;

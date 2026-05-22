@@ -8,6 +8,7 @@ import { readFileSync } from 'node:fs';
 
 const journeyComponentSource = readFileSync(new URL('../ExpeditionJourney.jsx', import.meta.url), 'utf8');
 const journeyUtilsSource = readFileSync(new URL('./journeyUtils.js', import.meta.url), 'utf8');
+const journeyEnemySpritesSource = readFileSync(new URL('./journeyEnemySprites.js', import.meta.url), 'utf8');
 const enemySpriteGeneratorSource = readFileSync(new URL('../../../scripts/generate_enemy_sprite_sheets.py', import.meta.url), 'utf8');
 
 test('regular enemy sprite draw boxes stay close to gameplay hitbox scale', () => {
@@ -58,6 +59,12 @@ test('scorpion sprites read larger than before while staying grounded', () => {
 
 test('scorpion sting is a high anti-jump attack that hits harder through existing pattern data', () => {
   assert.match(journeyComponentSource, /scorpion: \{[\s\S]*?height: 58,[\s\S]*?yOffset: -34,[\s\S]*?backReach: 38,[\s\S]*?damageScale: 1\.45,/);
+  assert.match(journeyComponentSource, /const SCORPION_ATTACK_RANGE_MULTIPLIER = 1\.4;/);
+  assert.match(journeyComponentSource, /range: basePattern\.range \* SCORPION_ATTACK_RANGE_MULTIPLIER/);
+  assert.match(journeyComponentSource, /const SCORPION_CHASE_SPEED_MULTIPLIER = 1\.15;/);
+  assert.match(journeyComponentSource, /\(e\.type === 'scorpion' \? SCORPION_CHASE_SPEED_MULTIPLIER : 1\)/);
+  assert.match(journeyComponentSource, /const scorpionStingCanReach = e\.type !== 'scorpion' \|\| rectsOverlap\(/);
+  assert.match(journeyComponentSource, /nearPlayer && scorpionStingCanReach && e\.attackCooldown <= 0/);
   assert.match(journeyComponentSource, /const getAttackBox = useCallback\(\(attacker, range = 42, height = 28, direction = attacker\.direction \|\| 1, yOffset = 0, backReach = 0\) =>/);
   assert.match(journeyComponentSource, /const trailingReach = Math\.max\(0, backReach\);/);
   assert.match(journeyComponentSource, /y: attacker\.y \+ Math\.max\(4, \(attacker\.height - height\) \/ 2\) \+ yOffset,/);
@@ -101,10 +108,10 @@ test('warrior mummy atlas is generated from the production sprite sheet source',
   assert.doesNotMatch(enemySpriteGeneratorSource, /PROJECT_MUMMY_SOURCE = ROOT \/ "public" \/ "museum" \/ "egypt_mummy\.png"/);
 });
 
-test('sand-wisp flying enemy now renders from the production flying scarab PNG source', () => {
+test('sand-wisp flying enemy renders as the larger cinematic winged wisp', () => {
   const flyingScarab = {
     id: 'sand-wisp-start-1',
-    name: 'Flying Scarab',
+    name: 'Sand Wisp',
     type: 'sand-wisp',
     x: 760,
     y: 304,
@@ -115,13 +122,20 @@ test('sand-wisp flying enemy now renders from the production flying scarab PNG s
 
   const drawBox = getEnemySpriteDrawBox(flyingScarab, 760, 0, 'patrol');
 
-  assert.ok(drawBox, 'flying scarab draw box should resolve through the existing sand-wisp enemy family');
+  assert.ok(drawBox, 'sand wisp draw box should resolve through the existing sand-wisp enemy family');
   assert.equal(drawBox.family, 'sandWisp');
-  assert.ok(Math.abs(drawBox.height - 87.2022) < 0.001, `flying scarab should draw 15% larger than the first scarab pass, received ${drawBox.height}`);
-  assert.ok(drawBox.width >= drawBox.height * 1.8, `flying scarab should keep a wide winged silhouette, received ${drawBox.width}x${drawBox.height}`);
-  assert.match(enemySpriteGeneratorSource, /flying-scarab-production-source-alpha\.png/);
+  assert.ok(Math.abs(drawBox.height - 108.9894) < 0.001, `sand wisp should draw 25% larger than the last pass, received ${drawBox.height}`);
+  assert.ok(drawBox.width >= drawBox.height * 1.9, `sand wisp should keep a wide upright-wing silhouette, received ${drawBox.width}x${drawBox.height}`);
+  assert.match(journeyEnemySpritesSource, /sandWisp:\s*2\.041/);
+  assert.match(journeyEnemySpritesSource, /enemy-sprite-packs-2026-05-22-cinematic-sand-wisp/);
+  assert.match(journeyEnemySpritesSource, /fetch\([^)]*versionQuery[^)]*\)/);
+  assert.match(journeyEnemySpritesSource, /image\.src\s*=\s*`[^`]*getAtlasImagePath[^`]*versionQuery[^`]*`/);
   assert.match(enemySpriteGeneratorSource, /render_production_flying_scarab_cell/);
-  assert.match(enemySpriteGeneratorSource, /"sandWisp": \{[\s\S]*?"render_cell": render_production_flying_scarab_cell,[\s\S]*?"source": "Production flying scarab atlas/);
+  assert.match(enemySpriteGeneratorSource, /SAND_WISP_CINEMATIC_SOURCE = ENEMY_DIR \/ "sand-wisp-cinematic-source-alpha\.png"/);
+  assert.match(enemySpriteGeneratorSource, /get_sand_wisp_cinematic_frame/);
+  assert.match(enemySpriteGeneratorSource, /ImageEnhance\.Sharpness\(sprite\)\.enhance\(1\.08\)/);
+  assert.match(enemySpriteGeneratorSource, /"sandWisp": \{[\s\S]*?"render_cell": render_production_flying_scarab_cell,[\s\S]*?"source": "Cinematic turquoise and gold winged sand wisp/);
+  assert.doesNotMatch(enemySpriteGeneratorSource, /flying-scarab-production-source-alpha\.png/);
 });
 
 test('scarabs use the same right-facing sprite orientation rules', () => {
@@ -162,6 +176,17 @@ test('combat feedback avoids arcade text labels in the playfield', () => {
   assert.doesNotMatch(journeyComponentSource, /text:\s*'RESET'/);
   assert.doesNotMatch(journeyComponentSource, /text:\s*'WAIT'/);
   assert.doesNotMatch(journeyComponentSource, /text:\s*'HIT'/);
+});
+
+test('player enemy hits trigger a small screen shake without changing gameplay state', () => {
+  assert.match(journeyUtilsSource, /impactShakeTimer:\s*0/);
+  assert.match(journeyComponentSource, /const PLAYER_HIT_SCREEN_SHAKE_DURATION = 0\.22;/);
+  assert.match(journeyComponentSource, /const PLAYER_HIT_SCREEN_SHAKE_PIXELS = 2\.4;/);
+  assert.match(journeyComponentSource, /player\.impactShakeTimer = Math\.max\(player\.impactShakeTimer \|\| 0, PLAYER_HIT_SCREEN_SHAKE_DURATION\);/);
+  assert.match(journeyComponentSource, /playerImpactShakeProgress/);
+  assert.match(journeyComponentSource, /ctx\.translate\(playerImpactShakeX, playerImpactShakeY\);/);
+  assert.match(journeyComponentSource, /player\.impactShakeTimer = Math\.max\(0, \(player\.impactShakeTimer \|\| 0\) - dt\);/);
+  assert.match(journeyComponentSource, /playerHitScreenShakeActive: \(current\.player\.impactShakeTimer \|\| 0\) > 0/);
 });
 
 test('active attack damage checks use the player body hitbox rather than the full sprite rectangle', () => {

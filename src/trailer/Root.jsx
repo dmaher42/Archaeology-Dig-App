@@ -5,7 +5,7 @@ export const TrailerRoot = () => (
   <Composition
     id="GameTrailer"
     component={GameTrailer}
-    durationInFrames={1080}
+    durationInFrames={1500}
     fps={30}
     width={1920}
     height={1080}

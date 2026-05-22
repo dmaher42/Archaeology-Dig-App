@@ -13,7 +13,7 @@ ENEMY_DIR = ROOT / "public" / "assets" / "expedition" / "enemies"
 CHINA_DIR = ENEMY_DIR / "china"
 BOSS_DIR = ROOT / "public" / "assets" / "expedition" / "bosses"
 PRODUCTION_MUMMY_SOURCE = ENEMY_DIR / "warrior-mummy-production-source-alpha.png"
-PRODUCTION_FLYING_SCARAB_SOURCE = ENEMY_DIR / "flying-scarab-production-source-alpha.png"
+SAND_WISP_CINEMATIC_SOURCE = ENEMY_DIR / "sand-wisp-cinematic-source-alpha.png"
 CELL_W = 384
 CELL_H = 340
 SCALE = 1
@@ -36,7 +36,7 @@ SCARAB_QUEEN_CELL_W = 560
 SCARAB_QUEEN_CELL_H = 390
 SCARAB_QUEEN_PRODUCTION_SOURCE = BOSS_DIR / "scarab-queen-production-source.png"
 _PRODUCTION_MUMMY_FRAMES = {}
-_PRODUCTION_FLYING_SCARAB_FRAMES = {}
+_SAND_WISP_CINEMATIC_FRAMES = {}
 
 
 def rgba(hex_color: str, alpha: int = 255) -> tuple[int, int, int, int]:
@@ -782,50 +782,57 @@ def render_production_mummy_cell(frame, base_y):
     return cell
 
 
-def get_production_flying_scarab_frame(frame: str) -> Image.Image:
-    if frame in _PRODUCTION_FLYING_SCARAB_FRAMES:
-        return _PRODUCTION_FLYING_SCARAB_FRAMES[frame].copy()
+def get_sand_wisp_cinematic_frame(frame: str) -> Image.Image:
+    if frame in _SAND_WISP_CINEMATIC_FRAMES:
+        return _SAND_WISP_CINEMATIC_FRAMES[frame].copy()
 
-    source = Image.open(PRODUCTION_FLYING_SCARAB_SOURCE).convert("RGBA")
+    source = Image.open(SAND_WISP_CINEMATIC_SOURCE).convert("RGBA")
     frame_index = FRAMES.index(frame)
     frame_width = source.width / len(FRAMES)
     left = int(round(frame_index * frame_width))
     right = int(round((frame_index + 1) * frame_width))
-    sprite = trim_alpha(source.crop((left, 0, right, source.height)), 4)
-    sprite = ImageEnhance.Contrast(sprite).enhance(1.06)
-    sprite = ImageEnhance.Color(sprite).enhance(0.98)
-    sprite = ImageEnhance.Sharpness(sprite).enhance(1.12)
-    _PRODUCTION_FLYING_SCARAB_FRAMES[frame] = sprite
+    sprite = trim_alpha(source.crop((left, 0, right, source.height)), 6)
+    sprite = ImageEnhance.Contrast(sprite).enhance(1.05)
+    sprite = ImageEnhance.Color(sprite).enhance(1.03)
+    sprite = ImageEnhance.Sharpness(sprite).enhance(1.08)
+    _SAND_WISP_CINEMATIC_FRAMES[frame] = sprite
     return sprite.copy()
 
 
 def render_production_flying_scarab_cell(frame, base_y):
     cell = Image.new("RGBA", (CELL_W * SCALE, CELL_H * SCALE), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(cell)
     hit = frame == "Hit"
     defeated = frame == "Defeated"
-    sprite = get_production_flying_scarab_frame(frame)
-    max_w = 300 if not defeated else 240
-    max_h = 150 if not defeated else 118
+    sprite = get_sand_wisp_cinematic_frame(frame)
+    max_w = 318 if not defeated else 330
+    max_h = 224 if not defeated else 146
     scale = min(max_w / max(1, sprite.width), max_h / max(1, sprite.height))
     target_size = (max(1, round(sprite.width * scale)), max(1, round(sprite.height * scale)))
     sprite = sprite.resize(target_size, Image.Resampling.LANCZOS)
     if hit:
-        flash = Image.new("RGBA", sprite.size, rgba("#facc15", 54))
-        flash.putalpha(sprite.getchannel("A").point(lambda alpha: min(alpha, 54)))
+        flash = Image.new("RGBA", sprite.size, rgba("#facc15", 36))
+        flash.putalpha(sprite.getchannel("A").point(lambda alpha: min(alpha, 36)))
         sprite = Image.alpha_composite(sprite, flash)
 
     offsets = {
-        "Walk1": (-6, -7),
-        "Walk2": (0, 5),
-        "Walk3": (6, -4),
-        "Windup": (-10, 6),
-        "Attack": (18, -2),
-        "Hit": (-16, 8),
-        "Defeated": (4, 28),
+        "Idle": (-8, -2),
+        "Walk1": (-4, -1),
+        "Walk2": (0, 0),
+        "Walk3": (6, 0),
+        "Windup": (-8, -1),
+        "Attack": (16, -1),
+        "Hit": (-16, 0),
+        "Defeated": (8, 2),
     }
     dx, dy = offsets.get(frame, (0, 0))
     x = CELL_W / 2 - sprite.width / 2 + dx
-    y = base_y - sprite.height - (30 if not defeated else 0) + dy
+    y = base_y - sprite.height + dy
+    shadow_width = min(246, sprite.width * (0.72 if defeated else 0.58))
+    draw.ellipse(
+        [CELL_W / 2 - shadow_width / 2 + dx * 0.3, base_y - 30, CELL_W / 2 + shadow_width / 2 + dx * 0.3, base_y - 4],
+        fill=rgba("#120c07", 64 if defeated else 42),
+    )
     alpha_paste(cell, sprite, x, y)
     return cell
 
@@ -864,7 +871,7 @@ FAMILIES = {
         "prefix": "sandWisp",
         "draw": draw_wisp,
         "render_cell": render_production_flying_scarab_cell,
-        "source": "Production flying scarab atlas generated from public/assets/expedition/enemies/flying-scarab-production-source-alpha.png and normalized into the existing sand-wisp Journey enemy frame contract.",
+        "source": "Cinematic turquoise and gold winged sand wisp generated from public/assets/expedition/enemies/sand-wisp-cinematic-source-alpha.png and normalized into the existing sand-wisp Journey enemy frame contract.",
         "base_y": 252,
         "flying": True,
     },

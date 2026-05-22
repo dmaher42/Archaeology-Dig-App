@@ -15,92 +15,102 @@ const asset = (path) => staticFile(path);
 const scenes = [
   {
     from: 0,
-    duration: 120,
+    duration: 135,
     background: 'assets/expedition/backgrounds/desert-entry/desert-entry-photoreal-sphinx-backdrop.png',
     foreground: 'assets/expedition/environment/egypt-opening/opening-pyramid-facade.png',
     character: 'assets/expedition/bosses/anubis-apparition.png',
     kicker: 'FOR CENTURIES',
     title: 'THE SEALS HELD',
-    subtitle: "They guarded the Pharaohs' treasures, powers never meant to leave their resting places.",
+    subtitle: 'Anubis guarded what kings buried beneath the sand.',
     tone: '#f6c56f',
   },
   {
-    from: 120,
-    duration: 120,
+    from: 135,
+    duration: 135,
     background: 'assets/expedition/backgrounds/desert-entry/desert-entry-full-scene.png',
     character: 'assets/expedition/bosses/opening-sphinx-apparition.png',
     foreground: 'assets/expedition/environment/egypt-opening/scarab-seal-opening.png',
     kicker: 'NOW',
     title: 'THEY ARE BREAKING',
-    subtitle: 'The tomb has opened, and something buried beneath the desert is calling out.',
+    subtitle: 'The wards fade. The guardians wake without command.',
     tone: '#7dd3fc',
   },
   {
-    from: 240,
-    duration: 120,
+    from: 270,
+    duration: 135,
     background: 'assets/expedition/backgrounds/ruined-temple/ruined-temple-full-scene.png',
-    character: 'assets/expedition/enemies/looter-captain-sprites.png',
-    enemy: 'assets/expedition/enemies/looter-sprites.png',
-    kicker: 'IN THE SHADOWS',
-    title: 'THEY HAVE BEEN WAITING',
-    subtitle: 'Treasure hunters and dark forces move at last, drawn by the power below.',
+    character: 'assets/expedition/player/asha-option-a-source/poses/run_contact.png',
+    foreground: 'assets/expedition/environment/egypt-opening/scarab-seal-ground-embedded.png',
+    kicker: 'ONE EXPLORER',
+    title: 'CROSSES THE THRESHOLD',
+    subtitle: 'To Anubis, he is not a hero. He is another looter.',
     tone: '#fb923c',
   },
   {
-    from: 360,
-    duration: 120,
+    from: 405,
+    duration: 135,
     background: 'assets/expedition/backgrounds/catacombs/catacombs-full-scene.png',
-    character: 'assets/expedition/bosses/scarab-queen-sprites.png',
+    character: 'assets/expedition/bosses/anubis-apparition.png',
     enemy: 'assets/expedition/enemies/warrior-mummy-sprites.png',
-    kicker: 'THEY UNLEASH',
-    title: 'ANCIENT WARRIORS',
-    subtitle: 'Their army clears the path toward treasures that should never be touched.',
+    kicker: 'ANUBIS',
+    title: '"LEAVE THIS PLACE"',
+    subtitle: '"The sand has already judged your footsteps."',
     tone: '#c084fc',
   },
   {
-    from: 480,
-    duration: 120,
+    from: 540,
+    duration: 135,
     background: 'assets/expedition/backgrounds/escape-sequence/escape-sequence-final-backdrop.png',
     foreground: 'assets/expedition/environment/egypt-opening/opening-tomb-stairwell.png',
-    character: 'assets/expedition/bosses/stone-guardian-sprites.png',
-    kicker: 'IF THEY SUCCEED',
-    title: 'THE WORLD WILL BREAK',
-    subtitle: 'Remove the treasures from their resting places and chaos spreads beyond the ruins.',
+    character: 'assets/expedition/player/asha-option-a-source/poses/attack_swing.png',
+    kicker: 'HE DID NOT COME',
+    title: 'FOR GOLD',
+    subtitle: 'He came because something ancient is failing.',
     tone: '#ef4444',
   },
   {
-    from: 600,
-    duration: 120,
+    from: 675,
+    duration: 135,
     background: 'assets/expedition/backgrounds/dig-site-entrance/dig-site-entrance-final-backdrop.png',
-    character: 'assets/expedition/collectibles/journey-collectibles-pack.png',
-    foreground: 'assets/expedition/excavation/egypt-room-map-pack.png',
-    kicker: 'ONE HERO',
-    title: 'CAN PROTECT THEM',
-    subtitle: 'Recover the shards. Restore the seals. Keep the treasures where they belong.',
+    character: 'assets/expedition/player/asha-option-a-source/poses/attack_swing.png',
+    foreground: 'assets/expedition/environment/egypt-opening/scarab-seal-opening.png',
+    kicker: 'ANUBIS DEMANDS',
+    title: 'PROVE IT',
+    subtitle: 'Gather the shards. Recover the tools. Survive the guardians.',
     tone: '#34d399',
   },
   {
-    from: 720,
-    duration: 120,
+    from: 810,
+    duration: 135,
     background: 'assets/expedition/backgrounds/ruined-temple/ruined-temple-full-scene.png',
-    character: 'assets/expedition/player/asha-option-a-source/poses/attack_swing.png',
+    character: 'assets/expedition/bosses/scarab-queen-sprites.png',
     enemy: 'assets/expedition/enemies/desert-scarab-sprites.png',
     accent: 'assets/expedition/player/khopesh-weapon-pack.png',
-    kicker: 'FACE THE GUARDIANS',
-    title: 'HOLD THE LINE',
-    subtitle: 'Not every guardian is your enemy. Not every treasure should be found.',
+    kicker: 'THE SCARAB QUEEN',
+    title: 'RISES',
+    subtitle: 'The first seal does not open. It tests.',
     tone: '#f97316',
   },
   {
-    from: 840,
-    duration: 120,
+    from: 945,
+    duration: 135,
     background: 'assets/expedition/backgrounds/desert-entry/desert-entry-full-scene.png',
-    character: 'assets/expedition/player/asha-option-a-source/poses/run_contact.png',
-    foreground: 'assets/expedition/environment/egypt-opening/scarab-seal-ground-embedded.png',
-    kicker: 'THE CHOICE',
-    title: 'ARE YOU THE HERO?',
-    subtitle: 'Can you save the world before the ancient power is stolen?',
+    foreground: 'assets/expedition/environment/egypt-opening/opening-tomb-stairwell.png',
+    kicker: 'WHAT WAS BURIED',
+    title: 'WAS NOT TREASURE',
+    subtitle: 'It was memory. Power. Warnings history was meant to protect.',
     tone: '#facc15',
+  },
+  {
+    from: 1080,
+    duration: 135,
+    background: 'assets/expedition/backgrounds/catacombs/catacombs-full-scene.png',
+    foreground: 'assets/expedition/environment/egypt-opening/scarab-seal-opening.png',
+    character: 'assets/expedition/bosses/anubis-apparition.png',
+    kicker: 'THE GUARDIAN',
+    title: 'IS LOSING HIS POWER',
+    subtitle: 'And the one he fears may be the only one who can help.',
+    tone: '#bae6fd',
   },
 ];
 
@@ -136,7 +146,7 @@ const Dust = ({ tone = '#f6c56f' }) => {
       {Array.from({ length: 34 }).map((_, index) => {
         const x = (index * 137) % 1920;
         const y = 160 + ((index * 79) % 780);
-        const drift = interpolate(frame + index * 11, [0, 1080], [0, 260], { extrapolateRight: 'extend' });
+        const drift = interpolate(frame + index * 11, [0, 1500], [0, 340], { extrapolateRight: 'extend' });
         const opacity = 0.08 + ((index % 5) * 0.018);
         return (
           <div
@@ -201,9 +211,9 @@ const Scene = ({ scene }) => {
             src={asset(scene.foreground)}
             style={{
               position: 'absolute',
-              right: scene.from === 480 ? 90 : 0,
-              bottom: scene.from === 480 ? -120 : -30,
-              width: scene.from === 480 ? 610 : 760,
+              right: scene.from === 540 ? 90 : 0,
+              bottom: scene.from === 540 ? -120 : -30,
+              width: scene.from === 540 ? 610 : 760,
               opacity: 0.58,
               filter: 'drop-shadow(0 28px 60px rgba(0,0,0,0.75))',
               transform: `translateY(${interpolate(local, [0, sceneEnd], [24, -10])}px)`,
@@ -216,11 +226,11 @@ const Scene = ({ scene }) => {
             style={{
               position: 'absolute',
               right: 115,
-              bottom: scene.from === 360 ? 112 : 88,
-              width: scene.from === 360 ? 620 : 520,
+              bottom: scene.from === 405 ? 112 : 88,
+              width: scene.from === 405 ? 620 : 520,
               opacity: 0.62,
               filter: 'drop-shadow(0 26px 48px rgba(0,0,0,0.78)) saturate(1.18)',
-              transform: `translateX(${interpolate(enter, [0, 1], [120, 0])}px) scale(${scene.from === 360 ? 1.05 : 1})`,
+              transform: `translateX(${interpolate(enter, [0, 1], [120, 0])}px) scale(${scene.from === 405 ? 1.05 : 1})`,
             }}
           />
         )}
@@ -229,10 +239,10 @@ const Scene = ({ scene }) => {
             src={asset(scene.character)}
             style={{
               position: 'absolute',
-              right: scene.from === 120 ? 320 : scene.from === 240 ? 260 : 170,
-              bottom: scene.from === 480 ? 86 : scene.from === 0 ? 62 : 72,
-              width: scene.from === 120 || scene.from === 240 ? 360 : scene.from === 480 ? 480 : 590,
-              opacity: scene.from === 0 || scene.from === 600 ? 0.72 : 0.86,
+              right: scene.from === 135 ? 320 : scene.from === 270 ? 260 : 170,
+              bottom: scene.from === 540 ? 86 : scene.from === 0 ? 62 : 72,
+              width: scene.from === 135 || scene.from === 270 ? 360 : scene.from === 540 ? 480 : 590,
+              opacity: scene.from === 0 || scene.from === 675 ? 0.72 : 0.86,
               filter: `drop-shadow(0 35px 70px rgba(0,0,0,0.86)) drop-shadow(0 0 34px ${scene.tone}55)`,
               transform: `translateY(${interpolate(enter, [0, 1], [48, 0])}px) scale(${interpolate(local, [0, sceneEnd], [0.98, 1.04])})`,
             }}
@@ -310,12 +320,12 @@ const Scene = ({ scene }) => {
 const FinalCard = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const local = frame - 960;
+  const local = frame - 1215;
   const reveal = spring({ frame: Math.max(0, local), fps, config: { damping: 20, stiffness: 58 } });
   const glow = interpolate(local, [0, 80, 120], [0.2, 0.7, 0.35], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 
   return (
-    <Sequence from={960} durationInFrames={120}>
+    <Sequence from={1215} durationInFrames={285}>
       <AbsoluteFill style={{ background: '#030303', overflow: 'hidden' }}>
         <Img
           src={asset('assets/expedition/backgrounds/dig-site-entrance/base-camp-parallax-pack.png')}
@@ -326,7 +336,7 @@ const FinalCard = () => {
             height: 'calc(100% + 80px)',
             objectFit: 'cover',
             filter: 'brightness(0.52) contrast(1.18) saturate(0.92)',
-            transform: `scale(${interpolate(local, [0, 120], [1.08, 1.14])})`,
+            transform: `scale(${interpolate(local, [0, 285], [1.08, 1.16])})`,
           }}
         />
         <AbsoluteFill style={{
@@ -343,7 +353,7 @@ const FinalCard = () => {
           opacity: reveal,
         }}>
           <div style={{ ...baseText, color: '#f6c56f', fontSize: 38, fontWeight: 800, marginBottom: 30 }}>
-            ARCHAEOLOGY DIG APP
+            THE SITE OPENS ONLY TO THOSE WHO PROTECT
           </div>
           <div style={{ ...baseText, color: '#fff7ed', fontSize: 112, lineHeight: 0.9, fontWeight: 900 }}>
             LOST SITE
@@ -362,7 +372,25 @@ const FinalCard = () => {
             marginRight: 'auto',
             lineHeight: 1.18,
           }}>
-            PROTECT THE TREASURES. RESTORE THE SEALS. SAVE THE WORLD.
+            Enter the ruins. Earn the truth. Protect the past.
+          </div>
+          <div style={{
+            ...baseText,
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginTop: 44,
+            minWidth: 320,
+            height: 72,
+            padding: '0 42px',
+            border: '2px solid rgba(246,197,111,0.74)',
+            boxShadow: '0 0 34px rgba(246,197,111,0.28), inset 0 0 22px rgba(246,197,111,0.12)',
+            color: '#fff7ed',
+            fontSize: 28,
+            fontWeight: 900,
+            textTransform: 'uppercase',
+          }}>
+            Begin Expedition
           </div>
         </div>
         <CinematicBars />
@@ -375,7 +403,7 @@ export const GameTrailer = () => (
   <AbsoluteFill style={{ background: '#050505' }}>
     <Audio
       src={asset('assets/expedition/Audio/valley-of-the-stone-kings.mp3')}
-      volume={(frame) => interpolate(frame, [0, 60, 1020, 1080], [0, 0.46, 0.46, 0], {
+      volume={(frame) => interpolate(frame, [0, 60, 1410, 1500], [0, 0.46, 0.46, 0], {
         extrapolateLeft: 'clamp',
         extrapolateRight: 'clamp',
       })}
@@ -383,19 +411,22 @@ export const GameTrailer = () => (
     <Sequence from={0}>
       <Audio src={asset('assets/expedition/sfx/opening/opening-deep-rumble.ogg')} volume={0.24} />
     </Sequence>
-    <Sequence from={230}>
+    <Sequence from={130}>
+      <Audio src={asset('assets/expedition/sfx/generated/stone-gate-open.wav')} volume={0.36} />
+    </Sequence>
+    <Sequence from={405}>
       <Audio src={asset('assets/expedition/sfx/generated/boss-warning.wav')} volume={0.62} />
     </Sequence>
-    <Sequence from={338}>
+    <Sequence from={810}>
       <Audio src={asset('assets/expedition/sfx/generated/enemy-hit.wav')} volume={0.52} />
     </Sequence>
-    <Sequence from={490}>
+    <Sequence from={1080}>
       <Audio src={asset('assets/expedition/sfx/opening/opening-earth-shake.flac')} volume={0.36} />
     </Sequence>
-    <Sequence from={620}>
+    <Sequence from={675}>
       <Audio src={asset('assets/expedition/sfx/generated/relic-shard.wav')} volume={0.58} />
     </Sequence>
-    <Sequence from={842}>
+    <Sequence from={1215}>
       <Audio src={asset('assets/expedition/sfx/generated/stone-gate-open.wav')} volume={0.54} />
     </Sequence>
     {scenes.map((scene) => <Scene key={scene.from} scene={scene} />)}

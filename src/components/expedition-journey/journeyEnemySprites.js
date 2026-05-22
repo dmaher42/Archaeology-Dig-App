@@ -16,7 +16,7 @@ export const CHINA_ENEMY_GUARDIAN_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}
 export const CHINA_RIVER_CRAB_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-river-crab-sprites.json`;
 export const CHINA_WATCHTOWER_SENTRY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-watchtower-sentry-sprites.json`;
 export const CHINA_CLAY_GUARDIAN_ENEMY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-clay-guardian-enemy-sprites.json`;
-export const ENEMY_SPRITE_ATLAS_VERSION = 'enemy-sprite-packs-2026-05-18-35-percent-larger';
+export const ENEMY_SPRITE_ATLAS_VERSION = 'enemy-sprite-packs-2026-05-22-cinematic-sand-wisp';
 export const ENEMY_SPRITE_GROUNDING_VERSION = 'enemy-sprite-grounding-2026-05-18';
 export const MIN_ENEMY_DRAW_HEIGHT = 34;
 export const ENEMY_VISUAL_SIZE_MULTIPLIER = 1.5;
@@ -26,7 +26,7 @@ const ENEMY_VISUAL_SIZE_MULTIPLIERS = {
   snake: 1.42,
   bat: 1.48,
   scorpion: 2.7,
-  sandWisp: 1.633,
+  sandWisp: 2.041,
   looter: 1.12,
   looterCaptain: 1.16,
   cursedStatue: 1.14,
@@ -335,10 +335,11 @@ export const getMissingEnemySpriteAssets = (assets) => {
 
 export const loadEnemySpritePack = ({ baseUrl = '/', onUpdate }) => {
   let cancelled = false;
+  const versionQuery = `v=${encodeURIComponent(ENEMY_SPRITE_ATLAS_VERSION)}`;
 
   const loadSinglePack = ([packId, packConfig]) => {
     const atlasPath = `${baseUrl}${packConfig.atlasPath}`;
-    return fetch(atlasPath)
+    return fetch(`${atlasPath}?${versionQuery}`)
       .then((response) => {
         if (!response.ok) throw new Error(`${packId} enemy sprite atlas request failed: ${response.status}`);
         return response.json();
@@ -373,7 +374,7 @@ export const loadEnemySpritePack = ({ baseUrl = '/', onUpdate }) => {
             },
           ]);
         };
-        image.src = `${baseUrl}${getAtlasImagePath(packConfig.atlasPath, atlas.image)}`;
+        image.src = `${baseUrl}${getAtlasImagePath(packConfig.atlasPath, atlas.image)}?${versionQuery}`;
       }))
       .catch((error) => [
         packId,

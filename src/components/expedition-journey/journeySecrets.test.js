@@ -215,10 +215,10 @@ test('Ancient Egypt opening stages archaeologist arrival and warrior-guide story
   assert.match(journeyComponentSource, /current\.cameraShakeStrength = ev\.shake;/);
   assert.match(journeyComponentSource, /cameraShakeActive: current\.cameraShakeTimer > 0/);
 
-  assert.match(routeGates, /id:\s*'temple-approach-seal'[\s\S]*?requires:\s*\{\s*shards:\s*4/);
-  assert.match(routeGates, /Collect relic shards with care to earn passage through the first temple approach\./);
-  assert.match(routeGates, /id:\s*'guardian-prep-seal'[\s\S]*?requires:\s*\{\s*objective:\s*'desert-entry',\s*shards:\s*6/);
-  assert.match(routeGates, /Recover the Map Tablet and 6 relic shards before waking the guardian\. Do not force the site open\./);
+  assert.match(routeGates, /id:\s*'temple-approach-seal'[\s\S]*?requires:\s*\{[\s\S]*?enemies:\s*\[\s*'scarab-scout-1'\s*\][\s\S]*?shards:\s*4/);
+  assert.match(routeGates, /Clear the scarab scout and collect relic shards to earn passage through the first temple approach\./);
+  assert.match(routeGates, /id:\s*'guardian-prep-seal'[\s\S]*?requires:\s*\{\s*objective:\s*'desert-entry'[\s\S]*?enemies:\s*\[\s*'sand-wisp-start-1',\s*'sand-wisp-ledge-1'\s*\][\s\S]*?shards:\s*6/);
+  assert.match(routeGates, /Clear the upper-route wisps, recover the Map Tablet, and collect 6 relic shards before waking the guardian\./);
   assert.match(routeGates, /id:\s*'desert-seal'[\s\S]*?requires:\s*\{\s*objective:\s*'desert-entry',\s*miniBoss:\s*'scarab-queen',\s*keyItem:\s*'brush-handle',\s*shards:\s*10/);
   assert.match(routeGates, /Recover evidence, shards, and the Brush Handle to earn passage into the ruined temple\./);
   assert.match(routeGates, /Record what you found, then move into the ruined temple entry\./);
@@ -893,7 +893,7 @@ test('Broken Ruins Route extends the Egypt opening with existing platformer syst
   });
   assert.match(hazards, /broken-ruins-loose-stones/);
   assert.match(hazards, /Loose ruin stones shifted underfoot/);
-  assert.match(shards, /\{\s*x:\s*1245,\s*y:\s*320\s*\}/);
+  assert.match(shards, /\{\s*x:\s*2365,\s*y:\s*320\s*\}/);
   assert.doesNotMatch(storyProps, /broken-ruins-route-stones/);
   assert.match(storyProps, /Broken Ruins Route trail marker/);
   assert.match(storyProps, /survey rope beside half-buried structure/);
@@ -978,6 +978,21 @@ test('Switch 1 creates a visible temple mechanism response through existing Jour
   assert.match(journeyComponentSource, /A return plinth rises ahead\./);
 });
 
+test('early vertical platform routes require guarded enemy clears before seals open', () => {
+  const routeGates = extractExportedArray('ROUTE_GATES');
+  const enemies = extractExportedArray('ENEMIES');
+
+  assert.match(routeGates, /id:\s*'temple-approach-seal'[\s\S]*?enemies:\s*\[\s*'scarab-scout-1'\s*\]/);
+  assert.match(routeGates, /id:\s*'guardian-prep-seal'[\s\S]*?enemies:\s*\[\s*'sand-wisp-start-1',\s*'sand-wisp-ledge-1'\s*\]/);
+  assert.match(enemies, /id:\s*'scarab-scout-1'[\s\S]*?protectsRouteId:\s*'temple-approach-seal'/);
+  assert.match(enemies, /id:\s*'sand-wisp-start-1'[\s\S]*?protectsRouteId:\s*'desert-upper-survey-route'/);
+  assert.match(enemies, /id:\s*'sand-wisp-ledge-1'[\s\S]*?protectsRouteId:\s*'guardian-prep-seal'/);
+  assert.match(journeyComponentSource, /requirements\.enemies/);
+  assert.match(journeyComponentSource, /current\.defeatedEnemies\?\.has\(enemyId\)/);
+  assert.match(journeyComponentSource, /type:\s*'enemyClear'/);
+  assert.match(journeyComponentSource, /shortMissing:\s*`defeat \$\{missingEnemies\.length\} route guard/);
+});
+
 test('first mini-boss is gated by preparation and rewards the next route', () => {
   const routeGates = extractExportedArray('ROUTE_GATES');
   const storyProps = extractExportedArray('STORY_PROPS');
@@ -986,7 +1001,7 @@ test('first mini-boss is gated by preparation and rewards the next route', () =>
   assert.match(routeGates, /id:\s*'guardian-prep-seal'/);
   assert.match(routeGates, /name:\s*'Guardian Prep Seal'/);
   assert.match(routeGates, /x:\s*X\(1018\)/);
-  assert.match(routeGates, /requires:\s*\{\s*objective:\s*'desert-entry',\s*shards:\s*6/);
+  assert.match(routeGates, /requires:\s*\{\s*objective:\s*'desert-entry'[\s\S]*?enemies:\s*\[\s*'sand-wisp-start-1',\s*'sand-wisp-ledge-1'\s*\][\s\S]*?shards:\s*6/);
   assert.match(routeGates, /id:\s*'guardian-prep-seal'[\s\S]*?id:\s*'desert-seal'/);
   assert.match(routeGates, /readyHint:\s*'Desert Map Seal is open\. Record what you found, then move into the ruined temple entry\.'/);
   assert.match(source, /routeOpenMessage:\s*'You passed the first guardian test\. Record what you found before moving deeper\. Desert Map Seal is open\.'/);
@@ -1275,16 +1290,31 @@ test('Egypt atmosphere layout fills each Journey section without changing gamepl
     'catacomb-warning-urns-1',
     'escape-cracked-pillar-1',
     'dig-site-survey-grid-cache-1',
+    'ruined-temple-mural-fragment-2',
+    'catacomb-safe-ledge-evidence-2',
+    'escape-shattered-bridge-blocks-2',
+    'dig-site-rope-boundary-2',
+    'dig-site-mapped-doorway-stones-2',
   ].forEach((propId) => {
     assert.match(storyProps, new RegExp(`id:\\s*'${propId}'`), `${propId} should be placed through STORY_PROPS`);
   });
 
   const atmospherePropMatches = [...storyProps.matchAll(/type:\s*'atmosphere-prop'/g)];
-  assert.ok(atmospherePropMatches.length >= 38, 'atmosphere pass should add coherent non-colliding prop clusters');
+  assert.ok(atmospherePropMatches.length >= 50, 'atmosphere pass should add coherent non-colliding prop clusters without ghost overlays');
+  assert.match(storyProps, /catacomb-entry-urn-cluster-2[\s\S]*?catacomb-safe-ledge-evidence-2/);
+  assert.match(storyProps, /dig-site-rope-boundary-2[\s\S]*?dig-site-rolled-canvas-2/);
+  assert.doesNotMatch(storyProps, /desert-entry-visible-|opening-route-visible-|opening-pyramid-(?:ledge|terrace|upper)-/);
+  assert.doesNotMatch(journeyComponentSource, /expedition-cache/);
   assert.doesNotMatch(storyProps, /id:\s*'(atmosphere-entry-coin-offering|scarab-seal-broken-offering-2|atmosphere-dig-coin-offering|ruined-temple-offering-table-1|catacomb-marker-flag-cache-1)'/);
+  assert.doesNotMatch(storyProps, /id:\s*'(desert-entry-survey-rope-stakes-2|desert-entry-low-rubble-cluster-2|desert-entry-glyph-slab-low-2|scarab-seal-marker-left-2|scarab-seal-clean-pedestal-fragment-2|scarab-seal-marker-right-2|scarab-seal-shards-bait-line-2|temple-approach-seal-panel-1|temple-threshold-rubble-base-2|temple-threshold-fallen-cap-2|temple-warning-tablet-cluster-2)'/);
   assert.doesNotMatch(storyProps, /type:\s*'atmosphere-prop'[\s\S]{0,220}damage:/);
   assert.doesNotMatch(storyProps, /type:\s*'atmosphere-prop'[\s\S]{0,220}collectible:/);
   assert.doesNotMatch(storyProps, /type:\s*'atmosphere-prop'[\s\S]{0,220}requiresObjective:/);
+  assert.doesNotMatch(
+    extractExportedArray('STAGE_ENTRANCE_FEATURES'),
+    /id:\s*'ruined-temple-colossus-gate'[\s\S]{0,420}visibleWhenLocked:\s*true/,
+    'desert-to-temple doorway should not render as a ghosted locked-route overlay'
+  );
 });
 
 test('small atmosphere floor assets are permanently ground-locked instead of background-tuned', () => {
@@ -1364,7 +1394,7 @@ test('combat pressure encounters guard optional rewards without blocking progres
   assert.match(journeyComponentSource, /const ENEMY_TACTICAL_PRESSURE = \{/);
   assert.match(journeyComponentSource, /awarenessMultiplier/);
   assert.match(journeyComponentSource, /chaseMultiplier/);
-  assert.match(journeyComponentSource, /shieldDuringWindup: basePattern\.shieldDuringWindup \|\| Boolean\(pressure\.shieldDuringWindup\)/);
+  assert.match(journeyComponentSource, /shieldDuringWindup: tunedPattern\.shieldDuringWindup \|\| Boolean\(pressure\.shieldDuringWindup\)/);
   assert.match(journeyComponentSource, /if \(isPressingPlayer\) \{[\s\S]*?e\.direction = distanceToPlayer >= 0 \? 1 : -1;/);
 });
 
@@ -1422,7 +1452,7 @@ test('regular enemy families use distinct combat role timings without a new AI s
   assert.match(journeyComponentSource, /e\.attackRecovery = pattern\.recovery;[\s\S]*?e\.vulnerabilityTimer = pattern\.vulnerableAfter;/);
   assert.match(journeyComponentSource, /e\.aggroMemoryTimer = Math\.max\(e\.aggroMemoryTimer \|\| 0, ENEMY_AGGRO_MEMORY_SECONDS \* \(tacticalPattern\.aggroMemoryMultiplier \|\| 1\)\)/);
   assert.match(journeyComponentSource, /const isAggroChasing = \(e\.aggroMemoryTimer \|\| 0\) > 0/);
-  assert.match(journeyComponentSource, /const chaseSpeedMultiplier = isAggroChasing \? tacticalPattern\.chaseMultiplier \|\| 1\.65 : 1/);
+  assert.match(journeyComponentSource, /const chaseSpeedMultiplier = isAggroChasing[\s\S]*?\? \(tacticalPattern\.chaseMultiplier \|\| 1\.65\) \* \(e\.type === 'scorpion' \? SCORPION_CHASE_SPEED_MULTIPLIER : 1\)[\s\S]*?: 1/);
   assert.match(journeyComponentSource, /const movementMin = isAggroChasing \? e\.patrolMin - ENEMY_AGGRO_PATROL_PADDING : e\.patrolMin/);
 });
 

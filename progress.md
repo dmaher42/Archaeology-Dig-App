@@ -95,6 +95,14 @@ Remaining notes:
 - Verified with `node --test src\components\expedition-journey\journeySecrets.test.js`, `npm.cmd run lint`, `npm.cmd run build`, and a Playwright smoke jump to Catacombs.
 - Browser smoke screenshot: `output/devtools-level-jump-smoke/04-catacombs-jump-checkpoint-aligned.png`.
 
+2026-05-22 update:
+- Added a guarded-route first pass for Egypt Journey verticality using existing Journey systems only.
+- Temple Approach Seal now requires the scarab scout to be defeated as well as relic shards, so the first seal cannot be opened by running past the patrol.
+- Guardian Prep Seal now requires both upper-route sand wisps to be defeated, plus the Map Tablet and shards, making the post-pyramid platform climb a combat-linked preparation route.
+- Kept the change inside existing route gate requirements, enemy `protectsRouteId` metadata, `defeatedEnemies`, platform data, and Journey gate guidance rather than adding a new level engine or player controller.
+- Removed the locked desert-to-temple doorway ghost overlay so the large stage entrance does not cover the player before the route is earned.
+- Added/updated Journey tests for guarded platform-route progression and current combat tuning expectations.
+
 2026-05-16 update:
 - Completed a focused China Journey player sprite polish pass in the existing Journey renderer.
 - The production China female archaeologist atlas is wired through the canonical hero-atlas path; no duplicate player controller, movement model, hitbox model, or expedition flow was added.
@@ -2974,3 +2982,28 @@ Remaining notes:
 - Tuned decal placement so floor hazards are embedded into the walking surface instead of floating, while dust/bats/falling debris remain intentionally airborne.
 - Added regression coverage so every hazard must now have an in-game purpose and the known mismatched trap aliases cannot silently return.
 - Verification passed: Journey secrets tests, targeted lint, and live Playwright Journey smoke screenshots in `output/trap-audit-smoke/`.
+
+## 2026-05-22 Egypt Journey foreground prop second pass
+
+- Extended only the existing `STORY_PROPS` data path with a second layer of purposeful Egypt Journey prop clusters; no new prop renderer, collision layer, or gameplay system was added.
+- Reused the current Egypt atmosphere atlas instead of generating new assets because it already contains suitable AAA-style jars, tablets, rubble, pillar caps, seal panels, fallen stone, scroll bundles, and field chests.
+- Added extra low/midground detail to the desert entry lane, false scarab approach, temple threshold, collapsed temple interior, catacomb ledges, escape collapse route, and Base Camp approach.
+- Kept clusters story-led: survey ropes, low rubble at ruin bases, half-buried glyph slabs, mirrored scarab marker stones, broken seal fragments, warning tablets, burial urns, shattered bridge blocks, rolled canvas, and mapped doorway stones.
+- Updated Journey regression coverage so the second-pass cluster IDs remain in the canonical prop layout and the curated route still avoids coin-pile treasure clutter.
+
+## 2026-05-22 Egypt Journey ghost prop cleanup
+
+- Removed the low-alpha second-pass props that read as transparent images over the cinematic desert/temple background rather than believable foreground dressing.
+- Cleaned the worst affected desert-to-temple lane props: ghost rubble, low glyph slab, mirrored scarab panels, clean pedestal fragments, broken seal dust, faded temple approach seal panel, and low temple-threshold rubble/caps.
+- Kept stronger existing props and the less intrusive later-section clusters so the scene still has route-level archaeology detail without transparent visual clutter.
+- Added regression coverage so the removed ghost-overlay prop IDs do not return to the curated Journey layout.
+
+## 2026-05-22 Lost Site Expedition cinematic trailer story pass
+
+- Reworked the existing Remotion trailer only; no duplicate trailer system, new game mode, Journey change, Base Camp change, excavation change, or gameplay change was added.
+- Replaced the generic treasure/world-ending cards with the canonical Asha/Anubis arc: ancient seals held, the wards are breaking, Asha crosses the threshold, Anubis treats him as another looter, Asha must prove he came to protect, and the Scarab Queen rises as the first test.
+- Extended the trailer composition to 1500 frames at 30 fps so the story lands at roughly 50 seconds while keeping the on-screen copy short enough for projection.
+- Kept the existing cinematic asset/effect path: desert/temple/catacomb/Base Camp backdrops, Anubis, Asha, Scarab Queen, excavation/tools/shards, dust, vignette, title-card flashes, music, rumble, shard, warning, and gate sounds.
+- Updated the normal `trailer:render` script with Remotion's longer timeout because the heavier 50-second render exceeded the default per-frame timeout during full video rendering.
+- Verification passed: Remotion preview stills, final MP4 render, lint, and production build.
+- Follow-up: removed the collectibles atlas from the trial and buried-memory beats because it appeared in-video as a random prop sheet rather than a purposeful cinematic object.
