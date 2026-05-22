@@ -794,7 +794,8 @@ test('Egypt Journey uses the Asha atlas through the existing player renderer', (
   assert.equal(egyptPlayerAtlas.draw.suppressRuntimeAttackArc, true);
   assert.equal(egyptPlayerAtlas.status, 'production-candidate-final-asha-warrior-sword');
   assert.equal(egyptPlayerAtlas.productionReference, 'asha-final-production-reference.png');
-  assert.equal(egyptPlayerAtlas.draw.height, 136);
+  assert.equal(egyptPlayerAtlas.draw.height, 108);
+  assert.ok(egyptPlayerAtlas.draw.height >= 80 && egyptPlayerAtlas.draw.height <= 110);
   assert.equal(egyptPlayerAtlas.draw.sourceHeight, 224);
   assert.equal(egyptPlayerAtlas.frame.width, 256);
   assert.equal(egyptPlayerAtlas.frame.height, 256);
