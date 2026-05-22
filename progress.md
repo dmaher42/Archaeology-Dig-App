@@ -1,5 +1,11 @@
 Original prompt: Implement "Lost Site Expedition" as a small MVP game mode in the Archaeology-Dig-App repo.
 
+2026-05-23 update:
+- Started an Expedition-only asset tidy-up audit in `docs/expedition-asset-tidy-audit.md` so future Codex chats can see the current asset roles before moving, deleting, or regenerating files.
+- Confirmed the audit scope is Lost Site Expedition only: Journey, Base Camp/excavation, Expedition trailer dependencies, and `public/assets/expedition/`.
+- Key early findings: normalize/check the Expedition audio folder casing, separate runtime atlases from source/reference sheets before deleting anything, keep the active/fallback Asha sprite contract explicit, update stale China scaffold placeholder labels, and treat older crop-edge sprite warnings as a later visual-quality pass.
+- Added the audit document to the Lost Site Expedition design brief's source-of-truth list.
+
 Notes:
 - Confirmed this checkout already had an `expedition` phase wired through `src/App.jsx` and `src/components/Menu.jsx`.
 - Confirmed `src/components/ExpeditionMode.jsx` existed as an untracked partial MVP, but it was hard-coded to Ancient Egypt, did not require supporting evidence selection, and did not reduce points/stamina/time from hazards.

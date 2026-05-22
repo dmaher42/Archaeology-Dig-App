@@ -17,6 +17,7 @@ Use the current implementation before making changes.
 - Running implementation notes: `progress.md`
 - Story arc source of truth: `docs/lost-site-expedition-story-arc.md`
 - Standalone game design rule: `docs/standalone-game-rule.md`
+- Expedition asset audit and tidy-up handover: `docs/expedition-asset-tidy-audit.md`
 
 Do not create parallel systems for progression, economy, player control, animation, evidence, inventory, excavation, lab, museum, report, Bureau, Base Camp, bosses, or Journey. Extend the canonical systems above.
 
