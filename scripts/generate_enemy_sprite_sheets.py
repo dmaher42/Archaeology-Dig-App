@@ -14,6 +14,7 @@ CHINA_DIR = ENEMY_DIR / "china"
 BOSS_DIR = ROOT / "public" / "assets" / "expedition" / "bosses"
 PRODUCTION_MUMMY_SOURCE = ENEMY_DIR / "warrior-mummy-production-source-alpha.png"
 SAND_WISP_CINEMATIC_SOURCE = ENEMY_DIR / "sand-wisp-cinematic-source-alpha.png"
+LOOTER_PRODUCTION_SOURCE_ATLAS = ROOT / "public" / "assets" / "expedition" / "player" / "asha-final-production-spritesheet.json"
 CELL_W = 384
 CELL_H = 340
 SCALE = 1
@@ -37,6 +38,7 @@ SCARAB_QUEEN_CELL_H = 390
 SCARAB_QUEEN_PRODUCTION_SOURCE = BOSS_DIR / "scarab-queen-production-source.png"
 _PRODUCTION_MUMMY_FRAMES = {}
 _SAND_WISP_CINEMATIC_FRAMES = {}
+_LOOTER_PRODUCTION_FRAMES = {}
 
 
 def rgba(hex_color: str, alpha: int = 255) -> tuple[int, int, int, int]:
@@ -756,6 +758,159 @@ def alpha_paste(base: Image.Image, sprite: Image.Image, x: int, y: int):
     base.alpha_composite(sprite, (round(x), round(y)))
 
 
+def load_looter_source_sprite(row_name: str, frame_index: int) -> Image.Image:
+    atlas = json.loads(LOOTER_PRODUCTION_SOURCE_ATLAS.read_text(encoding="utf-8"))
+    image = Image.open(LOOTER_PRODUCTION_SOURCE_ATLAS.with_name(atlas["image"])).convert("RGBA")
+    frame_w = int(atlas["frame"]["width"])
+    frame_h = int(atlas["frame"]["height"])
+    row = next(item for item in atlas["rows"] if item["name"] == row_name)
+    safe_index = min(frame_index, max(0, row["frameCount"] - 1))
+    sprite = image.crop((
+        safe_index * frame_w,
+        row["row"] * frame_h,
+        (safe_index + 1) * frame_w,
+        (row["row"] + 1) * frame_h,
+    ))
+    return trim_alpha(sprite, 6)
+
+
+def transform_looter_sprite(sprite: Image.Image, frame: str) -> Image.Image:
+    """Turn the final Asha source motion into a distinct tomb-looter raster character."""
+    sprite = sprite.convert("RGBA")
+    pixels = sprite.load()
+    for y in range(sprite.height):
+        for x in range(sprite.width):
+            r, g, b, a = pixels[x, y]
+            if a < 8:
+                continue
+            brightness = (r + g + b) / 3
+            if brightness > 156 and r >= g - 8:
+                nr = int(r * 0.45 + 61)
+                ng = int(g * 0.38 + 40)
+                nb = int(b * 0.3 + 27)
+            elif b > r * 0.82 and g > r * 0.76:
+                nr = int(r * 0.32 + 96)
+                ng = int(g * 0.38 + 56)
+                nb = int(b * 0.32 + 34)
+            elif r > 110 and g > 70:
+                nr = int(r * 0.48 + 55)
+                ng = int(g * 0.4 + 35)
+                nb = int(b * 0.34 + 22)
+            else:
+                nr = int(r * 0.5)
+                ng = int(g * 0.44)
+                nb = int(b * 0.38)
+            pixels[x, y] = (min(255, nr), min(255, ng), min(255, nb), a)
+
+    sprite = ImageEnhance.Contrast(sprite).enhance(1.12)
+    sprite = ImageEnhance.Color(sprite).enhance(0.82)
+    sprite = ImageEnhance.Sharpness(sprite).enhance(1.08)
+
+    overlay = Image.new("RGBA", sprite.size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(overlay)
+    bbox = sprite.getchannel("A").getbbox()
+    if bbox:
+        left, top, right, bottom = bbox
+        w = right - left
+        h = bottom - top
+        cx = (left + right) / 2
+        head_y = top + h * 0.16
+        torso_y = top + h * 0.48
+        cloak_color = rgba("#3b2416", 150)
+        trim_color = rgba("#d97706", 220)
+        mask_color = rgba("#160f0a", 190)
+        draw.polygon([
+            (cx - w * 0.22, head_y - h * 0.05),
+            (cx + w * 0.2, head_y - h * 0.04),
+            (cx + w * 0.28, head_y + h * 0.22),
+            (cx - w * 0.3, head_y + h * 0.24),
+        ], fill=cloak_color)
+        draw.rounded_rectangle([
+            cx - w * 0.18,
+            head_y + h * 0.1,
+            cx + w * 0.19,
+            head_y + h * 0.2,
+        ], radius=3, fill=mask_color)
+        draw.line([(cx - w * 0.26, torso_y), (cx + w * 0.22, torso_y - h * 0.06)], fill=trim_color, width=max(2, round(w * 0.035)))
+        draw.ellipse([
+            cx + w * 0.16,
+            torso_y - h * 0.03,
+            cx + w * 0.34,
+            torso_y + h * 0.12,
+        ], fill=rgba("#6b3f1d", 180), outline=rgba("#f59e0b", 160), width=2)
+        if frame in {"Windup", "Attack"}:
+            draw.line([
+                (cx + w * 0.18, torso_y - h * 0.08),
+                (cx + w * 0.48, torso_y + h * 0.06),
+            ], fill=rgba("#fbbf24", 235), width=max(2, round(w * 0.04)))
+            draw.line([
+                (cx + w * 0.24, torso_y - h * 0.04),
+                (cx + w * 0.54, torso_y + h * 0.1),
+            ], fill=rgba("#27150a", 210), width=max(1, round(w * 0.018)))
+        if frame == "Hit":
+            flash = Image.new("RGBA", sprite.size, rgba("#f59e0b", 50))
+            flash.putalpha(sprite.getchannel("A").point(lambda alpha: min(alpha, 50)))
+            sprite = Image.alpha_composite(sprite, flash)
+        if frame == "Defeated":
+            draw.line([(left + w * 0.16, bottom - h * 0.08), (right - w * 0.12, bottom - h * 0.1)], fill=rgba("#f59e0b", 170), width=3)
+
+    return Image.alpha_composite(sprite, overlay)
+
+
+def get_production_looter_frame(frame: str) -> Image.Image:
+    if frame in _LOOTER_PRODUCTION_FRAMES:
+        return _LOOTER_PRODUCTION_FRAMES[frame].copy()
+
+    frame_sources = {
+        "Idle": ("idle", 0),
+        "Walk1": ("run", 1),
+        "Walk2": ("run", 3),
+        "Walk3": ("run", 5),
+        "Windup": ("attack_pick_swing", 1),
+        "Attack": ("attack_pick_swing", 6),
+        "Hit": ("hurt", 2),
+        "Defeated": ("hurt", 6),
+    }
+    row_name, frame_index = frame_sources[frame]
+    sprite = transform_looter_sprite(load_looter_source_sprite(row_name, frame_index), frame)
+    _LOOTER_PRODUCTION_FRAMES[frame] = sprite
+    return sprite.copy()
+
+
+def render_production_looter_cell(frame, base_y):
+    cell = Image.new("RGBA", (CELL_W * SCALE, CELL_H * SCALE), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(cell)
+    defeated = frame == "Defeated"
+    sprite = get_production_looter_frame(frame)
+    target_h = 96 if defeated else 206
+    target_w = max(1, round(sprite.width * target_h / max(1, sprite.height)))
+    max_w = 250 if defeated else 138
+    if target_w > max_w:
+        target_w = max_w
+        target_h = max(1, round(sprite.height * target_w / max(1, sprite.width)))
+    sprite = sprite.resize((target_w, target_h), Image.Resampling.LANCZOS)
+    offsets = {
+        "Idle": (0, 0),
+        "Walk1": (-12, 0),
+        "Walk2": (0, -1),
+        "Walk3": (12, 0),
+        "Windup": (-16, 2),
+        "Attack": (20, 1),
+        "Hit": (-18, 4),
+        "Defeated": (18, 8),
+    }
+    dx, dy = offsets.get(frame, (0, 0))
+    x = CELL_W / 2 - sprite.width / 2 + dx
+    y = base_y - sprite.height + dy
+    shadow_width = min(180, sprite.width * (0.68 if defeated else 0.5))
+    draw.ellipse(
+        [CELL_W / 2 - shadow_width / 2 + dx * 0.2, base_y - 18, CELL_W / 2 + shadow_width / 2 + dx * 0.2, base_y + 5],
+        fill=rgba("#120c07", 66 if defeated else 48),
+    )
+    alpha_paste(cell, sprite, x, y)
+    return cell
+
+
 def render_production_mummy_cell(frame, base_y):
     cell = Image.new("RGBA", (CELL_W * SCALE, CELL_H * SCALE), (0, 0, 0, 0))
     draw = ImageDraw.Draw(cell)
@@ -879,6 +1034,9 @@ FAMILIES = {
         "path": ENEMY_DIR / "looter-sprites",
         "prefix": "looter",
         "draw": lambda d, f, b: draw_humanoid(d, f, b, {"outline": "#2f2418", "cloth": "#8b5e34", "accent": "#c0842e", "leg": "#4b2f1e"}),
+        "render_cell": render_production_looter_cell,
+        "source": "Final raster tomb looter atlas derived from public/assets/expedition/player/asha-final-production-spritesheet.png, recolored and masked into a distinct rival raider while preserving the existing Journey looter frame contract.",
+        "productionReference": LOOTER_PRODUCTION_SOURCE_ATLAS.name,
         "base_y": 322,
     },
     "looterCaptain": {
@@ -991,6 +1149,8 @@ def write_family(name, config):
         "baseline": "bottom-center shared per family; no baked large shadow",
         "regions": make_regions(config["prefix"], base_region, config.get("aliases")),
     }
+    if config.get("productionReference"):
+        atlas["productionReference"] = config["productionReference"]
     json_path.write_text(json.dumps(atlas, indent=2), encoding="utf-8")
 
 

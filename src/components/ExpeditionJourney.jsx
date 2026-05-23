@@ -320,12 +320,12 @@ const KNOWLEDGE_CHALLENGE_FEEDBACK = {
 const LOW_STAMINA_WARNING = 'Stamina low - avoid another hit.';
 const FIELD_RESCUE_MESSAGE = 'You were forced back to the last checkpoint. Recover and try again.';
 const FIELD_RESCUE_STAMINA_REASON = 'Stamina hit zero.';
-const OPENING_THRESHOLD_SCENE_DURATION = 46;
-const OPENING_THRESHOLD_FADE_SECONDS = 2;
-const OPENING_THRESHOLD_STAIR_REVEAL_SECONDS = 13.5;
+const OPENING_THRESHOLD_SCENE_DURATION = 14;
+const OPENING_THRESHOLD_FADE_SECONDS = 1.2;
+const OPENING_THRESHOLD_STAIR_REVEAL_SECONDS = 3.8;
 const OPENING_THRESHOLD_FALL_DELAY_SECONDS = 0.45;
-const OPENING_THRESHOLD_FALL_DURATION_SECONDS = 4.4;
-const OPENING_SPHINX_DURATION = 46;
+const OPENING_THRESHOLD_FALL_DURATION_SECONDS = 1.6;
+const OPENING_SPHINX_DURATION = 14;
 const OPENING_SPHINX_EXIT_SECONDS = 2.35;
 const OPENING_SPHINX_ARRIVAL_SECONDS = 1.05;
 const OPENING_SPHINX_LINE_SECONDS = 2.15;
@@ -611,6 +611,24 @@ const getAtlasImagePath = (atlasPath, imageName) => {
 
 const getHeroSpriteRow = (atlas, rowName) => atlas?.rows?.find(row => row.name === rowName) || null;
 
+const getHeroSpriteFrameDistance = (atlas, rowName) => {
+  const atlasDistance = Number(atlas?.draw?.frameDistance?.[rowName]);
+  if (Number.isFinite(atlasDistance) && atlasDistance > 0) return atlasDistance;
+  if (rowName === 'run') return 15;
+  if (rowName === 'survey_walk') return 34;
+  return 22;
+};
+
+const getHeroSpriteFixedFrame = (atlas, rowName, row) => {
+  const fixedFrame = atlas?.draw?.fixedFrame?.[rowName];
+  if (typeof fixedFrame === 'string' && row?.frames?.includes(fixedFrame)) return fixedFrame;
+  const fixedFrameIndex = Number(fixedFrame);
+  if (Number.isInteger(fixedFrameIndex) && fixedFrameIndex >= 0 && fixedFrameIndex < (row?.frames?.length || 0)) {
+    return row.frames[fixedFrameIndex];
+  }
+  return null;
+};
+
 const isPlayerAttackVisualPhase = (attackState) => (
   attackState === 'windup' || attackState === 'swing' || attackState === 'recoil'
 );
@@ -778,9 +796,11 @@ const getHeroSpriteFrameKey = (current, atlas, now) => {
   if (!row) return null;
   const frameCount = Math.max(1, row.frameCount || row.frames?.length || 1);
   if (row.loop) {
+    const fixedFrame = getHeroSpriteFixedFrame(atlas, rowName, row);
+    if (fixedFrame) return fixedFrame;
     const frame = rowName === 'idle'
       ? Math.floor(now / 150) % frameCount
-      : Math.floor(walkCycleDistance / (rowName === 'run' ? 15 : rowName === 'survey_walk' ? 34 : 22)) % frameCount;
+      : Math.floor(walkCycleDistance / getHeroSpriteFrameDistance(atlas, rowName)) % frameCount;
     return row.frames?.[frame] || null;
   }
   const frame = Math.min(frameCount - 1, current.player.animationFrame ?? 0);
@@ -961,6 +981,26 @@ const ENEMY_TYPE_STAKE_MESSAGES = {
 };
 
 const BOSS_DOMAIN_ENEMY_FOCUS_PADDING = 96;
+const SCARAB_QUEEN_CINEMATIC_INTRO_SECONDS = 5.2;
+const SCARAB_QUEEN_TRIGGER_LOOTER_OFFSET = 260;
+const SCARAB_QUEEN_CINEMATIC_CAMERA_ANCHOR_RATIO = 0.72;
+
+const easeCinematicStep = (value) => {
+  const t = clamp(value, 0, 1);
+  return t * t * (3 - 2 * t);
+};
+
+const getScarabQueenCinematicBeat = (introProgress) => {
+  const sceneProgress = clamp(1 - introProgress, 0, 1);
+  return {
+    sceneProgress,
+    looterApproach: easeCinematicStep(sceneProgress / 0.3),
+    sealStrike: clamp((sceneProgress - 0.24) / 0.2, 0, 1),
+    shockwave: easeCinematicStep(clamp((sceneProgress - 0.36) / 0.28, 0, 1)),
+    queenReveal: easeCinematicStep(clamp((sceneProgress - 0.46) / 0.34, 0, 1)),
+    finalHold: easeCinematicStep(clamp((sceneProgress - 0.78) / 0.18, 0, 1)),
+  };
+};
 
 const isNormalEnemyInsideBossFocus = (enemy, bossDomain) => {
   if (!enemy || !bossDomain) return false;
@@ -1717,6 +1757,13 @@ const getCameraFollowTarget = (current) => {
   }
 
   if (current.bossIntroTimer > 0 && current.bossIntro?.focusX) {
+    if (Number.isFinite(current.bossIntro.cameraAnchorRatio)) {
+      return {
+        mode: 'boss-intro',
+        focusTarget: Math.round(current.bossIntro.focusX),
+        targetCameraX: clampCameraX(current.bossIntro.focusX - CANVAS_WIDTH * current.bossIntro.cameraAnchorRatio),
+      };
+    }
     return getLayoutCameraFollowTarget({
       playerCenterX,
       bossIntroFocusX: current.bossIntro.focusX,
@@ -1813,7 +1860,6 @@ const getOpeningCameraRevealTarget = (current) => {
 };
 
 export default function ExpeditionJourney({
-  mission,
   onComplete,
   onSnapshotChange,
   audioControls,
@@ -8239,10 +8285,28 @@ export default function ExpeditionJourney({
     const shouldFlip = shouldFlipBossSprite(spriteBossId, facing);
     const centerX = screenX + boss.width / 2;
     const baseY = boss.y + boss.height;
-    const visualScale = boss.visualScale || 1;
+    const cinematicReveal = boss.id === 'scarab-queen' && bossVisualState?.cinematicBeat
+      ? bossVisualState.cinematicBeat.queenReveal
+      : 1;
+    const cinematicLift = boss.id === 'scarab-queen' && bossVisualState?.triggeredByLooter
+      ? (1 - cinematicReveal) * 72
+      : 0;
+    const cinematicPulse = boss.id === 'scarab-queen' && bossVisualState?.cinematicBeat
+      ? Math.sin(now / 78) * 0.035 * bossVisualState.cinematicBeat.finalHold
+      : 0;
+    const visualScale = (boss.visualScale || 1) * (boss.id === 'scarab-queen' && bossVisualState?.triggeredByLooter
+      ? 0.86 + cinematicReveal * 0.14 + cinematicPulse
+      : 1);
 
     ctx.save();
-    if (visualScale > 1) {
+    if (boss.id === 'scarab-queen' && bossVisualState?.triggeredByLooter) {
+      ctx.globalAlpha = clamp(0.2 + cinematicReveal * 0.8, 0.2, 1);
+      ctx.translate(0, cinematicLift);
+      if (cinematicReveal < 1) {
+        ctx.filter = `brightness(${0.82 + cinematicReveal * 0.42}) saturate(${0.72 + cinematicReveal * 0.5})`;
+      }
+    }
+    if (visualScale !== 1) {
       ctx.translate(centerX, baseY);
       ctx.scale(visualScale, visualScale);
       ctx.translate(-centerX, -baseY);
@@ -8316,9 +8380,15 @@ export default function ExpeditionJourney({
     const cx = screenX + boss.width / 2;
     const cy = boss.y + boss.height / 2;
     const introActive = stateRef.current.bossIntroTimer > 0 && stateRef.current.bossIntro?.id === boss.id;
+    const activeBossDomain = stateRef.current.bossDomain?.bossId === boss.id ? stateRef.current.bossDomain : null;
+    const introProgress = introActive
+      ? Math.min(1, stateRef.current.bossIntroTimer / (activeBossDomain?.introSeconds || 3.2))
+      : 0;
     const bossVisualState = {
       ...getBossVulnerabilityState(boss),
       introActive,
+      triggeredByLooter: Boolean(activeBossDomain?.triggeredByLooter),
+      cinematicBeat: activeBossDomain?.triggeredByLooter ? getScarabQueenCinematicBeat(introProgress) : null,
     };
 
     ctx.save();
@@ -8870,7 +8940,7 @@ export default function ExpeditionJourney({
       const domainWidth = domainEndX - domainStartX;
       if (domainEndX > -80 && domainStartX < CANVAS_WIDTH + 80) {
         const introProgress = current.bossIntroTimer > 0 && current.bossIntro?.id === activeBossDomain.bossId
-          ? Math.min(1, current.bossIntroTimer / 3.2)
+          ? Math.min(1, current.bossIntroTimer / (activeBossDomain.introSeconds || 3.2))
           : 0;
         ctx.save();
         ctx.fillStyle = activeBossDomain.tint || 'rgba(67, 24, 24, 0.16)';
@@ -8878,10 +8948,81 @@ export default function ExpeditionJourney({
         if (introProgress > 0) {
           ctx.fillStyle = `rgba(12, 8, 5, ${0.22 + introProgress * 0.2})`;
           ctx.fillRect(Math.max(0, domainStartX), 0, Math.min(CANVAS_WIDTH, domainWidth), CANVAS_HEIGHT);
-          [
-            { x: current.player.x + current.player.width / 2, label: 'FIELD TEAM' },
-            { x: current.bossIntro.focusX, label: 'GUARDIAN' },
-          ].forEach(marker => {
+          if (activeBossDomain.triggeredByLooter) {
+            const beat = getScarabQueenCinematicBeat(introProgress);
+            const strikeWorldX = activeBossDomain.triggerLooterX || (activeBossDomain.arenaStart + 120);
+            const looterWorldX = strikeWorldX - 118 + 118 * beat.looterApproach;
+            const looterScreenX = worldToScreenX(looterWorldX, cameraX);
+            const sealScreenX = worldToScreenX(activeBossDomain.bossStartX || current.bossIntro.focusX, cameraX);
+            const sealPulse = Math.sin(now / 120) * (0.12 + beat.shockwave * 0.18) + 0.9 + beat.shockwave * 0.22;
+            const revealProgress = beat.sceneProgress;
+            if (sealScreenX > -120 && sealScreenX < CANVAS_WIDTH + 120) {
+              const sealGlow = ctx.createRadialGradient(sealScreenX, GROUND_Y - 72, 12, sealScreenX, GROUND_Y - 72, 170 * sealPulse + beat.shockwave * 90);
+              sealGlow.addColorStop(0, `rgba(250, 204, 21, ${0.2 + beat.sealStrike * 0.28 + beat.queenReveal * 0.16})`);
+              sealGlow.addColorStop(0.48, `rgba(245, 158, 11, ${0.1 + beat.shockwave * 0.2})`);
+              sealGlow.addColorStop(1, 'rgba(120, 53, 15, 0)');
+              ctx.fillStyle = sealGlow;
+              ctx.beginPath();
+              ctx.ellipse(sealScreenX, GROUND_Y - 72, 156 * sealPulse, 72 * sealPulse, 0, 0, Math.PI * 2);
+              ctx.fill();
+              if (beat.shockwave > 0) {
+                ctx.strokeStyle = `rgba(253, 224, 71, ${0.62 * (1 - beat.shockwave)})`;
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.arc(sealScreenX, GROUND_Y - 62, 26 + beat.shockwave * 230, 0, Math.PI * 2);
+                ctx.stroke();
+              }
+              ctx.strokeStyle = `rgba(250, 204, 21, ${0.45 + revealProgress * 0.25})`;
+              ctx.lineWidth = 2;
+              [0, 1, 2].forEach((ring) => {
+                ctx.beginPath();
+                ctx.ellipse(sealScreenX, GROUND_Y - 40, 48 + ring * 32 + revealProgress * 18, 12 + ring * 6, 0, 0, Math.PI * 2);
+                ctx.stroke();
+              });
+              ctx.fillStyle = `rgba(217, 119, 6, ${0.16 + beat.queenReveal * 0.2})`;
+              for (let index = 0; index < 18; index += 1) {
+                const angle = (index / 18) * Math.PI * 2 + now / 900;
+                const radius = 28 + beat.queenReveal * 132 + Math.sin(now / 80 + index) * 8;
+                ctx.beginPath();
+                ctx.arc(sealScreenX + Math.cos(angle) * radius, GROUND_Y - 30 + Math.sin(angle) * radius * 0.24, 2.2 + beat.shockwave * 1.8, 0, Math.PI * 2);
+                ctx.fill();
+              }
+            }
+            if (looterScreenX > -120 && looterScreenX < CANVAS_WIDTH + 120) {
+              drawSmallEnemySprite(ctx, {
+                id: 'scarab-queen-trigger-looter',
+                name: 'Tomb Looter',
+                type: 'looter',
+                x: looterWorldX,
+                y: GROUND_Y - 66,
+                width: 48,
+                height: 66,
+                direction: -1,
+                attackDirection: -1,
+                attackTimer: beat.sealStrike > 0.52 && beat.sealStrike < 0.95 ? 0.22 : 0,
+                attackWindup: beat.sealStrike > 0.12 && beat.sealStrike <= 0.52 ? 0.2 : 0,
+                attackRecovery: 0,
+                attackCooldown: 0,
+                stunTimer: beat.shockwave > 0.34 ? 0.2 : 0,
+                hitFlash: beat.shockwave > 0.18 ? 0.08 : 0,
+                defeated: false,
+              }, looterScreenX, now, beat.shockwave > 0.18 ? Math.sin(now / 20) * (2 + beat.shockwave * 2) : 0);
+              ctx.fillStyle = 'rgba(15, 23, 42, 0.78)';
+              ctx.roundRect(looterScreenX - 62, GROUND_Y - 118, 124, 22, 6);
+              ctx.fill();
+              ctx.fillStyle = '#fde68a';
+              ctx.font = '900 9px Outfit, sans-serif';
+              ctx.textAlign = 'center';
+              ctx.fillText(beat.queenReveal > 0.25 ? 'QUEEN AWAKENS' : 'LOOTER BROKE THE SEAL', looterScreenX, GROUND_Y - 103);
+            }
+          }
+          const introMarkers = activeBossDomain.triggeredByLooter
+            ? [{ x: current.bossIntro.focusX, label: 'GUARDIAN' }]
+            : [
+              { x: current.player.x + current.player.width / 2, label: 'FIELD TEAM' },
+              { x: current.bossIntro.focusX, label: 'GUARDIAN' },
+            ];
+          introMarkers.forEach(marker => {
             const markerX = worldToScreenX(marker.x, cameraX);
             if (markerX < -80 || markerX > CANVAS_WIDTH + 80) return;
             const pulse = Math.sin(now / 180) * 0.12 + 0.88;
@@ -9083,7 +9224,8 @@ export default function ExpeditionJourney({
       const bx = worldToScreenX(boss.x, cameraX);
       if (!isHorizontallyVisible(boss.x, boss.width, cameraX, 100)) return;
       drawMiniBoss(ctx, boss, bx, now);
-      drawEnemyAttackTell(ctx, boss, bx, cameraX, now, true, true);
+      const bossIntroActive = current.bossIntroTimer > 0 && current.bossIntro?.id === boss.id;
+      if (!bossIntroActive) drawEnemyAttackTell(ctx, boss, bx, cameraX, now, true, true);
     });
 
     (current.bossKeyItems || []).forEach((keyItem) => {
@@ -9360,7 +9502,22 @@ export default function ExpeditionJourney({
       ctx.fillText(featureCard.name || featureCard.title, cardCenterX, cardY + (isSectionCard ? 22 : 30));
       ctx.font = isSectionCard ? '800 11px Outfit' : '800 12px Outfit';
       ctx.fillStyle = isSectionCard ? 'rgba(255, 247, 226, 0.88)' : '#fff4d4';
-      ctx.fillText(featureCard.message || '', cardCenterX, cardY + (isGuardianCard ? 60 : isSectionCard ? 42 : 54));
+      const messageText = featureCard.message || '';
+      if (isGuardianCard && messageText) {
+        const words = messageText.split(' ');
+        const lines = words.reduce((nextLines, word) => {
+          const currentLine = nextLines[nextLines.length - 1] || '';
+          const candidate = currentLine ? `${currentLine} ${word}` : word;
+          return ctx.measureText(candidate).width <= cardWidth - 62
+            ? [...nextLines.slice(0, -1), candidate]
+            : [...nextLines, word];
+        }, ['']).filter(Boolean).slice(0, 2);
+        lines.forEach((line, index) => {
+          ctx.fillText(line, cardCenterX, cardY + 56 + index * 16);
+        });
+      } else {
+        ctx.fillText(messageText, cardCenterX, cardY + (isSectionCard ? 42 : 54));
+      }
       ctx.textAlign = 'start';
     }
   }, [backgroundPackId, drawAncientRouteGround, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawRouteGate, drawRouteGroundApron, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getGateGuidance, getGateRequirements, getPlayerAttackState, isRouteRewardAccessible, drawPlayerSprite, drawFieldNoteLabel]);
@@ -9393,7 +9550,15 @@ export default function ExpeditionJourney({
     current.sectionTransition = null;
     current.sectionTransitionTimer = 0;
     current.lastSectionId = openingSection?.id || 'desert-entry';
-    current.notice = SCARAB_SEAL_TRIGGER.guideFollowUpLine;
+    current.notice = SCARAB_SEAL_TRIGGER.objectiveEchoLine;
+    current.cinematicEvent = {
+      id: 'opening-first-objective-echo',
+      name: 'First Objective',
+      message: SCARAB_SEAL_TRIGGER.objectiveEchoLine,
+      temporary: true,
+    };
+    current.cinematicTimer = 2.8;
+    current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 2.4);
     current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.18);
     current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.08);
     syncHud();
@@ -9557,7 +9722,7 @@ export default function ExpeditionJourney({
         type: SCARAB_SEAL_TRIGGER.eventType,
         x: SCARAB_SEAL_TRIGGER.x,
         name: SCARAB_SEAL_TRIGGER.eventName,
-        message: '',
+        message: SCARAB_SEAL_TRIGGER.sealEmphasisMessage,
         duration: Math.min(SCARAB_SEAL_TRIGGER.duration, 1.4),
         shake: SCARAB_SEAL_TRIGGER.shake,
         card: false,
@@ -9565,11 +9730,11 @@ export default function ExpeditionJourney({
       current.dynamicEnvironmentEventTimer = current.dynamicEnvironmentEvent.duration;
       current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.24);
       current.cameraShakeStrength = Math.max(current.cameraShakeStrength, SCARAB_SEAL_TRIGGER.shake * 0.7);
-      addRewardPulse('scarab-seal-awakening', SCARAB_SEAL_TRIGGER.x, SCARAB_SEAL_TRIGGER.y, 'SEAL AWAKENS', {
+      addRewardPulse('scarab-seal-awakening', SCARAB_SEAL_TRIGGER.x, SCARAB_SEAL_TRIGGER.y, SCARAB_SEAL_TRIGGER.sealPulseLabel, {
         color: '#b45309',
         fill: 'rgba(180, 83, 9, 0.12)',
-        radius: 58,
-        timer: 0.72,
+        radius: SCARAB_SEAL_TRIGGER.sealPulseRadius,
+        timer: SCARAB_SEAL_TRIGGER.sealPulseDuration,
       });
       audioControls?.playExpeditionSfx?.('openingThresholdAtmosphere');
     };
@@ -10106,15 +10271,9 @@ export default function ExpeditionJourney({
         current.triggeredEnvironmentEventIds.add(SCARAB_SEAL_TRIGGER.id);
         const sphinxX = Math.min(player.x + 360, SCARAB_SEAL_TRIGGER.x + 430);
         const thresholdLines = SCARAB_SEAL_TRIGGER.messages.map((text, index) => ({
-          speaker: [
-            'Anubis', 'Anubis', 'Asha', 'Anubis', 'Asha', 'Anubis', 'Asha', 'Asha', 'Anubis',
-            'Asha', 'Anubis', 'Anubis', 'Asha', 'Anubis', 'Anubis', 'Anubis', 'Anubis',
-          ][index] || 'Anubis',
+          speaker: SCARAB_SEAL_TRIGGER.dialogueSpeakers?.[index] || 'Anubis',
           text,
-          at: [
-            1.6, 4.2, 7.3, 9.9, 12.8, 15.6, 18.5, 21.0, 23.5,
-            25.9, 29.0, 31.9, 34.6, 37.4, 40.0, 42.2, 43.8,
-          ][index] || index * 1.9,
+          at: SCARAB_SEAL_TRIGGER.dialogueTiming?.[index] ?? index * 2.2,
         }));
         current.openingThresholdScene = {
           id: 'opening-false-scarab-threshold',
@@ -10161,23 +10320,25 @@ export default function ExpeditionJourney({
           type: SCARAB_SEAL_TRIGGER.eventType,
           x: SCARAB_SEAL_TRIGGER.x,
           name: SCARAB_SEAL_TRIGGER.eventName,
-          message: '',
+          message: SCARAB_SEAL_TRIGGER.sealEmphasisMessage,
           duration: SCARAB_SEAL_TRIGGER.duration,
           shake: SCARAB_SEAL_TRIGGER.shake,
           card: false,
         };
         current.dynamicEnvironmentEventTimer = SCARAB_SEAL_TRIGGER.duration;
+        current.openingCameraRevealDuration = SCARAB_SEAL_TRIGGER.cameraRevealDuration;
+        current.openingCameraRevealTimer = Math.max(current.openingCameraRevealTimer || 0, SCARAB_SEAL_TRIGGER.cameraRevealDuration);
         current.cinematicEvent = null;
         current.cinematicTimer = 0;
         current.cameraShakeTimer = Math.max(current.cameraShakeTimer, SCARAB_SEAL_TRIGGER.duration * 0.45);
         current.cameraShakeStrength = Math.max(current.cameraShakeStrength, SCARAB_SEAL_TRIGGER.shake);
         current.notice = '';
         current.hitStopTimer = Math.max(current.hitStopTimer, 0.12);
-        addRewardPulse('scarab-seal-awakening', SCARAB_SEAL_TRIGGER.x, SCARAB_SEAL_TRIGGER.y, 'SEAL AWAKENS', {
+        addRewardPulse('scarab-seal-awakening', SCARAB_SEAL_TRIGGER.x, SCARAB_SEAL_TRIGGER.y, SCARAB_SEAL_TRIGGER.sealPulseLabel, {
           color: '#38bdf8',
           fill: 'rgba(56, 189, 248, 0.14)',
-          radius: 58,
-          timer: 0.78,
+          radius: SCARAB_SEAL_TRIGGER.sealPulseRadius,
+          timer: SCARAB_SEAL_TRIGGER.sealPulseDuration,
         });
         audioControls?.playExpeditionSfx?.('openingThresholdAtmosphere');
       }
@@ -10298,6 +10459,23 @@ export default function ExpeditionJourney({
             : 'Relic shard recovered. Spend these at Base Camp.';
         }
         current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 1.8);
+        const shouldEchoOpeningFirstShard = backgroundPackId !== 'china-river-valley'
+          && current.scarabSealActivated
+          && !current.openingFirstShardEchoSeen
+          && current.relicShardCount === 1
+          && shardGateProgress?.gate?.id === 'temple-approach-seal';
+        if (shouldEchoOpeningFirstShard) {
+          current.openingFirstShardEchoSeen = true;
+          current.notice = SCARAB_SEAL_TRIGGER.firstShardEchoLine;
+          current.cinematicEvent = {
+            id: 'opening-first-shard-echo',
+            name: 'Asha',
+            message: SCARAB_SEAL_TRIGGER.firstShardEchoLine,
+            temporary: true,
+          };
+          current.cinematicTimer = 2.4;
+          current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 2.2);
+        }
         audioControls?.playExpeditionSfx?.('pickupShard');
         audioControls?.playSuccess?.();
       }
@@ -10973,6 +11151,7 @@ export default function ExpeditionJourney({
           : null;
         const arenaStart = b.arenaStart ?? Math.max(0, b.x - 160);
         const arenaEnd = b.arenaEnd ?? Math.min(WORLD_WIDTH, b.x + 180);
+        const scarabQueenCinematic = b.id === SCARAB_SEAL_TRIGGER.bossId && backgroundPackId !== 'china-river-valley';
         const playerDomainStartX = arenaStart + 44;
         player.x = playerDomainStartX;
         player.y = GROUND_Y - player.height;
@@ -11007,16 +11186,24 @@ export default function ExpeditionJourney({
             ? 'rgba(49, 46, 129, 0.16)'
             : b.sectionId === 'escape-sequence'
               ? 'rgba(127, 29, 29, 0.14)'
-              : 'rgba(120, 53, 15, 0.14)',
-          suppressVisuals: b.id === SCARAB_SEAL_TRIGGER.bossId,
+              : scarabQueenCinematic
+                ? 'rgba(92, 35, 15, 0.24)'
+                : 'rgba(120, 53, 15, 0.14)',
+          suppressVisuals: false,
+          triggeredByLooter: scarabQueenCinematic,
+          triggerLooterX: Math.max(arenaStart + 80, b.x - SCARAB_QUEEN_TRIGGER_LOOTER_OFFSET),
+          introSeconds: scarabQueenCinematic ? SCARAB_QUEEN_CINEMATIC_INTRO_SECONDS : 3.2,
         };
         current.bossIntro = {
           id: b.id,
-          title: `Guardian Encounter: ${b.name}`,
+          title: scarabQueenCinematic ? `Seal Breach: ${b.name}` : `Guardian Encounter: ${b.name}`,
           message: scarabSealBossIntroLine || (keyItem
             ? b.dialogue || `Defeat the guardian to recover the ${keyItem.name}.`
             : b.intro),
           focusX: b.x,
+          triggerActor: scarabQueenCinematic ? 'Tomb Looter' : null,
+          triggerLine: scarabQueenCinematic ? 'A looter cracked the guardian seal. The Scarab Queen is awake.' : null,
+          cameraAnchorRatio: scarabQueenCinematic ? SCARAB_QUEEN_CINEMATIC_CAMERA_ANCHOR_RATIO : null,
           dialogue: scarabSealBossIntroLine || b.dialogue || null,
           domainName: b.domainName || `${b.name} Domain`,
           rewardName: keyItem?.name || null,
@@ -11040,11 +11227,13 @@ export default function ExpeditionJourney({
             };
           }
         }
-        current.bossIntroTimer = 3.2;
-        current.bossIntroPauseTimer = 3.2;
-        current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.35);
-        current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.32);
-        const arenaCamera = clampCameraX(((arenaStart + arenaEnd) / 2) - (CANVAS_WIDTH / 2));
+        current.bossIntroTimer = scarabQueenCinematic ? SCARAB_QUEEN_CINEMATIC_INTRO_SECONDS : 3.2;
+        current.bossIntroPauseTimer = scarabQueenCinematic ? SCARAB_QUEEN_CINEMATIC_INTRO_SECONDS : 3.2;
+        current.cameraShakeTimer = Math.max(current.cameraShakeTimer, scarabQueenCinematic ? 0.62 : 0.35);
+        current.cameraShakeStrength = Math.max(current.cameraShakeStrength, scarabQueenCinematic ? 0.42 : 0.32);
+        const arenaCamera = scarabQueenCinematic
+          ? clampCameraX(b.x - CANVAS_WIDTH * SCARAB_QUEEN_CINEMATIC_CAMERA_ANCHOR_RATIO)
+          : clampCameraX(((arenaStart + arenaEnd) / 2) - (CANVAS_WIDTH / 2));
         current.cameraX = arenaCamera;
         current.targetCameraX = arenaCamera;
         current.cameraMode = 'boss-domain';
@@ -11406,9 +11595,10 @@ export default function ExpeditionJourney({
           if (!boss) return;
           const arenaStart = boss.arenaStart ?? Math.max(0, boss.x - 160);
           const arenaEnd = boss.arenaEnd ?? Math.min(WORLD_WIDTH, boss.x + 180);
+          const scarabQueenCinematic = boss.id === SCARAB_SEAL_TRIGGER.bossId && backgroundPackId !== 'china-river-valley';
           const section = SECTIONS.find(item => item.id === boss.sectionId);
           const sectionCheckpoint = CHECKPOINTS.find(checkpoint => checkpoint.id === boss.sectionId);
-          if (boss.id === SCARAB_SEAL_TRIGGER.bossId && backgroundPackId !== 'china-river-valley') {
+          if (scarabQueenCinematic) {
             current.scarabSealActivated = true;
             current.openingConfrontationSeen = true;
             current.collapsedPlatformIds.add('opening-scarab-seal-summit');
@@ -11472,11 +11662,48 @@ export default function ExpeditionJourney({
             playerStartX: Math.round(current.player.x),
             bossStartX: Math.round(boss.x),
             color: '#facc15',
-            tint: 'rgba(120, 53, 15, 0.14)',
+            tint: scarabQueenCinematic ? 'rgba(92, 35, 15, 0.24)' : 'rgba(120, 53, 15, 0.14)',
+            suppressVisuals: false,
+            triggeredByLooter: scarabQueenCinematic,
+            triggerLooterX: Math.max(arenaStart + 80, boss.x - SCARAB_QUEEN_TRIGGER_LOOTER_OFFSET),
+            introSeconds: scarabQueenCinematic ? SCARAB_QUEEN_CINEMATIC_INTRO_SECONDS : 3.2,
           };
-          current.cameraX = clampCameraX(((arenaStart + arenaEnd) / 2) - (CANVAS_WIDTH / 2));
+          if (scarabQueenCinematic) {
+            current.bossIntro = {
+              id: boss.id,
+              title: `Seal Breach: ${boss.name}`,
+              message: SCARAB_SEAL_TRIGGER.bossIntroLine,
+              focusX: boss.x,
+              triggerActor: 'Tomb Looter',
+              triggerLine: 'A looter cracked the guardian seal. The Scarab Queen is awake.',
+              cameraAnchorRatio: SCARAB_QUEEN_CINEMATIC_CAMERA_ANCHOR_RATIO,
+              dialogue: SCARAB_SEAL_TRIGGER.bossIntroLine,
+              domainName: boss.domainName || `${boss.name} Domain`,
+              rewardName: null,
+            };
+            current.bossIntroTimer = SCARAB_QUEEN_CINEMATIC_INTRO_SECONDS;
+            current.bossIntroPauseTimer = SCARAB_QUEEN_CINEMATIC_INTRO_SECONDS;
+            current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.62);
+            current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.42);
+          }
+          current.cameraX = scarabQueenCinematic
+            ? clampCameraX(boss.x - CANVAS_WIDTH * SCARAB_QUEEN_CINEMATIC_CAMERA_ANCHOR_RATIO)
+            : clampCameraX(((arenaStart + arenaEnd) / 2) - (CANVAS_WIDTH / 2));
           current.targetCameraX = current.cameraX;
-          current.notice = `Developer mode: ${boss.name} encounter ready.`;
+          current.notice = scarabQueenCinematic ? SCARAB_SEAL_TRIGGER.bossIntroLine : `Developer mode: ${boss.name} encounter ready.`;
+          step(0);
+          syncHud();
+          return;
+        }
+        if (target === 'journey-boss-intro-progress') {
+          const current = stateRef.current;
+          if (!current.bossDomain || !current.bossIntro) return;
+          const introSeconds = current.bossDomain.introSeconds || 3.2;
+          const sampledProgress = clamp(Number(event.detail?.progress), 0, 1);
+          current.bossIntroTimer = Math.max(0.01, (1 - sampledProgress) * introSeconds);
+          current.bossIntroPauseTimer = Math.max(current.bossIntroTimer, 0.01);
+          current.cameraShakeTimer = Math.max(current.cameraShakeTimer, sampledProgress > 0.32 && sampledProgress < 0.68 ? 0.42 : 0.08);
+          current.cameraShakeStrength = Math.max(current.cameraShakeStrength, sampledProgress > 0.32 && sampledProgress < 0.68 ? 0.44 : 0.16);
           step(0);
           syncHud();
           return;
@@ -11871,10 +12098,10 @@ export default function ExpeditionJourney({
               <div className="briefing-header-copy">
                 <div className="briefing-kicker">
                   <Flag size={16} />
-                  Field Mission Dossier
+                  Expedition Arrival
                 </div>
                 <h1 className="cinzel-header">Lost Site Expedition</h1>
-                <p>Navigate the route, collect your field kit, and reach Base Camp.</p>
+                <p>Asha reaches a sealed Egyptian site. Anubis is waiting at the first seal.</p>
               </div>
               <div className="briefing-hero-mark" aria-hidden="true">
                 <span className="briefing-sun" />
@@ -11886,25 +12113,25 @@ export default function ExpeditionJourney({
             </div>
             <div className="briefing-content">
               <div className="mission-dossier expedition-start-dossier">
-                <div className="dossier-tag">ACTIVE MISSION</div>
-                <h2 className="mission-title">{mission.title}</h2>
+                <div className="dossier-tag">SEALED SITE</div>
+                <h2 className="mission-title">Anubis tests the expedition</h2>
                 <p className="mission-desc">
-                  {mission.instruction || `Search for evidence that supports ${targetCivilisation}.`}
+                  The route below is closed until Asha proves the expedition has come to protect what it finds.
                 </p>
               </div>
               <div className="briefing-task-panel">
                 <div className="briefing-task-heading">
                   <Map size={18} />
-                  <h2>Your task</h2>
+                  <h2>Opening objective</h2>
                 </div>
                 <ul className="briefing-task-list">
                   {[
-                    'Collect field tools',
-                    'Avoid hazards and conserve stamina',
-                    'Reach Base Camp',
-                    'Survey the site',
-                    'Find 3 pieces of structural evidence',
-                    'Make a claim using evidence',
+                    'Enter the sealed site',
+                    'Hear Anubis at the scarab seal',
+                    'Gather shards',
+                    'Recover tools',
+                    'Defeat guardians',
+                    'Open the excavation site',
                   ].map(task => (
                     <li key={task}>
                       <CheckCircle2 size={16} />

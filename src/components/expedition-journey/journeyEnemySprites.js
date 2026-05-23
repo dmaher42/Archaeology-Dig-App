@@ -17,11 +17,11 @@ export const CHINA_ENEMY_GUARDIAN_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}
 export const CHINA_RIVER_CRAB_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-river-crab-sprites.json`;
 export const CHINA_WATCHTOWER_SENTRY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-watchtower-sentry-sprites.json`;
 export const CHINA_CLAY_GUARDIAN_ENEMY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-clay-guardian-enemy-sprites.json`;
-export const ENEMY_SPRITE_ATLAS_VERSION = 'enemy-sprite-packs-2026-05-23-bes-guardian';
+export const ENEMY_SPRITE_ATLAS_VERSION = 'enemy-sprite-packs-2026-05-23-final-looter';
 export const ENEMY_SPRITE_GROUNDING_VERSION = 'enemy-sprite-grounding-2026-05-18';
 export const MIN_ENEMY_DRAW_HEIGHT = 34;
 export const ENEMY_VISUAL_SIZE_MULTIPLIER = 1.5;
-export const MUMMY_ASHA_SIZE_MULTIPLIER = 1.1;
+export const MUMMY_ASHA_SIZE_MULTIPLIER = 1.265;
 const ENEMY_VISUAL_SIZE_MULTIPLIERS = {
   scarab: 2.7,
   snake: 1.42,

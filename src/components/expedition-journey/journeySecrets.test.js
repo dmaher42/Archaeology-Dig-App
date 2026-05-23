@@ -256,11 +256,13 @@ test('Ancient Egypt opening stages archaeologist arrival and warrior-guide story
   });
 
   assert.match(events, /id:\s*'opening-archaeologist-arrival'/);
-  assert.match(events, /The archaeologist reaches the sealed site\./);
+  assert.match(events, /The expedition reaches a huge sealed Egyptian site\./);
   assert.match(events, /id:\s*'opening-guardian-challenge'/);
-  assert.match(events, /This is a protected place\. Move with care and earn the right to pass\./);
+  assert.match(events, /Anubis watches from the seal\. The site will not open without proof\./);
   assert.match(events, /id:\s*'opening-warrior-guide-entry'/);
-  assert.match(events, /I will guide you\. Gather shards, recover tools, and treat the ancient site with respect\./);
+  assert.match(events, /Asha guards the route toward excavation\./);
+  assert.match(events, /id:\s*'relic-shard-purpose-note-read'/);
+  assert.match(events, /Gather shards\. Recover tools\. Defeat guardians\. Open the excavation site\./);
   assert.match(events, /id:\s*'opening-guide-careful-tools'/);
   assert.match(events, /Good\. Evidence and tools open the path - not force\./);
   assert.match(events, /id:\s*'opening-sacred-threshold-watch'/);
@@ -278,7 +280,7 @@ test('Ancient Egypt opening stages archaeologist arrival and warrior-guide story
   assert.match(routeGates, /Recover evidence, shards, and the Brush Handle to earn passage into the ruined temple\./);
   assert.match(routeGates, /Record what you found, then move into the ruined temple entry\./);
   assert.match(miniBosses, /id:\s*'scarab-queen'[\s\S]*?health:\s*1,\s*damage:\s*4/);
-  assert.match(miniBosses, /Anubis sets the first trial\. Dodge the Scarab Queen charge, then strike when she staggers\./);
+  assert.match(miniBosses, /A tomb looter cracked the guardian seal\. The Scarab Queen erupts awake\. Dodge her charge, then strike when she staggers\./);
   assert.match(bossKeyItems, /id:\s*'brush-handle'[\s\S]*?You passed the first guardian test\. Record what you found before moving deeper\. Desert Map Seal is open\./);
   assert.match(journeyComponentSource, /const GUARDIAN_KNOWLEDGE_CHALLENGES_ENABLED = false;/);
 });
@@ -298,7 +300,7 @@ test('Egypt Phase 1 boss identity changes preserve progression ids and China nam
   ].forEach((pattern) => assert.match(miniBosses, pattern));
 
   [
-    'Anubis sets the first trial. Dodge the Scarab Queen charge, then strike when she staggers.',
+    'A tomb looter cracked the guardian seal. The Scarab Queen erupts awake. Dodge her charge, then strike when she staggers.',
     'Anubis stands at the temple path. Only those who move with respect may pass.',
     'The Uraeus coils around the sacred seal. The path forward is protected.',
     'Bes blocks the broken passage with a fierce grin. This place will not be rushed.',
@@ -398,13 +400,14 @@ test('opening Scarab Seal becomes a restrained false-discovery threshold scene',
   assert.match(source, /y:\s*JY\(-117\)/);
   assert.match(source, /width:\s*160/);
   assert.match(source, /height:\s*90/);
-  assert.match(source, /So\.\.\./);
-  assert.match(source, /Another seeker reaches the gate\./);
-  assert.match(source, /I'm not here for treasure\./);
-  assert.match(source, /They all said that\./);
-  assert.match(source, /This isn't the real relic\./);
-  assert.match(source, /\.\.\.few recognize the decoy\./);
-  assert.match(source, /The ruins remember every careless step\./);
+  assert.match(source, /Turn back, explorer\. This site is sealed by judgement\./);
+  assert.match(source, /My guardians hold the shards and tools of passage\./);
+  assert.match(source, /Then I will guide you\. These artefacts must not be lost\./);
+  assert.match(source, /Gather shards\. Recover tools\. Defeat guardians\. Open the excavation site\./);
+  assert.match(source, /sealEmphasisMessage:\s*'Anubis has noticed you\. The seal answers with stone and dust\.'/);
+  assert.match(source, /sealPulseLabel:\s*'ANUBIS SEAL'/);
+  assert.match(source, /objectiveEchoLine:\s*'First objective: gather 4 relic shards to open the Temple Approach Seal\.'/);
+  assert.match(source, /firstShardEchoLine:\s*'First shard recovered\. Three more will open the Temple Approach Seal\.'/);
   assert.match(source, /eventName:\s*'Anubis'/);
   assert.doesNotMatch(source.slice(source.indexOf('export const SCARAB_SEAL_TRIGGER = {'), source.indexOf('export const HAZARDS = [')), /The Sphinx has sent its first guardian/);
   assert.match(source, /stairwellRevealLine:\s*'A hidden stairwell opens beneath the ruins\.'/);
@@ -447,9 +450,9 @@ test('opening Scarab Seal becomes a restrained false-discovery threshold scene',
   assert.match(journeyComponentSource, /phase:\s*'false-discovery'/);
   assert.match(journeyComponentSource, /lockMovement:\s*true/);
   assert.match(journeyComponentSource, /transitionTargetSectionId:\s*'desert-entry'/);
-  assert.match(journeyComponentSource, /OPENING_THRESHOLD_SCENE_DURATION = 46/);
-  assert.match(journeyComponentSource, /OPENING_THRESHOLD_FADE_SECONDS = 2/);
-  assert.match(journeyComponentSource, /OPENING_THRESHOLD_STAIR_REVEAL_SECONDS = 13\.5/);
+  assert.match(journeyComponentSource, /OPENING_THRESHOLD_SCENE_DURATION = 14/);
+  assert.match(journeyComponentSource, /OPENING_THRESHOLD_FADE_SECONDS = 1\.2/);
+  assert.match(journeyComponentSource, /OPENING_THRESHOLD_STAIR_REVEAL_SECONDS = 3\.8/);
   assert.match(journeyComponentSource, /drawOpeningThresholdScene/);
   assert.match(journeyComponentSource, /getOpeningThresholdDialogueLine/);
   assert.match(journeyComponentSource, /current\.openingThresholdScene\.timer/);
@@ -463,8 +466,19 @@ test('opening Scarab Seal becomes a restrained false-discovery threshold scene',
   assert.doesNotMatch(journeyComponentSource, /current\.seenBossIntroIds\.add\(SCARAB_SEAL_TRIGGER\.bossId\)/);
   assert.match(journeyComponentSource, /current\.collapsedPlatformIds\.add\('opening-scarab-seal-summit'\)/);
   assert.match(journeyComponentSource, /current\.triggeredEnvironmentEventIds\.add\(SCARAB_SEAL_TRIGGER\.id\)/);
+  assert.match(journeyComponentSource, /message:\s*SCARAB_SEAL_TRIGGER\.sealEmphasisMessage/);
+  assert.match(journeyComponentSource, /current\.openingCameraRevealDuration = SCARAB_SEAL_TRIGGER\.cameraRevealDuration/);
+  assert.match(journeyComponentSource, /current\.openingCameraRevealTimer = Math\.max\(current\.openingCameraRevealTimer \|\| 0, SCARAB_SEAL_TRIGGER\.cameraRevealDuration\)/);
+  assert.match(journeyComponentSource, /SCARAB_SEAL_TRIGGER\.sealPulseLabel/);
+  assert.match(journeyComponentSource, /current\.notice = SCARAB_SEAL_TRIGGER\.objectiveEchoLine/);
+  assert.match(journeyComponentSource, /id:\s*'opening-first-objective-echo'/);
+  assert.match(journeyUtilsSource, /openingFirstShardEchoSeen:\s*false/);
+  assert.match(journeyComponentSource, /current\.scarabSealActivated[\s\S]*?!current\.openingFirstShardEchoSeen[\s\S]*?current\.relicShardCount === 1/);
+  assert.match(journeyComponentSource, /current\.openingFirstShardEchoSeen = true;/);
+  assert.match(journeyComponentSource, /id:\s*'opening-first-shard-echo'/);
+  assert.match(journeyComponentSource, /message:\s*SCARAB_SEAL_TRIGGER\.firstShardEchoLine/);
   assert.match(journeyComponentSource, /current\.openingSphinxEncounter = \{/);
-  assert.match(journeyComponentSource, /const OPENING_SPHINX_DURATION = 46;/);
+  assert.match(journeyComponentSource, /const OPENING_SPHINX_DURATION = 14;/);
   assert.match(journeyComponentSource, /const OPENING_SPHINX_EXIT_SECONDS = 2\.35;/);
   assert.match(journeyComponentSource, /const OPENING_SPHINX_ARRIVAL_SECONDS = 1\.05;/);
   assert.match(journeyComponentSource, /const OPENING_SPHINX_LINE_SECONDS = 2\.15;/);
@@ -503,12 +517,12 @@ test('opening Scarab Seal becomes a restrained false-discovery threshold scene',
   assert.match(appSource, /opening-desert-wind\.ogg/);
   assert.match(appSource, /opening-deep-rumble\.ogg/);
   assert.match(appSource, /opening-earth-shake\.flac/);
-  assert.match(journeyComponentSource, /1\.6,\s*4\.2,\s*7\.3,\s*9\.9,\s*12\.8/);
-  assert.match(journeyComponentSource, /40\.0,\s*42\.2,\s*43\.8/);
+  assert.match(source, /dialogueTiming:\s*\[0\.8,\s*3\.2,\s*5\.8,\s*8\.4,\s*11\]/);
+  assert.match(source, /dialogueSpeakers:\s*\['Anubis',\s*'Anubis',\s*'Anubis',\s*'Asha',\s*'Objective'\]/);
   assert.match(journeyComponentSource, /message:\s*SCARAB_SEAL_TRIGGER\.messages\.join\(' '\)/);
   assert.match(journeyComponentSource, /lines:\s*SCARAB_SEAL_TRIGGER\.messages/);
   assert.match(journeyComponentSource, /visibleLineCount/);
-  assert.match(journeyComponentSource, /dynamicEnvironmentEvent[\s\S]*?message:\s*''/);
+  assert.match(journeyComponentSource, /dynamicEnvironmentEvent[\s\S]*?message:\s*SCARAB_SEAL_TRIGGER\.sealEmphasisMessage/);
   assert.match(journeyComponentSource, /current\.hitStopTimer = Math\.max\(current\.hitStopTimer, 0\.12\)/);
   assert.match(journeyComponentSource, /drawOpeningSphinxEncounter/);
   assert.match(journeyComponentSource, /openingSphinxApparitionRef = useRef\(\{ image: null, loaded: false, failed: false \}\)/);
@@ -886,8 +900,14 @@ test('Asha V5 is available as a separate character-loader atlas', () => {
   assert.equal(ashaV5PlayerAtlas.status, 'production-candidate-asha-v5-alternative');
   assert.equal(ashaV5PlayerAtlas.productionReference, 'asha-v5-reference.png');
   assert.equal(ashaV5PlayerAtlas.draw.height, 119);
+  assert.equal(ashaV5PlayerAtlas.draw.frameDistance.run, 26);
+  assert.equal(ashaV5PlayerAtlas.draw.frameDistance.walk, 22);
+  assert.equal(ashaV5PlayerAtlas.draw.frameDistance.survey_walk, 34);
+  assert.equal(ashaV5PlayerAtlas.draw.fixedFrame.idle, 'idle_00');
   assert.ok(ashaV5PlayerAtlas.description.includes('10 percent larger'));
   assert.ok(ashaV5PlayerAtlas.description.includes('brightness, contrast'));
+  assert.match(journeyComponentSource, /getHeroSpriteFrameDistance\(atlas, rowName\)/);
+  assert.match(journeyComponentSource, /getHeroSpriteFixedFrame\(atlas, rowName, row\)/);
   assert.equal(ashaV5PlayerAtlas.draw.suppressExternalWeapon, true);
   assert.equal(ashaV5PlayerAtlas.draw.suppressRuntimeAttackArc, true);
   assert.equal(ashaV5PlayerAtlas.rows.find(row => row.name === 'idle')?.frameCount, 8);
@@ -942,6 +962,26 @@ test('Egypt opening loop makes the first seal require enemies, shards, and the m
   assert.match(journeyComponentSource, /journey-collectible-shard-atlas-upgrade-2026-05-21/);
   assert.match(journeyComponentSource, /relicShard:\s*\{[\s\S]*?ringSize:\s*Math\.round\(54 \* PICKUP_GLOW_SCALE\)/);
   assert.match(journeyComponentSource, /key:\s*'relicShard'[\s\S]*?ringKey:\s*'availableGlowRing'/);
+});
+
+test('Egypt opening scene uses the existing scarab seal path for a brief Anubis and Asha setup', () => {
+  const scarabSealStart = source.indexOf('export const SCARAB_SEAL_TRIGGER = {');
+  const scarabSealEnd = source.indexOf('export const HAZARDS = [');
+  const scarabSealTrigger = source.slice(scarabSealStart, scarabSealEnd);
+
+  assert.notEqual(scarabSealStart, -1);
+  assert.notEqual(scarabSealEnd, -1);
+  assert.match(scarabSealTrigger, /eventName:\s*'Anubis'/);
+  assert.match(scarabSealTrigger, /'Turn back, explorer\. This site is sealed by judgement\.'/);
+  assert.match(scarabSealTrigger, /'My guardians hold the shards and tools of passage\.'/);
+  assert.match(scarabSealTrigger, /'Prove your purpose, or the excavation below will remain closed\.'/);
+  assert.match(scarabSealTrigger, /'Then I will guide you\. These artefacts must not be lost\.'/);
+  assert.match(scarabSealTrigger, /'Gather shards\. Recover tools\. Defeat guardians\. Open the excavation site\.'/);
+  assert.match(scarabSealTrigger, /guideFollowUpLine:\s*'Gather shards\. Recover tools\. Defeat guardians\. Open the excavation site\.'/);
+  assert.match(journeyComponentSource, /const OPENING_THRESHOLD_SCENE_DURATION = 14/);
+  assert.match(journeyComponentSource, /const OPENING_SPHINX_DURATION = 14/);
+  assert.match(journeyComponentSource, /speaker:\s*SCARAB_SEAL_TRIGGER\.dialogueSpeakers\?\.\[index\]/);
+  assert.match(journeyComponentSource, /at:\s*SCARAB_SEAL_TRIGGER\.dialogueTiming\?\.\[index\]/);
 });
 
 test('Egypt sacred trap seal and pedestal pack is registered as a future asset only', () => {
@@ -1234,6 +1274,31 @@ test('active boss domains suppress normal enemy noise near the guardian arena', 
   assert.match(journeyComponentSource, /const isNormalEnemyInsideBossFocus = \(enemy, bossDomain\) =>/);
   assert.match(journeyComponentSource, /current\.bossDomain[\s\S]*?!current\.defeatedMiniBosses\.has\(current\.bossDomain\.bossId\)[\s\S]*?isNormalEnemyInsideBossFocus\(e, activeBossDomain\)/);
   assert.match(journeyComponentSource, /e\.attackWindup = 0;[\s\S]*?e\.attackTimer = 0;[\s\S]*?e\.aggroMemoryTimer = 0;[\s\S]*?return;/);
+});
+
+test('Scarab Queen boss intro is staged as a looter-triggered seal breach cinematic', () => {
+  const miniBosses = extractExportedArray('MINI_BOSSES');
+
+  assert.match(source, /bossIntroLine:\s*'A tomb looter cracked the guardian seal\. The Scarab Queen erupts awake\. Dodge her charge, then strike when she staggers\.'/);
+  assert.match(miniBosses, /id:\s*'scarab-queen'[\s\S]*?intro:\s*'Seal Breach: Scarab Queen\. A tomb looter cracked the guardian seal\. The Scarab Queen erupts awake\. Dodge her charge, then strike when she staggers\.'/);
+  assert.match(journeyComponentSource, /const SCARAB_QUEEN_CINEMATIC_INTRO_SECONDS = 5\.2/);
+  assert.match(journeyComponentSource, /const SCARAB_QUEEN_TRIGGER_LOOTER_OFFSET = 260/);
+  assert.match(journeyComponentSource, /const SCARAB_QUEEN_CINEMATIC_CAMERA_ANCHOR_RATIO = 0\.72/);
+  assert.match(journeyComponentSource, /const getScarabQueenCinematicBeat = \(introProgress\) =>/);
+  assert.match(journeyComponentSource, /triggeredByLooter:\s*scarabQueenCinematic/);
+  assert.match(journeyComponentSource, /triggerLooterX:\s*Math\.max\(arenaStart \+ 80, b\.x - SCARAB_QUEEN_TRIGGER_LOOTER_OFFSET\)/);
+  assert.match(journeyComponentSource, /introSeconds:\s*scarabQueenCinematic \? SCARAB_QUEEN_CINEMATIC_INTRO_SECONDS : 3\.2/);
+  assert.match(journeyComponentSource, /title:\s*scarabQueenCinematic \? `Seal Breach: \$\{b\.name\}` : `Guardian Encounter: \$\{b\.name\}`/);
+  assert.match(journeyComponentSource, /triggerActor:\s*scarabQueenCinematic \? 'Tomb Looter' : null/);
+  assert.match(journeyComponentSource, /triggerLine:\s*scarabQueenCinematic \? 'A looter cracked the guardian seal\. The Scarab Queen is awake\.' : null/);
+  assert.match(journeyComponentSource, /cameraAnchorRatio:\s*scarabQueenCinematic \? SCARAB_QUEEN_CINEMATIC_CAMERA_ANCHOR_RATIO : null/);
+  assert.match(journeyComponentSource, /LOOTER BROKE THE SEAL/);
+  assert.match(journeyComponentSource, /QUEEN AWAKENS/);
+  assert.match(journeyComponentSource, /cinematicBeat:\s*activeBossDomain\?\.triggeredByLooter \? getScarabQueenCinematicBeat\(introProgress\) : null/);
+  assert.match(journeyComponentSource, /id:\s*'scarab-queen-trigger-looter'[\s\S]*?type:\s*'looter'/);
+  assert.match(journeyComponentSource, /SCARAB_QUEEN_CINEMATIC_INTRO_SECONDS[\s\S]*?current\.bossIntro = \{[\s\S]*?title:\s*`Seal Breach: \$\{boss\.name\}`/);
+  assert.match(journeyComponentSource, /target === 'journey-boss-intro-progress'/);
+  assert.match(journeyComponentSource, /const bossIntroActive = current\.bossIntroTimer > 0 && current\.bossIntro\?\.id === boss\.id;[\s\S]*?if \(!bossIntroActive\) drawEnemyAttackTell/);
 });
 
 test('environment interactions include reactive foreground and movement elements', () => {

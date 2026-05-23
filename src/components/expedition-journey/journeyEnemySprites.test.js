@@ -98,7 +98,7 @@ test('warrior mummy sprite draw box resolves as a grounded humanoid enemy', () =
 
   assert.ok(drawBox, 'warrior mummy draw box should resolve');
   assert.equal(drawBox.family, 'mummy');
-  assert.equal(drawBox.height, PLAYER_SPRITE_DRAW_HEIGHT * 1.1, 'warrior mummy should draw exactly 10% taller than Asha');
+  assert.equal(drawBox.height, PLAYER_SPRITE_DRAW_HEIGHT * 1.265, 'warrior mummy should draw 15% larger than its previous Asha-relative scale');
   assert.equal(drawBox.y + drawBox.height, mummy.y + mummy.height + 15, 'warrior mummy sprite should stay grounded');
 });
 
@@ -107,6 +107,17 @@ test('warrior mummy atlas is generated from the production sprite sheet source',
   assert.match(enemySpriteGeneratorSource, /render_production_mummy_cell/);
   assert.doesNotMatch(enemySpriteGeneratorSource, /Mummy Warrior3\.jpg/);
   assert.doesNotMatch(enemySpriteGeneratorSource, /PROJECT_MUMMY_SOURCE = ROOT \/ "public" \/ "museum" \/ "egypt_mummy\.png"/);
+});
+
+test('looter atlas is a final raster sheet generated from the production motion source', () => {
+  const looterAtlas = JSON.parse(readFileSync(new URL('../../../public/assets/expedition/enemies/looter-sprites.json', import.meta.url), 'utf8'));
+  assert.match(enemySpriteGeneratorSource, /render_production_looter_cell/);
+  assert.match(enemySpriteGeneratorSource, /asha-final-production-spritesheet\.json/);
+  assert.match(journeyEnemySpritesSource, /enemy-sprite-packs-2026-05-23-final-looter/);
+  assert.match(looterAtlas.source, /Final raster tomb looter atlas/);
+  assert.equal(looterAtlas.productionReference, 'asha-final-production-spritesheet.json');
+  assert.equal(looterAtlas.frameContract.length, 8);
+  assert.ok(looterAtlas.regions.looterIdle.h > 200, 'looter frames should no longer use the tiny flat procedural silhouette');
 });
 
 test('sand-wisp flying enemy renders as the larger cinematic winged wisp', () => {
@@ -128,7 +139,7 @@ test('sand-wisp flying enemy renders as the larger cinematic winged wisp', () =>
   assert.ok(Math.abs(drawBox.height - 108.9894) < 0.001, `sand wisp should draw 25% larger than the last pass, received ${drawBox.height}`);
   assert.ok(drawBox.width >= drawBox.height * 1.9, `sand wisp should keep a wide upright-wing silhouette, received ${drawBox.width}x${drawBox.height}`);
   assert.match(journeyEnemySpritesSource, /sandWisp:\s*2\.041/);
-  assert.match(journeyEnemySpritesSource, /enemy-sprite-packs-2026-05-23-bes-guardian/);
+  assert.match(journeyEnemySpritesSource, /enemy-sprite-packs-2026-05-23-final-looter/);
   assert.match(journeyEnemySpritesSource, /fetch\([^)]*versionQuery[^)]*\)/);
   assert.match(journeyEnemySpritesSource, /image\.src\s*=\s*`[^`]*getAtlasImagePath[^`]*versionQuery[^`]*`/);
   assert.match(enemySpriteGeneratorSource, /render_production_flying_scarab_cell/);

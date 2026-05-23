@@ -3,6 +3,8 @@ Original prompt: Implement "Lost Site Expedition" as a small MVP game mode in th
 2026-05-23 update:
 - Tuned Asha V5 readability without generating new character art: rebuilt the existing V5 atlas from the user-provided sheets with a light local brightness, contrast, saturation, and sharpness pass.
 - Increased the V5 atlas runtime draw height from 108px to 119px, making her 10% larger in Journey while keeping the existing 256px hero-atlas cells and character-loader option intact.
+- Slowed Asha V5's run-cycle frame stepping through atlas metadata so her legs read less frantic while her movement speed stays unchanged.
+- Locked Asha V5's idle atlas row to `idle_00` so standing still no longer wobbles.
 
 2026-05-23 update:
 - Added Asha V5 as a separate character-loader option rather than replacing the current Asha atlas.
@@ -3116,3 +3118,41 @@ Remaining notes:
 - Moved awakened boss health to a compact top-screen bar and removed the Scarab Queen's oversized ground shadow/ellipse.
 - Verified the focused Scarab Queen assertions, lint, production build, and a browser smoke screenshot at `output/scarab-queen-ui-smoke.png`.
 - Remaining note: two broader Journey sprite tests still contain stale asset-version expectations unrelated to this boss UI pass.
+
+## 2026-05-23 Mummy visual scale bump
+
+- Increased Journey mummy sprite draw height by 15% using the existing `MUMMY_ASHA_SIZE_MULTIPLIER` path, so combat hitboxes and enemy data stay unchanged.
+- Updated the focused warrior mummy draw-box assertion.
+- Verification passed: focused warrior mummy sprite test, lint, and production build.
+
+## 2026-05-23 Scarab Queen looter-trigger cinematic pass
+
+- Reframed the Scarab Queen intro as a Tomb Looter breaking the guardian seal, matching the chosen direction that the Queen is controlled or awakened by a looter.
+- Extended the existing boss-domain intro renderer with seal glow, pulsing rings, a looter actor, stronger camera shake, and a longer intro timer instead of creating a separate cinematic system.
+- Wired the same Scarab Queen cinematic state into the developer boss-jump path so it can be browser-smoke-tested directly.
+- Updated Journey regression coverage for the new seal-breach wording and looter-triggered boss-domain properties.
+- Verification passed: focused Journey boss tests, focused Scarab Queen/mummy sprite tests, lint, production build, and browser smoke screenshot at `output/scarab-queen-looter-cinematic-smoke.png`.
+
+## 2026-05-23 Scarab Queen bespoke intro animation pass
+
+- Expanded the looter-triggered Scarab Queen intro into timed cinematic beats inside the existing boss-domain renderer: looter approach, seal strike, shockwave, sand burst, Queen rise, and final reveal.
+- Added a Scarab Queen-specific intro visual state so her sprite emerges upward, brightens, and settles at full scale before control returns to combat.
+- Kept the encounter in the existing boss intro timer/pause path; no duplicate cutscene or boss system was added.
+- Suppressed boss attack tells during the cinematic and changed the impact wash to amber/gold so the old red circle does not return under the Queen.
+- Verification passed: focused Journey boss tests, focused Scarab Queen/mummy sprite tests, lint, production build, and sampled browser screenshots through `output/scarab-queen-bespoke-sampled-*.png` plus final reveal at `output/scarab-queen-bespoke-final-reveal.png`.
+
+## 2026-05-23 Final tomb looter raster asset pass
+
+- Replaced the regular looter's flat procedural-looking sheet with a final raster atlas derived from the production Asha motion source, recolored and masked into a distinct tomb raider.
+- Kept the existing looter frame contract and Journey enemy sprite loader; no temporary upgrade, fallback sprite path, or duplicate enemy system was added.
+- Adjusted the Scarab Queen cinematic looter staging box and attack source pose so the looter reads clearly during the seal strike while the Queen remains the focal reveal.
+- Bumped the enemy atlas cache version and added regression coverage proving the looter sheet is generated from the final production source.
+- Verification passed: focused looter/Scarab Queen/mummy sprite tests, focused boss cinematic tests, lint, production build, and browser screenshots at `output/scarab-queen-final-looter-strike-v4.png` and `output/scarab-queen-final-looter-reveal-v4.png`.
+
+## 2026-05-23 Opening Scene Step 3
+
+- Added a one-time, non-blocking first-shard echo after Anubis's opening challenge using the existing Journey shard pickup, notice, and cinematic message path.
+- New Asha follow-through wording: "First shard recovered. Three more will open the Temple Approach Seal."
+- Kept the 14-second opening unchanged and did not add a new cutscene, dialogue system, player controller, progression gate, combat rule, or save path.
+- Temple Approach Seal still requires 4 relic shards, Guardian Prep Seal and Desert Map Seal requirements remain unchanged, and the first shard placement/collection loop stays on the existing `RELIC_SHARDS` path.
+- Added Journey regression coverage for the first-shard echo, one-time state flag, existing Anubis/Asha opening wording, unchanged gate requirements, and no guardian quiz gating.

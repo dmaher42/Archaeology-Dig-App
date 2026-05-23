@@ -17,7 +17,15 @@
     "suppressExternalWeapon": true,
     "suppressExternalWeaponDuringAttack": true,
     "suppressRuntimeAttackArc": true,
-    "imageSmoothingQuality": "high"
+    "imageSmoothingQuality": "high",
+    "frameDistance": {
+      "run": 26,
+      "walk": 22,
+      "survey_walk": 34
+    },
+    "fixedFrame": {
+      "idle": "idle_00"
+    }
   },
   "rows": [
     {

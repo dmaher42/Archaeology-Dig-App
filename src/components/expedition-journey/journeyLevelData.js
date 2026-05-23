@@ -113,28 +113,25 @@ export const SCARAB_SEAL_TRIGGER = {
   eventType: 'shrine-glow',
   shake: 0.16,
   duration: 5.2,
+  sealEmphasisMessage: 'Anubis has noticed you. The seal answers with stone and dust.',
+  sealPulseLabel: 'ANUBIS SEAL',
+  sealPulseRadius: 76,
+  sealPulseDuration: 0.95,
+  cameraRevealDuration: 1.8,
+  objectiveEchoLine: 'First objective: gather 4 relic shards to open the Temple Approach Seal.',
+  firstShardEchoLine: 'First shard recovered. Three more will open the Temple Approach Seal.',
   messages: [
-    'So...',
-    'Another seeker reaches the gate.',
-    "I'm not here for treasure.",
-    'They all said that.',
-    "This isn't the real relic.",
-    '...few recognize the decoy.',
-    'The protection system is failing.',
-    'If looters reached this chamber-',
-    'They should never have reached it.',
-    'But they did.',
-    'The outer seals weaken.',
-    'Then the deeper halls are already at risk...',
-    'How many relics are there?',
-    'Enough to bury kingdoms.',
-    'Leave now.',
-    'Or descend... and inherit their fate.',
-    'The ruins remember every careless step.',
+    'Turn back, explorer. This site is sealed by judgement.',
+    'My guardians hold the shards and tools of passage.',
+    'Prove your purpose, or the excavation below will remain closed.',
+    'Then I will guide you. These artefacts must not be lost.',
+    'Gather shards. Recover tools. Defeat guardians. Open the excavation site.',
   ],
+  dialogueSpeakers: ['Anubis', 'Anubis', 'Anubis', 'Asha', 'Objective'],
+  dialogueTiming: [0.8, 3.2, 5.8, 8.4, 11],
   stairwellRevealLine: 'A hidden stairwell opens beneath the ruins.',
-  bossIntroLine: 'Anubis sets the first trial. Dodge the Scarab Queen charge, then strike when she staggers.',
-  guideFollowUpLine: 'The ruins remember every careless step.',
+  bossIntroLine: 'A tomb looter cracked the guardian seal. The Scarab Queen erupts awake. Dodge her charge, then strike when she staggers.',
+  guideFollowUpLine: 'Gather shards. Recover tools. Defeat guardians. Open the excavation site.',
 };
 
 export const HAZARDS = [
@@ -756,7 +753,7 @@ export const OBJECTIVE_MARKERS = [
 ];
 
 export const MINI_BOSSES = [
-  { id: 'scarab-queen', sectionId: 'desert-entry', name: 'Scarab Queen', type: 'scarab', x: X(1395), y: JY(318), width: 58, height: 42, patrolMin: X(1335), patrolMax: X(1460), speed: 66, health: 1, damage: 4, shards: 6, intro: 'Guardian Encounter: Scarab Queen. Anubis sets the first trial. Dodge the Scarab Queen charge, then strike when she staggers.', dialogue: 'Anubis sets the first trial. Dodge the Scarab Queen charge, then strike when she staggers.', domainName: 'First Guardian Domain', arenaStart: X(1265), arenaEnd: X(1480) },
+  { id: 'scarab-queen', sectionId: 'desert-entry', name: 'Scarab Queen', type: 'scarab', x: X(1395), y: JY(318), width: 58, height: 42, patrolMin: X(1335), patrolMax: X(1460), speed: 66, health: 1, damage: 4, shards: 6, intro: 'Seal Breach: Scarab Queen. A tomb looter cracked the guardian seal. The Scarab Queen erupts awake. Dodge her charge, then strike when she staggers.', dialogue: 'A tomb looter cracked the guardian seal. The Scarab Queen erupts awake. Dodge her charge, then strike when she staggers.', domainName: 'First Guardian Domain', arenaStart: X(1265), arenaEnd: X(1480) },
   { id: 'temple-guardian', sectionId: 'ruined-temple', name: 'Anubis', type: 'guardian', x: X(2960), y: JY(306), width: 54, height: 54, patrolMin: X(2860), patrolMax: X(3060), speed: 58, health: 2, damage: 6, shards: 8, intro: 'Guardian Encounter: Anubis. Anubis stands at the temple path. Only those who move with respect may pass.', dialogue: 'Anubis stands at the temple path. Only those who move with respect may pass.', domainName: 'Anubis Gate', arenaStart: X(2785), arenaEnd: X(3090) },
   { id: 'giant-serpent', sectionId: 'catacombs', name: 'The Uraeus', type: 'snake', x: X(4860), y: JY(308), width: 72, height: 52, patrolMin: X(4730), patrolMax: X(4965), speed: 70, health: 2, damage: 6, shards: 8, intro: 'Guardian Encounter: The Uraeus. The Uraeus coils around the sacred seal. The path forward is protected.', dialogue: 'The Uraeus coils around the sacred seal. The path forward is protected.', domainName: 'Uraeus Seal Domain', arenaStart: X(4625), arenaEnd: X(4985) },
   { id: 'looter-captain', sectionId: 'escape-sequence', name: 'Bes', type: 'bes', x: X(6330), y: JY(306), width: 54, height: 54, patrolMin: X(6200), patrolMax: X(6435), speed: 86, health: 2, damage: 6, shards: 8, intro: 'Guardian Encounter: Bes. Bes blocks the broken passage with a fierce grin. This place will not be rushed.', dialogue: 'Bes blocks the broken passage with a fierce grin. This place will not be rushed.', domainName: 'Bes Trial', arenaStart: X(6110), arenaEnd: X(6460) },
@@ -1419,10 +1416,10 @@ export const ENVIRONMENT_INTERACTIONS = [
 ];
 
 export const ENVIRONMENT_EVENTS = [
-  { id: 'opening-archaeologist-arrival', sectionId: 'desert-entry', x: X(92), name: 'Arrival', message: 'The archaeologist reaches the sealed site.', type: 'arrival', duration: 1.8, shake: 0.04, card: false },
-  { id: 'opening-guardian-challenge', sectionId: 'desert-entry', x: X(168), name: 'Guardian Challenge', message: 'This is a protected place. Move with care and earn the right to pass.', type: 'arrival', duration: 2.2, shake: 0.08, card: false },
-  { id: 'opening-warrior-guide-entry', sectionId: 'desert-entry', x: X(202), name: 'Warrior-Guide', message: 'I will guide you. Gather shards, recover tools, and treat the ancient site with respect.', type: 'arrival', duration: 2.6, shake: 0.08, card: false },
-  { id: 'relic-shard-purpose-note-read', sectionId: 'desert-entry', x: X(180), name: 'Relic Shard Note', message: 'Relic shards unlock seals and fund Base Camp upgrades. Collect them from ruins and enemies.', type: 'arrival', duration: 2.4, shake: 0.05 },
+  { id: 'opening-archaeologist-arrival', sectionId: 'desert-entry', x: X(92), name: 'Arrival', message: 'The expedition reaches a huge sealed Egyptian site.', type: 'arrival', duration: 1.8, shake: 0.04, card: false },
+  { id: 'opening-guardian-challenge', sectionId: 'desert-entry', x: X(168), name: 'Anubis Seal', message: 'Anubis watches from the seal. The site will not open without proof.', type: 'arrival', duration: 2.2, shake: 0.08, card: false },
+  { id: 'opening-warrior-guide-entry', sectionId: 'desert-entry', x: X(202), name: 'Asha', message: 'Asha guards the route toward excavation.', type: 'arrival', duration: 2.4, shake: 0.08, card: false },
+  { id: 'relic-shard-purpose-note-read', sectionId: 'desert-entry', x: X(180), name: 'Opening Objective', message: 'Gather shards. Recover tools. Defeat guardians. Open the excavation site.', type: 'arrival', duration: 2.4, shake: 0.05 },
   { id: 'starter-route-note', sectionId: 'desert-entry', x: X(255), name: 'Route Marker', message: 'Route marker ahead.', type: 'arrival', duration: 1.8, shake: 0.08 },
   { id: 'desert-first-dust-preview', sectionId: 'desert-entry', x: X(300), name: 'Dust Gust', message: 'A dust gust curls through the first survey markers.', type: 'dust-gust', duration: 2.8, shake: 0.18, dynamic: true, card: false },
   { id: 'desert-start-birds-scatter', sectionId: 'desert-entry', x: X(340), name: 'Birds Scatter', message: 'Birds lift from the first ruined stones.', type: 'birds-scatter', duration: 2.6, shake: 0.06, dynamic: true, card: false },

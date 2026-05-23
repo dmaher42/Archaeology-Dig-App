@@ -16,6 +16,8 @@ TARGET_JSON = TARGET_DIR / "asha-v5-spritesheet.json"
 TARGET_PNG = TARGET_DIR / "asha-v5-spritesheet.png"
 TARGET_REFERENCE = TARGET_DIR / "asha-v5-reference.png"
 TARGET_DRAW_HEIGHT = 119
+TARGET_RUN_FRAME_DISTANCE = 26
+TARGET_IDLE_FRAME = "idle_00"
 
 
 SOURCES = {
@@ -290,6 +292,14 @@ def main() -> None:
     )
     metadata["draw"]["height"] = TARGET_DRAW_HEIGHT
     metadata["draw"]["sourceHeight"] = max_source_height
+    metadata["draw"]["frameDistance"] = {
+        "run": TARGET_RUN_FRAME_DISTANCE,
+        "walk": 22,
+        "survey_walk": 34,
+    }
+    metadata["draw"]["fixedFrame"] = {
+        "idle": TARGET_IDLE_FRAME,
+    }
     metadata["draw"]["integratedAttackTool"] = True
     metadata["draw"]["suppressExternalWeapon"] = True
     metadata["draw"]["suppressExternalWeaponDuringAttack"] = True
