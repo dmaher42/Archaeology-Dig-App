@@ -2035,7 +2035,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
       });
     }
     setBaseCampOpen(true);
-    setNotice('Base Camp reached. Prepare gear at the outpost before the excavation begins.');
+    setNotice('Base Camp Outpost reached. Tool Bench, Relic Table, Field Journal, Evidence Board, and Route Map are ready for excavation prep.');
     audioControls.playExpeditionMusic?.('baseCamp');
   }, [audioControls, journeyRunId, selectedStageId]);
 
@@ -3891,7 +3891,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
           <div className="header-right">
             <div className="fullscreen-badge status-ready">
               <Sparkles size={14} className="badge-icon pulse" />
-              <span>Excavation Ready</span>
+              <span>Safe Hub Reached</span>
             </div>
           </div>
         </header>
@@ -3899,10 +3899,10 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
         <div className="expedition-fullscreen-content">
           <aside className="basecamp-column basecamp-briefing-col">
             <div className="fullscreen-card briefing-card">
-              <div className="card-ribbon">Dossier</div>
+              <div className="card-ribbon">Field Journal</div>
               <div className="card-header">
                 <Target size={20} className="card-icon" />
-                <h2>Site Brief</h2>
+                <h2>Field Journal</h2>
               </div>
               <div className="card-body">
                 <div className="mission-badge">{activeMission.targetCategoryTitle}</div>
@@ -3918,7 +3918,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
                 </div>
               </div>
               <div className="card-footer-note">
-                Prepare the right kit before the team enters the excavation.
+                Review the route, prepare the kit, and enter the excavation with care.
               </div>
             </div>
           </aside>
@@ -3928,11 +3928,11 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
               <div className="card-header flex-header">
                 <div className="title-area">
                   <Gem size={20} className="card-icon gold-glow" />
-                  <h2>Outfitting Station</h2>
+                  <h2>Tool Bench</h2>
                 </div>
                 <div className={`fullscreen-shard-bank ${shopFeedback?.type === 'purchase' || shopFeedback?.type === 'deposit' ? 'is-rewarding' : ''}`}>
                   <Gem size={16} className="shard-icon" />
-                  <span className="shard-label">Relic Shards</span>
+                  <span className="shard-label">Relic Table</span>
                   <strong className="shard-count">{baseCampProgression.relicShards}</strong>
                 </div>
               </div>

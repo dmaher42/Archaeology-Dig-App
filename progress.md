@@ -3191,3 +3191,19 @@ Remaining notes:
 - Kept Temple Approach Seal at 4 relic shards and left Guardian Prep Seal, Desert Map Seal, Scarab Queen, Brush Handle, Map Tablet, and route-gate requirements unchanged.
 - Browser smoke on the clean dev server confirmed Begin Expedition returns control, the early route no longer immediately rescues during a bounded player-input pass, stamina stayed healthy, the Temple Approach Seal HUD remained active, and no relevant console errors appeared.
 - Remaining caveat: a full natural playthrough all the way to opening the Temple Approach Seal still needs a human manual pass; automation verified the early route no longer collapses immediately, but did not naturally collect all 4 shards and open the seal.
+
+## 2026-05-23 Phase 2 Egypt Golden Path Polish Pass
+
+- Polished only existing Journey/Base Camp/menu wording so the Egypt route reads as one adventure path from sealed-site arrival to Base Camp Outpost.
+- Reframed the Temple Approach Seal as a guarded world mechanism restored by relic shards, with Anubis allowing passage but not trust.
+- Reframed the Map Tablet and Guardian Prep route as readiness/proof before the Scarab Queen, without changing the Map Tablet, shard, enemy, gate, or boss requirements.
+- Reworded the Scarab Queen lead-in and Brush Handle payoff so she reads as the first trial of Anubis and the reward points the Desert Map Seal forward.
+- Reframed Base Camp as a safe outpost with Field Journal, Tool Bench, Relic Table, Evidence Board, and Route Map language rather than classroom/admin wording.
+- No movement, jump, gravity, platform, hitbox, enemy, boss, stamina, shard count, route gate, tool, save/load, economy, excavation, evidence, or China content was intentionally changed.
+
+## 2026-05-23 Phase 3 First Secret Route Pass
+
+- Polished the existing optional Egypt `desert-upper-survey-route` into the Forgotten Mural Alcove using the canonical Journey hidden-route, secret collectible, hidden shard cache, story prop hint, and HUD/cinematic message paths.
+- Kept the secret optional and discoverable from the opening route: the faded mural seam hints at the detour, then the alcove rewards curiosity with the Mural Scarab Fragment and the existing hidden relic shard cache.
+- Added regression coverage proving the first Egypt secret remains optional, does not add a required upgrade, keeps Temple Approach Seal, Guardian Prep Seal, and Desert Map Seal requirements unchanged, and does not introduce duplicate secret-route systems.
+- No movement, jump, gravity, platform, hitbox, combat, enemy, boss, stamina, shard requirement, route gate, tool, save/load, Base Camp, excavation, evidence, or China content was intentionally changed.

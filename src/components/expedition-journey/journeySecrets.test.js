@@ -146,6 +146,39 @@ test('secret collectibles support Egypt and China discovery sets', () => {
   assert.match(secretCollectibles, /y:\s*JY\(/);
 });
 
+test('first Egypt secret route rewards curiosity without changing main progression', () => {
+  const hiddenRoutes = extractExportedArray('HIDDEN_ROUTES');
+  const secretCollectibles = extractExportedArray('SECRET_COLLECTIBLES');
+  const storyProps = extractExportedArray('STORY_PROPS');
+  const events = extractExportedArray('ENVIRONMENT_EVENTS');
+  const routeGates = extractExportedArray('ROUTE_GATES');
+  const shards = source.slice(source.indexOf('const RELIC_SHARD_LAYOUT = ['), source.indexOf('export const RELIC_SHARDS'));
+  const firstSecretRoute = getDataRowById(hiddenRoutes, 'desert-upper-survey-route');
+  const scarabFragment = getDataRowById(secretCollectibles, 'egypt-scarab-fragment-1');
+
+  assert.match(firstSecretRoute, /name:\s*'Forgotten Mural Alcove'/);
+  assert.match(firstSecretRoute, /optional:\s*true/);
+  assert.match(firstSecretRoute, /sectionId:\s*'desert-entry'/);
+  assert.match(firstSecretRoute, /rewardHint:\s*'A forgotten mark glows beneath the dust above the lower sand route\.'/);
+  assert.match(firstSecretRoute, /discoveryMessage:\s*'Hidden Mural Alcove Found: This chamber was hidden from careless hands\.'/);
+  assert.match(firstSecretRoute, /gateType:\s*'faded mural seam'/);
+  assert.match(firstSecretRoute, /teaseVisible:\s*true/);
+  assert.match(firstSecretRoute, /rewardSummary:\s*'Mural Scarab Fragment, hidden shard cache, and field journal clue'/);
+  assert.doesNotMatch(firstSecretRoute, /requiredUpgradeId:/);
+
+  assert.match(scarabFragment, /routeId:\s*'desert-upper-survey-route'/);
+  assert.match(scarabFragment, /name:\s*'Mural Scarab Fragment'/);
+  assert.match(scarabFragment, /discoveryMessage:\s*'Secret Discovery: Mural Scarab Fragment recorded\. Anubis is watching\. Curiosity is not theft\.'/);
+  assert.match(shards, /\{\s*x:\s*870,\s*y:\s*232,\s*hidden:\s*true,\s*routeId:\s*'desert-upper-survey-route'\s*\}/);
+  assert.match(storyProps, /id:\s*'upper-route-note-marker'[\s\S]*?faded mural seam hinting at the hidden alcove/);
+  assert.match(events, /id:\s*'upper-route-choice'[\s\S]*?A forgotten mark glows beneath dust above the lower route\./);
+
+  assert.match(routeGates, /id:\s*'temple-approach-seal'[\s\S]*?requires:\s*\{[\s\S]*?shards:\s*4/);
+  assert.match(routeGates, /id:\s*'guardian-prep-seal'[\s\S]*?requires:\s*\{\s*objective:\s*'desert-entry'[\s\S]*?shards:\s*6/);
+  assert.match(routeGates, /id:\s*'desert-seal'[\s\S]*?requires:\s*\{\s*objective:\s*'desert-entry',\s*miniBoss:\s*'scarab-queen',\s*keyItem:\s*'brush-handle',\s*shards:\s*10/);
+  assert.doesNotMatch(journeyComponentSource, /class\s+SecretRoute|createSecretSystem|SecretRouteController/);
+});
+
 test('world continuity landmarks foreshadow future expedition sections', () => {
   const worldLandmarks = extractExportedArray('WORLD_CONTINUITY_LANDMARKS');
   const transitionMarkers = extractExportedArray('WORLD_TRANSITION_STORY_MARKERS');
@@ -266,7 +299,7 @@ test('Ancient Egypt opening stages archaeologist arrival and warrior-guide story
   assert.match(events, /id:\s*'opening-warrior-guide-entry'/);
   assert.match(events, /Asha guards the route toward excavation\./);
   assert.match(events, /id:\s*'relic-shard-purpose-note-read'/);
-  assert.match(events, /Restore the seal\. Recover tools\. Survive guardians\. Earn passage below\./);
+  assert.match(events, /Recover shards\. Restore seals\. Defeat guardians\. Open the excavation site\./);
   assert.match(events, /id:\s*'opening-guide-careful-tools'/);
   assert.match(events, /Good\. Evidence and tools open the path - not force\./);
   assert.match(events, /id:\s*'opening-sacred-threshold-watch'/);
@@ -277,28 +310,29 @@ test('Ancient Egypt opening stages archaeologist arrival and warrior-guide story
   assert.match(journeyComponentSource, /cameraShakeActive: current\.cameraShakeTimer > 0/);
 
   assert.match(routeGates, /id:\s*'temple-approach-seal'[\s\S]*?requires:\s*\{[\s\S]*?shards:\s*4/);
-  assert.match(routeGates, /The seal refuses easy entry until Asha proves his intent\./);
-  assert.match(routeGates, /readyHint:\s*'Anubis has judged the first proof\. Move through the Temple Approach Seal\.'/);
-  assert.match(routeGates, /openMessage:\s*'Anubis permits the first passage\. The Temple Approach Seal opens\.'/);
+  assert.match(routeGates, /The Temple Approach Seal refuses easy entry\. Relic shards must prove Asha came to protect\./);
+  assert.match(routeGates, /readyHint:\s*'The first proof holds\. Move through the Temple Approach Seal before the site closes again\.'/);
+  assert.match(routeGates, /openMessage:\s*'The Temple Approach Seal grinds open\. Anubis allows passage, not trust\.'/);
   assert.match(routeGates, /id:\s*'guardian-prep-seal'[\s\S]*?requires:\s*\{\s*objective:\s*'desert-entry'[\s\S]*?shards:\s*6/);
-  assert.match(routeGates, /Recover the Map Tablet and collect 6 relic shards before waking the guardian\./);
+  assert.match(routeGates, /The Map Tablet must be read and 6 relic shards restored before the guardian trial wakes\./);
   assert.match(routeGates, /id:\s*'desert-seal'[\s\S]*?requires:\s*\{\s*objective:\s*'desert-entry',\s*miniBoss:\s*'scarab-queen',\s*keyItem:\s*'brush-handle',\s*shards:\s*10/);
-  assert.match(routeGates, /Recover evidence, shards, and the Brush Handle to earn passage into the ruined temple\./);
-  assert.match(routeGates, /Record what you found, then move into the ruined temple entry\./);
+  assert.match(routeGates, /The Desert Map Seal needs the Map Tablet, Brush Handle, Scarab Queen proof, and 10 relic shards\./);
+  assert.match(routeGates, /Carry the record forward into the ruined temple entry\./);
   assert.match(miniBosses, /id:\s*'scarab-queen'[\s\S]*?health:\s*1,\s*damage:\s*4/);
-  assert.match(miniBosses, /A tomb looter cracked the guardian seal\. The Scarab Queen erupts awake\. Dodge her charge, then strike when she staggers\./);
-  assert.match(bossKeyItems, /id:\s*'brush-handle'[\s\S]*?You passed the first guardian test\. Record what you found before moving deeper\. Desert Map Seal is open\./);
+  assert.match(miniBosses, /A tomb looter cracks the guardian seal\. The Scarab Queen erupts as the first trial of Anubis\. Dodge her charge, then strike when she staggers\./);
+  assert.match(bossKeyItems, /id:\s*'brush-handle'[\s\S]*?Scarab Queen defeated\. Asha has permission, not trust\. Brush Handle recovered\. The Desert Map Seal can answer\./);
   assert.match(journeyComponentSource, /const GUARDIAN_KNOWLEDGE_CHALLENGES_ENABLED = false;/);
 });
 
 test('Expedition framing presents Journey, Base Camp, and excavation as in-world adventure systems', () => {
   [
     'The site refuses easy entry',
-    'Prove your intent',
+    'Restore the outer seal',
     'Recover relic shards',
-    'Find the Map Tablet',
-    'Survive the guardian route',
-    'Earn passage below',
+    'Read the Map Tablet',
+    'Survive the Guardian Prep route',
+    'Defeat the Scarab Queen',
+    'Reach Base Camp Outpost',
     'Relic shards',
   ].forEach((copy) => assert.match(journeyComponentSource, new RegExp(copy)));
 
@@ -308,11 +342,11 @@ test('Expedition framing presents Journey, Base Camp, and excavation as in-world
   ].forEach((copy) => assert.doesNotMatch(journeyComponentSource, new RegExp(copy)));
 
   [
-    'The seal refuses easy entry until Asha proves his intent.',
+    'The Temple Approach Seal refuses easy entry. Relic shards must prove Asha came to protect.',
     'Relic shards restore seals and support Base Camp preparations.',
-    'The site is testing Asha. Restore the seal with 4 relic shards.',
-    'A relic shard answers the seal. Three more will prove Asha can pass.',
-    'Restore the seal. Recover tools. Survive guardians. Earn passage below.',
+    'The site is testing Asha. Recover 4 relic shards to restore the Temple Approach Seal.',
+    'First shard restored. Three more will answer the Temple Approach Seal.',
+    'Recover shards. Restore seals. Defeat guardians. Open the excavation site.',
     'Seal Test',
   ].forEach((copy) => assert.match(source, new RegExp(copy.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))));
 
@@ -324,14 +358,15 @@ test('Expedition framing presents Journey, Base Camp, and excavation as in-world
 
   [
     'Base Camp Outpost',
-    'Site Brief',
+    'Safe Hub Reached',
     'Working Theory',
     'Expedition Plan',
-    'Expedition Goal',
+    'Field Journal',
     'Survey the Site',
     'Mark the Grid',
     'Survey focus',
-    'Field Journal',
+    'Tool Bench',
+    'Relic Table',
     'Route Map',
     'Discovery Log',
   ].forEach((copy) => assert.match(expeditionModeSource, new RegExp(copy)));
@@ -352,7 +387,7 @@ test('Expedition framing presents Journey, Base Camp, and excavation as in-world
   ].forEach((copy) => assert.doesNotMatch(expeditionModeSource, new RegExp(copy)));
 
   assert.match(menuSource, /Standalone Adventure/);
-  assert.match(menuSource, /Enter the scroller, earn passage below, then return to camp for fieldwork\./);
+  assert.match(menuSource, /Cross the sealed route, face the first guardian, then return to Base Camp Outpost for fieldwork\./);
 });
 
 test('Egypt Phase 1 boss identity changes preserve progression ids and China names', () => {
@@ -370,7 +405,7 @@ test('Egypt Phase 1 boss identity changes preserve progression ids and China nam
   ].forEach((pattern) => assert.match(miniBosses, pattern));
 
   [
-    'A tomb looter cracked the guardian seal. The Scarab Queen erupts awake. Dodge her charge, then strike when she staggers.',
+    'A tomb looter cracks the guardian seal. The Scarab Queen erupts as the first trial of Anubis. Dodge her charge, then strike when she staggers.',
     'Anubis stands at the temple path. Only those who move with respect may pass.',
     'The Uraeus coils around the sacred seal. The path forward is protected.',
     'Bes blocks the broken passage with a fierce grin. This place will not be rushed.',
@@ -473,11 +508,11 @@ test('opening Scarab Seal becomes a restrained false-discovery threshold scene',
   assert.match(source, /Turn back, explorer\. This site is sealed by judgement\./);
   assert.match(source, /My guardians hold the shards and tools of passage\./);
   assert.match(source, /Then I will guide you\. These artefacts must not be lost\./);
-  assert.match(source, /Restore the seal\. Recover tools\. Survive guardians\. Earn passage below\./);
+  assert.match(source, /Recover shards\. Restore seals\. Defeat guardians\. Open the excavation site\./);
   assert.match(source, /sealEmphasisMessage:\s*'Anubis has noticed you\. The seal answers with stone and dust\.'/);
   assert.match(source, /sealPulseLabel:\s*'ANUBIS SEAL'/);
-  assert.match(source, /objectiveEchoLine:\s*'The site is testing Asha\. Restore the seal with 4 relic shards\.'/);
-  assert.match(source, /firstShardEchoLine:\s*'A relic shard answers the seal\. Three more will prove Asha can pass\.'/);
+  assert.match(source, /objectiveEchoLine:\s*'The site is testing Asha\. Recover 4 relic shards to restore the Temple Approach Seal\.'/);
+  assert.match(source, /firstShardEchoLine:\s*'First shard restored\. Three more will answer the Temple Approach Seal\.'/);
   assert.match(source, /eventName:\s*'Anubis'/);
   assert.doesNotMatch(source.slice(source.indexOf('export const SCARAB_SEAL_TRIGGER = {'), source.indexOf('export const HAZARDS = [')), /The Sphinx has sent its first guardian/);
   assert.match(source, /stairwellRevealLine:\s*'A hidden stairwell opens beneath the ruins\.'/);
@@ -673,7 +708,7 @@ test('dev smoke helpers expose Scarab Queen payoff and Desert Map Seal readiness
   assert.match(journeyComponentSource, /id:\s*recoverReward \? 'debug-desert-map-seal-ready' : 'debug-scarab-queen-payoff'/);
   assert.match(journeyComponentSource, /text:\s*recoverReward \? 'SEAL READY' : 'REWARD REVEALED'/);
   assert.match(routeGates, /id:\s*'desert-seal'[\s\S]*?requires:\s*\{\s*objective:\s*'desert-entry',\s*miniBoss:\s*'scarab-queen',\s*keyItem:\s*'brush-handle',\s*shards:\s*10/);
-  assert.match(bossKeyItems, /id:\s*'brush-handle'[\s\S]*?routeOpenMessage:\s*'You passed the first guardian test\. Record what you found before moving deeper\. Desert Map Seal is open\.'/);
+  assert.match(bossKeyItems, /id:\s*'brush-handle'[\s\S]*?routeOpenMessage:\s*'Scarab Queen defeated\. Asha has permission, not trust\. Brush Handle recovered\. The Desert Map Seal can answer\.'/);
 });
 
 test('opening pyramid uses exactly four invisible platforms aligned to the marked ledges', () => {
@@ -1084,8 +1119,8 @@ test('Egypt opening scene uses the existing scarab seal path for a brief Anubis 
   assert.match(scarabSealTrigger, /'My guardians hold the shards and tools of passage\.'/);
   assert.match(scarabSealTrigger, /'Prove your purpose, or the excavation below will remain closed\.'/);
   assert.match(scarabSealTrigger, /'Then I will guide you\. These artefacts must not be lost\.'/);
-  assert.match(scarabSealTrigger, /'Restore the seal\. Recover tools\. Survive guardians\. Earn passage below\.'/);
-  assert.match(scarabSealTrigger, /guideFollowUpLine:\s*'Restore the seal\. Recover tools\. Survive guardians\. Earn passage below\.'/);
+  assert.match(scarabSealTrigger, /'Recover shards\. Restore seals\. Defeat guardians\. Open the excavation site\.'/);
+  assert.match(scarabSealTrigger, /guideFollowUpLine:\s*'Recover shards\. Restore seals\. Defeat guardians\. Open the excavation site\.'/);
   assert.match(journeyComponentSource, /const OPENING_THRESHOLD_SCENE_DURATION = 14/);
   assert.match(journeyComponentSource, /const OPENING_SPHINX_DURATION = 14/);
   assert.match(journeyComponentSource, /speaker:\s*SCARAB_SEAL_TRIGGER\.dialogueSpeakers\?\.\[index\]/);
@@ -1366,12 +1401,12 @@ test('first mini-boss is gated by preparation and rewards the next route', () =>
   assert.match(routeGates, /x:\s*X\(1018\)/);
   assert.match(routeGates, /requires:\s*\{\s*objective:\s*'desert-entry'[\s\S]*?shards:\s*6/);
   assert.match(routeGates, /id:\s*'guardian-prep-seal'[\s\S]*?id:\s*'desert-seal'/);
-  assert.match(routeGates, /readyHint:\s*'Desert Map Seal is open\. Record what you found, then move into the ruined temple entry\.'/);
-  assert.match(source, /routeOpenMessage:\s*'You passed the first guardian test\. Record what you found before moving deeper\. Desert Map Seal is open\.'/);
+  assert.match(routeGates, /readyHint:\s*'Desert Map Seal is open\. Carry the record forward into the ruined temple entry\.'/);
+  assert.match(source, /routeOpenMessage:\s*'Scarab Queen defeated\. Asha has permission, not trust\. Brush Handle recovered\. The Desert Map Seal can answer\.'/);
   assert.match(source, /id:\s*'scarab-queen'[\s\S]*?arenaStart:\s*X\(1265\)/);
   assert.match(source, /id:\s*'scarab-queen'[\s\S]*?name:\s*'Scarab Queen'/);
-  assert.match(storyProps, /Guardian Prep Seal: needs Map Tablet and 6 relic shards/);
-  assert.match(events, /Guardian Seal: recover the Map Tablet and 6 relic shards before the Scarab Queen\./);
+  assert.match(storyProps, /Guardian Prep Seal: read Map Tablet and restore 6 relic shards/);
+  assert.match(events, /Guardian Seal: read the Map Tablet and restore 6 relic shards before the Scarab Queen\./);
   assert.match(journeyComponentSource, /Collect the tool piece, then return to \$\{routeGateName \|\| 'the route gate'\}/);
   assert.match(journeyComponentSource, /current\.notice = `\$\{b\.name\} defeated\. \$\{rewardMoment\.title\} \$\{rewardMoment\.nextObjective\}`/);
   assert.match(journeyComponentSource, /current\.notice = `\$\{rewardMoment\.title\} \$\{rewardMoment\.nextObjective\}`/);
@@ -1387,8 +1422,8 @@ test('active boss domains suppress normal enemy noise near the guardian arena', 
 test('Scarab Queen boss intro is staged as a looter-triggered seal breach cinematic', () => {
   const miniBosses = extractExportedArray('MINI_BOSSES');
 
-  assert.match(source, /bossIntroLine:\s*'A tomb looter cracked the guardian seal\. The Scarab Queen erupts awake\. Dodge her charge, then strike when she staggers\.'/);
-  assert.match(miniBosses, /id:\s*'scarab-queen'[\s\S]*?intro:\s*'Seal Breach: Scarab Queen\. A tomb looter cracked the guardian seal\. The Scarab Queen erupts awake\. Dodge her charge, then strike when she staggers\.'/);
+  assert.match(source, /bossIntroLine:\s*'A tomb looter cracks the guardian seal\. The Scarab Queen erupts as the first trial of Anubis\. Dodge her charge, then strike when she staggers\.'/);
+  assert.match(miniBosses, /id:\s*'scarab-queen'[\s\S]*?intro:\s*'Seal Breach: Scarab Queen\. A tomb looter cracks the guardian seal\. The Scarab Queen erupts as the first trial of Anubis\. Dodge her charge, then strike when she staggers\.'/);
   assert.match(journeyComponentSource, /const SCARAB_QUEEN_CINEMATIC_INTRO_SECONDS = 5\.2/);
   assert.match(journeyComponentSource, /const SCARAB_QUEEN_TRIGGER_LOOTER_OFFSET = 260/);
   assert.match(journeyComponentSource, /const SCARAB_QUEEN_CINEMATIC_CAMERA_ANCHOR_RATIO = 0\.72/);
@@ -1596,7 +1631,7 @@ test('Discovery Entrance upgrades the final Journey handoff without replacing Ba
   assert.match(source, /export const DISCOVERY_ENTRANCE = \{/);
   assert.match(source, /Discovery Entrance Found/);
   assert.match(source, /You have located a sealed archaeological site\./);
-  assert.match(source, /Return to Base Camp to prepare the excavation\./);
+  assert.match(source, /Return to Base Camp Outpost to prepare the excavation\./);
   assert.match(events, /id:\s*'discovery-entrance-reveal'/);
   assert.match(events, /type:\s*'shrine-glow'/);
   assert.match(storyProps, /sealed entrance lamps/);

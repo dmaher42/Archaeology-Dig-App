@@ -12218,7 +12218,7 @@ export default function ExpeditionJourney({
                   Expedition Arrival
                 </div>
                 <h1 className="cinzel-header">Lost Site Expedition</h1>
-                <p>Asha reaches a sealed Egyptian site. Anubis is waiting at the first seal.</p>
+                <p>Asha reaches a sealed Egyptian site. Anubis is already watching from the first seal.</p>
               </div>
               <div className="briefing-hero-mark" aria-hidden="true">
                 <span className="briefing-sun" />
@@ -12233,7 +12233,7 @@ export default function ExpeditionJourney({
                 <div className="dossier-tag">SEALED SITE</div>
                 <h2 className="mission-title">Anubis tests the expedition</h2>
                 <p className="mission-desc">
-                  The route below is closed until Asha proves the expedition has come to protect what it finds.
+                  The route below will not open to a looter. Asha must restore broken seals and prove the expedition came to protect what it finds.
                 </p>
               </div>
               <div className="briefing-task-panel">
@@ -12243,12 +12243,12 @@ export default function ExpeditionJourney({
                 </div>
                 <ul className="briefing-task-list">
                   {[
-                    'Prove your intent',
+                    'Restore the outer seal',
                     'Recover relic shards',
-                    'Find the Map Tablet',
-                    'Survive the guardian route',
-                    'Preserve what you find',
-                    'Earn passage below',
+                    'Read the Map Tablet',
+                    'Survive the Guardian Prep route',
+                    'Defeat the Scarab Queen',
+                    'Reach Base Camp Outpost',
                   ].map(task => (
                     <li key={task}>
                       <CheckCircle2 size={16} />

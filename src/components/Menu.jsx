@@ -305,7 +305,7 @@ export function ActivityMenu({
           <div className="activity-card-copy">
             <h3>Lost Site Expedition</h3>
             <div className="activity-mode-label">Standalone Adventure</div>
-            <p>Enter the scroller, earn passage below, then return to camp for fieldwork.</p>
+            <p>Cross the sealed route, face the first guardian, then return to Base Camp Outpost for fieldwork.</p>
           </div>
           <div className="activity-card-actions activity-card-button-group">
             <button type="button" className="btn primary-btn activity-card-action" onClick={onStartExpedition}>
