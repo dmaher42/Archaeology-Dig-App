@@ -1,6 +1,10 @@
 Original prompt: Implement "Lost Site Expedition" as a small MVP game mode in the Archaeology-Dig-App repo.
 
 2026-05-23 update:
+- Pointed the default Egypt Journey Auto player atlas at Asha V5 instead of the missing stale `asha-v4-spritesheet.json`.
+- Updated Auto fallback to Asha Final Production, while keeping Asha V5, Asha Final Production, Asha Hooded Previous, and Legacy Strip selectable through the existing character loader.
+
+2026-05-23 update:
 - Tuned Asha V5 readability without generating new character art: rebuilt the existing V5 atlas from the user-provided sheets with a light local brightness, contrast, saturation, and sharpness pass.
 - Increased the V5 atlas runtime draw height from 108px to 119px, making her 10% larger in Journey while keeping the existing 256px hero-atlas cells and character-loader option intact.
 - Slowed Asha V5's run-cycle frame stepping through atlas metadata so her legs read less frantic while her movement speed stays unchanged.
