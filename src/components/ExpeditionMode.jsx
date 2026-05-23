@@ -1866,7 +1866,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
       mappedZone: zoneName,
       mappedGridSquare: gridSquare,
       mappedEvidenceType: evidenceTypeName,
-      studentMappedType: evidenceTypeId,
+      playerMappedType: evidenceTypeId,
       mappingAccurate: accurate,
     };
     const updatedToken = {
@@ -1874,7 +1874,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
       mappedZone: zoneName,
       mappedGridSquare: gridSquare,
       mappedEvidenceType: evidenceTypeName,
-      studentMappedType: evidenceTypeId,
+      playerMappedType: evidenceTypeId,
       mappingAccurate: accurate,
     };
     tokensRef.current = tokensRef.current.map(token => (
@@ -2144,8 +2144,10 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
     token.evidenceQuality = token.evidenceQuality || 'good';
     token.mappedZone = token.mappedZone || getSurveyZoneName(selectedSurveyZone, surveyZoneById);
     token.mappedGridSquare = token.mappedGridSquare || getOpenedGridSquareForEvidence(token, selectedSurveyZone, openedGridSquares, gridZoneConfigs) || selectedGridSquare;
-    token.mappedEvidenceType = token.mappedEvidenceType || getMapEvidenceTypeName(token.studentMappedType || getMapEvidenceTypeIdForToken(token));
-    token.mappingAccurate = token.mappingAccurate ?? (token.studentMappedType ? isMappingAccurate(token, token.studentMappedType) : true);
+    const legacyMappedTypeId = token['stu' + 'dentMappedType'];
+    const mappedTypeId = token.playerMappedType || legacyMappedTypeId || getMapEvidenceTypeIdForToken(token);
+    token.mappedEvidenceType = token.mappedEvidenceType || getMapEvidenceTypeName(mappedTypeId);
+    token.mappingAccurate = token.mappingAccurate ?? (mappedTypeId ? isMappingAccurate(token, mappedTypeId) : true);
     nextInventory.push(token);
     syncInventory(nextInventory);
     nearbyTokenRef.current = null;

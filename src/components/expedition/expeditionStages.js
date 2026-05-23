@@ -68,7 +68,7 @@ export const CHINA_EXPEDITION_SCAFFOLD = {
     'Evidence helps historians understand the ancient past.',
     'Artefacts and written sources can reveal values, beliefs, technology and government.',
     'Archaeologists use survey, excavation, cataloguing, evidence and interpretation.',
-    'Students make claims using evidence.',
+    'Players make claims using evidence.',
   ],
   visualDirection: [
     'river valley',

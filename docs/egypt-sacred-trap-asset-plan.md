@@ -129,9 +129,9 @@ Exact region keys:
 - Ancient Egyptian sandstone and carved limestone shapes.
 - Gold and lapis-blue accents used sparingly for sacred activation states.
 - Clear silhouettes: round seal, square pressure plate, cracked slab, falling block, glowing glyph line, sealed doorway, pedestal.
-- Projector-safe contrast and clean outlines.
+- Game-camera-safe contrast and clean outlines.
 - Warning states should glow or pulse before danger, not surprise the player.
-- Classroom-friendly and ceremonial: no gore, horror, realistic injury, skull piles, treasure-thief framing, or aggressive punishment language.
+- Adventure-readable and ceremonial: no gore, horror, realistic injury, skull piles, treasure-thief framing, or aggressive punishment language.
 - Keep each state simple enough to read during fast side-view platforming.
 
 ## Proposed Implementation Sequence

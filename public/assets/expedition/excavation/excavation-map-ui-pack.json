@@ -2,7 +2,7 @@
   "image": "excavation-map-ui-pack.png",
   "imageWidth": 1536,
   "imageHeight": 1024,
-  "coordinateNotes": "Approximate first-pass atlas coordinates from the generated sheet. Tuning may be needed after projector-scale review.",
+  "coordinateNotes": "Approximate first-pass atlas coordinates from the generated sheet. Tuning may be needed after gameplay-scale review.",
   "regions": {
     "riverbankTerrain": { "x": 84, "y": 55, "w": 220, "h": 142 },
     "burialTerrain": { "x": 335, "y": 54, "w": 196, "h": 141 },

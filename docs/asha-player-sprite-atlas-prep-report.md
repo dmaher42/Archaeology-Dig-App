@@ -134,7 +134,7 @@ Use this prompt to generate a clean engine-ready replacement sheet:
 ```text
 Create a production-ready 2D side-scroller player character sprite sheet for Asha, an Ancient Egypt expedition warrior-guide.
 
-Use the attached concept sheet only as style reference: hooded desert cloak, bronze/gold armour, blue cloth accents, round Egyptian shield, strong readable silhouette, classroom-friendly heroic archaeology adventure tone.
+Use the attached concept sheet only as style reference: hooded desert cloak, bronze/gold armour, blue cloth accents, round Egyptian shield, strong readable silhouette, heroic archaeology adventure tone.
 
 Output requirements:
 - One clean transparent-background PNG sprite sheet.
@@ -173,7 +173,7 @@ Rows:
 Style:
 - High-quality painted 2D game sprite.
 - Clean transparent edges.
-- Strong silhouette readable on a classroom projector.
+- Strong silhouette readable at gameplay scale and on large displays.
 - Ancient Egyptian palette: bronze, gold, sandy brown, lapis-blue accents.
 - Adventurous, respectful, sacred-site protector feel.
 - Not horror, not gory, not treasure-thief framing.

@@ -415,6 +415,18 @@ const isStageEntranceVisibleForState = (feature, current) => (
   Boolean(feature?.visibleWhenLocked) || isStageEntranceAvailableForState(feature, current)
 );
 
+const isStageEntrancePastArrivalForState = (feature, current) => {
+  if (!feature?.to || !current?.player) return false;
+  if (current.templeThresholdTransition?.featureId === feature.id) return false;
+  const playerCenterX = current.player.x + current.player.width / 2;
+  const playerSectionId = getSectionForX(playerCenterX).id;
+  return playerSectionId === feature.to && playerCenterX > feature.x + scaleJourneyX(96);
+};
+
+const shouldRenderStageEntranceFeatureForState = (feature, current) => (
+  isStageEntranceVisibleForState(feature, current) && !isStageEntrancePastArrivalForState(feature, current)
+);
+
 const OPENING_PYRAMID_AIR_JUMP_ASSIST_ZONE = {
   minX: 126,
   maxX: 1138,
@@ -755,7 +767,7 @@ const getHeroSpriteFrameKey = (current, atlas, now) => {
   const frameCount = Math.max(1, row.frameCount || row.frames?.length || 1);
   if (row.loop) {
     const frame = rowName === 'idle'
-      ? 0
+      ? Math.floor(now / 150) % frameCount
       : Math.floor(walkCycleDistance / (rowName === 'run' ? 15 : rowName === 'survey_walk' ? 34 : 22)) % frameCount;
     return row.frames?.[frame] || null;
   }
@@ -8984,7 +8996,7 @@ export default function ExpeditionJourney({
     drawMissingObjectiveMarker(ctx, activeGateGuidance, cameraX, now);
 
     STAGE_ENTRANCE_FEATURES.forEach((feature) => {
-      if (!isStageEntranceVisibleForState(feature, current)) return;
+      if (!shouldRenderStageEntranceFeatureForState(feature, current)) return;
       drawStageEntranceFeature(ctx, feature, cameraX, now);
     });
 
@@ -9238,7 +9250,7 @@ export default function ExpeditionJourney({
     drawCombatEffects(ctx, current.combatHitEffects, cameraX, now);
     drawPlayerSprite(ctx, player.x - cameraX, player.y, player.width, player.height, player.direction, player.invulnerable, now);
     STAGE_ENTRANCE_FEATURES.forEach((feature) => {
-      if (!isStageEntranceVisibleForState(feature, current)) return;
+      if (!shouldRenderStageEntranceFeatureForState(feature, current)) return;
       drawStageEntranceForegroundOccluder(ctx, feature, cameraX, now);
     });
     drawOpeningThresholdScene(ctx, current.openingThresholdScene, cameraX, now);
@@ -9978,13 +9990,15 @@ export default function ExpeditionJourney({
       triggerJourneyRescue('Missed platform jump. Field rescue required.', challengeMessage);
     }
     if (player.onGround && Math.abs(player.vx) > 20) {
+      const groundSpeed = Math.abs(player.vx);
+      const isRunFeedback = groundSpeed > 190;
       footstepTimerRef.current -= dt;
       if (footstepTimerRef.current <= 0) {
         audioControls?.playExpeditionSfx?.('footstepSand');
-        footstepTimerRef.current = 0.42;
+        footstepTimerRef.current = isRunFeedback ? 0.36 : 0.44;
       }
       player.movementDustTimer -= dt;
-      if (player.movementDustTimer <= 0 && Math.abs(player.vx) > 90) {
+      if (player.movementDustTimer <= 0 && groundSpeed > 90) {
         addCombatEffect(current, {
           type: 'movement-dust',
           x: player.x + player.width / 2,
@@ -9994,7 +10008,7 @@ export default function ExpeditionJourney({
           timer: 0.28,
           maxTimer: 0.28,
         });
-        player.movementDustTimer = 0.18;
+        player.movementDustTimer = isRunFeedback ? 0.16 : 0.22;
       }
     } else {
       footstepTimerRef.current = 0;

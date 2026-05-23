@@ -23,7 +23,7 @@ Do not create parallel systems for progression, economy, player control, animati
 
 ## Design Vision
 
-Lost Site Expedition should feel like a polished archaeology adventure, not a classroom activity wrapped in game UI.
+Lost Site Expedition should feel like a polished archaeology adventure, not a worksheet-style task wrapped in game UI.
 
 The player should feel like an expedition hero entering an ancient site, gathering tools and evidence, overcoming guardians, unlocking seals, discovering a tomb entrance, returning to Base Camp, then excavating and analysing evidence.
 

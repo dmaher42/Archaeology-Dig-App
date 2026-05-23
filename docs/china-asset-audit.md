@@ -43,7 +43,7 @@ The largest remaining asset issue is not missing files. It is mixed reuse: the C
 | China civilisation profile image | `public/assets/civilisations/profile-china.png` | Real PNG, 1024x1024 | Bureau training profile / civilisation case image from `src/data.js` | Already present; keep | P3 done |
 | China Stage Select character visual | `public/assets/expedition/stage-characters/ancient-china-character.png` | Real PNG, 1024x1536 | Expedition Stage Select header character | Already present; keep | P3 done |
 | China excavation hazards/guardians | Uses China map atlas for terrain/markers plus config objects in `ExpeditionMode.jsx` | Mostly real map art, but hazard/guardian labels are data-driven and can fall back to simple canvas/label treatment depending draw path | China excavation map hazards and Site Watcher | Good enough for prototype; custom hazard icons can polish | P3 |
-| China Journey route/section visuals | China background/environment pack, but Egypt section ids remain: `desert-entry`, `ruined-temple`, `catacombs`, `escape-sequence`, `dig-site-entrance` | Mixed: real China art over Egypt-authored section structure and some Egypt helper labels/messages | Journey route, objectives, transitions, gates and events | Needs copy/data pass before classroom-finished China | P1 |
+| China Journey route/section visuals | China background/environment pack, but Egypt section ids remain: `desert-entry`, `ruined-temple`, `catacombs`, `escape-sequence`, `dig-site-entrance` | Mixed: real China art over Egypt-authored section structure and some Egypt helper labels/messages | Journey route, objectives, transitions, gates and events | Needs copy/data pass before standalone-finished China | P1 |
 
 ## Missing Assets
 

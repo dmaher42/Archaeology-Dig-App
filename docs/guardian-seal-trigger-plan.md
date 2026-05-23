@@ -257,7 +257,7 @@ Loader status: the pack is registered as passive/future environment pack id `egy
   - Use short notices.
   - Avoid repeated blocking prompts.
   - Movement should only pause if reusing the existing boss intro pause.
-- Keep classroom-friendly:
+- Keep adventure-readable:
   - Sacred/protected/preserved language.
   - No horror, gore, jump-scare framing, theft framing, or punishment language.
 - Preserve Base Camp and excavation systems.

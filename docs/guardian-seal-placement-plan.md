@@ -235,7 +235,7 @@ The final route already has boss intro pause behavior. The future trigger should
 
 ### Player Confusion
 
-If the Guardian Seal looks collectible before it actually does anything, students may try to pick it up and think the game is broken. The passive visual should read as a ceremonial warning/pedestal first, not a glowing pickup.
+If the Guardian Seal looks collectible before it actually does anything, players may try to pick it up and think the game is broken. The passive visual should read as a ceremonial warning/pedestal first, not a glowing pickup.
 
 ### Boss/Base Camp Handoff
 

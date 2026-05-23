@@ -182,6 +182,9 @@ test('world continuity landmarks foreshadow future expedition sections', () => {
   assert.match(journeyComponentSource, /mode:\s*'stage-entrance'/);
   assert.match(journeyComponentSource, /nearbyStageEntrance\.x - CANVAS_WIDTH \* 0\.5/);
   assert.match(journeyComponentSource, /drawStageEntranceFeature/);
+  assert.match(journeyComponentSource, /isStageEntrancePastArrivalForState/);
+  assert.match(journeyComponentSource, /shouldRenderStageEntranceFeatureForState/);
+  assert.match(journeyComponentSource, /playerSectionId === feature\.to/);
   assert.match(journeyComponentSource, /STAGE_ENTRANCE_FEATURES\.forEach/);
 });
 
@@ -792,7 +795,7 @@ test('Egypt Journey uses the Asha atlas through the existing player renderer', (
   assert.match(journeyComponentSource, /if\s*\(!atlasPath\)\s*\{\s*loadLegacySprite\(\);/);
   assert.equal(egyptPlayerAtlas.draw.suppressExternalWeapon, true);
   assert.equal(egyptPlayerAtlas.draw.suppressRuntimeAttackArc, true);
-  assert.equal(egyptPlayerAtlas.status, 'production-candidate-final-asha-warrior-sword');
+  assert.equal(egyptPlayerAtlas.status, 'production-candidate-final-asha-master-reference-motion');
   assert.equal(egyptPlayerAtlas.productionReference, 'asha-final-production-reference.png');
   assert.equal(egyptPlayerAtlas.draw.height, 108);
   assert.ok(egyptPlayerAtlas.draw.height >= 80 && egyptPlayerAtlas.draw.height <= 110);
@@ -801,20 +804,24 @@ test('Egypt Journey uses the Asha atlas through the existing player renderer', (
   assert.equal(egyptPlayerAtlas.frame.height, 256);
   assert.equal(
     egyptPlayerAtlas.source,
-    'imagegen-final-production-asha-separated-sheets-2026-05-22',
+    'imagegen-master-reference-asha-idle-jump-damage-run-2026-05-23',
   );
   assert.equal(egyptPreviousPlayerAtlas.status, 'active-egypt-hooded-warrior-explorer-atlas-production-ready');
-  assert.equal(egyptPlayerAtlas.rows.find(row => row.name === 'idle')?.frameCount, 1);
+  assert.equal(egyptPlayerAtlas.rows.find(row => row.name === 'idle')?.frameCount, 8);
   assert.equal(egyptPlayerAtlas.rows.find(row => row.name === 'walk')?.frameCount, 8);
-  assert.equal(egyptPlayerAtlas.rows.find(row => row.name === 'run')?.frameCount, 8);
+  assert.equal(egyptPlayerAtlas.rows.find(row => row.name === 'run')?.frameCount, 10);
   assert.equal(egyptPlayerAtlas.rows.find(row => row.name === 'survey_walk')?.frameCount, 8);
+  assert.deepEqual(
+    egyptPlayerAtlas.rows.find(row => row.name === 'idle')?.frames,
+    Array.from({ length: 8 }, (_, index) => `idle_${String(index).padStart(2, '0')}`),
+  );
   assert.deepEqual(
     egyptPlayerAtlas.rows.find(row => row.name === 'walk')?.frames,
     Array.from({ length: 8 }, (_, index) => `walk_${String(index).padStart(2, '0')}`),
   );
   assert.deepEqual(
     egyptPlayerAtlas.rows.find(row => row.name === 'run')?.frames,
-    Array.from({ length: 8 }, (_, index) => `run_${String(index).padStart(2, '0')}`),
+    Array.from({ length: 10 }, (_, index) => `run_${String(index).padStart(2, '0')}`),
   );
   assert.deepEqual(
     egyptPlayerAtlas.rows.find(row => row.name === 'survey_walk')?.frames,
@@ -832,18 +839,27 @@ test('Egypt Journey uses the Asha atlas through the existing player renderer', (
     egyptPlayerAtlas.rows.find(row => row.name === 'land')?.frames,
     Array.from({ length: 8 }, (_, index) => `land_${String(index).padStart(2, '0')}`),
   );
-  assert.equal(egyptPlayerAtlas.poseSources.run_00, 'asha-final-run-source.png:frame_00');
-  assert.equal(egyptPlayerAtlas.poseSources.run_03, 'asha-final-run-source.png:frame_03');
-  assert.equal(egyptPlayerAtlas.poseSources.walk_03, 'asha-final-run-source.png:frame_03');
-  assert.equal(egyptPlayerAtlas.poseSources.attack_pick_swing_00, 'asha-final-warrior-sword-attack-source.png:frame_00');
-  assert.equal(egyptPlayerAtlas.poseSources.attack_pick_swing_03, 'asha-final-warrior-sword-attack-source.png:frame_03');
-  assert.equal(egyptPlayerAtlas.poseSources.attack_pick_swing_07, 'asha-final-warrior-sword-attack-source.png:frame_07');
-  assert.equal(egyptPlayerAtlas.poseSources.jump_04, 'asha-final-jump-source.png:frame_03');
-  assert.equal(egyptPlayerAtlas.poseSources.fall_04, 'asha-final-jump-source.png:frame_04');
-  assert.equal(egyptPlayerAtlas.poseSources.land_02, 'asha-final-jump-source.png:frame_05');
+  assert.equal(egyptPlayerAtlas.rows.find(row => row.name === 'hurt')?.frameCount, 5);
+  assert.deepEqual(
+    egyptPlayerAtlas.rows.find(row => row.name === 'hurt')?.frames,
+    Array.from({ length: 5 }, (_, index) => `hurt_${String(index).padStart(2, '0')}`),
+  );
+  assert.equal(egyptPlayerAtlas.poseSources.idle_00, 'asha-master-reference-idle-8frame-alpha.png:frame_00');
+  assert.equal(egyptPlayerAtlas.poseSources.idle_07, 'asha-master-reference-idle-8frame-alpha.png:frame_07');
+  assert.equal(egyptPlayerAtlas.poseSources.run_00, 'asha-master-reference-run-10frame-alpha.png:frame_00');
+  assert.equal(egyptPlayerAtlas.poseSources.run_03, 'asha-master-reference-run-10frame-alpha.png:frame_03');
+  assert.equal(egyptPlayerAtlas.poseSources.run_09, 'asha-master-reference-run-10frame-alpha.png:frame_09');
+  assert.equal(egyptPlayerAtlas.poseSources.walk_03, 'asha-master-reference-run-10frame-alpha.png:frame_03');
+  assert.equal(egyptPlayerAtlas.poseSources.attack_pick_swing_00, 'asha-final-polished-sword-attack-source.png:frame_00');
+  assert.equal(egyptPlayerAtlas.poseSources.attack_pick_swing_03, 'asha-final-polished-sword-attack-source.png:frame_03');
+  assert.equal(egyptPlayerAtlas.poseSources.attack_pick_swing_07, 'asha-final-polished-sword-attack-source.png:frame_07');
+  assert.equal(egyptPlayerAtlas.poseSources.jump_04, 'asha-master-reference-jump-8frame-alpha.png:frame_03');
+  assert.equal(egyptPlayerAtlas.poseSources.fall_04, 'asha-master-reference-jump-8frame-alpha.png:frame_05');
+  assert.equal(egyptPlayerAtlas.poseSources.land_02, 'asha-master-reference-jump-8frame-alpha.png:frame_07');
+  assert.equal(egyptPlayerAtlas.poseSources.hurt_04, 'asha-master-reference-damage-5frame-alpha.png:frame_04');
   assert.equal(egyptPlayerAtlas.rows.length, 12);
-  assert.equal(Object.keys(egyptPlayerAtlas.regions).length, 96);
-  assert.equal(Object.keys(egyptPlayerAtlas.poseSources).length, 96);
+  assert.equal(Object.keys(egyptPlayerAtlas.regions).length, 95);
+  assert.equal(Object.keys(egyptPlayerAtlas.poseSources).length, 95);
   assert.ok(egyptPlayerFallbackAtlas.regions.idle_00);
   assert.ok(egyptPlayerAtlas.regions.run_00.drawBounds);
   assert.match(journeyComponentSource, /heroRegion\?\.drawBounds/);
@@ -854,7 +870,7 @@ test('Egypt Journey uses the Asha atlas through the existing player renderer', (
   assert.match(journeyUtilsSource, /if \(animationState === 'land'\) \{/);
   assert.match(journeyUtilsSource, /player\.landingFeedbackTimer/);
   assert.match(journeyComponentSource, /heroAtlas\?\.draw\?\.suppressExternalWeapon/);
-  assert.match(journeyComponentSource, /rowName === 'idle'\s*\?\s*0/);
+  assert.match(journeyComponentSource, /rowName === 'idle'\s*\?\s*Math\.floor\(now \/ 150\) % frameCount/);
   assert.match(journeyComponentSource, /firstSwingFrame/);
   assert.match(journeyComponentSource, /lastSwingFrame/);
 });
@@ -1071,7 +1087,19 @@ test('Temple Threshold route keeps the first switch readable without clutter pla
     assert.match(shards, rewardPoint);
   });
   assert.match(storyProps, /temple-threshold-switch-trail/);
-  assert.match(storyProps, /fine crack warning marks/);
+  [
+    'atmosphere-temple-entry-pillar',
+    'temple-approach-obelisk-fragment-1',
+    'temple-threshold-crack-cue',
+    'atmosphere-temple-tablet',
+    'ruined-temple-relief-slab-1',
+    'temple-door',
+    'carved-stone-clue',
+    'mural-wall',
+    'ruined-temple-mural-fragment-2',
+  ].forEach((id) => {
+    assert.doesNotMatch(storyProps, new RegExp(`id:\\s*'${id}'`));
+  });
   assert.match(events, /id:\s*'temple-threshold-climb'/);
   assert.match(events, /Relic shards mark the way toward the first switch\./);
   assert.match(markers, /id:\s*'switch-1'/);
@@ -1446,12 +1474,12 @@ test('Egypt atmosphere layout fills each Journey section without changing gamepl
     'desert-entry-survey-chest-1',
     'scarab-seal-warning-glyph-1',
     'temple-approach-threshold-tablet-1',
-    'temple-approach-obelisk-fragment-1',
+    'atmosphere-temple-fallen-stone',
     'ruined-temple-fallen-column-1',
     'catacomb-warning-urns-1',
     'escape-cracked-pillar-1',
     'dig-site-survey-grid-cache-1',
-    'ruined-temple-mural-fragment-2',
+    'atmosphere-temple-scroll-cache',
     'catacomb-safe-ledge-evidence-2',
     'escape-shattered-bridge-blocks-2',
     'dig-site-rope-boundary-2',

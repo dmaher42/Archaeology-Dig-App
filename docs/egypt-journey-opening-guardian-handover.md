@@ -101,8 +101,8 @@ The sacred seal/pedestal handover pass also confirmed:
 ## Remaining Risks
 
 - A full natural, human-paced playthrough from Brush Handle pickup through Desert Map Seal, temple entry, Switch 1, final approach, Ancient Construct, Base Camp, and excavation is still recommended.
-- The early Scarab Seal scene has source and browser-smoke coverage, but classroom pacing and climb readability should still be reviewed in a natural playthrough.
-- The Scarab Queen asset has been regenerated and validated, but longer classroom-projector review would still help judge readability during real combat.
+- The early Scarab Seal scene has source and browser-smoke coverage, but standalone pacing and climb readability should still be reviewed in a natural playthrough.
+- The Scarab Queen asset has been regenerated and validated, but longer large-screen review would still help judge readability during real combat.
 - Sacred trap work is still only partially implemented: the first Guardian Seal and sacred pedestal assets exist, but pressure plate, cracked platform, falling stone, glyph tripwire, and sealed door regions remain pending.
 - Guardian Seal trigger work is still planning only; implementation should reuse the passive placement and existing event/boss intro paths when it starts.
 - The passive Guardian Seal/pedestal can look meaningful before it does anything, so the next trigger pass must avoid player confusion and preserve low replay friction.

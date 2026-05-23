@@ -16,7 +16,7 @@ Arrival -> Rejection -> Preparation -> Guardian Test -> Discovery Entrance -> Ba
 
 ## 1. Arrival At A Protected Ancient Site
 
-Asha reaches a sealed ancient Egyptian landscape. The world immediately feels ancient, guarded, dangerous, and significant. This is not a classroom map; it is a lost site with history, belief, and protection built into the landscape.
+Asha reaches a sealed ancient Egyptian landscape. The world immediately feels ancient, guarded, dangerous, and significant. This is not an instructional map; it is a lost site with history, belief, and protection built into the landscape.
 
 The player's first feeling should be:
 

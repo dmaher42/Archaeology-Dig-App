@@ -7,42 +7,50 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageChops
 
-
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_DIR = ROOT / "public/assets/expedition/player/asha-final-production-source"
 BASE_ATLAS_JSON = ROOT / "public/assets/expedition/player/asha-hooded-warrior-explorer-spritesheet.json"
 TARGET_DIR = ROOT / "public/assets/expedition/player"
-TARGET_JSON = TARGET_DIR / "asha-final-production-spritesheet.json"
-TARGET_PNG = TARGET_DIR / "asha-final-production-spritesheet.png"
-TARGET_REFERENCE = TARGET_DIR / "asha-final-production-reference.png"
-TARGET_DRAW_HEIGHT = 108
-
+TARGET_JSON = TARGET_DIR / "asha-v4-spritesheet.json"
+TARGET_PNG = TARGET_DIR / "asha-v4-spritesheet.png"
+TARGET_REFERENCE = TARGET_DIR / "asha-v4-reference.png"
 
 SOURCES = {
-    "idle": SOURCE_DIR / "asha-master-reference-idle-8frame-alpha.png",
-    "run": SOURCE_DIR / "asha-master-reference-run-10frame-alpha.png",
-    "jump": SOURCE_DIR / "asha-master-reference-jump-8frame-alpha.png",
-    "climb": SOURCE_DIR / "asha-final-polished-climb-source.png",
-    "interact": SOURCE_DIR / "asha-final-polished-interact-source.png",
-    "hurt": SOURCE_DIR / "asha-master-reference-damage-5frame-alpha.png",
+    "idle": Path(r"C:\Users\dmahe\.gemini\antigravity\brain\27585ee2-bf13-4207-b1a4-885369e2ac0a\asha_v4_idle_sword_1779485390124.png"),
+    "run": Path(r"C:\Users\dmahe\.gemini\antigravity\brain\27585ee2-bf13-4207-b1a4-885369e2ac0a\asha_v4_run_sword_1779485421810.png"),
+    "jump": Path(r"C:\Users\dmahe\.gemini\antigravity\brain\27585ee2-bf13-4207-b1a4-885369e2ac0a\asha_v4_jump_sword_1779485441851.png"),
+    "climb": SOURCE_DIR / "asha-final-climb-source.png",
+    "interact": SOURCE_DIR / "asha-final-interact-source.png",
+    "hurt": SOURCE_DIR / "asha-final-damage-source.png",
     "death": SOURCE_DIR / "asha-final-death-source.png",
     "portrait": SOURCE_DIR / "asha-final-portrait-source.png",
-    "attack_pick_swing": SOURCE_DIR / "asha-final-polished-sword-attack-source.png",
+    "attack_pick_swing": Path(r"C:\Users\dmahe\.gemini\antigravity\brain\27585ee2-bf13-4207-b1a4-885369e2ac0a\asha_v4_attack_sword_1779485456896.png"),
 }
 
 SOURCE_FRAME_COUNTS = {
     "idle": 8,
-    "run": 10,
-    "jump": 8,
+    "run": 8,
+    "jump": 6,
     "climb": 8,
     "interact": 8,
-    "hurt": 5,
+    "hurt": 6,
     "death": 8,
     "portrait": 4,
     "attack_pick_swing": 8,
 }
 
-SOURCE_CROP_BOXES = {}
+SOURCE_CROP_BOXES = {
+    "attack_pick_swing": [
+        (0, 282),
+        (276, 520),
+        (520, 785),
+        (760, 1190),
+        (1130, 1408),
+        (1398, 1580),
+        (1538, 1832),
+        (1810, 2048),
+    ],
+}
 
 ROW_INDEX = {
     "idle": 0,
@@ -62,22 +70,20 @@ ROW_INDEX = {
 ROW_SOURCE = {
     "idle": ("idle", [0, 1, 2, 3, 4, 5, 6, 7]),
     "walk": ("run", [0, 1, 2, 3, 4, 5, 6, 7]),
-    "run": ("run", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
+    "run": ("run", [0, 1, 2, 3, 4, 5, 6, 7]),
     "survey_walk": ("run", [0, 1, 2, 3, 4, 5, 6, 7]),
     "jump": ("jump", [0, 1, 2, 3, 3, 3, 3, 3]),
-    "fall": ("jump", [3, 4, 4, 5, 5, 6, 6, 6]),
-    "land": ("jump", [6, 7, 7, 7, 7, 7, 7, 7]),
+    "fall": ("jump", [2, 3, 3, 4, 4, 4, 5, 5]),
+    "land": ("jump", [5, 5, 5, 5, 5, 5, 5, 5]),
     "attack_pick_swing": ("attack_pick_swing", [0, 1, 2, 3, 4, 5, 6, 7]),
-    "hurt": ("hurt", [0, 1, 2, 3, 4]),
-    "interact": ("interact", [0, 1, 2, 3, 3, 2, 1, 0]),
+    "hurt": ("hurt", [0, 1, 2, 3, 4, 5, 5, 5]),
+    "interact": ("interact", [0, 1, 2, 3, 4, 5, 6, 7]),
     "climb": ("climb", [0, 1, 2, 3, 4, 5, 6, 7]),
-    "push_pull": ("interact", [4, 5, 5, 5, 6, 7, 7, 7]),
+    "push_pull": ("interact", [2, 2, 2, 3, 3, 3, 3, 3]),
 }
-
 
 def frame_key(row_name: str, index: int) -> str:
     return f"{row_name}_{index:02d}"
-
 
 def remove_checkerboard_background(image: Image.Image) -> Image.Image:
     rgba = image.convert("RGBA")
@@ -90,7 +96,6 @@ def remove_checkerboard_background(image: Image.Image) -> Image.Image:
     data[..., 3] = np.where(pale_checker, 0, data[..., 3])
     return Image.fromarray(data, "RGBA")
 
-
 def remove_cell_edges(image: Image.Image) -> Image.Image:
     rgba = image.convert("RGBA")
     alpha = rgba.getchannel("A")
@@ -98,7 +103,6 @@ def remove_cell_edges(image: Image.Image) -> Image.Image:
     if bbox is None:
       return rgba
     return rgba.crop(bbox)
-
 
 def keep_visible_components(image: Image.Image, *, min_pixels: int = 110) -> Image.Image:
     rgba = image.convert("RGBA")
@@ -153,18 +157,25 @@ def keep_visible_components(image: Image.Image, *, min_pixels: int = 110) -> Ima
     kept.putalpha(ImageChops.multiply(rgba.getchannel("A"), mask))
     return kept
 
-
 def extract_frame(source: Image.Image, *, source_name: str, frame_count: int, frame_index: int) -> Image.Image:
     if source_name in SOURCE_CROP_BOXES:
         left, right = SOURCE_CROP_BOXES[source_name][frame_index]
     else:
+        # V4 sheets are evenly spaced 8 frames
+        # We need to dynamically measure actual frame counts based on width / height
+        aspect = round(source.width / source.height)
+        if source_name in ["idle", "run", "jump", "attack_pick_swing"]:
+             frame_count = max(4, aspect) # generated sheets might be 4, 6 or 8.
+        
+        # We might not have 8 frames in the generated sheets, cap the index
+        safe_index = min(frame_index, frame_count - 1)
+        
         cell_w = source.width / frame_count
         pad_x = 0
-        left = max(0, round(frame_index * cell_w) - pad_x)
-        right = min(source.width, round((frame_index + 1) * cell_w) + pad_x)
+        left = max(0, round(safe_index * cell_w) - pad_x)
+        right = min(source.width, round((safe_index + 1) * cell_w) + pad_x)
     cell = source.crop((left, 0, right, source.height))
     return remove_cell_edges(keep_visible_components(cell))
-
 
 def trim_to_visible(image: Image.Image) -> Image.Image:
     alpha = image.getchannel("A")
@@ -173,7 +184,6 @@ def trim_to_visible(image: Image.Image) -> Image.Image:
         return image
     return image.crop(bbox)
 
-
 def measure_bounds(image: Image.Image) -> dict[str, int]:
     alpha = image.getchannel("A")
     bbox = alpha.point(lambda value: 255 if value > 18 else 0).getbbox()
@@ -181,7 +191,6 @@ def measure_bounds(image: Image.Image) -> dict[str, int]:
         return {"x": 0, "y": 0, "w": 1, "h": 1}
     left, top, right, bottom = bbox
     return {"x": left, "y": top, "w": right - left, "h": bottom - top}
-
 
 def paste_sprite_cell(
     target: Image.Image,
@@ -227,7 +236,6 @@ def paste_sprite_cell(
         "groundLineY": ground_line_y,
     }
 
-
 def main() -> None:
     metadata = json.loads(BASE_ATLAS_JSON.read_text(encoding="utf-8"))
     cell_w = int(metadata["frame"]["width"])
@@ -252,8 +260,7 @@ def main() -> None:
         for name in SOURCE_FRAME_COUNTS
     }
 
-    max_columns = max(len(source_indices) for _source_name, source_indices in ROW_SOURCE.values())
-    target = Image.new("RGBA", (cell_w * max_columns, cell_h * len(ROW_INDEX)), (0, 0, 0, 0))
+    target = Image.new("RGBA", (cell_w * 8, cell_h * len(ROW_INDEX)), (0, 0, 0, 0))
     regions = {}
     pose_sources = {}
 
@@ -277,24 +284,22 @@ def main() -> None:
     for row in metadata["rows"]:
         row_name = row["name"]
         next_row = deepcopy(row)
-        _source_name, source_indices = ROW_SOURCE[row_name]
         next_row["row"] = ROW_INDEX[row_name]
-        next_row["frameCount"] = len(source_indices)
-        next_row["frames"] = [frame_key(row_name, index) for index in range(next_row["frameCount"])]
+        next_row["frames"] = [frame_key(row_name, index) for index in range(8)]
+        next_row["frameCount"] = 1 if row_name == "idle" else 8
+        if row_name == "idle":
+            next_row["frames"] = ["idle_00"]
         rows.append(next_row)
 
     metadata["image"] = TARGET_PNG.name
-    metadata["source"] = "imagegen-master-reference-asha-idle-jump-damage-run-2026-05-23"
-    metadata["status"] = "production-candidate-final-asha-master-reference-motion"
+    metadata["source"] = "imagegen-v4-asha-separated-sheets"
+    metadata["status"] = "production-v4-asha-warrior-sword"
     metadata["productionReference"] = TARGET_REFERENCE.name
     metadata["description"] = (
-        "Final production Asha runtime atlas packed from separated ImageGen sheets. "
-        "Uses the approved master-reference archaeology-adventure Asha design for idle, "
-        "run, jump, fall, land, and hurt rows, with the existing warrior sword combat row "
-        "plus polished climb, interact, and push/pull rows, "
-        "while preserving the existing Journey hero-atlas row contract."
+        "V4 Asha runtime atlas. Fixed scaling inconsistencies and added permanent sword "
+        "visibility across all primary traversal frames."
     )
-    metadata["draw"]["height"] = TARGET_DRAW_HEIGHT
+    metadata["draw"]["height"] = 136
     metadata["draw"]["sourceHeight"] = max_source_height
     metadata["draw"]["integratedAttackTool"] = True
     metadata["draw"]["suppressExternalWeapon"] = True
@@ -313,7 +318,6 @@ def main() -> None:
     TARGET_JSON.write_text(f"{json.dumps(metadata, indent=2)}\n", encoding="utf-8")
     print(f"Wrote {TARGET_PNG.relative_to(ROOT)}")
     print(f"Wrote {TARGET_JSON.relative_to(ROOT)}")
-
 
 if __name__ == "__main__":
     main()

@@ -24,7 +24,7 @@ The Sphinx should feel:
 - mysterious
 - powerful
 - protective
-- classroom-friendly
+- adventure-readable
 - impressive without becoming horror
 
 ## 3. Visual Requirements
@@ -44,7 +44,7 @@ Required visual traits:
 - heavy grounded silhouette
 - dust or contact shadows under paws
 - final-boss scale
-- readable on a classroom projector
+- readable at gameplay scale and on large displays
 - stylised 2D game art matching Lost Site Expedition
 
 The body should feel like monumental sculpture that has come to life: stone mass first, sacred energy second. The front paws and chest should be large enough to establish scale and make the creature feel physically grounded.
@@ -117,9 +117,9 @@ Do not include:
 
 Use case: stylized-concept
 Asset type: 2D platformer final boss sprite sheet for Lost Site Expedition
-Primary request: Create a high-quality sprite sheet of The Sphinx as a final boss guardian for an Ancient Egypt classroom platformer game.
+Primary request: Create a high-quality sprite sheet of The Sphinx as a final boss guardian for an Ancient Egypt adventure platformer game.
 Subject: unmistakable ancient Egyptian Sphinx with a lion body, huge grounded front paws, human/pharaoh-style head and headdress, monumental stone body, gold/bronze trim, lapis-blue and turquoise sacred accents, glowing eyes and glowing carved glyph cracks in power states.
-Style/medium: clean stylised 2D game art, side-view platformer boss sprite, crisp readable shapes, polished classroom-friendly fantasy archaeology style.
+Style/medium: clean stylised 2D game art, side-view platformer boss sprite, crisp readable shapes, polished fantasy archaeology adventure style.
 Composition/framing: one horizontal sprite sheet with 13 evenly spaced transparent-background frames, all facing the same side-view direction, same character proportions, same scale, same bottom-grounded anchor, generous padding around each frame.
 Lighting/mood: mysterious, sacred, ancient, impressive, protective; not horror.
 Frame order and labels for production only: sphinxDormant, sphinxAwakening, sphinxIdle, sphinxStep1, sphinxStep2, sphinxWindup, sphinxPawSlam, sphinxSandRoar, sphinxGlyphBeam, sphinxShielded, sphinxCounterWindow, sphinxHit, sphinxDefeated.
@@ -138,8 +138,8 @@ Before the Sphinx is wired into the stable `ancient-construct` slot, confirm:
 - Walk/step frames do not float.
 - Paw slam, sand roar, and glyph beam have distinct readable silhouettes.
 - Shielded, counter window, hit, and defeated states are visibly different.
-- The defeated frame is non-gory and classroom-friendly.
-- The sprite remains readable on a classroom projector.
+- The defeated frame is non-gory and adventure-readable.
+- The sprite remains readable at gameplay scale and on large displays.
 - The atlas validates with a boss asset validator.
 - The Sphinx is not wired into `BOSS_SPRITE_PACKS` until the asset is approved.
 - `ancient-construct` remains the internal boss id unless a separate migration is planned and tested.

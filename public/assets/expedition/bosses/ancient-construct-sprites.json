@@ -1,7 +1,7 @@
 {
   "image": "ancient-construct-sprites.png",
   "source": "AI-generated Ancient Construct boss sprite sheet, integrated as a named atlas for Journey mini-boss rendering.",
-  "coordinateNote": "Coordinates are approximate first-pass crops from a 1536x1024 generated sheet and may need manual tuning after projector review.",
+  "coordinateNote": "Coordinates are approximate first-pass crops from a 1536x1024 generated sheet and may need manual tuning after gameplay-scale review.",
   "regions": {
     "ancientConstructIdle": { "x": 42, "y": 200, "w": 245, "h": 260 },
     "ancientConstructWalk1": { "x": 330, "y": 198, "w": 250, "h": 262 },

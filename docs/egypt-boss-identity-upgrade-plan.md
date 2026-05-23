@@ -71,7 +71,7 @@ Best safe mapping from current gameplay slots to new identity:
 | `scarab-queen` | Scarab Queen, First Servant of the Sphinx; later optional Griffin replacement | Early sacred guardian / threshold test | Yes | Keep the completed Scarab Queen asset for now. Do not rename to Griffin until a Griffin sprite pack exists. |
 | `temple-guardian` | Anubis | Temple threshold judge / protector of careful passage | Yes | Fits guardian role and can later use an Anubis jackal-headed sprite. |
 | `giant-serpent` | The Uraeus | Sacred cobra/catacomb seal guardian | Yes | Best fit for current serpent silhouette, venom/ranged frames, and sacred protection theme. |
-| `looter-captain` | Bes | Protective challenge guardian who tests field records and courage | Yes | Bes is smaller and humanoid enough to replace the current captain slot once the asset is ready. Keep classroom-friendly and non-horror. |
+| `looter-captain` | Bes | Protective challenge guardian who tests field records and courage | Yes | Bes is smaller and humanoid enough to replace the current captain slot once the asset is ready. Keep it readable, ceremonial, and non-horror. |
 | `ancient-construct` | The Sphinx | Final protector of the expedition site | Yes | Best final-boss slot because it already guards Base Camp / excavation access. |
 
 ### Evaluation Of The User-Proposed Mapping
@@ -172,9 +172,9 @@ Create boss sprite atlases one at a time in the existing asset structure:
 
 Asset guidance:
 
-- Keep the style sacred, protected, mysterious, and classroom-friendly.
+- Keep the style sacred, protected, mysterious, and readable.
 - Avoid horror, gore, skull overload, and realistic insect horror.
-- Use clean outlines and strong side-view silhouettes readable on a projector.
+- Use clean outlines and strong side-view silhouettes readable at gameplay scale.
 - Preserve the boss combat state readability: intro, walk/idle, warning, direct attack, area/ranged attack, shielded, counter window, hit, defeated.
 - A defeated frame should read as stunned, cracked, lowered, or deactivated ancient guardian style, not gore.
 
@@ -277,7 +277,7 @@ Actions:
 - Play through the Egypt route from opening to Base Camp handoff.
 - Confirm the Sphinx appears early and returns as the final protector.
 - Confirm boss names, domains, rewards, and route gates still line up.
-- Check projector readability for every boss.
+- Check gameplay-scale readability for every boss.
 - Tune only after the asset and story identity are stable.
 
 ## Remaining Decisions

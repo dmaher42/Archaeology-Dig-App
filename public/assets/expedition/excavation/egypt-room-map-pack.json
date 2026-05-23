@@ -2,7 +2,7 @@
   "image": "egypt-room-map-pack.png",
   "imageWidth": 1536,
   "imageHeight": 1024,
-  "coordinateNotes": "Approximate first-pass atlas coordinates from the generated room map sheet. Tuning may be needed after projector-scale review.",
+  "coordinateNotes": "Approximate first-pass atlas coordinates from the generated room map sheet. Tuning may be needed after gameplay-scale review.",
   "regions": {
     "riverbankTerrain": { "x": 52, "y": 70, "w": 228, "h": 130 },
     "burialTerrain": { "x": 313, "y": 70, "w": 203, "h": 130 },

@@ -1,6 +1,6 @@
 # Standalone Game Rule
 
-This document exists to protect Lost Site Expedition from drifting into a classroom worksheet experience.
+This document exists to protect Lost Site Expedition from drifting into a worksheet-style or instruction-driven experience.
 
 The game must work first as a standalone adventure game.
 
@@ -92,6 +92,6 @@ It should not become a static administration screen.
 
 ## Core Design Goal
 
-A player with no connection to the classroom unit should still want to play Lost Site Expedition as a standalone archaeology adventure.
+A player with no outside learning context should still want to play Lost Site Expedition as a standalone archaeology adventure.
 
 If the game remains compelling without the educational context, the educational layer becomes stronger rather than weaker.

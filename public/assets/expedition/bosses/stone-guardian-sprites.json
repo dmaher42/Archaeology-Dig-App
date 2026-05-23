@@ -1,7 +1,7 @@
 {
   "image": "stone-guardian-sprites.png",
   "source": "AI-generated Stone Guardian boss sprite sheet, integrated as a named atlas for Journey mini-boss rendering.",
-  "coordinateNote": "Coordinates are approximate first-pass crops from a 1536x1024 generated sheet and may need manual tuning after projector review.",
+  "coordinateNote": "Coordinates are approximate first-pass crops from a 1536x1024 generated sheet and may need manual tuning after gameplay-scale review.",
   "regions": {
     "stoneGuardianIdle": { "x": 42, "y": 76, "w": 245, "h": 242 },
     "stoneGuardianWalk1": { "x": 332, "y": 78, "w": 255, "h": 238 },

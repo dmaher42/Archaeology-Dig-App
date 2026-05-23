@@ -1,6 +1,12 @@
 Original prompt: Implement "Lost Site Expedition" as a small MVP game mode in the Archaeology-Dig-App repo.
 
 2026-05-23 update:
+- Wired the new master-reference Asha idle, jump, damage, and run sprite sheets into the existing final-production Asha atlas path.
+- Copied the raw generated strips into `public/assets/expedition/player/asha-final-production-source/`, produced alpha-cleaned source strips, and rebuilt `asha-final-production-spritesheet.png/json` through `scripts/build_asha_final_production_atlas.py`.
+- Updated the Journey player loader metadata/version so Ancient Egypt uses the refreshed `asha-final-production` hero atlas with 8 idle frames, 10 run frames, 8 jump/fall/land source phases, and 5 hurt frames.
+- Verified the focused Journey asset tests, lint, build, and a live browser smoke that reported `hero-atlas`, `asha-master-reference-motion-2026-05-23`, idle/run/fall frames, and no browser warnings/errors.
+
+2026-05-23 update:
 - Started an Expedition-only asset tidy-up audit in `docs/expedition-asset-tidy-audit.md` so future Codex chats can see the current asset roles before moving, deleting, or regenerating files.
 - Confirmed the audit scope is Lost Site Expedition only: Journey, Base Camp/excavation, Expedition trailer dependencies, and `public/assets/expedition/`.
 - Key early findings: normalize/check the Expedition audio folder casing, separate runtime atlases from source/reference sheets before deleting anything, keep the active/fallback Asha sprite contract explicit, update stale China scaffold placeholder labels, and treat older crop-edge sprite warnings as a later visual-quality pass.
@@ -54,7 +60,7 @@ Remaining notes:
 - Ruined Wall reveals the 3 structural mission items needed for the current Find Structural Evidence mission.
 - Full Ruined Wall playthrough passed from Journey through Run Result, Play Again reset, and Back to Menu.
 - `npm.cmd run build`, `npm.cmd run lint`, and `git diff --check` passed.
-- Remaining risk: this pass covered one automated browser viewport; a quick classroom-device spot check is still useful before the next lesson.
+- Remaining risk: this pass covered one automated browser viewport; a quick device spot check is still useful before the next lesson.
 
 2026-05-08 update:
 - Added Excavation Method Choices to Lost Site Expedition after evidence is revealed by survey/grid.
@@ -76,14 +82,14 @@ Remaining notes:
 - Added simple field-tool combat, enemy encounters, relic shards, temporary archaeologist upgrades, hidden rooms, checkpoints, route-seal pacing gates, longer section progression, and direct journey fields in `render_game_to_text`.
 - `npm.cmd run build` passed, `npm.cmd run lint` passed, and `git diff --check` only reported the repo's existing LF-to-CRLF warnings.
 - Browser smoke checks confirmed Expedition opens, Journey starts, attack state appears, enemies can be defeated, relic shards collect, upgrades can be collected, hidden rooms can be found, checkpoints advance, straight-line rushing is blocked by route seals, Base Camp opens after route progress, and Begin Excavation still enters the existing excavation stage.
-- Remaining risk: the Journey now supports a 10-15 minute classroom run through required route progress plus optional shards/upgrades/secrets; exact duration still depends on student skill and how much optional exploration they choose.
+- Remaining risk: the Journey now supports a 10-15 minute standalone run through required route progress plus optional shards/upgrades/secrets; exact duration still depends on student skill and how much optional exploration they choose.
 
 2026-05-09 update:
 - Added Journey Adventure Expansion Phase 2 to the existing `ExpeditionJourney.jsx` side-scroller.
 - Added section objectives, objective progress gates, five lightweight mini-boss encounters, cinematic section/objective/boss feedback, replayable secret objective tracking, and more forgiving required objective/upgrade pickups.
 - `npm.cmd run build` passed and `npm.cmd run lint` passed on this pass; `git diff --check` only reported the repo's LF-to-CRLF warnings.
 - Browser/state checks confirmed Lost Site Expedition opens, Journey starts, objective and mini-boss state appears in `render_game_to_text`, all five route gates can be cleared, Base Camp opens, and Begin Excavation still enters the existing excavation stage.
-- Remaining risk: automated testing covered a guided route and one viewport; a human classroom playtest is still useful for timing, difficulty feel, and optional-route discovery.
+- Remaining risk: automated testing covered a guided route and one viewport; a human standalone playtest is still useful for timing, difficulty feel, and optional-route discovery.
 
 2026-05-20 update:
 - Reworked the first Scarab Seal beat into a locked false-discovery threshold scene inside the existing Journey flow.
@@ -163,23 +169,23 @@ Remaining notes:
 - `npm.cmd run lint` passed.
 - `npm.cmd run build` passed; Vite still reports the existing runtime-resolution warnings for two Egypt excavation images and the large bundle warning.
 - Browser verification confirmed China Journey asset pack ids, China background pack readiness, China Base Camp handoff via the existing dev jump, China excavation map loading with `china-room-map-stage-1`, and Egypt Journey regression.
-- Remaining risk: China still reuses much of the Egypt-authored Journey progression model under the hood, including objective/gate/boss structure. A future pass should make the Journey objectives, boss/enemy names, and natural route completion fully China-specific before calling it classroom-finished.
+- Remaining risk: China still reuses much of the Egypt-authored Journey progression model under the hood, including objective/gate/boss structure. A future pass should make the Journey objectives, boss/enemy names, and natural route completion fully China-specific before calling it standalone-finished.
 
 2026-05-16 update:
 - Upgraded Journey repeated player sounds inside the existing `App.jsx` expedition audio controls.
 - Walking now layers a warmer generated dust-step/thump with quiet existing soft clips and a safer cooldown.
 - J/K attack swing now layers a soft generated whoosh/wood body with a quieter leather detail, avoiding the old scraping weapon sound.
-- Expedition Sounds remain on by default with the visible Journey/menu toggle still available for classroom muting.
+- Expedition Sounds remain on by default with the visible Journey/menu toggle still available for standalone muting.
 
 2026-05-09 update:
 - Added Journey Arcade Spectacle Phase 3 to the existing `ExpeditionJourney.jsx` side-scroller.
 - Added cinematic boss intro states, section atmosphere palettes, particles, parallax/story props, environmental event cards, camera shake/focus, stronger section transitions, and HUD/render-state fields for spectacle checks.
 - `npm.cmd run build` passed and `npm.cmd run lint` passed on this pass; `git diff --check` only reported the repo's LF-to-CRLF warnings.
 - Browser/state checks confirmed boss intros, environment events, section transition states, section atmosphere changes, route-to-Base-Camp completion, and Begin Excavation still entering the existing excavation stage.
-- Remaining risk: spectacle timing and readability should still be classroom-playtested on a projector, especially in the darker Catacombs and faster Escape Sequence sections.
+- Remaining risk: spectacle timing and readability should still be standalone-playtested on a large-screen, especially in the darker Catacombs and faster Escape Sequence sections.
 
 2026-05-15 update:
-- Re-routed the Ancient China stage card to the existing archaeology evidence loop instead of treating the China Journey prototype as the classroom-safe path.
+- Re-routed the Ancient China stage card to the existing archaeology evidence loop instead of treating the China Journey prototype as the adventure-readable path.
 - Egypt remains the playable Lost Site Expedition Journey route.
 - Ancient China now starts a normal archaeology session at Evidence Processing using the `china` scenario from `src/data.js`, so the playable loop is Sort -> Lab -> Museum -> Report.
 - `npm.cmd run lint`, `npm.cmd run build`, and `git diff --check` passed; diff check only reported the repo's usual LF-to-CRLF warnings.
@@ -236,7 +242,7 @@ Remaining notes:
 - Tuned checkpoint activation/restoration, route-gate shard counting, boss wind-up/cooldown/recovery rhythm, mini-boss damage/health, the reachable Catacombs bat lane, Dig Site objective completion after the Ancient Construct, and the Journey HUD shard/upgrade totals.
 - `npm.cmd run build` passed and `npm.cmd run lint` passed on this pass; `git diff --check` reported `src/index.css:10800` trailing whitespace in an unrelated dirty CSS block, plus the repo's LF-to-CRLF warnings.
 - Browser/state checks confirmed the full Journey can be completed, every route gate can be cleared, every mini-boss can be defeated, Base Camp is reached, Begin Excavation enters the existing excavation stage, and no console errors appeared.
-- Remaining risk: the route is ready for classroom playtest, but a real Year 7 student run on a projector should still judge late boss feel, section-boundary movement near the Catacombs/Escape seal, and whether the Stone Guardian remains exciting rather than too punishing.
+- Remaining risk: the route is ready for standalone playtest, but a real player-readable student run on a large-screen should still judge late boss feel, section-boundary movement near the Catacombs/Escape seal, and whether the Stone Guardian remains exciting rather than too punishing.
 
 2026-05-10 update:
 - Added Phase 3 - Mini-Boss Rhythm to the Lost Site Expedition Journey stage.
@@ -244,7 +250,7 @@ Remaining notes:
 - Updated boss attack visuals and lightweight audio/action cues for shield, counter-window, ranged, area, and close-range boss attacks without changing excavation, mission, route gate, or final result systems.
 - Files changed in this pass: `src/components/ExpeditionJourney.jsx`, `src/components/expedition-journey/journeyUtils.js`, and `progress.md`.
 - A clean worktree from this commit passed `npm.cmd run lint`, `npm.cmd run build`, and `git diff --check`; the current live local checkout still has unrelated dirty `src/components/ExpeditionMode.jsx` and `src/index.css` parse issues outside this Journey-only pass.
-- Remaining risk: a full browser route and classroom difficulty check should be rerun after those unrelated local files are cleaned, especially for late-section mini-boss timing and projector readability.
+- Remaining risk: a full browser route and standalone difficulty check should be rerun after those unrelated local files are cleaned, especially for late-section mini-boss timing and gameplay-scale readability.
 
 2026-05-10 update:
 - Completed a Lost Site Expedition regression pass after the reported parse-error cleanup.
@@ -252,7 +258,7 @@ Remaining notes:
 - Added top-level `render_game_to_text` aliases for Journey route gate and mini-boss fields so tests can inspect `routeGateStatus`, `miniBossStates`, `activeMiniBossState`, and `defeatedMiniBosses` without relying only on the nested Journey snapshot.
 - `npm.cmd run build`, `npm.cmd run lint`, and `git diff --check` passed after the regression repair; `git diff --check` only reported the repo's LF-to-CRLF warning for the edited Expedition wrapper.
 - Browser checks confirmed the app mounts without Vite 500 errors, the main menu options render, Lost Site Expedition launches, Journey starts, movement/jump/attack state updates, route gates/objectives/relic shards/upgrades/checkpoints/enemy and mini-boss state appear, Base Camp opens through the dev switcher on the current server, Begin Excavation opens the excavation stage, and evidence starts hidden before survey/grid selection.
-- Remaining risk: the automated full-route Journey bot reached Ruined Temple and defeated the Scarab Queen but got stuck at the Temple seal after missing one switch and not defeating the Stone Guardian; survey/grid/evidence collection beyond the excavation handoff still needs a slower manual classroom-style pass.
+- Remaining risk: the automated full-route Journey bot reached Ruined Temple and defeated the Scarab Queen but got stuck at the Temple seal after missing one switch and not defeating the Stone Guardian; survey/grid/evidence collection beyond the excavation handoff still needs a slower manual standalone-style pass.
 
 2026-05-10 update:
 - Added Journey Route Gate Guidance + Backtracking Help.
@@ -261,7 +267,7 @@ Remaining notes:
 - Reproduced the Temple Route Seal stuck case with `Switches: 2/3` and Stone Guardian still active; the UI/state now clearly reports the missing switch and guardian, points back left, preserves the lock, and opens the seal once the switch and guardian requirements are complete.
 - `npm.cmd run build` passed, `npm.cmd run lint` passed, and `git diff --check` only reported the repo's LF-to-CRLF warnings.
 - Browser/state checks confirmed the updated dev server mounts, Lost Site Expedition starts, Desert/Temple/Catacomb gate guidance data renders, Temple backtracking recovery works, Base Camp opens through the dev switcher, and Begin Excavation still enters the existing excavation stage.
-- Remaining risk: the exact Temple case is much clearer now, but later-section gates should still get a slower human classroom playtest for whether each hint is specific enough without becoming a full walkthrough.
+- Remaining risk: the exact Temple case is much clearer now, but later-section gates should still get a slower human standalone playtest for whether each hint is specific enough without becoming a full walkthrough.
 
 2026-05-18 update:
 - Started Phase 1 of the Desert Entry visual upgrade as a blended cinematic/playable opening, without replacing the existing Journey system.
@@ -287,7 +293,7 @@ Remaining notes:
 - Added stamina-loss feedback state, floating loss text, stamina HUD pulse/delta text, hazard-specific messages, and `render_game_to_text` fields for nearby hazards, last hazard hit, stamina delta/reason, feedback activity, warning state, cooldown, and current player stamina.
 - Browser/state checks confirmed the thorn hazard is visually obvious, touching it drops stamina from 100 to 92, the HUD shows `-8`, the notice explains `Thorn bush scratched your legs. -8 stamina.`, cooldown prevents frame-by-frame spam, Base Camp opens, and Begin Excavation still enters the existing excavation stage.
 - `npm.cmd run build` passed, `npm.cmd run lint` passed, and `git diff --check` only reported the repo's LF-to-CRLF warnings.
-- Remaining risk: the early hazard feedback is verified in browser, but late-section hazards should still be checked on a projector to judge whether the extra caution outlines are strong enough without cluttering busy boss/set-piece moments.
+- Remaining risk: the early hazard feedback is verified in browser, but late-section hazards should still be checked on a large-screen to judge whether the extra caution outlines are strong enough without cluttering busy boss/set-piece moments.
 
 2026-05-10 update:
 - Fixed the Journey player flashing/invulnerability bug.
@@ -296,7 +302,7 @@ Remaining notes:
 - Browser/state checks confirmed a Scarab hit starts flashing, the flash reaches `false` after the invulnerability window, later hits can start a new finite flash, Base Camp opens, and Begin Excavation still enters the existing excavation stage.
 - `npm.cmd run build` passed; `npm.cmd run lint` passed after adding lint-only CommonJS globals to the tracked scratch map generator scripts; `git diff --check` only reported LF-to-CRLF warnings.
 
-- Remaining risk: repeated-hit timing was checked against the first Scarab/Scarab Queen route, but late-section mini-boss hits should still be spot-checked during the next full Journey classroom playtest.
+- Remaining risk: repeated-hit timing was checked against the first Scarab/Scarab Queen route, but late-section mini-boss hits should still be spot-checked during the next full Journey standalone playtest.
 
 2026-05-10 update:
 - Fixed the Journey camera follow bug.
@@ -311,7 +317,7 @@ Remaining notes:
 - Completed the Player sprite integration pass for the Lost Site Expedition Journey stage.
 - Added a transparent 4-frame archaeologist walk-cycle spritesheet at `public/sprites/archaeologist-walk-cycle.png`, loaded once by the Journey component with fallback to the existing canvas-drawn archaeologist if the image fails.
 - Added Journey player animation states for idle, walk, jump, attack, and hurt. Current temporary non-walk states reuse the closest walk-cycle frame until dedicated art exists.
-- Integrated a movement-tied 4-frame walk loop, horizontal sprite flipping from the existing player direction, stable feet anchoring, and a slightly larger sprite scale for classroom readability while preserving the existing collision box.
+- Integrated a movement-tied 4-frame walk loop, horizontal sprite flipping from the existing player direction, stable feet anchoring, and a slightly larger sprite scale for standalone readability while preserving the existing collision box.
 - Added `render_game_to_text` fields for `playerSpriteLoaded`, `playerAnimationState`, `playerAnimationFrame`, `playerFacing`, and `playerSpriteScale`.
 - Browser/state checks confirmed app load, Lost Site Expedition launch, Journey start, sprite load/render, walk loop, left/right flip, clean idle stop, jump state, attack state, hurt/damage feedback, hazard collision, enemy/combat state presence, camera follow, route-gate state, Base Camp via the existing dev switcher, Begin Excavation, and no console errors. Screenshots were saved under `scratch/sprite-verification/`.
 - `npm.cmd run build` passed, `npm.cmd run lint` passed, and `git diff --check` only reported the repo's LF-to-CRLF warnings.
@@ -335,7 +341,7 @@ Remaining notes:
 - Reworked hazard highlights toward glow/icon feedback and suppressed active-hit hazard labels so stamina feedback remains clear without debug-looking rectangles or labels over the player.
 - Browser/state checks confirmed app load, Lost Site Expedition launch, Journey start, player sprite rendering, atlas platform/hazard/gate modes, continuous ground, clearer hazards with stamina feedback, reduced labels in crowded gate/boss areas, route gate state intact, Base Camp opening through the existing dev path, Begin Excavation working, and no console errors. Screenshots were saved under `scratch/environment-tuning-verification-final/`.
 - `npm.cmd run build` passed, `npm.cmd run lint` passed, and `git diff --check` only reported the repo's LF-to-CRLF warnings.
-- Remaining visual risk: early Desert Entry and the first gate now look much more polished, but late-section gates and atlas crops should still get a slower human projector pass before enemy sprite generation locks the full art direction.
+- Remaining visual risk: early Desert Entry and the first gate now look much more polished, but late-section gates and atlas crops should still get a slower human large-screen pass before enemy sprite generation locks the full art direction.
 
 2026-05-10 update:
 - Integrated the Desert Entry Parallax Background Pack for the Lost Site Expedition Journey stage.
@@ -345,7 +351,7 @@ Remaining notes:
 - Added `render_game_to_text` fields for `desertBackgroundAssetsLoaded`, `desertBackgroundAssetsReady`, `desertBackgroundFallbackActive`, `parallaxLayersActive`, `activeBackgroundSection`, and `backgroundDepthMode`.
 - Browser/state checks confirmed app load, Lost Site Expedition launch, Journey start, Desert Entry parallax active, subtle camera-linked background movement, player/platform/hazard readability, route gate state intact, Base Camp opening through the existing dev path, Begin Excavation working, and no console errors. Screenshots were saved under `scratch/desert-background-verification-2/`.
 - `npm.cmd run build` passed, `npm.cmd run lint` passed, and `git diff --check` only reported the repo's LF-to-CRLF warning for the edited Journey file.
-- Remaining risk: the Desert Entry layer crops are tuned from the provided sheet and look cohesive in the early route screenshots, but a projector pass should still judge whether the distant ruins are subtle enough on classroom displays.
+- Remaining risk: the Desert Entry layer crops are tuned from the provided sheet and look cohesive in the early route screenshots, but a large-screen pass should still judge whether the distant ruins are subtle enough on standalone displays.
 
 2026-05-10 update:
 - Completed the Desert Entry final visual tuning pass before enemy sprite generation.
@@ -356,7 +362,7 @@ Remaining notes:
 - Added `platformVisualTuningActive` and `desertVisualTuningVersion` to `render_game_to_text` for visual-regression checks.
 - Browser/state checks confirmed app load, Lost Site Expedition launch, Journey start, Desert Entry parallax still active, player sprite rendering, atlas platform mode, improved ledge/ground visuals, lower label counts, hazard feedback, camera follow, route gate state, Base Camp opening through the existing dev path, Begin Excavation working, and no console errors. Screenshots were saved under `scratch/desert-final-visual-tuning/`.
 - `npm.cmd run build` passed, `npm.cmd run lint` passed, and `git diff --check` only reported the repo's LF-to-CRLF warnings.
-- Remaining risk: Desert Entry is ready for enemy sprite generation, but final judgement on label size and distant-ruin contrast should still happen on the classroom projector.
+- Remaining risk: Desert Entry is ready for enemy sprite generation, but final judgement on label size and distant-ruin contrast should still happen on the large-screen.
 
 2026-05-10 update:
 - Completed the Antiquities Bureau UI Theme Pass.
@@ -364,7 +370,7 @@ Remaining notes:
 - Preserved the existing Bureau gameplay flow, scoring, clue reveal, profile rule-out behavior, briefing, back-to-menu routing, and other mode routing; Lost Site Expedition Journey files and gameplay systems were not touched.
 - Browser checks confirmed app load, main menu load, Antiquities Bureau routing, briefing modal, case title/brief readability, evidence folder visibility, profile card readability, profile rule-out interaction, reveal-clue interaction, back button, other mode menu buttons, no horizontal clipping, and no console errors. Screenshots were saved under `scratch/bureau-theme-verification/`.
 - `npm.cmd run build` passed, `npm.cmd run lint` passed, and `git diff --check` only reported the repo's LF-to-CRLF warnings.
-- Remaining risk: the dossier visuals are readable at laptop size, but a classroom projector check should still judge whether the paper texture and profile-card spacing feel strong enough from the back of the room.
+- Remaining risk: the dossier visuals are readable at laptop size, but a large-screen check should still judge whether the paper texture and profile-card spacing feel strong enough from the back of the room.
 
 2026-05-10 update:
 - Completed the Main Menu UI Polish Pass.
@@ -373,7 +379,7 @@ Remaining notes:
 - Replaced confusing disabled Save Progress / Load Progress buttons on the landing screen with a clear note that file save/load unlocks after a mission starts; the existing working save/load controls still appear in supported active modes.
 - Browser checks confirmed app load, polished main menu rendering, four visible unclipped mode cards, Expedition card fully visible, clean narrower-width wrapping, Training/Investigation/Bureau/Expedition button routing, clear save/load state, and no console errors. Screenshots were saved under `scratch/main-menu-polish-verification/`.
 - `npm.cmd run build` passed, `npm.cmd run lint` passed, and `git diff --check` only reported the repo's LF-to-CRLF warnings.
-- Remaining risk: the menu now visually matches the Journey direction much better, but a projector check should still judge whether the dark adventure palette remains bright enough in the classroom.
+- Remaining risk: the menu now visually matches the Journey direction much better, but a large-screen check should still judge whether the dark adventure palette remains bright enough in a live play setting.
 
 2026-05-10 update:
 - Completed the Main Menu Responsive UI Polish Pass.
@@ -383,17 +389,17 @@ Remaining notes:
 - Added menu visual polish using the existing expedition sprite/background identity, a subtle Lost Site Expedition accent, stronger readable labels, clearer focus states, and lower-opacity confidential stamps.
 - Browser checks confirmed app load, main menu display, all four mission cards visible at 1366px laptop width, Lost Site Expedition fully visible, no horizontal clipping, card buttons visible, clear save/load note, responsive wrapping/stacking at narrower widths, and all four mode buttons routing from the menu.
 - `npm.cmd run build` passed; `npm.cmd run lint` passed; `git diff --check` only reported the repo's LF-to-CRLF warnings.
-- Remaining risk: the desktop and narrow browser checks look show-off ready, but a real classroom projector check should still judge the final contrast and visual weight from the back of the room.
+- Remaining risk: the desktop and narrow browser checks look show-off ready, but a real large-screen check should still judge the final contrast and visual weight from the back of the room.
 
 2026-05-10 update:
 - Completed the Expedition Briefing Modal Polish Pass for the Lost Site Expedition Journey start screen.
-- Reworded the launch button from `Initialize Expedition` to `Begin Expedition`, tightened the title/subtitle, and made the mission brief clearer for Year 7 students.
+- Reworded the launch button from `Initialize Expedition` to `Begin Expedition`, tightened the title/subtitle, and made the mission brief clearer for new players.
 - Added a compact `Your task` checklist covering field tools, hazards/stamina, Base Camp, survey, 3 structural evidence finds, and evidence-based claiming.
 - Reworked the modal layout with a stronger adventure dossier header, existing archaeologist sprite treatment, mission card, checklist panel, polished primary button, hover/focus styling, and responsive sizing.
 - Preserved Journey gameplay logic, mission requirements, movement/combat/hazards/route gates/background/player rendering, Base Camp handoff, excavation systems, BureauMode.jsx, and gameLogic.js.
 - Browser checks confirmed app load, Lost Site Expedition routing, polished briefing modal display, non-technical `Begin Expedition` button, movement input paused while the modal remains open, Journey start after clicking, no laptop clipping, and no console errors. Screenshots were saved under `scratch/expedition-briefing-polish/`.
 - `npm.cmd run build` passed; `npm.cmd run lint` passed; `git diff --check` only reported the repo's LF-to-CRLF warnings.
-- Remaining risk: the modal is much closer to an exciting launch screen, but a classroom projector pass should still judge whether the parchment contrast and small checklist text read clearly from the back of the room.
+- Remaining risk: the modal is much closer to an exciting launch screen, but a large-screen pass should still judge whether the parchment contrast and small checklist text read clearly from the back of the room.
 
 2026-05-10 update:
 - Completed the Main Menu One-Screen Layout Fix + Hover Stability Pass.
@@ -402,7 +408,7 @@ Remaining notes:
 - Confirmed all four cards and their primary buttons remain visible, with buttons pinned inside the card bottom area and no card/button clipping.
 - Browser checks confirmed app load, main menu display, no vertical scrolling, no horizontal scrolling, all four cards visible, all primary buttons visible, stable card hover including Lost Site Expedition, compact save/load message, all four route buttons still working, and no console errors.
 - `npm.cmd run build` passed; `npm.cmd run lint` passed; `git diff --check` only reported the repo's LF-to-CRLF warnings.
-- Remaining risk: the 1366x768 laptop/projector target is now one-screen and stable; smaller laptop heights or browser UI zoom should still be judged in the actual classroom setup.
+- Remaining risk: the 1366x768 laptop/large-screen target is now one-screen and stable; smaller laptop heights or browser UI zoom should still be judged in the actual standalone setup.
 
 2026-05-10 update:
 - Completed the World-map Site Selection UI pass.
@@ -411,7 +417,7 @@ Remaining notes:
 - Improved the site list and selected-site dossier with short mission hooks, location/focus details, selected state, a clear `Begin Site Mission` action, and a working `Random` action that still routes through the existing investigation start path.
 - Browser checks confirmed app load, main menu load, site-selection open, map visible, all four markers visible, all four site cards visible, selected marker/list/dossier sync, marker click selection, Random routing, Begin Site Mission routing, no 1366x768 page scrolling, no horizontal overflow at desktop or narrower width, and no console errors. Screenshot saved at `scratch/site-selection-world-map-desktop.png`.
 - `npm.cmd run build` passed; `npm.cmd run lint` passed; `git diff --check` only reported the repo's LF-to-CRLF warnings.
-- Remaining risk: the parchment map is intentionally stylised rather than geographically precise; a projector pass should still judge marker-label readability from the back of the room.
+- Remaining risk: the parchment map is intentionally stylised rather than geographically precise; a large-screen pass should still judge marker-label readability from the back of the room.
 
 2026-05-10 update:
 - Completed the Full Investigation Dig Phase One-Screen Layout Pass.
@@ -420,7 +426,7 @@ Remaining notes:
 - Improved header/status/bottom HUD layout with a Dig-specific compact app wrapper class, smaller progress tracker, tighter status/timer row, clearer high-contrast instruction strip, compact footer stats, and a repositioned field-note card that no longer covers the HUD.
 - Browser checks confirmed app load, main menu, Full Investigation site selection, Dig phase launch, readable instruction/timer/progress tracker, visible full grid and bottom HUD, Field Guide access, card clicking, Recovered update after a match, Attempts update after a non-match, no horizontal overflow, no full-page vertical scrolling at 1366x768, clean 900px-width fit, and no console errors. Screenshot saved at `scratch/dig-one-screen-after.png`.
 - `npm.cmd run build` passed; `npm.cmd run lint` passed; `git diff --check` only reported the repo's LF-to-CRLF warnings.
-- Remaining risk: the layout is verified at normal laptop/projector dimensions, but a real classroom projector pass should still judge whether the 102-132px card sizes are ideal from the back of the room.
+- Remaining risk: the layout is verified at normal laptop/large-screen dimensions, but a real large-screen pass should still judge whether the 102-132px card sizes are ideal from the back of the room.
 
 2026-05-10 update:
 - Completed the Parchment World Map Site Selection pass.
@@ -428,9 +434,9 @@ Remaining notes:
 - Added load/error handling on the map image with testing data fields for `selectedSite`, `worldMapLoaded`, `worldMapFallbackActive`, `visibleMapMarkers`, and `selectedMapMarker`, plus a parchment fallback panel if the image fails.
 - Kept interactive app markers over the decorative map pins for Egypt, Lake Mungo, Rome and China, with hover/focus/selected states and reliable marker-to-dossier selection.
 - Updated the site list and selected-site dossier copy so list hooks remain readable and the pinned dossier shows the fuller mission focus plus the existing `Begin Site Mission` action.
-- Browser checks confirmed app load, main menu, site-selection open, parchment map image load, all four markers visible, marker clicks selecting the correct site, site list selection matching the marker, selected-site panel updates, Random routing, Begin Site Mission routing, normal laptop/projector fit, no horizontal overflow, and no console errors. Screenshot saved at `scratch/site-selection-parchment-map.png`.
+- Browser checks confirmed app load, main menu, site-selection open, parchment map image load, all four markers visible, marker clicks selecting the correct site, site list selection matching the marker, selected-site panel updates, Random routing, Begin Site Mission routing, normal laptop/large-screen fit, no horizontal overflow, and no console errors. Screenshot saved at `scratch/site-selection-parchment-map.png`.
 - `npm.cmd run build` passed; `npm.cmd run lint` passed; `git diff --check` only reported the repo's LF-to-CRLF warnings.
-- Remaining risk: marker placement is approximate against the generated map art; it looks aligned for the current image, but should be judged once on the classroom projector.
+- Remaining risk: marker placement is approximate against the generated map art; it looks aligned for the current image, but should be judged once on the large-screen.
 
 2026-05-10 update:
 - Completed the Global Header Compact Mode-Aware Layout Pass.
@@ -450,7 +456,7 @@ Remaining notes:
 - Preserved compact global headers for in-game contexts, including Training, Full Investigation site selection, Bureau, Expedition, and Dig.
 - Browser checks confirmed app load, main menu open, no separate top global header on the landing screen, `Lost Site Expedition` appearing once, hero-only branding, secondary save/load note, all four cards/buttons visible, no horizontal or full-page vertical overflow, stable card hover, all four routes working, and no console errors.
 - `npm.cmd run build` passed; `npm.cmd run lint` passed; `git diff --check` only reported the repo's LF-to-CRLF warnings.
-- Remaining risk: the hero is now doing all landing identity work, so a projector pass should judge whether the small save/load note is noticeable enough without becoming distracting.
+- Remaining risk: the hero is now doing all landing identity work, so a large-screen pass should judge whether the small save/load note is noticeable enough without becoming distracting.
 
 2026-05-10 update:
 - Removed the global app header from all screens so the app relies on mode-specific identity and navigation instead of a repeated website-style banner.
@@ -460,7 +466,7 @@ Remaining notes:
 - Moved Full Investigation phase navigation into a compact mode-owned strip rather than the global header, and removed old top spacing so screens move up cleanly.
 - Save/load notice is no longer global; it remains only as secondary landing-screen treatment from the menu hero.
 - `npm.cmd run build` passed; `npm.cmd run lint` passed; `git diff --check` only reported the repo's LF-to-CRLF warnings.
-- Remaining risk: file-based save/load controls were part of the removed global header, so a later pass may want a smaller mode-local save/load entry point if the classroom flow needs manual backup outside the menu.
+- Remaining risk: file-based save/load controls were part of the removed global header, so a later pass may want a smaller mode-local save/load entry point if the guided flow needs manual backup outside the menu.
 
 2026-05-10 update:
 - Completed the Full Investigation Setup Screen One-View Layout Pass.
@@ -470,7 +476,7 @@ Remaining notes:
 - Tightened the Back to Menu and Start Explore/Start Challenge action row so the controls remain visible without scrolling.
 - Browser checks confirmed app load, main menu, Full Investigation start, setup screen display, one-viewport fit at 1366x768, no full-page vertical overflow, Solo/Team selection, Methodical/Emergency selection, Back to Menu, Start Explore opening the Dig board, and no console errors.
 - `npm.cmd run build` passed; `npm.cmd run lint` passed; `git diff --check` only reported the repo's LF-to-CRLF warnings.
-- Remaining risk: the setup is now compact for laptop/projector height, but a real projector check should still judge whether the smaller choice-card descriptions read clearly from the back of the room.
+- Remaining risk: the setup is now compact for laptop/large-screen height, but a real large-screen check should still judge whether the smaller choice-card descriptions read clearly from the back of the room.
 
 2026-05-10 update:
 - Completed the Full Investigation Dig Phase Layout Polish Pass.
@@ -480,7 +486,7 @@ Remaining notes:
 - Improved footer breathing room by slightly increasing the compact HUD height/padding and spacing the Recovered, Attempts, Field Guide, and Back to Menu controls more consistently.
 - Browser checks confirmed app load, main menu, Full Investigation start, Dig launch, full 24-card grid visible, no full-page vertical or horizontal overflow at 1366x768, readable instruction/timer, visible footer HUD, clickable cards, Attempts update, Recovered update, Field Guide accessibility, Back to Menu, and no console errors.
 - `npm.cmd run build` passed; `npm.cmd run lint` passed; `git diff --check` only reported the repo's LF-to-CRLF warnings.
-- Remaining risk: the board now feels less squeezed on the checked laptop viewport, but projector readability should still be judged in the classroom because the tile labels are slightly smaller.
+- Remaining risk: the board now feels less squeezed on the checked laptop viewport, but gameplay-scale readability should still be judged in a live play setting because the tile labels are slightly smaller.
 
 2026-05-10 update:
 - Completed the Full Investigation Sort Phase One-Screen Layout Pass.
@@ -491,17 +497,17 @@ Remaining notes:
 - Made missing item locations count as pending inventory so the phase tracker/dev route opens a usable Sort board instead of a false completed state; normal Dig-to-Sort handoff still behaves the same.
 - Browser checks confirmed app load, main menu, Full Investigation start, real Dig-to-Sort handoff, all five category folders visible, pending evidence visible, one-viewport fit at 1366x768 with no horizontal overflow, drag/drop sorting updates category count and progress, progress reaches 12/12, Finalize/Open Lab routes to Lab, Main Menu returns to the landing screen, and no console errors.
 - `npm.cmd run build` passed; `npm.cmd run lint` passed; `git diff --check` only reported the repo's LF-to-CRLF warnings.
-- Remaining risk: folder cards are deliberately dense to keep the whole evidence desk on one projector view; a classroom projector pass should still judge the smaller folder descriptions from the back of the room.
+- Remaining risk: folder cards are deliberately dense to keep the whole evidence desk on one large-screen view; a large-screen pass should still judge the smaller folder descriptions from the back of the room.
 
 2026-05-10 update:
 - Completed the Sort Instruction Modal Readability + Theme Pass.
 - Confirmed the instruction modal is controlled by the tutorial block in `src/components/SortPhase.jsx`.
-- Reworded the modal to `Categorisation Protocol`, with shorter Year 7-friendly instructions and a compact five-category reminder list.
+- Reworded the modal to `Categorisation Protocol`, with shorter player-readable instructions and a compact five-category reminder list.
 - Restyled the modal from a dark glass card into a parchment/dossier protocol card with dark ink text, red folder accents, readable category labels, and a polished red `Got it` button.
 - Tuned the overlay to keep focus on the modal without muddying the parchment contrast.
 - Browser checks confirmed app load, main menu, Full Investigation, Sort phase, modal appearance, readable title/body/category terms, `Got it` closing the modal, Sort board visible after closing, and no console errors.
 - `npm.cmd run build` passed; `npm.cmd run lint` passed; `git diff --check` only reported the repo's LF-to-CRLF warnings.
-- Remaining risk: the card is now much more readable on the laptop viewport, but a projector pass should still judge the category reminder text from the back of the room.
+- Remaining risk: the card is now much more readable on the laptop viewport, but a large-screen pass should still judge the category reminder text from the back of the room.
 
 2026-05-10 update:
 - Completed the Full Investigation Lab Phase Layout + Theme Consistency Pass.
@@ -511,7 +517,7 @@ Remaining notes:
 - Tuned the evidence tray, selected state, workstation placeholder, analysis image panel, answer choices, prompt choices, note field, and action spacing for a denser one-screen lab desk layout.
 - Browser checks confirmed app load, main menu, Full Investigation start, Lab phase open through the phase navigation, compact dossier briefing, readable evidence tray, clear no-find placeholder, evidence selection opening workstation content, visible progress/Main Menu/Final Review controls, no full-page vertical overflow, no horizontal overflow or right-edge clipping at 1366x768, and no console errors. Screenshot saved at `scratch/lab-phase-polish-fixed.png`.
 - `npm.cmd run build` passed; `npm.cmd run lint` passed; `git diff --check` only reported the repo's LF-to-CRLF warnings.
-- Remaining risk: selected-evidence analysis content now scrolls inside the workstation panel to keep the full Lab desk on one screen; a projector pass should still judge the smaller answer/prompt text from the back of the room.
+- Remaining risk: selected-evidence analysis content now scrolls inside the workstation panel to keep the full Lab desk on one screen; a large-screen pass should still judge the smaller answer/prompt text from the back of the room.
 
 2026-05-10 update:
 - Completed the project-wide evidence/classification Answer Leak Audit.
@@ -531,7 +537,7 @@ Remaining notes:
 - Preserved the answer-leak fix: pending evidence cards still use the neutral evidence icon and do not show category-specific icons/colours before sorting.
 - Browser checks confirmed app load, main menu, Full Investigation start, Sort phase open, tutorial close, incorrect feedback display, correct feedback display, no feedback overlap with category folders, counts/progress update, progress reaches 12/12, Open Lab routes to Lab, no full-page/horizontal scrolling at 1366x768, and no console errors.
 - `npm.cmd run build` passed; `npm.cmd run lint` passed; `git diff --check` only reported the repo's LF-to-CRLF warnings.
-- Remaining risk: the panel is deliberately compact to preserve one-screen play; a projector pass should still judge whether the longer wrong-attempt hints read comfortably from the back of the room.
+- Remaining risk: the panel is deliberately compact to preserve one-screen play; a large-screen pass should still judge whether the longer wrong-attempt hints read comfortably from the back of the room.
 
 2026-05-11 update:
 - Completed the Full Investigation Curate Phase Layout + Readability Fix.
@@ -541,7 +547,7 @@ Remaining notes:
 - Added visible open exhibit slots, tightened curated display cards, improved lab-result/plaque readability, and kept the final exhibition statement/action available without creating a dark oversized panel.
 - Browser checks confirmed app load, main menu, Full Investigation start, Museum phase reached after Lab documentation, evidence list readable, curation controls working, progress updating to 2/3, plaque text retained into the final report, Final Report routing, Main Menu routing, no horizontal/full-page vertical scroll at 1366x768, and no console errors. Screenshot saved at `scratch/museum-curate-polish.png`.
 - `npm.cmd run build` passed with the existing large-chunk warning; `npm.cmd run lint` passed; `git diff --check` only reported the repo's LF-to-CRLF warnings.
-- Remaining risk: the exhibit cards use compact lab-result text to keep all three slots visible on a laptop/projector screen, so a projector pass should still judge whether the smaller lab-result snippets read clearly from the back of the room.
+- Remaining risk: the exhibit cards use compact lab-result text to keep all three slots visible on a laptop/large-screen screen, so a large-screen pass should still judge whether the smaller lab-result snippets read clearly from the back of the room.
 
 2026-05-11 update:
 - Completed the first Full Investigation theme-balance pass focused on the Dig phase.
@@ -559,7 +565,7 @@ Remaining notes:
 - Added neutral post-Dig condition labels in Sort and review condition metadata in Lab, Museum, and Report without reintroducing category-answer leaks on pending Sort cards.
 - Browser checks confirmed app load, Full Investigation site mission launch, Dig setup/start, matching pairs, attempts, mismatch disturbance, radar disturbance, clean completion handoff with 12 evidence cards, incomplete timed challenge handoff with 12 transferred evidence cards and 10+ minimum evidence met, Sort pending evidence category neutrality, Lab/Museum/Report condition display, and no console errors in the checked flows.
 - `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning.
-- Remaining risk: the challenge consequences are intentionally light so the classroom flow is never blocked; a real student playtest should judge whether the disturbance thresholds feel motivating enough.
+- Remaining risk: the challenge consequences are intentionally light so the guided flow is never blocked; a real student playtest should judge whether the disturbance thresholds feel motivating enough.
 
 2026-05-11 update:
 - Added the Full Investigation UI asset atlas at `public/assets/full-investigation/shared/full-investigation-ui-pack.png` with named metadata in `public/assets/full-investigation/shared/full-investigation-ui-pack.json`.
@@ -569,7 +575,7 @@ Remaining notes:
 - Preserved learning integrity by keeping Pending Evidence icons neutral and avoiding category-specific colours/icons/labels on unsorted cards; destination folders still show their category labels as required.
 - Browser checks confirmed app load, Full Investigation launch, Dig card-back/tray atlas rendering, Dig matching/recovered count update, Sort atlas cards/folders, neutral pending-evidence cards with no category leak, Lab evidence photos still loading from existing museum paths, Museum atlas wall/display/plinth/plaque framing after curation, and no console errors in the checked flows.
 - `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning; `git diff --check` only reported the repo's LF-to-CRLF warnings.
-- Remaining risk: atlas region coordinates are approximate from the generated pack and should get one projector visual pass before expanding the atlas deeper into Lab/Report.
+- Remaining risk: atlas region coordinates are approximate from the generated pack and should get one large-screen visual pass before expanding the atlas deeper into Lab/Report.
 
 2026-05-11 update:
 - Completed the Journey Asset Grounding + Scene Integration Pass for Lost Site Expedition.
@@ -580,7 +586,7 @@ Remaining notes:
 - Added base contact shadows and dust overlap to route gates, final gate/base-camp gateway visuals, and grounded hazard assets while keeping hazards, collectibles, and the player visually readable.
 - Browser checks confirmed app load, Lost Site Expedition launch, Journey start, Desert Entry render, player visibility, environment assets loaded, grounding debug fields active, and no console errors. Screenshot saved at `scratch/journey-grounding-desert-entry.png`.
 - `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning; `git diff --check` only reported the repo's LF-to-CRLF warnings.
-- Remaining risk: the automated visual check focused on Desert Entry; Ruined Temple, Catacombs, Escape Sequence, and Dig Site Entrance should still get a human/projector spot-check because their prop density and camera framing differ.
+- Remaining risk: the automated visual check focused on Desert Entry; Ruined Temple, Catacombs, Escape Sequence, and Dig Site Entrance should still get a human/large-screen spot-check because their prop density and camera framing differ.
 
 2026-05-11 update:
 - Removed the student-facing Full Investigation phase skip buttons from the shared phase strip.
@@ -602,7 +608,7 @@ Remaining notes:
 - Browser checks confirmed app load, site selection, Dig setup, Methodical Search start, periodic Sandstorm warning, visible centre-trench threat zone, zero phase-skip buttons in the read-only phase strip, no horizontal overflow, and no console errors. Screenshot saved at `scratch/dig-emergency-events-check.png`.
 - Challenge-mode browser state confirmed Flash Flood impact, lower-trench threat resolution, two unrecovered finds marked as emergency affected, disturbance increase, evidence availability protected at 12/12, and `digMinimumEvidenceMet: true`; the script timed out after printing state, so the emitted state was used as evidence.
 - `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning.
-- Remaining risk: automated checks verified warning and impact state, but a full student-style run through Sort/Lab/Museum/Report after an emergency-heavy Dig should still be played once to judge classroom pacing and wording.
+- Remaining risk: automated checks verified warning and impact state, but a full student-style run through Sort/Lab/Museum/Report after an emergency-heavy Dig should still be played once to judge standalone pacing and wording.
 
 2026-05-11 update:
 - Completed the Lost Site Expedition small enemy sprite integration pass.
@@ -614,7 +620,7 @@ Remaining notes:
 - Browser checks confirmed app load, Lost Site Expedition launch, Journey start, enemy sprite sheet loaded, fallback inactive, visible scarab and snake sprite families, patrol/attack frame states, no console errors, and screenshot review at `scratch/journey-small-enemy-scarab-check.png`.
 - Atlas/static checks confirmed all 21 named scarab/snake/bat regions are present. Bat mapping is implemented and loaded, but a live bat encounter was not reached because it sits past route gates in the Catacombs.
 - `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning; `git diff --check` only reported the repo's LF-to-CRLF warnings.
-- Remaining risk: atlas coordinates are approximate first-pass crops and Temple Bat should get a manual Catacombs/projector spot-check once the route is reached or a dedicated journey-position test hook exists.
+- Remaining risk: atlas coordinates are approximate first-pass crops and Temple Bat should get a manual Catacombs/large-screen spot-check once the route is reached or a dedicated journey-position test hook exists.
 
 2026-05-11 update:
 - Completed the Scarab Queen boss sprite integration pass for Lost Site Expedition.
@@ -638,7 +644,7 @@ Remaining notes:
 - Added polish/debug fields through Journey and `render_game_to_text`, including `journeyPolishPassActive`, `journeyPolishVersion`, `hazardReadabilityMode`, `enemyVisualMode`, `bossVisualMode`, and `assetFallbackActive`.
 - Browser checks confirmed app load, Lost Site Expedition launch, Journey start, player visibility, grounded Desert Entry scene, compact objective notice, no visible console errors in the in-app browser, and the existing no-crash atlas/fallback rendering path.
 - `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning; `git diff --check` only reported the repo's LF-to-CRLF warnings.
-- Remaining risk: automated deep traversal across Ruined Temple, Catacombs, Escape Sequence, and Dig Site Entrance timed out in the headless browser harness, so those later sections still need a manual/projector spot-check even though the shared renderer changes apply across sections.
+- Remaining risk: automated deep traversal across Ruined Temple, Catacombs, Escape Sequence, and Dig Site Entrance timed out in the headless browser harness, so those later sections still need a manual/large-screen spot-check even though the shared renderer changes apply across sections.
 
 2026-05-11 update:
 - Completed the Stone Guardian boss sprite integration pass for Lost Site Expedition.
@@ -674,7 +680,7 @@ Remaining notes:
 - Added `render_game_to_text` fields for Catacombs, Escape Sequence, and Dig Site Entrance background loaded/ready/fallback state.
 - Browser checks confirmed app load, Lost Site Expedition launch, Journey start, Desert Entry parallax still active, Catacombs/Escape/Dig Site background JSON and PNG packs loading, all three new packs ready, fallback inactive, and no console errors.
 - `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning; `git diff --check` only reported the repo's LF-to-CRLF warnings.
-- Remaining risk: atlas coordinates are approximate first-pass crops and the later route-gated sections should still get a manual/projector spot-check once reached in a live playthrough.
+- Remaining risk: atlas coordinates are approximate first-pass crops and the later route-gated sections should still get a manual/large-screen spot-check once reached in a live playthrough.
 
 2026-05-12 update:
 - Completed the Combat Skill Windows + Enemy Pattern Pass for the Lost Site Expedition Journey stage.
@@ -686,7 +692,7 @@ Remaining notes:
 - Extended Journey state/debug output with `combatChallengeMode`, `playerAttackStaminaCost`, `lastAttackResult`, `shieldedHitFeedback`, `enemyCombatStates`, `activeEnemyCounterWindow`, `activeBossCounterWindow`, and `currentEnemyPattern`.
 - Browser checks confirmed app load, Lost Site Expedition launch, Journey start, movement/attack, readable snake/scarab pattern telemetry, active counter-window telemetry, successful counter hit defeating a normal enemy, attack stamina/result fields, and no console errors in the checked flows.
 - `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning; `git diff --check` passed with only the repo's LF-to-CRLF warnings.
-- Remaining risk: automated checks covered early Journey enemy rhythm and state telemetry; the route-gated mini-boss encounters still need a full manual playthrough for feel and classroom pacing.
+- Remaining risk: automated checks covered early Journey enemy rhythm and state telemetry; the route-gated mini-boss encounters still need a full manual playthrough for feel and standalone pacing.
 
 2026-05-12 update:
 - Integrated the Expedition excavation/map visual asset pack.
@@ -701,7 +707,7 @@ Remaining notes:
 - Preserved existing survey logic, grid logic, evidence reveal gating, mission requirements, inventory/satchel logic, final claim logic, Journey gameplay, ExpeditionJourney, Full Investigation phases, and Antiquities Bureau.
 - Browser checks confirmed app load, Lost Site Expedition launch, dev path to Excavation, asset pack loaded/ready with fallback inactive, new zone/hazard/gate/player visuals visible, survey report opened, Mark as Dig Zone worked, grid setup opened, Open Grid Square worked, evidence reveal gating still hid unopened evidence, and no console errors in checked flows.
 - `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning.
-- Remaining risks: atlas coordinates are approximate first-pass crops and need projector-scale tuning; a full three-evidence final-claim playthrough was not completed because the automated grid-modal run hit a viewport interaction limit, though the verified checkpoints did not change final-claim logic.
+- Remaining risks: atlas coordinates are approximate first-pass crops and need gameplay-scale tuning; a full three-evidence final-claim playthrough was not completed because the automated grid-modal run hit a viewport interaction limit, though the verified checkpoints did not change final-claim logic.
 
 ## Journey Combat Overlay Cleanup - 2026-05-12
 - Removed debug-like colored hazard outline boxes while preserving hazard art, warning icons, hit feedback, and hitboxes.
@@ -719,7 +725,7 @@ Remaining notes:
 - Removed always-on hazard warning markers; hazards now rely on the object art, contact shadow, terrain apron, and near-player label only.
 - Added a sand/stone apron over hazard bases so the ground visually swallows the hazard edge without changing hitboxes or penalties.
 - Targeted Journey lint passed, production build passed, and browser smoke confirmed the first hazard area renders without console errors.
-- Remaining risk: some later-section hazards still need projector-scale spot-checks, but the rendering path now supports the same grounding treatment across sections.
+- Remaining risk: some later-section hazards still need gameplay-scale spot-checks, but the rendering path now supports the same grounding treatment across sections.
 
 ## Journey Decorative Asset Grounding + Depth-Layer Pass - 2026-05-12
 - Completed a decorative prop grounding pass for Lost Site Expedition Journey.
@@ -730,7 +736,7 @@ Remaining notes:
 - Gameplay/collision systems were preserved: no player physics, collision boxes, hazard values, route gate requirements, enemy/boss logic, camera logic, excavation, Full Investigation, or Bureau systems were changed.
 - Browser smoke confirmed app load, Lost Site Expedition launch, Journey start, Desert Entry decorative props grounded behind gameplay, no pickup overlap in the checked frame, no console errors, and new decorative depth telemetry active.
 - `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning and public excavation asset URL notices; `git diff --check` passed with only the repo's LF-to-CRLF warnings.
-- Remaining risk: later-section decorative props share the same grounded rendering path, but a full route-gated live playthrough through Ruined Temple, Catacombs, Escape Sequence, and Dig Site Entrance is still recommended for projector-scale tuning.
+- Remaining risk: later-section decorative props share the same grounded rendering path, but a full route-gated live playthrough through Ruined Temple, Catacombs, Escape Sequence, and Dig Site Entrance is still recommended for gameplay-scale tuning.
 
 2026-05-12 update:
 - Egypt excavation room-based map Stage 1 completed.
@@ -741,23 +747,23 @@ Remaining notes:
 - Updated excavation debug output with asset-ready/fallback, expanded-map, selected/entered zone, active challenge, completed challenge, survey-gating, active survey zone, revealed zone, and Exit Gate visual state fields.
 - Browser checks confirmed app load, Lost Site Expedition launch, dev path to Excavation, asset packs loaded/ready with fallback inactive, room map displayed, player marker rendered, zone preview shown, challenge retry/success flow, survey unlock after challenge, survey report, Mark as Dig Zone, grid reveal gating, Ruined Wall structural evidence reveal, locked Exit Gate visual state, asset requests, and no console errors.
 - `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning and runtime-resolved public CSS image URL notices; `git diff --check` passed with only the repo's LF-to-CRLF warnings.
-- Remaining risks: atlas coordinates are approximate first-pass crops and need projector-scale tuning; the unlocked Exit Gate and final claim/result flow were not fully replayed end-to-end in the browser because collecting all three structural evidence items still requires the longer excavation/classification sequence, but this pass did not change that logic.
+- Remaining risks: atlas coordinates are approximate first-pass crops and need gameplay-scale tuning; the unlocked Exit Gate and final claim/result flow were not fully replayed end-to-end in the browser because collecting all three structural evidence items still requires the longer excavation/classification sequence, but this pass did not change that logic.
 
 2026-05-12 update:
 - Egypt Excavation Map Regression + Visual Tuning Pass completed.
-- Tuned the room layout, preview click behaviour, map scale, marker hierarchy, challenge UI, hazard visibility, and sealed/unlocked gate visuals so the excavation stage fits a normal laptop/projector viewport without horizontal page scrolling.
+- Tuned the room layout, preview click behaviour, map scale, marker hierarchy, challenge UI, hazard visibility, and sealed/unlocked gate visuals so the excavation stage fits a normal laptop/large-screen viewport without horizontal page scrolling.
 - Preserved the existing survey/evidence/mission flow: room challenge retry/success, survey unlock, survey report, Keep Surveying, Mark as Dig Zone, grid-square reveal gating, Ruined Wall structural mission evidence, Exit Gate unlock, final claim, and result flow all remained on the existing `ExpeditionMode.jsx` path.
 - Browser checks confirmed all six rooms could be selected, the preview panel no longer blocks map selection, map assets loaded with fallback inactive, player marker remained visible, hazards stayed aligned, the Ruined Wall three-evidence path unlocked the Exit Gate, and the final claim/result modal completed successfully with no console errors.
 - `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning and runtime-resolved public CSS image URL notices; `git diff --check` passed with only the repo's LF-to-CRLF warnings.
-- Remaining risks: atlas crops remain approximate and should still get a projector-scale human spot-check; satchel capacity was browser-verified by filling the three-item satchel, but the replacement choice panel was not forced in this polish run because its logic was not changed.
+- Remaining risks: atlas crops remain approximate and should still get a gameplay-scale human spot-check; satchel capacity was browser-verified by filling the three-item satchel, but the replacement choice panel was not forced in this polish run because its logic was not changed.
 
 2026-05-12 update:
-- Full classroom-style Expedition playthrough audit started from Main Menu through Journey and Egypt Excavation using production preview plus `render_game_to_text` checkpoints.
+- Full standalone-style Expedition playthrough audit started from Main Menu through Journey and Egypt Excavation using production preview plus `render_game_to_text` checkpoints.
 - Journey route-gated sections checked through Desert Entry, Ruined Temple, Catacombs, Escape Sequence, and Dig Site Entrance screenshots. Scarab Queen, Stone Guardian, Giant Serpent, Rival Looter Captain, and Ancient Construct encounters were reached; Scarab Queen, Stone Guardian, Giant Serpent, and Rival Looter Captain were defeated in the browser run.
-- Route gate checks confirmed Desert Map Seal, Temple Route Seal, Catacomb Route Seal, and Escape Route Seal could reach ready/open states during the automated classroom pass.
+- Route gate checks confirmed Desert Map Seal, Temple Route Seal, Catacomb Route Seal, and Escape Route Seal could reach ready/open states during the automated standalone pass.
 - Ancient Construct was reached and reduced to 1 health in the browser route, but the run timed out before confirming Base Camp Survey Seal, Base Camp, and Journey-to-excavation transition from the full route.
 - Egypt excavation room map checked via the existing Expedition dev path: room map loaded, Riverbank zone challenge displayed, Ruined Wall survey report displayed, Mark as Dig Zone opened grid setup, Ruined Wall A1 reveal worked, and evidence inspection/collection opened correctly.
-- Screenshots saved under `scratch/full-expedition-classroom-playthrough/` for Journey start, route gates, section views, boss encounters, Egypt room map, zone challenge, survey report, grid reveal, and evidence inspection.
+- Screenshots saved under `scratch/full-expedition-standalone-playthrough/` for Journey start, route gates, section views, boss encounters, Egypt room map, zone challenge, survey report, grid reveal, and evidence inspection.
 - Remaining risks: complete Ancient Construct defeat/Base Camp transition still needs a live follow-up; the full satchel replacement panel was not completed in this run because the longer excavation automation timed out after the first Ruined Wall collection checkpoint; final claim/result should be rechecked after that follow-up even though it passed in the previous excavation regression pass.
 
 2026-05-12 update:
@@ -767,7 +773,7 @@ Remaining notes:
 - Begin Excavation opened the Egypt room-based excavation map with assets loaded and fallback inactive.
 - Satchel replacement panel was confirmed with a forced full satchel: current satchel items, pending evidence, mission warning, Review Mission, Replace an item, replacement picker, and Leave new evidence all worked and returned cleanly.
 - Final claim/result was rechecked with the required three structural evidence items: Exit Gate unlocked, Final Claim accepted Ancient Egypt with supporting structural evidence, Run Result opened, Play Again reset to Journey, and Back to Menu returned to the main menu.
-- Visual/readability fix made: the Expedition inspection/result modal now has an explicit viewport-height cap and internal scrolling, with a more compact satchel decision layout for normal laptop/projector height.
+- Visual/readability fix made: the Expedition inspection/result modal now has an explicit viewport-height cap and internal scrolling, with a more compact satchel decision layout for normal laptop/large-screen height.
 - `npm.cmd run build` passed with the existing large-chunk warning and runtime-resolved public CSS image URL notices.
 - Remaining risks: the blocker states were set up with the existing browser/React test harness to avoid another full long route; a later human playtest should still do one natural no-shortcut route for feel, but the previously blocking state transitions now have direct confirmation.
 
@@ -777,7 +783,7 @@ Remaining notes:
 - Existing Journey gameplay preserved: no collision boxes, hazards, enemies, boss logic, route gate requirements, player rendering, collectible logic, excavation, Full Investigation, or Bureau systems were intentionally changed for this pass.
 - Browser checks confirmed app load, Lost Site Expedition launch, Journey start, Dig Site Entrance using the new Base Camp background with assets loaded/ready and fallback inactive, Ancient Construct visible in the checked state, Base Camp accessible through the existing dev path, Begin Excavation opening the Egypt excavation map, movement/jump/attack still responding, and no console errors in the checked flow.
 - `npm.cmd run build` passed with the existing large-chunk warning and runtime-resolved public CSS image URL notices; `npm.cmd run lint` passed; `git diff --check` passed with only the repo's LF-to-CRLF warnings.
-- Remaining risks: atlas crops are approximate first-pass cuts from the supplied labelled preview and should still get a projector-scale human spot-check for parallax balance around the final seal and Ancient Construct.
+- Remaining risks: atlas crops are approximate first-pass cuts from the supplied labelled preview and should still get a gameplay-scale human spot-check for parallax balance around the final seal and Ancient Construct.
 
 2026-05-12 update:
 - Confirmed the old Journey background assets were not removed; the original Desert Entry, Catacombs, Escape Sequence, and Dig Site Entrance parallax packs remain on disk.
@@ -795,7 +801,7 @@ Remaining notes:
 - Tools, relic shards, upgrades, and objective collectibles now use sprite assets while preserving pickup/effect/progression logic.
 - Browser checks confirmed Journey loads, sprite fallback is inactive, early tools/shards/objectives render with atlas art, Brush/Trowel pickup still updates the Journey field kit, Base Camp opens, Begin Excavation enters the Egypt map, and no console errors appeared.
 - `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning and runtime-resolved public CSS image URL notices; `git diff --check` passed with only the repo's LF-to-CRLF warnings.
-- Remaining risk: collectible atlas coordinates are approximate first-pass crops and should still get a projector-scale tuning pass.
+- Remaining risk: collectible atlas coordinates are approximate first-pass crops and should still get a gameplay-scale tuning pass.
 
 2026-05-12 update:
 - Player weapon visual upgraded in Lost Site Expedition Journey.
@@ -805,7 +811,7 @@ Remaining notes:
 - Preserved existing combat behaviour: attack timing, stamina cost, hitboxes, enemy/boss logic, movement, physics, route gates, Base Camp, excavation, Full Investigation, and Bureau code paths were not changed.
 - Browser check confirmed Journey loads, the weapon atlas loads with fallback inactive, the khopesh is visible on the player, and no console errors appeared.
 - `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning and runtime-resolved public CSS image URL notices; `git diff --check` passed with only the repo's LF-to-CRLF warnings.
-- Remaining risk: the generated transparent weapon atlas uses approximate background removal/crops from the parchment sheet, so a human projector-scale spot check may want small scale/position tuning.
+- Remaining risk: the generated transparent weapon atlas uses approximate background removal/crops from the parchment sheet, so a human gameplay-scale spot check may want small scale/position tuning.
 
 2026-05-12 update:
 - Journey collectible sprite visual tuning completed.
@@ -816,14 +822,14 @@ Remaining notes:
 - Existing pickup and progression logic was preserved: tool pickup, shard pickup, upgrade pickup, objective progress, route-gate status, Base Camp, and Begin Excavation checks remained on the existing Journey/Expedition paths.
 - Browser checks confirmed app load, Lost Site Expedition launch, Journey start, smaller readable Brush/Trowel/shards/upgrades/objective sprites, hazard/enemy/player readability, tool/shard/upgrade/objective pickup state updates, Base Camp opening, Begin Excavation entering the Egypt map, and no console errors.
 - `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning and runtime-resolved public CSS image URL notices; `git diff --check` passed with only the repo's LF-to-CRLF warnings.
-- Remaining risk: a full natural route-gate playthrough was not rerun for this visual-only pass because no route-gate/gameplay logic changed; a human projector-scale pass may still want tiny per-item crop/offset tuning.
+- Remaining risk: a full natural route-gate playthrough was not rerun for this visual-only pass because no route-gate/gameplay logic changed; a human gameplay-scale pass may still want tiny per-item crop/offset tuning.
 
 2026-05-12 update:
 - Removed the oversized yellow guidance circle from relic shard targets in Journey so gems read as small collectible fragments instead of large marked objectives.
 - Kept shard collection positions, counts, route requirements, and pickup logic unchanged; only the visual marker/ring layer was suppressed.
 - Added platform-aware shard visual basing so gems that belong on platforms render above the platform surface instead of visually centring through the brick ledge.
 - Build/lint result: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning and runtime-resolved public CSS image URL notices; `git diff --check` passed with only the repo's LF-to-CRLF warnings.
-- Remaining risk: this was verified as a visual-only Journey pass; a classroom projector check may still want tiny atlas crop/offset tweaks.
+- Remaining risk: this was verified as a visual-only Journey pass; a large-screen check may still want tiny atlas crop/offset tweaks.
 
 2026-05-12 update:
 - Added a Lost Site Expedition Stage Select screen after the main menu launch.
@@ -866,7 +872,7 @@ Remaining notes:
 - Existing Journey background loading was preserved: no duplicate background loader was added and no gameplay, collision, enemy, route-gate, Stage Select, or excavation behaviour was intentionally changed.
 - Browser verification on `http://127.0.0.1:5188/Archaeology-Dig-App/` confirmed Ancient Egypt launches into Journey, the Desert Entry parallax background loads with ready true, fallback false, missing assets empty, and no console errors.
 - `npm.cmd run build` passed with the existing large-chunk warning plus runtime-resolved public CSS image URL notices; `npm.cmd run lint` passed; `git diff --check` passed with only the repo's LF-to-CRLF warnings.
-- Remaining risk: this is a first-pass generated art replacement, so a human projector-scale review may still want small crop or colour-balance tuning.
+- Remaining risk: this is a first-pass generated art replacement, so a human gameplay-scale review may still want small crop or colour-balance tuning.
 
 2026-05-12 update:
 - Upgraded the Egypt Journey player character sprite sheet at `public/sprites/archaeologist-walk-cycle.png` with a higher-quality generated four-frame walk cycle while preserving the existing 1560x560 runtime format.
@@ -912,7 +918,7 @@ Remaining notes:
 - Retuned the Journey background layer placement for the taller 16:9 frame so the Desert Entry, Catacombs, Escape Sequence, and Dig Site Entrance scenes fill the new playable area cleanly.
 - Browser verification on `http://127.0.0.1:5192/Archaeology-Dig-App/` confirmed the canvas now renders as a 960x540 native surface and displays at about 923x519 in a 1232x798 viewport, with the player grounded, route-gate area visible, enemy sprites active, environment assets loaded, and no console errors captured.
 - `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning and runtime-resolved public CSS image URL notices; `git diff --check` passed with only LF-to-CRLF warnings.
-- Remaining risk: 960x540 was chosen as the safest first industry-standard 16:9 baseline because it preserves the existing hand-authored level scale; a later 1280x720 pass would be possible but should include a broader camera, sidebar, art-scale, and projector-layout review.
+- Remaining risk: 960x540 was chosen as the safest first industry-standard 16:9 baseline because it preserves the existing hand-authored level scale; a later 1280x720 pass would be possible but should include a broader camera, sidebar, art-scale, and large-screen layout review.
 
 2026-05-13 update:
 - Completed a Journey layout foundation refactor as preparation for a future 1280x720 pass, without intentionally changing gameplay or visual feel.
@@ -923,7 +929,7 @@ Remaining notes:
 - Intentionally did not change movement physics, collision, jump feel, enemy AI, combat timing, route-gate requirements, shard requirements, boss flow, Egypt progression, Stage Select, Base Camp, excavation, or final claim logic.
 - Browser verification on `http://127.0.0.1:5193/Archaeology-Dig-App/` confirmed Main Menu -> Stage Select -> Ancient Egypt -> Journey, native 960x540 canvas with preserved 16:9 display scaling, player foot aligned to ground, no missing Journey assets, no console errors, movement into Ruined Temple, hazard/enemy interaction, defeated snake state, and Base Camp dev-transition render.
 - `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning and runtime-resolved public CSS image URL notices.
-- Remaining risk before 1280x720: this refactor centralises the most important layout assumptions, but a true 1280x720 upgrade still needs a dedicated camera composition, sidebar/projector layout, background art placement, and authored-object review.
+- Remaining risk before 1280x720: this refactor centralises the most important layout assumptions, but a true 1280x720 upgrade still needs a dedicated camera composition, sidebar/large-screen layout, background art placement, and authored-object review.
 
 2026-05-13 update:
 - Completed the first 1280x720 Journey render-target pass using a safe virtual-resolution approach.
@@ -933,7 +939,7 @@ Remaining notes:
 - Added render-state reporting for `renderTarget` and expanded `canvasScaleState` so browser checks can confirm native size, virtual size, display size, aspect preservation, and native scale.
 - Browser verification on `http://127.0.0.1:5194/Archaeology-Dig-App/` confirmed Main Menu -> Stage Select -> Ancient Egypt -> Journey, canvas attributes are now 1280x720, displayed aspect ratio remains 16:9, the player remains grounded on the expected 960x540 virtual ground line, Journey assets are loaded with no missing-asset report, no console errors appeared, and the Base Camp dev-transition still renders with Begin Excavation available.
 - `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing large-chunk warning and runtime-resolved public CSS image URL notices.
-- Remaining risk: this pass intentionally improves native rendering resolution without rescaling the gameplay world; a later composition pass can decide whether to expose more world at once, reduce the sidebar further, or create a fullscreen/projector presentation mode.
+- Remaining risk: this pass intentionally improves native rendering resolution without rescaling the gameplay world; a later composition pass can decide whether to expose more world at once, reduce the sidebar further, or create a fullscreen/large-screen presentation mode.
 
 2026-05-13 update:
 - Completed a Journey screen-space polish pass to make the visible world larger and reduce dead space around the side-scroller.
@@ -1080,7 +1086,7 @@ Remaining notes:
 - Added Guardian Encounter title-card wording, boss-name emphasis, brief camera shake/focus, and a larger awakened-boss health bar.
 - Added boss key-item rewards to the existing Journey state: Desert Seal, Temple Seal, Catacomb Seal, Escape Seal, and Excavation Seal.
 - Each route gate now requires its matching recovered seal through the existing `ROUTE_GATES` requirement/checklist logic; no parallel boss, inventory, or gate system was added.
-- Added visible seal drops after boss defeat, short Year 7 friendly recovery messages, Journey HUD/sidebar seal status, and render-state fields for `bossKeyItems` / `collectedBossKeyItems`.
+- Added visible seal drops after boss defeat, short player-readable recovery messages, Journey HUD/sidebar seal status, and render-state fields for `bossKeyItems` / `collectedBossKeyItems`.
 - Expanded route-to-boss pacing slightly by adding short ledges and mild hazards before guardian areas, and by shifting overlapping normal enemies so boss approaches are less cramped.
 - No Stage Select, Base Camp, Excavation, Museum, Lab, or Report flow was intentionally changed.
 - Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite public-asset runtime warnings and large chunk warning; `git diff --check` reported only existing LF-to-CRLF line-ending warnings.
@@ -1090,7 +1096,7 @@ Remaining notes:
 
 2026-05-14 update:
 - Reworked the Journey mini-boss reward layer from seal collectibles into excavation kit tool pieces while extending the same existing boss, drop, HUD, and route-gate logic.
-- Added boss-domain intro treatment for guardian encounters: title cards, Year 7 friendly guardian dialogue, arena framing, brief movement pause/camera focus, subtle boss-domain tinting, and boundary markers.
+- Added boss-domain intro treatment for guardian encounters: title cards, player-readable guardian dialogue, arena framing, brief movement pause/camera focus, subtle boss-domain tinting, and boundary markers.
 - Added excavation tool-piece rewards for the current five Journey mini-bosses: Brush Handle, Trowel Blade, Measuring Cord, Field Notebook Clasp, and Site Permit Seal.
 - Each next route gate now requires the matching recovered tool piece through the existing route-gate checklist logic; no separate inventory, boss, or gate system was added.
 - Updated the Journey sidebar/HUD section to show a compact Excavation Kit checklist for recovered tool pieces.
@@ -1113,7 +1119,7 @@ Remaining notes:
 
 2026-05-14 update:
 - Added a Guardian Knowledge Challenge before Journey mini-boss fights inside the existing `ExpeditionJourney.jsx` boss-domain intro flow.
-- Added a 3-question multiple-choice round for each current Journey mini-boss, with Year 7 friendly archaeology/HASS questions stored beside the Journey boss data in `journeyLevelData.js`.
+- Added a 3-question multiple-choice round for each current Journey mini-boss, with player-readable archaeology/HASS questions stored beside the Journey boss data in `journeyLevelData.js`.
 - Correct and incorrect answers now receive immediate feedback: correct answers strengthen the player, while incorrect answers strengthen the guardian.
 - Applied current-fight battle modifiers only: 3 correct gives player damage +25%, boss health -15%, and a subtle player glow/scale; 2 correct gives player damage +15% and a smaller player glow/scale; 1 correct gives boss health +10% and boss glow/scale; 0 correct gives boss health +20%, boss damage +10%, and stronger boss glow/scale.
 - Boss combat and player movement pause while the Guardian Knowledge Challenge panel is active, then resume after the result message and Begin Guardian Fight action.
@@ -1187,7 +1193,7 @@ Remaining notes:
 - Sourced a small CC0 Expedition SFX set from Kenney RPG Audio and copied the curated files into `public/assets/expedition/sfx/` with the license text.
 - Added a reusable Expedition SFX player to the existing `audioControls` path instead of creating a second audio system.
 - Wired sourced effects into the current Journey and Expedition flows: sand footsteps, jump/land, satchel/tool pickup, relic shard pickup, upgrade click, khopesh swing, enemy hit, player hit, boss warning, gate open, and gate blocked.
-- Tuned SFX volumes low so they support the classroom game without overpowering the existing music and stingers.
+- Tuned SFX volumes low so they support the adventure game without overpowering the existing music and stingers.
 - Validation: `npm.cmd run lint` passed before the final build pass; `npm.cmd run build` passed with the existing Vite public-asset and large-chunk warnings; `git diff --check` passed with only LF-to-CRLF working-copy warnings.
 - Browser notes: local browser verification on `http://127.0.0.1:5190/Archaeology-Dig-App/` confirmed Journey starts, movement requests random footstep SFX, Space requests jump/land SFX, J requests khopesh swing SFX, and all SFX files return successfully from the dev server.
 - Remaining risk: the sound choices are safe and working, but kid-facing feel still needs a quick listen/play pass to decide whether the mix should be more arcade-like, more modern, or more subtle.
@@ -1238,7 +1244,7 @@ Remaining notes:
 - Kept the existing boss, route gate, Guardian Knowledge Challenge, reward, progression, Stage Select, Base Camp, Excavation, and final claim systems unchanged.
 - Validation: `npm.cmd run lint` passed with existing React hook warnings in `ExpeditionJourney.jsx`; `npm.cmd run build` passed with the existing Vite public-asset and large-chunk warnings; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
 - Browser notes: local browser verification confirmed Main Menu -> Stage Select -> Ancient Egypt -> Begin Expedition works, the first playable section now presents an early hazard/reward beat, sampled later sections show the new short clue notices, Scarab Queen intro still triggers, Guardian Knowledge Challenge still opens, and no console errors appeared.
-- Remaining risks/follow-up tasks: this pass was authored and spot-checked with browser automation rather than a full 10-15 minute manual playthrough; a live classroom-feel pass should tune exact enemy/hazard density if any section feels too busy or too easy.
+- Remaining risks/follow-up tasks: this pass was authored and spot-checked with browser automation rather than a full 10-15 minute manual playthrough; a live standalone-feel pass should tune exact enemy/hazard density if any section feels too busy or too easy.
 
 2026-05-14 update:
 - Completed a whole Egypt Journey map polish pass after sampling Desert Entry, Ruined Temple, Catacombs, Escape Sequence, and Dig Site Entrance in the browser.
@@ -1282,7 +1288,7 @@ Remaining notes:
 - No drag/drop logic, correct order, scoring, activity routing, or Back to Menu behaviour was intentionally changed.
 - Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite public-asset runtime warnings and large bundle warning; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
 - Browser notes: local browser verification opened Archaeologist Training, confirmed all five cards display, dragged Survey to Step 1, Grid to Step 2, Excavate to Step 3, Map to Step 4, and Lab to Step 5, confirmed progress reached `5/5 correct`, confirmed the feedback panel stayed readable and compact, confirmed Back to Menu returned to the activity menu, and found no console errors.
-- Remaining layout risk: the screen was checked at the normal 1280x720 in-app browser/laptop viewport; very narrow or unusually zoomed classroom devices may still need a quick visual pass.
+- Remaining layout risk: the screen was checked at the normal 1280x720 in-app browser/laptop viewport; very narrow or unusually zoomed lower-powered devices may still need a quick visual pass.
 
 2026-05-15 update:
 - Started the Unique Ancient China Mobs pass inside the existing Journey implementation.
@@ -1294,10 +1300,10 @@ Remaining notes:
 - Browser notes: repo-local Playwright verification confirmed Stage Select -> Ancient China -> Journey loads `assets/expedition/enemies/china/china-enemy-guardian-sprites.json`, reports active civilisation `Ancient China`, loads China enemy/guardian sprites with fallback inactive, shows `riverCrab` regular enemies, defeats `River Crab Scout`, triggers `Clay Guardian`, shows the `china-clay-guardian` boss sprite with `clayGuardianIntro`, hands off to Guardian Knowledge Challenge, then reaches guardian combat frames including `clayGuardianCounterWindow`, `clayGuardianShielded`, and `clayGuardianSlam` before defeating the first guardian and dropping/collecting the existing brush-handle reward.
 - Egypt regression notes: Ancient Egypt Journey still loads the desert temple environment, reports active civilisation `Ancient Egypt`, shows `scarab` enemies and Egypt boss names (`Scarab Queen`, `Stone Guardian`, `Giant Serpent`), with enemy/boss fallback inactive and no console errors.
 - Tooling note: the `develop-web-game` helper still fails with `ERR_MODULE_NOT_FOUND: Cannot find package 'playwright'` from the user skill folder, so browser verification used the repo-available Playwright path.
-- Remaining risks/follow-up tasks: China now has unique regular mobs and a shared clay guardian boss sprite family, but full classroom polish still needs China-specific Journey objective/gate copy, China-specific Guardian Knowledge questions, China collectible/relic sprites, later guardian visual variants beyond the shared clay guardian atlas, and a full natural no-dev-jump China playthrough through Journey, Base Camp, excavation, evidence, and final claim.
+- Remaining risks/follow-up tasks: China now has unique regular mobs and a shared clay guardian boss sprite family, but full standalone polish still needs China-specific Journey objective/gate copy, China-specific Guardian Knowledge questions, China collectible/relic sprites, later guardian visual variants beyond the shared clay guardian atlas, and a full natural no-dev-jump China playthrough through Journey, Base Camp, excavation, evidence, and final claim.
 
 2026-05-15 follow-up:
-- Refined the Archaeologist Training layout for focus and screen density after classroom-use feedback.
+- Refined the Archaeologist Training layout for focus and screen density after standalone-use feedback.
 - Collapsed the large header into a slim orientation strip with title, short instruction, progress, and Back to Menu on one row.
 - Removed the duplicate ordering header and removed the in-play feedback panel so students see only the stage cards, drop targets, progress badge, and menu action while working.
 - Changed the five drop targets from narrow vertical columns into five wide notebook rows, making each target closer to the shape of the draggable stage cards and reducing hesitation about where to drop.
@@ -1305,7 +1311,7 @@ Remaining notes:
 - No drag/drop logic, correct order, scoring, dependencies, or navigation behaviour was intentionally changed.
 - Validation: `npm.cmd run lint`, `npm.cmd run build`, and `git diff --check` passed; build still reports the existing Vite public-asset runtime warnings and large bundle warning.
 - Browser notes: local browser verification at 1280x720 confirmed the slim header, all five stage cards, all five wide drop rows visible on the first screen, successful Survey/Grid/Excavate/Map/Lab drag order, `5/5 correct`, Back to Menu behaviour, and no console errors.
-- Remaining layout risk: the wide row layout is tuned for normal laptop/projector widths; narrow windows fall back to stacked layout and may still require scrolling.
+- Remaining layout risk: the wide row layout is tuned for normal laptop/large-screen widths; narrow windows fall back to stacked layout and may still require scrolling.
 
 2026-05-15 follow-up:
 - Darkened the Archaeologist Training activity after the first compact pass still read too bright/white.
@@ -1369,7 +1375,7 @@ Remaining notes:
 - Kept gameplay rules unchanged: no movement, collision, enemy, boss, Guardian Knowledge Challenge, route gate, reward, Base Camp, Excavation, Museum, Lab, Report, save/load, inventory, or evidence systems were intentionally changed.
 - Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing Vite runtime-public-asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
 - Browser notes: local CDP smoke opened Ancient Egypt Journey, checked screenshots across Desert Entry, Ruined Temple, Catacombs, Escape Sequence, and Dig Site Entrance, confirmed the ambient effects are visible but subtle, confirmed Ancient Egypt remained active, and found no console errors.
-- Remaining risks/follow-up tasks: ambient effects were visually checked by debug-position smoke rather than a full natural playthrough; if classroom devices struggle, reduce particle/detail counts before changing gameplay.
+- Remaining risks/follow-up tasks: ambient effects were visually checked by debug-position smoke rather than a full natural playthrough; if lower-powered devices struggle, reduce particle/detail counts before changing gameplay.
 
 2026-05-15 follow-up:
 - Added three more low-stakes Egypt enemies at the start of Desert Entry after feedback that the opening still felt too empty.
@@ -1431,7 +1437,7 @@ Remaining notes:
 - No Stage Select, Base Camp, Excavation, Museum, Lab, Report, save/load, inventory, evidence, route gate, boss, or Guardian Knowledge Challenge systems were changed.
 - Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with existing runtime-public-asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
 - Browser notes: clean-save smoke opened Ancient Egypt Journey, simulated the first route movement, sampled start positions around 170, 330, 690, 900, 1185, and 1375 base units, confirmed collectibles/shards, mild hazards, ambient life, camera values, route gate state, and Scarab Queen intro still work. Headless browser reported audio autoplay warnings only; no gameplay/runtime exception was found.
-- Remaining risks/follow-up tasks: browser verification used deterministic movement/debug sampling rather than a full natural classroom playthrough; the section title card briefly overlays the start-route screenshot before fading, so a later UX pass could shorten the opening card if it still feels intrusive.
+- Remaining risks/follow-up tasks: browser verification used deterministic movement/debug sampling rather than a full natural standalone playthrough; the section title card briefly overlays the start-route screenshot before fading, so a later UX pass could shorten the opening card if it still feels intrusive.
 
 2026-05-15 follow-up:
 - Upgraded the China Journey background, ground, and platform visuals from prototype-looking strip/block art to project-local PNG assets.
@@ -1473,10 +1479,10 @@ Remaining notes:
 - Added cosmetic unlock framework for Expedition Hat, Curator Journal Cover, and Bronze Backpack. Visual swapping is not wired yet; cosmetics are tracked as persistent unlocks for a later player-visual pass.
 - Added purchase feedback with shard deduction, owned/locked/not-enough-shards states, and an Upgrade Purchased confirmation/glow.
 - Added focused Node tests for shop purchase rules, duplicate purchase protection, cosmetic purchases, and upgrade stat effects.
-- Progression persistence uses `localStorage` key `archaeology-dig-app:lost-site-expedition:base-camp-progression:v1`, separate from the existing classroom file save/load systems so it does not corrupt current archaeology/Bureau saves.
+- Progression persistence uses `localStorage` key `archaeology-dig-app:lost-site-expedition:base-camp-progression:v1`, separate from the existing standalone file save/load systems so it does not corrupt current archaeology/Bureau saves.
 - Validation: `node --test src\components\expedition\baseCampShop.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with existing runtime-public-asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
 - Browser notes: Playwright smoke test launched Ancient Egypt, confirmed Journey shard collection through `render_game_to_text`, opened Base Camp through the existing dev jump hook, purchased Reinforced Boots from a seeded shard bank, confirmed shards dropped from 20 to 5, reloaded, and confirmed the next Journey run included `permanentUpgrades: ["reinforced-boots"]` with a jump multiplier above 1 and no console/page errors.
-- Remaining risks/follow-up tasks: cosmetic visual swapping is intentionally deferred; Rope Launcher and Survey Goggles are shop placeholders only until hidden-route and hidden-clue content exists; a full natural classroom playthrough should still check long-route balance after several upgrades are owned.
+- Remaining risks/follow-up tasks: cosmetic visual swapping is intentionally deferred; Rope Launcher and Survey Goggles are shop placeholders only until hidden-route and hidden-clue content exists; a full natural standalone playthrough should still check long-route balance after several upgrades are owned.
 
 2026-05-15 update:
 - Added a Hidden Routes and Secret Discovery pass to the existing Journey layout/data instead of rewriting `ExpeditionJourney`.
@@ -1537,7 +1543,7 @@ Remaining notes:
 - Kept Stage Select, Base Camp, Excavation, Museum, Lab, Report, save/load, route gates, enemy placement, boss placement, and asset wiring unchanged.
 - Validation: `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing runtime-public-asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
 - Browser notes: live browser verification was not completed in this pass because the browser automation connector was not available in the current toolset. A short manual or Playwright Journey smoke test is still recommended to tune exact difficulty feel.
-- Remaining risks/follow-up tasks: this is a global difficulty bump, so a later classroom-feel pass may need to soften the earliest two start-area enemies if Year 7 players find the opening too punishing.
+- Remaining risks/follow-up tasks: this is a global difficulty bump, so a later standalone-feel pass may need to soften the earliest two start-area enemies if new players find the opening too punishing.
 
 2026-05-16 update:
 - Added a Journey enemy visual grounding pass inside the existing enemy renderer.
@@ -1569,7 +1575,7 @@ Remaining notes:
 - Kept Stage Select, Base Camp, Excavation, Museum, Lab, Report, save/load, route gates, hidden-route rewards, boss systems, and Journey collision rules unchanged in this pass.
 - Validation: `node --test src\components\expedition-journey\journeySecrets.test.js` passed; `node --test src\components\expedition\baseCampShop.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with the existing runtime-public-asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
 - Browser notes: local Playwright smoke opened Ancient Egypt Journey, dismissed the mission dossier, sampled Desert Entry, Ruined Temple, Catacombs, Escape Sequence, and Dig Site Entrance using the Journey debug hook, confirmed continuity snapshot fields were active, confirmed section-specific landmarks and transition markers appeared without leaking into unrelated sections, captured `output/world-continuity-clean-shot.png`, and reported no console/page errors.
-- Remaining risks/follow-up tasks: browser verification used deterministic debug positioning rather than a natural end-to-end classroom playthrough; the new silhouettes are deliberately subtle, so a later art pass could tune exact opacity per background after student testing.
+- Remaining risks/follow-up tasks: browser verification used deterministic debug positioning rather than a natural end-to-end standalone playthrough; the new silhouettes are deliberately subtle, so a later art pass could tune exact opacity per background after student testing.
 
 2026-05-16 update:
 - Added a focused reactive environmental interaction pass inside the existing Journey data/render/update loop; no Journey rewrite, large level expansion, or heavy particle system was added.
@@ -1591,10 +1597,10 @@ Remaining notes:
 - Added route-use tags to upgrade cards so optional-route unlocks are easier to spot in the shop.
 - Updated locked Journey hidden-route labels to use the shared shop display names, so labels read like `Needs Rope Launcher` instead of relying on raw upgrade id formatting.
 - Added a near-route optional-reward hint line for locked hidden routes so students understand the route is optional and worth returning to later.
-- Added focused Base Camp shop tests for route upgrade labels, route unlock metadata, active summary metadata, and classroom-readable display names.
+- Added focused Base Camp shop tests for route upgrade labels, route unlock metadata, active summary metadata, and standalone-readable display names.
 - Validation: `node --test src\components\expedition\baseCampShop.test.js` passed; `node --test src\components\expedition-journey\journeySecrets.test.js` passed; bundled Python `scripts\validate_enemy_sprite_sheets.py` passed for 13 upgraded enemy atlases; `npm.cmd run lint` passed; `npm.cmd run build` passed with existing runtime-public-asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
 - Browser notes: local Vite dev server started on `http://127.0.0.1:5175/Archaeology-Dig-App/` and returned HTTP 200. Full browser automation was unavailable in this session because the Playwright package was not available to the Node REPL.
-- Remaining risk/follow-up tasks: a human or browser-automation visual pass should confirm the Base Camp chip wrapping and locked-route hint placement at classroom projector sizes before these upgrade UI changes are considered fully visually signed off.
+- Remaining risk/follow-up tasks: a human or browser-automation visual pass should confirm the Base Camp chip wrapping and locked-route hint placement at large-screen sizes before these upgrade UI changes are considered fully visually signed off.
 
 2026-05-16 update:
 - Fixed the reported issue where China Journey enemies were present but not visibly readable against the upgraded background.
@@ -1612,7 +1618,7 @@ Remaining notes:
 - Removed the visibility-assist silhouette for river crabs specifically, so the live China route now shows the actual PNG crab art rather than the earlier shape-like support layer.
 - Browser verification: launched Ancient China Journey, jumped to the early river route, confirmed `enemySpritesLoaded: true`, `enemySpriteFallbackActive: false`, `visibleEnemySpriteFamilies: ["riverCrab"]`, and live `riverCrabWalk1` frame states, then captured `output/china-river-crab-real-png-wired-clean.png`.
 - Validation: `scripts\validate_enemy_sprite_sheets.py` passed for 13 upgraded enemy atlases; `node --test src\components\expedition-journey\journeySecrets.test.js` passed; `node --test src\components\expedition\baseCampShop.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with existing runtime-public-asset warnings only; `git diff --check` passed with LF-to-CRLF working-copy warnings only.
-- Remaining risk/follow-up tasks: the crab PNG is now real art and wired correctly; a later pass can tune exact crab draw scale if the classroom screen feels too busy.
+- Remaining risk/follow-up tasks: the crab PNG is now real art and wired correctly; a later pass can tune exact crab draw scale if the game screen feels too busy.
 
 2026-05-16 update:
 - Added Journey-only mouse cursor auto-hide while actively playing.
@@ -1635,7 +1641,7 @@ Remaining notes:
 - Kept Stage Select, Base Camp, Excavation, Museum, Lab, Report, save/load, boss rewards, route gates, and level size unchanged except for compatibility/debug snapshot exposure.
 - Validation: `node --test src\components\expedition-journey\journeySecrets.test.js` passed; `node --test src\components\expedition\baseCampShop.test.js` passed; `npm.cmd run lint` passed; `npm.cmd run build` passed with existing runtime-public-asset warnings only.
 - Browser notes: local Edge/Playwright smoke opened Ancient Egypt Journey, used the existing Journey debug hook to sample the first pressure enemy, confirmed combat intensity snapshot fields, visible pressure enemy tracking, enemy windup pressure feedback, player damage feedback, attack sweep visuals in `output/combat-intensity-smoke.png`, and no console/page errors.
-- Remaining risks/follow-up tasks: the browser pass used deterministic debug positioning around the first Egypt pressure encounter rather than a full natural combat playthrough; a later classroom tuning pass should verify boss combat and each China pressure encounter in motion.
+- Remaining risks/follow-up tasks: the browser pass used deterministic debug positioning around the first Egypt pressure encounter rather than a full natural combat playthrough; a later standalone tuning pass should verify boss combat and each China pressure encounter in motion.
 
 2026-05-16 update:
 - Added a dynamic expedition world and environmental storytelling pass inside the existing Journey data/render/update loop; no open-world rewrite, Journey system rewrite, or level-size expansion was made.
@@ -2044,7 +2050,7 @@ Remaining notes:
 - Confirmed passive final-route placement is complete, while the Guardian Seal trigger and Ancient Construct awakening implementation remain pending by design.
 - Confirmed Ancient Construct data, route gates, Base Camp handoff, excavation, and China were not changed by this handover pass.
 
-## 2026-05-17 Scarab Queen classroom-friendly attack asset refresh
+## 2026-05-17 Scarab Queen adventure-readable attack asset refresh
 
 - Refreshed the Scarab Queen boss atlas in place through the existing `generate_enemy_sprite_sheets.py --scarab-queen-only` path.
 - Preserved all eleven canonical Scarab Queen frame keys and the existing `public/assets/expedition/bosses/scarab-queen-sprites.json` atlas contract.
@@ -2175,7 +2181,7 @@ Remaining notes:
 
 ## 2026-05-18 Stronger enemy tactics pass
 
-- Raised the non-tutorial Journey enemy baseline in `journeyUtils.js`: regular enemies now receive larger health and damage bumps at runtime, while `openingRouteRamp` enemies keep the classroom-safe training values.
+- Raised the non-tutorial Journey enemy baseline in `journeyUtils.js`: regular enemies now receive larger health and damage bumps at runtime, while `openingRouteRamp` enemies keep the adventure-readable training values.
 - Added `ENEMY_TACTICAL_PRESSURE` in `ExpeditionJourney.jsx` so non-tutorial enemies react from farther away, face the player when pressing, chase a little harder inside patrol bounds, attack slightly faster, and in some human/sentry cases block rushed hits during windup.
 - Kept the existing attack pattern, patrol, shield, counter-window, hitbox, boss, route gate, Base Camp, excavation, China progression, and reward systems. No duplicate combat system was added.
 - `node --test src\components\expedition-journey\journeySecrets.test.js` and `npm.cmd run lint` passed.
@@ -2526,7 +2532,7 @@ Remaining notes:
 - Read `docs/lost-site-expedition-design-brief.md` first and confirmed the character work must stay inside the existing Journey hero-atlas path.
 - Rebuilt the already-active `asha-player-production-spritesheet.png` from the clean transparent individual pose files in `public/assets/expedition/player/asha-option-a-source/poses/`.
 - Kept the existing filename, atlas JSON contract, frame keys, 192px cell size, fallback atlas, movement controller, hitboxes, Journey progression, Base Camp, excavation, evidence, lab/report, and save/state systems unchanged.
-- Updated `asha-player-production-spritesheet.json` to describe the clean-pose production pass, complete measured draw bounds, eight-frame walk/run/survey rows, and the slightly taller live draw scale needed for projector readability.
+- Updated `asha-player-production-spritesheet.json` to describe the clean-pose production pass, complete measured draw bounds, eight-frame walk/run/survey rows, and the slightly taller live draw scale needed for gameplay-scale readability.
 - Browser smoke captured `output/asha-player-production-smoke/asha-idle.png`, `output/asha-player-production-smoke/asha-run.png`, `output/asha-player-production-smoke/asha-attack.png`, and `output/asha-player-production-smoke/asha-jump.png`; Asha loaded through `hero-atlas`, used `assets/expedition/player/asha-player-production-spritesheet.json`, and reported no console errors.
 - `node --test src\components\expedition-journey\journeySecrets.test.js`, `npm.cmd run lint`, `npm.cmd run build`, and `git diff --check` passed. The build still reports the known runtime-resolved excavation image warnings, and `git diff --check` still reports only normal LF-to-CRLF warnings.
 - Remaining risk: the browser smoke confirms the live first-screen character presentation, but a longer human playthrough should still judge scale around dense enemies, bosses, and later sections before calling every animation row final.
@@ -2678,7 +2684,7 @@ Remaining notes:
 
 ## 2026-05-20 Base Camp Reward & Economy Pass
 
-- Extended the outfitting catalog to incorporate the six core excavation tools as purchaseable upgrades, aligning prices and classroom-friendly descriptions to explicitly show their excavation bonuses.
+- Extended the outfitting catalog to incorporate the six core excavation tools as purchaseable upgrades, aligning prices and adventure-readable descriptions to explicitly show their excavation bonuses.
 - Dynamically merged the active `fieldKit` items into `baseCampOwnedItemIds` within `ExpeditionMode.jsx`. If the player collects a tool in the Journey platformer, the shop immediately lists it as "Owned", preventing redundant purchases.
 - Updated `purchaseShopItem` in `ExpeditionMode.jsx` to immediately append purchased tools to `fieldKit`. This lets the player buy missing tools and immediately outfit them.
 - Wired `fieldKit` initialization and reset hooks in `openExpeditionStage` and `resetExpedition` so tools previously purchased at Base Camp are carried over into active runs.
@@ -2735,7 +2741,7 @@ Remaining notes:
 
 - Kept the existing combat system, player controls, enemy roles, boss phases, shard drops, route gates, Base Camp, excavation, lab, evidence, and report systems unchanged.
 - Aligned the normal-enemy attack tell renderer with the same tuned `range` and `height` values used by the active attack boxes, so scarab lanes, scorpion stings, snake lunges, wisp bursts, guardian slams, and active strike effects better match the upgraded combat tuning.
-- Anchored scarab/charge lane tells from the actual forward attack edge and kept the lane length tied to the real attack range, with subtle dust pips added inside that range for projector readability.
+- Anchored scarab/charge lane tells from the actual forward attack edge and kept the lane length tied to the real attack range, with subtle dust pips added inside that range for gameplay-scale readability.
 - Updated active normal-enemy attack damage to use the existing forward attack rectangle against the trimmed player body hitbox, instead of requiring separate side-body contact with the enemy sprite.
 - Updated boss active damage checks to use the same trimmed player body hitbox instead of the full player sprite rectangle, making Queen/guardian hits more consistent with the readable body collision rules.
 - Added regression coverage in `journeyEnemySprites.test.js` so future tell art does not drift away from the tuned hitbox ranges again.
@@ -2750,7 +2756,7 @@ Remaining notes:
 ## 2026-05-20 Standalone game direction update
 
 - Updated the durable direction: Lost Site Expedition is now framed as a standalone archaeology adventure platformer, with excavation, Base Camp, lab, evidence, and report systems acting as add-on/reward layers after major discoveries.
-- Removed Year 7/classroom-safe as the default tuning target from the active handover, source-of-truth brief, game-direction note, menu framing, training reflection label, and current test/comment wording.
+- Removed player-readable/adventure-readable as the default tuning target from the active handover, source-of-truth brief, game-direction note, menu framing, training reflection label, and current test/comment wording.
 - Future passes should prioritise game feel, mastery, secrets, combat readability, boss pacing, route completion, upgrades, replayability, and adventure identity first; excavation and report systems should support that loop rather than constrain it.
 
 ## 2026-05-20 Enemy aggression pressure pass
@@ -3071,6 +3077,15 @@ Remaining notes:
 - Moved that required Map Tablet climb beat back into scaled Desert Entry route space so it still uses the existing platform, objective marker, enemy, route-edge prop, and defeated-enemy systems without cluttering the opening scene.
 - Updated regression coverage so the opening pyramid zone only counts the original four invisible ledges, while the later Map Tablet ruin climb remains guarded and required.
 - Verification passed: Journey secrets test, lint, production build, and browser smoke screenshots at `output/egypt-opening-cleanup/02-opening-scene-cleaned-no-briefing.png` and `output/egypt-opening-cleanup/03-moved-map-tablet-route-props.png`.
+
+## 2026-05-23 Egypt Journey polish pass
+
+- Reviewed the recent verticality and prop cleanup in the live browser with the goal of keeping the opening cinematic instead of adding more platforms.
+- Removed weak Ruined Temple story props that read as translucent fallback rectangles over the painted chamber background: extra door/mural/pillar/tablet/relief overlays were cut from `STORY_PROPS`.
+- Kept the stronger existing floor, shard, enemy, switch, and background systems intact; no duplicate platform, combat, gate, boss, or rendering system was added.
+- Added a stage-entrance rendering guard so transition doorway art appears during approach/fade but stops drawing once Asha has arrived inside the destination section.
+- Updated Journey regression coverage so removed ghost-overlay props stay out and the stage-entrance guard remains part of the existing transition renderer.
+- Browser smoke screenshots: `output/egypt-polish-pass-20260523/18-polish-opening-after-stage-guard.png` and `output/egypt-polish-pass-20260523/19-polish-temple-after-stage-guard.png`.
 
 ## 2026-05-22 Lost Site Expedition Diablo-style visual overhaul
 
