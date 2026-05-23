@@ -5,6 +5,18 @@ Original prompt: Implement "Lost Site Expedition" as a small MVP game mode in th
 - Updated Auto fallback to Asha Final Production, while keeping Asha V5, Asha Final Production, Asha Hooded Previous, and Legacy Strip selectable through the existing character loader.
 
 2026-05-23 update:
+- Grounded the desert-to-temple exit gateway by adding a stage-entrance-specific vertical offset and applying it to both the main doorway render and foreground occluder layers.
+- Verified the doorway no longer floats in the threshold scene at `output/desert-exit-gateway-threshold-grounded.png`.
+- Rebuilt `desert-end-threshold-angled.png` with feathered side and floor alpha so the generated temple doorway blends into the live desert background instead of showing hard rectangular joins.
+
+2026-05-23 update:
+- Wired the user-provided Scarab Queen sheets into the canonical boss sprite atlas, preserving the existing 11 required boss frame keys and adding walk, run/charge, windup, acid-spit, acid projectile, stagger, and death sequence regions.
+- Added `scripts/build_scarab_queen_atlas.py` plus repo-local source sheets so the final atlas can be rebuilt without depending on Downloads.
+- Updated Scarab Queen frame selection to use animated sheet sequences for windup, charge, area attack, stagger/counter, walk, and defeat states.
+- Bumped the boss atlas version and updated focused sprite tests for the supplied-sheet runtime path.
+- Browser-smoke screenshot: `output/scarab-queen-user-sheets-reveal-v3.png`.
+
+2026-05-23 update:
 - Tuned Asha V5 readability without generating new character art: rebuilt the existing V5 atlas from the user-provided sheets with a light local brightness, contrast, saturation, and sharpness pass.
 - Increased the V5 atlas runtime draw height from 108px to 119px, making her 10% larger in Journey while keeping the existing 256px hero-atlas cells and character-loader option intact.
 - Slowed Asha V5's run-cycle frame stepping through atlas metadata so her legs read less frantic while her movement speed stays unchanged.
@@ -3160,3 +3172,22 @@ Remaining notes:
 - Kept the 14-second opening unchanged and did not add a new cutscene, dialogue system, player controller, progression gate, combat rule, or save path.
 - Temple Approach Seal still requires 4 relic shards, Guardian Prep Seal and Desert Map Seal requirements remain unchanged, and the first shard placement/collection loop stays on the existing `RELIC_SHARDS` path.
 - Added Journey regression coverage for the first-shard echo, one-time state flag, existing Anubis/Asha opening wording, unchanged gate requirements, and no guardian quiz gating.
+
+## 2026-05-23 Opening Scene Step 4
+
+- Added a short Temple Approach Seal payoff after the opening proof loop using the existing route-gate data, HUD guidance, notice, audio, and reward-pulse paths.
+- New ready hint: "Anubis has judged the first proof. Move through the Temple Approach Seal."
+- New open message: "Anubis permits the first passage. The Temple Approach Seal opens."
+- The open message is held briefly through the existing temporary cinematic/notice timer so nearby enemy prompts do not immediately overwrite the seal payoff.
+- Kept the Temple Approach Seal requirement at 4 relic shards and did not add a new cutscene, dialogue system, gate system, player controller, movement rule, combat rule, or progression mechanic.
+- Added regression coverage so the first seal keeps Anubis story framing while Guardian Prep Seal, Desert Map Seal, and no-quiz boss progression remain unchanged.
+
+## 2026-05-23 Opening Scene Step 5
+
+- Tuned the first-seal route feel after the human-style playtest showed the opening story momentum could stall before the Temple Approach Seal payoff.
+- Kept the fix inside existing Journey data and helper tuning: no new cutscene, dialogue, player controller, movement, combat, gate, save, Base Camp, excavation, lab, evidence, or report system was created.
+- Added `firstSealRouteRamp` to the first proof-loop enemies so they keep authored low health and damage while later opening and Journey enemies still use the existing harder combat tuning.
+- Widened the existing lower opening pyramid ledge from 162px to 430px so the first climb gives Asha a readable approach shelf instead of dropping a right-moving player into immediate field rescue.
+- Kept Temple Approach Seal at 4 relic shards and left Guardian Prep Seal, Desert Map Seal, Scarab Queen, Brush Handle, Map Tablet, and route-gate requirements unchanged.
+- Browser smoke on the clean dev server confirmed Begin Expedition returns control, the early route no longer immediately rescues during a bounded player-input pass, stamina stayed healthy, the Temple Approach Seal HUD remained active, and no relevant console errors appeared.
+- Remaining caveat: a full natural playthrough all the way to opening the Temple Approach Seal still needs a human manual pass; automation verified the early route no longer collapses immediately, but did not naturally collect all 4 shards and open the seal.

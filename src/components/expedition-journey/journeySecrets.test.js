@@ -652,6 +652,30 @@ test('opening Scarab Seal becomes a restrained false-discovery threshold scene',
   assert.match(source, /export const CHINA_MINI_BOSSES = \[/);
 });
 
+test('dev smoke helpers expose Scarab Queen payoff and Desert Map Seal readiness without changing route requirements', () => {
+  const routeGates = extractExportedArray('ROUTE_GATES');
+  const bossKeyItems = extractExportedArray('BOSS_KEY_ITEMS');
+  assert.match(devToolsSource, /Smoke: Scarab Queen Payoff/);
+  assert.match(devToolsSource, /journey-scarab-payoff/);
+  assert.match(devToolsSource, /Smoke: Desert Map Seal Ready/);
+  assert.match(devToolsSource, /journey-desert-map-seal-ready/);
+  assert.match(expeditionModeSource, /event\.detail\?\.target === 'journey-scarab-payoff'/);
+  assert.match(expeditionModeSource, /event\.detail\?\.target === 'journey-desert-map-seal-ready'/);
+  assert.match(expeditionModeSource, /postBossReward:\s*journeySnapshot\.postBossReward \|\| null/);
+  assert.match(expeditionModeSource, /postBossRewardVisible:\s*Boolean\(journeySnapshot\.postBossRewardVisible \|\| journeySnapshot\.postBossReward\)/);
+  assert.match(journeyComponentSource, /target === 'journey-scarab-payoff' \|\| target === 'journey-desert-map-seal-ready'/);
+  assert.match(journeyComponentSource, /current\.defeatedMiniBosses\.add\(boss\.id\)/);
+  assert.match(journeyComponentSource, /current\.collectedObjectiveIds\.add\('map-tablet'\)/);
+  assert.match(journeyComponentSource, /current\.completedObjectiveIds\.add\('desert-entry'\)/);
+  assert.match(journeyComponentSource, /current\.collectedBossKeyIds\.add\(keyItem\.id\)/);
+  assert.match(journeyComponentSource, /current\.relicShardCount = Math\.max\(current\.relicShardCount, 10\)/);
+  assert.match(journeyComponentSource, /buildBossRewardMoment\(current, keyItem, recoverReward \? 'recovered' : 'revealed'\)/);
+  assert.match(journeyComponentSource, /id:\s*recoverReward \? 'debug-desert-map-seal-ready' : 'debug-scarab-queen-payoff'/);
+  assert.match(journeyComponentSource, /text:\s*recoverReward \? 'SEAL READY' : 'REWARD REVEALED'/);
+  assert.match(routeGates, /id:\s*'desert-seal'[\s\S]*?requires:\s*\{\s*objective:\s*'desert-entry',\s*miniBoss:\s*'scarab-queen',\s*keyItem:\s*'brush-handle',\s*shards:\s*10/);
+  assert.match(bossKeyItems, /id:\s*'brush-handle'[\s\S]*?routeOpenMessage:\s*'You passed the first guardian test\. Record what you found before moving deeper\. Desert Map Seal is open\.'/);
+});
+
 test('opening pyramid uses exactly four invisible platforms aligned to the marked ledges', () => {
   const platforms = extractExportedArray('PLATFORMS');
   const sealTrigger = source.slice(source.indexOf('export const SCARAB_SEAL_TRIGGER = {'), source.indexOf('export const STORY_PROPS = ['));
@@ -677,7 +701,7 @@ test('opening pyramid uses exactly four invisible platforms aligned to the marke
   assert.deepEqual(
     route.map(({ x, y, width }) => ({ x, y, width })),
     [
-      { x: 258, y: 318, width: 162 },
+      { x: 258, y: 318, width: 430 },
       { x: 402, y: 166, width: 420 },
       { x: 594, y: 36, width: 390 },
       { x: 760, y: -101, width: 330 },
@@ -1759,7 +1783,7 @@ test('combat pressure encounters guard optional rewards without blocking progres
   assert.match(journeyUtilsSource, /looter:\s*3/);
   assert.match(journeyUtilsSource, /return clamp\(Math\.max\(enemy\.health \+ bonus, Math\.ceil\(enemy\.health \* 1\.55\)\), 3, 5\)/);
   assert.match(journeyUtilsSource, /Math\.ceil\(enemy\.health \* 1\.55\)/);
-  assert.match(journeyUtilsSource, /enemy\.openingRouteRamp\s*\?\s*Math\.max\(enemy\.damage \+ 1, Math\.ceil\(enemy\.damage \* 1\.25\)\)/);
+  assert.match(journeyUtilsSource, /if\s*\(enemy\.firstSealRouteRamp\)\s*return Math\.max\(1, enemy\.damage\)/);
   assert.match(journeyUtilsSource, /Math\.ceil\(enemy\.damage \* 1\.45\)/);
   assert.match(journeyUtilsSource, /baseSpeed: entity\.speed \* \(entity\.openingRouteRamp \? 1\.12 : 1\.18\)/);
   assert.match(journeyComponentSource, /const ENEMY_TACTICAL_PRESSURE = \{/);
@@ -1797,12 +1821,17 @@ test('Egypt opening combat ramps gently before the first route seal', () => {
     true,
     'Egypt enemies before the first seal should opt into the opening-route safety tuning',
   );
-  assert.match(journeyUtilsSource, /if\s*\(enemy\.openingRouteRamp\)\s*return Math\.max\(3, enemy\.health\)/);
-  assert.match(journeyUtilsSource, /enemy\.openingRouteRamp\s*\?\s*Math\.max\(enemy\.damage \+ 1, Math\.ceil\(enemy\.damage \* 1\.25\)\)/);
+  assert.equal(
+    teachingRows.every(row => /firstSealRouteRamp:\s*true/.test(row)),
+    true,
+    'first-seal proof enemies should opt into the gentlest opening route tuning',
+  );
+  assert.match(journeyUtilsSource, /if\s*\(enemy\.firstSealRouteRamp\)\s*return Math\.max\(1, enemy\.health\)/);
+  assert.match(journeyUtilsSource, /if\s*\(enemy\.firstSealRouteRamp\)\s*return Math\.max\(1, enemy\.damage\)/);
   assert.equal(
     teachingRows.every(row => Number(row.match(/health:\s*(\d+)/)?.[1] || 0) <= 2 && Number(row.match(/damage:\s*(\d+)/)?.[1] || 0) <= 5),
     true,
-    'first teaching enemies should keep low authored damage while runtime tuning lifts them to three-hit fights',
+    'first teaching enemies should stay low-health and low-damage so the seal proof stays readable',
   );
   assert.ok(totalOpeningHealth <= 24, 'first seal should not require too many regular enemy hits before the guardian');
   assert.ok(totalOpeningDamage <= 64, 'opening regular enemy damage budget should leave room for early-route mistakes');
@@ -1871,6 +1900,7 @@ test('hazards and traps use trap audio instead of door sounds', () => {
 
 test('enemy hits land harder while player pushback stays short', () => {
   assert.match(journeyUtilsSource, /enemy\.openingRouteRamp\s*\?\s*Math\.max\(enemy\.damage \+ 1, Math\.ceil\(enemy\.damage \* 1\.25\)\)/);
+  assert.match(journeyUtilsSource, /if\s*\(enemy\.firstSealRouteRamp\)\s*return Math\.max\(1, enemy\.damage\)/);
   assert.match(journeyUtilsSource, /Math\.max\(enemy\.damage \+ 4, Math\.ceil\(enemy\.damage \* 1\.45\)\)/);
   assert.match(journeyComponentSource, /player\.knockbackMaxTimer = Math\.max\(0\.06, 0\.12 \* effectiveKnockbackMultiplier\)/);
   assert.match(journeyComponentSource, /player\.vx = approach\(player\.vx, direction \* 95 \* effectiveKnockbackMultiplier, 160\)/);
@@ -1909,6 +1939,6 @@ test('jump contact only bounces enemies while attacks defeat them in three to fi
   assert.doesNotMatch(journeyComponentSource, /const applyEnemyStomp = \(enemy\) => \{[\s\S]*?enemy\.health -= 1[\s\S]*?\};/);
   assert.doesNotMatch(journeyComponentSource, /const applyEnemyStomp = \(enemy\) => \{[\s\S]*?current\.defeatedEnemies\.add\(enemy\.id\)[\s\S]*?\};/);
   assert.match(journeyComponentSource, /if \(attackRect && !current\.attackHitIds\.has\(e\.id\) && rectsOverlap\(attackRect, getAttackHurtbox\(e\)\)\) \{[\s\S]*?e\.health -= 1/);
-  assert.match(journeyUtilsSource, /if\s*\(enemy\.openingRouteRamp\)\s*return Math\.max\(3, enemy\.health\)/);
+  assert.match(journeyUtilsSource, /if\s*\(enemy\.firstSealRouteRamp\)\s*return Math\.max\(1, enemy\.health\)/);
   assert.match(journeyUtilsSource, /return clamp\(Math\.max\(enemy\.health \+ bonus, Math\.ceil\(enemy\.health \* 1\.55\)\), 3, 5\)/);
 });

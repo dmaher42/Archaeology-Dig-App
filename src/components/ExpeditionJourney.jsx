@@ -11618,6 +11618,94 @@ export default function ExpeditionJourney({
       handleExpeditionDevJump = (event) => {
         const { target, sectionId, bossId } = event.detail || {};
         setBriefingOpen(false);
+        if (target === 'journey-scarab-payoff' || target === 'journey-desert-map-seal-ready') {
+          const current = stateRef.current;
+          const boss = current.miniBosses.find(item => item.id === SCARAB_SEAL_TRIGGER.bossId);
+          const keyItem = current.bossKeyItems?.find(item => item.id === 'brush-handle') || BOSS_KEY_ITEMS.find(item => item.id === 'brush-handle');
+          const routeGate = ROUTE_GATES.find(item => item.id === keyItem?.gateId);
+          if (!boss || !keyItem) return;
+          const recoverReward = target === 'journey-desert-map-seal-ready';
+          current.scarabSealActivated = true;
+          current.openingConfrontationSeen = true;
+          current.collapsedPlatformIds.add('opening-scarab-seal-summit');
+          current.triggeredEnvironmentEventIds.add(SCARAB_SEAL_TRIGGER.id);
+          current.openingThresholdScene = null;
+          current.openingSphinxEncounter = null;
+          current.openingSphinxTimer = 0;
+          current.dynamicEnvironmentEvent = null;
+          current.dynamicEnvironmentEventTimer = 0;
+          current.environmentEvent = null;
+          current.environmentEventTimer = 0;
+          current.bossIntro = null;
+          current.bossIntroTimer = 0;
+          current.bossIntroPauseTimer = 0;
+          current.bossDomain = null;
+          current.seenBossIntroIds?.add(boss.id);
+          boss.defeated = true;
+          boss.awakened = true;
+          boss.health = 0;
+          boss.hitFlash = 0;
+          boss.attackWindup = 0;
+          boss.attackTimer = 0;
+          boss.attackReady = false;
+          boss.attackRecovery = 0;
+          boss.vulnerabilityTimer = 0;
+          boss.shieldTimer = 0;
+          current.defeatedMiniBosses.add(boss.id);
+          keyItem.dropped = true;
+          keyItem.x = clamp(boss.x + boss.width / 2, (boss.arenaStart ?? 0) + 24, (boss.arenaEnd ?? WORLD_WIDTH) - 48);
+          keyItem.y = GROUND_Y - 24;
+          keyItem.collected = recoverReward;
+          if (recoverReward) {
+            current.collectedObjectiveIds.add('map-tablet');
+            current.completedObjectiveIds.add('desert-entry');
+            current.collectedBossKeyIds.add(keyItem.id);
+            current.relicShardCount = Math.max(current.relicShardCount, 10);
+            if (routeGate) {
+              ROUTE_GATES
+                .filter(gate => gate.x < routeGate.x)
+                .forEach(gate => current.openedRouteGateIds.add(gate.id));
+              current.openedRouteGateIds.delete(routeGate.id);
+              current.player.x = clamp(routeGate.x - current.player.width - 140, 0, WORLD_WIDTH - current.player.width);
+              current.player.y = GROUND_Y - current.player.height;
+              current.player.vx = 0;
+              current.player.vy = 0;
+              current.player.onGround = true;
+              current.cameraX = clampCameraX(current.player.x - CANVAS_WIDTH * 0.42);
+              current.targetCameraX = current.cameraX;
+            }
+          } else {
+            current.collectedBossKeyIds.delete(keyItem.id);
+          }
+          const rewardMoment = buildBossRewardMoment(current, keyItem, recoverReward ? 'recovered' : 'revealed');
+          current.postBossReward = rewardMoment;
+          current.postBossRewardTimer = recoverReward ? 5.2 : 4.6;
+          current.notice = recoverReward
+            ? `Developer smoke: ${rewardMoment.title} ${rewardMoment.nextObjective}`
+            : `Developer smoke: Scarab Queen defeated. ${rewardMoment.title} ${rewardMoment.nextObjective}`;
+          current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 2.2);
+          current.cinematicEvent = {
+            id: recoverReward ? 'debug-desert-map-seal-ready' : 'debug-scarab-queen-payoff',
+            name: recoverReward ? 'Desert Map Seal Ready' : 'Boss Reward Revealed',
+            message: rewardMoment.nextObjective,
+            temporary: true,
+          };
+          current.cinematicTimer = 3.2;
+          addCombatEffect(current, {
+            type: 'boss-reward-pulse',
+            x: recoverReward && routeGate ? routeGate.x : keyItem.x,
+            y: recoverReward && routeGate ? routeGate.y + 96 : keyItem.y,
+            text: recoverReward ? 'SEAL READY' : 'REWARD REVEALED',
+            color: rewardMoment.color || '#b45309',
+            fill: recoverReward ? 'rgba(56, 189, 248, 0.13)' : 'rgba(180, 83, 9, 0.12)',
+            radius: recoverReward ? 74 : 70,
+            timer: 0.9,
+            maxTimer: 0.9,
+          });
+          step(0);
+          syncHud();
+          return;
+        }
         if (target === 'journey-boss-start') {
           const current = stateRef.current;
           const boss = current.miniBosses.find(item => item.id === bossId);

@@ -3091,6 +3091,9 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
         cinematicState: journeySnapshot.cinematicState || journeySnapshot.cinematicEventState || null,
         bossIntroState: journeySnapshot.bossIntroState || null,
         bossDomainState: journeySnapshot.bossDomainState || null,
+        postBossReward: journeySnapshot.postBossReward || null,
+        postBossRewardVisible: Boolean(journeySnapshot.postBossRewardVisible || journeySnapshot.postBossReward),
+        postBossRewardTimer: journeySnapshot.postBossRewardTimer || 0,
         bossIntroPaused: Boolean(journeySnapshot.bossIntroPaused),
         guardianKnowledgeChallenge: journeySnapshot.guardianKnowledgeChallenge || null,
         completedGuardianKnowledgeChallenges: journeySnapshot.completedGuardianKnowledgeChallenges || [],
@@ -3598,7 +3601,12 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
     const handleExpeditionDevJump = (event) => {
       if (event.detail?.target === 'journey') devJumpToJourney();
       if (
-        (event.detail?.target === 'journey-section-start' || event.detail?.target === 'journey-boss-start')
+        (
+          event.detail?.target === 'journey-section-start'
+          || event.detail?.target === 'journey-boss-start'
+          || event.detail?.target === 'journey-scarab-payoff'
+          || event.detail?.target === 'journey-desert-map-seal-ready'
+        )
         && (expeditionStage !== 'journey' || baseCampOpen)
       ) {
         devJumpToJourney();

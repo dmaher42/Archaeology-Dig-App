@@ -11,6 +11,7 @@ const journeyUtilsSource = readFileSync(new URL('./journeyUtils.js', import.meta
 const journeyEnemySpritesSource = readFileSync(new URL('./journeyEnemySprites.js', import.meta.url), 'utf8');
 const journeyBossSpritesSource = readFileSync(new URL('./journeyBossSprites.js', import.meta.url), 'utf8');
 const enemySpriteGeneratorSource = readFileSync(new URL('../../../scripts/generate_enemy_sprite_sheets.py', import.meta.url), 'utf8');
+const scarabQueenAtlas = JSON.parse(readFileSync(new URL('../../../public/assets/expedition/bosses/scarab-queen-sprites.json', import.meta.url), 'utf8'));
 
 test('regular enemy sprite draw boxes stay close to gameplay hitbox scale', () => {
   const scarab = {
@@ -153,16 +154,34 @@ test('sand-wisp flying enemy renders as the larger cinematic winged wisp', () =>
 test('scarabs use the same right-facing sprite orientation rules', () => {
   assert.equal(shouldFlipEnemySprite('scarab', 1), false, 'small scarab should not flip while facing right');
   assert.equal(shouldFlipEnemySprite('scarab', -1), true, 'small scarab should flip while facing left');
-  assert.equal(shouldFlipBossSprite('scarab-queen', 1), true, 'Scarab Queen atlas faces left, so it flips while facing right');
-  assert.equal(shouldFlipBossSprite('scarab-queen', -1), false, 'Scarab Queen atlas faces left, so it does not flip while facing left');
+  assert.equal(shouldFlipBossSprite('scarab-queen', 1), false, 'new Scarab Queen sheets are wired to face the encounter without the old intro flip');
+  assert.equal(shouldFlipBossSprite('scarab-queen', -1), true, 'new Scarab Queen sheets only flip for the opposite patrol direction');
 });
 
 test('Scarab Queen attack frames are prioritized over passive shield and counter states', () => {
-  assert.match(journeyBossSpritesSource, /if \(combatMode === 'windup'\) return 'scarabQueenWindup';[\s\S]*?if \(combatMode === 'attacking'\) \{[\s\S]*?'scarabQueenAreaAttack'[\s\S]*?'scarabQueenCharge'[\s\S]*?if \(bossVisualState\.shielded\) return 'scarabQueenShielded';/);
-  assert.match(journeyBossSpritesSource, /if \(bossId === 'scarab-queen'\) return facing > 0;/);
-  assert.equal(getScarabQueenSpriteFrame({ id: 'scarab-queen', hitFlash: 0 }, 'windup', { shielded: true }), 'scarabQueenWindup');
-  assert.equal(getScarabQueenSpriteFrame({ id: 'scarab-queen', hitFlash: 0 }, 'attacking', { shielded: true, attackKind: 'close' }), 'scarabQueenCharge');
-  assert.equal(getScarabQueenSpriteFrame({ id: 'scarab-queen', hitFlash: 0 }, 'attacking', { shielded: true, attackKind: 'area' }), 'scarabQueenAreaAttack');
+  assert.match(journeyBossSpritesSource, /sequenceFrame\('scarabQueenWindup', 6, 115\)/);
+  assert.match(journeyBossSpritesSource, /sequenceFrame\('scarabQueenAcidSpit', 8, 95\)/);
+  assert.match(journeyBossSpritesSource, /sequenceFrame\('scarabQueenRun', 8, 85\)/);
+  assert.match(journeyBossSpritesSource, /if \(bossId === 'scarab-queen'\) return facing < 0;/);
+  assert.equal(getScarabQueenSpriteFrame({ id: 'scarab-queen', hitFlash: 0 }, 'windup', { shielded: true }, 230), 'scarabQueenWindup3');
+  assert.equal(getScarabQueenSpriteFrame({ id: 'scarab-queen', hitFlash: 0 }, 'attacking', { shielded: true, attackKind: 'close' }, 255), 'scarabQueenRun4');
+  assert.equal(getScarabQueenSpriteFrame({ id: 'scarab-queen', hitFlash: 0 }, 'attacking', { shielded: true, attackKind: 'area' }, 285), 'scarabQueenAcidSpit4');
+});
+
+test('Scarab Queen atlas is wired from the supplied final animation sheets', () => {
+  assert.match(journeyBossSpritesSource, /boss-sprites-scarab-queen-user-sheets-2026-05-23/);
+  assert.match(scarabQueenAtlas.source, /User-provided Scarab Queen raster animation sheets/);
+  assert.equal(scarabQueenAtlas.productionReference, 'source/scarab-queen-2026-05-23/');
+  assert.equal(scarabQueenAtlas.frameContract.length, 11);
+  assert.equal(scarabQueenAtlas.sequences.walk.length, 8);
+  assert.equal(scarabQueenAtlas.sequences.charge.length, 8);
+  assert.equal(scarabQueenAtlas.sequences.windup.length, 6);
+  assert.equal(scarabQueenAtlas.sequences.areaAttack.length, 8);
+  assert.equal(scarabQueenAtlas.sequences.acidProjectile.length, 6);
+  assert.equal(scarabQueenAtlas.sequences.defeated.length, 8);
+  ['scarabQueenIdle', 'scarabQueenWalk1', 'scarabQueenAreaAttack', 'scarabQueenAcidSpit8', 'scarabQueenDeath8'].forEach((key) => {
+    assert.ok(scarabQueenAtlas.regions[key], `${key} should be present in the final boss atlas`);
+  });
 });
 
 test('Scarab Queen draw box matches the fixed atlas ratio closely enough to stay grounded', () => {

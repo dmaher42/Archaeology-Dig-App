@@ -250,16 +250,18 @@ const ENEMY_TOUGHNESS_BONUS = {
 };
 
 const tuneEnemyHealth = (enemy) => {
+  if (enemy.firstSealRouteRamp) return Math.max(1, enemy.health);
   if (enemy.openingRouteRamp) return Math.max(3, enemy.health);
   const bonus = ENEMY_TOUGHNESS_BONUS[enemy.type] ?? 1;
   return clamp(Math.max(enemy.health + bonus, Math.ceil(enemy.health * 1.55)), 3, 5);
 };
 
-const tuneEnemyDamage = (enemy) => (
-  enemy.openingRouteRamp
+const tuneEnemyDamage = (enemy) => {
+  if (enemy.firstSealRouteRamp) return Math.max(1, enemy.damage);
+  return enemy.openingRouteRamp
     ? Math.max(enemy.damage + 1, Math.ceil(enemy.damage * 1.25))
-    : Math.max(enemy.damage + 4, Math.ceil(enemy.damage * 1.45))
-);
+    : Math.max(enemy.damage + 4, Math.ceil(enemy.damage * 1.45));
+};
 
 const makeStepProfile = (entity, { boss = false } = {}) => {
   const seed = hashEnemyIdentity(entity);

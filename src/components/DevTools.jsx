@@ -149,6 +149,18 @@ export function DevTools({
       >
         Scarab Queen
       </button>
+      <button
+        className="dev-tools-subbutton"
+        onClick={() => jumpToExpeditionStage('journey-scarab-payoff')}
+      >
+        Smoke: Scarab Queen Payoff
+      </button>
+      <button
+        className="dev-tools-subbutton"
+        onClick={() => jumpToExpeditionStage('journey-desert-map-seal-ready')}
+      >
+        Smoke: Desert Map Seal Ready
+      </button>
       <div className="dev-tools-section-label">Journey Starts</div>
       {JOURNEY_SECTION_DEV_JUMPS.map(jump => (
         <button

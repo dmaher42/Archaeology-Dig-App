@@ -1,7 +1,7 @@
 {
   "image": "scarab-queen-sprites.png",
-  "source": "Production Scarab Queen boss atlas candidate v1, generated from approved master reference and normalized into the canonical Journey boss frame contract.",
-  "coordinateNote": "Eleven fixed transparent cells preserving the canonical Journey boss frame keys.",
+  "source": "User-provided Scarab Queen raster animation sheets normalized into the canonical Journey boss atlas.",
+  "coordinateNote": "Fixed transparent 560x390 cells. First eleven keys preserve the canonical boss frame contract; additional keys provide Scarab Queen animation sequences.",
   "frameContract": [
     "scarabQueenIdle",
     "scarabQueenWalk1",
@@ -15,8 +15,73 @@
     "scarabQueenHit",
     "scarabQueenDefeated"
   ],
-  "baseline": "bottom-center fixed per frame; sacred warning and area effects stay inside the same boss draw box",
-  "productionReference": "../reference/scarab-queen-master-reference-candidate-v2-transparent.png",
+  "sequences": {
+    "walk": [
+      "scarabQueenWalk1",
+      "scarabQueenWalk2",
+      "scarabQueenWalk3",
+      "scarabQueenWalk4",
+      "scarabQueenWalk5",
+      "scarabQueenWalk6",
+      "scarabQueenWalk7",
+      "scarabQueenWalk8"
+    ],
+    "charge": [
+      "scarabQueenRun1",
+      "scarabQueenRun2",
+      "scarabQueenRun3",
+      "scarabQueenRun4",
+      "scarabQueenRun5",
+      "scarabQueenRun6",
+      "scarabQueenRun7",
+      "scarabQueenRun8"
+    ],
+    "windup": [
+      "scarabQueenWindup1",
+      "scarabQueenWindup2",
+      "scarabQueenWindup3",
+      "scarabQueenWindup4",
+      "scarabQueenWindup5",
+      "scarabQueenWindup6"
+    ],
+    "areaAttack": [
+      "scarabQueenAcidSpit1",
+      "scarabQueenAcidSpit2",
+      "scarabQueenAcidSpit3",
+      "scarabQueenAcidSpit4",
+      "scarabQueenAcidSpit5",
+      "scarabQueenAcidSpit6",
+      "scarabQueenAcidSpit7",
+      "scarabQueenAcidSpit8"
+    ],
+    "acidProjectile": [
+      "scarabQueenAcid1",
+      "scarabQueenAcid2",
+      "scarabQueenAcid3",
+      "scarabQueenAcid4",
+      "scarabQueenAcid5",
+      "scarabQueenAcid6"
+    ],
+    "counterWindow": [
+      "scarabQueenStagger1",
+      "scarabQueenStagger2",
+      "scarabQueenStagger3",
+      "scarabQueenStagger4",
+      "scarabQueenStagger5"
+    ],
+    "defeated": [
+      "scarabQueenDeath1",
+      "scarabQueenDeath2",
+      "scarabQueenDeath3",
+      "scarabQueenDeath4",
+      "scarabQueenDeath5",
+      "scarabQueenDeath6",
+      "scarabQueenDeath7",
+      "scarabQueenDeath8"
+    ]
+  },
+  "baseline": "bottom-center fixed per frame; all runtime frames are transparent cutouts from the provided sheets.",
+  "productionReference": "source/scarab-queen-2026-05-23/",
   "regions": {
     "scarabQueenIdle": {
       "x": 0,
@@ -25,13 +90,13 @@
       "h": 390
     },
     "scarabQueenWalk1": {
-      "x": 560,
+      "x": 6160,
       "y": 0,
       "w": 560,
       "h": 390
     },
     "scarabQueenWalk2": {
-      "x": 1120,
+      "x": 6720,
       "y": 0,
       "w": 560,
       "h": 390
@@ -80,6 +145,288 @@
     },
     "scarabQueenDefeated": {
       "x": 5600,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenWalk3": {
+      "x": 7280,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenWalk4": {
+      "x": 7840,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenWalk5": {
+      "x": 8400,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenWalk6": {
+      "x": 8960,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenWalk7": {
+      "x": 9520,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenWalk8": {
+      "x": 10080,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenRun1": {
+      "x": 10640,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenRun2": {
+      "x": 11200,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenRun3": {
+      "x": 11760,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenRun4": {
+      "x": 12320,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenRun5": {
+      "x": 12880,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenRun6": {
+      "x": 13440,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenRun7": {
+      "x": 14000,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenRun8": {
+      "x": 14560,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenWindup1": {
+      "x": 15120,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenWindup2": {
+      "x": 15680,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenWindup3": {
+      "x": 16240,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenWindup4": {
+      "x": 16800,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenWindup5": {
+      "x": 17360,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenWindup6": {
+      "x": 17920,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenAcidSpit1": {
+      "x": 18480,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenAcidSpit2": {
+      "x": 19040,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenAcidSpit3": {
+      "x": 19600,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenAcidSpit4": {
+      "x": 20160,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenAcidSpit5": {
+      "x": 20720,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenAcidSpit6": {
+      "x": 21280,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenAcidSpit7": {
+      "x": 21840,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenAcidSpit8": {
+      "x": 22400,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenAcid1": {
+      "x": 22960,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenAcid2": {
+      "x": 23520,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenAcid3": {
+      "x": 24080,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenAcid4": {
+      "x": 24640,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenAcid5": {
+      "x": 25200,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenAcid6": {
+      "x": 25760,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenStagger1": {
+      "x": 26320,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenStagger2": {
+      "x": 26880,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenStagger3": {
+      "x": 27440,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenStagger4": {
+      "x": 28000,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenStagger5": {
+      "x": 28560,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenDeath1": {
+      "x": 29120,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenDeath2": {
+      "x": 29680,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenDeath3": {
+      "x": 30240,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenDeath4": {
+      "x": 30800,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenDeath5": {
+      "x": 31360,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenDeath6": {
+      "x": 31920,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenDeath7": {
+      "x": 32480,
+      "y": 0,
+      "w": 560,
+      "h": 390
+    },
+    "scarabQueenDeath8": {
+      "x": 33040,
       "y": 0,
       "w": 560,
       "h": 390

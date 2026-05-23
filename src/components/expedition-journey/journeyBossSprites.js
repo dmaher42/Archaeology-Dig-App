@@ -15,7 +15,7 @@ export const CHINA_JADE_SEAL_GUARDIAN_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PA
 export const CHINA_ARCHIVE_SENTRY_CAPTAIN_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}china-archive-sentry-captain-sprites.json`;
 export const CHINA_RAMMED_EARTH_SENTINEL_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}china-rammed-earth-sentinel-sprites.json`;
 export const CHINA_CLAY_GUARDIAN_SPRITE_ATLAS_JSON = CHINA_CLAY_RIVER_GUARDIAN_SPRITE_ATLAS_JSON;
-export const BOSS_SPRITE_ATLAS_VERSION = 'boss-sprites-egypt-anubis-temple-guardian-2026-05-21';
+export const BOSS_SPRITE_ATLAS_VERSION = 'boss-sprites-scarab-queen-user-sheets-2026-05-23';
 
 export const MIN_BOSS_DRAW_HEIGHT = 176;
 const getGroundedBossDrawBox = (boss, screenX, width, height, footSink = 4) => ({
@@ -265,18 +265,21 @@ export const loadBossSpritePack = ({ baseUrl = '/', onUpdate }) => {
 export const getScarabQueenSpriteFrame = (boss, combatMode, bossVisualState = {}, now = 0) => {
   if (boss?.id !== 'scarab-queen') return null;
 
-  if (combatMode === 'defeated') return 'scarabQueenDefeated';
-  if (boss.hitFlash > 0 || combatMode === 'stunned') return 'scarabQueenHit';
-  if (combatMode === 'windup') return 'scarabQueenWindup';
+  const sequenceFrame = (prefix, count, frameMs) => `${prefix}${(Math.floor(now / frameMs) % count) + 1}`;
+
+  if (combatMode === 'defeated') return sequenceFrame('scarabQueenDeath', 8, 150);
+  if (boss.hitFlash > 0 || combatMode === 'stunned') return sequenceFrame('scarabQueenStagger', 5, 130);
+  if (combatMode === 'windup') return sequenceFrame('scarabQueenWindup', 6, 115);
   if (combatMode === 'attacking') {
-    return bossVisualState.attackKind === 'area' ? 'scarabQueenAreaAttack' : 'scarabQueenCharge';
+    return bossVisualState.attackKind === 'area'
+      ? sequenceFrame('scarabQueenAcidSpit', 8, 95)
+      : sequenceFrame('scarabQueenRun', 8, 85);
   }
   if (bossVisualState.shielded) return 'scarabQueenShielded';
-  if (bossVisualState.vulnerable) return 'scarabQueenCounterWindow';
+  if (bossVisualState.vulnerable) return sequenceFrame('scarabQueenStagger', 5, 160);
   if (!boss.awakened) return 'scarabQueenIntro';
 
-  const frameToggle = Math.floor(now / 240) % 2;
-  return frameToggle ? 'scarabQueenWalk2' : 'scarabQueenWalk1';
+  return sequenceFrame('scarabQueenWalk', 8, 135);
 };
 
 export const getStoneGuardianSpriteFrame = (boss, combatMode, bossVisualState = {}, now = 0) => {
@@ -352,7 +355,7 @@ export const getClayGuardianSpriteFrame = (boss, combatMode, bossVisualState = {
 };
 
 export const shouldFlipBossSprite = (bossId, facing = 1) => {
-  if (bossId === 'scarab-queen') return facing > 0;
+  if (bossId === 'scarab-queen') return facing < 0;
   return facing < 0;
 };
 
