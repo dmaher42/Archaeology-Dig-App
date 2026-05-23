@@ -300,12 +300,12 @@ export function ActivityMenu({
             <div className="activity-card-icon activity-card-icon--expedition">
               <Compass size={24} />
             </div>
-            <div className="activity-time-tag">10-15 MINS | SOLO ADVENTURE</div>
+            <div className="activity-time-tag">10-15 MINS | STANDALONE ADVENTURE</div>
           </div>
           <div className="activity-card-copy">
             <h3>Lost Site Expedition</h3>
-            <div className="activity-mode-label">Solo Adventure</div>
-            <p>Explore ruins, navigate hazards, and identify the lost civilisation.</p>
+            <div className="activity-mode-label">Standalone Adventure</div>
+            <p>Enter the scroller, earn passage below, then return to camp for fieldwork.</p>
           </div>
           <div className="activity-card-actions activity-card-button-group">
             <button type="button" className="btn primary-btn activity-card-action" onClick={onStartExpedition}>

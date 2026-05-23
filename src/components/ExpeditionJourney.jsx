@@ -349,7 +349,7 @@ const OPENING_TOMB_STAIRWELL_SRC = 'assets/expedition/environment/egypt-opening/
 const STAGE_ENTRANCE_DOORWAY_SRC = 'assets/expedition/environment/stage-entrances/egypt-tomb-doorway-transition.png';
 const STAGE_ENTRANCE_DOORWAY_VERSION = 'imagegen-egypt-tomb-doorway-transition-2026-05-20';
 const DESERT_END_GATEWAY_SRC = 'assets/expedition/environment/stage-entrances/desert-end-threshold-angled.png';
-const DESERT_END_GATEWAY_VERSION = 'imagegen-desert-end-threshold-angled-2026-05-22';
+const DESERT_END_GATEWAY_VERSION = 'imagegen-desert-end-threshold-angled-blended-2026-05-23';
 const OPENING_CAMERA_REVEAL_DURATION = 1.55;
 const OPENING_CAMERA_REVEAL_PAN_SECONDS = 0.55;
 const OPENING_CAMERA_REVEAL_HOLD_SECONDS = 0.18;
@@ -752,12 +752,12 @@ const getPlayerHeroSpriteConfig = ({ targetCivilisation, backgroundPackId, chara
   }
   return {
     id: 'auto',
-    characterId: 'asha-final-production',
+    characterId: 'asha-v5-candidate',
     atlasPath: PLAYER_HERO_SPRITE_ATLAS_JSON,
     version: PLAYER_HERO_SPRITE_VERSION,
-    fallbackAtlasPath: PLAYER_HERO_PREVIOUS_SPRITE_ATLAS_JSON,
-    fallbackAtlasVersion: PLAYER_HERO_PREVIOUS_SPRITE_VERSION,
-    fallbackCharacterId: 'asha-egypt-warrior-explorer',
+    fallbackAtlasPath: 'assets/expedition/player/asha-final-production-spritesheet.json',
+    fallbackAtlasVersion: 'asha-master-reference-motion-2026-05-23',
+    fallbackCharacterId: 'asha-final-production',
     fallbackSrc: PLAYER_LEGACY_SPRITE_SRC,
   };
 };
@@ -2692,6 +2692,7 @@ export default function ExpeditionJourney({
       missingObjectiveDirection,
       gateChecklistText: requirements.map(req => `${req.met ? '✓' : '○'} ${req.label}`).join(' | '),
       missingSummary: formatMissingSummary(missingRequirements),
+      openMessage: gate.openMessage || `${gateName} opened.`,
       notice: missingRequirements.length > 0
         ? `${gateName} locked: ${formatMissingSummary(missingRequirements)}. ${hint}`
       : `${gateName} ready: all route tasks complete.`,
@@ -6264,7 +6265,7 @@ export default function ExpeditionJourney({
     if (!doorwayAsset.loaded || !doorwayAsset.image) return false;
 
     const drawX = centerX - width / 2;
-    const drawY = Math.min(0, CANVAS_HEIGHT - height);
+    const drawY = Math.min(0, CANVAS_HEIGHT - height) + (feature.yOffset || 0);
     const floorY = Math.min(GROUND_Y + 6, drawY + height - 26);
     const sectionId = feature.to || getSectionForX(feature.x).id;
     const pulse = 0.72 + Math.sin(now / 580 + feature.x * 0.006) * 0.08;
@@ -6362,7 +6363,7 @@ export default function ExpeditionJourney({
     if (centerX < -width * 0.58 || centerX > CANVAS_WIDTH + width * 0.58) return false;
 
     const drawX = centerX - width / 2;
-    const drawY = Math.min(0, CANVAS_HEIGHT - height);
+    const drawY = Math.min(0, CANVAS_HEIGHT - height) + (feature.yOffset || 0);
     const current = stateRef.current;
     const playerCenterX = current.player.x + current.player.width / 2;
     const passageVisual = feature.passageVisual || {};
@@ -10414,7 +10415,21 @@ export default function ExpeditionJourney({
       const guidance = getGateGuidance(activeLevelGate, current);
       if (!guidance.activeGateLocked) {
         current.openedRouteGateIds.add(activeLevelGate.id);
-        current.notice = `${guidance.activeGateName} opened.`;
+        current.notice = guidance.openMessage;
+        current.cinematicEvent = {
+          id: `${activeLevelGate.id}-opened`,
+          name: guidance.activeGateName,
+          message: guidance.openMessage,
+          temporary: true,
+        };
+        current.cinematicTimer = 2.4;
+        current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 2.2);
+        addRewardPulse('route-gate-open', activeLevelGate.x + activeLevelGate.width / 2, activeLevelGate.y + 64, 'SEAL OPEN', {
+          color: '#38bdf8',
+          fill: 'rgba(56, 189, 248, 0.13)',
+          radius: 66,
+          timer: 0.78,
+        });
         audioControls?.playExpeditionSfx?.('gateUnlock');
         audioControls?.playExpeditionStinger?.('gateUnlock');
         startTempleThresholdTransition(current, activeLevelGate, activeLevelEntrance);
@@ -10556,7 +10571,7 @@ export default function ExpeditionJourney({
         }
         current.collectedUpgrades.add(u.id);
         current.notice = u.cacheReward
-          ? `Cache opened! Upgrade Voucher earned: +${u.rewardShards} Base Camp shards.`
+          ? `Cache opened! Upgrade Voucher earned: +${u.rewardShards} relic shards for Base Camp.`
           : `Expedition Upgrade Acquired: ${u.name}.`;
         current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 2.1);
         current.hitStopTimer = Math.max(current.hitStopTimer, 0.035);
@@ -11446,7 +11461,21 @@ export default function ExpeditionJourney({
         const guidance = getGateGuidance(g, current);
         if (!guidance.activeGateLocked) {
           current.openedRouteGateIds.add(g.id);
-          current.notice = `${guidance.activeGateName} opened.`;
+          current.notice = guidance.openMessage;
+          current.cinematicEvent = {
+            id: `${g.id}-opened`,
+            name: guidance.activeGateName,
+            message: guidance.openMessage,
+            temporary: true,
+          };
+          current.cinematicTimer = 2.4;
+          current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 2.2);
+          addRewardPulse('route-gate-open', g.x + g.width / 2, g.y + 64, 'SEAL OPEN', {
+            color: '#38bdf8',
+            fill: 'rgba(56, 189, 248, 0.13)',
+            radius: 66,
+            timer: 0.78,
+          });
           audioControls?.playExpeditionSfx?.('gateUnlock');
           audioControls?.playExpeditionStinger?.('gateUnlock');
         } else {
@@ -11858,7 +11887,7 @@ export default function ExpeditionJourney({
               {getSectionDisplayName(gameState.currentSectionId) || 'Surveying'}
             </div>
             <div className="objective-progress">
-              <div>Relic Shards for Base Camp: {gameState.relicShardCount} / {RELIC_SHARDS.length}</div>
+              <div>Relic shards recovered: {gameState.relicShardCount} / {RELIC_SHARDS.length}</div>
               <div>Upgrades: {gameState.collectedUpgrades.size} / {UPGRADES.length}</div>
               <div>Hidden Routes: {gameState.discoveredHiddenRouteIds?.size || 0} / {getActiveHiddenRoutes().length}</div>
               <div>Secrets: {gameState.collectedSecretIds?.size || 0} / {getActiveSecretCollectibles().length}</div>
@@ -11912,7 +11941,7 @@ export default function ExpeditionJourney({
                 <div className={`journey-floating-hud-gems ${gameState.itemPurposeNoticeTimer > 0 ? 'is-rewarding' : ''}`}>
                   <Gem size={18} />
                   <strong>{gameState.relicShardCount}</strong>
-                  <span>Base Camp shards</span>
+                  <span>Relic shards</span>
                 </div>
                 <div className="journey-floating-hud-status">
                   {getSectionDisplayName(gameState.currentSectionId) || 'Surveying'}
@@ -12122,16 +12151,16 @@ export default function ExpeditionJourney({
               <div className="briefing-task-panel">
                 <div className="briefing-task-heading">
                   <Map size={18} />
-                  <h2>Opening objective</h2>
+                  <h2>The site refuses easy entry</h2>
                 </div>
                 <ul className="briefing-task-list">
                   {[
-                    'Enter the sealed site',
-                    'Hear Anubis at the scarab seal',
-                    'Gather shards',
-                    'Recover tools',
-                    'Defeat guardians',
-                    'Open the excavation site',
+                    'Prove your intent',
+                    'Recover relic shards',
+                    'Find the Map Tablet',
+                    'Survive the guardian route',
+                    'Preserve what you find',
+                    'Earn passage below',
                   ].map(task => (
                     <li key={task}>
                       <CheckCircle2 size={16} />

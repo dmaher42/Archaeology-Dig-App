@@ -748,7 +748,7 @@ const CHINA_HAZARDS = [
     h: 78,
     color: 'rgba(148, 163, 184, 0.32)',
     penalty: { investigation: -8 },
-    message: 'Loose rubble disrupted the trench. Investigation points drop by 8.',
+    message: 'Loose rubble disrupted the trench. Survey focus drops by 8.',
   },
   {
     id: 'unstable-floor',
@@ -781,7 +781,7 @@ const EXCAVATION_GUARDIANS = [
     ],
     speed: 54,
     penalty: { investigation: -6, time: -8 },
-    message: 'Tomb Guardian Shadow disrupted your survey. Investigation points and time reduced.',
+    message: 'Tomb Guardian Shadow disrupted your survey. Survey focus and time reduced.',
   },
 ];
 
@@ -802,7 +802,7 @@ const CHINA_EXCAVATION_GUARDIANS = [
     ],
     speed: 54,
     penalty: { investigation: -6, time: -8 },
-    message: 'Site Watcher Shadow disrupted your survey. Investigation points and time reduced.',
+    message: 'Site Watcher Shadow disrupted your survey. Survey focus and time reduced.',
   },
 ];
 
@@ -2021,21 +2021,21 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
       const shardLabel = depositResult.amount === 1 ? 'relic shard' : 'relic shards';
       setShopFeedback({
         type: 'deposit',
-        title: 'Base Camp supplies updated',
-        message: `${depositResult.amount} ${shardLabel} banked for shop upgrades${foundUpgradeVoucher ? ' including the optional cache voucher' : ''}.`,
+        title: 'Base Camp stores updated',
+        message: `${depositResult.amount} ${shardLabel} logged at the outpost for route gear and excavation support${foundUpgradeVoucher ? ' including the optional cache voucher' : ''}.`,
         itemId: null,
       });
     } else if (journeyShardCount > 0) {
       const shardLabel = journeyShardCount === 1 ? 'relic shard' : 'relic shards';
       setShopFeedback({
         type: 'deposit',
-        title: 'Base Camp supplies updated',
-        message: `${journeyShardCount} ${shardLabel} already recorded for shop upgrades.`,
+        title: 'Base Camp stores updated',
+        message: `${journeyShardCount} ${shardLabel} already recorded at the outpost.`,
         itemId: null,
       });
     }
     setBaseCampOpen(true);
-    setNotice('Base Camp reached. Spend relic shards on upgrades, route tools and excavation support.');
+    setNotice('Base Camp reached. Prepare gear at the outpost before the excavation begins.');
     audioControls.playExpeditionMusic?.('baseCamp');
   }, [audioControls, journeyRunId, selectedStageId]);
 
@@ -3664,7 +3664,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
           </button>
         </div>
         <div className="header-center">
-          <div className="fullscreen-kicker">Antiquities Bureau - Lost Site Expedition</div>
+          <div className="fullscreen-kicker">Lost Site Expedition - Route Map</div>
           <h1 className="fullscreen-title">Choose an Expedition</h1>
         </div>
         <div className="header-right">
@@ -3877,8 +3877,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
             </button>
           </div>
           <div className="header-center">
-            <div className="fullscreen-kicker">Antiquities Bureau - Lost Site Expedition</div>
-            <h1 className="fullscreen-title">Base Camp Checklist</h1>
+            <div className="fullscreen-kicker">Lost Site Expedition</div>
+            <h1 className="fullscreen-title">Base Camp Outpost</h1>
           </div>
           <div className="header-right">
             <div className="fullscreen-badge status-ready">
@@ -3894,23 +3894,23 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
               <div className="card-ribbon">Dossier</div>
               <div className="card-header">
                 <Target size={20} className="card-icon" />
-                <h2>Active Mission</h2>
+                <h2>Site Brief</h2>
               </div>
               <div className="card-body">
                 <div className="mission-badge">{activeMission.targetCategoryTitle}</div>
                 <h3 className="mission-title">{activeMission.title}</h3>
                 <div className="mission-divider"></div>
                 <div className="mission-inquiry">
-                  <span className="label">Inquiry Question</span>
+                  <span className="label">Working Theory</span>
                   <p className="value">{activeMission.inquiryQuestion}</p>
                 </div>
                 <div className="mission-instruction-box">
-                  <span className="label">Field Instructions</span>
+                  <span className="label">Expedition Plan</span>
                   <p className="value">{activeMission.instruction}</p>
                 </div>
               </div>
               <div className="card-footer-note">
-                Ensure your field kit contains the correct equipment before proceeding.
+                Prepare the right kit before the team enters the excavation.
               </div>
             </div>
           </aside>
@@ -4036,7 +4036,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
             <ChevronLeft size={18} /> Back to Menu
           </button>
           <div className="expedition-title">
-            <div className="training-kicker">10-15 mins | Solo Adventure</div>
+            <div className="training-kicker">10-15 mins | Standalone Adventure</div>
             <h2>{stageContent.mapTitle}</h2>
           </div>
           <div className={`expedition-gate-badge ${exitUnlocked ? 'unlocked' : ''}`}>
@@ -4129,11 +4129,11 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
 
           <aside className="expedition-side-panel">
             <section className="expedition-panel expedition-mission-panel">
-              <h3><Sparkles size={17} /> Mission Target</h3>
+              <h3><Sparkles size={17} /> Expedition Goal</h3>
               <div className="expedition-mission-card">
                 <strong>{activeMission.title}</strong>
                 <span>{activeMission.targetCategoryTitle}</span>
-                <p><strong>Inquiry question:</strong> {activeMission.inquiryQuestion}</p>
+                <p><strong>Working theory:</strong> {activeMission.inquiryQuestion}</p>
                 <p>{activeMission.instruction}</p>
                 <div className="expedition-mission-progress">
                   {activeMission.evidenceLabel}: <span>{missionEvidenceCount}/{missionRequiredCount}</span>
@@ -4142,7 +4142,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
             </section>
 
             <section className="expedition-panel">
-              <h3><MapIcon size={17} /> Survey Before Digging</h3>
+              <h3><MapIcon size={17} /> Survey the Site</h3>
               <div className="expedition-mission-card">
                 <strong>{surveyComplete ? `${surveyZoneById[selectedSurveyZone]?.name} marked` : 'Survey required'}</strong>
                 <span>Survey, choose a dig zone, then set up a grid</span>
@@ -4158,7 +4158,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
             </section>
 
             <section className="expedition-panel">
-              <h3><MapIcon size={17} /> Grid Before Excavating</h3>
+              <h3><MapIcon size={17} /> Mark the Grid</h3>
               <div className="expedition-mission-card">
                 <strong>{selectedSurveyZone ? `${surveyZoneById[selectedSurveyZone]?.name} grid` : 'Grid not ready yet'}</strong>
                 <span>Mark squares to record where evidence was found</span>
@@ -4183,7 +4183,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
             <section className="expedition-panel">
               <h3><Gauge size={17} /> Field Resources</h3>
               <div className="resource-list">
-                <div><strong>{resources.investigation}</strong><span>Investigation points</span></div>
+                <div><strong>{resources.investigation}</strong><span>Survey focus</span></div>
                 <div><strong>{resources.stamina}</strong><span>Stamina</span></div>
                 <div><strong>{Math.floor(resources.time / 60)}:{String(resources.time % 60).padStart(2, '0')}</strong><span>Time</span></div>
               </div>
@@ -4262,7 +4262,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
               </button>
             </div>
             <div className="header-center">
-              <div className="fullscreen-kicker">Antiquities Bureau - Lost Site Expedition</div>
+              <div className="fullscreen-kicker">Lost Site Expedition - Expedition Dossier</div>
               <h1 className="fullscreen-title">Operation Briefing</h1>
             </div>
             <div className="header-right">
@@ -4301,7 +4301,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
               </div>
             </aside>
 
-            {/* Center Column: Active Mission */}
+            {/* Center Column: Expedition Dossier */}
             <main className="basecamp-column">
               <div className="fullscreen-card shop-card" style={{ borderTop: '2px solid #c5a059' }}>
                 <div className="card-header">
@@ -4316,7 +4316,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
                   <div className="mission-divider"></div>
 
                   <div className="mission-inquiry">
-                    <span className="label" style={{ fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', color: '#8b6a48' }}>Inquiry Question</span>
+                    <span className="label" style={{ fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', color: '#8b6a48' }}>Working Theory</span>
                     <p className="value" style={{ margin: 0, fontFamily: 'Playfair Display, Georgia, serif', fontSize: '1.15rem', color: '#ebdcb9', lineHeight: 1.5 }}>
                       {activeMission.inquiryQuestion}
                     </p>
@@ -4486,7 +4486,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
               </button>
             </div>
             <div className="header-center">
-              <div className="fullscreen-kicker">Antiquities Bureau - Site Survey</div>
+              <div className="fullscreen-kicker">Lost Site Expedition - Route Map</div>
               <h1 className="fullscreen-title">{surveyReportZone.name}</h1>
             </div>
             <div className="header-right">
@@ -4593,7 +4593,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
               </button>
             </div>
             <div className="header-center">
-              <div className="fullscreen-kicker">Antiquities Bureau - Decipherment Crypt</div>
+              <div className="fullscreen-kicker">Lost Site Expedition - Evidence Board</div>
               <h1 className="fullscreen-title">{activeChallengeData.title}</h1>
             </div>
             <div className="header-right">
@@ -4634,7 +4634,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
                 </div>
                 <div className="card-body" style={{ overflowY: 'auto', gap: '1.5rem', padding: '1.5rem' }}>
                   <div style={{ background: 'rgba(26, 22, 17, 0.4)', padding: '1.25rem', border: '1px solid rgba(139, 106, 72, 0.15)', borderRadius: '6px' }}>
-                    <span style={{ fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', color: '#8b6a48', display: 'block', marginBottom: '0.5rem' }}>Inquiry Question</span>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', color: '#8b6a48', display: 'block', marginBottom: '0.5rem' }}>Working Theory</span>
                     <p style={{ margin: 0, fontFamily: 'Playfair Display, Georgia, serif', fontSize: '1.1rem', color: '#ebdcb9', lineHeight: 1.5 }}>
                       {activeChallengeData.question}
                     </p>
@@ -4745,7 +4745,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
               </button>
             </div>
             <div className="header-center">
-              <div className="fullscreen-kicker">Antiquities Bureau - Excavation Grid</div>
+              <div className="fullscreen-kicker">Lost Site Expedition - Excavation Grid</div>
               <h1 className="fullscreen-title">{surveyZoneById[selectedSurveyZone]?.name}</h1>
             </div>
             <div className="header-right">
@@ -4899,7 +4899,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
               </button>
             </div>
             <div className="header-center">
-              <div className="fullscreen-kicker">Antiquities Bureau - Conservation Lab</div>
+              <div className="fullscreen-kicker">Lost Site Expedition - Conservation Bench</div>
               <h1 className="fullscreen-title">{inspectionToken.name}</h1>
             </div>
             <div className="header-right">
@@ -5200,7 +5200,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
                   {/* Step 5: Mission Review from Satchel overflow */}
                   {!inspectionFeedback && inspectionStep === 'mission' && pendingEvidence && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                      <strong style={{ color: '#ebdcb9', fontSize: '1.05rem', fontFamily: 'Cinzel, serif' }}>Review Active Mission Dossier</strong>
+                      <strong style={{ color: '#ebdcb9', fontSize: '1.05rem', fontFamily: 'Cinzel, serif' }}>Review Expedition Dossier</strong>
                       <div style={{ background: 'rgba(26,22,17,0.4)', border: '1px solid rgba(139,106,72,0.15)', borderRadius: '6px', padding: '1rem', fontSize: '0.82rem' }}>
                         <strong style={{ color: '#ebdcb9', display: 'block' }}>{activeMission.title}</strong>
                         <p style={{ margin: '0.25rem 0 0.5rem 0', color: '#ebdcb9', fontStyle: 'italic' }}>Question: {activeMission.inquiryQuestion}</p>
@@ -5352,7 +5352,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
               </button>
             </div>
             <div className="header-center">
-              <div className="fullscreen-kicker">Antiquities Bureau - Final Claim</div>
+              <div className="fullscreen-kicker">Lost Site Expedition - Discovery Log</div>
               <h1 className="fullscreen-title">Identify the Lost Site</h1>
             </div>
             <div className="header-right">
@@ -5528,7 +5528,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
               </button>
             </div>
             <div className="header-center">
-              <div className="fullscreen-kicker">Antiquities Bureau - Lost Site Expedition</div>
+              <div className="fullscreen-kicker">Lost Site Expedition - Discovery Log</div>
               <h1 className="fullscreen-title">Mission Report & Results</h1>
             </div>
             <div className="header-right">

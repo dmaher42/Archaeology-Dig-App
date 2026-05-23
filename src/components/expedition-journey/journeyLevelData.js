@@ -118,20 +118,20 @@ export const SCARAB_SEAL_TRIGGER = {
   sealPulseRadius: 76,
   sealPulseDuration: 0.95,
   cameraRevealDuration: 1.8,
-  objectiveEchoLine: 'First objective: gather 4 relic shards to open the Temple Approach Seal.',
-  firstShardEchoLine: 'First shard recovered. Three more will open the Temple Approach Seal.',
+  objectiveEchoLine: 'The site is testing Asha. Restore the seal with 4 relic shards.',
+  firstShardEchoLine: 'A relic shard answers the seal. Three more will prove Asha can pass.',
   messages: [
     'Turn back, explorer. This site is sealed by judgement.',
     'My guardians hold the shards and tools of passage.',
     'Prove your purpose, or the excavation below will remain closed.',
     'Then I will guide you. These artefacts must not be lost.',
-    'Gather shards. Recover tools. Defeat guardians. Open the excavation site.',
+    'Restore the seal. Recover tools. Survive guardians. Earn passage below.',
   ],
   dialogueSpeakers: ['Anubis', 'Anubis', 'Anubis', 'Asha', 'Objective'],
   dialogueTiming: [0.8, 3.2, 5.8, 8.4, 11],
   stairwellRevealLine: 'A hidden stairwell opens beneath the ruins.',
   bossIntroLine: 'A tomb looter cracked the guardian seal. The Scarab Queen erupts awake. Dodge her charge, then strike when she staggers.',
-  guideFollowUpLine: 'Gather shards. Recover tools. Defeat guardians. Open the excavation site.',
+  guideFollowUpLine: 'Restore the seal. Recover tools. Survive guardians. Earn passage below.',
 };
 
 export const HAZARDS = [
@@ -325,7 +325,7 @@ export const RELIC_SHARDS = RELIC_SHARD_LAYOUT.map((entry, index) => ({
 }));
 
 export const UPGRADES = [
-  { id: 'basecamp-upgrade-voucher', name: 'Upgrade Voucher Cache', shortName: 'Voucher', emoji: 'V', x: X(925), y: JY(320), effect: 'Spend 2 shards to open a cache worth 6 Base Camp shards.', shardCost: 2, rewardShards: 6, cacheReward: true },
+  { id: 'basecamp-upgrade-voucher', name: 'Upgrade Voucher Cache', shortName: 'Voucher', emoji: 'V', x: X(925), y: JY(320), effect: 'Spend 2 shards to open a cache of 6 relic shards for Base Camp.', shardCost: 2, rewardShards: 6, cacheReward: true },
   { id: 'reinforced-boots', name: 'Reinforced Boots', shortName: 'Boots', emoji: '🥾', x: X(1310), y: JY(270), effect: 'Higher jump for temple ledges.' },
   { id: 'rope-launcher', name: 'Rope Launcher', shortName: 'Rope', emoji: '🪝', x: X(2075), y: JY(210), effect: 'One extra mid-air jump to reach optional shelves.' },
   { id: 'torch-upgrade', name: 'Torch Upgrade', shortName: 'Torch', emoji: '🔦', x: X(3545), y: JY(252), effect: 'Reveals darker catacomb routes.' },
@@ -350,7 +350,9 @@ export const ROUTE_GATES = [
     y: JY(86),
     width: 34,
     height: 274,
-    message: 'Collect 4 relic shards to earn passage through the first temple approach.',
+    message: 'The seal refuses easy entry until Asha proves his intent.',
+    readyHint: 'Anubis has judged the first proof. Move through the Temple Approach Seal.',
+    openMessage: 'Anubis permits the first passage. The Temple Approach Seal opens.',
     requires: {
       shards: 4,
     },
@@ -856,7 +858,7 @@ export const SECTION_ATMOSPHERES = {
     particleColor: 'rgba(255, 247, 212, 0.6)',
     fogColor: 'rgba(255, 248, 220, 0.2)',
     mood: 'sun-baked dunes, heat haze, ancient sand',
-    title: 'Collect 4 relic shards to open the Temple Approach Seal.',
+    title: 'Restore the first seal to earn passage below.',
   },
   'ruined-temple': {
     skyTop: '#5c4d3c',
@@ -905,7 +907,7 @@ export const STORY_PROPS = [
   { id: 'opening-guardian-warning-plinth', sectionId: 'desert-entry', type: 'statue', x: X(168), y: JY(286), label: 'sealed guardian warning plinth' },
   { id: 'opening-warrior-guide-marker', sectionId: 'desert-entry', type: 'guardian-seal', x: X(202), y: JY(316), label: 'warrior-guide protective seal marker' },
   { id: 'starter-route-marker', sectionId: 'desert-entry', type: 'sign', x: X(250), y: JY(308), label: 'route marker' },
-  { id: 'relic-shard-purpose-note', sectionId: 'desert-entry', type: 'sign', x: X(180), y: JY(306), label: 'Relic shards unlock seals and fund Base Camp upgrades. Collect them from ruins and enemies.' },
+  { id: 'relic-shard-purpose-note', sectionId: 'desert-entry', type: 'sign', x: X(180), y: JY(306), label: 'Relic shards restore seals and support Base Camp preparations. Recover them from ruins and guardians.' },
   { id: 'desert-entry-survey-chest-1', sectionId: 'desert-entry', type: 'atmosphere-prop', atmosphereAssetKey: 'fieldChest', x: X(118), y: JY(322), width: 76, height: 52, yOffset: 10, alpha: 0.66, depth: 'midground', tint: 'warm', shadow: 0.1, dust: 0.58, bury: 0.16, label: 'field chest at the expedition edge' },
   { id: 'desert-entry-warning-tablet-1', sectionId: 'desert-entry', type: 'atmosphere-prop', atmosphereAssetKey: 'stoneTablet', x: X(222), y: JY(292), width: 54, height: 78, yOffset: 28, alpha: 0.56, depth: 'background', tint: 'stone', shadow: 0.07, dust: 0.46, bury: 0.1, label: 'faded warning tablet at the first survey line' },
   { id: 'opening-ruin-climb-fallen-column', sectionId: 'desert-entry', type: 'atmosphere-prop', atmosphereAssetKey: 'fallenColumn', x: X(505), y: JY(318), width: 178, height: 60, yOffset: 0, alpha: 1, depth: 'route-edge', tint: 'buried-stone', shadow: 0.36, dust: 0.96, bury: 0.02, label: 'collapsed column on the lower broken ruin ledge edge' },
@@ -1244,6 +1246,7 @@ export const STAGE_ENTRANCE_FEATURES = [
     structureTheme: 'sunlit-desert-gateway',
     width: 940,
     height: 620,
+    yOffset: 13,
     focusDistance: 560,
     accent: '#d6a756',
     glow: '#facc15',
@@ -1419,7 +1422,7 @@ export const ENVIRONMENT_EVENTS = [
   { id: 'opening-archaeologist-arrival', sectionId: 'desert-entry', x: X(92), name: 'Arrival', message: 'The expedition reaches a huge sealed Egyptian site.', type: 'arrival', duration: 1.8, shake: 0.04, card: false },
   { id: 'opening-guardian-challenge', sectionId: 'desert-entry', x: X(168), name: 'Anubis Seal', message: 'Anubis watches from the seal. The site will not open without proof.', type: 'arrival', duration: 2.2, shake: 0.08, card: false },
   { id: 'opening-warrior-guide-entry', sectionId: 'desert-entry', x: X(202), name: 'Asha', message: 'Asha guards the route toward excavation.', type: 'arrival', duration: 2.4, shake: 0.08, card: false },
-  { id: 'relic-shard-purpose-note-read', sectionId: 'desert-entry', x: X(180), name: 'Opening Objective', message: 'Gather shards. Recover tools. Defeat guardians. Open the excavation site.', type: 'arrival', duration: 2.4, shake: 0.05 },
+  { id: 'relic-shard-purpose-note-read', sectionId: 'desert-entry', x: X(180), name: 'Seal Test', message: 'Restore the seal. Recover tools. Survive guardians. Earn passage below.', type: 'arrival', duration: 2.4, shake: 0.05 },
   { id: 'starter-route-note', sectionId: 'desert-entry', x: X(255), name: 'Route Marker', message: 'Route marker ahead.', type: 'arrival', duration: 1.8, shake: 0.08 },
   { id: 'desert-first-dust-preview', sectionId: 'desert-entry', x: X(300), name: 'Dust Gust', message: 'A dust gust curls through the first survey markers.', type: 'dust-gust', duration: 2.8, shake: 0.18, dynamic: true, card: false },
   { id: 'desert-start-birds-scatter', sectionId: 'desert-entry', x: X(340), name: 'Birds Scatter', message: 'Birds lift from the first ruined stones.', type: 'birds-scatter', duration: 2.6, shake: 0.06, dynamic: true, card: false },
