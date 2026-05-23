@@ -27,7 +27,7 @@ export const ATTACK_WINDUP_DURATION = 0.12;
 export const ATTACK_RECOIL_DURATION = 0.18;
 export const INVULNERABLE_DURATION = 1.05;
 
-export const PLAYER_HERO_SPRITE_ATLAS_JSON = 'assets/expedition/player/asha-final-production-spritesheet.json';
+export const PLAYER_HERO_SPRITE_ATLAS_JSON = 'assets/expedition/player/asha-v4-spritesheet.json';
 export const PLAYER_HERO_SPRITE_VERSION = 'asha-master-reference-motion-2026-05-23';
 export const PLAYER_HERO_PREVIOUS_SPRITE_ATLAS_JSON = 'assets/expedition/player/asha-hooded-warrior-explorer-spritesheet.json';
 export const PLAYER_HERO_PREVIOUS_SPRITE_VERSION = 'asha-egypt-hooded-warrior-explorer-reference-2026-05-19';

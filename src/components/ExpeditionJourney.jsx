@@ -628,11 +628,23 @@ const PLAYER_CHARACTER_PRESETS = [
     label: 'Asha Final Production',
     description: 'Final playable Asha with warrior sword combat.',
     characterId: 'asha-final-production',
-    atlasPath: PLAYER_HERO_SPRITE_ATLAS_JSON,
-    version: PLAYER_HERO_SPRITE_VERSION,
+    atlasPath: 'assets/expedition/player/asha-final-production-spritesheet.json',
+    version: 'asha-master-reference-motion-2026-05-23',
     fallbackAtlasPath: PLAYER_HERO_PREVIOUS_SPRITE_ATLAS_JSON,
     fallbackAtlasVersion: PLAYER_HERO_PREVIOUS_SPRITE_VERSION,
     fallbackCharacterId: 'asha-egypt-warrior-explorer',
+    fallbackSrc: PLAYER_LEGACY_SPRITE_SRC,
+  },
+  {
+    id: 'asha-v5-candidate',
+    label: 'Asha V5',
+    description: 'User-provided Asha V5 atlas for in-game review.',
+    characterId: 'asha-v5-candidate',
+    atlasPath: 'assets/expedition/player/asha-v5-spritesheet.json',
+    version: 'asha-v5-candidate-2026-05-23',
+    fallbackAtlasPath: 'assets/expedition/player/asha-final-production-spritesheet.json',
+    fallbackAtlasVersion: 'asha-master-reference-motion-2026-05-23',
+    fallbackCharacterId: 'asha-final-production',
     fallbackSrc: PLAYER_LEGACY_SPRITE_SRC,
   },
   {
@@ -946,6 +958,16 @@ const ENEMY_TYPE_STAKE_MESSAGES = {
   mummy: 'Warrior mummies guard the threshold. Wait for the sweep, then counter.',
   guardian: 'Stone guardians are slow blockers. Wait for the opening.',
   statue: 'Cursed statues slam hard. Move carefully.',
+};
+
+const BOSS_DOMAIN_ENEMY_FOCUS_PADDING = 96;
+
+const isNormalEnemyInsideBossFocus = (enemy, bossDomain) => {
+  if (!enemy || !bossDomain) return false;
+  const focusStart = (bossDomain.arenaStart ?? 0) - BOSS_DOMAIN_ENEMY_FOCUS_PADDING;
+  const focusEnd = (bossDomain.arenaEnd ?? WORLD_WIDTH) + BOSS_DOMAIN_ENEMY_FOCUS_PADDING;
+  const enemyCenter = enemy.x + enemy.width / 2;
+  return enemyCenter >= focusStart && enemyCenter <= focusEnd;
 };
 
 const OBJECTIVE_MARKER_IDS_BY_SECTION = {
@@ -8226,7 +8248,9 @@ export default function ExpeditionJourney({
       ctx.translate(-centerX, -baseY);
     }
     const isStoneBoss = isChinaGuardianBoss || boss.id === 'temple-guardian' || boss.id === 'ancient-construct';
-    drawContactShadow(ctx, centerX, baseY + 3, drawBox.width * (isStoneBoss ? 0.86 : 0.78), isStoneBoss ? 0.34 : 0.28, 1.5);
+    if (boss.id !== 'scarab-queen') {
+      drawContactShadow(ctx, centerX, baseY + 3, drawBox.width * (isStoneBoss ? 0.86 : 0.78), isStoneBoss ? 0.34 : 0.28, 1.5);
+    }
     if (isStoneBoss && (combatMode === 'attacking' || combatMode === 'windup')) {
       drawGroundDustLip(ctx, centerX, baseY + 2, drawBox.width * 0.72, 'rgba(197, 148, 72, 0.28)');
     }
@@ -8376,11 +8400,11 @@ export default function ExpeditionJourney({
     }
 
     const visibleBox = getBossVisibleDrawBox(boss, screenX);
-    const healthCenterX = visibleBox.x + visibleBox.width / 2;
-    const barWidth = boss.awakened ? Math.max(132, visibleBox.width * 0.78) : Math.max(boss.width + 20, visibleBox.width * 0.55);
-    const barHeight = boss.awakened ? 12 : 8;
+    const healthCenterX = boss.awakened ? CANVAS_WIDTH / 2 : visibleBox.x + visibleBox.width / 2;
+    const barWidth = boss.awakened ? Math.min(390, CANVAS_WIDTH - 120) : Math.max(boss.width + 20, visibleBox.width * 0.55);
+    const barHeight = boss.awakened ? 10 : 8;
     const barX = clamp(healthCenterX - barWidth / 2, 18, CANVAS_WIDTH - barWidth - 18);
-    const barY = Math.max(18, visibleBox.y - (boss.awakened ? 36 : 16));
+    const barY = boss.awakened ? 18 : Math.max(18, visibleBox.y - 16);
     ctx.shadowBlur = 0;
     ctx.fillStyle = 'rgba(0,0,0,0.62)';
     ctx.roundRect(barX, barY, barWidth, barHeight, 5);
@@ -10665,6 +10689,21 @@ export default function ExpeditionJourney({
     // Enemies
     current.enemies.forEach(e => {
       if (e.defeated) return;
+      const activeBossDomain = current.bossDomain
+        && !current.defeatedMiniBosses.has(current.bossDomain.bossId)
+        ? current.bossDomain
+        : null;
+      if (isNormalEnemyInsideBossFocus(e, activeBossDomain)) {
+        e.attackWindup = 0;
+        e.attackTimer = 0;
+        e.attackReady = false;
+        e.attackRecovery = 0;
+        e.vulnerabilityTimer = 0;
+        e.shieldTimer = 0;
+        e.aggroMemoryTimer = 0;
+        e.attackCooldown = Math.max(e.attackCooldown || 0, 0.45);
+        return;
+      }
       const wasEnemyAttacking = e.attackTimer > 0;
       e.hitFlash = Math.max(0, e.hitFlash - dt);
       e.stunTimer = Math.max(0, e.stunTimer - dt);

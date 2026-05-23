@@ -23,6 +23,9 @@ const journeyComponentSource = readFileSync(new URL('../ExpeditionJourney.jsx', 
 const egyptPlayerAtlas = JSON.parse(
   readFileSync(new URL('../../../public/assets/expedition/player/asha-final-production-spritesheet.json', import.meta.url), 'utf8'),
 );
+const ashaV5PlayerAtlas = JSON.parse(
+  readFileSync(new URL('../../../public/assets/expedition/player/asha-v5-spritesheet.json', import.meta.url), 'utf8'),
+);
 const egyptPreviousPlayerAtlas = JSON.parse(
   readFileSync(new URL('../../../public/assets/expedition/player/asha-hooded-warrior-explorer-spritesheet.json', import.meta.url), 'utf8'),
 );
@@ -275,7 +278,7 @@ test('Ancient Egypt opening stages archaeologist arrival and warrior-guide story
   assert.match(routeGates, /Recover evidence, shards, and the Brush Handle to earn passage into the ruined temple\./);
   assert.match(routeGates, /Record what you found, then move into the ruined temple entry\./);
   assert.match(miniBosses, /id:\s*'scarab-queen'[\s\S]*?health:\s*1,\s*damage:\s*4/);
-  assert.match(miniBosses, /The Scarab Queen rises from the sand\. Anubis has set the first trial\./);
+  assert.match(miniBosses, /Anubis sets the first trial\. Dodge the Scarab Queen charge, then strike when she staggers\./);
   assert.match(bossKeyItems, /id:\s*'brush-handle'[\s\S]*?You passed the first guardian test\. Record what you found before moving deeper\. Desert Map Seal is open\./);
   assert.match(journeyComponentSource, /const GUARDIAN_KNOWLEDGE_CHALLENGES_ENABLED = false;/);
 });
@@ -295,7 +298,7 @@ test('Egypt Phase 1 boss identity changes preserve progression ids and China nam
   ].forEach((pattern) => assert.match(miniBosses, pattern));
 
   [
-    'The Scarab Queen rises from the sand. Anubis has set the first trial.',
+    'Anubis sets the first trial. Dodge the Scarab Queen charge, then strike when she staggers.',
     'Anubis stands at the temple path. Only those who move with respect may pass.',
     'The Uraeus coils around the sacred seal. The path forward is protected.',
     'Bes blocks the broken passage with a fierce grin. This place will not be rushed.',
@@ -779,7 +782,7 @@ test('China Journey uses a unique female player atlas through the existing playe
 
 test('Egypt Journey uses the Asha atlas through the existing player renderer', () => {
   assert.match(journeyConstantsSource, /PLAYER_HERO_SPRITE_ATLAS_JSON/);
-  assert.match(journeyConstantsSource, /asha-final-production-spritesheet\.json/);
+  assert.match(journeyComponentSource, /asha-final-production-spritesheet\.json/);
   assert.match(journeyConstantsSource, /PLAYER_HERO_PREVIOUS_SPRITE_ATLAS_JSON/);
   assert.match(journeyConstantsSource, /asha-hooded-warrior-explorer-spritesheet\.json/);
   assert.match(journeyConstantsSource, /PLAYER_HERO_FALLBACK_SPRITE_ATLAS_JSON/);
@@ -787,8 +790,8 @@ test('Egypt Journey uses the Asha atlas through the existing player renderer', (
   assert.match(journeyComponentSource, /characterId:\s*'asha-final-production'/);
   assert.match(journeyComponentSource, /label:\s*'Asha Final Production'/);
   assert.match(journeyComponentSource, /label:\s*'Asha Hooded Previous'/);
-  assert.match(journeyComponentSource, /atlasPath:\s*PLAYER_HERO_SPRITE_ATLAS_JSON/);
-  assert.match(journeyComponentSource, /version:\s*PLAYER_HERO_SPRITE_VERSION/);
+  assert.match(journeyComponentSource, /atlasPath:\s*'assets\/expedition\/player\/asha-final-production-spritesheet\.json'/);
+  assert.match(journeyComponentSource, /version:\s*'asha-master-reference-motion-2026-05-23'/);
   assert.match(journeyComponentSource, /fallbackAtlasPath:\s*PLAYER_HERO_PREVIOUS_SPRITE_ATLAS_JSON/);
   assert.match(journeyComponentSource, /fallbackCharacterId:\s*'asha-egypt-warrior-explorer'/);
   assert.match(journeyComponentSource, /fallbackSrc:\s*PLAYER_LEGACY_SPRITE_SRC/);
@@ -873,6 +876,29 @@ test('Egypt Journey uses the Asha atlas through the existing player renderer', (
   assert.match(journeyComponentSource, /rowName === 'idle'\s*\?\s*Math\.floor\(now \/ 150\) % frameCount/);
   assert.match(journeyComponentSource, /firstSwingFrame/);
   assert.match(journeyComponentSource, /lastSwingFrame/);
+});
+
+test('Asha V5 is available as a separate character-loader atlas', () => {
+  assert.match(journeyComponentSource, /id:\s*'asha-v5-candidate'/);
+  assert.match(journeyComponentSource, /label:\s*'Asha V5'/);
+  assert.match(journeyComponentSource, /characterId:\s*'asha-v5-candidate'/);
+  assert.match(journeyComponentSource, /atlasPath:\s*'assets\/expedition\/player\/asha-v5-spritesheet\.json'/);
+  assert.equal(ashaV5PlayerAtlas.status, 'production-candidate-asha-v5-alternative');
+  assert.equal(ashaV5PlayerAtlas.productionReference, 'asha-v5-reference.png');
+  assert.equal(ashaV5PlayerAtlas.draw.height, 119);
+  assert.ok(ashaV5PlayerAtlas.description.includes('10 percent larger'));
+  assert.ok(ashaV5PlayerAtlas.description.includes('brightness, contrast'));
+  assert.equal(ashaV5PlayerAtlas.draw.suppressExternalWeapon, true);
+  assert.equal(ashaV5PlayerAtlas.draw.suppressRuntimeAttackArc, true);
+  assert.equal(ashaV5PlayerAtlas.rows.find(row => row.name === 'idle')?.frameCount, 8);
+  assert.equal(ashaV5PlayerAtlas.rows.find(row => row.name === 'run')?.frameCount, 10);
+  assert.equal(ashaV5PlayerAtlas.rows.find(row => row.name === 'jump')?.frameCount, 8);
+  assert.equal(ashaV5PlayerAtlas.rows.find(row => row.name === 'hurt')?.frameCount, 5);
+  assert.equal(ashaV5PlayerAtlas.rows.find(row => row.name === 'interact')?.frameCount, 6);
+  assert.equal(ashaV5PlayerAtlas.rows.find(row => row.name === 'climb')?.frameCount, 8);
+  assert.equal(Object.keys(ashaV5PlayerAtlas.regions).length, 93);
+  assert.equal(ashaV5PlayerAtlas.poseSources.run_09, 'asha-v5-run-source.png:frame_09');
+  assert.equal(ashaV5PlayerAtlas.poseSources.hurt_04, 'asha-v5-damage-source.png:frame_04');
 });
 
 test('Egypt Journey keeps marker assets available but removes flag visuals from the route', () => {
@@ -1201,6 +1227,13 @@ test('first mini-boss is gated by preparation and rewards the next route', () =>
   assert.match(journeyComponentSource, /Collect the tool piece, then return to \$\{routeGateName \|\| 'the route gate'\}/);
   assert.match(journeyComponentSource, /current\.notice = `\$\{b\.name\} defeated\. \$\{rewardMoment\.title\} \$\{rewardMoment\.nextObjective\}`/);
   assert.match(journeyComponentSource, /current\.notice = `\$\{rewardMoment\.title\} \$\{rewardMoment\.nextObjective\}`/);
+});
+
+test('active boss domains suppress normal enemy noise near the guardian arena', () => {
+  assert.match(journeyComponentSource, /const BOSS_DOMAIN_ENEMY_FOCUS_PADDING = 96/);
+  assert.match(journeyComponentSource, /const isNormalEnemyInsideBossFocus = \(enemy, bossDomain\) =>/);
+  assert.match(journeyComponentSource, /current\.bossDomain[\s\S]*?!current\.defeatedMiniBosses\.has\(current\.bossDomain\.bossId\)[\s\S]*?isNormalEnemyInsideBossFocus\(e, activeBossDomain\)/);
+  assert.match(journeyComponentSource, /e\.attackWindup = 0;[\s\S]*?e\.attackTimer = 0;[\s\S]*?e\.aggroMemoryTimer = 0;[\s\S]*?return;/);
 });
 
 test('environment interactions include reactive foreground and movement elements', () => {

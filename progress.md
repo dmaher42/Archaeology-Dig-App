@@ -1,6 +1,16 @@
 Original prompt: Implement "Lost Site Expedition" as a small MVP game mode in the Archaeology-Dig-App repo.
 
 2026-05-23 update:
+- Tuned Asha V5 readability without generating new character art: rebuilt the existing V5 atlas from the user-provided sheets with a light local brightness, contrast, saturation, and sharpness pass.
+- Increased the V5 atlas runtime draw height from 108px to 119px, making her 10% larger in Journey while keeping the existing 256px hero-atlas cells and character-loader option intact.
+
+2026-05-23 update:
+- Added Asha V5 as a separate character-loader option rather than replacing the current Asha atlas.
+- Copied the user-provided V5 idle, run, jump, damage, attack, interact, climb, and portrait strips into `public/assets/expedition/player/asha-v5-source/`.
+- Added `scripts/build_asha_v5_atlas.py` and generated `public/assets/expedition/player/asha-v5-spritesheet.png/json` plus `asha-v5-reference.png` using the existing Journey 256px hero-atlas contract.
+- Registered `Asha V5` in the existing Journey character loader with fallback to Asha Final Production, while keeping the other Asha presets available.
+
+2026-05-23 update:
 - Wired the new master-reference Asha idle, jump, damage, and run sprite sheets into the existing final-production Asha atlas path.
 - Copied the raw generated strips into `public/assets/expedition/player/asha-final-production-source/`, produced alpha-cleaned source strips, and rebuilt `asha-final-production-spritesheet.png/json` through `scripts/build_asha_final_production_atlas.py`.
 - Updated the Journey player loader metadata/version so Ancient Egypt uses the refreshed `asha-final-production` hero atlas with 8 idle frames, 10 run frames, 8 jump/fall/land source phases, and 5 hurt frames.
@@ -3098,3 +3108,11 @@ Remaining notes:
 - Implemented background simulation skipping during tab inactivity (`document.hidden`) to prevent battery drain.
 - Fixed a test suite undefined variable error for `getDataRowById` inside `journeySecrets.test.js` to ensure 100% clean test suite runs.
 - Verification passed: 53/53 node tests passing, 0 errors/warnings on `npm run lint`, and successful compilation of production `npm run build`.
+
+## 2026-05-23 Scarab Queen UI and facing fix
+
+- Corrected the Scarab Queen sprite flip rule because the atlas faces left by default; she now faces her movement/attack direction instead of appearing to move backward.
+- Prioritized Scarab Queen windup/attack frames before passive shield/counter frames so live attacks use the dedicated boss attack cells.
+- Moved awakened boss health to a compact top-screen bar and removed the Scarab Queen's oversized ground shadow/ellipse.
+- Verified the focused Scarab Queen assertions, lint, production build, and a browser smoke screenshot at `output/scarab-queen-ui-smoke.png`.
+- Remaining note: two broader Journey sprite tests still contain stale asset-version expectations unrelated to this boss UI pass.

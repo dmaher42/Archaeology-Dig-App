@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { getScarabQueenDrawBox, shouldFlipBossSprite } from './journeyBossSprites.js';
+import { getScarabQueenDrawBox, getScarabQueenSpriteFrame, shouldFlipBossSprite } from './journeyBossSprites.js';
 import { getEnemySpriteDrawBox, shouldFlipEnemySprite } from './journeyEnemySprites.js';
 import { PLAYER_SPRITE_DRAW_HEIGHT } from './journeyConstants.js';
 import { readFileSync } from 'node:fs';
@@ -9,6 +9,7 @@ import { readFileSync } from 'node:fs';
 const journeyComponentSource = readFileSync(new URL('../ExpeditionJourney.jsx', import.meta.url), 'utf8');
 const journeyUtilsSource = readFileSync(new URL('./journeyUtils.js', import.meta.url), 'utf8');
 const journeyEnemySpritesSource = readFileSync(new URL('./journeyEnemySprites.js', import.meta.url), 'utf8');
+const journeyBossSpritesSource = readFileSync(new URL('./journeyBossSprites.js', import.meta.url), 'utf8');
 const enemySpriteGeneratorSource = readFileSync(new URL('../../../scripts/generate_enemy_sprite_sheets.py', import.meta.url), 'utf8');
 
 test('regular enemy sprite draw boxes stay close to gameplay hitbox scale', () => {
@@ -127,7 +128,7 @@ test('sand-wisp flying enemy renders as the larger cinematic winged wisp', () =>
   assert.ok(Math.abs(drawBox.height - 108.9894) < 0.001, `sand wisp should draw 25% larger than the last pass, received ${drawBox.height}`);
   assert.ok(drawBox.width >= drawBox.height * 1.9, `sand wisp should keep a wide upright-wing silhouette, received ${drawBox.width}x${drawBox.height}`);
   assert.match(journeyEnemySpritesSource, /sandWisp:\s*2\.041/);
-  assert.match(journeyEnemySpritesSource, /enemy-sprite-packs-2026-05-22-cinematic-sand-wisp/);
+  assert.match(journeyEnemySpritesSource, /enemy-sprite-packs-2026-05-23-bes-guardian/);
   assert.match(journeyEnemySpritesSource, /fetch\([^)]*versionQuery[^)]*\)/);
   assert.match(journeyEnemySpritesSource, /image\.src\s*=\s*`[^`]*getAtlasImagePath[^`]*versionQuery[^`]*`/);
   assert.match(enemySpriteGeneratorSource, /render_production_flying_scarab_cell/);
@@ -141,8 +142,16 @@ test('sand-wisp flying enemy renders as the larger cinematic winged wisp', () =>
 test('scarabs use the same right-facing sprite orientation rules', () => {
   assert.equal(shouldFlipEnemySprite('scarab', 1), false, 'small scarab should not flip while facing right');
   assert.equal(shouldFlipEnemySprite('scarab', -1), true, 'small scarab should flip while facing left');
-  assert.equal(shouldFlipBossSprite('scarab-queen', 1), false, 'Scarab Queen should not flip while facing right');
-  assert.equal(shouldFlipBossSprite('scarab-queen', -1), true, 'Scarab Queen should flip while facing left');
+  assert.equal(shouldFlipBossSprite('scarab-queen', 1), true, 'Scarab Queen atlas faces left, so it flips while facing right');
+  assert.equal(shouldFlipBossSprite('scarab-queen', -1), false, 'Scarab Queen atlas faces left, so it does not flip while facing left');
+});
+
+test('Scarab Queen attack frames are prioritized over passive shield and counter states', () => {
+  assert.match(journeyBossSpritesSource, /if \(combatMode === 'windup'\) return 'scarabQueenWindup';[\s\S]*?if \(combatMode === 'attacking'\) \{[\s\S]*?'scarabQueenAreaAttack'[\s\S]*?'scarabQueenCharge'[\s\S]*?if \(bossVisualState\.shielded\) return 'scarabQueenShielded';/);
+  assert.match(journeyBossSpritesSource, /if \(bossId === 'scarab-queen'\) return facing > 0;/);
+  assert.equal(getScarabQueenSpriteFrame({ id: 'scarab-queen', hitFlash: 0 }, 'windup', { shielded: true }), 'scarabQueenWindup');
+  assert.equal(getScarabQueenSpriteFrame({ id: 'scarab-queen', hitFlash: 0 }, 'attacking', { shielded: true, attackKind: 'close' }), 'scarabQueenCharge');
+  assert.equal(getScarabQueenSpriteFrame({ id: 'scarab-queen', hitFlash: 0 }, 'attacking', { shielded: true, attackKind: 'area' }), 'scarabQueenAreaAttack');
 });
 
 test('Scarab Queen draw box matches the fixed atlas ratio closely enough to stay grounded', () => {
@@ -176,6 +185,13 @@ test('combat feedback avoids arcade text labels in the playfield', () => {
   assert.doesNotMatch(journeyComponentSource, /text:\s*'RESET'/);
   assert.doesNotMatch(journeyComponentSource, /text:\s*'WAIT'/);
   assert.doesNotMatch(journeyComponentSource, /text:\s*'HIT'/);
+});
+
+test('awakened boss health draws as a compact screen-top bar, not over the boss sprite', () => {
+  assert.match(journeyComponentSource, /const healthCenterX = boss\.awakened \? CANVAS_WIDTH \/ 2 : visibleBox\.x \+ visibleBox\.width \/ 2;/);
+  assert.match(journeyComponentSource, /const barWidth = boss\.awakened \? Math\.min\(390, CANVAS_WIDTH - 120\)/);
+  assert.match(journeyComponentSource, /const barY = boss\.awakened \? 18 : Math\.max\(18, visibleBox\.y - 16\);/);
+  assert.match(journeyComponentSource, /if \(boss\.id !== 'scarab-queen'\) \{[\s\S]*?drawContactShadow\(ctx, centerX, baseY \+ 3/);
 });
 
 test('player enemy hits trigger a small screen shake without changing gameplay state', () => {

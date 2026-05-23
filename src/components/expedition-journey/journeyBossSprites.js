@@ -267,12 +267,12 @@ export const getScarabQueenSpriteFrame = (boss, combatMode, bossVisualState = {}
 
   if (combatMode === 'defeated') return 'scarabQueenDefeated';
   if (boss.hitFlash > 0 || combatMode === 'stunned') return 'scarabQueenHit';
-  if (bossVisualState.shielded) return 'scarabQueenShielded';
-  if (bossVisualState.vulnerable) return 'scarabQueenCounterWindow';
   if (combatMode === 'windup') return 'scarabQueenWindup';
   if (combatMode === 'attacking') {
     return bossVisualState.attackKind === 'area' ? 'scarabQueenAreaAttack' : 'scarabQueenCharge';
   }
+  if (bossVisualState.shielded) return 'scarabQueenShielded';
+  if (bossVisualState.vulnerable) return 'scarabQueenCounterWindow';
   if (!boss.awakened) return 'scarabQueenIntro';
 
   const frameToggle = Math.floor(now / 240) % 2;
@@ -352,6 +352,7 @@ export const getClayGuardianSpriteFrame = (boss, combatMode, bossVisualState = {
 };
 
 export const shouldFlipBossSprite = (bossId, facing = 1) => {
+  if (bossId === 'scarab-queen') return facing > 0;
   return facing < 0;
 };
 
