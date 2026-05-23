@@ -73,11 +73,11 @@ These are currently wired through canonical loaders:
 
 ## Tidy-Up Findings
 
-### P1: Normalize Expedition Audio Folder Casing
+### P1: Normalize Expedition Audio Folder Casing - started 2026-05-23
 
-The app code references lowercase `assets/expedition/audio/...`, while Windows currently displays the folder as `public/assets/expedition/Audio`. Git tracks the paths as lowercase `public/assets/expedition/audio/...`.
+The app code references lowercase `assets/expedition/audio/...`. The Windows folder name was normalized to display as lowercase `public/assets/expedition/audio`, and the trailer music reference was changed from uppercase `assets/expedition/Audio/...` to lowercase `assets/expedition/audio/...`.
 
-Why it matters: Windows is forgiving, but GitHub Pages is case-sensitive. This should be normalized with a case-only Git rename if needed, then verified by build and browser playback.
+Why it matters: Windows is forgiving, but GitHub Pages is case-sensitive.
 
 Do not change the audio engine. This is a path/name hygiene task.
 
@@ -101,9 +101,9 @@ The player folder has active, fallback, candidate, and source sheets. The curren
 
 Recommended next step: keep active/fallback/candidate roles documented before removing older Asha variants.
 
-### P2: Update Stale China Scaffold Labels
+### P2: Update Stale China Scaffold Labels - started 2026-05-23
 
-`src/components/expedition/expeditionStages.js` still has some `implementationSlots` names that say `placeholder`, even though the China prototype now has runtime room map, challenge UI, survey/gateway, enemy, guardian, evidence, and final-claim assets wired deeper in Expedition.
+`src/components/expedition/expeditionStages.js` had some `implementationSlots` names that said `placeholder`, even though the China prototype now has runtime room map, challenge UI, survey/gateway, enemy, guardian, evidence, and final-claim assets wired deeper in Expedition. These labels were updated to `runtime-prototype` names.
 
 Recommended next step: rename scaffold labels to reflect prototype/runtime status. This is metadata cleanup, not gameplay.
 
@@ -130,7 +130,7 @@ Recommended next step: treat this as a later sprite-quality pass, not as a reaso
 
 ### P3: Decide Whether Trailer Assets Belong In Expedition Runtime
 
-`src/trailer/GameTrailer.jsx` references several Expedition assets directly, including source/candidate-looking images and one uppercase `assets/expedition/Audio/...` path.
+`src/trailer/GameTrailer.jsx` references several Expedition assets directly, including source/candidate-looking images. Its music path now uses lowercase `assets/expedition/audio/...`.
 
 Recommended next step: decide whether trailer-only assets should stay in `public/assets/expedition/` or be documented as trailer dependencies. Do not remove them just because the gameplay path does not use them.
 

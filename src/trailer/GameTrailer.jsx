@@ -402,7 +402,7 @@ const FinalCard = () => {
 export const GameTrailer = () => (
   <AbsoluteFill style={{ background: '#050505' }}>
     <Audio
-      src={asset('assets/expedition/Audio/valley-of-the-stone-kings.mp3')}
+      src={asset('assets/expedition/audio/valley-of-the-stone-kings.mp3')}
       volume={(frame) => interpolate(frame, [0, 60, 1410, 1500], [0, 0.46, 0.46, 0], {
         extrapolateLeft: 'clamp',
         extrapolateRight: 'clamp',

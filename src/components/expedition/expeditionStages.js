@@ -96,12 +96,12 @@ export const CHINA_EXPEDITION_SCAFFOLD = {
     journeyStage: 'china-journey-stage-runtime-prototype',
     journeyBackgroundArt: 'china-river-valley-parallax-runtime',
     environmentTilePack: 'china-river-valley-environment-runtime',
-    excavationRoomMap: 'china-top-down-excavation-map-placeholder',
-    zoneChallengeUi: 'china-zone-challenge-ui-placeholder',
-    surveyMarkersAndGateways: 'china-survey-marker-gateway-placeholder',
-    enemiesAndGuardians: 'china-enemies-guardian-sprites-placeholder',
-    evidenceSet: 'china-evidence-set-placeholder',
-    finalClaim: 'china-final-claim-placeholder',
+    excavationRoomMap: 'china-room-map-runtime-prototype',
+    zoneChallengeUi: 'china-zone-challenge-ui-runtime-prototype',
+    surveyMarkersAndGateways: 'china-survey-gateway-runtime-prototype',
+    enemiesAndGuardians: 'china-enemies-guardian-sprites-runtime-prototype',
+    evidenceSet: 'china-evidence-set-runtime-prototype',
+    finalClaim: 'china-final-claim-runtime-prototype',
   },
 };
 
