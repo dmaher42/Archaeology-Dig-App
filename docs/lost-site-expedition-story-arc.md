@@ -12,7 +12,7 @@ The game should feel like a standalone archaeology adventure first. The HASS lea
 
 ## Full Arc
 
-Arrival -> Rejection -> Preparation -> Guardian Test -> Discovery Entrance -> Base Camp -> Excavation -> Interpretation
+Arrival -> Rejection -> Preparation -> Guardian Test -> Discovery Entrance -> Base Camp -> Excavation -> Interpretation -> Threshold Reveal
 
 ## 1. Arrival At A Protected Ancient Site
 
@@ -104,6 +104,96 @@ This is where the game directly teaches the historical inquiry process:
 
 The player should understand that finding the site is only the beginning. The real historical work is interpreting what the evidence means.
 
+## 9. Long-Term Threshold Reveal
+
+The long-term final reveal is that Asha has not simply entered Ancient Egypt. She has been transported into a protected ancient threshold connected to Ancient Egypt and to a wider guardian network across ancient sites.
+
+Egypt remains the first complete vertical slice and the first seal in this larger mystery. The player should not understand the full truth early. The early experience should still feel like Asha has entered a dangerous ancient Egyptian site guarded by Anubis.
+
+The deeper truth is:
+
+- Asha does not fully belong in this place.
+- The Egyptian site is one node in a wider ancient protection network.
+- The protection system is failing.
+- Asha was transported or called because something in the system needs restoring.
+- Anubis does not initially understand this or accept it.
+- Anubis first sees Asha as another intruder because that is the only category he trusts.
+- Over time, Asha's actions reveal that she may have been drawn here for a reason.
+
+The phrase:
+
+> You do not belong here.
+
+should carry two meanings. Early on, it means Anubis sees Asha as an intruder. Later, it should also suggest that Asha literally does not belong in this place, time, or threshold.
+
+The final Egypt reveal should imply:
+
+> Egypt was only the first seal.
+
+## 10. Foreshadowing The Connection
+
+Do not reveal the transport / threshold-network truth too early. Foreshadow it through environmental storytelling, optional discoveries, strange murals, damaged seal records, impossible symbols, and Anubis's suspicion.
+
+Good foreshadowing clues include:
+
+- murals that seem to know Asha before she arrives
+- symbols that do not fully match the Egyptian setting
+- a doorway or seal showing stars, other ancient sites, or connected guardians
+- damaged records suggesting someone tried to erase the truth
+- relics that feel older than the Egyptian ruins around them
+- repeated references to paths, thresholds, seals, and things being called across distance or time
+
+Optional secrets can reveal pieces of this mystery without making them required for main progression. The Forgotten Mural Alcove should be allowed to foreshadow the long-term truth by showing that the site reacts differently when Asha preserves or restores something instead of taking it.
+
+Possible secret reveal line:
+
+> That image should not know you.
+
+This line should create mystery, not explanation.
+
+## 11. Forgotten Mural Alcove Story Role
+
+The Forgotten Mural Alcove should become an optional story-deviation secret, not just a platforming detour.
+
+If the player follows the secret path, Asha discovers damaged evidence of the site's history and chooses to preserve or restore it. Anubis notices this action. He still does not fully trust Asha, but it gives him the first reason to think she may be different from looters.
+
+If the player misses the secret, the main path still works, but Anubis remains more suspicious.
+
+The secret should communicate:
+
+- looters or careless intruders damaged the site before
+- Anubis was protecting something real, not simply blocking progress
+- Asha can choose to restore or preserve evidence instead of taking it
+- Anubis notices actions, not speeches
+- trust begins as doubt, not friendship
+
+Suggested Anubis reaction lines:
+
+- You did not take it.
+- You restored what others tried to erase.
+- Perhaps you are not like the others.
+- Do not mistake this for trust.
+
+Suggested later variation if the mural was restored:
+
+> You restored what others tried to erase. I saw it.
+
+Suggested later variation if the mural was missed:
+
+> You pass through my seals, but I still see only an intruder.
+
+## 12. Final Reveal Language Bank
+
+Use these lines as tonal anchors for future writing. They should be used sparingly and only when the story has earned them.
+
+- You do not belong here.
+- That image should not know you.
+- This place was not only protecting the past. It was protecting the path between worlds.
+- You were not sent to the past. You were called by what survived it.
+- Egypt was only the first seal.
+- The path did not open because it trusted you. It opened because it needed you.
+- I was made to guard what remains. I was not made to choose who should restore it.
+
 ## Character Roles
 
 ### Asha
@@ -120,6 +210,9 @@ Asha should be most visible during:
 - Scarab Queen preparation
 - relic-based puzzle solving
 - moments where he protects rather than takes
+- optional secrets that reveal he may be connected to the wider protection network
+
+Asha's deeper role is not fully known at the beginning. The story may later reveal that Asha was called, pulled, or transported into the threshold because the ancient protection network is failing.
 
 ### Archaeologist
 
@@ -143,9 +236,15 @@ He should feel intimidating, intelligent, ancient, and dangerous. At the beginni
 
 Anubis believes only he can protect the relics, but his power has faded with the seals. His arc is realising that he can no longer protect the site alone and that Asha's actions may restore what Anubis can no longer defend.
 
+Anubis does not initially understand why Asha has arrived or whether the failing protection system called her. This uncertainty should make him more suspicious, not less. He resists the idea that the site might need help from an outsider.
+
 The Anubis tension is:
 
 > I was made to protect this place. If I cannot trust myself to do it anymore, why would I trust you?
+
+The later Anubis tension is:
+
+> If the path called you here, then my duty is no longer simple.
 
 ## Core Theme
 
@@ -157,6 +256,10 @@ The core educational idea is:
 
 > History is reconstructed from evidence.
 
+The deeper adventure idea is:
+
+> The past is not gone. Some parts of it were protected, and some protections are now failing.
+
 The player explores first, proves intent through action, excavates second, and interprets last.
 
 ## Story Implementation Rule
@@ -166,3 +269,7 @@ Do not make Anubis friendly too early.
 Do not make Asha trusted because he says the right thing.
 
 Asha earns progress by using relics, tools, clues, and evidence to solve problems and protect the site. Anubis's trust should grow only after the player repeatedly proves they are restoring and protecting, not stealing.
+
+Do not reveal the full transport / threshold-network twist too early. Early hints should create curiosity and unease, not answers.
+
+Egypt should remain the first seal and first complete vertical slice. Future ancient sites can expand the network only after the Egypt experience feels complete.
