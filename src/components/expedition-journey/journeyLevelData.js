@@ -822,6 +822,12 @@ export const BOSS_KEY_ITEMS = [
   { id: 'site-permit-seal', bossId: 'ancient-construct', gateId: 'basecamp-seal', sectionId: 'dig-site-entrance', name: 'Site Permit Seal', shortName: 'Permit', label: 'P', color: '#166534', rewardDetail: 'Base Camp can now open the excavation site.' },
 ];
 
+// Legacy / parked educational challenge data.
+// This was part of an earlier classroom-facing version of Lost Site Expedition.
+// It is intentionally not part of the current standalone indie game flow.
+// Do not reintroduce these as quiz popups during Journey gameplay.
+// If reused later, rework them as optional in-world interpretation, field notes,
+// mural readings, or Base Camp/archive content rather than direct classroom questions.
 export const GUARDIAN_KNOWLEDGE_QUESTIONS = [
   {
     id: 'artefact-meaning',
