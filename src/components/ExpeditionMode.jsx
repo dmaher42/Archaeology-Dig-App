@@ -2176,9 +2176,6 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
         audioControls.playExpeditionSfx?.('gateUnlock');
         audioControls.playExpeditionStinger?.('gateUnlock');
       }
-      audioControls.playExpeditionSfx?.('pickupTool');
-      audioControls.playExpeditionStinger?.('evidenceDiscovery');
-      audioControls.playMatch?.();
     } else {
       const trowelBonus = fieldKitEffects.trowelReady && ['structure', 'material_culture'].includes(token.missionType)
         ? TROWEL_EXCAVATION_BONUS
@@ -2198,8 +2195,6 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
         text: `${activeMission.mismatchFeedback} Excavation method: ${token.excavationMethodName}. Evidence quality: ${token.evidenceQuality}.${toolFeedback ? ` ${toolFeedback}` : ''}`,
       });
       setNotice(`${token.name} added to your evidence satchel.`);
-      audioControls.playExpeditionSfx?.('pickupShard');
-      audioControls.playError?.();
     }
     if (fieldKitEffects.notebookReady) {
       recordFieldNote(token, 'inspected');

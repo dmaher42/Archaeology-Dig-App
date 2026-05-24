@@ -41,6 +41,7 @@ let expeditionMusicKey = null;
 let expeditionMusicFade = null;
 let expeditionSfxUnlocked = false;
 const expeditionSfxLastPlayedAt = new Map();
+const expeditionLoopingSfx = new Map();
 const expeditionSyntheticSfxVariants = new Map();
 
 const EXPEDITION_AUDIO_TRACKS = {
@@ -186,7 +187,9 @@ const EXPEDITION_AUDIO_TRACKS = {
     openingThresholdAtmosphere: {
       cooldownMs: 36000,
       clips: [
-        { path: 'assets/expedition/sfx/opening/opening-desert-wind.ogg', volume: 0.3, playbackRate: 0.92 },
+        { id: 'wind-bed', path: 'assets/expedition/sfx/opening/opening-desert-wind.ogg', volume: 0.2, playbackRate: 0.88, loop: true },
+        { id: 'wind-high-drift', path: 'assets/expedition/sfx/opening/opening-desert-wind.ogg', volume: 0.11, delay: 7200, playbackRate: 1.08, loop: true },
+        { id: 'wind-low-swell', path: 'assets/expedition/sfx/opening/opening-desert-wind.ogg', volume: 0.14, delay: 16400, playbackRate: 0.72, loop: true },
         { path: 'assets/expedition/sfx/opening/opening-deep-rumble.ogg', volume: 0.2, delay: 350, playbackRate: 0.68 },
         { path: 'assets/expedition/sfx/opening/opening-deep-rumble.ogg', volume: 0.14, delay: 9000, playbackRate: 0.58 },
         { path: 'assets/expedition/sfx/opening/opening-deep-rumble.ogg', volume: 0.13, delay: 18500, playbackRate: 0.52 },
@@ -279,6 +282,17 @@ const stopExpeditionMusic = () => {
   expeditionMusic.currentTime = 0;
   expeditionMusic.volume = 0;
   expeditionMusicKey = null;
+};
+
+const EXPEDITION_BACKGROUND_MUSIC_ENABLED = false;
+
+const stopExpeditionLoopingSfx = (sfxKey = null) => {
+  expeditionLoopingSfx.forEach((sound, key) => {
+    if (sfxKey && !key.startsWith(`${sfxKey}:`)) return;
+    sound.pause();
+    sound.currentTime = 0;
+    expeditionLoopingSfx.delete(key);
+  });
 };
 
 const playExpeditionStinger = (stingerKey) => {
@@ -570,7 +584,14 @@ const playExpeditionSfx = (sfxKey, options = {}) => {
       const sound = new Audio(getAudioSrc(clip.path));
       sound.volume = Math.min(1, (clip.volume ?? 0.3) * (options.volume ?? 1));
       sound.playbackRate = (clip.playbackRate ?? 1) * (options.playbackRate ?? 1);
+      if (clip.loop || options.loop) {
+        const loopKey = `${sfxKey}:${clip.id || clip.path}`;
+        if (expeditionLoopingSfx.has(loopKey)) return;
+        sound.loop = true;
+        expeditionLoopingSfx.set(loopKey, sound);
+      }
       sound.play().catch((error) => {
+        if (clip.loop || options.loop) expeditionLoopingSfx.delete(`${sfxKey}:${clip.id || clip.path}`);
         console.warn('Expedition SFX could not start', error);
       });
     };
@@ -674,7 +695,7 @@ const playTone = (freq, type = 'sine', duration = 0.5, vol = 0.2) => {
   osc.stop(audioCtx.currentTime + duration);
 };
 
-const baseAudioControls = { initAudio, playFlip, playMatch, playError, playWin, playTone, playExpeditionMusic, stopExpeditionMusic, playExpeditionStinger, playExpeditionSfx, unlockExpeditionSfx };
+const baseAudioControls = { initAudio, playFlip, playMatch, playError, playWin, playTone, playExpeditionMusic, stopExpeditionMusic, stopExpeditionLoopingSfx, playExpeditionStinger, playExpeditionSfx, unlockExpeditionSfx };
 
 function ModeLoadingFallback({ label = 'Loading activity...' }) {
   return (
@@ -755,7 +776,7 @@ export default function App() {
   const audioControls = useMemo(() => ({
     ...baseAudioControls,
     playExpeditionMusic: (trackKey) => {
-      if (!expeditionMusicEnabled) {
+      if (!EXPEDITION_BACKGROUND_MUSIC_ENABLED || !expeditionMusicEnabled) {
         baseAudioControls.stopExpeditionMusic?.();
         return;
       }
@@ -764,6 +785,9 @@ export default function App() {
     playExpeditionSfx: (sfxKey, options) => {
       if (!expeditionSfxEnabled) return;
       baseAudioControls.playExpeditionSfx?.(sfxKey, options);
+    },
+    stopExpeditionLoopingSfx: (sfxKey) => {
+      baseAudioControls.stopExpeditionLoopingSfx?.(sfxKey);
     },
     playExpeditionStinger: (stingerKey) => {
       if (!expeditionSfxEnabled) return;
@@ -782,6 +806,10 @@ export default function App() {
       });
     },
   }), [expeditionMusicEnabled, expeditionSfxEnabled]);
+
+  useEffect(() => {
+    if (!EXPEDITION_BACKGROUND_MUSIC_ENABLED) baseAudioControls.stopExpeditionMusic?.();
+  }, []);
 
   useEffect(() => {
     if (!import.meta.env.DEV || typeof window === 'undefined') return undefined;
@@ -891,6 +919,7 @@ export default function App() {
 
   const handleStartExpedition = () => {
     if (expeditionSfxEnabled) baseAudioControls.unlockExpeditionSfx?.();
+    baseAudioControls.stopExpeditionMusic?.();
     setIsSiteSelectionActive(false);
     setPhase('expedition');
   };
@@ -898,7 +927,7 @@ export default function App() {
   const handleExpeditionMusicToggle = () => {
     setExpeditionMusicEnabled((enabled) => {
       if (enabled) baseAudioControls.stopExpeditionMusic?.();
-      return !enabled;
+      return EXPEDITION_BACKGROUND_MUSIC_ENABLED ? !enabled : false;
     });
   };
 
@@ -915,11 +944,12 @@ export default function App() {
       setExpeditionSfxEnabled(true);
       baseAudioControls.unlockExpeditionSfx?.();
     }
-    baseAudioControls.playExpeditionSfx?.('pickupTool', { volume: 1.35 });
+    baseAudioControls.playExpeditionSfx?.('openingThresholdAtmosphere', { volume: 1 });
   };
 
   const handleBackToMenu = () => {
     audioControls.stopExpeditionMusic?.();
+    audioControls.stopExpeditionLoopingSfx?.();
     setPhase('menu');
   };
 

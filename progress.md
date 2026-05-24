@@ -4,6 +4,27 @@ Original prompt: Implement "Lost Site Expedition" as a small MVP game mode in th
 - Pointed the default Egypt Journey Auto player atlas at Asha V5 instead of the missing stale `asha-v4-spritesheet.json`.
 - Updated Auto fallback to Asha Final Production, while keeping Asha V5, Asha Final Production, Asha Hooded Previous, and Legacy Strip selectable through the existing character loader.
 
+2026-05-24 update:
+- Added `Asha New Idle` as a separate Journey character-loader option, backed by `asha-new-idle-spritesheet.png/json`.
+- Copied the user-provided idle source into `public/assets/expedition/player/asha-new-idle-source/` and added `scripts/build_asha_new_idle_atlas.py` so the atlas can be rebuilt locally.
+- Kept Asha V5 movement, jump, attack, hurt, interact, climb, and portrait rows as the animation base while swapping only the idle row for the new source.
+- Verified the focused Journey asset tests, lint, and production build.
+
+2026-05-24 update:
+- Added the user-provided `Asha N Run.png` to the same `Asha New Idle` loader variant as `asha-new-run-raw.png`.
+- Rebuilt `asha-new-idle-spritesheet.png/json` so the `walk`, `run`, and `survey_walk` atlas rows use the new run source while the remaining action rows still fall back to Asha V5.
+- Visual note: the supplied run sheet's poses overlap on an opaque background, so the extractor preserves some clipped/overlapping edge artifacts until a separated-frame or transparent run sheet is available.
+
+2026-05-24 update:
+- Added user-provided `Asha N Jump.png` and `Asha N Attack.png` to the same `Asha New Idle` loader variant as `asha-new-jump-raw.png` and `asha-new-attack-raw.png`.
+- Rebuilt `asha-new-idle-spritesheet.png/json` so `jump`, `fall`, `land`, and `attack_pick_swing` use the new named Asha N sheets.
+- Copied the two timestamp-only ChatGPT sheets into the source folder as unassigned references, but did not map them to gameplay rows until their intended actions are confirmed.
+
+2026-05-24 update:
+- Regenerated a cleaner Asha N sprite grid with the image generation tool after confirming the earlier sheets would need too much constant crop repair.
+- Copied the generated grid into `public/assets/expedition/player/asha-new-idle-source/asha-new-generated-grid-raw.png`.
+- Reworked `scripts/build_asha_new_idle_atlas.py` so `Asha New Idle` now cuts idle, run/walk/survey-walk, jump/fall/land, and attack rows from the regenerated green-screen grid, with local chroma-key removal and despill before packing into the existing Journey 256px hero-atlas contract.
+
 2026-05-23 update:
 - Grounded the desert-to-temple exit gateway by adding a stage-entrance-specific vertical offset and applying it to both the main doorway render and foreground occluder layers.
 - Verified the doorway no longer floats in the threshold scene at `output/desert-exit-gateway-threshold-grounded.png`.

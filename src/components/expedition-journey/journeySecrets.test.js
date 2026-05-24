@@ -27,6 +27,9 @@ const egyptPlayerAtlas = JSON.parse(
 const ashaV5PlayerAtlas = JSON.parse(
   readFileSync(new URL('../../../public/assets/expedition/player/asha-v5-spritesheet.json', import.meta.url), 'utf8'),
 );
+const ashaNewIdlePlayerAtlas = JSON.parse(
+  readFileSync(new URL('../../../public/assets/expedition/player/asha-new-idle-spritesheet.json', import.meta.url), 'utf8'),
+);
 const egyptPreviousPlayerAtlas = JSON.parse(
   readFileSync(new URL('../../../public/assets/expedition/player/asha-hooded-warrior-explorer-spritesheet.json', import.meta.url), 'utf8'),
 );
@@ -95,10 +98,13 @@ const getDataRowById = (arraySource, id) => {
 
 test('opening cinematic introduces Asha and Anubis with speech-ready timed dialogue and shield shatter', () => {
   assert.match(journeyComponentSource, /OPENING_CINEMATIC_DURATION = 24/);
+  assert.match(journeyComponentSource, /OPENING_CINEMATIC_ENABLED = false/);
   assert.match(journeyComponentSource, /OPENING_CINEMATIC_LINES = \[/);
   assert.match(journeyComponentSource, /speaker:\s*'Anubis'[\s\S]*?voice:\s*'guardian'/);
   assert.match(journeyComponentSource, /speaker:\s*'Asha'[\s\S]*?voice:\s*'asha'/);
   assert.match(journeyComponentSource, /startOpeningCinematic/);
+  assert.match(journeyComponentSource, /startJourneyWithoutOpeningScene/);
+  assert.match(journeyComponentSource, /OPENING_CINEMATIC_ENABLED \? \(\) => startOpeningCinematic/);
   assert.match(journeyComponentSource, /openingCinematicState:\s*current\.openingCinematic/);
   assert.match(journeyComponentSource, /window\.speechSynthesis/);
   assert.match(journeyComponentSource, /drawOpeningCinematic/);
@@ -209,11 +215,11 @@ test('first Egypt secret route rewards curiosity without changing main progressi
   assert.match(scarabFragmentThree, /restoresStoryFlag:\s*'forgotten-mural-restored'/);
   assert.match(scarabFragmentThree, /restoreMessage:\s*'Asha places the fragments back into the warning mural\. The scarab glow returns faintly\.'/);
   assert.match(scarabFragmentThree, /anubisReaction:\s*'You followed the thief, but did not steal\. You restored what they broke\. Do not mistake this for trust\.'/);
-  assert.match(scarabFragmentThree, /discoveryMessage:\s*'Secret Discovery: Forgotten Mural Chamber restored and recorded\.'/);
+  assert.match(scarabFragmentThree, /discoveryMessage:\s*'Final broken scarab fragment recovered from the chamber floor\.'/);
   assert.equal((secretCollectibles.match(/restorationSetId:\s*'forgotten-mural-seal'/g) || []).length, 3);
   assert.match(platforms, /id:\s*'forgotten-mural-lower-masonry'[\s\S]*?collapsed ceremonial masonry step/);
   assert.match(platforms, /id:\s*'forgotten-mural-carved-wall-ledge'[\s\S]*?carved wall ledge in hidden priest passage/);
-  assert.match(platforms, /id:\s*'forgotten-mural-alcove-floor'[\s\S]*?y:\s*JY\(-112\)[\s\S]*?forgotten mural alcove floor/);
+  assert.match(platforms, /id:\s*'forgotten-mural-alcove-floor'[\s\S]*?y:\s*JY\(-112\)[\s\S]*?full Forgotten Mural Chamber floor/);
   assert.match(platforms, /id:\s*'forgotten-mural-forward-passage-step'[\s\S]*?forward stonework return from the hidden alcove/);
   assert.match(platforms, /id:\s*'forgotten-mural-lower-return'[\s\S]*?lower return ledge from priest passage/);
   assert.match(platforms, /id:\s*'forgotten-mural-lower-masonry'[\s\S]*?invisible:\s*true/);
@@ -225,7 +231,7 @@ test('first Egypt secret route rewards curiosity without changing main progressi
     ['forgotten-mural-priest-passage-shelf', 5030, 104, 260],
     ['forgotten-mural-column-shelf', 5225, 44, 230],
     ['forgotten-mural-upper-doorway-floor', 5425, -20, 280],
-    ['forgotten-mural-alcove-floor', 5295, -112, 350],
+    ['forgotten-mural-alcove-floor', 5010, -112, 920],
     ['forgotten-mural-forward-passage-step', 5588, -54, 230],
     ['forgotten-mural-return-masonry', 5795, 52, 240],
     ['forgotten-mural-lower-return', 5995, 170, 260],
@@ -257,10 +263,46 @@ test('first Egypt secret route rewards curiosity without changing main progressi
   assert.match(events, /A shadow moves above the ruins\. A blue scarab glow vanishes into the upper doorway\./);
   assert.match(journeyComponentSource, /event\.type === 'looter-shadow'/);
   assert.match(journeyComponentSource, /drawForgottenMuralChamberInterior/);
+  assert.match(journeyComponentSource, /drawForgottenMuralChamberTransition/);
+  assert.match(journeyComponentSource, /FORGOTTEN_MURAL_CHAMBER_TRANSITION_DURATION = 2\.15/);
+  assert.match(journeyComponentSource, /phase:\s*'doorway-fade'/);
+  assert.match(journeyComponentSource, /JOURNEY_SCENE_IDS = Object\.freeze/);
+  assert.match(journeyComponentSource, /FORGOTTEN_MURAL_CHAMBER:\s*'forgotten-mural-chamber'/);
+  assert.match(journeyComponentSource, /currentSceneId:\s*getJourneySceneId\(current\)/);
+  assert.match(journeyComponentSource, /sceneTransitionState:/);
+  assert.match(journeyComponentSource, /sceneReturn:/);
+  assert.match(journeyComponentSource, /isEntityActiveInScene\(platform, current\)/);
+  assert.match(journeyComponentSource, /isEntityActiveInScene\(hazard, current\)/);
+  assert.match(journeyComponentSource, /isEntityActiveInScene\(secret, current\)/);
+  assert.match(journeyComponentSource, /if \(!isEntityActiveInScene\(e, current\)\) return;/);
+  assert.match(journeyComponentSource, /if \(!isEntityActiveInScene\(g, current\)\) return;/);
+  assert.match(scarabFragment, /sceneId:\s*'forgotten-mural-chamber'/);
+  assert.match(scarabFragmentTwo, /sceneId:\s*'forgotten-mural-chamber'/);
+  assert.match(scarabFragmentThree, /sceneId:\s*'forgotten-mural-chamber'/);
+  assert.match(platforms, /id:\s*'forgotten-mural-alcove-floor'[\s\S]*?sceneId:\s*'forgotten-mural-chamber'/);
+  assert.match(journeyComponentSource, /lockMovement:\s*true/);
+  assert.match(journeyComponentSource, /FORGOTTEN_MURAL_CHAMBER_SWITCH_SECONDS/);
+  assert.match(journeyComponentSource, /FORGOTTEN_MURAL_CHAMBER_ENTRY_SPAWN = \{/);
+  assert.match(journeyComponentSource, /x:\s*scaleJourneyX\(956\)/);
+  assert.match(journeyComponentSource, /y:\s*openingJourneyY\(-112\)/);
+  assert.match(journeyComponentSource, /player\.x = FORGOTTEN_MURAL_CHAMBER_ENTRY_SPAWN\.x - player\.width \/ 2/);
+  assert.match(journeyComponentSource, /player\.y = FORGOTTEN_MURAL_CHAMBER_ENTRY_SPAWN\.y - player\.height/);
+  assert.match(journeyComponentSource, /id:\s*'forgotten-mural-chamber-exit'/);
+  assert.match(journeyComponentSource, /toSceneId:\s*JOURNEY_SCENE_IDS\.EXTERIOR/);
+  assert.match(journeyComponentSource, /FORGOTTEN_MURAL_CHAMBER_EXIT_TRIGGER = \{[\s\S]*?minX:\s*scaleJourneyX\(880\)[\s\S]*?maxX:\s*scaleJourneyX\(906\)/);
+  assert.doesNotMatch(journeyComponentSource, /FORGOTTEN_MURAL_CHAMBER_EXIT_TRIGGER = \{[\s\S]*?maxX:\s*scaleJourneyX\(950\)/);
   assert.match(journeyComponentSource, /forgottenMuralChamberActive/);
   assert.match(journeyComponentSource, /forgottenMuralLooterSeen/);
   assert.match(journeyComponentSource, /forgottenMuralChamberRestored/);
+  assert.match(journeyComponentSource, /forgottenMuralChamberTransitionState/);
+  assert.match(journeyComponentSource, /forgottenMuralPlayerCenterX >= scaleJourneyX\(888\)/);
+  assert.match(journeyComponentSource, /forgottenMuralPlayerCenterX <= scaleJourneyX\(1020\)/);
+  assert.match(journeyComponentSource, /player\.y < GROUND_Y - 170/);
   assert.match(journeyUtilsSource, /forgottenMuralChamberActive:\s*false/);
+  assert.match(journeyUtilsSource, /forgottenMuralChamberTransition:\s*null/);
+  assert.match(journeyUtilsSource, /currentSceneId:\s*'egypt-exterior-route'/);
+  assert.match(journeyUtilsSource, /sceneTransition:\s*null/);
+  assert.match(journeyUtilsSource, /sceneReturn:\s*null/);
   assert.match(journeyUtilsSource, /forgottenMuralLooterSeen:\s*false/);
 
   assert.match(routeGates, /id:\s*'temple-approach-seal'[\s\S]*?requires:\s*\{[\s\S]*?shards:\s*4/);
@@ -723,6 +765,10 @@ test('opening Scarab Seal becomes a restrained false-discovery threshold scene',
   assert.match(appSource, /openingThresholdStoneShift:\s*\{/);
   assert.match(appSource, /openingThresholdFinalPulse:\s*\{/);
   assert.match(appSource, /opening-desert-wind\.ogg/);
+  assert.match(appSource, /id:\s*'wind-bed'[\s\S]*?loop:\s*true/);
+  assert.match(appSource, /id:\s*'wind-high-drift'[\s\S]*?delay:\s*7200[\s\S]*?playbackRate:\s*1\.08[\s\S]*?loop:\s*true/);
+  assert.match(appSource, /id:\s*'wind-low-swell'[\s\S]*?delay:\s*16400[\s\S]*?playbackRate:\s*0\.72[\s\S]*?loop:\s*true/);
+  assert.match(appSource, /\$\{sfxKey\}:\$\{clip\.id \|\| clip\.path\}/);
   assert.match(appSource, /opening-deep-rumble\.ogg/);
   assert.match(appSource, /opening-earth-shake\.flac/);
   assert.match(source, /dialogueTiming:\s*\[0\.8,\s*3\.2,\s*5\.8,\s*8\.4,\s*11\]/);
@@ -898,7 +944,7 @@ test('route props render on platform edges instead of distant background layers'
   });
   assert.match(
     journeyComponentSource,
-    /PLATFORMS[\s\S]*?\.forEach\(\(platform\) => drawPlatform\(ctx, platform, cameraX, current\)\);[\s\S]*?STORY_PROPS\.forEach\(\(prop\) => drawStoryProp\(ctx, prop, cameraX, now, 'route-edge'\)\)/,
+    /PLATFORMS[\s\S]*?\.forEach\(\(platform\) => drawPlatform\(ctx, platform, cameraX, current\)\);[\s\S]*?STORY_PROPS\.filter\(prop => isEntityActiveInScene\(prop, current\)\)\.forEach\(\(prop\) => drawStoryProp\(ctx, prop, cameraX, now, 'route-edge'\)\)/,
   );
   assert.match(journeyComponentSource, /if \(prop\.depth === 'route-edge'\) return 'route-edge';/);
 });
@@ -1159,6 +1205,32 @@ test('Asha V5 is available as a separate character-loader atlas', () => {
   assert.equal(Object.keys(ashaV5PlayerAtlas.regions).length, 93);
   assert.equal(ashaV5PlayerAtlas.poseSources.run_09, 'asha-v5-run-source.png:frame_09');
   assert.equal(ashaV5PlayerAtlas.poseSources.hurt_04, 'asha-v5-damage-source.png:frame_04');
+});
+
+test('Asha New Idle is available as a separate character-loader atlas', () => {
+  assert.match(journeyComponentSource, /id:\s*'asha-new-idle'/);
+  assert.match(journeyComponentSource, /label:\s*'Asha New Idle'/);
+  assert.match(journeyComponentSource, /characterId:\s*'asha-new-idle'/);
+  assert.match(journeyComponentSource, /atlasPath:\s*'assets\/expedition\/player\/asha-new-idle-spritesheet\.json'/);
+  assert.match(journeyComponentSource, /fallbackAtlasPath:\s*'assets\/expedition\/player\/asha-v5-spritesheet\.json'/);
+  assert.equal(ashaNewIdlePlayerAtlas.status, 'production-candidate-asha-new-idle');
+  assert.equal(ashaNewIdlePlayerAtlas.productionReference, 'asha-new-idle-reference.png');
+  assert.equal(ashaNewIdlePlayerAtlas.draw.height, 119);
+  assert.equal(ashaNewIdlePlayerAtlas.draw.fixedFrame.idle, 'idle_00');
+  assert.equal(ashaNewIdlePlayerAtlas.rows.find(row => row.name === 'idle')?.frameCount, 8);
+  assert.equal(Object.keys(ashaNewIdlePlayerAtlas.regions).length, 93);
+  assert.equal(ashaNewIdlePlayerAtlas.poseSources.idle_00, 'asha-new-generated-grid-raw.png:idle_00');
+  assert.equal(ashaNewIdlePlayerAtlas.poseSources.idle_01, 'asha-new-generated-grid-raw.png:idle_01');
+  assert.equal(ashaNewIdlePlayerAtlas.poseSources.walk_00, 'asha-new-generated-grid-raw.png:run_00');
+  assert.equal(ashaNewIdlePlayerAtlas.poseSources.run_09, 'asha-new-generated-grid-raw.png:run_05');
+  assert.equal(ashaNewIdlePlayerAtlas.poseSources.survey_walk_00, 'asha-new-generated-grid-raw.png:run_00');
+  assert.equal(ashaNewIdlePlayerAtlas.poseSources.jump_00, 'asha-new-generated-grid-raw.png:jump_00');
+  assert.equal(ashaNewIdlePlayerAtlas.poseSources.fall_00, 'asha-new-generated-grid-raw.png:jump_03');
+  assert.equal(ashaNewIdlePlayerAtlas.poseSources.land_00, 'asha-new-generated-grid-raw.png:jump_05');
+  assert.equal(ashaNewIdlePlayerAtlas.poseSources.attack_pick_swing_00, 'asha-new-generated-grid-raw.png:attack_pick_swing_00');
+  assert.equal(ashaNewIdlePlayerAtlas.poseSources.attack_pick_swing_05, 'asha-new-generated-grid-raw.png:attack_pick_swing_05');
+  assert.equal(ashaNewIdlePlayerAtlas.poseSources.hurt_04, 'asha-v5-damage-source.png:frame_04');
+  assert.ok(ashaNewIdlePlayerAtlas.description.includes('separate character-loader name'));
 });
 
 test('Egypt Journey keeps marker assets available but removes flag visuals from the route', () => {
