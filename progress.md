@@ -3291,3 +3291,10 @@ Remaining notes:
 - Strengthened the existing non-boss attack tell renderer with small protected-site glyph flashes, a cyan guarded shimmer for protected windups, and a green-gold recovery opening cue.
 - Added a compact deflect ring/spark effect through the existing protected-hit combat effect path so rushed hits into Scout/Warden protected windups read as blocked rather than missed.
 - Kept Phase 5A timing values, Phase 5B spacing/cooldown values, enemy health, enemy damage, enemy speed, movement, jump, platform geometry, route gates, shard counts, tools, boss tuning, Base Camp, excavation, and China content unchanged.
+
+## 2026-05-25 Phase 5C Animation-Led Desert Combat Telegraph Pass
+
+- Shifted the first Scarab Scout and Seal Warden readability layer toward body language: scarabs brace back before charging, lunge forward while committed, then dip/skid during recovery; scorpions lift into guarded windup, commit into the sting, then sag into an overextended recovery pose.
+- Reused existing enemy sprite frames and the existing combat effect path instead of replacing sprites, changing combat states, or adding an overlay/tutorial system.
+- Toned down the earlier glow/ring feedback into smaller dust, sand skid, shell-spark, and understated glyph flicker cues so the player reads the enemy posture first.
+- Kept Phase 5A timing values, Phase 5B placement/spacing values, movement, jump, platform geometry, hitboxes, route gates, shard counts, tools, boss tuning, Scarab Queen tuning, Base Camp, excavation, and China content unchanged.

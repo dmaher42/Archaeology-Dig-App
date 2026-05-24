@@ -485,6 +485,7 @@ export const getEnemySpriteFrame = (enemy, combatMode, now = 0) => {
   if (combatMode === 'stunned') return `${family}Hit`;
   if (combatMode === 'windup') return `${family}Windup`;
   if (combatMode === 'attacking') return `${family}Attack`;
+  if (combatMode === 'cooldown' && (family === 'scarab' || family === 'scorpion')) return `${family}Hit`;
 
   if (family === 'scarab') return `scarabWalk${walkFrame}`;
   if (family === 'snake') return `snakeWalk${walkFrame}`;
@@ -504,6 +505,44 @@ export const getEnemySpriteFrame = (enemy, combatMode, now = 0) => {
 };
 
 export const shouldFlipEnemySprite = (_family, facing = 1) => facing < 0;
+
+export const getEnemyBodyLanguagePose = (enemy, combatMode) => {
+  const family = getEnemySpriteFamily(enemy);
+  const direction = enemy?.attackDirection || enemy?.direction || 1;
+  const base = { offsetX: 0, offsetY: 0, scaleX: 1, scaleY: 1, rotation: 0 };
+
+  if (family === 'scarab') {
+    if (combatMode === 'windup') {
+      return { offsetX: -direction * 5, offsetY: 1, scaleX: 0.94, scaleY: 1.08, rotation: -direction * 0.055 };
+    }
+    if (combatMode === 'attacking') {
+      return { offsetX: direction * 7, offsetY: 0, scaleX: 1.08, scaleY: 0.94, rotation: direction * 0.035 };
+    }
+    if (combatMode === 'cooldown') {
+      return { offsetX: -direction * 3, offsetY: 3, scaleX: 0.98, scaleY: 0.9, rotation: direction * 0.085 };
+    }
+    if (combatMode === 'stunned') {
+      return { offsetX: -direction * 4, offsetY: 2, scaleX: 0.98, scaleY: 0.92, rotation: direction * 0.11 };
+    }
+  }
+
+  if (family === 'scorpion') {
+    if (combatMode === 'windup') {
+      return { offsetX: -direction * 2, offsetY: -3, scaleX: 0.98, scaleY: 1.07, rotation: -direction * 0.035 };
+    }
+    if (combatMode === 'attacking') {
+      return { offsetX: direction * 5, offsetY: -1, scaleX: 1.05, scaleY: 0.98, rotation: direction * 0.025 };
+    }
+    if (combatMode === 'cooldown') {
+      return { offsetX: -direction * 2, offsetY: 4, scaleX: 0.98, scaleY: 0.93, rotation: direction * 0.065 };
+    }
+    if (combatMode === 'stunned') {
+      return { offsetX: -direction * 3, offsetY: 2, scaleX: 0.98, scaleY: 0.94, rotation: direction * 0.085 };
+    }
+  }
+
+  return base;
+};
 
 export const getEnemySpriteDrawBox = (enemy, screenX, shakeX = 0, combatMode = null) => {
   const family = getEnemySpriteFamily(enemy);

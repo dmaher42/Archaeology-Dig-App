@@ -170,6 +170,7 @@ import {
   ENEMY_SPRITE_ATLAS_JSON,
   ENEMY_SPRITE_ATLAS_VERSION,
   EXPECTED_CHINA_ENEMY_GUARDIAN_SPRITE_KEYS,
+  getEnemyBodyLanguagePose,
   getEnemySpriteDrawBox,
   getEnemySpriteFamily,
   getEnemySpriteFrame,
@@ -8272,6 +8273,7 @@ export default function ExpeditionJourney({
 
     const centerX = screenX + enemy.width / 2 + stableShakeX;
     const baseY = enemy.y + enemy.height;
+    const bodyPose = getEnemyBodyLanguagePose(enemy, combatMode);
     const groundedDrawBox = atlasRegion
       ? {
         ...drawBox,
@@ -8306,8 +8308,22 @@ export default function ExpeditionJourney({
     }
 
     if (shouldFlip) {
-      ctx.translate(groundedDrawBox.x + groundedDrawBox.width / 2, 0);
-      ctx.scale(-1, 1);
+      ctx.translate(groundedDrawBox.x + groundedDrawBox.width / 2 + bodyPose.offsetX, groundedDrawBox.y + groundedDrawBox.height + bodyPose.offsetY);
+      ctx.rotate(bodyPose.rotation);
+      ctx.scale(-bodyPose.scaleX, bodyPose.scaleY);
+    } else {
+      ctx.translate(groundedDrawBox.x + groundedDrawBox.width / 2 + bodyPose.offsetX, groundedDrawBox.y + groundedDrawBox.height + bodyPose.offsetY);
+      ctx.rotate(bodyPose.rotation);
+      ctx.scale(bodyPose.scaleX, bodyPose.scaleY);
+    }
+
+    if (combatMode === 'cooldown' && (family === 'scarab' || family === 'scorpion')) {
+      ctx.globalAlpha = 0.42;
+      ctx.fillStyle = 'rgba(136, 82, 36, 0.24)';
+      ctx.beginPath();
+      ctx.ellipse(0, 4, groundedDrawBox.width * 0.22, 3.5, bodyPose.rotation * 0.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
     }
 
     const drawn = drawAtlasRegion(
@@ -8315,8 +8331,8 @@ export default function ExpeditionJourney({
       spritePack,
       frameKey,
       {
-        x: shouldFlip ? -groundedDrawBox.width / 2 : groundedDrawBox.x,
-        y: groundedDrawBox.y,
+        x: -groundedDrawBox.width / 2,
+        y: -groundedDrawBox.height,
         width: groundedDrawBox.width,
         height: groundedDrawBox.height,
       },
@@ -8850,49 +8866,42 @@ export default function ExpeditionJourney({
       ctx.restore();
     };
     ctx.save();
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 1.5;
     if (recoveryActive) {
-      ctx.globalAlpha = 0.46 + recoveryGoldPulse * 0.18;
-      ctx.strokeStyle = 'rgba(214, 185, 92, 0.9)';
-      ctx.fillStyle = 'rgba(34, 197, 94, 0.13)';
+      ctx.globalAlpha = 0.24 + recoveryGoldPulse * 0.1;
+      ctx.fillStyle = 'rgba(136, 82, 36, 0.34)';
       ctx.beginPath();
-      ctx.roundRect(screenX - 8, enemy.y - 8, enemy.width + 16, enemy.height + 16, 8);
+      ctx.ellipse(screenX + enemy.width / 2 - direction * 4, footY, enemy.width * 0.78, 4.5, 0, 0, Math.PI * 2);
       ctx.fill();
-      ctx.stroke();
-      ctx.globalAlpha = 0.36 + recoveryGoldPulse * 0.28;
-      ctx.strokeStyle = 'rgba(187, 247, 208, 0.72)';
+      ctx.globalAlpha = 0.2 + recoveryGoldPulse * 0.08;
+      ctx.strokeStyle = 'rgba(214, 185, 92, 0.58)';
       ctx.beginPath();
-      ctx.roundRect(screenX - 12, enemy.y - 12, enemy.width + 24, enemy.height + 24, 10);
+      ctx.moveTo(screenX + enemy.width * 0.28, footY + 1);
+      ctx.lineTo(screenX + enemy.width * 0.68 - direction * 10, footY + 1);
       ctx.stroke();
-      ctx.globalAlpha = 0.48;
-      ctx.fillStyle = 'rgba(214, 185, 92, 0.34)';
-      ctx.beginPath();
-      ctx.ellipse(screenX + enemy.width / 2, footY, enemy.width * 0.82, 5, 0, 0, Math.PI * 2);
-      ctx.fill();
-      drawGlyphFlash(screenX + enemy.width / 2, enemy.y - 10, Math.max(8, enemy.width * 0.28), 'rgba(214, 185, 92, 0.9)', 0.28);
+      drawGlyphFlash(screenX + enemy.width / 2, enemy.y - 7, Math.max(5, enemy.width * 0.18), 'rgba(214, 185, 92, 0.58)', 0.12);
     } else if (tellActive) {
-      ctx.globalAlpha = guardedTell ? 0.5 + protectedSitePulse * 0.18 : 0.44;
-      ctx.strokeStyle = guardedTell ? 'rgba(125, 211, 252, 0.9)' : 'rgba(250, 204, 21, 0.9)';
-      ctx.fillStyle = guardedTell ? 'rgba(125, 211, 252, 0.11)' : 'rgba(250, 204, 21, 0.1)';
+      ctx.globalAlpha = guardedTell ? 0.18 + protectedSitePulse * 0.08 : 0.16;
+      ctx.fillStyle = guardedTell ? 'rgba(80, 114, 122, 0.22)' : 'rgba(136, 82, 36, 0.2)';
       ctx.beginPath();
-      ctx.roundRect(screenX - 6, enemy.y - 6, enemy.width + 12, enemy.height + 12, 7);
+      ctx.ellipse(screenX + enemy.width / 2 - direction * 4, footY, enemy.width * 0.62, 4, 0, 0, Math.PI * 2);
       ctx.fill();
-      ctx.stroke();
       if (guardedTell) {
-        ctx.globalAlpha = 0.2 + protectedSitePulse * 0.24;
-        ctx.strokeStyle = 'rgba(125, 211, 252, 0.68)';
+        ctx.globalAlpha = 0.16 + protectedSitePulse * 0.08;
+        ctx.strokeStyle = 'rgba(125, 211, 252, 0.34)';
         ctx.beginPath();
-        ctx.ellipse(screenX + enemy.width / 2, enemy.y + enemy.height / 2, enemy.width * 0.68, enemy.height * 0.82, 0, 0, Math.PI * 2);
+        ctx.moveTo(screenX + enemy.width / 2 - direction * 5, enemy.y + 2);
+        ctx.lineTo(screenX + enemy.width / 2 + direction * 8, enemy.y - 7);
         ctx.stroke();
-        drawGlyphFlash(screenX + enemy.width / 2, enemy.y - 8, Math.max(9, enemy.width * 0.34), 'rgba(125, 211, 252, 0.92)', 0.38);
+        drawGlyphFlash(screenX + enemy.width / 2, enemy.y - 5, Math.max(5, enemy.width * 0.18), 'rgba(125, 211, 252, 0.5)', 0.1);
       }
-      ctx.globalAlpha = (guardedTell ? 0.18 : 0.26) * pulse;
+      ctx.globalAlpha = (guardedTell ? 0.07 : 0.1) * pulse;
       ctx.fillStyle = pattern.color || '#facc15';
       ctx.beginPath();
       ctx.roundRect(boxX, attackBox.y, attackBox.width, attackBox.height, 6);
       ctx.fill();
     } else if (attackActive) {
-      ctx.globalAlpha = 0.24;
+      ctx.globalAlpha = 0.11;
       ctx.fillStyle = pattern.color || '#fb923c';
       ctx.beginPath();
       ctx.roundRect(boxX, attackBox.y, attackBox.width, attackBox.height, 6);
@@ -8920,10 +8929,10 @@ export default function ExpeditionJourney({
       ctx.strokeStyle = effect.color || '#facc15';
       ctx.fillStyle = effect.color || '#facc15';
       ctx.lineWidth = 3;
-      if (['movement-dust', 'landing-dust', 'jump-dust', 'knockback-dust'].includes(effect.type)) {
+      if (['movement-dust', 'landing-dust', 'jump-dust', 'knockback-dust', 'sand-skid'].includes(effect.type)) {
         const direction = effect.direction || 1;
-        const dustWidth = effect.type === 'landing-dust' ? 44 : effect.type === 'jump-dust' ? 34 : 28;
-        ctx.globalAlpha = Math.max(0, progress * (effect.type === 'movement-dust' ? 0.38 : 0.58));
+        const dustWidth = effect.type === 'landing-dust' ? 44 : effect.type === 'jump-dust' ? 34 : effect.type === 'sand-skid' ? 38 : 28;
+        ctx.globalAlpha = Math.max(0, progress * (effect.type === 'movement-dust' ? 0.38 : effect.type === 'sand-skid' ? 0.42 : 0.58));
         ctx.fillStyle = effect.color || 'rgba(217, 161, 88, 0.62)';
         for (let i = 0; i < 4; i += 1) {
           const offset = (i - 1.5) * 9 * direction + (1 - progress) * direction * (8 + i * 4);
@@ -8991,25 +9000,29 @@ export default function ExpeditionJourney({
       if (effect.type === 'enemy-guard-deflect') {
         const drawDeflectRing = (radius, alpha, lineWidth = 2) => {
           ctx.globalAlpha = Math.max(0, progress * alpha);
-          ctx.strokeStyle = effect.color || '#7dd3fc';
+          ctx.strokeStyle = effect.color || 'rgba(214, 185, 92, 0.7)';
           ctx.lineWidth = lineWidth;
           ctx.beginPath();
-          ctx.ellipse(x, y, radius * 1.12, radius * 0.72, 0, 0, Math.PI * 2);
+          ctx.ellipse(x, y + 2, radius * 1.05, radius * 0.58, 0, 0, Math.PI * 2);
           ctx.stroke();
         };
-        drawDeflectRing(16 + (1 - progress) * 16, 0.64, 2.4);
-        drawDeflectRing(10 + (1 - progress) * 10, 0.42, 1.4);
-        ctx.strokeStyle = 'rgba(214, 185, 92, 0.8)';
-        ctx.globalAlpha = Math.max(0, progress * 0.5);
-        for (let i = 0; i < 6; i += 1) {
-          const angle = i * (Math.PI / 3) + 0.18;
-          const inner = 9 + (1 - progress) * 5;
-          const outer = 16 + (1 - progress) * 12;
+        drawDeflectRing(7 + (1 - progress) * 5, 0.34, 1.2);
+        ctx.strokeStyle = 'rgba(214, 185, 92, 0.78)';
+        ctx.globalAlpha = Math.max(0, progress * 0.52);
+        for (let i = 0; i < 4; i += 1) {
+          const angle = -0.75 + i * 0.5;
+          const inner = 5 + (1 - progress) * 2;
+          const outer = 11 + (1 - progress) * 5;
           ctx.beginPath();
           ctx.moveTo(x + Math.cos(angle) * inner, y + Math.sin(angle) * inner * 0.75);
           ctx.lineTo(x + Math.cos(angle) * outer, y + Math.sin(angle) * outer * 0.75);
           ctx.stroke();
         }
+        ctx.fillStyle = 'rgba(136, 82, 36, 0.28)';
+        ctx.globalAlpha = Math.max(0, progress * 0.34);
+        ctx.beginPath();
+        ctx.ellipse(x, y + 16, 15 + (1 - progress) * 6, 3.5, 0, 0, Math.PI * 2);
+        ctx.fill();
         ctx.restore();
         return;
       }
@@ -11648,6 +11661,15 @@ export default function ExpeditionJourney({
           y: e.y + e.height / 2,
           color: '#d6b95c',
         });
+        addCombatEffect(current, {
+          type: 'sand-skid',
+          x: e.x + e.width / 2,
+          y: e.y + e.height,
+          direction: -(e.attackDirection || e.direction || 1),
+          color: 'rgba(136, 82, 36, 0.42)',
+          timer: 0.42,
+          maxTimer: 0.42,
+        });
       }
 
       const distanceToPlayer = (player.x + player.width / 2) - (e.x + e.width / 2);
@@ -11788,7 +11810,7 @@ export default function ExpeditionJourney({
             type: 'enemy-guard-deflect',
             x: e.x + e.width / 2,
             y: e.y + e.height / 2,
-            color: '#7dd3fc',
+            color: 'rgba(214, 185, 92, 0.78)',
             timer: 0.34,
             maxTimer: 0.34,
           });

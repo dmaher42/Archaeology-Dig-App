@@ -2,7 +2,12 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { getScarabQueenDrawBox, getScarabQueenSpriteFrame, shouldFlipBossSprite } from './journeyBossSprites.js';
-import { getEnemySpriteDrawBox, shouldFlipEnemySprite } from './journeyEnemySprites.js';
+import {
+  getEnemyBodyLanguagePose,
+  getEnemySpriteDrawBox,
+  getEnemySpriteFrame,
+  shouldFlipEnemySprite,
+} from './journeyEnemySprites.js';
 import { PLAYER_SPRITE_DRAW_HEIGHT } from './journeyConstants.js';
 import { readFileSync } from 'node:fs';
 
@@ -220,10 +225,47 @@ test('Phase 5C early desert combat feedback uses protected-site visual cues', ()
   assert.match(journeyComponentSource, /recoveryGoldPulse/);
   assert.match(journeyComponentSource, /enemy-guard-deflect/);
   assert.match(journeyComponentSource, /enemy-counter-window[\s\S]*?color:\s*'#d6b95c'/);
-  assert.match(journeyComponentSource, /type:\s*'enemy-guard-deflect'[\s\S]*?color:\s*'#7dd3fc'/);
+  assert.match(journeyComponentSource, /type:\s*'enemy-guard-deflect'[\s\S]*?color:\s*'rgba\(214, 185, 92, 0\.78\)'/);
   assert.doesNotMatch(journeyComponentSource, /text:\s*'WAIT'/);
   assert.doesNotMatch(journeyComponentSource, /text:\s*'COUNTER'/);
   assert.doesNotMatch(journeyComponentSource, /text:\s*'DEFLECT'/);
+});
+
+test('Phase 5C animation-led desert telegraphs use body language instead of larger overlays', () => {
+  const scarabScout = {
+    id: 'scarab-scout-1',
+    name: 'Scarab Scout',
+    type: 'scarab',
+    x: 705,
+    y: 334,
+    width: 34,
+    height: 26,
+    direction: 1,
+    attackDirection: 1,
+  };
+  const sealWarden = {
+    id: 'scorpion-seal-path-1',
+    name: 'Seal Warden Scorpion',
+    type: 'scorpion',
+    x: 1095,
+    y: 328,
+    width: 46,
+    height: 30,
+    direction: -1,
+    attackDirection: -1,
+  };
+
+  assert.equal(getEnemySpriteFrame(scarabScout, 'cooldown', 0), 'scarabHit');
+  assert.equal(getEnemySpriteFrame(sealWarden, 'cooldown', 0), 'scorpionHit');
+  assert.equal(getEnemyBodyLanguagePose(scarabScout, 'windup').offsetX < 0, true, 'Scarab Scout should brace backward before charge');
+  assert.equal(getEnemyBodyLanguagePose(scarabScout, 'attacking').offsetX > 0, true, 'Scarab Scout should commit forward during charge');
+  assert.equal(getEnemyBodyLanguagePose(scarabScout, 'cooldown').offsetY > 0, true, 'Scarab Scout should dip/skid in recovery');
+  assert.equal(getEnemyBodyLanguagePose(sealWarden, 'windup').offsetY < 0, true, 'Seal Warden should raise/lock posture during guarded windup');
+  assert.equal(getEnemyBodyLanguagePose(sealWarden, 'cooldown').offsetY > 0, true, 'Seal Warden should look overextended in recovery');
+  assert.match(journeyComponentSource, /getEnemyBodyLanguagePose\(enemy, combatMode\)/);
+  assert.match(journeyComponentSource, /ctx\.rotate\(bodyPose\.rotation\)/);
+  assert.match(journeyComponentSource, /sand-skid/);
+  assert.doesNotMatch(journeyComponentSource, /drawDeflectRing\(16 \+ \(1 - progress\) \* 16/);
 });
 
 test('combat feedback avoids arcade text labels in the playfield', () => {
