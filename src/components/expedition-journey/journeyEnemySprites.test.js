@@ -203,8 +203,11 @@ test('Scarab Queen draw box matches the fixed atlas ratio closely enough to stay
   assert.ok(Math.abs((drawBox.y + drawBox.height) - (boss.y + boss.height + 4)) < 0.001, 'Queen draw box should stay grounded to boss feet');
 });
 
-test('enemy attack tells stay disabled so combat reads through sprite animation', () => {
-  assert.match(journeyComponentSource, /const drawEnemyAttackTell = useCallback\(\(\) => \{\}, \[\]\)/);
+test('enemy attack tells use compact timing overlays without arcade labels', () => {
+  assert.match(journeyComponentSource, /const drawEnemyAttackTell = useCallback\(\(ctx, enemy/);
+  assert.match(journeyComponentSource, /if \(boss \|\| enemy\.defeated\) return/);
+  assert.match(journeyComponentSource, /attackTellActive/);
+  assert.match(journeyComponentSource, /recoveryWindowActive/);
   assert.doesNotMatch(journeyComponentSource, /const drawChargeLane = \(\) => \{/);
   assert.doesNotMatch(journeyComponentSource, /const drawCounterWindow = \(\) => \{/);
   assert.doesNotMatch(journeyComponentSource, /enemyVisibilityAssistActive = true/);

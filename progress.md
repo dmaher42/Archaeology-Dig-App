@@ -25,6 +25,17 @@ Original prompt: Implement "Lost Site Expedition" as a small MVP game mode in th
 - Copied the generated grid into `public/assets/expedition/player/asha-new-idle-source/asha-new-generated-grid-raw.png`.
 - Reworked `scripts/build_asha_new_idle_atlas.py` so `Asha New Idle` now cuts idle, run/walk/survey-walk, jump/fall/land, and attack rows from the regenerated green-screen grid, with local chroma-key removal and despill before packing into the existing Journey 256px hero-atlas contract.
 
+2026-05-24 update:
+- Wired the newest generated Asha sheet into `Asha New Idle` as a temporary placeholder after the user confirmed the generated sheet is not final premium quality.
+- Kept the placeholder on the existing character-loader path so it can be replaced by the premium identity-locked sheets without touching Journey runtime code again.
+- Next recommended asset workflow: generate and approve a premium idle sheet from the original high-quality Asha reference first, then generate run/jump/attack to match that approved identity.
+
+2026-05-24 update:
+- Started the premium identity-first Asha replacement workflow instead of regenerating another full 32-frame sheet at once.
+- Generated and saved premium one-row candidates for idle, run, jump, and attack under `public/assets/expedition/player/asha-new-idle-source/`.
+- Current candidate files: `asha-premium-idle-candidate-raw.png`, `asha-premium-run-candidate-v2-raw.png`, `asha-premium-jump-candidate-raw.png`, and `asha-premium-attack-candidate-raw.png`.
+- These are not wired over the placeholder yet; they are staged for review/next rebuild because the identity and row quality should be approved before replacing the active placeholder atlas.
+
 2026-05-23 update:
 - Grounded the desert-to-temple exit gateway by adding a stage-entrance-specific vertical offset and applying it to both the main doorway render and foreground occluder layers.
 - Verified the doorway no longer floats in the threshold scene at `output/desert-exit-gateway-threshold-grounded.png`.
@@ -3238,3 +3249,32 @@ Remaining notes:
 - Added an optional derived story flag through the existing secret collectible state: restoring the mural makes Anubis react, "You restored what others tried to erase. Perhaps you are not like the others. Do not mistake this for trust."
 - Added a small vertical camera framing offset inside the existing Journey renderer so the lower route drops away while Asha climbs into the upper alcove; HUD/cards remain screen-anchored.
 - Kept the secret optional, preserved the hidden shard cache, and left all main route gate, shard, tool, movement, combat, boss, save/load, Base Camp, excavation, evidence, and China systems unchanged.
+
+## 2026-05-24 Phase 5A Early Desert Enemy Readability Pass
+
+- Tuned the existing early Desert Entry enemy data so Scarab Scout now teaches a slower visible charge tell and counter window, while the first Seal Warden Scorpion reads as a guarded route guardian tied to the protected-site system.
+- Added protected windup support through the existing enemy pattern/protected-hit path, so blind attacks during authored guard tells bounce with the current deflect feedback instead of adding a new combat system.
+- Added compact normal-enemy tell and recovery visuals in the existing Journey renderer, plus debug snapshot fields for attack tell, recovery window, counter window, combat role, and pressure hint.
+- Kept enemy health, boss health, boss damage, Scarab Queen tuning, route gates, shard counts, tools, movement, jump, gravity, platform geometry, Base Camp, excavation, and China content unchanged.
+
+## 2026-05-24 Asha New Idle placeholder wiring pass
+
+- Rebuilt the existing `Asha New Idle` loader atlas from the premium identity candidate sheets for idle, run-based movement, jump/fall/land, and primary spear attack.
+- Added a second `attack_pick_swing_alt` row from the generated placeholder attack sheet and wired Journey attack playback to alternate between primary and alternate rows with the existing attack start flow.
+- Left the loader name and fallback path intact: `asha-new-idle` still falls back to `asha-v5-spritesheet.json`.
+- Added regression coverage for the premium source files, the alternate attack row, and the attack alternation hook.
+- Visual atlas preview shows the wiring works, but the current movement and alternate attack source sheets still contain overlapping/clipped frame fragments; this is placeholder quality and should be regenerated with stricter one-frame-per-cell source sheets before treating Asha as final.
+
+## 2026-05-24 Asha idle regeneration pass 1
+
+- Generated a new 8-frame premium idle strip from the original high-quality Asha identity reference and saved it as `public/assets/expedition/player/asha-new-idle-source/asha-premium-idle-regeneration-01-raw.png`.
+- Rebuilt only the active `Asha New Idle` idle row from that regenerated strip, leaving run, jump, primary attack, alternate attack, hurt, interact, climb, and push/pull rows unchanged.
+- The new idle strip keeps the side-facing stance, upright spear, consistent scale, full spear tip, full feet, and calmer breathing-loop framing.
+- Saved the wired preview at `output/asha-idle-regeneration-01-wired-preview.png`.
+- Remaining Asha quality risk is now concentrated in run, jump, and alternate attack sheets, which still show source-frame overlap fragments and should be regenerated one action at a time.
+
+## 2026-05-24 Phase 5B Early Desert Encounter Isolation Pass
+
+- Isolated the Scarab Scout teaching pocket by narrowing/separating the adjacent Survey Scarab, Scout, Sand Wisp, and follow-up Scarab patrols, with short first-attack delays for support enemies through existing enemy data.
+- Isolated the Seal Warden teaching pocket by narrowing/separating the nearby Ledge Sand Wisp, Upper Route Scarab, Seal Warden, Stone Scorpion, and Sand Snake patrols, with short support-enemy first-attack delays.
+- Kept Phase 5A Scout Charge and Guarded Sting timing values, enemy health, enemy damage, enemy speed, movement, jump, gravity, platform geometry, hitboxes, route gates, shard counts, tool requirements, boss tuning, Base Camp, excavation, and China content unchanged.

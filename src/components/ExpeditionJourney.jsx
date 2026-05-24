@@ -590,9 +590,9 @@ const EGYPT_HAZARD_DECAL_PLACEMENT_BY_HAZARD = {
 };
 const openingJourneyY = (y) => y + JOURNEY_VERTICAL_OFFSET;
 const FORGOTTEN_MURAL_CHAMBER_ENTRY_SPAWN = {
-  x: scaleJourneyX(956),
-  y: openingJourneyY(-112),
-  cameraAnchorRatio: 0.42,
+  x: scaleJourneyX(918),
+  y: openingJourneyY(318),
+  cameraAnchorRatio: 0.18,
   direction: 1,
 };
 const FORGOTTEN_MURAL_CHAMBER_RETURN_FALLBACK = {
@@ -601,10 +601,24 @@ const FORGOTTEN_MURAL_CHAMBER_RETURN_FALLBACK = {
   cameraAnchorRatio: 0.42,
   direction: 1,
 };
+const FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER = {
+  minX: scaleJourneyX(958),
+  maxX: scaleJourneyX(992),
+  maxY: GROUND_Y - 170,
+  footY: openingJourneyY(-20),
+  footTolerance: 18,
+};
+const FORGOTTEN_MURAL_CHAMBER_CAMERA_X = scaleJourneyX(880);
+const FORGOTTEN_MURAL_CHAMBER_BOUNDS = {
+  minX: scaleJourneyX(880),
+  maxX: scaleJourneyX(1074),
+};
 const FORGOTTEN_MURAL_CHAMBER_EXIT_TRIGGER = {
   minX: scaleJourneyX(880),
   maxX: scaleJourneyX(906),
-  maxY: GROUND_Y - 170,
+  maxY: GROUND_Y - 20,
+  footY: openingJourneyY(318),
+  footTolerance: 20,
 };
 const OPENING_PYRAMID_FACADE_TIERS = [
   { x: 128, y: openingJourneyY(312), width: 1560, height: 92, inset: 116, alpha: 0.9 },
@@ -864,11 +878,15 @@ const getHeroSpriteFrameKey = (current, atlas, now) => {
   }
 
   if (animationState === 'attack' || isPlayerAttackVisualPhase(attackState)) {
-    const row = getHeroSpriteRow(atlas, 'attack_pick_swing');
+    const primaryAttackRow = getHeroSpriteRow(atlas, 'attack_pick_swing');
+    const alternateAttackRow = getHeroSpriteRow(atlas, 'attack_pick_swing_alt');
+    const shouldUseAlternateAttack = Boolean(alternateAttackRow) && ((current.attackSequenceIndex || 0) % 2 === 1);
+    const attackRowName = shouldUseAlternateAttack ? 'attack_pick_swing_alt' : 'attack_pick_swing';
+    const row = shouldUseAlternateAttack ? alternateAttackRow : primaryAttackRow;
     if (!row) return null;
     const frameCount = Math.max(1, row.frameCount || row.frames?.length || 1);
-    if (attackState === 'windup') return row.frames?.[0] || 'attack_pick_swing_00';
-    if (attackState === 'recoil') return row.frames?.[frameCount - 1] || `attack_pick_swing_${String(frameCount - 1).padStart(2, '0')}`;
+    if (attackState === 'windup') return row.frames?.[0] || `${attackRowName}_00`;
+    if (attackState === 'recoil') return row.frames?.[frameCount - 1] || `${attackRowName}_${String(frameCount - 1).padStart(2, '0')}`;
     const progress = clamp((ATTACK_DURATION - Math.max(0, current.attackTimer || 0)) / ATTACK_DURATION, 0, 1);
     const firstSwingFrame = Math.min(1, frameCount - 1);
     const lastSwingFrame = Math.max(firstSwingFrame, frameCount - 2);
@@ -920,6 +938,7 @@ const ENEMY_ATTACK_PATTERNS = {
     vulnerableAfter: 0.62,
     speed: 185,
     range: 38,
+    protectedDuringWindup: false,
   },
   scorpion: {
     ...DEFAULT_ENEMY_ATTACK_PATTERN,
@@ -937,6 +956,7 @@ const ENEMY_ATTACK_PATTERNS = {
     backReach: 38,
     damageScale: 1.45,
     color: '#d97706',
+    protectedDuringWindup: false,
   },
   'sand-wisp': {
     ...DEFAULT_ENEMY_ATTACK_PATTERN,
@@ -951,6 +971,7 @@ const ENEMY_ATTACK_PATTERNS = {
     range: 38,
     height: 30,
     color: '#facc15',
+    protectedDuringWindup: false,
   },
   snake: {
     ...DEFAULT_ENEMY_ATTACK_PATTERN,
@@ -963,6 +984,7 @@ const ENEMY_ATTACK_PATTERNS = {
     vulnerableAfter: 0.68,
     speed: 166,
     range: 52,
+    protectedDuringWindup: false,
   },
   bat: {
     ...DEFAULT_ENEMY_ATTACK_PATTERN,
@@ -1809,9 +1831,6 @@ const DYNAMIC_WORLD_VERSION = 'dynamic-expedition-world-storytelling-2026-05-16'
 const DISCOVERY_ENTRANCE_REVEAL_SECONDS = 2.2;
 
 const SECTION_PARALLAX_LAYERS = {
-  'desert-entry': [
-    { key: 'foregroundParallax', y: 0, height: CANVAS_HEIGHT, parallax: 0.1, alpha: 0.78, foreground: true },
-  ],
   'ruined-temple': [
     { key: 'templeSky', y: 0, height: CANVAS_HEIGHT, parallax: 0, alpha: 1 },
   ],
@@ -1846,6 +1865,14 @@ const formatMissingSummary = (missing) => {
 
 const getCameraFollowTarget = (current) => {
   const playerCenterX = current.player.x + current.player.width / 2;
+  if (isForgottenMuralChamberScene(current)) {
+    return {
+      mode: 'fixed-scene',
+      focusTarget: Math.round(playerCenterX),
+      targetCameraX: FORGOTTEN_MURAL_CHAMBER_CAMERA_X,
+    };
+  }
+
   if (current.openingThresholdScene?.lockMovement) {
     return {
       mode: 'opening-threshold',
@@ -3129,6 +3156,9 @@ export default function ExpeditionJourney({
     vulnerable: Boolean(entity.vulnerabilityTimer > 0 || entity.attackRecovery > 0 || entity.stunTimer > 0),
     shielded: Boolean(entity.shieldTimer > 0),
     counterWindow: Number((entity.vulnerabilityTimer || 0).toFixed(2)),
+    attackTellActive: entity.attackWindup > 0,
+    recoveryWindowActive: entity.attackRecovery > 0,
+    counterWindowActive: entity.vulnerabilityTimer > 0 || entity.attackRecovery > 0,
     pattern: entity.attackPattern || null,
     patternLabel: entity.attackPhaseLabel || null,
   }), [getCombatMode]);
@@ -3517,6 +3547,8 @@ export default function ExpeditionJourney({
         pattern: nearbyCombatEnemy.attackPattern,
         label: nearbyCombatEnemy.attackPhaseLabel || getEnemyPatternConfig(nearbyCombatEnemy).label,
         state: getCombatMode(nearbyCombatEnemy),
+        combatRole: nearbyCombatEnemy.combatRole || nearbyCombatEnemy.encounterRole || null,
+        pressureHint: nearbyCombatEnemy.pressureHint || null,
       } : null,
       playerInvulnerable: Number(current.player.invulnerable.toFixed(2)),
       invulnerabilityRemainingMs: Math.round(current.player.invulnerable * 1000),
@@ -3799,6 +3831,7 @@ export default function ExpeditionJourney({
           maxHealth: enemy.maxHealth,
           x: Math.round(enemy.x),
           encounterRole: enemy.encounterRole || null,
+          combatRole: enemy.combatRole || enemy.encounterRole || null,
           protectsRouteId: enemy.protectsRouteId || null,
           pressureHint: enemy.pressureHint || null,
           ...getEntityCombatState(enemy),
@@ -3813,12 +3846,17 @@ export default function ExpeditionJourney({
           label: enemy.attackPhaseLabel || getEnemyPatternConfig(enemy).label,
           state: getCombatMode(enemy),
           encounterRole: enemy.encounterRole || null,
+          combatRole: enemy.combatRole || enemy.encounterRole || null,
           protectsRouteId: enemy.protectsRouteId || null,
+          pressureHint: enemy.pressureHint || null,
           windup: Number((enemy.attackWindup || 0).toFixed(2)),
           attack: Number((enemy.attackTimer || 0).toFixed(2)),
           recovery: Number((enemy.attackRecovery || 0).toFixed(2)),
           counterWindow: Number((enemy.vulnerabilityTimer || 0).toFixed(2)),
           shielded: Boolean(enemy.shieldTimer > 0),
+          attackTellActive: enemy.attackWindup > 0,
+          recoveryWindowActive: enemy.attackRecovery > 0,
+          counterWindowActive: enemy.vulnerabilityTimer > 0 || enemy.attackRecovery > 0,
         })),
       miniBossStates: current.miniBosses.map(boss => ({
         id: boss.id,
@@ -7308,7 +7346,6 @@ export default function ExpeditionJourney({
     const time = now / 1000;
     const baseX = (x) => scaleJourneyX(x);
     const baseY = (y) => y + JOURNEY_VERTICAL_OFFSET;
-    const parallaxX = (x, factor = 0.22) => scaleJourneyX(x) - cameraX * factor;
     const drawSoftDust = (worldX, baseY, width, alpha = 0.18, speed = 1) => {
       const x = worldToScreenX(worldX, cameraX);
       if (x < -width || x > CANVAS_WIDTH + width) return;
@@ -7322,136 +7359,6 @@ export default function ExpeditionJourney({
         ctx.ellipse(x + drift, y, 18 + i * 5, 3.2, -0.08, 0, Math.PI * 2);
         ctx.fill();
       }
-      ctx.restore();
-    };
-    const drawDistantExpeditionWorker = (authoredX, y, options = {}) => {
-      const x = parallaxX(authoredX, options.parallax ?? 0.18);
-      if (x < -80 || x > CANVAS_WIDTH + 80) return;
-      activeDetails += 1;
-      const scale = options.scale ?? 0.62;
-      const walk = Math.sin(time * (options.speed ?? 1.1) + authoredX * 0.02);
-      const bodyY = baseY(y);
-      ctx.save();
-      ctx.globalAlpha = options.alpha ?? 0.42;
-      ctx.translate(x, bodyY);
-      ctx.scale(scale, scale);
-      ctx.strokeStyle = 'rgba(69, 42, 18, 0.62)';
-      ctx.fillStyle = 'rgba(49, 32, 21, 0.56)';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.arc(0, -28, 6, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = options.hatColor || 'rgba(250, 204, 21, 0.5)';
-      ctx.fillRect(-10, -36, 20, 4);
-      ctx.strokeStyle = options.clothColor || 'rgba(120, 53, 15, 0.56)';
-      ctx.beginPath();
-      ctx.moveTo(0, -22);
-      ctx.lineTo(0, 0);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(-8, -14);
-      ctx.lineTo(8, -8);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(-7 + walk * 3, 16);
-      ctx.moveTo(0, 0);
-      ctx.lineTo(8 - walk * 3, 16);
-      ctx.stroke();
-      if (options.carryingCrate) {
-        ctx.fillStyle = 'rgba(120, 53, 15, 0.45)';
-        ctx.fillRect(8, -18, 18, 13);
-        ctx.strokeStyle = 'rgba(69, 26, 3, 0.42)';
-        ctx.strokeRect(8, -18, 18, 13);
-      }
-      ctx.restore();
-    };
-    const drawKneelingSurveyor = (authoredX, y) => {
-      const x = parallaxX(authoredX, 0.2);
-      if (x < -80 || x > CANVAS_WIDTH + 80) return;
-      activeDetails += 1;
-      const hand = Math.sin(time * 2.2 + authoredX * 0.01) * 3;
-      ctx.save();
-      ctx.globalAlpha = 0.46;
-      ctx.translate(x, baseY(y));
-      ctx.scale(0.58, 0.58);
-      ctx.fillStyle = 'rgba(49, 32, 21, 0.58)';
-      ctx.beginPath();
-      ctx.arc(0, -24, 6, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = 'rgba(250, 204, 21, 0.48)';
-      ctx.fillRect(-10, -32, 20, 4);
-      ctx.strokeStyle = 'rgba(69, 42, 18, 0.6)';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(0, -18);
-      ctx.lineTo(-10, -2);
-      ctx.lineTo(8, 4);
-      ctx.moveTo(-5, -8);
-      ctx.lineTo(16 + hand, -3);
-      ctx.stroke();
-      ctx.fillStyle = 'rgba(22, 101, 52, 0.36)';
-      ctx.fillRect(18, -5, 13, 4);
-      ctx.restore();
-    };
-    const drawTentFlap = (authoredX, y, width = 72) => {
-      const x = parallaxX(authoredX, 0.16);
-      if (x < -120 || x > CANVAS_WIDTH + 120) return;
-      activeDetails += 1;
-      const flap = Math.sin(time * 2.8 + authoredX * 0.02) * 6;
-      ctx.save();
-      ctx.globalAlpha = 0.34;
-      ctx.fillStyle = 'rgba(245, 158, 11, 0.28)';
-      ctx.strokeStyle = 'rgba(92, 49, 18, 0.28)';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(x - width / 2, baseY(y));
-      ctx.lineTo(x, baseY(y - 42));
-      ctx.lineTo(x + width / 2, baseY(y));
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-      ctx.fillStyle = 'rgba(255, 247, 212, 0.18)';
-      ctx.beginPath();
-      ctx.moveTo(x - 4, baseY(y - 34));
-      ctx.quadraticCurveTo(x + 16 + flap, baseY(y - 18), x + 4, baseY(y));
-      ctx.lineTo(x - 5, baseY(y));
-      ctx.closePath();
-      ctx.fill();
-      ctx.restore();
-    };
-    const drawRopedDigActivity = (authoredX, y) => {
-      const x = parallaxX(authoredX, 0.21);
-      if (x < -120 || x > CANVAS_WIDTH + 120) return;
-      activeDetails += 1;
-      const brush = Math.sin(time * 3.4 + authoredX * 0.01) * 5;
-      ctx.save();
-      ctx.globalAlpha = 0.36;
-      ctx.strokeStyle = 'rgba(92, 49, 18, 0.42)';
-      ctx.lineWidth = 2;
-      [-38, 38].forEach(offset => {
-        ctx.fillStyle = 'rgba(69, 26, 3, 0.38)';
-        ctx.fillRect(x + offset - 2, baseY(y - 24), 4, 30);
-      });
-      ctx.beginPath();
-      ctx.moveTo(x - 38, baseY(y - 18));
-      ctx.quadraticCurveTo(x, baseY(y - 9), x + 38, baseY(y - 18));
-      ctx.stroke();
-      ctx.fillStyle = 'rgba(92, 64, 51, 0.26)';
-      ctx.beginPath();
-      ctx.ellipse(x, baseY(y + 6), 32, 6, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(69, 42, 18, 0.52)';
-      ctx.lineWidth = 2.5;
-      ctx.beginPath();
-      ctx.arc(x - 12, baseY(y - 30), 4, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(x - 12, baseY(y - 24));
-      ctx.lineTo(x - 20, baseY(y - 8));
-      ctx.moveTo(x - 16, baseY(y - 14));
-      ctx.lineTo(x + 2 + brush, baseY(y - 4));
-      ctx.stroke();
       ctx.restore();
     };
     const drawFlutterPennant = (worldX, y, color = '#facc15') => {
@@ -7513,15 +7420,7 @@ export default function ExpeditionJourney({
     };
 
     if (section.id === 'desert-entry') {
-      drawTentFlap(128, 154, 92);
-      drawTentFlap(182, 160, 74);
-      drawDistantExpeditionWorker(150, 188, { carryingCrate: true, scale: 0.5, parallax: 0.18, speed: 0.72 });
-      drawKneelingSurveyor(206, 190);
-      drawRopedDigActivity(245, 206);
-      drawDistantExpeditionWorker(320, 198, { scale: 0.44, parallax: 0.14, alpha: 0.32, clothColor: 'rgba(15, 118, 110, 0.44)' });
-      [250, 360, 640, 790, 960, 1260].forEach((x, index) => drawSoftDust(baseX(x), GROUND_Y - 6, 118 + index * 8, index < 2 ? 0.1 : 0.14, index < 2 ? 0.55 : 0.75));
-      [250, 520, 650, 885, 1260, 1360].forEach((x, index) => drawFlutterPennant(baseX(x), baseY(306), index % 2 ? '#f59e0b' : '#facc15'));
-      if (stats) stats.ambientLifeMode = 'desert-survey-camp-life';
+      if (stats) stats.ambientLifeMode = 'desert-clean-backdrop';
     } else if (section.id === 'ruined-temple') {
       [1605, 2145, 2890].forEach((x, index) => drawFlutterPennant(baseX(x), baseY(306), index === 2 ? '#dc2626' : '#d97706'));
       [1860, 2640].forEach(x => drawGlowPulse(baseX(x), baseY(232), 'rgba(250, 204, 21, 0.16)', 84));
@@ -7992,13 +7891,7 @@ export default function ExpeditionJourney({
     const assets = getSectionBackgroundAssets(desertBackgroundAssetsRef.current, 'desert-entry');
     if (!isNearDesertEntry || !assets?.ready) return false;
     if (assets.atlas?.runtimeMode === 'single-composited-backdrop') {
-      return drawDesertBackgroundLayer(
-        ctx,
-        assets,
-        'dustOverlay',
-        { y: 0, height: CANVAS_HEIGHT },
-        { canvasWidth: CANVAS_WIDTH, cameraX, parallax: 0.14, alpha: 0.16 },
-      );
+      return false;
     }
     const layerOptions = { canvasWidth: CANVAS_WIDTH, cameraX };
     const dustDrawn = drawDesertBackgroundLayer(
@@ -8911,7 +8804,64 @@ export default function ExpeditionJourney({
 
   const drawAttackArc = useCallback(() => {}, []);
 
-  const drawEnemyAttackTell = useCallback(() => {}, []);
+  const drawEnemyAttackTell = useCallback((ctx, enemy, screenX, cameraX, now, boss = false) => {
+    if (boss || enemy.defeated) return;
+    const pattern = getEnemyPatternConfig(enemy);
+    const direction = enemy.attackDirection || enemy.direction || 1;
+    const attackBox = getAttackBox(
+      enemy,
+      pattern.range,
+      pattern.height,
+      direction,
+      pattern.yOffset || 0,
+      pattern.backReach || 0,
+    );
+    const tellActive = enemy.attackWindup > 0;
+    const attackActive = enemy.attackTimer > 0;
+    const recoveryActive = enemy.attackRecovery > 0 || enemy.vulnerabilityTimer > 0;
+    const guardedTell = tellActive && pattern.protectedDuringWindup;
+    if (!tellActive && !attackActive && !recoveryActive && !guardedTell) return;
+
+    const boxX = attackBox.x - cameraX;
+    const footY = enemy.y + enemy.height + 4;
+    const pulse = 0.72 + Math.sin(now / 90) * 0.18;
+    ctx.save();
+    ctx.lineWidth = 2;
+    if (recoveryActive) {
+      ctx.globalAlpha = 0.42;
+      ctx.strokeStyle = 'rgba(34, 197, 94, 0.86)';
+      ctx.fillStyle = 'rgba(34, 197, 94, 0.12)';
+      ctx.beginPath();
+      ctx.roundRect(screenX - 8, enemy.y - 8, enemy.width + 16, enemy.height + 16, 8);
+      ctx.fill();
+      ctx.stroke();
+      ctx.globalAlpha = 0.52;
+      ctx.fillStyle = 'rgba(34, 197, 94, 0.38)';
+      ctx.beginPath();
+      ctx.ellipse(screenX + enemy.width / 2, footY, enemy.width * 0.82, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (tellActive) {
+      ctx.globalAlpha = guardedTell ? 0.5 : 0.44;
+      ctx.strokeStyle = guardedTell ? 'rgba(125, 211, 252, 0.9)' : 'rgba(250, 204, 21, 0.9)';
+      ctx.fillStyle = guardedTell ? 'rgba(125, 211, 252, 0.11)' : 'rgba(250, 204, 21, 0.1)';
+      ctx.beginPath();
+      ctx.roundRect(screenX - 6, enemy.y - 6, enemy.width + 12, enemy.height + 12, 7);
+      ctx.fill();
+      ctx.stroke();
+      ctx.globalAlpha = 0.26 * pulse;
+      ctx.fillStyle = pattern.color || '#facc15';
+      ctx.beginPath();
+      ctx.roundRect(boxX, attackBox.y, attackBox.width, attackBox.height, 6);
+      ctx.fill();
+    } else if (attackActive) {
+      ctx.globalAlpha = 0.24;
+      ctx.fillStyle = pattern.color || '#fb923c';
+      ctx.beginPath();
+      ctx.roundRect(boxX, attackBox.y, attackBox.width, attackBox.height, 6);
+      ctx.fill();
+    }
+    ctx.restore();
+  }, [getAttackBox, getEnemyPatternConfig]);
 
   const drawCombatEffects = useCallback((ctx, effects, cameraX) => {
     effects.forEach((effect) => {
@@ -9175,7 +9125,7 @@ export default function ExpeditionJourney({
       && playerCenterX >= forgottenMuralRoute.x - scaleJourneyX(240)
       && playerCenterX <= forgottenMuralRoute.x + forgottenMuralRoute.width + scaleJourneyX(160)
       && player.y < GROUND_Y - 230;
-    const desiredSecretVerticalCameraOffset = inForgottenMuralVerticalWindow
+    const desiredSecretVerticalCameraOffset = !chamberSceneActive && inForgottenMuralVerticalWindow
       ? clamp(CANVAS_HEIGHT * 0.46 - (player.y + player.height / 2), 0, 220)
       : 0;
     current.secretVerticalCameraOffset = Number(((
@@ -9311,21 +9261,6 @@ export default function ExpeditionJourney({
       ctx.fillStyle = skyGradient;
       ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-      // Parallax Hills
-      ctx.fillStyle = section.id === 'catacombs' ? 'rgba(0, 0, 0, 0.28)' : 'rgba(112, 73, 42, 0.16)';
-      for (let hill = -160; hill < WORLD_WIDTH; hill += 240) {
-        ctx.beginPath();
-        ctx.ellipse(hill - cameraX * 0.34, 355, 180, 45, 0, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // Parallax Ridges
-      ctx.fillStyle = section.id === 'dig-site-entrance' ? 'rgba(34, 84, 61, 0.18)' : 'rgba(53, 40, 30, 0.14)';
-      for (let ridge = -260; ridge < WORLD_WIDTH; ridge += 360) {
-        ctx.beginPath();
-        ctx.ellipse(ridge - cameraX * 0.18, 242, 220, 58, 0, 0, Math.PI * 2);
-        ctx.fill();
-      }
     }
 
     const parallaxBackgroundDrawn = chinaBackgroundDrawn || desertBackgroundDrawn || sectionParallaxDrawn;
@@ -9374,6 +9309,7 @@ export default function ExpeditionJourney({
         .forEach((event) => {
           const eventSection = getSectionForX(event.x);
           if (eventSection.id !== section.id) return;
+          if (eventSection.id === 'desert-entry') return;
           if (!isHorizontallyVisible(event.x, 1, cameraX, 180)) return;
           drawDynamicEnvironmentEvent(ctx, { ...event, preview: true }, cameraX, now, (event.duration || 2.5) * 0.62);
         });
@@ -10434,7 +10370,7 @@ export default function ExpeditionJourney({
           player.x = FORGOTTEN_MURAL_CHAMBER_ENTRY_SPAWN.x - player.width / 2;
           player.y = FORGOTTEN_MURAL_CHAMBER_ENTRY_SPAWN.y - player.height;
           player.direction = FORGOTTEN_MURAL_CHAMBER_ENTRY_SPAWN.direction;
-          current.cameraX = clampCameraX(player.x - CANVAS_WIDTH * FORGOTTEN_MURAL_CHAMBER_ENTRY_SPAWN.cameraAnchorRatio);
+          current.cameraX = FORGOTTEN_MURAL_CHAMBER_CAMERA_X;
           current.targetCameraX = current.cameraX;
           current.notice = 'Forgotten Mural Chamber discovered. The warning mural has been damaged.';
           current.cinematicEvent = {
@@ -10720,6 +10656,13 @@ export default function ExpeditionJourney({
 
     // Bounds
     player.x = clamp(player.x, 0, WORLD_WIDTH - player.width);
+    if (isForgottenMuralChamberScene(current)) {
+      player.x = clamp(
+        player.x,
+        FORGOTTEN_MURAL_CHAMBER_BOUNDS.minX,
+        FORGOTTEN_MURAL_CHAMBER_BOUNDS.maxX - player.width,
+      );
+    }
     const activeBossDomainBounds = current.bossDomain
       && !current.defeatedMiniBosses.has(current.bossDomain.bossId)
       ? current.bossDomain
@@ -10910,16 +10853,20 @@ export default function ExpeditionJourney({
     });
 
     const forgottenMuralPlayerCenterX = player.x + player.width / 2;
+    const forgottenMuralPlayerFootY = player.y + player.height;
     const currentSceneId = getJourneySceneId(current);
     const forgottenMuralDoorwayActive = backgroundPackId !== 'china-river-valley'
       && currentSceneId === JOURNEY_SCENE_IDS.EXTERIOR
-      && forgottenMuralPlayerCenterX >= scaleJourneyX(888)
-      && forgottenMuralPlayerCenterX <= scaleJourneyX(1020)
-      && player.y < GROUND_Y - 170;
+      && player.onGround
+      && forgottenMuralPlayerCenterX >= FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER.minX
+      && forgottenMuralPlayerCenterX <= FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER.maxX
+      && player.y < FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER.maxY
+      && Math.abs(forgottenMuralPlayerFootY - FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER.footY) <= FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER.footTolerance;
     const forgottenMuralChamberExitActive = currentSceneId === JOURNEY_SCENE_IDS.FORGOTTEN_MURAL_CHAMBER
       && forgottenMuralPlayerCenterX >= FORGOTTEN_MURAL_CHAMBER_EXIT_TRIGGER.minX
       && forgottenMuralPlayerCenterX <= FORGOTTEN_MURAL_CHAMBER_EXIT_TRIGGER.maxX
-      && player.y < FORGOTTEN_MURAL_CHAMBER_EXIT_TRIGGER.maxY;
+      && player.y < FORGOTTEN_MURAL_CHAMBER_EXIT_TRIGGER.maxY
+      && Math.abs(forgottenMuralPlayerFootY - FORGOTTEN_MURAL_CHAMBER_EXIT_TRIGGER.footY) <= FORGOTTEN_MURAL_CHAMBER_EXIT_TRIGGER.footTolerance;
     if (forgottenMuralDoorwayActive && !(current.sceneTransition || current.forgottenMuralChamberTransition)) {
       current.sceneReturn = {
         sceneId: JOURNEY_SCENE_IDS.EXTERIOR,
@@ -11462,6 +11409,7 @@ export default function ExpeditionJourney({
       current.attackRecoilTimer = 0;
       current.attackPhase = 'windup';
       current.attackCooldown = ATTACK_COOLDOWN;
+      current.attackSequenceIndex = (current.attackSequenceIndex || 0) + 1;
       current.attackHitIds.clear();
       current.attackRewarded = false;
       current.lastAttackResult = 'started';
@@ -11756,6 +11704,7 @@ export default function ExpeditionJourney({
         current.attackHitIds.add(e.id);
         const pattern = getEnemyPatternConfig(e);
         const protectedEnemy = (e.shieldTimer > 0)
+          || (e.attackWindup > 0 && pattern.protectedDuringWindup)
           || (e.attackTimer > 0 && pattern.protectedDuringAttack && e.vulnerabilityTimer <= 0);
         if (protectedEnemy) {
           e.hitFlash = 0.14;

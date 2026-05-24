@@ -2,24 +2,10 @@
   "image": "desert-entry-photoreal-sphinx-backdrop.webp",
   "imageWidth": 1672,
   "imageHeight": 941,
-  "notes": "Photorealistic single-backdrop Desert Entry concept for the opening Egypt Journey scene. The original layered parallax atlas remains in the folder, but this runtime pack uses one clean full-frame image to avoid visible transparent overlay seams.",
+  "notes": "Photorealistic single-backdrop Desert Entry concept for the opening Egypt Journey scene. The runtime pack uses one clean full-frame image so deprecated transparent overlay silhouettes cannot bleed into the scene.",
   "regions": {
-    "sky": { "x": 0, "y": 0, "w": 1672, "h": 941 },
-    "dustOverlay": {
-      "image": "desert-entry-dust-overlay.webp",
-      "x": 0,
-      "y": 0,
-      "w": 1672,
-      "h": 941
-    },
-    "foregroundParallax": {
-      "image": "desert-entry-foreground-parallax.webp",
-      "x": 0,
-      "y": 0,
-      "w": 1672,
-      "h": 941
-    }
+    "sky": { "x": 0, "y": 0, "w": 1672, "h": 941 }
   },
   "runtimeMode": "single-composited-backdrop",
-  "coordinateNote": "Single clean 1672x941 full-frame background with optional transparent overlay layers for dust and near foreground parallax."
+  "coordinateNote": "Single clean 1672x941 full-frame background with no transparent overlay layers."
 }

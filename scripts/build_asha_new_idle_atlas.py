@@ -16,6 +16,10 @@ SOURCE_RUN_IMAGE = SOURCE_DIR / "asha-new-run-raw.png"
 SOURCE_JUMP_IMAGE = SOURCE_DIR / "asha-new-jump-raw.png"
 SOURCE_ATTACK_IMAGE = SOURCE_DIR / "asha-new-attack-raw.png"
 SOURCE_GENERATED_GRID_IMAGE = SOURCE_DIR / "asha-new-generated-grid-raw.png"
+SOURCE_PREMIUM_IDLE_IMAGE = SOURCE_DIR / "asha-premium-idle-regeneration-01-raw.png"
+SOURCE_PREMIUM_RUN_IMAGE = SOURCE_DIR / "asha-premium-run-candidate-v2-raw.png"
+SOURCE_PREMIUM_JUMP_IMAGE = SOURCE_DIR / "asha-premium-jump-candidate-raw.png"
+SOURCE_PREMIUM_ATTACK_IMAGE = SOURCE_DIR / "asha-premium-attack-candidate-raw.png"
 BASE_ATLAS_JSON = ROOT / "public/assets/expedition/player/asha-v5-spritesheet.json"
 BASE_ATLAS_PNG = ROOT / "public/assets/expedition/player/asha-v5-spritesheet.png"
 TARGET_DIR = ROOT / "public/assets/expedition/player"
@@ -24,7 +28,6 @@ TARGET_PNG = TARGET_DIR / "asha-new-idle-spritesheet.png"
 TARGET_REFERENCE = TARGET_DIR / "asha-new-idle-reference.png"
 
 TARGET_DRAW_HEIGHT = 119
-TARGET_IDLE_FRAME = "idle_00"
 SOURCE_IDLE_FRAME_COUNT = 2
 SOURCE_RUN_FRAME_COUNT = 7
 SOURCE_JUMP_FRAME_COUNT = 7
@@ -42,6 +45,7 @@ JUMP_ROW_SOURCE_INDICES = {
 ATTACK_ROW_SOURCE_INDICES = {
     "attack_pick_swing": [0, 1, 2, 3, 4, 5, 6, 7],
 }
+ATTACK_ALT_ROW_NAME = "attack_pick_swing_alt"
 
 
 def frame_key(row_name: str, index: int) -> str:
@@ -131,6 +135,59 @@ def remove_chroma_background(image: Image.Image) -> Image.Image:
     return Image.fromarray(data, "RGBA").filter(ImageFilter.GaussianBlur(radius=0.12))
 
 
+def remove_stray_alpha_components(image: Image.Image) -> Image.Image:
+    rgba = image.convert("RGBA")
+    data = np.array(rgba)
+    alpha = data[..., 3] > 18
+    height, width = alpha.shape
+    seen = np.zeros((height, width), dtype=bool)
+    components: list[list[tuple[int, int]]] = []
+
+    for y in range(height):
+        for x in range(width):
+            if not alpha[y, x] or seen[y, x]:
+                continue
+            queue = deque([(x, y)])
+            seen[y, x] = True
+            pixels: list[tuple[int, int]] = []
+            while queue:
+                px, py = queue.popleft()
+                pixels.append((px, py))
+                for nx, ny in ((px + 1, py), (px - 1, py), (px, py + 1), (px, py - 1)):
+                    if 0 <= nx < width and 0 <= ny < height and alpha[ny, nx] and not seen[ny, nx]:
+                        seen[ny, nx] = True
+                        queue.append((nx, ny))
+            if len(pixels) > 12:
+                components.append(pixels)
+
+    if not components:
+        return rgba
+
+    largest = max(components, key=len)
+    largest_area = len(largest)
+    largest_xs = [pixel[0] for pixel in largest]
+    largest_ys = [pixel[1] for pixel in largest]
+    keep_left = max(0, min(largest_xs) - 34)
+    keep_right = min(width, max(largest_xs) + 34)
+    keep_top = max(0, min(largest_ys) - 34)
+    keep_bottom = min(height, max(largest_ys) + 34)
+
+    keep = np.zeros((height, width), dtype=bool)
+    for component in components:
+        xs = [pixel[0] for pixel in component]
+        ys = [pixel[1] for pixel in component]
+        center_x = (min(xs) + max(xs)) / 2
+        center_y = (min(ys) + max(ys)) / 2
+        near_main_body = keep_left <= center_x <= keep_right and keep_top <= center_y <= keep_bottom
+        large_readable_effect = len(component) >= largest_area * 0.12
+        if component is largest or near_main_body or large_readable_effect:
+            for px, py in component:
+                keep[py, px] = True
+
+    data[..., 3] = np.where(keep, data[..., 3], 0).astype(np.uint8)
+    return Image.fromarray(data, "RGBA")
+
+
 def improve_gameplay_readability(image: Image.Image) -> Image.Image:
     rgba = image.convert("RGBA")
     alpha = rgba.getchannel("A")
@@ -186,12 +243,27 @@ def extract_generated_grid_rows() -> dict[str, list[Image.Image]]:
     cell_w = source.width / grid_columns
     for row_name, (top, bottom) in row_bands.items():
         for column in range(grid_columns):
-            left = max(0, round(column * cell_w - 4))
-            right = min(source.width, round((column + 1) * cell_w + 4))
+            left = max(0, round(column * cell_w))
+            right = min(source.width, round((column + 1) * cell_w))
             frame = source.crop((left, top, right, bottom))
             frame = remove_chroma_background(frame)
+            frame = remove_stray_alpha_components(frame)
             rows[row_name].append(improve_gameplay_readability(frame))
     return rows
+
+
+def extract_premium_row_sheet_frames(source_path: Path, *, frame_count: int = 8) -> list[Image.Image]:
+    source = Image.open(source_path).convert("RGBA")
+    frames = []
+    cell_w = source.width / frame_count
+    for column in range(frame_count):
+        left = max(0, round(column * cell_w))
+        right = min(source.width, round((column + 1) * cell_w))
+        frame = source.crop((left, 0, right, source.height))
+        frame = remove_chroma_background(frame)
+        frame = remove_stray_alpha_components(frame)
+        frames.append(improve_gameplay_readability(frame))
+    return frames
 
 
 def extract_run_frames() -> list[Image.Image]:
@@ -289,15 +361,18 @@ def main() -> None:
     ground_line_y = int(metadata["frame"]["groundLineY"])
     max_source_height = int(metadata["draw"]["sourceHeight"])
 
-    target = Image.open(BASE_ATLAS_PNG).convert("RGBA")
+    base_target = Image.open(BASE_ATLAS_PNG).convert("RGBA")
+    target = Image.new("RGBA", (base_target.width, base_target.height + cell_h), (0, 0, 0, 0))
+    target.alpha_composite(base_target, (0, 0))
     regions = deepcopy(metadata["regions"])
     pose_sources = deepcopy(metadata["poseSources"])
     idle_row = next(row for row in metadata["rows"] if row["name"] == "idle")
     generated_rows = extract_generated_grid_rows()
-    idle_frames = generated_rows["idle"]
-    run_frames = generated_rows["run"]
-    jump_frames = generated_rows["jump"]
-    attack_frames = generated_rows["attack_pick_swing"]
+    idle_frames = extract_premium_row_sheet_frames(SOURCE_PREMIUM_IDLE_IMAGE)
+    run_frames = extract_premium_row_sheet_frames(SOURCE_PREMIUM_RUN_IMAGE)
+    jump_frames = extract_premium_row_sheet_frames(SOURCE_PREMIUM_JUMP_IMAGE)
+    attack_frames = extract_premium_row_sheet_frames(SOURCE_PREMIUM_ATTACK_IMAGE)
+    alternate_attack_frames = generated_rows["attack_pick_swing"]
 
     for column, key in enumerate(idle_row["frames"]):
         source_index = min(column, len(idle_frames) - 1)
@@ -311,22 +386,22 @@ def main() -> None:
             ground_line_y=ground_line_y,
             max_source_height=max_source_height,
         )
-        pose_sources[key] = f"{SOURCE_GENERATED_GRID_IMAGE.name}:idle_{source_index:02d}"
+        pose_sources[key] = f"{SOURCE_PREMIUM_IDLE_IMAGE.name}:frame_{source_index:02d}"
 
     rows = []
     for row in metadata["rows"]:
         if row["name"] in RUN_ROW_SOURCE_INDICES:
             source_indices = RUN_ROW_SOURCE_INDICES[row["name"]]
             source_frames = run_frames
-            source_label = "run"
+            source_image = SOURCE_PREMIUM_RUN_IMAGE
         elif row["name"] in JUMP_ROW_SOURCE_INDICES:
             source_indices = JUMP_ROW_SOURCE_INDICES[row["name"]]
             source_frames = jump_frames
-            source_label = "jump"
+            source_image = SOURCE_PREMIUM_JUMP_IMAGE
         elif row["name"] in ATTACK_ROW_SOURCE_INDICES:
             source_indices = ATTACK_ROW_SOURCE_INDICES[row["name"]]
             source_frames = attack_frames
-            source_label = "attack_pick_swing"
+            source_image = SOURCE_PREMIUM_ATTACK_IMAGE
         else:
             rows.append(row)
             continue
@@ -345,23 +420,45 @@ def main() -> None:
                 ground_line_y=ground_line_y,
                 max_source_height=max_source_height,
             )
-            pose_sources[key] = f"{SOURCE_GENERATED_GRID_IMAGE.name}:{source_label}_{source_index:02d}"
+            pose_sources[key] = f"{source_image.name}:frame_{source_index:02d}"
         rows.append(next_row)
 
+    attack_row = next(row for row in rows if row["name"] == "attack_pick_swing")
+    alternate_attack_row = {
+        **deepcopy(attack_row),
+        "name": ATTACK_ALT_ROW_NAME,
+        "row": len(rows),
+        "frames": [frame_key(ATTACK_ALT_ROW_NAME, index) for index in range(8)],
+        "frameCount": 8,
+    }
+    for column, frame in enumerate(alternate_attack_frames):
+        key = frame_key(ATTACK_ALT_ROW_NAME, column)
+        regions[key] = paste_sprite_cell(
+            target,
+            frame,
+            row_index=alternate_attack_row["row"],
+            column=column,
+            cell_w=cell_w,
+            cell_h=cell_h,
+            ground_line_y=ground_line_y,
+            max_source_height=max_source_height,
+        )
+        pose_sources[key] = f"{SOURCE_GENERATED_GRID_IMAGE.name}:attack_pick_swing_{column:02d}"
+    rows.append(alternate_attack_row)
+
     metadata["image"] = TARGET_PNG.name
-    metadata["source"] = "asha-new-idle-user-provided-2026-05-24"
-    metadata["status"] = "production-candidate-asha-new-idle"
+    metadata["source"] = "asha-premium-identity-first-sheets-2026-05-24"
+    metadata["status"] = "production-candidate-asha-premium-identity"
     metadata["productionReference"] = TARGET_REFERENCE.name
     metadata["description"] = (
         "Asha New Idle runtime atlas variant. It keeps the proven Asha V5 hurt, interact, "
         "climb, and portrait rows, then swaps the idle, run-based movement, jump, fall, "
-        "land, and attack rows to a regenerated Asha N grid under a separate character-loader name."
+        "land, and primary attack rows to premium identity-first Asha sheets. It also "
+        "packs a secondary attack row so Journey can alternate attack animations."
     )
     metadata["draw"]["height"] = TARGET_DRAW_HEIGHT
-    metadata["draw"]["fixedFrame"] = {
-        **metadata.get("draw", {}).get("fixedFrame", {}),
-        "idle": TARGET_IDLE_FRAME,
-    }
+    metadata["draw"]["fixedFrame"] = {}
+    metadata["draw"]["alternateAttackRows"] = ["attack_pick_swing", ATTACK_ALT_ROW_NAME]
     metadata["rows"] = rows
     metadata["regions"] = regions
     metadata["poseSources"] = pose_sources

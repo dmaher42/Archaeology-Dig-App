@@ -45,6 +45,9 @@ const egyptSacredTrapAtlas = JSON.parse(
 const egyptAtmosphereAtlas = JSON.parse(
   readFileSync(new URL('../../../public/assets/expedition/environment/egypt-atmosphere/egypt-atmosphere-pack.json', import.meta.url), 'utf8'),
 );
+const desertEntryBackgroundAtlas = JSON.parse(
+  readFileSync(new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-parallax-pack.json', import.meta.url), 'utf8'),
+);
 const anubisBossAtlas = JSON.parse(
   readFileSync(new URL('../../../public/assets/expedition/bosses/anubis-sprites.json', import.meta.url), 'utf8'),
 );
@@ -219,7 +222,7 @@ test('first Egypt secret route rewards curiosity without changing main progressi
   assert.equal((secretCollectibles.match(/restorationSetId:\s*'forgotten-mural-seal'/g) || []).length, 3);
   assert.match(platforms, /id:\s*'forgotten-mural-lower-masonry'[\s\S]*?collapsed ceremonial masonry step/);
   assert.match(platforms, /id:\s*'forgotten-mural-carved-wall-ledge'[\s\S]*?carved wall ledge in hidden priest passage/);
-  assert.match(platforms, /id:\s*'forgotten-mural-alcove-floor'[\s\S]*?y:\s*JY\(-112\)[\s\S]*?full Forgotten Mural Chamber floor/);
+  assert.match(platforms, /id:\s*'forgotten-mural-alcove-floor'[\s\S]*?y:\s*JY\(318\)[\s\S]*?full Forgotten Mural Chamber floor/);
   assert.match(platforms, /id:\s*'forgotten-mural-forward-passage-step'[\s\S]*?forward stonework return from the hidden alcove/);
   assert.match(platforms, /id:\s*'forgotten-mural-lower-return'[\s\S]*?lower return ledge from priest passage/);
   assert.match(platforms, /id:\s*'forgotten-mural-lower-masonry'[\s\S]*?invisible:\s*true/);
@@ -231,7 +234,7 @@ test('first Egypt secret route rewards curiosity without changing main progressi
     ['forgotten-mural-priest-passage-shelf', 5030, 104, 260],
     ['forgotten-mural-column-shelf', 5225, 44, 230],
     ['forgotten-mural-upper-doorway-floor', 5425, -20, 280],
-    ['forgotten-mural-alcove-floor', 5010, -112, 920],
+    ['forgotten-mural-alcove-floor', 5010, 318, 2600],
     ['forgotten-mural-forward-passage-step', 5588, -54, 230],
     ['forgotten-mural-return-masonry', 5795, 52, 240],
     ['forgotten-mural-lower-return', 5995, 170, 260],
@@ -242,7 +245,7 @@ test('first Egypt secret route rewards curiosity without changing main progressi
   });
   assert.doesNotMatch(platforms, /forgotten-mural[\s\S]*?floating/i);
   assert.match(shards, /\{\s*x:\s*934,\s*y:\s*-120,\s*hidden:\s*true,\s*routeId:\s*'desert-upper-survey-route'\s*\}/);
-  assert.match(storyProps, /id:\s*'upper-route-note-marker'[\s\S]*?faded mural seam hinting at the hidden alcove/);
+  assert.doesNotMatch(storyProps, /id:\s*'upper-route-note-marker'/);
   assert.ok(existsSync(forgottenMuralAlcoveClimbStructurePath), 'Forgotten Mural Alcove generated PNG should exist in desert-temple assets');
   assert.ok(existsSync(forgottenMuralChamberSourcePath), 'Forgotten Mural Chamber source PNG should exist in desert-temple assets');
   assert.ok(existsSync(forgottenMuralChamberPath), 'Forgotten Mural Chamber production PNG should exist in desert-temple assets');
@@ -251,7 +254,7 @@ test('first Egypt secret route rewards curiosity without changing main progressi
   assert.match(journeyComponentSource, /forgottenMuralAlcoveStructureRef/);
   assert.match(journeyComponentSource, /forgottenMuralChamberRef/);
   assert.match(storyProps, /id:\s*'forgotten-mural-climb-structure'[\s\S]*?type:\s*'generated-climb-structure'[\s\S]*?depth:\s*'route-edge'/);
-  assert.match(storyProps, /id:\s*'forgotten-mural-alcove-panel'[\s\S]*?damaged mural showing Anubis guarding the tomb from intruders/);
+  assert.doesNotMatch(storyProps, /id:\s*'forgotten-mural-alcove-panel'/);
   assert.match(journeyComponentSource, /prop\.type === 'generated-climb-structure'/);
   assert.match(journeyComponentSource, /drawForgottenMuralGeneratedAsset/);
   assert.match(journeyComponentSource, /const visibilityWidth = Math\.max\(440, Number\(prop\.width\) \|\| 0\)/);
@@ -283,21 +286,32 @@ test('first Egypt secret route rewards curiosity without changing main progressi
   assert.match(journeyComponentSource, /lockMovement:\s*true/);
   assert.match(journeyComponentSource, /FORGOTTEN_MURAL_CHAMBER_SWITCH_SECONDS/);
   assert.match(journeyComponentSource, /FORGOTTEN_MURAL_CHAMBER_ENTRY_SPAWN = \{/);
-  assert.match(journeyComponentSource, /x:\s*scaleJourneyX\(956\)/);
-  assert.match(journeyComponentSource, /y:\s*openingJourneyY\(-112\)/);
+  assert.match(journeyComponentSource, /x:\s*scaleJourneyX\(918\)/);
+  assert.match(journeyComponentSource, /y:\s*openingJourneyY\(318\)/);
   assert.match(journeyComponentSource, /player\.x = FORGOTTEN_MURAL_CHAMBER_ENTRY_SPAWN\.x - player\.width \/ 2/);
   assert.match(journeyComponentSource, /player\.y = FORGOTTEN_MURAL_CHAMBER_ENTRY_SPAWN\.y - player\.height/);
+  assert.match(journeyComponentSource, /FORGOTTEN_MURAL_CHAMBER_CAMERA_X = scaleJourneyX\(880\)/);
+  assert.match(journeyComponentSource, /mode:\s*'fixed-scene'/);
+  assert.match(journeyComponentSource, /targetCameraX:\s*FORGOTTEN_MURAL_CHAMBER_CAMERA_X/);
+  assert.match(journeyComponentSource, /player\.x = clamp\([\s\S]*?FORGOTTEN_MURAL_CHAMBER_BOUNDS\.minX[\s\S]*?FORGOTTEN_MURAL_CHAMBER_BOUNDS\.maxX - player\.width/);
   assert.match(journeyComponentSource, /id:\s*'forgotten-mural-chamber-exit'/);
   assert.match(journeyComponentSource, /toSceneId:\s*JOURNEY_SCENE_IDS\.EXTERIOR/);
-  assert.match(journeyComponentSource, /FORGOTTEN_MURAL_CHAMBER_EXIT_TRIGGER = \{[\s\S]*?minX:\s*scaleJourneyX\(880\)[\s\S]*?maxX:\s*scaleJourneyX\(906\)/);
+  assert.match(journeyComponentSource, /FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?minX:\s*scaleJourneyX\(958\)[\s\S]*?maxX:\s*scaleJourneyX\(992\)/);
+  assert.match(journeyComponentSource, /FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?footY:\s*openingJourneyY\(-20\)[\s\S]*?footTolerance:\s*18/);
+  assert.match(journeyComponentSource, /FORGOTTEN_MURAL_CHAMBER_EXIT_TRIGGER = \{[\s\S]*?minX:\s*scaleJourneyX\(880\)[\s\S]*?maxX:\s*scaleJourneyX\(906\)[\s\S]*?maxY:\s*GROUND_Y - 20/);
+  assert.match(journeyComponentSource, /FORGOTTEN_MURAL_CHAMBER_EXIT_TRIGGER = \{[\s\S]*?footY:\s*openingJourneyY\(318\)[\s\S]*?footTolerance:\s*20/);
   assert.doesNotMatch(journeyComponentSource, /FORGOTTEN_MURAL_CHAMBER_EXIT_TRIGGER = \{[\s\S]*?maxX:\s*scaleJourneyX\(950\)/);
   assert.match(journeyComponentSource, /forgottenMuralChamberActive/);
   assert.match(journeyComponentSource, /forgottenMuralLooterSeen/);
   assert.match(journeyComponentSource, /forgottenMuralChamberRestored/);
   assert.match(journeyComponentSource, /forgottenMuralChamberTransitionState/);
-  assert.match(journeyComponentSource, /forgottenMuralPlayerCenterX >= scaleJourneyX\(888\)/);
-  assert.match(journeyComponentSource, /forgottenMuralPlayerCenterX <= scaleJourneyX\(1020\)/);
-  assert.match(journeyComponentSource, /player\.y < GROUND_Y - 170/);
+  assert.match(journeyComponentSource, /forgottenMuralPlayerCenterX >= FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER\.minX/);
+  assert.match(journeyComponentSource, /forgottenMuralPlayerCenterX <= FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER\.maxX/);
+  assert.match(journeyComponentSource, /player\.y < FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER\.maxY/);
+  assert.match(journeyComponentSource, /currentSceneId === JOURNEY_SCENE_IDS\.EXTERIOR[\s\S]*?&& player\.onGround[\s\S]*?FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER\.minX/);
+  assert.match(journeyComponentSource, /Math\.abs\(forgottenMuralPlayerFootY - FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER\.footY\) <= FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER\.footTolerance/);
+  assert.match(journeyComponentSource, /Math\.abs\(forgottenMuralPlayerFootY - FORGOTTEN_MURAL_CHAMBER_EXIT_TRIGGER\.footY\) <= FORGOTTEN_MURAL_CHAMBER_EXIT_TRIGGER\.footTolerance/);
+  assert.match(journeyComponentSource, /const desiredSecretVerticalCameraOffset = !chamberSceneActive && inForgottenMuralVerticalWindow/);
   assert.match(journeyUtilsSource, /forgottenMuralChamberActive:\s*false/);
   assert.match(journeyUtilsSource, /forgottenMuralChamberTransition:\s*null/);
   assert.match(journeyUtilsSource, /currentSceneId:\s*'egypt-exterior-route'/);
@@ -395,15 +409,15 @@ test('story props include recurring expedition markers across sections', () => {
   const storyProps = extractExportedArray('STORY_PROPS');
 
   assert.doesNotMatch(storyProps, /survey-flag-marker/);
-  assert.match(storyProps, /opening-footprint-trail/);
-  assert.match(storyProps, /opening-threshold-offering/);
+  assert.doesNotMatch(storyProps, /opening-footprint-trail/);
+  assert.doesNotMatch(storyProps, /opening-threshold-offering/);
   assert.doesNotMatch(storyProps, /upper-route-broken-stone-cue/);
   assert.doesNotMatch(storyProps, /distant-ruins/);
   assert.doesNotMatch(storyProps, /atmosphere-entry-distant-rubble/);
   assert.doesNotMatch(storyProps, /atmosphere-entry-far-door-frame/);
-  assert.match(storyProps, /abandoned-camp/);
+  assert.doesNotMatch(storyProps, /abandoned-camp/);
   assert.match(storyProps, /type:\s*'cart'/);
-  assert.match(storyProps, /broken supply cart/);
+  assert.match(storyProps, /premium field chest in open sand after the pyramid/);
   assert.match(storyProps, /base camp supply cart/);
   assert.match(journeyComponentSource, /STORY_PROP_GROUNDING_OVERRIDES/);
   assert.doesNotMatch(journeyComponentSource, /'upper-route-broken-stone-cue':\s*\{/);
@@ -425,8 +439,8 @@ test('Ancient Egypt opening stages archaeologist arrival and warrior-guide story
   assert.match(storyProps, /id:\s*'opening-guardian-warning-plinth'/);
   assert.match(storyProps, /id:\s*'opening-warrior-guide-marker'/);
   assert.match(storyProps, /warrior-guide protective seal marker/);
-  assert.match(storyProps, /id:\s*'opening-sacred-threshold-guardian'/);
-  assert.match(storyProps, /sacred guardian threshold before Temple Approach Seal/);
+  assert.doesNotMatch(storyProps, /id:\s*'opening-sacred-threshold-guardian'/);
+  assert.match(storyProps, /id:\s*'desert-entry-field-chest-1'/);
   ['camp', 'ceremonial-offering', 'sacred-pedestal'].forEach((type) => {
     assert.match(storyProps, new RegExp(`type:\\s*'${type}'`));
   });
@@ -482,7 +496,7 @@ test('Expedition framing presents Journey, Base Camp, and excavation as in-world
 
   [
     'The Temple Approach Seal refuses easy entry. Relic shards must prove Asha came to protect.',
-    'Relic shards restore seals and support Base Camp preparations.',
+    'Recover shards. Restore seals. Defeat guardians. Open the excavation site.',
     'The site is testing Asha. Recover 4 relic shards to restore the Temple Approach Seal.',
     'First shard restored. Three more will answer the Temple Approach Seal.',
     'Recover shards. Restore seals. Defeat guardians. Open the excavation site.',
@@ -923,25 +937,37 @@ test('opening pyramid facade stays active as the opening gameplay landmark', () 
   assert.doesNotMatch(journeyComponentSource, /OPENING_PYRAMID_FACADE_WORLD_RIGHT_X/);
 });
 
-test('route props render on platform edges instead of distant background layers', () => {
+test('route props stay out of the opening pyramid facade and render on route edges', () => {
   const storyProps = extractExportedArray('STORY_PROPS');
 
   [
-    'opening-ruin-climb-fallen-column',
-    'opening-ruin-climb-glyph-slab',
+    'desert-entry-field-chest-1',
+    'early-voucher-cache-marker',
+    'broken-seal-marker',
+    'atmosphere-entry-broken-pillar',
   ].forEach((id) => {
     const escapedId = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    assert.match(storyProps, new RegExp(`id:\\s*'${escapedId}'[^}]*?yOffset:\\s*0[^}]*?depth:\\s*'route-edge'`));
+    const row = getDataRowById(storyProps, id);
+    assert.match(row, /x:\s*(11[3-9]\d|12\d\d|13\d\d|14\d\d)/, `${id} should be after the pyramid facade`);
+    assert.match(row, /depth:\s*'route-edge'/, `${id} should render above the route edge`);
     assert.doesNotMatch(storyProps, new RegExp(`id:\\s*'${escapedId}'[^}]*?depth:\\s*'(background|midground)'`));
   });
   [
+    'opening-ruin-climb-fallen-column',
+    'opening-ruin-climb-glyph-slab',
     'false-relic-bait-seal-stones',
     'temple-upper-switch-glyph-slab',
     'temple-upper-switch-fallen-column',
+    'desert-entry-warning-tablet-1',
+    'temple-approach-threshold-tablet-1',
+    'broken-ruins-survey-rope',
+    'desert-broken-supply-cart',
   ].forEach((id) => {
     const escapedId = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     assert.doesNotMatch(storyProps, new RegExp(`id:\\s*'${escapedId}'`));
   });
+  assert.doesNotMatch(storyProps, /sectionId:\s*'desert-entry'[^}]*atmosphereAssetKey:\s*'stoneTablet'/);
+  assert.doesNotMatch(storyProps, /sectionId:\s*'desert-entry'[^}]*type:\s*'survey-rope'/);
   assert.match(
     journeyComponentSource,
     /PLATFORMS[\s\S]*?\.forEach\(\(platform\) => drawPlatform\(ctx, platform, cameraX, current\)\);[\s\S]*?STORY_PROPS\.filter\(prop => isEntityActiveInScene\(prop, current\)\)\.forEach\(\(prop\) => drawStoryProp\(ctx, prop, cameraX, now, 'route-edge'\)\)/,
@@ -1025,13 +1051,13 @@ test('obsolete Desert Entry challenge platforms do not crowd the opening pyramid
   assert.doesNotMatch(platforms, /desert-high-shard-climb/);
 });
 
-test('Egypt opening ambient life stays in the existing Journey renderer', () => {
+test('Egypt opening ambient life no longer draws deprecated sketch scenery', () => {
   assert.match(journeyComponentSource, /drawEgyptAmbientLife/);
-  assert.match(journeyComponentSource, /drawDistantExpeditionWorker/);
-  assert.match(journeyComponentSource, /drawKneelingSurveyor/);
-  assert.match(journeyComponentSource, /drawTentFlap/);
-  assert.match(journeyComponentSource, /drawRopedDigActivity/);
-  assert.match(journeyComponentSource, /desert-survey-camp-life/);
+  assert.doesNotMatch(journeyComponentSource, /drawDistantExpeditionWorker/);
+  assert.doesNotMatch(journeyComponentSource, /drawKneelingSurveyor/);
+  assert.doesNotMatch(journeyComponentSource, /drawTentFlap/);
+  assert.doesNotMatch(journeyComponentSource, /drawRopedDigActivity/);
+  assert.doesNotMatch(journeyComponentSource, /desert-survey-camp-life/);
 });
 
 test('player polish extends the canonical Journey animation and weapon paths', () => {
@@ -1213,24 +1239,30 @@ test('Asha New Idle is available as a separate character-loader atlas', () => {
   assert.match(journeyComponentSource, /characterId:\s*'asha-new-idle'/);
   assert.match(journeyComponentSource, /atlasPath:\s*'assets\/expedition\/player\/asha-new-idle-spritesheet\.json'/);
   assert.match(journeyComponentSource, /fallbackAtlasPath:\s*'assets\/expedition\/player\/asha-v5-spritesheet\.json'/);
-  assert.equal(ashaNewIdlePlayerAtlas.status, 'production-candidate-asha-new-idle');
+  assert.match(journeyComponentSource, /attackSequenceIndex/);
+  assert.match(journeyComponentSource, /attack_pick_swing_alt/);
+  assert.equal(ashaNewIdlePlayerAtlas.status, 'production-candidate-asha-premium-identity');
   assert.equal(ashaNewIdlePlayerAtlas.productionReference, 'asha-new-idle-reference.png');
   assert.equal(ashaNewIdlePlayerAtlas.draw.height, 119);
-  assert.equal(ashaNewIdlePlayerAtlas.draw.fixedFrame.idle, 'idle_00');
+  assert.equal(ashaNewIdlePlayerAtlas.draw.fixedFrame.idle, undefined);
   assert.equal(ashaNewIdlePlayerAtlas.rows.find(row => row.name === 'idle')?.frameCount, 8);
-  assert.equal(Object.keys(ashaNewIdlePlayerAtlas.regions).length, 93);
-  assert.equal(ashaNewIdlePlayerAtlas.poseSources.idle_00, 'asha-new-generated-grid-raw.png:idle_00');
-  assert.equal(ashaNewIdlePlayerAtlas.poseSources.idle_01, 'asha-new-generated-grid-raw.png:idle_01');
-  assert.equal(ashaNewIdlePlayerAtlas.poseSources.walk_00, 'asha-new-generated-grid-raw.png:run_00');
-  assert.equal(ashaNewIdlePlayerAtlas.poseSources.run_09, 'asha-new-generated-grid-raw.png:run_05');
-  assert.equal(ashaNewIdlePlayerAtlas.poseSources.survey_walk_00, 'asha-new-generated-grid-raw.png:run_00');
-  assert.equal(ashaNewIdlePlayerAtlas.poseSources.jump_00, 'asha-new-generated-grid-raw.png:jump_00');
-  assert.equal(ashaNewIdlePlayerAtlas.poseSources.fall_00, 'asha-new-generated-grid-raw.png:jump_03');
-  assert.equal(ashaNewIdlePlayerAtlas.poseSources.land_00, 'asha-new-generated-grid-raw.png:jump_05');
-  assert.equal(ashaNewIdlePlayerAtlas.poseSources.attack_pick_swing_00, 'asha-new-generated-grid-raw.png:attack_pick_swing_00');
-  assert.equal(ashaNewIdlePlayerAtlas.poseSources.attack_pick_swing_05, 'asha-new-generated-grid-raw.png:attack_pick_swing_05');
+  assert.equal(ashaNewIdlePlayerAtlas.rows.find(row => row.name === 'attack_pick_swing_alt')?.frameCount, 8);
+  assert.deepEqual(ashaNewIdlePlayerAtlas.draw.alternateAttackRows, ['attack_pick_swing', 'attack_pick_swing_alt']);
+  assert.equal(Object.keys(ashaNewIdlePlayerAtlas.regions).length, 101);
+  assert.equal(ashaNewIdlePlayerAtlas.poseSources.idle_00, 'asha-premium-idle-regeneration-01-raw.png:frame_00');
+  assert.equal(ashaNewIdlePlayerAtlas.poseSources.idle_07, 'asha-premium-idle-regeneration-01-raw.png:frame_07');
+  assert.equal(ashaNewIdlePlayerAtlas.poseSources.walk_00, 'asha-premium-run-candidate-v2-raw.png:frame_00');
+  assert.equal(ashaNewIdlePlayerAtlas.poseSources.run_09, 'asha-premium-run-candidate-v2-raw.png:frame_05');
+  assert.equal(ashaNewIdlePlayerAtlas.poseSources.survey_walk_00, 'asha-premium-run-candidate-v2-raw.png:frame_00');
+  assert.equal(ashaNewIdlePlayerAtlas.poseSources.jump_00, 'asha-premium-jump-candidate-raw.png:frame_00');
+  assert.equal(ashaNewIdlePlayerAtlas.poseSources.fall_00, 'asha-premium-jump-candidate-raw.png:frame_03');
+  assert.equal(ashaNewIdlePlayerAtlas.poseSources.land_00, 'asha-premium-jump-candidate-raw.png:frame_05');
+  assert.equal(ashaNewIdlePlayerAtlas.poseSources.attack_pick_swing_00, 'asha-premium-attack-candidate-raw.png:frame_00');
+  assert.equal(ashaNewIdlePlayerAtlas.poseSources.attack_pick_swing_05, 'asha-premium-attack-candidate-raw.png:frame_05');
+  assert.equal(ashaNewIdlePlayerAtlas.poseSources.attack_pick_swing_alt_00, 'asha-new-generated-grid-raw.png:attack_pick_swing_00');
+  assert.equal(ashaNewIdlePlayerAtlas.poseSources.attack_pick_swing_alt_07, 'asha-new-generated-grid-raw.png:attack_pick_swing_07');
   assert.equal(ashaNewIdlePlayerAtlas.poseSources.hurt_04, 'asha-v5-damage-source.png:frame_04');
-  assert.ok(ashaNewIdlePlayerAtlas.description.includes('separate character-loader name'));
+  assert.ok(ashaNewIdlePlayerAtlas.description.includes('secondary attack row'));
 });
 
 test('Egypt Journey keeps marker assets available but removes flag visuals from the route', () => {
@@ -1334,8 +1366,8 @@ test('Guardian Seal passive placement uses existing story props and idle sacred 
 });
 
 test('Egypt Journey explains shard purpose and adds an optional Base Camp voucher cache', () => {
-  assert.match(source, /id:\s*'relic-shard-purpose-note'/);
-  assert.match(source, /Relic shards restore seals and support Base Camp preparations\. Recover them from ruins and guardians\./);
+  assert.doesNotMatch(extractExportedArray('STORY_PROPS'), /id:\s*'relic-shard-purpose-note'/);
+  assert.match(source, /Recover shards\. Restore seals\. Defeat guardians\. Open the excavation site\./);
   assert.match(source, /id:\s*'basecamp-upgrade-voucher'[\s\S]*?shardCost:\s*2[\s\S]*?rewardShards:\s*6[\s\S]*?cacheReward:\s*true/);
   assert.match(source, /id:\s*'early-voucher-cache-marker'/);
   assert.match(journeyComponentSource, /Cache opened! Upgrade Voucher earned/);
@@ -1400,8 +1432,9 @@ test('Broken Ruins Route extends the Egypt opening with existing platformer syst
   assert.match(hazards, /Loose ruin stones shifted underfoot/);
   assert.match(shards, /\{\s*x:\s*2365,\s*y:\s*320\s*\}/);
   assert.doesNotMatch(storyProps, /broken-ruins-route-stones/);
-  assert.match(storyProps, /Broken Ruins Route trail marker/);
-  assert.match(storyProps, /survey rope beside half-buried structure/);
+  assert.doesNotMatch(storyProps, /Broken Ruins Route trail marker/);
+  assert.match(storyProps, /broken pillar at the far open route edge/);
+  assert.doesNotMatch(storyProps, /survey rope beside half-buried structure/);
   assert.match(events, /id:\s*'broken-ruins-route'/);
   assert.match(events, /Collapsed stones mark a careful route deeper toward the tomb/);
   assert.doesNotMatch(hiddenRoutes, /broken-ruins-route/);
@@ -1574,7 +1607,8 @@ test('first mini-boss is gated by preparation and rewards the next route', () =>
   assert.match(source, /routeOpenMessage:\s*'Scarab Queen defeated\. Asha has permission, not trust\. Brush Handle recovered\. The Desert Map Seal can answer\.'/);
   assert.match(source, /id:\s*'scarab-queen'[\s\S]*?arenaStart:\s*X\(1265\)/);
   assert.match(source, /id:\s*'scarab-queen'[\s\S]*?name:\s*'Scarab Queen'/);
-  assert.match(storyProps, /Guardian Prep Seal: read Map Tablet and restore 6 relic shards/);
+  assert.doesNotMatch(storyProps, /Guardian Prep Seal: read Map Tablet and restore 6 relic shards/);
+  assert.match(storyProps, /premium field chest in open sand after the pyramid/);
   assert.match(events, /Guardian Seal: read the Map Tablet and restore 6 relic shards before the Scarab Queen\./);
   assert.match(journeyComponentSource, /Collect the tool piece, then return to \$\{routeGateName \|\| 'the route gate'\}/);
   assert.match(journeyComponentSource, /current\.notice = `\$\{b\.name\} defeated\. \$\{rewardMoment\.title\} \$\{rewardMoment\.nextObjective\}`/);
@@ -1682,7 +1716,9 @@ test('platform polish creates purposeful jump challenges with checkpoint rescue 
   assert.doesNotMatch(journeyComponentSource, /visualHazardId === 'entry-pressure-plate'[\s\S]*?ctx\.roundRect/);
   assert.doesNotMatch(journeyComponentSource, /visualHazardId === 'entry-cracked-floor-trap'[\s\S]*?ctx\.strokeRect/);
   assert.doesNotMatch(journeyComponentSource, /hazard\.id === 'sand-pit'[\s\S]*?ctx\.arc/);
-  assert.match(journeyComponentSource, /const drawEnemyAttackTell = useCallback\(\(\) => \{\}, \[\]\)/);
+  assert.match(journeyComponentSource, /const drawEnemyAttackTell = useCallback\(\(ctx, enemy/);
+  assert.match(journeyComponentSource, /attackTellActive/);
+  assert.match(journeyComponentSource, /recoveryWindowActive/);
   assert.match(journeyComponentSource, /const drawAttackArc = useCallback\(\(\) => \{\}, \[\]\)/);
 
   assert.match(upgrades, /id:\s*'basecamp-upgrade-voucher'[\s\S]*?x:\s*X\(925\)[\s\S]*?y:\s*JY\(320\)/);
@@ -1781,7 +1817,7 @@ test('dynamic world events add mystery and atmosphere without new level systems'
   assert.match(landmarks, /type:\s*'blocked-tunnel'/);
 
   [
-    'damaged field equipment',
+    'broken pillar at the far open route edge',
     'paired ceremonial lamps',
     'collapsed tower remains',
     'old field journal cache',
@@ -1881,9 +1917,10 @@ test('Egypt atmosphere layout fills each Journey section without changing gamepl
   });
 
   [
-    'desert-entry-survey-chest-1',
-    'scarab-seal-warning-glyph-1',
-    'temple-approach-threshold-tablet-1',
+    'desert-entry-field-chest-1',
+    'early-voucher-cache-marker',
+    'broken-seal-marker',
+    'atmosphere-entry-broken-pillar',
     'atmosphere-temple-fallen-stone',
     'ruined-temple-fallen-column-1',
     'catacomb-warning-urns-1',
@@ -1899,7 +1936,7 @@ test('Egypt atmosphere layout fills each Journey section without changing gamepl
   });
 
   const atmospherePropMatches = [...storyProps.matchAll(/type:\s*'atmosphere-prop'/g)];
-  assert.ok(atmospherePropMatches.length >= 50, 'atmosphere pass should add coherent non-colliding prop clusters without ghost overlays');
+  assert.ok(atmospherePropMatches.length >= 40, 'atmosphere pass should keep coherent non-colliding prop clusters without ghost overlays');
   assert.match(storyProps, /catacomb-entry-urn-cluster-2[\s\S]*?catacomb-safe-ledge-evidence-2/);
   assert.match(storyProps, /dig-site-rope-boundary-2[\s\S]*?dig-site-rolled-canvas-2/);
   assert.doesNotMatch(storyProps, /desert-entry-visible-|opening-route-visible-|opening-pyramid-(?:ledge|terrace|upper)-/);
@@ -1914,6 +1951,72 @@ test('Egypt atmosphere layout fills each Journey section without changing gamepl
     /id:\s*'ruined-temple-colossus-gate'[\s\S]{0,420}visibleWhenLocked:\s*true/,
     'desert-to-temple doorway should not render as a ghosted locked-route overlay'
   );
+});
+
+test('desert entry single-backdrop mode does not load deprecated overlay assets', () => {
+  assert.equal(desertEntryBackgroundAtlas.runtimeMode, 'single-composited-backdrop');
+  assert.deepEqual(Object.keys(desertEntryBackgroundAtlas.regions), ['sky']);
+  assert.equal(desertEntryBackgroundAtlas.regions.sky.image, undefined);
+  assert.doesNotMatch(journeyComponentSource, /'dustOverlay'/);
+  assert.doesNotMatch(journeyComponentSource, /'foregroundParallax'/);
+});
+
+test('desert entry no longer draws old procedural fallback scenery', () => {
+  assert.doesNotMatch(journeyComponentSource, /Parallax Hills/);
+  assert.doesNotMatch(journeyComponentSource, /Parallax Ridges/);
+  assert.doesNotMatch(journeyComponentSource, /drawDistantExpeditionWorker/);
+  assert.doesNotMatch(journeyComponentSource, /drawKneelingSurveyor/);
+  assert.doesNotMatch(journeyComponentSource, /drawTentFlap/);
+  assert.doesNotMatch(journeyComponentSource, /drawRopedDigActivity/);
+  assert.doesNotMatch(journeyComponentSource, /desert-survey-camp-life/);
+});
+
+test('desert entry props use visible atlas art instead of weak placeholders', () => {
+  const storyProps = extractExportedArray('STORY_PROPS');
+  const deprecatedDesertPropIds = [
+    'desert-entry-survey-chest-1',
+    'opening-ruin-climb-fallen-column',
+    'opening-ruin-climb-glyph-slab',
+    'opening-footprint-trail',
+    'half-buried-pottery-marker',
+    'opening-threshold-offering',
+    'atmosphere-entry-supply-jars',
+    'desert-entry-buried-pottery-1',
+    'scarab-seal-warning-glyph-1',
+    'scarab-seal-broken-offering-1',
+    'upper-route-note-marker',
+    'starter-route-marker',
+    'relic-shard-purpose-note',
+    'opening-sacred-threshold-guardian',
+    'forgotten-mural-alcove-panel',
+    'abandoned-camp',
+    'guardian-prep-warning-marker',
+    'survey-note-cache-start',
+    'desert-damaged-field-kit',
+    'desert-evidence-flag',
+    'broken-ruins-trail-marker',
+    'scarab-warning-marker',
+  ];
+
+  deprecatedDesertPropIds.forEach((propId) => {
+    assert.doesNotMatch(storyProps, new RegExp(`id:\\s*'${propId}'`), `${propId} should not render as Desert Entry clutter`);
+  });
+
+  [
+    ['desert-entry-field-chest-1', 'fieldChest', 'route-edge', 'alpha:\\s*0\\.96'],
+    ['broken-seal-marker', 'rubbleScatter', 'route-edge', 'alpha:\\s*0\\.9'],
+    ['early-voucher-cache-marker', 'supplyJars', 'route-edge', 'alpha:\\s*0\\.94'],
+    ['atmosphere-entry-broken-pillar', 'brokenPillarTall', 'route-edge', 'alpha:\\s*0\\.9'],
+  ].forEach(([propId, assetKey, depth, alphaPattern]) => {
+    const row = getDataRowById(storyProps, propId);
+    assert.match(row, new RegExp(`atmosphereAssetKey:\\s*'${assetKey}'`), `${propId} should use atlas art`);
+    assert.match(row, new RegExp(`depth:\\s*'${depth}'`), `${propId} should render in the readable prop layer`);
+    assert.match(row, new RegExp(alphaPattern), `${propId} should have enough alpha to read against the painted background`);
+    assert.match(row, /x:\s*(11[3-9]\d|12\d\d|13\d\d|14\d\d)/, `${propId} should sit in the open route after the pyramid`);
+  });
+
+  assert.doesNotMatch(storyProps, /sectionId:\s*'desert-entry'[\s\S]{0,220}type:\s*'sign'/);
+  assert.doesNotMatch(storyProps, /sectionId:\s*'desert-entry'[\s\S]{0,220}type:\s*'mural'/);
 });
 
 test('small atmosphere floor assets are permanently ground-locked instead of background-tuned', () => {
@@ -2126,7 +2229,7 @@ test('opening enemy role overrides preserve first-route fairness and readable co
   assert.match(journeyComponentSource, /spikeTrap:\s*\{\s*xPad:\s*12,\s*widthPad:\s*24,\s*height:\s*46/);
   assert.match(egyptEnemies, /id:\s*'scorpion-start-1'[\s\S]*?width:\s*44[\s\S]*?height:\s*30[\s\S]*?attackPatternTuning:\s*\{[\s\S]*?windup:\s*0\.66[\s\S]*?duration:\s*0\.34[\s\S]*?range:\s*26[\s\S]*?height:\s*62[\s\S]*?yOffset:\s*-38[\s\S]*?backReach:\s*42[\s\S]*?damageScale:\s*1\.5/);
   assert.match(egyptEnemies, /id:\s*'scorpion-pottery-1'[\s\S]*?name:\s*'Pottery Scorpion'[\s\S]*?type:\s*'scorpion'[\s\S]*?protectsRouteId:\s*'desert-opening-shard-cache'/);
-  assert.match(egyptEnemies, /id:\s*'scorpion-seal-path-1'[\s\S]*?name:\s*'Seal Path Scorpion'[\s\S]*?type:\s*'scorpion'[\s\S]*?protectsRouteId:\s*'temple-approach-seal'/);
+  assert.match(egyptEnemies, /id:\s*'scorpion-seal-path-1'[\s\S]*?name:\s*'Seal Warden Scorpion'[\s\S]*?type:\s*'scorpion'[\s\S]*?protectsRouteId:\s*'temple-approach-seal'/);
   assert.match(egyptEnemies, /id:\s*'scorpion-guardian-path-1'[\s\S]*?name:\s*'Guardian Path Scorpion'[\s\S]*?type:\s*'scorpion'[\s\S]*?x:\s*X\(1375\)/);
   assert.match(egyptEnemies, /id:\s*'sand-wisp-start-1'[\s\S]*?damage:\s*4[\s\S]*?attackPatternTuning:\s*\{[\s\S]*?vulnerableAfter:\s*0\.72/);
   assert.match(egyptEnemies, /id:\s*'snake-1'[\s\S]*?attackPatternTuning:\s*\{[\s\S]*?windup:\s*0\.68[\s\S]*?range:\s*48/);
@@ -2134,6 +2237,75 @@ test('opening enemy role overrides preserve first-route fairness and readable co
   assert.match(journeyComponentSource, /Scorpion tails block the path\. Defeat them before moving forward\./);
   assert.match(journeyComponentSource, /Warrior mummies guard the threshold\. Wait for the sweep, then counter\./);
   assert.match(journeyComponentSource, /Snake lunges from mid-range\. Watch the coil\./);
+});
+
+test('Phase 5A desert combat gives Scarab Scout and Seal Warden readable counter roles', () => {
+  const egyptEnemies = extractExportedArray('ENEMIES');
+  const scarabScout = getDataRowById(egyptEnemies, 'scarab-scout-1');
+  const sealWarden = getDataRowById(egyptEnemies, 'scorpion-seal-path-1');
+
+  assert.match(scarabScout, /name:\s*'Scarab Scout'/);
+  assert.match(scarabScout, /encounterRole:\s*'basic timing scout'/);
+  assert.match(scarabScout, /combatRole:\s*'basic timing enemy'/);
+  assert.match(scarabScout, /pressureHint:\s*'Scarab Scout braces before a short charge\. Wait for the tell, step away, then counter\.'/);
+  assert.match(scarabScout, /attackPatternTuning:\s*\{[\s\S]*?label:\s*'Scout Charge'[\s\S]*?windup:\s*0\.72[\s\S]*?duration:\s*0\.24[\s\S]*?recovery:\s*0\.82[\s\S]*?vulnerableAfter:\s*0\.9[\s\S]*?protectedDuringWindup:\s*true/);
+  assert.doesNotMatch(scarabScout, /health:\s*[3-9]/);
+
+  assert.match(sealWarden, /name:\s*'Seal Warden Scorpion'/);
+  assert.match(sealWarden, /encounterRole:\s*'route guardian enemy'/);
+  assert.match(sealWarden, /combatRole:\s*'route guardian enemy'/);
+  assert.match(sealWarden, /Anubis\\'s warden protects the seal/);
+  assert.match(sealWarden, /Blind strikes bounce off its guard; counter after the sting\./);
+  assert.match(sealWarden, /attackPatternTuning:\s*\{[\s\S]*?label:\s*'Guarded Sting'[\s\S]*?windup:\s*0\.82[\s\S]*?duration:\s*0\.32[\s\S]*?recovery:\s*0\.9[\s\S]*?vulnerableAfter:\s*0\.98[\s\S]*?shieldDuringWindup:\s*true[\s\S]*?protectedDuringWindup:\s*true/);
+  assert.doesNotMatch(sealWarden, /health:\s*[3-9]/);
+
+  assert.match(journeyComponentSource, /protectedDuringWindup/);
+  assert.match(journeyComponentSource, /attackWindup > 0 && pattern\.protectedDuringWindup/);
+  assert.match(journeyComponentSource, /combatRole:\s*enemy\.combatRole \|\| enemy\.encounterRole \|\| null/);
+  assert.match(journeyComponentSource, /attackTellActive:\s*entity\.attackWindup > 0/);
+  assert.match(journeyComponentSource, /recoveryWindowActive:\s*entity\.attackRecovery > 0/);
+  assert.match(journeyComponentSource, /counterWindowActive:\s*entity\.vulnerabilityTimer > 0 \|\| entity\.attackRecovery > 0/);
+  assert.match(journeyComponentSource, /drawEnemyAttackTell = useCallback\(\(ctx, enemy/);
+  assert.match(journeyComponentSource, /if \(boss \|\| enemy\.defeated\) return/);
+  assert.match(journeyComponentSource, /pattern\.protectedDuringWindup/);
+});
+
+test('Phase 5B isolates the first Scarab Scout and Seal Warden teaching pockets', () => {
+  const egyptEnemies = extractExportedArray('ENEMIES');
+  const getRow = (id) => getDataRowById(egyptEnemies, id);
+  const readAuthoredX = (row, field = 'x') => {
+    const scaled = row.match(new RegExp(`${field}:\\s*X\\((\\d+)\\)`));
+    if (scaled) return Number(scaled[1]);
+    return Number(row.match(new RegExp(`${field}:\\s*(\\d+)`))?.[1] || Number.POSITIVE_INFINITY);
+  };
+  const readInitialCooldown = (row) => Number(row.match(/initialAttackCooldown:\s*(\d+(?:\.\d+)?)/)?.[1] || 0);
+
+  const surveyScarab = getRow('scarab-survey-1');
+  const scarabScout = getRow('scarab-scout-1');
+  const startWisp = getRow('sand-wisp-start-1');
+  const regularScarab = getRow('scarab-1');
+  const ledgeWisp = getRow('sand-wisp-ledge-1');
+  const upperScarab = getRow('scarab-upper-route-1');
+  const sealWarden = getRow('scorpion-seal-path-1');
+  const warningScorpion = getRow('scorpion-warning-1');
+  const sandSnake = getRow('snake-1');
+
+  assert.ok(readAuthoredX(surveyScarab, 'patrolMax') <= readAuthoredX(scarabScout, 'patrolMin') - 45, 'Survey Scarab should finish before the Scout lesson pocket begins');
+  assert.ok(readAuthoredX(startWisp, 'patrolMin') >= readAuthoredX(scarabScout, 'patrolMax') + 60, 'Sand Wisp should not overlap the Scout patrol pocket');
+  assert.ok(readAuthoredX(startWisp) - readAuthoredX(scarabScout) >= 120, 'Sand Wisp should sit far enough after the Scout to avoid becoming the primary lesson enemy');
+  assert.ok(readInitialCooldown(startWisp) >= 2, 'Sand Wisp should wait before joining the Scout teaching moment');
+  assert.ok(readInitialCooldown(regularScarab) >= 1.6, 'The next regular Scarab should not immediately stack on the Scout teaching moment');
+
+  assert.ok(readAuthoredX(upperScarab) <= readAuthoredX(sealWarden) - 100, 'Upper Route Scarab should sit outside the Warden smoke pocket');
+  assert.ok(readAuthoredX(ledgeWisp, 'patrolMax') <= readAuthoredX(sealWarden, 'patrolMin') - 60, 'Ledge Sand Wisp should not overlap the Warden patrol pocket');
+  assert.ok(readAuthoredX(warningScorpion, 'patrolMin') >= readAuthoredX(sealWarden, 'patrolMax') + 80, 'Stone Scorpion should wait beyond the Warden patrol pocket');
+  assert.ok(readAuthoredX(sandSnake, 'patrolMin') >= readAuthoredX(warningScorpion, 'patrolMax') + 40, 'Sand Snake should stay beyond the follow-up scorpion instead of stacking into the Warden lesson');
+  [ledgeWisp, upperScarab, warningScorpion, sandSnake].forEach((row) => {
+    assert.ok(readInitialCooldown(row) >= 1.8, `${row.match(/id:\s*'([^']+)'/)?.[1]} should delay its first attack near the Warden teaching pocket`);
+  });
+
+  assert.match(scarabScout, /attackPatternTuning:\s*\{[\s\S]*?label:\s*'Scout Charge'[\s\S]*?windup:\s*0\.72[\s\S]*?duration:\s*0\.24[\s\S]*?recovery:\s*0\.82[\s\S]*?vulnerableAfter:\s*0\.9[\s\S]*?protectedDuringWindup:\s*true/);
+  assert.match(sealWarden, /attackPatternTuning:\s*\{[\s\S]*?label:\s*'Guarded Sting'[\s\S]*?windup:\s*0\.82[\s\S]*?duration:\s*0\.32[\s\S]*?recovery:\s*0\.9[\s\S]*?vulnerableAfter:\s*0\.98[\s\S]*?shieldDuringWindup:\s*true[\s\S]*?protectedDuringWindup:\s*true/);
 });
 
 test('jump contact only bounces enemies while attacks defeat them in three to five hits', () => {
