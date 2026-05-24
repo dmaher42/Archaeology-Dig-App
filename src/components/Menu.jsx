@@ -1,8 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Pickaxe, MapPin, FileText, Dice5, ChevronLeft, Compass, Volume2, VolumeX } from 'lucide-react';
 import { SCENARIOS } from '../data';
 import { WorldMap } from './WorldMap';
-import { PLAYER_SPRITE_SRC } from './expedition-journey/journeyConstants';
 
 
 const getSavedModeLabel = (mode) => (mode === 'bureau' ? 'Bureau case' : 'Investigation');
@@ -42,14 +41,57 @@ export function ActivityMenu({
   expeditionMusicEnabled = false,
   expeditionSfxEnabled = false,
   onExpeditionMusicToggle = () => {},
-  onExpeditionSfxToggle = () => {},
-  onExpeditionSoundTest = () => {}
+  onExpeditionSfxToggle = () => {}
 }) {
   const [showCivSelection, setShowCivSelection] = useState(false);
   const [hoveredId, setHoveredId] = useState(null);
   const [selectedSiteId, setSelectedSiteId] = useState('egypt');
+  const [focusedModeIndex, setFocusedModeIndex] = useState(1);
+  const carouselRef = useRef(null);
+
   const hasSavedInvestigation = savedGames?.archaeology && savedGames.archaeology.phase !== 'menu';
   const hasSavedBureau = savedGames?.bureau;
+
+  const modeArtworks = [
+    `${import.meta.env.BASE_URL}assets/menu/mode_training_art.png`,
+    `${import.meta.env.BASE_URL}assets/menu/mode_investigation_art.png`,
+    `${import.meta.env.BASE_URL}assets/menu/mode_bureau_art.png`,
+    `${import.meta.env.BASE_URL}assets/menu/mode_expedition_art.png`
+  ];
+
+  useEffect(() => {
+    if (!carouselRef.current) return;
+    let scrollTimeout;
+    const container = carouselRef.current;
+
+    const handleScroll = () => {
+      const cards = container.querySelectorAll('.activity-card');
+      let closestIndex = 1;
+      let minDistance = Infinity;
+      const containerRect = container.getBoundingClientRect();
+
+      cards.forEach((card) => {
+        const rect = card.getBoundingClientRect();
+        // 5vw scroll padding
+        const distance = Math.abs(rect.left - containerRect.left - (window.innerWidth * 0.05));
+        if (distance < minDistance) {
+          minDistance = distance;
+          closestIndex = Number(card.dataset.index);
+        }
+      });
+      setFocusedModeIndex(closestIndex);
+    };
+
+    container.addEventListener('scroll', () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(handleScroll, 50);
+    });
+
+    return () => {
+      clearTimeout(scrollTimeout);
+      container.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
 
   const openSiteSelection = () => {
     setShowCivSelection(true);
@@ -153,71 +195,40 @@ export function ActivityMenu({
 
   return (
     <section className="phase-container menu-phase">
-      <div className="menu-hero glass-card">
-        <div className="menu-hero-copy">
-          <div className="training-kicker">Archaeology Challenge</div>
-          <h2>Lost Site Expedition</h2>
-          <p>Choose your path: train field skills, investigate a dig site, solve museum case files, or begin the adventure.</p>
-          <div className="menu-hero-badges" aria-label="Game features">
-            <span>Adventure Archaeology</span>
-            <span>Evidence Skills</span>
-            <span>Museum Mystery</span>
-          </div>
-        </div>
-        <div className="menu-save-note" role="note">
-          Save/load unlocks after a mission starts.
-        </div>
-        <div className="menu-hero-art" aria-hidden="true">
-          <div className="menu-hero-sun" />
-          <div
-            className="menu-hero-sprite"
-            style={{ backgroundImage: `url(${import.meta.env.BASE_URL}${PLAYER_SPRITE_SRC})` }}
-          />
-        </div>
-      </div>
+      <div className="dynamic-menu-backdrop" style={{ backgroundImage: `url(${modeArtworks[focusedModeIndex]})` }} />
 
       <div className="mission-selection-heading">
         <div>
-          <div className="training-kicker">Mission Select</div>
-          <h3>Pick a path into the ancient world</h3>
+          <div className="training-kicker">Archaeology Challenge</div>
+          <h2 className="premium-text-glow" style={{ margin: 0, fontSize: '2rem' }}>Lost Site Expedition</h2>
         </div>
         <div className="mission-selection-heading-actions">
-          <p>Four modes, one evidence toolkit. Start quick, go deep, or take the new platforming route.</p>
           <button
             type="button"
-            className={`menu-music-toggle ${expeditionMusicEnabled ? 'is-on' : 'is-off'}`}
+            className={`menu-icon-btn ${expeditionMusicEnabled ? 'is-on' : 'is-off'}`}
             onClick={onExpeditionMusicToggle}
             aria-pressed={expeditionMusicEnabled}
             aria-label={`Expedition music ${expeditionMusicEnabled ? 'on' : 'off'}`}
+            title={`Music: ${expeditionMusicEnabled ? 'On' : 'Off'}`}
           >
-            {expeditionMusicEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
-            <span>Expedition Music: {expeditionMusicEnabled ? 'On' : 'Off'}</span>
+            {expeditionMusicEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
           </button>
           <button
             type="button"
-            className="menu-sound-test"
-            onClick={onExpeditionSoundTest}
-            aria-label="Test expedition sound effects"
-          >
-            <Volume2 size={16} />
-            <span>Test Sound</span>
-          </button>
-          <button
-            type="button"
-            className={`menu-music-toggle ${expeditionSfxEnabled ? 'is-on' : 'is-off'}`}
+            className={`menu-icon-btn ${expeditionSfxEnabled ? 'is-on' : 'is-off'}`}
             onClick={onExpeditionSfxToggle}
             aria-pressed={expeditionSfxEnabled}
             aria-label={`Expedition sound effects ${expeditionSfxEnabled ? 'on' : 'off'}`}
+            title={`SFX: ${expeditionSfxEnabled ? 'On' : 'Off'}`}
           >
-            {expeditionSfxEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
-            <span>Expedition Sounds: {expeditionSfxEnabled ? 'On' : 'Off'}</span>
+            {expeditionSfxEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
           </button>
         </div>
       </div>
 
-      <div className="activity-menu-grid" aria-label="Choose an activity">
+      <div className="premium-carousel-container" ref={carouselRef} aria-label="Choose an activity">
         {/* Basic Training */}
-        <article className="activity-card activity-card--training glass-card">
+        <article data-index={0} className={`activity-card activity-card--training glass-card ${focusedModeIndex === 0 ? 'is-focused' : ''}`} style={{ '--card-bg': `url(${modeArtworks[0]})` }} onMouseEnter={() => setFocusedModeIndex(0)}>
           <div className="activity-card-header">
             <div className="activity-card-icon activity-card-icon--training">
               <MapPin size={24} />
@@ -229,15 +240,15 @@ export function ActivityMenu({
             <div className="activity-mode-label">Practice</div>
             <p>Practise the five core investigation steps in isolation.</p>
           </div>
-          <div className="activity-card-actions activity-card-button-group">
-            <button type="button" className="btn primary-btn activity-card-action" onClick={onStartTraining}>
-              Start Training
-            </button>
-          </div>
+            <div className="activity-card-button-group">
+              <button type="button" className="premium-action-btn" onClick={onStartTraining}>
+                Start Training
+              </button>
+            </div>
         </article>
 
         {/* Full Investigation */}
-        <article className={`activity-card activity-card--investigation glass-card ${hasSavedInvestigation ? 'has-save' : ''}`}>
+        <article data-index={1} className={`activity-card activity-card--investigation glass-card ${hasSavedInvestigation ? 'has-save' : ''} ${focusedModeIndex === 1 ? 'is-focused' : ''}`} style={{ '--card-bg': `url(${modeArtworks[1]})` }} onMouseEnter={() => setFocusedModeIndex(1)}>
           <div className="activity-card-header">
             <div className="activity-card-icon activity-card-icon--investigation">
               <Pickaxe size={24} />
@@ -249,24 +260,24 @@ export function ActivityMenu({
             <div className="activity-mode-label">Site Mission</div>
             <p>Recover finds, sort evidence, and build a museum display.</p>
           </div>
-          <div className="activity-card-actions activity-card-button-group">
-            <button 
-              type="button" 
-              className={`btn primary-btn activity-card-action ${hasSavedInvestigation ? 'pulse-btn' : ''}`} 
-            onClick={hasSavedInvestigation ? onResumeInvestigation : openSiteSelection}
-          >
-              {hasSavedInvestigation ? 'Resume Investigation' : 'Start Investigation'}
-            </button>
-            {hasSavedInvestigation && (
-              <button type="button" className="btn secondary-btn activity-card-action" onClick={openSiteSelection}>
-                Start New Investigation
+            <div className="activity-card-button-group">
+              {hasSavedInvestigation && (
+                <button type="button" className="premium-action-btn" onClick={onResumeInvestigation}>
+                  Resume Investigation
+                </button>
+              )}
+              <button
+                type="button"
+                className={hasSavedInvestigation ? 'premium-action-btn secondary-btn' : 'premium-action-btn'}
+                onClick={openSiteSelection}
+              >
+                {hasSavedInvestigation ? 'Start New Investigation' : 'Start Investigation'}
               </button>
-            )}
-          </div>
+            </div>
         </article>
 
         {/* Secret Files */}
-        <article className={`activity-card activity-card--bureau glass-card ${hasSavedBureau ? 'has-save' : ''}`}>
+        <article data-index={2} className={`activity-card activity-card--bureau glass-card ${hasSavedBureau ? 'has-save' : ''} ${focusedModeIndex === 2 ? 'is-focused' : ''}`} style={{ '--card-bg': `url(${modeArtworks[2]})` }} onMouseEnter={() => setFocusedModeIndex(2)}>
           <div className="activity-card-header">
             <div className="activity-card-icon activity-card-icon--bureau">
               <FileText size={24} />
@@ -278,24 +289,24 @@ export function ActivityMenu({
             <div className="activity-mode-label">Mystery</div>
             <p>Open secret museum case files and solve evidence mysteries.</p>
           </div>
-          <div className="activity-card-actions activity-card-button-group">
-            <button 
-              type="button" 
-              className={`btn primary-btn activity-card-action ${hasSavedBureau ? 'pulse-btn' : ''}`} 
-            onClick={hasSavedBureau ? onResumeBureau : onStartBureau}
-          >
-              {hasSavedBureau ? 'Resume Bureau' : 'Start Bureau'}
-            </button>
-            {hasSavedBureau && (
-              <button type="button" className="btn secondary-btn activity-card-action" onClick={onStartBureau}>
-                Start New Bureau
+            <div className="activity-card-button-group">
+              {hasSavedBureau && (
+                <button type="button" className="premium-action-btn" onClick={onResumeBureau}>
+                  Resume Bureau Work
+                </button>
+              )}
+              <button
+                type="button"
+                className={hasSavedBureau ? 'premium-action-btn secondary-btn' : 'premium-action-btn'}
+                onClick={onStartBureau}
+              >
+                {hasSavedBureau ? 'Start New Case' : 'Start Bureau'}
               </button>
-            )}
-          </div>
+            </div>
         </article>
 
         {/* Lost Site Expedition */}
-        <article className="activity-card activity-card--expedition glass-card">
+        <article data-index={3} className={`activity-card activity-card--expedition glass-card ${focusedModeIndex === 3 ? 'is-focused' : ''}`} style={{ '--card-bg': `url(${modeArtworks[3]})` }} onMouseEnter={() => setFocusedModeIndex(3)}>
           <div className="activity-card-header">
             <div className="activity-card-icon activity-card-icon--expedition">
               <Compass size={24} />
@@ -307,11 +318,11 @@ export function ActivityMenu({
             <div className="activity-mode-label">Standalone Adventure</div>
             <p>Cross the sealed route, face the first guardian, then return to Base Camp Outpost for fieldwork.</p>
           </div>
-          <div className="activity-card-actions activity-card-button-group">
-            <button type="button" className="btn primary-btn activity-card-action" onClick={onStartExpedition}>
-              Start Expedition
-            </button>
-          </div>
+            <div className="activity-card-button-group">
+              <button type="button" className="premium-action-btn" onClick={onStartExpedition}>
+                Launch Expedition
+              </button>
+            </div>
         </article>
       </div>
     </section>

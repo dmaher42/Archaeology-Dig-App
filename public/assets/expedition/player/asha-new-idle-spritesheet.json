@@ -686,9 +686,9 @@
       "h": 256,
       "drawBounds": {
         "x": 7,
-        "y": 32,
+        "y": 50,
         "w": 242,
-        "h": 204
+        "h": 186
       },
       "groundLineY": 236
     },
@@ -698,9 +698,9 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 32,
+        "x": 66,
         "y": 12,
-        "w": 193,
+        "w": 124,
         "h": 224
       },
       "groundLineY": 236
@@ -711,9 +711,9 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 30,
+        "x": 63,
         "y": 12,
-        "w": 196,
+        "w": 130,
         "h": 224
       },
       "groundLineY": 236
@@ -724,9 +724,9 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 44,
+        "x": 46,
         "y": 12,
-        "w": 167,
+        "w": 164,
         "h": 224
       },
       "groundLineY": 236
@@ -737,9 +737,9 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 42,
+        "x": 54,
         "y": 12,
-        "w": 173,
+        "w": 149,
         "h": 224
       },
       "groundLineY": 236
@@ -750,10 +750,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 7,
-        "y": 26,
-        "w": 242,
-        "h": 210
+        "x": 20,
+        "y": 12,
+        "w": 215,
+        "h": 224
       },
       "groundLineY": 236
     },
@@ -763,10 +763,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 7,
-        "y": 63,
-        "w": 242,
-        "h": 173
+        "x": 12,
+        "y": 79,
+        "w": 231,
+        "h": 157
       },
       "groundLineY": 236
     },
@@ -776,237 +776,16 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 7,
-        "y": 63,
-        "w": 242,
-        "h": 173
+        "x": 12,
+        "y": 79,
+        "w": 231,
+        "h": 157
       },
       "groundLineY": 236
     },
     "fall_00": {
       "x": 0,
       "y": 1280,
-      "w": 256,
-      "h": 256,
-      "drawBounds": {
-        "x": 44,
-        "y": 12,
-        "w": 167,
-        "h": 224
-      },
-      "groundLineY": 236
-    },
-    "fall_01": {
-      "x": 256,
-      "y": 1280,
-      "w": 256,
-      "h": 256,
-      "drawBounds": {
-        "x": 42,
-        "y": 12,
-        "w": 173,
-        "h": 224
-      },
-      "groundLineY": 236
-    },
-    "fall_02": {
-      "x": 512,
-      "y": 1280,
-      "w": 256,
-      "h": 256,
-      "drawBounds": {
-        "x": 7,
-        "y": 26,
-        "w": 242,
-        "h": 210
-      },
-      "groundLineY": 236
-    },
-    "fall_03": {
-      "x": 768,
-      "y": 1280,
-      "w": 256,
-      "h": 256,
-      "drawBounds": {
-        "x": 7,
-        "y": 26,
-        "w": 242,
-        "h": 210
-      },
-      "groundLineY": 236
-    },
-    "fall_04": {
-      "x": 1024,
-      "y": 1280,
-      "w": 256,
-      "h": 256,
-      "drawBounds": {
-        "x": 7,
-        "y": 63,
-        "w": 242,
-        "h": 173
-      },
-      "groundLineY": 236
-    },
-    "fall_05": {
-      "x": 1280,
-      "y": 1280,
-      "w": 256,
-      "h": 256,
-      "drawBounds": {
-        "x": 7,
-        "y": 63,
-        "w": 242,
-        "h": 173
-      },
-      "groundLineY": 236
-    },
-    "fall_06": {
-      "x": 1536,
-      "y": 1280,
-      "w": 256,
-      "h": 256,
-      "drawBounds": {
-        "x": 7,
-        "y": 63,
-        "w": 242,
-        "h": 173
-      },
-      "groundLineY": 236
-    },
-    "fall_07": {
-      "x": 1792,
-      "y": 1280,
-      "w": 256,
-      "h": 256,
-      "drawBounds": {
-        "x": 7,
-        "y": 63,
-        "w": 242,
-        "h": 173
-      },
-      "groundLineY": 236
-    },
-    "land_00": {
-      "x": 0,
-      "y": 1536,
-      "w": 256,
-      "h": 256,
-      "drawBounds": {
-        "x": 7,
-        "y": 26,
-        "w": 242,
-        "h": 210
-      },
-      "groundLineY": 236
-    },
-    "land_01": {
-      "x": 256,
-      "y": 1536,
-      "w": 256,
-      "h": 256,
-      "drawBounds": {
-        "x": 7,
-        "y": 63,
-        "w": 242,
-        "h": 173
-      },
-      "groundLineY": 236
-    },
-    "land_02": {
-      "x": 512,
-      "y": 1536,
-      "w": 256,
-      "h": 256,
-      "drawBounds": {
-        "x": 7,
-        "y": 63,
-        "w": 242,
-        "h": 173
-      },
-      "groundLineY": 236
-    },
-    "land_03": {
-      "x": 768,
-      "y": 1536,
-      "w": 256,
-      "h": 256,
-      "drawBounds": {
-        "x": 7,
-        "y": 63,
-        "w": 242,
-        "h": 173
-      },
-      "groundLineY": 236
-    },
-    "land_04": {
-      "x": 1024,
-      "y": 1536,
-      "w": 256,
-      "h": 256,
-      "drawBounds": {
-        "x": 7,
-        "y": 63,
-        "w": 242,
-        "h": 173
-      },
-      "groundLineY": 236
-    },
-    "land_05": {
-      "x": 1280,
-      "y": 1536,
-      "w": 256,
-      "h": 256,
-      "drawBounds": {
-        "x": 7,
-        "y": 63,
-        "w": 242,
-        "h": 173
-      },
-      "groundLineY": 236
-    },
-    "land_06": {
-      "x": 1536,
-      "y": 1536,
-      "w": 256,
-      "h": 256,
-      "drawBounds": {
-        "x": 7,
-        "y": 63,
-        "w": 242,
-        "h": 173
-      },
-      "groundLineY": 236
-    },
-    "land_07": {
-      "x": 1792,
-      "y": 1536,
-      "w": 256,
-      "h": 256,
-      "drawBounds": {
-        "x": 7,
-        "y": 63,
-        "w": 242,
-        "h": 173
-      },
-      "groundLineY": 236
-    },
-    "attack_pick_swing_00": {
-      "x": 0,
-      "y": 1792,
-      "w": 256,
-      "h": 256,
-      "drawBounds": {
-        "x": 28,
-        "y": 12,
-        "w": 201,
-        "h": 224
-      },
-      "groundLineY": 236
-    },
-    "attack_pick_swing_01": {
-      "x": 256,
-      "y": 1792,
       "w": 256,
       "h": 256,
       "drawBounds": {
@@ -1017,34 +796,203 @@
       },
       "groundLineY": 236
     },
-    "attack_pick_swing_02": {
+    "fall_01": {
+      "x": 256,
+      "y": 1280,
+      "w": 256,
+      "h": 256,
+      "drawBounds": {
+        "x": 54,
+        "y": 12,
+        "w": 149,
+        "h": 224
+      },
+      "groundLineY": 236
+    },
+    "fall_02": {
       "x": 512,
-      "y": 1792,
+      "y": 1280,
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 7,
-        "y": 13,
-        "w": 242,
-        "h": 223
+        "x": 20,
+        "y": 12,
+        "w": 215,
+        "h": 224
       },
       "groundLineY": 236
     },
-    "attack_pick_swing_03": {
+    "fall_03": {
       "x": 768,
-      "y": 1792,
+      "y": 1280,
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 7,
-        "y": 21,
-        "w": 242,
-        "h": 215
+        "x": 20,
+        "y": 12,
+        "w": 215,
+        "h": 224
       },
       "groundLineY": 236
     },
-    "attack_pick_swing_04": {
+    "fall_04": {
       "x": 1024,
+      "y": 1280,
+      "w": 256,
+      "h": 256,
+      "drawBounds": {
+        "x": 12,
+        "y": 79,
+        "w": 231,
+        "h": 157
+      },
+      "groundLineY": 236
+    },
+    "fall_05": {
+      "x": 1280,
+      "y": 1280,
+      "w": 256,
+      "h": 256,
+      "drawBounds": {
+        "x": 12,
+        "y": 79,
+        "w": 231,
+        "h": 157
+      },
+      "groundLineY": 236
+    },
+    "fall_06": {
+      "x": 1536,
+      "y": 1280,
+      "w": 256,
+      "h": 256,
+      "drawBounds": {
+        "x": 12,
+        "y": 79,
+        "w": 231,
+        "h": 157
+      },
+      "groundLineY": 236
+    },
+    "fall_07": {
+      "x": 1792,
+      "y": 1280,
+      "w": 256,
+      "h": 256,
+      "drawBounds": {
+        "x": 12,
+        "y": 79,
+        "w": 231,
+        "h": 157
+      },
+      "groundLineY": 236
+    },
+    "land_00": {
+      "x": 0,
+      "y": 1536,
+      "w": 256,
+      "h": 256,
+      "drawBounds": {
+        "x": 20,
+        "y": 12,
+        "w": 215,
+        "h": 224
+      },
+      "groundLineY": 236
+    },
+    "land_01": {
+      "x": 256,
+      "y": 1536,
+      "w": 256,
+      "h": 256,
+      "drawBounds": {
+        "x": 12,
+        "y": 79,
+        "w": 231,
+        "h": 157
+      },
+      "groundLineY": 236
+    },
+    "land_02": {
+      "x": 512,
+      "y": 1536,
+      "w": 256,
+      "h": 256,
+      "drawBounds": {
+        "x": 12,
+        "y": 79,
+        "w": 231,
+        "h": 157
+      },
+      "groundLineY": 236
+    },
+    "land_03": {
+      "x": 768,
+      "y": 1536,
+      "w": 256,
+      "h": 256,
+      "drawBounds": {
+        "x": 12,
+        "y": 79,
+        "w": 231,
+        "h": 157
+      },
+      "groundLineY": 236
+    },
+    "land_04": {
+      "x": 1024,
+      "y": 1536,
+      "w": 256,
+      "h": 256,
+      "drawBounds": {
+        "x": 12,
+        "y": 79,
+        "w": 231,
+        "h": 157
+      },
+      "groundLineY": 236
+    },
+    "land_05": {
+      "x": 1280,
+      "y": 1536,
+      "w": 256,
+      "h": 256,
+      "drawBounds": {
+        "x": 12,
+        "y": 79,
+        "w": 231,
+        "h": 157
+      },
+      "groundLineY": 236
+    },
+    "land_06": {
+      "x": 1536,
+      "y": 1536,
+      "w": 256,
+      "h": 256,
+      "drawBounds": {
+        "x": 12,
+        "y": 79,
+        "w": 231,
+        "h": 157
+      },
+      "groundLineY": 236
+    },
+    "land_07": {
+      "x": 1792,
+      "y": 1536,
+      "w": 256,
+      "h": 256,
+      "drawBounds": {
+        "x": 12,
+        "y": 79,
+        "w": 231,
+        "h": 157
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_00": {
+      "x": 0,
       "y": 1792,
       "w": 256,
       "h": 256,
@@ -1056,8 +1004,8 @@
       },
       "groundLineY": 236
     },
-    "attack_pick_swing_05": {
-      "x": 1280,
+    "attack_pick_swing_01": {
+      "x": 256,
       "y": 1792,
       "w": 256,
       "h": 256,
@@ -1069,8 +1017,47 @@
       },
       "groundLineY": 236
     },
-    "attack_pick_swing_06": {
-      "x": 1536,
+    "attack_pick_swing_02": {
+      "x": 512,
+      "y": 1792,
+      "w": 256,
+      "h": 256,
+      "drawBounds": {
+        "x": 7,
+        "y": 37,
+        "w": 242,
+        "h": 199
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_03": {
+      "x": 768,
+      "y": 1792,
+      "w": 256,
+      "h": 256,
+      "drawBounds": {
+        "x": 7,
+        "y": 55,
+        "w": 242,
+        "h": 181
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_04": {
+      "x": 1024,
+      "y": 1792,
+      "w": 256,
+      "h": 256,
+      "drawBounds": {
+        "x": 7,
+        "y": 46,
+        "w": 242,
+        "h": 190
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_05": {
+      "x": 1280,
       "y": 1792,
       "w": 256,
       "h": 256,
@@ -1082,16 +1069,29 @@
       },
       "groundLineY": 236
     },
+    "attack_pick_swing_06": {
+      "x": 1536,
+      "y": 1792,
+      "w": 256,
+      "h": 256,
+      "drawBounds": {
+        "x": 22,
+        "y": 12,
+        "w": 213,
+        "h": 224
+      },
+      "groundLineY": 236
+    },
     "attack_pick_swing_07": {
       "x": 1792,
       "y": 1792,
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 81,
-        "y": 12,
-        "w": 94,
-        "h": 224
+        "x": 7,
+        "y": 13,
+        "w": 242,
+        "h": 223
       },
       "groundLineY": 236
     },
@@ -1452,10 +1452,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 40,
-        "y": 40,
-        "w": 176,
-        "h": 196
+        "x": 19,
+        "y": 12,
+        "w": 218,
+        "h": 224
       },
       "groundLineY": 236
     },
@@ -1465,10 +1465,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 36,
-        "y": 50,
-        "w": 184,
-        "h": 186
+        "x": 7,
+        "y": 33,
+        "w": 242,
+        "h": 203
       },
       "groundLineY": 236
     },
@@ -1478,10 +1478,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 28,
-        "y": 58,
-        "w": 199,
-        "h": 178
+        "x": 7,
+        "y": 73,
+        "w": 242,
+        "h": 163
       },
       "groundLineY": 236
     },
@@ -1491,10 +1491,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 24,
-        "y": 59,
-        "w": 209,
-        "h": 177
+        "x": 7,
+        "y": 49,
+        "w": 242,
+        "h": 187
       },
       "groundLineY": 236
     },
@@ -1504,10 +1504,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 24,
-        "y": 48,
-        "w": 209,
-        "h": 188
+        "x": 38,
+        "y": 12,
+        "w": 179,
+        "h": 224
       },
       "groundLineY": 236
     },
@@ -1517,10 +1517,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 66,
-        "y": 55,
-        "w": 125,
-        "h": 181
+        "x": 22,
+        "y": 12,
+        "w": 212,
+        "h": 224
       },
       "groundLineY": 236
     },
@@ -1530,10 +1530,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 68,
-        "y": 36,
-        "w": 119,
-        "h": 200
+        "x": 7,
+        "y": 41,
+        "w": 242,
+        "h": 195
       },
       "groundLineY": 236
     },
@@ -1543,10 +1543,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 74,
-        "y": 28,
-        "w": 108,
-        "h": 208
+        "x": 24,
+        "y": 12,
+        "w": 209,
+        "h": 224
       },
       "groundLineY": 236
     }
@@ -1586,38 +1586,38 @@
     "survey_walk_05": "asha-premium-run-regeneration-03-raw.png:frame_05",
     "survey_walk_06": "asha-premium-run-regeneration-03-raw.png:frame_06",
     "survey_walk_07": "asha-premium-run-regeneration-03-raw.png:frame_07",
-    "jump_00": "asha-premium-jump-candidate-raw.png:frame_00",
-    "jump_01": "asha-premium-jump-candidate-raw.png:frame_01",
-    "jump_02": "asha-premium-jump-candidate-raw.png:frame_02",
-    "jump_03": "asha-premium-jump-candidate-raw.png:frame_03",
-    "jump_04": "asha-premium-jump-candidate-raw.png:frame_04",
-    "jump_05": "asha-premium-jump-candidate-raw.png:frame_05",
-    "jump_06": "asha-premium-jump-candidate-raw.png:frame_06",
-    "jump_07": "asha-premium-jump-candidate-raw.png:frame_06",
-    "fall_00": "asha-premium-jump-candidate-raw.png:frame_03",
-    "fall_01": "asha-premium-jump-candidate-raw.png:frame_04",
-    "fall_02": "asha-premium-jump-candidate-raw.png:frame_05",
-    "fall_03": "asha-premium-jump-candidate-raw.png:frame_05",
-    "fall_04": "asha-premium-jump-candidate-raw.png:frame_06",
-    "fall_05": "asha-premium-jump-candidate-raw.png:frame_06",
-    "fall_06": "asha-premium-jump-candidate-raw.png:frame_06",
-    "fall_07": "asha-premium-jump-candidate-raw.png:frame_06",
-    "land_00": "asha-premium-jump-candidate-raw.png:frame_05",
-    "land_01": "asha-premium-jump-candidate-raw.png:frame_06",
-    "land_02": "asha-premium-jump-candidate-raw.png:frame_06",
-    "land_03": "asha-premium-jump-candidate-raw.png:frame_06",
-    "land_04": "asha-premium-jump-candidate-raw.png:frame_06",
-    "land_05": "asha-premium-jump-candidate-raw.png:frame_06",
-    "land_06": "asha-premium-jump-candidate-raw.png:frame_06",
-    "land_07": "asha-premium-jump-candidate-raw.png:frame_06",
-    "attack_pick_swing_00": "asha-premium-attack-candidate-raw.png:frame_00",
-    "attack_pick_swing_01": "asha-premium-attack-candidate-raw.png:frame_01",
-    "attack_pick_swing_02": "asha-premium-attack-candidate-raw.png:frame_02",
-    "attack_pick_swing_03": "asha-premium-attack-candidate-raw.png:frame_03",
-    "attack_pick_swing_04": "asha-premium-attack-candidate-raw.png:frame_04",
-    "attack_pick_swing_05": "asha-premium-attack-candidate-raw.png:frame_05",
-    "attack_pick_swing_06": "asha-premium-attack-candidate-raw.png:frame_06",
-    "attack_pick_swing_07": "asha-premium-attack-candidate-raw.png:frame_07",
+    "jump_00": "asha-premium-jump-regeneration-02-raw.png:frame_00",
+    "jump_01": "asha-premium-jump-regeneration-02-raw.png:frame_01",
+    "jump_02": "asha-premium-jump-regeneration-02-raw.png:frame_02",
+    "jump_03": "asha-premium-jump-regeneration-02-raw.png:frame_03",
+    "jump_04": "asha-premium-jump-regeneration-02-raw.png:frame_04",
+    "jump_05": "asha-premium-jump-regeneration-02-raw.png:frame_05",
+    "jump_06": "asha-premium-jump-regeneration-02-raw.png:frame_06",
+    "jump_07": "asha-premium-jump-regeneration-02-raw.png:frame_06",
+    "fall_00": "asha-premium-jump-regeneration-02-raw.png:frame_03",
+    "fall_01": "asha-premium-jump-regeneration-02-raw.png:frame_04",
+    "fall_02": "asha-premium-jump-regeneration-02-raw.png:frame_05",
+    "fall_03": "asha-premium-jump-regeneration-02-raw.png:frame_05",
+    "fall_04": "asha-premium-jump-regeneration-02-raw.png:frame_06",
+    "fall_05": "asha-premium-jump-regeneration-02-raw.png:frame_06",
+    "fall_06": "asha-premium-jump-regeneration-02-raw.png:frame_06",
+    "fall_07": "asha-premium-jump-regeneration-02-raw.png:frame_06",
+    "land_00": "asha-premium-jump-regeneration-02-raw.png:frame_05",
+    "land_01": "asha-premium-jump-regeneration-02-raw.png:frame_06",
+    "land_02": "asha-premium-jump-regeneration-02-raw.png:frame_06",
+    "land_03": "asha-premium-jump-regeneration-02-raw.png:frame_06",
+    "land_04": "asha-premium-jump-regeneration-02-raw.png:frame_06",
+    "land_05": "asha-premium-jump-regeneration-02-raw.png:frame_06",
+    "land_06": "asha-premium-jump-regeneration-02-raw.png:frame_06",
+    "land_07": "asha-premium-jump-regeneration-02-raw.png:frame_06",
+    "attack_pick_swing_00": "asha-premium-attack-regeneration-01-candidate-raw.png:frame_00",
+    "attack_pick_swing_01": "asha-premium-attack-regeneration-01-candidate-raw.png:frame_01",
+    "attack_pick_swing_02": "asha-premium-attack-regeneration-01-candidate-raw.png:frame_02",
+    "attack_pick_swing_03": "asha-premium-attack-regeneration-01-candidate-raw.png:frame_03",
+    "attack_pick_swing_04": "asha-premium-attack-regeneration-01-candidate-raw.png:frame_04",
+    "attack_pick_swing_05": "asha-premium-attack-regeneration-01-candidate-raw.png:frame_05",
+    "attack_pick_swing_06": "asha-premium-attack-regeneration-01-candidate-raw.png:frame_06",
+    "attack_pick_swing_07": "asha-premium-attack-regeneration-01-candidate-raw.png:frame_07",
     "hurt_00": "asha-v5-damage-source.png:frame_00",
     "hurt_01": "asha-v5-damage-source.png:frame_01",
     "hurt_02": "asha-v5-damage-source.png:frame_02",
@@ -1645,13 +1645,13 @@
     "push_pull_05": "asha-v5-interact-source.png:frame_03",
     "push_pull_06": "asha-v5-interact-source.png:frame_02",
     "push_pull_07": "asha-v5-interact-source.png:frame_01",
-    "attack_pick_swing_alt_00": "asha-new-generated-grid-raw.png:attack_pick_swing_00",
-    "attack_pick_swing_alt_01": "asha-new-generated-grid-raw.png:attack_pick_swing_01",
-    "attack_pick_swing_alt_02": "asha-new-generated-grid-raw.png:attack_pick_swing_02",
-    "attack_pick_swing_alt_03": "asha-new-generated-grid-raw.png:attack_pick_swing_03",
-    "attack_pick_swing_alt_04": "asha-new-generated-grid-raw.png:attack_pick_swing_04",
-    "attack_pick_swing_alt_05": "asha-new-generated-grid-raw.png:attack_pick_swing_05",
-    "attack_pick_swing_alt_06": "asha-new-generated-grid-raw.png:attack_pick_swing_06",
-    "attack_pick_swing_alt_07": "asha-new-generated-grid-raw.png:attack_pick_swing_07"
+    "attack_pick_swing_alt_00": "asha-premium-attack-alt-regeneration-02-chain-raw.png:frame_00",
+    "attack_pick_swing_alt_01": "asha-premium-attack-alt-regeneration-02-chain-raw.png:frame_01",
+    "attack_pick_swing_alt_02": "asha-premium-attack-alt-regeneration-02-chain-raw.png:frame_02",
+    "attack_pick_swing_alt_03": "asha-premium-attack-alt-regeneration-02-chain-raw.png:frame_03",
+    "attack_pick_swing_alt_04": "asha-premium-attack-alt-regeneration-02-chain-raw.png:frame_04",
+    "attack_pick_swing_alt_05": "asha-premium-attack-alt-regeneration-02-chain-raw.png:frame_05",
+    "attack_pick_swing_alt_06": "asha-premium-attack-alt-regeneration-02-chain-raw.png:frame_06",
+    "attack_pick_swing_alt_07": "asha-premium-attack-alt-regeneration-02-chain-raw.png:frame_07"
   }
 }

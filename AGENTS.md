@@ -22,6 +22,31 @@ C:\Users\dmahe\OneDrive\Desktop\Codex\Archaeology-Dig-App1
 - Use concise, readable adventure-game wording. Do not default to Year 7 or classroom-safe tuning unless the user explicitly asks for a classroom mode.
 - For UI/game changes, verify in the browser where possible.
 
+## Usage Management
+
+Default to a scoped pass, not a full deep pass. Classify each request before doing heavy work:
+
+- Quick check: inspect only the smallest relevant files, answer plainly, make no edits, and skip browser checks or tests unless essential.
+- Narrow fix: inspect the canonical source path, make the smallest safe change, and run the narrowest useful verification.
+- Deep pass: use only when the user explicitly asks for an audit, redesign, gameplay implementation, asset generation, browser playtest, commit, or push.
+
+For this Archaeology project:
+
+- Prefer this LocalCodex checkout unless the user names another path.
+- Start by identifying the canonical source of truth, but keep inspection bounded to the likely files.
+- Do not regenerate images, sprites, audio, or other large assets until the current asset pipeline and acceptance criteria are confirmed.
+- Do not run long natural browser playthroughs by default. Prefer short state-focused browser checks, existing tests, and build/lint verification.
+- Do not leave dev servers, preview servers, browser helpers, or Playwright/headless processes running after verification.
+- For longer playtesting, prefer the existing low-power/static playtest flow over a hot dev server when practical.
+- If a task is only wording, layout, or tuning, do not broaden into a full gameplay redesign.
+
+When the conversation becomes long:
+
+- If the thread has shifted goals more than twice, has repeated failed verification loops, or has grown into a broad multi-hour context, stop before starting another major pass.
+- Tell the user: "This conversation is getting long. Starting fresh will likely use less Codex usage."
+- Provide a compact handoff summary with the current repo path, current goal, files changed or inspected, what is confirmed, what remains unclear, exact next recommended step, and tests/build/browser checks already run.
+- Ask the user to start a new conversation with that summary before continuing major work.
+
 ## Current Source Of Truth
 
 - App entry and main state flow: `src/App.jsx`

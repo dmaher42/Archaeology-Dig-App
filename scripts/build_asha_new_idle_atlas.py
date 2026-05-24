@@ -18,8 +18,9 @@ SOURCE_ATTACK_IMAGE = SOURCE_DIR / "asha-new-attack-raw.png"
 SOURCE_GENERATED_GRID_IMAGE = SOURCE_DIR / "asha-new-generated-grid-raw.png"
 SOURCE_PREMIUM_IDLE_IMAGE = SOURCE_DIR / "asha-premium-idle-regeneration-01-raw.png"
 SOURCE_PREMIUM_RUN_IMAGE = SOURCE_DIR / "asha-premium-run-regeneration-03-raw.png"
-SOURCE_PREMIUM_JUMP_IMAGE = SOURCE_DIR / "asha-premium-jump-candidate-raw.png"
-SOURCE_PREMIUM_ATTACK_IMAGE = SOURCE_DIR / "asha-premium-attack-candidate-raw.png"
+SOURCE_PREMIUM_JUMP_IMAGE = SOURCE_DIR / "asha-premium-jump-regeneration-02-raw.png"
+SOURCE_PREMIUM_ATTACK_IMAGE = SOURCE_DIR / "asha-premium-attack-regeneration-01-candidate-raw.png"
+SOURCE_PREMIUM_ATTACK_ALT_IMAGE = SOURCE_DIR / "asha-premium-attack-alt-regeneration-02-chain-raw.png"
 BASE_ATLAS_JSON = ROOT / "public/assets/expedition/player/asha-v5-spritesheet.json"
 BASE_ATLAS_PNG = ROOT / "public/assets/expedition/player/asha-v5-spritesheet.png"
 TARGET_DIR = ROOT / "public/assets/expedition/player"
@@ -418,9 +419,16 @@ def main() -> None:
         segment_by_content=True,
         keep_large_effects=False,
     )
-    jump_frames = extract_premium_row_sheet_frames(SOURCE_PREMIUM_JUMP_IMAGE)
-    attack_frames = extract_premium_row_sheet_frames(SOURCE_PREMIUM_ATTACK_IMAGE)
-    alternate_attack_frames = generated_rows["attack_pick_swing"]
+    jump_frames = extract_premium_row_sheet_frames(
+        SOURCE_PREMIUM_JUMP_IMAGE,
+        segment_by_content=True,
+        keep_large_effects=False,
+    )
+    attack_frames = extract_premium_row_sheet_frames(SOURCE_PREMIUM_ATTACK_IMAGE, segment_by_content=True)
+    alternate_attack_frames = extract_premium_row_sheet_frames(
+        SOURCE_PREMIUM_ATTACK_ALT_IMAGE,
+        segment_by_content=True,
+    )
 
     for column, key in enumerate(idle_row["frames"]):
         source_index = min(column, len(idle_frames) - 1)
@@ -491,7 +499,7 @@ def main() -> None:
             ground_line_y=ground_line_y,
             max_source_height=max_source_height,
         )
-        pose_sources[key] = f"{SOURCE_GENERATED_GRID_IMAGE.name}:attack_pick_swing_{column:02d}"
+        pose_sources[key] = f"{SOURCE_PREMIUM_ATTACK_ALT_IMAGE.name}:frame_{column:02d}"
     rows.append(alternate_attack_row)
 
     metadata["image"] = TARGET_PNG.name

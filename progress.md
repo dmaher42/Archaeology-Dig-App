@@ -1,5 +1,12 @@
 Original prompt: Implement "Lost Site Expedition" as a small MVP game mode in the Archaeology-Dig-App repo.
 
+2026-05-24 update:
+- Completed Phase 5D as a copy-only Egypt Act 1 world-cohesion pass.
+- Updated visible Journey wording in `journeyLevelData.js` so gates, event notices, route markers, trace/evidence prompts, and Scout/Scarab Queen guidance feel more like an in-world protected-site adventure and less like a classroom checklist.
+- Reworded Temple Approach Seal, Guardian Prep Seal, Desert Map Seal, Catacomb Route Seal, and Escape Route Seal copy while preserving all requirements, ids, route gates, shard counts, and asset slots.
+- Renamed "field tools" to "lost fragments" and "shards" where appropriate to match the tone of uncovering ancient defences rather than doing homework.
+- Validated existing unit tests; adjusted regex matchers in `journeySecrets.test.js` strictly to match the new approved copy while ensuring all data structures remained fully intact.
+
 2026-05-23 update:
 - Pointed the default Egypt Journey Auto player atlas at Asha V5 instead of the missing stale `asha-v4-spritesheet.json`.
 - Updated Auto fallback to Asha Final Production, while keeping Asha V5, Asha Final Production, Asha Hooded Previous, and Legacy Strip selectable through the existing character loader.
@@ -3279,6 +3286,42 @@ Remaining notes:
 - Saved the first rejected attempt as `public/assets/expedition/player/asha-new-idle-source/asha-premium-run-regeneration-01-rejected-cropped-raw.png`; it cropped the spear at the sheet edges.
 - Saved the second attempt as `public/assets/expedition/player/asha-new-idle-source/asha-premium-run-regeneration-02-raw.png`; the raw image looked closer, but the atlas preview showed uneven frame spacing that caused spear fragments when cut into the existing 8-cell contract.
 - Did not keep the new run sheet wired. The active `Asha New Idle` atlas remains on `asha-premium-run-candidate-v2-raw.png` for run/walk/survey-walk until a cleaner run sheet is generated.
+
+## 2026-05-25 Asha run regeneration pass 2
+
+- Generated and saved a cleaner compact-spear run strip as `public/assets/expedition/player/asha-new-idle-source/asha-premium-run-regeneration-03-raw.png`.
+- Updated the Asha atlas builder to segment the generated run strip by detected character content instead of assuming the source sheet has perfectly equal-width cells.
+- Tightened movement-frame cleanup so small detached edge scraps are removed while attack effects can still keep larger separated visual components.
+- Rebuilt the active `Asha New Idle` atlas so walk, run, and survey-walk now use `asha-premium-run-regeneration-03-raw.png`.
+- Saved the wired preview at `output/asha-run-regeneration-03-wired-preview.png`; run/walk/survey-walk now cut cleanly with no visible loose spear fragments.
+
+## 2026-05-25 Asha primary attack regeneration pass 1
+
+- Generated and saved a compact spear-thrust attack strip as `public/assets/expedition/player/asha-new-idle-source/asha-premium-attack-regeneration-01-candidate-raw.png`.
+- Reused the content-segmented atlas packing path for the primary `attack_pick_swing` row so the unevenly spaced source strip can be packed into the existing fixed 8-frame atlas contract.
+- Rebuilt the active `Asha New Idle` atlas so primary attack now uses the regenerated attack strip, while `attack_pick_swing_alt` still uses the older generated placeholder row for alternating attacks.
+- Saved the wired preview at `output/asha-attack-regeneration-01-wired-preview.png`; the primary attack row reads clearly and no longer has loose spear fragments, though one early thrust frame still has a tiny edge-foot artifact worth revisiting in a final polish pass.
+
+## 2026-05-25 Asha alternate attack regeneration pass 1
+
+- Rejected the first alternate-attack regeneration attempt as `public/assets/expedition/player/asha-new-idle-source/asha-premium-attack-alt-regeneration-01-rejected-arc-raw.png` because the slash arc was too large for the fixed atlas-cell contract.
+- Generated and saved a more distinct combo-chain alternate attack as `public/assets/expedition/player/asha-new-idle-source/asha-premium-attack-alt-regeneration-02-chain-raw.png`.
+- Rebuilt the active `Asha New Idle` atlas so `attack_pick_swing_alt` now uses the combo-chain sheet instead of the older generated placeholder row.
+- Saved the wired preview at `output/asha-attack-alt-regeneration-02-wired-preview.png`; primary attack reads as a straight thrust and alternate attack now reads as a visibly different low-to-high follow-up slash.
+
+## 2026-05-25 Asha jump/fall/land regeneration pass 1
+
+- Rejected the first jump regeneration as `public/assets/expedition/player/asha-new-idle-source/asha-premium-jump-regeneration-01-rejected-right-crop-raw.png` because the final recovery frame was cropped at the right sheet edge.
+- Generated and saved a cleaner jump/fall/land strip as `public/assets/expedition/player/asha-new-idle-source/asha-premium-jump-regeneration-02-raw.png`.
+- Rebuilt the active `Asha New Idle` atlas so `jump`, `fall`, and `land` now use the regenerated jump strip through the same content-segmented packing path used by run and attack.
+- Saved the wired preview at `output/asha-jump-regeneration-02-wired-preview.png`; the rows now show a readable crouch, rise, apex, fall, landing crouch, and recovery sequence with full spear containment.
+
+## 2026-05-25 Playthrough worktree repair
+
+- Wired the active `Asha New Idle` atlas to `asha-premium-jump-regeneration-02-raw.png` for jump, fall, and landing frames using the same content-segmented atlas packing path.
+- Kept the accepted primary and alternate attack regeneration sheets wired, with rejected source attempts preserved only as source-review artifacts.
+- Repaired the premium menu carousel so the Lost Site Expedition card and launch button are visible at the desktop playtest viewport.
+- Restored the Journey local pause/menu button styling that was lost during the menu CSS overhaul, so playthrough pause controls render correctly.
 
 ## 2026-05-24 Phase 5B Early Desert Encounter Isolation Pass
 

@@ -1298,6 +1298,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
   const [claimOpen, setClaimOpen] = useState(false);
   const [selectedCivilisation, setSelectedCivilisation] = useState('');
   const [selectedEvidenceId, setSelectedEvidenceId] = useState('');
+  const [focusedStageIndex, setFocusedStageIndex] = useState(0);
   const [claimResult, setClaimResult] = useState(null);
   const [resultOpen, setResultOpen] = useState(false);
   const [expeditionFailure, setExpeditionFailure] = useState(null);
@@ -3658,31 +3659,33 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
     ? previewExpedition.scaffold.runtimeAssets
     : previewExpedition?.scaffold?.sourceAssets || [];
 
+    const modeArtworks = [
+    `${import.meta.env.BASE_URL}assets/menu/mode_investigation_art.png`,
+    `${import.meta.env.BASE_URL}assets/menu/mode_expedition_art.png`,
+    `${import.meta.env.BASE_URL}assets/menu/mode_bureau_art.png`,
+    `${import.meta.env.BASE_URL}assets/menu/mode_training_art.png`
+  ];
+
   const renderStageSelect = () => (
     <section className="phase-container menu-phase" aria-label="Expedition Stage Selection">
-      <div className="menu-hero glass-card">
-        <div className="menu-hero-copy">
+      <div className="dynamic-menu-backdrop" style={{ backgroundImage: `url(${modeArtworks[focusedStageIndex] || modeArtworks[0]})` }} />
+
+      <div className="mission-selection-heading" style={{ marginBottom: '1rem' }}>
+        <div>
           <button type="button" className="back-to-modes-btn" onClick={onBackToMenu} style={{ marginBottom: '1.5rem', width: 'fit-content' }}>
             <ChevronLeft size={16} /> Exit to Menu
           </button>
           <div className="training-kicker">Lost Site Expedition - Route Map</div>
-          <h2 className="premium-text-glow">Choose an Expedition</h2>
-        </div>
-        <div className="menu-hero-art" aria-hidden="true"></div>
-      </div>
-
-      <div className="mission-selection-heading">
-        <div>
-          <div className="training-kicker">Available Target Locations</div>
-          <h3>Egypt Playable | China Preview</h3>
+          <h2 className="premium-text-glow" style={{ margin: 0, fontSize: '2rem' }}>Choose an Expedition</h2>
         </div>
       </div>
 
-      <div className="activity-menu-grid" aria-label="Available Target Locations" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
-        {EXPEDITION_STAGES.map(stage => {
+      <div className="premium-carousel-container" aria-label="Available Target Locations">
+        {EXPEDITION_STAGES.map((stage, index) => {
           const isPlayable = stage.route === 'playable' || stage.route === 'map-playable';
+          const isFocused = focusedStageIndex === index;
           return (
-            <article key={stage.id} className={`activity-card glass-card ${isPlayable ? '' : 'is-locked'}`}>
+            <article key={stage.id} data-index={index} className={`activity-card glass-card ${isPlayable ? '' : 'is-locked'} ${isFocused ? 'is-focused' : ''}`} style={{ '--card-bg': `url(${modeArtworks[index] || modeArtworks[0]})` }} onMouseEnter={() => setFocusedStageIndex(index)}>
               <div className="activity-card-header">
                 <div className="activity-card-icon">
                   <MapIcon size={24} />
@@ -3696,12 +3699,12 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
                 <div className="activity-mode-label">{stage.subtitle}</div>
                 <p>{stage.teaser}</p>
               </div>
-              <div className="activity-card-actions activity-card-button-group">
+              <div className="activity-card-button-group">
                 <button
                   type="button"
-                  className={`btn ${isPlayable ? 'primary-btn' : 'secondary-btn'} activity-card-action`}
+                  className={`premium-action-btn ${isPlayable ? '' : 'secondary-btn'} activity-card-action`}
                   onClick={() => openExpeditionStage(stage)}
-                  style={{ width: '100%' }}
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
                   {isPlayable ? <Sparkles size={14} style={{ marginRight: '0.5rem' }} /> : <BookOpen size={14} style={{ marginRight: '0.5rem' }} />}
                   {stage.actionLabel}

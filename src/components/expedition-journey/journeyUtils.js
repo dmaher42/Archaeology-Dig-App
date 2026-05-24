@@ -250,7 +250,7 @@ const ENEMY_TOUGHNESS_BONUS = {
 };
 
 const tuneEnemyHealth = (enemy) => {
-  if (enemy.firstSealRouteRamp) return Math.max(1, enemy.health);
+  if (enemy.firstSealRouteRamp) return Math.max(3, enemy.health);
   if (enemy.openingRouteRamp) return Math.max(3, enemy.health);
   const bonus = ENEMY_TOUGHNESS_BONUS[enemy.type] ?? 1;
   return clamp(Math.max(enemy.health + bonus, Math.ceil(enemy.health * 1.55)), 3, 5);

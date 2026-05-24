@@ -7,6 +7,8 @@ import {
   DYNAMIC_WORLD_EFFECTS_VERSION,
   usesPaintedDynamicWorldEffect,
 } from './journeyDynamicWorldAssets.js';
+import { makeEnemy } from './journeyUtils.js';
+import { CHINA_ENEMIES, ENEMIES } from './journeyLevelData.js';
 
 const source = readFileSync(new URL('./journeyLevelData.js', import.meta.url), 'utf8');
 const journeyUtilsSource = readFileSync(new URL('./journeyUtils.js', import.meta.url), 'utf8');
@@ -1233,13 +1235,13 @@ test('Asha New Idle is available as a separate character-loader atlas', () => {
   assert.equal(ashaNewIdlePlayerAtlas.poseSources.walk_00, 'asha-premium-run-regeneration-03-raw.png:frame_00');
   assert.equal(ashaNewIdlePlayerAtlas.poseSources.run_09, 'asha-premium-run-regeneration-03-raw.png:frame_05');
   assert.equal(ashaNewIdlePlayerAtlas.poseSources.survey_walk_00, 'asha-premium-run-regeneration-03-raw.png:frame_00');
-  assert.equal(ashaNewIdlePlayerAtlas.poseSources.jump_00, 'asha-premium-jump-candidate-raw.png:frame_00');
-  assert.equal(ashaNewIdlePlayerAtlas.poseSources.fall_00, 'asha-premium-jump-candidate-raw.png:frame_03');
-  assert.equal(ashaNewIdlePlayerAtlas.poseSources.land_00, 'asha-premium-jump-candidate-raw.png:frame_05');
-  assert.equal(ashaNewIdlePlayerAtlas.poseSources.attack_pick_swing_00, 'asha-premium-attack-candidate-raw.png:frame_00');
-  assert.equal(ashaNewIdlePlayerAtlas.poseSources.attack_pick_swing_05, 'asha-premium-attack-candidate-raw.png:frame_05');
-  assert.equal(ashaNewIdlePlayerAtlas.poseSources.attack_pick_swing_alt_00, 'asha-new-generated-grid-raw.png:attack_pick_swing_00');
-  assert.equal(ashaNewIdlePlayerAtlas.poseSources.attack_pick_swing_alt_07, 'asha-new-generated-grid-raw.png:attack_pick_swing_07');
+  assert.equal(ashaNewIdlePlayerAtlas.poseSources.jump_00, 'asha-premium-jump-regeneration-02-raw.png:frame_00');
+  assert.equal(ashaNewIdlePlayerAtlas.poseSources.fall_00, 'asha-premium-jump-regeneration-02-raw.png:frame_03');
+  assert.equal(ashaNewIdlePlayerAtlas.poseSources.land_00, 'asha-premium-jump-regeneration-02-raw.png:frame_05');
+  assert.equal(ashaNewIdlePlayerAtlas.poseSources.attack_pick_swing_00, 'asha-premium-attack-regeneration-01-candidate-raw.png:frame_00');
+  assert.equal(ashaNewIdlePlayerAtlas.poseSources.attack_pick_swing_05, 'asha-premium-attack-regeneration-01-candidate-raw.png:frame_05');
+  assert.equal(ashaNewIdlePlayerAtlas.poseSources.attack_pick_swing_alt_00, 'asha-premium-attack-alt-regeneration-02-chain-raw.png:frame_00');
+  assert.equal(ashaNewIdlePlayerAtlas.poseSources.attack_pick_swing_alt_07, 'asha-premium-attack-alt-regeneration-02-chain-raw.png:frame_07');
   assert.equal(ashaNewIdlePlayerAtlas.poseSources.hurt_04, 'asha-v5-damage-source.png:frame_04');
   assert.ok(ashaNewIdlePlayerAtlas.description.includes('secondary attack row'));
 });
@@ -2131,12 +2133,12 @@ test('Egypt opening combat ramps gently before the first route seal', () => {
     true,
     'first-seal proof enemies should opt into the gentlest opening route tuning',
   );
-  assert.match(journeyUtilsSource, /if\s*\(enemy\.firstSealRouteRamp\)\s*return Math\.max\(1, enemy\.health\)/);
+  assert.match(journeyUtilsSource, /if\s*\(enemy\.firstSealRouteRamp\)\s*return Math\.max\(3, enemy\.health\)/);
   assert.match(journeyUtilsSource, /if\s*\(enemy\.firstSealRouteRamp\)\s*return Math\.max\(1, enemy\.damage\)/);
   assert.equal(
     teachingRows.every(row => Number(row.match(/health:\s*(\d+)/)?.[1] || 0) <= 2 && Number(row.match(/damage:\s*(\d+)/)?.[1] || 0) <= 5),
     true,
-    'first teaching enemies should stay low-health and low-damage so the seal proof stays readable',
+    'first teaching enemies should keep low authored health and low damage so the seal proof stays readable',
   );
   assert.ok(totalOpeningHealth <= 24, 'first seal should not require too many regular enemy hits before the guardian');
   assert.ok(totalOpeningDamage <= 64, 'opening regular enemy damage budget should leave room for early-route mistakes');
@@ -2145,6 +2147,22 @@ test('Egypt opening combat ramps gently before the first route seal', () => {
   const checkpoints = extractExportedArray('CHECKPOINTS');
   assert.match(checkpoints, /id:\s*'desert-survey-marker'/);
   assert.match(checkpoints, /x:\s*X\(930\)/);
+});
+
+test('normal enemies take at least three weapon hits at runtime', () => {
+  const runtimeEnemies = [...ENEMIES, ...CHINA_ENEMIES].map(makeEnemy);
+  const tooFragileEnemies = runtimeEnemies
+    .filter(enemy => enemy.maxHealth < 3 || enemy.health < 3)
+    .map(enemy => `${enemy.id}:${enemy.health}/${enemy.maxHealth}`);
+
+  assert.deepEqual(tooFragileEnemies, []);
+  assert.equal(
+    runtimeEnemies
+      .filter(enemy => enemy.firstSealRouteRamp)
+      .every(enemy => enemy.health >= 3 && enemy.maxHealth >= 3),
+    true,
+    'first-seal teaching enemies should still take at least three weapon hits',
+  );
 });
 
 test('regular enemy families use distinct combat role timings without a new AI system', () => {
@@ -2313,6 +2331,6 @@ test('jump contact only bounces enemies while attacks defeat them in three to fi
   assert.doesNotMatch(journeyComponentSource, /const applyEnemyStomp = \(enemy\) => \{[\s\S]*?enemy\.health -= 1[\s\S]*?\};/);
   assert.doesNotMatch(journeyComponentSource, /const applyEnemyStomp = \(enemy\) => \{[\s\S]*?current\.defeatedEnemies\.add\(enemy\.id\)[\s\S]*?\};/);
   assert.match(journeyComponentSource, /if \(attackRect && !current\.attackHitIds\.has\(e\.id\) && rectsOverlap\(attackRect, getAttackHurtbox\(e\)\)\) \{[\s\S]*?e\.health -= 1/);
-  assert.match(journeyUtilsSource, /if\s*\(enemy\.firstSealRouteRamp\)\s*return Math\.max\(1, enemy\.health\)/);
+  assert.match(journeyUtilsSource, /if\s*\(enemy\.firstSealRouteRamp\)\s*return Math\.max\(3, enemy\.health\)/);
   assert.match(journeyUtilsSource, /return clamp\(Math\.max\(enemy\.health \+ bonus, Math\.ceil\(enemy\.health \* 1\.55\)\), 3, 5\)/);
 });
