@@ -266,6 +266,18 @@ export const getScarabQueenSpriteFrame = (boss, combatMode, bossVisualState = {}
   if (boss?.id !== 'scarab-queen') return null;
 
   const sequenceFrame = (prefix, count, frameMs) => `${prefix}${(Math.floor(now / frameMs) % count) + 1}`;
+  if (boss.debugSpriteState) {
+    if (boss.debugSpriteState === 'walk') return sequenceFrame('scarabQueenWalk', 8, 135);
+    if (boss.debugSpriteState === 'windup') return sequenceFrame('scarabQueenWindup', 6, 115);
+    if (boss.debugSpriteState === 'charge') return sequenceFrame('scarabQueenRun', 8, 85);
+    if (boss.debugSpriteState === 'acid') return sequenceFrame('scarabQueenAcidSpit', 8, 95);
+    if (boss.debugSpriteState === 'shielded') return 'scarabQueenShielded';
+    if (boss.debugSpriteState === 'counter') return sequenceFrame('scarabQueenStagger', 5, 160);
+    if (boss.debugSpriteState === 'hit') return sequenceFrame('scarabQueenStagger', 5, 130);
+    if (boss.debugSpriteState === 'intro') return 'scarabQueenIntro';
+    if (boss.debugSpriteState === 'defeated') return sequenceFrame('scarabQueenDeath', 8, 150);
+  }
+  if (boss.debugSpriteFrameKey) return boss.debugSpriteFrameKey;
 
   if (combatMode === 'defeated') return sequenceFrame('scarabQueenDeath', 8, 150);
   if (boss.hitFlash > 0 || combatMode === 'stunned') return sequenceFrame('scarabQueenStagger', 5, 130);

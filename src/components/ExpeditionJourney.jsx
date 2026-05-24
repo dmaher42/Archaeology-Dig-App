@@ -329,6 +329,52 @@ const OPENING_SPHINX_DURATION = 14;
 const OPENING_SPHINX_EXIT_SECONDS = 2.35;
 const OPENING_SPHINX_ARRIVAL_SECONDS = 1.05;
 const OPENING_SPHINX_LINE_SECONDS = 2.15;
+const OPENING_CINEMATIC_DURATION = 24;
+const OPENING_CINEMATIC_SPELL_IMPACT_AT = 18.6;
+const OPENING_CINEMATIC_LINES = [
+  {
+    id: 'anubis-watches',
+    at: 1.2,
+    speaker: 'Anubis',
+    voice: 'guardian',
+    text: 'You carry a bright name into a place that eats names.',
+  },
+  {
+    id: 'asha-purpose',
+    at: 5.6,
+    speaker: 'Asha',
+    voice: 'asha',
+    text: 'Then let it remember mine. Something under this desert is waking, and I will not let it reach the world.',
+  },
+  {
+    id: 'anubis-test',
+    at: 10.4,
+    speaker: 'Anubis',
+    voice: 'guardian',
+    text: 'I have heard courage. I have heard mercy. I have heard every lie sharpened into a prayer.',
+  },
+  {
+    id: 'asha-vow',
+    at: 16.2,
+    speaker: 'Asha',
+    voice: 'asha',
+    text: 'Do not trust my words. Watch my hands.',
+  },
+  {
+    id: 'anubis-begin',
+    at: OPENING_CINEMATIC_SPELL_IMPACT_AT,
+    speaker: 'Anubis',
+    voice: 'guardian',
+    text: 'Then raise them. I open the gate beneath you.',
+  },
+  {
+    id: 'asha-recover',
+    at: 21.2,
+    speaker: 'Asha',
+    voice: 'asha',
+    text: 'My shield is gone. Good. Now you know what I was willing to lose.',
+  },
+];
 const OPENING_SPHINX_SPRITE_BOSS_ID = 'ancient-construct';
 const OPENING_SPHINX_APPARITION_SRC = 'assets/expedition/bosses/anubis-apparition.png';
 const OPENING_SPHINX_SPRITE_VERSION = 'opening-anubis-apparition-2026-05-21';
@@ -346,6 +392,8 @@ const OPENING_PYRAMID_FACADE_SRC = 'assets/expedition/environment/egypt-opening/
 const OPENING_TRAP_DECAL_PACK_SRC = 'assets/expedition/environment/egypt-opening/opening-trap-decals.png';
 const OPENING_HAZARD_DECAL_PACK_SRC = 'assets/expedition/environment/egypt-opening/opening-hazard-decals.png';
 const OPENING_TOMB_STAIRWELL_SRC = 'assets/expedition/environment/egypt-opening/opening-tomb-stairwell.png';
+const FORGOTTEN_MURAL_ALCOVE_CLIMB_STRUCTURE_SRC = 'assets/expedition/environment/desert-temple/forgotten-mural-alcove-climb-structure.png';
+const FORGOTTEN_MURAL_CHAMBER_SRC = 'assets/expedition/environment/desert-temple/forgotten-mural-chamber.png';
 const STAGE_ENTRANCE_DOORWAY_SRC = 'assets/expedition/environment/stage-entrances/egypt-tomb-doorway-transition.png';
 const STAGE_ENTRANCE_DOORWAY_VERSION = 'imagegen-egypt-tomb-doorway-transition-2026-05-20';
 const DESERT_END_GATEWAY_SRC = 'assets/expedition/environment/stage-entrances/desert-end-threshold-angled.png';
@@ -356,6 +404,9 @@ const OPENING_CAMERA_REVEAL_HOLD_SECONDS = 0.18;
 const OPENING_PYRAMID_ASSET_VERSION = 'opening-pyramid-climb-pack-2026-05-18';
 const OPENING_PYRAMID_FACADE_VERSION = 'opening-pyramid-facade-2026-05-19';
 const OPENING_TOMB_STAIRWELL_VERSION = 'opening-tomb-stairwell-generated-2026-05-21';
+const FORGOTTEN_MURAL_ALCOVE_CLIMB_STRUCTURE_VERSION = 'imagegen-forgotten-mural-alcove-climb-structure-2026-05-24';
+const FORGOTTEN_MURAL_CHAMBER_VERSION = 'imagegen-forgotten-mural-chamber-2026-05-24';
+const FORGOTTEN_MURAL_CHAMBER_RESTORATION_IDS = ['egypt-scarab-fragment-1', 'egypt-scarab-fragment-2', 'egypt-scarab-fragment-3'];
 const OPENING_PYRAMID_FACADE_WORLD_LEFT_X = -82;
 const OPENING_PYRAMID_GROUND_JUMP_MULTIPLIER = 1.32;
 const OPENING_PYRAMID_AIR_JUMP_MULTIPLIER = 1.6;
@@ -1824,6 +1875,13 @@ const getOpeningThresholdDialogueLine = (scene) => {
   return activeLine || scene.lines[0];
 };
 
+const getOpeningCinematicLine = (cinematic) => {
+  if (!cinematic?.lines?.length) return null;
+  const elapsed = clamp((cinematic.duration || 0) - (cinematic.timer || 0), 0, cinematic.duration || 0);
+  const activeLine = [...cinematic.lines].reverse().find(line => elapsed >= line.at);
+  return activeLine || cinematic.lines[0];
+};
+
 const getOpeningCameraRevealTarget = (current) => {
   const timer = current.openingCameraRevealTimer || 0;
   if (timer <= 0) return null;
@@ -1895,6 +1953,7 @@ export default function ExpeditionJourney({
   const canvasRef = useRef(null);
   const stateRef = useRef(gameState);
   const keysRef = useRef({});
+  const spokenOpeningLineRef = useRef(null);
   const lastFrameRef = useRef(0);
   const animationRef = useRef(null);
   const playerSpriteRef = useRef({
@@ -1925,6 +1984,8 @@ export default function ExpeditionJourney({
   const openingPyramidClimbPackRef = useRef({ image: null, loaded: false, failed: false });
   const openingPyramidFacadeRef = useRef({ image: null, loaded: false, failed: false });
   const openingTombStairwellRef = useRef({ image: null, loaded: false, failed: false, version: OPENING_TOMB_STAIRWELL_VERSION });
+  const forgottenMuralAlcoveStructureRef = useRef({ image: null, loaded: false, failed: false, version: FORGOTTEN_MURAL_ALCOVE_CLIMB_STRUCTURE_VERSION });
+  const forgottenMuralChamberRef = useRef({ image: null, loaded: false, failed: false, version: FORGOTTEN_MURAL_CHAMBER_VERSION });
   const openingTrapDecalPackRef = useRef({ image: null, loaded: false, failed: false });
   const openingHazardDecalPackRef = useRef({ image: null, loaded: false, failed: false });
   const stageEntranceDoorwayRef = useRef({ image: null, loaded: false, failed: false, version: STAGE_ENTRANCE_DOORWAY_VERSION });
@@ -2020,6 +2081,62 @@ export default function ExpeditionJourney({
       };
     };
     image.src = `${import.meta.env.BASE_URL}${OPENING_TOMB_STAIRWELL_SRC}`;
+    return () => {
+      cancelled = true;
+    };
+  }, [syncHud]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const image = new Image();
+    image.onload = () => {
+      if (cancelled) return;
+      forgottenMuralChamberRef.current = {
+        image,
+        loaded: true,
+        failed: false,
+        version: FORGOTTEN_MURAL_CHAMBER_VERSION,
+      };
+      syncHud();
+    };
+    image.onerror = () => {
+      if (cancelled) return;
+      forgottenMuralChamberRef.current = {
+        image: null,
+        loaded: false,
+        failed: true,
+        version: FORGOTTEN_MURAL_CHAMBER_VERSION,
+      };
+    };
+    image.src = `${import.meta.env.BASE_URL}${FORGOTTEN_MURAL_CHAMBER_SRC}`;
+    return () => {
+      cancelled = true;
+    };
+  }, [syncHud]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const image = new Image();
+    image.onload = () => {
+      if (cancelled) return;
+      forgottenMuralAlcoveStructureRef.current = {
+        image,
+        loaded: true,
+        failed: false,
+        version: FORGOTTEN_MURAL_ALCOVE_CLIMB_STRUCTURE_VERSION,
+      };
+      syncHud();
+    };
+    image.onerror = () => {
+      if (cancelled) return;
+      forgottenMuralAlcoveStructureRef.current = {
+        image: null,
+        loaded: false,
+        failed: true,
+        version: FORGOTTEN_MURAL_ALCOVE_CLIMB_STRUCTURE_VERSION,
+      };
+    };
+    image.src = `${import.meta.env.BASE_URL}${FORGOTTEN_MURAL_ALCOVE_CLIMB_STRUCTURE_SRC}`;
     return () => {
       cancelled = true;
     };
@@ -2171,6 +2288,23 @@ export default function ExpeditionJourney({
     if (briefingOpen) return;
     audioControls?.playExpeditionMusic?.(currentMusicCue);
   }, [audioControls, briefingOpen, currentMusicCue]);
+
+  useEffect(() => {
+    const cinematic = gameState.openingCinematic;
+    if (!cinematic?.speechEnabled || typeof window === 'undefined' || !window.speechSynthesis) return undefined;
+    const activeLine = getOpeningCinematicLine(cinematic);
+    if (!activeLine || spokenOpeningLineRef.current === activeLine.id) return undefined;
+
+    spokenOpeningLineRef.current = activeLine.id;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(activeLine.text);
+    utterance.rate = activeLine.voice === 'guardian' ? 0.78 : 0.95;
+    utterance.pitch = activeLine.voice === 'guardian' ? 0.62 : 1.02;
+    utterance.volume = activeLine.voice === 'guardian' ? 0.95 : 0.9;
+    window.speechSynthesis.speak(utterance);
+
+    return () => window.speechSynthesis.cancel();
+  }, [gameState.openingCinematic, gameState.openingCinematic?.activeLineId, gameState.openingCinematic?.speechEnabled]);
 
   useEffect(() => {
     let cancelled = false;
@@ -2682,6 +2816,14 @@ export default function ExpeditionJourney({
       ? CHINA_GATE_NAMES[gate.id] || gate.name
       : gate.name;
     const hint = missingRequirements[0]?.hint || gate.readyHint || `${gateName} is ready. Move through the open seal.`;
+    const forgottenMuralRestored = Boolean(
+      current.forgottenMuralChamberRestored || current.collectedSecretIds?.has('egypt-scarab-fragment-3'),
+    );
+    const openMessage = gate.id === 'temple-approach-seal'
+      ? forgottenMuralRestored
+        ? 'You restored what others tried to erase. I saw it. Passage is allowed, not trust.'
+        : 'You pass my seals, but I still see only an intruder.'
+      : gate.openMessage || `${gateName} opened.`;
     return {
       activeGateName: gateName,
       activeGateLocked: missingRequirements.length > 0,
@@ -2692,7 +2834,7 @@ export default function ExpeditionJourney({
       missingObjectiveDirection,
       gateChecklistText: requirements.map(req => `${req.met ? '✓' : '○'} ${req.label}`).join(' | '),
       missingSummary: formatMissingSummary(missingRequirements),
-      openMessage: gate.openMessage || `${gateName} opened.`,
+      openMessage,
       notice: missingRequirements.length > 0
         ? `${gateName} locked: ${formatMissingSummary(missingRequirements)}. ${hint}`
       : `${gateName} ready: all route tasks complete.`,
@@ -2797,6 +2939,7 @@ export default function ExpeditionJourney({
   }, []);
 
   const getCombatMode = useCallback((entity) => {
+    if (entity.debugCombatMode) return entity.debugCombatMode;
     if (entity.defeated) return 'defeated';
     if (entity.stunTimer > 0) return 'stunned';
     if (entity.attackWindup > 0) return 'windup';
@@ -3345,6 +3488,8 @@ export default function ExpeditionJourney({
       permanentUpgradeEffects: current.upgradeEffects || {},
       cameraX: Math.round(current.cameraX),
       targetCameraX: Math.round(current.targetCameraX),
+      secretVerticalCameraOffset: Number((current.secretVerticalCameraOffset || 0).toFixed(2)),
+      forgottenMuralCameraFrameActive: Boolean(renderStats.forgottenMuralCameraFrameActive),
       playerWorldX: Math.round(current.player.x),
       playerScreenX: Math.round(current.player.x - current.cameraX),
       openingCameraRevealState: current.openingCameraRevealTimer > 0 ? {
@@ -3478,6 +3623,7 @@ export default function ExpeditionJourney({
         gateType: route.gateType || null,
         requiredUpgradeId: route.requiredUpgradeId || null,
         lockedMessage: route.lockedMessage || null,
+        storySummary: route.storySummary || null,
         rewardSummary: route.rewardSummary || null,
         teaseVisible: route.teaseVisible !== false,
         unlocked: getRouteAccessState(route, current).unlocked,
@@ -3489,10 +3635,20 @@ export default function ExpeditionJourney({
         setId: item.setId,
         routeId: item.routeId,
         routeUnlocked: item.routeId ? isRouteRewardAccessible(item.routeId, current) : true,
+        restorationSetId: item.restorationSetId || null,
+        restoresStoryFlag: item.restoresStoryFlag || null,
+        restoreMessage: item.restoreMessage || null,
+        anubisReaction: item.anubisReaction || null,
         collected: current.collectedSecretIds?.has(item.id) || false,
       })),
       collectedSecretCollectibles: Array.from(current.collectedSecretIds || []),
       secretCollectibleCount: current.collectedSecretIds?.size || 0,
+      forgottenMuralLooterSeen: Boolean(current.forgottenMuralLooterSeen),
+      forgottenMuralChamberEntered: Boolean(current.forgottenMuralChamberEntered),
+      forgottenMuralChamberActive: Boolean(current.forgottenMuralChamberActive),
+      forgottenMuralChamberRestored: Boolean(current.forgottenMuralChamberRestored),
+      forgottenMuralFragmentsRecovered: FORGOTTEN_MURAL_CHAMBER_RESTORATION_IDS.filter(id => current.collectedSecretIds?.has(id)).length,
+      forgottenMuralRestored: Boolean(current.forgottenMuralChamberRestored || current.collectedSecretIds?.has('egypt-scarab-fragment-3')),
       completedCollectionSets: Array.from(current.completedCollectionSetIds || []),
       loreTablets: LORE_TABLETS.map(tablet => ({
         id: tablet.id,
@@ -3632,6 +3788,13 @@ export default function ExpeditionJourney({
       })() : null,
       cinematicEventState: current.cinematicEvent,
       cinematicState: current.cinematicEvent,
+      openingCinematicState: current.openingCinematic
+        ? {
+          ...current.openingCinematic,
+          activeLine: getOpeningCinematicLine(current.openingCinematic),
+          progress: Number((1 - (current.openingCinematic.timer / current.openingCinematic.duration)).toFixed(3)),
+        }
+        : null,
       bossIntroState: current.bossIntro,
       environmentEventState: current.environmentEvent,
       dynamicEnvironmentEventState: current.dynamicEnvironmentEvent,
@@ -4212,6 +4375,44 @@ export default function ExpeditionJourney({
       ctx.fillStyle = '#020617';
       ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
       ctx.globalAlpha = 1;
+    }
+    ctx.restore();
+  }, []);
+
+  const drawOpeningCinematic = useCallback((ctx, cinematic, now) => {
+    if (!cinematic || cinematic.timer <= 0) return;
+    const elapsed = clamp(cinematic.duration - cinematic.timer, 0, cinematic.duration);
+    const progress = clamp(elapsed / cinematic.duration, 0, 1);
+    const pulse = 0.5 + Math.sin(now / 360) * 0.18;
+
+    ctx.save();
+    ctx.fillStyle = `rgba(2, 6, 23, ${0.24 + progress * 0.08})`;
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    ctx.fillStyle = 'rgba(3, 7, 18, 0.92)';
+    ctx.fillRect(0, 0, CANVAS_WIDTH, 58);
+    ctx.fillRect(0, CANVAS_HEIGHT - 58, CANVAS_WIDTH, 58);
+
+    const sealX = CANVAS_WIDTH * 0.58;
+    const sealY = CANVAS_HEIGHT * 0.56;
+    const glow = ctx.createRadialGradient(sealX, sealY, 20, sealX, sealY, CANVAS_WIDTH * 0.42);
+    glow.addColorStop(0, `rgba(125, 211, 252, ${0.14 + pulse * 0.08})`);
+    glow.addColorStop(0.36, `rgba(250, 204, 21, ${0.08 + pulse * 0.05})`);
+    glow.addColorStop(1, 'rgba(2, 6, 23, 0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    ctx.strokeStyle = `rgba(250, 204, 21, ${0.35 + pulse * 0.22})`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(sealX, sealY, 82 + Math.sin(now / 280) * 4, 0, Math.PI * 2);
+    ctx.stroke();
+
+    const activeLine = getOpeningCinematicLine(cinematic);
+    if (activeLine) {
+      ctx.fillStyle = activeLine.voice === 'guardian' ? '#93c5fd' : '#facc15';
+      ctx.font = '900 13px Outfit, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(`${activeLine.speaker.toUpperCase()} SPEAKS`, CANVAS_WIDTH / 2, CANVAS_HEIGHT - 31);
     }
     ctx.restore();
   }, []);
@@ -5391,7 +5592,7 @@ export default function ExpeditionJourney({
     if (platform.invisible) return;
 
     ctx.save();
-    if (platform.secret && !current.collectedUpgrades.has('ancient-compass')) {
+    if (platform.secret && platform.secretVisibility !== 'visible' && !current.collectedUpgrades.has('ancient-compass')) {
       ctx.globalAlpha = 0.15;
     }
 
@@ -5607,11 +5808,81 @@ export default function ExpeditionJourney({
     ctx.restore();
   }, [drawContactShadow, drawDesertEntryPlatformSupport, drawDesertOpeningPlatformFace, drawForegroundSettlingDetails, drawGroundDustLip]);
 
+  const drawForgottenMuralGeneratedAsset = useCallback((ctx, prop, x, section) => {
+    const structureAsset = forgottenMuralAlcoveStructureRef.current;
+    if (!structureAsset.loaded || !structureAsset.image) return false;
+
+    const width = prop.width || 1420;
+    const height = prop.height || 690;
+    const drawX = x - width / 2;
+    const drawY = prop.y;
+    const baseY = drawY + height;
+
+    drawContactShadow(ctx, x, Math.min(GROUND_Y - 2, baseY - 4), width * 0.52, 0.13, 1.4);
+    drawDecorativeBaseBlend(ctx, x - width * 0.1, Math.min(GROUND_Y - 2, baseY - 6), width * 0.4, section.id, prop.depth || 'background', 0.58);
+    ctx.globalAlpha = prop.alpha ?? 0.98;
+    ctx.filter = 'sepia(2%) saturate(102%) brightness(98%) contrast(104%) drop-shadow(0 18px 18px rgba(34, 18, 8, 0.2))';
+    ctx.drawImage(structureAsset.image, drawX, drawY, width, height);
+    ctx.filter = 'none';
+    ctx.globalAlpha = 1;
+    drawGroundDustLip(ctx, x - width * 0.16, Math.min(GROUND_Y - 2, baseY - 8), width * 0.42, 'rgba(188, 127, 61, 0.18)');
+    return true;
+  }, [drawContactShadow, drawDecorativeBaseBlend, drawGroundDustLip]);
+
+  const drawForgottenMuralChamberInterior = useCallback((ctx, current, now) => {
+    if (!current?.forgottenMuralChamberActive) return false;
+    const chamberAsset = forgottenMuralChamberRef.current;
+    const flicker = 0.78 + Math.sin(now / 260) * 0.12;
+
+    ctx.save();
+    ctx.globalAlpha = 0.98;
+    ctx.fillStyle = 'rgba(8, 5, 4, 0.96)';
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    if (chamberAsset.loaded && chamberAsset.image) {
+      ctx.drawImage(chamberAsset.image, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    } else {
+      const wall = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
+      wall.addColorStop(0, '#1c1714');
+      wall.addColorStop(0.58, '#2b211a');
+      wall.addColorStop(1, '#0b0706');
+      ctx.fillStyle = wall;
+      ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+      ctx.fillStyle = 'rgba(45, 31, 23, 0.72)';
+      ctx.fillRect(110, 92, CANVAS_WIDTH - 220, CANVAS_HEIGHT - 170);
+      ctx.strokeStyle = 'rgba(96, 165, 250, 0.26)';
+      ctx.lineWidth = 5;
+      ctx.strokeRect(386, 150, 348, 190);
+    }
+
+    ctx.globalCompositeOperation = 'screen';
+    const glow = ctx.createRadialGradient(CANVAS_WIDTH * 0.52, CANVAS_HEIGHT * 0.42, 18, CANVAS_WIDTH * 0.52, CANVAS_HEIGHT * 0.42, 240);
+    glow.addColorStop(0, `rgba(96, 165, 250, ${0.26 * flicker})`);
+    glow.addColorStop(0.42, `rgba(250, 204, 21, ${0.14 * flicker})`);
+    glow.addColorStop(1, 'rgba(8, 13, 24, 0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    ctx.globalCompositeOperation = 'source-over';
+
+    ctx.globalAlpha = 0.36;
+    ctx.fillStyle = 'rgba(245, 158, 11, 0.28)';
+    for (let i = 0; i < 14; i += 1) {
+      const dustX = 180 + i * 68 + Math.sin(now / 720 + i) * 10;
+      const dustY = 60 + ((now / 36 + i * 37) % 370);
+      ctx.beginPath();
+      ctx.ellipse(dustX, dustY, 1.6 + (i % 3), 3.5, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+    return true;
+  }, []);
+
   const drawStoryProp = useCallback((ctx, prop, cameraX, now, requestedDepth = null) => {
     const propDepth = getStoryPropDepth(prop);
     if (requestedDepth && propDepth !== requestedDepth) return;
     const x = worldToScreenX(prop.x, cameraX);
-    if (!isHorizontallyVisible(prop.x - 220, 440, cameraX)) return;
+    const visibilityWidth = Math.max(440, Number(prop.width) || 0);
+    if (!isHorizontallyVisible(prop.x - visibilityWidth / 2, visibilityWidth, cameraX)) return;
 
     ctx.save();
     const section = getSectionForX(prop.x);
@@ -5727,6 +5998,11 @@ export default function ExpeditionJourney({
       }
       ctx.filter = 'none';
       ctx.globalAlpha = 1;
+    }
+    if (prop.type === 'generated-climb-structure') {
+      drawForgottenMuralGeneratedAsset(ctx, prop, x, section, now);
+      ctx.restore();
+      return;
     }
     ctx.globalAlpha *= propDepth === 'background' ? 0.5 : 0.78;
     if (prop.type === 'ruins') {
@@ -6035,7 +6311,13 @@ export default function ExpeditionJourney({
       ctx.fill();
     }
     ctx.restore();
-  }, [drawContactShadow, drawDecorativeBaseBlend, drawForegroundSettlingDetails, drawGroundDustLip]);
+  }, [
+    drawContactShadow,
+    drawDecorativeBaseBlend,
+    drawForegroundSettlingDetails,
+    drawForgottenMuralGeneratedAsset,
+    drawGroundDustLip,
+  ]);
 
   const drawWorldContinuityLandmark = useCallback((ctx, landmark, cameraX, now) => {
     const parallax = landmark.parallax ?? 0.2;
@@ -6541,6 +6823,45 @@ export default function ExpeditionJourney({
         recordVisibleEvent();
         return true;
       }
+    }
+
+    if (event.type === 'looter-shadow') {
+      const run = preview ? 0.32 + Math.sin(now / 520) * 0.08 : clamp(1 - progress, 0, 1);
+      const looterX = x - 86 + run * 255;
+      const looterY = GROUND_Y - 392 - Math.sin(run * Math.PI) * 14;
+      ctx.globalAlpha = (preview ? 0.44 : 0.9) * visibility;
+      ctx.fillStyle = 'rgba(10, 8, 7, 0.86)';
+      ctx.beginPath();
+      ctx.ellipse(looterX, looterY + 28, 13, 24, -0.08, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(looterX + 2, looterY + 5, 10, 11, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(10, 8, 7, 0.82)';
+      ctx.lineWidth = 6;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(looterX - 4, looterY + 34);
+      ctx.lineTo(looterX - 24 + Math.sin(run * 12) * 8, looterY + 53);
+      ctx.moveTo(looterX + 8, looterY + 34);
+      ctx.lineTo(looterX + 30 - Math.sin(run * 12) * 7, looterY + 52);
+      ctx.stroke();
+      ctx.globalCompositeOperation = 'screen';
+      const glow = ctx.createRadialGradient(looterX + 28, looterY + 22, 4, looterX + 28, looterY + 22, 54);
+      glow.addColorStop(0, 'rgba(96, 165, 250, 0.75)');
+      glow.addColorStop(0.42, 'rgba(250, 204, 21, 0.28)');
+      glow.addColorStop(1, 'rgba(15, 23, 42, 0)');
+      ctx.fillStyle = glow;
+      ctx.fillRect(looterX - 34, looterY - 36, 124, 124);
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.globalAlpha = (preview ? 0.28 : 0.52) * visibility;
+      ctx.fillStyle = 'rgba(217, 119, 6, 0.34)';
+      ctx.beginPath();
+      ctx.ellipse(x + 205, looterY + 62 + reveal * 10, 92 + reveal * 24, 12, -0.08, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+      recordVisibleEvent();
+      return true;
     }
 
     if (event.type === 'rockfall') {
@@ -8268,7 +8589,7 @@ export default function ExpeditionJourney({
         : boss.id === 'giant-serpent'
           ? getGiantSerpentSpriteFrame(boss, combatMode, bossVisualState, now)
           : getScarabQueenSpriteFrame(boss, combatMode, bossVisualState, now);
-    const drawBox = isChinaGuardianBoss
+    let drawBox = isChinaGuardianBoss
       ? getClayGuardianDrawBox(boss, screenX)
       : boss.id === 'ancient-construct'
       ? getAncientConstructDrawBox(boss, screenX)
@@ -8279,6 +8600,10 @@ export default function ExpeditionJourney({
           : getScarabQueenDrawBox(boss, screenX);
     const pack = getBossSpritePack(bossSpriteAssetsRef.current, spriteBossId);
     if (!frameKey || !drawBox || !pack) return false;
+    if (boss.id === 'scarab-queen') {
+      const visibleX = clamp(drawBox.x, 18, CANVAS_WIDTH - drawBox.width - 118);
+      drawBox = { ...drawBox, x: visibleX };
+    }
 
     const facing = (boss.attackTimer > 0 || boss.attackWindup > 0)
       ? boss.attackDirection
@@ -8747,6 +9072,18 @@ export default function ExpeditionJourney({
     const crowdedGateActive = Boolean(activeRouteGate && Math.abs((activeRouteGate.x + activeRouteGate.width / 2) - playerCenterX) < 360);
     const crowdedBossActive = current.miniBosses.some(boss => boss.awakened && !boss.defeated && Math.abs(boss.x - player.x) < 360);
     const labelSuppressionActive = crowdedGateActive || crowdedBossActive || current.bossIntroTimer > 0;
+    const forgottenMuralRoute = getActiveHiddenRoutes().find(route => route.id === 'desert-upper-survey-route');
+    const inForgottenMuralVerticalWindow = forgottenMuralRoute
+      && playerCenterX >= forgottenMuralRoute.x - scaleJourneyX(240)
+      && playerCenterX <= forgottenMuralRoute.x + forgottenMuralRoute.width + scaleJourneyX(160)
+      && player.y < GROUND_Y - 230;
+    const desiredSecretVerticalCameraOffset = inForgottenMuralVerticalWindow
+      ? clamp(CANVAS_HEIGHT * 0.46 - (player.y + player.height / 2), 0, 220)
+      : 0;
+    current.secretVerticalCameraOffset = Number(((
+      (current.secretVerticalCameraOffset || 0) * 0.82
+    ) + desiredSecretVerticalCameraOffset * 0.18).toFixed(2));
+    const secretVerticalCameraOffset = current.secretVerticalCameraOffset || 0;
     current.renderStats = {
       visibleLabelCount: 0,
       labelSuppressionActive,
@@ -8791,6 +9128,11 @@ export default function ExpeditionJourney({
       openingPyramidAssetLoaded: openingPyramidClimbPackRef.current.loaded,
       openingPyramidFacadeVersion: OPENING_PYRAMID_FACADE_VERSION,
       openingPyramidFacadeLoaded: openingPyramidFacadeRef.current.loaded,
+      forgottenMuralAlcoveClimbStructureVersion: FORGOTTEN_MURAL_ALCOVE_CLIMB_STRUCTURE_VERSION,
+      forgottenMuralAlcoveClimbStructureLoaded: forgottenMuralAlcoveStructureRef.current.loaded,
+      forgottenMuralChamberVersion: FORGOTTEN_MURAL_CHAMBER_VERSION,
+      forgottenMuralChamberLoaded: forgottenMuralChamberRef.current.loaded,
+      forgottenMuralChamberActive: Boolean(current.forgottenMuralChamberActive),
       openingTrapDecalAssetVersion: OPENING_TRAP_DECAL_ASSET_VERSION,
       openingTrapDecalAssetLoaded: openingTrapDecalPackRef.current.loaded,
       openingHazardDecalAssetLoaded: openingHazardDecalPackRef.current.loaded,
@@ -8830,6 +9172,8 @@ export default function ExpeditionJourney({
       playerSpriteVisualMode: playerSpriteRef.current.mode || 'canvas-fallback',
       bossDomainActive: Boolean(current.bossDomain),
       playerHitScreenShakeActive: playerImpactShakeProgress > 0,
+      secretVerticalCameraOffset: Number(secretVerticalCameraOffset.toFixed(2)),
+      forgottenMuralCameraFrameActive: secretVerticalCameraOffset > 0.5,
     };
     const showWorldLabel = (worldX, distance = 150, priority = 'normal') => {
       const near = isPlayerNear(worldX, distance);
@@ -8887,6 +9231,10 @@ export default function ExpeditionJourney({
     const parallaxBackgroundDrawn = chinaBackgroundDrawn || desertBackgroundDrawn || sectionParallaxDrawn;
 
     // --- Ground & Props ---
+    ctx.save();
+    if (secretVerticalCameraOffset > 0.5) {
+      ctx.translate(0, secretVerticalCameraOffset);
+    }
     if (!parallaxBackgroundDrawn) drawTempleBackdrop(ctx, section, cameraX);
     WORLD_CONTINUITY_LANDMARKS.forEach((landmark) => drawWorldContinuityLandmark(ctx, landmark, cameraX, now));
     WORLD_TRANSITION_STORY_MARKERS.forEach((marker) => drawWorldTransitionMarker(ctx, marker, cameraX, now));
@@ -8929,6 +9277,7 @@ export default function ExpeditionJourney({
     drawDynamicEnvironmentEvent(ctx, current.dynamicEnvironmentEvent, cameraX, now, current.dynamicEnvironmentEventTimer);
     drawAncientRouteGround(ctx, section, cameraX, now, current);
     STORY_PROPS.forEach((prop) => drawStoryProp(ctx, prop, cameraX, now, 'grounded'));
+    drawForgottenMuralChamberInterior(ctx, current, now);
 
     const activeBossDomain = current.bossDomain
       && !current.defeatedMiniBosses.has(current.bossDomain.bossId)
@@ -9422,6 +9771,8 @@ export default function ExpeditionJourney({
     });
     drawOpeningThresholdScene(ctx, current.openingThresholdScene, cameraX, now);
     drawTempleThresholdTransition(ctx, current.templeThresholdTransition, now);
+    drawOpeningCinematic(ctx, current.openingCinematic, now);
+    ctx.restore();
 
     const staminaRatio = current.resources.stamina / Math.max(1, current.upgradeEffects?.maxStamina || 100);
     if (staminaRatio <= 0.3) {
@@ -9452,8 +9803,9 @@ export default function ExpeditionJourney({
       ctx.font = '900 12px Outfit, sans-serif';
       ctx.textAlign = 'center';
       const px = player.x - cameraX + player.width / 2;
-      ctx.fillText(`-${player.lastDamage} STAMINA`, px, player.y - 24 - player.hitFeedbackTimer * 8);
-      ctx.strokeText(`-${player.lastDamage} STAMINA`, px, player.y - 24 - player.hitFeedbackTimer * 8);
+      const py = player.y + secretVerticalCameraOffset - 24 - player.hitFeedbackTimer * 8;
+      ctx.fillText(`-${player.lastDamage} STAMINA`, px, py);
+      ctx.strokeText(`-${player.lastDamage} STAMINA`, px, py);
       ctx.restore();
     }
 
@@ -9521,11 +9873,60 @@ export default function ExpeditionJourney({
       }
       ctx.textAlign = 'start';
     }
-  }, [backgroundPackId, drawAncientRouteGround, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawRouteGate, drawRouteGroundApron, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getGateGuidance, getGateRequirements, getPlayerAttackState, isRouteRewardAccessible, drawPlayerSprite, drawFieldNoteLabel]);
+  }, [backgroundPackId, drawAncientRouteGround, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawForgottenMuralChamberInterior, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawRouteGate, drawRouteGroundApron, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getGateGuidance, getGateRequirements, getPlayerAttackState, isRouteRewardAccessible, drawPlayerSprite, drawFieldNoteLabel]);
+
+  const startOpeningCinematic = useCallback(({ speechEnabled = true } = {}) => {
+    const current = stateRef.current;
+    audioControls?.unlockExpeditionSfx?.();
+    audioControls?.playExpeditionSfx?.('openingThresholdAtmosphere');
+    spokenOpeningLineRef.current = null;
+    current.openingCinematic = {
+      id: 'asha-anubis-opening-cinematic',
+      title: 'The First Seal Watches',
+      duration: OPENING_CINEMATIC_DURATION,
+      timer: OPENING_CINEMATIC_DURATION,
+      speechEnabled,
+      lines: OPENING_CINEMATIC_LINES,
+      activeLineId: OPENING_CINEMATIC_LINES[0].id,
+      spellImpactTriggered: false,
+      shieldShattered: false,
+    };
+    current.openingConfrontationSeen = true;
+    current.sectionTransition = null;
+    current.sectionTransitionTimer = 0;
+    current.environmentEvent = null;
+    current.environmentEventTimer = 0;
+    current.cinematicEvent = null;
+    current.cinematicTimer = 0;
+    current.notice = OPENING_CINEMATIC_LINES[0].text;
+    current.player.vx = 0;
+    current.player.vy = 0;
+    current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.32);
+    current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.18);
+    setBriefingOpen(false);
+    syncHud();
+  }, [audioControls, syncHud]);
+
+  const skipOpeningCinematic = useCallback(() => {
+    const current = stateRef.current;
+    if (!current.openingCinematic) return;
+    if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel();
+    current.openingCinematic = null;
+    current.notice = SCARAB_SEAL_TRIGGER.objectiveEchoLine;
+    current.cinematicEvent = {
+      id: 'opening-cinematic-skipped',
+      name: 'First Seal',
+      message: SCARAB_SEAL_TRIGGER.objectiveEchoLine,
+      temporary: true,
+    };
+    current.cinematicTimer = 2.8;
+    current.openingCameraRevealTimer = Math.max(current.openingCameraRevealTimer, OPENING_CAMERA_REVEAL_DURATION);
+    syncHud();
+  }, [syncHud]);
 
   const queueAttack = useCallback(() => {
     const current = stateRef.current;
-    if (briefingOpen || current.failed || current.completed || current.openingCameraRevealTimer > 0 || current.openingThresholdScene?.lockMovement || current.templeThresholdTransition?.lockMovement) return;
+    if (briefingOpen || current.failed || current.completed || current.openingCinematic || current.openingCameraRevealTimer > 0 || current.openingThresholdScene?.lockMovement || current.templeThresholdTransition?.lockMovement) return;
     if (current.attackCooldown > 0 || current.attackWindupTimer > 0 || current.attackTimer > 0 || current.attackRecoilTimer > 0) return;
     current.attackQueued = true;
   }, [briefingOpen]);
@@ -9677,6 +10078,55 @@ export default function ExpeditionJourney({
     if (briefingOpen || current.completed || current.failed) return;
 
     const player = current.player;
+    if (current.openingCinematic) {
+      const cinematic = current.openingCinematic;
+      cinematic.timer = Math.max(0, cinematic.timer - dt);
+      const elapsed = clamp(cinematic.duration - cinematic.timer, 0, cinematic.duration);
+      const activeLine = getOpeningCinematicLine(cinematic);
+      cinematic.activeLineId = activeLine?.id || null;
+      cinematic.activeLine = activeLine || null;
+      current.notice = activeLine?.text || 'The first seal watches.';
+      current.attackQueued = false;
+      player.vx = 0;
+      player.vy = 0;
+      player.direction = 1;
+      if (!cinematic.spellImpactTriggered && elapsed >= OPENING_CINEMATIC_SPELL_IMPACT_AT) {
+        cinematic.spellImpactTriggered = true;
+        cinematic.shieldShattered = true;
+        current.player.x = 44;
+        current.player.y = GROUND_Y - current.player.height;
+        current.player.vx = 0;
+        current.player.vy = 0;
+        current.cameraX = 0;
+        current.targetCameraX = 0;
+        current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.7);
+        current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.42);
+        audioControls?.playExpeditionSfx?.('openingThresholdFinalPulse');
+      }
+      if (cinematic.timer <= 0) {
+        current.openingCinematic = null;
+        current.player.x = 44;
+        current.player.y = GROUND_Y - current.player.height;
+        current.cameraX = 0;
+        current.targetCameraX = 0;
+        current.notice = SCARAB_SEAL_TRIGGER.objectiveEchoLine;
+        current.cinematicEvent = {
+          id: 'opening-cinematic-complete',
+          name: 'First Seal',
+          message: SCARAB_SEAL_TRIGGER.objectiveEchoLine,
+          temporary: true,
+        };
+        current.cinematicTimer = 2.8;
+        current.openingCameraRevealTimer = Math.max(current.openingCameraRevealTimer, OPENING_CAMERA_REVEAL_DURATION);
+        current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.24);
+        current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.12);
+      } else if (Math.abs(elapsed - OPENING_CINEMATIC_SPELL_IMPACT_AT) < dt + 0.02) {
+        current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.42);
+        current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.22);
+      }
+      return;
+    }
+
     const upgradeEffects = current.upgradeEffects || {};
     const maxStamina = upgradeEffects.maxStamina || 100;
     const knockbackMultiplier = upgradeEffects.knockbackMultiplier || 1;
@@ -10247,6 +10697,9 @@ export default function ExpeditionJourney({
           current.environmentEvent = ev;
           current.environmentEventTimer = ev.duration;
         }
+        if (ev.id === 'forgotten-mural-looter-shadow') {
+          current.forgottenMuralLooterSeen = true;
+        }
         current.cameraShakeTimer = ev.duration * 0.4;
         current.cameraShakeStrength = ev.shake;
         current.notice = ev.message;
@@ -10257,6 +10710,28 @@ export default function ExpeditionJourney({
         }
       }
     });
+
+    const forgottenMuralDoorwayActive = backgroundPackId !== 'china-river-valley'
+      && player.x + player.width / 2 >= scaleJourneyX(900)
+      && player.x + player.width / 2 <= scaleJourneyX(1038)
+      && player.y < GROUND_Y - 225;
+    if (forgottenMuralDoorwayActive && !current.forgottenMuralChamberEntered) {
+      current.forgottenMuralChamberEntered = true;
+      current.forgottenMuralChamberActive = true;
+      current.hiddenRoomsFound?.add('forgotten-mural-chamber');
+      current.notice = 'Forgotten Mural Chamber discovered. The warning mural has been damaged.';
+      current.cinematicEvent = {
+        id: 'forgotten-mural-chamber-entered',
+        name: 'Forgotten Mural Chamber discovered',
+        message: 'Broken pieces of a scarab seal lie across the floor. Someone tried to erase this warning.',
+        temporary: true,
+      };
+      current.cinematicTimer = 2.8;
+      current.hitStopTimer = Math.max(current.hitStopTimer, 0.035);
+      audioControls?.playExpeditionStinger?.('evidenceDiscovery');
+    } else {
+      current.forgottenMuralChamberActive = Boolean(current.forgottenMuralChamberEntered && forgottenMuralDoorwayActive);
+    }
 
     if (backgroundPackId !== 'china-river-valley' && !current.scarabSealActivated) {
       const scarabSealHitbox = {
@@ -10355,24 +10830,27 @@ export default function ExpeditionJourney({
           return;
         }
         current.discoveredHiddenRouteIds.add(route.id);
-        const routeMomentName = route.name?.includes('Shrine')
+        const routeMomentName = route.name?.includes('Mural')
+          ? 'Forgotten Mural Alcove discovered'
+          : route.name?.includes('Shrine')
           ? 'Ancient Shrine Discovered'
           : route.name?.includes('Archive')
             ? 'Hidden Archive Found'
             : 'Secret Route Discovered';
-        current.notice = `${routeMomentName}.`;
+        current.notice = route.discoveryMessage || `${routeMomentName}.`;
         current.cinematicEvent = {
           id: `${route.id}-discovered`,
           name: routeMomentName,
-          message: route.rewardHint,
+          message: route.storySummary || route.rewardHint,
           temporary: true,
         };
         current.dynamicEnvironmentEvent = {
           id: `${route.id}-atmosphere`,
-          type: routeMomentName === 'Ancient Shrine Discovered' ? 'shrine-glow' : 'dust-gust',
+          type: route.id === 'desert-upper-survey-route' || routeMomentName === 'Ancient Shrine Discovered' ? 'shrine-glow' : 'dust-gust',
           x: route.x + route.width / 2,
           name: routeMomentName,
           duration: 2.4,
+          message: route.rewardHint,
         };
         current.dynamicEnvironmentEventTimer = 2.4;
         current.cinematicTimer = 2.6;
@@ -10501,20 +10979,36 @@ export default function ExpeditionJourney({
       if (secret.routeId && !isRouteRewardAccessible(secret.routeId, current)) return;
       if (rectsOverlap(getPlayerBodyHitbox(player), getCollectibleHitbox(secret, { width: 32, height: 32 }))) {
         current.collectedSecretIds.add(secret.id);
-        current.notice = 'Collection Piece Recovered.';
+        const forgottenMuralFragmentsRecovered = secret.restorationSetId === 'forgotten-mural-seal'
+          && FORGOTTEN_MURAL_CHAMBER_RESTORATION_IDS.every(id => current.collectedSecretIds.has(id));
+        const restoredForgottenMural = secret.restorationSetId === 'forgotten-mural-seal'
+          ? forgottenMuralFragmentsRecovered && !current.forgottenMuralChamberRestored
+          : secret.restoresStoryFlag === 'forgotten-mural-restored';
+        const forgottenMuralRestoration = restoredForgottenMural && secret.restorationSetId === 'forgotten-mural-seal'
+          ? SECRET_COLLECTIBLES.find(item => item.restoresStoryFlag === 'forgotten-mural-restored')
+          : secret;
+        if (restoredForgottenMural) {
+          current.forgottenMuralChamberRestored = true;
+        }
+        current.notice = restoredForgottenMural
+          ? (forgottenMuralRestoration?.restoreMessage || 'Asha restores the broken warning mural.')
+          : (secret.discoveryMessage || 'Collection Piece Recovered.');
         current.cinematicEvent = {
-          id: `${secret.id}-collected`,
-          name: 'Secret Found',
-          message: `${secret.name} has been added to the field journal.`,
+          id: restoredForgottenMural ? `${secret.id}-restored` : `${secret.id}-collected`,
+          name: restoredForgottenMural ? 'Anubis' : 'Secret Found',
+          message: restoredForgottenMural
+            ? (forgottenMuralRestoration?.anubisReaction || 'Do not mistake this for trust.')
+            : `${secret.name} has been added to the field journal.`,
           temporary: true,
         };
-        current.cinematicTimer = 2.8;
+        current.cinematicTimer = restoredForgottenMural ? 3.2 : 2.8;
+        current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, restoredForgottenMural ? 2.6 : 1.8);
         current.hitStopTimer = Math.max(current.hitStopTimer, 0.04);
         addCombatEffect(current, {
           type: 'secret-found',
           x: secret.x,
           y: secret.y,
-          text: 'SECRET FOUND',
+          text: restoredForgottenMural ? 'MURAL RESTORED' : 'SECRET FOUND',
           color: secret.color || '#facc15',
           fill: 'rgba(250, 204, 21, 0.12)',
           radius: 48,
@@ -11740,6 +12234,9 @@ export default function ExpeditionJourney({
               item.collected = false;
             });
           boss.defeated = false;
+          boss.debugCombatMode = null;
+          boss.debugSpriteFrameKey = null;
+          boss.debugSpriteState = null;
           boss.awakened = true;
           boss.health = boss.maxHealth || boss.health || 1;
           boss.x = Math.min(arenaEnd - boss.width - 24, Math.max(arenaStart + 90, boss.patrolMax));
@@ -11821,6 +12318,80 @@ export default function ExpeditionJourney({
           current.bossIntroPauseTimer = Math.max(current.bossIntroTimer, 0.01);
           current.cameraShakeTimer = Math.max(current.cameraShakeTimer, sampledProgress > 0.32 && sampledProgress < 0.68 ? 0.42 : 0.08);
           current.cameraShakeStrength = Math.max(current.cameraShakeStrength, sampledProgress > 0.32 && sampledProgress < 0.68 ? 0.44 : 0.16);
+          step(0);
+          syncHud();
+          return;
+        }
+        if (target === 'journey-boss-state') {
+          const current = stateRef.current;
+          const boss = current.miniBosses.find(item => item.id === bossId);
+          if (!boss) return;
+          current.bossIntro = null;
+          current.bossIntroTimer = 0;
+          current.bossIntroPauseTimer = 0;
+          current.bossDomain = current.bossDomain?.bossId === boss.id
+            ? current.bossDomain
+            : {
+              bossId: boss.id,
+              name: boss.domainName || `${boss.name} Domain`,
+              arenaStart: boss.arenaStart ?? Math.max(0, boss.x - 160),
+              arenaEnd: boss.arenaEnd ?? Math.min(WORLD_WIDTH, boss.x + 180),
+              playerStartX: Math.round(current.player.x),
+              bossStartX: Math.round(boss.x),
+              color: '#facc15',
+              tint: 'rgba(92, 35, 15, 0.24)',
+              suppressVisuals: false,
+              triggeredByLooter: false,
+              introSeconds: 3.2,
+            };
+          const state = event.detail?.state || 'walk';
+          const debugCombatModeByState = {
+            walk: 'patrol',
+            windup: 'windup',
+            charge: 'attacking',
+            acid: 'attacking',
+            shielded: 'idle',
+            counter: 'idle',
+            hit: 'stunned',
+            intro: 'idle',
+            defeated: 'defeated',
+          };
+          boss.awakened = state !== 'intro';
+          boss.defeated = false;
+          boss.debugCombatMode = debugCombatModeByState[state] || null;
+          boss.debugSpriteState = state;
+          boss.debugSpriteFrameKey = state === 'shielded'
+            ? 'scarabQueenShielded'
+            : state === 'intro'
+              ? 'scarabQueenIntro'
+              : null;
+          boss.hitFlash = state === 'hit' ? 99 : 0;
+          boss.stunTimer = state === 'stagger' || state === 'hit' ? 99 : 0;
+          boss.shieldTimer = state === 'shielded' ? 99 : 0;
+          boss.vulnerabilityTimer = state === 'counter' ? 99 : 0;
+          boss.attackKind = state === 'acid' ? 'area' : 'close';
+          boss.attackWindup = state === 'windup' ? 99 : 0;
+          boss.attackTimer = state === 'charge' || state === 'acid' ? 99 : 0;
+          boss.attackRecovery = state === 'counter' ? 99 : 0;
+          boss.attackCooldown = 0;
+          boss.attackHasHit = true;
+          boss.attackDirection = boss.direction || -1;
+          boss.x = clamp(Number(event.detail?.x) || boss.x, 0, WORLD_WIDTH - boss.width);
+          boss.y = GROUND_Y - boss.height;
+          current.failed = false;
+          current.failureReason = null;
+          current.failureDetail = null;
+          current.resources.stamina = current.upgradeEffects?.maxStamina || 100;
+          current.player.x = clamp(boss.x - 82, 0, WORLD_WIDTH - current.player.width);
+          current.player.y = GROUND_Y - current.player.height;
+          current.player.vx = 0;
+          current.player.vy = 0;
+          current.player.invulnerable = 99;
+          current.player.damageCooldownTimer = 99;
+          current.player.onGround = true;
+          current.cameraX = clampCameraX(boss.x - CANVAS_WIDTH * 0.58);
+          current.targetCameraX = current.cameraX;
+          current.notice = `Developer mode: ${boss.name} ${state}.`;
           step(0);
           syncHud();
           return;
@@ -11952,7 +12523,17 @@ export default function ExpeditionJourney({
   const staminaPercent = Math.min(100, Math.round((gameState.resources.stamina / (gameState.upgradeEffects?.maxStamina || 100)) * 100));
   const activeGuardianChallenge = guardianChallengeUi || gameState.activeGuardianChallenge;
   const activeGuardianQuestion = activeGuardianChallenge?.questions?.[activeGuardianChallenge.currentIndex] || null;
-  const openingCinematicActive = Boolean(gameState.openingThresholdScene || gameState.templeThresholdTransition);
+  const activeOpeningCinematicLine = getOpeningCinematicLine(gameState.openingCinematic);
+  const openingIntroProgress = gameState.openingCinematic
+    ? clamp(1 - (gameState.openingCinematic.timer / gameState.openingCinematic.duration), 0, 1)
+    : 0;
+  const openingSpellImpactActive = Boolean(
+    gameState.openingCinematic
+    && (gameState.openingCinematic.spellImpactTriggered
+      || openingIntroProgress >= OPENING_CINEMATIC_SPELL_IMPACT_AT / OPENING_CINEMATIC_DURATION),
+  );
+  const openingShieldShattered = Boolean(gameState.openingCinematic?.shieldShattered || openingSpellImpactActive);
+  const openingCinematicActive = Boolean(gameState.openingCinematic || gameState.openingThresholdScene || gameState.templeThresholdTransition);
 
   return (
     <section className={`expedition-journey-container ${openingCinematicActive ? 'is-opening-cinematic' : ''}`} id="expedition-journey">
@@ -12022,6 +12603,75 @@ export default function ExpeditionJourney({
               height={JOURNEY_RENDER_TARGET.nativeHeight}
               className="expedition-canvas"
             />
+
+            {gameState.openingCinematic && (
+              <div className={`opening-cinematic-overlay ${openingSpellImpactActive ? 'is-spell-impact' : ''} ${openingShieldShattered ? 'is-shield-shattered' : ''}`} role="dialog" aria-live="polite" aria-label="Asha and Anubis opening cut scene">
+                <div className="opening-cinematic-backdrop" aria-hidden="true">
+                  <img
+                    className="opening-cinematic-bg"
+                    src="assets/expedition/backgrounds/desert-entry/desert-entry-photoreal-sphinx-backdrop.png"
+                    alt=""
+                  />
+                  <div className="opening-cinematic-depth opening-cinematic-depth-left" />
+                  <div className="opening-cinematic-depth opening-cinematic-depth-right" />
+                  <img
+                    className="opening-cinematic-seal"
+                    src={OPENING_SCARAB_SEAL_IMAGE_SRC}
+                    alt=""
+                  />
+                  <img
+                    className="opening-cinematic-anubis"
+                    src={OPENING_SPHINX_APPARITION_SRC}
+                    alt=""
+                  />
+                  <img
+                    className="opening-cinematic-asha"
+                    src="assets/expedition/player/asha-opening-cinematic.png"
+                    alt=""
+                  />
+                  <div className="opening-cinematic-banishment-ring">
+                    <span />
+                    <span />
+                    <span />
+                  </div>
+                  <div className="opening-cinematic-shield" />
+                  <div className="opening-cinematic-shield-aura">
+                    <span />
+                    <span />
+                    <span />
+                  </div>
+                  <div className="opening-cinematic-shield-shards">
+                    <span />
+                    <span />
+                    <span />
+                    <span />
+                    <span />
+                    <span />
+                  </div>
+                  <div className="opening-cinematic-charge" />
+                  <div className="opening-cinematic-lightning" />
+                  <div className="opening-cinematic-impact" />
+                  <div className="opening-cinematic-shockwave" />
+                  <div className="opening-cinematic-dust" />
+                </div>
+                <div className="opening-cinematic-copy">
+                  <div className="opening-cinematic-kicker">The First Seal</div>
+                  <h2>Asha meets Anubis</h2>
+                  {activeOpeningCinematicLine && (
+                    <div className={`opening-cinematic-dialogue ${activeOpeningCinematicLine.voice === 'guardian' ? 'is-guardian' : 'is-asha'}`}>
+                      <span>{activeOpeningCinematicLine.speaker}</span>
+                      <p>{activeOpeningCinematicLine.text}</p>
+                    </div>
+                  )}
+                </div>
+                <div className="opening-cinematic-progress" aria-hidden="true">
+                  <span style={{ width: `${Math.round(openingIntroProgress * 100)}%` }} />
+                </div>
+                <button type="button" className="opening-cinematic-skip" onClick={skipOpeningCinematic}>
+                  Skip Intro
+                </button>
+              </div>
+            )}
 
             {!openingCinematicActive && (
             <div className="journey-floating-hud" aria-label="Expedition status">
@@ -12259,7 +12909,7 @@ export default function ExpeditionJourney({
               </div>
             </div>
             <div className="briefing-actions">
-              <button type="button" className="expedition-begin-btn" onClick={() => setBriefingOpen(false)}>
+              <button type="button" className="expedition-begin-btn" onClick={() => startOpeningCinematic({ speechEnabled: true })}>
                 Begin Expedition
               </button>
             </div>

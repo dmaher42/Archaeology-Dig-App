@@ -29,21 +29,21 @@ SHEET_SPECS = {
 }
 
 FRAME_PLAN = [
-    ("scarabQueenIdle", "combat", 0),
+    ("scarabQueenIdle", "portrait", 0),
     ("scarabQueenWalk1", "walk", 1),
     ("scarabQueenWalk2", "walk", 5),
     ("scarabQueenIntro", "stagger", 0),
     ("scarabQueenWindup", "windup", 3),
     ("scarabQueenCharge", "run", 5),
     ("scarabQueenAreaAttack", "acidSpit", 5),
-    ("scarabQueenShielded", "combat", 3),
+    ("scarabQueenShielded", "portrait", 0),
     ("scarabQueenCounterWindow", "stagger", 2),
     ("scarabQueenHit", "stagger", 3),
     ("scarabQueenDefeated", "death", 7),
 ]
 
 SEQUENCES = {
-    "scarabQueenWalk": ("walk", 8),
+    "scarabQueenWalk": ("run", 8),
     "scarabQueenRun": ("run", 8),
     "scarabQueenWindup": ("windup", 6),
     "scarabQueenAcidSpit": ("acidSpit", 8),
@@ -51,6 +51,8 @@ SEQUENCES = {
     "scarabQueenStagger": ("stagger", 5),
     "scarabQueenDeath": ("death", 8),
 }
+
+COMPONENT_SLICED_SHEETS = {"combat", "walk", "run", "windup", "stagger", "death"}
 
 
 def remove_checkerboard_background(image: Image.Image) -> Image.Image:
@@ -84,14 +86,155 @@ def trim_alpha(image: Image.Image, padding: int = 10) -> Image.Image:
     ))
 
 
+def keep_primary_components(image: Image.Image, frame_key: str = "") -> Image.Image:
+    image = image.convert("RGBA")
+    width, height = image.size
+    alpha = image.getchannel("A")
+    seen = bytearray(width * height)
+    components: list[dict] = []
+
+    for start_y in range(height):
+        for start_x in range(width):
+            index = start_y * width + start_x
+            if seen[index] or alpha.getpixel((start_x, start_y)) <= 18:
+                continue
+            stack = [(start_x, start_y)]
+            seen[index] = 1
+            count = 0
+            left = right = start_x
+            top = bottom = start_y
+            while stack:
+                x, y = stack.pop()
+                count += 1
+                left = min(left, x)
+                right = max(right, x)
+                top = min(top, y)
+                bottom = max(bottom, y)
+                for nx, ny in ((x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)):
+                    if nx < 0 or nx >= width or ny < 0 or ny >= height:
+                        continue
+                    next_index = ny * width + nx
+                    if seen[next_index] or alpha.getpixel((nx, ny)) <= 18:
+                        continue
+                    seen[next_index] = 1
+                    stack.append((nx, ny))
+            components.append({
+                "area": count,
+                "bbox": (left, top, right + 1, bottom + 1),
+            })
+
+    if not components:
+        return image
+
+    primary = max(components, key=lambda item: item["area"])
+    p_left, p_top, p_right, p_bottom = primary["bbox"]
+    acid_frame = "Acid" in frame_key or "acid" in frame_key
+    expand_x = 180 if acid_frame else 74
+    expand_y = 56
+    keep_boxes = []
+    for component in components:
+        left, top, right, bottom = component["bbox"]
+        area = component["area"]
+        if not acid_frame and component is not primary:
+            continue
+        center_x = (left + right) / 2
+        center_y = (top + bottom) / 2
+        near_primary = (
+            p_left - expand_x <= center_x <= p_right + expand_x
+            and p_top - expand_y <= center_y <= p_bottom + expand_y
+        )
+        meaningful_acid = acid_frame and area >= 18 and center_x < p_right + expand_x
+        if component is primary or (area >= 42 and near_primary) or meaningful_acid:
+            keep_boxes.append(component["bbox"])
+
+    if len(keep_boxes) == len(components):
+        return image
+
+    source_pixels = image.load()
+    next_image = Image.new("RGBA", image.size, (0, 0, 0, 0))
+    next_pixels = next_image.load()
+    for left, top, right, bottom in keep_boxes:
+        for y in range(top, bottom):
+            for x in range(left, right):
+                if alpha.getpixel((x, y)) > 18:
+                    next_pixels[x, y] = source_pixels[x, y]
+    return next_image
+
+
+def find_alpha_components(image: Image.Image, min_area: int = 1600) -> list[dict]:
+    width, height = image.size
+    alpha = image.getchannel("A")
+    seen = bytearray(width * height)
+    components: list[dict] = []
+
+    for start_y in range(height):
+        for start_x in range(width):
+            index = start_y * width + start_x
+            if seen[index] or alpha.getpixel((start_x, start_y)) <= 18:
+                continue
+            stack = [(start_x, start_y)]
+            seen[index] = 1
+            count = 0
+            left = right = start_x
+            top = bottom = start_y
+            while stack:
+                x, y = stack.pop()
+                count += 1
+                left = min(left, x)
+                right = max(right, x)
+                top = min(top, y)
+                bottom = max(bottom, y)
+                for nx, ny in ((x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)):
+                    if nx < 0 or nx >= width or ny < 0 or ny >= height:
+                        continue
+                    next_index = ny * width + nx
+                    if seen[next_index] or alpha.getpixel((nx, ny)) <= 18:
+                        continue
+                    seen[next_index] = 1
+                    stack.append((nx, ny))
+            if count >= min_area:
+                components.append({
+                    "area": count,
+                    "bbox": (left, top, right + 1, bottom + 1),
+                })
+
+    return components
+
+
+def load_component_frames(sheet: Image.Image, frame_count: int, name: str) -> list[Image.Image] | None:
+    components = find_alpha_components(sheet)
+    if len(components) < frame_count:
+        return None
+
+    selected = sorted(components, key=lambda item: item["area"], reverse=True)[:frame_count]
+    selected = sorted(selected, key=lambda item: (item["bbox"][0] + item["bbox"][2]) / 2)
+    frames = []
+    for component in selected:
+        left, top, right, bottom = component["bbox"]
+        frame = sheet.crop((
+            max(0, left - 18),
+            max(0, top - 18),
+            min(sheet.width, right + 18),
+            min(sheet.height, bottom + 18),
+        ))
+        frames.append(keep_primary_components(trim_alpha(frame, 8), name))
+    return frames
+
+
 def load_sheet_frames(name: str) -> list[Image.Image]:
     file_name, frame_count = SHEET_SPECS[name]
     sheet = remove_checkerboard_background(Image.open(SOURCE_DIR / file_name))
+    if name in COMPONENT_SLICED_SHEETS:
+        component_frames = load_component_frames(sheet, frame_count, name)
+        if component_frames:
+            return component_frames
+
     frames = []
     for index in range(frame_count):
         left = round(index * sheet.width / frame_count)
         right = round((index + 1) * sheet.width / frame_count)
-        frames.append(trim_alpha(sheet.crop((left, 0, right, sheet.height)), 12))
+        frame = trim_alpha(sheet.crop((left, 0, right, sheet.height)), 12)
+        frames.append(keep_primary_components(frame, name))
     return frames
 
 
@@ -119,8 +262,21 @@ def normalize_frame(sprite: Image.Image, frame_key: str) -> Image.Image:
     return cell
 
 
+def clean_fallen_pose(sprite: Image.Image) -> Image.Image:
+    sprite = sprite.copy()
+    pixels = sprite.load()
+    width, height = sprite.size
+    for y in range(height):
+        for x in range(width):
+            if x < 34:
+                r, g, b, a = pixels[x, y]
+                pixels[x, y] = (r, g, b, 0)
+    return trim_alpha(sprite, 10)
+
+
 def main() -> None:
     source_frames = {name: load_sheet_frames(name) for name in SHEET_SPECS}
+    source_frames["death"] = [clean_fallen_pose(source_frames["death"][7])] * 8
     regions = {}
     cells: list[tuple[str, Image.Image]] = []
 

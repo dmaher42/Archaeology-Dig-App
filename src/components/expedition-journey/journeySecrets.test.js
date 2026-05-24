@@ -51,6 +51,9 @@ const besEnemyAtlas = JSON.parse(
 const egyptOpeningTrapDecalsPath = new URL('../../../public/assets/expedition/environment/egypt-opening/opening-trap-decals.png', import.meta.url);
 const egyptOpeningHazardDecalsPath = new URL('../../../public/assets/expedition/environment/egypt-opening/opening-hazard-decals.png', import.meta.url);
 const egyptOpeningTombStairwellPath = new URL('../../../public/assets/expedition/environment/egypt-opening/opening-tomb-stairwell.png', import.meta.url);
+const forgottenMuralAlcoveClimbStructurePath = new URL('../../../public/assets/expedition/environment/desert-temple/forgotten-mural-alcove-climb-structure.png', import.meta.url);
+const forgottenMuralChamberSourcePath = new URL('../../../public/assets/expedition/environment/desert-temple/forgotten-mural-chamber-source.png', import.meta.url);
+const forgottenMuralChamberPath = new URL('../../../public/assets/expedition/environment/desert-temple/forgotten-mural-chamber.png', import.meta.url);
 const extractExportedArray = (name) => {
   const startToken = `export const ${name} = [`;
   const start = source.indexOf(startToken);
@@ -89,6 +92,31 @@ const getDataRowById = (arraySource, id) => {
   }
   return '';
 };
+
+test('opening cinematic introduces Asha and Anubis with speech-ready timed dialogue and shield shatter', () => {
+  assert.match(journeyComponentSource, /OPENING_CINEMATIC_DURATION = 24/);
+  assert.match(journeyComponentSource, /OPENING_CINEMATIC_LINES = \[/);
+  assert.match(journeyComponentSource, /speaker:\s*'Anubis'[\s\S]*?voice:\s*'guardian'/);
+  assert.match(journeyComponentSource, /speaker:\s*'Asha'[\s\S]*?voice:\s*'asha'/);
+  assert.match(journeyComponentSource, /startOpeningCinematic/);
+  assert.match(journeyComponentSource, /openingCinematicState:\s*current\.openingCinematic/);
+  assert.match(journeyComponentSource, /window\.speechSynthesis/);
+  assert.match(journeyComponentSource, /drawOpeningCinematic/);
+  assert.match(journeyComponentSource, /OPENING_CINEMATIC_SPELL_IMPACT_AT = 18\.6/);
+  assert.match(journeyComponentSource, /spellImpactTriggered/);
+  assert.match(journeyComponentSource, /shieldShattered/);
+  assert.match(journeyComponentSource, /current\.player\.x = 44/);
+  assert.match(journeyComponentSource, /opening-cinematic-lightning/);
+  assert.match(journeyComponentSource, /opening-cinematic-impact/);
+  assert.match(journeyComponentSource, /opening-cinematic-shield/);
+  assert.match(journeyComponentSource, /opening-cinematic-shield-aura/);
+  assert.match(journeyComponentSource, /opening-cinematic-shield-shards/);
+  assert.match(journeyComponentSource, /opening-cinematic-banishment-ring/);
+  assert.match(journeyComponentSource, /opening-cinematic-shockwave/);
+  assert.match(journeyComponentSource, /asha-opening-cinematic\.png/);
+  assert.match(journeyComponentSource, /My shield is gone/);
+  assert.doesNotMatch(journeyComponentSource, /<video|opening-cinematic-video|createOpeningMovieMode/);
+});
 
 const parseDataRect = (rowSource) => {
   const horizontalScale = Number(journeyConstantsSource.match(/JOURNEY_HORIZONTAL_SCALE\s*=\s*([\d.]+)/)?.[1] || 1);
@@ -152,31 +180,100 @@ test('first Egypt secret route rewards curiosity without changing main progressi
   const storyProps = extractExportedArray('STORY_PROPS');
   const events = extractExportedArray('ENVIRONMENT_EVENTS');
   const routeGates = extractExportedArray('ROUTE_GATES');
+  const platforms = extractExportedArray('PLATFORMS');
   const shards = source.slice(source.indexOf('const RELIC_SHARD_LAYOUT = ['), source.indexOf('export const RELIC_SHARDS'));
   const firstSecretRoute = getDataRowById(hiddenRoutes, 'desert-upper-survey-route');
   const scarabFragment = getDataRowById(secretCollectibles, 'egypt-scarab-fragment-1');
+  const scarabFragmentTwo = getDataRowById(secretCollectibles, 'egypt-scarab-fragment-2');
+  const scarabFragmentThree = getDataRowById(secretCollectibles, 'egypt-scarab-fragment-3');
 
   assert.match(firstSecretRoute, /name:\s*'Forgotten Mural Alcove'/);
   assert.match(firstSecretRoute, /optional:\s*true/);
   assert.match(firstSecretRoute, /sectionId:\s*'desert-entry'/);
-  assert.match(firstSecretRoute, /rewardHint:\s*'A forgotten mark glows beneath the dust above the lower sand route\.'/);
-  assert.match(firstSecretRoute, /discoveryMessage:\s*'Hidden Mural Alcove Found: This chamber was hidden from careless hands\.'/);
+  assert.match(firstSecretRoute, /y:\s*JY\(-154\)/);
+  assert.match(firstSecretRoute, /rewardHint:\s*'A shadow moves above the ruins\. A blue scarab glow vanishes into the upper doorway\.'/);
+  assert.match(firstSecretRoute, /discoveryMessage:\s*'Forgotten Mural Chamber discovered\. The warning mural has been damaged\.'/);
   assert.match(firstSecretRoute, /gateType:\s*'faded mural seam'/);
   assert.match(firstSecretRoute, /teaseVisible:\s*true/);
-  assert.match(firstSecretRoute, /rewardSummary:\s*'Mural Scarab Fragment, hidden shard cache, and field journal clue'/);
+  assert.match(firstSecretRoute, /storySummary:\s*'Broken pieces of a scarab seal lie across the floor\. Someone tried to erase this warning\.'/);
+  assert.match(firstSecretRoute, /rewardSummary:\s*'Three scarab seal fragments restored, hidden shard cache, and field journal clue'/);
   assert.doesNotMatch(firstSecretRoute, /requiredUpgradeId:/);
 
   assert.match(scarabFragment, /routeId:\s*'desert-upper-survey-route'/);
-  assert.match(scarabFragment, /name:\s*'Mural Scarab Fragment'/);
-  assert.match(scarabFragment, /discoveryMessage:\s*'Secret Discovery: Mural Scarab Fragment recorded\. Anubis is watching\. Curiosity is not theft\.'/);
-  assert.match(shards, /\{\s*x:\s*870,\s*y:\s*232,\s*hidden:\s*true,\s*routeId:\s*'desert-upper-survey-route'\s*\}/);
+  assert.match(scarabFragment, /name:\s*'Broken Scarab Fragment I'/);
+  assert.match(scarabFragment, /restorationSetId:\s*'forgotten-mural-seal'/);
+  assert.match(scarabFragmentTwo, /name:\s*'Broken Scarab Fragment II'/);
+  assert.match(scarabFragmentTwo, /restorationSetId:\s*'forgotten-mural-seal'/);
+  assert.match(scarabFragmentThree, /name:\s*'Broken Scarab Fragment III'/);
+  assert.match(scarabFragmentThree, /restorationSetId:\s*'forgotten-mural-seal'/);
+  assert.match(scarabFragmentThree, /restoresStoryFlag:\s*'forgotten-mural-restored'/);
+  assert.match(scarabFragmentThree, /restoreMessage:\s*'Asha places the fragments back into the warning mural\. The scarab glow returns faintly\.'/);
+  assert.match(scarabFragmentThree, /anubisReaction:\s*'You followed the thief, but did not steal\. You restored what they broke\. Do not mistake this for trust\.'/);
+  assert.match(scarabFragmentThree, /discoveryMessage:\s*'Secret Discovery: Forgotten Mural Chamber restored and recorded\.'/);
+  assert.equal((secretCollectibles.match(/restorationSetId:\s*'forgotten-mural-seal'/g) || []).length, 3);
+  assert.match(platforms, /id:\s*'forgotten-mural-lower-masonry'[\s\S]*?collapsed ceremonial masonry step/);
+  assert.match(platforms, /id:\s*'forgotten-mural-carved-wall-ledge'[\s\S]*?carved wall ledge in hidden priest passage/);
+  assert.match(platforms, /id:\s*'forgotten-mural-alcove-floor'[\s\S]*?y:\s*JY\(-112\)[\s\S]*?forgotten mural alcove floor/);
+  assert.match(platforms, /id:\s*'forgotten-mural-forward-passage-step'[\s\S]*?forward stonework return from the hidden alcove/);
+  assert.match(platforms, /id:\s*'forgotten-mural-lower-return'[\s\S]*?lower return ledge from priest passage/);
+  assert.match(platforms, /id:\s*'forgotten-mural-lower-masonry'[\s\S]*?invisible:\s*true/);
+  assert.match(platforms, /id:\s*'forgotten-mural-alcove-floor'[\s\S]*?invisible:\s*true/);
+  [
+    ['forgotten-mural-lower-masonry', 4480, 276, 230],
+    ['forgotten-mural-carved-wall-ledge', 4660, 218, 230],
+    ['forgotten-mural-broken-warning-step', 4845, 160, 240],
+    ['forgotten-mural-priest-passage-shelf', 5030, 104, 260],
+    ['forgotten-mural-column-shelf', 5225, 44, 230],
+    ['forgotten-mural-upper-doorway-floor', 5425, -20, 280],
+    ['forgotten-mural-alcove-floor', 5295, -112, 350],
+    ['forgotten-mural-forward-passage-step', 5588, -54, 230],
+    ['forgotten-mural-return-masonry', 5795, 52, 240],
+    ['forgotten-mural-lower-return', 5995, 170, 260],
+  ].forEach(([id, x, y, width]) => {
+    const platformRow = getDataRowById(platforms, id);
+    assert.match(platformRow, new RegExp(`x:\\s*${x}[\\s\\S]*?y:\\s*JY\\(${y}\\)[\\s\\S]*?width:\\s*${width}[\\s\\S]*?invisible:\\s*true`));
+    assert.doesNotMatch(platformRow, /secretVisibility:\s*'visible'/);
+  });
+  assert.doesNotMatch(platforms, /forgotten-mural[\s\S]*?floating/i);
+  assert.match(shards, /\{\s*x:\s*934,\s*y:\s*-120,\s*hidden:\s*true,\s*routeId:\s*'desert-upper-survey-route'\s*\}/);
   assert.match(storyProps, /id:\s*'upper-route-note-marker'[\s\S]*?faded mural seam hinting at the hidden alcove/);
-  assert.match(events, /id:\s*'upper-route-choice'[\s\S]*?A forgotten mark glows beneath dust above the lower route\./);
+  assert.ok(existsSync(forgottenMuralAlcoveClimbStructurePath), 'Forgotten Mural Alcove generated PNG should exist in desert-temple assets');
+  assert.ok(existsSync(forgottenMuralChamberSourcePath), 'Forgotten Mural Chamber source PNG should exist in desert-temple assets');
+  assert.ok(existsSync(forgottenMuralChamberPath), 'Forgotten Mural Chamber production PNG should exist in desert-temple assets');
+  assert.match(journeyComponentSource, /FORGOTTEN_MURAL_ALCOVE_CLIMB_STRUCTURE_SRC = 'assets\/expedition\/environment\/desert-temple\/forgotten-mural-alcove-climb-structure\.png'/);
+  assert.match(journeyComponentSource, /FORGOTTEN_MURAL_CHAMBER_SRC = 'assets\/expedition\/environment\/desert-temple\/forgotten-mural-chamber\.png'/);
+  assert.match(journeyComponentSource, /forgottenMuralAlcoveStructureRef/);
+  assert.match(journeyComponentSource, /forgottenMuralChamberRef/);
+  assert.match(storyProps, /id:\s*'forgotten-mural-climb-structure'[\s\S]*?type:\s*'generated-climb-structure'[\s\S]*?depth:\s*'route-edge'/);
+  assert.match(storyProps, /id:\s*'forgotten-mural-alcove-panel'[\s\S]*?damaged mural showing Anubis guarding the tomb from intruders/);
+  assert.match(journeyComponentSource, /prop\.type === 'generated-climb-structure'/);
+  assert.match(journeyComponentSource, /drawForgottenMuralGeneratedAsset/);
+  assert.match(journeyComponentSource, /const visibilityWidth = Math\.max\(440, Number\(prop\.width\) \|\| 0\)/);
+  assert.match(journeyComponentSource, /ctx\.drawImage\(structureAsset\.image/);
+  assert.doesNotMatch(journeyComponentSource, /drawForgottenMuralStructure/);
+  assert.doesNotMatch(journeyComponentSource, /drawForgottenMuralStair/);
+  assert.match(events, /id:\s*'upper-route-choice'[\s\S]*?A faint scarab glow leaks from a cracked mural high above\./);
+  assert.match(events, /id:\s*'forgotten-mural-looter-shadow'[\s\S]*?type:\s*'looter-shadow'/);
+  assert.match(events, /A shadow moves above the ruins\. A blue scarab glow vanishes into the upper doorway\./);
+  assert.match(journeyComponentSource, /event\.type === 'looter-shadow'/);
+  assert.match(journeyComponentSource, /drawForgottenMuralChamberInterior/);
+  assert.match(journeyComponentSource, /forgottenMuralChamberActive/);
+  assert.match(journeyComponentSource, /forgottenMuralLooterSeen/);
+  assert.match(journeyComponentSource, /forgottenMuralChamberRestored/);
+  assert.match(journeyUtilsSource, /forgottenMuralChamberActive:\s*false/);
+  assert.match(journeyUtilsSource, /forgottenMuralLooterSeen:\s*false/);
 
   assert.match(routeGates, /id:\s*'temple-approach-seal'[\s\S]*?requires:\s*\{[\s\S]*?shards:\s*4/);
   assert.match(routeGates, /id:\s*'guardian-prep-seal'[\s\S]*?requires:\s*\{\s*objective:\s*'desert-entry'[\s\S]*?shards:\s*6/);
   assert.match(routeGates, /id:\s*'desert-seal'[\s\S]*?requires:\s*\{\s*objective:\s*'desert-entry',\s*miniBoss:\s*'scarab-queen',\s*keyItem:\s*'brush-handle',\s*shards:\s*10/);
-  assert.doesNotMatch(journeyComponentSource, /class\s+SecretRoute|createSecretSystem|SecretRouteController/);
+  assert.match(journeyComponentSource, /forgottenMuralRestored:\s*Boolean\(current\.forgottenMuralChamberRestored/);
+  assert.match(journeyComponentSource, /secret\.restorationSetId === 'forgotten-mural-seal'/);
+  assert.match(journeyComponentSource, /forgottenMuralCameraFrameActive/);
+  assert.match(journeyComponentSource, /secretVerticalCameraOffset/);
+  assert.match(journeyComponentSource, /name:\s*restoredForgottenMural \? 'Anubis' : 'Secret Found'/);
+  assert.match(journeyComponentSource, /You restored what others tried to erase\. I saw it\./);
+  assert.match(journeyComponentSource, /You pass my seals, but I still see only an intruder\./);
+  assert.doesNotMatch(journeyComponentSource, /class\s+SecretRoute|createSecretSystem|SecretRouteController|class\s+LooterAI|createRoomSystem|new\s+PlayerController/);
 });
 
 test('world continuity landmarks foreshadow future expedition sections', () => {
@@ -582,7 +679,7 @@ test('opening Scarab Seal becomes a restrained false-discovery threshold scene',
   assert.match(journeyComponentSource, /current\.openingFirstShardEchoSeen = true;/);
   assert.match(journeyComponentSource, /id:\s*'opening-first-shard-echo'/);
   assert.match(journeyComponentSource, /message:\s*SCARAB_SEAL_TRIGGER\.firstShardEchoLine/);
-  assert.match(journeyComponentSource, /openMessage:\s*gate\.openMessage/);
+  assert.match(journeyComponentSource, /const openMessage = gate\.id === 'temple-approach-seal'/);
   assert.match(journeyComponentSource, /current\.notice = guidance\.openMessage/);
   assert.match(journeyComponentSource, /id:\s*`\$\{activeLevelGate\.id\}-opened`/);
   assert.match(journeyComponentSource, /id:\s*`\$\{g\.id\}-opened`/);

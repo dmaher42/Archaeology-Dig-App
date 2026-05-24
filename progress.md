@@ -3207,3 +3207,13 @@ Remaining notes:
 - Kept the secret optional and discoverable from the opening route: the faded mural seam hints at the detour, then the alcove rewards curiosity with the Mural Scarab Fragment and the existing hidden relic shard cache.
 - Added regression coverage proving the first Egypt secret remains optional, does not add a required upgrade, keeps Temple Approach Seal, Guardian Prep Seal, and Desert Map Seal requirements unchanged, and does not introduce duplicate secret-route systems.
 - No movement, jump, gravity, platform, hitbox, combat, enemy, boss, stamina, shard requirement, route gate, tool, save/load, Base Camp, excavation, evidence, or China content was intentionally changed.
+
+## 2026-05-24 Forgotten Mural Alcove story-deviation pass
+
+- Revised the existing Forgotten Mural Alcove into a one-screen optional upward branch above the lower route, using ceremonial masonry, carved wall ledges, a hidden priest passage shelf, a distinct upper mural floor, and a return route instead of random floating platforms.
+- Added a lower-route curiosity hint: "A faint scarab glow leaks from a cracked mural high above."
+- Added an upper mural discovery beat showing Anubis protecting the tomb from intruders and a warning scratched away by earlier looters.
+- Reframed the Mural Scarab Fragment as a preservation action: "Asha restores the scarab fragment to the broken warning. The scarab glow returns faintly."
+- Added an optional derived story flag through the existing secret collectible state: restoring the mural makes Anubis react, "You restored what others tried to erase. Perhaps you are not like the others. Do not mistake this for trust."
+- Added a small vertical camera framing offset inside the existing Journey renderer so the lower route drops away while Asha climbs into the upper alcove; HUD/cards remain screen-anchored.
+- Kept the secret optional, preserved the hidden shard cache, and left all main route gate, shard, tool, movement, combat, boss, save/load, Base Camp, excavation, evidence, and China systems unchanged.
