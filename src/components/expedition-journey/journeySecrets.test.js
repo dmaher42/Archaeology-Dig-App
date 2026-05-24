@@ -417,7 +417,7 @@ test('story props include recurring expedition markers across sections', () => {
   assert.doesNotMatch(storyProps, /atmosphere-entry-far-door-frame/);
   assert.doesNotMatch(storyProps, /abandoned-camp/);
   assert.match(storyProps, /type:\s*'cart'/);
-  assert.match(storyProps, /premium field chest in open sand after the pyramid/);
+  assert.match(storyProps, /generated premium carved fallen column in open sand after the pyramid/);
   assert.match(storyProps, /base camp supply cart/);
   assert.match(journeyComponentSource, /STORY_PROP_GROUNDING_OVERRIDES/);
   assert.doesNotMatch(journeyComponentSource, /'upper-route-broken-stone-cue':\s*\{/);
@@ -440,7 +440,7 @@ test('Ancient Egypt opening stages archaeologist arrival and warrior-guide story
   assert.match(storyProps, /id:\s*'opening-warrior-guide-marker'/);
   assert.match(storyProps, /warrior-guide protective seal marker/);
   assert.doesNotMatch(storyProps, /id:\s*'opening-sacred-threshold-guardian'/);
-  assert.match(storyProps, /id:\s*'desert-entry-field-chest-1'/);
+  assert.match(storyProps, /id:\s*'desert-entry-premium-column-1'/);
   ['camp', 'ceremonial-offering', 'sacred-pedestal'].forEach((type) => {
     assert.match(storyProps, new RegExp(`type:\\s*'${type}'`));
   });
@@ -464,13 +464,13 @@ test('Ancient Egypt opening stages archaeologist arrival and warrior-guide story
 
   assert.match(routeGates, /id:\s*'temple-approach-seal'[\s\S]*?requires:\s*\{[\s\S]*?shards:\s*4/);
   assert.match(routeGates, /The Temple Approach Seal refuses easy entry\. The lost fragments must prove Asha came to protect\./);
-  assert.match(routeGates, /readyHint:\s*'The first proof holds\. Move through the Temple Approach Seal before the site closes again\.'/);
-  assert.match(routeGates, /openMessage:\s*'The Temple Approach Seal grinds open\. Anubis allows passage, not trust\.'/);
+  assert.match(routeGates, /readyHint:\s*'The seal answers\. Move through the threshold before the site closes again\.'/);
+  assert.match(routeGates, /openMessage:\s*'The seal answers, but it does not trust you\.'/);
   assert.match(routeGates, /id:\s*'guardian-prep-seal'[\s\S]*?requires:\s*\{\s*objective:\s*'desert-entry'[\s\S]*?shards:\s*6/);
-  assert.match(routeGates, /The Map Tablet must be read and 6 relic shards restored before the guardian trial wakes\./);
+  assert.match(routeGates, /The ancient Map Tablet and 6 lost fragments must be restored before the path deeper wakes\./);
   assert.match(routeGates, /id:\s*'desert-seal'[\s\S]*?requires:\s*\{\s*objective:\s*'desert-entry',\s*miniBoss:\s*'scarab-queen',\s*keyItem:\s*'brush-handle',\s*shards:\s*10/);
-  assert.match(routeGates, /The Desert Map Seal needs the Map Tablet, Brush Handle, Scarab Queen proof, and 10 relic shards\./);
-  assert.match(routeGates, /Carry the record forward into the ruined temple entry\./);
+  assert.match(routeGates, /The Desert Map Seal waits for the Map Tablet, the Brush Handle, the fall of the Scarab Queen, and 10 lost fragments\./);
+  assert.match(routeGates, /Carry the record forward into the ruined temple\./);
   assert.match(miniBosses, /id:\s*'scarab-queen'[\s\S]*?health:\s*1,\s*damage:\s*4/);
   assert.match(miniBosses, /A tomb looter cracks the guardian seal\. The Scarab Queen erupts as the first trial of Anubis\. The site will not yield easily\./);
   assert.match(bossKeyItems, /id:\s*'brush-handle'[\s\S]*?The Scarab Queen falls\. Asha has permission, not trust\. Brush Handle recovered\. The Desert Map Seal answers\./);
@@ -918,10 +918,8 @@ test('route props stay out of the opening pyramid facade and render on route edg
   const storyProps = extractExportedArray('STORY_PROPS');
 
   [
-    'desert-entry-field-chest-1',
-    'broken-seal-marker',
-    'atmosphere-entry-broken-pillar',
-    'early-voucher-cache-marker',
+    'desert-entry-premium-column-1',
+    'desert-entry-premium-pillar-caps-1',
   ].forEach((id) => {
     const escapedId = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const row = getDataRowById(storyProps, id);
@@ -939,6 +937,10 @@ test('route props stay out of the opening pyramid facade and render on route edg
     'temple-approach-threshold-tablet-1',
     'broken-ruins-survey-rope',
     'desert-broken-supply-cart',
+    'desert-entry-field-chest-1',
+    'early-voucher-cache-marker',
+    'broken-seal-marker',
+    'atmosphere-entry-broken-pillar',
   ].forEach((id) => {
     const escapedId = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     assert.doesNotMatch(storyProps, new RegExp(`id:\\s*'${escapedId}'`));
@@ -1346,7 +1348,7 @@ test('Egypt Journey explains shard purpose and adds an optional Base Camp vouche
   assert.doesNotMatch(extractExportedArray('STORY_PROPS'), /id:\s*'relic-shard-purpose-note'/);
   assert.match(source, /Restore the fragments the seal still recognises\. Pass the guardians\. The site will test you\./);
   assert.match(source, /id:\s*'basecamp-upgrade-voucher'[\s\S]*?shardCost:\s*2[\s\S]*?rewardShards:\s*6[\s\S]*?cacheReward:\s*true/);
-  assert.match(source, /id:\s*'desert-entry-field-chest-1'/);
+  assert.match(source, /id:\s*'desert-entry-premium-column-1'/);
   assert.match(journeyComponentSource, /Cache opened! Upgrade Voucher earned/);
   assert.match(journeyComponentSource, /journey-floating-hud-gems/);
   assert.match(journeyComponentSource, /is-rewarding/);
@@ -1410,7 +1412,7 @@ test('Broken Ruins Route extends the Egypt opening with existing platformer syst
   assert.match(shards, /\{\s*x:\s*2365,\s*y:\s*320\s*\}/);
   assert.doesNotMatch(storyProps, /broken-ruins-route-stones/);
   assert.doesNotMatch(storyProps, /Broken Ruins Route trail marker/);
-  assert.match(storyProps, /premium field chest in open sand after the pyramid/);
+  assert.match(storyProps, /generated premium carved fallen column in open sand after the pyramid/);
   assert.doesNotMatch(storyProps, /survey rope beside half-buried structure/);
   assert.match(events, /id:\s*'broken-ruins-route'/);
   assert.match(events, /Collapsed stones mark a careful route deeper toward the tomb/);
@@ -1585,7 +1587,7 @@ test('first mini-boss is gated by preparation and rewards the next route', () =>
   assert.match(source, /id:\s*'scarab-queen'[\s\S]*?arenaStart:\s*X\(1265\)/);
   assert.match(source, /id:\s*'scarab-queen'[\s\S]*?name:\s*'Scarab Queen'/);
   assert.doesNotMatch(storyProps, /Guardian Prep Seal: read Map Tablet and restore 6 relic shards/);
-  assert.match(storyProps, /premium field chest in open sand after the pyramid/);
+  assert.match(storyProps, /generated premium pillar-cap ruins in open sand after the pyramid/);
   assert.match(events, /Guardian Seal: read the Map Tablet and restore 6 relic shards before the Scarab Queen\./);
   assert.match(journeyComponentSource, /Collect the tool piece, then return to \$\{routeGateName \|\| 'the route gate'\}/);
   assert.match(journeyComponentSource, /current\.notice = `\$\{b\.name\} defeated\. \$\{rewardMoment\.title\} \$\{rewardMoment\.nextObjective\}`/);
@@ -1794,7 +1796,7 @@ test('dynamic world events add mystery and atmosphere without new level systems'
   assert.match(landmarks, /type:\s*'blocked-tunnel'/);
 
   [
-    'premium field chest in open sand after the pyramid',
+    'generated premium pillar-cap ruins in open sand after the pyramid',
     'paired ceremonial lamps',
     'collapsed tower remains',
     'old field journal cache',
@@ -1843,7 +1845,7 @@ test('Egypt atmosphere prop pack is registered and drawn through existing story 
   const storyProps = extractExportedArray('STORY_PROPS');
 
   assert.equal(egyptAtmosphereAtlas.image, 'egypt-atmosphere-pack.png');
-  assert.match(egyptAtmosphereAtlas.source, /Gemini Assets curated atmosphere pass 2026-05-21/);
+  assert.match(egyptAtmosphereAtlas.source, /Generated premium Desert Entry props plus curated atmosphere pass 2026-05-24/);
   [
     'supplyJars',
     'fieldChest',
@@ -1857,6 +1859,21 @@ test('Egypt atmosphere prop pack is registered and drawn through existing story 
   ].forEach((key) => {
     assert.ok(egyptAtmosphereAtlas.regions[key], `${key} should exist in the atmosphere atlas`);
     assert.match(journeyRenderAssetsSource, new RegExp(`'${key}'`));
+    assert.match(storyProps, new RegExp(`atmosphereAssetKey:\\s*'${key}'`));
+  });
+  [
+    'desertEntryPremiumFallenColumn',
+    'desertEntryPremiumPillarCaps',
+    'desertEntryPremiumFieldChest',
+    'desertEntryPremiumStorageJars',
+  ].forEach((key) => {
+    assert.ok(egyptAtmosphereAtlas.regions[key], `${key} should exist in the generated premium prop atlas`);
+    assert.match(journeyRenderAssetsSource, new RegExp(`'${key}'`));
+  });
+  [
+    'desertEntryPremiumFallenColumn',
+    'desertEntryPremiumPillarCaps',
+  ].forEach((key) => {
     assert.match(storyProps, new RegExp(`atmosphereAssetKey:\\s*'${key}'`));
   });
   assert.ok(egyptAtmosphereAtlas.regions.coinPile, 'coinPile remains available in the atlas but should not be used in the curated Journey layout');
@@ -1894,6 +1911,8 @@ test('Egypt atmosphere layout fills each Journey section without changing gamepl
   });
 
   [
+    'desert-entry-premium-column-1',
+    'desert-entry-premium-pillar-caps-1',
     'atmosphere-temple-fallen-stone',
     'ruined-temple-fallen-column-1',
     'catacomb-warning-urns-1',
@@ -1969,13 +1988,20 @@ test('desert entry props use visible atlas art instead of weak placeholders', ()
     'desert-evidence-flag',
     'broken-ruins-trail-marker',
     'scarab-warning-marker',
+    'desert-entry-field-chest-1',
+    'early-voucher-cache-marker',
+    'broken-seal-marker',
+    'atmosphere-entry-broken-pillar',
   ];
 
   deprecatedDesertPropIds.forEach((propId) => {
     assert.doesNotMatch(storyProps, new RegExp(`id:\\s*'${propId}'`), `${propId} should not render as Desert Entry clutter`);
   });
 
-  [].forEach(([propId, assetKey, depth, alphaPattern]) => {
+  [
+    ['desert-entry-premium-column-1', 'desertEntryPremiumFallenColumn', 'route-edge', 'alpha:\\s*1'],
+    ['desert-entry-premium-pillar-caps-1', 'desertEntryPremiumPillarCaps', 'route-edge', 'alpha:\\s*1'],
+  ].forEach(([propId, assetKey, depth, alphaPattern]) => {
     const row = getDataRowById(storyProps, propId);
     assert.match(row, new RegExp(`atmosphereAssetKey:\\s*'${assetKey}'`), `${propId} should use atlas art`);
     assert.match(row, new RegExp(`depth:\\s*'${depth}'`), `${propId} should render in the readable prop layer`);
@@ -2003,11 +2029,15 @@ test('small atmosphere floor assets are permanently ground-locked instead of bac
 
   assert.match(journeyComponentSource, /ATMOSPHERE_GROUND_LOCKED_ASSET_KEYS = new Set/);
   assert.match(journeyComponentSource, /isGroundLockedAtmosphereProp\(prop\)/);
+  assert.match(journeyComponentSource, /shouldGroundLockAtmosphereProp = \(prop, propDepth\)/);
+  assert.match(journeyComponentSource, /propDepth === 'route-edge' \|\| isGroundLockedAtmosphereProp\(prop\)/);
   assert.match(journeyComponentSource, /return 'grounded'/);
   assert.match(journeyComponentSource, /drawStoryProp\(ctx, prop, cameraX, now, 'grounded'\)/);
+  assert.match(journeyComponentSource, /drawStoryProp\(ctx, prop, cameraX, now, 'route-edge'\)/);
   assert.match(journeyComponentSource, /Math\.max\(rawAnchorY, GROUND_Y - ATMOSPHERE_GROUND_LOCK_MARGIN\)/);
   assert.match(journeyComponentSource, /groundLockedAtmospherePropCount/);
-  assert.match(journeyComponentSource, /atmosphereGroundingMode:\s*'ground-locked-floor-assets'/);
+  assert.match(journeyComponentSource, /PROP_DEPTH_TUNING_VERSION = 'journey-ground-locked-atmosphere-route-edge-props-2026-05-25'/);
+  assert.match(journeyComponentSource, /atmosphereGroundingMode:\s*'ground-locked-floor-and-route-edge-assets'/);
   assert.doesNotMatch(journeyComponentSource, /groundLocked.*parallax/);
 });
 

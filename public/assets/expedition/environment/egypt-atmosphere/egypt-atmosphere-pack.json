@@ -1,11 +1,11 @@
 {
   "image": "egypt-atmosphere-pack.png",
-  "source": "Gemini Assets curated atmosphere pass 2026-05-21",
+  "source": "Generated premium Desert Entry props plus curated atmosphere pass 2026-05-24",
   "size": {
-    "w": 1536,
-    "h": 471
+    "w": 1654,
+    "h": 961
   },
-  "mappingNote": "Transparent cutouts curated from the newly generated Ancient Egyptian prop, debris, pillar, and gate sheets. Decorative Journey story props only; collision and gameplay rules stay in existing level data.",
+  "mappingNote": "Transparent cutouts curated from generated premium Desert Entry props and existing Ancient Egyptian atmosphere props. Decorative Journey story props only; collision and gameplay rules stay in existing level data.",
   "regions": {
     "supplyJars": {
       "x": 18,
@@ -108,6 +108,32 @@
       "y": 268,
       "w": 179,
       "h": 150
+    },
+    "desertEntryPremiumFallenColumn": {
+      "x": 18,
+      "y": 489,
+      "w": 481,
+      "h": 312
+    },
+    "desertEntryPremiumPillarCaps": {
+      "x": 517,
+      "y": 489,
+      "w": 352,
+      "h": 454
+    },
+    "desertEntryPremiumFieldChest": {
+      "x": 887,
+      "y": 489,
+      "w": 421,
+      "h": 373
+    },
+    "desertEntryPremiumStorageJars": {
+      "x": 1326,
+      "y": 489,
+      "w": 310,
+      "h": 427
     }
-  }
+  },
+  "imageWidth": 1654,
+  "imageHeight": 961
 }

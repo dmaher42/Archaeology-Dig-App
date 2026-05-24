@@ -1811,6 +1811,11 @@ const isGroundLockedAtmosphereProp = (prop) => (
   && ATMOSPHERE_GROUND_LOCKED_ASSET_KEYS.has(prop.atmosphereAssetKey)
 );
 
+const shouldGroundLockAtmosphereProp = (prop, propDepth) => (
+  prop?.type === 'atmosphere-prop'
+  && (propDepth === 'route-edge' || isGroundLockedAtmosphereProp(prop))
+);
+
 const getStoryPropDepth = (prop) => {
   if (prop.depth === 'route-edge') return 'route-edge';
   if (isGroundLockedAtmosphereProp(prop)) return 'grounded';
@@ -1820,7 +1825,7 @@ const getStoryPropDepth = (prop) => {
 };
 
 const DECORATIVE_PROP_LAYER_MODE = 'background-midground-grounded-depth-v3';
-const PROP_DEPTH_TUNING_VERSION = 'journey-ground-locked-atmosphere-props-2026-05-21';
+const PROP_DEPTH_TUNING_VERSION = 'journey-ground-locked-atmosphere-route-edge-props-2026-05-25';
 const ROUTE_GROUND_VISUAL_MODE = 'edge-and-local-aprons-no-full-width-haze';
 const ROUTE_GROUND_HAZE_FIX_VERSION = 'route-ground-no-bottom-haze-2026-05-21';
 const DRAW_JOURNEY_FLAG_MARKERS = false;
@@ -3306,7 +3311,7 @@ export default function ExpeditionJourney({
       atmospherePropCount: renderStats.atmospherePropCount || 0,
       groundLockedAtmospherePropCount: renderStats.groundLockedAtmospherePropCount || 0,
       atmosphereAssetVersion: EGYPT_ATMOSPHERE_ASSET_VERSION,
-      atmosphereGroundingMode: renderStats.atmosphereGroundingMode || 'ground-locked-floor-assets',
+      atmosphereGroundingMode: renderStats.atmosphereGroundingMode || 'ground-locked-floor-and-route-edge-assets',
       backgroundPropTintActive: Boolean(renderStats.backgroundPropTintActive),
       platformGroundingMode: renderStats.platformGroundingMode || 'contact-shadow-ledges',
       visibleElevatedPlatforms: renderStats.visibleElevatedPlatforms || [],
@@ -6049,8 +6054,9 @@ export default function ExpeditionJourney({
         ...(propForAsset.depth ? { depth: propForAsset.depth } : {}),
         ...(propForAsset.tint ? { tint: propForAsset.tint } : {}),
       };
-      if (propDepth === 'grounded') {
-        propSize.depth = 'grounded';
+      const shouldGroundLock = shouldGroundLockAtmosphereProp(propForAsset, propDepth);
+      if (shouldGroundLock) {
+        if (propDepth === 'grounded') propSize.depth = 'grounded';
         propSize.alpha = Math.max(propSize.alpha ?? 0.82, 0.86);
         propSize.shadow = Math.max(propSize.shadow ?? 0.14, 0.2);
         propSize.dust = Math.max(propSize.dust ?? 0.72, 0.84);
@@ -6063,7 +6069,7 @@ export default function ExpeditionJourney({
           : environmentAssetsRef.current;
       const drawX = x - propSize.width / 2;
       const rawAnchorY = prop.y + (propSize.yOffset || 0);
-      const anchorY = propDepth === 'grounded'
+      const anchorY = shouldGroundLock
         ? Math.max(rawAnchorY, GROUND_Y - ATMOSPHERE_GROUND_LOCK_MARGIN)
         : rawAnchorY;
       const drawY = anchorY - propSize.height;
@@ -6126,7 +6132,7 @@ export default function ExpeditionJourney({
         if (stateRef.current.renderStats) stateRef.current.renderStats.groundedPropCount += 1;
         if (atmospherePropAssetKey && stateRef.current.renderStats) {
           stateRef.current.renderStats.atmospherePropCount += 1;
-          if (propDepth === 'grounded') stateRef.current.renderStats.groundLockedAtmospherePropCount += 1;
+          if (shouldGroundLock) stateRef.current.renderStats.groundLockedAtmospherePropCount += 1;
         }
         ctx.restore();
         return;
@@ -9250,7 +9256,7 @@ export default function ExpeditionJourney({
       groundLockedAtmospherePropCount: 0,
       atmosphereAssetVersion: EGYPT_ATMOSPHERE_ASSET_VERSION,
       atmosphereAssetLoaded: atmosphereEnvironmentAssetsRef.current.loaded,
-      atmosphereGroundingMode: 'ground-locked-floor-assets',
+      atmosphereGroundingMode: 'ground-locked-floor-and-route-edge-assets',
       backgroundPropTintActive: true,
       platformGroundingMode: 'contact-shadow-ledges',
       visibleElevatedPlatforms: [],
