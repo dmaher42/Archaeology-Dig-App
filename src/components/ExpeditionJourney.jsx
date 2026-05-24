@@ -6072,7 +6072,7 @@ export default function ExpeditionJourney({
       drawDecorativeBaseBlend(ctx, x, anchorY + 2, dustWidth, section.id, propSize.depth, propSize.depth === 'background' ? 0.72 : 0.9);
       ctx.globalAlpha = propSize.alpha ?? 0.82;
       if (propSize.depth === 'route-edge') {
-        ctx.filter = 'sepia(2%) saturate(122%) brightness(112%) contrast(116%)';
+        ctx.filter = 'sepia(8%) saturate(118%) brightness(96%) contrast(118%)';
         ctx.shadowColor = 'rgba(35, 21, 10, 0.62)';
         ctx.shadowBlur = 10;
         ctx.shadowOffsetY = 3;
@@ -8825,30 +8825,62 @@ export default function ExpeditionJourney({
     const boxX = attackBox.x - cameraX;
     const footY = enemy.y + enemy.height + 4;
     const pulse = 0.72 + Math.sin(now / 90) * 0.18;
+    const protectedSitePulse = 0.55 + Math.sin(now / 110) * 0.22;
+    const recoveryGoldPulse = 0.46 + Math.sin(now / 125) * 0.16;
+    const drawGlyphFlash = (centerX, centerY, radius, color, alpha = 0.42) => {
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.5;
+      for (let i = 0; i < 4; i += 1) {
+        const angle = Math.PI / 4 + i * (Math.PI / 2);
+        const inner = radius * 0.42;
+        const outer = radius * (0.9 + protectedSitePulse * 0.18);
+        ctx.beginPath();
+        ctx.moveTo(centerX + Math.cos(angle) * inner, centerY + Math.sin(angle) * inner);
+        ctx.lineTo(centerX + Math.cos(angle) * outer, centerY + Math.sin(angle) * outer);
+        ctx.stroke();
+      }
+      ctx.restore();
+    };
     ctx.save();
     ctx.lineWidth = 2;
     if (recoveryActive) {
-      ctx.globalAlpha = 0.42;
-      ctx.strokeStyle = 'rgba(34, 197, 94, 0.86)';
-      ctx.fillStyle = 'rgba(34, 197, 94, 0.12)';
+      ctx.globalAlpha = 0.46 + recoveryGoldPulse * 0.18;
+      ctx.strokeStyle = 'rgba(214, 185, 92, 0.9)';
+      ctx.fillStyle = 'rgba(34, 197, 94, 0.13)';
       ctx.beginPath();
       ctx.roundRect(screenX - 8, enemy.y - 8, enemy.width + 16, enemy.height + 16, 8);
       ctx.fill();
       ctx.stroke();
-      ctx.globalAlpha = 0.52;
-      ctx.fillStyle = 'rgba(34, 197, 94, 0.38)';
+      ctx.globalAlpha = 0.36 + recoveryGoldPulse * 0.28;
+      ctx.strokeStyle = 'rgba(187, 247, 208, 0.72)';
+      ctx.beginPath();
+      ctx.roundRect(screenX - 12, enemy.y - 12, enemy.width + 24, enemy.height + 24, 10);
+      ctx.stroke();
+      ctx.globalAlpha = 0.48;
+      ctx.fillStyle = 'rgba(214, 185, 92, 0.34)';
       ctx.beginPath();
       ctx.ellipse(screenX + enemy.width / 2, footY, enemy.width * 0.82, 5, 0, 0, Math.PI * 2);
       ctx.fill();
+      drawGlyphFlash(screenX + enemy.width / 2, enemy.y - 10, Math.max(8, enemy.width * 0.28), 'rgba(214, 185, 92, 0.9)', 0.28);
     } else if (tellActive) {
-      ctx.globalAlpha = guardedTell ? 0.5 : 0.44;
+      ctx.globalAlpha = guardedTell ? 0.5 + protectedSitePulse * 0.18 : 0.44;
       ctx.strokeStyle = guardedTell ? 'rgba(125, 211, 252, 0.9)' : 'rgba(250, 204, 21, 0.9)';
       ctx.fillStyle = guardedTell ? 'rgba(125, 211, 252, 0.11)' : 'rgba(250, 204, 21, 0.1)';
       ctx.beginPath();
       ctx.roundRect(screenX - 6, enemy.y - 6, enemy.width + 12, enemy.height + 12, 7);
       ctx.fill();
       ctx.stroke();
-      ctx.globalAlpha = 0.26 * pulse;
+      if (guardedTell) {
+        ctx.globalAlpha = 0.2 + protectedSitePulse * 0.24;
+        ctx.strokeStyle = 'rgba(125, 211, 252, 0.68)';
+        ctx.beginPath();
+        ctx.ellipse(screenX + enemy.width / 2, enemy.y + enemy.height / 2, enemy.width * 0.68, enemy.height * 0.82, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        drawGlyphFlash(screenX + enemy.width / 2, enemy.y - 8, Math.max(9, enemy.width * 0.34), 'rgba(125, 211, 252, 0.92)', 0.38);
+      }
+      ctx.globalAlpha = (guardedTell ? 0.18 : 0.26) * pulse;
       ctx.fillStyle = pattern.color || '#facc15';
       ctx.beginPath();
       ctx.roundRect(boxX, attackBox.y, attackBox.width, attackBox.height, 6);
@@ -8872,6 +8904,7 @@ export default function ExpeditionJourney({
         'enemy-counter-window',
         'boss-vulnerable',
         'enemy-shield',
+        'enemy-guard-deflect',
         'boss-shield',
         'boss-telegraph',
         'attack-stamina',
@@ -8944,6 +8977,31 @@ export default function ExpeditionJourney({
           ctx.beginPath();
           ctx.moveTo(x, y);
           ctx.lineTo(x + Math.cos(angle) * length, y + Math.sin(angle) * length);
+          ctx.stroke();
+        }
+        ctx.restore();
+        return;
+      }
+      if (effect.type === 'enemy-guard-deflect') {
+        const drawDeflectRing = (radius, alpha, lineWidth = 2) => {
+          ctx.globalAlpha = Math.max(0, progress * alpha);
+          ctx.strokeStyle = effect.color || '#7dd3fc';
+          ctx.lineWidth = lineWidth;
+          ctx.beginPath();
+          ctx.ellipse(x, y, radius * 1.12, radius * 0.72, 0, 0, Math.PI * 2);
+          ctx.stroke();
+        };
+        drawDeflectRing(16 + (1 - progress) * 16, 0.64, 2.4);
+        drawDeflectRing(10 + (1 - progress) * 10, 0.42, 1.4);
+        ctx.strokeStyle = 'rgba(214, 185, 92, 0.8)';
+        ctx.globalAlpha = Math.max(0, progress * 0.5);
+        for (let i = 0; i < 6; i += 1) {
+          const angle = i * (Math.PI / 3) + 0.18;
+          const inner = 9 + (1 - progress) * 5;
+          const outer = 16 + (1 - progress) * 12;
+          ctx.beginPath();
+          ctx.moveTo(x + Math.cos(angle) * inner, y + Math.sin(angle) * inner * 0.75);
+          ctx.lineTo(x + Math.cos(angle) * outer, y + Math.sin(angle) * outer * 0.75);
           ctx.stroke();
         }
         ctx.restore();
@@ -11582,7 +11640,7 @@ export default function ExpeditionJourney({
           type: 'enemy-counter-window',
           x: e.x + e.width / 2,
           y: e.y + e.height / 2,
-          color: '#22c55e',
+          color: '#d6b95c',
         });
       }
 
@@ -11719,6 +11777,14 @@ export default function ExpeditionJourney({
             x: e.x + e.width / 2,
             y: e.y + e.height / 2,
             color: '#7dd3fc',
+          });
+          addCombatEffect(current, {
+            type: 'enemy-guard-deflect',
+            x: e.x + e.width / 2,
+            y: e.y + e.height / 2,
+            color: '#7dd3fc',
+            timer: 0.34,
+            maxTimer: 0.34,
           });
           current.notice = `${e.name} blocked the rushed hit. Wait for an opening.`;
           audioControls?.playExpeditionSfx?.('combatDeflect', { volume: e.type === 'scarab' ? 0.92 : 0.78 });

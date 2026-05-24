@@ -145,8 +145,8 @@ export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypoth
 
       <div className="lab-layout">
         <section className="lab-panel lab-tray-panel">
-          <div className="lab-panel-heading">Accession Pending</div>
-          <p className="lab-panel-subheading">Select evidence for formal documentation.</p>
+          <div className="lab-panel-heading">Evidence Tray</div>
+          <p className="lab-panel-subheading">Select an item to study.</p>
 
           <div className="lab-tray-list">
             {trayItems.map(item => {
@@ -185,8 +185,8 @@ export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypoth
         </section>
 
         <section className="lab-panel lab-bench-panel">
-          <div className="lab-panel-heading">Examination Workstation</div>
-          <p className="lab-panel-subheading">Analyze the evidence, categorize the impact, and record a formal observation.</p>
+          <div className="lab-panel-heading">Analysis Desk</div>
+          <p className="lab-panel-subheading">Study the clue, sort it, and write down your notes.</p>
 
           {!selectedArtifact ? (
             <div className="lab-empty-state">
@@ -224,7 +224,7 @@ export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypoth
 
               <div className="lab-analysis-form">
                 <div className="lab-analysis-section">
-                   <div className="lab-section-title">1. Deduce Significance</div>
+                   <div className="lab-section-title">1. Find the Meaning</div>
                    <p className="lab-section-instruction">{selectedArtifact.question || 'What does this reveal about the past?'}</p>
                     <div className="lab-answer-grid">
                        {answerChoices.map((choice, idx) => (
@@ -241,7 +241,7 @@ export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypoth
                 </div>
 
                 <div className="lab-analysis-section">
-                   <div className="lab-section-title">2. Categorization Protocol</div>
+                   <div className="lab-section-title">2. Sort the Evidence</div>
                    <p className="lab-section-instruction">Which historical area does this evidence best support?</p>
                    <div className="lab-prompt-grid">
                       {LAB_ANALYSIS_PROMPTS.map(prompt => {
@@ -263,8 +263,8 @@ export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypoth
                 </div>
 
                 <div className="lab-analysis-section">
-                   <div className="lab-section-title">3. Formal Case Log</div>
-                   <p className="lab-section-instruction">Explain your reasoning in 1-2 sentences.</p>
+                   <div className="lab-section-title">3. Case Notes</div>
+                   <p className="lab-section-instruction">Write a short sentence explaining your choice.</p>
                    
                    <div className="lab-note-field-container">
                       <div className="lab-note-stems">
@@ -287,7 +287,7 @@ export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypoth
                     disabled={selectedAnswerIndex === null || !selectedPrompt || !draftNote.trim()}
                     onClick={handleSaveAnalysis}
                   >
-                    Commit Findings to Dossier
+                    Save to Records
                   </button>
                 </div>
               </div>

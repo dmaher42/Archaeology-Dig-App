@@ -347,9 +347,9 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 18,
+        "x": 40,
         "y": 12,
-        "w": 220,
+        "w": 175,
         "h": 224
       },
       "groundLineY": 236
@@ -360,9 +360,9 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 12,
+        "x": 28,
         "y": 12,
-        "w": 233,
+        "w": 199,
         "h": 224
       },
       "groundLineY": 236
@@ -373,9 +373,9 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 17,
+        "x": 26,
         "y": 12,
-        "w": 222,
+        "w": 205,
         "h": 224
       },
       "groundLineY": 236
@@ -386,9 +386,9 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 10,
+        "x": 32,
         "y": 12,
-        "w": 235,
+        "w": 192,
         "h": 224
       },
       "groundLineY": 236
@@ -399,9 +399,9 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 15,
+        "x": 32,
         "y": 12,
-        "w": 226,
+        "w": 193,
         "h": 224
       },
       "groundLineY": 236
@@ -412,9 +412,9 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 15,
+        "x": 37,
         "y": 12,
-        "w": 226,
+        "w": 182,
         "h": 224
       },
       "groundLineY": 236
@@ -425,9 +425,9 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 16,
+        "x": 18,
         "y": 12,
-        "w": 225,
+        "w": 220,
         "h": 224
       },
       "groundLineY": 236
@@ -438,9 +438,9 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 22,
+        "x": 30,
         "y": 12,
-        "w": 213,
+        "w": 197,
         "h": 224
       },
       "groundLineY": 236
@@ -451,9 +451,9 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 18,
+        "x": 40,
         "y": 12,
-        "w": 220,
+        "w": 175,
         "h": 224
       },
       "groundLineY": 236
@@ -464,9 +464,9 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 12,
+        "x": 28,
         "y": 12,
-        "w": 233,
+        "w": 199,
         "h": 224
       },
       "groundLineY": 236
@@ -477,9 +477,9 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 17,
+        "x": 26,
         "y": 12,
-        "w": 222,
+        "w": 205,
         "h": 224
       },
       "groundLineY": 236
@@ -490,9 +490,9 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 10,
+        "x": 32,
         "y": 12,
-        "w": 235,
+        "w": 192,
         "h": 224
       },
       "groundLineY": 236
@@ -503,9 +503,9 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 15,
+        "x": 32,
         "y": 12,
-        "w": 226,
+        "w": 193,
         "h": 224
       },
       "groundLineY": 236
@@ -516,9 +516,9 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 15,
+        "x": 37,
         "y": 12,
-        "w": 226,
+        "w": 182,
         "h": 224
       },
       "groundLineY": 236
@@ -529,9 +529,9 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 16,
+        "x": 18,
         "y": 12,
-        "w": 225,
+        "w": 220,
         "h": 224
       },
       "groundLineY": 236
@@ -542,9 +542,9 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 22,
+        "x": 30,
         "y": 12,
-        "w": 213,
+        "w": 197,
         "h": 224
       },
       "groundLineY": 236
@@ -555,9 +555,9 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 17,
+        "x": 26,
         "y": 12,
-        "w": 222,
+        "w": 205,
         "h": 224
       },
       "groundLineY": 236
@@ -568,15 +568,93 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 15,
+        "x": 37,
         "y": 12,
-        "w": 226,
+        "w": 182,
         "h": 224
       },
       "groundLineY": 236
     },
     "survey_walk_00": {
       "x": 0,
+      "y": 768,
+      "w": 256,
+      "h": 256,
+      "drawBounds": {
+        "x": 40,
+        "y": 12,
+        "w": 175,
+        "h": 224
+      },
+      "groundLineY": 236
+    },
+    "survey_walk_01": {
+      "x": 256,
+      "y": 768,
+      "w": 256,
+      "h": 256,
+      "drawBounds": {
+        "x": 28,
+        "y": 12,
+        "w": 199,
+        "h": 224
+      },
+      "groundLineY": 236
+    },
+    "survey_walk_02": {
+      "x": 512,
+      "y": 768,
+      "w": 256,
+      "h": 256,
+      "drawBounds": {
+        "x": 26,
+        "y": 12,
+        "w": 205,
+        "h": 224
+      },
+      "groundLineY": 236
+    },
+    "survey_walk_03": {
+      "x": 768,
+      "y": 768,
+      "w": 256,
+      "h": 256,
+      "drawBounds": {
+        "x": 32,
+        "y": 12,
+        "w": 192,
+        "h": 224
+      },
+      "groundLineY": 236
+    },
+    "survey_walk_04": {
+      "x": 1024,
+      "y": 768,
+      "w": 256,
+      "h": 256,
+      "drawBounds": {
+        "x": 32,
+        "y": 12,
+        "w": 193,
+        "h": 224
+      },
+      "groundLineY": 236
+    },
+    "survey_walk_05": {
+      "x": 1280,
+      "y": 768,
+      "w": 256,
+      "h": 256,
+      "drawBounds": {
+        "x": 37,
+        "y": 12,
+        "w": 182,
+        "h": 224
+      },
+      "groundLineY": 236
+    },
+    "survey_walk_06": {
+      "x": 1536,
       "y": 768,
       "w": 256,
       "h": 256,
@@ -588,93 +666,15 @@
       },
       "groundLineY": 236
     },
-    "survey_walk_01": {
-      "x": 256,
-      "y": 768,
-      "w": 256,
-      "h": 256,
-      "drawBounds": {
-        "x": 12,
-        "y": 12,
-        "w": 233,
-        "h": 224
-      },
-      "groundLineY": 236
-    },
-    "survey_walk_02": {
-      "x": 512,
-      "y": 768,
-      "w": 256,
-      "h": 256,
-      "drawBounds": {
-        "x": 17,
-        "y": 12,
-        "w": 222,
-        "h": 224
-      },
-      "groundLineY": 236
-    },
-    "survey_walk_03": {
-      "x": 768,
-      "y": 768,
-      "w": 256,
-      "h": 256,
-      "drawBounds": {
-        "x": 10,
-        "y": 12,
-        "w": 235,
-        "h": 224
-      },
-      "groundLineY": 236
-    },
-    "survey_walk_04": {
-      "x": 1024,
-      "y": 768,
-      "w": 256,
-      "h": 256,
-      "drawBounds": {
-        "x": 15,
-        "y": 12,
-        "w": 226,
-        "h": 224
-      },
-      "groundLineY": 236
-    },
-    "survey_walk_05": {
-      "x": 1280,
-      "y": 768,
-      "w": 256,
-      "h": 256,
-      "drawBounds": {
-        "x": 15,
-        "y": 12,
-        "w": 226,
-        "h": 224
-      },
-      "groundLineY": 236
-    },
-    "survey_walk_06": {
-      "x": 1536,
-      "y": 768,
-      "w": 256,
-      "h": 256,
-      "drawBounds": {
-        "x": 16,
-        "y": 12,
-        "w": 225,
-        "h": 224
-      },
-      "groundLineY": 236
-    },
     "survey_walk_07": {
       "x": 1792,
       "y": 768,
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 22,
+        "x": 30,
         "y": 12,
-        "w": 213,
+        "w": 197,
         "h": 224
       },
       "groundLineY": 236
@@ -1560,32 +1560,32 @@
     "idle_05": "asha-premium-idle-regeneration-01-raw.png:frame_05",
     "idle_06": "asha-premium-idle-regeneration-01-raw.png:frame_06",
     "idle_07": "asha-premium-idle-regeneration-01-raw.png:frame_07",
-    "walk_00": "asha-premium-run-candidate-v2-raw.png:frame_00",
-    "walk_01": "asha-premium-run-candidate-v2-raw.png:frame_01",
-    "walk_02": "asha-premium-run-candidate-v2-raw.png:frame_02",
-    "walk_03": "asha-premium-run-candidate-v2-raw.png:frame_03",
-    "walk_04": "asha-premium-run-candidate-v2-raw.png:frame_04",
-    "walk_05": "asha-premium-run-candidate-v2-raw.png:frame_05",
-    "walk_06": "asha-premium-run-candidate-v2-raw.png:frame_06",
-    "walk_07": "asha-premium-run-candidate-v2-raw.png:frame_07",
-    "run_00": "asha-premium-run-candidate-v2-raw.png:frame_00",
-    "run_01": "asha-premium-run-candidate-v2-raw.png:frame_01",
-    "run_02": "asha-premium-run-candidate-v2-raw.png:frame_02",
-    "run_03": "asha-premium-run-candidate-v2-raw.png:frame_03",
-    "run_04": "asha-premium-run-candidate-v2-raw.png:frame_04",
-    "run_05": "asha-premium-run-candidate-v2-raw.png:frame_05",
-    "run_06": "asha-premium-run-candidate-v2-raw.png:frame_06",
-    "run_07": "asha-premium-run-candidate-v2-raw.png:frame_07",
-    "run_08": "asha-premium-run-candidate-v2-raw.png:frame_02",
-    "run_09": "asha-premium-run-candidate-v2-raw.png:frame_05",
-    "survey_walk_00": "asha-premium-run-candidate-v2-raw.png:frame_00",
-    "survey_walk_01": "asha-premium-run-candidate-v2-raw.png:frame_01",
-    "survey_walk_02": "asha-premium-run-candidate-v2-raw.png:frame_02",
-    "survey_walk_03": "asha-premium-run-candidate-v2-raw.png:frame_03",
-    "survey_walk_04": "asha-premium-run-candidate-v2-raw.png:frame_04",
-    "survey_walk_05": "asha-premium-run-candidate-v2-raw.png:frame_05",
-    "survey_walk_06": "asha-premium-run-candidate-v2-raw.png:frame_06",
-    "survey_walk_07": "asha-premium-run-candidate-v2-raw.png:frame_07",
+    "walk_00": "asha-premium-run-regeneration-03-raw.png:frame_00",
+    "walk_01": "asha-premium-run-regeneration-03-raw.png:frame_01",
+    "walk_02": "asha-premium-run-regeneration-03-raw.png:frame_02",
+    "walk_03": "asha-premium-run-regeneration-03-raw.png:frame_03",
+    "walk_04": "asha-premium-run-regeneration-03-raw.png:frame_04",
+    "walk_05": "asha-premium-run-regeneration-03-raw.png:frame_05",
+    "walk_06": "asha-premium-run-regeneration-03-raw.png:frame_06",
+    "walk_07": "asha-premium-run-regeneration-03-raw.png:frame_07",
+    "run_00": "asha-premium-run-regeneration-03-raw.png:frame_00",
+    "run_01": "asha-premium-run-regeneration-03-raw.png:frame_01",
+    "run_02": "asha-premium-run-regeneration-03-raw.png:frame_02",
+    "run_03": "asha-premium-run-regeneration-03-raw.png:frame_03",
+    "run_04": "asha-premium-run-regeneration-03-raw.png:frame_04",
+    "run_05": "asha-premium-run-regeneration-03-raw.png:frame_05",
+    "run_06": "asha-premium-run-regeneration-03-raw.png:frame_06",
+    "run_07": "asha-premium-run-regeneration-03-raw.png:frame_07",
+    "run_08": "asha-premium-run-regeneration-03-raw.png:frame_02",
+    "run_09": "asha-premium-run-regeneration-03-raw.png:frame_05",
+    "survey_walk_00": "asha-premium-run-regeneration-03-raw.png:frame_00",
+    "survey_walk_01": "asha-premium-run-regeneration-03-raw.png:frame_01",
+    "survey_walk_02": "asha-premium-run-regeneration-03-raw.png:frame_02",
+    "survey_walk_03": "asha-premium-run-regeneration-03-raw.png:frame_03",
+    "survey_walk_04": "asha-premium-run-regeneration-03-raw.png:frame_04",
+    "survey_walk_05": "asha-premium-run-regeneration-03-raw.png:frame_05",
+    "survey_walk_06": "asha-premium-run-regeneration-03-raw.png:frame_06",
+    "survey_walk_07": "asha-premium-run-regeneration-03-raw.png:frame_07",
     "jump_00": "asha-premium-jump-candidate-raw.png:frame_00",
     "jump_01": "asha-premium-jump-candidate-raw.png:frame_01",
     "jump_02": "asha-premium-jump-candidate-raw.png:frame_02",

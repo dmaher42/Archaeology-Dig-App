@@ -128,20 +128,20 @@ export const SCARAB_SEAL_TRIGGER = {
   sealPulseRadius: 76,
   sealPulseDuration: 0.95,
   cameraRevealDuration: 1.8,
-  objectiveEchoLine: 'The site is testing Asha. Recover 4 relic shards to restore the Temple Approach Seal.',
-  firstShardEchoLine: 'First shard restored. Three more will answer the Temple Approach Seal.',
+  objectiveEchoLine: 'The site tests Asha. Restore 4 fragments the seal still recognises.',
+  firstShardEchoLine: 'First fragment restored. Three more will answer the seal.',
   messages: [
     'Turn back, explorer. This site is sealed by judgement.',
     'My guardians hold the shards and tools of passage.',
     'Prove your purpose, or the excavation below will remain closed.',
     'Then I will guide you. These artefacts must not be lost.',
-    'Recover shards. Restore seals. Defeat guardians. Open the excavation site.',
+    'Restore the fragments the seal still recognises. Pass the guardians. The site will test you.',
   ],
   dialogueSpeakers: ['Anubis', 'Anubis', 'Anubis', 'Asha', 'Objective'],
   dialogueTiming: [0.8, 3.2, 5.8, 8.4, 11],
   stairwellRevealLine: 'A hidden stairwell opens beneath the ruins.',
-  bossIntroLine: 'A tomb looter cracks the guardian seal. The Scarab Queen erupts as the first trial of Anubis. Dodge her charge, then strike when she staggers.',
-  guideFollowUpLine: 'Recover shards. Restore seals. Defeat guardians. Open the excavation site.',
+  bossIntroLine: 'A tomb looter cracks the guardian seal. The Scarab Queen erupts as the first trial of Anubis. The site will not yield easily.',
+  guideFollowUpLine: 'Restore the fragments the seal still recognises. Pass the guardians. The site will test you.',
 };
 
 export const HAZARDS = [
@@ -237,10 +237,10 @@ export const HAZARD_PURPOSES = {
 };
 
 export const ENEMIES = [
-  { id: 'scorpion-start-1', name: 'Sand Scorpion', type: 'scorpion', emoji: 'S', x: X(505), y: JY(328), width: 44, height: 30, patrolMin: X(470), patrolMax: X(560), speed: 44, health: 1, damage: 4, openingRouteRamp: true, firstSealRouteRamp: true, attackPatternTuning: { windup: 0.66, duration: 0.34, cooldown: 1.78, recovery: 0.72, vulnerableAfter: 0.78, speed: 42, range: 26, height: 62, yOffset: -38, backReach: 42, damageScale: 1.5 }, shards: 2, encounterRole: 'shard cache guard', protectsRouteId: 'desert-opening-shard-cache', pressureHint: 'Guards the first shard cache and punishes jumping over a raised sting.' },
-  { id: 'scorpion-pottery-1', name: 'Pottery Scorpion', type: 'scorpion', emoji: 'S', x: X(535), y: JY(328), width: 46, height: 30, patrolMin: X(485), patrolMax: X(620), speed: 62, health: 1, damage: 4, openingRouteRamp: true, firstSealRouteRamp: true, attackPatternTuning: { windup: 0.64, duration: 0.32, cooldown: 1.72, recovery: 0.68, vulnerableAfter: 0.76, speed: 48, range: 28, height: 62, yOffset: -38, backReach: 42, damageScale: 1.45 }, shards: 1, encounterRole: 'shard cache guard', protectsRouteId: 'desert-opening-shard-cache' },
+  { id: 'scorpion-start-1', name: 'Sand Scorpion', type: 'scorpion', emoji: 'S', x: X(505), y: JY(328), width: 44, height: 30, patrolMin: X(470), patrolMax: X(560), speed: 44, health: 1, damage: 4, openingRouteRamp: true, firstSealRouteRamp: true, attackPatternTuning: { windup: 0.66, duration: 0.34, cooldown: 1.78, recovery: 0.72, vulnerableAfter: 0.78, speed: 42, range: 26, height: 62, yOffset: -38, backReach: 42, damageScale: 1.5, protectedDuringWindup: true }, shards: 2, encounterRole: 'shard cache guard', protectsRouteId: 'desert-opening-shard-cache', pressureHint: 'Guards the first shard cache and punishes jumping over a raised sting.' },
+  { id: 'scorpion-pottery-1', name: 'Pottery Scorpion', type: 'scorpion', emoji: 'S', x: X(535), y: JY(328), width: 46, height: 30, patrolMin: X(485), patrolMax: X(620), speed: 62, health: 1, damage: 4, openingRouteRamp: true, firstSealRouteRamp: true, attackPatternTuning: { windup: 0.64, duration: 0.32, cooldown: 1.72, recovery: 0.68, vulnerableAfter: 0.76, speed: 48, range: 28, height: 62, yOffset: -38, backReach: 42, damageScale: 1.45, protectedDuringWindup: true }, shards: 1, encounterRole: 'shard cache guard', protectsRouteId: 'desert-opening-shard-cache' },
   { id: 'scarab-survey-1', name: 'Survey Scarab', type: 'scarab', emoji: '🐞', x: X(625), y: JY(202), width: 30, height: 24, patrolMin: X(585), patrolMax: X(625), speed: 54, health: 1, damage: 3, initialAttackCooldown: 1.8, openingRouteRamp: true, firstSealRouteRamp: true, shards: 1, encounterRole: 'map tablet guard', protectsRouteId: 'desert-opening-map-tablet', pressureHint: 'Patrols the Map Tablet ledge so the first required objective feels protected, not cluttered.' },
-  { id: 'scarab-scout-1', name: 'Scarab Scout', type: 'scarab', emoji: '🐞', x: X(705), y: JY(334), width: 34, height: 26, patrolMin: X(680), patrolMax: X(760), speed: 74, health: 1, damage: 4, openingRouteRamp: true, firstSealRouteRamp: true, shards: 2, encounterRole: 'basic timing scout', combatRole: 'basic timing enemy', protectsRouteId: 'temple-approach-seal', pressureHint: 'Scarab Scout braces before a short charge. Wait for the tell, step away, then counter.', attackPatternTuning: { label: 'Scout Charge', windup: 0.72, duration: 0.24, cooldown: 1.72, recovery: 0.82, vulnerableAfter: 0.9, speed: 138, range: 34, protectedDuringWindup: true } },
+  { id: 'scarab-scout-1', name: 'Scarab Scout', type: 'scarab', emoji: '🐞', x: X(705), y: JY(334), width: 34, height: 26, patrolMin: X(680), patrolMax: X(760), speed: 74, health: 1, damage: 4, openingRouteRamp: true, firstSealRouteRamp: true, shards: 2, encounterRole: 'basic timing scout', combatRole: 'basic timing enemy', protectsRouteId: 'temple-approach-seal', pressureHint: 'Anubis\'s scout patrols the temple approach. The seal will not open while it remains.', attackPatternTuning: { label: 'Scout Charge', windup: 0.72, duration: 0.24, cooldown: 1.72, recovery: 0.82, vulnerableAfter: 0.9, speed: 138, range: 34 } },
   { id: 'sand-wisp-start-1', name: 'Sand Wisp', type: 'sand-wisp', emoji: '🪲', x: X(840), y: JY(304), width: 32, height: 30, patrolMin: X(830), patrolMax: X(875), speed: 72, health: 2, damage: 4, initialAttackCooldown: 2.2, openingRouteRamp: true, attackPatternTuning: { windup: 0.56, cooldown: 1.72, recovery: 0.68, vulnerableAfter: 0.72, speed: 124, range: 34 }, shards: 2, flying: true, encounterRole: 'upper-route pressure', protectsRouteId: 'desert-upper-survey-route', pressureHint: 'Pressures the route without turning the seal into a checklist fight.' },
   { id: 'scarab-1', name: 'Scarab', type: 'scarab', emoji: '🐞', x: X(925), y: JY(334), width: 34, height: 26, patrolMin: X(910), patrolMax: X(970), speed: 80, health: 2, damage: 5, initialAttackCooldown: 1.8, openingRouteRamp: true, shards: 2 },
   { id: 'sand-wisp-ledge-1', name: 'Ledge Sand Wisp', type: 'sand-wisp', emoji: '🪲', x: X(960), y: JY(300), width: 32, height: 30, patrolMin: X(940), patrolMax: X(990), speed: 70, health: 2, damage: 4, initialAttackCooldown: 2.1, openingRouteRamp: true, attackPatternTuning: { windup: 0.54, cooldown: 1.68, recovery: 0.64, vulnerableAfter: 0.7, speed: 128, range: 34 }, shards: 2, flying: true, encounterRole: 'guardian prep pressure', protectsRouteId: 'guardian-prep-seal', pressureHint: 'Signals the guardian boundary without forcing an extra gate clear.' },
@@ -360,9 +360,9 @@ export const ROUTE_GATES = [
     y: JY(86),
     width: 34,
     height: 274,
-    message: 'The Temple Approach Seal refuses easy entry. Relic shards must prove Asha came to protect.',
-    readyHint: 'The first proof holds. Move through the Temple Approach Seal before the site closes again.',
-    openMessage: 'The Temple Approach Seal grinds open. Anubis allows passage, not trust.',
+    message: 'The Temple Approach Seal refuses easy entry. The lost fragments must prove Asha came to protect.',
+    readyHint: 'The seal answers. Move through the threshold before the site closes again.',
+    openMessage: 'The seal answers, but it does not trust you.',
     requires: {
       shards: 4,
     },
@@ -374,7 +374,7 @@ export const ROUTE_GATES = [
     y: JY(86),
     width: 34,
     height: 274,
-    message: 'The Map Tablet must be read and 6 relic shards restored before the guardian trial wakes.',
+    message: 'The ancient Map Tablet and 6 lost fragments must be restored before the path deeper wakes.',
     requires: {
       objective: 'desert-entry',
       shards: 6,
@@ -387,8 +387,8 @@ export const ROUTE_GATES = [
     y: JY(86),
     width: 34,
     height: 274,
-    message: 'The Desert Map Seal needs the Map Tablet, Brush Handle, Scarab Queen proof, and 10 relic shards.',
-    readyHint: 'Desert Map Seal is open. Carry the record forward into the ruined temple entry.',
+    message: 'The Desert Map Seal waits for the Map Tablet, the Brush Handle, the fall of the Scarab Queen, and 10 lost fragments.',
+    readyHint: 'The Desert Map Seal opens. Carry the record forward into the ruined temple.',
     requires: {
       objective: 'desert-entry',
       miniBoss: 'scarab-queen',
@@ -403,7 +403,7 @@ export const ROUTE_GATES = [
     y: JY(86),
     width: 34,
     height: 274,
-    message: 'Secure the temple route before entering the catacombs.',
+    message: 'The temple route must be secured before the catacomb descent will open.',
     requires: {
       objective: 'ruined-temple',
       miniBoss: 'temple-guardian',
@@ -419,7 +419,7 @@ export const ROUTE_GATES = [
     y: JY(86),
     width: 34,
     height: 274,
-    message: 'Light and survey the catacombs before the escape path opens.',
+    message: 'The catacombs must be lit and surveyed before the deep path opens.',
     requires: {
       objective: 'catacombs',
       miniBoss: 'giant-serpent',
@@ -435,7 +435,7 @@ export const ROUTE_GATES = [
     y: JY(86),
     width: 34,
     height: 274,
-    message: 'Complete the escape route challenge before the dig-site entrance.',
+    message: 'The escape route must be survived to earn the dig-site entrance.',
     requires: {
       objective: 'escape-sequence',
       miniBoss: 'looter-captain',
@@ -799,7 +799,7 @@ export const OBJECTIVE_MARKERS = [
 ];
 
 export const MINI_BOSSES = [
-  { id: 'scarab-queen', sectionId: 'desert-entry', name: 'Scarab Queen', type: 'scarab', x: X(1395), y: JY(318), width: 58, height: 42, patrolMin: X(1335), patrolMax: X(1460), speed: 66, health: 1, damage: 4, shards: 6, intro: 'Seal Breach: Scarab Queen. A tomb looter cracks the guardian seal. The Scarab Queen erupts as the first trial of Anubis. Dodge her charge, then strike when she staggers.', dialogue: 'A tomb looter cracks the guardian seal. The Scarab Queen erupts as the first trial of Anubis. Dodge her charge, then strike when she staggers.', domainName: 'First Guardian Domain', arenaStart: X(1265), arenaEnd: X(1480) },
+  { id: 'scarab-queen', sectionId: 'desert-entry', name: 'Scarab Queen', type: 'scarab', x: X(1395), y: JY(318), width: 58, height: 42, patrolMin: X(1335), patrolMax: X(1460), speed: 66, health: 1, damage: 4, shards: 6, intro: 'Seal Breach: Scarab Queen. A tomb looter cracks the guardian seal. The Scarab Queen erupts as the first trial of Anubis. The site will not yield easily.', dialogue: 'A tomb looter cracks the guardian seal. The Scarab Queen erupts as the first trial of Anubis. The site will not yield easily.', domainName: 'First Guardian Domain', arenaStart: X(1265), arenaEnd: X(1480) },
   { id: 'temple-guardian', sectionId: 'ruined-temple', name: 'Anubis', type: 'guardian', x: X(2960), y: JY(306), width: 54, height: 54, patrolMin: X(2860), patrolMax: X(3060), speed: 58, health: 2, damage: 6, shards: 8, intro: 'Guardian Encounter: Anubis. Anubis stands at the temple path. Only those who move with respect may pass.', dialogue: 'Anubis stands at the temple path. Only those who move with respect may pass.', domainName: 'Anubis Gate', arenaStart: X(2785), arenaEnd: X(3090) },
   { id: 'giant-serpent', sectionId: 'catacombs', name: 'The Uraeus', type: 'snake', x: X(4860), y: JY(308), width: 72, height: 52, patrolMin: X(4730), patrolMax: X(4965), speed: 70, health: 2, damage: 6, shards: 8, intro: 'Guardian Encounter: The Uraeus. The Uraeus coils around the sacred seal. The path forward is protected.', dialogue: 'The Uraeus coils around the sacred seal. The path forward is protected.', domainName: 'Uraeus Seal Domain', arenaStart: X(4625), arenaEnd: X(4985) },
   { id: 'looter-captain', sectionId: 'escape-sequence', name: 'Bes', type: 'bes', x: X(6330), y: JY(306), width: 54, height: 54, patrolMin: X(6200), patrolMax: X(6435), speed: 86, health: 2, damage: 6, shards: 8, intro: 'Guardian Encounter: Bes. Bes blocks the broken passage with a fierce grin. This place will not be rushed.', dialogue: 'Bes blocks the broken passage with a fierce grin. This place will not be rushed.', domainName: 'Bes Trial', arenaStart: X(6110), arenaEnd: X(6460) },
@@ -815,7 +815,7 @@ export const CHINA_MINI_BOSSES = [
 ];
 
 export const BOSS_KEY_ITEMS = [
-  { id: 'brush-handle', bossId: 'scarab-queen', gateId: 'desert-seal', sectionId: 'desert-entry', name: 'Brush Handle', shortName: 'Brush', label: 'B', color: '#b45309', rewardDetail: 'This will help uncover fragile evidence during excavation.', routeOpenMessage: 'Scarab Queen defeated. Asha has permission, not trust. Brush Handle recovered. The Desert Map Seal can answer.' },
+  { id: 'brush-handle', bossId: 'scarab-queen', gateId: 'desert-seal', sectionId: 'desert-entry', name: 'Brush Handle', shortName: 'Brush', label: 'B', color: '#b45309', rewardDetail: 'This will help uncover fragile evidence during excavation.', routeOpenMessage: 'The Scarab Queen falls. Asha has permission, not trust. Brush Handle recovered. The Desert Map Seal answers.' },
   { id: 'trowel-blade', bossId: 'temple-guardian', gateId: 'temple-seal', sectionId: 'ruined-temple', name: 'Trowel Blade', shortName: 'Trowel', label: 'T', color: '#92400e', rewardDetail: 'This will help remove soil carefully at the dig site.' },
   { id: 'measuring-cord', bossId: 'giant-serpent', gateId: 'catacomb-seal', sectionId: 'catacombs', name: 'Measuring Cord', shortName: 'Measure', label: 'M', color: '#0f766e', rewardDetail: 'This will help record where evidence was found.' },
   { id: 'field-notebook-clasp', bossId: 'looter-captain', gateId: 'escape-seal', sectionId: 'escape-sequence', name: 'Field Notebook Clasp', shortName: 'Notebook', label: 'N', color: '#b91c1c', rewardDetail: 'This will help keep field records secure during excavation.' },
@@ -1449,12 +1449,12 @@ export const ENVIRONMENT_EVENTS = [
   { id: 'opening-archaeologist-arrival', sectionId: 'desert-entry', x: X(92), name: 'Arrival', message: 'The expedition reaches a huge sealed Egyptian site.', type: 'arrival', duration: 1.8, shake: 0.04, card: false },
   { id: 'opening-guardian-challenge', sectionId: 'desert-entry', x: X(168), name: 'Anubis Seal', message: 'Anubis watches from the seal. The site will not open without proof.', type: 'arrival', duration: 2.2, shake: 0.08, card: false },
   { id: 'opening-warrior-guide-entry', sectionId: 'desert-entry', x: X(202), name: 'Asha', message: 'Asha guards the route toward excavation.', type: 'arrival', duration: 2.4, shake: 0.08, card: false },
-  { id: 'relic-shard-purpose-note-read', sectionId: 'desert-entry', x: X(180), name: 'Seal Test', message: 'Recover shards. Restore seals. Defeat guardians. Open the excavation site.', type: 'arrival', duration: 2.4, shake: 0.05 },
-  { id: 'starter-route-note', sectionId: 'desert-entry', x: X(255), name: 'Route Marker', message: 'Route marker ahead.', type: 'arrival', duration: 1.8, shake: 0.08 },
+  { id: 'relic-shard-purpose-note-read', sectionId: 'desert-entry', x: X(180), name: 'Seal Test', message: 'Restore the fragments the seal still recognises. Pass the guardians. The site will test you.', type: 'arrival', duration: 2.4, shake: 0.05 },
+  { id: 'starter-route-note', sectionId: 'desert-entry', x: X(255), name: 'Ancient Trace', message: 'A worn marker points deeper into the ruins.', type: 'arrival', duration: 1.8, shake: 0.08 },
   { id: 'desert-first-dust-preview', sectionId: 'desert-entry', x: X(300), name: 'Dust Gust', message: 'A dust gust curls through the first survey markers.', type: 'dust-gust', duration: 2.8, shake: 0.18, dynamic: true, card: false },
   { id: 'desert-start-birds-scatter', sectionId: 'desert-entry', x: X(340), name: 'Birds Scatter', message: 'Birds lift from the first ruined stones.', type: 'birds-scatter', duration: 2.6, shake: 0.06, dynamic: true, card: false },
   { id: 'opening-guide-careful-tools', sectionId: 'desert-entry', x: X(380), name: 'Guide Reminder', message: 'Good. Evidence and tools open the path - not force.', type: 'dust-gust', duration: 2.0, shake: 0.04, card: false },
-  { id: 'desert-pottery-clue', sectionId: 'desert-entry', x: X(410), name: 'Pottery Marker', message: 'Look for evidence before moving on.', type: 'arrival', duration: 2.2, shake: 0.15 },
+  { id: 'desert-pottery-clue', sectionId: 'desert-entry', x: X(410), name: 'Trace Evidence', message: 'The sand has preserved a trace here.', type: 'arrival', duration: 2.2, shake: 0.15 },
   { id: 'sand-gust', sectionId: 'desert-entry', x: X(520), name: 'Sand Gust', message: 'A sheet of sand sweeps across the entry route.', type: 'gust', duration: 2.4, shake: 0.4 },
   { id: 'opening-scarab-seal-climb', sectionId: 'desert-entry', x: X(95), name: 'Scarab Seal Climb', message: 'The first stones overlook a low spike reset trap.', type: 'arrival', duration: 2.2, shake: 0.05, card: false },
   { id: 'desert-distant-rockfall', sectionId: 'desert-entry', x: X(1125), name: 'Distant Rockfall', message: 'Stone shifts somewhere beyond the ridge.', type: 'rockfall', duration: 2.8, shake: 0.18, dynamic: true, card: false },
@@ -1475,7 +1475,7 @@ export const ENVIRONMENT_EVENTS = [
   { id: 'temple-field-note', sectionId: 'ruined-temple', x: X(2295), name: 'Field Note Cache', message: 'Ancient marks ahead.', type: 'arrival', duration: 2.2, shake: 0.15 },
   { id: 'torch-descent', sectionId: 'catacombs', x: X(3240), name: 'Torch-lit Descent', message: 'Blue glyph light flickers deeper underground.', type: 'glyphs', duration: 3.4, shake: 0.35 },
   { id: 'catacomb-moving-fog', sectionId: 'catacombs', x: X(3600), name: 'Moving Fog', message: 'Cold fog moves through the lower tunnel.', type: 'moving-fog', duration: 3.2, shake: 0.08, dynamic: true, card: false },
-  { id: 'catacomb-field-note', sectionId: 'catacombs', x: X(3985), name: 'Evidence Marker', message: 'Look for evidence before moving on.', type: 'glyphs', duration: 2.4, shake: 0.2 },
+  { id: 'catacomb-field-note', sectionId: 'catacombs', x: X(3985), name: 'Hidden Trace', message: 'The stone has preserved a trace here.', type: 'glyphs', duration: 2.4, shake: 0.2 },
   { id: 'catacomb-warning', sectionId: 'catacombs', x: X(4310), name: 'Guardian Boundary', message: 'Guardian territory begins.', type: 'glyphs', duration: 2.6, shake: 0.35 },
   { id: 'catacomb-sealed-tunnel-glow', sectionId: 'catacombs', x: X(4520), name: 'Ancient Shrine Discovered', message: 'A sealed tunnel glows behind the route.', type: 'shrine-glow', duration: 3.2, shake: 0.12, dynamic: true, card: false },
   { id: 'cave-in', sectionId: 'escape-sequence', x: X(5240), name: 'Ancient Passage Shift', message: 'Old stone settles behind you. Keep moving with care.', type: 'collapse', duration: 3.6, shake: 0.72 },
@@ -1484,7 +1484,7 @@ export const ENVIRONMENT_EVENTS = [
   { id: 'escape-warning', sectionId: 'escape-sequence', x: X(5610), name: 'Narrow Passage', message: 'The ancient path demands careful steps.', type: 'collapse', duration: 2.8, shake: 0.48 },
   { id: 'escape-unstable-excavation', sectionId: 'escape-sequence', x: X(6045), name: 'Unstable Excavation Area', message: 'The excavation edge trembles under old damage.', type: 'unstable-excavation', duration: 3.0, shake: 0.32, dynamic: true, card: false },
   { id: 'camp-overlook', sectionId: 'dig-site-entrance', x: X(6680), name: 'Camp Overlook', message: 'Excavation lights appear beyond the final rise.', type: 'arrival', duration: 3.2, shake: 0.25 },
-  { id: 'site-boundary-pause', sectionId: 'dig-site-entrance', x: X(6870), name: 'Site Boundary', message: 'Look for evidence before moving on.', type: 'arrival', duration: 2.2, shake: 0.15 },
+  { id: 'site-boundary-pause', sectionId: 'dig-site-entrance', x: X(6870), name: 'Site Boundary', message: 'The ground has preserved a trace here.', type: 'arrival', duration: 2.2, shake: 0.15 },
   { id: 'dig-hidden-shrine-glow', sectionId: 'dig-site-entrance', x: X(7180), name: 'Pyramid Base', message: 'A giant broken guardian piece rests near the pyramid base.', type: 'shrine-glow', duration: 3.2, shake: 0.08, dynamic: true, card: false },
   { id: 'final-boundary', sectionId: 'dig-site-entrance', x: X(7330), name: 'Sacred Boundary', message: 'The chamber approach is protected by ancient guardians.', type: 'arrival', duration: 2.6, shake: 0.14 },
   { id: 'discovery-entrance-reveal', sectionId: 'dig-site-entrance', x: X(7970), name: 'Discovery Entrance Found', message: 'Massive guardian statues frame the sealed chamber entrance.', type: 'shrine-glow', duration: 3.2, shake: 0.12, dynamic: true, card: false },

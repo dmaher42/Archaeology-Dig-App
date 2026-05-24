@@ -148,7 +148,7 @@ const SURVEY_ZONES = [
     id: 'riverbank',
     name: 'Entry Corridor',
     prompt: 'The deep entrance passage is filled with rubble and dried mud layers.',
-    clue: 'You notice layers of ancient mud silt that washed down the tomb entrance. It preserves organic plant traces and seeds from old valley floods.',
+    clue: 'You notice layers of ancient mud silt that washed down the tomb entrance. It preserves traces of ancient plants and seeds from old valley floods.',
     risk: 'Survey cost: -4 investigation points and -8 seconds.',
     likelyEvidence: 'Possible environmental evidence (silt layers or wild seeds) washed into the entrance passage.',
     missionHint: 'Interesting context, but not the strongest place for structural remains.',
@@ -159,7 +159,7 @@ const SURVEY_ZONES = [
     prompt: 'A massive stone sarcophagus outline sits in the centre of a painted room.',
     clue: 'You observe giant, precisely cut stone blocks and mummified remains. The walls show ritual painting. This is a highly protected sacred chamber.',
     risk: 'Survey cost: -4 investigation points and -8 seconds.',
-    likelyEvidence: 'Possible monumental structures (limestone blocks) and human remains.',
+    likelyEvidence: 'Possible giant structures (limestone blocks) and human remains.',
     missionHint: 'This looks like a very promising spot for finding monumental structures!',
   },
   {
@@ -168,14 +168,14 @@ const SURVEY_ZONES = [
     prompt: 'A golden shrine chest and chest cases are piled beside the wall.',
     clue: 'You notice sealed boxes, scrolls, and jars with animal-headed lids. This area holds official records and symbolic offerings.',
     risk: 'Survey cost: -4 investigation points and -8 seconds.',
-    likelyEvidence: 'Possible written evidence (papyrus scrolls) and ritual objects.',
+    likelyEvidence: 'Possible written evidence (papyrus scrolls) and sacred objects.',
     missionHint: 'Highly valuable for cultural artifacts, but less likely to have massive structural walls.',
   },
   {
     id: 'market',
     name: 'The Annex',
     prompt: 'A cluttered pile of alabaster oil jars, stools, and seed baskets.',
-    clue: 'You observe everyday household items and organic offerings scattered in heaps. This room shows what items were packed for the afterlife.',
+    clue: 'You observe everyday items and food offerings scattered in heaps. This room shows what items were packed for the afterlife.',
     risk: 'Survey cost: -4 investigation points and -8 seconds.',
     likelyEvidence: 'Possible everyday objects (amulets, baskets, seeds) and materials.',
     missionHint: 'Contains many small finds, but it is not the main structural focus of the tomb.',
@@ -3659,68 +3659,57 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
     : previewExpedition?.scaffold?.sourceAssets || [];
 
   const renderStageSelect = () => (
-    <section className="expedition-fullscreen-room expedition-stageselect-room" aria-label="Expedition Stage Selection">
-      <header className="expedition-fullscreen-header">
-        <div className="header-left">
-          <button type="button" className="fullscreen-back-btn" onClick={onBackToMenu}>
+    <section className="phase-container menu-phase" aria-label="Expedition Stage Selection">
+      <div className="menu-hero glass-card">
+        <div className="menu-hero-copy">
+          <button type="button" className="back-to-modes-btn" onClick={onBackToMenu} style={{ marginBottom: '1.5rem', width: 'fit-content' }}>
             <ChevronLeft size={16} /> Exit to Menu
           </button>
+          <div className="training-kicker">Lost Site Expedition - Route Map</div>
+          <h2 className="premium-text-glow">Choose an Expedition</h2>
         </div>
-        <div className="header-center">
-          <div className="fullscreen-kicker">Lost Site Expedition - Route Map</div>
-          <h1 className="fullscreen-title">Choose an Expedition</h1>
+        <div className="menu-hero-art" aria-hidden="true"></div>
+      </div>
+
+      <div className="mission-selection-heading">
+        <div>
+          <div className="training-kicker">Available Target Locations</div>
+          <h3>Egypt Playable | China Preview</h3>
         </div>
-        <div className="header-right">
-          <div className="fullscreen-badge status-ready">
-            <Compass size={14} className="badge-icon pulse" />
-            <span>Campaign Map</span>
-          </div>
-        </div>
-      </header>
+      </div>
 
-      <div className="expedition-fullscreen-content" style={{ gridTemplateColumns: '1fr', padding: '2rem 3rem' }}>
-        <div className="fullscreen-card lobby-card">
-          <div className="card-header flex-header" style={{ borderBottom: '1px solid rgba(139, 106, 72, 0.25)' }}>
-            <div className="title-area">
-              <MapIcon size={20} className="card-icon gold-glow" />
-              <h2>Available Target Locations</h2>
-            </div>
-            <span style={{ fontSize: '0.85rem', color: '#cda869', fontWeight: 600 }}>Egypt Playable | China Preview</span>
-          </div>
-
-          <div className="card-body" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem', padding: '2rem', overflowY: 'auto' }}>
-            {EXPEDITION_STAGES.map(stage => {
-              const isPlayable = stage.route === 'playable' || stage.route === 'map-playable';
-              return (
-                <article key={stage.id} className={`fullscreen-shop-item-card ${isPlayable ? 'is-owned' : 'is-locked'}`} style={{ minHeight: '340px', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', border: '1px solid rgba(139, 106, 72, 0.3)', background: 'rgba(22, 18, 14, 0.85)' }}>
-                  <div className="card-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span className="mission-badge" style={{ background: isPlayable ? 'rgba(16, 185, 129, 0.12)' : 'rgba(229, 213, 183, 0.05)', color: isPlayable ? '#34d399' : '#8b6a48', borderColor: isPlayable ? '#10b981' : '#2d261e' }}>{stage.dossierTag}</span>
-                    <span className="tool-status" style={{ color: isPlayable ? '#34d399' : '#f87171' }}>{stage.status}</span>
-                  </div>
-
-                  <div className="stage-meta" style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                    <h3 className="item-name" style={{ fontSize: '1.4rem', color: '#fff', fontFamily: 'Cinzel, serif', margin: 0 }}>{stage.title}</h3>
-                    <span className="item-effect" style={{ fontSize: '0.8rem', color: '#cda869' }}>{stage.subtitle}</span>
-                  </div>
-
-                  <p className="item-description" style={{ fontSize: '0.88rem', color: '#ebdcb9', lineHeight: 1.5, flex: 1, margin: 0 }}>{stage.teaser}</p>
-
-                  <div className="item-actions" style={{ borderTop: '1px solid rgba(139, 106, 72, 0.2)', paddingTop: '1rem', display: 'flex', justifyContent: 'flex-end' }}>
-                    <button
-                      type="button"
-                      className={`footer-btn ${isPlayable ? 'primary-btn' : 'secondary-btn'}`}
-                      onClick={() => openExpeditionStage(stage)}
-                      style={{ width: '100%', minHeight: '38px', height: '38px', padding: '0 1rem', fontSize: '0.85rem' }}
-                    >
-                      {isPlayable ? <Sparkles size={14} style={{ marginRight: '0.5rem' }} /> : <BookOpen size={14} style={{ marginRight: '0.5rem' }} />}
-                      {stage.actionLabel}
-                    </button>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        </div>
+      <div className="activity-menu-grid" aria-label="Available Target Locations" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
+        {EXPEDITION_STAGES.map(stage => {
+          const isPlayable = stage.route === 'playable' || stage.route === 'map-playable';
+          return (
+            <article key={stage.id} className={`activity-card glass-card ${isPlayable ? '' : 'is-locked'}`}>
+              <div className="activity-card-header">
+                <div className="activity-card-icon">
+                  <MapIcon size={24} />
+                </div>
+                <div className="activity-time-tag" style={{ textTransform: 'uppercase' }}>
+                  {stage.dossierTag} | {stage.status}
+                </div>
+              </div>
+              <div className="activity-card-copy">
+                <h3>{stage.title}</h3>
+                <div className="activity-mode-label">{stage.subtitle}</div>
+                <p>{stage.teaser}</p>
+              </div>
+              <div className="activity-card-actions activity-card-button-group">
+                <button
+                  type="button"
+                  className={`btn ${isPlayable ? 'primary-btn' : 'secondary-btn'} activity-card-action`}
+                  onClick={() => openExpeditionStage(stage)}
+                  style={{ width: '100%' }}
+                >
+                  {isPlayable ? <Sparkles size={14} style={{ marginRight: '0.5rem' }} /> : <BookOpen size={14} style={{ marginRight: '0.5rem' }} />}
+                  {stage.actionLabel}
+                </button>
+              </div>
+            </article>
+          );
+        })}
       </div>
 
       {previewExpedition && (
@@ -5366,9 +5355,9 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
             </div>
           </header>
 
-          <div className="expedition-fullscreen-content" style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr 1fr', gap: '1.5rem', padding: '1.5rem 2rem' }}>
+          <div className="expedition-fullscreen-content expedition-grid-layout">
             {/* Left Column: Bureau Directives */}
-            <aside className="basecamp-column" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <aside className="basecamp-column">
               <div className="fullscreen-card briefing-card" style={{ borderLeft: '3px solid #8b6a48' }}>
                 <div className="card-ribbon" style={{ background: '#ef4444', color: '#fff' }}>CLASSIFIED</div>
                 <div className="card-header">
@@ -5400,18 +5389,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
                       <select
                         value={selectedCivilisation}
                         onChange={(event) => setSelectedCivilisation(event.target.value)}
-                        style={{
-                          background: 'rgba(22, 18, 14, 0.8)',
-                          border: '1px solid rgba(139, 106, 72, 0.3)',
-                          borderRadius: '6px',
-                          color: '#ebdcb9',
-                          padding: '0.75rem',
-                          fontFamily: 'Cinzel, serif',
-                          fontSize: '1rem',
-                          outline: 'none',
-                          cursor: 'pointer',
-                          width: '100%'
-                        }}
+                        className="expedition-dark-select"
                       >
                         <option value="">Choose a civilisation</option>
                         {claimCivilisations.map(civilisation => (
@@ -5425,17 +5403,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
                       <select
                         value={selectedEvidenceId}
                         onChange={(event) => setSelectedEvidenceId(event.target.value)}
-                        style={{
-                          background: 'rgba(22, 18, 14, 0.8)',
-                          border: '1px solid rgba(139, 106, 72, 0.3)',
-                          borderRadius: '6px',
-                          color: '#ebdcb9',
-                          padding: '0.75rem',
-                          fontSize: '0.9rem',
-                          outline: 'none',
-                          cursor: 'pointer',
-                          width: '100%'
-                        }}
+                        className="expedition-dark-select small"
                       >
                         <option value="">Choose collected evidence</option>
                         {collectedEvidence.map(item => (
@@ -5472,7 +5440,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
             </main>
 
             {/* Right Column: Satchel Overview */}
-            <aside className="basecamp-column" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <aside className="basecamp-column">
               <div className="fullscreen-card kit-card" style={{ borderRight: '2px solid #8b6a48' }}>
                 <div className="card-header">
                   <Backpack size={20} className="card-icon" />
@@ -5542,9 +5510,9 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
             </div>
           </header>
 
-          <div className="expedition-fullscreen-content" style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr 1.2fr', gap: '1.5rem', padding: '1.5rem 2rem' }}>
+          <div className="expedition-fullscreen-content expedition-grid-layout">
             {/* Left Column: Summary and Score */}
-            <aside className="basecamp-column" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <aside className="basecamp-column">
               <div className="fullscreen-card briefing-card" style={{ borderLeft: '3px solid #c5a059' }}>
                 <div className="card-ribbon" style={{ background: '#34d399' }}>Finished</div>
                 <div className="card-header">
@@ -5572,22 +5540,22 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
                 </div>
 
                 <div className="card-body" style={{ overflowY: 'auto', gap: '1.5rem', padding: '1.5rem' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
-                    <div style={{ background: 'rgba(22, 18, 14, 0.6)', border: '1px solid rgba(139,106,72,0.18)', borderRadius: '6px', padding: '1rem', textAlign: 'center' }}>
-                      <span style={{ fontSize: '0.72rem', color: '#8b6a48', fontWeight: 800, textTransform: 'uppercase' }}>Remaining Time</span>
-                      <strong style={{ display: 'block', fontSize: '1.5rem', color: '#ebdcb9', fontFamily: 'Cinzel, serif', marginTop: '0.25rem' }}>{resources.time}s</strong>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+                      <div className="expedition-stat-box">
+                        <span style={{ fontSize: '0.72rem', color: '#8b6a48', fontWeight: 800, textTransform: 'uppercase' }}>Remaining Time</span>
+                        <strong style={{ display: 'block', fontSize: '1.5rem', color: '#ebdcb9', fontFamily: 'Cinzel, serif', marginTop: '0.25rem' }}>{resources.time}s</strong>
+                      </div>
+                      <div className="expedition-stat-box">
+                        <span style={{ fontSize: '0.72rem', color: '#8b6a48', fontWeight: 800, textTransform: 'uppercase' }}>Stamina Left</span>
+                        <strong style={{ display: 'block', fontSize: '1.5rem', color: '#ebdcb9', fontFamily: 'Cinzel, serif', marginTop: '0.25rem' }}>{resources.stamina}</strong>
+                      </div>
+                      <div className="expedition-stat-box">
+                        <span style={{ fontSize: '0.72rem', color: '#8b6a48', fontWeight: 800, textTransform: 'uppercase' }}>Investigation</span>
+                        <strong style={{ display: 'block', fontSize: '1.5rem', color: '#ebdcb9', fontFamily: 'Cinzel, serif', marginTop: '0.25rem' }}>{resources.investigation}</strong>
+                      </div>
                     </div>
-                    <div style={{ background: 'rgba(22, 18, 14, 0.6)', border: '1px solid rgba(139,106,72,0.18)', borderRadius: '6px', padding: '1rem', textAlign: 'center' }}>
-                      <span style={{ fontSize: '0.72rem', color: '#8b6a48', fontWeight: 800, textTransform: 'uppercase' }}>Stamina Left</span>
-                      <strong style={{ display: 'block', fontSize: '1.5rem', color: '#ebdcb9', fontFamily: 'Cinzel, serif', marginTop: '0.25rem' }}>{resources.stamina}</strong>
-                    </div>
-                    <div style={{ background: 'rgba(22, 18, 14, 0.6)', border: '1px solid rgba(139,106,72,0.18)', borderRadius: '6px', padding: '1rem', textAlign: 'center' }}>
-                      <span style={{ fontSize: '0.72rem', color: '#8b6a48', fontWeight: 800, textTransform: 'uppercase' }}>Investigation</span>
-                      <strong style={{ display: 'block', fontSize: '1.5rem', color: '#ebdcb9', fontFamily: 'Cinzel, serif', marginTop: '0.25rem' }}>{resources.investigation}</strong>
-                    </div>
-                  </div>
 
-                  <section className="expedition-result-card" style={{ background: 'rgba(26,22,17,0.3)', border: '1px solid rgba(139,106,72,0.15)', borderRadius: '6px', padding: '1rem' }}>
+                  <section className="expedition-result-card expedition-card-dark">
                     <h3 style={{ fontFamily: 'Cinzel, serif', fontSize: '0.95rem', margin: '0 0 0.75rem', color: '#cda869', borderBottom: '1px solid rgba(139,106,72,0.15)', paddingBottom: '0.35rem' }}>Mission Review</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: '#8b6a48' }}>Active Objective:</span><strong style={{ color: '#fff' }}>{activeMission.title}</strong></div>
@@ -5596,7 +5564,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
                     </div>
                   </section>
 
-                  <section className="expedition-result-card" style={{ background: 'rgba(26,22,17,0.3)', border: '1px solid rgba(139,106,72,0.15)', borderRadius: '6px', padding: '1rem' }}>
+                  <section className="expedition-result-card expedition-card-dark">
                     <h3 style={{ fontFamily: 'Cinzel, serif', fontSize: '0.95rem', margin: '0 0 0.75rem', color: '#cda869', borderBottom: '1px solid rgba(139,106,72,0.15)', paddingBottom: '0.35rem' }}>Historical Hypothesis</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: '#8b6a48' }}>Target Civilisation:</span><strong style={{ color: '#fff' }}>{targetCivilisation}</strong></div>
@@ -5614,7 +5582,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
                     )}
                   </section>
 
-                  <section className="expedition-result-card" style={{ background: 'rgba(26,22,17,0.3)', border: '1px solid rgba(139,106,72,0.15)', borderRadius: '6px', padding: '1rem' }}>
+                  <section className="expedition-result-card expedition-card-dark">
                     <h3 style={{ fontFamily: 'Cinzel, serif', fontSize: '0.95rem', margin: '0 0 0.75rem', color: '#cda869', borderBottom: '1px solid rgba(139,106,72,0.15)', paddingBottom: '0.35rem' }}>Evidence Catalog & Quality</h3>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginBottom: '0.75rem' }}>
                       <div style={{ background: 'rgba(22, 18, 14, 0.4)', borderRadius: '4px', padding: '0.5rem', textAlign: 'center', fontSize: '0.8rem' }}>Excellent: <strong style={{ color: '#34d399' }}>{evidenceQualitySummary.excellent}</strong></div>
@@ -5632,7 +5600,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
             </main>
 
             {/* Right Column: Kit and Catalog */}
-            <aside className="basecamp-column" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <aside className="basecamp-column">
               <div className="fullscreen-card kit-card" style={{ borderRight: '2px solid #8b6a48' }}>
                 <div className="card-header">
                   <Gem size={20} className="card-icon" />

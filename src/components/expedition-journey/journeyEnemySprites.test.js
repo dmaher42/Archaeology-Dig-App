@@ -213,6 +213,19 @@ test('enemy attack tells use compact timing overlays without arcade labels', () 
   assert.doesNotMatch(journeyComponentSource, /enemyVisibilityAssistActive = true/);
 });
 
+test('Phase 5C early desert combat feedback uses protected-site visual cues', () => {
+  assert.match(journeyComponentSource, /protectedSitePulse/);
+  assert.match(journeyComponentSource, /drawGlyphFlash/);
+  assert.match(journeyComponentSource, /drawDeflectRing/);
+  assert.match(journeyComponentSource, /recoveryGoldPulse/);
+  assert.match(journeyComponentSource, /enemy-guard-deflect/);
+  assert.match(journeyComponentSource, /enemy-counter-window[\s\S]*?color:\s*'#d6b95c'/);
+  assert.match(journeyComponentSource, /type:\s*'enemy-guard-deflect'[\s\S]*?color:\s*'#7dd3fc'/);
+  assert.doesNotMatch(journeyComponentSource, /text:\s*'WAIT'/);
+  assert.doesNotMatch(journeyComponentSource, /text:\s*'COUNTER'/);
+  assert.doesNotMatch(journeyComponentSource, /text:\s*'DEFLECT'/);
+});
+
 test('combat feedback avoids arcade text labels in the playfield', () => {
   assert.doesNotMatch(journeyComponentSource, /text:\s*'BOUNCE'/);
   assert.doesNotMatch(journeyComponentSource, /text:\s*'RESET'/);

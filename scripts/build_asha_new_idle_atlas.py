@@ -17,7 +17,7 @@ SOURCE_JUMP_IMAGE = SOURCE_DIR / "asha-new-jump-raw.png"
 SOURCE_ATTACK_IMAGE = SOURCE_DIR / "asha-new-attack-raw.png"
 SOURCE_GENERATED_GRID_IMAGE = SOURCE_DIR / "asha-new-generated-grid-raw.png"
 SOURCE_PREMIUM_IDLE_IMAGE = SOURCE_DIR / "asha-premium-idle-regeneration-01-raw.png"
-SOURCE_PREMIUM_RUN_IMAGE = SOURCE_DIR / "asha-premium-run-candidate-v2-raw.png"
+SOURCE_PREMIUM_RUN_IMAGE = SOURCE_DIR / "asha-premium-run-regeneration-03-raw.png"
 SOURCE_PREMIUM_JUMP_IMAGE = SOURCE_DIR / "asha-premium-jump-candidate-raw.png"
 SOURCE_PREMIUM_ATTACK_IMAGE = SOURCE_DIR / "asha-premium-attack-candidate-raw.png"
 BASE_ATLAS_JSON = ROOT / "public/assets/expedition/player/asha-v5-spritesheet.json"
@@ -252,8 +252,46 @@ def extract_generated_grid_rows() -> dict[str, list[Image.Image]]:
     return rows
 
 
-def extract_premium_row_sheet_frames(source_path: Path, *, frame_count: int = 8) -> list[Image.Image]:
+def extract_premium_row_sheet_frames(
+    source_path: Path,
+    *,
+    frame_count: int = 8,
+    segment_by_content: bool = False,
+) -> list[Image.Image]:
     source = Image.open(source_path).convert("RGBA")
+    if segment_by_content:
+        cleaned = remove_chroma_background(source)
+        alpha = np.array(cleaned.getchannel("A")) > 18
+        column_has_content = alpha.any(axis=0)
+        spans: list[tuple[int, int]] = []
+        start = None
+        for x, has_content in enumerate(column_has_content):
+            if has_content and start is None:
+                start = x
+            elif not has_content and start is not None:
+                spans.append((start, x))
+                start = None
+        if start is not None:
+            spans.append((start, source.width))
+
+        merged_spans: list[tuple[int, int]] = []
+        for left, right in spans:
+            if not merged_spans or left - merged_spans[-1][1] > 6:
+                merged_spans.append((left, right))
+            else:
+                merged_spans[-1] = (merged_spans[-1][0], right)
+
+        if len(merged_spans) == frame_count:
+            frames = []
+            for left, right in merged_spans:
+                padded_left = max(0, left - 18)
+                padded_right = min(source.width, right + 18)
+                frame = source.crop((padded_left, 0, padded_right, source.height))
+                frame = remove_chroma_background(frame)
+                frame = remove_stray_alpha_components(frame)
+                frames.append(improve_gameplay_readability(frame))
+            return frames
+
     frames = []
     cell_w = source.width / frame_count
     for column in range(frame_count):
@@ -369,7 +407,7 @@ def main() -> None:
     idle_row = next(row for row in metadata["rows"] if row["name"] == "idle")
     generated_rows = extract_generated_grid_rows()
     idle_frames = extract_premium_row_sheet_frames(SOURCE_PREMIUM_IDLE_IMAGE)
-    run_frames = extract_premium_row_sheet_frames(SOURCE_PREMIUM_RUN_IMAGE)
+    run_frames = extract_premium_row_sheet_frames(SOURCE_PREMIUM_RUN_IMAGE, segment_by_content=True)
     jump_frames = extract_premium_row_sheet_frames(SOURCE_PREMIUM_JUMP_IMAGE)
     attack_frames = extract_premium_row_sheet_frames(SOURCE_PREMIUM_ATTACK_IMAGE)
     alternate_attack_frames = generated_rows["attack_pick_swing"]

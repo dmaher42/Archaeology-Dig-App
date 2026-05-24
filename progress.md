@@ -3273,8 +3273,21 @@ Remaining notes:
 - Saved the wired preview at `output/asha-idle-regeneration-01-wired-preview.png`.
 - Remaining Asha quality risk is now concentrated in run, jump, and alternate attack sheets, which still show source-frame overlap fragments and should be regenerated one action at a time.
 
+## 2026-05-24 Asha run regeneration attempt 1
+
+- Generated two run-strip attempts using the regenerated idle as the identity reference.
+- Saved the first rejected attempt as `public/assets/expedition/player/asha-new-idle-source/asha-premium-run-regeneration-01-rejected-cropped-raw.png`; it cropped the spear at the sheet edges.
+- Saved the second attempt as `public/assets/expedition/player/asha-new-idle-source/asha-premium-run-regeneration-02-raw.png`; the raw image looked closer, but the atlas preview showed uneven frame spacing that caused spear fragments when cut into the existing 8-cell contract.
+- Did not keep the new run sheet wired. The active `Asha New Idle` atlas remains on `asha-premium-run-candidate-v2-raw.png` for run/walk/survey-walk until a cleaner run sheet is generated.
+
 ## 2026-05-24 Phase 5B Early Desert Encounter Isolation Pass
 
 - Isolated the Scarab Scout teaching pocket by narrowing/separating the adjacent Survey Scarab, Scout, Sand Wisp, and follow-up Scarab patrols, with short first-attack delays for support enemies through existing enemy data.
 - Isolated the Seal Warden teaching pocket by narrowing/separating the nearby Ledge Sand Wisp, Upper Route Scarab, Seal Warden, Stone Scorpion, and Sand Snake patrols, with short support-enemy first-attack delays.
 - Kept Phase 5A Scout Charge and Guarded Sting timing values, enemy health, enemy damage, enemy speed, movement, jump, gravity, platform geometry, hitboxes, route gates, shard counts, tool requirements, boss tuning, Base Camp, excavation, and China content unchanged.
+
+## 2026-05-24 Phase 5C Early Desert Combat Feedback Readability Pass
+
+- Strengthened the existing non-boss attack tell renderer with small protected-site glyph flashes, a cyan guarded shimmer for protected windups, and a green-gold recovery opening cue.
+- Added a compact deflect ring/spark effect through the existing protected-hit combat effect path so rushed hits into Scout/Warden protected windups read as blocked rather than missed.
+- Kept Phase 5A timing values, Phase 5B spacing/cooldown values, enemy health, enemy damage, enemy speed, movement, jump, platform geometry, route gates, shard counts, tools, boss tuning, Base Camp, excavation, and China content unchanged.

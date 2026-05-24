@@ -10356,6 +10356,73 @@ main {
   padding-bottom: 4rem;
 }
 
+/* Expedition Dark Theme (Base Camp & Results) */
+:root {
+  --expedition-dark-bg: rgba(22, 18, 14, 0.8);
+  --expedition-dark-bg-solid: #16120e;
+  --expedition-dark-card-bg: rgba(26, 22, 17, 0.5);
+  --expedition-dark-card-border: rgba(139, 106, 72, 0.15);
+  --expedition-border: rgba(139, 106, 72, 0.3);
+  --expedition-text-gold: #ebdcb9;
+  --expedition-text-gold-muted: #cda869;
+  --expedition-text-muted: #a89a7f;
+}
+
+.expedition-card-dark {
+  background: var(--expedition-dark-card-bg);
+  border: 1px solid var(--expedition-dark-card-border);
+  border-radius: var(--card-radius, 4px);
+  padding: 1rem;
+  color: var(--expedition-text-gold);
+}
+
+.expedition-stat-box {
+  background: rgba(22, 18, 14, 0.6);
+  border: 1px solid rgba(139, 106, 72, 0.18);
+  border-radius: 6px;
+  padding: 1rem;
+  text-align: center;
+}
+
+.expedition-grid-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr 1.2fr;
+  gap: 1.5rem;
+  padding: 1.5rem 2rem;
+}
+
+/* Base Camp Layouts */
+.basecamp-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Dark Theme form elements */
+.expedition-dark-select {
+  background: var(--expedition-dark-bg);
+  border: 1px solid var(--expedition-border);
+  border-radius: 6px;
+  color: var(--expedition-text-gold);
+  padding: 0.75rem;
+  font-family: 'Cinzel', serif;
+  font-size: 1rem;
+  outline: none;
+  cursor: pointer;
+  width: 100%;
+}
+
+.expedition-dark-select.small {
+  font-size: 0.9rem;
+}
+
+/* Shared Titles */
+.expedition-phase h2,
+.expedition-phase h3 {
+  font-family: 'Cinzel', serif;
+  margin: 0;
+}
+
 /* Lost Site Expedition */
 .expedition-phase {
   align-items: stretch;
@@ -15116,11 +15183,16 @@ main {
 .menu-phase > * {
   position: relative;
   z-index: 1;
+  max-width: 1180px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .menu-hero {
   width: 100% !important;
-  max-width: none !important;
+  max-width: 1180px !important;
   min-height: clamp(10.75rem, 23vh, 14rem) !important;
   margin: 0 auto !important;
   padding: clamp(1.15rem, 2.2vw, 2rem) !important;

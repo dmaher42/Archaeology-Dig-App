@@ -41,7 +41,7 @@ const getCategoryIcon = (category) => {
 
 const getBureauTagLabel = (tag = '') => BUREAU_TAG_LABELS[tag] ?? tag.replace(/_/g, ' ');
 
-const BUREAU_DOSSIER_TABS = ['Dossier', 'Evidence', 'Profiles', 'Journal'];
+const BUREAU_DOSSIER_TABS = ['Folder', 'Evidence', 'Profiles', 'Journal'];
 
 const getBureauClueTiers = (bureauCase) => {
   if (Array.isArray(bureauCase?.clueTiers) && bureauCase.clueTiers.length > 0) {
@@ -514,15 +514,15 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
     ) : (
       <div className="bureau-investigation-layout">
         <article className="bureau-case-file">
-          <div className="bureau-file-banner" aria-label="Classified museum case file">
-            <span>Classified Museum Case File</span>
+          <div className="bureau-file-banner" aria-label="Secret museum case file">
+            <span>Secret Museum Case File</span>
             <strong>Antiquities Bureau</strong>
           </div>
           <nav className="bureau-dossier-tabs" aria-label="Bureau case sections">
             {BUREAU_DOSSIER_TABS.map((tab) => (
               <span
                 key={tab}
-                className={`bureau-dossier-tab ${tab === 'Dossier' ? 'active' : ''}`}
+                className={`bureau-dossier-tab ${tab === 'Folder' ? 'active' : ''}`}
               >
                 {tab}
               </span>
@@ -589,7 +589,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
           <div className="bureau-evidence-box">
             <div className="bureau-section-label">
               <span>Evidence Folder</span>
-              <strong>{currentEvidenceText.length} filed</strong>
+              <strong>{currentEvidenceText.length} saved</strong>
             </div>
             <div className="bureau-evidence-text-list">
               {currentEvidenceText.map((item) => (
@@ -647,7 +647,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
                 )}
               </div>
             </div>
-            <p className="bureau-suspect-instruction">Click a profile to rule out civilisations that do not match the evidence.</p>
+            <p className="bureau-suspect-instruction">Click a profile to cross out the ones that don't match the clues.</p>
           </div>
 
           <div className="bureau-suspect-grid">
@@ -713,7 +713,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
           <div className="bureau-briefing-overlay">
             <div className="bureau-briefing-modal">
               <div className="training-kicker">Case Briefing</div>
-              <h2>Mission Intelligence</h2>
+              <h2>Mission Briefing</h2>
               <p>
                 You are going to solve ancient civilisation cases.
                 Each case gives you clues. Use the clues to work out which civilisation it is.
@@ -773,7 +773,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
     return (
       <section className="phase-container bureau-phase">
         <div className="bureau-feedback">
-          <div className="training-kicker">Intelligence Report - Case #{bureauState.caseIndex + 1}</div>
+          <div className="training-kicker">Mission Report - Case #{bureauState.caseIndex + 1}</div>
           <h2>Review & Outcome</h2>
           <p>{civilisationText}</p>
 

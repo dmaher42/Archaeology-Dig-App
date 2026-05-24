@@ -75,9 +75,9 @@ export function ActivityMenu({
           >
             <ChevronLeft size={16} /> Back to Missions
           </button>
-          <div className="training-kicker">Expedition Logistics</div>
+          <div className="training-kicker">Mission Plan</div>
           <h2 className="premium-text-glow">Interactive Expedition Map</h2>
-          <p>Deploy your team to a specific global site to begin your archaeological inquiry.</p>
+          <p>Send your team to a site to begin your dig mission.</p>
         </div>
 
         <div className="selection-layout">
@@ -121,7 +121,7 @@ export function ActivityMenu({
 
             {selectedSite && (
               <div className="site-selected-dossier">
-                <div className="dossier-kicker">Pinned Dossier</div>
+                <div className="dossier-kicker">Selected Folder</div>
                 <h3>{selectedSite.name}</h3>
                 <p className="dossier-civilization">{selectedSite.civilization}</p>
                 <dl>
@@ -265,18 +265,18 @@ export function ActivityMenu({
           </div>
         </article>
 
-        {/* Antiquities Bureau */}
+        {/* Secret Files */}
         <article className={`activity-card activity-card--bureau glass-card ${hasSavedBureau ? 'has-save' : ''}`}>
           <div className="activity-card-header">
             <div className="activity-card-icon activity-card-icon--bureau">
               <FileText size={24} />
             </div>
-            <div className="activity-time-tag">15-20 MINS | DEDUCTION</div>
+            <div className="activity-time-tag">15-20 MINS | MYSTERY</div>
           </div>
           <div className="activity-card-copy">
-            <h3>Antiquities Bureau</h3>
-            <div className="activity-mode-label">Deduction</div>
-            <p>Open classified museum case files and solve evidence mysteries.</p>
+            <h3>Secret Files</h3>
+            <div className="activity-mode-label">Mystery</div>
+            <p>Open secret museum case files and solve evidence mysteries.</p>
           </div>
           <div className="activity-card-actions activity-card-button-group">
             <button 
