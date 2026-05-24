@@ -135,7 +135,7 @@ def remove_chroma_background(image: Image.Image) -> Image.Image:
     return Image.fromarray(data, "RGBA").filter(ImageFilter.GaussianBlur(radius=0.12))
 
 
-def remove_stray_alpha_components(image: Image.Image) -> Image.Image:
+def remove_stray_alpha_components(image: Image.Image, *, keep_large_effects: bool = True) -> Image.Image:
     rgba = image.convert("RGBA")
     data = np.array(rgba)
     alpha = data[..., 3] > 18
@@ -178,8 +178,13 @@ def remove_stray_alpha_components(image: Image.Image) -> Image.Image:
         ys = [pixel[1] for pixel in component]
         center_x = (min(xs) + max(xs)) / 2
         center_y = (min(ys) + max(ys)) / 2
-        near_main_body = keep_left <= center_x <= keep_right and keep_top <= center_y <= keep_bottom
-        large_readable_effect = len(component) >= largest_area * 0.12
+        detached_piece_large_enough = len(component) >= max(520, largest_area * 0.03)
+        near_main_body = (
+            detached_piece_large_enough
+            and keep_left <= center_x <= keep_right
+            and keep_top <= center_y <= keep_bottom
+        )
+        large_readable_effect = keep_large_effects and len(component) >= largest_area * 0.12
         if component is largest or near_main_body or large_readable_effect:
             for px, py in component:
                 keep[py, px] = True
@@ -257,6 +262,7 @@ def extract_premium_row_sheet_frames(
     *,
     frame_count: int = 8,
     segment_by_content: bool = False,
+    keep_large_effects: bool = True,
 ) -> list[Image.Image]:
     source = Image.open(source_path).convert("RGBA")
     if segment_by_content:
@@ -288,7 +294,7 @@ def extract_premium_row_sheet_frames(
                 padded_right = min(source.width, right + 18)
                 frame = source.crop((padded_left, 0, padded_right, source.height))
                 frame = remove_chroma_background(frame)
-                frame = remove_stray_alpha_components(frame)
+                frame = remove_stray_alpha_components(frame, keep_large_effects=keep_large_effects)
                 frames.append(improve_gameplay_readability(frame))
             return frames
 
@@ -299,7 +305,7 @@ def extract_premium_row_sheet_frames(
         right = min(source.width, round((column + 1) * cell_w))
         frame = source.crop((left, 0, right, source.height))
         frame = remove_chroma_background(frame)
-        frame = remove_stray_alpha_components(frame)
+        frame = remove_stray_alpha_components(frame, keep_large_effects=keep_large_effects)
         frames.append(improve_gameplay_readability(frame))
     return frames
 
@@ -407,7 +413,11 @@ def main() -> None:
     idle_row = next(row for row in metadata["rows"] if row["name"] == "idle")
     generated_rows = extract_generated_grid_rows()
     idle_frames = extract_premium_row_sheet_frames(SOURCE_PREMIUM_IDLE_IMAGE)
-    run_frames = extract_premium_row_sheet_frames(SOURCE_PREMIUM_RUN_IMAGE, segment_by_content=True)
+    run_frames = extract_premium_row_sheet_frames(
+        SOURCE_PREMIUM_RUN_IMAGE,
+        segment_by_content=True,
+        keep_large_effects=False,
+    )
     jump_frames = extract_premium_row_sheet_frames(SOURCE_PREMIUM_JUMP_IMAGE)
     attack_frames = extract_premium_row_sheet_frames(SOURCE_PREMIUM_ATTACK_IMAGE)
     alternate_attack_frames = generated_rows["attack_pick_swing"]
