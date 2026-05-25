@@ -113,6 +113,12 @@ export function TrainingPhase({ onBackToMenu }) {
     }
     
     if (selectedTool === 'brush') {
+      const revealedCluesCount = gridTiles.filter(t => t.isRevealed && !t.isArtifact).length;
+      if (revealedCluesCount < 2) {
+        setFeedback('Gather more evidence first. Reveal at least two clue squares before using the Soft Brush.');
+        setFeedbackType('error');
+        return;
+      }
       if (!tile.isMarked) {
         setFeedback('You must mark the square with a Survey Marker before extracting!');
         setFeedbackType('error');
@@ -224,29 +230,16 @@ export function TrainingPhase({ onBackToMenu }) {
             key={tile.id}
             onClick={(e) => handleTileClick(index, e)}
             onContextMenu={(e) => handleTileClick(index, e)}
-            style={{
-              position: 'relative',
-              zIndex: 5,
-              backgroundColor: tile.isRevealed 
-                ? (tile.isArtifact ? '#D4AF37' : '#d2b48c') 
-                : 'rgba(102, 70, 44, 0.95)',
-              borderRight: '1px solid rgba(0,0,0,0.3)',
-              borderBottom: '1px solid rgba(0,0,0,0.3)',
-              cursor: tile.isRevealed ? 'default' : 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: tile.isRevealed ? 'inset 0 0 10px rgba(0,0,0,0.2)' : 'inset 0 0 5px rgba(255,255,255,0.1)',
-            }}
+            className={`training-mine-tile ${tile.isRevealed ? 'revealed' : 'unrevealed'} ${tile.isRevealed && tile.isArtifact ? 'artifact' : ''}`}
           >
             {tile.isMarked && !tile.isRevealed && (
-               <div style={{color: '#ff4444', fontSize: '1.5rem', zIndex: 10, textShadow: '0px 0px 4px #000'}}>🚩</div>
+               <div className="mine-marker">🚩</div>
             )}
             {tile.isRevealed && !tile.isArtifact && tile.adjacentCount > 0 && (
-               <div style={{ fontSize: '1.5rem', color: '#5C4033', fontWeight: 'bold' }}>{tile.adjacentCount}</div>
+               <div className={`mine-number number-${tile.adjacentCount}`}>{tile.adjacentCount}</div>
             )}
             {tile.isRevealed && tile.isArtifact && (
-               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+               <svg className="mine-artifact-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                  <circle cx="12" cy="12" r="10"></circle>
                  <path d="M12 6v6l4 2"></path>
                </svg>
@@ -284,9 +277,17 @@ export function TrainingPhase({ onBackToMenu }) {
         );
       case 2:
         return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center' }}>
-            <p style={{ margin: 0 }}>Deduce the artifact's location! Trowel clears dirt, revealing adjacent counts. Marker flags the artifact.</p>
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center', width: '100%' }}>
+            <div className="instruction-panel" style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '6px', textAlign: 'left', width: '100%' }}>
+              <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--bureau-gold)' }}>How to excavate:</h4>
+              <ul style={{ margin: 0, paddingLeft: '1.2rem', fontSize: '0.9rem', color: 'var(--bureau-parchment)' }}>
+                <li style={{ marginBottom: '0.2rem' }}><strong>Hand Trowel</strong> clears safe dirt</li>
+                <li style={{ marginBottom: '0.2rem' }}><strong>Numbers</strong> show how many artifact squares are touching that tile</li>
+                <li style={{ marginBottom: '0.2rem' }}><strong>Survey Marker</strong> flags the suspected artifact</li>
+                <li><strong>Soft Brush</strong> should only be used when there is evidence</li>
+              </ul>
+            </div>
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
               <button 
                 className={`btn ${selectedTool === 'trowel' ? '' : 'btn-secondary'}`} 
                 onClick={() => setSelectedTool('trowel')}
