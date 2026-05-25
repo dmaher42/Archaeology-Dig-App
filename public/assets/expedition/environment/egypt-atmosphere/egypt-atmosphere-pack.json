@@ -1,11 +1,11 @@
 {
   "image": "egypt-atmosphere-pack.png",
-  "source": "Generated premium Desert Entry props plus curated atmosphere pass 2026-05-24",
+  "source": "Generated premium Desert Entry props plus curated atmosphere pass 2026-05-25",
   "size": {
     "w": 1654,
-    "h": 961
+    "h": 1127
   },
-  "mappingNote": "Transparent cutouts curated from generated premium Desert Entry props and existing Ancient Egyptian atmosphere props. Decorative Journey story props only; collision and gameplay rules stay in existing level data.",
+  "mappingNote": "Transparent cutouts curated from generated premium Desert Entry props and existing Ancient Egyptian atmosphere props. Decorative Journey story props only; collision and gameplay rules stay in existing level data. Route-edge props use shared ground locking.",
   "regions": {
     "supplyJars": {
       "x": 18,
@@ -132,8 +132,14 @@
       "y": 489,
       "w": 310,
       "h": 427
+    },
+    "desertEntryPremiumThresholdSlab": {
+      "x": 18,
+      "y": 979,
+      "w": 620,
+      "h": 130
     }
   },
   "imageWidth": 1654,
-  "imageHeight": 961
+  "imageHeight": 1127
 }

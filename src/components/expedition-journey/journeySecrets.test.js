@@ -920,12 +920,13 @@ test('route props stay out of the opening pyramid facade and render on route edg
   const storyProps = extractExportedArray('STORY_PROPS');
 
   [
+    'desert-entry-premium-threshold-slab-1',
     'desert-entry-premium-column-1',
     'desert-entry-premium-pillar-caps-1',
   ].forEach((id) => {
     const escapedId = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const row = getDataRowById(storyProps, id);
-    assert.match(row, /x:\s*(11[3-9]\d|12\d\d|13\d\d|14\d\d)/, `${id} should be after the pyramid facade`);
+    assert.match(row, /x:\s*(9[4-9]\d|10\d\d|11\d\d|12\d\d|13\d\d|14\d\d)/, `${id} should be after the pyramid facade`);
     assert.match(row, /depth:\s*'route-edge'/, `${id} should render above the route edge`);
     assert.doesNotMatch(storyProps, new RegExp(`id:\\s*'${escapedId}'[^}]*?depth:\\s*'(background|midground)'`));
   });
@@ -1847,7 +1848,7 @@ test('Egypt atmosphere prop pack is registered and drawn through existing story 
   const storyProps = extractExportedArray('STORY_PROPS');
 
   assert.equal(egyptAtmosphereAtlas.image, 'egypt-atmosphere-pack.png');
-  assert.match(egyptAtmosphereAtlas.source, /Generated premium Desert Entry props plus curated atmosphere pass 2026-05-24/);
+  assert.match(egyptAtmosphereAtlas.source, /Generated premium Desert Entry props plus curated atmosphere pass 2026-05-25/);
   [
     'supplyJars',
     'fieldChest',
@@ -1868,6 +1869,7 @@ test('Egypt atmosphere prop pack is registered and drawn through existing story 
     'desertEntryPremiumPillarCaps',
     'desertEntryPremiumFieldChest',
     'desertEntryPremiumStorageJars',
+    'desertEntryPremiumThresholdSlab',
   ].forEach((key) => {
     assert.ok(egyptAtmosphereAtlas.regions[key], `${key} should exist in the generated premium prop atlas`);
     assert.match(journeyRenderAssetsSource, new RegExp(`'${key}'`));
@@ -1875,6 +1877,7 @@ test('Egypt atmosphere prop pack is registered and drawn through existing story 
   [
     'desertEntryPremiumFallenColumn',
     'desertEntryPremiumPillarCaps',
+    'desertEntryPremiumThresholdSlab',
   ].forEach((key) => {
     assert.match(storyProps, new RegExp(`atmosphereAssetKey:\\s*'${key}'`));
   });
@@ -1913,6 +1916,7 @@ test('Egypt atmosphere layout fills each Journey section without changing gamepl
   });
 
   [
+    'desert-entry-premium-threshold-slab-1',
     'desert-entry-premium-column-1',
     'desert-entry-premium-pillar-caps-1',
     'atmosphere-temple-fallen-stone',
@@ -2001,6 +2005,7 @@ test('desert entry props use visible atlas art instead of weak placeholders', ()
   });
 
   [
+    ['desert-entry-premium-threshold-slab-1', 'desertEntryPremiumThresholdSlab', 'route-edge', 'alpha:\\s*1'],
     ['desert-entry-premium-column-1', 'desertEntryPremiumFallenColumn', 'route-edge', 'alpha:\\s*1'],
     ['desert-entry-premium-pillar-caps-1', 'desertEntryPremiumPillarCaps', 'route-edge', 'alpha:\\s*1'],
   ].forEach(([propId, assetKey, depth, alphaPattern]) => {
@@ -2008,7 +2013,7 @@ test('desert entry props use visible atlas art instead of weak placeholders', ()
     assert.match(row, new RegExp(`atmosphereAssetKey:\\s*'${assetKey}'`), `${propId} should use atlas art`);
     assert.match(row, new RegExp(`depth:\\s*'${depth}'`), `${propId} should render in the readable prop layer`);
     assert.match(row, new RegExp(alphaPattern), `${propId} should have enough alpha to read against the painted background`);
-    assert.match(row, /x:\s*(11[3-9]\d|12\d\d|13\d\d|14\d\d)/, `${propId} should sit in the open route after the pyramid`);
+    assert.match(row, /x:\s*(9[4-9]\d|10\d\d|11\d\d|12\d\d|13\d\d|14\d\d)/, `${propId} should sit in the open route after the pyramid`);
   });
 
   assert.doesNotMatch(storyProps, /sectionId:\s*'desert-entry'[\s\S]{0,220}type:\s*'sign'/);

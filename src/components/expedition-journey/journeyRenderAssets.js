@@ -87,6 +87,7 @@ export const EXPECTED_EGYPT_ATMOSPHERE_ASSET_KEYS = [
   'desertEntryPremiumPillarCaps',
   'desertEntryPremiumFieldChest',
   'desertEntryPremiumStorageJars',
+  'desertEntryPremiumThresholdSlab',
   'rubbleDustSmall',
   'rubbleDustBurst',
   'fallingDebris',
