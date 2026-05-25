@@ -178,21 +178,20 @@ export function TrainingPhase({ onBackToMenu }) {
   const renderDirtPatch = () => {
     return (
       <div 
+        className={`sim-container-inner vintage-panel ${currentStepIndex === 0 && !isSurveyed ? 'pulse-border' : ''}`}
         style={{ 
           position: 'relative', 
           width: '320px', 
           height: '320px', 
-          backgroundColor: '#8B6A48', 
-          backgroundImage: 'radial-gradient(circle, #8B6A48 0%, #5C4033 100%)',
           margin: '0 auto', 
-          borderRadius: '8px', 
+          borderRadius: '12px', 
           overflow: 'hidden', 
-          border: '4px solid #4a3322', 
-          boxShadow: 'inset 0 0 20px rgba(0,0,0,0.5)',
           cursor: currentStepIndex === 0 && !isSurveyed ? 'crosshair' : 'default',
           display: 'grid',
           gridTemplateColumns: 'repeat(4, 1fr)',
           gridTemplateRows: 'repeat(4, 1fr)',
+          boxShadow: 'inset 0 0 40px rgba(0,0,0,0.6), 0 10px 30px rgba(0,0,0,0.3)',
+          border: '1px solid var(--bureau-gold-light)',
         }}
         onClick={() => {
           if (currentStepIndex === 0 && !isSurveyed) {
@@ -289,25 +288,25 @@ export function TrainingPhase({ onBackToMenu }) {
             </div>
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
               <button 
-                className={`btn ${selectedTool === 'trowel' ? '' : 'btn-secondary'}`} 
+                className={`tool-card ${selectedTool === 'trowel' ? 'active' : ''}`} 
                 onClick={() => setSelectedTool('trowel')}
-                style={{ opacity: selectedTool === 'trowel' ? 1 : 0.7 }}
               >
-                Hand Trowel
+                <div className="tool-icon-wrapper"><Pickaxe size={24} /></div>
+                <span>Hand Trowel</span>
               </button>
               <button 
-                className={`btn ${selectedTool === 'marker' ? '' : 'btn-secondary'}`} 
+                className={`tool-card ${selectedTool === 'marker' ? 'active' : ''}`} 
                 onClick={() => setSelectedTool('marker')}
-                style={{ opacity: selectedTool === 'marker' ? 1 : 0.7 }}
               >
-                Survey Marker
+                <div className="tool-icon-wrapper"><MapPin size={24} /></div>
+                <span>Survey Marker</span>
               </button>
               <button 
-                className={`btn ${selectedTool === 'brush' ? '' : 'btn-secondary'}`} 
+                className={`tool-card ${selectedTool === 'brush' ? 'active' : ''}`} 
                 onClick={() => setSelectedTool('brush')}
-                style={{ opacity: selectedTool === 'brush' ? 1 : 0.7 }}
               >
-                Soft Brush
+                <div className="tool-icon-wrapper"><Search size={24} /></div>
+                <span>Soft Brush</span>
               </button>
             </div>
             {artifactExtracted && <button className="btn pulse-glow" onClick={handleNextStep}>Proceed to Map</button>}
