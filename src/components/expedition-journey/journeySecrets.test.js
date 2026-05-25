@@ -103,7 +103,7 @@ const getDataRowById = (arraySource, id) => {
 
 test('opening cinematic introduces Asha and Anubis with speech-ready timed dialogue and shield shatter', () => {
   assert.match(journeyComponentSource, /OPENING_CINEMATIC_DURATION = 24/);
-  assert.match(journeyComponentSource, /OPENING_CINEMATIC_ENABLED = false/);
+  assert.match(journeyComponentSource, /OPENING_CINEMATIC_ENABLED = true/);
   assert.match(journeyComponentSource, /OPENING_CINEMATIC_LINES = \[/);
   assert.match(journeyComponentSource, /speaker:\s*'Anubis'[\s\S]*?voice:\s*'guardian'/);
   assert.match(journeyComponentSource, /speaker:\s*'Asha'[\s\S]*?voice:\s*'asha'/);
@@ -485,7 +485,7 @@ test('Expedition framing presents Journey, Base Camp, and excavation as in-world
     'Restore the outer seal',
     'Recover relic shards',
     'Read the Map Tablet',
-    'Survive the Guardian Prep route',
+    'Prepare for the Scarab Queen',
     'Defeat the Scarab Queen',
     'Reach Base Camp Outpost',
     'Relic shards',
@@ -926,7 +926,7 @@ test('route props stay out of the opening pyramid facade and render on route edg
   ].forEach((id) => {
     const escapedId = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const row = getDataRowById(storyProps, id);
-    assert.match(row, /x:\s*(9[4-9]\d|10\d\d|11\d\d|12\d\d|13\d\d|14\d\d)/, `${id} should be after the pyramid facade`);
+    assert.match(row, /x:\s*(1[6-9]\d\d|2\d\d\d)/, `${id} should sit past Asha on the open route`);
     assert.match(row, /depth:\s*'route-edge'/, `${id} should render above the route edge`);
     assert.doesNotMatch(storyProps, new RegExp(`id:\\s*'${escapedId}'[^}]*?depth:\\s*'(background|midground)'`));
   });
@@ -1225,25 +1225,72 @@ test('Asha New Idle is available as a separate character-loader atlas', () => {
   assert.match(journeyComponentSource, /attack_pick_swing_alt/);
   assert.equal(ashaNewIdlePlayerAtlas.status, 'production-candidate-asha-premium-identity');
   assert.equal(ashaNewIdlePlayerAtlas.productionReference, 'asha-new-idle-reference.png');
-  assert.equal(ashaNewIdlePlayerAtlas.draw.height, 119);
+  assert.equal(ashaNewIdlePlayerAtlas.draw.height, 131);
   assert.equal(ashaNewIdlePlayerAtlas.draw.fixedFrame.idle, undefined);
   assert.equal(ashaNewIdlePlayerAtlas.rows.find(row => row.name === 'idle')?.frameCount, 8);
   assert.equal(ashaNewIdlePlayerAtlas.rows.find(row => row.name === 'attack_pick_swing_alt')?.frameCount, 8);
   assert.deepEqual(ashaNewIdlePlayerAtlas.draw.alternateAttackRows, ['attack_pick_swing', 'attack_pick_swing_alt']);
   assert.equal(Object.keys(ashaNewIdlePlayerAtlas.regions).length, 101);
-  assert.equal(ashaNewIdlePlayerAtlas.poseSources.idle_00, 'asha-premium-idle-regeneration-01-raw.png:frame_00');
-  assert.equal(ashaNewIdlePlayerAtlas.poseSources.idle_07, 'asha-premium-idle-regeneration-01-raw.png:frame_07');
-  assert.equal(ashaNewIdlePlayerAtlas.poseSources.walk_00, 'asha-premium-run-regeneration-03-raw.png:frame_00');
-  assert.equal(ashaNewIdlePlayerAtlas.poseSources.run_09, 'asha-premium-run-regeneration-03-raw.png:frame_05');
-  assert.equal(ashaNewIdlePlayerAtlas.poseSources.survey_walk_00, 'asha-premium-run-regeneration-03-raw.png:frame_00');
-  assert.equal(ashaNewIdlePlayerAtlas.poseSources.jump_00, 'asha-premium-jump-regeneration-02-raw.png:frame_00');
-  assert.equal(ashaNewIdlePlayerAtlas.poseSources.fall_00, 'asha-premium-jump-regeneration-02-raw.png:frame_03');
-  assert.equal(ashaNewIdlePlayerAtlas.poseSources.land_00, 'asha-premium-jump-regeneration-02-raw.png:frame_05');
-  assert.equal(ashaNewIdlePlayerAtlas.poseSources.attack_pick_swing_00, 'asha-premium-attack-regeneration-01-candidate-raw.png:frame_00');
-  assert.equal(ashaNewIdlePlayerAtlas.poseSources.attack_pick_swing_05, 'asha-premium-attack-regeneration-01-candidate-raw.png:frame_05');
-  assert.equal(ashaNewIdlePlayerAtlas.poseSources.attack_pick_swing_alt_00, 'asha-premium-attack-alt-regeneration-02-chain-raw.png:frame_00');
-  assert.equal(ashaNewIdlePlayerAtlas.poseSources.attack_pick_swing_alt_07, 'asha-premium-attack-alt-regeneration-02-chain-raw.png:frame_07');
-  assert.equal(ashaNewIdlePlayerAtlas.poseSources.hurt_04, 'asha-v5-damage-source.png:frame_04');
+  assert.equal(
+    ashaNewIdlePlayerAtlas.poseSources.idle_00,
+    'asha-premium-idle-regeneration-02-reference-locked-raw.png:frame_00',
+  );
+  assert.equal(
+    ashaNewIdlePlayerAtlas.poseSources.idle_07,
+    'asha-premium-idle-regeneration-02-reference-locked-raw.png:frame_07',
+  );
+  assert.equal(
+    ashaNewIdlePlayerAtlas.poseSources.walk_00,
+    'asha-premium-run-regeneration-04-reference-locked-raw.png:frame_00',
+  );
+  assert.equal(
+    ashaNewIdlePlayerAtlas.poseSources.run_09,
+    'asha-premium-run-regeneration-04-reference-locked-raw.png:frame_05',
+  );
+  assert.equal(
+    ashaNewIdlePlayerAtlas.poseSources.survey_walk_00,
+    'asha-premium-run-regeneration-04-reference-locked-raw.png:frame_00',
+  );
+  assert.equal(
+    ashaNewIdlePlayerAtlas.poseSources.jump_00,
+    'asha-premium-jump-regeneration-03-reference-locked-raw.png:frame_00',
+  );
+  assert.equal(
+    ashaNewIdlePlayerAtlas.poseSources.jump_07,
+    'asha-premium-jump-regeneration-03-reference-locked-raw.png:frame_07',
+  );
+  assert.equal(
+    ashaNewIdlePlayerAtlas.poseSources.fall_00,
+    'asha-premium-jump-regeneration-03-reference-locked-raw.png:frame_03',
+  );
+  assert.equal(
+    ashaNewIdlePlayerAtlas.poseSources.land_02,
+    'asha-premium-jump-regeneration-03-reference-locked-raw.png:frame_07',
+  );
+  assert.equal(
+    ashaNewIdlePlayerAtlas.poseSources.attack_pick_swing_00,
+    'asha-premium-attack-regeneration-03-reference-locked-raw.png:frame_00',
+  );
+  assert.equal(
+    ashaNewIdlePlayerAtlas.poseSources.attack_pick_swing_05,
+    'asha-premium-attack-regeneration-03-reference-locked-raw.png:frame_05',
+  );
+  assert.equal(
+    ashaNewIdlePlayerAtlas.poseSources.attack_pick_swing_alt_00,
+    'asha-premium-attack-alt-regeneration-04-reference-locked-raw.png:frame_00',
+  );
+  assert.equal(
+    ashaNewIdlePlayerAtlas.poseSources.attack_pick_swing_alt_07,
+    'asha-premium-attack-alt-regeneration-04-reference-locked-raw.png:frame_07',
+  );
+  assert.equal(
+    ashaNewIdlePlayerAtlas.poseSources.hurt_04,
+    'asha-premium-hurt-regeneration-02-reference-locked-raw.png:frame_04',
+  );
+  assert.equal(ashaNewIdlePlayerAtlas.regions.run_00.drawBounds.h, 193);
+  assert.equal(ashaNewIdlePlayerAtlas.regions.jump_01.drawBounds.h, 197);
+  assert.equal(ashaNewIdlePlayerAtlas.regions.attack_pick_swing_00.drawBounds.h, 193);
+  assert.equal(ashaNewIdlePlayerAtlas.regions.hurt_00.drawBounds.h, 220);
   assert.ok(ashaNewIdlePlayerAtlas.description.includes('secondary attack row'));
 });
 
@@ -1657,7 +1704,6 @@ test('platform polish creates purposeful jump challenges with checkpoint rescue 
   const hazards = extractExportedArray('HAZARDS');
 
   [
-    'post-pyramid-guardian-prep-route',
     'temple-sandfall-climb',
     'catacomb-torch-climb',
     'final-site-permit-climb',
@@ -1666,10 +1712,6 @@ test('platform polish creates purposeful jump challenges with checkpoint rescue 
   });
 
   [
-    'post-pyramid survey plinth',
-    'field kit stepping stone',
-    'guardian prep cracked ledge',
-    'guardian prep safe marker',
     'collapsing column step',
     'sandfall recovery shelf',
     'archive reward step',
@@ -1679,8 +1721,15 @@ test('platform polish creates purposeful jump challenges with checkpoint rescue 
   ].forEach((label) => {
     assert.match(platforms, new RegExp(label));
   });
-  assert.match(platforms, /guardian-prep-cracked-ledge[\s\S]*reactive:\s*\{\s*type:\s*'unstable ledge'/);
-  assert.match(platforms, /guardian-prep-safe-marker[\s\S]*challengeComplete:\s*'post-pyramid-guardian-prep-route'/);
+  [
+    'post-pyramid-guardian-prep-route',
+    'post-pyramid survey plinth',
+    'field kit stepping stone',
+    'guardian prep cracked ledge',
+    'guardian prep safe marker',
+  ].forEach((removedPlatform) => {
+    assert.doesNotMatch(platforms, new RegExp(removedPlatform));
+  });
 
   assert.match(platforms, /challengeFailMessage:/);
   assert.match(journeyComponentSource, /current\.activePlatformChallenge/);
@@ -2005,15 +2054,17 @@ test('desert entry props use visible atlas art instead of weak placeholders', ()
   });
 
   [
-    ['desert-entry-premium-threshold-slab-1', 'desertEntryPremiumThresholdSlab', 'route-edge', 'alpha:\\s*1'],
-    ['desert-entry-premium-column-1', 'desertEntryPremiumFallenColumn', 'route-edge', 'alpha:\\s*1'],
-    ['desert-entry-premium-pillar-caps-1', 'desertEntryPremiumPillarCaps', 'route-edge', 'alpha:\\s*1'],
-  ].forEach(([propId, assetKey, depth, alphaPattern]) => {
+    ['desert-entry-premium-threshold-slab-1', 'desertEntryPremiumThresholdSlab', 'route-edge', "sceneBlend:\\s*'desert-entry-sand'", /x:\s*(1[6-9]\d\d|2\d\d\d)/, 'should sit past Asha on the open route'],
+    ['desert-entry-premium-column-1', 'desertEntryPremiumFallenColumn', 'route-edge', "sceneBlend:\\s*'desert-entry-sand'", /x:\s*(1[6-9]\d\d|2\d\d\d)/, 'should sit past Asha on the open route'],
+    ['desert-entry-premium-pillar-caps-1', 'desertEntryPremiumPillarCaps', 'route-edge', "sceneBlend:\\s*'desert-entry-sand'", /x:\s*(1[6-9]\d\d|2\d\d\d)/, 'should sit past Asha on the open route'],
+  ].forEach(([propId, assetKey, depth, alphaPattern, xPattern, xMessage]) => {
     const row = getDataRowById(storyProps, propId);
     assert.match(row, new RegExp(`atmosphereAssetKey:\\s*'${assetKey}'`), `${propId} should use atlas art`);
     assert.match(row, new RegExp(`depth:\\s*'${depth}'`), `${propId} should render in the readable prop layer`);
-    assert.match(row, new RegExp(alphaPattern), `${propId} should have enough alpha to read against the painted background`);
-    assert.match(row, /x:\s*(9[4-9]\d|10\d\d|11\d\d|12\d\d|13\d\d|14\d\d)/, `${propId} should sit in the open route after the pyramid`);
+    assert.match(row, new RegExp(alphaPattern), `${propId} should use the desert scene blend instead of cut-out contrast`);
+    assert.doesNotMatch(row, /alpha:\s*1\b/, `${propId} should not render at full cut-out opacity`);
+    assert.match(row, /bury:\s*0\.[12]\d/, `${propId} should be partially buried into the route sand`);
+    assert.match(row, xPattern, `${propId} ${xMessage}`);
   });
 
   assert.doesNotMatch(storyProps, /sectionId:\s*'desert-entry'[\s\S]{0,220}type:\s*'sign'/);

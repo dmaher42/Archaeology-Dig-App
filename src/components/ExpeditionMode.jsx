@@ -3655,6 +3655,20 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
     }, 1200);
   }, [journeyPaused]);
 
+  useEffect(() => {
+    if (expeditionStage !== 'journey') return undefined;
+
+    const handleKeyDown = (e) => {
+      if (e.code === 'Escape') {
+        e.preventDefault();
+        setJourneyPaused(prev => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [expeditionStage]);
+
   const previewScaffoldAssets = previewExpedition?.scaffold?.runtimeAssets?.length > 0
     ? previewExpedition.scaffold.runtimeAssets
     : previewExpedition?.scaffold?.sourceAssets || [];

@@ -1,5 +1,17 @@
 Original prompt: Implement "Lost Site Expedition" as a small MVP game mode in the Archaeology-Dig-App repo.
 
+2026-05-25 update:
+- Completed the UI makeover for the "Archeologist Training" screen (Training Phase).
+- Implemented the "Vintage Explorer Journal" aesthetic, featuring parchment textures, leather stitched borders, and classic serif typography.
+- Updated `src/index.css` to add the vintage styles to the training phase components.
+- Updated `src/components/TrainingPhase.jsx` to replace `glass-card` classes with the new `vintage-panel` classes.
+- Expanded the width of the game to full screen by removing max-width constraints on `.expedition-shell` and updating `.expedition-layout` to use `1fr`.
+- Completely rewrote `src/components/TrainingPhase.jsx` to replace the static drag-and-drop card game with a playable "Field Certification" mini-simulation, directly teaching the player the mechanics of surveying, gridding, excavating, mapping, and lab analysis.
+- Completely overhauled `src/components/DigPhase.jsx` to function as a Minesweeper-style deduction puzzle. Empty tiles reveal adjacency numbers.
+- Integrated a Metacognitive framework into the Dig Phase. Using a Soft Brush triggers a Confidence Check modal.
+- Added a Metacognitive Analysis grading report to the end-of-dig Field Notebook.
+- Verified the build locally.
+
 2026-05-24 update:
 - Completed Phase 5D as a copy-only Egypt Act 1 world-cohesion pass.
 - Updated visible Journey wording in `journeyLevelData.js` so gates, event notices, route markers, trace/evidence prompts, and Scout/Scarab Queen guidance feel more like an in-world protected-site adventure and less like a classroom checklist.

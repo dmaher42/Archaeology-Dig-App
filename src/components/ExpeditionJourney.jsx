@@ -45,7 +45,6 @@ import {
   PLAYER_HERO_SPRITE_VERSION,
   PLAYER_LEGACY_SPRITE_SRC,
   PLAYER_SPRITE_SCALE,
-  PLAYER_SPRITE_SRC,
   JOURNEY_VERTICAL_OFFSET,
   scaleJourneyX,
 } from './expedition-journey/journeyConstants';
@@ -564,7 +563,7 @@ const OPENING_HAZARD_DECAL_BY_HAZARD = {
   'escape-falling-chip': 'fallingStoneWarning',
 };
 const EGYPT_HAZARD_DECAL_PLACEMENT = {
-  spikeTrap: { xPad: 12, widthPad: 24, height: 46, footInset: 18 },
+  spikeTrap: { xPad: 12, widthPad: 24, height: 44, footInset: 34 },
   pressurePlate: { xPad: 14, widthPad: 28, height: 50, footInset: 18 },
   crackedFloor: { xPad: 16, widthPad: 32, height: 62, footInset: 14 },
   scarabSealTrap: { xPad: 22, widthPad: 44, height: 76, footInset: 22 },
@@ -1533,12 +1532,12 @@ const HAZARD_GROUNDING = {
   },
   'spike-trap': {
     xPad: 8,
-    yOffset: 8,
+    yOffset: 5,
     widthPad: 16,
-    heightPad: 14,
-    shadow: 0.24,
-    dustWidth: 0.9,
-    filter: 'sepia(10%) saturate(82%) brightness(88%)',
+    heightPad: 8,
+    shadow: 0.18,
+    dustWidth: 1.18,
+    filter: 'sepia(18%) saturate(76%) brightness(86%) contrast(92%)',
     warning: 'none',
   },
   'rolling-stones': {
@@ -1825,8 +1824,38 @@ const getStoryPropDepth = (prop) => {
     || 'midground';
 };
 
+const finiteNumber = (value, fallback) => (Number.isFinite(value) ? value : fallback);
+
+const resolvePropGroundingSettings = (config = {}) => {
+  const width = finiteNumber(config.width, 72);
+  const height = finiteNumber(config.height, 72);
+  const burialRatio = clamp(finiteNumber(config.burialDepth, finiteNumber(config.bury, 0.12)), 0, 0.72);
+  const dustScale = finiteNumber(config.dust, 0.72);
+  const defaultSandOverlap = Math.max(6, Math.min(height * 0.58, height * burialRatio));
+  const sandOverlapHeight = clamp(
+    finiteNumber(config.sandOverlapHeight, defaultSandOverlap),
+    0,
+    Math.max(8, height * 0.68),
+  );
+  const shadowWidth = finiteNumber(config.shadowWidth, width * (config.depth === 'background' ? 0.62 : 0.92));
+  const shadowHeight = finiteNumber(config.shadowHeight, Math.max(5, shadowWidth / 12));
+  const shadowOpacity = clamp(finiteNumber(config.shadowOpacity, finiteNumber(config.shadow, 0.22)), 0, 0.42);
+  return {
+    burialRatio,
+    sandOverlapHeight,
+    sandMoundWidth: finiteNumber(config.sandMoundWidth, width * Math.max(0.72, dustScale)),
+    sandMoundHeight: finiteNumber(config.sandMoundHeight, Math.max(8, sandOverlapHeight * 0.72)),
+    shadowWidth,
+    shadowHeight,
+    shadowOpacity,
+    groundPebbles: finiteNumber(config.groundPebbles, config.depth === 'background' ? 1 : 3),
+    seed: finiteNumber(config.sandSeed, finiteNumber(config.x, width)),
+  };
+};
+
 const DECORATIVE_PROP_LAYER_MODE = 'background-midground-grounded-depth-v3';
-const PROP_DEPTH_TUNING_VERSION = 'journey-ground-locked-atmosphere-route-edge-props-2026-05-25';
+const PROP_DEPTH_TUNING_VERSION = 'journey-prop-grounding-local-sand-occlusion-2026-05-26';
+const PROP_GROUNDING_INTEGRATION_VERSION = 'contact-shadow-local-sand-occlusion-v1';
 const ROUTE_GROUND_VISUAL_MODE = 'edge-and-local-aprons-no-full-width-haze';
 const ROUTE_GROUND_HAZE_FIX_VERSION = 'route-ground-no-bottom-haze-2026-05-21';
 const DRAW_JOURNEY_FLAG_MARKERS = false;
@@ -3319,6 +3348,7 @@ export default function ExpeditionJourney({
       propDrawOrderMode: renderStats.propDrawOrderMode || DECORATIVE_PROP_LAYER_MODE,
       decorativePropLayerMode: renderStats.decorativePropLayerMode || DECORATIVE_PROP_LAYER_MODE,
       propDepthTuningVersion: renderStats.propDepthTuningVersion || PROP_DEPTH_TUNING_VERSION,
+      propGroundingIntegrationVersion: renderStats.propGroundingIntegrationVersion || PROP_GROUNDING_INTEGRATION_VERSION,
       routeGroundVisualMode: renderStats.routeGroundVisualMode || ROUTE_GROUND_VISUAL_MODE,
       routeGroundHazeFixVersion: renderStats.routeGroundHazeFixVersion || ROUTE_GROUND_HAZE_FIX_VERSION,
       journeyFlagVisualMode: renderStats.journeyFlagVisualMode || JOURNEY_FLAG_VISUAL_MODE,
@@ -4037,13 +4067,26 @@ export default function ExpeditionJourney({
     ctx.restore();
   }, []);
 
-  const drawContactShadow = useCallback((ctx, x, y, width, intensity = 0.28, blur = 0) => {
+  const drawContactShadow = useCallback((ctx, x, y, width, intensity = 0.28, blur = 0, options = {}) => {
+    const shadowHeight = options.height ?? Math.max(4, width / 16);
     ctx.save();
     ctx.globalAlpha = intensity;
-    ctx.fillStyle = '#1f1308';
     if (blur > 0) ctx.filter = `blur(${blur}px)`;
+    ctx.fillStyle = options.color || '#1f1308';
     ctx.beginPath();
-    ctx.ellipse(x, y, Math.max(16, width / 2), Math.max(4, width / 16), 0, 0, Math.PI * 2);
+    ctx.ellipse(x, y, Math.max(16, width / 2), shadowHeight, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = intensity * 0.42;
+    ctx.beginPath();
+    ctx.ellipse(
+      x + (options.coreOffsetX || 0),
+      y + (options.coreOffsetY || 0),
+      Math.max(10, width / 3.4),
+      Math.max(2.5, shadowHeight * 0.52),
+      0,
+      0,
+      Math.PI * 2,
+    );
     ctx.fill();
     ctx.restore();
   }, []);
@@ -4840,6 +4883,109 @@ export default function ExpeditionJourney({
     ctx.restore();
   }, [drawRouteGroundApron]);
 
+  const drawPropGroundContact = useCallback((ctx, x, anchorY, propSize, sectionId, grounding) => {
+    drawContactShadow(
+      ctx,
+      x,
+      anchorY + 3,
+      grounding.shadowWidth,
+      grounding.shadowOpacity,
+      1.2,
+      { height: grounding.shadowHeight, color: 'rgba(31, 19, 8, 0.96)' },
+    );
+    drawRouteGroundApron(
+      ctx,
+      x,
+      anchorY + 1,
+      grounding.sandMoundWidth,
+      sectionId,
+      propSize.depth === 'background' ? 0.34 : 0.48,
+      Math.round(grounding.seed),
+    );
+  }, [drawContactShadow, drawRouteGroundApron]);
+
+  const drawPropSandOcclusion = useCallback((ctx, x, anchorY, propSize, sectionId, grounding) => {
+    if (grounding.sandOverlapHeight <= 0) return;
+    const isCatacombs = sectionId === 'catacombs';
+    const isEscape = sectionId === 'escape-sequence';
+    const baseSand = isCatacombs
+      ? 'rgba(83, 64, 43, 0.54)'
+      : isEscape
+        ? 'rgba(134, 78, 36, 0.48)'
+        : 'rgba(177, 119, 57, 0.46)';
+    const frontSand = isCatacombs
+      ? 'rgba(55, 42, 30, 0.42)'
+      : isEscape
+        ? 'rgba(96, 53, 24, 0.34)'
+        : 'rgba(116, 74, 36, 0.3)';
+    const highlightSand = isCatacombs
+      ? 'rgba(170, 136, 92, 0.18)'
+      : 'rgba(220, 167, 91, 0.18)';
+    const moundWidth = grounding.sandMoundWidth;
+    const overlap = grounding.sandOverlapHeight;
+    const moundHeight = grounding.sandMoundHeight;
+    const seed = grounding.seed;
+
+    ctx.save();
+    const sand = ctx.createLinearGradient(0, anchorY - overlap * 1.08, 0, anchorY + moundHeight * 0.62);
+    sand.addColorStop(0, 'rgba(214, 164, 91, 0)');
+    sand.addColorStop(0.46, baseSand);
+    sand.addColorStop(1, frontSand);
+    ctx.fillStyle = sand;
+    [
+      { ox: -0.24, oy: -0.2, rw: 0.32, rh: 0.42, rot: -0.15 },
+      { ox: 0.1, oy: -0.28, rw: 0.4, rh: 0.48, rot: 0.09 },
+      { ox: 0.0, oy: -0.02, rw: 0.55, rh: 0.32, rot: -0.04 },
+    ].forEach((drift, index) => {
+      const phase = Math.sin(seed * 0.013 + index * 1.7);
+      ctx.beginPath();
+      ctx.ellipse(
+        x + moundWidth * drift.ox + phase * 4,
+        anchorY + overlap * drift.oy,
+        Math.max(11, moundWidth * drift.rw),
+        Math.max(4, moundHeight * drift.rh),
+        drift.rot,
+        0,
+        Math.PI * 2,
+      );
+      ctx.fill();
+    });
+
+    ctx.globalAlpha = 0.9;
+    ctx.strokeStyle = highlightSand;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(x - moundWidth * 0.38, anchorY - overlap * 0.26);
+    ctx.quadraticCurveTo(
+      x - moundWidth * 0.12,
+      anchorY - overlap * 0.42,
+      x + moundWidth * 0.12,
+      anchorY - overlap * 0.28,
+    );
+    ctx.quadraticCurveTo(
+      x + moundWidth * 0.32,
+      anchorY - overlap * 0.16,
+      x + moundWidth * 0.42,
+      anchorY - overlap * 0.24,
+    );
+    ctx.stroke();
+
+    ctx.globalAlpha = 1;
+    drawGroundDustLip(ctx, x - moundWidth * 0.08, anchorY - overlap * 0.1, moundWidth * 0.52, 'rgba(178, 119, 57, 0.2)');
+    const pebbleCount = Math.max(0, Math.round(grounding.groundPebbles));
+    ctx.fillStyle = isCatacombs ? 'rgba(112, 88, 62, 0.42)' : 'rgba(128, 78, 34, 0.34)';
+    for (let i = 0; i < pebbleCount; i += 1) {
+      const t = pebbleCount <= 1 ? 0.5 : i / (pebbleCount - 1);
+      const jitter = Math.sin(seed * 0.021 + i * 2.3);
+      const pebbleX = x - moundWidth * 0.38 + moundWidth * 0.76 * t + jitter * 5;
+      const pebbleY = anchorY + 2 + Math.cos(seed * 0.017 + i) * 2;
+      ctx.beginPath();
+      ctx.ellipse(pebbleX, pebbleY, 2.4 + (i % 2), 1.4, jitter * 0.18, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }, [drawGroundDustLip]);
+
   const drawSectionTransitionBlend = useCallback((ctx, cameraX) => {
     SECTIONS.slice(1).forEach((section) => {
       const x = section.start - cameraX;
@@ -5231,10 +5377,14 @@ export default function ExpeditionJourney({
     const region = regions[descriptor.regionKey];
     if (!pack.loaded || !pack.image || !region) return false;
     const alpha = options.alpha ?? 1;
+    const cropBottomRatio = Math.max(0, Math.min(0.85, options.cropBottomRatio ?? 0));
+    const sourceHeight = Math.max(1, region.h * (1 - cropBottomRatio));
+    const destHeight = Math.max(1, dest.height * (1 - cropBottomRatio));
+    const destY = options.alignY === 'bottom' ? dest.y + dest.height - destHeight : dest.y;
     ctx.save();
     ctx.globalAlpha *= alpha;
     if (options.filter) ctx.filter = options.filter;
-    ctx.drawImage(pack.image, region.x, region.y, region.w, region.h, dest.x, dest.y, dest.width, dest.height);
+    ctx.drawImage(pack.image, region.x, region.y, region.w, sourceHeight, dest.x, destY, dest.width, destHeight);
     ctx.restore();
     return true;
   }, []);
@@ -6052,9 +6202,26 @@ export default function ExpeditionJourney({
         ...(Number.isFinite(propForAsset.shadow) ? { shadow: propForAsset.shadow } : {}),
         ...(Number.isFinite(propForAsset.dust) ? { dust: propForAsset.dust } : {}),
         ...(Number.isFinite(propForAsset.bury) ? { bury: propForAsset.bury } : {}),
+        ...(Number.isFinite(propForAsset.scale) ? { scale: propForAsset.scale } : {}),
+        ...(Number.isFinite(propForAsset.burialDepth) ? { burialDepth: propForAsset.burialDepth } : {}),
+        ...(Number.isFinite(propForAsset.shadowWidth) ? { shadowWidth: propForAsset.shadowWidth } : {}),
+        ...(Number.isFinite(propForAsset.shadowHeight) ? { shadowHeight: propForAsset.shadowHeight } : {}),
+        ...(Number.isFinite(propForAsset.shadowOpacity) ? { shadowOpacity: propForAsset.shadowOpacity } : {}),
+        ...(Number.isFinite(propForAsset.sandOverlapHeight) ? { sandOverlapHeight: propForAsset.sandOverlapHeight } : {}),
+        ...(Number.isFinite(propForAsset.sandMoundWidth) ? { sandMoundWidth: propForAsset.sandMoundWidth } : {}),
+        ...(Number.isFinite(propForAsset.sandMoundHeight) ? { sandMoundHeight: propForAsset.sandMoundHeight } : {}),
+        ...(Number.isFinite(propForAsset.sandSeed) ? { sandSeed: propForAsset.sandSeed } : {}),
+        ...(Number.isFinite(propForAsset.groundPebbles) ? { groundPebbles: propForAsset.groundPebbles } : {}),
+        ...(Number.isFinite(propForAsset.zIndex) ? { zIndex: propForAsset.zIndex } : {}),
+        ...(propForAsset.layer ? { layer: propForAsset.layer } : {}),
         ...(propForAsset.depth ? { depth: propForAsset.depth } : {}),
         ...(propForAsset.tint ? { tint: propForAsset.tint } : {}),
+        ...(propForAsset.sceneBlend ? { sceneBlend: propForAsset.sceneBlend } : {}),
       };
+      if (Number.isFinite(propSize.scale)) {
+        propSize.width *= propSize.scale;
+        propSize.height *= propSize.scale;
+      }
       const shouldGroundLock = shouldGroundLockAtmosphereProp(propForAsset, propDepth);
       if (shouldGroundLock) {
         if (propDepth === 'grounded') propSize.depth = 'grounded';
@@ -6074,11 +6241,15 @@ export default function ExpeditionJourney({
         ? Math.max(rawAnchorY, GROUND_Y - ATMOSPHERE_GROUND_LOCK_MARGIN)
         : rawAnchorY;
       const drawY = anchorY - propSize.height;
-      const dustWidth = propSize.width * (propSize.dust ?? 0.62);
-      drawContactShadow(ctx, x, anchorY + 2, propSize.width * (propSize.depth === 'background' ? 0.62 : 0.86), propSize.shadow ?? (propSize.depth === 'background' ? 0.1 : 0.22), 1.4);
-      drawDecorativeBaseBlend(ctx, x, anchorY + 2, dustWidth, section.id, propSize.depth, propSize.depth === 'background' ? 0.72 : 0.9);
+      const propGrounding = resolvePropGroundingSettings({ ...propSize, x: propForAsset.x });
+      drawPropGroundContact(ctx, x, anchorY, propSize, section.id, propGrounding);
       ctx.globalAlpha = propSize.alpha ?? 0.82;
-      if (propSize.depth === 'route-edge') {
+      if (propSize.sceneBlend === 'desert-entry-sand') {
+        ctx.filter = 'sepia(12%) saturate(88%) brightness(92%) contrast(98%)';
+        ctx.shadowColor = 'rgba(57, 32, 12, 0.28)';
+        ctx.shadowBlur = 4;
+        ctx.shadowOffsetY = 2;
+      } else if (propSize.depth === 'route-edge') {
         ctx.filter = 'sepia(8%) saturate(118%) brightness(96%) contrast(118%)';
         ctx.shadowColor = 'rgba(35, 21, 10, 0.62)';
         ctx.shadowBlur = 10;
@@ -6116,24 +6287,12 @@ export default function ExpeditionJourney({
         ctx.shadowBlur = 0;
         ctx.shadowOffsetY = 0;
         ctx.globalAlpha = 1;
-        drawDecorativeBaseBlend(ctx, x, anchorY + 1, dustWidth, section.id, propSize.depth, propSize.depth === 'background' ? 0.6 : 0.86);
-        drawGroundDustLip(ctx, x, anchorY + 1, dustWidth, propSize.depth === 'background' ? 'rgba(187, 128, 64, 0.12)' : 'rgba(187, 128, 64, 0.22)');
-        if (propSize.bury) {
-          const buryHeight = Math.max(8, propSize.height * propSize.bury);
-          const sand = ctx.createLinearGradient(0, anchorY - buryHeight, 0, anchorY + 8);
-          sand.addColorStop(0, 'rgba(218, 155, 75, 0)');
-          sand.addColorStop(0.42, 'rgba(205, 139, 61, 0.54)');
-          sand.addColorStop(1, 'rgba(134, 82, 35, 0.72)');
-          ctx.fillStyle = sand;
-          ctx.beginPath();
-          ctx.ellipse(x, anchorY - buryHeight * 0.22, dustWidth * 0.54, buryHeight * 0.38, -0.04, 0, Math.PI * 2);
-          ctx.fill();
-          drawGroundDustLip(ctx, x, anchorY - buryHeight * 0.52, dustWidth * 0.68, 'rgba(231, 172, 91, 0.34)');
-        }
+        drawPropSandOcclusion(ctx, x, anchorY, propSize, section.id, propGrounding);
         if (stateRef.current.renderStats) stateRef.current.renderStats.groundedPropCount += 1;
         if (atmospherePropAssetKey && stateRef.current.renderStats) {
           stateRef.current.renderStats.atmospherePropCount += 1;
           if (shouldGroundLock) stateRef.current.renderStats.groundLockedAtmospherePropCount += 1;
+          stateRef.current.renderStats.propGroundingIntegrationVersion = PROP_GROUNDING_INTEGRATION_VERSION;
         }
         ctx.restore();
         return;
@@ -6459,6 +6618,8 @@ export default function ExpeditionJourney({
     drawForegroundSettlingDetails,
     drawForgottenMuralGeneratedAsset,
     drawGroundDustLip,
+    drawPropGroundContact,
+    drawPropSandOcclusion,
   ]);
 
   const drawWorldContinuityLandmark = useCallback((ctx, landmark, cameraX, now) => {
@@ -8113,6 +8274,9 @@ export default function ExpeditionJourney({
     const decalDest = decalDescriptor
       ? getEgyptHazardDecalDest(hazard, hx, footY, decalDescriptor.regionKey)
       : hazardDest;
+    if (visualHazardId === 'spike-trap' && current.lastHazardHit?.id === hazard.id && current.hazardCooldown > 0.4) {
+      decalDest.y -= 18;
+    }
     if (visualHazardId !== 'bat-cloud' && visualHazardId !== 'dust-wave') {
       drawContactShadow(ctx, centerX, footY + 3, hazard.width * 0.92, grounding.shadow, 0.9);
     }
@@ -8123,11 +8287,17 @@ export default function ExpeditionJourney({
       const decalDrawn = drawOpeningHazardDecalRegion(ctx, decalDescriptor, decalDest, {
         alpha: 0.94,
         filter: grounding.filter,
+        ...(visualHazardId === 'spike-trap' ? { cropBottomRatio: 0.56, alignY: 'bottom' } : {}),
       });
       if (decalDrawn) {
         if (dustWidth > 0) {
-          drawGroundDustLip(ctx, centerX, footY + 2, dustWidth * 0.82, 'rgba(209, 143, 72, 0.24)');
-          drawHazardGroundApron(ctx, centerX, footY + 4, dustWidth, section.id, visualHazardId === 'sand-pit' || visualHazardId === 'dark-gap' ? 1.2 : 0.82);
+          const apronIntensity = visualHazardId === 'spike-trap'
+            ? 1.08
+            : visualHazardId === 'sand-pit' || visualHazardId === 'dark-gap'
+              ? 1.2
+              : 0.82;
+          drawGroundDustLip(ctx, centerX, footY + 2, dustWidth * 0.9, visualHazardId === 'spike-trap' ? 'rgba(209, 143, 72, 0.32)' : 'rgba(209, 143, 72, 0.24)');
+          drawHazardGroundApron(ctx, centerX, footY + 4, dustWidth, section.id, apronIntensity);
         }
         ctx.restore();
         return;
@@ -8145,8 +8315,13 @@ export default function ExpeditionJourney({
     ctx.restore();
     if (hazardDrawn) {
       if (dustWidth > 0) {
-        drawGroundDustLip(ctx, centerX, footY + 2, dustWidth * 0.82, 'rgba(209, 143, 72, 0.24)');
-        drawHazardGroundApron(ctx, centerX, footY + 4, dustWidth, section.id, visualHazardId === 'sand-pit' || visualHazardId === 'dark-gap' ? 1.2 : 0.82);
+        const apronIntensity = visualHazardId === 'spike-trap'
+          ? 1.08
+          : visualHazardId === 'sand-pit' || visualHazardId === 'dark-gap'
+            ? 1.2
+            : 0.82;
+        drawGroundDustLip(ctx, centerX, footY + 2, dustWidth * 0.9, visualHazardId === 'spike-trap' ? 'rgba(209, 143, 72, 0.32)' : 'rgba(209, 143, 72, 0.24)');
+        drawHazardGroundApron(ctx, centerX, footY + 4, dustWidth, section.id, apronIntensity);
       }
       ctx.restore();
       return;
@@ -13097,7 +13272,7 @@ export default function ExpeditionJourney({
                   <div className="guardian-challenge-actions">
                     <button
                       type="button"
-                      className="expedition-begin-btn"
+                      className="premium-action-btn"
                       onClick={continueGuardianChallenge}
                       disabled={activeGuardianChallenge.selectedAnswerIndex === null}
                     >
@@ -13117,7 +13292,7 @@ export default function ExpeditionJourney({
                   {gameState.failureReason && (
                     <span className="failure-reason">{gameState.failureReason}</span>
                   )}
-                  <button className="expedition-begin-btn" onClick={respawnAtCheckpoint}>
+                  <button className="premium-action-btn" onClick={respawnAtCheckpoint}>
                     Retry from Checkpoint
                   </button>
                 </div>
@@ -13129,21 +13304,21 @@ export default function ExpeditionJourney({
 
       {briefingOpen && (
         <div className="expedition-briefing-overlay">
-          <div className="expedition-briefing-card animate-slide-up">
+          <div className="expedition-briefing-card glass-card animate-slide-up">
             <div className="briefing-header">
               <div className="briefing-header-copy">
                 <div className="briefing-kicker">
                   <Flag size={16} />
                   Expedition Arrival
                 </div>
-                <h1 className="cinzel-header">Lost Site Expedition</h1>
+                <h1 className="premium-text-glow cinzel-header" style={{ fontSize: "2.5rem", margin: "0.2rem 0" }}>Lost Site Expedition</h1>
                 <p>Asha reaches a sealed Egyptian site. Anubis is already watching from the first seal.</p>
               </div>
               <div className="briefing-hero-mark" aria-hidden="true">
-                <span className="briefing-sun" />
-                <span
-                  className="briefing-hero-sprite"
-                  style={{ backgroundImage: `url(${PLAYER_SPRITE_SRC})` }}
+                <img
+                  className="briefing-hero-portrait"
+                  src="assets/expedition/player/asha-new-idle-reference.png"
+                  alt="Asha Explorer"
                 />
               </div>
             </div>
@@ -13177,10 +13352,10 @@ export default function ExpeditionJourney({
                 </ul>
               </div>
             </div>
-            <div className="briefing-actions">
+            <div className="briefing-actions" style={{ display: "flex", justifyContent: "center", marginTop: "1rem" }}>
               <button
                 type="button"
-                className="expedition-begin-btn"
+                className="premium-action-btn"
                 onClick={OPENING_CINEMATIC_ENABLED ? () => startOpeningCinematic({ speechEnabled: true }) : startJourneyWithoutOpeningScene}
               >
                 Begin Expedition
