@@ -1656,15 +1656,16 @@ test('active boss domains suppress normal enemy noise near the guardian arena', 
 
 test('Scarab Queen boss intro is staged as a buried-sand emergence cinematic', () => {
   const miniBosses = extractExportedArray('MINI_BOSSES');
-  const buriedSealProp = new URL('../../../public/assets/expedition/bosses/scarab-queen-buried-lair-seal.png', import.meta.url);
+  const lairOpeningProp = new URL('../../../public/assets/expedition/bosses/scarab-queen-buried-lair-opening.png', import.meta.url);
 
-  assert.ok(existsSync(buriedSealProp), 'buried scarab seal prop should exist as a transparent PNG runtime asset');
-  assert.match(source, /bossIntroLine:\s*'The buried scarab seal cracks open beneath the sand\. The Scarab Queen rises as the first trial of Anubis\. The site will not yield easily\.'/);
-  assert.match(miniBosses, /id:\s*'scarab-queen'[\s\S]*?intro:\s*'Buried Seal: Scarab Queen\. The buried scarab seal cracks open beneath the sand\. The Scarab Queen rises as the first trial of Anubis\. The site will not yield easily\.'/);
+  assert.ok(existsSync(lairOpeningProp), 'buried scarab lair opening should exist as a transparent PNG runtime asset');
+  assert.match(source, /bossIntroLine:\s*'The buried scarab lair splits open beneath the sand\. The Scarab Queen rises as the first trial of Anubis\. The site will not yield easily\.'/);
+  assert.match(miniBosses, /id:\s*'scarab-queen'[\s\S]*?intro:\s*'Buried Lair: Scarab Queen\. The buried scarab lair splits open beneath the sand\. The Scarab Queen rises as the first trial of Anubis\. The site will not yield easily\.'/);
   assert.match(journeyComponentSource, /const SCARAB_QUEEN_EMERGENCE_INTRO_SECONDS = 5\.2/);
   assert.doesNotMatch(journeyComponentSource, /SCARAB_QUEEN_TRIGGER_LOOTER_OFFSET/);
   assert.match(journeyComponentSource, /const SCARAB_QUEEN_CINEMATIC_CAMERA_ANCHOR_RATIO = 0\.72/);
-  assert.match(journeyComponentSource, /const SCARAB_QUEEN_BURIED_SEAL_IMAGE_SRC = 'assets\/expedition\/bosses\/scarab-queen-buried-lair-seal\.png'/);
+  assert.match(journeyComponentSource, /const SCARAB_QUEEN_LAIR_OPENING_IMAGE_SRC = 'assets\/expedition\/bosses\/scarab-queen-buried-lair-opening\.png'/);
+  assert.match(journeyComponentSource, /const drawScarabQueenLairOpeningProp = useCallback/);
   assert.match(journeyComponentSource, /const getScarabQueenEmergenceBeat = \(introProgress\) =>/);
   assert.match(journeyComponentSource, /buriedSealCrack:/);
   assert.match(journeyComponentSource, /glyphGlow:/);
@@ -1672,18 +1673,22 @@ test('Scarab Queen boss intro is staged as a buried-sand emergence cinematic', (
   assert.match(journeyComponentSource, /queenRise:/);
   assert.match(journeyComponentSource, /buriedSandEmergence:\s*scarabQueenCinematic/);
   assert.match(journeyComponentSource, /introSeconds:\s*scarabQueenCinematic \? SCARAB_QUEEN_EMERGENCE_INTRO_SECONDS : 3\.2/);
-  assert.match(journeyComponentSource, /title:\s*scarabQueenCinematic \? `Buried Seal: \$\{b\.name\}` : `Guardian Encounter: \$\{b\.name\}`/);
-  assert.match(journeyComponentSource, /triggerActor:\s*scarabQueenCinematic \? 'Buried Scarab Seal' : null/);
-  assert.match(journeyComponentSource, /triggerLine:\s*scarabQueenCinematic \? 'The sand breaks\. Something ancient is rising\.' : null/);
+  assert.match(journeyComponentSource, /title:\s*scarabQueenCinematic \? `Buried Lair: \$\{b\.name\}` : `Guardian Encounter: \$\{b\.name\}`/);
+  assert.match(journeyComponentSource, /triggerActor:\s*scarabQueenCinematic \? 'Buried Scarab Lair' : null/);
+  assert.match(journeyComponentSource, /triggerLine:\s*scarabQueenCinematic \? 'The lair mouth splits open\. Something ancient is rising\.' : null/);
   assert.match(journeyComponentSource, /cameraAnchorRatio:\s*scarabQueenCinematic \? SCARAB_QUEEN_CINEMATIC_CAMERA_ANCHOR_RATIO : null/);
-  assert.match(journeyComponentSource, /SCARAB SEAL STIRS/);
+  assert.match(journeyComponentSource, /LAIR OPENS/);
   assert.match(journeyComponentSource, /QUEEN RISES/);
   assert.match(journeyComponentSource, /cinematicBeat:\s*activeBossDomain\?\.buriedSandEmergence \? getScarabQueenEmergenceBeat\(introProgress\) : null/);
   assert.doesNotMatch(journeyComponentSource, /id:\s*'scarab-queen-trigger-looter'[\s\S]*?type:\s*'looter'/);
   assert.match(journeyComponentSource, /if \(boss\.id === 'scarab-queen' && bossVisualState\?\.buriedSandEmergence && bossVisualState\.cinematicBeat\?\.queenRise <= 0\) return false;/);
-  assert.match(journeyComponentSource, /SCARAB_QUEEN_EMERGENCE_INTRO_SECONDS[\s\S]*?current\.bossIntro = \{[\s\S]*?title:\s*`Buried Seal: \$\{boss\.name\}`/);
+  assert.match(journeyComponentSource, /if \(isBuriedScarabQueen && current\.bossDomain\?\.bossId === boss\.id\) \{[\s\S]*?drawScarabQueenLairOpeningProp\(ctx, current\.bossDomain\.bossStartX \|\| boss\.x \+ boss\.width \/ 2, cameraX, now\)/);
+  assert.match(journeyComponentSource, /SCARAB_QUEEN_EMERGENCE_INTRO_SECONDS[\s\S]*?current\.bossIntro = \{[\s\S]*?title:\s*`Buried Lair: \$\{boss\.name\}`/);
   assert.match(journeyComponentSource, /target === 'journey-boss-intro-progress'/);
   assert.match(journeyComponentSource, /const bossIntroActive = current\.bossIntro\?\.id === boss\.id;[\s\S]*?if \(!bossIntroActive\) drawEnemyAttackTell/);
+  assert.match(journeyComponentSource, /ctx\.fillStyle = 'rgba\(0,0,0,0\.62\)';\s*ctx\.beginPath\(\);\s*ctx\.roundRect\(barX, barY, barWidth, barHeight, 5\);[\s\S]*?ctx\.fillStyle = boss\.awakened \? '#dc2626' : '#b45309';\s*ctx\.beginPath\(\);\s*ctx\.roundRect\(barX, barY, \(boss\.health \/ boss\.maxHealth\) \* barWidth, barHeight, 5\);/);
+  assert.match(journeyComponentSource, /activeBossDomainForObjectiveMarkers[\s\S]*?gate\.x >= \(activeBossDomainForObjectiveMarkers\.arenaStart \?\? -Infinity\) - 24[\s\S]*?gate\.x <= \(activeBossDomainForObjectiveMarkers\.arenaEnd \?\? Infinity\) \+ 72/);
+  assert.match(journeyComponentSource, /const bossDomainHudSuppressed = gameState\.bossDomain[\s\S]*?const activeHudGate = bossDomainHudSuppressed[\s\S]*?\? null[\s\S]*?: ROUTE_GATES\.find/);
   assert.match(journeyComponentSource, /const activeBossDomainForObjectiveMarkers = current\.bossDomain[\s\S]*?if \(!chamberSceneActive && !activeBossDomainForObjectiveMarkers\) drawMissingObjectiveMarker/);
 });
 

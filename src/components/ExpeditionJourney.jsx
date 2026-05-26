@@ -411,7 +411,7 @@ const STAGE_ENTRANCE_DOORWAY_SRC = 'assets/expedition/environment/stage-entrance
 const STAGE_ENTRANCE_DOORWAY_VERSION = 'imagegen-egypt-tomb-doorway-transition-2026-05-20';
 const DESERT_END_GATEWAY_SRC = 'assets/expedition/environment/stage-entrances/desert-end-threshold-angled.png';
 const DESERT_END_GATEWAY_VERSION = 'imagegen-desert-end-threshold-angled-blended-2026-05-23';
-const SCARAB_QUEEN_BURIED_SEAL_IMAGE_SRC = 'assets/expedition/bosses/scarab-queen-buried-lair-seal.png';
+const SCARAB_QUEEN_LAIR_OPENING_IMAGE_SRC = 'assets/expedition/bosses/scarab-queen-buried-lair-opening.png';
 const OPENING_CAMERA_REVEAL_DURATION = 1.55;
 const OPENING_CAMERA_REVEAL_PAN_SECONDS = 0.55;
 const OPENING_CAMERA_REVEAL_HOLD_SECONDS = 0.18;
@@ -2126,7 +2126,7 @@ export default function ExpeditionJourney({
   const dynamicWorldAssetsRef = useRef(createDynamicWorldAssetState());
   const markerSpriteAssetsRef = useRef(createMarkerSpriteState());
   const openingScarabSealImageRef = useRef({ image: null, loaded: false, failed: false });
-  const scarabQueenBuriedSealImageRef = useRef({ image: null, loaded: false, failed: false });
+  const scarabQueenLairOpeningImageRef = useRef({ image: null, loaded: false, failed: false });
   const openingSphinxApparitionRef = useRef({ image: null, loaded: false, failed: false });
   const openingPyramidClimbPackRef = useRef({ image: null, loaded: false, failed: false });
   const openingPyramidFacadeRef = useRef({ image: null, loaded: false, failed: false });
@@ -2192,14 +2192,14 @@ export default function ExpeditionJourney({
     const image = new Image();
     image.onload = () => {
       if (cancelled) return;
-      scarabQueenBuriedSealImageRef.current = { image, loaded: true, failed: false };
+      scarabQueenLairOpeningImageRef.current = { image, loaded: true, failed: false };
       syncHud();
     };
     image.onerror = () => {
       if (cancelled) return;
-      scarabQueenBuriedSealImageRef.current = { image: null, loaded: false, failed: true };
+      scarabQueenLairOpeningImageRef.current = { image: null, loaded: false, failed: true };
     };
-    image.src = `${import.meta.env.BASE_URL}${SCARAB_QUEEN_BURIED_SEAL_IMAGE_SRC}`;
+    image.src = `${import.meta.env.BASE_URL}${SCARAB_QUEEN_LAIR_OPENING_IMAGE_SRC}`;
     return () => {
       cancelled = true;
     };
@@ -8871,23 +8871,23 @@ export default function ExpeditionJourney({
     return false;
   }, [drawContactShadow, getCombatMode]);
 
-  const drawScarabQueenBuriedSealProp = useCallback((ctx, worldCenterX, cameraX, now, beat = null) => {
+  const drawScarabQueenLairOpeningProp = useCallback((ctx, worldCenterX, cameraX, now, beat = null) => {
     const screenX = worldToScreenX(worldCenterX, cameraX);
-    if (screenX < -180 || screenX > CANVAS_WIDTH + 180) return false;
+    if (screenX < -260 || screenX > CANVAS_WIDTH + 260) return false;
 
     const crack = beat?.buriedSealCrack || 0;
     const glowStrength = beat?.glyphGlow || 0;
     const eruption = beat?.sandEruption || 0;
     const rise = beat?.queenRise || 0;
-    const asset = scarabQueenBuriedSealImageRef.current;
-    const width = 190 + crack * 26;
-    const height = width * (256 / 900);
+    const asset = scarabQueenLairOpeningImageRef.current;
+    const width = 360 + crack * 38;
+    const height = width * (330 / 980);
     const drawX = screenX - width / 2;
-    const drawY = GROUND_Y - height + 3;
+    const drawY = GROUND_Y - height + 6;
     const pulse = 0.82 + Math.sin(now / 150) * 0.12;
 
     ctx.save();
-    drawContactShadow(ctx, screenX, GROUND_Y + 4, width * 0.72, 0.18 + crack * 0.08, 1.1);
+    drawContactShadow(ctx, screenX, GROUND_Y + 4, width * 0.78, 0.18 + crack * 0.08, 1.1);
     if (glowStrength > 0) {
       const glow = ctx.createRadialGradient(screenX, GROUND_Y - 34, 8, screenX, GROUND_Y - 34, 104 + glowStrength * 86);
       glow.addColorStop(0, `rgba(45, 212, 191, ${0.2 + glowStrength * 0.2})`);
@@ -8900,7 +8900,7 @@ export default function ExpeditionJourney({
     }
 
     if (asset.loaded && asset.image) {
-      ctx.globalAlpha = 0.96;
+      ctx.globalAlpha = 0.98;
       ctx.drawImage(asset.image, drawX, drawY, width, height);
     } else {
       ctx.fillStyle = '#b7793b';
@@ -8946,9 +8946,9 @@ export default function ExpeditionJourney({
     }
 
     if (rise > 0 && rise < 0.96) {
-      ctx.fillStyle = `rgba(165, 93, 33, ${0.24 * (1 - rise)})`;
+      ctx.fillStyle = `rgba(12, 8, 6, ${0.38 * (1 - rise)})`;
       ctx.beginPath();
-      ctx.ellipse(screenX, GROUND_Y - 8, width * (0.42 + rise * 0.12), 14 + rise * 18, 0, 0, Math.PI * 2);
+      ctx.ellipse(screenX, GROUND_Y - 34, width * (0.22 + rise * 0.12), 28 + rise * 16, 0, 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.restore();
@@ -9195,9 +9195,11 @@ export default function ExpeditionJourney({
     const barY = boss.awakened ? 18 : Math.max(18, visibleBox.y - 16);
     ctx.shadowBlur = 0;
     ctx.fillStyle = 'rgba(0,0,0,0.62)';
+    ctx.beginPath();
     ctx.roundRect(barX, barY, barWidth, barHeight, 5);
     ctx.fill();
     ctx.fillStyle = boss.awakened ? '#dc2626' : '#b45309';
+    ctx.beginPath();
     ctx.roundRect(barX, barY, (boss.health / boss.maxHealth) * barWidth, barHeight, 5);
     ctx.fill();
 
@@ -9801,7 +9803,7 @@ export default function ExpeditionJourney({
             const sealPulse = Math.sin(now / 120) * (0.12 + beat.sandEruption * 0.18) + 0.9 + beat.sandEruption * 0.22;
             const revealProgress = beat.sceneProgress;
             if (sealScreenX > -120 && sealScreenX < CANVAS_WIDTH + 120) {
-              drawScarabQueenBuriedSealProp(ctx, activeBossDomain.bossStartX || current.bossIntro.focusX, cameraX, now, beat);
+              drawScarabQueenLairOpeningProp(ctx, activeBossDomain.bossStartX || current.bossIntro.focusX, cameraX, now, beat);
               const sealGlow = ctx.createRadialGradient(sealScreenX, GROUND_Y - 62, 12, sealScreenX, GROUND_Y - 62, 170 * sealPulse + beat.sandEruption * 90);
               sealGlow.addColorStop(0, `rgba(250, 204, 21, ${0.16 + beat.glyphGlow * 0.3 + beat.queenRise * 0.16})`);
               sealGlow.addColorStop(0.48, `rgba(45, 212, 191, ${0.08 + beat.sandEruption * 0.2})`);
@@ -9838,7 +9840,7 @@ export default function ExpeditionJourney({
               ctx.fillStyle = '#fde68a';
               ctx.font = '900 9px Outfit, sans-serif';
               ctx.textAlign = 'center';
-              ctx.fillText(beat.queenRise > 0.25 ? 'QUEEN RISES' : 'SCARAB SEAL STIRS', sealScreenX, GROUND_Y - 103);
+              ctx.fillText(beat.queenRise > 0.25 ? 'QUEEN RISES' : 'LAIR OPENS', sealScreenX, GROUND_Y - 103);
             }
           }
           const introMarkers = activeBossDomain.buriedSandEmergence
@@ -9977,18 +9979,23 @@ export default function ExpeditionJourney({
       ctx.restore();
     });
 
+    const activeBossDomainForObjectiveMarkers = current.bossDomain
+      && !current.defeatedMiniBosses.has(current.bossDomain.bossId)
+      ? current.bossDomain
+      : null;
     if (!chamberSceneActive) ROUTE_GATES.forEach((gate) => {
       if (current.openedRouteGateIds.has(gate.id)) return;
+      if (
+        activeBossDomainForObjectiveMarkers
+        && gate.x >= (activeBossDomainForObjectiveMarkers.arenaStart ?? -Infinity) - 24
+        && gate.x <= (activeBossDomainForObjectiveMarkers.arenaEnd ?? Infinity) + 72
+      ) return;
       const gx = worldToScreenX(gate.x, cameraX);
       if (!isHorizontallyVisible(gate.x, gate.width, cameraX, 100)) return;
       const requirements = getGateRequirements(gate, current);
       const complete = requirements.every(r => r.met);
       drawRouteGate(ctx, gate, gx, current, complete);
     });
-    const activeBossDomainForObjectiveMarkers = current.bossDomain
-      && !current.defeatedMiniBosses.has(current.bossDomain.bossId)
-      ? current.bossDomain
-      : null;
     if (!chamberSceneActive && !activeBossDomainForObjectiveMarkers) drawMissingObjectiveMarker(ctx, activeGateGuidance, cameraX, now);
 
     if (!chamberSceneActive) STAGE_ENTRANCE_FEATURES.forEach((feature) => {
@@ -10065,8 +10072,11 @@ export default function ExpeditionJourney({
         && backgroundPackId !== 'china-river-valley';
       const bossIntroActive = current.bossIntro?.id === boss.id;
       if (isBuriedScarabQueen && !boss.awakened && !bossIntroActive) {
-        drawScarabQueenBuriedSealProp(ctx, boss.x + boss.width / 2, cameraX, now);
+        drawScarabQueenLairOpeningProp(ctx, boss.x + boss.width / 2, cameraX, now);
         return;
+      }
+      if (isBuriedScarabQueen && current.bossDomain?.bossId === boss.id) {
+        drawScarabQueenLairOpeningProp(ctx, current.bossDomain.bossStartX || boss.x + boss.width / 2, cameraX, now);
       }
       drawMiniBoss(ctx, boss, bx, now);
       if (!bossIntroActive) drawEnemyAttackTell(ctx, boss, bx, cameraX, now, true, true);
@@ -10375,7 +10385,7 @@ export default function ExpeditionJourney({
       }
       ctx.textAlign = 'start';
     }
-  }, [backgroundPackId, drawAncientRouteGround, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawForgottenMuralChamberInterior, drawForgottenMuralChamberTransition, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawRouteGate, drawRouteGroundApron, drawScarabQueenBuriedSealProp, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getGateGuidance, getGateRequirements, getPlayerAttackState, isRouteRewardAccessible, drawPlayerSprite, drawFieldNoteLabel]);
+  }, [backgroundPackId, drawAncientRouteGround, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawForgottenMuralChamberInterior, drawForgottenMuralChamberTransition, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawRouteGate, drawRouteGroundApron, drawScarabQueenLairOpeningProp, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getGateGuidance, getGateRequirements, getPlayerAttackState, isRouteRewardAccessible, drawPlayerSprite, drawFieldNoteLabel]);
 
   const startOpeningCinematic = useCallback(({ speechEnabled = true } = {}) => {
     const current = stateRef.current;
@@ -12345,13 +12355,13 @@ export default function ExpeditionJourney({
         };
         current.bossIntro = {
           id: b.id,
-          title: scarabQueenCinematic ? `Buried Seal: ${b.name}` : `Guardian Encounter: ${b.name}`,
+          title: scarabQueenCinematic ? `Buried Lair: ${b.name}` : `Guardian Encounter: ${b.name}`,
           message: scarabSealBossIntroLine || (keyItem
             ? b.dialogue || `Defeat the guardian to recover the ${keyItem.name}.`
             : b.intro),
           focusX: b.x,
-          triggerActor: scarabQueenCinematic ? 'Buried Scarab Seal' : null,
-          triggerLine: scarabQueenCinematic ? 'The sand breaks. Something ancient is rising.' : null,
+          triggerActor: scarabQueenCinematic ? 'Buried Scarab Lair' : null,
+          triggerLine: scarabQueenCinematic ? 'The lair mouth splits open. Something ancient is rising.' : null,
           cameraAnchorRatio: scarabQueenCinematic ? SCARAB_QUEEN_CINEMATIC_CAMERA_ANCHOR_RATIO : null,
           dialogue: scarabSealBossIntroLine || b.dialogue || null,
           domainName: b.domainName || `${b.name} Domain`,
@@ -12925,11 +12935,11 @@ export default function ExpeditionJourney({
           if (scarabQueenCinematic) {
             current.bossIntro = {
               id: boss.id,
-              title: `Buried Seal: ${boss.name}`,
+              title: `Buried Lair: ${boss.name}`,
               message: SCARAB_SEAL_TRIGGER.bossIntroLine,
               focusX: boss.x,
-              triggerActor: 'Buried Scarab Seal',
-              triggerLine: 'The sand breaks. Something ancient is rising.',
+              triggerActor: 'Buried Scarab Lair',
+              triggerLine: 'The lair mouth splits open. Something ancient is rising.',
               cameraAnchorRatio: SCARAB_QUEEN_CINEMATIC_CAMERA_ANCHOR_RATIO,
               dialogue: SCARAB_SEAL_TRIGGER.bossIntroLine,
               domainName: boss.domainName || `${boss.name} Domain`,
@@ -13155,7 +13165,11 @@ export default function ExpeditionJourney({
     }
   }, [paused]);
 
-  const activeHudGate = ROUTE_GATES.find(gate => !gameState.openedRouteGateIds.has(gate.id));
+  const bossDomainHudSuppressed = gameState.bossDomain
+    && !gameState.defeatedMiniBosses?.has(gameState.bossDomain.bossId);
+  const activeHudGate = bossDomainHudSuppressed
+    ? null
+    : ROUTE_GATES.find(gate => !gameState.openedRouteGateIds.has(gate.id));
   const activeHudGateGuidance = activeHudGate ? getGateGuidance(activeHudGate, gameState) : null;
   const activeHudShardRequirement = activeHudGateGuidance?.gateRequirements.find(req => req.type === 'shards') || null;
   const activeHudFirstMissing = activeHudGateGuidance?.gateMissingRequirements?.[0] || null;
@@ -13359,18 +13373,20 @@ export default function ExpeditionJourney({
                 </div>
               </div>
 
-              <div className="journey-floating-hud-cluster journey-floating-hud-count journey-floating-hud-gate">
-                <span>Next seal</span>
-                <strong>{activeHudGateGuidance?.activeGateName || 'Route Seal'}</strong>
-                <em>
-                  {activeHudShardRequirement
-                    ? `${activeHudShardRequirement.found}/${activeHudShardRequirement.required} shards`
-                    : `${gameState.relicShardCount}/${RELIC_SHARDS.length} shards`}
-                  {activeHudFirstMissing && activeHudFirstMissing.type !== 'shards'
-                    ? ` + ${activeHudFirstMissing.checklistLabel}`
-                    : ''}
-                </em>
-              </div>
+              {!bossDomainHudSuppressed && (
+                <div className="journey-floating-hud-cluster journey-floating-hud-count journey-floating-hud-gate">
+                  <span>Next seal</span>
+                  <strong>{activeHudGateGuidance?.activeGateName || 'Route Seal'}</strong>
+                  <em>
+                    {activeHudShardRequirement
+                      ? `${activeHudShardRequirement.found}/${activeHudShardRequirement.required} shards`
+                      : `${gameState.relicShardCount}/${RELIC_SHARDS.length} shards`}
+                    {activeHudFirstMissing && activeHudFirstMissing.type !== 'shards'
+                      ? ` + ${activeHudFirstMissing.checklistLabel}`
+                      : ''}
+                  </em>
+                </div>
+              )}
             </div>
             )}
 
