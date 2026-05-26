@@ -67,24 +67,178 @@ export const BUREAU_CASES_BY_ID = new Map(BUREAU_CASES.map(item => [item.id, ite
 export const BUREAU_CIVILISATIONS = [...new Set(BUREAU_CASES.map(item => item.civilisation))];
 
 const FIRST_BUREAU_CIVILISATION = 'Ancient Egypt';
-const TRAINING_GRID_TILE_COUNT = 16;
-const TRAINING_ARTIFACT_INDEX = 10;
-const TRAINING_ARTIFACT_NEIGHBORS = new Set([5, 6, 7, 9, 11, 13, 14, 15]);
 
-export const createDefaultTrainingGridTiles = () => (
-  Array.from({ length: TRAINING_GRID_TILE_COUNT }, (_, index) => ({
+export const TRAINING_DIFFICULTIES = [
+  {
+    id: 'beginner',
+    label: 'Beginner',
+    cols: 9,
+    rows: 9,
+    artifactCount: 10,
+    summary: '9x9 field, 10 hidden finds',
+  },
+  {
+    id: 'intermediate',
+    label: 'Intermediate',
+    cols: 16,
+    rows: 16,
+    artifactCount: 40,
+    summary: '16x16 field, 40 hidden finds',
+  },
+  {
+    id: 'expert',
+    label: 'Expert',
+    cols: 30,
+    rows: 16,
+    artifactCount: 99,
+    summary: '30x16 field, 99 hidden finds',
+  },
+];
+
+export const DEFAULT_TRAINING_DIFFICULTY_ID = 'intermediate';
+
+export const TRAINING_SURVEY_ZONES = [
+  {
+    id: 'central-depression',
+    title: 'Central Depression',
+    terrain: 'Settled soil with faint pottery flecks',
+    clue: 'The soil is darker here, with a shallow dip and a few exposed fragments.',
+    fieldNote: 'Strong context: surface traces suggest a buried activity area, but the exact find squares still need careful excavation.',
+    surveyScore: 100,
+    focusColRatio: 0.5,
+    focusRowRatio: 0.52,
+  },
+  {
+    id: 'ridge-scatter',
+    title: 'Ridge Scatter',
+    terrain: 'Loose stones along the higher ground',
+    clue: 'A few fragments sit on the ridge, but they may have moved downhill or been exposed by weather.',
+    fieldNote: 'Useful but uncertain: the scatter deserves inspection, though the context is less secure than the depression.',
+    surveyScore: 72,
+    focusColRatio: 0.28,
+    focusRowRatio: 0.32,
+  },
+  {
+    id: 'washout-edge',
+    title: 'Washout Edge',
+    terrain: 'Eroded channel with mixed debris',
+    clue: 'The washout contains mixed material from several layers, so the surface clue is noisy.',
+    fieldNote: 'Weak context: there may be finds nearby, but the survey evidence is disturbed and harder to trust.',
+    surveyScore: 42,
+    focusColRatio: 0.72,
+    focusRowRatio: 0.7,
+  },
+];
+
+export const getTrainingDifficulty = (difficultyId = DEFAULT_TRAINING_DIFFICULTY_ID) => (
+  TRAINING_DIFFICULTIES.find(item => item.id === difficultyId)
+  || TRAINING_DIFFICULTIES.find(item => item.id === DEFAULT_TRAINING_DIFFICULTY_ID)
+  || TRAINING_DIFFICULTIES[0]
+);
+
+export const getTrainingSurveyZone = (zoneId = null) => (
+  TRAINING_SURVEY_ZONES.find(zone => zone.id === zoneId) || null
+);
+
+const normalizeTrainingSurveyZoneIds = (zoneIds = []) => {
+  if (!Array.isArray(zoneIds)) return [];
+  const knownIds = new Set(TRAINING_SURVEY_ZONES.map(zone => zone.id));
+  return [...new Set(zoneIds)].filter(zoneId => knownIds.has(zoneId));
+};
+
+export const getTrainingSurveyScore = ({
+  inspectedZoneIds = [],
+  selectedSurveyZoneId = null,
+} = {}) => {
+  const selectedZone = getTrainingSurveyZone(selectedSurveyZoneId);
+  if (!selectedZone) return 0;
+
+  const validInspectedIds = normalizeTrainingSurveyZoneIds(inspectedZoneIds);
+  const inspectedScore = (validInspectedIds.length / TRAINING_SURVEY_ZONES.length) * 30;
+  const selectionScore = selectedZone.surveyScore * 0.7;
+  return Math.min(100, Math.round(selectionScore + inspectedScore));
+};
+
+const getTrainingNeighbors = (index, difficulty) => {
+  const row = Math.floor(index / difficulty.cols);
+  const col = index % difficulty.cols;
+  const neighbors = [];
+
+  for (let rowOffset = -1; rowOffset <= 1; rowOffset += 1) {
+    for (let colOffset = -1; colOffset <= 1; colOffset += 1) {
+      if (rowOffset === 0 && colOffset === 0) continue;
+      const nextRow = row + rowOffset;
+      const nextCol = col + colOffset;
+      if (
+        nextRow >= 0
+        && nextRow < difficulty.rows
+        && nextCol >= 0
+        && nextCol < difficulty.cols
+      ) {
+        neighbors.push(nextRow * difficulty.cols + nextCol);
+      }
+    }
+  }
+
+  return neighbors;
+};
+
+const getTrainingSurveyFocusIndex = (difficulty, selectedSurveyZoneId = null) => {
+  const selectedZone = getTrainingSurveyZone(selectedSurveyZoneId);
+  const focusColRatio = selectedZone?.focusColRatio ?? 0.5;
+  const focusRowRatio = selectedZone?.focusRowRatio ?? 0.5;
+  const row = Math.min(difficulty.rows - 1, Math.max(0, Math.round((difficulty.rows - 1) * focusRowRatio)));
+  const col = Math.min(difficulty.cols - 1, Math.max(0, Math.round((difficulty.cols - 1) * focusColRatio)));
+  return row * difficulty.cols + col;
+};
+
+const createArtifactIndexSet = (difficulty, selectedSurveyZoneId = null) => {
+  const totalTiles = difficulty.cols * difficulty.rows;
+  const artifactTarget = Math.min(difficulty.artifactCount, totalTiles - 1);
+  const starterProbeIndex = getTrainingSurveyFocusIndex(difficulty, selectedSurveyZoneId);
+  const protectedIndexes = new Set([starterProbeIndex, ...getTrainingNeighbors(starterProbeIndex, difficulty)]);
+  const candidates = Array.from({ length: totalTiles }, (_, index) => index)
+    .filter(index => !protectedIndexes.has(index));
+
+  for (let index = candidates.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [candidates[index], candidates[swapIndex]] = [candidates[swapIndex], candidates[index]];
+  }
+
+  return new Set(candidates.slice(0, artifactTarget));
+};
+
+export const createTrainingGridTiles = (
+  difficultyId = DEFAULT_TRAINING_DIFFICULTY_ID,
+  { selectedSurveyZoneId = null } = {},
+) => {
+  const difficulty = getTrainingDifficulty(difficultyId);
+  const totalTiles = difficulty.cols * difficulty.rows;
+  const artifactIndexes = createArtifactIndexSet(difficulty, selectedSurveyZoneId);
+  const starterProbeIndex = getTrainingSurveyFocusIndex(difficulty, selectedSurveyZoneId);
+
+  return Array.from({ length: totalTiles }, (_, index) => ({
     id: index,
     isRevealed: false,
     isMarked: false,
-    isArtifact: index === TRAINING_ARTIFACT_INDEX,
-    adjacentCount: TRAINING_ARTIFACT_NEIGHBORS.has(index) ? 1 : 0,
-  }))
-);
+    isStarterProbe: index === starterProbeIndex,
+    isArtifact: artifactIndexes.has(index),
+    adjacentCount: getTrainingNeighbors(index, difficulty)
+      .filter(neighborIndex => artifactIndexes.has(neighborIndex)).length,
+  }));
+};
+
+export const createDefaultTrainingGridTiles = () => createTrainingGridTiles();
 
 export const createDefaultTrainingState = () => ({
   currentStepIndex: 0,
+  difficultyId: DEFAULT_TRAINING_DIFFICULTY_ID,
   isSurveyed: false,
   isGridded: false,
+  inspectedSurveyZoneIds: [],
+  selectedSurveyZoneId: null,
+  surveyQuality: 0,
+  gridAccuracy: null,
   gridTiles: createDefaultTrainingGridTiles(),
   artifactExtracted: false,
   mappedCoordinate: null,
@@ -95,21 +249,42 @@ export const normalizeTrainingState = (state) => {
   const defaults = createDefaultTrainingState();
   if (!state || typeof state !== 'object') return defaults;
 
+  const difficulty = getTrainingDifficulty(state.difficultyId);
+  const expectedTileCount = difficulty.cols * difficulty.rows;
+  const inspectedSurveyZoneIds = normalizeTrainingSurveyZoneIds(state.inspectedSurveyZoneIds);
+  const selectedSurveyZoneId = getTrainingSurveyZone(state.selectedSurveyZoneId)?.id || null;
+  const defaultGridTiles = createTrainingGridTiles(difficulty.id, { selectedSurveyZoneId });
   const currentStepIndex = Number.isInteger(state.currentStepIndex)
     ? Math.min(Math.max(state.currentStepIndex, 0), TRAINING_STAGES.length)
     : defaults.currentStepIndex;
-  const gridTiles = Array.isArray(state.gridTiles) && state.gridTiles.length === TRAINING_GRID_TILE_COUNT
-    ? defaults.gridTiles.map((defaultTile, index) => ({
+  const gridTiles = Array.isArray(state.gridTiles) && state.gridTiles.length === expectedTileCount
+    ? defaultGridTiles.map((defaultTile, index) => ({
         ...defaultTile,
+        isArtifact: typeof state.gridTiles[index]?.isArtifact === 'boolean'
+          ? state.gridTiles[index].isArtifact
+          : defaultTile.isArtifact,
+        isStarterProbe: typeof state.gridTiles[index]?.isStarterProbe === 'boolean'
+          ? state.gridTiles[index].isStarterProbe
+          : defaultTile.isStarterProbe,
+        adjacentCount: Number.isInteger(state.gridTiles[index]?.adjacentCount)
+          ? state.gridTiles[index].adjacentCount
+          : defaultTile.adjacentCount,
         isRevealed: Boolean(state.gridTiles[index]?.isRevealed),
         isMarked: Boolean(state.gridTiles[index]?.isMarked),
       }))
-    : defaults.gridTiles;
+    : defaultGridTiles;
 
   return {
     currentStepIndex,
+    difficultyId: difficulty.id,
     isSurveyed: Boolean(state.isSurveyed),
     isGridded: Boolean(state.isGridded),
+    inspectedSurveyZoneIds,
+    selectedSurveyZoneId,
+    surveyQuality: Number.isFinite(state.surveyQuality)
+      ? Math.min(100, Math.max(0, Math.round(state.surveyQuality)))
+      : getTrainingSurveyScore({ inspectedZoneIds: inspectedSurveyZoneIds, selectedSurveyZoneId }),
+    gridAccuracy: typeof state.gridAccuracy === 'string' ? state.gridAccuracy : null,
     gridTiles,
     artifactExtracted: Boolean(state.artifactExtracted),
     mappedCoordinate: typeof state.mappedCoordinate === 'string' ? state.mappedCoordinate : null,
@@ -335,7 +510,6 @@ export const getLabFocusFeedback = (artifact = {}, selectedFocusId = null) => {
   if (!selectedFocusId) return null;
 
   const correctFocusId = getLabFocusId(artifact);
-  const selectedTitle = getPromptTitleById(selectedFocusId);
   const correctTitle = getPromptTitleById(correctFocusId);
   const isCorrect = selectedFocusId === correctFocusId;
 
@@ -345,7 +519,7 @@ export const getLabFocusFeedback = (artifact = {}, selectedFocusId = null) => {
     title: isCorrect ? 'Focus confirmed' : 'Try another focus',
     message: isCorrect
       ? `${correctTitle} is the strongest focus for this evidence.`
-      : `This evidence fits ${correctTitle} more strongly than ${selectedTitle}.`,
+      : 'Look again at the clue and the meaning you selected. Choose the focus that best explains what historians can learn from this evidence.',
   };
 };
 
@@ -354,12 +528,15 @@ export const getCurationAnalysisSummary = (analysis = null, artifact = {}) => {
 
   const correctAnswerText = artifact.options?.[artifact.correct] || analysis.answerText || '';
   const selectedAnswerText = analysis.answerText || correctAnswerText;
+  const focusTitle = analysis.promptTitle || '';
 
   return {
     correctAnswerText,
     selectedAnswerText,
+    labResultText: analysis.labResultText || getObservableLabResult(artifact),
     answerIsCorrect: analysis.answerIsCorrect !== false,
-    promptTitle: analysis.promptTitle || '',
+    promptTitle: focusTitle,
+    focusTitle,
     note: analysis.note || '',
   };
 };
@@ -504,6 +681,7 @@ export const getDigBoardColumns = (tileCount) => {
   if (tileCount >= 10) return 5;
   return Math.max(2, Math.ceil(Math.sqrt(Math.max(tileCount, 1))));
 };
+
 export const allArtifactsById = () => {
   const artifacts = SCENARIOS.flatMap(scenario => scenario.evidence || []);
   return new Map([...artifacts, ...RED_HERRINGS].map(item => [item.id, item]));
