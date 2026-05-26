@@ -180,15 +180,23 @@ test('Scarab Queen attack frames are prioritized over passive shield and counter
 });
 
 test('Scarab Queen atlas is wired from the supplied final animation sheets', () => {
-  assert.match(journeyBossSpritesSource, /boss-sprites-scarab-queen-walk-death-validated-2026-05-26/);
+  assert.match(journeyBossSpritesSource, /boss-sprites-scarab-queen-regenerated-v2-2026-05-26/);
+  assert.match(scarabQueenBuilderSource, /SOURCE_DIR = BOSS_DIR \/ "source" \/ "scarab-queen-v2-generated"/);
   assert.match(scarabQueenBuilderSource, /"scarabQueenWalk": \("walk", 8\)/);
-  assert.match(scarabQueenBuilderSource, /source_frames\["death"\] = \[clean_fallen_pose\(frame\) for frame in source_frames\["death"\]\]/);
+  assert.match(scarabQueenBuilderSource, /scarab-walk-regeneration-02-accepted-raw\.png/);
+  assert.match(scarabQueenBuilderSource, /scarab-run-regeneration-03-accepted-raw\.png/);
+  assert.match(scarabQueenBuilderSource, /scarab-death-regeneration-02-accepted-raw\.png/);
+  assert.match(scarabQueenBuilderSource, /COMPONENT_SLICED_SHEETS: set\[str\] = set\(\)/);
   assert.doesNotMatch(scarabQueenBuilderSource, /\[clean_fallen_pose\(source_frames\["death"\]\[7\]\)\] \* 8/);
+  assert.doesNotMatch(scarabQueenBuilderSource, /source_frames\["death"\] = \[clean_fallen_pose\(frame\) for frame in source_frames\["death"\]\]/);
   assert.match(journeyBossSpritesSource, /SCARAB_QUEEN_ANIMATED_SPRITE_KEYS/);
   assert.match(journeyBossSpritesSource, /numberedSpriteKeys\('scarabQueenWalk', 8\)/);
   assert.match(journeyBossSpritesSource, /numberedSpriteKeys\('scarabQueenDeath', 8\)/);
-  assert.match(scarabQueenAtlas.source, /User-provided Scarab Queen raster animation sheets/);
-  assert.equal(scarabQueenAtlas.productionReference, 'source/scarab-queen-2026-05-23/');
+  assert.match(scarabQueenAtlas.source, /Accepted Scarab Queen regenerated raster animation sheets/);
+  assert.equal(scarabQueenAtlas.productionReference, 'source/scarab-queen-v2-generated/');
+  assert.equal(scarabQueenAtlas.acceptedRegenerations.walk, 'scarab-walk-regeneration-02-accepted-raw.png');
+  assert.equal(scarabQueenAtlas.acceptedRegenerations.run, 'scarab-run-regeneration-03-accepted-raw.png');
+  assert.equal(scarabQueenAtlas.acceptedRegenerations.death, 'scarab-death-regeneration-02-accepted-raw.png');
   assert.equal(scarabQueenAtlas.frameContract.length, 11);
   assert.equal(scarabQueenAtlas.sequences.walk.length, 8);
   assert.equal(scarabQueenAtlas.sequences.walk[0], 'scarabQueenWalk1');

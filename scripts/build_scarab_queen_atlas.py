@@ -8,7 +8,7 @@ from PIL import Image, ImageEnhance, ImageFilter
 
 ROOT = Path(__file__).resolve().parents[1]
 BOSS_DIR = ROOT / "public" / "assets" / "expedition" / "bosses"
-SOURCE_DIR = BOSS_DIR / "source" / "scarab-queen-2026-05-23"
+SOURCE_DIR = BOSS_DIR / "source" / "scarab-queen-v2-generated"
 OUT_PNG = BOSS_DIR / "scarab-queen-sprites.png"
 OUT_JSON = BOSS_DIR / "scarab-queen-sprites.json"
 
@@ -17,14 +17,14 @@ CELL_H = 390
 GROUND_Y = 382
 
 SHEET_SPECS = {
-    "combat": ("scarab-combat.png", 8),
-    "walk": ("scarab-walk.png", 8),
-    "run": ("scarab-run.png", 8),
-    "windup": ("scarab-attack-windup.png", 6),
-    "acidSpit": ("scarab-acid-spit.png", 8),
+    "combat": ("scarab-combat-regeneration-02-accepted-raw.png", 8),
+    "walk": ("scarab-walk-regeneration-02-accepted-raw.png", 8),
+    "run": ("scarab-run-regeneration-03-accepted-raw.png", 8),
+    "windup": ("scarab-attack-windup-regeneration-02-accepted-raw.png", 6),
+    "acidSpit": ("scarab-acid-spit-regeneration-01-accepted-raw.png", 8),
     "acid": ("scarab-acid.png", 6),
-    "stagger": ("scarab-stagger.png", 5),
-    "death": ("scarab-death.png", 8),
+    "stagger": ("scarab-stagger-regeneration-02-accepted-raw.png", 5),
+    "death": ("scarab-death-regeneration-02-accepted-raw.png", 8),
     "portrait": ("scarab-portrait.png", 1),
 }
 
@@ -52,7 +52,7 @@ SEQUENCES = {
     "scarabQueenDeath": ("death", 8),
 }
 
-COMPONENT_SLICED_SHEETS = {"combat", "walk", "run", "windup", "stagger", "death"}
+COMPONENT_SLICED_SHEETS: set[str] = set()
 
 
 def remove_checkerboard_background(image: Image.Image) -> Image.Image:
@@ -64,7 +64,15 @@ def remove_checkerboard_background(image: Image.Image) -> Image.Image:
             r, g, b, a = pixels[x, y]
             neutral = abs(r - g) < 28 and abs(g - b) < 28
             bright_checker = max(r, g, b) > 170 and neutral
-            if a < 8 or bright_checker:
+            magenta_key = (
+                r > 110
+                and b > 110
+                and g < 132
+                and abs(r - b) < 150
+                and r > g + 32
+                and b > g + 32
+            )
+            if a < 8 or bright_checker or magenta_key:
                 pixels[x, y] = (r, g, b, 0)
     alpha = image.getchannel("A")
     alpha = alpha.filter(ImageFilter.GaussianBlur(0.35))
@@ -161,6 +169,41 @@ def keep_primary_components(image: Image.Image, frame_key: str = "") -> Image.Im
     return next_image
 
 
+def remove_tiny_components(image: Image.Image, min_area: int = 360) -> Image.Image:
+    image = image.convert("RGBA")
+    width, height = image.size
+    alpha = image.getchannel("A")
+    seen = bytearray(width * height)
+    source_pixels = image.load()
+    next_image = Image.new("RGBA", image.size, (0, 0, 0, 0))
+    next_pixels = next_image.load()
+
+    for start_y in range(height):
+        for start_x in range(width):
+            index = start_y * width + start_x
+            if seen[index] or alpha.getpixel((start_x, start_y)) <= 18:
+                continue
+            stack = [(start_x, start_y)]
+            component_pixels = []
+            seen[index] = 1
+            while stack:
+                x, y = stack.pop()
+                component_pixels.append((x, y))
+                for nx, ny in ((x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)):
+                    if nx < 0 or nx >= width or ny < 0 or ny >= height:
+                        continue
+                    next_index = ny * width + nx
+                    if seen[next_index] or alpha.getpixel((nx, ny)) <= 18:
+                        continue
+                    seen[next_index] = 1
+                    stack.append((nx, ny))
+            if len(component_pixels) >= min_area:
+                for x, y in component_pixels:
+                    next_pixels[x, y] = source_pixels[x, y]
+
+    return next_image
+
+
 def find_alpha_components(image: Image.Image, min_area: int = 1600) -> list[dict]:
     width, height = image.size
     alpha = image.getchannel("A")
@@ -234,7 +277,9 @@ def load_sheet_frames(name: str) -> list[Image.Image]:
         left = round(index * sheet.width / frame_count)
         right = round((index + 1) * sheet.width / frame_count)
         frame = trim_alpha(sheet.crop((left, 0, right, sheet.height)), 12)
-        frames.append(keep_primary_components(frame, name))
+        if name != "acid":
+            frame = remove_tiny_components(frame)
+        frames.append(frame)
     return frames
 
 
@@ -276,7 +321,6 @@ def clean_fallen_pose(sprite: Image.Image) -> Image.Image:
 
 def main() -> None:
     source_frames = {name: load_sheet_frames(name) for name in SHEET_SPECS}
-    source_frames["death"] = [clean_fallen_pose(frame) for frame in source_frames["death"]]
     regions = {}
     cells: list[tuple[str, Image.Image]] = []
 
@@ -297,7 +341,7 @@ def main() -> None:
     atlas.save(OUT_PNG)
     data = {
         "image": OUT_PNG.name,
-        "source": "User-provided Scarab Queen raster animation sheets normalized into the canonical Journey boss atlas.",
+        "source": "Accepted Scarab Queen regenerated raster animation sheets normalized into the canonical Journey boss atlas.",
         "coordinateNote": "Fixed transparent 560x390 cells. First eleven keys preserve the canonical boss frame contract; additional keys provide Scarab Queen animation sequences.",
         "frameContract": [key for key, *_ in FRAME_PLAN],
         "sequences": {
@@ -310,7 +354,12 @@ def main() -> None:
             "defeated": [f"scarabQueenDeath{index}" for index in range(1, 9)],
         },
         "baseline": "bottom-center fixed per frame; all runtime frames are transparent cutouts from the provided sheets.",
-        "productionReference": "source/scarab-queen-2026-05-23/",
+        "productionReference": "source/scarab-queen-v2-generated/",
+        "acceptedRegenerations": {
+            key: file_name
+            for key, (file_name, _) in SHEET_SPECS.items()
+            if "regeneration" in file_name
+        },
         "regions": regions,
     }
     OUT_JSON.write_text(json.dumps(data, indent=2), encoding="utf-8")

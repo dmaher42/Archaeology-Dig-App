@@ -15,7 +15,7 @@ export const CHINA_JADE_SEAL_GUARDIAN_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PA
 export const CHINA_ARCHIVE_SENTRY_CAPTAIN_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}china-archive-sentry-captain-sprites.json`;
 export const CHINA_RAMMED_EARTH_SENTINEL_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}china-rammed-earth-sentinel-sprites.json`;
 export const CHINA_CLAY_GUARDIAN_SPRITE_ATLAS_JSON = CHINA_CLAY_RIVER_GUARDIAN_SPRITE_ATLAS_JSON;
-export const BOSS_SPRITE_ATLAS_VERSION = 'boss-sprites-scarab-queen-walk-death-validated-2026-05-26';
+export const BOSS_SPRITE_ATLAS_VERSION = 'boss-sprites-scarab-queen-regenerated-v2-2026-05-26';
 
 export const MIN_BOSS_DRAW_HEIGHT = 176;
 export const SCARAB_QUEEN_DRAW_OFFSET_X = 42;

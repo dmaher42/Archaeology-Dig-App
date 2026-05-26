@@ -1,6 +1,6 @@
 {
   "image": "scarab-queen-sprites.png",
-  "source": "User-provided Scarab Queen raster animation sheets normalized into the canonical Journey boss atlas.",
+  "source": "Accepted Scarab Queen regenerated raster animation sheets normalized into the canonical Journey boss atlas.",
   "coordinateNote": "Fixed transparent 560x390 cells. First eleven keys preserve the canonical boss frame contract; additional keys provide Scarab Queen animation sequences.",
   "frameContract": [
     "scarabQueenIdle",
@@ -81,7 +81,16 @@
     ]
   },
   "baseline": "bottom-center fixed per frame; all runtime frames are transparent cutouts from the provided sheets.",
-  "productionReference": "source/scarab-queen-2026-05-23/",
+  "productionReference": "source/scarab-queen-v2-generated/",
+  "acceptedRegenerations": {
+    "combat": "scarab-combat-regeneration-02-accepted-raw.png",
+    "walk": "scarab-walk-regeneration-02-accepted-raw.png",
+    "run": "scarab-run-regeneration-03-accepted-raw.png",
+    "windup": "scarab-attack-windup-regeneration-02-accepted-raw.png",
+    "acidSpit": "scarab-acid-spit-regeneration-01-accepted-raw.png",
+    "stagger": "scarab-stagger-regeneration-02-accepted-raw.png",
+    "death": "scarab-death-regeneration-02-accepted-raw.png"
+  },
   "regions": {
     "scarabQueenIdle": {
       "x": 0,
