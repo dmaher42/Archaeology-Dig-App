@@ -350,10 +350,18 @@ export function TrainingPhase({
           </button>
         );
       })}
-      <div className="training-survey-map-note">
-        {selectedSurveyZone
-          ? `Selected: ${selectedSurveyZone.title}`
-          : 'Inspect surface zones, then choose where to excavate.'}
+      <div className={`training-survey-map-note ${selectedSurveyZone ? 'selected' : ''}`}>
+        {selectedSurveyZone ? (
+          <>
+            <strong>{selectedSurveyZone.title} selected</strong>
+            <span>The field map will now narrow into this area for grid setup.</span>
+            <button className="btn pulse-glow" type="button" onClick={handleNextStep}>
+              Zoom into selected area
+            </button>
+          </>
+        ) : (
+          'Inspect surface zones, then choose where to excavate.'
+        )}
       </div>
     </div>
   );
@@ -468,7 +476,7 @@ export function TrainingPhase({
                 Survey reveals field evidence, not exact find locations. Inspect at least one zone to choose an excavation area.
               </div>
             ) : (
-              <button className="btn pulse-glow" type="button" onClick={handleNextStep}>Proceed to Grid</button>
+              <button className="btn pulse-glow" type="button" onClick={handleNextStep}>Zoom into Selected Area</button>
             )}
           </div>
         );
