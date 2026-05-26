@@ -9,6 +9,7 @@ import {
   getArtifactEraLabel, 
   getCategoryTitle,
   createDigTiles,
+  getDigBoardColumns,
   resolveAssetPath
 } from '../utils/gameLogic';
 import { getIcon } from './Icons';
@@ -131,7 +132,7 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
   const [fieldNote, setFieldNote] = useState(null);
   const [showDebrief, setShowDebrief] = useState(false);
   const [timerMode, setTimerMode] = useState('normal');
-  const [selectedDigMode, setSelectedDigMode] = useState('normal');
+  const [selectedDigMode, setSelectedDigMode] = useState('challenge');
   const [selectedPlayerCount, setSelectedPlayerCount] = useState(1);
   const [playerCount, setPlayerCount] = useState(1);
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
@@ -159,7 +160,7 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
   const [premiumCardBackReady, setPremiumCardBackReady] = useState(false);
   const fullInvestigationAssets = useFullInvestigationAssets();
   const archaeologyCardBackUrl = resolveAssetPath(ARCHAEOLOGY_CARD_BACK_PATH);
-  const boardColumns = 8;
+  const boardColumns = getDigBoardColumns(tiles.length);
   const boardRows = Math.max(1, Math.ceil(tiles.length / boardColumns));
   const emergencyIcon = emergencyState.event?.Icon || AlertTriangle;
   const EmergencyIcon = emergencyIcon;
@@ -246,7 +247,7 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
       if (!width || !height) return;
 
       const gapSize = window.matchMedia('(max-height: 820px), (max-width: 900px)').matches ? 4 : 5;
-      const maxTileSize = window.matchMedia('(max-height: 820px) and (min-width: 901px)').matches ? 120 : 142;
+      const maxTileSize = window.matchMedia('(max-height: 820px) and (min-width: 901px)').matches ? 142 : 196;
       const tileSize = Math.max(1, Math.floor(Math.min(
         (width - (gapSize * (boardColumns - 1))) / boardColumns,
         (height - (gapSize * (boardRows - 1))) / boardRows,
@@ -551,12 +552,20 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
+  const radarCost = challengeDuration === 300 ? 30 : challengeDuration === 180 ? 20 : 10;
+  const pairsRemaining = Math.max(0, activeArtifacts.length - excavatedIds.size);
   const timeDanger = timeLeft <= 15 && isPlaying;
   const perfectClear = activeArtifacts.length > 0 && excavatedIds.size === activeArtifacts.length;
   const displayTime = timerMode === 'challenge' ? timeLeft : elapsedTime;
   const timerLabel = timerMode === 'challenge' ? 'TIME LEFT' : 'TIME TAKEN';
-  const timerModeLabel = timerMode === 'challenge' ? 'Challenge' : 'Explore';
+  const timerModeLabel = timerMode === 'challenge' ? 'Emergency Rescue' : 'Methodical Search';
   const challengeTimeLabel = challengeDuration === 300 ? '5 minutes' : challengeDuration === 180 ? '3 minutes' : '90 seconds';
+  const missionObjective = perfectClear
+    ? 'All evidence pairs recovered'
+    : `Recover ${pairsRemaining} more evidence pair${pairsRemaining === 1 ? '' : 's'}`;
+  const instructionText = timerMode === 'challenge'
+    ? `${missionObjective}. Radar briefly reveals the board, but costs ${radarCost}s and raises disturbance.`
+    : `${missionObjective}. Wrong matches raise site disturbance, so pause and remember each find.`;
   const excavationTrayStyle = getAtlasRegionStyle(fullInvestigationAssets, 'excavationTray');
   const premiumCardBackStyle = premiumCardBackReady
     ? { '--premium-card-back-image': `url("${archaeologyCardBackUrl}")` }
@@ -667,6 +676,20 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
             </div>
             <h2 className="modal-title" style={{color: currentEvent.dangerColor}}>{currentEvent.title}</h2>
             <p className="modal-subtitle">{currentEvent.description}</p>
+            <div className="dig-setup-brief" role="note">
+              <div>
+                <strong>Mission</strong>
+                <span>Match pairs to recover enough evidence for the Sorting Tent.</span>
+              </div>
+              <div>
+                <strong>Pressure</strong>
+                <span>Storms can damage unrecovered finds; clean matches keep evidence stronger.</span>
+              </div>
+              <div>
+                <strong>Next</strong>
+                <span>Review the field notebook, then continue to Phase 2.</span>
+              </div>
+            </div>
             <div className="dig-mode-picker">
               <div className="dig-mode-group">
                 <p className="dig-step-label">Select Crew Size</p>
@@ -674,6 +697,7 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
                   <button
                     type="button"
                     className={`btn dig-mode-card ${selectedPlayerCount === 1 ? 'is-selected' : ''}`}
+                    aria-pressed={selectedPlayerCount === 1}
                     onClick={() => setSelectedPlayerCount(1)}
                   >
                     <strong>Solo Operation</strong>
@@ -682,6 +706,7 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
                   <button
                     type="button"
                     className={`btn dig-mode-card ${selectedPlayerCount === 2 ? 'is-selected' : ''}`}
+                    aria-pressed={selectedPlayerCount === 2}
                     onClick={() => setSelectedPlayerCount(2)}
                   >
                     <strong>Team Expedition</strong>
@@ -696,6 +721,7 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
                   <button
                     type="button"
                     className={`btn dig-mode-card ${selectedDigMode === 'normal' ? 'is-selected' : ''}`}
+                    aria-pressed={selectedDigMode === 'normal'}
                     onClick={() => setSelectedDigMode('normal')}
                   >
                     <strong>Methodical Search</strong>
@@ -704,6 +730,7 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
                   <button
                     type="button"
                     className={`btn dig-mode-card ${selectedDigMode === 'challenge' ? 'is-selected' : ''}`}
+                    aria-pressed={selectedDigMode === 'challenge'}
                     onClick={() => setSelectedDigMode('challenge')}
                   >
                     <strong>Emergency Rescue</strong>
@@ -716,9 +743,9 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
                 <div className="dig-mode-group" style={{animation: 'fadeIn 0.3s ease'}}>
                   <p className="dig-step-label">Time Authorization</p>
                   <div className="dig-time-grid">
-                    <button className={`btn dig-time-pill ${challengeDuration === 300 ? 'is-selected' : ''}`} onClick={() => setChallengeDuration(300)}>5m Authorization</button>
-                    <button className={`btn dig-time-pill ${challengeDuration === 180 ? 'is-selected' : ''}`} onClick={() => setChallengeDuration(180)}>3m Authorization</button>
-                    <button className={`btn dig-time-pill ${challengeDuration === 90 ? 'is-selected' : ''}`} onClick={() => setChallengeDuration(90)}>90s Authorization</button>
+                    <button className={`btn dig-time-pill ${challengeDuration === 300 ? 'is-selected' : ''}`} aria-pressed={challengeDuration === 300} onClick={() => setChallengeDuration(300)}>5m Authorization</button>
+                    <button className={`btn dig-time-pill ${challengeDuration === 180 ? 'is-selected' : ''}`} aria-pressed={challengeDuration === 180} onClick={() => setChallengeDuration(180)}>3m Authorization</button>
+                    <button className={`btn dig-time-pill ${challengeDuration === 90 ? 'is-selected' : ''}`} aria-pressed={challengeDuration === 90} onClick={() => setChallengeDuration(90)}>90s Authorization</button>
                   </div>
                 </div>
               )}
@@ -745,11 +772,17 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
                 setEmergencyAffectedEvidenceIds([]);
                 setEmergencyLog([]);
                 appliedEmergencyImpactsRef.current = new Set();
-                setFeedback({ message: '', isError: false, tone: 'neutral' });
+                setFeedback({
+                  message: selectedDigMode === 'challenge'
+                    ? 'Emergency dig started. Match pairs quickly, and use radar only when it is worth the time cost.'
+                    : 'Methodical dig started. Match pairs carefully and protect the evidence context.',
+                  isError: false,
+                  tone: 'accent',
+                });
                 setShowStormWarning(false);
                 setIsPlaying(true);
               }}>
-                {selectedDigMode === 'challenge' ? `Start challenge (${challengeTimeLabel})` : 'Start explore'}
+                {selectedDigMode === 'challenge' ? `Begin emergency dig (${challengeTimeLabel})` : 'Begin careful dig'}
                 <Pickaxe size={20} />
               </button>
             </div>
@@ -767,7 +800,7 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
                 ? getWinnerText()
                 : `You recovered ${excavatedIds.size} find${excavatedIds.size === 1 ? '' : 's'} for study.`}
             </p>
-            <button className="btn primary-btn" onClick={openDebrief}>Move finds to Sorting Tent <Tent size={20} /></button>
+            <button className="btn primary-btn" onClick={openDebrief}>Review field notebook <Tent size={20} /></button>
           </div>
         </div>
       )}
@@ -784,7 +817,7 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
                   ? `Every find was recovered with ${formatTime(timeLeft)} remaining.`
                   : `Every find was recovered in ${formatTime(displayTime)}.`}
             </p>
-            <button className="btn primary-btn" onClick={openDebrief}>Move finds to Sorting Tent <Tent size={20} /></button>
+            <button className="btn primary-btn" onClick={openDebrief}>Review field notebook <Tent size={20} /></button>
           </div>
         </div>
       )}
@@ -828,33 +861,36 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
               className="btn primary-btn"
               onClick={() => onComplete(recoveryPackage.artifacts, recoveryPackage.conditions, recoverySummary)}
             >
-              Open Sorting Tent <Tent size={20} />
+              Continue to Sorting Tent <Tent size={20} />
             </button>
           </div>
         </div>
       )}
 
-      <div className="dig-status-panel">
-        <div className="status-info-row">
-          <span className="status-phase-label">Phase 1: Emergency excavation</span>
-          <span className="status-sep">|</span>
-          <span className="status-warning-text" style={{color: currentEvent.dangerColor}}>
-             {currentEvent.title}
+      <div className="dig-status-panel" aria-label="Emergency excavation status">
+        <div className="status-info-row dig-mission-plaque">
+          <span className="dig-hud-kicker">Phase 1</span>
+          <strong>Emergency Excavation</strong>
+          <span className="dig-hud-subline" style={{ color: currentEvent.dangerColor }}>
+            {currentEvent.title} / {timerModeLabel}
           </span>
-          <span className="status-sep">|</span>
-          <span className="status-phase-label">{timerModeLabel}</span>
           {isTwoPlayer && (
-            <>
-              <span className="status-sep">|</span>
-              <span className="status-phase-label">2 players</span>
-            </>
+            <span className="dig-hud-team-chip">2 players</span>
           )}
+        </div>
+
+        <div className="dig-objective-panel">
+          <span className="dig-objective-label">Objective</span>
+          <strong>{missionObjective}</strong>
+          <small className="dig-objective-next">{perfectClear ? 'Ready for notebook review' : 'Recovered evidence moves to the Sorting Tent'}</small>
         </div>
         
         <div className={`timer-horizontal ${timeDanger ? 'danger' : ''}`}>
-           <Clock size={20} />
-           <span className="timer-value">{formatTime(displayTime)}</span>
-           <span className="timer-label">{timerLabel}</span>
+           <span className="dig-timer-ring" aria-hidden="true"><Clock size={20} /></span>
+           <span className="dig-timer-copy">
+             <span className="timer-value">{formatTime(displayTime)}</span>
+             <span className="timer-label">{timerLabel}</span>
+           </span>
         </div>
 
         {isTwoPlayer && (
@@ -871,41 +907,48 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
           </div>
         )}
 
-        {timerMode === 'challenge' && (
-          <button 
-            className="radar-btn-compact" 
-            onClick={handleRadar}
-            disabled={timeLeft <= (challengeDuration === 300 ? 30 : challengeDuration === 180 ? 20 : 10) || isLocked || !isPlaying}
-          >
-            <Radar size={16} /> Use radar (-{challengeDuration === 300 ? 30 : challengeDuration === 180 ? 20 : 10}s)
-          </button>
-        )}
-        <div className={`dig-pressure-chip pressure-${pressureBand}`} aria-label={`Site disturbance ${disturbanceLevel}`}>
-          <Activity size={15} />
-          <span>{pressureLabel}</span>
-          <strong>{disturbanceLevel}</strong>
+        <div className="dig-status-actions">
+          {timerMode === 'challenge' && (
+            <button
+              className="radar-btn-compact"
+              onClick={handleRadar}
+              disabled={timeLeft <= radarCost || isLocked || !isPlaying}
+            >
+              <Radar size={16} />
+              <span>Radar</span>
+              <small>-{radarCost}s</small>
+            </button>
+          )}
+          <div className={`dig-pressure-chip pressure-${pressureBand}`} aria-label={`Site disturbance ${disturbanceLevel}`}>
+            <Activity size={15} />
+            <span>{pressureLabel}</span>
+            <strong>{disturbanceLevel}</strong>
+          </div>
         </div>
       </div>
 
       <div className="dig-game-panel">
-        <div className="instruction-row">
-          <Lightbulb size={16} className="instruction-icon" />
-          <span>Match pairs to recover finds before time runs out.</span>
-        </div>
-
-        {emergencyState.event && emergencyState.phase !== 'cooldown' && (
-          <div className={`dig-emergency-banner emergency-${emergencyState.phase}`} role="status" aria-live="polite">
-            <EmergencyIcon size={18} />
-            <div className="dig-emergency-copy">
-              <strong>{emergencyState.event.label}</strong>
-              <span>{emergencyState.message}</span>
-            </div>
-            <span className="dig-emergency-zone">
-              {emergencyState.threatZone?.label}
-              {emergencyState.phase !== 'resolved' && ` in ${emergencyState.secondsRemaining}s`}
-            </span>
+        <div className="dig-briefing-strip">
+          <span className="dig-table-label">Field radio</span>
+          <div className="instruction-row">
+            <Lightbulb size={16} className="instruction-icon" />
+            <span>{instructionText}</span>
           </div>
-        )}
+
+          {emergencyState.event && emergencyState.phase !== 'cooldown' && (
+            <div className={`dig-emergency-banner emergency-${emergencyState.phase}`} role="status" aria-live="polite">
+              <EmergencyIcon size={18} />
+              <div className="dig-emergency-copy">
+                <strong>{emergencyState.event.label}</strong>
+                <span>{emergencyState.message}</span>
+              </div>
+              <span className="dig-emergency-zone">
+                {emergencyState.threatZone?.label}
+                {emergencyState.phase !== 'resolved' && ` in ${emergencyState.secondsRemaining}s`}
+              </span>
+            </div>
+          )}
+        </div>
         
         <div
           className={`game-board-container ${excavationTrayStyle ? 'fi-asset-region fi-excavation-tray' : ''}`}
@@ -963,6 +1006,7 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
                     <div
                       className={`tile-back artifact-texture artifact-texture--${tile.artifact.type} ${tile.artifact.isRedHerring ? 'artifact-texture--disturbance' : ''}`}
                       style={{ '--artifact-accent': tileTheme.accent, '--artifact-accent-soft': tileTheme.accentSoft }}
+                      aria-hidden={!isRevealed}
                     >
                       <div className="artifact-icon" style={{ color: 'var(--artifact-accent)' }} aria-hidden="true">
                         {getIcon(tile.artifact.type, 30, { strokeWidth: 2.15 })}
@@ -984,6 +1028,10 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
              <span>Recovered: <strong>{excavatedIds.size} / {activeArtifacts.length}</strong></span>
           </div>
           <div className="footer-stat-item">
+             <Tent size={16} />
+             <span>Pairs left: <strong>{pairsRemaining}</strong></span>
+          </div>
+          <div className="footer-stat-item">
              <RefreshCw size={16} />
              <span>Attempts: <strong>{attempts}</strong></span>
           </div>
@@ -997,16 +1045,24 @@ export function DigPhase({ activeArtifacts, excavatedIds, setExcavatedIds, onCom
               <span>Score: <strong>{scoreSummary}</strong></span>
             </div>
           )}
+          {timerMode === 'challenge' && (
+            <div className="footer-stat-item">
+              <Radar size={16} />
+              <span>Radar uses: <strong>{radarUses}</strong></span>
+            </div>
+          )}
         </div>
         
         <button className="help-btn-compact" onClick={() => setFeedback({message: "Match two identical finds to recover them. Some finds are ancient evidence; others are modern disturbance.", isError: false, tone: 'neutral'})}>
            <HelpCircle size={18} /> Field guide
         </button>
         <button className="dig-menu-btn-compact" type="button" onClick={onBackToMenu}>
-          Back to menu
+          Menu
         </button>
-      </div>      {feedback.message && (
-        <div className={`sort-feedback ${feedback.tone === 'accent' ? 'accent' : feedback.isError ? 'error' : 'neutral'}`} style={{position: 'fixed', bottom: '80px', left: '50%', transform: 'translateX(-50%)', zIndex: 100}}>
+      </div>
+
+      {feedback.message && (
+        <div className={`sort-feedback dig-feedback-toast ${feedback.tone === 'accent' ? 'accent' : feedback.isError ? 'error' : 'neutral'}`}>
           <span className="sort-feedback-icon" aria-hidden="true">•</span>
           <span>{feedback.message}</span>
         </div>

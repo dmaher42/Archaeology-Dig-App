@@ -498,6 +498,12 @@ export const createDigTiles = (activeArtifacts, excavatedIds) => {
   return pairs;
 };
 
+export const getDigBoardColumns = (tileCount) => {
+  if (tileCount >= 22) return 8;
+  if (tileCount >= 18) return 6;
+  if (tileCount >= 10) return 5;
+  return Math.max(2, Math.ceil(Math.sqrt(Math.max(tileCount, 1))));
+};
 export const allArtifactsById = () => {
   const artifacts = SCENARIOS.flatMap(scenario => scenario.evidence || []);
   return new Map([...artifacts, ...RED_HERRINGS].map(item => [item.id, item]));
