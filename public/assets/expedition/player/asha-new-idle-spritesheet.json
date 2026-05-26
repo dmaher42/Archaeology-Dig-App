@@ -3,7 +3,7 @@
   "source": "asha-premium-identity-first-sheets-2026-05-24",
   "status": "production-candidate-asha-premium-identity",
   "productionReference": "asha-new-idle-reference.png",
-  "description": "Asha New Idle runtime atlas variant. It keeps the proven Asha V5 hurt, interact, climb, and portrait rows, then swaps the idle, run-based movement, jump, fall, land, and primary attack rows to premium identity-first Asha sheets. It also packs a secondary attack row so Journey can alternate attack animations.",
+  "description": "Asha New Idle runtime atlas variant. It keeps the proven Asha V5 interact, climb, and portrait rows, then swaps the idle, run-based movement, jump, fall, land, hurt, and primary attack rows to premium identity-first Asha sheets. It also packs a secondary attack row so Journey can alternate attack animations.",
   "frame": {
     "width": 256,
     "height": 256,
@@ -11,7 +11,7 @@
     "facing": "right"
   },
   "draw": {
-    "height": 119,
+    "height": 131,
     "sourceHeight": 224,
     "integratedAttackTool": true,
     "suppressExternalWeapon": true,
@@ -243,9 +243,9 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 84,
+        "x": 86,
         "y": 12,
-        "w": 89,
+        "w": 83,
         "h": 224
       },
       "groundLineY": 236
@@ -256,9 +256,9 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 83,
+        "x": 87,
         "y": 12,
-        "w": 90,
+        "w": 82,
         "h": 224
       },
       "groundLineY": 236
@@ -282,9 +282,9 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 84,
+        "x": 82,
         "y": 12,
-        "w": 89,
+        "w": 92,
         "h": 224
       },
       "groundLineY": 236
@@ -295,9 +295,9 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 82,
+        "x": 80,
         "y": 12,
-        "w": 92,
+        "w": 95,
         "h": 224
       },
       "groundLineY": 236
@@ -308,9 +308,9 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 84,
+        "x": 82,
         "y": 12,
-        "w": 89,
+        "w": 91,
         "h": 224
       },
       "groundLineY": 236
@@ -323,7 +323,7 @@
       "drawBounds": {
         "x": 84,
         "y": 12,
-        "w": 89,
+        "w": 87,
         "h": 224
       },
       "groundLineY": 236
@@ -334,9 +334,9 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 84,
+        "x": 88,
         "y": 12,
-        "w": 88,
+        "w": 81,
         "h": 224
       },
       "groundLineY": 236
@@ -347,10 +347,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 40,
-        "y": 12,
-        "w": 175,
-        "h": 224
+        "x": 46,
+        "y": 43,
+        "w": 165,
+        "h": 193
       },
       "groundLineY": 236
     },
@@ -360,10 +360,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 28,
-        "y": 12,
-        "w": 199,
-        "h": 224
+        "x": 48,
+        "y": 43,
+        "w": 161,
+        "h": 193
       },
       "groundLineY": 236
     },
@@ -373,10 +373,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 26,
-        "y": 12,
-        "w": 205,
-        "h": 224
+        "x": 34,
+        "y": 43,
+        "w": 189,
+        "h": 193
       },
       "groundLineY": 236
     },
@@ -386,10 +386,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 32,
-        "y": 12,
-        "w": 192,
-        "h": 224
+        "x": 38,
+        "y": 43,
+        "w": 181,
+        "h": 193
       },
       "groundLineY": 236
     },
@@ -399,10 +399,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 32,
-        "y": 12,
-        "w": 193,
-        "h": 224
+        "x": 46,
+        "y": 43,
+        "w": 163,
+        "h": 193
       },
       "groundLineY": 236
     },
@@ -412,10 +412,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 37,
-        "y": 12,
-        "w": 182,
-        "h": 224
+        "x": 36,
+        "y": 43,
+        "w": 184,
+        "h": 193
       },
       "groundLineY": 236
     },
@@ -425,10 +425,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 30,
-        "y": 12,
-        "w": 196,
-        "h": 224
+        "x": 39,
+        "y": 43,
+        "w": 178,
+        "h": 193
       },
       "groundLineY": 236
     },
@@ -438,10 +438,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 23,
-        "y": 12,
-        "w": 210,
-        "h": 224
+        "x": 35,
+        "y": 43,
+        "w": 186,
+        "h": 193
       },
       "groundLineY": 236
     },
@@ -451,10 +451,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 40,
-        "y": 12,
-        "w": 175,
-        "h": 224
+        "x": 46,
+        "y": 43,
+        "w": 165,
+        "h": 193
       },
       "groundLineY": 236
     },
@@ -464,10 +464,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 28,
-        "y": 12,
-        "w": 199,
-        "h": 224
+        "x": 48,
+        "y": 43,
+        "w": 161,
+        "h": 193
       },
       "groundLineY": 236
     },
@@ -477,10 +477,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 26,
-        "y": 12,
-        "w": 205,
-        "h": 224
+        "x": 34,
+        "y": 43,
+        "w": 189,
+        "h": 193
       },
       "groundLineY": 236
     },
@@ -490,10 +490,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 32,
-        "y": 12,
-        "w": 192,
-        "h": 224
+        "x": 38,
+        "y": 43,
+        "w": 181,
+        "h": 193
       },
       "groundLineY": 236
     },
@@ -503,10 +503,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 32,
-        "y": 12,
-        "w": 193,
-        "h": 224
+        "x": 46,
+        "y": 43,
+        "w": 163,
+        "h": 193
       },
       "groundLineY": 236
     },
@@ -516,10 +516,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 37,
-        "y": 12,
-        "w": 182,
-        "h": 224
+        "x": 36,
+        "y": 43,
+        "w": 184,
+        "h": 193
       },
       "groundLineY": 236
     },
@@ -529,10 +529,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 30,
-        "y": 12,
-        "w": 196,
-        "h": 224
+        "x": 39,
+        "y": 43,
+        "w": 178,
+        "h": 193
       },
       "groundLineY": 236
     },
@@ -542,10 +542,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 23,
-        "y": 12,
-        "w": 210,
-        "h": 224
+        "x": 35,
+        "y": 43,
+        "w": 186,
+        "h": 193
       },
       "groundLineY": 236
     },
@@ -555,10 +555,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 26,
-        "y": 12,
-        "w": 205,
-        "h": 224
+        "x": 34,
+        "y": 43,
+        "w": 189,
+        "h": 193
       },
       "groundLineY": 236
     },
@@ -568,10 +568,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 37,
-        "y": 12,
-        "w": 182,
-        "h": 224
+        "x": 36,
+        "y": 43,
+        "w": 184,
+        "h": 193
       },
       "groundLineY": 236
     },
@@ -581,10 +581,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 40,
-        "y": 12,
-        "w": 175,
-        "h": 224
+        "x": 46,
+        "y": 43,
+        "w": 165,
+        "h": 193
       },
       "groundLineY": 236
     },
@@ -594,10 +594,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 28,
-        "y": 12,
-        "w": 199,
-        "h": 224
+        "x": 48,
+        "y": 43,
+        "w": 161,
+        "h": 193
       },
       "groundLineY": 236
     },
@@ -607,10 +607,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 26,
-        "y": 12,
-        "w": 205,
-        "h": 224
+        "x": 34,
+        "y": 43,
+        "w": 189,
+        "h": 193
       },
       "groundLineY": 236
     },
@@ -620,10 +620,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 32,
-        "y": 12,
-        "w": 192,
-        "h": 224
+        "x": 38,
+        "y": 43,
+        "w": 181,
+        "h": 193
       },
       "groundLineY": 236
     },
@@ -633,10 +633,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 32,
-        "y": 12,
-        "w": 193,
-        "h": 224
+        "x": 46,
+        "y": 43,
+        "w": 163,
+        "h": 193
       },
       "groundLineY": 236
     },
@@ -646,10 +646,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 37,
-        "y": 12,
-        "w": 182,
-        "h": 224
+        "x": 36,
+        "y": 43,
+        "w": 184,
+        "h": 193
       },
       "groundLineY": 236
     },
@@ -659,10 +659,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 30,
-        "y": 12,
-        "w": 196,
-        "h": 224
+        "x": 39,
+        "y": 43,
+        "w": 178,
+        "h": 193
       },
       "groundLineY": 236
     },
@@ -672,10 +672,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 23,
-        "y": 12,
-        "w": 210,
-        "h": 224
+        "x": 35,
+        "y": 43,
+        "w": 186,
+        "h": 193
       },
       "groundLineY": 236
     },
@@ -685,10 +685,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 7,
-        "y": 50,
-        "w": 242,
-        "h": 186
+        "x": 24,
+        "y": 39,
+        "w": 207,
+        "h": 197
       },
       "groundLineY": 236
     },
@@ -698,10 +698,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 66,
-        "y": 12,
-        "w": 124,
-        "h": 224
+        "x": 70,
+        "y": 39,
+        "w": 117,
+        "h": 197
       },
       "groundLineY": 236
     },
@@ -711,10 +711,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 63,
-        "y": 12,
-        "w": 130,
-        "h": 224
+        "x": 66,
+        "y": 39,
+        "w": 125,
+        "h": 197
       },
       "groundLineY": 236
     },
@@ -724,10 +724,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 46,
-        "y": 12,
-        "w": 164,
-        "h": 224
+        "x": 58,
+        "y": 39,
+        "w": 139,
+        "h": 197
       },
       "groundLineY": 236
     },
@@ -737,10 +737,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 54,
-        "y": 12,
-        "w": 149,
-        "h": 224
+        "x": 71,
+        "y": 39,
+        "w": 114,
+        "h": 197
       },
       "groundLineY": 236
     },
@@ -750,10 +750,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 20,
-        "y": 12,
-        "w": 215,
-        "h": 224
+        "x": 78,
+        "y": 39,
+        "w": 100,
+        "h": 197
       },
       "groundLineY": 236
     },
@@ -763,10 +763,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 12,
-        "y": 79,
-        "w": 231,
-        "h": 157
+        "x": 22,
+        "y": 50,
+        "w": 213,
+        "h": 186
       },
       "groundLineY": 236
     },
@@ -776,10 +776,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 12,
-        "y": 79,
-        "w": 231,
-        "h": 157
+        "x": 22,
+        "y": 76,
+        "w": 213,
+        "h": 160
       },
       "groundLineY": 236
     },
@@ -789,10 +789,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 46,
-        "y": 12,
-        "w": 164,
-        "h": 224
+        "x": 58,
+        "y": 39,
+        "w": 139,
+        "h": 197
       },
       "groundLineY": 236
     },
@@ -802,10 +802,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 54,
-        "y": 12,
-        "w": 149,
-        "h": 224
+        "x": 71,
+        "y": 39,
+        "w": 114,
+        "h": 197
       },
       "groundLineY": 236
     },
@@ -815,10 +815,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 20,
-        "y": 12,
-        "w": 215,
-        "h": 224
+        "x": 78,
+        "y": 39,
+        "w": 100,
+        "h": 197
       },
       "groundLineY": 236
     },
@@ -828,10 +828,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 20,
-        "y": 12,
-        "w": 215,
-        "h": 224
+        "x": 78,
+        "y": 39,
+        "w": 100,
+        "h": 197
       },
       "groundLineY": 236
     },
@@ -841,10 +841,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 12,
-        "y": 79,
-        "w": 231,
-        "h": 157
+        "x": 22,
+        "y": 50,
+        "w": 213,
+        "h": 186
       },
       "groundLineY": 236
     },
@@ -854,10 +854,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 12,
-        "y": 79,
-        "w": 231,
-        "h": 157
+        "x": 22,
+        "y": 76,
+        "w": 213,
+        "h": 160
       },
       "groundLineY": 236
     },
@@ -867,10 +867,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 12,
-        "y": 79,
-        "w": 231,
-        "h": 157
+        "x": 22,
+        "y": 76,
+        "w": 213,
+        "h": 160
       },
       "groundLineY": 236
     },
@@ -880,10 +880,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 12,
-        "y": 79,
-        "w": 231,
-        "h": 157
+        "x": 22,
+        "y": 76,
+        "w": 213,
+        "h": 160
       },
       "groundLineY": 236
     },
@@ -893,10 +893,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 20,
-        "y": 12,
-        "w": 215,
-        "h": 224
+        "x": 78,
+        "y": 39,
+        "w": 100,
+        "h": 197
       },
       "groundLineY": 236
     },
@@ -906,10 +906,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 12,
-        "y": 79,
-        "w": 231,
-        "h": 157
+        "x": 22,
+        "y": 50,
+        "w": 213,
+        "h": 186
       },
       "groundLineY": 236
     },
@@ -919,10 +919,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 12,
-        "y": 79,
-        "w": 231,
-        "h": 157
+        "x": 22,
+        "y": 76,
+        "w": 213,
+        "h": 160
       },
       "groundLineY": 236
     },
@@ -932,10 +932,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 12,
-        "y": 79,
-        "w": 231,
-        "h": 157
+        "x": 22,
+        "y": 76,
+        "w": 213,
+        "h": 160
       },
       "groundLineY": 236
     },
@@ -945,10 +945,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 12,
-        "y": 79,
-        "w": 231,
-        "h": 157
+        "x": 22,
+        "y": 76,
+        "w": 213,
+        "h": 160
       },
       "groundLineY": 236
     },
@@ -958,10 +958,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 12,
-        "y": 79,
-        "w": 231,
-        "h": 157
+        "x": 22,
+        "y": 76,
+        "w": 213,
+        "h": 160
       },
       "groundLineY": 236
     },
@@ -971,10 +971,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 12,
-        "y": 79,
-        "w": 231,
-        "h": 157
+        "x": 22,
+        "y": 76,
+        "w": 213,
+        "h": 160
       },
       "groundLineY": 236
     },
@@ -984,10 +984,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 12,
-        "y": 79,
-        "w": 231,
-        "h": 157
+        "x": 22,
+        "y": 76,
+        "w": 213,
+        "h": 160
       },
       "groundLineY": 236
     },
@@ -997,10 +997,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 12,
-        "y": 12,
-        "w": 232,
-        "h": 224
+        "x": 36,
+        "y": 43,
+        "w": 184,
+        "h": 193
       },
       "groundLineY": 236
     },
@@ -1010,10 +1010,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 8,
-        "y": 12,
-        "w": 240,
-        "h": 224
+        "x": 30,
+        "y": 37,
+        "w": 197,
+        "h": 199
       },
       "groundLineY": 236
     },
@@ -1023,10 +1023,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 7,
-        "y": 37,
-        "w": 242,
-        "h": 199
+        "x": 19,
+        "y": 58,
+        "w": 218,
+        "h": 178
       },
       "groundLineY": 236
     },
@@ -1036,10 +1036,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 7,
-        "y": 55,
-        "w": 242,
-        "h": 181
+        "x": 19,
+        "y": 93,
+        "w": 218,
+        "h": 143
       },
       "groundLineY": 236
     },
@@ -1049,10 +1049,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 7,
-        "y": 46,
-        "w": 242,
-        "h": 190
+        "x": 19,
+        "y": 101,
+        "w": 218,
+        "h": 135
       },
       "groundLineY": 236
     },
@@ -1062,10 +1062,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 38,
-        "y": 12,
-        "w": 180,
-        "h": 224
+        "x": 40,
+        "y": 52,
+        "w": 176,
+        "h": 184
       },
       "groundLineY": 236
     },
@@ -1075,10 +1075,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 22,
-        "y": 12,
-        "w": 213,
-        "h": 224
+        "x": 36,
+        "y": 48,
+        "w": 184,
+        "h": 188
       },
       "groundLineY": 236
     },
@@ -1088,10 +1088,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 7,
-        "y": 13,
-        "w": 242,
-        "h": 223
+        "x": 36,
+        "y": 51,
+        "w": 184,
+        "h": 185
       },
       "groundLineY": 236
     },
@@ -1101,10 +1101,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 36,
-        "y": 12,
-        "w": 184,
-        "h": 224
+        "x": 30,
+        "y": 16,
+        "w": 197,
+        "h": 220
       },
       "groundLineY": 236
     },
@@ -1114,10 +1114,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 42,
-        "y": 12,
-        "w": 172,
-        "h": 224
+        "x": 14,
+        "y": 16,
+        "w": 228,
+        "h": 220
       },
       "groundLineY": 236
     },
@@ -1127,10 +1127,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 36,
-        "y": 12,
-        "w": 183,
-        "h": 224
+        "x": 42,
+        "y": 16,
+        "w": 172,
+        "h": 220
       },
       "groundLineY": 236
     },
@@ -1140,10 +1140,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 52,
-        "y": 12,
-        "w": 152,
-        "h": 224
+        "x": 28,
+        "y": 16,
+        "w": 199,
+        "h": 220
       },
       "groundLineY": 236
     },
@@ -1153,10 +1153,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 38,
-        "y": 12,
-        "w": 181,
-        "h": 224
+        "x": 74,
+        "y": 16,
+        "w": 109,
+        "h": 220
       },
       "groundLineY": 236
     },
@@ -1452,10 +1452,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 19,
-        "y": 12,
-        "w": 218,
-        "h": 224
+        "x": 31,
+        "y": 34,
+        "w": 194,
+        "h": 202
       },
       "groundLineY": 236
     },
@@ -1465,10 +1465,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 7,
-        "y": 33,
-        "w": 242,
-        "h": 203
+        "x": 54,
+        "y": 34,
+        "w": 149,
+        "h": 202
       },
       "groundLineY": 236
     },
@@ -1478,10 +1478,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 7,
-        "y": 73,
-        "w": 242,
-        "h": 163
+        "x": 30,
+        "y": 34,
+        "w": 197,
+        "h": 202
       },
       "groundLineY": 236
     },
@@ -1491,10 +1491,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 7,
-        "y": 49,
-        "w": 242,
-        "h": 187
+        "x": 32,
+        "y": 34,
+        "w": 191,
+        "h": 202
       },
       "groundLineY": 236
     },
@@ -1504,10 +1504,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 38,
-        "y": 12,
-        "w": 179,
-        "h": 224
+        "x": 42,
+        "y": 52,
+        "w": 173,
+        "h": 184
       },
       "groundLineY": 236
     },
@@ -1517,10 +1517,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 22,
-        "y": 12,
-        "w": 212,
-        "h": 224
+        "x": 66,
+        "y": 34,
+        "w": 124,
+        "h": 202
       },
       "groundLineY": 236
     },
@@ -1530,10 +1530,10 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 7,
-        "y": 41,
-        "w": 242,
-        "h": 195
+        "x": 34,
+        "y": 34,
+        "w": 188,
+        "h": 202
       },
       "groundLineY": 236
     },
@@ -1543,86 +1543,86 @@
       "w": 256,
       "h": 256,
       "drawBounds": {
-        "x": 24,
-        "y": 12,
-        "w": 209,
-        "h": 224
+        "x": 30,
+        "y": 34,
+        "w": 196,
+        "h": 202
       },
       "groundLineY": 236
     }
   },
   "poseSources": {
-    "idle_00": "asha-premium-idle-regeneration-01-raw.png:frame_00",
-    "idle_01": "asha-premium-idle-regeneration-01-raw.png:frame_01",
-    "idle_02": "asha-premium-idle-regeneration-01-raw.png:frame_02",
-    "idle_03": "asha-premium-idle-regeneration-01-raw.png:frame_03",
-    "idle_04": "asha-premium-idle-regeneration-01-raw.png:frame_04",
-    "idle_05": "asha-premium-idle-regeneration-01-raw.png:frame_05",
-    "idle_06": "asha-premium-idle-regeneration-01-raw.png:frame_06",
-    "idle_07": "asha-premium-idle-regeneration-01-raw.png:frame_07",
-    "walk_00": "asha-premium-run-regeneration-03-raw.png:frame_00",
-    "walk_01": "asha-premium-run-regeneration-03-raw.png:frame_01",
-    "walk_02": "asha-premium-run-regeneration-03-raw.png:frame_02",
-    "walk_03": "asha-premium-run-regeneration-03-raw.png:frame_03",
-    "walk_04": "asha-premium-run-regeneration-03-raw.png:frame_04",
-    "walk_05": "asha-premium-run-regeneration-03-raw.png:frame_05",
-    "walk_06": "asha-premium-run-regeneration-03-raw.png:frame_06",
-    "walk_07": "asha-premium-run-regeneration-03-raw.png:frame_07",
-    "run_00": "asha-premium-run-regeneration-03-raw.png:frame_00",
-    "run_01": "asha-premium-run-regeneration-03-raw.png:frame_01",
-    "run_02": "asha-premium-run-regeneration-03-raw.png:frame_02",
-    "run_03": "asha-premium-run-regeneration-03-raw.png:frame_03",
-    "run_04": "asha-premium-run-regeneration-03-raw.png:frame_04",
-    "run_05": "asha-premium-run-regeneration-03-raw.png:frame_05",
-    "run_06": "asha-premium-run-regeneration-03-raw.png:frame_06",
-    "run_07": "asha-premium-run-regeneration-03-raw.png:frame_07",
-    "run_08": "asha-premium-run-regeneration-03-raw.png:frame_02",
-    "run_09": "asha-premium-run-regeneration-03-raw.png:frame_05",
-    "survey_walk_00": "asha-premium-run-regeneration-03-raw.png:frame_00",
-    "survey_walk_01": "asha-premium-run-regeneration-03-raw.png:frame_01",
-    "survey_walk_02": "asha-premium-run-regeneration-03-raw.png:frame_02",
-    "survey_walk_03": "asha-premium-run-regeneration-03-raw.png:frame_03",
-    "survey_walk_04": "asha-premium-run-regeneration-03-raw.png:frame_04",
-    "survey_walk_05": "asha-premium-run-regeneration-03-raw.png:frame_05",
-    "survey_walk_06": "asha-premium-run-regeneration-03-raw.png:frame_06",
-    "survey_walk_07": "asha-premium-run-regeneration-03-raw.png:frame_07",
-    "jump_00": "asha-premium-jump-regeneration-02-raw.png:frame_00",
-    "jump_01": "asha-premium-jump-regeneration-02-raw.png:frame_01",
-    "jump_02": "asha-premium-jump-regeneration-02-raw.png:frame_02",
-    "jump_03": "asha-premium-jump-regeneration-02-raw.png:frame_03",
-    "jump_04": "asha-premium-jump-regeneration-02-raw.png:frame_04",
-    "jump_05": "asha-premium-jump-regeneration-02-raw.png:frame_05",
-    "jump_06": "asha-premium-jump-regeneration-02-raw.png:frame_06",
-    "jump_07": "asha-premium-jump-regeneration-02-raw.png:frame_06",
-    "fall_00": "asha-premium-jump-regeneration-02-raw.png:frame_03",
-    "fall_01": "asha-premium-jump-regeneration-02-raw.png:frame_04",
-    "fall_02": "asha-premium-jump-regeneration-02-raw.png:frame_05",
-    "fall_03": "asha-premium-jump-regeneration-02-raw.png:frame_05",
-    "fall_04": "asha-premium-jump-regeneration-02-raw.png:frame_06",
-    "fall_05": "asha-premium-jump-regeneration-02-raw.png:frame_06",
-    "fall_06": "asha-premium-jump-regeneration-02-raw.png:frame_06",
-    "fall_07": "asha-premium-jump-regeneration-02-raw.png:frame_06",
-    "land_00": "asha-premium-jump-regeneration-02-raw.png:frame_05",
-    "land_01": "asha-premium-jump-regeneration-02-raw.png:frame_06",
-    "land_02": "asha-premium-jump-regeneration-02-raw.png:frame_06",
-    "land_03": "asha-premium-jump-regeneration-02-raw.png:frame_06",
-    "land_04": "asha-premium-jump-regeneration-02-raw.png:frame_06",
-    "land_05": "asha-premium-jump-regeneration-02-raw.png:frame_06",
-    "land_06": "asha-premium-jump-regeneration-02-raw.png:frame_06",
-    "land_07": "asha-premium-jump-regeneration-02-raw.png:frame_06",
-    "attack_pick_swing_00": "asha-premium-attack-regeneration-01-candidate-raw.png:frame_00",
-    "attack_pick_swing_01": "asha-premium-attack-regeneration-01-candidate-raw.png:frame_01",
-    "attack_pick_swing_02": "asha-premium-attack-regeneration-01-candidate-raw.png:frame_02",
-    "attack_pick_swing_03": "asha-premium-attack-regeneration-01-candidate-raw.png:frame_03",
-    "attack_pick_swing_04": "asha-premium-attack-regeneration-01-candidate-raw.png:frame_04",
-    "attack_pick_swing_05": "asha-premium-attack-regeneration-01-candidate-raw.png:frame_05",
-    "attack_pick_swing_06": "asha-premium-attack-regeneration-01-candidate-raw.png:frame_06",
-    "attack_pick_swing_07": "asha-premium-attack-regeneration-01-candidate-raw.png:frame_07",
-    "hurt_00": "asha-v5-damage-source.png:frame_00",
-    "hurt_01": "asha-v5-damage-source.png:frame_01",
-    "hurt_02": "asha-v5-damage-source.png:frame_02",
-    "hurt_03": "asha-v5-damage-source.png:frame_03",
-    "hurt_04": "asha-v5-damage-source.png:frame_04",
+    "idle_00": "asha-premium-idle-regeneration-02-reference-locked-raw.png:frame_00",
+    "idle_01": "asha-premium-idle-regeneration-02-reference-locked-raw.png:frame_01",
+    "idle_02": "asha-premium-idle-regeneration-02-reference-locked-raw.png:frame_02",
+    "idle_03": "asha-premium-idle-regeneration-02-reference-locked-raw.png:frame_03",
+    "idle_04": "asha-premium-idle-regeneration-02-reference-locked-raw.png:frame_04",
+    "idle_05": "asha-premium-idle-regeneration-02-reference-locked-raw.png:frame_05",
+    "idle_06": "asha-premium-idle-regeneration-02-reference-locked-raw.png:frame_06",
+    "idle_07": "asha-premium-idle-regeneration-02-reference-locked-raw.png:frame_07",
+    "walk_00": "asha-premium-run-regeneration-04-reference-locked-raw.png:frame_00",
+    "walk_01": "asha-premium-run-regeneration-04-reference-locked-raw.png:frame_01",
+    "walk_02": "asha-premium-run-regeneration-04-reference-locked-raw.png:frame_02",
+    "walk_03": "asha-premium-run-regeneration-04-reference-locked-raw.png:frame_03",
+    "walk_04": "asha-premium-run-regeneration-04-reference-locked-raw.png:frame_04",
+    "walk_05": "asha-premium-run-regeneration-04-reference-locked-raw.png:frame_05",
+    "walk_06": "asha-premium-run-regeneration-04-reference-locked-raw.png:frame_06",
+    "walk_07": "asha-premium-run-regeneration-04-reference-locked-raw.png:frame_07",
+    "run_00": "asha-premium-run-regeneration-04-reference-locked-raw.png:frame_00",
+    "run_01": "asha-premium-run-regeneration-04-reference-locked-raw.png:frame_01",
+    "run_02": "asha-premium-run-regeneration-04-reference-locked-raw.png:frame_02",
+    "run_03": "asha-premium-run-regeneration-04-reference-locked-raw.png:frame_03",
+    "run_04": "asha-premium-run-regeneration-04-reference-locked-raw.png:frame_04",
+    "run_05": "asha-premium-run-regeneration-04-reference-locked-raw.png:frame_05",
+    "run_06": "asha-premium-run-regeneration-04-reference-locked-raw.png:frame_06",
+    "run_07": "asha-premium-run-regeneration-04-reference-locked-raw.png:frame_07",
+    "run_08": "asha-premium-run-regeneration-04-reference-locked-raw.png:frame_02",
+    "run_09": "asha-premium-run-regeneration-04-reference-locked-raw.png:frame_05",
+    "survey_walk_00": "asha-premium-run-regeneration-04-reference-locked-raw.png:frame_00",
+    "survey_walk_01": "asha-premium-run-regeneration-04-reference-locked-raw.png:frame_01",
+    "survey_walk_02": "asha-premium-run-regeneration-04-reference-locked-raw.png:frame_02",
+    "survey_walk_03": "asha-premium-run-regeneration-04-reference-locked-raw.png:frame_03",
+    "survey_walk_04": "asha-premium-run-regeneration-04-reference-locked-raw.png:frame_04",
+    "survey_walk_05": "asha-premium-run-regeneration-04-reference-locked-raw.png:frame_05",
+    "survey_walk_06": "asha-premium-run-regeneration-04-reference-locked-raw.png:frame_06",
+    "survey_walk_07": "asha-premium-run-regeneration-04-reference-locked-raw.png:frame_07",
+    "jump_00": "asha-premium-jump-regeneration-03-reference-locked-raw.png:frame_00",
+    "jump_01": "asha-premium-jump-regeneration-03-reference-locked-raw.png:frame_01",
+    "jump_02": "asha-premium-jump-regeneration-03-reference-locked-raw.png:frame_02",
+    "jump_03": "asha-premium-jump-regeneration-03-reference-locked-raw.png:frame_03",
+    "jump_04": "asha-premium-jump-regeneration-03-reference-locked-raw.png:frame_04",
+    "jump_05": "asha-premium-jump-regeneration-03-reference-locked-raw.png:frame_05",
+    "jump_06": "asha-premium-jump-regeneration-03-reference-locked-raw.png:frame_06",
+    "jump_07": "asha-premium-jump-regeneration-03-reference-locked-raw.png:frame_07",
+    "fall_00": "asha-premium-jump-regeneration-03-reference-locked-raw.png:frame_03",
+    "fall_01": "asha-premium-jump-regeneration-03-reference-locked-raw.png:frame_04",
+    "fall_02": "asha-premium-jump-regeneration-03-reference-locked-raw.png:frame_05",
+    "fall_03": "asha-premium-jump-regeneration-03-reference-locked-raw.png:frame_05",
+    "fall_04": "asha-premium-jump-regeneration-03-reference-locked-raw.png:frame_06",
+    "fall_05": "asha-premium-jump-regeneration-03-reference-locked-raw.png:frame_07",
+    "fall_06": "asha-premium-jump-regeneration-03-reference-locked-raw.png:frame_07",
+    "fall_07": "asha-premium-jump-regeneration-03-reference-locked-raw.png:frame_07",
+    "land_00": "asha-premium-jump-regeneration-03-reference-locked-raw.png:frame_05",
+    "land_01": "asha-premium-jump-regeneration-03-reference-locked-raw.png:frame_06",
+    "land_02": "asha-premium-jump-regeneration-03-reference-locked-raw.png:frame_07",
+    "land_03": "asha-premium-jump-regeneration-03-reference-locked-raw.png:frame_07",
+    "land_04": "asha-premium-jump-regeneration-03-reference-locked-raw.png:frame_07",
+    "land_05": "asha-premium-jump-regeneration-03-reference-locked-raw.png:frame_07",
+    "land_06": "asha-premium-jump-regeneration-03-reference-locked-raw.png:frame_07",
+    "land_07": "asha-premium-jump-regeneration-03-reference-locked-raw.png:frame_07",
+    "attack_pick_swing_00": "asha-premium-attack-regeneration-03-reference-locked-raw.png:frame_00",
+    "attack_pick_swing_01": "asha-premium-attack-regeneration-03-reference-locked-raw.png:frame_01",
+    "attack_pick_swing_02": "asha-premium-attack-regeneration-03-reference-locked-raw.png:frame_02",
+    "attack_pick_swing_03": "asha-premium-attack-regeneration-03-reference-locked-raw.png:frame_03",
+    "attack_pick_swing_04": "asha-premium-attack-regeneration-03-reference-locked-raw.png:frame_04",
+    "attack_pick_swing_05": "asha-premium-attack-regeneration-03-reference-locked-raw.png:frame_05",
+    "attack_pick_swing_06": "asha-premium-attack-regeneration-03-reference-locked-raw.png:frame_06",
+    "attack_pick_swing_07": "asha-premium-attack-regeneration-03-reference-locked-raw.png:frame_07",
+    "hurt_00": "asha-premium-hurt-regeneration-02-reference-locked-raw.png:frame_00",
+    "hurt_01": "asha-premium-hurt-regeneration-02-reference-locked-raw.png:frame_01",
+    "hurt_02": "asha-premium-hurt-regeneration-02-reference-locked-raw.png:frame_02",
+    "hurt_03": "asha-premium-hurt-regeneration-02-reference-locked-raw.png:frame_03",
+    "hurt_04": "asha-premium-hurt-regeneration-02-reference-locked-raw.png:frame_04",
     "interact_00": "asha-v5-interact-source.png:frame_00",
     "interact_01": "asha-v5-interact-source.png:frame_01",
     "interact_02": "asha-v5-interact-source.png:frame_02",
@@ -1645,13 +1645,13 @@
     "push_pull_05": "asha-v5-interact-source.png:frame_03",
     "push_pull_06": "asha-v5-interact-source.png:frame_02",
     "push_pull_07": "asha-v5-interact-source.png:frame_01",
-    "attack_pick_swing_alt_00": "asha-premium-attack-alt-regeneration-02-chain-raw.png:frame_00",
-    "attack_pick_swing_alt_01": "asha-premium-attack-alt-regeneration-02-chain-raw.png:frame_01",
-    "attack_pick_swing_alt_02": "asha-premium-attack-alt-regeneration-02-chain-raw.png:frame_02",
-    "attack_pick_swing_alt_03": "asha-premium-attack-alt-regeneration-02-chain-raw.png:frame_03",
-    "attack_pick_swing_alt_04": "asha-premium-attack-alt-regeneration-02-chain-raw.png:frame_04",
-    "attack_pick_swing_alt_05": "asha-premium-attack-alt-regeneration-02-chain-raw.png:frame_05",
-    "attack_pick_swing_alt_06": "asha-premium-attack-alt-regeneration-02-chain-raw.png:frame_06",
-    "attack_pick_swing_alt_07": "asha-premium-attack-alt-regeneration-02-chain-raw.png:frame_07"
+    "attack_pick_swing_alt_00": "asha-premium-attack-alt-regeneration-04-reference-locked-raw.png:frame_00",
+    "attack_pick_swing_alt_01": "asha-premium-attack-alt-regeneration-04-reference-locked-raw.png:frame_01",
+    "attack_pick_swing_alt_02": "asha-premium-attack-alt-regeneration-04-reference-locked-raw.png:frame_02",
+    "attack_pick_swing_alt_03": "asha-premium-attack-alt-regeneration-04-reference-locked-raw.png:frame_03",
+    "attack_pick_swing_alt_04": "asha-premium-attack-alt-regeneration-04-reference-locked-raw.png:frame_04",
+    "attack_pick_swing_alt_05": "asha-premium-attack-alt-regeneration-04-reference-locked-raw.png:frame_05",
+    "attack_pick_swing_alt_06": "asha-premium-attack-alt-regeneration-04-reference-locked-raw.png:frame_06",
+    "attack_pick_swing_alt_07": "asha-premium-attack-alt-regeneration-04-reference-locked-raw.png:frame_07"
   }
 }

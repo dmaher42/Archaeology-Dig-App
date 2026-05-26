@@ -1321,11 +1321,6 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
   const [activeZoneChallenge, setActiveZoneChallenge] = useState(null);
   const [zoneChallengeFeedback, setZoneChallengeFeedback] = useState(null);
 
-  useEffect(() => loadExcavationMapAssetPack({
-    baseUrl: import.meta.env.BASE_URL || '/',
-    onUpdate: setExcavationMapAssets,
-  }), []);
-
   useEffect(() => {
     window.DEBUG_EXPEDITION = { setExpeditionStage, setBaseCampOpen, setSelectedExpedition };
   }, [setExpeditionStage, setBaseCampOpen, setSelectedExpedition]);
@@ -1353,6 +1348,24 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
   const gatewayPackId = stageContent.gatewayPackId;
   const mapUiPackId = stageContent.mapUiPackId;
   const challengeUiPackId = stageContent.challengeUiPackId;
+  const excavationAssetPackIds = useMemo(() => (
+    [...new Set([
+      roomMapPackId,
+      markerPackId,
+      gatewayPackId,
+      mapUiPackId,
+      challengeUiPackId,
+    ].filter(Boolean))]
+  ), [challengeUiPackId, gatewayPackId, mapUiPackId, markerPackId, roomMapPackId]);
+
+  useEffect(() => {
+    if (!selectedExpedition || expeditionStage !== 'excavation') return undefined;
+    return loadExcavationMapAssetPack({
+      baseUrl: import.meta.env.BASE_URL || '/',
+      packIds: excavationAssetPackIds,
+      onUpdate: setExcavationMapAssets,
+    });
+  }, [excavationAssetPackIds, expeditionStage, selectedExpedition]);
 
   const trainingCivilisations = useMemo(() => (
     BUREAU_CASES

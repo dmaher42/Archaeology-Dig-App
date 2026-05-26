@@ -319,6 +319,28 @@ const ENEMY_SPRITE_PACKS = {
   },
 };
 
+export const EGYPT_JOURNEY_ENEMY_SPRITE_PACK_IDS = [
+  'small',
+  'looter',
+  'looterCaptain',
+  'bat',
+  'scarab',
+  'snake',
+  'scorpion',
+  'sandWisp',
+  'cursedStatue',
+  'stoneGuardianEnemy',
+  'mummy',
+  'besGuardian',
+];
+
+export const CHINA_JOURNEY_ENEMY_SPRITE_PACK_IDS = [
+  'chinaEnemyGuardian',
+  'chinaRiverCrab',
+  'chinaWatchtowerSentry',
+  'chinaClayGuardianEnemy',
+];
+
 const getAtlasImagePath = (atlasPath, imageName) => {
   if (!imageName) return null;
   if (imageName.startsWith('/') || imageName.startsWith('assets/')) return imageName;
@@ -337,9 +359,19 @@ export const createEnemySpriteState = () => ({
   atlasPath: ENEMY_SPRITE_ATLAS_JSON,
 });
 
+const getRequestedEnemySpritePacks = (packIds = null) => {
+  if (!Array.isArray(packIds) || packIds.length === 0) {
+    return Object.entries(ENEMY_SPRITE_PACKS);
+  }
+  const requested = new Set(packIds.filter(Boolean));
+  return Object.entries(ENEMY_SPRITE_PACKS).filter(([packId]) => requested.has(packId));
+};
+
 export const getMissingEnemySpriteAssets = (assets) => {
   if (assets?.packs && Object.keys(assets.packs).length > 0) {
-    return Object.entries(ENEMY_SPRITE_PACKS).flatMap(([packId, packConfig]) => {
+    return Object.entries(ENEMY_SPRITE_PACKS)
+      .filter(([packId]) => assets.packs?.[packId])
+      .flatMap(([packId, packConfig]) => {
       const regions = assets.packs?.[packId]?.atlas?.regions || {};
       return packConfig.expectedKeys
         .filter(key => !regions[key])
@@ -350,9 +382,10 @@ export const getMissingEnemySpriteAssets = (assets) => {
   return EXPECTED_ENEMY_SPRITE_KEYS.filter(key => !regions[key]);
 };
 
-export const loadEnemySpritePack = ({ baseUrl = '/', onUpdate }) => {
+export const loadEnemySpritePack = ({ baseUrl = '/', onUpdate, packIds = null }) => {
   let cancelled = false;
   const versionQuery = `v=${encodeURIComponent(ENEMY_SPRITE_ATLAS_VERSION)}`;
+  const packEntriesToLoad = getRequestedEnemySpritePacks(packIds);
 
   const loadSinglePack = ([packId, packConfig]) => {
     const atlasPath = `${baseUrl}${packConfig.atlasPath}`;
@@ -407,19 +440,20 @@ export const loadEnemySpritePack = ({ baseUrl = '/', onUpdate }) => {
       ]);
   };
 
-  Promise.all(Object.entries(ENEMY_SPRITE_PACKS).map(loadSinglePack)).then((packEntries) => {
+  Promise.all(packEntriesToLoad.map(loadSinglePack)).then((packEntries) => {
     if (cancelled) return;
     const packs = Object.fromEntries(packEntries);
     const smallPack = packs.small;
+    const loadedPacks = Object.values(packs);
     onUpdate?.({
       ...createEnemySpriteState(),
       image: smallPack?.image || null,
       atlas: smallPack?.atlas || null,
       packs,
-      loaded: Object.values(packs).some(pack => pack.loaded),
-      ready: Object.values(packs).every(pack => pack.ready && !pack.failed),
-      failed: Object.values(packs).some(pack => pack.failed),
-      error: Object.values(packs).filter(pack => pack.error).map(pack => pack.error).join(' | ') || null,
+      loaded: loadedPacks.some(pack => pack.loaded),
+      ready: loadedPacks.length > 0 && loadedPacks.every(pack => pack.ready && !pack.failed),
+      failed: loadedPacks.some(pack => pack.failed),
+      error: loadedPacks.filter(pack => pack.error).map(pack => pack.error).join(' | ') || null,
       atlasPath: ENEMY_SPRITE_ATLAS_JSON,
     });
   });

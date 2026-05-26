@@ -130,6 +130,7 @@ import {
   DESERT_BACKGROUND_DEPTH_MODE,
   DIG_SITE_BACKGROUND_ATLAS_JSON,
   drawDesertBackgroundLayer,
+  EGYPT_JOURNEY_BACKGROUND_SECTION_IDS,
   ESCAPE_BACKGROUND_ATLAS_JSON,
   getMissingSectionBackgroundAssets,
   getSectionBackgroundAssets,
@@ -144,7 +145,9 @@ import {
   BOSS_SPRITE_ATLAS_VERSION,
   CHINA_CLAY_GUARDIAN_BOSS_ID,
   CHINA_CLAY_GUARDIAN_SPRITE_ATLAS_JSON,
+  CHINA_JOURNEY_BOSS_SPRITE_PACK_IDS,
   createBossSpriteState,
+  EGYPT_JOURNEY_BOSS_SPRITE_PACK_IDS,
   getAncientConstructDrawBox,
   getAncientConstructSpriteFrame,
   getBossSpritePack,
@@ -165,7 +168,9 @@ import {
 
 import {
   CHINA_ENEMY_GUARDIAN_SPRITE_ATLAS_JSON,
+  CHINA_JOURNEY_ENEMY_SPRITE_PACK_IDS,
   createEnemySpriteState,
+  EGYPT_JOURNEY_ENEMY_SPRITE_PACK_IDS,
   ENEMY_SPRITE_ATLAS_JSON,
   ENEMY_SPRITE_ATLAS_VERSION,
   EXPECTED_CHINA_ENEMY_GUARDIAN_SPRITE_KEYS,
@@ -251,6 +256,8 @@ const DEFAULT_BOSS_ATTACK_PHASES = [
     color: '#facc15',
   },
 ];
+
+const INITIAL_BOSS_SPRITE_LOAD_DELAY_MS = 9000;
 
 const CHINA_SECTION_COPY = {
   'desert-entry': {
@@ -1089,6 +1096,7 @@ const ENEMY_TYPE_STAKE_MESSAGES = {
 };
 
 const BOSS_DOMAIN_ENEMY_FOCUS_PADDING = 96;
+const SCARAB_QUEEN_ENEMY_FOCUS_PADDING = 220;
 const SCARAB_QUEEN_CINEMATIC_INTRO_SECONDS = 5.2;
 const SCARAB_QUEEN_TRIGGER_LOOTER_OFFSET = 260;
 const SCARAB_QUEEN_CINEMATIC_CAMERA_ANCHOR_RATIO = 0.72;
@@ -1112,8 +1120,11 @@ const getScarabQueenCinematicBeat = (introProgress) => {
 
 const isNormalEnemyInsideBossFocus = (enemy, bossDomain) => {
   if (!enemy || !bossDomain) return false;
-  const focusStart = (bossDomain.arenaStart ?? 0) - BOSS_DOMAIN_ENEMY_FOCUS_PADDING;
-  const focusEnd = (bossDomain.arenaEnd ?? WORLD_WIDTH) + BOSS_DOMAIN_ENEMY_FOCUS_PADDING;
+  const focusPadding = bossDomain.bossId === SCARAB_SEAL_TRIGGER.bossId
+    ? SCARAB_QUEEN_ENEMY_FOCUS_PADDING
+    : BOSS_DOMAIN_ENEMY_FOCUS_PADDING;
+  const focusStart = (bossDomain.arenaStart ?? 0) - focusPadding;
+  const focusEnd = (bossDomain.arenaEnd ?? WORLD_WIDTH) + focusPadding;
   const enemyCenter = enemy.x + enemy.width / 2;
   return enemyCenter >= focusStart && enemyCenter <= focusEnd;
 };
@@ -1816,8 +1827,32 @@ const shouldGroundLockAtmosphereProp = (prop, propDepth) => (
   && (propDepth === 'route-edge' || isGroundLockedAtmosphereProp(prop))
 );
 
+const PROP_PLACEMENT_PRESETS = {
+  desertEntryGroundedRuin: {
+    depth: 'grounded',
+    tint: 'buried-stone',
+    sceneBlend: 'desert-entry-sand',
+    groundPlaneOffset: -44,
+    assetContactYRatio: 1,
+    burialDepth: 0.24,
+    shadowOpacity: 0.34,
+    shadowHeight: 8,
+    sandOverlapHeight: 14,
+    sandMoundHeight: 10,
+    groundPebbles: 3,
+    alpha: 0.8,
+    colorGradeFilter: 'sepia(18%) saturate(74%) brightness(80%) contrast(88%)',
+  },
+};
+
+const getStoryPropPlacementPreset = (prop) => (
+  prop?.placementPreset ? PROP_PLACEMENT_PRESETS[prop.placementPreset] || null : null
+);
+
 const getStoryPropDepth = (prop) => {
-  if (prop.depth === 'route-edge') return 'route-edge';
+  if (['background', 'midground', 'grounded', 'route-edge'].includes(prop.depth)) return prop.depth;
+  const placementPreset = getStoryPropPlacementPreset(prop);
+  if (placementPreset?.depth) return placementPreset.depth;
   if (isGroundLockedAtmosphereProp(prop)) return 'grounded';
   return STORY_PROP_GROUNDING_OVERRIDES[prop.id]?.depth
     || (PROP_GROUNDING_CONFIG[prop.type] || {}).depth
@@ -1829,6 +1864,7 @@ const finiteNumber = (value, fallback) => (Number.isFinite(value) ? value : fall
 const resolvePropGroundingSettings = (config = {}) => {
   const width = finiteNumber(config.width, 72);
   const height = finiteNumber(config.height, 72);
+  const contactRatio = clamp(finiteNumber(config.assetContactYRatio, 1), 0.48, 1.08);
   const burialRatio = clamp(finiteNumber(config.burialDepth, finiteNumber(config.bury, 0.12)), 0, 0.72);
   const dustScale = finiteNumber(config.dust, 0.72);
   const defaultSandOverlap = Math.max(6, Math.min(height * 0.58, height * burialRatio));
@@ -1841,6 +1877,7 @@ const resolvePropGroundingSettings = (config = {}) => {
   const shadowHeight = finiteNumber(config.shadowHeight, Math.max(5, shadowWidth / 12));
   const shadowOpacity = clamp(finiteNumber(config.shadowOpacity, finiteNumber(config.shadow, 0.22)), 0, 0.42);
   return {
+    contactRatio,
     burialRatio,
     sandOverlapHeight,
     sandMoundWidth: finiteNumber(config.sandMoundWidth, width * Math.max(0.72, dustScale)),
@@ -1854,8 +1891,8 @@ const resolvePropGroundingSettings = (config = {}) => {
 };
 
 const DECORATIVE_PROP_LAYER_MODE = 'background-midground-grounded-depth-v3';
-const PROP_DEPTH_TUNING_VERSION = 'journey-prop-grounding-local-sand-occlusion-2026-05-26';
-const PROP_GROUNDING_INTEGRATION_VERSION = 'contact-shadow-local-sand-occlusion-v1';
+const PROP_DEPTH_TUNING_VERSION = 'journey-grounded-placement-presets-2026-05-26';
+const PROP_GROUNDING_INTEGRATION_VERSION = 'grounded-plane-preset-contact-shadow-local-sand-v2';
 const ROUTE_GROUND_VISUAL_MODE = 'edge-and-local-aprons-no-full-width-haze';
 const ROUTE_GROUND_HAZE_FIX_VERSION = 'route-ground-no-bottom-haze-2026-05-21';
 const DRAW_JOURNEY_FLAG_MARKERS = false;
@@ -2368,6 +2405,23 @@ export default function ExpeditionJourney({
     if (activeMiniBoss) return 'boss';
     return SECTION_MUSIC_CUES[section.id] || 'desert';
   })();
+  const scopedJourneyAssetPacks = useMemo(() => {
+    const isChinaJourney = targetCivilisation === 'Ancient China'
+      || environmentPackId === ENVIRONMENT_ASSET_PACK_IDS.CHINA_RIVER_VALLEY
+      || backgroundPackId === 'china-river-valley';
+    return {
+      backgroundSectionIds: isChinaJourney
+        ? ['china-river-valley']
+        : EGYPT_JOURNEY_BACKGROUND_SECTION_IDS,
+      enemyPackIds: isChinaJourney
+        ? CHINA_JOURNEY_ENEMY_SPRITE_PACK_IDS
+        : EGYPT_JOURNEY_ENEMY_SPRITE_PACK_IDS,
+      bossPackIds: isChinaJourney
+        ? CHINA_JOURNEY_BOSS_SPRITE_PACK_IDS
+        : EGYPT_JOURNEY_BOSS_SPRITE_PACK_IDS,
+      loadEgyptOnlyPacks: !isChinaJourney,
+    };
+  }, [backgroundPackId, environmentPackId, targetCivilisation]);
 
   const getSectionDisplayName = useCallback((sectionId) => (
     backgroundPackId === 'china-river-valley'
@@ -2512,31 +2566,44 @@ export default function ExpeditionJourney({
     },
   }), [environmentPackId, syncHud]);
 
-  useEffect(() => loadEnvironmentAssetPack({
-    baseUrl: import.meta.env.BASE_URL,
-    packId: ENVIRONMENT_ASSET_PACK_IDS.EGYPT_SACRED_TRAPS,
-    onUpdate: (assets) => {
-      sacredTrapEnvironmentAssetsRef.current = assets;
-      syncHud();
-    },
-  }), [syncHud]);
+  useEffect(() => {
+    if (!scopedJourneyAssetPacks.loadEgyptOnlyPacks) {
+      sacredTrapEnvironmentAssetsRef.current = createEnvironmentAssetState(ENVIRONMENT_ASSET_PACK_IDS.EGYPT_SACRED_TRAPS);
+      return undefined;
+    }
+    return loadEnvironmentAssetPack({
+      baseUrl: import.meta.env.BASE_URL,
+      packId: ENVIRONMENT_ASSET_PACK_IDS.EGYPT_SACRED_TRAPS,
+      onUpdate: (assets) => {
+        sacredTrapEnvironmentAssetsRef.current = assets;
+        syncHud();
+      },
+    });
+  }, [scopedJourneyAssetPacks.loadEgyptOnlyPacks, syncHud]);
 
-  useEffect(() => loadEnvironmentAssetPack({
-    baseUrl: import.meta.env.BASE_URL,
-    packId: ENVIRONMENT_ASSET_PACK_IDS.EGYPT_ATMOSPHERE,
-    onUpdate: (assets) => {
-      atmosphereEnvironmentAssetsRef.current = assets;
-      syncHud();
-    },
-  }), [syncHud]);
+  useEffect(() => {
+    if (!scopedJourneyAssetPacks.loadEgyptOnlyPacks) {
+      atmosphereEnvironmentAssetsRef.current = createEnvironmentAssetState(ENVIRONMENT_ASSET_PACK_IDS.EGYPT_ATMOSPHERE);
+      return undefined;
+    }
+    return loadEnvironmentAssetPack({
+      baseUrl: import.meta.env.BASE_URL,
+      packId: ENVIRONMENT_ASSET_PACK_IDS.EGYPT_ATMOSPHERE,
+      onUpdate: (assets) => {
+        atmosphereEnvironmentAssetsRef.current = assets;
+        syncHud();
+      },
+    });
+  }, [scopedJourneyAssetPacks.loadEgyptOnlyPacks, syncHud]);
 
   useEffect(() => loadDesertBackgroundAssetPack({
     baseUrl: import.meta.env.BASE_URL,
+    sectionIds: scopedJourneyAssetPacks.backgroundSectionIds,
     onUpdate: (assets) => {
       desertBackgroundAssetsRef.current = assets;
       syncHud();
     },
-  }), [syncHud]);
+  }), [scopedJourneyAssetPacks.backgroundSectionIds, syncHud]);
 
   useEffect(() => loadDynamicWorldAssetPack({
     baseUrl: import.meta.env.BASE_URL,
@@ -2548,19 +2615,31 @@ export default function ExpeditionJourney({
 
   useEffect(() => loadEnemySpritePack({
     baseUrl: import.meta.env.BASE_URL,
+    packIds: scopedJourneyAssetPacks.enemyPackIds,
     onUpdate: (assets) => {
       enemySpriteAssetsRef.current = assets;
       syncHud();
     },
-  }), [syncHud]);
+  }), [scopedJourneyAssetPacks.enemyPackIds, syncHud]);
 
-  useEffect(() => loadBossSpritePack({
-    baseUrl: import.meta.env.BASE_URL,
-    onUpdate: (assets) => {
-      bossSpriteAssetsRef.current = assets;
-      syncHud();
-    },
-  }), [syncHud]);
+  useEffect(() => {
+    let cleanup = null;
+    const timer = window.setTimeout(() => {
+      cleanup = loadBossSpritePack({
+        baseUrl: import.meta.env.BASE_URL,
+        packIds: scopedJourneyAssetPacks.bossPackIds,
+        onUpdate: (assets) => {
+          bossSpriteAssetsRef.current = assets;
+          syncHud();
+        },
+      });
+    }, INITIAL_BOSS_SPRITE_LOAD_DELAY_MS);
+
+    return () => {
+      window.clearTimeout(timer);
+      cleanup?.();
+    };
+  }, [scopedJourneyAssetPacks.bossPackIds, syncHud]);
 
   useEffect(() => loadCollectibleSpritePack({
     baseUrl: import.meta.env.BASE_URL,
@@ -4884,6 +4963,15 @@ export default function ExpeditionJourney({
   }, [drawRouteGroundApron]);
 
   const drawPropGroundContact = useCallback((ctx, x, anchorY, propSize, sectionId, grounding) => {
+    drawRouteGroundApron(
+      ctx,
+      x,
+      anchorY + 1,
+      grounding.sandMoundWidth,
+      sectionId,
+      propSize.depth === 'background' ? 0.22 : 0.3,
+      Math.round(grounding.seed),
+    );
     drawContactShadow(
       ctx,
       x,
@@ -4892,15 +4980,6 @@ export default function ExpeditionJourney({
       grounding.shadowOpacity,
       1.2,
       { height: grounding.shadowHeight, color: 'rgba(31, 19, 8, 0.96)' },
-    );
-    drawRouteGroundApron(
-      ctx,
-      x,
-      anchorY + 1,
-      grounding.sandMoundWidth,
-      sectionId,
-      propSize.depth === 'background' ? 0.34 : 0.48,
-      Math.round(grounding.seed),
     );
   }, [drawContactShadow, drawRouteGroundApron]);
 
@@ -6192,9 +6271,11 @@ export default function ExpeditionJourney({
       || atmospherePropAssetKey
       || getEnvironmentAssetKeyForStoryProp(propForAsset, environmentAssetsRef.current.packId);
     if (propAssetKey) {
+      const placementPreset = getStoryPropPlacementPreset(propForAsset) || {};
       const propSize = {
         ...(PROP_GROUNDING_CONFIG[propForAsset.type] || { width: 72, height: 72, yOffset: 0, alpha: 0.78, depth: 'midground', tint: 'warm' }),
         ...(STORY_PROP_GROUNDING_OVERRIDES[prop.id] || {}),
+        ...placementPreset,
         ...(Number.isFinite(propForAsset.width) ? { width: propForAsset.width } : {}),
         ...(Number.isFinite(propForAsset.height) ? { height: propForAsset.height } : {}),
         ...(Number.isFinite(propForAsset.yOffset) ? { yOffset: propForAsset.yOffset } : {}),
@@ -6210,6 +6291,9 @@ export default function ExpeditionJourney({
         ...(Number.isFinite(propForAsset.sandOverlapHeight) ? { sandOverlapHeight: propForAsset.sandOverlapHeight } : {}),
         ...(Number.isFinite(propForAsset.sandMoundWidth) ? { sandMoundWidth: propForAsset.sandMoundWidth } : {}),
         ...(Number.isFinite(propForAsset.sandMoundHeight) ? { sandMoundHeight: propForAsset.sandMoundHeight } : {}),
+        ...(Number.isFinite(propForAsset.groundPlaneY) ? { groundPlaneY: propForAsset.groundPlaneY } : {}),
+        ...(Number.isFinite(propForAsset.groundPlaneOffset) ? { groundPlaneOffset: propForAsset.groundPlaneOffset } : {}),
+        ...(Number.isFinite(propForAsset.assetContactYRatio) ? { assetContactYRatio: propForAsset.assetContactYRatio } : {}),
         ...(Number.isFinite(propForAsset.sandSeed) ? { sandSeed: propForAsset.sandSeed } : {}),
         ...(Number.isFinite(propForAsset.groundPebbles) ? { groundPebbles: propForAsset.groundPebbles } : {}),
         ...(Number.isFinite(propForAsset.zIndex) ? { zIndex: propForAsset.zIndex } : {}),
@@ -6217,6 +6301,7 @@ export default function ExpeditionJourney({
         ...(propForAsset.depth ? { depth: propForAsset.depth } : {}),
         ...(propForAsset.tint ? { tint: propForAsset.tint } : {}),
         ...(propForAsset.sceneBlend ? { sceneBlend: propForAsset.sceneBlend } : {}),
+        ...(propForAsset.colorGradeFilter ? { colorGradeFilter: propForAsset.colorGradeFilter } : {}),
       };
       if (Number.isFinite(propSize.scale)) {
         propSize.width *= propSize.scale;
@@ -6236,15 +6321,25 @@ export default function ExpeditionJourney({
           ? atmosphereEnvironmentAssetsRef.current
           : environmentAssetsRef.current;
       const drawX = x - propSize.width / 2;
-      const rawAnchorY = prop.y + (propSize.yOffset || 0);
-      const anchorY = shouldGroundLock
-        ? Math.max(rawAnchorY, GROUND_Y - ATMOSPHERE_GROUND_LOCK_MARGIN)
-        : rawAnchorY;
-      const drawY = anchorY - propSize.height;
       const propGrounding = resolvePropGroundingSettings({ ...propSize, x: propForAsset.x });
+      const rawAnchorY = prop.y + (propSize.yOffset || 0);
+      const explicitGroundY = Number.isFinite(propSize.groundPlaneY)
+        ? propSize.groundPlaneY
+        : Number.isFinite(propSize.groundPlaneOffset)
+          ? GROUND_Y + propSize.groundPlaneOffset
+          : null;
+      const anchorY = explicitGroundY ?? (shouldGroundLock
+        ? Math.max(rawAnchorY, GROUND_Y - ATMOSPHERE_GROUND_LOCK_MARGIN)
+        : rawAnchorY);
+      const drawY = anchorY - propSize.height * propGrounding.contactRatio;
       drawPropGroundContact(ctx, x, anchorY, propSize, section.id, propGrounding);
       ctx.globalAlpha = propSize.alpha ?? 0.82;
-      if (propSize.sceneBlend === 'desert-entry-sand') {
+      if (propSize.colorGradeFilter) {
+        ctx.filter = propSize.colorGradeFilter;
+        ctx.shadowColor = 'rgba(57, 32, 12, 0.24)';
+        ctx.shadowBlur = 3;
+        ctx.shadowOffsetY = 2;
+      } else if (propSize.sceneBlend === 'desert-entry-sand') {
         ctx.filter = 'sepia(12%) saturate(88%) brightness(92%) contrast(98%)';
         ctx.shadowColor = 'rgba(57, 32, 12, 0.28)';
         ctx.shadowBlur = 4;
@@ -9811,6 +9906,11 @@ export default function ExpeditionJourney({
 
     current.enemies.forEach((enemy) => {
       if (!isEntityActiveInScene(enemy, current)) return;
+      const activeBossDomain = current.bossDomain
+        && !current.defeatedMiniBosses.has(current.bossDomain.bossId)
+        ? current.bossDomain
+        : null;
+      if (!enemy.defeated && isNormalEnemyInsideBossFocus(enemy, activeBossDomain)) return;
       const ex = worldToScreenX(enemy.x, cameraX);
       if (!isHorizontallyVisible(enemy.x, enemy.width, cameraX, 50)) return;
       if (!enemy.defeated && enemy.encounterRole && current.renderStats) {
@@ -12965,6 +13065,14 @@ export default function ExpeditionJourney({
   const activeHudFirstMissing = activeHudGateGuidance?.gateMissingRequirements?.[0] || null;
   const staminaWarningState = getStaminaWarningState(gameState);
   const staminaPercent = Math.min(100, Math.round((gameState.resources.stamina / (gameState.upgradeEffects?.maxStamina || 100)) * 100));
+  const timePercent = Math.min(100, Math.max(0, Math.round((gameState.resources.time / 900) * 100)));
+  const timeWarningState = gameState.resources.time <= 0
+    ? 'empty'
+    : gameState.resources.time <= 120
+      ? 'low'
+      : gameState.staminaFeedbackTimer > 0 && gameState.lastStaminaDelta === 0
+        ? 'recent-loss'
+        : 'stable';
   const activeGuardianChallenge = guardianChallengeUi || gameState.activeGuardianChallenge;
   const activeGuardianQuestion = activeGuardianChallenge?.questions?.[activeGuardianChallenge.currentIndex] || null;
   const activeOpeningCinematicLine = getOpeningCinematicLine(gameState.openingCinematic);
@@ -13131,7 +13239,7 @@ export default function ExpeditionJourney({
               </div>
 
               <div className="journey-floating-hud-cluster journey-floating-hud-meters">
-                <div className={`journey-floating-hud-meter ${staminaWarningState !== 'stable' ? 'stamina-alert' : ''}`}>
+                <div className={`journey-floating-hud-meter ${staminaWarningState !== 'stable' ? `stamina-alert stamina-${staminaWarningState}` : ''}`}>
                   <div className="journey-floating-hud-meter-label">
                     <Gauge size={15} />
                     <span>Stamina</span>
@@ -13142,18 +13250,15 @@ export default function ExpeditionJourney({
                       <span className="stamina-delta">-{Math.abs(gameState.lastStaminaDelta)}</span>
                     )}
                   </div>
-                  {staminaWarningState === 'low' && (
-                    <div className="stamina-warning-text">{LOW_STAMINA_WARNING}</div>
-                  )}
                 </div>
 
-                <div className="journey-floating-hud-meter">
+                <div className={`journey-floating-hud-meter ${timeWarningState !== 'stable' ? `time-alert time-${timeWarningState}` : ''}`}>
                   <div className="journey-floating-hud-meter-label">
                     <Sparkles size={15} />
                     <span>Time</span>
                   </div>
                   <div className="journey-floating-hud-bar">
-                    <div className="journey-floating-hud-fill time-fill" style={{ width: `${(gameState.resources.time / 900) * 100}%` }} />
+                    <div className="journey-floating-hud-fill time-fill" style={{ width: `${timePercent}%` }} />
                   </div>
                 </div>
               </div>

@@ -3,6 +3,10 @@ import {
   Search, FileText, Pickaxe, MapPin, Beaker, CheckCircle2
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import {
+  createDefaultTrainingGridTiles,
+  normalizeTrainingState,
+} from '../utils/gameLogic';
 
 const TRAINING_STAGES = [
   { id: 'survey', title: 'Survey', description: 'Observe the surface for clues before digging. Find an area of interest.', icon: Search },
@@ -12,37 +16,29 @@ const TRAINING_STAGES = [
   { id: 'lab', title: 'Lab', description: 'Analyze the artifact to determine its identity and purpose.', icon: Beaker },
 ];
 
-export function TrainingPhase({ onBackToMenu }) {
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+export function TrainingPhase({
+  initialTrainingState,
+  onTrainingStateChange,
+  onBackToMenu,
+  onBeginExpedition,
+}) {
+  const getInitialTrainingState = () => normalizeTrainingState(initialTrainingState);
+
+  const [currentStepIndex, setCurrentStepIndex] = useState(() => getInitialTrainingState().currentStepIndex);
   
-  const [isSurveyed, setIsSurveyed] = useState(false);
-  const [isGridded, setIsGridded] = useState(false);
+  const [isSurveyed, setIsSurveyed] = useState(() => getInitialTrainingState().isSurveyed);
+  const [isGridded, setIsGridded] = useState(() => getInitialTrainingState().isGridded);
   
   // Minesweeper state
-  const [gridTiles, setGridTiles] = useState(() => {
-    const tiles = Array(16).fill(null).map((_, i) => ({
-      id: i,
-      isRevealed: false,
-      isMarked: false,
-      isArtifact: i === 10, // Row 2, Col 2 (C3)
-      adjacentCount: 0
-    }));
-    // Neighbors of 10 in 4x4 (col 0-3, row 0-3)
-    // index 10 is row 2, col 2.
-    const neighbors = [5, 6, 7, 9, 11, 13, 14, 15];
-    neighbors.forEach(n => {
-      if(tiles[n]) tiles[n].adjacentCount = 1;
-    });
-    return tiles;
-  });
+  const [gridTiles, setGridTiles] = useState(() => getInitialTrainingState().gridTiles || createDefaultTrainingGridTiles());
   
   const [selectedTool, setSelectedTool] = useState(null); 
   const [showConfidenceModal, setShowConfidenceModal] = useState(false);
   const [targetIndex, setTargetIndex] = useState(null);
-  const [artifactExtracted, setArtifactExtracted] = useState(false);
+  const [artifactExtracted, setArtifactExtracted] = useState(() => getInitialTrainingState().artifactExtracted);
 
-  const [mappedCoordinate, setMappedCoordinate] = useState(null);
-  const [labHypothesis, setLabHypothesis] = useState(null);
+  const [mappedCoordinate, setMappedCoordinate] = useState(() => getInitialTrainingState().mappedCoordinate);
+  const [labHypothesis, setLabHypothesis] = useState(() => getInitialTrainingState().labHypothesis);
   
   const [feedback, setFeedback] = useState('');
   const [feedbackType, setFeedbackType] = useState('info'); // info, success, error
@@ -51,6 +47,27 @@ export function TrainingPhase({ onBackToMenu }) {
 
   const currentStage = TRAINING_STAGES[currentStepIndex];
   const isComplete = currentStepIndex === 5; 
+
+  useEffect(() => {
+    onTrainingStateChange?.({
+      currentStepIndex,
+      isSurveyed,
+      isGridded,
+      gridTiles,
+      artifactExtracted,
+      mappedCoordinate,
+      labHypothesis,
+    });
+  }, [
+    artifactExtracted,
+    currentStepIndex,
+    gridTiles,
+    isGridded,
+    isSurveyed,
+    labHypothesis,
+    mappedCoordinate,
+    onTrainingStateChange,
+  ]);
 
   useEffect(() => {
     if (isComplete && !didCelebrateRef.current) {
@@ -417,7 +434,7 @@ export function TrainingPhase({ onBackToMenu }) {
               </div>
             </div>
             <div className="training-success-footer" style={{ marginTop: '2rem' }}>
-              <button className="btn training-back-btn pulse-glow" type="button" onClick={onBackToMenu}>
+              <button className="btn training-back-btn pulse-glow" type="button" onClick={onBeginExpedition}>
                 Begin Your First Expedition
               </button>
             </div>

@@ -43,7 +43,7 @@ FRAME_PLAN = [
 ]
 
 SEQUENCES = {
-    "scarabQueenWalk": ("run", 8),
+    "scarabQueenWalk": ("walk", 8),
     "scarabQueenRun": ("run", 8),
     "scarabQueenWindup": ("windup", 6),
     "scarabQueenAcidSpit": ("acidSpit", 8),
@@ -276,12 +276,12 @@ def clean_fallen_pose(sprite: Image.Image) -> Image.Image:
 
 def main() -> None:
     source_frames = {name: load_sheet_frames(name) for name in SHEET_SPECS}
-    source_frames["death"] = [clean_fallen_pose(source_frames["death"][7])] * 8
+    source_frames["death"] = [clean_fallen_pose(frame) for frame in source_frames["death"]]
     regions = {}
     cells: list[tuple[str, Image.Image]] = []
 
     for frame_key, source_name, frame_index in FRAME_PLAN:
-      cells.append((frame_key, normalize_frame(source_frames[source_name][frame_index], frame_key)))
+        cells.append((frame_key, normalize_frame(source_frames[source_name][frame_index], frame_key)))
 
     for sequence_name, (source_name, count) in SEQUENCES.items():
         for index in range(count):

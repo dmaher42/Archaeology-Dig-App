@@ -16,11 +16,12 @@ SOURCE_RUN_IMAGE = SOURCE_DIR / "asha-new-run-raw.png"
 SOURCE_JUMP_IMAGE = SOURCE_DIR / "asha-new-jump-raw.png"
 SOURCE_ATTACK_IMAGE = SOURCE_DIR / "asha-new-attack-raw.png"
 SOURCE_GENERATED_GRID_IMAGE = SOURCE_DIR / "asha-new-generated-grid-raw.png"
-SOURCE_PREMIUM_IDLE_IMAGE = SOURCE_DIR / "asha-premium-idle-regeneration-01-raw.png"
-SOURCE_PREMIUM_RUN_IMAGE = SOURCE_DIR / "asha-premium-run-regeneration-03-raw.png"
-SOURCE_PREMIUM_JUMP_IMAGE = SOURCE_DIR / "asha-premium-jump-regeneration-02-raw.png"
-SOURCE_PREMIUM_ATTACK_IMAGE = SOURCE_DIR / "asha-premium-attack-regeneration-01-candidate-raw.png"
-SOURCE_PREMIUM_ATTACK_ALT_IMAGE = SOURCE_DIR / "asha-premium-attack-alt-regeneration-02-chain-raw.png"
+SOURCE_PREMIUM_IDLE_IMAGE = SOURCE_DIR / "asha-premium-idle-regeneration-02-reference-locked-raw.png"
+SOURCE_PREMIUM_RUN_IMAGE = SOURCE_DIR / "asha-premium-run-regeneration-04-reference-locked-raw.png"
+SOURCE_PREMIUM_JUMP_IMAGE = SOURCE_DIR / "asha-premium-jump-regeneration-03-reference-locked-raw.png"
+SOURCE_PREMIUM_ATTACK_IMAGE = SOURCE_DIR / "asha-premium-attack-regeneration-03-reference-locked-raw.png"
+SOURCE_PREMIUM_ATTACK_ALT_IMAGE = SOURCE_DIR / "asha-premium-attack-alt-regeneration-04-reference-locked-raw.png"
+SOURCE_PREMIUM_HURT_IMAGE = SOURCE_DIR / "asha-premium-hurt-regeneration-02-reference-locked-raw.png"
 BASE_ATLAS_JSON = ROOT / "public/assets/expedition/player/asha-v5-spritesheet.json"
 BASE_ATLAS_PNG = ROOT / "public/assets/expedition/player/asha-v5-spritesheet.png"
 TARGET_DIR = ROOT / "public/assets/expedition/player"
@@ -28,7 +29,7 @@ TARGET_JSON = TARGET_DIR / "asha-new-idle-spritesheet.json"
 TARGET_PNG = TARGET_DIR / "asha-new-idle-spritesheet.png"
 TARGET_REFERENCE = TARGET_DIR / "asha-new-idle-reference.png"
 
-TARGET_DRAW_HEIGHT = 119
+TARGET_DRAW_HEIGHT = 131
 SOURCE_IDLE_FRAME_COUNT = 2
 SOURCE_RUN_FRAME_COUNT = 7
 SOURCE_JUMP_FRAME_COUNT = 7
@@ -39,14 +40,28 @@ RUN_ROW_SOURCE_INDICES = {
     "survey_walk": [0, 1, 2, 3, 4, 5, 6, 7],
 }
 JUMP_ROW_SOURCE_INDICES = {
-    "jump": [0, 1, 2, 3, 4, 5, 6, 6],
-    "fall": [3, 4, 5, 5, 6, 6, 6, 6],
-    "land": [5, 6, 6, 6, 6, 6, 6, 6],
+    "jump": [0, 1, 2, 3, 4, 5, 6, 7],
+    "fall": [3, 4, 5, 5, 6, 7, 7, 7],
+    "land": [5, 6, 7, 7, 7, 7, 7, 7],
 }
 ATTACK_ROW_SOURCE_INDICES = {
     "attack_pick_swing": [0, 1, 2, 3, 4, 5, 6, 7],
 }
+HURT_ROW_SOURCE_INDICES = {
+    "hurt": [0, 1, 2, 3, 4],
+}
 ATTACK_ALT_ROW_NAME = "attack_pick_swing_alt"
+ROW_SPRITE_SCALE = {
+    "walk": 0.86,
+    "run": 0.86,
+    "survey_walk": 0.86,
+    "jump": 0.88,
+    "fall": 0.88,
+    "land": 0.88,
+    "hurt": 0.98,
+    "attack_pick_swing": 0.9,
+    ATTACK_ALT_ROW_NAME: 0.9,
+}
 
 
 def frame_key(row_name: str, index: int) -> str:
@@ -179,6 +194,13 @@ def remove_stray_alpha_components(image: Image.Image, *, keep_large_effects: boo
         ys = [pixel[1] for pixel in component]
         center_x = (min(xs) + max(xs)) / 2
         center_y = (min(ys) + max(ys)) / 2
+        edge_fragment = (
+            component is not largest
+            and (min(xs) <= 2 or max(xs) >= width - 3)
+            and len(component) < largest_area * 0.08
+        )
+        if edge_fragment:
+            continue
         detached_piece_large_enough = len(component) >= max(520, largest_area * 0.03)
         near_main_body = (
             detached_piece_large_enough
@@ -264,10 +286,16 @@ def extract_premium_row_sheet_frames(
     frame_count: int = 8,
     segment_by_content: bool = False,
     keep_large_effects: bool = True,
+    background_removal: str = "chroma",
 ) -> list[Image.Image]:
+    def remove_background(frame: Image.Image) -> Image.Image:
+        if background_removal == "edge":
+            return remove_edge_background(frame)
+        return remove_chroma_background(frame)
+
     source = Image.open(source_path).convert("RGBA")
     if segment_by_content:
-        cleaned = remove_chroma_background(source)
+        cleaned = remove_background(source)
         alpha = np.array(cleaned.getchannel("A")) > 18
         column_has_content = alpha.any(axis=0)
         spans: list[tuple[int, int]] = []
@@ -294,7 +322,7 @@ def extract_premium_row_sheet_frames(
                 padded_left = max(0, left - 18)
                 padded_right = min(source.width, right + 18)
                 frame = source.crop((padded_left, 0, padded_right, source.height))
-                frame = remove_chroma_background(frame)
+                frame = remove_background(frame)
                 frame = remove_stray_alpha_components(frame, keep_large_effects=keep_large_effects)
                 frames.append(improve_gameplay_readability(frame))
             return frames
@@ -305,7 +333,7 @@ def extract_premium_row_sheet_frames(
         left = max(0, round(column * cell_w))
         right = min(source.width, round((column + 1) * cell_w))
         frame = source.crop((left, 0, right, source.height))
-        frame = remove_chroma_background(frame)
+        frame = remove_background(frame)
         frame = remove_stray_alpha_components(frame, keep_large_effects=keep_large_effects)
         frames.append(improve_gameplay_readability(frame))
     return frames
@@ -363,6 +391,7 @@ def paste_sprite_cell(
     cell_h: int,
     ground_line_y: int,
     max_source_height: int,
+    sprite_scale: float = 1,
 ) -> dict[str, int]:
     fitted = trim_to_visible(sprite)
     max_source_width = cell_w - 14
@@ -370,8 +399,8 @@ def paste_sprite_cell(
         1,
         max_source_height / fitted.height if fitted.height > 0 else 1,
         max_source_width / fitted.width if fitted.width > 0 else 1,
-    )
-    if scale < 1:
+    ) * sprite_scale
+    if scale != 1:
         fitted = fitted.resize(
             (max(1, round(fitted.width * scale)), max(1, round(fitted.height * scale))),
             Image.Resampling.LANCZOS,
@@ -414,20 +443,17 @@ def main() -> None:
     idle_row = next(row for row in metadata["rows"] if row["name"] == "idle")
     generated_rows = extract_generated_grid_rows()
     idle_frames = extract_premium_row_sheet_frames(SOURCE_PREMIUM_IDLE_IMAGE)
-    run_frames = extract_premium_row_sheet_frames(
-        SOURCE_PREMIUM_RUN_IMAGE,
-        segment_by_content=True,
-        keep_large_effects=False,
-    )
+    run_frames = extract_premium_row_sheet_frames(SOURCE_PREMIUM_RUN_IMAGE, keep_large_effects=False)
     jump_frames = extract_premium_row_sheet_frames(
         SOURCE_PREMIUM_JUMP_IMAGE,
         segment_by_content=True,
         keep_large_effects=False,
     )
-    attack_frames = extract_premium_row_sheet_frames(SOURCE_PREMIUM_ATTACK_IMAGE, segment_by_content=True)
-    alternate_attack_frames = extract_premium_row_sheet_frames(
-        SOURCE_PREMIUM_ATTACK_ALT_IMAGE,
-        segment_by_content=True,
+    attack_frames = extract_premium_row_sheet_frames(SOURCE_PREMIUM_ATTACK_IMAGE)
+    alternate_attack_frames = extract_premium_row_sheet_frames(SOURCE_PREMIUM_ATTACK_ALT_IMAGE)
+    hurt_frames = extract_premium_row_sheet_frames(
+        SOURCE_PREMIUM_HURT_IMAGE,
+        frame_count=5,
     )
 
     for column, key in enumerate(idle_row["frames"]):
@@ -458,6 +484,10 @@ def main() -> None:
             source_indices = ATTACK_ROW_SOURCE_INDICES[row["name"]]
             source_frames = attack_frames
             source_image = SOURCE_PREMIUM_ATTACK_IMAGE
+        elif row["name"] in HURT_ROW_SOURCE_INDICES:
+            source_indices = HURT_ROW_SOURCE_INDICES[row["name"]]
+            source_frames = hurt_frames
+            source_image = SOURCE_PREMIUM_HURT_IMAGE
         else:
             rows.append(row)
             continue
@@ -475,6 +505,7 @@ def main() -> None:
                 cell_h=cell_h,
                 ground_line_y=ground_line_y,
                 max_source_height=max_source_height,
+                sprite_scale=ROW_SPRITE_SCALE.get(row["name"], 1),
             )
             pose_sources[key] = f"{source_image.name}:frame_{source_index:02d}"
         rows.append(next_row)
@@ -498,6 +529,7 @@ def main() -> None:
             cell_h=cell_h,
             ground_line_y=ground_line_y,
             max_source_height=max_source_height,
+            sprite_scale=ROW_SPRITE_SCALE.get(ATTACK_ALT_ROW_NAME, 1),
         )
         pose_sources[key] = f"{SOURCE_PREMIUM_ATTACK_ALT_IMAGE.name}:frame_{column:02d}"
     rows.append(alternate_attack_row)
@@ -507,9 +539,9 @@ def main() -> None:
     metadata["status"] = "production-candidate-asha-premium-identity"
     metadata["productionReference"] = TARGET_REFERENCE.name
     metadata["description"] = (
-        "Asha New Idle runtime atlas variant. It keeps the proven Asha V5 hurt, interact, "
+        "Asha New Idle runtime atlas variant. It keeps the proven Asha V5 interact, "
         "climb, and portrait rows, then swaps the idle, run-based movement, jump, fall, "
-        "land, and primary attack rows to premium identity-first Asha sheets. It also "
+        "land, hurt, and primary attack rows to premium identity-first Asha sheets. It also "
         "packs a secondary attack row so Journey can alternate attack animations."
     )
     metadata["draw"]["height"] = TARGET_DRAW_HEIGHT

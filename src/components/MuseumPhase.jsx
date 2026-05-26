@@ -5,7 +5,9 @@ import {
 import {
   getArtifactTheme,
   getCategoryTitle,
+  getCurationAnalysisSummary,
   getEvidenceImagePath,
+  getMuseumDisplayLabelPrompt,
   getObservableLabResult
 } from '../utils/gameLogic';
 
@@ -154,6 +156,8 @@ export function MuseumPhase({
               {curatedItems.map((item, index) => {
                 const analysis = hypotheses[item.id];
                 const labResultText = analysis?.labResultText || getObservableLabResult(item);
+                const analysisSummary = getCurationAnalysisSummary(analysis, item);
+                const museumLabelPrompt = getMuseumDisplayLabelPrompt(item);
 
                 return (
                   <div key={item.id} className="museum-display-card">
@@ -188,18 +192,34 @@ export function MuseumPhase({
                           {analysis ? (
                              <>
                                <p className="museum-analysis-answer">{labResultText}</p>
+                               {analysisSummary?.correctAnswerText && (
+                                 <div className="museum-analysis-correct-answer">
+                                   <strong>Correct answer:</strong>
+                                   <span>{analysisSummary.correctAnswerText}</span>
+                                 </div>
+                               )}
+                               {analysisSummary && !analysisSummary.answerIsCorrect && analysisSummary.selectedAnswerText && (
+                                 <p className="museum-analysis-note">
+                                   Your lab choice: {analysisSummary.selectedAnswerText}
+                                 </p>
+                               )}
+                               {analysisSummary?.promptTitle && (
+                                 <p className="museum-analysis-note">
+                                   Use this for: {analysisSummary.promptTitle}
+                                 </p>
+                               )}
                              </>
                            ) : (
                              <p>No research note.</p>
                            )}
                        </div>
                        <div className="museum-plaque-field">
-                          <label>Your Interpretation</label>
-                          <p className="museum-plaque-helper">Use the lab result as evidence. What might this tell us about people's lives, beliefs, work, or society?</p>
+                          <label>{museumLabelPrompt.label}</label>
+                          <p className="museum-plaque-helper">{museumLabelPrompt.helper}</p>
                           <textarea
                             value={plaques[item.id] || ''}
                             onChange={(e) => handlePlaqueChange(item.id, e.target.value)}
-                            placeholder="This might suggest..."
+                            placeholder={museumLabelPrompt.placeholder}
                           />
                        </div>
                     </div>

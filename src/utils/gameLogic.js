@@ -1,4 +1,4 @@
-import * as data from '../data';
+import * as data from '../data.js';
 
 export const {
   CATEGORIES,
@@ -67,6 +67,55 @@ export const BUREAU_CASES_BY_ID = new Map(BUREAU_CASES.map(item => [item.id, ite
 export const BUREAU_CIVILISATIONS = [...new Set(BUREAU_CASES.map(item => item.civilisation))];
 
 const FIRST_BUREAU_CIVILISATION = 'Ancient Egypt';
+const TRAINING_GRID_TILE_COUNT = 16;
+const TRAINING_ARTIFACT_INDEX = 10;
+const TRAINING_ARTIFACT_NEIGHBORS = new Set([5, 6, 7, 9, 11, 13, 14, 15]);
+
+export const createDefaultTrainingGridTiles = () => (
+  Array.from({ length: TRAINING_GRID_TILE_COUNT }, (_, index) => ({
+    id: index,
+    isRevealed: false,
+    isMarked: false,
+    isArtifact: index === TRAINING_ARTIFACT_INDEX,
+    adjacentCount: TRAINING_ARTIFACT_NEIGHBORS.has(index) ? 1 : 0,
+  }))
+);
+
+export const createDefaultTrainingState = () => ({
+  currentStepIndex: 0,
+  isSurveyed: false,
+  isGridded: false,
+  gridTiles: createDefaultTrainingGridTiles(),
+  artifactExtracted: false,
+  mappedCoordinate: null,
+  labHypothesis: null,
+});
+
+export const normalizeTrainingState = (state) => {
+  const defaults = createDefaultTrainingState();
+  if (!state || typeof state !== 'object') return defaults;
+
+  const currentStepIndex = Number.isInteger(state.currentStepIndex)
+    ? Math.min(Math.max(state.currentStepIndex, 0), TRAINING_STAGES.length)
+    : defaults.currentStepIndex;
+  const gridTiles = Array.isArray(state.gridTiles) && state.gridTiles.length === TRAINING_GRID_TILE_COUNT
+    ? defaults.gridTiles.map((defaultTile, index) => ({
+        ...defaultTile,
+        isRevealed: Boolean(state.gridTiles[index]?.isRevealed),
+        isMarked: Boolean(state.gridTiles[index]?.isMarked),
+      }))
+    : defaults.gridTiles;
+
+  return {
+    currentStepIndex,
+    isSurveyed: Boolean(state.isSurveyed),
+    isGridded: Boolean(state.isGridded),
+    gridTiles,
+    artifactExtracted: Boolean(state.artifactExtracted),
+    mappedCoordinate: typeof state.mappedCoordinate === 'string' ? state.mappedCoordinate : null,
+    labHypothesis: typeof state.labHypothesis === 'string' ? state.labHypothesis : null,
+  };
+};
 
 const shuffleItems = (items) => {
   const shuffled = [...items];
@@ -129,6 +178,76 @@ export const LAB_ANALYSIS_PROMPTS = [
   { id: 'society', iconId: 'society', title: 'Power and society', description: 'Rules, status, wealth or leadership' },
 ];
 
+const LAB_FOCUS_BY_ARTIFACT_ID = {
+  eg_1: 'beliefs',
+  eg_2: 'beliefs',
+  eg_3: 'daily-life',
+  eg_4: 'beliefs',
+  eg_5: 'beliefs',
+  eg_6: 'daily-life',
+  eg_7: 'technology',
+  eg_8: 'technology',
+  eg_9: 'beliefs',
+  eg_10: 'environment',
+  eg_11: 'environment',
+  eg_12: 'environment',
+  eg_13: 'society',
+  eg_14: 'society',
+  eg_15: 'daily-life',
+  mg_1: 'technology',
+  mg_2: 'daily-life',
+  mg_3: 'beliefs',
+  mg_4: 'beliefs',
+  mg_5: 'beliefs',
+  mg_6: 'environment',
+  mg_7: 'daily-life',
+  mg_8: 'daily-life',
+  mg_9: 'technology',
+  mg_10: 'daily-life',
+  mg_11: 'daily-life',
+  mg_12: 'environment',
+  mg_13: 'beliefs',
+  mg_14: 'beliefs',
+  mg_15: 'beliefs',
+  rm_1: 'society',
+  rm_2: 'technology',
+  rm_3: 'technology',
+  rm_4: 'society',
+  rm_5: 'beliefs',
+  rm_6: 'environment',
+  rm_7: 'technology',
+  rm_8: 'technology',
+  rm_9: 'society',
+  rm_10: 'environment',
+  rm_11: 'daily-life',
+  rm_12: 'daily-life',
+  rm_13: 'daily-life',
+  rm_14: 'society',
+  rm_15: 'society',
+  ch_1: 'beliefs',
+  ch_2: 'beliefs',
+  ch_3: 'beliefs',
+  ch_4: 'beliefs',
+  ch_5: 'technology',
+  ch_6: 'society',
+  ch_7: 'society',
+  ch_8: 'technology',
+  ch_9: 'technology',
+  ch_10: 'environment',
+  ch_11: 'environment',
+  ch_12: 'environment',
+  ch_13: 'beliefs',
+  ch_14: 'society',
+  ch_15: 'society',
+  rh_1: 'daily-life',
+  rh_2: 'environment',
+  rh_3: 'daily-life',
+};
+
+const getPromptTitleById = (promptId) => (
+  LAB_ANALYSIS_PROMPTS.find(prompt => prompt.id === promptId)?.title || promptId
+);
+
 export const LAB_NOTE_STEMS = [
   'This find suggests...',
   'The clue that supports this is...',
@@ -160,6 +279,107 @@ export const getObservableLabResult = (artifact = {}) => {
   const lead = OBSERVATION_LEADS[artifact.type] || OBSERVATION_LEADS.default;
   const observation = lowerCaseFirstWord(clue).replace(/[.!?]+$/, '');
   return `${lead} ${observation}. Record its visible features as evidence.`;
+};
+
+export const getLabAnswerFeedback = (artifact = {}, selectedAnswerIndex = null) => {
+  if (typeof selectedAnswerIndex !== 'number') return null;
+
+  const isCorrect = selectedAnswerIndex === artifact.correct;
+  if (isCorrect) {
+    return {
+      isCorrect: true,
+      title: 'Meaning confirmed',
+      message: artifact.rationale || 'This answer best matches the evidence clue.',
+    };
+  }
+
+  const clue = String(artifact.clue || '').trim();
+  return {
+    isCorrect: false,
+    title: 'Check the clue again',
+    message: clue
+      ? `The clue says: "${clue}" Choose the answer that best explains that evidence.`
+      : 'Look again at the visible evidence and choose the answer it supports most strongly.',
+  };
+};
+
+export const getLabFocusId = (artifact = {}) => {
+  if (artifact.labFocusId) return artifact.labFocusId;
+  if (artifact.id && LAB_FOCUS_BY_ARTIFACT_ID[artifact.id]) return LAB_FOCUS_BY_ARTIFACT_ID[artifact.id];
+
+  const correctAnswer = artifact.options?.[artifact.correct] || '';
+  const evidenceText = [
+    artifact.question,
+    correctAnswer,
+    artifact.rationale,
+    artifact.clue,
+    artifact.labResult,
+  ].join(' ').toLowerCase();
+
+  if (/(belief|relig|ritual|burial|afterlife|sacred|ceremon|spiritual|prophecy|ancestor|magic|death|tomb)/.test(evidenceText)) {
+    return 'beliefs';
+  }
+  if (/(climate|plant|animal|natural|river|flood|silt|seed|grain|environment|landscape|lake|ash layer|weather)/.test(evidenceText)) {
+    return 'environment';
+  }
+  if (/(tool|build|building|engineering|material|construction|technology|production|kiln|heating|metal|stone block|foundation)/.test(evidenceText)) {
+    return 'technology';
+  }
+  if (/(power|status|wealth|leader|ruler|emperor|government|rule|labour|organised|trade network|official|public|politic)/.test(evidenceText)) {
+    return 'society';
+  }
+  return 'daily-life';
+};
+
+export const getLabFocusFeedback = (artifact = {}, selectedFocusId = null) => {
+  if (!selectedFocusId) return null;
+
+  const correctFocusId = getLabFocusId(artifact);
+  const selectedTitle = getPromptTitleById(selectedFocusId);
+  const correctTitle = getPromptTitleById(correctFocusId);
+  const isCorrect = selectedFocusId === correctFocusId;
+
+  return {
+    correctFocusId,
+    isCorrect,
+    title: isCorrect ? 'Focus confirmed' : 'Try another focus',
+    message: isCorrect
+      ? `${correctTitle} is the strongest focus for this evidence.`
+      : `This evidence fits ${correctTitle} more strongly than ${selectedTitle}.`,
+  };
+};
+
+export const getCurationAnalysisSummary = (analysis = null, artifact = {}) => {
+  if (!analysis || typeof analysis !== 'object') return null;
+
+  const correctAnswerText = artifact.options?.[artifact.correct] || analysis.answerText || '';
+  const selectedAnswerText = analysis.answerText || correctAnswerText;
+
+  return {
+    correctAnswerText,
+    selectedAnswerText,
+    answerIsCorrect: analysis.answerIsCorrect !== false,
+    promptTitle: analysis.promptTitle || '',
+    note: analysis.note || '',
+  };
+};
+
+const PEOPLE_LABEL_BY_CIVILISATION = {
+  'Ancient Egypt': 'Ancient Egyptians',
+  'Ancient Rome': 'Romans',
+  'Ancient China': 'people in Ancient China',
+  'Indigenous Australia (Lake Mungo)': 'people at Lake Mungo',
+};
+
+export const getMuseumDisplayLabelPrompt = (artifact = {}) => {
+  const civilisation = getArtifactEraLabel(artifact);
+  const peopleLabel = PEOPLE_LABEL_BY_CIVILISATION[civilisation] || 'people in the past';
+
+  return {
+    label: 'Museum Display Label',
+    helper: `Write a museum display label explaining what this find tells us about ${peopleLabel}. Use the lab result and correct answer as evidence.`,
+    placeholder: 'This find tells us that...',
+  };
 };
 
 export const getArtifactHash = (input = '') => {
@@ -437,6 +657,7 @@ export const createSavePayload = ({
   plaques,
   finalExhibitionStatement,
   trainingPlacements,
+  trainingState,
   evidenceConditions,
   digRecoverySummary,
   bureauState,
@@ -462,6 +683,7 @@ export const createSavePayload = ({
     plaques,
     finalExhibitionStatement,
     trainingPlacements,
+    trainingState: normalizeTrainingState(trainingState),
     evidenceConditions,
     digRecoverySummary,
   }),
@@ -494,6 +716,7 @@ export const createNewGameSession = (mode = 'archaeology', phase = 'dig', prefer
     currentEvent: evt,
     activeArtifacts: [...scenarioArtifacts, selectedRedHerring].sort(() => 0.5 - Math.random()),
     trainingPlacements: Array(TRAINING_STAGES.length).fill(null),
+    trainingState: createDefaultTrainingState(),
     excavatedIds: new Set(),
     itemsLocation: {},
     hypotheses: {},
@@ -554,6 +777,7 @@ export const rebuildSavedSession = (saved) => {
     trainingPlacements: Array.from({ length: TRAINING_STAGES.length }, (_, index) => (
       Array.isArray(saved.trainingPlacements) ? saved.trainingPlacements[index] ?? null : null
     )),
+    trainingState: normalizeTrainingState(saved.trainingState),
     savedAt: saved.savedAt || null,
   };
 };

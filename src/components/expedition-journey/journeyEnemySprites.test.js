@@ -1,7 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { getScarabQueenDrawBox, getScarabQueenSpriteFrame, shouldFlipBossSprite } from './journeyBossSprites.js';
+import {
+  getScarabQueenDrawBox,
+  getScarabQueenSpriteFrame,
+  SCARAB_QUEEN_DRAW_OFFSET_X,
+  shouldFlipBossSprite,
+} from './journeyBossSprites.js';
 import {
   getEnemyBodyLanguagePose,
   getEnemySpriteDrawBox,
@@ -16,6 +21,7 @@ const journeyUtilsSource = readFileSync(new URL('./journeyUtils.js', import.meta
 const journeyEnemySpritesSource = readFileSync(new URL('./journeyEnemySprites.js', import.meta.url), 'utf8');
 const journeyBossSpritesSource = readFileSync(new URL('./journeyBossSprites.js', import.meta.url), 'utf8');
 const enemySpriteGeneratorSource = readFileSync(new URL('../../../scripts/generate_enemy_sprite_sheets.py', import.meta.url), 'utf8');
+const scarabQueenBuilderSource = readFileSync(new URL('../../../scripts/build_scarab_queen_atlas.py', import.meta.url), 'utf8');
 const scarabQueenAtlas = JSON.parse(readFileSync(new URL('../../../public/assets/expedition/bosses/scarab-queen-sprites.json', import.meta.url), 'utf8'));
 
 test('regular enemy sprite draw boxes stay close to gameplay hitbox scale', () => {
@@ -174,17 +180,33 @@ test('Scarab Queen attack frames are prioritized over passive shield and counter
 });
 
 test('Scarab Queen atlas is wired from the supplied final animation sheets', () => {
-  assert.match(journeyBossSpritesSource, /boss-sprites-scarab-queen-user-sheets-2026-05-23/);
+  assert.match(journeyBossSpritesSource, /boss-sprites-scarab-queen-walk-death-validated-2026-05-26/);
+  assert.match(scarabQueenBuilderSource, /"scarabQueenWalk": \("walk", 8\)/);
+  assert.match(scarabQueenBuilderSource, /source_frames\["death"\] = \[clean_fallen_pose\(frame\) for frame in source_frames\["death"\]\]/);
+  assert.doesNotMatch(scarabQueenBuilderSource, /\[clean_fallen_pose\(source_frames\["death"\]\[7\]\)\] \* 8/);
+  assert.match(journeyBossSpritesSource, /SCARAB_QUEEN_ANIMATED_SPRITE_KEYS/);
+  assert.match(journeyBossSpritesSource, /numberedSpriteKeys\('scarabQueenWalk', 8\)/);
+  assert.match(journeyBossSpritesSource, /numberedSpriteKeys\('scarabQueenDeath', 8\)/);
   assert.match(scarabQueenAtlas.source, /User-provided Scarab Queen raster animation sheets/);
   assert.equal(scarabQueenAtlas.productionReference, 'source/scarab-queen-2026-05-23/');
   assert.equal(scarabQueenAtlas.frameContract.length, 11);
   assert.equal(scarabQueenAtlas.sequences.walk.length, 8);
+  assert.equal(scarabQueenAtlas.sequences.walk[0], 'scarabQueenWalk1');
   assert.equal(scarabQueenAtlas.sequences.charge.length, 8);
   assert.equal(scarabQueenAtlas.sequences.windup.length, 6);
   assert.equal(scarabQueenAtlas.sequences.areaAttack.length, 8);
   assert.equal(scarabQueenAtlas.sequences.acidProjectile.length, 6);
   assert.equal(scarabQueenAtlas.sequences.defeated.length, 8);
-  ['scarabQueenIdle', 'scarabQueenWalk1', 'scarabQueenAreaAttack', 'scarabQueenAcidSpit8', 'scarabQueenDeath8'].forEach((key) => {
+  assert.equal(scarabQueenAtlas.sequences.defeated[7], 'scarabQueenDeath8');
+  [
+    ...scarabQueenAtlas.sequences.walk,
+    ...scarabQueenAtlas.sequences.charge,
+    ...scarabQueenAtlas.sequences.windup,
+    ...scarabQueenAtlas.sequences.areaAttack,
+    ...scarabQueenAtlas.sequences.acidProjectile,
+    ...scarabQueenAtlas.sequences.counterWindow,
+    ...scarabQueenAtlas.sequences.defeated,
+  ].forEach((key) => {
     assert.ok(scarabQueenAtlas.regions[key], `${key} should be present in the final boss atlas`);
   });
 });
@@ -206,6 +228,11 @@ test('Scarab Queen draw box matches the fixed atlas ratio closely enough to stay
   assert.ok(drawBox.height >= 264, `Queen draw height should be 50% larger and intimidating, received ${drawBox.height}`);
   assert.ok(drawBox.width >= drawBox.height * atlasRatio * 0.95, `Queen draw box should be wide enough for fixed-cell atlas, received ratio ${drawRatio}`);
   assert.ok(Math.abs((drawBox.y + drawBox.height) - (boss.y + boss.height + 4)) < 0.001, 'Queen draw box should stay grounded to boss feet');
+  assert.equal(
+    drawBox.x,
+    300 + boss.width / 2 - drawBox.width / 2 + SCARAB_QUEEN_DRAW_OFFSET_X,
+    'Queen art should stay huge but sit farther into the arena so Asha remains readable',
+  );
 });
 
 test('enemy attack tells use compact timing overlays without arcade labels', () => {

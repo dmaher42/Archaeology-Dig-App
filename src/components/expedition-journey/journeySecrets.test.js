@@ -1646,9 +1646,12 @@ test('first mini-boss is gated by preparation and rewards the next route', () =>
 
 test('active boss domains suppress normal enemy noise near the guardian arena', () => {
   assert.match(journeyComponentSource, /const BOSS_DOMAIN_ENEMY_FOCUS_PADDING = 96/);
+  assert.match(journeyComponentSource, /const SCARAB_QUEEN_ENEMY_FOCUS_PADDING = 220/);
   assert.match(journeyComponentSource, /const isNormalEnemyInsideBossFocus = \(enemy, bossDomain\) =>/);
+  assert.match(journeyComponentSource, /bossDomain\.bossId === SCARAB_SEAL_TRIGGER\.bossId[\s\S]*?\? SCARAB_QUEEN_ENEMY_FOCUS_PADDING[\s\S]*?: BOSS_DOMAIN_ENEMY_FOCUS_PADDING/);
   assert.match(journeyComponentSource, /current\.bossDomain[\s\S]*?!current\.defeatedMiniBosses\.has\(current\.bossDomain\.bossId\)[\s\S]*?isNormalEnemyInsideBossFocus\(e, activeBossDomain\)/);
   assert.match(journeyComponentSource, /e\.attackWindup = 0;[\s\S]*?e\.attackTimer = 0;[\s\S]*?e\.aggroMemoryTimer = 0;[\s\S]*?return;/);
+  assert.match(journeyComponentSource, /current\.enemies\.forEach\(\(enemy\) => \{[\s\S]*?if \(!enemy\.defeated && isNormalEnemyInsideBossFocus\(enemy, activeBossDomain\)\) return;/);
 });
 
 test('Scarab Queen boss intro is staged as a looter-triggered seal breach cinematic', () => {

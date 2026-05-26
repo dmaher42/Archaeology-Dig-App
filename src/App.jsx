@@ -767,6 +767,7 @@ export default function App() {
   const [evidenceConditions, setEvidenceConditions] = useState(initialGame.evidenceConditions || {});
   const [digRecoverySummary, setDigRecoverySummary] = useState(initialGame.digRecoverySummary || null);
   const [trainingPlacements, setTrainingPlacements] = useState(initialGame.trainingPlacements || Array(TRAINING_STAGES.length).fill(null));
+  const [trainingState, setTrainingState] = useState(initialGame.trainingState || null);
   const [bureauState, setBureauState] = useState(initialBureauGame);
   const [showDevTools, setShowDevTools] = useState(false);
   const [isSiteSelectionActive, setIsSiteSelectionActive] = useState(false);
@@ -834,7 +835,7 @@ export default function App() {
             mode: 'archaeology', phase, currentScenario, currentEvent, activeArtifacts,
             excavatedIds, itemsLocation, hypotheses, siteName, finalConclusion,
             curatedItems, plaques, finalExhibitionStatement, trainingPlacements,
-            evidenceConditions, digRecoverySummary
+            trainingState, evidenceConditions, digRecoverySummary
           });
       
       const currentFullSave = JSON.parse(window.localStorage.getItem(AUTOSAVE_KEY) || '{"archaeology": null, "bureau": null}');
@@ -855,7 +856,7 @@ export default function App() {
   }, [
     activeArtifacts, currentEvent, currentScenario, curatedItems, excavatedIds,
     digRecoverySummary, evidenceConditions, finalConclusion, finalExhibitionStatement, hypotheses, itemsLocation,
-    bureauState, phase, plaques, siteName, trainingPlacements
+    bureauState, phase, plaques, siteName, trainingPlacements, trainingState
   ]);
 
   // DevTools Hotkey
@@ -892,6 +893,7 @@ export default function App() {
       setEvidenceConditions(session.evidenceConditions || {});
       setDigRecoverySummary(session.digRecoverySummary || null);
       setTrainingPlacements(session.trainingPlacements);
+      setTrainingState(session.trainingState || null);
     }
   };
 
@@ -978,9 +980,10 @@ export default function App() {
 
         {phase === 'training' && (
           <TrainingPhase 
-            trainingPlacements={trainingPlacements} 
-            setTrainingPlacements={setTrainingPlacements} 
+            initialTrainingState={trainingState}
+            onTrainingStateChange={setTrainingState}
             onBackToMenu={() => setPhase('menu')} 
+            onBeginExpedition={handleStartExpedition}
           />
         )}
 

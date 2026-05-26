@@ -258,9 +258,19 @@ export const createExcavationMapAssetState = () => ({
   ),
 });
 
+const getRequestedExcavationPacks = (packIds = null) => {
+  if (!Array.isArray(packIds) || packIds.length === 0) {
+    return Object.entries(EXCAVATION_ASSET_PACKS);
+  }
+  const requested = new Set(packIds.filter(Boolean));
+  return Object.entries(EXCAVATION_ASSET_PACKS).filter(([packId]) => requested.has(packId));
+};
+
 export const getMissingExcavationMapAssets = (assets) => {
   if (assets?.packs && Object.keys(assets.packs).length > 0) {
-    return Object.entries(EXCAVATION_ASSET_PACKS).flatMap(([packId, packConfig]) => {
+    return Object.entries(EXCAVATION_ASSET_PACKS)
+      .filter(([packId]) => assets.packs?.[packId])
+      .flatMap(([packId, packConfig]) => {
       const regions = assets.packs?.[packId]?.atlas?.regions || {};
       return packConfig.expectedKeys
         .filter(key => !regions[key])
@@ -271,8 +281,9 @@ export const getMissingExcavationMapAssets = (assets) => {
   return EXPECTED_EXCAVATION_MAP_KEYS.filter(key => !regions[key]);
 };
 
-export const loadExcavationMapAssetPack = ({ baseUrl = '/', onUpdate }) => {
+export const loadExcavationMapAssetPack = ({ baseUrl = '/', onUpdate, packIds = null }) => {
   let cancelled = false;
+  const packEntriesToLoad = getRequestedExcavationPacks(packIds);
 
   const loadPack = ([packId, packConfig]) => fetch(`${baseUrl}${packConfig.atlasPath}`)
     .then((response) => {
@@ -315,19 +326,20 @@ export const loadExcavationMapAssetPack = ({ baseUrl = '/', onUpdate }) => {
       atlasPath: packConfig.atlasPath,
     }]);
 
-  Promise.all(Object.entries(EXCAVATION_ASSET_PACKS).map(loadPack)).then((packEntries) => {
+  Promise.all(packEntriesToLoad.map(loadPack)).then((packEntries) => {
       if (cancelled) return;
       const packs = Object.fromEntries(packEntries);
       const legacy = packs.legacy || {};
+      const loadedPacks = Object.values(packs);
       onUpdate?.({
         ...createExcavationMapAssetState(),
         image: legacy.image || null,
         atlas: legacy.atlas || null,
         packs,
-        loaded: Object.values(packs).some(pack => pack.loaded),
-        ready: Object.values(packs).every(pack => pack.ready && !pack.failed),
-        failed: Object.values(packs).some(pack => pack.failed),
-        error: Object.values(packs).filter(pack => pack.error).map(pack => pack.error).join(' | ') || null,
+        loaded: loadedPacks.some(pack => pack.loaded),
+        ready: loadedPacks.length > 0 && loadedPacks.every(pack => pack.ready && !pack.failed),
+        failed: loadedPacks.some(pack => pack.failed),
+        error: loadedPacks.filter(pack => pack.error).map(pack => pack.error).join(' | ') || null,
       });
     });
 

@@ -12,6 +12,18 @@ Original prompt: Implement "Lost Site Expedition" as a small MVP game mode in th
 - Added a Metacognitive Analysis grading report to the end-of-dig Field Notebook.
 - Verified the build locally.
 
+2026-05-26 update:
+- Completed a focused Desert Entry prop-grounding pass inside the existing Journey story-prop renderer.
+- Added reusable prop grounding settings for contact shadow width/height/opacity, burial depth, sand overlap height, sand mound sizing, pebbles, and scale-compatible data.
+- Replaced the broad prop-bottom haze with a local foreground sand-occlusion layer drawn per prop, so buried sand sits in front of the prop base instead of stretching across the scene.
+- Tuned the three Desert Entry premium props with per-prop shadow and sand-overlap values so the fallen column, pillar caps, and threshold slab read as embedded in the sand.
+- Follow-up permanent placement fix: added explicit prop `groundPlaneOffset` and `assetContactYRatio` support so route-edge props align to the visible desert sand plane instead of assuming the image bottom belongs on the playable foreground floor.
+- Corrected the long-term implementation path by adding a `desertEntryGroundedRuin` placement preset and moving the premium Desert Entry props off the `route-edge` foreground pass into the `grounded` story-prop plane.
+- The preset now owns the desert prop contact plane, colour grade, default shadow, sand occlusion, and pebble treatment; future Desert Entry props should use the preset plus only size-specific overrides.
+- Follow-up visual grounding pass: moved the preset plane farther back from the foreground strip, reduced the premium prop scale, and fixed the ground-contact draw order so the sand apron no longer washes out the contact shadow.
+- Focused eslint on `ExpeditionJourney.jsx` and `journeyLevelData.js` passed after the renderer changes.
+- Browser note: the live app was reachable on `localhost:5173`, but the in-app browser automation bridge timed out during the final screenshot pass, so human visual confirmation is still needed in the open tab.
+
 2026-05-24 update:
 - Completed Phase 5D as a copy-only Egypt Act 1 world-cohesion pass.
 - Updated visible Journey wording in `journeyLevelData.js` so gates, event notices, route markers, trace/evidence prompts, and Scout/Scarab Queen guidance feel more like an in-world protected-site adventure and less like a classroom checklist.

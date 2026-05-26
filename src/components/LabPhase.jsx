@@ -9,8 +9,9 @@ import {
   getEvidenceImagePath,
   shuffleArrayWithSeed,
   getObservableLabResult,
-  LAB_ANALYSIS_PROMPTS,
-  LAB_NOTE_STEMS
+  getLabAnswerFeedback,
+  getLabFocusFeedback,
+  LAB_ANALYSIS_PROMPTS
 } from '../utils/gameLogic';
 import { getPromptIcon } from './Icons';
 
@@ -29,7 +30,6 @@ export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypoth
   const [selectedArtifactId, setSelectedArtifactId] = useState(null);
   const [selectedAnswerIndex, setSelectedAnswerIndex] = useState(null);
   const [selectedPromptId, setSelectedPromptId] = useState(null);
-  const [draftNote, setDraftNote] = useState('');
 
   const requiredCount = 3;
   const analysedEntries = Object.entries(hypotheses);
@@ -38,6 +38,8 @@ export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypoth
   const isComplete = analysedCount >= requiredCount;
   const selectedArtifact = trayItems.find(item => item.id === selectedArtifactId) || null;
   const selectedPrompt = LAB_ANALYSIS_PROMPTS.find(prompt => prompt.id === selectedPromptId) || null;
+  const answerFeedback = selectedArtifact ? getLabAnswerFeedback(selectedArtifact, selectedAnswerIndex) : null;
+  const focusFeedback = selectedArtifact ? getLabFocusFeedback(selectedArtifact, selectedPromptId) : null;
   
   const answerChoices = useMemo(() => {
     if (!selectedArtifact) return [];
@@ -52,11 +54,10 @@ export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypoth
     const saved = hypotheses[artifactId];
     setSelectedAnswerIndex(typeof saved?.answerIndex === 'number' ? saved.answerIndex : null);
     setSelectedPromptId(saved?.promptId ?? null);
-    setDraftNote(saved?.note ?? '');
   };
 
   const handleSaveAnalysis = () => {
-    if (!selectedArtifact || selectedAnswerIndex === null || !selectedPrompt || !draftNote.trim()) return;
+    if (!selectedArtifact || selectedAnswerIndex !== selectedArtifact.correct || !selectedPrompt || !focusFeedback?.isCorrect) return;
 
     const analysisRecord = {
       answerIndex: selectedAnswerIndex,
@@ -67,7 +68,7 @@ export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypoth
       promptId: selectedPrompt.id,
       promptTitle: selectedPrompt.title,
       promptDescription: selectedPrompt.description,
-      note: draftNote.trim(),
+      note: '',
       clue: selectedArtifact.clue,
       question: selectedArtifact.question,
       typeLabel: getCategoryTitle(selectedArtifact.type),
@@ -83,14 +84,6 @@ export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypoth
     setSelectedArtifactId(null);
     setSelectedAnswerIndex(null);
     setSelectedPromptId(null);
-    setDraftNote('');
-  };
-
-  const addNoteStem = (stem) => {
-    setDraftNote(prev => {
-      const trimmed = prev.trim();
-      return trimmed ? `${trimmed} ${stem}` : stem;
-    });
   };
 
   const handleFinalise = () => {
@@ -111,14 +104,14 @@ export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypoth
               <h2>Phase 3: Laboratory Analysis</h2>
               <span className="status-site-badge">{currentScenario?.civilization || 'Archaeological Site'}</span>
             </div>
-            <p>Select three items of evidence. Document your findings to complete the dossier.</p>
+            <p>Select three items of evidence. Confirm their meaning to prepare for curation.</p>
           </div>
         </div>
 
         <div className="status-panel-progress-compact">
           <div className="progress-label-group">
             <span className="progress-label-mini">PROGRESS</span>
-            <span className="progress-count-mini">{analysedCount} / {requiredCount} Documented</span>
+            <span className="progress-count-mini">{analysedCount} / {requiredCount} Verified</span>
           </div>
           <div className="progress-bar-thin">
             <div className="progress-fill" style={{ width: `${progressPercent}%` }}></div>
@@ -186,7 +179,7 @@ export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypoth
 
         <section className="lab-panel lab-bench-panel">
           <div className="lab-panel-heading">Analysis Desk</div>
-          <p className="lab-panel-subheading">Study the clue, sort it, and write down your notes.</p>
+          <p className="lab-panel-subheading">Use the clue to confirm the meaning, then choose the historical focus.</p>
 
           {!selectedArtifact ? (
             <div className="lab-empty-state">
@@ -238,17 +231,26 @@ export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypoth
                          </button>
                        ))}
                     </div>
+                    {answerFeedback && (
+                      <div className={`lab-answer-feedback ${answerFeedback.isCorrect ? 'correct' : 'incorrect'}`}>
+                        <strong>{answerFeedback.title}</strong>
+                        <p>{answerFeedback.message}</p>
+                      </div>
+                    )}
                 </div>
 
                 <div className="lab-analysis-section">
-                   <div className="lab-section-title">2. Sort the Evidence</div>
+                   <div className="lab-section-title">2. Choose the Focus</div>
                    <p className="lab-section-instruction">Which historical area does this evidence best support?</p>
                    <div className="lab-prompt-grid">
                       {LAB_ANALYSIS_PROMPTS.map(prompt => {
+                        const promptFeedbackClass = selectedPromptId === prompt.id && focusFeedback
+                          ? (focusFeedback.isCorrect ? 'correct' : 'incorrect')
+                          : '';
                         return (
                           <button
                             key={prompt.id}
-                            className={`lab-prompt-btn ${selectedPromptId === prompt.id ? 'selected' : ''}`}
+                            className={`lab-prompt-btn ${selectedPromptId === prompt.id ? 'selected' : ''} ${promptFeedbackClass}`}
                             onClick={() => setSelectedPromptId(prompt.id)}
                           >
                             <div className="lab-prompt-icon">{getPromptIcon(prompt.iconId, 18)}</div>
@@ -260,31 +262,28 @@ export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypoth
                         );
                       })}
                    </div>
+                   {focusFeedback && (
+                     <div className={`lab-focus-feedback ${focusFeedback.isCorrect ? 'correct' : 'incorrect'}`}>
+                       <strong>{focusFeedback.title}</strong>
+                       <p>{focusFeedback.message}</p>
+                     </div>
+                   )}
                 </div>
 
                 <div className="lab-analysis-section">
-                   <div className="lab-section-title">3. Case Notes</div>
-                   <p className="lab-section-instruction">Write a short sentence explaining your choice.</p>
-                   
-                   <div className="lab-note-field-container">
-                      <div className="lab-note-stems">
-                        {LAB_NOTE_STEMS.map((stem, i) => (
-                          <button key={i} className="lab-stem-btn" onClick={() => addNoteStem(stem)}>{stem}</button>
-                        ))}
-                      </div>
-                      <textarea
-                        className="lab-note-textarea"
-                        value={draftNote}
-                        onChange={(e) => setDraftNote(e.target.value)}
-                        placeholder={selectedArtifact.name ? `${selectedArtifact.name} suggests...` : 'Write your note here...'}
-                      />
+                   <div className="lab-section-title">3. Prepare for Curation</div>
+                   <p className="lab-section-instruction">Save the confirmed lab result. You will write your full interpretation in the museum display.</p>
+
+                   <div className="lab-curation-preview">
+                      <strong>Curate will ask:</strong>
+                      <p>What might this tell us about people's lives, beliefs, work, or society?</p>
                    </div>
                 </div>
 
                 <div className="lab-analysis-actions">
                   <button
                     className="btn primary-btn lab-save-btn"
-                    disabled={selectedAnswerIndex === null || !selectedPrompt || !draftNote.trim()}
+                    disabled={selectedAnswerIndex !== selectedArtifact.correct || !focusFeedback?.isCorrect}
                     onClick={handleSaveAnalysis}
                   >
                     Save to Records

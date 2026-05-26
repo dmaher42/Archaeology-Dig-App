@@ -90,6 +90,14 @@ export const FUTURE_JOURNEY_BACKGROUND_PACKS = {
   'china-river-valley': CHINA_RIVER_VALLEY_BACKGROUND_PACK,
 };
 
+export const EGYPT_JOURNEY_BACKGROUND_SECTION_IDS = [
+  'desert-entry',
+  'ruined-temple',
+  'catacombs',
+  'escape-sequence',
+  'dig-site-entrance',
+];
+
 export const createDesertBackgroundAssetState = () => ({
   packs: {},
   loaded: false,
@@ -102,8 +110,19 @@ export const createDesertBackgroundAssetState = () => ({
   ),
 });
 
+const getRequestedBackgroundPacks = (sectionIds = null) => {
+  if (!Array.isArray(sectionIds) || sectionIds.length === 0) {
+    return Object.entries(SECTION_BACKGROUND_PACKS);
+  }
+  const requested = new Set(sectionIds.filter(Boolean));
+  return Object.entries(SECTION_BACKGROUND_PACKS).filter(([sectionId]) => requested.has(sectionId));
+};
+
 export const getMissingDesertBackgroundAssets = (assets) => {
-  return Object.entries(SECTION_BACKGROUND_PACKS).flatMap(([sectionId, packConfig]) => {
+  const packEntries = assets?.packs && Object.keys(assets.packs).length > 0
+    ? Object.entries(SECTION_BACKGROUND_PACKS).filter(([sectionId]) => assets.packs?.[sectionId])
+    : Object.entries(SECTION_BACKGROUND_PACKS);
+  return packEntries.flatMap(([sectionId, packConfig]) => {
     const pack = assets?.packs?.[sectionId];
     const regions = pack?.atlas?.regions || {};
     return packConfig.expectedKeys
@@ -126,8 +145,9 @@ export const getMissingSectionBackgroundAssets = (assets, sectionId) => {
   return packConfig.expectedKeys.filter(key => !regions[key]);
 };
 
-export const loadDesertBackgroundAssetPack = ({ baseUrl = '/', onUpdate }) => {
+export const loadDesertBackgroundAssetPack = ({ baseUrl = '/', onUpdate, sectionIds = null }) => {
   let cancelled = false;
+  const packEntriesToLoad = getRequestedBackgroundPacks(sectionIds);
 
   const loadSinglePack = ([sectionId, packConfig]) => {
     const atlasPath = `${baseUrl}${packConfig.atlasPath}`;
@@ -181,16 +201,17 @@ export const loadDesertBackgroundAssetPack = ({ baseUrl = '/', onUpdate }) => {
       ]);
   };
 
-  Promise.all(Object.entries(SECTION_BACKGROUND_PACKS).map(loadSinglePack)).then((packEntries) => {
+  Promise.all(packEntriesToLoad.map(loadSinglePack)).then((packEntries) => {
     if (cancelled) return;
     const packs = Object.fromEntries(packEntries);
+    const loadedPacks = Object.values(packs);
     onUpdate?.({
       ...createDesertBackgroundAssetState(),
       packs,
-      loaded: Object.values(packs).some(pack => pack.loaded),
-      ready: Object.values(packs).every(pack => pack.ready && !pack.failed),
-      failed: Object.values(packs).some(pack => pack.failed),
-      error: Object.values(packs).filter(pack => pack.error).map(pack => pack.error).join(' | ') || null,
+      loaded: loadedPacks.some(pack => pack.loaded),
+      ready: loadedPacks.length > 0 && loadedPacks.every(pack => pack.ready && !pack.failed),
+      failed: loadedPacks.some(pack => pack.failed),
+      error: loadedPacks.filter(pack => pack.error).map(pack => pack.error).join(' | ') || null,
     });
   });
 

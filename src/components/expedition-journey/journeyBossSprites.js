@@ -15,9 +15,10 @@ export const CHINA_JADE_SEAL_GUARDIAN_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PA
 export const CHINA_ARCHIVE_SENTRY_CAPTAIN_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}china-archive-sentry-captain-sprites.json`;
 export const CHINA_RAMMED_EARTH_SENTINEL_SPRITE_ATLAS_JSON = `${BOSS_SPRITE_BASE_PATH}china-rammed-earth-sentinel-sprites.json`;
 export const CHINA_CLAY_GUARDIAN_SPRITE_ATLAS_JSON = CHINA_CLAY_RIVER_GUARDIAN_SPRITE_ATLAS_JSON;
-export const BOSS_SPRITE_ATLAS_VERSION = 'boss-sprites-scarab-queen-user-sheets-2026-05-23';
+export const BOSS_SPRITE_ATLAS_VERSION = 'boss-sprites-scarab-queen-walk-death-validated-2026-05-26';
 
 export const MIN_BOSS_DRAW_HEIGHT = 176;
+export const SCARAB_QUEEN_DRAW_OFFSET_X = 42;
 const getGroundedBossDrawBox = (boss, screenX, width, height, footSink = 4) => ({
   x: screenX + boss.width / 2 - width / 2,
   y: boss.y + boss.height - height + footSink,
@@ -25,7 +26,21 @@ const getGroundedBossDrawBox = (boss, screenX, width, height, footSink = 4) => (
   height,
 });
 
-export const SCARAB_QUEEN_SPRITE_KEYS = [
+const numberedSpriteKeys = (prefix, count) => (
+  Array.from({ length: count }, (_, index) => `${prefix}${index + 1}`)
+);
+
+export const SCARAB_QUEEN_ANIMATED_SPRITE_KEYS = [
+  ...numberedSpriteKeys('scarabQueenWalk', 8),
+  ...numberedSpriteKeys('scarabQueenRun', 8),
+  ...numberedSpriteKeys('scarabQueenWindup', 6),
+  ...numberedSpriteKeys('scarabQueenAcidSpit', 8),
+  ...numberedSpriteKeys('scarabQueenAcid', 6),
+  ...numberedSpriteKeys('scarabQueenStagger', 5),
+  ...numberedSpriteKeys('scarabQueenDeath', 8),
+];
+
+export const SCARAB_QUEEN_SPRITE_KEYS = [...new Set([
   'scarabQueenIdle',
   'scarabQueenWalk1',
   'scarabQueenWalk2',
@@ -37,7 +52,8 @@ export const SCARAB_QUEEN_SPRITE_KEYS = [
   'scarabQueenCounterWindow',
   'scarabQueenHit',
   'scarabQueenDefeated',
-];
+  ...SCARAB_QUEEN_ANIMATED_SPRITE_KEYS,
+])];
 
 export const STONE_GUARDIAN_SPRITE_KEYS = [
   'stoneGuardianIdle',
@@ -142,6 +158,21 @@ const BOSS_SPRITE_PACKS = {
   },
 };
 
+export const EGYPT_JOURNEY_BOSS_SPRITE_PACK_IDS = [
+  'scarab-queen',
+  'temple-guardian',
+  'giant-serpent',
+  'ancient-construct',
+];
+
+export const CHINA_JOURNEY_BOSS_SPRITE_PACK_IDS = [
+  CHINA_CLAY_RIVER_GUARDIAN_BOSS_ID,
+  CHINA_BRONZE_GATE_WARDEN_BOSS_ID,
+  CHINA_JADE_SEAL_GUARDIAN_BOSS_ID,
+  CHINA_ARCHIVE_SENTRY_CAPTAIN_BOSS_ID,
+  CHINA_RAMMED_EARTH_SENTINEL_BOSS_ID,
+];
+
 export const CHINA_GUARDIAN_BOSS_IDS = [
   CHINA_CLAY_RIVER_GUARDIAN_BOSS_ID,
   CHINA_BRONZE_GATE_WARDEN_BOSS_ID,
@@ -171,8 +202,19 @@ export const createBossSpriteState = () => ({
   ),
 });
 
+const getRequestedBossSpritePacks = (packIds = null) => {
+  if (!Array.isArray(packIds) || packIds.length === 0) {
+    return Object.entries(BOSS_SPRITE_PACKS);
+  }
+  const requested = new Set(packIds.filter(Boolean));
+  return Object.entries(BOSS_SPRITE_PACKS).filter(([bossId]) => requested.has(bossId));
+};
+
 export const getMissingBossSpriteAssets = (assets) => {
-  return Object.entries(BOSS_SPRITE_PACKS).flatMap(([bossId, packConfig]) => {
+  const packEntries = assets?.packs && Object.keys(assets.packs).length > 0
+    ? Object.entries(BOSS_SPRITE_PACKS).filter(([bossId]) => assets.packs?.[bossId])
+    : Object.entries(BOSS_SPRITE_PACKS);
+  return packEntries.flatMap(([bossId, packConfig]) => {
     const pack = assets?.packs?.[bossId];
     const regions = pack?.atlas?.regions || {};
     return packConfig.expectedKeys
@@ -187,8 +229,9 @@ export const getBossSpritePack = (assets, bossId) => {
   return pack;
 };
 
-export const loadBossSpritePack = ({ baseUrl = '/', onUpdate }) => {
+export const loadBossSpritePack = ({ baseUrl = '/', onUpdate, packIds = null }) => {
   let cancelled = false;
+  const packEntriesToLoad = getRequestedBossSpritePacks(packIds);
 
   const loadSinglePack = ([bossId, packConfig]) => {
     const atlasPath = `${baseUrl}${packConfig.atlasPath}`;
@@ -243,16 +286,17 @@ export const loadBossSpritePack = ({ baseUrl = '/', onUpdate }) => {
       ]);
   };
 
-  Promise.all(Object.entries(BOSS_SPRITE_PACKS).map(loadSinglePack)).then((packEntries) => {
+  Promise.all(packEntriesToLoad.map(loadSinglePack)).then((packEntries) => {
     if (cancelled) return;
     const packs = Object.fromEntries(packEntries);
+    const loadedPacks = Object.values(packs);
     const next = {
       ...createBossSpriteState(),
       packs,
-      loaded: Object.values(packs).some(pack => pack.loaded),
-      ready: Object.values(packs).every(pack => pack.ready && !pack.failed),
-      failed: Object.values(packs).some(pack => pack.failed),
-      error: Object.values(packs).filter(pack => pack.error).map(pack => pack.error).join(' | ') || null,
+      loaded: loadedPacks.some(pack => pack.loaded),
+      ready: loadedPacks.length > 0 && loadedPacks.every(pack => pack.ready && !pack.failed),
+      failed: loadedPacks.some(pack => pack.failed),
+      error: loadedPacks.filter(pack => pack.error).map(pack => pack.error).join(' | ') || null,
     };
     onUpdate?.(next);
   });
@@ -374,7 +418,11 @@ export const shouldFlipBossSprite = (bossId, facing = 1) => {
 export const getScarabQueenDrawBox = (boss, screenX) => {
   const height = Math.max(MIN_BOSS_DRAW_HEIGHT * 1.5, boss.height * 5.775);
   const width = Math.max(390, boss.width * 6.675);
-  return getGroundedBossDrawBox(boss, screenX, width, height, 4);
+  const box = getGroundedBossDrawBox(boss, screenX, width, height, 4);
+  return {
+    ...box,
+    x: box.x + SCARAB_QUEEN_DRAW_OFFSET_X,
+  };
 };
 
 export const getStoneGuardianDrawBox = (boss, screenX) => {
