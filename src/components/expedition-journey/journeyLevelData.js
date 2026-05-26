@@ -136,7 +136,7 @@ export const SCARAB_SEAL_TRIGGER = {
   dialogueSpeakers: ['Anubis', 'Anubis', 'Anubis', 'Asha', 'Objective'],
   dialogueTiming: [0.8, 3.2, 5.8, 8.4, 11],
   stairwellRevealLine: 'A hidden stairwell opens beneath the ruins.',
-  bossIntroLine: 'A tomb looter cracks the guardian seal. The Scarab Queen erupts as the first trial of Anubis. The site will not yield easily.',
+  bossIntroLine: 'The buried scarab seal cracks open beneath the sand. The Scarab Queen rises as the first trial of Anubis. The site will not yield easily.',
   guideFollowUpLine: 'Restore the fragments the seal still recognises. Pass the guardians. The site will test you.',
 };
 
@@ -795,7 +795,7 @@ export const OBJECTIVE_MARKERS = [
 ];
 
 export const MINI_BOSSES = [
-  { id: 'scarab-queen', sectionId: 'desert-entry', name: 'Scarab Queen', type: 'scarab', x: X(1395), y: JY(318), width: 58, height: 42, patrolMin: X(1335), patrolMax: X(1460), speed: 66, health: 1, damage: 4, shards: 6, intro: 'Seal Breach: Scarab Queen. A tomb looter cracks the guardian seal. The Scarab Queen erupts as the first trial of Anubis. The site will not yield easily.', dialogue: 'A tomb looter cracks the guardian seal. The Scarab Queen erupts as the first trial of Anubis. The site will not yield easily.', domainName: 'First Guardian Domain', arenaStart: X(1265), arenaEnd: X(1480) },
+  { id: 'scarab-queen', sectionId: 'desert-entry', name: 'Scarab Queen', type: 'scarab', x: X(1395), y: JY(318), width: 58, height: 42, patrolMin: X(1335), patrolMax: X(1460), speed: 66, health: 1, damage: 4, shards: 6, intro: 'Buried Seal: Scarab Queen. The buried scarab seal cracks open beneath the sand. The Scarab Queen rises as the first trial of Anubis. The site will not yield easily.', dialogue: 'The buried scarab seal cracks open beneath the sand. The Scarab Queen rises as the first trial of Anubis. The site will not yield easily.', domainName: 'First Guardian Domain', arenaStart: X(1265), arenaEnd: X(1480) },
   { id: 'temple-guardian', sectionId: 'ruined-temple', name: 'Anubis', type: 'guardian', x: X(2960), y: JY(306), width: 54, height: 54, patrolMin: X(2860), patrolMax: X(3060), speed: 58, health: 2, damage: 6, shards: 8, intro: 'Guardian Encounter: Anubis. Anubis stands at the temple path. Only those who move with respect may pass.', dialogue: 'Anubis stands at the temple path. Only those who move with respect may pass.', domainName: 'Anubis Gate', arenaStart: X(2785), arenaEnd: X(3090) },
   { id: 'giant-serpent', sectionId: 'catacombs', name: 'The Uraeus', type: 'snake', x: X(4860), y: JY(308), width: 72, height: 52, patrolMin: X(4730), patrolMax: X(4965), speed: 70, health: 2, damage: 6, shards: 8, intro: 'Guardian Encounter: The Uraeus. The Uraeus coils around the sacred seal. The path forward is protected.', dialogue: 'The Uraeus coils around the sacred seal. The path forward is protected.', domainName: 'Uraeus Seal Domain', arenaStart: X(4625), arenaEnd: X(4985) },
   { id: 'looter-captain', sectionId: 'escape-sequence', name: 'Bes', type: 'bes', x: X(6330), y: JY(306), width: 54, height: 54, patrolMin: X(6200), patrolMax: X(6435), speed: 86, health: 2, damage: 6, shards: 8, intro: 'Guardian Encounter: Bes. Bes blocks the broken passage with a fierce grin. This place will not be rushed.', dialogue: 'Bes blocks the broken passage with a fierce grin. This place will not be rushed.', domainName: 'Bes Trial', arenaStart: X(6110), arenaEnd: X(6460) },

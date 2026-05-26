@@ -474,7 +474,7 @@ test('Ancient Egypt opening stages archaeologist arrival and warrior-guide story
   assert.match(routeGates, /The Desert Map Seal waits for the Map Tablet, the Brush Handle, the fall of the Scarab Queen, and 10 lost fragments\./);
   assert.match(routeGates, /Carry the record forward into the ruined temple\./);
   assert.match(miniBosses, /id:\s*'scarab-queen'[\s\S]*?health:\s*1,\s*damage:\s*4/);
-  assert.match(miniBosses, /A tomb looter cracks the guardian seal\. The Scarab Queen erupts as the first trial of Anubis\. The site will not yield easily\./);
+  assert.match(miniBosses, /The buried scarab seal cracks open beneath the sand\. The Scarab Queen rises as the first trial of Anubis\. The site will not yield easily\./);
   assert.match(bossKeyItems, /id:\s*'brush-handle'[\s\S]*?The Scarab Queen falls\. Asha has permission, not trust\. Brush Handle recovered\. The Desert Map Seal answers\./);
   assert.match(journeyComponentSource, /const GUARDIAN_KNOWLEDGE_CHALLENGES_ENABLED = false;/);
 });
@@ -560,7 +560,7 @@ test('Egypt Phase 1 boss identity changes preserve progression ids and China nam
   ].forEach((pattern) => assert.match(miniBosses, pattern));
 
   [
-    'A tomb looter cracks the guardian seal. The Scarab Queen erupts as the first trial of Anubis. The site will not yield easily.',
+    'The buried scarab seal cracks open beneath the sand. The Scarab Queen rises as the first trial of Anubis. The site will not yield easily.',
     'Anubis stands at the temple path. Only those who move with respect may pass.',
     'The Uraeus coils around the sacred seal. The path forward is protected.',
     'Bes blocks the broken passage with a fierce grin. This place will not be rushed.',
@@ -1654,29 +1654,36 @@ test('active boss domains suppress normal enemy noise near the guardian arena', 
   assert.match(journeyComponentSource, /current\.enemies\.forEach\(\(enemy\) => \{[\s\S]*?if \(!enemy\.defeated && isNormalEnemyInsideBossFocus\(enemy, activeBossDomain\)\) return;/);
 });
 
-test('Scarab Queen boss intro is staged as a looter-triggered seal breach cinematic', () => {
+test('Scarab Queen boss intro is staged as a buried-sand emergence cinematic', () => {
   const miniBosses = extractExportedArray('MINI_BOSSES');
+  const buriedSealProp = new URL('../../../public/assets/expedition/bosses/scarab-queen-buried-lair-seal.png', import.meta.url);
 
-  assert.match(source, /bossIntroLine:\s*'A tomb looter cracks the guardian seal\. The Scarab Queen erupts as the first trial of Anubis\. The site will not yield easily\.'/);
-  assert.match(miniBosses, /id:\s*'scarab-queen'[\s\S]*?intro:\s*'Seal Breach: Scarab Queen\. A tomb looter cracks the guardian seal\. The Scarab Queen erupts as the first trial of Anubis\. The site will not yield easily\.'/);
-  assert.match(journeyComponentSource, /const SCARAB_QUEEN_CINEMATIC_INTRO_SECONDS = 5\.2/);
-  assert.match(journeyComponentSource, /const SCARAB_QUEEN_TRIGGER_LOOTER_OFFSET = 260/);
+  assert.ok(existsSync(buriedSealProp), 'buried scarab seal prop should exist as a transparent PNG runtime asset');
+  assert.match(source, /bossIntroLine:\s*'The buried scarab seal cracks open beneath the sand\. The Scarab Queen rises as the first trial of Anubis\. The site will not yield easily\.'/);
+  assert.match(miniBosses, /id:\s*'scarab-queen'[\s\S]*?intro:\s*'Buried Seal: Scarab Queen\. The buried scarab seal cracks open beneath the sand\. The Scarab Queen rises as the first trial of Anubis\. The site will not yield easily\.'/);
+  assert.match(journeyComponentSource, /const SCARAB_QUEEN_EMERGENCE_INTRO_SECONDS = 5\.2/);
+  assert.doesNotMatch(journeyComponentSource, /SCARAB_QUEEN_TRIGGER_LOOTER_OFFSET/);
   assert.match(journeyComponentSource, /const SCARAB_QUEEN_CINEMATIC_CAMERA_ANCHOR_RATIO = 0\.72/);
-  assert.match(journeyComponentSource, /const getScarabQueenCinematicBeat = \(introProgress\) =>/);
-  assert.match(journeyComponentSource, /triggeredByLooter:\s*scarabQueenCinematic/);
-  assert.match(journeyComponentSource, /triggerLooterX:\s*Math\.max\(arenaStart \+ 80, b\.x - SCARAB_QUEEN_TRIGGER_LOOTER_OFFSET\)/);
-  assert.match(journeyComponentSource, /introSeconds:\s*scarabQueenCinematic \? SCARAB_QUEEN_CINEMATIC_INTRO_SECONDS : 3\.2/);
-  assert.match(journeyComponentSource, /title:\s*scarabQueenCinematic \? `Seal Breach: \$\{b\.name\}` : `Guardian Encounter: \$\{b\.name\}`/);
-  assert.match(journeyComponentSource, /triggerActor:\s*scarabQueenCinematic \? 'Tomb Looter' : null/);
-  assert.match(journeyComponentSource, /triggerLine:\s*scarabQueenCinematic \? 'A looter cracked the guardian seal\. The Scarab Queen is awake\.' : null/);
+  assert.match(journeyComponentSource, /const SCARAB_QUEEN_BURIED_SEAL_IMAGE_SRC = 'assets\/expedition\/bosses\/scarab-queen-buried-lair-seal\.png'/);
+  assert.match(journeyComponentSource, /const getScarabQueenEmergenceBeat = \(introProgress\) =>/);
+  assert.match(journeyComponentSource, /buriedSealCrack:/);
+  assert.match(journeyComponentSource, /glyphGlow:/);
+  assert.match(journeyComponentSource, /sandEruption:/);
+  assert.match(journeyComponentSource, /queenRise:/);
+  assert.match(journeyComponentSource, /buriedSandEmergence:\s*scarabQueenCinematic/);
+  assert.match(journeyComponentSource, /introSeconds:\s*scarabQueenCinematic \? SCARAB_QUEEN_EMERGENCE_INTRO_SECONDS : 3\.2/);
+  assert.match(journeyComponentSource, /title:\s*scarabQueenCinematic \? `Buried Seal: \$\{b\.name\}` : `Guardian Encounter: \$\{b\.name\}`/);
+  assert.match(journeyComponentSource, /triggerActor:\s*scarabQueenCinematic \? 'Buried Scarab Seal' : null/);
+  assert.match(journeyComponentSource, /triggerLine:\s*scarabQueenCinematic \? 'The sand breaks\. Something ancient is rising\.' : null/);
   assert.match(journeyComponentSource, /cameraAnchorRatio:\s*scarabQueenCinematic \? SCARAB_QUEEN_CINEMATIC_CAMERA_ANCHOR_RATIO : null/);
-  assert.match(journeyComponentSource, /LOOTER BROKE THE SEAL/);
-  assert.match(journeyComponentSource, /QUEEN AWAKENS/);
-  assert.match(journeyComponentSource, /cinematicBeat:\s*activeBossDomain\?\.triggeredByLooter \? getScarabQueenCinematicBeat\(introProgress\) : null/);
-  assert.match(journeyComponentSource, /id:\s*'scarab-queen-trigger-looter'[\s\S]*?type:\s*'looter'/);
-  assert.match(journeyComponentSource, /SCARAB_QUEEN_CINEMATIC_INTRO_SECONDS[\s\S]*?current\.bossIntro = \{[\s\S]*?title:\s*`Seal Breach: \$\{boss\.name\}`/);
+  assert.match(journeyComponentSource, /SCARAB SEAL STIRS/);
+  assert.match(journeyComponentSource, /QUEEN RISES/);
+  assert.match(journeyComponentSource, /cinematicBeat:\s*activeBossDomain\?\.buriedSandEmergence \? getScarabQueenEmergenceBeat\(introProgress\) : null/);
+  assert.doesNotMatch(journeyComponentSource, /id:\s*'scarab-queen-trigger-looter'[\s\S]*?type:\s*'looter'/);
+  assert.match(journeyComponentSource, /if \(boss\.id === 'scarab-queen' && bossVisualState\?\.buriedSandEmergence && bossVisualState\.cinematicBeat\?\.queenRise <= 0\) return false;/);
+  assert.match(journeyComponentSource, /SCARAB_QUEEN_EMERGENCE_INTRO_SECONDS[\s\S]*?current\.bossIntro = \{[\s\S]*?title:\s*`Buried Seal: \$\{boss\.name\}`/);
   assert.match(journeyComponentSource, /target === 'journey-boss-intro-progress'/);
-  assert.match(journeyComponentSource, /const bossIntroActive = current\.bossIntroTimer > 0 && current\.bossIntro\?\.id === boss\.id;[\s\S]*?if \(!bossIntroActive\) drawEnemyAttackTell/);
+  assert.match(journeyComponentSource, /const bossIntroActive = current\.bossIntro\?\.id === boss\.id;[\s\S]*?if \(!bossIntroActive\) drawEnemyAttackTell/);
 });
 
 test('environment interactions include reactive foreground and movement elements', () => {

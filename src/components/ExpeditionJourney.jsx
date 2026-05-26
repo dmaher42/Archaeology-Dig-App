@@ -411,6 +411,7 @@ const STAGE_ENTRANCE_DOORWAY_SRC = 'assets/expedition/environment/stage-entrance
 const STAGE_ENTRANCE_DOORWAY_VERSION = 'imagegen-egypt-tomb-doorway-transition-2026-05-20';
 const DESERT_END_GATEWAY_SRC = 'assets/expedition/environment/stage-entrances/desert-end-threshold-angled.png';
 const DESERT_END_GATEWAY_VERSION = 'imagegen-desert-end-threshold-angled-blended-2026-05-23';
+const SCARAB_QUEEN_BURIED_SEAL_IMAGE_SRC = 'assets/expedition/bosses/scarab-queen-buried-lair-seal.png';
 const OPENING_CAMERA_REVEAL_DURATION = 1.55;
 const OPENING_CAMERA_REVEAL_PAN_SECONDS = 0.55;
 const OPENING_CAMERA_REVEAL_HOLD_SECONDS = 0.18;
@@ -1097,8 +1098,7 @@ const ENEMY_TYPE_STAKE_MESSAGES = {
 
 const BOSS_DOMAIN_ENEMY_FOCUS_PADDING = 96;
 const SCARAB_QUEEN_ENEMY_FOCUS_PADDING = 220;
-const SCARAB_QUEEN_CINEMATIC_INTRO_SECONDS = 5.2;
-const SCARAB_QUEEN_TRIGGER_LOOTER_OFFSET = 260;
+const SCARAB_QUEEN_EMERGENCE_INTRO_SECONDS = 5.2;
 const SCARAB_QUEEN_CINEMATIC_CAMERA_ANCHOR_RATIO = 0.72;
 
 const easeCinematicStep = (value) => {
@@ -1106,14 +1106,14 @@ const easeCinematicStep = (value) => {
   return t * t * (3 - 2 * t);
 };
 
-const getScarabQueenCinematicBeat = (introProgress) => {
+const getScarabQueenEmergenceBeat = (introProgress) => {
   const sceneProgress = clamp(1 - introProgress, 0, 1);
   return {
     sceneProgress,
-    looterApproach: easeCinematicStep(sceneProgress / 0.3),
-    sealStrike: clamp((sceneProgress - 0.24) / 0.2, 0, 1),
-    shockwave: easeCinematicStep(clamp((sceneProgress - 0.36) / 0.28, 0, 1)),
-    queenReveal: easeCinematicStep(clamp((sceneProgress - 0.46) / 0.34, 0, 1)),
+    buriedSealCrack: easeCinematicStep(clamp((sceneProgress - 0.12) / 0.24, 0, 1)),
+    glyphGlow: easeCinematicStep(clamp((sceneProgress - 0.22) / 0.26, 0, 1)),
+    sandEruption: easeCinematicStep(clamp((sceneProgress - 0.36) / 0.24, 0, 1)),
+    queenRise: easeCinematicStep(clamp((sceneProgress - 0.48) / 0.34, 0, 1)),
     finalHold: easeCinematicStep(clamp((sceneProgress - 0.78) / 0.18, 0, 1)),
   };
 };
@@ -2126,6 +2126,7 @@ export default function ExpeditionJourney({
   const dynamicWorldAssetsRef = useRef(createDynamicWorldAssetState());
   const markerSpriteAssetsRef = useRef(createMarkerSpriteState());
   const openingScarabSealImageRef = useRef({ image: null, loaded: false, failed: false });
+  const scarabQueenBuriedSealImageRef = useRef({ image: null, loaded: false, failed: false });
   const openingSphinxApparitionRef = useRef({ image: null, loaded: false, failed: false });
   const openingPyramidClimbPackRef = useRef({ image: null, loaded: false, failed: false });
   const openingPyramidFacadeRef = useRef({ image: null, loaded: false, failed: false });
@@ -2181,6 +2182,24 @@ export default function ExpeditionJourney({
       openingScarabSealImageRef.current = { image: null, loaded: false, failed: true };
     };
     image.src = `${import.meta.env.BASE_URL}${OPENING_SCARAB_SEAL_IMAGE_SRC}`;
+    return () => {
+      cancelled = true;
+    };
+  }, [syncHud]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const image = new Image();
+    image.onload = () => {
+      if (cancelled) return;
+      scarabQueenBuriedSealImageRef.current = { image, loaded: true, failed: false };
+      syncHud();
+    };
+    image.onerror = () => {
+      if (cancelled) return;
+      scarabQueenBuriedSealImageRef.current = { image: null, loaded: false, failed: true };
+    };
+    image.src = `${import.meta.env.BASE_URL}${SCARAB_QUEEN_BURIED_SEAL_IMAGE_SRC}`;
     return () => {
       cancelled = true;
     };
@@ -8852,6 +8871,90 @@ export default function ExpeditionJourney({
     return false;
   }, [drawContactShadow, getCombatMode]);
 
+  const drawScarabQueenBuriedSealProp = useCallback((ctx, worldCenterX, cameraX, now, beat = null) => {
+    const screenX = worldToScreenX(worldCenterX, cameraX);
+    if (screenX < -180 || screenX > CANVAS_WIDTH + 180) return false;
+
+    const crack = beat?.buriedSealCrack || 0;
+    const glowStrength = beat?.glyphGlow || 0;
+    const eruption = beat?.sandEruption || 0;
+    const rise = beat?.queenRise || 0;
+    const asset = scarabQueenBuriedSealImageRef.current;
+    const width = 190 + crack * 26;
+    const height = width * (256 / 900);
+    const drawX = screenX - width / 2;
+    const drawY = GROUND_Y - height + 3;
+    const pulse = 0.82 + Math.sin(now / 150) * 0.12;
+
+    ctx.save();
+    drawContactShadow(ctx, screenX, GROUND_Y + 4, width * 0.72, 0.18 + crack * 0.08, 1.1);
+    if (glowStrength > 0) {
+      const glow = ctx.createRadialGradient(screenX, GROUND_Y - 34, 8, screenX, GROUND_Y - 34, 104 + glowStrength * 86);
+      glow.addColorStop(0, `rgba(45, 212, 191, ${0.2 + glowStrength * 0.2})`);
+      glow.addColorStop(0.36, `rgba(250, 204, 21, ${0.1 + glowStrength * 0.22})`);
+      glow.addColorStop(1, 'rgba(120, 53, 15, 0)');
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.ellipse(screenX, GROUND_Y - 34, (104 + glowStrength * 68) * pulse, (40 + glowStrength * 26) * pulse, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    if (asset.loaded && asset.image) {
+      ctx.globalAlpha = 0.96;
+      ctx.drawImage(asset.image, drawX, drawY, width, height);
+    } else {
+      ctx.fillStyle = '#b7793b';
+      ctx.beginPath();
+      ctx.ellipse(screenX, GROUND_Y - 18, width / 2, height * 0.38, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#d6a642';
+      ctx.beginPath();
+      ctx.ellipse(screenX, GROUND_Y - 32, width * 0.24, height * 0.32, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    if (crack > 0) {
+      ctx.strokeStyle = `rgba(255, 244, 196, ${0.18 + glowStrength * 0.42})`;
+      ctx.lineWidth = 1.4 + crack * 1.2;
+      [-1, 1, 0].forEach((side, index) => {
+        ctx.beginPath();
+        const startX = screenX + side * (18 + index * 12);
+        ctx.moveTo(startX, GROUND_Y - 38);
+        ctx.lineTo(startX + side * (24 + crack * 22), GROUND_Y - 25 + index * 5);
+        ctx.lineTo(startX + side * (44 + crack * 34), GROUND_Y - 14 + index * 2);
+        ctx.stroke();
+      });
+    }
+
+    if (eruption > 0) {
+      ctx.fillStyle = `rgba(202, 138, 62, ${0.22 + eruption * 0.32})`;
+      for (let index = 0; index < 26; index += 1) {
+        const side = index % 2 ? 1 : -1;
+        const spread = 16 + (index % 7) * 13 + eruption * 64;
+        const lift = (18 + (index % 5) * 11) * eruption + Math.sin(now / 95 + index) * 3;
+        ctx.beginPath();
+        ctx.arc(
+          screenX + side * spread * (0.28 + eruption * 0.72),
+          GROUND_Y - 8 - lift,
+          1.8 + (index % 3) * 0.7 + eruption * 1.8,
+          0,
+          Math.PI * 2,
+        );
+        ctx.fill();
+      }
+      drawGroundDustLip(ctx, screenX, GROUND_Y + 1, width * (0.74 + eruption * 0.34), `rgba(202, 138, 62, ${0.2 + eruption * 0.34})`);
+    }
+
+    if (rise > 0 && rise < 0.96) {
+      ctx.fillStyle = `rgba(165, 93, 33, ${0.24 * (1 - rise)})`;
+      ctx.beginPath();
+      ctx.ellipse(screenX, GROUND_Y - 8, width * (0.42 + rise * 0.12), 14 + rise * 18, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+    return true;
+  }, [drawContactShadow, drawGroundDustLip]);
+
   const drawBossSprite = useCallback((ctx, boss, screenX, now, bossVisualState) => {
     const spriteBossId = boss.spriteBossId || boss.id;
     const isChinaGuardianBoss = isChinaGuardianBossSpriteId(spriteBossId);
@@ -8893,22 +8996,24 @@ export default function ExpeditionJourney({
     const shouldFlip = shouldFlipBossSprite(spriteBossId, facing);
     const centerX = screenX + boss.width / 2;
     const baseY = boss.y + boss.height;
+    if (boss.id === 'scarab-queen' && bossVisualState?.buriedSandEmergence && bossVisualState.cinematicBeat?.queenRise <= 0) return false;
+
     const cinematicReveal = boss.id === 'scarab-queen' && bossVisualState?.cinematicBeat
-      ? bossVisualState.cinematicBeat.queenReveal
+      ? bossVisualState.cinematicBeat.queenRise
       : 1;
-    const cinematicLift = boss.id === 'scarab-queen' && bossVisualState?.triggeredByLooter
-      ? (1 - cinematicReveal) * 72
+    const cinematicLift = boss.id === 'scarab-queen' && bossVisualState?.buriedSandEmergence
+      ? (1 - cinematicReveal) * 118
       : 0;
     const cinematicPulse = boss.id === 'scarab-queen' && bossVisualState?.cinematicBeat
       ? Math.sin(now / 78) * 0.035 * bossVisualState.cinematicBeat.finalHold
       : 0;
-    const visualScale = (boss.visualScale || 1) * (boss.id === 'scarab-queen' && bossVisualState?.triggeredByLooter
+    const visualScale = (boss.visualScale || 1) * (boss.id === 'scarab-queen' && bossVisualState?.buriedSandEmergence
       ? 0.86 + cinematicReveal * 0.14 + cinematicPulse
       : 1);
 
     ctx.save();
-    if (boss.id === 'scarab-queen' && bossVisualState?.triggeredByLooter) {
-      ctx.globalAlpha = clamp(0.2 + cinematicReveal * 0.8, 0.2, 1);
+    if (boss.id === 'scarab-queen' && bossVisualState?.buriedSandEmergence) {
+      ctx.globalAlpha = clamp(0.35 + cinematicReveal * 0.65, 0.35, 1);
       ctx.translate(0, cinematicLift);
       if (cinematicReveal < 1) {
         ctx.filter = `brightness(${0.82 + cinematicReveal * 0.42}) saturate(${0.72 + cinematicReveal * 0.5})`;
@@ -8987,7 +9092,7 @@ export default function ExpeditionJourney({
   const drawMiniBoss = useCallback((ctx, boss, screenX, now) => {
     const cx = screenX + boss.width / 2;
     const cy = boss.y + boss.height / 2;
-    const introActive = stateRef.current.bossIntroTimer > 0 && stateRef.current.bossIntro?.id === boss.id;
+    const introActive = stateRef.current.bossIntro?.id === boss.id;
     const activeBossDomain = stateRef.current.bossDomain?.bossId === boss.id ? stateRef.current.bossDomain : null;
     const introProgress = introActive
       ? Math.min(1, stateRef.current.bossIntroTimer / (activeBossDomain?.introSeconds || 3.2))
@@ -8995,8 +9100,8 @@ export default function ExpeditionJourney({
     const bossVisualState = {
       ...getBossVulnerabilityState(boss),
       introActive,
-      triggeredByLooter: Boolean(activeBossDomain?.triggeredByLooter),
-      cinematicBeat: activeBossDomain?.triggeredByLooter ? getScarabQueenCinematicBeat(introProgress) : null,
+      buriedSandEmergence: Boolean(activeBossDomain?.buriedSandEmergence),
+      cinematicBeat: activeBossDomain?.buriedSandEmergence ? getScarabQueenEmergenceBeat(introProgress) : null,
     };
 
     ctx.save();
@@ -9075,6 +9180,11 @@ export default function ExpeditionJourney({
       ctx.lineTo(cx - 18, cy);
       ctx.closePath();
       ctx.fill();
+    }
+
+    if (introActive) {
+      ctx.restore();
+      return;
     }
 
     const visibleBox = getBossVisibleDrawBox(boss, screenX);
@@ -9685,28 +9795,26 @@ export default function ExpeditionJourney({
         if (introProgress > 0) {
           ctx.fillStyle = `rgba(12, 8, 5, ${0.22 + introProgress * 0.2})`;
           ctx.fillRect(Math.max(0, domainStartX), 0, Math.min(CANVAS_WIDTH, domainWidth), CANVAS_HEIGHT);
-          if (activeBossDomain.triggeredByLooter) {
-            const beat = getScarabQueenCinematicBeat(introProgress);
-            const strikeWorldX = activeBossDomain.triggerLooterX || (activeBossDomain.arenaStart + 120);
-            const looterWorldX = strikeWorldX - 118 + 118 * beat.looterApproach;
-            const looterScreenX = worldToScreenX(looterWorldX, cameraX);
+          if (activeBossDomain.buriedSandEmergence) {
+            const beat = getScarabQueenEmergenceBeat(introProgress);
             const sealScreenX = worldToScreenX(activeBossDomain.bossStartX || current.bossIntro.focusX, cameraX);
-            const sealPulse = Math.sin(now / 120) * (0.12 + beat.shockwave * 0.18) + 0.9 + beat.shockwave * 0.22;
+            const sealPulse = Math.sin(now / 120) * (0.12 + beat.sandEruption * 0.18) + 0.9 + beat.sandEruption * 0.22;
             const revealProgress = beat.sceneProgress;
             if (sealScreenX > -120 && sealScreenX < CANVAS_WIDTH + 120) {
-              const sealGlow = ctx.createRadialGradient(sealScreenX, GROUND_Y - 72, 12, sealScreenX, GROUND_Y - 72, 170 * sealPulse + beat.shockwave * 90);
-              sealGlow.addColorStop(0, `rgba(250, 204, 21, ${0.2 + beat.sealStrike * 0.28 + beat.queenReveal * 0.16})`);
-              sealGlow.addColorStop(0.48, `rgba(245, 158, 11, ${0.1 + beat.shockwave * 0.2})`);
+              drawScarabQueenBuriedSealProp(ctx, activeBossDomain.bossStartX || current.bossIntro.focusX, cameraX, now, beat);
+              const sealGlow = ctx.createRadialGradient(sealScreenX, GROUND_Y - 62, 12, sealScreenX, GROUND_Y - 62, 170 * sealPulse + beat.sandEruption * 90);
+              sealGlow.addColorStop(0, `rgba(250, 204, 21, ${0.16 + beat.glyphGlow * 0.3 + beat.queenRise * 0.16})`);
+              sealGlow.addColorStop(0.48, `rgba(45, 212, 191, ${0.08 + beat.sandEruption * 0.2})`);
               sealGlow.addColorStop(1, 'rgba(120, 53, 15, 0)');
               ctx.fillStyle = sealGlow;
               ctx.beginPath();
-              ctx.ellipse(sealScreenX, GROUND_Y - 72, 156 * sealPulse, 72 * sealPulse, 0, 0, Math.PI * 2);
+              ctx.ellipse(sealScreenX, GROUND_Y - 62, 156 * sealPulse, 72 * sealPulse, 0, 0, Math.PI * 2);
               ctx.fill();
-              if (beat.shockwave > 0) {
-                ctx.strokeStyle = `rgba(253, 224, 71, ${0.62 * (1 - beat.shockwave)})`;
+              if (beat.sandEruption > 0) {
+                ctx.strokeStyle = `rgba(253, 224, 71, ${0.62 * (1 - beat.sandEruption)})`;
                 ctx.lineWidth = 4;
                 ctx.beginPath();
-                ctx.arc(sealScreenX, GROUND_Y - 62, 26 + beat.shockwave * 230, 0, Math.PI * 2);
+                ctx.arc(sealScreenX, GROUND_Y - 56, 26 + beat.sandEruption * 230, 0, Math.PI * 2);
                 ctx.stroke();
               }
               ctx.strokeStyle = `rgba(250, 204, 21, ${0.45 + revealProgress * 0.25})`;
@@ -9716,44 +9824,24 @@ export default function ExpeditionJourney({
                 ctx.ellipse(sealScreenX, GROUND_Y - 40, 48 + ring * 32 + revealProgress * 18, 12 + ring * 6, 0, 0, Math.PI * 2);
                 ctx.stroke();
               });
-              ctx.fillStyle = `rgba(217, 119, 6, ${0.16 + beat.queenReveal * 0.2})`;
+              ctx.fillStyle = `rgba(217, 119, 6, ${0.16 + beat.sandEruption * 0.24})`;
               for (let index = 0; index < 18; index += 1) {
                 const angle = (index / 18) * Math.PI * 2 + now / 900;
-                const radius = 28 + beat.queenReveal * 132 + Math.sin(now / 80 + index) * 8;
+                const radius = 28 + beat.sandEruption * 132 + Math.sin(now / 80 + index) * 8;
                 ctx.beginPath();
-                ctx.arc(sealScreenX + Math.cos(angle) * radius, GROUND_Y - 30 + Math.sin(angle) * radius * 0.24, 2.2 + beat.shockwave * 1.8, 0, Math.PI * 2);
+                ctx.arc(sealScreenX + Math.cos(angle) * radius, GROUND_Y - 30 + Math.sin(angle) * radius * 0.24, 2.2 + beat.sandEruption * 1.8, 0, Math.PI * 2);
                 ctx.fill();
               }
-            }
-            if (looterScreenX > -120 && looterScreenX < CANVAS_WIDTH + 120) {
-              drawSmallEnemySprite(ctx, {
-                id: 'scarab-queen-trigger-looter',
-                name: 'Tomb Looter',
-                type: 'looter',
-                x: looterWorldX,
-                y: GROUND_Y - 66,
-                width: 48,
-                height: 66,
-                direction: -1,
-                attackDirection: -1,
-                attackTimer: beat.sealStrike > 0.52 && beat.sealStrike < 0.95 ? 0.22 : 0,
-                attackWindup: beat.sealStrike > 0.12 && beat.sealStrike <= 0.52 ? 0.2 : 0,
-                attackRecovery: 0,
-                attackCooldown: 0,
-                stunTimer: beat.shockwave > 0.34 ? 0.2 : 0,
-                hitFlash: beat.shockwave > 0.18 ? 0.08 : 0,
-                defeated: false,
-              }, looterScreenX, now, beat.shockwave > 0.18 ? Math.sin(now / 20) * (2 + beat.shockwave * 2) : 0);
               ctx.fillStyle = 'rgba(15, 23, 42, 0.78)';
-              ctx.roundRect(looterScreenX - 62, GROUND_Y - 118, 124, 22, 6);
+              ctx.roundRect(sealScreenX - 62, GROUND_Y - 118, 124, 22, 6);
               ctx.fill();
               ctx.fillStyle = '#fde68a';
               ctx.font = '900 9px Outfit, sans-serif';
               ctx.textAlign = 'center';
-              ctx.fillText(beat.queenReveal > 0.25 ? 'QUEEN AWAKENS' : 'LOOTER BROKE THE SEAL', looterScreenX, GROUND_Y - 103);
+              ctx.fillText(beat.queenRise > 0.25 ? 'QUEEN RISES' : 'SCARAB SEAL STIRS', sealScreenX, GROUND_Y - 103);
             }
           }
-          const introMarkers = activeBossDomain.triggeredByLooter
+          const introMarkers = activeBossDomain.buriedSandEmergence
             ? [{ x: current.bossIntro.focusX, label: 'GUARDIAN' }]
             : [
               { x: current.player.x + current.player.width / 2, label: 'FIELD TEAM' },
@@ -9969,8 +10057,14 @@ export default function ExpeditionJourney({
       if (boss.defeated) return;
       const bx = worldToScreenX(boss.x, cameraX);
       if (!isHorizontallyVisible(boss.x, boss.width, cameraX, 100)) return;
+      const isBuriedScarabQueen = boss.id === SCARAB_SEAL_TRIGGER.bossId
+        && backgroundPackId !== 'china-river-valley';
+      const bossIntroActive = current.bossIntro?.id === boss.id;
+      if (isBuriedScarabQueen && !boss.awakened && !bossIntroActive) {
+        drawScarabQueenBuriedSealProp(ctx, boss.x + boss.width / 2, cameraX, now);
+        return;
+      }
       drawMiniBoss(ctx, boss, bx, now);
-      const bossIntroActive = current.bossIntroTimer > 0 && current.bossIntro?.id === boss.id;
       if (!bossIntroActive) drawEnemyAttackTell(ctx, boss, bx, cameraX, now, true, true);
     });
 
@@ -10277,7 +10371,7 @@ export default function ExpeditionJourney({
       }
       ctx.textAlign = 'start';
     }
-  }, [backgroundPackId, drawAncientRouteGround, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawForgottenMuralChamberInterior, drawForgottenMuralChamberTransition, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawRouteGate, drawRouteGroundApron, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getGateGuidance, getGateRequirements, getPlayerAttackState, isRouteRewardAccessible, drawPlayerSprite, drawFieldNoteLabel]);
+  }, [backgroundPackId, drawAncientRouteGround, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawForgottenMuralChamberInterior, drawForgottenMuralChamberTransition, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawRouteGate, drawRouteGroundApron, drawScarabQueenBuriedSealProp, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getGateGuidance, getGateRequirements, getPlayerAttackState, isRouteRewardAccessible, drawPlayerSprite, drawFieldNoteLabel]);
 
   const startOpeningCinematic = useCallback(({ speechEnabled = true } = {}) => {
     const current = stateRef.current;
@@ -12242,19 +12336,18 @@ export default function ExpeditionJourney({
                 ? 'rgba(92, 35, 15, 0.24)'
                 : 'rgba(120, 53, 15, 0.14)',
           suppressVisuals: false,
-          triggeredByLooter: scarabQueenCinematic,
-          triggerLooterX: Math.max(arenaStart + 80, b.x - SCARAB_QUEEN_TRIGGER_LOOTER_OFFSET),
-          introSeconds: scarabQueenCinematic ? SCARAB_QUEEN_CINEMATIC_INTRO_SECONDS : 3.2,
+          buriedSandEmergence: scarabQueenCinematic,
+          introSeconds: scarabQueenCinematic ? SCARAB_QUEEN_EMERGENCE_INTRO_SECONDS : 3.2,
         };
         current.bossIntro = {
           id: b.id,
-          title: scarabQueenCinematic ? `Seal Breach: ${b.name}` : `Guardian Encounter: ${b.name}`,
+          title: scarabQueenCinematic ? `Buried Seal: ${b.name}` : `Guardian Encounter: ${b.name}`,
           message: scarabSealBossIntroLine || (keyItem
             ? b.dialogue || `Defeat the guardian to recover the ${keyItem.name}.`
             : b.intro),
           focusX: b.x,
-          triggerActor: scarabQueenCinematic ? 'Tomb Looter' : null,
-          triggerLine: scarabQueenCinematic ? 'A looter cracked the guardian seal. The Scarab Queen is awake.' : null,
+          triggerActor: scarabQueenCinematic ? 'Buried Scarab Seal' : null,
+          triggerLine: scarabQueenCinematic ? 'The sand breaks. Something ancient is rising.' : null,
           cameraAnchorRatio: scarabQueenCinematic ? SCARAB_QUEEN_CINEMATIC_CAMERA_ANCHOR_RATIO : null,
           dialogue: scarabSealBossIntroLine || b.dialogue || null,
           domainName: b.domainName || `${b.name} Domain`,
@@ -12279,8 +12372,8 @@ export default function ExpeditionJourney({
             };
           }
         }
-        current.bossIntroTimer = scarabQueenCinematic ? SCARAB_QUEEN_CINEMATIC_INTRO_SECONDS : 3.2;
-        current.bossIntroPauseTimer = scarabQueenCinematic ? SCARAB_QUEEN_CINEMATIC_INTRO_SECONDS : 3.2;
+        current.bossIntroTimer = scarabQueenCinematic ? SCARAB_QUEEN_EMERGENCE_INTRO_SECONDS : 3.2;
+        current.bossIntroPauseTimer = scarabQueenCinematic ? SCARAB_QUEEN_EMERGENCE_INTRO_SECONDS : 3.2;
         current.cameraShakeTimer = Math.max(current.cameraShakeTimer, scarabQueenCinematic ? 0.62 : 0.35);
         current.cameraShakeStrength = Math.max(current.cameraShakeStrength, scarabQueenCinematic ? 0.42 : 0.32);
         const arenaCamera = scarabQueenCinematic
@@ -12797,7 +12890,7 @@ export default function ExpeditionJourney({
           boss.hitFlash = 0;
           boss.attackCycleIndex = 0;
           boss.patternHistory = [];
-          current.player.x = clamp(boss.x - 92, 0, WORLD_WIDTH - current.player.width);
+          current.player.x = clamp(arenaStart + 44, 0, WORLD_WIDTH - current.player.width);
           current.player.y = GROUND_Y - current.player.height;
           current.player.vx = 0;
           current.player.vy = 0;
@@ -12822,25 +12915,24 @@ export default function ExpeditionJourney({
             color: '#facc15',
             tint: scarabQueenCinematic ? 'rgba(92, 35, 15, 0.24)' : 'rgba(120, 53, 15, 0.14)',
             suppressVisuals: false,
-            triggeredByLooter: scarabQueenCinematic,
-            triggerLooterX: Math.max(arenaStart + 80, boss.x - SCARAB_QUEEN_TRIGGER_LOOTER_OFFSET),
-            introSeconds: scarabQueenCinematic ? SCARAB_QUEEN_CINEMATIC_INTRO_SECONDS : 3.2,
+            buriedSandEmergence: scarabQueenCinematic,
+            introSeconds: scarabQueenCinematic ? SCARAB_QUEEN_EMERGENCE_INTRO_SECONDS : 3.2,
           };
           if (scarabQueenCinematic) {
             current.bossIntro = {
               id: boss.id,
-              title: `Seal Breach: ${boss.name}`,
+              title: `Buried Seal: ${boss.name}`,
               message: SCARAB_SEAL_TRIGGER.bossIntroLine,
               focusX: boss.x,
-              triggerActor: 'Tomb Looter',
-              triggerLine: 'A looter cracked the guardian seal. The Scarab Queen is awake.',
+              triggerActor: 'Buried Scarab Seal',
+              triggerLine: 'The sand breaks. Something ancient is rising.',
               cameraAnchorRatio: SCARAB_QUEEN_CINEMATIC_CAMERA_ANCHOR_RATIO,
               dialogue: SCARAB_SEAL_TRIGGER.bossIntroLine,
               domainName: boss.domainName || `${boss.name} Domain`,
               rewardName: null,
             };
-            current.bossIntroTimer = SCARAB_QUEEN_CINEMATIC_INTRO_SECONDS;
-            current.bossIntroPauseTimer = SCARAB_QUEEN_CINEMATIC_INTRO_SECONDS;
+            current.bossIntroTimer = SCARAB_QUEEN_EMERGENCE_INTRO_SECONDS;
+            current.bossIntroPauseTimer = SCARAB_QUEEN_EMERGENCE_INTRO_SECONDS;
             current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.62);
             current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.42);
           }
@@ -12885,7 +12977,7 @@ export default function ExpeditionJourney({
               color: '#facc15',
               tint: 'rgba(92, 35, 15, 0.24)',
               suppressVisuals: false,
-              triggeredByLooter: false,
+              buriedSandEmergence: false,
               introSeconds: 3.2,
             };
           const state = event.detail?.state || 'walk';
