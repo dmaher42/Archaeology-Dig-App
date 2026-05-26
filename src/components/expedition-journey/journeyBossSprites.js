@@ -19,6 +19,7 @@ export const BOSS_SPRITE_ATLAS_VERSION = 'boss-sprites-scarab-queen-regenerated-
 
 export const MIN_BOSS_DRAW_HEIGHT = 176;
 export const SCARAB_QUEEN_DRAW_OFFSET_X = 42;
+export const SCARAB_QUEEN_FOOT_SINK = 16;
 const getGroundedBossDrawBox = (boss, screenX, width, height, footSink = 4) => ({
   x: screenX + boss.width / 2 - width / 2,
   y: boss.y + boss.height - height + footSink,
@@ -411,14 +412,14 @@ export const getClayGuardianSpriteFrame = (boss, combatMode, bossVisualState = {
 };
 
 export const shouldFlipBossSprite = (bossId, facing = 1) => {
-  if (bossId === 'scarab-queen') return facing < 0;
+  if (bossId === 'scarab-queen') return facing > 0;
   return facing < 0;
 };
 
 export const getScarabQueenDrawBox = (boss, screenX) => {
   const height = Math.max(MIN_BOSS_DRAW_HEIGHT * 1.5, boss.height * 5.775);
   const width = Math.max(390, boss.width * 6.675);
-  const box = getGroundedBossDrawBox(boss, screenX, width, height, 4);
+  const box = getGroundedBossDrawBox(boss, screenX, width, height, SCARAB_QUEEN_FOOT_SINK);
   return {
     ...box,
     x: box.x + SCARAB_QUEEN_DRAW_OFFSET_X,

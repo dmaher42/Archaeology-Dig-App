@@ -5,6 +5,7 @@ import {
   getScarabQueenDrawBox,
   getScarabQueenSpriteFrame,
   SCARAB_QUEEN_DRAW_OFFSET_X,
+  SCARAB_QUEEN_FOOT_SINK,
   shouldFlipBossSprite,
 } from './journeyBossSprites.js';
 import {
@@ -162,18 +163,18 @@ test('sand-wisp flying enemy renders as the larger cinematic winged wisp', () =>
   assert.doesNotMatch(enemySpriteGeneratorSource, /flying-scarab-production-source-alpha\.png/);
 });
 
-test('scarabs use the same right-facing sprite orientation rules', () => {
+test('Scarab Queen keeps the left-facing atlas orientation while small scarabs use their own rules', () => {
   assert.equal(shouldFlipEnemySprite('scarab', 1), false, 'small scarab should not flip while facing right');
   assert.equal(shouldFlipEnemySprite('scarab', -1), true, 'small scarab should flip while facing left');
-  assert.equal(shouldFlipBossSprite('scarab-queen', 1), false, 'new Scarab Queen sheets are wired to face the encounter without the old intro flip');
-  assert.equal(shouldFlipBossSprite('scarab-queen', -1), true, 'new Scarab Queen sheets only flip for the opposite patrol direction');
+  assert.equal(shouldFlipBossSprite('scarab-queen', -1), false, 'Scarab Queen atlas already faces left toward Asha');
+  assert.equal(shouldFlipBossSprite('scarab-queen', 1), true, 'Scarab Queen should only flip when moving or attacking right');
 });
 
 test('Scarab Queen attack frames are prioritized over passive shield and counter states', () => {
   assert.match(journeyBossSpritesSource, /sequenceFrame\('scarabQueenWindup', 6, 115\)/);
   assert.match(journeyBossSpritesSource, /sequenceFrame\('scarabQueenAcidSpit', 8, 95\)/);
   assert.match(journeyBossSpritesSource, /sequenceFrame\('scarabQueenRun', 8, 85\)/);
-  assert.match(journeyBossSpritesSource, /if \(bossId === 'scarab-queen'\) return facing < 0;/);
+  assert.match(journeyBossSpritesSource, /if \(bossId === 'scarab-queen'\) return facing > 0;/);
   assert.equal(getScarabQueenSpriteFrame({ id: 'scarab-queen', hitFlash: 0 }, 'windup', { shielded: true }, 230), 'scarabQueenWindup3');
   assert.equal(getScarabQueenSpriteFrame({ id: 'scarab-queen', hitFlash: 0 }, 'attacking', { shielded: true, attackKind: 'close' }, 255), 'scarabQueenRun4');
   assert.equal(getScarabQueenSpriteFrame({ id: 'scarab-queen', hitFlash: 0 }, 'attacking', { shielded: true, attackKind: 'area' }, 285), 'scarabQueenAcidSpit4');
@@ -235,7 +236,7 @@ test('Scarab Queen draw box matches the fixed atlas ratio closely enough to stay
   assert.ok(drawBox.width >= 390, `Queen draw width should be 50% larger and intimidating, received ${drawBox.width}`);
   assert.ok(drawBox.height >= 264, `Queen draw height should be 50% larger and intimidating, received ${drawBox.height}`);
   assert.ok(drawBox.width >= drawBox.height * atlasRatio * 0.95, `Queen draw box should be wide enough for fixed-cell atlas, received ratio ${drawRatio}`);
-  assert.ok(Math.abs((drawBox.y + drawBox.height) - (boss.y + boss.height + 4)) < 0.001, 'Queen draw box should stay grounded to boss feet');
+  assert.ok(Math.abs((drawBox.y + drawBox.height) - (boss.y + boss.height + SCARAB_QUEEN_FOOT_SINK)) < 0.001, 'Queen draw box should sink enough to compensate for transparent foot padding');
   assert.equal(
     drawBox.x,
     300 + boss.width / 2 - drawBox.width / 2 + SCARAB_QUEEN_DRAW_OFFSET_X,

@@ -9985,7 +9985,11 @@ export default function ExpeditionJourney({
       const complete = requirements.every(r => r.met);
       drawRouteGate(ctx, gate, gx, current, complete);
     });
-    if (!chamberSceneActive) drawMissingObjectiveMarker(ctx, activeGateGuidance, cameraX, now);
+    const activeBossDomainForObjectiveMarkers = current.bossDomain
+      && !current.defeatedMiniBosses.has(current.bossDomain.bossId)
+      ? current.bossDomain
+      : null;
+    if (!chamberSceneActive && !activeBossDomainForObjectiveMarkers) drawMissingObjectiveMarker(ctx, activeGateGuidance, cameraX, now);
 
     if (!chamberSceneActive) STAGE_ENTRANCE_FEATURES.forEach((feature) => {
       if (!shouldRenderStageEntranceFeatureForState(feature, current)) return;

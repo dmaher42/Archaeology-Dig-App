@@ -1684,6 +1684,7 @@ test('Scarab Queen boss intro is staged as a buried-sand emergence cinematic', (
   assert.match(journeyComponentSource, /SCARAB_QUEEN_EMERGENCE_INTRO_SECONDS[\s\S]*?current\.bossIntro = \{[\s\S]*?title:\s*`Buried Seal: \$\{boss\.name\}`/);
   assert.match(journeyComponentSource, /target === 'journey-boss-intro-progress'/);
   assert.match(journeyComponentSource, /const bossIntroActive = current\.bossIntro\?\.id === boss\.id;[\s\S]*?if \(!bossIntroActive\) drawEnemyAttackTell/);
+  assert.match(journeyComponentSource, /const activeBossDomainForObjectiveMarkers = current\.bossDomain[\s\S]*?if \(!chamberSceneActive && !activeBossDomainForObjectiveMarkers\) drawMissingObjectiveMarker/);
 });
 
 test('environment interactions include reactive foreground and movement elements', () => {
