@@ -4,12 +4,12 @@ const JY = (y) => y + JOURNEY_VERTICAL_OFFSET;
 const X = scaleJourneyX;
 
 export const JOURNEY_TOOLS = [
-  { id: 'brush', name: 'Brush', emoji: '🖌️', icon: 'B' },
-  { id: 'trowel', name: 'Trowel', emoji: '⛏️', icon: 'T' },
-  { id: 'notebook', name: 'Notebook', emoji: '📓', icon: 'N' },
-  { id: 'camera', name: 'Camera', emoji: '📷', icon: 'C' },
-  { id: 'measuring-tape', name: 'Measuring Tape', emoji: '📏', icon: 'M' },
-  { id: 'field-guide-page', name: 'Field Guide Page', emoji: '📜', icon: 'F' },
+  { id: 'brush', name: 'Reed Brush', emoji: '🖌️', icon: 'B' },
+  { id: 'trowel', name: 'Bronze Trowel', emoji: '⛏️', icon: 'T' },
+  { id: 'notebook', name: 'Field Journal', emoji: '📓', icon: 'J' },
+  { id: 'camera', name: 'Survey Lens', emoji: '📷', icon: 'L' },
+  { id: 'measuring-tape', name: 'Measuring Cord', emoji: '📏', icon: 'M' },
+  { id: 'field-guide-page', name: 'Papyrus Guide', emoji: '📜', icon: 'P' },
 ];
 
 export const SECTIONS = [
@@ -21,12 +21,12 @@ export const SECTIONS = [
 ];
 
 export const TOOL_LAYOUT = [
-  { id: 'brush', x: X(220), y: JY(314) },
-  { id: 'trowel', x: X(770), y: JY(320) },
-  { id: 'notebook', x: X(1780), y: JY(320) },
-  { id: 'camera', x: X(2860), y: JY(320) },
-  { id: 'measuring-tape', x: X(4280), y: JY(260) },
-  { id: 'field-guide-page', x: X(6210), y: JY(208) },
+  { id: 'brush', x: X(255), y: JY(314) },
+  { id: 'trowel', x: X(705), y: JY(320) },
+  { id: 'notebook', x: X(1840), y: JY(286) },
+  { id: 'camera', x: X(2898), y: JY(250) },
+  { id: 'measuring-tape', x: X(4388), y: JY(234) },
+  { id: 'field-guide-page', x: X(5526), y: JY(230) },
 ];
 
 export const PLATFORMS = [
@@ -35,13 +35,16 @@ export const PLATFORMS = [
   { x: X(3150), y: GROUND_Y, width: X(1900), height: 60, label: 'catacomb path' },
   { x: X(5050), y: GROUND_Y, width: X(1450), height: 60, label: 'escape road' },
   { x: X(6500), y: GROUND_Y, width: WORLD_WIDTH - X(6500), height: 60, label: 'dig-site rise' },
-  { id: 'opening-lower-ruin-ledge', x: 258, y: JY(318), width: 430, height: 18, label: 'invisible marked lower pyramid ledge', invisible: true },
-  { id: 'opening-first-terrace', x: 402, y: JY(166), width: 420, height: 18, label: 'invisible marked first pyramid terrace', invisible: true },
-  { id: 'opening-second-terrace', x: 594, y: JY(36), width: 390, height: 18, label: 'invisible marked second pyramid terrace', invisible: true },
-  { id: 'opening-scarab-seal-summit', x: 760, y: JY(-101), width: 330, height: 18, label: 'invisible marked scarab artefact platform', invisible: true },
-  { id: 'desert-broken-ruin-lower-climb', x: X(500), y: JY(318), width: 260, height: 18, label: 'facade-marked broken ruin lower climb', invisible: true },
-  { id: 'desert-broken-ruin-middle-climb', x: X(555), y: JY(276), width: 280, height: 18, label: 'facade-marked broken ruin middle climb', invisible: true },
-  { id: 'desert-broken-ruin-tablet-ledge', x: X(610), y: JY(226), width: 300, height: 18, label: 'facade-marked Map Tablet ledge', invisible: true },
+  { id: 'opening-lower-ruin-ledge', x: 0, y: JY(318), width: 430, height: 18, label: 'invisible marked lower pyramid ledge', invisible: true },
+  { id: 'opening-first-terrace', x: 320, y: JY(166), width: 365, height: 18, label: 'invisible marked first pyramid terrace', invisible: true },
+  { id: 'opening-second-terrace', x: 420, y: JY(36), width: 395, height: 18, label: 'invisible marked second pyramid terrace', invisible: true },
+  { id: 'opening-scarab-seal-summit', x: 620, y: JY(-101), width: 360, height: 18, label: 'invisible marked scarab artefact platform', invisible: true },
+  { id: 'mummification-chamber-sand-buried-block', x: X(535), y: JY(296), width: 235, height: 18, label: 'invisible buried block at the Mummification Chamber exterior', secret: true, invisible: true },
+  { id: 'mummification-chamber-carved-lower-ledge', x: X(590), y: JY(234), width: 218, height: 18, label: 'invisible carved lower ledge on the Mummification Chamber exterior', secret: true, invisible: true },
+  { id: 'mummification-chamber-damaged-stair', x: X(646), y: JY(176), width: 215, height: 18, label: 'invisible damaged stair at the Mummification Chamber exterior', secret: true, invisible: true },
+  { id: 'mummification-chamber-upper-rite-ledge', x: X(700), y: JY(112), width: 225, height: 18, label: 'invisible upper rite ledge at the Mummification Chamber exterior', secret: true, invisible: true },
+  { id: 'mummification-chamber-doorway-floor', x: X(740), y: JY(48), width: 250, height: 18, label: 'invisible doorway floor at the Mummification Chamber entrance', secret: true, invisible: true },
+  { id: 'mummification-chamber-floor', sceneId: 'mummification-chamber', x: X(520), y: JY(318), width: X(240), height: 18, label: 'invisible full Mummification Chamber floor', secret: true, invisible: true },
   { id: 'forgotten-mural-lower-masonry', x: 4480, y: JY(276), width: 230, height: 18, label: 'invisible collapsed ceremonial masonry step over generated mural structure', secret: true, invisible: true },
   { id: 'forgotten-mural-carved-wall-ledge', x: 4660, y: JY(218), width: 230, height: 18, label: 'invisible carved wall ledge in hidden priest passage art', secret: true, invisible: true },
   { id: 'forgotten-mural-broken-warning-step', x: 4845, y: JY(160), width: 240, height: 18, label: 'invisible broken warning-stone ledge over generated mural structure', secret: true, invisible: true },
@@ -52,6 +55,12 @@ export const PLATFORMS = [
   { id: 'forgotten-mural-forward-passage-step', x: 5588, y: JY(-54), width: 230, height: 18, label: 'invisible forward stonework return from the hidden alcove over generated mural structure', secret: true, invisible: true },
   { id: 'forgotten-mural-return-masonry', x: 5795, y: JY(52), width: 240, height: 18, label: 'invisible return masonry over generated mural structure', secret: true, invisible: true },
   { id: 'forgotten-mural-lower-return', x: 5995, y: JY(170), width: 260, height: 18, label: 'invisible lower return ledge from priest passage over generated art', secret: true, invisible: true },
+  { id: 'scribe-chamber-buried-lower-block', x: X(1088), y: JY(302), width: 300, height: 18, label: 'invisible buried lower block at the Scribe Chamber platform', secret: true, invisible: true },
+  { id: 'scribe-chamber-collapsed-stair-slab', x: X(1102), y: JY(250), width: 305, height: 18, label: 'invisible collapsed stair slab at the Scribe Chamber platform', secret: true, invisible: true },
+  { id: 'scribe-chamber-middle-rubble-landing', x: X(1088), y: JY(198), width: 285, height: 18, label: 'invisible middle rubble landing at the Scribe Chamber platform', secret: true, invisible: true },
+  { id: 'scribe-chamber-upper-carved-landing', x: X(1114), y: JY(138), width: 265, height: 18, label: 'invisible upper carved landing at the Scribe Chamber platform', secret: true, invisible: true },
+  { id: 'scribe-chamber-doorway-threshold', x: X(1128), y: JY(72), width: 215, height: 18, label: 'invisible raised doorway threshold at the Scribe Chamber entrance', secret: true, invisible: true },
+  { id: 'scribe-locked-chamber-floor', sceneId: 'scribe-locked-chamber', x: X(1180), y: JY(318), width: X(210), height: 18, label: 'invisible Scribe Locked Chamber floor', secret: true, invisible: true },
   { id: 'switch-1-raised-return-plinth', x: X(1810), y: JY(304), width: 128, height: 18, label: 'switch raised return plinth', requiresObjective: 'switch-1' },
   { x: X(1905), y: JY(308), width: 124, height: 18, label: 'sandfall warning slab', challengeId: 'temple-sandfall-climb', challengeFailY: JY(326), challengeFailMessage: 'You slipped from the sandfall climb. The team reset at the checkpoint.' },
   { id: 'temple-sandfall-cracked-column-step', x: X(1980), y: JY(282), width: 138, height: 18, label: 'collapsing column step', reactive: { type: 'collapsing bridge piece', delay: 1.25, respawn: 3.2, shake: 0.12 }, challengeId: 'temple-sandfall-climb', challengeFailY: JY(326), challengeFailMessage: 'You slipped from the sandfall climb. The team reset at the checkpoint.' },
@@ -233,9 +242,8 @@ export const HAZARD_PURPOSES = {
 };
 
 export const ENEMIES = [
-  { id: 'scorpion-start-1', name: 'Sand Scorpion', type: 'scorpion', emoji: 'S', x: X(505), y: JY(328), width: 44, height: 30, patrolMin: X(470), patrolMax: X(560), speed: 44, health: 1, damage: 4, openingRouteRamp: true, firstSealRouteRamp: true, attackPatternTuning: { windup: 0.66, duration: 0.34, cooldown: 1.78, recovery: 0.72, vulnerableAfter: 0.78, speed: 42, range: 26, height: 62, yOffset: -38, backReach: 42, damageScale: 1.5, protectedDuringWindup: true }, shards: 2, encounterRole: 'shard cache guard', protectsRouteId: 'desert-opening-shard-cache', pressureHint: 'Guards the first shard cache and punishes jumping over a raised sting.' },
+  { id: 'scorpion-start-1', name: 'Sand Scorpion', type: 'scorpion', emoji: 'S', x: X(440), y: JY(328), width: 44, height: 30, patrolMin: X(410), patrolMax: X(470), speed: 44, health: 1, damage: 4, openingRouteRamp: true, firstSealRouteRamp: true, attackPatternTuning: { windup: 0.66, duration: 0.34, cooldown: 1.78, recovery: 0.72, vulnerableAfter: 0.78, speed: 42, range: 26, height: 62, yOffset: -38, backReach: 42, damageScale: 1.5, protectedDuringWindup: true }, shards: 2, encounterRole: 'shard cache guard', protectsRouteId: 'desert-opening-shard-cache', pressureHint: 'Guards the first shard cache and punishes jumping over a raised sting.' },
   { id: 'scorpion-pottery-1', name: 'Pottery Scorpion', type: 'scorpion', emoji: 'S', x: X(535), y: JY(328), width: 46, height: 30, patrolMin: X(485), patrolMax: X(620), speed: 62, health: 1, damage: 4, openingRouteRamp: true, firstSealRouteRamp: true, attackPatternTuning: { windup: 0.64, duration: 0.32, cooldown: 1.72, recovery: 0.68, vulnerableAfter: 0.76, speed: 48, range: 28, height: 62, yOffset: -38, backReach: 42, damageScale: 1.45, protectedDuringWindup: true }, shards: 1, encounterRole: 'shard cache guard', protectsRouteId: 'desert-opening-shard-cache' },
-  { id: 'scarab-survey-1', name: 'Survey Scarab', type: 'scarab', emoji: '🐞', x: X(625), y: JY(202), width: 30, height: 24, patrolMin: X(585), patrolMax: X(625), speed: 54, health: 1, damage: 3, initialAttackCooldown: 1.8, openingRouteRamp: true, firstSealRouteRamp: true, shards: 1, encounterRole: 'map tablet guard', protectsRouteId: 'desert-opening-map-tablet', pressureHint: 'Patrols the Map Tablet ledge so the first required objective feels protected, not cluttered.' },
   { id: 'scarab-scout-1', name: 'Scarab Scout', type: 'scarab', emoji: '🐞', x: X(705), y: JY(334), width: 34, height: 26, patrolMin: X(680), patrolMax: X(760), speed: 74, health: 1, damage: 4, openingRouteRamp: true, firstSealRouteRamp: true, shards: 2, encounterRole: 'basic timing scout', combatRole: 'basic timing enemy', protectsRouteId: 'temple-approach-seal', pressureHint: 'Anubis\'s scout patrols the temple approach. The seal will not open while it remains.', attackPatternTuning: { label: 'Scout Charge', windup: 0.72, duration: 0.24, cooldown: 1.72, recovery: 0.82, vulnerableAfter: 0.9, speed: 138, range: 34 } },
   { id: 'sand-wisp-start-1', name: 'Sand Wisp', type: 'sand-wisp', emoji: '🪲', x: X(840), y: JY(304), width: 32, height: 30, patrolMin: X(830), patrolMax: X(875), speed: 72, health: 2, damage: 4, initialAttackCooldown: 2.2, openingRouteRamp: true, attackPatternTuning: { windup: 0.56, cooldown: 1.72, recovery: 0.68, vulnerableAfter: 0.72, speed: 124, range: 34 }, shards: 2, flying: true, encounterRole: 'upper-route pressure', protectsRouteId: 'desert-upper-survey-route', pressureHint: 'Pressures the route without turning the seal into a checklist fight.' },
   { id: 'scarab-1', name: 'Scarab', type: 'scarab', emoji: '🐞', x: X(925), y: JY(334), width: 34, height: 26, patrolMin: X(910), patrolMax: X(970), speed: 80, health: 2, damage: 5, initialAttackCooldown: 1.8, openingRouteRamp: true, shards: 2 },
@@ -466,6 +474,23 @@ export const HIDDEN_ROOMS = [
 
 export const HIDDEN_ROUTES = [
   {
+    id: 'mummification-chamber-route',
+    civilisation: 'Ancient Egypt',
+    sectionId: 'desert-entry',
+    name: 'The Mummification Chamber',
+    optional: true,
+    x: X(520),
+    y: JY(20),
+    width: X(320),
+    height: 132,
+    rewardHint: 'Torchlight flickers above buried stone blocks. The first sacred mystery waits above the sand.',
+    discoveryMessage: 'The Mummification Chamber discovered. A sacred preparation room lies beyond the buried doorway.',
+    gateType: 'partly buried sacred doorway',
+    teaseVisible: true,
+    storySummary: 'Asha climbs broken sandstone ledges to a glowing doorway used for sacred preparation rites.',
+    rewardSummary: 'First sacred mystery chamber entrance, mummification puzzle hook, and field journal clue',
+  },
+  {
     id: 'desert-upper-survey-route',
     civilisation: 'Ancient Egypt',
     sectionId: 'desert-entry',
@@ -481,6 +506,23 @@ export const HIDDEN_ROUTES = [
     teaseVisible: true,
     storySummary: 'Broken pieces of a scarab seal lie across the floor. Someone tried to erase this warning.',
     rewardSummary: 'Three scarab seal fragments restored, hidden shard cache, and field journal clue',
+  },
+  {
+    id: 'scribe-locked-chamber-route',
+    civilisation: 'Ancient Egypt',
+    sectionId: 'desert-entry',
+    name: 'The Scribe\'s Locked Chamber',
+    optional: true,
+    x: X(1126),
+    y: JY(72),
+    width: X(56),
+    height: 104,
+    rewardHint: 'A raised scribe doorway glows above the ruined stairs.',
+    discoveryMessage: 'The Scribe\'s Locked Chamber discovered. The door seals behind Asha.',
+    gateType: 'sealed scribe doorway',
+    teaseVisible: true,
+    storySummary: 'Asha climbs the broken platform of a scribe chamber where a glowing hieroglyphic wall protects a message.',
+    rewardSummary: 'Hieroglyphic translation puzzle and protected knowledge clue',
   },
   {
     id: 'temple-cracked-wall-passage',
@@ -784,7 +826,7 @@ export const SECTION_OBJECTIVES = {
 };
 
 export const OBJECTIVE_MARKERS = [
-  { id: 'map-tablet', sectionId: 'desert-entry', type: 'map-tablet', label: 'Map Tablet', x: X(625), y: JY(226), color: '#166534' },
+  { id: 'map-tablet', sectionId: 'desert-entry', type: 'map-tablet', label: 'Map Tablet', x: X(625), y: GROUND_Y - 46, color: '#166534', groundedProp: true, visualBaseY: GROUND_Y - 6 },
   { id: 'switch-1', sectionId: 'ruined-temple', type: 'switch', label: 'Switch 1', x: X(1765), y: JY(320), color: '#92400e' },
   { id: 'switch-2', sectionId: 'ruined-temple', type: 'switch', label: 'Switch 2', x: X(2235), y: JY(320), color: '#92400e' },
   { id: 'switch-3', sectionId: 'ruined-temple', type: 'switch', label: 'Switch 3', x: X(2765), y: JY(320), color: '#92400e' },
@@ -955,7 +997,9 @@ export const STORY_PROPS = [
   { id: 'early-scarab-seal-pedestal', sectionId: 'desert-entry', type: 'sacred-pedestal', x: 925, y: JY(-137), label: 'sacred pedestal holding the Sacred Scarab Seal' },
   { id: 'early-scarab-seal', sectionId: 'desert-entry', type: 'guardian-seal', x: 925, y: JY(-164), label: 'Sacred Scarab Seal opening warning trigger' },
   { id: 'desert-boundary-marker', sectionId: 'desert-entry', type: 'guardian-seal', x: X(650), y: JY(312), label: 'ancient boundary seal' },
+  { id: 'mummification-chamber-exterior-structure', sectionId: 'desert-entry', type: 'generated-mummification-chamber-entrance', x: X(664), y: JY(-285), width: 1360, height: 705, depth: 'route-edge', alpha: 1, label: 'generated Mummification Chamber exterior with sandstone blocks, carved ledges, damaged stairs, torches, and glowing hieroglyphs' },
   { id: 'forgotten-mural-climb-structure', sectionId: 'desert-entry', type: 'generated-climb-structure', x: X(915), y: JY(-272), width: 1420, height: 690, depth: 'route-edge', alpha: 1, label: 'generated Forgotten Mural Alcove climb structure with broken stairs, carved ledges, and damaged Anubis mural' },
+  { id: 'scribe-chamber-doorway-structure', sectionId: 'desert-entry', type: 'generated-scribe-chamber-doorway', x: X(1138), y: JY(-259), width: 1120, height: 620, depth: 'route-edge', alpha: 1, label: 'production Scribe Locked Chamber exterior with raised platform, crumbled stairs, glowing hieroglyphs, and sealed doorway' },
   { id: 'desert-entry-premium-threshold-slab-1', sectionId: 'desert-entry', type: 'atmosphere-prop', atmosphereAssetKey: 'desertEntryPremiumThresholdSlab', placementPreset: 'desertEntryGroundedRuin', x: 2055, y: JY(322), width: 96, height: 26, shadowWidth: 96, sandMoundWidth: 96, sandOverlapHeight: 7, label: 'generated premium carved threshold slab beyond the first guardian route' },
   { id: 'desert-entry-premium-column-1', sectionId: 'desert-entry', type: 'atmosphere-prop', atmosphereAssetKey: 'desertEntryPremiumFallenColumn', placementPreset: 'desertEntryGroundedRuin', x: 1720, y: JY(322), width: 108, height: 70, shadowWidth: 112, sandMoundWidth: 116, sandOverlapHeight: 18, groundPebbles: 4, label: 'generated premium carved fallen column in open sand after the pyramid' },
   { id: 'desert-entry-premium-pillar-caps-1', sectionId: 'desert-entry', type: 'atmosphere-prop', atmosphereAssetKey: 'desertEntryPremiumPillarCaps', placementPreset: 'desertEntryGroundedRuin', x: 1885, y: JY(318), width: 74, height: 96, shadowWidth: 82, sandMoundWidth: 88, sandOverlapHeight: 16, groundPebbles: 3, label: 'generated premium pillar-cap ruins in open sand after the pyramid' },

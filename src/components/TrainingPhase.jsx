@@ -330,6 +330,134 @@ export function TrainingPhase({
     return '';
   };
 
+  const renderExcavationToolDock = () => (
+    <div className="training-tool-dock" aria-label="Excavation tools">
+      <button
+        type="button"
+        className={`training-dock-tool ${selectedTool === 'trowel' ? 'active' : ''}`}
+        onClick={() => handleToolSelect('trowel')}
+      >
+        <Pickaxe size={24} />
+        <span>Trowel</span>
+      </button>
+      <button
+        type="button"
+        className={`training-dock-tool ${selectedTool === 'marker' ? 'active' : ''}`}
+        onClick={() => handleToolSelect('marker')}
+      >
+        <MapPin size={24} />
+        <span>Marker</span>
+      </button>
+      <button
+        type="button"
+        className={`training-dock-tool ${selectedTool === 'brush' ? 'active' : ''}`}
+        onClick={() => handleToolSelect('brush')}
+      >
+        <Search size={24} />
+        <span>Brush</span>
+      </button>
+    </div>
+  );
+
+  const renderCompactCertificationSteps = () => (
+    <ol className="training-compact-steps" aria-label="Certification progress">
+      {TRAINING_STAGES.map((stage, index) => {
+        const Icon = stage.icon;
+        const stateClass = index < currentStepIndex ? 'done' : index === currentStepIndex ? 'active' : '';
+
+        return (
+          <li key={stage.id} className={stateClass}>
+            <Icon size={16} />
+            <span>{stage.title}</span>
+          </li>
+        );
+      })}
+    </ol>
+  );
+
+  const renderPremiumExcavationScreen = () => {
+    const confidencePercent = Math.min(100, Math.round((revealedCluesCount / requiredCluesBeforeBrush) * 100));
+    const riskPercent = Math.min(100, disturbanceCount * 25);
+    const currentInstruction = artifactExtracted
+      ? 'Find recovered. Record the excavation context in the field log.'
+      : revealedCluesCount < requiredCluesBeforeBrush
+        ? `Trowel ${requiredCluesBeforeBrush} safe-looking soil squares before brushing.`
+        : markedTilesCount === 0
+          ? 'Use the numbers to mark the square your evidence points toward.'
+          : `Brush marked squares when confident. ${remainingArtifactsCount} finds remain.`;
+
+    return (
+      <div className="training-excavation-tabletop">
+        <header className="training-premium-topbar">
+          <div className="training-topbar-seal" aria-hidden="true">
+            <Pickaxe size={22} />
+          </div>
+          <div className="training-topbar-title">
+            <span>Step {currentStepIndex + 1} of 5</span>
+            <strong>{currentStage.title}</strong>
+          </div>
+          <p>{currentStage.description}</p>
+          <div className="training-topbar-stat">
+            <span>Finds</span>
+            <strong>{`${extractedArtifactsCount}/${totalArtifacts}`}</strong>
+          </div>
+          <div className="training-topbar-stat">
+            <span>Risk</span>
+            <strong>{`${riskPercent}%`}</strong>
+          </div>
+          <div className="training-topbar-stat training-topbar-confidence">
+            <span>Confidence</span>
+            <strong>{`${confidencePercent}%`}</strong>
+            <div className="training-confidence-track" aria-hidden="true">
+              <i style={{ width: `${confidencePercent}%` }} />
+            </div>
+          </div>
+          <div className="training-topbar-certification">
+            <span>Certification</span>
+            {renderCompactCertificationSteps()}
+          </div>
+          <button className="btn training-premium-back-btn" type="button" onClick={onBackToMenu}>Menu</button>
+        </header>
+
+        <div className="training-premium-playfield">
+          <div className="training-table-prop training-table-prop--sample" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </div>
+          <main className="training-premium-board-zone">
+            <div className="training-premium-board-frame">
+              {renderDirtPatch()}
+            </div>
+            <div className={`training-premium-field-log ${feedbackType}`}>
+              <strong>Field Log</strong>
+              <span>09:42</span>
+              <p>{feedback || currentInstruction}</p>
+              {!artifactExtracted && (hasExcavationProgress || disturbanceCount > 0) && (
+                <button className="btn btn-secondary training-reset-btn" type="button" onClick={handlePracticeReset}>
+                  Retry
+                </button>
+              )}
+              {artifactExtracted && (
+                <button className="btn pulse-glow" type="button" onClick={handleNextStep}>
+                  Map
+                </button>
+              )}
+            </div>
+          </main>
+          <aside className="training-premium-tools-panel">
+            <h4>Tools</h4>
+            {renderExcavationToolDock()}
+          </aside>
+          <div className="training-table-prop training-table-prop--compass" aria-hidden="true" />
+          <div className="training-table-prop training-table-prop--logbook" aria-hidden="true">
+            <span>Field Log</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderSurveyMap = () => (
     <div className="training-site-stage training-site-stage--survey-map vintage-panel">
       <div className="training-survey-map-bg" aria-hidden="true" />
@@ -508,7 +636,7 @@ export function TrainingPhase({
       case 2:
         return (
           <div className="training-action-card">
-            <h4>Excavation tools</h4>
+            <h4>Tool Protocol</h4>
             <ol className="training-excavation-sequence" aria-label="Excavation procedure">
               <li className={revealedCluesCount >= requiredCluesBeforeBrush ? 'done' : 'active'}>
                 <span>1</span>
@@ -523,41 +651,10 @@ export function TrainingPhase({
                 <strong>Brush with confidence</strong>
               </li>
             </ol>
-            <ul className="training-tool-notes">
-              <li><strong>Trowel</strong> tests soil and reveals adjacent-find numbers.</li>
-              <li><strong>Marker</strong> flags the square your evidence points toward.</li>
-              <li><strong>Brush</strong> extracts after enough clues and a confidence check.</li>
-            </ul>
             <div className="training-challenge-status">
-              <span>Current tool: <strong>{selectedTool ? selectedTool.replace('-', ' ') : 'none'}</strong></span>
-              <span>Recovered finds: <strong>{`${extractedArtifactsCount} of ${totalArtifacts}`}</strong></span>
-              <span>Disturbance warnings: <strong>{disturbanceCount}</strong></span>
-            </div>
-            <div className="training-tool-grid">
-              <button
-                type="button"
-                className={`tool-card ${selectedTool === 'trowel' ? 'active' : ''}`}
-                onClick={() => handleToolSelect('trowel')}
-              >
-                <div className="tool-icon-wrapper"><Pickaxe size={24} /></div>
-                <span>Hand Trowel</span>
-              </button>
-              <button
-                type="button"
-                className={`tool-card ${selectedTool === 'marker' ? 'active' : ''}`}
-                onClick={() => handleToolSelect('marker')}
-              >
-                <div className="tool-icon-wrapper"><MapPin size={24} /></div>
-                <span>Survey Marker</span>
-              </button>
-              <button
-                type="button"
-                className={`tool-card ${selectedTool === 'brush' ? 'active' : ''}`}
-                onClick={() => handleToolSelect('brush')}
-              >
-                <div className="tool-icon-wrapper"><Search size={24} /></div>
-                <span>Soft Brush</span>
-              </button>
+              <span>Finds <strong>{`${extractedArtifactsCount}/${totalArtifacts}`}</strong></span>
+              <span>Warnings <strong>{disturbanceCount}</strong></span>
+              <span>Clues <strong>{`${Math.min(revealedCluesCount, requiredCluesBeforeBrush)}/${requiredCluesBeforeBrush}`}</strong></span>
             </div>
             {!artifactExtracted && (
               <div className="training-mini-brief">
@@ -678,14 +775,16 @@ export function TrainingPhase({
         </div>
       )}
 
-      <div className="training-hero vintage-panel">
-        <div className="training-hero-copy">
-          <h2>Antiquities Bureau: Field Certification</h2>
+      {currentStepIndex !== 2 && (
+        <div className="training-hero vintage-panel">
+          <div className="training-hero-copy">
+            <h2>Antiquities Bureau: Field Certification</h2>
+          </div>
+          <div className="training-hero-actions">
+            <button className="btn training-back-btn" type="button" onClick={onBackToMenu}>Back to menu</button>
+          </div>
         </div>
-        <div className="training-hero-actions">
-          <button className="btn training-back-btn" type="button" onClick={onBackToMenu}>Back to menu</button>
-        </div>
-      </div>
+      )}
 
       <div className="training-layout training-layout--certification">
         {isComplete ? (
@@ -713,6 +812,8 @@ export function TrainingPhase({
               </button>
             </div>
           </div>
+        ) : currentStepIndex === 2 ? (
+          renderPremiumExcavationScreen()
         ) : (
           <>
             <div className="training-board vintage-panel training-main-panel">

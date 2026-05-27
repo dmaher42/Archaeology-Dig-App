@@ -18434,16 +18434,16 @@ main {
 }
 
 .premium-carousel-container {
-  display: flex !important;
-  flex: none !important;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
+  gap: clamp(0.85rem, 1.2vw, 1.15rem) !important;
+  max-width: 1200px !important;
+  margin: 0.5rem auto 1rem auto !important;
+  padding: 0.5rem 1.5rem !important;
+  width: 100% !important;
   justify-content: center !important;
   overflow-x: visible !important;
   overflow-y: visible !important;
-  scroll-behavior: smooth;
-  gap: clamp(0.85rem, 1.2vw, 1.15rem) !important;
-  padding: 1rem 2.5vw 1.35rem !important;
-  margin: 1rem 0 2rem 0 !important;
-  width: 100% !important;
 }
 
 .premium-carousel-container::-webkit-scrollbar {
@@ -18467,7 +18467,7 @@ main {
   max-width: 300px !important;
   min-width: 0 !important;
   scroll-snap-align: start;
-  height: clamp(18rem, 45vh, 22rem) !important;
+  height: 282px !important;
   min-height: unset !important;
   transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease !important;
   transform: scale(0.95) !important;
@@ -18481,9 +18481,9 @@ main {
   position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  padding: 1.25rem 1.25rem 4.5rem 1.25rem !important;
-  gap: 0.75rem !important;
+  justify-content: flex-start !important;
+  padding: 0.9rem !important;
+  gap: 0.4rem !important;
   box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;
   border: 1px solid rgba(255, 255, 255, 0.05) !important;
 }
@@ -18511,19 +18511,40 @@ main {
   z-index: 5;
 }
 
-
-
 .premium-carousel-container .activity-card-header {
-  margin-bottom: auto; /* pushes header to top */
+  margin-bottom: 0.1rem !important;
+  height: 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.premium-carousel-container .activity-card-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem !important;
+  height: 80px;
+  justify-content: flex-start;
+  min-height: 80px !important;
 }
 
 .premium-carousel-container .activity-card-copy h3 {
   font-family: 'Cinzel', serif !important;
-  font-size: 1.8rem !important;
-  letter-spacing: 0.05em;
-  text-shadow: 0 4px 12px rgba(0,0,0,0.9), 0 0 20px rgba(0,0,0,0.5);
+  font-size: 1.05rem !important;
+  letter-spacing: 0.04em;
+  text-shadow: 0 4px 10px rgba(0,0,0,0.9);
   color: #fff !important;
-  margin-bottom: 0.5rem !important;
+  margin-bottom: 0.05rem !important;
+  margin-top: 0 !important;
+  line-height: 1.2 !important;
+}
+
+.premium-carousel-container .activity-card-copy p {
+  color: var(--sand-300) !important;
+  font-size: 0.7rem !important;
+  line-height: 1.3 !important;
+  margin: 0 !important;
+  text-shadow: 0 2px 5px rgba(0,0,0,0.8);
 }
 
 .premium-carousel-container .activity-time-tag {
@@ -18546,7 +18567,7 @@ main {
   letter-spacing: 0.15em;
   color: #daa520 !important;
   text-transform: uppercase;
-  margin-bottom: 0.75rem !important;
+  margin-bottom: 0.15rem !important;
 }
 
 /* Premium Buttons */
@@ -18556,13 +18577,13 @@ main {
   box-shadow: 0 0 15px rgba(218, 165, 32, 0.15), inset 0 0 20px rgba(218, 165, 32, 0.1) !important;
   color: #fff !important;
   backdrop-filter: blur(4px);
-  padding: 0.8rem 1.5rem !important;
+  padding: 0.45rem 1rem !important;
   font-family: 'Cinzel', serif !important;
   letter-spacing: 0.1em;
   border-radius: 4px !important;
   transition: all 0.3s ease !important;
   text-transform: uppercase;
-  font-size: 0.82rem !important;
+  font-size: 0.76rem !important;
   cursor: pointer;
   width: 100%;
   min-width: 0;
@@ -18730,13 +18751,15 @@ main {
 
 /* Anchor the button to the bottom of the card so it never gets pushed out by text */
 .premium-carousel-container .activity-card-button-group {
-  position: absolute !important;
-  bottom: 1.25rem;
-  left: 1.25rem;
-  right: 1.25rem;
-  width: auto !important;
-  margin: 0 !important;
+  position: relative !important;
+  bottom: unset !important;
+  left: unset !important;
+  right: unset !important;
+  width: 100% !important;
+  margin-top: auto !important; /* Pins button group cleanly to the bottom of the card */
   z-index: 10;
+  display: grid;
+  gap: 0.35rem !important; /* Tighten vertical stack gap */
 }
 
 /* --- Premium Training UI --- */

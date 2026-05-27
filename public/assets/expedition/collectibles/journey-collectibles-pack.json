@@ -1,11 +1,11 @@
 {
   "image": "journey-collectibles-pack.png",
-  "source": "AI-generated Journey collectible sprite atlas, May 2026; relicShard slot replaced with transparent style-polished Gemini Assets art on May 21 2026.",
+  "source": "AI-generated Journey collectible sprite atlas, May 2026; field-kit slots replaced with archaeology-themed transparent PNG art on May 27 2026.",
   "size": {
     "w": 1536,
     "h": 1024
   },
-  "coordinateNote": "Hand-cropped from the upgraded collectible atlas. The relicShard region now uses a transparent style-polished Gemini Assets blue gem while preserving the existing atlas slot and runtime coordinates.",
+  "coordinateNote": "Hand-cropped from the upgraded collectible atlas. The first row now uses Asha field-kit objects while preserving the existing atlas slots and runtime coordinates.",
   "regions": {
     "brush": { "x": 32, "y": 19, "w": 207, "h": 226 },
     "trowel": { "x": 264, "y": 8, "w": 237, "h": 240 },

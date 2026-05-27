@@ -121,6 +121,7 @@ import {
   getMissingEnvironmentAssets,
   JOURNEY_ASSET_GROUNDING_VERSION,
   loadEnvironmentAssetPack,
+  MUMMIFICATION_CHAMBER_INTERACTIONS_ASSET_VERSION,
 } from './expedition-journey/journeyRenderAssets';
 
 import {
@@ -317,6 +318,9 @@ const PLAYER_HIT_SCREEN_SHAKE_DURATION = 0.22;
 const PLAYER_HIT_SCREEN_SHAKE_PIXELS = 2.4;
 const SCORPION_ATTACK_RANGE_MULTIPLIER = 1.4;
 const SCORPION_CHASE_SPEED_MULTIPLIER = 1.15;
+const SCORPION_VENOM_SPIT_RANGE = CANVAS_WIDTH * 0.5;
+const SCORPION_VENOM_SLOW_DURATION = 2.25;
+const SCORPION_VENOM_SLOW_MULTIPLIER = 0.48;
 const ENEMY_AGGRO_MEMORY_SECONDS = 4.6;
 const ENEMY_AGGRO_PATROL_PADDING = 320;
 
@@ -325,6 +329,83 @@ const GUARDIAN_KNOWLEDGE_CHALLENGES_ENABLED = false;
 const KNOWLEDGE_CHALLENGE_FEEDBACK = {
   correct: 'Correct. Your field knowledge strengthens you.',
   incorrect: 'Not quite. The guardian grows stronger.',
+};
+const SCRIBE_CHAMBER_PUZZLE = {
+  id: 'scribe-chamber-wall-inscription',
+  type: 'scribe-chamber-puzzle',
+  bossId: 'scribe-locked-chamber',
+  bossName: 'The Scribe\'s Locked Chamber',
+  title: 'Scribe Chamber Decoding',
+  intro: 'Use the translation tablet, then choose what the glowing inscription means.',
+  questions: [{
+    id: 'scribe-chamber-sun-water-ankh-door',
+    question: 'Sun + Water + Ankh + Door',
+    options: [
+      'Follow the light, cross the river, protect life, and the door will open.',
+      'Protect the truth of the past.',
+      'Take the treasure before the river rises.',
+      'The sun closes every passage at night.',
+    ],
+    correctIndex: 0,
+  }],
+};
+const SCRIBE_CHAMBER_FEEDBACK = {
+  correct: 'The message is clear. The scribes were not hiding treasure - they were protecting knowledge.',
+  incorrect: 'That does not match the message. I need to look again.',
+};
+const SCRIBE_CHAMBER_DOOR_OPEN_LINE = 'Knowledge was the key.';
+const MUMMIFICATION_CHAMBER_RITUAL_ORDER = [
+  'Cleanse the body',
+  'Remove organs and dry the body',
+  'Anoint with oils and resins',
+  'Wrap body in linen',
+  'Place in sarcophagus with amulets',
+];
+const MUMMIFICATION_CHAMBER_PUZZLE = {
+  id: 'mummification-chamber-ritual-order',
+  type: 'mummification-ritual-order-puzzle',
+  bossId: 'mummification-chamber',
+  bossName: 'The Mummification Chamber',
+  title: 'Mummification Ritual Order',
+  intro: 'Place the ritual steps in the correct order to release the entrance seal.',
+  hints: [
+    'The body must be cleansed before anything is removed or wrapped.',
+    'Drying comes before the oils, and oils come before linen.',
+    'The sarcophagus is the final step, after the body is wrapped.',
+  ],
+  questions: [{
+    id: 'mummification-chamber-ritual-sequence',
+    question: 'Which sequence completes the sacred ritual?',
+    options: [
+      MUMMIFICATION_CHAMBER_RITUAL_ORDER.map((step, index) => `${index + 1}. ${step}`).join(' -> '),
+      [
+        '1. Wrap body in linen',
+        '2. Cleanse the body',
+        '3. Anoint with oils and resins',
+        '4. Remove organs and dry the body',
+        '5. Place in sarcophagus with amulets',
+      ].join(' -> '),
+      [
+        '1. Remove organs and dry the body',
+        '2. Place in sarcophagus with amulets',
+        '3. Cleanse the body',
+        '4. Wrap body in linen',
+        '5. Anoint with oils and resins',
+      ].join(' -> '),
+      [
+        '1. Cleanse the body',
+        '2. Wrap body in linen',
+        '3. Anoint with oils and resins',
+        '4. Remove organs and dry the body',
+        '5. Place in sarcophagus with amulets',
+      ].join(' -> '),
+    ],
+    correctIndex: 0,
+  }],
+};
+const MUMMIFICATION_CHAMBER_FEEDBACK = {
+  correct: 'The ritual is complete.',
+  incorrect: 'That order does not seem right.',
 };
 
 const LOW_STAMINA_WARNING = 'Stamina low - avoid another hit.';
@@ -408,8 +489,11 @@ const OPENING_PYRAMID_FACADE_SRC = 'assets/expedition/environment/egypt-opening/
 const OPENING_TRAP_DECAL_PACK_SRC = 'assets/expedition/environment/egypt-opening/opening-trap-decals.png';
 const OPENING_HAZARD_DECAL_PACK_SRC = 'assets/expedition/environment/egypt-opening/opening-hazard-decals.png';
 const OPENING_TOMB_STAIRWELL_SRC = 'assets/expedition/environment/egypt-opening/opening-tomb-stairwell.png';
+const MUMMIFICATION_CHAMBER_EXTERIOR_SRC = 'assets/expedition/environment/desert-temple/mummification-chamber-exterior-climb-structure.png';
+const MUMMIFICATION_CHAMBER_INTERIOR_SRC = 'assets/expedition/environment/desert-temple/mummification-chamber-interior.png';
 const FORGOTTEN_MURAL_ALCOVE_CLIMB_STRUCTURE_SRC = 'assets/expedition/environment/desert-temple/forgotten-mural-alcove-climb-structure.png';
 const FORGOTTEN_MURAL_CHAMBER_SRC = 'assets/expedition/environment/desert-temple/forgotten-mural-chamber.png';
+const SCRIBE_CHAMBER_EXTERIOR_SRC = 'assets/expedition/environment/desert-temple/scribe-locked-chamber-exterior-climb-structure.png';
 const STAGE_ENTRANCE_DOORWAY_SRC = 'assets/expedition/environment/stage-entrances/egypt-tomb-doorway-transition.png';
 const STAGE_ENTRANCE_DOORWAY_VERSION = 'imagegen-egypt-tomb-doorway-transition-2026-05-20';
 const DESERT_END_GATEWAY_SRC = 'assets/expedition/environment/stage-entrances/desert-end-threshold-angled.png';
@@ -421,8 +505,11 @@ const OPENING_CAMERA_REVEAL_HOLD_SECONDS = 0.18;
 const OPENING_PYRAMID_ASSET_VERSION = 'opening-pyramid-climb-pack-2026-05-18';
 const OPENING_PYRAMID_FACADE_VERSION = 'opening-pyramid-facade-2026-05-19';
 const OPENING_TOMB_STAIRWELL_VERSION = 'opening-tomb-stairwell-generated-2026-05-21';
+const MUMMIFICATION_CHAMBER_EXTERIOR_VERSION = 'imagegen-mummification-chamber-exterior-climb-structure-2026-05-27';
+const MUMMIFICATION_CHAMBER_INTERIOR_VERSION = 'imagegen-mummification-chamber-interior-2026-05-27';
 const FORGOTTEN_MURAL_ALCOVE_CLIMB_STRUCTURE_VERSION = 'imagegen-forgotten-mural-alcove-climb-structure-2026-05-24';
 const FORGOTTEN_MURAL_CHAMBER_VERSION = 'imagegen-forgotten-mural-chamber-2026-05-24';
+const SCRIBE_CHAMBER_EXTERIOR_VERSION = 'imagegen-scribe-locked-chamber-exterior-climb-structure-2026-05-28';
 const FORGOTTEN_MURAL_CHAMBER_RESTORATION_IDS = ['egypt-scarab-fragment-1', 'egypt-scarab-fragment-2', 'egypt-scarab-fragment-3'];
 const OPENING_PYRAMID_FACADE_WORLD_LEFT_X = -82;
 const OPENING_PYRAMID_GROUND_JUMP_MULTIPLIER = 1.32;
@@ -581,7 +668,7 @@ const EGYPT_HAZARD_DECAL_PLACEMENT = {
   glyphTripwire: { xPad: 28, widthPad: 56, height: 48, footInset: 18 },
   fallingStoneWarning: { xPad: 24, widthPad: 48, height: 112, footInset: 0 },
   softSandPit: { xPad: 20, widthPad: 40, height: 46, footInset: 18 },
-  thornScrub: { xPad: 22, widthPad: 44, height: 88, footInset: 1 },
+  thornScrub: { xPad: 10, widthPad: 20, height: 58, footInset: 18 },
   darkGap: { xPad: 20, widthPad: 40, height: 46, footInset: 18 },
   batCloud: { xPad: 24, widthPad: 48, height: 96, footInset: 2 },
   dustWave: { xPad: 28, widthPad: 56, height: 90, footInset: 1 },
@@ -600,6 +687,140 @@ const EGYPT_HAZARD_DECAL_PLACEMENT_BY_HAZARD = {
   'escape-dust-pocket': { xPad: 26, widthPad: 52, height: 78, footInset: 1 },
 };
 const openingJourneyY = (y) => y + JOURNEY_VERTICAL_OFFSET;
+const MUMMIFICATION_CHAMBER_ENTRY_SPAWN = {
+  x: scaleJourneyX(570),
+  y: openingJourneyY(318),
+  cameraAnchorRatio: 0.16,
+  direction: 1,
+};
+const MUMMIFICATION_CHAMBER_RETURN_FALLBACK = {
+  x: scaleJourneyX(770),
+  y: openingJourneyY(48),
+  cameraAnchorRatio: 0.42,
+  direction: 1,
+};
+const MUMMIFICATION_CHAMBER_ENTRY_TRIGGER = {
+  minX: scaleJourneyX(742),
+  maxX: scaleJourneyX(798),
+  maxY: GROUND_Y - 190,
+  footY: openingJourneyY(48),
+  footTolerance: 22,
+};
+const MUMMIFICATION_CHAMBER_CAMERA_X = scaleJourneyX(520);
+const MUMMIFICATION_CHAMBER_BOUNDS = {
+  minX: scaleJourneyX(520),
+  maxX: scaleJourneyX(760),
+};
+const MUMMIFICATION_CHAMBER_EXIT_TRIGGER = {
+  minX: scaleJourneyX(520),
+  maxX: scaleJourneyX(548),
+  maxY: GROUND_Y - 20,
+  footY: openingJourneyY(318),
+  footTolerance: 20,
+};
+const MUMMIFICATION_CHAMBER_INTERIOR_ASSET_DESCRIPTION = 'massive embalming table, wrapped mummy, floating linen, canopic jars, oils, Anubis statue, glowing hieroglyphics';
+const MUMMIFICATION_CHAMBER_READABILITY = Object.freeze({
+  mummificationChamberPuzzleCenterpiece: { x: 650, y: 392, radiusX: 245, radiusY: 72 },
+  mummificationChamberReadableZones: [
+    { id: 'left-sealed-entrance', x: 96, y: 376, radiusX: 70, radiusY: 136 },
+    { id: 'embalming-table', x: 640, y: 392, radiusX: 245, radiusY: 72 },
+    { id: 'canopic-jars-and-oils', x: 488, y: 488, radiusX: 154, radiusY: 70 },
+  ],
+});
+const MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS = Object.freeze([
+  {
+    id: 'mummification-embalming-table',
+    assetKey: 'embalmingTableMarker',
+    name: 'Embalming Table',
+    message: 'This table was used for preservation.',
+    pulseText: 'TABLE INSPECTED',
+    screen: { x: 610, y: 356, width: 84, height: 84 },
+    hitbox: { x: 440, y: 430, width: 420, height: 170 },
+  },
+  {
+    id: 'mummification-linen-wrappings',
+    assetKey: 'linenWrappings',
+    name: 'Linen Wrappings',
+    message: 'The wrappings protected the body.',
+    pulseText: 'LINEN INSPECTED',
+    screen: { x: 622, y: 214, width: 118, height: 108 },
+    hitbox: { x: 500, y: 392, width: 310, height: 208 },
+  },
+  {
+    id: 'mummification-canopic-jars',
+    assetKey: 'canopicJars',
+    name: 'Canopic Jars',
+    message: 'These jars protected important organs.',
+    pulseText: 'JARS INSPECTED',
+    screen: { x: 428, y: 470, width: 88, height: 88 },
+    hitbox: { x: 360, y: 456, width: 190, height: 144 },
+  },
+  {
+    id: 'mummification-ritual-tablet',
+    assetKey: 'ritualTablet',
+    name: 'Ritual Tablet',
+    message: 'A guide to the ritual.',
+    pulseText: 'TABLET READ',
+    screen: { x: 792, y: 420, width: 82, height: 98 },
+    hitbox: { x: 735, y: 420, width: 180, height: 180 },
+  },
+  {
+    id: 'mummification-oils-resins',
+    assetKey: 'oilsResins',
+    name: 'Oils and Resins',
+    message: 'Oils and resins prepared the body for the journey beyond.',
+    pulseText: 'OILS INSPECTED',
+    screen: { x: 540, y: 484, width: 92, height: 76 },
+    hitbox: { x: 505, y: 452, width: 160, height: 148 },
+  },
+  {
+    id: 'mummification-exit-seal',
+    assetKey: 'exitSeal',
+    name: 'Exit Seal',
+    message: 'The seal responds to the completed ritual.',
+    lockedMessage: 'The seal is still bound. I need to understand the ritual first.',
+    pulseText: 'SEAL OPEN',
+    screen: { x: 82, y: 382, width: 88, height: 88 },
+    hitbox: { x: 0, y: 360, width: 168, height: 240 },
+    exitSeal: true,
+  },
+]);
+const MUMMIFICATION_CHAMBER_REQUIRED_INSPECTION_IDS = MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS
+  .filter(item => !item.exitSeal)
+  .map(item => item.id);
+const MUMMIFICATION_CHAMBER_ATMOSPHERE_VERSION = 'mummification-chamber-atmosphere-progression-2026-05-28';
+const getMummificationChamberAtmosphere = (current) => {
+  const inspectedObjectIds = current.mummificationChamberInspectedObjectIds || new Set();
+  const inspectedRequiredCount = MUMMIFICATION_CHAMBER_REQUIRED_INSPECTION_IDS
+    .filter(id => inspectedObjectIds.has(id)).length;
+  const inspectedRatio = inspectedRequiredCount / Math.max(1, MUMMIFICATION_CHAMBER_REQUIRED_INSPECTION_IDS.length);
+  const puzzleActive = current.activeGuardianChallenge?.type === 'mummification-ritual-order-puzzle';
+  const puzzleAttempted = Boolean(
+    puzzleActive
+    && (
+      current.activeGuardianChallenge?.answers?.length
+      || current.activeGuardianChallenge?.feedback
+      || current.activeGuardianChallenge?.selectedAnswerIndex !== null
+    ),
+  );
+  const solved = Boolean(current.mummificationChamberPuzzleSolved || current.mummificationChamberExitUnlocked);
+  const rawProgress = 0.12 + inspectedRatio * 0.48 + (puzzleActive ? 0.18 : 0) + (puzzleAttempted ? 0.08 : 0);
+  const wakeProgress = solved ? 1 : clamp(rawProgress, 0.12, puzzleActive ? 0.82 : 0.62);
+
+  return {
+    wakeProgress,
+    state: solved ? 'solved' : puzzleActive ? 'ritual-active' : inspectedRequiredCount > 0 ? 'awakening' : 'dormant',
+    inspectedRequiredCount,
+    inspectedRatio,
+    glyphGlowAlpha: 0.08 + wakeProgress * 0.34,
+    candleFlickerBoost: 0.78 + wakeProgress * 0.34,
+    linenMotion: 0.2 + wakeProgress * 0.9,
+    particleCount: Math.min(32, 6 + Math.round(wakeProgress * 24)),
+    roomDimAlpha: 0.43 - wakeProgress * 0.27,
+    roomLightAlpha: 0.04 + wakeProgress * 0.28,
+    sealGlowAlpha: solved ? 0.66 : puzzleActive ? 0.36 : 0.14 + inspectedRatio * 0.18,
+  };
+};
 const FORGOTTEN_MURAL_CHAMBER_ENTRY_SPAWN = {
   x: scaleJourneyX(918),
   y: openingJourneyY(318),
@@ -630,6 +851,49 @@ const FORGOTTEN_MURAL_CHAMBER_EXIT_TRIGGER = {
   maxY: GROUND_Y - 20,
   footY: openingJourneyY(318),
   footTolerance: 20,
+};
+const SCRIBE_CHAMBER_ENTRY_SPAWN = {
+  x: scaleJourneyX(1210),
+  y: openingJourneyY(318),
+  cameraAnchorRatio: 0.16,
+  direction: 1,
+};
+const SCRIBE_CHAMBER_RETURN_FALLBACK = {
+  x: scaleJourneyX(1118),
+  y: openingJourneyY(138),
+  cameraAnchorRatio: 0.42,
+  direction: 1,
+};
+const SCRIBE_CHAMBER_ENTRY_TRIGGER = {
+  minX: scaleJourneyX(1126),
+  maxX: scaleJourneyX(1160),
+  maxY: GROUND_Y - 250,
+  footY: openingJourneyY(72),
+  footTolerance: 24,
+};
+const SCRIBE_CHAMBER_CAMERA_X = scaleJourneyX(1180);
+const SCRIBE_CHAMBER_BOUNDS = {
+  minX: scaleJourneyX(1188),
+  maxX: scaleJourneyX(1378),
+};
+const SCRIBE_CHAMBER_EXIT_TRIGGER = {
+  minX: scaleJourneyX(1350),
+  maxX: scaleJourneyX(1372),
+  maxY: GROUND_Y - 20,
+  footY: openingJourneyY(318),
+  footTolerance: 20,
+};
+const SCRIBE_CHAMBER_TABLET_REGION = {
+  x: scaleJourneyX(1254),
+  y: openingJourneyY(240),
+  width: 74,
+  height: 90,
+};
+const SCRIBE_CHAMBER_WALL_REGION = {
+  x: scaleJourneyX(1220),
+  y: openingJourneyY(112),
+  width: 760,
+  height: 170,
 };
 const OPENING_PYRAMID_FACADE_TIERS = [
   { x: 128, y: openingJourneyY(312), width: 1560, height: 92, inset: 116, alpha: 0.9 },
@@ -794,7 +1058,7 @@ const PLAYER_CHARACTER_PRESETS = [
     description: 'New semi-realistic Asha V2 atlas for in-game review.',
     characterId: 'asha-v2-production-candidate',
     atlasPath: 'assets/expedition/player/asha-v2-production-candidate-spritesheet.json',
-    version: 'asha-v2-production-candidate-2026-05-21',
+    version: 'asha-v2-production-candidate-idle-8frame-2026-05-28',
     fallbackAtlasPath: PLAYER_HERO_SPRITE_ATLAS_JSON,
     fallbackAtlasVersion: PLAYER_HERO_SPRITE_VERSION,
     fallbackCharacterId: 'asha-egypt-warrior-explorer',
@@ -1122,6 +1386,28 @@ const getScarabQueenEmergenceBeat = (introProgress) => {
   };
 };
 
+const SCORPION_VENOM_ATTACK_PATTERN = {
+  ...DEFAULT_ENEMY_ATTACK_PATTERN,
+  id: 'venom-spit',
+  label: 'Venom Spit',
+  windup: 0.72,
+  duration: 0.36,
+  cooldown: 2.15,
+  recovery: 0.72,
+  vulnerableAfter: 0.82,
+  speed: 0,
+  range: SCORPION_VENOM_SPIT_RANGE,
+  height: 44,
+  yOffset: -28,
+  backReach: 8,
+  damageScale: 0,
+  slowDuration: SCORPION_VENOM_SLOW_DURATION,
+  slowMultiplier: SCORPION_VENOM_SLOW_MULTIPLIER,
+  color: '#84cc16',
+  protectedDuringAttack: false,
+  protectedDuringWindup: false,
+};
+
 const isNormalEnemyInsideBossFocus = (enemy, bossDomain) => {
   if (!enemy || !bossDomain) return false;
   const focusPadding = bossDomain.bossId === SCARAB_SEAL_TRIGGER.bossId
@@ -1135,11 +1421,16 @@ const isNormalEnemyInsideBossFocus = (enemy, bossDomain) => {
 
 const JOURNEY_SCENE_IDS = Object.freeze({
   EXTERIOR: 'egypt-exterior-route',
+  MUMMIFICATION_CHAMBER: 'mummification-chamber',
   FORGOTTEN_MURAL_CHAMBER: 'forgotten-mural-chamber',
+  SCRIBE_LOCKED_CHAMBER: 'scribe-locked-chamber',
 });
 
 const getJourneySceneId = (current) => current?.currentSceneId || JOURNEY_SCENE_IDS.EXTERIOR;
+const isMummificationChamberScene = (current) => getJourneySceneId(current) === JOURNEY_SCENE_IDS.MUMMIFICATION_CHAMBER;
 const isForgottenMuralChamberScene = (current) => getJourneySceneId(current) === JOURNEY_SCENE_IDS.FORGOTTEN_MURAL_CHAMBER;
+const isScribeLockedChamberScene = (current) => getJourneySceneId(current) === JOURNEY_SCENE_IDS.SCRIBE_LOCKED_CHAMBER;
+const isInteriorChamberScene = (current) => isMummificationChamberScene(current) || isForgottenMuralChamberScene(current) || isScribeLockedChamberScene(current);
 const getEntitySceneId = (entity) => entity?.sceneId || JOURNEY_SCENE_IDS.EXTERIOR;
 const isEntityActiveInScene = (entity, current) => getEntitySceneId(entity) === getJourneySceneId(current);
 
@@ -1526,13 +1817,13 @@ const getHazardSfxKey = (hazard) => {
 
 const HAZARD_GROUNDING = {
   'thorn-bush': {
-    xPad: 6,
-    yOffset: 12,
-    widthPad: 12,
-    heightPad: 20,
-    shadow: 0.2,
-    dustWidth: 0.88,
-    filter: 'sepia(8%) saturate(84%) brightness(90%)',
+    xPad: 4,
+    yOffset: 4,
+    widthPad: 8,
+    heightPad: 8,
+    shadow: 0.14,
+    dustWidth: 0.74,
+    filter: 'sepia(12%) saturate(68%) brightness(76%) contrast(92%) opacity(0.82)',
     warning: 'none',
   },
   'sand-pit': {
@@ -1836,7 +2127,7 @@ const PROP_PLACEMENT_PRESETS = {
     depth: 'grounded',
     tint: 'buried-stone',
     sceneBlend: 'desert-entry-sand',
-    groundPlaneOffset: -44,
+    groundPlaneOffset: -6,
     assetContactYRatio: 1,
     burialDepth: 0.24,
     shadowOpacity: 0.34,
@@ -1845,7 +2136,6 @@ const PROP_PLACEMENT_PRESETS = {
     sandMoundHeight: 10,
     groundPebbles: 3,
     alpha: 0.8,
-    colorGradeFilter: 'sepia(18%) saturate(74%) brightness(80%) contrast(88%)',
   },
 };
 
@@ -1941,11 +2231,25 @@ const formatMissingSummary = (missing) => {
 
 const getCameraFollowTarget = (current) => {
   const playerCenterX = current.player.x + current.player.width / 2;
+  if (isMummificationChamberScene(current)) {
+    return {
+      mode: 'fixed-scene',
+      focusTarget: Math.round(playerCenterX),
+      targetCameraX: MUMMIFICATION_CHAMBER_CAMERA_X,
+    };
+  }
   if (isForgottenMuralChamberScene(current)) {
     return {
       mode: 'fixed-scene',
       focusTarget: Math.round(playerCenterX),
       targetCameraX: FORGOTTEN_MURAL_CHAMBER_CAMERA_X,
+    };
+  }
+  if (isScribeLockedChamberScene(current)) {
+    return {
+      mode: 'fixed-scene',
+      focusTarget: Math.round(playerCenterX),
+      targetCameraX: SCRIBE_CHAMBER_CAMERA_X,
     };
   }
 
@@ -2121,6 +2425,7 @@ export default function ExpeditionJourney({
   });
   const environmentAssetsRef = useRef(createEnvironmentAssetState(environmentPackId));
   const sacredTrapEnvironmentAssetsRef = useRef(createEnvironmentAssetState(ENVIRONMENT_ASSET_PACK_IDS.EGYPT_SACRED_TRAPS));
+  const mummificationInteractionAssetsRef = useRef(createEnvironmentAssetState(ENVIRONMENT_ASSET_PACK_IDS.MUMMIFICATION_CHAMBER_INTERACTIONS));
   const atmosphereEnvironmentAssetsRef = useRef(createEnvironmentAssetState(ENVIRONMENT_ASSET_PACK_IDS.EGYPT_ATMOSPHERE));
   const desertBackgroundAssetsRef = useRef(createDesertBackgroundAssetState());
   const enemySpriteAssetsRef = useRef(createEnemySpriteState());
@@ -2135,8 +2440,11 @@ export default function ExpeditionJourney({
   const openingPyramidClimbPackRef = useRef({ image: null, loaded: false, failed: false });
   const openingPyramidFacadeRef = useRef({ image: null, loaded: false, failed: false });
   const openingTombStairwellRef = useRef({ image: null, loaded: false, failed: false, version: OPENING_TOMB_STAIRWELL_VERSION });
+  const mummificationChamberExteriorRef = useRef({ image: null, loaded: false, failed: false, version: MUMMIFICATION_CHAMBER_EXTERIOR_VERSION });
+  const mummificationChamberInteriorRef = useRef({ image: null, loaded: false, failed: false, version: MUMMIFICATION_CHAMBER_INTERIOR_VERSION });
   const forgottenMuralAlcoveStructureRef = useRef({ image: null, loaded: false, failed: false, version: FORGOTTEN_MURAL_ALCOVE_CLIMB_STRUCTURE_VERSION });
   const forgottenMuralChamberRef = useRef({ image: null, loaded: false, failed: false, version: FORGOTTEN_MURAL_CHAMBER_VERSION });
+  const scribeChamberExteriorRef = useRef({ image: null, loaded: false, failed: false, version: SCRIBE_CHAMBER_EXTERIOR_VERSION });
   const openingTrapDecalPackRef = useRef({ image: null, loaded: false, failed: false });
   const openingHazardDecalPackRef = useRef({ image: null, loaded: false, failed: false });
   const stageEntranceDoorwayRef = useRef({ image: null, loaded: false, failed: false, version: STAGE_ENTRANCE_DOORWAY_VERSION });
@@ -2186,6 +2494,90 @@ export default function ExpeditionJourney({
       openingScarabSealImageRef.current = { image: null, loaded: false, failed: true };
     };
     image.src = `${import.meta.env.BASE_URL}${OPENING_SCARAB_SEAL_IMAGE_SRC}`;
+    return () => {
+      cancelled = true;
+    };
+  }, [syncHud]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const image = new Image();
+    image.onload = () => {
+      if (cancelled) return;
+      mummificationChamberInteriorRef.current = {
+        image,
+        loaded: true,
+        failed: false,
+        version: MUMMIFICATION_CHAMBER_INTERIOR_VERSION,
+      };
+      syncHud();
+    };
+    image.onerror = () => {
+      if (cancelled) return;
+      mummificationChamberInteriorRef.current = {
+        image: null,
+        loaded: false,
+        failed: true,
+        version: MUMMIFICATION_CHAMBER_INTERIOR_VERSION,
+      };
+    };
+    image.src = `${import.meta.env.BASE_URL}${MUMMIFICATION_CHAMBER_INTERIOR_SRC}`;
+    return () => {
+      cancelled = true;
+    };
+  }, [syncHud]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const image = new Image();
+    image.onload = () => {
+      if (cancelled) return;
+      scribeChamberExteriorRef.current = {
+        image,
+        loaded: true,
+        failed: false,
+        version: SCRIBE_CHAMBER_EXTERIOR_VERSION,
+      };
+      syncHud();
+    };
+    image.onerror = () => {
+      if (cancelled) return;
+      scribeChamberExteriorRef.current = {
+        image: null,
+        loaded: false,
+        failed: true,
+        version: SCRIBE_CHAMBER_EXTERIOR_VERSION,
+      };
+    };
+    image.src = `${import.meta.env.BASE_URL}${SCRIBE_CHAMBER_EXTERIOR_SRC}`;
+    return () => {
+      cancelled = true;
+    };
+  }, [syncHud]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const image = new Image();
+    image.onload = () => {
+      if (cancelled) return;
+      mummificationChamberExteriorRef.current = {
+        image,
+        loaded: true,
+        failed: false,
+        version: MUMMIFICATION_CHAMBER_EXTERIOR_VERSION,
+      };
+      syncHud();
+    };
+    image.onerror = () => {
+      if (cancelled) return;
+      mummificationChamberExteriorRef.current = {
+        image: null,
+        loaded: false,
+        failed: true,
+        version: MUMMIFICATION_CHAMBER_EXTERIOR_VERSION,
+      };
+    };
+    image.src = `${import.meta.env.BASE_URL}${MUMMIFICATION_CHAMBER_EXTERIOR_SRC}`;
     return () => {
       cancelled = true;
     };
@@ -2498,7 +2890,9 @@ export default function ExpeditionJourney({
     const {
       atlasPath,
       characterId,
+      version,
       fallbackAtlasPath,
+      fallbackAtlasVersion,
       fallbackCharacterId,
       fallbackSrc,
     } = playerHeroSpriteConfig;
@@ -2545,7 +2939,13 @@ export default function ExpeditionJourney({
       legacyImage.src = `${baseUrl}${fallbackSrc}`;
     };
 
-    const loadHeroAtlas = (heroAtlasPath, heroCharacterId) => fetch(`${baseUrl}${heroAtlasPath}`)
+    const getHeroVersionQuery = (heroVersion) => (heroVersion
+      ? `?v=${encodeURIComponent(heroVersion)}`
+      : '');
+
+    const loadHeroAtlas = (heroAtlasPath, heroCharacterId, heroVersion) => {
+      const versionQuery = getHeroVersionQuery(heroVersion);
+      return fetch(`${baseUrl}${heroAtlasPath}${versionQuery}`)
       .then((response) => {
         if (!response.ok) throw new Error(`Player hero atlas request failed: ${response.status}`);
         return response.json();
@@ -2559,8 +2959,9 @@ export default function ExpeditionJourney({
           characterId: heroCharacterId,
         });
         image.onerror = () => reject(new Error(`Player hero image request failed: ${atlas.image}`));
-        image.src = `${baseUrl}${getAtlasImagePath(heroAtlasPath, atlas.image)}`;
+        image.src = `${baseUrl}${getAtlasImagePath(heroAtlasPath, atlas.image)}${versionQuery}`;
       }));
+    };
 
     if (!atlasPath) {
       loadLegacySprite();
@@ -2569,9 +2970,9 @@ export default function ExpeditionJourney({
       };
     }
 
-    loadHeroAtlas(atlasPath, characterId)
+    loadHeroAtlas(atlasPath, characterId, version)
       .catch(() => (fallbackAtlasPath
-        ? loadHeroAtlas(fallbackAtlasPath, fallbackCharacterId || characterId)
+        ? loadHeroAtlas(fallbackAtlasPath, fallbackCharacterId || characterId, fallbackAtlasVersion)
         : null))
       .then((heroState) => loadLegacySprite(heroState || {}))
       .catch(() => loadLegacySprite());
@@ -2614,6 +3015,21 @@ export default function ExpeditionJourney({
       packId: ENVIRONMENT_ASSET_PACK_IDS.EGYPT_ATMOSPHERE,
       onUpdate: (assets) => {
         atmosphereEnvironmentAssetsRef.current = assets;
+        syncHud();
+      },
+    });
+  }, [scopedJourneyAssetPacks.loadEgyptOnlyPacks, syncHud]);
+
+  useEffect(() => {
+    if (!scopedJourneyAssetPacks.loadEgyptOnlyPacks) {
+      mummificationInteractionAssetsRef.current = createEnvironmentAssetState(ENVIRONMENT_ASSET_PACK_IDS.MUMMIFICATION_CHAMBER_INTERACTIONS);
+      return undefined;
+    }
+    return loadEnvironmentAssetPack({
+      baseUrl: import.meta.env.BASE_URL,
+      packId: ENVIRONMENT_ASSET_PACK_IDS.MUMMIFICATION_CHAMBER_INTERACTIONS,
+      onUpdate: (assets) => {
+        mummificationInteractionAssetsRef.current = assets;
         syncHud();
       },
     });
@@ -2725,6 +3141,80 @@ export default function ExpeditionJourney({
     const question = challenge.questions[challenge.currentIndex];
     if (!question) return;
     const correct = answerIndex === question.correctIndex;
+    if (challenge.type === 'scribe-chamber-puzzle') {
+      challenge.selectedAnswerIndex = answerIndex;
+      challenge.feedback = {
+        correct,
+        message: correct ? SCRIBE_CHAMBER_FEEDBACK.correct : SCRIBE_CHAMBER_FEEDBACK.incorrect,
+      };
+      challenge.answers = [...(challenge.answers || []), {
+        questionId: question.id,
+        answerIndex,
+        correct,
+      }];
+      challenge.correctCount = correct ? 1 : 0;
+      if (correct) {
+        challenge.completed = true;
+        challenge.resultMessage = SCRIBE_CHAMBER_FEEDBACK.correct;
+        current.scribeChamberPuzzleSolved = true;
+        current.scribeChamberExitUnlocked = true;
+        current.notice = SCRIBE_CHAMBER_DOOR_OPEN_LINE;
+        current.cinematicEvent = {
+          id: 'scribe-chamber-door-unlocked',
+          name: 'Scribe Chamber Unlocked',
+          message: SCRIBE_CHAMBER_DOOR_OPEN_LINE,
+          temporary: true,
+        };
+        current.cinematicTimer = 2.4;
+        audioControls?.playLevelUp?.();
+      } else {
+        current.notice = SCRIBE_CHAMBER_FEEDBACK.incorrect;
+        current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 1.8);
+        audioControls?.playError?.();
+      }
+      syncHud();
+      return;
+    }
+    if (challenge.type === 'mummification-ritual-order-puzzle') {
+      const nextAnswers = [...(challenge.answers || []), {
+        questionId: question.id,
+        answerIndex,
+        correct,
+      }];
+      const incorrectCount = nextAnswers.filter(answer => !answer.correct).length;
+      const hint = challenge.hints?.[Math.min(Math.max(incorrectCount - 1, 0), (challenge.hints?.length || 1) - 1)];
+      challenge.selectedAnswerIndex = answerIndex;
+      challenge.answers = nextAnswers;
+      challenge.correctCount = correct ? 1 : 0;
+      challenge.feedback = {
+        correct,
+        message: correct
+          ? MUMMIFICATION_CHAMBER_FEEDBACK.correct
+          : `${MUMMIFICATION_CHAMBER_FEEDBACK.incorrect}${hint ? ` Hint: ${hint}` : ''}`,
+      };
+      if (correct) {
+        challenge.completed = true;
+        challenge.resultMessage = MUMMIFICATION_CHAMBER_FEEDBACK.correct;
+        current.mummificationChamberPuzzleSolved = true;
+        current.mummificationChamberExitUnlocked = true;
+        current.notice = MUMMIFICATION_CHAMBER_FEEDBACK.correct;
+        current.cinematicEvent = {
+          id: 'mummification-chamber-ritual-complete',
+          name: 'Ritual Complete',
+          message: MUMMIFICATION_CHAMBER_FEEDBACK.correct,
+          temporary: true,
+        };
+        current.cinematicTimer = 2.5;
+        current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 1.8);
+        audioControls?.playLevelUp?.();
+      } else {
+        current.notice = MUMMIFICATION_CHAMBER_FEEDBACK.incorrect;
+        current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 1.6);
+        audioControls?.playError?.();
+      }
+      syncHud();
+      return;
+    }
     challenge.selectedAnswerIndex = answerIndex;
     challenge.feedback = {
       correct,
@@ -2789,6 +3279,26 @@ export default function ExpeditionJourney({
     const current = stateRef.current;
     const challenge = current.activeGuardianChallenge;
     if (!challenge || challenge.selectedAnswerIndex === null) return;
+    if (challenge.type === 'scribe-chamber-puzzle') {
+      current.activeGuardianChallenge = null;
+      current.notice = challenge.completed
+        ? SCRIBE_CHAMBER_DOOR_OPEN_LINE
+        : 'The wall is still locked. Compare the tablet and inscription again.';
+      syncHud();
+      return;
+    }
+    if (challenge.type === 'mummification-ritual-order-puzzle') {
+      if (challenge.completed) {
+        current.activeGuardianChallenge = null;
+        current.notice = MUMMIFICATION_CHAMBER_FEEDBACK.correct;
+      } else {
+        challenge.selectedAnswerIndex = null;
+        challenge.feedback = null;
+        current.notice = 'The seal waits for the correct ritual order.';
+      }
+      syncHud();
+      return;
+    }
     if (challenge.completed) {
       current.completedGuardianChallengeIds.add(challenge.bossId);
       current.activeGuardianChallenge = null;
@@ -3224,6 +3734,9 @@ export default function ExpeditionJourney({
   }, []);
 
   const getEnemyPatternConfig = useCallback((enemy) => {
+    if (enemy.type === 'scorpion' && enemy.attackPattern === SCORPION_VENOM_ATTACK_PATTERN.id) {
+      return SCORPION_VENOM_ATTACK_PATTERN;
+    }
     const basePattern = {
       ...(ENEMY_ATTACK_PATTERNS[enemy.type] || DEFAULT_ENEMY_ATTACK_PATTERN),
       ...(enemy.attackPatternTuning || {}),
@@ -3706,6 +4219,17 @@ export default function ExpeditionJourney({
       cameraX: Math.round(current.cameraX),
       targetCameraX: Math.round(current.targetCameraX),
       secretVerticalCameraOffset: Number((current.secretVerticalCameraOffset || 0).toFixed(2)),
+      mummificationChamberExteriorVersion: MUMMIFICATION_CHAMBER_EXTERIOR_VERSION,
+      mummificationChamberExteriorLoaded: Boolean(mummificationChamberExteriorRef.current.loaded),
+      mummificationChamberInteriorVersion: MUMMIFICATION_CHAMBER_INTERIOR_VERSION,
+      mummificationChamberInteriorLoaded: Boolean(mummificationChamberInteriorRef.current.loaded),
+      mummificationChamberInteriorAssetDescription: MUMMIFICATION_CHAMBER_INTERIOR_ASSET_DESCRIPTION,
+      mummificationChamberInteractionAssetVersion: MUMMIFICATION_CHAMBER_INTERACTIONS_ASSET_VERSION,
+      mummificationChamberInteractionAssetsLoaded: Boolean(mummificationInteractionAssetsRef.current.loaded),
+      mummificationChamberAtmosphereVersion: renderStats.mummificationChamberAtmosphereVersion || MUMMIFICATION_CHAMBER_ATMOSPHERE_VERSION,
+      mummificationChamberAtmosphereState: renderStats.mummificationChamberAtmosphereState || null,
+      mummificationChamberWakeProgress: renderStats.mummificationChamberWakeProgress || 0,
+      mummificationChamberParticleCount: renderStats.mummificationChamberParticleCount || 0,
       forgottenMuralCameraFrameActive: Boolean(renderStats.forgottenMuralCameraFrameActive),
       playerWorldX: Math.round(current.player.x),
       playerScreenX: Math.round(current.player.x - current.cameraX),
@@ -3769,6 +4293,7 @@ export default function ExpeditionJourney({
       postBossRewardVisible: Boolean(current.postBossReward),
       postBossRewardTimer: Number((current.postBossRewardTimer || 0).toFixed(2)),
       guardianKnowledgeChallenge: current.activeGuardianChallenge ? {
+        type: current.activeGuardianChallenge.type || 'guardian-knowledge',
         bossId: current.activeGuardianChallenge.bossId,
         bossName: current.activeGuardianChallenge.bossName,
         title: current.activeGuardianChallenge.title,
@@ -3862,6 +4387,7 @@ export default function ExpeditionJourney({
       })),
       collectedSecretCollectibles: Array.from(current.collectedSecretIds || []),
       secretCollectibleCount: current.collectedSecretIds?.size || 0,
+      mummificationChamberEntranceDiscovered: Boolean(current.mummificationChamberEntranceDiscovered),
       forgottenMuralLooterSeen: Boolean(current.forgottenMuralLooterSeen),
       forgottenMuralChamberEntered: Boolean(current.forgottenMuralChamberEntered),
       forgottenMuralChamberActive: Boolean(current.forgottenMuralChamberActive),
@@ -3893,6 +4419,19 @@ export default function ExpeditionJourney({
       forgottenMuralChamberRestored: Boolean(current.forgottenMuralChamberRestored),
       forgottenMuralFragmentsRecovered: FORGOTTEN_MURAL_CHAMBER_RESTORATION_IDS.filter(id => current.collectedSecretIds?.has(id)).length,
       forgottenMuralRestored: Boolean(current.forgottenMuralChamberRestored || current.collectedSecretIds?.has('egypt-scarab-fragment-3')),
+      mummificationChamberEntered: Boolean(current.mummificationChamberEntered),
+      mummificationChamberActive: Boolean(current.mummificationChamberActive),
+      mummificationChamberDoorSealed: Boolean(current.mummificationChamberDoorSealed),
+      mummificationChamberExitUnlocked: Boolean(current.mummificationChamberExitUnlocked),
+      mummificationChamberPuzzleSolved: Boolean(current.mummificationChamberPuzzleSolved),
+      mummificationChamberInspectedObjects: Array.from(current.mummificationChamberInspectedObjectIds || []),
+      scribeChamberEntered: Boolean(current.scribeChamberEntered),
+      scribeChamberActive: Boolean(current.scribeChamberActive),
+      scribeChamberDoorSealed: Boolean(current.scribeChamberDoorSealed),
+      scribeChamberTabletInspected: Boolean(current.scribeChamberTabletInspected),
+      scribeChamberWallInspected: Boolean(current.scribeChamberWallInspected),
+      scribeChamberExitUnlocked: Boolean(current.scribeChamberExitUnlocked),
+      scribeChamberPuzzleSolved: Boolean(current.scribeChamberPuzzleSolved),
       completedCollectionSets: Array.from(current.completedCollectionSetIds || []),
       loreTablets: LORE_TABLETS.map(tablet => ({
         id: tablet.id,
@@ -3914,6 +4453,8 @@ export default function ExpeditionJourney({
         invulnerable: Number(current.player.invulnerable.toFixed(2)),
         invulnerabilityRemainingMs: Math.round(current.player.invulnerable * 1000),
         damageCooldownRemainingMs: Math.round(current.player.damageCooldownTimer * 1000),
+        venomSlowRemainingMs: Math.round((current.player.venomSlowTimer || 0) * 1000),
+        venomSlowMultiplier: current.player.venomSlowTimer > 0 ? current.player.venomSlowMultiplier : 1,
         flashActive: current.player.invulnerable > 0,
         lastDamage: current.player.lastDamage || 0,
         lastDamageSource: current.player.lastDamageSource,
@@ -4752,10 +5293,15 @@ export default function ExpeditionJourney({
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     if (fadeAlpha > 0.72) {
       ctx.globalAlpha = clamp((fadeAlpha - 0.72) / 0.28, 0, 1);
+      const label = scene.toSceneId === JOURNEY_SCENE_IDS.MUMMIFICATION_CHAMBER
+        ? (scene.switched ? 'MUMMIFICATION CHAMBER' : 'ENTERING SACRED DOORWAY')
+        : scene.switched
+          ? 'FORGOTTEN MURAL CHAMBER'
+          : 'ENTERING HIDDEN DOORWAY';
       ctx.fillStyle = '#facc15';
       ctx.font = '900 17px Outfit, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(scene.switched ? 'FORGOTTEN MURAL CHAMBER' : 'ENTERING HIDDEN DOORWAY', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
+      ctx.fillText(label, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
     }
     ctx.restore();
   }, []);
@@ -6201,6 +6747,32 @@ export default function ExpeditionJourney({
     ctx.restore();
   }, [drawContactShadow, drawDesertEntryPlatformSupport, drawDesertOpeningPlatformFace, drawForegroundSettlingDetails, drawGroundDustLip]);
 
+  const drawMummificationChamberExteriorAsset = useCallback((ctx, prop, x, section, now) => {
+    const structureAsset = mummificationChamberExteriorRef.current;
+    if (!structureAsset.loaded || !structureAsset.image) return false;
+
+    const width = prop.width || 1360;
+    const height = prop.height || 705;
+    const drawX = x - width / 2;
+    const drawY = prop.y;
+    const baseY = drawY + height;
+    const pulse = 0.75 + Math.sin(now / 420) * 0.12;
+
+    drawContactShadow(ctx, x, Math.min(GROUND_Y - 2, baseY - 4), width * 0.55, 0.16, 1.35);
+    drawDecorativeBaseBlend(ctx, x - width * 0.04, Math.min(GROUND_Y - 2, baseY - 6), width * 0.46, section.id, prop.depth || 'route-edge', 0.58);
+    ctx.globalAlpha = prop.alpha ?? 1;
+    ctx.filter = `sepia(6%) saturate(108%) brightness(${98 + pulse * 3}%) contrast(106%) drop-shadow(0 20px 20px rgba(47, 24, 9, 0.24))`;
+    ctx.drawImage(structureAsset.image, drawX, drawY, width, height);
+    ctx.filter = 'none';
+    ctx.globalAlpha = 1;
+    drawGroundDustLip(ctx, x - width * 0.08, Math.min(GROUND_Y - 2, baseY - 9), width * 0.48, 'rgba(205, 137, 64, 0.2)');
+    if (stateRef.current.renderStats) {
+      stateRef.current.renderStats.mummificationChamberExteriorVersion = MUMMIFICATION_CHAMBER_EXTERIOR_VERSION;
+      stateRef.current.renderStats.mummificationChamberExteriorLoaded = true;
+    }
+    return true;
+  }, [drawContactShadow, drawDecorativeBaseBlend, drawGroundDustLip]);
+
   const drawForgottenMuralGeneratedAsset = useCallback((ctx, prop, x, section) => {
     const structureAsset = forgottenMuralAlcoveStructureRef.current;
     if (!structureAsset.loaded || !structureAsset.image) return false;
@@ -6219,6 +6791,185 @@ export default function ExpeditionJourney({
     ctx.filter = 'none';
     ctx.globalAlpha = 1;
     drawGroundDustLip(ctx, x - width * 0.16, Math.min(GROUND_Y - 2, baseY - 8), width * 0.42, 'rgba(188, 127, 61, 0.18)');
+    return true;
+  }, [drawContactShadow, drawDecorativeBaseBlend, drawGroundDustLip]);
+
+  const drawScribeChamberDoorwayStructure = useCallback((ctx, prop, x, section, now) => {
+    const width = prop.width || 1120;
+    const height = prop.height || 620;
+    const left = x - width / 2;
+    const top = prop.y;
+    const baseY = top + height;
+    const centerX = x;
+    const pulse = 0.76 + Math.sin(now / 310) * 0.16;
+    const lamp = 0.78 + Math.sin(now / 93) * 0.12;
+    const current = stateRef.current;
+    const discovered = Boolean(current.discoveredHiddenRouteIds?.has('scribe-locked-chamber-route'));
+    const structureAsset = scribeChamberExteriorRef.current;
+
+    if (structureAsset.loaded && structureAsset.image) {
+      ctx.save();
+      ctx.globalAlpha = prop.alpha ?? 1;
+      drawContactShadow(ctx, centerX, Math.min(GROUND_Y - 2, baseY - 5), width * 0.62, 0.2, 1.4);
+      drawDecorativeBaseBlend(ctx, centerX - width * 0.02, Math.min(GROUND_Y - 3, baseY - 9), width * 0.5, section.id, prop.depth || 'route-edge', 0.62);
+      ctx.filter = `sepia(4%) saturate(108%) brightness(${98 + pulse * 4}%) contrast(106%) drop-shadow(0 20px 22px rgba(39, 18, 7, 0.3))`;
+      ctx.drawImage(structureAsset.image, left, top, width, height);
+      ctx.filter = 'none';
+      ctx.globalCompositeOperation = 'screen';
+      const doorwayGlow = ctx.createRadialGradient(centerX, top + height * 0.38, 28, centerX, top + height * 0.38, width * 0.22);
+      doorwayGlow.addColorStop(0, `rgba(250, 204, 21, ${0.14 * pulse})`);
+      doorwayGlow.addColorStop(0.52, `rgba(180, 83, 9, ${0.08 * pulse})`);
+      doorwayGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = doorwayGlow;
+      ctx.fillRect(centerX - width * 0.28, top + height * 0.12, width * 0.56, height * 0.48);
+      ctx.globalCompositeOperation = 'source-over';
+      drawGroundDustLip(ctx, centerX, Math.min(GROUND_Y - 3, baseY - 8), width * 0.45, 'rgba(250, 204, 21, 0.14)');
+
+      if (Math.abs((current.player.x + current.player.width / 2) - prop.x) < 360) {
+        ctx.font = '800 11px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(17, 12, 8, 0.72)';
+        ctx.beginPath();
+        ctx.roundRect(centerX - 96, top + 72, 192, 24, 8);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(255, 231, 143, 0.94)';
+        ctx.fillText(discovered ? 'Scribe chamber mapped' : 'Climb to the scribe doorway', centerX, top + 88);
+      }
+
+      if (stateRef.current.renderStats) {
+        stateRef.current.renderStats.scribeChamberExteriorVersion = SCRIBE_CHAMBER_EXTERIOR_VERSION;
+        stateRef.current.renderStats.scribeChamberExteriorLoaded = true;
+        stateRef.current.renderStats.visibleWorldLandmarks = Array.from(new Set([
+          ...(stateRef.current.renderStats.visibleWorldLandmarks || []),
+          prop.id,
+        ])).slice(-12);
+      }
+      ctx.restore();
+      return true;
+    }
+
+    ctx.save();
+    ctx.globalAlpha = prop.alpha ?? 1;
+    drawContactShadow(ctx, centerX, Math.min(GROUND_Y - 2, baseY - 3), width * 0.72, 0.18, 1.25);
+    drawDecorativeBaseBlend(ctx, centerX, Math.min(GROUND_Y - 4, baseY - 7), width * 0.62, section.id, prop.depth || 'route-edge', 0.66);
+
+    const glow = ctx.createRadialGradient(centerX, top + height * 0.44, 22, centerX, top + height * 0.44, width * 0.64);
+    glow.addColorStop(0, `rgba(250, 204, 21, ${0.2 * pulse})`);
+    glow.addColorStop(0.46, `rgba(180, 83, 9, ${0.12 * pulse})`);
+    glow.addColorStop(1, 'rgba(69, 26, 3, 0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(left - 90, top - 42, width + 180, height + 80);
+
+    const stone = ctx.createLinearGradient(left, top, left + width, top + height);
+    stone.addColorStop(0, '#2a1e17');
+    stone.addColorStop(0.48, '#5a3f2a');
+    stone.addColorStop(1, '#1f1510');
+    ctx.fillStyle = stone;
+    ctx.strokeStyle = 'rgba(250, 204, 21, 0.26)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.roundRect(left + 18, top + 34, width - 36, height - 52, 12);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = 'rgba(17, 12, 8, 0.94)';
+    ctx.beginPath();
+    ctx.roundRect(centerX - 54, top + 94, 108, height - 118, 34);
+    ctx.fill();
+    ctx.strokeStyle = `rgba(250, 204, 21, ${discovered ? 0.72 : 0.46})`;
+    ctx.lineWidth = 4;
+    ctx.stroke();
+
+    ctx.fillStyle = 'rgba(250, 204, 21, 0.28)';
+    ctx.fillRect(centerX - 48, top + height - 122, 96, 11);
+    ctx.fillRect(centerX - 6, top + 106, 12, height - 132);
+    ctx.fillStyle = `rgba(255, 231, 143, ${0.62 * pulse})`;
+    ctx.beginPath();
+    ctx.arc(centerX, top + 158, 12, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = `rgba(255, 231, 143, ${0.78 * pulse})`;
+    ctx.fillStyle = `rgba(250, 204, 21, ${0.5 * pulse})`;
+    ctx.shadowColor = 'rgba(250, 204, 21, 0.8)';
+    ctx.shadowBlur = 13;
+    ctx.lineWidth = 2;
+    const glyphY = top + 72;
+    [-105, -72, 78, 112].forEach((offset, index) => {
+      const gx = centerX + offset;
+      if (index % 2 === 0) {
+        ctx.beginPath();
+        ctx.arc(gx, glyphY + 4, 8, 0, Math.PI * 2);
+        ctx.stroke();
+        for (let ray = 0; ray < 8; ray += 1) {
+          const angle = (Math.PI * 2 * ray) / 8;
+          ctx.beginPath();
+          ctx.moveTo(gx + Math.cos(angle) * 12, glyphY + 4 + Math.sin(angle) * 12);
+          ctx.lineTo(gx + Math.cos(angle) * 18, glyphY + 4 + Math.sin(angle) * 18);
+          ctx.stroke();
+        }
+      } else {
+        for (let row = 0; row < 3; row += 1) {
+          ctx.beginPath();
+          ctx.moveTo(gx - 16, glyphY - 8 + row * 8);
+          for (let i = -16; i <= 12; i += 8) ctx.quadraticCurveTo(gx + i + 4, glyphY - 13 + row * 8, gx + i + 8, glyphY - 8 + row * 8);
+          ctx.stroke();
+        }
+      }
+    });
+    ctx.shadowBlur = 0;
+
+    ctx.strokeStyle = 'rgba(36, 20, 12, 0.72)';
+    ctx.lineWidth = 2;
+    [left + 58, left + width - 64].forEach((crackX, index) => {
+      ctx.beginPath();
+      ctx.moveTo(crackX, top + 78);
+      ctx.lineTo(crackX + (index ? -10 : 14), top + 118);
+      ctx.lineTo(crackX + (index ? -3 : 8), top + 172);
+      ctx.stroke();
+    });
+
+    [-1, 1].forEach((side) => {
+      const torchX = centerX + side * 126;
+      ctx.strokeStyle = '#4a2b17';
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(torchX - side * 9, top + 164);
+      ctx.lineTo(torchX + side * 22, top + 220);
+      ctx.stroke();
+      ctx.fillStyle = `rgba(245, 158, 11, ${0.76 * lamp})`;
+      ctx.shadowColor = 'rgba(250, 204, 21, 0.9)';
+      ctx.shadowBlur = 18;
+      ctx.beginPath();
+      ctx.ellipse(torchX, top + 150, 9, 20, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    });
+
+    for (let step = 0; step < 4; step += 1) {
+      const stepWidth = width * (0.38 + step * 0.08);
+      ctx.fillStyle = `rgba(93, 64, 42, ${0.74 - step * 0.06})`;
+      ctx.fillRect(centerX - stepWidth / 2, baseY - 18 + step * 7, stepWidth, 6);
+    }
+    drawGroundDustLip(ctx, centerX, Math.min(GROUND_Y - 3, baseY - 7), width * 0.55, 'rgba(250, 204, 21, 0.18)');
+
+    if (Math.abs((current.player.x + current.player.width / 2) - prop.x) < 260) {
+      ctx.font = '800 11px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(17, 12, 8, 0.72)';
+      ctx.beginPath();
+      ctx.roundRect(centerX - 92, top + 14, 184, 24, 8);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255, 231, 143, 0.92)';
+      ctx.fillText(discovered ? 'Scribe chamber mapped' : 'Sealed scribe doorway', centerX, top + 30);
+    }
+
+    if (stateRef.current.renderStats) {
+      stateRef.current.renderStats.visibleWorldLandmarks = Array.from(new Set([
+        ...(stateRef.current.renderStats.visibleWorldLandmarks || []),
+        prop.id,
+      ])).slice(-12);
+    }
+    ctx.restore();
     return true;
   }, [drawContactShadow, drawDecorativeBaseBlend, drawGroundDustLip]);
 
@@ -6269,6 +7020,583 @@ export default function ExpeditionJourney({
     ctx.restore();
     return true;
   }, []);
+
+  const drawMummificationChamberInterior = useCallback((ctx, current, now) => {
+    if (!isMummificationChamberScene(current)) return false;
+    const chamberAsset = mummificationChamberInteriorRef.current;
+    const atmosphere = getMummificationChamberAtmosphere(current);
+    const flickerBase = 0.82 + Math.sin(now / 190) * 0.1 + Math.sin(now / 83) * 0.05;
+    const flicker = clamp(flickerBase * atmosphere.candleFlickerBoost, 0.62, 1.2);
+    const unlocked = Boolean(current.mummificationChamberExitUnlocked);
+
+    ctx.save();
+    ctx.fillStyle = 'rgba(8, 5, 4, 0.96)';
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    if (chamberAsset.loaded && chamberAsset.image) {
+      ctx.globalAlpha = 0.98;
+      ctx.drawImage(chamberAsset.image, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    } else {
+      const wallGradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
+      wallGradient.addColorStop(0, '#120b07');
+      wallGradient.addColorStop(0.42, '#2c1b10');
+      wallGradient.addColorStop(0.78, '#3b2614');
+      wallGradient.addColorStop(1, '#090604');
+      ctx.fillStyle = wallGradient;
+      ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+      ctx.globalAlpha = 0.32;
+      ctx.strokeStyle = 'rgba(179, 128, 56, 0.5)';
+      ctx.lineWidth = 1.4;
+      for (let y = 74; y < CANVAS_HEIGHT - 70; y += 54) {
+        ctx.beginPath();
+        ctx.moveTo(70, y + Math.sin(now / 2200 + y) * 2);
+        ctx.lineTo(CANVAS_WIDTH - 70, y + Math.cos(now / 2300 + y) * 2);
+        ctx.stroke();
+      }
+      for (let x = 118; x < CANVAS_WIDTH - 90; x += 94) {
+        ctx.beginPath();
+        ctx.moveTo(x + Math.sin(now / 2600 + x) * 3, 42);
+        ctx.lineTo(x + 34, CANVAS_HEIGHT - 68);
+        ctx.stroke();
+      }
+    }
+
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = `rgba(7, 4, 3, ${atmosphere.roomDimAlpha})`;
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    ctx.globalCompositeOperation = 'screen';
+    const roomLight = ctx.createRadialGradient(CANVAS_WIDTH * 0.5, CANVAS_HEIGHT * 0.42, 20, CANVAS_WIDTH * 0.5, CANVAS_HEIGHT * 0.42, CANVAS_WIDTH * 0.58);
+    roomLight.addColorStop(0, `rgba(255, 235, 179, ${atmosphere.roomLightAlpha * flicker})`);
+    roomLight.addColorStop(0.36, `rgba(250, 204, 21, ${atmosphere.roomLightAlpha * 0.52})`);
+    roomLight.addColorStop(1, 'rgba(69, 26, 3, 0)');
+    ctx.fillStyle = roomLight;
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    const glyphAlpha = atmosphere.glyphGlowAlpha * flicker;
+    [
+      { x: 164, y: 72, width: 720, height: 72 },
+      { x: 142, y: 158, width: 760, height: 48 },
+      { x: 72, y: 236, width: 180, height: 184 },
+      { x: 946, y: 198, width: 118, height: 236 },
+    ].forEach((zone, index) => {
+      ctx.save();
+      ctx.globalAlpha = 0.72;
+      ctx.shadowColor = index % 2 === 0 ? 'rgba(250, 204, 21, 0.9)' : 'rgba(94, 234, 212, 0.62)';
+      ctx.shadowBlur = 20 + atmosphere.wakeProgress * 18;
+      ctx.fillStyle = index % 2 === 0
+        ? `rgba(250, 204, 21, ${glyphAlpha * 0.32})`
+        : `rgba(45, 212, 191, ${glyphAlpha * 0.2})`;
+      ctx.fillRect(zone.x, zone.y, zone.width, zone.height);
+      ctx.restore();
+    });
+
+    const tableZone = MUMMIFICATION_CHAMBER_READABILITY.mummificationChamberPuzzleCenterpiece;
+    const tableGlow = ctx.createRadialGradient(tableZone.x, tableZone.y, 20, tableZone.x, tableZone.y, tableZone.radiusX);
+    tableGlow.addColorStop(0, `rgba(250, 204, 21, ${(0.16 + atmosphere.wakeProgress * 0.18) * flicker})`);
+    tableGlow.addColorStop(0.5, `rgba(245, 158, 11, ${(0.08 + atmosphere.wakeProgress * 0.1) * flicker})`);
+    tableGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = tableGlow;
+    ctx.fillRect(tableZone.x - tableZone.radiusX, tableZone.y - tableZone.radiusY * 2, tableZone.radiusX * 2, tableZone.radiusY * 4);
+    ctx.globalCompositeOperation = 'source-over';
+
+    const candleGlow = (x, y, radius = 86) => {
+      ctx.save();
+      ctx.globalCompositeOperation = 'screen';
+      const glow = ctx.createRadialGradient(x, y, 2, x, y, radius);
+      glow.addColorStop(0, `rgba(255, 240, 180, ${(0.2 + atmosphere.wakeProgress * 0.26) * flicker})`);
+      glow.addColorStop(0.35, `rgba(245, 158, 11, ${(0.1 + atmosphere.wakeProgress * 0.18) * flicker})`);
+      glow.addColorStop(1, 'rgba(88, 28, 5, 0)');
+      ctx.fillStyle = glow;
+      ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+      ctx.restore();
+    };
+
+    candleGlow(120, 255, 96);
+    candleGlow(232, 336, 72);
+    candleGlow(CANVAS_WIDTH - 128, 256, 102);
+    candleGlow(CANVAS_WIDTH - 242, 332, 72);
+
+    const torch = (x, y, direction = 1) => {
+      ctx.save();
+      const flame = ctx.createRadialGradient(x, y - 12, 2, x, y - 12, 112);
+      flame.addColorStop(0, `rgba(255, 230, 151, ${0.74 * flicker})`);
+      flame.addColorStop(0.32, `rgba(245, 158, 11, ${0.42 * flicker})`);
+      flame.addColorStop(1, 'rgba(88, 28, 5, 0)');
+      ctx.fillStyle = flame;
+      ctx.fillRect(x - 132, y - 130, 264, 230);
+      ctx.strokeStyle = '#4a2b17';
+      ctx.lineWidth = 8;
+      ctx.beginPath();
+      ctx.moveTo(x - direction * 10, y + 18);
+      ctx.lineTo(x + direction * 28, y + 82);
+      ctx.stroke();
+      ctx.fillStyle = '#f59e0b';
+      ctx.shadowColor = 'rgba(250, 204, 21, 0.9)';
+      ctx.shadowBlur = 24;
+      ctx.beginPath();
+      ctx.ellipse(x, y - 12, 12 + Math.sin(now / 120) * 2, 26, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#fff7ad';
+      ctx.beginPath();
+      ctx.ellipse(x + direction * 2, y - 18, 5, 12, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    };
+
+    if (!chamberAsset.loaded || !chamberAsset.image) {
+      torch(132, 164, 1);
+      torch(CANVAS_WIDTH - 132, 164, -1);
+    }
+
+    const tableX = CANVAS_WIDTH * 0.5;
+    const tableY = GROUND_Y - 84;
+    if (!chamberAsset.loaded || !chamberAsset.image) {
+      const tableGradient = ctx.createLinearGradient(tableX - 250, tableY, tableX + 250, tableY + 90);
+      tableGradient.addColorStop(0, '#4f351f');
+      tableGradient.addColorStop(0.48, '#a16207');
+      tableGradient.addColorStop(1, '#321b0d');
+      ctx.globalAlpha = 0.96;
+      ctx.fillStyle = tableGradient;
+      ctx.beginPath();
+      ctx.roundRect(tableX - 260, tableY, 520, 88, 14);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(250, 204, 21, 0.42)';
+      ctx.lineWidth = 4;
+      ctx.stroke();
+
+      ctx.fillStyle = 'rgba(236, 201, 126, 0.9)';
+      ctx.beginPath();
+      ctx.roundRect(tableX - 150, tableY - 36, 300, 48, 22);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(92, 49, 18, 0.52)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(91, 52, 24, 0.54)';
+      ctx.fillRect(tableX - 112, tableY - 19, 224, 8);
+
+      const jarColors = ['#b45309', '#92400e', '#854d0e', '#a16207'];
+      jarColors.forEach((color, index) => {
+        const jarX = tableX - 198 + index * 132;
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.ellipse(jarX, tableY - 8, 24, 36, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(250, 204, 21, 0.36)';
+        ctx.fillRect(jarX - 15, tableY - 42, 30, 10);
+      });
+    }
+
+    const exitX = worldToScreenX(MUMMIFICATION_CHAMBER_EXIT_TRIGGER.minX + 24, current.cameraX);
+    ctx.fillStyle = unlocked ? 'rgba(13, 49, 38, 0.84)' : 'rgba(24, 15, 10, 0.96)';
+    ctx.beginPath();
+    ctx.roundRect(exitX - 32, GROUND_Y - 176, 96, 176, 12);
+    ctx.fill();
+    ctx.strokeStyle = unlocked ? 'rgba(94, 234, 212, 0.72)' : 'rgba(250, 204, 21, 0.48)';
+    ctx.lineWidth = 4;
+    ctx.stroke();
+    if (!unlocked) {
+      ctx.fillStyle = 'rgba(250, 204, 21, 0.3)';
+      ctx.fillRect(exitX - 24, GROUND_Y - 104, 80, 12);
+      ctx.fillRect(exitX + 10, GROUND_Y - 162, 12, 144);
+    }
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    const sealPulse = 0.78 + Math.sin(now / 260) * 0.22;
+    const sealGlow = ctx.createRadialGradient(exitX + 16, GROUND_Y - 92, 10, exitX + 16, GROUND_Y - 92, unlocked ? 150 : 108);
+    sealGlow.addColorStop(0, unlocked
+      ? `rgba(94, 234, 212, ${atmosphere.sealGlowAlpha * sealPulse})`
+      : `rgba(250, 204, 21, ${atmosphere.sealGlowAlpha * sealPulse})`);
+    sealGlow.addColorStop(0.42, unlocked
+      ? `rgba(45, 212, 191, ${atmosphere.sealGlowAlpha * 0.36})`
+      : `rgba(245, 158, 11, ${atmosphere.sealGlowAlpha * 0.24})`);
+    sealGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = sealGlow;
+    ctx.fillRect(exitX - 142, GROUND_Y - 244, 316, 300);
+    ctx.restore();
+
+    const interactionAssets = mummificationInteractionAssetsRef.current;
+    const inspectedObjectIds = current.mummificationChamberInspectedObjectIds || new Set();
+    MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS.forEach((item) => {
+      const inspected = inspectedObjectIds.has(item.id);
+      const dest = {
+        x: item.screen.x - item.screen.width / 2,
+        y: item.screen.y - item.screen.height / 2,
+        width: item.screen.width,
+        height: item.screen.height,
+      };
+      if (item.assetKey === 'linenWrappings') {
+        dest.x += Math.sin(now / 540) * atmosphere.linenMotion * 5;
+        dest.y += Math.sin(now / 360) * atmosphere.linenMotion * 9;
+      }
+      ctx.save();
+      ctx.globalAlpha = item.exitSeal
+        ? (unlocked ? 0.94 : 0.74)
+        : item.assetKey === 'linenWrappings'
+          ? (inspected ? 0.62 : 0.82) + atmosphere.wakeProgress * 0.1
+          : (inspected ? 0.62 : 0.86);
+      ctx.filter = item.exitSeal
+        ? `drop-shadow(0 0 ${unlocked ? 22 : 10 + atmosphere.wakeProgress * 8}px ${unlocked ? 'rgba(94, 234, 212, 0.72)' : 'rgba(250, 204, 21, 0.62)'})`
+        : item.assetKey === 'linenWrappings'
+          ? `drop-shadow(0 0 ${8 + atmosphere.wakeProgress * 14}px rgba(255, 244, 214, 0.38))`
+          : 'drop-shadow(0 8px 10px rgba(18, 10, 6, 0.42))';
+      const drewAsset = drawAtlasRegion(ctx, interactionAssets, item.assetKey, dest, { mode: 'contain' });
+      ctx.restore();
+
+      if (!drewAsset) {
+        ctx.save();
+        ctx.globalAlpha = inspected ? 0.54 : 0.82;
+        ctx.fillStyle = item.exitSeal ? 'rgba(250, 204, 21, 0.32)' : 'rgba(146, 64, 14, 0.44)';
+        ctx.strokeStyle = item.exitSeal ? 'rgba(250, 204, 21, 0.72)' : 'rgba(253, 230, 138, 0.58)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(dest.x, dest.y, dest.width, dest.height, item.exitSeal ? 40 : 10);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      if (!inspected || (item.exitSeal && unlocked)) {
+        const markerColor = item.exitSeal && unlocked ? '#5eead4' : '#facc15';
+        drawFieldNoteLabel(ctx, item.screen.x, dest.y - 8, item.exitSeal && unlocked ? 'Exit open' : 'Inspect', markerColor);
+      }
+    });
+
+    if (!chamberAsset.loaded || !chamberAsset.image) {
+      const glyphPanelX = CANVAS_WIDTH * 0.5 - 230;
+      const glyphPanelY = 74;
+      ctx.fillStyle = 'rgba(22, 13, 8, 0.74)';
+      ctx.strokeStyle = `rgba(250, 204, 21, ${0.38 + flicker * 0.16})`;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.roundRect(glyphPanelX, glyphPanelY, 460, 190, 12);
+      ctx.fill();
+      ctx.stroke();
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = '900 18px Cinzel, serif';
+      ctx.fillStyle = `rgba(255, 231, 143, ${0.88 * flicker})`;
+      ctx.fillText('PREPARATION RITES', CANVAS_WIDTH * 0.5, glyphPanelY + 42);
+      ctx.font = '700 13px Outfit, sans-serif';
+      ctx.fillStyle = 'rgba(255, 247, 237, 0.74)';
+      ctx.fillText('The jars, wrappings, and sealed door wait for the puzzle.', CANVAS_WIDTH * 0.5, glyphPanelY + 92);
+      ctx.fillStyle = `rgba(250, 204, 21, ${0.44 * flicker})`;
+      ['ANKH', 'JAR', 'LINEN', 'DOOR'].forEach((label, index) => {
+        ctx.fillText(label, glyphPanelX + 85 + index * 96, glyphPanelY + 144);
+      });
+    }
+
+    if (!unlocked) {
+      drawFieldNoteLabel(ctx, exitX + 38, GROUND_Y - 192, 'Entrance sealed', '#facc15');
+    }
+    const particleCount = atmosphere.particleCount;
+    ctx.globalAlpha = 0.16 + atmosphere.wakeProgress * 0.26;
+    ctx.fillStyle = unlocked ? 'rgba(94, 234, 212, 0.34)' : 'rgba(245, 158, 11, 0.25)';
+    for (let i = 0; i < particleCount; i += 1) {
+      const driftSpeed = 60 - atmosphere.wakeProgress * 24;
+      const dustX = 112 + i * 38 + Math.sin(now / 620 + i) * (7 + atmosphere.wakeProgress * 9);
+      const dustY = 50 + ((now / driftSpeed + i * 31) % 420);
+      ctx.beginPath();
+      ctx.ellipse(dustX, dustY, 1.1 + (i % 3) + atmosphere.wakeProgress * 0.8, 3 + atmosphere.wakeProgress * 2.2, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    if (current.renderStats) {
+      current.renderStats.mummificationChamberInteriorVersion = MUMMIFICATION_CHAMBER_INTERIOR_VERSION;
+      current.renderStats.mummificationChamberInteriorLoaded = Boolean(chamberAsset.loaded && chamberAsset.image);
+      current.renderStats.mummificationChamberInteractionAssetVersion = MUMMIFICATION_CHAMBER_INTERACTIONS_ASSET_VERSION;
+      current.renderStats.mummificationChamberInteractionAssetsLoaded = Boolean(interactionAssets.loaded && interactionAssets.image);
+      current.renderStats.mummificationChamberAtmosphereVersion = MUMMIFICATION_CHAMBER_ATMOSPHERE_VERSION;
+      current.renderStats.mummificationChamberAtmosphereState = atmosphere.state;
+      current.renderStats.mummificationChamberWakeProgress = Number(atmosphere.wakeProgress.toFixed(2));
+      current.renderStats.mummificationChamberParticleCount = particleCount;
+      current.renderStats.mummificationChamberGlyphGlowAlpha = Number(atmosphere.glyphGlowAlpha.toFixed(2));
+      current.renderStats.visibleMummificationChamberInteractionObjects = MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS.map(item => item.id);
+      current.renderStats.mummificationChamberInspectedObjects = Array.from(inspectedObjectIds);
+    }
+    ctx.restore();
+    return true;
+  }, [drawFieldNoteLabel]);
+
+  const drawScribeLockedChamberInterior = useCallback((ctx, current, now) => {
+    if (!isScribeLockedChamberScene(current)) return false;
+    const flicker = 0.82 + Math.sin(now / 220) * 0.1 + Math.sin(now / 91) * 0.04;
+    const unlocked = Boolean(current.scribeChamberExitUnlocked);
+
+    ctx.save();
+    const wallGradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
+    wallGradient.addColorStop(0, '#0b0806');
+    wallGradient.addColorStop(0.38, '#21170f');
+    wallGradient.addColorStop(0.72, '#2b1d12');
+    wallGradient.addColorStop(1, '#070504');
+    ctx.fillStyle = wallGradient;
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    ctx.globalAlpha = 0.34;
+    ctx.strokeStyle = 'rgba(120, 87, 49, 0.5)';
+    ctx.lineWidth = 1.5;
+    for (let x = -40; x < CANVAS_WIDTH + 60; x += 96) {
+      ctx.beginPath();
+      ctx.moveTo(x + Math.sin(now / 3000 + x) * 4, 36);
+      ctx.lineTo(x + 32, CANVAS_HEIGHT - 64);
+      ctx.stroke();
+    }
+    for (let y = 80; y < CANVAS_HEIGHT - 70; y += 58) {
+      ctx.beginPath();
+      ctx.moveTo(60, y + Math.sin(now / 2400 + y) * 2);
+      ctx.lineTo(CANVAS_WIDTH - 60, y + Math.cos(now / 2200 + y) * 2);
+      ctx.stroke();
+    }
+
+    const torch = (x, y, direction = 1) => {
+      ctx.save();
+      const flame = ctx.createRadialGradient(x, y - 12, 2, x, y - 12, 90);
+      flame.addColorStop(0, `rgba(255, 218, 117, ${0.72 * flicker})`);
+      flame.addColorStop(0.32, `rgba(245, 158, 11, ${0.36 * flicker})`);
+      flame.addColorStop(1, 'rgba(88, 28, 5, 0)');
+      ctx.fillStyle = flame;
+      ctx.fillRect(x - 110, y - 118, 220, 210);
+      ctx.strokeStyle = '#4a2b17';
+      ctx.lineWidth = 8;
+      ctx.beginPath();
+      ctx.moveTo(x - direction * 10, y + 18);
+      ctx.lineTo(x + direction * 28, y + 82);
+      ctx.stroke();
+      ctx.fillStyle = '#f59e0b';
+      ctx.shadowColor = 'rgba(250, 204, 21, 0.9)';
+      ctx.shadowBlur = 22;
+      ctx.beginPath();
+      ctx.ellipse(x, y - 12, 12 + Math.sin(now / 120) * 2, 25, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#fff7ad';
+      ctx.beginPath();
+      ctx.ellipse(x + direction * 2, y - 18, 5, 12, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    };
+
+    torch(104, 154, 1);
+    torch(CANVAS_WIDTH - 104, 154, -1);
+
+    const wallX = 245;
+    const wallY = 70;
+    const wallW = 610;
+    const wallH = 272;
+    const wallPanel = ctx.createLinearGradient(wallX, wallY, wallX, wallY + wallH);
+    wallPanel.addColorStop(0, '#201712');
+    wallPanel.addColorStop(0.48, '#110d0b');
+    wallPanel.addColorStop(1, '#2f2118');
+    ctx.globalAlpha = 0.95;
+    ctx.fillStyle = wallPanel;
+    ctx.beginPath();
+    ctx.roundRect(wallX, wallY, wallW, wallH, 12);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(180, 129, 57, 0.5)';
+    ctx.lineWidth = 4;
+    ctx.stroke();
+
+    const drawMiniGlyph = (x, y, kind, damaged = false, scale = 1) => {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(scale, scale);
+      ctx.globalAlpha = damaged ? 0.58 : 0.86;
+      ctx.strokeStyle = damaged ? 'rgba(217, 119, 6, 0.82)' : 'rgba(255, 231, 143, 0.95)';
+      ctx.fillStyle = damaged ? 'rgba(217, 119, 6, 0.64)' : 'rgba(250, 204, 21, 0.86)';
+      ctx.shadowColor = 'rgba(250, 204, 21, 0.7)';
+      ctx.shadowBlur = damaged ? 5 : 13;
+      ctx.lineWidth = 2.2;
+      if (kind === 'sun') {
+        ctx.beginPath();
+        ctx.arc(0, 0, 8, 0, Math.PI * 2);
+        ctx.stroke();
+        for (let ray = 0; ray < 8; ray += 1) {
+          const angle = (Math.PI * 2 * ray) / 8;
+          ctx.beginPath();
+          ctx.moveTo(Math.cos(angle) * 12, Math.sin(angle) * 12);
+          ctx.lineTo(Math.cos(angle) * 18, Math.sin(angle) * 18);
+          ctx.stroke();
+        }
+      } else if (kind === 'water') {
+        for (let row = -1; row <= 1; row += 1) {
+          ctx.beginPath();
+          ctx.moveTo(-17, row * 7);
+          for (let i = -16; i <= 18; i += 8) ctx.quadraticCurveTo(i + 4, row * 7 - 5, i + 8, row * 7);
+          ctx.stroke();
+        }
+      } else if (kind === 'ankh') {
+        ctx.beginPath();
+        ctx.ellipse(0, -10, 7, 10, 0, 0, Math.PI * 2);
+        ctx.moveTo(0, 0);
+        ctx.lineTo(0, 22);
+        ctx.moveTo(-14, 8);
+        ctx.lineTo(14, 8);
+        ctx.stroke();
+      } else if (kind === 'eye') {
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 18, 8, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(0, 0, 4, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (kind === 'feather') {
+        ctx.beginPath();
+        ctx.moveTo(-6, 18);
+        ctx.quadraticCurveTo(5, -18, 14, -22);
+        ctx.quadraticCurveTo(19, -4, -6, 18);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(-4, 14);
+        ctx.lineTo(12, -14);
+        ctx.stroke();
+      } else if (kind === 'reed') {
+        ctx.beginPath();
+        ctx.moveTo(0, 22);
+        ctx.lineTo(0, -18);
+        ctx.moveTo(0, -12);
+        ctx.lineTo(12, -22);
+        ctx.stroke();
+      } else if (kind === 'bird') {
+        ctx.beginPath();
+        ctx.moveTo(-18, 8);
+        ctx.quadraticCurveTo(-5, -16, 13, -4);
+        ctx.quadraticCurveTo(3, 0, 17, 14);
+        ctx.moveTo(-2, 10);
+        ctx.lineTo(-8, 22);
+        ctx.stroke();
+      } else {
+        ctx.beginPath();
+        ctx.roundRect(-10, -16, 20, 32, 3);
+        ctx.moveTo(-10, 0);
+        ctx.lineTo(10, 0);
+        ctx.stroke();
+      }
+      if (damaged) {
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = 'rgba(17, 12, 8, 0.88)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(-16, -17);
+        ctx.lineTo(-2, 2);
+        ctx.lineTo(-8, 19);
+        ctx.stroke();
+      }
+      ctx.restore();
+    };
+
+    const miniGlyphTypes = ['sun', 'water', 'ankh', 'door', 'eye', 'feather', 'reed', 'bird'];
+    for (let col = 0; col < 10; col += 1) {
+      const x = wallX + 36 + col * 58;
+      ctx.globalAlpha = 0.24;
+      ctx.strokeStyle = 'rgba(250, 204, 21, 0.3)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(x + 27, wallY + 18);
+      ctx.lineTo(x + 27, wallY + wallH - 24);
+      ctx.stroke();
+      for (let row = 0; row < 6; row += 1) {
+        drawMiniGlyph(x, wallY + 42 + row * 36, miniGlyphTypes[(col + row) % miniGlyphTypes.length], (col + row) % 7 === 0, 0.72);
+      }
+    }
+
+    const glyphs = [
+      ['sun', 'Sun', 344, 156, false],
+      ['water', 'Water', 476, 156, false],
+      ['ankh', 'Ankh', 608, 156, false],
+      ['door', 'Door', 740, 156, false],
+      ['eye', 'Eye', 392, 252, false],
+      ['feather', 'Feather', 514, 252, true],
+      ['reed', 'Reed', 636, 252, false],
+      ['bird', 'Bird', 758, 252, true],
+    ];
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    glyphs.forEach(([kind, label, x, y, cracked], index) => {
+      const pulse = flicker + Math.sin(now / 320 + index) * 0.08;
+      ctx.save();
+      ctx.globalAlpha = cracked ? 0.82 : 0.98;
+      ctx.fillStyle = 'rgba(36, 25, 16, 0.92)';
+      ctx.strokeStyle = cracked ? 'rgba(180, 83, 9, 0.65)' : 'rgba(250, 204, 21, 0.72)';
+      ctx.lineWidth = 3;
+      ctx.shadowColor = cracked ? 'rgba(245, 158, 11, 0.42)' : 'rgba(250, 204, 21, 0.74)';
+      ctx.shadowBlur = cracked ? 12 : 22;
+      ctx.beginPath();
+      ctx.roundRect(x - 35, y - 38, 70, 76, 10);
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+      drawMiniGlyph(x, y - 4, kind, cracked, index < 4 ? 1.42 : 1.1);
+      ctx.save();
+      ctx.shadowColor = 'rgba(250, 204, 21, 0.55)';
+      ctx.shadowBlur = cracked ? 4 : 10;
+      ctx.font = '10px Cinzel, serif';
+      ctx.fillStyle = cracked ? `rgba(217, 119, 6, ${0.66 * pulse})` : `rgba(255, 231, 143, ${0.92 * pulse})`;
+      ctx.fillText(label.toUpperCase(), x, y + 32);
+      ctx.restore();
+    });
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    const glyphGlow = ctx.createRadialGradient(552, 175, 30, 552, 175, 360);
+    glyphGlow.addColorStop(0, `rgba(250, 204, 21, ${0.34 * flicker})`);
+    glyphGlow.addColorStop(0.45, `rgba(245, 158, 11, ${0.16 * flicker})`);
+    glyphGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = glyphGlow;
+    ctx.fillRect(160, 10, 790, 410);
+    ctx.restore();
+
+    const pedestalX = worldToScreenX(SCRIBE_CHAMBER_TABLET_REGION.x + SCRIBE_CHAMBER_TABLET_REGION.width / 2, current.cameraX);
+    const pedestalY = GROUND_Y - 70;
+    ctx.fillStyle = '#4b3524';
+    ctx.beginPath();
+    ctx.roundRect(pedestalX - 42, pedestalY, 84, 82, 8);
+    ctx.fill();
+    ctx.fillStyle = '#7c5b38';
+    ctx.beginPath();
+    ctx.roundRect(pedestalX - 54, pedestalY - 12, 108, 22, 8);
+    ctx.fill();
+    ctx.fillStyle = current.scribeChamberTabletInspected ? '#fde68a' : '#d6b66b';
+    ctx.shadowColor = 'rgba(250, 204, 21, 0.55)';
+    ctx.shadowBlur = 12;
+    ctx.beginPath();
+    ctx.roundRect(pedestalX - 34, pedestalY - 44, 68, 34, 5);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.font = '10px Cinzel, serif';
+    ctx.fillStyle = '#3b2614';
+    ctx.fillText('SUN WATER ANKH DOOR', pedestalX, pedestalY - 27);
+
+    const exitX = worldToScreenX(SCRIBE_CHAMBER_EXIT_TRIGGER.minX + 24, current.cameraX);
+    ctx.fillStyle = unlocked ? 'rgba(13, 49, 38, 0.84)' : 'rgba(28, 18, 13, 0.94)';
+    ctx.beginPath();
+    ctx.roundRect(exitX - 30, GROUND_Y - 172, 92, 172, 12);
+    ctx.fill();
+    ctx.strokeStyle = unlocked ? 'rgba(94, 234, 212, 0.7)' : 'rgba(250, 204, 21, 0.48)';
+    ctx.lineWidth = 4;
+    ctx.stroke();
+    if (!unlocked) {
+      ctx.fillStyle = 'rgba(250, 204, 21, 0.28)';
+      ctx.fillRect(exitX - 22, GROUND_Y - 100, 76, 12);
+      ctx.fillRect(exitX + 10, GROUND_Y - 160, 12, 142);
+    }
+
+    ctx.globalAlpha = 0.36;
+    ctx.fillStyle = 'rgba(245, 158, 11, 0.26)';
+    for (let i = 0; i < 22; i += 1) {
+      const dustX = 120 + i * 42 + Math.sin(now / 760 + i) * 9;
+      const dustY = 46 + ((now / 42 + i * 31) % 380);
+      ctx.beginPath();
+      ctx.ellipse(dustX, dustY, 1.2 + (i % 3), 3.2, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    if (current.scribeChamberTabletInspected) {
+      drawFieldNoteLabel(ctx, pedestalX, pedestalY - 72, 'Translation tablet recorded', '#facc15');
+    }
+    if (current.scribeChamberWallInspected && !current.scribeChamberPuzzleSolved) {
+      drawFieldNoteLabel(ctx, CANVAS_WIDTH * 0.52, 52, 'Decode the glowing wall', '#facc15');
+    }
+    ctx.restore();
+    return true;
+  }, [drawFieldNoteLabel]);
 
   const drawStoryProp = useCallback((ctx, prop, cameraX, now, requestedDepth = null) => {
     const propDepth = getStoryPropDepth(prop);
@@ -6418,8 +7746,18 @@ export default function ExpeditionJourney({
       ctx.filter = 'none';
       ctx.globalAlpha = 1;
     }
+    if (prop.type === 'generated-mummification-chamber-entrance') {
+      drawMummificationChamberExteriorAsset(ctx, prop, x, section, now);
+      ctx.restore();
+      return;
+    }
     if (prop.type === 'generated-climb-structure') {
       drawForgottenMuralGeneratedAsset(ctx, prop, x, section, now);
+      ctx.restore();
+      return;
+    }
+    if (prop.type === 'generated-scribe-chamber-doorway') {
+      drawScribeChamberDoorwayStructure(ctx, prop, x, section, now);
       ctx.restore();
       return;
     }
@@ -6734,10 +8072,12 @@ export default function ExpeditionJourney({
     drawContactShadow,
     drawDecorativeBaseBlend,
     drawForegroundSettlingDetails,
+    drawMummificationChamberExteriorAsset,
     drawForgottenMuralGeneratedAsset,
     drawGroundDustLip,
     drawPropGroundContact,
     drawPropSandOcclusion,
+    drawScribeChamberDoorwayStructure,
   ]);
 
   const drawWorldContinuityLandmark = useCallback((ctx, landmark, cameraX, now) => {
@@ -9389,6 +10729,75 @@ export default function ExpeditionJourney({
         ctx.restore();
         return;
       }
+      if (effect.type === 'venom-spit') {
+        const targetX = (effect.targetX ?? effect.x) - cameraX;
+        const targetY = effect.targetY ?? y;
+        const direction = targetX >= x ? 1 : -1;
+        const travel = 1 - progress;
+        const spitX = x + (targetX - x) * travel;
+        const arcLift = Math.sin(travel * Math.PI) * (effect.arcHeight || 34);
+        const spitY = y + (targetY - y) * travel - arcLift;
+
+        ctx.globalAlpha = Math.max(0, 0.22 + progress * 0.42);
+        ctx.strokeStyle = 'rgba(132, 204, 22, 0.34)';
+        ctx.lineWidth = 2.4;
+        ctx.setLineDash([8, 8]);
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.quadraticCurveTo(
+          x + (targetX - x) * 0.5,
+          Math.min(y, targetY) - (effect.arcHeight || 34),
+          targetX,
+          targetY,
+        );
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.globalAlpha = Math.max(0, 0.8 * progress + 0.18);
+        ctx.fillStyle = effect.color || '#84cc16';
+        ctx.shadowColor = 'rgba(132, 204, 22, 0.7)';
+        ctx.shadowBlur = 12;
+        ctx.beginPath();
+        ctx.ellipse(spitX, spitY, 9, 4.5, direction * -0.22, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.shadowBlur = 0;
+        ctx.globalAlpha = Math.max(0, 0.42 * progress);
+        for (let i = 0; i < 4; i += 1) {
+          const trail = 10 + i * 8;
+          ctx.beginPath();
+          ctx.ellipse(
+            spitX - direction * trail * (1 - travel * 0.45),
+            spitY + Math.sin(i + travel * 5) * 3,
+            3.5 - i * 0.35,
+            2,
+            direction * -0.15,
+            0,
+            Math.PI * 2,
+          );
+          ctx.fill();
+        }
+        ctx.restore();
+        return;
+      }
+      if (effect.type === 'venom-slow') {
+        ctx.globalAlpha = Math.max(0, progress * 0.56);
+        ctx.strokeStyle = effect.color || '#84cc16';
+        ctx.fillStyle = effect.fill || 'rgba(132, 204, 22, 0.16)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.ellipse(x, y, 18 + (1 - progress) * 18, 9 + (1 - progress) * 9, -0.08, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.globalAlpha = Math.max(0, progress * 0.66);
+        for (let i = 0; i < 5; i += 1) {
+          ctx.beginPath();
+          ctx.arc(x - 16 + i * 8, y - 12 - (1 - progress) * (5 + i), 2.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+        return;
+      }
       if (effect.type === 'enemy-guard-deflect') {
         const drawDeflectRing = (radius, alpha, lineWidth = 2) => {
           ctx.globalAlpha = Math.max(0, progress * alpha);
@@ -9582,17 +10991,18 @@ export default function ExpeditionJourney({
       ? Math.cos(now / 23) * PLAYER_HIT_SCREEN_SHAKE_PIXELS * 0.38 * playerImpactShakeProgress
       : 0;
     const isPlayerNear = (worldX, distance = 240) => Math.abs((player.x + player.width / 2) - worldX) < distance;
-    const chamberSceneActive = isForgottenMuralChamberScene(current);
+    const chamberSceneActive = isInteriorChamberScene(current);
     const activeRouteGate = chamberSceneActive ? null : ROUTE_GATES.find(gate => !current.openedRouteGateIds.has(gate.id));
     const activeGateGuidance = activeRouteGate ? getGateGuidance(activeRouteGate, current) : null;
     const playerCenterX = player.x + player.width / 2;
     const crowdedGateActive = Boolean(activeRouteGate && Math.abs((activeRouteGate.x + activeRouteGate.width / 2) - playerCenterX) < 360);
     const crowdedBossActive = current.miniBosses.some(boss => boss.awakened && !boss.defeated && Math.abs(boss.x - player.x) < 360);
     const labelSuppressionActive = crowdedGateActive || crowdedBossActive || current.bossIntroTimer > 0;
-    const forgottenMuralRoute = getActiveHiddenRoutes().find(route => route.id === 'desert-upper-survey-route');
-    const inForgottenMuralVerticalWindow = forgottenMuralRoute
-      && playerCenterX >= forgottenMuralRoute.x - scaleJourneyX(240)
-      && playerCenterX <= forgottenMuralRoute.x + forgottenMuralRoute.width + scaleJourneyX(160)
+    const secretClimbRouteIds = ['mummification-chamber-route', 'desert-upper-survey-route'];
+    const secretClimbRoute = getActiveHiddenRoutes().find(route => secretClimbRouteIds.includes(route.id)
+      && playerCenterX >= route.x - scaleJourneyX(240)
+      && playerCenterX <= route.x + route.width + scaleJourneyX(160));
+    const inForgottenMuralVerticalWindow = secretClimbRoute
       && player.y < GROUND_Y - 230;
     const desiredSecretVerticalCameraOffset = !chamberSceneActive && inForgottenMuralVerticalWindow
       ? clamp(CANVAS_HEIGHT * 0.46 - (player.y + player.height / 2), 0, 220)
@@ -9645,10 +11055,20 @@ export default function ExpeditionJourney({
       openingPyramidAssetLoaded: openingPyramidClimbPackRef.current.loaded,
       openingPyramidFacadeVersion: OPENING_PYRAMID_FACADE_VERSION,
       openingPyramidFacadeLoaded: openingPyramidFacadeRef.current.loaded,
+      mummificationChamberExteriorVersion: MUMMIFICATION_CHAMBER_EXTERIOR_VERSION,
+      mummificationChamberExteriorLoaded: mummificationChamberExteriorRef.current.loaded,
+      mummificationChamberInteriorVersion: MUMMIFICATION_CHAMBER_INTERIOR_VERSION,
+      mummificationChamberInteriorLoaded: mummificationChamberInteriorRef.current.loaded,
+      mummificationChamberInteractionAssetVersion: MUMMIFICATION_CHAMBER_INTERACTIONS_ASSET_VERSION,
+      mummificationChamberInteractionAssetsLoaded: mummificationInteractionAssetsRef.current.loaded,
+      mummificationChamberReadableZones: MUMMIFICATION_CHAMBER_READABILITY.mummificationChamberReadableZones.map(zone => zone.id),
+      mummificationChamberPuzzleCenterpiece: MUMMIFICATION_CHAMBER_READABILITY.mummificationChamberPuzzleCenterpiece,
       forgottenMuralAlcoveClimbStructureVersion: FORGOTTEN_MURAL_ALCOVE_CLIMB_STRUCTURE_VERSION,
       forgottenMuralAlcoveClimbStructureLoaded: forgottenMuralAlcoveStructureRef.current.loaded,
       forgottenMuralChamberVersion: FORGOTTEN_MURAL_CHAMBER_VERSION,
       forgottenMuralChamberLoaded: forgottenMuralChamberRef.current.loaded,
+      scribeChamberExteriorVersion: SCRIBE_CHAMBER_EXTERIOR_VERSION,
+      scribeChamberExteriorLoaded: scribeChamberExteriorRef.current.loaded,
       forgottenMuralChamberActive: Boolean(current.forgottenMuralChamberActive),
       currentSceneId: getJourneySceneId(current),
       sceneTransitionActive: Boolean(current.sceneTransition || current.forgottenMuralChamberTransition),
@@ -9786,7 +11206,9 @@ export default function ExpeditionJourney({
       drawAncientRouteGround(ctx, section, cameraX, now, current);
       STORY_PROPS.filter(prop => isEntityActiveInScene(prop, current)).forEach((prop) => drawStoryProp(ctx, prop, cameraX, now, 'grounded'));
     }
+    drawMummificationChamberInterior(ctx, current, now);
     drawForgottenMuralChamberInterior(ctx, current, now);
+    drawScribeLockedChamberInterior(ctx, current, now);
 
     const activeBossDomain = !chamberSceneActive && current.bossDomain
       && !current.defeatedMiniBosses.has(current.bossDomain.bossId)
@@ -10052,8 +11474,8 @@ export default function ExpeditionJourney({
         }
       }
       
-      // Health Bar (Small)
-      if (!enemy.defeated && enemy.health > 1) {
+      // Only show normal enemy health after damage so full bars do not read as platforms.
+      if (!enemy.defeated && enemy.health > 1 && enemy.health < enemy.maxHealth) {
         const enemyDrawBox = getEnemySpriteDrawBox(enemy, ex, 0, getCombatMode(enemy)) || {
           x: ex,
           y: enemy.y,
@@ -10251,25 +11673,29 @@ export default function ExpeditionJourney({
       if (!isHorizontallyVisible(marker.x, 1, cameraX, 50)) return;
       const emoji = marker.type === 'switch' ? '⚙️' : marker.type === 'glyph' ? '📜' : marker.type === 'escape' ? '🏃' : '🚩';
       const markerNeeded = activeGateGuidance?.nearestMissingObjective?.id === marker.id;
+      const markerSize = marker.type === 'map-tablet'
+        ? COLLECTIBLE_VISUAL_BASE.objective.mapTabletSize
+        : COLLECTIBLE_VISUAL_BASE.objective.size;
+      const markerBaseY = marker.visualBaseY ?? (marker.y + 12 + COLLECTIBLE_VISUAL_BASE.objective.anchorYOffset);
       ctx.save();
       drawCollectible(ctx, marker.x + 15, marker.y + 12, cameraX, now, emoji, marker.color || '#b45309', false, false, {
         key: getObjectiveSpriteKey(marker.type),
         kind: 'objective',
-        size: marker.type === 'map-tablet'
-          ? COLLECTIBLE_VISUAL_BASE.objective.mapTabletSize
-          : COLLECTIBLE_VISUAL_BASE.objective.size,
+        size: markerSize,
         ringSize: COLLECTIBLE_VISUAL_BASE.objective.ringSize,
         glowAlpha: 0,
-        shadowAlpha: COLLECTIBLE_VISUAL_BASE.objective.shadowAlpha,
-        bobAmplitude: COLLECTIBLE_VISUAL_BASE.objective.bobAmplitude,
-        sparkleAlpha: COLLECTIBLE_VISUAL_BASE.objective.sparkleAlpha,
-        sparkleSize: COLLECTIBLE_VISUAL_BASE.objective.sparkleSize,
+        shadowAlpha: marker.groundedProp ? 0.22 : COLLECTIBLE_VISUAL_BASE.objective.shadowAlpha,
+        shadowWidth: marker.groundedProp ? markerSize * 0.82 : undefined,
+        bobAmplitude: marker.groundedProp ? 0 : COLLECTIBLE_VISUAL_BASE.objective.bobAmplitude,
+        sparkleAlpha: marker.groundedProp ? 0 : COLLECTIBLE_VISUAL_BASE.objective.sparkleAlpha,
+        sparkleSize: marker.groundedProp ? 0 : COLLECTIBLE_VISUAL_BASE.objective.sparkleSize,
         anchorYOffset: COLLECTIBLE_VISUAL_BASE.objective.anchorYOffset,
+        baseY: markerBaseY,
         nearGlowDistance: COLLECTIBLE_VISUAL_BASE.objective.nearGlowDistance,
         hideGlow: true,
       });
       if (showWorldLabel(marker.x, markerNeeded ? 170 : 120, markerNeeded ? 'critical' : 'normal')) {
-        drawFieldNoteLabel(ctx, mx + 15, marker.y - 15, marker.label, marker.color || '#b45309');
+        drawFieldNoteLabel(ctx, mx + 15, marker.groundedProp ? markerBaseY - markerSize - 10 : marker.y - 15, marker.label, marker.color || '#b45309');
       }
       ctx.restore();
     });
@@ -10395,7 +11821,7 @@ export default function ExpeditionJourney({
       }
       ctx.textAlign = 'start';
     }
-  }, [backgroundPackId, drawAncientRouteGround, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawForgottenMuralChamberInterior, drawForgottenMuralChamberTransition, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawRouteGate, drawRouteGroundApron, drawScarabQueenLairOpeningProp, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getGateGuidance, getGateRequirements, getPlayerAttackState, isRouteRewardAccessible, drawPlayerSprite, drawFieldNoteLabel]);
+  }, [backgroundPackId, drawAncientRouteGround, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawMummificationChamberInterior, drawForgottenMuralChamberInterior, drawForgottenMuralChamberTransition, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawRouteGate, drawRouteGroundApron, drawScarabQueenLairOpeningProp, drawScribeLockedChamberInterior, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getGateGuidance, getGateRequirements, getPlayerAttackState, isRouteRewardAccessible, drawPlayerSprite, drawFieldNoteLabel]);
 
   const startOpeningCinematic = useCallback(({ speechEnabled = true } = {}) => {
     const current = stateRef.current;
@@ -10828,12 +12254,41 @@ export default function ExpeditionJourney({
       const transitionElapsed = clamp((transition.duration || 0) - (transition.timer || 0), 0, transition.duration || 0);
       if (!transition.switched && transitionElapsed >= FORGOTTEN_MURAL_CHAMBER_SWITCH_SECONDS) {
         transition.switched = true;
-        const enteringChamber = transition.toSceneId === JOURNEY_SCENE_IDS.FORGOTTEN_MURAL_CHAMBER;
-        transition.phase = enteringChamber ? 'chamber-reveal' : 'exterior-return';
+        const enteringMummificationChamber = transition.toSceneId === JOURNEY_SCENE_IDS.MUMMIFICATION_CHAMBER;
+        const enteringForgottenMuralChamber = transition.toSceneId === JOURNEY_SCENE_IDS.FORGOTTEN_MURAL_CHAMBER;
+        const enteringScribeChamber = transition.toSceneId === JOURNEY_SCENE_IDS.SCRIBE_LOCKED_CHAMBER;
+        transition.phase = enteringMummificationChamber
+          ? 'mummification-chamber-reveal'
+          : enteringForgottenMuralChamber
+            ? 'chamber-reveal'
+            : enteringScribeChamber
+            ? 'scribe-chamber-reveal'
+            : 'exterior-return';
         current.previousSceneId = transition.fromSceneId || getJourneySceneId(current);
         current.currentSceneId = transition.toSceneId || JOURNEY_SCENE_IDS.EXTERIOR;
-        current.forgottenMuralChamberActive = enteringChamber;
-        if (enteringChamber) {
+        current.mummificationChamberActive = enteringMummificationChamber;
+        current.forgottenMuralChamberActive = enteringForgottenMuralChamber;
+        current.scribeChamberActive = enteringScribeChamber;
+        if (enteringMummificationChamber) {
+          current.mummificationChamberEntered = true;
+          current.mummificationChamberDoorSealed = true;
+          current.mummificationChamberExitUnlocked = Boolean(current.mummificationChamberPuzzleSolved);
+          current.hiddenRoomsFound?.add('mummification-chamber');
+          current.discoveredHiddenRouteIds?.add('mummification-chamber-route');
+          player.x = MUMMIFICATION_CHAMBER_ENTRY_SPAWN.x - player.width / 2;
+          player.y = MUMMIFICATION_CHAMBER_ENTRY_SPAWN.y - player.height;
+          player.direction = MUMMIFICATION_CHAMBER_ENTRY_SPAWN.direction;
+          current.cameraX = MUMMIFICATION_CHAMBER_CAMERA_X;
+          current.targetCameraX = current.cameraX;
+          current.notice = 'This is a mummification chamber...';
+          current.cinematicEvent = {
+            id: 'mummification-chamber-entered',
+            name: 'Asha',
+            message: 'This is a mummification chamber...',
+            temporary: true,
+          };
+          current.cinematicTimer = 2.8;
+        } else if (enteringForgottenMuralChamber) {
           current.forgottenMuralChamberEntered = true;
           current.hiddenRoomsFound?.add('forgotten-mural-chamber');
           current.discoveredHiddenRouteIds?.add('desert-upper-survey-route');
@@ -10850,6 +12305,25 @@ export default function ExpeditionJourney({
             temporary: true,
           };
           current.cinematicTimer = 2.8;
+        } else if (enteringScribeChamber) {
+          current.scribeChamberEntered = true;
+          current.scribeChamberDoorSealed = true;
+          current.scribeChamberExitUnlocked = Boolean(current.scribeChamberPuzzleSolved);
+          current.hiddenRoomsFound?.add('scribe-locked-chamber');
+          current.discoveredHiddenRouteIds?.add('scribe-locked-chamber-route');
+          player.x = SCRIBE_CHAMBER_ENTRY_SPAWN.x - player.width / 2;
+          player.y = SCRIBE_CHAMBER_ENTRY_SPAWN.y - player.height;
+          player.direction = SCRIBE_CHAMBER_ENTRY_SPAWN.direction;
+          current.cameraX = SCRIBE_CHAMBER_CAMERA_X;
+          current.targetCameraX = current.cameraX;
+          current.notice = 'A scribe\'s chamber... these walls are covered in symbols.';
+          current.cinematicEvent = {
+            id: 'scribe-chamber-door-sealed',
+            name: 'The Scribe\'s Locked Chamber',
+            message: 'I\'m trapped. Whoever built this room wanted this message protected.',
+            temporary: true,
+          };
+          current.cinematicTimer = 3.2;
         } else {
           const returnPoint = current.sceneReturn || FORGOTTEN_MURAL_CHAMBER_RETURN_FALLBACK;
           player.x = (returnPoint.x ?? FORGOTTEN_MURAL_CHAMBER_RETURN_FALLBACK.x) - player.width / 2;
@@ -10861,19 +12335,40 @@ export default function ExpeditionJourney({
           current.targetCameraX = current.cameraX;
           current.notice = current.forgottenMuralChamberRestored
             ? 'Asha returns to the exterior route with the warning preserved.'
-            : 'Asha returns to the exterior route.';
+            : current.mummificationChamberPuzzleSolved
+              ? 'Asha leaves the Mummification Chamber with the sacred rite recorded.'
+              : current.scribeChamberPuzzleSolved
+              ? 'Asha leaves the Scribe\'s Chamber with the message recorded.'
+              : 'Asha returns to the exterior route.';
+          current.mummificationChamberActive = false;
+          current.scribeChamberActive = false;
         }
         player.vx = 0;
         player.vy = 0;
         player.onGround = true;
       }
       if (transition.timer <= 0) {
-        const endedInChamber = getJourneySceneId(current) === JOURNEY_SCENE_IDS.FORGOTTEN_MURAL_CHAMBER;
+        const endedInMummificationChamber = getJourneySceneId(current) === JOURNEY_SCENE_IDS.MUMMIFICATION_CHAMBER;
+        const endedInForgottenMuralChamber = getJourneySceneId(current) === JOURNEY_SCENE_IDS.FORGOTTEN_MURAL_CHAMBER;
+        const endedInScribeChamber = getJourneySceneId(current) === JOURNEY_SCENE_IDS.SCRIBE_LOCKED_CHAMBER;
         current.sceneTransition = null;
         current.forgottenMuralChamberTransition = null;
-        current.notice = endedInChamber
-          ? 'The hidden chamber is quiet. Recover the broken scarab fragments.'
-          : current.notice;
+        current.notice = endedInMummificationChamber
+          ? 'The entrance sealed behind me.'
+          : endedInForgottenMuralChamber
+            ? 'The hidden chamber is quiet. Recover the broken scarab fragments.'
+            : endedInScribeChamber
+            ? 'I\'m trapped. Whoever built this room wanted this message protected.'
+            : current.notice;
+        if (endedInMummificationChamber) {
+          current.cinematicEvent = {
+            id: 'mummification-chamber-door-sealed',
+            name: 'Asha',
+            message: 'The entrance sealed behind me.',
+            temporary: true,
+          };
+          current.cinematicTimer = 2.6;
+        }
         syncHud();
       }
     }
@@ -10886,6 +12381,8 @@ export default function ExpeditionJourney({
     if (current.cameraShakeTimer <= 0) current.cameraShakeStrength = 0;
     player.invulnerable = Math.max(0, player.invulnerable - dt);
     player.damageCooldownTimer = Math.max(0, player.damageCooldownTimer - dt);
+    player.venomSlowTimer = Math.max(0, (player.venomSlowTimer || 0) - dt);
+    if (player.venomSlowTimer <= 0) player.venomSlowMultiplier = 1;
     player.coyoteTimer = Math.max(0, (player.coyoteTimer || 0) - dt);
     player.jumpBufferTimer = Math.max(0, (player.jumpBufferTimer || 0) - dt);
     player.jumpCutFeedbackTimer = Math.max(0, (player.jumpCutFeedbackTimer || 0) - dt);
@@ -11036,6 +12533,7 @@ export default function ExpeditionJourney({
     let targetVx = 0;
     if (left) { targetVx -= MOVE_SPEED; player.direction = -1; }
     if (right) { targetVx += MOVE_SPEED; player.direction = 1; }
+    if (player.venomSlowTimer > 0) targetVx *= player.venomSlowMultiplier || SCORPION_VENOM_SLOW_MULTIPLIER;
     if (!player.onGround) targetVx *= Math.max(1, upgradeEffects.airControlMultiplier || 1);
     if (current.attackWindupTimer > 0) targetVx *= 0.45;
     const hasHorizontalInput = left || right;
@@ -11126,11 +12624,23 @@ export default function ExpeditionJourney({
 
     // Bounds
     player.x = clamp(player.x, 0, WORLD_WIDTH - player.width);
-    if (isForgottenMuralChamberScene(current)) {
+    if (isMummificationChamberScene(current)) {
+      player.x = clamp(
+        player.x,
+        MUMMIFICATION_CHAMBER_BOUNDS.minX,
+        MUMMIFICATION_CHAMBER_BOUNDS.maxX - player.width,
+      );
+    } else if (isForgottenMuralChamberScene(current)) {
       player.x = clamp(
         player.x,
         FORGOTTEN_MURAL_CHAMBER_BOUNDS.minX,
         FORGOTTEN_MURAL_CHAMBER_BOUNDS.maxX - player.width,
+      );
+    } else if (isScribeLockedChamberScene(current)) {
+      player.x = clamp(
+        player.x,
+        SCRIBE_CHAMBER_BOUNDS.minX,
+        SCRIBE_CHAMBER_BOUNDS.maxX - player.width,
       );
     }
     const activeBossDomainBounds = current.bossDomain
@@ -11264,11 +12774,11 @@ export default function ExpeditionJourney({
     }
     wasGroundedRef.current = player.onGround;
 
-    const inForgottenMuralChamberScene = isForgottenMuralChamberScene(current);
+    const inInteriorChamberScene = isInteriorChamberScene(current);
 
     // Sections
     const section = getSectionForX(player.x);
-    if (!inForgottenMuralChamberScene && section.id !== current.lastSectionId) {
+    if (!inInteriorChamberScene && section.id !== current.lastSectionId) {
       const atmosphere = SECTION_ATMOSPHERES[section.id];
       const sectionTitle = getSectionDisplayTitle(section.id) || atmosphere.title;
       current.sectionTransition = { id: section.id, name: getSectionDisplayName(section.id), message: sectionTitle };
@@ -11278,7 +12788,7 @@ export default function ExpeditionJourney({
       audioControls?.playLevelUp?.();
     }
 
-    const reachedCheckpoint = !inForgottenMuralChamberScene && CHECKPOINTS
+    const reachedCheckpoint = !inInteriorChamberScene && CHECKPOINTS
       .filter(checkpoint => player.x + player.width / 2 >= checkpoint.x)
       .at(-1);
     if (reachedCheckpoint && current.activeCheckpoint.id !== reachedCheckpoint.id) {
@@ -11296,7 +12806,7 @@ export default function ExpeditionJourney({
     }
 
     // Events
-    if (!inForgottenMuralChamberScene) ENVIRONMENT_EVENTS.forEach(ev => {
+    if (!inInteriorChamberScene) ENVIRONMENT_EVENTS.forEach(ev => {
       const triggerRange = ev.dynamic ? 145 : 70;
       const crossedEvent = (previousPlayer.x <= ev.x && player.x >= ev.x) || (previousPlayer.x >= ev.x && player.x <= ev.x);
       if (!current.triggeredEnvironmentEventIds.has(ev.id) && (Math.abs(player.x - ev.x) < triggerRange || crossedEvent)) {
@@ -11327,6 +12837,117 @@ export default function ExpeditionJourney({
     const forgottenMuralPlayerCenterX = player.x + player.width / 2;
     const forgottenMuralPlayerFootY = player.y + player.height;
     const currentSceneId = getJourneySceneId(current);
+    const mummificationInteractionResult = (() => {
+      if (
+        currentSceneId !== JOURNEY_SCENE_IDS.MUMMIFICATION_CHAMBER
+        || current.sceneTransition
+        || current.forgottenMuralChamberTransition
+      ) {
+        return null;
+      }
+
+      const playerBody = getPlayerBodyHitbox(player);
+      current.mummificationChamberInspectedObjectIds ??= new Set();
+      const inspectedObjectIds = current.mummificationChamberInspectedObjectIds;
+      const requiredInspectionsComplete = () => MUMMIFICATION_CHAMBER_REQUIRED_INSPECTION_IDS
+        .every(id => inspectedObjectIds.has(id));
+
+      for (const item of MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS) {
+        const interactionBox = {
+          x: current.cameraX + item.hitbox.x,
+          y: item.hitbox.y,
+          width: item.hitbox.width,
+          height: item.hitbox.height,
+        };
+        if (!rectsOverlap(playerBody, interactionBox)) continue;
+
+        if (item.exitSeal) {
+          if (current.mummificationChamberPuzzleSolved) return { id: item.id, alreadyUnlocked: true };
+          if (!requiredInspectionsComplete()) {
+            if ((current.itemPurposeNoticeTimer || 0) <= 0) {
+              current.notice = item.lockedMessage;
+              current.itemPurposeNoticeTimer = 1.35;
+              audioControls?.playExpeditionSfx?.('gateBlocked');
+            }
+            return { id: item.id, blocked: true };
+          }
+
+          inspectedObjectIds.add(item.id);
+          current.notice = 'The seal asks for the ritual order.';
+          current.activeGuardianChallenge = {
+            ...MUMMIFICATION_CHAMBER_PUZZLE,
+            hints: [...MUMMIFICATION_CHAMBER_PUZZLE.hints],
+            questions: MUMMIFICATION_CHAMBER_PUZZLE.questions.map(question => ({ ...question })),
+            currentIndex: 0,
+            correctCount: 0,
+            selectedAnswerIndex: null,
+            feedback: null,
+            answers: [],
+            completed: false,
+            modifier: null,
+            resultMessage: null,
+          };
+          current.itemPurposeNoticeTimer = 1.4;
+          current.hitStopTimer = Math.max(current.hitStopTimer, 0.04);
+          addRewardPulse(item.id, current.cameraX + item.screen.x, item.screen.y, item.pulseText, {
+            color: '#facc15',
+            fill: 'rgba(250, 204, 21, 0.12)',
+            radius: 64,
+            timer: 0.78,
+          });
+          audioControls?.playTransition?.();
+          syncHud();
+          return { id: item.id, puzzleStarted: true };
+        }
+
+        if (inspectedObjectIds.has(item.id)) continue;
+        if ((current.itemPurposeNoticeTimer || 0) > 0) {
+          return { id: item.id, waiting: true };
+        }
+
+        inspectedObjectIds.add(item.id);
+        current.notice = item.message;
+        current.cinematicEvent = {
+          id: item.id,
+          name: item.name,
+          message: item.message,
+          temporary: true,
+        };
+        current.cinematicTimer = 2.2;
+        current.itemPurposeNoticeTimer = 1.25;
+        current.hitStopTimer = Math.max(current.hitStopTimer, 0.025);
+        addRewardPulse(item.id, current.cameraX + item.screen.x, item.screen.y, item.pulseText, {
+          color: '#facc15',
+          fill: 'rgba(250, 204, 21, 0.12)',
+          radius: 48,
+          timer: 0.62,
+        });
+        addCombatEffect(current, {
+          type: 'secret-found',
+          x: current.cameraX + item.screen.x,
+          y: item.screen.y,
+          text: item.pulseText,
+          color: '#facc15',
+          radius: 42,
+          timer: 0.58,
+          maxTimer: 0.58,
+        });
+        audioControls?.playSuccess?.();
+        if (requiredInspectionsComplete()) {
+          current.cinematicEvent.message = `${item.message} The exit seal is responding.`;
+        }
+        return { id: item.id, inspected: true };
+      }
+
+      return null;
+    })();
+    const mummificationChamberDoorwayActive = backgroundPackId !== 'china-river-valley'
+      && currentSceneId === JOURNEY_SCENE_IDS.EXTERIOR
+      && player.onGround
+      && forgottenMuralPlayerCenterX >= MUMMIFICATION_CHAMBER_ENTRY_TRIGGER.minX
+      && forgottenMuralPlayerCenterX <= MUMMIFICATION_CHAMBER_ENTRY_TRIGGER.maxX
+      && player.y < MUMMIFICATION_CHAMBER_ENTRY_TRIGGER.maxY
+      && Math.abs(forgottenMuralPlayerFootY - MUMMIFICATION_CHAMBER_ENTRY_TRIGGER.footY) <= MUMMIFICATION_CHAMBER_ENTRY_TRIGGER.footTolerance;
     const forgottenMuralDoorwayActive = backgroundPackId !== 'china-river-valley'
       && currentSceneId === JOURNEY_SCENE_IDS.EXTERIOR
       && player.onGround
@@ -11339,7 +12960,78 @@ export default function ExpeditionJourney({
       && forgottenMuralPlayerCenterX <= FORGOTTEN_MURAL_CHAMBER_EXIT_TRIGGER.maxX
       && player.y < FORGOTTEN_MURAL_CHAMBER_EXIT_TRIGGER.maxY
       && Math.abs(forgottenMuralPlayerFootY - FORGOTTEN_MURAL_CHAMBER_EXIT_TRIGGER.footY) <= FORGOTTEN_MURAL_CHAMBER_EXIT_TRIGGER.footTolerance;
-    if (forgottenMuralDoorwayActive && !(current.sceneTransition || current.forgottenMuralChamberTransition)) {
+    const mummificationChamberExitActive = currentSceneId === JOURNEY_SCENE_IDS.MUMMIFICATION_CHAMBER
+      && forgottenMuralPlayerCenterX >= MUMMIFICATION_CHAMBER_EXIT_TRIGGER.minX
+      && forgottenMuralPlayerCenterX <= MUMMIFICATION_CHAMBER_EXIT_TRIGGER.maxX
+      && player.y < MUMMIFICATION_CHAMBER_EXIT_TRIGGER.maxY
+      && Math.abs(forgottenMuralPlayerFootY - MUMMIFICATION_CHAMBER_EXIT_TRIGGER.footY) <= MUMMIFICATION_CHAMBER_EXIT_TRIGGER.footTolerance;
+    if (mummificationChamberDoorwayActive && !(current.sceneTransition || current.forgottenMuralChamberTransition)) {
+      current.mummificationChamberEntranceDiscovered = true;
+      current.hiddenRoomsFound?.add('mummification-chamber');
+      current.discoveredHiddenRouteIds?.add('mummification-chamber-route');
+      current.sceneReturn = {
+        sceneId: JOURNEY_SCENE_IDS.EXTERIOR,
+        x: MUMMIFICATION_CHAMBER_RETURN_FALLBACK.x,
+        y: MUMMIFICATION_CHAMBER_RETURN_FALLBACK.y,
+        direction: player.direction || 1,
+        cameraX: clampCameraX(MUMMIFICATION_CHAMBER_RETURN_FALLBACK.x - CANVAS_WIDTH * MUMMIFICATION_CHAMBER_RETURN_FALLBACK.cameraAnchorRatio),
+      };
+      const transition = {
+        id: 'mummification-chamber-doorway',
+        phase: 'doorway-fade',
+        fromSceneId: JOURNEY_SCENE_IDS.EXTERIOR,
+        toSceneId: JOURNEY_SCENE_IDS.MUMMIFICATION_CHAMBER,
+        lockMovement: true,
+        switched: false,
+        duration: FORGOTTEN_MURAL_CHAMBER_TRANSITION_DURATION,
+        timer: FORGOTTEN_MURAL_CHAMBER_TRANSITION_DURATION,
+      };
+      current.sceneTransition = transition;
+      current.forgottenMuralChamberTransition = transition;
+      current.notice = 'This chamber still holds power...';
+      current.cinematicEvent = {
+        id: 'mummification-chamber-threshold',
+        name: 'Asha',
+        type: 'mummification-chamber-threshold',
+        x: (MUMMIFICATION_CHAMBER_ENTRY_TRIGGER.minX + MUMMIFICATION_CHAMBER_ENTRY_TRIGGER.maxX) / 2,
+        y: MUMMIFICATION_CHAMBER_ENTRY_TRIGGER.footY - 92,
+        duration: 2.6,
+        timer: 2.6,
+        message: 'This chamber still holds power...',
+      };
+      current.cinematicTimer = Math.max(current.cinematicTimer || 0, 2.2);
+      current.hitStopTimer = Math.max(current.hitStopTimer, 0.035);
+      addRewardPulse('collection-complete', current.cinematicEvent.x, current.cinematicEvent.y, 'CHAMBER FOUND', {
+        color: '#facc15',
+        radius: 82,
+        timer: 0.72,
+      });
+      audioControls?.playExpeditionStinger?.('evidenceDiscovery');
+    } else if (mummificationChamberExitActive && !(current.sceneTransition || current.forgottenMuralChamberTransition)) {
+      if (!current.mummificationChamberExitUnlocked) {
+        if ((current.itemPurposeNoticeTimer || 0) <= 0) {
+          current.notice = 'The entrance is sealed. I need to solve the chamber first.';
+          current.itemPurposeNoticeTimer = 1.6;
+          audioControls?.playExpeditionSfx?.('gateBlocked');
+        }
+      } else if (!mummificationInteractionResult?.unlocked) {
+        const transition = {
+          id: 'mummification-chamber-exit',
+          phase: 'doorway-fade',
+          fromSceneId: JOURNEY_SCENE_IDS.MUMMIFICATION_CHAMBER,
+          toSceneId: JOURNEY_SCENE_IDS.EXTERIOR,
+          lockMovement: true,
+          switched: false,
+          duration: FORGOTTEN_MURAL_CHAMBER_TRANSITION_DURATION,
+          timer: FORGOTTEN_MURAL_CHAMBER_TRANSITION_DURATION,
+        };
+        current.sceneTransition = transition;
+        current.forgottenMuralChamberTransition = transition;
+        current.notice = 'Asha returns through the sacred doorway.';
+        current.hitStopTimer = Math.max(current.hitStopTimer, 0.035);
+        audioControls?.playTransition?.();
+      }
+    } else if (forgottenMuralDoorwayActive && !(current.sceneTransition || current.forgottenMuralChamberTransition)) {
       current.sceneReturn = {
         sceneId: JOURNEY_SCENE_IDS.EXTERIOR,
         x: FORGOTTEN_MURAL_CHAMBER_RETURN_FALLBACK.x,
@@ -11382,7 +13074,116 @@ export default function ExpeditionJourney({
       current.forgottenMuralChamberActive = isForgottenMuralChamberScene(current);
     }
 
-    if (!inForgottenMuralChamberScene && backgroundPackId !== 'china-river-valley' && !current.scarabSealActivated) {
+    const scribeDoorwayActive = backgroundPackId !== 'china-river-valley'
+      && currentSceneId === JOURNEY_SCENE_IDS.EXTERIOR
+      && player.onGround
+      && forgottenMuralPlayerCenterX >= SCRIBE_CHAMBER_ENTRY_TRIGGER.minX
+      && forgottenMuralPlayerCenterX <= SCRIBE_CHAMBER_ENTRY_TRIGGER.maxX
+      && player.y < SCRIBE_CHAMBER_ENTRY_TRIGGER.maxY
+      && Math.abs(forgottenMuralPlayerFootY - SCRIBE_CHAMBER_ENTRY_TRIGGER.footY) <= SCRIBE_CHAMBER_ENTRY_TRIGGER.footTolerance;
+    const scribeChamberExitActive = currentSceneId === JOURNEY_SCENE_IDS.SCRIBE_LOCKED_CHAMBER
+      && forgottenMuralPlayerCenterX >= SCRIBE_CHAMBER_EXIT_TRIGGER.minX
+      && forgottenMuralPlayerCenterX <= SCRIBE_CHAMBER_EXIT_TRIGGER.maxX
+      && player.y < SCRIBE_CHAMBER_EXIT_TRIGGER.maxY
+      && Math.abs(forgottenMuralPlayerFootY - SCRIBE_CHAMBER_EXIT_TRIGGER.footY) <= SCRIBE_CHAMBER_EXIT_TRIGGER.footTolerance;
+    if (scribeDoorwayActive && !(current.sceneTransition || current.forgottenMuralChamberTransition)) {
+      current.sceneReturn = {
+        sceneId: JOURNEY_SCENE_IDS.EXTERIOR,
+        x: SCRIBE_CHAMBER_RETURN_FALLBACK.x,
+        y: SCRIBE_CHAMBER_RETURN_FALLBACK.y,
+        direction: player.direction || -1,
+        cameraX: clampCameraX(SCRIBE_CHAMBER_RETURN_FALLBACK.x - CANVAS_WIDTH * SCRIBE_CHAMBER_RETURN_FALLBACK.cameraAnchorRatio),
+      };
+      current.sceneTransition = {
+        id: 'scribe-locked-chamber-doorway',
+        phase: 'doorway-fade',
+        fromSceneId: JOURNEY_SCENE_IDS.EXTERIOR,
+        toSceneId: JOURNEY_SCENE_IDS.SCRIBE_LOCKED_CHAMBER,
+        lockMovement: true,
+        switched: false,
+        duration: FORGOTTEN_MURAL_CHAMBER_TRANSITION_DURATION,
+        timer: FORGOTTEN_MURAL_CHAMBER_TRANSITION_DURATION,
+      };
+      current.notice = 'Asha steps through the sealed scribe doorway.';
+      current.hitStopTimer = Math.max(current.hitStopTimer, 0.035);
+      audioControls?.playExpeditionStinger?.('evidenceDiscovery');
+    } else if (scribeChamberExitActive && !(current.sceneTransition || current.forgottenMuralChamberTransition)) {
+      if (!current.scribeChamberExitUnlocked) {
+        if ((current.itemPurposeNoticeTimer || 0) <= 0) {
+          current.notice = current.scribeChamberTabletInspected
+            ? 'The exit stays sealed. The glowing wall message still needs to be decoded.'
+            : 'The exit stays sealed. I need to inspect the translation tablet first.';
+          current.itemPurposeNoticeTimer = 1.6;
+          audioControls?.playExpeditionSfx?.('gateBlocked');
+        }
+      } else {
+        current.sceneTransition = {
+          id: 'scribe-locked-chamber-exit',
+          phase: 'doorway-fade',
+          fromSceneId: JOURNEY_SCENE_IDS.SCRIBE_LOCKED_CHAMBER,
+          toSceneId: JOURNEY_SCENE_IDS.EXTERIOR,
+          lockMovement: true,
+          switched: false,
+          duration: FORGOTTEN_MURAL_CHAMBER_TRANSITION_DURATION,
+          timer: FORGOTTEN_MURAL_CHAMBER_TRANSITION_DURATION,
+        };
+        current.notice = 'Asha steps through the opened scribe door.';
+        current.hitStopTimer = Math.max(current.hitStopTimer, 0.035);
+        audioControls?.playTransition?.();
+      }
+    } else {
+      current.scribeChamberActive = isScribeLockedChamberScene(current);
+    }
+
+    if (currentSceneId === JOURNEY_SCENE_IDS.SCRIBE_LOCKED_CHAMBER && !(current.sceneTransition || current.forgottenMuralChamberTransition)) {
+      const playerBody = getPlayerBodyHitbox(player);
+      if (!current.scribeChamberTabletInspected && rectsOverlap(playerBody, SCRIBE_CHAMBER_TABLET_REGION)) {
+        current.scribeChamberTabletInspected = true;
+        current.notice = 'A translation tablet. Some symbols are damaged, but enough remains to help me.';
+        current.cinematicEvent = {
+          id: 'scribe-chamber-tablet',
+          name: 'Translation Tablet',
+          message: 'Sun = light, Water = river, Ankh = life, Door = passage.',
+          temporary: true,
+        };
+        current.cinematicTimer = 3;
+        addRewardPulse('scribe-tablet-pulse', SCRIBE_CHAMBER_TABLET_REGION.x + SCRIBE_CHAMBER_TABLET_REGION.width / 2, SCRIBE_CHAMBER_TABLET_REGION.y, 'TABLET READ', {
+          color: '#facc15',
+          fill: 'rgba(250, 204, 21, 0.12)',
+          radius: 46,
+          timer: 0.72,
+        });
+        audioControls?.playSuccess?.();
+      }
+      if (rectsOverlap(playerBody, SCRIBE_CHAMBER_WALL_REGION) && !current.scribeChamberPuzzleSolved && !current.activeGuardianChallenge) {
+        if (!current.scribeChamberTabletInspected) {
+          if ((current.itemPurposeNoticeTimer || 0) <= 0) {
+            current.notice = 'These are not random pictures. They are writing. I need a translation clue first.';
+            current.itemPurposeNoticeTimer = 1.6;
+          }
+        } else {
+          current.scribeChamberWallInspected = true;
+          current.notice = 'These are not random pictures. They are writing. If I can read the pattern, I can open the door.';
+          current.activeGuardianChallenge = {
+            ...SCRIBE_CHAMBER_PUZZLE,
+            questions: SCRIBE_CHAMBER_PUZZLE.questions.map(question => ({ ...question })),
+            currentIndex: 0,
+            correctCount: 0,
+            selectedAnswerIndex: null,
+            feedback: null,
+            answers: [],
+            completed: false,
+            modifier: null,
+            resultMessage: null,
+          };
+          audioControls?.playTransition?.();
+          syncHud();
+          return;
+        }
+      }
+    }
+
+    if (!inInteriorChamberScene && backgroundPackId !== 'china-river-valley' && !current.scarabSealActivated) {
       const scarabSealHitbox = {
         x: SCARAB_SEAL_TRIGGER.x - SCARAB_SEAL_TRIGGER.width / 2,
         y: SCARAB_SEAL_TRIGGER.y - SCARAB_SEAL_TRIGGER.height / 2,
@@ -11523,7 +13324,7 @@ export default function ExpeditionJourney({
     });
 
     const currentSectionId = getSectionForX(player.x).id;
-    const activeLevelEntrance = !inForgottenMuralChamberScene && STAGE_ENTRANCE_FEATURES.find(feature => (
+    const activeLevelEntrance = !inInteriorChamberScene && STAGE_ENTRANCE_FEATURES.find(feature => (
       feature.levelTransition
       && feature.from === currentSectionId
       && !current.templeThresholdTransition
@@ -11566,7 +13367,7 @@ export default function ExpeditionJourney({
 
     // Collectibles
     TOOL_LAYOUT.forEach(toolPos => {
-      if (inForgottenMuralChamberScene) return;
+      if (inInteriorChamberScene) return;
       if (!current.collectedToolIds.has(toolPos.id) && rectsOverlap(getPlayerBodyHitbox(player), getCollectibleHitbox(toolPos, { width: 30, height: 30 }))) {
         current.collectedToolIds.add(toolPos.id);
         const tool = JOURNEY_TOOLS.find(t => t.id === toolPos.id);
@@ -11577,7 +13378,7 @@ export default function ExpeditionJourney({
     });
 
     RELIC_SHARDS.forEach(shard => {
-      if (inForgottenMuralChamberScene) return;
+      if (inInteriorChamberScene) return;
       if (shard.routeId && !isRouteRewardAccessible(shard.routeId, current)) return;
       if (!current.collectedShardIds.has(shard.id) && rectsOverlap(getPlayerBodyHitbox(player), getCollectibleHitbox(shard, { width: 24, height: 24 }))) {
         current.collectedShardIds.add(shard.id);
@@ -11667,7 +13468,7 @@ export default function ExpeditionJourney({
     });
 
     LORE_TABLETS.forEach(tablet => {
-      if (inForgottenMuralChamberScene) return;
+      if (inInteriorChamberScene) return;
       if (current.collectedTabletIds?.has(tablet.id)) return;
       if (tablet.routeId && !isRouteRewardAccessible(tablet.routeId, current)) return;
       if (rectsOverlap(getPlayerBodyHitbox(player), getCollectibleHitbox(tablet, { width: 30, height: 30 }))) {
@@ -11695,7 +13496,7 @@ export default function ExpeditionJourney({
     });
 
     UPGRADES.forEach(u => {
-      if (inForgottenMuralChamberScene) return;
+      if (inInteriorChamberScene) return;
       if (!current.collectedUpgrades.has(u.id) && rectsOverlap(getPlayerBodyHitbox(player), getCollectibleHitbox(u, { width: 36, height: 36 }))) {
         if (u.shardCost && current.relicShardCount < u.shardCost) {
           current.notice = `${u.name}: need ${u.shardCost} relic shards to open this optional cache.`;
@@ -11724,7 +13525,7 @@ export default function ExpeditionJourney({
     });
 
     OBJECTIVE_MARKERS.forEach(m => {
-      if (inForgottenMuralChamberScene) return;
+      if (inInteriorChamberScene) return;
       if (!current.collectedObjectiveIds.has(m.id) && rectsOverlap(getPlayerBodyHitbox(player), getCollectibleHitbox(m, { width: 30, height: 30 }))) {
         current.collectedObjectiveIds.add(m.id);
         const progress = getObjectiveProgress(m.sectionId, current);
@@ -11776,7 +13577,7 @@ export default function ExpeditionJourney({
     });
 
     (current.bossKeyItems || []).forEach((keyItem) => {
-      if (inForgottenMuralChamberScene) return;
+      if (inInteriorChamberScene) return;
       if (!keyItem.dropped || keyItem.collected) return;
       if (rectsOverlap(getPlayerBodyHitbox(player), getCollectibleHitbox({ x: keyItem.x - 16, y: keyItem.y - 18 }, { width: 32, height: 36 }))) {
         keyItem.collected = true;
@@ -11914,7 +13715,7 @@ export default function ExpeditionJourney({
     }
 
     ENVIRONMENT_INTERACTIONS.forEach((interaction) => {
-      if (inForgottenMuralChamberScene) return;
+      if (inInteriorChamberScene) return;
       if (current.brokenEnvironmentIds?.has(interaction.id)) return;
       const interactionBox = {
         x: interaction.x,
@@ -11991,6 +13792,26 @@ export default function ExpeditionJourney({
       audioControls?.playExpeditionSfx?.('playerHit');
       audioControls?.playError?.();
       if (current.resources.stamina <= 0) triggerJourneyRescue(FIELD_RESCUE_STAMINA_REASON);
+    };
+
+    const applyPlayerVenomSlow = (sourceEnemy, pattern) => {
+      player.venomSlowTimer = Math.max(player.venomSlowTimer || 0, pattern.slowDuration || SCORPION_VENOM_SLOW_DURATION);
+      player.venomSlowMultiplier = pattern.slowMultiplier || SCORPION_VENOM_SLOW_MULTIPLIER;
+      player.vx *= player.venomSlowMultiplier;
+      current.notice = `${sourceEnemy.name} venom slowed Asha. Fight through it.`;
+      current.damageNoticeTimer = Math.max(current.damageNoticeTimer || 0, 1.25);
+      current.lastAttackResult = 'player-slowed';
+      addCombatEffect(current, {
+        type: 'venom-slow',
+        x: player.x + player.width / 2,
+        y: player.y + player.height * 0.42,
+        color: '#84cc16',
+        fill: 'rgba(132, 204, 22, 0.16)',
+        radius: 30,
+        timer: 0.62,
+        maxTimer: 0.62,
+      });
+      audioControls?.playExpeditionSfx?.('enemyHit', { volume: 0.5, playbackRate: 0.72 });
     };
 
     const applyEnemyStomp = (enemy) => {
@@ -12080,12 +13901,17 @@ export default function ExpeditionJourney({
       const awarenessMultiplier = tacticalPattern.awarenessMultiplier || 1;
       const baseNearPlayerX = (e.type === 'bat' || e.flying ? 220 : 180) + pressureReachBonus;
       const nearPlayer = Math.abs(distanceToPlayer) < (baseNearPlayerX * awarenessMultiplier) && Math.abs(player.y - e.y) < 104 + (e.encounterRole ? 14 : 0);
+      const scorpionVenomCanReach = e.type === 'scorpion'
+        && Math.abs(distanceToPlayer) <= SCORPION_VENOM_SPIT_RANGE
+        && Math.abs((player.y + player.height / 2) - (e.y + e.height / 2)) < 96;
       const attackDirectionToPlayer = distanceToPlayer >= 0 ? 1 : -1;
       const scorpionStingCanReach = e.type !== 'scorpion' || rectsOverlap(
         getAttackBox(e, tacticalPattern.range, tacticalPattern.height, attackDirectionToPlayer, tacticalPattern.yOffset || 0, tacticalPattern.backReach || 0),
         getPlayerBodyHitbox(player),
       );
-      if (nearPlayer) {
+      const shouldUseVenomSpit = e.type === 'scorpion' && !scorpionStingCanReach && scorpionVenomCanReach;
+      const enemyCanStartAttack = (nearPlayer && scorpionStingCanReach) || shouldUseVenomSpit;
+      if (nearPlayer || shouldUseVenomSpit) {
         e.aggroMemoryTimer = Math.max(e.aggroMemoryTimer || 0, ENEMY_AGGRO_MEMORY_SECONDS * (tacticalPattern.aggroMemoryMultiplier || 1));
       }
       if (!current.seenEnemyTypeNoticeIds) current.seenEnemyTypeNoticeIds = new Set();
@@ -12102,8 +13928,8 @@ export default function ExpeditionJourney({
         current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 1.9);
       }
 
-      if (e.stunTimer <= 0 && e.attackTimer <= 0 && e.attackWindup <= 0 && nearPlayer && scorpionStingCanReach && e.attackCooldown <= 0) {
-        const pattern = tacticalPattern;
+      if (e.stunTimer <= 0 && e.attackTimer <= 0 && e.attackWindup <= 0 && enemyCanStartAttack && e.attackCooldown <= 0) {
+        const pattern = shouldUseVenomSpit ? SCORPION_VENOM_ATTACK_PATTERN : tacticalPattern;
         e.attackWindup = pattern.windup;
         e.attackDirection = attackDirectionToPlayer;
         e.attackHasHit = false;
@@ -12121,6 +13947,19 @@ export default function ExpeditionJourney({
             color: 'rgba(137, 104, 72, 0.42)',
             timer: 0.38,
             maxTimer: 0.38,
+          });
+        }
+        if (pattern.id === SCORPION_VENOM_ATTACK_PATTERN.id) {
+          addCombatEffect(current, {
+            type: 'venom-spit',
+            x: e.x + e.width / 2,
+            y: e.y + e.height * 0.28,
+            targetX: player.x + player.width / 2,
+            targetY: player.y + player.height * 0.42,
+            color: '#84cc16',
+            arcHeight: 42,
+            timer: pattern.windup + pattern.duration,
+            maxTimer: pattern.windup + pattern.duration,
           });
         }
         if ((current.itemPurposeNoticeTimer || 0) <= 0 && (current.damageNoticeTimer || 0) <= 0) {
@@ -12145,10 +13984,14 @@ export default function ExpeditionJourney({
         }
         if (!e.attackHasHit && rectsOverlap(enemyAttackBox, playerBodyHitbox)) {
           e.attackHasHit = true;
-          const damageDirection = contact.direction || e.attackDirection || ((player.x + player.width / 2) >= (e.x + e.width / 2) ? 1 : -1);
-          applyPlayerDamage(Math.max(e.damage, Math.round(e.damage * (pattern.damageScale || 1))), `${e.name} hit you`, damageDirection, e.name, {
-            knockbackMultiplier: e.playerKnockbackMultiplier,
-          });
+          if (pattern.slowDuration) {
+            applyPlayerVenomSlow(e, pattern);
+          } else {
+            const damageDirection = contact.direction || e.attackDirection || ((player.x + player.width / 2) >= (e.x + e.width / 2) ? 1 : -1);
+            applyPlayerDamage(Math.max(e.damage, Math.round(e.damage * (pattern.damageScale || 1))), `${e.name} hit you`, damageDirection, e.name, {
+              knockbackMultiplier: e.playerKnockbackMultiplier,
+            });
+          }
         }
       }
 
@@ -12318,6 +14161,14 @@ export default function ExpeditionJourney({
       if (scarabSealRequired && current.openingThresholdScene) return;
       const bossIntroTriggerDistance = scarabSealRequired ? SCARAB_QUEEN_INTRO_TRIGGER_DISTANCE : 400;
       const playerNearBossIntro = Math.abs(b.x - player.x) < bossIntroTriggerDistance;
+      const scarabQueenRequiresScribe = scarabSealRequired && !current.scribeChamberPuzzleSolved;
+      if (scarabQueenRequiresScribe) {
+        if (playerNearBossIntro && (current.itemPurposeNoticeTimer || 0) <= 0) {
+          current.notice = 'The Queen\'s lair stays sealed until Asha records the scribe\'s message.';
+          current.itemPurposeNoticeTimer = 1.6;
+        }
+        return;
+      }
       if (scarabSealRequired && !current.scarabSealActivated) {
         if (!playerNearBossIntro) return;
         activateScarabSealForQueenEncounter();
@@ -13456,7 +15307,13 @@ export default function ExpeditionJourney({
             {activeGuardianChallenge && activeGuardianQuestion && (
               <div className="guardian-challenge-overlay" role="dialog" aria-modal="true" aria-label="Guardian Knowledge Challenge">
                 <div className="guardian-challenge-card">
-                  <div className="guardian-challenge-kicker">Guardian Knowledge Challenge</div>
+                  <div className="guardian-challenge-kicker">
+                    {activeGuardianChallenge.type === 'scribe-chamber-puzzle'
+                      ? 'Scribe Chamber Decoding'
+                      : activeGuardianChallenge.type === 'mummification-ritual-order-puzzle'
+                        ? 'Mummification Ritual Order'
+                        : 'Guardian Knowledge Challenge'}
+                  </div>
                   <h2>{activeGuardianChallenge.bossName}</h2>
                   <p className="guardian-challenge-intro">
                     {activeGuardianChallenge.intro}
@@ -13513,7 +15370,10 @@ export default function ExpeditionJourney({
                       onClick={continueGuardianChallenge}
                       disabled={activeGuardianChallenge.selectedAnswerIndex === null}
                     >
-                      {activeGuardianChallenge.completed ? 'Begin Guardian Fight' : 'Next Question'}
+                      {activeGuardianChallenge.type === 'scribe-chamber-puzzle'
+                        || activeGuardianChallenge.type === 'mummification-ritual-order-puzzle'
+                        ? (activeGuardianChallenge.completed ? 'Open Exit' : 'Try Again')
+                        : (activeGuardianChallenge.completed ? 'Begin Guardian Fight' : 'Next Question')}
                     </button>
                   </div>
                 </div>

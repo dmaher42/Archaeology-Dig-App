@@ -23,10 +23,17 @@
     {
       "name": "idle",
       "row": 0,
-      "frameCount": 1,
+      "frameCount": 8,
       "loop": true,
       "frames": [
-        "idle_00"
+        "idle_00",
+        "idle_01",
+        "idle_02",
+        "idle_03",
+        "idle_04",
+        "idle_05",
+        "idle_06",
+        "idle_07"
       ]
     },
     {

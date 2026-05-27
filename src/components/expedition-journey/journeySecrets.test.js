@@ -32,6 +32,9 @@ const ashaV5PlayerAtlas = JSON.parse(
 const ashaNewIdlePlayerAtlas = JSON.parse(
   readFileSync(new URL('../../../public/assets/expedition/player/asha-new-idle-spritesheet.json', import.meta.url), 'utf8'),
 );
+const ashaV2PlayerAtlas = JSON.parse(
+  readFileSync(new URL('../../../public/assets/expedition/player/asha-v2-production-candidate-spritesheet.json', import.meta.url), 'utf8'),
+);
 const egyptPreviousPlayerAtlas = JSON.parse(
   readFileSync(new URL('../../../public/assets/expedition/player/asha-hooded-warrior-explorer-spritesheet.json', import.meta.url), 'utf8'),
 );
@@ -46,6 +49,9 @@ const egyptSacredTrapAtlas = JSON.parse(
 );
 const egyptAtmosphereAtlas = JSON.parse(
   readFileSync(new URL('../../../public/assets/expedition/environment/egypt-atmosphere/egypt-atmosphere-pack.json', import.meta.url), 'utf8'),
+);
+const mummificationChamberInteractionAtlas = JSON.parse(
+  readFileSync(new URL('../../../public/assets/expedition/environment/desert-temple/mummification-chamber/mummification-chamber-interaction-atlas.json', import.meta.url), 'utf8'),
 );
 const desertEntryBackgroundAtlas = JSON.parse(
   readFileSync(new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-parallax-pack.json', import.meta.url), 'utf8'),
@@ -62,6 +68,10 @@ const egyptOpeningTombStairwellPath = new URL('../../../public/assets/expedition
 const forgottenMuralAlcoveClimbStructurePath = new URL('../../../public/assets/expedition/environment/desert-temple/forgotten-mural-alcove-climb-structure.png', import.meta.url);
 const forgottenMuralChamberSourcePath = new URL('../../../public/assets/expedition/environment/desert-temple/forgotten-mural-chamber-source.png', import.meta.url);
 const forgottenMuralChamberPath = new URL('../../../public/assets/expedition/environment/desert-temple/forgotten-mural-chamber.png', import.meta.url);
+const mummificationChamberExteriorPath = new URL('../../../public/assets/expedition/environment/desert-temple/mummification-chamber-exterior-climb-structure.png', import.meta.url);
+const mummificationChamberInteriorPath = new URL('../../../public/assets/expedition/environment/desert-temple/mummification-chamber-interior.png', import.meta.url);
+const scribeChamberExteriorPath = new URL('../../../public/assets/expedition/environment/desert-temple/scribe-locked-chamber-exterior-climb-structure.png', import.meta.url);
+const mummificationChamberInteractionAtlasPath = new URL('../../../public/assets/expedition/environment/desert-temple/mummification-chamber/mummification-chamber-interaction-atlas.png', import.meta.url);
 const extractExportedArray = (name) => {
   const startToken = `export const ${name} = [`;
   const start = source.indexOf(startToken);
@@ -101,9 +111,9 @@ const getDataRowById = (arraySource, id) => {
   return '';
 };
 
-test('opening cinematic introduces Asha and Anubis with speech-ready timed dialogue and shield shatter', () => {
+test('opening cinematic remains wired while the current quick-start path is enabled', () => {
   assert.match(journeyComponentSource, /OPENING_CINEMATIC_DURATION = 24/);
-  assert.match(journeyComponentSource, /OPENING_CINEMATIC_ENABLED = true/);
+  assert.match(journeyComponentSource, /OPENING_CINEMATIC_ENABLED = false/);
   assert.match(journeyComponentSource, /OPENING_CINEMATIC_LINES = \[/);
   assert.match(journeyComponentSource, /speaker:\s*'Anubis'[\s\S]*?voice:\s*'guardian'/);
   assert.match(journeyComponentSource, /speaker:\s*'Asha'[\s\S]*?voice:\s*'asha'/);
@@ -128,25 +138,6 @@ test('opening cinematic introduces Asha and Anubis with speech-ready timed dialo
   assert.match(journeyComponentSource, /My shield is gone/);
   assert.doesNotMatch(journeyComponentSource, /<video|opening-cinematic-video|createOpeningMovieMode/);
 });
-
-const parseDataRect = (rowSource) => {
-  const horizontalScale = Number(journeyConstantsSource.match(/JOURNEY_HORIZONTAL_SCALE\s*=\s*([\d.]+)/)?.[1] || 1);
-  const verticalOffset = Number(journeyConstantsSource.match(/JOURNEY_VERTICAL_OFFSET\s*=\s*([\d.]+)/)?.[1] || 0);
-  const readValue = (name) => {
-    const scaled = rowSource.match(new RegExp(`${name}:\\s*X\\((-?\\d+)\\)`));
-    if (scaled) return Number(scaled[1]) * horizontalScale;
-    const journeyY = rowSource.match(new RegExp(`${name}:\\s*JY\\((-?\\d+)\\)`));
-    if (journeyY) return Number(journeyY[1]) + verticalOffset;
-    const raw = rowSource.match(new RegExp(`${name}:\\s*(-?\\d+)`));
-    return raw ? Number(raw[1]) : 0;
-  };
-  return {
-    x: readValue('x'),
-    y: readValue('y'),
-    width: readValue('width'),
-    height: readValue('height'),
-  };
-};
 
 test('hidden routes are optional and never required for main progression', () => {
   const hiddenRoutes = extractExportedArray('HIDDEN_ROUTES');
@@ -337,6 +328,236 @@ test('first Egypt secret route rewards curiosity without changing main progressi
   assert.doesNotMatch(journeyComponentSource, /class\s+SecretRoute|createSecretSystem|SecretRouteController|class\s+LooterAI|createRoomSystem|new\s+PlayerController/);
 });
 
+test('scribe locked chamber reuses the Journey scene and challenge systems for optional Egypt decoding', () => {
+  const hiddenRoutes = extractExportedArray('HIDDEN_ROUTES');
+  const platforms = extractExportedArray('PLATFORMS');
+  const storyProps = extractExportedArray('STORY_PROPS');
+  const scribeRoute = getDataRowById(hiddenRoutes, 'scribe-locked-chamber-route');
+  const chamberFloor = getDataRowById(platforms, 'scribe-locked-chamber-floor');
+  const scribeDoorway = getDataRowById(storyProps, 'scribe-chamber-doorway-structure');
+
+  assert.match(scribeRoute, /name:\s*'The Scribe\\'s Locked Chamber'/);
+  assert.match(scribeRoute, /civilisation:\s*'Ancient Egypt'/);
+  assert.match(scribeRoute, /sectionId:\s*'desert-entry'/);
+  assert.match(scribeRoute, /optional:\s*true/);
+  assert.match(scribeRoute, /x:\s*X\(1126\)/);
+  assert.match(scribeRoute, /y:\s*JY\(72\)/);
+  assert.match(scribeRoute, /rewardHint:\s*'A raised scribe doorway glows above the ruined stairs\.'/);
+  assert.match(scribeRoute, /gateType:\s*'sealed scribe doorway'/);
+  assert.match(scribeRoute, /rewardSummary:\s*'Hieroglyphic translation puzzle and protected knowledge clue'/);
+  assert.match(chamberFloor, /sceneId:\s*'scribe-locked-chamber'/);
+  assert.match(storyProps, /id:\s*'scribe-chamber-doorway-structure'[\s\S]*?type:\s*'generated-scribe-chamber-doorway'[\s\S]*?depth:\s*'route-edge'/);
+  assert.match(scribeDoorway, /sectionId:\s*'desert-entry'/);
+  assert.match(scribeDoorway, /x:\s*X\(1138\)/);
+  assert.match(scribeDoorway, /y:\s*JY\(-259\)/);
+  assert.match(scribeDoorway, /width:\s*1120/);
+  assert.match(scribeDoorway, /height:\s*620/);
+  [
+    ['scribe-chamber-buried-lower-block', '1088', '300'],
+    ['scribe-chamber-collapsed-stair-slab', '1102', '305'],
+    ['scribe-chamber-middle-rubble-landing', '1088', '285'],
+    ['scribe-chamber-upper-carved-landing', '1114', '265'],
+    ['scribe-chamber-doorway-threshold', '1128', '215'],
+  ].forEach(([platformId, authoredX, width]) => {
+    const platform = getDataRowById(platforms, platformId);
+    assert.match(platform, new RegExp(`x:\\s*X\\(${authoredX}\\)`));
+    assert.match(platform, new RegExp(`width:\\s*${width}`));
+    assert.match(platform, /invisible:\s*true/);
+  });
+  assert.ok(hiddenRoutes.indexOf("id: 'desert-upper-survey-route'") < hiddenRoutes.indexOf("id: 'scribe-locked-chamber-route'"));
+  assert.ok(hiddenRoutes.indexOf("id: 'scribe-locked-chamber-route'") < hiddenRoutes.indexOf("id: 'temple-cracked-wall-passage'"));
+  assert.match(journeyUtilsSource, /scribeChamberEntered:\s*false/);
+  assert.match(journeyUtilsSource, /scribeChamberDoorSealed:\s*false/);
+  assert.match(journeyUtilsSource, /scribeChamberTabletInspected:\s*false/);
+  assert.match(journeyUtilsSource, /scribeChamberWallInspected:\s*false/);
+  assert.match(journeyUtilsSource, /scribeChamberExitUnlocked:\s*false/);
+  assert.match(journeyUtilsSource, /scribeChamberPuzzleSolved:\s*false/);
+  assert.match(journeyComponentSource, /SCRIBE_LOCKED_CHAMBER:\s*'scribe-locked-chamber'/);
+  assert.ok(existsSync(scribeChamberExteriorPath), 'Scribe Chamber exterior production PNG should exist');
+  assert.match(journeyComponentSource, /SCRIBE_CHAMBER_EXTERIOR_SRC = 'assets\/expedition\/environment\/desert-temple\/scribe-locked-chamber-exterior-climb-structure\.png'/);
+  assert.match(journeyComponentSource, /SCRIBE_CHAMBER_EXTERIOR_VERSION = 'imagegen-scribe-locked-chamber-exterior-climb-structure-2026-05-28'/);
+  assert.match(journeyComponentSource, /scribeChamberExteriorRef/);
+  assert.match(journeyComponentSource, /drawScribeChamberDoorwayStructure/);
+  assert.match(journeyComponentSource, /scribeChamberExteriorLoaded:\s*scribeChamberExteriorRef\.current\.loaded/);
+  assert.match(journeyComponentSource, /prop\.type === 'generated-scribe-chamber-doorway'/);
+  assert.match(journeyComponentSource, /drawScribeLockedChamberInterior/);
+  assert.match(journeyComponentSource, /Scribe Chamber Decoding/);
+  assert.match(journeyComponentSource, /Sun \+ Water \+ Ankh \+ Door/);
+  assert.match(journeyComponentSource, /Follow the light, cross the river, protect life, and the door will open\./);
+  assert.match(journeyComponentSource, /That does not match the message\. I need to look again\./);
+  assert.match(journeyComponentSource, /Knowledge was the key\./);
+  assert.match(journeyComponentSource, /scribeChamberExitUnlocked/);
+  assert.match(journeyComponentSource, /activeGuardianChallenge\.type === 'scribe-chamber-puzzle'/);
+  assert.match(journeyComponentSource, /SCRIBE_CHAMBER_RETURN_FALLBACK = \{[\s\S]*?x:\s*scaleJourneyX\(1118\)[\s\S]*?y:\s*openingJourneyY\(138\)/);
+  assert.match(journeyComponentSource, /SCRIBE_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?minX:\s*scaleJourneyX\(1126\)[\s\S]*?maxX:\s*scaleJourneyX\(1160\)[\s\S]*?footY:\s*openingJourneyY\(72\)/);
+  assert.match(journeyComponentSource, /scarabQueenRequiresScribe/);
+  assert.match(journeyComponentSource, /!current\.scribeChamberPuzzleSolved/);
+  assert.doesNotMatch(journeyComponentSource, /createScribeEscapeRoomMode|ScribeEscapeRoom\.jsx/);
+});
+
+test('mummification chamber exterior reuses Journey routes, ledges, assets, and entrance discovery before the mural room', () => {
+  const hiddenRoutes = extractExportedArray('HIDDEN_ROUTES');
+  const platforms = extractExportedArray('PLATFORMS');
+  const storyProps = extractExportedArray('STORY_PROPS');
+  const mummificationRoute = getDataRowById(hiddenRoutes, 'mummification-chamber-route');
+  const muralRoute = getDataRowById(hiddenRoutes, 'desert-upper-survey-route');
+  const exteriorStructure = getDataRowById(storyProps, 'mummification-chamber-exterior-structure');
+
+  assert.ok(existsSync(mummificationChamberExteriorPath), 'Mummification Chamber exterior art should exist as a project asset');
+  assert.match(mummificationRoute, /name:\s*'The Mummification Chamber'/);
+  assert.match(mummificationRoute, /civilisation:\s*'Ancient Egypt'/);
+  assert.match(mummificationRoute, /sectionId:\s*'desert-entry'/);
+  assert.match(mummificationRoute, /optional:\s*true/);
+  assert.match(mummificationRoute, /x:\s*X\(520\)/);
+  assert.match(muralRoute, /x:\s*X\(870\)/);
+  assert.ok(hiddenRoutes.indexOf("id: 'mummification-chamber-route'") < hiddenRoutes.indexOf("id: 'desert-upper-survey-route'"));
+  assert.match(mummificationRoute, /gateType:\s*'partly buried sacred doorway'/);
+  assert.match(mummificationRoute, /first sacred mystery/i);
+  assert.match(exteriorStructure, /type:\s*'generated-mummification-chamber-entrance'/);
+  assert.match(exteriorStructure, /depth:\s*'route-edge'/);
+  [
+    'mummification-chamber-sand-buried-block',
+    'mummification-chamber-carved-lower-ledge',
+    'mummification-chamber-damaged-stair',
+    'mummification-chamber-upper-rite-ledge',
+    'mummification-chamber-doorway-floor',
+  ].forEach((id) => {
+    const platform = getDataRowById(platforms, id);
+    assert.match(platform, /secret:\s*true/);
+    assert.match(platform, /invisible:\s*true/);
+  });
+  assert.ok(platforms.indexOf("id: 'mummification-chamber-doorway-floor'") < platforms.indexOf("id: 'forgotten-mural-lower-masonry'"));
+  assert.match(journeyUtilsSource, /mummificationChamberEntranceDiscovered:\s*false/);
+  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_EXTERIOR_SRC = 'assets\/expedition\/environment\/desert-temple\/mummification-chamber-exterior-climb-structure\.png'/);
+  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?minX:\s*scaleJourneyX\(742\)[\s\S]*?maxX:\s*scaleJourneyX\(798\)/);
+  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?footY:\s*openingJourneyY\(48\)[\s\S]*?footTolerance:\s*22/);
+  assert.match(journeyComponentSource, /drawMummificationChamberExteriorAsset/);
+  assert.match(journeyComponentSource, /prop\.type === 'generated-mummification-chamber-entrance'/);
+  assert.match(journeyComponentSource, /discoveredHiddenRouteIds\?\.add\('mummification-chamber-route'\)/);
+  assert.match(journeyComponentSource, /hiddenRoomsFound\?\.add\('mummification-chamber'\)/);
+  assert.match(journeyComponentSource, /mummificationChamberEntranceDiscovered:\s*Boolean\(current\.mummificationChamberEntranceDiscovered\)/);
+  assert.match(journeyComponentSource, /secretClimbRouteIds = \['mummification-chamber-route', 'desert-upper-survey-route'\]/);
+  assert.doesNotMatch(journeyComponentSource, /createMummificationRoomSystem|MummificationChamber\.jsx|class\s+MummificationRoom/);
+});
+
+test('mummification chamber entrance uses the existing Journey chamber transition and sealed interior state', () => {
+  const platforms = extractExportedArray('PLATFORMS');
+  const chamberFloor = getDataRowById(platforms, 'mummification-chamber-floor');
+
+  assert.match(chamberFloor, /sceneId:\s*'mummification-chamber'/);
+  assert.match(journeyUtilsSource, /mummificationChamberEntered:\s*false/);
+  assert.match(journeyUtilsSource, /mummificationChamberActive:\s*false/);
+  assert.match(journeyUtilsSource, /mummificationChamberDoorSealed:\s*false/);
+  assert.match(journeyUtilsSource, /mummificationChamberExitUnlocked:\s*false/);
+  assert.match(journeyUtilsSource, /mummificationChamberPuzzleSolved:\s*false/);
+  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER:\s*'mummification-chamber'/);
+  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_ENTRY_SPAWN = \{/);
+  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_RETURN_FALLBACK = \{/);
+  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_EXIT_TRIGGER = \{/);
+  assert.match(journeyComponentSource, /isMummificationChamberScene/);
+  assert.match(journeyComponentSource, /drawMummificationChamberInterior/);
+  assert.match(journeyComponentSource, /enteringMummificationChamber/);
+  assert.match(journeyComponentSource, /toSceneId:\s*JOURNEY_SCENE_IDS\.MUMMIFICATION_CHAMBER/);
+  assert.match(journeyComponentSource, /current\.mummificationChamberDoorSealed = true/);
+  assert.match(journeyComponentSource, /current\.mummificationChamberExitUnlocked = Boolean\(current\.mummificationChamberPuzzleSolved\)/);
+  assert.match(journeyComponentSource, /This chamber still holds power/);
+  assert.match(journeyComponentSource, /This is a mummification chamber/);
+  assert.match(journeyComponentSource, /The entrance sealed behind me/);
+  assert.match(journeyComponentSource, /The entrance is sealed\. I need to solve the chamber first\./);
+  assert.match(journeyComponentSource, /mummificationChamberEntered:\s*Boolean\(current\.mummificationChamberEntered\)/);
+  assert.match(journeyComponentSource, /mummificationChamberDoorSealed:\s*Boolean\(current\.mummificationChamberDoorSealed\)/);
+  assert.doesNotMatch(journeyComponentSource, /createMummificationRoomSystem|MummificationChamber\.jsx|class\s+MummificationRoom/);
+});
+
+test('mummification chamber interior uses a project-bound game-ready environment asset with readable puzzle zones', () => {
+  assert.ok(existsSync(mummificationChamberInteriorPath), 'Mummification Chamber interior art should exist as a project asset');
+  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_INTERIOR_SRC = 'assets\/expedition\/environment\/desert-temple\/mummification-chamber-interior\.png'/);
+  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_INTERIOR_VERSION = 'imagegen-mummification-chamber-interior-2026-05-27'/);
+  assert.match(journeyComponentSource, /mummificationChamberInteriorRef/);
+  assert.match(journeyComponentSource, /image\.src = `\$\{import\.meta\.env\.BASE_URL\}\$\{MUMMIFICATION_CHAMBER_INTERIOR_SRC\}`/);
+  assert.match(journeyComponentSource, /const chamberAsset = mummificationChamberInteriorRef\.current/);
+  assert.match(journeyComponentSource, /ctx\.drawImage\(chamberAsset\.image, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT\)/);
+  assert.match(journeyComponentSource, /mummificationChamberInteriorLoaded:\s*mummificationChamberInteriorRef\.current\.loaded/);
+  assert.match(journeyComponentSource, /mummificationChamberPuzzleCenterpiece/);
+  assert.match(journeyComponentSource, /mummificationChamberReadableZones/);
+  assert.match(journeyComponentSource, /massive embalming table, wrapped mummy, floating linen, canopic jars, oils, Anubis statue, glowing hieroglyphics/);
+});
+
+test('mummification chamber interaction objects reuse Journey asset packs and notice dialogue', () => {
+  assert.ok(existsSync(mummificationChamberInteractionAtlasPath), 'Mummification Chamber interaction atlas should exist as a project asset');
+  [
+    'embalmingTableMarker',
+    'linenWrappings',
+    'canopicJars',
+    'ritualTablet',
+    'oilsResins',
+    'exitSeal',
+  ].forEach((key) => {
+    assert.ok(mummificationChamberInteractionAtlas.regions[key], `${key} should be present in the interaction atlas`);
+    assert.match(journeyRenderAssetsSource, new RegExp(`'${key}'`));
+  });
+  assert.match(journeyRenderAssetsSource, /MUMMIFICATION_CHAMBER_INTERACTIONS_ATLAS_JSON/);
+  assert.match(journeyRenderAssetsSource, /MUMMIFICATION_CHAMBER_INTERACTIONS:\s*'mummification-chamber-interactions'/);
+  assert.match(journeyComponentSource, /mummificationInteractionAssetsRef = useRef\(createEnvironmentAssetState\(ENVIRONMENT_ASSET_PACK_IDS\.MUMMIFICATION_CHAMBER_INTERACTIONS\)\)/);
+  assert.match(journeyComponentSource, /loadEnvironmentAssetPack\(\{[\s\S]*?packId:\s*ENVIRONMENT_ASSET_PACK_IDS\.MUMMIFICATION_CHAMBER_INTERACTIONS/);
+  assert.match(journeyUtilsSource, /mummificationChamberInspectedObjectIds:\s*new Set\(\)/);
+  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS = Object\.freeze/);
+  [
+    'This table was used for preservation.',
+    'The wrappings protected the body.',
+    'These jars protected important organs.',
+    'A guide to the ritual.',
+    'Oils and resins prepared the body for the journey beyond.',
+    'The seal responds to the completed ritual.',
+  ].forEach((line) => {
+    assert.match(journeyComponentSource, new RegExp(line.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  });
+  assert.match(journeyComponentSource, /current\.mummificationChamberPuzzleSolved = true/);
+  assert.match(journeyComponentSource, /current\.mummificationChamberExitUnlocked = true/);
+  assert.match(journeyComponentSource, /drawAtlasRegion\(ctx, interactionAssets, item\.assetKey/);
+  assert.doesNotMatch(journeyComponentSource, /createMummificationInteractionSystem|MummificationInteractionObjects\.jsx|class\s+MummificationInteraction/);
+});
+
+test('mummification chamber ritual-order puzzle reuses activeGuardianChallenge and safely unlocks the exit', () => {
+  [
+    'Cleanse the body',
+    'Remove organs and dry the body',
+    'Anoint with oils and resins',
+    'Wrap body in linen',
+    'Place in sarcophagus with amulets',
+  ].forEach((step) => {
+    assert.match(journeyComponentSource, new RegExp(step.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  });
+  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_PUZZLE = \{/);
+  assert.match(journeyComponentSource, /type:\s*'mummification-ritual-order-puzzle'/);
+  assert.match(journeyComponentSource, /The seal asks for the ritual order\./);
+  assert.match(journeyComponentSource, /current\.activeGuardianChallenge = \{[\s\S]*?\.\.\.MUMMIFICATION_CHAMBER_PUZZLE/);
+  assert.match(journeyComponentSource, /That order does not seem right\./);
+  assert.match(journeyComponentSource, /The ritual is complete\./);
+  assert.match(journeyComponentSource, /challenge\.selectedAnswerIndex = null;[\s\S]*?challenge\.feedback = null;[\s\S]*?The seal waits for the correct ritual order\./);
+  assert.match(journeyComponentSource, /current\.mummificationChamberPuzzleSolved = true/);
+  assert.match(journeyComponentSource, /current\.mummificationChamberExitUnlocked = true/);
+  assert.match(journeyComponentSource, /activeGuardianChallenge\.type === 'mummification-ritual-order-puzzle'/);
+  assert.match(journeyComponentSource, /Mummification Ritual Order/);
+  assert.doesNotMatch(journeyComponentSource, /createMummificationPuzzleSystem|MummificationPuzzle\.jsx|class\s+MummificationPuzzle/);
+});
+
+test('mummification chamber atmosphere wakes from existing inspection and puzzle state', () => {
+  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_ATMOSPHERE_VERSION = 'mummification-chamber-atmosphere-progression-2026-05-28'/);
+  assert.match(journeyComponentSource, /getMummificationChamberAtmosphere = \(current\) => \{/);
+  assert.match(journeyComponentSource, /mummificationChamberInspectedObjectIds/);
+  assert.match(journeyComponentSource, /activeGuardianChallenge\?\.type === 'mummification-ritual-order-puzzle'/);
+  assert.match(journeyComponentSource, /mummificationChamberPuzzleSolved \|\| current\.mummificationChamberExitUnlocked/);
+  assert.match(journeyComponentSource, /particleCount:\s*Math\.min\(32,/);
+  assert.match(journeyComponentSource, /wakeProgress/);
+  assert.match(journeyComponentSource, /glyphGlowAlpha/);
+  assert.match(journeyComponentSource, /linenMotion/);
+  assert.match(journeyComponentSource, /mummificationChamberAtmosphereVersion/);
+  assert.match(journeyComponentSource, /mummificationChamberWakeProgress/);
+  assert.match(journeyComponentSource, /mummificationChamberParticleCount/);
+  assert.doesNotMatch(journeyComponentSource, /createMummificationAtmosphereSystem|MummificationAtmosphere\.jsx|class\s+MummificationAtmosphere/);
+});
+
 test('world continuity landmarks foreshadow future expedition sections', () => {
   const worldLandmarks = extractExportedArray('WORLD_CONTINUITY_LANDMARKS');
   const transitionMarkers = extractExportedArray('WORLD_TRANSITION_STORY_MARKERS');
@@ -481,7 +702,7 @@ test('Ancient Egypt opening stages archaeologist arrival and warrior-guide story
   assert.match(routeGates, /The Desert Map Seal waits for the Map Tablet, the Brush Handle, the fall of the Scarab Queen, and 10 lost fragments\./);
   assert.match(routeGates, /Carry the record forward into the ruined temple\./);
   assert.match(miniBosses, /id:\s*'scarab-queen'[\s\S]*?health:\s*1,\s*damage:\s*4/);
-  assert.match(miniBosses, /The buried scarab seal cracks open beneath the sand\. The Scarab Queen rises as the first trial of Anubis\. The site will not yield easily\./);
+  assert.match(miniBosses, /The buried scarab lair splits open beneath the sand\. The Scarab Queen rises as the first trial of Anubis\. The site will not yield easily\./);
   assert.match(bossKeyItems, /id:\s*'brush-handle'[\s\S]*?The Scarab Queen falls\. Asha has permission, not trust\. Brush Handle recovered\. The Desert Map Seal answers\./);
   assert.match(journeyComponentSource, /const GUARDIAN_KNOWLEDGE_CHALLENGES_ENABLED = false;/);
 });
@@ -492,7 +713,7 @@ test('Expedition framing presents Journey, Base Camp, and excavation as in-world
     'Restore the outer seal',
     'Recover relic shards',
     'Read the Map Tablet',
-    'Prepare for the Scarab Queen',
+    'Survive the Guardian Prep route',
     'Defeat the Scarab Queen',
     'Reach Base Camp Outpost',
     'Relic shards',
@@ -567,7 +788,7 @@ test('Egypt Phase 1 boss identity changes preserve progression ids and China nam
   ].forEach((pattern) => assert.match(miniBosses, pattern));
 
   [
-    'The buried scarab seal cracks open beneath the sand. The Scarab Queen rises as the first trial of Anubis. The site will not yield easily.',
+    'The buried scarab lair splits open beneath the sand. The Scarab Queen rises as the first trial of Anubis. The site will not yield easily.',
     'Anubis stands at the temple path. Only those who move with respect may pass.',
     'The Uraeus coils around the sacred seal. The path forward is protected.',
     'Bes blocks the broken passage with a fierce grin. This place will not be rushed.',
@@ -879,10 +1100,10 @@ test('opening pyramid uses exactly four invisible platforms aligned to the marke
   assert.deepEqual(
     route.map(({ x, y, width }) => ({ x, y, width })),
     [
-      { x: 258, y: 318, width: 430 },
-      { x: 402, y: 166, width: 420 },
-      { x: 594, y: 36, width: 390 },
-      { x: 760, y: -101, width: 330 },
+      { x: 0, y: 318, width: 430 },
+      { x: 320, y: 166, width: 365 },
+      { x: 420, y: 36, width: 395 },
+      { x: 620, y: -101, width: 360 },
     ],
   );
 
@@ -923,7 +1144,7 @@ test('opening pyramid facade stays active as the opening gameplay landmark', () 
   assert.doesNotMatch(journeyComponentSource, /OPENING_PYRAMID_FACADE_WORLD_RIGHT_X/);
 });
 
-test('route props stay out of the opening pyramid facade and render on route edges', () => {
+test('route props stay out of the opening pyramid facade and use the grounded ruin preset', () => {
   const storyProps = extractExportedArray('STORY_PROPS');
 
   [
@@ -934,7 +1155,7 @@ test('route props stay out of the opening pyramid facade and render on route edg
     const escapedId = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const row = getDataRowById(storyProps, id);
     assert.match(row, /x:\s*(1[6-9]\d\d|2\d\d\d)/, `${id} should sit past Asha on the open route`);
-    assert.match(row, /depth:\s*'route-edge'/, `${id} should render above the route edge`);
+    assert.match(row, /placementPreset:\s*'desertEntryGroundedRuin'/, `${id} should use the shared grounded placement preset`);
     assert.doesNotMatch(storyProps, new RegExp(`id:\\s*'${escapedId}'[^}]*?depth:\\s*'(background|midground)'`));
   });
   [
@@ -961,7 +1182,8 @@ test('route props stay out of the opening pyramid facade and render on route edg
     journeyComponentSource,
     /PLATFORMS[\s\S]*?\.forEach\(\(platform\) => drawPlatform\(ctx, platform, cameraX, current\)\);[\s\S]*?STORY_PROPS\.filter\(prop => isEntityActiveInScene\(prop, current\)\)\.forEach\(\(prop\) => drawStoryProp\(ctx, prop, cameraX, now, 'route-edge'\)\)/,
   );
-  assert.match(journeyComponentSource, /if \(prop\.depth === 'route-edge'\) return 'route-edge';/);
+  assert.match(journeyComponentSource, /if \(\['background', 'midground', 'grounded', 'route-edge'\]\.includes\(prop\.depth\)\) return prop\.depth;/);
+  assert.match(journeyComponentSource, /if \(placementPreset\?\.depth\) return placementPreset\.depth;/);
 });
 
 test('opening pyramid zone only contains the intentional first-screen stairway platforms', () => {
@@ -1089,15 +1311,15 @@ test('China Journey uses a unique female player atlas through the existing playe
 
 test('Egypt Journey uses the Asha atlas through the existing player renderer', () => {
   assert.match(journeyConstantsSource, /PLAYER_HERO_SPRITE_ATLAS_JSON/);
-  assert.match(journeyConstantsSource, /asha-v5-spritesheet\.json/);
+  assert.match(journeyConstantsSource, /asha-v2-production-candidate-spritesheet\.json/);
   assert.doesNotMatch(journeyConstantsSource, /asha-v4-spritesheet\.json/);
-  assert.match(journeyConstantsSource, /PLAYER_HERO_SPRITE_VERSION = 'asha-v5-candidate-2026-05-23'/);
+  assert.match(journeyConstantsSource, /PLAYER_HERO_SPRITE_VERSION = 'asha-v2-production-candidate-2026-05-28'/);
   assert.match(journeyComponentSource, /asha-final-production-spritesheet\.json/);
   assert.match(journeyConstantsSource, /PLAYER_HERO_PREVIOUS_SPRITE_ATLAS_JSON/);
   assert.match(journeyConstantsSource, /asha-hooded-warrior-explorer-spritesheet\.json/);
   assert.match(journeyConstantsSource, /PLAYER_HERO_FALLBACK_SPRITE_ATLAS_JSON/);
   assert.match(journeyConstantsSource, /egypt-warrior-guide-spritesheet\.json/);
-  assert.match(journeyComponentSource, /characterId:\s*'asha-v5-candidate'/);
+  assert.match(journeyComponentSource, /characterId:\s*'asha-v2-production-candidate'/);
   assert.match(journeyComponentSource, /atlasPath:\s*PLAYER_HERO_SPRITE_ATLAS_JSON/);
   assert.match(journeyComponentSource, /version:\s*PLAYER_HERO_SPRITE_VERSION/);
   assert.match(journeyComponentSource, /fallbackAtlasPath:\s*'assets\/expedition\/player\/asha-final-production-spritesheet\.json'/);
@@ -1301,6 +1523,23 @@ test('Asha New Idle is available as a separate character-loader atlas', () => {
   assert.ok(ashaNewIdlePlayerAtlas.description.includes('secondary attack row'));
 });
 
+test('Asha V2 candidate exposes its full idle animation and cache-busts player atlas loads', () => {
+  assert.match(journeyComponentSource, /id:\s*'asha-v2-candidate'/);
+  assert.match(journeyComponentSource, /label:\s*'Asha V2 Candidate'/);
+  assert.match(journeyComponentSource, /characterId:\s*'asha-v2-production-candidate'/);
+  assert.match(journeyComponentSource, /atlasPath:\s*'assets\/expedition\/player\/asha-v2-production-candidate-spritesheet\.json'/);
+  assert.match(journeyComponentSource, /version:\s*'asha-v2-production-candidate-idle-8frame-2026-05-28'/);
+  assert.match(journeyComponentSource, /fetch\(`\$\{baseUrl\}\$\{heroAtlasPath\}\$\{versionQuery\}`\)/);
+  assert.match(journeyComponentSource, /image\.src\s*=\s*`\$\{baseUrl\}\$\{getAtlasImagePath\(heroAtlasPath,\s*atlas\.image\)\}\$\{versionQuery\}`/);
+  assert.equal(ashaV2PlayerAtlas.rows.find(row => row.name === 'idle')?.frameCount, 8);
+  assert.deepEqual(
+    ashaV2PlayerAtlas.rows.find(row => row.name === 'idle')?.frames,
+    Array.from({ length: 8 }, (_, index) => `idle_${String(index).padStart(2, '0')}`),
+  );
+  assert.equal(ashaV2PlayerAtlas.poseSources.idle_00, 'asha-v2-locomotion-source.png:row_0:col_0');
+  assert.equal(ashaV2PlayerAtlas.poseSources.idle_07, 'asha-v2-locomotion-source.png:row_0:col_7');
+});
+
 test('Egypt Journey keeps marker assets available but removes flag visuals from the route', () => {
   assert.match(journeyMarkerSpritesSource, /MARKER_SPRITE_ATLAS_JSON/);
   assert.match(journeyMarkerSpritesSource, /egypt-checkpoint-flag-sprites\.json/);
@@ -1331,7 +1570,7 @@ test('Egypt opening loop makes the first seal require enemies, shards, and the m
   assert.doesNotMatch(source, /id:\s*'warrior-mummy-ridge-1'/);
   assert.match(source, /id:\s*'scarab-scout-1'[\s\S]*?protectsRouteId:\s*'temple-approach-seal'/);
   assert.match(source, /protectsRouteId:\s*'desert-opening-shard-cache'/);
-  assert.match(source, /protectsRouteId:\s*'desert-opening-map-tablet'/);
+  assert.match(source, /id:\s*'mummification-chamber-route'[\s\S]*?first sacred mystery/i);
   assert.match(journeyComponentSource, /getActiveShardGateProgress/);
   assert.match(journeyComponentSource, /Relic Shard/);
   assert.match(journeyComponentSource, /Enemy dropped/);
@@ -1574,7 +1813,7 @@ test('early route gates avoid filler enemy requirements while preserving enemy-c
   assert.doesNotMatch(routeGates, /id:\s*'temple-approach-seal'[\s\S]*?enemies:\s*\[\s*'scarab-scout-1'\s*\]/);
   assert.doesNotMatch(routeGates, /id:\s*'guardian-prep-seal'[\s\S]*?enemies:\s*\[\s*'sand-wisp-start-1',\s*'sand-wisp-ledge-1'\s*\]/);
   assert.doesNotMatch(routeGates, /id:\s*'temple-seal'[\s\S]*?enemies:\s*\[\s*'warrior-mummy-threshold-1'\s*\]/);
-  assert.match(enemies, /id:\s*'scarab-survey-1'[\s\S]*?protectsRouteId:\s*'desert-opening-map-tablet'/);
+  assert.doesNotMatch(enemies, /id:\s*'scarab-survey-1'/);
   assert.match(enemies, /id:\s*'scarab-scout-1'[\s\S]*?protectsRouteId:\s*'temple-approach-seal'/);
   assert.match(enemies, /id:\s*'sand-wisp-start-1'[\s\S]*?protectsRouteId:\s*'desert-upper-survey-route'/);
   assert.match(enemies, /id:\s*'sand-wisp-ledge-1'[\s\S]*?protectsRouteId:\s*'guardian-prep-seal'/);
@@ -1583,37 +1822,25 @@ test('early route gates avoid filler enemy requirements while preserving enemy-c
   assert.match(journeyComponentSource, /type:\s*'enemyClear'/);
 });
 
-test('early verticality is limited to the purposeful Map Tablet ruin climb', () => {
+test('early verticality keeps required Map Tablet progress grounded while optional chamber climbs stay invisible', () => {
   const platforms = extractExportedArray('PLATFORMS');
   const markers = extractExportedArray('OBJECTIVE_MARKERS');
-  const enemies = extractExportedArray('ENEMIES');
   const shards = source.slice(source.indexOf('const RELIC_SHARD_LAYOUT = ['), source.indexOf('export const RELIC_SHARDS ='));
-  const findPlatform = (id) => parseDataRect(getDataRowById(platforms, id));
-  const findMarker = (id) => parseDataRect(getDataRowById(markers, id));
-  const findEnemy = (id) => parseDataRect(getDataRowById(enemies, id));
-  const tabletLedge = findPlatform('desert-broken-ruin-tablet-ledge');
-  const tablet = findMarker('map-tablet');
-  const surveyScarab = findEnemy('scarab-survey-1');
-  const itemSitsOnPlatform = (item, platform, xPad = 24, yPad = 18) => (
-    item.x >= platform.x - xPad
-    && item.x <= platform.x + platform.width + xPad
-    && Math.abs(item.y - platform.y) <= yPad
-  );
-  const enemySitsOnPlatform = (enemy, platform, xPad = 18, yPad = 10) => (
-    enemy.x >= platform.x - xPad
-    && enemy.x <= platform.x + platform.width + xPad
-    && Math.abs((enemy.y + enemy.height) - platform.y) <= yPad
-  );
 
   [
-    'desert-broken-ruin-lower-climb',
-    'desert-broken-ruin-middle-climb',
-    'desert-broken-ruin-tablet-ledge',
+    'mummification-chamber-sand-buried-block',
+    'mummification-chamber-carved-lower-ledge',
+    'mummification-chamber-damaged-stair',
+    'mummification-chamber-upper-rite-ledge',
+    'mummification-chamber-doorway-floor',
   ].forEach((id) => {
     assert.match(platforms, new RegExp(`id:\\s*'${id}'[\\s\\S]*?invisible:\\s*true`));
     assert.doesNotMatch(getDataRowById(platforms, id), /assetKey:\s*'sandstoneBlock'/);
   });
   [
+    'desert-broken-ruin-lower-climb',
+    'desert-broken-ruin-middle-climb',
+    'desert-broken-ruin-tablet-ledge',
     'desert-broken-ruin-upper-ledge',
     'desert-seal-warden-ledge',
     'desert-false-relic-lower-step',
@@ -1624,9 +1851,9 @@ test('early verticality is limited to the purposeful Map Tablet ruin climb', () 
   ].forEach((id) => {
     assert.doesNotMatch(platforms, new RegExp(`id:\\s*'${id}'`));
   });
-  assert.equal(itemSitsOnPlatform(tablet, tabletLedge), true, 'Map Tablet should sit on the one elevated required route');
+  assert.match(getDataRowById(markers, 'map-tablet'), /y:\s*GROUND_Y - 46/);
+  assert.match(getDataRowById(markers, 'map-tablet'), /groundedProp:\s*true/);
   assert.match(shards, /\{\s*x:\s*590,\s*y:\s*226\s*\}/);
-  assert.equal(enemySitsOnPlatform(surveyScarab, tabletLedge), true, 'Survey Scarab should guard the Map Tablet ledge');
 });
 
 test('first mini-boss is gated by preparation and rewards the next route', () => {
@@ -2092,16 +2319,14 @@ test('desert entry props use visible atlas art instead of weak placeholders', ()
   });
 
   [
-    ['desert-entry-premium-threshold-slab-1', 'desertEntryPremiumThresholdSlab', 'route-edge', "sceneBlend:\\s*'desert-entry-sand'", /x:\s*(1[6-9]\d\d|2\d\d\d)/, 'should sit past Asha on the open route'],
-    ['desert-entry-premium-column-1', 'desertEntryPremiumFallenColumn', 'route-edge', "sceneBlend:\\s*'desert-entry-sand'", /x:\s*(1[6-9]\d\d|2\d\d\d)/, 'should sit past Asha on the open route'],
-    ['desert-entry-premium-pillar-caps-1', 'desertEntryPremiumPillarCaps', 'route-edge', "sceneBlend:\\s*'desert-entry-sand'", /x:\s*(1[6-9]\d\d|2\d\d\d)/, 'should sit past Asha on the open route'],
-  ].forEach(([propId, assetKey, depth, alphaPattern, xPattern, xMessage]) => {
+    ['desert-entry-premium-threshold-slab-1', 'desertEntryPremiumThresholdSlab', /x:\s*(1[6-9]\d\d|2\d\d\d)/, 'should sit past Asha on the open route'],
+    ['desert-entry-premium-column-1', 'desertEntryPremiumFallenColumn', /x:\s*(1[6-9]\d\d|2\d\d\d)/, 'should sit past Asha on the open route'],
+    ['desert-entry-premium-pillar-caps-1', 'desertEntryPremiumPillarCaps', /x:\s*(1[6-9]\d\d|2\d\d\d)/, 'should sit past Asha on the open route'],
+  ].forEach(([propId, assetKey, xPattern, xMessage]) => {
     const row = getDataRowById(storyProps, propId);
     assert.match(row, new RegExp(`atmosphereAssetKey:\\s*'${assetKey}'`), `${propId} should use atlas art`);
-    assert.match(row, new RegExp(`depth:\\s*'${depth}'`), `${propId} should render in the readable prop layer`);
-    assert.match(row, new RegExp(alphaPattern), `${propId} should use the desert scene blend instead of cut-out contrast`);
+    assert.match(row, /placementPreset:\s*'desertEntryGroundedRuin'/, `${propId} should render through the grounded ruin preset`);
     assert.doesNotMatch(row, /alpha:\s*1\b/, `${propId} should not render at full cut-out opacity`);
-    assert.match(row, /bury:\s*0\.[12]\d/, `${propId} should be partially buried into the route sand`);
     assert.match(row, xPattern, `${propId} ${xMessage}`);
   });
 
@@ -2132,7 +2357,7 @@ test('small atmosphere floor assets are permanently ground-locked instead of bac
   assert.match(journeyComponentSource, /drawStoryProp\(ctx, prop, cameraX, now, 'route-edge'\)/);
   assert.match(journeyComponentSource, /Math\.max\(rawAnchorY, GROUND_Y - ATMOSPHERE_GROUND_LOCK_MARGIN\)/);
   assert.match(journeyComponentSource, /groundLockedAtmospherePropCount/);
-  assert.match(journeyComponentSource, /PROP_DEPTH_TUNING_VERSION = 'journey-ground-locked-atmosphere-route-edge-props-2026-05-25'/);
+  assert.match(journeyComponentSource, /PROP_DEPTH_TUNING_VERSION = 'journey-grounded-placement-presets-2026-05-26'/);
   assert.match(journeyComponentSource, /atmosphereGroundingMode:\s*'ground-locked-floor-and-route-edge-assets'/);
   assert.doesNotMatch(journeyComponentSource, /groundLocked.*parallax/);
 });
@@ -2215,7 +2440,7 @@ test('Egypt opening combat ramps gently before the first route seal', () => {
   const highDamageOpeningRows = openingRows
     .filter((row) => Number(row.match(/damage:\s*(\d+)/)?.[1] || 0) > 8);
 
-  assert.ok(teachingRows.length >= 4, 'opening route should teach smaller creature reads after the low trap replacement');
+  assert.ok(teachingRows.length >= 3, 'opening route should teach smaller creature reads before the first seal');
   assert.match(source, /id:\s*'opening-seal-reset-trap'[\s\S]*?penalty:\s*\{\s*stamina:\s*8\s*\}/);
   assert.equal(
     openingRows.every(row => /openingRouteRamp:\s*true/.test(row)),
@@ -2336,7 +2561,7 @@ test('opening enemy role overrides preserve first-route fairness and readable co
   assert.doesNotMatch(journeyComponentSource, /hitActive[\s\S]{0,240}strokeStyle = 'rgba\(248, 113, 113/);
   assert.doesNotMatch(journeyComponentSource, /text:\s*'BOUNCE'/);
   assert.doesNotMatch(journeyComponentSource, /text:\s*'RESET'/);
-  assert.match(journeyComponentSource, /spikeTrap:\s*\{\s*xPad:\s*12,\s*widthPad:\s*24,\s*height:\s*46/);
+  assert.match(journeyComponentSource, /spikeTrap:\s*\{\s*xPad:\s*12,\s*widthPad:\s*24,\s*height:\s*44/);
   assert.match(egyptEnemies, /id:\s*'scorpion-start-1'[\s\S]*?width:\s*44[\s\S]*?height:\s*30[\s\S]*?attackPatternTuning:\s*\{[\s\S]*?windup:\s*0\.66[\s\S]*?duration:\s*0\.34[\s\S]*?range:\s*26[\s\S]*?height:\s*62[\s\S]*?yOffset:\s*-38[\s\S]*?backReach:\s*42[\s\S]*?damageScale:\s*1\.5[\s\S]*?protectedDuringWindup:\s*true/);
   assert.match(egyptEnemies, /id:\s*'scorpion-pottery-1'[\s\S]*?name:\s*'Pottery Scorpion'[\s\S]*?type:\s*'scorpion'[\s\S]*?protectsRouteId:\s*'desert-opening-shard-cache'/);
   assert.match(egyptEnemies, /id:\s*'scorpion-seal-path-1'[\s\S]*?name:\s*'Seal Warden Scorpion'[\s\S]*?type:\s*'scorpion'[\s\S]*?protectsRouteId:\s*'temple-approach-seal'/);
@@ -2390,7 +2615,6 @@ test('Phase 5B isolates the first Scarab Scout and Seal Warden teaching pockets'
   };
   const readInitialCooldown = (row) => Number(row.match(/initialAttackCooldown:\s*(\d+(?:\.\d+)?)/)?.[1] || 0);
 
-  const surveyScarab = getRow('scarab-survey-1');
   const scarabScout = getRow('scarab-scout-1');
   const startWisp = getRow('sand-wisp-start-1');
   const regularScarab = getRow('scarab-1');
@@ -2400,7 +2624,6 @@ test('Phase 5B isolates the first Scarab Scout and Seal Warden teaching pockets'
   const warningScorpion = getRow('scorpion-warning-1');
   const sandSnake = getRow('snake-1');
 
-  assert.ok(readAuthoredX(surveyScarab, 'patrolMax') <= readAuthoredX(scarabScout, 'patrolMin') - 45, 'Survey Scarab should finish before the Scout lesson pocket begins');
   assert.ok(readAuthoredX(startWisp, 'patrolMin') >= readAuthoredX(scarabScout, 'patrolMax') + 60, 'Sand Wisp should not overlap the Scout patrol pocket');
   assert.ok(readAuthoredX(startWisp) - readAuthoredX(scarabScout) >= 120, 'Sand Wisp should sit far enough after the Scout to avoid becoming the primary lesson enemy');
   assert.ok(readInitialCooldown(startWisp) >= 2, 'Sand Wisp should wait before joining the Scout teaching moment');

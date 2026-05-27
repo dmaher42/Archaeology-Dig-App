@@ -1,6 +1,8 @@
 export const ENVIRONMENT_ATLAS_BASE_PATH = 'assets/expedition/environment/desert-temple/';
 export const ENVIRONMENT_ATLAS_JSON = `${ENVIRONMENT_ATLAS_BASE_PATH}desert-temple-pack.json`;
 export const EGYPT_SACRED_TRAPS_ATLAS_JSON = `${ENVIRONMENT_ATLAS_BASE_PATH}egypt-sacred-traps-pack.json`;
+export const MUMMIFICATION_CHAMBER_INTERACTIONS_ATLAS_BASE_PATH = 'assets/expedition/environment/desert-temple/mummification-chamber/';
+export const MUMMIFICATION_CHAMBER_INTERACTIONS_ATLAS_JSON = `${MUMMIFICATION_CHAMBER_INTERACTIONS_ATLAS_BASE_PATH}mummification-chamber-interaction-atlas.json`;
 export const EGYPT_ATMOSPHERE_ATLAS_BASE_PATH = 'assets/expedition/environment/egypt-atmosphere/';
 export const EGYPT_ATMOSPHERE_ATLAS_JSON = `${EGYPT_ATMOSPHERE_ATLAS_BASE_PATH}egypt-atmosphere-pack.json`;
 export const CHINA_RIVER_VALLEY_ENVIRONMENT_ATLAS_BASE_PATH = 'assets/expedition/environment/china-river-valley/';
@@ -9,6 +11,7 @@ export const ATLAS_TUNING_VERSION = 'environment-atlas-tuning-2026-05-10';
 export const DESERT_VISUAL_TUNING_VERSION = 'desert-entry-final-visual-tuning-2026-05-10';
 export const JOURNEY_ASSET_GROUNDING_VERSION = 'journey-asset-grounding-2026-05-11';
 export const EGYPT_ATMOSPHERE_ASSET_VERSION = 'gemini-egypt-atmosphere-props-2026-05-21';
+export const MUMMIFICATION_CHAMBER_INTERACTIONS_ASSET_VERSION = 'imagegen-mummification-chamber-interaction-atlas-2026-05-28';
 
 export const EXPECTED_ENVIRONMENT_ASSET_KEYS = [
   'groundSand',
@@ -71,6 +74,15 @@ export const EXPECTED_EGYPT_SACRED_TRAP_ASSET_KEYS = [
   'sacredPedestalActivated',
 ];
 
+export const EXPECTED_MUMMIFICATION_CHAMBER_INTERACTION_ASSET_KEYS = [
+  'embalmingTableMarker',
+  'linenWrappings',
+  'canopicJars',
+  'ritualTablet',
+  'oilsResins',
+  'exitSeal',
+];
+
 export const EXPECTED_EGYPT_ATMOSPHERE_ASSET_KEYS = [
   'supplyJars',
   'fieldChest',
@@ -99,6 +111,7 @@ export const EXPECTED_EGYPT_ATMOSPHERE_ASSET_KEYS = [
 export const ENVIRONMENT_ASSET_PACK_IDS = {
   EGYPT_DESERT_TEMPLE: 'egypt-desert-temple',
   EGYPT_SACRED_TRAPS: 'egypt-sacred-traps',
+  MUMMIFICATION_CHAMBER_INTERACTIONS: 'mummification-chamber-interactions',
   EGYPT_ATMOSPHERE: 'egypt-atmosphere',
   CHINA_RIVER_VALLEY: 'china-river-valley',
 };
@@ -115,6 +128,12 @@ export const ENVIRONMENT_ASSET_PACKS = {
     basePath: ENVIRONMENT_ATLAS_BASE_PATH,
     atlasPath: EGYPT_SACRED_TRAPS_ATLAS_JSON,
     expectedKeys: EXPECTED_EGYPT_SACRED_TRAP_ASSET_KEYS,
+  },
+  [ENVIRONMENT_ASSET_PACK_IDS.MUMMIFICATION_CHAMBER_INTERACTIONS]: {
+    id: ENVIRONMENT_ASSET_PACK_IDS.MUMMIFICATION_CHAMBER_INTERACTIONS,
+    basePath: MUMMIFICATION_CHAMBER_INTERACTIONS_ATLAS_BASE_PATH,
+    atlasPath: MUMMIFICATION_CHAMBER_INTERACTIONS_ATLAS_JSON,
+    expectedKeys: EXPECTED_MUMMIFICATION_CHAMBER_INTERACTION_ASSET_KEYS,
   },
   [ENVIRONMENT_ASSET_PACK_IDS.EGYPT_ATMOSPHERE]: {
     id: ENVIRONMENT_ASSET_PACK_IDS.EGYPT_ATMOSPHERE,

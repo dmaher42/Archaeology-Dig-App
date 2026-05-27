@@ -1,0 +1,49 @@
+{
+  "image": "mummification-chamber-interaction-atlas.png",
+  "source": "imagegen-mummification-chamber-interaction-atlas-2026-05-28",
+  "size": {
+    "w": 1536,
+    "h": 1024
+  },
+  "mappingNote": "Transparent cutouts for Mummification Chamber inspection objects. Drawn through the existing Journey environment atlas loader; interaction rules stay in ExpeditionJourney state logic.",
+  "regions": {
+    "embalmingTableMarker": {
+      "x": 0,
+      "y": 0,
+      "w": 512,
+      "h": 512
+    },
+    "linenWrappings": {
+      "x": 512,
+      "y": 0,
+      "w": 512,
+      "h": 512
+    },
+    "canopicJars": {
+      "x": 1024,
+      "y": 0,
+      "w": 512,
+      "h": 512
+    },
+    "ritualTablet": {
+      "x": 0,
+      "y": 512,
+      "w": 512,
+      "h": 512
+    },
+    "oilsResins": {
+      "x": 512,
+      "y": 512,
+      "w": 512,
+      "h": 512
+    },
+    "exitSeal": {
+      "x": 1024,
+      "y": 512,
+      "w": 512,
+      "h": 512
+    }
+  },
+  "imageWidth": 1536,
+  "imageHeight": 1024
+}
