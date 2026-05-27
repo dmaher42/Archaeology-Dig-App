@@ -1665,7 +1665,8 @@ test('Scarab Queen boss intro is staged as a buried-sand emergence cinematic', (
   assert.ok(existsSync(lairOpeningProp), 'buried scarab lair opening should exist as a transparent PNG runtime asset');
   assert.match(source, /bossIntroLine:\s*'The buried scarab lair splits open beneath the sand\. The Scarab Queen rises as the first trial of Anubis\. The site will not yield easily\.'/);
   assert.match(miniBosses, /id:\s*'scarab-queen'[\s\S]*?intro:\s*'Buried Lair: Scarab Queen\. The buried scarab lair splits open beneath the sand\. The Scarab Queen rises as the first trial of Anubis\. The site will not yield easily\.'/);
-  assert.match(journeyComponentSource, /const SCARAB_QUEEN_EMERGENCE_INTRO_SECONDS = 5\.2/);
+  assert.match(journeyComponentSource, /const SCARAB_QUEEN_INTRO_TRIGGER_DISTANCE = 220/);
+  assert.match(journeyComponentSource, /const SCARAB_QUEEN_EMERGENCE_INTRO_SECONDS = 6\.8/);
   assert.doesNotMatch(journeyComponentSource, /SCARAB_QUEEN_TRIGGER_LOOTER_OFFSET/);
   assert.match(journeyComponentSource, /const SCARAB_QUEEN_CINEMATIC_CAMERA_ANCHOR_RATIO = 0\.72/);
   assert.match(journeyComponentSource, /const SCARAB_QUEEN_LAIR_OPENING_IMAGE_SRC = 'assets\/expedition\/bosses\/scarab-queen-buried-lair-opening\.png'/);
@@ -1682,6 +1683,7 @@ test('Scarab Queen boss intro is staged as a buried-sand emergence cinematic', (
   assert.match(journeyComponentSource, /triggerActor:\s*scarabQueenCinematic \? 'Buried Scarab Lair' : null/);
   assert.match(journeyComponentSource, /triggerLine:\s*scarabQueenCinematic \? 'The lair mouth splits open\. Something ancient is rising\.' : null/);
   assert.match(journeyComponentSource, /cameraAnchorRatio:\s*scarabQueenCinematic \? SCARAB_QUEEN_CINEMATIC_CAMERA_ANCHOR_RATIO : null/);
+  assert.match(journeyComponentSource, /const bossIntroTriggerDistance = scarabSealRequired \? SCARAB_QUEEN_INTRO_TRIGGER_DISTANCE : 400/);
   assert.match(journeyComponentSource, /LAIR OPENS/);
   assert.match(journeyComponentSource, /QUEEN RISES/);
   assert.match(journeyComponentSource, /const buriedSandEmergenceActive = Boolean\(activeBossDomain\?\.buriedSandEmergence && introActive\)/);
@@ -1696,6 +1698,17 @@ test('Scarab Queen boss intro is staged as a buried-sand emergence cinematic', (
   assert.match(journeyComponentSource, /activeBossDomainForObjectiveMarkers[\s\S]*?gate\.x >= \(activeBossDomainForObjectiveMarkers\.arenaStart \?\? -Infinity\) - 24[\s\S]*?gate\.x <= \(activeBossDomainForObjectiveMarkers\.arenaEnd \?\? Infinity\) \+ 72/);
   assert.match(journeyComponentSource, /const bossDomainHudSuppressed = gameState\.bossDomain[\s\S]*?const activeHudGate = bossDomainHudSuppressed[\s\S]*?\? null[\s\S]*?: ROUTE_GATES\.find/);
   assert.match(journeyComponentSource, /const activeBossDomainForObjectiveMarkers = current\.bossDomain[\s\S]*?if \(!chamberSceneActive && !activeBossDomainForObjectiveMarkers\) drawMissingObjectiveMarker/);
+});
+
+test('Scarab Queen approach builds dread before the lair emergence', () => {
+  const egyptEnemies = extractExportedArray('ENEMIES');
+  const events = extractExportedArray('ENVIRONMENT_EVENTS');
+
+  assert.match(egyptEnemies, /id:\s*'scorpion-warning-1'[\s\S]*?name:\s*'Lair Warden Scorpion'[\s\S]*?encounterRole:\s*'lair approach pressure'/);
+  assert.match(egyptEnemies, /id:\s*'snake-1'[\s\S]*?name:\s*'Buried Lair Snake'[\s\S]*?encounterRole:\s*'lair approach pressure'/);
+  assert.match(events, /id:\s*'scarab-queen-lair-dread-wind'[\s\S]*?message:\s*'A low wind pulls sand toward something buried ahead\.'/);
+  assert.match(appSource, /scarabQueenApproachAtmosphere:\s*\{[\s\S]*?opening-desert-wind\.ogg[\s\S]*?opening-deep-rumble\.ogg/);
+  assert.match(journeyComponentSource, /ev\.id === 'scarab-queen-lair-dread-wind'[\s\S]*?playExpeditionSfx\?\.\('scarabQueenApproachAtmosphere'\)/);
 });
 
 test('environment interactions include reactive foreground and movement elements', () => {

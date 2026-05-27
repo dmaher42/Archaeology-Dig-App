@@ -1098,7 +1098,8 @@ const ENEMY_TYPE_STAKE_MESSAGES = {
 
 const BOSS_DOMAIN_ENEMY_FOCUS_PADDING = 96;
 const SCARAB_QUEEN_ENEMY_FOCUS_PADDING = 220;
-const SCARAB_QUEEN_EMERGENCE_INTRO_SECONDS = 5.2;
+const SCARAB_QUEEN_INTRO_TRIGGER_DISTANCE = 220;
+const SCARAB_QUEEN_EMERGENCE_INTRO_SECONDS = 6.8;
 const SCARAB_QUEEN_CINEMATIC_CAMERA_ANCHOR_RATIO = 0.72;
 
 const easeCinematicStep = (value) => {
@@ -11310,7 +11311,9 @@ export default function ExpeditionJourney({
         current.cameraShakeTimer = ev.duration * 0.4;
         current.cameraShakeStrength = ev.shake;
         current.notice = ev.message;
-        if (ev.type === 'shrine-glow') {
+        if (ev.id === 'scarab-queen-lair-dread-wind') {
+          audioControls?.playExpeditionSfx?.('scarabQueenApproachAtmosphere');
+        } else if (ev.type === 'shrine-glow') {
           audioControls?.playExpeditionStinger?.('evidenceDiscovery');
         } else {
           audioControls?.playTransition?.();
@@ -12303,7 +12306,8 @@ export default function ExpeditionJourney({
       const scarabSealRequired = backgroundPackId !== 'china-river-valley'
         && b.id === SCARAB_SEAL_TRIGGER.bossId;
       if (scarabSealRequired && current.openingThresholdScene) return;
-      const playerNearBossIntro = Math.abs(b.x - player.x) < 400;
+      const bossIntroTriggerDistance = scarabSealRequired ? SCARAB_QUEEN_INTRO_TRIGGER_DISTANCE : 400;
+      const playerNearBossIntro = Math.abs(b.x - player.x) < bossIntroTriggerDistance;
       if (scarabSealRequired && !current.scarabSealActivated) {
         if (!playerNearBossIntro) return;
         activateScarabSealForQueenEncounter();
@@ -12405,7 +12409,7 @@ export default function ExpeditionJourney({
         current.cameraFocusTarget = Math.round(b.x);
         current.notice = current.bossIntro.message;
         audioControls?.playTransition?.();
-      } else if (current.seenBossIntroIds.has(b.id) && Math.abs(b.x - player.x) < 400) {
+      } else if (current.seenBossIntroIds.has(b.id) && Math.abs(b.x - player.x) < bossIntroTriggerDistance) {
         b.awakened = true;
       }
 

@@ -196,6 +196,15 @@ const EXPEDITION_AUDIO_TRACKS = {
         { path: 'assets/expedition/sfx/opening/opening-deep-rumble.ogg', volume: 0.16, delay: 29200, playbackRate: 0.48 },
       ],
     },
+    scarabQueenApproachAtmosphere: {
+      cooldownMs: 30000,
+      clips: [
+        { path: 'assets/expedition/sfx/opening/opening-desert-wind.ogg', volume: 0.16, playbackRate: 0.62 },
+        { path: 'assets/expedition/sfx/opening/opening-deep-rumble.ogg', volume: 0.18, delay: 650, playbackRate: 0.44 },
+        { path: 'assets/expedition/sfx/opening/opening-deep-rumble.ogg', volume: 0.13, delay: 4800, playbackRate: 0.38 },
+        { path: 'assets/expedition/sfx/opening/opening-deep-rumble.ogg', volume: 0.11, delay: 9800, playbackRate: 0.34 },
+      ],
+    },
     openingThresholdFall: {
       cooldownMs: 12000,
       clips: [
