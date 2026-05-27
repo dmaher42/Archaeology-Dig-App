@@ -16,6 +16,7 @@ test('curation analysis summary exposes the correct lab answer for museum labels
   const summary = gameLogic.getCurationAnalysisSummary(
     {
       answerText: 'They used decorated jars mainly for cooking meals.',
+      labResultText: 'Animal-headed lid and stone container for organs.',
       answerIsCorrect: false,
       promptTitle: 'Beliefs',
       note: 'The canopic jar suggests burial beliefs mattered.',
@@ -26,8 +27,10 @@ test('curation analysis summary exposes the correct lab answer for museum labels
   assert.deepEqual(summary, {
     correctAnswerText: 'They believed organs needed to be protected for the afterlife.',
     selectedAnswerText: 'They used decorated jars mainly for cooking meals.',
+    labResultText: 'Animal-headed lid and stone container for organs.',
     answerIsCorrect: false,
     promptTitle: 'Beliefs',
+    focusTitle: 'Beliefs',
     note: 'The canopic jar suggests burial beliefs mattered.',
   });
 });

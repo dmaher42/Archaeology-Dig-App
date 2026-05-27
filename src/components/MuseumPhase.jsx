@@ -30,17 +30,23 @@ export function MuseumPhase({
   onBackToMenu
 }) {
   const [previewArtifact, setPreviewArtifact] = useState(null);
+  const [activeCuratedId, setActiveCuratedId] = useState(null);
   const curatedSet = new Set(curatedItems.map(item => item.id));
 
   const analysedArtifacts = activeArtifacts.filter(item => !!hypotheses[item.id]);
-  const emptySlots = Array.from({ length: Math.max(0, 3 - curatedItems.length) });
+  const activeCuratedItem = curatedItems.find(item => item.id === activeCuratedId) || curatedItems[0] || null;
+  const activeCuratedIndex = activeCuratedItem
+    ? curatedItems.findIndex(item => item.id === activeCuratedItem.id)
+    : -1;
 
   const toggleCuration = (artifact) => {
     if (curatedSet.has(artifact.id)) {
       setCuratedItems(prev => prev.filter(item => item.id !== artifact.id));
+      setActiveCuratedId(prev => prev === artifact.id ? null : prev);
     } else {
       if (curatedItems.length >= 3) return; // Max 3
       setCuratedItems(prev => [...prev, artifact]);
+      setActiveCuratedId(artifact.id);
     }
   };
 
@@ -152,62 +158,85 @@ export function MuseumPhase({
            <div className="museum-panel-heading">Exhibition Display</div>
            <p className="museum-panel-subheading">Write a plaque for each curated find.</p>
 
-           <div className="museum-display-grid">
-              {curatedItems.map((item, index) => {
+           <div className="museum-display-workspace">
+              {curatedItems.length > 0 && (
+                <div className="museum-find-tabs" role="tablist" aria-label="Curated finds">
+                  {curatedItems.map((item, index) => {
+                    const isActive = activeCuratedItem?.id === item.id;
+
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        role="tab"
+                        aria-selected={isActive}
+                        className={`museum-find-tab ${isActive ? 'active' : ''}`}
+                        onClick={() => setActiveCuratedId(item.id)}
+                      >
+                        <span>Find {index + 1}</span>
+                        <strong>{item.name}</strong>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {activeCuratedItem ? (() => {
+                const item = activeCuratedItem;
                 const analysis = hypotheses[item.id];
-                const labResultText = analysis?.labResultText || getObservableLabResult(item);
                 const analysisSummary = getCurationAnalysisSummary(analysis, item);
                 const museumLabelPrompt = getMuseumDisplayLabelPrompt(item);
 
                 return (
-                  <div key={item.id} className="museum-display-card">
-                    <div className="museum-display-header">
-                       <div className="museum-display-number">Find {index + 1}</div>
-                       <button className="museum-remove-btn" onClick={() => toggleCuration(item)}>Remove</button>
+                  <div className="museum-display-card museum-focus-card">
+                    <div className="museum-evidence-header">
+                      <button
+                        type="button"
+                        className="museum-display-visual museum-evidence-thumb"
+                        onClick={() => setPreviewArtifact(item)}
+                        aria-label={`Inspect ${item.name} image`}
+                      >
+                         <img
+                           src={getEvidenceImagePath(item)}
+                           alt={item.name}
+                           style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '8px' }}
+                         />
+                         <span className="museum-image-expand-chip">
+                           <Maximize2 size={13} />
+                         </span>
+                      </button>
+
+                      <div className="museum-focus-summary">
+                        <div className="museum-display-number">Find {activeCuratedIndex + 1}</div>
+                        <h4>{item.name}</h4>
+                        <p>{getCategoryTitle(item.type)}</p>
+                        {evidenceConditions[item.id]?.condition && (
+                          <span className={`condition-badge condition-${evidenceConditions[item.id].condition}`}>
+                            {formatConditionLabel(evidenceConditions[item.id].condition)}
+                          </span>
+                        )}
+                      </div>
+
+                      <button className="museum-remove-btn" onClick={() => toggleCuration(item)}>Remove</button>
                     </div>
-                    <button
-                      type="button"
-                      className="museum-display-visual"
-                      onClick={() => setPreviewArtifact(item)}
-                      aria-label={`Inspect ${item.name} image`}
-                    >
-                       <img
-                         src={getEvidenceImagePath(item)}
-                         alt={item.name}
-                         style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '8px' }}
-                       />
-                       <span className="museum-image-expand-chip">
-                         <Maximize2 size={13} />
-                       </span>
-                    </button>
+
                     <div className="museum-display-body">
-                       <h4>{item.name}</h4>
-                       <div className="museum-display-analysis-box">
-                          <strong>Lab Result:</strong>
-                          {evidenceConditions[item.id]?.condition && (
-                            <p className="museum-analysis-note">
-                              Field condition: {formatConditionLabel(evidenceConditions[item.id].condition)}
-                            </p>
-                          )}
+                       <div className="museum-display-analysis-box museum-lab-bridge">
+                          <strong>From Your Lab Analysis</strong>
                           {analysis ? (
                              <>
-                               <p className="museum-analysis-answer">{labResultText}</p>
-                               {analysisSummary?.correctAnswerText && (
-                                 <div className="museum-analysis-correct-answer">
-                                   <strong>Correct answer:</strong>
-                                   <span>{analysisSummary.correctAnswerText}</span>
+                               <dl className="museum-lab-bridge-list">
+                                 <div>
+                                   <dt>Lab result</dt>
+                                   <dd>{analysisSummary?.labResultText || getObservableLabResult(item)}</dd>
                                  </div>
-                               )}
-                               {analysisSummary && !analysisSummary.answerIsCorrect && analysisSummary.selectedAnswerText && (
-                                 <p className="museum-analysis-note">
-                                   Your lab choice: {analysisSummary.selectedAnswerText}
-                                 </p>
-                               )}
-                               {analysisSummary?.promptTitle && (
-                                 <p className="museum-analysis-note">
-                                   Use this for: {analysisSummary.promptTitle}
-                                 </p>
-                               )}
+                                 {analysisSummary?.correctAnswerText && (
+                                   <div>
+                                     <dt>Confirmed meaning</dt>
+                                     <dd>{analysisSummary.correctAnswerText}</dd>
+                                   </div>
+                                 )}
+                               </dl>
                              </>
                            ) : (
                              <p>No research note.</p>
@@ -225,20 +254,7 @@ export function MuseumPhase({
                     </div>
                   </div>
                 );
-              })}
-              {curatedItems.length > 0 && emptySlots.map((_, index) => (
-                <div
-                  key={`empty-slot-${index}`}
-                  className="museum-display-card museum-display-slot"
-                >
-                  <div className="museum-display-number">Open Slot {curatedItems.length + index + 1}</div>
-                  <div className="museum-slot-placeholder">
-                    <Camera size={24} />
-                    <p>Select another find from the curation tray.</p>
-                  </div>
-                </div>
-              ))}
-              {curatedItems.length === 0 && (
+              })() : (
                 <div className="museum-empty-display">
                   <Camera size={32} />
                   <p>Select finds from the tray to build your exhibition.</p>

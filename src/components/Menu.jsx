@@ -110,24 +110,18 @@ export function ActivityMenu({
 
     return (
       <section className="phase-container menu-phase selection-view">
-        <div className="menu-hero glass-card">
-          <div className="menu-hero-copy">
-            <button
-              className="back-to-modes-btn"
-              onClick={closeSiteSelection}
-              style={{ justifySelf: 'start' }}
-            >
-              <ChevronLeft size={16} /> Back to Missions
-            </button>
+        <div className="selection-command-bar glass-card">
+          <button
+            className="back-to-modes-btn"
+            onClick={closeSiteSelection}
+          >
+            <ChevronLeft size={16} /> Back to Missions
+          </button>
+          <div className="selection-command-heading">
             <div className="training-kicker">Mission Plan</div>
-            <h2 className="premium-text-glow">Interactive Expedition Map</h2>
-            <p>Send your team to a site to begin your dig mission.</p>
+            <h2>Interactive Expedition Map</h2>
           </div>
-          <div className="menu-hero-art">
-            <div className="menu-save-note">Interactive Plan</div>
-            <div className="menu-hero-sun" />
-            <div className="menu-hero-sprite" />
-          </div>
+          <div className="selection-command-status">Interactive Plan</div>
         </div>
 
         <div className="selection-layout">

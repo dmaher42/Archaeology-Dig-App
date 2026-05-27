@@ -270,16 +270,6 @@ export function LabPhase({ activeArtifacts, itemsLocation, hypotheses, setHypoth
                    )}
                 </div>
 
-                <div className="lab-analysis-section">
-                   <div className="lab-section-title">3. Prepare for Curation</div>
-                   <p className="lab-section-instruction">Save the confirmed lab result. You will write your full interpretation in the museum display.</p>
-
-                   <div className="lab-curation-preview">
-                      <strong>Curate will ask:</strong>
-                      <p>What might this tell us about people's lives, beliefs, work, or society?</p>
-                   </div>
-                </div>
-
                 <div className="lab-analysis-actions">
                   <button
                     className="btn primary-btn lab-save-btn"

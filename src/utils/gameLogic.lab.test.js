@@ -43,6 +43,6 @@ test('lab focus feedback marks a mismatched historical focus as incorrect', () =
     correctFocusId: 'beliefs',
     isCorrect: false,
     title: 'Try another focus',
-    message: 'This evidence fits Beliefs more strongly than Technology.',
+    message: 'Look again at the clue and the meaning you selected. Choose the focus that best explains what historians can learn from this evidence.',
   });
 });

@@ -290,8 +290,9 @@ test('first Egypt secret route rewards curiosity without changing main progressi
   assert.match(journeyComponentSource, /FORGOTTEN_MURAL_CHAMBER_ENTRY_SPAWN = \{/);
   assert.match(journeyComponentSource, /x:\s*scaleJourneyX\(918\)/);
   assert.match(journeyComponentSource, /y:\s*openingJourneyY\(318\)/);
-  assert.match(journeyComponentSource, /FORGOTTEN_MURAL_CHAMBER_RETURN_FALLBACK = \{[\s\S]*?x:\s*scaleJourneyX\(665\)[\s\S]*?y:\s*openingJourneyY\(318\)/);
+  assert.match(journeyComponentSource, /FORGOTTEN_MURAL_CHAMBER_RETURN_FALLBACK = \{[\s\S]*?x:\s*scaleJourneyX\(965\)[\s\S]*?y:\s*openingJourneyY\(318\)/);
   assert.doesNotMatch(journeyComponentSource, /FORGOTTEN_MURAL_CHAMBER_RETURN_FALLBACK = \{[\s\S]*?x:\s*scaleJourneyX\(1030\)/);
+  assert.doesNotMatch(journeyComponentSource, /FORGOTTEN_MURAL_CHAMBER_RETURN_FALLBACK = \{[\s\S]*?x:\s*scaleJourneyX\(665\)/);
   assert.match(journeyComponentSource, /player\.x = FORGOTTEN_MURAL_CHAMBER_ENTRY_SPAWN\.x - player\.width \/ 2/);
   assert.match(journeyComponentSource, /player\.y = FORGOTTEN_MURAL_CHAMBER_ENTRY_SPAWN\.y - player\.height/);
   assert.match(journeyComponentSource, /FORGOTTEN_MURAL_CHAMBER_CAMERA_X = scaleJourneyX\(880\)/);

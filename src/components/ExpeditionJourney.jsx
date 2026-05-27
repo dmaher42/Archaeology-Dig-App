@@ -604,7 +604,7 @@ const FORGOTTEN_MURAL_CHAMBER_ENTRY_SPAWN = {
   direction: 1,
 };
 const FORGOTTEN_MURAL_CHAMBER_RETURN_FALLBACK = {
-  x: scaleJourneyX(665),
+  x: scaleJourneyX(965),
   y: openingJourneyY(318),
   cameraAnchorRatio: 0.42,
   direction: 1,
