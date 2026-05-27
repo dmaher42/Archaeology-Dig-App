@@ -310,6 +310,9 @@ const COMBAT_INTENSITY_VERSION = 'combat-impact-pressure-2026-05-16';
 const PLAYER_ATTACK_STAMINA_COST = 1;
 const MISSED_ATTACK_EXTRA_STAMINA_COST = 1;
 const PROTECTED_HIT_EXTRA_STAMINA_COST = 1;
+const PLAYER_ATTACK_RANGE = 68;
+const PLAYER_ATTACK_HEIGHT = 32;
+const PLAYER_ATTACK_BACK_REACH = 6;
 const PLAYER_HIT_SCREEN_SHAKE_DURATION = 0.22;
 const PLAYER_HIT_SCREEN_SHAKE_PIXELS = 2.4;
 const SCORPION_ATTACK_RANGE_MULTIPLIER = 1.4;
@@ -11897,7 +11900,14 @@ export default function ExpeditionJourney({
       audioControls?.playAction?.();
     }
     if (current.attackTimer > 0) {
-      attackRect = getAttackBox(player, 48, 30, player.direction);
+      attackRect = getAttackBox(
+        player,
+        PLAYER_ATTACK_RANGE,
+        PLAYER_ATTACK_HEIGHT,
+        player.direction,
+        0,
+        PLAYER_ATTACK_BACK_REACH,
+      );
       current.playerAttackBox = attackRect;
     } else {
       current.playerAttackBox = null;
