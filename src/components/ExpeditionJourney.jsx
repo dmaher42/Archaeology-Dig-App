@@ -8880,22 +8880,22 @@ export default function ExpeditionJourney({
     const eruption = beat?.sandEruption || 0;
     const rise = beat?.queenRise || 0;
     const asset = scarabQueenLairOpeningImageRef.current;
-    const width = 360 + crack * 38;
+    const width = 500 + crack * 64;
     const height = width * (330 / 980);
     const drawX = screenX - width / 2;
     const drawY = GROUND_Y - height + 6;
     const pulse = 0.82 + Math.sin(now / 150) * 0.12;
 
     ctx.save();
-    drawContactShadow(ctx, screenX, GROUND_Y + 4, width * 0.78, 0.18 + crack * 0.08, 1.1);
+    drawContactShadow(ctx, screenX, GROUND_Y + 4, width * 0.82, 0.2 + crack * 0.1, 1.1);
     if (glowStrength > 0) {
-      const glow = ctx.createRadialGradient(screenX, GROUND_Y - 34, 8, screenX, GROUND_Y - 34, 104 + glowStrength * 86);
+      const glow = ctx.createRadialGradient(screenX, GROUND_Y - 36, 10, screenX, GROUND_Y - 36, 132 + glowStrength * 112);
       glow.addColorStop(0, `rgba(45, 212, 191, ${0.2 + glowStrength * 0.2})`);
       glow.addColorStop(0.36, `rgba(250, 204, 21, ${0.1 + glowStrength * 0.22})`);
       glow.addColorStop(1, 'rgba(120, 53, 15, 0)');
       ctx.fillStyle = glow;
       ctx.beginPath();
-      ctx.ellipse(screenX, GROUND_Y - 34, (104 + glowStrength * 68) * pulse, (40 + glowStrength * 26) * pulse, 0, 0, Math.PI * 2);
+      ctx.ellipse(screenX, GROUND_Y - 36, (132 + glowStrength * 92) * pulse, (48 + glowStrength * 34) * pulse, 0, 0, Math.PI * 2);
       ctx.fill();
     }
 
@@ -8942,7 +8942,7 @@ export default function ExpeditionJourney({
         );
         ctx.fill();
       }
-      drawGroundDustLip(ctx, screenX, GROUND_Y + 1, width * (0.74 + eruption * 0.34), `rgba(202, 138, 62, ${0.2 + eruption * 0.34})`);
+      drawGroundDustLip(ctx, screenX, GROUND_Y + 1, width * (0.82 + eruption * 0.36), `rgba(202, 138, 62, ${0.2 + eruption * 0.34})`);
     }
 
     if (rise > 0 && rise < 0.96) {
@@ -9097,11 +9097,12 @@ export default function ExpeditionJourney({
     const introProgress = introActive
       ? Math.min(1, stateRef.current.bossIntroTimer / (activeBossDomain?.introSeconds || 3.2))
       : 0;
+    const buriedSandEmergenceActive = Boolean(activeBossDomain?.buriedSandEmergence && introActive);
     const bossVisualState = {
       ...getBossVulnerabilityState(boss),
       introActive,
-      buriedSandEmergence: Boolean(activeBossDomain?.buriedSandEmergence),
-      cinematicBeat: activeBossDomain?.buriedSandEmergence ? getScarabQueenEmergenceBeat(introProgress) : null,
+      buriedSandEmergence: buriedSandEmergenceActive,
+      cinematicBeat: buriedSandEmergenceActive ? getScarabQueenEmergenceBeat(introProgress) : null,
     };
 
     ctx.save();

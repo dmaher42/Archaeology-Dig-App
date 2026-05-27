@@ -1666,6 +1666,7 @@ test('Scarab Queen boss intro is staged as a buried-sand emergence cinematic', (
   assert.match(journeyComponentSource, /const SCARAB_QUEEN_CINEMATIC_CAMERA_ANCHOR_RATIO = 0\.72/);
   assert.match(journeyComponentSource, /const SCARAB_QUEEN_LAIR_OPENING_IMAGE_SRC = 'assets\/expedition\/bosses\/scarab-queen-buried-lair-opening\.png'/);
   assert.match(journeyComponentSource, /const drawScarabQueenLairOpeningProp = useCallback/);
+  assert.match(journeyComponentSource, /const width = 500 \+ crack \* 64/);
   assert.match(journeyComponentSource, /const getScarabQueenEmergenceBeat = \(introProgress\) =>/);
   assert.match(journeyComponentSource, /buriedSealCrack:/);
   assert.match(journeyComponentSource, /glyphGlow:/);
@@ -1679,7 +1680,8 @@ test('Scarab Queen boss intro is staged as a buried-sand emergence cinematic', (
   assert.match(journeyComponentSource, /cameraAnchorRatio:\s*scarabQueenCinematic \? SCARAB_QUEEN_CINEMATIC_CAMERA_ANCHOR_RATIO : null/);
   assert.match(journeyComponentSource, /LAIR OPENS/);
   assert.match(journeyComponentSource, /QUEEN RISES/);
-  assert.match(journeyComponentSource, /cinematicBeat:\s*activeBossDomain\?\.buriedSandEmergence \? getScarabQueenEmergenceBeat\(introProgress\) : null/);
+  assert.match(journeyComponentSource, /const buriedSandEmergenceActive = Boolean\(activeBossDomain\?\.buriedSandEmergence && introActive\)/);
+  assert.match(journeyComponentSource, /cinematicBeat:\s*buriedSandEmergenceActive \? getScarabQueenEmergenceBeat\(introProgress\) : null/);
   assert.doesNotMatch(journeyComponentSource, /id:\s*'scarab-queen-trigger-looter'[\s\S]*?type:\s*'looter'/);
   assert.match(journeyComponentSource, /if \(boss\.id === 'scarab-queen' && bossVisualState\?\.buriedSandEmergence && bossVisualState\.cinematicBeat\?\.queenRise <= 0\) return false;/);
   assert.match(journeyComponentSource, /if \(isBuriedScarabQueen && current\.bossDomain\?\.bossId === boss\.id\) \{[\s\S]*?drawScarabQueenLairOpeningProp\(ctx, current\.bossDomain\.bossStartX \|\| boss\.x \+ boss\.width \/ 2, cameraX, now\)/);
