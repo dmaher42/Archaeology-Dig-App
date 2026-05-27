@@ -1266,6 +1266,7 @@ export const STAGE_ENTRANCE_FEATURES = [
     type: 'tomb-doorway',
     assetKey: 'desertEndGateway',
     structureTheme: 'sunlit-desert-gateway',
+    permanentStructure: true,
     width: 940,
     height: 620,
     yOffset: 13,

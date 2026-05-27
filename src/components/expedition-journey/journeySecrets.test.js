@@ -365,6 +365,7 @@ test('world continuity landmarks foreshadow future expedition sections', () => {
   });
   assert.match(stageEntranceFeatures, /type:\s*'tomb-doorway'/);
   assert.match(stageEntranceFeatures, /id:\s*'ruined-temple-colossus-gate'[\s\S]*?yOffset:\s*13/);
+  assert.match(stageEntranceFeatures, /id:\s*'ruined-temple-colossus-gate'[\s\S]*?permanentStructure:\s*true/);
   assert.match(stageEntranceFeatures, /width:\s*1260/);
   assert.match(stageEntranceFeatures, /height:\s*630/);
   assert.match(stageEntranceFeatures, /focusDistance:\s*560/);
@@ -374,6 +375,9 @@ test('world continuity landmarks foreshadow future expedition sections', () => {
   assert.match(journeyComponentSource, /stageEntranceDoorwayRef/);
   assert.match(journeyComponentSource, /Math\.min\(0,\s*CANVAS_HEIGHT - height\) \+ \(feature\.yOffset \|\| 0\)/);
   assert.match(journeyComponentSource, /ctx\.drawImage\(doorwayAsset\.image/);
+  assert.match(journeyComponentSource, /const permanentStructure = Boolean\(feature\.permanentStructure\)/);
+  assert.match(journeyComponentSource, /if \(!permanentStructure\) \{[\s\S]*?drawContactShadow\(ctx, centerX, floorY \+ 2, width \* 0\.62, 0\.28, 1\.22\)/);
+  assert.match(journeyComponentSource, /if \(!permanentStructure\) \{[\s\S]*?const vignette = ctx\.createRadialGradient[\s\S]*?ctx\.ellipse\(doorwayCenterX, doorwayCenterY, doorwayRadiusX, doorwayRadiusY/);
   assert.match(journeyComponentSource, /mode:\s*'stage-entrance'/);
   assert.match(journeyComponentSource, /nearbyStageEntrance\.x - CANVAS_WIDTH \* 0\.5/);
   assert.match(journeyComponentSource, /drawStageEntranceFeature/);

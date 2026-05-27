@@ -434,7 +434,7 @@ const DEFAULT_LEVEL_TRANSITION = {
 };
 
 const STAGE_ENTRANCE_THEME_FILTERS = {
-  'sunlit-desert-gateway': 'sepia(3%) saturate(98%) brightness(96%) contrast(103%) drop-shadow(0 16px 16px rgba(34, 18, 8, 0.24))',
+  'sunlit-desert-gateway': 'sepia(3%) saturate(104%) brightness(103%) contrast(101%)',
   'cool-catacomb-descent': 'sepia(8%) saturate(88%) hue-rotate(162deg) brightness(72%) contrast(116%) drop-shadow(0 18px 20px rgba(0, 8, 18, 0.42))',
   'collapsed-breach': 'sepia(22%) saturate(125%) hue-rotate(-8deg) brightness(86%) contrast(118%) drop-shadow(0 18px 18px rgba(46, 21, 8, 0.38))',
   'open-dig-site-threshold': 'sepia(10%) saturate(112%) hue-rotate(20deg) brightness(104%) contrast(98%) drop-shadow(0 12px 18px rgba(35, 25, 10, 0.22))',
@@ -6973,6 +6973,7 @@ export default function ExpeditionJourney({
     const current = stateRef.current;
     const routeGate = ROUTE_GATES.find(item => item.id === feature.routeGateId);
     const doorwayUnlocked = !routeGate || current.openedRouteGateIds?.has(routeGate.id) || areRouteGateRequirementsMetForState(routeGate, current);
+    const permanentStructure = Boolean(feature.permanentStructure);
     const passageVisual = feature.passageVisual || {};
     const doorwayCenterX = drawX + width * (passageVisual.centerX ?? 0.5);
     const doorwayCenterY = drawY + height * (passageVisual.centerY ?? 0.54);
@@ -6981,7 +6982,9 @@ export default function ExpeditionJourney({
 
     ctx.save();
     drawRouteGroundApron(ctx, centerX, floorY - 2, width * 0.72, sectionId, 0.78, Math.round(feature.x));
-    drawContactShadow(ctx, centerX, floorY + 2, width * 0.62, 0.28, 1.22);
+    if (!permanentStructure) {
+      drawContactShadow(ctx, centerX, floorY + 2, width * 0.62, 0.28, 1.22);
+    }
     ctx.save();
     ctx.filter = STAGE_ENTRANCE_THEME_FILTERS[feature.structureTheme] || 'drop-shadow(0 16px 16px rgba(34, 18, 8, 0.24))';
     ctx.drawImage(doorwayAsset.image, drawX, drawY, width, height);
@@ -7009,35 +7012,37 @@ export default function ExpeditionJourney({
       ctx.globalAlpha = 1;
     }
 
-    const vignette = ctx.createRadialGradient(doorwayCenterX, doorwayCenterY, width * 0.08, doorwayCenterX, doorwayCenterY, width * 0.5);
-    vignette.addColorStop(0, `rgba(20, 184, 166, ${doorwayUnlocked ? 0.08 + focus * 0.1 : 0.03})`);
-    vignette.addColorStop(0.5, 'rgba(20, 10, 5, 0)');
-    vignette.addColorStop(1, `rgba(18, 10, 6, ${0.08 + focus * 0.18})`);
-    ctx.fillStyle = vignette;
-    ctx.fillRect(drawX, drawY, width, height);
+    if (!permanentStructure) {
+      const vignette = ctx.createRadialGradient(doorwayCenterX, doorwayCenterY, width * 0.08, doorwayCenterX, doorwayCenterY, width * 0.5);
+      vignette.addColorStop(0, `rgba(20, 184, 166, ${doorwayUnlocked ? 0.08 + focus * 0.1 : 0.03})`);
+      vignette.addColorStop(0.5, 'rgba(20, 10, 5, 0)');
+      vignette.addColorStop(1, `rgba(18, 10, 6, ${0.08 + focus * 0.18})`);
+      ctx.fillStyle = vignette;
+      ctx.fillRect(drawX, drawY, width, height);
 
-    ctx.globalAlpha = doorwayUnlocked ? 0.18 + focus * 0.16 + pulse * 0.04 : 0.32 + focus * 0.08;
-    ctx.fillStyle = doorwayUnlocked ? 'rgba(8, 18, 24, 0.72)' : 'rgba(18, 13, 9, 0.82)';
-    ctx.beginPath();
-    ctx.ellipse(doorwayCenterX, doorwayCenterY, doorwayRadiusX, doorwayRadiusY, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.globalAlpha = 1;
-
-    if (!doorwayUnlocked) {
-      const lockPulse = 0.7 + Math.sin(now / 260) * 0.12;
-      ctx.globalAlpha = 0.78;
-      ctx.fillStyle = 'rgba(30, 19, 10, 0.72)';
+      ctx.globalAlpha = doorwayUnlocked ? 0.18 + focus * 0.16 + pulse * 0.04 : 0.32 + focus * 0.08;
+      ctx.fillStyle = doorwayUnlocked ? 'rgba(8, 18, 24, 0.72)' : 'rgba(18, 13, 9, 0.82)';
       ctx.beginPath();
-      ctx.roundRect(doorwayCenterX - 38, doorwayCenterY - 34, 76, 76, 12);
-      ctx.fill();
-      ctx.strokeStyle = `rgba(250, 204, 21, ${0.48 + lockPulse * 0.24})`;
-      ctx.lineWidth = 3;
-      ctx.stroke();
-      ctx.fillStyle = `rgba(250, 204, 21, ${0.34 + lockPulse * 0.2})`;
-      ctx.beginPath();
-      ctx.ellipse(doorwayCenterX, doorwayCenterY + 2, 22, 28, 0, 0, Math.PI * 2);
+      ctx.ellipse(doorwayCenterX, doorwayCenterY, doorwayRadiusX, doorwayRadiusY, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.globalAlpha = 1;
+
+      if (!doorwayUnlocked) {
+        const lockPulse = 0.7 + Math.sin(now / 260) * 0.12;
+        ctx.globalAlpha = 0.78;
+        ctx.fillStyle = 'rgba(30, 19, 10, 0.72)';
+        ctx.beginPath();
+        ctx.roundRect(doorwayCenterX - 38, doorwayCenterY - 34, 76, 76, 12);
+        ctx.fill();
+        ctx.strokeStyle = `rgba(250, 204, 21, ${0.48 + lockPulse * 0.24})`;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        ctx.fillStyle = `rgba(250, 204, 21, ${0.34 + lockPulse * 0.2})`;
+        ctx.beginPath();
+        ctx.ellipse(doorwayCenterX, doorwayCenterY + 2, 22, 28, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
     }
 
     drawGroundDustLip(ctx, centerX, floorY, width * 0.72, 'rgba(216, 154, 82, 0.26)');
