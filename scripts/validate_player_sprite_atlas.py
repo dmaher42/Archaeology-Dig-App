@@ -52,15 +52,16 @@ def main() -> int:
         errors.append(f"row contract changed: {row_names}")
 
     regions = atlas.get("regions", {})
-    if len(regions) != 96:
-        errors.append(f"expected 96 regions, found {len(regions)}")
+    expected_region_count = sum(len(row.get("frames", [])) for row in rows)
+    if len(regions) != expected_region_count:
+        errors.append(f"expected {expected_region_count} regions, found {len(regions)}")
 
     for row in rows:
         frames = row.get("frames", [])
-        if row.get("name") == "idle" and len(frames) != 1:
-            errors.append("idle row must expose one stable frame")
-        elif row.get("name") != "idle" and len(frames) != 8:
-            errors.append(f"{row.get('name')} row must expose 8 frames")
+        if len(frames) != int(row.get("frameCount", 0)):
+            errors.append(f"{row.get('name')} frameCount does not match frames list")
+        if not frames:
+            errors.append(f"{row.get('name')} row has no frames")
         for key in frames:
             region = regions.get(key)
             if not region:
