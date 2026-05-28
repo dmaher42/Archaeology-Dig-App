@@ -311,9 +311,9 @@ const COMBAT_INTENSITY_VERSION = 'combat-impact-pressure-2026-05-16';
 const PLAYER_ATTACK_STAMINA_COST = 1;
 const MISSED_ATTACK_EXTRA_STAMINA_COST = 1;
 const PROTECTED_HIT_EXTRA_STAMINA_COST = 1;
-const PLAYER_ATTACK_RANGE = 68;
-const PLAYER_ATTACK_HEIGHT = 32;
-const PLAYER_ATTACK_BACK_REACH = 6;
+const PLAYER_ATTACK_RANGE = 92;
+const PLAYER_ATTACK_HEIGHT = 36;
+const PLAYER_ATTACK_BACK_REACH = 10;
 const PLAYER_HIT_SCREEN_SHAKE_DURATION = 0.22;
 const PLAYER_HIT_SCREEN_SHAKE_PIXELS = 2.4;
 const SCORPION_ATTACK_RANGE_MULTIPLIER = 1.4;
@@ -494,6 +494,11 @@ const MUMMIFICATION_CHAMBER_INTERIOR_SRC = 'assets/expedition/environment/desert
 const FORGOTTEN_MURAL_ALCOVE_CLIMB_STRUCTURE_SRC = 'assets/expedition/environment/desert-temple/forgotten-mural-alcove-climb-structure.png';
 const FORGOTTEN_MURAL_CHAMBER_SRC = 'assets/expedition/environment/desert-temple/forgotten-mural-chamber.png';
 const SCRIBE_CHAMBER_EXTERIOR_SRC = 'assets/expedition/environment/desert-temple/scribe-locked-chamber-exterior-climb-structure.png';
+const SACRED_RECORD_WAY_BACKGROUND_ASSETS = {
+  'mummification-link': 'assets/expedition/environment/desert-temple/sacred-record-way-mummification-link.png',
+  'mural-link': 'assets/expedition/environment/desert-temple/sacred-record-way-mural-link.png',
+  'scribe-link': 'assets/expedition/environment/desert-temple/sacred-record-way-scribe-link.png',
+};
 const STAGE_ENTRANCE_DOORWAY_SRC = 'assets/expedition/environment/stage-entrances/egypt-tomb-doorway-transition.png';
 const STAGE_ENTRANCE_DOORWAY_VERSION = 'imagegen-egypt-tomb-doorway-transition-2026-05-20';
 const DESERT_END_GATEWAY_SRC = 'assets/expedition/environment/stage-entrances/desert-end-threshold-angled.png';
@@ -510,6 +515,7 @@ const MUMMIFICATION_CHAMBER_INTERIOR_VERSION = 'imagegen-mummification-chamber-i
 const FORGOTTEN_MURAL_ALCOVE_CLIMB_STRUCTURE_VERSION = 'imagegen-forgotten-mural-alcove-climb-structure-2026-05-24';
 const FORGOTTEN_MURAL_CHAMBER_VERSION = 'imagegen-forgotten-mural-chamber-2026-05-24';
 const SCRIBE_CHAMBER_EXTERIOR_VERSION = 'imagegen-scribe-locked-chamber-exterior-climb-structure-2026-05-28';
+const SACRED_RECORD_WAY_BACKGROUND_VERSION = 'imagegen-sacred-record-way-background-2026-05-29';
 const FORGOTTEN_MURAL_CHAMBER_RESTORATION_IDS = ['egypt-scarab-fragment-1', 'egypt-scarab-fragment-2', 'egypt-scarab-fragment-3'];
 const OPENING_PYRAMID_FACADE_WORLD_LEFT_X = -82;
 const OPENING_PYRAMID_GROUND_JUMP_MULTIPLIER = 1.32;
@@ -694,14 +700,14 @@ const MUMMIFICATION_CHAMBER_ENTRY_SPAWN = {
   direction: 1,
 };
 const MUMMIFICATION_CHAMBER_RETURN_FALLBACK = {
-  x: scaleJourneyX(770),
+  x: scaleJourneyX(710),
   y: openingJourneyY(48),
   cameraAnchorRatio: 0.42,
   direction: 1,
 };
 const MUMMIFICATION_CHAMBER_ENTRY_TRIGGER = {
-  minX: scaleJourneyX(742),
-  maxX: scaleJourneyX(798),
+  minX: scaleJourneyX(704),
+  maxX: scaleJourneyX(744),
   maxY: GROUND_Y - 190,
   footY: openingJourneyY(48),
   footTolerance: 22,
@@ -828,16 +834,16 @@ const FORGOTTEN_MURAL_CHAMBER_ENTRY_SPAWN = {
   direction: 1,
 };
 const FORGOTTEN_MURAL_CHAMBER_RETURN_FALLBACK = {
-  x: scaleJourneyX(965),
+  x: scaleJourneyX(1220),
   y: openingJourneyY(318),
   cameraAnchorRatio: 0.42,
   direction: 1,
 };
 const FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER = {
-  minX: scaleJourneyX(958),
-  maxX: scaleJourneyX(992),
+  minX: scaleJourneyX(1213),
+  maxX: scaleJourneyX(1247),
   maxY: GROUND_Y - 170,
-  footY: openingJourneyY(-20),
+  footY: openingJourneyY(-42),
   footTolerance: 18,
 };
 const FORGOTTEN_MURAL_CHAMBER_CAMERA_X = scaleJourneyX(880);
@@ -859,16 +865,16 @@ const SCRIBE_CHAMBER_ENTRY_SPAWN = {
   direction: 1,
 };
 const SCRIBE_CHAMBER_RETURN_FALLBACK = {
-  x: scaleJourneyX(1118),
-  y: openingJourneyY(138),
+  x: scaleJourneyX(1684),
+  y: openingJourneyY(122),
   cameraAnchorRatio: 0.42,
   direction: 1,
 };
 const SCRIBE_CHAMBER_ENTRY_TRIGGER = {
-  minX: scaleJourneyX(1126),
-  maxX: scaleJourneyX(1160),
+  minX: scaleJourneyX(1684),
+  maxX: scaleJourneyX(1714),
   maxY: GROUND_Y - 250,
-  footY: openingJourneyY(72),
+  footY: openingJourneyY(62),
   footTolerance: 24,
 };
 const SCRIBE_CHAMBER_CAMERA_X = scaleJourneyX(1180);
@@ -1005,6 +1011,18 @@ const PLAYER_CHARACTER_PRESETS = [
     description: 'Use the character chosen by the current expedition.',
   },
   {
+    id: 'asha-reference-warrior',
+    label: 'Asha Reference Warrior',
+    description: 'New Asha based on the provided warrior reference, with full animation rows in one atlas.',
+    characterId: 'asha-reference-warrior',
+    atlasPath: 'assets/expedition/player/asha-reference-warrior-spritesheet.json',
+    version: 'asha-reference-warrior-2026-05-28',
+    fallbackAtlasPath: 'assets/expedition/player/asha-final-production-spritesheet.json',
+    fallbackAtlasVersion: 'asha-master-reference-motion-2026-05-23',
+    fallbackCharacterId: 'asha-final-production',
+    fallbackSrc: PLAYER_LEGACY_SPRITE_SRC,
+  },
+  {
     id: 'asha-production',
     label: 'Asha Final Production',
     description: 'Final playable Asha with warrior sword combat.',
@@ -1059,9 +1077,9 @@ const PLAYER_CHARACTER_PRESETS = [
     characterId: 'asha-v2-production-candidate',
     atlasPath: 'assets/expedition/player/asha-v2-production-candidate-spritesheet.json',
     version: 'asha-v2-production-candidate-idle-8frame-2026-05-28',
-    fallbackAtlasPath: PLAYER_HERO_SPRITE_ATLAS_JSON,
-    fallbackAtlasVersion: PLAYER_HERO_SPRITE_VERSION,
-    fallbackCharacterId: 'asha-egypt-warrior-explorer',
+    fallbackAtlasPath: 'assets/expedition/player/asha-final-production-spritesheet.json',
+    fallbackAtlasVersion: 'asha-master-reference-motion-2026-05-23',
+    fallbackCharacterId: 'asha-final-production',
     fallbackSrc: PLAYER_LEGACY_SPRITE_SRC,
   },
   {
@@ -1127,7 +1145,7 @@ const getPlayerHeroSpriteConfig = ({ targetCivilisation, backgroundPackId, chara
   }
   return {
     id: 'auto',
-    characterId: 'asha-v5-candidate',
+    characterId: 'asha-v2-production-candidate',
     atlasPath: PLAYER_HERO_SPRITE_ATLAS_JSON,
     version: PLAYER_HERO_SPRITE_VERSION,
     fallbackAtlasPath: 'assets/expedition/player/asha-final-production-spritesheet.json',
@@ -2445,6 +2463,7 @@ export default function ExpeditionJourney({
   const forgottenMuralAlcoveStructureRef = useRef({ image: null, loaded: false, failed: false, version: FORGOTTEN_MURAL_ALCOVE_CLIMB_STRUCTURE_VERSION });
   const forgottenMuralChamberRef = useRef({ image: null, loaded: false, failed: false, version: FORGOTTEN_MURAL_CHAMBER_VERSION });
   const scribeChamberExteriorRef = useRef({ image: null, loaded: false, failed: false, version: SCRIBE_CHAMBER_EXTERIOR_VERSION });
+  const sacredRecordWayBackgroundRef = useRef({ images: {}, loaded: false, failed: false, version: SACRED_RECORD_WAY_BACKGROUND_VERSION });
   const openingTrapDecalPackRef = useRef({ image: null, loaded: false, failed: false });
   const openingHazardDecalPackRef = useRef({ image: null, loaded: false, failed: false });
   const stageEntranceDoorwayRef = useRef({ image: null, loaded: false, failed: false, version: STAGE_ENTRANCE_DOORWAY_VERSION });
@@ -2494,6 +2513,40 @@ export default function ExpeditionJourney({
       openingScarabSealImageRef.current = { image: null, loaded: false, failed: true };
     };
     image.src = `${import.meta.env.BASE_URL}${OPENING_SCARAB_SEAL_IMAGE_SRC}`;
+    return () => {
+      cancelled = true;
+    };
+  }, [syncHud]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const entries = Object.entries(SACRED_RECORD_WAY_BACKGROUND_ASSETS);
+    const images = {};
+    let loadedCount = 0;
+    let failedCount = 0;
+    const updateState = () => {
+      if (cancelled) return;
+      sacredRecordWayBackgroundRef.current = {
+        images,
+        loaded: loadedCount === entries.length,
+        failed: failedCount > 0,
+        version: SACRED_RECORD_WAY_BACKGROUND_VERSION,
+      };
+      syncHud();
+    };
+    entries.forEach(([key, src]) => {
+      const image = new Image();
+      image.onload = () => {
+        images[key] = image;
+        loadedCount += 1;
+        updateState();
+      };
+      image.onerror = () => {
+        failedCount += 1;
+        updateState();
+      };
+      image.src = `${import.meta.env.BASE_URL}${src}`;
+    });
     return () => {
       cancelled = true;
     };
@@ -8099,8 +8152,32 @@ export default function ExpeditionJourney({
     const pulse = 0.78 + Math.sin(now / 900 + landmark.x * 0.002) * 0.08;
 
     ctx.save();
-    ctx.globalAlpha = landmark.type === 'excavation-camp' ? 0.58 : 0.38;
+    const landmarkAlpha = Number.isFinite(landmark.alpha)
+      ? landmark.alpha
+      : landmark.type === 'excavation-camp'
+        ? 0.58
+        : landmark.layer === 'between-chambers'
+          ? 0.62
+          : 0.38;
+    ctx.globalAlpha = landmarkAlpha;
     drawDecorativeBaseBlend(ctx, x, baseY, width * 0.78, section.id, 'background', 0.38);
+
+    if (landmark.type === 'record-way-png') {
+      const recordAsset = sacredRecordWayBackgroundRef.current.images?.[landmark.assetKey];
+      if (recordAsset) {
+        const drawWidth = width;
+        const drawHeight = height;
+        ctx.filter = 'sepia(8%) saturate(82%) brightness(86%) contrast(96%)';
+        ctx.shadowColor = 'rgba(50, 30, 16, 0.22)';
+        ctx.shadowBlur = 5;
+        ctx.shadowOffsetY = 3;
+        ctx.drawImage(recordAsset, x - drawWidth / 2, baseY - drawHeight, drawWidth, drawHeight);
+        ctx.filter = 'none';
+        ctx.shadowColor = 'transparent';
+      }
+      ctx.restore();
+      return true;
+    }
 
     if (landmark.type === 'mountains') {
       ctx.fillStyle = 'rgba(37, 62, 79, 0.34)';
@@ -8173,6 +8250,104 @@ export default function ExpeditionJourney({
         ctx.beginPath();
         ctx.moveTo(x + i * 22, baseY - height * 0.7);
         ctx.lineTo(x + i * 22 + 8, baseY - height * 0.38);
+        ctx.stroke();
+      }
+    } else if (landmark.type === 'record-causeway') {
+      ctx.fillStyle = 'rgba(44, 31, 22, 0.26)';
+      ctx.beginPath();
+      ctx.moveTo(x - width * 0.48, baseY - height * 0.18);
+      ctx.lineTo(x - width * 0.34, baseY - height * 0.24);
+      ctx.lineTo(x - width * 0.1, baseY - height * 0.21);
+      ctx.lineTo(x + width * 0.18, baseY - height * 0.27);
+      ctx.lineTo(x + width * 0.48, baseY - height * 0.2);
+      ctx.lineTo(x + width * 0.42, baseY - height * 0.08);
+      ctx.lineTo(x - width * 0.46, baseY - height * 0.08);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255, 238, 180, 0.18)';
+      ctx.lineWidth = 2;
+      for (let column = 0; column < 7; column += 1) {
+        const columnX = x - width * 0.39 + column * width * 0.13;
+        ctx.fillStyle = column % 2 === 0 ? 'rgba(88, 57, 31, 0.36)' : 'rgba(59, 39, 24, 0.32)';
+        ctx.beginPath();
+        ctx.roundRect(columnX - 9, baseY - height * 0.58, 18, height * 0.42, 4);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(columnX - 15, baseY - height * 0.6);
+        ctx.lineTo(columnX + 15, baseY - height * 0.6);
+        ctx.moveTo(columnX - 13, baseY - height * 0.17);
+        ctx.lineTo(columnX + 13, baseY - height * 0.17);
+        ctx.stroke();
+      }
+      ctx.strokeStyle = `rgba(250, 204, 21, ${0.16 * pulse})`;
+      ctx.lineWidth = 1.5;
+      for (let row = 0; row < 3; row += 1) {
+        const rowY = baseY - height * (0.5 - row * 0.1);
+        ctx.beginPath();
+        ctx.moveTo(x - width * 0.32, rowY);
+        ctx.lineTo(x - width * 0.18, rowY + Math.sin(now / 1200 + row) * 1.5);
+        ctx.moveTo(x + width * 0.02, rowY + 3);
+        ctx.lineTo(x + width * 0.3, rowY + Math.sin(now / 1200 + row + 1) * 1.5);
+        ctx.stroke();
+      }
+    } else if (landmark.type === 'record-frieze') {
+      const slabGradient = ctx.createLinearGradient(x - width / 2, baseY - height, x + width / 2, baseY);
+      slabGradient.addColorStop(0, 'rgba(92, 57, 28, 0.3)');
+      slabGradient.addColorStop(0.48, 'rgba(171, 112, 55, 0.42)');
+      slabGradient.addColorStop(1, 'rgba(65, 39, 22, 0.32)');
+      ctx.fillStyle = slabGradient;
+      ctx.beginPath();
+      ctx.roundRect(x - width * 0.5, baseY - height * 0.86, width, height * 0.58, 8);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(250, 204, 21, 0.3)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.fillStyle = `rgba(250, 204, 21, ${0.16 * pulse})`;
+      for (let mark = 0; mark < 5; mark += 1) {
+        const markX = x - width * 0.35 + mark * width * 0.17;
+        ctx.beginPath();
+        ctx.ellipse(markX, baseY - height * 0.58, 9, 18, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillRect(markX - 2, baseY - height * 0.42, 4, 16);
+      }
+    } else if (landmark.type === 'record-image-wall') {
+      ctx.fillStyle = 'rgba(75, 48, 28, 0.44)';
+      ctx.beginPath();
+      ctx.roundRect(x - width * 0.5, baseY - height * 0.9, width, height * 0.68, 10);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255, 236, 179, 0.22)';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      ctx.fillStyle = `rgba(96, 165, 250, ${0.14 * pulse})`;
+      ctx.beginPath();
+      ctx.arc(x - width * 0.12, baseY - height * 0.58, 24, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255, 247, 212, 0.24)';
+      ctx.lineWidth = 2;
+      [-0.32, -0.12, 0.12, 0.32].forEach((offset, index) => {
+        const glyphX = x + width * offset;
+        ctx.beginPath();
+        ctx.moveTo(glyphX - 12, baseY - height * (0.72 - index * 0.02));
+        ctx.lineTo(glyphX + 12, baseY - height * (0.72 - index * 0.02));
+        ctx.moveTo(glyphX, baseY - height * 0.78);
+        ctx.lineTo(glyphX, baseY - height * 0.46);
+        ctx.stroke();
+      });
+    } else if (landmark.type === 'record-script-panel') {
+      ctx.fillStyle = 'rgba(52, 35, 24, 0.5)';
+      ctx.beginPath();
+      ctx.roundRect(x - width * 0.36, baseY - height * 0.9, width * 0.72, height * 0.82, 8);
+      ctx.fill();
+      ctx.strokeStyle = `rgba(250, 204, 21, ${0.28 * pulse})`;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.strokeStyle = 'rgba(255, 236, 179, 0.3)';
+      ctx.lineWidth = 1.5;
+      for (let row = 0; row < 5; row += 1) {
+        const rowY = baseY - height * 0.72 + row * height * 0.12;
+        ctx.beginPath();
+        ctx.moveTo(x - width * 0.22, rowY);
+        ctx.lineTo(x + width * 0.22, rowY + Math.sin(now / 900 + row) * 2);
         ctx.stroke();
       }
     } else if (landmark.type === 'guardian-ruin') {
@@ -8840,6 +9015,10 @@ export default function ExpeditionJourney({
     const pulse = 0.78 + Math.sin(now / 360 + route.x * 0.002) * 0.18;
     const useNaturalUpperRouteHint = route.id === 'desert-upper-survey-route';
     ctx.save();
+    if (discovered) {
+      ctx.restore();
+      return;
+    }
     if (useNaturalUpperRouteHint) {
       const baseY = route.y + route.height - 5;
       const sandTrail = ctx.createLinearGradient(x, baseY - 38, x, baseY + 8);
@@ -8898,18 +9077,18 @@ export default function ExpeditionJourney({
       ctx.ellipse(x + route.width * 0.5, route.y + route.height - 10, Math.min(120, route.width * 0.34), 12, 0, 0, Math.PI * 2);
       ctx.fill();
     }
-    if (discovered || locked) {
-      const routeLabel = discovered ? 'Hidden route mapped' : `Needs ${getShopItemDisplayName(access.requiredUpgradeId)}`;
+    if (locked) {
+      const routeLabel = `Needs ${getShopItemDisplayName(access.requiredUpgradeId)}`;
       ctx.font = '800 12px Inter, sans-serif';
       ctx.textAlign = 'center';
       const labelWidth = Math.min(250, ctx.measureText(routeLabel).width + 26);
       const labelY = route.y - 28;
-      ctx.globalAlpha = discovered ? 0.92 : 0.88;
-      ctx.fillStyle = discovered ? 'rgba(63, 47, 10, 0.74)' : 'rgba(8, 26, 39, 0.76)';
+      ctx.globalAlpha = 0.88;
+      ctx.fillStyle = 'rgba(8, 26, 39, 0.76)';
       ctx.beginPath();
       ctx.roundRect(labelX - labelWidth / 2, labelY, labelWidth, 24, 8);
       ctx.fill();
-      ctx.strokeStyle = discovered ? 'rgba(250, 204, 21, 0.62)' : 'rgba(186, 230, 253, 0.58)';
+      ctx.strokeStyle = 'rgba(186, 230, 253, 0.58)';
       ctx.lineWidth = 1;
       ctx.stroke();
       ctx.fillStyle = 'rgba(255, 247, 212, 0.88)';
@@ -13717,6 +13896,7 @@ export default function ExpeditionJourney({
     ENVIRONMENT_INTERACTIONS.forEach((interaction) => {
       if (inInteriorChamberScene) return;
       if (current.brokenEnvironmentIds?.has(interaction.id)) return;
+      if (interaction.oneShot && current.triggeredEnvironmentIds?.has(interaction.id)) return;
       const interactionBox = {
         x: interaction.x,
         y: interaction.y,
@@ -15414,7 +15594,7 @@ export default function ExpeditionJourney({
               <div className="briefing-hero-mark" aria-hidden="true">
                 <img
                   className="briefing-hero-portrait"
-                  src="assets/expedition/player/asha-new-idle-reference.png"
+                  src="assets/expedition/player/asha-reference-warrior-reference.png"
                   alt="Asha Explorer"
                 />
               </div>
