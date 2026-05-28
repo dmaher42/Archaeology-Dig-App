@@ -1,12 +1,41 @@
 # Archaeology Dig App – Year 7 HASS Ancient History
 
-An interactive classroom game for Year 7 HASS students learning how archaeologists use evidence to understand ancient civilisations.
+An interactive archaeology and ancient history project that now includes Lost Site Expedition, a standalone archaeology adventure platformer built around exploration, discovery, excavation, evidence, and interpretation.
 
-This app turns archaeology into a playable investigation. Students recover finds from a dig site, classify evidence into historical categories, analyse clues, and use evidence to explain how people lived in the past.
+The original classroom archaeology systems still exist and remain important to the educational design, but the project has evolved beyond a simple sorting or worksheet-style game.
+
+## Current project direction
+
+Lost Site Expedition is now the main premium game direction inside the repo.
+
+The intended experience is:
+
+- explore dangerous ancient sites
+- uncover hidden chambers and sealed routes
+- battle guardians and environmental hazards
+- discover archaeological evidence through play
+- return to Base Camp
+- excavate carefully
+- analyse evidence and interpret discoveries
+
+The educational value should emerge through gameplay, world interaction, evidence systems, preservation, excavation, and interpretation rather than constant interruption.
+
+## Production source of truth
+
+Future implementation work should inspect and follow:
+
+- `docs/lost-site-expedition-production-bible.md`
+- `docs/lost-site-expedition-design-brief.md`
+- `docs/lost-site-expedition-story-arc.md`
+- `docs/standalone-game-rule.md`
+- `docs/expedition-asset-tidy-audit.md`
+- `progress.md`
+
+Do not create parallel systems for Journey, progression, assets, animation, excavation, evidence, Base Camp, bosses, or story flow.
 
 ## Classroom purpose
 
-The app supports the Year 7 Ancient History unit **Investigating the Ancient Past / Ancient Civilisations**.
+The app still supports the Year 7 Ancient History unit **Investigating the Ancient Past / Ancient Civilisations**.
 
 It is designed to help students move beyond simply naming artefacts and toward historical thinking:
 
@@ -51,9 +80,9 @@ It fits especially well after students have been introduced to:
 - Lake Mungo / ancient Australia
 - artefact sorting and interpretation activities
 
-## Game structure
+## Original archaeology learning structure
 
-The app is built around a five-phase learning sequence.
+The original archaeology classroom loop is still present and remains part of the wider educational experience.
 
 ### 1. Dig
 
@@ -84,6 +113,26 @@ Students curate three strongest finds, write exhibition plaques, and build a fin
 ### 5. Report
 
 Students review the full evidence set and print or export the final museum/report view.
+
+## Lost Site Expedition structure
+
+The current premium adventure direction follows:
+
+1. Journey platformer
+2. Discovery entrance
+3. Base Camp
+4. Excavation site
+5. Lab / interpretation / report reward
+
+The intended emotional arc is:
+
+1. Arrival at a protected ancient site
+2. Preparation through exploration and discovery
+3. Guardian challenge
+4. Discovery entrance reveal
+5. Base Camp preparation
+6. Excavation and evidence recovery
+7. Interpretation and reporting
 
 ## Civilisations and scenarios
 
@@ -246,15 +295,14 @@ npm run lint
 
 Possible next upgrades:
 
-- Teacher Mode / Classroom Mode
-- scenario selector for specific lessons
-- skip-dig option for shorter lessons
-- final Claim–Evidence–Reasoning report screen
-- printable student reflection sheet
-- Google Form export questions
-- whole-class projection mode
+- stronger room-order and story consistency
+- improved room transition cinematics
+- environmental storytelling systems
+- optional lore discoveries and secret routes
+- expanded excavation consequence systems
+- more atmospheric lighting and ambience
 - accessibility improvements for lower-literacy students
-- clearer connection between migration, settlement, civilisation, and evidence
+- stronger connection between migration, settlement, civilisation, and evidence
 
 ## Save and load
 
@@ -270,4 +318,4 @@ This app supports a wider unit approach:
 
 > Humans changed → humans adapted → humans migrated → humans settled → civilisations developed → archaeologists use evidence to understand them.
 
-The game is one part of that learning arc. Its purpose is to make students think like historians and archaeologists, not simply complete a digital task.
+The game is one part of that learning arc. Its purpose is to make students think like historians and archaeologists while still functioning as a compelling standalone archaeology adventure.
