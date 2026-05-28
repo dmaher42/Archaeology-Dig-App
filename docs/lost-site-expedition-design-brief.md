@@ -1,6 +1,12 @@
 # Lost Site Expedition Design Brief
 
-This document is the design source of truth for future Codex work on Lost Site Expedition in Archaeology-Dig-App.
+This document records the high-level design vision for Lost Site Expedition in Archaeology-Dig-App.
+
+The top-level implementation, production, pipeline, and quality source of truth is now:
+
+- `docs/lost-site-expedition-production-bible.md`
+
+This design brief should support that production bible rather than compete with it.
 
 Lost Site Expedition is now a standalone archaeology adventure platformer. The platformer is the main game; excavation, Base Camp, lab, evidence, and report systems are add-on and reward layers that deepen the adventure after major discoveries.
 
@@ -18,6 +24,7 @@ Use the current implementation before making changes.
 - Story arc source of truth: `docs/lost-site-expedition-story-arc.md`
 - Standalone game design rule: `docs/standalone-game-rule.md`
 - Expedition asset audit and tidy-up handover: `docs/expedition-asset-tidy-audit.md`
+- Production pipeline and implementation hierarchy: `docs/lost-site-expedition-production-bible.md`
 
 Do not create parallel systems for progression, economy, player control, animation, evidence, inventory, excavation, lab, museum, report, Bureau, Base Camp, bosses, or Journey. Extend the canonical systems above.
 
