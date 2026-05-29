@@ -35,6 +35,7 @@ For this Archaeology project:
 - Prefer this LocalCodex checkout unless the user names another path.
 - Start by identifying the canonical source of truth, but keep inspection bounded to the likely files.
 - Do not regenerate images, sprites, audio, or other large assets until the current asset pipeline and acceptance criteria are confirmed.
+- For any character, enemy, boss, NPC, or sprite-sheet task, read `docs/character-sprite-pipeline.md` before editing assets or runtime loaders.
 - Do not run long natural browser playthroughs by default. Prefer short state-focused browser checks, existing tests, and build/lint verification.
 - Do not leave dev servers, preview servers, browser helpers, or Playwright/headless processes running after verification.
 - For longer playtesting, prefer the existing low-power/static playtest flow over a hot dev server when practical.

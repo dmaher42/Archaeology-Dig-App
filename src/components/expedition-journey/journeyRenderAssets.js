@@ -5,12 +5,15 @@ export const MUMMIFICATION_CHAMBER_INTERACTIONS_ATLAS_BASE_PATH = 'assets/expedi
 export const MUMMIFICATION_CHAMBER_INTERACTIONS_ATLAS_JSON = `${MUMMIFICATION_CHAMBER_INTERACTIONS_ATLAS_BASE_PATH}mummification-chamber-interaction-atlas.json`;
 export const EGYPT_ATMOSPHERE_ATLAS_BASE_PATH = 'assets/expedition/environment/egypt-atmosphere/';
 export const EGYPT_ATMOSPHERE_ATLAS_JSON = `${EGYPT_ATMOSPHERE_ATLAS_BASE_PATH}egypt-atmosphere-pack.json`;
+export const EGYPT_FOREGROUND_DEPTH_ATLAS_BASE_PATH = 'assets/expedition/environment/egypt-foreground/';
+export const EGYPT_FOREGROUND_DEPTH_ATLAS_JSON = `${EGYPT_FOREGROUND_DEPTH_ATLAS_BASE_PATH}egypt-foreground-depth-pack.json`;
 export const CHINA_RIVER_VALLEY_ENVIRONMENT_ATLAS_BASE_PATH = 'assets/expedition/environment/china-river-valley/';
 export const CHINA_RIVER_VALLEY_ENVIRONMENT_ATLAS_JSON = `${CHINA_RIVER_VALLEY_ENVIRONMENT_ATLAS_BASE_PATH}china-river-valley-environment-pack.json`;
 export const ATLAS_TUNING_VERSION = 'environment-atlas-tuning-2026-05-10';
 export const DESERT_VISUAL_TUNING_VERSION = 'desert-entry-final-visual-tuning-2026-05-10';
 export const JOURNEY_ASSET_GROUNDING_VERSION = 'journey-asset-grounding-2026-05-11';
 export const EGYPT_ATMOSPHERE_ASSET_VERSION = 'gemini-egypt-atmosphere-props-2026-05-21';
+export const EGYPT_FOREGROUND_DEPTH_ASSET_VERSION = 'lost-site-foreground-depth-pack-2026-05-29';
 export const MUMMIFICATION_CHAMBER_INTERACTIONS_ASSET_VERSION = 'imagegen-mummification-chamber-interaction-atlas-2026-05-28';
 
 export const EXPECTED_ENVIRONMENT_ASSET_KEYS = [
@@ -108,11 +111,26 @@ export const EXPECTED_EGYPT_ATMOSPHERE_ASSET_KEYS = [
   'ankhSealPanel',
 ];
 
+export const EXPECTED_EGYPT_FOREGROUND_DEPTH_ASSET_KEYS = [
+  'leftBrokenColumn',
+  'rightBrokenColumn',
+  'rubbleClusterLarge',
+  'rubbleClusterSmall',
+  'softSandDrift',
+  'buriedCarvedHead',
+  'damagedWallFragment',
+  'dryShrub',
+  'deadPalmRemnant',
+  'edgePebbleScatter',
+  'lowDustVeil',
+];
+
 export const ENVIRONMENT_ASSET_PACK_IDS = {
   EGYPT_DESERT_TEMPLE: 'egypt-desert-temple',
   EGYPT_SACRED_TRAPS: 'egypt-sacred-traps',
   MUMMIFICATION_CHAMBER_INTERACTIONS: 'mummification-chamber-interactions',
   EGYPT_ATMOSPHERE: 'egypt-atmosphere',
+  EGYPT_FOREGROUND_DEPTH: 'egypt-foreground-depth',
   CHINA_RIVER_VALLEY: 'china-river-valley',
 };
 
@@ -140,6 +158,12 @@ export const ENVIRONMENT_ASSET_PACKS = {
     basePath: EGYPT_ATMOSPHERE_ATLAS_BASE_PATH,
     atlasPath: EGYPT_ATMOSPHERE_ATLAS_JSON,
     expectedKeys: EXPECTED_EGYPT_ATMOSPHERE_ASSET_KEYS,
+  },
+  [ENVIRONMENT_ASSET_PACK_IDS.EGYPT_FOREGROUND_DEPTH]: {
+    id: ENVIRONMENT_ASSET_PACK_IDS.EGYPT_FOREGROUND_DEPTH,
+    basePath: EGYPT_FOREGROUND_DEPTH_ATLAS_BASE_PATH,
+    atlasPath: EGYPT_FOREGROUND_DEPTH_ATLAS_JSON,
+    expectedKeys: EXPECTED_EGYPT_FOREGROUND_DEPTH_ASSET_KEYS,
   },
   [ENVIRONMENT_ASSET_PACK_IDS.CHINA_RIVER_VALLEY]: {
     id: ENVIRONMENT_ASSET_PACK_IDS.CHINA_RIVER_VALLEY,

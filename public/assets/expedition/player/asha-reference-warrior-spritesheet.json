@@ -1,9 +1,9 @@
 {
   "image": "asha-reference-warrior-spritesheet.png",
-  "source": "asha-reference-warrior-source-integrated-weapon-rows-2026-05-28",
-  "status": "production-ready-asha-reference-warrior-source-weapon",
+  "source": "asha-reference-warrior-attack-chain-test-wiring-2026-05-29",
+  "status": "candidate-asha-reference-warrior-attack-chain-test",
   "productionReference": "asha-reference-warrior-reference.png",
-  "description": "New Asha runtime atlas based on the user-provided warrior reference: dark-skinned braided explorer-warrior, bronze Egyptian armor, teal accents, tan field cloth, and the source-row two-handed khopesh polearm. Loose generation fragments are removed during packing, then the source weapon is preserved without a synthetic overlay so it stays connected to Asha's hands. All animation rows are packed into one single PNG atlas using the Journey wide hero-frame contract.",
+  "description": "New Asha runtime atlas based on the user-provided warrior reference: dark-skinned braided explorer-warrior, bronze Egyptian armor, teal accents, tan field cloth, and the locked-reference vertical khopesh polearm. Idle, run, and jump rows use the new reference-warrior identity; attack rows pack the current three-hit pure-weapon candidate chain for runtime testing while a cleaner frame-boundary pass is generated. Utility rows borrow from those rows so the runtime atlas does not mix in older Asha identities while final utility animation rows await visual approval.",
   "frame": {
     "width": 390,
     "height": 256,
@@ -23,7 +23,17 @@
       "walk": 24,
       "survey_walk": 34
     },
-    "fixedFrame": {}
+    "fixedFrame": {},
+    "attackChainRows": [
+      "attack_pick_swing",
+      "attack_pick_swing_alt",
+      "attack_pick_swing_sweep"
+    ],
+    "alternateAttackRows": [
+      "attack_pick_swing",
+      "attack_pick_swing_alt",
+      "attack_pick_swing_sweep"
+    ]
   },
   "rows": [
     {
@@ -61,7 +71,7 @@
     {
       "name": "run",
       "row": 2,
-      "frameCount": 10,
+      "frameCount": 8,
       "loop": true,
       "frames": [
         "run_00",
@@ -71,9 +81,7 @@
         "run_04",
         "run_05",
         "run_06",
-        "run_07",
-        "run_08",
-        "run_09"
+        "run_07"
       ]
     },
     {
@@ -214,6 +222,38 @@
         "push_pull_06",
         "push_pull_07"
       ]
+    },
+    {
+      "name": "attack_pick_swing_alt",
+      "row": 12,
+      "frameCount": 8,
+      "loop": false,
+      "frames": [
+        "attack_pick_swing_alt_00",
+        "attack_pick_swing_alt_01",
+        "attack_pick_swing_alt_02",
+        "attack_pick_swing_alt_03",
+        "attack_pick_swing_alt_04",
+        "attack_pick_swing_alt_05",
+        "attack_pick_swing_alt_06",
+        "attack_pick_swing_alt_07"
+      ]
+    },
+    {
+      "name": "attack_pick_swing_sweep",
+      "row": 13,
+      "frameCount": 8,
+      "loop": false,
+      "frames": [
+        "attack_pick_swing_sweep_00",
+        "attack_pick_swing_sweep_01",
+        "attack_pick_swing_sweep_02",
+        "attack_pick_swing_sweep_03",
+        "attack_pick_swing_sweep_04",
+        "attack_pick_swing_sweep_05",
+        "attack_pick_swing_sweep_06",
+        "attack_pick_swing_sweep_07"
+      ]
     }
   ],
   "regions": {
@@ -223,10 +263,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 120,
-        "y": 16,
-        "w": 149,
-        "h": 220
+        "x": 156,
+        "y": 6,
+        "w": 78,
+        "h": 233
       },
       "groundLineY": 236
     },
@@ -236,10 +276,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 118,
-        "y": 16,
-        "w": 153,
-        "h": 220
+        "x": 153,
+        "y": 6,
+        "w": 83,
+        "h": 233
       },
       "groundLineY": 236
     },
@@ -249,10 +289,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 118,
-        "y": 16,
-        "w": 153,
-        "h": 220
+        "x": 155,
+        "y": 6,
+        "w": 81,
+        "h": 233
       },
       "groundLineY": 236
     },
@@ -262,10 +302,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 118,
-        "y": 16,
-        "w": 153,
-        "h": 220
+        "x": 155,
+        "y": 6,
+        "w": 80,
+        "h": 233
       },
       "groundLineY": 236
     },
@@ -275,10 +315,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 118,
-        "y": 16,
-        "w": 153,
-        "h": 220
+        "x": 155,
+        "y": 6,
+        "w": 80,
+        "h": 233
       },
       "groundLineY": 236
     },
@@ -288,10 +328,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 118,
-        "y": 16,
-        "w": 153,
-        "h": 220
+        "x": 155,
+        "y": 6,
+        "w": 80,
+        "h": 233
       },
       "groundLineY": 236
     },
@@ -301,10 +341,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 118,
-        "y": 16,
-        "w": 153,
-        "h": 220
+        "x": 155,
+        "y": 6,
+        "w": 79,
+        "h": 233
       },
       "groundLineY": 236
     },
@@ -314,10 +354,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 122,
-        "y": 16,
-        "w": 146,
-        "h": 220
+        "x": 156,
+        "y": 6,
+        "w": 78,
+        "h": 233
       },
       "groundLineY": 236
     },
@@ -327,10 +367,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 119,
-        "y": 34,
-        "w": 152,
-        "h": 202
+        "x": 122,
+        "y": 0,
+        "w": 146,
+        "h": 239
       },
       "groundLineY": 236
     },
@@ -340,10 +380,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 117,
-        "y": 34,
-        "w": 156,
-        "h": 202
+        "x": 133,
+        "y": 0,
+        "w": 121,
+        "h": 239
       },
       "groundLineY": 236
     },
@@ -353,10 +393,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 116,
-        "y": 34,
-        "w": 157,
-        "h": 202
+        "x": 117,
+        "y": 0,
+        "w": 156,
+        "h": 239
       },
       "groundLineY": 236
     },
@@ -366,10 +406,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 116,
-        "y": 34,
-        "w": 157,
-        "h": 202
+        "x": 121,
+        "y": 0,
+        "w": 149,
+        "h": 239
       },
       "groundLineY": 236
     },
@@ -379,10 +419,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 117,
-        "y": 34,
-        "w": 156,
-        "h": 202
+        "x": 131,
+        "y": 0,
+        "w": 125,
+        "h": 239
       },
       "groundLineY": 236
     },
@@ -392,10 +432,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 117,
-        "y": 34,
-        "w": 156,
-        "h": 202
+        "x": 134,
+        "y": 0,
+        "w": 118,
+        "h": 239
       },
       "groundLineY": 236
     },
@@ -405,10 +445,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 117,
-        "y": 34,
-        "w": 156,
-        "h": 202
+        "x": 131,
+        "y": 0,
+        "w": 123,
+        "h": 239
       },
       "groundLineY": 236
     },
@@ -418,10 +458,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 116,
-        "y": 34,
-        "w": 157,
-        "h": 202
+        "x": 132,
+        "y": 0,
+        "w": 122,
+        "h": 239
       },
       "groundLineY": 236
     },
@@ -431,10 +471,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 119,
-        "y": 34,
-        "w": 152,
-        "h": 202
+        "x": 122,
+        "y": 0,
+        "w": 146,
+        "h": 239
       },
       "groundLineY": 236
     },
@@ -444,10 +484,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 117,
-        "y": 34,
-        "w": 156,
-        "h": 202
+        "x": 133,
+        "y": 0,
+        "w": 121,
+        "h": 239
       },
       "groundLineY": 236
     },
@@ -457,10 +497,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 116,
-        "y": 34,
-        "w": 157,
-        "h": 202
+        "x": 117,
+        "y": 0,
+        "w": 156,
+        "h": 239
       },
       "groundLineY": 236
     },
@@ -470,10 +510,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 116,
-        "y": 34,
-        "w": 157,
-        "h": 202
+        "x": 121,
+        "y": 0,
+        "w": 149,
+        "h": 239
       },
       "groundLineY": 236
     },
@@ -483,10 +523,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 117,
-        "y": 34,
-        "w": 156,
-        "h": 202
+        "x": 131,
+        "y": 0,
+        "w": 125,
+        "h": 239
       },
       "groundLineY": 236
     },
@@ -496,10 +536,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 117,
-        "y": 34,
-        "w": 156,
-        "h": 202
+        "x": 134,
+        "y": 0,
+        "w": 118,
+        "h": 239
       },
       "groundLineY": 236
     },
@@ -509,10 +549,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 117,
-        "y": 34,
-        "w": 156,
-        "h": 202
+        "x": 131,
+        "y": 0,
+        "w": 123,
+        "h": 239
       },
       "groundLineY": 236
     },
@@ -522,36 +562,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 116,
-        "y": 34,
-        "w": 157,
-        "h": 202
-      },
-      "groundLineY": 236
-    },
-    "run_08": {
-      "x": 3120,
-      "y": 512,
-      "w": 390,
-      "h": 256,
-      "drawBounds": {
-        "x": 116,
-        "y": 34,
-        "w": 157,
-        "h": 202
-      },
-      "groundLineY": 236
-    },
-    "run_09": {
-      "x": 3510,
-      "y": 512,
-      "w": 390,
-      "h": 256,
-      "drawBounds": {
-        "x": 118,
-        "y": 34,
-        "w": 154,
-        "h": 202
+        "x": 132,
+        "y": 0,
+        "w": 122,
+        "h": 239
       },
       "groundLineY": 236
     },
@@ -561,10 +575,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 119,
-        "y": 34,
-        "w": 152,
-        "h": 202
+        "x": 122,
+        "y": 0,
+        "w": 146,
+        "h": 239
       },
       "groundLineY": 236
     },
@@ -574,10 +588,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 117,
-        "y": 34,
-        "w": 156,
-        "h": 202
+        "x": 133,
+        "y": 0,
+        "w": 121,
+        "h": 239
       },
       "groundLineY": 236
     },
@@ -587,10 +601,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 116,
-        "y": 34,
-        "w": 157,
-        "h": 202
+        "x": 117,
+        "y": 0,
+        "w": 156,
+        "h": 239
       },
       "groundLineY": 236
     },
@@ -600,10 +614,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 116,
-        "y": 34,
-        "w": 157,
-        "h": 202
+        "x": 121,
+        "y": 0,
+        "w": 149,
+        "h": 239
       },
       "groundLineY": 236
     },
@@ -613,10 +627,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 117,
-        "y": 34,
-        "w": 156,
-        "h": 202
+        "x": 131,
+        "y": 0,
+        "w": 125,
+        "h": 239
       },
       "groundLineY": 236
     },
@@ -626,10 +640,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 117,
-        "y": 34,
-        "w": 156,
-        "h": 202
+        "x": 134,
+        "y": 0,
+        "w": 118,
+        "h": 239
       },
       "groundLineY": 236
     },
@@ -639,10 +653,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 117,
-        "y": 34,
-        "w": 156,
-        "h": 202
+        "x": 131,
+        "y": 0,
+        "w": 123,
+        "h": 239
       },
       "groundLineY": 236
     },
@@ -652,10 +666,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 116,
-        "y": 34,
-        "w": 157,
-        "h": 202
+        "x": 132,
+        "y": 0,
+        "w": 122,
+        "h": 239
       },
       "groundLineY": 236
     },
@@ -665,10 +679,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 74,
-        "y": 25,
-        "w": 241,
-        "h": 211
+        "x": 133,
+        "y": 5,
+        "w": 123,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -678,10 +692,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 82,
-        "y": 25,
-        "w": 226,
-        "h": 211
+        "x": 153,
+        "y": 5,
+        "w": 84,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -691,10 +705,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 100,
-        "y": 25,
-        "w": 191,
-        "h": 211
+        "x": 143,
+        "y": 5,
+        "w": 103,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -704,10 +718,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 94,
-        "y": 25,
-        "w": 202,
-        "h": 211
+        "x": 153,
+        "y": 5,
+        "w": 84,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -717,10 +731,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 88,
-        "y": 25,
-        "w": 214,
-        "h": 211
+        "x": 145,
+        "y": 5,
+        "w": 100,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -730,10 +744,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 86,
-        "y": 25,
-        "w": 217,
-        "h": 211
+        "x": 133,
+        "y": 5,
+        "w": 123,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -743,10 +757,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 106,
-        "y": 25,
-        "w": 179,
-        "h": 211
+        "x": 146,
+        "y": 5,
+        "w": 98,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -756,10 +770,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 70,
-        "y": 54,
-        "w": 250,
-        "h": 182
+        "x": 155,
+        "y": 5,
+        "w": 80,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -769,10 +783,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 94,
-        "y": 25,
-        "w": 202,
-        "h": 211
+        "x": 153,
+        "y": 5,
+        "w": 84,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -782,10 +796,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 88,
-        "y": 25,
-        "w": 214,
-        "h": 211
+        "x": 145,
+        "y": 5,
+        "w": 100,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -795,10 +809,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 86,
-        "y": 25,
-        "w": 217,
-        "h": 211
+        "x": 133,
+        "y": 5,
+        "w": 123,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -808,10 +822,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 86,
-        "y": 25,
-        "w": 217,
-        "h": 211
+        "x": 133,
+        "y": 5,
+        "w": 123,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -821,10 +835,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 106,
-        "y": 25,
-        "w": 179,
-        "h": 211
+        "x": 146,
+        "y": 5,
+        "w": 98,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -834,10 +848,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 106,
-        "y": 25,
-        "w": 179,
-        "h": 211
+        "x": 146,
+        "y": 5,
+        "w": 98,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -847,10 +861,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 70,
-        "y": 54,
-        "w": 250,
-        "h": 182
+        "x": 155,
+        "y": 5,
+        "w": 80,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -860,10 +874,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 70,
-        "y": 54,
-        "w": 250,
-        "h": 182
+        "x": 155,
+        "y": 5,
+        "w": 80,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -873,10 +887,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 86,
-        "y": 25,
-        "w": 217,
-        "h": 211
+        "x": 133,
+        "y": 5,
+        "w": 123,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -886,10 +900,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 106,
-        "y": 25,
-        "w": 179,
-        "h": 211
+        "x": 146,
+        "y": 5,
+        "w": 98,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -899,10 +913,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 70,
-        "y": 54,
-        "w": 250,
-        "h": 182
+        "x": 155,
+        "y": 5,
+        "w": 80,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -912,10 +926,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 70,
-        "y": 54,
-        "w": 250,
-        "h": 182
+        "x": 155,
+        "y": 5,
+        "w": 80,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -925,10 +939,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 70,
-        "y": 54,
-        "w": 250,
-        "h": 182
+        "x": 155,
+        "y": 5,
+        "w": 80,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -938,10 +952,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 70,
-        "y": 54,
-        "w": 250,
-        "h": 182
+        "x": 155,
+        "y": 5,
+        "w": 80,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -951,10 +965,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 70,
-        "y": 54,
-        "w": 250,
-        "h": 182
+        "x": 155,
+        "y": 5,
+        "w": 80,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -964,10 +978,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 70,
-        "y": 54,
-        "w": 250,
-        "h": 182
+        "x": 155,
+        "y": 5,
+        "w": 80,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -977,10 +991,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 108,
-        "y": 30,
-        "w": 174,
-        "h": 206
+        "x": 142,
+        "y": 5,
+        "w": 106,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -990,10 +1004,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 105,
-        "y": 30,
-        "w": 180,
-        "h": 206
+        "x": 131,
+        "y": 5,
+        "w": 129,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -1003,10 +1017,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 108,
-        "y": 30,
-        "w": 173,
-        "h": 206
+        "x": 130,
+        "y": 5,
+        "w": 130,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -1016,10 +1030,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 122,
-        "y": 30,
-        "w": 145,
-        "h": 206
+        "x": 79,
+        "y": 5,
+        "w": 232,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -1029,10 +1043,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 90,
-        "y": 30,
-        "w": 210,
-        "h": 206
+        "x": 78,
+        "y": 5,
+        "w": 234,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -1042,10 +1056,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 98,
-        "y": 30,
-        "w": 194,
-        "h": 206
+        "x": 79,
+        "y": 5,
+        "w": 233,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -1055,10 +1069,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 102,
-        "y": 30,
-        "w": 187,
-        "h": 206
+        "x": 109,
+        "y": 5,
+        "w": 173,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -1068,10 +1082,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 111,
-        "y": 30,
-        "w": 168,
-        "h": 206
+        "x": 143,
+        "y": 5,
+        "w": 104,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -1081,10 +1095,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 78,
-        "y": 21,
-        "w": 235,
-        "h": 215
+        "x": 79,
+        "y": 5,
+        "w": 233,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -1094,10 +1108,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 76,
-        "y": 21,
-        "w": 239,
-        "h": 215
+        "x": 78,
+        "y": 5,
+        "w": 234,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -1107,10 +1121,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 62,
-        "y": 21,
-        "w": 265,
-        "h": 215
+        "x": 79,
+        "y": 5,
+        "w": 232,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -1120,10 +1134,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 80,
-        "y": 21,
-        "w": 229,
-        "h": 215
+        "x": 130,
+        "y": 5,
+        "w": 130,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -1133,10 +1147,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 58,
-        "y": 21,
-        "w": 273,
-        "h": 215
+        "x": 131,
+        "y": 5,
+        "w": 129,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -1146,10 +1160,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 134,
-        "y": 21,
-        "w": 123,
-        "h": 215
+        "x": 155,
+        "y": 5,
+        "w": 79,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -1159,10 +1173,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 112,
-        "y": 21,
-        "w": 165,
-        "h": 215
+        "x": 153,
+        "y": 5,
+        "w": 83,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -1172,10 +1186,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 109,
-        "y": 21,
-        "w": 172,
-        "h": 215
+        "x": 155,
+        "y": 5,
+        "w": 81,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -1185,10 +1199,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 80,
-        "y": 21,
-        "w": 229,
-        "h": 215
+        "x": 155,
+        "y": 5,
+        "w": 81,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -1198,10 +1212,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 124,
-        "y": 21,
-        "w": 142,
-        "h": 215
+        "x": 155,
+        "y": 5,
+        "w": 80,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -1211,10 +1225,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 114,
-        "y": 21,
-        "w": 161,
-        "h": 215
+        "x": 155,
+        "y": 5,
+        "w": 80,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -1224,10 +1238,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 158,
-        "y": 23,
-        "w": 73,
-        "h": 213
+        "x": 133,
+        "y": 5,
+        "w": 123,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -1237,10 +1251,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 158,
-        "y": 23,
-        "w": 73,
-        "h": 213
+        "x": 153,
+        "y": 5,
+        "w": 84,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -1250,10 +1264,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 156,
-        "y": 23,
-        "w": 78,
-        "h": 213
+        "x": 143,
+        "y": 5,
+        "w": 103,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -1263,10 +1277,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 148,
-        "y": 23,
-        "w": 93,
-        "h": 213
+        "x": 153,
+        "y": 5,
+        "w": 84,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -1276,10 +1290,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 156,
-        "y": 23,
-        "w": 77,
-        "h": 213
+        "x": 145,
+        "y": 5,
+        "w": 100,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -1289,10 +1303,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 158,
-        "y": 23,
-        "w": 74,
-        "h": 213
+        "x": 133,
+        "y": 5,
+        "w": 123,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -1302,10 +1316,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 154,
-        "y": 23,
-        "w": 82,
-        "h": 213
+        "x": 146,
+        "y": 5,
+        "w": 98,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -1315,10 +1329,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 153,
-        "y": 23,
-        "w": 84,
-        "h": 213
+        "x": 155,
+        "y": 5,
+        "w": 80,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -1328,10 +1342,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 129,
-        "y": 21,
-        "w": 132,
-        "h": 215
+        "x": 142,
+        "y": 5,
+        "w": 106,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -1341,10 +1355,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 116,
-        "y": 21,
-        "w": 157,
-        "h": 215
+        "x": 131,
+        "y": 5,
+        "w": 129,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -1354,10 +1368,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 116,
-        "y": 21,
-        "w": 158,
-        "h": 215
+        "x": 130,
+        "y": 5,
+        "w": 130,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -1367,10 +1381,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 122,
-        "y": 21,
-        "w": 146,
-        "h": 215
+        "x": 79,
+        "y": 5,
+        "w": 232,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -1380,10 +1394,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 114,
-        "y": 21,
-        "w": 161,
-        "h": 215
+        "x": 78,
+        "y": 5,
+        "w": 234,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -1393,10 +1407,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 110,
-        "y": 21,
-        "w": 171,
-        "h": 215
+        "x": 79,
+        "y": 5,
+        "w": 233,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -1406,10 +1420,10 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 120,
-        "y": 21,
-        "w": 150,
-        "h": 215
+        "x": 109,
+        "y": 5,
+        "w": 173,
+        "h": 234
       },
       "groundLineY": 236
     },
@@ -1419,10 +1433,218 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 122,
-        "y": 21,
-        "w": 147,
-        "h": 215
+        "x": 143,
+        "y": 5,
+        "w": 104,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_alt_00": {
+      "x": 0,
+      "y": 3072,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 146,
+        "y": 5,
+        "w": 98,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_alt_01": {
+      "x": 390,
+      "y": 3072,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 131,
+        "y": 5,
+        "w": 128,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_alt_02": {
+      "x": 780,
+      "y": 3072,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 141,
+        "y": 5,
+        "w": 109,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_alt_03": {
+      "x": 1170,
+      "y": 3072,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 111,
+        "y": 5,
+        "w": 167,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_alt_04": {
+      "x": 1560,
+      "y": 3072,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 101,
+        "y": 5,
+        "w": 188,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_alt_05": {
+      "x": 1950,
+      "y": 3072,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 113,
+        "y": 5,
+        "w": 164,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_alt_06": {
+      "x": 2340,
+      "y": 3072,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 119,
+        "y": 5,
+        "w": 153,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_alt_07": {
+      "x": 2730,
+      "y": 3072,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 145,
+        "y": 5,
+        "w": 99,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_sweep_00": {
+      "x": 0,
+      "y": 3328,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 144,
+        "y": 5,
+        "w": 102,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_sweep_01": {
+      "x": 390,
+      "y": 3328,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 143,
+        "y": 5,
+        "w": 104,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_sweep_02": {
+      "x": 780,
+      "y": 3328,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 141,
+        "y": 5,
+        "w": 107,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_sweep_03": {
+      "x": 1170,
+      "y": 3328,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 100,
+        "y": 5,
+        "w": 190,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_sweep_04": {
+      "x": 1560,
+      "y": 3328,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 95,
+        "y": 5,
+        "w": 201,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_sweep_05": {
+      "x": 1950,
+      "y": 3328,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 95,
+        "y": 5,
+        "w": 201,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_sweep_06": {
+      "x": 2340,
+      "y": 3328,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 135,
+        "y": 5,
+        "w": 119,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_sweep_07": {
+      "x": 2730,
+      "y": 3328,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 146,
+        "y": 5,
+        "w": 98,
+        "h": 234
       },
       "groundLineY": 236
     }
@@ -1452,8 +1674,6 @@
     "run_05": "asha-reference-warrior-run-row-raw.png:frame_05",
     "run_06": "asha-reference-warrior-run-row-raw.png:frame_06",
     "run_07": "asha-reference-warrior-run-row-raw.png:frame_07",
-    "run_08": "asha-reference-warrior-run-row-raw.png:frame_08",
-    "run_09": "asha-reference-warrior-run-row-raw.png:frame_09",
     "survey_walk_00": "asha-reference-warrior-run-row-raw.png:frame_00",
     "survey_walk_01": "asha-reference-warrior-run-row-raw.png:frame_01",
     "survey_walk_02": "asha-reference-warrior-run-row-raw.png:frame_02",
@@ -1486,40 +1706,57 @@
     "land_05": "asha-reference-warrior-jump-row-raw.png:frame_07",
     "land_06": "asha-reference-warrior-jump-row-raw.png:frame_07",
     "land_07": "asha-reference-warrior-jump-row-raw.png:frame_07",
-    "attack_pick_swing_00": "asha-reference-warrior-attack-row-raw.png:frame_00",
-    "attack_pick_swing_01": "asha-reference-warrior-attack-row-raw.png:frame_01",
-    "attack_pick_swing_02": "asha-reference-warrior-attack-row-raw.png:frame_02",
-    "attack_pick_swing_03": "asha-reference-warrior-attack-row-raw.png:frame_03",
-    "attack_pick_swing_04": "asha-reference-warrior-attack-row-raw.png:frame_04",
-    "attack_pick_swing_05": "asha-reference-warrior-attack-row-raw.png:frame_05",
-    "attack_pick_swing_06": "asha-reference-warrior-attack-row-raw.png:frame_06",
-    "attack_pick_swing_07": "asha-reference-warrior-attack-row-raw.png:frame_07",
-    "hurt_00": "asha-reference-warrior-hurt-row-raw.png:frame_00",
-    "hurt_01": "asha-reference-warrior-hurt-row-raw.png:frame_01",
-    "hurt_02": "asha-reference-warrior-hurt-row-raw.png:frame_02",
-    "hurt_03": "asha-reference-warrior-hurt-row-raw.png:frame_03",
-    "hurt_04": "asha-reference-warrior-hurt-row-raw.png:frame_04",
-    "interact_00": "asha-reference-warrior-interact-row-raw.png:frame_00",
-    "interact_01": "asha-reference-warrior-interact-row-raw.png:frame_01",
-    "interact_02": "asha-reference-warrior-interact-row-raw.png:frame_02",
-    "interact_03": "asha-reference-warrior-interact-row-raw.png:frame_03",
-    "interact_04": "asha-reference-warrior-interact-row-raw.png:frame_04",
-    "interact_05": "asha-reference-warrior-interact-row-raw.png:frame_05",
-    "climb_00": "asha-reference-warrior-climb-row-raw.png:frame_00",
-    "climb_01": "asha-reference-warrior-climb-row-raw.png:frame_01",
-    "climb_02": "asha-reference-warrior-climb-row-raw.png:frame_02",
-    "climb_03": "asha-reference-warrior-climb-row-raw.png:frame_03",
-    "climb_04": "asha-reference-warrior-climb-row-raw.png:frame_04",
-    "climb_05": "asha-reference-warrior-climb-row-raw.png:frame_05",
-    "climb_06": "asha-reference-warrior-climb-row-raw.png:frame_06",
-    "climb_07": "asha-reference-warrior-climb-row-raw.png:frame_07",
-    "push_pull_00": "asha-reference-warrior-push-pull-row-raw.png:frame_00",
-    "push_pull_01": "asha-reference-warrior-push-pull-row-raw.png:frame_01",
-    "push_pull_02": "asha-reference-warrior-push-pull-row-raw.png:frame_02",
-    "push_pull_03": "asha-reference-warrior-push-pull-row-raw.png:frame_03",
-    "push_pull_04": "asha-reference-warrior-push-pull-row-raw.png:frame_04",
-    "push_pull_05": "asha-reference-warrior-push-pull-row-raw.png:frame_05",
-    "push_pull_06": "asha-reference-warrior-push-pull-row-raw.png:frame_06",
-    "push_pull_07": "asha-reference-warrior-push-pull-row-raw.png:frame_07"
-  }
+    "attack_pick_swing_00": "asha-reference-warrior-attack-chain-01-quick-cut-clean-normalized-4096x512-candidate-2026-05-29.png:frame_00",
+    "attack_pick_swing_01": "asha-reference-warrior-attack-chain-01-quick-cut-clean-normalized-4096x512-candidate-2026-05-29.png:frame_01",
+    "attack_pick_swing_02": "asha-reference-warrior-attack-chain-01-quick-cut-clean-normalized-4096x512-candidate-2026-05-29.png:frame_02",
+    "attack_pick_swing_03": "asha-reference-warrior-attack-chain-01-quick-cut-clean-normalized-4096x512-candidate-2026-05-29.png:frame_03",
+    "attack_pick_swing_04": "asha-reference-warrior-attack-chain-01-quick-cut-clean-normalized-4096x512-candidate-2026-05-29.png:frame_04",
+    "attack_pick_swing_05": "asha-reference-warrior-attack-chain-01-quick-cut-clean-normalized-4096x512-candidate-2026-05-29.png:frame_05",
+    "attack_pick_swing_06": "asha-reference-warrior-attack-chain-01-quick-cut-clean-normalized-4096x512-candidate-2026-05-29.png:frame_06",
+    "attack_pick_swing_07": "asha-reference-warrior-attack-chain-01-quick-cut-clean-normalized-4096x512-candidate-2026-05-29.png:frame_07",
+    "hurt_00": "asha-reference-warrior-attack-chain-01-quick-cut-clean-normalized-4096x512-candidate-2026-05-29.png:frame_05",
+    "hurt_01": "asha-reference-warrior-attack-chain-01-quick-cut-clean-normalized-4096x512-candidate-2026-05-29.png:frame_04",
+    "hurt_02": "asha-reference-warrior-attack-chain-01-quick-cut-clean-normalized-4096x512-candidate-2026-05-29.png:frame_03",
+    "hurt_03": "asha-reference-warrior-attack-chain-01-quick-cut-clean-normalized-4096x512-candidate-2026-05-29.png:frame_02",
+    "hurt_04": "asha-reference-warrior-attack-chain-01-quick-cut-clean-normalized-4096x512-candidate-2026-05-29.png:frame_01",
+    "interact_00": "asha-reference-warrior-idle-row-raw.png:frame_00",
+    "interact_01": "asha-reference-warrior-idle-row-raw.png:frame_01",
+    "interact_02": "asha-reference-warrior-idle-row-raw.png:frame_02",
+    "interact_03": "asha-reference-warrior-idle-row-raw.png:frame_03",
+    "interact_04": "asha-reference-warrior-idle-row-raw.png:frame_04",
+    "interact_05": "asha-reference-warrior-idle-row-raw.png:frame_05",
+    "climb_00": "asha-reference-warrior-jump-row-raw.png:frame_00",
+    "climb_01": "asha-reference-warrior-jump-row-raw.png:frame_01",
+    "climb_02": "asha-reference-warrior-jump-row-raw.png:frame_02",
+    "climb_03": "asha-reference-warrior-jump-row-raw.png:frame_03",
+    "climb_04": "asha-reference-warrior-jump-row-raw.png:frame_04",
+    "climb_05": "asha-reference-warrior-jump-row-raw.png:frame_05",
+    "climb_06": "asha-reference-warrior-jump-row-raw.png:frame_06",
+    "climb_07": "asha-reference-warrior-jump-row-raw.png:frame_07",
+    "push_pull_00": "asha-reference-warrior-attack-chain-01-quick-cut-clean-normalized-4096x512-candidate-2026-05-29.png:frame_00",
+    "push_pull_01": "asha-reference-warrior-attack-chain-01-quick-cut-clean-normalized-4096x512-candidate-2026-05-29.png:frame_01",
+    "push_pull_02": "asha-reference-warrior-attack-chain-01-quick-cut-clean-normalized-4096x512-candidate-2026-05-29.png:frame_02",
+    "push_pull_03": "asha-reference-warrior-attack-chain-01-quick-cut-clean-normalized-4096x512-candidate-2026-05-29.png:frame_03",
+    "push_pull_04": "asha-reference-warrior-attack-chain-01-quick-cut-clean-normalized-4096x512-candidate-2026-05-29.png:frame_04",
+    "push_pull_05": "asha-reference-warrior-attack-chain-01-quick-cut-clean-normalized-4096x512-candidate-2026-05-29.png:frame_05",
+    "push_pull_06": "asha-reference-warrior-attack-chain-01-quick-cut-clean-normalized-4096x512-candidate-2026-05-29.png:frame_06",
+    "push_pull_07": "asha-reference-warrior-attack-chain-01-quick-cut-clean-normalized-4096x512-candidate-2026-05-29.png:frame_07",
+    "attack_pick_swing_alt_00": "asha-reference-warrior-attack-chain-02-diagonal-clean-normalized-4096x512-candidate-2026-05-29.png:frame_00",
+    "attack_pick_swing_alt_01": "asha-reference-warrior-attack-chain-02-diagonal-clean-normalized-4096x512-candidate-2026-05-29.png:frame_01",
+    "attack_pick_swing_alt_02": "asha-reference-warrior-attack-chain-02-diagonal-clean-normalized-4096x512-candidate-2026-05-29.png:frame_02",
+    "attack_pick_swing_alt_03": "asha-reference-warrior-attack-chain-02-diagonal-clean-normalized-4096x512-candidate-2026-05-29.png:frame_03",
+    "attack_pick_swing_alt_04": "asha-reference-warrior-attack-chain-02-diagonal-clean-normalized-4096x512-candidate-2026-05-29.png:frame_04",
+    "attack_pick_swing_alt_05": "asha-reference-warrior-attack-chain-02-diagonal-clean-normalized-4096x512-candidate-2026-05-29.png:frame_05",
+    "attack_pick_swing_alt_06": "asha-reference-warrior-attack-chain-02-diagonal-clean-normalized-4096x512-candidate-2026-05-29.png:frame_06",
+    "attack_pick_swing_alt_07": "asha-reference-warrior-attack-chain-02-diagonal-clean-normalized-4096x512-candidate-2026-05-29.png:frame_07",
+    "attack_pick_swing_sweep_00": "asha-reference-warrior-attack-chain-03-sweep-clean-normalized-4096x512-candidate-2026-05-29.png:frame_00",
+    "attack_pick_swing_sweep_01": "asha-reference-warrior-attack-chain-03-sweep-clean-normalized-4096x512-candidate-2026-05-29.png:frame_01",
+    "attack_pick_swing_sweep_02": "asha-reference-warrior-attack-chain-03-sweep-clean-normalized-4096x512-candidate-2026-05-29.png:frame_02",
+    "attack_pick_swing_sweep_03": "asha-reference-warrior-attack-chain-03-sweep-clean-normalized-4096x512-candidate-2026-05-29.png:frame_03",
+    "attack_pick_swing_sweep_04": "asha-reference-warrior-attack-chain-03-sweep-clean-normalized-4096x512-candidate-2026-05-29.png:frame_04",
+    "attack_pick_swing_sweep_05": "asha-reference-warrior-attack-chain-03-sweep-clean-normalized-4096x512-candidate-2026-05-29.png:frame_05",
+    "attack_pick_swing_sweep_06": "asha-reference-warrior-attack-chain-03-sweep-clean-normalized-4096x512-candidate-2026-05-29.png:frame_06",
+    "attack_pick_swing_sweep_07": "asha-reference-warrior-attack-chain-03-sweep-clean-normalized-4096x512-candidate-2026-05-29.png:frame_07"
+  },
+  "masterReference": "asha-reference-warrior-master-reference.png"
 }

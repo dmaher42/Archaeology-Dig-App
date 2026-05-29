@@ -2,7 +2,7 @@
   "image": "egypt-gateway-pack.png",
   "imageWidth": 1536,
   "imageHeight": 1024,
-  "coordinateNotes": "Approximate first-pass atlas coordinates from the generated gateway sheet. Some source labels are visually noisy; game text remains HTML/canvas rendered.",
+  "coordinateNotes": "Approximate first-pass atlas coordinates from the generated gateway sheet. Unused generated label areas have been made transparent; exitArch and closedGateSlab provide the in-world objective gate.",
   "regions": {
     "openRoomDoorway": { "x": 45, "y": 66, "w": 203, "h": 135 },
     "sealedRoomDoorway": { "x": 285, "y": 66, "w": 197, "h": 135 },
@@ -10,6 +10,8 @@
     "ropeMarkedEntrance": { "x": 777, "y": 74, "w": 215, "h": 102 },
     "tentEntranceMarker": { "x": 1060, "y": 70, "w": 185, "h": 130 },
     "narrowPassageConnector": { "x": 1290, "y": 66, "w": 180, "h": 135 },
+    "exitArch": { "x": 50, "y": 230, "w": 320, "h": 265 },
+    "closedGateSlab": { "x": 420, "y": 250, "w": 230, "h": 240 },
     "sealedExitGate": { "x": 50, "y": 515, "w": 315, "h": 160 },
     "unlockedExitGate": { "x": 947, "y": 333, "w": 275, "h": 160 },
     "glowingAncientSeal": { "x": 1260, "y": 330, "w": 170, "h": 160 },

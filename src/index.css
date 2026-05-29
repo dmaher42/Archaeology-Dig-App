@@ -10895,29 +10895,29 @@ textarea.lab-note-textarea {
   opacity: 0.5;
 }
 
-/* Keyword Tags */
-.bureau-suspect-tags {
+/* Read Profile Action */
+.bureau-suspect-profile-action {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
   justify-content: center;
   margin-top: auto;
   width: 100%;
-  padding-bottom: 0.25rem;
+  padding: 0.5rem 0 0.25rem 0;
 }
 
-.bureau-suspect-tag {
-  font-size: 0.62rem;
-  font-family: "Courier New", Courier, monospace;
-  background: rgba(255, 255, 255, 0.8);
-  color: #5c4b37;
-  padding: 0.18rem 0.6rem;
-  border-radius: 3px;
+.bureau-read-profile-btn {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  background-color: rgba(255, 255, 255, 0.9);
   border: 1px solid #c2b29a;
-  font-weight: 800;
-  white-space: nowrap;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  color: #5c4b37;
+  font-weight: 700;
   text-transform: uppercase;
+  transition: all 0.2s ease;
+}
+
+.bureau-read-profile-btn:hover {
+  background-color: #c2b29a;
+  color: white;
 }
 
 /* Matching Evidence Dots */
@@ -16812,12 +16812,13 @@ main {
   position: relative;
   display: flex !important;
   flex-direction: column !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
   height: 100vh !important;
   max-height: 100vh !important;
-  gap: clamp(0.5rem, 1vh, 1rem) !important;
-  padding: clamp(0.75rem, 1.4vw, 1.25rem) clamp(0.75rem, 1.8vw, 1.5rem) 0 !important;
-  overflow-x: hidden !important;
-  overflow-y: hidden !important;
+  gap: clamp(0.2rem, 1vh, 0.5rem) !important;
+  padding: clamp(0.5rem, 1vw, 1rem) clamp(0.75rem, 1.8vw, 1.5rem) 0 !important;
+  overflow: hidden !important;
   background:
     radial-gradient(circle at 18% 6%, rgba(255, 215, 128, 0.22), transparent 22rem),
     radial-gradient(circle at 84% 0%, rgba(62, 130, 150, 0.18), transparent 20rem),
@@ -18446,6 +18447,15 @@ main {
   overflow-y: visible !important;
 }
 
+.main-menu-phase .premium-carousel-container {
+  max-width: 1600px !important;
+  position: relative !important;
+  z-index: 10 !important;
+  flex: 1 !important;
+  min-height: 0 !important;
+  margin-bottom: 1rem !important;
+}
+
 .premium-carousel-container::-webkit-scrollbar {
   height: 6px;
 }
@@ -18486,6 +18496,69 @@ main {
   gap: 0.4rem !important;
   box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;
   border: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+.main-menu-phase .premium-carousel-container > article.activity-card {
+  max-width: 380px !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important;
+  box-sizing: border-box !important;
+  padding-bottom: 1.5rem !important;
+}
+
+.main-menu-phase .premium-carousel-container > article.activity-card::before {
+  background: linear-gradient(to top, rgba(10, 8, 5, 0.98) 0%, rgba(10, 8, 5, 0.95) 25%, rgba(10, 8, 5, 0.6) 45%, transparent 100%) !important;
+}
+
+.main-menu-phase .premium-carousel-container .activity-card-header {
+  margin-top: 0 !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 0.5rem !important;
+  margin-bottom: 0.5rem !important;
+  height: auto !important;
+}
+
+.main-menu-phase .premium-carousel-container .activity-time-tag {
+  font-size: 0.65rem !important;
+  line-height: 1.1 !important;
+}
+
+.main-menu-phase .premium-carousel-container .activity-card-copy {
+  margin-top: 0 !important;
+  height: auto !important;
+  min-height: unset !important;
+  flex-grow: 0 !important;
+}
+
+.main-menu-phase .premium-carousel-container .activity-card-copy h3 {
+  font-size: 0.95rem !important;
+}
+
+.main-menu-phase .premium-carousel-container .activity-mode-label {
+  font-size: 0.7rem !important;
+  margin-bottom: 0.1rem !important;
+  line-height: 1.2 !important;
+}
+
+.main-menu-phase .premium-carousel-container .activity-card-copy p {
+  font-size: 0.65rem !important;
+  line-height: 1.2 !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+  margin-bottom: 0 !important;
+}
+
+.main-menu-phase .premium-carousel-container .activity-card-button-group {
+  margin-top: 1.25rem !important;
+  margin-bottom: 0.5rem !important;
 }
 
 /* Internal overlay to make text readable */

@@ -196,7 +196,7 @@ export function ActivityMenu({
 
 
   return (
-    <section className="phase-container menu-phase">
+    <section className="phase-container menu-phase main-menu-phase">
       <div className="dynamic-menu-backdrop" style={{ backgroundImage: `url(${modeArtworks[focusedModeIndex]})` }} />
 
       <div className="mission-selection-heading">

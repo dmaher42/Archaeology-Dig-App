@@ -64,6 +64,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
   const [claimValidationMessage, setClaimValidationMessage] = useState('');
   const [showBriefing, setShowBriefing] = useState(bureauState.phase === 'bureauBriefing');
   const [activeTabTier, setActiveTabTier] = useState(bureauState.currentTier);
+  const [activeProfile, setActiveProfile] = useState(null);
   
   const bureauCases = getBureauCasesForSession(bureauState);
   const totalCases = bureauCases.length;
@@ -100,7 +101,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
       civilisation,
       isRuledOut: (evidenceFilter[civilisation] || 'unsure') === 'discard',
       thumbnail: caseData?.thumbnail,
-      keywords: caseData?.keywords || [],
+      profileFacts: caseData?.profileFacts || {},
     };
   });
 
@@ -651,7 +652,7 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
           </div>
 
           <div className="bureau-suspect-grid">
-            {suspectStatuses.map(({ civilisation, isRuledOut, thumbnail, keywords }, index) => {
+            {suspectStatuses.map(({ civilisation, isRuledOut, thumbnail, profileFacts }, index) => {
               return (
                 <article 
                   key={civilisation} 
@@ -691,10 +692,17 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
                     {civilisation}
                   </div>
 
-                  <div className="bureau-suspect-tags">
-                    {keywords.slice(0, 3).map(tag => (
-                      <span key={tag} className="bureau-suspect-tag">{tag}</span>
-                    ))}
+                  <div className="bureau-suspect-profile-action">
+                    <button
+                      type="button"
+                      className="btn secondary-btn bureau-read-profile-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveProfile({ civilisation, facts: profileFacts });
+                      }}
+                    >
+                      Read Profile
+                    </button>
                   </div>
 
                   {isRuledOut && <div className="bureau-discarded-stamp">RULED OUT</div>}
@@ -709,6 +717,28 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
     return (
       <section className="phase-container bureau-phase">
         {mainContent}
+        {activeProfile && (
+          <div className="bureau-briefing-overlay" onClick={() => setActiveProfile(null)}>
+            <div className="bureau-profile-modal bureau-briefing-modal" onClick={e => e.stopPropagation()}>
+              <div className="training-kicker">Civilisation Profile</div>
+              <h2>{activeProfile.civilisation}</h2>
+              <div className="bureau-profile-facts" style={{textAlign: 'left', marginBottom: '1.5rem'}}>
+                <ul style={{listStyleType: 'none', padding: 0}}>
+                  {activeProfile.facts && Object.entries(activeProfile.facts).map(([category, facts]) => (
+                    <li key={category} style={{marginBottom: '0.75rem'}}>
+                      <strong style={{color: '#8B4513'}}>{category}:</strong> {Array.isArray(facts) ? facts.join(', ') : facts}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="bureau-briefing-actions">
+                <button className="btn primary-btn" type="button" onClick={() => setActiveProfile(null)}>
+                  Close Profile
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         {showBriefing && (
           <div className="bureau-briefing-overlay">
             <div className="bureau-briefing-modal">

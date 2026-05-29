@@ -262,14 +262,8 @@ const groupBureauProfileFacts = (caseItem) => {
   }, {});
 };
 
-const flattenBureauProfileFacts = (profileFacts) => {
-  if (Array.isArray(profileFacts)) return profileFacts.filter(Boolean);
-  return BUREAU_CLUE_TYPES.flatMap(clueType => profileFacts?.[clueType] || []).filter(Boolean);
-};
-
 const createBureauCase = (caseItem) => {
   const groupedProfileFacts = groupBureauProfileFacts(caseItem);
-  const flatProfileFacts = flattenBureauProfileFacts(groupedProfileFacts);
 
   return {
     ...caseItem,
@@ -282,7 +276,7 @@ const createBureauCase = (caseItem) => {
     answerOptions: caseItem.answerOptions || caseItem.civilisationOptions || [caseItem.civilisation],
     correctAnswer: Number.isInteger(caseItem.correctAnswer) ? caseItem.correctAnswer : 0,
     profileFacts: groupedProfileFacts,
-    keywords: flattenBureauProfileFacts(caseItem.keywords || flatProfileFacts),
+    profileSummary: caseItem.profileSummary || '',
   };
 };
 
@@ -316,7 +310,7 @@ const BUREAU_CASES_RAW = [
       Rulers: ['rulers were linked to gods'],
       Buildings: ['pyramids were tombs'],
     },
-    keywords: ['Nile Flood', 'Pharaohs', 'Pyramids'],
+    profileSummary: 'This civilisation developed along a desert river, relying on annual floods for farming. It was ruled by powerful monarchs seen as living gods, and is famous for constructing monumental tombs to protect them.',
     explanation: 'Flooding, pharaohs, and pyramids point clearly to Ancient Egypt.',
   },
   {
@@ -348,7 +342,7 @@ const BUREAU_CASES_RAW = [
       Rulers: ['Athens used democracy'],
       Buildings: ['temples, theatres, and stone columns'],
     },
-    keywords: ['City-States', 'Democracy', 'Sparta'],
+    profileSummary: 'Emerging on a mountainous peninsula with natural harbours, this civilisation was divided into independent city-states. Some experimented with early forms of democracy, while others focused heavily on military training.',
     explanation: 'The city-states and ideas like democracy point clearly to Ancient Greece.',
   },
   {
@@ -380,7 +374,7 @@ const BUREAU_CASES_RAW = [
       Rulers: ['had a senate', 'became an empire'],
       Buildings: ['roads, aqueducts, and amphitheatres'],
     },
-    keywords: ['Senate', 'Laws', 'Empire'],
+    profileSummary: 'Starting as a single city, this society built a massive empire through highly organised military legions. They are renowned for their advanced engineering, particularly the stone structures built to supply their cities with water.',
     explanation: 'The senate, laws, and roads point clearly to Ancient Rome.',
   },
   {
@@ -412,7 +406,7 @@ const BUREAU_CASES_RAW = [
       Rulers: ['ruled by dynasties'],
       Inventions: ['invented paper', 'built early walls'],
     },
-    keywords: ['Dynasties', 'Paper', 'Walls'],
+    profileSummary: 'Ruled by successive powerful families, this society developed along major rivers and built extensive trade networks stretching westward. They also undertook massive defensive construction projects to protect their northern borders.',
     explanation: 'Dynasties, paper, and early walls point clearly to Ancient China.',
   },
   {
@@ -444,7 +438,7 @@ const BUREAU_CASES_RAW = [
       Beliefs: ['studied stars and planets', 'used calendars'],
       Buildings: ['built religious pyramids'],
     },
-    keywords: ['Calendars', 'Stars', 'Pyramids'],
+    profileSummary: 'Thriving in dense rainforest environments, this civilisation developed advanced understanding of astronomy and timekeeping. Their cities featured towering stone temples with terraced steps rising above the jungle canopy.',
     explanation: 'Calendars, astronomy, and religious pyramids point clearly to the Maya.',
   },
   {
@@ -476,7 +470,7 @@ const BUREAU_CASES_RAW = [
       Rulers: ['organised labour, roads, storehouses, and terrace farming'],
       Mysteries: ['used knotted cords to keep records', 'built mountain roads'],
     },
-    keywords: ['Quipu', 'Andes', 'Machu Picchu'],
+    profileSummary: 'Perched high in rugged mountain ranges, this empire connected its vast territory with an incredible network of paved trails. They built impressive stone estates and terraces on steep peaks without the use of wheeled transport.',
     explanation: 'The Andes, quipu, and mountain roads point clearly to the Inca.',
   },
   {
@@ -507,7 +501,7 @@ const BUREAU_CASES_RAW = [
       Buildings: ['cities had drainage systems and straight streets'],
       Mysteries: ['writing has not been fully translated', 'used standard weights and seals'],
     },
-    keywords: ['Drainage', 'Untranslated Writing', 'Seals'],
+    profileSummary: 'Located on a fertile floodplain, this early society is famous for its highly planned, grid-like cities with advanced plumbing. They used intricately carved small stone markers, though their writing remains undeciphered.',
     explanation: 'Drainage systems and the still-mysterious writing point clearly to the Indus Valley.',
   },
   {
@@ -534,11 +528,11 @@ const BUREAU_CASES_RAW = [
       },
     ],
     profileFacts: {
-      Location: ['located between two rivers'],
+      Location: ['land between two rivers'],
       Buildings: ['built temples and ziggurats'],
       Rulers: ['known for laws and scribes'],
     },
-    keywords: ['Two Rivers', 'Laws', 'Ziggurat'],
+    profileSummary: 'Thriving between two major rivers, this society pioneered early urban life, organized law codes, and built massive tiered temples known as ziggurats that dominated their city landscapes.',
     explanation: 'The two rivers, laws, and ziggurats point clearly to Babylon / Mesopotamia.',
   },
   {
@@ -569,7 +563,7 @@ const BUREAU_CASES_RAW = [
       Rulers: ['used governors'],
       Beliefs: ['allowed different religions'],
     },
-    keywords: ['Governors', 'Religions', 'Empire'],
+    profileSummary: 'This sprawling empire spanned three continents and was famous for its tolerance of different cultures. It was efficiently managed by regional governors and connected by a massive, well-maintained royal highway.',
     explanation: 'Governors, religious tolerance, and the large empire point clearly to Persia.',
   },
   {
@@ -600,7 +594,7 @@ const BUREAU_CASES_RAW = [
       Rulers: ['Eastern Roman Empire', 'Justinian created a law code'],
       Buildings: ['capital was Constantinople'],
     },
-    keywords: ['Constantinople', 'Justinian', 'Eastern Roman Empire'],
+    profileSummary: 'Surviving the fall of its western counterpart, this empire thrived for another thousand years at the crossroads of Europe and Asia. It was characterized by its unique Christian traditions and a highly fortified, wealthy capital city.',
     explanation: 'Constantinople, Justinian, and the Eastern Roman Empire point clearly to Byzantine.',
   },
   {
@@ -631,7 +625,7 @@ const BUREAU_CASES_RAW = [
       Rulers: ['ruled by sultans'],
       Buildings: ['renamed Constantinople Istanbul'],
     },
-    keywords: ['Sultans', 'Istanbul', 'Crossroads'],
+    profileSummary: 'Rising from a peninsula between the Black and Mediterranean seas, this powerful empire bridged east and west. Ruled by absolute monarchs, their military was renowned for its early and devastating use of gunpowder artillery.',
     explanation: 'Sultans, Istanbul, and the crossroads location point clearly to the Ottoman Empire.',
   },
   {
@@ -662,7 +656,7 @@ const BUREAU_CASES_RAW = [
       Beliefs: ['sun was important'],
       Rulers: ['ruled by an emperor'],
     },
-    keywords: ['Tenochtitlan', 'Sun', 'Emperor'],
+    profileSummary: 'Building their magnificent capital city on an island in a central lake, this warrior society dominated its neighbours, demanding wealth and resources in return. Their religion required intense, sometimes violent offerings to sustain the sun and the gods.',
     explanation: 'The island capital, the sun, and the emperor point clearly to the Aztec.',
   },
 ];

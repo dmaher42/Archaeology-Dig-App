@@ -2412,33 +2412,6 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
         h: 24,
       }, { alpha: 0.78, fit: 'contain' });
 
-      // Label background (Soft card)
-      ctx.fillStyle = mapTheme.hazardLabelBackground;
-      const labelText = hazard.name;
-      ctx.font = '700 12px Outfit, sans-serif';
-      const textWidth = ctx.measureText(labelText).width;
-
-      // Rounded rect for hazard label
-      const hX = hazard.x + 4;
-      const hY = hazard.y + 4;
-      const hW = textWidth + 12;
-      const hH = 22;
-      const r = 4;
-      ctx.beginPath();
-      ctx.moveTo(hX + r, hY);
-      ctx.lineTo(hX + hW - r, hY);
-      ctx.quadraticCurveTo(hX + hW, hY, hX + hW, hY + r);
-      ctx.lineTo(hX + hW, hY + hH - r);
-      ctx.quadraticCurveTo(hX + hW, hY + hH, hX + hW - r, hY + hH);
-      ctx.lineTo(hX + r, hY + hH);
-      ctx.quadraticCurveTo(hX, hY + hH, hX, hY + r);
-      ctx.lineTo(hX, hY + r);
-      ctx.quadraticCurveTo(hX, hY, hX + r, hY);
-      ctx.closePath();
-      ctx.fill();
-
-      ctx.fillStyle = mapTheme.hazardLabelText;
-      ctx.fillText(labelText, hX + 6, hY + 15);
     });
 
     // 5. Walls (Stony texture instead of black bars)
@@ -2481,27 +2454,28 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
 
     // 6. Exit Gate
     const gateOpen = missionEvidenceCount >= missionRequiredCount;
-    ctx.shadowColor = gateOpen ? 'rgba(74, 222, 128, 0.4)' : 'rgba(0,0,0,0.3)';
+    const gateArchBounds = { x: 670, y: 226, w: 128, h: 132 };
+    const gateSlabBounds = { x: 706, y: 264, w: 62, h: 82 };
+    ctx.shadowColor = gateOpen ? 'rgba(247, 196, 83, 0.44)' : 'rgba(0,0,0,0.3)';
     ctx.shadowBlur = 10;
-    const gateAsset = gateOpen ? `${gatewayPackId}:unlockedExitGate` : `${gatewayPackId}:sealedExitGate`;
-    const drewGate = drawExcavationMapRegion(ctx, excavationMapAssets, gateAsset, { x: 710, y: 238, w: 78, h: 132 }, { alpha: 0.96, fit: 'contain' });
-    if (!drewGate) {
-      ctx.fillStyle = gateOpen ? 'rgba(74, 222, 128, 0.6)' : 'rgba(74, 54, 32, 0.8)';
-      ctx.fillRect(724, 258, 54, 108);
-    }
     if (!gateOpen) {
-      drawExcavationMapRegion(ctx, excavationMapAssets, `${gatewayPackId}:lockedSealIcon`, { x: 734, y: 298, w: 30, h: 28 }, { alpha: 0.92, fit: 'contain' });
+      drawExcavationMapRegion(ctx, excavationMapAssets, `${gatewayPackId}:closedGateSlab`, gateSlabBounds, { alpha: 0.96, fit: 'cover' });
     } else {
-      drawExcavationMapRegion(ctx, excavationMapAssets, `${gatewayPackId}:unlockedSealIcon`, { x: 735, y: 296, w: 30, h: 28 }, { alpha: 0.9, fit: 'contain' });
+      ctx.fillStyle = 'rgba(255, 223, 140, 0.22)';
+      ctx.beginPath();
+      ctx.ellipse(gateArchBounds.x + 64, gateArchBounds.y + 72, 26, 45, 0, 0, Math.PI * 2);
+      ctx.fill();
     }
-    ctx.strokeStyle = gateOpen ? '#166534' : '#3a2a18';
-    ctx.lineWidth = gateOpen ? 2 : 3;
-    ctx.strokeRect(724, 258, 54, 108);
+    const drewGate = drawExcavationMapRegion(ctx, excavationMapAssets, `${gatewayPackId}:exitArch`, gateArchBounds, { alpha: 0.98, fit: 'contain' });
+    if (!drewGate) {
+      ctx.fillStyle = gateOpen ? 'rgba(247, 196, 83, 0.34)' : 'rgba(74, 54, 32, 0.82)';
+      ctx.fillRect(gateArchBounds.x + 30, gateArchBounds.y + 28, 66, 98);
+      ctx.strokeStyle = gateOpen ? '#b45309' : '#3a2a18';
+      ctx.lineWidth = gateOpen ? 2 : 3;
+      ctx.strokeRect(gateArchBounds.x + 28, gateArchBounds.y + 24, 70, 104);
+    }
     ctx.shadowColor = 'transparent';
 
-    ctx.fillStyle = gateOpen ? '#064e3b' : '#fdf6e3';
-    ctx.font = '800 13px Outfit, sans-serif';
-    ctx.fillText(gateOpen ? 'OPEN' : 'LOCKED', gateOpen ? 736 : 728, 386);
     ctx.lineWidth = 1;
 
     // 7. Tokens (Floating/glowing)
@@ -2523,10 +2497,10 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      const tokenEmoji = 'ðŸ”'; // Keep generic so players must inspect to find out what it is
-
-      ctx.font = '15px Outfit, sans-serif';
-      ctx.fillText(tokenEmoji, token.x - 7, token.y + 5 + floatY);
+      ctx.fillStyle = 'rgba(255, 247, 237, 0.78)';
+      ctx.beginPath();
+      ctx.arc(token.x, token.y + floatY, 4.5, 0, Math.PI * 2);
+      ctx.fill();
     });
 
     // 8. Mythic guardians (non-combat pressure)
@@ -2565,31 +2539,6 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
       }
       ctx.restore();
 
-      // Guardian label (Small rounded placard)
-      ctx.fillStyle = 'rgba(255, 250, 240, 0.85)';
-      ctx.font = '700 11px Outfit, sans-serif';
-      const labelWidth = ctx.measureText(guardian.name).width;
-
-      const gw = labelWidth + 14;
-      const gx = Math.min(Math.max(guardian.x - 22, 8), MAP_WIDTH - gw - 8);
-      const gy = guardian.y - 24;
-      const gh = 18;
-      const gr = 3;
-
-      ctx.beginPath();
-      ctx.moveTo(gx + gr, gy); ctx.lineTo(gx + gw - gr, gy);
-      ctx.quadraticCurveTo(gx + gw, gy, gx + gw, gy + gr);
-      ctx.lineTo(gx + gw, gy + gh - gr);
-      ctx.quadraticCurveTo(gx + gw, gy + gh, gx + gw - gr, gy + gh);
-      ctx.lineTo(gx + gr, gy + gh);
-      ctx.quadraticCurveTo(gx, gy + gh, gx, gy + gr);
-      ctx.lineTo(gx, gy + gr);
-      ctx.quadraticCurveTo(gx, gy, gx + gr, gy);
-      ctx.closePath();
-      ctx.fill();
-
-      ctx.fillStyle = '#3a2a18';
-      ctx.fillText(guardian.name, gx + 7, gy + 13);
     });
 
     // 9. Player Avatar
@@ -2614,32 +2563,10 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
       ctx.stroke();
       ctx.shadowColor = 'transparent';
       ctx.shadowOffsetY = 0;
-      ctx.font = '700 9px Outfit, sans-serif';
-      ctx.fillStyle = '#fff';
-      ctx.fillText('YOU', player.x + 2, player.y + 15);
     }
 
-    // 10. Late Pass Overlays (Room labels, status markers, and survey tags float on top of everything)
+    // 10. Late Pass Overlays (state markers float on top of everything)
     mapZones.forEach((zone) => {
-      // Label background (Soft rounded card)
-      const labelText = zone.name;
-      ctx.font = '700 13px Outfit, sans-serif';
-      const textWidth = ctx.measureText(labelText).width;
-
-      const lx = zone.x + 8;
-      const ly = zone.y + 8;
-      const lw = textWidth + 18;
-      const lh = 24;
-      const lr = 4;
-
-      if (!drawExcavationMapRegion(ctx, excavationMapAssets, `${mapUiPackId}:pinnedFieldLabel`, { x: lx - 3, y: ly - 5, w: Math.max(lw + 20, 100), h: 38 }, { alpha: mapTheme.labelAssetAlpha, fit: 'cover' })) {
-        ctx.fillStyle = 'rgba(255, 248, 232, 0.9)';
-        fillRoundRect(lx, ly, lw, lh, lr);
-      }
-
-      ctx.fillStyle = mapTheme.labelText;
-      ctx.fillText(labelText, lx + 6, ly + 17);
-
       const roomMarker = surveyedZones.has(zone.id)
         ? `${markerPackId}:surveyedMarker`
         : completedZoneChallenges.has(zone.id)
@@ -2656,33 +2583,35 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
       if (surveyZoneById[zone.id]) {
         const sX = zone.x + 10;
         const sY = zone.y + zone.h - 32;
-        const surveyLabelText = selectedSurveyZone === zone.id
-          ? 'Dig zone marked'
-          : surveyedZones.has(zone.id)
-            ? 'Surveyed'
-            : completedZoneChallenges.has(zone.id)
-              ? 'Survey ready'
-              : 'Check needed';
-        const tagWidth = selectedSurveyZone === zone.id ? 136 : 124;
-        const tagAsset = surveyedZones.has(zone.id) ? `${mapUiPackId}:surveyTag` : `${mapUiPackId}:pinnedFieldLabel`;
-        const drewTag = drawExcavationMapRegion(ctx, excavationMapAssets, tagAsset, { x: sX - 4, y: sY - 8, w: tagWidth, h: 42 }, { alpha: mapTheme.labelAssetAlpha, fit: 'cover' });
-        if (!drewTag) {
-          ctx.fillStyle = selectedSurveyZone === zone.id
-            ? 'rgba(45, 90, 39, 0.9)'
-            : 'rgba(74, 54, 32, 0.86)';
-          fillRoundRect(sX, sY, tagWidth - 8, 24, 4);
-        }
-        if (selectedSurveyZone === zone.id || surveyedZones.has(zone.id)) {
-          drawExcavationMapRegion(ctx, excavationMapAssets, selectedSurveyZone === zone.id ? `${mapUiPackId}:mapPin` : `${mapUiPackId}:completedSurveyStamp`, { x: sX + tagWidth - 36, y: sY - 12, w: 30, h: 30 }, { alpha: 0.88, fit: 'contain' });
-        } else if (completedZoneChallenges.has(zone.id)) {
-          drawExcavationMapRegion(ctx, excavationMapAssets, `${markerPackId}:neutralUnlockIcon`, { x: sX + tagWidth - 32, y: sY - 8, w: 24, h: 24 }, { alpha: 0.82, fit: 'contain' });
-        } else {
-          drawExcavationMapRegion(ctx, excavationMapAssets, `${markerPackId}:neutralQuestionIcon`, { x: sX + tagWidth - 32, y: sY - 8, w: 24, h: 24 }, { alpha: 0.82, fit: 'contain' });
-        }
+        const statusIconSize = selectedSurveyZone === zone.id ? 34 : 28;
+        const statusIconX = sX;
+        const statusIconY = sY - 4;
 
-        ctx.fillStyle = selectedSurveyZone === zone.id ? mapTheme.selectedSurveyLabelText : mapTheme.surveyLabelText;
-        ctx.font = '800 11px Outfit, sans-serif';
-        ctx.fillText(surveyLabelText, sX + 10, sY + 16);
+        ctx.save();
+        ctx.globalAlpha = selectedSurveyZone === zone.id ? 0.72 : 0.34;
+        ctx.fillStyle = selectedSurveyZone === zone.id
+          ? 'rgba(45, 90, 39, 0.34)'
+          : completedZoneChallenges.has(zone.id)
+            ? 'rgba(250, 204, 21, 0.18)'
+            : 'rgba(74, 54, 32, 0.16)';
+        ctx.beginPath();
+        ctx.arc(
+          statusIconX + statusIconSize / 2,
+          statusIconY + statusIconSize / 2,
+          statusIconSize * 0.56,
+          0,
+          Math.PI * 2,
+        );
+        ctx.fill();
+        ctx.restore();
+
+        if (selectedSurveyZone === zone.id || surveyedZones.has(zone.id)) {
+          drawExcavationMapRegion(ctx, excavationMapAssets, selectedSurveyZone === zone.id ? `${mapUiPackId}:mapPin` : `${mapUiPackId}:completedSurveyStamp`, { x: statusIconX, y: statusIconY, w: statusIconSize, h: statusIconSize }, { alpha: 0.9, fit: 'contain' });
+        } else if (completedZoneChallenges.has(zone.id)) {
+          drawExcavationMapRegion(ctx, excavationMapAssets, `${markerPackId}:neutralUnlockIcon`, { x: statusIconX + 2, y: statusIconY + 2, w: statusIconSize - 4, h: statusIconSize - 4 }, { alpha: 0.82, fit: 'contain' });
+        } else {
+          drawExcavationMapRegion(ctx, excavationMapAssets, `${markerPackId}:neutralQuestionIcon`, { x: statusIconX + 2, y: statusIconY + 2, w: statusIconSize - 4, h: statusIconSize - 4 }, { alpha: 0.82, fit: 'contain' });
+        }
       }
     });
 
@@ -3615,6 +3544,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
           || event.detail?.target === 'journey-boss-start'
           || event.detail?.target === 'journey-scarab-payoff'
           || event.detail?.target === 'journey-desert-map-seal-ready'
+          || event.detail?.target === 'journey-route-gate'
         )
         && (expeditionStage !== 'journey' || baseCampOpen)
       ) {
@@ -3694,7 +3624,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
   ];
 
   const renderStageSelect = () => (
-    <section className="phase-container menu-phase" aria-label="Expedition Stage Selection">
+    <section className="phase-container menu-phase main-menu-phase" aria-label="Expedition Stage Selection">
       <div className="dynamic-menu-backdrop" style={{ backgroundImage: `url(${modeArtworks[focusedStageIndex] || modeArtworks[0]})` }} />
 
       <div className="mission-selection-heading" style={{ marginBottom: '1rem' }}>

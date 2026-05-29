@@ -19,43 +19,47 @@ const scenes = [
     background: 'assets/expedition/backgrounds/desert-entry/desert-entry-photoreal-sphinx-backdrop.png',
     foreground: 'assets/expedition/environment/egypt-opening/opening-pyramid-facade.png',
     character: 'assets/expedition/bosses/anubis-apparition.png',
-    kicker: 'FOR CENTURIES',
-    title: 'THE SEALS HELD',
-    subtitle: 'Anubis guarded what kings buried beneath the sand.',
+    kicker: 'BENEATH THE SAND',
+    title: 'THE GOLD WAS REAL',
+    subtitle: 'So were the coffins, the carved symbols, and the warning cut into stone.',
     tone: '#f6c56f',
+    motif: 'treasure',
   },
   {
     from: 135,
     duration: 135,
-    background: 'assets/expedition/backgrounds/desert-entry/desert-entry-full-scene.png',
-    character: 'assets/expedition/bosses/opening-sphinx-apparition.png',
-    foreground: 'assets/expedition/environment/egypt-opening/scarab-seal-opening.png',
-    kicker: 'NOW',
-    title: 'THEY ARE BREAKING',
-    subtitle: 'The wards fade. The guardians wake without command.',
-    tone: '#7dd3fc',
+    background: 'assets/expedition/backgrounds/catacombs/catacombs-full-scene.png',
+    foreground: 'assets/expedition/environment/egypt-opening/opening-tomb-stairwell.png',
+    enemy: 'assets/expedition/enemies/warrior-mummy-sprites.png',
+    kicker: 'THE FIRST DISCOVERY',
+    title: 'WOKE THE DEAD',
+    subtitle: 'Ancient bodies rest below the palace, but something down there is listening.',
+    tone: '#f97316',
+    motif: 'symbols',
   },
   {
     from: 270,
     duration: 135,
-    background: 'assets/expedition/backgrounds/ruined-temple/ruined-temple-full-scene.png',
-    character: 'assets/expedition/player/asha-option-a-source/poses/run_contact.png',
-    foreground: 'assets/expedition/environment/egypt-opening/scarab-seal-ground-embedded.png',
-    kicker: 'ONE EXPLORER',
-    title: 'CROSSES THE THRESHOLD',
-    subtitle: 'To Anubis, he is not a hero. He is another looter.',
-    tone: '#fb923c',
+    background: 'assets/expedition/backgrounds/desert-entry/desert-entry-full-scene.png',
+    character: 'assets/expedition/bosses/opening-sphinx-apparition.png',
+    foreground: 'assets/expedition/environment/egypt-opening/scarab-seal-opening.png',
+    kicker: 'AT THE EDGE OF THE RUINS',
+    title: 'THE WATCHERS APPEAR',
+    subtitle: 'Tall figures in dark suits stand where no tracks cross the sand.',
+    tone: '#7dd3fc',
+    motif: 'watchers',
   },
   {
     from: 405,
     duration: 135,
-    background: 'assets/expedition/backgrounds/catacombs/catacombs-full-scene.png',
-    character: 'assets/expedition/bosses/anubis-apparition.png',
-    enemy: 'assets/expedition/enemies/warrior-mummy-sprites.png',
-    kicker: 'ANUBIS',
-    title: '"LEAVE THIS PLACE"',
-    subtitle: '"The sand has already judged your footsteps."',
-    tone: '#c084fc',
+    background: 'assets/expedition/backgrounds/ruined-temple/ruined-temple-full-scene.png',
+    character: 'assets/expedition/player/asha-option-a-source/poses/run_contact.png',
+    foreground: 'assets/expedition/environment/egypt-opening/scarab-seal-ground-embedded.png',
+    kicker: 'THE QUEST BEGINS',
+    title: 'FIND THREE GEMSTONES',
+    subtitle: 'Each stone opens a door. Each door pulls the explorer deeper.',
+    tone: '#34d399',
+    motif: 'gems',
   },
   {
     from: 540,
@@ -63,10 +67,11 @@ const scenes = [
     background: 'assets/expedition/backgrounds/escape-sequence/escape-sequence-final-backdrop.png',
     foreground: 'assets/expedition/environment/egypt-opening/opening-tomb-stairwell.png',
     character: 'assets/expedition/player/asha-option-a-source/poses/attack_swing.png',
-    kicker: 'HE DID NOT COME',
-    title: 'FOR GOLD',
-    subtitle: 'He came because something ancient is failing.',
-    tone: '#ef4444',
+    kicker: 'BUT THE PALACE',
+    title: 'WAS NEVER REAL',
+    subtitle: 'The walls are a dream, and the trap is inside his own head.',
+    tone: '#c084fc',
+    motif: 'dream',
   },
   {
     from: 675,
@@ -74,10 +79,11 @@ const scenes = [
     background: 'assets/expedition/backgrounds/dig-site-entrance/dig-site-entrance-final-backdrop.png',
     character: 'assets/expedition/player/asha-option-a-source/poses/attack_swing.png',
     foreground: 'assets/expedition/environment/egypt-opening/scarab-seal-opening.png',
-    kicker: 'ANUBIS DEMANDS',
-    title: 'PROVE IT',
-    subtitle: 'Gather the shards. Recover the tools. Survive the guardians.',
-    tone: '#34d399',
+    kicker: 'TO WAKE UP',
+    title: 'HE MUST PROVE IT',
+    subtitle: 'Recover the shards. Read the symbols. Survive the guardians.',
+    tone: '#ef4444',
+    motif: 'fracture',
   },
   {
     from: 810,
@@ -86,20 +92,22 @@ const scenes = [
     character: 'assets/expedition/bosses/scarab-queen-sprites.png',
     enemy: 'assets/expedition/enemies/desert-scarab-sprites.png',
     accent: 'assets/expedition/player/khopesh-weapon-pack.png',
-    kicker: 'THE SCARAB QUEEN',
-    title: 'RISES',
-    subtitle: 'The first seal does not open. It tests.',
-    tone: '#f97316',
+    kicker: 'THE FIRST SEAL',
+    title: 'DOES NOT OPEN',
+    subtitle: 'It tests anyone who mistakes treasure for truth.',
+    tone: '#facc15',
+    motif: 'scarab',
   },
   {
     from: 945,
     duration: 135,
     background: 'assets/expedition/backgrounds/desert-entry/desert-entry-full-scene.png',
-    foreground: 'assets/expedition/environment/egypt-opening/opening-tomb-stairwell.png',
-    kicker: 'WHAT WAS BURIED',
-    title: 'WAS NOT TREASURE',
-    subtitle: 'It was memory. Power. Warnings history was meant to protect.',
-    tone: '#facc15',
+    foreground: 'assets/expedition/environment/egypt-opening/pyramid-climb-pack.png',
+    kicker: 'LONG BEFORE THE PHARAOHS',
+    title: 'SOMETHING CAME HERE',
+    subtitle: 'A forgotten rebellion left its mark on the pyramids.',
+    tone: '#bae6fd',
+    motif: 'visitors',
   },
   {
     from: 1080,
@@ -107,10 +115,11 @@ const scenes = [
     background: 'assets/expedition/backgrounds/catacombs/catacombs-full-scene.png',
     foreground: 'assets/expedition/environment/egypt-opening/scarab-seal-opening.png',
     character: 'assets/expedition/bosses/anubis-apparition.png',
-    kicker: 'THE GUARDIAN',
-    title: 'IS LOSING HIS POWER',
-    subtitle: 'And the one he fears may be the only one who can help.',
-    tone: '#bae6fd',
+    kicker: 'THE SECRET',
+    title: 'IS CARVED IN STONE',
+    subtitle: 'Gold can be stolen. History must be protected.',
+    tone: '#fb7185',
+    motif: 'symbols',
   },
 ];
 
@@ -169,6 +178,219 @@ const Dust = ({ tone = '#f6c56f' }) => {
   );
 };
 
+const SceneMotif = ({ motif, tone }) => {
+  const frame = useCurrentFrame();
+  const shimmer = interpolate(Math.sin(frame / 12), [-1, 1], [0.35, 0.88]);
+  const pulse = interpolate(Math.sin(frame / 18), [-1, 1], [0.9, 1.08]);
+
+  if (motif === 'treasure') {
+    return (
+      <div style={{
+        position: 'absolute',
+        right: 150,
+        bottom: 104,
+        display: 'flex',
+        gap: 18,
+        transform: `scale(${pulse})`,
+        zIndex: 18,
+      }}>
+        {Array.from({ length: 5 }).map((_, index) => (
+          <div
+            key={index}
+            style={{
+              width: 74,
+              height: 44,
+              borderRadius: 6,
+              background: 'linear-gradient(140deg, #fff7ad, #d99a28 48%, #7c4a03)',
+              boxShadow: `0 0 ${24 + index * 4}px rgba(250,204,21,${0.35 + shimmer * 0.24})`,
+              transform: `translateY(${(index % 2) * 18}px) rotate(${-8 + index * 4}deg)`,
+              opacity: 0.72,
+            }}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  if (motif === 'symbols') {
+    return (
+      <div style={{
+        position: 'absolute',
+        right: 112,
+        top: 122,
+        width: 470,
+        height: 330,
+        border: `2px solid ${tone}55`,
+        background: 'rgba(10,8,5,0.24)',
+        boxShadow: `0 0 46px ${tone}33, inset 0 0 38px rgba(0,0,0,0.45)`,
+        opacity: 0.54 + shimmer * 0.22,
+        transform: `rotate(${interpolate(frame, [0, 1500], [-2, 2])}deg)`,
+        zIndex: 17,
+      }}>
+        {['EYE', 'SUN', 'GATE', 'SEAL', 'DREAM', 'STONE'].map((word, index) => (
+          <div
+            key={word}
+            style={{
+              position: 'absolute',
+              left: 34 + (index % 2) * 220,
+              top: 34 + Math.floor(index / 2) * 88,
+              color: index % 2 ? '#fff7ed' : tone,
+              fontFamily: 'Cinzel, Georgia, serif',
+              fontSize: 29,
+              fontWeight: 900,
+              textShadow: `0 0 20px ${tone}`,
+              opacity: 0.62,
+            }}
+          >
+            {word}
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (motif === 'watchers') {
+    return (
+      <div style={{ position: 'absolute', inset: 0, zIndex: 18 }}>
+        {[0, 1, 2].map((index) => (
+          <div
+            key={index}
+            style={{
+              position: 'absolute',
+              right: 185 + index * 130,
+              bottom: 112 + (index === 1 ? 34 : 0),
+              width: 54,
+              height: 260 + index * 18,
+              borderRadius: '28px 28px 10px 10px',
+              background: 'linear-gradient(90deg, rgba(0,0,0,0.35), #030303 42%, rgba(42,45,52,0.92))',
+              boxShadow: `0 0 38px ${tone}44`,
+              opacity: 0.72,
+              transform: `translateY(${Math.sin((frame + index * 22) / 26) * 8}px)`,
+            }}
+          >
+            <div style={{
+              position: 'absolute',
+              left: -4,
+              top: -48,
+              width: 62,
+              height: 62,
+              borderRadius: '50%',
+              background: 'linear-gradient(#1f2937, #020617)',
+              boxShadow: `0 0 24px ${tone}66`,
+            }} />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (motif === 'gems') {
+    return (
+      <div style={{
+        position: 'absolute',
+        right: 160,
+        top: 178,
+        display: 'flex',
+        gap: 58,
+        zIndex: 19,
+      }}>
+        {['#34d399', '#60a5fa', '#f472b6'].map((gemTone, index) => (
+          <div
+            key={gemTone}
+            style={{
+              width: 96,
+              height: 96,
+              background: `linear-gradient(135deg, #fff, ${gemTone} 42%, #082f49)`,
+              clipPath: 'polygon(50% 0%, 92% 28%, 78% 100%, 22% 100%, 8% 28%)',
+              boxShadow: `0 0 ${38 + shimmer * 28}px ${gemTone}`,
+              opacity: 0.86,
+              transform: `translateY(${Math.sin((frame + index * 18) / 20) * 18}px) rotate(${45 + index * 11}deg)`,
+            }}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  if (motif === 'dream') {
+    return (
+      <AbsoluteFill style={{
+        zIndex: 16,
+        opacity: 0.52,
+        background: `repeating-radial-gradient(circle at ${55 + Math.sin(frame / 28) * 10}% ${45 + Math.cos(frame / 34) * 10}%, ${tone}55 0 2px, transparent 3px 38px)`,
+        filter: 'blur(0.4px)',
+      }} />
+    );
+  }
+
+  if (motif === 'fracture') {
+    return (
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        zIndex: 17,
+        opacity: 0.44 + shimmer * 0.18,
+        background: `linear-gradient(112deg, transparent 0 49%, ${tone}88 49.2% 50%, transparent 50.3%), linear-gradient(72deg, transparent 0 58%, ${tone}66 58.2% 58.7%, transparent 59%)`,
+      }} />
+    );
+  }
+
+  if (motif === 'scarab') {
+    return (
+      <div style={{
+        position: 'absolute',
+        right: 180,
+        top: 126,
+        width: 280,
+        height: 280,
+        borderRadius: '50%',
+        border: `4px solid ${tone}88`,
+        boxShadow: `0 0 52px ${tone}66, inset 0 0 40px rgba(0,0,0,0.6)`,
+        opacity: 0.5,
+        transform: `scale(${pulse}) rotate(${frame * 0.12}deg)`,
+        zIndex: 17,
+      }} />
+    );
+  }
+
+  if (motif === 'visitors') {
+    return (
+      <div style={{
+        position: 'absolute',
+        right: 138,
+        top: 116,
+        width: 520,
+        height: 330,
+        zIndex: 17,
+        opacity: 0.66,
+      }}>
+        <div style={{
+          position: 'absolute',
+          left: 90,
+          top: 54,
+          width: 330,
+          height: 118,
+          borderRadius: '50%',
+          border: `3px solid ${tone}aa`,
+          boxShadow: `0 0 58px ${tone}66`,
+          transform: `translateY(${Math.sin(frame / 18) * 10}px)`,
+        }} />
+        <div style={{
+          position: 'absolute',
+          left: 242,
+          top: 158,
+          width: 24,
+          height: 150,
+          background: `linear-gradient(${tone}99, transparent)`,
+          filter: 'blur(8px)',
+        }} />
+      </div>
+    );
+  }
+
+  return null;
+};
+
 const Scene = ({ scene }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -206,6 +428,7 @@ const Scene = ({ scene }) => {
         }} />
         <AbsoluteFill style={{ background: 'linear-gradient(0deg, rgba(0,0,0,0.82), transparent 42%, rgba(0,0,0,0.5))' }} />
         <Dust tone={scene.tone} />
+        <SceneMotif motif={scene.motif} tone={scene.tone} />
         {scene.foreground && (
           <Img
             src={asset(scene.foreground)}

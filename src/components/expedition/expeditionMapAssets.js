@@ -135,6 +135,8 @@ export const EXCAVATION_ASSET_PACKS = {
       'sealedRoomDoorway',
       'brokenArchPassage',
       'ropeMarkedEntrance',
+      'exitArch',
+      'closedGateSlab',
       'sealedExitGate',
       'unlockedExitGate',
       'lockedSealIcon',
