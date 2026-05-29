@@ -13,9 +13,10 @@ export const CHINA_RIVER_VALLEY_BACKGROUND_ATLAS_JSON = `${CHINA_RIVER_VALLEY_BA
 
 export const EXPECTED_DESERT_BACKGROUND_KEYS = [
   'sky',
+  'groundingOverlay',
 ];
 
-export const DESERT_BACKGROUND_DEPTH_MODE = 'desert-entry-photoreal-single-backdrop-v1';
+export const DESERT_BACKGROUND_DEPTH_MODE = 'desert-entry-photoreal-single-backdrop-grounding-overlay-v2';
 export const JOURNEY_BACKGROUND_DEPTH_MODE = 'journey-section-parallax-v2';
 
 export const EXPECTED_CHINA_RIVER_VALLEY_BACKGROUND_KEYS = [

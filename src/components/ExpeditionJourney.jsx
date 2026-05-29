@@ -9477,7 +9477,14 @@ export default function ExpeditionJourney({
         { y: 0, height: CANVAS_HEIGHT },
         { ...layerOptions, parallax: 0, alpha: 1 },
       );
-      return backdropDrawn;
+      const groundingOverlayDrawn = drawDesertBackgroundLayer(
+        ctx,
+        assets,
+        'groundingOverlay',
+        { y: 0, height: CANVAS_HEIGHT },
+        { ...layerOptions, parallax: 0, alpha: 1 },
+      );
+      return backdropDrawn && groundingOverlayDrawn;
     }
 
     const drawn = [

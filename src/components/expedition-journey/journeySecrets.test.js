@@ -16,6 +16,7 @@ const journeyConstantsSource = readFileSync(new URL('./journeyConstants.js', imp
 const journeyEnemySpritesSource = readFileSync(new URL('./journeyEnemySprites.js', import.meta.url), 'utf8');
 const journeyBossSpritesSource = readFileSync(new URL('./journeyBossSprites.js', import.meta.url), 'utf8');
 const journeyMarkerSpritesSource = readFileSync(new URL('./journeyMarkerSprites.js', import.meta.url), 'utf8');
+const journeyBackgroundAssetsSource = readFileSync(new URL('./journeyBackgroundAssets.js', import.meta.url), 'utf8');
 const journeyRenderAssetsSource = readFileSync(new URL('./journeyRenderAssets.js', import.meta.url), 'utf8');
 const expeditionStagesSource = readFileSync(new URL('../expedition/expeditionStages.js', import.meta.url), 'utf8');
 const devToolsSource = readFileSync(new URL('../DevTools.jsx', import.meta.url), 'utf8');
@@ -2445,10 +2446,13 @@ test('Egypt atmosphere layout fills each Journey section without changing gamepl
   );
 });
 
-test('desert entry single-backdrop mode does not load deprecated overlay assets', () => {
+test('desert entry single-backdrop mode uses only the clean backdrop and grounding overlay', () => {
   assert.equal(desertEntryBackgroundAtlas.runtimeMode, 'single-composited-backdrop');
-  assert.deepEqual(Object.keys(desertEntryBackgroundAtlas.regions), ['sky']);
+  assert.deepEqual(Object.keys(desertEntryBackgroundAtlas.regions), ['sky', 'groundingOverlay']);
   assert.equal(desertEntryBackgroundAtlas.regions.sky.image, undefined);
+  assert.equal(desertEntryBackgroundAtlas.regions.groundingOverlay.image, 'desert-entry-grounding-overlay.png');
+  assert.match(journeyBackgroundAssetsSource, /'groundingOverlay'/);
+  assert.match(journeyComponentSource, /'groundingOverlay'/);
   assert.doesNotMatch(journeyComponentSource, /'dustOverlay'/);
   assert.doesNotMatch(journeyComponentSource, /'foregroundParallax'/);
 });
