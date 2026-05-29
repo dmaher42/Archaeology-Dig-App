@@ -1604,7 +1604,7 @@ test('Asha Reference Warrior remains available as a separate character-loader at
   assert.equal(Object.keys(ashaReferenceWarriorPlayerAtlas.poseSources).length, 107);
   assert.equal(
     ashaReferenceWarriorPlayerAtlas.poseSources.idle_00,
-    'asha-reference-warrior-idle-row-raw.png:frame_00',
+    'asha-reference-warrior-idle-still-guard-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_00',
   );
   assert.equal(
     ashaReferenceWarriorPlayerAtlas.poseSources.attack_pick_swing_07,
@@ -1612,11 +1612,11 @@ test('Asha Reference Warrior remains available as a separate character-loader at
   );
   assert.equal(
     ashaReferenceWarriorPlayerAtlas.poseSources.attack_pick_swing_alt_07,
-    'asha-reference-warrior-attack-chain-02-diagonal-clean-normalized-4096x512-candidate-2026-05-29.png:frame_07',
+    'asha-reference-warrior-attack-chain-02-diagonal-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_07',
   );
   assert.equal(
     ashaReferenceWarriorPlayerAtlas.poseSources.attack_pick_swing_sweep_07,
-    'asha-reference-warrior-attack-chain-03-sweep-clean-normalized-4096x512-candidate-2026-05-29.png:frame_07',
+    'asha-reference-warrior-attack-chain-03-sweep-framebyframe-pass1c-normalized-4096x512-candidate-2026-05-30.png:frame_07',
   );
   assert.equal(
     ashaReferenceWarriorPlayerAtlas.poseSources.run_07,
@@ -2551,6 +2551,7 @@ test('desert entry grounding overlay stays a transparent archaeological sediment
   assert.equal(overlayBytes.readUInt32BE(20), desertEntryBackgroundAtlas.imageHeight);
   assert.equal(overlayBytes[25], 6, 'grounding overlay should be RGBA so the clean background remains canonical');
   [
+    /buried ruin shelf/i,
     /sand drifts/i,
     /rubble fields/i,
     /contact shadows/i,
@@ -2585,13 +2586,17 @@ test('desert entry foreground depth pack stays transparent, visual-only, and edg
     assert.ok(foregroundAtlas.regions[key], `${key} should be present in the foreground depth pack`);
   });
   assert.match(foregroundAtlas.mappingNote, /visual-only/i);
-  assert.match(foregroundAtlas.mappingNote, /screen edges/i);
+  assert.match(foregroundAtlas.mappingNote, /terrain-level framing/i);
   assert.match(foregroundAtlas.mappingNote, /no collision/i);
   assert.match(foregroundAtlas.mappingNote, /does not replace existing artwork/i);
+  assert.match(foregroundAtlas.mappingNote, /avoid tall ghosted edge cutouts/i);
   assert.match(journeyRenderAssetsSource, /EGYPT_FOREGROUND_DEPTH_ASSET_VERSION/);
   assert.match(journeyRenderAssetsSource, /EGYPT_FOREGROUND_DEPTH/);
+  assert.match(journeyComponentSource, /ENABLE_FOREGROUND_DEPTH_LAYER = false/);
   assert.match(journeyComponentSource, /drawForegroundDepthLayer/);
   assert.match(journeyComponentSource, /drawForegroundDepthParticles/);
+  assert.doesNotMatch(journeyComponentSource, /drawRegion\('leftBrokenColumn'/);
+  assert.doesNotMatch(journeyComponentSource, /drawRegion\('rightBrokenColumn'/);
   assert.doesNotMatch(journeyComponentSource, /FOREGROUND_DEPTH[\s\S]{0,240}PLATFORMS/);
 });
 

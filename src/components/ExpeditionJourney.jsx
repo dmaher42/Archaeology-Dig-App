@@ -2220,6 +2220,7 @@ const PROP_GROUNDING_INTEGRATION_VERSION = 'grounded-plane-preset-contact-shadow
 const ROUTE_GROUND_VISUAL_MODE = 'edge-and-local-aprons-no-full-width-haze';
 const ROUTE_GROUND_HAZE_FIX_VERSION = 'route-ground-no-bottom-haze-2026-05-21';
 const FOREGROUND_DEPTH_LAYER_MODE = 'edge-framed-visual-only-no-collision';
+const ENABLE_FOREGROUND_DEPTH_LAYER = false;
 const DRAW_JOURNEY_FLAG_MARKERS = false;
 const JOURNEY_FLAG_VISUAL_MODE = 'flags-removed-stone-cairns-v1';
 const WORLD_CONTINUITY_VERSION = 'connected-expedition-world-2026-05-16';
@@ -6629,7 +6630,23 @@ export default function ExpeditionJourney({
   const drawPlatform = useCallback((ctx, platform, cameraX, current) => {
     const x = worldToScreenX(platform.x, cameraX);
     if (!isHorizontallyVisible(platform.x, platform.width, cameraX, 50)) return;
-    if (platform.invisible) return;
+    if (platform.invisible) {
+      const _show = window._pShow || [];
+      if (_show.length > 0 && (platform.id || '') && _show.some(p => platform.id.startsWith(p))) {
+        const _e = (window._pAdj || {})[platform.id] || {};
+        const _ay = (_e.y || 0), _ax = (_e.x || 0), _aw = (_e.w || 0);
+        const _dy = platform.y + _ay, _dx = x + _ax, _dw = platform.width + _aw;
+        ctx.save();
+        ctx.strokeStyle = 'rgba(255,100,0,0.92)'; ctx.lineWidth = 2;
+        ctx.strokeRect(_dx, _dy, _dw, platform.height);
+        ctx.fillStyle = 'rgba(255,100,0,0.18)';
+        ctx.fillRect(_dx, _dy, _dw, platform.height);
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 10px monospace';
+        ctx.fillText(platform.id + '  y=' + Math.round(_dy) + '  x=' + Math.round(platform.x + _ax) + '  w=' + Math.round(_dw), _dx + 3, _dy + 12);
+        ctx.restore();
+      }
+      return;
+    }
 
     ctx.save();
     if (platform.secret && platform.secretVisibility !== 'visible' && !current.collectedUpgrades.has('ancient-compass')) {
@@ -6883,17 +6900,20 @@ export default function ExpeditionJourney({
     const drawX = x - width / 2;
     const drawY = prop.y;
     const baseY = drawY + height;
+    const groundY = Math.min(GROUND_Y - 2, baseY - 6);
 
-    drawContactShadow(ctx, x, Math.min(GROUND_Y - 2, baseY - 4), width * 0.52, 0.13, 1.4);
-    drawDecorativeBaseBlend(ctx, x - width * 0.1, Math.min(GROUND_Y - 2, baseY - 6), width * 0.4, section.id, prop.depth || 'background', 0.58);
+    drawRouteGroundApron(ctx, x - width * 0.06, groundY, width * 0.62, section.id, 0.98, Math.round(prop.x));
+    drawContactShadow(ctx, x, groundY + 1, width * 0.66, 0.22, 1.6, { height: 14, color: 'rgba(27, 16, 8, 0.96)' });
+    drawDecorativeBaseBlend(ctx, x - width * 0.12, groundY - 1, width * 0.52, section.id, prop.depth || 'background', 0.82);
     ctx.globalAlpha = prop.alpha ?? 0.98;
     ctx.filter = 'sepia(2%) saturate(102%) brightness(98%) contrast(104%) drop-shadow(0 18px 18px rgba(34, 18, 8, 0.2))';
     ctx.drawImage(structureAsset.image, drawX, drawY, width, height);
     ctx.filter = 'none';
     ctx.globalAlpha = 1;
-    drawGroundDustLip(ctx, x - width * 0.16, Math.min(GROUND_Y - 2, baseY - 8), width * 0.42, 'rgba(188, 127, 61, 0.18)');
+    drawGroundDustLip(ctx, x - width * 0.12, groundY - 3, width * 0.58, 'rgba(188, 127, 61, 0.28)');
+    drawGroundDustLip(ctx, x + width * 0.08, groundY - 1, width * 0.34, 'rgba(214, 160, 88, 0.18)');
     return true;
-  }, [drawContactShadow, drawDecorativeBaseBlend, drawGroundDustLip]);
+  }, [drawContactShadow, drawDecorativeBaseBlend, drawGroundDustLip, drawRouteGroundApron]);
 
   const drawScribeChamberDoorwayStructure = useCallback((ctx, prop, x, section, now) => {
     const width = prop.width || 1120;
@@ -6911,8 +6931,10 @@ export default function ExpeditionJourney({
     if (structureAsset.loaded && structureAsset.image) {
       ctx.save();
       ctx.globalAlpha = prop.alpha ?? 1;
-      drawContactShadow(ctx, centerX, Math.min(GROUND_Y - 2, baseY - 5), width * 0.62, 0.2, 1.4);
-      drawDecorativeBaseBlend(ctx, centerX - width * 0.02, Math.min(GROUND_Y - 3, baseY - 9), width * 0.5, section.id, prop.depth || 'route-edge', 0.62);
+      const groundY = Math.min(GROUND_Y - 3, baseY - 8);
+      drawRouteGroundApron(ctx, centerX - width * 0.04, groundY, width * 0.64, section.id, 1.02, Math.round(prop.x));
+      drawContactShadow(ctx, centerX, groundY + 1, width * 0.72, 0.26, 1.5, { height: 15, color: 'rgba(28, 16, 8, 0.96)' });
+      drawDecorativeBaseBlend(ctx, centerX - width * 0.02, groundY - 2, width * 0.58, section.id, prop.depth || 'route-edge', 0.86);
       ctx.filter = `sepia(4%) saturate(108%) brightness(${98 + pulse * 4}%) contrast(106%) drop-shadow(0 20px 22px rgba(39, 18, 7, 0.3))`;
       ctx.drawImage(structureAsset.image, left, top, width, height);
       ctx.filter = 'none';
@@ -6924,7 +6946,8 @@ export default function ExpeditionJourney({
       ctx.fillStyle = doorwayGlow;
       ctx.fillRect(centerX - width * 0.28, top + height * 0.12, width * 0.56, height * 0.48);
       ctx.globalCompositeOperation = 'source-over';
-      drawGroundDustLip(ctx, centerX, Math.min(GROUND_Y - 3, baseY - 8), width * 0.45, 'rgba(250, 204, 21, 0.14)');
+      drawGroundDustLip(ctx, centerX, groundY - 2, width * 0.56, 'rgba(205, 137, 64, 0.22)');
+      drawGroundDustLip(ctx, centerX + width * 0.14, groundY, width * 0.3, 'rgba(236, 184, 112, 0.14)');
 
       if (stateRef.current.renderStats) {
         stateRef.current.renderStats.scribeChamberExteriorVersion = SCRIBE_CHAMBER_EXTERIOR_VERSION;
@@ -7050,7 +7073,7 @@ export default function ExpeditionJourney({
     }
     ctx.restore();
     return true;
-  }, [drawContactShadow, drawDecorativeBaseBlend, drawGroundDustLip]);
+  }, [drawContactShadow, drawDecorativeBaseBlend, drawGroundDustLip, drawRouteGroundApron]);
 
   const drawForgottenMuralChamberInterior = useCallback((ctx, current, now) => {
     if (!isForgottenMuralChamberScene(current)) return false;
@@ -9721,18 +9744,18 @@ export default function ExpeditionJourney({
   const drawForegroundDepthParticles = useCallback((ctx, now, cameraX) => {
     let particleCount = 0;
     ctx.save();
-    for (let index = 0; index < 24; index += 1) {
+    for (let index = 0; index < 18; index += 1) {
       const drift = (now * (0.006 + (index % 5) * 0.0017) + cameraX * 0.035 + index * 91) % (CANVAS_WIDTH + 180);
       const x = drift - 90;
       const edgeWeight = Math.max(
         clamp(1 - x / 230, 0, 1),
         clamp((x - (CANVAS_WIDTH - 230)) / 230, 0, 1),
       );
-      const y = GROUND_Y - 72 + (index % 6) * 17 + Math.sin(now / 900 + index) * 7;
-      const alpha = (0.026 + edgeWeight * 0.028) * (index % 3 === 0 ? 1.25 : 1);
+      const y = GROUND_Y - 34 + (index % 4) * 11 + Math.sin(now / 900 + index) * 4;
+      const alpha = (0.012 + edgeWeight * 0.014) * (index % 3 === 0 ? 1.15 : 1);
       ctx.fillStyle = `rgba(232, 205, 157, ${alpha})`;
       ctx.beginPath();
-      ctx.ellipse(x, y, 18 + (index % 4) * 7, 2.4 + (index % 3), -0.08, 0, Math.PI * 2);
+      ctx.ellipse(x, y, 14 + (index % 4) * 6, 1.8 + (index % 3), -0.08, 0, Math.PI * 2);
       ctx.fill();
       particleCount += 1;
     }
@@ -9762,31 +9785,17 @@ export default function ExpeditionJourney({
     const dustOffset = Math.sin(now / 1800 + cameraX * 0.002) * 18;
     drawRegion('lowDustVeil', {
       x: -72 + dustOffset,
-      y: GROUND_Y - 58,
+      y: GROUND_Y - 34,
       width: CANVAS_WIDTH + 144,
-      height: 118,
-    }, 0.34, { mode: 'stretch' });
-    drawRegion('softSandDrift', { x: -126, y: GROUND_Y - 42, width: 410, height: 96 }, 0.5, { mode: 'stretch' });
-    drawRegion('softSandDrift', { x: CANVAS_WIDTH - 428, y: GROUND_Y - 48, width: 440, height: 104 }, 0.46, { mode: 'stretch' });
-    drawRegion('leftBrokenColumn', {
-      x: -96,
-      y: GROUND_Y - 306,
-      width: 206,
-      height: 322,
-    }, 0.54, { filter: 'sepia(5%) saturate(92%) brightness(96%) contrast(102%)' });
-    drawRegion('rightBrokenColumn', {
-      x: CANVAS_WIDTH - 138,
-      y: GROUND_Y - 330,
-      width: 214,
-      height: 346,
-    }, 0.56, { filter: 'sepia(5%) saturate(92%) brightness(95%) contrast(103%)' });
-    drawRegion('rubbleClusterSmall', { x: -34, y: GROUND_Y - 52, width: 174, height: 82 }, 0.5);
-    drawRegion('buriedCarvedHead', { x: -48, y: GROUND_Y - 104, width: 150, height: 126 }, 0.4);
-    drawRegion('damagedWallFragment', { x: CANVAS_WIDTH - 116, y: GROUND_Y - 168, width: 172, height: 136 }, 0.4);
-    drawRegion('deadPalmRemnant', { x: CANVAS_WIDTH - 330, y: GROUND_Y - 132, width: 228, height: 162 }, 0.42);
-    drawRegion('dryShrub', { x: CANVAS_WIDTH - 176, y: GROUND_Y - 116, width: 122, height: 112 }, 0.5);
-    drawRegion('rubbleClusterLarge', { x: CANVAS_WIDTH - 302, y: GROUND_Y - 82, width: 280, height: 122 }, 0.64);
-    drawRegion('edgePebbleScatter', { x: CANVAS_WIDTH - 432, y: GROUND_Y - 42, width: 390, height: 66 }, 0.46, { mode: 'stretch' });
+      height: 72,
+    }, 0.16, { mode: 'stretch' });
+    drawRegion('softSandDrift', { x: -88, y: GROUND_Y - 24, width: 310, height: 58 }, 0.22, { mode: 'stretch' });
+    drawRegion('softSandDrift', { x: CANVAS_WIDTH - 336, y: GROUND_Y - 28, width: 350, height: 62 }, 0.2, { mode: 'stretch' });
+    drawRegion('rubbleClusterSmall', { x: -18, y: GROUND_Y - 34, width: 128, height: 54 }, 0.24);
+    drawRegion('buriedCarvedHead', { x: -34, y: GROUND_Y - 62, width: 86, height: 72 }, 0.14);
+    drawRegion('dryShrub', { x: CANVAS_WIDTH - 132, y: GROUND_Y - 68, width: 84, height: 76 }, 0.22);
+    drawRegion('rubbleClusterLarge', { x: CANVAS_WIDTH - 250, y: GROUND_Y - 44, width: 214, height: 74 }, 0.26);
+    drawRegion('edgePebbleScatter', { x: CANVAS_WIDTH - 370, y: GROUND_Y - 28, width: 318, height: 44 }, 0.24, { mode: 'stretch' });
     const particleCount = drawForegroundDepthParticles(ctx, now, cameraX);
     ctx.restore();
 
@@ -12017,7 +12026,7 @@ export default function ExpeditionJourney({
       if (!shouldRenderStageEntranceFeatureForState(feature, current)) return;
       drawStageEntranceForegroundOccluder(ctx, feature, cameraX, now);
     });
-    if (!chamberSceneActive) drawForegroundDepthLayer(ctx, section, cameraX, now);
+    if (!chamberSceneActive && ENABLE_FOREGROUND_DEPTH_LAYER) drawForegroundDepthLayer(ctx, section, cameraX, now);
     drawOpeningThresholdScene(ctx, current.openingThresholdScene, cameraX, now);
     drawTempleThresholdTransition(ctx, current.templeThresholdTransition, now);
     drawForgottenMuralChamberTransition(ctx, current.forgottenMuralChamberTransition);

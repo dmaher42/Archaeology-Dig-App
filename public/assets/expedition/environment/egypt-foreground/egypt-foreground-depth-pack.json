@@ -6,7 +6,7 @@
     "h": 1024
   },
   "runtimeMode": "foreground-depth-visual-only",
-  "mappingNote": "Transparent visual-only foreground assets for screen edges and bottom framing: broken columns, rubble clusters, sand drifts, archaeological remains, desert vegetation, and low drifting dust. No collision data, no gameplay rules, and does not replace existing artwork; the pack sits over the player at low opacity to create depth without blocking play.",
+  "mappingNote": "Transparent visual-only foreground source assets for terrain-level framing: rubble clusters, sand drifts, archaeological remains, desert vegetation, and low drifting dust. No collision data, no gameplay rules, and does not replace existing artwork. Runtime placement should avoid tall ghosted edge cutouts and favor subtle bottom-edge sediment that blends into the playable sand.",
   "regions": {
     "leftBrokenColumn": {
       "x": 0,

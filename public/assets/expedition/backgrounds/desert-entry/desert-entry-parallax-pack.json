@@ -2,7 +2,7 @@
   "image": "desert-entry-photoreal-sphinx-backdrop.webp",
   "imageWidth": 1672,
   "imageHeight": 941,
-  "notes": "Photorealistic single-backdrop Desert Entry concept for the opening Egypt Journey scene. The runtime pack uses one clean full-frame image plus a transparent archaeological grounding overlay. The grounding overlay adds localized sand drifts, rubble fields, contact shadows, desert sediment, and ground-level dust haze to tie rear ruins and existing props into the sand without changing the sky, pyramids, Sphinx, horizon, palette, or main backdrop.",
+  "notes": "Photorealistic single-backdrop Desert Entry concept for the opening Egypt Journey scene. The runtime pack uses one clean full-frame image plus a transparent archaeological grounding overlay. The grounding overlay adds a buried ruin shelf, localized sand drifts, rubble fields, contact shadows, desert sediment, and ground-level dust haze to tie the floating midground ruins and existing props into the sand without changing the sky, pyramids, Sphinx, horizon, palette, or main backdrop.",
   "regions": {
     "sky": { "x": 0, "y": 0, "w": 1672, "h": 941 },
     "groundingOverlay": { "image": "desert-entry-grounding-overlay.png", "x": 0, "y": 0, "w": 1672, "h": 941 }
