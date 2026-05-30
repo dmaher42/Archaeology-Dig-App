@@ -870,8 +870,8 @@ const SCRIBE_CHAMBER_ENTRY_SPAWN = {
   direction: 1,
 };
 const SCRIBE_CHAMBER_RETURN_FALLBACK = {
-  x: scaleJourneyX(1684),
-  y: openingJourneyY(122),
+  x: scaleJourneyX(1985),
+  y: openingJourneyY(318),
   cameraAnchorRatio: 0.42,
   direction: 1,
 };
@@ -9782,6 +9782,34 @@ export default function ExpeditionJourney({
     };
 
     ctx.save();
+
+    // ── Grounded ruin prop clusters scattered across the desert-entry world ──
+    // Each cluster has a world-X position. We convert to screen-X and scale by
+    // depth (smaller = further away) so clusters feel layered.  Only drawn when
+    // they fall inside the visible viewport.
+    const RUIN_CLUSTERS = [
+      { worldX:  240, key: 'ruinClusterColumnPair', baseW: 210, baseH: 390, depth: 0.68, alpha: 0.78 },
+      { worldX:  610, key: 'ruinClusterWall',       baseW: 290, baseH: 245, depth: 0.82, alpha: 0.84 },
+      { worldX: 1020, key: 'ruinDoorwayArch',       baseW: 310, baseH: 390, depth: 1.00, alpha: 0.90 },
+      { worldX: 1390, key: 'ruinClusterWall',       baseW: 270, baseH: 228, depth: 0.85, alpha: 0.82 },
+      { worldX: 1760, key: 'ruinClusterColumnPair', baseW: 195, baseH: 363, depth: 0.70, alpha: 0.76 },
+    ];
+
+    for (const rc of RUIN_CLUSTERS) {
+      const screenX = rc.worldX - cameraX;
+      const w = Math.round(rc.baseW * rc.depth);
+      const h = Math.round(rc.baseH * rc.depth);
+      // Cull if entirely off-screen (with generous margin for wide sprites)
+      if (screenX + w < -60 || screenX - w > CANVAS_WIDTH + 60) continue;
+      drawRegion(rc.key, {
+        x: screenX - w / 2,
+        y: GROUND_Y - h,
+        width: w,
+        height: h,
+      }, rc.alpha);
+    }
+
+    // ── Existing edge dressings ──────────────────────────────────────────────
     const dustOffset = Math.sin(now / 1800 + cameraX * 0.002) * 18;
     drawRegion('lowDustVeil', {
       x: -72 + dustOffset,
@@ -12068,6 +12096,27 @@ export default function ExpeditionJourney({
       ctx.restore();
     }
 
+    // DEBUG PLATFORM OVERLAY — drawn last so it appears on top of all building artwork
+    const _dbgShow = window._pShow || [];
+    if (_dbgShow.length > 0) {
+      PLATFORMS.filter(p => isPlatformAvailable(p, current)).forEach(p => {
+        if (!p.id || !_dbgShow.some(pfx => p.id.startsWith(pfx))) return;
+        const px = worldToScreenX(p.x, cameraX);
+        if (!isHorizontallyVisible(p.x, p.width, cameraX, 50)) return;
+        const _e = (window._pAdj || {})[p.id] || {};
+        const ay = _e.y||0, ax = _e.x||0, aw = _e.w||0;
+        const dy = p.y + ay, dx = px + ax, dw = p.width + aw;
+        ctx.save();
+        ctx.strokeStyle = 'rgba(255,100,0,0.95)'; ctx.lineWidth = 2;
+        ctx.strokeRect(dx, dy, dw, p.height);
+        ctx.fillStyle = 'rgba(255,100,0,0.22)';
+        ctx.fillRect(dx, dy, dw, p.height);
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 10px monospace';
+        ctx.fillText(p.id + '  y=' + Math.round(dy) + '  x=' + Math.round(p.x+ax) + '  w=' + Math.round(dw), dx + 3, dy + 12);
+        ctx.restore();
+      });
+    }
+
     ctx.restore();
 
     // CINEMATIC CARDS
@@ -12622,6 +12671,13 @@ export default function ExpeditionJourney({
           current.scribeChamberExitUnlocked = Boolean(current.scribeChamberPuzzleSolved);
           current.hiddenRoomsFound?.add('scribe-locked-chamber');
           current.discoveredHiddenRouteIds?.add('scribe-locked-chamber-route');
+          current.sceneReturn = {
+            sceneId: JOURNEY_SCENE_IDS.EXTERIOR,
+            x: SCRIBE_CHAMBER_RETURN_FALLBACK.x,
+            y: SCRIBE_CHAMBER_RETURN_FALLBACK.y,
+            direction: SCRIBE_CHAMBER_RETURN_FALLBACK.direction,
+            cameraX: clampCameraX(SCRIBE_CHAMBER_RETURN_FALLBACK.x - CANVAS_WIDTH * SCRIBE_CHAMBER_RETURN_FALLBACK.cameraAnchorRatio),
+          };
           player.x = SCRIBE_CHAMBER_ENTRY_SPAWN.x - player.width / 2;
           player.y = SCRIBE_CHAMBER_ENTRY_SPAWN.y - player.height;
           player.direction = SCRIBE_CHAMBER_ENTRY_SPAWN.direction;
@@ -12644,13 +12700,13 @@ export default function ExpeditionJourney({
             ? returnPoint.cameraX
             : clampCameraX(player.x - CANVAS_WIDTH * (returnPoint.cameraAnchorRatio ?? FORGOTTEN_MURAL_CHAMBER_RETURN_FALLBACK.cameraAnchorRatio));
           current.targetCameraX = current.cameraX;
-          current.notice = current.forgottenMuralChamberRestored
-            ? 'Asha returns to the exterior route with the warning preserved.'
-            : current.mummificationChamberPuzzleSolved
+          current.notice = current.scribeChamberPuzzleSolved
+            ? 'Asha leaves the Scribe\'s Chamber with the message recorded.'
+            : current.forgottenMuralChamberRestored
+              ? 'Asha returns to the exterior route with the warning preserved.'
+              : current.mummificationChamberPuzzleSolved
               ? 'Asha leaves the Mummification Chamber with the sacred rite recorded.'
-              : current.scribeChamberPuzzleSolved
-              ? 'Asha leaves the Scribe\'s Chamber with the message recorded.'
-              : 'Asha returns to the exterior route.';
+                : 'Asha returns to the exterior route.';
           current.mummificationChamberActive = false;
           current.scribeChamberActive = false;
         }
@@ -13330,7 +13386,7 @@ export default function ExpeditionJourney({
           id: 'mummification-chamber-exit',
           phase: 'doorway-fade',
           fromSceneId: JOURNEY_SCENE_IDS.MUMMIFICATION_CHAMBER,
-          toSceneId: JOURNEY_SCENE_IDS.EXTERIOR,
+          toSceneId: JOURNEY_SCENE_IDS.FORGOTTEN_MURAL_CHAMBER,
           lockMovement: true,
           switched: false,
           duration: FORGOTTEN_MURAL_CHAMBER_TRANSITION_DURATION,
@@ -13338,7 +13394,7 @@ export default function ExpeditionJourney({
         };
         current.sceneTransition = transition;
         current.forgottenMuralChamberTransition = transition;
-        current.notice = 'Asha returns through the sacred doorway.';
+        current.notice = 'Asha follows the sacred record path toward the mural chamber.';
         current.hitStopTimer = Math.max(current.hitStopTimer, 0.035);
         audioControls?.playTransition?.();
       }
@@ -13370,7 +13426,7 @@ export default function ExpeditionJourney({
         id: 'forgotten-mural-chamber-exit',
         phase: 'doorway-fade',
         fromSceneId: JOURNEY_SCENE_IDS.FORGOTTEN_MURAL_CHAMBER,
-        toSceneId: JOURNEY_SCENE_IDS.EXTERIOR,
+        toSceneId: JOURNEY_SCENE_IDS.SCRIBE_LOCKED_CHAMBER,
         lockMovement: true,
         switched: false,
         duration: FORGOTTEN_MURAL_CHAMBER_TRANSITION_DURATION,
@@ -13378,7 +13434,7 @@ export default function ExpeditionJourney({
       };
       current.sceneTransition = transition;
       current.forgottenMuralChamberTransition = transition;
-      current.notice = 'Asha returns through the hidden doorway.';
+      current.notice = 'Asha follows the warning toward the scribe chamber.';
       current.hitStopTimer = Math.max(current.hitStopTimer, 0.035);
       audioControls?.playTransition?.();
     } else {
@@ -13428,6 +13484,13 @@ export default function ExpeditionJourney({
           audioControls?.playExpeditionSfx?.('gateBlocked');
         }
       } else {
+        current.sceneReturn = {
+          sceneId: JOURNEY_SCENE_IDS.EXTERIOR,
+          x: SCRIBE_CHAMBER_RETURN_FALLBACK.x,
+          y: SCRIBE_CHAMBER_RETURN_FALLBACK.y,
+          direction: SCRIBE_CHAMBER_RETURN_FALLBACK.direction,
+          cameraX: clampCameraX(SCRIBE_CHAMBER_RETURN_FALLBACK.x - CANVAS_WIDTH * SCRIBE_CHAMBER_RETURN_FALLBACK.cameraAnchorRatio),
+        };
         current.sceneTransition = {
           id: 'scribe-locked-chamber-exit',
           phase: 'doorway-fade',

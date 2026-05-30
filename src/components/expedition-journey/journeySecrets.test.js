@@ -400,7 +400,7 @@ test('scribe locked chamber reuses the Journey scene and challenge systems for o
   assert.match(journeyComponentSource, /Knowledge was the key\./);
   assert.match(journeyComponentSource, /scribeChamberExitUnlocked/);
   assert.match(journeyComponentSource, /activeGuardianChallenge\.type === 'scribe-chamber-puzzle'/);
-  assert.match(journeyComponentSource, /SCRIBE_CHAMBER_RETURN_FALLBACK = \{[\s\S]*?x:\s*scaleJourneyX\(1684\)[\s\S]*?y:\s*openingJourneyY\(122\)/);
+  assert.match(journeyComponentSource, /SCRIBE_CHAMBER_RETURN_FALLBACK = \{[\s\S]*?x:\s*scaleJourneyX\(1985\)[\s\S]*?y:\s*openingJourneyY\(318\)/);
   assert.match(journeyComponentSource, /SCRIBE_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?minX:\s*scaleJourneyX\(1684\)[\s\S]*?maxX:\s*scaleJourneyX\(1714\)[\s\S]*?footY:\s*openingJourneyY\(62\)/);
   assert.match(journeyComponentSource, /scarabQueenRequiresScribe/);
   assert.match(journeyComponentSource, /!current\.scribeChamberPuzzleSolved/);
@@ -434,6 +434,21 @@ test('Egypt chamber exteriors have a ten-second walking rhythm before the Queen'
   assert.match(hiddenRoutes, /id:\s*'scribe-locked-chamber-route'[\s\S]*?x:\s*X\(1684\)/);
   assert.match(miniBosses, /id:\s*'scarab-queen'[\s\S]*?x:\s*X\(2150\)[\s\S]*?arenaStart:\s*X\(2020\)[\s\S]*?arenaEnd:\s*X\(2235\)/);
   assert.match(routeGates, /id:\s*'desert-seal'[\s\S]*?x:\s*X\(2285\)/);
+});
+
+test('Egypt chamber exits chain mummy to mural to scribe before returning near the Queen', () => {
+  assert.match(
+    journeyComponentSource,
+    /id:\s*'mummification-chamber-exit',\s*phase:\s*'doorway-fade',\s*fromSceneId:\s*JOURNEY_SCENE_IDS\.MUMMIFICATION_CHAMBER,\s*toSceneId:\s*JOURNEY_SCENE_IDS\.FORGOTTEN_MURAL_CHAMBER,/,
+  );
+  assert.match(
+    journeyComponentSource,
+    /id:\s*'forgotten-mural-chamber-exit',\s*phase:\s*'doorway-fade',\s*fromSceneId:\s*JOURNEY_SCENE_IDS\.FORGOTTEN_MURAL_CHAMBER,\s*toSceneId:\s*JOURNEY_SCENE_IDS\.SCRIBE_LOCKED_CHAMBER,/,
+  );
+  assert.match(
+    journeyComponentSource,
+    /SCRIBE_CHAMBER_RETURN_FALLBACK = \{[\s\S]*?x:\s*scaleJourneyX\(1985\)[\s\S]*?y:\s*openingJourneyY\(318\)[\s\S]*?direction:\s*1/,
+  );
 });
 
 test('Sacred Record Way worldbuilding connects Egypt evidence chambers through background landmarks', () => {
@@ -1624,7 +1639,7 @@ test('Asha Reference Warrior remains available as a separate character-loader at
   );
   assert.equal(
     ashaReferenceWarriorPlayerAtlas.poseSources.run_07,
-    'asha-reference-warrior-run-row-raw.png:frame_07',
+    'asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_07',
   );
   assert.equal(
     ashaReferenceWarriorPlayerAtlas.poseSources.jump_07,

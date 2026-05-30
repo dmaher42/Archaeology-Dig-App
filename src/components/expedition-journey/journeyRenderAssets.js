@@ -123,6 +123,9 @@ export const EXPECTED_EGYPT_FOREGROUND_DEPTH_ASSET_KEYS = [
   'deadPalmRemnant',
   'edgePebbleScatter',
   'lowDustVeil',
+  'ruinClusterWall',
+  'ruinClusterColumnPair',
+  'ruinDoorwayArch',
 ];
 
 export const ENVIRONMENT_ASSET_PACK_IDS = {

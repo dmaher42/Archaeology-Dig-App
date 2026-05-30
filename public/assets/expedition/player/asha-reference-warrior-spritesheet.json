@@ -367,9 +367,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 122,
+        "x": 40,
         "y": 0,
-        "w": 146,
+        "w": 310,
         "h": 239
       },
       "groundLineY": 236
@@ -380,9 +380,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 133,
+        "x": 30,
         "y": 0,
-        "w": 121,
+        "w": 330,
         "h": 239
       },
       "groundLineY": 236
@@ -393,9 +393,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 117,
+        "x": 45,
         "y": 0,
-        "w": 156,
+        "w": 299,
         "h": 239
       },
       "groundLineY": 236
@@ -406,9 +406,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 121,
+        "x": 33,
         "y": 0,
-        "w": 149,
+        "w": 325,
         "h": 239
       },
       "groundLineY": 236
@@ -419,9 +419,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 131,
+        "x": 33,
         "y": 0,
-        "w": 125,
+        "w": 324,
         "h": 239
       },
       "groundLineY": 236
@@ -432,9 +432,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 134,
+        "x": 37,
         "y": 0,
-        "w": 118,
+        "w": 317,
         "h": 239
       },
       "groundLineY": 236
@@ -445,9 +445,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 131,
+        "x": 41,
         "y": 0,
-        "w": 123,
+        "w": 309,
         "h": 239
       },
       "groundLineY": 236
@@ -458,9 +458,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 132,
+        "x": 41,
         "y": 0,
-        "w": 122,
+        "w": 307,
         "h": 239
       },
       "groundLineY": 236
@@ -471,9 +471,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 122,
+        "x": 40,
         "y": 0,
-        "w": 146,
+        "w": 310,
         "h": 239
       },
       "groundLineY": 236
@@ -484,9 +484,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 133,
+        "x": 30,
         "y": 0,
-        "w": 121,
+        "w": 330,
         "h": 239
       },
       "groundLineY": 236
@@ -497,9 +497,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 117,
+        "x": 45,
         "y": 0,
-        "w": 156,
+        "w": 299,
         "h": 239
       },
       "groundLineY": 236
@@ -510,9 +510,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 121,
+        "x": 33,
         "y": 0,
-        "w": 149,
+        "w": 325,
         "h": 239
       },
       "groundLineY": 236
@@ -523,9 +523,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 131,
+        "x": 33,
         "y": 0,
-        "w": 125,
+        "w": 324,
         "h": 239
       },
       "groundLineY": 236
@@ -536,9 +536,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 134,
+        "x": 37,
         "y": 0,
-        "w": 118,
+        "w": 317,
         "h": 239
       },
       "groundLineY": 236
@@ -549,9 +549,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 131,
+        "x": 41,
         "y": 0,
-        "w": 123,
+        "w": 309,
         "h": 239
       },
       "groundLineY": 236
@@ -562,9 +562,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 132,
+        "x": 41,
         "y": 0,
-        "w": 122,
+        "w": 307,
         "h": 239
       },
       "groundLineY": 236
@@ -575,9 +575,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 122,
+        "x": 40,
         "y": 0,
-        "w": 146,
+        "w": 310,
         "h": 239
       },
       "groundLineY": 236
@@ -588,9 +588,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 133,
+        "x": 30,
         "y": 0,
-        "w": 121,
+        "w": 330,
         "h": 239
       },
       "groundLineY": 236
@@ -601,9 +601,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 117,
+        "x": 45,
         "y": 0,
-        "w": 156,
+        "w": 299,
         "h": 239
       },
       "groundLineY": 236
@@ -614,9 +614,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 121,
+        "x": 33,
         "y": 0,
-        "w": 149,
+        "w": 325,
         "h": 239
       },
       "groundLineY": 236
@@ -627,9 +627,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 131,
+        "x": 33,
         "y": 0,
-        "w": 125,
+        "w": 324,
         "h": 239
       },
       "groundLineY": 236
@@ -640,9 +640,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 134,
+        "x": 37,
         "y": 0,
-        "w": 118,
+        "w": 317,
         "h": 239
       },
       "groundLineY": 236
@@ -653,9 +653,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 131,
+        "x": 41,
         "y": 0,
-        "w": 123,
+        "w": 309,
         "h": 239
       },
       "groundLineY": 236
@@ -666,9 +666,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 132,
+        "x": 41,
         "y": 0,
-        "w": 122,
+        "w": 307,
         "h": 239
       },
       "groundLineY": 236
@@ -1658,30 +1658,30 @@
     "idle_05": "asha-reference-warrior-idle-still-guard-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_05",
     "idle_06": "asha-reference-warrior-idle-still-guard-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_06",
     "idle_07": "asha-reference-warrior-idle-still-guard-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_07",
-    "walk_00": "asha-reference-warrior-run-row-raw.png:frame_00",
-    "walk_01": "asha-reference-warrior-run-row-raw.png:frame_01",
-    "walk_02": "asha-reference-warrior-run-row-raw.png:frame_02",
-    "walk_03": "asha-reference-warrior-run-row-raw.png:frame_03",
-    "walk_04": "asha-reference-warrior-run-row-raw.png:frame_04",
-    "walk_05": "asha-reference-warrior-run-row-raw.png:frame_05",
-    "walk_06": "asha-reference-warrior-run-row-raw.png:frame_06",
-    "walk_07": "asha-reference-warrior-run-row-raw.png:frame_07",
-    "run_00": "asha-reference-warrior-run-row-raw.png:frame_00",
-    "run_01": "asha-reference-warrior-run-row-raw.png:frame_01",
-    "run_02": "asha-reference-warrior-run-row-raw.png:frame_02",
-    "run_03": "asha-reference-warrior-run-row-raw.png:frame_03",
-    "run_04": "asha-reference-warrior-run-row-raw.png:frame_04",
-    "run_05": "asha-reference-warrior-run-row-raw.png:frame_05",
-    "run_06": "asha-reference-warrior-run-row-raw.png:frame_06",
-    "run_07": "asha-reference-warrior-run-row-raw.png:frame_07",
-    "survey_walk_00": "asha-reference-warrior-run-row-raw.png:frame_00",
-    "survey_walk_01": "asha-reference-warrior-run-row-raw.png:frame_01",
-    "survey_walk_02": "asha-reference-warrior-run-row-raw.png:frame_02",
-    "survey_walk_03": "asha-reference-warrior-run-row-raw.png:frame_03",
-    "survey_walk_04": "asha-reference-warrior-run-row-raw.png:frame_04",
-    "survey_walk_05": "asha-reference-warrior-run-row-raw.png:frame_05",
-    "survey_walk_06": "asha-reference-warrior-run-row-raw.png:frame_06",
-    "survey_walk_07": "asha-reference-warrior-run-row-raw.png:frame_07",
+    "walk_00": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_00",
+    "walk_01": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_01",
+    "walk_02": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_02",
+    "walk_03": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_03",
+    "walk_04": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_04",
+    "walk_05": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_05",
+    "walk_06": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_06",
+    "walk_07": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_07",
+    "run_00": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_00",
+    "run_01": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_01",
+    "run_02": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_02",
+    "run_03": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_03",
+    "run_04": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_04",
+    "run_05": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_05",
+    "run_06": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_06",
+    "run_07": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_07",
+    "survey_walk_00": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_00",
+    "survey_walk_01": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_01",
+    "survey_walk_02": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_02",
+    "survey_walk_03": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_03",
+    "survey_walk_04": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_04",
+    "survey_walk_05": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_05",
+    "survey_walk_06": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_06",
+    "survey_walk_07": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_07",
     "jump_00": "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_00",
     "jump_01": "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_01",
     "jump_02": "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_02",
