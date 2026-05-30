@@ -88,7 +88,67 @@ The scarab's appearance is a broken warning or failed distress signal, but nobod
 
 ---
 
-## 5. Why Asha Looks Partly Modern and Partly Ancient
+## 5. Public History and Hidden Truth
+
+In the public world, Egyptian tomb objects are understood through ordinary history: power, religion, royal status, wealth, burial practice, afterlife belief, and archaeological evidence.
+
+Asha begins with this public understanding too.
+
+In the hidden mythology of **Lost Site Expedition**, she discovers another layer beneath that history.
+
+Tomb objects are not only treasures, grave goods, or museum artefacts. They are **memory anchors**.
+
+They preserve:
+
+- names
+- identity
+- relationships
+- titles and roles
+- deeds and stories
+- rituals and prayers
+- the dead person's passage through the afterlife
+- the wholeness of a life after death
+
+The dead were not buried with riches.
+
+They were buried with memories.
+
+The real world did not know this hidden truth. Asha does not begin by believing it either. She discovers it only after entering the Lost Site.
+
+This hidden truth should feel like game-world mythology, not a classroom correction of real history.
+
+---
+
+## 6. Stories Can Corrupt Memory
+
+In **Lost Site Expedition**, memory is shaped by both objects and stories.
+
+Relics, tomb objects, paintings, names, records, offerings, and inscriptions preserve memory. But the stories people tell about those objects also affect the dead.
+
+When humans stole objects from tombs, they damaged memory anchors.
+
+When collectors, conquerors, looters, and later storytellers described those objects only as treasure, wealth, superstition, royal greed, or things wasted on the dead, they changed how the dead were remembered.
+
+Over time, false stories became another kind of theft.
+
+This is part of Anubis' frustration. Humans did not only steal from tombs. They told stories that made the stealing seem reasonable.
+
+They called taking discovery.
+They called memory treasure.
+They called protection greed.
+They called the dead forgotten.
+
+Those stories altered the Lost Site.
+
+The Queen was especially damaged by this. She gathered memory anchors to protect the dead, but later stories remembered her as greedy, cursed, dangerous, or as a ruler hoarding treasure.
+
+The Lost Site now holds a corrupted version of her memory.
+
+Asha must discover that the public story is incomplete. The Queen was not hoarding treasure. She was protecting memory.
+
+---
+
+## 7. Why Asha Looks Partly Modern and Partly Ancient
 
 Asha begins as a present-day researcher, but when she enters the Lost Site, the world marks her.
 
@@ -118,7 +178,7 @@ Asha should visually communicate:
 
 ---
 
-## 6. Who Anubis Is
+## 8. Who Anubis Is
 
 Anubis is the guardian of the Lost Site.
 
@@ -136,8 +196,9 @@ He has watched humans:
 - call taking things discovery
 - misunderstand the dead
 - disturb what should have been protected
+- tell stories that made greed sound justified
 
-Anubis has judged humanity by its actions.
+Anubis has judged humanity by its actions and by the stories it told afterward.
 
 His starting position is:
 
@@ -149,7 +210,7 @@ He does not know, or does not yet accept, that Asha entered because the failing 
 
 ---
 
-## 7. Anubis' Opening Voice
+## 9. Anubis' Opening Voice
 
 At the beginning, Anubis should sound powerful, intimidating, ancient, short, sharp, and unwilling to debate.
 
@@ -179,17 +240,25 @@ This is not hatred. It is judgement.
 
 Anubis should sound like an ancient guardian who has already reached a verdict on humanity and expects Asha to prove him right.
 
+The full meaning of his anger should not be explained immediately. At first, players may assume he is talking about stolen treasure. Later, they should realise he means stolen memory.
+
+Possible later Anubis line:
+
+> You call them relics. I call them the pieces of a life.
+
 ---
 
-## 8. What Is Happening to the Lost Site
+## 10. What Is Happening to the Lost Site
 
 The Lost Site is failing.
 
-Its memory seals are breaking because sacred relics have been stolen, damaged, or corrupted in the real world.
+Its memory seals are breaking because sacred relics have been stolen, damaged, corrupted, or misremembered in the real world.
 
 The seals do not only lock doors. They protect memory, truth, names, rituals, and balance.
 
 When relics are removed from their proper place, the damage spreads into the hidden world.
+
+When false stories reshape how people remember the dead, that damage also spreads into the hidden world.
 
 This creates the central mystery:
 
@@ -199,12 +268,13 @@ This creates the central mystery:
 - What has Anubis misunderstood?
 - Why did the scarab surface in the real world?
 - Why can Asha enter when others should be kept out?
+- What stories about the Queen are false?
 
 Anubis senses something is wrong, but he does not want to believe humans can be part of the solution.
 
 ---
 
-## 9. Relics, Looting, and Memory Seals
+## 11. Relics, Looting, and Memory Seals
 
 Sacred relics maintain balance.
 
@@ -221,6 +291,7 @@ When relics are stolen or broken:
 - evidence contradicts itself
 - the Lost Site loses pieces of its truth
 - hidden warning features may surface in the real world without being understood
+- the dead become fragmented, confused, corrupted, or forgotten
 
 This links the story to archaeology and historical thinking:
 
@@ -234,7 +305,7 @@ In the game, this should feel like mystery and consequence, not a lesson.
 
 ---
 
-## 10. Asha's Hidden Connection
+## 12. Asha's Hidden Connection
 
 Asha is likely connected to a forgotten line of seal-keepers.
 
@@ -257,7 +328,7 @@ Asha's importance should come from her choices and actions, not only ancestry.
 
 ---
 
-## 11. The Queen
+## 13. The Queen
 
 The Queen is always the final major chamber and the mandatory mini-boss encounter.
 
@@ -267,23 +338,30 @@ At first, the evidence may suggest she caused the disaster. The site may frame h
 
 But the truth should become more complicated.
 
-Possible final direction:
+The preferred current direction:
 
-- the Queen was blamed for the collapse
-- the Queen sacrificed her name, legacy, or memory to protect the site
-- the Queen sealed away a greater danger
-- the Queen's story was damaged, erased, or rewritten
+- the Queen discovered that tomb objects were memory anchors
+- she saw that stealing objects also tore memory away from the dead
+- she created the Lost Site as a hidden memory vault
+- she gathered endangered memory anchors to protect the dead, not to hoard treasure
+- she sacrificed her own name, legacy, or memory to protect others
+- over time, people misunderstood her as greedy, cursed, or dangerous
+- false stories corrupted her memory
 - the final fight is against a corrupted memory of the Queen, not necessarily her true self
 
 The Queen is the centre of the contested interpretation.
 
 The game should ask:
 
-> Was the Queen a villain, a protector, a warning, or a victim of broken evidence?
+> Was the Queen a villain, a protector, a warning, or a victim of broken memory?
+
+Key late-game idea:
+
+> The Queen was not buried to be remembered. She was buried so others would not be forgotten.
 
 ---
 
-## 12. Room Order
+## 14. Room Order
 
 The current intended premium room order is:
 
@@ -300,7 +378,7 @@ Players should be able to enter optional rooms before reaching nearby checkpoint
 
 ---
 
-## 13. Room Story Purposes
+## 15. Room Story Purposes
 
 ### Mummification Chamber
 
@@ -317,6 +395,10 @@ Narrative purpose:
 Asha learns that the site is not protecting treasure. It is protecting people, rituals, and memory.
 
 This room should challenge players to slow down and treat the dead with care.
+
+Possible line:
+
+> They were not buried with riches. They were buried with memories.
 
 ### Mural Room
 
@@ -350,6 +432,8 @@ Asha finds written records that complicate the story told by the murals.
 
 This room should show that written evidence can preserve truth, but can also be incomplete, biased, hidden, or misunderstood.
 
+The Scribe Chamber should eventually reveal that stories can corrupt memory as much as theft can damage objects.
+
 ### Queen Chamber
 
 Core meaning:
@@ -364,9 +448,11 @@ Narrative purpose:
 
 Asha confronts the version of the Queen that the broken site has preserved. The final encounter should reveal that the simple story was incomplete.
 
+The Queen Chamber should make the player ask whether they are fighting the Queen, or the false memory of her that the world created.
+
 ---
 
-## 14. Gates and Checkpoints
+## 16. Gates and Checkpoints
 
 Route gates should exist to the right of major structures as pacing tools and Anubis-controlled thresholds.
 
@@ -394,7 +480,7 @@ Optional rooms should remain future judgement evidence, not current forced progr
 
 ---
 
-## 15. Heart Scarabs and Future Moral Choice
+## 17. Heart Scarabs and Future Moral Choice
 
 A future system may introduce a sacred collectible/currency tentatively called **Heart Scarabs**.
 
@@ -415,7 +501,7 @@ Do not add a morality system, trust meter, alternate ending system, or upgrade e
 
 ---
 
-## 16. Anubis' Judgement Arc
+## 18. Anubis' Judgement Arc
 
 Anubis does not trust Asha's words.
 
@@ -447,7 +533,7 @@ This should eventually be tracked as **judgement evidence**, not a simple morali
 
 ---
 
-## 17. Current Implementation Rules
+## 19. Current Implementation Rules
 
 These rules should guide near-term development:
 
@@ -466,7 +552,7 @@ The game should teach through mystery, choice, evidence, environment, and conseq
 
 ---
 
-## 18. Premium Story Standard
+## 20. Premium Story Standard
 
 Every new story element should do at least one of the following:
 
@@ -492,10 +578,11 @@ Prefer story-driven writing such as:
 - The painted hands point toward a name that has been scratched away.
 - The record survives, but the truth has been wounded.
 - The dead were not hidden here. They were entrusted here.
+- You call them relics. I call them the pieces of a life.
 
 ---
 
-## 19. Short Reference Summary
+## 21. Short Reference Summary
 
 **Setting:** Present day, then a hidden Duat-touched version of Egypt.
 
@@ -505,15 +592,19 @@ Prefer story-driven writing such as:
 
 **Inciting event:** Asha inspects the plain, ordinary-looking real-world scarab carving. When she touches it, the scarab activates as a threshold seal and pulls her into the Lost Site.
 
-**Anubis:** Ancient guardian, disappointed judge of humanity, protector of sacred memory.
+**Public history:** Tomb objects are understood as treasure, status, religious objects, grave goods, or museum artefacts.
 
-**Problem:** Looting and damaged relics have weakened memory seals and destabilised the Lost Site. One broken warning has surfaced as the scarab carving in the real world.
+**Hidden truth:** Tomb objects are memory anchors. The dead were not buried with riches. They were buried with memories.
+
+**Anubis:** Ancient guardian, disappointed judge of humanity, protector of sacred memory. His anger comes from humans stealing memory and telling stories that made the theft seem acceptable.
+
+**Problem:** Looting, damaged relics, and false stories have weakened memory seals and destabilised the Lost Site. One broken warning has surfaced as the scarab carving in the real world.
 
 **Asha's likely connection:** Descendant of the Queen's final scribe, also remembered as a keeper of names.
 
-**Rooms:** Mummification, Mural, Scribe, Queen.
+**Queen:** Mandatory final chamber and centre of the contested truth. She was remembered as greedy or cursed, but may have gathered memory anchors to protect the dead.
 
-**Queen:** Mandatory final chamber and centre of the contested truth.
+**Rooms:** Mummification, Mural, Scribe, Queen.
 
 **Future moral pressure:** Spend sacred power on yourself or return it to restore balance.
 
