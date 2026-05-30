@@ -8,9 +8,11 @@ It should guide future narrative, room, gate, relic, dialogue, and gameplay deci
 
 ## 1. Core Premise
 
-**Lost Site Expedition** is a present-day historical mystery adventure where Asha, a young heritage researcher, discovers that ancient Egyptian relics are not just objects from the past. They are anchors that help maintain balance between the living world, ancient memory, and the afterlife.
+**Lost Site Expedition** is a present-day historical mystery adventure where Asha, a young heritage researcher living and working in Egypt, discovers that ordinary archaeological inconsistencies may point to something much larger than a new site report.
 
-When sacred relics are stolen, damaged, sold, or removed from their proper place, the hidden world connected to them begins to break.
+A newly surfaced scarab carving at a pyramid does not match earlier surveys. Asha recognises the scarab shape from an older photograph taken at another Egyptian site and visits the pyramid as part of routine heritage work.
+
+She does not begin the story believing in magic, gods, mirror worlds, or supernatural danger. She is curious, careful, and professionally responsible. Her first goal is simply to understand why the scarab has appeared.
 
 The central theme is:
 
@@ -22,7 +24,9 @@ The central theme is:
 
 The real-world story begins in the **present day**.
 
-Asha is not travelling through normal Egypt for the full game. After touching the scarab relic, she is pulled into the **Lost Site**: a hidden, sacred version of Egypt caught between the real world, ancient memory, and the afterlife.
+Asha lives and works in Egypt, so visiting heritage sites, archives, museums, excavation areas, and pyramid ruins is part of her normal working world. The opening should feel grounded and routine before the supernatural shift occurs.
+
+Asha is not travelling through normal Egypt for the full game. After touching the real-world scarab carving, she is pulled into the **Lost Site**: a hidden, sacred version of Egypt caught between the real world, ancient memory, and the afterlife.
 
 This world can look ancient, supernatural, ruined, impossible, and mythic because it is not ordinary historical Egypt. It is a Duat-touched memory-world shaped by relics, seals, rituals, and broken history.
 
@@ -43,13 +47,14 @@ The world is not merely a ruin. It is a failing sacred system.
 
 ## 3. Who Asha Is
 
-Asha is a young **heritage researcher / archaeologist-in-training** connected to a museum, university, or excavation project.
+Asha is a young **heritage researcher / archaeologist-in-training** connected to a museum, university, heritage office, or excavation project in Egypt.
 
 She is not a treasure hunter.
 She is not a soldier.
 She is not looking for personal glory.
+She is not chasing a supernatural mystery at the start of the game.
 
-At the start of the story, Asha believes the past can be understood through evidence, research, and careful investigation. She respects history, but she does not yet understand the full sacred weight of what she is entering.
+At the start of the story, Asha believes the past can be understood through evidence, records, survey notes, photographs, and careful investigation. She respects history, but she does not yet understand the full sacred weight of what she is entering.
 
 Her arc moves from:
 
@@ -63,24 +68,23 @@ To:
 
 ## 4. Why Asha Enters the Lost Site
 
-Asha notices that certain Egyptian relics are changing.
+Asha notices an inconsistency in the records.
 
-Possible signs include:
+A scarab carving has recently surfaced at a pyramid where earlier surveys had not recorded one. This is interesting, but not obviously supernatural. It may have been exposed by shifting sand, erosion, damage, a new break in the stone, or an earlier recording error.
 
-- an inscription shifts meaning after being translated
-- a scarab seal pulses with light or heat
-- a museum object displays damage that was not there before
-- an excavation photograph shows a doorway that no longer exists
-- a stolen relic is returned damaged, and the same damage appears in an ancient image or mural
-- records from different archives begin contradicting each other
+Asha recognises the scarab shape from an older photograph taken at another Egyptian site. At the time, that older scarab had been treated as an oddity: a pattern with no explanation and no known matching feature at this pyramid.
 
-Asha realises the problem is not only that relics are being stolen.
+This is enough to make Asha inspect the site. She is not trying to activate a relic. She is doing careful heritage work.
 
-The deeper problem is:
+The real-world scarab is plain stone. It is dusty, worn, ordinary-looking, and does not glow. Asha touches it because she is comparing it with the photograph and checking the feature as evidence.
 
-> The past is being damaged and rewritten.
+Only after she touches it does the scarab activate as a threshold seal. The ground opens beneath her and she falls into the Lost Site.
 
-When she touches the scarab relic, she is pulled into the Lost Site. Anubis notices immediately.
+The deeper truth, which Asha does not understand at the beginning, is:
+
+> The scarab surfaced because the hidden world is failing.
+
+The scarab's appearance is a broken warning or failed distress signal, but nobody in the real world yet understands that.
 
 ---
 
@@ -108,7 +112,7 @@ Asha should visually communicate:
 
 - researcher
 - survivor
-- intruder
+- accidental trespasser
 - chosen heir or marked descendant
 - future protector
 
@@ -141,7 +145,7 @@ His starting position is:
 
 When Asha arrives, he assumes she is another trespasser.
 
-He does not trust her words. He watches what she does.
+He does not know, or does not yet accept, that Asha entered because the failing site itself surfaced the scarab. He does not trust her explanation. He watches what she does.
 
 ---
 
@@ -193,6 +197,7 @@ This creates the central mystery:
 - What did the Queen really do?
 - Why has the evidence been damaged or altered?
 - What has Anubis misunderstood?
+- Why did the scarab surface in the real world?
 - Why can Asha enter when others should be kept out?
 
 Anubis senses something is wrong, but he does not want to believe humans can be part of the solution.
@@ -215,6 +220,7 @@ When relics are stolen or broken:
 - history becomes harder to read
 - evidence contradicts itself
 - the Lost Site loses pieces of its truth
+- hidden warning features may surface in the real world without being understood
 
 This links the story to archaeology and historical thinking:
 
@@ -454,6 +460,7 @@ These rules should guide near-term development:
 - Do not make the Queen a simple evil boss without mystery.
 - Do not treat relics as ordinary loot.
 - Do not present educational ideas as direct classroom exposition.
+- Do not make Asha suspect supernatural events at the beginning. Her first motivation is routine investigation and careful evidence checking.
 
 The game should teach through mystery, choice, evidence, environment, and consequence.
 
@@ -492,13 +499,15 @@ Prefer story-driven writing such as:
 
 **Setting:** Present day, then a hidden Duat-touched version of Egypt.
 
-**Asha:** Young heritage researcher / archaeologist-in-training.
+**Asha:** Young heritage researcher / archaeologist-in-training who lives and works in Egypt.
 
-**Inciting event:** A scarab relic reacts and pulls Asha into the Lost Site.
+**Opening motivation:** Routine heritage investigation. A newly surfaced scarab carving at a pyramid does not match earlier records, and Asha recognises the scarab shape from an older photograph taken at another Egyptian site.
+
+**Inciting event:** Asha inspects the plain, ordinary-looking real-world scarab carving. When she touches it, the scarab activates as a threshold seal and pulls her into the Lost Site.
 
 **Anubis:** Ancient guardian, disappointed judge of humanity, protector of sacred memory.
 
-**Problem:** Looting and damaged relics have weakened memory seals and destabilised the Lost Site.
+**Problem:** Looting and damaged relics have weakened memory seals and destabilised the Lost Site. One broken warning has surfaced as the scarab carving in the real world.
 
 **Asha's likely connection:** Descendant of the Queen's final scribe, also remembered as a keeper of names.
 
