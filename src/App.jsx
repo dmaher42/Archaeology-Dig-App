@@ -188,12 +188,12 @@ const EXPEDITION_AUDIO_TRACKS = {
       cooldownMs: 36000,
       clips: [
         { id: 'wind-bed', path: 'assets/expedition/sfx/opening/opening-desert-wind.ogg', volume: 0.2, playbackRate: 0.88, loop: true },
-        { id: 'wind-high-drift', path: 'assets/expedition/sfx/opening/opening-desert-wind.ogg', volume: 0.11, delay: 7200, playbackRate: 1.08, loop: true },
-        { id: 'wind-low-swell', path: 'assets/expedition/sfx/opening/opening-desert-wind.ogg', volume: 0.14, delay: 16400, playbackRate: 0.72, loop: true },
+        { id: 'wind-high-drift', path: 'assets/expedition/sfx/opening/opening-desert-wind.ogg', volume: 0.11, delay: 12000, playbackRate: 1.08, loop: true },
+        { id: 'wind-low-swell', path: 'assets/expedition/sfx/opening/opening-desert-wind.ogg', volume: 0.14, delay: 24000, playbackRate: 0.72, loop: true },
         { path: 'assets/expedition/sfx/opening/opening-deep-rumble.ogg', volume: 0.2, delay: 350, playbackRate: 0.68 },
-        { path: 'assets/expedition/sfx/opening/opening-deep-rumble.ogg', volume: 0.14, delay: 9000, playbackRate: 0.58 },
-        { path: 'assets/expedition/sfx/opening/opening-deep-rumble.ogg', volume: 0.13, delay: 18500, playbackRate: 0.52 },
-        { path: 'assets/expedition/sfx/opening/opening-deep-rumble.ogg', volume: 0.16, delay: 29200, playbackRate: 0.48 },
+        { path: 'assets/expedition/sfx/opening/opening-deep-rumble.ogg', volume: 0.14, delay: 8800, playbackRate: 0.58 },
+        { path: 'assets/expedition/sfx/opening/opening-deep-rumble.ogg', volume: 0.16, delay: 18600, playbackRate: 0.52 },
+        { path: 'assets/expedition/sfx/opening/opening-earth-shake.flac', volume: 0.18, delay: 21300, playbackRate: 0.82 },
       ],
     },
     scarabQueenApproachAtmosphere: {

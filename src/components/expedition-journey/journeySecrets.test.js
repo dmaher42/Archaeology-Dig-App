@@ -223,15 +223,11 @@ test('first Egypt secret route rewards curiosity without changing main progressi
   assert.match(scarabFragmentThree, /anubisReaction:\s*'You followed the thief, but did not steal\. You restored what they broke\. Do not mistake this for trust\.'/);
   assert.match(scarabFragmentThree, /discoveryMessage:\s*'Final broken scarab fragment recovered from the chamber floor\.'/);
   assert.equal((secretCollectibles.match(/restorationSetId:\s*'forgotten-mural-seal'/g) || []).length, 3);
-  assert.match(platforms, /id:\s*'forgotten-mural-lower-masonry'[\s\S]*?collapsed ceremonial masonry step/);
   assert.match(platforms, /id:\s*'forgotten-mural-carved-wall-ledge'[\s\S]*?carved wall ledge in hidden priest passage/);
   assert.match(platforms, /id:\s*'forgotten-mural-alcove-floor'[\s\S]*?y:\s*JY\(318\)[\s\S]*?full Forgotten Mural Chamber floor/);
   assert.match(platforms, /id:\s*'forgotten-mural-forward-passage-step'[\s\S]*?forward stonework return from the hidden alcove/);
-  assert.match(platforms, /id:\s*'forgotten-mural-lower-return'[\s\S]*?lower return ledge from priest passage/);
-  assert.match(platforms, /id:\s*'forgotten-mural-lower-masonry'[\s\S]*?invisible:\s*true/);
   assert.match(platforms, /id:\s*'forgotten-mural-alcove-floor'[\s\S]*?invisible:\s*true/);
   [
-    ['forgotten-mural-lower-masonry', 5921, 276, 230],
     ['forgotten-mural-carved-wall-ledge', 6101, 218, 230],
     ['forgotten-mural-broken-warning-step', 6286, 160, 240],
     ['forgotten-mural-priest-passage-shelf', 6471, 104, 260],
@@ -240,12 +236,13 @@ test('first Egypt secret route rewards curiosity without changing main progressi
     ['forgotten-mural-alcove-floor', 5010, 318, 2600],
     ['forgotten-mural-forward-passage-step', 6908, -54, 220],
     ['forgotten-mural-return-masonry', 6885, 52, 235],
-    ['forgotten-mural-lower-return', 6575, 170, 255],
   ].forEach(([id, x, y, width]) => {
     const platformRow = getDataRowById(platforms, id);
     assert.match(platformRow, new RegExp(`x:\\s*${x}[\\s\\S]*?y:\\s*JY\\(${y}\\)[\\s\\S]*?width:\\s*${width}[\\s\\S]*?invisible:\\s*true`));
     assert.doesNotMatch(platformRow, /secretVisibility:\s*'visible'/);
   });
+  assert.doesNotMatch(platforms, /id:\s*'forgotten-mural-lower-masonry'/);
+  assert.doesNotMatch(platforms, /id:\s*'forgotten-mural-lower-return'/);
   assert.doesNotMatch(platforms, /forgotten-mural[\s\S]*?floating/i);
   assert.match(shards, /\{\s*x:\s*934,\s*y:\s*-120,\s*hidden:\s*true,\s*routeId:\s*'desert-upper-survey-route'\s*\}/);
   assert.doesNotMatch(storyProps, /id:\s*'upper-route-note-marker'/);
@@ -364,7 +361,6 @@ test('scribe locked chamber reuses the Journey scene and challenge systems for o
   assert.match(scribeDoorway, /width:\s*1120/);
   assert.match(scribeDoorway, /height:\s*620/);
   [
-    ['scribe-chamber-buried-lower-block', '1597', '284', '95'],
     ['scribe-chamber-collapsed-stair-slab', '1642', '238', '120'],
     ['scribe-chamber-middle-rubble-landing', '1668', '198', '235'],
     ['scribe-chamber-upper-carved-landing', '1678', '122', '210'],
@@ -376,6 +372,7 @@ test('scribe locked chamber reuses the Journey scene and challenge systems for o
     assert.match(platform, new RegExp(`width:\\s*${width}`));
     assert.match(platform, /invisible:\s*true/);
   });
+  assert.doesNotMatch(platforms, /id:\s*'scribe-chamber-buried-lower-block'/);
   assert.ok(hiddenRoutes.indexOf("id: 'desert-upper-survey-route'") < hiddenRoutes.indexOf("id: 'scribe-locked-chamber-route'"));
   assert.ok(hiddenRoutes.indexOf("id: 'scribe-locked-chamber-route'") < hiddenRoutes.indexOf("id: 'temple-cracked-wall-passage'"));
   assert.match(journeyUtilsSource, /scribeChamberEntered:\s*false/);
@@ -400,7 +397,7 @@ test('scribe locked chamber reuses the Journey scene and challenge systems for o
   assert.match(journeyComponentSource, /Knowledge was the key\./);
   assert.match(journeyComponentSource, /scribeChamberExitUnlocked/);
   assert.match(journeyComponentSource, /activeGuardianChallenge\.type === 'scribe-chamber-puzzle'/);
-  assert.match(journeyComponentSource, /SCRIBE_CHAMBER_RETURN_FALLBACK = \{[\s\S]*?x:\s*scaleJourneyX\(1985\)[\s\S]*?y:\s*openingJourneyY\(318\)/);
+  assert.match(journeyComponentSource, /SCRIBE_CHAMBER_RETURN_FALLBACK = \{[\s\S]*?x:\s*scaleJourneyX\(1684\)[\s\S]*?y:\s*openingJourneyY\(122\)/);
   assert.match(journeyComponentSource, /SCRIBE_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?minX:\s*scaleJourneyX\(1684\)[\s\S]*?maxX:\s*scaleJourneyX\(1714\)[\s\S]*?footY:\s*openingJourneyY\(62\)/);
   assert.match(journeyComponentSource, /scarabQueenRequiresScribe/);
   assert.match(journeyComponentSource, /!current\.scribeChamberPuzzleSolved/);
@@ -436,18 +433,18 @@ test('Egypt chamber exteriors have a ten-second walking rhythm before the Queen'
   assert.match(routeGates, /id:\s*'desert-seal'[\s\S]*?x:\s*X\(2285\)/);
 });
 
-test('Egypt chamber exits chain mummy to mural to scribe before returning near the Queen', () => {
+test('Egypt chamber interiors stay separate and exit back to their exterior artwork doorways', () => {
   assert.match(
     journeyComponentSource,
-    /id:\s*'mummification-chamber-exit',\s*phase:\s*'doorway-fade',\s*fromSceneId:\s*JOURNEY_SCENE_IDS\.MUMMIFICATION_CHAMBER,\s*toSceneId:\s*JOURNEY_SCENE_IDS\.FORGOTTEN_MURAL_CHAMBER,/,
+    /id:\s*'mummification-chamber-exit',\s*phase:\s*'doorway-fade',\s*fromSceneId:\s*JOURNEY_SCENE_IDS\.MUMMIFICATION_CHAMBER,\s*toSceneId:\s*JOURNEY_SCENE_IDS\.EXTERIOR,/,
   );
   assert.match(
     journeyComponentSource,
-    /id:\s*'forgotten-mural-chamber-exit',\s*phase:\s*'doorway-fade',\s*fromSceneId:\s*JOURNEY_SCENE_IDS\.FORGOTTEN_MURAL_CHAMBER,\s*toSceneId:\s*JOURNEY_SCENE_IDS\.SCRIBE_LOCKED_CHAMBER,/,
+    /id:\s*'forgotten-mural-chamber-exit',\s*phase:\s*'doorway-fade',\s*fromSceneId:\s*JOURNEY_SCENE_IDS\.FORGOTTEN_MURAL_CHAMBER,\s*toSceneId:\s*JOURNEY_SCENE_IDS\.EXTERIOR,/,
   );
   assert.match(
     journeyComponentSource,
-    /SCRIBE_CHAMBER_RETURN_FALLBACK = \{[\s\S]*?x:\s*scaleJourneyX\(1985\)[\s\S]*?y:\s*openingJourneyY\(318\)[\s\S]*?direction:\s*1/,
+    /SCRIBE_CHAMBER_RETURN_FALLBACK = \{[\s\S]*?x:\s*scaleJourneyX\(1684\)[\s\S]*?y:\s*openingJourneyY\(122\)[\s\S]*?direction:\s*1/,
   );
 });
 
@@ -560,7 +557,7 @@ test('mummification chamber exterior reuses Journey routes, ledges, assets, and 
     assert.match(platform, /secret:\s*true/);
     assert.match(platform, /invisible:\s*true/);
   });
-  assert.ok(platforms.indexOf("id: 'mummification-chamber-doorway-floor'") < platforms.indexOf("id: 'forgotten-mural-lower-masonry'"));
+  assert.ok(platforms.indexOf("id: 'mummification-chamber-doorway-floor'") < platforms.indexOf("id: 'forgotten-mural-carved-wall-ledge'"));
   assert.match(journeyUtilsSource, /mummificationChamberEntranceDiscovered:\s*false/);
   assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_EXTERIOR_SRC = 'assets\/expedition\/environment\/desert-temple\/mummification-chamber-exterior-climb-structure\.png'/);
   assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?minX:\s*scaleJourneyX\(720\)[\s\S]*?maxX:\s*scaleJourneyX\(748\)/);
@@ -1450,7 +1447,7 @@ test('Egypt Journey uses the Asha atlas through the existing player renderer', (
   assert.match(journeyConstantsSource, /PLAYER_HERO_SPRITE_ATLAS_JSON/);
   assert.match(journeyConstantsSource, /asha-reference-warrior-spritesheet\.json/);
   assert.doesNotMatch(journeyConstantsSource, /asha-v4-spritesheet\.json/);
-  assert.match(journeyConstantsSource, /PLAYER_HERO_SPRITE_VERSION = 'asha-reference-warrior-attack-chain-test-2026-05-29'/);
+  assert.match(journeyConstantsSource, /PLAYER_HERO_SPRITE_VERSION = 'asha-reference-warrior-full-motion-polish-2026-05-30'/);
   assert.match(journeyComponentSource, /characterId:\s*'asha-reference-warrior'/);
   assert.match(journeyComponentSource, /asha-final-production-spritesheet\.json/);
   assert.match(journeyConstantsSource, /PLAYER_HERO_PREVIOUS_SPRITE_ATLAS_JSON/);
@@ -1587,7 +1584,7 @@ test('Asha Reference Warrior remains available as a separate character-loader at
   assert.match(journeyComponentSource, /label:\s*'Asha Reference Warrior'/);
   assert.match(journeyComponentSource, /atlasPath:\s*PLAYER_HERO_SPRITE_ATLAS_JSON/);
   assert.match(journeyComponentSource, /assets\/expedition\/player\/asha-reference-warrior-reference\.png/);
-  assert.equal(ashaReferenceWarriorPlayerAtlas.status, 'candidate-asha-reference-warrior-attack-chain-test');
+  assert.equal(ashaReferenceWarriorPlayerAtlas.status, 'candidate-asha-reference-warrior-full-motion-polish');
   assert.equal(ashaReferenceWarriorPlayerAtlas.productionReference, 'asha-reference-warrior-reference.png');
   assert.equal(ashaReferenceWarriorPlayerAtlas.draw.height, 130);
   assert.equal(ashaReferenceWarriorPlayerAtlas.frame.width, 390);
@@ -1596,7 +1593,7 @@ test('Asha Reference Warrior remains available as a separate character-loader at
   assert.equal(ashaReferenceWarriorPlayerAtlas.draw.suppressRuntimeAttackArc, true);
   assert.match(
     ashaReferenceWarriorPlayerAtlas.description,
-    /three-hit pure-weapon candidate chain/,
+    /three-hit pure-weapon attack chain/,
   );
   assert.deepEqual(ashaReferenceWarriorPlayerAtlas.draw.attackChainRows, [
     'attack_pick_swing',
@@ -1655,7 +1652,7 @@ test('Asha Reference Warrior remains available as a separate character-loader at
   ) >= 170);
   assert.equal(
     ashaReferenceWarriorPlayerAtlas.source,
-    'asha-reference-warrior-attack-chain-test-wiring-2026-05-29',
+    'asha-reference-warrior-full-motion-polish-2026-05-30',
   );
 });
 

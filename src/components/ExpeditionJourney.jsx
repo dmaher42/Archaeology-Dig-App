@@ -488,7 +488,9 @@ const OPENING_PYRAMID_FACADE_SRC = 'assets/expedition/environment/egypt-opening/
 const OPENING_TRAP_DECAL_PACK_SRC = 'assets/expedition/environment/egypt-opening/opening-trap-decals.png';
 const OPENING_HAZARD_DECAL_PACK_SRC = 'assets/expedition/environment/egypt-opening/opening-hazard-decals.png';
 const OPENING_TOMB_STAIRWELL_SRC = 'assets/expedition/environment/egypt-opening/opening-tomb-stairwell.png';
-const ROUTE_GATE_ARCH_PACK_SRC = 'assets/expedition/environment/egypt-opening/route-gate-arch-pack.png';
+const ROUTE_GATE_FRONT_SRC = 'assets/expedition/environment/egypt-opening/route-gate-front.png';
+const ROUTE_GATE_BACK_SRC = 'assets/expedition/environment/egypt-opening/route-gate-back.png';
+const ROUTE_GATE_SLAB_SRC = 'assets/expedition/environment/egypt-opening/route-gate-slab.png';
 const MUMMIFICATION_CHAMBER_EXTERIOR_SRC = 'assets/expedition/environment/desert-temple/mummification-chamber-exterior-climb-structure.png';
 const MUMMIFICATION_CHAMBER_INTERIOR_SRC = 'assets/expedition/environment/desert-temple/mummification-chamber-interior.png';
 const FORGOTTEN_MURAL_ALCOVE_CLIMB_STRUCTURE_SRC = 'assets/expedition/environment/desert-temple/forgotten-mural-alcove-climb-structure.png';
@@ -609,10 +611,7 @@ const OPENING_PYRAMID_ASSET_REGIONS = {
   rubble: { x: 1005, y: 667, w: 128, h: 58 },
   dust: { x: 953, y: 884, w: 250, h: 60 },
 };
-const ROUTE_GATE_ARCH_PACK_REGIONS = {
-  arch: { x: 24, y: 32, w: 320, h: 265 },
-  closedSlab: { x: 386, y: 44, w: 230, h: 240 },
-};
+// Route gate regions removed - using split assets directly.
 const OPENING_TRAP_DECAL_REGIONS = {
   spikeTrap: { x: 36, y: 78, w: 430, h: 196 },
   pressurePlate: { x: 54, y: 300, w: 382, h: 132 },
@@ -2472,7 +2471,9 @@ export default function ExpeditionJourney({
   const openingSphinxApparitionRef = useRef({ image: null, loaded: false, failed: false });
   const openingPyramidClimbPackRef = useRef({ image: null, loaded: false, failed: false });
   const openingPyramidFacadeRef = useRef({ image: null, loaded: false, failed: false });
-  const routeGateArchPackRef = useRef({ image: null, loaded: false, failed: false, version: ROUTE_GATE_ARCH_PACK_VERSION });
+  const routeGateFrontRef = useRef({ image: null, loaded: false, failed: false, version: ROUTE_GATE_ARCH_PACK_VERSION });
+  const routeGateBackRef = useRef({ image: null, loaded: false, failed: false, version: ROUTE_GATE_ARCH_PACK_VERSION });
+  const routeGateSlabRef = useRef({ image: null, loaded: false, failed: false, version: ROUTE_GATE_ARCH_PACK_VERSION });
   const openingTombStairwellRef = useRef({ image: null, loaded: false, failed: false, version: OPENING_TOMB_STAIRWELL_VERSION });
   const mummificationChamberExteriorRef = useRef({ image: null, loaded: false, failed: false, version: MUMMIFICATION_CHAMBER_EXTERIOR_VERSION });
   const mummificationChamberInteriorRef = useRef({ image: null, loaded: false, failed: false, version: MUMMIFICATION_CHAMBER_INTERIOR_VERSION });
@@ -2846,27 +2847,43 @@ export default function ExpeditionJourney({
 
   useEffect(() => {
     let cancelled = false;
-    const image = new Image();
-    image.onload = () => {
-      if (cancelled) return;
-      routeGateArchPackRef.current = {
-        image,
-        loaded: true,
-        failed: false,
-        version: ROUTE_GATE_ARCH_PACK_VERSION,
+    const loadImg = (src, ref) => {
+      const img = new Image();
+      img.onload = () => {
+        if (cancelled) return;
+        
+        // Remove white background programmatically
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imgData.data;
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+          // Remove solid black or solid white backgrounds
+          if ((r < 15 && g < 15 && b < 15) || (r > 245 && g > 245 && b > 245)) {
+            data[i + 3] = 0; // Set alpha to 0
+          }
+        }
+        ctx.putImageData(imgData, 0, 0);
+
+        ref.current = { image: canvas, loaded: true, failed: false, version: ROUTE_GATE_ARCH_PACK_VERSION };
+        syncHud();
       };
-      syncHud();
-    };
-    image.onerror = () => {
-      if (cancelled) return;
-      routeGateArchPackRef.current = {
-        image: null,
-        loaded: false,
-        failed: true,
-        version: ROUTE_GATE_ARCH_PACK_VERSION,
+      img.onerror = () => {
+        if (cancelled) return;
+        ref.current = { image: null, loaded: false, failed: true, version: ROUTE_GATE_ARCH_PACK_VERSION };
       };
+      // Add a cache buster to force the browser to reload the new images
+      img.src = `${import.meta.env.BASE_URL}${src}?v=${Date.now()}`;
     };
-    image.src = `${import.meta.env.BASE_URL}${ROUTE_GATE_ARCH_PACK_SRC}`;
+    loadImg(ROUTE_GATE_FRONT_SRC, routeGateFrontRef);
+    loadImg(ROUTE_GATE_BACK_SRC, routeGateBackRef);
+    loadImg(ROUTE_GATE_SLAB_SRC, routeGateSlabRef);
     return () => {
       cancelled = true;
     };
@@ -9919,32 +9936,43 @@ export default function ExpeditionJourney({
   const drawRouteGate = useCallback((ctx, gate, screenX, current, complete, layer = 'base') => {
     const gateCenter = screenX + gate.width / 2;
     ctx.save();
-    const gateHeight = 190;
-    const gateWidth = 230;
+    const gateHeight = 220;
+    const gateWidth = 260;
     const gateTop = placeGateOnGround(gateHeight);
-    const archPack = routeGateArchPackRef.current;
-    const drawGateAssetRegion = (regionKey, dest, options = {}) => {
-      const region = ROUTE_GATE_ARCH_PACK_REGIONS[regionKey];
-      if (!archPack.loaded || !archPack.image || !region) return false;
+    
+    const drawGateAsset = (ref, dest, options = {}) => {
+      if (!ref.current.loaded || !ref.current.image) return false;
       ctx.save();
       ctx.globalAlpha *= options.alpha ?? 1;
       if (options.filter) ctx.filter = options.filter;
-      ctx.drawImage(archPack.image, region.x, region.y, region.w, region.h, dest.x, dest.y, dest.width, dest.height);
+      ctx.drawImage(ref.current.image, dest.x, dest.y, dest.width, dest.height);
       ctx.restore();
       return true;
     };
-    const archDest = {
-      x: gateCenter - gateWidth / 2,
+    
+    // 3/4 Perspective Layout
+    // Back lintel is the main structure spanning left to right in the background.
+    const backDest = {
+      x: gateCenter - 140,
       y: gateTop,
-      width: gateWidth,
+      width: 280,
       height: gateHeight,
     };
-    const slabDest = {
-      x: gateCenter - 56,
-      y: GROUND_Y - 148,
-      width: 112,
-      height: 144,
+    // Front pillar sits on the right side in the foreground.
+    const frontDest = {
+      x: gateCenter + 40,
+      y: gateTop,
+      width: 120,
+      height: gateHeight + 10, // slight perspective overlap
     };
+    // Slab sits in the opening
+    const slabDest = {
+      x: gateCenter - 75,
+      y: gateTop + 24, // Sits under the lintel
+      width: 130,
+      height: gateHeight - 24, // Fits between ground and lintel
+    };
+    
     const drawFallbackArch = () => {
       const stone = ctx.createLinearGradient(gateCenter - gateWidth / 2, gateTop, gateCenter + gateWidth / 2, GROUND_Y);
       stone.addColorStop(0, complete ? '#d8c092' : '#b89768');
@@ -9968,13 +9996,11 @@ export default function ExpeditionJourney({
     };
 
     if (layer === 'foreground') {
-      if (complete) {
-        const archDrawn = drawGateAssetRegion('arch', archDest, {
-          alpha: 0.99,
-          filter: 'sepia(2%) saturate(104%) brightness(108%) contrast(102%) drop-shadow(0 6px 8px rgba(46, 28, 12, 0.28))',
-        });
-        if (!archDrawn) drawFallbackArch();
-      }
+      const archDrawn = drawGateAsset(routeGateFrontRef, frontDest, {
+        alpha: 0.99,
+        filter: 'sepia(2%) saturate(104%) brightness(108%) contrast(102%) drop-shadow(-8px 6px 12px rgba(46, 28, 12, 0.35))',
+      });
+      if (!archDrawn && complete) drawFallbackArch();
       ctx.restore();
       return;
     }
@@ -10003,7 +10029,7 @@ export default function ExpeditionJourney({
       ctx.beginPath();
       ctx.ellipse(gateCenter, GROUND_Y - 58, 94, 62, 0, 0, Math.PI * 2);
       ctx.fill();
-      const slabDrawn = drawGateAssetRegion('closedSlab', slabDest, {
+      const slabDrawn = drawGateAsset(routeGateSlabRef, slabDest, {
         alpha: 0.98,
         filter: 'sepia(3%) saturate(96%) brightness(95%) contrast(104%)',
       });
@@ -10020,13 +10046,12 @@ export default function ExpeditionJourney({
       }
     }
 
-    if (!complete) {
-      const archDrawn = drawGateAssetRegion('arch', archDest, {
-        alpha: 0.96,
-        filter: 'sepia(5%) saturate(94%) brightness(94%) contrast(106%) drop-shadow(0 6px 8px rgba(46, 28, 12, 0.3))',
-      });
-      if (!archDrawn) drawFallbackArch();
-    }
+    const archBackDrawn = drawGateAsset(routeGateBackRef, backDest, {
+      alpha: 0.96,
+      filter: 'sepia(5%) saturate(94%) brightness(94%) contrast(106%) drop-shadow(0 6px 8px rgba(46, 28, 12, 0.3))',
+    });
+    if (!archBackDrawn && !complete) drawFallbackArch();
+
     drawGroundDustLip(ctx, gateCenter, GROUND_Y + 1, gateWidth * 0.82, 'rgba(184, 116, 52, 0.22)');
     if (current.renderStats) current.renderStats.groundedPropCount += 1;
     ctx.restore();

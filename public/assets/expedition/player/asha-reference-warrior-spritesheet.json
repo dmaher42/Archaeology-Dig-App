@@ -1,9 +1,9 @@
 {
   "image": "asha-reference-warrior-spritesheet.png",
-  "source": "asha-reference-warrior-attack-chain-test-wiring-2026-05-29",
-  "status": "candidate-asha-reference-warrior-attack-chain-test",
+  "source": "asha-reference-warrior-full-motion-polish-2026-05-30",
+  "status": "candidate-asha-reference-warrior-full-motion-polish",
   "productionReference": "asha-reference-warrior-reference.png",
-  "description": "New Asha runtime atlas based on the user-provided warrior reference: dark-skinned braided explorer-warrior, bronze Egyptian armor, teal accents, tan field cloth, and the locked-reference vertical khopesh polearm. Idle, run, and jump rows use the new reference-warrior identity; attack rows pack the current three-hit pure-weapon candidate chain for runtime testing while a cleaner frame-boundary pass is generated. Utility rows borrow from those rows so the runtime atlas does not mix in older Asha identities while final utility animation rows await visual approval.",
+  "description": "New Asha runtime atlas based on the user-provided warrior reference: dark-skinned braided explorer-warrior, bronze Egyptian armor, teal accents, tan field cloth, and the locked-reference vertical khopesh polearm. Idle, run, jump, hurt, and the three-hit pure-weapon attack chain use the new reference-warrior identity. Utility rows borrow from those rows so the runtime atlas does not mix in older Asha identities while final utility animation rows await visual approval.",
   "frame": {
     "width": 390,
     "height": 256,
@@ -367,9 +367,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 40,
+        "x": 43,
         "y": 0,
-        "w": 310,
+        "w": 303,
         "h": 239
       },
       "groundLineY": 236
@@ -380,9 +380,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 30,
+        "x": 33,
         "y": 0,
-        "w": 330,
+        "w": 323,
         "h": 239
       },
       "groundLineY": 236
@@ -393,9 +393,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 45,
+        "x": 49,
         "y": 0,
-        "w": 299,
+        "w": 293,
         "h": 239
       },
       "groundLineY": 236
@@ -406,9 +406,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 33,
+        "x": 36,
         "y": 0,
-        "w": 325,
+        "w": 318,
         "h": 239
       },
       "groundLineY": 236
@@ -419,9 +419,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 33,
+        "x": 37,
         "y": 0,
-        "w": 324,
+        "w": 316,
         "h": 239
       },
       "groundLineY": 236
@@ -432,9 +432,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 37,
+        "x": 40,
         "y": 0,
-        "w": 317,
+        "w": 310,
         "h": 239
       },
       "groundLineY": 236
@@ -445,9 +445,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 41,
+        "x": 44,
         "y": 0,
-        "w": 309,
+        "w": 302,
         "h": 239
       },
       "groundLineY": 236
@@ -458,9 +458,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 41,
+        "x": 45,
         "y": 0,
-        "w": 307,
+        "w": 301,
         "h": 239
       },
       "groundLineY": 236
@@ -471,9 +471,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 40,
+        "x": 43,
         "y": 0,
-        "w": 310,
+        "w": 303,
         "h": 239
       },
       "groundLineY": 236
@@ -484,9 +484,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 30,
+        "x": 33,
         "y": 0,
-        "w": 330,
+        "w": 323,
         "h": 239
       },
       "groundLineY": 236
@@ -497,9 +497,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 45,
+        "x": 49,
         "y": 0,
-        "w": 299,
+        "w": 293,
         "h": 239
       },
       "groundLineY": 236
@@ -510,9 +510,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 33,
+        "x": 36,
         "y": 0,
-        "w": 325,
+        "w": 318,
         "h": 239
       },
       "groundLineY": 236
@@ -523,9 +523,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 33,
+        "x": 37,
         "y": 0,
-        "w": 324,
+        "w": 316,
         "h": 239
       },
       "groundLineY": 236
@@ -536,9 +536,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 37,
+        "x": 40,
         "y": 0,
-        "w": 317,
+        "w": 310,
         "h": 239
       },
       "groundLineY": 236
@@ -549,9 +549,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 41,
+        "x": 44,
         "y": 0,
-        "w": 309,
+        "w": 302,
         "h": 239
       },
       "groundLineY": 236
@@ -562,15 +562,80 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 41,
+        "x": 45,
         "y": 0,
-        "w": 307,
+        "w": 301,
         "h": 239
       },
       "groundLineY": 236
     },
     "survey_walk_00": {
       "x": 0,
+      "y": 768,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 43,
+        "y": 0,
+        "w": 303,
+        "h": 239
+      },
+      "groundLineY": 236
+    },
+    "survey_walk_01": {
+      "x": 390,
+      "y": 768,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 33,
+        "y": 0,
+        "w": 323,
+        "h": 239
+      },
+      "groundLineY": 236
+    },
+    "survey_walk_02": {
+      "x": 780,
+      "y": 768,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 49,
+        "y": 0,
+        "w": 293,
+        "h": 239
+      },
+      "groundLineY": 236
+    },
+    "survey_walk_03": {
+      "x": 1170,
+      "y": 768,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 36,
+        "y": 0,
+        "w": 318,
+        "h": 239
+      },
+      "groundLineY": 236
+    },
+    "survey_walk_04": {
+      "x": 1560,
+      "y": 768,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 37,
+        "y": 0,
+        "w": 316,
+        "h": 239
+      },
+      "groundLineY": 236
+    },
+    "survey_walk_05": {
+      "x": 1950,
       "y": 768,
       "w": 390,
       "h": 256,
@@ -582,80 +647,15 @@
       },
       "groundLineY": 236
     },
-    "survey_walk_01": {
-      "x": 390,
-      "y": 768,
-      "w": 390,
-      "h": 256,
-      "drawBounds": {
-        "x": 30,
-        "y": 0,
-        "w": 330,
-        "h": 239
-      },
-      "groundLineY": 236
-    },
-    "survey_walk_02": {
-      "x": 780,
-      "y": 768,
-      "w": 390,
-      "h": 256,
-      "drawBounds": {
-        "x": 45,
-        "y": 0,
-        "w": 299,
-        "h": 239
-      },
-      "groundLineY": 236
-    },
-    "survey_walk_03": {
-      "x": 1170,
-      "y": 768,
-      "w": 390,
-      "h": 256,
-      "drawBounds": {
-        "x": 33,
-        "y": 0,
-        "w": 325,
-        "h": 239
-      },
-      "groundLineY": 236
-    },
-    "survey_walk_04": {
-      "x": 1560,
-      "y": 768,
-      "w": 390,
-      "h": 256,
-      "drawBounds": {
-        "x": 33,
-        "y": 0,
-        "w": 324,
-        "h": 239
-      },
-      "groundLineY": 236
-    },
-    "survey_walk_05": {
-      "x": 1950,
-      "y": 768,
-      "w": 390,
-      "h": 256,
-      "drawBounds": {
-        "x": 37,
-        "y": 0,
-        "w": 317,
-        "h": 239
-      },
-      "groundLineY": 236
-    },
     "survey_walk_06": {
       "x": 2340,
       "y": 768,
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 41,
+        "x": 44,
         "y": 0,
-        "w": 309,
+        "w": 302,
         "h": 239
       },
       "groundLineY": 236
@@ -666,9 +666,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 41,
+        "x": 45,
         "y": 0,
-        "w": 307,
+        "w": 301,
         "h": 239
       },
       "groundLineY": 236

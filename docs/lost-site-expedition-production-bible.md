@@ -104,11 +104,11 @@ A room should not be added just because it is visually interesting. It must eith
 
 Before adding or moving a room, update the canonical room order in the relevant Journey data/story documentation.
 
-Known current direction:
+Known current direction for exterior route structures and major beats:
 
 1. Desert / arrival route
 2. Temple approach
-3. Mummy Room
+3. Mummification Room
 4. Mural Room
 5. Scribes' Locked Chamber
 6. Queen / Scarab Queen section
@@ -117,7 +117,7 @@ Known current direction:
 9. Base Camp
 10. Excavation / evidence interpretation
 
-This order may change, but it must change in one source of truth before code changes are made. Do not implement rooms in random order without confirming where they sit in the player journey.
+This order may change, but it must change in one source of truth before code changes are made. Do not implement rooms in random order without confirming where they sit in the player journey. Chamber interiors should remain separate spaces: the player enters from an exterior artwork doorway and exits back to that exterior structure area, rather than moving directly from one chamber interior into another.
 
 ## 7. Asset pipeline
 
@@ -227,8 +227,8 @@ The safest next production sequence is:
 
 1. Lock the current Egypt Act 1 room order.
 2. Identify where the Scribes' Locked Chamber is currently implemented.
-3. Move or rewire the Scribes' Locked Chamber so it sits after the Mural Room and before the Queen section.
-4. Add or verify the Mummy Room before the Mural Room.
+3. Move or rewire the Scribes' Locked Chamber exterior structure so it sits after the Mural Room structure and before the Queen section.
+4. Add or verify the Mummification Room before the Mural Room.
 5. Replace Scribes' Locked Chamber placeholders with a clear final asset contract before generating final art.
 6. Audit active, fallback, source, candidate, and trailer-only asset roles.
 7. Only then continue expanding new rooms or guardian content.

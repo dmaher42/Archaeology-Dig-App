@@ -21684,3 +21684,6 @@ main {
     justify-content: center;
   }
 }
+
+
+.bureau-case-actions .btn { max-width: 400px; margin: 0 auto; width: 100%; }

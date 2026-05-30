@@ -80,9 +80,9 @@ ROW_SOURCE = {
 
 ROW_SPRITE_SCALE = {
     "idle": 1.015,
-    "walk": 1.082,
-    "run": 1.082,
-    "survey_walk": 1.082,
+    "walk": 1.058,
+    "run": 1.058,
+    "survey_walk": 1.058,
     "jump": 1.016,
     "fall": 1.016,
     "land": 1.016,
@@ -294,18 +294,17 @@ def main() -> None:
         rows.append(next_row)
 
     metadata["image"] = TARGET_PNG.name
-    metadata["source"] = "asha-reference-warrior-attack-chain-test-wiring-2026-05-29"
-    metadata["status"] = "candidate-asha-reference-warrior-attack-chain-test"
+    metadata["source"] = "asha-reference-warrior-full-motion-polish-2026-05-30"
+    metadata["status"] = "candidate-asha-reference-warrior-full-motion-polish"
     metadata["productionReference"] = TARGET_REFERENCE.name
     metadata["masterReference"] = TARGET_MASTER_REFERENCE.name
     metadata["description"] = (
         "New Asha runtime atlas based on the user-provided warrior reference: dark-skinned "
         "braided explorer-warrior, bronze Egyptian armor, teal accents, tan field cloth, "
-        "and the locked-reference vertical khopesh polearm. Idle, run, and jump rows use the "
-        "new reference-warrior identity; attack rows pack the current three-hit pure-weapon "
-        "candidate chain for runtime testing while a cleaner frame-boundary pass is generated. "
-        "Utility rows borrow from those rows so the runtime atlas does not mix in older Asha "
-        "identities while final utility animation rows await visual approval."
+        "and the locked-reference vertical khopesh polearm. Idle, run, jump, hurt, and the "
+        "three-hit pure-weapon attack chain use the new reference-warrior identity. Utility "
+        "rows borrow from those rows so the runtime atlas does not mix in older Asha identities "
+        "while final utility animation rows await visual approval."
     )
     metadata["frame"]["width"] = cell_w
     metadata["frame"]["height"] = cell_h
