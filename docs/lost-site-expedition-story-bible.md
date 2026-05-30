@@ -102,6 +102,8 @@ She is not simply wearing an ancient Egyptian costume.
 
 The Lost Site has reshaped her appearance into something that belongs between the modern world and the sacred memory-world.
 
+The outfit transformation should not make Asha look like she is pretending to be Ancient Egyptian. It should show that the Lost Site has marked her as someone caught between worlds.
+
 Asha should visually communicate:
 
 - researcher
@@ -228,13 +230,13 @@ In the game, this should feel like mystery and consequence, not a lesson.
 
 ## 10. Asha's Hidden Connection
 
-Asha may be connected to a forgotten line of seal-keepers.
+Asha is likely connected to a forgotten line of seal-keepers.
 
 This should not simply mean she is royal or special because of bloodline. Her connection should be tied to truth, protection, and evidence.
 
-The strongest current direction is:
+The preferred current direction is:
 
-> Asha is descended from the Queen's final scribe, a priestess, a tomb protector, or a keeper of names who recorded the truth of the Queen's final act.
+> Asha is descended from the Queen's final scribe, also remembered as a keeper of names. This ancestor recorded the truth of the Queen's final act before the record was hidden, damaged, or erased.
 
 This gives Asha a meaningful connection to:
 
@@ -364,6 +366,8 @@ Route gates should exist to the right of major structures as pacing tools and An
 
 They should slow the player down, create checkpoints, and encourage the player to look back or consider entering nearby rooms.
 
+Gates can redirect or slow players in a way that encourages them to notice optional rooms, but the player should feel curiosity, not compulsion.
+
 However, the optional rooms should not be required for main progression yet.
 
 Current gate rule:
@@ -399,7 +403,7 @@ This creates the central moral pressure:
 
 > Does Asha use sacred power for herself, or return it to restore balance?
 
-This should not be implemented fully yet.
+Heart Scarabs are a future design direction only. They should not be implemented until the room, gate, seal, and reward systems have been audited.
 
 Do not add a morality system, trust meter, alternate ending system, or upgrade economy until the room, gate, and seal structure is stable.
 
@@ -496,7 +500,7 @@ Prefer story-driven writing such as:
 
 **Problem:** Looting and damaged relics have weakened memory seals and destabilised the Lost Site.
 
-**Asha's possible connection:** Descendant of a forgotten seal-keeper, scribe, priestess, tomb protector, or keeper of names.
+**Asha's likely connection:** Descendant of the Queen's final scribe, also remembered as a keeper of names.
 
 **Rooms:** Mummification, Mural, Scribe, Queen.
 
