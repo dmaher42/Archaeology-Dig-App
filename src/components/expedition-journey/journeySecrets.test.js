@@ -1619,6 +1619,10 @@ test('Asha Reference Warrior remains available as a separate character-loader at
     'asha-reference-warrior-attack-chain-03-sweep-framebyframe-pass1c-normalized-4096x512-candidate-2026-05-30.png:frame_07',
   );
   assert.equal(
+    ashaReferenceWarriorPlayerAtlas.poseSources.hurt_04,
+    'asha-reference-warrior-hurt-framebyframe-pass1-normalized-2560x512-candidate-2026-05-30.png:frame_04',
+  );
+  assert.equal(
     ashaReferenceWarriorPlayerAtlas.poseSources.run_07,
     'asha-reference-warrior-run-row-raw.png:frame_07',
   );

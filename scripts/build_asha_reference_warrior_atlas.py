@@ -31,6 +31,7 @@ SOURCES = {
     "attack_pick_swing": SOURCE_DIR / "asha-reference-warrior-attack-chain-01-quick-cut-clean-normalized-4096x512-candidate-2026-05-29.png",
     "attack_pick_swing_alt": SOURCE_DIR / "asha-reference-warrior-attack-chain-02-diagonal-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png",
     "attack_pick_swing_sweep": SOURCE_DIR / "asha-reference-warrior-attack-chain-03-sweep-framebyframe-pass1c-normalized-4096x512-candidate-2026-05-30.png",
+    "hurt": SOURCE_DIR / "asha-reference-warrior-hurt-framebyframe-pass1-normalized-2560x512-candidate-2026-05-30.png",
 }
 
 SOURCE_FRAME_COUNTS = {
@@ -40,6 +41,7 @@ SOURCE_FRAME_COUNTS = {
     "attack_pick_swing": 8,
     "attack_pick_swing_alt": 8,
     "attack_pick_swing_sweep": 8,
+    "hurt": 5,
 }
 
 ROW_INDEX = {
@@ -70,7 +72,7 @@ ROW_SOURCE = {
     "attack_pick_swing": ("attack_pick_swing", [0, 1, 2, 3, 4, 5, 6, 7]),
     "attack_pick_swing_alt": ("attack_pick_swing_alt", [0, 1, 2, 3, 4, 5, 6, 7]),
     "attack_pick_swing_sweep": ("attack_pick_swing_sweep", [0, 1, 2, 3, 4, 5, 6, 7]),
-    "hurt": ("attack_pick_swing", [5, 4, 3, 2, 1]),
+    "hurt": ("hurt", [0, 1, 2, 3, 4]),
     "interact": ("idle", [0, 1, 2, 3, 4, 5]),
     "climb": ("jump", [0, 1, 2, 3, 4, 5, 6, 7]),
     "push_pull": ("attack_pick_swing", [0, 1, 2, 3, 4, 5, 6, 7]),

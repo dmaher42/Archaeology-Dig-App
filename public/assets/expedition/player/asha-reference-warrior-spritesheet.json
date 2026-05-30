@@ -1095,9 +1095,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 79,
+        "x": 64,
         "y": 5,
-        "w": 233,
+        "w": 262,
         "h": 234
       },
       "groundLineY": 236
@@ -1108,9 +1108,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 78,
+        "x": 51,
         "y": 5,
-        "w": 234,
+        "w": 287,
         "h": 234
       },
       "groundLineY": 236
@@ -1121,9 +1121,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 79,
+        "x": 51,
         "y": 5,
-        "w": 232,
+        "w": 287,
         "h": 234
       },
       "groundLineY": 236
@@ -1134,9 +1134,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 130,
+        "x": 51,
         "y": 5,
-        "w": 130,
+        "w": 289,
         "h": 234
       },
       "groundLineY": 236
@@ -1147,9 +1147,9 @@
       "w": 390,
       "h": 256,
       "drawBounds": {
-        "x": 131,
+        "x": 55,
         "y": 5,
-        "w": 129,
+        "w": 279,
         "h": 234
       },
       "groundLineY": 236
@@ -1714,11 +1714,11 @@
     "attack_pick_swing_05": "asha-reference-warrior-attack-chain-01-quick-cut-clean-normalized-4096x512-candidate-2026-05-29.png:frame_05",
     "attack_pick_swing_06": "asha-reference-warrior-attack-chain-01-quick-cut-clean-normalized-4096x512-candidate-2026-05-29.png:frame_06",
     "attack_pick_swing_07": "asha-reference-warrior-attack-chain-01-quick-cut-clean-normalized-4096x512-candidate-2026-05-29.png:frame_07",
-    "hurt_00": "asha-reference-warrior-attack-chain-01-quick-cut-clean-normalized-4096x512-candidate-2026-05-29.png:frame_05",
-    "hurt_01": "asha-reference-warrior-attack-chain-01-quick-cut-clean-normalized-4096x512-candidate-2026-05-29.png:frame_04",
-    "hurt_02": "asha-reference-warrior-attack-chain-01-quick-cut-clean-normalized-4096x512-candidate-2026-05-29.png:frame_03",
-    "hurt_03": "asha-reference-warrior-attack-chain-01-quick-cut-clean-normalized-4096x512-candidate-2026-05-29.png:frame_02",
-    "hurt_04": "asha-reference-warrior-attack-chain-01-quick-cut-clean-normalized-4096x512-candidate-2026-05-29.png:frame_01",
+    "hurt_00": "asha-reference-warrior-hurt-framebyframe-pass1-normalized-2560x512-candidate-2026-05-30.png:frame_00",
+    "hurt_01": "asha-reference-warrior-hurt-framebyframe-pass1-normalized-2560x512-candidate-2026-05-30.png:frame_01",
+    "hurt_02": "asha-reference-warrior-hurt-framebyframe-pass1-normalized-2560x512-candidate-2026-05-30.png:frame_02",
+    "hurt_03": "asha-reference-warrior-hurt-framebyframe-pass1-normalized-2560x512-candidate-2026-05-30.png:frame_03",
+    "hurt_04": "asha-reference-warrior-hurt-framebyframe-pass1-normalized-2560x512-candidate-2026-05-30.png:frame_04",
     "interact_00": "asha-reference-warrior-idle-still-guard-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_00",
     "interact_01": "asha-reference-warrior-idle-still-guard-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_01",
     "interact_02": "asha-reference-warrior-idle-still-guard-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_02",
