@@ -27,8 +27,8 @@ TARGET_RUN_FRAME_DISTANCE = 26
 SOURCES = {
     "idle": SOURCE_DIR / "asha-reference-warrior-idle-still-guard-pass1-normalized-4096x512-candidate-2026-05-30.png",
     "run": SOURCE_DIR / "asha-reference-warrior-run-row-raw.png",
-    "jump": SOURCE_DIR / "asha-reference-warrior-jump-row-raw.png",
-    "attack_pick_swing": SOURCE_DIR / "asha-reference-warrior-attack-chain-01-quick-cut-clean-normalized-4096x512-candidate-2026-05-29.png",
+    "jump": SOURCE_DIR / "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png",
+    "attack_pick_swing": SOURCE_DIR / "asha-reference-warrior-attack-chain-01-quick-cut-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png",
     "attack_pick_swing_alt": SOURCE_DIR / "asha-reference-warrior-attack-chain-02-diagonal-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png",
     "attack_pick_swing_sweep": SOURCE_DIR / "asha-reference-warrior-attack-chain-03-sweep-framebyframe-pass1c-normalized-4096x512-candidate-2026-05-30.png",
     "hurt": SOURCE_DIR / "asha-reference-warrior-hurt-framebyframe-pass1-normalized-2560x512-candidate-2026-05-30.png",

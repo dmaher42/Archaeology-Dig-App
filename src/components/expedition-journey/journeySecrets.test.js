@@ -1608,7 +1608,7 @@ test('Asha Reference Warrior remains available as a separate character-loader at
   );
   assert.equal(
     ashaReferenceWarriorPlayerAtlas.poseSources.attack_pick_swing_07,
-    'asha-reference-warrior-attack-chain-01-quick-cut-clean-normalized-4096x512-candidate-2026-05-29.png:frame_07',
+    'asha-reference-warrior-attack-chain-01-quick-cut-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_07',
   );
   assert.equal(
     ashaReferenceWarriorPlayerAtlas.poseSources.attack_pick_swing_alt_07,
@@ -1625,6 +1625,10 @@ test('Asha Reference Warrior remains available as a separate character-loader at
   assert.equal(
     ashaReferenceWarriorPlayerAtlas.poseSources.run_07,
     'asha-reference-warrior-run-row-raw.png:frame_07',
+  );
+  assert.equal(
+    ashaReferenceWarriorPlayerAtlas.poseSources.jump_07,
+    'asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_07',
   );
   assert.ok(ashaReferenceWarriorPlayerAtlas.regions.idle_00.drawBounds.h >= 210);
   assert.ok(ashaReferenceWarriorPlayerAtlas.regions.idle_00.drawBounds.w >= 60);
