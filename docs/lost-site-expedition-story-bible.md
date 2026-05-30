@@ -119,7 +119,56 @@ This hidden truth should feel like game-world mythology, not a classroom correct
 
 ---
 
-## 6. Stories Can Corrupt Memory
+## 6. Death, Mummification, and Memory
+
+In the hidden mythology of **Lost Site Expedition**, death is not an ending. It is a crossing.
+
+Pharaohs, queens, and sacred rulers spent their lives preparing memory to carry across that crossing.
+
+Their tombs were not only built to hold wealth. They were built to hold memory:
+
+- memory of their people
+- memory of their land
+- memory of their duties
+- memory of their gods
+- memory of their rule
+- memory of what needed to survive after death
+
+Mummification is not only the preservation of the body. It is the preservation of the self.
+
+The body anchors the person.
+The tomb anchors their story.
+The objects anchor their relationships, duties, beliefs, land, and people.
+The writings and murals anchor the truth.
+
+Together, the body, tomb, objects, images, and written names keep a life whole after death.
+
+---
+
+## 7. Collective Sacrifice and Afterlife Preparation
+
+In the hidden mythology of **Lost Site Expedition**, preparation for death was not only the ruler's burden. It was a collective sacred effort.
+
+The public world may see tombs as monuments to rulers. The hidden truth is that tombs were vessels built to carry memory across death.
+
+Everyone connected to the tomb helped prepare memory for the afterlife:
+
+- rulers prepared memory through tombs, rituals, objects, and preserved bodies
+- builders gave labour and time to shape the vessel
+- artists painted images so moments, people, gods, and duties would not disappear
+- scribes recorded names so lives could continue to be recognised
+- priests prepared rituals so the crossing could be completed
+- embalmers preserved the body as the anchor of the self
+- families left offerings so relationships could continue beyond death
+- communities helped preserve the memory of land, people, and responsibility
+
+This sacrifice was not only for one ruler's ego. In the hidden truth, it prepared memory for everyone and everything connected to that ruler: people, land, duties, gods, and stories.
+
+The Queen went further than any ruler before her. She did not only prepare memory for her own crossing. She created the Lost Site to protect memories already at risk of being stolen, damaged, or rewritten.
+
+---
+
+## 8. Stories Can Corrupt Memory
 
 In **Lost Site Expedition**, memory is shaped by both objects and stories.
 
@@ -148,7 +197,7 @@ Asha must discover that the public story is incomplete. The Queen was not hoardi
 
 ---
 
-## 7. Why Asha Looks Partly Modern and Partly Ancient
+## 9. Why Asha Looks Partly Modern and Partly Ancient
 
 Asha begins as a present-day researcher, but when she enters the Lost Site, the world marks her.
 
@@ -178,7 +227,7 @@ Asha should visually communicate:
 
 ---
 
-## 8. Who Anubis Is
+## 10. Who Anubis Is
 
 Anubis is the guardian of the Lost Site.
 
@@ -210,7 +259,7 @@ He does not know, or does not yet accept, that Asha entered because the failing 
 
 ---
 
-## 9. Anubis' Opening Voice
+## 11. Anubis' Opening Voice
 
 At the beginning, Anubis should sound powerful, intimidating, ancient, short, sharp, and unwilling to debate.
 
@@ -248,7 +297,7 @@ Possible later Anubis line:
 
 ---
 
-## 10. What Is Happening to the Lost Site
+## 12. What Is Happening to the Lost Site
 
 The Lost Site is failing.
 
@@ -274,7 +323,7 @@ Anubis senses something is wrong, but he does not want to believe humans can be 
 
 ---
 
-## 11. Relics, Looting, and Memory Seals
+## 13. Relics, Looting, and Memory Seals
 
 Sacred relics maintain balance.
 
@@ -305,7 +354,7 @@ In the game, this should feel like mystery and consequence, not a lesson.
 
 ---
 
-## 12. Asha's Hidden Connection
+## 14. Asha's Hidden Connection
 
 Asha is likely connected to a forgotten line of seal-keepers.
 
@@ -328,7 +377,7 @@ Asha's importance should come from her choices and actions, not only ancestry.
 
 ---
 
-## 13. The Queen
+## 15. The Queen
 
 The Queen is always the final major chamber and the mandatory mini-boss encounter.
 
@@ -361,7 +410,7 @@ Key late-game idea:
 
 ---
 
-## 14. Room Order
+## 16. Room Order
 
 The current intended premium room order is:
 
@@ -378,7 +427,7 @@ Players should be able to enter optional rooms before reaching nearby checkpoint
 
 ---
 
-## 15. Room Story Purposes
+## 17. Room Story Purposes
 
 ### Mummification Chamber
 
@@ -396,9 +445,13 @@ Asha learns that the site is not protecting treasure. It is protecting people, r
 
 This room should challenge players to slow down and treat the dead with care.
 
-Possible line:
+This room should begin revealing the hidden mythology that mummification is not only preservation of the body. It is preservation of memory and self.
+
+Possible lines:
 
 > They were not buried with riches. They were buried with memories.
+
+> Mummification was not only preservation of the body. It was preservation of the self.
 
 ### Mural Room
 
@@ -452,7 +505,7 @@ The Queen Chamber should make the player ask whether they are fighting the Queen
 
 ---
 
-## 16. Gates and Checkpoints
+## 18. Gates and Checkpoints
 
 Route gates should exist to the right of major structures as pacing tools and Anubis-controlled thresholds.
 
@@ -480,7 +533,7 @@ Optional rooms should remain future judgement evidence, not current forced progr
 
 ---
 
-## 17. Heart Scarabs and Future Moral Choice
+## 19. Heart Scarabs and Future Moral Choice
 
 A future system may introduce a sacred collectible/currency tentatively called **Heart Scarabs**.
 
@@ -501,7 +554,7 @@ Do not add a morality system, trust meter, alternate ending system, or upgrade e
 
 ---
 
-## 18. Anubis' Judgement Arc
+## 20. Anubis' Judgement Arc
 
 Anubis does not trust Asha's words.
 
@@ -533,7 +586,7 @@ This should eventually be tracked as **judgement evidence**, not a simple morali
 
 ---
 
-## 19. Current Implementation Rules
+## 21. Current Implementation Rules
 
 These rules should guide near-term development:
 
@@ -552,7 +605,7 @@ The game should teach through mystery, choice, evidence, environment, and conseq
 
 ---
 
-## 20. Premium Story Standard
+## 22. Premium Story Standard
 
 Every new story element should do at least one of the following:
 
@@ -582,7 +635,7 @@ Prefer story-driven writing such as:
 
 ---
 
-## 21. Short Reference Summary
+## 23. Short Reference Summary
 
 **Setting:** Present day, then a hidden Duat-touched version of Egypt.
 
@@ -594,7 +647,9 @@ Prefer story-driven writing such as:
 
 **Public history:** Tomb objects are understood as treasure, status, religious objects, grave goods, or museum artefacts.
 
-**Hidden truth:** Tomb objects are memory anchors. The dead were not buried with riches. They were buried with memories.
+**Hidden truth:** Death is a crossing. Tombs are vessels built to carry memory across death. Mummification preserves the self. Tomb objects are memory anchors. The dead were not buried with riches. They were buried with memories.
+
+**Collective sacrifice:** Tombs were prepared through the labour, art, writing, ritual, preservation, offerings, and devotion of many people. In the hidden truth, this work helped preserve the memory of people, land, duties, gods, and stories for the afterlife.
 
 **Anubis:** Ancient guardian, disappointed judge of humanity, protector of sacred memory. His anger comes from humans stealing memory and telling stories that made the theft seem acceptable.
 
