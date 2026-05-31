@@ -59,6 +59,54 @@ export const EGYPT_EXPEDITION_FUTURE_ASSETS = [
   },
 ];
 
+export const ROME_EXPEDITION_SCAFFOLD = {
+  title: 'Ancient Rome Expedition',
+  subtitle: 'Roads, civic life, public works and empire evidence',
+  learningTeaser: 'Investigate how Roman engineering, civic infrastructure and imperial administration shaped the ancient world.',
+  visualDirection: [
+    'crumbling stone aqueducts',
+    'volcanic ash and buried streets',
+    'marble column ruins',
+    'hypocaust steam chambers',
+    'vaulted basilica interiors',
+    'iron gate and carved inscription language',
+    'muted warm ochre and slate palette',
+  ],
+  exclusions: [
+    'Egyptian temples or pyramids',
+    'desert Egypt styling',
+    'Chinese timber gates or rammed-earth walls',
+    'fantasy dragons',
+    'gladiatorial arena spectacle as the main theme',
+    'Hollywood toga-party styling',
+  ],
+  playerVariant: {
+    id: 'asha-rome',
+    description: 'Asha wearing a Roman traveller\'s sagum cloak over her archaeologist kit, hood lowered, gladius at hip.',
+    atlasPath: 'assets/expedition/player/asha-rome-variant-spritesheet.json',
+    version: 'asha-rome-variant-placeholder-2026-05-31',
+  },
+  weapon: {
+    id: 'gladius',
+    name: 'Roman Gladius',
+    atlasPath: 'assets/expedition/player/gladius-weapon-pack.json',
+    version: 'gladius-weapon-pack-placeholder-2026-05-31',
+  },
+  implementationSlots: {
+    journeyStage:              'rome-journey-stage-runtime-prototype',
+    journeyBackgroundArt:      'rome-section-parallax-runtime',
+    environmentTilePack:       'rome-environment-tiles-runtime',
+    excavationRoomMap:         'rome-room-map-runtime-prototype',
+    zoneChallengeUi:           'rome-zone-challenge-ui-runtime-prototype',
+    surveyMarkersAndGateways:  'rome-survey-gateway-runtime-prototype',
+    enemiesAndGuardians:       'rome-enemies-guardian-sprites-runtime-prototype',
+    evidenceSet:               'rome-evidence-set-runtime-prototype',
+    finalClaim:                'rome-final-claim-runtime-prototype',
+    playerVariantSprite:       'asha-rome-variant-spritesheet',
+    weaponSprite:              'gladius-weapon-pack',
+  },
+};
+
 export const CHINA_EXPEDITION_SCAFFOLD = {
   title: 'Ancient China Expedition',
   subtitle: 'River valleys, dynasties, oracle bones and early civilisation',
@@ -139,13 +187,15 @@ export const EXPEDITION_STAGES = [
   {
     id: EXPEDITION_STAGE_IDS.ROME,
     title: 'Ancient Rome',
-    subtitle: 'Roads, civic life, public works and empire evidence',
-    status: 'Coming Soon',
-    statusTone: 'soon',
-    actionLabel: 'Preview Only',
-    route: 'preview',
-    dossierTag: 'Future Expedition',
-    teaser: 'Preview a later investigation into roads, public works and Roman influence.',
+    subtitle: ROME_EXPEDITION_SCAFFOLD.subtitle,
+    status: 'Playable Prototype',
+    statusTone: 'development',
+    actionLabel: 'Start Expedition',
+    route: 'playable',
+    dossierTag: 'Prototype Expedition',
+    teaser: 'Follow Asha into buried streets, steam chambers and a sealed senatorial vault beneath the Forum.',
+    previewTeaser: ROME_EXPEDITION_SCAFFOLD.learningTeaser,
+    scaffold: ROME_EXPEDITION_SCAFFOLD,
   },
   {
     id: EXPEDITION_STAGE_IDS.LAKE_MUNGO,
