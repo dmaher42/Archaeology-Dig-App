@@ -8,6 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "journey:apply-prop-export": "node scripts/apply-journey-prop-export.mjs",
     "playtest:serve": "node scripts/serve-dist.mjs --host 127.0.0.1 --port 5186",
     "playtest": "npm run build && npm run playtest:serve",
     "trailer:still": "remotion still src/trailer/index.jsx GameTrailer --scale=0.25 --frame=40 output/game-trailer-preview.png",
@@ -35,6 +36,7 @@
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.5.0",
     "remotion": "^4.0.464",
-    "vite": "^8.0.10"
+    "vite": "^8.0.10",
+    "vite-plugin-pwa": "^1.3.0"
   }
 }
