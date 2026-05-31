@@ -77,7 +77,8 @@ import {
   DISCOVERY_ENTRANCE,
   ENVIRONMENT_EVENTS,
   SECTION_OBJECTIVES,
-} from './expedition-journey/journeyLevelData';
+  setExpeditionJourneyCiv,
+} from './expedition-journey/journeyDataRouter';
 
 import {
   clamp,
@@ -169,6 +170,15 @@ import {
 } from './expedition-journey/journeyBossSprites';
 
 import {
+  ROME_JOURNEY_BOSS_SPRITE_PACK_IDS,
+  getLegateRevenantSpriteFrame,
+  getLegateRevenantDrawBox,
+  isRomeBossSpriteId,
+  getRomeBossSpritePack,
+  ROME_LEGATE_REVENANT_BOSS_ID,
+} from './expedition-journey/rome/romeBossSprites';
+
+import {
   CHINA_ENEMY_GUARDIAN_SPRITE_ATLAS_JSON,
   CHINA_JOURNEY_ENEMY_SPRITE_PACK_IDS,
   createEnemySpriteState,
@@ -186,6 +196,17 @@ import {
   shouldFlipEnemySprite,
   shouldUseEnemySpritePack,
 } from './expedition-journey/journeyEnemySprites';
+
+import {
+  ROME_ENEMY_SPRITE_PACK_IDS as ROME_JOURNEY_ENEMY_SPRITE_PACK_IDS,
+} from './expedition-journey/rome/romeEnemySprites';
+
+import { ROME_SECTION_BACKGROUND_PACKS } from './expedition-journey/rome/romeBackgroundAssets';
+
+import {
+  PLAYER_ROME_HERO_SPRITE_ATLAS_JSON,
+  PLAYER_ROME_HERO_SPRITE_VERSION,
+} from './expedition-journey/rome/romeConstants';
 import {
   COLLECTIBLE_ATLAS_JSON,
   COLLECTIBLE_SPRITE_ATLAS_VERSION,
@@ -282,6 +303,15 @@ const CHINA_SECTION_COPY = {
   },
 };
 
+// Rome section copy — maps Rome section IDs to display names and titles
+const ROME_SECTION_COPY = {
+  'via-sacra':            { name: 'Via Sacra',              title: 'The Sacred Road — cracked limestone, collapsed arches.' },
+  'forum-ruins':          { name: 'Forum Ruins',            title: 'The Buried Forum — column stumps rise from volcanic ash.' },
+  'subterranean-thermae': { name: 'Subterranean Thermae',   title: 'Beneath the Baths — steam channels still run in the dark.' },
+  'basilica-interior':    { name: 'Basilica Interior',      title: 'The Darkened Basilica — clerestory light and settling dust.' },
+  'sealed-vault':         { name: 'The Legate\'s Vault',    title: 'Sealed in 79 AD. The archive the Senate wanted buried.' },
+};
+
 const BOSS_ATTACK_PHASES = {
   'scarab-queen': [
     { ...DEFAULT_BOSS_ATTACK_PHASES[0], id: 'queen-charge', label: 'Sand Charge', speed: 118, cooldown: 1.85, vulnerableAfter: 1.05 },
@@ -302,6 +332,11 @@ const BOSS_ATTACK_PHASES = {
   'ancient-construct': [
     { ...DEFAULT_BOSS_ATTACK_PHASES[0], id: 'construct-slam', label: 'Construct Slam', windup: 1, duration: 0.44, speed: 54, cooldown: 2 },
     { ...DEFAULT_BOSS_ATTACK_PHASES[1], id: 'core-pulse', label: 'Core Pulse', windup: 1.1, range: 140, cooldown: 2.25, damageScale: 0.85 },
+  ],
+  // Rome boss — Legate Revenant
+  [ROME_LEGATE_REVENANT_BOSS_ID]: [
+    { ...DEFAULT_BOSS_ATTACK_PHASES[0], id: 'legate-charge',      label: 'Gladius Charge',  speed: 130, cooldown: 1.75, vulnerableAfter: 1.05 },
+    { ...DEFAULT_BOSS_ATTACK_PHASES[1], id: 'legate-shield-bash', label: 'Shield Bash Wave', kind: 'area', windup: 1.0, range: 128, cooldown: 2.3, vulnerableAfter: 1.2, damageScale: 0.75, shieldDuringWindup: true },
   ],
 };
 
@@ -466,6 +501,54 @@ const OPENING_CINEMATIC_LINES = [
     text: 'My shield is gone. Good. Now you know what I was willing to lose.',
   },
 ];
+// Rome opening cinematic — Legate Revenant speaks as Asha descends the Via Sacra.
+// Structure mirrors OPENING_CINEMATIC_LINES; activated when OPENING_CINEMATIC_ENABLED and Rome is active.
+const ROME_OPENING_CINEMATIC_LINES = [
+  {
+    id: 'legate-warning',
+    at: 1.4,
+    speaker: 'Legate Revenant',
+    voice: 'guardian',
+    text: 'You opened a door that an empire sealed with its own blood.',
+  },
+  {
+    id: 'asha-reply',
+    at: 5.8,
+    speaker: 'Asha',
+    voice: 'asha',
+    text: 'The Senate is gone. The seal is mine to break. Whatever you were guarding, I need to see it.',
+  },
+  {
+    id: 'legate-jurisdiction',
+    at: 10.8,
+    speaker: 'Legate Revenant',
+    voice: 'guardian',
+    text: 'My jurisdiction did not expire when the empire did.',
+  },
+  {
+    id: 'asha-purpose',
+    at: 16.6,
+    speaker: 'Asha',
+    voice: 'asha',
+    text: 'Then defend it. I will record what I find either way.',
+  },
+  {
+    id: 'legate-begin',
+    at: 19.2,
+    speaker: 'Legate Revenant',
+    voice: 'guardian',
+    text: 'The archive stays sealed. You will not leave with it.',
+  },
+];
+
+// Returns the correct opening cinematic lines for the current civilisation.
+const getOpeningCinematicLines = (targetCivilisation) => {
+  if (typeof targetCivilisation === 'string' && targetCivilisation.toLowerCase().includes('rome')) {
+    return ROME_OPENING_CINEMATIC_LINES;
+  }
+  return OPENING_CINEMATIC_LINES;
+};
+
 const OPENING_SPHINX_SPRITE_BOSS_ID = 'ancient-construct';
 const OPENING_SPHINX_APPARITION_SRC = 'assets/expedition/bosses/anubis-apparition.png';
 const OPENING_SPHINX_SPRITE_VERSION = 'opening-anubis-apparition-2026-05-21';
@@ -510,7 +593,7 @@ const OPENING_CAMERA_REVEAL_DURATION = 1.55;
 const OPENING_CAMERA_REVEAL_PAN_SECONDS = 0.55;
 const OPENING_CAMERA_REVEAL_HOLD_SECONDS = 0.18;
 const OPENING_PYRAMID_ASSET_VERSION = 'opening-pyramid-climb-pack-2026-05-18';
-const ROUTE_GATE_ARCH_PACK_VERSION = 'imagegen-egypt-route-gate-arch-slab-2026-05-29';
+const ROUTE_GATE_ASSET_VERSION = 'imagegen-egypt-route-gate-arch-column-slab-2026-05-31';
 const OPENING_PYRAMID_FACADE_VERSION = 'opening-pyramid-facade-2026-05-19';
 const OPENING_TOMB_STAIRWELL_VERSION = 'opening-tomb-stairwell-generated-2026-05-21';
 const MUMMIFICATION_CHAMBER_EXTERIOR_VERSION = 'imagegen-mummification-chamber-visible-climb-structure-2026-05-29';
@@ -1136,8 +1219,21 @@ const getPlayerHeroSpriteConfig = ({ targetCivilisation, backgroundPackId, chara
   if (selectedPreset.id !== 'auto') {
     return selectedPreset;
   }
-  const isChinaJourney = backgroundPackId === 'china-river-valley'
-    || String(targetCivilisation || '').toLowerCase().includes('china');
+  const civStr = String(targetCivilisation || '').toLowerCase();
+  const isChinaJourney = backgroundPackId === 'china-river-valley' || civStr.includes('china');
+  const isRomeJourney  = backgroundPackId === 'rome' || civStr.includes('rome');
+  if (isRomeJourney) {
+    return {
+      id: 'auto',
+      characterId: 'asha-rome',
+      atlasPath: PLAYER_ROME_HERO_SPRITE_ATLAS_JSON,
+      version: PLAYER_ROME_HERO_SPRITE_VERSION,
+      fallbackAtlasPath: PLAYER_HERO_SPRITE_ATLAS_JSON,
+      fallbackAtlasVersion: PLAYER_HERO_SPRITE_VERSION,
+      fallbackCharacterId: 'asha-reference-warrior',
+      fallbackSrc: PLAYER_LEGACY_SPRITE_SRC,
+    };
+  }
   if (isChinaJourney) {
     return {
       id: 'auto',
@@ -1583,11 +1679,18 @@ const shuffleGuardianQuestionOptions = (question) => {
 };
 
 const SECTION_MUSIC_CUES = {
-  'desert-entry': 'desert',
-  'ruined-temple': 'temple',
-  catacombs: 'catacombs',
-  'escape-sequence': 'escape',
+  // Egypt
+  'desert-entry':     'desert',
+  'ruined-temple':    'temple',
+  catacombs:          'catacombs',
+  'escape-sequence':  'escape',
   'dig-site-entrance': 'baseCamp',
+  // Rome
+  'via-sacra':            'romanRoad',
+  'forum-ruins':          'romanForum',
+  'subterranean-thermae': 'romanThermae',
+  'basilica-interior':    'romanBasilica',
+  'sealed-vault':         'romanVaultBoss',
 };
 
 const JOURNEY_POLISH_VERSION = 'journey-polish-2026-05-11';
@@ -2418,6 +2521,9 @@ export default function ExpeditionJourney({
     const saved = window.localStorage.getItem(CHARACTER_LOADER_STORAGE_KEY);
     return PLAYER_CHARACTER_PRESETS.some(preset => preset.id === saved) ? saved : 'auto';
   });
+
+  setExpeditionJourneyCiv(targetCivilisation);
+
   const [characterLoaderVisible, setCharacterLoaderVisible] = useState(() => {
     if (typeof window === 'undefined') return false;
     return window.localStorage.getItem(CHARACTER_LOADER_VISIBILITY_STORAGE_KEY) === 'true';
@@ -2471,9 +2577,9 @@ export default function ExpeditionJourney({
   const openingSphinxApparitionRef = useRef({ image: null, loaded: false, failed: false });
   const openingPyramidClimbPackRef = useRef({ image: null, loaded: false, failed: false });
   const openingPyramidFacadeRef = useRef({ image: null, loaded: false, failed: false });
-  const routeGateFrontRef = useRef({ image: null, loaded: false, failed: false, version: ROUTE_GATE_ARCH_PACK_VERSION });
-  const routeGateBackRef = useRef({ image: null, loaded: false, failed: false, version: ROUTE_GATE_ARCH_PACK_VERSION });
-  const routeGateSlabRef = useRef({ image: null, loaded: false, failed: false, version: ROUTE_GATE_ARCH_PACK_VERSION });
+  const routeGateFrontRef = useRef({ image: null, loaded: false, failed: false, version: ROUTE_GATE_ASSET_VERSION });
+  const routeGateBackRef = useRef({ image: null, loaded: false, failed: false, version: ROUTE_GATE_ASSET_VERSION });
+  const routeGateSlabRef = useRef({ image: null, loaded: false, failed: false, version: ROUTE_GATE_ASSET_VERSION });
   const openingTombStairwellRef = useRef({ image: null, loaded: false, failed: false, version: OPENING_TOMB_STAIRWELL_VERSION });
   const mummificationChamberExteriorRef = useRef({ image: null, loaded: false, failed: false, version: MUMMIFICATION_CHAMBER_EXTERIOR_VERSION });
   const mummificationChamberInteriorRef = useRef({ image: null, loaded: false, failed: false, version: MUMMIFICATION_CHAMBER_INTERIOR_VERSION });
@@ -2871,12 +2977,12 @@ export default function ExpeditionJourney({
         }
         ctx.putImageData(imgData, 0, 0);
 
-        ref.current = { image: canvas, loaded: true, failed: false, version: ROUTE_GATE_ARCH_PACK_VERSION };
+        ref.current = { image: canvas, loaded: true, failed: false, version: ROUTE_GATE_ASSET_VERSION };
         syncHud();
       };
       img.onerror = () => {
         if (cancelled) return;
-        ref.current = { image: null, loaded: false, failed: true, version: ROUTE_GATE_ARCH_PACK_VERSION };
+        ref.current = { image: null, loaded: false, failed: true, version: ROUTE_GATE_ASSET_VERSION };
       };
       // Add a cache buster to force the browser to reload the new images
       img.src = `${import.meta.env.BASE_URL}${src}?v=${Date.now()}`;
@@ -2935,34 +3041,51 @@ export default function ExpeditionJourney({
     return SECTION_MUSIC_CUES[section.id] || 'desert';
   })();
   const scopedJourneyAssetPacks = useMemo(() => {
-    const isChinaJourney = targetCivilisation === 'Ancient China'
+    const civStr = String(targetCivilisation || '').toLowerCase();
+    const isChinaJourney = civStr.includes('china')
       || environmentPackId === ENVIRONMENT_ASSET_PACK_IDS.CHINA_RIVER_VALLEY
       || backgroundPackId === 'china-river-valley';
+    const isRomeJourney = civStr.includes('rome') || backgroundPackId === 'rome';
     return {
-      backgroundSectionIds: isChinaJourney
-        ? ['china-river-valley']
-        : EGYPT_JOURNEY_BACKGROUND_SECTION_IDS,
-      enemyPackIds: isChinaJourney
-        ? CHINA_JOURNEY_ENEMY_SPRITE_PACK_IDS
-        : EGYPT_JOURNEY_ENEMY_SPRITE_PACK_IDS,
-      bossPackIds: isChinaJourney
-        ? CHINA_JOURNEY_BOSS_SPRITE_PACK_IDS
-        : EGYPT_JOURNEY_BOSS_SPRITE_PACK_IDS,
-      loadEgyptOnlyPacks: !isChinaJourney,
+      backgroundSectionIds: isRomeJourney
+        ? Object.keys(ROME_SECTION_BACKGROUND_PACKS)
+        : isChinaJourney
+          ? ['china-river-valley']
+          : EGYPT_JOURNEY_BACKGROUND_SECTION_IDS,
+      enemyPackIds: isRomeJourney
+        ? ROME_JOURNEY_ENEMY_SPRITE_PACK_IDS
+        : isChinaJourney
+          ? CHINA_JOURNEY_ENEMY_SPRITE_PACK_IDS
+          : EGYPT_JOURNEY_ENEMY_SPRITE_PACK_IDS,
+      bossPackIds: isRomeJourney
+        ? ROME_JOURNEY_BOSS_SPRITE_PACK_IDS
+        : isChinaJourney
+          ? CHINA_JOURNEY_BOSS_SPRITE_PACK_IDS
+          : EGYPT_JOURNEY_BOSS_SPRITE_PACK_IDS,
+      loadEgyptOnlyPacks: !isChinaJourney && !isRomeJourney,
+      isRomeJourney,
+      isChinaJourney,
     };
   }, [backgroundPackId, environmentPackId, targetCivilisation]);
 
-  const getSectionDisplayName = useCallback((sectionId) => (
-    backgroundPackId === 'china-river-valley'
-      ? CHINA_SECTION_COPY[sectionId]?.name || SECTIONS.find(section => section.id === sectionId)?.name || sectionId
-      : SECTIONS.find(section => section.id === sectionId)?.name || sectionId
-  ), [backgroundPackId]);
+  const getSectionDisplayName = useCallback((sectionId) => {
+    const { isRomeJourney, isChinaJourney } = scopedJourneyAssetPacks;
+    if (isRomeJourney) return ROME_SECTION_COPY[sectionId]?.name || sectionId;
+    if (isChinaJourney) return CHINA_SECTION_COPY[sectionId]?.name || SECTIONS.find(s => s.id === sectionId)?.name || sectionId;
+    return SECTIONS.find(s => s.id === sectionId)?.name || sectionId;
+  }, [scopedJourneyAssetPacks]);
 
-  const getSectionDisplayTitle = useCallback((sectionId) => (
-    backgroundPackId === 'china-river-valley'
-      ? CHINA_SECTION_COPY[sectionId]?.title || SECTION_ATMOSPHERES[sectionId]?.title || ''
-      : SECTION_ATMOSPHERES[sectionId]?.title || ''
-  ), [backgroundPackId]);
+  const getSectionDisplayTitle = useCallback((sectionId) => {
+    const { isRomeJourney, isChinaJourney } = scopedJourneyAssetPacks;
+    if (isRomeJourney) return ROME_SECTION_COPY[sectionId]?.title || SECTION_ATMOSPHERES[sectionId]?.title || '';
+    if (isChinaJourney) return CHINA_SECTION_COPY[sectionId]?.title || SECTION_ATMOSPHERES[sectionId]?.title || '';
+    return SECTION_ATMOSPHERES[sectionId]?.title || '';
+  }, [scopedJourneyAssetPacks]);
+
+  // Resolves to the correct opening atmosphere SFX key for the current expedition.
+  const openingAtmosphereSfxKey = scopedJourneyAssetPacks.isRomeJourney
+    ? 'openingRomeAtmosphere'
+    : 'openingThresholdAtmosphere';
 
   useEffect(() => {
     const current = stateRef.current;
@@ -9936,10 +10059,16 @@ export default function ExpeditionJourney({
   const drawRouteGate = useCallback((ctx, gate, screenX, current, complete, layer = 'base') => {
     const gateCenter = screenX + gate.width / 2;
     ctx.save();
-    const gateHeight = 220;
-    const gateWidth = 260;
-    const gateTop = placeGateOnGround(gateHeight);
-    
+    // Assets are 1024×682 (back/front) and 1024×637 (slab) — ratio ≈ 1.50:1.
+    // Draw at natural aspect ratio to avoid squashing, and sink into ground by 20px
+    // so the stone base sits flush rather than floating.
+    const ASSET_RATIO = 1024 / 682; // ≈ 1.501
+    const gateHeight = 340;
+    const gateTop = placeGateOnGround(gateHeight) + 15; // +15 sinks base into ground line
+    const backWidth = Math.round(gateHeight * ASSET_RATIO); // 510
+    const frontWidth = Math.round((gateHeight + 20) * ASSET_RATIO); // 540
+    const gateWidth = backWidth;
+
     const drawGateAsset = (ref, dest, options = {}) => {
       if (!ref.current.loaded || !ref.current.image) return false;
       ctx.save();
@@ -9949,28 +10078,29 @@ export default function ExpeditionJourney({
       ctx.restore();
       return true;
     };
-    
-    // 3/4 Perspective Layout
-    // Back lintel is the main structure spanning left to right in the background.
+
+    // 3/4 Perspective Layout — both assets are landscape (1024×682).
+    // Back arch: left column + spanning lintel, centred on gateCenter.
     const backDest = {
-      x: gateCenter - 140,
+      x: gateCenter - Math.round(backWidth / 2),
       y: gateTop,
-      width: 280,
-      height: gateHeight,
+      width: backWidth,   // 510
+      height: gateHeight, // 340
     };
-    // Front pillar sits on the right side in the foreground.
+    // Front column: right foreground element. Starts 50px right of center so it
+    // overlaps the back arch's right column and reads as the near-side pillar.
     const frontDest = {
-      x: gateCenter + 40,
-      y: gateTop,
-      width: 120,
-      height: gateHeight + 10, // slight perspective overlap
+      x: gateCenter + 50,
+      y: gateTop - 8,     // slightly higher — closer to camera = taller
+      width: frontWidth,  // 540
+      height: gateHeight + 20, // 360
     };
-    // Slab sits in the opening
+    // Slab fills the arch opening when locked.
     const slabDest = {
-      x: gateCenter - 75,
-      y: gateTop + 24, // Sits under the lintel
-      width: 130,
-      height: gateHeight - 24, // Fits between ground and lintel
+      x: gateCenter - 80,
+      y: gateTop + 52,
+      width: 185,
+      height: gateHeight - 42,
     };
     
     const drawFallbackArch = () => {
@@ -10680,32 +10810,40 @@ export default function ExpeditionJourney({
   const drawBossSprite = useCallback((ctx, boss, screenX, now, bossVisualState) => {
     const spriteBossId = boss.spriteBossId || boss.id;
     const isChinaGuardianBoss = isChinaGuardianBossSpriteId(spriteBossId);
-    const supportedBoss = isChinaGuardianBoss
+    const isRomeGuardianBoss = isRomeBossSpriteId(spriteBossId);
+    const supportedBoss = isRomeGuardianBoss
+      || isChinaGuardianBoss
       || boss.id === 'scarab-queen'
       || boss.id === 'temple-guardian'
       || boss.id === 'giant-serpent'
       || boss.id === 'ancient-construct';
     if (!supportedBoss) return false;
     const combatMode = getCombatMode(boss);
-    const frameKey = isChinaGuardianBoss
-      ? getClayGuardianSpriteFrame(boss, combatMode, bossVisualState, now)
-      : boss.id === 'ancient-construct'
-      ? getAncientConstructSpriteFrame(boss, combatMode, bossVisualState, now)
-      : boss.id === 'temple-guardian'
-        ? getStoneGuardianSpriteFrame(boss, combatMode, bossVisualState, now)
-        : boss.id === 'giant-serpent'
-          ? getGiantSerpentSpriteFrame(boss, combatMode, bossVisualState, now)
-          : getScarabQueenSpriteFrame(boss, combatMode, bossVisualState, now);
-    let drawBox = isChinaGuardianBoss
-      ? getClayGuardianDrawBox(boss, screenX)
-      : boss.id === 'ancient-construct'
-      ? getAncientConstructDrawBox(boss, screenX)
-      : boss.id === 'temple-guardian'
-        ? getStoneGuardianDrawBox(boss, screenX)
-        : boss.id === 'giant-serpent'
-          ? getGiantSerpentDrawBox(boss, screenX)
-          : getScarabQueenDrawBox(boss, screenX);
-    const pack = getBossSpritePack(bossSpriteAssetsRef.current, spriteBossId);
+    const frameKey = isRomeGuardianBoss
+      ? getLegateRevenantSpriteFrame(boss, combatMode, bossVisualState, now)
+      : isChinaGuardianBoss
+        ? getClayGuardianSpriteFrame(boss, combatMode, bossVisualState, now)
+        : boss.id === 'ancient-construct'
+          ? getAncientConstructSpriteFrame(boss, combatMode, bossVisualState, now)
+          : boss.id === 'temple-guardian'
+            ? getStoneGuardianSpriteFrame(boss, combatMode, bossVisualState, now)
+            : boss.id === 'giant-serpent'
+              ? getGiantSerpentSpriteFrame(boss, combatMode, bossVisualState, now)
+              : getScarabQueenSpriteFrame(boss, combatMode, bossVisualState, now);
+    let drawBox = isRomeGuardianBoss
+      ? getLegateRevenantDrawBox(boss, screenX)
+      : isChinaGuardianBoss
+        ? getClayGuardianDrawBox(boss, screenX)
+        : boss.id === 'ancient-construct'
+          ? getAncientConstructDrawBox(boss, screenX)
+          : boss.id === 'temple-guardian'
+            ? getStoneGuardianDrawBox(boss, screenX)
+            : boss.id === 'giant-serpent'
+              ? getGiantSerpentDrawBox(boss, screenX)
+              : getScarabQueenDrawBox(boss, screenX);
+    const pack = isRomeGuardianBoss
+      ? getRomeBossSpritePack(bossSpriteAssetsRef.current, spriteBossId)
+      : getBossSpritePack(bossSpriteAssetsRef.current, spriteBossId);
     if (!frameKey || !drawBox || !pack) return false;
     if (boss.id === 'scarab-queen') {
       const visibleX = clamp(drawBox.x, 18, CANVAS_WIDTH - drawBox.width - 118);
@@ -12211,16 +12349,18 @@ export default function ExpeditionJourney({
   const startOpeningCinematic = useCallback(({ speechEnabled = true } = {}) => {
     const current = stateRef.current;
     audioControls?.unlockExpeditionSfx?.();
-    audioControls?.playExpeditionSfx?.('openingThresholdAtmosphere');
+    audioControls?.playExpeditionSfx?.(openingAtmosphereSfxKey);
     spokenOpeningLineRef.current = null;
+    const activeCinematicLines = getOpeningCinematicLines(targetCivilisation);
+    const isRomeCinematic = typeof targetCivilisation === 'string' && targetCivilisation.toLowerCase().includes('rome');
     current.openingCinematic = {
-      id: 'asha-anubis-opening-cinematic',
-      title: 'The First Seal Watches',
+      id: isRomeCinematic ? 'asha-legate-opening-cinematic' : 'asha-anubis-opening-cinematic',
+      title: isRomeCinematic ? 'The Vault Speaks First' : 'The First Seal Watches',
       duration: OPENING_CINEMATIC_DURATION,
       timer: OPENING_CINEMATIC_DURATION,
       speechEnabled,
-      lines: OPENING_CINEMATIC_LINES,
-      activeLineId: OPENING_CINEMATIC_LINES[0].id,
+      lines: activeCinematicLines,
+      activeLineId: activeCinematicLines[0].id,
       spellImpactTriggered: false,
       shieldShattered: false,
     };
@@ -12231,7 +12371,7 @@ export default function ExpeditionJourney({
     current.environmentEventTimer = 0;
     current.cinematicEvent = null;
     current.cinematicTimer = 0;
-    current.notice = OPENING_CINEMATIC_LINES[0].text;
+    current.notice = activeCinematicLines[0].text;
     current.player.vx = 0;
     current.player.vy = 0;
     current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.32);
@@ -12243,7 +12383,7 @@ export default function ExpeditionJourney({
   const startJourneyWithoutOpeningScene = useCallback(() => {
     const current = stateRef.current;
     audioControls?.unlockExpeditionSfx?.();
-    audioControls?.playExpeditionSfx?.('openingThresholdAtmosphere');
+    audioControls?.playExpeditionSfx?.(openingAtmosphereSfxKey);
     if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel();
     spokenOpeningLineRef.current = null;
     current.openingCinematic = null;
@@ -12377,7 +12517,7 @@ export default function ExpeditionJourney({
     current.notice = encounter.notice || `${encounter.name || 'A guardian'} blocks the path.`;
     current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.2);
     current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.14);
-    audioControls?.playExpeditionSfx?.('openingThresholdAtmosphere');
+    audioControls?.playExpeditionSfx?.(openingAtmosphereSfxKey);
     syncHud();
     return true;
   }, [audioControls, syncHud]);
@@ -12535,7 +12675,7 @@ export default function ExpeditionJourney({
         radius: SCARAB_SEAL_TRIGGER.sealPulseRadius,
         timer: SCARAB_SEAL_TRIGGER.sealPulseDuration,
       });
-      audioControls?.playExpeditionSfx?.('openingThresholdAtmosphere');
+      audioControls?.playExpeditionSfx?.(openingAtmosphereSfxKey);
     };
     const markSecretSetProgress = (secret) => {
       if (!secret?.setId || current.completedCollectionSetIds?.has(secret.setId)) return;
@@ -13665,7 +13805,7 @@ export default function ExpeditionJourney({
           radius: SCARAB_SEAL_TRIGGER.sealPulseRadius,
           timer: SCARAB_SEAL_TRIGGER.sealPulseDuration,
         });
-        audioControls?.playExpeditionSfx?.('openingThresholdAtmosphere');
+        audioControls?.playExpeditionSfx?.(openingAtmosphereSfxKey);
       }
     }
 
@@ -15515,6 +15655,55 @@ export default function ExpeditionJourney({
   const openingShieldShattered = Boolean(gameState.openingCinematic?.shieldShattered || openingSpellImpactActive);
   const openingCinematicActive = Boolean(gameState.openingCinematic || gameState.openingThresholdScene || gameState.templeThresholdTransition);
 
+  const handlePointerDown = (e) => {
+    if (!window.__expeditionDebugOverlay) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
+    
+    const worldX = x + stateRef.current.cameraX;
+    const worldY = y - JOURNEY_VERTICAL_OFFSET;
+
+    const platform = PLATFORMS.find(p => 
+      worldX >= p.x && worldX <= p.x + p.width &&
+      worldY >= p.y && worldY <= p.y + p.height
+    );
+
+    if (platform) {
+      window.__draggedPlatform = platform;
+      window.__dragOffsetX = worldX - platform.x;
+      window.__dragOffsetY = worldY - platform.y;
+    }
+  };
+
+  const handlePointerMove = (e) => {
+    if (!window.__draggedPlatform) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
+    
+    const worldX = x + stateRef.current.cameraX;
+    const worldY = y - JOURNEY_VERTICAL_OFFSET;
+
+    window.__draggedPlatform.x = Math.round(worldX - window.__dragOffsetX);
+    window.__draggedPlatform.y = Math.round(worldY - window.__dragOffsetY);
+  };
+
+  const handlePointerUp = () => {
+    if (window.__draggedPlatform) {
+      console.log(`Platform ${window.__draggedPlatform.id} dragged to x: ${window.__draggedPlatform.x}, y: ${window.__draggedPlatform.y}`);
+      window.__draggedPlatform = null;
+    }
+  };
+
   return (
     <section className={`expedition-journey-container ${openingCinematicActive ? 'is-opening-cinematic' : ''}`} id="expedition-journey">
       <div className="expedition-journey-grid">
@@ -15582,6 +15771,10 @@ export default function ExpeditionJourney({
               width={JOURNEY_RENDER_TARGET.nativeWidth}
               height={JOURNEY_RENDER_TARGET.nativeHeight}
               className="expedition-canvas"
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+              onPointerLeave={handlePointerUp}
             />
 
             {gameState.openingCinematic && (

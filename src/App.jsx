@@ -1,4 +1,5 @@
 import { lazy, Suspense, useState, useEffect, useMemo, useReducer } from 'react';
+import { ROME_AUDIO_TRACKS } from './components/expedition-journey/rome/romeAudioTracks';
 import './index.css';
 
 // Components
@@ -46,6 +47,7 @@ const expeditionSyntheticSfxVariants = new Map();
 
 const EXPEDITION_AUDIO_TRACKS = {
   music: {
+    // Egypt tracks
     desert: 'assets/expedition/audio/valley-of-the-stone-kings.mp3',
     temple: 'assets/expedition/audio/egypt-temple-ambience.mp3',
     catacombs: 'assets/expedition/audio/egypt-catacombs-ambience.mp3',
@@ -53,10 +55,15 @@ const EXPEDITION_AUDIO_TRACKS = {
     baseCamp: 'assets/expedition/audio/egypt-base-camp.mp3',
     boss: 'assets/expedition/audio/egypt-boss-ambience.mp3',
     fallback: 'assets/expedition/audio/first-light-over-stone.mp3',
+    // Rome tracks (placeholder paths — drop files here when composed)
+    ...ROME_AUDIO_TRACKS.music,
   },
   stingers: {
     evidenceDiscovery: 'assets/expedition/audio/evidence-discovery-stinger.mp3',
     gateUnlock: 'assets/expedition/audio/gate-unlock-stinger.mp3',
+    // Rome stingers use distinct keys to avoid overriding Egypt
+    romeEvidenceDiscovery: ROME_AUDIO_TRACKS.stingers.evidenceDiscovery,
+    romeGateUnlock:        ROME_AUDIO_TRACKS.stingers.gateUnlock,
   },
   sfx: {
     footstepSand: {
@@ -226,12 +233,16 @@ const EXPEDITION_AUDIO_TRACKS = {
         { path: 'assets/expedition/sfx/opening/opening-deep-rumble.ogg', volume: 0.18, playbackRate: 0.45 },
       ],
     },
+    // Rome SFX — all keys are unique (no Egypt collision)
+    ...ROME_AUDIO_TRACKS.sfx,
   },
 };
 
 const EXPEDITION_STINGER_DURATIONS = {
   evidenceDiscovery: 3200,
   gateUnlock: 4600,
+  romeEvidenceDiscovery: 3000,
+  romeGateUnlock: 4400,
 };
 
 const getAudioSrc = (path) => `${import.meta.env.BASE_URL}${path}`;
@@ -548,6 +559,200 @@ const playExpeditionSyntheticSfx = (type, options = {}) => {
   if (type === 'trapSandTrigger') {
     makeNoiseBurst({ duration: 0.22, frequency: 680, endFrequency: 260, q: 0.68, gain: 0.095 });
     makeNoiseBurst({ duration: 0.14, frequency: 1450, endFrequency: 540, q: 0.9, gain: 0.038, delay: 0.025 });
+    return;
+  }
+
+  // ─── Rome synths ─────────────────────────────────────────────────────────────
+  // Marble footstep — harder click than dustStep, with a brief high-frequency ring
+  if (type === 'romeMarbleStep') {
+    const duration = 0.11;
+    const buffer = audioCtx.createBuffer(1, Math.floor(audioCtx.sampleRate * duration), audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i += 1) {
+      const fade = Math.max(0, 1 - (i / data.length) * 3);
+      data[i] = (Math.random() * 2 - 1) * fade;
+    }
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buffer;
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'highpass';
+    filter.frequency.setValueAtTime(1800 + variation * 60, now);
+    filter.Q.value = 0.6;
+    const noiseGain = audioCtx.createGain();
+    noiseGain.gain.setValueAtTime(0.0001, now);
+    noiseGain.gain.linearRampToValueAtTime(0.068 * volume, now + 0.006);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+    noise.connect(filter);
+    filter.connect(noiseGain);
+    noiseGain.connect(audioCtx.destination);
+    noise.start(now);
+    noise.stop(now + duration);
+    // Brief ring — marble resonance
+    const ring = audioCtx.createOscillator();
+    ring.type = 'sine';
+    ring.frequency.setValueAtTime(480 + variation * 12, now);
+    ring.frequency.exponentialRampToValueAtTime(320 + variation * 8, now + 0.07);
+    const ringGain = audioCtx.createGain();
+    ringGain.gain.setValueAtTime(0.0001, now);
+    ringGain.gain.linearRampToValueAtTime(0.022 * volume, now + 0.005);
+    ringGain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+    ring.connect(ringGain);
+    ringGain.connect(audioCtx.destination);
+    ring.start(now);
+    ring.stop(now + 0.1);
+    return;
+  }
+
+  // Gladius swing — short, fast, higher-pitched than softSwing
+  if (type === 'romeGladiusSwing') {
+    const duration = 0.16;
+    const buffer = audioCtx.createBuffer(1, Math.floor(audioCtx.sampleRate * duration), audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i += 1) {
+      const attack = Math.min(1, i / (data.length * 0.14));
+      const decay = 1 - (i / data.length);
+      data[i] = (Math.random() * 2 - 1) * attack * decay;
+    }
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buffer;
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(1600 + variation * 55, now);
+    filter.frequency.linearRampToValueAtTime(680 + variation * 22, now + duration);
+    filter.Q.value = 1.1;
+    const noiseGain = audioCtx.createGain();
+    noiseGain.gain.setValueAtTime(0.0001, now);
+    noiseGain.gain.linearRampToValueAtTime(0.09 * volume, now + 0.028);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+    noise.connect(filter);
+    filter.connect(noiseGain);
+    noiseGain.connect(audioCtx.destination);
+    noise.start(now);
+    noise.stop(now + duration);
+    // Metal harmonic
+    const metal = audioCtx.createOscillator();
+    metal.type = 'sawtooth';
+    metal.frequency.setValueAtTime(310 + variation * 6, now + 0.018);
+    metal.frequency.exponentialRampToValueAtTime(210 + variation * 4, now + 0.12);
+    const metalGain = audioCtx.createGain();
+    metalGain.gain.setValueAtTime(0.0001, now + 0.015);
+    metalGain.gain.linearRampToValueAtTime(0.022 * volume, now + 0.032);
+    metalGain.gain.exponentialRampToValueAtTime(0.001, now + 0.13);
+    metal.connect(metalGain);
+    metalGain.connect(audioCtx.destination);
+    metal.start(now + 0.015);
+    metal.stop(now + 0.14);
+    return;
+  }
+
+  // Shield deflect — sharp metal-on-metal crack with ring
+  if (type === 'romeShieldDeflect') {
+    makeNoiseBurst({ duration: 0.07, frequency: 3200, endFrequency: 1600, q: 2.8, gain: 0.11 });
+    makeNoiseBurst({ duration: 0.10, frequency: 1100, endFrequency: 700,  q: 1.6, gain: 0.06, delay: 0.016 });
+    makeToneHit({ frequency: 560, endFrequency: 380, gain: 0.028, duration: 0.14, wave: 'square' });
+    return;
+  }
+
+  // Legion shade hit — armoured but spectral, medium-hard impact
+  if (type === 'romeEnemyImpact') {
+    makeNoiseBurst({ duration: 0.10, frequency: 1400, endFrequency: 860, q: 1.3, gain: 0.088 });
+    makeToneHit({ frequency: 165, endFrequency: 78, gain: 0.036, duration: 0.11 });
+    return;
+  }
+
+  // Gladiator revenant hit — heavier, more presence
+  if (type === 'romeGladiatorImpact') {
+    makeNoiseBurst({ duration: 0.13, frequency: 1050, endFrequency: 620, q: 1.2, gain: 0.10 });
+    makeToneHit({ frequency: 140, endFrequency: 66, gain: 0.048, duration: 0.15 });
+    makeNoiseBurst({ duration: 0.07, frequency: 2800, endFrequency: 1500, q: 2.0, gain: 0.042, delay: 0.022 });
+    return;
+  }
+
+  // Forum rat hit — fast, light tap
+  if (type === 'romeSmallImpact') {
+    makeNoiseBurst({ duration: 0.06, frequency: 3400, endFrequency: 1800, q: 1.8, gain: 0.065 });
+    makeToneHit({ frequency: 290, endFrequency: 160, gain: 0.022, duration: 0.07, wave: 'square' });
+    return;
+  }
+
+  // Vestibule wisp hit — ethereal, airy, slightly resonant
+  if (type === 'romeWispImpact') {
+    makeNoiseBurst({ duration: 0.18, frequency: 2100, endFrequency: 620, q: 0.76, gain: 0.072 });
+    makeToneHit({ frequency: 620, endFrequency: 780, gain: 0.020, duration: 0.15, wave: 'sine' });
+    return;
+  }
+
+  // Marble golem hit — deep, resonant stone crack
+  if (type === 'romeGolemImpact') {
+    makeNoiseBurst({ duration: 0.16, frequency: 740,  endFrequency: 380, q: 1.0, gain: 0.115 });
+    makeToneHit({ frequency: 88,  endFrequency: 42, gain: 0.068, duration: 0.20 });
+    makeNoiseBurst({ duration: 0.10, frequency: 2100, endFrequency: 1200, q: 1.9, gain: 0.048, delay: 0.028 });
+    return;
+  }
+
+  // Legate Revenant boss hit — signature: deep body + ringing armour crack
+  if (type === 'romeLegateImpact') {
+    makeNoiseBurst({ duration: 0.15, frequency: 920,  endFrequency: 500, q: 1.15, gain: 0.112 });
+    makeToneHit({ frequency: 105, endFrequency: 52,  gain: 0.065, duration: 0.19 });
+    makeNoiseBurst({ duration: 0.09, frequency: 2600, endFrequency: 1600, q: 2.2, gain: 0.058, delay: 0.026 });
+    // Armour ring characteristic
+    makeToneHit({ frequency: 860, endFrequency: 640, gain: 0.018, duration: 0.22, delay: 0.02, wave: 'sine' });
+    return;
+  }
+
+  // Rome player impact — similar to Egypt but slightly harder (marble floor)
+  if (type === 'romePlayerImpact') {
+    makeNoiseBurst({ duration: 0.12, frequency: 800, endFrequency: 480, q: 1.0, gain: 0.092 });
+    makeToneHit({ frequency: 95, endFrequency: 50, gain: 0.062, duration: 0.16 });
+    return;
+  }
+
+  // Pressure plate — stone scrape, short and deliberate
+  if (type === 'romePresurePlate') {
+    makeNoiseBurst({ duration: 0.18, frequency: 560, endFrequency: 240, q: 0.75, gain: 0.10 });
+    makeToneHit({ frequency: 78, endFrequency: 38, gain: 0.058, duration: 0.20 });
+    makeNoiseBurst({ duration: 0.10, frequency: 1600, endFrequency: 700, q: 1.3, gain: 0.038, delay: 0.022 });
+    return;
+  }
+
+  // Steam burst — hissing pressure release
+  if (type === 'romeSteamBurst') {
+    const duration = 0.28;
+    const buffer = audioCtx.createBuffer(1, Math.floor(audioCtx.sampleRate * duration), audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i += 1) {
+      const progress = i / data.length;
+      const env = progress < 0.15
+        ? progress / 0.15
+        : Math.max(0, 1 - ((progress - 0.15) / 0.85));
+      data[i] = (Math.random() * 2 - 1) * env;
+    }
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buffer;
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(3200 + variation * 80, now);
+    filter.frequency.linearRampToValueAtTime(1800 + variation * 40, now + duration);
+    filter.Q.value = 0.55;
+    const noiseGain = audioCtx.createGain();
+    noiseGain.gain.setValueAtTime(0.0001, now);
+    noiseGain.gain.linearRampToValueAtTime(0.10 * volume, now + 0.038);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+    noise.connect(filter);
+    filter.connect(noiseGain);
+    noiseGain.connect(audioCtx.destination);
+    noise.start(now);
+    noise.stop(now + duration);
+    return;
+  }
+
+  // Falling stone block — heavy impact with low thud + debris scatter
+  if (type === 'romeStoneFall') {
+    makeNoiseBurst({ duration: 0.24, frequency: 480, endFrequency: 200, q: 0.65, gain: 0.12 });
+    makeToneHit({ frequency: 68, endFrequency: 32, gain: 0.075, duration: 0.26 });
+    makeNoiseBurst({ duration: 0.18, frequency: 1800, endFrequency: 640, q: 1.1, gain: 0.052, delay: 0.032 });
+    makeNoiseBurst({ duration: 0.12, frequency: 3200, endFrequency: 1200, q: 1.8, gain: 0.030, delay: 0.055 });
+    return;
   }
 };
 
@@ -1085,13 +1290,13 @@ export default function App() {
             <ExpeditionMode
               onBackToMenu={handleBackToMenu}
               audioControls={audioControls}
-              onSendToLab={(collectedEvidence, fieldNotes) => {
-                const egyptScenario = SCENARIOS.find(s => s.id === 'egypt');
-                if (!egyptScenario) return;
+              onSendToLab={(collectedEvidence, fieldNotes, scenarioId = 'egypt') => {
+                const playedScenario = SCENARIOS.find(s => s.id === scenarioId) || SCENARIOS.find(s => s.id === 'egypt');
+                if (!playedScenario) return;
 
                 // Hydrate collected evidence into full activeArtifacts
                 const activeArtifacts = collectedEvidence.map(item => {
-                  const fullArtifact = egyptScenario.evidence.find(e => e.id === item.id);
+                  const fullArtifact = playedScenario.evidence.find(e => e.id === item.id);
                   return fullArtifact ? { ...fullArtifact } : { ...item };
                 });
 
@@ -1126,7 +1331,7 @@ export default function App() {
                 };
 
                 // Hydrate App state for the laboratory phase
-                setCurrentScenario(egyptScenario);
+                setCurrentScenario(playedScenario);
                 setCurrentEvent(RANDOM_EVENTS[0]); // default storm/flood event
                 setActiveArtifacts(activeArtifacts);
                 setItemsLocation(itemsLocation);

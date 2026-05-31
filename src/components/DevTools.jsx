@@ -5,7 +5,7 @@ import {
   createNewBureauSession,
   getObservableLabResult,
 } from '../utils/gameLogic'; 
-import { SECTIONS } from './expedition-journey/journeyLevelData';
+import { SECTIONS } from './expedition-journey/journeyDataRouter';
 
 const JOURNEY_SECTION_DEV_JUMPS = SECTIONS.map((section, index) => ({
   id: section.id,
