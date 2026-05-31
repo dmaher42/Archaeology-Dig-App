@@ -233,7 +233,7 @@ export const ROME_ENEMY_SPAWN_ZONES = [
 
 // Boss encounter
 export const ROME_BOSS_SPAWN = {
-  id: 'legate-revenant',
+  id: 'rome-legate-revenant',
   x: X(8500),
   y: ROME_GROUND_Y - 60,
   sectionId: ROME_SECTION_IDS.VAULT,
