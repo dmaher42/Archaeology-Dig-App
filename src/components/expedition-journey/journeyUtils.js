@@ -6,7 +6,7 @@ import {
   PLAYER_SPRITE_SCALE,
   PLAYER_WIDTH,
 } from './journeyConstants.js';
-import { BOSS_KEY_ITEMS, CHECKPOINTS, getJourneyEnemies, getJourneyMiniBosses, SECTIONS, SECTION_ATMOSPHERES } from './journeyLevelData.js';
+import { BOSS_KEY_ITEMS, CHECKPOINTS, getJourneyEnemies, getJourneyMiniBosses, SECTIONS, SECTION_ATMOSPHERES } from './journeyDataRouter.js';
 
 export const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
@@ -36,6 +36,13 @@ export const JOURNEY_HITBOX_TUNING = {
 
 const getEnemyHitboxFamily = (enemy = {}) => {
   const name = (enemy.name || '').toLowerCase();
+  // Rome types — checked first so they don't fall through to generic matches
+  if (enemy.type === 'legion-shade'       || name.includes('legion shade') || name.includes('praetorian shade') || name.includes('bath shade') || name.includes('forum shade') || name.includes('ruins guard') || name.includes('apse guard')) return 'humanoid';
+  if (enemy.type === 'gladiator-revenant' || name.includes('gladiator revenant') || name.includes('arena revenant') || name.includes('vault gladiator') || name.includes('nave gladiator') || name.includes("legate's champion")) return 'humanoid';
+  if (enemy.type === 'forum-rat'          || name.includes('forum rat') || name.includes('marble rat') || name.includes('steam rat')) return 'scarab'; // small/low profile
+  if (enemy.type === 'vestibule-wisp'     || name.includes('vestibule wisp') || name.includes('forum wisp') || name.includes('hypocaust wisp') || name.includes('drain wisp')) return 'sandWisp'; // aerial profile
+  if (enemy.type === 'marble-golem'       || name.includes('marble golem') || name.includes('stone pillar golem') || name.includes('column golem') || name.includes('vault sentinel')) return 'guardian'; // heavy profile
+  // Egypt / China types
   if (enemy.type === 'sand-wisp' || name.includes('sand wisp') || name.includes('flying scarab')) return 'sandWisp';
   if (enemy.type === 'scarab' || name.includes('scarab') || name.includes('beetle')) return 'scarab';
   if (enemy.type === 'scorpion' || name.includes('scorpion')) return 'scorpion';

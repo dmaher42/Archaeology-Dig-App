@@ -2119,7 +2119,7 @@ test('first mini-boss is gated by preparation and rewards the next route', () =>
 
   assert.match(routeGates, /id:\s*'guardian-prep-seal'/);
   assert.match(routeGates, /name:\s*'Guardian Prep Seal'/);
-  assert.match(routeGates, /x:\s*X\(1375\)/);
+  assert.match(routeGates, /x:\s*X\(1495\)/);
   assert.match(routeGates, /requires:\s*\{\s*objective:\s*'desert-entry'[\s\S]*?shards:\s*6/);
   assert.match(routeGates, /id:\s*'guardian-prep-seal'[\s\S]*?id:\s*'desert-seal'/);
   assert.match(routeGates, /readyHint:\s*'The Desert Map Seal opens\. Carry the record forward into the ruined temple\.'/);
@@ -2208,10 +2208,13 @@ test('Journey progress gates use arch and slab assets instead of artificial padl
 
   assert.notEqual(drawStart, -1, 'Journey route gate renderer should exist');
   assert.notEqual(drawEnd, -1, 'Missing-objective marker should follow route gate renderer');
-  assert.match(journeyComponentSource, /ROUTE_GATE_ARCH_PACK_SRC = 'assets\/expedition\/environment\/egypt-opening\/route-gate-arch-pack\.png'/);
-  assert.match(journeyComponentSource, /ROUTE_GATE_ARCH_PACK_REGIONS = \{[\s\S]*?arch:[\s\S]*?closedSlab:/);
-  assert.match(routeGateDrawSource, /drawGateAssetRegion\('closedSlab'/);
-  assert.match(routeGateDrawSource, /drawGateAssetRegion\('arch'/);
+  assert.match(journeyComponentSource, /ROUTE_GATE_BACK_SRC = 'assets\/expedition\/environment\/egypt-opening\/route-gate-back\.png'/);
+  assert.match(journeyComponentSource, /ROUTE_GATE_FRONT_SRC = 'assets\/expedition\/environment\/egypt-opening\/route-gate-front\.png'/);
+  assert.match(journeyComponentSource, /ROUTE_GATE_SLAB_SRC = 'assets\/expedition\/environment\/egypt-opening\/route-gate-slab\.png'/);
+  assert.match(journeyComponentSource, /ROUTE_GATE_ASSET_VERSION = 'imagegen-egypt-route-gate-arch-column-slab-2026-05-31'/);
+  assert.match(routeGateDrawSource, /drawGateAsset\(routeGateSlabRef/);
+  assert.match(routeGateDrawSource, /drawGateAsset\(routeGateBackRef/);
+  assert.match(routeGateDrawSource, /drawGateAsset\(routeGateFrontRef/);
   assert.match(routeGateDrawSource, /layer === 'foreground'[\s\S]*?if \(complete\)/);
   assert.match(journeyComponentSource, /current\.openedRouteGateIds\.has\(gate\.id\) \|\| requirements\.every\(r => r\.met\)/);
   assert.doesNotMatch(routeGateDrawSource, /drawFieldNoteLabel|gateRequirementLabel|gate\.name/);

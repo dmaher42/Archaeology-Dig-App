@@ -142,6 +142,211 @@ const CHINA_EXCAVATION_MAP_THEME = {
   playerGlowAlpha: 0.58,
 };
 
+const EGYPT_ARCHIVE_PROLOGUE_ITEMS = [
+  {
+    id: 'museum-report',
+    label: 'Site Update',
+    title: 'Museum Report',
+    format: 'Field record',
+    body: [
+      'A newly exposed scarab carving has been recorded near the summit of the pyramid ruin.',
+      'Earlier surveys do not show the marking.',
+      'Cause of exposure unknown.',
+    ],
+  },
+  {
+    id: 'excavation-photo',
+    label: 'Archive Photograph',
+    title: 'Excavation Photo',
+    format: 'Photographic cross-reference',
+    body: [
+      'Asha has seen this scarab shape before.',
+      'It appears in an older photograph from another Egyptian site.',
+      'At the time, it was treated as an oddity.',
+      'No matching scarab had ever been recorded at this pyramid.',
+    ],
+  },
+  {
+    id: 'asha-notes',
+    label: "Asha's Field Notes",
+    title: "Asha's Notes",
+    format: 'Notebook entry',
+    body: [
+      'The records do not match.',
+      'If the scarab was always there, why did no earlier survey record it?',
+      'If it is new, who placed it there?',
+      'Either way, it needs to be checked.',
+    ],
+  },
+];
+
+const EGYPT_ARCHIVE_SITE_TRANSITION_LINES = [
+  'The climb is familiar.',
+  'Sun on stone.',
+  'Wind across the sand.',
+  'A routine site check.',
+  'Then Asha sees it.',
+  'The scarab from the photograph.',
+  'Plain stone.',
+  'Half exposed.',
+  'Easy to miss.',
+  'Exactly where the new report said it would be.',
+];
+
+const EGYPT_ARCHIVE_SCARAB_CINEMATIC_LINES = [
+  'Old stone.',
+  'A symbol worn almost smooth.',
+  'Cross-reference with excavation photo.',
+  'Plain stone.',
+  'No glow.',
+  'No sound.',
+];
+
+const EGYPT_ARCHIVE_ACTIVATION_LINES = [
+  'Asha brushes sand from the scarab.',
+  'It looks ordinary.',
+  'Old stone.',
+  'No glow.',
+  'No sound.',
+  'She compares it with the photograph.',
+  'The shape matches.',
+  'The fracture matches.',
+  'She presses her palm against the carving.',
+  'For a moment, nothing happens.',
+  'Then the stone beneath her moves.',
+  'The scarab was not decoration.',
+  'It was a seal.',
+  'The ground opens beneath her.',
+  'She falls.',
+];
+
+const EGYPT_ARCHIVE_CINEMATIC_STEPS = [
+  {
+    id: 'pyramid-site',
+    kicker: 'Location shift',
+    title: 'Pyramid Site',
+    lines: EGYPT_ARCHIVE_SITE_TRANSITION_LINES,
+    actionLabel: 'Approach the scarab',
+  },
+  {
+    id: 'scarab-floor-carving',
+    kicker: 'Scarab - Floor Carving',
+    title: 'Plain stone. Easy to miss.',
+    lines: EGYPT_ARCHIVE_SCARAB_CINEMATIC_LINES,
+    actionLabel: 'Examine the scarab',
+  },
+  {
+    id: 'threshold-opened',
+    kicker: 'Threshold Opened',
+    title: 'The seal answers.',
+    lines: EGYPT_ARCHIVE_ACTIVATION_LINES,
+    note: 'The world below is not the site Asha climbed.',
+    actionLabel: 'Enter the Lost Site',
+  },
+];
+
+// ─── Rome archive prologue ─────────────────────────────────────────────────────
+
+const ROME_ARCHIVE_PROLOGUE_ITEMS = [
+  {
+    id: 'senate-memorandum',
+    label: 'Senate Archive — Rome',
+    title: 'Memorandum Redacted',
+    format: 'Administrative fragment',
+    body: [
+      'A copied fragment from a pre-eruption Senate record.',
+      'One line survives: "The eastern consignment is not to be listed in the public register."',
+      'The consignment date corresponds with a known Egyptian shipment route.',
+      'The rest of the page was deliberately removed.',
+    ],
+  },
+  {
+    id: 'field-report',
+    label: 'Ground Survey',
+    title: 'Forum Site Report',
+    format: 'Field photograph + annotation',
+    body: [
+      'A buried doorway was detected by ground-penetrating radar beneath the Forum paving.',
+      'Ash deposits seal the threshold.',
+      'The seal style matches a known imperial locksmith workshop — 1st century AD.',
+      'Whoever sealed this wanted it to stay sealed.',
+    ],
+  },
+  {
+    id: 'asha-notes',
+    label: "Asha's Field Notes",
+    title: "Asha's Notes",
+    format: 'Notebook entry',
+    body: [
+      'The Senate does not redact shipping records unless the cargo matters.',
+      'An Egyptian consignment. A sealed vault. A deliberate omission.',
+      'This is not a routine burial site.',
+      'If the record survived, whatever it describes is still down there.',
+    ],
+  },
+];
+
+const ROME_ARCHIVE_SITE_TRANSITION_LINES = [
+  'The Forum is quieter than it should be.',
+  'Tourists on the upper level.',
+  'Barriers where the radar flagged the anomaly.',
+  'Asha shows her permit.',
+  'The barriers go back.',
+  'She descends to the paving level.',
+  'Then below it.',
+  'The sealed doorway is exactly where the survey said it would be.',
+];
+
+const ROME_ARCHIVE_VAULT_LINES = [
+  'Iron fittings, corroded but intact.',
+  'A lead seal pressed over the latch.',
+  'The stamp: Senate authority, pre-eruption.',
+  'Someone locked this before Vesuvius.',
+  'The eruption buried it.',
+  'Nobody came back to open it.',
+];
+
+const ROME_ARCHIVE_ACTIVATION_LINES = [
+  'Asha checks the seal stamp against her photograph.',
+  'The impression matches.',
+  'She applies pressure to the latch.',
+  'The lead cracks.',
+  'The door gives.',
+  'Cold air.',
+  'Not tomb cold.',
+  'Archive cold.',
+  'There is something in the dark below.',
+  'The Senate did not want anyone to find it.',
+  'Asha climbs down anyway.',
+];
+
+const ROME_ARCHIVE_CINEMATIC_STEPS = [
+  {
+    id: 'forum-approach',
+    kicker: 'Location shift',
+    title: 'Beneath the Forum paving.',
+    lines: ROME_ARCHIVE_SITE_TRANSITION_LINES,
+    actionLabel: 'Approach the sealed door',
+  },
+  {
+    id: 'vault-door',
+    kicker: 'Vault Door — Sealed',
+    title: 'Iron fittings. Senate stamp. Pre-eruption.',
+    lines: ROME_ARCHIVE_VAULT_LINES,
+    actionLabel: 'Break the seal',
+  },
+  {
+    id: 'vault-opened',
+    kicker: 'Vault Opened',
+    title: 'The archive the Senate buried.',
+    lines: ROME_ARCHIVE_ACTIVATION_LINES,
+    note: 'Whatever is below has been sealed since 79 AD.',
+    actionLabel: 'Descend into the vault',
+  },
+];
+
+// ─── End Rome archive prologue ─────────────────────────────────────────────────
+
 const SURVEY_COST = { investigation: -4, time: -8 };
 const SURVEY_ZONES = [
   {
@@ -806,6 +1011,389 @@ const CHINA_EXCAVATION_GUARDIANS = [
   },
 ];
 
+// ─── Rome excavation-map constants ────────────────────────────────────────────
+
+const ROME_EXCAVATION_MAP_THEME = {
+  ...DEFAULT_EXCAVATION_MAP_THEME,
+  backgroundInner: '#e4ddd0',
+  backgroundOuter: '#c8bfb0',
+  neutralTileAlpha: 0.14,
+  gridOverlayAlpha: 0.16,
+  gridLineColor: 'rgba(80, 65, 48, 0.045)',
+  surveyLineAlpha: 0.32,
+  surveyLineSecondaryAlpha: 0.28,
+  surveyPegAlpha: 0.64,
+  pathAlpha: 0.40,
+  thresholdAlpha: 0.52,
+  terrainAlpha: 0.88,
+  gateTerrainAlpha: 0.38,
+  terrainWash: 'rgba(240, 228, 210, 0.12)',
+  roomShadowAlpha: 0.14,
+  labelAssetAlpha: 0.90,
+  labelText: '#2e2318',
+  surveyLabelText: '#3d2f1e',
+  selectedSurveyLabelText: '#1a3a20',
+  selectedStroke: 'rgba(26, 58, 32, 0.96)',
+  idleStroke: 'rgba(88, 68, 44, 0.42)',
+  selectedDashStroke: 'rgba(180, 140, 80, 0.82)',
+  markerAlpha: 0.90,
+  hazardAlpha: 0.90,
+  hazardLabelBackground: 'rgba(255, 252, 244, 0.90)',
+  hazardLabelText: '#4a321d',
+  wallAlpha: 0.92,
+  wallStroke: 'rgba(90, 68, 44, 0.40)',
+  playerGlowAlpha: 0.54,
+};
+
+// Reuse the 6 generic zone IDs so all existing zone-handling code works unchanged.
+// Rome renames them with period-appropriate labels.
+const ROME_ZONES = [
+  { id: 'riverbank', name: 'Via Sacra Trench',  emoji: '', x: 0,   y: 0,   w: 260, h: 220, color: 'rgba(200, 180, 140, 0.16)' },
+  { id: 'burial',    name: 'Forum Pit',          emoji: '', x: 260, y: 0,   w: 260, h: 220, color: 'rgba(160, 140, 110, 0.18)' },
+  { id: 'archive',   name: 'Thermae Shaft',      emoji: '', x: 520, y: 0,   w: 280, h: 220, color: 'rgba(80,  90,  95,  0.18)' },
+  { id: 'market',    name: 'Basilica Floor',     emoji: '', x: 0,   y: 220, w: 320, h: 190, color: 'rgba(190, 178, 160, 0.15)' },
+  { id: 'wall',      name: 'Civic Wing',         emoji: '', x: 320, y: 220, w: 260, h: 190, color: 'rgba(160, 148, 130, 0.18)' },
+  { id: 'gate',      name: 'Sealed Archive',     emoji: '', x: 580, y: 220, w: 220, h: 340, color: 'rgba(74, 222, 128, 0.12)' },
+];
+
+const ROME_EXCAVATION_TERRAIN_BY_ZONE = {
+  riverbank: 'romeRoomMap:romeSacraRoadTerrain',
+  burial:    'romeRoomMap:romeForumPitTerrain',
+  archive:   'romeRoomMap:romeThermaeShaftTerrain',
+  market:    'romeRoomMap:romeBasilicaFloorTerrain',
+  wall:      'romeRoomMap:romeCivicWingTerrain',
+  gate:      'romeRoomMap:romeNeutralExcavationTerrain',
+};
+
+const ROME_SURVEY_ZONES = [
+  {
+    id: 'riverbank',
+    name: 'Via Sacra Trench',
+    prompt: 'Compacted limestone fragments and gravel sit along a buried road surface.',
+    clue: 'You notice road-surfacing material and worn flagstones. This area may preserve evidence of Roman engineering and civic movement.',
+    risk: 'Survey cost: -4 investigation points and -8 seconds.',
+    likelyEvidence: 'Possible road construction evidence or milestone fragments.',
+    missionHint: 'Useful context, but the strongest structural evidence may be deeper in the site.',
+  },
+  {
+    id: 'burial',
+    name: 'Forum Pit',
+    prompt: 'Broken marble paving and column stump bases sit in ash-rich fill.',
+    clue: 'You notice planned stonework and civic debris. This area may contain public-works structures buried under the eruption layer.',
+    risk: 'Survey cost: -4 investigation points and -8 seconds.',
+    likelyEvidence: 'Possible structural evidence — column bases, paving, public works.',
+    missionHint: 'This area looks promising for the structural mission.',
+  },
+  {
+    id: 'archive',
+    name: 'Thermae Shaft',
+    prompt: 'Lead pipe sections and tile stack remnants mark an underground heat system.',
+    clue: 'You notice hypocaust pillars and fired-clay conduits. This area may preserve evidence of Roman engineering below ground.',
+    risk: 'Survey cost: -4 investigation points and -8 seconds.',
+    likelyEvidence: 'Possible structural evidence — hypocaust system and water infrastructure.',
+    missionHint: 'Strong candidate for engineering evidence.',
+  },
+  {
+    id: 'market',
+    name: 'Basilica Floor',
+    prompt: 'Polished marble fragments and bronze fitting holes mark a large public hall.',
+    clue: 'You notice high-quality flooring and administrative fittings. This area may have been a civic or legal building.',
+    risk: 'Survey cost: -4 investigation points and -8 seconds.',
+    likelyEvidence: 'Possible floor evidence, written records, or administrative objects.',
+    missionHint: 'Mixed evidence — may contain both structural and written finds.',
+  },
+  {
+    id: 'wall',
+    name: 'Civic Wing',
+    prompt: 'Dense pottery, lamp fragments and coin scatters fill the trench surface.',
+    clue: 'You notice everyday artefacts at high density. This area reflects active civic use before the eruption.',
+    risk: 'Survey cost: -4 investigation points and -8 seconds.',
+    likelyEvidence: 'Possible artefact and object evidence — lamps, pottery, coins.',
+    missionHint: 'Good for artefact evidence, but structural evidence may be sparse here.',
+  },
+];
+
+const ROME_SURVEY_ZONE_BY_ID = Object.fromEntries(ROME_SURVEY_ZONES.map(zone => [zone.id, zone]));
+
+const ROME_SURVEY_REVEAL_LINKS = {
+  rm_13: ['archive', 'market'],  // Wax Tablet → Thermae Shaft or Basilica Floor
+  rm_7:  ['burial', 'archive'],  // Aqueduct Arch → Forum Pit or Thermae Shaft
+  rm_10: ['riverbank'],          // Volcanic Ash Layer → Via Sacra Trench
+  rm_8:  ['archive', 'burial'],  // Hypocaust → Thermae Shaft or Forum Pit
+  rm_1:  ['wall', 'market'],     // Bronze Sestertius → Civic Wing or Basilica
+  rm_9:  ['market', 'wall'],     // Mosaic Floor → Basilica Floor or Civic Wing
+};
+
+const ROME_GRID_ZONE_CONFIGS = {
+  burial: [  // Forum Pit — strongest structural zone
+    {
+      id: 'A1',
+      clue: 'A marble column base sits proud of the surrounding ash.',
+      risk: 'Low',
+      possibleEvidenceHint: 'Possible structural evidence — column base.',
+      linkedEvidenceIds: ['rm_7'],
+      openFeedback: 'Grid A1 opened. A column base can now be inspected.',
+    },
+    {
+      id: 'A2',
+      clue: 'Compacted rubble fills a planned rectangular cut — possibly a foundation.',
+      risk: 'Low',
+      possibleEvidenceHint: 'Possible foundation or public-works evidence.',
+      linkedEvidenceIds: ['rm_8'],
+      openFeedback: 'Grid A2 opened. Structural evidence can now be recorded.',
+    },
+    {
+      id: 'B1',
+      clue: 'Loose volcanic ash makes this patch harder to excavate cleanly.',
+      risk: 'Medium',
+      possibleEvidenceHint: 'Environmental context — limited structural evidence.',
+      linkedEvidenceIds: [],
+      openFeedback: 'Grid B1 opened. The ash layer is thick here — limited structural evidence.',
+    },
+    {
+      id: 'B2',
+      clue: 'A paved floor surface is partially exposed near a wall edge.',
+      risk: 'Medium',
+      possibleEvidenceHint: 'Possible mosaic or paving evidence.',
+      linkedEvidenceIds: ['rm_9'],
+      openFeedback: 'Grid B2 opened. Paving evidence can now be recorded.',
+    },
+  ],
+  archive: [  // Thermae Shaft — underground engineering
+    {
+      id: 'A1',
+      clue: 'A lead pipe bears a stamped inscription from an imperial supplier.',
+      risk: 'Low',
+      possibleEvidenceHint: 'Possible infrastructure evidence.',
+      linkedEvidenceIds: ['rm_8'],
+      openFeedback: 'Grid A1 opened. Hypocaust evidence can now be inspected.',
+    },
+    {
+      id: 'A2',
+      clue: 'Stacked tile columns form a regular pattern in the subsurface.',
+      risk: 'Low',
+      possibleEvidenceHint: 'Possible hypocaust system evidence.',
+      linkedEvidenceIds: ['rm_7'],
+      openFeedback: 'Grid A2 opened. Engineering evidence recorded.',
+    },
+    {
+      id: 'B1',
+      clue: 'Steam-corroded brickwork is soft and difficult to record cleanly.',
+      risk: 'Medium',
+      possibleEvidenceHint: 'Limited finds — corrosion damage.',
+      linkedEvidenceIds: [],
+      openFeedback: 'Grid B1 opened. Corroded surface — minimal recordable evidence here.',
+    },
+    {
+      id: 'B2',
+      clue: 'A tile floor section is intact near a sealed drain.',
+      risk: 'Medium',
+      possibleEvidenceHint: 'Possible engineering surface evidence.',
+      linkedEvidenceIds: [],
+      openFeedback: 'Grid B2 opened. Useful context, but not the strongest mission match.',
+    },
+  ],
+  market: [  // Basilica Floor — mixed structural and written
+    {
+      id: 'A1',
+      clue: 'Polished marble fragments sit over a planned floor layer.',
+      risk: 'Low',
+      possibleEvidenceHint: 'Possible mosaic or floor evidence.',
+      linkedEvidenceIds: ['rm_9'],
+      openFeedback: 'Grid A1 opened. Mosaic floor evidence can now be recorded.',
+    },
+    {
+      id: 'A2',
+      clue: 'A wax tablet fragment is preserved in compacted fill.',
+      risk: 'Medium',
+      possibleEvidenceHint: 'Possible written-record evidence.',
+      linkedEvidenceIds: ['rm_13'],
+      openFeedback: 'Grid A2 opened. Written evidence found here.',
+    },
+    {
+      id: 'B1',
+      clue: 'Mixed rubble and marble dust make the surface hard to read.',
+      risk: 'Medium',
+      possibleEvidenceHint: 'Unclear context.',
+      linkedEvidenceIds: [],
+      openFeedback: 'Grid B1 opened. The mixed fill is difficult to interpret.',
+    },
+    {
+      id: 'B2',
+      clue: 'Bronze fitting holes in the floor suggest fixed furniture or barriers.',
+      risk: 'Low',
+      possibleEvidenceHint: 'Possible structural evidence.',
+      linkedEvidenceIds: [],
+      openFeedback: 'Grid B2 opened. Fittings noted but no strong mission evidence here.',
+    },
+  ],
+  riverbank: [  // Via Sacra Trench — road-surface context
+    {
+      id: 'A1',
+      clue: 'Compacted limestone gravel from the road surface is well-preserved.',
+      risk: 'Low',
+      possibleEvidenceHint: 'Possible road-engineering evidence.',
+      linkedEvidenceIds: ['rm_10'],
+      openFeedback: 'Grid A1 opened. Ash-sealed road context can now be inspected.',
+    },
+    {
+      id: 'A2',
+      clue: 'Worn flagstone edges show heavy foot and cart traffic.',
+      risk: 'Low',
+      possibleEvidenceHint: 'Possible infrastructure evidence.',
+      linkedEvidenceIds: [],
+      openFeedback: 'Grid A2 opened. Road-use context noted here.',
+    },
+    {
+      id: 'B1',
+      clue: 'Thick ash deposit obscures the road surface.',
+      risk: 'Medium',
+      possibleEvidenceHint: 'Environmental evidence — limited structural finds.',
+      linkedEvidenceIds: [],
+      openFeedback: 'Grid B1 opened. Dense ash limits what can be recorded.',
+    },
+    {
+      id: 'B2',
+      clue: 'Scattered coin and pottery fragments sit in the road margin.',
+      risk: 'Medium',
+      possibleEvidenceHint: 'Possible artefact evidence.',
+      linkedEvidenceIds: ['rm_1'],
+      openFeedback: 'Grid B2 opened. Object evidence can now be inspected.',
+    },
+  ],
+  wall: [  // Civic Wing — artefact-rich
+    {
+      id: 'A1',
+      clue: 'A bronze sestertius sits in compacted activity debris.',
+      risk: 'Low',
+      possibleEvidenceHint: 'Possible artefact evidence.',
+      linkedEvidenceIds: ['rm_1'],
+      openFeedback: 'Grid A1 opened. Coin evidence can now be inspected.',
+    },
+    {
+      id: 'A2',
+      clue: 'Oil lamp fragments cluster near a threshold stone.',
+      risk: 'Low',
+      possibleEvidenceHint: 'Possible everyday-life object evidence.',
+      linkedEvidenceIds: [],
+      openFeedback: 'Grid A2 opened. Artefact context noted here.',
+    },
+    {
+      id: 'B1',
+      clue: 'Dense pottery scatter makes this slow to record correctly.',
+      risk: 'Medium',
+      possibleEvidenceHint: 'Object evidence — mixed quality.',
+      linkedEvidenceIds: [],
+      openFeedback: 'Grid B1 opened. The dense scatter is useful but not a strong structural lead.',
+    },
+    {
+      id: 'B2',
+      clue: 'A mosaic floor fragment is partly exposed at the edge.',
+      risk: 'Medium',
+      possibleEvidenceHint: 'Possible structural surface evidence.',
+      linkedEvidenceIds: ['rm_9'],
+      openFeedback: 'Grid B2 opened. Mosaic fragment recorded.',
+    },
+  ],
+};
+
+const ROME_WALLS = [
+  { x: 322, y: 238, w: 178, h: 34, label: 'marble partition base' },
+  { x: 92,  y: 342, w: 220, h: 24, label: 'collapsed column drum' },
+  { x: 600, y: 360, w: 126, h: 28, label: 'sealed archive lintel' },
+  { x: 618, y: 120, w: 32,  h: 98, label: 'forum threshold block' },
+];
+
+const ROME_EXCAVATION_HAZARDS = [
+  {
+    id: 'sandstorm',
+    name: 'volcanic ash',
+    emoji: 'ash',
+    x: 84,
+    y: 96,
+    w: 120,
+    h: 70,
+    color: 'rgba(160, 145, 120, 0.30)',
+    penalty: { time: -15 },
+    message: 'Ash layer slowed excavation. Time drops by 15 seconds.',
+  },
+  {
+    id: 'falling-rocks',
+    name: 'loose masonry',
+    emoji: 'masonry',
+    x: 388,
+    y: 292,
+    w: 110,
+    h: 78,
+    color: 'rgba(148, 163, 184, 0.30)',
+    penalty: { investigation: -8 },
+    message: 'Loose masonry disrupted the trench. Investigation points drop by 8.',
+  },
+  {
+    id: 'unstable-floor',
+    name: 'cracked marble',
+    emoji: 'marble',
+    x: 196,
+    y: 454,
+    w: 118,
+    h: 70,
+    color: 'rgba(200, 180, 155, 0.24)',
+    penalty: { stamina: -18 },
+    message: 'Cracked marble floor: stamina drops by 18.',
+  },
+];
+
+const ROME_EXCAVATION_GUARDIANS = [
+  {
+    id: 'vault-warden-shadow',
+    name: 'Vault Warden',
+    emoji: 'warden',
+    x: 620,
+    y: 420,
+    w: 30,
+    h: 30,
+    path: [
+      { x: 620, y: 420 },
+      { x: 708, y: 420 },
+      { x: 708, y: 286 },
+      { x: 620, y: 286 },
+    ],
+    speed: 58,
+    penalty: { investigation: -6, time: -8 },
+    message: 'Vault Warden disrupted the excavation. Survey focus and time reduced.',
+  },
+];
+
+const ROME_EVIDENCE_HUNT_MISSIONS = [
+  {
+    id: 'rome-structural-engineering',
+    title: 'Find Structural Evidence',
+    inquiryQuestion: 'What evidence shows that Ancient Rome had advanced engineering and organised public construction?',
+    instruction: 'Search for evidence that shows Ancient Rome had advanced engineering and organised public construction.',
+    targetEvidenceType: 'structure',
+    targetCategoryId: 'structure',
+    targetCategoryTitle: 'Features / Structures',
+    evidenceLabel: 'Structural evidence',
+    requiredTargetCount: 3,
+    gateRequirement: 'The Sealed Archive needs 3 pieces of structural evidence.',
+    keepSearchingNotice: 'Keep searching for evidence of aqueducts, floors, heating systems or other built features.',
+    matchFeedback: 'Mission evidence found: this supports your inquiry about Ancient Rome.',
+    mismatchFeedback: 'Interesting discovery, but it does not directly answer this mission question.',
+    briefingRule: 'Find 3 pieces of structural evidence to unlock the Sealed Archive.',
+  },
+];
+
+const ROME_EVIDENCE_PICKS = [
+  { id: 'rm_7',  x: 690, y: 94,  zone: 'Thermae Shaft',    clueGroup: 'Engineering' },
+  { id: 'rm_8',  x: 548, y: 340, zone: 'Civic Wing',       clueGroup: 'Engineering' },
+  { id: 'rm_10', x: 128, y: 142, zone: 'Via Sacra Trench', clueGroup: 'Environment' },
+  { id: 'rm_9',  x: 350, y: 310, zone: 'Basilica Floor',   clueGroup: 'Structures' },
+  { id: 'rm_1',  x: 140, y: 330, zone: 'Civic Wing',       clueGroup: 'Artefacts' },
+  { id: 'rm_13', x: 532, y: 330, zone: 'Basilica Floor',   clueGroup: 'Written' },
+];
+
+// ─── End Rome constants ────────────────────────────────────────────────────────
+
 const CLAIM_OPTIONS = ['Ancient Egypt', 'Ancient Greece', 'Ancient Rome', 'Ancient China', 'Maya', 'Inca'];
 const INITIAL_RESOURCES = { investigation: 95, stamina: 100, time: 600 };
 const INVESTIGATION_BONUS = 5;
@@ -1005,6 +1593,36 @@ const EXPEDITION_MAP_CONTENT = {
     routeMusicCue: 'desert',
     excavationMusicCue: 'baseCamp',
     briefingIntro: 'Survey the river-valley site, choose a dig zone, collect evidence, and prove this Ancient China investigation.',
+  },
+  [EXPEDITION_STAGE_IDS.ROME]: {
+    id: EXPEDITION_STAGE_IDS.ROME,
+    targetCivilisation: 'Ancient Rome',
+    startsAt: 'journey',
+    zones: ROME_ZONES,
+    terrainByZone: ROME_EXCAVATION_TERRAIN_BY_ZONE,
+    surveyZones: ROME_SURVEY_ZONES,
+    surveyZoneById: ROME_SURVEY_ZONE_BY_ID,
+    surveyRevealLinks: ROME_SURVEY_REVEAL_LINKS,
+    gridZoneConfigs: ROME_GRID_ZONE_CONFIGS,
+    hazards: ROME_EXCAVATION_HAZARDS,
+    walls: ROME_WALLS,
+    guardians: ROME_EXCAVATION_GUARDIANS,
+    missions: ROME_EVIDENCE_HUNT_MISSIONS,
+    evidencePicks: ROME_EVIDENCE_PICKS,
+    roomMapPackId: 'romeRoomMap',
+    markerPackId: 'surveyMarkers',
+    gatewayPackId: 'gateway',
+    mapUiPackId: 'legacy',
+    challengeUiPackId: 'romeChallengeUi',
+    mapTheme: ROME_EXCAVATION_MAP_THEME,
+    defaultZoneName: 'Excavation Trench',
+    visualMode: 'rome-room-map-stage-1',
+    journeyEnvironmentPackId: 'egypt-desert-temple',
+    journeyBackgroundPackId: 'rome',
+    mapTitle: 'Forum Romanum Buried Site',
+    routeMusicCue: 'desert',
+    excavationMusicCue: 'baseCamp',
+    briefingIntro: 'Survey the buried Forum site, choose a dig zone, collect structural evidence to unseal the archive, and prove this Ancient Rome investigation.',
   },
 };
 
@@ -1320,6 +1938,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
   const [completedZoneChallenges, setCompletedZoneChallenges] = useState(() => new Set());
   const [activeZoneChallenge, setActiveZoneChallenge] = useState(null);
   const [zoneChallengeFeedback, setZoneChallengeFeedback] = useState(null);
+  const [inspectedPrologueItems, setInspectedPrologueItems] = useState(() => new Set());
+  const [prologueCinematicStep, setPrologueCinematicStep] = useState(null);
 
   useEffect(() => {
     window.DEBUG_EXPEDITION = { setExpeditionStage, setBaseCampOpen, setSelectedExpedition };
@@ -1946,7 +2566,12 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
     audioControls.playExpeditionMusic?.(content.routeMusicCue);
     setSelectedExpedition(stage);
     setPreviewExpedition(null);
-    setExpeditionStage(content.startsAt === 'excavation' ? 'excavation' : 'journey');
+    const isEgypt = stage.id === EXPEDITION_STAGE_IDS.EGYPT;
+    const isRome  = stage.id === EXPEDITION_STAGE_IDS.ROME;
+    const hasPrologue = isEgypt || isRome;
+    setExpeditionStage(content.startsAt === 'excavation' ? 'excavation' : hasPrologue ? 'archive-prologue' : 'journey');
+    setInspectedPrologueItems(new Set());
+    setPrologueCinematicStep(null);
     setBaseCampOpen(false);
     setJourneyPaused(false);
     const savedTools = (baseCampProgressionRef.current?.purchasedUpgrades || []).filter(id =>
@@ -3430,6 +4055,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
 
   const resetExpedition = () => {
     const nextMission = chooseEvidenceHuntMission(activeMission.id, stageContent.missions);
+    // Reset goes to 'journey' not 'archive-prologue' — prologue is a one-time entry moment per run, not a replay gate.
     setExpeditionStage(stageContent.startsAt === 'excavation' ? 'excavation' : 'journey');
     setBaseCampOpen(false);
     setJourneyPaused(false);
@@ -3756,6 +4382,577 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
   };
 
   const journeyCursorShouldHide = journeyCursorHidden && !journeyPaused;
+
+  const shouldShowArchivePrologue =
+    (selectedStageId === EXPEDITION_STAGE_IDS.EGYPT || selectedStageId === EXPEDITION_STAGE_IDS.ROME)
+    && expeditionStage === 'archive-prologue';
+  const isRomeArchivePrologue = selectedStageId === EXPEDITION_STAGE_IDS.ROME && expeditionStage === 'archive-prologue';
+
+  const renderArchivePrologue = () => {
+    const allInspected = EGYPT_ARCHIVE_PROLOGUE_ITEMS.every(item => inspectedPrologueItems.has(item.id));
+    const inspectedCount = inspectedPrologueItems.size;
+    const cinematicStep = Number.isInteger(prologueCinematicStep)
+      ? EGYPT_ARCHIVE_CINEMATIC_STEPS[prologueCinematicStep]
+      : null;
+    const cinematicActive = Boolean(cinematicStep);
+    const finalCinematicStep = prologueCinematicStep === EGYPT_ARCHIVE_CINEMATIC_STEPS.length - 1;
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: 'radial-gradient(circle at 50% 0%, rgba(83, 60, 32, 0.34) 0%, rgba(26, 20, 16, 0.96) 42%, #100d0b 100%)',
+        color: '#f1e6cf',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'flex-start',
+        padding: 'clamp(1rem, 4vw, 2.25rem)',
+        fontFamily: 'inherit',
+        overflowY: 'auto',
+      }}>
+        <div style={{ maxWidth: 860, width: '100%', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <header style={{
+            borderBottom: '1px solid rgba(198, 160, 89, 0.22)',
+            paddingBottom: '1rem',
+          }}>
+            <div style={{ marginBottom: '0.5rem', fontSize: '0.72rem', letterSpacing: '0.12em', color: '#caa86e', textTransform: 'uppercase', fontWeight: 800 }}>
+              Heritage Research — Cairo
+            </div>
+            <h1 style={{
+              margin: 0,
+              fontFamily: 'Cinzel, serif',
+              fontSize: 'clamp(1.65rem, 4vw, 2.7rem)',
+              lineHeight: 1.05,
+              color: '#fff7e7',
+              letterSpacing: 0,
+            }}>
+              The archive points to one scarab.
+            </h1>
+            <p style={{ fontSize: '0.98rem', color: '#bda983', margin: '0.75rem 0 0', lineHeight: 1.55, maxWidth: 620 }}>
+              Asha reviews the available records in her normal working context before visiting the pyramid site.
+            </p>
+          </header>
+
+          <section style={{
+            background: 'rgba(17, 13, 10, 0.72)',
+            border: '1px solid rgba(198, 160, 89, 0.22)',
+            borderRadius: 8,
+            padding: 'clamp(1rem, 3vw, 1.35rem)',
+            boxShadow: '0 18px 45px rgba(0, 0, 0, 0.28)',
+          }} aria-label="Review the evidence">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+              <div>
+                <div style={{ fontSize: '0.75rem', color: '#caa86e', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 800 }}>
+                  Review the evidence
+                </div>
+                <p style={{ margin: '0.35rem 0 0', color: '#a99673', lineHeight: 1.45, fontSize: '0.9rem' }}>
+                  {allInspected
+                    ? 'The records are enough to justify a site check.'
+                    : 'Inspect each record before Asha visits the site.'}
+                </p>
+              </div>
+              <div style={{
+                border: '1px solid rgba(198, 160, 89, 0.22)',
+                borderRadius: 999,
+                color: allInspected ? '#bde7ad' : '#caa86e',
+                padding: '0.35rem 0.75rem',
+                fontSize: '0.8rem',
+                fontWeight: 800,
+                whiteSpace: 'nowrap',
+              }}>
+                {inspectedCount} / {EGYPT_ARCHIVE_PROLOGUE_ITEMS.length} reviewed
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.75rem' }}>
+            {EGYPT_ARCHIVE_PROLOGUE_ITEMS.map(item => {
+              const isInspected = inspectedPrologueItems.has(item.id);
+              return (
+                <div
+                  key={item.id}
+                  style={{
+                    background: isInspected ? 'rgba(198, 160, 89, 0.10)' : 'rgba(255, 247, 229, 0.045)',
+                    border: `1px solid ${isInspected ? 'rgba(189, 231, 173, 0.42)' : 'rgba(198, 160, 89, 0.20)'}`,
+                    borderLeft: `4px solid ${isInspected ? '#77b66e' : '#c6a059'}`,
+                    borderRadius: 8,
+                    padding: '1rem',
+                    minHeight: 190,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', marginBottom: '0.75rem' }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '0.68rem', color: '#caa86e', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 800 }}>
+                        {item.label}
+                      </div>
+                      <div style={{ fontFamily: 'Cinzel, serif', fontWeight: 700, marginTop: '0.2rem', marginBottom: isInspected ? '0.5rem' : 0, color: '#fff3dd' }}>
+                        {item.title}
+                      </div>
+                      <div style={{ fontSize: '0.72rem', color: '#8f7d5d', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.45rem', fontWeight: 800 }}>
+                        {item.format}
+                      </div>
+                      {isInspected && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                          {item.body.map((line, i) => (
+                            <div key={i} style={{ fontSize: '0.875rem', color: '#b8a98a', lineHeight: 1.6 }}>{line}</div>
+                          ))}
+                        </div>
+                      )}
+                      {!isInspected && (
+                        <div style={{ fontSize: '0.86rem', color: '#857457', lineHeight: 1.5 }}>
+                          Sealed in the archive tray until inspected.
+                        </div>
+                      )}
+                    </div>
+                    {!isInspected && (
+                      <button
+                        type="button"
+                        onClick={() => setInspectedPrologueItems(prev => new Set([...prev, item.id]))}
+                        style={{
+                          flexShrink: 0,
+                          background: 'rgba(212,175,106,0.15)',
+                          border: '1px solid rgba(212,175,106,0.5)',
+                          borderRadius: 4,
+                          color: '#d4af6a',
+                          padding: '0.35rem 0.75rem',
+                          fontSize: '0.8rem',
+                          cursor: 'pointer',
+                          fontFamily: 'inherit',
+                        }}
+                      >
+                        Inspect record
+                      </button>
+                    )}
+                    {isInspected && (
+                      <div style={{ flexShrink: 0, fontSize: '0.75rem', color: '#6aad6a' }}>✓ Reviewed</div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+            </div>
+          </section>
+
+          {allInspected && !cinematicActive && (
+            <section style={{
+              background: 'linear-gradient(135deg, rgba(73, 50, 28, 0.48) 0%, rgba(17, 13, 10, 0.86) 72%)',
+              border: '1px solid rgba(198, 160, 89, 0.24)',
+              borderLeft: '4px solid #c6a059',
+              borderRadius: 8,
+              padding: '1.15rem',
+              boxShadow: 'inset 0 1px 0 rgba(255, 244, 214, 0.05)',
+            }} aria-label="Travel to Pyramid">
+              <div style={{ fontSize: '0.72rem', letterSpacing: '0.1em', color: '#caa86e', textTransform: 'uppercase', marginBottom: '0.25rem', fontWeight: 800 }}>
+                Site check authorised
+              </div>
+              <h2 style={{ fontFamily: 'Cinzel, serif', color: '#fff3dd', margin: '0 0 0.55rem', fontSize: '1.45rem', letterSpacing: 0 }}>
+                The records point to the pyramid.
+              </h2>
+              <p style={{ color: '#d3c09a', margin: '0 0 1rem', lineHeight: 1.5, maxWidth: 620 }}>
+                Asha has enough evidence to leave the archive and verify the scarab in person.
+              </p>
+              <button
+                type="button"
+                onClick={() => setPrologueCinematicStep(0)}
+                style={{
+                  background: 'rgba(198, 160, 89, 0.2)',
+                  border: '1px solid rgba(198, 160, 89, 0.72)',
+                  borderRadius: 5,
+                  color: '#f2d28c',
+                  padding: '0.66rem 1.2rem',
+                  fontSize: '1rem',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  fontWeight: 800,
+                  letterSpacing: '0.02em',
+                }}
+              >
+                Travel to Pyramid
+              </button>
+            </section>
+          )}
+
+          {!cinematicActive && !allInspected && (
+            <div style={{
+              background: allInspected ? 'rgba(198, 160, 89, 0.08)' : 'rgba(255,255,255,0.025)',
+              border: `1px solid ${allInspected ? 'rgba(198, 160, 89, 0.38)' : 'rgba(255,255,255,0.08)'}`,
+              borderRadius: 8,
+              padding: '1rem 1.1rem',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: '1rem',
+              flexWrap: 'wrap',
+            }}>
+              <div style={{ flex: '1 1 260px' }}>
+                <div style={{ fontSize: '0.72rem', color: allInspected ? '#caa86e' : '#736247', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 800 }}>
+                  Scarab — Floor Carving
+                </div>
+                <div style={{ fontSize: '0.9rem', color: allInspected ? '#cdbb95' : '#76664c', marginTop: '0.35rem', lineHeight: 1.45 }}>
+                  {allInspected
+                    ? 'Old stone. A symbol worn almost smooth. Cross-reference with excavation photo.'
+                    : 'Review all evidence first.'}
+                </div>
+              </div>
+              <button
+                type="button"
+                disabled={!allInspected}
+                style={{
+                  flexShrink: 0,
+                  background: allInspected ? 'rgba(198, 160, 89, 0.2)' : 'rgba(255,255,255,0.04)',
+                  border: `1px solid ${allInspected ? 'rgba(198, 160, 89, 0.65)' : 'rgba(255,255,255,0.09)'}`,
+                  borderRadius: 5,
+                  color: allInspected ? '#f2d28c' : '#5a4a30',
+                  padding: '0.52rem 0.92rem',
+                  fontSize: '0.85rem',
+                  cursor: allInspected ? 'pointer' : 'not-allowed',
+                  fontFamily: 'inherit',
+                  fontWeight: 800,
+                }}
+              >
+                {allInspected ? 'Examine the scarab' : 'Review all evidence first.'}
+              </button>
+            </div>
+          )}
+
+          {cinematicStep && (
+            <section style={{
+              textAlign: 'left',
+              background: 'linear-gradient(135deg, rgba(12, 10, 8, 0.9) 0%, rgba(43, 29, 17, 0.78) 100%)',
+              border: '1px solid rgba(198, 160, 89, 0.30)',
+              borderRadius: 8,
+              padding: 'clamp(1rem, 3vw, 1.45rem)',
+              boxShadow: '0 20px 55px rgba(0, 0, 0, 0.36)',
+            }} aria-label={cinematicStep.title}>
+              <div style={{ fontSize: '0.72rem', letterSpacing: '0.1em', color: '#caa86e', textTransform: 'uppercase', marginBottom: '0.25rem', fontWeight: 800 }}>
+                {cinematicStep.kicker}
+              </div>
+              <h2 style={{ fontFamily: 'Cinzel, serif', color: '#fff3dd', margin: '0 0 0.95rem', fontSize: '1.45rem', letterSpacing: 0 }}>
+                {cinematicStep.title}
+              </h2>
+              <div style={{ display: 'grid', gap: '0.3rem', marginBottom: '1.4rem' }}>
+                {cinematicStep.lines.map((line, i) => (
+                  <div key={line} style={{ fontSize: '0.98rem', color: finalCinematicStep && i >= 10 ? '#f2d28c' : '#d3c09a', fontStyle: finalCinematicStep && i >= 10 ? 'italic' : 'normal', lineHeight: 1.55 }}>{line}</div>
+                ))}
+              </div>
+              {cinematicStep.note && (
+                <p style={{ margin: '0 0 1rem', color: '#d3c09a', fontSize: '0.92rem', lineHeight: 1.45 }}>
+                  {cinematicStep.note}
+                </p>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  if (finalCinematicStep) {
+                    setExpeditionStage('journey');
+                    setPrologueCinematicStep(null);
+                    setNotice('This isn\'t the excavation site.');
+                    return;
+                  }
+                  setPrologueCinematicStep(step => step + 1);
+                }}
+                style={{
+                  background: 'rgba(198, 160, 89, 0.2)',
+                  border: '1px solid rgba(198, 160, 89, 0.72)',
+                  borderRadius: 5,
+                  color: '#f2d28c',
+                  padding: '0.66rem 1.2rem',
+                  fontSize: '1rem',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  fontWeight: 600,
+                  letterSpacing: '0.04em',
+                }}
+              >
+                {cinematicStep.actionLabel}
+              </button>
+            </section>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const renderRomeArchivePrologue = () => {
+    const prologueItems = ROME_ARCHIVE_PROLOGUE_ITEMS;
+    const cinematicSteps = ROME_ARCHIVE_CINEMATIC_STEPS;
+    const allInspected = prologueItems.every(item => inspectedPrologueItems.has(item.id));
+    const inspectedCount = inspectedPrologueItems.size;
+    const cinematicStep = Number.isInteger(prologueCinematicStep) ? cinematicSteps[prologueCinematicStep] : null;
+    const cinematicActive = Boolean(cinematicStep);
+    const finalCinematicStep = prologueCinematicStep === cinematicSteps.length - 1;
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: 'radial-gradient(circle at 50% 0%, rgba(60, 50, 38, 0.36) 0%, rgba(18, 15, 12, 0.97) 42%, #0e0c0a 100%)',
+        color: '#ede4d4',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'flex-start',
+        padding: 'clamp(1rem, 4vw, 2.25rem)',
+        fontFamily: 'inherit',
+        overflowY: 'auto',
+      }}>
+        <div style={{ maxWidth: 860, width: '100%', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <header style={{ borderBottom: '1px solid rgba(180, 155, 100, 0.22)', paddingBottom: '1rem' }}>
+            <div style={{ marginBottom: '0.5rem', fontSize: '0.72rem', letterSpacing: '0.12em', color: '#b8986a', textTransform: 'uppercase', fontWeight: 800 }}>
+              Heritage Research — Rome
+            </div>
+            <h1 style={{
+              margin: 0,
+              fontFamily: 'Cinzel, serif',
+              fontSize: 'clamp(1.65rem, 4vw, 2.7rem)',
+              lineHeight: 1.05,
+              color: '#f5ede0',
+              letterSpacing: 0,
+            }}>
+              The Senate buried something beneath the Forum.
+            </h1>
+            <p style={{ fontSize: '0.98rem', color: '#a89070', margin: '0.75rem 0 0', lineHeight: 1.55, maxWidth: 620 }}>
+              Asha reviews the available records before descending to the Forum site.
+            </p>
+          </header>
+
+          <section style={{
+            background: 'rgba(14, 11, 8, 0.72)',
+            border: '1px solid rgba(180, 155, 100, 0.22)',
+            borderRadius: 8,
+            padding: 'clamp(1rem, 3vw, 1.35rem)',
+            boxShadow: '0 18px 45px rgba(0, 0, 0, 0.30)',
+          }} aria-label="Review the records">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+              <div>
+                <div style={{ fontSize: '0.75rem', color: '#b8986a', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 800 }}>
+                  Review the records
+                </div>
+                <p style={{ margin: '0.35rem 0 0', color: '#9a8060', lineHeight: 1.45, fontSize: '0.9rem' }}>
+                  {allInspected
+                    ? 'The records justify a descent to the sealed site.'
+                    : 'Inspect each record before Asha visits the Forum.'}
+                </p>
+              </div>
+              <div style={{
+                border: '1px solid rgba(180, 155, 100, 0.22)',
+                borderRadius: 999,
+                color: allInspected ? '#a8d898' : '#b8986a',
+                padding: '0.35rem 0.75rem',
+                fontSize: '0.8rem',
+                fontWeight: 800,
+                whiteSpace: 'nowrap',
+              }}>
+                {inspectedCount} / {prologueItems.length} reviewed
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.75rem' }}>
+              {prologueItems.map(item => {
+                const isInspected = inspectedPrologueItems.has(item.id);
+                return (
+                  <div key={item.id} style={{
+                    background: isInspected ? 'rgba(180, 155, 100, 0.10)' : 'rgba(255, 248, 235, 0.04)',
+                    border: `1px solid ${isInspected ? 'rgba(168, 216, 152, 0.42)' : 'rgba(180, 155, 100, 0.20)'}`,
+                    borderLeft: `4px solid ${isInspected ? '#6aaa62' : '#b09060'}`,
+                    borderRadius: 8,
+                    padding: '1rem',
+                    minHeight: 190,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', marginBottom: '0.75rem' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '0.68rem', color: '#b8986a', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 800 }}>
+                          {item.label}
+                        </div>
+                        <div style={{ fontFamily: 'Cinzel, serif', fontWeight: 700, marginTop: '0.2rem', marginBottom: isInspected ? '0.5rem' : 0, color: '#f0e6d0' }}>
+                          {item.title}
+                        </div>
+                        <div style={{ fontSize: '0.72rem', color: '#806850', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.45rem', fontWeight: 800 }}>
+                          {item.format}
+                        </div>
+                        {isInspected && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                            {item.body.map((line, i) => (
+                              <div key={i} style={{ fontSize: '0.875rem', color: '#a89878', lineHeight: 1.6 }}>{line}</div>
+                            ))}
+                          </div>
+                        )}
+                        {!isInspected && (
+                          <div style={{ fontSize: '0.86rem', color: '#786050', lineHeight: 1.5 }}>Tap to inspect this record.</div>
+                        )}
+                      </div>
+                      {!isInspected && (
+                        <button
+                          type="button"
+                          onClick={() => setInspectedPrologueItems(prev => new Set([...prev, item.id]))}
+                          style={{
+                            flexShrink: 0,
+                            background: 'rgba(192, 162, 100, 0.15)',
+                            border: '1px solid rgba(192, 162, 100, 0.5)',
+                            borderRadius: 4,
+                            color: '#c8a872',
+                            padding: '0.35rem 0.75rem',
+                            fontSize: '0.8rem',
+                            cursor: 'pointer',
+                            fontFamily: 'inherit',
+                          }}
+                        >
+                          Inspect record
+                        </button>
+                      )}
+                      {isInspected && (
+                        <div style={{ flexShrink: 0, fontSize: '0.75rem', color: '#6aaa62' }}>✓ Reviewed</div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
+          {allInspected && !cinematicActive && (
+            <section style={{
+              background: 'linear-gradient(135deg, rgba(55, 42, 28, 0.48) 0%, rgba(14, 11, 8, 0.86) 72%)',
+              border: '1px solid rgba(180, 155, 100, 0.24)',
+              borderLeft: '4px solid #b09060',
+              borderRadius: 8,
+              padding: '1.15rem',
+              boxShadow: 'inset 0 1px 0 rgba(240, 230, 200, 0.05)',
+            }} aria-label="Travel to Forum">
+              <div style={{ fontSize: '0.72rem', letterSpacing: '0.1em', color: '#b8986a', textTransform: 'uppercase', marginBottom: '0.25rem', fontWeight: 800 }}>
+                Descent authorised
+              </div>
+              <h2 style={{ fontFamily: 'Cinzel, serif', color: '#f0e6d0', margin: '0 0 0.55rem', fontSize: '1.45rem', letterSpacing: 0 }}>
+                The records point to the Forum.
+              </h2>
+              <p style={{ color: '#c8b890', margin: '0 0 1rem', lineHeight: 1.5, maxWidth: 620 }}>
+                Asha has enough evidence to leave the archive and verify the sealed door in person.
+              </p>
+              <button
+                type="button"
+                onClick={() => setPrologueCinematicStep(0)}
+                style={{
+                  background: 'rgba(180, 155, 100, 0.2)',
+                  border: '1px solid rgba(180, 155, 100, 0.72)',
+                  borderRadius: 5,
+                  color: '#e8c87a',
+                  padding: '0.66rem 1.2rem',
+                  fontSize: '1rem',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  fontWeight: 800,
+                  letterSpacing: '0.02em',
+                }}
+              >
+                Travel to Forum
+              </button>
+            </section>
+          )}
+
+          {!cinematicActive && !allInspected && (
+            <div style={{
+              background: 'rgba(255,255,255,0.025)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: 8,
+              padding: '1rem 1.1rem',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: '1rem',
+              flexWrap: 'wrap',
+            }}>
+              <div style={{ flex: '1 1 260px' }}>
+                <div style={{ fontSize: '0.72rem', color: '#6a5840', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 800 }}>
+                  Sealed Vault Door
+                </div>
+                <div style={{ fontSize: '0.9rem', color: '#6a5840', marginTop: '0.35rem', lineHeight: 1.45 }}>
+                  Review all evidence first.
+                </div>
+              </div>
+              <button
+                type="button"
+                disabled
+                style={{
+                  flexShrink: 0,
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.09)',
+                  borderRadius: 5,
+                  color: '#4a3820',
+                  padding: '0.52rem 0.92rem',
+                  fontSize: '0.85rem',
+                  cursor: 'not-allowed',
+                  fontFamily: 'inherit',
+                  fontWeight: 800,
+                }}
+              >
+                Review all evidence first.
+              </button>
+            </div>
+          )}
+
+          {cinematicStep && (
+            <section style={{
+              textAlign: 'left',
+              background: 'linear-gradient(135deg, rgba(10, 8, 6, 0.92) 0%, rgba(38, 28, 18, 0.80) 100%)',
+              border: '1px solid rgba(180, 155, 100, 0.30)',
+              borderRadius: 8,
+              padding: 'clamp(1rem, 3vw, 1.45rem)',
+              boxShadow: '0 20px 55px rgba(0, 0, 0, 0.36)',
+            }} aria-label={cinematicStep.title}>
+              <div style={{ fontSize: '0.72rem', letterSpacing: '0.1em', color: '#b8986a', textTransform: 'uppercase', marginBottom: '0.25rem', fontWeight: 800 }}>
+                {cinematicStep.kicker}
+              </div>
+              <h2 style={{ fontFamily: 'Cinzel, serif', color: '#f0e6d0', margin: '0 0 0.95rem', fontSize: '1.45rem', letterSpacing: 0 }}>
+                {cinematicStep.title}
+              </h2>
+              <div style={{ display: 'grid', gap: '0.3rem', marginBottom: '1.4rem' }}>
+                {cinematicStep.lines.map((line, i) => (
+                  <div key={line} style={{ fontSize: '0.98rem', color: finalCinematicStep && i >= 8 ? '#e8c87a' : '#c8b890', fontStyle: finalCinematicStep && i >= 8 ? 'italic' : 'normal', lineHeight: 1.55 }}>{line}</div>
+                ))}
+              </div>
+              {cinematicStep.note && (
+                <p style={{ margin: '0 0 1rem', color: '#c8b890', fontSize: '0.92rem', lineHeight: 1.45 }}>
+                  {cinematicStep.note}
+                </p>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  if (finalCinematicStep) {
+                    setExpeditionStage('journey');
+                    setPrologueCinematicStep(null);
+                    setNotice('The Senate sealed this. Now it is open.');
+                    return;
+                  }
+                  setPrologueCinematicStep(step => step + 1);
+                }}
+                style={{
+                  background: 'rgba(180, 155, 100, 0.2)',
+                  border: '1px solid rgba(180, 155, 100, 0.72)',
+                  borderRadius: 5,
+                  color: '#e8c87a',
+                  padding: '0.66rem 1.2rem',
+                  fontSize: '1rem',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  fontWeight: 600,
+                  letterSpacing: '0.04em',
+                }}
+              >
+                {cinematicStep.actionLabel}
+              </button>
+            </section>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  if (shouldShowArchivePrologue) {
+    return isRomeArchivePrologue ? renderRomeArchivePrologue() : renderArchivePrologue();
+  }
 
   if (expeditionStage === 'journey' && !baseCampOpen) {
     return (
@@ -4312,7 +5509,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
                     <span style={{ fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', color: '#c5a059', letterSpacing: '0.08em' }}>Warrior Explorer</span>
                   </div>
                   <p style={{ margin: 0, fontSize: '0.78rem', color: '#a89a7f', lineHeight: 1.45 }}>
-                    Equipped for harsh Egyptian sands. Fits all collected tools and coordinates the expedition with absolute precision.
+                    Equipped for {stageContent.targetCivilisation === 'Ancient Egypt' ? 'harsh Egyptian sands' : 'ancient environments'}. Fits all collected tools and coordinates the expedition with absolute precision.
                   </p>
                 </div>
               </div>
@@ -4652,7 +5849,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
                 </div>
                 <div className="card-body" style={{ overflowY: 'auto', gap: '1rem', padding: '1rem', fontSize: '0.82rem' }}>
                   <p style={{ margin: 0, color: '#a89a7f', lineHeight: 1.45 }}>
-                    Read the question carefully. Connect the historical clues with your knowledge of Ancient Egypt civilisations before choosing your answer.
+                    Read the question carefully. Connect the historical clues with your knowledge of {stageContent.targetCivilisation} civilisations before choosing your answer.
                   </p>
                   <div style={{ borderTop: '1px solid rgba(139,106,72,0.15)', paddingTop: '0.75rem', marginTop: '0.5rem' }}>
                     <small style={{ color: '#c5a059', display: 'block', fontWeight: 700, textTransform: 'uppercase', fontSize: '0.65rem', marginBottom: '0.25rem' }}>Site Clue</small>
@@ -5613,7 +6810,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
                   boxShadow: '0 0 15px rgba(16, 185, 129, 0.4)',
                   border: '1px solid #34d399',
                 }}
-                onClick={() => onSendToLab(collectedEvidence, fieldNotes)}
+                onClick={() => onSendToLab(collectedEvidence, fieldNotes, stageContent.id)}
               >
                 Send to Lab & Build Report <Sparkles size={16} style={{ marginLeft: '0.5rem' }} />
               </button>

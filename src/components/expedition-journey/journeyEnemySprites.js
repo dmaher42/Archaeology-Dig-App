@@ -37,6 +37,12 @@ const ENEMY_VISUAL_SIZE_MULTIPLIERS = {
   riverCrab: 1.42,
   watchtowerSentry: 1.12,
   clayGuardian: 1.16,
+  // Rome families
+  legionShade:       1.14,
+  gladiatorRevenant: 1.22,
+  forumRat:          0.72,
+  vestibuleWisp:     1.80,
+  marbleGolem:       1.85,
 };
 export const WITHHELD_EGYPT_CREATURE_SPRITE_FAMILIES = new Set([
   'cursedStatue',
@@ -484,6 +490,13 @@ export const getEnemySpritePack = (assets, family) => {
 export const getEnemySpriteFamily = (enemy) => {
   if (!enemy) return null;
   const name = (enemy.name || '').toLowerCase();
+  // Rome enemy types
+  if (enemy.type === 'legion-shade'       || name.includes('legion shade') || name.includes('praetorian shade') || name.includes('bath shade') || name.includes('forum shade') || name.includes('ruins guard') || name.includes('apse guard')) return 'legionShade';
+  if (enemy.type === 'gladiator-revenant' || name.includes('gladiator revenant') || name.includes('arena revenant') || name.includes('vault gladiator') || name.includes('nave gladiator') || name.includes("legate's champion")) return 'gladiatorRevenant';
+  if (enemy.type === 'forum-rat'          || name.includes('forum rat') || name.includes('marble rat') || name.includes('steam rat')) return 'forumRat';
+  if (enemy.type === 'vestibule-wisp'     || name.includes('vestibule wisp') || name.includes('forum wisp') || name.includes('hypocaust wisp') || name.includes('drain wisp')) return 'vestibuleWisp';
+  if (enemy.type === 'marble-golem'       || name.includes('marble golem') || name.includes('stone pillar golem') || name.includes('column golem') || name.includes('vault sentinel')) return 'marbleGolem';
+  // Egypt / China enemy types
   if (enemy.type === 'bes' || name.includes('bes')) return 'besGuardian';
   if (enemy.type === 'sand-wisp' || name.includes('sand wisp')) return 'sandWisp';
   if (enemy.type === 'scarab' || name.includes('scarab') || name.includes('beetle')) return 'scarab';
@@ -512,9 +525,21 @@ export const getEnemySpriteFrame = (enemy, combatMode, now = 0) => {
   const family = getEnemySpriteFamily(enemy);
   if (!family) return null;
 
+  // Rome families use 3-pose walk cycles
+  const ROME_FAMILIES = new Set(['legionShade', 'gladiatorRevenant', 'forumRat', 'vestibuleWisp', 'marbleGolem']);
   const restoredTwoPoseWalkFamilies = new Set(['scarab', 'snake', 'bat']);
   const walkPoseCount = restoredTwoPoseWalkFamilies.has(family) ? 2 : 3;
-  const walkFrame = (Math.floor(now / (family === 'bat' || family === 'sandWisp' ? 135 : 180)) % walkPoseCount) + 1;
+  const walkFrameMs = (family === 'bat' || family === 'sandWisp' || family === 'vestibuleWisp') ? 135 : 180;
+  const walkFrame = (Math.floor(now / walkFrameMs) % walkPoseCount) + 1;
+
+  if (ROME_FAMILIES.has(family)) {
+    if (combatMode === 'defeated') return `${family}Defeated`;
+    if (combatMode === 'stunned')  return `${family}Hit`;
+    if (combatMode === 'windup')   return `${family}Windup`;
+    if (combatMode === 'attacking') return `${family}Attack`;
+    return `${family}Walk${walkFrame}`;
+  }
+
   if (combatMode === 'defeated') return `${family}Defeated`;
   if (combatMode === 'stunned') return `${family}Hit`;
   if (combatMode === 'windup') return `${family}Windup`;
