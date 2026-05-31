@@ -10,6 +10,225 @@ import { BOSS_KEY_ITEMS, CHECKPOINTS, getJourneyEnemies, getJourneyMiniBosses, S
 
 export const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
+export const DEFAULT_JOURNEY_PROP_EDITOR_GRID_SIZE = 16;
+export const DEFAULT_JOURNEY_PROP_EDITOR_SCALE_STEP = 0.1;
+export const DEFAULT_JOURNEY_PROP_EDITOR_ROTATION_STEP = 5;
+const STORY_PROP_EXPORT_SOURCE = 'src/components/expedition-journey/journeyLevelData.js::STORY_PROPS';
+
+export const snapJourneyPropCoordinate = (value, gridSize = DEFAULT_JOURNEY_PROP_EDITOR_GRID_SIZE) => {
+  const numericValue = Number(value);
+  const numericGridSize = Number(gridSize);
+  if (!Number.isFinite(numericValue)) return value;
+  if (!Number.isFinite(numericGridSize) || numericGridSize <= 1) return Math.round(numericValue);
+  return Math.round(numericValue / numericGridSize) * numericGridSize;
+};
+
+export const getJourneyPropRoomId = (prop = {}, currentSceneId = null, currentSectionId = null) => (
+  prop.sceneId || prop.sectionId || currentSectionId || currentSceneId || 'unknown-room'
+);
+
+export const applyJourneyPropPlacementEdit = (prop = {}, edit = {}) => {
+  const next = { ...prop };
+  if (Number.isFinite(edit.x)) next.x = edit.x;
+  if (Number.isFinite(edit.y)) next.y = edit.y;
+  if (Number.isFinite(edit.scale)) next.scale = Math.max(0.1, Math.round(edit.scale * 100) / 100);
+  if (Number.isFinite(edit.rotation)) next.rotation = Math.round(edit.rotation * 10) / 10;
+  if (typeof edit.depth === 'string' && edit.depth.trim()) next.depth = edit.depth;
+  if (typeof edit.layer === 'string' && edit.layer.trim()) next.layer = edit.layer;
+  if (Number.isFinite(edit.zIndex)) next.zIndex = edit.zIndex;
+  return next;
+};
+
+const PROP_TEMPLATE_FIELDS = [
+  'type',
+  'atmosphereAssetKey',
+  'width',
+  'height',
+  'yOffset',
+  'alpha',
+  'depth',
+  'layer',
+  'zIndex',
+  'tint',
+  'shadow',
+  'dust',
+  'bury',
+  'placementPreset',
+  'sceneBlend',
+  'groundPlaneOffset',
+  'assetContactYRatio',
+  'burialDepth',
+  'shadowWidth',
+  'shadowHeight',
+  'shadowOpacity',
+  'sandOverlapHeight',
+  'sandMoundWidth',
+  'sandMoundHeight',
+  'groundPebbles',
+  'scale',
+  'rotation',
+];
+
+const toJourneyPropWords = (value = '') => String(value)
+  .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+  .replace(/[-_]+/g, ' ')
+  .trim();
+
+const toJourneyPropTitle = (value = '') => {
+  const words = toJourneyPropWords(value);
+  if (!words) return 'Prop';
+  return words
+    .split(/\s+/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
+const toJourneyPropIdSegment = (value = '') => toJourneyPropWords(value)
+  .toLowerCase()
+  .replace(/[^a-z0-9]+/g, '-')
+  .replace(/^-+|-+$/g, '') || 'prop';
+
+const getJourneyPropTemplateKey = (prop = {}) => (
+  prop.type === 'atmosphere-prop' && prop.atmosphereAssetKey
+    ? `${prop.type}:${prop.atmosphereAssetKey}`
+    : prop.type || 'prop'
+);
+
+const getJourneyPropTemplateLabel = (prop = {}) => (
+  prop.type === 'atmosphere-prop' && prop.atmosphereAssetKey
+    ? toJourneyPropTitle(prop.atmosphereAssetKey)
+    : toJourneyPropTitle(prop.type || prop.label || prop.id)
+);
+
+const copyJourneyPropTemplateFields = (prop = {}) => {
+  const template = {};
+  PROP_TEMPLATE_FIELDS.forEach((field) => {
+    if (prop[field] !== undefined) template[field] = prop[field];
+  });
+  return template;
+};
+
+const makeUniqueJourneyPropId = (baseId, existingIds = []) => {
+  const used = new Set(existingIds.filter(Boolean));
+  if (!used.has(baseId)) return baseId;
+  const numbered = String(baseId).match(/^(.*)-(\d+)$/);
+  if (numbered) {
+    const prefix = numbered[1];
+    let index = Number(numbered[2]) + 1;
+    while (used.has(`${prefix}-${index}`)) index += 1;
+    return `${prefix}-${index}`;
+  }
+  let index = 1;
+  while (used.has(`${baseId}-${index}`)) index += 1;
+  return `${baseId}-${index}`;
+};
+
+export const createJourneyPropPalette = (props = []) => {
+  const entries = new Map();
+  props.forEach((prop) => {
+    const key = getJourneyPropTemplateKey(prop);
+    if (!key || entries.has(key)) return;
+    const template = copyJourneyPropTemplateFields(prop);
+    entries.set(key, {
+      key,
+      label: getJourneyPropTemplateLabel(prop),
+      type: template.type || prop.type || 'prop',
+      ...(template.atmosphereAssetKey ? { atmosphereAssetKey: template.atmosphereAssetKey } : {}),
+      template,
+    });
+  });
+  return [...entries.values()];
+};
+
+export const createJourneyPropFromPaletteItem = ({
+  paletteItem = {},
+  roomId,
+  x,
+  y,
+  existingIds = [],
+} = {}) => {
+  const template = { ...(paletteItem.template || paletteItem) };
+  const type = template.type || paletteItem.type || 'prop';
+  const assetSegment = template.atmosphereAssetKey || type;
+  const idBase = `${toJourneyPropIdSegment(roomId || 'room')}-${toJourneyPropIdSegment(assetSegment)}`;
+  const id = makeUniqueJourneyPropId(`${idBase}-1`, existingIds);
+  const roomKey = roomId || 'unknown-room';
+  const next = {
+    id,
+    sectionId: roomKey,
+    ...template,
+    type,
+    x: Math.round(Number(x) || 0),
+    y: Math.round(Number(y) || 0),
+    label: (paletteItem.label || getJourneyPropTemplateLabel({ ...template, type })).toLowerCase(),
+  };
+  if (roomKey && roomKey !== 'exterior' && roomKey.includes('chamber')) {
+    delete next.sectionId;
+    next.sceneId = roomKey;
+  }
+  return next;
+};
+
+export const duplicateJourneyPropForEditor = ({
+  prop = {},
+  existingIds = [],
+  offsetX = 32,
+  offsetY = -32,
+} = {}) => {
+  const baseId = `${prop.id || 'prop'}-copy`;
+  return {
+    ...prop,
+    id: makeUniqueJourneyPropId(`${baseId}-1`, existingIds),
+    x: Math.round((Number(prop.x) || 0) + offsetX),
+    y: Math.round((Number(prop.y) || 0) + offsetY),
+  };
+};
+
+export const createJourneyPropPlacementExport = ({
+  source = STORY_PROP_EXPORT_SOURCE,
+  roomId,
+  props = [],
+  deletedPropIds = [],
+} = {}) => JSON.stringify({
+  source,
+  room: roomId || 'unknown-room',
+  props: props.map(prop => ({ ...prop })),
+  deletedPropIds: [...deletedPropIds],
+}, null, 2);
+
+export const FORGOTTEN_MURAL_RELIC_SLIDE_PUZZLE_VERSION = 'forgotten-mural-relic-slide-puzzle-2026-05-31';
+export const FORGOTTEN_MURAL_RELIC_SLIDE_PUZZLE_START_TILES = Object.freeze([0, 1, 2, 6, 3, 5, 4, 7, null]);
+export const FORGOTTEN_MURAL_RELIC_SLIDE_PUZZLE_SOLVED_TILES = Object.freeze([0, 1, 2, 3, 4, 5, 6, 7, null]);
+export const FORGOTTEN_MURAL_RELIC_SLIDE_PUZZLE_TILE_LABELS = Object.freeze([
+  'Left wing',
+  'Sun disk',
+  'Right wing',
+  'Upper body',
+  'Scarab heart',
+  'Lower body',
+  'Left talon',
+  'Right talon',
+]);
+export const createForgottenMuralRelicSlidePuzzleTiles = () => [...FORGOTTEN_MURAL_RELIC_SLIDE_PUZZLE_START_TILES];
+export const isForgottenMuralRelicSlidePuzzleSolved = (tiles = []) => (
+  tiles.length === FORGOTTEN_MURAL_RELIC_SLIDE_PUZZLE_SOLVED_TILES.length
+  && tiles.every((tile, index) => tile === FORGOTTEN_MURAL_RELIC_SLIDE_PUZZLE_SOLVED_TILES[index])
+);
+export const getForgottenMuralRelicSlideMove = (tiles = [], tileIndex) => {
+  const emptyIndex = tiles.indexOf(null);
+  if (emptyIndex < 0 || tileIndex < 0) return null;
+  const emptyRow = Math.floor(emptyIndex / 3);
+  const emptyCol = emptyIndex % 3;
+  const tileRow = Math.floor(tileIndex / 3);
+  const tileCol = tileIndex % 3;
+  const adjacent = Math.abs(emptyRow - tileRow) + Math.abs(emptyCol - tileCol) === 1;
+  if (!adjacent) return null;
+  const nextTiles = [...tiles];
+  nextTiles[emptyIndex] = nextTiles[tileIndex];
+  nextTiles[tileIndex] = null;
+  return nextTiles;
+};
+
 export const rectsOverlap = (a, b) => (
   a.x < b.x + b.width
   && a.x + a.width > b.x
@@ -542,6 +761,10 @@ export const makeInitialState = ({ targetCivilisation, permanentUpgradeIds = [],
   forgottenMuralChamberEntered: false,
   forgottenMuralChamberActive: false,
   forgottenMuralChamberTransition: null,
+  forgottenMuralRelicSlidePuzzleOpen: false,
+  forgottenMuralRelicSlidePuzzleSolved: false,
+  forgottenMuralRelicSlidePuzzleTiles: [],
+  forgottenMuralRelicSlidePuzzleMoves: 0,
   scribeChamberEntered: false,
   scribeChamberActive: false,
   scribeChamberDoorSealed: false,

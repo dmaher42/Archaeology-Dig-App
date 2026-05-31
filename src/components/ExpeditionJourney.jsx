@@ -82,16 +82,32 @@ import {
 } from './expedition-journey/journeyDataRouter';
 
 import {
+  applyJourneyPropPlacementEdit,
   clamp,
+  createJourneyPropFromPaletteItem,
+  createJourneyPropPalette,
+  createForgottenMuralRelicSlidePuzzleTiles,
+  createJourneyPropPlacementExport,
+  DEFAULT_JOURNEY_PROP_EDITOR_ROTATION_STEP,
+  DEFAULT_JOURNEY_PROP_EDITOR_GRID_SIZE,
+  DEFAULT_JOURNEY_PROP_EDITOR_SCALE_STEP,
+  duplicateJourneyPropForEditor,
+  FORGOTTEN_MURAL_RELIC_SLIDE_PUZZLE_START_TILES,
+  FORGOTTEN_MURAL_RELIC_SLIDE_PUZZLE_TILE_LABELS,
+  FORGOTTEN_MURAL_RELIC_SLIDE_PUZZLE_VERSION,
+  getForgottenMuralRelicSlideMove,
   getCollectibleHitbox,
   getEnemyAttackHurtbox,
   getHazardHitbox,
+  getJourneyPropRoomId,
   getPlayerBodyHitbox,
   getSectionForX,
+  isForgottenMuralRelicSlidePuzzleSolved,
   isLandingOnPlatform,
   makeInitialState,
   rectsOverlap,
   resolveEnemyContact,
+  snapJourneyPropCoordinate,
   updatePlayerAnimation,
 } from './expedition-journey/journeyUtils';
 
@@ -576,9 +592,10 @@ const ROUTE_GATE_FRONT_SRC = 'assets/expedition/environment/egypt-opening/route-
 const ROUTE_GATE_BACK_SRC = 'assets/expedition/environment/egypt-opening/route-gate-back.png';
 const ROUTE_GATE_SLAB_SRC = 'assets/expedition/environment/egypt-opening/route-gate-slab.png';
 const MUMMIFICATION_CHAMBER_EXTERIOR_SRC = 'assets/expedition/environment/desert-temple/mummification-chamber-exterior-climb-structure.png';
-const MUMMIFICATION_CHAMBER_INTERIOR_SRC = 'assets/expedition/environment/desert-temple/mummification-chamber-interior.png';
+const MUMMIFICATION_CHAMBER_INTERIOR_SRC = 'assets/expedition/environment/desert-temple/mummification-chamber-interior-side-scroll-2026-05-31.png';
 const FORGOTTEN_MURAL_ALCOVE_CLIMB_STRUCTURE_SRC = 'assets/expedition/environment/desert-temple/forgotten-mural-alcove-climb-structure.png';
 const FORGOTTEN_MURAL_CHAMBER_SRC = 'assets/expedition/environment/desert-temple/forgotten-mural-chamber.png';
+const FORGOTTEN_MURAL_RELIC_SLIDE_PUZZLE_ART_SRC = 'assets/expedition/environment/desert-temple/forgotten-mural-relic-slide-puzzle-2026-06-01.png';
 const SCRIBE_CHAMBER_EXTERIOR_SRC = 'assets/expedition/environment/desert-temple/scribe-locked-chamber-exterior-climb-structure.png';
 const SACRED_RECORD_WAY_BACKGROUND_ASSETS = {
   'mummification-link': 'assets/expedition/environment/desert-temple/sacred-record-way-mummification-link.png',
@@ -598,7 +615,7 @@ const ROUTE_GATE_ASSET_VERSION = 'imagegen-egypt-route-gate-arch-column-slab-202
 const OPENING_PYRAMID_FACADE_VERSION = 'opening-pyramid-facade-2026-05-19';
 const OPENING_TOMB_STAIRWELL_VERSION = 'opening-tomb-stairwell-generated-2026-05-21';
 const MUMMIFICATION_CHAMBER_EXTERIOR_VERSION = 'imagegen-mummification-chamber-visible-climb-structure-2026-05-29';
-const MUMMIFICATION_CHAMBER_INTERIOR_VERSION = 'imagegen-mummification-chamber-interior-2026-05-27';
+const MUMMIFICATION_CHAMBER_INTERIOR_VERSION = 'imagegen-mummification-chamber-side-scroll-puzzle-ready-2026-05-31';
 const FORGOTTEN_MURAL_ALCOVE_CLIMB_STRUCTURE_VERSION = 'imagegen-forgotten-mural-alcove-climb-structure-2026-05-24';
 const FORGOTTEN_MURAL_CHAMBER_VERSION = 'imagegen-forgotten-mural-chamber-2026-05-24';
 const SCRIBE_CHAMBER_EXTERIOR_VERSION = 'imagegen-scribe-locked-chamber-exterior-climb-structure-2026-05-28';
@@ -782,14 +799,14 @@ const EGYPT_HAZARD_DECAL_PLACEMENT_BY_HAZARD = {
 };
 const openingJourneyY = (y) => y + JOURNEY_VERTICAL_OFFSET;
 const MUMMIFICATION_CHAMBER_ENTRY_SPAWN = {
-  x: scaleJourneyX(650),
+  x: scaleJourneyX(596),
   y: openingJourneyY(318),
-  cameraAnchorRatio: 0.38,
+  cameraAnchorRatio: 0.56,
   direction: 1,
 };
 const MUMMIFICATION_CHAMBER_RETURN_FALLBACK = {
   x: scaleJourneyX(710),
-  y: openingJourneyY(48),
+  y: openingJourneyY(-7),
   cameraAnchorRatio: 0.42,
   direction: 1,
 };
@@ -797,7 +814,7 @@ const MUMMIFICATION_CHAMBER_ENTRY_TRIGGER = {
   minX: scaleJourneyX(720),
   maxX: scaleJourneyX(748),
   maxY: GROUND_Y - 190,
-  footY: openingJourneyY(-167),
+  footY: openingJourneyY(-222),
   footTolerance: 22,
 };
 const MUMMIFICATION_CHAMBER_CAMERA_X = scaleJourneyX(520);
@@ -806,19 +823,21 @@ const MUMMIFICATION_CHAMBER_BOUNDS = {
   maxX: scaleJourneyX(760),
 };
 const MUMMIFICATION_CHAMBER_EXIT_TRIGGER = {
-  minX: scaleJourneyX(520),
-  maxX: scaleJourneyX(548),
+  minX: scaleJourneyX(535),
+  maxX: scaleJourneyX(565),
   maxY: GROUND_Y - 20,
   footY: openingJourneyY(318),
   footTolerance: 20,
 };
-const MUMMIFICATION_CHAMBER_INTERIOR_ASSET_DESCRIPTION = 'massive embalming table, wrapped mummy, floating linen, canopic jars, oils, Anubis statue, glowing hieroglyphics';
+const MUMMIFICATION_CHAMBER_INTERIOR_ASSET_DESCRIPTION = 'side-on mummification chamber, reachable mummy table, linen, canopic jars, oils, ritual tablet, Anubis statue, glowing exit seal';
 const MUMMIFICATION_CHAMBER_READABILITY = Object.freeze({
-  mummificationChamberPuzzleCenterpiece: { x: 650, y: 392, radiusX: 245, radiusY: 72 },
+  mummificationChamberPuzzleCenterpiece: { x: 565, y: 310, radiusX: 210, radiusY: 64 },
   mummificationChamberReadableZones: [
-    { id: 'left-sealed-entrance', x: 96, y: 376, radiusX: 70, radiusY: 136 },
-    { id: 'embalming-table', x: 640, y: 392, radiusX: 245, radiusY: 72 },
-    { id: 'canopic-jars-and-oils', x: 488, y: 488, radiusX: 154, radiusY: 70 },
+    { id: 'left-sealed-entrance', x: 154, y: 340, radiusX: 88, radiusY: 160 },
+    { id: 'embalming-table', x: 565, y: 314, radiusX: 220, radiusY: 80 },
+    { id: 'linen-and-oils', x: 350, y: 465, radiusX: 140, radiusY: 82 },
+    { id: 'canopic-jars', x: 585, y: 438, radiusX: 185, radiusY: 92 },
+    { id: 'ritual-tablet', x: 780, y: 475, radiusX: 80, radiusY: 90 },
   ],
 });
 const MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS = Object.freeze([
@@ -829,8 +848,8 @@ const MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS = Object.freeze([
     message: 'This was not only a body being preserved. It was the self being carried across.',
     successMessage: 'The chamber grows still.',
     pulseText: 'TABLE HONOURED',
-    screen: { x: 610, y: 356, width: 84, height: 84 },
-    hitbox: { x: 440, y: 430, width: 420, height: 170 },
+    screen: { x: 565, y: 340, width: 120, height: 84 },
+    hitbox: { x: 430, y: 350, width: 320, height: 180 },
   },
   {
     id: 'mummification-linen-wrappings',
@@ -839,8 +858,8 @@ const MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS = Object.freeze([
     message: 'Layer by layer. Not hidden. Held together.',
     successMessage: 'The linen shifts as if remembering its purpose.',
     pulseText: 'LINEN PREPARED',
-    screen: { x: 622, y: 214, width: 118, height: 108 },
-    hitbox: { x: 500, y: 392, width: 310, height: 208 },
+    screen: { x: 295, y: 446, width: 114, height: 82 },
+    hitbox: { x: 245, y: 410, width: 170, height: 150 },
   },
   {
     id: 'mummification-canopic-jars',
@@ -849,8 +868,8 @@ const MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS = Object.freeze([
     message: 'Not storage. Safekeeping.',
     successMessage: 'The jars settle into silence.',
     pulseText: 'JARS SEALED',
-    screen: { x: 428, y: 470, width: 88, height: 88 },
-    hitbox: { x: 360, y: 456, width: 190, height: 144 },
+    screen: { x: 585, y: 452, width: 230, height: 108 },
+    hitbox: { x: 450, y: 408, width: 275, height: 160 },
   },
   {
     id: 'mummification-ritual-tablet',
@@ -859,8 +878,8 @@ const MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS = Object.freeze([
     message: 'The name has been scratched away. Someone tried to remove more than stone.',
     successMessage: 'A faint line of the name returns.',
     pulseText: 'NAME REMEMBERED',
-    screen: { x: 792, y: 420, width: 82, height: 98 },
-    hitbox: { x: 735, y: 420, width: 180, height: 180 },
+    screen: { x: 780, y: 456, width: 90, height: 108 },
+    hitbox: { x: 735, y: 410, width: 130, height: 170 },
   },
   {
     id: 'mummification-oils-resins',
@@ -869,8 +888,8 @@ const MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS = Object.freeze([
     message: 'Preservation was care. Not display.',
     successMessage: 'The scent of resin rises from the stone.',
     pulseText: 'OILS APPLIED',
-    screen: { x: 540, y: 484, width: 92, height: 76 },
-    hitbox: { x: 505, y: 452, width: 160, height: 148 },
+    screen: { x: 806, y: 380, width: 122, height: 76 },
+    hitbox: { x: 740, y: 360, width: 170, height: 170 },
   },
   {
     id: 'mummification-exit-seal',
@@ -879,8 +898,8 @@ const MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS = Object.freeze([
     message: 'The seal recognises care before passage.',
     lockedMessage: 'The seal remains closed.',
     pulseText: 'SEAL OPEN',
-    screen: { x: 82, y: 382, width: 88, height: 88 },
-    hitbox: { x: 0, y: 360, width: 168, height: 240 },
+    screen: { x: 154, y: 316, width: 104, height: 130 },
+    hitbox: { x: 78, y: 250, width: 150, height: 245 },
     exitSeal: true,
   },
 ]);
@@ -888,13 +907,50 @@ const MUMMIFICATION_CHAMBER_REQUIRED_INSPECTION_IDS = MUMMIFICATION_CHAMBER_INTE
   .filter(item => !item.exitSeal)
   .map(item => item.id);
 // Ritual preparation sequence — the order the player must activate each object
-const MUMMIFICATION_CHAMBER_RITUAL_SEQUENCE = [
-  'mummification-oils-resins',
-  'mummification-linen-wrappings',
-  'mummification-canopic-jars',
-  'mummification-ritual-tablet',
-  'mummification-embalming-table',
-];
+const MUMMIFICATION_CHAMBER_RITUAL_GUIDANCE_VERSION = 'mummification-ritual-guided-sequence-2026-05-31';
+const MUMMIFICATION_CHAMBER_RITUAL_STEPS = Object.freeze([
+  {
+    id: 'mummification-embalming-table',
+    rite: 'Cleanse the body',
+    guideLabel: 'Cleanse the body',
+    shortLabel: 'Cleanse',
+    hint: 'Begin at the embalming table. Cleansing comes before preservation.',
+    pulseText: 'BODY CLEANSED',
+  },
+  {
+    id: 'mummification-canopic-jars',
+    rite: 'Remove organs and dry the body',
+    guideLabel: 'Prepare the jars',
+    shortLabel: 'Jars',
+    hint: 'The canopic jars come next. The body is prepared before oils or linen.',
+    pulseText: 'JARS PREPARED',
+  },
+  {
+    id: 'mummification-oils-resins',
+    rite: 'Anoint with oils and resins',
+    guideLabel: 'Apply oils',
+    shortLabel: 'Oils',
+    hint: 'Now apply the oils and resins before wrapping.',
+    pulseText: 'OILS APPLIED',
+  },
+  {
+    id: 'mummification-linen-wrappings',
+    rite: 'Wrap body in linen',
+    guideLabel: 'Wrap in linen',
+    shortLabel: 'Linen',
+    hint: 'The linen follows the oils. Wrap only after the body is prepared.',
+    pulseText: 'LINEN WRAPPED',
+  },
+  {
+    id: 'mummification-ritual-tablet',
+    rite: 'Place in sarcophagus with amulets',
+    guideLabel: 'Speak the name',
+    shortLabel: 'Name',
+    hint: 'The name is last. The seal opens when the life is remembered.',
+    pulseText: 'NAME SPOKEN',
+  },
+]);
+const MUMMIFICATION_CHAMBER_RITUAL_SEQUENCE = MUMMIFICATION_CHAMBER_RITUAL_STEPS.map(step => step.id);
 const MUMMIFICATION_CHAMBER_ATMOSPHERE_VERSION = 'mummification-chamber-atmosphere-progression-2026-05-28';
 const getMummificationChamberAtmosphere = (current) => {
   const inspectedObjectIds = current.mummificationChamberInspectedObjectIds || new Set();
@@ -2301,6 +2357,82 @@ const getStoryPropDepth = (prop) => {
     || 'midground';
 };
 
+const GENERATED_STORY_PROP_BOUNDS = {
+  'generated-mummification-chamber-entrance': { width: 1360, height: 705 },
+  'generated-climb-structure': { width: 1420, height: 690 },
+  'generated-scribe-chamber-doorway': { width: 1120, height: 620 },
+};
+
+const STORY_PROP_DEPTH_ORDER = {
+  background: 0,
+  midground: 1,
+  grounded: 2,
+  'route-edge': 3,
+};
+
+const getStoryPropEditorSize = (prop = {}) => {
+  const generated = GENERATED_STORY_PROP_BOUNDS[prop.type];
+  if (generated) {
+    return {
+      ...generated,
+      ...(Number.isFinite(prop.width) ? { width: prop.width } : {}),
+      ...(Number.isFinite(prop.height) ? { height: prop.height } : {}),
+      yOffset: 0,
+      depth: getStoryPropDepth(prop),
+    };
+  }
+  const placementPreset = getStoryPropPlacementPreset(prop) || {};
+  const propSize = {
+    ...(PROP_GROUNDING_CONFIG[prop.type] || { width: 72, height: 72, yOffset: 0, alpha: 0.78, depth: 'midground', tint: 'warm' }),
+    ...(STORY_PROP_GROUNDING_OVERRIDES[prop.id] || {}),
+    ...placementPreset,
+    ...(Number.isFinite(prop.width) ? { width: prop.width } : {}),
+    ...(Number.isFinite(prop.height) ? { height: prop.height } : {}),
+    ...(Number.isFinite(prop.yOffset) ? { yOffset: prop.yOffset } : {}),
+    ...(Number.isFinite(prop.scale) ? { scale: prop.scale } : {}),
+    ...(prop.depth ? { depth: prop.depth } : {}),
+  };
+  if (Number.isFinite(propSize.scale)) {
+    propSize.width *= propSize.scale;
+    propSize.height *= propSize.scale;
+  }
+  return propSize;
+};
+
+const getStoryPropEditorBounds = (prop, cameraX, current) => {
+  const propDepth = getStoryPropDepth(prop);
+  const propSize = getStoryPropEditorSize(prop);
+  const x = worldToScreenX(prop.x, cameraX);
+  const verticalOffset = !isInteriorChamberScene(current) ? current.secretVerticalCameraOffset || 0 : 0;
+  if (GENERATED_STORY_PROP_BOUNDS[prop.type]) {
+    return {
+      x: x - propSize.width / 2,
+      y: prop.y + verticalOffset,
+      width: propSize.width,
+      height: propSize.height,
+      depth: propDepth,
+    };
+  }
+  const shouldGroundLock = shouldGroundLockAtmosphereProp(prop, propDepth);
+  const propGrounding = resolvePropGroundingSettings({ ...propSize, x: prop.x });
+  const rawAnchorY = prop.y + (propSize.yOffset || 0);
+  const explicitGroundY = Number.isFinite(propSize.groundPlaneY)
+    ? propSize.groundPlaneY
+    : Number.isFinite(propSize.groundPlaneOffset)
+      ? GROUND_Y + propSize.groundPlaneOffset
+      : null;
+  const anchorY = explicitGroundY ?? (shouldGroundLock
+    ? Math.max(rawAnchorY, GROUND_Y - ATMOSPHERE_GROUND_LOCK_MARGIN)
+    : rawAnchorY);
+  return {
+    x: x - propSize.width / 2,
+    y: anchorY - propSize.height * propGrounding.contactRatio + verticalOffset,
+    width: propSize.width,
+    height: propSize.height,
+    depth: propDepth,
+  };
+};
+
 const finiteNumber = (value, fallback) => (Number.isFinite(value) ? value : fallback);
 
 const resolvePropGroundingSettings = (config = {}) => {
@@ -2549,6 +2681,7 @@ export default function ExpeditionJourney({
     backgroundPackId,
     characterPresetId: selectedCharacterPresetId,
   }), [backgroundPackId, selectedCharacterPresetId, targetCivilisation]);
+  const propEditorPalette = createJourneyPropPalette(STORY_PROPS);
   const selectedCharacterPreset = getPlayerCharacterPreset(selectedCharacterPresetId);
   const [gameState, setGameState] = useState(() => makeInitialState({
     targetCivilisation,
@@ -2557,6 +2690,33 @@ export default function ExpeditionJourney({
   }));
   const [briefingOpen, setBriefingOpen] = useState(true);
   const [guardianChallengeUi, setGuardianChallengeUi] = useState(null);
+  const propPlacementEditorRef = useRef({
+    enabled: false,
+    selectedPropId: null,
+    dragging: null,
+    gridSnap: false,
+    gridSize: DEFAULT_JOURNEY_PROP_EDITOR_GRID_SIZE,
+    paletteOpen: false,
+    selectedPaletteKey: null,
+    createdProps: [],
+    edits: {},
+    deletedIds: new Set(),
+    exportText: '',
+    exportVisible: false,
+    savedAt: null,
+  });
+  const [propEditorUi, setPropEditorUi] = useState({
+    enabled: false,
+    selectedProp: null,
+    gridSnap: false,
+    gridSize: DEFAULT_JOURNEY_PROP_EDITOR_GRID_SIZE,
+    paletteOpen: false,
+    selectedPaletteKey: null,
+    palette: [],
+    exportText: '',
+    exportVisible: false,
+    savedAt: null,
+  });
   const canvasRef = useRef(null);
   const stateRef = useRef(gameState);
   const keysRef = useRef({});
@@ -2620,6 +2780,214 @@ export default function ExpeditionJourney({
       }
       : null);
   }, []);
+
+  const getActivePropEditorRoomId = useCallback((current = stateRef.current) => {
+    const sceneId = getJourneySceneId(current);
+    if (sceneId !== JOURNEY_SCENE_IDS.EXTERIOR) return sceneId;
+    return current.currentSectionId || getSectionForX(current.player.x + current.player.width / 2).id;
+  }, []);
+
+  const getAllPropEditorStoryProps = useCallback(() => ([
+    ...STORY_PROPS,
+    ...propPlacementEditorRef.current.createdProps,
+  ]), []);
+
+  const getPropEditorBasePropById = useCallback((propId) => (
+    propPlacementEditorRef.current.createdProps.find(prop => prop.id === propId)
+    || STORY_PROPS.find(prop => prop.id === propId)
+    || null
+  ), []);
+
+  const getEditedStoryProp = useCallback((prop) => {
+    if (!prop?.id) return prop;
+    const editor = propPlacementEditorRef.current;
+    if (editor.deletedIds.has(prop.id)) return null;
+    return applyJourneyPropPlacementEdit(prop, editor.edits[prop.id] || {});
+  }, []);
+
+  const getRenderableStoryProps = useCallback((current = stateRef.current) => (
+    getAllPropEditorStoryProps()
+      .map(prop => getEditedStoryProp(prop))
+      .filter(prop => prop && isEntityActiveInScene(prop, current))
+  ), [getAllPropEditorStoryProps, getEditedStoryProp]);
+
+  const getPropEditorSelectedProp = useCallback((current = stateRef.current) => {
+    const editor = propPlacementEditorRef.current;
+    if (!editor.selectedPropId) return null;
+    const baseProp = getPropEditorBasePropById(editor.selectedPropId);
+    const prop = getEditedStoryProp(baseProp);
+    if (!prop || !isEntityActiveInScene(prop, current)) return null;
+    return prop;
+  }, [getEditedStoryProp, getPropEditorBasePropById]);
+
+  const getPropEditorUiState = useCallback((current = stateRef.current) => {
+    const editor = propPlacementEditorRef.current;
+    const prop = getPropEditorSelectedProp(current);
+    const roomId = prop
+      ? getJourneyPropRoomId(prop, getJourneySceneId(current), current.currentSectionId)
+      : getActivePropEditorRoomId(current);
+    return {
+      enabled: editor.enabled,
+      selectedProp: prop ? {
+        id: prop.id,
+        roomId,
+        x: Math.round(prop.x),
+        y: Math.round(prop.y),
+        type: prop.type || 'prop',
+        scale: Number.isFinite(prop.scale) ? prop.scale : 1,
+        rotation: Number.isFinite(prop.rotation) ? prop.rotation : 0,
+        depth: getStoryPropDepth(prop),
+        layer: prop.layer || 'default',
+        zIndex: Number.isFinite(prop.zIndex) ? prop.zIndex : 'auto',
+      } : null,
+      gridSnap: editor.gridSnap,
+      gridSize: editor.gridSize,
+      paletteOpen: editor.paletteOpen,
+      selectedPaletteKey: editor.selectedPaletteKey,
+      palette: propEditorPalette,
+      exportText: editor.exportText,
+      exportVisible: editor.exportVisible,
+      savedAt: editor.savedAt,
+    };
+  }, [getActivePropEditorRoomId, getPropEditorSelectedProp, propEditorPalette]);
+
+  const refreshPropEditorUi = useCallback(() => {
+    setPropEditorUi(getPropEditorUiState());
+  }, [getPropEditorUiState]);
+
+  const getPropEditorPointer = useCallback((event) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return null;
+    const rect = canvas.getBoundingClientRect();
+    const screenX = ((event.clientX - rect.left) / rect.width) * CANVAS_WIDTH;
+    const screenY = ((event.clientY - rect.top) / rect.height) * CANVAS_HEIGHT;
+    const current = stateRef.current;
+    const verticalOffset = !isInteriorChamberScene(current) ? current.secretVerticalCameraOffset || 0 : 0;
+    return {
+      screenX,
+      screenY,
+      worldX: screenX + current.cameraX,
+      worldY: screenY - verticalOffset,
+    };
+  }, []);
+
+  const findEditableStoryPropAt = useCallback((screenX, screenY) => {
+    const current = stateRef.current;
+    const cameraX = Number.isFinite(current.cameraX) ? current.cameraX : 0;
+    return getRenderableStoryProps(current)
+      .map((prop, index) => ({
+        prop,
+        index,
+        bounds: getStoryPropEditorBounds(prop, cameraX, current),
+      }))
+      .filter(({ bounds }) => (
+        screenX >= bounds.x
+        && screenX <= bounds.x + bounds.width
+        && screenY >= bounds.y
+        && screenY <= bounds.y + bounds.height
+      ))
+      .sort((a, b) => {
+        const depthDelta = (STORY_PROP_DEPTH_ORDER[a.bounds.depth] || 0) - (STORY_PROP_DEPTH_ORDER[b.bounds.depth] || 0);
+        if (depthDelta !== 0) return depthDelta;
+        const zDelta = (Number(a.prop.zIndex) || 0) - (Number(b.prop.zIndex) || 0);
+        if (zDelta !== 0) return zDelta;
+        const areaDelta = (b.bounds.width * b.bounds.height) - (a.bounds.width * a.bounds.height);
+        if (areaDelta !== 0) return areaDelta;
+        return a.index - b.index;
+      })
+      .at(-1)?.prop || null;
+  }, [getRenderableStoryProps]);
+
+  const savePropPlacementExport = useCallback(() => {
+    const editor = propPlacementEditorRef.current;
+    const current = stateRef.current;
+    const roomId = getActivePropEditorRoomId(current);
+    const roomProps = getAllPropEditorStoryProps()
+      .filter(prop => getJourneyPropRoomId(prop, getJourneySceneId(current), current.currentSectionId) === roomId)
+      .map(prop => getEditedStoryProp(prop))
+      .filter(Boolean);
+    editor.exportText = createJourneyPropPlacementExport({
+      roomId,
+      props: roomProps,
+      deletedPropIds: [...editor.deletedIds].filter((propId) => {
+        const prop = getPropEditorBasePropById(propId);
+        return prop && getJourneyPropRoomId(prop, getJourneySceneId(current), current.currentSectionId) === roomId;
+      }),
+    });
+    editor.exportVisible = true;
+    editor.savedAt = new Date().toLocaleTimeString();
+    refreshPropEditorUi();
+  }, [getActivePropEditorRoomId, getAllPropEditorStoryProps, getEditedStoryProp, getPropEditorBasePropById, refreshPropEditorUi]);
+
+  const deleteSelectedPropFromEditor = useCallback(() => {
+    const editor = propPlacementEditorRef.current;
+    const selectedId = editor.selectedPropId;
+    if (!selectedId) return;
+    const selectedProp = getPropEditorSelectedProp();
+    if (!selectedProp) return;
+    const confirmed = window.confirm(`Delete prop "${selectedProp.id}" from ${getJourneyPropRoomId(selectedProp, getJourneySceneId(stateRef.current), stateRef.current.currentSectionId)}?`);
+    if (!confirmed) return;
+    const createdIndex = editor.createdProps.findIndex(prop => prop.id === selectedId);
+    if (createdIndex >= 0) {
+      editor.createdProps.splice(createdIndex, 1);
+    } else {
+      editor.deletedIds.add(selectedId);
+    }
+    delete editor.edits[selectedId];
+    editor.selectedPropId = null;
+    editor.dragging = null;
+    savePropPlacementExport();
+  }, [getPropEditorSelectedProp, savePropPlacementExport]);
+
+  const getPropEditorExistingIds = useCallback(() => getAllPropEditorStoryProps().map(prop => prop.id), [getAllPropEditorStoryProps]);
+
+  const updateSelectedPropEditorTransform = useCallback((edit) => {
+    const editor = propPlacementEditorRef.current;
+    const selectedProp = getPropEditorSelectedProp();
+    if (!selectedProp) return;
+    editor.edits[selectedProp.id] = {
+      ...(editor.edits[selectedProp.id] || {}),
+      ...edit,
+    };
+    refreshPropEditorUi();
+  }, [getPropEditorSelectedProp, refreshPropEditorUi]);
+
+  const duplicateSelectedPropInEditor = useCallback(() => {
+    const editor = propPlacementEditorRef.current;
+    const selectedProp = getPropEditorSelectedProp();
+    if (!selectedProp) return;
+    const duplicate = duplicateJourneyPropForEditor({
+      prop: selectedProp,
+      existingIds: getPropEditorExistingIds(),
+    });
+    editor.createdProps.push(duplicate);
+    editor.selectedPropId = duplicate.id;
+    editor.edits[duplicate.id] = {};
+    editor.deletedIds.delete(duplicate.id);
+    editor.paletteOpen = false;
+    refreshPropEditorUi();
+  }, [getPropEditorExistingIds, getPropEditorSelectedProp, refreshPropEditorUi]);
+
+  const createPropFromEditorPalette = useCallback((pointer) => {
+    const editor = propPlacementEditorRef.current;
+    const paletteItem = propEditorPalette.find(item => item.key === editor.selectedPaletteKey);
+    if (!paletteItem) return null;
+    const roomId = getActivePropEditorRoomId(stateRef.current);
+    const nextProp = createJourneyPropFromPaletteItem({
+      paletteItem,
+      roomId,
+      x: editor.gridSnap ? snapJourneyPropCoordinate(pointer.worldX, editor.gridSize) : Math.round(pointer.worldX),
+      y: editor.gridSnap ? snapJourneyPropCoordinate(pointer.worldY, editor.gridSize) : Math.round(pointer.worldY),
+      existingIds: getPropEditorExistingIds(),
+    });
+    editor.createdProps.push(nextProp);
+    editor.selectedPropId = nextProp.id;
+    editor.selectedPaletteKey = null;
+    editor.paletteOpen = false;
+    editor.deletedIds.delete(nextProp.id);
+    refreshPropEditorUi();
+    return nextProp;
+  }, [getActivePropEditorRoomId, getPropEditorExistingIds, propEditorPalette, refreshPropEditorUi]);
 
   useEffect(() => {
     window.localStorage.setItem(CHARACTER_LOADER_STORAGE_KEY, selectedCharacterPresetId);
@@ -3547,6 +3915,54 @@ export default function ExpeditionJourney({
     challenge.currentIndex += 1;
     challenge.selectedAnswerIndex = null;
     challenge.feedback = null;
+    syncHud();
+  }, [audioControls, syncHud]);
+
+  const moveForgottenMuralRelicSlideTile = useCallback((tileIndex) => {
+    const current = stateRef.current;
+    if (!current.forgottenMuralRelicSlidePuzzleOpen || current.forgottenMuralRelicSlidePuzzleSolved) return;
+    const nextTiles = getForgottenMuralRelicSlideMove(current.forgottenMuralRelicSlidePuzzleTiles || [], tileIndex);
+    if (!nextTiles) {
+      current.notice = 'That relic piece cannot slide from here.';
+      current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 1.1);
+      audioControls?.playError?.();
+      syncHud();
+      return;
+    }
+
+    current.forgottenMuralRelicSlidePuzzleTiles = nextTiles;
+    current.forgottenMuralRelicSlidePuzzleMoves = (current.forgottenMuralRelicSlidePuzzleMoves || 0) + 1;
+    if (isForgottenMuralRelicSlidePuzzleSolved(nextTiles)) {
+      current.forgottenMuralRelicSlidePuzzleSolved = true;
+      current.forgottenMuralRelicSlidePuzzleOpen = false;
+      current.forgottenMuralChamberRestored = true;
+      current.notice = 'Asha restores the broken relic. The warning mural glows again.';
+      current.cinematicEvent = {
+        id: 'forgotten-mural-relic-slide-puzzle-solved',
+        name: 'Anubis',
+        message: 'You restored what others tried to erase. I saw it.',
+        temporary: true,
+      };
+      current.cinematicTimer = 3.2;
+      current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 2.6);
+      current.hitStopTimer = Math.max(current.hitStopTimer, 0.05);
+      audioControls?.playLevelUp?.();
+    } else {
+      current.notice = 'The relic piece slides into the empty cut.';
+      current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 0.85);
+      audioControls?.playSuccess?.();
+    }
+    syncHud();
+  }, [audioControls, syncHud]);
+
+  const resetForgottenMuralRelicSlidePuzzle = useCallback(() => {
+    const current = stateRef.current;
+    if (!current.forgottenMuralRelicSlidePuzzleOpen || current.forgottenMuralRelicSlidePuzzleSolved) return;
+    current.forgottenMuralRelicSlidePuzzleTiles = createForgottenMuralRelicSlidePuzzleTiles();
+    current.forgottenMuralRelicSlidePuzzleMoves = 0;
+    current.notice = 'Asha resets the broken relic pieces.';
+    current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 1.1);
+    audioControls?.playExpeditionSfx?.('gateBlocked');
     syncHud();
   }, [audioControls, syncHud]);
 
@@ -4506,6 +4922,9 @@ export default function ExpeditionJourney({
       mummificationChamberInteriorAssetDescription: MUMMIFICATION_CHAMBER_INTERIOR_ASSET_DESCRIPTION,
       mummificationChamberInteractionAssetVersion: MUMMIFICATION_CHAMBER_INTERACTIONS_ASSET_VERSION,
       mummificationChamberInteractionAssetsLoaded: Boolean(mummificationInteractionAssetsRef.current.loaded),
+      mummificationChamberRitualGuidanceVersion: MUMMIFICATION_CHAMBER_RITUAL_GUIDANCE_VERSION,
+      mummificationChamberCurrentRite: renderStats.mummificationChamberCurrentRite || null,
+      mummificationChamberNextObjectId: renderStats.mummificationChamberNextObjectId || null,
       mummificationChamberAtmosphereVersion: renderStats.mummificationChamberAtmosphereVersion || MUMMIFICATION_CHAMBER_ATMOSPHERE_VERSION,
       mummificationChamberAtmosphereState: renderStats.mummificationChamberAtmosphereState || null,
       mummificationChamberWakeProgress: renderStats.mummificationChamberWakeProgress || 0,
@@ -4698,7 +5117,12 @@ export default function ExpeditionJourney({
       } : null,
       forgottenMuralChamberRestored: Boolean(current.forgottenMuralChamberRestored),
       forgottenMuralFragmentsRecovered: FORGOTTEN_MURAL_CHAMBER_RESTORATION_IDS.filter(id => current.collectedSecretIds?.has(id)).length,
-      forgottenMuralRestored: Boolean(current.forgottenMuralChamberRestored || current.collectedSecretIds?.has('egypt-scarab-fragment-3')),
+      forgottenMuralRestored: Boolean(current.forgottenMuralChamberRestored),
+      forgottenMuralRelicSlidePuzzleVersion: FORGOTTEN_MURAL_RELIC_SLIDE_PUZZLE_VERSION,
+      forgottenMuralRelicSlidePuzzleOpen: Boolean(current.forgottenMuralRelicSlidePuzzleOpen),
+      forgottenMuralRelicSlidePuzzleSolved: Boolean(current.forgottenMuralRelicSlidePuzzleSolved),
+      forgottenMuralRelicSlidePuzzleTiles: [...(current.forgottenMuralRelicSlidePuzzleTiles || [])],
+      forgottenMuralRelicSlidePuzzleMoves: current.forgottenMuralRelicSlidePuzzleMoves || 0,
       mummificationChamberEntered: Boolean(current.mummificationChamberEntered),
       mummificationChamberActive: Boolean(current.mummificationChamberActive),
       mummificationChamberDoorSealed: Boolean(current.mummificationChamberDoorSealed),
@@ -7488,10 +7912,33 @@ export default function ExpeditionJourney({
     const interactionAssets = mummificationInteractionAssetsRef.current;
     const inspectedObjectIds = current.mummificationChamberInspectedObjectIds || new Set();
     const chamberRitualStep = current.mummificationChamberRitualStep || 0;
+    const currentStepInfo = MUMMIFICATION_CHAMBER_RITUAL_STEPS[chamberRitualStep];
+    if (!unlocked && currentStepInfo) {
+      const panelX = CANVAS_WIDTH * 0.5 - 210;
+      const panelY = 70;
+      ctx.save();
+      ctx.fillStyle = 'rgba(22, 13, 8, 0.78)';
+      ctx.strokeStyle = 'rgba(250, 204, 21, 0.44)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(panelX, panelY, 420, 76, 10);
+      ctx.fill();
+      ctx.stroke();
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = '900 13px Cinzel, serif';
+      ctx.fillStyle = 'rgba(250, 204, 21, 0.9)';
+      ctx.fillText(`Rite ${chamberRitualStep + 1}/${MUMMIFICATION_CHAMBER_RITUAL_STEPS.length}`, CANVAS_WIDTH * 0.5, panelY + 24);
+      ctx.font = '800 15px Outfit, sans-serif';
+      ctx.fillStyle = 'rgba(255, 247, 237, 0.9)';
+      ctx.fillText(currentStepInfo.guideLabel, CANVAS_WIDTH * 0.5, panelY + 52);
+      ctx.restore();
+    }
     MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS.forEach((item) => {
       // activated = ritual step completed for this item (drives glow/alpha); inspected = same (kept for label logic)
       const ritualIdx = MUMMIFICATION_CHAMBER_RITUAL_SEQUENCE.indexOf(item.id);
       const activated = item.exitSeal ? unlocked : (ritualIdx >= 0 && ritualIdx < chamberRitualStep);
+      const isCurrentRitualStep = !unlocked && currentStepInfo?.id === item.id;
       const inspected = activated || inspectedObjectIds.has(item.id);
       const dest = {
         x: item.screen.x - item.screen.width / 2,
@@ -7508,12 +7955,14 @@ export default function ExpeditionJourney({
         ? (unlocked ? 0.94 : 0.74)
         : item.assetKey === 'linenWrappings'
           ? (inspected ? 0.62 : 0.82) + atmosphere.wakeProgress * 0.1
-          : (inspected ? 0.62 : 0.86);
+          : isCurrentRitualStep ? 0.96 : (inspected ? 0.62 : 0.86);
       ctx.filter = item.exitSeal
         ? `drop-shadow(0 0 ${unlocked ? 22 : 10 + atmosphere.wakeProgress * 8}px ${unlocked ? 'rgba(94, 234, 212, 0.72)' : 'rgba(250, 204, 21, 0.62)'})`
         : item.assetKey === 'linenWrappings'
           ? `drop-shadow(0 0 ${8 + atmosphere.wakeProgress * 14}px rgba(255, 244, 214, 0.38))`
-          : 'drop-shadow(0 8px 10px rgba(18, 10, 6, 0.42))';
+          : isCurrentRitualStep
+            ? 'drop-shadow(0 0 20px rgba(94, 234, 212, 0.64))'
+            : 'drop-shadow(0 8px 10px rgba(18, 10, 6, 0.42))';
       const drewAsset = drawAtlasRegion(ctx, interactionAssets, item.assetKey, dest, { mode: 'contain' });
       ctx.restore();
 
@@ -7530,7 +7979,9 @@ export default function ExpeditionJourney({
         ctx.restore();
       }
 
-      if (!inspected || (item.exitSeal && unlocked)) {
+      if (isCurrentRitualStep) {
+        drawFieldNoteLabel(ctx, item.screen.x, dest.y - 8, `Next: ${currentStepInfo.shortLabel}`, '#5eead4');
+      } else if (!inspected || (item.exitSeal && unlocked)) {
         const markerColor = item.exitSeal && unlocked ? '#5eead4' : '#facc15';
         drawFieldNoteLabel(ctx, item.screen.x, dest.y - 8, item.exitSeal && unlocked ? 'Exit open' : 'Inspect', markerColor);
       }
@@ -7579,6 +8030,9 @@ export default function ExpeditionJourney({
       current.renderStats.mummificationChamberInteriorLoaded = Boolean(chamberAsset.loaded && chamberAsset.image);
       current.renderStats.mummificationChamberInteractionAssetVersion = MUMMIFICATION_CHAMBER_INTERACTIONS_ASSET_VERSION;
       current.renderStats.mummificationChamberInteractionAssetsLoaded = Boolean(interactionAssets.loaded && interactionAssets.image);
+      current.renderStats.mummificationChamberRitualGuidanceVersion = MUMMIFICATION_CHAMBER_RITUAL_GUIDANCE_VERSION;
+      current.renderStats.mummificationChamberCurrentRite = currentStepInfo?.rite || null;
+      current.renderStats.mummificationChamberNextObjectId = currentStepInfo?.id || null;
       current.renderStats.mummificationChamberAtmosphereVersion = MUMMIFICATION_CHAMBER_ATMOSPHERE_VERSION;
       current.renderStats.mummificationChamberAtmosphereState = atmosphere.state;
       current.renderStats.mummificationChamberWakeProgress = Number(atmosphere.wakeProgress.toFixed(2));
@@ -7884,6 +8338,14 @@ export default function ExpeditionJourney({
     if (prop.id === 'opening-warrior-guide-marker') {
       ctx.restore();
       return;
+    }
+    if (Number.isFinite(prop.rotation) && prop.rotation !== 0) {
+      const bounds = getStoryPropEditorBounds(prop, cameraX, stateRef.current);
+      const centerX = bounds.x + bounds.width / 2;
+      const centerY = bounds.y + bounds.height / 2;
+      ctx.translate(centerX, centerY);
+      ctx.rotate((prop.rotation * Math.PI) / 180);
+      ctx.translate(-centerX, -centerY);
     }
     const propForAsset = prop;
     const sacredTrapPropAssetKey = SACRED_DEFENCE_STORY_PROP_IDS.has(prop.id)
@@ -11517,6 +11979,44 @@ export default function ExpeditionJourney({
     ctx.restore();
   }, [drawContactShadow, drawFieldNoteLabel, drawGroundDustLip]);
 
+  const drawPropPlacementEditorOverlay = useCallback((ctx, current, cameraX) => {
+    const editor = propPlacementEditorRef.current;
+    if (!import.meta.env.DEV || !editor.enabled) return;
+    ctx.save();
+    getRenderableStoryProps(current).forEach((prop) => {
+      const bounds = getStoryPropEditorBounds(prop, cameraX, current);
+      if (bounds.x + bounds.width < -80 || bounds.x > CANVAS_WIDTH + 80) return;
+      const selected = prop.id === editor.selectedPropId;
+      ctx.strokeStyle = selected ? 'rgba(94, 234, 212, 0.98)' : 'rgba(250, 204, 21, 0.42)';
+      ctx.fillStyle = selected ? 'rgba(94, 234, 212, 0.12)' : 'rgba(250, 204, 21, 0.06)';
+      ctx.lineWidth = selected ? 3 : 1.5;
+      ctx.setLineDash(selected ? [] : [6, 5]);
+      ctx.strokeRect(bounds.x, bounds.y, bounds.width, bounds.height);
+      ctx.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
+    });
+    const selectedProp = getPropEditorSelectedProp(current);
+    if (selectedProp) {
+      const bounds = getStoryPropEditorBounds(selectedProp, cameraX, current);
+      const labelX = clamp(bounds.x, 12, CANVAS_WIDTH - 280);
+      const labelY = clamp(bounds.y - 28, 14, CANVAS_HEIGHT - 36);
+      ctx.setLineDash([]);
+      ctx.fillStyle = 'rgba(8, 13, 22, 0.86)';
+      ctx.strokeStyle = 'rgba(94, 234, 212, 0.74)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(labelX, labelY, 270, 24, 6);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#ecfeff';
+      ctx.font = '800 11px Outfit, sans-serif';
+      ctx.textAlign = 'left';
+      const selectedScale = Number.isFinite(selectedProp.scale) ? selectedProp.scale : 1;
+      const selectedRotation = Number.isFinite(selectedProp.rotation) ? selectedProp.rotation : 0;
+      ctx.fillText(`${selectedProp.id}  x:${Math.round(selectedProp.x)} y:${Math.round(selectedProp.y)} s:${selectedScale.toFixed(2)} r:${Math.round(selectedRotation)}`, labelX + 8, labelY + 16);
+    }
+    ctx.restore();
+  }, [getPropEditorSelectedProp, getRenderableStoryProps]);
+
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -11727,7 +12227,7 @@ export default function ExpeditionJourney({
     if (!chamberSceneActive) {
       WORLD_CONTINUITY_LANDMARKS.forEach((landmark) => drawWorldContinuityLandmark(ctx, landmark, cameraX, now));
       WORLD_TRANSITION_STORY_MARKERS.forEach((marker) => drawWorldTransitionMarker(ctx, marker, cameraX, now));
-      STORY_PROPS.filter(prop => isEntityActiveInScene(prop, current)).forEach((prop) => drawStoryProp(ctx, prop, cameraX, now, 'background'));
+      getRenderableStoryProps(current).forEach((prop) => drawStoryProp(ctx, prop, cameraX, now, 'background'));
       drawParticles(ctx, atmosphere, cameraX, now);
     }
 
@@ -11753,7 +12253,7 @@ export default function ExpeditionJourney({
       drawDesertForegroundAtmosphere(ctx, section, cameraX);
       drawSectionParallaxForeground(ctx, section, cameraX);
       drawOpeningPyramidMasonryBack(ctx, cameraX, now);
-      STORY_PROPS.filter(prop => isEntityActiveInScene(prop, current)).forEach((prop) => drawStoryProp(ctx, prop, cameraX, now, 'midground'));
+      getRenderableStoryProps(current).forEach((prop) => drawStoryProp(ctx, prop, cameraX, now, 'midground'));
       ENVIRONMENT_INTERACTIONS.forEach((item) => drawEnvironmentInteraction(ctx, item, cameraX, now, current));
       drawEgyptAmbientLife(ctx, section, cameraX, now);
       drawConnectedWorldAmbientLife(ctx, section, cameraX, now);
@@ -11768,7 +12268,7 @@ export default function ExpeditionJourney({
         });
       drawDynamicEnvironmentEvent(ctx, current.dynamicEnvironmentEvent, cameraX, now, current.dynamicEnvironmentEventTimer);
       drawAncientRouteGround(ctx, section, cameraX, now, current);
-      STORY_PROPS.filter(prop => isEntityActiveInScene(prop, current)).forEach((prop) => drawStoryProp(ctx, prop, cameraX, now, 'grounded'));
+      getRenderableStoryProps(current).forEach((prop) => drawStoryProp(ctx, prop, cameraX, now, 'grounded'));
     }
     drawMummificationChamberInterior(ctx, current, now);
     drawForgottenMuralChamberInterior(ctx, current, now);
@@ -11868,7 +12368,7 @@ export default function ExpeditionJourney({
     PLATFORMS
       .filter(platform => isPlatformAvailable(platform, current))
       .forEach((platform) => drawPlatform(ctx, platform, cameraX, current));
-    STORY_PROPS.filter(prop => isEntityActiveInScene(prop, current)).forEach((prop) => drawStoryProp(ctx, prop, cameraX, now, 'route-edge'));
+    getRenderableStoryProps(current).forEach((prop) => drawStoryProp(ctx, prop, cameraX, now, 'route-edge'));
     if (!chamberSceneActive) {
       getActiveHiddenRoutes().forEach(route => drawHiddenRouteHint(ctx, route, cameraX, current, now));
       drawSectionTransitionBlend(ctx, cameraX);
@@ -12337,6 +12837,8 @@ export default function ExpeditionJourney({
       });
     }
 
+    drawPropPlacementEditorOverlay(ctx, current, cameraX);
+
     ctx.restore();
 
     // CINEMATIC CARDS
@@ -12401,7 +12903,7 @@ export default function ExpeditionJourney({
       }
       ctx.textAlign = 'start';
     }
-  }, [backgroundPackId, drawAncientRouteGround, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawForegroundDepthLayer, drawMummificationChamberInterior, drawForgottenMuralChamberInterior, drawForgottenMuralChamberTransition, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawRouteGate, drawRouteGroundApron, drawScarabQueenLairOpeningProp, drawScribeLockedChamberInterior, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getDoorwayGateStatus, getGateGuidance, getPlayerAttackState, getRouteGateDoorwayEntries, isRouteRewardAccessible, drawPlayerSprite, drawFieldNoteLabel]);
+  }, [backgroundPackId, drawAncientRouteGround, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawForegroundDepthLayer, drawMummificationChamberInterior, drawForgottenMuralChamberInterior, drawForgottenMuralChamberTransition, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawPropPlacementEditorOverlay, drawRouteGate, drawRouteGroundApron, drawScarabQueenLairOpeningProp, drawScribeLockedChamberInterior, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getDoorwayGateStatus, getGateGuidance, getPlayerAttackState, getRenderableStoryProps, getRouteGateDoorwayEntries, isRouteRewardAccessible, drawPlayerSprite, drawFieldNoteLabel]);
 
   const startOpeningCinematic = useCallback(({ speechEnabled = true } = {}) => {
     const current = stateRef.current;
@@ -12870,6 +13372,7 @@ export default function ExpeditionJourney({
             temporary: true,
           };
           current.cinematicTimer = 2.8;
+          current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 2.0);
         } else if (enteringForgottenMuralChamber) {
           current.forgottenMuralChamberEntered = true;
           current.hiddenRoomsFound?.add('forgotten-mural-chamber');
@@ -13439,6 +13942,7 @@ export default function ExpeditionJourney({
       current.mummificationChamberInspectedObjectIds ??= new Set();
       const inspectedObjectIds = current.mummificationChamberInspectedObjectIds;
       const ritualStep = current.mummificationChamberRitualStep || 0;
+      const nextStepInfo = MUMMIFICATION_CHAMBER_RITUAL_STEPS[ritualStep];
 
       // Collect all overlapping interaction objects
       const overlapping = MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS.filter((item) => {
@@ -13485,6 +13989,7 @@ export default function ExpeditionJourney({
 
         // This is the next expected item — activate it
         if (ritualIndex === ritualStep) {
+          const stepInfo = MUMMIFICATION_CHAMBER_RITUAL_STEPS[ritualIndex];
           const nextStep = ritualStep + 1;
           current.mummificationChamberRitualStep = nextStep;
           inspectedObjectIds.add(item.id);
@@ -13492,20 +13997,20 @@ export default function ExpeditionJourney({
           const isComplete = nextStep >= MUMMIFICATION_CHAMBER_RITUAL_SEQUENCE.length;
           current.notice = isComplete
             ? 'They were not buried with riches. They were buried with memories.'
-            : item.successMessage;
+            : `${stepInfo?.rite || item.name}. ${item.successMessage}`;
           current.cinematicEvent = {
             id: isComplete ? 'mummification-chamber-ritual-complete' : item.id,
             name: isComplete ? 'Anubis' : item.name,
             message: isComplete
               ? 'You call them relics. I call them the pieces of a life.'
-              : item.successMessage,
+              : `${stepInfo?.guideLabel || item.name}: ${item.successMessage}`,
             temporary: true,
           };
           current.cinematicTimer = isComplete ? 3.2 : 2.2;
           current.itemPurposeNoticeTimer = isComplete ? 2.0 : 1.25;
           current.hitStopTimer = Math.max(current.hitStopTimer, isComplete ? 0.04 : 0.025);
           addRewardPulse(item.id, current.cameraX + item.screen.x, item.screen.y,
-            isComplete ? 'RITUAL COMPLETE' : item.pulseText, {
+            isComplete ? 'RITUAL COMPLETE' : stepInfo?.pulseText || item.pulseText, {
               color: isComplete ? '#5eead4' : '#facc15',
               fill: isComplete ? 'rgba(94, 234, 212, 0.12)' : 'rgba(250, 204, 21, 0.12)',
               radius: isComplete ? 72 : 48,
@@ -13515,7 +14020,7 @@ export default function ExpeditionJourney({
             type: 'secret-found',
             x: current.cameraX + item.screen.x,
             y: item.screen.y,
-            text: item.pulseText,
+            text: stepInfo?.pulseText || item.pulseText,
             color: '#facc15',
             radius: 42,
             timer: 0.58,
@@ -13532,23 +14037,21 @@ export default function ExpeditionJourney({
           return { id: item.id, activated: true };
         }
 
-        // Wrong order — reset sequence progress and give a clue
-        current.mummificationChamberRitualStep = 0;
-        MUMMIFICATION_CHAMBER_RITUAL_SEQUENCE.forEach((id) => inspectedObjectIds.delete(id));
-        current.notice = 'The room remains still. Preparation must follow its order.';
-        current.itemPurposeNoticeTimer = 1.8;
+        // Wrong order: keep progress and point to the next rite.
+        current.notice = nextStepInfo?.hint || 'The room remains still. Preparation must follow its order.';
+        current.itemPurposeNoticeTimer = 1.45;
         current.hitStopTimer = Math.max(current.hitStopTimer, 0.018);
         audioControls?.playExpeditionSfx?.('gateBlocked');
         addCombatEffect(current, {
           type: 'environment-dust',
           x: current.cameraX + item.screen.x,
           y: item.screen.y,
-          text: 'OUT OF ORDER',
-          color: 'rgba(251, 113, 133, 0.72)',
+          text: nextStepInfo ? `NEXT: ${nextStepInfo.shortLabel.toUpperCase()}` : 'OUT OF ORDER',
+          color: 'rgba(94, 234, 212, 0.72)',
           timer: 0.4,
           maxTimer: 0.4,
         });
-        return { id: item.id, wrongOrder: true };
+        return { id: item.id, wrongOrder: true, expectedId: nextStepInfo?.id || null };
       }
 
       return null;
@@ -14050,34 +14553,47 @@ export default function ExpeditionJourney({
         current.collectedSecretIds.add(secret.id);
         const forgottenMuralFragmentsRecovered = secret.restorationSetId === 'forgotten-mural-seal'
           && FORGOTTEN_MURAL_CHAMBER_RESTORATION_IDS.every(id => current.collectedSecretIds.has(id));
-        const restoredForgottenMural = secret.restorationSetId === 'forgotten-mural-seal'
-          ? forgottenMuralFragmentsRecovered && !current.forgottenMuralChamberRestored
-          : secret.restoresStoryFlag === 'forgotten-mural-restored';
+        const forgottenMuralPuzzleReady = secret.restorationSetId === 'forgotten-mural-seal'
+          && forgottenMuralFragmentsRecovered
+          && !current.forgottenMuralChamberRestored
+          && !current.forgottenMuralRelicSlidePuzzleSolved;
+        const restoredForgottenMural = secret.restorationSetId !== 'forgotten-mural-seal'
+          && secret.restoresStoryFlag === 'forgotten-mural-restored';
         const forgottenMuralRestoration = restoredForgottenMural && secret.restorationSetId === 'forgotten-mural-seal'
           ? SECRET_COLLECTIBLES.find(item => item.restoresStoryFlag === 'forgotten-mural-restored')
           : secret;
         if (restoredForgottenMural) {
           current.forgottenMuralChamberRestored = true;
         }
-        current.notice = restoredForgottenMural
+        if (forgottenMuralPuzzleReady) {
+          current.forgottenMuralRelicSlidePuzzleOpen = true;
+          current.forgottenMuralRelicSlidePuzzleTiles = createForgottenMuralRelicSlidePuzzleTiles();
+          current.forgottenMuralRelicSlidePuzzleMoves = 0;
+          keysRef.current = {};
+        }
+        current.notice = forgottenMuralPuzzleReady
+          ? 'The broken relic locks into the mural. Rebuild the scarab seal.'
+          : restoredForgottenMural
           ? (forgottenMuralRestoration?.restoreMessage || 'Asha restores the broken warning mural.')
           : (secret.discoveryMessage || 'Collection Piece Recovered.');
         current.cinematicEvent = {
-          id: restoredForgottenMural ? `${secret.id}-restored` : `${secret.id}-collected`,
-          name: restoredForgottenMural ? 'Anubis' : 'Secret Found',
-          message: restoredForgottenMural
+          id: forgottenMuralPuzzleReady ? 'forgotten-mural-relic-slide-puzzle-opened' : restoredForgottenMural ? `${secret.id}-restored` : `${secret.id}-collected`,
+          name: forgottenMuralPuzzleReady ? 'Broken Relic' : restoredForgottenMural ? 'Anubis' : 'Secret Found',
+          message: forgottenMuralPuzzleReady
+            ? 'The pieces fit the mural, but the seal is out of order.'
+            : restoredForgottenMural
             ? (forgottenMuralRestoration?.anubisReaction || 'Do not mistake this for trust.')
             : `${secret.name} has been added to the field journal.`,
           temporary: true,
         };
-        current.cinematicTimer = restoredForgottenMural ? 3.2 : 2.8;
-        current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, restoredForgottenMural ? 2.6 : 1.8);
+        current.cinematicTimer = forgottenMuralPuzzleReady ? 2.8 : restoredForgottenMural ? 3.2 : 2.8;
+        current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, forgottenMuralPuzzleReady ? 2.4 : restoredForgottenMural ? 2.6 : 1.8);
         current.hitStopTimer = Math.max(current.hitStopTimer, 0.04);
         addCombatEffect(current, {
           type: 'secret-found',
           x: secret.x,
           y: secret.y,
-          text: restoredForgottenMural ? 'MURAL RESTORED' : 'SECRET FOUND',
+          text: forgottenMuralPuzzleReady ? 'RELIC READY' : restoredForgottenMural ? 'MURAL RESTORED' : 'SECRET FOUND',
           color: secret.color || '#facc15',
           fill: 'rgba(250, 204, 21, 0.12)',
           radius: 48,
@@ -15600,6 +16116,79 @@ export default function ExpeditionJourney({
           syncHud();
           return;
         }
+        if (target === 'journey-mummification-chamber') {
+          const current = stateRef.current;
+          current.openingThresholdScene = null;
+          current.openingSphinxEncounter = null;
+          current.openingSphinxTimer = 0;
+          current.bossIntro = null;
+          current.bossIntroTimer = 0;
+          current.bossIntroPauseTimer = 0;
+          current.bossDomain = null;
+          current.cinematicEvent = null;
+          current.cinematicTimer = 0;
+          current.activeGuardianChallenge = null;
+          current.sceneTransition = null;
+          current.forgottenMuralChamberTransition = null;
+          current.currentSceneId = JOURNEY_SCENE_IDS.MUMMIFICATION_CHAMBER;
+          current.mummificationChamberEntered = true;
+          current.mummificationChamberActive = true;
+          current.mummificationChamberDoorSealed = true;
+          current.mummificationChamberExitUnlocked = Boolean(current.mummificationChamberPuzzleSolved);
+          current.mummificationChamberInspectedObjectIds ??= new Set();
+          current.player.x = MUMMIFICATION_CHAMBER_ENTRY_SPAWN.x - current.player.width / 2;
+          current.player.y = MUMMIFICATION_CHAMBER_ENTRY_SPAWN.y - current.player.height;
+          current.player.vx = 0;
+          current.player.vy = 0;
+          current.player.onGround = true;
+          current.player.direction = MUMMIFICATION_CHAMBER_ENTRY_SPAWN.direction;
+          current.cameraX = MUMMIFICATION_CHAMBER_CAMERA_X;
+          current.targetCameraX = MUMMIFICATION_CHAMBER_CAMERA_X;
+          current.notice = 'Developer mode: Mummification Chamber.';
+          current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 2.0);
+          step(0);
+          syncHud();
+          return;
+        }
+        if (target === 'journey-forgotten-mural-puzzle') {
+          const current = stateRef.current;
+          current.openingThresholdScene = null;
+          current.openingSphinxEncounter = null;
+          current.openingSphinxTimer = 0;
+          current.bossIntro = null;
+          current.bossIntroTimer = 0;
+          current.bossIntroPauseTimer = 0;
+          current.bossDomain = null;
+          current.cinematicEvent = null;
+          current.cinematicTimer = 0;
+          current.activeGuardianChallenge = null;
+          current.sceneTransition = null;
+          current.forgottenMuralChamberTransition = null;
+          current.currentSceneId = JOURNEY_SCENE_IDS.FORGOTTEN_MURAL_CHAMBER;
+          current.forgottenMuralChamberEntered = true;
+          current.forgottenMuralChamberActive = true;
+          current.hiddenRoomsFound?.add('forgotten-mural-chamber');
+          FORGOTTEN_MURAL_CHAMBER_RESTORATION_IDS.forEach(id => current.collectedSecretIds?.add(id));
+          current.forgottenMuralRelicSlidePuzzleOpen = true;
+          current.forgottenMuralRelicSlidePuzzleSolved = false;
+          current.forgottenMuralRelicSlidePuzzleTiles = createForgottenMuralRelicSlidePuzzleTiles();
+          current.forgottenMuralRelicSlidePuzzleMoves = 0;
+          current.forgottenMuralChamberRestored = false;
+          current.player.x = FORGOTTEN_MURAL_CHAMBER_ENTRY_SPAWN.x - current.player.width / 2;
+          current.player.y = FORGOTTEN_MURAL_CHAMBER_ENTRY_SPAWN.y - current.player.height;
+          current.player.vx = 0;
+          current.player.vy = 0;
+          current.player.onGround = true;
+          current.player.direction = FORGOTTEN_MURAL_CHAMBER_ENTRY_SPAWN.direction;
+          current.cameraX = FORGOTTEN_MURAL_CHAMBER_CAMERA_X;
+          current.targetCameraX = FORGOTTEN_MURAL_CHAMBER_CAMERA_X;
+          current.notice = 'Developer mode: Mural slide puzzle opened.';
+          current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 2.0);
+          keysRef.current = {};
+          step(0);
+          syncHud();
+          return;
+        }
         if (target !== 'journey-section-start') return;
         const section = SECTIONS.find(section => section.id === sectionId);
         if (!section) return;
@@ -15684,8 +16273,98 @@ export default function ExpeditionJourney({
   }, [addCombatEffect, backgroundPackId, buildBossRewardMoment, createJourneySnapshot, startTempleThresholdTransition, step, syncHud]);
 
   useEffect(() => {
+    if (!import.meta.env.DEV) return undefined;
+    const handlePropEditorKeyDown = (event) => {
+      const tagName = event.target?.tagName;
+      const editingText = tagName === 'INPUT' || tagName === 'TEXTAREA' || tagName === 'SELECT' || event.target?.isContentEditable;
+      if (editingText) return;
+      const editor = propPlacementEditorRef.current;
+      if (event.code === 'KeyE' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        event.preventDefault();
+        editor.enabled = !editor.enabled;
+        if (!editor.enabled) {
+          editor.selectedPropId = null;
+          editor.dragging = null;
+        }
+        refreshPropEditorUi();
+        return;
+      }
+      if (!editor.enabled) return;
+      if (event.code === 'KeyG' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        event.preventDefault();
+        editor.gridSnap = !editor.gridSnap;
+        refreshPropEditorUi();
+        return;
+      }
+      if (event.code === 'KeyP' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        event.preventDefault();
+        editor.paletteOpen = !editor.paletteOpen;
+        if (!editor.paletteOpen) editor.selectedPaletteKey = null;
+        refreshPropEditorUi();
+        return;
+      }
+      if ((event.ctrlKey || event.metaKey) && event.code === 'KeyS') {
+        event.preventDefault();
+        savePropPlacementExport();
+        return;
+      }
+      if ((event.ctrlKey || event.metaKey) && event.code === 'KeyD') {
+        event.preventDefault();
+        duplicateSelectedPropInEditor();
+        return;
+      }
+      if (event.code === 'KeyQ' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        event.preventDefault();
+        const selectedProp = getPropEditorSelectedProp();
+        if (selectedProp) {
+          updateSelectedPropEditorTransform({
+            rotation: (Number.isFinite(selectedProp.rotation) ? selectedProp.rotation : 0) - DEFAULT_JOURNEY_PROP_EDITOR_ROTATION_STEP,
+          });
+        }
+        return;
+      }
+      if (event.code === 'KeyR' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        event.preventDefault();
+        const selectedProp = getPropEditorSelectedProp();
+        if (selectedProp) {
+          updateSelectedPropEditorTransform({
+            rotation: (Number.isFinite(selectedProp.rotation) ? selectedProp.rotation : 0) + DEFAULT_JOURNEY_PROP_EDITOR_ROTATION_STEP,
+          });
+        }
+        return;
+      }
+      if (['Equal', 'NumpadAdd', 'NumpadMultiply'].includes(event.code) && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        event.preventDefault();
+        const selectedProp = getPropEditorSelectedProp();
+        if (selectedProp) {
+          updateSelectedPropEditorTransform({
+            scale: (Number.isFinite(selectedProp.scale) ? selectedProp.scale : 1) + DEFAULT_JOURNEY_PROP_EDITOR_SCALE_STEP,
+          });
+        }
+        return;
+      }
+      if (['Minus', 'NumpadSubtract', 'NumpadDivide'].includes(event.code) && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        event.preventDefault();
+        const selectedProp = getPropEditorSelectedProp();
+        if (selectedProp) {
+          updateSelectedPropEditorTransform({
+            scale: Math.max(0.1, (Number.isFinite(selectedProp.scale) ? selectedProp.scale : 1) - DEFAULT_JOURNEY_PROP_EDITOR_SCALE_STEP),
+          });
+        }
+        return;
+      }
+      if (event.code === 'Delete' || event.code === 'Backspace') {
+        event.preventDefault();
+        deleteSelectedPropFromEditor();
+      }
+    };
+    window.addEventListener('keydown', handlePropEditorKeyDown);
+    return () => window.removeEventListener('keydown', handlePropEditorKeyDown);
+  }, [deleteSelectedPropFromEditor, duplicateSelectedPropInEditor, getPropEditorSelectedProp, refreshPropEditorUi, savePropPlacementExport, updateSelectedPropEditorTransform]);
+
+  useEffect(() => {
     const handleKeyDown = (e) => {
-      if (paused || briefingOpen || stateRef.current.activeGuardianChallenge) return;
+      if (paused || briefingOpen || stateRef.current.activeGuardianChallenge || stateRef.current.forgottenMuralRelicSlidePuzzleOpen) return;
       if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'Space', 'KeyA', 'KeyD', 'KeyW', 'KeyJ', 'KeyK'].includes(e.code)) e.preventDefault();
       audioControls?.unlockExpeditionSfx?.();
       if (e.code === 'KeyJ' || e.code === 'KeyK') { queueAttack(); return; }
@@ -15719,6 +16398,12 @@ export default function ExpeditionJourney({
     }
   }, [paused]);
 
+  useEffect(() => {
+    if (gameState.forgottenMuralRelicSlidePuzzleOpen) {
+      keysRef.current = {};
+    }
+  }, [gameState.forgottenMuralRelicSlidePuzzleOpen]);
+
   const bossDomainHudSuppressed = gameState.bossDomain
     && !gameState.defeatedMiniBosses?.has(gameState.bossDomain.bossId);
   const activeHudGate = bossDomainHudSuppressed
@@ -15739,6 +16424,9 @@ export default function ExpeditionJourney({
         : 'stable';
   const activeGuardianChallenge = guardianChallengeUi || gameState.activeGuardianChallenge;
   const activeGuardianQuestion = activeGuardianChallenge?.questions?.[activeGuardianChallenge.currentIndex] || null;
+  const forgottenMuralRelicSlidePuzzleTiles = gameState.forgottenMuralRelicSlidePuzzleTiles?.length
+    ? gameState.forgottenMuralRelicSlidePuzzleTiles
+    : FORGOTTEN_MURAL_RELIC_SLIDE_PUZZLE_START_TILES;
   const activeOpeningCinematicLine = getOpeningCinematicLine(gameState.openingCinematic);
   const openingIntroProgress = gameState.openingCinematic
     ? clamp(1 - (gameState.openingCinematic.timer / gameState.openingCinematic.duration), 0, 1)
@@ -15752,17 +16440,43 @@ export default function ExpeditionJourney({
   const openingCinematicActive = Boolean(gameState.openingCinematic || gameState.openingThresholdScene || gameState.templeThresholdTransition);
 
   const handlePointerDown = (e) => {
+    const editor = propPlacementEditorRef.current;
+    if (import.meta.env.DEV && editor.enabled) {
+      const pointer = getPropEditorPointer(e);
+      if (!pointer) return;
+      if (editor.selectedPaletteKey) {
+        createPropFromEditorPalette(pointer);
+        editor.dragging = null;
+        e.preventDefault();
+        draw();
+        return;
+      }
+      const selectedProp = findEditableStoryPropAt(pointer.screenX, pointer.screenY);
+      editor.selectedPropId = selectedProp?.id || null;
+      editor.exportVisible = Boolean(editor.exportText);
+      if (selectedProp) {
+        editor.dragging = {
+          propId: selectedProp.id,
+          offsetX: pointer.worldX - selectedProp.x,
+          offsetY: pointer.worldY - selectedProp.y,
+        };
+        e.currentTarget.setPointerCapture?.(e.pointerId);
+      } else {
+        editor.dragging = null;
+      }
+      e.preventDefault();
+      draw();
+      refreshPropEditorUi();
+      return;
+    }
     if (!window.__expeditionDebugOverlay) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    const x = (e.clientX - rect.left) * scaleX;
-    const y = (e.clientY - rect.top) * scaleY;
+    const pointer = getPropEditorPointer(e);
+    if (!pointer) return;
     
-    const worldX = x + stateRef.current.cameraX;
-    const worldY = y - JOURNEY_VERTICAL_OFFSET;
+    const worldX = pointer.worldX;
+    const worldY = pointer.worldY - JOURNEY_VERTICAL_OFFSET;
 
     const platform = PLATFORMS.find(p => 
       worldX >= p.x && worldX <= p.x + p.width &&
@@ -15777,23 +16491,45 @@ export default function ExpeditionJourney({
   };
 
   const handlePointerMove = (e) => {
+    const editor = propPlacementEditorRef.current;
+    if (import.meta.env.DEV && editor.enabled && editor.dragging) {
+      const pointer = getPropEditorPointer(e);
+      if (!pointer) return;
+      const baseProp = getPropEditorBasePropById(editor.dragging.propId);
+      if (!baseProp) return;
+      const rawX = pointer.worldX - editor.dragging.offsetX;
+      const rawY = pointer.worldY - editor.dragging.offsetY;
+      const nextX = editor.gridSnap ? snapJourneyPropCoordinate(rawX, editor.gridSize) : Math.round(rawX);
+      const nextY = editor.gridSnap ? snapJourneyPropCoordinate(rawY, editor.gridSize) : Math.round(rawY);
+      editor.edits[baseProp.id] = {
+        ...(editor.edits[baseProp.id] || {}),
+        x: nextX,
+        y: nextY,
+      };
+      e.preventDefault();
+      draw();
+      refreshPropEditorUi();
+      return;
+    }
     if (!window.__draggedPlatform) return;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    const x = (e.clientX - rect.left) * scaleX;
-    const y = (e.clientY - rect.top) * scaleY;
+    const pointer = getPropEditorPointer(e);
+    if (!pointer) return;
     
-    const worldX = x + stateRef.current.cameraX;
-    const worldY = y - JOURNEY_VERTICAL_OFFSET;
+    const worldX = pointer.worldX;
+    const worldY = pointer.worldY - JOURNEY_VERTICAL_OFFSET;
 
     window.__draggedPlatform.x = Math.round(worldX - window.__dragOffsetX);
     window.__draggedPlatform.y = Math.round(worldY - window.__dragOffsetY);
   };
 
-  const handlePointerUp = () => {
+  const handlePointerUp = (e) => {
+    const editor = propPlacementEditorRef.current;
+    if (import.meta.env.DEV && editor.dragging) {
+      editor.dragging = null;
+      e?.currentTarget?.releasePointerCapture?.(e.pointerId);
+      refreshPropEditorUi();
+      return;
+    }
     if (window.__draggedPlatform) {
       console.log(`Platform ${window.__draggedPlatform.id} dragged to x: ${window.__draggedPlatform.x}, y: ${window.__draggedPlatform.y}`);
       window.__draggedPlatform = null;
@@ -15872,6 +16608,92 @@ export default function ExpeditionJourney({
               onPointerUp={handlePointerUp}
               onPointerLeave={handlePointerUp}
             />
+
+            {import.meta.env.DEV && propEditorUi.enabled && (
+              <div className="journey-prop-editor-panel" aria-live="polite">
+                <div className="journey-prop-editor-topline">
+                  <strong>EDIT MODE</strong>
+                  <span>{propEditorUi.gridSnap ? `Grid ${propEditorUi.gridSize}` : 'Free move'}</span>
+                </div>
+                {propEditorUi.selectedProp ? (
+                  <div className="journey-prop-editor-readout">
+                    <div><span>Prop</span><strong>{propEditorUi.selectedProp.id}</strong></div>
+                    <div><span>Type</span><strong>{propEditorUi.selectedProp.type}</strong></div>
+                    <div><span>Room</span><strong>{propEditorUi.selectedProp.roomId}</strong></div>
+                    <div><span>X</span><strong>{propEditorUi.selectedProp.x}</strong></div>
+                    <div><span>Y</span><strong>{propEditorUi.selectedProp.y}</strong></div>
+                    <div><span>Scale</span><strong>{propEditorUi.selectedProp.scale.toFixed(2)}</strong></div>
+                    <div><span>Rotation</span><strong>{Math.round(propEditorUi.selectedProp.rotation)} deg</strong></div>
+                    <div><span>Depth</span><strong>{propEditorUi.selectedProp.depth}</strong></div>
+                    <div><span>Layer</span><strong>{propEditorUi.selectedProp.layer}</strong></div>
+                    <div><span>Z-index</span><strong>{propEditorUi.selectedProp.zIndex}</strong></div>
+                  </div>
+                ) : (
+                  <div className="journey-prop-editor-empty">No prop selected</div>
+                )}
+                <label className="journey-prop-editor-grid">
+                  <span>Grid size</span>
+                  <input
+                    type="number"
+                    min="2"
+                    max="128"
+                    step="1"
+                    value={propEditorUi.gridSize}
+                    onChange={(event) => {
+                      const nextGridSize = clamp(Number(event.target.value), 2, 128);
+                      propPlacementEditorRef.current.gridSize = Number.isFinite(nextGridSize)
+                        ? Math.round(nextGridSize)
+                        : DEFAULT_JOURNEY_PROP_EDITOR_GRID_SIZE;
+                      refreshPropEditorUi();
+                    }}
+                  />
+                </label>
+              </div>
+            )}
+
+            {import.meta.env.DEV && propEditorUi.enabled && propEditorUi.paletteOpen && (
+              <div className="journey-prop-palette-panel" aria-label="Prop palette">
+                <div className="journey-prop-editor-export-header">
+                  <strong>Prop palette</strong>
+                  <span>{propEditorUi.palette.length}</span>
+                </div>
+                <div className="journey-prop-palette-list">
+                  {propEditorUi.palette.map(item => (
+                    <button
+                      key={item.key}
+                      type="button"
+                      className={propEditorUi.selectedPaletteKey === item.key ? 'is-selected' : ''}
+                      onClick={() => {
+                        propPlacementEditorRef.current.selectedPaletteKey = item.key;
+                        refreshPropEditorUi();
+                      }}
+                    >
+                      <strong>{item.label}</strong>
+                      <span>{item.atmosphereAssetKey || item.type}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {import.meta.env.DEV && propEditorUi.exportVisible && (
+              <div className="journey-prop-editor-export">
+                <div className="journey-prop-editor-export-header">
+                  <strong>Prop placement export</strong>
+                  {propEditorUi.savedAt && <span>{propEditorUi.savedAt}</span>}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      propPlacementEditorRef.current.exportVisible = false;
+                      refreshPropEditorUi();
+                    }}
+                  >
+                    Close
+                  </button>
+                </div>
+                <textarea readOnly value={propEditorUi.exportText} aria-label="Prop placement export JSON" />
+              </div>
+            )}
 
             {gameState.openingCinematic && (
               <div className={`opening-cinematic-overlay ${openingSpellImpactActive ? 'is-spell-impact' : ''} ${openingShieldShattered ? 'is-shield-shattered' : ''}`} role="dialog" aria-live="polite" aria-label="Asha and Anubis opening cut scene">
@@ -16036,6 +16858,60 @@ export default function ExpeditionJourney({
                 </div>
                 <div className="journey-boss-reward-progress">
                   {gameState.postBossReward.progressText}
+                </div>
+              </div>
+            )}
+
+            {gameState.forgottenMuralRelicSlidePuzzleOpen && (
+              <div className="forgotten-mural-slide-puzzle-overlay" role="dialog" aria-modal="true" aria-label="Broken relic slide puzzle">
+                <div className="forgotten-mural-slide-puzzle-card">
+                  <div className="guardian-challenge-kicker">Forgotten Mural Relic</div>
+                  <h2>Restore the scarab seal</h2>
+                  <p>
+                    The pieces are all here. Slide the broken relic cuts until the scarab is whole.
+                  </p>
+                  <div className="forgotten-mural-slide-puzzle-meta">
+                    <span>{FORGOTTEN_MURAL_CHAMBER_RESTORATION_IDS.filter(id => gameState.collectedSecretIds?.has(id)).length}/3 pieces found</span>
+                    <span>{gameState.forgottenMuralRelicSlidePuzzleMoves || 0} moves</span>
+                  </div>
+                  <div
+                    className="forgotten-mural-slide-puzzle-grid"
+                    style={{
+                      '--relic-art-url': `url("${import.meta.env.BASE_URL}${FORGOTTEN_MURAL_RELIC_SLIDE_PUZZLE_ART_SRC}")`,
+                    }}
+                    aria-label="Slide puzzle board"
+                  >
+                    {forgottenMuralRelicSlidePuzzleTiles.map((tile, index) => {
+                      const movable = tile !== null && getForgottenMuralRelicSlideMove(forgottenMuralRelicSlidePuzzleTiles, index);
+                      const label = tile === null ? 'Empty cut' : FORGOTTEN_MURAL_RELIC_SLIDE_PUZZLE_TILE_LABELS[tile];
+                      return (
+                        <button
+                          type="button"
+                          key={`${tile ?? 'empty'}-${index}`}
+                          className={[
+                            'forgotten-mural-slide-puzzle-tile',
+                            tile === null ? 'is-empty' : '',
+                            movable ? 'is-movable' : '',
+                          ].filter(Boolean).join(' ')}
+                          style={tile === null ? undefined : {
+                            '--tile-row': Math.floor(tile / 3),
+                            '--tile-col': tile % 3,
+                            '--tile-bg-x': `${(tile % 3) * 50}%`,
+                            '--tile-bg-y': `${Math.floor(tile / 3) * 50}%`,
+                          }}
+                          onClick={() => moveForgottenMuralRelicSlideTile(index)}
+                          disabled={tile === null || !movable}
+                          aria-label={tile === null ? 'Empty relic cut' : `Slide ${label}`}
+                          title={tile === null ? 'Empty relic cut' : `Slide ${label}`}
+                        />
+                      );
+                    })}
+                  </div>
+                  <div className="forgotten-mural-slide-puzzle-actions">
+                    <button type="button" className="journey-pause-secondary" onClick={resetForgottenMuralRelicSlidePuzzle}>
+                      Reset Pieces
+                    </button>
+                  </div>
                 </div>
               </div>
             )}

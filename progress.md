@@ -6,6 +6,24 @@ Current source-of-truth note:
 
 Original prompt: Implement "Lost Site Expedition" as a small MVP game mode in the Archaeology-Dig-App repo.
 
+2026-05-31 update:
+- Started Phase 1 developer visual prop placement mode by extending the existing Journey `STORY_PROPS` path instead of adding a new room format or editor.
+- Added helper coverage for prop placement edit/export serialization, then wired dev-only `E` edit mode, click selection, mouse dragging, `G` grid snapping, `Delete` removal confirmation, and `Ctrl+S` export JSON for current-room canonical prop objects.
+- Extended the same Phase 1 prop editor for Phase 2 creation and transforms: `P` opens a palette derived from current `STORY_PROPS`, palette clicks arm a prop, room clicks spawn into the same runtime/export list, `Ctrl+D` duplicates selected props, `Q`/`R` rotate, and scale/rotation export on the existing prop object shape when changed.
+- Replaced the Mummification Chamber interior runtime background with the side-on puzzle-ready PNG `public/assets/expedition/environment/desert-temple/mummification-chamber-interior-side-scroll-2026-05-31.png`.
+- Kept the existing Journey chamber system and interaction atlas, then realigned the chamber readable zones, inspection hitboxes, exit seal trigger, and entry spawn to the new shallower room layout.
+- Verified the updated room in the browser through the existing Journey dev shortcut; the chamber rendered with the new art and no browser console warnings.
+- Upgraded the Mummification Chamber ritual puzzle in the existing Journey chamber code instead of adding a parallel puzzle.
+- The active ritual order now follows the readable rite sequence: embalming table, canopic jars, oils and resins, linen wrappings, then ritual tablet.
+- Added an in-room next-rite guide and current-object glow so the puzzle teaches the next action.
+- Wrong-order interactions now keep completed progress and give a next-step clue instead of resetting the ritual.
+- Verified the new puzzle guard test, the focused mummification tests, lint, and production build. Browser-control canvas screenshots timed out, but the live app mounted the Journey shell and retained only the existing audio autoplay warnings.
+- Started the Forgotten Mural Room upgrade: collecting all three broken scarab relic fragments now opens a slide-puzzle overlay instead of immediately restoring the mural.
+- Added a 3x3 scarab-seal slide puzzle with movable relic-piece buttons, reset support, solve detection, and restoration payoff once solved.
+- Added a dev-panel smoke shortcut for the Mural Slide Puzzle so the overlay can be checked without a long playthrough.
+- Verified the focused mural puzzle test, lint, production build, and a live browser smoke check showing the 9-tile overlay with two movable pieces and the reset control. The browser still reports existing audio autoplay warnings.
+- Upgraded the Forgotten Mural slide puzzle art from labelled placeholder tiles to a generated scarab-seal mural PNG at `public/assets/expedition/environment/desert-temple/forgotten-mural-relic-slide-puzzle-2026-06-01.png`; the overlay now slices that artwork across the 3x3 board.
+
 2026-05-29 update:
 - Began the immersion cleanup pass for artificial in-world labels and markers.
 - Removed the generated text residue from `public/assets/expedition/excavation/egypt-gateway-pack.png` by making unused atlas areas transparent while preserving registered regions.

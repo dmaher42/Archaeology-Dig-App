@@ -7,7 +7,19 @@ import {
   DYNAMIC_WORLD_EFFECTS_VERSION,
   usesPaintedDynamicWorldEffect,
 } from './journeyDynamicWorldAssets.js';
-import { makeEnemy } from './journeyUtils.js';
+import {
+  applyJourneyPropPlacementEdit,
+  createJourneyPropFromPaletteItem,
+  createJourneyPropPlacementExport,
+  createJourneyPropPalette,
+  duplicateJourneyPropForEditor,
+  createForgottenMuralRelicSlidePuzzleTiles,
+  getForgottenMuralRelicSlideMove,
+  getJourneyPropRoomId,
+  isForgottenMuralRelicSlidePuzzleSolved,
+  makeEnemy,
+  snapJourneyPropCoordinate,
+} from './journeyUtils.js';
 import { CHINA_ENEMIES, ENEMIES } from './journeyLevelData.js';
 
 const source = readFileSync(new URL('./journeyLevelData.js', import.meta.url), 'utf8');
@@ -77,7 +89,7 @@ const forgottenMuralAlcoveClimbStructurePath = new URL('../../../public/assets/e
 const forgottenMuralChamberSourcePath = new URL('../../../public/assets/expedition/environment/desert-temple/forgotten-mural-chamber-source.png', import.meta.url);
 const forgottenMuralChamberPath = new URL('../../../public/assets/expedition/environment/desert-temple/forgotten-mural-chamber.png', import.meta.url);
 const mummificationChamberExteriorPath = new URL('../../../public/assets/expedition/environment/desert-temple/mummification-chamber-exterior-climb-structure.png', import.meta.url);
-const mummificationChamberInteriorPath = new URL('../../../public/assets/expedition/environment/desert-temple/mummification-chamber-interior.png', import.meta.url);
+const mummificationChamberInteriorPath = new URL('../../../public/assets/expedition/environment/desert-temple/mummification-chamber-interior-side-scroll-2026-05-31.png', import.meta.url);
 const scribeChamberExteriorPath = new URL('../../../public/assets/expedition/environment/desert-temple/scribe-locked-chamber-exterior-climb-structure.png', import.meta.url);
 const mummificationChamberInteractionAtlasPath = new URL('../../../public/assets/expedition/environment/desert-temple/mummification-chamber/mummification-chamber-interaction-atlas.png', import.meta.url);
 const desertEntryGroundingOverlayPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-grounding-overlay.png', import.meta.url);
@@ -121,6 +133,154 @@ const getDataRowById = (arraySource, id) => {
   }
   return '';
 };
+
+test('journey prop placement helpers preserve canonical prop fields while editing', () => {
+  const prop = {
+    id: 'test-tablet',
+    sectionId: 'desert-entry',
+    type: 'atmosphere-prop',
+    x: 2055,
+    y: 557,
+    depth: 'midground',
+    layer: 'ruin-detail',
+    zIndex: 2,
+    label: 'test tablet',
+  };
+
+  assert.equal(getJourneyPropRoomId(prop, 'egypt-exterior-route', 'ruined-temple'), 'desert-entry');
+  assert.equal(getJourneyPropRoomId({ id: 'inner', sceneId: 'mummification-chamber' }, 'egypt-exterior-route', 'desert-entry'), 'mummification-chamber');
+  assert.equal(snapJourneyPropCoordinate(2059, 16), 2064);
+
+  const edited = applyJourneyPropPlacementEdit(prop, {
+    x: 2064,
+    y: 544,
+    depth: 'route-edge',
+    layer: 'foreground',
+    zIndex: 5,
+  });
+
+  assert.deepEqual(edited, {
+    ...prop,
+    x: 2064,
+    y: 544,
+    depth: 'route-edge',
+    layer: 'foreground',
+    zIndex: 5,
+  });
+  assert.notEqual(edited, prop);
+});
+
+test('journey prop placement export uses the existing STORY_PROPS object shape', () => {
+  const exportJson = createJourneyPropPlacementExport({
+    source: 'src/components/expedition-journey/journeyLevelData.js::STORY_PROPS',
+    roomId: 'desert-entry',
+    props: [
+      { id: 'tablet-a', sectionId: 'desert-entry', type: 'atmosphere-prop', x: 100, y: 200, depth: 'midground' },
+      { id: 'tablet-b', sectionId: 'desert-entry', type: 'atmosphere-prop', x: 120, y: 210, layer: 'foreground', zIndex: 3 },
+    ],
+    deletedPropIds: ['old-marker'],
+  });
+
+  const parsed = JSON.parse(exportJson);
+  assert.equal(parsed.source, 'src/components/expedition-journey/journeyLevelData.js::STORY_PROPS');
+  assert.equal(parsed.room, 'desert-entry');
+  assert.deepEqual(parsed.deletedPropIds, ['old-marker']);
+  assert.deepEqual(parsed.props[0], {
+    id: 'tablet-a',
+    sectionId: 'desert-entry',
+    type: 'atmosphere-prop',
+    x: 100,
+    y: 200,
+    depth: 'midground',
+  });
+  assert.deepEqual(parsed.props[1], {
+    id: 'tablet-b',
+    sectionId: 'desert-entry',
+    type: 'atmosphere-prop',
+    x: 120,
+    y: 210,
+    layer: 'foreground',
+    zIndex: 3,
+  });
+});
+
+test('journey prop editor palette derives reusable prop options from existing story props', () => {
+  const palette = createJourneyPropPalette([
+    { id: 'torch-a', sectionId: 'ruined-temple', type: 'atmosphere-prop', atmosphereAssetKey: 'torchStand', label: 'small torch marker', width: 46, height: 84 },
+    { id: 'torch-b', sectionId: 'catacombs', type: 'atmosphere-prop', atmosphereAssetKey: 'torchStand', label: 'torch at catacomb descent', width: 48, height: 88 },
+    { id: 'statue-a', sectionId: 'desert-entry', type: 'statue', label: 'ram statue marker' },
+  ]);
+
+  assert.equal(palette.length, 2);
+  assert.deepEqual(palette[0], {
+    key: 'atmosphere-prop:torchStand',
+    label: 'Torch Stand',
+    type: 'atmosphere-prop',
+    atmosphereAssetKey: 'torchStand',
+    template: {
+      type: 'atmosphere-prop',
+      atmosphereAssetKey: 'torchStand',
+      width: 46,
+      height: 84,
+    },
+  });
+  assert.equal(palette[1].key, 'statue');
+  assert.equal(palette[1].label, 'Statue');
+});
+
+test('journey prop editor creates and duplicates props using canonical prop fields', () => {
+  const paletteItem = {
+    type: 'atmosphere-prop',
+    atmosphereAssetKey: 'fieldChest',
+    template: {
+      type: 'atmosphere-prop',
+      atmosphereAssetKey: 'fieldChest',
+      width: 86,
+      height: 58,
+      depth: 'midground',
+      layer: 'default',
+    },
+  };
+
+  const created = createJourneyPropFromPaletteItem({
+    paletteItem,
+    roomId: 'desert-entry',
+    x: 520,
+    y: 544,
+    existingIds: ['desert-entry-field-chest-1'],
+  });
+
+  assert.deepEqual(created, {
+    id: 'desert-entry-field-chest-2',
+    sectionId: 'desert-entry',
+    type: 'atmosphere-prop',
+    atmosphereAssetKey: 'fieldChest',
+    width: 86,
+    height: 58,
+    depth: 'midground',
+    layer: 'default',
+    x: 520,
+    y: 544,
+    label: 'field chest',
+  });
+
+  const edited = applyJourneyPropPlacementEdit(created, {
+    scale: 1.25,
+    rotation: -15,
+  });
+  assert.equal(edited.scale, 1.25);
+  assert.equal(edited.rotation, -15);
+
+  const duplicate = duplicateJourneyPropForEditor({
+    prop: edited,
+    existingIds: [created.id],
+  });
+  assert.equal(duplicate.id, 'desert-entry-field-chest-2-copy-1');
+  assert.equal(duplicate.x, 552);
+  assert.equal(duplicate.y, 512);
+  assert.equal(duplicate.scale, 1.25);
+  assert.equal(duplicate.rotation, -15);
+});
 
 test('opening cinematic remains wired while the current quick-start path is enabled', () => {
   assert.match(journeyComponentSource, /OPENING_CINEMATIC_DURATION = 24/);
@@ -337,6 +497,40 @@ test('first Egypt secret route rewards curiosity without changing main progressi
   assert.doesNotMatch(journeyComponentSource, /class\s+SecretRoute|createSecretSystem|SecretRouteController|class\s+LooterAI|createRoomSystem|new\s+PlayerController/);
 });
 
+test('forgotten mural relic fragments open an in-room slide puzzle before restoration', () => {
+  assert.match(journeyUtilsSource, /FORGOTTEN_MURAL_RELIC_SLIDE_PUZZLE_VERSION = 'forgotten-mural-relic-slide-puzzle-2026-05-31'/);
+  assert.match(journeyUtilsSource, /FORGOTTEN_MURAL_RELIC_SLIDE_PUZZLE_START_TILES = Object\.freeze\(\[0, 1, 2, 6, 3, 5, 4, 7, null\]\)/);
+  assert.match(journeyUtilsSource, /FORGOTTEN_MURAL_RELIC_SLIDE_PUZZLE_SOLVED_TILES = Object\.freeze\(\[0, 1, 2, 3, 4, 5, 6, 7, null\]\)/);
+  assert.match(journeyComponentSource, /FORGOTTEN_MURAL_RELIC_SLIDE_PUZZLE_ART_SRC = 'assets\/expedition\/environment\/desert-temple\/forgotten-mural-relic-slide-puzzle-2026-06-01\.png'/);
+  assert.match(journeyUtilsSource, /forgottenMuralRelicSlidePuzzleOpen:\s*false/);
+  assert.match(journeyUtilsSource, /forgottenMuralRelicSlidePuzzleSolved:\s*false/);
+  assert.match(journeyUtilsSource, /forgottenMuralRelicSlidePuzzleMoves:\s*0/);
+  assert.match(journeyComponentSource, /current\.forgottenMuralRelicSlidePuzzleOpen = true/);
+  assert.match(journeyComponentSource, /current\.forgottenMuralRelicSlidePuzzleTiles = createForgottenMuralRelicSlidePuzzleTiles\(\)/);
+  assert.match(journeyComponentSource, /forgottenMuralRelicSlidePuzzleOpen:\s*Boolean\(current\.forgottenMuralRelicSlidePuzzleOpen\)/);
+  assert.match(journeyComponentSource, /forgottenMuralRelicSlidePuzzleVersion:\s*FORGOTTEN_MURAL_RELIC_SLIDE_PUZZLE_VERSION/);
+  assert.match(journeyComponentSource, /moveForgottenMuralRelicSlideTile/);
+  assert.match(journeyComponentSource, /className="forgotten-mural-slide-puzzle-overlay"/);
+  assert.match(journeyComponentSource, /className="forgotten-mural-slide-puzzle-grid"/);
+  assert.match(journeyComponentSource, /'--relic-art-url': `url\("\$\{import\.meta\.env\.BASE_URL\}\$\{FORGOTTEN_MURAL_RELIC_SLIDE_PUZZLE_ART_SRC\}"\)`/);
+  assert.match(journeyComponentSource, /'--tile-bg-x': `\$\{\(tile % 3\) \* 50\}%`/);
+  assert.match(journeyComponentSource, /'--tile-bg-y': `\$\{Math\.floor\(tile \/ 3\) \* 50\}%`/);
+  assert.match(journeyComponentSource, /current\.forgottenMuralChamberRestored = true/);
+  assert.match(journeyComponentSource, /current\.forgottenMuralRelicSlidePuzzleSolved = true/);
+  assert.match(journeyComponentSource, /forgottenMuralPuzzleReady[\s\S]*?current\.forgottenMuralRelicSlidePuzzleOpen = true/);
+  assert.match(journeyComponentSource, /isForgottenMuralRelicSlidePuzzleSolved\(nextTiles\)[\s\S]*?current\.forgottenMuralChamberRestored = true/);
+  assert.match(devToolsSource, /jumpToExpeditionStage\('journey-forgotten-mural-puzzle'\)/);
+  assert.match(expeditionModeSource, /event\.detail\?\.target === 'journey-forgotten-mural-puzzle'/);
+  assert.match(journeyComponentSource, /target === 'journey-forgotten-mural-puzzle'/);
+
+  let tiles = createForgottenMuralRelicSlidePuzzleTiles();
+  [7, 6, 3, 4, 7, 8].forEach((tileIndex) => {
+    tiles = getForgottenMuralRelicSlideMove(tiles, tileIndex);
+    assert.ok(Array.isArray(tiles), `tile index ${tileIndex} should be movable`);
+  });
+  assert.equal(isForgottenMuralRelicSlidePuzzleSolved(tiles), true);
+});
+
 test('scribe locked chamber reuses the Journey scene and challenge systems for optional Egypt decoding', () => {
   const hiddenRoutes = extractExportedArray('HIDDEN_ROUTES');
   const platforms = extractExportedArray('PLATFORMS');
@@ -532,24 +726,25 @@ test('mummification chamber exterior reuses Journey routes, ledges, assets, and 
   assert.match(mummificationRoute, /first sacred mystery/i);
   assert.match(exteriorStructure, /type:\s*'generated-mummification-chamber-entrance'/);
   assert.match(exteriorStructure, /depth:\s*'route-edge'/);
+  assert.match(exteriorStructure, /y:\s*JY\(-400\)/);
   [
-    ['mummification-chamber-bottom-secret-threshold', '638', '312', '176'],
-    ['mummification-chamber-sand-buried-block', '647', '278', '176'],
-    ['mummification-chamber-far-left-ground-shelf', '563', '230', '176'],
-    ['mummification-chamber-left-lower-terrace', '586', '170', '311'],
-    ['mummification-chamber-left-sandstone-shelf', '586', '30', '212'],
-    ['mummification-chamber-left-column-cap', '606', '-8', '130'],
-    ['mummification-chamber-central-left-shelf', '657', '203', '210'],
-    ['mummification-chamber-central-drop-slab', '681', '110', '192'],
-    ['mummification-chamber-carved-lower-ledge', '708', '55', '212'],
-    ['mummification-chamber-right-low-landing', '724', '295', '197'],
-    ['mummification-chamber-right-stair-landing', '701', '190', '155'],
-    ['mummification-chamber-right-column-cap', '726', '25', '212'],
-    ['mummification-chamber-upper-rite-ledge', '684', '-54', '218'],
-    ['mummification-chamber-left-doorway-ledge', '659', '-101', '259'],
-    ['mummification-chamber-upper-left-platform', '659', '-200', '238'],
-    ['mummification-chamber-upper-right-platform', '745', '-101', '228'],
-    ['mummification-chamber-doorway-floor', '708', '-167', '228'],
+    ['mummification-chamber-bottom-secret-threshold', '638', '257', '176'],
+    ['mummification-chamber-sand-buried-block', '647', '223', '176'],
+    ['mummification-chamber-far-left-ground-shelf', '563', '175', '176'],
+    ['mummification-chamber-left-lower-terrace', '586', '115', '311'],
+    ['mummification-chamber-left-sandstone-shelf', '586', '-25', '212'],
+    ['mummification-chamber-left-column-cap', '606', '-63', '130'],
+    ['mummification-chamber-central-left-shelf', '657', '148', '210'],
+    ['mummification-chamber-central-drop-slab', '681', '55', '192'],
+    ['mummification-chamber-carved-lower-ledge', '708', '0', '212'],
+    ['mummification-chamber-right-low-landing', '724', '240', '197'],
+    ['mummification-chamber-right-stair-landing', '701', '135', '155'],
+    ['mummification-chamber-right-column-cap', '726', '-30', '212'],
+    ['mummification-chamber-upper-rite-ledge', '684', '-109', '218'],
+    ['mummification-chamber-left-doorway-ledge', '659', '-156', '259'],
+    ['mummification-chamber-upper-left-platform', '659', '-255', '238'],
+    ['mummification-chamber-upper-right-platform', '745', '-156', '228'],
+    ['mummification-chamber-doorway-floor', '708', '-222', '228'],
   ].forEach(([id, authoredX, authoredY, width]) => {
     const platform = getDataRowById(platforms, id);
     assert.match(platform, new RegExp(`x:\\s*X\\(${authoredX}\\)`));
@@ -562,7 +757,7 @@ test('mummification chamber exterior reuses Journey routes, ledges, assets, and 
   assert.match(journeyUtilsSource, /mummificationChamberEntranceDiscovered:\s*false/);
   assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_EXTERIOR_SRC = 'assets\/expedition\/environment\/desert-temple\/mummification-chamber-exterior-climb-structure\.png'/);
   assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?minX:\s*scaleJourneyX\(720\)[\s\S]*?maxX:\s*scaleJourneyX\(748\)/);
-  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?footY:\s*openingJourneyY\(-167\)[\s\S]*?footTolerance:\s*22/);
+  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?footY:\s*openingJourneyY\(-222\)[\s\S]*?footTolerance:\s*22/);
   assert.match(journeyComponentSource, /drawMummificationChamberExteriorAsset/);
   assert.match(journeyComponentSource, /prop\.type === 'generated-mummification-chamber-entrance'/);
   assert.match(journeyComponentSource, /discoveredHiddenRouteIds\?\.add\('mummification-chamber-route'\)/);
@@ -603,8 +798,9 @@ test('mummification chamber entrance uses the existing Journey chamber transitio
 
 test('mummification chamber interior uses a project-bound game-ready environment asset with readable puzzle zones', () => {
   assert.ok(existsSync(mummificationChamberInteriorPath), 'Mummification Chamber interior art should exist as a project asset');
-  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_INTERIOR_SRC = 'assets\/expedition\/environment\/desert-temple\/mummification-chamber-interior\.png'/);
-  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_INTERIOR_VERSION = 'imagegen-mummification-chamber-interior-2026-05-27'/);
+  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_INTERIOR_SRC = 'assets\/expedition\/environment\/desert-temple\/mummification-chamber-interior-side-scroll-2026-05-31\.png'/);
+  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_INTERIOR_VERSION = 'imagegen-mummification-chamber-side-scroll-puzzle-ready-2026-05-31'/);
+  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_ENTRY_SPAWN = \{\s*x:\s*scaleJourneyX\(596\)/);
   assert.match(journeyComponentSource, /mummificationChamberInteriorRef/);
   assert.match(journeyComponentSource, /image\.src = `\$\{import\.meta\.env\.BASE_URL\}\$\{MUMMIFICATION_CHAMBER_INTERIOR_SRC\}`/);
   assert.match(journeyComponentSource, /const chamberAsset = mummificationChamberInteriorRef\.current/);
@@ -612,7 +808,10 @@ test('mummification chamber interior uses a project-bound game-ready environment
   assert.match(journeyComponentSource, /mummificationChamberInteriorLoaded:\s*mummificationChamberInteriorRef\.current\.loaded/);
   assert.match(journeyComponentSource, /mummificationChamberPuzzleCenterpiece/);
   assert.match(journeyComponentSource, /mummificationChamberReadableZones/);
-  assert.match(journeyComponentSource, /massive embalming table, wrapped mummy, floating linen, canopic jars, oils, Anubis statue, glowing hieroglyphics/);
+  assert.match(journeyComponentSource, /side-on mummification chamber, reachable mummy table, linen, canopic jars, oils, ritual tablet, Anubis statue, glowing exit seal/);
+  assert.match(journeyComponentSource, /mummificationChamberPuzzleCenterpiece:\s*\{ x:\s*565,\s*y:\s*310,\s*radiusX:\s*210,\s*radiusY:\s*64 \}/);
+  assert.match(journeyComponentSource, /\{ id:\s*'linen-and-oils',\s*x:\s*350,\s*y:\s*465,\s*radiusX:\s*140,\s*radiusY:\s*82 \}/);
+  assert.match(journeyComponentSource, /\{ id:\s*'ritual-tablet',\s*x:\s*780,\s*y:\s*475,\s*radiusX:\s*80,\s*radiusY:\s*90 \}/);
 });
 
 test('mummification chamber interaction objects reuse Journey asset packs and notice dialogue', () => {
@@ -679,6 +878,24 @@ test('mummification chamber ritual-order puzzle uses in-world sequence activatio
   assert.match(journeyComponentSource, /ritualStep > 0 \? 'ritual-active'/);
   assert.match(journeyComponentSource, /The Ritual of Preservation/);
   assert.doesNotMatch(journeyComponentSource, /createMummificationPuzzleSystem|MummificationPuzzle\.jsx|class\s+MummificationPuzzle/);
+});
+
+test('mummification chamber ritual puzzle teaches the next rite without punishing progress', () => {
+  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_RITUAL_GUIDANCE_VERSION = 'mummification-ritual-guided-sequence-2026-05-31'/);
+  [
+    ['mummification-embalming-table', 'Cleanse the body'],
+    ['mummification-canopic-jars', 'Remove organs and dry the body'],
+    ['mummification-oils-resins', 'Anoint with oils and resins'],
+    ['mummification-linen-wrappings', 'Wrap body in linen'],
+    ['mummification-ritual-tablet', 'Place in sarcophagus with amulets'],
+  ].forEach(([id, rite]) => {
+    assert.match(journeyComponentSource, new RegExp(`id:\\s*'${id}'[\\s\\S]*?rite:\\s*'${rite.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}'`));
+  });
+  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_RITUAL_SEQUENCE = MUMMIFICATION_CHAMBER_RITUAL_STEPS\.map\(step => step\.id\)/);
+  assert.match(journeyComponentSource, /currentStepInfo = MUMMIFICATION_CHAMBER_RITUAL_STEPS\[chamberRitualStep\]/);
+  assert.match(journeyComponentSource, /nextStepInfo = MUMMIFICATION_CHAMBER_RITUAL_STEPS\[ritualStep\]/);
+  assert.match(journeyComponentSource, /current\.notice = nextStepInfo\?\.hint \|\| 'The room remains still\. Preparation must follow its order\.'/);
+  assert.doesNotMatch(journeyComponentSource, /current\.mummificationChamberRitualStep = 0;[\s\S]*?MUMMIFICATION_CHAMBER_RITUAL_SEQUENCE\.forEach\(\(id\) => inspectedObjectIds\.delete\(id\)\)/);
 });
 
 test('mummification chamber atmosphere wakes from existing inspection and puzzle state', () => {

@@ -142,6 +142,19 @@ export function DevTools({
       <button className={currentPhase === 'expedition' ? 'active' : ''} onClick={() => jumpToExpeditionStage('journey')}>Journey</button>
       <button onClick={() => jumpToExpeditionStage('base-camp')}>Base Camp</button>
       <button onClick={() => jumpToExpeditionStage('excavation')}>Excavation</button>
+      <div className="dev-tools-section-label">Journey Rooms</div>
+      <button
+        className="dev-tools-subbutton"
+        onClick={() => jumpToExpeditionStage('journey-mummification-chamber')}
+      >
+        Mummification Chamber
+      </button>
+      <button
+        className="dev-tools-subbutton"
+        onClick={() => jumpToExpeditionStage('journey-forgotten-mural-puzzle')}
+      >
+        Mural Slide Puzzle
+      </button>
       <div className="dev-tools-section-label">Journey Bosses</div>
       <button
         className="dev-tools-subbutton"

@@ -4171,6 +4171,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
           || event.detail?.target === 'journey-scarab-payoff'
           || event.detail?.target === 'journey-desert-map-seal-ready'
           || event.detail?.target === 'journey-route-gate'
+          || event.detail?.target === 'journey-forgotten-mural-puzzle'
         )
         && (expeditionStage !== 'journey' || baseCampOpen)
       ) {
