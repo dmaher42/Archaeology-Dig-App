@@ -2191,6 +2191,7 @@ const PROP_GROUNDING_CONFIG = {
   'jackal-statue': { width: 82, height: 122, yOffset: 88, alpha: 0.96, depth: 'midground', tint: 'stone', shadow: 0.28, dust: 0.9, bury: 0.14 },
   'damaged-jackal-statue': { width: 92, height: 118, yOffset: 88, alpha: 0.9, depth: 'midground', tint: 'stone', shadow: 0.26, dust: 0.9, bury: 0.18 },
   bridge: { width: 168, height: 62, yOffset: 20, alpha: 0.62, depth: 'midground', tint: 'warm', shadow: 0.2, dust: 0.72 },
+  'survey-rope': { width: 118, height: 42, yOffset: 20, alpha: 0.68, depth: 'midground', tint: 'warm', shadow: 0.1, dust: 0.54, bury: 0.08 },
   lights: { width: 42, height: 62, yOffset: 18, alpha: 0.48, depth: 'background', tint: 'cool', shadow: 0.08, dust: 0.44 },
   banners: { width: 76, height: 48, yOffset: 28, alpha: 0.5, depth: 'background', tint: 'dust', shadow: 0.08, dust: 0.48 },
   'sacred-pedestal': { width: 84, height: 72, yOffset: 38, alpha: 0.88, depth: 'midground', tint: 'warm', shadow: 0.22, dust: 0.78 },
@@ -9703,12 +9704,13 @@ export default function ExpeditionJourney({
       return true;
     }
     const drawn = [
-      drawDesertBackgroundLayer(ctx, assets, 'skyLayer', { y: 0, height: CANVAS_HEIGHT }, { ...layerOptions, parallax: 0.01, alpha: 0.98 }),
-      drawDesertBackgroundLayer(ctx, assets, 'farMountains', { y: 184, height: 228 }, { ...layerOptions, parallax: 0.06, alpha: 0.42 }),
-      drawDesertBackgroundLayer(ctx, assets, 'riverValley', { y: 258, height: 224 }, { ...layerOptions, parallax: 0.14, alpha: 0.46 }),
-      drawDesertBackgroundLayer(ctx, assets, 'watchtowerRidge', { y: 314, height: 236 }, { ...layerOptions, parallax: 0.24, alpha: 0.64 }),
+      drawDesertBackgroundLayer(ctx, assets, 'skyLayer', { y: 0, height: CANVAS_HEIGHT }, { ...layerOptions, parallax: 0.01, alpha: 1.0 }),
+      // TODO: Uncomment when artists slice the China background properly
+      // drawDesertBackgroundLayer(ctx, assets, 'farMountains', { y: 184, height: 228 }, { ...layerOptions, parallax: 0.06, alpha: 0.42 }),
+      // drawDesertBackgroundLayer(ctx, assets, 'riverValley', { y: 258, height: 224 }, { ...layerOptions, parallax: 0.14, alpha: 0.46 }),
+      // drawDesertBackgroundLayer(ctx, assets, 'watchtowerRidge', { y: 314, height: 236 }, { ...layerOptions, parallax: 0.24, alpha: 0.64 }),
     ];
-    if (!drawn.every(Boolean)) return false;
+    if (!drawn[0]) return false;
 
     ctx.save();
     const skyWash = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
@@ -11668,10 +11670,10 @@ export default function ExpeditionJourney({
       current.renderStats.activeBackgroundSection = section.id;
       current.renderStats.backgroundDepthMode = JOURNEY_BACKGROUND_DEPTH_MODE;
     } else {
-      // Sky
+      // Sky — fall back to neutral dark if atmosphere colors are missing (e.g. new civ sections)
       const skyGradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-      skyGradient.addColorStop(0, atmosphere.skyTop);
-      skyGradient.addColorStop(1, atmosphere.skyBottom);
+      skyGradient.addColorStop(0, atmosphere.skyTop ?? '#1a1410');
+      skyGradient.addColorStop(1, atmosphere.skyBottom ?? '#2a2018');
       ctx.fillStyle = skyGradient;
       ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
