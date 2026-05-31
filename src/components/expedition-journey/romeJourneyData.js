@@ -56,6 +56,8 @@ export const ROME_ROUTE_GATES = ROME_GATES.map((gate) => ({
 }));
 
 // --- Opening trigger (replaces scarab seal for Rome — the Legate's presence is felt) ---
+export const ROME_ROUTE_GATE_DOORWAYS = [];
+
 export const ROME_OPENING_TRIGGER = {
   id: 'legate-presence-trigger',
   sectionId: 'via-sacra',

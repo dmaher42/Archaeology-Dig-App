@@ -1,4 +1,6 @@
-import { PLAYER_SPRITE_DRAW_HEIGHT } from './journeyConstants.js';
+// ENEMY_BASE_HEIGHT is intentionally separate from PLAYER_SPRITE_DRAW_HEIGHT so that
+// enemy sizes stay fixed when Asha's draw height is tuned.
+const ENEMY_BASE_HEIGHT = 108;
 
 export const ENEMY_SPRITE_BASE_PATH = 'assets/expedition/enemies/';
 export const ENEMY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}small-enemy-sprites.json`;
@@ -645,7 +647,7 @@ export const getEnemySpriteDrawBox = (enemy, screenX, shakeX = 0, combatMode = n
   const scaledHeight = Math.max(enemy.height, enemy.height * scale);
   const visualMultiplier = ENEMY_VISUAL_SIZE_MULTIPLIERS[family] || ENEMY_VISUAL_SIZE_MULTIPLIER;
   const height = family === 'mummy' && !defeated
-    ? PLAYER_SPRITE_DRAW_HEIGHT * MUMMY_ASHA_SIZE_MULTIPLIER
+    ? ENEMY_BASE_HEIGHT * MUMMY_ASHA_SIZE_MULTIPLIER
     : Math.max(minHeight, scaledHeight) * visualMultiplier;
   const width = family === 'sandWisp'
     ? Math.max(scaledWidth, height * (defeated ? 1.7 : 1.95))

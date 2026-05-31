@@ -1,41 +1,10 @@
 {
-  "image": "china-river-valley-parallax-pack.png",
-  "source": "AI-generated Ancient China river valley full-scene backdrop, generated with the imagegen skill and integrated May 15 2026.",
-  "notes": "High-quality composited China Journey backdrop. The renderer uses the full 16:9 scene to avoid the prototype strip seams visible in the earlier five-strip atlas.",
+  "image": "china-river-valley.png",
   "regions": {
-    "skyLayer": {
-      "x": 0,
-      "y": 0,
-      "w": 1672,
-      "h": 941
-    },
-    "farMountains": {
-      "x": 0,
-      "y": 0,
-      "w": 1672,
-      "h": 941
-    },
-    "riverValley": {
-      "x": 0,
-      "y": 0,
-      "w": 1672,
-      "h": 941
-    },
-    "watchtowerRidge": {
-      "x": 0,
-      "y": 0,
-      "w": 1672,
-      "h": 941
-    },
-    "foregroundMist": {
-      "x": 0,
-      "y": 0,
-      "w": 1672,
-      "h": 941
-    }
-  },
-  "imageWidth": 1672,
-  "imageHeight": 941,
-  "runtimeMode": "single-composited-backdrop",
-  "coordinateNote": "All runtime keys point to the same full-scene image; China-specific renderer draws it once and adds light atmospheric overlays."
+    "skyLayer": { "x": 0, "y": 512, "w": 1024, "h": 512 },
+    "farMountains": { "x": 0, "y": 512, "w": 1024, "h": 512 },
+    "riverValley": { "x": 0, "y": 512, "w": 1024, "h": 512 },
+    "watchtowerRidge": { "x": 0, "y": 512, "w": 1024, "h": 512 },
+    "foregroundMist": { "x": 0, "y": 512, "w": 1024, "h": 512 }
+  }
 }

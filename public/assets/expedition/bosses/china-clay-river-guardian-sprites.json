@@ -1,74 +1,16 @@
 {
-  "image": "china-clay-river-guardian-sprites.png",
-  "source": "AI-generated unique Ancient China Clay River Guardian boss sprite atlas, chroma-key removed and integrated May 15 2026.",
-  "coordinateNote": "Generated unique boss cutout expanded into a consistent 11-frame runtime atlas with pose/tint variants and transparent background. Frame keys match the existing clayGuardian animation contract.",
-  "bossId": "china-clay-river-guardian",
+  "image": "china-clay-river-guardian.png",
   "regions": {
-    "clayGuardianIdle": {
-      "x": 0,
-      "y": 0,
-      "w": 300,
-      "h": 390
-    },
-    "clayGuardianWalk1": {
-      "x": 300,
-      "y": 0,
-      "w": 300,
-      "h": 390
-    },
-    "clayGuardianWalk2": {
-      "x": 600,
-      "y": 0,
-      "w": 300,
-      "h": 390
-    },
-    "clayGuardianIntro": {
-      "x": 900,
-      "y": 0,
-      "w": 300,
-      "h": 390
-    },
-    "clayGuardianWindup": {
-      "x": 1200,
-      "y": 0,
-      "w": 300,
-      "h": 390
-    },
-    "clayGuardianSlam": {
-      "x": 1500,
-      "y": 0,
-      "w": 300,
-      "h": 390
-    },
-    "clayGuardianPulse": {
-      "x": 1800,
-      "y": 0,
-      "w": 300,
-      "h": 390
-    },
-    "clayGuardianShielded": {
-      "x": 2100,
-      "y": 0,
-      "w": 300,
-      "h": 390
-    },
-    "clayGuardianCounterWindow": {
-      "x": 2400,
-      "y": 0,
-      "w": 300,
-      "h": 390
-    },
-    "clayGuardianHit": {
-      "x": 2700,
-      "y": 0,
-      "w": 300,
-      "h": 390
-    },
-    "clayGuardianDefeated": {
-      "x": 3000,
-      "y": 0,
-      "w": 300,
-      "h": 390
-    }
+    "clayGuardianIdle": { "x": 0, "y": 0, "w": 1024, "h": 1024 },
+    "clayGuardianWalk1": { "x": 0, "y": 0, "w": 1024, "h": 1024 },
+    "clayGuardianWalk2": { "x": 0, "y": 0, "w": 1024, "h": 1024 },
+    "clayGuardianIntro": { "x": 0, "y": 0, "w": 1024, "h": 1024 },
+    "clayGuardianWindup": { "x": 0, "y": 0, "w": 1024, "h": 1024 },
+    "clayGuardianSlam": { "x": 0, "y": 0, "w": 1024, "h": 1024 },
+    "clayGuardianPulse": { "x": 0, "y": 0, "w": 1024, "h": 1024 },
+    "clayGuardianShielded": { "x": 0, "y": 0, "w": 1024, "h": 1024 },
+    "clayGuardianCounterWindow": { "x": 0, "y": 0, "w": 1024, "h": 1024 },
+    "clayGuardianHit": { "x": 0, "y": 0, "w": 1024, "h": 1024 },
+    "clayGuardianDefeated": { "x": 0, "y": 0, "w": 1024, "h": 1024 }
   }
 }

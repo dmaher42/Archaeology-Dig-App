@@ -14,7 +14,6 @@ import {
   getEnemySpriteFrame,
   shouldFlipEnemySprite,
 } from './journeyEnemySprites.js';
-import { PLAYER_SPRITE_DRAW_HEIGHT } from './journeyConstants.js';
 import { readFileSync } from 'node:fs';
 
 const journeyComponentSource = readFileSync(new URL('../ExpeditionJourney.jsx', import.meta.url), 'utf8');
@@ -111,7 +110,7 @@ test('warrior mummy sprite draw box resolves as a grounded humanoid enemy', () =
 
   assert.ok(drawBox, 'warrior mummy draw box should resolve');
   assert.equal(drawBox.family, 'mummy');
-  assert.equal(drawBox.height, PLAYER_SPRITE_DRAW_HEIGHT * 1.265, 'warrior mummy should draw 15% larger than its previous Asha-relative scale');
+  assert.equal(drawBox.height, 108 * 1.265, 'warrior mummy draw height is fixed to the original enemy base height (108) and does not change with Asha\'s draw height');
   assert.equal(drawBox.y + drawBox.height, mummy.y + mummy.height + 15, 'warrior mummy sprite should stay grounded');
 });
 

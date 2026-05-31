@@ -437,5 +437,6 @@ export const getEnvironmentAssetKeyForStoryProp = (prop, packId = DEFAULT_ENVIRO
     bridge: 'brokenBridge',
     lights: 'lantern',
     banners: 'rope',
+    'survey-rope': 'rope',
   }[prop.type] || null);
 };

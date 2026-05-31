@@ -13,6 +13,7 @@ import { CHINA_ENEMIES, ENEMIES } from './journeyLevelData.js';
 const source = readFileSync(new URL('./journeyLevelData.js', import.meta.url), 'utf8');
 const journeyUtilsSource = readFileSync(new URL('./journeyUtils.js', import.meta.url), 'utf8');
 const journeyConstantsSource = readFileSync(new URL('./journeyConstants.js', import.meta.url), 'utf8');
+const journeyDataRouterSource = readFileSync(new URL('./journeyDataRouter.js', import.meta.url), 'utf8');
 const journeyEnemySpritesSource = readFileSync(new URL('./journeyEnemySprites.js', import.meta.url), 'utf8');
 const journeyBossSpritesSource = readFileSync(new URL('./journeyBossSprites.js', import.meta.url), 'utf8');
 const journeyMarkerSpritesSource = readFileSync(new URL('./journeyMarkerSprites.js', import.meta.url), 'utf8');
@@ -634,12 +635,17 @@ test('mummification chamber interaction objects reuse Journey asset packs and no
   assert.match(journeyUtilsSource, /mummificationChamberInspectedObjectIds:\s*new Set\(\)/);
   assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS = Object\.freeze/);
   [
-    'This table was used for preservation.',
-    'The wrappings protected the body.',
-    'These jars protected important organs.',
-    'A guide to the ritual.',
-    'Oils and resins prepared the body for the journey beyond.',
-    'The seal responds to the completed ritual.',
+    'This was not only a body being preserved. It was the self being carried across.',
+    'Layer by layer. Not hidden. Held together.',
+    'Not storage. Safekeeping.',
+    'The name has been scratched away. Someone tried to remove more than stone.',
+    'Preservation was care. Not display.',
+    'The seal recognises care before passage.',
+    'The scent of resin rises from the stone.',
+    'The linen shifts as if remembering its purpose.',
+    'The jars settle into silence.',
+    'A faint line of the name returns.',
+    'The chamber grows still.',
   ].forEach((line) => {
     assert.match(journeyComponentSource, new RegExp(line.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   });
@@ -649,7 +655,7 @@ test('mummification chamber interaction objects reuse Journey asset packs and no
   assert.doesNotMatch(journeyComponentSource, /createMummificationInteractionSystem|MummificationInteractionObjects\.jsx|class\s+MummificationInteraction/);
 });
 
-test('mummification chamber ritual-order puzzle reuses activeGuardianChallenge and safely unlocks the exit', () => {
+test('mummification chamber ritual-order puzzle uses in-world sequence activation and safely unlocks the exit', () => {
   [
     'Cleanse the body',
     'Remove organs and dry the body',
@@ -661,15 +667,17 @@ test('mummification chamber ritual-order puzzle reuses activeGuardianChallenge a
   });
   assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_PUZZLE = \{/);
   assert.match(journeyComponentSource, /type:\s*'mummification-ritual-order-puzzle'/);
-  assert.match(journeyComponentSource, /The seal asks for the ritual order\./);
-  assert.match(journeyComponentSource, /current\.activeGuardianChallenge = \{[\s\S]*?\.\.\.MUMMIFICATION_CHAMBER_PUZZLE/);
-  assert.match(journeyComponentSource, /That order does not seem right\./);
-  assert.match(journeyComponentSource, /The ritual is complete\./);
-  assert.match(journeyComponentSource, /challenge\.selectedAnswerIndex = null;[\s\S]*?challenge\.feedback = null;[\s\S]*?The seal waits for the correct ritual order\./);
+  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_RITUAL_SEQUENCE/);
+  assert.match(journeyComponentSource, /mummificationChamberRitualStep/);
+  assert.match(journeyComponentSource, /That order is not right\./);
+  assert.match(journeyComponentSource, /The ritual order is understood\./);
+  assert.match(journeyComponentSource, /The room remains still\. Preparation must follow its order\./);
+  assert.match(journeyComponentSource, /They were not buried with riches\. They were buried with memories\./);
+  assert.match(journeyComponentSource, /The scent of resin rises from the stone\./);
   assert.match(journeyComponentSource, /current\.mummificationChamberPuzzleSolved = true/);
   assert.match(journeyComponentSource, /current\.mummificationChamberExitUnlocked = true/);
-  assert.match(journeyComponentSource, /activeGuardianChallenge\.type === 'mummification-ritual-order-puzzle'/);
-  assert.match(journeyComponentSource, /Mummification Ritual Order/);
+  assert.match(journeyComponentSource, /ritualStep > 0 \? 'ritual-active'/);
+  assert.match(journeyComponentSource, /The Ritual of Preservation/);
   assert.doesNotMatch(journeyComponentSource, /createMummificationPuzzleSystem|MummificationPuzzle\.jsx|class\s+MummificationPuzzle/);
 });
 
@@ -677,7 +685,8 @@ test('mummification chamber atmosphere wakes from existing inspection and puzzle
   assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_ATMOSPHERE_VERSION = 'mummification-chamber-atmosphere-progression-2026-05-28'/);
   assert.match(journeyComponentSource, /getMummificationChamberAtmosphere = \(current\) => \{/);
   assert.match(journeyComponentSource, /mummificationChamberInspectedObjectIds/);
-  assert.match(journeyComponentSource, /activeGuardianChallenge\?\.type === 'mummification-ritual-order-puzzle'/);
+  assert.match(journeyComponentSource, /mummificationChamberRitualStep/);
+  assert.match(journeyComponentSource, /ritualRatio/);
   assert.match(journeyComponentSource, /mummificationChamberPuzzleSolved \|\| current\.mummificationChamberExitUnlocked/);
   assert.match(journeyComponentSource, /particleCount:\s*Math\.min\(32,/);
   assert.match(journeyComponentSource, /wakeProgress/);
@@ -777,9 +786,9 @@ test('story props include recurring expedition markers across sections', () => {
   assert.doesNotMatch(storyProps, /atmosphere-entry-distant-rubble/);
   assert.doesNotMatch(storyProps, /atmosphere-entry-far-door-frame/);
   assert.doesNotMatch(storyProps, /abandoned-camp/);
-  assert.match(storyProps, /type:\s*'cart'/);
+  assert.doesNotMatch(storyProps, /type:\s*'cart'/);
   assert.match(storyProps, /generated premium carved fallen column in open sand after the pyramid/);
-  assert.match(storyProps, /base camp supply cart/);
+  assert.match(storyProps, /base camp supply chest replacing old cart marker/);
   assert.match(journeyComponentSource, /STORY_PROP_GROUNDING_OVERRIDES/);
   assert.doesNotMatch(journeyComponentSource, /'upper-route-broken-stone-cue':\s*\{/);
   assert.match(journeyComponentSource, /'jackal-statue':\s*\{[\s\S]*?alpha:\s*0\.96[\s\S]*?depth:\s*'midground'/);
@@ -2119,7 +2128,7 @@ test('first mini-boss is gated by preparation and rewards the next route', () =>
 
   assert.match(routeGates, /id:\s*'guardian-prep-seal'/);
   assert.match(routeGates, /name:\s*'Guardian Prep Seal'/);
-  assert.match(routeGates, /x:\s*X\(1495\)/);
+  assert.match(routeGates, /x:\s*X\(1115\)/);
   assert.match(routeGates, /requires:\s*\{\s*objective:\s*'desert-entry'[\s\S]*?shards:\s*6/);
   assert.match(routeGates, /id:\s*'guardian-prep-seal'[\s\S]*?id:\s*'desert-seal'/);
   assert.match(routeGates, /readyHint:\s*'The Desert Map Seal opens\. Carry the record forward into the ruined temple\.'/);
@@ -2215,10 +2224,39 @@ test('Journey progress gates use arch and slab assets instead of artificial padl
   assert.match(routeGateDrawSource, /drawGateAsset\(routeGateSlabRef/);
   assert.match(routeGateDrawSource, /drawGateAsset\(routeGateBackRef/);
   assert.match(routeGateDrawSource, /drawGateAsset\(routeGateFrontRef/);
+  assert.match(routeGateDrawSource, /flipX:\s*true/);
   assert.match(routeGateDrawSource, /layer === 'foreground'[\s\S]*?if \(complete\)/);
-  assert.match(journeyComponentSource, /current\.openedRouteGateIds\.has\(gate\.id\) \|\| requirements\.every\(r => r\.met\)/);
+  assert.match(journeyComponentSource, /status\.complete/);
   assert.doesNotMatch(routeGateDrawSource, /drawFieldNoteLabel|gateRequirementLabel|gate\.name/);
   assert.doesNotMatch(routeGateDrawSource, /ctx\.arc\(gateCenter[\s\S]*?ctx\.fillRect\(gateCenter - 7/);
+});
+
+test('Journey route gates use doorway anchors so linked seals draw as one blocked path', () => {
+  const routeGateDoorways = extractExportedArray('ROUTE_GATE_DOORWAYS');
+  const drawStart = journeyComponentSource.indexOf('const drawRouteGate = useCallback');
+  const drawEnd = journeyComponentSource.indexOf('const drawMissingObjectiveMarker = useCallback', drawStart);
+  const routeGateDrawSource = journeyComponentSource.slice(drawStart, drawEnd);
+  const collisionStart = journeyComponentSource.indexOf('// Gates');
+  const collisionEnd = journeyComponentSource.indexOf('// Final Goal', collisionStart);
+  const routeGateCollisionSource = journeyComponentSource.slice(collisionStart, collisionEnd);
+
+  assert.match(routeGateDoorways, /id:\s*'desert-entry-main-doorway'/);
+  assert.match(routeGateDoorways, /gateIds:\s*\[\s*'temple-approach-seal',\s*'guardian-prep-seal'\s*\]/);
+  assert.match(routeGateDoorways, /anchorX:\s*X\(1115\)/);
+  assert.match(routeGateDoorways, /blockX:\s*X\(1115\)/);
+  assert.match(routeGateDoorways, /opening:\s*\{\s*left:\s*-92,\s*right:\s*92,\s*top:\s*-250,\s*bottom:\s*0\s*\}/);
+  assert.match(journeyDataRouterSource, /ROUTE_GATE_DOORWAYS = makeProxy/);
+  assert.match(journeyComponentSource, /ROUTE_GATE_DOORWAYS/);
+  assert.match(journeyComponentSource, /getRouteGateDoorwayEntries/);
+  assert.match(journeyComponentSource, /getDoorwayGateStatus/);
+  assert.match(routeGateDrawSource, /doorway\?\.anchorX/);
+  assert.match(routeGateDrawSource, /frontDest[\s\S]*?gateCenter - Math\.round\(frontWidth \/ 2\)/);
+  assert.doesNotMatch(routeGateDrawSource, /gateCenter - frontWidth - 50/);
+  assert.match(journeyComponentSource, /getRouteGateDoorwayEntries\(\)\.forEach/);
+  assert.match(routeGateCollisionSource, /getRouteGateDoorwayEntries\(\)\.forEach/);
+  assert.match(routeGateCollisionSource, /const blockX = doorway\?\.blockX \?\? activeGate\.x/);
+  assert.match(routeGateCollisionSource, /status\.gatesToOpen\.forEach\(gateToOpen => current\.openedRouteGateIds\.add\(gateToOpen\.id\)\)/);
+  assert.doesNotMatch(routeGateCollisionSource, /ROUTE_GATES\.forEach\(g =>/);
 });
 
 test('Scarab Queen approach builds dread before the lair emergence', () => {
@@ -2554,6 +2592,65 @@ test('Egypt atmosphere layout fills each Journey section without changing gamepl
     /id:\s*'ruined-temple-colossus-gate'[\s\S]{0,420}visibleWhenLocked:\s*true/,
     'desert-to-temple doorway should not render as a ghosted locked-route overlay'
   );
+});
+
+test('conservative prop cleanup moves old canvas story props onto atlas-backed assets', () => {
+  const storyProps = extractExportedArray('STORY_PROPS');
+  const convertedProps = [
+    ['temple-entry-flag', 'stoneTablet'],
+    ['temple-broken-equipment-cart', 'fieldChest'],
+    ['temple-warning-banner-line', 'torchStand'],
+    ['escape-rubble-marker', 'sealedWallPanel'],
+    ['escape-abandoned-survey-cart', 'fieldChest'],
+    ['camp-lights', 'torchStand'],
+    ['dig-site-supply-cart-line', 'fieldChest'],
+    ['permit-clue-marker', 'sealedWallPanel'],
+    ['pyramid-base-guardian-fragment', 'ankhSealPanel'],
+    ['final-survey-lights', 'torchStand'],
+    ['sealed-entrance-survey-lamps', 'torchStand'],
+    ['buried-stairway-marker', 'stoneDoorFrame'],
+    ['base-banners', 'stoneDoorFrame'],
+  ];
+
+  convertedProps.forEach(([propId, assetKey]) => {
+    const row = getDataRowById(storyProps, propId);
+    assert.match(row, /type:\s*'atmosphere-prop'/, `${propId} should render through the atlas prop path`);
+    assert.match(row, new RegExp(`atmosphereAssetKey:\\s*'${assetKey}'`), `${propId} should use ${assetKey}`);
+    assert.doesNotMatch(row, /type:\s*'(sign|cart|sacred-lamps|lights|carved-wall|guardian-fragment|gate|paired-guardians)'/);
+  });
+
+  assert.match(journeyRenderAssetsSource, /'survey-rope':\s*'rope'/, 'survey rope story props should use the existing rope atlas region');
+  assert.match(journeyComponentSource, /'survey-rope':\s*\{[\s\S]*?width:/, 'survey rope atlas props should have grounding dimensions');
+  assert.doesNotMatch(storyProps, /type:\s*'(cart|sacred-lamps|lights|carved-wall|guardian-fragment|paired-guardians)'/);
+});
+
+test('conservative sign cleanup moves route signs onto atlas-backed props', () => {
+  const storyProps = extractExportedArray('STORY_PROPS');
+  const convertedSigns = [
+    ['temple-threshold-switch-trail', 'sealedWallPanel'],
+    ['sandfall-warning-marker', 'ankhSealPanel'],
+    ['field-note-marker', 'stoneTablet'],
+    ['temple-guardian-marker', 'ankhSealPanel'],
+    ['catacomb-entry-marker', 'stoneTablet'],
+    ['catacomb-pause-marker', 'stoneTablet'],
+    ['catacomb-evidence-marker', 'stoneTablet'],
+    ['serpent-boundary-marker', 'ankhSealPanel'],
+    ['bridge-survey-flag', 'stoneTablet'],
+    ['unstable-route-marker', 'sealedWallPanel'],
+    ['captain-warning-marker', 'ankhSealPanel'],
+    ['site-boundary-marker', 'stoneTablet'],
+    ['safe-survey-pause-marker', 'stoneTablet'],
+    ['construct-warning-marker', 'ankhSealPanel'],
+  ];
+
+  convertedSigns.forEach(([propId, assetKey]) => {
+    const row = getDataRowById(storyProps, propId);
+    assert.match(row, /type:\s*'atmosphere-prop'/, `${propId} should render through the atmosphere atlas path`);
+    assert.match(row, new RegExp(`atmosphereAssetKey:\\s*'${assetKey}'`), `${propId} should use ${assetKey}`);
+    assert.doesNotMatch(row, /type:\s*'sign'/, `${propId} should not use the old canvas sign renderer`);
+  });
+
+  assert.doesNotMatch(storyProps, /type:\s*'sign'/);
 });
 
 test('desert entry single-backdrop mode uses only the clean backdrop and grounding overlay', () => {

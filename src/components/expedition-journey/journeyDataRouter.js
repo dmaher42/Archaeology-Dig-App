@@ -30,6 +30,7 @@ export const SECTIONS = makeProxy(EgyptData.SECTIONS, ChinaData.CHINA_SECTIONS, 
 export const PLATFORMS = makeProxy(EgyptData.PLATFORMS, ChinaData.CHINA_PLATFORMS, RomeData.ROME_JOURNEY_PLATFORMS);
 export const HAZARDS = makeProxy(EgyptData.HAZARDS, ChinaData.CHINA_HAZARDS, RomeData.ROME_HAZARDS);
 export const ROUTE_GATES = makeProxy(EgyptData.ROUTE_GATES, ChinaData.CHINA_ROUTE_GATES, RomeData.ROME_ROUTE_GATES);
+export const ROUTE_GATE_DOORWAYS = makeProxy(EgyptData.ROUTE_GATE_DOORWAYS, ChinaData.CHINA_ROUTE_GATE_DOORWAYS || [], RomeData.ROME_ROUTE_GATE_DOORWAYS || []);
 export const SCARAB_SEAL_TRIGGER = makeProxy(EgyptData.SCARAB_SEAL_TRIGGER, ChinaData.CHINA_SCARAB_SEAL_TRIGGER, RomeData.ROME_OPENING_TRIGGER);
 export const TOOL_LAYOUT = makeProxy(EgyptData.TOOL_LAYOUT, ChinaData.CHINA_TOOL_LAYOUT, RomeData.ROME_JOURNEY_TOOL_LAYOUT);
 export const RELIC_SHARDS = makeProxy(EgyptData.RELIC_SHARDS, ChinaData.CHINA_RELIC_SHARD_LAYOUT, RomeData.ROME_RELIC_SHARD_LAYOUT);

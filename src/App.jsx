@@ -1,5 +1,6 @@
 import { lazy, Suspense, useState, useEffect, useMemo, useReducer } from 'react';
 import { ROME_AUDIO_TRACKS } from './components/expedition-journey/rome/romeAudioTracks';
+import { CHINA_AUDIO_TRACKS } from './components/expedition-journey/chinaAudioTracks';
 import './index.css';
 
 // Components
@@ -57,6 +58,7 @@ const EXPEDITION_AUDIO_TRACKS = {
     fallback: 'assets/expedition/audio/first-light-over-stone.mp3',
     // Rome tracks (placeholder paths — drop files here when composed)
     ...ROME_AUDIO_TRACKS.music,
+    ...CHINA_AUDIO_TRACKS.music,
   },
   stingers: {
     evidenceDiscovery: 'assets/expedition/audio/evidence-discovery-stinger.mp3',
@@ -64,6 +66,8 @@ const EXPEDITION_AUDIO_TRACKS = {
     // Rome stingers use distinct keys to avoid overriding Egypt
     romeEvidenceDiscovery: ROME_AUDIO_TRACKS.stingers.evidenceDiscovery,
     romeGateUnlock:        ROME_AUDIO_TRACKS.stingers.gateUnlock,
+    chinaEvidenceDiscovery: CHINA_AUDIO_TRACKS.stingers.chinaEvidenceDiscovery,
+    chinaGateUnlock:        CHINA_AUDIO_TRACKS.stingers.chinaGateUnlock,
   },
   sfx: {
     footstepSand: {
@@ -190,6 +194,22 @@ const EXPEDITION_AUDIO_TRACKS = {
         { path: 'assets/expedition/sfx/generated/land-soft.wav', volume: 0.12, playbackRate: 0.9 },
       ],
     },
+    batHit: {
+      synth: 'batHit',
+      synthVolume: 1.1,
+      cooldownMs: 100,
+      clips: [
+        { path: 'assets/expedition/sfx/generated/enemy-hit.wav', volume: 0.13, playbackRate: 1.52 },
+      ],
+    },
+    mummyHit: {
+      synth: 'mummyHit',
+      synthVolume: 1.06,
+      cooldownMs: 130,
+      clips: [
+        { path: 'assets/expedition/sfx/generated/enemy-hit.wav', volume: 0.18, playbackRate: 0.72 },
+      ],
+    },
     bossWarning: { path: 'assets/expedition/sfx/generated/boss-warning.wav', volume: 0.38 },
     openingThresholdAtmosphere: {
       cooldownMs: 36000,
@@ -233,8 +253,9 @@ const EXPEDITION_AUDIO_TRACKS = {
         { path: 'assets/expedition/sfx/opening/opening-deep-rumble.ogg', volume: 0.18, playbackRate: 0.45 },
       ],
     },
-    // Rome SFX — all keys are unique (no Egypt collision)
+    // Expansion SFX
     ...ROME_AUDIO_TRACKS.sfx,
+    ...CHINA_AUDIO_TRACKS.sfx,
   },
 };
 
@@ -492,73 +513,124 @@ const playExpeditionSyntheticSfx = (type, options = {}) => {
   }
 
   if (type === 'combatDeflect') {
-    makeNoiseBurst({ duration: 0.09, frequency: 2400, endFrequency: 1250, q: 2.2, gain: 0.105 });
-    makeNoiseBurst({ duration: 0.12, frequency: 980, endFrequency: 680, q: 1.4, gain: 0.055, delay: 0.018 });
-    makeToneHit({ frequency: 420, endFrequency: 210, gain: 0.032, duration: 0.11, wave: 'square' });
+    // Sharp metal edge crack on contact
+    makeNoiseBurst({ duration: 0.06, frequency: 3600, endFrequency: 1900, q: 2.8, gain: 0.098 });
+    // Metal ring — the characteristic singing tone of a deflected blade
+    makeToneHit({ frequency: 680, endFrequency: 420, gain: 0.034, duration: 0.22, wave: 'sine' });
+    // Weapon slide/scrape off the block
+    makeNoiseBurst({ duration: 0.14, frequency: 1050, endFrequency: 620, q: 1.3, gain: 0.052, delay: 0.014 });
+    // High edge sparkle — metal tip detail
+    makeNoiseBurst({ duration: 0.04, frequency: 5800, endFrequency: 3200, q: 2.0, gain: 0.026, delay: 0.009 });
     return;
   }
 
   if (type === 'creatureHit') {
-    makeNoiseBurst({ duration: 0.11, frequency: 1320, endFrequency: 820, q: 1.25, gain: 0.09 });
-    makeToneHit({ frequency: 176, endFrequency: 82, gain: 0.038, duration: 0.12 });
+    // Flesh/cloth impact — mid-freq body hit
+    makeNoiseBurst({ duration: 0.12, frequency: 1100, endFrequency: 580, q: 1.1, gain: 0.095 });
+    // Low body thud — mass of the creature
+    makeToneHit({ frequency: 168, endFrequency: 78, gain: 0.044, duration: 0.15 });
+    // Surface contact detail — brief high scatter
+    makeNoiseBurst({ duration: 0.05, frequency: 3400, endFrequency: 1900, q: 1.7, gain: 0.032, delay: 0.012 });
     return;
   }
 
   if (type === 'scarabShellHit') {
-    makeNoiseBurst({ duration: 0.07, frequency: 3150, endFrequency: 1850, q: 2.8, gain: 0.095 });
-    makeNoiseBurst({ duration: 0.1, frequency: 1180, endFrequency: 740, q: 1.8, gain: 0.07, delay: 0.018 });
-    makeToneHit({ frequency: 260, endFrequency: 120, gain: 0.03, duration: 0.09, wave: 'square' });
+    // Chitin snap — very hard, fast, brittle crack
+    makeNoiseBurst({ duration: 0.05, frequency: 4400, endFrequency: 2600, q: 3.6, gain: 0.088 });
+    // Shell resonance body — carapace ringing after impact
+    makeNoiseBurst({ duration: 0.11, frequency: 1250, endFrequency: 720, q: 2.0, gain: 0.065, delay: 0.014 });
+    // Shell ring tone — hollow dome resonance
+    makeToneHit({ frequency: 620, endFrequency: 320, gain: 0.028, duration: 0.12, wave: 'sine' });
+    // Low carapace body — the mass underneath the shell
+    makeToneHit({ frequency: 235, endFrequency: 108, gain: 0.026, duration: 0.09, wave: 'square', delay: 0.008 });
     return;
   }
 
   if (type === 'scorpionHit') {
-    makeNoiseBurst({ duration: 0.08, frequency: 3600, endFrequency: 2300, q: 3.2, gain: 0.075 });
-    makeNoiseBurst({ duration: 0.12, frequency: 1450, endFrequency: 1020, q: 1.8, gain: 0.06, delay: 0.015 });
+    // Hard exoskeleton impact — armour-plate quality
+    makeNoiseBurst({ duration: 0.07, frequency: 3800, endFrequency: 2200, q: 3.0, gain: 0.080 });
+    // Exo body — the mass behind the shell
+    makeNoiseBurst({ duration: 0.13, frequency: 1200, endFrequency: 680, q: 1.6, gain: 0.062, delay: 0.012 });
+    // Low body thud
+    makeToneHit({ frequency: 188, endFrequency: 84, gain: 0.038, duration: 0.13 });
+    // Claw/tail click — brief metallic tick after impact
+    makeNoiseBurst({ duration: 0.03, frequency: 5400, endFrequency: 3200, q: 2.4, gain: 0.028, delay: 0.024 });
     return;
   }
 
   if (type === 'snakeHit') {
-    makeNoiseBurst({ duration: 0.12, frequency: 4200, endFrequency: 1900, q: 1.05, gain: 0.065 });
-    makeToneHit({ frequency: 230, endFrequency: 115, gain: 0.026, duration: 0.08, wave: 'sawtooth' });
+    // Scale scatter — dry, rustling surface contact
+    makeNoiseBurst({ duration: 0.10, frequency: 3200, endFrequency: 1100, q: 0.85, gain: 0.068 });
+    // Muscular body thud — snakes are dense muscle, low and meaty
+    makeToneHit({ frequency: 148, endFrequency: 62, gain: 0.042, duration: 0.14 });
+    // Hiss exhale — brief high-frequency air released on impact
+    makeNoiseBurst({ duration: 0.18, frequency: 5200, endFrequency: 1800, q: 0.55, gain: 0.034, delay: 0.016 });
     return;
   }
 
   if (type === 'sandWispHit') {
-    makeNoiseBurst({ duration: 0.19, frequency: 1900, endFrequency: 540, q: 0.82, gain: 0.078 });
-    makeToneHit({ frequency: 540, endFrequency: 720, gain: 0.024, duration: 0.16, wave: 'sine' });
+    // Sand burst dispersing outward — wide, airy
+    makeNoiseBurst({ duration: 0.24, frequency: 2400, endFrequency: 420, q: 0.7, gain: 0.085 });
+    // Ethereal dissolve tone — pitch falls as the wisp destabilises
+    makeToneHit({ frequency: 720, endFrequency: 185, gain: 0.028, duration: 0.20, wave: 'sine' });
+    // Grain scatter detail — fine sand particles
+    makeNoiseBurst({ duration: 0.14, frequency: 3800, endFrequency: 1200, q: 1.0, gain: 0.038, delay: 0.022 });
     return;
   }
 
   if (type === 'bossHit') {
-    makeNoiseBurst({ duration: 0.14, frequency: 980, endFrequency: 540, q: 1.1, gain: 0.105 });
-    makeToneHit({ frequency: 112, endFrequency: 54, gain: 0.062, duration: 0.18 });
-    makeNoiseBurst({ duration: 0.08, frequency: 2500, endFrequency: 1500, q: 2.1, gain: 0.055, delay: 0.025 });
+    // Massive carapace impact — queen-scale force
+    makeNoiseBurst({ duration: 0.17, frequency: 900, endFrequency: 440, q: 1.0, gain: 0.118 });
+    // Sub-bass body resonance — enormous mass, slow decay
+    makeToneHit({ frequency: 76, endFrequency: 32, gain: 0.080, duration: 0.26 });
+    // High shell scatter — chitin fragments rattling
+    makeNoiseBurst({ duration: 0.11, frequency: 3600, endFrequency: 1900, q: 2.2, gain: 0.058, delay: 0.020 });
+    // Shell ring tail — hollow resonance of a large dome
+    makeToneHit({ frequency: 520, endFrequency: 300, gain: 0.024, duration: 0.22, wave: 'sine', delay: 0.025 });
     return;
   }
 
   if (type === 'playerImpact') {
-    makeNoiseBurst({ duration: 0.12, frequency: 760, endFrequency: 460, q: 1, gain: 0.09 });
-    makeToneHit({ frequency: 92, endFrequency: 48, gain: 0.06, duration: 0.16 });
+    // Leather/cloth muffled hit — equipment absorbs some force
+    makeNoiseBurst({ duration: 0.14, frequency: 640, endFrequency: 320, q: 0.82, gain: 0.098 });
+    // Body thud — the hit lands on flesh
+    makeToneHit({ frequency: 94, endFrequency: 46, gain: 0.068, duration: 0.18 });
+    // Gear rattle — belt, tools, satchel jostle on impact
+    makeNoiseBurst({ duration: 0.08, frequency: 2400, endFrequency: 960, q: 1.5, gain: 0.036, delay: 0.018 });
     return;
   }
 
   if (type === 'trapReset') {
-    makeNoiseBurst({ duration: 0.2, frequency: 520, endFrequency: 230, q: 0.72, gain: 0.11 });
-    makeNoiseBurst({ duration: 0.16, frequency: 1550, endFrequency: 680, q: 1.25, gain: 0.05, delay: 0.025 });
-    makeToneHit({ frequency: 86, endFrequency: 42, gain: 0.07, duration: 0.22 });
+    // Heavy stone mechanism grinding back into place
+    makeNoiseBurst({ duration: 0.26, frequency: 480, endFrequency: 210, q: 0.68, gain: 0.115 });
+    // Stone-on-stone scrape as it seats
+    makeNoiseBurst({ duration: 0.18, frequency: 1400, endFrequency: 580, q: 1.2, gain: 0.052, delay: 0.028 });
+    // Low resonance of settled stone
+    makeToneHit({ frequency: 82, endFrequency: 38, gain: 0.075, duration: 0.28 });
+    // Dust settle — brief high scatter after the reset
+    makeNoiseBurst({ duration: 0.10, frequency: 3200, endFrequency: 1100, q: 0.9, gain: 0.030, delay: 0.055 });
     return;
   }
 
   if (type === 'trapStoneTrigger') {
-    makeNoiseBurst({ duration: 0.12, frequency: 980, endFrequency: 420, q: 1.2, gain: 0.08 });
-    makeNoiseBurst({ duration: 0.08, frequency: 2600, endFrequency: 1300, q: 2.4, gain: 0.045, delay: 0.018 });
-    makeToneHit({ frequency: 132, endFrequency: 64, gain: 0.046, duration: 0.14 });
+    // Stone pressure plate activating — sharp crack
+    makeNoiseBurst({ duration: 0.10, frequency: 1100, endFrequency: 480, q: 1.3, gain: 0.088 });
+    // Low stone grind — the mechanism shifting
+    makeToneHit({ frequency: 124, endFrequency: 58, gain: 0.052, duration: 0.16 });
+    // Surface chip scatter — stone fragments
+    makeNoiseBurst({ duration: 0.07, frequency: 3200, endFrequency: 1600, q: 2.2, gain: 0.042, delay: 0.016 });
+    // Brief resonance tail
+    makeNoiseBurst({ duration: 0.12, frequency: 640, endFrequency: 280, q: 0.8, gain: 0.035, delay: 0.030 });
     return;
   }
 
   if (type === 'trapSandTrigger') {
-    makeNoiseBurst({ duration: 0.22, frequency: 680, endFrequency: 260, q: 0.68, gain: 0.095 });
-    makeNoiseBurst({ duration: 0.14, frequency: 1450, endFrequency: 540, q: 0.9, gain: 0.038, delay: 0.025 });
+    // Sand rush — granular mass shifting suddenly
+    makeNoiseBurst({ duration: 0.28, frequency: 820, endFrequency: 220, q: 0.58, gain: 0.102 });
+    // Fine grain scatter — top layer dispersing
+    makeNoiseBurst({ duration: 0.18, frequency: 2800, endFrequency: 680, q: 0.75, gain: 0.044, delay: 0.020 });
+    // Soft impact — feet sinking into sand
+    makeToneHit({ frequency: 72, endFrequency: 35, gain: 0.042, duration: 0.22, delay: 0.010 });
     return;
   }
 
@@ -743,6 +815,33 @@ const playExpeditionSyntheticSfx = (type, options = {}) => {
     noiseGain.connect(audioCtx.destination);
     noise.start(now);
     noise.stop(now + duration);
+    return;
+  }
+
+  // ─── Egypt-specific enemy hit synths ─────────────────────────────────────────
+  // Bat hit — membrane snap + interrupted squeak + flutter tail + hollow body thump
+  if (type === 'batHit') {
+    // Wing membrane snap — very fast, sharp crack
+    makeNoiseBurst({ duration: 0.05, frequency: 3800, endFrequency: 1600, q: 2.2, gain: 0.085 });
+    // Interrupted squeak — high pitch drops fast, like a bat cut off mid-cry
+    makeToneHit({ frequency: 1400, endFrequency: 320, gain: 0.028, duration: 0.055, wave: 'sawtooth' });
+    // Wing flutter tail — softer scatter as the wings fold
+    makeNoiseBurst({ duration: 0.14, frequency: 2100, endFrequency: 750, q: 1.0, gain: 0.042, delay: 0.02 });
+    // Hollow body thump — tiny mass, very light
+    makeToneHit({ frequency: 185, endFrequency: 98, gain: 0.016, duration: 0.09, wave: 'triangle', delay: 0.008 });
+    return;
+  }
+
+  // Mummy hit — muffled cloth thud + deep bone resonance + dry linen crinkle + ancient creak
+  if (type === 'mummyHit') {
+    // Muffled cloth thud — lowpass filtered so wrappings absorb the hit
+    makeNoiseBurst({ duration: 0.20, frequency: 480, endFrequency: 200, q: 0.6, gain: 0.105, type: 'lowpass' });
+    // Deep bone resonance — low and slow
+    makeToneHit({ frequency: 88, endFrequency: 38, gain: 0.058, duration: 0.20 });
+    // Dry linen crinkle — brittle high-freq scatter from the bandages
+    makeNoiseBurst({ duration: 0.07, frequency: 2900, endFrequency: 1100, q: 1.5, gain: 0.048, delay: 0.010 });
+    // Ancient wooden creak — dried wrapping material settling
+    makeToneHit({ frequency: 290, endFrequency: 155, gain: 0.018, duration: 0.14, wave: 'sawtooth', delay: 0.022 });
     return;
   }
 

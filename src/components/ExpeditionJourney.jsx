@@ -63,6 +63,7 @@ import {
   PLATFORMS,
   RELIC_SHARDS,
   ROUTE_GATES,
+  ROUTE_GATE_DOORWAYS,
   SCARAB_SEAL_TRIGGER,
   SECTIONS,
   SECTION_ATMOSPHERES,
@@ -400,8 +401,8 @@ const MUMMIFICATION_CHAMBER_PUZZLE = {
   type: 'mummification-ritual-order-puzzle',
   bossId: 'mummification-chamber',
   bossName: 'The Mummification Chamber',
-  title: 'Mummification Ritual Order',
-  intro: 'Place the ritual steps in the correct order to release the entrance seal.',
+  title: 'The Ritual of Preservation',
+  intro: 'This room holds a sequence. Each step was performed for a reason. Restore the sacred order to release the seal.',
   hints: [
     'The body must be cleansed before anything is removed or wrapped.',
     'Drying comes before the oils, and oils come before linen.',
@@ -438,8 +439,8 @@ const MUMMIFICATION_CHAMBER_PUZZLE = {
   }],
 };
 const MUMMIFICATION_CHAMBER_FEEDBACK = {
-  correct: 'The ritual is complete.',
-  incorrect: 'That order does not seem right.',
+  correct: 'The ritual order is understood. The seal is opening.',
+  incorrect: 'That order is not right. Look again at what each step required.',
 };
 
 const LOW_STAMINA_WARNING = 'Stamina low - avoid another hit.';
@@ -781,9 +782,9 @@ const EGYPT_HAZARD_DECAL_PLACEMENT_BY_HAZARD = {
 };
 const openingJourneyY = (y) => y + JOURNEY_VERTICAL_OFFSET;
 const MUMMIFICATION_CHAMBER_ENTRY_SPAWN = {
-  x: scaleJourneyX(570),
+  x: scaleJourneyX(650),
   y: openingJourneyY(318),
-  cameraAnchorRatio: 0.16,
+  cameraAnchorRatio: 0.38,
   direction: 1,
 };
 const MUMMIFICATION_CHAMBER_RETURN_FALLBACK = {
@@ -825,8 +826,9 @@ const MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS = Object.freeze([
     id: 'mummification-embalming-table',
     assetKey: 'embalmingTableMarker',
     name: 'Embalming Table',
-    message: 'This table was used for preservation.',
-    pulseText: 'TABLE INSPECTED',
+    message: 'This was not only a body being preserved. It was the self being carried across.',
+    successMessage: 'The chamber grows still.',
+    pulseText: 'TABLE HONOURED',
     screen: { x: 610, y: 356, width: 84, height: 84 },
     hitbox: { x: 440, y: 430, width: 420, height: 170 },
   },
@@ -834,8 +836,9 @@ const MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS = Object.freeze([
     id: 'mummification-linen-wrappings',
     assetKey: 'linenWrappings',
     name: 'Linen Wrappings',
-    message: 'The wrappings protected the body.',
-    pulseText: 'LINEN INSPECTED',
+    message: 'Layer by layer. Not hidden. Held together.',
+    successMessage: 'The linen shifts as if remembering its purpose.',
+    pulseText: 'LINEN PREPARED',
     screen: { x: 622, y: 214, width: 118, height: 108 },
     hitbox: { x: 500, y: 392, width: 310, height: 208 },
   },
@@ -843,8 +846,9 @@ const MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS = Object.freeze([
     id: 'mummification-canopic-jars',
     assetKey: 'canopicJars',
     name: 'Canopic Jars',
-    message: 'These jars protected important organs.',
-    pulseText: 'JARS INSPECTED',
+    message: 'Not storage. Safekeeping.',
+    successMessage: 'The jars settle into silence.',
+    pulseText: 'JARS SEALED',
     screen: { x: 428, y: 470, width: 88, height: 88 },
     hitbox: { x: 360, y: 456, width: 190, height: 144 },
   },
@@ -852,8 +856,9 @@ const MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS = Object.freeze([
     id: 'mummification-ritual-tablet',
     assetKey: 'ritualTablet',
     name: 'Ritual Tablet',
-    message: 'A guide to the ritual.',
-    pulseText: 'TABLET READ',
+    message: 'The name has been scratched away. Someone tried to remove more than stone.',
+    successMessage: 'A faint line of the name returns.',
+    pulseText: 'NAME REMEMBERED',
     screen: { x: 792, y: 420, width: 82, height: 98 },
     hitbox: { x: 735, y: 420, width: 180, height: 180 },
   },
@@ -861,8 +866,9 @@ const MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS = Object.freeze([
     id: 'mummification-oils-resins',
     assetKey: 'oilsResins',
     name: 'Oils and Resins',
-    message: 'Oils and resins prepared the body for the journey beyond.',
-    pulseText: 'OILS INSPECTED',
+    message: 'Preservation was care. Not display.',
+    successMessage: 'The scent of resin rises from the stone.',
+    pulseText: 'OILS APPLIED',
     screen: { x: 540, y: 484, width: 92, height: 76 },
     hitbox: { x: 505, y: 452, width: 160, height: 148 },
   },
@@ -870,8 +876,8 @@ const MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS = Object.freeze([
     id: 'mummification-exit-seal',
     assetKey: 'exitSeal',
     name: 'Exit Seal',
-    message: 'The seal responds to the completed ritual.',
-    lockedMessage: 'The seal is still bound. I need to understand the ritual first.',
+    message: 'The seal recognises care before passage.',
+    lockedMessage: 'The seal remains closed.',
     pulseText: 'SEAL OPEN',
     screen: { x: 82, y: 382, width: 88, height: 88 },
     hitbox: { x: 0, y: 360, width: 168, height: 240 },
@@ -881,28 +887,29 @@ const MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS = Object.freeze([
 const MUMMIFICATION_CHAMBER_REQUIRED_INSPECTION_IDS = MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS
   .filter(item => !item.exitSeal)
   .map(item => item.id);
+// Ritual preparation sequence — the order the player must activate each object
+const MUMMIFICATION_CHAMBER_RITUAL_SEQUENCE = [
+  'mummification-oils-resins',
+  'mummification-linen-wrappings',
+  'mummification-canopic-jars',
+  'mummification-ritual-tablet',
+  'mummification-embalming-table',
+];
 const MUMMIFICATION_CHAMBER_ATMOSPHERE_VERSION = 'mummification-chamber-atmosphere-progression-2026-05-28';
 const getMummificationChamberAtmosphere = (current) => {
   const inspectedObjectIds = current.mummificationChamberInspectedObjectIds || new Set();
   const inspectedRequiredCount = MUMMIFICATION_CHAMBER_REQUIRED_INSPECTION_IDS
     .filter(id => inspectedObjectIds.has(id)).length;
   const inspectedRatio = inspectedRequiredCount / Math.max(1, MUMMIFICATION_CHAMBER_REQUIRED_INSPECTION_IDS.length);
-  const puzzleActive = current.activeGuardianChallenge?.type === 'mummification-ritual-order-puzzle';
-  const puzzleAttempted = Boolean(
-    puzzleActive
-    && (
-      current.activeGuardianChallenge?.answers?.length
-      || current.activeGuardianChallenge?.feedback
-      || current.activeGuardianChallenge?.selectedAnswerIndex !== null
-    ),
-  );
+  const ritualStep = current.mummificationChamberRitualStep || 0;
+  const ritualRatio = ritualStep / Math.max(1, MUMMIFICATION_CHAMBER_RITUAL_SEQUENCE.length);
   const solved = Boolean(current.mummificationChamberPuzzleSolved || current.mummificationChamberExitUnlocked);
-  const rawProgress = 0.12 + inspectedRatio * 0.48 + (puzzleActive ? 0.18 : 0) + (puzzleAttempted ? 0.08 : 0);
-  const wakeProgress = solved ? 1 : clamp(rawProgress, 0.12, puzzleActive ? 0.82 : 0.62);
+  const rawProgress = 0.12 + inspectedRatio * 0.24 + ritualRatio * 0.58;
+  const wakeProgress = solved ? 1 : clamp(rawProgress, 0.12, 0.92);
 
   return {
     wakeProgress,
-    state: solved ? 'solved' : puzzleActive ? 'ritual-active' : inspectedRequiredCount > 0 ? 'awakening' : 'dormant',
+    state: solved ? 'solved' : ritualStep > 0 ? 'ritual-active' : inspectedRequiredCount > 0 ? 'awakening' : 'dormant',
     inspectedRequiredCount,
     inspectedRatio,
     glyphGlowAlpha: 0.08 + wakeProgress * 0.34,
@@ -911,7 +918,7 @@ const getMummificationChamberAtmosphere = (current) => {
     particleCount: Math.min(32, 6 + Math.round(wakeProgress * 24)),
     roomDimAlpha: 0.43 - wakeProgress * 0.27,
     roomLightAlpha: 0.04 + wakeProgress * 0.28,
-    sealGlowAlpha: solved ? 0.66 : puzzleActive ? 0.36 : 0.14 + inspectedRatio * 0.18,
+    sealGlowAlpha: solved ? 0.66 : ritualStep > 0 ? 0.36 : 0.14 + inspectedRatio * 0.18,
   };
 };
 const FORGOTTEN_MURAL_CHAMBER_ENTRY_SPAWN = {
@@ -1685,6 +1692,10 @@ const SECTION_MUSIC_CUES = {
   catacombs:          'catacombs',
   'escape-sequence':  'escape',
   'dig-site-entrance': 'baseCamp',
+  // China
+  'bamboo-forest': 'bamboo-forest',
+  'rammed-earth-gate': 'rammed-earth-gate',
+  'terracotta-tomb': 'terracotta-tomb',
   // Rome
   'via-sacra':            'romanRoad',
   'forum-ruins':          'romanForum',
@@ -1927,6 +1938,8 @@ const ENEMY_HIT_SFX_BY_TYPE = {
   scorpion: 'scorpionHit',
   snake: 'snakeHit',
   'sand-wisp': 'sandWispHit',
+  bat: 'batHit',
+  mummy: 'mummyHit',
 };
 
 const getEnemyHitSfxKey = (enemy) => ENEMY_HIT_SFX_BY_TYPE[enemy?.type] || 'enemyHit';
@@ -1939,6 +1952,8 @@ const SAND_TRAP_HAZARD_IDS = new Set([
   'sandfall-soft-pit',
   'sandfall-warning-dust',
   'escape-dust-pocket',
+  'bat-cloud',
+  'catacomb-bat-pocket',
 ]);
 
 const getHazardSfxKey = (hazard) => {
@@ -3032,15 +3047,6 @@ export default function ExpeditionJourney({
     };
   }, [syncHud]);
 
-  const currentMusicCue = (() => {
-    const current = gameState;
-    const section = getSectionForX(current.player.x);
-    const activeMiniBoss = current.miniBosses.some(boss => (
-      boss.awakened && !boss.defeated && Math.abs(boss.x - current.player.x) < 520
-    ));
-    if (activeMiniBoss) return 'boss';
-    return SECTION_MUSIC_CUES[section.id] || 'desert';
-  })();
   const scopedJourneyAssetPacks = useMemo(() => {
     const civStr = String(targetCivilisation || '').toLowerCase();
     const isChinaJourney = civStr.includes('china')
@@ -3068,6 +3074,18 @@ export default function ExpeditionJourney({
       isChinaJourney,
     };
   }, [backgroundPackId, environmentPackId, targetCivilisation]);
+
+  const currentMusicCue = (() => {
+    const current = gameState;
+    const section = getSectionForX(current.player.x);
+    const activeMiniBoss = current.miniBosses.some(boss => (
+      boss.awakened && !boss.defeated && Math.abs(boss.x - current.player.x) < 520
+    ));
+    if (activeMiniBoss) {
+      return scopedJourneyAssetPacks.isChinaJourney ? 'china-boss' : 'boss';
+    }
+    return SECTION_MUSIC_CUES[section.id] || (scopedJourneyAssetPacks.isChinaJourney ? 'bamboo-forest' : 'desert');
+  })();
 
   const getSectionDisplayName = useCallback((sectionId) => {
     const { isRomeJourney, isChinaJourney } = scopedJourneyAssetPacks;
@@ -3428,43 +3446,11 @@ export default function ExpeditionJourney({
       syncHud();
       return;
     }
-    if (challenge.type === 'mummification-ritual-order-puzzle') {
-      const nextAnswers = [...(challenge.answers || []), {
-        questionId: question.id,
-        answerIndex,
-        correct,
-      }];
-      const incorrectCount = nextAnswers.filter(answer => !answer.correct).length;
-      const hint = challenge.hints?.[Math.min(Math.max(incorrectCount - 1, 0), (challenge.hints?.length || 1) - 1)];
-      challenge.selectedAnswerIndex = answerIndex;
-      challenge.answers = nextAnswers;
-      challenge.correctCount = correct ? 1 : 0;
-      challenge.feedback = {
-        correct,
-        message: correct
-          ? MUMMIFICATION_CHAMBER_FEEDBACK.correct
-          : `${MUMMIFICATION_CHAMBER_FEEDBACK.incorrect}${hint ? ` Hint: ${hint}` : ''}`,
-      };
-      if (correct) {
-        challenge.completed = true;
-        challenge.resultMessage = MUMMIFICATION_CHAMBER_FEEDBACK.correct;
-        current.mummificationChamberPuzzleSolved = true;
-        current.mummificationChamberExitUnlocked = true;
-        current.notice = MUMMIFICATION_CHAMBER_FEEDBACK.correct;
-        current.cinematicEvent = {
-          id: 'mummification-chamber-ritual-complete',
-          name: 'Ritual Complete',
-          message: MUMMIFICATION_CHAMBER_FEEDBACK.correct,
-          temporary: true,
-        };
-        current.cinematicTimer = 2.5;
-        current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 1.8);
-        audioControls?.playLevelUp?.();
-      } else {
-        current.notice = MUMMIFICATION_CHAMBER_FEEDBACK.incorrect;
-        current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 1.6);
-        audioControls?.playError?.();
-      }
+    if (challenge.type === MUMMIFICATION_CHAMBER_PUZZLE.type) {
+      current.notice = MUMMIFICATION_CHAMBER_FEEDBACK.incorrect;
+      current.activeGuardianChallenge = null;
+      current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 1.6);
+      audioControls?.playError?.();
       syncHud();
       return;
     }
@@ -3540,15 +3526,10 @@ export default function ExpeditionJourney({
       syncHud();
       return;
     }
-    if (challenge.type === 'mummification-ritual-order-puzzle') {
-      if (challenge.completed) {
-        current.activeGuardianChallenge = null;
-        current.notice = MUMMIFICATION_CHAMBER_FEEDBACK.correct;
-      } else {
-        challenge.selectedAnswerIndex = null;
-        challenge.feedback = null;
-        current.notice = 'The seal waits for the correct ritual order.';
-      }
+    // mummification-ritual-order-puzzle is handled as an in-world sequence — no continue path needed.
+    if (challenge.type === MUMMIFICATION_CHAMBER_PUZZLE.type) {
+      current.activeGuardianChallenge = null;
+      current.notice = MUMMIFICATION_CHAMBER_FEEDBACK.incorrect;
       syncHud();
       return;
     }
@@ -3815,6 +3796,46 @@ export default function ExpeditionJourney({
       : `${gateName} ready: all route tasks complete.`,
     };
   }, [backgroundPackId, getGateRequirements]);
+
+  const getRouteGateDoorwayEntries = useCallback(() => {
+    const coveredGateIds = new Set();
+    const entries = [];
+    ROUTE_GATE_DOORWAYS.forEach((doorway) => {
+      const gates = (doorway.gateIds || [])
+        .map(gateId => ROUTE_GATES.find(gate => gate.id === gateId))
+        .filter(Boolean);
+      if (!gates.length) return;
+      gates.forEach(gate => coveredGateIds.add(gate.id));
+      entries.push({ id: doorway.id, doorway, gates });
+    });
+    ROUTE_GATES.forEach((gate) => {
+      if (coveredGateIds.has(gate.id)) return;
+      entries.push({ id: gate.id, doorway: null, gates: [gate] });
+    });
+    return entries;
+  }, []);
+
+  const getDoorwayGateStatus = useCallback((entry, current) => {
+    const gates = entry?.gates || [];
+    const gateStates = gates.map(gate => ({
+      gate,
+      guidance: getGateGuidance(gate, current),
+      opened: current.openedRouteGateIds.has(gate.id),
+    }));
+    const lockedState = gateStates.find(state => !state.opened && state.guidance?.activeGateLocked);
+    const unopenedStates = gateStates.filter(state => !state.opened);
+    const readyToOpen = gateStates.length > 0 && gateStates.every(state => (
+      state.opened || !state.guidance?.activeGateLocked
+    ));
+    const activeState = lockedState || unopenedStates[unopenedStates.length - 1] || gateStates[gateStates.length - 1] || null;
+    return {
+      activeGate: activeState?.gate || null,
+      guidance: activeState?.guidance || null,
+      locked: Boolean(lockedState),
+      complete: readyToOpen || gateStates.every(state => state.opened),
+      gatesToOpen: readyToOpen ? unopenedStates.map(state => state.gate) : [],
+    };
+  }, [getGateGuidance]);
 
   const getActiveShardGateProgress = useCallback((current) => {
     const gate = ROUTE_GATES.find(item => (
@@ -4683,6 +4704,7 @@ export default function ExpeditionJourney({
       mummificationChamberDoorSealed: Boolean(current.mummificationChamberDoorSealed),
       mummificationChamberExitUnlocked: Boolean(current.mummificationChamberExitUnlocked),
       mummificationChamberPuzzleSolved: Boolean(current.mummificationChamberPuzzleSolved),
+      mummificationChamberRitualStep: current.mummificationChamberRitualStep || 0,
       mummificationChamberInspectedObjects: Array.from(current.mummificationChamberInspectedObjectIds || []),
       scribeChamberEntered: Boolean(current.scribeChamberEntered),
       scribeChamberActive: Boolean(current.scribeChamberActive),
@@ -6148,9 +6170,13 @@ export default function ExpeditionJourney({
     const frameWidth = heroDrawBounds?.w || heroRegion?.w || PLAYER_SPRITE_FRAME_WIDTH;
     const frameHeight = heroDrawBounds?.h || heroRegion?.h || PLAYER_SPRITE_FRAME_HEIGHT;
     const heroDrawHeight = Number(heroAtlas?.draw?.height) || PLAYER_SPRITE_DRAW_HEIGHT;
-    const nominalFrameHeight = heroRegion
-      ? Number(heroAtlas?.draw?.sourceHeight) || Number(heroAtlas?.frame?.height) || heroRegion.h || frameHeight
-      : frameHeight;
+    // When a per-frame drawBounds exists, scale against the actual cropped content height
+    // so every animation pose renders at the same heroDrawHeight regardless of crop differences.
+    const nominalFrameHeight = heroDrawBounds
+      ? frameHeight
+      : heroRegion
+        ? Number(heroAtlas?.draw?.sourceHeight) || Number(heroAtlas?.frame?.height) || heroRegion.h || frameHeight
+        : frameHeight;
     const drawScale = heroDrawHeight / nominalFrameHeight;
     const drawWidth = frameWidth * drawScale;
     const renderedHeight = frameHeight * drawScale;
@@ -7461,8 +7487,12 @@ export default function ExpeditionJourney({
 
     const interactionAssets = mummificationInteractionAssetsRef.current;
     const inspectedObjectIds = current.mummificationChamberInspectedObjectIds || new Set();
+    const chamberRitualStep = current.mummificationChamberRitualStep || 0;
     MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS.forEach((item) => {
-      const inspected = inspectedObjectIds.has(item.id);
+      // activated = ritual step completed for this item (drives glow/alpha); inspected = same (kept for label logic)
+      const ritualIdx = MUMMIFICATION_CHAMBER_RITUAL_SEQUENCE.indexOf(item.id);
+      const activated = item.exitSeal ? unlocked : (ritualIdx >= 0 && ritualIdx < chamberRitualStep);
+      const inspected = activated || inspectedObjectIds.has(item.id);
       const dest = {
         x: item.screen.x - item.screen.width / 2,
         y: item.screen.y - item.screen.height / 2,
@@ -10059,8 +10089,8 @@ export default function ExpeditionJourney({
     ctx.restore();
   }, []);
 
-  const drawRouteGate = useCallback((ctx, gate, screenX, current, complete, layer = 'base') => {
-    const gateCenter = screenX + gate.width / 2;
+  const drawRouteGate = useCallback((ctx, gate, screenX, current, complete, layer = 'base', doorway = null) => {
+    const gateCenter = doorway?.anchorX ? screenX : screenX + gate.width / 2;
     ctx.save();
     // Assets are 1024×682 (back/front) and 1024×637 (slab) — ratio ≈ 1.50:1.
     // Draw at natural aspect ratio to avoid squashing, and sink into ground by 20px
@@ -10098,18 +10128,25 @@ export default function ExpeditionJourney({
     };
     // Front column: near-left foreground element for the mirrored arch direction.
     const frontDest = {
-      x: gateCenter - frontWidth - 50,
+      x: gateCenter - Math.round(frontWidth / 2),
       y: gateTop - 8,     // slightly higher — closer to camera = taller
       width: frontWidth,  // 540
       height: gateHeight + 20, // 360
     };
     // Slab fills the arch opening when locked.
-    const slabDest = {
-      x: gateCenter - 105,
-      y: gateTop + 52,
-      width: 185,
-      height: gateHeight - 42,
-    };
+    const slabDest = doorway?.slab
+      ? {
+          x: gateCenter + doorway.slab.x,
+          y: GROUND_Y + doorway.slab.y,
+          width: doorway.slab.width,
+          height: doorway.slab.height,
+        }
+      : {
+          x: gateCenter - 105,
+          y: gateTop + 52,
+          width: 185,
+          height: gateHeight - 42,
+        };
     
     const drawFallbackArch = () => {
       const stone = ctx.createLinearGradient(gateCenter - gateWidth / 2, gateTop, gateCenter + gateWidth / 2, GROUND_Y);
@@ -11915,17 +11952,22 @@ export default function ExpeditionJourney({
       && !current.defeatedMiniBosses.has(current.bossDomain.bossId)
       ? current.bossDomain
       : null;
-    if (!chamberSceneActive) ROUTE_GATES.forEach((gate) => {
+    if (!chamberSceneActive) getRouteGateDoorwayEntries().forEach((entry) => {
+      const status = getDoorwayGateStatus(entry, current);
+      const gate = status.activeGate;
+      const doorway = entry.doorway;
+      if (!gate) return;
+      const doorwayAnchorX = doorway?.anchorX ?? gate.x;
+      const doorwayWidth = doorway?.width ?? gate.width;
+      const doorwayLeft = doorway ? doorwayAnchorX - doorwayWidth / 2 : gate.x;
       if (
         activeBossDomainForObjectiveMarkers
-        && gate.x >= (activeBossDomainForObjectiveMarkers.arenaStart ?? -Infinity) - 24
-        && gate.x <= (activeBossDomainForObjectiveMarkers.arenaEnd ?? Infinity) + 72
+        && doorwayAnchorX >= (activeBossDomainForObjectiveMarkers.arenaStart ?? -Infinity) - 24
+        && doorwayAnchorX <= (activeBossDomainForObjectiveMarkers.arenaEnd ?? Infinity) + 72
       ) return;
-      const gx = worldToScreenX(gate.x, cameraX);
-      if (!isHorizontallyVisible(gate.x, gate.width, cameraX, 100)) return;
-      const requirements = getGateRequirements(gate, current);
-      const complete = current.openedRouteGateIds.has(gate.id) || requirements.every(r => r.met);
-      drawRouteGate(ctx, gate, gx, current, complete);
+      const gx = worldToScreenX(doorway ? doorwayAnchorX : gate.x, cameraX);
+      if (!isHorizontallyVisible(doorwayLeft, doorwayWidth, cameraX, 100)) return;
+      drawRouteGate(ctx, gate, gx, current, status.complete, 'base', doorway);
     });
     if (!chamberSceneActive && !activeBossDomainForObjectiveMarkers) drawMissingObjectiveMarker(ctx, activeGateGuidance, cameraX, now);
 
@@ -12211,17 +12253,22 @@ export default function ExpeditionJourney({
     drawOpeningSphinxEncounter(ctx, current.openingSphinxEncounter, cameraX, now);
     drawCombatEffects(ctx, current.combatHitEffects, cameraX, now);
     drawPlayerSprite(ctx, player.x - cameraX, player.y, player.width, player.height, player.direction, player.invulnerable, now);
-    if (!chamberSceneActive) ROUTE_GATES.forEach((gate) => {
+    if (!chamberSceneActive) getRouteGateDoorwayEntries().forEach((entry) => {
+      const status = getDoorwayGateStatus(entry, current);
+      const gate = status.activeGate;
+      const doorway = entry.doorway;
+      if (!gate) return;
+      const doorwayAnchorX = doorway?.anchorX ?? gate.x;
+      const doorwayWidth = doorway?.width ?? gate.width;
+      const doorwayLeft = doorway ? doorwayAnchorX - doorwayWidth / 2 : gate.x;
       if (
         activeBossDomainForObjectiveMarkers
-        && gate.x >= (activeBossDomainForObjectiveMarkers.arenaStart ?? -Infinity) - 24
-        && gate.x <= (activeBossDomainForObjectiveMarkers.arenaEnd ?? Infinity) + 72
+        && doorwayAnchorX >= (activeBossDomainForObjectiveMarkers.arenaStart ?? -Infinity) - 24
+        && doorwayAnchorX <= (activeBossDomainForObjectiveMarkers.arenaEnd ?? Infinity) + 72
       ) return;
-      const gx = worldToScreenX(gate.x, cameraX);
-      if (!isHorizontallyVisible(gate.x, gate.width, cameraX, 100)) return;
-      const requirements = getGateRequirements(gate, current);
-      const complete = current.openedRouteGateIds.has(gate.id) || requirements.every(r => r.met);
-      drawRouteGate(ctx, gate, gx, current, complete, 'foreground');
+      const gx = worldToScreenX(doorway ? doorwayAnchorX : gate.x, cameraX);
+      if (!isHorizontallyVisible(doorwayLeft, doorwayWidth, cameraX, 100)) return;
+      drawRouteGate(ctx, gate, gx, current, status.complete, 'foreground', doorway);
     });
     if (!chamberSceneActive) STAGE_ENTRANCE_FEATURES.forEach((feature) => {
       if (!shouldRenderStageEntranceFeatureForState(feature, current)) return;
@@ -12354,7 +12401,7 @@ export default function ExpeditionJourney({
       }
       ctx.textAlign = 'start';
     }
-  }, [backgroundPackId, drawAncientRouteGround, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawForegroundDepthLayer, drawMummificationChamberInterior, drawForgottenMuralChamberInterior, drawForgottenMuralChamberTransition, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawRouteGate, drawRouteGroundApron, drawScarabQueenLairOpeningProp, drawScribeLockedChamberInterior, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getGateGuidance, getGateRequirements, getPlayerAttackState, isRouteRewardAccessible, drawPlayerSprite, drawFieldNoteLabel]);
+  }, [backgroundPackId, drawAncientRouteGround, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawForegroundDepthLayer, drawMummificationChamberInterior, drawForgottenMuralChamberInterior, drawForgottenMuralChamberTransition, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawRouteGate, drawRouteGroundApron, drawScarabQueenLairOpeningProp, drawScribeLockedChamberInterior, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getDoorwayGateStatus, getGateGuidance, getPlayerAttackState, getRouteGateDoorwayEntries, isRouteRewardAccessible, drawPlayerSprite, drawFieldNoteLabel]);
 
   const startOpeningCinematic = useCallback(({ speechEnabled = true } = {}) => {
     const current = stateRef.current;
@@ -13391,94 +13438,117 @@ export default function ExpeditionJourney({
       const playerBody = getPlayerBodyHitbox(player);
       current.mummificationChamberInspectedObjectIds ??= new Set();
       const inspectedObjectIds = current.mummificationChamberInspectedObjectIds;
-      const requiredInspectionsComplete = () => MUMMIFICATION_CHAMBER_REQUIRED_INSPECTION_IDS
-        .every(id => inspectedObjectIds.has(id));
+      const ritualStep = current.mummificationChamberRitualStep || 0;
 
-      for (const item of MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS) {
-        const interactionBox = {
+      // Collect all overlapping interaction objects
+      const overlapping = MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS.filter((item) => {
+        const box = {
           x: current.cameraX + item.hitbox.x,
           y: item.hitbox.y,
           width: item.hitbox.width,
           height: item.hitbox.height,
         };
-        if (!rectsOverlap(playerBody, interactionBox)) continue;
+        return rectsOverlap(playerBody, box);
+      });
 
-        if (item.exitSeal) {
-          if (current.mummificationChamberPuzzleSolved) return { id: item.id, alreadyUnlocked: true };
-          if (!requiredInspectionsComplete()) {
-            if ((current.itemPurposeNoticeTimer || 0) <= 0) {
-              current.notice = item.lockedMessage;
-              current.itemPurposeNoticeTimer = 1.35;
-              audioControls?.playExpeditionSfx?.('gateBlocked');
-            }
-            return { id: item.id, blocked: true };
-          }
+      if (overlapping.length === 0) return null;
 
+      // Exit seal takes priority — check it first
+      const exitSealItem = overlapping.find((item) => item.exitSeal);
+      if (exitSealItem) {
+        if (current.mummificationChamberPuzzleSolved) return { id: exitSealItem.id, alreadyUnlocked: true };
+        if ((current.itemPurposeNoticeTimer || 0) <= 0) {
+          current.notice = exitSealItem.lockedMessage;
+          current.itemPurposeNoticeTimer = 1.35;
+          audioControls?.playExpeditionSfx?.('gateBlocked');
+        }
+        return { id: exitSealItem.id, blocked: true };
+      }
+
+      // Sort ritual items by their sequence index (lowest = most relevant to process first)
+      const ritualItems = overlapping.slice().sort((a, b) => {
+        const aIdx = MUMMIFICATION_CHAMBER_RITUAL_SEQUENCE.indexOf(a.id);
+        const bIdx = MUMMIFICATION_CHAMBER_RITUAL_SEQUENCE.indexOf(b.id);
+        return aIdx - bIdx;
+      });
+
+      // Debounce all ritual interactions with shared timer
+      if ((current.itemPurposeNoticeTimer || 0) > 0) {
+        return { id: ritualItems[0].id, waiting: true };
+      }
+
+      for (const item of ritualItems) {
+        const ritualIndex = MUMMIFICATION_CHAMBER_RITUAL_SEQUENCE.indexOf(item.id);
+
+        // Already activated in correct sequence — silently skip
+        if (ritualIndex < ritualStep) continue;
+
+        // This is the next expected item — activate it
+        if (ritualIndex === ritualStep) {
+          const nextStep = ritualStep + 1;
+          current.mummificationChamberRitualStep = nextStep;
           inspectedObjectIds.add(item.id);
-          current.notice = 'The seal asks for the ritual order.';
-          current.activeGuardianChallenge = {
-            ...MUMMIFICATION_CHAMBER_PUZZLE,
-            hints: [...MUMMIFICATION_CHAMBER_PUZZLE.hints],
-            questions: MUMMIFICATION_CHAMBER_PUZZLE.questions.map(question => ({ ...question })),
-            currentIndex: 0,
-            correctCount: 0,
-            selectedAnswerIndex: null,
-            feedback: null,
-            answers: [],
-            completed: false,
-            modifier: null,
-            resultMessage: null,
+
+          const isComplete = nextStep >= MUMMIFICATION_CHAMBER_RITUAL_SEQUENCE.length;
+          current.notice = isComplete
+            ? 'They were not buried with riches. They were buried with memories.'
+            : item.successMessage;
+          current.cinematicEvent = {
+            id: isComplete ? 'mummification-chamber-ritual-complete' : item.id,
+            name: isComplete ? 'Anubis' : item.name,
+            message: isComplete
+              ? 'You call them relics. I call them the pieces of a life.'
+              : item.successMessage,
+            temporary: true,
           };
-          current.itemPurposeNoticeTimer = 1.4;
-          current.hitStopTimer = Math.max(current.hitStopTimer, 0.04);
-          addRewardPulse(item.id, current.cameraX + item.screen.x, item.screen.y, item.pulseText, {
+          current.cinematicTimer = isComplete ? 3.2 : 2.2;
+          current.itemPurposeNoticeTimer = isComplete ? 2.0 : 1.25;
+          current.hitStopTimer = Math.max(current.hitStopTimer, isComplete ? 0.04 : 0.025);
+          addRewardPulse(item.id, current.cameraX + item.screen.x, item.screen.y,
+            isComplete ? 'RITUAL COMPLETE' : item.pulseText, {
+              color: isComplete ? '#5eead4' : '#facc15',
+              fill: isComplete ? 'rgba(94, 234, 212, 0.12)' : 'rgba(250, 204, 21, 0.12)',
+              radius: isComplete ? 72 : 48,
+              timer: isComplete ? 0.9 : 0.62,
+            });
+          addCombatEffect(current, {
+            type: 'secret-found',
+            x: current.cameraX + item.screen.x,
+            y: item.screen.y,
+            text: item.pulseText,
             color: '#facc15',
-            fill: 'rgba(250, 204, 21, 0.12)',
-            radius: 64,
-            timer: 0.78,
+            radius: 42,
+            timer: 0.58,
+            maxTimer: 0.58,
           });
-          audioControls?.playTransition?.();
-          syncHud();
-          return { id: item.id, puzzleStarted: true };
+          if (isComplete) {
+            current.mummificationChamberPuzzleSolved = true;
+            current.mummificationChamberExitUnlocked = true;
+            audioControls?.playLevelUp?.();
+            syncHud();
+          } else {
+            audioControls?.playSuccess?.();
+          }
+          return { id: item.id, activated: true };
         }
 
-        if (inspectedObjectIds.has(item.id)) continue;
-        if ((current.itemPurposeNoticeTimer || 0) > 0) {
-          return { id: item.id, waiting: true };
-        }
-
-        inspectedObjectIds.add(item.id);
-        current.notice = item.message;
-        current.cinematicEvent = {
-          id: item.id,
-          name: item.name,
-          message: item.message,
-          temporary: true,
-        };
-        current.cinematicTimer = 2.2;
-        current.itemPurposeNoticeTimer = 1.25;
-        current.hitStopTimer = Math.max(current.hitStopTimer, 0.025);
-        addRewardPulse(item.id, current.cameraX + item.screen.x, item.screen.y, item.pulseText, {
-          color: '#facc15',
-          fill: 'rgba(250, 204, 21, 0.12)',
-          radius: 48,
-          timer: 0.62,
-        });
+        // Wrong order — reset sequence progress and give a clue
+        current.mummificationChamberRitualStep = 0;
+        MUMMIFICATION_CHAMBER_RITUAL_SEQUENCE.forEach((id) => inspectedObjectIds.delete(id));
+        current.notice = 'The room remains still. Preparation must follow its order.';
+        current.itemPurposeNoticeTimer = 1.8;
+        current.hitStopTimer = Math.max(current.hitStopTimer, 0.018);
+        audioControls?.playExpeditionSfx?.('gateBlocked');
         addCombatEffect(current, {
-          type: 'secret-found',
+          type: 'environment-dust',
           x: current.cameraX + item.screen.x,
           y: item.screen.y,
-          text: item.pulseText,
-          color: '#facc15',
-          radius: 42,
-          timer: 0.58,
-          maxTimer: 0.58,
+          text: 'OUT OF ORDER',
+          color: 'rgba(251, 113, 133, 0.72)',
+          timer: 0.4,
+          maxTimer: 0.4,
         });
-        audioControls?.playSuccess?.();
-        if (requiredInspectionsComplete()) {
-          current.cinematicEvent.message = `${item.message} The exit seal is responding.`;
-        }
-        return { id: item.id, inspected: true };
+        return { id: item.id, wrongOrder: true };
       }
 
       return null;
@@ -13923,6 +13993,7 @@ export default function ExpeditionJourney({
         current.fieldKit.push(tool);
         current.notice = `Field tool added: ${tool.name}. This will help during excavation.`;
         current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 1.8);
+        audioControls?.playExpeditionSfx?.('pickupTool');
       }
     });
 
@@ -13932,6 +14003,7 @@ export default function ExpeditionJourney({
       if (!current.collectedShardIds.has(shard.id) && rectsOverlap(getPlayerBodyHitbox(player), getCollectibleHitbox(shard, { width: 24, height: 24 }))) {
         current.collectedShardIds.add(shard.id);
         current.relicShardCount += 1;
+        audioControls?.playExpeditionSfx?.('pickupShard');
         const shardGateProgress = getActiveShardGateProgress(current);
         addRewardPulse('shard-pickup', shard.x, shard.y, '+1 SHARD', {
           color: '#f59e0b',
@@ -14059,6 +14131,7 @@ export default function ExpeditionJourney({
           current.relicShardCount += u.rewardShards;
         }
         current.collectedUpgrades.add(u.id);
+        audioControls?.playExpeditionSfx?.('pickupUpgrade');
         current.notice = u.cacheReward
           ? `Cache opened! Upgrade Voucher earned: +${u.rewardShards} relic shards for Base Camp.`
           : `Expedition Upgrade Acquired: ${u.name}.`;
@@ -14157,8 +14230,8 @@ export default function ExpeditionJourney({
     if (current.hazardCooldown <= 0) {
       HAZARDS.filter(hazard => isHazardAvailable(hazard, current)).forEach(h => {
         if (rectsOverlap(getPlayerBodyHitbox(player), getHazardHitbox(h))) {
-          const staminaLoss = Math.ceil((h.penalty.stamina || 0) * (upgradeEffects.hazardStaminaMultiplier || 1));
-          const timeLoss = h.penalty.time || 0;
+          const staminaLoss = Math.ceil((h.penalty?.stamina || 0) * (upgradeEffects.hazardStaminaMultiplier || 1));
+          const timeLoss = h.penalty?.time || 0;
           const visual = HAZARD_VISUALS[h.id] || {};
           if (h.pushToStart) {
             const startCheckpoint = CHECKPOINTS[0];
@@ -14184,7 +14257,8 @@ export default function ExpeditionJourney({
             current.notice = h.message;
             current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.28);
             current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.26);
-            audioControls?.playExpeditionSfx?.(getHazardSfxKey(h), { volume: 1.04 });
+            const hazardSfx = h.type === 'arrow-trap' && scopedJourneyAssetPacks.isChinaJourney ? 'chinaCrossbowTrap' : getHazardSfxKey(h);
+            audioControls?.playExpeditionSfx?.(hazardSfx, { volume: 1.04 });
             return;
           }
           if (staminaLoss) current.resources.stamina = Math.max(0, current.resources.stamina - staminaLoss);
@@ -14213,7 +14287,8 @@ export default function ExpeditionJourney({
             : '';
           current.notice = `${visual.message || h.message}${staminaLoss ? ` -${staminaLoss} stamina.` : timeLoss ? ` -${timeLoss} seconds.` : ''}${dangerWarning}`;
           current.damageNoticeTimer = Math.max(current.damageNoticeTimer || 0, 1.4);
-          audioControls?.playExpeditionSfx?.(getHazardSfxKey(h), {
+          const hazardSfx = h.type === 'arrow-trap' && scopedJourneyAssetPacks.isChinaJourney ? 'chinaCrossbowTrap' : getHazardSfxKey(h);
+          audioControls?.playExpeditionSfx?.(hazardSfx, {
             volume: staminaLoss ? 0.96 : 0.82,
           });
           audioControls?.playError?.();
@@ -14848,7 +14923,8 @@ export default function ExpeditionJourney({
           y: b.y + b.height / 2,
           color: phase.color || '#fb923c',
         });
-        audioControls?.playExpeditionSfx?.('bossWarning');
+        const warningSfx = scopedJourneyAssetPacks.isRomeJourney ? 'romeBossWarning' : scopedJourneyAssetPacks.isChinaJourney ? 'chinaBossWarning' : 'bossWarning';
+        audioControls?.playExpeditionSfx?.(warningSfx);
         audioControls?.playAction?.();
         current.notice = `${b.name} telegraphs ${phase.label}. Watch, dodge, then counter.`;
       }
@@ -14956,7 +15032,8 @@ export default function ExpeditionJourney({
           timer: 0.26,
           maxTimer: 0.26,
         });
-        audioControls?.playExpeditionSfx?.('bossHit', { volume: b.health <= 0 ? 1.2 : 1 });
+        const hitSfx = scopedJourneyAssetPacks.isRomeJourney ? 'romeBossHit' : scopedJourneyAssetPacks.isChinaJourney ? 'chinaBossHit' : 'bossHit';
+        audioControls?.playExpeditionSfx?.(hitSfx, { volume: b.health <= 0 ? 1.2 : 1 });
         current.notice = `${b.name} staggered.`;
         if (b.health <= 0) {
           b.defeated = true;
@@ -15019,36 +15096,45 @@ export default function ExpeditionJourney({
     });
 
     // Gates
-    ROUTE_GATES.forEach(g => {
-      if (!isEntityActiveInScene(g, current)) return;
-      const reachedGate = rectsOverlap(player, g)
-        || (player.x + player.width > g.x && player.x < g.x + g.width + 18);
-      if (!current.openedRouteGateIds.has(g.id) && reachedGate) {
-        const guidance = getGateGuidance(g, current);
-        if (!guidance.activeGateLocked) {
-          current.openedRouteGateIds.add(g.id);
-          current.notice = guidance.openMessage;
-          current.cinematicEvent = {
-            id: `${g.id}-opened`,
-            name: guidance.activeGateName,
-            message: guidance.openMessage,
-            temporary: true,
-          };
-          current.cinematicTimer = 2.4;
-          current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 2.2);
-          addRewardPulse('route-gate-open', g.x + g.width / 2, g.y + 64, 'SEAL OPEN', {
-            color: '#38bdf8',
-            fill: 'rgba(56, 189, 248, 0.13)',
-            radius: 66,
-            timer: 0.78,
-          });
-          audioControls?.playExpeditionSfx?.('gateUnlock');
-          audioControls?.playExpeditionStinger?.('gateUnlock');
-        } else {
-          player.x = g.x - player.width - 5;
-          current.notice = guidance.notice;
-          audioControls?.playExpeditionSfx?.('gateBlocked');
-        }
+    getRouteGateDoorwayEntries().forEach((entry) => {
+      const status = getDoorwayGateStatus(entry, current);
+      const activeGate = status.activeGate;
+      const doorway = entry.doorway;
+      if (!activeGate || !isEntityActiveInScene(activeGate, current)) return;
+      const blockX = doorway?.blockX ?? activeGate.x;
+      const collisionWidth = doorway?.width ?? activeGate.width;
+      const gateCollision = {
+        x: blockX,
+        y: activeGate.y,
+        width: Math.max(activeGate.width, collisionWidth),
+        height: activeGate.height,
+      };
+      const reachedGate = rectsOverlap(player, gateCollision)
+        || (player.x + player.width > blockX && player.x < blockX + gateCollision.width + 18);
+      if (status.gatesToOpen.length > 0 && reachedGate) {
+        status.gatesToOpen.forEach(gateToOpen => current.openedRouteGateIds.add(gateToOpen.id));
+        const guidance = status.guidance || getGateGuidance(activeGate, current);
+        current.notice = guidance.openMessage;
+        current.cinematicEvent = {
+          id: `${entry.id}-opened`,
+          name: guidance.activeGateName,
+          message: guidance.openMessage,
+          temporary: true,
+        };
+        current.cinematicTimer = 2.4;
+        current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 2.2);
+        addRewardPulse('route-gate-open', blockX, activeGate.y + 64, 'SEAL OPEN', {
+          color: '#38bdf8',
+          fill: 'rgba(56, 189, 248, 0.13)',
+          radius: 66,
+          timer: 0.78,
+        });
+        audioControls?.playExpeditionSfx?.('gateUnlock');
+        audioControls?.playExpeditionStinger?.('gateUnlock');
+      } else if (!status.complete && reachedGate) {
+        player.x = blockX - player.width - 5;
+        current.notice = status.guidance?.notice || activeGate.message;
+        audioControls?.playExpeditionSfx?.('gateBlocked');
       }
     });
 
@@ -15115,7 +15201,7 @@ export default function ExpeditionJourney({
       if (current.resources.time <= 0) triggerJourneyRescue('Time expired. Field team rescued.');
     }
 
-  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, backgroundPackId, targetCivilisation, buildBossRewardMoment, completeOpeningThresholdScene, enterLevelFromThreshold, startLevelThresholdEncounter, startTempleThresholdTransition, getActiveHiddenRoutes, getActiveSecretCollectibles, getActiveShardGateProgress, getAttackBox, getAttackHurtbox, getBossPhaseConfig, getBossVulnerabilityState, getEnemyPatternConfig, getObjectiveProgress, getGateGuidance, getRouteAccessState, isRouteRewardAccessible, isLowStamina, addCombatEffect, recordEnvironmentInteraction, getPlayerAttackState, getSectionDisplayName, getSectionDisplayTitle, syncHud]);
+  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, backgroundPackId, targetCivilisation, buildBossRewardMoment, completeOpeningThresholdScene, enterLevelFromThreshold, startLevelThresholdEncounter, startTempleThresholdTransition, getActiveHiddenRoutes, getActiveSecretCollectibles, getActiveShardGateProgress, getAttackBox, getAttackHurtbox, getBossPhaseConfig, getBossVulnerabilityState, getDoorwayGateStatus, getEnemyPatternConfig, getObjectiveProgress, getGateGuidance, getRouteAccessState, getRouteGateDoorwayEntries, isRouteRewardAccessible, isLowStamina, addCombatEffect, recordEnvironmentInteraction, getPlayerAttackState, getSectionDisplayName, getSectionDisplayTitle, syncHud]);
 
   const step = useCallback((ms) => {
     const dt = Math.min(ms / 1000, 0.05);

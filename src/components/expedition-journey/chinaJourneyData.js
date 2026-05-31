@@ -23,9 +23,9 @@ export const CHINA_PLATFORMS = [
 ];
 
 export const CHINA_HAZARDS = [
-  { id: 'bamboo-spikes-1', type: 'spikes', x: X(1200), y: GROUND_Y - 24, width: 120, height: 24, damage: 1, respawnX: X(1050), respawnY: JY(140) },
-  { id: 'bamboo-spikes-2', type: 'spikes', x: X(1320), y: GROUND_Y - 24, width: 120, height: 24, damage: 1, respawnX: X(1050), respawnY: JY(140) },
-  { id: 'ancient-crossbow-1', type: 'arrow-trap', x: X(2450), y: JY(50), width: 32, height: 32, damage: 1, interval: 2.5, speed: -400, direction: -1 },
+  { id: 'bamboo-spikes-1', type: 'spikes', x: X(1200), y: GROUND_Y - 24, width: 120, height: 24, damage: 1, respawnX: X(1050), respawnY: JY(140), penalty: { stamina: 10 }, message: 'Bamboo spikes jabbed through the path. Jump over them.' },
+  { id: 'bamboo-spikes-2', type: 'spikes', x: X(1320), y: GROUND_Y - 24, width: 120, height: 24, damage: 1, respawnX: X(1050), respawnY: JY(140), penalty: { stamina: 10 }, message: 'Bamboo spikes blocked the route. Stamina reduced.' },
+  { id: 'ancient-crossbow-1', type: 'arrow-trap', x: X(2450), y: JY(50), width: 32, height: 32, damage: 1, interval: 2.5, speed: -400, direction: -1, penalty: { stamina: 8, time: 3 }, message: 'An ancient crossbow bolt grazed the route. Time and stamina reduced.' },
 ];
 
 export const CHINA_ROUTE_GATES = [
@@ -44,6 +44,8 @@ export const CHINA_ROUTE_GATES = [
     },
   }
 ];
+
+export const CHINA_ROUTE_GATE_DOORWAYS = [];
 
 export const CHINA_SCARAB_SEAL_TRIGGER = {
   id: 'jade-seal-trigger',
@@ -66,19 +68,19 @@ export const CHINA_SCARAB_SEAL_TRIGGER = {
   objectiveEchoLine: 'The spirit demands respect. Restore the jade fragments.',
   firstShardEchoLine: 'First fragment restored.',
   messages: [
-    'You walk where emperors sleep.',
-    'This ground is sacred.',
-    'Leave before the clay awakens.',
+    'You walk where emperors sleep. You do not belong here.',
+    'Another looter... or something else?',
+    'Restore the shattered jade. Prove your worth.'
   ],
   dialogueSpeakers: [
-    'Ancestral Spirit',
-    'Ancestral Spirit',
-    'Ancestral Spirit',
+    'Guardian Network',
+    'Guardian Network',
+    'Guardian Network',
   ],
   dialogueTiming: [0.8, 3.3, 6.3],
   stairwellRevealLine: 'The earth parts to reveal a hidden path.',
-  bossIntroLine: 'The Terracotta General steps forward. You must prove your worth.',
-  guideFollowUpLine: 'Restore the jade fragments and survive the trial.',
+  bossIntroLine: 'The earth remembers. The clay awakens. Prepare yourself.',
+  guideFollowUpLine: 'The guardian system is testing you. Survive the trial.',
 };
 
 export const CHINA_TOOL_LAYOUT = [
@@ -92,11 +94,61 @@ export const CHINA_RELIC_SHARD_LAYOUT = [
 ];
 
 export const CHINA_BOSS_KEY_ITEMS = [
-  // To be populated
+  { id: 'jade-fragment-1', name: 'Shattered Jade Fragment', x: X(150), y: JY(80) },
+  { id: 'jade-fragment-2', name: 'Shattered Jade Fragment', x: X(1400), y: JY(180) },
+  { id: 'jade-fragment-3', name: 'Shattered Jade Fragment', x: X(2100), y: JY(20) },
+  { id: 'jade-fragment-4', name: 'Shattered Jade Fragment', x: X(3400), y: JY(140) },
 ];
 
 export const CHINA_STORY_PROPS = [
-  // To be populated
+  {
+    id: 'broken-terracotta-limb',
+    x: X(500),
+    y: GROUND_Y - 20,
+    width: 64,
+    height: 32,
+    hitboxWidth: 80,
+    hitboxHeight: 60,
+    label: 'Broken Terracotta Limb',
+    sprite: 'rubbleClusterSmall',
+    messages: [
+      'A shattered clay arm.',
+      'The fracture is clean, as if sliced by something ancient.'
+    ],
+    speakers: ['Asha', 'Asha']
+  },
+  {
+    id: 'faded-bamboo-scroll',
+    x: X(1800),
+    y: GROUND_Y - 20,
+    width: 48,
+    height: 24,
+    hitboxWidth: 80,
+    hitboxHeight: 60,
+    label: 'Faded Bamboo Scroll',
+    sprite: 'buriedCarvedHead',
+    messages: [
+      'The text is barely readable.',
+      'It speaks of a "great network of gates" built beneath the earth.'
+    ],
+    speakers: ['Asha', 'Asha']
+  },
+  {
+    id: 'ancient-kiln-ash',
+    x: X(3800),
+    y: GROUND_Y - 10,
+    width: 120,
+    height: 20,
+    hitboxWidth: 140,
+    hitboxHeight: 60,
+    label: 'Ancient Kiln Ash',
+    sprite: 'lowDustVeil',
+    messages: [
+      'This ash is still warm.',
+      'Someone—or something—has been tending this fire recently.'
+    ],
+    speakers: ['Asha', 'Asha']
+  }
 ];
 
 export const CHINA_SECTION_ATMOSPHERES = {
