@@ -3606,6 +3606,7 @@ export default function ExpeditionJourney({
 
   const getGateRequirements = useCallback((gate, current) => {
     const reqs = [];
+    if (!gate.requires) return reqs;
     const isChinaJourney = backgroundPackId === 'china-river-valley';
     const objectiveLabels = isChinaJourney ? CHINA_OBJECTIVE_LABELS : OBJECTIVE_LABELS;
     const objectiveSingularLabels = isChinaJourney ? CHINA_OBJECTIVE_SINGULAR_LABELS : OBJECTIVE_SINGULAR_LABELS;
@@ -10074,7 +10075,13 @@ export default function ExpeditionJourney({
       ctx.save();
       ctx.globalAlpha *= options.alpha ?? 1;
       if (options.filter) ctx.filter = options.filter;
-      ctx.drawImage(ref.current.image, dest.x, dest.y, dest.width, dest.height);
+      if (options.flipX) {
+        ctx.translate(dest.x + dest.width / 2, 0);
+        ctx.scale(-1, 1);
+        ctx.drawImage(ref.current.image, -dest.width / 2, dest.y, dest.width, dest.height);
+      } else {
+        ctx.drawImage(ref.current.image, dest.x, dest.y, dest.width, dest.height);
+      }
       ctx.restore();
       return true;
     };
@@ -10087,17 +10094,16 @@ export default function ExpeditionJourney({
       width: backWidth,   // 510
       height: gateHeight, // 340
     };
-    // Front column: right foreground element. Starts 50px right of center so it
-    // overlaps the back arch's right column and reads as the near-side pillar.
+    // Front column: near-left foreground element for the mirrored arch direction.
     const frontDest = {
-      x: gateCenter + 50,
+      x: gateCenter - frontWidth - 50,
       y: gateTop - 8,     // slightly higher — closer to camera = taller
       width: frontWidth,  // 540
       height: gateHeight + 20, // 360
     };
     // Slab fills the arch opening when locked.
     const slabDest = {
-      x: gateCenter - 80,
+      x: gateCenter - 105,
       y: gateTop + 52,
       width: 185,
       height: gateHeight - 42,
@@ -10129,6 +10135,7 @@ export default function ExpeditionJourney({
       const archDrawn = drawGateAsset(routeGateFrontRef, frontDest, {
         alpha: 0.99,
         filter: 'sepia(2%) saturate(104%) brightness(108%) contrast(102%) drop-shadow(-8px 6px 12px rgba(46, 28, 12, 0.35))',
+        flipX: true,
       });
       if (!archDrawn && complete) drawFallbackArch();
       ctx.restore();
@@ -10179,6 +10186,7 @@ export default function ExpeditionJourney({
     const archBackDrawn = drawGateAsset(routeGateBackRef, backDest, {
       alpha: 0.96,
       filter: 'sepia(5%) saturate(94%) brightness(94%) contrast(106%) drop-shadow(0 6px 8px rgba(46, 28, 12, 0.3))',
+      flipX: true,
     });
     if (!archBackDrawn && !complete) drawFallbackArch();
 
