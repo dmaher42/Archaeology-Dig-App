@@ -39,6 +39,7 @@ export const ROME_HAZARDS = ROME_TRAP_ZONES.map((trap) => ({
 // --- Route gates ---
 export const ROME_ROUTE_GATES = ROME_GATES.map((gate) => ({
   id: gate.id,
+  name: gate.label,
   x: gate.x,
   y: gate.y,
   width: gate.width,
@@ -46,6 +47,12 @@ export const ROME_ROUTE_GATES = ROME_GATES.map((gate) => ({
   label: gate.label,
   sectionId: gate.sectionId,
   requiredKeys: gate.requiredKeys ?? 1,
+  message: `This gate is sealed. Recover ${gate.requiredKeys ?? 1} key ${gate.requiredKeys === 1 ? 'item' : 'items'} to continue.`,
+  readyHint: 'The gate is ready to open.',
+  openMessage: 'The gate yields.',
+  requires: {
+    shards: gate.requiredKeys ?? 1,
+  },
 }));
 
 // --- Opening trigger (replaces scarab seal for Rome — the Legate's presence is felt) ---
