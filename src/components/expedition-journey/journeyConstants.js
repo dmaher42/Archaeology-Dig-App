@@ -25,7 +25,7 @@ export const ATTACK_COOLDOWN = 0.38;
 export const ATTACK_DURATION = 0.42;
 export const ATTACK_WINDUP_DURATION = 0.12;
 export const ATTACK_RECOIL_DURATION = 0.18;
-export const INVULNERABLE_DURATION = 1.05;
+export const INVULNERABLE_DURATION = 0.58;
 
 export const PLAYER_HERO_SPRITE_ATLAS_JSON = 'assets/expedition/player/asha-reference-warrior-spritesheet.json';
 export const PLAYER_HERO_SPRITE_VERSION = 'asha-reference-warrior-full-motion-polish-2026-05-30';

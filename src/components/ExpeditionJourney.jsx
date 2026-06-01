@@ -4646,7 +4646,7 @@ export default function ExpeditionJourney({
     current.player.y = cp.y - current.player.height;
     current.player.vx = 0;
     current.player.vy = 0;
-    current.resources.stamina = Math.max(current.resources.stamina, Math.min(current.upgradeEffects?.maxStamina || 100, 40));
+    current.resources.stamina = Math.max(current.resources.stamina, Math.min(current.upgradeEffects?.maxStamina || 100, 25));
     const camera = getCameraFollowTarget(current);
     current.cameraX = camera.targetCameraX;
     current.targetCameraX = camera.targetCameraX;
@@ -15154,6 +15154,7 @@ export default function ExpeditionJourney({
     if (left) { targetVx -= MOVE_SPEED; player.direction = -1; }
     if (right) { targetVx += MOVE_SPEED; player.direction = 1; }
     if (player.venomSlowTimer > 0) targetVx *= player.venomSlowMultiplier || SCORPION_VENOM_SLOW_MULTIPLIER;
+    if (current.resources.stamina > 0 && current.resources.stamina < 25) targetVx *= 0.8;
     if (!player.onGround) targetVx *= Math.max(1, upgradeEffects.airControlMultiplier || 1);
     if (current.attackWindupTimer > 0) targetVx *= 0.45;
     const hasHorizontalInput = left || right;
@@ -15687,11 +15688,18 @@ export default function ExpeditionJourney({
           audioControls?.playExpeditionSfx?.('gateBlocked');
         }
       } else if (!mummificationInteractionResult?.unlocked) {
+        current.sceneReturn = {
+          sceneId: JOURNEY_SCENE_IDS.EXTERIOR,
+          x: MUMMIFICATION_CHAMBER_RETURN_FALLBACK.x,
+          y: MUMMIFICATION_CHAMBER_RETURN_FALLBACK.y,
+          direction: MUMMIFICATION_CHAMBER_RETURN_FALLBACK.direction,
+          cameraX: clampCameraX(MUMMIFICATION_CHAMBER_RETURN_FALLBACK.x - CANVAS_WIDTH * MUMMIFICATION_CHAMBER_RETURN_FALLBACK.cameraAnchorRatio),
+        };
         const transition = {
           id: 'mummification-chamber-exit',
           phase: 'doorway-fade',
           fromSceneId: JOURNEY_SCENE_IDS.MUMMIFICATION_CHAMBER,
-          toSceneId: JOURNEY_SCENE_IDS.FORGOTTEN_MURAL_CHAMBER,
+          toSceneId: JOURNEY_SCENE_IDS.EXTERIOR,
           lockMovement: true,
           switched: false,
           duration: FORGOTTEN_MURAL_CHAMBER_TRANSITION_DURATION,
@@ -15699,7 +15707,7 @@ export default function ExpeditionJourney({
         };
         current.sceneTransition = transition;
         current.forgottenMuralChamberTransition = transition;
-        current.notice = 'Asha follows the sacred record path toward the mural chamber.';
+        current.notice = 'Asha returns to the mummification chamber doorway.';
         current.hitStopTimer = Math.max(current.hitStopTimer, 0.035);
         audioControls?.playTransition?.();
       }
@@ -15727,11 +15735,18 @@ export default function ExpeditionJourney({
       current.hitStopTimer = Math.max(current.hitStopTimer, 0.035);
       audioControls?.playExpeditionStinger?.('evidenceDiscovery');
     } else if (forgottenMuralChamberExitActive && !(current.sceneTransition || current.forgottenMuralChamberTransition)) {
+      current.sceneReturn = {
+        sceneId: JOURNEY_SCENE_IDS.EXTERIOR,
+        x: FORGOTTEN_MURAL_CHAMBER_RETURN_FALLBACK.x,
+        y: FORGOTTEN_MURAL_CHAMBER_RETURN_FALLBACK.y,
+        direction: FORGOTTEN_MURAL_CHAMBER_RETURN_FALLBACK.direction,
+        cameraX: clampCameraX(FORGOTTEN_MURAL_CHAMBER_RETURN_FALLBACK.x - CANVAS_WIDTH * FORGOTTEN_MURAL_CHAMBER_RETURN_FALLBACK.cameraAnchorRatio),
+      };
       const transition = {
         id: 'forgotten-mural-chamber-exit',
         phase: 'doorway-fade',
         fromSceneId: JOURNEY_SCENE_IDS.FORGOTTEN_MURAL_CHAMBER,
-        toSceneId: JOURNEY_SCENE_IDS.SCRIBE_LOCKED_CHAMBER,
+        toSceneId: JOURNEY_SCENE_IDS.EXTERIOR,
         lockMovement: true,
         switched: false,
         duration: FORGOTTEN_MURAL_CHAMBER_TRANSITION_DURATION,
@@ -15739,7 +15754,7 @@ export default function ExpeditionJourney({
       };
       current.sceneTransition = transition;
       current.forgottenMuralChamberTransition = transition;
-      current.notice = 'Asha follows the warning toward the scribe chamber.';
+      current.notice = 'Asha returns to the mural chamber doorway.';
       current.hitStopTimer = Math.max(current.hitStopTimer, 0.035);
       audioControls?.playTransition?.();
     } else {
@@ -16507,7 +16522,7 @@ export default function ExpeditionJourney({
       const effectiveKnockbackMultiplier = knockbackMultiplier * sourceKnockbackMultiplier;
       current.resources.stamina = Math.max(0, current.resources.stamina - amount);
       player.invulnerable = INVULNERABLE_DURATION;
-      player.damageCooldownTimer = INVULNERABLE_DURATION + 0.65;
+      player.damageCooldownTimer = INVULNERABLE_DURATION + 0.34;
       player.hitFeedbackTimer = 0.75;
       player.impactShakeTimer = Math.max(player.impactShakeTimer || 0, PLAYER_HIT_SCREEN_SHAKE_DURATION);
       player.lastDamage = amount;
@@ -16855,13 +16870,14 @@ export default function ExpeditionJourney({
         }
         current.lastAttackResult = e.vulnerabilityTimer > 0 || e.attackRecovery > 0 ? 'counter-hit' : 'hit';
         current.shieldedHitFeedback = '';
-        e.stunTimer = 0.8;
+        const exhausted = current.resources.stamina > 0 && current.resources.stamina < 25;
+        e.stunTimer = exhausted ? 0.38 : 0.8;
         e.hitFlash = 0.34;
         e.attackWindup = 0;
         e.attackTimer = 0;
         e.attackReady = false;
-        e.attackCooldown = Math.max(e.attackCooldown, 0.6);
-        e.attackRecovery = 0.45;
+        e.attackCooldown = Math.max(e.attackCooldown, exhausted ? 0.32 : 0.6);
+        e.attackRecovery = exhausted ? 0.22 : 0.45;
         e.vulnerabilityTimer = 0.35;
         e.shieldTimer = 0;
         e.knockbackTimer = 0.32;
