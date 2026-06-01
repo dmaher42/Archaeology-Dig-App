@@ -12912,18 +12912,11 @@ export default function ExpeditionJourney({
     ctx.save();
     ctx.lineWidth = 1.5;
     if (recoveryActive) {
-      ctx.globalAlpha = 0.24 + recoveryGoldPulse * 0.1;
-      ctx.fillStyle = 'rgba(136, 82, 36, 0.34)';
+      ctx.globalAlpha = 0.18 + recoveryGoldPulse * 0.07;
+      ctx.fillStyle = 'rgba(110, 68, 28, 0.28)';
       ctx.beginPath();
       ctx.ellipse(screenX + enemy.width / 2 - direction * 4, footY, enemy.width * 0.78, 4.5, 0, 0, Math.PI * 2);
       ctx.fill();
-      ctx.globalAlpha = 0.2 + recoveryGoldPulse * 0.08;
-      ctx.strokeStyle = 'rgba(214, 185, 92, 0.58)';
-      ctx.beginPath();
-      ctx.moveTo(screenX + enemy.width * 0.28, footY + 1);
-      ctx.lineTo(screenX + enemy.width * 0.68 - direction * 10, footY + 1);
-      ctx.stroke();
-      drawGlyphFlash(screenX + enemy.width / 2, enemy.y - 7, Math.max(5, enemy.width * 0.18), 'rgba(214, 185, 92, 0.58)', 0.12);
     } else if (tellActive) {
       ctx.globalAlpha = guardedTell ? 0.18 + protectedSitePulse * 0.08 : 0.16;
       ctx.fillStyle = guardedTell ? 'rgba(80, 114, 122, 0.22)' : 'rgba(136, 82, 36, 0.2)';
@@ -12931,13 +12924,12 @@ export default function ExpeditionJourney({
       ctx.ellipse(screenX + enemy.width / 2 - direction * 4, footY, enemy.width * 0.62, 4, 0, 0, Math.PI * 2);
       ctx.fill();
       if (guardedTell) {
-        ctx.globalAlpha = 0.16 + protectedSitePulse * 0.08;
-        ctx.strokeStyle = 'rgba(125, 211, 252, 0.34)';
+        ctx.globalAlpha = 0.12 + protectedSitePulse * 0.06;
+        ctx.strokeStyle = 'rgba(125, 211, 252, 0.28)';
         ctx.beginPath();
         ctx.moveTo(screenX + enemy.width / 2 - direction * 5, enemy.y + 2);
         ctx.lineTo(screenX + enemy.width / 2 + direction * 8, enemy.y - 7);
         ctx.stroke();
-        drawGlyphFlash(screenX + enemy.width / 2, enemy.y - 5, Math.max(5, enemy.width * 0.18), 'rgba(125, 211, 252, 0.5)', 0.1);
       }
       if (!pattern.ranged) {
         ctx.globalAlpha = (guardedTell ? 0.07 : 0.1) * pulse;
