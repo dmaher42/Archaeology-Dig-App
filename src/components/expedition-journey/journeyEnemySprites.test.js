@@ -77,7 +77,9 @@ test('scorpion sting is a high anti-jump attack that hits harder through existin
   assert.match(journeyComponentSource, /const SCORPION_CHASE_SPEED_MULTIPLIER = 1\.15;/);
   assert.match(journeyComponentSource, /\(e\.type === 'scorpion' \? SCORPION_CHASE_SPEED_MULTIPLIER : 1\)/);
   assert.match(journeyComponentSource, /const scorpionStingCanReach = e\.type !== 'scorpion' \|\| rectsOverlap\(/);
-  assert.match(journeyComponentSource, /nearPlayer && scorpionStingCanReach && e\.attackCooldown <= 0/);
+  assert.match(journeyComponentSource, /const shouldUseVenomSpit = e\.type === 'scorpion' && !scorpionStingCanReach && scorpionVenomCanReach;/);
+  assert.match(journeyComponentSource, /const enemyCanStartAttack = \(nearPlayer && scorpionStingCanReach\) \|\| shouldUseVenomSpit;/);
+  assert.match(journeyComponentSource, /enemyCanStartAttack && e\.attackCooldown <= 0/);
   assert.match(journeyComponentSource, /const getAttackBox = useCallback\(\(attacker, range = 42, height = 28, direction = attacker\.direction \|\| 1, yOffset = 0, backReach = 0\) =>/);
   assert.match(journeyComponentSource, /const trailingReach = Math\.max\(0, backReach\);/);
   assert.match(journeyComponentSource, /y: attacker\.y \+ Math\.max\(4, \(attacker\.height - height\) \/ 2\) \+ yOffset,/);
@@ -255,9 +257,11 @@ test('enemy attack tells use compact timing overlays without arcade labels', () 
 
 test('Phase 5C early desert combat feedback uses protected-site visual cues', () => {
   assert.match(journeyComponentSource, /protectedSitePulse/);
-  assert.match(journeyComponentSource, /drawGlyphFlash/);
   assert.match(journeyComponentSource, /drawDeflectRing/);
   assert.match(journeyComponentSource, /recoveryGoldPulse/);
+  assert.match(journeyComponentSource, /guardedTell \? 0\.18 \+ protectedSitePulse \* 0\.08 : 0\.16/);
+  assert.match(journeyComponentSource, /guardedTell \? 'rgba\(80, 114, 122, 0\.22\)' : 'rgba\(136, 82, 36, 0\.2\)'/);
+  assert.match(journeyComponentSource, /ctx\.moveTo\(screenX \+ enemy\.width \/ 2 - direction \* 5, enemy\.y \+ 2\)/);
   assert.match(journeyComponentSource, /enemy-guard-deflect/);
   assert.match(journeyComponentSource, /enemy-counter-window[\s\S]*?color:\s*'#d6b95c'/);
   assert.match(journeyComponentSource, /type:\s*'enemy-guard-deflect'[\s\S]*?color:\s*'rgba\(214, 185, 92, 0\.78\)'/);

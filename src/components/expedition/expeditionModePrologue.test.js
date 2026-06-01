@@ -26,9 +26,13 @@ test('Egypt archive prologue keeps the required grounded story sequence before J
   assert.match(expeditionModeSource, /setExpeditionStage\('journey'\)/);
 });
 
-test('Egypt archive prologue is scoped to ExpeditionMode and does not retune the scarab seal Journey trigger', () => {
+test('Egypt and Rome archive prologues are scoped to ExpeditionMode without retuning the scarab seal Journey trigger', () => {
   assert.match(expeditionModeSource, /stage\.id === EXPEDITION_STAGE_IDS\.EGYPT/);
-  assert.match(expeditionModeSource, /isEgypt \? 'archive-prologue' : 'journey'/);
+  assert.match(expeditionModeSource, /stage\.id === EXPEDITION_STAGE_IDS\.ROME/);
+  assert.match(expeditionModeSource, /const hasPrologue = isEgypt \|\| isRome;/);
+  assert.match(expeditionModeSource, /hasPrologue \? 'archive-prologue' : 'journey'/);
+  assert.match(expeditionModeSource, /const isRomeArchivePrologue = selectedStageId === EXPEDITION_STAGE_IDS\.ROME && expeditionStage === 'archive-prologue';/);
+  assert.match(expeditionModeSource, /const renderRomeArchivePrologue = \(\) => \{/);
   assert.match(journeyLevelDataSource, /export const SCARAB_SEAL_TRIGGER = \{/);
   assert.doesNotMatch(expeditionJourneySource, /archive-prologue/);
 });
