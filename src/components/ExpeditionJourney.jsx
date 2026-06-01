@@ -1614,6 +1614,7 @@ const SCORPION_VENOM_ATTACK_PATTERN = {
   damageScale: 0,
   slowDuration: SCORPION_VENOM_SLOW_DURATION,
   slowMultiplier: SCORPION_VENOM_SLOW_MULTIPLIER,
+  ranged: true,
   color: '#84cc16',
   protectedDuringAttack: false,
   protectedDuringWindup: false,
@@ -12295,38 +12296,111 @@ export default function ExpeditionJourney({
         ctx.arc(centerX + facing * enemy.width * 0.4, bodyY - 5, 2.2, 0, Math.PI * 2);
         ctx.fill();
       } else if (enemy.type === 'scorpion') {
-        const bodyY = baseY - 13 + (defeated ? 5 : 0);
-        drawContactShadow(ctx, centerX, baseY + 3, enemy.width * 0.78, defeated ? 0.1 : 0.18, 0.9);
-        ctx.globalAlpha = defeated ? 0.58 : 0.96;
+        const bodyY = baseY - 13 + (defeated ? 6 : 0);
+        const slowPulse = Math.sin(now / 360) * 0.5 + 0.5;
+        const fastPulse = Math.sin(now / 110) * 0.5 + 0.5;
+        const walkCycle = Math.sin(now / 165);
+        const isWindup = combatMode === 'windup';
+        const isAttacking = combatMode === 'attacking';
+        const isCooldown = combatMode === 'cooldown';
+        const isVenomAttack = enemy.attackPattern === 'venom-spit';
+
+        drawContactShadow(ctx, centerX, baseY + 3, enemy.width * (defeated ? 0.55 : 0.78), defeated ? 0.08 : 0.18, 0.9);
+        ctx.globalAlpha = defeated ? 0.52 : 0.96;
+
+        // abdomen — scales with breath in idle, squashes during attack
+        const abdomenSx = isAttacking ? 0.94 : isWindup ? 1.06 : 1 + slowPulse * 0.025;
+        const abdomenSy = isAttacking ? 1.06 : isWindup ? 0.94 : 1;
+        const bodyOffsetY = isWindup ? -2 : isAttacking ? 1 : isCooldown ? 3 : stunned ? 2 : 0;
         ctx.strokeStyle = stunned ? 'rgba(210, 190, 165, 0.88)' : '#7c2d12';
         ctx.fillStyle = stunned ? '#8a6535' : '#a16207';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 1.8;
         ctx.beginPath();
-        ctx.ellipse(centerX, bodyY, enemy.width * 0.38, enemy.height * 0.34, 0, 0, Math.PI * 2);
+        ctx.ellipse(centerX, bodyY + bodyOffsetY, enemy.width * 0.38 * abdomenSx, enemy.height * 0.34 * abdomenSy, 0, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
-        ctx.fillStyle = '#78350f';
+
+        // cephalothorax (head) — lunges forward on attack
+        const headShift = isAttacking ? facing * 3 : isWindup ? -facing * 1 : 0;
+        ctx.fillStyle = stunned ? '#6b4e28' : '#78350f';
         ctx.beginPath();
-        ctx.ellipse(centerX + facing * enemy.width * 0.27, bodyY - 2, enemy.width * 0.18, enemy.height * 0.22, 0, 0, Math.PI * 2);
+        ctx.ellipse(centerX + facing * enemy.width * 0.27 + headShift, bodyY - 2 + bodyOffsetY, enemy.width * 0.18, enemy.height * 0.22, 0, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
-        ctx.strokeStyle = '#92400e';
+
+        // pincers — spread wider on attack
+        const pinchSpread = isAttacking ? 7 : isWindup ? 5 : 3.5;
+        const pinchBaseX = centerX + facing * enemy.width * 0.42 + headShift;
+        ctx.strokeStyle = stunned ? 'rgba(160, 130, 90, 0.8)' : '#6b2d0e';
+        ctx.lineWidth = 1.3;
+        ctx.beginPath();
+        ctx.moveTo(pinchBaseX - facing * 2, bodyY - 4 + bodyOffsetY);
+        ctx.lineTo(pinchBaseX + facing * 5, bodyY - 4 - pinchSpread * 0.55 + bodyOffsetY);
+        ctx.moveTo(pinchBaseX - facing * 2, bodyY + bodyOffsetY);
+        ctx.lineTo(pinchBaseX + facing * 5, bodyY + pinchSpread * 0.45 + bodyOffsetY);
+        ctx.stroke();
+
+        // legs — 3 pairs, curved, animate during walking; splay on windup, tuck on defeat
+        ctx.strokeStyle = stunned ? 'rgba(160, 130, 90, 0.75)' : '#92400e';
+        ctx.lineWidth = 1.3;
+        const legSplay = isCooldown ? 1.18 : isWindup ? 1.08 : isAttacking ? 0.86 : defeated ? 0.7 : 1;
+        const legLen = enemy.width * 0.38 * legSplay;
+        const walkAnim = (isAttacking || isWindup || isCooldown || stunned || defeated) ? 0 : walkCycle * 3;
         for (let i = -1; i <= 1; i += 1) {
+          const wave = i * walkAnim;
+          const tipY = defeated ? bodyY + 10 : bodyY + i * 5.5 + 5 + bodyOffsetY;
           ctx.beginPath();
-          ctx.moveTo(centerX - enemy.width * 0.08, bodyY + i * 3);
-          ctx.lineTo(centerX - enemy.width * 0.38, bodyY + i * 5 + 4);
-          ctx.moveTo(centerX + enemy.width * 0.08, bodyY + i * 3);
-          ctx.lineTo(centerX + enemy.width * 0.38, bodyY + i * 5 + 4);
+          ctx.moveTo(centerX - enemy.width * 0.08, bodyY + i * 3 + bodyOffsetY);
+          ctx.quadraticCurveTo(centerX - enemy.width * 0.22, bodyY + i * 4 + 5 + bodyOffsetY, centerX - legLen, tipY + wave);
+          ctx.moveTo(centerX + enemy.width * 0.08, bodyY + i * 3 + bodyOffsetY);
+          ctx.quadraticCurveTo(centerX + enemy.width * 0.22, bodyY + i * 4 + 5 + bodyOffsetY, centerX + legLen, tipY - wave);
           ctx.stroke();
         }
+
+        // tail — dramatically state-aware
+        let tailCpX, tailCpY, tailTipX, tailTipY;
+        const tailBaseX = centerX - facing * enemy.width * 0.22;
+        const tailBaseY = bodyY - 8 + bodyOffsetY;
+        if (defeated) {
+          tailCpX = centerX - facing * enemy.width * 0.12; tailCpY = bodyY + 4;
+          tailTipX = centerX - facing * enemy.width * 0.28; tailTipY = bodyY + 10;
+        } else if (isWindup) {
+          tailCpX = centerX - facing * enemy.width * 0.42; tailCpY = bodyY - 42;
+          tailTipX = centerX - facing * enemy.width * 0.04; tailTipY = bodyY - 44 - fastPulse * 2;
+        } else if (isAttacking) {
+          tailCpX = centerX - facing * enemy.width * 0.08; tailCpY = bodyY - 16;
+          tailTipX = centerX + facing * enemy.width * 0.24; tailTipY = bodyY - 20;
+        } else if (isCooldown) {
+          tailCpX = centerX - facing * enemy.width * 0.3; tailCpY = bodyY - 6;
+          tailTipX = centerX - facing * enemy.width * 0.06; tailTipY = bodyY - 7 + slowPulse * 2;
+        } else if (stunned) {
+          tailCpX = centerX - facing * enemy.width * 0.22; tailCpY = bodyY - 10;
+          tailTipX = centerX - facing * enemy.width * 0.04; tailTipY = bodyY - 12;
+        } else {
+          tailCpX = centerX - facing * enemy.width * 0.36; tailCpY = bodyY - 24;
+          tailTipX = centerX - facing * enemy.width * 0.05; tailTipY = bodyY - 26 - slowPulse * 2.5;
+        }
+        ctx.strokeStyle = stunned ? 'rgba(175, 145, 105, 0.78)' : '#92400e';
+        ctx.lineWidth = 1.8;
         ctx.beginPath();
-        ctx.moveTo(centerX - facing * enemy.width * 0.22, bodyY - 8);
-        ctx.quadraticCurveTo(centerX - facing * enemy.width * 0.36, bodyY - 25, centerX - facing * enemy.width * 0.05, bodyY - 25 - pulse * 2);
+        ctx.moveTo(tailBaseX, tailBaseY);
+        ctx.quadraticCurveTo(tailCpX, tailCpY, tailTipX, tailTipY);
         ctx.stroke();
-        ctx.fillStyle = '#f97316';
+
+        // stinger — glows amber during venom windup/attack
+        const stingerGlowing = (isWindup || isAttacking) && isVenomAttack;
+        const stingerR = stingerGlowing ? 4.2 + fastPulse * 1.5 : defeated ? 2.2 : 3.2;
+        if (stingerGlowing) {
+          ctx.shadowColor = 'rgba(110, 52, 12, 0.75)';
+          ctx.shadowBlur = 7 + fastPulse * 4;
+        }
+        ctx.fillStyle = stingerGlowing
+          ? `rgba(${Math.round(175 + fastPulse * 35)}, 72, 18, 0.92)`
+          : stunned ? '#7a5530' : '#c2410c';
         ctx.beginPath();
-        ctx.arc(centerX - facing * enemy.width * 0.03, bodyY - 25 - pulse * 2, 3.4, 0, Math.PI * 2);
+        ctx.arc(tailTipX, tailTipY, stingerR, 0, Math.PI * 2);
         ctx.fill();
+        ctx.shadowBlur = 0;
       } else {
         const floatY = centerX % 2 === 0 ? baseY - 33 - pulse * 5 : baseY - 31 - pulse * 5;
         drawContactShadow(ctx, centerX, baseY + 4, enemy.width * 0.66, defeated ? 0.06 : 0.12, 0.65);
@@ -12865,17 +12939,21 @@ export default function ExpeditionJourney({
         ctx.stroke();
         drawGlyphFlash(screenX + enemy.width / 2, enemy.y - 5, Math.max(5, enemy.width * 0.18), 'rgba(125, 211, 252, 0.5)', 0.1);
       }
-      ctx.globalAlpha = (guardedTell ? 0.07 : 0.1) * pulse;
-      ctx.fillStyle = pattern.color || '#facc15';
-      ctx.beginPath();
-      ctx.roundRect(boxX, attackBox.y, attackBox.width, attackBox.height, 6);
-      ctx.fill();
+      if (!pattern.ranged) {
+        ctx.globalAlpha = (guardedTell ? 0.07 : 0.1) * pulse;
+        ctx.fillStyle = pattern.color || '#facc15';
+        ctx.beginPath();
+        ctx.roundRect(boxX, attackBox.y, attackBox.width, attackBox.height, 6);
+        ctx.fill();
+      }
     } else if (attackActive) {
-      ctx.globalAlpha = 0.11;
-      ctx.fillStyle = pattern.color || '#fb923c';
-      ctx.beginPath();
-      ctx.roundRect(boxX, attackBox.y, attackBox.width, attackBox.height, 6);
-      ctx.fill();
+      if (!pattern.ranged) {
+        ctx.globalAlpha = 0.11;
+        ctx.fillStyle = pattern.color || '#fb923c';
+        ctx.beginPath();
+        ctx.roundRect(boxX, attackBox.y, attackBox.width, attackBox.height, 6);
+        ctx.fill();
+      }
     }
     ctx.restore();
   }, [getAttackBox, getEnemyPatternConfig]);
