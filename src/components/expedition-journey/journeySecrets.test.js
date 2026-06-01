@@ -744,13 +744,9 @@ test('first Egypt secret route rewards curiosity without changing main progressi
   assert.match(journeyComponentSource, /forgottenMuralAlcoveStructureRef/);
   assert.match(journeyComponentSource, /forgottenMuralChamberRef/);
   assert.match(storyProps, /id:\s*'forgotten-mural-climb-structure'[\s\S]*?type:\s*'generated-climb-structure'[\s\S]*?depth:\s*'route-edge'/);
-  assert.match(storyProps, /id:\s*'forgotten-mural-climb-structure'[\s\S]*?groundContactLayer:\s*\[/);
-  assert.match(storyProps, /id:\s*'forgotten-mural-climb-structure'[\s\S]*?assetKey:\s*'premiumRubbleMoundBlend'/);
-  assert.match(storyProps, /id:\s*'forgotten-mural-climb-structure'[\s\S]*?assetKey:\s*'premiumCarvedStoneEdge'/);
   assert.doesNotMatch(storyProps, /id:\s*'forgotten-mural-alcove-panel'/);
   assert.match(journeyComponentSource, /prop\.type === 'generated-climb-structure'/);
   assert.match(journeyComponentSource, /drawForgottenMuralGeneratedAsset/);
-  assert.match(journeyComponentSource, /drawForgottenMuralGeneratedAsset[\s\S]*?drawEgyptStructureGroundContactLayer/);
   assert.match(journeyComponentSource, /const visibilityWidth = Math\.max\(440, Number\(prop\.width\) \|\| 0\)/);
   assert.match(journeyComponentSource, /ctx\.drawImage\(structureAsset\.image/);
   assert.doesNotMatch(journeyComponentSource, /drawForgottenMuralStructure/);
@@ -3403,6 +3399,31 @@ test('Scribe Chamber exterior uses reusable foreground-depth contact assets with
   assert.match(journeyComponentSource, /groundContactLayer/);
   assert.match(journeyComponentSource, /scribeChamberGroundBlendAssetKeys/);
   assert.doesNotMatch(platforms, /egyptGroundSkirtLong|premiumRubbleContactShadow|groundContactLayer/);
+});
+
+test('generated Egypt structures share the premium ground-contact kit without changing collision', () => {
+  const storyProps = extractExportedArray('STORY_PROPS');
+  const platforms = extractExportedArray('PLATFORMS');
+  const mummificationExterior = getDataRowById(storyProps, 'mummification-chamber-exterior-structure');
+  const forgottenMuralExterior = getDataRowById(storyProps, 'forgotten-mural-climb-structure');
+  const scribeExterior = getDataRowById(storyProps, 'scribe-chamber-doorway-structure');
+
+  [
+    [mummificationExterior, 'premiumLongSandLip', 'premiumHalfBuriedStairSupport'],
+    [forgottenMuralExterior, 'premiumRubbleMoundBlend', 'premiumCarvedStoneEdge'],
+    [scribeExterior, 'premiumDoorThresholdBuildup', 'premiumSmallStoneScatter'],
+  ].forEach(([propRow, primaryKey, detailKey]) => {
+    assert.match(propRow, /groundContactLayer:\s*\[/);
+    assert.match(propRow, new RegExp(`assetKey:\\s*'${primaryKey}'`));
+    assert.match(propRow, new RegExp(`assetKey:\\s*'${detailKey}'`));
+    assert.doesNotMatch(propRow, /assetKey:\s*'lowDustVeil'/);
+  });
+
+  assert.match(journeyComponentSource, /drawMummificationChamberExteriorAsset[\s\S]*?drawEgyptStructureGroundContactLayer/);
+  assert.match(journeyComponentSource, /drawForgottenMuralGeneratedAsset[\s\S]*?drawEgyptStructureGroundContactLayer/);
+  assert.match(journeyComponentSource, /mummificationGroundBlendAssetKeys/);
+  assert.match(journeyComponentSource, /forgottenMuralGroundBlendAssetKeys/);
+  assert.doesNotMatch(platforms, /premiumLongSandLip|premiumRubbleMoundBlend|groundContactLayer/);
 });
 
 test('desert entry no longer draws old procedural fallback scenery', () => {
