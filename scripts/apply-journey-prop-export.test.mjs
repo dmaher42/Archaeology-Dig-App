@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { applyJourneyPropExportToSource } from './apply-journey-prop-export.mjs';
+import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { applyJourneyPropExportToSource, runApplyJourneyPropExport } from './apply-journey-prop-export.mjs';
 
 test('applyJourneyPropExportToSource updates existing props, removes deleted props, and appends new props', () => {
   const source = `const X = value => value;
@@ -49,4 +52,72 @@ export const OTHER = [];`;
   assert.match(next, /id: 'tablet-c'[\s\S]*?keep me/);
   assert.match(next, /id: 'tablet-new'[\s\S]*?atmosphereAssetKey: 'torchStand'/);
   assert.match(next, /export const OTHER = \[\];/);
+});
+
+test('applyJourneyPropExportToSource replaces existing multi-line objects as one item', () => {
+  const source = `export const STORY_PROPS = [
+  {
+    id: 'scribe-doorway',
+    sectionId: 'desert-entry',
+    type: 'generated-scribe-chamber-doorway',
+    x: 9000,
+    y: -10,
+    groundContactLayer: [
+      { assetKey: 'old-shadow', purpose: 'remove me' },
+    ],
+    label: 'old doorway',
+  },
+  { id: 'tablet-c', sectionId: 'ruined-temple', type: 'camp', x: 240, y: 300, label: 'keep me' },
+];`;
+
+  const next = applyJourneyPropExportToSource(source, {
+    props: [
+      {
+        id: 'scribe-doorway',
+        sectionId: 'desert-entry',
+        type: 'generated-scribe-chamber-doorway',
+        x: 9520,
+        y: -24,
+        width: 1120,
+        height: 620,
+        label: 'updated doorway',
+      },
+    ],
+  });
+
+  assert.match(next, /id: 'scribe-doorway'[\s\S]*?x: 9520[\s\S]*?y: -24[\s\S]*?updated doorway[\s\S]*?id: 'tablet-c'/);
+  assert.doesNotMatch(next, /old-shadow/);
+  assert.doesNotMatch(next, /old doorway/);
+  assert.doesNotMatch(next, /^\s*\{\s*\n\s*\{ id: 'scribe-doorway'/m);
+});
+
+test('runApplyJourneyPropExport can write generated placement overrides without changing source', async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), 'journey-overrides-'));
+  const exportPath = join(tempDir, 'editor-export.json');
+  const sourcePath = join(tempDir, 'journeyLevelData.js');
+  const overridesPath = join(tempDir, 'journeyPlacementOverrides.generated.js');
+  const source = `export const STORY_PROPS = [
+  { id: 'tablet-a', sectionId: 'desert-entry', type: 'camp', x: 100, y: 200, label: 'old camp' },
+];`;
+  await writeFile(sourcePath, source);
+  await writeFile(exportPath, JSON.stringify({
+    room: 'desert-entry',
+    props: [
+      { id: 'tablet-a', sectionId: 'desert-entry', type: 'camp', x: 132, y: 224, label: 'updated camp' },
+    ],
+    hazards: [
+      { id: 'trap-a', sectionId: 'unknown-room', roomId: 'unknown-room', x: 320, y: 450 },
+    ],
+  }));
+
+  const result = await runApplyJourneyPropExport([exportPath, '--source', sourcePath, '--overrides', overridesPath]);
+  const nextSource = await readFile(sourcePath, 'utf8');
+  const generated = await readFile(overridesPath, 'utf8');
+
+  assert.equal(result.overridesPath, overridesPath);
+  assert.equal(nextSource, source);
+  assert.match(generated, /Generated from the Journey editor placement export/);
+  assert.match(generated, /id": "tablet-a"/);
+  assert.match(generated, /"sectionId": "desert-entry"/);
+  assert.doesNotMatch(generated, /unknown-room/);
 });

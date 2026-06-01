@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "journey:apply-prop-export": "node scripts/apply-journey-prop-export.mjs",
+    "journey:write-placement-overrides": "node scripts/apply-journey-prop-export.mjs --overrides src/components/expedition-journey/journeyPlacementOverrides.generated.js",
     "playtest:serve": "node scripts/serve-dist.mjs --host 127.0.0.1 --port 5186",
     "playtest": "npm run build && npm run playtest:serve",
     "trailer:still": "remotion still src/trailer/index.jsx GameTrailer --scale=0.25 --frame=40 output/game-trailer-preview.png",

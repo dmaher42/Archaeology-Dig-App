@@ -1,8 +1,10 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { normalizeJourneyPlacementExportForOverrides } from '../src/components/expedition-journey/journeyPlacementOverrides.js';
 
 const STORY_PROPS_SOURCE = 'src/components/expedition-journey/journeyLevelData.js';
+const PLACEMENT_OVERRIDES_SOURCE = 'src/components/expedition-journey/journeyPlacementOverrides.generated.js';
 const STORY_PROPS_DECLARATION = 'export const STORY_PROPS = [';
 const PLATFORMS_DECLARATION = 'export const PLATFORMS = [';
 const HAZARDS_DECLARATION = 'export const HAZARDS = [';
@@ -56,9 +58,48 @@ const findRouteGateDoorwaysArray = (source) => findExportedArray(source, ROUTE_G
 
 const findMiniBossesArray = (source) => findExportedArray(source, MINI_BOSSES_DECLARATION);
 
-const getPropIdFromLine = (line) => {
-  const match = line.match(/\bid:\s*(['"])(.*?)\1/);
+const getJourneyItemIdFromText = (text) => {
+  const match = text.match(/\bid:\s*(['"])(.*?)\1/);
   return match?.[2] || null;
+};
+
+const findJourneyObjectEndLine = (lines, startIndex) => {
+  let depth = 0;
+  let started = false;
+  let quote = null;
+  let escaped = false;
+
+  for (let lineIndex = startIndex; lineIndex < lines.length; lineIndex += 1) {
+    const line = lines[lineIndex];
+    for (let charIndex = 0; charIndex < line.length; charIndex += 1) {
+      const char = line[charIndex];
+      if (quote) {
+        if (escaped) {
+          escaped = false;
+        } else if (char === '\\') {
+          escaped = true;
+        } else if (char === quote) {
+          quote = null;
+        }
+        continue;
+      }
+      if (char === '\'' || char === '"' || char === '`') {
+        quote = char;
+        continue;
+      }
+      if (char === '{') {
+        depth += 1;
+        started = true;
+      } else if (char === '}') {
+        depth -= 1;
+        if (started && depth === 0) {
+          return lineIndex;
+        }
+      }
+    }
+  }
+
+  return startIndex;
 };
 
 const jsKey = (key) => (/^[A-Za-z_$][\w$]*$/.test(key) ? key : JSON.stringify(key));
@@ -242,6 +283,12 @@ export const formatJourneyRouteGateDoorwayObject = (doorway) => formatJourneyObj
 
 export const formatJourneyMiniBossObject = (boss) => formatJourneyObject(boss, MINI_BOSS_FIELD_ORDER);
 
+export const formatJourneyPlacementOverridesModule = (exportData) => (
+  `// Generated from the Journey editor placement export. Do not edit by hand.\n`
+  + `const journeyPlacementOverrides = ${JSON.stringify(normalizeJourneyPlacementExportForOverrides(exportData), null, 2)};\n\n`
+  + `export default journeyPlacementOverrides;\n`
+);
+
 const applyJourneyExportItemsToSource = ({
   source,
   exportItems,
@@ -260,21 +307,35 @@ const applyJourneyExportItemsToSource = ({
   const lines = body.split(/\r?\n/);
   const nextLines = [];
 
-  lines.forEach((line) => {
-    const propId = getPropIdFromLine(line);
-    if (!propId) {
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    if (!line.includes('{')) {
       nextLines.push(line);
-      return;
+      continue;
     }
-    if (deletedIds.has(propId)) return;
-    if (exportedById.has(propId)) {
-      nextLines.push(`  ${formatItem(exportedById.get(propId))},`);
-      seenIds.add(propId);
-      return;
+
+    const objectEndIndex = findJourneyObjectEndLine(lines, index);
+    const objectLines = lines.slice(index, objectEndIndex + 1);
+    const itemId = getJourneyItemIdFromText(objectLines.join('\n'));
+    if (!itemId) {
+      nextLines.push(...objectLines);
+      index = objectEndIndex;
+      continue;
     }
-    nextLines.push(line);
-    seenIds.add(propId);
-  });
+    if (deletedIds.has(itemId)) {
+      index = objectEndIndex;
+      continue;
+    }
+    if (exportedById.has(itemId)) {
+      nextLines.push(`  ${formatItem(exportedById.get(itemId))},`);
+      seenIds.add(itemId);
+      index = objectEndIndex;
+      continue;
+    }
+    nextLines.push(...objectLines);
+    seenIds.add(itemId);
+    index = objectEndIndex;
+  }
 
   const insertIndex = Math.max(0, nextLines.findLastIndex(line => line.trim().length > 0) + 1);
   const additions = exportItems
@@ -372,12 +433,21 @@ const parseArgs = (argv) => {
   const args = {
     exportPath: null,
     sourcePath: STORY_PROPS_SOURCE,
+    overridesPath: null,
     dryRun: false,
   };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === '--dry-run') {
       args.dryRun = true;
+    } else if (arg === '--overrides') {
+      const nextArg = argv[index + 1];
+      if (nextArg && !nextArg.startsWith('--')) {
+        args.overridesPath = nextArg;
+        index += 1;
+      } else {
+        args.overridesPath = PLACEMENT_OVERRIDES_SOURCE;
+      }
     } else if (arg === '--source') {
       args.sourcePath = argv[index + 1] || args.sourcePath;
       index += 1;
@@ -391,19 +461,28 @@ const parseArgs = (argv) => {
 export const runApplyJourneyPropExport = async (argv = process.argv.slice(2)) => {
   const args = parseArgs(argv);
   if (!args.exportPath) {
-    throw new Error('Usage: node scripts/apply-journey-prop-export.mjs <export-json> [--source src/components/expedition-journey/journeyLevelData.js] [--dry-run]');
+    throw new Error('Usage: node scripts/apply-journey-prop-export.mjs <export-json> [--source src/components/expedition-journey/journeyLevelData.js] [--overrides src/components/expedition-journey/journeyPlacementOverrides.generated.js] [--dry-run]');
   }
   const exportPath = resolve(args.exportPath);
   const sourcePath = resolve(args.sourcePath);
   const exportData = JSON.parse(await readFile(exportPath, 'utf8'));
-  const source = await readFile(sourcePath, 'utf8');
-  const nextSource = applyJourneyPropExportToSource(source, exportData);
-  if (!args.dryRun) {
-    await writeFile(sourcePath, nextSource);
+  const overridesPath = args.overridesPath ? resolve(args.overridesPath) : null;
+  if (overridesPath) {
+    const nextOverrides = formatJourneyPlacementOverridesModule(exportData);
+    if (!args.dryRun) {
+      await writeFile(overridesPath, nextOverrides);
+    }
+  } else {
+    const source = await readFile(sourcePath, 'utf8');
+    const nextSource = applyJourneyPropExportToSource(source, exportData);
+    if (!args.dryRun) {
+      await writeFile(sourcePath, nextSource);
+    }
   }
   return {
     sourcePath,
     exportPath,
+    overridesPath,
     dryRun: args.dryRun,
     propCount: Array.isArray(exportData.props) ? exportData.props.length : 0,
     deletedCount: Array.isArray(exportData.deletedPropIds) ? exportData.deletedPropIds.length : 0,
@@ -421,8 +500,10 @@ export const runApplyJourneyPropExport = async (argv = process.argv.slice(2)) =>
 if (isCliRun()) {
   runApplyJourneyPropExport()
     .then(result => {
-      console.log(`${result.dryRun ? 'Checked' : 'Applied'} ${result.propCount} exported prop(s), ${result.deletedCount} prop deletion(s), ${result.platformCount} platform(s), ${result.deletedPlatformCount} platform deletion(s), ${result.hazardCount} trap(s), ${result.deletedHazardCount} trap deletion(s), ${result.routeGateCount} arch gate(s), ${result.routeGateDoorwayCount} doorway arch(es), ${result.checkpointCount} checkpoint(s), ${result.miniBossCount} mini-boss/lair item(s).`);
-      console.log(`Source: ${result.sourcePath}`);
+      const action = result.overridesPath ? 'Wrote overrides for' : 'Applied';
+      const dryAction = result.overridesPath ? 'Checked overrides for' : 'Checked';
+      console.log(`${result.dryRun ? dryAction : action} ${result.propCount} exported prop(s), ${result.deletedCount} prop deletion(s), ${result.platformCount} platform(s), ${result.deletedPlatformCount} platform deletion(s), ${result.hazardCount} trap(s), ${result.deletedHazardCount} trap deletion(s), ${result.routeGateCount} arch gate(s), ${result.routeGateDoorwayCount} doorway arch(es), ${result.checkpointCount} checkpoint(s), ${result.miniBossCount} mini-boss/lair item(s).`);
+      console.log(`${result.overridesPath ? 'Overrides' : 'Source'}: ${result.overridesPath || result.sourcePath}`);
     })
     .catch(error => {
       console.error(error.message);

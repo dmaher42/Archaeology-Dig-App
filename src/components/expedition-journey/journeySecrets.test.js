@@ -744,9 +744,13 @@ test('first Egypt secret route rewards curiosity without changing main progressi
   assert.match(journeyComponentSource, /forgottenMuralAlcoveStructureRef/);
   assert.match(journeyComponentSource, /forgottenMuralChamberRef/);
   assert.match(storyProps, /id:\s*'forgotten-mural-climb-structure'[\s\S]*?type:\s*'generated-climb-structure'[\s\S]*?depth:\s*'route-edge'/);
+  assert.match(storyProps, /id:\s*'forgotten-mural-climb-structure'[\s\S]*?groundContactLayer:\s*\[/);
+  assert.match(storyProps, /id:\s*'forgotten-mural-climb-structure'[\s\S]*?assetKey:\s*'premiumRubbleMoundBlend'/);
+  assert.match(storyProps, /id:\s*'forgotten-mural-climb-structure'[\s\S]*?assetKey:\s*'premiumCarvedStoneEdge'/);
   assert.doesNotMatch(storyProps, /id:\s*'forgotten-mural-alcove-panel'/);
   assert.match(journeyComponentSource, /prop\.type === 'generated-climb-structure'/);
   assert.match(journeyComponentSource, /drawForgottenMuralGeneratedAsset/);
+  assert.match(journeyComponentSource, /drawForgottenMuralGeneratedAsset[\s\S]*?drawEgyptStructureGroundContactLayer/);
   assert.match(journeyComponentSource, /const visibilityWidth = Math\.max\(440, Number\(prop\.width\) \|\| 0\)/);
   assert.match(journeyComponentSource, /ctx\.drawImage\(structureAsset\.image/);
   assert.doesNotMatch(journeyComponentSource, /drawForgottenMuralStructure/);
@@ -962,7 +966,7 @@ test('scribe locked chamber reuses the Journey scene and challenge systems for o
   assert.match(journeyComponentSource, /Knowledge was the key\./);
   assert.match(journeyComponentSource, /scribeChamberExitUnlocked/);
   assert.match(journeyComponentSource, /activeGuardianChallenge\.type === 'scribe-chamber-puzzle'/);
-  assert.match(journeyComponentSource, /SCRIBE_CHAMBER_RETURN_FALLBACK = \{[\s\S]*?x:\s*scaleJourneyX\(1985\)[\s\S]*?y:\s*openingJourneyY\(318\)/);
+  assert.match(journeyComponentSource, /SCRIBE_CHAMBER_RETURN_FALLBACK = \{[\s\S]*?x:\s*scaleJourneyX\(1684\)[\s\S]*?y:\s*openingJourneyY\(122\)/);
   assert.match(journeyComponentSource, /SCRIBE_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?minX:\s*scaleJourneyX\(1684\)[\s\S]*?maxX:\s*scaleJourneyX\(1714\)[\s\S]*?footY:\s*openingJourneyY\(62\)/);
   assert.match(journeyComponentSource, /scarabQueenRequiresScribe/);
   assert.match(journeyComponentSource, /!current\.scribeChamberPuzzleSolved/);
@@ -1097,6 +1101,9 @@ test('mummification chamber exterior reuses Journey routes, ledges, assets, and 
   assert.match(exteriorStructure, /type:\s*'generated-mummification-chamber-entrance'/);
   assert.match(exteriorStructure, /depth:\s*'route-edge'/);
   assert.match(exteriorStructure, /y:\s*JY\(-400\)/);
+  assert.match(exteriorStructure, /groundContactLayer:\s*\[/);
+  assert.match(exteriorStructure, /assetKey:\s*'premiumLongSandLip'/);
+  assert.match(exteriorStructure, /assetKey:\s*'premiumHalfBuriedStairSupport'/);
   [
     ['mummification-chamber-bottom-secret-threshold', '638', '257', '176'],
     ['mummification-chamber-sand-buried-block', '647', '223', '176'],
@@ -1129,6 +1136,7 @@ test('mummification chamber exterior reuses Journey routes, ledges, assets, and 
   assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?minX:\s*scaleJourneyX\(720\)[\s\S]*?maxX:\s*scaleJourneyX\(748\)/);
   assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?footY:\s*openingJourneyY\(-222\)[\s\S]*?footTolerance:\s*22/);
   assert.match(journeyComponentSource, /drawMummificationChamberExteriorAsset/);
+  assert.match(journeyComponentSource, /drawMummificationChamberExteriorAsset[\s\S]*?drawEgyptStructureGroundContactLayer/);
   assert.match(journeyComponentSource, /prop\.type === 'generated-mummification-chamber-entrance'/);
   assert.match(journeyComponentSource, /discoveredHiddenRouteIds\?\.add\('mummification-chamber-route'\)/);
   assert.match(journeyComponentSource, /hiddenRoomsFound\?\.add\('mummification-chamber'\)/);
@@ -3351,6 +3359,7 @@ test('desert entry foreground depth pack stays transparent, visual-only, and edg
 
 test('Scribe Chamber exterior uses reusable foreground-depth contact assets without collision changes', () => {
   const foregroundAtlas = JSON.parse(readFileSync(egyptForegroundDepthAtlasPath, 'utf8'));
+  const premiumGroundContactAtlas = JSON.parse(readFileSync(new URL('../../../public/assets/expedition/environment/egypt-foreground/egypt-ground-contact-premium-kit-2026-06-02.json', import.meta.url), 'utf8'));
   const storyProps = extractExportedArray('STORY_PROPS');
   const scribeDoorway = getDataRowById(storyProps, 'scribe-chamber-doorway-structure');
   const platforms = extractExportedArray('PLATFORMS');
@@ -3366,22 +3375,34 @@ test('Scribe Chamber exterior uses reusable foreground-depth contact assets with
     assert.ok(foregroundAtlas.regions[key], `${key} should be present in the foreground depth pack`);
     assert.match(journeyRenderAssetsSource, new RegExp(`'${key}'`), `${key} should be an expected foreground-depth key`);
   });
+  [
+    'premiumLongSandLip',
+    'premiumDoorThresholdBuildup',
+    'premiumRubbleContactShadow',
+    'premiumHalfBuriedStairSupport',
+    'premiumBrokenMasonryFooting',
+    'premiumSmallStoneScatter',
+  ].forEach((key) => {
+    assert.ok(premiumGroundContactAtlas.regions[key], `${key} should be present in the premium ground-contact pack`);
+    assert.match(journeyRenderAssetsSource, new RegExp(`'${key}'`), `${key} should be an expected premium ground-contact key`);
+    assert.match(scribeDoorway, new RegExp(`assetKey:\\s*'${key}'`), `${key} should be used by the Scribe contact layer`);
+  });
 
   assert.match(foregroundAtlas.mappingNote, /ground-skirt/i);
   assert.match(foregroundAtlas.mappingNote, /contact shadow/i);
+  assert.match(premiumGroundContactAtlas.mappingNote, /visual-only/i);
+  assert.match(premiumGroundContactAtlas.mappingNote, /do not define collision/i);
   assert.match(scribeDoorway, /groundContactLayer:\s*\[/);
   assert.doesNotMatch(scribeDoorway, /assetKey:\s*'egyptGroundSkirtLong'/);
   assert.doesNotMatch(scribeDoorway, /assetKey:\s*'lowDustVeil'/);
+  assert.doesNotMatch(scribeDoorway, /assetKey:\s*'egyptBaseSandDrift'/);
   assert.doesNotMatch(scribeDoorway, /layer:\s*'underlay'[\s\S]*?widthRatio:\s*0\.88/);
-  assert.match(scribeDoorway, /assetKey:\s*'egyptRubbleContactShadow'/);
-  assert.match(scribeDoorway, /assetKey:\s*'egyptBuriedStoneEdge'/);
-  assert.match(scribeDoorway, /assetKey:\s*'egyptStructureBaseRubble'/);
   assert.match(scribeDoorway, /purpose:\s*'lower-secret-exit-grounding'/);
   assert.match(scribeDoorway, /purpose:\s*'climb-support-grounding'/);
   assert.match(journeyComponentSource, /drawEgyptStructureGroundContactLayer/);
   assert.match(journeyComponentSource, /groundContactLayer/);
   assert.match(journeyComponentSource, /scribeChamberGroundBlendAssetKeys/);
-  assert.doesNotMatch(platforms, /egyptGroundSkirtLong|egyptRubbleContactShadow|groundContactLayer/);
+  assert.doesNotMatch(platforms, /egyptGroundSkirtLong|premiumRubbleContactShadow|groundContactLayer/);
 });
 
 test('desert entry no longer draws old procedural fallback scenery', () => {
@@ -3502,8 +3523,8 @@ test('small atmosphere floor assets are permanently ground-locked instead of bac
 });
 
 test('route ground uses a narrow floor edge instead of a full-width bottom haze', () => {
-  assert.match(journeyComponentSource, /ROUTE_GROUND_VISUAL_MODE = 'edge-and-local-aprons-no-full-width-haze'/);
-  assert.match(journeyComponentSource, /ROUTE_GROUND_HAZE_FIX_VERSION = 'route-ground-no-bottom-haze-2026-05-21'/);
+  assert.match(journeyComponentSource, /ROUTE_GROUND_VISUAL_MODE = 'buried-stone-causeway-under-windblown-sand-v1'/);
+  assert.match(journeyComponentSource, /ROUTE_GROUND_HAZE_FIX_VERSION = 'route-ground-buried-stone-causeway-2026-06-01'/);
   assert.match(journeyComponentSource, /const floorBandTop = GROUND_Y -/);
   assert.match(journeyComponentSource, /const floorBandBottom = GROUND_Y \+/);
   assert.match(journeyComponentSource, /ctx\.moveTo\(0, floorBandBottom\)/);

@@ -148,6 +148,7 @@ import {
   drawAtlasRegion,
   EGYPT_ATMOSPHERE_ASSET_VERSION,
   EGYPT_FOREGROUND_DEPTH_ASSET_VERSION,
+  EGYPT_PREMIUM_GROUND_CONTACT_ASSET_VERSION,
   ENVIRONMENT_ATLAS_JSON,
   ENVIRONMENT_ASSET_PACK_IDS,
   getEnvironmentAssetPackConfig,
@@ -1038,8 +1039,8 @@ const SCRIBE_CHAMBER_ENTRY_SPAWN = {
   direction: 1,
 };
 const SCRIBE_CHAMBER_RETURN_FALLBACK = {
-  x: scaleJourneyX(1985),
-  y: openingJourneyY(318),
+  x: scaleJourneyX(1684),
+  y: openingJourneyY(122),
   cameraAnchorRatio: 0.42,
   direction: 1,
 };
@@ -2852,6 +2853,7 @@ export default function ExpeditionJourney({
   const mummificationInteractionAssetsRef = useRef(createEnvironmentAssetState(ENVIRONMENT_ASSET_PACK_IDS.MUMMIFICATION_CHAMBER_INTERACTIONS));
   const atmosphereEnvironmentAssetsRef = useRef(createEnvironmentAssetState(ENVIRONMENT_ASSET_PACK_IDS.EGYPT_ATMOSPHERE));
   const foregroundDepthEnvironmentAssetsRef = useRef(createEnvironmentAssetState(ENVIRONMENT_ASSET_PACK_IDS.EGYPT_FOREGROUND_DEPTH));
+  const premiumGroundContactAssetsRef = useRef(createEnvironmentAssetState(ENVIRONMENT_ASSET_PACK_IDS.EGYPT_PREMIUM_GROUND_CONTACT));
   const desertBackgroundAssetsRef = useRef(createDesertBackgroundAssetState());
   const desertEntryBuriedCausewayGroundRef = useRef({
     image: null,
@@ -4547,6 +4549,21 @@ export default function ExpeditionJourney({
 
   useEffect(() => {
     if (!scopedJourneyAssetPacks.loadEgyptOnlyPacks) {
+      premiumGroundContactAssetsRef.current = createEnvironmentAssetState(ENVIRONMENT_ASSET_PACK_IDS.EGYPT_PREMIUM_GROUND_CONTACT);
+      return undefined;
+    }
+    return loadEnvironmentAssetPack({
+      baseUrl: import.meta.env.BASE_URL,
+      packId: ENVIRONMENT_ASSET_PACK_IDS.EGYPT_PREMIUM_GROUND_CONTACT,
+      onUpdate: (assets) => {
+        premiumGroundContactAssetsRef.current = assets;
+        syncHud();
+      },
+    });
+  }, [scopedJourneyAssetPacks.loadEgyptOnlyPacks, syncHud]);
+
+  useEffect(() => {
+    if (!scopedJourneyAssetPacks.loadEgyptOnlyPacks) {
       mummificationInteractionAssetsRef.current = createEnvironmentAssetState(ENVIRONMENT_ASSET_PACK_IDS.MUMMIFICATION_CHAMBER_INTERACTIONS);
       return undefined;
     }
@@ -5537,6 +5554,8 @@ export default function ExpeditionJourney({
       foregroundDepthAssetVersion: EGYPT_FOREGROUND_DEPTH_ASSET_VERSION,
       foregroundDepthLayerMode: renderStats.foregroundDepthLayerMode || FOREGROUND_DEPTH_LAYER_MODE,
       foregroundDepthAssetLoaded: Boolean(foregroundDepthEnvironmentAssetsRef.current.loaded),
+      premiumGroundContactAssetVersion: EGYPT_PREMIUM_GROUND_CONTACT_ASSET_VERSION,
+      premiumGroundContactAssetLoaded: Boolean(premiumGroundContactAssetsRef.current.loaded),
       foregroundDepthElementCount: renderStats.foregroundDepthElementCount || 0,
       foregroundDepthParticleCount: renderStats.foregroundDepthParticleCount || 0,
       backgroundPropTintActive: Boolean(renderStats.backgroundPropTintActive),
@@ -8452,59 +8471,10 @@ export default function ExpeditionJourney({
     ctx.restore();
   }, [drawBuriedStoneCausewaySurface, drawContactShadow, drawDesertEntryPlatformSupport, drawDesertOpeningPlatformFace, drawForegroundSettlingDetails, drawGroundDustLip]);
 
-  const drawMummificationChamberExteriorAsset = useCallback((ctx, prop, x, section, now) => {
-    const structureAsset = mummificationChamberExteriorRef.current;
-    if (!structureAsset.loaded || !structureAsset.image) return false;
-
-    const width = prop.width || 1360;
-    const height = prop.height || 705;
-    const drawX = x - width / 2;
-    const drawY = prop.y;
-    const baseY = drawY + height;
-    const pulse = 0.75 + Math.sin(now / 420) * 0.12;
-
-    drawContactShadow(ctx, x, Math.min(GROUND_Y - 2, baseY - 4), width * 0.55, 0.16, 1.35);
-    drawDecorativeBaseBlend(ctx, x - width * 0.04, Math.min(GROUND_Y - 2, baseY - 6), width * 0.46, section.id, prop.depth || 'route-edge', 0.58);
-    ctx.globalAlpha = prop.alpha ?? 1;
-    ctx.filter = `sepia(6%) saturate(108%) brightness(${98 + pulse * 3}%) contrast(106%) drop-shadow(0 20px 20px rgba(47, 24, 9, 0.24))`;
-    ctx.drawImage(structureAsset.image, drawX, drawY, width, height);
-    ctx.filter = 'none';
-    ctx.globalAlpha = 1;
-    drawGroundDustLip(ctx, x - width * 0.08, Math.min(GROUND_Y - 2, baseY - 9), width * 0.48, 'rgba(205, 137, 64, 0.2)');
-    if (stateRef.current.renderStats) {
-      stateRef.current.renderStats.mummificationChamberExteriorVersion = MUMMIFICATION_CHAMBER_EXTERIOR_VERSION;
-      stateRef.current.renderStats.mummificationChamberExteriorLoaded = true;
-    }
-    return true;
-  }, [drawContactShadow, drawDecorativeBaseBlend, drawGroundDustLip]);
-
-  const drawForgottenMuralGeneratedAsset = useCallback((ctx, prop, x, section) => {
-    const structureAsset = forgottenMuralAlcoveStructureRef.current;
-    if (!structureAsset.loaded || !structureAsset.image) return false;
-
-    const width = prop.width || 1420;
-    const height = prop.height || 690;
-    const drawX = x - width / 2;
-    const drawY = prop.y;
-    const baseY = drawY + height;
-    const groundY = Math.min(GROUND_Y - 2, baseY - 6);
-
-    drawRouteGroundApron(ctx, x - width * 0.06, groundY, width * 0.62, section.id, 0.98, Math.round(prop.x));
-    drawContactShadow(ctx, x, groundY + 1, width * 0.66, 0.22, 1.6, { height: 14, color: 'rgba(27, 16, 8, 0.96)' });
-    drawDecorativeBaseBlend(ctx, x - width * 0.12, groundY - 1, width * 0.52, section.id, prop.depth || 'background', 0.82);
-    ctx.globalAlpha = prop.alpha ?? 0.98;
-    ctx.filter = 'sepia(2%) saturate(102%) brightness(98%) contrast(104%) drop-shadow(0 18px 18px rgba(34, 18, 8, 0.2))';
-    ctx.drawImage(structureAsset.image, drawX, drawY, width, height);
-    ctx.filter = 'none';
-    ctx.globalAlpha = 1;
-    drawGroundDustLip(ctx, x - width * 0.12, groundY - 3, width * 0.58, 'rgba(188, 127, 61, 0.28)');
-    drawGroundDustLip(ctx, x + width * 0.08, groundY - 1, width * 0.34, 'rgba(214, 160, 88, 0.18)');
-    return true;
-  }, [drawContactShadow, drawDecorativeBaseBlend, drawGroundDustLip, drawRouteGroundApron]);
-
   const drawEgyptStructureGroundContactLayer = useCallback((ctx, contactLayer, left, width, groundY, phase = 'overlay') => {
-    const assets = foregroundDepthEnvironmentAssetsRef.current;
-    if (!assets?.loaded || assets.failed || !Array.isArray(contactLayer)) {
+    const foregroundAssets = foregroundDepthEnvironmentAssetsRef.current;
+    const premiumAssets = premiumGroundContactAssetsRef.current;
+    if (!Array.isArray(contactLayer)) {
       return { count: 0, keys: [] };
     }
 
@@ -8524,6 +8494,14 @@ export default function ExpeditionJourney({
           + (Number.isFinite(entry.yOffset) ? entry.yOffset : -destHeight);
 
         ctx.save();
+        const assets = premiumAssets?.atlas?.regions?.[entry.assetKey]
+          ? premiumAssets
+          : foregroundAssets;
+        if (!assets?.loaded || assets.failed) {
+          ctx.restore();
+          return;
+        }
+
         ctx.globalAlpha = Number.isFinite(entry.alpha) ? entry.alpha : 0.32;
         ctx.filter = entry.filter || 'sepia(10%) saturate(82%) brightness(88%) contrast(96%)';
         const drawn = drawAtlasRegion(ctx, assets, entry.assetKey, {
@@ -8545,6 +8523,75 @@ export default function ExpeditionJourney({
 
     return { count, keys };
   }, []);
+
+  const drawMummificationChamberExteriorAsset = useCallback((ctx, prop, x, section, now) => {
+    const structureAsset = mummificationChamberExteriorRef.current;
+    if (!structureAsset.loaded || !structureAsset.image) return false;
+
+    const width = prop.width || 1360;
+    const height = prop.height || 705;
+    const drawX = x - width / 2;
+    const drawY = prop.y;
+    const left = drawX;
+    const baseY = drawY + height;
+    const groundY = Math.min(GROUND_Y - 2, baseY - 4);
+    const pulse = 0.75 + Math.sin(now / 420) * 0.12;
+
+    drawContactShadow(ctx, x, groundY, width * 0.55, 0.16, 1.35);
+    drawDecorativeBaseBlend(ctx, x - width * 0.04, groundY - 2, width * 0.46, section.id, prop.depth || 'route-edge', 0.58);
+    const underlayContact = drawEgyptStructureGroundContactLayer(ctx, prop.groundContactLayer, left, width, groundY, 'underlay');
+    ctx.globalAlpha = prop.alpha ?? 1;
+    ctx.filter = `sepia(6%) saturate(108%) brightness(${98 + pulse * 3}%) contrast(106%) drop-shadow(0 20px 20px rgba(47, 24, 9, 0.24))`;
+    ctx.drawImage(structureAsset.image, drawX, drawY, width, height);
+    ctx.filter = 'none';
+    ctx.globalAlpha = 1;
+    const overlayContact = drawEgyptStructureGroundContactLayer(ctx, prop.groundContactLayer, left, width, groundY, 'overlay');
+    drawGroundDustLip(ctx, x - width * 0.08, groundY - 5, width * 0.48, 'rgba(205, 137, 64, 0.2)');
+    if (stateRef.current.renderStats) {
+      stateRef.current.renderStats.mummificationChamberExteriorVersion = MUMMIFICATION_CHAMBER_EXTERIOR_VERSION;
+      stateRef.current.renderStats.mummificationChamberExteriorLoaded = true;
+      stateRef.current.renderStats.mummificationGroundBlendAssetKeys = Array.from(new Set([
+        ...underlayContact.keys,
+        ...overlayContact.keys,
+      ]));
+      stateRef.current.renderStats.mummificationGroundBlendElementCount = underlayContact.count + overlayContact.count;
+    }
+    return true;
+  }, [drawContactShadow, drawDecorativeBaseBlend, drawEgyptStructureGroundContactLayer, drawGroundDustLip]);
+
+  const drawForgottenMuralGeneratedAsset = useCallback((ctx, prop, x, section) => {
+    const structureAsset = forgottenMuralAlcoveStructureRef.current;
+    if (!structureAsset.loaded || !structureAsset.image) return false;
+
+    const width = prop.width || 1420;
+    const height = prop.height || 690;
+    const drawX = x - width / 2;
+    const drawY = prop.y;
+    const left = drawX;
+    const baseY = drawY + height;
+    const groundY = Math.min(GROUND_Y - 2, baseY - 6);
+
+    drawRouteGroundApron(ctx, x - width * 0.06, groundY, width * 0.62, section.id, 0.98, Math.round(prop.x));
+    drawContactShadow(ctx, x, groundY + 1, width * 0.66, 0.22, 1.6, { height: 14, color: 'rgba(27, 16, 8, 0.96)' });
+    drawDecorativeBaseBlend(ctx, x - width * 0.12, groundY - 1, width * 0.52, section.id, prop.depth || 'background', 0.82);
+    const underlayContact = drawEgyptStructureGroundContactLayer(ctx, prop.groundContactLayer, left, width, groundY, 'underlay');
+    ctx.globalAlpha = prop.alpha ?? 0.98;
+    ctx.filter = 'sepia(2%) saturate(102%) brightness(98%) contrast(104%) drop-shadow(0 18px 18px rgba(34, 18, 8, 0.2))';
+    ctx.drawImage(structureAsset.image, drawX, drawY, width, height);
+    ctx.filter = 'none';
+    ctx.globalAlpha = 1;
+    const overlayContact = drawEgyptStructureGroundContactLayer(ctx, prop.groundContactLayer, left, width, groundY, 'overlay');
+    drawGroundDustLip(ctx, x - width * 0.12, groundY - 3, width * 0.58, 'rgba(188, 127, 61, 0.28)');
+    drawGroundDustLip(ctx, x + width * 0.08, groundY - 1, width * 0.34, 'rgba(214, 160, 88, 0.18)');
+    if (stateRef.current.renderStats) {
+      stateRef.current.renderStats.forgottenMuralGroundBlendAssetKeys = Array.from(new Set([
+        ...underlayContact.keys,
+        ...overlayContact.keys,
+      ]));
+      stateRef.current.renderStats.forgottenMuralGroundBlendElementCount = underlayContact.count + overlayContact.count;
+    }
+    return true;
+  }, [drawContactShadow, drawDecorativeBaseBlend, drawEgyptStructureGroundContactLayer, drawGroundDustLip, drawRouteGroundApron]);
 
   const drawScribeChamberDoorwayStructure = useCallback((ctx, prop, x, section, now) => {
     const width = prop.width || 1120;
@@ -12893,22 +12940,6 @@ export default function ExpeditionJourney({
     const pulse = 0.72 + Math.sin(now / 90) * 0.18;
     const protectedSitePulse = 0.55 + Math.sin(now / 110) * 0.22;
     const recoveryGoldPulse = 0.46 + Math.sin(now / 125) * 0.16;
-    const drawGlyphFlash = (centerX, centerY, radius, color, alpha = 0.42) => {
-      ctx.save();
-      ctx.globalAlpha = alpha;
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 1.5;
-      for (let i = 0; i < 4; i += 1) {
-        const angle = Math.PI / 4 + i * (Math.PI / 2);
-        const inner = radius * 0.42;
-        const outer = radius * (0.9 + protectedSitePulse * 0.18);
-        ctx.beginPath();
-        ctx.moveTo(centerX + Math.cos(angle) * inner, centerY + Math.sin(angle) * inner);
-        ctx.lineTo(centerX + Math.cos(angle) * outer, centerY + Math.sin(angle) * outer);
-        ctx.stroke();
-      }
-      ctx.restore();
-    };
     ctx.save();
     ctx.lineWidth = 1.5;
     if (recoveryActive) {

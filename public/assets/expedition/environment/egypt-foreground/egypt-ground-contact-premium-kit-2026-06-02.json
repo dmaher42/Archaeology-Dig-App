@@ -1,0 +1,82 @@
+{
+  "image": "egypt-ground-contact-premium-kit-2026-06-02.png",
+  "source": "Generated premium Lost Site Expedition Egypt ground-contact kit, 2026-06-02. Chroma-key source was converted to alpha for runtime use.",
+  "size": {
+    "w": 1774,
+    "h": 887
+  },
+  "runtimeMode": "premium-ground-contact-visual-only",
+  "mappingNote": "Transparent visual-only structure-grounding pieces for Egypt Journey buildings and thresholds. These regions are contact lips, rubble footings, stair-base support pieces, sediment ribbons, and pebble scatter; they do not define collision, gameplay, or atmosphere haze.",
+  "regions": {
+    "premiumLongSandLip": {
+      "x": 26,
+      "y": 92,
+      "w": 1715,
+      "h": 111,
+      "purpose": "wide premium sand and stone lip for embedding large Egypt structures"
+    },
+    "premiumShortSandLip": {
+      "x": 42,
+      "y": 260,
+      "w": 816,
+      "h": 86,
+      "purpose": "shorter sand lip for secondary thresholds and small structure bases"
+    },
+    "premiumDoorThresholdBuildup": {
+      "x": 954,
+      "y": 269,
+      "w": 693,
+      "h": 99,
+      "purpose": "doorway threshold sand buildup with broken stone edges"
+    },
+    "premiumBrokenMasonryFooting": {
+      "x": 674,
+      "y": 419,
+      "w": 520,
+      "h": 122,
+      "purpose": "broken sandstone masonry footing for raised building bases"
+    },
+    "premiumRubbleContactShadow": {
+      "x": 27,
+      "y": 430,
+      "w": 614,
+      "h": 101,
+      "purpose": "dark rubble contact shadow with pebble scatter"
+    },
+    "premiumHalfBuriedStairSupport": {
+      "x": 1232,
+      "y": 434,
+      "w": 404,
+      "h": 115,
+      "purpose": "half-buried stair and slab support for climb bases"
+    },
+    "premiumCarvedStoneEdge": {
+      "x": 1251,
+      "y": 594,
+      "w": 491,
+      "h": 110,
+      "purpose": "broken carved stone edge for ornate Egypt thresholds"
+    },
+    "premiumSmallStoneScatter": {
+      "x": 45,
+      "y": 612,
+      "w": 390,
+      "h": 55,
+      "purpose": "small detached stone-chip scatter for local edge variation"
+    },
+    "premiumLowSedimentRibbon": {
+      "x": 546,
+      "y": 627,
+      "w": 656,
+      "h": 55,
+      "purpose": "low windblown sediment ribbon without haze"
+    },
+    "premiumRubbleMoundBlend": {
+      "x": 397,
+      "y": 729,
+      "w": 925,
+      "h": 125,
+      "purpose": "larger rubble mound blend for heavy base grounding"
+    }
+  }
+}
