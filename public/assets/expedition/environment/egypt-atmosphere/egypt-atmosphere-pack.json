@@ -1,11 +1,11 @@
 {
   "image": "egypt-atmosphere-pack.png",
-  "source": "Generated premium Desert Entry props plus curated atmosphere pass 2026-05-25",
+  "source": "Premium image-generated Lost Site Expedition prop pack integrated 2026-06-01; existing curated Egypt atmosphere props preserved",
   "size": {
-    "w": 1654,
-    "h": 1127
+    "w": 2048,
+    "h": 3072
   },
-  "mappingNote": "Transparent cutouts curated from generated premium Desert Entry props and existing Ancient Egyptian atmosphere props. Decorative Journey story props only; collision and gameplay rules stay in existing level data. Route-edge props use shared ground locking.",
+  "mappingNote": "Transparent cutouts curated from existing Ancient Egyptian atmosphere props plus premium image-generated Lost Site Expedition prop PNGs. Decorative Journey story props only; collision and gameplay rules stay in existing level data. Lost Site prop pack entries are individual transparent PNGs also packed into this existing atmosphere atlas for Journey editor/runtime loading.",
   "regions": {
     "supplyJars": {
       "x": 18,
@@ -138,8 +138,309 @@
       "y": 979,
       "w": 620,
       "h": 130
+    },
+    "cracked_stone_blocks": {
+      "x": 0,
+      "y": 1280,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/cracked_stone_blocks.png"
+    },
+    "carved_wall_fragment": {
+      "x": 256,
+      "y": 1280,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/carved_wall_fragment.png"
+    },
+    "broken_column": {
+      "x": 512,
+      "y": 1280,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/broken_column.png"
+    },
+    "fallen_lintel": {
+      "x": 768,
+      "y": 1280,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/fallen_lintel.png"
+    },
+    "ruined_arch_piece": {
+      "x": 1024,
+      "y": 1280,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/ruined_arch_piece.png"
+    },
+    "stone_steps": {
+      "x": 1280,
+      "y": 1280,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/stone_steps.png"
+    },
+    "loose_floor_tiles": {
+      "x": 1536,
+      "y": 1280,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/loose_floor_tiles.png"
+    },
+    "collapsed_doorway_pieces": {
+      "x": 0,
+      "y": 1536,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/collapsed_doorway_pieces.png"
+    },
+    "numbered_evidence_markers": {
+      "x": 256,
+      "y": 1536,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/numbered_evidence_markers.png"
+    },
+    "wooden_crates": {
+      "x": 512,
+      "y": 1536,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/wooden_crates.png"
+    },
+    "excavation_brushes": {
+      "x": 768,
+      "y": 1536,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/excavation_brushes.png"
+    },
+    "field_notebooks": {
+      "x": 1024,
+      "y": 1536,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/field_notebooks.png"
+    },
+    "brass_lanterns": {
+      "x": 1280,
+      "y": 1536,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/brass_lanterns.png"
+    },
+    "coiled_ropes": {
+      "x": 1536,
+      "y": 1536,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/coiled_ropes.png"
+    },
+    "measuring_poles": {
+      "x": 0,
+      "y": 1792,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/measuring_poles.png"
+    },
+    "canvas_bags": {
+      "x": 256,
+      "y": 1792,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/canvas_bags.png"
+    },
+    "cataloguing_tags": {
+      "x": 512,
+      "y": 1792,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/cataloguing_tags.png"
+    },
+    "small_anubis_statue": {
+      "x": 768,
+      "y": 1792,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/small_anubis_statue.png"
+    },
+    "scarab_carving": {
+      "x": 1024,
+      "y": 1792,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/scarab_carving.png"
+    },
+    "ram_statue_fragment": {
+      "x": 1280,
+      "y": 1792,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/ram_statue_fragment.png"
+    },
+    "canopic_jars": {
+      "x": 1536,
+      "y": 1792,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/canopic_jars.png"
+    },
+    "shabti_figures": {
+      "x": 0,
+      "y": 2048,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/shabti_figures.png"
+    },
+    "offering_bowls": {
+      "x": 256,
+      "y": 2048,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/offering_bowls.png"
+    },
+    "incense_stands": {
+      "x": 512,
+      "y": 2048,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/incense_stands.png"
+    },
+    "broken_shrine_pieces": {
+      "x": 768,
+      "y": 2048,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/broken_shrine_pieces.png"
+    },
+    "hieroglyphic_tablets": {
+      "x": 1024,
+      "y": 2048,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/hieroglyphic_tablets.png"
+    },
+    "scattered_bones": {
+      "x": 1280,
+      "y": 2048,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/scattered_bones.png"
+    },
+    "broken_pottery": {
+      "x": 1536,
+      "y": 2048,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/broken_pottery.png"
+    },
+    "torn_cloth": {
+      "x": 0,
+      "y": 2304,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/torn_cloth.png"
+    },
+    "old_baskets": {
+      "x": 256,
+      "y": 2304,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/old_baskets.png"
+    },
+    "dried_reeds": {
+      "x": 512,
+      "y": 2304,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/dried_reeds.png"
+    },
+    "sand_piles": {
+      "x": 768,
+      "y": 2304,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/sand_piles.png"
+    },
+    "rubble_mounds": {
+      "x": 1024,
+      "y": 2304,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/rubble_mounds.png"
+    },
+    "faded_murals": {
+      "x": 1280,
+      "y": 2304,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/faded_murals.png"
+    },
+    "cracked_warning_carvings": {
+      "x": 1536,
+      "y": 2304,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/cracked_warning_carvings.png"
+    },
+    "cracked_floor_tile": {
+      "x": 0,
+      "y": 2560,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/cracked_floor_tile.png"
+    },
+    "pressure_plate": {
+      "x": 256,
+      "y": 2560,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/pressure_plate.png"
+    },
+    "wall_dart_holes": {
+      "x": 512,
+      "y": 2560,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/wall_dart_holes.png"
+    },
+    "suspicious_sand_patch": {
+      "x": 768,
+      "y": 2560,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/suspicious_sand_patch.png"
+    },
+    "ceiling_crack": {
+      "x": 1024,
+      "y": 2560,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/ceiling_crack.png"
+    },
+    "rope_mechanism": {
+      "x": 1280,
+      "y": 2560,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/rope_mechanism.png"
+    },
+    "stone_counterweight": {
+      "x": 1536,
+      "y": 2560,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/stone_counterweight.png"
+    },
+    "scorpion_nest": {
+      "x": 0,
+      "y": 2816,
+      "w": 256,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/scorpion_nest.png"
     }
   },
-  "imageWidth": 1654,
-  "imageHeight": 1127
+  "imageWidth": 2048,
+  "imageHeight": 3072
 }

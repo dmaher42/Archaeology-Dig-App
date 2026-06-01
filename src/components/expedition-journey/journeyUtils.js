@@ -108,6 +108,26 @@ const copyJourneyPropTemplateFields = (prop = {}) => {
   return template;
 };
 
+const getJourneyPropRegistryTemplate = (entry = {}) => {
+  if (!entry.id) return null;
+  const template = {
+    type: 'atmosphere-prop',
+    atmosphereAssetKey: entry.id,
+  };
+  if (Number.isFinite(entry.defaultWidth)) template.width = entry.defaultWidth;
+  if (Number.isFinite(entry.defaultHeight)) template.height = entry.defaultHeight;
+  if (Number.isFinite(entry.defaultScale)) template.scale = entry.defaultScale;
+  if (entry.defaultLayer) template.layer = entry.defaultLayer;
+  if (entry.defaultDepth) template.depth = entry.defaultDepth;
+  if (entry.defaultPlacementPreset) template.placementPreset = entry.defaultPlacementPreset;
+  if (entry.defaultTint) template.tint = entry.defaultTint;
+  if (Number.isFinite(entry.defaultAlpha)) template.alpha = entry.defaultAlpha;
+  if (Number.isFinite(entry.defaultShadowOpacity)) template.shadowOpacity = entry.defaultShadowOpacity;
+  if (Number.isFinite(entry.defaultSandOverlapHeight)) template.sandOverlapHeight = entry.defaultSandOverlapHeight;
+  if (Number.isFinite(entry.defaultSandMoundWidth)) template.sandMoundWidth = entry.defaultSandMoundWidth;
+  if (Number.isFinite(entry.defaultGroundPebbles)) template.groundPebbles = entry.defaultGroundPebbles;
+  return template;
+};
 const makeUniqueJourneyPropId = (baseId, existingIds = []) => {
   const used = new Set(existingIds.filter(Boolean));
   if (!used.has(baseId)) return baseId;
@@ -123,7 +143,7 @@ const makeUniqueJourneyPropId = (baseId, existingIds = []) => {
   return `${baseId}-${index}`;
 };
 
-export const createJourneyPropPalette = (props = []) => {
+export const createJourneyPropPalette = (props = [], registryEntries = []) => {
   const entries = new Map();
   props.forEach((prop) => {
     const key = getJourneyPropTemplateKey(prop);
@@ -134,6 +154,21 @@ export const createJourneyPropPalette = (props = []) => {
       label: getJourneyPropTemplateLabel(prop),
       type: template.type || prop.type || 'prop',
       ...(template.atmosphereAssetKey ? { atmosphereAssetKey: template.atmosphereAssetKey } : {}),
+      template,
+    });
+  });
+  registryEntries.forEach((entry) => {
+    const template = getJourneyPropRegistryTemplate(entry);
+    if (!template) return;
+    const key = getJourneyPropTemplateKey(template);
+    if (!key || entries.has(key)) return;
+    entries.set(key, {
+      key,
+      label: entry.displayName || getJourneyPropTemplateLabel(template),
+      type: template.type,
+      atmosphereAssetKey: template.atmosphereAssetKey,
+      ...(entry.category ? { category: entry.category } : {}),
+      ...(entry.assetPath ? { assetPath: entry.assetPath } : {}),
       template,
     });
   });

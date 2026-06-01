@@ -80,6 +80,7 @@ import {
   SECTION_OBJECTIVES,
   setExpeditionJourneyCiv,
 } from './expedition-journey/journeyDataRouter';
+import lostSitePropRegistry from './expedition-journey/lostSitePropRegistry.json';
 
 import {
   applyJourneyPropPlacementEdit,
@@ -2681,7 +2682,7 @@ export default function ExpeditionJourney({
     backgroundPackId,
     characterPresetId: selectedCharacterPresetId,
   }), [backgroundPackId, selectedCharacterPresetId, targetCivilisation]);
-  const propEditorPalette = createJourneyPropPalette(STORY_PROPS);
+  const propEditorPalette = useMemo(() => createJourneyPropPalette(STORY_PROPS, lostSitePropRegistry), []);
   const selectedCharacterPreset = getPlayerCharacterPreset(selectedCharacterPresetId);
   const [gameState, setGameState] = useState(() => makeInitialState({
     targetCivilisation,

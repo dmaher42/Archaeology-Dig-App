@@ -70,6 +70,9 @@ const egyptSacredTrapAtlas = JSON.parse(
 const egyptAtmosphereAtlas = JSON.parse(
   readFileSync(new URL('../../../public/assets/expedition/environment/egypt-atmosphere/egypt-atmosphere-pack.json', import.meta.url), 'utf8'),
 );
+const lostSitePropRegistry = JSON.parse(
+  readFileSync(new URL('./lostSitePropRegistry.json', import.meta.url), 'utf8'),
+);
 const mummificationChamberInteractionAtlas = JSON.parse(
   readFileSync(new URL('../../../public/assets/expedition/environment/desert-temple/mummification-chamber/mummification-chamber-interaction-atlas.json', import.meta.url), 'utf8'),
 );
@@ -228,6 +231,37 @@ test('journey prop editor palette derives reusable prop options from existing st
   assert.equal(palette[1].label, 'Statue');
 });
 
+test('journey prop editor palette includes reusable Lost Site prop registry entries', () => {
+  const palette = createJourneyPropPalette([], [
+    {
+      id: 'cracked_stone_blocks',
+      displayName: 'Cracked Stone Blocks',
+      category: 'Tomb Architecture',
+      assetPath: 'assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/cracked_stone_blocks.png',
+      defaultScale: 1,
+      defaultLayer: 'foreground',
+      collidable: false,
+      inspectable: false,
+    },
+  ]);
+
+  assert.deepEqual(palette, [
+    {
+      key: 'atmosphere-prop:cracked_stone_blocks',
+      label: 'Cracked Stone Blocks',
+      type: 'atmosphere-prop',
+      atmosphereAssetKey: 'cracked_stone_blocks',
+      category: 'Tomb Architecture',
+      assetPath: 'assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/cracked_stone_blocks.png',
+      template: {
+        type: 'atmosphere-prop',
+        atmosphereAssetKey: 'cracked_stone_blocks',
+        scale: 1,
+        layer: 'foreground',
+      },
+    },
+  ]);
+});
 test('journey prop editor creates and duplicates props using canonical prop fields', () => {
   const paletteItem = {
     type: 'atmosphere-prop',
@@ -2708,7 +2742,7 @@ test('Egypt atmosphere prop pack is registered and drawn through existing story 
   const storyProps = extractExportedArray('STORY_PROPS');
 
   assert.equal(egyptAtmosphereAtlas.image, 'egypt-atmosphere-pack.png');
-  assert.match(egyptAtmosphereAtlas.source, /Generated premium Desert Entry props plus curated atmosphere pass 2026-05-25/);
+  assert.match(egyptAtmosphereAtlas.source, /Premium image-generated Lost Site Expedition prop pack integrated 2026-06-01/);
   [
     'supplyJars',
     'fieldChest',
@@ -2758,6 +2792,38 @@ test('Egypt atmosphere prop pack is registered and drawn through existing story 
   assert.doesNotMatch(journeyComponentSource, /new Atmosphere|class Atmosphere|createAtmosphereSystem/);
 });
 
+test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, and atlas regions', () => {
+  assert.equal(lostSitePropRegistry.length, 43);
+
+  const categories = new Set(lostSitePropRegistry.map(entry => entry.category));
+  [
+    'Tomb Architecture',
+    'Archaeology Props',
+    'Egyptian Sacred Props',
+    'Environmental Storytelling Props',
+    'Trap-Related Props',
+  ].forEach(category => assert.ok(categories.has(category), `${category} should be represented`));
+
+  lostSitePropRegistry.forEach((entry) => {
+    assert.ok(entry.id, 'registry entry should have an id');
+    assert.ok(entry.displayName, `${entry.id} should have a display name`);
+    assert.equal(entry.defaultScale, 1);
+    assert.equal(entry.defaultLayer, 'foreground');
+    assert.equal(entry.collidable, false);
+    assert.equal(entry.inspectable, false);
+    assert.match(entry.assetPath, /^assets\/expedition\/environment\/egypt-atmosphere\/props\/lost-site-expedition\/.+\.png$/);
+    assert.ok(egyptAtmosphereAtlas.regions[entry.id], `${entry.id} should have an atmosphere atlas region`);
+    assert.equal(egyptAtmosphereAtlas.regions[entry.id].assetPath, entry.assetPath);
+    assert.ok(
+      existsSync(new URL(`../../../public/${entry.assetPath}`, import.meta.url)),
+      `${entry.assetPath} should exist as an individual transparent PNG`,
+    );
+    assert.match(journeyRenderAssetsSource, new RegExp(`'${entry.id}'`));
+  });
+
+  assert.match(journeyComponentSource, /lostSitePropRegistry/);
+  assert.match(journeyComponentSource, /createJourneyPropPalette\(STORY_PROPS,\s*lostSitePropRegistry\)/);
+});
 test('Egypt atmosphere layout fills each Journey section without changing gameplay systems', () => {
   const storyProps = extractExportedArray('STORY_PROPS');
 
