@@ -1,12 +1,12 @@
 {
   "image": "egypt-foreground-depth-pack.png",
-  "source": "Procedural transparent Lost Site Expedition foreground depth pack generated 2026-05-29 to extend the canonical Egypt scene without replacing artwork.",
+  "source": "Procedural transparent Lost Site Expedition foreground depth pack generated 2026-05-29 and extended with reusable contact aliases 2026-06-01 to ground large Egypt structures without replacing artwork.",
   "size": {
     "w": 2048,
     "h": 1024
   },
   "runtimeMode": "foreground-depth-visual-only",
-  "mappingNote": "Transparent visual-only foreground source assets for terrain-level framing: rubble clusters, sand drifts, archaeological remains, desert vegetation, and low drifting dust. No collision data, no gameplay rules, and does not replace existing artwork. Runtime placement should avoid tall ghosted edge cutouts and favor subtle bottom-edge sediment that blends into the playable sand.",
+  "mappingNote": "Transparent visual-only foreground source assets for terrain-level framing: rubble clusters, sand drifts, archaeological remains, desert vegetation, low drifting dust, reusable ground-skirt aliases, and contact shadow overlays for structure bases. No collision data, no gameplay rules, and does not replace existing artwork. Runtime placement should avoid tall ghosted edge cutouts and favor subtle bottom-edge sediment that blends into the playable sand.",
   "regions": {
     "leftBrokenColumn": {
       "x": 0,
@@ -97,6 +97,58 @@
       "h": 440,
       "anchorY": "bottom",
       "groundContactRatio": 0.93
+    },
+    "egyptGroundSkirtLong": {
+      "x": 1380,
+      "y": 0,
+      "w": 640,
+      "h": 180,
+      "sourceAlias": "softSandDrift",
+      "purpose": "long reusable sand skirt for embedding wide Egypt structures without ground haze"
+    },
+    "egyptGroundSkirtShort": {
+      "x": 1380,
+      "y": 0,
+      "w": 640,
+      "h": 180,
+      "sourceAlias": "softSandDrift",
+      "purpose": "short sand skirt for smaller thresholds and exits"
+    },
+    "egyptBaseSandDrift": {
+      "x": 1380,
+      "y": 0,
+      "w": 640,
+      "h": 180,
+      "sourceAlias": "softSandDrift",
+      "purpose": "soft sand drift that can overlap a building base"
+    },
+    "egyptRubbleContactShadow": {
+      "x": 1280,
+      "y": 248,
+      "w": 520,
+      "h": 170,
+      "sourceAlias": "edgePebbleScatter",
+      "purpose": "low rubble and dark edge detail for a structure contact shadow"
+    },
+    "egyptBuriedStoneEdge": {
+      "x": 300,
+      "y": 600,
+      "w": 370,
+      "h": 250,
+      "sourceAlias": "damagedWallFragment",
+      "anchorY": "bottom",
+      "groundContactRatio": 0.9,
+      "purpose": "buried cracked stone edge and masonry fragments at a building base"
+    },
+    "egyptStructureBaseRubble": {
+      "x": 700,
+      "y": 0,
+      "w": 380,
+      "h": 240,
+      "sourceAlias": "rubbleClusterLarge",
+      "anchorY": "bottom",
+      "groundContactRatio": 0.9,
+      "purpose": "larger reusable rubble mass for structure footings and climb supports"
     }
   }
 }

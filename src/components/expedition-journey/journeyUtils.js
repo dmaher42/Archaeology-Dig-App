@@ -7,6 +7,22 @@ import {
   PLAYER_WIDTH,
 } from './journeyConstants.js';
 import { BOSS_KEY_ITEMS, CHECKPOINTS, getJourneyEnemies, getJourneyMiniBosses, SECTIONS, SECTION_ATMOSPHERES } from './journeyDataRouter.js';
+import {
+  applyJourneyTrapPlacementEdit,
+  getJourneyTrapTriggerRect,
+  isReusableJourneyTrap,
+} from './journeyTraps.js';
+
+export {
+  createJourneyTrapFromPaletteItem,
+  createJourneyTrapPalette,
+  getJourneyTrapTriggerRect,
+  isReusableJourneyTrap,
+  JOURNEY_TRAP_DIRECTIONS,
+  JOURNEY_TRAP_TYPES,
+  normalizeJourneyTrap,
+  updateJourneyTrapRuntime,
+} from './journeyTraps.js';
 
 export const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
@@ -14,6 +30,12 @@ export const DEFAULT_JOURNEY_PROP_EDITOR_GRID_SIZE = 16;
 export const DEFAULT_JOURNEY_PROP_EDITOR_SCALE_STEP = 0.1;
 export const DEFAULT_JOURNEY_PROP_EDITOR_ROTATION_STEP = 5;
 const STORY_PROP_EXPORT_SOURCE = 'src/components/expedition-journey/journeyLevelData.js::STORY_PROPS';
+const PLATFORM_EXPORT_SOURCE = 'src/components/expedition-journey/journeyLevelData.js::PLATFORMS';
+const HAZARD_EXPORT_SOURCE = 'src/components/expedition-journey/journeyLevelData.js::HAZARDS';
+const ROUTE_GATE_EXPORT_SOURCE = 'src/components/expedition-journey/journeyLevelData.js::ROUTE_GATES';
+const ROUTE_GATE_DOORWAY_EXPORT_SOURCE = 'src/components/expedition-journey/journeyLevelData.js::ROUTE_GATE_DOORWAYS';
+const CHECKPOINT_EXPORT_SOURCE = 'src/components/expedition-journey/journeyLevelData.js::CHECKPOINTS';
+const MINI_BOSS_EXPORT_SOURCE = 'src/components/expedition-journey/journeyLevelData.js::MINI_BOSSES';
 
 export const snapJourneyPropCoordinate = (value, gridSize = DEFAULT_JOURNEY_PROP_EDITOR_GRID_SIZE) => {
   const numericValue = Number(value);
@@ -31,11 +53,101 @@ export const applyJourneyPropPlacementEdit = (prop = {}, edit = {}) => {
   const next = { ...prop };
   if (Number.isFinite(edit.x)) next.x = edit.x;
   if (Number.isFinite(edit.y)) next.y = edit.y;
+  if (Number.isFinite(edit.yOffset)) next.yOffset = Math.round(edit.yOffset);
+  if (Number.isFinite(edit.width)) next.width = Math.max(1, Math.round(edit.width));
+  if (Number.isFinite(edit.height)) next.height = Math.max(1, Math.round(edit.height));
   if (Number.isFinite(edit.scale)) next.scale = Math.max(0.1, Math.round(edit.scale * 100) / 100);
   if (Number.isFinite(edit.rotation)) next.rotation = Math.round(edit.rotation * 10) / 10;
   if (typeof edit.depth === 'string' && edit.depth.trim()) next.depth = edit.depth;
   if (typeof edit.layer === 'string' && edit.layer.trim()) next.layer = edit.layer;
   if (Number.isFinite(edit.zIndex)) next.zIndex = edit.zIndex;
+  return next;
+};
+
+export const applyJourneyPlatformPlacementEdit = (platform = {}, edit = {}) => {
+  const next = { ...platform };
+  if (Number.isFinite(edit.x)) next.x = edit.x;
+  if (Number.isFinite(edit.y)) next.y = edit.y;
+  if (Number.isFinite(edit.width)) next.width = Math.max(1, Math.round(edit.width));
+  if (Number.isFinite(edit.height)) next.height = Math.max(1, Math.round(edit.height));
+  if (typeof edit.layer === 'string' && edit.layer.trim()) next.layer = edit.layer;
+  if (Number.isFinite(edit.zIndex)) next.zIndex = edit.zIndex;
+  return next;
+};
+
+export const applyJourneyHazardPlacementEdit = (hazard = {}, edit = {}) => {
+  const trapSpecificEdit = Boolean(
+    edit.type
+    || edit.triggerArea
+    || Number.isFinite(edit.damage)
+    || typeof edit.reset === 'boolean'
+    || Number.isFinite(edit.cooldown)
+    || edit.depth
+    || edit.direction
+    || Number.isFinite(edit.launcherX)
+    || Number.isFinite(edit.launcherY)
+    || Array.isArray(edit.linkedObjectIds)
+    || typeof edit.editorVisible === 'boolean',
+  );
+  if (!isReusableJourneyTrap(hazard) && !trapSpecificEdit) {
+    const next = { ...hazard };
+    if (Number.isFinite(edit.x)) next.x = edit.x;
+    if (Number.isFinite(edit.y)) next.y = edit.y;
+    if (Number.isFinite(edit.width)) next.width = Math.max(1, Math.round(edit.width));
+    if (Number.isFinite(edit.height)) next.height = Math.max(1, Math.round(edit.height));
+    if (Number.isFinite(edit.burial)) next.burial = Math.max(0, Math.min(0.85, Math.round(edit.burial * 100) / 100));
+    return next;
+  }
+  return applyJourneyTrapPlacementEdit(hazard, edit);
+};
+
+export const applyJourneyRouteGatePlacementEdit = (gate = {}, edit = {}) => {
+  const next = { ...gate };
+  if (Number.isFinite(edit.x)) next.x = edit.x;
+  if (Number.isFinite(edit.y)) next.y = edit.y;
+  if (Number.isFinite(edit.width)) next.width = Math.max(1, Math.round(edit.width));
+  if (Number.isFinite(edit.height)) next.height = Math.max(1, Math.round(edit.height));
+  return next;
+};
+
+export const applyJourneyRouteGateDoorwayPlacementEdit = (doorway = {}, edit = {}) => {
+  const next = { ...doorway };
+  if (Number.isFinite(edit.x)) {
+    const previousAnchorX = Number.isFinite(next.anchorX) ? next.anchorX : Number.isFinite(next.blockX) ? next.blockX : edit.x;
+    const deltaX = edit.x - previousAnchorX;
+    next.anchorX = edit.x;
+    next.blockX = Number.isFinite(next.blockX) ? Math.round(next.blockX + deltaX) : edit.x;
+  }
+  if (Number.isFinite(edit.y)) next.y = edit.y;
+  if (Number.isFinite(edit.width)) next.width = Math.max(1, Math.round(edit.width));
+  if (Number.isFinite(edit.height)) next.height = Math.max(1, Math.round(edit.height));
+  return next;
+};
+
+export const applyJourneyCheckpointPlacementEdit = (checkpoint = {}, edit = {}) => {
+  const next = { ...checkpoint };
+  if (Number.isFinite(edit.x)) {
+    const previousX = Number.isFinite(next.x) ? next.x : edit.x;
+    const deltaX = edit.x - previousX;
+    next.x = edit.x;
+    if (Number.isFinite(next.markerX)) next.markerX = Math.round(next.markerX + deltaX);
+  }
+  if (Number.isFinite(edit.y)) next.y = edit.y;
+  return next;
+};
+
+export const applyJourneyMiniBossPlacementEdit = (boss = {}, edit = {}) => {
+  const next = { ...boss };
+  if (Number.isFinite(edit.x)) next.x = edit.x;
+  if (Number.isFinite(edit.y)) next.y = edit.y;
+  if (Number.isFinite(edit.width)) next.width = Math.max(1, Math.round(edit.width));
+  if (Number.isFinite(edit.height)) next.height = Math.max(1, Math.round(edit.height));
+  if (Number.isFinite(edit.arenaStart)) next.arenaStart = edit.arenaStart;
+  if (Number.isFinite(edit.arenaEnd)) next.arenaEnd = edit.arenaEnd;
+  if (Number.isFinite(edit.lairX)) next.lairX = edit.lairX;
+  if (Number.isFinite(edit.lairY)) next.lairY = edit.lairY;
+  if (Number.isFinite(edit.lairWidth)) next.lairWidth = Math.max(1, Math.round(edit.lairWidth));
+  if (Number.isFinite(edit.lairHeight)) next.lairHeight = Math.max(1, Math.round(edit.lairHeight));
   return next;
 };
 
@@ -128,6 +240,7 @@ const getJourneyPropRegistryTemplate = (entry = {}) => {
   if (Number.isFinite(entry.defaultGroundPebbles)) template.groundPebbles = entry.defaultGroundPebbles;
   return template;
 };
+
 const makeUniqueJourneyPropId = (baseId, existingIds = []) => {
   const used = new Set(existingIds.filter(Boolean));
   if (!used.has(baseId)) return baseId;
@@ -221,18 +334,142 @@ export const duplicateJourneyPropForEditor = ({
 
 export const createJourneyPropPlacementExport = ({
   source = STORY_PROP_EXPORT_SOURCE,
+  platformSource = PLATFORM_EXPORT_SOURCE,
+  hazardSource = HAZARD_EXPORT_SOURCE,
+  routeGateSource = ROUTE_GATE_EXPORT_SOURCE,
+  routeGateDoorwaySource = ROUTE_GATE_DOORWAY_EXPORT_SOURCE,
+  checkpointSource = CHECKPOINT_EXPORT_SOURCE,
+  miniBossSource = MINI_BOSS_EXPORT_SOURCE,
   roomId,
   props = [],
   deletedPropIds = [],
+  platforms = [],
+  deletedPlatformIds = [],
+  hazards = [],
+  deletedHazardIds = [],
+  routeGates = [],
+  routeGateDoorways = [],
+  checkpoints = [],
+  miniBosses = [],
 } = {}) => JSON.stringify({
   source,
+  platformSource,
+  hazardSource,
+  routeGateSource,
+  routeGateDoorwaySource,
+  checkpointSource,
+  miniBossSource,
   room: roomId || 'unknown-room',
   props: props.map(prop => ({ ...prop })),
   deletedPropIds: [...deletedPropIds],
+  platforms: platforms.map(platform => ({ ...platform })),
+  deletedPlatformIds: [...deletedPlatformIds],
+  hazards: hazards.map(hazard => ({ ...hazard })),
+  deletedHazardIds: [...deletedHazardIds],
+  routeGates: routeGates.map(gate => ({ ...gate })),
+  routeGateDoorways: routeGateDoorways.map(doorway => ({ ...doorway })),
+  checkpoints: checkpoints.map(checkpoint => ({ ...checkpoint })),
+  miniBosses: miniBosses.map(boss => ({ ...boss })),
 }, null, 2);
 
-export const FORGOTTEN_MURAL_RELIC_SLIDE_PUZZLE_VERSION = 'forgotten-mural-relic-slide-puzzle-2026-05-31';
-export const FORGOTTEN_MURAL_RELIC_SLIDE_PUZZLE_START_TILES = Object.freeze([0, 1, 2, 6, 3, 5, 4, 7, null]);
+export const applyJourneyPropPlacementExportToProps = ({
+  existingProps = [],
+  exportData = {},
+} = {}) => {
+  const deletedIds = new Set(Array.isArray(exportData.deletedPropIds) ? exportData.deletedPropIds : []);
+  const exportedProps = Array.isArray(exportData.props) ? exportData.props : [];
+  const exportedById = new Map(exportedProps
+    .filter(prop => prop?.id)
+    .map(prop => [prop.id, { ...prop }]));
+  const seenIds = new Set();
+  const merged = [];
+
+  existingProps.forEach((prop) => {
+    if (!prop?.id || deletedIds.has(prop.id)) return;
+    if (exportedById.has(prop.id)) {
+      merged.push({ ...exportedById.get(prop.id) });
+      seenIds.add(prop.id);
+      return;
+    }
+    merged.push({ ...prop });
+    seenIds.add(prop.id);
+  });
+
+  exportedProps.forEach((prop) => {
+    if (!prop?.id || deletedIds.has(prop.id) || seenIds.has(prop.id)) return;
+    merged.push({ ...prop });
+    seenIds.add(prop.id);
+  });
+
+  return merged;
+};
+
+export const applyJourneyPlatformPlacementExportToPlatforms = ({
+  existingPlatforms = [],
+  exportData = {},
+} = {}) => {
+  const deletedIds = new Set(Array.isArray(exportData.deletedPlatformIds) ? exportData.deletedPlatformIds : []);
+  const exportedPlatforms = Array.isArray(exportData.platforms) ? exportData.platforms : [];
+  const exportedById = new Map(exportedPlatforms
+    .filter(platform => platform?.id)
+    .map(platform => [platform.id, { ...platform }]));
+  const seenIds = new Set();
+  const merged = [];
+
+  existingPlatforms.forEach((platform) => {
+    if (!platform?.id || deletedIds.has(platform.id)) return;
+    if (exportedById.has(platform.id)) {
+      merged.push({ ...exportedById.get(platform.id) });
+      seenIds.add(platform.id);
+      return;
+    }
+    merged.push({ ...platform });
+    seenIds.add(platform.id);
+  });
+
+  exportedPlatforms.forEach((platform) => {
+    if (!platform?.id || deletedIds.has(platform.id) || seenIds.has(platform.id)) return;
+    merged.push({ ...platform });
+    seenIds.add(platform.id);
+  });
+
+  return merged;
+};
+
+export const applyJourneyHazardPlacementExportToHazards = ({
+  existingHazards = [],
+  exportData = {},
+} = {}) => {
+  const deletedIds = new Set(Array.isArray(exportData.deletedHazardIds) ? exportData.deletedHazardIds : []);
+  const exportedHazards = Array.isArray(exportData.hazards) ? exportData.hazards : [];
+  const exportedById = new Map(exportedHazards
+    .filter(hazard => hazard?.id)
+    .map(hazard => [hazard.id, { ...hazard }]));
+  const seenIds = new Set();
+  const merged = [];
+
+  existingHazards.forEach((hazard) => {
+    if (!hazard?.id || deletedIds.has(hazard.id)) return;
+    if (exportedById.has(hazard.id)) {
+      merged.push({ ...exportedById.get(hazard.id) });
+      seenIds.add(hazard.id);
+      return;
+    }
+    merged.push({ ...hazard });
+    seenIds.add(hazard.id);
+  });
+
+  exportedHazards.forEach((hazard) => {
+    if (!hazard?.id || deletedIds.has(hazard.id) || seenIds.has(hazard.id)) return;
+    merged.push({ ...hazard });
+    seenIds.add(hazard.id);
+  });
+
+  return merged;
+};
+
+export const FORGOTTEN_MURAL_RELIC_SLIDE_PUZZLE_VERSION = 'forgotten-mural-relic-slide-puzzle-2026-06-01-harder';
+export const FORGOTTEN_MURAL_RELIC_SLIDE_PUZZLE_START_TILES = Object.freeze([2, null, 6, 1, 5, 0, 3, 7, 4]);
 export const FORGOTTEN_MURAL_RELIC_SLIDE_PUZZLE_SOLVED_TILES = Object.freeze([0, 1, 2, 3, 4, 5, 6, 7, null]);
 export const FORGOTTEN_MURAL_RELIC_SLIDE_PUZZLE_TILE_LABELS = Object.freeze([
   'Left wing',
@@ -546,7 +783,7 @@ export const getCollectibleHitbox = (item, size = {}) => expandRect({
   height: size.height ?? item.height ?? 24,
 }, { x: JOURNEY_HITBOX_TUNING.collectible.padX, y: JOURNEY_HITBOX_TUNING.collectible.padY });
 
-export const getHazardHitbox = (hazard) => insetRect(hazard, {
+export const getHazardHitbox = (hazard) => insetRect(getJourneyTrapTriggerRect(hazard), {
   x: Math.min(JOURNEY_HITBOX_TUNING.hazard.insetX, hazard.width / 4),
   y: Math.min(JOURNEY_HITBOX_TUNING.hazard.topInset, hazard.height / 3),
   bottom: Math.min(JOURNEY_HITBOX_TUNING.hazard.bottomInset, hazard.height / 3),
@@ -867,6 +1104,8 @@ export const makeInitialState = ({ targetCivilisation, permanentUpgradeIds = [],
   itemPurposeNoticeTimer: 0,
   damageNoticeTimer: 0,
   hazardCooldown: 0,
+  trapStates: {},
+  trapProjectiles: [],
   lastHazardHit: null,
   lastStaminaDelta: 0,
   lastStaminaLossReason: '',

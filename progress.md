@@ -10,6 +10,7 @@ Original prompt: Implement "Lost Site Expedition" as a small MVP game mode in th
 - Started Phase 1 developer visual prop placement mode by extending the existing Journey `STORY_PROPS` path instead of adding a new room format or editor.
 - Added helper coverage for prop placement edit/export serialization, then wired dev-only `E` edit mode, click selection, mouse dragging, `G` grid snapping, `Delete` removal confirmation, and `Ctrl+S` export JSON for current-room canonical prop objects.
 - Extended the same Phase 1 prop editor for Phase 2 creation and transforms: `P` opens a palette derived from current `STORY_PROPS`, palette clicks arm a prop, room clicks spawn into the same runtime/export list, `Ctrl+D` duplicates selected props, `Q`/`R` rotate, and scale/rotation export on the existing prop object shape when changed.
+- Added Phase 3 editor polish: snap mode now draws a visual grid, selected props can adjust depth/layer/z-index directly in the existing editor panel, and `npm run journey:apply-prop-export -- <export.json>` applies the Phase 1/2 export JSON back into the canonical `STORY_PROPS` source path.
 - Replaced the Mummification Chamber interior runtime background with the side-on puzzle-ready PNG `public/assets/expedition/environment/desert-temple/mummification-chamber-interior-side-scroll-2026-05-31.png`.
 - Kept the existing Journey chamber system and interaction atlas, then realigned the chamber readable zones, inspection hitboxes, exit seal trigger, and entry spawn to the new shallower room layout.
 - Verified the updated room in the browser through the existing Journey dev shortcut; the chamber rendered with the new art and no browser console warnings.
@@ -23,6 +24,15 @@ Original prompt: Implement "Lost Site Expedition" as a small MVP game mode in th
 - Added a dev-panel smoke shortcut for the Mural Slide Puzzle so the overlay can be checked without a long playthrough.
 - Verified the focused mural puzzle test, lint, production build, and a live browser smoke check showing the 9-tile overlay with two movable pieces and the reset control. The browser still reports existing audio autoplay warnings.
 - Upgraded the Forgotten Mural slide puzzle art from labelled placeholder tiles to a generated scarab-seal mural PNG at `public/assets/expedition/environment/desert-temple/forgotten-mural-relic-slide-puzzle-2026-06-01.png`; the overlay now slices that artwork across the 3x3 board.
+- Reframed the Mural Room puzzle text around restoring a rearranged scarab seal image rather than taking treasure; completion now reveals the hidden mural clue that the Queen may have been gathering memory anchors to protect the dead.
+- Added generated hidden mural reveal artwork at `public/assets/expedition/environment/desert-temple/forgotten-mural-hidden-memory-reveal-2026-06-01.png`; after the scarab slide puzzle is solved, the Mural Room wall now displays the new PNG art with a glow so the chamber change is obvious.
+- Added Scribe Chamber exterior ground-blending props using existing Egypt atlas assets: jars, fallen tablet, rubble, collapsed stair stones, papyrus cases, column cap, pebble scatter, and sand drift now anchor the base without changing the room or puzzle logic.
+- Replaced the Scribe Chamber exterior structure PNG in-place with the supplied blue/gold scarab-door building sheet crop while preserving the existing Journey asset key, prop entry, and room logic; polished the transparent silhouette so the sheet edge reads cleaner against the Egypt sky.
+- Added the Phase 3 reusable trap/hazard system on the existing Journey `HAZARDS` path rather than creating a parallel room format.
+- Added `journeyTraps.js` with typed trap defaults, trigger-zone math, editor-created trap objects, and runtime state transitions for Collapsing Stone Floor, Hidden Sand Pit, and Dart Launcher.
+- Extended the developer placement editor so the palette has Props/Traps tabs, traps can be placed/dragged, selected traps expose type, size, trigger area, damage, cooldown, reset, depth, linked ids, and dart launcher direction/position, and trigger zones can be shown/hidden.
+- Seeded the first three Egypt entry traps into the canonical room data as typed reusable traps while preserving the old hazard array and export path.
+- Verified focused trap helper tests, export merge tests, lint, production build, `git diff --check`, and a live menu screenshot at `output/trap-system-smoke-2026-06-01.png`; broader `journeySecrets.test.js` still has unrelated active-WIP failures outside the trap helper surface.
 
 2026-05-29 update:
 - Began the immersion cleanup pass for artificial in-world labels and markers.

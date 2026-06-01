@@ -15260,10 +15260,12 @@ main {
 .journey-prop-editor-panel {
   position: absolute;
   top: 0.62rem;
-  left: 50%;
+  left: 0.72rem;
   z-index: 44;
   width: min(21rem, calc(100vw - 1.5rem));
-  transform: translateX(-50%);
+  max-height: min(39rem, calc(100% - 1.24rem));
+  overflow: auto;
+  transform: none;
   padding: 0.54rem 0.64rem;
   border: 1px solid rgba(94, 234, 212, 0.42);
   border-radius: 6px;
@@ -15272,6 +15274,7 @@ main {
   box-shadow: 0 12px 26px rgba(0, 0, 0, 0.34);
   backdrop-filter: blur(8px);
   pointer-events: auto;
+  scrollbar-gutter: stable;
 }
 
 .journey-prop-editor-topline,
@@ -15295,6 +15298,30 @@ main {
   color: rgba(236, 254, 255, 0.72);
   font-size: 0.68rem;
   font-weight: 800;
+}
+
+.journey-prop-editor-actions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.32rem;
+  margin-top: 0.48rem;
+}
+
+.journey-prop-editor-actions button {
+  min-height: 1.8rem;
+  padding: 0.18rem 0.22rem;
+  border: 1px solid rgba(236, 254, 255, 0.18);
+  border-radius: 5px;
+  background: rgba(236, 254, 255, 0.07);
+  color: #ecfeff;
+  font: 900 0.62rem 'Outfit', sans-serif;
+}
+
+.journey-prop-editor-actions button:hover,
+.journey-prop-editor-actions button.is-selected {
+  border-color: rgba(94, 234, 212, 0.68);
+  background: rgba(20, 184, 166, 0.18);
+  color: #ccfbf1;
 }
 
 .journey-prop-editor-readout {
@@ -15338,7 +15365,9 @@ main {
   margin-top: 0.52rem;
 }
 
-.journey-prop-editor-grid input {
+.journey-prop-editor-grid input,
+.journey-prop-editor-controls input,
+.journey-prop-editor-controls select {
   width: 4.5rem;
   padding: 0.22rem 0.36rem;
   border: 1px solid rgba(94, 234, 212, 0.36);
@@ -15346,6 +15375,31 @@ main {
   background: rgba(2, 6, 23, 0.78);
   color: #ecfeff;
   font: 800 0.74rem 'Outfit', sans-serif;
+}
+
+.journey-prop-editor-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(4.4rem, 1fr));
+  gap: 0.4rem;
+  margin-top: 0.52rem;
+}
+
+.journey-prop-editor-controls label {
+  display: grid;
+  gap: 0.18rem;
+  min-width: 0;
+}
+
+.journey-prop-editor-controls span {
+  color: rgba(236, 254, 255, 0.58);
+  font-size: 0.58rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.journey-prop-editor-controls input,
+.journey-prop-editor-controls select {
+  width: 100%;
 }
 
 .journey-prop-palette-panel {
@@ -15374,11 +15428,36 @@ main {
   padding-right: 0.14rem;
 }
 
+.journey-prop-palette-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.34rem;
+  margin-top: 0.5rem;
+}
+
+.journey-prop-palette-tabs button {
+  min-height: 2rem;
+  border: 1px solid rgba(255, 247, 237, 0.16);
+  border-radius: 5px;
+  background: rgba(255, 247, 237, 0.06);
+  color: #fde68a;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.journey-prop-palette-tabs button.is-selected {
+  border-color: rgba(94, 234, 212, 0.72);
+  background: rgba(20, 184, 166, 0.16);
+  color: #ecfeff;
+}
+
 .journey-prop-palette-list button {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 0.12rem;
-  padding: 0.42rem 0.48rem;
+  grid-template-columns: 3.1rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.48rem;
+  min-height: 3.7rem;
+  padding: 0.38rem 0.48rem;
   border: 1px solid rgba(255, 247, 237, 0.14);
   border-radius: 5px;
   background: rgba(255, 247, 237, 0.06);
@@ -15391,18 +15470,41 @@ main {
   background: rgba(20, 184, 166, 0.16);
 }
 
-.journey-prop-palette-list strong,
-.journey-prop-palette-list span {
+.journey-prop-palette-thumb {
+  display: grid;
+  width: 2.8rem;
+  height: 2.8rem;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(255, 247, 237, 0.14);
+  border-radius: 5px;
+  background: rgba(2, 6, 23, 0.38);
+}
+
+.journey-prop-palette-thumb span {
+  display: block;
+  background-repeat: no-repeat;
+  image-rendering: auto;
+}
+
+.journey-prop-palette-copy {
+  display: grid;
+  gap: 0.12rem;
+  min-width: 0;
+}
+
+.journey-prop-palette-copy strong,
+.journey-prop-palette-copy span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.journey-prop-palette-list strong {
+.journey-prop-palette-copy strong {
   font-size: 0.74rem;
 }
 
-.journey-prop-palette-list span {
+.journey-prop-palette-copy span {
   color: rgba(255, 247, 237, 0.58);
   font-size: 0.62rem;
   font-weight: 800;

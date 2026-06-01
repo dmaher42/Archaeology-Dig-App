@@ -2,11 +2,12 @@
   "image": "desert-entry-photoreal-sphinx-backdrop.webp",
   "imageWidth": 1672,
   "imageHeight": 941,
-  "notes": "Photorealistic single-backdrop Desert Entry concept for the opening Egypt Journey scene. The runtime pack uses one clean full-frame image plus a transparent archaeological grounding overlay. The grounding overlay adds a buried ruin shelf, localized sand drifts, rubble fields, contact shadows, desert sediment, and ground-level dust haze to tie the floating midground ruins and existing props into the sand without changing the sky, pyramids, Sphinx, horizon, palette, or main backdrop.",
+  "notes": "Photorealistic single-backdrop Desert Entry concept for the opening Egypt Journey scene. The runtime pack uses one clean full-frame image plus transparent archaeological grounding overlays. The grounding overlay adds a buried ruin shelf, localized sand drifts, rubble fields, contact shadows, desert sediment, and ground-level dust haze to tie the floating midground ruins and existing props into the sand without changing the sky, pyramids, Sphinx, horizon, palette, or main backdrop. The buried causeway strip is a stronger readable gameplay-ground overlay for exposed sandstone slabs under windblown sand.",
   "regions": {
     "sky": { "x": 0, "y": 0, "w": 1672, "h": 941 },
-    "groundingOverlay": { "image": "desert-entry-grounding-overlay.png", "x": 0, "y": 0, "w": 1672, "h": 941 }
+    "groundingOverlay": { "image": "desert-entry-grounding-overlay.png", "x": 0, "y": 0, "w": 1672, "h": 941 },
+    "groundCausewayOverlay": { "image": "desert-entry-buried-causeway-ground.png", "x": 0, "y": 0, "w": 1536, "h": 192 }
   },
   "runtimeMode": "single-composited-backdrop",
-  "coordinateNote": "Single clean 1672x941 full-frame background with one matched transparent mid-ground grounding overlay."
+  "coordinateNote": "Single clean 1672x941 full-frame background with matched transparent mid-ground grounding overlays, including a tileable buried-causeway gameplay-ground strip."
 }

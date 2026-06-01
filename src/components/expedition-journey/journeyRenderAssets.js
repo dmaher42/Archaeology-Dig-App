@@ -13,7 +13,7 @@ export const ATLAS_TUNING_VERSION = 'environment-atlas-tuning-2026-05-10';
 export const DESERT_VISUAL_TUNING_VERSION = 'desert-entry-final-visual-tuning-2026-05-10';
 export const JOURNEY_ASSET_GROUNDING_VERSION = 'journey-asset-grounding-2026-05-11';
 export const EGYPT_ATMOSPHERE_ASSET_VERSION = 'gemini-egypt-atmosphere-props-2026-05-21';
-export const EGYPT_FOREGROUND_DEPTH_ASSET_VERSION = 'lost-site-foreground-depth-pack-2026-05-29';
+export const EGYPT_FOREGROUND_DEPTH_ASSET_VERSION = 'lost-site-foreground-depth-contact-pack-2026-06-01';
 export const MUMMIFICATION_CHAMBER_INTERACTIONS_ASSET_VERSION = 'imagegen-mummification-chamber-interaction-atlas-2026-05-28';
 
 export const EXPECTED_ENVIRONMENT_ASSET_KEYS = [
@@ -173,6 +173,12 @@ export const EXPECTED_EGYPT_FOREGROUND_DEPTH_ASSET_KEYS = [
   'ruinClusterWall',
   'ruinClusterColumnPair',
   'ruinDoorwayArch',
+  'egyptGroundSkirtLong',
+  'egyptGroundSkirtShort',
+  'egyptBaseSandDrift',
+  'egyptRubbleContactShadow',
+  'egyptBuriedStoneEdge',
+  'egyptStructureBaseRubble',
 ];
 
 export const ENVIRONMENT_ASSET_PACK_IDS = {
