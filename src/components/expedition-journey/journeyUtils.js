@@ -58,6 +58,8 @@ export const applyJourneyPropPlacementEdit = (prop = {}, edit = {}) => {
   if (Number.isFinite(edit.height)) next.height = Math.max(1, Math.round(edit.height));
   if (Number.isFinite(edit.scale)) next.scale = Math.max(0.1, Math.round(edit.scale * 100) / 100);
   if (Number.isFinite(edit.rotation)) next.rotation = Math.round(edit.rotation * 10) / 10;
+  if (typeof edit.mirrorX === 'boolean') next.mirrorX = edit.mirrorX;
+  if (Number.isFinite(edit.brightness)) next.brightness = Math.max(0.4, Math.min(1.8, Math.round(edit.brightness * 100) / 100));
   if (typeof edit.depth === 'string' && edit.depth.trim()) next.depth = edit.depth;
   if (typeof edit.layer === 'string' && edit.layer.trim()) next.layer = edit.layer;
   if (Number.isFinite(edit.zIndex)) next.zIndex = edit.zIndex;
@@ -179,6 +181,8 @@ const PROP_TEMPLATE_FIELDS = [
   'groundPebbles',
   'scale',
   'rotation',
+  'mirrorX',
+  'brightness',
 ];
 
 const toJourneyPropWords = (value = '') => String(value)
@@ -238,6 +242,8 @@ const getJourneyPropRegistryTemplate = (entry = {}) => {
   if (Number.isFinite(entry.defaultSandOverlapHeight)) template.sandOverlapHeight = entry.defaultSandOverlapHeight;
   if (Number.isFinite(entry.defaultSandMoundWidth)) template.sandMoundWidth = entry.defaultSandMoundWidth;
   if (Number.isFinite(entry.defaultGroundPebbles)) template.groundPebbles = entry.defaultGroundPebbles;
+  if (typeof entry.defaultMirrorX === 'boolean') template.mirrorX = entry.defaultMirrorX;
+  if (Number.isFinite(entry.defaultBrightness)) template.brightness = entry.defaultBrightness;
   return template;
 };
 
@@ -254,6 +260,60 @@ const makeUniqueJourneyPropId = (baseId, existingIds = []) => {
   let index = 1;
   while (used.has(`${baseId}-${index}`)) index += 1;
   return `${baseId}-${index}`;
+};
+
+export const createJourneyPlatformPalette = () => [
+  {
+    key: 'platform:solid',
+    label: 'Platform',
+    type: 'platform',
+    template: {
+      width: 192,
+      height: 18,
+      label: 'editable platform',
+      invisible: true,
+      layer: 'platform',
+    },
+  },
+  {
+    key: 'platform:floor',
+    label: 'Floor',
+    type: 'floor',
+    template: {
+      width: 320,
+      height: 60,
+      label: 'editable floor',
+      invisible: true,
+      layer: 'floor',
+    },
+  },
+];
+
+export const createJourneyPlatformFromPaletteItem = ({
+  paletteItem = {},
+  roomId,
+  x,
+  y,
+  existingIds = [],
+} = {}) => {
+  const template = { ...(paletteItem.template || paletteItem) };
+  const type = paletteItem.type || template.type || 'platform';
+  const roomKey = roomId || 'unknown-room';
+  const idBase = `${toJourneyPropIdSegment(roomKey)}-${toJourneyPropIdSegment(type)}`;
+  const next = {
+    id: makeUniqueJourneyPropId(`${idBase}-1`, existingIds),
+    sectionId: roomKey,
+    ...template,
+    x: Math.round(Number(x) || 0),
+    y: Math.round(Number(y) || 0),
+    label: template.label || `editable ${type}`,
+    invisible: template.invisible !== false,
+  };
+  if (roomKey && roomKey !== 'exterior' && roomKey.includes('chamber')) {
+    delete next.sectionId;
+    next.sceneId = roomKey;
+  }
+  return next;
 };
 
 export const createJourneyPropPalette = (props = [], registryEntries = []) => {
@@ -404,6 +464,7 @@ export const createJourneyPlacementChangeSummary = (editor = {}, { limit = 8 } =
   addJourneyEditorChangeEntries(changes, 'Prop', 'added', getJourneyEditorCreatedIds(editor.createdProps));
   addJourneyEditorChangeEntries(changes, 'Prop', 'deleted', toJourneyEditorIdList(editor.deletedIds));
   addJourneyEditorChangeEntries(changes, 'Platform', 'edited', getJourneyEditorChangedObjectIds(editor.platformEdits));
+  addJourneyEditorChangeEntries(changes, 'Platform', 'added', getJourneyEditorCreatedIds(editor.createdPlatforms));
   addJourneyEditorChangeEntries(changes, 'Platform', 'deleted', toJourneyEditorIdList(editor.deletedPlatformIds));
   addJourneyEditorChangeEntries(changes, 'Trap', 'edited', getJourneyEditorChangedObjectIds(editor.hazardEdits));
   addJourneyEditorChangeEntries(changes, 'Trap', 'added', getJourneyEditorCreatedIds(editor.createdHazards));
