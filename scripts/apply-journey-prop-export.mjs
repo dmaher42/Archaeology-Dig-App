@@ -129,6 +129,8 @@ const PROP_FIELD_ORDER = [
   'zIndex',
   'scale',
   'rotation',
+  'mirrorX',
+  'brightness',
   'placementPreset',
   'sceneBlend',
   'groundPlaneOffset',

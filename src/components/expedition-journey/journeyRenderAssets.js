@@ -83,6 +83,8 @@ export const EXPECTED_LOST_SITE_PROP_ASSET_KEYS = [
   'cracked_stone_blocks',
   'carved_wall_fragment',
   'broken_column',
+  'standingPillar',
+  'stoneDoorFrame',
   'fallen_lintel',
   'ruined_arch_piece',
   'stone_steps',

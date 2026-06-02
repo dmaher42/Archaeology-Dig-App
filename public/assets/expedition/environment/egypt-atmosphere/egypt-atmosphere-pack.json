@@ -53,7 +53,8 @@
       "x": 1195,
       "y": 18,
       "w": 69,
-      "h": 232
+      "h": 232,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/standing_pillar.png"
     },
     "brokenPillarTall": {
       "x": 1282,
@@ -95,7 +96,8 @@
       "x": 877,
       "y": 268,
       "w": 159,
-      "h": 185
+      "h": 185,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/stone_door_frame.png"
     },
     "sealedWallPanel": {
       "x": 1054,

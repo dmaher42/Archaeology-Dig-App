@@ -29,7 +29,7 @@ export const OTHER = [];`;
   const next = applyJourneyPropExportToSource(source, {
     room: 'desert-entry',
     props: [
-      { id: 'tablet-a', sectionId: 'desert-entry', type: 'camp', x: 132, y: 224, depth: 'route-edge', layer: 'foreground', zIndex: 4, scale: 1.2, rotation: 15, label: 'updated camp' },
+      { id: 'tablet-a', sectionId: 'desert-entry', type: 'camp', x: 132, y: 224, depth: 'route-edge', layer: 'foreground', zIndex: 4, scale: 1.2, rotation: 15, mirrorX: true, brightness: 1.25, label: 'updated camp' },
       { id: 'tablet-new', sectionId: 'desert-entry', type: 'atmosphere-prop', atmosphereAssetKey: 'torchStand', x: 180, y: 250, label: 'torch stand' },
     ],
     deletedPropIds: ['tablet-b'],
@@ -47,7 +47,7 @@ export const OTHER = [];`;
   assert.match(next, /export const MINI_BOSSES = \[[\s\S]*?id: 'scarab-queen'[\s\S]*?lairX: 2180[\s\S]*?lairY: 566[\s\S]*?lairWidth: 520[\s\S]*?lairHeight: 175[\s\S]*?moved lair[\s\S]*?id: 'looter-captain'/);
   assert.match(next, /export const PLATFORMS = \[[\s\S]*?id: 'ledge-a'[\s\S]*?x: 336[\s\S]*?y: 416[\s\S]*?moved ledge[\s\S]*?id: 'ledge-b'/);
   assert.match(next, /export const HAZARDS = \[[\s\S]*?id: 'trap-a'[\s\S]*?type: 'dart-launcher'[\s\S]*?triggerArea: \{"x":4,"y":-8,"width":120,"height":24\}[\s\S]*?damage: 9[\s\S]*?reset: true[\s\S]*?direction: 'left'[\s\S]*?linkedObjectIds: \["door-a"\][\s\S]*?burial: 0\.45[\s\S]*?moved trap[\s\S]*?id: 'trap-b'/);
-  assert.match(next, /id: 'tablet-a'[\s\S]*?x: 132[\s\S]*?rotation: 15/);
+  assert.match(next, /id: 'tablet-a'[\s\S]*?x: 132[\s\S]*?rotation: 15[\s\S]*?mirrorX: true[\s\S]*?brightness: 1\.25/);
   assert.doesNotMatch(next, /id: 'tablet-b'/);
   assert.match(next, /id: 'tablet-c'[\s\S]*?keep me/);
   assert.match(next, /id: 'tablet-new'[\s\S]*?atmosphereAssetKey: 'torchStand'/);

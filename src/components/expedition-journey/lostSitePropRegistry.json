@@ -30,6 +30,34 @@
     "inspectable": false
   },
   {
+    "id": "standingPillar",
+    "displayName": "Standing Column",
+    "category": "Tomb Architecture",
+    "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/standing_pillar.png",
+    "defaultWidth": 74,
+    "defaultHeight": 232,
+    "defaultScale": 1,
+    "defaultLayer": "foreground",
+    "defaultDepth": "midground",
+    "defaultTint": "stone",
+    "collidable": false,
+    "inspectable": false
+  },
+  {
+    "id": "stoneDoorFrame",
+    "displayName": "Temple Arch",
+    "category": "Tomb Architecture",
+    "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/stone_door_frame.png",
+    "defaultWidth": 176,
+    "defaultHeight": 204,
+    "defaultScale": 1,
+    "defaultLayer": "foreground",
+    "defaultDepth": "midground",
+    "defaultTint": "stone",
+    "collidable": false,
+    "inspectable": false
+  },
+  {
     "id": "fallen_lintel",
     "displayName": "Fallen Lintel",
     "category": "Tomb Architecture",

@@ -76,12 +76,20 @@ const EXPEDITION_AUDIO_TRACKS = {
       randomize: true,
       cooldownMs: 360,
       clips: [
-        { path: 'assets/expedition/sfx/generated/land-soft.wav', volume: 0.13, playbackRate: 0.88 },
-        { path: 'assets/expedition/sfx/generated/satchel-leather.wav', volume: 0.1, playbackRate: 0.9 },
+        { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/footstep_concrete_000.ogg', volume: 0.18, playbackRate: 0.92 },
+        { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/footstep_concrete_001.ogg', volume: 0.17, playbackRate: 0.95 },
+        { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/footstep_concrete_002.ogg', volume: 0.18, playbackRate: 0.90 },
+        { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/footstep_concrete_003.ogg', volume: 0.16, playbackRate: 0.94 },
+        { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/footstep_concrete_004.ogg', volume: 0.17, playbackRate: 0.91 },
       ],
     },
     jump: { path: 'assets/expedition/sfx/generated/land-soft.wav', volume: 0.3, playbackRate: 1.28 },
-    land: { path: 'assets/expedition/sfx/generated/land-soft.wav', volume: 0.4 },
+    land: {
+      clips: [
+        { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/footstep_concrete_000.ogg', volume: 0.38, playbackRate: 0.72 },
+        { path: 'assets/expedition/sfx/generated/land-soft.wav', volume: 0.22, delay: 18 },
+      ],
+    },
     pickupTool: [
       { path: 'assets/expedition/sfx/generated/satchel-leather.wav', volume: 0.4 },
       { path: 'assets/expedition/sfx/generated/satchel-buckle.wav', volume: 0.3, delay: 55 },
