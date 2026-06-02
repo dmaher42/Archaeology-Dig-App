@@ -65,8 +65,8 @@ const journeyPlacementOverrides = {
       "id": "forgotten-mural-climb-structure",
       "sectionId": "desert-entry",
       "type": "generated-climb-structure",
-      "x": 6611,
-      "y": -37,
+      "x": 6727,
+      "y": -32,
       "width": 1420,
       "height": 690,
       "depth": "route-edge",
@@ -727,8 +727,8 @@ const journeyPlacementOverrides = {
     },
     {
       "id": "forgotten-mural-lower-return",
-      "x": 6575,
-      "y": 405,
+      "x": 6527,
+      "y": 189,
       "width": 255,
       "height": 18,
       "label": "invisible lower return ledge from priest passage over generated art",
@@ -1444,8 +1444,12 @@ const journeyPlacementOverrides = {
       "intro": "Buried Lair: Scarab Queen. The buried scarab lair splits open beneath the sand. The Scarab Queen rises as the first trial of Anubis. The site will not yield easily.",
       "dialogue": "The buried scarab lair splits open beneath the sand. The Scarab Queen rises as the first trial of Anubis. The site will not yield easily.",
       "domainName": "First Guardian Domain",
-      "arenaStart": 11413,
-      "arenaEnd": 12628
+      "arenaStart": 11391,
+      "arenaEnd": 12622,
+      "lairX": 12149,
+      "lairY": 583,
+      "lairWidth": 689,
+      "lairHeight": 268
     }
   ]
 };
