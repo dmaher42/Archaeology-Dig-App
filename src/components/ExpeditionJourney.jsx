@@ -7325,38 +7325,8 @@ export default function ExpeditionJourney({
 
   const drawAncientRouteGround = useCallback((ctx, section, cameraX, now, current) => {
     const isCatacombs = section.id === 'catacombs';
-    const isEscape = section.id === 'escape-sequence';
     const floorBandTop = GROUND_Y - (isCatacombs ? 18 : 20);
-    const floorBandBottom = GROUND_Y + (isCatacombs ? 16 : 18);
-    const routeGradient = ctx.createLinearGradient(0, floorBandTop - 8, 0, floorBandBottom);
-    if (isCatacombs) {
-      routeGradient.addColorStop(0, 'rgba(78, 60, 42, 0)');
-      routeGradient.addColorStop(0.36, 'rgba(78, 60, 42, 0.2)');
-      routeGradient.addColorStop(1, 'rgba(39, 28, 20, 0.34)');
-    } else if (isEscape) {
-      routeGradient.addColorStop(0, 'rgba(174, 96, 39, 0)');
-      routeGradient.addColorStop(0.34, 'rgba(174, 96, 39, 0.18)');
-      routeGradient.addColorStop(1, 'rgba(91, 50, 25, 0.3)');
-    } else {
-      routeGradient.addColorStop(0, 'rgba(214, 145, 66, 0)');
-      routeGradient.addColorStop(0.34, 'rgba(214, 145, 66, 0.16)');
-      routeGradient.addColorStop(1, 'rgba(121, 69, 30, 0.28)');
-    }
-
     ctx.save();
-    ctx.fillStyle = routeGradient;
-    ctx.beginPath();
-    ctx.moveTo(0, floorBandBottom);
-    ctx.lineTo(0, floorBandTop + Math.sin(cameraX * 0.006) * 2);
-    for (let sx = 0; sx <= CANVAS_WIDTH + 32; sx += 32) {
-      const worldX = cameraX + sx;
-      const wave = Math.sin(worldX * 0.009) * 3 + Math.cos(worldX * 0.004) * 4;
-      ctx.lineTo(sx, floorBandTop + wave);
-    }
-    ctx.lineTo(CANVAS_WIDTH, floorBandBottom);
-    ctx.closePath();
-    ctx.fill();
-
     ctx.globalAlpha = 0.46;
     ctx.strokeStyle = isCatacombs ? 'rgba(160, 128, 86, 0.22)' : 'rgba(255, 205, 123, 0.24)';
     ctx.lineWidth = 2;
@@ -11628,14 +11598,6 @@ export default function ExpeditionJourney({
       ctx.fill();
     }
 
-    const sitePlain = ctx.createLinearGradient(0, 402, 0, CANVAS_HEIGHT);
-    sitePlain.addColorStop(0, 'rgba(204, 187, 143, 0)');
-    sitePlain.addColorStop(0.34, 'rgba(205, 188, 145, 0.22)');
-    sitePlain.addColorStop(0.72, 'rgba(180, 151, 103, 0.34)');
-    sitePlain.addColorStop(1, 'rgba(75, 52, 30, 0.16)');
-    ctx.fillStyle = sitePlain;
-    ctx.fillRect(0, 396, CANVAS_WIDTH, CANVAS_HEIGHT - 396);
-
     ctx.strokeStyle = 'rgba(103, 81, 46, 0.12)';
     ctx.lineWidth = 1.2;
     [438, 472, 508].forEach((y, index) => {
@@ -11647,11 +11609,6 @@ export default function ExpeditionJourney({
       ctx.stroke();
     });
 
-    const floorVignette = ctx.createLinearGradient(0, 390, 0, CANVAS_HEIGHT);
-    floorVignette.addColorStop(0, 'rgba(23, 34, 25, 0)');
-    floorVignette.addColorStop(1, 'rgba(23, 22, 16, 0.18)');
-    ctx.fillStyle = floorVignette;
-    ctx.fillRect(0, 340, CANVAS_WIDTH, CANVAS_HEIGHT - 340);
     ctx.restore();
 
     return true;
@@ -11913,17 +11870,6 @@ export default function ExpeditionJourney({
       ctx.fillRect(x - 3, 240, 6, 16);
     }
 
-    ctx.fillStyle = 'rgba(63, 39, 20, 0.3)';
-    ctx.beginPath();
-    ctx.moveTo(0, 365);
-    for (let i = 0; i <= CANVAS_WIDTH; i += 48) {
-      const worldX = i + cameraX * 0.22;
-      ctx.lineTo(i, 356 + Math.sin(worldX * 0.005) * 7 + Math.cos(worldX * 0.002) * 10);
-    }
-    ctx.lineTo(CANVAS_WIDTH, CANVAS_HEIGHT);
-    ctx.lineTo(0, CANVAS_HEIGHT);
-    ctx.closePath();
-    ctx.fill();
     ctx.restore();
   }, []);
 

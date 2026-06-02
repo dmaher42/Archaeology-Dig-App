@@ -105,7 +105,7 @@ const scribeChamberExteriorPath = new URL('../../../public/assets/expedition/env
 const scribeChamberInteriorPath = new URL('../../../public/assets/expedition/environment/desert-temple/scribe-locked-chamber-interior-2026-06-01.png', import.meta.url);
 const mummificationChamberInteractionAtlasPath = new URL('../../../public/assets/expedition/environment/desert-temple/mummification-chamber/mummification-chamber-interaction-atlas.png', import.meta.url);
 const desertEntryGroundingOverlayPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-grounding-overlay.png', import.meta.url);
-const desertEntryBuriedCausewayGroundPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-buried-causeway-ground.png', import.meta.url);
+const desertEntryPremiumCausewayLanePath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-premium-causeway-lane.png', import.meta.url);
 const egyptForegroundDepthAtlasPath = new URL('../../../public/assets/expedition/environment/egypt-foreground/egypt-foreground-depth-pack.json', import.meta.url);
 const egyptForegroundDepthPngPath = new URL('../../../public/assets/expedition/environment/egypt-foreground/egypt-foreground-depth-pack.png', import.meta.url);
 const extractExportedArray = (name) => {
@@ -552,6 +552,12 @@ test('journey editor prop palette exposes premium modular floor kit inserts', ()
     assert.equal(item.template.height, height);
     assert.equal(item.template.layer, 'route-edge');
   });
+  assert.match(journeyComponentSource, /const getStoryPropExplicitGroundY = \(propSize = \{\}\) =>/);
+  assert.match(journeyComponentSource, /const getStoryPropAnchorY = \(prop, propSize, shouldGroundLock\) =>/);
+  assert.match(journeyComponentSource, /return explicitGroundY \+ yOffset/);
+  assert.match(journeyComponentSource, /const getGroundAwareStoryPropEditorEdit = useCallback\(\(prop, edit = \{\}\) =>/);
+  assert.match(journeyComponentSource, /nextEdit\.yOffset = Math\.round\(edit\.y - explicitGroundY\)/);
+  assert.match(journeyComponentSource, /Object\.assign\(nextProp, getGroundAwareStoryPropEditorEdit\(nextProp, \{ y: nextProp\.y \}\)\)/);
 });
 
 test('desert entry buried causeway visual is narrower than the floor collision band', () => {
@@ -3436,13 +3442,14 @@ test('desert entry ground reads as buried stone causeway under windblown sand', 
   assert.match(journeyComponentSource, /ROUTE_GROUND_VISUAL_MODE = 'buried-stone-causeway-under-windblown-sand-v1'/);
   assert.match(journeyComponentSource, /drawBuriedStoneCausewaySurface/);
   assert.match(journeyComponentSource, /section\.id !== 'desert-entry' \|\| platform\.y !== GROUND_Y/);
-  assert.match(journeyComponentSource, /DESERT_ENTRY_BURIED_CAUSEWAY_GROUND_SRC = 'assets\/expedition\/backgrounds\/desert-entry\/desert-entry-buried-causeway-ground\.png'/);
+  assert.match(journeyComponentSource, /DESERT_ENTRY_BURIED_CAUSEWAY_GROUND_SRC = 'assets\/expedition\/backgrounds\/desert-entry\/desert-entry-premium-causeway-lane\.png'/);
+  assert.match(journeyComponentSource, /DESERT_ENTRY_BURIED_CAUSEWAY_GROUND_VERSION = 'png-premium-causeway-lane-2026-06-02'/);
   assert.match(journeyComponentSource, /desertEntryBuriedCausewayGroundRef = useRef/);
   assert.match(journeyComponentSource, /ctx\.drawImage\(causewayAsset\.image/);
   assert.match(journeyComponentSource, /desertGroundStyle = 'buried-stone-causeway-under-windblown-sand'/);
   assert.match(journeyComponentSource, /drawBuriedStoneCausewaySurface\(ctx, platform, x, cameraX, Date\.now\(\)\)/);
-  assert.equal(desertEntryBackgroundAtlas.regions.groundCausewayOverlay.image, 'desert-entry-buried-causeway-ground.png');
-  const causewayBytes = readFileSync(desertEntryBuriedCausewayGroundPath);
+  assert.equal(desertEntryBackgroundAtlas.regions.groundCausewayOverlay.image, 'desert-entry-premium-causeway-lane.png');
+  const causewayBytes = readFileSync(desertEntryPremiumCausewayLanePath);
   assert.equal(causewayBytes.toString('ascii', 1, 4), 'PNG');
   assert.equal(causewayBytes.readUInt32BE(16), 1536);
   assert.equal(causewayBytes.readUInt32BE(20), 192);
@@ -3543,9 +3550,6 @@ test('route ground uses a narrow floor edge instead of a full-width bottom haze'
   assert.match(journeyComponentSource, /ROUTE_GROUND_VISUAL_MODE = 'buried-stone-causeway-under-windblown-sand-v1'/);
   assert.match(journeyComponentSource, /ROUTE_GROUND_HAZE_FIX_VERSION = 'route-ground-buried-stone-causeway-2026-06-01'/);
   assert.match(journeyComponentSource, /const floorBandTop = GROUND_Y -/);
-  assert.match(journeyComponentSource, /const floorBandBottom = GROUND_Y \+/);
-  assert.match(journeyComponentSource, /ctx\.moveTo\(0, floorBandBottom\)/);
-  assert.match(journeyComponentSource, /ctx\.lineTo\(CANVAS_WIDTH, floorBandBottom\)/);
   assert.match(journeyComponentSource, /routeGroundVisualMode: ROUTE_GROUND_VISUAL_MODE/);
   assert.match(journeyComponentSource, /routeGroundHazeFixVersion: ROUTE_GROUND_HAZE_FIX_VERSION/);
   assert.doesNotMatch(journeyComponentSource, /const pathBottom = CANVAS_HEIGHT/);
@@ -3588,7 +3592,7 @@ test('combat pressure encounters guard optional rewards without blocking progres
   assert.match(journeyUtilsSource, /Math\.ceil\(enemy\.health \* 1\.55\)/);
   assert.match(journeyUtilsSource, /if\s*\(enemy\.firstSealRouteRamp\)\s*return Math\.max\(1, enemy\.damage\)/);
   assert.match(journeyUtilsSource, /Math\.ceil\(enemy\.damage \* 1\.45\)/);
-  assert.match(journeyUtilsSource, /baseSpeed: entity\.speed \* \(entity\.openingRouteRamp \? 1\.12 : 1\.18\)/);
+  assert.match(journeyUtilsSource, /baseSpeed: entity\.speed \* \(entity\.openingRouteRamp \? 1\.12 : 1\.32\)/);
   assert.match(journeyComponentSource, /const ENEMY_TACTICAL_PRESSURE = \{/);
   assert.match(journeyComponentSource, /awarenessMultiplier/);
   assert.match(journeyComponentSource, /chaseMultiplier/);
@@ -3663,10 +3667,10 @@ test('normal enemies take at least three weapon hits at runtime', () => {
 
 test('regular enemy families use distinct combat role timings without a new AI system', () => {
   assert.match(journeyComponentSource, /const ENEMY_ATTACK_PATTERNS = \{/);
-  assert.match(journeyComponentSource, /const ENEMY_AGGRO_MEMORY_SECONDS = 4\.6/);
+  assert.match(journeyComponentSource, /const ENEMY_AGGRO_MEMORY_SECONDS = 7\.5/);
   assert.match(journeyComponentSource, /const ENEMY_AGGRO_PATROL_PADDING = 320/);
-  assert.match(journeyComponentSource, /scarab:\s*\{[\s\S]*?awareness:\s*1\.55[\s\S]*?chase:\s*2\.05/);
-  assert.match(journeyComponentSource, /scorpion:\s*\{[\s\S]*?awareness:\s*1\.45[\s\S]*?chase:\s*1\.85/);
+  assert.match(journeyComponentSource, /scarab:\s*\{[\s\S]*?awareness:\s*1\.70[\s\S]*?chase:\s*2\.05/);
+  assert.match(journeyComponentSource, /scorpion:\s*\{[\s\S]*?awareness:\s*1\.60[\s\S]*?chase:\s*1\.85/);
   assert.match(journeyComponentSource, /scarab:\s*\{[\s\S]*?id:\s*'charge'[\s\S]*?windup:\s*0\.42[\s\S]*?speed:\s*185[\s\S]*?range:\s*38/);
   assert.match(journeyComponentSource, /scorpion:\s*\{[\s\S]*?id:\s*'sting'[\s\S]*?windup:\s*0\.6[\s\S]*?duration:\s*0\.3[\s\S]*?speed:\s*54[\s\S]*?range:\s*28[\s\S]*?height:\s*58[\s\S]*?yOffset:\s*-34[\s\S]*?backReach:\s*38[\s\S]*?damageScale:\s*1\.45/);
   assert.match(journeyComponentSource, /snake:\s*\{[\s\S]*?id:\s*'lunge'[\s\S]*?windup:\s*0\.62[\s\S]*?speed:\s*166[\s\S]*?range:\s*52/);

@@ -6,7 +6,7 @@
   "regions": {
     "sky": { "x": 0, "y": 0, "w": 1672, "h": 941 },
     "groundingOverlay": { "image": "desert-entry-grounding-overlay.png", "x": 0, "y": 0, "w": 1672, "h": 941 },
-    "groundCausewayOverlay": { "image": "desert-entry-buried-causeway-ground.png", "x": 0, "y": 0, "w": 1536, "h": 192 }
+    "groundCausewayOverlay": { "image": "desert-entry-premium-causeway-lane.png", "x": 0, "y": 0, "w": 1536, "h": 192 }
   },
   "runtimeMode": "single-composited-backdrop",
   "coordinateNote": "Single clean 1672x941 full-frame background with matched transparent mid-ground grounding overlays, including a tileable buried-causeway gameplay-ground strip."
