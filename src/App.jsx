@@ -116,10 +116,10 @@ const EXPEDITION_AUDIO_TRACKS = {
     },
     combatDeflect: {
       synth: 'combatDeflect',
-      synthVolume: 1.18,
+      synthVolume: 0.62,
       cooldownMs: 180,
       clips: [
-        { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/impactPlate_medium_002.ogg', volume: 0.30, playbackRate: 0.86 },
+        { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/impactPlate_medium_002.ogg', volume: 0.42, playbackRate: 0.82 },
       ],
     },
     parryClash: {
@@ -574,12 +574,12 @@ const playExpeditionSyntheticSfx = (type, options = {}) => {
   }
 
   if (type === 'combatDeflect') {
-    // Hard surface impact — khopesh meeting stone shell or heavy armour
-    makeNoiseBurst({ duration: 0.08, frequency: 1600, endFrequency: 720, q: 1.2, gain: 0.112 });
-    // Low body thud — mass of the blocking surface
-    makeToneHit({ frequency: 148, endFrequency: 64, gain: 0.068, duration: 0.18 });
-    // Weapon rebound grind — blade sliding off the block
-    makeNoiseBurst({ duration: 0.16, frequency: 820, endFrequency: 340, q: 0.9, gain: 0.058, delay: 0.018 });
+    // Blunt surface contact — no tone, just mass and friction
+    makeNoiseBurst({ duration: 0.07, frequency: 680, endFrequency: 280, q: 0.7, gain: 0.13 });
+    // Sub-bass weight — filtered low noise, not a tone
+    makeNoiseBurst({ duration: 0.14, frequency: 180, endFrequency: 68, q: 0.5, gain: 0.095, delay: 0.006 });
+    // Rebound scrape — weapon dragging off the block surface
+    makeNoiseBurst({ duration: 0.18, frequency: 540, endFrequency: 160, q: 0.65, gain: 0.048, delay: 0.022 });
     return;
   }
 
