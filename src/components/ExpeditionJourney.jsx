@@ -16883,12 +16883,12 @@ export default function ExpeditionJourney({
         && Math.abs(distanceToPlayer) <= SCORPION_VENOM_SPIT_RANGE
         && Math.abs((player.y + player.height / 2) - (e.y + e.height / 2)) < 96;
       const attackDirectionToPlayer = distanceToPlayer >= 0 ? 1 : -1;
-      const scorpionStingCanReach = e.type !== 'scorpion' || rectsOverlap(
+      const meleeReachesPlayer = rectsOverlap(
         getAttackBox(e, tacticalPattern.range, tacticalPattern.height, attackDirectionToPlayer, tacticalPattern.yOffset || 0, tacticalPattern.backReach || 0),
         getPlayerBodyHitbox(player),
       );
-      const shouldUseVenomSpit = e.type === 'scorpion' && !scorpionStingCanReach && scorpionVenomCanReach;
-      const enemyCanStartAttack = (nearPlayer && scorpionStingCanReach) || shouldUseVenomSpit;
+      const shouldUseVenomSpit = e.type === 'scorpion' && !meleeReachesPlayer && scorpionVenomCanReach;
+      const enemyCanStartAttack = (nearPlayer && meleeReachesPlayer) || shouldUseVenomSpit;
       if (nearPlayer || shouldUseVenomSpit) {
         e.aggroMemoryTimer = Math.max(e.aggroMemoryTimer || 0, ENEMY_AGGRO_MEMORY_SECONDS * (tacticalPattern.aggroMemoryMultiplier || 1));
       }
