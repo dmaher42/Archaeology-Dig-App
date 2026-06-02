@@ -12361,6 +12361,10 @@ export default function ExpeditionJourney({
       ctx.rotate(bodyPose.rotation);
       ctx.scale(bodyPose.scaleX, bodyPose.scaleY);
     }
+    if (enemy.hitFlash > 0 && !enemy.defeated) {
+      const hitT = Math.min(1, enemy.hitFlash / 0.18);
+      ctx.scale(1 - hitT * 0.20, 1 + hitT * 0.16);
+    }
 
     if (combatMode === 'cooldown' && (family === 'scarab' || family === 'scorpion')) {
       ctx.globalAlpha = 0.42;
@@ -12629,6 +12633,14 @@ export default function ExpeditionJourney({
       const shouldFlip = shouldFlipBossSprite(bossId, facing);
       ctx.save();
       drawContactShadow(ctx, centerX, baseY + 3, width * 0.74, enemy.defeated ? 0.12 : 0.24, 1);
+      if (enemy.hitFlash > 0 && !enemy.defeated) {
+        const hitT = Math.min(1, enemy.hitFlash / 0.18);
+        const pivotX = drawBox.x + drawBox.width / 2;
+        const pivotY = drawBox.y + drawBox.height * 0.5;
+        ctx.translate(pivotX, pivotY);
+        ctx.scale(1 - hitT * 0.18, 1 + hitT * 0.14);
+        ctx.translate(-pivotX, -pivotY);
+      }
       if (enemy.defeated) ctx.globalAlpha = 0.82;
       if (enemy.hitFlash > 0) ctx.filter = 'brightness(1.1) saturate(0.62)';
       if (shouldFlip) {
