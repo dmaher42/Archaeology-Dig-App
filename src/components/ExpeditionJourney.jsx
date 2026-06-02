@@ -390,7 +390,7 @@ const SCORPION_CHASE_SPEED_MULTIPLIER = 1.15;
 const SCORPION_VENOM_SPIT_RANGE = CANVAS_WIDTH * 0.5;
 const SCORPION_VENOM_SLOW_DURATION = 2.25;
 const SCORPION_VENOM_SLOW_MULTIPLIER = 0.48;
-const ENEMY_AGGRO_MEMORY_SECONDS = 4.6;
+const ENEMY_AGGRO_MEMORY_SECONDS = 7.5;
 const ENEMY_AGGRO_PATROL_PADDING = 320;
 
 const KNOWLEDGE_CHALLENGE_SIZE = 3;
@@ -1403,7 +1403,7 @@ const DEFAULT_ENEMY_ATTACK_PATTERN = {
   label: 'Strike',
   windup: 0.38,
   duration: 0.26,
-  cooldown: 1.35,
+  cooldown: 1.15,
   recovery: 0.38,
   vulnerableAfter: 0.42,
   speed: 110,
@@ -1420,7 +1420,7 @@ const ENEMY_ATTACK_PATTERNS = {
     label: 'Charge',
     windup: 0.42,
     duration: 0.3,
-    cooldown: 1.45,
+    cooldown: 1.22,
     recovery: 0.56,
     vulnerableAfter: 0.62,
     speed: 185,
@@ -1433,7 +1433,7 @@ const ENEMY_ATTACK_PATTERNS = {
     label: 'Sting',
     windup: 0.6,
     duration: 0.3,
-    cooldown: 1.65,
+    cooldown: 1.40,
     recovery: 0.64,
     vulnerableAfter: 0.7,
     speed: 54,
@@ -1451,7 +1451,7 @@ const ENEMY_ATTACK_PATTERNS = {
     label: 'Sand Burst',
     windup: 0.5,
     duration: 0.24,
-    cooldown: 1.6,
+    cooldown: 1.36,
     recovery: 0.58,
     vulnerableAfter: 0.64,
     speed: 150,
@@ -1466,7 +1466,7 @@ const ENEMY_ATTACK_PATTERNS = {
     label: 'Lunge',
     windup: 0.62,
     duration: 0.28,
-    cooldown: 1.62,
+    cooldown: 1.38,
     recovery: 0.6,
     vulnerableAfter: 0.68,
     speed: 166,
@@ -1479,7 +1479,7 @@ const ENEMY_ATTACK_PATTERNS = {
     label: 'Swoop',
     windup: 0.36,
     duration: 0.32,
-    cooldown: 1.42,
+    cooldown: 1.20,
     recovery: 0.48,
     vulnerableAfter: 0.52,
     speed: 190,
@@ -1492,7 +1492,7 @@ const ENEMY_ATTACK_PATTERNS = {
     label: 'Heavy Slam',
     windup: 0.84,
     duration: 0.4,
-    cooldown: 2,
+    cooldown: 1.70,
     recovery: 0.9,
     vulnerableAfter: 0.95,
     speed: 52,
@@ -1506,7 +1506,7 @@ const ENEMY_ATTACK_PATTERNS = {
     label: 'Dash',
     windup: 0.3,
     duration: 0.24,
-    cooldown: 1.2,
+    cooldown: 1.02,
     recovery: 0.34,
     vulnerableAfter: 0.38,
     speed: 165,
@@ -1518,7 +1518,7 @@ const ENEMY_ATTACK_PATTERNS = {
     label: 'Guardian Swipe',
     windup: 0.64,
     duration: 0.34,
-    cooldown: 1.72,
+    cooldown: 1.46,
     recovery: 0.72,
     vulnerableAfter: 0.82,
     speed: 74,
@@ -1535,7 +1535,7 @@ const ENEMY_ATTACK_PATTERNS = {
     label: 'Khopesh Sweep',
     windup: 0.76,
     duration: 0.34,
-    cooldown: 1.85,
+    cooldown: 1.57,
     recovery: 0.78,
     vulnerableAfter: 0.86,
     speed: 58,
@@ -1553,7 +1553,7 @@ const ENEMY_ATTACK_PATTERNS = {
     label: 'Pulse Slam',
     windup: 0.92,
     duration: 0.42,
-    cooldown: 2.08,
+    cooldown: 1.77,
     recovery: 0.96,
     vulnerableAfter: 1,
     speed: 46,
@@ -2181,16 +2181,16 @@ const HAZARD_VISUALS = {
 };
 
 const ENEMY_TACTICAL_PRESSURE = {
-  scarab: { windup: 0.96, cooldown: 0.9, speed: 1.18, range: 1.08, recovery: 0.96, vulnerableAfter: 0.95, awareness: 1.55, chase: 2.05 },
-  scorpion: { windup: 1, cooldown: 0.94, speed: 0.86, range: 0.88, recovery: 1.04, vulnerableAfter: 1.03, awareness: 1.45, chase: 1.85 },
-  'sand-wisp': { windup: 0.92, cooldown: 0.9, speed: 1.16, range: 1.08, recovery: 0.96, vulnerableAfter: 0.96, awareness: 1.6, chase: 2 },
-  snake: { windup: 0.98, cooldown: 0.92, speed: 1.14, range: 1.18, recovery: 1.02, vulnerableAfter: 1, awareness: 1.54, chase: 1.8 },
-  bat: { windup: 0.9, cooldown: 0.84, speed: 1.14, range: 1.12, recovery: 0.92, vulnerableAfter: 0.9, awareness: 1.58, chase: 1.95 },
-  looter: { windup: 0.88, cooldown: 0.8, speed: 1.16, range: 1.12, recovery: 0.9, vulnerableAfter: 0.88, awareness: 1.54, chase: 1.82, shieldDuringWindup: true },
-  bes: { windup: 0.94, cooldown: 0.9, speed: 0.96, range: 1.14, recovery: 1, vulnerableAfter: 1, awareness: 1.5, chase: 1.62, shieldDuringWindup: true },
-  mummy: { windup: 0.96, cooldown: 0.94, speed: 0.92, range: 1.08, recovery: 1.02, vulnerableAfter: 1, awareness: 1.42, chase: 1.56, shieldDuringWindup: true },
-  guardian: { windup: 1, cooldown: 0.94, speed: 0.86, range: 1.08, recovery: 1.05, vulnerableAfter: 1.04, awareness: 1.36, chase: 1.48 },
-  statue: { windup: 1, cooldown: 0.96, speed: 0.84, range: 1.08, recovery: 1.06, vulnerableAfter: 1.05, awareness: 1.32, chase: 1.42 },
+  scarab: { windup: 0.96, cooldown: 0.9, speed: 1.18, range: 1.08, recovery: 0.96, vulnerableAfter: 0.95, awareness: 1.70, chase: 2.05 },
+  scorpion: { windup: 1, cooldown: 0.94, speed: 0.86, range: 0.88, recovery: 1.04, vulnerableAfter: 1.03, awareness: 1.60, chase: 1.85 },
+  'sand-wisp': { windup: 0.92, cooldown: 0.9, speed: 1.16, range: 1.08, recovery: 0.96, vulnerableAfter: 0.96, awareness: 1.75, chase: 2 },
+  snake: { windup: 0.98, cooldown: 0.92, speed: 1.14, range: 1.18, recovery: 1.02, vulnerableAfter: 1, awareness: 1.69, chase: 1.8 },
+  bat: { windup: 0.9, cooldown: 0.84, speed: 1.14, range: 1.12, recovery: 0.92, vulnerableAfter: 0.9, awareness: 1.73, chase: 1.95 },
+  looter: { windup: 0.88, cooldown: 0.8, speed: 1.16, range: 1.12, recovery: 0.9, vulnerableAfter: 0.88, awareness: 1.69, chase: 1.82, shieldDuringWindup: true },
+  bes: { windup: 0.94, cooldown: 0.9, speed: 0.96, range: 1.14, recovery: 1, vulnerableAfter: 1, awareness: 1.65, chase: 1.62, shieldDuringWindup: true },
+  mummy: { windup: 0.96, cooldown: 0.94, speed: 0.92, range: 1.08, recovery: 1.02, vulnerableAfter: 1, awareness: 1.57, chase: 1.56, shieldDuringWindup: true },
+  guardian: { windup: 1, cooldown: 0.94, speed: 0.86, range: 1.08, recovery: 1.05, vulnerableAfter: 1.04, awareness: 1.51, chase: 1.48 },
+  statue: { windup: 1, cooldown: 0.96, speed: 0.84, range: 1.08, recovery: 1.06, vulnerableAfter: 1.05, awareness: 1.47, chase: 1.42 },
   'river-crab': { windup: 0.94, cooldown: 0.86, speed: 1.1, range: 1.12, recovery: 0.94, vulnerableAfter: 0.92, awareness: 1.5, chase: 1.85 },
   'watchtower-sentry': { windup: 0.88, cooldown: 0.8, speed: 1.16, range: 1.12, recovery: 0.9, vulnerableAfter: 0.88, awareness: 1.54, chase: 1.82, shieldDuringWindup: true },
   'clay-guardian': { windup: 1, cooldown: 0.94, speed: 0.86, range: 1.08, recovery: 1.05, vulnerableAfter: 1.04, awareness: 1.36, chase: 1.48 },
@@ -16898,7 +16898,7 @@ export default function ExpeditionJourney({
       const tacticalPattern = getEnemyPatternConfig(e);
       const pressureReachBonus = e.encounterRole ? 26 : 0;
       const awarenessMultiplier = tacticalPattern.awarenessMultiplier || 1;
-      const baseNearPlayerX = (e.type === 'bat' || e.flying ? 220 : 180) + pressureReachBonus;
+      const baseNearPlayerX = (e.type === 'bat' || e.flying ? 240 : 210) + pressureReachBonus;
       const nearPlayer = Math.abs(distanceToPlayer) < (baseNearPlayerX * awarenessMultiplier) && Math.abs(player.y - e.y) < 104 + (e.encounterRole ? 14 : 0);
       const scorpionVenomCanReach = e.type === 'scorpion'
         && Math.abs(distanceToPlayer) <= SCORPION_VENOM_SPIT_RANGE

@@ -765,7 +765,7 @@ const makeStepProfile = (entity, { boss = false } = {}) => {
   const seed = hashEnemyIdentity(entity);
   const seedRatio = (seed % 997) / 997;
   return {
-    baseSpeed: entity.speed * (entity.openingRouteRamp ? 1.12 : 1.18),
+    baseSpeed: entity.speed * (entity.openingRouteRamp ? 1.12 : 1.32),
     stepSeed: seed,
     stepTimer: 0,
     stepCycle: 0,
