@@ -25,7 +25,7 @@ import {
   makeEnemy,
   snapJourneyPropCoordinate,
 } from './journeyUtils.js';
-import { CHINA_ENEMIES, ENEMIES } from './journeyLevelData.js';
+import { CHINA_ENEMIES, ENEMIES, STORY_PROPS } from './journeyLevelData.js';
 
 const source = readFileSync(new URL('./journeyLevelData.js', import.meta.url), 'utf8');
 const journeyUtilsSource = readFileSync(new URL('./journeyUtils.js', import.meta.url), 'utf8');
@@ -3426,6 +3426,27 @@ test('generated Egypt structures share the premium ground-contact kit without ch
   assert.match(journeyComponentSource, /mummificationGroundBlendAssetKeys/);
   assert.match(journeyComponentSource, /forgottenMuralGroundBlendAssetKeys/);
   assert.doesNotMatch(platforms, /premiumLongSandLip|premiumRubbleMoundBlend|groundContactLayer/);
+});
+
+test('generated Egypt structure contact layers stay narrow and low-opacity to avoid bottom haze', () => {
+  const generatedStructureIds = new Set([
+    'mummification-chamber-exterior-structure',
+    'forgotten-mural-climb-structure',
+    'scribe-chamber-doorway-structure',
+  ]);
+  const broadHazeContacts = STORY_PROPS
+    .filter((prop) => generatedStructureIds.has(prop.id))
+    .flatMap((prop) => (prop.groundContactLayer || []).map((entry) => ({ propId: prop.id, ...entry })))
+    .filter((entry) => entry.mode === 'stretch')
+    .filter((entry) => {
+      if (entry.assetKey === 'premiumRubbleContactShadow') return entry.alpha > 0.3 || entry.widthRatio > 0.56;
+      if (entry.assetKey === 'premiumLongSandLip') return entry.alpha > 0.42 || entry.widthRatio > 0.54;
+      if (entry.assetKey === 'premiumRubbleMoundBlend') return entry.alpha > 0.42 || entry.widthRatio > 0.4;
+      return false;
+    })
+    .map(({ propId, assetKey, alpha, widthRatio }) => ({ propId, assetKey, alpha, widthRatio }));
+
+  assert.deepEqual(broadHazeContacts, []);
 });
 
 test('desert entry no longer draws old procedural fallback scenery', () => {
