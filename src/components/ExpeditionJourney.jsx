@@ -8717,7 +8717,6 @@ export default function ExpeditionJourney({
     const pulse = 0.75 + Math.sin(now / 420) * 0.12;
 
     drawContactShadow(ctx, x, groundY, width * 0.55, 0.16, 1.35);
-    drawDecorativeBaseBlend(ctx, x - width * 0.04, groundY - 2, width * 0.46, section.id, prop.depth || 'route-edge', 0.58);
     const underlayContact = drawEgyptStructureGroundContactLayer(ctx, prop.groundContactLayer, left, width, groundY, 'underlay');
     ctx.globalAlpha = prop.alpha ?? 1;
     ctx.filter = `sepia(6%) saturate(108%) brightness(${98 + pulse * 3}%) contrast(106%) drop-shadow(0 20px 20px rgba(47, 24, 9, 0.24))`;
@@ -8725,7 +8724,6 @@ export default function ExpeditionJourney({
     ctx.filter = 'none';
     ctx.globalAlpha = 1;
     const overlayContact = drawEgyptStructureGroundContactLayer(ctx, prop.groundContactLayer, left, width, groundY, 'overlay');
-    drawGroundDustLip(ctx, x - width * 0.08, groundY - 5, width * 0.48, 'rgba(205, 137, 64, 0.2)');
     if (stateRef.current.renderStats) {
       stateRef.current.renderStats.mummificationChamberExteriorVersion = MUMMIFICATION_CHAMBER_EXTERIOR_VERSION;
       stateRef.current.renderStats.mummificationChamberExteriorLoaded = true;
@@ -8736,9 +8734,9 @@ export default function ExpeditionJourney({
       stateRef.current.renderStats.mummificationGroundBlendElementCount = underlayContact.count + overlayContact.count;
     }
     return true;
-  }, [drawContactShadow, drawDecorativeBaseBlend, drawEgyptStructureGroundContactLayer, drawGroundDustLip]);
+  }, [drawContactShadow, drawEgyptStructureGroundContactLayer]);
 
-  const drawForgottenMuralGeneratedAsset = useCallback((ctx, prop, x, section) => {
+  const drawForgottenMuralGeneratedAsset = useCallback((ctx, prop, x) => {
     const structureAsset = forgottenMuralAlcoveStructureRef.current;
     if (!structureAsset.loaded || !structureAsset.image) return false;
 
@@ -8750,9 +8748,7 @@ export default function ExpeditionJourney({
     const baseY = drawY + height;
     const groundY = Math.min(GROUND_Y - 2, baseY - 6);
 
-    drawRouteGroundApron(ctx, x - width * 0.06, groundY, width * 0.62, section.id, 0.98, Math.round(prop.x));
     drawContactShadow(ctx, x, groundY + 1, width * 0.66, 0.22, 1.6, { height: 14, color: 'rgba(27, 16, 8, 0.96)' });
-    drawDecorativeBaseBlend(ctx, x - width * 0.12, groundY - 1, width * 0.52, section.id, prop.depth || 'background', 0.82);
     const underlayContact = drawEgyptStructureGroundContactLayer(ctx, prop.groundContactLayer, left, width, groundY, 'underlay');
     ctx.globalAlpha = prop.alpha ?? 0.98;
     ctx.filter = 'sepia(2%) saturate(102%) brightness(98%) contrast(104%) drop-shadow(0 18px 18px rgba(34, 18, 8, 0.2))';
@@ -8760,8 +8756,6 @@ export default function ExpeditionJourney({
     ctx.filter = 'none';
     ctx.globalAlpha = 1;
     const overlayContact = drawEgyptStructureGroundContactLayer(ctx, prop.groundContactLayer, left, width, groundY, 'overlay');
-    drawGroundDustLip(ctx, x - width * 0.12, groundY - 3, width * 0.58, 'rgba(188, 127, 61, 0.28)');
-    drawGroundDustLip(ctx, x + width * 0.08, groundY - 1, width * 0.34, 'rgba(214, 160, 88, 0.18)');
     if (stateRef.current.renderStats) {
       stateRef.current.renderStats.forgottenMuralGroundBlendAssetKeys = Array.from(new Set([
         ...underlayContact.keys,
@@ -8770,7 +8764,7 @@ export default function ExpeditionJourney({
       stateRef.current.renderStats.forgottenMuralGroundBlendElementCount = underlayContact.count + overlayContact.count;
     }
     return true;
-  }, [drawContactShadow, drawDecorativeBaseBlend, drawEgyptStructureGroundContactLayer, drawGroundDustLip, drawRouteGroundApron]);
+  }, [drawContactShadow, drawEgyptStructureGroundContactLayer]);
 
   const drawScribeChamberDoorwayStructure = useCallback((ctx, prop, x, section, now) => {
     const width = prop.width || 1120;
@@ -8789,9 +8783,7 @@ export default function ExpeditionJourney({
       ctx.save();
       ctx.globalAlpha = prop.alpha ?? 1;
       const groundY = Math.min(GROUND_Y - 3, baseY - 8);
-      drawRouteGroundApron(ctx, centerX - width * 0.04, groundY, width * 0.64, section.id, 1.02, Math.round(prop.x));
       drawContactShadow(ctx, centerX, groundY + 1, width * 0.72, 0.26, 1.5, { height: 15, color: 'rgba(28, 16, 8, 0.96)' });
-      drawDecorativeBaseBlend(ctx, centerX - width * 0.02, groundY - 2, width * 0.58, section.id, prop.depth || 'route-edge', 0.86);
       const underlayContact = drawEgyptStructureGroundContactLayer(ctx, prop.groundContactLayer, left, width, groundY, 'underlay');
       ctx.filter = `sepia(4%) saturate(108%) brightness(${98 + pulse * 4}%) contrast(106%) drop-shadow(0 20px 22px rgba(39, 18, 7, 0.3))`;
       ctx.drawImage(structureAsset.image, left, top, width, height);
@@ -8808,9 +8800,6 @@ export default function ExpeditionJourney({
       ctx.fillStyle = doorwayGlow;
       ctx.fillRect(centerX - width * 0.28, top + height * 0.12, width * 0.56, height * 0.48);
       ctx.globalCompositeOperation = 'source-over';
-      drawGroundDustLip(ctx, centerX, groundY - 2, width * 0.56, 'rgba(205, 137, 64, 0.22)');
-      drawGroundDustLip(ctx, centerX + width * 0.14, groundY, width * 0.3, 'rgba(236, 184, 112, 0.14)');
-
       if (stateRef.current.renderStats) {
         stateRef.current.renderStats.scribeChamberExteriorVersion = SCRIBE_CHAMBER_EXTERIOR_VERSION;
         stateRef.current.renderStats.scribeChamberExteriorLoaded = true;
@@ -8831,8 +8820,6 @@ export default function ExpeditionJourney({
     ctx.save();
     ctx.globalAlpha = prop.alpha ?? 1;
     drawContactShadow(ctx, centerX, Math.min(GROUND_Y - 2, baseY - 3), width * 0.72, 0.18, 1.25);
-    drawDecorativeBaseBlend(ctx, centerX, Math.min(GROUND_Y - 4, baseY - 7), width * 0.62, section.id, prop.depth || 'route-edge', 0.66);
-
     const glow = ctx.createRadialGradient(centerX, top + height * 0.44, 22, centerX, top + height * 0.44, width * 0.64);
     glow.addColorStop(0, `rgba(250, 204, 21, ${0.2 * pulse})`);
     glow.addColorStop(0.46, `rgba(180, 83, 9, ${0.12 * pulse})`);
@@ -8930,8 +8917,6 @@ export default function ExpeditionJourney({
       ctx.fillStyle = `rgba(93, 64, 42, ${0.74 - step * 0.06})`;
       ctx.fillRect(centerX - stepWidth / 2, baseY - 18 + step * 7, stepWidth, 6);
     }
-    drawGroundDustLip(ctx, centerX, Math.min(GROUND_Y - 3, baseY - 7), width * 0.55, 'rgba(250, 204, 21, 0.18)');
-
     if (stateRef.current.renderStats) {
       stateRef.current.renderStats.visibleWorldLandmarks = Array.from(new Set([
         ...(stateRef.current.renderStats.visibleWorldLandmarks || []),
@@ -8940,7 +8925,7 @@ export default function ExpeditionJourney({
     }
     ctx.restore();
     return true;
-  }, [drawContactShadow, drawDecorativeBaseBlend, drawEgyptStructureGroundContactLayer, drawGroundDustLip, drawRouteGroundApron]);
+  }, [drawContactShadow, drawEgyptStructureGroundContactLayer]);
 
   const drawForgottenMuralChamberInterior = useCallback((ctx, current, now) => {
     if (!isForgottenMuralChamberScene(current)) return false;
@@ -9839,7 +9824,7 @@ export default function ExpeditionJourney({
       return;
     }
     if (prop.type === 'generated-climb-structure') {
-      drawForgottenMuralGeneratedAsset(ctx, getGeneratedStoryPropRenderProp(prop), x, section, now);
+      drawForgottenMuralGeneratedAsset(ctx, getGeneratedStoryPropRenderProp(prop), x);
       ctx.restore();
       return;
     }
@@ -16738,7 +16723,7 @@ export default function ExpeditionJourney({
       player.knockbackTimer = player.knockbackMaxTimer;
       player.knockbackDirection = direction;
       player.vx = approach(player.vx, direction * 95 * effectiveKnockbackMultiplier, 160);
-      current.hitStopTimer = Math.max(current.hitStopTimer, 0.055);
+      current.hitStopTimer = Math.max(current.hitStopTimer, 0.075);
       current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.2);
       current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.4);
       current.notice = `${message} -${amount} stamina.${isLowStamina(current, maxStamina) ? ` ${LOW_STAMINA_WARNING}` : ''}`;
@@ -16996,9 +16981,9 @@ export default function ExpeditionJourney({
               knockbackMultiplier: isHeavyHit ? (batKnockback * 1.4) : batKnockback,
             });
             if (isHeavyHit) {
-              current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.32);
-              current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.58);
-              current.hitStopTimer = Math.max(current.hitStopTimer, 0.075);
+              current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.36);
+              current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.65);
+              current.hitStopTimer = Math.max(current.hitStopTimer, 0.10);
             }
             if (e.type === 'snake' && !player.poisonTimer) {
               player.poisonTimer = 4.0;
@@ -17118,12 +17103,12 @@ export default function ExpeditionJourney({
         e.attackRecovery = isParry ? 0.6 : (exhausted ? 0.22 : 0.45);
         e.vulnerabilityTimer = isParry ? 0.55 : 0.35;
         e.shieldTimer = 0;
-        e.knockbackTimer = isParry ? 0.42 : 0.32;
+        e.knockbackTimer = isParry ? 0.48 : 0.38;
         e.knockbackDirection = player.direction;
-        e.x += player.direction * (isParry ? 46 : 32);
-        current.hitStopTimer = Math.max(current.hitStopTimer, e.health <= 0 ? 0.1 : (isParry ? 0.12 : 0.075));
-        current.cameraShakeTimer = Math.max(current.cameraShakeTimer, isParry ? 0.14 : 0.09);
-        current.cameraShakeStrength = Math.max(current.cameraShakeStrength, e.health <= 0 ? 0.22 : (isParry ? 0.28 : 0.15));
+        e.x += player.direction * (isParry ? 72 : 52);
+        current.hitStopTimer = Math.max(current.hitStopTimer, e.health <= 0 ? 0.12 : (isParry ? 0.15 : 0.10));
+        current.cameraShakeTimer = Math.max(current.cameraShakeTimer, isParry ? 0.16 : 0.11);
+        current.cameraShakeStrength = Math.max(current.cameraShakeStrength, e.health <= 0 ? 0.26 : (isParry ? 0.35 : 0.20));
         if (isParry && e.health > 0) {
           addCombatEffect(current, {
             type: 'parry-burst',
@@ -17434,12 +17419,12 @@ export default function ExpeditionJourney({
         b.attackRecovery = 0.75;
         b.vulnerabilityTimer = 0.55;
         b.shieldTimer = 0;
-        b.knockbackTimer = 0.28;
+        b.knockbackTimer = 0.36;
         b.knockbackDirection = player.direction;
-        b.x += player.direction * 22;
-        current.hitStopTimer = Math.max(current.hitStopTimer, b.health <= 0 ? 0.11 : 0.085);
-        current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.1);
-        current.cameraShakeStrength = Math.max(current.cameraShakeStrength, b.health <= 0 ? 0.28 : 0.18);
+        b.x += player.direction * 34;
+        current.hitStopTimer = Math.max(current.hitStopTimer, b.health <= 0 ? 0.14 : 0.11);
+        current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.12);
+        current.cameraShakeStrength = Math.max(current.cameraShakeStrength, b.health <= 0 ? 0.32 : 0.24);
         addCombatEffect(current, {
           type: b.health <= 0 ? 'boss-defeat' : 'combat-impact',
           x: b.x + b.width / 2,
