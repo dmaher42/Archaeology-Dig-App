@@ -323,6 +323,7 @@ test('journey prop editor palette includes reusable Lost Site prop registry entr
       assetPath: 'assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/cracked_stone_blocks.png',
       defaultScale: 1,
       defaultLayer: 'foreground',
+      defaultShadowOpacity: 0,
       collidable: false,
       inspectable: false,
     },
@@ -341,6 +342,7 @@ test('journey prop editor palette includes reusable Lost Site prop registry entr
         atmosphereAssetKey: 'cracked_stone_blocks',
         scale: 1,
         layer: 'foreground',
+        shadowOpacity: 0,
       },
     },
   ]);

@@ -1,0 +1,83 @@
+{
+  "image": "desert-scarab-intimidating-sprites-heavy-windup-2026-06-02.png",
+  "source": "ImageGen-created scarab sheet with premium Heavy Charge windup frames appended after visual and alpha validation; original runtime atlas kept as fallback.",
+  "coordinateNote": "Four-by-two transparent atlas. Frames preserve scarabIdle, scarabWalk1-3, scarabWindup, scarabAttack, scarabHit, and scarabDefeated keys for the canonical enemy loader. Added a premium heavy-windup row using the first two cells of the appended row.",
+  "regions": {
+    "scarabIdle": {
+      "x": 0,
+      "y": 0,
+      "w": 430,
+      "h": 300
+    },
+    "scarabWalk1": {
+      "x": 430,
+      "y": 0,
+      "w": 430,
+      "h": 300
+    },
+    "scarabWalk2": {
+      "x": 860,
+      "y": 0,
+      "w": 430,
+      "h": 300
+    },
+    "scarabWalk3": {
+      "x": 1290,
+      "y": 0,
+      "w": 430,
+      "h": 300
+    },
+    "scarabWindup": {
+      "x": 0,
+      "y": 300,
+      "w": 430,
+      "h": 300
+    },
+    "scarabAttack": {
+      "x": 430,
+      "y": 300,
+      "w": 430,
+      "h": 300
+    },
+    "scarabHit": {
+      "x": 860,
+      "y": 300,
+      "w": 430,
+      "h": 300
+    },
+    "scarabDefeated": {
+      "x": 1290,
+      "y": 300,
+      "w": 430,
+      "h": 300
+    },
+    "scarabCrawl1": {
+      "x": 430,
+      "y": 0,
+      "w": 430,
+      "h": 300
+    },
+    "scarabCrawl2": {
+      "x": 860,
+      "y": 0,
+      "w": 430,
+      "h": 300
+    },
+    "scarabHeavyWindup1": {
+      "x": 0,
+      "y": 600,
+      "w": 430,
+      "h": 300
+    },
+    "scarabHeavyWindup2": {
+      "x": 430,
+      "y": 600,
+      "w": 430,
+      "h": 300
+    }
+  },
+  "frameContract": [
+    "scarabHeavyWindup1",
+    "scarabHeavyWindup2"
+  ]
+}

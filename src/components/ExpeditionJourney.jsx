@@ -3002,6 +3002,7 @@ export default function ExpeditionJourney({
     routeGateDoorwayEdits: {},
     checkpointEdits: {},
     miniBossEdits: {},
+    lockedItems: new Set(),
     deletedIds: new Set(),
     deletedPlatformIds: new Set(),
     deletedHazardIds: new Set(),
@@ -3024,6 +3025,9 @@ export default function ExpeditionJourney({
     selectedPaletteCategory: 'prop',
     showTrapTriggers: true,
     palette: [],
+    selectedLockKey: null,
+    selectedLocked: false,
+    lockedCount: 0,
     unsavedChangeSummary: createJourneyPlacementChangeSummary(),
     exportText: '',
     exportVisible: false,
@@ -3342,6 +3346,25 @@ export default function ExpeditionJourney({
     return getEditedMiniBoss(getMiniBossEditorBaseBossById(editor.selectedLairId));
   }, [getEditedMiniBoss, getMiniBossEditorBaseBossById]);
 
+  const getSelectedEditorLockKey = useCallback(() => {
+    const editor = propPlacementEditorRef.current;
+    if (editor.selectedPropId) return `prop:${editor.selectedPropId}`;
+    if (editor.selectedPlatformId) return `platform:${editor.selectedPlatformId}`;
+    if (editor.selectedHazardId) return `hazard:${editor.selectedHazardId}`;
+    if (editor.selectedArchId) return `arch:${editor.selectedArchId}`;
+    if (editor.selectedCheckpointId) return `checkpoint:${editor.selectedCheckpointId}`;
+    if (editor.selectedLairId) return `lair:${editor.selectedLairId}`;
+    return null;
+  }, []);
+
+  const isEditorLockKeyLocked = useCallback((lockKey) => (
+    Boolean(lockKey && propPlacementEditorRef.current.lockedItems.has(lockKey))
+  ), []);
+
+  const isEditorEntityLocked = useCallback((kind, id) => (
+    Boolean(kind && id && propPlacementEditorRef.current.lockedItems.has(`${kind}:${id}`))
+  ), []);
+
   const getLairEditorBounds = useCallback((boss, cameraX) => {
     const placement = getScarabQueenLairPlacement(boss);
     return {
@@ -3625,6 +3648,19 @@ export default function ExpeditionJourney({
     const palette = paletteSource
       .map(item => ({ ...item, preview: getPropPalettePreview(item) }))
       .filter(item => item.preview);
+    const selectedLockKey = prop
+      ? `prop:${prop.id}`
+      : platform
+        ? `platform:${platform.id || platform.label}`
+      : hazard
+        ? `hazard:${hazard.id}`
+      : arch
+        ? `arch:${arch.editorId}`
+      : checkpoint
+        ? `checkpoint:${checkpoint.id}`
+      : lair
+        ? `lair:${lair.id}`
+      : null;
     return {
       enabled: editor.enabled,
       selectedProp: prop ? {
@@ -3720,6 +3756,9 @@ export default function ExpeditionJourney({
       selectedPaletteCategory: editor.selectedPaletteCategory,
       showTrapTriggers: editor.showTrapTriggers,
       palette,
+      selectedLockKey,
+      selectedLocked: Boolean(selectedLockKey && editor.lockedItems.has(selectedLockKey)),
+      lockedCount: editor.lockedItems.size,
       unsavedChangeSummary: createJourneyPlacementChangeSummary(editor),
       exportText: editor.exportText,
       exportVisible: editor.exportVisible,
@@ -3730,6 +3769,19 @@ export default function ExpeditionJourney({
   const refreshPropEditorUi = useCallback(() => {
     setPropEditorUi(getPropEditorUiState());
   }, [getPropEditorUiState]);
+
+  const toggleSelectedEditorLock = useCallback(() => {
+    const editor = propPlacementEditorRef.current;
+    const lockKey = getSelectedEditorLockKey();
+    if (!lockKey) return;
+    if (editor.lockedItems.has(lockKey)) {
+      editor.lockedItems.delete(lockKey);
+    } else {
+      editor.lockedItems.add(lockKey);
+      editor.dragging = null;
+    }
+    refreshPropEditorUi();
+  }, [getSelectedEditorLockKey, refreshPropEditorUi]);
 
   const getPropEditorPointer = useCallback((event) => {
     const canvas = canvasRef.current;

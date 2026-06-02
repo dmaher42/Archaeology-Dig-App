@@ -26,6 +26,14 @@ const journeyPlacementOverrides = {
       "label": "sealed guardian warning plinth"
     },
     {
+      "id": "opening-warrior-guide-marker",
+      "sectionId": "desert-entry",
+      "type": "guardian-seal",
+      "x": 1141,
+      "y": 551,
+      "label": "warrior-guide protective seal marker"
+    },
+    {
       "id": "early-scarab-seal-pedestal",
       "sectionId": "desert-entry",
       "type": "sacred-pedestal",
@@ -53,7 +61,7 @@ const journeyPlacementOverrides = {
       "id": "mummification-chamber-exterior-structure",
       "sectionId": "desert-entry",
       "type": "generated-mummification-chamber-entrance",
-      "x": 3573,
+      "x": 3574,
       "y": -222,
       "width": 1500,
       "height": 760,
@@ -283,10 +291,10 @@ const journeyPlacementOverrides = {
       "sandOverlapHeight": 7,
       "label": "generated premium carved threshold slab beyond the first guardian route",
       "yOffset": 28,
-      "scale": 2.25,
-      "brightness": 1.15,
       "depth": "route-edge",
-      "layer": "route-edge"
+      "layer": "route-edge",
+      "scale": 2.25,
+      "brightness": 1.15
     },
     {
       "id": "desert-entry-premium-column-1",
@@ -305,13 +313,13 @@ const journeyPlacementOverrides = {
       "groundPebbles": 4,
       "label": "generated premium carved fallen column in open sand after the pyramid",
       "yOffset": -11,
+      "depth": "route-edge",
+      "layer": "route-edge",
+      "zIndex": -38,
       "scale": 1.45,
       "rotation": 40,
       "mirrorX": true,
-      "brightness": 1.15,
-      "depth": "route-edge",
-      "layer": "route-edge",
-      "zIndex": -38
+      "brightness": 1.15
     },
     {
       "id": "desert-entry-premium-pillar-caps-1",
@@ -330,11 +338,78 @@ const journeyPlacementOverrides = {
       "groundPebbles": 3,
       "label": "generated premium pillar-cap ruins in open sand after the pyramid",
       "yOffset": 5,
-      "scale": 1.25,
-      "mirrorX": false,
       "depth": "route-edge",
       "layer": "route-edge",
-      "zIndex": 42
+      "zIndex": 42,
+      "scale": 1.25,
+      "mirrorX": false
+    },
+    {
+      "id": "desert-entry-sand-piles-1",
+      "sectionId": "desert-entry",
+      "type": "atmosphere-prop",
+      "atmosphereAssetKey": "sand_piles",
+      "scale": 1.8,
+      "layer": "route-edge",
+      "x": 2919,
+      "y": 623,
+      "label": "sand piles",
+      "height": 65,
+      "brightness": 1.15,
+      "depth": "route-edge"
+    },
+    {
+      "id": "desert-entry-rubble-mounds-1",
+      "sectionId": "desert-entry",
+      "type": "atmosphere-prop",
+      "atmosphereAssetKey": "rubble_mounds",
+      "scale": 1.1,
+      "layer": "route-edge",
+      "x": 2845,
+      "y": 607,
+      "label": "rubble mounds",
+      "depth": "route-edge"
+    },
+    {
+      "id": "desert-entry-broken-pottery-1",
+      "sectionId": "desert-entry",
+      "type": "atmosphere-prop",
+      "atmosphereAssetKey": "broken_pottery",
+      "scale": 1,
+      "layer": "ruin-detail",
+      "x": 3110,
+      "y": 421,
+      "label": "broken pottery",
+      "depth": "route-edge"
+    },
+    {
+      "id": "desert-entry-cracked-stone-blocks-1",
+      "sectionId": "desert-entry",
+      "type": "atmosphere-prop",
+      "atmosphereAssetKey": "cracked_stone_blocks",
+      "scale": 1.15,
+      "layer": "route-edge",
+      "x": 2775,
+      "y": 543,
+      "label": "cracked stone blocks",
+      "rotation": 10,
+      "brightness": 1.1,
+      "shadowOpacity": 0,
+      "depth": "route-edge"
+    },
+    {
+      "id": "desert-entry-cracked-stone-blocks-2",
+      "sectionId": "desert-entry",
+      "type": "atmosphere-prop",
+      "atmosphereAssetKey": "cracked_stone_blocks",
+      "scale": 1.15,
+      "layer": "route-edge",
+      "x": 2720,
+      "y": 589,
+      "label": "cracked stone blocks",
+      "brightness": 1.1,
+      "shadowOpacity": 0,
+      "depth": "route-edge"
     }
   ],
   "deletedPropIds": [],
@@ -724,6 +799,17 @@ const journeyPlacementOverrides = {
       "layer": "platform",
       "x": 1813,
       "y": 480
+    },
+    {
+      "id": "desert-entry-platform-3",
+      "sectionId": "desert-entry",
+      "width": 99,
+      "height": 15,
+      "label": "editable platform",
+      "invisible": true,
+      "layer": "platform",
+      "x": 2697,
+      "y": 507
     }
   ],
   "deletedPlatformIds": [],
@@ -768,6 +854,19 @@ const journeyPlacementOverrides = {
       "message": "Thorn scrub slowed the team. Stamina reduced."
     },
     {
+      "id": "opening-seal-reset-trap",
+      "name": "buried spike trap",
+      "emoji": "!",
+      "x": 1413,
+      "y": 575,
+      "width": 87,
+      "height": 16,
+      "penalty": {
+        "stamina": 8
+      },
+      "message": "Buried spikes jabbed out of the sand. Jump cleanly over them."
+    },
+    {
       "id": "entry-pressure-plate",
       "name": "pressure plate dart launcher",
       "emoji": "!",
@@ -794,9 +893,10 @@ const journeyPlacementOverrides = {
         "time": 3
       },
       "message": "A carved pressure plate shuddered. A wall dart snapped from a hidden launcher.",
+      "sectionId": "desert-entry",
       "linkedObjectIds": [],
       "editorVisible": true,
-      "sectionId": "desert-entry"
+      "roomId": "desert-entry"
     },
     {
       "id": "entry-cracked-floor-trap",
@@ -821,9 +921,10 @@ const journeyPlacementOverrides = {
         "stamina": 9
       },
       "message": "Cracked floor stones shook, then gave way underfoot.",
+      "sectionId": "desert-entry",
       "linkedObjectIds": [],
       "editorVisible": true,
-      "sectionId": "desert-entry"
+      "roomId": "desert-entry"
     },
     {
       "id": "sand-pit",
@@ -851,8 +952,9 @@ const journeyPlacementOverrides = {
         "time": 9
       },
       "message": "The disturbed sand gave way beneath Asha.",
+      "sectionId": "desert-entry",
       "editorVisible": true,
-      "sectionId": "desert-entry"
+      "roomId": "desert-entry"
     },
     {
       "id": "desert-soft-ridge",
