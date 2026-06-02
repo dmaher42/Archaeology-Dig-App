@@ -617,7 +617,7 @@ const FORGOTTEN_MURAL_RELIC_SLIDE_PUZZLE_ART_SRC = 'assets/expedition/environmen
 const FORGOTTEN_MURAL_HIDDEN_MEMORY_REVEAL_SRC = 'assets/expedition/environment/desert-temple/forgotten-mural-hidden-memory-reveal-2026-06-01.png';
 const SCRIBE_CHAMBER_EXTERIOR_SRC = 'assets/expedition/environment/desert-temple/scribe-locked-chamber-exterior-climb-structure.png';
 const SCRIBE_CHAMBER_INTERIOR_SRC = 'assets/expedition/environment/desert-temple/scribe-locked-chamber-interior-2026-06-01.png';
-const DESERT_ENTRY_BURIED_CAUSEWAY_GROUND_SRC = 'assets/expedition/backgrounds/desert-entry/desert-entry-buried-causeway-ground.png';
+const DESERT_ENTRY_BURIED_CAUSEWAY_GROUND_SRC = 'assets/expedition/backgrounds/desert-entry/desert-entry-premium-causeway-lane.png';
 const SACRED_RECORD_WAY_BACKGROUND_ASSETS = {
   'mummification-link': 'assets/expedition/environment/desert-temple/sacred-record-way-mummification-link.png',
   'mural-link': 'assets/expedition/environment/desert-temple/sacred-record-way-mural-link.png',
@@ -642,7 +642,7 @@ const FORGOTTEN_MURAL_CHAMBER_VERSION = 'imagegen-forgotten-mural-chamber-2026-0
 const FORGOTTEN_MURAL_HIDDEN_MEMORY_REVEAL_VERSION = 'imagegen-forgotten-mural-hidden-memory-reveal-2026-06-01';
 const SCRIBE_CHAMBER_EXTERIOR_VERSION = 'imagegen-scribe-locked-chamber-exterior-asset-sheet-replacement-2026-06-01';
 const SCRIBE_CHAMBER_INTERIOR_VERSION = 'imagegen-scribe-locked-chamber-interior-2026-06-01';
-const DESERT_ENTRY_BURIED_CAUSEWAY_GROUND_VERSION = 'png-buried-stone-causeway-ground-strip-2026-06-01';
+const DESERT_ENTRY_BURIED_CAUSEWAY_GROUND_VERSION = 'png-premium-causeway-lane-2026-06-02';
 const SACRED_RECORD_WAY_BACKGROUND_VERSION = 'imagegen-sacred-record-way-background-2026-05-29';
 const FORGOTTEN_MURAL_CHAMBER_RESTORATION_IDS = ['egypt-scarab-fragment-1', 'egypt-scarab-fragment-2', 'egypt-scarab-fragment-3'];
 const OPENING_PYRAMID_FACADE_WORLD_LEFT_X = -82;
@@ -1563,6 +1563,188 @@ const ENEMY_ATTACK_PATTERNS = {
   },
 };
 
+const HEAVY_ATTACK_PATTERNS = {
+  scarab: {
+    ...DEFAULT_ENEMY_ATTACK_PATTERN,
+    id: 'heavy-charge',
+    label: 'Heavy Charge',
+    windup: 0.82,
+    duration: 0.38,
+    cooldown: 2.1,
+    recovery: 0.78,
+    vulnerableAfter: 0.9,
+    speed: 240,
+    range: 44,
+    damageScale: 1.9,
+    shieldDuringWindup: true,
+    protectedDuringWindup: true,
+    color: '#b45309',
+  },
+  scorpion: {
+    ...DEFAULT_ENEMY_ATTACK_PATTERN,
+    id: 'power-sting',
+    label: 'Power Sting',
+    windup: 1.0,
+    duration: 0.36,
+    cooldown: 2.2,
+    recovery: 0.88,
+    vulnerableAfter: 0.96,
+    speed: 48,
+    range: 32,
+    height: 68,
+    yOffset: -38,
+    backReach: 44,
+    damageScale: 2.1,
+    shieldDuringWindup: true,
+    protectedDuringWindup: true,
+    color: '#b45309',
+  },
+  snake: {
+    ...DEFAULT_ENEMY_ATTACK_PATTERN,
+    id: 'deep-lunge',
+    label: 'Deep Lunge',
+    windup: 0.9,
+    duration: 0.32,
+    cooldown: 2.0,
+    recovery: 0.82,
+    vulnerableAfter: 0.88,
+    speed: 220,
+    range: 72,
+    damageScale: 1.9,
+    shieldDuringWindup: false,
+    protectedDuringWindup: false,
+    color: '#b45309',
+  },
+  bat: {
+    ...DEFAULT_ENEMY_ATTACK_PATTERN,
+    id: 'dive-swoop',
+    label: 'Dive Swoop',
+    windup: 0.72,
+    duration: 0.38,
+    cooldown: 1.9,
+    recovery: 0.68,
+    vulnerableAfter: 0.76,
+    speed: 260,
+    range: 50,
+    height: 40,
+    damageScale: 1.8,
+    shieldDuringWindup: false,
+    protectedDuringWindup: false,
+    color: '#b45309',
+  },
+  'sand-wisp': {
+    ...DEFAULT_ENEMY_ATTACK_PATTERN,
+    id: 'sand-storm-burst',
+    label: 'Sand Storm',
+    windup: 0.86,
+    duration: 0.3,
+    cooldown: 2.1,
+    recovery: 0.78,
+    vulnerableAfter: 0.84,
+    speed: 180,
+    range: 56,
+    height: 44,
+    damageScale: 1.8,
+    shieldDuringWindup: false,
+    protectedDuringWindup: false,
+    color: '#b45309',
+  },
+  guardian: {
+    ...DEFAULT_ENEMY_ATTACK_PATTERN,
+    id: 'heavy-slam',
+    label: 'Heavy Slam',
+    windup: 1.2,
+    duration: 0.48,
+    cooldown: 2.6,
+    recovery: 1.2,
+    vulnerableAfter: 1.3,
+    speed: 44,
+    range: 62,
+    height: 40,
+    damageScale: 2.2,
+    shieldDuringWindup: true,
+    protectedDuringWindup: true,
+    color: '#92400e',
+  },
+  mummy: {
+    ...DEFAULT_ENEMY_ATTACK_PATTERN,
+    id: 'khopesh-cleave',
+    label: 'Khopesh Cleave',
+    windup: 1.1,
+    duration: 0.44,
+    cooldown: 2.5,
+    recovery: 1.1,
+    vulnerableAfter: 1.2,
+    speed: 50,
+    range: 58,
+    height: 72,
+    yOffset: -28,
+    backReach: 32,
+    damageScale: 2.2,
+    shieldDuringWindup: true,
+    protectedDuringWindup: true,
+    color: '#92400e',
+  },
+  looter: {
+    ...DEFAULT_ENEMY_ATTACK_PATTERN,
+    id: 'ambush-dash',
+    label: 'Ambush',
+    windup: 0.22,
+    duration: 0.28,
+    cooldown: 1.8,
+    recovery: 0.5,
+    vulnerableAfter: 0.56,
+    speed: 240,
+    range: 48,
+    damageScale: 1.7,
+    shieldDuringWindup: false,
+    protectedDuringWindup: false,
+    color: '#b45309',
+  },
+  bes: {
+    ...DEFAULT_ENEMY_ATTACK_PATTERN,
+    id: 'bes-heavy-swipe',
+    label: 'Heavy Swipe',
+    windup: 1.1,
+    duration: 0.42,
+    cooldown: 2.4,
+    recovery: 1.1,
+    vulnerableAfter: 1.2,
+    speed: 62,
+    range: 64,
+    height: 76,
+    yOffset: -32,
+    backReach: 34,
+    damageScale: 2.3,
+    shieldDuringWindup: true,
+    protectedDuringWindup: true,
+    color: '#92400e',
+  },
+  statue: {
+    ...DEFAULT_ENEMY_ATTACK_PATTERN,
+    id: 'pulse-slam-heavy',
+    label: 'Curse Slam',
+    windup: 1.3,
+    duration: 0.52,
+    cooldown: 2.8,
+    recovery: 1.2,
+    vulnerableAfter: 1.3,
+    speed: 38,
+    range: 64,
+    height: 40,
+    damageScale: 2.4,
+    shieldDuringWindup: true,
+    protectedDuringWindup: true,
+    color: '#92400e',
+  },
+};
+
+// How many normal attacks before the heavy fires (resets after each heavy)
+const HEAVY_ATTACK_INTERVAL = {
+  scarab: 3, scorpion: 3, snake: 3, bat: 3, 'sand-wisp': 3,
+  guardian: 2, mummy: 2, bes: 2, statue: 2, looter: 3,
+};
+
 const ENEMY_TYPE_STAKE_MESSAGES = {
   scarab: 'Scarab charges. Move or jump, then strike.',
   scorpion: 'Scorpion tails block the path. Defeat them before moving forward.',
@@ -2380,6 +2562,22 @@ const getStoryPropPlacementPreset = (prop) => (
   prop?.placementPreset ? PROP_PLACEMENT_PRESETS[prop.placementPreset] || null : null
 );
 
+const getStoryPropExplicitGroundY = (propSize = {}) => {
+  if (Number.isFinite(propSize.groundPlaneY)) return propSize.groundPlaneY;
+  if (Number.isFinite(propSize.groundPlaneOffset)) return GROUND_Y + propSize.groundPlaneOffset;
+  return null;
+};
+
+const getStoryPropAnchorY = (prop, propSize, shouldGroundLock) => {
+  const yOffset = Number.isFinite(propSize.yOffset) ? propSize.yOffset : 0;
+  const rawAnchorY = prop.y + yOffset;
+  const explicitGroundY = getStoryPropExplicitGroundY(propSize);
+  if (Number.isFinite(explicitGroundY)) return explicitGroundY + yOffset;
+  return shouldGroundLock
+    ? Math.max(rawAnchorY, GROUND_Y - ATMOSPHERE_GROUND_LOCK_MARGIN)
+    : rawAnchorY;
+};
+
 const getStoryPropDepth = (prop) => {
   if (['background', 'midground', 'grounded', 'route-edge'].includes(prop.depth)) return prop.depth;
   const placementPreset = getStoryPropPlacementPreset(prop);
@@ -2484,15 +2682,7 @@ const getStoryPropEditorBounds = (prop, cameraX, current) => {
   }
   const shouldGroundLock = shouldGroundLockAtmosphereProp(prop, propDepth);
   const propGrounding = resolvePropGroundingSettings({ ...propSize, x: prop.x });
-  const rawAnchorY = prop.y + (propSize.yOffset || 0);
-  const explicitGroundY = Number.isFinite(propSize.groundPlaneY)
-    ? propSize.groundPlaneY
-    : Number.isFinite(propSize.groundPlaneOffset)
-      ? GROUND_Y + propSize.groundPlaneOffset
-      : null;
-  const anchorY = explicitGroundY ?? (shouldGroundLock
-    ? Math.max(rawAnchorY, GROUND_Y - ATMOSPHERE_GROUND_LOCK_MARGIN)
-    : rawAnchorY);
+  const anchorY = getStoryPropAnchorY(prop, propSize, shouldGroundLock);
   return {
     x: x - propSize.width / 2,
     y: anchorY - propSize.height * propGrounding.contactRatio + verticalOffset,
@@ -3646,16 +3836,29 @@ export default function ExpeditionJourney({
 
   const getHazardEditorExistingIds = useCallback(() => getAllPropEditorHazards().map(hazard => hazard.id), [getAllPropEditorHazards]);
 
+  const getGroundAwareStoryPropEditorEdit = useCallback((prop, edit = {}) => {
+    const nextEdit = { ...edit };
+    if (!Number.isFinite(edit.y)) return nextEdit;
+    const nextProp = { ...prop, ...edit };
+    const nextSize = getStoryPropEditorSize(nextProp);
+    const explicitGroundY = getStoryPropExplicitGroundY(nextSize);
+    if (Number.isFinite(explicitGroundY)) {
+      nextEdit.yOffset = Math.round(edit.y - explicitGroundY);
+    }
+    return nextEdit;
+  }, []);
+
   const updateSelectedPropEditorTransform = useCallback((edit) => {
     const editor = propPlacementEditorRef.current;
     const selectedProp = getPropEditorSelectedProp();
     if (!selectedProp) return;
+    const nextEdit = getGroundAwareStoryPropEditorEdit(selectedProp, edit);
     editor.edits[selectedProp.id] = {
       ...(editor.edits[selectedProp.id] || {}),
-      ...edit,
+      ...nextEdit,
     };
     refreshPropEditorUi();
-  }, [getPropEditorSelectedProp, refreshPropEditorUi]);
+  }, [getGroundAwareStoryPropEditorEdit, getPropEditorSelectedProp, refreshPropEditorUi]);
 
   const updateSelectedPlatformEditorTransform = useCallback((edit) => {
     const editor = propPlacementEditorRef.current;
@@ -3753,6 +3956,7 @@ export default function ExpeditionJourney({
       y: editor.gridSnap ? snapJourneyPropCoordinate(pointer.worldY, editor.gridSize) : Math.round(pointer.worldY),
       existingIds: getPropEditorExistingIds(),
     });
+    Object.assign(nextProp, getGroundAwareStoryPropEditorEdit(nextProp, { y: nextProp.y }));
     editor.createdProps.push(nextProp);
     editor.selectedPropId = nextProp.id;
     editor.selectedPlatformId = null;
@@ -3765,7 +3969,7 @@ export default function ExpeditionJourney({
     editor.deletedIds.delete(nextProp.id);
     refreshPropEditorUi();
     return nextProp;
-  }, [getActivePropEditorRoomId, getPropEditorExistingIds, propEditorPalette, refreshPropEditorUi]);
+  }, [getActivePropEditorRoomId, getGroundAwareStoryPropEditorEdit, getPropEditorExistingIds, propEditorPalette, refreshPropEditorUi]);
 
   const createTrapFromEditorPalette = useCallback((pointer) => {
     const editor = propPlacementEditorRef.current;
@@ -9582,15 +9786,7 @@ export default function ExpeditionJourney({
           : environmentAssetsRef.current;
       const drawX = x - propSize.width / 2;
       const propGrounding = resolvePropGroundingSettings({ ...propSize, x: propForAsset.x });
-      const rawAnchorY = prop.y + (propSize.yOffset || 0);
-      const explicitGroundY = Number.isFinite(propSize.groundPlaneY)
-        ? propSize.groundPlaneY
-        : Number.isFinite(propSize.groundPlaneOffset)
-          ? GROUND_Y + propSize.groundPlaneOffset
-          : null;
-      const anchorY = explicitGroundY ?? (shouldGroundLock
-        ? Math.max(rawAnchorY, GROUND_Y - ATMOSPHERE_GROUND_LOCK_MARGIN)
-        : rawAnchorY);
+      const anchorY = getStoryPropAnchorY(prop, propSize, shouldGroundLock);
       const drawY = anchorY - propSize.height * propGrounding.contactRatio;
       const shouldDrawPropShadow = propGrounding.shadowOpacity > 0;
       drawPropGroundContact(ctx, x, anchorY, propSize, section.id, propGrounding);
@@ -16732,7 +16928,19 @@ export default function ExpeditionJourney({
       }
 
       if (e.stunTimer <= 0 && e.attackTimer <= 0 && e.attackWindup <= 0 && enemyCanStartAttack && e.attackCooldown <= 0) {
-        const pattern = shouldUseVenomSpit ? SCORPION_VENOM_ATTACK_PATTERN : tacticalPattern;
+        e.attackCount = (e.attackCount || 0) + 1;
+        const heavyInterval = HEAVY_ATTACK_INTERVAL[e.type];
+        const isHeavyAttack = Boolean(
+          HEAVY_ATTACK_PATTERNS[e.type]
+          && heavyInterval
+          && e.attackCount % heavyInterval === 0
+          && !shouldUseVenomSpit,
+        );
+        const pattern = shouldUseVenomSpit
+          ? SCORPION_VENOM_ATTACK_PATTERN
+          : isHeavyAttack
+            ? HEAVY_ATTACK_PATTERNS[e.type]
+            : tacticalPattern;
         e.attackWindup = pattern.windup;
         e.attackDirection = attackDirectionToPlayer;
         e.attackHasHit = false;
@@ -16765,8 +16973,14 @@ export default function ExpeditionJourney({
             maxTimer: pattern.windup + pattern.duration,
           });
         }
+        if (isHeavyAttack) {
+          current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.14);
+          current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.18);
+        }
         if ((current.itemPurposeNoticeTimer || 0) <= 0 && (current.damageNoticeTimer || 0) <= 0) {
-          current.notice = `${e.name} winds up ${pattern.label}. Dodge, then counter.`;
+          current.notice = isHeavyAttack
+            ? `${e.name} — heavy ${pattern.label}. Stay back.`
+            : `${e.name} winds up ${pattern.label}. Dodge, then counter.`;
         }
       }
 
@@ -16791,10 +17005,16 @@ export default function ExpeditionJourney({
             applyPlayerVenomSlow(e, pattern);
           } else {
             const damageDirection = contact.direction || e.attackDirection || ((player.x + player.width / 2) >= (e.x + e.width / 2) ? 1 : -1);
-            const batKnockback = e.type === 'bat' ? 2.6 : (e.playerKnockbackMultiplier || 1);
+            const isHeavyHit = HEAVY_ATTACK_PATTERNS[e.type]?.id === pattern.id;
+            const batKnockback = e.type === 'bat' ? (isHeavyHit ? 3.4 : 2.6) : (e.playerKnockbackMultiplier || 1);
             applyPlayerDamage(Math.max(e.damage, Math.round(e.damage * (pattern.damageScale || 1))), `${e.name} hit you`, damageDirection, e.name, {
-              knockbackMultiplier: batKnockback,
+              knockbackMultiplier: isHeavyHit ? (batKnockback * 1.4) : batKnockback,
             });
+            if (isHeavyHit) {
+              current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.32);
+              current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.58);
+              current.hitStopTimer = Math.max(current.hitStopTimer, 0.075);
+            }
             if (e.type === 'snake' && !player.poisonTimer) {
               player.poisonTimer = 4.0;
               player.poisonTickTimer = 1.0;
@@ -18343,10 +18563,10 @@ export default function ExpeditionJourney({
         const rawY = pointer.worldY - editor.dragging.offsetY;
         const nextX = editor.gridSnap ? snapJourneyPropCoordinate(rawX, editor.gridSize) : Math.round(rawX);
         const nextY = editor.gridSnap ? snapJourneyPropCoordinate(rawY, editor.gridSize) : Math.round(rawY);
+        const nextEdit = getGroundAwareStoryPropEditorEdit(getEditedStoryProp(baseProp) || baseProp, { x: nextX, y: nextY });
         editor.edits[baseProp.id] = {
           ...(editor.edits[baseProp.id] || {}),
-          x: nextX,
-          y: nextY,
+          ...nextEdit,
         };
       }
       e.preventDefault();
