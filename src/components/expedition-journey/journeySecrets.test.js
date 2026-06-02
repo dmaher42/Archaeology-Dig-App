@@ -15,6 +15,7 @@ import {
   applyJourneyHazardPlacementEdit,
   applyJourneyHazardPlacementExportToHazards,
   createJourneyPropFromPaletteItem,
+  createJourneyPlacementChangeSummary,
   createJourneyPropPlacementExport,
   createJourneyPropPalette,
   duplicateJourneyPropForEditor,
@@ -225,6 +226,55 @@ test('journey prop placement export uses the existing STORY_PROPS object shape',
     layer: 'foreground',
     zIndex: 3,
   });
+});
+
+test('journey placement editor summarises unsaved changes before export', () => {
+  const summary = createJourneyPlacementChangeSummary({
+    edits: {
+      'tablet-a': { x: 120 },
+      'empty-edit': {},
+    },
+    platformEdits: {
+      'ledge-a': { y: 330 },
+    },
+    hazardEdits: {
+      'pit-a': { x: 420 },
+    },
+    routeGateEdits: {
+      'gate-a': { width: 220 },
+    },
+    routeGateDoorwayEdits: {
+      'doorway-a': { y: 500 },
+    },
+    checkpointEdits: {
+      'checkpoint-a': { x: 680 },
+    },
+    miniBossEdits: {
+      'scarab-queen': { lairX: 12149 },
+    },
+    createdProps: [{ id: 'new-statue' }],
+    createdHazards: [{ id: 'new-trap' }],
+    deletedIds: new Set(['old-marker']),
+    deletedPlatformIds: new Set(['old-ledge']),
+    deletedHazardIds: new Set(['old-pit']),
+  }, { limit: 6 });
+
+  assert.equal(summary.totalCount, 12);
+  assert.equal(summary.hiddenCount, 6);
+  assert.deepEqual(summary.entries.map(entry => entry.label), [
+    'Prop tablet-a edited',
+    'Prop new-statue added',
+    'Prop old-marker deleted',
+    'Platform ledge-a edited',
+    'Platform old-ledge deleted',
+    'Trap pit-a edited',
+  ]);
+});
+
+test('journey placement editor keeps export panel manual after selecting or moving items', () => {
+  assert.doesNotMatch(journeyComponentSource, /editor\.exportVisible\s*=\s*Boolean\(editor\.exportText\)/);
+  assert.match(journeyComponentSource, /createJourneyPlacementChangeSummary/);
+  assert.match(journeyComponentSource, /unsavedChangeSummary/);
 });
 
 test('journey prop editor palette derives reusable prop options from existing story props', () => {
@@ -3849,7 +3899,7 @@ test('jump contact only bounces enemies while attacks defeat them in three to fi
   assert.match(journeyComponentSource, /current\.notice = `\$\{enemy\.name\} bounced away\. Use J or K to defeat it\.`/);
   assert.doesNotMatch(journeyComponentSource, /const applyEnemyStomp = \(enemy\) => \{[\s\S]*?enemy\.health -= 1[\s\S]*?\};/);
   assert.doesNotMatch(journeyComponentSource, /const applyEnemyStomp = \(enemy\) => \{[\s\S]*?current\.defeatedEnemies\.add\(enemy\.id\)[\s\S]*?\};/);
-  assert.match(journeyComponentSource, /if \(attackRect && !current\.attackHitIds\.has\(e\.id\) && rectsOverlap\(attackRect, getAttackHurtbox\(e\)\)\) \{[\s\S]*?e\.health -= 1/);
+  assert.match(journeyComponentSource, /if \(attackRect && !current\.attackHitIds\.has\(e\.id\) && rectsOverlap\(attackRect, getAttackHurtbox\(e\)\)\) \{[\s\S]*?e\.health -= isParry \? 2 : 1/);
   assert.match(journeyUtilsSource, /if\s*\(enemy\.firstSealRouteRamp\)\s*return Math\.max\(3, enemy\.health\)/);
   assert.match(journeyUtilsSource, /return clamp\(Math\.max\(enemy\.health \+ bonus, Math\.ceil\(enemy\.health \* 1\.55\)\), 3, 5\)/);
 });

@@ -372,6 +372,58 @@ export const createJourneyPropPlacementExport = ({
   miniBosses: miniBosses.map(boss => ({ ...boss })),
 }, null, 2);
 
+const toJourneyEditorIdList = (value) => {
+  if (!value) return [];
+  if (value instanceof Set) return [...value].filter(Boolean);
+  if (Array.isArray(value)) return value.filter(Boolean);
+  return [];
+};
+
+const getJourneyEditorChangedObjectIds = (edits = {}) => Object.entries(edits)
+  .filter(([, edit]) => edit && Object.keys(edit).length > 0)
+  .map(([id]) => id)
+  .filter(Boolean);
+
+const getJourneyEditorCreatedIds = (items = []) => (Array.isArray(items) ? items : [])
+  .map(item => item?.id)
+  .filter(Boolean);
+
+const addJourneyEditorChangeEntries = (changes, label, action, ids = []) => {
+  ids.forEach((id) => {
+    changes.push({
+      key: `${label.toLowerCase()}:${action}:${id}`,
+      label: `${label} ${id} ${action}`,
+    });
+  });
+};
+
+export const createJourneyPlacementChangeSummary = (editor = {}, { limit = 8 } = {}) => {
+  const changes = [];
+
+  addJourneyEditorChangeEntries(changes, 'Prop', 'edited', getJourneyEditorChangedObjectIds(editor.edits));
+  addJourneyEditorChangeEntries(changes, 'Prop', 'added', getJourneyEditorCreatedIds(editor.createdProps));
+  addJourneyEditorChangeEntries(changes, 'Prop', 'deleted', toJourneyEditorIdList(editor.deletedIds));
+  addJourneyEditorChangeEntries(changes, 'Platform', 'edited', getJourneyEditorChangedObjectIds(editor.platformEdits));
+  addJourneyEditorChangeEntries(changes, 'Platform', 'deleted', toJourneyEditorIdList(editor.deletedPlatformIds));
+  addJourneyEditorChangeEntries(changes, 'Trap', 'edited', getJourneyEditorChangedObjectIds(editor.hazardEdits));
+  addJourneyEditorChangeEntries(changes, 'Trap', 'added', getJourneyEditorCreatedIds(editor.createdHazards));
+  addJourneyEditorChangeEntries(changes, 'Trap', 'deleted', toJourneyEditorIdList(editor.deletedHazardIds));
+  addJourneyEditorChangeEntries(changes, 'Route gate', 'edited', getJourneyEditorChangedObjectIds(editor.routeGateEdits));
+  addJourneyEditorChangeEntries(changes, 'Doorway arch', 'edited', getJourneyEditorChangedObjectIds(editor.routeGateDoorwayEdits));
+  addJourneyEditorChangeEntries(changes, 'Checkpoint', 'edited', getJourneyEditorChangedObjectIds(editor.checkpointEdits));
+  addJourneyEditorChangeEntries(changes, 'Lair', 'edited', getJourneyEditorChangedObjectIds(editor.miniBossEdits));
+
+  const totalCount = changes.length;
+  const visibleLimit = Math.max(0, Number.isFinite(limit) ? Math.round(limit) : 8);
+  const entries = changes.slice(0, visibleLimit);
+  return {
+    totalCount,
+    hiddenCount: Math.max(0, totalCount - entries.length),
+    entries,
+    hasChanges: totalCount > 0,
+  };
+};
+
 export const applyJourneyPropPlacementExportToProps = ({
   existingProps = [],
   exportData = {},

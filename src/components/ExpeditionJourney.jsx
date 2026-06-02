@@ -97,6 +97,7 @@ import {
   createJourneyTrapFromPaletteItem,
   createJourneyTrapPalette,
   createForgottenMuralRelicSlidePuzzleTiles,
+  createJourneyPlacementChangeSummary,
   createJourneyPropPlacementExport,
   DEFAULT_JOURNEY_PROP_EDITOR_ROTATION_STEP,
   DEFAULT_JOURNEY_PROP_EDITOR_GRID_SIZE,
@@ -1397,6 +1398,8 @@ const getHeroSpriteFrameKey = (current, atlas, now) => {
   const frame = Math.min(frameCount - 1, current.player.animationFrame ?? 0);
   return row.frames?.[frame] || null;
 };
+
+const PARRY_WINDOW_DURATION = 0.12;
 
 const DEFAULT_ENEMY_ATTACK_PATTERN = {
   id: 'strike',
@@ -3015,6 +3018,7 @@ export default function ExpeditionJourney({
     selectedPaletteCategory: 'prop',
     showTrapTriggers: true,
     palette: [],
+    unsavedChangeSummary: createJourneyPlacementChangeSummary(),
     exportText: '',
     exportVisible: false,
     savedAt: null,
@@ -3678,6 +3682,7 @@ export default function ExpeditionJourney({
       selectedPaletteCategory: editor.selectedPaletteCategory,
       showTrapTriggers: editor.showTrapTriggers,
       palette,
+      unsavedChangeSummary: createJourneyPlacementChangeSummary(editor),
       exportText: editor.exportText,
       exportVisible: editor.exportVisible,
       savedAt: editor.savedAt,
@@ -3800,7 +3805,7 @@ export default function ExpeditionJourney({
       delete editor.edits[selectedId];
       editor.selectedPropId = null;
       editor.dragging = null;
-      savePropPlacementExport();
+      refreshPropEditorUi();
       return;
     }
     const selectedPlatform = getPropEditorSelectedPlatform();
@@ -3812,7 +3817,7 @@ export default function ExpeditionJourney({
       delete editor.platformEdits[platformId];
       editor.selectedPlatformId = null;
       editor.dragging = null;
-      savePropPlacementExport();
+      refreshPropEditorUi();
       return;
     }
     const selectedHazard = getPropEditorSelectedHazard();
@@ -3828,9 +3833,9 @@ export default function ExpeditionJourney({
       delete editor.hazardEdits[selectedHazard.id];
       editor.selectedHazardId = null;
       editor.dragging = null;
-      savePropPlacementExport();
+      refreshPropEditorUi();
     }
-  }, [getHazardEditorRoomId, getPlatformEditorRoomId, getPropEditorSelectedHazard, getPropEditorSelectedPlatform, getPropEditorSelectedProp, savePropPlacementExport]);
+  }, [getHazardEditorRoomId, getPlatformEditorRoomId, getPropEditorSelectedHazard, getPropEditorSelectedPlatform, getPropEditorSelectedProp, refreshPropEditorUi]);
 
   const getPropEditorExistingIds = useCallback(() => getAllPropEditorStoryProps().map(prop => prop.id), [getAllPropEditorStoryProps]);
 
@@ -13266,6 +13271,34 @@ export default function ExpeditionJourney({
         ctx.restore();
         return;
       }
+      if (effect.type === 'parry-burst') {
+        const radius = 8 + (1 - progress) * 28;
+        ctx.globalAlpha = Math.max(0, progress * 0.76);
+        ctx.strokeStyle = effect.color || '#fbbf24';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.ellipse(x, y + 2, radius, radius * 0.54, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.globalAlpha = Math.max(0, progress * 0.44);
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.ellipse(x, y + 2, radius * 0.52, radius * 0.28, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.strokeStyle = '#fde68a';
+        ctx.lineWidth = 1.5;
+        for (let i = 0; i < 6; i += 1) {
+          const angle = (i / 6) * Math.PI * 2 - Math.PI / 6;
+          const inner = 5 + (1 - progress) * 6;
+          const outer = 13 + (1 - progress) * 20;
+          ctx.globalAlpha = Math.max(0, progress * 0.68);
+          ctx.beginPath();
+          ctx.moveTo(x + Math.cos(angle) * inner, y + Math.sin(angle) * inner * 0.54 + 2);
+          ctx.lineTo(x + Math.cos(angle) * outer, y + Math.sin(angle) * outer * 0.54 + 2);
+          ctx.stroke();
+        }
+        ctx.restore();
+        return;
+      }
       if (effect.type === 'enemy-guard-deflect') {
         const drawDeflectRing = (radius, alpha, lineWidth = 2) => {
           ctx.globalAlpha = Math.max(0, progress * alpha);
@@ -16947,7 +16980,13 @@ export default function ExpeditionJourney({
         }
         if (!e.attackHasHit && rectsOverlap(enemyAttackBox, playerBodyHitbox)) {
           e.attackHasHit = true;
-          if (pattern.slowDuration) {
+          const playerIsParrying = attackRect
+            && e.attackTimer <= PARRY_WINDOW_DURATION
+            && !current.attackHitIds.has(e.id)
+            && rectsOverlap(attackRect, getAttackHurtbox(e));
+          if (playerIsParrying) {
+            e.parried = true;
+          } else if (pattern.slowDuration) {
             applyPlayerVenomSlow(e, pattern);
           } else {
             const damageDirection = contact.direction || e.attackDirection || ((player.x + player.width / 2) >= (e.x + e.width / 2) ? 1 : -1);
@@ -17060,29 +17099,41 @@ export default function ExpeditionJourney({
           audioControls?.playExpeditionSfx?.('combatDeflect', { volume: 0.68 });
           return;
         }
-        e.health -= 1;
+        const isParry = e.parried || (e.attackTimer > 0 && e.attackTimer <= PARRY_WINDOW_DURATION);
+        e.parried = false;
+        e.health -= isParry ? 2 : 1;
         if (!current.attackRewarded) {
-          current.resources.stamina = Math.min(current.upgradeEffects?.maxStamina || 100, current.resources.stamina + 1);
+          current.resources.stamina = Math.min(current.upgradeEffects?.maxStamina || 100, current.resources.stamina + (isParry ? 8 : 1));
           current.attackRewarded = true;
         }
-        current.lastAttackResult = e.vulnerabilityTimer > 0 || e.attackRecovery > 0 ? 'counter-hit' : 'hit';
+        current.lastAttackResult = isParry ? 'parry' : (e.vulnerabilityTimer > 0 || e.attackRecovery > 0 ? 'counter-hit' : 'hit');
         current.shieldedHitFeedback = '';
         const exhausted = current.resources.stamina > 0 && current.resources.stamina < 25;
-        e.stunTimer = exhausted ? 0.38 : 0.8;
-        e.hitFlash = 0.34;
+        e.stunTimer = isParry ? 1.4 : (exhausted ? 0.38 : 0.8);
+        e.hitFlash = isParry ? 0.5 : 0.34;
         e.attackWindup = 0;
         e.attackTimer = 0;
         e.attackReady = false;
-        e.attackCooldown = Math.max(e.attackCooldown, exhausted ? 0.32 : 0.6);
-        e.attackRecovery = exhausted ? 0.22 : 0.45;
-        e.vulnerabilityTimer = 0.35;
+        e.attackCooldown = Math.max(e.attackCooldown, isParry ? 1.4 : (exhausted ? 0.32 : 0.6));
+        e.attackRecovery = isParry ? 0.6 : (exhausted ? 0.22 : 0.45);
+        e.vulnerabilityTimer = isParry ? 0.55 : 0.35;
         e.shieldTimer = 0;
-        e.knockbackTimer = 0.32;
+        e.knockbackTimer = isParry ? 0.42 : 0.32;
         e.knockbackDirection = player.direction;
-        e.x += player.direction * 32;
-        current.hitStopTimer = Math.max(current.hitStopTimer, e.health <= 0 ? 0.1 : 0.075);
-        current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.09);
-        current.cameraShakeStrength = Math.max(current.cameraShakeStrength, e.health <= 0 ? 0.22 : 0.15);
+        e.x += player.direction * (isParry ? 46 : 32);
+        current.hitStopTimer = Math.max(current.hitStopTimer, e.health <= 0 ? 0.1 : (isParry ? 0.12 : 0.075));
+        current.cameraShakeTimer = Math.max(current.cameraShakeTimer, isParry ? 0.14 : 0.09);
+        current.cameraShakeStrength = Math.max(current.cameraShakeStrength, e.health <= 0 ? 0.22 : (isParry ? 0.28 : 0.15));
+        if (isParry && e.health > 0) {
+          addCombatEffect(current, {
+            type: 'parry-burst',
+            x: e.x + e.width / 2,
+            y: e.y + e.height / 2,
+            color: '#fbbf24',
+            timer: 0.4,
+            maxTimer: 0.4,
+          });
+        }
         addCombatEffect(current, {
           type: e.health <= 0 ? 'defeat' : 'combat-impact',
           x: e.x + e.width / 2,
@@ -17095,13 +17146,14 @@ export default function ExpeditionJourney({
           x: e.x + e.width / 2 - player.direction * 6,
           y: e.y + e.height * 0.42,
           direction: player.direction,
-          color: current.lastAttackResult === 'counter-hit' ? '#bbf7d0' : '#e2d5c0',
-          fill: current.lastAttackResult === 'counter-hit' ? 'rgba(34, 197, 94, 0.18)' : 'rgba(190, 168, 128, 0.18)',
+          color: current.lastAttackResult === 'parry' ? '#fde68a' : (current.lastAttackResult === 'counter-hit' ? '#bbf7d0' : '#e2d5c0'),
+          fill: current.lastAttackResult === 'parry' ? 'rgba(251, 191, 36, 0.32)' : (current.lastAttackResult === 'counter-hit' ? 'rgba(34, 197, 94, 0.18)' : 'rgba(190, 168, 128, 0.18)'),
           timer: 0.24,
           maxTimer: 0.24,
         });
         audioControls?.playExpeditionSfx?.(getEnemyHitSfxKey(e), {
-          volume: e.health <= 0 ? 1.12 : current.lastAttackResult === 'counter-hit' ? 1.02 : 0.92,
+          volume: e.health <= 0 ? 1.12 : (current.lastAttackResult === 'parry' ? 1.15 : (current.lastAttackResult === 'counter-hit' ? 1.02 : 0.92)),
+          playbackRate: current.lastAttackResult === 'parry' ? 1.22 : 1,
         });
         if (e.health <= 0) {
           e.defeated = true;
@@ -17123,7 +17175,7 @@ export default function ExpeditionJourney({
             : `Enemy dropped ${e.shards} relic shard${e.shards === 1 ? '' : 's'}. Spend these at Base Camp.`;
           current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 1.8);
         } else {
-          current.notice = `${e.name} stunned.`;
+          current.notice = isParry ? 'Parried! Asha deflected the blow.' : `${e.name} stunned.`;
         }
       }
     });
@@ -18343,7 +18395,6 @@ export default function ExpeditionJourney({
       editor.selectedArchId = selectedArch?.editorId || null;
       editor.selectedCheckpointId = selectedCheckpoint?.id || null;
       editor.selectedLairId = selectedLair?.id || null;
-      editor.exportVisible = Boolean(editor.exportText);
       if (selectedProp) {
         editor.dragging = {
           kind: 'prop',
@@ -18660,6 +18711,22 @@ export default function ExpeditionJourney({
                     Triggers
                   </button>
                 </div>
+                {propEditorUi.unsavedChangeSummary?.hasChanges && (
+                  <div className="journey-prop-editor-change-summary" aria-label="Placement editor changed items">
+                    <div className="journey-prop-editor-change-summary-header">
+                      <strong>Changed items</strong>
+                      <span>{propEditorUi.unsavedChangeSummary.totalCount}</span>
+                    </div>
+                    <ul>
+                      {propEditorUi.unsavedChangeSummary.entries.map(entry => (
+                        <li key={entry.key}>{entry.label}</li>
+                      ))}
+                      {propEditorUi.unsavedChangeSummary.hiddenCount > 0 && (
+                        <li>{propEditorUi.unsavedChangeSummary.hiddenCount} more</li>
+                      )}
+                    </ul>
+                  </div>
+                )}
                 {propEditorUi.selectedProp ? (
                   <div className="journey-prop-editor-readout">
                     <div><span>{propEditorUi.selectedProp.category}</span><strong>{propEditorUi.selectedProp.id}</strong></div>
