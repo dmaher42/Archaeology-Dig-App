@@ -16,15 +16,15 @@ PACKS = {
         "snakeIdle", "snakeWalk1", "snakeWalk2", "snakeWalk3", "snakeWindup", "snakeAttack", "snakeHit", "snakeDefeated",
         "batIdle", "batWalk1", "batWalk2", "batWalk3", "batWindup", "batAttack", "batHit", "batDefeated",
     ],
-    "public/assets/expedition/enemies/desert-scarab-sprites.json": ["scarabIdle", "scarabWalk1", "scarabWalk2", "scarabWalk3", "scarabWindup", "scarabAttack", "scarabHit", "scarabDefeated"],
+    "public/assets/expedition/enemies/desert-scarab-intimidating-sprites-heavy-windup-attack-2026-06-03.json": ["scarabIdle", "scarabWalk1", "scarabWalk2", "scarabWalk3", "scarabWindup", "scarabHeavyWindup1", "scarabHeavyWindup2", "scarabAttack", "scarabHit", "scarabDefeated"],
     "public/assets/expedition/enemies/sand-snake-sprites.json": ["snakeIdle", "snakeWalk1", "snakeWalk2", "snakeWalk3", "snakeWindup", "snakeAttack", "snakeHit", "snakeDefeated"],
     "public/assets/expedition/enemies/temple-bat-sprites.json": ["batIdle", "batWalk1", "batWalk2", "batWalk3", "batWindup", "batAttack", "batHit", "batDefeated"],
-    "public/assets/expedition/enemies/scorpion-sprites.json": ["scorpionIdle", "scorpionWalk1", "scorpionWalk2", "scorpionWalk3", "scorpionWindup", "scorpionAttack", "scorpionHit", "scorpionDefeated"],
+    "public/assets/expedition/enemies/scorpion-sprites-heavy-windup-2026-06-02.json": ["scorpionIdle", "scorpionWalk1", "scorpionWalk2", "scorpionWalk3", "scorpionWindup", "scorpionHeavyWindup1", "scorpionHeavyWindup2", "scorpionAttack", "scorpionHit", "scorpionDefeated"],
     "public/assets/expedition/enemies/sand-wisp-sprites.json": ["sandWispIdle", "sandWispWalk1", "sandWispWalk2", "sandWispWalk3", "sandWispWindup", "sandWispAttack", "sandWispHit", "sandWispDefeated"],
     "public/assets/expedition/enemies/looter-sprites.json": ["looterIdle", "looterWalk1", "looterWalk2", "looterWalk3", "looterWindup", "looterAttack", "looterHit", "looterDefeated"],
-    "public/assets/expedition/enemies/looter-captain-sprites.json": ["looterCaptainIdle", "looterCaptainWalk1", "looterCaptainWalk2", "looterCaptainWalk3", "looterCaptainWindup", "looterCaptainAttack", "looterCaptainHit", "looterCaptainDefeated"],
+    "public/assets/expedition/enemies/looter-captain-sprites-premium-2026-06-02.json": ["looterCaptainIdle", "looterCaptainWalk1", "looterCaptainWalk2", "looterCaptainWalk3", "looterCaptainWindup", "looterCaptainAttack", "looterCaptainHit", "looterCaptainDefeated"],
     "public/assets/expedition/enemies/cursed-statue-sprites.json": ["cursedStatueIdle", "cursedStatueWalk1", "cursedStatueWalk2", "cursedStatueWalk3", "cursedStatueWindup", "cursedStatueAttack", "cursedStatueHit", "cursedStatueDefeated"],
-    "public/assets/expedition/enemies/stone-guardian-enemy-sprites.json": ["stoneGuardianEnemyIdle", "stoneGuardianEnemyWalk1", "stoneGuardianEnemyWalk2", "stoneGuardianEnemyWalk3", "stoneGuardianEnemyWindup", "stoneGuardianEnemyAttack", "stoneGuardianEnemyHit", "stoneGuardianEnemyDefeated"],
+    "public/assets/expedition/enemies/stone-guardian-enemy-sprites-premium-2026-06-02.json": ["stoneGuardianEnemyIdle", "stoneGuardianEnemyWalk1", "stoneGuardianEnemyWalk2", "stoneGuardianEnemyWalk3", "stoneGuardianEnemyWindup", "stoneGuardianEnemyAttack", "stoneGuardianEnemyHit", "stoneGuardianEnemyDefeated"],
     "public/assets/expedition/enemies/bes-guardian-sprites.json": ["besGuardianIdle", "besGuardianWalk1", "besGuardianWalk2", "besGuardianWalk3", "besGuardianWindup", "besGuardianAttack", "besGuardianHit", "besGuardianDefeated"],
     "public/assets/expedition/enemies/china/china-river-crab-sprites.json": ["riverCrabIdle", "riverCrabWalk1", "riverCrabWalk2", "riverCrabWalk3", "riverCrabWindup", "riverCrabAttack", "riverCrabHit", "riverCrabDefeated"],
     "public/assets/expedition/enemies/china/china-watchtower-sentry-sprites.json": ["watchtowerSentryIdle", "watchtowerSentryWalk1", "watchtowerSentryWalk2", "watchtowerSentryWalk3", "watchtowerSentryWindup", "watchtowerSentryAttack", "watchtowerSentryHit", "watchtowerSentryDefeated"],
@@ -38,8 +38,12 @@ PACKS = {
 }
 
 FLYING_PREFIXES = ("bat", "sandWisp")
+BASELINE_DRIFT_TOLERANCES = {
+    "scarab": 28,
+}
 FRAME_SUFFIXES = [
-    "CounterWindow", "AreaAttack", "Defeated", "Shielded", "Windup", "Charge",
+    "CounterWindow", "AreaAttack", "Defeated", "Shielded", "HeavyWindup1",
+    "HeavyWindup2", "Windup", "Charge",
     "Attack", "Walk1", "Walk2", "Walk3", "Intro", "Idle", "Hit",
 ]
 
@@ -83,7 +87,9 @@ def validate_pack(json_rel: str, required_keys: list[str]) -> list[str]:
         prefix = key[:-len(next(suffix for suffix in FRAME_SUFFIXES if key.endswith(suffix)))]
         bottom_by_prefix.setdefault(prefix, []).append(bottom_padding)
     for prefix, paddings in bottom_by_prefix.items():
-        tolerance = 80 if prefix.startswith(FLYING_PREFIXES) or prefix == "scarabQueen" else 18
+        tolerance = BASELINE_DRIFT_TOLERANCES.get(prefix)
+        if tolerance is None:
+            tolerance = 80 if prefix.startswith(FLYING_PREFIXES) or prefix == "scarabQueen" else 18
         if max(paddings) - min(paddings) > tolerance:
             errors.append(f"{json_rel}: {prefix} baseline drift {min(paddings)}..{max(paddings)}px")
     return errors

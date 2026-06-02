@@ -12,6 +12,7 @@ import {
   getEnemyBodyLanguagePose,
   getEnemySpriteDrawBox,
   getEnemySpriteFrame,
+  shouldUseEnemySpritePack,
   shouldFlipEnemySprite,
 } from './journeyEnemySprites.js';
 import { readFileSync } from 'node:fs';
@@ -76,9 +77,9 @@ test('scorpion sting is a high anti-jump attack that hits harder through existin
   assert.match(journeyComponentSource, /range: basePattern\.range \* SCORPION_ATTACK_RANGE_MULTIPLIER/);
   assert.match(journeyComponentSource, /const SCORPION_CHASE_SPEED_MULTIPLIER = 1\.15;/);
   assert.match(journeyComponentSource, /\(e\.type === 'scorpion' \? SCORPION_CHASE_SPEED_MULTIPLIER : 1\)/);
-  assert.match(journeyComponentSource, /const scorpionStingCanReach = e\.type !== 'scorpion' \|\| rectsOverlap\(/);
-  assert.match(journeyComponentSource, /const shouldUseVenomSpit = e\.type === 'scorpion' && !scorpionStingCanReach && scorpionVenomCanReach;/);
-  assert.match(journeyComponentSource, /const enemyCanStartAttack = \(nearPlayer && scorpionStingCanReach\) \|\| shouldUseVenomSpit;/);
+  assert.match(journeyComponentSource, /const meleeReachesPlayer = rectsOverlap\(/);
+  assert.match(journeyComponentSource, /const shouldUseVenomSpit = e\.type === 'scorpion' && !meleeReachesPlayer && scorpionVenomCanReach;/);
+  assert.match(journeyComponentSource, /const enemyCanStartAttack = \(nearPlayer && meleeReachesPlayer\) \|\| shouldUseVenomSpit;/);
   assert.match(journeyComponentSource, /enemyCanStartAttack && e\.attackCooldown <= 0/);
   assert.match(journeyComponentSource, /const getAttackBox = useCallback\(\(attacker, range = 42, height = 28, direction = attacker\.direction \|\| 1, yOffset = 0, backReach = 0\) =>/);
   assert.match(journeyComponentSource, /const trailingReach = Math\.max\(0, backReach\);/);
@@ -127,11 +128,27 @@ test('looter atlas is a final raster sheet generated from the production motion 
   const looterAtlas = JSON.parse(readFileSync(new URL('../../../public/assets/expedition/enemies/looter-sprites.json', import.meta.url), 'utf8'));
   assert.match(enemySpriteGeneratorSource, /render_production_looter_cell/);
   assert.match(enemySpriteGeneratorSource, /asha-final-production-spritesheet\.json/);
-  assert.match(journeyEnemySpritesSource, /enemy-sprite-packs-2026-05-23-final-looter/);
+  assert.match(journeyEnemySpritesSource, /enemy-sprite-packs-2026-06-03-scarab-attack-read/);
   assert.match(looterAtlas.source, /Final raster tomb looter atlas/);
   assert.equal(looterAtlas.productionReference, 'asha-final-production-spritesheet.json');
   assert.equal(looterAtlas.frameContract.length, 8);
   assert.ok(looterAtlas.regions.looterIdle.h > 200, 'looter frames should no longer use the tiny flat procedural silhouette');
+});
+
+test('looter captain and stone guardian use accepted premium enemy atlases', () => {
+  const looterCaptainAtlas = JSON.parse(readFileSync(new URL('../../../public/assets/expedition/enemies/looter-captain-sprites-premium-2026-06-02.json', import.meta.url), 'utf8'));
+  const stoneGuardianAtlas = JSON.parse(readFileSync(new URL('../../../public/assets/expedition/enemies/stone-guardian-enemy-sprites-premium-2026-06-02.json', import.meta.url), 'utf8'));
+
+  assert.match(journeyEnemySpritesSource, /looter-captain-sprites-premium-2026-06-02\.json/);
+  assert.match(journeyEnemySpritesSource, /stone-guardian-enemy-sprites-premium-2026-06-02\.json/);
+  assert.match(looterCaptainAtlas.source, /Premium raster Egyptian looter captain atlas/);
+  assert.match(stoneGuardianAtlas.source, /Premium raster Egyptian stone guardian enemy atlas/);
+  assert.equal(looterCaptainAtlas.frameContract.length, 8);
+  assert.equal(stoneGuardianAtlas.frameContract.length, 8);
+  assert.ok(looterCaptainAtlas.regions.looterCaptainIdle.h > 300, 'looter captain should no longer use the tiny flat procedural silhouette');
+  assert.ok(stoneGuardianAtlas.regions.stoneGuardianEnemyIdle.h > 300, 'stone guardian should no longer use the blocky placeholder silhouette');
+  assert.equal(shouldUseEnemySpritePack({ type: 'guardian', name: 'Stone Guardian' }), true);
+  assert.equal(shouldUseEnemySpritePack({ type: 'statue', name: 'Cursed Statue' }), false);
 });
 
 test('sand-wisp flying enemy renders as the larger cinematic winged wisp', () => {
@@ -153,7 +170,7 @@ test('sand-wisp flying enemy renders as the larger cinematic winged wisp', () =>
   assert.ok(Math.abs(drawBox.height - 108.9894) < 0.001, `sand wisp should draw 25% larger than the last pass, received ${drawBox.height}`);
   assert.ok(drawBox.width >= drawBox.height * 1.9, `sand wisp should keep a wide upright-wing silhouette, received ${drawBox.width}x${drawBox.height}`);
   assert.match(journeyEnemySpritesSource, /sandWisp:\s*2\.041/);
-  assert.match(journeyEnemySpritesSource, /enemy-sprite-packs-2026-05-23-final-looter/);
+  assert.match(journeyEnemySpritesSource, /enemy-sprite-packs-2026-06-03-scarab-attack-read/);
   assert.match(journeyEnemySpritesSource, /fetch\([^)]*versionQuery[^)]*\)/);
   assert.match(journeyEnemySpritesSource, /image\.src\s*=\s*`[^`]*getAtlasImagePath[^`]*versionQuery[^`]*`/);
   assert.match(enemySpriteGeneratorSource, /render_production_flying_scarab_cell/);
@@ -305,6 +322,40 @@ test('Phase 5C animation-led desert telegraphs use body language instead of larg
   assert.match(journeyComponentSource, /ctx\.rotate\(bodyPose\.rotation\)/);
   assert.match(journeyComponentSource, /sand-skid/);
   assert.doesNotMatch(journeyComponentSource, /drawDeflectRing\(16 \+ \(1 - progress\) \* 16/);
+});
+
+test('Egypt heavy windups use dedicated premium atlas frames without changing normal windups', () => {
+  const scarabScout = {
+    id: 'scarab-scout-1',
+    name: 'Scarab Scout',
+    type: 'scarab',
+    attackPattern: 'charge',
+  };
+  const heavyScarab = {
+    ...scarabScout,
+    attackPattern: 'heavy-charge',
+  };
+  const sealWarden = {
+    id: 'scorpion-seal-path-1',
+    name: 'Seal Warden Scorpion',
+    type: 'scorpion',
+    attackPattern: 'sting',
+  };
+  const heavyScorpion = {
+    ...sealWarden,
+    attackPattern: 'power-sting',
+  };
+
+  assert.equal(getEnemySpriteFrame(scarabScout, 'windup', 0), 'scarabWindup');
+  assert.equal(getEnemySpriteFrame(sealWarden, 'windup', 0), 'scorpionWindup');
+  assert.equal(getEnemySpriteFrame(heavyScarab, 'windup', 0), 'scarabHeavyWindup1');
+  assert.equal(getEnemySpriteFrame(heavyScarab, 'windup', 180), 'scarabHeavyWindup2');
+  assert.equal(getEnemySpriteFrame(heavyScorpion, 'windup', 0), 'scorpionHeavyWindup1');
+  assert.equal(getEnemySpriteFrame(heavyScorpion, 'windup', 180), 'scorpionHeavyWindup2');
+  assert.equal(getEnemySpriteFrame(heavyScarab, 'attacking', 0), 'scarabAttack');
+  assert.match(journeyEnemySpritesSource, /scarabHeavyWindup1/);
+  assert.match(journeyEnemySpritesSource, /scorpionHeavyWindup1/);
+  assert.match(journeyEnemySpritesSource, /desert-scarab-intimidating-sprites-heavy-windup-attack-2026-06-03\.json/);
 });
 
 test('combat feedback avoids arcade text labels in the playfield', () => {

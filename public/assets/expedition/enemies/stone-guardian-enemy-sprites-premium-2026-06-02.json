@@ -1,0 +1,66 @@
+{
+  "image": "stone-guardian-enemy-sprites-premium-2026-06-02.png",
+  "source": "Premium raster Egyptian stone guardian enemy atlas generated on 2026-06-02, magenta-key extracted and normalized into the existing Journey enemy frame contract.",
+  "coordinateNote": "Eight fixed cells: Idle, Walk1, Walk2, Walk3, Windup, Attack, Hit, Defeated. Regions share a bottom-center anchor.",
+  "frameContract": [
+    "Idle",
+    "Walk1",
+    "Walk2",
+    "Walk3",
+    "Windup",
+    "Attack",
+    "Hit",
+    "Defeated"
+  ],
+  "baseline": "bottom-center shared per family; no baked large shadow, detached shockwave, or flash",
+  "regions": {
+    "stoneGuardianEnemyIdle": {
+      "x": 82,
+      "y": 12,
+      "w": 252,
+      "h": 382
+    },
+    "stoneGuardianEnemyWalk1": {
+      "x": 503,
+      "y": 12,
+      "w": 243,
+      "h": 382
+    },
+    "stoneGuardianEnemyWalk2": {
+      "x": 919,
+      "y": 12,
+      "w": 243,
+      "h": 382
+    },
+    "stoneGuardianEnemyWalk3": {
+      "x": 1330,
+      "y": 12,
+      "w": 252,
+      "h": 382
+    },
+    "stoneGuardianEnemyWindup": {
+      "x": 1726,
+      "y": 12,
+      "w": 293,
+      "h": 382
+    },
+    "stoneGuardianEnemyAttack": {
+      "x": 2107,
+      "y": 12,
+      "w": 363,
+      "h": 382
+    },
+    "stoneGuardianEnemyHit": {
+      "x": 2580,
+      "y": 12,
+      "w": 248,
+      "h": 382
+    },
+    "stoneGuardianEnemyDefeated": {
+      "x": 2912,
+      "y": 182,
+      "w": 416,
+      "h": 212
+    }
+  }
+}

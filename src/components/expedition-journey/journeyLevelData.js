@@ -1051,13 +1051,6 @@ export const STORY_PROPS = [
     height: 760,
     depth: 'route-edge',
     alpha: 1,
-    groundContactLayer: [
-      { assetKey: 'premiumRubbleContactShadow', purpose: 'mummification-exterior-base-contact-shadow', xRatio: 0.5, yOffset: -24, widthRatio: 0.52, height: 46, alpha: 0.24, mode: 'stretch', layer: 'underlay' },
-      { assetKey: 'premiumLongSandLip', purpose: 'mummification-exterior-wide-sand-lip', xRatio: 0.47, yOffset: -38, widthRatio: 0.48, height: 48, alpha: 0.34, mode: 'stretch', layer: 'overlay' },
-      { assetKey: 'premiumDoorThresholdBuildup', purpose: 'mummification-bottom-secret-threshold-grounding', xRatio: 0.51, yOffset: -58, widthRatio: 0.28, height: 76, alpha: 0.62, mode: 'contain', layer: 'overlay' },
-      { assetKey: 'premiumHalfBuriedStairSupport', purpose: 'mummification-left-stair-grounding', xRatio: 0.35, yOffset: -72, widthRatio: 0.2, height: 90, alpha: 0.5, mode: 'contain', layer: 'overlay' },
-      { assetKey: 'premiumBrokenMasonryFooting', purpose: 'mummification-right-support-grounding', xRatio: 0.68, yOffset: -76, widthRatio: 0.22, height: 92, alpha: 0.48, mode: 'contain', layer: 'overlay' },
-    ],
     label: 'generated Mummification Chamber exterior with bottom secret entrance, climbable sandstone ledges, damaged stairs, torches, and glowing hieroglyphs',
   },
   {
@@ -1070,13 +1063,6 @@ export const STORY_PROPS = [
     height: 690,
     depth: 'route-edge',
     alpha: 1,
-    groundContactLayer: [
-      { assetKey: 'premiumRubbleContactShadow', purpose: 'forgotten-mural-base-contact-shadow', xRatio: 0.5, yOffset: -22, widthRatio: 0.5, height: 44, alpha: 0.22, mode: 'stretch', layer: 'underlay' },
-      { assetKey: 'premiumRubbleMoundBlend', purpose: 'forgotten-mural-heavy-rubble-grounding', xRatio: 0.4, yOffset: -50, widthRatio: 0.36, height: 72, alpha: 0.34, mode: 'stretch', layer: 'overlay' },
-      { assetKey: 'premiumCarvedStoneEdge', purpose: 'forgotten-mural-carved-wall-base', xRatio: 0.66, yOffset: -76, widthRatio: 0.25, height: 86, alpha: 0.56, mode: 'contain', layer: 'overlay' },
-      { assetKey: 'premiumBrokenMasonryFooting', purpose: 'forgotten-mural-climb-support-grounding', xRatio: 0.29, yOffset: -82, widthRatio: 0.21, height: 92, alpha: 0.48, mode: 'contain', layer: 'overlay' },
-      { assetKey: 'premiumSmallStoneScatter', purpose: 'forgotten-mural-pebble-breakup', xRatio: 0.54, yOffset: -14, widthRatio: 0.22, height: 28, alpha: 0.62, mode: 'contain', layer: 'overlay' },
-    ],
     label: 'generated Forgotten Mural Alcove climb structure with broken stairs, carved ledges, and damaged Anubis mural',
   },
   {
@@ -1089,14 +1075,6 @@ export const STORY_PROPS = [
     height: 620,
     depth: 'route-edge',
     alpha: 1,
-    groundContactLayer: [
-      { assetKey: 'premiumRubbleContactShadow', purpose: 'scribe-exterior-base-contact-shadow', xRatio: 0.5, yOffset: -24, widthRatio: 0.54, height: 46, alpha: 0.26, mode: 'stretch', layer: 'underlay' },
-      { assetKey: 'premiumLongSandLip', purpose: 'scribe-exterior-sand-drift', xRatio: 0.46, yOffset: -36, widthRatio: 0.52, height: 48, alpha: 0.36, mode: 'stretch', layer: 'overlay' },
-      { assetKey: 'premiumDoorThresholdBuildup', purpose: 'lower-secret-exit-grounding', xRatio: 0.58, yOffset: -49, widthRatio: 0.38, height: 76, alpha: 0.68, mode: 'contain', layer: 'overlay' },
-      { assetKey: 'premiumHalfBuriedStairSupport', purpose: 'climb-support-grounding', xRatio: 0.31, yOffset: -78, widthRatio: 0.2, height: 92, alpha: 0.58, mode: 'contain', layer: 'overlay' },
-      { assetKey: 'premiumBrokenMasonryFooting', purpose: 'climb-support-grounding', xRatio: 0.76, yOffset: -80, widthRatio: 0.24, height: 98, alpha: 0.56, mode: 'contain', layer: 'overlay' },
-      { assetKey: 'premiumSmallStoneScatter', purpose: 'scribe-exterior-pebble-breakup', xRatio: 0.44, yOffset: -16, widthRatio: 0.26, height: 30, alpha: 0.66, mode: 'contain', layer: 'overlay' },
-    ],
     label: 'production Scribe Locked Chamber exterior with raised platform, crumbled stairs, glowing hieroglyphs, and sealed doorway',
   },
   { id: 'scribe-base-left-jar-cluster', sectionId: 'desert-entry', type: 'atmosphere-prop', atmosphereAssetKey: 'supplyJars', placementPreset: 'desertEntryGroundedRuin', x: X(1588), y: JY(322), width: 84, height: 48, alpha: 0.72, depth: 'route-edge', tint: 'warm', shadowOpacity: 0, shadowWidth: 92, sandMoundWidth: 104, sandOverlapHeight: 10, groundPebbles: 2, label: 'Scribe Chamber left base sealed jars tucked into sand' },

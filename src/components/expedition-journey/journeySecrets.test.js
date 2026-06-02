@@ -148,6 +148,15 @@ const getDataRowById = (arraySource, id) => {
   return '';
 };
 
+const getComponentFunctionSource = (functionName) => {
+  const start = journeyComponentSource.indexOf(`const ${functionName} =`);
+  assert.notEqual(start, -1, `${functionName} should exist`);
+  const remainderStart = start + functionName.length;
+  const nextDrawFunctionOffset = journeyComponentSource.slice(remainderStart).search(/\n {2}const draw[A-Z]/);
+  assert.notEqual(nextDrawFunctionOffset, -1, `${functionName} source should have a following draw function`);
+  return journeyComponentSource.slice(start, remainderStart + nextDrawFunctionOffset);
+};
+
 test('journey prop placement helpers preserve canonical prop fields while editing', () => {
   const prop = {
     id: 'test-tablet',
@@ -173,6 +182,8 @@ test('journey prop placement helpers preserve canonical prop fields while editin
     height: 128,
     scale: 1.25,
     rotation: -12,
+    mirrorX: true,
+    brightness: 1.25,
     depth: 'route-edge',
     layer: 'foreground',
     zIndex: 5,
@@ -187,6 +198,8 @@ test('journey prop placement helpers preserve canonical prop fields while editin
     height: 128,
     scale: 1.25,
     rotation: -12,
+    mirrorX: true,
+    brightness: 1.25,
     depth: 'route-edge',
     layer: 'foreground',
     zIndex: 5,
@@ -372,9 +385,13 @@ test('journey prop editor creates and duplicates props using canonical prop fiel
   const edited = applyJourneyPropPlacementEdit(created, {
     scale: 1.25,
     rotation: -15,
+    mirrorX: true,
+    brightness: 1.2,
   });
   assert.equal(edited.scale, 1.25);
   assert.equal(edited.rotation, -15);
+  assert.equal(edited.mirrorX, true);
+  assert.equal(edited.brightness, 1.2);
 
   const duplicate = duplicateJourneyPropForEditor({
     prop: edited,
@@ -385,6 +402,8 @@ test('journey prop editor creates and duplicates props using canonical prop fiel
   assert.equal(duplicate.y, 512);
   assert.equal(duplicate.scale, 1.25);
   assert.equal(duplicate.rotation, -15);
+  assert.equal(duplicate.mirrorX, true);
+  assert.equal(duplicate.brightness, 1.2);
 });
 
 test('journey prop placement export can merge updates, additions, and deletions into story props', () => {
@@ -559,7 +578,23 @@ test('journey editor exposes platform resizing and robust prop scale shortcuts',
   assert.match(journeyComponentSource, /event\.key === '\+' \|\| event\.key === '\*'/);
   assert.match(journeyComponentSource, /event\.key === '-' \|\| event\.key === '_'/);
   assert.match(journeyComponentSource, /<span>Scale<\/span>[\s\S]*?updateSelectedPropEditorTransform\(\{ scale:/);
+  assert.match(journeyComponentSource, /<span>Mirror<\/span>[\s\S]*?updateSelectedPropEditorTransform\(\{ mirrorX:/);
+  assert.match(journeyComponentSource, /<span>Brightness<\/span>[\s\S]*?updateSelectedPropEditorTransform\(\{ brightness:/);
+  assert.match(journeyComponentSource, /brightness\(\$\{Math\.round\(clamp\(propSize\.brightness,\s*0\.4,\s*1\.8\) \* 100\)\}%\)/);
+  assert.match(journeyComponentSource, /propForAsset\.mirrorX/);
   assert.match(journeyComponentSource, /getGeneratedStoryPropRenderProp/);
+});
+
+test('journey editor platform overlays follow the vertical camera during climb sections', () => {
+  const platformBoundsSource = getComponentFunctionSource('getPlatformEditorBounds');
+  assert.match(platformBoundsSource, /getPlatformEditorBounds = useCallback\(\(platform,\s*cameraX,\s*current\)/);
+  assert.match(platformBoundsSource, /secretVerticalCameraOffset/);
+  assert.match(platformBoundsSource, /!isInteriorChamberScene\(current\)/);
+  assert.match(platformBoundsSource, /platform\.y \+ verticalOffset/);
+  assert.match(journeyComponentSource, /getPlatformEditorBounds\(platform,\s*cameraX,\s*current\)/);
+  assert.match(journeyComponentSource, /getPlatformEditorBounds\(selectedPlatform,\s*cameraX,\s*current\)/);
+  assert.match(journeyComponentSource, /kind:\s*'platform'[\s\S]*?offsetY:\s*pointer\.worldY - selectedPlatform\.y/);
+  assert.match(journeyComponentSource, /editor\.dragging\.kind === 'platform'[\s\S]*?const rawY = pointer\.worldY - editor\.dragging\.offsetY/);
 });
 
 test('journey editor exposes floor platforms without blocking prop selection', () => {
@@ -2549,7 +2584,8 @@ test('Egypt Journey explains shard purpose and adds an optional Base Camp vouche
 
 test('Egypt Journey loads visible sprites for all default Egypt enemy families', () => {
   assert.match(journeyEnemySpritesSource, /WITHHELD_EGYPT_CREATURE_SPRITE_FAMILIES/);
-  assert.match(journeyEnemySpritesSource, /WITHHELD_EGYPT_CREATURE_SPRITE_FAMILIES = new Set\(\[\s*'cursedStatue',\s*'stoneGuardianEnemy',\s*\]\)/);
+  assert.match(journeyEnemySpritesSource, /WITHHELD_EGYPT_CREATURE_SPRITE_FAMILIES = new Set\(\[\s*'cursedStatue',\s*\]\)/);
+  assert.match(journeyEnemySpritesSource, /stone-guardian-enemy-sprites-premium-2026-06-02\.json/);
   assert.match(journeyEnemySpritesSource, /DESERT_SCARAB_SPRITE_ATLAS_JSON/);
   assert.match(journeyEnemySpritesSource, /SAND_SNAKE_SPRITE_ATLAS_JSON/);
   assert.match(journeyEnemySpritesSource, /SCORPION_SPRITE_ATLAS_JSON/);
@@ -2868,6 +2904,8 @@ test('Journey progress gates use arch and slab assets instead of artificial padl
   assert.match(routeGateDrawSource, /drawGateAsset\(routeGateSlabRef/);
   assert.match(routeGateDrawSource, /drawGateAsset\(routeGateBackRef/);
   assert.match(routeGateDrawSource, /drawGateAsset\(routeGateFrontRef/);
+  assert.match(routeGateDrawSource, /frontPillarPassageOffset = Math\.round\(frontWidth \* 0\.37\)/);
+  assert.match(routeGateDrawSource, /x: gateCenter - Math\.round\(frontWidth \/ 2\) \+ frontPillarPassageOffset/);
   assert.match(routeGateDrawSource, /flipX:\s*true/);
   assert.match(routeGateDrawSource, /layer === 'foreground'[\s\S]*?if \(complete\)/);
   assert.match(journeyComponentSource, /status\.complete/);
@@ -3185,7 +3223,10 @@ test('Egypt atmosphere prop pack is registered and drawn through existing story 
 });
 
 test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, and atlas regions', () => {
-  assert.equal(lostSitePropRegistry.length, 43);
+  assert.equal(lostSitePropRegistry.length, 45);
+  const registryIds = new Set(lostSitePropRegistry.map(entry => entry.id));
+  assert.ok(registryIds.has('standingPillar'), 'standing column should be available in the prop editor');
+  assert.ok(registryIds.has('stoneDoorFrame'), 'temple arch should be available in the prop editor');
 
   const categories = new Set(lostSitePropRegistry.map(entry => entry.category));
   [
@@ -3405,11 +3446,15 @@ test('desert entry foreground depth pack stays transparent, visual-only, and edg
   assert.doesNotMatch(journeyComponentSource, /FOREGROUND_DEPTH[\s\S]{0,240}PLATFORMS/);
 });
 
-test('Scribe Chamber exterior uses reusable foreground-depth contact assets without collision changes', () => {
+test('premium foreground contact assets stay visual-only and out of generated structure collision', () => {
   const foregroundAtlas = JSON.parse(readFileSync(egyptForegroundDepthAtlasPath, 'utf8'));
   const premiumGroundContactAtlas = JSON.parse(readFileSync(new URL('../../../public/assets/expedition/environment/egypt-foreground/egypt-ground-contact-premium-kit-2026-06-02.json', import.meta.url), 'utf8'));
   const storyProps = extractExportedArray('STORY_PROPS');
-  const scribeDoorway = getDataRowById(storyProps, 'scribe-chamber-doorway-structure');
+  const generatedStructureRows = [
+    getDataRowById(storyProps, 'mummification-chamber-exterior-structure'),
+    getDataRowById(storyProps, 'forgotten-mural-climb-structure'),
+    getDataRowById(storyProps, 'scribe-chamber-doorway-structure'),
+  ];
   const platforms = extractExportedArray('PLATFORMS');
 
   [
@@ -3433,27 +3478,23 @@ test('Scribe Chamber exterior uses reusable foreground-depth contact assets with
   ].forEach((key) => {
     assert.ok(premiumGroundContactAtlas.regions[key], `${key} should be present in the premium ground-contact pack`);
     assert.match(journeyRenderAssetsSource, new RegExp(`'${key}'`), `${key} should be an expected premium ground-contact key`);
-    assert.match(scribeDoorway, new RegExp(`assetKey:\\s*'${key}'`), `${key} should be used by the Scribe contact layer`);
   });
 
   assert.match(foregroundAtlas.mappingNote, /ground-skirt/i);
   assert.match(foregroundAtlas.mappingNote, /contact shadow/i);
   assert.match(premiumGroundContactAtlas.mappingNote, /visual-only/i);
   assert.match(premiumGroundContactAtlas.mappingNote, /do not define collision/i);
-  assert.match(scribeDoorway, /groundContactLayer:\s*\[/);
-  assert.doesNotMatch(scribeDoorway, /assetKey:\s*'egyptGroundSkirtLong'/);
-  assert.doesNotMatch(scribeDoorway, /assetKey:\s*'lowDustVeil'/);
-  assert.doesNotMatch(scribeDoorway, /assetKey:\s*'egyptBaseSandDrift'/);
-  assert.doesNotMatch(scribeDoorway, /layer:\s*'underlay'[\s\S]*?widthRatio:\s*0\.88/);
-  assert.match(scribeDoorway, /purpose:\s*'lower-secret-exit-grounding'/);
-  assert.match(scribeDoorway, /purpose:\s*'climb-support-grounding'/);
+  generatedStructureRows.forEach((propRow) => {
+    assert.doesNotMatch(propRow, /groundContactLayer:\s*\[/);
+    assert.doesNotMatch(propRow, /assetKey:\s*'(?:egyptGroundSkirtLong|lowDustVeil|egyptBaseSandDrift|premiumLongSandLip|premiumRubbleContactShadow|premiumRubbleMoundBlend|premiumDoorThresholdBuildup|premiumHalfBuriedStairSupport|premiumBrokenMasonryFooting|premiumSmallStoneScatter)'/);
+  });
   assert.match(journeyComponentSource, /drawEgyptStructureGroundContactLayer/);
   assert.match(journeyComponentSource, /groundContactLayer/);
   assert.match(journeyComponentSource, /scribeChamberGroundBlendAssetKeys/);
   assert.doesNotMatch(platforms, /egyptGroundSkirtLong|premiumRubbleContactShadow|groundContactLayer/);
 });
 
-test('generated Egypt structures share the premium ground-contact kit without changing collision', () => {
+test('generated Egypt structures avoid rectangular ground-contact sprites without changing collision', () => {
   const storyProps = extractExportedArray('STORY_PROPS');
   const platforms = extractExportedArray('PLATFORMS');
   const mummificationExterior = getDataRowById(storyProps, 'mummification-chamber-exterior-structure');
@@ -3461,14 +3502,12 @@ test('generated Egypt structures share the premium ground-contact kit without ch
   const scribeExterior = getDataRowById(storyProps, 'scribe-chamber-doorway-structure');
 
   [
-    [mummificationExterior, 'premiumLongSandLip', 'premiumHalfBuriedStairSupport'],
-    [forgottenMuralExterior, 'premiumRubbleMoundBlend', 'premiumCarvedStoneEdge'],
-    [scribeExterior, 'premiumDoorThresholdBuildup', 'premiumSmallStoneScatter'],
-  ].forEach(([propRow, primaryKey, detailKey]) => {
-    assert.match(propRow, /groundContactLayer:\s*\[/);
-    assert.match(propRow, new RegExp(`assetKey:\\s*'${primaryKey}'`));
-    assert.match(propRow, new RegExp(`assetKey:\\s*'${detailKey}'`));
-    assert.doesNotMatch(propRow, /assetKey:\s*'lowDustVeil'/);
+    mummificationExterior,
+    forgottenMuralExterior,
+    scribeExterior,
+  ].forEach((propRow) => {
+    assert.doesNotMatch(propRow, /groundContactLayer:\s*\[/);
+    assert.doesNotMatch(propRow, /assetKey:\s*'(?:lowDustVeil|premiumLongSandLip|premiumRubbleMoundBlend|premiumRubbleContactShadow|premiumDoorThresholdBuildup|premiumHalfBuriedStairSupport|premiumBrokenMasonryFooting|premiumSmallStoneScatter)'/);
   });
 
   assert.match(journeyComponentSource, /drawMummificationChamberExteriorAsset[\s\S]*?drawEgyptStructureGroundContactLayer/);
@@ -3478,25 +3517,32 @@ test('generated Egypt structures share the premium ground-contact kit without ch
   assert.doesNotMatch(platforms, /premiumLongSandLip|premiumRubbleMoundBlend|groundContactLayer/);
 });
 
-test('generated Egypt structure contact layers stay narrow and low-opacity to avoid bottom haze', () => {
+test('generated Egypt structure data avoids stamped contact layers to prevent bottom haze', () => {
   const generatedStructureIds = new Set([
     'mummification-chamber-exterior-structure',
     'forgotten-mural-climb-structure',
     'scribe-chamber-doorway-structure',
   ]);
-  const broadHazeContacts = STORY_PROPS
+  const stampedContacts = STORY_PROPS
     .filter((prop) => generatedStructureIds.has(prop.id))
     .flatMap((prop) => (prop.groundContactLayer || []).map((entry) => ({ propId: prop.id, ...entry })))
-    .filter((entry) => entry.mode === 'stretch')
-    .filter((entry) => {
-      if (entry.assetKey === 'premiumRubbleContactShadow') return entry.alpha > 0.3 || entry.widthRatio > 0.56;
-      if (entry.assetKey === 'premiumLongSandLip') return entry.alpha > 0.42 || entry.widthRatio > 0.54;
-      if (entry.assetKey === 'premiumRubbleMoundBlend') return entry.alpha > 0.42 || entry.widthRatio > 0.4;
-      return false;
-    })
-    .map(({ propId, assetKey, alpha, widthRatio }) => ({ propId, assetKey, alpha, widthRatio }));
+    .map(({ propId, assetKey, mode, alpha, widthRatio }) => ({ propId, assetKey, mode, alpha, widthRatio }));
 
-  assert.deepEqual(broadHazeContacts, []);
+  assert.deepEqual(stampedContacts, []);
+});
+
+test('generated Egypt structure renderers avoid broad procedural base haze', () => {
+  [
+    'drawMummificationChamberExteriorAsset',
+    'drawForgottenMuralGeneratedAsset',
+    'drawScribeChamberDoorwayStructure',
+  ].forEach((functionName) => {
+    const functionSource = getComponentFunctionSource(functionName);
+    assert.match(functionSource, /drawEgyptStructureGroundContactLayer/, `${functionName} should tolerate optional contact-layer data`);
+    assert.doesNotMatch(functionSource, /drawRouteGroundApron/, `${functionName} should not paint a broad route apron`);
+    assert.doesNotMatch(functionSource, /drawDecorativeBaseBlend/, `${functionName} should not paint a broad decorative base blend`);
+    assert.doesNotMatch(functionSource, /drawGroundDustLip/, `${functionName} should not paint broad dust lips`);
+  });
 });
 
 test('desert entry no longer draws old procedural fallback scenery', () => {

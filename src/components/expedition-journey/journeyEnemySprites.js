@@ -5,21 +5,21 @@ const ENEMY_BASE_HEIGHT = 108;
 export const ENEMY_SPRITE_BASE_PATH = 'assets/expedition/enemies/';
 export const ENEMY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}small-enemy-sprites.json`;
 export const LOOTER_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}looter-sprites.json`;
-export const LOOTER_CAPTAIN_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}looter-captain-sprites.json`;
+export const LOOTER_CAPTAIN_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}looter-captain-sprites-premium-2026-06-02.json`;
 export const TEMPLE_BAT_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}temple-bat-sprites.json`;
-export const DESERT_SCARAB_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}desert-scarab-intimidating-sprites.json`;
+export const DESERT_SCARAB_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}desert-scarab-intimidating-sprites-heavy-windup-attack-2026-06-03.json`;
 export const SAND_SNAKE_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}sand-snake-sprites.json`;
-export const SCORPION_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}scorpion-sprites.json`;
+export const SCORPION_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}scorpion-sprites-heavy-windup-2026-06-02.json`;
 export const SAND_WISP_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}sand-wisp-sprites.json`;
 export const CURSED_STATUE_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}cursed-statue-sprites.json`;
-export const STONE_GUARDIAN_ENEMY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}stone-guardian-enemy-sprites.json`;
+export const STONE_GUARDIAN_ENEMY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}stone-guardian-enemy-sprites-premium-2026-06-02.json`;
 export const WARRIOR_MUMMY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}warrior-mummy-sprites.json`;
 export const BES_GUARDIAN_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}bes-guardian-sprites.json`;
 export const CHINA_ENEMY_GUARDIAN_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-enemy-guardian-sprites.json`;
 export const CHINA_RIVER_CRAB_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-river-crab-sprites.json`;
 export const CHINA_WATCHTOWER_SENTRY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-watchtower-sentry-sprites.json`;
 export const CHINA_CLAY_GUARDIAN_ENEMY_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}china/china-clay-guardian-enemy-sprites.json`;
-export const ENEMY_SPRITE_ATLAS_VERSION = 'enemy-sprite-packs-2026-05-23-final-looter';
+export const ENEMY_SPRITE_ATLAS_VERSION = 'enemy-sprite-packs-2026-06-03-scarab-attack-read';
 export const ENEMY_SPRITE_GROUNDING_VERSION = 'enemy-sprite-grounding-2026-05-18';
 export const MIN_ENEMY_DRAW_HEIGHT = 34;
 export const ENEMY_VISUAL_SIZE_MULTIPLIER = 1.5;
@@ -46,9 +46,18 @@ const ENEMY_VISUAL_SIZE_MULTIPLIERS = {
   vestibuleWisp:     1.80,
   marbleGolem:       1.85,
 };
+const HEAVY_WINDUP_FRAME_KEYS = {
+  scarab: {
+    patternId: 'heavy-charge',
+    frames: ['scarabHeavyWindup1', 'scarabHeavyWindup2'],
+  },
+  scorpion: {
+    patternId: 'power-sting',
+    frames: ['scorpionHeavyWindup1', 'scorpionHeavyWindup2'],
+  },
+};
 export const WITHHELD_EGYPT_CREATURE_SPRITE_FAMILIES = new Set([
   'cursedStatue',
-  'stoneGuardianEnemy',
 ]);
 
 export const EXPECTED_ENEMY_SPRITE_KEYS = [
@@ -57,6 +66,8 @@ export const EXPECTED_ENEMY_SPRITE_KEYS = [
   'scarabWalk2',
   'scarabWalk3',
   'scarabWindup',
+  'scarabHeavyWindup1',
+  'scarabHeavyWindup2',
   'scarabAttack',
   'scarabHit',
   'scarabDefeated',
@@ -117,6 +128,8 @@ export const EXPECTED_DESERT_SCARAB_SPRITE_KEYS = [
   'scarabWalk2',
   'scarabWalk3',
   'scarabWindup',
+  'scarabHeavyWindup1',
+  'scarabHeavyWindup2',
   'scarabAttack',
   'scarabHit',
   'scarabDefeated',
@@ -139,6 +152,8 @@ export const EXPECTED_SCORPION_SPRITE_KEYS = [
   'scorpionWalk2',
   'scorpionWalk3',
   'scorpionWindup',
+  'scorpionHeavyWindup1',
+  'scorpionHeavyWindup2',
   'scorpionAttack',
   'scorpionHit',
   'scorpionDefeated',
@@ -544,7 +559,13 @@ export const getEnemySpriteFrame = (enemy, combatMode, now = 0) => {
 
   if (combatMode === 'defeated') return `${family}Defeated`;
   if (combatMode === 'stunned') return `${family}Hit`;
-  if (combatMode === 'windup') return `${family}Windup`;
+  if (combatMode === 'windup') {
+    const heavyWindup = HEAVY_WINDUP_FRAME_KEYS[family];
+    if (heavyWindup && enemy.attackPattern === heavyWindup.patternId) {
+      return heavyWindup.frames[Math.floor(now / 160) % heavyWindup.frames.length];
+    }
+    return `${family}Windup`;
+  }
   if (combatMode === 'attacking') return `${family}Attack`;
   if (combatMode === 'cooldown' && (family === 'scarab' || family === 'scorpion')) return `${family}Hit`;
 

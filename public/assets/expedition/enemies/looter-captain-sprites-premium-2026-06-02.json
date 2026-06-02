@@ -1,0 +1,66 @@
+{
+  "image": "looter-captain-sprites-premium-2026-06-02.png",
+  "source": "Premium raster Egyptian looter captain atlas generated on 2026-06-02, chroma-key extracted and normalized into the existing Journey enemy frame contract.",
+  "coordinateNote": "Eight fixed cells: Idle, Walk1, Walk2, Walk3, Windup, Attack, Hit, Defeated. Regions share a bottom-center anchor.",
+  "frameContract": [
+    "Idle",
+    "Walk1",
+    "Walk2",
+    "Walk3",
+    "Windup",
+    "Attack",
+    "Hit",
+    "Defeated"
+  ],
+  "baseline": "bottom-center shared per family; no baked large shadow or detached attack flash",
+  "regions": {
+    "looterCaptainIdle": {
+      "x": 89,
+      "y": 18,
+      "w": 207,
+      "h": 372
+    },
+    "looterCaptainWalk1": {
+      "x": 455,
+      "y": 18,
+      "w": 242,
+      "h": 372
+    },
+    "looterCaptainWalk2": {
+      "x": 834,
+      "y": 18,
+      "w": 252,
+      "h": 372
+    },
+    "looterCaptainWalk3": {
+      "x": 1225,
+      "y": 18,
+      "w": 239,
+      "h": 372
+    },
+    "looterCaptainWindup": {
+      "x": 1576,
+      "y": 18,
+      "w": 305,
+      "h": 372
+    },
+    "looterCaptainAttack": {
+      "x": 1937,
+      "y": 18,
+      "w": 351,
+      "h": 372
+    },
+    "looterCaptainHit": {
+      "x": 2377,
+      "y": 18,
+      "w": 239,
+      "h": 372
+    },
+    "looterCaptainDefeated": {
+      "x": 2694,
+      "y": 174,
+      "w": 372,
+      "h": 216
+    }
+  }
+}
