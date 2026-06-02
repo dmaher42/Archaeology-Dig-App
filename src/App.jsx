@@ -111,7 +111,7 @@ const EXPEDITION_AUDIO_TRACKS = {
       synthVolume: 1.18,
       cooldownMs: 180,
       clips: [
-        { path: 'assets/expedition/sfx/generated/metal-click.wav', volume: 0.16, playbackRate: 1.28 },
+        { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/impactMetal_light_001.ogg', volume: 0.26, playbackRate: 1.08 },
       ],
     },
     parryClash: {
@@ -119,7 +119,8 @@ const EXPEDITION_AUDIO_TRACKS = {
       synthVolume: 1.28,
       cooldownMs: 140,
       clips: [
-        { path: 'assets/expedition/sfx/generated/metal-click.wav', volume: 0.24, playbackRate: 1.62 },
+        { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/impactMetal_heavy_001.ogg', volume: 0.30, playbackRate: 1.0 },
+        { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/impactBell_heavy_000.ogg', volume: 0.22, delay: 18, playbackRate: 0.94 },
       ],
     },
     enemyHit: {
@@ -127,7 +128,7 @@ const EXPEDITION_AUDIO_TRACKS = {
       synthVolume: 1.08,
       cooldownMs: 120,
       clips: [
-        { path: 'assets/expedition/sfx/generated/enemy-hit.wav', volume: 0.2, playbackRate: 1.12 },
+        { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/impactPunch_medium_000.ogg', volume: 0.28, playbackRate: 1.06 },
       ],
     },
     scarabHit: {
@@ -135,7 +136,7 @@ const EXPEDITION_AUDIO_TRACKS = {
       synthVolume: 1.22,
       cooldownMs: 120,
       clips: [
-        { path: 'assets/expedition/sfx/generated/enemy-hit.wav', volume: 0.16, playbackRate: 1.38 },
+        { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/impactPlate_medium_001.ogg', volume: 0.24, playbackRate: 1.14 },
       ],
     },
     scorpionHit: {
@@ -143,7 +144,7 @@ const EXPEDITION_AUDIO_TRACKS = {
       synthVolume: 1.12,
       cooldownMs: 120,
       clips: [
-        { path: 'assets/expedition/sfx/generated/enemy-hit.wav', volume: 0.14, playbackRate: 1.52 },
+        { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/impactPlate_medium_003.ogg', volume: 0.22, playbackRate: 1.08 },
       ],
     },
     snakeHit: {
@@ -151,7 +152,7 @@ const EXPEDITION_AUDIO_TRACKS = {
       synthVolume: 1.04,
       cooldownMs: 120,
       clips: [
-        { path: 'assets/expedition/sfx/generated/enemy-hit.wav', volume: 0.12, playbackRate: 1.62 },
+        { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/impactPunch_medium_002.ogg', volume: 0.18, playbackRate: 1.18 },
       ],
     },
     sandWispHit: {
@@ -159,7 +160,7 @@ const EXPEDITION_AUDIO_TRACKS = {
       synthVolume: 1.12,
       cooldownMs: 120,
       clips: [
-        { path: 'assets/expedition/sfx/generated/enemy-hit.wav', volume: 0.1, playbackRate: 0.88 },
+        { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/impactGeneric_light_001.ogg', volume: 0.20, playbackRate: 0.86 },
       ],
     },
     bossHit: {
@@ -167,7 +168,7 @@ const EXPEDITION_AUDIO_TRACKS = {
       synthVolume: 1.18,
       cooldownMs: 160,
       clips: [
-        { path: 'assets/expedition/sfx/generated/enemy-hit.wav', volume: 0.22, playbackRate: 0.82 },
+        { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/impactPunch_heavy_000.ogg', volume: 0.32, playbackRate: 0.88 },
       ],
     },
     playerHit: {
@@ -175,7 +176,7 @@ const EXPEDITION_AUDIO_TRACKS = {
       synthVolume: 1.16,
       cooldownMs: 220,
       clips: [
-        { path: 'assets/expedition/sfx/generated/player-hit.wav', volume: 0.22, playbackRate: 0.96 },
+        { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/impactPunch_heavy_002.ogg', volume: 0.30, playbackRate: 0.94 },
       ],
     },
     trapReset: {
@@ -207,7 +208,7 @@ const EXPEDITION_AUDIO_TRACKS = {
       synthVolume: 1.1,
       cooldownMs: 100,
       clips: [
-        { path: 'assets/expedition/sfx/generated/enemy-hit.wav', volume: 0.13, playbackRate: 1.52 },
+        { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/impactGeneric_light_002.ogg', volume: 0.20, playbackRate: 1.32 },
       ],
     },
     mummyHit: {
@@ -215,7 +216,23 @@ const EXPEDITION_AUDIO_TRACKS = {
       synthVolume: 1.06,
       cooldownMs: 130,
       clips: [
-        { path: 'assets/expedition/sfx/generated/enemy-hit.wav', volume: 0.18, playbackRate: 0.72 },
+        { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/impactPlate_heavy_001.ogg', volume: 0.26, playbackRate: 0.90 },
+      ],
+    },
+    guardianHit: {
+      synth: 'creatureHit',
+      synthVolume: 1.14,
+      cooldownMs: 140,
+      clips: [
+        { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/impactMining_001.ogg', volume: 0.28, playbackRate: 0.84 },
+      ],
+    },
+    statueHit: {
+      synth: 'creatureHit',
+      synthVolume: 1.10,
+      cooldownMs: 140,
+      clips: [
+        { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/impactMining_003.ogg', volume: 0.26, playbackRate: 0.78 },
       ],
     },
     bossWarning: { path: 'assets/expedition/sfx/generated/boss-warning.wav', volume: 0.38 },

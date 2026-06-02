@@ -92,6 +92,7 @@ import {
   applyJourneyRouteGateDoorwayPlacementEdit,
   applyJourneyRouteGatePlacementEdit,
   clamp,
+  createJourneyPlatformFromPaletteItem,
   createJourneyPlatformPalette,
   createJourneyPropFromPaletteItem,
   createJourneyPropPalette,
@@ -2207,6 +2208,8 @@ const ENEMY_HIT_SFX_BY_TYPE = {
   'sand-wisp': 'sandWispHit',
   bat: 'batHit',
   mummy: 'mummyHit',
+  guardian: 'guardianHit',
+  statue: 'statueHit',
 };
 
 const getEnemyHitSfxKey = (enemy) => ENEMY_HIT_SFX_BY_TYPE[enemy?.type] || 'enemyHit';
@@ -13615,17 +13618,17 @@ export default function ExpeditionJourney({
       const floor = isJourneyFloorPlatform(platform);
       const selected = platformId === editor.selectedPlatformId;
       ctx.strokeStyle = selected
-        ? floor ? 'rgba(245, 158, 11, 0.98)' : 'rgba(251, 146, 60, 0.98)'
-        : floor ? 'rgba(245, 158, 11, 0.36)' : 'rgba(251, 146, 60, 0.46)';
+        ? floor ? 'rgba(253, 224, 71, 1)' : 'rgba(251, 191, 36, 1)'
+        : floor ? 'rgba(253, 224, 71, 0.72)' : 'rgba(251, 191, 36, 0.76)';
       ctx.fillStyle = selected
-        ? floor ? 'rgba(245, 158, 11, 0.12)' : 'rgba(251, 146, 60, 0.14)'
-        : floor ? 'rgba(245, 158, 11, 0.045)' : 'rgba(251, 146, 60, 0.06)';
-      ctx.lineWidth = selected ? 3 : 1.5;
+        ? floor ? 'rgba(253, 224, 71, 0.2)' : 'rgba(251, 191, 36, 0.22)'
+        : floor ? 'rgba(253, 224, 71, 0.11)' : 'rgba(251, 191, 36, 0.13)';
+      ctx.lineWidth = selected ? 3.5 : 2.25;
       ctx.setLineDash(selected ? [] : floor ? [14, 7] : [8, 5]);
       ctx.strokeRect(bounds.x, bounds.y, bounds.width, bounds.height);
       ctx.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
       if (platform.invisible || floor) {
-        ctx.fillStyle = floor ? 'rgba(254, 243, 199, 0.92)' : 'rgba(251, 146, 60, 0.82)';
+        ctx.fillStyle = floor ? 'rgba(255, 251, 235, 0.98)' : 'rgba(255, 237, 213, 0.96)';
         ctx.font = '800 10px Outfit, sans-serif';
         ctx.textAlign = 'left';
         ctx.fillText(floor ? 'floor' : 'platform', bounds.x + 4, bounds.y + 11);
@@ -19630,12 +19633,13 @@ export default function ExpeditionJourney({
             {import.meta.env.DEV && propEditorUi.enabled && propEditorUi.paletteOpen && (
               <div className="journey-prop-palette-panel" aria-label="Prop palette">
                 <div className="journey-prop-editor-export-header">
-                  <strong>{propEditorUi.selectedPaletteCategory === 'trap' ? 'Trap palette' : 'Prop palette'}</strong>
+                  <strong>{propEditorUi.selectedPaletteCategory === 'trap' ? 'Trap palette' : propEditorUi.selectedPaletteCategory === 'platform' ? 'Platform palette' : 'Prop palette'}</strong>
                   <span>{propEditorUi.palette.length}</span>
                 </div>
                 <div className="journey-prop-palette-tabs">
                   {[
                     ['prop', 'Props'],
+                    ['platform', 'Platforms'],
                     ['trap', 'Traps'],
                   ].map(([category, label]) => (
                     <button
