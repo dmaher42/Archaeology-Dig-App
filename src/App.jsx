@@ -119,7 +119,7 @@ const EXPEDITION_AUDIO_TRACKS = {
       synthVolume: 1.18,
       cooldownMs: 180,
       clips: [
-        { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/impactMetal_light_001.ogg', volume: 0.26, playbackRate: 1.08 },
+        { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/impactPlate_medium_002.ogg', volume: 0.30, playbackRate: 0.86 },
       ],
     },
     parryClash: {
@@ -574,14 +574,12 @@ const playExpeditionSyntheticSfx = (type, options = {}) => {
   }
 
   if (type === 'combatDeflect') {
-    // Sharp metal edge crack on contact
-    makeNoiseBurst({ duration: 0.06, frequency: 3600, endFrequency: 1900, q: 2.8, gain: 0.098 });
-    // Metal ring — the characteristic singing tone of a deflected blade
-    makeToneHit({ frequency: 680, endFrequency: 420, gain: 0.034, duration: 0.22, wave: 'sine' });
-    // Weapon slide/scrape off the block
-    makeNoiseBurst({ duration: 0.14, frequency: 1050, endFrequency: 620, q: 1.3, gain: 0.052, delay: 0.014 });
-    // High edge sparkle — metal tip detail
-    makeNoiseBurst({ duration: 0.04, frequency: 5800, endFrequency: 3200, q: 2.0, gain: 0.026, delay: 0.009 });
+    // Hard surface impact — khopesh meeting stone shell or heavy armour
+    makeNoiseBurst({ duration: 0.08, frequency: 1600, endFrequency: 720, q: 1.2, gain: 0.112 });
+    // Low body thud — mass of the blocking surface
+    makeToneHit({ frequency: 148, endFrequency: 64, gain: 0.068, duration: 0.18 });
+    // Weapon rebound grind — blade sliding off the block
+    makeNoiseBurst({ duration: 0.16, frequency: 820, endFrequency: 340, q: 0.9, gain: 0.058, delay: 0.018 });
     return;
   }
 
