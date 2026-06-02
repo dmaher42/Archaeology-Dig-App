@@ -11874,6 +11874,7 @@ export default function ExpeditionJourney({
     const gateTop = placeGateOnGround(gateHeight) + 15; // +15 sinks base into ground line
     const backWidth = Math.round(gateHeight * ASSET_RATIO); // 510
     const frontWidth = Math.round((gateHeight + 20) * ASSET_RATIO); // 540
+    const frontPillarPassageOffset = Math.round(frontWidth * 0.37);
     const gateWidth = backWidth;
 
     const drawGateAsset = (ref, dest, options = {}) => {
@@ -11900,9 +11901,9 @@ export default function ExpeditionJourney({
       width: backWidth,   // 510
       height: gateHeight, // 340
     };
-    // Front column: near-left foreground element for the mirrored arch direction.
+    // Front column: near foreground occluder, offset clear of the walk-through opening.
     const frontDest = {
-      x: gateCenter - Math.round(frontWidth / 2),
+      x: gateCenter - Math.round(frontWidth / 2) + frontPillarPassageOffset,
       y: gateTop - 8,     // slightly higher — closer to camera = taller
       width: frontWidth,  // 540
       height: gateHeight + 20, // 360
@@ -13725,7 +13726,10 @@ export default function ExpeditionJourney({
     const shake = current.cameraShakeTimer > 0
       ? Math.sin(now / 28) * current.cameraShakeStrength * 7
       : 0;
-    const cameraX = clampCameraX((Number.isFinite(current.cameraX) ? current.cameraX : 0) + shake);
+    const cameraPunchX = (current.cameraPunchTimer || 0) > 0
+      ? (current.cameraPunchDirection || 1) * 7 * clamp((current.cameraPunchTimer || 0) / 0.07, 0, 1)
+      : 0;
+    const cameraX = clampCameraX((Number.isFinite(current.cameraX) ? current.cameraX : 0) + shake + cameraPunchX);
     const playerImpactShakeProgress = player.impactShakeTimer > 0
       ? clamp(player.impactShakeTimer / PLAYER_HIT_SCREEN_SHAKE_DURATION, 0, 1)
       : 0;
@@ -15199,6 +15203,7 @@ export default function ExpeditionJourney({
     if (current.sectionTransitionTimer <= 0 && current.sectionTransition) current.sectionTransition = null;
     current.cameraShakeTimer = Math.max(0, current.cameraShakeTimer - dt);
     if (current.cameraShakeTimer <= 0) current.cameraShakeStrength = 0;
+    current.cameraPunchTimer = Math.max(0, (current.cameraPunchTimer || 0) - dt);
     player.invulnerable = Math.max(0, player.invulnerable - dt);
     player.damageCooldownTimer = Math.max(0, player.damageCooldownTimer - dt);
     player.venomSlowTimer = Math.max(0, (player.venomSlowTimer || 0) - dt);
@@ -17139,6 +17144,9 @@ export default function ExpeditionJourney({
         current.hitStopTimer = Math.max(current.hitStopTimer, e.health <= 0 ? 0.12 : (isParry ? 0.15 : 0.10));
         current.cameraShakeTimer = Math.max(current.cameraShakeTimer, isParry ? 0.16 : 0.11);
         current.cameraShakeStrength = Math.max(current.cameraShakeStrength, e.health <= 0 ? 0.26 : (isParry ? 0.35 : 0.20));
+        current.cameraPunchTimer = Math.max(current.cameraPunchTimer || 0, isParry ? 0.09 : 0.07);
+        current.cameraPunchDirection = player.direction;
+        player.vx += -player.direction * (isParry ? 52 : 36);
         if (isParry && e.health > 0) {
           addCombatEffect(current, {
             type: 'parry-burst',
@@ -17455,6 +17463,9 @@ export default function ExpeditionJourney({
         current.hitStopTimer = Math.max(current.hitStopTimer, b.health <= 0 ? 0.14 : 0.11);
         current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.12);
         current.cameraShakeStrength = Math.max(current.cameraShakeStrength, b.health <= 0 ? 0.32 : 0.24);
+        current.cameraPunchTimer = Math.max(current.cameraPunchTimer || 0, 0.09);
+        current.cameraPunchDirection = player.direction;
+        player.vx += -player.direction * 38;
         addCombatEffect(current, {
           type: b.health <= 0 ? 'boss-defeat' : 'combat-impact',
           x: b.x + b.width / 2,
