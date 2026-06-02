@@ -15324,6 +15324,55 @@ main {
   color: #ccfbf1;
 }
 
+.journey-prop-editor-change-summary {
+  margin-top: 0.5rem;
+  padding: 0.46rem 0.5rem;
+  border: 1px solid rgba(94, 234, 212, 0.22);
+  border-radius: 5px;
+  background: rgba(15, 23, 42, 0.52);
+}
+
+.journey-prop-editor-change-summary-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.48rem;
+}
+
+.journey-prop-editor-change-summary-header strong {
+  color: #ccfbf1;
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.journey-prop-editor-change-summary-header span {
+  display: inline-flex;
+  min-width: 1.28rem;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(250, 204, 21, 0.16);
+  color: #fde68a;
+  font-size: 0.62rem;
+  font-weight: 900;
+}
+
+.journey-prop-editor-change-summary ul {
+  display: grid;
+  gap: 0.18rem;
+  margin: 0.34rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.journey-prop-editor-change-summary li {
+  overflow: hidden;
+  color: rgba(236, 254, 255, 0.74);
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .journey-prop-editor-readout {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
