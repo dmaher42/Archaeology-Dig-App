@@ -114,6 +114,14 @@ const EXPEDITION_AUDIO_TRACKS = {
         { path: 'assets/expedition/sfx/generated/metal-click.wav', volume: 0.16, playbackRate: 1.28 },
       ],
     },
+    parryClash: {
+      synth: 'parryClash',
+      synthVolume: 1.28,
+      cooldownMs: 140,
+      clips: [
+        { path: 'assets/expedition/sfx/generated/metal-click.wav', volume: 0.24, playbackRate: 1.62 },
+      ],
+    },
     enemyHit: {
       synth: 'creatureHit',
       synthVolume: 1.08,
@@ -472,11 +480,12 @@ const playExpeditionSyntheticSfx = (type, options = {}) => {
   }
 
   if (type === 'softSwing') {
-    const duration = 0.22;
+    const duration = 0.26;
+    // Sharp air-cut leading edge — the blade displacing air
     const buffer = audioCtx.createBuffer(1, Math.floor(audioCtx.sampleRate * duration), audioCtx.sampleRate);
     const data = buffer.getChannelData(0);
     for (let i = 0; i < data.length; i += 1) {
-      const attack = Math.min(1, i / (data.length * 0.22));
+      const attack = Math.min(1, i / (data.length * 0.12));
       const decay = 1 - (i / data.length);
       data[i] = (Math.random() * 2 - 1) * attack * decay;
     }
@@ -484,31 +493,58 @@ const playExpeditionSyntheticSfx = (type, options = {}) => {
     noise.buffer = buffer;
     const filter = audioCtx.createBiquadFilter();
     filter.type = 'bandpass';
-    filter.frequency.setValueAtTime(1080 + variation * 45, now);
-    filter.frequency.linearRampToValueAtTime(390 + variation * 18, now + duration);
-    filter.Q.value = 0.9;
+    filter.frequency.setValueAtTime(1800 + variation * 60, now);
+    filter.frequency.linearRampToValueAtTime(320 + variation * 20, now + duration);
+    filter.Q.value = 0.72;
     const noiseGain = audioCtx.createGain();
     noiseGain.gain.setValueAtTime(0.0001, now);
-    noiseGain.gain.linearRampToValueAtTime(0.105 * volume, now + 0.045);
+    noiseGain.gain.linearRampToValueAtTime(0.19 * volume, now + 0.028);
     noiseGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
     noise.connect(filter);
     filter.connect(noiseGain);
     noiseGain.connect(audioCtx.destination);
     noise.start(now);
     noise.stop(now + duration);
-
+    // Low whoosh body — blade mass cutting through air
     const body = audioCtx.createOscillator();
     body.type = 'triangle';
-    body.frequency.setValueAtTime(176 + variation * 5, now + 0.025);
-    body.frequency.exponentialRampToValueAtTime(124 + variation * 3, now + 0.15);
+    body.frequency.setValueAtTime(210 + variation * 8, now + 0.01);
+    body.frequency.exponentialRampToValueAtTime(98 + variation * 4, now + 0.20);
     const bodyGain = audioCtx.createGain();
-    bodyGain.gain.setValueAtTime(0.0001, now + 0.02);
-    bodyGain.gain.linearRampToValueAtTime(0.035 * volume, now + 0.05);
-    bodyGain.gain.exponentialRampToValueAtTime(0.001, now + 0.17);
+    bodyGain.gain.setValueAtTime(0.0001, now + 0.01);
+    bodyGain.gain.linearRampToValueAtTime(0.068 * volume, now + 0.038);
+    bodyGain.gain.exponentialRampToValueAtTime(0.001, now + 0.21);
     body.connect(bodyGain);
     bodyGain.connect(audioCtx.destination);
-    body.start(now + 0.02);
-    body.stop(now + 0.18);
+    body.start(now + 0.01);
+    body.stop(now + 0.22);
+    // Brief sub-punch at peak — weight of the weapon at full extension
+    const sub = audioCtx.createOscillator();
+    sub.type = 'sine';
+    sub.frequency.setValueAtTime(88, now + 0.022);
+    sub.frequency.exponentialRampToValueAtTime(44, now + 0.11);
+    const subGain = audioCtx.createGain();
+    subGain.gain.setValueAtTime(0.0001, now + 0.022);
+    subGain.gain.linearRampToValueAtTime(0.048 * volume, now + 0.048);
+    subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.13);
+    sub.connect(subGain);
+    subGain.connect(audioCtx.destination);
+    sub.start(now + 0.022);
+    sub.stop(now + 0.14);
+    return;
+  }
+
+  if (type === 'parryClash') {
+    // Sharp metal-on-metal crack — blades meeting at speed
+    makeNoiseBurst({ duration: 0.04, frequency: 5200, endFrequency: 2800, q: 3.4, gain: 0.11 });
+    makeNoiseBurst({ duration: 0.06, frequency: 2200, endFrequency: 980, q: 2.0, gain: 0.084, delay: 0.006 });
+    // Sustained metallic ring — the characteristic parry singing tone
+    makeToneHit({ frequency: 820, endFrequency: 480, gain: 0.052, duration: 0.38, wave: 'sine' });
+    makeToneHit({ frequency: 1240, endFrequency: 620, gain: 0.028, duration: 0.30, wave: 'sine', delay: 0.008 });
+    // Low impact thud — force of the blocked blow
+    makeToneHit({ frequency: 140, endFrequency: 58, gain: 0.058, duration: 0.16 });
+    // Blade scrape tail — weapon sliding off after contact
+    makeNoiseBurst({ duration: 0.12, frequency: 1600, endFrequency: 440, q: 1.4, gain: 0.042, delay: 0.028 });
     return;
   }
 

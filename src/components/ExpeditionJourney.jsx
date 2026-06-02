@@ -92,6 +92,7 @@ import {
   applyJourneyRouteGateDoorwayPlacementEdit,
   applyJourneyRouteGatePlacementEdit,
   clamp,
+  createJourneyPlatformPalette,
   createJourneyPropFromPaletteItem,
   createJourneyPropPalette,
   createJourneyTrapFromPaletteItem,
@@ -2964,6 +2965,7 @@ export default function ExpeditionJourney({
   }), [backgroundPackId, selectedCharacterPresetId, targetCivilisation]);
   const propEditorPalette = useMemo(() => createJourneyPropPalette(STORY_PROPS, lostSitePropRegistry), []);
   const trapEditorPalette = useMemo(() => createJourneyTrapPalette(), []);
+  const platformEditorPalette = useMemo(() => createJourneyPlatformPalette(), []);
   const selectedCharacterPreset = getPlayerCharacterPreset(selectedCharacterPresetId);
   const [gameState, setGameState] = useState(() => makeInitialState({
     targetCivilisation,
@@ -2988,6 +2990,7 @@ export default function ExpeditionJourney({
     selectedPaletteCategory: 'prop',
     showTrapTriggers: true,
     createdProps: [],
+    createdPlatforms: [],
     createdHazards: [],
     edits: {},
     platformEdits: {},
@@ -3146,8 +3149,15 @@ export default function ExpeditionJourney({
       .filter(prop => prop && isEntityActiveInScene(prop, current))
   ), [getAllPropEditorStoryProps, getEditedStoryProp]);
 
+  const getAllPropEditorPlatforms = useCallback(() => ([
+    ...PLATFORMS,
+    ...propPlacementEditorRef.current.createdPlatforms,
+  ]), []);
+
   const getPlatformEditorBasePlatformById = useCallback((platformId) => (
-    PLATFORMS.find(platform => (platform.id || platform.label) === platformId) || null
+    propPlacementEditorRef.current.createdPlatforms.find(platform => (platform.id || platform.label) === platformId)
+    || PLATFORMS.find(platform => (platform.id || platform.label) === platformId)
+    || null
   ), []);
 
   const getEditedPlatform = useCallback((platform) => {
@@ -3160,10 +3170,10 @@ export default function ExpeditionJourney({
   }, []);
 
   const getRenderablePlatforms = useCallback((current = stateRef.current) => (
-    PLATFORMS
+    getAllPropEditorPlatforms()
       .map(platform => getEditedPlatform(platform))
       .filter(platform => platform && isPlatformAvailable(platform, current))
-  ), [getEditedPlatform]);
+  ), [getAllPropEditorPlatforms, getEditedPlatform]);
 
   const getAllPropEditorHazards = useCallback(() => ([
     ...HAZARDS,
@@ -3451,12 +3461,14 @@ export default function ExpeditionJourney({
       .at(-1)?.hazard || null;
   }, [getHazardEditorBounds, getRenderableHazards]);
 
-  const getPlatformEditorBounds = useCallback((platform, cameraX) => {
+  const getPlatformEditorBounds = useCallback((platform, cameraX, current) => {
     const isFloor = isJourneyFloorPlatform(platform);
     const editorHeight = isFloor ? Math.max(platform.height + 58, 96) : Math.max(platform.height, 30);
+    const verticalOffset = !isInteriorChamberScene(current) ? current.secretVerticalCameraOffset || 0 : 0;
+    const y = platform.y + verticalOffset;
     return {
       x: worldToScreenX(platform.x, cameraX),
-      y: isFloor ? platform.y - 46 : platform.y - Math.max(0, (editorHeight - platform.height) / 2),
+      y: isFloor ? y - 46 : y - Math.max(0, (editorHeight - platform.height) / 2),
       width: platform.width,
       height: editorHeight,
     };
@@ -3475,7 +3487,7 @@ export default function ExpeditionJourney({
       .map((platform, index) => ({
         platform,
         index,
-        bounds: getPlatformEditorBounds(platform, cameraX),
+        bounds: getPlatformEditorBounds(platform, cameraX, current),
       }))
       .filter(({ bounds }) => (
         screenX >= bounds.x
@@ -3506,6 +3518,23 @@ export default function ExpeditionJourney({
           width: '100%',
           height: '100%',
           borderRadius: template.type === 'hidden-sand-pit' ? '50%' : '4px',
+        },
+      };
+    }
+    if (paletteItem?.type === 'platform' || paletteItem?.type === 'floor' || String(paletteItem?.key || '').startsWith('platform:')) {
+      const floor = paletteItem?.type === 'floor';
+      return {
+        assetKey: floor ? 'collision floor' : 'collision platform',
+        style: {
+          background: floor
+            ? 'linear-gradient(180deg, rgba(253, 224, 71, 0.38), rgba(245, 158, 11, 0.18))'
+            : 'linear-gradient(180deg, rgba(251, 191, 36, 0.36), rgba(249, 115, 22, 0.2))',
+          border: `2px solid ${floor ? 'rgba(253, 224, 71, 0.95)' : 'rgba(251, 146, 60, 0.95)'}`,
+          borderRadius: floor ? '3px' : '5px',
+          boxShadow: '0 0 12px rgba(253, 224, 71, 0.28)',
+          width: '100%',
+          height: floor ? '70%' : '44%',
+          marginTop: floor ? '15%' : '28%',
         },
       };
     }
@@ -3585,7 +3614,11 @@ export default function ExpeditionJourney({
       : checkpoint
         ? checkpoint.id
       : getActivePropEditorRoomId(current);
-    const paletteSource = editor.selectedPaletteCategory === 'trap' ? trapEditorPalette : propEditorPalette;
+    const paletteSource = editor.selectedPaletteCategory === 'trap'
+      ? trapEditorPalette
+      : editor.selectedPaletteCategory === 'platform'
+        ? platformEditorPalette
+        : propEditorPalette;
     const palette = paletteSource
       .map(item => ({ ...item, preview: getPropPalettePreview(item) }))
       .filter(item => item.preview);
@@ -3605,6 +3638,8 @@ export default function ExpeditionJourney({
         yOffset: Math.round(Number.isFinite(prop.yOffset) ? prop.yOffset : 0),
         scale: Number.isFinite(prop.scale) ? prop.scale : 1,
         rotation: Number.isFinite(prop.rotation) ? prop.rotation : 0,
+        mirrorX: Boolean(prop.mirrorX),
+        brightness: Number.isFinite(prop.brightness) ? prop.brightness : 1,
         depth: getStoryPropDepth(prop),
         layer: prop.layer || 'default',
         zIndex: Number.isFinite(prop.zIndex) ? prop.zIndex : 'auto',
@@ -3687,7 +3722,7 @@ export default function ExpeditionJourney({
       exportVisible: editor.exportVisible,
       savedAt: editor.savedAt,
     };
-  }, [getActivePropEditorRoomId, getHazardEditorRoomId, getPlatformEditorRoomId, getPropEditorSelectedArch, getPropEditorSelectedCheckpoint, getPropEditorSelectedHazard, getPropEditorSelectedLair, getPropEditorSelectedPlatform, getPropEditorSelectedProp, getPropPalettePreview, getScarabQueenLairPlacement, propEditorPalette, trapEditorPalette]);
+  }, [getActivePropEditorRoomId, getHazardEditorRoomId, getPlatformEditorRoomId, getPropEditorSelectedArch, getPropEditorSelectedCheckpoint, getPropEditorSelectedHazard, getPropEditorSelectedLair, getPropEditorSelectedPlatform, getPropEditorSelectedProp, getPropPalettePreview, getScarabQueenLairPlacement, platformEditorPalette, propEditorPalette, trapEditorPalette]);
 
   const refreshPropEditorUi = useCallback(() => {
     setPropEditorUi(getPropEditorUiState());
@@ -3744,7 +3779,7 @@ export default function ExpeditionJourney({
       .filter(prop => getJourneyPropRoomId(prop, getJourneySceneId(current), current.currentSectionId) === roomId)
       .map(prop => getEditedStoryProp(prop))
       .filter(Boolean);
-    const roomPlatforms = PLATFORMS
+    const roomPlatforms = getAllPropEditorPlatforms()
       .filter(platform => getPlatformEditorRoomId(platform, current) === roomId)
       .map(platform => getEditedPlatform(platform))
       .filter(platform => platform?.id);
@@ -3786,7 +3821,7 @@ export default function ExpeditionJourney({
     editor.exportVisible = true;
     editor.savedAt = new Date().toLocaleTimeString();
     refreshPropEditorUi();
-  }, [getActivePropEditorRoomId, getAllPropEditorHazards, getAllPropEditorStoryProps, getEditedHazard, getEditedMiniBoss, getEditedPlatform, getEditedStoryProp, getHazardEditorBaseHazardById, getHazardEditorRoomId, getPlatformEditorBasePlatformById, getPlatformEditorRoomId, getPropEditorBasePropById, getRenderableCheckpoints, getRenderableRouteGateDoorways, getRenderableRouteGates, refreshPropEditorUi, targetCivilisation]);
+  }, [getActivePropEditorRoomId, getAllPropEditorHazards, getAllPropEditorPlatforms, getAllPropEditorStoryProps, getEditedHazard, getEditedMiniBoss, getEditedPlatform, getEditedStoryProp, getHazardEditorBaseHazardById, getHazardEditorRoomId, getPlatformEditorBasePlatformById, getPlatformEditorRoomId, getPropEditorBasePropById, getRenderableCheckpoints, getRenderableRouteGateDoorways, getRenderableRouteGates, refreshPropEditorUi, targetCivilisation]);
 
   const deleteSelectedPropFromEditor = useCallback(() => {
     const editor = propPlacementEditorRef.current;
@@ -3813,7 +3848,12 @@ export default function ExpeditionJourney({
     if (platformId) {
       const confirmed = window.confirm(`Delete platform "${platformId}" from ${getPlatformEditorRoomId(selectedPlatform, stateRef.current)}?`);
       if (!confirmed) return;
-      editor.deletedPlatformIds.add(platformId);
+      const createdIndex = editor.createdPlatforms.findIndex(platform => (platform.id || platform.label) === platformId);
+      if (createdIndex >= 0) {
+        editor.createdPlatforms.splice(createdIndex, 1);
+      } else {
+        editor.deletedPlatformIds.add(platformId);
+      }
       delete editor.platformEdits[platformId];
       editor.selectedPlatformId = null;
       editor.dragging = null;
@@ -3840,6 +3880,10 @@ export default function ExpeditionJourney({
   const getPropEditorExistingIds = useCallback(() => getAllPropEditorStoryProps().map(prop => prop.id), [getAllPropEditorStoryProps]);
 
   const getHazardEditorExistingIds = useCallback(() => getAllPropEditorHazards().map(hazard => hazard.id), [getAllPropEditorHazards]);
+
+  const getPlatformEditorExistingIds = useCallback(() => (
+    getAllPropEditorPlatforms().map(platform => platform.id || platform.label).filter(Boolean)
+  ), [getAllPropEditorPlatforms]);
 
   const getGroundAwareStoryPropEditorEdit = useCallback((prop, edit = {}) => {
     const nextEdit = { ...edit };
@@ -4001,6 +4045,32 @@ export default function ExpeditionJourney({
     refreshPropEditorUi();
     return nextTrap;
   }, [getActivePropEditorRoomId, getHazardEditorExistingIds, refreshPropEditorUi, trapEditorPalette]);
+
+  const createPlatformFromEditorPalette = useCallback((pointer) => {
+    const editor = propPlacementEditorRef.current;
+    const paletteItem = platformEditorPalette.find(item => item.key === editor.selectedPaletteKey);
+    if (!paletteItem) return null;
+    const roomId = getActivePropEditorRoomId(stateRef.current);
+    const nextPlatform = createJourneyPlatformFromPaletteItem({
+      paletteItem,
+      roomId,
+      x: editor.gridSnap ? snapJourneyPropCoordinate(pointer.worldX, editor.gridSize) : Math.round(pointer.worldX),
+      y: editor.gridSnap ? snapJourneyPropCoordinate(pointer.worldY, editor.gridSize) : Math.round(pointer.worldY),
+      existingIds: getPlatformEditorExistingIds(),
+    });
+    editor.createdPlatforms.push(nextPlatform);
+    editor.selectedPropId = null;
+    editor.selectedPlatformId = nextPlatform.id || nextPlatform.label;
+    editor.selectedHazardId = null;
+    editor.selectedArchId = null;
+    editor.selectedCheckpointId = null;
+    editor.selectedLairId = null;
+    editor.selectedPaletteKey = null;
+    editor.paletteOpen = false;
+    editor.deletedPlatformIds.delete(nextPlatform.id || nextPlatform.label);
+    refreshPropEditorUi();
+    return nextPlatform;
+  }, [getActivePropEditorRoomId, getPlatformEditorExistingIds, platformEditorPalette, refreshPropEditorUi]);
 
   useEffect(() => {
     window.localStorage.setItem(CHARACTER_LOADER_STORAGE_KEY, selectedCharacterPresetId);
@@ -9708,6 +9778,7 @@ export default function ExpeditionJourney({
         ...(Number.isFinite(propForAsset.dust) ? { dust: propForAsset.dust } : {}),
         ...(Number.isFinite(propForAsset.bury) ? { bury: propForAsset.bury } : {}),
         ...(Number.isFinite(propForAsset.scale) ? { scale: propForAsset.scale } : {}),
+        ...(Number.isFinite(propForAsset.brightness) ? { brightness: propForAsset.brightness } : {}),
         ...(Number.isFinite(propForAsset.burialDepth) ? { burialDepth: propForAsset.burialDepth } : {}),
         ...(Number.isFinite(propForAsset.shadowWidth) ? { shadowWidth: propForAsset.shadowWidth } : {}),
         ...(Number.isFinite(propForAsset.shadowHeight) ? { shadowHeight: propForAsset.shadowHeight } : {}),
@@ -9787,7 +9858,30 @@ export default function ExpeditionJourney({
           ? 'sepia(18%) saturate(62%) brightness(84%) contrast(92%)'
           : 'sepia(10%) saturate(86%) brightness(92%)';
       }
-      const drawn = drawAtlasRegion(
+      if (Number.isFinite(propSize.brightness) && propSize.brightness !== 1) {
+        const baseFilter = ctx.filter && ctx.filter !== 'none' ? `${ctx.filter} ` : '';
+        ctx.filter = `${baseFilter}brightness(${Math.round(clamp(propSize.brightness, 0.4, 1.8) * 100)}%)`;
+      }
+      const drawMirroredPropAsset = () => {
+        ctx.save();
+        ctx.translate(drawX + propSize.width / 2, drawY + propSize.height / 2);
+        ctx.scale(-1, 1);
+        const didDraw = drawAtlasRegion(
+          ctx,
+          propAssets,
+          propAssetKey,
+          {
+            x: -propSize.width / 2,
+            y: -propSize.height / 2,
+            width: propSize.width,
+            height: propSize.height,
+          },
+          { mode: 'contain' },
+        );
+        ctx.restore();
+        return didDraw;
+      };
+      const drawn = propForAsset.mirrorX ? drawMirroredPropAsset() : drawAtlasRegion(
         ctx,
         propAssets,
         propAssetKey,
@@ -13516,7 +13610,7 @@ export default function ExpeditionJourney({
     }
     getRenderablePlatforms(current).forEach((platform) => {
       const platformId = platform.id || platform.label;
-      const bounds = getPlatformEditorBounds(platform, cameraX);
+      const bounds = getPlatformEditorBounds(platform, cameraX, current);
       if (bounds.x + bounds.width < -80 || bounds.x > CANVAS_WIDTH + 80) return;
       const floor = isJourneyFloorPlatform(platform);
       const selected = platformId === editor.selectedPlatformId;
@@ -13613,7 +13707,7 @@ export default function ExpeditionJourney({
     });
     const selectedPlatform = getPropEditorSelectedPlatform(current);
     if (selectedPlatform) {
-      const bounds = getPlatformEditorBounds(selectedPlatform, cameraX);
+      const bounds = getPlatformEditorBounds(selectedPlatform, cameraX, current);
       const labelX = clamp(bounds.x, 12, CANVAS_WIDTH - 300);
       const labelY = clamp(bounds.y - 28, 14, CANVAS_HEIGHT - 36);
       ctx.setLineDash([]);
@@ -17174,10 +17268,13 @@ export default function ExpeditionJourney({
           timer: 0.24,
           maxTimer: 0.24,
         });
-        audioControls?.playExpeditionSfx?.(getEnemyHitSfxKey(e), {
-          volume: e.health <= 0 ? 1.12 : (current.lastAttackResult === 'parry' ? 1.15 : (current.lastAttackResult === 'counter-hit' ? 1.02 : 0.92)),
-          playbackRate: current.lastAttackResult === 'parry' ? 1.22 : 1,
-        });
+        if (current.lastAttackResult === 'parry') {
+          audioControls?.playExpeditionSfx?.('parryClash', { volume: 1.0 });
+        } else {
+          audioControls?.playExpeditionSfx?.(getEnemyHitSfxKey(e), {
+            volume: e.health <= 0 ? 1.12 : (current.lastAttackResult === 'counter-hit' ? 1.02 : 0.92),
+          });
+        }
         if (e.health <= 0) {
           e.defeated = true;
           e.hitFlash = 0;
@@ -18395,6 +18492,8 @@ export default function ExpeditionJourney({
       if (editor.selectedPaletteKey) {
         if (String(editor.selectedPaletteKey).startsWith('trap:') || editor.selectedPaletteCategory === 'trap') {
           createTrapFromEditorPalette(pointer);
+        } else if (String(editor.selectedPaletteKey).startsWith('platform:') || editor.selectedPaletteCategory === 'platform') {
+          createPlatformFromEditorPalette(pointer);
         } else {
           createPropFromEditorPalette(pointer);
         }
@@ -18434,7 +18533,7 @@ export default function ExpeditionJourney({
           kind: 'platform',
           platformId: selectedPlatform.id || selectedPlatform.label,
           offsetX: pointer.worldX - selectedPlatform.x,
-          offsetY: pointer.screenY - selectedPlatform.y,
+          offsetY: pointer.worldY - selectedPlatform.y,
         };
         e.currentTarget.setPointerCapture?.(e.pointerId);
       } else if (selectedHazard) {
@@ -18571,7 +18670,7 @@ export default function ExpeditionJourney({
         if (!basePlatform) return;
         const platformId = basePlatform.id || basePlatform.label;
         const rawX = pointer.worldX - editor.dragging.offsetX;
-        const rawY = pointer.screenY - editor.dragging.offsetY;
+        const rawY = pointer.worldY - editor.dragging.offsetY;
         const nextX = editor.gridSnap ? snapJourneyPropCoordinate(rawX, editor.gridSize) : Math.round(rawX);
         const nextY = editor.gridSnap ? snapJourneyPropCoordinate(rawY, editor.gridSize) : Math.round(rawY);
         editor.platformEdits[platformId] = {
@@ -18765,6 +18864,8 @@ export default function ExpeditionJourney({
                     <div><span>Height</span><strong>{propEditorUi.selectedProp.height}</strong></div>
                     <div><span>Scale</span><strong>{propEditorUi.selectedProp.scale.toFixed(2)}</strong></div>
                     <div><span>Rotation</span><strong>{Math.round(propEditorUi.selectedProp.rotation)} deg</strong></div>
+                    <div><span>Mirror</span><strong>{propEditorUi.selectedProp.mirrorX ? 'mirrored' : 'normal'}</strong></div>
+                    <div><span>Brightness</span><strong>{propEditorUi.selectedProp.brightness.toFixed(2)}</strong></div>
                     <div><span>Depth</span><strong>{propEditorUi.selectedProp.depth}</strong></div>
                     <div><span>Layer</span><strong>{propEditorUi.selectedProp.layer}</strong></div>
                     <div><span>Z-index</span><strong>{propEditorUi.selectedProp.zIndex}</strong></div>
@@ -18955,6 +19056,28 @@ export default function ExpeditionJourney({
                           const nextRotation = Number(event.target.value);
                           if (Number.isFinite(nextRotation)) updateSelectedPropEditorTransform({ rotation: Math.round(nextRotation) });
                         }}
+                      />
+                    </label>
+                    <label>
+                      <span>Brightness</span>
+                      <input
+                        type="number"
+                        min="0.4"
+                        max="1.8"
+                        step="0.05"
+                        value={Number(propEditorUi.selectedProp.brightness.toFixed(2))}
+                        onChange={(event) => {
+                          const nextBrightness = clamp(Number(event.target.value), 0.4, 1.8);
+                          if (Number.isFinite(nextBrightness)) updateSelectedPropEditorTransform({ brightness: Number(nextBrightness.toFixed(2)) });
+                        }}
+                      />
+                    </label>
+                    <label className="journey-prop-editor-checkbox">
+                      <span>Mirror</span>
+                      <input
+                        type="checkbox"
+                        checked={propEditorUi.selectedProp.mirrorX}
+                        onChange={(event) => updateSelectedPropEditorTransform({ mirrorX: event.target.checked })}
                       />
                     </label>
                     <label>
