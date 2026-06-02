@@ -14197,7 +14197,25 @@ export default function ExpeditionJourney({
           ctx.stroke();
         }
       }
-      
+
+      const isUnblockableWindup = !enemy.defeated
+        && enemy.attackWindup > 0
+        && HEAVY_ATTACK_PATTERNS[enemy.type]?.protectedDuringWindup
+        && enemy.attackPattern === HEAVY_ATTACK_PATTERNS[enemy.type]?.id;
+      if (isUnblockableWindup) {
+        const windupFraction = clamp(1 - enemy.attackWindup / (HEAVY_ATTACK_PATTERNS[enemy.type].windup || 1), 0, 1);
+        const pulse = 0.5 + Math.sin(now / 140) * 0.5;
+        ctx.save();
+        ctx.strokeStyle = `rgba(245, 222, 185, ${0.22 + pulse * 0.40 + windupFraction * 0.20})`;
+        ctx.lineWidth = 2 + pulse * 1.5;
+        ctx.shadowColor = 'rgba(255, 210, 140, 0.6)';
+        ctx.shadowBlur = 6 + pulse * 8;
+        ctx.beginPath();
+        ctx.ellipse(ex + enemy.width / 2, enemy.y + enemy.height * 0.52, enemy.width * 0.60, enemy.height * 0.50, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
       // Only show normal enemy health after damage so full bars do not read as platforms.
       if (!enemy.defeated && enemy.health > 1 && enemy.health < enemy.maxHealth) {
         const enemyDrawBox = getEnemySpriteDrawBox(enemy, ex, 0, getCombatMode(enemy)) || {
