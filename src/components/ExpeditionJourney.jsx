@@ -2601,9 +2601,11 @@ const STORY_PROP_GROUNDING_OVERRIDES = {
   },
 };
 
-const SACRED_DEFENCE_STORY_PROP_IDS = new Set([
-  'guardian-seal-pedestal-passive',
-  'guardian-seal-passive',
+const SACRED_TRAP_PROP_TYPES = new Set([
+  'guardian-seal',
+  'guardian-seal-activated',
+  'sacred-pedestal',
+  'sacred-pedestal-activated',
 ]);
 
 const ATMOSPHERE_GROUND_LOCK_MARGIN = 5;
@@ -9977,7 +9979,7 @@ export default function ExpeditionJourney({
       ctx.translate(-centerX, -centerY);
     }
     const propForAsset = prop;
-    const sacredTrapPropAssetKey = SACRED_DEFENCE_STORY_PROP_IDS.has(prop.id)
+    const sacredTrapPropAssetKey = SACRED_TRAP_PROP_TYPES.has(prop.type)
       ? getEnvironmentAssetKeyForStoryProp(propForAsset, ENVIRONMENT_ASSET_PACK_IDS.EGYPT_SACRED_TRAPS)
       : null;
     const atmospherePropAssetKey = propForAsset.atmosphereAssetKey

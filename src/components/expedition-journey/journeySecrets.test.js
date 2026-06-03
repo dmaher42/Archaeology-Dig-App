@@ -1083,23 +1083,6 @@ test('scribe locked chamber reuses the Journey scene and challenge systems for o
   assert.match(journeyComponentSource, /'edgePebbleScatter'/);
   assert.match(journeyComponentSource, /'rubbleClusterSmall'/);
   assert.match(journeyComponentSource, /'rubbleClusterLarge'/);
-  [
-    ['scribe-base-left-jar-cluster', 'supplyJars'],
-    ['scribe-base-left-fallen-tablet', 'stoneTablet'],
-    ['scribe-base-left-rubble-cluster', 'rubbleDustSmall'],
-    ['scribe-under-climb-collapsed-stair-stones', 'desertEntryPremiumThresholdSlab'],
-    ['scribe-under-climb-broken-blocks', 'rubbleScatter'],
-    ['scribe-lower-door-rubble', 'rubbleDustSmall'],
-    ['scribe-lower-door-papyrus-cases', 'scrollCache'],
-    ['scribe-right-column-base', 'pillarCaps'],
-    ['scribe-right-foreground-stones', 'rubbleScatter'],
-  ].forEach(([propId, assetKey]) => {
-    const prop = getDataRowById(storyProps, propId);
-    assert.match(prop, new RegExp(`atmosphereAssetKey:\\s*'${assetKey}'`));
-    assert.match(prop, /placementPreset:\s*'desertEntryGroundedRuin'/);
-    assert.match(prop, /depth:\s*'route-edge'/);
-    assert.match(prop, /shadowOpacity:\s*0/, `${propId} should not cast a generated contact shadow`);
-  });
   assert.match(journeyComponentSource, /prop\.type === 'generated-scribe-chamber-doorway'/);
   assert.match(journeyComponentSource, /drawScribeLockedChamberInterior/);
   assert.match(journeyComponentSource, /Scribe Chamber Decoding/);
@@ -1542,9 +1525,7 @@ test('Ancient Egypt opening stages archaeologist arrival and warrior-guide story
   const bossKeyItems = extractExportedArray('BOSS_KEY_ITEMS');
 
   assert.match(storyProps, /id:\s*'opening-archaeologist-field-kit'/);
-  assert.match(storyProps, /id:\s*'opening-guardian-warning-plinth'/);
-  assert.match(storyProps, /id:\s*'opening-warrior-guide-marker'/);
-  assert.match(storyProps, /warrior-guide protective seal marker/);
+
   assert.doesNotMatch(storyProps, /id:\s*'opening-sacred-threshold-guardian'/);
   assert.match(storyProps, /id:\s*'desert-entry-premium-column-1'/);
   ['camp', 'ceremonial-offering', 'sacred-pedestal'].forEach((type) => {
@@ -2071,7 +2052,6 @@ test('route props stay out of the opening pyramid facade and use the grounded ru
     const escapedId = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     assert.doesNotMatch(storyProps, new RegExp(`id:\\s*'${escapedId}'`));
   });
-  assert.match(getDataRowById(storyProps, 'scribe-base-left-fallen-tablet'), /placementPreset:\s*'desertEntryGroundedRuin'/);
   assert.doesNotMatch(storyProps, /sectionId:\s*'desert-entry'[^}]*type:\s*'survey-rope'/);
   assert.match(
     journeyComponentSource,

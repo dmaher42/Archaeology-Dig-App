@@ -249,6 +249,7 @@ const getJourneyPropRegistryTemplate = (entry = {}) => {
   if (entry.defaultDepth) template.depth = entry.defaultDepth;
   if (entry.defaultPlacementPreset) template.placementPreset = entry.defaultPlacementPreset;
   if (entry.defaultTint) template.tint = entry.defaultTint;
+  if (entry.defaultColorGradeFilter) template.colorGradeFilter = entry.defaultColorGradeFilter;
   if (Number.isFinite(entry.defaultAlpha)) template.alpha = entry.defaultAlpha;
   if (Number.isFinite(entry.defaultShadowOpacity)) template.shadowOpacity = entry.defaultShadowOpacity;
   if (Number.isFinite(entry.defaultSandOverlapHeight)) template.sandOverlapHeight = entry.defaultSandOverlapHeight;
