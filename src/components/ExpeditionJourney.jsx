@@ -13444,34 +13444,54 @@ export default function ExpeditionJourney({
         const direction = targetX >= x ? 1 : -1;
         const travel = 1 - progress;
         const spitX = x + (targetX - x) * travel;
-        const arcLift = Math.sin(travel * Math.PI) * (effect.arcHeight || 34);
+        const arcLift = Math.sin(travel * Math.PI) * (effect.arcHeight || 42);
         const spitY = y + (targetY - y) * travel - arcLift;
+        const blobAlpha = Math.max(0, progress * 0.88 + 0.12);
 
-        ctx.globalAlpha = Math.max(0, 0.82 * progress + 0.14);
-        ctx.fillStyle = '#6b3a18';
-        ctx.shadowColor = 'rgba(90, 48, 18, 0.55)';
-        ctx.shadowBlur = 7;
+        // Outer glow aura
+        ctx.globalAlpha = Math.max(0, progress * 0.42);
+        const aura = ctx.createRadialGradient(spitX, spitY, 2, spitX, spitY, 18);
+        aura.addColorStop(0, 'rgba(195, 88, 14, 0.7)');
+        aura.addColorStop(1, 'rgba(140, 55, 8, 0)');
+        ctx.fillStyle = aura;
         ctx.beginPath();
-        ctx.ellipse(spitX, spitY, 7, 3.8, direction * -0.22, 0, Math.PI * 2);
+        ctx.ellipse(spitX, spitY, 18, 11, direction * -0.22, 0, Math.PI * 2);
         ctx.fill();
 
+        // Main blob
+        ctx.globalAlpha = blobAlpha;
+        ctx.fillStyle = '#c45a14';
+        ctx.shadowColor = 'rgba(210, 95, 18, 0.92)';
+        ctx.shadowBlur = 10 + progress * 8;
+        ctx.beginPath();
+        ctx.ellipse(spitX, spitY, 11, 6, direction * -0.22, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Bright core highlight
         ctx.shadowBlur = 0;
-        ctx.globalAlpha = Math.max(0, 0.32 * progress);
-        ctx.fillStyle = 'rgba(90, 52, 18, 0.7)';
-        for (let i = 0; i < 3; i += 1) {
-          const trail = 8 + i * 7;
+        ctx.globalAlpha = Math.max(0, progress * 0.72);
+        ctx.fillStyle = '#e8841c';
+        ctx.beginPath();
+        ctx.ellipse(spitX - direction * 2.5, spitY - 1.5, 5.5, 3, direction * -0.22, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Trailing drops — offset behind the blob
+        for (let i = 0; i < 5; i += 1) {
+          const trailDist = 10 + i * 9;
+          const trailX = spitX - direction * trailDist * (0.4 + travel * 0.6);
+          const trailY = spitY + Math.sin(i * 1.2 + travel * 4) * 2.5;
+          const trailAlpha = Math.max(0, progress * (0.58 - i * 0.10));
+          const rx = Math.max(0.8, 5.5 - i * 0.85);
+          ctx.globalAlpha = trailAlpha;
+          ctx.fillStyle = i < 2 ? '#a84a10' : '#7a3610';
+          ctx.shadowColor = 'rgba(180, 75, 12, 0.5)';
+          ctx.shadowBlur = i < 2 ? 5 : 0;
           ctx.beginPath();
-          ctx.ellipse(
-            spitX - direction * trail * (1 - travel * 0.45),
-            spitY + Math.sin(i + travel * 5) * 2,
-            3 - i * 0.4,
-            1.6,
-            direction * -0.15,
-            0,
-            Math.PI * 2,
-          );
+          ctx.ellipse(trailX, trailY, rx, rx * 0.56, direction * -0.15, 0, Math.PI * 2);
           ctx.fill();
         }
+
+        ctx.shadowBlur = 0;
         ctx.restore();
         return;
       }
