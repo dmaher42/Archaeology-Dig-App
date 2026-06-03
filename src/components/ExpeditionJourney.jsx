@@ -17246,16 +17246,19 @@ export default function ExpeditionJourney({
           });
         }
         if (pattern.id === SCORPION_VENOM_ATTACK_PATTERN.id) {
+          const venomTravelTime = pattern.windup + pattern.duration;
+          const rawLead = (player.vx || 0) * venomTravelTime * 0.85;
+          const velocityLead = Math.max(-160, Math.min(160, rawLead));
           addCombatEffect(current, {
             type: 'venom-spit',
             x: e.x + e.width / 2,
             y: e.y + e.height * 0.28,
-            targetX: player.x + player.width / 2,
+            targetX: player.x + player.width / 2 + velocityLead,
             targetY: player.y + player.height * 0.42,
             color: '#84cc16',
             arcHeight: 42,
-            timer: pattern.windup + pattern.duration,
-            maxTimer: pattern.windup + pattern.duration,
+            timer: venomTravelTime,
+            maxTimer: venomTravelTime,
           });
         }
         if (isHeavyAttack) {
