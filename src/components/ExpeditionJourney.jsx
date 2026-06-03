@@ -8160,23 +8160,6 @@ export default function ExpeditionJourney({
         ctx.globalAlpha = 1;
       }
       ctx.restore();
-      drawOpeningPyramidAssetRegion(ctx, 'pedestal', {
-        x: scarabSealX - 43,
-        y: beaconY + 10,
-        width: 86,
-        height: 68,
-      }, { alpha: 0.74, filter: 'sepia(8%) saturate(88%) brightness(84%) contrast(98%)' });
-      drawOpeningPyramidAssetRegion(ctx, 'seal', {
-        x: scarabSealX - 27,
-        y: beaconY - 30,
-        width: 54,
-        height: 54,
-      }, {
-        alpha: activated ? 1 : 0.94 + lurePulse * 0.06,
-        filter: activated
-          ? 'saturate(118%) brightness(112%) contrast(104%) drop-shadow(0 0 12px rgba(56,189,248,0.5))'
-          : `saturate(122%) brightness(${112 + lurePulse * 12}%) contrast(106%) drop-shadow(0 0 ${12 + lurePulse * 12}px rgba(250,204,21,0.68))`,
-      });
     }
     const baseFade = ctx.createLinearGradient(0, GROUND_Y - 52, 0, GROUND_Y + 24);
     baseFade.addColorStop(0, 'rgba(171, 103, 42, 0)');
@@ -8186,7 +8169,7 @@ export default function ExpeditionJourney({
     ctx.fillRect(Math.max(-40, x), GROUND_Y - 52, Math.min(width + 80, CANVAS_WIDTH + 80), 82);
     ctx.restore();
     return true;
-  }, [drawOpeningPyramidAssetRegion]);
+  }, []);
 
   const drawOpeningPyramidMasonryBack = useCallback((ctx, cameraX, now = 0, current = stateRef.current) => {
     if (openingPyramidFacadeRef.current.loaded && openingPyramidFacadeRef.current.image) {
@@ -14089,11 +14072,14 @@ export default function ExpeditionJourney({
       && playerCenterX <= route.x + route.width + scaleJourneyX(160));
     const playerIsElevated = player.y < GROUND_Y - 160;
     const desiredSecretVerticalCameraOffset = !chamberSceneActive && playerIsElevated
-      ? clamp(CANVAS_HEIGHT * 0.46 - (player.y + player.height / 2), 0, 380)
+      ? clamp(CANVAS_HEIGHT * 0.46 - (player.y + player.height / 2), 0, 420)
       : 0;
-    current.secretVerticalCameraOffset = Number(((
-      (current.secretVerticalCameraOffset || 0) * 0.78
-    ) + desiredSecretVerticalCameraOffset * 0.22).toFixed(2));
+    const currentVertOffset = current.secretVerticalCameraOffset || 0;
+    const movingUp = desiredSecretVerticalCameraOffset > currentVertOffset;
+    const vertBlend = movingUp ? 0.52 : 0.14;
+    current.secretVerticalCameraOffset = Number((
+      currentVertOffset * (1 - vertBlend) + desiredSecretVerticalCameraOffset * vertBlend
+    ).toFixed(2));
     const secretVerticalCameraOffset = current.secretVerticalCameraOffset || 0;
     current.renderStats = {
       visibleLabelCount: 0,
