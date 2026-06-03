@@ -3026,6 +3026,7 @@ export default function ExpeditionJourney({
     selectedPaletteKey: null,
     selectedPaletteCategory: 'prop',
     showTrapTriggers: true,
+    floorPickMode: false,
     createdProps: [],
     createdPlatforms: [],
     createdHazards: [],
@@ -3058,6 +3059,7 @@ export default function ExpeditionJourney({
     selectedPaletteKey: null,
     selectedPaletteCategory: 'prop',
     showTrapTriggers: true,
+    floorPickMode: false,
     palette: [],
     selectedLockKey: null,
     selectedLocked: false,
@@ -3802,6 +3804,7 @@ export default function ExpeditionJourney({
       selectedPaletteKey: editor.selectedPaletteKey,
       selectedPaletteCategory: editor.selectedPaletteCategory,
       showTrapTriggers: editor.showTrapTriggers,
+      floorPickMode: editor.floorPickMode,
       palette,
       selectedLockKey,
       selectedLocked: Boolean(selectedLockKey && editor.lockedItems.has(selectedLockKey)),
@@ -17198,9 +17201,10 @@ export default function ExpeditionJourney({
         getAttackBox(e, ENEMY_ATTACK_TRIGGER_REACH, tacticalPattern.height, attackDirectionToPlayer, tacticalPattern.yOffset || 0, 0),
         getPlayerBodyHitbox(player),
       );
-      const shouldUseVenomSpit = e.type === 'scorpion' && !meleeReachesPlayer && scorpionVenomCanReach;
+      const playerIsVenomSlowed = (player.venomSlowTimer || 0) > 0;
+      const shouldUseVenomSpit = e.type === 'scorpion' && !meleeReachesPlayer && scorpionVenomCanReach && !playerIsVenomSlowed;
       const enemyCanStartAttack = (nearPlayer && meleeReachesPlayer) || shouldUseVenomSpit;
-      if (nearPlayer || shouldUseVenomSpit) {
+      if (nearPlayer || shouldUseVenomSpit || (e.type === 'scorpion' && playerIsVenomSlowed && scorpionVenomCanReach)) {
         e.aggroMemoryTimer = Math.max(e.aggroMemoryTimer || 0, ENEMY_AGGRO_MEMORY_SECONDS * (tacticalPattern.aggroMemoryMultiplier || 1));
       }
       if (!current.seenEnemyTypeNoticeIds) current.seenEnemyTypeNoticeIds = new Set();
@@ -17341,8 +17345,9 @@ export default function ExpeditionJourney({
         if (isPressingPlayer) {
           e.direction = distanceToPlayer >= 0 ? 1 : -1;
         }
+        const slowPursuitBoost = e.type === 'scorpion' && playerIsVenomSlowed ? 1.48 : 1;
         const chaseSpeedMultiplier = isAggroChasing
-          ? (tacticalPattern.chaseMultiplier || 1.65) * (e.type === 'scorpion' ? SCORPION_CHASE_SPEED_MULTIPLIER : 1)
+          ? (tacticalPattern.chaseMultiplier || 1.65) * (e.type === 'scorpion' ? SCORPION_CHASE_SPEED_MULTIPLIER * slowPursuitBoost : 1)
           : 1;
         const patrolSpeed = (e.baseSpeed || e.speed) * updateHostileStepMultiplier(e, dt) * chaseSpeedMultiplier;
         e.x += e.direction * patrolSpeed * dt;
@@ -18706,14 +18711,17 @@ export default function ExpeditionJourney({
       const selectedLair = selectedHazard ? null : findEditableScarabLairAt(pointer.screenX, pointer.screenY);
       const selectedCheckpoint = selectedHazard || selectedLair ? null : findEditableCheckpointAt(pointer.screenX, pointer.screenY);
       const selectedArch = selectedHazard || selectedLair || selectedCheckpoint ? null : findEditableArchAt(pointer.screenX, pointer.screenY);
-      const selectedSolidPlatform = selectedHazard || selectedLair || selectedCheckpoint || selectedArch
+      const selectedForcedFloor = editor.floorPickMode && !(selectedHazard || selectedLair || selectedCheckpoint || selectedArch)
+        ? findEditablePlatformAt(pointer.screenX, pointer.screenY, { floorOnly: true })
+        : null;
+      const selectedSolidPlatform = selectedHazard || selectedLair || selectedCheckpoint || selectedArch || selectedForcedFloor
         ? null
         : findEditablePlatformAt(pointer.screenX, pointer.screenY, { includeFloors: false });
       const selectedProp = selectedHazard || selectedLair || selectedCheckpoint || selectedArch || selectedSolidPlatform ? null : findEditableStoryPropAt(pointer.screenX, pointer.screenY);
-      const selectedFloor = selectedHazard || selectedLair || selectedCheckpoint || selectedArch || selectedSolidPlatform || selectedProp
+      const selectedFallbackFloor = editor.floorPickMode || selectedHazard || selectedLair || selectedCheckpoint || selectedArch || selectedSolidPlatform || selectedProp
         ? null
         : findEditablePlatformAt(pointer.screenX, pointer.screenY, { floorOnly: true });
-      const selectedPlatform = selectedSolidPlatform || selectedFloor;
+      const selectedPlatform = selectedForcedFloor || selectedSolidPlatform || selectedFallbackFloor;
       editor.selectedPropId = selectedProp?.id || null;
       editor.selectedPlatformId = selectedPlatform ? selectedPlatform.id || selectedPlatform.label : null;
       editor.selectedHazardId = selectedHazard?.id || null;
@@ -19054,6 +19062,16 @@ export default function ExpeditionJourney({
                     }}
                   >
                     Triggers
+                  </button>
+                  <button
+                    type="button"
+                    className={propEditorUi.floorPickMode ? 'is-selected' : ''}
+                    onClick={() => {
+                      propPlacementEditorRef.current.floorPickMode = !propPlacementEditorRef.current.floorPickMode;
+                      refreshPropEditorUi();
+                    }}
+                  >
+                    Floors
                   </button>
                   <button
                     type="button"
