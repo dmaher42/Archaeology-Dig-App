@@ -28,7 +28,7 @@ export const ATTACK_RECOIL_DURATION = 0.18;
 export const INVULNERABLE_DURATION = 0.58;
 
 export const PLAYER_HERO_SPRITE_ATLAS_JSON = 'assets/expedition/player/asha-reference-warrior-spritesheet.json';
-export const PLAYER_HERO_SPRITE_VERSION = 'asha-reference-warrior-full-motion-polish-2026-05-30';
+export const PLAYER_HERO_SPRITE_VERSION = 'asha-reference-warrior-combo-upgrade-2026-06-03';
 export const PLAYER_HERO_PREVIOUS_SPRITE_ATLAS_JSON = 'assets/expedition/player/asha-hooded-warrior-explorer-spritesheet.json';
 export const PLAYER_HERO_PREVIOUS_SPRITE_VERSION = 'asha-egypt-hooded-warrior-explorer-reference-2026-05-19';
 export const PLAYER_HERO_FALLBACK_SPRITE_ATLAS_JSON = 'assets/expedition/player/egypt-warrior-guide-spritesheet.json';

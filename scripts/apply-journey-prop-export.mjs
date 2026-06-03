@@ -118,6 +118,8 @@ const PROP_FIELD_ORDER = [
   'sceneId',
   'type',
   'atmosphereAssetKey',
+  'imageAssetKey',
+  'assetPath',
   'x',
   'y',
   'width',

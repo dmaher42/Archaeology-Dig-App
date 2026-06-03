@@ -2,8 +2,9 @@ const cloneItem = (item) => ({ ...item });
 
 const EDITABLE_FIELDS = Object.freeze({
   props: [
-    'id', 'sectionId', 'sceneId', 'type', 'atmosphereAssetKey', 'x', 'y', 'width', 'height', 'yOffset',
-    'alpha', 'depth', 'layer', 'zIndex', 'scale', 'rotation', 'mirrorX', 'brightness', 'placementPreset', 'label',
+    'id', 'sectionId', 'sceneId', 'type', 'atmosphereAssetKey', 'imageAssetKey', 'assetPath', 'x', 'y', 'width',
+    'height', 'yOffset', 'alpha', 'depth', 'layer', 'zIndex', 'scale', 'rotation', 'mirrorX', 'brightness',
+    'placementPreset', 'label',
   ],
   platforms: ['id', 'sectionId', 'sceneId', 'x', 'y', 'width', 'height', 'layer', 'zIndex', 'label'],
   hazards: [

@@ -156,6 +156,8 @@ export const applyJourneyMiniBossPlacementEdit = (boss = {}, edit = {}) => {
 const PROP_TEMPLATE_FIELDS = [
   'type',
   'atmosphereAssetKey',
+  'imageAssetKey',
+  'assetPath',
   'width',
   'height',
   'yOffset',
@@ -205,13 +207,17 @@ const toJourneyPropIdSegment = (value = '') => toJourneyPropWords(value)
   .replace(/^-+|-+$/g, '') || 'prop';
 
 const getJourneyPropTemplateKey = (prop = {}) => (
-  prop.type === 'atmosphere-prop' && prop.atmosphereAssetKey
+  prop.imageAssetKey
+    ? `${prop.type || 'image-prop'}:${prop.imageAssetKey}`
+    : prop.type === 'atmosphere-prop' && prop.atmosphereAssetKey
     ? `${prop.type}:${prop.atmosphereAssetKey}`
     : prop.type || 'prop'
 );
 
 const getJourneyPropTemplateLabel = (prop = {}) => (
-  prop.type === 'atmosphere-prop' && prop.atmosphereAssetKey
+  prop.imageAssetKey
+    ? toJourneyPropTitle(prop.imageAssetKey)
+    : prop.type === 'atmosphere-prop' && prop.atmosphereAssetKey
     ? toJourneyPropTitle(prop.atmosphereAssetKey)
     : toJourneyPropTitle(prop.type || prop.label || prop.id)
 );
@@ -226,10 +232,16 @@ const copyJourneyPropTemplateFields = (prop = {}) => {
 
 const getJourneyPropRegistryTemplate = (entry = {}) => {
   if (!entry.id) return null;
+  const isStandaloneImage = Boolean(entry.imageAssetKey || entry.defaultImageAssetKey);
   const template = {
-    type: 'atmosphere-prop',
-    atmosphereAssetKey: entry.id,
+    type: entry.defaultType || (isStandaloneImage ? 'image-prop' : 'atmosphere-prop'),
   };
+  if (isStandaloneImage) {
+    template.imageAssetKey = entry.imageAssetKey || entry.defaultImageAssetKey;
+    if (entry.assetPath) template.assetPath = entry.assetPath;
+  } else {
+    template.atmosphereAssetKey = entry.id;
+  }
   if (Number.isFinite(entry.defaultWidth)) template.width = entry.defaultWidth;
   if (Number.isFinite(entry.defaultHeight)) template.height = entry.defaultHeight;
   if (Number.isFinite(entry.defaultScale)) template.scale = entry.defaultScale;
@@ -339,7 +351,8 @@ export const createJourneyPropPalette = (props = [], registryEntries = []) => {
       key,
       label: entry.displayName || getJourneyPropTemplateLabel(template),
       type: template.type,
-      atmosphereAssetKey: template.atmosphereAssetKey,
+      ...(template.atmosphereAssetKey ? { atmosphereAssetKey: template.atmosphereAssetKey } : {}),
+      ...(template.imageAssetKey ? { imageAssetKey: template.imageAssetKey } : {}),
       ...(entry.category ? { category: entry.category } : {}),
       ...(entry.assetPath ? { assetPath: entry.assetPath } : {}),
       template,
@@ -357,7 +370,7 @@ export const createJourneyPropFromPaletteItem = ({
 } = {}) => {
   const template = { ...(paletteItem.template || paletteItem) };
   const type = template.type || paletteItem.type || 'prop';
-  const assetSegment = template.atmosphereAssetKey || type;
+  const assetSegment = template.imageAssetKey || template.atmosphereAssetKey || type;
   const idBase = `${toJourneyPropIdSegment(roomId || 'room')}-${toJourneyPropIdSegment(assetSegment)}`;
   const id = makeUniqueJourneyPropId(`${idBase}-1`, existingIds);
   const roomKey = roomId || 'unknown-room';
@@ -1228,6 +1241,9 @@ export const makeInitialState = ({ targetCivilisation, permanentUpgradeIds = [],
   attackTimer: 0,
   attackWindupTimer: 0,
   attackRecoilTimer: 0,
+  attackWindupDuration: 0,
+  attackSwingDuration: 0,
+  attackRecoilDuration: 0,
   attackPhase: 'ready',
   attackQueued: false,
   attackSequenceIndex: 0,

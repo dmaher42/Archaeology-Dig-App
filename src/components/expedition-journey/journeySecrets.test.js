@@ -327,6 +327,21 @@ test('journey prop editor palette includes reusable Lost Site prop registry entr
       collidable: false,
       inspectable: false,
     },
+    {
+      id: 'routeGateFront',
+      displayName: 'Route Gate Front',
+      category: 'Route Gate Architecture',
+      assetPath: 'assets/expedition/environment/egypt-opening/route-gate-front.png',
+      imageAssetKey: 'routeGateFront',
+      defaultType: 'route-gate-prop',
+      defaultWidth: 316,
+      defaultHeight: 210,
+      defaultScale: 1,
+      defaultLayer: 'foreground',
+      defaultDepth: 'foreground-occluder',
+      collidable: false,
+      inspectable: false,
+    },
   ]);
 
   assert.deepEqual(palette, [
@@ -343,6 +358,24 @@ test('journey prop editor palette includes reusable Lost Site prop registry entr
         scale: 1,
         layer: 'foreground',
         shadowOpacity: 0,
+      },
+    },
+    {
+      key: 'route-gate-prop:routeGateFront',
+      label: 'Route Gate Front',
+      type: 'route-gate-prop',
+      imageAssetKey: 'routeGateFront',
+      category: 'Route Gate Architecture',
+      assetPath: 'assets/expedition/environment/egypt-opening/route-gate-front.png',
+      template: {
+        type: 'route-gate-prop',
+        imageAssetKey: 'routeGateFront',
+        assetPath: 'assets/expedition/environment/egypt-opening/route-gate-front.png',
+        width: 316,
+        height: 210,
+        scale: 1,
+        layer: 'foreground',
+        depth: 'foreground-occluder',
       },
     },
   ]);
@@ -686,6 +719,13 @@ test('journey placement editor polish keeps controls usable and scoped to editor
   assert.match(journeyComponentSource, />\s*Palette\s*</);
   assert.match(journeyComponentSource, />\s*Grid\s*</);
   assert.match(journeyComponentSource, />\s*Triggers\s*</);
+  assert.match(journeyComponentSource, /lockedItems:\s*new Set\(\)/);
+  assert.match(journeyComponentSource, /const getSelectedEditorLockKey = useCallback/);
+  assert.match(journeyComponentSource, /const toggleSelectedEditorLock = useCallback/);
+  assert.match(journeyComponentSource, />\s*\{propEditorUi\.selectedLocked \? 'Unlock' : 'Lock'\}\s*</);
+  assert.match(journeyComponentSource, /if \(isEditorLockKeyLocked\(selectedLockKey\)\)[\s\S]*?editor\.dragging = null/);
+  assert.match(journeyComponentSource, /if \(isEditorEntityLocked\('prop', selectedProp\.id\)\) return;/);
+  assert.match(journeyComponentSource, /if \(isEditorEntityLocked\('platform', platformId\)\) return;/);
   assert.match(journeyComponentSource, /<strong>Placement export<\/strong>/);
   assert.match(journeyComponentSource, /aria-label="Placement editor export JSON"/);
   assert.match(indexCssSource, /\.journey-prop-editor-panel\s*\{[^}]*left:\s*0\.72rem;/);
@@ -2004,7 +2044,7 @@ test('route props stay out of the opening pyramid facade and use the grounded ru
     journeyComponentSource,
     /getRenderablePlatforms\(current\)[\s\S]*?\.forEach\(\(platform\) => drawPlatform\(ctx, platform, cameraX, current\)\)[\s\S]*?getRenderableStoryProps\(current\)\.forEach\(\(prop\) => drawStoryProp\(ctx, prop, cameraX, now, 'route-edge'\)\)/,
   );
-  assert.match(journeyComponentSource, /if \(\['background', 'midground', 'grounded', 'route-edge'\]\.includes\(prop\.depth\)\) return prop\.depth;/);
+  assert.match(journeyComponentSource, /if \(\['background', 'midground', 'grounded', 'route-edge', 'foreground-occluder'\]\.includes\(prop\.depth\)\) return prop\.depth;/);
   assert.match(journeyComponentSource, /if \(placementPreset\?\.depth\) return placementPreset\.depth;/);
 });
 
@@ -2138,7 +2178,7 @@ test('Egypt Journey uses the Asha atlas through the existing player renderer', (
   assert.match(journeyConstantsSource, /PLAYER_HERO_SPRITE_ATLAS_JSON/);
   assert.match(journeyConstantsSource, /asha-reference-warrior-spritesheet\.json/);
   assert.doesNotMatch(journeyConstantsSource, /asha-v4-spritesheet\.json/);
-  assert.match(journeyConstantsSource, /PLAYER_HERO_SPRITE_VERSION = 'asha-reference-warrior-full-motion-polish-2026-05-30'/);
+  assert.match(journeyConstantsSource, /PLAYER_HERO_SPRITE_VERSION = 'asha-reference-warrior-combo-upgrade-2026-06-03'/);
   assert.match(journeyComponentSource, /characterId:\s*'asha-reference-warrior'/);
   assert.match(journeyComponentSource, /asha-final-production-spritesheet\.json/);
   assert.match(journeyConstantsSource, /PLAYER_HERO_PREVIOUS_SPRITE_ATLAS_JSON/);
@@ -2275,7 +2315,7 @@ test('Asha Reference Warrior remains available as a separate character-loader at
   assert.match(journeyComponentSource, /label:\s*'Asha Reference Warrior'/);
   assert.match(journeyComponentSource, /atlasPath:\s*PLAYER_HERO_SPRITE_ATLAS_JSON/);
   assert.match(journeyComponentSource, /assets\/expedition\/player\/asha-reference-warrior-reference\.png/);
-  assert.equal(ashaReferenceWarriorPlayerAtlas.status, 'candidate-asha-reference-warrior-full-motion-polish');
+  assert.equal(ashaReferenceWarriorPlayerAtlas.status, 'approved-asha-reference-warrior-combo-upgrade');
   assert.equal(ashaReferenceWarriorPlayerAtlas.productionReference, 'asha-reference-warrior-reference.png');
   assert.equal(ashaReferenceWarriorPlayerAtlas.draw.height, 130);
   assert.equal(ashaReferenceWarriorPlayerAtlas.frame.width, 390);
@@ -2284,7 +2324,7 @@ test('Asha Reference Warrior remains available as a separate character-loader at
   assert.equal(ashaReferenceWarriorPlayerAtlas.draw.suppressRuntimeAttackArc, true);
   assert.match(
     ashaReferenceWarriorPlayerAtlas.description,
-    /three-hit pure-weapon attack chain/,
+    /upgraded three-hit attack chain/,
   );
   assert.deepEqual(ashaReferenceWarriorPlayerAtlas.draw.attackChainRows, [
     'attack_pick_swing',
@@ -2311,15 +2351,15 @@ test('Asha Reference Warrior remains available as a separate character-loader at
   );
   assert.equal(
     ashaReferenceWarriorPlayerAtlas.poseSources.attack_pick_swing_07,
-    'asha-reference-warrior-attack-chain-01-quick-cut-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_07',
+    'asha-reference-warrior-attack-chain-01-entry-horizontal-framebyframe-approved-4096x512-2026-06-03.png:frame_07',
   );
   assert.equal(
     ashaReferenceWarriorPlayerAtlas.poseSources.attack_pick_swing_alt_07,
-    'asha-reference-warrior-attack-chain-02-diagonal-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_07',
+    'asha-reference-warrior-attack-chain-02-rising-diagonal-framebyframe-approved-4096x512-2026-06-03.png:frame_07',
   );
   assert.equal(
     ashaReferenceWarriorPlayerAtlas.poseSources.attack_pick_swing_sweep_07,
-    'asha-reference-warrior-attack-chain-03-sweep-framebyframe-pass1c-normalized-4096x512-candidate-2026-05-30.png:frame_07',
+    'asha-reference-warrior-attack-chain-03-heavy-sweep-framebyframe-approved-4096x512-2026-06-03.png:frame_07',
   );
   assert.equal(
     ashaReferenceWarriorPlayerAtlas.poseSources.hurt_04,
@@ -2343,8 +2383,11 @@ test('Asha Reference Warrior remains available as a separate character-loader at
   ) >= 170);
   assert.equal(
     ashaReferenceWarriorPlayerAtlas.source,
-    'asha-reference-warrior-full-motion-polish-2026-05-30',
+    'asha-reference-warrior-combo-upgrade-2026-06-03',
   );
+  assert.match(journeyComponentSource, /PLAYER_ATTACK_FINISHER_ROW\s*=\s*'attack_pick_swing_sweep'/);
+  assert.match(journeyComponentSource, /getPlayerAttackTiming\(nextAttackSequenceIndex\)/);
+  assert.match(journeyComponentSource, /current\.attackSwingDuration\s*=\s*attackTiming\.swing/);
 });
 
 test('Asha V5 is available as a separate character-loader atlas', () => {
@@ -3225,14 +3268,18 @@ test('Egypt atmosphere prop pack is registered and drawn through existing story 
 });
 
 test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, and atlas regions', () => {
-  assert.equal(lostSitePropRegistry.length, 45);
+  assert.equal(lostSitePropRegistry.length, 48);
   const registryIds = new Set(lostSitePropRegistry.map(entry => entry.id));
   assert.ok(registryIds.has('standingPillar'), 'standing column should be available in the prop editor');
   assert.ok(registryIds.has('stoneDoorFrame'), 'temple arch should be available in the prop editor');
+  assert.ok(registryIds.has('routeGateFront'), 'route gate front should be available in the prop editor');
+  assert.ok(registryIds.has('routeGateBack'), 'route gate back should be available in the prop editor');
+  assert.ok(registryIds.has('routeGateSlab'), 'route gate slab should be available in the prop editor');
 
   const categories = new Set(lostSitePropRegistry.map(entry => entry.category));
   [
     'Tomb Architecture',
+    'Route Gate Architecture',
     'Archaeology Props',
     'Egyptian Sacred Props',
     'Environmental Storytelling Props',
@@ -3247,6 +3294,11 @@ test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, an
     'suspicious_sand_patch',
     'scarab_carving',
   ]);
+  const standaloneRouteGateEntries = new Map([
+    ['routeGateFront', 'assets/expedition/environment/egypt-opening/route-gate-front.png'],
+    ['routeGateBack', 'assets/expedition/environment/egypt-opening/route-gate-back.png'],
+    ['routeGateSlab', 'assets/expedition/environment/egypt-opening/route-gate-slab.png'],
+  ]);
 
   lostSitePropRegistry.forEach((entry) => {
     assert.ok(entry.id, 'registry entry should have an id');
@@ -3255,6 +3307,16 @@ test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, an
     assert.equal(entry.defaultLayer, premiumFloorKitIds.has(entry.id) ? 'route-edge' : 'foreground');
     assert.equal(entry.collidable, false);
     assert.equal(entry.inspectable, false);
+    if (standaloneRouteGateEntries.has(entry.id)) {
+      assert.equal(entry.defaultType, 'route-gate-prop');
+      assert.equal(entry.imageAssetKey, entry.id);
+      assert.equal(entry.assetPath, standaloneRouteGateEntries.get(entry.id));
+      assert.ok(
+        existsSync(new URL(`../../../public/${entry.assetPath}`, import.meta.url)),
+        `${entry.assetPath} should exist as an individual transparent PNG`,
+      );
+      return;
+    }
     assert.match(entry.assetPath, /^assets\/expedition\/environment\/egypt-atmosphere\/props\/lost-site-expedition\/.+\.png$/);
     assert.ok(egyptAtmosphereAtlas.regions[entry.id], `${entry.id} should have an atmosphere atlas region`);
     assert.equal(egyptAtmosphereAtlas.regions[entry.id].assetPath, entry.assetPath);
@@ -3267,6 +3329,12 @@ test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, an
 
   assert.match(journeyComponentSource, /lostSitePropRegistry/);
   assert.match(journeyComponentSource, /createJourneyPropPalette\(STORY_PROPS,\s*lostSitePropRegistry\)/);
+  assert.match(journeyComponentSource, /propForAsset\.imageAssetKey === 'routeGateFront'/);
+  assert.match(journeyComponentSource, /ROUTE_GATE_STANDALONE_PROP_COLOR_GRADE_FILTER/);
+  assert.match(journeyComponentSource, /PROP_EDITOR_DEPTH_OPTIONS = \['background', 'midground', 'grounded', 'route-edge', 'foreground-occluder'\]/);
+  assert.match(journeyComponentSource, /drawPlayerSprite\(ctx, player\.x - cameraX[\s\S]*?drawStoryProp\(ctx, prop, cameraX, now, 'foreground-occluder'\)/);
+  assert.match(journeyComponentSource, /drawStandalonePropAsset/);
+  assert.match(journeyComponentSource, /propForAsset\.mirrorX \? drawMirroredPropAsset\(\) : drawPropImageAsset/);
 });
 
 test('Egypt atmosphere layout fills each Journey section without changing gameplay systems', () => {

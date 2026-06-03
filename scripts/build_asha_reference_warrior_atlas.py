@@ -28,9 +28,9 @@ SOURCES = {
     "idle": SOURCE_DIR / "asha-reference-warrior-idle-still-guard-pass1-normalized-4096x512-candidate-2026-05-30.png",
     "run": SOURCE_DIR / "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png",
     "jump": SOURCE_DIR / "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png",
-    "attack_pick_swing": SOURCE_DIR / "asha-reference-warrior-attack-chain-01-quick-cut-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png",
-    "attack_pick_swing_alt": SOURCE_DIR / "asha-reference-warrior-attack-chain-02-diagonal-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png",
-    "attack_pick_swing_sweep": SOURCE_DIR / "asha-reference-warrior-attack-chain-03-sweep-framebyframe-pass1c-normalized-4096x512-candidate-2026-05-30.png",
+    "attack_pick_swing": SOURCE_DIR / "asha-reference-warrior-attack-chain-01-entry-horizontal-framebyframe-approved-4096x512-2026-06-03.png",
+    "attack_pick_swing_alt": SOURCE_DIR / "asha-reference-warrior-attack-chain-02-rising-diagonal-framebyframe-approved-4096x512-2026-06-03.png",
+    "attack_pick_swing_sweep": SOURCE_DIR / "asha-reference-warrior-attack-chain-03-heavy-sweep-framebyframe-approved-4096x512-2026-06-03.png",
     "hurt": SOURCE_DIR / "asha-reference-warrior-hurt-framebyframe-pass1-normalized-2560x512-candidate-2026-05-30.png",
 }
 
@@ -294,15 +294,17 @@ def main() -> None:
         rows.append(next_row)
 
     metadata["image"] = TARGET_PNG.name
-    metadata["source"] = "asha-reference-warrior-full-motion-polish-2026-05-30"
-    metadata["status"] = "candidate-asha-reference-warrior-full-motion-polish"
+    metadata["source"] = "asha-reference-warrior-combo-upgrade-2026-06-03"
+    metadata["status"] = "approved-asha-reference-warrior-combo-upgrade"
     metadata["productionReference"] = TARGET_REFERENCE.name
     metadata["masterReference"] = TARGET_MASTER_REFERENCE.name
     metadata["description"] = (
         "New Asha runtime atlas based on the user-provided warrior reference: dark-skinned "
         "braided explorer-warrior, bronze Egyptian armor, teal accents, tan field cloth, "
         "and the locked-reference vertical khopesh polearm. Idle, run, jump, hurt, and the "
-        "three-hit pure-weapon attack chain use the new reference-warrior identity. Utility "
+        "upgraded three-hit attack chain use the new reference-warrior identity. The combo "
+        "now separates a quick horizontal entry slash, rising diagonal follow-up, and heavy "
+        "finisher sweep with clearer windup and follow-through poses. Utility "
         "rows borrow from those rows so the runtime atlas does not mix in older Asha identities "
         "while final utility animation rows await visual approval."
     )
