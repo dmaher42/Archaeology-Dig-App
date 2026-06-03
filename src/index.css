@@ -15430,6 +15430,19 @@ main {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(4.4rem, 1fr));
   gap: 0.4rem;
+  margin-top: 0.42rem;
+}
+
+.journey-prop-editor-group-header {
+  color: #facc15;
+  font: 900 0.66rem 'Outfit', sans-serif;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(250, 204, 21, 0.22);
+  padding-bottom: 0.22rem;
+  margin-top: 0.62rem;
+}
+
+.journey-prop-editor-group-header:first-child {
   margin-top: 0.52rem;
 }
 
@@ -15461,6 +15474,58 @@ main {
   accent-color: #facc15;
 }
 
+.journey-prop-editor-contact-controls {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 0.42rem;
+  padding-top: 0.28rem;
+  border-top: 1px solid rgba(94, 234, 212, 0.18);
+}
+
+.journey-prop-editor-contact-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.journey-prop-editor-contact-header button,
+.journey-prop-editor-contact-remove {
+  min-height: 1.7rem;
+  border: 1px solid rgba(250, 204, 21, 0.42);
+  border-radius: 5px;
+  background: rgba(120, 53, 15, 0.42);
+  color: #fef3c7;
+  font: 900 0.62rem 'Outfit', sans-serif;
+  text-transform: uppercase;
+}
+
+.journey-prop-editor-contact-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.34rem;
+  padding: 0.42rem;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.48);
+}
+
+.journey-prop-editor-contact-row > strong {
+  grid-column: 1 / -1;
+  color: #fef3c7;
+  font: 900 0.66rem 'Outfit', sans-serif;
+  text-transform: uppercase;
+}
+
+.journey-prop-editor-contact-row .journey-prop-editor-contact-filter {
+  grid-column: span 3;
+}
+
+.journey-prop-editor-contact-remove {
+  align-self: end;
+  width: 100%;
+}
+
 .journey-prop-palette-panel {
   position: absolute;
   top: 0.72rem;
@@ -15485,6 +15550,41 @@ main {
   margin-top: 0.56rem;
   overflow: auto;
   padding-right: 0.14rem;
+}
+
+.journey-prop-palette-group {
+  display: grid;
+  gap: 0.34rem;
+}
+
+.journey-prop-palette-group-toggle {
+  display: grid;
+  grid-template-columns: 1rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.34rem;
+  min-height: 2rem;
+  padding: 0.28rem 0.42rem;
+  border: 1px solid rgba(251, 191, 36, 0.24);
+  border-radius: 5px;
+  background: rgba(120, 53, 15, 0.34);
+  color: #fde68a;
+  text-align: left;
+}
+
+.journey-prop-palette-group-toggle span,
+.journey-prop-palette-group-toggle em {
+  color: rgba(255, 247, 237, 0.66);
+  font-size: 0.62rem;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.journey-prop-palette-group-toggle strong {
+  overflow: hidden;
+  font-size: 0.68rem;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .journey-prop-palette-tabs {
@@ -15522,6 +15622,14 @@ main {
   background: rgba(255, 247, 237, 0.06);
   color: #fff7ed;
   text-align: left;
+}
+
+.journey-prop-palette-list .journey-prop-palette-group-toggle {
+  grid-template-columns: 1rem minmax(0, 1fr) auto;
+  min-height: 2rem;
+  padding: 0.28rem 0.42rem;
+  border-color: rgba(251, 191, 36, 0.24);
+  background: rgba(120, 53, 15, 0.34);
 }
 
 .journey-prop-palette-list button.is-selected {

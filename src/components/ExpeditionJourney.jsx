@@ -2766,12 +2766,18 @@ const getStoryPropEditorBounds = (prop, cameraX, current) => {
   const propSize = getStoryPropEditorSize(prop);
   const x = worldToScreenX(prop.x, cameraX);
   const verticalOffset = !isInteriorChamberScene(current) ? current.secretVerticalCameraOffset || 0 : 0;
+  const insetTop = clamp(Number(prop.editorBoundsInsetTop) || 0, 0, propSize.height - 1);
+  const insetRight = clamp(Number(prop.editorBoundsInsetRight) || 0, 0, propSize.width - 1);
+  const insetBottom = clamp(Number(prop.editorBoundsInsetBottom) || 0, 0, propSize.height - 1);
+  const insetLeft = clamp(Number(prop.editorBoundsInsetLeft) || 0, 0, propSize.width - 1);
+  const trimmedWidth = Math.max(1, propSize.width - insetLeft - insetRight);
+  const trimmedHeight = Math.max(1, propSize.height - insetTop - insetBottom);
   if (GENERATED_STORY_PROP_BOUNDS[prop.type]) {
     return {
-      x: x - propSize.width / 2,
-      y: prop.y + verticalOffset,
-      width: propSize.width,
-      height: propSize.height,
+      x: x - propSize.width / 2 + insetLeft,
+      y: prop.y + verticalOffset + insetTop,
+      width: trimmedWidth,
+      height: trimmedHeight,
       depth: propDepth,
     };
   }
@@ -2779,10 +2785,10 @@ const getStoryPropEditorBounds = (prop, cameraX, current) => {
   const propGrounding = resolvePropGroundingSettings({ ...propSize, x: prop.x });
   const anchorY = getStoryPropAnchorY(prop, propSize, shouldGroundLock);
   return {
-    x: x - propSize.width / 2,
-    y: anchorY - propSize.height * propGrounding.contactRatio + verticalOffset,
-    width: propSize.width,
-    height: propSize.height,
+    x: x - propSize.width / 2 + insetLeft,
+    y: anchorY - propSize.height * propGrounding.contactRatio + verticalOffset + insetTop,
+    width: trimmedWidth,
+    height: trimmedHeight,
     depth: propDepth,
   };
 };
@@ -3092,6 +3098,7 @@ export default function ExpeditionJourney({
     checkpointEdits: {},
     miniBossEdits: {},
     lockedItems: new Set(),
+    defaultLocksApplied: false,
     deletedIds: new Set(),
     deletedPlatformIds: new Set(),
     deletedHazardIds: new Set(),
@@ -3455,6 +3462,34 @@ export default function ExpeditionJourney({
     Boolean(kind && id && propPlacementEditorRef.current.lockedItems.has(`${kind}:${id}`))
   ), []);
 
+  const applyDefaultEditorLocks = useCallback((current = stateRef.current) => {
+    const editor = propPlacementEditorRef.current;
+    if (editor.defaultLocksApplied) return;
+    getRenderableStoryProps(current).forEach((prop) => {
+      if (prop?.id) editor.lockedItems.add(`prop:${prop.id}`);
+    });
+    getRenderablePlatforms(current).forEach((platform) => {
+      const id = platform?.id || platform?.label;
+      if (id) editor.lockedItems.add(`platform:${id}`);
+    });
+    getRenderableHazards(current).forEach((hazard) => {
+      if (hazard?.id) editor.lockedItems.add(`hazard:${hazard.id}`);
+    });
+    getRenderableRouteGateDoorways().forEach((doorway) => {
+      if (doorway?.id) editor.lockedItems.add(`arch:doorway:${doorway.id}`);
+    });
+    getRenderableRouteGates().forEach((gate) => {
+      if (gate?.id) editor.lockedItems.add(`arch:gate:${gate.id}`);
+    });
+    getRenderableCheckpoints().forEach((checkpoint) => {
+      if (checkpoint?.id) editor.lockedItems.add(`checkpoint:${checkpoint.id}`);
+    });
+    getRenderableScarabLairs().forEach((lair) => {
+      if (lair?.id) editor.lockedItems.add(`lair:${lair.id}`);
+    });
+    editor.defaultLocksApplied = true;
+  }, [getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getRenderableRouteGateDoorways, getRenderableRouteGates, getRenderableScarabLairs, getRenderableStoryProps]);
+
   const getLairEditorBounds = useCallback((boss, cameraX) => {
     const placement = getScarabQueenLairPlacement(boss);
     return {
@@ -3622,18 +3657,37 @@ export default function ExpeditionJourney({
   const getPropPalettePreview = useCallback((paletteItem) => {
     const template = paletteItem?.template || paletteItem || {};
     if (paletteItem?.category === 'Trap' || String(paletteItem?.key || '').startsWith('trap:')) {
-      const trapTone = template.type === 'dart-launcher'
-        ? 'linear-gradient(135deg, #3f2a1d 0%, #9a6b36 42%, #1f2937 44%, #0f172a 100%)'
-        : template.type === 'collapsing-stone-floor'
-          ? 'linear-gradient(135deg, #7c6a52 0%, #b49b72 46%, #2f2418 49%, #8a6f48 100%)'
-          : 'radial-gradient(circle at 50% 54%, #5b3a20 0%, #9b6b34 46%, #d3a155 78%, #7c4a24 100%)';
+      const trapPreviewStyles = {
+        'collapsing-stone-floor': {
+          background:
+            'linear-gradient(145deg, rgba(255,255,255,0.2) 0 11%, transparent 12%), linear-gradient(88deg, transparent 0 42%, rgba(30, 18, 9, 0.82) 43% 47%, transparent 48%), linear-gradient(176deg, rgba(36, 22, 10, 0.72) 0 12%, transparent 13%), repeating-linear-gradient(0deg, rgba(56, 34, 16, 0.24) 0 2px, transparent 2px 12px), linear-gradient(180deg, #b99154 0%, #73502a 52%, #3f2a17 100%)',
+          boxShadow: 'inset 0 -12px 18px rgba(26, 15, 8, 0.44), inset 0 7px 10px rgba(255, 220, 143, 0.2)',
+        },
+        'hidden-sand-pit': {
+          background:
+            'radial-gradient(circle at 50% 55%, rgba(35, 20, 9, 0.9) 0 9%, rgba(84, 50, 22, 0.7) 18%, rgba(175, 114, 49, 0.48) 36%, rgba(223, 166, 83, 0.86) 58%, rgba(126, 76, 31, 0.92) 100%), repeating-radial-gradient(circle at 47% 50%, rgba(255, 226, 147, 0.22) 0 2px, transparent 2px 7px)',
+          borderRadius: '50%',
+          boxShadow: 'inset 0 8px 12px rgba(255, 218, 129, 0.22), inset 0 -9px 16px rgba(45, 24, 10, 0.52)',
+        },
+        'dart-launcher': {
+          background:
+            'linear-gradient(90deg, transparent 0 48%, rgba(240, 205, 125, 0.95) 49% 75%, rgba(40, 24, 12, 0.95) 76% 81%, transparent 82%), radial-gradient(circle at 35% 48%, rgba(15, 10, 7, 0.95) 0 8%, rgba(84, 49, 23, 0.85) 9% 18%, transparent 19%), repeating-linear-gradient(90deg, rgba(42, 26, 13, 0.62) 0 6px, rgba(130, 82, 36, 0.5) 6px 13px), linear-gradient(180deg, #946033 0%, #4b321c 100%)',
+          boxShadow: 'inset 0 0 0 2px rgba(229, 180, 92, 0.22), inset 0 -14px 18px rgba(17, 24, 39, 0.56)',
+        },
+      };
+      const trapStyle = trapPreviewStyles[template.type] || trapPreviewStyles['hidden-sand-pit'];
       return {
-        assetKey: paletteItem.label || template.type,
+        assetKey: template.type === 'dart-launcher'
+          ? 'wall dart trap'
+          : template.type === 'collapsing-stone-floor'
+            ? 'cracked floor trap'
+            : 'concealed sand pit',
         style: {
-          background: trapTone,
+          ...trapStyle,
           width: '100%',
           height: '100%',
-          borderRadius: template.type === 'hidden-sand-pit' ? '50%' : '4px',
+          borderRadius: trapStyle.borderRadius || '5px',
+          backgroundBlendMode: 'normal',
         },
       };
     }
@@ -3777,6 +3831,10 @@ export default function ExpeditionJourney({
         height: Math.round(getStoryPropEditorSize(prop).height),
         sourceWidth: Math.round(Number.isFinite(prop.width) ? prop.width : getStoryPropEditorSize(prop).width),
         sourceHeight: Math.round(Number.isFinite(prop.height) ? prop.height : getStoryPropEditorSize(prop).height),
+        editorBoundsInsetTop: Math.round(Number.isFinite(prop.editorBoundsInsetTop) ? prop.editorBoundsInsetTop : 0),
+        editorBoundsInsetRight: Math.round(Number.isFinite(prop.editorBoundsInsetRight) ? prop.editorBoundsInsetRight : 0),
+        editorBoundsInsetBottom: Math.round(Number.isFinite(prop.editorBoundsInsetBottom) ? prop.editorBoundsInsetBottom : 0),
+        editorBoundsInsetLeft: Math.round(Number.isFinite(prop.editorBoundsInsetLeft) ? prop.editorBoundsInsetLeft : 0),
         yOffset: Math.round(Number.isFinite(prop.yOffset) ? prop.yOffset : 0),
         scale: Number.isFinite(prop.scale) ? prop.scale : 1,
         rotation: Number.isFinite(prop.rotation) ? prop.rotation : 0,
@@ -3855,6 +3913,7 @@ export default function ExpeditionJourney({
       gridSnap: editor.gridSnap,
       gridSize: editor.gridSize,
       paletteOpen: editor.paletteOpen,
+      collapsedPaletteGroups: editor.collapsedPaletteGroups || {},
       selectedPaletteKey: editor.selectedPaletteKey,
       selectedPaletteCategory: editor.selectedPaletteCategory,
       showTrapTriggers: editor.showTrapTriggers,
@@ -3873,6 +3932,12 @@ export default function ExpeditionJourney({
   const refreshPropEditorUi = useCallback(() => {
     setPropEditorUi(getPropEditorUiState());
   }, [getPropEditorUiState]);
+
+  useEffect(() => {
+    if (!import.meta.env.DEV || !propPlacementEditorRef.current.enabled) return;
+    applyDefaultEditorLocks(stateRef.current);
+    refreshPropEditorUi();
+  }, [applyDefaultEditorLocks, refreshPropEditorUi]);
 
   const toggleSelectedEditorLock = useCallback(() => {
     const editor = propPlacementEditorRef.current;
@@ -4073,6 +4138,26 @@ export default function ExpeditionJourney({
     };
     refreshPropEditorUi();
   }, [getGroundAwareStoryPropEditorEdit, getPropEditorSelectedProp, isEditorEntityLocked, refreshPropEditorUi]);
+
+  const updateSelectedPropGroundContactLayer = useCallback((index, edit = {}) => {
+    const selectedProp = getPropEditorSelectedProp();
+    if (!selectedProp) return;
+    const currentLayers = selectedProp.groundContactLayer || [];
+    const nextLayers = [...currentLayers];
+    if (index >= nextLayers.length) {
+      nextLayers.push({ assetKey: '', layer: 'overlay', xRatio: 0, widthRatio: 1, height: 16, yOffset: 0, rotation: 0, alpha: 1, mirrorX: false, filter: '' });
+    }
+    nextLayers[index] = { ...nextLayers[index], ...edit };
+    updateSelectedPropEditorTransform({ groundContactLayer: nextLayers });
+  }, [getPropEditorSelectedProp, updateSelectedPropEditorTransform]);
+
+  const removeSelectedPropGroundContactLayer = useCallback((index) => {
+    const selectedProp = getPropEditorSelectedProp();
+    if (!selectedProp) return;
+    const currentLayers = selectedProp.groundContactLayer || [];
+    const nextLayers = currentLayers.filter((_, i) => i !== index);
+    updateSelectedPropEditorTransform({ groundContactLayer: nextLayers });
+  }, [getPropEditorSelectedProp, updateSelectedPropEditorTransform]);
 
   const updateSelectedPlatformEditorTransform = useCallback((edit) => {
     const editor = propPlacementEditorRef.current;
@@ -18861,7 +18946,9 @@ export default function ExpeditionJourney({
       if (event.code === 'KeyE' && !event.ctrlKey && !event.metaKey && !event.altKey) {
         event.preventDefault();
         editor.enabled = !editor.enabled;
-        if (!editor.enabled) {
+        if (editor.enabled) {
+          applyDefaultEditorLocks(stateRef.current);
+        } else {
           editor.selectedPropId = null;
           editor.selectedPlatformId = null;
           editor.selectedHazardId = null;
@@ -18950,7 +19037,7 @@ export default function ExpeditionJourney({
     };
     window.addEventListener('keydown', handlePropEditorKeyDown);
     return () => window.removeEventListener('keydown', handlePropEditorKeyDown);
-  }, [deleteSelectedPropFromEditor, duplicateSelectedPropInEditor, getPropEditorSelectedProp, refreshPropEditorUi, savePropPlacementExport, updateSelectedPropEditorTransform]);
+  }, [applyDefaultEditorLocks, deleteSelectedPropFromEditor, duplicateSelectedPropInEditor, getPropEditorSelectedProp, refreshPropEditorUi, savePropPlacementExport, updateSelectedPropEditorTransform]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -19557,162 +19644,468 @@ export default function ExpeditionJourney({
                   </select>
                 </label>
                 {propEditorUi.selectedProp && (
-                  <div className="journey-prop-editor-controls">
-                    <label>
-                      <span>X</span>
-                      <input
-                        type="number"
-                        step="1"
-                        value={propEditorUi.selectedProp.x}
-                        onChange={(event) => {
-                          const nextX = Number(event.target.value);
-                          if (Number.isFinite(nextX)) updateSelectedPropEditorTransform({ x: Math.round(nextX) });
-                        }}
-                      />
-                    </label>
-                    <label>
-                      <span>Y</span>
-                      <input
-                        type="number"
-                        step="1"
-                        value={propEditorUi.selectedProp.y}
-                        onChange={(event) => {
-                          const nextY = Number(event.target.value);
-                          if (Number.isFinite(nextY)) updateSelectedPropEditorTransform({ y: Math.round(nextY) });
-                        }}
-                      />
-                    </label>
-                    <label>
-                      <span>Y offset</span>
-                      <input
-                        type="number"
-                        step="1"
-                        value={propEditorUi.selectedProp.yOffset}
-                        onChange={(event) => {
-                          const nextYOffset = Number(event.target.value);
-                          if (Number.isFinite(nextYOffset)) updateSelectedPropEditorTransform({ yOffset: Math.round(nextYOffset) });
-                        }}
-                      />
-                    </label>
-                    <label>
-                      <span>Width</span>
-                      <input
-                        type="number"
-                        min="1"
-                        step="1"
-                        value={propEditorUi.selectedProp.sourceWidth}
-                        onChange={(event) => {
-                          const nextWidth = Number(event.target.value);
-                          if (Number.isFinite(nextWidth)) updateSelectedPropEditorTransform({ width: Math.max(1, Math.round(nextWidth)) });
-                        }}
-                      />
-                    </label>
-                    <label>
-                      <span>Height</span>
-                      <input
-                        type="number"
-                        min="1"
-                        step="1"
-                        value={propEditorUi.selectedProp.sourceHeight}
-                        onChange={(event) => {
-                          const nextHeight = Number(event.target.value);
-                          if (Number.isFinite(nextHeight)) {
-                            const height = Math.max(1, Math.round(nextHeight));
-                            updateSelectedPropEditorTransform({
-                              height,
-                              ...(propEditorUi.selectedProp.category === 'Structure'
-                                ? { y: propEditorUi.selectedProp.y + propEditorUi.selectedProp.sourceHeight - height }
-                                : {}),
-                            });
-                          }
-                        }}
-                      />
-                    </label>
-                    <label>
-                      <span>Scale</span>
-                      <input
-                        type="number"
-                        min="0.1"
-                        max="6"
-                        step="0.05"
-                        value={Number(propEditorUi.selectedProp.scale.toFixed(2))}
-                        onChange={(event) => {
-                          const nextScale = clamp(Number(event.target.value), 0.1, 6);
-                          if (Number.isFinite(nextScale)) updateSelectedPropEditorTransform({ scale: Number(nextScale.toFixed(2)) });
-                        }}
-                      />
-                    </label>
-                    <label>
-                      <span>Rotation</span>
-                      <input
-                        type="number"
-                        step="5"
-                        value={Math.round(propEditorUi.selectedProp.rotation)}
-                        onChange={(event) => {
-                          const nextRotation = Number(event.target.value);
-                          if (Number.isFinite(nextRotation)) updateSelectedPropEditorTransform({ rotation: Math.round(nextRotation) });
-                        }}
-                      />
-                    </label>
-                    <label>
-                      <span>Brightness</span>
-                      <input
-                        type="number"
-                        min="0.4"
-                        max="1.8"
-                        step="0.05"
-                        value={Number(propEditorUi.selectedProp.brightness.toFixed(2))}
-                        onChange={(event) => {
-                          const nextBrightness = clamp(Number(event.target.value), 0.4, 1.8);
-                          if (Number.isFinite(nextBrightness)) updateSelectedPropEditorTransform({ brightness: Number(nextBrightness.toFixed(2)) });
-                        }}
-                      />
-                    </label>
-                    <label className="journey-prop-editor-checkbox">
-                      <span>Mirror</span>
-                      <input
-                        type="checkbox"
-                        checked={propEditorUi.selectedProp.mirrorX}
-                        onChange={(event) => updateSelectedPropEditorTransform({ mirrorX: event.target.checked })}
-                      />
-                    </label>
-                    <label>
-                      <span>Depth</span>
-                      <select
-                        value={propEditorUi.selectedProp.depth}
-                        onChange={(event) => updateSelectedPropEditorTransform({ depth: event.target.value })}
-                      >
-                        {PROP_EDITOR_DEPTH_OPTIONS.map(option => (
-                          <option key={option} value={option}>{option}</option>
-                        ))}
-                      </select>
-                    </label>
-                    <label>
-                      <span>Layer</span>
-                      <select
-                        value={PROP_EDITOR_LAYER_OPTIONS.includes(propEditorUi.selectedProp.layer) ? propEditorUi.selectedProp.layer : 'default'}
-                        onChange={(event) => updateSelectedPropEditorTransform({ layer: event.target.value })}
-                      >
-                        {PROP_EDITOR_LAYER_OPTIONS.map(option => (
-                          <option key={option} value={option}>{option}</option>
-                        ))}
-                      </select>
-                    </label>
-                    <label>
-                      <span>Z-index</span>
-                      <input
-                        type="number"
-                        step="1"
-                        placeholder="auto"
-                        value={Number.isFinite(Number(propEditorUi.selectedProp.zIndex)) ? propEditorUi.selectedProp.zIndex : ''}
-                        onChange={(event) => {
-                          const nextZIndex = Number(event.target.value);
+                  <>
+                    <div className="journey-prop-editor-group-header">Transform</div>
+                    <div className="journey-prop-editor-controls">
+                      <label>
+                        <span>X</span>
+                        <input
+                          type="number"
+                          step="1"
+                          value={propEditorUi.selectedProp.x}
+                          onChange={(event) => {
+                            const nextX = Number(event.target.value);
+                            if (Number.isFinite(nextX)) updateSelectedPropEditorTransform({ x: Math.round(nextX) });
+                          }}
+                        />
+                      </label>
+                      <label>
+                        <span>Y</span>
+                        <input
+                          type="number"
+                          step="1"
+                          value={propEditorUi.selectedProp.y}
+                          onChange={(event) => {
+                            const nextY = Number(event.target.value);
+                            if (Number.isFinite(nextY)) updateSelectedPropEditorTransform({ y: Math.round(nextY) });
+                          }}
+                        />
+                      </label>
+                      <label>
+                        <span>Y offset</span>
+                        <input
+                          type="number"
+                          step="1"
+                          value={propEditorUi.selectedProp.yOffset ?? ''}
+                          onChange={(event) => {
+                            const nextYOffset = Number(event.target.value);
+                            if (Number.isFinite(nextYOffset)) updateSelectedPropEditorTransform({ yOffset: Math.round(nextYOffset) });
+                          }}
+                        />
+                      </label>
+                      <label>
+                        <span>Width</span>
+                        <input
+                          type="number"
+                          min="1"
+                          step="1"
+                          value={propEditorUi.selectedProp.sourceWidth ?? ''}
+                          onChange={(event) => {
+                            const nextWidth = Number(event.target.value);
+                            if (Number.isFinite(nextWidth)) updateSelectedPropEditorTransform({ width: Math.max(1, Math.round(nextWidth)) });
+                          }}
+                        />
+                      </label>
+                      <label>
+                        <span>Height</span>
+                        <input
+                          type="number"
+                          min="1"
+                          step="1"
+                          value={propEditorUi.selectedProp.sourceHeight ?? ''}
+                          onChange={(event) => {
+                            const nextHeight = Number(event.target.value);
+                            if (Number.isFinite(nextHeight)) {
+                              const height = Math.max(1, Math.round(nextHeight));
+                              updateSelectedPropEditorTransform({
+                                height,
+                                ...(propEditorUi.selectedProp.category === 'Structure'
+                                  ? { y: propEditorUi.selectedProp.y + (propEditorUi.selectedProp.sourceHeight || height) - height }
+                                  : {}),
+                              });
+                            }
+                          }}
+                        />
+                      </label>
+                      <label>
+                        <span>Scale</span>
+                        <input
+                          type="number"
+                          min="0.1"
+                          max="6"
+                          step="0.05"
+                          value={Number((propEditorUi.selectedProp.scale ?? 1).toFixed(2))}
+                          onChange={(event) => {
+                            const nextScale = clamp(Number(event.target.value), 0.1, 6);
+                            if (Number.isFinite(nextScale)) updateSelectedPropEditorTransform({ scale: Number(nextScale.toFixed(2)) });
+                          }}
+                        />
+                      </label>
+                      <label>
+                        <span>Rotation</span>
+                        <input
+                          type="number"
+                          step="5"
+                          value={Math.round(propEditorUi.selectedProp.rotation ?? 0)}
+                          onChange={(event) => {
+                            const nextRotation = Number(event.target.value);
+                            if (Number.isFinite(nextRotation)) updateSelectedPropEditorTransform({ rotation: Math.round(nextRotation) });
+                          }}
+                        />
+                      </label>
+                      <label className="journey-prop-editor-checkbox">
+                        <span>Mirror</span>
+                        <input
+                          type="checkbox"
+                          checked={propEditorUi.selectedProp.mirrorX || false}
+                          onChange={(event) => updateSelectedPropEditorTransform({ mirrorX: event.target.checked })}
+                        />
+                      </label>
+                      <label>
+                        <span>Depth</span>
+                        <select
+                          value={propEditorUi.selectedProp.depth}
+                          onChange={(event) => updateSelectedPropEditorTransform({ depth: event.target.value })}
+                        >
+                          {PROP_EDITOR_DEPTH_OPTIONS.map(option => (
+                            <option key={option} value={option}>{option}</option>
+                          ))}
+                        </select>
+                      </label>
+                      <label>
+                        <span>Layer</span>
+                        <select
+                          value={PROP_EDITOR_LAYER_OPTIONS.includes(propEditorUi.selectedProp.layer) ? propEditorUi.selectedProp.layer : 'default'}
+                          onChange={(event) => updateSelectedPropEditorTransform({ layer: event.target.value })}
+                        >
+                          {PROP_EDITOR_LAYER_OPTIONS.map(option => (
+                            <option key={option} value={option}>{option}</option>
+                          ))}
+                        </select>
+                      </label>
+                      <label>
+                        <span>Z-index</span>
+                        <input
+                          type="number"
+                          step="1"
+                          placeholder="auto"
+                          value={Number.isFinite(Number(propEditorUi.selectedProp.zIndex)) ? propEditorUi.selectedProp.zIndex : ''}
+                          onChange={(event) => {
+                            const nextZIndex = Number(event.target.value);
                           if (Number.isFinite(nextZIndex)) updateSelectedPropEditorTransform({ zIndex: Math.round(nextZIndex) });
                         }}
                       />
                     </label>
                   </div>
+
+                    <div className="journey-prop-editor-group-header">Editor Box</div>
+                    <div className="journey-prop-editor-controls">
+                      <label>
+                        <span>Trim top</span>
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={propEditorUi.selectedProp.editorBoundsInsetTop}
+                          onChange={(event) => {
+                            const nextInset = Number(event.target.value);
+                            if (Number.isFinite(nextInset)) updateSelectedPropEditorTransform({ editorBoundsInsetTop: Math.max(0, Math.round(nextInset)) });
+                          }}
+                        />
+                      </label>
+                      <label>
+                        <span>Trim right</span>
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={propEditorUi.selectedProp.editorBoundsInsetRight}
+                          onChange={(event) => {
+                            const nextInset = Number(event.target.value);
+                            if (Number.isFinite(nextInset)) updateSelectedPropEditorTransform({ editorBoundsInsetRight: Math.max(0, Math.round(nextInset)) });
+                          }}
+                        />
+                      </label>
+                      <label>
+                        <span>Trim bottom</span>
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={propEditorUi.selectedProp.editorBoundsInsetBottom}
+                          onChange={(event) => {
+                            const nextInset = Number(event.target.value);
+                            if (Number.isFinite(nextInset)) updateSelectedPropEditorTransform({ editorBoundsInsetBottom: Math.max(0, Math.round(nextInset)) });
+                          }}
+                        />
+                      </label>
+                      <label>
+                        <span>Trim left</span>
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={propEditorUi.selectedProp.editorBoundsInsetLeft}
+                          onChange={(event) => {
+                            const nextInset = Number(event.target.value);
+                            if (Number.isFinite(nextInset)) updateSelectedPropEditorTransform({ editorBoundsInsetLeft: Math.max(0, Math.round(nextInset)) });
+                          }}
+                        />
+                      </label>
+                    </div>
+
+                    <div className="journey-prop-editor-group-header">Visual Tuning</div>
+                    <div className="journey-prop-editor-controls">
+                      <label>
+                        <span>Brightness</span>
+                        <input
+                          type="number"
+                          min="0.4"
+                          max="1.8"
+                          step="0.05"
+                          value={Number((propEditorUi.selectedProp.brightness ?? 1).toFixed(2))}
+                          onChange={(event) => {
+                            const nextBrightness = clamp(Number(event.target.value), 0.4, 1.8);
+                            if (Number.isFinite(nextBrightness)) updateSelectedPropEditorTransform({ brightness: Number(nextBrightness.toFixed(2)) });
+                          }}
+                        />
+                      </label>
+                      <label>
+                        <span>Colour grade</span>
+                        <input
+                          type="text"
+                          value={propEditorUi.selectedProp.colorGradeFilter ?? ''}
+                          onChange={(event) => updateSelectedPropEditorTransform({ colorGradeFilter: event.target.value })}
+                        />
+                      </label>
+                    </div>
+
+                    <div className="journey-prop-editor-group-header">Shadows & Sand</div>
+                    <div className="journey-prop-editor-controls">
+                      <label>
+                        <span>Shadow opacity</span>
+                        <input
+                          type="number"
+                          min="0"
+                          max="0.42"
+                          step="0.01"
+                          value={propEditorUi.selectedProp.shadowOpacity ?? ''}
+                          onChange={(event) => {
+                            const nextShadowOpacity = clamp(Number(event.target.value), 0, 0.42);
+                            if (Number.isFinite(nextShadowOpacity)) updateSelectedPropEditorTransform({ shadowOpacity: Number(nextShadowOpacity.toFixed(2)) });
+                          }}
+                        />
+                      </label>
+                      <label>
+                        <span>Shadow width</span>
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={propEditorUi.selectedProp.shadowWidth ?? ''}
+                          onChange={(event) => {
+                            const nextShadowWidth = Number(event.target.value);
+                            if (Number.isFinite(nextShadowWidth)) updateSelectedPropEditorTransform({ shadowWidth: Math.max(0, Math.round(nextShadowWidth)) });
+                          }}
+                        />
+                      </label>
+                      <label>
+                        <span>Shadow height</span>
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={propEditorUi.selectedProp.shadowHeight ?? ''}
+                          onChange={(event) => {
+                            const nextShadowHeight = Number(event.target.value);
+                            if (Number.isFinite(nextShadowHeight)) updateSelectedPropEditorTransform({ shadowHeight: Math.max(0, Math.round(nextShadowHeight)) });
+                          }}
+                        />
+                      </label>
+                      <label>
+                        <span>Sand overlap</span>
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={propEditorUi.selectedProp.sandOverlapHeight ?? ''}
+                          onChange={(event) => {
+                            const nextSandOverlapHeight = Number(event.target.value);
+                            if (Number.isFinite(nextSandOverlapHeight)) updateSelectedPropEditorTransform({ sandOverlapHeight: Math.max(0, Math.round(nextSandOverlapHeight)) });
+                          }}
+                        />
+                      </label>
+                      <label>
+                        <span>Sand mound width</span>
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={propEditorUi.selectedProp.sandMoundWidth ?? ''}
+                          onChange={(event) => {
+                            const nextSandMoundWidth = Number(event.target.value);
+                            if (Number.isFinite(nextSandMoundWidth)) updateSelectedPropEditorTransform({ sandMoundWidth: Math.max(0, Math.round(nextSandMoundWidth)) });
+                          }}
+                        />
+                      </label>
+                      <label>
+                        <span>Sand mound height</span>
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={propEditorUi.selectedProp.sandMoundHeight ?? ''}
+                          onChange={(event) => {
+                            const nextSandMoundHeight = Number(event.target.value);
+                            if (Number.isFinite(nextSandMoundHeight)) updateSelectedPropEditorTransform({ sandMoundHeight: Math.max(0, Math.round(nextSandMoundHeight)) });
+                          }}
+                        />
+                      </label>
+                      <label>
+                        <span>Ground pebbles</span>
+                        <input
+                          type="number"
+                          min="0"
+                          max="24"
+                          step="1"
+                          value={propEditorUi.selectedProp.groundPebbles ?? ''}
+                          onChange={(event) => {
+                            const nextGroundPebbles = clamp(Number(event.target.value), 0, 24);
+                            if (Number.isFinite(nextGroundPebbles)) updateSelectedPropEditorTransform({ groundPebbles: Math.round(nextGroundPebbles) });
+                          }}
+                        />
+                      </label>
+                    </div>
+
+                    <div className="journey-prop-editor-contact-controls">
+                      <div className="journey-prop-editor-contact-header">
+                        <span>Ground contact layers</span>
+                        <button
+                          type="button"
+                          onClick={() => updateSelectedPropGroundContactLayer((propEditorUi.selectedProp.groundContactLayer || []).length)}
+                        >
+                          Add
+                        </button>
+                      </div>
+                      {(propEditorUi.selectedProp.groundContactLayer || []).map((entry, index) => (
+                        <div className="journey-prop-editor-contact-row" key={`${propEditorUi.selectedProp.id}-contact-${index}`}>
+                          <strong>Contact {index + 1}</strong>
+                          <label>
+                            <span>Asset key</span>
+                            <input
+                              type="text"
+                              value={entry.assetKey || ''}
+                              onChange={(event) => updateSelectedPropGroundContactLayer(index, { assetKey: event.target.value })}
+                            />
+                          </label>
+                          <label>
+                            <span>Layer</span>
+                            <select
+                              value={entry.layer || 'overlay'}
+                              onChange={(event) => updateSelectedPropGroundContactLayer(index, { layer: event.target.value })}
+                            >
+                              <option value="underlay">underlay</option>
+                              <option value="overlay">overlay</option>
+                            </select>
+                          </label>
+                          <label>
+                            <span>X ratio</span>
+                            <input
+                              type="number"
+                              min="0"
+                              max="1"
+                              step="0.01"
+                              value={Number.isFinite(entry.xRatio) ? entry.xRatio : ''}
+                              onChange={(event) => {
+                                const nextXRatio = clamp(Number(event.target.value), 0, 1);
+                                if (Number.isFinite(nextXRatio)) updateSelectedPropGroundContactLayer(index, { xRatio: Number(nextXRatio.toFixed(2)) });
+                              }}
+                            />
+                          </label>
+                          <label>
+                            <span>Width ratio</span>
+                            <input
+                              type="number"
+                              min="0"
+                              max="1"
+                              step="0.01"
+                              value={Number.isFinite(entry.widthRatio) ? entry.widthRatio : ''}
+                              onChange={(event) => {
+                                const nextWidthRatio = clamp(Number(event.target.value), 0, 1);
+                                if (Number.isFinite(nextWidthRatio)) updateSelectedPropGroundContactLayer(index, { widthRatio: Number(nextWidthRatio.toFixed(2)) });
+                              }}
+                            />
+                          </label>
+                          <label>
+                            <span>Height</span>
+                            <input
+                              type="number"
+                              min="1"
+                              step="1"
+                              value={Number.isFinite(entry.height) ? entry.height : ''}
+                              onChange={(event) => {
+                                const nextHeight = Number(event.target.value);
+                                if (Number.isFinite(nextHeight)) updateSelectedPropGroundContactLayer(index, { height: Math.max(1, Math.round(nextHeight)) });
+                              }}
+                            />
+                          </label>
+                          <label>
+                            <span>Y offset</span>
+                            <input
+                              type="number"
+                              step="1"
+                              value={Number.isFinite(entry.yOffset) ? entry.yOffset : ''}
+                              onChange={(event) => {
+                                const nextYOffset = Number(event.target.value);
+                                if (Number.isFinite(nextYOffset)) updateSelectedPropGroundContactLayer(index, { yOffset: Math.round(nextYOffset) });
+                              }}
+                            />
+                          </label>
+                          <label>
+                            <span>Rotation</span>
+                            <input
+                              type="number"
+                              step="1"
+                              value={Number.isFinite(entry.rotation) ? entry.rotation : 0}
+                              onChange={(event) => {
+                                const nextRotation = Number(event.target.value);
+                                if (Number.isFinite(nextRotation)) updateSelectedPropGroundContactLayer(index, { rotation: Math.round(nextRotation) });
+                              }}
+                            />
+                          </label>
+                          <label>
+                            <span>Alpha</span>
+                            <input
+                              type="number"
+                              min="0"
+                              max="1"
+                              step="0.01"
+                              value={Number.isFinite(entry.alpha) ? entry.alpha : ''}
+                              onChange={(event) => {
+                                const nextAlpha = clamp(Number(event.target.value), 0, 1);
+                                if (Number.isFinite(nextAlpha)) updateSelectedPropGroundContactLayer(index, { alpha: Number(nextAlpha.toFixed(2)) });
+                              }}
+                            />
+                          </label>
+                          <label className="journey-prop-editor-checkbox">
+                            <span>Mirror</span>
+                            <input
+                              type="checkbox"
+                              checked={entry.mirrorX === true}
+                              onChange={(event) => updateSelectedPropGroundContactLayer(index, { mirrorX: event.target.checked })}
+                            />
+                          </label>
+                          <label className="journey-prop-editor-contact-filter">
+                            <span>Filter</span>
+                            <input
+                              type="text"
+                              value={entry.filter || ''}
+                              onChange={(event) => updateSelectedPropGroundContactLayer(index, { filter: event.target.value })}
+                            />
+                          </label>
+                          <button
+                            type="button"
+                            className="journey-prop-editor-contact-remove"
+                            onClick={() => removeSelectedPropGroundContactLayer(index)}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </>
                 )}
+
                 {propEditorUi.selectedPlatform && (
                   <div className="journey-prop-editor-controls">
                     <label>
@@ -20250,25 +20643,51 @@ export default function ExpeditionJourney({
                   ))}
                 </div>
                 <div className="journey-prop-palette-list">
-                  {propEditorUi.palette.map(item => (
-                    <button
-                      key={item.key}
-                      type="button"
-                      className={propEditorUi.selectedPaletteKey === item.key ? 'is-selected' : ''}
-                      onClick={() => {
-                        propPlacementEditorRef.current.selectedPaletteKey = item.key;
-                        refreshPropEditorUi();
-                      }}
-                    >
-                      <span className="journey-prop-palette-thumb" aria-hidden="true">
-                        <span style={item.preview.style} />
-                      </span>
-                      <span className="journey-prop-palette-copy">
-                        <strong>{item.label}</strong>
-                        <span>{item.preview.assetKey || item.atmosphereAssetKey || item.type}</span>
-                      </span>
-                    </button>
-                  ))}
+                  {Object.entries(propEditorUi.palette.reduce((acc, item) => {
+                    const group = item.category || 'General';
+                    if (!acc[group]) acc[group] = [];
+                    acc[group].push(item);
+                    return acc;
+                  }, {})).map(([groupName, items]) => {
+                    const isCollapsed = propEditorUi.collapsedPaletteGroups?.[groupName] || false;
+                    return (
+                    <div key={groupName} className="journey-prop-palette-group">
+                      <button
+                        type="button"
+                        className="journey-prop-palette-group-toggle"
+                        onClick={() => {
+                          if (!propPlacementEditorRef.current.collapsedPaletteGroups) {
+                            propPlacementEditorRef.current.collapsedPaletteGroups = {};
+                          }
+                          propPlacementEditorRef.current.collapsedPaletteGroups[groupName] = !isCollapsed;
+                          refreshPropEditorUi();
+                        }}
+                      >
+                        <span aria-hidden="true">{isCollapsed ? '▶' : '▼'}</span>
+                        <strong>{groupName}</strong>
+                        <em>{items.length}</em>
+                      </button>
+                      {!isCollapsed && items.map(item => (
+                        <button
+                          key={item.key}
+                          type="button"
+                          className={propEditorUi.selectedPaletteKey === item.key ? 'is-selected' : ''}
+                          onClick={() => {
+                            propPlacementEditorRef.current.selectedPaletteKey = item.key;
+                            refreshPropEditorUi();
+                          }}
+                        >
+                          <span className="journey-prop-palette-thumb" aria-hidden="true">
+                            <span style={item.preview.style} />
+                          </span>
+                          <span className="journey-prop-palette-copy">
+                            <strong>{item.label}</strong>
+                            <span>{item.preview.assetKey || item.atmosphereAssetKey || item.type}</span>
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  );})}
                 </div>
               </div>
             )}

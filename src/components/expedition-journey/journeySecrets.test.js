@@ -27,6 +27,7 @@ import {
   snapJourneyPropCoordinate,
 } from './journeyUtils.js';
 import { CHINA_ENEMIES, ENEMIES, STORY_PROPS } from './journeyLevelData.js';
+import journeyPlacementOverrides from './journeyPlacementOverrides.generated.js';
 
 const source = readFileSync(new URL('./journeyLevelData.js', import.meta.url), 'utf8');
 const journeyUtilsSource = readFileSync(new URL('./journeyUtils.js', import.meta.url), 'utf8');
@@ -189,6 +190,28 @@ test('journey prop placement helpers preserve canonical prop fields while editin
     depth: 'route-edge',
     layer: 'foreground',
     zIndex: 5,
+    shadowOpacity: 0.22,
+    shadowWidth: 118,
+    shadowHeight: 34,
+    sandOverlapHeight: 18,
+    sandMoundWidth: 132,
+    sandMoundHeight: 28,
+    groundPebbles: 6,
+    colorGradeFilter: 'sepia(0.16) saturate(0.9)',
+    groundContactLayer: [
+      {
+        layer: 'overlay',
+        assetKey: 'premiumLongSandLip',
+        xRatio: 0.5,
+        widthRatio: 0.8,
+        height: 58,
+        yOffset: -50,
+        rotation: -3,
+        mirrorX: true,
+        alpha: 0.64,
+        filter: 'sepia(12%)',
+      },
+    ],
   });
 
   assert.deepEqual(edited, {
@@ -205,8 +228,31 @@ test('journey prop placement helpers preserve canonical prop fields while editin
     depth: 'route-edge',
     layer: 'foreground',
     zIndex: 5,
+    shadowOpacity: 0.22,
+    shadowWidth: 118,
+    shadowHeight: 34,
+    sandOverlapHeight: 18,
+    sandMoundWidth: 132,
+    sandMoundHeight: 28,
+    groundPebbles: 6,
+    colorGradeFilter: 'sepia(0.16) saturate(0.9)',
+    groundContactLayer: [
+      {
+        layer: 'overlay',
+        assetKey: 'premiumLongSandLip',
+        xRatio: 0.5,
+        widthRatio: 0.8,
+        height: 58,
+        yOffset: -50,
+        rotation: -3,
+        mirrorX: true,
+        alpha: 0.64,
+        filter: 'sepia(12%)',
+      },
+    ],
   });
   assert.notEqual(edited, prop);
+  assert.notEqual(edited.groundContactLayer, prop.groundContactLayer);
 });
 
 test('journey prop placement export uses the existing STORY_PROPS object shape', () => {
@@ -326,8 +372,11 @@ test('journey prop editor palette includes reusable Lost Site prop registry entr
       assetPath: 'assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/cracked_stone_blocks.png',
       defaultScale: 1,
       defaultLayer: 'foreground',
-      defaultColorGradeFilter: 'none',
-      defaultShadowOpacity: 0,
+      defaultColorGradeFilter: 'sepia(34%) saturate(135%) brightness(88%) contrast(102%)',
+      defaultShadowOpacity: 0.2,
+      defaultSandOverlapHeight: 9,
+      defaultSandMoundWidth: 112,
+      defaultGroundPebbles: 4,
       collidable: false,
       inspectable: false,
     },
@@ -361,8 +410,11 @@ test('journey prop editor palette includes reusable Lost Site prop registry entr
         atmosphereAssetKey: 'cracked_stone_blocks',
         scale: 1,
         layer: 'foreground',
-        colorGradeFilter: 'none',
-        shadowOpacity: 0,
+        colorGradeFilter: 'sepia(34%) saturate(135%) brightness(88%) contrast(102%)',
+        shadowOpacity: 0.2,
+        sandOverlapHeight: 9,
+        sandMoundWidth: 112,
+        groundPebbles: 4,
       },
     },
     {
@@ -627,6 +679,48 @@ test('journey editor exposes platform resizing and robust prop scale shortcuts',
   assert.match(journeyComponentSource, /brightness\(\$\{Math\.round\(clamp\(propSize\.brightness,\s*0\.4,\s*1\.8\) \* 100\)\}%\)/);
   assert.match(journeyComponentSource, /propForAsset\.mirrorX/);
   assert.match(journeyComponentSource, /getGeneratedStoryPropRenderProp/);
+});
+
+test('journey prop editor exposes environmental blending controls for selected props', () => {
+  assert.match(journeyComponentSource, /shadowOpacity:\s*Number\.isFinite\(prop\.shadowOpacity\)/);
+  assert.match(journeyComponentSource, /sandOverlapHeight:\s*Number\.isFinite\(prop\.sandOverlapHeight\)/);
+  assert.match(journeyComponentSource, /sandMoundWidth:\s*Number\.isFinite\(prop\.sandMoundWidth\)/);
+  assert.match(journeyComponentSource, /groundPebbles:\s*Number\.isFinite\(prop\.groundPebbles\)/);
+  assert.match(journeyComponentSource, /colorGradeFilter:\s*prop\.colorGradeFilter/);
+  assert.match(journeyComponentSource, /<span>Shadow opacity<\/span>[\s\S]*?updateSelectedPropEditorTransform\(\{ shadowOpacity:/);
+  assert.match(journeyComponentSource, /<span>Shadow width<\/span>[\s\S]*?updateSelectedPropEditorTransform\(\{ shadowWidth:/);
+  assert.match(journeyComponentSource, /<span>Sand overlap<\/span>[\s\S]*?updateSelectedPropEditorTransform\(\{ sandOverlapHeight:/);
+  assert.match(journeyComponentSource, /<span>Sand mound width<\/span>[\s\S]*?updateSelectedPropEditorTransform\(\{ sandMoundWidth:/);
+  assert.match(journeyComponentSource, /<span>Ground pebbles<\/span>[\s\S]*?updateSelectedPropEditorTransform\(\{ groundPebbles:/);
+  assert.match(journeyComponentSource, /<span>Colour grade<\/span>[\s\S]*?updateSelectedPropEditorTransform\(\{ colorGradeFilter:/);
+});
+
+test('journey prop editor exposes generated structure ground-contact controls', () => {
+  assert.match(journeyComponentSource, /groundContactLayer:\s*Array\.isArray\(prop\.groundContactLayer\)/);
+  assert.match(journeyComponentSource, /updateSelectedPropGroundContactLayer/);
+  assert.match(journeyComponentSource, /selectedProp\.category === 'Structure'[\s\S]*?Ground contact layers/);
+  assert.match(journeyComponentSource, /Contact \{index \+ 1\}/);
+  assert.match(journeyComponentSource, /<span>Asset key<\/span>[\s\S]*?updateSelectedPropGroundContactLayer\(index,\s*\{ assetKey:/);
+  assert.match(journeyComponentSource, /<span>X ratio<\/span>[\s\S]*?updateSelectedPropGroundContactLayer\(index,\s*\{ xRatio:/);
+  assert.match(journeyComponentSource, /<span>Width ratio<\/span>[\s\S]*?updateSelectedPropGroundContactLayer\(index,\s*\{ widthRatio:/);
+  assert.match(journeyComponentSource, /<span>Y offset<\/span>[\s\S]*?updateSelectedPropGroundContactLayer\(index,\s*\{ yOffset:/);
+  assert.match(journeyComponentSource, /<span>Rotation<\/span>[\s\S]*?updateSelectedPropGroundContactLayer\(index,\s*\{ rotation:/);
+  assert.match(journeyComponentSource, /<span>Alpha<\/span>[\s\S]*?updateSelectedPropGroundContactLayer\(index,\s*\{ alpha:/);
+  assert.match(journeyComponentSource, /<span>Mirror<\/span>[\s\S]*?updateSelectedPropGroundContactLayer\(index,\s*\{ mirrorX:/);
+  assert.match(journeyComponentSource, /<span>Filter<\/span>[\s\S]*?updateSelectedPropGroundContactLayer\(index,\s*\{ filter:/);
+});
+
+test('journey prop editor overlay does not wash selected assets', () => {
+  const overlayStart = journeyComponentSource.indexOf('const drawPropPlacementEditorOverlay =');
+  const drawStart = journeyComponentSource.indexOf('  const draw = useCallback', overlayStart);
+  assert.notEqual(overlayStart, -1);
+  assert.notEqual(drawStart, -1);
+  const overlaySource = journeyComponentSource.slice(overlayStart, drawStart);
+
+  assert.match(overlaySource, /drawEditorSelectionCorners/);
+  assert.match(overlaySource, /drawEditorSelectionLabel/);
+  assert.doesNotMatch(overlaySource, /fillRect\(bounds\.x,\s*bounds\.y,\s*bounds\.width,\s*bounds\.height\)/);
+  assert.doesNotMatch(overlaySource, /selected\s*\?\s*'rgba\([^']+0\.1[2-9]/);
 });
 
 test('journey editor platform overlays follow the vertical camera during climb sections', () => {
@@ -1264,8 +1358,8 @@ test('mummification chamber exterior reuses Journey routes, ledges, assets, and 
   assert.ok(platforms.indexOf("id: 'mummification-chamber-doorway-floor'") < platforms.indexOf("id: 'forgotten-mural-carved-wall-ledge'"));
   assert.match(journeyUtilsSource, /mummificationChamberEntranceDiscovered:\s*false/);
   assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_EXTERIOR_SRC = 'assets\/expedition\/environment\/desert-temple\/mummification-chamber-exterior-climb-structure\.png'/);
-  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?minX:\s*scaleJourneyX\(720\)[\s\S]*?maxX:\s*scaleJourneyX\(760\)/);
-  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?footY:\s*openingJourneyY\(-156\)[\s\S]*?footTolerance:\s*28/);
+  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?minX:\s*scaleJourneyX\(652\)[\s\S]*?maxX:\s*scaleJourneyX\(692\)/);
+  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?footY:\s*openingJourneyY\(-207\)[\s\S]*?footTolerance:\s*36/);
   assert.match(journeyComponentSource, /drawMummificationChamberExteriorAsset/);
   assert.match(journeyComponentSource, /drawMummificationChamberExteriorAsset[\s\S]*?drawEgyptStructureGroundContactLayer/);
   assert.match(journeyComponentSource, /prop\.type === 'generated-mummification-chamber-entrance'/);
@@ -1757,26 +1851,23 @@ test('opening Scarab Seal becomes a restrained false-discovery threshold scene',
   assert.doesNotMatch(platforms, /upper lower-stair tread/i);
   assert.doesNotMatch(platforms, /upper pyramid stair helper/i);
   assert.doesNotMatch(platforms, /cracked summit trap slab/i);
-  assert.match(storyProps, /id:\s*'early-scarab-seal-pedestal'/);
-  assert.match(storyProps, /id:\s*'early-scarab-seal'/);
-  assert.match(storyProps, /id:\s*'early-scarab-seal-pedestal'[\s\S]*?x:\s*925[\s\S]*?y:\s*JY\(-137\)/);
-  assert.match(storyProps, /id:\s*'early-scarab-seal'[\s\S]*?x:\s*925[\s\S]*?y:\s*JY\(-164\)/);
-  assert.match(journeyComponentSource, /'early-scarab-seal-pedestal':\s*\{[\s\S]*?width:\s*54[\s\S]*?height:\s*42[\s\S]*?yOffset:\s*0/);
+  assert.doesNotMatch(storyProps, /id:\s*'early-scarab-seal-pedestal'/);
+  assert.doesNotMatch(storyProps, /id:\s*'early-scarab-seal'/);
   assert.match(journeyComponentSource, /'early-scarab-seal':\s*\{[\s\S]*?width:\s*38[\s\S]*?height:\s*38[\s\S]*?yOffset:\s*0/);
   assert.match(journeyComponentSource, /OPENING_SCARAB_SEAL_IMAGE_SRC = 'assets\/expedition\/environment\/egypt-opening\/scarab-seal-ground-embedded\.png'/);
   assert.match(journeyComponentSource, /openingScarabSealImageRef/);
-  assert.doesNotMatch(journeyComponentSource, /prop\.id === 'early-scarab-seal-pedestal' \|\| prop\.id === 'early-scarab-seal'/);
   const openingPyramidFacadeSource = getComponentFunctionSource('drawOpeningPyramidFacade');
-  assert.match(journeyComponentSource, /getOpeningScarabSealGlowAnchor = useCallback/);
-  assert.match(journeyComponentSource, /getRenderableStoryProps\(current\)\.find\(prop => prop\.id === 'early-scarab-seal'\)/);
-  assert.match(journeyComponentSource, /getStoryPropEditorBounds\(openingScarabSealProp, cameraX, current\)/);
-  assert.match(openingPyramidFacadeSource, /const glowAnchor = getOpeningScarabSealGlowAnchor\(stateRef\.current, cameraX\)/);
-  assert.match(openingPyramidFacadeSource, /glowAnchor\.x/);
-  assert.match(openingPyramidFacadeSource, /glowAnchor\.y/);
+  assert.doesNotMatch(journeyComponentSource, /getOpeningScarabSealGlowAnchor = useCallback/);
+  assert.doesNotMatch(journeyComponentSource, /getRenderableStoryProps\(current\)\.find\(prop => prop\.id === 'early-scarab-seal'\)/);
+  assert.doesNotMatch(journeyComponentSource, /getStoryPropEditorBounds\(openingScarabSealProp, cameraX, current\)/);
+  assert.doesNotMatch(openingPyramidFacadeSource, /const glowAnchor = getOpeningScarabSealGlowAnchor\(stateRef\.current, cameraX\)/);
+  assert.doesNotMatch(openingPyramidFacadeSource, /glowAnchor\.x/);
+  assert.doesNotMatch(openingPyramidFacadeSource, /glowAnchor\.y/);
   assert.doesNotMatch(openingPyramidFacadeSource, /const scarabSealX = worldToScreenX\(SCARAB_SEAL_TRIGGER\.x, cameraX\)/);
   assert.doesNotMatch(openingPyramidFacadeSource, /const beaconY = SCARAB_SEAL_TRIGGER\.y - 44/);
-  assert.match(openingPyramidFacadeSource, /sealHaloGradient/);
-  assert.match(openingPyramidFacadeSource, /ctx\.setLineDash\(\[10, 14\]\)/);
+  assert.doesNotMatch(openingPyramidFacadeSource, /sealHaloGradient/);
+  assert.doesNotMatch(openingPyramidFacadeSource, /ctx\.ellipse\(scarabSealX, beaconY, radiusX \* 1\.16, radiusY \* 1\.22/);
+  assert.doesNotMatch(openingPyramidFacadeSource, /ctx\.setLineDash\(\[10, 14\]\)/);
   assert.doesNotMatch(openingPyramidFacadeSource, /drawOpeningPyramidAssetRegion\(ctx,\s*'pedestal'/);
   assert.doesNotMatch(openingPyramidFacadeSource, /drawOpeningPyramidAssetRegion\(ctx,\s*'seal'/);
   assert.match(journeyComponentSource, /'opening-seal-reset-trap':\s*'spikeTrap'/);
@@ -2017,7 +2108,7 @@ test('opening pyramid facade stays active as the opening gameplay landmark', () 
     journeyComponentSource,
     /if \(x > CANVAS_WIDTH \+ 80 \|\| x \+ width < -80\) return false;[\s\S]*?ctx\.globalAlpha = Number\.isFinite\(renderProp\.alpha\) \? renderProp\.alpha : 0\.98;/,
   );
-  assert.match(journeyComponentSource, /drawOpeningPyramidMasonryBack\(ctx, cameraX, now, current\)/);
+  assert.match(journeyComponentSource, /drawOpeningPyramidMasonryBack\(ctx, cameraX, current\)/);
   assert.doesNotMatch(journeyComponentSource, /clipRight/);
   assert.doesNotMatch(journeyComponentSource, /OPENING_PYRAMID_FACADE_MIN_VISIBLE_WIDTH/);
   assert.doesNotMatch(journeyComponentSource, /OPENING_PYRAMID_FACADE_FADE_START_X/);
@@ -3592,10 +3683,10 @@ test('premium foreground contact assets stay visual-only and out of generated st
   const premiumGroundContactAtlas = JSON.parse(readFileSync(new URL('../../../public/assets/expedition/environment/egypt-foreground/egypt-ground-contact-premium-kit-2026-06-02.json', import.meta.url), 'utf8'));
   const storyProps = extractExportedArray('STORY_PROPS');
   const generatedStructureRows = [
-    getDataRowById(storyProps, 'mummification-chamber-exterior-structure'),
     getDataRowById(storyProps, 'forgotten-mural-climb-structure'),
     getDataRowById(storyProps, 'scribe-chamber-doorway-structure'),
   ];
+  const backgroundStructureRow = getDataRowById(storyProps, 'mummification-chamber-exterior-structure');
   const platforms = extractExportedArray('PLATFORMS');
 
   [
@@ -3611,6 +3702,8 @@ test('premium foreground contact assets stay visual-only and out of generated st
   });
   [
     'premiumLongSandLip',
+    'premiumLowSedimentRibbon',
+    'premiumRubbleMoundBlend',
     'premiumDoorThresholdBuildup',
     'premiumRubbleContactShadow',
     'premiumHalfBuriedStairSupport',
@@ -3625,30 +3718,46 @@ test('premium foreground contact assets stay visual-only and out of generated st
   assert.match(foregroundAtlas.mappingNote, /contact shadow/i);
   assert.match(premiumGroundContactAtlas.mappingNote, /visual-only/i);
   assert.match(premiumGroundContactAtlas.mappingNote, /do not define collision/i);
+  assert.match(backgroundStructureRow, /depth:\s*'background'/);
+  assert.match(backgroundStructureRow, /groundContactLayer:\s*\[\]/);
+  assert.doesNotMatch(backgroundStructureRow, /assetKey:\s*'premium/);
   generatedStructureRows.forEach((propRow) => {
-    assert.doesNotMatch(propRow, /groundContactLayer:\s*\[/);
-    assert.doesNotMatch(propRow, /assetKey:\s*'(?:egyptGroundSkirtLong|lowDustVeil|egyptBaseSandDrift|premiumLongSandLip|premiumRubbleContactShadow|premiumRubbleMoundBlend|premiumDoorThresholdBuildup|premiumHalfBuriedStairSupport|premiumBrokenMasonryFooting|premiumSmallStoneScatter)'/);
+    assert.match(propRow, /groundContactLayer:\s*\[/);
+    assert.doesNotMatch(propRow, /assetKey:\s*'(?:egyptGroundSkirtLong|egyptGroundSkirtShort|lowDustVeil|egyptBaseSandDrift)'/);
+    assert.match(propRow, /assetKey:\s*'premium(?:LongSandLip|LowSedimentRibbon|RubbleMoundBlend|DoorThresholdBuildup|RubbleContactShadow|HalfBuriedStairSupport|BrokenMasonryFooting|SmallStoneScatter)'/);
   });
   assert.match(journeyComponentSource, /drawEgyptStructureGroundContactLayer/);
   assert.match(journeyComponentSource, /groundContactLayer/);
+  assert.match(journeyComponentSource, /drawEgyptStructureWeatheringOverlay/);
   assert.match(journeyComponentSource, /scribeChamberGroundBlendAssetKeys/);
   assert.doesNotMatch(platforms, /egyptGroundSkirtLong|premiumRubbleContactShadow|groundContactLayer/);
 });
 
-test('generated Egypt structures avoid rectangular ground-contact sprites without changing collision', () => {
+test('generated Egypt structures use localized premium ground contact without changing collision', () => {
   const storyProps = extractExportedArray('STORY_PROPS');
   const platforms = extractExportedArray('PLATFORMS');
-  const mummificationExterior = getDataRowById(storyProps, 'mummification-chamber-exterior-structure');
-  const forgottenMuralExterior = getDataRowById(storyProps, 'forgotten-mural-climb-structure');
-  const scribeExterior = getDataRowById(storyProps, 'scribe-chamber-doorway-structure');
+  const generatedStructureIds = [
+    'forgotten-mural-climb-structure',
+    'scribe-chamber-doorway-structure',
+  ];
+  const backgroundStructure = STORY_PROPS.find((prop) => prop.id === 'mummification-chamber-exterior-structure');
+  const generatedStructureRows = generatedStructureIds.map((id) => getDataRowById(storyProps, id));
+  const generatedStructureProps = generatedStructureIds.map((id) => STORY_PROPS.find((prop) => prop.id === id));
 
-  [
-    mummificationExterior,
-    forgottenMuralExterior,
-    scribeExterior,
-  ].forEach((propRow) => {
-    assert.doesNotMatch(propRow, /groundContactLayer:\s*\[/);
-    assert.doesNotMatch(propRow, /assetKey:\s*'(?:lowDustVeil|premiumLongSandLip|premiumRubbleMoundBlend|premiumRubbleContactShadow|premiumDoorThresholdBuildup|premiumHalfBuriedStairSupport|premiumBrokenMasonryFooting|premiumSmallStoneScatter)'/);
+  assert.equal(backgroundStructure?.depth, 'background');
+  assert.deepEqual(backgroundStructure?.groundContactLayer, []);
+  generatedStructureRows.forEach((propRow) => {
+    assert.match(propRow, /groundContactLayer:\s*\[/);
+    assert.doesNotMatch(propRow, /assetKey:\s*'(?:lowDustVeil|egyptGroundSkirtLong|egyptGroundSkirtShort|egyptBaseSandDrift)'/);
+  });
+  generatedStructureProps.forEach((prop) => {
+    assert.ok(prop, 'generated structure prop should exist');
+    assert.ok(prop.groundContactLayer.length >= 4, `${prop.id} should have local contact pieces`);
+    prop.groundContactLayer.forEach((entry) => {
+      assert.match(entry.assetKey, /^premium/);
+      assert.ok(!Number.isFinite(entry.widthRatio) || entry.widthRatio <= 0.86, `${entry.assetKey} should avoid broad full-width stamped haze`);
+      assert.ok(['underlay', 'overlay'].includes(entry.layer || 'overlay'));
+    });
   });
 
   assert.match(journeyComponentSource, /drawMummificationChamberExteriorAsset[\s\S]*?drawEgyptStructureGroundContactLayer/);
@@ -3658,18 +3767,78 @@ test('generated Egypt structures avoid rectangular ground-contact sprites withou
   assert.doesNotMatch(platforms, /premiumLongSandLip|premiumRubbleMoundBlend|groundContactLayer/);
 });
 
-test('generated Egypt structure data avoids stamped contact layers to prevent bottom haze', () => {
+test('generated Egypt structure data uses localized contact layers to prevent pasted-on bases', () => {
   const generatedStructureIds = new Set([
-    'mummification-chamber-exterior-structure',
     'forgotten-mural-climb-structure',
     'scribe-chamber-doorway-structure',
   ]);
+  const backgroundStructure = STORY_PROPS.find((prop) => prop.id === 'mummification-chamber-exterior-structure');
   const stampedContacts = STORY_PROPS
     .filter((prop) => generatedStructureIds.has(prop.id))
     .flatMap((prop) => (prop.groundContactLayer || []).map((entry) => ({ propId: prop.id, ...entry })))
     .map(({ propId, assetKey, mode, alpha, widthRatio }) => ({ propId, assetKey, mode, alpha, widthRatio }));
 
-  assert.deepEqual(stampedContacts, []);
+  assert.deepEqual(backgroundStructure?.groundContactLayer, []);
+  assert.ok(stampedContacts.length >= 12);
+  assert.ok(stampedContacts.every(({ assetKey }) => assetKey.startsWith('premium')));
+  assert.ok(stampedContacts.every(({ assetKey }) => !['lowDustVeil', 'egyptGroundSkirtLong', 'egyptGroundSkirtShort'].includes(assetKey)));
+  assert.ok(stampedContacts.every(({ widthRatio }) => !Number.isFinite(widthRatio) || widthRatio <= 0.86));
+  [
+    'premiumRubbleContactShadow',
+    'premiumLongSandLip',
+    'premiumRubbleMoundBlend',
+    'premiumDoorThresholdBuildup',
+    'premiumHalfBuriedStairSupport',
+    'premiumBrokenMasonryFooting',
+    'premiumLowSedimentRibbon',
+    'premiumSmallStoneScatter',
+  ].forEach((assetKey) => {
+    assert.ok(stampedContacts.some((entry) => entry.assetKey === assetKey), `${assetKey} should be used for structure blending`);
+  });
+});
+
+test('generated Egypt structure contact layers use asymmetric buried-base polish', () => {
+  const generatedStructureIds = new Set([
+    'forgotten-mural-climb-structure',
+    'scribe-chamber-doorway-structure',
+  ]);
+  const generatedStructures = STORY_PROPS.filter((prop) => generatedStructureIds.has(prop.id));
+
+  generatedStructures.forEach((prop) => {
+    const contacts = prop.groundContactLayer || [];
+    const overlayContacts = contacts.filter((entry) => (entry.layer || 'overlay') === 'overlay');
+    const sideBuildupContacts = contacts.filter((entry) => (
+      Number.isFinite(entry.xRatio)
+      && (entry.xRatio <= 0.28 || entry.xRatio >= 0.72)
+      && Number.isFinite(entry.yOffset)
+      && entry.yOffset <= -48
+    ));
+    assert.ok(contacts.length >= 8, `${prop.id} should have enough separate contact pieces to break a clean base line`);
+    assert.ok(overlayContacts.every((entry) => !Number.isFinite(entry.widthRatio) || entry.widthRatio <= 0.68), `${prop.id} should avoid one broad overlay strip`);
+    assert.ok(sideBuildupContacts.length >= 2, `${prop.id} should build sand/rubble into both side joins`);
+    assert.ok(contacts.some((entry) => Number.isFinite(entry.rotation)), `${prop.id} should rotate at least one contact piece`);
+    assert.ok(contacts.some((entry) => entry.mirrorX === true), `${prop.id} should mirror at least one repeated rubble/scatter piece`);
+  });
+});
+
+test('generated overrides preserve polished structure contact layers when re-exported', () => {
+  const backgroundOverride = journeyPlacementOverrides.props.find((prop) => prop.id === 'mummification-chamber-exterior-structure');
+  assert.equal(backgroundOverride?.depth, 'background');
+  assert.equal(backgroundOverride?.layer, 'background');
+  assert.deepEqual(backgroundOverride?.groundContactLayer, []);
+  [
+    'forgotten-mural-climb-structure',
+    'scribe-chamber-doorway-structure',
+  ].forEach((propId) => {
+    const overrideProp = journeyPlacementOverrides.props.find((prop) => prop.id === propId);
+    assert.ok(overrideProp, `${propId} generated override should exist for placement edits`);
+    if (!Array.isArray(overrideProp.groundContactLayer)) return;
+    const overlayContacts = overrideProp.groundContactLayer.filter((entry) => (entry.layer || 'overlay') === 'overlay');
+    assert.ok(overrideProp.groundContactLayer.length >= 8, `${propId} generated override should keep separate contact pieces`);
+    assert.ok(overlayContacts.every((entry) => !Number.isFinite(entry.widthRatio) || entry.widthRatio <= 0.68), `${propId} generated override should avoid a broad overlay strip`);
+    assert.ok(overrideProp.groundContactLayer.some((entry) => Number.isFinite(entry.rotation)), `${propId} generated override should keep contact rotation`);
+    assert.ok(overrideProp.groundContactLayer.some((entry) => entry.mirrorX === true), `${propId} generated override should keep mirrored contact pieces`);
+  });
 });
 
 test('generated Egypt structure renderers avoid broad procedural base haze', () => {
@@ -3680,10 +3849,27 @@ test('generated Egypt structure renderers avoid broad procedural base haze', () 
   ].forEach((functionName) => {
     const functionSource = getComponentFunctionSource(functionName);
     assert.match(functionSource, /drawEgyptStructureGroundContactLayer/, `${functionName} should tolerate optional contact-layer data`);
+    assert.match(functionSource, /drawEgyptStructureWeatheringOverlay/, `${functionName} should add local weathering and occlusion`);
     assert.doesNotMatch(functionSource, /drawRouteGroundApron/, `${functionName} should not paint a broad route apron`);
     assert.doesNotMatch(functionSource, /drawDecorativeBaseBlend/, `${functionName} should not paint a broad decorative base blend`);
     assert.doesNotMatch(functionSource, /drawGroundDustLip/, `${functionName} should not paint broad dust lips`);
   });
+});
+
+test('mummification background structure avoids boxed shadow treatment', () => {
+  const functionSource = getComponentFunctionSource('drawMummificationChamberExteriorAsset');
+
+  assert.doesNotMatch(functionSource, /drawContactShadow\(ctx,\s*x,\s*groundY/);
+  assert.doesNotMatch(functionSource, /drop-shadow/);
+});
+
+test('generated Egypt structure contact renderer supports asymmetry controls', () => {
+  const functionSource = getComponentFunctionSource('drawEgyptStructureGroundContactLayer');
+
+  assert.match(functionSource, /entry\.rotation/);
+  assert.match(functionSource, /entry\.mirrorX/);
+  assert.match(functionSource, /ctx\.rotate/);
+  assert.match(functionSource, /ctx\.scale/);
 });
 
 test('desert entry no longer draws old procedural fallback scenery', () => {
@@ -3716,17 +3902,20 @@ test('desert entry ground reads as buried stone causeway under windblown sand', 
 
 test('story props render local contact sediment and occlusion around asset bases', () => {
   const drawStoryPropSource = getComponentFunctionSource('drawStoryProp');
+  const drawPropSandOcclusionSource = getComponentFunctionSource('drawPropSandOcclusion');
 
-  assert.match(journeyComponentSource, /PROP_GROUNDING_INTEGRATION_VERSION = 'prop-contact-shadow-local-sediment-occlusion-v4'/);
+  assert.match(journeyComponentSource, /PROP_GROUNDING_INTEGRATION_VERSION = 'prop-contact-shadow-local-sediment-occlusion-v5'/);
   assert.match(journeyComponentSource, /defaultSandOverlap/);
   assert.match(journeyComponentSource, /sandMoundWidth:\s*finiteNumber\(config\.sandMoundWidth/);
   assert.match(journeyComponentSource, /groundPebbles:\s*finiteNumber\(config\.groundPebbles/);
-  assert.match(drawStoryPropSource, /drawPropGroundContact\(ctx, x, anchorY, propSize, section\.id, propGrounding\)/);
-  assert.match(drawStoryPropSource, /drawPropSandOcclusion\(ctx, x, anchorY, propSize, section\.id, propGrounding\)/);
+  assert.match(drawStoryPropSource, /drawPropGroundContact\(ctx, x, anchorY, propGrounding\)/);
+  assert.match(drawStoryPropSource, /drawPropSandOcclusion\(ctx, x, anchorY, section\.id, propGrounding\)/);
+  assert.doesNotMatch(drawPropSandOcclusionSource, /fillRect\(x - moundW \/ 2 - 2,\s*overlapY,\s*moundW \+ 4/);
+  assert.match(drawPropSandOcclusionSource, /quadraticCurveTo/);
   assert.match(journeyPlacementOverridesSource, /'colorGradeFilter'[\s\S]*'sandOverlapHeight'[\s\S]*'groundPebbles'/);
-  assert.match(journeyPlacementGeneratedOverrideSource, /"id": "desert-entry-premium-column-1"[\s\S]*?"shadowOpacity": 0\.3[\s\S]*?"sandOverlapHeight": 20[\s\S]*?"groundPebbles": 6/);
+  assert.match(journeyPlacementGeneratedOverrideSource, /"id": "desert-entry-premium-column-1"[\s\S]*?"shadowOpacity": 0\.38[\s\S]*?"sandOverlapHeight": 0[\s\S]*?"groundPebbles": 6/);
   assert.match(journeyPlacementGeneratedOverrideSource, /"id": "desert-entry-cracked-stone-blocks-1"[\s\S]*?"shadowOpacity": 0\.22[\s\S]*?"sandOverlapHeight": 10/);
-  assert.match(journeyPlacementGeneratedOverrideSource, /"id": "desert-entry-fallen-lintel-1"[\s\S]*?"shadowOpacity": 0\.24[\s\S]*?"sandOverlapHeight": 14/);
+  assert.match(journeyPlacementGeneratedOverrideSource, /"id": "desert-entry-fallen-lintel-1"[\s\S]*?"shadowOpacity": 0\.24[\s\S]*?"sandOverlapHeight": 0/);
 });
 
 test('editor supports half-buried trap visuals without moving collision by hand', () => {

@@ -1,12 +1,21 @@
-const cloneItem = (item) => ({ ...item });
+const cloneEditableValue = (value) => {
+  if (Array.isArray(value)) return value.map(cloneEditableValue);
+  if (value && typeof value === 'object') return { ...value };
+  return value;
+};
+
+const cloneItem = (item) => Object.fromEntries(
+  Object.entries(item || {}).map(([key, value]) => [key, cloneEditableValue(value)])
+);
 
 const EDITABLE_FIELDS = Object.freeze({
   props: [
     'id', 'sectionId', 'sceneId', 'type', 'atmosphereAssetKey', 'imageAssetKey', 'assetPath', 'x', 'y', 'width',
-    'height', 'yOffset', 'alpha', 'depth', 'layer', 'zIndex', 'scale', 'rotation', 'mirrorX', 'brightness',
+    'height', 'editorBoundsInsetTop', 'editorBoundsInsetRight', 'editorBoundsInsetBottom', 'editorBoundsInsetLeft',
+    'yOffset', 'alpha', 'depth', 'layer', 'zIndex', 'scale', 'rotation', 'mirrorX', 'brightness',
     'placementPreset', 'tint', 'colorGradeFilter', 'sceneBlend', 'shadow', 'shadowOpacity', 'shadowWidth',
     'shadowHeight', 'dust', 'bury', 'burialDepth', 'sandOverlapHeight', 'sandMoundWidth', 'sandMoundHeight',
-    'groundPebbles', 'groundPlaneY', 'groundPlaneOffset', 'assetContactYRatio', 'sandSeed', 'label',
+    'groundPebbles', 'groundPlaneY', 'groundPlaneOffset', 'assetContactYRatio', 'sandSeed', 'groundContactLayer', 'label',
   ],
   platforms: ['id', 'sectionId', 'sceneId', 'x', 'y', 'width', 'height', 'layer', 'zIndex', 'label'],
   hazards: [
@@ -26,7 +35,7 @@ const EDITABLE_FIELDS = Object.freeze({
 const pickEditableFields = (item, editableFields = []) => Object.fromEntries(
   editableFields
     .filter(field => Object.prototype.hasOwnProperty.call(item, field))
-    .map(field => [field, item[field]])
+    .map(field => [field, cloneEditableValue(item[field])])
 );
 
 const dedupeJourneyItemsById = (items = []) => {

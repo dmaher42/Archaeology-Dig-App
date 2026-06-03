@@ -49,6 +49,42 @@ export const getJourneyPropRoomId = (prop = {}, currentSceneId = null, currentSe
   prop.sceneId || prop.sectionId || currentSectionId || currentSceneId || 'unknown-room'
 );
 
+const finiteGroundContactNumber = (value, { round = false, min = -Infinity, max = Infinity } = {}) => {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) return undefined;
+  const bounded = Math.min(max, Math.max(min, numericValue));
+  return round ? Math.round(bounded) : Math.round(bounded * 1000) / 1000;
+};
+
+const normalizeJourneyGroundContactLayer = (contactLayer = []) => (
+  (Array.isArray(contactLayer) ? contactLayer : [])
+    .map((entry) => {
+      if (!entry || typeof entry !== 'object') return null;
+      const assetKey = typeof entry.assetKey === 'string' ? entry.assetKey.trim() : '';
+      if (!assetKey) return null;
+      const normalized = { assetKey };
+      ['layer', 'filter', 'mode', 'alignY'].forEach((field) => {
+        if (typeof entry[field] === 'string' && entry[field].trim()) normalized[field] = entry[field].trim();
+      });
+      [
+        ['xRatio', {}],
+        ['widthRatio', { min: 0 }],
+        ['xOffset', { round: true }],
+        ['yOffset', { round: true }],
+        ['width', { round: true, min: 1 }],
+        ['height', { round: true, min: 1 }],
+        ['rotation', {}],
+        ['alpha', { min: 0, max: 1 }],
+      ].forEach(([field, options]) => {
+        const normalizedValue = finiteGroundContactNumber(entry[field], options);
+        if (normalizedValue !== undefined) normalized[field] = normalizedValue;
+      });
+      if (entry.mirrorX === true) normalized.mirrorX = true;
+      return normalized;
+    })
+    .filter(Boolean)
+);
+
 export const applyJourneyPropPlacementEdit = (prop = {}, edit = {}) => {
   const next = { ...prop };
   if (Number.isFinite(edit.x)) next.x = edit.x;
@@ -56,6 +92,10 @@ export const applyJourneyPropPlacementEdit = (prop = {}, edit = {}) => {
   if (Number.isFinite(edit.yOffset)) next.yOffset = Math.round(edit.yOffset);
   if (Number.isFinite(edit.width)) next.width = Math.max(1, Math.round(edit.width));
   if (Number.isFinite(edit.height)) next.height = Math.max(1, Math.round(edit.height));
+  if (Number.isFinite(edit.editorBoundsInsetTop)) next.editorBoundsInsetTop = Math.max(0, Math.round(edit.editorBoundsInsetTop));
+  if (Number.isFinite(edit.editorBoundsInsetRight)) next.editorBoundsInsetRight = Math.max(0, Math.round(edit.editorBoundsInsetRight));
+  if (Number.isFinite(edit.editorBoundsInsetBottom)) next.editorBoundsInsetBottom = Math.max(0, Math.round(edit.editorBoundsInsetBottom));
+  if (Number.isFinite(edit.editorBoundsInsetLeft)) next.editorBoundsInsetLeft = Math.max(0, Math.round(edit.editorBoundsInsetLeft));
   if (Number.isFinite(edit.scale)) next.scale = Math.max(0.1, Math.round(edit.scale * 100) / 100);
   if (Number.isFinite(edit.rotation)) next.rotation = Math.round(edit.rotation * 10) / 10;
   if (typeof edit.mirrorX === 'boolean') next.mirrorX = edit.mirrorX;
@@ -63,6 +103,15 @@ export const applyJourneyPropPlacementEdit = (prop = {}, edit = {}) => {
   if (typeof edit.depth === 'string' && edit.depth.trim()) next.depth = edit.depth;
   if (typeof edit.layer === 'string' && edit.layer.trim()) next.layer = edit.layer;
   if (Number.isFinite(edit.zIndex)) next.zIndex = edit.zIndex;
+  if (Number.isFinite(edit.shadowOpacity)) next.shadowOpacity = Math.max(0, Math.min(0.42, Math.round(edit.shadowOpacity * 100) / 100));
+  if (Number.isFinite(edit.shadowWidth)) next.shadowWidth = Math.max(0, Math.round(edit.shadowWidth));
+  if (Number.isFinite(edit.shadowHeight)) next.shadowHeight = Math.max(0, Math.round(edit.shadowHeight));
+  if (Number.isFinite(edit.sandOverlapHeight)) next.sandOverlapHeight = Math.max(0, Math.round(edit.sandOverlapHeight));
+  if (Number.isFinite(edit.sandMoundWidth)) next.sandMoundWidth = Math.max(0, Math.round(edit.sandMoundWidth));
+  if (Number.isFinite(edit.sandMoundHeight)) next.sandMoundHeight = Math.max(0, Math.round(edit.sandMoundHeight));
+  if (Number.isFinite(edit.groundPebbles)) next.groundPebbles = Math.max(0, Math.round(edit.groundPebbles));
+  if (typeof edit.colorGradeFilter === 'string') next.colorGradeFilter = edit.colorGradeFilter;
+  if (Array.isArray(edit.groundContactLayer)) next.groundContactLayer = normalizeJourneyGroundContactLayer(edit.groundContactLayer);
   return next;
 };
 
@@ -150,6 +199,8 @@ export const applyJourneyMiniBossPlacementEdit = (boss = {}, edit = {}) => {
   if (Number.isFinite(edit.lairY)) next.lairY = edit.lairY;
   if (Number.isFinite(edit.lairWidth)) next.lairWidth = Math.max(1, Math.round(edit.lairWidth));
   if (Number.isFinite(edit.lairHeight)) next.lairHeight = Math.max(1, Math.round(edit.lairHeight));
+  if (Number.isFinite(edit.patrolMin)) next.patrolMin = edit.patrolMin;
+  if (Number.isFinite(edit.patrolMax)) next.patrolMax = edit.patrolMax;
   return next;
 };
 
@@ -160,6 +211,10 @@ const PROP_TEMPLATE_FIELDS = [
   'assetPath',
   'width',
   'height',
+  'editorBoundsInsetTop',
+  'editorBoundsInsetRight',
+  'editorBoundsInsetBottom',
+  'editorBoundsInsetLeft',
   'yOffset',
   'alpha',
   'depth',
@@ -186,6 +241,7 @@ const PROP_TEMPLATE_FIELDS = [
   'rotation',
   'mirrorX',
   'brightness',
+  'groundContactLayer',
 ];
 
 const toJourneyPropWords = (value = '') => String(value)
@@ -407,6 +463,13 @@ export const duplicateJourneyPropForEditor = ({
   };
 };
 
+const cloneJourneyPlacementExportItem = (item = {}) => ({
+  ...item,
+  ...(Array.isArray(item.groundContactLayer)
+    ? { groundContactLayer: item.groundContactLayer.map(entry => ({ ...entry })) }
+    : {}),
+});
+
 export const createJourneyPropPlacementExport = ({
   source = STORY_PROP_EXPORT_SOURCE,
   platformSource = PLATFORM_EXPORT_SOURCE,
@@ -435,7 +498,7 @@ export const createJourneyPropPlacementExport = ({
   checkpointSource,
   miniBossSource,
   room: roomId || 'unknown-room',
-  props: props.map(prop => ({ ...prop })),
+  props: props.map(cloneJourneyPlacementExportItem),
   deletedPropIds: [...deletedPropIds],
   platforms: platforms.map(platform => ({ ...platform })),
   deletedPlatformIds: [...deletedPlatformIds],

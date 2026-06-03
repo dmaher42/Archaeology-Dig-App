@@ -28,7 +28,13 @@ test('applyJourneyPlacementOverrides merges exported editor items by id without 
   };
   const overrides = {
     props: [
-      { id: 'prop-a', x: 12, y: 24, label: 'moved prop', groundContactLayer: [{ assetKey: 'stale-export' }] },
+      {
+        id: 'prop-a',
+        x: 12,
+        y: 24,
+        label: 'moved prop',
+        groundContactLayer: [{ layer: 'overlay', assetKey: 'premiumLongSandLip', xRatio: 0.42 }],
+      },
       { id: 'prop-new', x: 44, y: 50, label: 'new prop' },
     ],
     deletedPropIds: ['prop-b'],
@@ -46,7 +52,13 @@ test('applyJourneyPlacementOverrides merges exported editor items by id without 
   const merged = applyJourneyPlacementOverrides(base, overrides);
 
   assert.deepEqual(merged.props, [
-    { id: 'prop-a', x: 12, y: 24, label: 'moved prop', groundContactLayer: [{ assetKey: 'premium-base' }] },
+    {
+      id: 'prop-a',
+      x: 12,
+      y: 24,
+      label: 'moved prop',
+      groundContactLayer: [{ layer: 'overlay', assetKey: 'premiumLongSandLip', xRatio: 0.42 }],
+    },
     { id: 'prop-new', x: 44, y: 50, label: 'new prop' },
   ]);
   assert.deepEqual(merged.hazards, [

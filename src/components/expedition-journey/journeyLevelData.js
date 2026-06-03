@@ -1026,8 +1026,7 @@ export const SECTION_ATMOSPHERES = {
 export const STORY_PROPS = [
   { id: 'opening-archaeologist-field-kit', sectionId: 'desert-entry', type: 'camp', x: X(92), y: JY(312), label: 'archaeologist arrival field kit' },
 
-  { id: 'early-scarab-seal-pedestal', sectionId: 'desert-entry', type: 'sacred-pedestal', x: 925, y: JY(-137), label: 'sacred pedestal holding the Sacred Scarab Seal' },
-  { id: 'early-scarab-seal', sectionId: 'desert-entry', type: 'guardian-seal', x: 925, y: JY(-164), label: 'Sacred Scarab Seal opening warning trigger' },
+
   { id: 'desert-boundary-marker', sectionId: 'desert-entry', type: 'guardian-seal', x: X(650), y: JY(312), label: 'ancient boundary seal' },
   {
     id: 'opening-pyramid-facade-structure',
@@ -1049,8 +1048,10 @@ export const STORY_PROPS = [
     y: JY(-400),
     width: 1500,
     height: 760,
-    depth: 'route-edge',
+    depth: 'background',
     alpha: 1,
+    layer: 'background',
+    groundContactLayer: [],
     label: 'generated Mummification Chamber exterior with bottom secret entrance, climbable sandstone ledges, damaged stairs, torches, and glowing hieroglyphs',
   },
   {
@@ -1063,6 +1064,17 @@ export const STORY_PROPS = [
     height: 690,
     depth: 'route-edge',
     alpha: 1,
+    groundContactLayer: [
+      { layer: 'underlay', assetKey: 'premiumRubbleContactShadow', xRatio: 0.5, widthRatio: 0.68, height: 60, yOffset: -42, alpha: 0.4, filter: 'sepia(18%) saturate(88%) brightness(70%) contrast(108%)' },
+      { layer: 'underlay', assetKey: 'premiumHalfBuriedStairSupport', xRatio: 0.25, widthRatio: 0.3, height: 66, yOffset: -70, alpha: 0.44, rotation: -2, filter: 'sepia(12%) saturate(92%) brightness(84%) contrast(102%)' },
+      { layer: 'underlay', assetKey: 'premiumBrokenMasonryFooting', xRatio: 0.78, widthRatio: 0.24, height: 62, yOffset: -64, alpha: 0.34, rotation: 4, mirrorX: true, filter: 'sepia(12%) saturate(88%) brightness(82%) contrast(104%)' },
+      { layer: 'overlay', assetKey: 'premiumRubbleMoundBlend', xRatio: 0.42, widthRatio: 0.46, height: 82, yOffset: -74, alpha: 0.46, rotation: -3, filter: 'sepia(12%) saturate(88%) brightness(88%) contrast(98%)' },
+      { layer: 'overlay', assetKey: 'premiumLowSedimentRibbon', xRatio: 0.27, widthRatio: 0.42, height: 42, yOffset: -38, alpha: 0.58, rotation: -1, filter: 'sepia(10%) saturate(86%) brightness(94%) contrast(94%)' },
+      { layer: 'overlay', assetKey: 'premiumLowSedimentRibbon', xRatio: 0.69, widthRatio: 0.36, height: 38, yOffset: -36, alpha: 0.5, rotation: 2, mirrorX: true, filter: 'sepia(10%) saturate(86%) brightness(94%) contrast(94%)' },
+      { layer: 'overlay', assetKey: 'premiumSmallStoneScatter', xRatio: 0.18, widthRatio: 0.2, height: 36, yOffset: -52, alpha: 0.52, rotation: 5, filter: 'sepia(10%) saturate(86%) brightness(90%) contrast(98%)' },
+      { layer: 'overlay', assetKey: 'premiumSmallStoneScatter', xRatio: 0.79, widthRatio: 0.24, height: 36, yOffset: -54, alpha: 0.58, rotation: -4, mirrorX: true, filter: 'sepia(10%) saturate(86%) brightness(90%) contrast(98%)' },
+      { layer: 'overlay', assetKey: 'premiumLongSandLip', xRatio: 0.56, widthRatio: 0.28, height: 42, yOffset: -46, alpha: 0.44, rotation: 1, filter: 'sepia(12%) saturate(88%) brightness(93%) contrast(96%)' },
+    ],
     label: 'generated Forgotten Mural Alcove climb structure with broken stairs, carved ledges, and damaged Anubis mural',
   },
   {
@@ -1075,6 +1087,17 @@ export const STORY_PROPS = [
     height: 620,
     depth: 'route-edge',
     alpha: 1,
+    groundContactLayer: [
+      { layer: 'underlay', assetKey: 'premiumRubbleContactShadow', xRatio: 0.5, widthRatio: 0.72, height: 60, yOffset: -42, alpha: 0.48, filter: 'sepia(18%) saturate(88%) brightness(68%) contrast(110%)' },
+      { layer: 'underlay', assetKey: 'premiumBrokenMasonryFooting', xRatio: 0.43, widthRatio: 0.36, height: 76, yOffset: -74, alpha: 0.42, rotation: -2, filter: 'sepia(12%) saturate(90%) brightness(82%) contrast(104%)' },
+      { layer: 'underlay', assetKey: 'premiumRubbleMoundBlend', xRatio: 0.78, widthRatio: 0.25, height: 66, yOffset: -65, alpha: 0.3, rotation: 4, mirrorX: true, filter: 'sepia(12%) saturate(88%) brightness(80%) contrast(102%)' },
+      { layer: 'overlay', assetKey: 'premiumDoorThresholdBuildup', xRatio: 0.5, widthRatio: 0.46, height: 54, yOffset: -57, alpha: 0.64, filter: 'sepia(16%) saturate(92%) brightness(86%) contrast(102%)' },
+      { layer: 'overlay', assetKey: 'premiumLowSedimentRibbon', xRatio: 0.28, widthRatio: 0.42, height: 40, yOffset: -36, alpha: 0.58, rotation: -1, filter: 'sepia(10%) saturate(84%) brightness(94%) contrast(94%)' },
+      { layer: 'overlay', assetKey: 'premiumLowSedimentRibbon', xRatio: 0.72, widthRatio: 0.34, height: 38, yOffset: -34, alpha: 0.52, rotation: 2, mirrorX: true, filter: 'sepia(10%) saturate(84%) brightness(94%) contrast(94%)' },
+      { layer: 'overlay', assetKey: 'premiumSmallStoneScatter', xRatio: 0.2, widthRatio: 0.24, height: 38, yOffset: -54, alpha: 0.58, rotation: 4, filter: 'sepia(10%) saturate(84%) brightness(91%) contrast(98%)' },
+      { layer: 'overlay', assetKey: 'premiumSmallStoneScatter', xRatio: 0.82, widthRatio: 0.22, height: 36, yOffset: -52, alpha: 0.54, rotation: -5, mirrorX: true, filter: 'sepia(10%) saturate(84%) brightness(91%) contrast(98%)' },
+      { layer: 'overlay', assetKey: 'premiumLongSandLip', xRatio: 0.58, widthRatio: 0.3, height: 42, yOffset: -46, alpha: 0.42, rotation: 1, filter: 'sepia(12%) saturate(86%) brightness(93%) contrast(96%)' },
+    ],
     label: 'production Scribe Locked Chamber exterior with raised platform, crumbled stairs, glowing hieroglyphs, and sealed doorway',
   },
   { id: 'desert-entry-premium-threshold-slab-1', sectionId: 'desert-entry', type: 'atmosphere-prop', atmosphereAssetKey: 'desertEntryPremiumThresholdSlab', placementPreset: 'desertEntryGroundedRuin', x: 2055, y: JY(322), width: 96, height: 26, shadowOpacity: 0, shadowWidth: 96, sandMoundWidth: 96, sandOverlapHeight: 7, label: 'generated premium carved threshold slab beyond the first guardian route' },

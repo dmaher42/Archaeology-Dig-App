@@ -372,6 +372,13 @@
       "h": 256,
       "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/rubble_mounds.png"
     },
+    "contactSandRubbleStrip": {
+      "x": 1024,
+      "y": 3584,
+      "w": 512,
+      "h": 256,
+      "assetPath": "assets/expedition/environment/egypt-opening/contact-sand-rubble-strip.png"
+    },
     "faded_murals": {
       "x": 1280,
       "y": 2304,

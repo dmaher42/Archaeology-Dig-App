@@ -443,6 +443,27 @@
     "inspectable": false
   },
   {
+    "id": "contactSandRubbleStrip",
+    "displayName": "Contact Sand Rubble Strip",
+    "category": "Premium Floor Kit",
+    "assetPath": "assets/expedition/environment/egypt-opening/contact-sand-rubble-strip.png",
+    "defaultWidth": 180,
+    "defaultHeight": 26,
+    "defaultPlacementPreset": "desertEntryGroundedRuin",
+    "defaultDepth": "route-edge",
+    "defaultScale": 1,
+    "defaultLayer": "foreground",
+    "defaultTint": "warm",
+    "defaultColorGradeFilter": "none",
+    "defaultAlpha": 0.96,
+    "defaultShadowOpacity": 0,
+    "defaultSandOverlapHeight": 0,
+    "defaultSandMoundWidth": 0,
+    "defaultGroundPebbles": 0,
+    "collidable": false,
+    "inspectable": false
+  },
+  {
     "id": "faded_murals",
     "displayName": "Faded Murals",
     "category": "Environmental Storytelling Props",

@@ -18,14 +18,6 @@ const journeyPlacementOverrides = {
       "label": "archaeologist arrival field kit"
     },
     {
-      "id": "early-scarab-seal-pedestal",
-      "sectionId": "desert-entry",
-      "type": "sacred-pedestal",
-      "x": 925,
-      "y": 98,
-      "label": "sacred pedestal holding the Sacred Scarab Seal"
-    },
-    {
       "id": "desert-boundary-marker",
       "sectionId": "desert-entry",
       "type": "guardian-seal",
@@ -43,20 +35,31 @@ const journeyPlacementOverrides = {
       "height": 664,
       "depth": "midground",
       "alpha": 0.98,
-      "label": "editable opening pyramid facade landmark with scarab seal approach"
+      "label": "editable opening pyramid facade landmark with scarab seal approach",
+      "rotation": 0
     },
     {
       "id": "mummification-chamber-exterior-structure",
       "sectionId": "desert-entry",
       "type": "generated-mummification-chamber-entrance",
-      "x": 3574,
-      "y": -222,
+      "x": 3592,
+      "y": -225,
       "width": 1500,
       "height": 760,
-      "depth": "route-edge",
+      "depth": "background",
       "alpha": 1,
+      "groundContactLayer": [],
       "label": "generated Mummification Chamber exterior with bottom secret entrance, climbable sandstone ledges, damaged stairs, torches, and glowing hieroglyphs",
-      "scale": 1.1
+      "layer": "background",
+      "scale": 1.1,
+      "mirrorX": false,
+      "shadowWidth": 0,
+      "shadowHeight": 0,
+      "sandMoundWidth": 0,
+      "sandMoundHeight": 0,
+      "groundPebbles": 0,
+      "brightness": 1.25,
+      "colorGradeFilter": "sepia(4%) saturate(91%) brightness(88%) contrast(89%)"
     },
     {
       "id": "forgotten-mural-climb-structure",
@@ -68,6 +71,109 @@ const journeyPlacementOverrides = {
       "height": 690,
       "depth": "route-edge",
       "alpha": 1,
+      "groundContactLayer": [
+        {
+          "layer": "underlay",
+          "assetKey": "premiumRubbleContactShadow",
+          "xRatio": 0.5,
+          "widthRatio": 0.68,
+          "height": 60,
+          "yOffset": -42,
+          "alpha": 0.4,
+          "filter": "sepia(18%) saturate(88%) brightness(70%) contrast(108%)"
+        },
+        {
+          "layer": "underlay",
+          "assetKey": "premiumHalfBuriedStairSupport",
+          "xRatio": 0.25,
+          "widthRatio": 0.3,
+          "height": 66,
+          "yOffset": -70,
+          "alpha": 0.44,
+          "rotation": -2,
+          "filter": "sepia(12%) saturate(92%) brightness(84%) contrast(102%)"
+        },
+        {
+          "layer": "underlay",
+          "assetKey": "premiumBrokenMasonryFooting",
+          "xRatio": 0.78,
+          "widthRatio": 0.24,
+          "height": 62,
+          "yOffset": -64,
+          "alpha": 0.34,
+          "rotation": 4,
+          "mirrorX": true,
+          "filter": "sepia(12%) saturate(88%) brightness(82%) contrast(104%)"
+        },
+        {
+          "layer": "overlay",
+          "assetKey": "premiumRubbleMoundBlend",
+          "xRatio": 0.42,
+          "widthRatio": 0.46,
+          "height": 82,
+          "yOffset": -74,
+          "alpha": 0.46,
+          "rotation": -3,
+          "filter": "sepia(12%) saturate(88%) brightness(88%) contrast(98%)"
+        },
+        {
+          "layer": "overlay",
+          "assetKey": "premiumLowSedimentRibbon",
+          "xRatio": 0.27,
+          "widthRatio": 0.42,
+          "height": 42,
+          "yOffset": -38,
+          "alpha": 0.58,
+          "rotation": -1,
+          "filter": "sepia(10%) saturate(86%) brightness(94%) contrast(94%)"
+        },
+        {
+          "layer": "overlay",
+          "assetKey": "premiumLowSedimentRibbon",
+          "xRatio": 0.69,
+          "widthRatio": 0.36,
+          "height": 38,
+          "yOffset": -36,
+          "alpha": 0.5,
+          "rotation": 2,
+          "mirrorX": true,
+          "filter": "sepia(10%) saturate(86%) brightness(94%) contrast(94%)"
+        },
+        {
+          "layer": "overlay",
+          "assetKey": "premiumSmallStoneScatter",
+          "xRatio": 0.18,
+          "widthRatio": 0.2,
+          "height": 36,
+          "yOffset": -52,
+          "alpha": 0.52,
+          "rotation": 5,
+          "filter": "sepia(10%) saturate(86%) brightness(90%) contrast(98%)"
+        },
+        {
+          "layer": "overlay",
+          "assetKey": "premiumSmallStoneScatter",
+          "xRatio": 0.79,
+          "widthRatio": 0.24,
+          "height": 36,
+          "yOffset": -54,
+          "alpha": 0.58,
+          "rotation": -4,
+          "mirrorX": true,
+          "filter": "sepia(10%) saturate(86%) brightness(90%) contrast(98%)"
+        },
+        {
+          "layer": "overlay",
+          "assetKey": "premiumLongSandLip",
+          "xRatio": 0.56,
+          "widthRatio": 0.28,
+          "height": 42,
+          "yOffset": -46,
+          "alpha": 0.44,
+          "rotation": 1,
+          "filter": "sepia(12%) saturate(88%) brightness(93%) contrast(96%)"
+        }
+      ],
       "label": "generated Forgotten Mural Alcove climb structure with broken stairs, carved ledges, and damaged Anubis mural",
       "scale": 1.15
     },
@@ -81,6 +187,108 @@ const journeyPlacementOverrides = {
       "height": 620,
       "depth": "route-edge",
       "alpha": 1,
+      "groundContactLayer": [
+        {
+          "layer": "underlay",
+          "assetKey": "premiumRubbleContactShadow",
+          "xRatio": 0.5,
+          "widthRatio": 0.72,
+          "height": 60,
+          "yOffset": -42,
+          "alpha": 0.48,
+          "filter": "sepia(18%) saturate(88%) brightness(68%) contrast(110%)"
+        },
+        {
+          "layer": "underlay",
+          "assetKey": "premiumBrokenMasonryFooting",
+          "xRatio": 0.43,
+          "widthRatio": 0.36,
+          "height": 76,
+          "yOffset": -74,
+          "alpha": 0.42,
+          "rotation": -2,
+          "filter": "sepia(12%) saturate(90%) brightness(82%) contrast(104%)"
+        },
+        {
+          "layer": "underlay",
+          "assetKey": "premiumRubbleMoundBlend",
+          "xRatio": 0.78,
+          "widthRatio": 0.25,
+          "height": 66,
+          "yOffset": -65,
+          "alpha": 0.3,
+          "rotation": 4,
+          "mirrorX": true,
+          "filter": "sepia(12%) saturate(88%) brightness(80%) contrast(102%)"
+        },
+        {
+          "layer": "overlay",
+          "assetKey": "premiumDoorThresholdBuildup",
+          "xRatio": 0.5,
+          "widthRatio": 0.46,
+          "height": 54,
+          "yOffset": -57,
+          "alpha": 0.64,
+          "filter": "sepia(16%) saturate(92%) brightness(86%) contrast(102%)"
+        },
+        {
+          "layer": "overlay",
+          "assetKey": "premiumLowSedimentRibbon",
+          "xRatio": 0.28,
+          "widthRatio": 0.42,
+          "height": 40,
+          "yOffset": -36,
+          "alpha": 0.58,
+          "rotation": -1,
+          "filter": "sepia(10%) saturate(84%) brightness(94%) contrast(94%)"
+        },
+        {
+          "layer": "overlay",
+          "assetKey": "premiumLowSedimentRibbon",
+          "xRatio": 0.72,
+          "widthRatio": 0.34,
+          "height": 38,
+          "yOffset": -34,
+          "alpha": 0.52,
+          "rotation": 2,
+          "mirrorX": true,
+          "filter": "sepia(10%) saturate(84%) brightness(94%) contrast(94%)"
+        },
+        {
+          "layer": "overlay",
+          "assetKey": "premiumSmallStoneScatter",
+          "xRatio": 0.2,
+          "widthRatio": 0.24,
+          "height": 38,
+          "yOffset": -54,
+          "alpha": 0.58,
+          "rotation": 4,
+          "filter": "sepia(10%) saturate(84%) brightness(91%) contrast(98%)"
+        },
+        {
+          "layer": "overlay",
+          "assetKey": "premiumSmallStoneScatter",
+          "xRatio": 0.82,
+          "widthRatio": 0.22,
+          "height": 36,
+          "yOffset": -52,
+          "alpha": 0.54,
+          "rotation": -5,
+          "mirrorX": true,
+          "filter": "sepia(10%) saturate(84%) brightness(91%) contrast(98%)"
+        },
+        {
+          "layer": "overlay",
+          "assetKey": "premiumLongSandLip",
+          "xRatio": 0.58,
+          "widthRatio": 0.3,
+          "height": 42,
+          "yOffset": -46,
+          "alpha": 0.42,
+          "rotation": 1,
+          "filter": "sepia(12%) saturate(86%) brightness(93%) contrast(96%)"
+        }
+      ],
       "label": "production Scribe Locked Chamber exterior with raised platform, crumbled stairs, glowing hieroglyphs, and sealed doorway"
     },
     {
@@ -97,13 +305,13 @@ const journeyPlacementOverrides = {
       "shadowWidth": 96,
       "sandMoundWidth": 96,
       "sandOverlapHeight": 7,
-      "groundPebbles": 2,
       "label": "generated premium carved threshold slab beyond the first guardian route",
       "yOffset": 28,
       "depth": "route-edge",
       "layer": "route-edge",
       "scale": 2.25,
-      "brightness": 1.15
+      "brightness": 1.15,
+      "groundPebbles": 2
     },
     {
       "id": "desert-entry-premium-column-1",
@@ -115,21 +323,22 @@ const journeyPlacementOverrides = {
       "y": 578,
       "width": 108,
       "height": 70,
-      "shadowOpacity": 0.3,
-      "shadowWidth": 128,
-      "shadowHeight": 9,
+      "shadowOpacity": 0.38,
+      "shadowWidth": 122,
       "sandMoundWidth": 136,
-      "sandOverlapHeight": 20,
+      "sandOverlapHeight": 0,
       "groundPebbles": 6,
       "label": "generated premium carved fallen column in open sand after the pyramid",
       "yOffset": -11,
       "depth": "route-edge",
       "layer": "route-edge",
-      "zIndex": -38,
+      "zIndex": 2,
       "scale": 1.45,
       "rotation": 40,
       "mirrorX": true,
-      "brightness": 1.15
+      "brightness": 1.15,
+      "shadowHeight": 9,
+      "colorGradeFilter": "sepia(4%) saturate(91%) brightness(88%) contrast(89%)"
     },
     {
       "id": "desert-entry-premium-pillar-caps-1",
@@ -141,18 +350,21 @@ const journeyPlacementOverrides = {
       "y": 595,
       "width": 74,
       "height": 96,
-      "shadowOpacity": 0.24,
+      "shadowOpacity": 0.3,
       "shadowWidth": 82,
-      "sandMoundWidth": 88,
-      "sandOverlapHeight": 16,
-      "groundPebbles": 3,
+      "sandMoundWidth": 0,
+      "sandOverlapHeight": 0,
+      "groundPebbles": 24,
       "label": "generated premium pillar-cap ruins in open sand after the pyramid",
       "yOffset": 5,
       "depth": "route-edge",
       "layer": "route-edge",
       "zIndex": 42,
       "scale": 1.25,
-      "mirrorX": false
+      "mirrorX": false,
+      "shadowHeight": 20,
+      "sandMoundHeight": 0,
+      "colorGradeFilter": "sepia(4%) saturate(91%) brightness(88%) contrast(89%)"
     },
     {
       "id": "desert-entry-sand-piles-1",
@@ -166,7 +378,8 @@ const journeyPlacementOverrides = {
       "label": "sand piles",
       "height": 65,
       "brightness": 1.15,
-      "depth": "route-edge"
+      "depth": "route-edge",
+      "colorGradeFilter": "sepia(21%) saturate(103%) brightness(84%) contrast(100%)"
     },
     {
       "id": "desert-entry-rubble-mounds-1",
@@ -190,7 +403,15 @@ const journeyPlacementOverrides = {
       "x": 3110,
       "y": 421,
       "label": "broken pottery",
-      "depth": "route-edge"
+      "depth": "route-edge",
+      "mirrorX": false,
+      "shadowOpacity": 0,
+      "shadowWidth": 0,
+      "shadowHeight": 0,
+      "sandOverlapHeight": 0,
+      "sandMoundWidth": 0,
+      "sandMoundHeight": 0,
+      "groundPebbles": 15
     },
     {
       "id": "desert-entry-cracked-stone-blocks-1",
@@ -243,14 +464,16 @@ const journeyPlacementOverrides = {
       "label": "fallen lintel",
       "width": 118,
       "height": 112,
-      "rotation": 5,
+      "rotation": 4,
       "mirrorX": true,
       "shadowOpacity": 0.24,
       "shadowWidth": 132,
-      "sandOverlapHeight": 14,
-      "sandMoundWidth": 138,
-      "groundPebbles": 5,
-      "depth": "grounded"
+      "sandOverlapHeight": 0,
+      "sandMoundWidth": 0,
+      "groundPebbles": 0,
+      "depth": "foreground-occluder",
+      "brightness": 0.7,
+      "colorGradeFilter": "sepia(54%) saturate(131%) brightness(78%) contrast(149%)"
     },
     {
       "id": "desert-entry-fallen-lintel-1-copy-1",
@@ -270,7 +493,10 @@ const journeyPlacementOverrides = {
       "sandOverlapHeight": 12,
       "sandMoundWidth": 132,
       "groundPebbles": 4,
-      "depth": "grounded"
+      "depth": "grounded",
+      "mirrorX": true,
+      "brightness": 0.75,
+      "colorGradeFilter": "sepia(24%) saturate(131%) brightness(78%) contrast(149%)"
     },
     {
       "id": "desert-entry-incense-stands-1",
@@ -286,11 +512,11 @@ const journeyPlacementOverrides = {
       "width": 111,
       "rotation": 0,
       "mirrorX": false,
-      "brightness": 1.15,
+      "brightness": 0.65,
       "shadowOpacity": 0.16,
-      "shadowWidth": 78,
+      "shadowWidth": 3,
       "sandOverlapHeight": 7,
-      "sandMoundWidth": 88,
+      "sandMoundWidth": 0,
       "groundPebbles": 2,
       "depth": "foreground-occluder"
     },
@@ -334,11 +560,27 @@ const journeyPlacementOverrides = {
       "x": 4984,
       "y": 624,
       "label": "route gate back"
+    },
+    {
+      "id": "desert-entry-rubble-scatter-1",
+      "sectionId": "desert-entry",
+      "type": "atmosphere-prop",
+      "atmosphereAssetKey": "rubbleScatter",
+      "width": 116,
+      "height": 50,
+      "yOffset": 8,
+      "alpha": 0.42,
+      "depth": "background",
+      "tint": "cool",
+      "shadow": 0.06,
+      "dust": 0.66,
+      "bury": 0.24,
+      "x": 4338,
+      "y": 527,
+      "label": "rubble scatter"
     }
   ],
-  "deletedPropIds": [
-    "early-scarab-seal"
-  ],
+  "deletedPropIds": [],
   "platforms": [
     {
       "id": "desert-entry-floor",
@@ -836,15 +1078,28 @@ const journeyPlacementOverrides = {
     {
       "id": "thorn-bush",
       "name": "thorn bush",
-      "emoji": "🌿",
-      "x": 3164,
-      "y": 564,
-      "width": 54,
-      "height": 31,
+      "emoji": "ðŸŒ¿",
+      "x": 3004,
+      "y": 500,
+      "width": 80,
+      "height": 48,
       "penalty": {
         "stamina": 5
       },
-      "message": "Thorn scrub slowed the team. Stamina reduced."
+      "message": "Thorn scrub slowed the team. Stamina reduced.",
+      "damage": 20,
+      "reset": false,
+      "cooldown": 1.2,
+      "depth": "grounded",
+      "linkedObjectIds": [],
+      "editorVisible": true,
+      "triggerArea": {
+        "x": 0,
+        "y": 0,
+        "width": 80,
+        "height": 48
+      },
+      "sectionId": "desert-entry"
     },
     {
       "id": "opening-seal-reset-trap",
@@ -984,7 +1239,14 @@ const journeyPlacementOverrides = {
       "x": 5978,
       "y": 320,
       "width": 34,
-      "height": 274
+      "height": 274,
+      "hideArchVisual": true,
+      "message": "The Temple Approach Seal refuses easy entry. The lost fragments must prove Asha came to protect.",
+      "readyHint": "The seal answers. Move through the threshold before the site closes again.",
+      "openMessage": "The seal answers, but it does not trust you.",
+      "requires": {
+        "shards": 4
+      }
     },
     {
       "id": "guardian-prep-seal",
@@ -992,7 +1254,13 @@ const journeyPlacementOverrides = {
       "x": 5994,
       "y": 342,
       "width": 34,
-      "height": 274
+      "height": 274,
+      "hideArchVisual": true,
+      "message": "The ancient Map Tablet and 6 lost fragments must be restored before the path deeper wakes.",
+      "requires": {
+        "objective": "desert-entry",
+        "shards": 6
+      }
     },
     {
       "id": "desert-seal",
