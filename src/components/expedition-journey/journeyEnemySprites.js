@@ -29,7 +29,7 @@ const ENEMY_VISUAL_SIZE_MULTIPLIERS = {
   snake: 1.42,
   bat: 1.48,
   scorpion: 2.7,
-  sandWisp: 2.041,
+  sandWisp: 1.32,
   looter: 1.12,
   looterCaptain: 1.16,
   cursedStatue: 1.14,
