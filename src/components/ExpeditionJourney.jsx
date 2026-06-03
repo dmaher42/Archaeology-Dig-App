@@ -386,6 +386,12 @@ const PROTECTED_HIT_EXTRA_STAMINA_COST = 1;
 const PLAYER_ATTACK_RANGE = 92;
 const PLAYER_ATTACK_HEIGHT = 36;
 const PLAYER_ATTACK_BACK_REACH = 10;
+const PLAYER_ATTACK_FINISHER_ROW = 'attack_pick_swing_sweep';
+const PLAYER_ATTACK_COMBO_TIMINGS = [
+  { windup: ATTACK_WINDUP_DURATION, swing: ATTACK_DURATION, recoil: ATTACK_RECOIL_DURATION, cooldown: ATTACK_COOLDOWN },
+  { windup: ATTACK_WINDUP_DURATION, swing: ATTACK_DURATION, recoil: ATTACK_RECOIL_DURATION, cooldown: ATTACK_COOLDOWN },
+  { windup: 0.18, swing: 0.52, recoil: 0.28, cooldown: 0.5 },
+];
 const PLAYER_HIT_SCREEN_SHAKE_DURATION = 0.22;
 const PLAYER_HIT_SCREEN_SHAKE_PIXELS = 2.4;
 const SCORPION_ATTACK_RANGE_MULTIPLIER = 1.4;
@@ -612,6 +618,7 @@ const OPENING_TOMB_STAIRWELL_SRC = 'assets/expedition/environment/egypt-opening/
 const ROUTE_GATE_FRONT_SRC = 'assets/expedition/environment/egypt-opening/route-gate-front.png';
 const ROUTE_GATE_BACK_SRC = 'assets/expedition/environment/egypt-opening/route-gate-back.png';
 const ROUTE_GATE_SLAB_SRC = 'assets/expedition/environment/egypt-opening/route-gate-slab.png';
+const ROUTE_GATE_STANDALONE_PROP_COLOR_GRADE_FILTER = 'sepia(8%) saturate(100%) brightness(98%) contrast(106%)';
 const MUMMIFICATION_CHAMBER_EXTERIOR_SRC = 'assets/expedition/environment/desert-temple/mummification-chamber-exterior-climb-structure.png';
 const MUMMIFICATION_CHAMBER_INTERIOR_SRC = 'assets/expedition/environment/desert-temple/mummification-chamber-interior-side-scroll-2026-05-31.png';
 const FORGOTTEN_MURAL_ALCOVE_CLIMB_STRUCTURE_SRC = 'assets/expedition/environment/desert-temple/forgotten-mural-alcove-climb-structure.png';
@@ -1375,11 +1382,29 @@ const getHeroSpriteFrameKey = (current, atlas, now) => {
       : ['attack_pick_swing', null];
     if (!row) return null;
     const frameCount = Math.max(1, row.frameCount || row.frames?.length || 1);
-    if (attackState === 'windup') return row.frames?.[0] || `${attackRowName}_00`;
-    if (attackState === 'recoil') return row.frames?.[frameCount - 1] || `${attackRowName}_${String(frameCount - 1).padStart(2, '0')}`;
-    const progress = clamp((ATTACK_DURATION - Math.max(0, current.attackTimer || 0)) / ATTACK_DURATION, 0, 1);
-    const firstSwingFrame = Math.min(1, frameCount - 1);
-    const lastSwingFrame = Math.max(firstSwingFrame, frameCount - 2);
+    const isFinisherAttack = attackRowName === PLAYER_ATTACK_FINISHER_ROW;
+    if (attackState === 'windup') {
+      const windupDuration = Math.max(0.001, current.attackWindupDuration || ATTACK_WINDUP_DURATION);
+      const windupProgress = clamp((windupDuration - Math.max(0, current.attackWindupTimer || 0)) / windupDuration, 0, 1);
+      const windupFrame = isFinisherAttack && frameCount > 1
+        ? Math.min(1, Math.floor(windupProgress * 2))
+        : 0;
+      return row.frames?.[windupFrame] || `${attackRowName}_${String(windupFrame).padStart(2, '0')}`;
+    }
+    if (attackState === 'recoil') {
+      if (isFinisherAttack && frameCount > 1) {
+        const recoilDuration = Math.max(0.001, current.attackRecoilDuration || ATTACK_RECOIL_DURATION);
+        const recoilProgress = clamp((recoilDuration - Math.max(0, current.attackRecoilTimer || 0)) / recoilDuration, 0, 1);
+        const firstRecoilFrame = Math.max(0, frameCount - 2);
+        const recoilFrame = Math.min(frameCount - 1, firstRecoilFrame + Math.floor(recoilProgress * 2));
+        return row.frames?.[recoilFrame] || `${attackRowName}_${String(recoilFrame).padStart(2, '0')}`;
+      }
+      return row.frames?.[frameCount - 1] || `${attackRowName}_${String(frameCount - 1).padStart(2, '0')}`;
+    }
+    const swingDuration = Math.max(0.001, current.attackSwingDuration || ATTACK_DURATION);
+    const progress = clamp((swingDuration - Math.max(0, current.attackTimer || 0)) / swingDuration, 0, 1);
+    const firstSwingFrame = isFinisherAttack ? Math.min(2, frameCount - 1) : Math.min(1, frameCount - 1);
+    const lastSwingFrame = isFinisherAttack ? Math.max(firstSwingFrame, frameCount - 3) : Math.max(firstSwingFrame, frameCount - 2);
     const swingFrameCount = Math.max(1, lastSwingFrame - firstSwingFrame + 1);
     const swingFrameIndex = firstSwingFrame + Math.min(swingFrameCount - 1, Math.floor(progress * swingFrameCount));
     return row.frames?.[swingFrameIndex] || null;
@@ -1402,6 +1427,14 @@ const getHeroSpriteFrameKey = (current, atlas, now) => {
 };
 
 const PARRY_WINDOW_DURATION = 0.12;
+// How close an enemy's front edge must be to the player body before committing to a windup.
+// Kept deliberately small so the freeze reads as "right on you" not "approaching from afar".
+const ENEMY_ATTACK_TRIGGER_REACH = 16;
+
+const getPlayerAttackTiming = (sequenceIndex = 1) => {
+  const timingIndex = Math.max(0, sequenceIndex - 1) % PLAYER_ATTACK_COMBO_TIMINGS.length;
+  return PLAYER_ATTACK_COMBO_TIMINGS[timingIndex] || PLAYER_ATTACK_COMBO_TIMINGS[0];
+};
 
 const DEFAULT_ENEMY_ATTACK_PATTERN = {
   id: 'strike',
@@ -2586,7 +2619,7 @@ const getStoryPropAnchorY = (prop, propSize, shouldGroundLock) => {
 };
 
 const getStoryPropDepth = (prop) => {
-  if (['background', 'midground', 'grounded', 'route-edge'].includes(prop.depth)) return prop.depth;
+  if (['background', 'midground', 'grounded', 'route-edge', 'foreground-occluder'].includes(prop.depth)) return prop.depth;
   const placementPreset = getStoryPropPlacementPreset(prop);
   if (placementPreset?.depth) return placementPreset.depth;
   if (isGroundLockedAtmosphereProp(prop)) return 'grounded';
@@ -2622,8 +2655,9 @@ const STORY_PROP_DEPTH_ORDER = {
   midground: 1,
   grounded: 2,
   'route-edge': 3,
+  'foreground-occluder': 4,
 };
-const PROP_EDITOR_DEPTH_OPTIONS = ['background', 'midground', 'grounded', 'route-edge'];
+const PROP_EDITOR_DEPTH_OPTIONS = ['background', 'midground', 'grounded', 'route-edge', 'foreground-occluder'];
 const PROP_EDITOR_LAYER_OPTIONS = ['default', 'background', 'midground', 'foreground', 'ruin-detail', 'route-edge'];
 
 const getStoryPropEditorSize = (prop = {}) => {
@@ -3577,6 +3611,19 @@ export default function ExpeditionJourney({
         },
       };
     }
+    if (template.imageAssetKey && template.assetPath) {
+      return {
+        assetKey: template.imageAssetKey,
+        style: {
+          backgroundImage: `url(${import.meta.env.BASE_URL}${template.assetPath})`,
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundSize: 'contain',
+          width: '100%',
+          height: '100%',
+        },
+      };
+    }
     const candidates = [];
     if (template.atmosphereAssetKey) {
       candidates.push({
@@ -3880,6 +3927,11 @@ export default function ExpeditionJourney({
 
   const deleteSelectedPropFromEditor = useCallback(() => {
     const editor = propPlacementEditorRef.current;
+    if (isEditorLockKeyLocked(getSelectedEditorLockKey())) {
+      editor.dragging = null;
+      refreshPropEditorUi();
+      return;
+    }
     const selectedId = editor.selectedPropId;
     if (selectedId) {
       const selectedProp = getPropEditorSelectedProp();
@@ -3930,7 +3982,7 @@ export default function ExpeditionJourney({
       editor.dragging = null;
       refreshPropEditorUi();
     }
-  }, [getHazardEditorRoomId, getPlatformEditorRoomId, getPropEditorSelectedHazard, getPropEditorSelectedPlatform, getPropEditorSelectedProp, refreshPropEditorUi]);
+  }, [getHazardEditorRoomId, getPlatformEditorRoomId, getPropEditorSelectedHazard, getPropEditorSelectedPlatform, getPropEditorSelectedProp, getSelectedEditorLockKey, isEditorLockKeyLocked, refreshPropEditorUi]);
 
   const getPropEditorExistingIds = useCallback(() => getAllPropEditorStoryProps().map(prop => prop.id), [getAllPropEditorStoryProps]);
 
@@ -3956,41 +4008,45 @@ export default function ExpeditionJourney({
     const editor = propPlacementEditorRef.current;
     const selectedProp = getPropEditorSelectedProp();
     if (!selectedProp) return;
+    if (isEditorEntityLocked('prop', selectedProp.id)) return;
     const nextEdit = getGroundAwareStoryPropEditorEdit(selectedProp, edit);
     editor.edits[selectedProp.id] = {
       ...(editor.edits[selectedProp.id] || {}),
       ...nextEdit,
     };
     refreshPropEditorUi();
-  }, [getGroundAwareStoryPropEditorEdit, getPropEditorSelectedProp, refreshPropEditorUi]);
+  }, [getGroundAwareStoryPropEditorEdit, getPropEditorSelectedProp, isEditorEntityLocked, refreshPropEditorUi]);
 
   const updateSelectedPlatformEditorTransform = useCallback((edit) => {
     const editor = propPlacementEditorRef.current;
     const selectedPlatform = getPropEditorSelectedPlatform();
     const platformId = selectedPlatform?.id || selectedPlatform?.label;
     if (!platformId) return;
+    if (isEditorEntityLocked('platform', platformId)) return;
     editor.platformEdits[platformId] = {
       ...(editor.platformEdits[platformId] || {}),
       ...edit,
     };
     refreshPropEditorUi();
-  }, [getPropEditorSelectedPlatform, refreshPropEditorUi]);
+  }, [getPropEditorSelectedPlatform, isEditorEntityLocked, refreshPropEditorUi]);
 
   const updateSelectedHazardEditorTransform = useCallback((edit) => {
     const editor = propPlacementEditorRef.current;
     const selectedHazard = getPropEditorSelectedHazard();
     if (!selectedHazard?.id) return;
+    if (isEditorEntityLocked('hazard', selectedHazard.id)) return;
     editor.hazardEdits[selectedHazard.id] = {
       ...(editor.hazardEdits[selectedHazard.id] || {}),
       ...edit,
     };
     refreshPropEditorUi();
-  }, [getPropEditorSelectedHazard, refreshPropEditorUi]);
+  }, [getPropEditorSelectedHazard, isEditorEntityLocked, refreshPropEditorUi]);
 
   const updateSelectedArchEditorTransform = useCallback((edit) => {
     const editor = propPlacementEditorRef.current;
     const selectedArch = getPropEditorSelectedArch();
     if (!selectedArch?.id) return;
+    if (isEditorEntityLocked('arch', selectedArch.editorId)) return;
     if (selectedArch.editorKind === 'doorway') {
       editor.routeGateDoorwayEdits[selectedArch.id] = {
         ...(editor.routeGateDoorwayEdits[selectedArch.id] || {}),
@@ -4003,34 +4059,37 @@ export default function ExpeditionJourney({
       };
     }
     refreshPropEditorUi();
-  }, [getPropEditorSelectedArch, refreshPropEditorUi]);
+  }, [getPropEditorSelectedArch, isEditorEntityLocked, refreshPropEditorUi]);
 
   const updateSelectedCheckpointEditorTransform = useCallback((edit) => {
     const editor = propPlacementEditorRef.current;
     const selectedCheckpoint = getPropEditorSelectedCheckpoint();
     if (!selectedCheckpoint?.id) return;
+    if (isEditorEntityLocked('checkpoint', selectedCheckpoint.id)) return;
     editor.checkpointEdits[selectedCheckpoint.id] = {
       ...(editor.checkpointEdits[selectedCheckpoint.id] || {}),
       ...edit,
     };
     refreshPropEditorUi();
-  }, [getPropEditorSelectedCheckpoint, refreshPropEditorUi]);
+  }, [getPropEditorSelectedCheckpoint, isEditorEntityLocked, refreshPropEditorUi]);
 
   const updateSelectedLairEditorTransform = useCallback((edit) => {
     const editor = propPlacementEditorRef.current;
     const selectedLair = getPropEditorSelectedLair();
     if (!selectedLair?.id) return;
+    if (isEditorEntityLocked('lair', selectedLair.id)) return;
     editor.miniBossEdits[selectedLair.id] = {
       ...(editor.miniBossEdits[selectedLair.id] || {}),
       ...edit,
     };
     refreshPropEditorUi();
-  }, [getPropEditorSelectedLair, refreshPropEditorUi]);
+  }, [getPropEditorSelectedLair, isEditorEntityLocked, refreshPropEditorUi]);
 
   const duplicateSelectedPropInEditor = useCallback(() => {
     const editor = propPlacementEditorRef.current;
     const selectedProp = getPropEditorSelectedProp();
     if (!selectedProp) return;
+    if (isEditorEntityLocked('prop', selectedProp.id)) return;
     const duplicate = duplicateJourneyPropForEditor({
       prop: selectedProp,
       existingIds: getPropEditorExistingIds(),
@@ -4046,7 +4105,7 @@ export default function ExpeditionJourney({
     editor.deletedIds.delete(duplicate.id);
     editor.paletteOpen = false;
     refreshPropEditorUi();
-  }, [getPropEditorExistingIds, getPropEditorSelectedProp, refreshPropEditorUi]);
+  }, [getPropEditorExistingIds, getPropEditorSelectedProp, isEditorEntityLocked, refreshPropEditorUi]);
 
   const createPropFromEditorPalette = useCallback((pointer) => {
     const editor = propPlacementEditorRef.current;
@@ -9819,7 +9878,13 @@ export default function ExpeditionJourney({
     const propAssetKey = sacredTrapPropAssetKey
       || atmospherePropAssetKey
       || getEnvironmentAssetKeyForStoryProp(propForAsset, environmentAssetsRef.current.packId);
-    if (propAssetKey) {
+    const standalonePropAsset = (() => {
+      if (propForAsset.imageAssetKey === 'routeGateFront') return routeGateFrontRef.current;
+      if (propForAsset.imageAssetKey === 'routeGateBack') return routeGateBackRef.current;
+      if (propForAsset.imageAssetKey === 'routeGateSlab') return routeGateSlabRef.current;
+      return null;
+    })();
+    if (propAssetKey || (standalonePropAsset?.loaded && standalonePropAsset.image)) {
       const placementPreset = getStoryPropPlacementPreset(propForAsset) || {};
       const propSize = {
         ...(PROP_GROUNDING_CONFIG[propForAsset.type] || { width: 72, height: 72, yOffset: 0, alpha: 0.78, depth: 'midground', tint: 'warm' }),
@@ -9851,6 +9916,7 @@ export default function ExpeditionJourney({
         ...(propForAsset.depth ? { depth: propForAsset.depth } : {}),
         ...(propForAsset.tint ? { tint: propForAsset.tint } : {}),
         ...(propForAsset.sceneBlend ? { sceneBlend: propForAsset.sceneBlend } : {}),
+        ...(standalonePropAsset ? { colorGradeFilter: ROUTE_GATE_STANDALONE_PROP_COLOR_GRADE_FILTER } : {}),
         ...(propForAsset.colorGradeFilter ? { colorGradeFilter: propForAsset.colorGradeFilter } : {}),
       };
       if (Number.isFinite(propSize.scale)) {
@@ -9917,37 +9983,47 @@ export default function ExpeditionJourney({
         const baseFilter = ctx.filter && ctx.filter !== 'none' ? `${ctx.filter} ` : '';
         ctx.filter = `${baseFilter}brightness(${Math.round(clamp(propSize.brightness, 0.4, 1.8) * 100)}%)`;
       }
+      const drawStandalonePropAsset = (image, target) => {
+        if (!image) return false;
+        const sourceWidth = Number(image.naturalWidth || image.width) || target.width;
+        const sourceHeight = Number(image.naturalHeight || image.height) || target.height;
+        if (!sourceWidth || !sourceHeight) return false;
+        const containScale = Math.min(target.width / sourceWidth, target.height / sourceHeight);
+        const drawWidth = sourceWidth * containScale;
+        const drawHeight = sourceHeight * containScale;
+        ctx.drawImage(
+          image,
+          target.x + (target.width - drawWidth) / 2,
+          target.y + (target.height - drawHeight) / 2,
+          drawWidth,
+          drawHeight,
+        );
+        return true;
+      };
+      const drawPropImageAsset = (target) => (
+        standalonePropAsset?.loaded && standalonePropAsset.image
+          ? drawStandalonePropAsset(standalonePropAsset.image, target)
+          : drawAtlasRegion(ctx, propAssets, propAssetKey, target, { mode: 'contain' })
+      );
       const drawMirroredPropAsset = () => {
         ctx.save();
         ctx.translate(drawX + propSize.width / 2, drawY + propSize.height / 2);
         ctx.scale(-1, 1);
-        const didDraw = drawAtlasRegion(
-          ctx,
-          propAssets,
-          propAssetKey,
-          {
-            x: -propSize.width / 2,
-            y: -propSize.height / 2,
-            width: propSize.width,
-            height: propSize.height,
-          },
-          { mode: 'contain' },
-        );
+        const didDraw = drawPropImageAsset({
+          x: -propSize.width / 2,
+          y: -propSize.height / 2,
+          width: propSize.width,
+          height: propSize.height,
+        });
         ctx.restore();
         return didDraw;
       };
-      const drawn = propForAsset.mirrorX ? drawMirroredPropAsset() : drawAtlasRegion(
-        ctx,
-        propAssets,
-        propAssetKey,
-        {
-          x: drawX,
-          y: drawY,
-          width: propSize.width,
-          height: propSize.height,
-        },
-        { mode: 'contain' },
-      );
+      const drawn = propForAsset.mirrorX ? drawMirroredPropAsset() : drawPropImageAsset({
+        x: drawX,
+        y: drawY,
+        width: propSize.width,
+        height: propSize.height,
+      });
       if (drawn) {
         ctx.filter = 'none';
         ctx.shadowColor = 'transparent';
@@ -14621,6 +14697,7 @@ export default function ExpeditionJourney({
     drawOpeningSphinxEncounter(ctx, current.openingSphinxEncounter, cameraX, now);
     drawCombatEffects(ctx, current.combatHitEffects, cameraX, now);
     drawPlayerSprite(ctx, player.x - cameraX, player.y, player.width, player.height, player.direction, player.invulnerable, now);
+    getRenderableStoryProps(current).forEach((prop) => drawStoryProp(ctx, prop, cameraX, now, 'foreground-occluder'));
     if (!chamberSceneActive) getRouteGateDoorwayEntries().forEach((entry) => {
       const status = getDoorwayGateStatus(entry, current);
       const gate = status.activeGate;
@@ -15395,7 +15472,7 @@ export default function ExpeditionJourney({
     player.hitFeedbackTimer = Math.max(0, player.hitFeedbackTimer - dt);
     if (current.attackTimer <= 0) current.playerAttackBox = null;
     if (wasWindingUp && current.attackWindupTimer <= 0) {
-      current.attackTimer = ATTACK_DURATION;
+      current.attackTimer = current.attackSwingDuration || ATTACK_DURATION;
       current.attackHitIds.clear();
     }
     if (wasSwinging && current.attackTimer <= 0 && current.attackRecoilTimer <= 0) {
@@ -15403,7 +15480,7 @@ export default function ExpeditionJourney({
         current.lastAttackResult = 'missed';
         applyAttackStaminaCost(MISSED_ATTACK_EXTRA_STAMINA_COST, 'Missed attack', '-1');
       }
-      current.attackRecoilTimer = ATTACK_RECOIL_DURATION;
+      current.attackRecoilTimer = current.attackRecoilDuration || ATTACK_RECOIL_DURATION;
     }
     if (wasRecoiling && current.attackRecoilTimer <= 0 && current.attackCooldown <= 0) {
       current.attackPhase = 'ready';
@@ -16815,13 +16892,18 @@ export default function ExpeditionJourney({
     // Attacks
     let attackRect = null;
     if (current.attackQueued) {
+      const nextAttackSequenceIndex = (current.attackSequenceIndex || 0) + 1;
+      const attackTiming = getPlayerAttackTiming(nextAttackSequenceIndex);
       current.attackQueued = false;
-      current.attackWindupTimer = ATTACK_WINDUP_DURATION;
+      current.attackWindupDuration = attackTiming.windup;
+      current.attackSwingDuration = attackTiming.swing;
+      current.attackRecoilDuration = attackTiming.recoil;
+      current.attackWindupTimer = attackTiming.windup;
       current.attackTimer = 0;
       current.attackRecoilTimer = 0;
       current.attackPhase = 'windup';
-      current.attackCooldown = ATTACK_COOLDOWN;
-      current.attackSequenceIndex = (current.attackSequenceIndex || 0) + 1;
+      current.attackCooldown = attackTiming.cooldown;
+      current.attackSequenceIndex = nextAttackSequenceIndex;
       current.attackHitIds.clear();
       current.attackRewarded = false;
       current.lastAttackResult = 'started';
@@ -17053,7 +17135,7 @@ export default function ExpeditionJourney({
         && Math.abs((player.y + player.height / 2) - (e.y + e.height / 2)) < 96;
       const attackDirectionToPlayer = distanceToPlayer >= 0 ? 1 : -1;
       const meleeReachesPlayer = rectsOverlap(
-        getAttackBox(e, tacticalPattern.range, tacticalPattern.height, attackDirectionToPlayer, tacticalPattern.yOffset || 0, tacticalPattern.backReach || 0),
+        getAttackBox(e, ENEMY_ATTACK_TRIGGER_REACH, tacticalPattern.height, attackDirectionToPlayer, tacticalPattern.yOffset || 0, 0),
         getPlayerBodyHitbox(player),
       );
       const shouldUseVenomSpit = e.type === 'scorpion' && !meleeReachesPlayer && scorpionVenomCanReach;
@@ -18575,6 +18657,26 @@ export default function ExpeditionJourney({
       editor.selectedArchId = selectedArch?.editorId || null;
       editor.selectedCheckpointId = selectedCheckpoint?.id || null;
       editor.selectedLairId = selectedLair?.id || null;
+      const selectedLockKey = selectedProp
+        ? `prop:${selectedProp.id}`
+        : selectedPlatform
+          ? `platform:${selectedPlatform.id || selectedPlatform.label}`
+        : selectedHazard
+          ? `hazard:${selectedHazard.id}`
+        : selectedArch
+          ? `arch:${selectedArch.editorId}`
+        : selectedCheckpoint
+          ? `checkpoint:${selectedCheckpoint.id}`
+        : selectedLair
+          ? `lair:${selectedLair.id}`
+        : null;
+      if (isEditorLockKeyLocked(selectedLockKey)) {
+        editor.dragging = null;
+        e.preventDefault();
+        draw();
+        refreshPropEditorUi();
+        return;
+      }
       if (selectedProp) {
         editor.dragging = {
           kind: 'prop',
@@ -18890,7 +18992,21 @@ export default function ExpeditionJourney({
                   >
                     Triggers
                   </button>
+                  <button
+                    type="button"
+                    className={propEditorUi.selectedLocked ? 'is-selected' : ''}
+                    disabled={!propEditorUi.selectedLockKey}
+                    onClick={toggleSelectedEditorLock}
+                  >
+                    {propEditorUi.selectedLocked ? 'Unlock' : 'Lock'}
+                  </button>
                 </div>
+                {propEditorUi.selectedLockKey && (
+                  <div className="journey-prop-editor-empty">
+                    {propEditorUi.selectedLocked ? 'Selected item is locked' : 'Selected item is unlocked'}
+                    {propEditorUi.lockedCount > 0 ? ` (${propEditorUi.lockedCount} locked)` : ''}
+                  </div>
+                )}
                 {propEditorUi.unsavedChangeSummary?.hasChanges && (
                   <div className="journey-prop-editor-change-summary" aria-label="Placement editor changed items">
                     <div className="journey-prop-editor-change-summary-header">
