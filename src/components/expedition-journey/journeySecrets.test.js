@@ -3882,18 +3882,17 @@ test('story props render local contact sediment and occlusion around asset bases
   const drawStoryPropSource = getComponentFunctionSource('drawStoryProp');
   const drawPropSandOcclusionSource = getComponentFunctionSource('drawPropSandOcclusion');
 
-  assert.match(journeyComponentSource, /PROP_GROUNDING_INTEGRATION_VERSION = 'prop-contact-shadow-local-sediment-occlusion-v5'/);
+  assert.match(journeyComponentSource, /PROP_GROUNDING_INTEGRATION_VERSION = 'prop-contact-shadow-local-sediment-occlusion-v4'/);
   assert.match(journeyComponentSource, /defaultSandOverlap/);
   assert.match(journeyComponentSource, /sandMoundWidth:\s*finiteNumber\(config\.sandMoundWidth/);
   assert.match(journeyComponentSource, /groundPebbles:\s*finiteNumber\(config\.groundPebbles/);
-  assert.match(drawStoryPropSource, /drawPropGroundContact\(ctx, x, anchorY, propGrounding\)/);
-  assert.match(drawStoryPropSource, /drawPropSandOcclusion\(ctx, x, anchorY, section\.id, propGrounding\)/);
-  assert.doesNotMatch(drawPropSandOcclusionSource, /fillRect\(x - moundW \/ 2 - 2,\s*overlapY,\s*moundW \+ 4/);
-  assert.match(drawPropSandOcclusionSource, /quadraticCurveTo/);
+  assert.match(drawStoryPropSource, /drawPropGroundContact\(ctx, x, anchorY, propSize, section\.id, propGrounding\)/);
+  assert.match(drawStoryPropSource, /drawPropSandOcclusion\(ctx, x, anchorY, propSize, section\.id, propGrounding\)/);
+  assert.match(drawPropSandOcclusionSource, /fillRect\(x - moundW \/ 2 - 2,\s*overlapY,\s*moundW \+ 4/);
   assert.match(journeyPlacementOverridesSource, /'colorGradeFilter'[\s\S]*'sandOverlapHeight'[\s\S]*'groundPebbles'/);
-  assert.match(journeyPlacementGeneratedOverrideSource, /"id": "desert-entry-premium-column-1"[\s\S]*?"shadowOpacity": 0\.38[\s\S]*?"sandOverlapHeight": 0[\s\S]*?"groundPebbles": 6/);
+  assert.match(journeyPlacementGeneratedOverrideSource, /"id": "desert-entry-premium-column-1"[\s\S]*?"shadowOpacity": 0[\s\S]*?"sandOverlapHeight": 0[\s\S]*?"groundPebbles": 6[\s\S]*?"depth": "foreground-occluder"[\s\S]*?"scale": 2\.3/);
   assert.match(journeyPlacementGeneratedOverrideSource, /"id": "desert-entry-cracked-stone-blocks-1"[\s\S]*?"shadowOpacity": 0\.22[\s\S]*?"sandOverlapHeight": 10/);
-  assert.match(journeyPlacementGeneratedOverrideSource, /"id": "desert-entry-fallen-lintel-1"[\s\S]*?"shadowOpacity": 0\.24[\s\S]*?"sandOverlapHeight": 0/);
+  assert.match(journeyPlacementGeneratedOverrideSource, /"id": "desert-entry-fallen-lintel-1"[\s\S]*?"shadowOpacity": 0[\s\S]*?"sandOverlapHeight": 0/);
 });
 
 test('editor supports half-buried trap visuals without moving collision by hand', () => {
@@ -3949,13 +3948,22 @@ test('desert entry props use visible atlas art instead of weak placeholders', ()
     const row = getDataRowById(storyProps, propId);
     assert.match(row, new RegExp(`atmosphereAssetKey:\\s*'${assetKey}'`), `${propId} should use atlas art`);
     assert.match(row, /placementPreset:\s*'desertEntryGroundedRuin'/, `${propId} should render through the grounded ruin preset`);
-    assert.doesNotMatch(row, /alpha:\s*1\b/, `${propId} should not render at full cut-out opacity`);
+    assert.doesNotMatch(row, /alpha:\s*0\.[0-9]+/, `${propId} should not render as a transparent prop`);
     assert.match(row, /shadowOpacity:\s*0/, `${propId} should render without the generated shadow effect`);
     assert.match(row, xPattern, `${propId} ${xMessage}`);
   });
 
   assert.doesNotMatch(storyProps, /sectionId:\s*'desert-entry'[\s\S]{0,220}type:\s*'sign'/);
   assert.doesNotMatch(storyProps, /sectionId:\s*'desert-entry'[\s\S]{0,220}type:\s*'mural'/);
+});
+
+test('atlas story props default to opaque rendering unless explicitly edited', () => {
+  const drawStoryPropSource = getComponentFunctionSource('drawStoryProp');
+
+  assert.match(journeyComponentSource, /desertEntryGroundedRuin:[\s\S]*?alpha:\s*1/);
+  assert.match(journeyComponentSource, /'atmosphere-prop': \{[\s\S]*?alpha:\s*1/);
+  assert.match(drawStoryPropSource, /alpha:\s*1,\s*depth:\s*'midground'/);
+  assert.match(drawStoryPropSource, /ctx\.globalAlpha = propSize\.alpha \?\? 1/);
 });
 
 test('small atmosphere floor assets are permanently ground-locked instead of background-tuned', () => {

@@ -48,18 +48,18 @@ const journeyPlacementOverrides = {
       "height": 760,
       "depth": "background",
       "alpha": 1,
+      "layer": "background",
       "groundContactLayer": [],
       "label": "generated Mummification Chamber exterior with bottom secret entrance, climbable sandstone ledges, damaged stairs, torches, and glowing hieroglyphs",
-      "layer": "background",
       "scale": 1.1,
       "mirrorX": false,
+      "brightness": 1.25,
+      "colorGradeFilter": "sepia(4%) saturate(91%) brightness(88%) contrast(89%)",
       "shadowWidth": 0,
       "shadowHeight": 0,
       "sandMoundWidth": 0,
       "sandMoundHeight": 0,
-      "groundPebbles": 0,
-      "brightness": 1.25,
-      "colorGradeFilter": "sepia(4%) saturate(91%) brightness(88%) contrast(89%)"
+      "groundPebbles": 0
     },
     {
       "id": "forgotten-mural-climb-structure",
@@ -319,26 +319,28 @@ const journeyPlacementOverrides = {
       "type": "atmosphere-prop",
       "atmosphereAssetKey": "desertEntryPremiumFallenColumn",
       "placementPreset": "desertEntryGroundedRuin",
-      "x": 1941,
-      "y": 578,
+      "x": 1948,
+      "y": 589,
       "width": 108,
       "height": 70,
-      "shadowOpacity": 0.38,
-      "shadowWidth": 122,
-      "sandMoundWidth": 136,
+      "shadowOpacity": 0,
+      "shadowWidth": 0,
+      "sandMoundWidth": 0,
       "sandOverlapHeight": 0,
       "groundPebbles": 6,
       "label": "generated premium carved fallen column in open sand after the pyramid",
-      "yOffset": -11,
-      "depth": "route-edge",
+      "yOffset": 0,
+      "depth": "foreground-occluder",
       "layer": "route-edge",
       "zIndex": 2,
-      "scale": 1.45,
-      "rotation": 40,
+      "scale": 2.3,
+      "rotation": 50,
       "mirrorX": true,
       "brightness": 1.15,
-      "shadowHeight": 9,
-      "colorGradeFilter": "sepia(4%) saturate(91%) brightness(88%) contrast(89%)"
+      "colorGradeFilter": "sepia(4%) saturate(91%) brightness(88%) contrast(89%)",
+      "shadowHeight": 0,
+      "sandMoundHeight": 1,
+      "groundContactLayer": []
     },
     {
       "id": "desert-entry-premium-pillar-caps-1",
@@ -346,25 +348,25 @@ const journeyPlacementOverrides = {
       "type": "atmosphere-prop",
       "atmosphereAssetKey": "desertEntryPremiumPillarCaps",
       "placementPreset": "desertEntryGroundedRuin",
-      "x": 1857,
-      "y": 595,
+      "x": 1887,
+      "y": 609,
       "width": 74,
-      "height": 96,
+      "height": 119,
       "shadowOpacity": 0.3,
       "shadowWidth": 82,
       "sandMoundWidth": 0,
       "sandOverlapHeight": 0,
       "groundPebbles": 24,
       "label": "generated premium pillar-cap ruins in open sand after the pyramid",
-      "yOffset": 5,
+      "yOffset": 20,
       "depth": "route-edge",
       "layer": "route-edge",
       "zIndex": 42,
-      "scale": 1.25,
-      "mirrorX": false,
-      "shadowHeight": 20,
-      "sandMoundHeight": 0,
-      "colorGradeFilter": "sepia(4%) saturate(91%) brightness(88%) contrast(89%)"
+      "scale": 1.75,
+      "mirrorX": true,
+      "colorGradeFilter": "sepia(4%) saturate(91%) brightness(88%) contrast(89%)",
+      "shadowHeight": 1,
+      "sandMoundHeight": 0
     },
     {
       "id": "desert-entry-sand-piles-1",
@@ -425,7 +427,7 @@ const journeyPlacementOverrides = {
       "label": "cracked stone blocks",
       "rotation": 10,
       "colorGradeFilter": "sepia(34%) saturate(135%) brightness(88%) contrast(102%)",
-      "alpha": 0.96,
+      "alpha": 1,
       "shadowOpacity": 0.22,
       "shadowWidth": 106,
       "sandOverlapHeight": 10,
@@ -444,7 +446,7 @@ const journeyPlacementOverrides = {
       "y": 589,
       "label": "cracked stone blocks",
       "colorGradeFilter": "sepia(34%) saturate(135%) brightness(88%) contrast(102%)",
-      "alpha": 0.96,
+      "alpha": 1,
       "shadowOpacity": 0.2,
       "shadowWidth": 104,
       "sandOverlapHeight": 9,
@@ -466,14 +468,19 @@ const journeyPlacementOverrides = {
       "height": 112,
       "rotation": 4,
       "mirrorX": true,
-      "shadowOpacity": 0.24,
+      "shadowOpacity": 0,
       "shadowWidth": 132,
       "sandOverlapHeight": 0,
       "sandMoundWidth": 0,
       "groundPebbles": 0,
       "depth": "foreground-occluder",
-      "brightness": 0.7,
-      "colorGradeFilter": "sepia(54%) saturate(131%) brightness(78%) contrast(149%)"
+      "brightness": 1,
+      "colorGradeFilter": "sepia(54%) saturate(131%) brightness(78%) contrast(149%)",
+      "editorBoundsInsetTop": 31,
+      "editorBoundsInsetBottom": 31,
+      "zIndex": 0,
+      "shadowHeight": 0,
+      "sandMoundHeight": 1
     },
     {
       "id": "desert-entry-fallen-lintel-1-copy-1",
@@ -569,7 +576,7 @@ const journeyPlacementOverrides = {
       "width": 116,
       "height": 50,
       "yOffset": 8,
-      "alpha": 0.42,
+      "alpha": 1,
       "depth": "background",
       "tint": "cool",
       "shadow": 0.06,
@@ -578,6 +585,21 @@ const journeyPlacementOverrides = {
       "x": 4338,
       "y": 527,
       "label": "rubble scatter"
+    },
+    {
+      "id": "desert-entry-wooden-crates-1",
+      "sectionId": "desert-entry",
+      "type": "atmosphere-prop",
+      "atmosphereAssetKey": "wooden_crates",
+      "scale": 1,
+      "layer": "ruin-detail",
+      "x": 1804,
+      "y": 621,
+      "label": "wooden crates",
+      "height": 121,
+      "editorBoundsInsetBottom": 26,
+      "depth": "route-edge",
+      "sandMoundHeight": 0
     }
   ],
   "deletedPropIds": [],
@@ -965,8 +987,8 @@ const journeyPlacementOverrides = {
       "label": "editable platform",
       "invisible": true,
       "layer": "platform",
-      "x": 1813,
-      "y": 480
+      "x": 1828,
+      "y": 428
     },
     {
       "id": "desert-entry-platform-3",
@@ -1045,6 +1067,17 @@ const journeyPlacementOverrides = {
       "layer": "platform",
       "x": 732,
       "y": 223
+    },
+    {
+      "id": "desert-entry-platform-10",
+      "sectionId": "desert-entry",
+      "width": 50,
+      "height": 18,
+      "label": "editable platform",
+      "invisible": true,
+      "layer": "platform",
+      "x": 1775,
+      "y": 525
     }
   ],
   "deletedPlatformIds": [],
@@ -1087,7 +1120,33 @@ const journeyPlacementOverrides = {
         "stamina": 5
       },
       "message": "Thorn scrub slowed the team. Stamina reduced.",
+      "sectionId": "desert-entry",
+      "triggerArea": {
+        "x": 0,
+        "y": 0,
+        "width": 80,
+        "height": 48
+      },
       "damage": 20,
+      "reset": false,
+      "cooldown": 1.2,
+      "depth": "grounded",
+      "linkedObjectIds": [],
+      "editorVisible": true
+    },
+    {
+      "id": "opening-seal-reset-trap",
+      "name": "buried spike trap",
+      "emoji": "!",
+      "x": 1854,
+      "y": 567,
+      "width": 134,
+      "height": 16,
+      "penalty": {
+        "stamina": 8
+      },
+      "message": "Buried spikes jabbed out of the sand. Jump cleanly over them.",
+      "damage": 15,
       "reset": false,
       "cooldown": 1.2,
       "depth": "grounded",
@@ -1096,23 +1155,10 @@ const journeyPlacementOverrides = {
       "triggerArea": {
         "x": 0,
         "y": 0,
-        "width": 80,
-        "height": 48
+        "width": 87,
+        "height": 16
       },
       "sectionId": "desert-entry"
-    },
-    {
-      "id": "opening-seal-reset-trap",
-      "name": "buried spike trap",
-      "emoji": "!",
-      "x": 1413,
-      "y": 575,
-      "width": 87,
-      "height": 16,
-      "penalty": {
-        "stamina": 8
-      },
-      "message": "Buried spikes jabbed out of the sand. Jump cleanly over them."
     },
     {
       "id": "entry-pressure-plate",

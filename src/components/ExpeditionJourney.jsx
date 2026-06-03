@@ -2555,23 +2555,23 @@ const getHazardBurialAmount = (hazard = {}) => {
 };
 
 const PROP_GROUNDING_CONFIG = {
-  ruins: { width: 104, height: 94, yOffset: 92, alpha: 0.42, depth: 'background', tint: 'dust', shadow: 0.1, dust: 0.52 },
-  camp: { width: 86, height: 58, yOffset: 18, alpha: 0.64, depth: 'background', tint: 'dust', shadow: 0.12, dust: 0.58 },
-  column: { width: 96, height: 86, yOffset: 62, alpha: 0.62, depth: 'midground', tint: 'buried-stone', shadow: 0.18, dust: 0.86, bury: 0.3 },
+  ruins: { width: 104, height: 94, yOffset: 92, alpha: 1, depth: 'background', tint: 'dust', shadow: 0.1, dust: 0.52 },
+  camp: { width: 86, height: 58, yOffset: 18, alpha: 1, depth: 'background', tint: 'dust', shadow: 0.12, dust: 0.58 },
+  column: { width: 96, height: 86, yOffset: 62, alpha: 1, depth: 'midground', tint: 'buried-stone', shadow: 0.18, dust: 0.86, bury: 0.3 },
   cart: { depth: 'midground' },
-  door: { width: 118, height: 150, yOffset: 132, alpha: 0.48, depth: 'background', tint: 'dust', shadow: 0.12, dust: 0.58 },
-  statue: { width: 70, height: 90, yOffset: 54, alpha: 0.58, depth: 'background', tint: 'stone', shadow: 0.12, dust: 0.58 },
-  'jackal-statue': { width: 82, height: 122, yOffset: 88, alpha: 0.96, depth: 'midground', tint: 'stone', shadow: 0.28, dust: 0.9, bury: 0.14 },
-  'damaged-jackal-statue': { width: 92, height: 118, yOffset: 88, alpha: 0.9, depth: 'midground', tint: 'stone', shadow: 0.26, dust: 0.9, bury: 0.18 },
-  bridge: { width: 168, height: 62, yOffset: 20, alpha: 0.62, depth: 'midground', tint: 'warm', shadow: 0.2, dust: 0.72 },
-  'survey-rope': { width: 118, height: 42, yOffset: 20, alpha: 0.68, depth: 'midground', tint: 'warm', shadow: 0.1, dust: 0.54, bury: 0.08 },
-  lights: { width: 42, height: 62, yOffset: 18, alpha: 0.48, depth: 'background', tint: 'cool', shadow: 0.08, dust: 0.44 },
-  banners: { width: 76, height: 48, yOffset: 28, alpha: 0.5, depth: 'background', tint: 'dust', shadow: 0.08, dust: 0.48 },
-  'sacred-pedestal': { width: 84, height: 72, yOffset: 38, alpha: 0.88, depth: 'midground', tint: 'warm', shadow: 0.22, dust: 0.78 },
+  door: { width: 118, height: 150, yOffset: 132, alpha: 1, depth: 'background', tint: 'dust', shadow: 0.12, dust: 0.58 },
+  statue: { width: 70, height: 90, yOffset: 54, alpha: 1, depth: 'background', tint: 'stone', shadow: 0.12, dust: 0.58 },
+  'jackal-statue': { width: 82, height: 122, yOffset: 88, alpha: 1, depth: 'midground', tint: 'stone', shadow: 0.28, dust: 0.9, bury: 0.14 },
+  'damaged-jackal-statue': { width: 92, height: 118, yOffset: 88, alpha: 1, depth: 'midground', tint: 'stone', shadow: 0.26, dust: 0.9, bury: 0.18 },
+  bridge: { width: 168, height: 62, yOffset: 20, alpha: 1, depth: 'midground', tint: 'warm', shadow: 0.2, dust: 0.72 },
+  'survey-rope': { width: 118, height: 42, yOffset: 20, alpha: 1, depth: 'midground', tint: 'warm', shadow: 0.1, dust: 0.54, bury: 0.08 },
+  lights: { width: 42, height: 62, yOffset: 18, alpha: 1, depth: 'background', tint: 'cool', shadow: 0.08, dust: 0.44 },
+  banners: { width: 76, height: 48, yOffset: 28, alpha: 1, depth: 'background', tint: 'dust', shadow: 0.08, dust: 0.48 },
+  'sacred-pedestal': { width: 84, height: 72, yOffset: 38, alpha: 1, depth: 'midground', tint: 'warm', shadow: 0.22, dust: 0.78 },
   'sacred-pedestal-activated': { width: 84, height: 72, yOffset: 38, alpha: 1, depth: 'midground', tint: 'warm', shadow: 0.28, dust: 0.84 },
-  'guardian-seal': { width: 46, height: 46, yOffset: 8, alpha: 0.92, depth: 'midground', tint: 'warm', shadow: 0.12, dust: 0.42 },
+  'guardian-seal': { width: 46, height: 46, yOffset: 8, alpha: 1, depth: 'midground', tint: 'warm', shadow: 0.12, dust: 0.42 },
   'guardian-seal-activated': { width: 52, height: 52, yOffset: 10, alpha: 1, depth: 'midground', tint: 'warm', shadow: 0.18, dust: 0.48 },
-  'atmosphere-prop': { width: 96, height: 82, yOffset: 0, alpha: 0.82, depth: 'midground', shadow: 0.14, dust: 0.72, bury: 0.12 },
+  'atmosphere-prop': { width: 96, height: 82, yOffset: 0, alpha: 1, depth: 'midground', shadow: 0.14, dust: 0.72, bury: 0.12 },
   mural: { depth: 'background' },
   glyphs: { depth: 'background' },
   eyes: { depth: 'background' },
@@ -2636,7 +2636,7 @@ const PROP_PLACEMENT_PRESETS = {
     sandOverlapHeight: 14,
     sandMoundHeight: 10,
     groundPebbles: 3,
-    alpha: 0.8,
+    alpha: 1,
   },
 };
 
@@ -10009,7 +10009,7 @@ export default function ExpeditionJourney({
     if (propAssetKey || (standalonePropAsset?.loaded && standalonePropAsset.image)) {
       const placementPreset = getStoryPropPlacementPreset(propForAsset) || {};
       const propSize = {
-        ...(PROP_GROUNDING_CONFIG[propForAsset.type] || { width: 72, height: 72, yOffset: 0, alpha: 0.78, depth: 'midground', tint: 'warm' }),
+        ...(PROP_GROUNDING_CONFIG[propForAsset.type] || { width: 72, height: 72, yOffset: 0, alpha: 1, depth: 'midground', tint: 'warm' }),
         ...(STORY_PROP_GROUNDING_OVERRIDES[prop.id] || {}),
         ...placementPreset,
         ...(Number.isFinite(propForAsset.width) ? { width: propForAsset.width } : {}),
@@ -10062,7 +10062,7 @@ export default function ExpeditionJourney({
       const drawY = anchorY - propSize.height * propGrounding.contactRatio;
       const shouldDrawPropShadow = propGrounding.shadowOpacity > 0;
       drawPropGroundContact(ctx, x, anchorY, propSize, section.id, propGrounding);
-      ctx.globalAlpha = propSize.alpha ?? 0.82;
+      ctx.globalAlpha = propSize.alpha ?? 1;
       const propColorFilter = (() => {
         if (propSize.colorGradeFilter) return propSize.colorGradeFilter;
         if (propSize.sceneBlend === 'desert-entry-sand') return 'sepia(12%) saturate(88%) brightness(92%) contrast(98%)';
