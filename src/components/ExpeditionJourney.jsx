@@ -10004,41 +10004,31 @@ export default function ExpeditionJourney({
       const shouldDrawPropShadow = propGrounding.shadowOpacity > 0;
       drawPropGroundContact(ctx, x, anchorY, propSize, section.id, propGrounding);
       ctx.globalAlpha = propSize.alpha ?? 0.82;
-      if (propSize.colorGradeFilter) {
-        ctx.filter = propSize.colorGradeFilter;
-        if (shouldDrawPropShadow) {
+      const propColorFilter = (() => {
+        if (propSize.colorGradeFilter) return propSize.colorGradeFilter;
+        if (propSize.sceneBlend === 'desert-entry-sand') return 'sepia(12%) saturate(88%) brightness(92%) contrast(98%)';
+        if (propSize.tint === 'stone') return 'sepia(8%) saturate(78%) brightness(90%)';
+        if (propSize.tint === 'cool') return 'saturate(62%) brightness(78%) contrast(90%)';
+        if (propSize.tint === 'dust') return 'sepia(20%) saturate(58%) brightness(84%) contrast(88%)';
+        if (propSize.tint === 'buried-stone') return 'sepia(28%) saturate(72%) brightness(78%) contrast(88%)';
+        if (propSize.tint === 'warm') return 'sepia(10%) saturate(86%) brightness(92%)';
+        return 'none';
+      })();
+      if (propColorFilter && propColorFilter !== 'none') ctx.filter = propColorFilter;
+      if (shouldDrawPropShadow) {
+        if (propSize.colorGradeFilter) {
           ctx.shadowColor = 'rgba(57, 32, 12, 0.24)';
           ctx.shadowBlur = 3;
           ctx.shadowOffsetY = 2;
-        }
-      } else if (propSize.sceneBlend === 'desert-entry-sand') {
-        ctx.filter = 'sepia(12%) saturate(88%) brightness(92%) contrast(98%)';
-        if (shouldDrawPropShadow) {
+        } else if (propSize.sceneBlend === 'desert-entry-sand') {
           ctx.shadowColor = 'rgba(57, 32, 12, 0.28)';
           ctx.shadowBlur = 4;
           ctx.shadowOffsetY = 2;
-        }
-      } else if (propSize.depth === 'route-edge') {
-        ctx.filter = 'sepia(8%) saturate(118%) brightness(96%) contrast(118%)';
-        if (shouldDrawPropShadow) {
+        } else if (propSize.depth === 'route-edge') {
           ctx.shadowColor = 'rgba(35, 21, 10, 0.62)';
           ctx.shadowBlur = 10;
           ctx.shadowOffsetY = 3;
         }
-      } else if (propSize.tint === 'stone') {
-        ctx.filter = propSize.depth === 'background'
-          ? 'sepia(14%) saturate(62%) brightness(82%) contrast(92%)'
-          : 'sepia(8%) saturate(78%) brightness(90%)';
-      } else if (propSize.tint === 'cool') {
-        ctx.filter = 'saturate(62%) brightness(78%) contrast(90%)';
-      } else if (propSize.tint === 'dust') {
-        ctx.filter = 'sepia(20%) saturate(58%) brightness(84%) contrast(88%)';
-      } else if (propSize.tint === 'buried-stone') {
-        ctx.filter = 'sepia(28%) saturate(72%) brightness(78%) contrast(88%)';
-      } else {
-        ctx.filter = propSize.depth === 'background'
-          ? 'sepia(18%) saturate(62%) brightness(84%) contrast(92%)'
-          : 'sepia(10%) saturate(86%) brightness(92%)';
       }
       if (Number.isFinite(propSize.brightness) && propSize.brightness !== 1) {
         const baseFilter = ctx.filter && ctx.filter !== 'none' ? `${ctx.filter} ` : '';

@@ -2081,6 +2081,17 @@ test('route props stay out of the opening pyramid facade and use the grounded ru
   assert.match(journeyComponentSource, /if \(placementPreset\?\.depth\) return placementPreset\.depth;/);
 });
 
+test('story prop depth changes preserve the original asset colour grade', () => {
+  const drawStoryPropSource = getComponentFunctionSource('drawStoryProp');
+
+  assert.match(drawStoryPropSource, /const propColorFilter = \(\(\) => \{/);
+  assert.match(drawStoryPropSource, /if \(propSize\.tint === 'stone'\) return 'sepia\(8%\) saturate\(78%\) brightness\(90%\)'/);
+  assert.match(drawStoryPropSource, /if \(propColorFilter && propColorFilter !== 'none'\) ctx\.filter = propColorFilter;/);
+  assert.doesNotMatch(drawStoryPropSource, /ctx\.filter = propSize\.depth === 'background'/);
+  assert.doesNotMatch(drawStoryPropSource, /ctx\.filter = 'sepia\(8%\) saturate\(118%\) brightness\(96%\) contrast\(118%\)'/);
+  assert.match(drawStoryPropSource, /else if \(propSize\.depth === 'route-edge'\)[\s\S]*?ctx\.shadowColor = 'rgba\(35, 21, 10, 0\.62\)'/);
+});
+
 test('opening pyramid zone only contains the intentional first-screen stairway platforms', () => {
   const platforms = extractExportedArray('PLATFORMS');
   const allowedOpeningLabels = new Set([
