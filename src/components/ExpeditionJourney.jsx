@@ -13441,53 +13441,88 @@ export default function ExpeditionJourney({
       if (effect.type === 'venom-spit') {
         const targetX = (effect.targetX ?? effect.x) - cameraX;
         const targetY = effect.targetY ?? y;
-        const direction = targetX >= x ? 1 : -1;
+        const arcH = effect.arcHeight || 42;
         const travel = 1 - progress;
         const spitX = x + (targetX - x) * travel;
-        const arcLift = Math.sin(travel * Math.PI) * (effect.arcHeight || 42);
+        const arcLift = Math.sin(travel * Math.PI) * arcH;
         const spitY = y + (targetY - y) * travel - arcLift;
-        const blobAlpha = Math.max(0, progress * 0.88 + 0.12);
 
-        // Outer glow aura
-        ctx.globalAlpha = Math.max(0, progress * 0.42);
-        const aura = ctx.createRadialGradient(spitX, spitY, 2, spitX, spitY, 18);
-        aura.addColorStop(0, 'rgba(195, 88, 14, 0.7)');
-        aura.addColorStop(1, 'rgba(140, 55, 8, 0)');
+        // Motion-aware angle from arc tangent
+        const sampleDt = 0.015;
+        const t2 = Math.min(1, travel + sampleDt);
+        const nx = x + (targetX - x) * t2;
+        const ny = y + (targetY - y) * t2 - Math.sin(t2 * Math.PI) * arcH;
+        const motionAngle = Math.atan2(ny - spitY, nx - spitX);
+
+        // Organic pulse — blobs wobble as they fly
+        const wobble = 1 + 0.09 * Math.sin(travel * 13);
+        const blobAlpha = Math.min(1, Math.max(0, progress * 0.9 + 0.1));
+
+        // Outer glow aura aligned to motion
+        ctx.globalAlpha = Math.max(0, progress * 0.40);
+        const aura = ctx.createRadialGradient(spitX, spitY, 2, spitX, spitY, 20);
+        aura.addColorStop(0, 'rgba(210, 95, 18, 0.68)');
+        aura.addColorStop(0.5, 'rgba(165, 62, 10, 0.28)');
+        aura.addColorStop(1, 'rgba(120, 40, 5, 0)');
         ctx.fillStyle = aura;
         ctx.beginPath();
-        ctx.ellipse(spitX, spitY, 18, 11, direction * -0.22, 0, Math.PI * 2);
+        ctx.ellipse(spitX, spitY, 20 * wobble, 12 * wobble, motionAngle, 0, Math.PI * 2);
         ctx.fill();
 
-        // Main blob
+        // Dark outer shell — gives depth and edge definition
+        ctx.globalAlpha = blobAlpha * 0.94;
+        ctx.fillStyle = '#7a3008';
+        ctx.shadowColor = 'rgba(215, 92, 15, 0.95)';
+        ctx.shadowBlur = 11 + progress * 10;
+        ctx.beginPath();
+        ctx.ellipse(spitX, spitY, 13 * wobble, 7.2 * wobble, motionAngle, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Mid amber body
+        ctx.shadowBlur = 0;
         ctx.globalAlpha = blobAlpha;
         ctx.fillStyle = '#c45a14';
-        ctx.shadowColor = 'rgba(210, 95, 18, 0.92)';
-        ctx.shadowBlur = 10 + progress * 8;
         ctx.beginPath();
-        ctx.ellipse(spitX, spitY, 11, 6, direction * -0.22, 0, Math.PI * 2);
+        ctx.ellipse(spitX, spitY, 11 * wobble, 6 * wobble, motionAngle, 0, Math.PI * 2);
         ctx.fill();
 
-        // Bright core highlight
-        ctx.shadowBlur = 0;
-        ctx.globalAlpha = Math.max(0, progress * 0.72);
+        // Inner bright layer
+        const hOffX = Math.cos(motionAngle - Math.PI * 0.5) * 1.6;
+        const hOffY = Math.sin(motionAngle - Math.PI * 0.5) * 1.6;
+        ctx.globalAlpha = blobAlpha * 0.90;
         ctx.fillStyle = '#e8841c';
         ctx.beginPath();
-        ctx.ellipse(spitX - direction * 2.5, spitY - 1.5, 5.5, 3, direction * -0.22, 0, Math.PI * 2);
+        ctx.ellipse(
+          spitX - Math.cos(motionAngle) * 2 + hOffX,
+          spitY - Math.sin(motionAngle) * 2 + hOffY,
+          5.8 * wobble, 3.2 * wobble, motionAngle, 0, Math.PI * 2,
+        );
         ctx.fill();
 
-        // Trailing drops — offset behind the blob
+        // Specular highlight — small bright spot at leading top edge
+        ctx.globalAlpha = blobAlpha * 0.68;
+        ctx.fillStyle = 'rgba(255, 216, 140, 0.92)';
+        ctx.beginPath();
+        ctx.ellipse(
+          spitX - Math.cos(motionAngle) * 3.5 + hOffX * 1.6,
+          spitY - Math.sin(motionAngle) * 3.5 + hOffY * 1.6,
+          2.6 * wobble, 1.4 * wobble, motionAngle, 0, Math.PI * 2,
+        );
+        ctx.fill();
+
+        // Trailing drops — offset along motion axis, slight downward sag
         for (let i = 0; i < 5; i += 1) {
-          const trailDist = 10 + i * 9;
-          const trailX = spitX - direction * trailDist * (0.4 + travel * 0.6);
-          const trailY = spitY + Math.sin(i * 1.2 + travel * 4) * 2.5;
-          const trailAlpha = Math.max(0, progress * (0.58 - i * 0.10));
-          const rx = Math.max(0.8, 5.5 - i * 0.85);
+          const trailDist = 13 + i * 10;
+          const tX = spitX - Math.cos(motionAngle) * trailDist;
+          const tY = spitY - Math.sin(motionAngle) * trailDist + i * 1.4;
+          const trailAlpha = Math.max(0, progress * (0.56 - i * 0.09));
+          const rx = Math.max(0.6, 5.2 - i * 0.88);
           ctx.globalAlpha = trailAlpha;
-          ctx.fillStyle = i < 2 ? '#a84a10' : '#7a3610';
-          ctx.shadowColor = 'rgba(180, 75, 12, 0.5)';
-          ctx.shadowBlur = i < 2 ? 5 : 0;
+          ctx.fillStyle = i < 2 ? '#b05010' : '#7a3610';
+          ctx.shadowColor = i < 2 ? 'rgba(185, 82, 16, 0.55)' : 'transparent';
+          ctx.shadowBlur = i < 2 ? 4 : 0;
           ctx.beginPath();
-          ctx.ellipse(trailX, trailY, rx, rx * 0.56, direction * -0.15, 0, Math.PI * 2);
+          ctx.ellipse(tX, tY, rx, rx * 0.56, motionAngle, 0, Math.PI * 2);
           ctx.fill();
         }
 
