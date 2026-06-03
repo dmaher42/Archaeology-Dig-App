@@ -16116,6 +16116,10 @@ export default function ExpeditionJourney({
       const crossedEvent = (previousPlayer.x <= ev.x && player.x >= ev.x) || (previousPlayer.x >= ev.x && player.x <= ev.x);
       if (!current.triggeredEnvironmentEventIds.has(ev.id) && (Math.abs(player.x - ev.x) < triggerRange || crossedEvent)) {
         current.triggeredEnvironmentEventIds.add(ev.id);
+        if (ev.id === 'air-wrongness') {
+          audioControls?.playExpeditionSfx?.('airWrongness');
+          return;
+        }
         if (ev.dynamic || ev.card === false) {
           current.dynamicEnvironmentEvent = ev;
           current.dynamicEnvironmentEventTimer = ev.duration;
@@ -16138,6 +16142,21 @@ export default function ExpeditionJourney({
         }
       }
     });
+
+    // Recurring underground pressure pulse — active once player passes the lair threshold
+    // X(1953) = Math.round(1953 * 5.65) = 11034
+    if (!inInteriorChamberScene && player.x > 11034) {
+      if (current.pressurePulseTimer == null) {
+        current.pressurePulseTimer = 20 + Math.random() * 25;
+      }
+      current.pressurePulseTimer -= dt;
+      if (current.pressurePulseTimer <= 0) {
+        audioControls?.playExpeditionSfx?.('earthPressurePulse');
+        current.pressurePulseTimer = 45 + Math.random() * 45;
+      }
+    } else if (player.x <= 11034) {
+      current.pressurePulseTimer = null;
+    }
 
     const forgottenMuralPlayerCenterX = player.x + player.width / 2;
     const forgottenMuralPlayerFootY = player.y + player.height;

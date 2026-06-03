@@ -1641,6 +1641,7 @@ export const ENVIRONMENT_EVENTS = [
   { id: 'sand-gust', sectionId: 'desert-entry', x: X(520), name: 'Sand Gust', message: 'A sheet of sand sweeps across the entry route.', type: 'gust', duration: 2.4, shake: 0.4 },
   { id: 'opening-scarab-seal-climb', sectionId: 'desert-entry', x: X(95), name: 'Scarab Seal Climb', message: 'The first stones overlook a low spike reset trap.', type: 'arrival', duration: 2.2, shake: 0.05, card: false },
   { id: 'desert-distant-rockfall', sectionId: 'desert-entry', x: X(1580), name: 'Distant Rockfall', message: 'Stone shifts somewhere beyond the ridge.', type: 'rockfall', duration: 2.8, shake: 0.18, dynamic: true, card: false },
+  { id: 'air-wrongness', sectionId: 'desert-entry', x: X(1750), type: 'air-wrongness' },
   { id: 'scarab-queen-lair-dread-wind', sectionId: 'desert-entry', x: X(1953), name: 'Lair Wind', message: 'A low wind pulls sand toward something buried ahead.', type: 'dust-gust', duration: 4.2, shake: 0.18, dynamic: true, card: false },
   { id: 'desert-birds-scatter', sectionId: 'desert-entry', x: X(2075), name: 'Birds Scatter', message: 'Birds scatter from the far ruins.', type: 'birds-scatter', duration: 2.4, shake: 0.08, dynamic: true, card: false },
   { id: 'desert-marker', sectionId: 'desert-entry', x: X(700), name: 'Threshold Marker', message: 'A jackal guardian marks the threshold into the ancient site.', type: 'arrival', duration: 2.2, shake: 0.1 },

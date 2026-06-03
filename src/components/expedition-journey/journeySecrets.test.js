@@ -1778,6 +1778,19 @@ test('opening Scarab Seal becomes a restrained false-discovery threshold scene',
   assert.match(journeyComponentSource, /OPENING_SCARAB_SEAL_IMAGE_SRC = 'assets\/expedition\/environment\/egypt-opening\/scarab-seal-ground-embedded\.png'/);
   assert.match(journeyComponentSource, /openingScarabSealImageRef/);
   assert.doesNotMatch(journeyComponentSource, /prop\.id === 'early-scarab-seal-pedestal' \|\| prop\.id === 'early-scarab-seal'/);
+  const openingPyramidFacadeSource = getComponentFunctionSource('drawOpeningPyramidFacade');
+  assert.match(journeyComponentSource, /getOpeningScarabSealGlowAnchor = useCallback/);
+  assert.match(journeyComponentSource, /getRenderableStoryProps\(current\)\.find\(prop => prop\.id === 'early-scarab-seal'\)/);
+  assert.match(journeyComponentSource, /getStoryPropEditorBounds\(openingScarabSealProp, cameraX, current\)/);
+  assert.match(openingPyramidFacadeSource, /const glowAnchor = getOpeningScarabSealGlowAnchor\(stateRef\.current, cameraX\)/);
+  assert.match(openingPyramidFacadeSource, /glowAnchor\.x/);
+  assert.match(openingPyramidFacadeSource, /glowAnchor\.y/);
+  assert.doesNotMatch(openingPyramidFacadeSource, /const scarabSealX = worldToScreenX\(SCARAB_SEAL_TRIGGER\.x, cameraX\)/);
+  assert.doesNotMatch(openingPyramidFacadeSource, /const beaconY = SCARAB_SEAL_TRIGGER\.y - 44/);
+  assert.match(openingPyramidFacadeSource, /sealHaloGradient/);
+  assert.match(openingPyramidFacadeSource, /ctx\.setLineDash\(\[10, 14\]\)/);
+  assert.doesNotMatch(openingPyramidFacadeSource, /drawOpeningPyramidAssetRegion\(ctx,\s*'pedestal'/);
+  assert.doesNotMatch(openingPyramidFacadeSource, /drawOpeningPyramidAssetRegion\(ctx,\s*'seal'/);
   assert.match(journeyComponentSource, /'opening-seal-reset-trap':\s*'spikeTrap'/);
   assert.doesNotMatch(journeyComponentSource, /ctx\.drawImage\(trapSealImage\.image/);
   assert.match(events, /id:\s*'opening-scarab-seal-climb'/);
@@ -3288,13 +3301,16 @@ test('Egypt atmosphere prop pack is registered and drawn through existing story 
 });
 
 test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, and atlas regions', () => {
-  assert.equal(lostSitePropRegistry.length, 48);
+  assert.equal(lostSitePropRegistry.length, 51);
   const registryIds = new Set(lostSitePropRegistry.map(entry => entry.id));
   assert.ok(registryIds.has('standingPillar'), 'standing column should be available in the prop editor');
   assert.ok(registryIds.has('stoneDoorFrame'), 'temple arch should be available in the prop editor');
   assert.ok(registryIds.has('routeGateFront'), 'route gate front should be available in the prop editor');
   assert.ok(registryIds.has('routeGateBack'), 'route gate back should be available in the prop editor');
   assert.ok(registryIds.has('routeGateSlab'), 'route gate slab should be available in the prop editor');
+  assert.ok(registryIds.has('ledgeHelperCarvedMasonryClimb'), 'carved masonry ledge helper should be available in the prop editor');
+  assert.ok(registryIds.has('ledgeHelperExcavationAssistKit'), 'excavation assist ledge helper should be available in the prop editor');
+  assert.ok(registryIds.has('ledgeHelperBlendedRuinLedge'), 'blended ruin ledge helper should be available in the prop editor');
 
   const categories = new Set(lostSitePropRegistry.map(entry => entry.category));
   [
@@ -3305,6 +3321,7 @@ test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, an
     'Environmental Storytelling Props',
     'Trap-Related Props',
     'Premium Floor Kit',
+    'Ledge Helpers',
   ].forEach(category => assert.ok(categories.has(category), `${category} should be represented`));
 
   const premiumFloorKitIds = new Set([

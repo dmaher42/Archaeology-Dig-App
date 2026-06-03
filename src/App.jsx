@@ -265,6 +265,16 @@ const EXPEDITION_AUDIO_TRACKS = {
         { path: 'assets/expedition/sfx/opening/opening-deep-rumble.ogg', volume: 0.11, delay: 9800, playbackRate: 0.34 },
       ],
     },
+    earthPressurePulse: {
+      synth: 'earthPressurePulse',
+      synthVolume: 1.4,
+      cooldownMs: 40000,
+    },
+    airWrongness: {
+      synth: 'airWrongness',
+      synthVolume: 1.0,
+      cooldownMs: 180000,
+    },
     openingThresholdFall: {
       cooldownMs: 12000,
       clips: [
@@ -910,6 +920,29 @@ const playExpeditionSyntheticSfx = (type, options = {}) => {
     makeToneHit({ frequency: 68, endFrequency: 32, gain: 0.075, duration: 0.26 });
     makeNoiseBurst({ duration: 0.18, frequency: 1800, endFrequency: 640, q: 1.1, gain: 0.052, delay: 0.032 });
     makeNoiseBurst({ duration: 0.12, frequency: 3200, endFrequency: 1200, q: 1.8, gain: 0.030, delay: 0.055 });
+    return;
+  }
+  if (type === 'earthPressurePulse') {
+    makeToneHit({ frequency: 58, endFrequency: 28, gain: 0.09, duration: 0.55, wave: 'sine' });
+    makeNoiseBurst({ duration: 0.32, frequency: 110, endFrequency: 62, q: 0.68, gain: 0.06 });
+    makeToneHit({ frequency: 82, endFrequency: 44, gain: 0.038, duration: 0.42, wave: 'sine', delay: 0.04 });
+    return;
+  }
+  if (type === 'airWrongness') {
+    const tone = audioCtx.createOscillator();
+    tone.type = 'sine';
+    tone.frequency.setValueAtTime(1400, now);
+    tone.frequency.exponentialRampToValueAtTime(3100, now + 1.72);
+    const toneGain = audioCtx.createGain();
+    toneGain.gain.setValueAtTime(0.0001, now);
+    toneGain.gain.linearRampToValueAtTime(0.016 * volume, now + 0.24);
+    toneGain.gain.setValueAtTime(0.016 * volume, now + 1.70);
+    toneGain.gain.setValueAtTime(0.0001, now + 1.73);
+    tone.connect(toneGain);
+    toneGain.connect(audioCtx.destination);
+    tone.start(now);
+    tone.stop(now + 1.76);
+    makeNoiseBurst({ duration: 0.05, frequency: 4200, endFrequency: 6000, q: 2.4, gain: 0.006, delay: 1.71, type: 'highpass' });
     return;
   }
 };
