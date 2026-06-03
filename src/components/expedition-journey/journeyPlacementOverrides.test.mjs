@@ -82,6 +82,29 @@ test('normalizeJourneyPlacementExportForOverrides keeps pasted trap exports in t
   ]);
 });
 
+test('normalizeJourneyPlacementExportForOverrides dedupes repeated editor item ids', () => {
+  const normalized = normalizeJourneyPlacementExportForOverrides({
+    room: 'desert-entry',
+    platforms: [
+      { id: 'platform-a', x: 10, y: 20, width: 80 },
+      { id: 'platform-b', x: 30, y: 40, width: 90 },
+      { id: 'platform-a', x: 14, y: 24, width: 84 },
+    ],
+    props: [
+      { id: 'prop-a', x: 1 },
+      { id: 'prop-a', x: 2 },
+    ],
+  });
+
+  assert.deepEqual(normalized.platforms, [
+    { id: 'platform-a', x: 14, y: 24, width: 84 },
+    { id: 'platform-b', x: 30, y: 40, width: 90 },
+  ]);
+  assert.deepEqual(normalized.props, [
+    { id: 'prop-a', x: 2 },
+  ]);
+});
+
 test('journeyDataRouter exposes editor overrides while journeyLevelData keeps authored base placement', () => {
   setExpeditionJourneyCiv('Ancient Egypt');
 

@@ -1042,6 +1042,18 @@ export const STORY_PROPS = [
   { id: 'early-scarab-seal', sectionId: 'desert-entry', type: 'guardian-seal', x: 925, y: JY(-164), label: 'Sacred Scarab Seal opening warning trigger' },
   { id: 'desert-boundary-marker', sectionId: 'desert-entry', type: 'guardian-seal', x: X(650), y: JY(312), label: 'ancient boundary seal' },
   {
+    id: 'opening-pyramid-facade-structure',
+    sectionId: 'desert-entry',
+    type: 'generated-opening-pyramid-facade',
+    x: 522,
+    y: -4,
+    width: 1208,
+    height: 664,
+    depth: 'midground',
+    alpha: 0.98,
+    label: 'editable opening pyramid facade landmark with scarab seal approach',
+  },
+  {
     id: 'mummification-chamber-exterior-structure',
     sectionId: 'desert-entry',
     type: 'generated-mummification-chamber-entrance',

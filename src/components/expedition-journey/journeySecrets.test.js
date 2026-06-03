@@ -582,7 +582,7 @@ test('journey placement export can merge trap position updates', () => {
 test('journey editor prioritises platform selection over building props', () => {
   assert.match(
     journeyComponentSource,
-    /const selectedSolidPlatform = selectedHazard \|\| selectedLair \|\| selectedCheckpoint \|\| selectedArch[\s\S]{0,180}findEditablePlatformAt\(pointer\.screenX, pointer\.screenY, \{ includeFloors: false \}\);[\s\S]{0,220}const selectedProp = selectedHazard \|\| selectedLair \|\| selectedCheckpoint \|\| selectedArch \|\| selectedSolidPlatform \? null : findEditableStoryPropAt\(pointer\.screenX, pointer\.screenY\);/,
+    /const selectedSolidPlatform = selectedHazard \|\| selectedLair \|\| selectedCheckpoint \|\| selectedArch \|\| selectedForcedFloor[\s\S]{0,180}findEditablePlatformAt\(pointer\.screenX, pointer\.screenY, \{ includeFloors: false \}\);[\s\S]{0,260}const selectedProp = selectedHazard \|\| selectedLair \|\| selectedCheckpoint \|\| selectedArch \|\| selectedForcedFloor \|\| selectedSolidPlatform \? null : findEditableStoryPropAt\(pointer\.screenX, pointer\.screenY\);/,
   );
   assert.match(
     journeyComponentSource,
@@ -591,10 +591,12 @@ test('journey editor prioritises platform selection over building props', () => 
 });
 
 test('journey editor prioritises trap selection above platforms and building props', () => {
-  const hazardSelectionIndex = journeyComponentSource.indexOf('const selectedHazard = findEditableHazardAt(pointer.screenX, pointer.screenY);');
-  const platformSelectionIndex = journeyComponentSource.indexOf('const selectedSolidPlatform = selectedHazard || selectedLair || selectedCheckpoint || selectedArch');
-  const propSelectionIndex = journeyComponentSource.indexOf('const selectedProp = selectedHazard || selectedLair || selectedCheckpoint || selectedArch || selectedSolidPlatform ? null : findEditableStoryPropAt(pointer.screenX, pointer.screenY);');
-  assert.ok(hazardSelectionIndex > -1, 'hazard selection should be checked first');
+  const floorSelectionIndex = journeyComponentSource.indexOf('const selectedForcedFloor = editor.floorPickMode');
+  const hazardSelectionIndex = journeyComponentSource.indexOf('const selectedHazard = selectedForcedFloor ? null : findEditableHazardAt(pointer.screenX, pointer.screenY);');
+  const platformSelectionIndex = journeyComponentSource.indexOf('const selectedSolidPlatform = selectedHazard || selectedLair || selectedCheckpoint || selectedArch || selectedForcedFloor');
+  const propSelectionIndex = journeyComponentSource.indexOf('const selectedProp = selectedHazard || selectedLair || selectedCheckpoint || selectedArch || selectedForcedFloor || selectedSolidPlatform ? null : findEditableStoryPropAt(pointer.screenX, pointer.screenY);');
+  assert.ok(floorSelectionIndex > -1, 'floor override should be checked before crowded editor layers');
+  assert.ok(hazardSelectionIndex > floorSelectionIndex, 'hazard selection should still run before normal platforms when no floor is forced');
   assert.ok(platformSelectionIndex > hazardSelectionIndex, 'platform selection should be blocked by selected hazards');
   assert.ok(propSelectionIndex > platformSelectionIndex, 'prop selection should be blocked by selected hazards and platforms');
   assert.match(
@@ -644,9 +646,21 @@ test('journey editor exposes floor platforms without blocking prop selection', (
     assert.match(platforms, new RegExp(`id:\\s*'${platformId}'[\\s\\S]*?y:\\s*GROUND_Y`));
   });
   assert.match(journeyComponentSource, /const isJourneyFloorPlatform = \(platform = \{\}\) =>/);
-  assert.match(journeyComponentSource, /const selectedFloor = selectedHazard \|\| selectedLair \|\| selectedCheckpoint \|\| selectedArch \|\| selectedSolidPlatform \|\| selectedProp[\s\S]{0,180}findEditablePlatformAt\(pointer\.screenX, pointer\.screenY, \{ floorOnly: true \}\);/);
+  assert.match(journeyComponentSource, /const selectedFallbackFloor = editor\.floorPickMode \|\| selectedHazard \|\| selectedLair \|\| selectedCheckpoint \|\| selectedArch \|\| selectedSolidPlatform \|\| selectedProp[\s\S]{0,180}findEditablePlatformAt\(pointer\.screenX, pointer\.screenY, \{ floorOnly: true \}\);/);
   assert.match(journeyComponentSource, /category: isJourneyFloorPlatform\(platform\) \? 'Floor' : 'Platform'/);
   assert.match(journeyComponentSource, /No prop, structure, trap, platform, floor, arch, lair, or checkpoint selected/);
+});
+
+test('journey editor can force-pick floor platforms for moving collision floors', () => {
+  assert.match(journeyComponentSource, /floorPickMode:\s*false/);
+  assert.match(journeyComponentSource, /floorPickMode:\s*editor\.floorPickMode/);
+  assert.match(journeyComponentSource, /propPlacementEditorRef\.current\.floorPickMode = !propPlacementEditorRef\.current\.floorPickMode/);
+  assert.match(journeyComponentSource, />\s*Floors\s*</);
+  assert.match(journeyComponentSource, /const selectedForcedFloor = editor\.floorPickMode[\s\S]{0,180}findEditablePlatformAt\(pointer\.screenX, pointer\.screenY, \{ floorOnly: true \}\)/);
+  assert.match(journeyComponentSource, /const selectedHazard = selectedForcedFloor \? null : findEditableHazardAt\(pointer\.screenX, pointer\.screenY\);/);
+  assert.match(journeyComponentSource, /const selectedSolidPlatform = selectedHazard \|\| selectedLair \|\| selectedCheckpoint \|\| selectedArch \|\| selectedForcedFloor[\s\S]{0,180}findEditablePlatformAt\(pointer\.screenX, pointer\.screenY, \{ includeFloors: false \}\);/);
+  assert.match(journeyComponentSource, /const selectedFallbackFloor = editor\.floorPickMode \|\| selectedHazard \|\| selectedLair \|\| selectedCheckpoint \|\| selectedArch \|\| selectedSolidPlatform \|\| selectedProp[\s\S]{0,180}findEditablePlatformAt\(pointer\.screenX, pointer\.screenY, \{ floorOnly: true \}\);/);
+  assert.match(journeyComponentSource, /const selectedPlatform = selectedForcedFloor \|\| selectedSolidPlatform \|\| selectedFallbackFloor;/);
 });
 
 test('journey editor prop palette exposes premium modular floor kit inserts', () => {
@@ -1260,8 +1274,8 @@ test('mummification chamber exterior reuses Journey routes, ledges, assets, and 
   assert.ok(platforms.indexOf("id: 'mummification-chamber-doorway-floor'") < platforms.indexOf("id: 'forgotten-mural-carved-wall-ledge'"));
   assert.match(journeyUtilsSource, /mummificationChamberEntranceDiscovered:\s*false/);
   assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_EXTERIOR_SRC = 'assets\/expedition\/environment\/desert-temple\/mummification-chamber-exterior-climb-structure\.png'/);
-  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?minX:\s*scaleJourneyX\(720\)[\s\S]*?maxX:\s*scaleJourneyX\(748\)/);
-  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?footY:\s*openingJourneyY\(-222\)[\s\S]*?footTolerance:\s*22/);
+  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?minX:\s*scaleJourneyX\(720\)[\s\S]*?maxX:\s*scaleJourneyX\(760\)/);
+  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?footY:\s*openingJourneyY\(-156\)[\s\S]*?footTolerance:\s*28/);
   assert.match(journeyComponentSource, /drawMummificationChamberExteriorAsset/);
   assert.match(journeyComponentSource, /drawMummificationChamberExteriorAsset[\s\S]*?drawEgyptStructureGroundContactLayer/);
   assert.match(journeyComponentSource, /prop\.type === 'generated-mummification-chamber-entrance'/);
@@ -1991,12 +2005,18 @@ test('opening pyramid marked ledges use a scoped double-jump assist instead of e
 });
 
 test('opening pyramid facade stays active as the opening gameplay landmark', () => {
+  const storyProps = extractExportedArray('STORY_PROPS');
   assert.match(journeyComponentSource, /OPENING_PYRAMID_FACADE_WORLD_LEFT_X\s*=\s*-82/);
+  assert.match(storyProps, /id:\s*'opening-pyramid-facade-structure'[\s\S]*?type:\s*'generated-opening-pyramid-facade'[\s\S]*?width:\s*1208[\s\S]*?height:\s*664/);
+  assert.match(journeyComponentSource, /GENERATED_STORY_PROP_BOUNDS[\s\S]*?'generated-opening-pyramid-facade':\s*\{\s*width:\s*1208,\s*height:\s*664\s*\}/);
+  assert.match(journeyComponentSource, /GENERATED_STORY_PROP_PREVIEW_SOURCES[\s\S]*?'generated-opening-pyramid-facade'[\s\S]*?OPENING_PYRAMID_FACADE_SRC/);
+  assert.match(journeyComponentSource, /const openingPyramidFacadeProp = getRenderableStoryProps\(current\)\.find\(prop => prop\.id === 'opening-pyramid-facade-structure'\)/);
+  assert.match(journeyComponentSource, /drawOpeningPyramidFacade\(ctx, cameraX, now, openingPyramidFacadeProp\)/);
   assert.match(
     journeyComponentSource,
-    /if \(x > CANVAS_WIDTH \+ 80 \|\| x \+ width < -80\) return false;[\s\S]*?ctx\.globalAlpha = 0\.98;/,
+    /if \(x > CANVAS_WIDTH \+ 80 \|\| x \+ width < -80\) return false;[\s\S]*?ctx\.globalAlpha = Number\.isFinite\(renderProp\.alpha\) \? renderProp\.alpha : 0\.98;/,
   );
-  assert.match(journeyComponentSource, /drawOpeningPyramidMasonryBack\(ctx, cameraX, now\)/);
+  assert.match(journeyComponentSource, /drawOpeningPyramidMasonryBack\(ctx, cameraX, now, current\)/);
   assert.doesNotMatch(journeyComponentSource, /clipRight/);
   assert.doesNotMatch(journeyComponentSource, /OPENING_PYRAMID_FACADE_MIN_VISIBLE_WIDTH/);
   assert.doesNotMatch(journeyComponentSource, /OPENING_PYRAMID_FACADE_FADE_START_X/);
@@ -3867,7 +3887,8 @@ test('regular enemy families use distinct combat role timings without a new AI s
   assert.match(journeyComponentSource, /e\.attackRecovery = pattern\.recovery;[\s\S]*?e\.vulnerabilityTimer = pattern\.vulnerableAfter;/);
   assert.match(journeyComponentSource, /e\.aggroMemoryTimer = Math\.max\(e\.aggroMemoryTimer \|\| 0, ENEMY_AGGRO_MEMORY_SECONDS \* \(tacticalPattern\.aggroMemoryMultiplier \|\| 1\)\)/);
   assert.match(journeyComponentSource, /const isAggroChasing = \(e\.aggroMemoryTimer \|\| 0\) > 0/);
-  assert.match(journeyComponentSource, /const chaseSpeedMultiplier = isAggroChasing[\s\S]*?\? \(tacticalPattern\.chaseMultiplier \|\| 1\.65\) \* \(e\.type === 'scorpion' \? SCORPION_CHASE_SPEED_MULTIPLIER : 1\)[\s\S]*?: 1/);
+  assert.match(journeyComponentSource, /const slowPursuitBoost = e\.type === 'scorpion' && playerIsVenomSlowed \? 1\.48 : 1/);
+  assert.match(journeyComponentSource, /const chaseSpeedMultiplier = isAggroChasing[\s\S]*?\? \(tacticalPattern\.chaseMultiplier \|\| 1\.65\) \* \(e\.type === 'scorpion' \? SCORPION_CHASE_SPEED_MULTIPLIER \* slowPursuitBoost : 1\)[\s\S]*?: 1/);
   assert.match(journeyComponentSource, /const movementMin = isAggroChasing \? e\.patrolMin - ENEMY_AGGRO_PATROL_PADDING : e\.patrolMin/);
 });
 

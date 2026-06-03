@@ -27,6 +27,27 @@ const pickEditableFields = (item, editableFields = []) => Object.fromEntries(
     .map(field => [field, item[field]])
 );
 
+const dedupeJourneyItemsById = (items = []) => {
+  const deduped = [];
+  const indexById = new Map();
+
+  (Array.isArray(items) ? items : []).forEach((item) => {
+    const nextItem = cloneItem(item);
+    if (!nextItem?.id) {
+      deduped.push(nextItem);
+      return;
+    }
+    if (indexById.has(nextItem.id)) {
+      deduped[indexById.get(nextItem.id)] = nextItem;
+      return;
+    }
+    indexById.set(nextItem.id, deduped.length);
+    deduped.push(nextItem);
+  });
+
+  return deduped;
+};
+
 const mergeJourneyItemsById = (baseItems = [], overrideItems = [], deletedIds = [], editableFields = []) => {
   const deleted = new Set(Array.isArray(deletedIds) ? deletedIds : []);
   const overridesById = new Map((Array.isArray(overrideItems) ? overrideItems : [])
@@ -70,7 +91,13 @@ export const normalizeJourneyPlacementExportForOverrides = (exportData = {}) => 
 
   return {
     ...exportData,
-    hazards,
+    props: dedupeJourneyItemsById(exportData.props),
+    platforms: dedupeJourneyItemsById(exportData.platforms),
+    hazards: dedupeJourneyItemsById(hazards),
+    routeGates: dedupeJourneyItemsById(exportData.routeGates),
+    routeGateDoorways: dedupeJourneyItemsById(exportData.routeGateDoorways),
+    checkpoints: dedupeJourneyItemsById(exportData.checkpoints),
+    miniBosses: dedupeJourneyItemsById(exportData.miniBosses),
   };
 };
 
