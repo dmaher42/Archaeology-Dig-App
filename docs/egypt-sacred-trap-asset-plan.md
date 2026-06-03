@@ -63,17 +63,11 @@ Scope: Ancient Egypt Journey hazard, reactive platform, route gate, and story-pr
 
 ## Missing Asset Set
 
-Recommended atlas file:
+Recommended atlas status:
 
-- `public/assets/expedition/environment/desert-temple/egypt-sacred-traps-pack.png`
-- `public/assets/expedition/environment/desert-temple/egypt-sacred-traps-pack.json`
-
-Created first pack status:
-
-- `guardianSealIdle`, `guardianSealActivated`, `sacredPedestalIdle`, and `sacredPedestalActivated` now exist in the atlas above.
-- The pack is registered as a passive future environment pack id, `egypt-sacred-traps`, so the existing Journey environment loader can validate/load it by id without changing the active Egypt Journey pack.
-- The remaining pressure plate, cracked platform, falling stone, glyph tripwire, and sealed door regions are still pending.
-- The atlas is intentionally not wired into Journey gameplay yet; later passes should map these regions through the existing environment asset paths without changing collision, route, or boss logic.
+- The earlier generated `egypt-sacred-traps-pack.png` and `.json` were removed from active assets during the prop/asset quality cleanup.
+- Replacement sacred-defence art should be generated as a new approved pack before any loader wiring returns.
+- The pressure plate, cracked platform, falling stone, glyph tripwire, sealed door, Guardian Seal, and sacred pedestal regions are still pending replacement-quality art.
 
 Exact region keys:
 
@@ -136,7 +130,7 @@ Exact region keys:
 
 ## Proposed Implementation Sequence
 
-1. Generate `egypt-sacred-traps-pack.png` and JSON with the exact region keys above.
+1. Generate a replacement sacred-defence PNG and JSON with the exact region keys above.
 2. Add a small environment trap pack loader or extend the existing environment asset loader only if it can support the new pack without replacing `desert-temple-pack`.
 3. Map the most important current hazards first:
    - `sealed-sand` -> `guardianSealIdle`

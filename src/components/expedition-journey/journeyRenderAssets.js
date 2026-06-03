@@ -1,6 +1,5 @@
 export const ENVIRONMENT_ATLAS_BASE_PATH = 'assets/expedition/environment/desert-temple/';
 export const ENVIRONMENT_ATLAS_JSON = `${ENVIRONMENT_ATLAS_BASE_PATH}desert-temple-pack.json`;
-export const EGYPT_SACRED_TRAPS_ATLAS_JSON = `${ENVIRONMENT_ATLAS_BASE_PATH}egypt-sacred-traps-pack.json`;
 export const MUMMIFICATION_CHAMBER_INTERACTIONS_ATLAS_BASE_PATH = 'assets/expedition/environment/desert-temple/mummification-chamber/';
 export const MUMMIFICATION_CHAMBER_INTERACTIONS_ATLAS_JSON = `${MUMMIFICATION_CHAMBER_INTERACTIONS_ATLAS_BASE_PATH}mummification-chamber-interaction-atlas.json`;
 export const EGYPT_ATMOSPHERE_ATLAS_BASE_PATH = 'assets/expedition/environment/egypt-atmosphere/';
@@ -72,38 +71,22 @@ export const EXPECTED_CHINA_RIVER_VALLEY_ENVIRONMENT_KEYS = [
   'routeDoor',
 ];
 
-export const EXPECTED_EGYPT_SACRED_TRAP_ASSET_KEYS = [
-  'guardianSealIdle',
-  'guardianSealActivated',
-  'sacredPedestalIdle',
-  'sacredPedestalActivated',
-];
-
 export const EXPECTED_LOST_SITE_PROP_ASSET_KEYS = [
   'cracked_stone_blocks',
-  'carved_wall_fragment',
   'broken_column',
-  'standingPillar',
-  'stoneDoorFrame',
   'fallen_lintel',
-  'ruined_arch_piece',
-  'stone_steps',
   'loose_floor_tiles',
   'collapsed_doorway_pieces',
-  'numbered_evidence_markers',
   'wooden_crates',
   'excavation_brushes',
   'field_notebooks',
   'brass_lanterns',
   'coiled_ropes',
-  'measuring_poles',
   'canvas_bags',
-  'cataloguing_tags',
   'small_anubis_statue',
   'scarab_carving',
   'ram_statue_fragment',
   'canopic_jars',
-  'shabti_figures',
   'offering_bowls',
   'incense_stands',
   'broken_shrine_pieces',
@@ -119,12 +102,7 @@ export const EXPECTED_LOST_SITE_PROP_ASSET_KEYS = [
   'cracked_warning_carvings',
   'cracked_floor_tile',
   'pressure_plate',
-  'wall_dart_holes',
   'suspicious_sand_patch',
-  'ceiling_crack',
-  'rope_mechanism',
-  'stone_counterweight',
-  'scorpion_nest',
   'ledgeHelperCarvedMasonryClimb',
   'ledgeHelperExcavationAssistKit',
   'ledgeHelperBlendedRuinLedge',
@@ -150,7 +128,6 @@ export const EXPECTED_EGYPT_ATMOSPHERE_ASSET_KEYS = [
   'torchStand',
   'stoneTablet',
   'rubbleScatter',
-  'standingPillar',
   'brokenPillarTall',
   'fallenColumn',
   'pillarCaps',
@@ -160,10 +137,8 @@ export const EXPECTED_EGYPT_ATMOSPHERE_ASSET_KEYS = [
   'desertEntryPremiumStorageJars',
   'desertEntryPremiumThresholdSlab',
   'rubbleDustSmall',
-  'contactSandRubbleStrip',
   'rubbleDustBurst',
   'fallingDebris',
-  'stoneDoorFrame',
   'sealedWallPanel',
   'ankhSealPanel',
   ...EXPECTED_LOST_SITE_PROP_ASSET_KEYS,
@@ -181,9 +156,6 @@ export const EXPECTED_EGYPT_FOREGROUND_DEPTH_ASSET_KEYS = [
   'deadPalmRemnant',
   'edgePebbleScatter',
   'lowDustVeil',
-  'ruinClusterWall',
-  'ruinClusterColumnPair',
-  'ruinDoorwayArch',
   'egyptGroundSkirtLong',
   'egyptGroundSkirtShort',
   'egyptBaseSandDrift',
@@ -207,7 +179,6 @@ export const EXPECTED_EGYPT_PREMIUM_GROUND_CONTACT_ASSET_KEYS = [
 
 export const ENVIRONMENT_ASSET_PACK_IDS = {
   EGYPT_DESERT_TEMPLE: 'egypt-desert-temple',
-  EGYPT_SACRED_TRAPS: 'egypt-sacred-traps',
   MUMMIFICATION_CHAMBER_INTERACTIONS: 'mummification-chamber-interactions',
   EGYPT_ATMOSPHERE: 'egypt-atmosphere',
   EGYPT_FOREGROUND_DEPTH: 'egypt-foreground-depth',
@@ -221,12 +192,6 @@ export const ENVIRONMENT_ASSET_PACKS = {
     basePath: ENVIRONMENT_ATLAS_BASE_PATH,
     atlasPath: ENVIRONMENT_ATLAS_JSON,
     expectedKeys: EXPECTED_ENVIRONMENT_ASSET_KEYS,
-  },
-  [ENVIRONMENT_ASSET_PACK_IDS.EGYPT_SACRED_TRAPS]: {
-    id: ENVIRONMENT_ASSET_PACK_IDS.EGYPT_SACRED_TRAPS,
-    basePath: ENVIRONMENT_ATLAS_BASE_PATH,
-    atlasPath: EGYPT_SACRED_TRAPS_ATLAS_JSON,
-    expectedKeys: EXPECTED_EGYPT_SACRED_TRAP_ASSET_KEYS,
   },
   [ENVIRONMENT_ASSET_PACK_IDS.MUMMIFICATION_CHAMBER_INTERACTIONS]: {
     id: ENVIRONMENT_ASSET_PACK_IDS.MUMMIFICATION_CHAMBER_INTERACTIONS,
@@ -484,14 +449,6 @@ export const getEnvironmentAssetKeyForHazard = (hazard, packId = DEFAULT_ENVIRON
 export const getEnvironmentAssetKeyForStoryProp = (prop, packId = DEFAULT_ENVIRONMENT_ASSET_PACK_ID) => {
   if (packId === ENVIRONMENT_ASSET_PACK_IDS.EGYPT_ATMOSPHERE) {
     return prop.atmosphereAssetKey || null;
-  }
-  if (packId === ENVIRONMENT_ASSET_PACK_IDS.EGYPT_SACRED_TRAPS) {
-    return ({
-      'sacred-pedestal': 'sacredPedestalIdle',
-      'sacred-pedestal-activated': 'sacredPedestalActivated',
-      'guardian-seal': 'guardianSealIdle',
-      'guardian-seal-activated': 'guardianSealActivated',
-    }[prop.type] || null);
   }
   if (packId === ENVIRONMENT_ASSET_PACK_IDS.CHINA_RIVER_VALLEY) {
     return ({

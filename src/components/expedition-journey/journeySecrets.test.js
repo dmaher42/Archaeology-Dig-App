@@ -75,9 +75,6 @@ const egyptPlayerFallbackAtlas = JSON.parse(
 const egyptMarkerAtlas = JSON.parse(
   readFileSync(new URL('../../../public/assets/expedition/markers/egypt-checkpoint-flag-sprites.json', import.meta.url), 'utf8'),
 );
-const egyptSacredTrapAtlas = JSON.parse(
-  readFileSync(new URL('../../../public/assets/expedition/environment/desert-temple/egypt-sacred-traps-pack.json', import.meta.url), 'utf8'),
-);
 const egyptAtmosphereAtlas = JSON.parse(
   readFileSync(new URL('../../../public/assets/expedition/environment/egypt-atmosphere/egypt-atmosphere-pack.json', import.meta.url), 'utf8'),
 );
@@ -1993,7 +1990,6 @@ test('opening Scarab Seal becomes a restrained false-discovery threshold scene',
   assert.match(journeyComponentSource, /current\.seenBossIntroIds\?\.add\(boss\.id\)/);
   assert.match(journeyComponentSource, /SCARAB_SEAL_TRIGGER\.bossIntroLine/);
   assert.match(journeyComponentSource, /SCARAB_SEAL_TRIGGER\.guideFollowUpLine/);
-  assert.match(journeyComponentSource, /guardianSealActivated/);
   assert.match(hazards, /id:\s*'opening-seal-reset-trap'[\s\S]*?name:\s*'buried spike trap'[\s\S]*?x:\s*X\(250\)[\s\S]*?width:\s*87[\s\S]*?height:\s*16[\s\S]*?penalty:\s*\{\s*stamina:\s*8\s*\}/);
   assert.doesNotMatch(hazards, /id:\s*'opening-seal-reset-trap'[\s\S]*?pushToStart:\s*true/);
   assert.doesNotMatch(hazards, /id:\s*'opening-seal-reset-trap'[\s\S]*?revealedByScarabSeal:\s*true/);
@@ -2702,38 +2698,27 @@ test('Egypt opening scene uses the existing scarab seal path for a brief Anubis 
   assert.match(journeyComponentSource, /at:\s*SCARAB_SEAL_TRIGGER\.dialogueTiming\?\.\[index\]/);
 });
 
-test('Egypt sacred trap seal and pedestal pack is registered as a future asset only', () => {
-  [
-    'guardianSealIdle',
-    'guardianSealActivated',
-    'sacredPedestalIdle',
-    'sacredPedestalActivated',
-  ].forEach((key) => {
-    assert.ok(egyptSacredTrapAtlas.regions[key], `${key} should exist in the sacred trap atlas`);
-    assert.match(journeyRenderAssetsSource, new RegExp(`'${key}'`));
-  });
-
-  assert.equal(egyptSacredTrapAtlas.image, 'egypt-sacred-traps-pack.png');
-  assert.equal(egyptSacredTrapAtlas.source, 'imagegen-egypt-barrier-atlas-2026-05-20');
-  assert.match(journeyRenderAssetsSource, /EGYPT_SACRED_TRAPS:\s*'egypt-sacred-traps'/);
-  assert.match(journeyRenderAssetsSource, /EGYPT_SACRED_TRAPS_ATLAS_JSON/);
-  assert.match(journeyRenderAssetsSource, /EXPECTED_EGYPT_SACRED_TRAP_ASSET_KEYS/);
-  assert.match(expeditionStagesSource, /EGYPT_EXPEDITION_FUTURE_ASSETS/);
-  assert.match(expeditionStagesSource, /future-journey-sacred-defence/);
-  assert.match(expeditionStagesSource, /egypt-sacred-traps-pack\.json/);
-  assert.doesNotMatch(journeyComponentSource, /environmentPackId=['"]egypt-sacred-traps['"]/);
+test('low-quality generated sacred trap pack is not part of the live asset contract', () => {
+  assert.equal(
+    existsSync(new URL('../../../public/assets/expedition/environment/desert-temple/egypt-sacred-traps-pack.json', import.meta.url)),
+    false,
+  );
+  assert.equal(
+    existsSync(new URL('../../../public/assets/expedition/environment/desert-temple/egypt-sacred-traps-pack.png', import.meta.url)),
+    false,
+  );
+  assert.doesNotMatch(journeyRenderAssetsSource, /EGYPT_SACRED_TRAPS|guardianSealIdle|sacredPedestalIdle/);
+  assert.doesNotMatch(expeditionStagesSource, /egypt-sacred-traps-pack/);
+  assert.doesNotMatch(journeyComponentSource, /sacredTrapEnvironmentAssetsRef|EGYPT_SACRED_TRAPS/);
 });
 
-test('Guardian Seal passive placement uses existing story props and idle sacred defence atlas regions', () => {
+test('Guardian Seal passive placement uses existing story props without the removed sacred defence atlas', () => {
   const storyProps = extractExportedArray('STORY_PROPS');
 
   assert.match(storyProps, /id:\s*'guardian-seal-pedestal-passive'[\s\S]*?sectionId:\s*'dig-site-entrance'[\s\S]*?type:\s*'sacred-pedestal'[\s\S]*?x:\s*X\(8190\)[\s\S]*?y:\s*JY\(306\)/);
   assert.match(storyProps, /id:\s*'guardian-seal-passive'[\s\S]*?sectionId:\s*'dig-site-entrance'[\s\S]*?type:\s*'guardian-seal'[\s\S]*?x:\s*X\(8190\)[\s\S]*?y:\s*JY\(286\)/);
-  assert.match(journeyRenderAssetsSource, /'sacred-pedestal':\s*'sacredPedestalIdle'/);
-  assert.match(journeyRenderAssetsSource, /'guardian-seal':\s*'guardianSealIdle'/);
-  assert.match(journeyComponentSource, /sacredTrapEnvironmentAssetsRef/);
-  assert.match(journeyComponentSource, /packId:\s*ENVIRONMENT_ASSET_PACK_IDS\.EGYPT_SACRED_TRAPS/);
-  assert.match(journeyComponentSource, /getEnvironmentAssetKeyForStoryProp\(propForAsset,\s*ENVIRONMENT_ASSET_PACK_IDS\.EGYPT_SACRED_TRAPS\)/);
+  assert.doesNotMatch(journeyRenderAssetsSource, /'sacred-pedestal':\s*'sacredPedestalIdle'/);
+  assert.doesNotMatch(journeyRenderAssetsSource, /'guardian-seal':\s*'guardianSealIdle'/);
   assert.doesNotMatch(journeyComponentSource, /guardian-seal-trigger/);
   assert.doesNotMatch(journeyComponentSource, /guardian-seal-passive' && scarabSealActivated/);
   assert.doesNotMatch(journeyComponentSource, /guardian-seal-pedestal-passive' && scarabSealActivated/);
@@ -3374,9 +3359,7 @@ test('Egypt atmosphere prop pack is registered and drawn through existing story 
     'scrollCache',
     'torchStand',
     'rubbleScatter',
-    'standingPillar',
     'brokenPillarTall',
-    'stoneDoorFrame',
     'ankhSealPanel',
   ].forEach((key) => {
     assert.ok(egyptAtmosphereAtlas.regions[key], `${key} should exist in the atmosphere atlas`);
@@ -3418,13 +3401,12 @@ test('Egypt atmosphere prop pack is registered and drawn through existing story 
 });
 
 test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, and atlas regions', () => {
-  assert.equal(lostSitePropRegistry.length, 54);
+  assert.equal(lostSitePropRegistry.length, 39);
   const registryIds = new Set(lostSitePropRegistry.map(entry => entry.id));
-  assert.ok(registryIds.has('standingPillar'), 'standing column should be available in the prop editor');
-  assert.ok(registryIds.has('stoneDoorFrame'), 'temple arch should be available in the prop editor');
+  assert.equal(registryIds.has('standingPillar'), false, 'removed weak standing column should not be available in the prop editor');
+  assert.equal(registryIds.has('stoneDoorFrame'), false, 'removed weak temple arch should not be available in the prop editor');
   assert.ok(registryIds.has('routeGateFront'), 'route gate front should be available in the prop editor');
   assert.ok(registryIds.has('routeGateBack'), 'route gate back should be available in the prop editor');
-  assert.ok(registryIds.has('routeGateSlab'), 'route gate slab should be available in the prop editor');
   assert.ok(registryIds.has('ledgeHelperCarvedMasonryClimb'), 'carved masonry ledge helper should be available in the prop editor');
   assert.ok(registryIds.has('ledgeHelperExcavationAssistKit'), 'excavation assist ledge helper should be available in the prop editor');
   assert.ok(registryIds.has('ledgeHelperBlendedRuinLedge'), 'blended ruin ledge helper should be available in the prop editor');
@@ -3444,7 +3426,6 @@ test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, an
     'Archaeology Props',
     'Egyptian Sacred Props',
     'Environmental Storytelling Props',
-    'Trap-Related Props',
     'Premium Floor Kit',
     'Ledge Helpers',
   ].forEach(category => assert.ok(categories.has(category), `${category} should be represented`));
@@ -3459,7 +3440,6 @@ test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, an
   const standaloneRouteGateEntries = new Map([
     ['routeGateFront', 'assets/expedition/environment/egypt-opening/route-gate-front.png'],
     ['routeGateBack', 'assets/expedition/environment/egypt-opening/route-gate-back.png'],
-    ['routeGateSlab', 'assets/expedition/environment/egypt-opening/route-gate-slab.png'],
   ]);
 
   lostSitePropRegistry.forEach((entry) => {
@@ -3566,8 +3546,6 @@ test('conservative prop cleanup moves old canvas story props onto atlas-backed a
     ['pyramid-base-guardian-fragment', 'ankhSealPanel'],
     ['final-survey-lights', 'torchStand'],
     ['sealed-entrance-survey-lamps', 'torchStand'],
-    ['buried-stairway-marker', 'stoneDoorFrame'],
-    ['base-banners', 'stoneDoorFrame'],
   ];
 
   convertedProps.forEach(([propId, assetKey]) => {
@@ -3667,7 +3645,7 @@ test('desert entry foreground depth pack stays transparent, visual-only, and edg
   assert.match(foregroundAtlas.mappingNote, /terrain-level framing/i);
   assert.match(foregroundAtlas.mappingNote, /no collision/i);
   assert.match(foregroundAtlas.mappingNote, /does not replace existing artwork/i);
-  assert.match(foregroundAtlas.mappingNote, /avoid tall ghosted edge cutouts/i);
+  assert.match(foregroundAtlas.mappingNote, /avoids tall ghosted ruin-cluster cutouts/i);
   assert.match(journeyRenderAssetsSource, /EGYPT_FOREGROUND_DEPTH_ASSET_VERSION/);
   assert.match(journeyRenderAssetsSource, /EGYPT_FOREGROUND_DEPTH/);
   assert.match(journeyComponentSource, /ENABLE_FOREGROUND_DEPTH_LAYER = false/);

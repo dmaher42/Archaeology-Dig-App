@@ -13,7 +13,7 @@ All requested opening/guardian/scarab/trap planning items are complete in this l
 | Scarab Queen asset pass | Complete | `scarab-queen-sprites.png/json` regenerated in place; generator and validator scripts extended; frame keys preserved. |
 | Scarab Queen story payoff | Complete | `journeyLevelData.js` updates Scarab Queen intro/dialogue, early seal text, Desert Map Seal copy, and Brush Handle route-open message. |
 | Sacred trap asset plan | Complete | `docs/egypt-sacred-trap-asset-plan.md`. |
-| Sacred defence seal/pedestal asset pack | Complete | `public/assets/expedition/environment/desert-temple/egypt-sacred-traps-pack.png` and `.json`; validation script confirms four regions. |
+| Sacred defence seal/pedestal asset pack | Removed from active contract | The earlier generated `egypt-sacred-traps-pack` was removed during the prop/asset quality cleanup; future sacred-defence art needs a replacement-quality pack. |
 | Guardian Seal passive placement plan | Complete | `docs/guardian-seal-placement-plan.md`; final-route placement chosen near `X(7330)`. |
 | Guardian Seal passive placement | Complete | `journeyLevelData.js` adds passive `guardian-seal-pedestal-passive` and `guardian-seal-passive` story props; `ExpeditionJourney.jsx` renders idle regions through the existing story-prop path. |
 | Guardian Seal trigger plan | Complete as planning only | `docs/guardian-seal-trigger-plan.md`; trigger/awakening implementation intentionally not started. |
@@ -30,8 +30,7 @@ All requested opening/guardian/scarab/trap planning items are complete in this l
 - Scarab Queen boss assets: `public/assets/expedition/bosses/scarab-queen-sprites.png` and `.json`
 - Enemy/scarab assets: `public/assets/expedition/enemies/`
 - Environment atlas currently used by hazards/props/gates: `public/assets/expedition/environment/desert-temple/desert-temple-pack.png` and `.json`
-- Sacred defence seal/pedestal atlas: `public/assets/expedition/environment/desert-temple/egypt-sacred-traps-pack.png` and `.json`
-- Sacred defence asset scripts: `scripts/generate_egypt_sacred_trap_assets.py` and `scripts/validate_egypt_sacred_trap_assets.py`
+- Sacred defence seal/pedestal atlas: removed from active assets; replace with a new approved pack before wiring sacred-defence art again.
 - Current planning docs: `docs/egypt-sacred-trap-asset-plan.md`, `docs/guardian-seal-trigger-plan.md`, `docs/guardian-seal-placement-plan.md`, this handover note
 - Durable work log: `progress.md`
 
@@ -45,9 +44,8 @@ All requested opening/guardian/scarab/trap planning items are complete in this l
 - The Brush Handle route-open reward now says the player passed the first guardian test and should record findings before moving deeper.
 - The sacred trap plan audits all current hazards and reactive platforms, then defines the missing trap/defence asset keys and priorities.
 - The Guardian Seal trigger plan defines a future final Ancient Construct awakening feature without implementing it.
-- The first sacred defence atlas now exists with these exact region keys: `guardianSealIdle`, `guardianSealActivated`, `sacredPedestalIdle`, and `sacredPedestalActivated`.
-- The sacred defence atlas is registered as the passive/future environment pack id `egypt-sacred-traps`.
-- Passive final-route placement now shows the idle Guardian Seal and sacred pedestal near the planned final approach point using existing `STORY_PROPS` and the existing story-prop renderer.
+- The first generated sacred defence atlas was later removed from active assets because it did not meet the current visual-quality bar.
+- Passive final-route placement still uses existing `STORY_PROPS`; replacement sacred-defence art should be regenerated before atlas wiring returns.
 - The early Sacred Scarab Seal awakening beat now exists as an interactive opening climb near the Egypt entry: the player climbs to a false artefact, triggers the awakening, and gets a Scarab Queen confrontation through the existing boss intro/domain flow.
 
 ## Deliberately Not Changed
@@ -83,13 +81,10 @@ The final handover pass reran:
 - `npm.cmd run build`
 - `git diff --check`
 
-The sacred seal/pedestal handover pass also confirmed:
+Later asset cleanup note:
 
-- `scripts/validate_egypt_sacred_trap_assets.py` passes with the bundled Python runtime.
-- `guardianSealIdle` exists.
-- `guardianSealActivated` exists.
-- `sacredPedestalIdle` exists.
-- `sacredPedestalActivated` exists.
+- The earlier sacred seal/pedestal generated pack and validator script were removed from active assets.
+- `guardianSealIdle`, `guardianSealActivated`, `sacredPedestalIdle`, and `sacredPedestalActivated` remain planned replacement keys, not current runtime regions.
 
 ## Known Warnings
 

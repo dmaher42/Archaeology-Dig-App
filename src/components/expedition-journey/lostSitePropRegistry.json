@@ -15,50 +15,12 @@
     "inspectable": false
   },
   {
-    "id": "carved_wall_fragment",
-    "displayName": "Carved Wall Fragment",
-    "category": "Tomb Architecture",
-    "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/carved_wall_fragment.png",
-    "defaultScale": 1,
-    "defaultLayer": "foreground",
-    "collidable": false,
-    "inspectable": false
-  },
-  {
     "id": "broken_column",
     "displayName": "Broken Column",
     "category": "Tomb Architecture",
     "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/broken_column.png",
     "defaultScale": 1,
     "defaultLayer": "foreground",
-    "collidable": false,
-    "inspectable": false
-  },
-  {
-    "id": "standingPillar",
-    "displayName": "Standing Column",
-    "category": "Tomb Architecture",
-    "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/standing_pillar.png",
-    "defaultWidth": 74,
-    "defaultHeight": 232,
-    "defaultScale": 1,
-    "defaultLayer": "foreground",
-    "defaultDepth": "midground",
-    "defaultTint": "stone",
-    "collidable": false,
-    "inspectable": false
-  },
-  {
-    "id": "stoneDoorFrame",
-    "displayName": "Temple Arch",
-    "category": "Tomb Architecture",
-    "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/stone_door_frame.png",
-    "defaultWidth": 176,
-    "defaultHeight": 204,
-    "defaultScale": 1,
-    "defaultLayer": "foreground",
-    "defaultDepth": "midground",
-    "defaultTint": "stone",
     "collidable": false,
     "inspectable": false
   },
@@ -103,50 +65,10 @@
     "inspectable": false
   },
   {
-    "id": "routeGateSlab",
-    "displayName": "Route Gate Slab",
-    "category": "Route Gate Architecture",
-    "assetPath": "assets/expedition/environment/egypt-opening/route-gate-slab.png",
-    "imageAssetKey": "routeGateSlab",
-    "defaultType": "route-gate-prop",
-    "defaultWidth": 260,
-    "defaultHeight": 162,
-    "defaultScale": 1,
-    "defaultLayer": "foreground",
-    "defaultDepth": "route-edge",
-    "defaultTint": "stone",
-    "defaultAlpha": 0.96,
-    "defaultShadowOpacity": 0.24,
-    "defaultSandOverlapHeight": 8,
-    "defaultSandMoundWidth": 220,
-    "collidable": false,
-    "inspectable": false
-  },
-  {
     "id": "fallen_lintel",
     "displayName": "Fallen Lintel",
     "category": "Tomb Architecture",
     "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/fallen_lintel.png",
-    "defaultScale": 1,
-    "defaultLayer": "foreground",
-    "collidable": false,
-    "inspectable": false
-  },
-  {
-    "id": "ruined_arch_piece",
-    "displayName": "Ruined Arch Piece",
-    "category": "Tomb Architecture",
-    "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/ruined_arch_piece.png",
-    "defaultScale": 1,
-    "defaultLayer": "foreground",
-    "collidable": false,
-    "inspectable": false
-  },
-  {
-    "id": "stone_steps",
-    "displayName": "Stone Steps",
-    "category": "Tomb Architecture",
-    "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/stone_steps.png",
     "defaultScale": 1,
     "defaultLayer": "foreground",
     "collidable": false,
@@ -177,16 +99,6 @@
     "displayName": "Collapsed Doorway Pieces",
     "category": "Tomb Architecture",
     "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/collapsed_doorway_pieces.png",
-    "defaultScale": 1,
-    "defaultLayer": "foreground",
-    "collidable": false,
-    "inspectable": false
-  },
-  {
-    "id": "numbered_evidence_markers",
-    "displayName": "Numbered Evidence Markers",
-    "category": "Archaeology Props",
-    "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/numbered_evidence_markers.png",
     "defaultScale": 1,
     "defaultLayer": "foreground",
     "collidable": false,
@@ -243,30 +155,10 @@
     "inspectable": false
   },
   {
-    "id": "measuring_poles",
-    "displayName": "Measuring Poles",
-    "category": "Archaeology Props",
-    "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/measuring_poles.png",
-    "defaultScale": 1,
-    "defaultLayer": "foreground",
-    "collidable": false,
-    "inspectable": false
-  },
-  {
     "id": "canvas_bags",
     "displayName": "Canvas Bags",
     "category": "Archaeology Props",
     "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/canvas_bags.png",
-    "defaultScale": 1,
-    "defaultLayer": "foreground",
-    "collidable": false,
-    "inspectable": false
-  },
-  {
-    "id": "cataloguing_tags",
-    "displayName": "Cataloguing Tags",
-    "category": "Archaeology Props",
-    "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/cataloguing_tags.png",
     "defaultScale": 1,
     "defaultLayer": "foreground",
     "collidable": false,
@@ -317,16 +209,6 @@
     "displayName": "Canopic Jars",
     "category": "Egyptian Sacred Props",
     "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/canopic_jars.png",
-    "defaultScale": 1,
-    "defaultLayer": "foreground",
-    "collidable": false,
-    "inspectable": false
-  },
-  {
-    "id": "shabti_figures",
-    "displayName": "Shabti Figures",
-    "category": "Egyptian Sacred Props",
-    "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/shabti_figures.png",
     "defaultScale": 1,
     "defaultLayer": "foreground",
     "collidable": false,
@@ -443,27 +325,6 @@
     "inspectable": false
   },
   {
-    "id": "contactSandRubbleStrip",
-    "displayName": "Contact Sand Rubble Strip",
-    "category": "Premium Floor Kit",
-    "assetPath": "assets/expedition/environment/egypt-opening/contact-sand-rubble-strip.png",
-    "defaultWidth": 180,
-    "defaultHeight": 26,
-    "defaultPlacementPreset": "desertEntryGroundedRuin",
-    "defaultDepth": "route-edge",
-    "defaultScale": 1,
-    "defaultLayer": "foreground",
-    "defaultTint": "warm",
-    "defaultColorGradeFilter": "none",
-    "defaultAlpha": 0.96,
-    "defaultShadowOpacity": 0,
-    "defaultSandOverlapHeight": 0,
-    "defaultSandMoundWidth": 0,
-    "defaultGroundPebbles": 0,
-    "collidable": false,
-    "inspectable": false
-  },
-  {
     "id": "faded_murals",
     "displayName": "Faded Murals",
     "category": "Environmental Storytelling Props",
@@ -524,16 +385,6 @@
     "inspectable": false
   },
   {
-    "id": "wall_dart_holes",
-    "displayName": "Wall Dart Holes",
-    "category": "Trap-Related Props",
-    "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/wall_dart_holes.png",
-    "defaultScale": 1,
-    "defaultLayer": "foreground",
-    "collidable": false,
-    "inspectable": false
-  },
-  {
     "id": "suspicious_sand_patch",
     "displayName": "Suspicious Sand Patch",
     "category": "Premium Floor Kit",
@@ -550,46 +401,6 @@
     "defaultSandOverlapHeight": 10,
     "defaultSandMoundWidth": 142,
     "defaultGroundPebbles": 3,
-    "collidable": false,
-    "inspectable": false
-  },
-  {
-    "id": "ceiling_crack",
-    "displayName": "Ceiling Crack",
-    "category": "Trap-Related Props",
-    "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/ceiling_crack.png",
-    "defaultScale": 1,
-    "defaultLayer": "foreground",
-    "collidable": false,
-    "inspectable": false
-  },
-  {
-    "id": "rope_mechanism",
-    "displayName": "Rope Mechanism",
-    "category": "Trap-Related Props",
-    "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/rope_mechanism.png",
-    "defaultScale": 1,
-    "defaultLayer": "foreground",
-    "collidable": false,
-    "inspectable": false
-  },
-  {
-    "id": "stone_counterweight",
-    "displayName": "Stone Counterweight",
-    "category": "Trap-Related Props",
-    "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/stone_counterweight.png",
-    "defaultScale": 1,
-    "defaultLayer": "foreground",
-    "collidable": false,
-    "inspectable": false
-  },
-  {
-    "id": "scorpion_nest",
-    "displayName": "Scorpion Nest",
-    "category": "Trap-Related Props",
-    "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/scorpion_nest.png",
-    "defaultScale": 1,
-    "defaultLayer": "foreground",
     "collidable": false,
     "inspectable": false
   },

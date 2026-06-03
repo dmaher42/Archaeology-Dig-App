@@ -2601,13 +2601,6 @@ const STORY_PROP_GROUNDING_OVERRIDES = {
   },
 };
 
-const SACRED_TRAP_PROP_TYPES = new Set([
-  'guardian-seal',
-  'guardian-seal-activated',
-  'sacred-pedestal',
-  'sacred-pedestal-activated',
-]);
-
 const ATMOSPHERE_GROUND_LOCK_MARGIN = 5;
 const ATMOSPHERE_GROUND_LOCKED_ASSET_KEYS = new Set([
   'supplyJars',
@@ -3150,7 +3143,6 @@ export default function ExpeditionJourney({
     fallbackSrc: playerHeroSpriteConfig.fallbackSrc,
   });
   const environmentAssetsRef = useRef(createEnvironmentAssetState(environmentPackId));
-  const sacredTrapEnvironmentAssetsRef = useRef(createEnvironmentAssetState(ENVIRONMENT_ASSET_PACK_IDS.EGYPT_SACRED_TRAPS));
   const mummificationInteractionAssetsRef = useRef(createEnvironmentAssetState(ENVIRONMENT_ASSET_PACK_IDS.MUMMIFICATION_CHAMBER_INTERACTIONS));
   const atmosphereEnvironmentAssetsRef = useRef(createEnvironmentAssetState(ENVIRONMENT_ASSET_PACK_IDS.EGYPT_ATMOSPHERE));
   const foregroundDepthEnvironmentAssetsRef = useRef(createEnvironmentAssetState(ENVIRONMENT_ASSET_PACK_IDS.EGYPT_FOREGROUND_DEPTH));
@@ -3742,18 +3734,11 @@ export default function ExpeditionJourney({
         assetKey: template.atmosphereAssetKey,
       });
     }
-    candidates.push(
-      {
-        assets: sacredTrapEnvironmentAssetsRef.current,
-        packId: ENVIRONMENT_ASSET_PACK_IDS.EGYPT_SACRED_TRAPS,
-        assetKey: getEnvironmentAssetKeyForStoryProp(template, ENVIRONMENT_ASSET_PACK_IDS.EGYPT_SACRED_TRAPS),
-      },
-      {
-        assets: environmentAssetsRef.current,
-        packId: environmentAssetsRef.current.packId,
-        assetKey: getEnvironmentAssetKeyForStoryProp(template, environmentAssetsRef.current.packId),
-      },
-    );
+    candidates.push({
+      assets: environmentAssetsRef.current,
+      packId: environmentAssetsRef.current.packId,
+      assetKey: getEnvironmentAssetKeyForStoryProp(template, environmentAssetsRef.current.packId),
+    });
 
     for (const candidate of candidates) {
       const region = candidate.assetKey ? candidate.assets?.atlas?.regions?.[candidate.assetKey] : null;
@@ -5039,21 +5024,6 @@ export default function ExpeditionJourney({
 
   useEffect(() => {
     if (!scopedJourneyAssetPacks.loadEgyptOnlyPacks) {
-      sacredTrapEnvironmentAssetsRef.current = createEnvironmentAssetState(ENVIRONMENT_ASSET_PACK_IDS.EGYPT_SACRED_TRAPS);
-      return undefined;
-    }
-    return loadEnvironmentAssetPack({
-      baseUrl: import.meta.env.BASE_URL,
-      packId: ENVIRONMENT_ASSET_PACK_IDS.EGYPT_SACRED_TRAPS,
-      onUpdate: (assets) => {
-        sacredTrapEnvironmentAssetsRef.current = assets;
-        syncHud();
-      },
-    });
-  }, [scopedJourneyAssetPacks.loadEgyptOnlyPacks, syncHud]);
-
-  useEffect(() => {
-    if (!scopedJourneyAssetPacks.loadEgyptOnlyPacks) {
       atmosphereEnvironmentAssetsRef.current = createEnvironmentAssetState(ENVIRONMENT_ASSET_PACK_IDS.EGYPT_ATMOSPHERE);
       return undefined;
     }
@@ -5956,8 +5926,6 @@ export default function ExpeditionJourney({
     const environmentAssets = environmentAssetsRef.current;
     const missingEnvironmentAssets = getMissingEnvironmentAssets(environmentAssets);
     const environmentFallbackActive = !environmentAssets.loaded || environmentAssets.failed || missingEnvironmentAssets.length > 0;
-    const sacredTrapEnvironmentAssets = sacredTrapEnvironmentAssetsRef.current;
-    const missingSacredTrapEnvironmentAssets = getMissingEnvironmentAssets(sacredTrapEnvironmentAssets);
     const atmosphereEnvironmentAssets = atmosphereEnvironmentAssetsRef.current;
     const missingAtmosphereEnvironmentAssets = getMissingEnvironmentAssets(atmosphereEnvironmentAssets);
     const desertBackgroundAssets = desertBackgroundAssetsRef.current;
@@ -6066,11 +6034,6 @@ export default function ExpeditionJourney({
       environmentAtlasPath: environmentAssets.atlasPath || ENVIRONMENT_ATLAS_JSON,
       missingEnvironmentAssets,
       environmentFallbackActive,
-      sacredTrapEnvironmentAssetsLoaded: Boolean(sacredTrapEnvironmentAssets.loaded),
-      sacredTrapEnvironmentAssetsReady: Boolean(sacredTrapEnvironmentAssets.ready),
-      sacredTrapEnvironmentPackId: sacredTrapEnvironmentAssets.packId,
-      sacredTrapEnvironmentAtlasPath: sacredTrapEnvironmentAssets.atlasPath || null,
-      missingSacredTrapEnvironmentAssets,
       atmosphereEnvironmentAssetsLoaded: Boolean(atmosphereEnvironmentAssets.loaded),
       atmosphereEnvironmentAssetsReady: Boolean(atmosphereEnvironmentAssets.ready),
       atmosphereEnvironmentPackId: atmosphereEnvironmentAssets.packId,
@@ -6226,7 +6189,6 @@ export default function ExpeditionJourney({
         bossId: SCARAB_SEAL_TRIGGER.bossId,
         x: Math.round(SCARAB_SEAL_TRIGGER.x),
         y: Math.round(SCARAB_SEAL_TRIGGER.y),
-        visualRegionKey: current.scarabSealActivated ? 'guardianSealActivated' : 'guardianSealIdle',
         confrontationSeen: Boolean(current.openingConfrontationSeen),
         bossIntroLine: SCARAB_SEAL_TRIGGER.bossIntroLine,
         guideFollowUpLine: SCARAB_SEAL_TRIGGER.guideFollowUpLine,
@@ -10033,14 +9995,10 @@ export default function ExpeditionJourney({
       ctx.translate(-centerX, -centerY);
     }
     const propForAsset = prop;
-    const sacredTrapPropAssetKey = SACRED_TRAP_PROP_TYPES.has(prop.type)
-      ? getEnvironmentAssetKeyForStoryProp(propForAsset, ENVIRONMENT_ASSET_PACK_IDS.EGYPT_SACRED_TRAPS)
-      : null;
     const atmospherePropAssetKey = propForAsset.atmosphereAssetKey
       ? getEnvironmentAssetKeyForStoryProp(propForAsset, ENVIRONMENT_ASSET_PACK_IDS.EGYPT_ATMOSPHERE)
       : null;
-    const propAssetKey = sacredTrapPropAssetKey
-      || atmospherePropAssetKey
+    const propAssetKey = atmospherePropAssetKey
       || getEnvironmentAssetKeyForStoryProp(propForAsset, environmentAssetsRef.current.packId);
     const standalonePropAsset = (() => {
       if (propForAsset.imageAssetKey === 'routeGateFront') return routeGateFrontRef.current;
@@ -10095,11 +10053,9 @@ export default function ExpeditionJourney({
         propSize.dust = Math.max(propSize.dust ?? 0.72, 0.84);
         propSize.bury = Math.max(propSize.bury ?? 0.12, 0.2);
       }
-      const propAssets = sacredTrapPropAssetKey
-        ? sacredTrapEnvironmentAssetsRef.current
-        : atmospherePropAssetKey
-          ? atmosphereEnvironmentAssetsRef.current
-          : environmentAssetsRef.current;
+      const propAssets = atmospherePropAssetKey
+        ? atmosphereEnvironmentAssetsRef.current
+        : environmentAssetsRef.current;
       const drawX = x - propSize.width / 2;
       const propGrounding = resolvePropGroundingSettings({ ...propSize, x: propForAsset.x });
       const anchorY = getStoryPropAnchorY(prop, propSize, shouldGroundLock);
@@ -12170,29 +12126,6 @@ export default function ExpeditionJourney({
     // Each cluster has a world-X position. We convert to screen-X and scale by
     // depth (smaller = further away) so clusters feel layered.  Only drawn when
     // they fall inside the visible viewport.
-    const RUIN_CLUSTERS = [
-      { worldX:  240, key: 'ruinClusterColumnPair', baseW: 210, baseH: 390, depth: 0.68, alpha: 0.78 },
-      { worldX:  610, key: 'ruinClusterWall',       baseW: 290, baseH: 245, depth: 0.82, alpha: 0.84 },
-      { worldX: 1020, key: 'ruinDoorwayArch',       baseW: 310, baseH: 390, depth: 1.00, alpha: 0.90 },
-      { worldX: 1390, key: 'ruinClusterWall',       baseW: 270, baseH: 228, depth: 0.85, alpha: 0.82 },
-      { worldX: 1760, key: 'ruinClusterColumnPair', baseW: 195, baseH: 363, depth: 0.70, alpha: 0.76 },
-    ];
-
-    for (const rc of RUIN_CLUSTERS) {
-      const screenX = rc.worldX - cameraX;
-      const w = Math.round(rc.baseW * rc.depth);
-      const h = Math.round(rc.baseH * rc.depth);
-      // Cull if entirely off-screen (with generous margin for wide sprites)
-      if (screenX + w < -60 || screenX - w > CANVAS_WIDTH + 60) continue;
-      drawRegion(rc.key, {
-        x: screenX - w / 2,
-        y: GROUND_Y - h,
-        width: w,
-        height: h,
-      }, rc.alpha);
-    }
-
-    // ── Existing edge dressings ──────────────────────────────────────────────
     const dustOffset = Math.sin(now / 1800 + cameraX * 0.002) * 18;
     drawRegion('lowDustVeil', {
       x: -72 + dustOffset,

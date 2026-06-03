@@ -49,15 +49,7 @@ export const CHINA_EXPEDITION_RUNTIME_ASSETS = [
   },
 ];
 
-export const EGYPT_EXPEDITION_FUTURE_ASSETS = [
-  {
-    id: 'egypt-sacred-traps-runtime',
-    title: 'Egypt sacred seal and pedestal pack',
-    src: 'assets/expedition/environment/desert-temple/egypt-sacred-traps-pack.png',
-    atlas: 'assets/expedition/environment/desert-temple/egypt-sacred-traps-pack.json',
-    role: 'future-journey-sacred-defence',
-  },
-];
+export const EGYPT_EXPEDITION_FUTURE_ASSETS = [];
 
 export const ROME_EXPEDITION_SCAFFOLD = {
   title: 'Ancient Rome Expedition',

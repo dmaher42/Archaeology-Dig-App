@@ -214,14 +214,10 @@ Suggested flow:
 
 These should align with `docs/egypt-sacred-trap-asset-plan.md` so the final feature and trap set share one sacred visual family.
 
-First asset pack now available:
+Asset pack status:
 
-- `public/assets/expedition/environment/desert-temple/egypt-sacred-traps-pack.png`
-- `public/assets/expedition/environment/desert-temple/egypt-sacred-traps-pack.json`
-
-This pack currently provides the Guardian Seal and sacred pedestal states only. The future trigger should still wait for a separate gameplay wiring pass.
-
-Loader status: the pack is registered as passive/future environment pack id `egypt-sacred-traps`. It is available for validation and preview readiness, but the active Egypt Journey still uses `egypt-desert-temple`.
+- The earlier generated `egypt-sacred-traps-pack` was removed from active assets during the prop/asset quality cleanup.
+- The future trigger should wait for replacement-quality Guardian Seal and sacred pedestal art before loader wiring returns.
 
 - `guardianSealIdle`
   - A readable seal collectible sitting on or above a stone pedestal.

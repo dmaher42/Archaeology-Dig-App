@@ -6,7 +6,7 @@
     "h": 1024
   },
   "runtimeMode": "foreground-depth-visual-only",
-  "mappingNote": "Transparent visual-only foreground source assets for terrain-level framing: rubble clusters, sand drifts, archaeological remains, desert vegetation, low drifting dust, reusable ground-skirt aliases, and contact shadow overlays for structure bases. No collision data, no gameplay rules, and does not replace existing artwork. Runtime placement should avoid tall ghosted edge cutouts and favor subtle bottom-edge sediment that blends into the playable sand.",
+  "mappingNote": "Transparent visual-only foreground source assets for terrain-level framing: rubble clusters, sand drifts, archaeological remains, desert vegetation, low drifting dust, reusable ground-skirt aliases, and contact shadow overlays for structure bases. No collision data, no gameplay rules, and does not replace existing artwork. Runtime placement avoids tall ghosted ruin-cluster cutouts and favors subtle bottom-edge sediment that blends into the playable sand.",
   "regions": {
     "leftBrokenColumn": {
       "x": 0,
@@ -73,30 +73,6 @@
       "y": 860,
       "w": 2048,
       "h": 160
-    },
-    "ruinClusterWall": {
-      "x": 700,
-      "y": 240,
-      "w": 380,
-      "h": 320,
-      "anchorY": "bottom",
-      "groundContactRatio": 0.91
-    },
-    "ruinClusterColumnPair": {
-      "x": 1340,
-      "y": 418,
-      "w": 350,
-      "h": 440,
-      "anchorY": "bottom",
-      "groundContactRatio": 0.93
-    },
-    "ruinDoorwayArch": {
-      "x": 1690,
-      "y": 418,
-      "w": 350,
-      "h": 440,
-      "anchorY": "bottom",
-      "groundContactRatio": 0.93
     },
     "egyptGroundSkirtLong": {
       "x": 1380,
