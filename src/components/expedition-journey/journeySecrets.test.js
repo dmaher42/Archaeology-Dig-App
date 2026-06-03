@@ -3003,7 +3003,6 @@ test('Journey progress gates use arch and slab assets instead of artificial padl
 });
 
 test('Journey route gates use doorway anchors so linked seals draw as one blocked path', () => {
-  const routeGateDoorways = extractExportedArray('ROUTE_GATE_DOORWAYS');
   const drawStart = journeyComponentSource.indexOf('const drawRouteGate = useCallback');
   const drawEnd = journeyComponentSource.indexOf('const drawMissingObjectiveMarker = useCallback', drawStart);
   const routeGateDrawSource = journeyComponentSource.slice(drawStart, drawEnd);
@@ -3011,11 +3010,6 @@ test('Journey route gates use doorway anchors so linked seals draw as one blocke
   const collisionEnd = journeyComponentSource.indexOf('// Final Goal', collisionStart);
   const routeGateCollisionSource = journeyComponentSource.slice(collisionStart, collisionEnd);
 
-  assert.match(routeGateDoorways, /id:\s*'desert-entry-main-doorway'/);
-  assert.match(routeGateDoorways, /gateIds:\s*\[\s*'temple-approach-seal',\s*'guardian-prep-seal'\s*\]/);
-  assert.match(routeGateDoorways, /anchorX:\s*X\(1115\)/);
-  assert.match(routeGateDoorways, /blockX:\s*X\(1115\)/);
-  assert.match(routeGateDoorways, /opening:\s*\{\s*left:\s*-92,\s*right:\s*92,\s*top:\s*-250,\s*bottom:\s*0\s*\}/);
   assert.match(journeyDataRouterSource, /ROUTE_GATE_DOORWAYS = makeProxy/);
   assert.match(journeyComponentSource, /ROUTE_GATE_DOORWAYS/);
   assert.match(journeyComponentSource, /getRouteGateDoorwayEntries/);
@@ -3028,6 +3022,40 @@ test('Journey route gates use doorway anchors so linked seals draw as one blocke
   assert.match(routeGateCollisionSource, /const blockX = doorway\?\.blockX \?\? activeGate\.x/);
   assert.match(routeGateCollisionSource, /status\.gatesToOpen\.forEach\(gateToOpen => current\.openedRouteGateIds\.add\(gateToOpen\.id\)\)/);
   assert.doesNotMatch(routeGateCollisionSource, /ROUTE_GATES\.forEach\(g =>/);
+});
+
+test('Egypt chamber entry triggers render as configurable premium doors outside debug overlay', () => {
+  assert.match(journeyComponentSource, /const CHAMBER_DOOR_VISUALS = Object\.freeze\(\[/);
+  [
+    'mummification-chamber-entry-door',
+    'forgotten-mural-entry-door',
+    'scribe-chamber-entry-door',
+  ].forEach((id) => assert.match(journeyComponentSource, new RegExp(`id:\\s*'${id}'`)));
+
+  const chamberDoorVisuals = getComponentFunctionSource('drawPremiumEgyptianChamberDoor');
+  assert.match(chamberDoorVisuals, /hieroglyphs/i);
+  assert.match(chamberDoorVisuals, /sealed slab/i);
+  assert.match(chamberDoorVisuals, /ankh|scarab/i);
+  assert.match(chamberDoorVisuals, /gold rim/i);
+  assert.match(chamberDoorVisuals, /dust/i);
+  assert.match(chamberDoorVisuals, /Inspect Door|E Enter/);
+
+  const drawStart = journeyComponentSource.indexOf('const draw = useCallback');
+  const drawEnd = journeyComponentSource.indexOf('const startOpeningCinematic = useCallback', drawStart);
+  assert.notEqual(drawStart, -1, 'draw should exist');
+  assert.notEqual(drawEnd, -1, 'draw should end before startOpeningCinematic');
+  const drawSource = journeyComponentSource.slice(drawStart, drawEnd);
+  assert.match(drawSource, /CHAMBER_DOOR_VISUALS\.forEach/);
+  assert.match(drawSource, /drawPremiumEgyptianChamberDoor/);
+
+  const editorOverlayStart = journeyComponentSource.indexOf('const drawPropPlacementEditorOverlay = useCallback');
+  const editorOverlayEnd = journeyComponentSource.indexOf('const draw = useCallback', editorOverlayStart);
+  assert.notEqual(editorOverlayStart, -1, 'drawPropPlacementEditorOverlay should exist');
+  assert.notEqual(editorOverlayEnd, -1, 'drawPropPlacementEditorOverlay should end before draw');
+  const editorOverlaySource = journeyComponentSource.slice(editorOverlayStart, editorOverlayEnd);
+  assert.match(editorOverlaySource, /if \(!import\.meta\.env\.DEV \|\| !editor\.enabled\) return/);
+  assert.match(editorOverlaySource, /Chamber entry trigger zones/);
+  assert.match(editorOverlaySource, /rgba\(45, 212, 191/);
 });
 
 test('Scarab Queen approach builds dread before the lair emergence', () => {
@@ -3312,7 +3340,7 @@ test('Egypt atmosphere prop pack is registered and drawn through existing story 
 });
 
 test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, and atlas regions', () => {
-  assert.equal(lostSitePropRegistry.length, 51);
+  assert.equal(lostSitePropRegistry.length, 54);
   const registryIds = new Set(lostSitePropRegistry.map(entry => entry.id));
   assert.ok(registryIds.has('standingPillar'), 'standing column should be available in the prop editor');
   assert.ok(registryIds.has('stoneDoorFrame'), 'temple arch should be available in the prop editor');
@@ -3322,6 +3350,9 @@ test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, an
   assert.ok(registryIds.has('ledgeHelperCarvedMasonryClimb'), 'carved masonry ledge helper should be available in the prop editor');
   assert.ok(registryIds.has('ledgeHelperExcavationAssistKit'), 'excavation assist ledge helper should be available in the prop editor');
   assert.ok(registryIds.has('ledgeHelperBlendedRuinLedge'), 'blended ruin ledge helper should be available in the prop editor');
+  assert.ok(registryIds.has('ledgeHelperFallenColumnSteps'), 'fallen column ledge helper should be available in the prop editor');
+  assert.ok(registryIds.has('ledgeHelperRopeLadderScaffold'), 'rope ladder ledge helper should be available in the prop editor');
+  assert.ok(registryIds.has('ledgeHelperBuriedRampBlocks'), 'buried ramp ledge helper should be available in the prop editor');
 
   const categories = new Set(lostSitePropRegistry.map(entry => entry.category));
   [

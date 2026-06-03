@@ -394,8 +394,10 @@ const journeyPlacementOverrides = {
       "y": 543,
       "label": "cracked stone blocks",
       "rotation": 10,
-      "brightness": 1.1,
-      "shadowOpacity": 0,
+      "tint": "warm",
+      "brightness": 1.0,
+      "alpha": 0.96,
+      "shadowOpacity": 0.18,
       "depth": "route-edge"
     },
     {
@@ -408,8 +410,10 @@ const journeyPlacementOverrides = {
       "x": 2720,
       "y": 589,
       "label": "cracked stone blocks",
-      "brightness": 1.1,
-      "shadowOpacity": 0,
+      "tint": "warm",
+      "brightness": 1.0,
+      "alpha": 0.96,
+      "shadowOpacity": 0.18,
       "depth": "route-edge"
     }
   ],
@@ -1052,33 +1056,7 @@ const journeyPlacementOverrides = {
       }
     }
   ],
-  "routeGateDoorways": [
-    {
-      "id": "desert-entry-main-doorway",
-      "gateIds": [
-        "temple-approach-seal",
-        "guardian-prep-seal"
-      ],
-      "anchorX": 5530,
-      "blockX": 5530,
-      "y": 327,
-      "width": 184,
-      "height": 274,
-      "opening": {
-        "left": -92,
-        "right": 92,
-        "top": -250,
-        "bottom": 0
-      },
-      "slab": {
-        "x": -76,
-        "y": -248,
-        "width": 152,
-        "height": 266
-      },
-      "label": "shared blocked desert-entry route doorway"
-    }
-  ],
+  "routeGateDoorways": [],
   "checkpoints": [
     {
       "id": "desert-entry",

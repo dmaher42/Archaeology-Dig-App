@@ -1073,6 +1073,53 @@ const SCRIBE_CHAMBER_EXIT_TRIGGER = {
   footY: openingJourneyY(318),
   footTolerance: 20,
 };
+const CHAMBER_DOOR_VISUALS = Object.freeze([
+  {
+    id: 'mummification-chamber-entry-door',
+    roomId: 'egypt-exterior-route',
+    trigger: MUMMIFICATION_CHAMBER_ENTRY_TRIGGER,
+    title: 'Ritual Chamber',
+    prompt: 'E Enter',
+    seal: 'ankh',
+    accent: '#facc15',
+    glow: '#fbbf24',
+    width: 164,
+    height: 232,
+    yOffset: -16,
+    slabInset: 0.52,
+    dust: true,
+  },
+  {
+    id: 'forgotten-mural-entry-door',
+    roomId: 'egypt-exterior-route',
+    trigger: FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER,
+    title: 'Mural Doorway',
+    prompt: 'Inspect Door',
+    seal: 'scarab',
+    accent: '#38bdf8',
+    glow: '#5eead4',
+    width: 142,
+    height: 204,
+    yOffset: -8,
+    slabInset: 0.48,
+    dust: true,
+  },
+  {
+    id: 'scribe-chamber-entry-door',
+    roomId: 'egypt-exterior-route',
+    trigger: SCRIBE_CHAMBER_ENTRY_TRIGGER,
+    title: 'Scribe Door',
+    prompt: 'E Enter',
+    seal: 'ankh',
+    accent: '#f59e0b',
+    glow: '#fde68a',
+    width: 132,
+    height: 188,
+    yOffset: -6,
+    slabInset: 0.5,
+    dust: false,
+  },
+]);
 const SCRIBE_CHAMBER_TABLET_REGION = {
   x: scaleJourneyX(1254),
   y: openingJourneyY(240),
@@ -2524,7 +2571,7 @@ const PROP_GROUNDING_CONFIG = {
   'sacred-pedestal-activated': { width: 84, height: 72, yOffset: 38, alpha: 1, depth: 'midground', tint: 'warm', shadow: 0.28, dust: 0.84 },
   'guardian-seal': { width: 46, height: 46, yOffset: 8, alpha: 0.92, depth: 'midground', tint: 'warm', shadow: 0.12, dust: 0.42 },
   'guardian-seal-activated': { width: 52, height: 52, yOffset: 10, alpha: 1, depth: 'midground', tint: 'warm', shadow: 0.18, dust: 0.48 },
-  'atmosphere-prop': { width: 96, height: 82, yOffset: 0, alpha: 0.82, depth: 'midground', tint: 'dust', shadow: 0.14, dust: 0.72, bury: 0.12 },
+  'atmosphere-prop': { width: 96, height: 82, yOffset: 0, alpha: 0.82, depth: 'midground', shadow: 0.14, dust: 0.72, bury: 0.12 },
   mural: { depth: 'background' },
   glyphs: { depth: 'background' },
   eyes: { depth: 'background' },
@@ -13840,6 +13887,159 @@ export default function ExpeditionJourney({
     ctx.restore();
   }, [drawContactShadow, drawFieldNoteLabel, drawGroundDustLip]);
 
+  const drawPremiumEgyptianChamberDoor = useCallback((ctx, door, cameraX, current, now) => {
+    if (!door?.trigger || getJourneySceneId(current) !== JOURNEY_SCENE_IDS.EXTERIOR) return;
+    const centerWorldX = (door.trigger.minX + door.trigger.maxX) / 2;
+    const centerX = worldToScreenX(centerWorldX, cameraX);
+    const width = door.width || 148;
+    const height = door.height || 210;
+    const baseY = door.trigger.footY + (door.yOffset || 0);
+    const top = baseY - height;
+    if (centerX + width < -80 || centerX - width > CANVAS_WIDTH + 80) return;
+
+    const playerCenterX = current.player.x + current.player.width / 2;
+    const playerFootY = current.player.y + current.player.height;
+    const playerNear = Math.abs(playerCenterX - centerWorldX) < width * 0.72
+      && Math.abs(playerFootY - door.trigger.footY) <= Math.max(door.trigger.footTolerance * 2.2, 58);
+    const pulse = 0.72 + Math.sin(now / 360) * 0.18;
+    const glowColor = door.glow || '#facc15';
+    const accent = door.accent || '#facc15';
+
+    ctx.save();
+    drawContactShadow(ctx, centerX, baseY + 7, width * 0.86, 0.22, 1.25);
+
+    const aura = ctx.createRadialGradient(centerX, top + height * 0.48, 12, centerX, top + height * 0.48, width * 0.9);
+    aura.addColorStop(0, `rgba(250, 204, 21, ${0.1 + pulse * 0.06})`);
+    aura.addColorStop(0.4, `rgba(94, 234, 212, ${playerNear ? 0.12 : 0.06})`);
+    aura.addColorStop(1, 'rgba(94, 234, 212, 0)');
+    ctx.fillStyle = aura;
+    ctx.beginPath();
+    ctx.ellipse(centerX, top + height * 0.48, width * 0.7, height * 0.42, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    const frameGradient = ctx.createLinearGradient(centerX - width / 2, top, centerX + width / 2, baseY);
+    frameGradient.addColorStop(0, '#d7bd83');
+    frameGradient.addColorStop(0.28, '#8f6c42');
+    frameGradient.addColorStop(0.72, '#5c3d23');
+    frameGradient.addColorStop(1, '#2d1b10');
+    ctx.fillStyle = frameGradient;
+    ctx.strokeStyle = 'rgba(38, 24, 13, 0.86)';
+    ctx.lineWidth = 3;
+
+    // Carved stone doorway frame.
+    ctx.beginPath();
+    ctx.roundRect(centerX - width * 0.5, top + height * 0.12, width, height * 0.86, 12);
+    ctx.fill();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.roundRect(centerX - width * 0.34, top + height * 0.28, width * 0.68, height * 0.68, 30);
+    ctx.fillStyle = 'rgba(17, 24, 39, 0.5)';
+    ctx.fill();
+
+    // Sealed slab, kept visual-only so transition triggers remain unchanged.
+    const slabWidth = width * (door.slabInset || 0.5);
+    const slabHeight = height * 0.58;
+    const slabX = centerX - slabWidth / 2;
+    const slabY = top + height * 0.34;
+    const slabGradient = ctx.createLinearGradient(slabX, slabY, slabX + slabWidth, slabY + slabHeight);
+    slabGradient.addColorStop(0, '#c7a66e');
+    slabGradient.addColorStop(0.55, '#7c5832');
+    slabGradient.addColorStop(1, '#3d2515');
+    ctx.fillStyle = slabGradient;
+    ctx.strokeStyle = 'rgba(246, 202, 108, 0.5)';
+    ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    ctx.roundRect(slabX, slabY, slabWidth, slabHeight, 10);
+    ctx.fill();
+    ctx.stroke();
+
+    // Hieroglyphs are simple carved marks on the frame, not new assets.
+    ctx.strokeStyle = 'rgba(36, 21, 12, 0.58)';
+    ctx.lineWidth = 1.4;
+    [-1, 1].forEach((side) => {
+      const glyphX = centerX + side * width * 0.36;
+      for (let i = 0; i < 5; i += 1) {
+        const glyphY = top + height * (0.26 + i * 0.11);
+        ctx.beginPath();
+        if (i % 3 === 0) {
+          ctx.moveTo(glyphX - 5, glyphY);
+          ctx.lineTo(glyphX + 5, glyphY);
+          ctx.lineTo(glyphX, glyphY + 8);
+        } else if (i % 3 === 1) {
+          ctx.ellipse(glyphX, glyphY + 4, 5, 7, 0, 0, Math.PI * 2);
+        } else {
+          ctx.moveTo(glyphX, glyphY - 2);
+          ctx.lineTo(glyphX, glyphY + 10);
+          ctx.moveTo(glyphX - 5, glyphY + 4);
+          ctx.lineTo(glyphX + 5, glyphY + 4);
+        }
+        ctx.stroke();
+      }
+    });
+
+    // Glowing ankh or scarab seal.
+    const sealX = centerX;
+    const sealY = slabY + slabHeight * 0.38;
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    const sealGlow = ctx.createRadialGradient(sealX, sealY, 3, sealX, sealY, 42 + pulse * 14);
+    sealGlow.addColorStop(0, `rgba(255, 247, 203, ${0.5 + pulse * 0.22})`);
+    sealGlow.addColorStop(0.52, `rgba(250, 204, 21, ${0.18 + pulse * 0.12})`);
+    sealGlow.addColorStop(1, 'rgba(250, 204, 21, 0)');
+    ctx.fillStyle = sealGlow;
+    ctx.beginPath();
+    ctx.arc(sealX, sealY, 42 + pulse * 10, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = glowColor;
+    ctx.lineWidth = 2.6;
+    if (door.seal === 'scarab') {
+      ctx.beginPath();
+      ctx.ellipse(sealX, sealY, 15, 20, 0, 0, Math.PI * 2);
+      ctx.moveTo(sealX, sealY - 20);
+      ctx.lineTo(sealX, sealY + 20);
+      ctx.moveTo(sealX - 21, sealY - 6);
+      ctx.lineTo(sealX + 21, sealY - 6);
+      ctx.moveTo(sealX - 18, sealY + 8);
+      ctx.lineTo(sealX + 18, sealY + 8);
+      ctx.stroke();
+    } else {
+      ctx.beginPath();
+      ctx.ellipse(sealX, sealY - 15, 8, 10, 0, 0, Math.PI * 2);
+      ctx.moveTo(sealX, sealY - 4);
+      ctx.lineTo(sealX, sealY + 24);
+      ctx.moveTo(sealX - 15, sealY + 6);
+      ctx.lineTo(sealX + 15, sealY + 6);
+      ctx.moveTo(sealX - 9, sealY + 24);
+      ctx.lineTo(sealX + 9, sealY + 24);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // Subtle gold rim light around the active passage edge.
+    ctx.strokeStyle = `rgba(250, 204, 21, ${playerNear ? 0.62 : 0.34})`;
+    ctx.lineWidth = playerNear ? 3 : 2;
+    ctx.beginPath();
+    ctx.roundRect(slabX - 7, slabY - 8, slabWidth + 14, slabHeight + 16, 13);
+    ctx.stroke();
+
+    if (door.dust !== false) {
+      ctx.fillStyle = `rgba(244, 196, 113, ${0.16 + pulse * 0.06})`;
+      for (let i = 0; i < 6; i += 1) {
+        const drift = Math.sin(now / (520 + i * 31) + i) * 5;
+        ctx.beginPath();
+        ctx.arc(centerX - width * 0.34 + i * width * 0.14 + drift, baseY - 18 - (i % 3) * 8, 1.7 + (i % 2), 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    drawGroundDustLip(ctx, centerX, baseY + 2, width * 0.76, 'rgba(198, 130, 55, 0.24)');
+    if (playerNear) {
+      const promptText = door.prompt || 'E Enter';
+      drawFieldNoteLabel(ctx, centerX, top - 16, promptText, accent);
+    }
+    ctx.restore();
+  }, [drawContactShadow, drawFieldNoteLabel, drawGroundDustLip]);
+
   const drawPropPlacementEditorOverlay = useCallback((ctx, current, cameraX) => {
     const editor = propPlacementEditorRef.current;
     if (!import.meta.env.DEV || !editor.enabled) return;
@@ -14384,6 +14584,7 @@ export default function ExpeditionJourney({
       drawDynamicEnvironmentEvent(ctx, current.dynamicEnvironmentEvent, cameraX, now, current.dynamicEnvironmentEventTimer);
       drawAncientRouteGround(ctx, section, cameraX, now, current);
       getRenderableStoryProps(current).forEach((prop) => drawStoryProp(ctx, prop, cameraX, now, 'grounded'));
+      CHAMBER_DOOR_VISUALS.forEach((door) => drawPremiumEgyptianChamberDoor(ctx, door, cameraX, current, now));
     }
     drawMummificationChamberInterior(ctx, current, now);
     drawForgottenMuralChamberInterior(ctx, current, now);
@@ -15054,7 +15255,7 @@ export default function ExpeditionJourney({
       }
       ctx.textAlign = 'start';
     }
-  }, [backgroundPackId, drawAncientRouteGround, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawForegroundDepthLayer, drawMummificationChamberInterior, drawForgottenMuralChamberInterior, drawForgottenMuralChamberTransition, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawPropPlacementEditorOverlay, drawRouteGate, drawRouteGroundApron, drawScarabQueenLairOpeningProp, drawScribeLockedChamberInterior, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawTrapProjectile, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getDoorwayGateStatus, getEditedMiniBoss, getGateGuidance, getPlayerAttackState, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getRenderableStoryProps, getRouteGateDoorwayEntries, getScarabQueenLairPlacement, isRouteRewardAccessible, drawPlayerSprite, drawFieldNoteLabel]);
+  }, [backgroundPackId, drawAncientRouteGround, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawForegroundDepthLayer, drawMummificationChamberInterior, drawForgottenMuralChamberInterior, drawForgottenMuralChamberTransition, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawPremiumEgyptianChamberDoor, drawPropPlacementEditorOverlay, drawRouteGate, drawRouteGroundApron, drawScarabQueenLairOpeningProp, drawScribeLockedChamberInterior, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawTrapProjectile, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getDoorwayGateStatus, getEditedMiniBoss, getGateGuidance, getPlayerAttackState, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getRenderableStoryProps, getRouteGateDoorwayEntries, getScarabQueenLairPlacement, isRouteRewardAccessible, drawPlayerSprite, drawFieldNoteLabel]);
 
   const startOpeningCinematic = useCallback(({ speechEnabled = true } = {}) => {
     const current = stateRef.current;
@@ -16133,9 +16334,9 @@ export default function ExpeditionJourney({
       }
     });
 
-    // Recurring underground pressure pulse — active once player passes the lair threshold
-    // X(1953) = Math.round(1953 * 5.65) = 11034
-    if (!inInteriorChamberScene && player.x > 11034) {
+    // Recurring underground pressure pulse — active once player passes the pyramid into open desert
+    // X(500) = Math.round(500 * 5.65) = 2825
+    if (!inInteriorChamberScene && player.x > 2825) {
       if (current.pressurePulseTimer == null) {
         current.pressurePulseTimer = 20 + Math.random() * 25;
       }
@@ -16144,7 +16345,7 @@ export default function ExpeditionJourney({
         audioControls?.playExpeditionSfx?.('earthPressurePulse');
         current.pressurePulseTimer = 45 + Math.random() * 45;
       }
-    } else if (player.x <= 11034) {
+    } else if (player.x <= 2825) {
       current.pressurePulseTimer = null;
     }
 

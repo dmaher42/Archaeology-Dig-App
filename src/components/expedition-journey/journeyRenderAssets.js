@@ -125,6 +125,12 @@ export const EXPECTED_LOST_SITE_PROP_ASSET_KEYS = [
   'rope_mechanism',
   'stone_counterweight',
   'scorpion_nest',
+  'ledgeHelperCarvedMasonryClimb',
+  'ledgeHelperExcavationAssistKit',
+  'ledgeHelperBlendedRuinLedge',
+  'ledgeHelperFallenColumnSteps',
+  'ledgeHelperRopeLadderScaffold',
+  'ledgeHelperBuriedRampBlocks',
 ];
 
 export const EXPECTED_MUMMIFICATION_CHAMBER_INTERACTION_ASSET_KEYS = [

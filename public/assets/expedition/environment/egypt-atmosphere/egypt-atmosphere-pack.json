@@ -1,9 +1,9 @@
 {
   "image": "egypt-atmosphere-pack.png",
-  "source": "Premium image-generated Lost Site Expedition prop pack integrated 2026-06-01; existing curated Egypt atmosphere props preserved",
+  "source": "Premium image-generated Lost Site Expedition prop pack integrated 2026-06-01; ledge helper climb assets integrated 2026-06-03; existing curated Egypt atmosphere props preserved",
   "size": {
     "w": 2048,
-    "h": 3072
+    "h": 4096
   },
   "mappingNote": "Transparent cutouts curated from existing Ancient Egyptian atmosphere props plus premium image-generated Lost Site Expedition prop PNGs. Decorative Journey story props only; collision and gameplay rules stay in existing level data. Lost Site prop pack entries are individual transparent PNGs also packed into this existing atmosphere atlas for Journey editor/runtime loading.",
   "regions": {
@@ -441,8 +441,50 @@
       "w": 256,
       "h": 256,
       "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/scorpion_nest.png"
+    },
+    "ledgeHelperCarvedMasonryClimb": {
+      "x": 0,
+      "y": 3072,
+      "w": 512,
+      "h": 512,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/ledge_helper_carved_masonry_climb.png"
+    },
+    "ledgeHelperExcavationAssistKit": {
+      "x": 512,
+      "y": 3072,
+      "w": 512,
+      "h": 512,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/ledge_helper_excavation_assist_kit.png"
+    },
+    "ledgeHelperBlendedRuinLedge": {
+      "x": 1024,
+      "y": 3072,
+      "w": 512,
+      "h": 512,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/ledge_helper_blended_ruin_ledge.png"
+    },
+    "ledgeHelperFallenColumnSteps": {
+      "x": 1536,
+      "y": 3072,
+      "w": 512,
+      "h": 512,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/ledge_helper_fallen_column_steps.png"
+    },
+    "ledgeHelperRopeLadderScaffold": {
+      "x": 0,
+      "y": 3584,
+      "w": 512,
+      "h": 512,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/ledge_helper_rope_ladder_scaffold.png"
+    },
+    "ledgeHelperBuriedRampBlocks": {
+      "x": 512,
+      "y": 3584,
+      "w": 512,
+      "h": 512,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/ledge_helper_buried_ramp_blocks.png"
     }
   },
   "imageWidth": 2048,
-  "imageHeight": 3072
+  "imageHeight": 4096
 }
