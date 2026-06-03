@@ -12545,11 +12545,16 @@ export default function ExpeditionJourney({
     const centerX = screenX + enemy.width / 2 + stableShakeX;
     const baseY = enemy.y + enemy.height;
     const bodyPose = getEnemyBodyLanguagePose(enemy, combatMode);
+    // sandWisp uses a fixed width from drawBox so frame aspect-ratio differences
+    // don't cause visible size jumps between idle, windup, and attack frames.
+    const atlasAdjustedWidth = (family === 'sandWisp' || family === 'vestibuleWisp')
+      ? drawBox.width
+      : Math.max(drawBox.width, drawBox.height * (atlasRegion.w / Math.max(1, atlasRegion.h)));
     const groundedDrawBox = atlasRegion
       ? {
         ...drawBox,
-        x: centerX - Math.max(drawBox.width, drawBox.height * (atlasRegion.w / Math.max(1, atlasRegion.h))) / 2,
-        width: Math.max(drawBox.width, drawBox.height * (atlasRegion.w / Math.max(1, atlasRegion.h))),
+        x: centerX - atlasAdjustedWidth / 2,
+        width: atlasAdjustedWidth,
       }
       : drawBox;
     const facing = (enemy.attackTimer > 0 || enemy.attackWindup > 0)
