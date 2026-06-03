@@ -6,7 +6,7 @@
     "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/cracked_stone_blocks.png",
     "defaultScale": 1,
     "defaultLayer": "foreground",
-    "defaultTint": "warm",
+    "defaultSceneBlend": "desert-entry-sand",
     "defaultShadowOpacity": 0,
     "collidable": false,
     "inspectable": false

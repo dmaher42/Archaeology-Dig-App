@@ -394,10 +394,10 @@ const journeyPlacementOverrides = {
       "y": 543,
       "label": "cracked stone blocks",
       "rotation": 10,
-      "tint": "warm",
-      "brightness": 1.0,
+      "sceneBlend": "desert-entry-sand",
+      "brightness": 1.02,
       "alpha": 0.96,
-      "shadowOpacity": 0.18,
+      "shadowOpacity": 0.28,
       "depth": "route-edge"
     },
     {
@@ -410,10 +410,10 @@ const journeyPlacementOverrides = {
       "x": 2720,
       "y": 589,
       "label": "cracked stone blocks",
-      "tint": "warm",
-      "brightness": 1.0,
+      "sceneBlend": "desert-entry-sand",
+      "brightness": 1.02,
       "alpha": 0.96,
-      "shadowOpacity": 0.18,
+      "shadowOpacity": 0.28,
       "depth": "route-edge"
     }
   ],
