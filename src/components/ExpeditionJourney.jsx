@@ -845,11 +845,11 @@ const MUMMIFICATION_CHAMBER_RETURN_FALLBACK = {
   direction: 1,
 };
 const MUMMIFICATION_CHAMBER_ENTRY_TRIGGER = {
-  minX: scaleJourneyX(720),
-  maxX: scaleJourneyX(760),
+  minX: scaleJourneyX(652),
+  maxX: scaleJourneyX(692),
   maxY: GROUND_Y - 50,
-  footY: openingJourneyY(-156),
-  footTolerance: 28,
+  footY: openingJourneyY(-207),
+  footTolerance: 36,
 };
 const MUMMIFICATION_CHAMBER_CAMERA_X = scaleJourneyX(520);
 const MUMMIFICATION_CHAMBER_BOUNDS = {
@@ -8115,6 +8115,25 @@ export default function ExpeditionJourney({
     return true;
   }, []);
 
+  const getOpeningScarabSealGlowAnchor = useCallback((current = stateRef.current, cameraX = 0) => {
+    const openingScarabSealProp = getRenderableStoryProps(current).find(prop => prop.id === 'early-scarab-seal');
+    if (openingScarabSealProp) {
+      const bounds = getStoryPropEditorBounds(openingScarabSealProp, cameraX, current);
+      return {
+        x: bounds.x + bounds.width / 2,
+        y: bounds.y + bounds.height / 2,
+        radiusX: Math.max(54, bounds.width * 1.9),
+        radiusY: Math.max(44, bounds.height * 1.35),
+      };
+    }
+    return {
+      x: worldToScreenX(SCARAB_SEAL_TRIGGER.x, cameraX),
+      y: SCARAB_SEAL_TRIGGER.y - 44,
+      radiusX: 72,
+      radiusY: 54,
+    };
+  }, [getRenderableStoryProps]);
+
   const drawOpeningPyramidFacade = useCallback((ctx, cameraX, now = 0, prop = null) => {
     const facade = openingPyramidFacadeRef.current;
     if (!facade.loaded || !facade.image) return false;
@@ -8132,29 +8151,75 @@ export default function ExpeditionJourney({
     ctx.filter = 'sepia(4%) saturate(98%) brightness(91%) contrast(102%)';
     ctx.drawImage(facade.image, x, y, width, height);
     ctx.filter = 'none';
-    const scarabSealX = worldToScreenX(SCARAB_SEAL_TRIGGER.x, cameraX);
+    const glowAnchor = getOpeningScarabSealGlowAnchor(stateRef.current, cameraX);
+    const scarabSealX = glowAnchor.x;
     if (scarabSealX > -120 && scarabSealX < CANVAS_WIDTH + 120) {
-      const beaconY = SCARAB_SEAL_TRIGGER.y - 44;
+      const beaconY = glowAnchor.y;
       const activated = Boolean(stateRef.current.scarabSealActivated);
       const lurePulse = activated ? 0 : 0.5 + Math.sin(now / 360) * 0.5;
       const lureBreath = activated ? 0 : 0.55 + Math.sin(now / 620) * 0.45;
-      const glow = ctx.createRadialGradient(scarabSealX, beaconY, 10, scarabSealX, beaconY, 78);
-      glow.addColorStop(0, activated ? 'rgba(56, 189, 248, 0.42)' : `rgba(250, 204, 21, ${0.4 + lurePulse * 0.2})`);
-      glow.addColorStop(0.36, activated ? 'rgba(56, 189, 248, 0.24)' : `rgba(250, 204, 21, ${0.2 + lurePulse * 0.13})`);
-      glow.addColorStop(1, 'rgba(250, 204, 21, 0)');
+      const radiusX = glowAnchor.radiusX + lureBreath * 14;
+      const radiusY = glowAnchor.radiusY + lureBreath * 10;
+      const sealHaloGradient = ctx.createRadialGradient(
+        scarabSealX,
+        beaconY,
+        6,
+        scarabSealX,
+        beaconY,
+        Math.max(radiusX, radiusY) * 1.35,
+      );
+      sealHaloGradient.addColorStop(0, activated
+        ? 'rgba(125, 211, 252, 0.42)'
+        : `rgba(254, 240, 138, ${0.36 + lurePulse * 0.18})`);
+      sealHaloGradient.addColorStop(0.28, activated
+        ? 'rgba(56, 189, 248, 0.26)'
+        : `rgba(250, 204, 21, ${0.2 + lurePulse * 0.15})`);
+      sealHaloGradient.addColorStop(0.62, activated
+        ? 'rgba(14, 165, 233, 0.08)'
+        : `rgba(245, 158, 11, ${0.08 + lurePulse * 0.08})`);
+      sealHaloGradient.addColorStop(1, 'rgba(250, 204, 21, 0)');
       ctx.save();
-      ctx.fillStyle = glow;
+      ctx.fillStyle = sealHaloGradient;
       ctx.beginPath();
-      ctx.ellipse(scarabSealX, beaconY, 78 + lureBreath * 18, 80 + lureBreath * 16, 0, 0, Math.PI * 2);
+      ctx.ellipse(scarabSealX, beaconY, radiusX * 1.16, radiusY * 1.22, 0, 0, Math.PI * 2);
       ctx.fill();
+      ctx.globalCompositeOperation = 'screen';
+      ctx.lineCap = 'round';
+      ctx.lineWidth = 3.4;
+      ctx.strokeStyle = activated
+        ? `rgba(125, 211, 252, ${0.28 + lurePulse * 0.08})`
+        : `rgba(254, 240, 138, ${0.34 + lurePulse * 0.22})`;
+      ctx.beginPath();
+      ctx.ellipse(scarabSealX, beaconY, radiusX * 0.82, radiusY * 0.7, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.save();
+      ctx.translate(scarabSealX, beaconY);
+      ctx.rotate(now / 2400);
+      ctx.setLineDash([10, 14]);
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = activated
+        ? 'rgba(186, 230, 253, 0.34)'
+        : `rgba(253, 224, 71, ${0.28 + lurePulse * 0.22})`;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, radiusX * 0.62, radiusY * 0.5, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
       if (!activated) {
         ctx.strokeStyle = `rgba(253, 224, 71, ${0.3 + lurePulse * 0.28})`;
-        ctx.lineWidth = 2.4;
+        ctx.lineWidth = 1.8;
         [0, 1, 2].forEach((ring) => {
           const ringProgress = (lurePulse + ring * 0.34) % 1;
           ctx.globalAlpha = 1 - ringProgress * 0.72;
           ctx.beginPath();
-          ctx.ellipse(scarabSealX, beaconY, 42 + ringProgress * 58, 26 + ringProgress * 42, 0, 0, Math.PI * 2);
+          ctx.ellipse(
+            scarabSealX,
+            beaconY,
+            radiusX * (0.46 + ringProgress * 0.62),
+            radiusY * (0.34 + ringProgress * 0.52),
+            0,
+            0,
+            Math.PI * 2,
+          );
           ctx.stroke();
         });
         ctx.globalAlpha = 1;
@@ -8169,7 +8234,7 @@ export default function ExpeditionJourney({
     ctx.fillRect(Math.max(-40, x), GROUND_Y - 52, Math.min(width + 80, CANVAS_WIDTH + 80), 82);
     ctx.restore();
     return true;
-  }, []);
+  }, [getOpeningScarabSealGlowAnchor]);
 
   const drawOpeningPyramidMasonryBack = useCallback((ctx, cameraX, now = 0, current = stateRef.current) => {
     if (openingPyramidFacadeRef.current.loaded && openingPyramidFacadeRef.current.image) {
@@ -10945,6 +11010,48 @@ export default function ExpeditionJourney({
     };
 
     ctx.save();
+
+    if (!preview && event.id === 'scarab-queen-lair-dread-wind') {
+      const envelope = Math.sin(clamp(reveal, 0, 1) * Math.PI);
+      ctx.save();
+      ctx.globalCompositeOperation = 'source-over';
+
+      // Directional vignette — amber pressing in from the right (lair's direction)
+      const vg = ctx.createLinearGradient(CANVAS_WIDTH, 0, 0, 0);
+      vg.addColorStop(0, `rgba(60, 20, 0, ${0.36 * envelope})`);
+      vg.addColorStop(0.42, `rgba(40, 12, 0, ${0.14 * envelope})`);
+      vg.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = vg;
+      ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+      const rg = ctx.createRadialGradient(CANVAS_WIDTH * 0.45, CANVAS_HEIGHT * 0.5, CANVAS_WIDTH * 0.18, CANVAS_WIDTH * 0.45, CANVAS_HEIGHT * 0.5, CANVAS_WIDTH * 0.86);
+      rg.addColorStop(0, 'rgba(0,0,0,0)');
+      rg.addColorStop(0.68, `rgba(20, 6, 0, ${0.09 * envelope})`);
+      rg.addColorStop(1, `rgba(10, 3, 0, ${0.32 * envelope})`);
+      ctx.fillStyle = rg;
+      ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+      // Sand streaks flying right-to-left from the lair
+      for (let i = 0; i < 26; i++) {
+        const seed = i * 137.508;
+        const yPos = CANVAS_HEIGHT * 0.04 + (seed % (CANVAS_HEIGHT * 0.92));
+        const speed = 180 + (i * 29 % 170);
+        const len = 44 + (i * 19 % 110);
+        const stride = CANVAS_WIDTH + len;
+        const t = (now * speed * 0.001 + (i / 26) * stride) % stride;
+        const sx = CANVAS_WIDTH - t + len * 0.5;
+        ctx.globalAlpha = (0.14 + (i % 5) * 0.07) * envelope;
+        ctx.strokeStyle = i % 4 === 0 ? 'rgba(255, 215, 110, 0.9)' : 'rgba(220, 155, 65, 0.75)';
+        ctx.lineWidth = 0.7 + (i % 4) * 0.55;
+        ctx.beginPath();
+        ctx.moveTo(sx, yPos);
+        ctx.lineTo(sx + len, yPos + (i % 5) - 2);
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+
     const effectAssets = dynamicWorldAssetsRef.current;
     const effectRegion = getDynamicWorldEffectRegion(event.type);
     if (usesPaintedDynamicWorldEffect(event.type) && effectAssets.loaded && effectAssets.image && effectRegion) {
@@ -14071,7 +14178,8 @@ export default function ExpeditionJourney({
       && playerCenterX >= route.x - scaleJourneyX(240)
       && playerCenterX <= route.x + route.width + scaleJourneyX(160));
     const playerIsElevated = player.y < GROUND_Y - 160;
-    const desiredSecretVerticalCameraOffset = !chamberSceneActive && playerIsElevated
+    const inForgottenMuralVerticalWindow = Boolean(secretClimbRoute) && playerIsElevated;
+    const desiredSecretVerticalCameraOffset = !chamberSceneActive && inForgottenMuralVerticalWindow
       ? clamp(CANVAS_HEIGHT * 0.46 - (player.y + player.height / 2), 0, 420)
       : 0;
     const currentVertOffset = current.secretVerticalCameraOffset || 0;
