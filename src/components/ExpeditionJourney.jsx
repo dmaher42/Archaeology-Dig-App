@@ -14087,14 +14087,13 @@ export default function ExpeditionJourney({
     const secretClimbRoute = getActiveHiddenRoutes().find(route => secretClimbRouteIds.includes(route.id)
       && playerCenterX >= route.x - scaleJourneyX(240)
       && playerCenterX <= route.x + route.width + scaleJourneyX(160));
-    const inForgottenMuralVerticalWindow = secretClimbRoute
-      && player.y < GROUND_Y - 230;
-    const desiredSecretVerticalCameraOffset = !chamberSceneActive && inForgottenMuralVerticalWindow
-      ? clamp(CANVAS_HEIGHT * 0.46 - (player.y + player.height / 2), 0, 220)
+    const playerIsElevated = player.y < GROUND_Y - 160;
+    const desiredSecretVerticalCameraOffset = !chamberSceneActive && playerIsElevated
+      ? clamp(CANVAS_HEIGHT * 0.46 - (player.y + player.height / 2), 0, 380)
       : 0;
     current.secretVerticalCameraOffset = Number(((
-      (current.secretVerticalCameraOffset || 0) * 0.82
-    ) + desiredSecretVerticalCameraOffset * 0.18).toFixed(2));
+      (current.secretVerticalCameraOffset || 0) * 0.78
+    ) + desiredSecretVerticalCameraOffset * 0.22).toFixed(2));
     const secretVerticalCameraOffset = current.secretVerticalCameraOffset || 0;
     current.renderStats = {
       visibleLabelCount: 0,
