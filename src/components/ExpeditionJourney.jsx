@@ -846,10 +846,10 @@ const MUMMIFICATION_CHAMBER_RETURN_FALLBACK = {
 };
 const MUMMIFICATION_CHAMBER_ENTRY_TRIGGER = {
   minX: scaleJourneyX(720),
-  maxX: scaleJourneyX(748),
-  maxY: GROUND_Y - 190,
-  footY: openingJourneyY(-222),
-  footTolerance: 22,
+  maxX: scaleJourneyX(760),
+  maxY: GROUND_Y - 50,
+  footY: openingJourneyY(-156),
+  footTolerance: 28,
 };
 const MUMMIFICATION_CHAMBER_CAMERA_X = scaleJourneyX(520);
 const MUMMIFICATION_CHAMBER_BOUNDS = {
@@ -18707,17 +18707,17 @@ export default function ExpeditionJourney({
         draw();
         return;
       }
-      const selectedHazard = findEditableHazardAt(pointer.screenX, pointer.screenY);
-      const selectedLair = selectedHazard ? null : findEditableScarabLairAt(pointer.screenX, pointer.screenY);
-      const selectedCheckpoint = selectedHazard || selectedLair ? null : findEditableCheckpointAt(pointer.screenX, pointer.screenY);
-      const selectedArch = selectedHazard || selectedLair || selectedCheckpoint ? null : findEditableArchAt(pointer.screenX, pointer.screenY);
-      const selectedForcedFloor = editor.floorPickMode && !(selectedHazard || selectedLair || selectedCheckpoint || selectedArch)
+      const selectedForcedFloor = editor.floorPickMode
         ? findEditablePlatformAt(pointer.screenX, pointer.screenY, { floorOnly: true })
         : null;
+      const selectedHazard = selectedForcedFloor ? null : findEditableHazardAt(pointer.screenX, pointer.screenY);
+      const selectedLair = selectedHazard || selectedForcedFloor ? null : findEditableScarabLairAt(pointer.screenX, pointer.screenY);
+      const selectedCheckpoint = selectedHazard || selectedLair || selectedForcedFloor ? null : findEditableCheckpointAt(pointer.screenX, pointer.screenY);
+      const selectedArch = selectedHazard || selectedLair || selectedCheckpoint || selectedForcedFloor ? null : findEditableArchAt(pointer.screenX, pointer.screenY);
       const selectedSolidPlatform = selectedHazard || selectedLair || selectedCheckpoint || selectedArch || selectedForcedFloor
         ? null
         : findEditablePlatformAt(pointer.screenX, pointer.screenY, { includeFloors: false });
-      const selectedProp = selectedHazard || selectedLair || selectedCheckpoint || selectedArch || selectedSolidPlatform ? null : findEditableStoryPropAt(pointer.screenX, pointer.screenY);
+      const selectedProp = selectedHazard || selectedLair || selectedCheckpoint || selectedArch || selectedForcedFloor || selectedSolidPlatform ? null : findEditableStoryPropAt(pointer.screenX, pointer.screenY);
       const selectedFallbackFloor = editor.floorPickMode || selectedHazard || selectedLair || selectedCheckpoint || selectedArch || selectedSolidPlatform || selectedProp
         ? null
         : findEditablePlatformAt(pointer.screenX, pointer.screenY, { floorOnly: true });
