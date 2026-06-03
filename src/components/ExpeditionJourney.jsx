@@ -2629,11 +2629,16 @@ const getStoryPropDepth = (prop) => {
 };
 
 const GENERATED_STORY_PROP_BOUNDS = {
+  'generated-opening-pyramid-facade': { width: 1208, height: 664 },
   'generated-mummification-chamber-entrance': { width: 1360, height: 705 },
   'generated-climb-structure': { width: 1420, height: 690 },
   'generated-scribe-chamber-doorway': { width: 1120, height: 620 },
 };
 const GENERATED_STORY_PROP_PREVIEW_SOURCES = {
+  'generated-opening-pyramid-facade': {
+    assetKey: 'Opening Pyramid facade',
+    src: OPENING_PYRAMID_FACADE_SRC,
+  },
   'generated-mummification-chamber-entrance': {
     assetKey: 'Mummification Chamber exterior',
     src: MUMMIFICATION_CHAMBER_EXTERIOR_SRC,
@@ -8110,16 +8115,20 @@ export default function ExpeditionJourney({
     return true;
   }, []);
 
-  const drawOpeningPyramidFacade = useCallback((ctx, cameraX, now = 0) => {
+  const drawOpeningPyramidFacade = useCallback((ctx, cameraX, now = 0, prop = null) => {
     const facade = openingPyramidFacadeRef.current;
     if (!facade.loaded || !facade.image) return false;
-    const x = worldToScreenX(OPENING_PYRAMID_FACADE_WORLD_LEFT_X, cameraX);
-    const y = -4;
-    const width = 1208;
-    const height = 664;
+    const renderProp = getGeneratedStoryPropRenderProp(prop || {});
+    const width = Number.isFinite(renderProp.width) ? renderProp.width : 1208;
+    const height = Number.isFinite(renderProp.height) ? renderProp.height : 664;
+    const worldLeftX = Number.isFinite(renderProp.x)
+      ? renderProp.x - width / 2
+      : OPENING_PYRAMID_FACADE_WORLD_LEFT_X;
+    const x = worldToScreenX(worldLeftX, cameraX);
+    const y = Number.isFinite(renderProp.y) ? renderProp.y : -4;
     if (x > CANVAS_WIDTH + 80 || x + width < -80) return false;
     ctx.save();
-    ctx.globalAlpha = 0.98;
+    ctx.globalAlpha = Number.isFinite(renderProp.alpha) ? renderProp.alpha : 0.98;
     ctx.filter = 'sepia(4%) saturate(98%) brightness(91%) contrast(102%)';
     ctx.drawImage(facade.image, x, y, width, height);
     ctx.filter = 'none';
@@ -8179,9 +8188,10 @@ export default function ExpeditionJourney({
     return true;
   }, [drawOpeningPyramidAssetRegion]);
 
-  const drawOpeningPyramidMasonryBack = useCallback((ctx, cameraX, now = 0) => {
+  const drawOpeningPyramidMasonryBack = useCallback((ctx, cameraX, now = 0, current = stateRef.current) => {
     if (openingPyramidFacadeRef.current.loaded && openingPyramidFacadeRef.current.image) {
-      drawOpeningPyramidFacade(ctx, cameraX, now);
+      const openingPyramidFacadeProp = getRenderableStoryProps(current).find(prop => prop.id === 'opening-pyramid-facade-structure');
+      drawOpeningPyramidFacade(ctx, cameraX, now, openingPyramidFacadeProp);
       return;
     }
     const facadeStartX = 80;
@@ -8300,7 +8310,7 @@ export default function ExpeditionJourney({
       height: 58,
     }, { alpha: 0.3 });
     ctx.restore();
-  }, [drawOpeningPyramidAssetRegion, drawOpeningPyramidFacade]);
+  }, [drawOpeningPyramidAssetRegion, drawOpeningPyramidFacade, getRenderableStoryProps]);
 
   const drawDesertEntryPlatformSupport = useCallback((ctx, platform, screenX, visualY, visualHeight, reactiveActive = false) => {
     const topY = visualY + visualHeight - 4;
@@ -10045,6 +10055,10 @@ export default function ExpeditionJourney({
       }
       ctx.filter = 'none';
       ctx.globalAlpha = 1;
+    }
+    if (prop.type === 'generated-opening-pyramid-facade') {
+      ctx.restore();
+      return;
     }
     if (prop.type === 'generated-mummification-chamber-entrance') {
       drawMummificationChamberExteriorAsset(ctx, getGeneratedStoryPropRenderProp(prop), x, section, now);
@@ -13899,6 +13913,39 @@ export default function ExpeditionJourney({
       ctx.textAlign = 'left';
       ctx.fillText('checkpoint', bounds.x + 4, bounds.y + 11);
     });
+    // Chamber entry trigger zones — teal boxes showing where Asha must stand to enter
+    const chamberEntryTriggers = [
+      { id: 'mummification-chamber-entry', label: 'entry: mummification', trigger: MUMMIFICATION_CHAMBER_ENTRY_TRIGGER },
+      { id: 'forgotten-mural-entry', label: 'entry: forgotten mural', trigger: FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER },
+      { id: 'scribe-chamber-entry', label: 'entry: scribe', trigger: SCRIBE_CHAMBER_ENTRY_TRIGGER },
+    ];
+    chamberEntryTriggers.forEach(({ label, trigger }) => {
+      const sx = worldToScreenX(trigger.minX, cameraX);
+      const sw = worldToScreenX(trigger.maxX, cameraX) - sx;
+      if (sx + sw < -80 || sx > CANVAS_WIDTH + 80) return;
+      // Foot-Y target band (where player feet must be)
+      const footTop = trigger.footY - trigger.footTolerance;
+      const footBot = trigger.footY + trigger.footTolerance;
+      ctx.strokeStyle = 'rgba(45, 212, 191, 0.88)';
+      ctx.fillStyle = 'rgba(45, 212, 191, 0.14)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 4]);
+      ctx.strokeRect(sx, footTop, sw, footBot - footTop);
+      ctx.fillRect(sx, footTop, sw, footBot - footTop);
+      // maxY ceiling line (player.y must be below this)
+      ctx.strokeStyle = 'rgba(45, 212, 191, 0.44)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 6]);
+      ctx.beginPath();
+      ctx.moveTo(sx, trigger.maxY);
+      ctx.lineTo(sx + sw, trigger.maxY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = 'rgba(204, 251, 241, 0.96)';
+      ctx.font = '800 10px Outfit, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(label, sx + 4, footTop - 4);
+    });
     const selectedPlatform = getPropEditorSelectedPlatform(current);
     if (selectedPlatform) {
       const bounds = getPlatformEditorBounds(selectedPlatform, cameraX, current);
@@ -14237,7 +14284,7 @@ export default function ExpeditionJourney({
     if (!chamberSceneActive) {
       drawDesertForegroundAtmosphere(ctx, section, cameraX);
       drawSectionParallaxForeground(ctx, section, cameraX);
-      drawOpeningPyramidMasonryBack(ctx, cameraX, now);
+      drawOpeningPyramidMasonryBack(ctx, cameraX, now, current);
       getRenderableStoryProps(current).forEach((prop) => drawStoryProp(ctx, prop, cameraX, now, 'midground'));
       ENVIRONMENT_INTERACTIONS.forEach((item) => drawEnvironmentInteraction(ctx, item, cameraX, now, current));
       drawEgyptAmbientLife(ctx, section, cameraX, now);
