@@ -4,7 +4,9 @@ const EDITABLE_FIELDS = Object.freeze({
   props: [
     'id', 'sectionId', 'sceneId', 'type', 'atmosphereAssetKey', 'imageAssetKey', 'assetPath', 'x', 'y', 'width',
     'height', 'yOffset', 'alpha', 'depth', 'layer', 'zIndex', 'scale', 'rotation', 'mirrorX', 'brightness',
-    'placementPreset', 'label',
+    'placementPreset', 'tint', 'colorGradeFilter', 'sceneBlend', 'shadow', 'shadowOpacity', 'shadowWidth',
+    'shadowHeight', 'dust', 'bury', 'burialDepth', 'sandOverlapHeight', 'sandMoundWidth', 'sandMoundHeight',
+    'groundPebbles', 'groundPlaneY', 'groundPlaneOffset', 'assetContactYRatio', 'sandSeed', 'label',
   ],
   platforms: ['id', 'sectionId', 'sceneId', 'x', 'y', 'width', 'height', 'layer', 'zIndex', 'label'],
   hazards: [

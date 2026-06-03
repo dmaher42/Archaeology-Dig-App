@@ -37,6 +37,8 @@ const journeyBossSpritesSource = readFileSync(new URL('./journeyBossSprites.js',
 const journeyMarkerSpritesSource = readFileSync(new URL('./journeyMarkerSprites.js', import.meta.url), 'utf8');
 const journeyBackgroundAssetsSource = readFileSync(new URL('./journeyBackgroundAssets.js', import.meta.url), 'utf8');
 const journeyRenderAssetsSource = readFileSync(new URL('./journeyRenderAssets.js', import.meta.url), 'utf8');
+const journeyPlacementOverridesSource = readFileSync(new URL('./journeyPlacementOverrides.js', import.meta.url), 'utf8');
+const journeyPlacementGeneratedOverrideSource = readFileSync(new URL('./journeyPlacementOverrides.generated.js', import.meta.url), 'utf8');
 const journeyTrapsSource = readFileSync(new URL('./journeyTraps.js', import.meta.url), 'utf8');
 const expeditionStagesSource = readFileSync(new URL('../expedition/expeditionStages.js', import.meta.url), 'utf8');
 const devToolsSource = readFileSync(new URL('../DevTools.jsx', import.meta.url), 'utf8');
@@ -292,7 +294,7 @@ test('journey placement editor keeps export panel manual after selecting or movi
 
 test('journey prop editor palette derives reusable prop options from existing story props', () => {
   const palette = createJourneyPropPalette([
-    { id: 'torch-a', sectionId: 'ruined-temple', type: 'atmosphere-prop', atmosphereAssetKey: 'torchStand', label: 'small torch marker', width: 46, height: 84 },
+    { id: 'torch-a', sectionId: 'ruined-temple', type: 'atmosphere-prop', atmosphereAssetKey: 'torchStand', label: 'small torch marker', width: 46, height: 84, colorGradeFilter: 'none' },
     { id: 'torch-b', sectionId: 'catacombs', type: 'atmosphere-prop', atmosphereAssetKey: 'torchStand', label: 'torch at catacomb descent', width: 48, height: 88 },
     { id: 'statue-a', sectionId: 'desert-entry', type: 'statue', label: 'ram statue marker' },
   ]);
@@ -308,6 +310,7 @@ test('journey prop editor palette derives reusable prop options from existing st
       atmosphereAssetKey: 'torchStand',
       width: 46,
       height: 84,
+      colorGradeFilter: 'none',
     },
   });
   assert.equal(palette[1].key, 'statue');
@@ -323,6 +326,7 @@ test('journey prop editor palette includes reusable Lost Site prop registry entr
       assetPath: 'assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/cracked_stone_blocks.png',
       defaultScale: 1,
       defaultLayer: 'foreground',
+      defaultColorGradeFilter: 'none',
       defaultShadowOpacity: 0,
       collidable: false,
       inspectable: false,
@@ -357,6 +361,7 @@ test('journey prop editor palette includes reusable Lost Site prop registry entr
         atmosphereAssetKey: 'cracked_stone_blocks',
         scale: 1,
         layer: 'foreground',
+        colorGradeFilter: 'none',
         shadowOpacity: 0,
       },
     },
@@ -392,6 +397,7 @@ test('journey prop editor creates and duplicates props using canonical prop fiel
       height: 58,
       depth: 'midground',
       layer: 'default',
+      colorGradeFilter: 'none',
     },
   };
 
@@ -412,6 +418,7 @@ test('journey prop editor creates and duplicates props using canonical prop fiel
     height: 58,
     depth: 'midground',
     layer: 'default',
+    colorGradeFilter: 'none',
     x: 520,
     y: 544,
     label: 'field chest',
@@ -2973,7 +2980,7 @@ test('Journey progress gates use arch and slab assets instead of artificial padl
   assert.match(routeGateDrawSource, /drawGateAsset\(routeGateSlabRef/);
   assert.match(routeGateDrawSource, /drawGateAsset\(routeGateBackRef/);
   assert.match(routeGateDrawSource, /drawGateAsset\(routeGateFrontRef/);
-  assert.match(routeGateDrawSource, /frontPillarPassageOffset = Math\.round\(frontWidth \* 0\.37\)/);
+  assert.match(routeGateDrawSource, /frontPillarPassageOffset = -Math\.round\(frontWidth \* 0\.37\)/);
   assert.match(routeGateDrawSource, /x: gateCenter - Math\.round\(frontWidth \/ 2\) \+ frontPillarPassageOffset/);
   assert.match(routeGateDrawSource, /flipX:\s*true/);
   assert.match(routeGateDrawSource, /layer === 'foreground'[\s\S]*?if \(complete\)/);
@@ -3333,6 +3340,11 @@ test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, an
   assert.ok(registryIds.has('ledgeHelperFallenColumnSteps'), 'fallen column ledge helper should be available in the prop editor');
   assert.ok(registryIds.has('ledgeHelperRopeLadderScaffold'), 'rope ladder ledge helper should be available in the prop editor');
   assert.ok(registryIds.has('ledgeHelperBuriedRampBlocks'), 'buried ramp ledge helper should be available in the prop editor');
+  lostSitePropRegistry
+    .filter(entry => entry.category === 'Ledge Helpers')
+    .forEach((entry) => {
+      assert.equal(entry.defaultColorGradeFilter, 'none', `${entry.id} should keep its source PNG colour grade`);
+    });
 
   const categories = new Set(lostSitePropRegistry.map(entry => entry.category));
   [
@@ -3700,6 +3712,21 @@ test('desert entry ground reads as buried stone causeway under windblown sand', 
   assert.equal(causewayBytes.readUInt32BE(16), 1536);
   assert.equal(causewayBytes.readUInt32BE(20), 192);
   assert.equal(causewayBytes[25], 6, 'causeway overlay should be RGBA/transparent');
+});
+
+test('story props render local contact sediment and occlusion around asset bases', () => {
+  const drawStoryPropSource = getComponentFunctionSource('drawStoryProp');
+
+  assert.match(journeyComponentSource, /PROP_GROUNDING_INTEGRATION_VERSION = 'prop-contact-shadow-local-sediment-occlusion-v4'/);
+  assert.match(journeyComponentSource, /defaultSandOverlap/);
+  assert.match(journeyComponentSource, /sandMoundWidth:\s*finiteNumber\(config\.sandMoundWidth/);
+  assert.match(journeyComponentSource, /groundPebbles:\s*finiteNumber\(config\.groundPebbles/);
+  assert.match(drawStoryPropSource, /drawPropGroundContact\(ctx, x, anchorY, propSize, section\.id, propGrounding\)/);
+  assert.match(drawStoryPropSource, /drawPropSandOcclusion\(ctx, x, anchorY, propSize, section\.id, propGrounding\)/);
+  assert.match(journeyPlacementOverridesSource, /'colorGradeFilter'[\s\S]*'sandOverlapHeight'[\s\S]*'groundPebbles'/);
+  assert.match(journeyPlacementGeneratedOverrideSource, /"id": "desert-entry-premium-column-1"[\s\S]*?"shadowOpacity": 0\.3[\s\S]*?"sandOverlapHeight": 20[\s\S]*?"groundPebbles": 6/);
+  assert.match(journeyPlacementGeneratedOverrideSource, /"id": "desert-entry-cracked-stone-blocks-1"[\s\S]*?"shadowOpacity": 0\.22[\s\S]*?"sandOverlapHeight": 10/);
+  assert.match(journeyPlacementGeneratedOverrideSource, /"id": "desert-entry-fallen-lintel-1"[\s\S]*?"shadowOpacity": 0\.24[\s\S]*?"sandOverlapHeight": 14/);
 });
 
 test('editor supports half-buried trap visuals without moving collision by hand', () => {

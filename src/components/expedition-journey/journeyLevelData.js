@@ -393,6 +393,7 @@ export const ROUTE_GATES = [
     y: JY(86),
     width: 34,
     height: 274,
+    hideArchVisual: true,
     message: 'The Temple Approach Seal refuses easy entry. The lost fragments must prove Asha came to protect.',
     readyHint: 'The seal answers. Move through the threshold before the site closes again.',
     openMessage: 'The seal answers, but it does not trust you.',
@@ -407,6 +408,7 @@ export const ROUTE_GATES = [
     y: JY(86),
     width: 34,
     height: 274,
+    hideArchVisual: true,
     message: 'The ancient Map Tablet and 6 lost fragments must be restored before the path deeper wakes.',
     requires: {
       objective: 'desert-entry',

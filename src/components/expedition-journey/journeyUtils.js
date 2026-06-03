@@ -166,6 +166,7 @@ const PROP_TEMPLATE_FIELDS = [
   'layer',
   'zIndex',
   'tint',
+  'colorGradeFilter',
   'shadow',
   'dust',
   'bury',

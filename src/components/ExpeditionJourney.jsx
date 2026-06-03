@@ -2820,7 +2820,7 @@ const resolvePropGroundingSettings = (config = {}) => {
 
 const DECORATIVE_PROP_LAYER_MODE = 'background-midground-grounded-depth-v3';
 const PROP_DEPTH_TUNING_VERSION = 'journey-grounded-placement-presets-2026-05-26';
-const PROP_GROUNDING_INTEGRATION_VERSION = 'grounded-plane-preset-contact-shadow-local-sand-v2';
+const PROP_GROUNDING_INTEGRATION_VERSION = 'prop-contact-shadow-local-sediment-occlusion-v4';
 const ROUTE_GROUND_VISUAL_MODE = 'buried-stone-causeway-under-windblown-sand-v1';
 const DESERT_ENTRY_CAUSEWAY_DRAW_HEIGHT = 64;
 const DESERT_ENTRY_CAUSEWAY_DRAW_Y_OFFSET = -28;
@@ -7654,15 +7654,6 @@ export default function ExpeditionJourney({
   }, [drawRouteGroundApron]);
 
   const drawPropGroundContact = useCallback((ctx, x, anchorY, propSize, sectionId, grounding) => {
-    drawRouteGroundApron(
-      ctx,
-      x,
-      anchorY + 1,
-      grounding.sandMoundWidth,
-      sectionId,
-      propSize.depth === 'background' ? 0.22 : 0.3,
-      Math.round(grounding.seed),
-    );
     if (grounding.shadowOpacity <= 0) return;
     drawContactShadow(
       ctx,
@@ -7673,89 +7664,67 @@ export default function ExpeditionJourney({
       1.2,
       { height: grounding.shadowHeight, color: 'rgba(31, 19, 8, 0.96)' },
     );
-  }, [drawContactShadow, drawRouteGroundApron]);
+  }, [drawContactShadow]);
 
   const drawPropSandOcclusion = useCallback((ctx, x, anchorY, propSize, sectionId, grounding) => {
     if (grounding.sandOverlapHeight <= 0) return;
+    const moundW = grounding.sandMoundWidth;
+    const moundH = grounding.sandMoundHeight;
+    const overlapH = grounding.sandOverlapHeight;
+    const pebbleCount = Math.round(grounding.groundPebbles);
+    const seed = grounding.seed;
     const isCatacombs = sectionId === 'catacombs';
     const isEscape = sectionId === 'escape-sequence';
-    const baseSand = isCatacombs
-      ? 'rgba(83, 64, 43, 0.54)'
+    const isDesert = sectionId === 'desert-entry';
+    const fillColor = isCatacombs
+      ? 'rgba(82, 66, 48, 0.72)'
       : isEscape
-        ? 'rgba(134, 78, 36, 0.48)'
-        : 'rgba(177, 119, 57, 0.46)';
-    const frontSand = isCatacombs
-      ? 'rgba(55, 42, 30, 0.42)'
-      : isEscape
-        ? 'rgba(96, 53, 24, 0.34)'
-        : 'rgba(116, 74, 36, 0.3)';
-    const highlightSand = isCatacombs
-      ? 'rgba(170, 136, 92, 0.18)'
-      : 'rgba(220, 167, 91, 0.18)';
-    const moundWidth = grounding.sandMoundWidth;
-    const overlap = grounding.sandOverlapHeight;
-    const moundHeight = grounding.sandMoundHeight;
-    const seed = grounding.seed;
-
+        ? 'rgba(152, 97, 52, 0.70)'
+        : isDesert
+          ? 'rgba(210, 158, 88, 0.74)'
+          : 'rgba(190, 128, 62, 0.70)';
+    const rimColor = isCatacombs
+      ? 'rgba(108, 87, 62, 0.38)'
+      : isDesert
+        ? 'rgba(230, 178, 102, 0.40)'
+        : 'rgba(210, 150, 78, 0.36)';
     ctx.save();
-    const sand = ctx.createLinearGradient(0, anchorY - overlap * 1.08, 0, anchorY + moundHeight * 0.62);
-    sand.addColorStop(0, 'rgba(214, 164, 91, 0)');
-    sand.addColorStop(0.46, baseSand);
-    sand.addColorStop(1, frontSand);
-    ctx.fillStyle = sand;
-    [
-      { ox: -0.24, oy: -0.2, rw: 0.32, rh: 0.42, rot: -0.15 },
-      { ox: 0.1, oy: -0.28, rw: 0.4, rh: 0.48, rot: 0.09 },
-      { ox: 0.0, oy: -0.02, rw: 0.55, rh: 0.32, rot: -0.04 },
-    ].forEach((drift, index) => {
-      const phase = Math.sin(seed * 0.013 + index * 1.7);
-      ctx.beginPath();
-      ctx.ellipse(
-        x + moundWidth * drift.ox + phase * 4,
-        anchorY + overlap * drift.oy,
-        Math.max(11, moundWidth * drift.rw),
-        Math.max(4, moundHeight * drift.rh),
-        drift.rot,
-        0,
-        Math.PI * 2,
-      );
-      ctx.fill();
-    });
-
-    ctx.globalAlpha = 0.9;
-    ctx.strokeStyle = highlightSand;
-    ctx.lineWidth = 1.5;
+    ctx.fillStyle = fillColor;
     ctx.beginPath();
-    ctx.moveTo(x - moundWidth * 0.38, anchorY - overlap * 0.26);
-    ctx.quadraticCurveTo(
-      x - moundWidth * 0.12,
-      anchorY - overlap * 0.42,
-      x + moundWidth * 0.12,
-      anchorY - overlap * 0.28,
-    );
-    ctx.quadraticCurveTo(
-      x + moundWidth * 0.32,
-      anchorY - overlap * 0.16,
-      x + moundWidth * 0.42,
-      anchorY - overlap * 0.24,
-    );
+    ctx.ellipse(x, anchorY, moundW / 2, moundH / 2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 0.72;
+    ctx.strokeStyle = rimColor;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.ellipse(x, anchorY - moundH * 0.18, moundW * 0.44, moundH * 0.28, 0, Math.PI, Math.PI * 2);
     ctx.stroke();
-
-    ctx.globalAlpha = 1;
-    drawGroundDustLip(ctx, x - moundWidth * 0.08, anchorY - overlap * 0.1, moundWidth * 0.52, 'rgba(178, 119, 57, 0.2)');
-    const pebbleCount = Math.max(0, Math.round(grounding.groundPebbles));
-    ctx.fillStyle = isCatacombs ? 'rgba(112, 88, 62, 0.42)' : 'rgba(128, 78, 34, 0.34)';
-    for (let i = 0; i < pebbleCount; i += 1) {
-      const t = pebbleCount <= 1 ? 0.5 : i / (pebbleCount - 1);
-      const jitter = Math.sin(seed * 0.021 + i * 2.3);
-      const pebbleX = x - moundWidth * 0.38 + moundWidth * 0.76 * t + jitter * 5;
-      const pebbleY = anchorY + 2 + Math.cos(seed * 0.017 + i) * 2;
-      ctx.beginPath();
-      ctx.ellipse(pebbleX, pebbleY, 2.4 + (i % 2), 1.4, jitter * 0.18, 0, Math.PI * 2);
-      ctx.fill();
+    if (overlapH > 0) {
+      const overlapY = anchorY - overlapH;
+      const overlapGrad = ctx.createLinearGradient(0, overlapY, 0, anchorY + moundH * 0.5);
+      overlapGrad.addColorStop(0, 'rgba(0,0,0,0)');
+      overlapGrad.addColorStop(0.4, isCatacombs ? 'rgba(72, 57, 42, 0.44)' : isDesert ? 'rgba(210, 155, 82, 0.48)' : 'rgba(185, 122, 56, 0.46)');
+      overlapGrad.addColorStop(1, isCatacombs ? 'rgba(60, 46, 34, 0.58)' : isDesert ? 'rgba(195, 143, 72, 0.60)' : 'rgba(172, 112, 48, 0.58)');
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = overlapGrad;
+      ctx.fillRect(x - moundW / 2 - 2, overlapY, moundW + 4, overlapH + moundH * 0.5);
+    }
+    if (pebbleCount > 0) {
+      const pebbleColor = isCatacombs ? 'rgba(55, 44, 33, 0.72)' : isDesert ? 'rgba(148, 108, 60, 0.68)' : 'rgba(130, 92, 44, 0.64)';
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = pebbleColor;
+      for (let i = 0; i < pebbleCount; i++) {
+        const t = (seed * 7 + i * 137) % 1000 / 1000;
+        const px = x + (t - 0.5) * moundW * 0.9;
+        const py = anchorY - ((seed * 3 + i * 53) % 100) / 100 * moundH * 0.6;
+        const pr = 1.5 + ((seed + i * 23) % 10) / 10 * 2;
+        ctx.beginPath();
+        ctx.ellipse(px, py, pr, pr * 0.6, t * Math.PI, 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
     ctx.restore();
-  }, [drawGroundDustLip]);
+  }, []);
 
   const drawSectionTransitionBlend = useCallback((ctx, cameraX) => {
     SECTIONS.slice(1).forEach((section) => {
@@ -12235,6 +12204,29 @@ export default function ExpeditionJourney({
   }, []);
 
   const drawRouteGate = useCallback((ctx, gate, screenX, current, complete, layer = 'base', doorway = null) => {
+    if (gate.hideArchVisual) {
+      if (layer !== 'base' || complete) return;
+      const cx = (doorway?.anchorX ? screenX : screenX + gate.width / 2);
+      ctx.save();
+      const sealedShadow = ctx.createRadialGradient(cx, GROUND_Y - 62, 12, cx, GROUND_Y - 62, 94);
+      sealedShadow.addColorStop(0, 'rgba(70, 37, 13, 0.26)');
+      sealedShadow.addColorStop(1, 'rgba(70, 37, 13, 0)');
+      ctx.fillStyle = sealedShadow;
+      ctx.beginPath();
+      ctx.ellipse(cx, GROUND_Y - 58, 94, 62, 0, 0, Math.PI * 2);
+      ctx.fill();
+      const slabGradient = ctx.createLinearGradient(cx - 92, GROUND_Y - 288, cx + 92, GROUND_Y);
+      slabGradient.addColorStop(0, '#d1a96b');
+      slabGradient.addColorStop(0.56, '#927047');
+      slabGradient.addColorStop(1, '#5f4327');
+      ctx.fillStyle = slabGradient;
+      ctx.strokeStyle = 'rgba(58, 35, 18, 0.62)';
+      ctx.lineWidth = 2;
+      ctx.fillRect(cx - 17, GROUND_Y - 274, 34, 274);
+      ctx.strokeRect(cx - 17, GROUND_Y - 274, 34, 274);
+      ctx.restore();
+      return;
+    }
     const gateCenter = doorway?.anchorX ? screenX : screenX + gate.width / 2;
     ctx.save();
     // Assets are 1024×682 (back/front) and 1024×637 (slab) — ratio ≈ 1.50:1.
@@ -12245,7 +12237,7 @@ export default function ExpeditionJourney({
     const gateTop = placeGateOnGround(gateHeight) + 15; // +15 sinks base into ground line
     const backWidth = Math.round(gateHeight * ASSET_RATIO); // 510
     const frontWidth = Math.round((gateHeight + 20) * ASSET_RATIO); // 540
-    const frontPillarPassageOffset = Math.round(frontWidth * 0.37);
+    const frontPillarPassageOffset = -Math.round(frontWidth * 0.37);
     const gateWidth = backWidth;
 
     const drawGateAsset = (ref, dest, options = {}) => {
