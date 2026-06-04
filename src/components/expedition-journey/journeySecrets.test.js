@@ -4061,7 +4061,7 @@ test('combat pressure encounters guard optional rewards without blocking progres
   assert.match(journeyUtilsSource, /return clamp\(Math\.max\(enemy\.health \+ bonus, Math\.ceil\(enemy\.health \* 1\.55\)\), 3, 5\)/);
   assert.match(journeyUtilsSource, /Math\.ceil\(enemy\.health \* 1\.55\)/);
   assert.match(journeyUtilsSource, /if\s*\(enemy\.firstSealRouteRamp\)\s*return Math\.max\(1, enemy\.damage\)/);
-  assert.match(journeyUtilsSource, /Math\.ceil\(enemy\.damage \* 1\.45\)/);
+  assert.match(journeyUtilsSource, /Math\.ceil\(enemy\.damage \* 1\.65\)/);
   assert.match(journeyUtilsSource, /baseSpeed: entity\.speed \* \(entity\.openingRouteRamp \? 1\.12 : 1\.32\)/);
   assert.match(journeyComponentSource, /const ENEMY_TACTICAL_PRESSURE = \{/);
   assert.match(journeyComponentSource, /awarenessMultiplier/);
@@ -4242,12 +4242,26 @@ test('hazards and traps use trap audio instead of door sounds', () => {
 });
 
 test('enemy hits land harder while player pushback stays short', () => {
-  assert.match(journeyUtilsSource, /enemy\.openingRouteRamp\s*\?\s*Math\.max\(enemy\.damage \+ 1, Math\.ceil\(enemy\.damage \* 1\.25\)\)/);
+  assert.match(journeyUtilsSource, /enemy\.openingRouteRamp\s*\?\s*Math\.max\(enemy\.damage \+ 1, Math\.ceil\(enemy\.damage \* 1\.3\)\)/);
   assert.match(journeyUtilsSource, /if\s*\(enemy\.firstSealRouteRamp\)\s*return Math\.max\(1, enemy\.damage\)/);
-  assert.match(journeyUtilsSource, /Math\.max\(enemy\.damage \+ 4, Math\.ceil\(enemy\.damage \* 1\.45\)\)/);
+  assert.match(journeyUtilsSource, /Math\.max\(enemy\.damage \+ 5, Math\.ceil\(enemy\.damage \* 1\.65\)\)/);
   assert.match(journeyComponentSource, /player\.knockbackMaxTimer = Math\.max\(0\.06, 0\.12 \* effectiveKnockbackMultiplier\)/);
   assert.match(journeyComponentSource, /player\.vx = approach\(player\.vx, direction \* 95 \* effectiveKnockbackMultiplier, 160\)/);
   assert.match(journeyComponentSource, /player\.vx \+= player\.knockbackDirection \* \(55 \+ knockbackProgress \* 42\.5\) \* knockbackMultiplier/);
+});
+
+test('enemy threat pass slice 4: danger scaling, wound state, depth pressure, and combat roles', () => {
+  // Damage multiplier bumped to 1.65x for mid/late enemies
+  assert.match(journeyUtilsSource, /Math\.max\(enemy\.damage \+ 5, Math\.ceil\(enemy\.damage \* 1\.65\)\)/);
+  // Wound state: enemies below half health attack faster
+  assert.match(journeyComponentSource, /woundState|wound_state|woundMultiplier|e\.health.*e\.maxHealth.*0\.5|health.*maxHealth.*wound/i);
+  // Depth pressure: enemies past X(1480) have shorter cooldowns
+  assert.match(journeyComponentSource, /depthCooldownMultiplier|deepZone.*cooldown|cooldown.*deepZone|X\(1480\)|scaleJourneyX\(1480\)|8360/);
+  // Scorpion, snake, mummy, bat cooldowns tightened — enemies attack more frequently
+  assert.doesNotMatch(journeyComponentSource, /scorpion:[\s\S]{0,300}cooldown:\s*1\.[3-9][0-9]/);
+  assert.doesNotMatch(journeyComponentSource, /snake:[\s\S]{0,300}cooldown:\s*1\.[3-9][0-9]/);
+  assert.doesNotMatch(journeyComponentSource, /mummy:[\s\S]{0,300}cooldown:\s*1\.[5-9][0-9]/);
+  assert.doesNotMatch(journeyComponentSource, /bat:[\s\S]{0,300}cooldown:\s*1\.[2-9][0-9]/);
 });
 
 test('opening enemy role overrides preserve first-route fairness and readable counters', () => {

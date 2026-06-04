@@ -951,8 +951,8 @@ const tuneEnemyHealth = (enemy) => {
 const tuneEnemyDamage = (enemy) => {
   if (enemy.firstSealRouteRamp) return Math.max(1, enemy.damage);
   return enemy.openingRouteRamp
-    ? Math.max(enemy.damage + 1, Math.ceil(enemy.damage * 1.25))
-    : Math.max(enemy.damage + 4, Math.ceil(enemy.damage * 1.45));
+    ? Math.max(enemy.damage + 1, Math.ceil(enemy.damage * 1.3))
+    : Math.max(enemy.damage + 5, Math.ceil(enemy.damage * 1.65));
 };
 
 const makeStepProfile = (entity, { boss = false } = {}) => {

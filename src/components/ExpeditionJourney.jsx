@@ -1552,7 +1552,7 @@ const ENEMY_ATTACK_PATTERNS = {
     label: 'Sting',
     windup: 0.6,
     duration: 0.3,
-    cooldown: 1.40,
+    cooldown: 1.15,
     recovery: 0.64,
     vulnerableAfter: 0.7,
     speed: 54,
@@ -1585,7 +1585,7 @@ const ENEMY_ATTACK_PATTERNS = {
     label: 'Lunge',
     windup: 0.62,
     duration: 0.28,
-    cooldown: 1.38,
+    cooldown: 1.12,
     recovery: 0.6,
     vulnerableAfter: 0.68,
     speed: 166,
@@ -1598,7 +1598,7 @@ const ENEMY_ATTACK_PATTERNS = {
     label: 'Swoop',
     windup: 0.36,
     duration: 0.32,
-    cooldown: 1.20,
+    cooldown: 0.92,
     recovery: 0.48,
     vulnerableAfter: 0.52,
     speed: 190,
@@ -1654,7 +1654,7 @@ const ENEMY_ATTACK_PATTERNS = {
     label: 'Khopesh Sweep',
     windup: 0.76,
     duration: 0.34,
-    cooldown: 1.57,
+    cooldown: 1.28,
     recovery: 0.78,
     vulnerableAfter: 0.86,
     speed: 58,
@@ -17785,7 +17785,15 @@ export default function ExpeditionJourney({
         e.attackReady = true;
         e.attackPattern = pattern.id;
         e.attackPhaseLabel = pattern.label;
-        e.attackCooldown = pattern.cooldown;
+        // Depth pressure: enemies deeper in the site attack more frequently
+        const deepZone = e.x > scaleJourneyX(1480);
+        const deepZoneCooldownMultiplier = deepZone
+          ? (e.x > scaleJourneyX(4000) ? 0.78 : 0.85)
+          : 1;
+        // Wound state: below half health, enemies become more desperate
+        const woundState = e.health < e.maxHealth * 0.5;
+        const woundMultiplier = woundState ? 0.80 : 1;
+        e.attackCooldown = Math.max(0.55, pattern.cooldown * deepZoneCooldownMultiplier * woundMultiplier);
         e.vulnerabilityTimer = 0;
         e.shieldTimer = pattern.shieldDuringWindup ? Math.min(0.45, pattern.windup * 0.7) : 0;
         if (e.encounterRole) {
