@@ -4325,6 +4325,35 @@ test('Phase 5B isolates the first Scarab Scout and Seal Warden teaching pockets'
   assert.match(sealWarden, /attackPatternTuning:\s*\{[\s\S]*?label:\s*'Guarded Sting'[\s\S]*?windup:\s*0\.82[\s\S]*?duration:\s*0\.32[\s\S]*?recovery:\s*0\.9[\s\S]*?vulnerableAfter:\s*0\.98[\s\S]*?shieldDuringWindup:\s*true[\s\S]*?protectedDuringWindup:\s*true/);
 });
 
+test('endurance model slice 2: exhausted state, overwhelm rescue, trap floor, and recovery contracts', () => {
+  // Enemy/boss hits use canOverwhelm option to allow below-zero rescue
+  assert.match(journeyComponentSource, /canOverwhelm.*true[\s\S]{0,120}applyPlayerDamage|applyPlayerDamage[\s\S]{0,400}canOverwhelm:\s*true/);
+  // applyPlayerDamage checks canOverwhelm before triggering rescue
+  assert.match(journeyComponentSource, /options\.canOverwhelm[\s\S]{0,180}triggerJourneyRescue/);
+  // Traps do NOT independently trigger rescue at zero (stop at zero, not overwhelm)
+  assert.doesNotMatch(journeyComponentSource, /trapStaminaLoss[\s\S]{0,240}triggerJourneyRescue/);
+  // Poison drain does NOT trigger rescue at zero (stops at zero)
+  assert.doesNotMatch(journeyComponentSource, /poisonTickTimer[\s\S]{0,180}triggerJourneyRescue/);
+  // Exhausted state tracked in initial state
+  assert.match(journeyUtilsSource, /enduranceExhausted:\s*false/);
+  // Dodge is blocked when exhausted (check appears inside queueDodge body)
+  assert.match(journeyComponentSource, /queueDodge[\s\S]{0,700}enduranceExhausted/);
+  // Finisher is blocked when exhausted (finisherAllowed gate near isFinisher)
+  assert.match(journeyComponentSource, /enduranceExhausted[\s\S]{0,500}isFinisher/);
+  // Last-chance recovery constant exists
+  assert.match(journeyComponentSource, /EXHAUSTED_RECOVERY_RATE\s*=/);
+  // Recovery applies while exhausted
+  assert.match(journeyComponentSource, /enduranceExhausted[\s\S]{0,160}EXHAUSTED_RECOVERY_RATE/);
+  // Attack stamina cost floors at 0, not 1 (basic attacks still work when exhausted)
+  assert.match(journeyComponentSource, /applyAttackStaminaCost[\s\S]{0,160}Math\.max\(0,/);
+  // UI strings say Endurance not stamina in visible notices
+  assert.match(journeyComponentSource, /Endurance\.|Endurance\s*\.\s*|-\$\{amount\} Endurance/);
+  assert.doesNotMatch(journeyComponentSource, /-\$\{amount\} stamina\./);
+  // Floating damage label says ENDURANCE
+  assert.match(journeyComponentSource, /ENDURANCE/);
+  assert.doesNotMatch(journeyComponentSource, /fillText\(`-\$\{player\.lastDamage\} STAMINA/);
+});
+
 test('jump contact only bounces enemies while attacks defeat them in three to five hits', () => {
   assert.match(journeyComponentSource, /const applyEnemyStomp = \(enemy\) => \{/);
   assert.doesNotMatch(journeyComponentSource, /const applyEnemyStomp = \(enemy\) => \{[\s\S]*?text:\s*'BOUNCE'/);

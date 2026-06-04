@@ -497,9 +497,11 @@ const MUMMIFICATION_CHAMBER_FEEDBACK = {
   incorrect: 'That order is not right. Look again at what each step required.',
 };
 
-const LOW_STAMINA_WARNING = 'Stamina low - avoid another hit.';
+const LOW_STAMINA_WARNING = 'Endurance low — avoid another hit.';
 const FIELD_RESCUE_MESSAGE = 'You were forced back to the last checkpoint. Recover and try again.';
-const FIELD_RESCUE_STAMINA_REASON = 'Stamina hit zero.';
+const FIELD_RESCUE_STAMINA_REASON = 'Endurance overwhelmed.';
+const EXHAUSTED_RECOVERY_RATE = 4; // Endurance per second while exhausted at zero
+const EXHAUSTED_RECOVERY_CEILING = 15; // auto-recovery stops here; enough to dodge once
 const OPENING_THRESHOLD_SCENE_DURATION = 14;
 const OPENING_THRESHOLD_FADE_SECONDS = 1.2;
 const OPENING_THRESHOLD_STAIR_REVEAL_SECONDS = 3.8;
@@ -15206,7 +15208,22 @@ export default function ExpeditionJourney({
     ctx.restore();
 
     const staminaRatio = current.resources.stamina / Math.max(1, current.upgradeEffects?.maxStamina || 100);
-    if (staminaRatio <= 0.3) {
+    if (current.enduranceExhausted) {
+      // Exhausted state: amber/teal desaturated pulse — distinct from the red low-stamina danger
+      current.renderStats.dangerFeedbackActive = true;
+      const pulse = 0.45 + Math.sin(now / 200) * 0.22;
+      const alpha = clamp(0.28 + pulse * 0.12, 0.22, 0.42);
+      ctx.save();
+      const exhaustedGradient = ctx.createRadialGradient(
+        CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, CANVAS_WIDTH * 0.15,
+        CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, CANVAS_WIDTH * 0.72,
+      );
+      exhaustedGradient.addColorStop(0, 'rgba(40, 30, 15, 0)');
+      exhaustedGradient.addColorStop(1, `rgba(80, 55, 20, ${alpha})`);
+      ctx.fillStyle = exhaustedGradient;
+      ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+      ctx.restore();
+    } else if (staminaRatio <= 0.3) {
       current.renderStats.dangerFeedbackActive = true;
       const pulse = 0.55 + Math.sin(now / 130) * 0.18;
       const alpha = clamp((0.3 - staminaRatio) / 0.3, 0.18, 0.42) * pulse;
@@ -15248,8 +15265,8 @@ export default function ExpeditionJourney({
       ctx.textAlign = 'center';
       const px = player.x - cameraX + player.width / 2;
       const py = player.y + secretVerticalCameraOffset - 24 - player.hitFeedbackTimer * 8;
-      ctx.fillText(`-${player.lastDamage} STAMINA`, px, py);
-      ctx.strokeText(`-${player.lastDamage} STAMINA`, px, py);
+      ctx.fillText(`-${player.lastDamage} ENDURANCE`, px, py);
+      ctx.strokeText(`-${player.lastDamage} ENDURANCE`, px, py);
       ctx.restore();
     }
 
@@ -15422,6 +15439,7 @@ export default function ExpeditionJourney({
     if (briefingOpen || current.failed || current.completed || current.openingCinematic || current.openingCameraRevealTimer > 0 || current.openingThresholdScene?.lockMovement || current.templeThresholdTransition?.lockMovement) return;
     if (!player?.onGround || current.dodgeTimer > 0 || current.dodgeRecoveryTimer > 0) return;
     if (player.hitFeedbackTimer > 0 || player.knockbackTimer > 0) return;
+    if (current.enduranceExhausted) return; // exhausted — cannot dodge until Endurance recovers
 
     const keys = keysRef.current || {};
     const leftPressed = Boolean(keys.ArrowLeft || keys.KeyA);
@@ -15671,7 +15689,8 @@ export default function ExpeditionJourney({
 
     const applyAttackStaminaCost = (amount, reason) => {
       if (!amount) return;
-      current.resources.stamina = Math.max(1, current.resources.stamina - amount);
+      current.resources.stamina = Math.max(0, current.resources.stamina - amount);
+      if (current.resources.stamina === 0) current.enduranceExhausted = true;
       current.playerAttackStaminaCost = amount;
       current.lastStaminaDelta = -amount;
       current.lastStaminaLossReason = reason;
@@ -15964,6 +15983,7 @@ export default function ExpeditionJourney({
       if (player.poisonTickTimer <= 0 && player.poisonTimer > 0) {
         player.poisonTickTimer = 1.0;
         current.resources.stamina = Math.max(0, current.resources.stamina - 1);
+        if (current.resources.stamina === 0) current.enduranceExhausted = true;
         addCombatEffect(current, {
           type: 'knockback-dust',
           x: player.x + player.width / 2,
@@ -15973,7 +15993,6 @@ export default function ExpeditionJourney({
           timer: 0.28,
           maxTimer: 0.28,
         });
-        if (current.resources.stamina <= 0) triggerJourneyRescue(FIELD_RESCUE_STAMINA_REASON);
       }
     }
     player.sandBlindTimer = Math.max(0, (player.sandBlindTimer || 0) - dt);
@@ -16008,6 +16027,14 @@ export default function ExpeditionJourney({
         .filter(g => g.alpha > 0);
     }
     player.hitFeedbackTimer = Math.max(0, player.hitFeedbackTimer - dt);
+    // Exhausted state: track when Endurance hits zero and apply last-chance slow recovery
+    if (current.resources.stamina === 0) current.enduranceExhausted = true;
+    if (current.enduranceExhausted && !current.failed && !current.completed) {
+      current.resources.stamina += EXHAUSTED_RECOVERY_RATE * dt;
+      if (current.resources.stamina >= EXHAUSTED_RECOVERY_CEILING) {
+        current.enduranceExhausted = false;
+      }
+    }
     if (current.attackTimer <= 0) current.playerAttackBox = null;
     if (wasWindingUp && current.attackWindupTimer <= 0) {
       current.attackTimer = current.attackSwingDuration || ATTACK_DURATION;
@@ -17387,7 +17414,7 @@ export default function ExpeditionJourney({
                 maxTimer: 0.46,
               });
               audioControls?.playExpeditionSfx?.(trap.type === 'hidden-sand-pit' ? 'trapSandTrigger' : 'trapReset', { volume: 0.9 });
-              if (current.resources.stamina <= 0) triggerJourneyRescue(FIELD_RESCUE_STAMINA_REASON);
+              if (current.resources.stamina === 0) current.enduranceExhausted = true;
             }
             return;
           }
@@ -17446,7 +17473,8 @@ export default function ExpeditionJourney({
           const dangerWarning = staminaLoss && isLowStamina(current, maxStamina)
             ? ` ${LOW_STAMINA_WARNING}`
             : '';
-          current.notice = `${visual.message || h.message}${staminaLoss ? ` -${staminaLoss} stamina.` : timeLoss ? ` -${timeLoss} seconds.` : ''}${dangerWarning}`;
+          if (staminaLoss && current.resources.stamina === 0) current.enduranceExhausted = true;
+          current.notice = `${visual.message || h.message}${staminaLoss ? ` -${staminaLoss} Endurance.` : timeLoss ? ` -${timeLoss} seconds.` : ''}${dangerWarning}`;
           current.damageNoticeTimer = Math.max(current.damageNoticeTimer || 0, 1.4);
           const hazardSfx = h.type === 'arrow-trap' && scopedJourneyAssetPacks.isChinaJourney ? 'chinaCrossbowTrap' : getHazardSfxKey(h);
           audioControls?.playExpeditionSfx?.(hazardSfx, {
@@ -17462,9 +17490,12 @@ export default function ExpeditionJourney({
     let attackRect = null;
     if (current.attackQueued) {
       const comboCanAdvance = current.attackComboWindowTimer > 0 && current.attackComboLanded;
-      const nextAttackSequenceIndex = comboCanAdvance
+      const finisherAllowed = !current.enduranceExhausted;
+      const nextAttackSequenceIndex = comboCanAdvance && finisherAllowed
         ? Math.min(PLAYER_COMBO_MAX_STEP, (current.attackSequenceIndex || 0) + 1)
-        : 1;
+        : comboCanAdvance
+          ? Math.min(PLAYER_COMBO_MAX_STEP - 1, (current.attackSequenceIndex || 0) + 1)
+          : 1;
       const isFinisher = nextAttackSequenceIndex === PLAYER_COMBO_MAX_STEP;
       const attackTiming = getPlayerAttackTiming(nextAttackSequenceIndex);
       current.attackQueued = false;
@@ -17555,7 +17586,9 @@ export default function ExpeditionJourney({
       if (player.invulnerable > 0 || player.damageCooldownTimer > 0) return;
       const sourceKnockbackMultiplier = options.knockbackMultiplier ?? 1;
       const effectiveKnockbackMultiplier = knockbackMultiplier * sourceKnockbackMultiplier;
-      current.resources.stamina = Math.max(0, current.resources.stamina - amount);
+      const newStamina = current.resources.stamina - amount;
+      current.resources.stamina = Math.max(0, newStamina);
+      if (current.resources.stamina === 0) current.enduranceExhausted = true;
       player.invulnerable = INVULNERABLE_DURATION;
       player.damageCooldownTimer = INVULNERABLE_DURATION + 0.34;
       player.hitFeedbackTimer = 0.75;
@@ -17570,7 +17603,7 @@ export default function ExpeditionJourney({
       current.hitStopTimer = Math.max(current.hitStopTimer, 0.075);
       current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.2);
       current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.4);
-      current.notice = `${message} -${amount} stamina.${isLowStamina(current, maxStamina) ? ` ${LOW_STAMINA_WARNING}` : ''}`;
+      current.notice = `${message} -${amount} Endurance.${isLowStamina(current, maxStamina) ? ` ${LOW_STAMINA_WARNING}` : ''}`;
       current.damageNoticeTimer = Math.max(current.damageNoticeTimer || 0, 1.4);
       current.lastAttackResult = 'player-hit';
       resetPlayerCombo(current);
@@ -17592,7 +17625,7 @@ export default function ExpeditionJourney({
       });
       audioControls?.playExpeditionSfx?.('playerHit');
       audioControls?.playError?.();
-      if (current.resources.stamina <= 0) triggerJourneyRescue(FIELD_RESCUE_STAMINA_REASON);
+      if (options.canOverwhelm && newStamina < 0) triggerJourneyRescue(FIELD_RESCUE_STAMINA_REASON);
     };
 
     current.trapProjectiles = (current.trapProjectiles || []).filter((projectile) => {
@@ -17828,6 +17861,7 @@ export default function ExpeditionJourney({
             const batKnockback = e.type === 'bat' ? (isHeavyHit ? 3.4 : 2.6) : (e.playerKnockbackMultiplier || 1);
             applyPlayerDamage(Math.max(e.damage, Math.round(e.damage * (pattern.damageScale || 1))), `${e.name} hit you`, damageDirection, e.name, {
               knockbackMultiplier: isHeavyHit ? (batKnockback * 1.4) : batKnockback,
+              canOverwhelm: true,
             });
             if (isHeavyHit) {
               current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.36);
@@ -18224,7 +18258,7 @@ export default function ExpeditionJourney({
           : getAttackBox(b, phase.range, phase.height, b.attackDirection);
         if (!b.attackHasHit && rectsOverlap(bossAttackBox, getPlayerBodyHitbox(player))) {
           b.attackHasHit = true;
-          applyPlayerDamage(Math.max(4, Math.round(b.damage * (phase.damageScale || 1) * (b.bossDamageMultiplier || 1))), `${b.name} ${phase.label} hit you. Dodge, then counter`, b.attackDirection, b.name);
+          applyPlayerDamage(Math.max(4, Math.round(b.damage * (phase.damageScale || 1) * (b.bossDamageMultiplier || 1))), `${b.name} ${phase.label} hit you. Dodge, then counter`, b.attackDirection, b.name, { canOverwhelm: true });
         }
       }
 
