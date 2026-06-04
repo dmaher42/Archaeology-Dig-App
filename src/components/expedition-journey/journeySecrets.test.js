@@ -672,24 +672,24 @@ test('journey editor exposes platform resizing and robust prop scale shortcuts',
   assert.match(journeyComponentSource, /event\.key === '-' \|\| event\.key === '_'/);
   assert.match(journeyComponentSource, /<span>Scale<\/span>[\s\S]*?updateSelectedPropEditorTransform\(\{ scale:/);
   assert.match(journeyComponentSource, /<span>Mirror<\/span>[\s\S]*?updateSelectedPropEditorTransform\(\{ mirrorX:/);
-  assert.match(journeyComponentSource, /<span>Brightness<\/span>[\s\S]*?updateSelectedPropEditorTransform\(\{ brightness:/);
+  assert.match(journeyComponentSource, /<span>Brightness<\/span>[\s\S]*?updateSelectedPropEditorNumberField\('brightness'/);
   assert.match(journeyComponentSource, /brightness\(\$\{Math\.round\(clamp\(propSize\.brightness,\s*0\.4,\s*1\.8\) \* 100\)\}%\)/);
   assert.match(journeyComponentSource, /propForAsset\.mirrorX/);
   assert.match(journeyComponentSource, /getGeneratedStoryPropRenderProp/);
 });
 
 test('journey prop editor exposes environmental blending controls for selected props', () => {
-  assert.match(journeyComponentSource, /shadowOpacity:\s*Number\.isFinite\(prop\.shadowOpacity\)/);
-  assert.match(journeyComponentSource, /sandOverlapHeight:\s*Number\.isFinite\(prop\.sandOverlapHeight\)/);
-  assert.match(journeyComponentSource, /sandMoundWidth:\s*Number\.isFinite\(prop\.sandMoundWidth\)/);
-  assert.match(journeyComponentSource, /groundPebbles:\s*Number\.isFinite\(prop\.groundPebbles\)/);
-  assert.match(journeyComponentSource, /colorGradeFilter:\s*prop\.colorGradeFilter/);
-  assert.match(journeyComponentSource, /<span>Shadow opacity<\/span>[\s\S]*?updateSelectedPropEditorTransform\(\{ shadowOpacity:/);
-  assert.match(journeyComponentSource, /<span>Shadow width<\/span>[\s\S]*?updateSelectedPropEditorTransform\(\{ shadowWidth:/);
-  assert.match(journeyComponentSource, /<span>Sand overlap<\/span>[\s\S]*?updateSelectedPropEditorTransform\(\{ sandOverlapHeight:/);
-  assert.match(journeyComponentSource, /<span>Sand mound width<\/span>[\s\S]*?updateSelectedPropEditorTransform\(\{ sandMoundWidth:/);
-  assert.match(journeyComponentSource, /<span>Ground pebbles<\/span>[\s\S]*?updateSelectedPropEditorTransform\(\{ groundPebbles:/);
-  assert.match(journeyComponentSource, /<span>Colour grade<\/span>[\s\S]*?updateSelectedPropEditorTransform\(\{ colorGradeFilter:/);
+  assert.match(journeyComponentSource, /propForAsset\.shadowOpacity/);
+  assert.match(journeyComponentSource, /propForAsset\.sandOverlapHeight/);
+  assert.match(journeyComponentSource, /propForAsset\.sandMoundWidth/);
+  assert.match(journeyComponentSource, /propForAsset\.groundPebbles/);
+  assert.match(journeyComponentSource, /propForAsset\.colorGradeFilter/);
+  assert.match(journeyComponentSource, /<span>Shadow opacity<\/span>[\s\S]*?updateSelectedPropEditorNumberField\('shadowOpacity'/);
+  assert.match(journeyComponentSource, /<span>Shadow width<\/span>[\s\S]*?updateSelectedPropEditorNumberField\('shadowWidth'/);
+  assert.match(journeyComponentSource, /<span>Sand overlap<\/span>[\s\S]*?updateSelectedPropEditorNumberField\('sandOverlapHeight'/);
+  assert.match(journeyComponentSource, /<span>Sand mound width<\/span>[\s\S]*?updateSelectedPropEditorNumberField\('sandMoundWidth'/);
+  assert.match(journeyComponentSource, /<span>Ground pebbles<\/span>[\s\S]*?updateSelectedPropEditorNumberField\('groundPebbles'/);
+  assert.match(journeyComponentSource, /<span>Colour grade<\/span>[\s\S]*?updateSelectedPropEditorField\('colorGradeFilter'/);
 });
 
 test('journey prop editor exposes generated structure ground-contact controls', () => {
@@ -713,11 +713,20 @@ test('journey prop editor overlay does not wash selected assets', () => {
   assert.notEqual(overlayStart, -1);
   assert.notEqual(drawStart, -1);
   const overlaySource = journeyComponentSource.slice(overlayStart, drawStart);
+  const propOverlaySource = overlaySource.slice(
+    overlaySource.indexOf('getRenderableStoryProps(current).forEach'),
+    overlaySource.indexOf('const selectedProp = getPropEditorSelectedProp(current);'),
+  );
+  const selectedPropBranchSource = propOverlaySource.slice(
+    propOverlaySource.indexOf('if (selected) {'),
+    propOverlaySource.indexOf('} else {'),
+  );
 
   assert.match(overlaySource, /drawEditorSelectionCorners/);
   assert.match(overlaySource, /drawEditorSelectionLabel/);
-  assert.doesNotMatch(overlaySource, /fillRect\(bounds\.x,\s*bounds\.y,\s*bounds\.width,\s*bounds\.height\)/);
-  assert.doesNotMatch(overlaySource, /selected\s*\?\s*'rgba\([^']+0\.1[2-9]/);
+  assert.match(propOverlaySource, /if \(selected\) \{[\s\S]*?drawEditorSelectionCorners/);
+  assert.doesNotMatch(selectedPropBranchSource, /fillRect/);
+  assert.doesNotMatch(propOverlaySource, /selected\s*\?\s*'rgba\([^']+0\.1[2-9]/);
 });
 
 test('journey editor platform overlays follow the vertical camera during climb sections', () => {
@@ -855,9 +864,9 @@ test('journey editor treats generated buildings as structure props with image pr
   assert.match(journeyComponentSource, /backgroundImage: `url\(\$\{import\.meta\.env\.BASE_URL\}\$\{generatedPreview\.src\}\)`/);
 });
 
-test('opening cinematic remains wired while the current quick-start path is enabled', () => {
-  assert.match(journeyComponentSource, /OPENING_CINEMATIC_DURATION = 24/);
-  assert.match(journeyComponentSource, /OPENING_CINEMATIC_ENABLED = false/);
+test('opening cinematic starts on the main expedition path and has a styled dramatic overlay', () => {
+  assert.match(journeyComponentSource, /OPENING_CINEMATIC_DURATION = 22/);
+  assert.match(journeyComponentSource, /OPENING_CINEMATIC_ENABLED = true/);
   assert.match(journeyComponentSource, /OPENING_CINEMATIC_LINES = \[/);
   assert.match(journeyComponentSource, /speaker:\s*'Anubis'[\s\S]*?voice:\s*'guardian'/);
   assert.match(journeyComponentSource, /speaker:\s*'Asha'[\s\S]*?voice:\s*'asha'/);
@@ -880,6 +889,11 @@ test('opening cinematic remains wired while the current quick-start path is enab
   assert.match(journeyComponentSource, /opening-cinematic-shockwave/);
   assert.match(journeyComponentSource, /asha-opening-cinematic\.png/);
   assert.match(journeyComponentSource, /My shield is gone/);
+  assert.match(indexCssSource, /\.opening-cinematic-overlay\s*\{/);
+  assert.match(indexCssSource, /\.opening-cinematic-backdrop\s*\{/);
+  assert.match(indexCssSource, /\.opening-cinematic-anubis\s*\{/);
+  assert.match(indexCssSource, /\.opening-cinematic-dialogue\.is-guardian\s*\{/);
+  assert.match(indexCssSource, /@keyframes openingAnubisPresence/);
   assert.doesNotMatch(journeyComponentSource, /<video|opening-cinematic-video|createOpeningMovieMode/);
 });
 
@@ -1323,7 +1337,8 @@ test('mummification chamber exterior reuses Journey routes, ledges, assets, and 
   assert.match(mummificationRoute, /gateType:\s*'partly buried sacred doorway'/);
   assert.match(mummificationRoute, /first sacred mystery/i);
   assert.match(exteriorStructure, /type:\s*'generated-mummification-chamber-entrance'/);
-  assert.match(exteriorStructure, /depth:\s*'route-edge'/);
+  assert.match(exteriorStructure, /depth:\s*'background'/);
+  assert.match(exteriorStructure, /layer:\s*'background'/);
   assert.match(exteriorStructure, /y:\s*JY\(-400\)/);
   assert.match(exteriorStructure, /label:/);
   [
@@ -2104,7 +2119,7 @@ test('opening pyramid facade stays active as the opening gameplay landmark', () 
     journeyComponentSource,
     /if \(x > CANVAS_WIDTH \+ 80 \|\| x \+ width < -80\) return false;[\s\S]*?ctx\.globalAlpha = Number\.isFinite\(renderProp\.alpha\) \? renderProp\.alpha : 0\.98;/,
   );
-  assert.match(journeyComponentSource, /drawOpeningPyramidMasonryBack\(ctx, cameraX, current\)/);
+  assert.match(journeyComponentSource, /drawOpeningPyramidMasonryBack\(ctx, cameraX, now, current\)/);
   assert.doesNotMatch(journeyComponentSource, /clipRight/);
   assert.doesNotMatch(journeyComponentSource, /OPENING_PYRAMID_FACADE_MIN_VISIBLE_WIDTH/);
   assert.doesNotMatch(journeyComponentSource, /OPENING_PYRAMID_FACADE_FADE_START_X/);
@@ -4155,6 +4170,45 @@ test('combat audio uses creature and deflection cues instead of gate sounds', ()
   assert.doesNotMatch(journeyComponentSource, /blocked the rushed hit[\s\S]{0,180}playExpeditionSfx\?\.\('gateBlocked'/);
 });
 
+test('fast fluid combat slice adds dodge-cancel and flow combo contracts', () => {
+  assert.match(journeyComponentSource, /const PLAYER_DODGE_STAMINA_COST = \d+/);
+  assert.match(journeyComponentSource, /const PLAYER_DODGE_DURATION = 0\.\d+/);
+  assert.match(journeyComponentSource, /const PLAYER_DODGE_INVULNERABLE_DURATION = 0\.\d+/);
+  assert.match(journeyComponentSource, /const PLAYER_COMBO_WINDOW_DURATION = 0\.\d+/);
+  assert.match(journeyComponentSource, /const PLAYER_COMBO_PRESERVE_AFTER_DODGE_DURATION = 0\.\d+/);
+  assert.match(journeyComponentSource, /const PLAYER_ATTACK_FINISHER_DAMAGE = \d+/);
+  assert.match(journeyUtilsSource, /attackComboWindowTimer:\s*0/);
+  assert.match(journeyUtilsSource, /attackComboLanded:\s*false/);
+  assert.match(journeyUtilsSource, /dodgeTimer:\s*0/);
+  assert.match(journeyComponentSource, /const queueDodge = useCallback\(\(\) => \{/);
+  assert.match(journeyComponentSource, /if \(current\.attackTimer > 0 && !current\.attackComboLanded\) resetPlayerCombo\(current\);/);
+  assert.match(journeyComponentSource, /if \(current\.attackComboLanded\) current\.attackComboWindowTimer = Math\.max\(current\.attackComboWindowTimer \|\| 0, PLAYER_COMBO_PRESERVE_AFTER_DODGE_DURATION\);/);
+  assert.match(journeyComponentSource, /current\.playerAttackBox = null;/);
+  assert.match(journeyComponentSource, /current\.dodgeInvulnerableTimer = PLAYER_DODGE_INVULNERABLE_DURATION;/);
+  assert.match(journeyComponentSource, /e\.health -= isFinisher \? PLAYER_ATTACK_FINISHER_DAMAGE : \(isParry \? 2 : 1\)/);
+  assert.match(journeyComponentSource, /const comboCanAdvance = current\.attackComboWindowTimer > 0 && current\.attackComboLanded;/);
+  assert.match(journeyComponentSource, /if \(current\.attackComboWindowTimer <= 0 && current\.attackSequenceIndex > 0 && current\.attackPhase === 'ready'\) resetPlayerCombo\(current\);/);
+  assert.match(journeyComponentSource, /audioControls\?\.playExpeditionSfx\?\.\(isFinisher \? 'attackFinisher' : nextAttackSequenceIndex === 2 \? 'attackSwing2' : 'attackSwing1'\)/);
+  assert.match(appSource, /dodgeStep:\s*\{/);
+  assert.match(appSource, /attackSwing1:\s*\{/);
+  assert.match(appSource, /attackSwing2:\s*\{/);
+  assert.match(appSource, /attackFinisher:\s*\{/);
+  assert.match(appSource, /attackMiss:\s*\{/);
+  assert.match(appSource, /finisherHit:\s*\{/);
+});
+
+test('dodge visual state reads as evasive motion before a dedicated atlas row exists', () => {
+  assert.match(journeyUtilsSource, /if \(current\.dodgeTimer > 0\) return 'dodge';/);
+  assert.match(journeyUtilsSource, /if \(animationState === 'dodge'\) return 3;/);
+  assert.match(journeyUtilsSource, /dodgeTrail:\s*\[\]/);
+  assert.match(journeyComponentSource, /if \(animationState === 'dodge'\) \{/);
+  assert.match(journeyComponentSource, /getHeroSpriteRow\(atlas,\s*'run'\)/);
+  assert.match(journeyComponentSource, /const dodgeProgress = current\.dodgeTimer > 0/);
+  assert.match(journeyComponentSource, /const dodgeLean = dodging \? \(current\.dodgeDirection \|\| direction\) \* 14 \* dodgeProgress : 0;/);
+  assert.match(journeyComponentSource, /current\.dodgeTrail\.unshift/);
+  assert.match(journeyComponentSource, /drawPlayerSprite\(ctx, ghost\.x - cameraX, ghost\.y, player\.width, player\.height, ghost\.dir, 0, now\)/);
+});
+
 test('hazards and traps use trap audio instead of door sounds', () => {
   assert.match(appSource, /trapReset:\s*\{/);
   assert.match(appSource, /trapStoneTrigger:\s*\{/);
@@ -4277,7 +4331,7 @@ test('jump contact only bounces enemies while attacks defeat them in three to fi
   assert.match(journeyComponentSource, /current\.notice = `\$\{enemy\.name\} bounced away\. Use J or K to defeat it\.`/);
   assert.doesNotMatch(journeyComponentSource, /const applyEnemyStomp = \(enemy\) => \{[\s\S]*?enemy\.health -= 1[\s\S]*?\};/);
   assert.doesNotMatch(journeyComponentSource, /const applyEnemyStomp = \(enemy\) => \{[\s\S]*?current\.defeatedEnemies\.add\(enemy\.id\)[\s\S]*?\};/);
-  assert.match(journeyComponentSource, /if \(attackRect && !current\.attackHitIds\.has\(e\.id\) && rectsOverlap\(attackRect, getAttackHurtbox\(e\)\)\) \{[\s\S]*?e\.health -= isParry \? 2 : 1/);
+  assert.match(journeyComponentSource, /if \(attackRect && !current\.attackHitIds\.has\(e\.id\) && rectsOverlap\(attackRect, getAttackHurtbox\(e\)\)\) \{[\s\S]*?e\.health -= isFinisher \? PLAYER_ATTACK_FINISHER_DAMAGE : \(isParry \? 2 : 1\)/);
   assert.match(journeyUtilsSource, /if\s*\(enemy\.firstSealRouteRamp\)\s*return Math\.max\(3, enemy\.health\)/);
   assert.match(journeyUtilsSource, /return clamp\(Math\.max\(enemy\.health \+ bonus, Math\.ceil\(enemy\.health \* 1\.55\)\), 3, 5\)/);
 });

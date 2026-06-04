@@ -147,6 +147,9 @@ export const applyJourneyHazardPlacementEdit = (hazard = {}, edit = {}) => {
     if (Number.isFinite(edit.width)) next.width = Math.max(1, Math.round(edit.width));
     if (Number.isFinite(edit.height)) next.height = Math.max(1, Math.round(edit.height));
     if (Number.isFinite(edit.burial)) next.burial = Math.max(0, Math.min(0.85, Math.round(edit.burial * 100) / 100));
+    if (Number.isFinite(edit.brightness)) next.brightness = Math.max(0.4, Math.min(1.8, Math.round(edit.brightness * 100) / 100));
+    if (Number.isFinite(edit.alpha)) next.alpha = Math.max(0, Math.min(1, Math.round(edit.alpha * 100) / 100));
+    if (typeof edit.colorGradeFilter === 'string') next.colorGradeFilter = edit.colorGradeFilter;
     return next;
   }
   return applyJourneyTrapPlacementEdit(hazard, edit);
@@ -1025,6 +1028,7 @@ export const getPlayerMovementVisualStyle = (player) => {
 
 export const getPlayerAnimationState = (current) => {
   if (current.player.hitFeedbackTimer > 0 || current.player.knockbackTimer > 0) return 'hurt';
+  if (current.dodgeTimer > 0) return 'dodge';
   if (current.attackWindupTimer > 0 || current.attackTimer > 0 || current.attackRecoilTimer > 0) return 'attack';
   if (!current.player.onGround) return current.player.vy > 40 ? 'fall' : 'jump';
   if (current.player.landingFeedbackTimer > 0) return 'land';
@@ -1062,6 +1066,7 @@ export const getPlayerAnimationFrame = (animationState, walkCycleDistance = 0, p
     const landingProgress = 1 - Math.max(0, Math.min(1, (player.landingFeedbackTimer || 0) / 0.22));
     return Math.min(3, Math.floor(landingProgress * 4));
   }
+  if (animationState === 'dodge') return 3;
   if (animationState === 'attack') return 3;
   if (animationState === 'hurt') return 0;
   return 1;
@@ -1312,12 +1317,23 @@ export const makeInitialState = ({ targetCivilisation, permanentUpgradeIds = [],
   attackPhase: 'ready',
   attackQueued: false,
   attackSequenceIndex: 0,
+  attackComboWindowTimer: 0,
+  attackComboLanded: false,
+  attackComboPreserved: false,
+  attackComboStep: 0,
+  attackComboFinisherActive: false,
   attackHitIds: new Set(),
   attackRewarded: false,
   playerAttackStaminaCost: 0,
   lastAttackResult: 'ready',
   shieldedHitFeedback: '',
   playerAttackBox: null,
+  dodgeTimer: 0,
+  dodgeInvulnerableTimer: 0,
+  dodgeRecoveryTimer: 0,
+  dodgeDirection: 0,
+  dodgeTrail: [],
+  lastDodgeResult: 'ready',
   hitStopTimer: 0,
   combatHitEffects: [],
   routeGateCooldown: 0,
