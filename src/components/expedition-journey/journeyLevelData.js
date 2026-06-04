@@ -1179,6 +1179,7 @@ export const STORY_PROPS = [
   { id: 'dig-site-final-threshold-tablet-1', sectionId: 'dig-site-entrance', type: 'atmosphere-prop', atmosphereAssetKey: 'stoneTablet', x: X(8338), y: JY(292), width: 62, height: 84, yOffset: 30, alpha: 1, depth: 'background', tint: 'stone', shadow: 0.07, dust: 0.48, bury: 0.12, label: 'final threshold tablet showing the protected excavation route' },
   { id: 'final-survey-lights', sectionId: 'dig-site-entrance', type: 'atmosphere-prop', atmosphereAssetKey: 'torchStand', x: X(8365), y: JY(290), width: 48, height: 88, yOffset: 30, alpha: 1, depth: 'midground', tint: 'warm', shadow: 0.08, dust: 0.42, label: 'final survey torch light' },
   { id: 'sealed-entrance-survey-lamps', sectionId: 'dig-site-entrance', type: 'atmosphere-prop', atmosphereAssetKey: 'torchStand', x: X(8710), y: JY(290), width: 48, height: 88, yOffset: 30, alpha: 1, depth: 'midground', tint: 'warm', shadow: 0.08, dust: 0.42, label: 'sealed entrance torch lamp' },
+  { id: 'discovery-entrance-buried-stair-marker', sectionId: 'dig-site-entrance', type: 'atmosphere-prop', atmosphereAssetKey: 'desertEntryPremiumThresholdSlab', placementPreset: 'desertEntryGroundedRuin', x: X(8802), y: JY(322), width: 126, height: 30, shadowOpacity: 0, shadowWidth: 132, sandMoundWidth: 138, sandOverlapHeight: 9, label: 'buried stairway marker' },
 ];
 
 export const WORLD_CONTINUITY_LANDMARKS = [

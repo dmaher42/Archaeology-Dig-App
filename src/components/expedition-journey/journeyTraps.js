@@ -149,6 +149,9 @@ export const applyJourneyTrapPlacementEdit = (trap = {}, edit = {}) => {
   if (Array.isArray(edit.linkedObjectIds)) next.linkedObjectIds = edit.linkedObjectIds.map(String).filter(Boolean);
   if (typeof edit.editorVisible === 'boolean') next.editorVisible = edit.editorVisible;
   if (Number.isFinite(edit.burial)) next.burial = clampNumber(Math.round(edit.burial * 100) / 100, 0, 0.85);
+  if (Number.isFinite(edit.brightness)) next.brightness = clampNumber(Math.round(edit.brightness * 100) / 100, 0.4, 1.8);
+  if (Number.isFinite(edit.alpha)) next.alpha = clampNumber(Math.round(edit.alpha * 100) / 100, 0, 1);
+  if (typeof edit.colorGradeFilter === 'string') next.colorGradeFilter = edit.colorGradeFilter;
   if (edit.triggerArea) next.triggerArea = normalizeTriggerArea(next, edit.triggerArea);
   if (JOURNEY_TRAP_DIRECTIONS.includes(edit.direction)) next.direction = edit.direction;
   if (Number.isFinite(edit.launcherX)) next.launcherX = Math.round(edit.launcherX);

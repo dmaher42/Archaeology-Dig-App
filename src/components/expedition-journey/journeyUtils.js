@@ -147,6 +147,9 @@ export const applyJourneyHazardPlacementEdit = (hazard = {}, edit = {}) => {
     if (Number.isFinite(edit.width)) next.width = Math.max(1, Math.round(edit.width));
     if (Number.isFinite(edit.height)) next.height = Math.max(1, Math.round(edit.height));
     if (Number.isFinite(edit.burial)) next.burial = Math.max(0, Math.min(0.85, Math.round(edit.burial * 100) / 100));
+    if (Number.isFinite(edit.brightness)) next.brightness = Math.max(0.4, Math.min(1.8, Math.round(edit.brightness * 100) / 100));
+    if (Number.isFinite(edit.alpha)) next.alpha = Math.max(0, Math.min(1, Math.round(edit.alpha * 100) / 100));
+    if (typeof edit.colorGradeFilter === 'string') next.colorGradeFilter = edit.colorGradeFilter;
     return next;
   }
   return applyJourneyTrapPlacementEdit(hazard, edit);
@@ -1312,12 +1315,22 @@ export const makeInitialState = ({ targetCivilisation, permanentUpgradeIds = [],
   attackPhase: 'ready',
   attackQueued: false,
   attackSequenceIndex: 0,
+  attackComboWindowTimer: 0,
+  attackComboLanded: false,
+  attackComboPreserved: false,
+  attackComboStep: 0,
+  attackComboFinisherActive: false,
   attackHitIds: new Set(),
   attackRewarded: false,
   playerAttackStaminaCost: 0,
   lastAttackResult: 'ready',
   shieldedHitFeedback: '',
   playerAttackBox: null,
+  dodgeTimer: 0,
+  dodgeInvulnerableTimer: 0,
+  dodgeRecoveryTimer: 0,
+  dodgeDirection: 0,
+  lastDodgeResult: 'ready',
   hitStopTimer: 0,
   combatHitEffects: [],
   routeGateCooldown: 0,

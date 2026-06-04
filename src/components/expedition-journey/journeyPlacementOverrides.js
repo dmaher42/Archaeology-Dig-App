@@ -21,7 +21,7 @@ const EDITABLE_FIELDS = Object.freeze({
   hazards: [
     'id', 'sectionId', 'sceneId', 'type', 'x', 'y', 'width', 'height', 'triggerArea', 'damage',
     'reset', 'cooldown', 'depth', 'direction', 'launcherX', 'launcherY', 'linkedObjectIds',
-    'editorVisible', 'burial', 'penalty', 'message',
+    'editorVisible', 'burial', 'brightness', 'alpha', 'colorGradeFilter', 'penalty', 'message',
   ],
   routeGates: ['id', 'sectionId', 'sceneId', 'x', 'y', 'width', 'height'],
   routeGateDoorways: ['id', 'gateIds', 'anchorX', 'blockX', 'y', 'width', 'height', 'opening', 'slab', 'label'],
