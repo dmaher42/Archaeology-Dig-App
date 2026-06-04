@@ -409,7 +409,7 @@ export const ROUTE_GATES = [
     width: 34,
     height: 274,
     hideArchVisual: true,
-    message: 'The ancient Map Tablet and 6 lost fragments must be restored before the path deeper wakes.',
+    message: 'Sealed. Read the Lost Map Tablet (behind you in the desert) and restore 6 relic fragments to pass.',
     requires: {
       objective: 'desert-entry',
       shards: 6,
@@ -1648,7 +1648,7 @@ export const ENVIRONMENT_EVENTS = [
   { id: 'upper-route-choice', sectionId: 'desert-entry', x: X(1135), name: 'Mural Seam', message: 'A faint scarab glow leaks from a cracked mural high above.', type: 'arrival', duration: 2.0, shake: 0.12 },
   { id: 'forgotten-mural-looter-shadow', sectionId: 'desert-entry', x: X(1139), name: 'Shadow Above', message: 'A shadow moves above the ruins. A blue scarab glow vanishes into the upper doorway.', type: 'looter-shadow', duration: 2.8, shake: 0.1, dynamic: true, card: false },
   { id: 'record-way-images-become-symbols', sectionId: 'desert-entry', x: X(1320), name: 'Broken Image Field', message: 'Asha: The pictures become symbols here. Someone wanted the evidence compared.', type: 'glyphs', duration: 3.0, shake: 0.08 },
-  { id: 'guardian-prep-warning', sectionId: 'desert-entry', x: X(1115), name: 'Guardian Prep Seal', message: 'Guardian Seal: read the Map Tablet and restore 6 relic shards before the Scarab Queen.', type: 'arrival', duration: 2.6, shake: 0.12 },
+  { id: 'guardian-prep-warning', sectionId: 'desert-entry', x: X(1115), name: 'Guardian Prep Seal', message: 'The seal ahead is locked. If the Map Tablet is unread, turn back — it is behind you in the desert.', type: 'arrival', duration: 3.4, shake: 0.12 },
   { id: 'record-way-knowledge-under-guard', sectionId: 'desert-entry', x: X(1840), name: 'Knowledge Under Guard', message: 'Asha: The scribes protected knowledge. The guardian protects what comes after.', type: 'shrine-glow', duration: 3.2, shake: 0.08, dynamic: true, card: false },
   { id: 'broken-ruins-route', sectionId: 'desert-entry', x: X(1995), name: 'Broken Ruins Route', message: 'Collapsed stones mark a careful route deeper toward the tomb.', type: 'rockfall', duration: 2.6, shake: 0.12, dynamic: true, card: false },
   { id: 'scarab-seal-warning-path', sectionId: 'desert-entry', x: X(2070), name: 'Scarab Seal Path', message: 'A sacred scarab seal glints above the warning stones.', type: 'shrine-glow', duration: 2.4, shake: 0.06, dynamic: true, card: false },

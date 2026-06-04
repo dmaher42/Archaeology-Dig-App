@@ -60,6 +60,9 @@ const ashaNewIdlePlayerAtlas = JSON.parse(
 const ashaReferenceWarriorPlayerAtlas = JSON.parse(
   readFileSync(new URL('../../../public/assets/expedition/player/asha-reference-warrior-spritesheet.json', import.meta.url), 'utf8'),
 );
+const ashaReferenceWarriorDodgePreviewAtlas = JSON.parse(
+  readFileSync(new URL('../../../public/assets/expedition/player/asha-reference-warrior-dodge-preview-spritesheet.json', import.meta.url), 'utf8'),
+);
 const ashaV2PlayerAtlas = JSON.parse(
   readFileSync(new URL('../../../public/assets/expedition/player/asha-v2-production-candidate-spritesheet.json', import.meta.url), 'utf8'),
 );
@@ -887,8 +890,10 @@ test('opening cinematic starts on the main expedition path and has a styled dram
   assert.match(journeyComponentSource, /opening-cinematic-shield-shards/);
   assert.match(journeyComponentSource, /opening-cinematic-banishment-ring/);
   assert.match(journeyComponentSource, /opening-cinematic-shockwave/);
-  assert.match(journeyComponentSource, /asha-opening-cinematic\.png/);
-  assert.match(journeyComponentSource, /My shield is gone/);
+  assert.match(journeyComponentSource, /asha-opening-reference-cutscene\.png/);
+  assert.match(journeyComponentSource, /The past is not treasure to own/);
+  assert.match(journeyComponentSource, /You did not come to take/);
+  assert.match(journeyComponentSource, /opening-cinematic-memory-runes/);
   assert.match(indexCssSource, /\.opening-cinematic-overlay\s*\{/);
   assert.match(indexCssSource, /\.opening-cinematic-backdrop\s*\{/);
   assert.match(indexCssSource, /\.opening-cinematic-anubis\s*\{/);
@@ -1667,7 +1672,7 @@ test('Ancient Egypt opening stages archaeologist arrival and warrior-guide story
   assert.match(routeGates, /readyHint:\s*'The seal answers\. Move through the threshold before the site closes again\.'/);
   assert.match(routeGates, /openMessage:\s*'The seal answers, but it does not trust you\.'/);
   assert.match(routeGates, /id:\s*'guardian-prep-seal'[\s\S]*?requires:\s*\{\s*objective:\s*'desert-entry'[\s\S]*?shards:\s*6/);
-  assert.match(routeGates, /The ancient Map Tablet and 6 lost fragments must be restored before the path deeper wakes\./);
+  assert.match(routeGates, /Sealed\. Read the Lost Map Tablet \(behind you in the desert\) and restore 6 relic fragments to pass\./);
   assert.match(routeGates, /id:\s*'desert-seal'[\s\S]*?requires:\s*\{\s*objective:\s*'desert-entry',\s*miniBoss:\s*'scarab-queen',\s*keyItem:\s*'brush-handle',\s*shards:\s*10/);
   assert.match(routeGates, /The Desert Map Seal waits for the Map Tablet, the Brush Handle, the fall of the Scarab Queen, and 10 lost fragments\./);
   assert.match(routeGates, /Carry the record forward into the ruined temple\./);
@@ -2309,9 +2314,11 @@ test('China Journey uses a unique female player atlas through the existing playe
 
 test('Egypt Journey uses the Asha atlas through the existing player renderer', () => {
   assert.match(journeyConstantsSource, /PLAYER_HERO_SPRITE_ATLAS_JSON/);
-  assert.match(journeyConstantsSource, /asha-reference-warrior-spritesheet\.json/);
+  assert.match(journeyConstantsSource, /asha-reference-warrior-dodge-preview-spritesheet\.json/);
   assert.doesNotMatch(journeyConstantsSource, /asha-v4-spritesheet\.json/);
-  assert.match(journeyConstantsSource, /PLAYER_HERO_SPRITE_VERSION = 'asha-reference-warrior-combo-upgrade-2026-06-03'/);
+  assert.match(journeyConstantsSource, /PLAYER_HERO_SPRITE_VERSION = 'asha-reference-warrior-dodge-preview-2026-06-04'/);
+  assert.equal(ashaReferenceWarriorDodgePreviewAtlas.masterReference, 'asha-reference-warrior-master-reference.png');
+  assert.equal(ashaReferenceWarriorDodgePreviewAtlas.status, 'preview-asha-reference-warrior-dodge-row-candidate-03');
   assert.match(journeyComponentSource, /characterId:\s*'asha-reference-warrior'/);
   assert.match(journeyComponentSource, /asha-final-production-spritesheet\.json/);
   assert.match(journeyConstantsSource, /PLAYER_HERO_PREVIOUS_SPRITE_ATLAS_JSON/);
@@ -2984,7 +2991,7 @@ test('first mini-boss is gated by preparation and rewards the next route', () =>
   assert.match(source, /id:\s*'scarab-queen'[\s\S]*?name:\s*'Scarab Queen'/);
   assert.doesNotMatch(storyProps, /Guardian Prep Seal: read Map Tablet and restore 6 relic shards/);
   assert.match(storyProps, /generated premium pillar-cap ruins in open sand after the pyramid/);
-  assert.match(events, /Guardian Seal: read the Map Tablet and restore 6 relic shards before the Scarab Queen\./);
+  assert.match(events, /The seal ahead is locked\. If the Map Tablet is unread, turn back/);
   assert.match(journeyComponentSource, /Collect the tool piece, then return to \$\{routeGateName \|\| 'the route gate'\}/);
   assert.match(journeyComponentSource, /current\.notice = `\$\{b\.name\} defeated\. \$\{rewardMoment\.title\} \$\{rewardMoment\.nextObjective\}`/);
   assert.match(journeyComponentSource, /current\.notice = `\$\{rewardMoment\.title\} \$\{rewardMoment\.nextObjective\}`/);
@@ -4197,12 +4204,22 @@ test('fast fluid combat slice adds dodge-cancel and flow combo contracts', () =>
   assert.match(appSource, /finisherHit:\s*\{/);
 });
 
-test('dodge visual state reads as evasive motion before a dedicated atlas row exists', () => {
+test('dodge visual state uses the preview dodge atlas row with the old fallback intact', () => {
+  const dodgeRow = ashaReferenceWarriorDodgePreviewAtlas.rows.find((row) => row.name === 'dodge');
+
   assert.match(journeyUtilsSource, /if \(current\.dodgeTimer > 0\) return 'dodge';/);
   assert.match(journeyUtilsSource, /if \(animationState === 'dodge'\) return 3;/);
   assert.match(journeyUtilsSource, /dodgeTrail:\s*\[\]/);
+  assert.match(journeyConstantsSource, /asha-reference-warrior-dodge-preview-spritesheet\.json/);
+  assert.equal(ashaReferenceWarriorDodgePreviewAtlas.image, 'asha-reference-warrior-dodge-preview-spritesheet.png');
+  assert.equal(dodgeRow?.row, 14);
+  assert.equal(dodgeRow?.frameCount, 8);
+  assert.equal(dodgeRow?.loop, false);
+  assert.equal(dodgeRow?.frames?.[3], 'dodge_03');
+  assert.equal(ashaReferenceWarriorDodgePreviewAtlas.frames.dodge_03.w, 390);
+  assert.equal(ashaReferenceWarriorDodgePreviewAtlas.frames.dodge_03.h, 256);
   assert.match(journeyComponentSource, /if \(animationState === 'dodge'\) \{/);
-  assert.match(journeyComponentSource, /getHeroSpriteRow\(atlas,\s*'run'\)/);
+  assert.match(journeyComponentSource, /getHeroSpriteRow\(atlas,\s*'dodge'\)\s*\|\|\s*getHeroSpriteRow\(atlas,\s*'run'\)/);
   assert.match(journeyComponentSource, /const dodgeProgress = current\.dodgeTimer > 0/);
   assert.match(journeyComponentSource, /const dodgeLean = dodging \? \(current\.dodgeDirection \|\| direction\) \* 14 \* dodgeProgress : 0;/);
   assert.match(journeyComponentSource, /current\.dodgeTrail\.unshift/);

@@ -2190,7 +2190,7 @@ const COLLECTIBLE_VISUAL_BASE = {
 
 const GATE_HINTS = {
   objective: {
-    'desert-entry': 'The map tablet is still behind you in the desert route.',
+    'desert-entry': 'Turn back — the Lost Map Tablet is behind you in the desert. Read it to open this seal.',
     'ruined-temple': 'One switch is still behind you in the Ruined Temple.',
     catacombs: 'Search the catacomb floor for the remaining glyph fragment.',
     'escape-sequence': 'Reach the escape marker before the route seal will open.',
