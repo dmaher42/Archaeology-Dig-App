@@ -8115,6 +8115,7 @@ export default function ExpeditionJourney({
     const current = stateRef.current;
     const heroAtlas = sprite.mode === 'hero-atlas' ? sprite.atlas : null;
     const heroFrameKey = heroAtlas ? getHeroSpriteFrameKey(current, heroAtlas, now) : null;
+    const usingDedicatedDodgeFrame = typeof heroFrameKey === 'string' && heroFrameKey.startsWith('dodge_');
     const heroRegion = heroFrameKey ? heroAtlas?.regions?.[heroFrameKey] : null;
     const frame = clamp(current.player.animationFrame ?? 1, 0, PLAYER_SPRITE_FRAME_COUNT - 1);
     const heroDrawBounds = heroRegion?.drawBounds || null;
@@ -8161,9 +8162,10 @@ export default function ExpeditionJourney({
       ? clamp(current.dodgeTimer / PLAYER_DODGE_DURATION, 0, 1)
       : 0;
     const dodging = dodgeProgress > 0;
-    const dodgeLean = dodging ? (current.dodgeDirection || direction) * 14 * dodgeProgress : 0;
-    const squashX = dodging ? 1 + dodgeProgress * 0.12 : 1 + landingPulse * 0.045;
-    const squashY = dodging ? 1 - dodgeProgress * 0.08 : 1 - landingPulse * 0.035;
+    const applyRuntimeDodgeEffects = dodging && !usingDedicatedDodgeFrame;
+    const dodgeLean = applyRuntimeDodgeEffects ? (current.dodgeDirection || direction) * 14 * dodgeProgress : 0;
+    const squashX = applyRuntimeDodgeEffects ? 1 + dodgeProgress * 0.12 : 1 + landingPulse * 0.045;
+    const squashY = applyRuntimeDodgeEffects ? 1 - dodgeProgress * 0.08 : 1 - landingPulse * 0.035;
     const knowledgeScale = current.player.knowledgeVisualScale || 1;
 
     ctx.save();
@@ -8171,7 +8173,7 @@ export default function ExpeditionJourney({
 
     ctx.fillStyle = 'rgba(0,0,0,0.34)';
     ctx.beginPath();
-    ctx.ellipse(footX, footY + 1, w * (dodging ? 1.28 : 1.05), 5, 0, 0, Math.PI * 2);
+    ctx.ellipse(footX, footY + 1, w * (applyRuntimeDodgeEffects ? 1.28 : 1.05), 5, 0, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.translate(footX + attackLean + movementLean + hurtShake + dodgeLean, footY + jumpLift);
@@ -15164,7 +15166,9 @@ export default function ExpeditionJourney({
     }
     drawOpeningSphinxEncounter(ctx, current.openingSphinxEncounter, cameraX, now);
     drawCombatEffects(ctx, current.combatHitEffects, cameraX, now);
-    if (current.dodgeTrail?.length) {
+    const hasDedicatedDodgeRow = playerSpriteRef.current.mode === 'hero-atlas'
+      && Boolean(getHeroSpriteRow(playerSpriteRef.current.atlas, 'dodge'));
+    if (current.dodgeTrail?.length && !hasDedicatedDodgeRow) {
       current.dodgeTrail.forEach((ghost) => {
         ctx.save();
         ctx.globalAlpha = clamp(ghost.alpha, 0, 0.35);
@@ -16012,7 +16016,11 @@ export default function ExpeditionJourney({
     current.dodgeInvulnerableTimer = Math.max(0, (current.dodgeInvulnerableTimer || 0) - dt);
     current.dodgeRecoveryTimer = Math.max(0, (current.dodgeRecoveryTimer || 0) - dt);
     if (current.dodgeInvulnerableTimer > 0) player.invulnerable = Math.max(player.invulnerable, current.dodgeInvulnerableTimer);
-    if (current.dodgeTimer > 0) {
+    const hasDedicatedDodgeRow = playerSpriteRef.current.mode === 'hero-atlas'
+      && Boolean(getHeroSpriteRow(playerSpriteRef.current.atlas, 'dodge'));
+    if (current.dodgeTimer > 0 && hasDedicatedDodgeRow) {
+      current.dodgeTrail = [];
+    } else if (current.dodgeTimer > 0) {
       if (!current.dodgeTrail) current.dodgeTrail = [];
       current.dodgeTrail.unshift({ x: player.x, y: player.y, dir: player.direction, alpha: 0.38 });
       if (current.dodgeTrail.length > 4) current.dodgeTrail.length = 4;
