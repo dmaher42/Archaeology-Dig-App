@@ -23,25 +23,25 @@ export const ENEMY_SPRITE_ATLAS_VERSION = 'enemy-sprite-packs-2026-06-03-scarab-
 export const ENEMY_SPRITE_GROUNDING_VERSION = 'enemy-sprite-grounding-2026-05-18';
 export const MIN_ENEMY_DRAW_HEIGHT = 34;
 export const ENEMY_VISUAL_SIZE_MULTIPLIER = 1.5;
-export const MUMMY_ASHA_SIZE_MULTIPLIER = 1.265;
+export const MUMMY_ASHA_SIZE_MULTIPLIER = 1.46; // mummy visibly taller than Asha (~158px vs 130px)
 const ENEMY_VISUAL_SIZE_MULTIPLIERS = {
-  scarab: 2.7,
-  snake: 1.42,
-  bat: 1.48,
-  scorpion: 2.7,
-  sandWisp: 1.32,
-  looter: 1.12,
-  looterCaptain: 1.16,
-  cursedStatue: 1.14,
-  stoneGuardianEnemy: 1.16,
-  mummy: 1.72,
-  besGuardian: 1.82,
-  riverCrab: 1.42,
-  watchtowerSentry: 1.12,
-  clayGuardian: 1.16,
+  scarab: 2.7,          // large relative to hitbox — keep
+  snake: 1.68,          // was 1.42 — snakes now read as a genuine threat
+  bat: 1.72,            // was 1.48 — bats fill more of the player's vision
+  scorpion: 2.7,        // already large — keep
+  sandWisp: 1.52,       // was 1.32 — wisp has more presence
+  looter: 1.32,         // was 1.12 — human enemies near Asha's height
+  looterCaptain: 1.38,  // was 1.16
+  cursedStatue: 1.44,   // was 1.14 — statues now tower over Asha
+  stoneGuardianEnemy: 1.44, // was 1.16 — guardians clearly larger than Asha
+  mummy: 1.72,          // keep — handled by MUMMY_ASHA_SIZE_MULTIPLIER separately
+  besGuardian: 1.82,    // keep — already imposing
+  riverCrab: 1.42,      // keep
+  watchtowerSentry: 1.32, // was 1.12
+  clayGuardian: 1.38,   // was 1.16
   // Rome families
-  legionShade:       1.14,
-  gladiatorRevenant: 1.22,
+  legionShade:       1.28,  // was 1.14
+  gladiatorRevenant: 1.38,  // was 1.22
   forumRat:          0.72,
   vestibuleWisp:     1.80,
   marbleGolem:       1.85,
@@ -633,36 +633,36 @@ export const getEnemySpriteDrawBox = (enemy, screenX, shakeX = 0, combatMode = n
   const defeated = combatMode === 'defeated' || enemy.defeated;
   const scale = {
     scarab: defeated ? 1.32 : 1.48,
-    snake: defeated ? 1.38 : 1.55,
-    bat: defeated ? 1.5 : 1.68,
+    snake: defeated ? 1.52 : 1.72,      // was 1.38/1.55
+    bat: defeated ? 1.62 : 1.82,        // was 1.5/1.68
     scorpion: defeated ? 1.5 : 1.82,
-    sandWisp: defeated ? 1.46 : 1.78,
-    looter: defeated ? 1.32 : 1.62,
-    looterCaptain: defeated ? 1.38 : 1.72,
-    cursedStatue: defeated ? 1.36 : 1.7,
-    stoneGuardianEnemy: defeated ? 1.36 : 1.72,
-    mummy: defeated ? 1.36 : 1.7,
-    besGuardian: defeated ? 1.36 : 1.76,
+    sandWisp: defeated ? 1.52 : 1.88,   // was 1.46/1.78
+    looter: defeated ? 1.44 : 1.76,     // was 1.32/1.62
+    looterCaptain: defeated ? 1.50 : 1.86, // was 1.38/1.72
+    cursedStatue: defeated ? 1.48 : 1.88,  // was 1.36/1.7
+    stoneGuardianEnemy: defeated ? 1.48 : 1.90, // was 1.36/1.72
+    mummy: defeated ? 1.48 : 1.86,      // was 1.36/1.7
+    besGuardian: defeated ? 1.48 : 1.92, // was 1.36/1.76
     riverCrab: defeated ? 1.34 : 1.54,
-    watchtowerSentry: defeated ? 1.34 : 1.62,
-    clayGuardian: defeated ? 1.38 : 1.72,
+    watchtowerSentry: defeated ? 1.44 : 1.76, // was 1.34/1.62
+    clayGuardian: defeated ? 1.48 : 1.86, // was 1.38/1.72
   }[family] || 1.55;
 
   const minHeight = {
     scarab: 34,
-    snake: 42,
-    bat: 42,
+    snake: 52,           // was 42
+    bat: 52,             // was 42
     scorpion: 50,
-    sandWisp: 48,
-    looter: 76,
-    looterCaptain: 82,
-    cursedStatue: 78,
-    stoneGuardianEnemy: 80,
-    mummy: 78,
-    besGuardian: 82,
+    sandWisp: 56,        // was 48
+    looter: 88,          // was 76
+    looterCaptain: 94,   // was 82
+    cursedStatue: 92,    // was 78
+    stoneGuardianEnemy: 96, // was 80
+    mummy: 86,           // was 78
+    besGuardian: 90,     // was 82
     riverCrab: 44,
-    watchtowerSentry: 78,
-    clayGuardian: 80,
+    watchtowerSentry: 86, // was 78
+    clayGuardian: 88,    // was 80
   }[family] || MIN_ENEMY_DRAW_HEIGHT;
   const scaledWidth = Math.max(enemy.width, enemy.width * scale);
   const scaledHeight = Math.max(enemy.height, enemy.height * scale);
