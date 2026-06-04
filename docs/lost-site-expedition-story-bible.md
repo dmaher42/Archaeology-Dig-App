@@ -1,18 +1,53 @@
 # Lost Site Expedition Story Bible
 
-This document is the current source of truth for the premium story direction of **Lost Site Expedition**.
+This document is the current narrative source of truth for the premium story direction of **Lost Site Expedition**.
 
-It should guide future narrative, room, gate, relic, dialogue, and gameplay decisions. Do not replace this foundation with a separate story system unless the story direction is deliberately revised.
+It should guide future narrative, room, gate, relic, dialogue, guardian, boss, and gameplay decisions. Do not replace this foundation with a separate story system unless the story direction is deliberately revised.
 
 ---
 
-## 1. Core Premise
+## 1. Story Identity
 
-**Lost Site Expedition** is a present-day historical mystery adventure where Asha, a young heritage researcher living and working in Egypt, discovers that ordinary archaeological inconsistencies may point to something much larger than a new site report.
+**Lost Site Expedition** is a standalone indie archaeology action-adventure set around a fictional, mythic, historically inspired Ancient Egyptian mystery.
 
-A newly surfaced scarab carving at a pyramid does not match earlier surveys. Asha recognises the scarab shape from an older photograph taken at another Egyptian site and visits the pyramid as part of routine heritage work.
+It is not an educational tool first. It is a game first.
+
+The player should learn about Ancient Egypt through:
+
+- environment
+- architecture
+- tomb logic
+- afterlife beliefs
+- symbols
+- relics
+- murals
+- inscriptions
+- guardians
+- ritual purpose
+- story consequence
+- how the world reacts to Asha's actions
+
+The game should not stop to teach history directly unless the moment is optional, diegetic, and dramatically justified.
+
+Core rule:
+
+> Historical truth inspires the world. Fiction drives the story. Gameplay teaches without stopping the player.
+
+---
+
+## 2. Core Premise
+
+Asha is a present-day heritage researcher / archaeologist-in-training living and working in Egypt.
+
+She notices an ordinary archaeological inconsistency: a newly surfaced scarab carving at a pyramid does not match earlier surveys. Asha recognises the scarab shape from an older photograph taken at another Egyptian site and visits the pyramid as part of routine heritage work.
 
 She does not begin the story believing in magic, gods, mirror worlds, or supernatural danger. She is curious, careful, and professionally responsible. Her first goal is simply to understand why the scarab has appeared.
+
+When she touches the plain stone scarab to compare it with the old photograph, it activates as a threshold seal. The ground opens beneath her, and she is pulled into the Lost Site.
+
+The deeper truth, which Asha does not understand at the beginning, is:
+
+> The scarab surfaced because the hidden world is failing.
 
 The central theme is:
 
@@ -20,15 +55,15 @@ The central theme is:
 
 ---
 
-## 2. Date and World
+## 3. Date and World
 
-The real-world story begins in the **present day**.
+The real-world story begins in the present day.
 
 Asha lives and works in Egypt, so visiting heritage sites, archives, museums, excavation areas, and pyramid ruins is part of her normal working world. The opening should feel grounded and routine before the supernatural shift occurs.
 
-Asha is not travelling through normal Egypt for the full game. After touching the real-world scarab carving, she is pulled into the **Lost Site**: a hidden, sacred version of Egypt caught between the real world, ancient memory, and the afterlife.
+After touching the scarab, Asha is pulled into the **Lost Site**: a hidden, sacred version of Egypt caught between the real world, ancient memory, and the afterlife.
 
-This world can look ancient, supernatural, ruined, impossible, and mythic because it is not ordinary historical Egypt. It is a Duat-touched memory-world shaped by relics, seals, rituals, and broken history.
+The Lost Site is not ordinary historical Egypt. It is a Duat-touched memory-world shaped by relics, seals, rituals, tomb architecture, damaged records, and broken belief.
 
 This explains why the game world can contain:
 
@@ -38,16 +73,20 @@ This explains why the game world can contain:
 - relic-powered barriers
 - broken seals
 - supernatural enemies
-- modern archaeological themes
+- modern archaeological ideas
 - ancient memory and myth working together
 
-The world is not merely a ruin. It is a failing sacred system.
+The world is not merely a ruin.
+
+> It is a failing sacred system.
 
 ---
 
-## 3. Who Asha Is
+## 4. Who Asha Is
 
-Asha is a young **heritage researcher / archaeologist-in-training** connected to a museum, university, heritage office, or excavation project in Egypt.
+Asha is a young woman and the single protagonist of Lost Site Expedition.
+
+She is a present-day heritage researcher / archaeologist-in-training connected to a museum, university, heritage office, or excavation project in Egypt.
 
 She is not a treasure hunter.
 She is not a soldier.
@@ -64,31 +103,41 @@ To:
 
 > I protect what remains of it.
 
----
-
-## 4. Why Asha Enters the Lost Site
-
-Asha notices an inconsistency in the records.
-
-A scarab carving has recently surfaced at a pyramid where earlier surveys had not recorded one. This is interesting, but not obviously supernatural. It may have been exposed by shifting sand, erosion, damage, a new break in the stone, or an earlier recording error.
-
-Asha recognises the scarab shape from an older photograph taken at another Egyptian site. At the time, that older scarab had been treated as an oddity: a pattern with no explanation and no known matching feature at this pyramid.
-
-This is enough to make Asha inspect the site. She is not trying to activate a relic. She is doing careful heritage work.
-
-The real-world scarab is plain stone. It is dusty, worn, ordinary-looking, and does not glow. Asha touches it because she is comparing it with the photograph and checking the feature as evidence.
-
-Only after she touches it does the scarab activate as a threshold seal. The ground opens beneath her and she falls into the Lost Site.
-
-The deeper truth, which Asha does not understand at the beginning, is:
-
-> The scarab surfaced because the hidden world is failing.
-
-The scarab's appearance is a broken warning or failed distress signal, but nobody in the real world yet understands that.
+In action gameplay, Asha is an explorer-survivor. In investigation and Base Camp moments, she is a researcher and interpreter. These are not separate characters or separate story roles; they are two sides of Asha.
 
 ---
 
-## 5. Public History and Hidden Truth
+## 5. Why Asha Looks Partly Modern and Partly Ancient
+
+Asha begins as a present-day researcher, but when she enters the Lost Site, the world marks her.
+
+Her visual design should sit between worlds:
+
+- modern expedition gear
+- practical researcher clothing
+- field belt and pouches
+- Egyptian-inspired teal, gold, or scarab details
+- relic markings or transformed accessories
+- wrapped guards or protective elements
+- an ancient weapon or relic blade if required by gameplay
+
+She is not simply wearing an ancient Egyptian costume.
+
+The Lost Site has reshaped her appearance into something that belongs between the modern world and the sacred memory-world.
+
+Asha should visually communicate:
+
+- researcher
+- survivor
+- accidental trespasser
+- future protector
+- someone caught between worlds
+
+Her importance should come from her choices and actions first. Any hidden ancestry or connection should support that arc, not replace it.
+
+---
+
+## 6. Public History and Hidden Truth
 
 In the public world, Egyptian tomb objects are understood through ordinary history: power, religion, royal status, wealth, burial practice, afterlife belief, and archaeological evidence.
 
@@ -111,15 +160,47 @@ They preserve:
 
 The dead were not buried with riches.
 
-They were buried with memories.
+> They were buried with memories.
 
-The real world did not know this hidden truth. Asha does not begin by believing it either. She discovers it only after entering the Lost Site.
+The real world does not know this hidden truth. Asha does not begin by believing it either. She discovers it only after entering the Lost Site.
 
 This hidden truth should feel like game-world mythology, not a classroom correction of real history.
 
 ---
 
-## 6. Death, Mummification, and Memory
+## 7. Core Anubis Reveal Line
+
+Anubis' central reveal should be built around this line:
+
+> It was not treasure they stole. It was memory.
+
+This line is one of the story's most important emotional anchors.
+
+It should not be used too early. Early in the game, players may think Anubis is angry because humans stole gold, relics, or royal treasure. Later, after the player has seen mummification, damaged murals, missing names, written records, broken seals, and the Queen's contested memory, they should understand that Anubis means something deeper.
+
+He means humans stole:
+
+- names
+- identity
+- relationships
+- ritual protection
+- afterlife passage
+- the wholeness of the dead
+- the right to be remembered truthfully
+
+Possible variants, to be used sparingly:
+
+> You call them relics. I call them the pieces of a life.
+
+> They took the gold and thought the theft complete. They never understood what else they carried away.
+
+> A name scratched from stone is not silence. It is a wound.
+
+Anubis should reveal grief and judgement through this idea, not friendliness.
+
+---
+
+## 8. Death, Mummification, and Memory
 
 In the hidden mythology of **Lost Site Expedition**, death is not an ending. It is a crossing.
 
@@ -145,7 +226,7 @@ Together, the body, tomb, objects, images, and written names keep a life whole a
 
 ---
 
-## 7. Collective Sacrifice and Afterlife Preparation
+## 9. Collective Sacrifice and Afterlife Preparation
 
 In the hidden mythology of **Lost Site Expedition**, preparation for death was not only the ruler's burden. It was a collective sacred effort.
 
@@ -164,11 +245,9 @@ Everyone connected to the tomb helped prepare memory for the afterlife:
 
 This sacrifice was not only for one ruler's ego. In the hidden truth, it prepared memory for everyone and everything connected to that ruler: people, land, duties, gods, and stories.
 
-The Queen went further than any ruler before her. She did not only prepare memory for her own crossing. She created the Lost Site to protect memories already at risk of being stolen, damaged, or rewritten.
-
 ---
 
-## 8. Stories Can Corrupt Memory
+## 10. Stories Can Corrupt Memory
 
 In **Lost Site Expedition**, memory is shaped by both objects and stories.
 
@@ -197,41 +276,11 @@ Asha must discover that the public story is incomplete. The Queen was not hoardi
 
 ---
 
-## 9. Why Asha Looks Partly Modern and Partly Ancient
-
-Asha begins as a present-day researcher, but when she enters the Lost Site, the world marks her.
-
-Her visual design should sit between worlds:
-
-- modern expedition gear
-- practical researcher clothing
-- field belt and pouches
-- Egyptian-inspired teal, gold, or scarab details
-- relic markings or transformed accessories
-- wrapped guards or protective elements
-- an ancient weapon or relic blade if required by gameplay
-
-She is not simply wearing an ancient Egyptian costume.
-
-The Lost Site has reshaped her appearance into something that belongs between the modern world and the sacred memory-world.
-
-The outfit transformation should not make Asha look like she is pretending to be Ancient Egyptian. It should show that the Lost Site has marked her as someone caught between worlds.
-
-Asha should visually communicate:
-
-- researcher
-- survivor
-- accidental trespasser
-- chosen heir or marked descendant
-- future protector
-
----
-
-## 10. Who Anubis Is
+## 11. Who Anubis Is
 
 Anubis is the guardian of the Lost Site.
 
-He protects sacred relics, treasures, tombs, names, memories, and the balance between the living and the dead.
+He protects sacred relics, tombs, names, memories, and the balance between the living and the dead.
 
 Historically inspired Anubis should not be written as a god who simply hates humanity. He is a judge, guardian, and protector. In this story, he is deeply disappointed in humanity because of what he has witnessed for centuries.
 
@@ -259,7 +308,7 @@ He does not know, or does not yet accept, that Asha entered because the failing 
 
 ---
 
-## 11. Anubis' Opening Voice
+## 12. Anubis' Opening Voice
 
 At the beginning, Anubis should sound powerful, intimidating, ancient, short, sharp, and unwilling to debate.
 
@@ -270,19 +319,19 @@ He does not want Asha there.
 The current intended opening tone is:
 
 > You stand where you should not.
->  
+>
 > Even pharaohs tread carefully within these halls.
->  
+>
 > They knew what rested here.
->  
+>
 > You do not.
->  
+>
 > For centuries I have watched your kind.
->  
+>
 > The faces change.
->  
+>
 > The greed does not.
->  
+>
 > Leave.
 
 This is not hatred. It is judgement.
@@ -291,13 +340,9 @@ Anubis should sound like an ancient guardian who has already reached a verdict o
 
 The full meaning of his anger should not be explained immediately. At first, players may assume he is talking about stolen treasure. Later, they should realise he means stolen memory.
 
-Possible later Anubis line:
-
-> You call them relics. I call them the pieces of a life.
-
 ---
 
-## 12. What Is Happening to the Lost Site
+## 13. What Is Happening to the Lost Site
 
 The Lost Site is failing.
 
@@ -323,7 +368,7 @@ Anubis senses something is wrong, but he does not want to believe humans can be 
 
 ---
 
-## 13. Relics, Looting, and Memory Seals
+## 14. Relics, Looting, and Memory Seals
 
 Sacred relics maintain balance.
 
@@ -342,19 +387,11 @@ When relics are stolen or broken:
 - hidden warning features may surface in the real world without being understood
 - the dead become fragmented, confused, corrupted, or forgotten
 
-This links the story to archaeology and historical thinking:
-
-- evidence can be incomplete
-- evidence can be damaged
-- evidence can be misinterpreted
-- different sources can conflict
-- the past must be carefully pieced together
-
 In the game, this should feel like mystery and consequence, not a lesson.
 
 ---
 
-## 14. Asha's Hidden Connection
+## 15. Asha's Hidden Connection
 
 Asha is likely connected to a forgotten line of seal-keepers.
 
@@ -377,9 +414,9 @@ Asha's importance should come from her choices and actions, not only ancestry.
 
 ---
 
-## 15. The Queen
+## 16. The Queen
 
-The Queen is always the final major chamber and the mandatory mini-boss encounter.
+The Queen is the centre of the contested truth.
 
 She should not be treated as a simple evil boss.
 
@@ -398,8 +435,6 @@ The preferred current direction:
 - false stories corrupted her memory
 - the final fight is against a corrupted memory of the Queen, not necessarily her true self
 
-The Queen is the centre of the contested interpretation.
-
 The game should ask:
 
 > Was the Queen a villain, a protector, a warning, or a victim of broken memory?
@@ -410,24 +445,28 @@ Key late-game idea:
 
 ---
 
-## 16. Room Order
+## 17. Room Order
 
-The current intended premium room order is:
+The current intended Egypt Act 1 room order is:
 
-1. **Mummification Chamber**
-2. **Mural Room**
-3. **Scribe Chamber**
-4. **Queen Chamber**
+1. **Desert Entry / Arrival**
+2. **Temple Approach**
+3. **Mummification Room / Mummification Chamber**
+4. **Mural Room / Forgotten Mural Chamber**
+5. **Scribes' Locked Chamber**
+6. **Queen / Scarab Queen section**
+7. **Deeper tomb / guardian reveal**
+8. **Discovery Entrance**
+9. **Base Camp**
+10. **Excavation / evidence interpretation**
 
-The Queen Chamber is always last, mandatory, and connected to the mini-boss/final major encounter.
+Each chamber remains a separate interior space. The player enters through an exterior doorway, solves or survives that room, then exits back to the exterior structure area.
 
-The first three rooms should be optional but meaningful.
-
-Players should be able to enter optional rooms before reaching nearby checkpoints or gates.
+The Queen / Scarab Queen section is the major contested-truth and guardian-test section for Egypt Act 1.
 
 ---
 
-## 17. Room Story Purposes
+## 18. Room Story Purposes
 
 ### Mummification Chamber
 
@@ -442,8 +481,6 @@ Core meaning:
 Narrative purpose:
 
 Asha learns that the site is not protecting treasure. It is protecting people, rituals, and memory.
-
-This room should challenge players to slow down and treat the dead with care.
 
 This room should begin revealing the hidden mythology that mummification is not only preservation of the body. It is preservation of memory and self.
 
@@ -475,7 +512,7 @@ Core meaning:
 
 - written evidence
 - records
-- translation
+- names
 - contradiction
 - historical interpretation
 
@@ -487,7 +524,9 @@ This room should show that written evidence can preserve truth, but can also be 
 
 The Scribe Chamber should eventually reveal that stories can corrupt memory as much as theft can damage objects.
 
-### Queen Chamber
+This is the strongest room to foreshadow Asha's link to the Queen's final scribe.
+
+### Queen Chamber / Queen Section
 
 Core meaning:
 
@@ -505,15 +544,13 @@ The Queen Chamber should make the player ask whether they are fighting the Queen
 
 ---
 
-## 18. Gates and Checkpoints
+## 19. Gates and Checkpoints
 
 Route gates should exist to the right of major structures as pacing tools and Anubis-controlled thresholds.
 
 They should slow the player down, create checkpoints, and encourage the player to look back or consider entering nearby rooms.
 
 Gates can redirect or slow players in a way that encourages them to notice optional rooms, but the player should feel curiosity, not compulsion.
-
-However, the optional rooms should not be required for main progression yet.
 
 Current gate rule:
 
@@ -533,7 +570,7 @@ Optional rooms should remain future judgement evidence, not current forced progr
 
 ---
 
-## 19. Heart Scarabs and Future Moral Choice
+## 20. Heart Scarabs and Future Moral Pressure
 
 A future system may introduce a sacred collectible/currency tentatively called **Heart Scarabs**.
 
@@ -548,13 +585,13 @@ This creates the central moral pressure:
 
 > Does Asha use sacred power for herself, or return it to restore balance?
 
-Heart Scarabs are a future design direction only. They should not be implemented until the room, gate, seal, and reward systems have been audited.
+Heart Scarabs are a future design direction only. They should not be implemented until the room, gate, seal, reward, and combat systems have been audited.
 
 Do not add a morality system, trust meter, alternate ending system, or upgrade economy until the room, gate, and seal structure is stable.
 
 ---
 
-## 20. Anubis' Judgement Arc
+## 21. Anubis' Judgement Arc
 
 Anubis does not trust Asha's words.
 
@@ -572,7 +609,7 @@ Asha survives trials, but Anubis still assumes survival is not the same as worth
 
 ### Optional Rooms
 
-If Asha chooses to enter optional rooms, restore seals, or return sacred fragments, Anubis begins to see evidence that she may be different.
+If Asha chooses to enter optional rooms, restore seals, protect memory anchors, or return sacred fragments, Anubis begins to see evidence that she may be different.
 
 ### Late Journey
 
@@ -586,7 +623,40 @@ This should eventually be tracked as **judgement evidence**, not a simple morali
 
 ---
 
-## 21. Current Implementation Rules
+## 22. Wider Guardian Network
+
+The long-term final reveal is that Asha has not simply entered Ancient Egypt. She has been pulled into a protected ancient threshold connected to Egypt and to a wider guardian network across ancient sites.
+
+Egypt remains the first complete vertical slice and the first seal in this larger mystery.
+
+Do not reveal this too early.
+
+Foreshadow it through:
+
+- murals that seem to know Asha before she arrives
+- symbols that do not fully match the Egyptian setting
+- doorways or seals showing stars, other ancient sites, or connected guardians
+- damaged records suggesting someone tried to erase the truth
+- relics that feel older than the Egyptian ruins around them
+- repeated references to paths, thresholds, seals, and things being called across distance or time
+
+Possible late reveal language:
+
+> You do not belong here.
+
+> That image should not know you.
+
+> This place was not only protecting the past. It was protecting the path between worlds.
+
+> You were not sent to the past. You were called by what survived it.
+
+> Egypt was only the first seal.
+
+Keep this as mystery and foreshadowing until Egypt feels complete.
+
+---
+
+## 23. Current Implementation Rules
 
 These rules should guide near-term development:
 
@@ -600,12 +670,13 @@ These rules should guide near-term development:
 - Do not treat relics as ordinary loot.
 - Do not present educational ideas as direct classroom exposition.
 - Do not make Asha suspect supernatural events at the beginning. Her first motivation is routine investigation and careful evidence checking.
+- Do not split Asha into separate protagonist and archaeologist roles unless a deliberate new character is designed and approved.
 
 The game should teach through mystery, choice, evidence, environment, and consequence.
 
 ---
 
-## 22. Premium Story Standard
+## 24. Premium Story Standard
 
 Every new story element should do at least one of the following:
 
@@ -613,7 +684,7 @@ Every new story element should do at least one of the following:
 2. Show Asha learning, questioning, or changing.
 3. Build Anubis' suspicion, judgement, or reluctant reconsideration.
 4. Make the player curious to keep exploring.
-5. Connect to archaeology, evidence, preservation, memory, or interpretation.
+5. Connect to archaeology, evidence, preservation, memory, afterlife belief, pharaohs, tombs, or interpretation.
 6. Support the theme that the past is memory to protect, not treasure to own.
 
 Avoid prototype-style writing such as:
@@ -631,15 +702,18 @@ Prefer story-driven writing such as:
 - The painted hands point toward a name that has been scratched away.
 - The record survives, but the truth has been wounded.
 - The dead were not hidden here. They were entrusted here.
+- It was not treasure they stole. It was memory.
 - You call them relics. I call them the pieces of a life.
 
 ---
 
-## 23. Short Reference Summary
+## 25. Short Reference Summary
+
+**Genre:** Standalone indie archaeology action-adventure / platformer.
 
 **Setting:** Present day, then a hidden Duat-touched version of Egypt.
 
-**Asha:** Young heritage researcher / archaeologist-in-training who lives and works in Egypt.
+**Asha:** Young female heritage researcher / archaeologist-in-training living and working in Egypt.
 
 **Opening motivation:** Routine heritage investigation. A newly surfaced scarab carving at a pyramid does not match earlier records, and Asha recognises the scarab shape from an older photograph taken at another Egyptian site.
 
@@ -653,11 +727,13 @@ Prefer story-driven writing such as:
 
 **Anubis:** Ancient guardian, disappointed judge of humanity, protector of sacred memory. His anger comes from humans stealing memory and telling stories that made the theft seem acceptable.
 
+**Key Anubis line:** It was not treasure they stole. It was memory.
+
 **Problem:** Looting, damaged relics, and false stories have weakened memory seals and destabilised the Lost Site. One broken warning has surfaced as the scarab carving in the real world.
 
 **Asha's likely connection:** Descendant of the Queen's final scribe, also remembered as a keeper of names.
 
-**Queen:** Mandatory final chamber and centre of the contested truth. She was remembered as greedy or cursed, but may have gathered memory anchors to protect the dead.
+**Queen:** Centre of the contested truth. She was remembered as greedy or cursed, but may have gathered memory anchors to protect the dead.
 
 **Rooms:** Mummification, Mural, Scribe, Queen.
 
