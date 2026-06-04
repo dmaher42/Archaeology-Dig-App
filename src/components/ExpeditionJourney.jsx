@@ -384,9 +384,9 @@ const PLAYER_ATTACK_STAMINA_COST = 1;
 const MISSED_ATTACK_EXTRA_STAMINA_COST = 1;
 const PROTECTED_HIT_EXTRA_STAMINA_COST = 1;
 const PLAYER_DODGE_STAMINA_COST = 8;
-const PLAYER_DODGE_SPEED = 345;
-const PLAYER_DODGE_DURATION = 0.18;
-const PLAYER_DODGE_INVULNERABLE_DURATION = 0.1;
+const PLAYER_DODGE_SPEED = 430;
+const PLAYER_DODGE_DURATION = 0.22;
+const PLAYER_DODGE_INVULNERABLE_DURATION = 0.14;
 const PLAYER_DODGE_RECOVERY_DURATION = 0.08;
 const PLAYER_COMBO_WINDOW_DURATION = 0.72;
 const PLAYER_COMBO_PRESERVE_AFTER_DODGE_DURATION = 0.62;
@@ -1423,6 +1423,23 @@ const getHeroSpriteFrameKey = (current, atlas, now) => {
   if (animationState === 'hurt') {
     const row = getHeroSpriteRow(atlas, 'hurt');
     return row?.frames?.[Math.floor(now / 90) % Math.max(1, row.frameCount)] || 'hurt_00';
+  }
+
+  if (animationState === 'dodge') {
+    const row = getHeroSpriteRow(atlas, 'run') || getHeroSpriteRow(atlas, 'idle');
+    if (!row) return null;
+    const frameCount = Math.max(1, row.frameCount || row.frames?.length || 1);
+    const frameIndex = Math.floor(now / 70) % frameCount;
+    return row.frames?.[frameIndex] || `run_${String(frameIndex).padStart(2, '0')}`;
+  }
+
+  if (animationState === 'dodge') {
+    const row = getHeroSpriteRow(atlas, 'run') || getHeroSpriteRow(atlas, 'jump') || getHeroSpriteRow(atlas, 'idle');
+    if (!row) return null;
+    const frameCount = Math.max(1, row.frameCount || row.frames?.length || 1);
+    const dodgeProgress = clamp((PLAYER_DODGE_DURATION - Math.max(0, current.dodgeTimer || 0)) / PLAYER_DODGE_DURATION, 0, 1);
+    const dodgeFrame = Math.min(frameCount - 1, Math.max(0, Math.floor((0.35 + dodgeProgress * 0.45) * frameCount)));
+    return row.frames?.[dodgeFrame] || null;
   }
 
   if (animationState === 'attack' || isPlayerAttackVisualPhase(attackState)) {
@@ -8143,19 +8160,24 @@ export default function ExpeditionJourney({
     const jumpLift = animationState === 'jump' ? -3 : animationState === 'fall' ? 1 : animationState === 'land' ? 2 : 0;
     const hurtShake = animationState === 'hurt' ? Math.sin(now / 24) * 2 : 0;
     const landingPulse = clamp((current.player.landingFeedbackTimer || 0) / 0.16, 0, 1);
-    const squashX = 1 + landingPulse * 0.045;
-    const squashY = 1 - landingPulse * 0.035;
+    const dodgeProgress = current.dodgeTimer > 0
+      ? clamp(current.dodgeTimer / PLAYER_DODGE_DURATION, 0, 1)
+      : 0;
+    const dodging = dodgeProgress > 0;
+    const dodgeLean = dodging ? (current.dodgeDirection || direction) * 14 * dodgeProgress : 0;
+    const squashX = dodging ? 1 + dodgeProgress * 0.12 : 1 + landingPulse * 0.045;
+    const squashY = dodging ? 1 - dodgeProgress * 0.08 : 1 - landingPulse * 0.035;
     const knowledgeScale = current.player.knowledgeVisualScale || 1;
 
     ctx.save();
-    if (invuln > 0 && Math.floor(now / 100) % 2 === 0) ctx.globalAlpha = 0.34;
+    if (invuln > 0 && !dodging && Math.floor(now / 100) % 2 === 0) ctx.globalAlpha = 0.34;
 
     ctx.fillStyle = 'rgba(0,0,0,0.34)';
     ctx.beginPath();
-    ctx.ellipse(footX, footY + 1, w * 1.05, 5, 0, 0, Math.PI * 2);
+    ctx.ellipse(footX, footY + 1, w * (dodging ? 1.28 : 1.05), 5, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.translate(footX + attackLean + movementLean + hurtShake, footY + jumpLift);
+    ctx.translate(footX + attackLean + movementLean + hurtShake + dodgeLean, footY + jumpLift);
     if (knowledgeScale > 1) {
       ctx.shadowColor = 'rgba(250, 204, 21, 0.54)';
       ctx.shadowBlur = 18;
@@ -15145,6 +15167,14 @@ export default function ExpeditionJourney({
     }
     drawOpeningSphinxEncounter(ctx, current.openingSphinxEncounter, cameraX, now);
     drawCombatEffects(ctx, current.combatHitEffects, cameraX, now);
+    if (current.dodgeTrail?.length) {
+      current.dodgeTrail.forEach((ghost) => {
+        ctx.save();
+        ctx.globalAlpha = clamp(ghost.alpha, 0, 0.35);
+        drawPlayerSprite(ctx, ghost.x - cameraX, ghost.y, player.width, player.height, ghost.dir, 0, now);
+        ctx.restore();
+      });
+    }
     drawPlayerSprite(ctx, player.x - cameraX, player.y, player.width, player.height, player.direction, player.invulnerable, now);
     getRenderableStoryProps(current).forEach((prop) => drawStoryProp(ctx, prop, cameraX, now, 'foreground-occluder'));
     if (!chamberSceneActive) getRouteGateDoorwayEntries().forEach((entry) => {
@@ -15422,15 +15452,11 @@ export default function ExpeditionJourney({
     player.direction = dodgeDirection;
     player.vx = dodgeDirection * PLAYER_DODGE_SPEED;
     player.jumpBufferTimer = 0;
-    addCombatEffect(current, {
-      type: 'movement-dust',
-      x: player.x + player.width / 2 - dodgeDirection * 8,
-      y: player.y + player.height - 5,
-      direction: -dodgeDirection,
-      color: 'rgba(230, 173, 96, 0.62)',
-      timer: 0.24,
-      maxTimer: 0.24,
-    });
+    current.dodgeTrail = [];
+    const dustBase = { type: 'movement-dust', y: player.y + player.height - 5, direction: -dodgeDirection, color: 'rgba(230, 173, 96, 0.72)', maxTimer: 0.28 };
+    addCombatEffect(current, { ...dustBase, x: player.x + player.width / 2, timer: 0.28 });
+    addCombatEffect(current, { ...dustBase, x: player.x + player.width / 2 - dodgeDirection * 14, timer: 0.22 });
+    addCombatEffect(current, { ...dustBase, x: player.x + player.width / 2 - dodgeDirection * 26, timer: 0.16 });
     audioControls?.playExpeditionSfx?.('dodgeStep', { volume: 0.78 });
   }, [audioControls, briefingOpen, addCombatEffect]);
 
@@ -15972,6 +15998,15 @@ export default function ExpeditionJourney({
     current.dodgeInvulnerableTimer = Math.max(0, (current.dodgeInvulnerableTimer || 0) - dt);
     current.dodgeRecoveryTimer = Math.max(0, (current.dodgeRecoveryTimer || 0) - dt);
     if (current.dodgeInvulnerableTimer > 0) player.invulnerable = Math.max(player.invulnerable, current.dodgeInvulnerableTimer);
+    if (current.dodgeTimer > 0) {
+      if (!current.dodgeTrail) current.dodgeTrail = [];
+      current.dodgeTrail.unshift({ x: player.x, y: player.y, dir: player.direction, alpha: 0.38 });
+      if (current.dodgeTrail.length > 4) current.dodgeTrail.length = 4;
+    } else if (current.dodgeTrail?.length) {
+      current.dodgeTrail = current.dodgeTrail
+        .map(g => ({ ...g, alpha: g.alpha - dt * 3.2 }))
+        .filter(g => g.alpha > 0);
+    }
     player.hitFeedbackTimer = Math.max(0, player.hitFeedbackTimer - dt);
     if (current.attackTimer <= 0) current.playerAttackBox = null;
     if (wasWindingUp && current.attackWindupTimer <= 0) {

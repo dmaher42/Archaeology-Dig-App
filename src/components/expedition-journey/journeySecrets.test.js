@@ -4197,6 +4197,18 @@ test('fast fluid combat slice adds dodge-cancel and flow combo contracts', () =>
   assert.match(appSource, /finisherHit:\s*\{/);
 });
 
+test('dodge visual state reads as evasive motion before a dedicated atlas row exists', () => {
+  assert.match(journeyUtilsSource, /if \(current\.dodgeTimer > 0\) return 'dodge';/);
+  assert.match(journeyUtilsSource, /if \(animationState === 'dodge'\) return 3;/);
+  assert.match(journeyUtilsSource, /dodgeTrail:\s*\[\]/);
+  assert.match(journeyComponentSource, /if \(animationState === 'dodge'\) \{/);
+  assert.match(journeyComponentSource, /getHeroSpriteRow\(atlas,\s*'run'\)/);
+  assert.match(journeyComponentSource, /const dodgeProgress = current\.dodgeTimer > 0/);
+  assert.match(journeyComponentSource, /const dodgeLean = dodging \? \(current\.dodgeDirection \|\| direction\) \* 14 \* dodgeProgress : 0;/);
+  assert.match(journeyComponentSource, /current\.dodgeTrail\.unshift/);
+  assert.match(journeyComponentSource, /drawPlayerSprite\(ctx, ghost\.x - cameraX, ghost\.y, player\.width, player\.height, ghost\.dir, 0, now\)/);
+});
+
 test('hazards and traps use trap audio instead of door sounds', () => {
   assert.match(appSource, /trapReset:\s*\{/);
   assert.match(appSource, /trapStoneTrigger:\s*\{/);

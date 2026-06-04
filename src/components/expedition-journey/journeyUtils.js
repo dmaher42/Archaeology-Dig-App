@@ -1028,6 +1028,7 @@ export const getPlayerMovementVisualStyle = (player) => {
 
 export const getPlayerAnimationState = (current) => {
   if (current.player.hitFeedbackTimer > 0 || current.player.knockbackTimer > 0) return 'hurt';
+  if (current.dodgeTimer > 0) return 'dodge';
   if (current.attackWindupTimer > 0 || current.attackTimer > 0 || current.attackRecoilTimer > 0) return 'attack';
   if (!current.player.onGround) return current.player.vy > 40 ? 'fall' : 'jump';
   if (current.player.landingFeedbackTimer > 0) return 'land';
@@ -1065,6 +1066,7 @@ export const getPlayerAnimationFrame = (animationState, walkCycleDistance = 0, p
     const landingProgress = 1 - Math.max(0, Math.min(1, (player.landingFeedbackTimer || 0) / 0.22));
     return Math.min(3, Math.floor(landingProgress * 4));
   }
+  if (animationState === 'dodge') return 3;
   if (animationState === 'attack') return 3;
   if (animationState === 'hurt') return 0;
   return 1;
@@ -1330,6 +1332,7 @@ export const makeInitialState = ({ targetCivilisation, permanentUpgradeIds = [],
   dodgeInvulnerableTimer: 0,
   dodgeRecoveryTimer: 0,
   dodgeDirection: 0,
+  dodgeTrail: [],
   lastDodgeResult: 'ready',
   hitStopTimer: 0,
   combatHitEffects: [],
