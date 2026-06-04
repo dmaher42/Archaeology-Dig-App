@@ -25,10 +25,10 @@ export const MIN_ENEMY_DRAW_HEIGHT = 34;
 export const ENEMY_VISUAL_SIZE_MULTIPLIER = 1.5;
 export const MUMMY_ASHA_SIZE_MULTIPLIER = 1.46; // mummy visibly taller than Asha (~158px vs 130px)
 const ENEMY_VISUAL_SIZE_MULTIPLIERS = {
-  scarab: 2.7,          // large relative to hitbox — keep
-  snake: 1.68,          // was 1.42 — snakes now read as a genuine threat
-  bat: 1.72,            // was 1.48 — bats fill more of the player's vision
-  scorpion: 2.7,        // already large — keep
+  scarab: 2.97,         // +10%
+  snake: 1.68,
+  bat: 1.72,
+  scorpion: 2.97,       // +10%
   sandWisp: 1.52,       // was 1.32 — wisp has more presence
   looter: 1.32,         // was 1.12 — human enemies near Asha's height
   looterCaptain: 1.38,  // was 1.16
@@ -632,10 +632,10 @@ export const getEnemySpriteDrawBox = (enemy, screenX, shakeX = 0, combatMode = n
 
   const defeated = combatMode === 'defeated' || enemy.defeated;
   const scale = {
-    scarab: defeated ? 1.32 : 1.48,
-    snake: defeated ? 1.52 : 1.72,      // was 1.38/1.55
-    bat: defeated ? 1.62 : 1.82,        // was 1.5/1.68
-    scorpion: defeated ? 1.5 : 1.82,
+    scarab: defeated ? 1.45 : 1.63,     // +10%
+    snake: defeated ? 1.52 : 1.72,
+    bat: defeated ? 1.62 : 1.82,
+    scorpion: defeated ? 1.65 : 2.00,  // +10%
     sandWisp: defeated ? 1.52 : 1.88,   // was 1.46/1.78
     looter: defeated ? 1.44 : 1.76,     // was 1.32/1.62
     looterCaptain: defeated ? 1.50 : 1.86, // was 1.38/1.72
@@ -649,10 +649,10 @@ export const getEnemySpriteDrawBox = (enemy, screenX, shakeX = 0, combatMode = n
   }[family] || 1.55;
 
   const minHeight = {
-    scarab: 34,
-    snake: 52,           // was 42
-    bat: 52,             // was 42
-    scorpion: 50,
+    scarab: 38,          // +10%
+    snake: 52,
+    bat: 52,
+    scorpion: 55,        // +10%
     sandWisp: 56,        // was 48
     looter: 88,          // was 76
     looterCaptain: 94,   // was 82
