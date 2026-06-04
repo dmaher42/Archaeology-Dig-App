@@ -16354,10 +16354,9 @@ main {
   overflow: auto;
   border: 1px solid rgba(255, 210, 124, 0.45) !important;
   border-radius: 10px !important;
-  background:
-    linear-gradient(135deg, rgba(255, 248, 226, 0.96), rgba(236, 211, 168, 0.96)),
-    #fdf6e3 !important;
-  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.56), inset 0 0 0 1px rgba(255, 255, 255, 0.55) !important;
+  background: linear-gradient(135deg, rgba(43, 29, 17, 0.95), rgba(12, 10, 8, 0.98)) !important;
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.75), inset 0 0 0 1px rgba(198, 160, 89, 0.15) !important;
+  color: #f1e6cf;
 }
 
 .expedition-briefing-card::after {
@@ -16495,7 +16494,8 @@ main {
 
 .briefing-hero-portrait {
   position: absolute;
-  right: -1rem;
+  left: 50%;
+  transform: translateX(-50%);
   bottom: -1rem;
   height: 125%;
   object-fit: contain;
@@ -16515,28 +16515,29 @@ main {
   gap: 0.45rem;
   margin: 0 !important;
   padding: clamp(0.85rem, 1.6vw, 1.05rem) !important;
-  border: 1px solid rgba(139, 106, 72, 0.28) !important;
+  border: 1px solid rgba(198, 160, 89, 0.24) !important;
   border-left: 5px solid #b91c1c !important;
   border-radius: 8px !important;
-  background: rgba(255, 250, 240, 0.66) !important;
+  background: rgba(17, 13, 10, 0.6) !important;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
 }
 
 .expedition-start-dossier .dossier-tag {
   margin: 0;
-  color: #8b5a2b;
+  color: #caa86e;
   font-size: 0.68rem;
 }
 
 .expedition-start-dossier .mission-title {
   margin: 0;
-  color: #1f2937;
+  color: #fff3dd;
   font-size: clamp(1.15rem, 2vw, 1.45rem);
   line-height: 1.12;
 }
 
 .expedition-start-dossier .mission-desc {
   margin: 0;
-  color: #4a3720;
+  color: #bda983;
   font-size: 0.95rem;
   line-height: 1.5;
 }
@@ -16546,21 +16547,21 @@ main {
   align-content: start;
   gap: 0.7rem;
   padding: clamp(0.85rem, 1.6vw, 1.05rem);
-  border: 1px solid rgba(139, 106, 72, 0.22);
+  border: 1px solid rgba(198, 160, 89, 0.22);
   border-radius: 8px;
-  background: rgba(41, 31, 21, 0.08);
+  background: rgba(255, 247, 229, 0.045);
 }
 
 .briefing-task-heading {
   display: flex;
   align-items: center;
   gap: 0.45rem;
-  color: #7a221a;
+  color: #caa86e;
 }
 
 .briefing-task-heading h2 {
   margin: 0;
-  color: #1f2937;
+  color: #fff3dd;
   font-family: 'Cinzel', serif;
   font-size: 1rem;
   line-height: 1.1;
@@ -16579,7 +16580,7 @@ main {
   display: flex;
   align-items: flex-start;
   gap: 0.45rem;
-  color: #3f3022;
+  color: #cdbb95;
   font-size: 0.9rem;
   font-weight: 800;
   line-height: 1.3;
