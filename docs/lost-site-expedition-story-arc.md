@@ -1,114 +1,218 @@
 # Lost Site Expedition Story Arc
 
-This document is the narrative source of truth for Lost Site Expedition.
+This document is the narrative arc source of truth for **Lost Site Expedition**.
 
-It exists to keep the game consistent while it is being built. Future work should extend the existing story arc rather than inventing a parallel story, duplicate character role, or disconnected educational layer.
+It exists to keep the game consistent while it is being built. Future work should extend this story arc rather than inventing a parallel story, duplicate character role, or disconnected educational layer.
+
+---
 
 ## Core Story Rule
 
-Lost Site Expedition follows Asha entering a protected ancient Egyptian site. The site is not simply abandoned; it is guarded by an ancient protection system designed to stop looters, careless intruders, and anyone who does not understand the cultural significance of what lies below.
+Lost Site Expedition is a standalone indie archaeology action-adventure first.
 
-The game should feel like a standalone archaeology adventure first. The HASS learning should be embedded through world design, evidence, tools, ruins, artefacts, environmental storytelling, excavation choices, and interpretation systems.
+Historical grounding should be embedded through world design, evidence, tools, ruins, artefacts, environmental storytelling, combat consequences, excavation choices, and interpretation systems.
 
-## Full Arc
+The game should feel like a dangerous mythic adventure through a protected Ancient Egyptian memory-world, not a lesson wrapped in a game UI.
 
-Arrival -> Rejection -> Preparation -> Guardian Test -> Discovery Entrance -> Base Camp -> Excavation -> Interpretation -> Threshold Reveal
+Core rule:
+
+> Game first. Learning through the world.
+
+---
+
+## Full Egypt Act 1 Arc
+
+Arrival -> Rejection -> Preparation -> Guardian Test -> Sacred Rooms -> Queen Truth -> Discovery Entrance -> Base Camp -> Excavation / Interpretation -> Threshold Foreshadowing
+
+---
 
 ## 1. Arrival At A Protected Ancient Site
 
-Asha reaches a sealed ancient Egyptian landscape. The world immediately feels ancient, guarded, dangerous, and significant. This is not an instructional map; it is a lost site with history, belief, and protection built into the landscape.
+Asha begins in the present day as a heritage researcher / archaeologist-in-training in Egypt.
 
-The player's first feeling should be:
+Her opening motivation is routine and grounded: a newly surfaced scarab carving does not match earlier records, and she recognises the form from an older photograph taken at another Egyptian site.
+
+The player should first feel:
 
 > I have found something important, but this place does not want me here.
 
+Asha should not begin by believing in gods, magic, or supernatural danger. She starts with evidence, photographs, site records, and curiosity.
+
+When she touches the plain stone scarab to examine it, the threshold opens and pulls her into the Lost Site.
+
+---
+
 ## 2. The Site Refuses Easy Entry
 
-The early Scarab Seal beat acts as a false-discovery threshold. Asha thinks he has found the way in, but Anubis interrupts.
+The early Scarab Seal beat acts as a false-discovery threshold.
 
-Anubis does not trust Asha. At this stage, Anubis sees Asha as another looter. Anubis has protected the relics for centuries and believes only he has the right and power to guard what lies below.
+Asha thinks she has found a clue or route in, but the site reacts. Anubis interrupts, and the Lost Site makes clear that entry is not a right.
 
-Anubis should be threatening, suspicious, and intimidating. His first goal is to scare Asha away, not guide him.
+Anubis does not trust Asha. At this stage, he sees her as another human trespasser. He has protected the relics, names, and memories for centuries and believes humans always take.
 
-This teaches the idea that archaeology is not treasure hunting. Entry must be earned, and ancient heritage is not something a player simply takes.
+Anubis should be threatening, suspicious, and intimidating. His first goal is to drive Asha away, not guide her.
+
+This is not a classroom lesson about archaeology not being treasure hunting. It is a story conflict: Asha is being judged by a guardian who believes humans have already proven what they are.
+
+---
 
 ## 3. Preparation Through Play
 
-The player prepares by exploring the ancient landscape, gathering relic shards, recovering tools, defeating enemies, solving mysteries, and clearing seals.
+The player prepares by exploring the ancient landscape, gathering fragments, recovering tools, defeating enemies, solving mysteries, and clearing seals.
 
-The main gates are:
+The main gates are pacing and judgement thresholds. They should not feel like random locks. They represent the site testing whether Asha has observed, survived, explored, solved problems, and prepared properly.
 
-- Temple Approach Seal
-- Guardian Prep Seal
-- Desert Map Seal
+Enemies, relic fragments, tools, and room discoveries should reward the player with meaningful progress rather than generic loot.
 
-These gates should not feel like random locks. They represent the site testing whether the player has observed, explored, solved problems, and prepared properly.
+Good preparation rewards include:
 
-Enemies should drop useful fragments, relic pieces, clues, or tool-linked resources that help solve mysteries and puzzles. This turns combat rewards into story progress rather than generic loot.
+- route access
+- tool recovery
+- seal weakening
+- Memory Seal restoration
+- combat readiness
+- story evidence
+- optional Anubis judgement evidence
+
+---
 
 ## 4. Guardian Challenge
 
-The Scarab Queen is the first major guardian test. She should feel earned, not random.
+The Scarab Queen is the first major guardian test.
 
-The player needs route mastery, the Map Tablet, recovered tools, enough relic shards, and puzzle-solving progress before facing her. This makes the boss fight part of the story: the site is testing whether Asha is ready to go deeper.
+She should feel earned, not random.
+
+The player should need route mastery, recovered tools, relic fragments, puzzle-solving progress, and enough combat skill before facing her. This makes the boss fight part of the story: the site is testing whether Asha is ready to go deeper.
+
+Guardians should not feel evil for the sake of combat. They are protectors of a sacred system.
+
+---
 
 ## 5. Anubis Begins To Doubt Himself
 
 Across the Journey, Anubis gradually realises that his own power has faded, just like the seals.
 
-At first, he believes Asha is the threat. Over time, evidence shows that the real danger is that the protection system is failing and Anubis can no longer defend the relics alone.
+At first, he believes Asha is the threat. Over time, evidence shows that the real danger is that the protection system is failing and Anubis can no longer defend the relics and memories alone.
 
-Asha should not win Anubis's trust through speeches. He should earn it through action:
+Asha should not win Anubis' trust through speeches. She earns reconsideration through action:
 
 - recovering relics instead of stealing them
 - using relics to repair routes or solve problems
 - restoring broken seals
 - protecting artefacts from enemies or looters
-- interpreting clues correctly
-- choosing careful excavation over careless destruction
+- interpreting clues carefully
+- choosing preservation over careless destruction
+- leaving some sacred objects where they belong
 
-This creates the emotional turn: Anubis slowly recognises that Asha may be here to help.
+This creates the emotional turn: Anubis slowly recognises that Asha may be different.
 
-## 6. Discovery Moment
+He still should not become friendly too early.
+
+---
+
+## 6. Sacred Room Sequence
+
+Egypt Act 1 should use its rooms to build the central mystery through play, environment, and consequence.
+
+Current room order:
+
+1. Mummification Chamber
+2. Mural Room
+3. Scribes' Locked Chamber
+4. Queen / Scarab Queen section
+
+### Mummification Chamber
+
+Purpose: preservation, respect for the dead, body as anchor of the self.
+
+This room should begin shifting the player's understanding from treasure to memory.
+
+### Mural Room
+
+Purpose: visual evidence, damaged interpretation, erased memory.
+
+This room should show that images can preserve truth but can also be damaged, altered, or misread.
+
+### Scribes' Locked Chamber
+
+Purpose: written evidence, names, contradiction, records, false stories.
+
+This room should reveal that stories can corrupt memory as much as theft can damage objects.
+
+### Queen / Scarab Queen Section
+
+Purpose: contested truth, judgement, corrupted memory, final major confrontation.
+
+This section should make the player question whether the Queen was greedy, dangerous, protective, or misremembered.
+
+---
+
+## 7. Key Anubis Reveal
+
+One of the key story lines is:
+
+> It was not treasure they stole. It was memory.
+
+Do not use this too early.
+
+Early in the game, Anubis can sound like he is angry about tomb robbery and stolen treasure. Later, after Asha has seen preserved bodies, damaged murals, missing names, written contradictions, and the Queen's corrupted legacy, the meaning should deepen.
+
+By then, the player should understand that Anubis means humans stole more than objects. They stole identity, names, relationships, ritual protection, afterlife passage, and the right of the dead to be remembered truthfully.
+
+This should feel like a revelation, not exposition.
+
+---
+
+## 8. Discovery Moment
 
 Defeating guardians and opening seals leads toward the sealed tomb or discovery entrance.
 
-This is the big adventure payoff. The player has not just won a level; they have earned access to the archaeological site.
+This is the big adventure payoff. The player has not just won a level; they have earned access to something hidden and protected.
 
-The discovery entrance should feel cinematic and important: stone shifting, dust falling, light entering a sealed space, ancient markings becoming visible, and the site finally allowing careful entry.
+The discovery entrance should feel cinematic and important:
 
-## 7. Return To Base Camp
+- stone shifting
+- dust falling
+- light entering a sealed space
+- ancient markings becoming visible
+- silence after danger
+- the site finally allowing careful entry
+
+This moment should feel like the end of one adventure layer and the beginning of a deeper mystery.
+
+---
+
+## 9. Return To Base Camp
 
 After the Journey, the adventure hands back to archaeology preparation.
 
-The archaeologist role becomes more visible again here. Shards, tools, and discoveries from the Journey now become useful for expedition setup.
+Base Camp should feel like a bridge between action-adventure and investigation. The player reviews discoveries, prepares tools, chooses excavation options, and gets ready to investigate properly.
 
-Base Camp should feel like the bridge between adventure and archaeology: the player prepares tools, reviews discoveries, chooses excavation options, and gets ready to investigate properly.
+Base Camp should not feel like a school menu or administration screen. It should feel like expedition preparation after a major discovery.
 
-## 8. Excavation And Interpretation
+---
 
-The second layer is slower archaeology.
+## 10. Excavation And Interpretation
 
-The player surveys zones, chooses grid squares, excavates carefully, maps the find, catalogues evidence, analyses artefacts, and builds a claim or report.
+The second layer is slower archaeological detective work.
 
-This is where the game directly teaches the historical inquiry process:
+The player surveys zones, chooses grid squares, excavates carefully, maps finds, records evidence, analyses artefacts, and builds an interpretation because these actions matter inside the game world.
 
-- survey
-- grid
-- excavate
-- map
-- catalogue
-- analyse
-- interpret
-- report
+This layer should not directly teach the historical inquiry process as a worksheet.
 
-The player should understand that finding the site is only the beginning. The real historical work is interpreting what the evidence means.
+Instead, it should make the player feel:
 
-## 9. Long-Term Threshold Reveal
+> Finding the site was only the beginning. Understanding what happened is the real mystery.
 
-The long-term final reveal is that Asha has not simply entered Ancient Egypt. She has been transported into a protected ancient threshold connected to Ancient Egypt and to a wider guardian network across ancient sites.
+---
 
-Egypt remains the first complete vertical slice and the first seal in this larger mystery. The player should not understand the full truth early. The early experience should still feel like Asha has entered a dangerous ancient Egyptian site guarded by Anubis.
+## 11. Long-Term Threshold Reveal
+
+The long-term reveal is that Asha has not simply entered Ancient Egypt. She has been pulled into a protected ancient threshold connected to Egypt and to a wider guardian network across ancient sites.
+
+Egypt remains the first complete vertical slice and the first seal in this larger mystery.
+
+The player should not understand the full truth early. The early experience should feel like Asha has entered a dangerous Ancient Egyptian sacred site guarded by Anubis.
 
 The deeper truth is:
 
@@ -130,9 +234,13 @@ The final Egypt reveal should imply:
 
 > Egypt was only the first seal.
 
-## 10. Foreshadowing The Connection
+---
 
-Do not reveal the transport / threshold-network truth too early. Foreshadow it through environmental storytelling, optional discoveries, strange murals, damaged seal records, impossible symbols, and Anubis's suspicion.
+## 12. Foreshadowing The Connection
+
+Do not reveal the transport / threshold-network truth too early.
+
+Foreshadow it through environmental storytelling, optional discoveries, strange murals, damaged seal records, impossible symbols, and Anubis' suspicion.
 
 Good foreshadowing clues include:
 
@@ -143,7 +251,7 @@ Good foreshadowing clues include:
 - relics that feel older than the Egyptian ruins around them
 - repeated references to paths, thresholds, seals, and things being called across distance or time
 
-Optional secrets can reveal pieces of this mystery without making them required for main progression. The Forgotten Mural Alcove should be allowed to foreshadow the long-term truth by showing that the site reacts differently when Asha preserves or restores something instead of taking it.
+Optional secrets can reveal pieces of this mystery without making them required for main progression.
 
 Possible secret reveal line:
 
@@ -151,7 +259,9 @@ Possible secret reveal line:
 
 This line should create mystery, not explanation.
 
-## 11. Forgotten Mural Alcove Story Role
+---
+
+## 13. Forgotten Mural Alcove Story Role
 
 The Forgotten Mural Alcove should become an optional story-deviation secret, not just a platforming detour.
 
@@ -182,25 +292,23 @@ Suggested later variation if the mural was missed:
 
 > You pass through my seals, but I still see only an intruder.
 
-## 12. Final Reveal Language Bank
+---
 
-Use these lines as tonal anchors for future writing. They should be used sparingly and only when the story has earned them.
-
-- You do not belong here.
-- That image should not know you.
-- This place was not only protecting the past. It was protecting the path between worlds.
-- You were not sent to the past. You were called by what survived it.
-- Egypt was only the first seal.
-- The path did not open because it trusted you. It opened because it needed you.
-- I was made to guard what remains. I was not made to choose who should restore it.
-
-## Character Roles
+## 14. Character Roles
 
 ### Asha
 
-Asha is the playable warrior-explorer. He represents courage, passage, problem-solving, and the player's ability to act inside the protected site.
+Asha is the playable protagonist.
 
-Asha should not be trusted by Anubis at the beginning. He earns trust by proving through action that he is not a looter.
+She is a young woman, a present-day heritage researcher, and the player character inside the Lost Site.
+
+In Journey gameplay, she represents courage, movement, survival, combat, passage, problem-solving, and the player's ability to act inside the protected site.
+
+In Base Camp and investigation layers, she represents evidence, discovery, excavation, interpretation, and careful decision-making.
+
+These are not separate protagonists. They are different gameplay expressions of Asha.
+
+Asha should not be trusted by Anubis at the beginning. She earns reconsideration by proving through action that she is not a looter.
 
 Asha should be most visible during:
 
@@ -209,24 +317,8 @@ Asha should be most visible during:
 - danger and hazard sections
 - Scarab Queen preparation
 - relic-based puzzle solving
-- moments where he protects rather than takes
-- optional secrets that reveal he may be connected to the wider protection network
-
-Asha's deeper role is not fully known at the beginning. The story may later reveal that Asha was called, pulled, or transported into the threshold because the ancient protection network is failing.
-
-### Archaeologist
-
-The archaeologist represents discovery, evidence, excavation, and interpretation.
-
-They should be most visible at:
-
-- field notes
-- discovery entrance
-- Base Camp
-- excavation
-- lab/report sections
-
-The archaeologist role should become stronger after the Journey, when the action-adventure layer hands back to archaeology preparation and interpretation.
+- moments where she protects rather than takes
+- optional secrets that reveal she may be connected to the wider protection network
 
 ### Anubis / Guardian
 
@@ -234,9 +326,9 @@ Anubis is the voice of the ancient protection system.
 
 He should feel intimidating, intelligent, ancient, and dangerous. At the beginning, he trusts no one. Asha is simply another intruder.
 
-Anubis believes only he can protect the relics, but his power has faded with the seals. His arc is realising that he can no longer protect the site alone and that Asha's actions may restore what Anubis can no longer defend.
+Anubis believes only he can protect the relics and memories, but his power has faded with the seals. His arc is realising that he can no longer protect the site alone and that Asha's actions may restore what Anubis can no longer defend.
 
-Anubis does not initially understand why Asha has arrived or whether the failing protection system called her. This uncertainty should make him more suspicious, not less. He resists the idea that the site might need help from an outsider.
+Anubis does not initially understand why Asha has arrived or whether the failing protection system called her. This uncertainty should make him more suspicious, not less.
 
 The Anubis tension is:
 
@@ -246,30 +338,48 @@ The later Anubis tension is:
 
 > If the path called you here, then my duty is no longer simple.
 
-## Core Theme
+### The Queen
+
+The Queen is the centre of Egypt Act 1's contested truth.
+
+She may appear first through damaged murals, missing names, records, corrupted memory, boss identity, or environmental clues.
+
+The game should first let the player suspect she was greedy, cursed, dangerous, or responsible.
+
+The later truth should complicate this: she may have gathered memory anchors to protect the dead and sacrificed her own legacy so others would not be forgotten.
+
+---
+
+## 15. Core Theme
 
 Lost Site Expedition is not about stealing treasure.
 
-It is about earning access, protecting heritage, gathering evidence, solving ancient mysteries, and interpreting the past.
+It is about earning access, protecting memory, surviving a sacred system, restoring damaged truth, and understanding what the past was trying to preserve.
 
-The core educational idea is:
-
-> History is reconstructed from evidence.
-
-The deeper adventure idea is:
+The core story idea is:
 
 > The past is not gone. Some parts of it were protected, and some protections are now failing.
 
-The player explores first, proves intent through action, excavates second, and interprets last.
+The core emotional idea is:
 
-## Story Implementation Rule
+> The past is not treasure to own. It is memory to protect.
+
+The key Anubis line is:
+
+> It was not treasure they stole. It was memory.
+
+---
+
+## 16. Story Implementation Rules
 
 Do not make Anubis friendly too early.
 
-Do not make Asha trusted because he says the right thing.
+Do not make Asha trusted because she says the right thing.
 
-Asha earns progress by using relics, tools, clues, and evidence to solve problems and protect the site. Anubis's trust should grow only after the player repeatedly proves they are restoring and protecting, not stealing.
+Asha earns progress by using relics, tools, clues, and evidence to solve problems and protect the site. Anubis' trust should grow only after the player repeatedly proves they are restoring and protecting, not stealing.
 
 Do not reveal the full transport / threshold-network twist too early. Early hints should create curiosity and unease, not answers.
 
 Egypt should remain the first seal and first complete vertical slice. Future ancient sites can expand the network only after the Egypt experience feels complete.
+
+Do not turn the archaeology layer into classroom assessment. It should feel like investigation, evidence, and interpretation inside an adventure game.
