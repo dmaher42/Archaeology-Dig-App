@@ -19304,9 +19304,9 @@ main {
   isolation: isolate;
   color: #f8ead0;
   background:
-    radial-gradient(circle at 58% 52%, rgba(24, 117, 139, 0.22), transparent 34%),
-    radial-gradient(circle at 82% 34%, rgba(204, 158, 68, 0.16), transparent 30%),
-    linear-gradient(180deg, #080504 0%, #150b08 48%, #050403 100%);
+    radial-gradient(circle at 50% 54%, rgba(42, 182, 199, 0.18), transparent 29%),
+    radial-gradient(circle at 76% 32%, rgba(214, 160, 69, 0.16), transparent 30%),
+    linear-gradient(180deg, #060403 0%, #120907 47%, #040302 100%);
   font-family: 'Outfit', system-ui, sans-serif;
 }
 
@@ -19346,8 +19346,8 @@ main {
   width: 108%;
   height: 110%;
   object-fit: cover;
-  filter: saturate(112%) contrast(118%) brightness(58%);
-  transform: scale(1.06) translate3d(calc(var(--opening-progress, 0) * -2.4rem), 0, 0);
+  filter: saturate(106%) contrast(124%) brightness(46%);
+  transform: scale(1.08) translate3d(calc(var(--opening-progress, 0) * -2.8rem), 0, 0);
   animation: openingBackdropDrift 22s ease-in-out both;
 }
 
@@ -19379,47 +19379,79 @@ main {
   left: 50%;
   top: 55%;
   z-index: 11;
-  width: clamp(8.5rem, 19vw, 17.5rem);
-  transform: translate(-50%, -50%) rotate(-4deg);
+  width: clamp(9.5rem, 21vw, 19rem);
+  transform: translate(-50%, -50%) rotate(-4deg) scale(calc(0.94 + var(--opening-progress, 0) * 0.1));
   filter:
-    drop-shadow(0 0 1.2rem rgba(255, 222, 117, 0.5))
-    drop-shadow(0 0 3rem rgba(45, 184, 210, 0.28));
+    drop-shadow(0 0 1.25rem rgba(255, 222, 117, 0.6))
+    drop-shadow(0 0 3.2rem rgba(45, 184, 210, 0.42));
   animation: openingSealPulse 3.6s ease-in-out infinite;
 }
 
 .opening-cinematic-anubis {
   position: absolute;
-  right: clamp(1.4rem, 6vw, 6rem);
-  bottom: clamp(1.8rem, 7vh, 5rem);
+  right: clamp(-2.8rem, 3vw, 3.6rem);
+  bottom: clamp(0.5rem, 4vh, 3.4rem);
   z-index: 10;
-  width: clamp(17rem, 34vw, 32rem);
-  max-height: 82%;
+  width: clamp(20rem, 40vw, 39rem);
+  max-height: 88%;
   object-fit: contain;
   object-position: bottom right;
-  opacity: 0.92;
+  opacity: 0.96;
   filter:
-    sepia(8%) saturate(110%) brightness(82%) contrast(122%)
+    sepia(8%) saturate(118%) brightness(72%) contrast(132%)
     drop-shadow(0 1.1rem 2.3rem rgba(0, 0, 0, 0.74))
-    drop-shadow(0 0 2.2rem rgba(77, 211, 238, 0.32));
+    drop-shadow(0 0 2.6rem rgba(77, 211, 238, 0.42));
   transform-origin: 54% 72%;
   animation: openingAnubisPresence 7.4s ease-in-out infinite;
 }
 
 .opening-cinematic-asha {
   position: absolute;
-  left: clamp(1.25rem, 8vw, 7rem);
-  bottom: clamp(1.6rem, 6vh, 4.2rem);
+  left: clamp(0.6rem, 8vw, 6.8rem);
+  bottom: clamp(0.4rem, 3vh, 2.8rem);
   z-index: 14;
-  width: clamp(9rem, 18vw, 16rem);
-  max-height: 58%;
+  width: clamp(9.5rem, 19vw, 18rem);
+  max-height: 80%;
   object-fit: contain;
   object-position: bottom left;
   filter:
-    sepia(4%) saturate(112%) brightness(98%) contrast(112%)
+    sepia(3%) saturate(110%) brightness(92%) contrast(116%)
     drop-shadow(0 1rem 1.3rem rgba(0, 0, 0, 0.68))
-    drop-shadow(0 0 1.3rem rgba(255, 223, 142, 0.2));
+    drop-shadow(0 0 1.35rem rgba(255, 223, 142, 0.3));
   animation: openingAshaResolve 5.8s ease-in-out infinite;
 }
+
+.opening-cinematic-memory-runes {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 13;
+  width: clamp(12rem, 30vw, 30rem);
+  height: clamp(13rem, 42vh, 25rem);
+  pointer-events: none;
+  transform: translate(-50%, -50%) rotate(-5deg);
+  opacity: calc(0.2 + var(--opening-progress, 0) * 0.42);
+  filter: blur(0.01rem) drop-shadow(0 0 1.4rem rgba(103, 216, 239, 0.34));
+}
+
+.opening-cinematic-memory-runes span {
+  position: absolute;
+  width: clamp(2.4rem, 5vw, 4.5rem);
+  height: clamp(5rem, 12vh, 8rem);
+  border: 1px solid rgba(132, 229, 244, 0.2);
+  border-radius: 50% 50% 46% 46%;
+  background:
+    linear-gradient(180deg, transparent 0 22%, rgba(255, 229, 151, 0.34) 23% 25%, transparent 26% 48%, rgba(105, 214, 235, 0.28) 49% 52%, transparent 53%),
+    linear-gradient(90deg, transparent 0 45%, rgba(249, 205, 105, 0.32) 46% 51%, transparent 52%);
+  box-shadow: inset 0 0 1.3rem rgba(86, 210, 231, 0.12);
+  animation: openingMemoryRuneFloat 6.4s ease-in-out infinite;
+}
+
+.opening-cinematic-memory-runes span:nth-child(1) { left: 3%; top: 18%; animation-delay: -0.8s; }
+.opening-cinematic-memory-runes span:nth-child(2) { left: 25%; top: 4%; transform: scale(0.82) rotate(14deg); animation-delay: -1.7s; }
+.opening-cinematic-memory-runes span:nth-child(3) { left: 49%; top: 30%; transform: scale(1.08) rotate(-9deg); animation-delay: -2.5s; }
+.opening-cinematic-memory-runes span:nth-child(4) { left: 71%; top: 12%; transform: scale(0.9) rotate(11deg); animation-delay: -3.2s; }
+.opening-cinematic-memory-runes span:nth-child(5) { left: 83%; top: 55%; transform: scale(0.76) rotate(-18deg); animation-delay: -4.1s; }
 
 .opening-cinematic-banishment-ring,
 .opening-cinematic-shield,
@@ -19629,11 +19661,13 @@ main {
 
 .opening-cinematic-copy {
   position: absolute;
-  left: clamp(1rem, 4.8vw, 4.8rem);
-  top: clamp(4.4rem, 11vh, 6.6rem);
+  left: 50%;
+  top: clamp(3.6rem, 8vh, 5.2rem);
   z-index: 35;
-  width: min(35rem, calc(100% - 2rem));
-  max-width: 45%;
+  width: min(48rem, calc(100% - 2rem));
+  max-width: calc(100% - 2rem);
+  text-align: center;
+  transform: translateX(-50%);
   pointer-events: none;
   text-shadow: 0 0.2rem 1rem rgba(0, 0, 0, 0.88);
 }
@@ -19659,7 +19693,9 @@ main {
 
 .opening-cinematic-dialogue {
   margin-top: clamp(0.9rem, 2vw, 1.35rem);
-  width: min(32rem, 100%);
+  margin-left: auto;
+  margin-right: auto;
+  width: min(34rem, 100%);
   padding: clamp(0.85rem, 1.6vw, 1.05rem) clamp(1rem, 2vw, 1.35rem);
   border: 1px solid rgba(245, 198, 107, 0.28);
   border-radius: 8px;
@@ -19766,8 +19802,13 @@ main {
 }
 
 @keyframes openingAshaResolve {
-  0%, 100% { transform: translate3d(0, 0, 0); }
-  50% { transform: translate3d(0.2rem, -0.25rem, 0); }
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(0.24rem, -0.22rem, 0) scale(1.012); }
+}
+
+@keyframes openingMemoryRuneFloat {
+  0%, 100% { opacity: 0.32; transform: translate3d(0, 0, 0) rotate(-4deg); }
+  50% { opacity: 0.72; transform: translate3d(0.35rem, -0.65rem, 0) rotate(5deg); }
 }
 
 @keyframes openingRingTurn {
@@ -19826,6 +19867,7 @@ main {
 @media (max-width: 720px) {
   .opening-cinematic-copy {
     top: 4.8rem;
+    left: 50%;
     max-width: calc(100% - 2rem);
   }
 
@@ -19836,13 +19878,19 @@ main {
   }
 
   .opening-cinematic-asha {
-    left: 0.65rem;
-    width: clamp(8rem, 36vw, 12rem);
+    left: -0.55rem;
+    width: clamp(9rem, 38vw, 13.5rem);
+    max-height: 62%;
   }
 
   .opening-cinematic-seal {
     top: 59%;
     width: clamp(8rem, 36vw, 12rem);
+  }
+
+  .opening-cinematic-memory-runes {
+    width: 56vw;
+    height: 32vh;
   }
 
   .opening-cinematic-progress {
