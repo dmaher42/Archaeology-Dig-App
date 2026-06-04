@@ -1725,7 +1725,7 @@ const getResourceFailureMessage = (resources) => {
     return 'Field rescue needed: investigation points reached zero. Restart and avoid site hazards.';
   }
   if (resources.stamina <= 0) {
-    return 'Field rescue needed: stamina reached zero. Restart and take a safer route.';
+    return 'Field rescue needed: Endurance reached zero. Restart and take a safer route.';
   }
   if (resources.time <= 0) {
     return 'Field rescue needed: time ran out. Restart and plan the excavation more carefully.';
@@ -5389,7 +5389,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
               <ul className="expedition-hazard-list">
                 <li>sandstorm: lowers time</li>
                 <li>falling rocks: lowers investigation points</li>
-                <li>unstable floor: lowers stamina</li>
+                <li>unstable floor: lowers Endurance</li>
                 <li>scorpion path: obstacle only</li>
                 <li>Tomb Guardian Shadow: avoid its patrol</li>
               </ul>
@@ -5444,7 +5444,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
                       <li><strong>Survey First</strong>: Evidence is hidden until you survey and mark a dig zone.</li>
                       <li><strong>Grid Mapping</strong>: Open grid squares to record coordinates before collecting items.</li>
                       <li><strong>Satchel Capacity</strong>: Max 3 items. Replace weaker items carefully.</li>
-                      <li><strong>Hazard Control</strong>: Manage time and stamina; avoid traps and monsters.</li>
+                      <li><strong>Hazard Control</strong>: Manage time and Endurance; avoid traps and monsters.</li>
                     </ul>
                   </div>
                 </div>
@@ -6704,7 +6704,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
                         <strong style={{ display: 'block', fontSize: '1.5rem', color: '#ebdcb9', fontFamily: 'Cinzel, serif', marginTop: '0.25rem' }}>{resources.time}s</strong>
                       </div>
                       <div className="expedition-stat-box">
-                        <span style={{ fontSize: '0.72rem', color: '#8b6a48', fontWeight: 800, textTransform: 'uppercase' }}>Stamina Left</span>
+                        <span style={{ fontSize: '0.72rem', color: '#8b6a48', fontWeight: 800, textTransform: 'uppercase' }}>Endurance</span>
                         <strong style={{ display: 'block', fontSize: '1.5rem', color: '#ebdcb9', fontFamily: 'Cinzel, serif', marginTop: '0.25rem' }}>{resources.stamina}</strong>
                       </div>
                       <div className="expedition-stat-box">

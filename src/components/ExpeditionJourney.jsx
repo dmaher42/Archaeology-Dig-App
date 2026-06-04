@@ -514,48 +514,49 @@ const OPENING_SPHINX_LINE_SECONDS = 2.15;
 const OPENING_CINEMATIC_ENABLED = true;
 const OPENING_CINEMATIC_DURATION = 22;
 const OPENING_CINEMATIC_SPELL_IMPACT_AT = 18.6;
+const OPENING_ASHA_CUTSCENE_SRC = 'assets/expedition/player/asha-opening-reference-cutscene.png';
 const OPENING_CINEMATIC_LINES = [
   {
     id: 'anubis-watches',
     at: 1.2,
     speaker: 'Anubis',
     voice: 'guardian',
-    text: 'You carry a bright name into a place that eats names.',
+    text: 'You stand where you should not. Humans always take.',
   },
   {
-    id: 'asha-purpose',
-    at: 5.6,
+    id: 'asha-scarab',
+    at: 5.2,
     speaker: 'Asha',
     voice: 'asha',
-    text: 'Then let it remember mine. Something under this desert is waking, and I will not let it reach the world.',
+    text: 'I did not come to take. The scarab opened beneath my hand.',
   },
   {
-    id: 'anubis-test',
-    at: 10.4,
+    id: 'anubis-memory',
+    at: 9.4,
     speaker: 'Anubis',
     voice: 'guardian',
-    text: 'I have heard courage. I have heard mercy. I have heard every lie sharpened into a prayer.',
+    text: 'The past is not treasure to own. It is memory to protect.',
   },
   {
-    id: 'asha-vow',
-    at: 16.2,
+    id: 'asha-restore',
+    at: 13.8,
     speaker: 'Asha',
     voice: 'asha',
-    text: 'Do not trust my words. Watch my hands.',
+    text: 'Then watch what I protect. I will restore what was broken.',
   },
   {
     id: 'anubis-begin',
     at: OPENING_CINEMATIC_SPELL_IMPACT_AT,
     speaker: 'Anubis',
     voice: 'guardian',
-    text: 'Then raise them. I open the gate beneath you.',
+    text: 'You did not come to take. Prove it beyond the First Seal.',
   },
   {
-    id: 'asha-recover',
+    id: 'asha-called',
     at: 21.2,
     speaker: 'Asha',
     voice: 'asha',
-    text: 'My shield is gone. Good. Now you know what I was willing to lose.',
+    text: 'The path opened because it needed someone. I am still here.',
   },
 ];
 // Rome opening cinematic — Legate Revenant speaks as Asha descends the Via Sacra.
@@ -1428,20 +1429,14 @@ const getHeroSpriteFrameKey = (current, atlas, now) => {
   }
 
   if (animationState === 'dodge') {
-    const row = getHeroSpriteRow(atlas, 'run') || getHeroSpriteRow(atlas, 'idle');
-    if (!row) return null;
-    const frameCount = Math.max(1, row.frameCount || row.frames?.length || 1);
-    const frameIndex = Math.floor(now / 70) % frameCount;
-    return row.frames?.[frameIndex] || `run_${String(frameIndex).padStart(2, '0')}`;
-  }
-
-  if (animationState === 'dodge') {
-    const row = getHeroSpriteRow(atlas, 'run') || getHeroSpriteRow(atlas, 'jump') || getHeroSpriteRow(atlas, 'idle');
+    const row = getHeroSpriteRow(atlas, 'dodge') || getHeroSpriteRow(atlas, 'run') || getHeroSpriteRow(atlas, 'idle');
     if (!row) return null;
     const frameCount = Math.max(1, row.frameCount || row.frames?.length || 1);
     const dodgeProgress = clamp((PLAYER_DODGE_DURATION - Math.max(0, current.dodgeTimer || 0)) / PLAYER_DODGE_DURATION, 0, 1);
-    const dodgeFrame = Math.min(frameCount - 1, Math.max(0, Math.floor((0.35 + dodgeProgress * 0.45) * frameCount)));
-    return row.frames?.[dodgeFrame] || null;
+    const frameIndex = row.name === 'dodge'
+      ? Math.min(frameCount - 1, Math.max(0, Math.floor(dodgeProgress * frameCount)))
+      : Math.min(frameCount - 1, Math.max(0, Math.floor((0.35 + dodgeProgress * 0.45) * frameCount)));
+    return row.frames?.[frameIndex] || null;
   }
 
   if (animationState === 'attack' || isPlayerAttackVisualPhase(attackState)) {
@@ -20916,9 +20911,16 @@ export default function ExpeditionJourney({
                     src={OPENING_SPHINX_APPARITION_SRC}
                     alt=""
                   />
+                  <div className="opening-cinematic-memory-runes">
+                    <span />
+                    <span />
+                    <span />
+                    <span />
+                    <span />
+                  </div>
                   <img
                     className="opening-cinematic-asha"
-                    src="assets/expedition/player/asha-opening-cinematic.png"
+                    src={OPENING_ASHA_CUTSCENE_SRC}
                     alt=""
                   />
                   <div className="opening-cinematic-banishment-ring">
@@ -20948,7 +20950,7 @@ export default function ExpeditionJourney({
                 </div>
                 <div className="opening-cinematic-copy">
                   <div className="opening-cinematic-kicker">The First Seal</div>
-                  <h2>Asha meets Anubis</h2>
+                  <h2>The Past Remembers</h2>
                   {activeOpeningCinematicLine && (
                     <div className={`opening-cinematic-dialogue ${activeOpeningCinematicLine.voice === 'guardian' ? 'is-guardian' : 'is-asha'}`}>
                       <span>{activeOpeningCinematicLine.speaker}</span>
@@ -20982,7 +20984,7 @@ export default function ExpeditionJourney({
                 <div className={`journey-floating-hud-meter ${staminaWarningState !== 'stable' ? `stamina-alert stamina-${staminaWarningState}` : ''}`}>
                   <div className="journey-floating-hud-meter-label">
                     <Gauge size={15} />
-                    <span>Stamina</span>
+                    <span>Endurance</span>
                   </div>
                   <div className="journey-floating-hud-bar">
                     <div className="journey-floating-hud-fill stamina-fill" style={{ width: `${staminaPercent}%` }} />
