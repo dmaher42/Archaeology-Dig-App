@@ -25,9 +25,12 @@ The educational value should emerge through gameplay, world interaction, evidenc
 Future implementation work should inspect and follow:
 
 - `docs/lost-site-expedition-production-bible.md`
+- `docs/docs-status.md`
+- `docs/standalone-game-rule.md`
+- `docs/lost-site-expedition-story-bible.md`
 - `docs/lost-site-expedition-design-brief.md`
 - `docs/lost-site-expedition-story-arc.md`
-- `docs/standalone-game-rule.md`
+- `docs/egypt-act-1-room-order.md`
 - `docs/expedition-asset-tidy-audit.md`
 - `progress.md`
 

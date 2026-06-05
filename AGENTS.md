@@ -50,6 +50,12 @@ When the conversation becomes long:
 
 ## Current Source Of Truth
 
+- Markdown status and doc hierarchy: `docs/docs-status.md`
+- Lost Site production guide: `docs/lost-site-expedition-production-bible.md`
+- Game-first rule: `docs/standalone-game-rule.md`
+- Narrative source of truth: `docs/lost-site-expedition-story-bible.md`
+- Narrative sequence: `docs/lost-site-expedition-story-arc.md`
+- Egypt Act 1 room order: `docs/egypt-act-1-room-order.md`
 - App entry and main state flow: `src/App.jsx`
 - Archaeology evidence/scenario data: `src/data.js`
 - Lost Site Expedition shell: `src/components/ExpeditionMode.jsx`
@@ -61,22 +67,24 @@ When the conversation becomes long:
 
 ## Current Work In Progress
 
-The local worktree intentionally has uncommitted changes:
+The local worktree may intentionally have uncommitted changes. Always verify with `git status --short --branch` before assuming the current WIP.
 
-- `progress.md`
-- `src/components/TrainingPhase.jsx`
-- `src/index.css`
-- `output/`
-- `scratch/sfx-source/`
+Current observed WIP from the 2026-06-05 Markdown audit:
 
-These came from the previous Codex session and should be treated as active work, not clutter.
+- Branch: `mummification-ritual-lock-upgrade`
+- `src/components/ExpeditionJourney.jsx`
+- `src/components/expedition-journey/journeyPlacementOverrides.generated.js`
+- `src/components/expedition-journey/journeySecrets.test.js`
+- `src/components/expedition-journey/journeyUtils.js`
 
-The visible current change appears to be a Training Phase layout/style pass:
+These should be treated as active Journey/mummification-room work, not clutter, unless the user explicitly asks to discard or split them.
 
-- the Training Phase header and summary were simplified
-- progress was moved into the hero action area
-- slot/card layout and CSS spacing were tightened
-- the page was made more compact and large-screen friendly
+The visible current change appears to be a Mummification Chamber ritual polish/lock-upgrade pass:
+
+- wrong/careless rite actions stir the chamber instead of silently failing
+- rite prompts and ritual hints were made clearer
+- oils/resins and name-fragment restoration became more deliberate
+- Journey tests and placement overrides were adjusted alongside the runtime path
 
 Before continuing that work, review the diff and run the app locally.
 

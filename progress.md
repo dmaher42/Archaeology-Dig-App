@@ -4,6 +4,13 @@ Current source-of-truth note:
 - Future implementation should follow `docs/lost-site-expedition-production-bible.md`.
 - The production bible now defines implementation hierarchy, room pipelines, asset roles, and quality expectations.
 
+2026-06-05 Markdown audit update:
+- Promoted `docs/docs-status.md` as the repo's Markdown interpretation map: what is absolute, what is current supporting context, what is specialist source, and what is historical/reference.
+- Confirmed the absolute current docs are the Production Bible, Standalone Game Rule, Story Bible, Story Arc, and Egypt Act 1 Room Order.
+- Updated `README.md` and `AGENTS.md` so future Codex passes see the docs-status guide and current source-of-truth hierarchy sooner.
+- Corrected `AGENTS.md` current WIP notes: the active branch is `mummification-ritual-lock-upgrade`, with Journey/mummification-room files dirty, not the older Training Phase layout pass.
+- No gameplay code, asset loaders, room data, or runtime systems were changed during this documentation audit.
+
 Original prompt: Implement "Lost Site Expedition" as a small MVP game mode in the Archaeology-Dig-App repo.
 
 2026-05-31 update:
