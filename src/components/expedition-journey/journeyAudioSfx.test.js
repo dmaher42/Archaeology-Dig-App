@@ -12,11 +12,18 @@ const egyptAudioTracksSource = existsSync(egyptAudioTracksUrl)
 
 const requiredEventCues = [
   ['desert-distant-rockfall', 'distantRockfall'],
+  ['temple-doors', 'templeDoorBoom'],
   ['temple-instability', 'templeStoneGroan'],
+  ['sandfall-collapsing-stone-section', 'sandfallStoneCascade'],
   ['temple-distant-ruin-collapse', 'distantRuinCollapse'],
+  ['torch-descent', 'catacombDeepBreath'],
+  ['catacomb-moving-fog', 'catacombFogWhisper'],
   ['catacomb-warning', 'distantMonsterCall'],
   ['cave-in', 'majorCaveIn'],
+  ['bridge-warning', 'bridgeStoneCrack'],
   ['escape-warning', 'structureRipping'],
+  ['escape-unstable-excavation', 'unstableExcavationTremor'],
+  ['final-boundary', 'finalGuardianDread'],
 ];
 
 test('Egypt Journey dramatic events declare explicit SFX cue keys', () => {
@@ -33,11 +40,18 @@ test('Egypt SFX catalog registers the dramatic cue keys without crowding App.jsx
 
   [
     'distantRockfall',
+    'templeDoorBoom',
     'templeStoneGroan',
+    'sandfallStoneCascade',
     'distantRuinCollapse',
+    'catacombDeepBreath',
+    'catacombFogWhisper',
     'distantMonsterCall',
     'majorCaveIn',
+    'bridgeStoneCrack',
     'structureRipping',
+    'unstableExcavationTremor',
+    'finalGuardianDread',
     'combatDangerHit',
     'ashaHurtBreath',
   ].forEach((sfxKey) => {

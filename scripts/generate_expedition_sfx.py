@@ -205,6 +205,58 @@ def asha_hurt_breath(t: float, duration: float, rng: random.Random, low: float) 
     return exhale + voiced + air
 
 
+def temple_door_boom(t: float, duration: float, rng: random.Random, low: float) -> float:
+    impact = tone(62 - (26 * t / duration), t) * envelope(t, 0.55, 0.004, 2.2) * 0.46
+    slab = low * envelope(t, duration, 0.025, 1.55) * 0.3
+    ring = tone(270 - (72 * t / duration), t, "triangle") * envelope(t, duration, 0.018, 2.0) * 0.08
+    return impact + slab + ring
+
+
+def sandfall_stone_cascade(t: float, duration: float, rng: random.Random, low: float) -> float:
+    sand = low * envelope(t, duration, 0.05, 1.35) * 0.34
+    pebbles = noise(rng) * envelope(t, duration, 0.02, 2.1) * 0.09
+    stones = 0.0
+    for offset, gain in [(0.18, 0.15), (0.42, 0.12), (0.78, 0.1), (1.2, 0.08)]:
+        local = max(0.0, t - offset)
+        stones += tone(118 - 28 * min(local, 0.4), local, "triangle") * envelope(local, 0.22, 0.004, 3.0) * gain
+    return sand + pebbles + stones
+
+
+def catacomb_deep_breath(t: float, duration: float, rng: random.Random, low: float) -> float:
+    inhale = low * envelope(t, duration, 0.22, 1.35) * 0.28
+    chest = tone(48 + math.sin(t * 4) * 5, t) * envelope(t, duration, 0.3, 1.45) * 0.22
+    whisper = noise(rng) * envelope(t, duration, 0.18, 2.0) * 0.035
+    return inhale + chest + whisper
+
+
+def catacomb_fog_whisper(t: float, duration: float, rng: random.Random, low: float) -> float:
+    hiss = noise(rng) * envelope(t, duration, 0.18, 1.65) * 0.055
+    drift = low * envelope(t, duration, 0.2, 1.25) * 0.18
+    thin = tone(980 + math.sin(t * 5.5) * 160, t) * envelope(t, duration, 0.42, 1.8) * 0.012
+    return hiss + drift + thin
+
+
+def bridge_stone_crack(t: float, duration: float, rng: random.Random, low: float) -> float:
+    crack = noise(rng) * envelope(t, 0.12, 0.001, 4.2) * 0.18
+    body = tone(82 - 34 * min(t / duration, 1), t) * envelope(t, duration, 0.008, 2.4) * 0.32
+    crumble = low * envelope(max(0.0, t - 0.16), max(0.1, duration - 0.16), 0.02, 1.7) * 0.2
+    return crack + body + crumble
+
+
+def unstable_excavation_tremor(t: float, duration: float, rng: random.Random, low: float) -> float:
+    pulse = tone(44 + math.sin(t * 10) * 5, t) * envelope(t, duration, 0.04, 1.3) * 0.36
+    dirt = low * envelope(t, duration, 0.05, 1.55) * 0.24
+    grit = noise(rng) * envelope(t, duration, 0.04, 2.2) * 0.04
+    return pulse + dirt + grit
+
+
+def final_guardian_dread(t: float, duration: float, rng: random.Random, low: float) -> float:
+    bell = tone(210 - 34 * min(t / duration, 1), t, "triangle") * envelope(t, duration, 0.08, 2.1) * 0.1
+    sub = tone(36 + math.sin(t * 2.4) * 3, t) * envelope(t, duration, 0.2, 1.18) * 0.34
+    throat = low * envelope(t, duration, 0.14, 1.4) * 0.22
+    return bell + sub + throat
+
+
 def main() -> None:
     specs = {
         "land-soft.wav": (0.36, land_soft),
@@ -226,6 +278,13 @@ def main() -> None:
         "structure-ripping.wav": (2.2, structure_ripping),
         "combat-danger-hit.wav": (0.42, combat_danger_hit),
         "asha-hurt-breath.wav": (0.36, asha_hurt_breath),
+        "temple-door-boom.wav": (1.35, temple_door_boom),
+        "sandfall-stone-cascade.wav": (2.1, sandfall_stone_cascade),
+        "catacomb-deep-breath.wav": (2.6, catacomb_deep_breath),
+        "catacomb-fog-whisper.wav": (2.4, catacomb_fog_whisper),
+        "bridge-stone-crack.wav": (1.4, bridge_stone_crack),
+        "unstable-excavation-tremor.wav": (2.2, unstable_excavation_tremor),
+        "final-guardian-dread.wav": (2.8, final_guardian_dread),
     }
     for filename, (duration, fn) in specs.items():
       write_wav(OUT_DIR / filename, render(duration, fn))
