@@ -1069,7 +1069,8 @@ test('first Egypt secret route rewards curiosity without changing main progressi
   assert.match(journeyComponentSource, /currentSceneId === JOURNEY_SCENE_IDS\.EXTERIOR[\s\S]*?&& player\.onGround[\s\S]*?FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER\.minX/);
   assert.match(journeyComponentSource, /Math\.abs\(forgottenMuralPlayerFootY - FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER\.footY\) <= FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER\.footTolerance/);
   assert.match(journeyComponentSource, /Math\.abs\(forgottenMuralPlayerFootY - FORGOTTEN_MURAL_CHAMBER_EXIT_TRIGGER\.footY\) <= FORGOTTEN_MURAL_CHAMBER_EXIT_TRIGGER\.footTolerance/);
-  assert.match(journeyComponentSource, /const desiredSecretVerticalCameraOffset = !chamberSceneActive && inForgottenMuralVerticalWindow/);
+  assert.match(journeyComponentSource, /secretClimbRouteIds = \['mummification-chamber-route', 'desert-upper-survey-route'\]/);
+  assert.match(journeyComponentSource, /const desiredSecretVerticalCameraOffset = !chamberSceneActive && inVerticalCameraWindow/);
   assert.match(journeyUtilsSource, /forgottenMuralChamberActive:\s*false/);
   assert.match(journeyUtilsSource, /forgottenMuralChamberTransition:\s*null/);
   assert.match(journeyUtilsSource, /currentSceneId:\s*'egypt-exterior-route'/);
@@ -1501,7 +1502,8 @@ test('mummification chamber ritual-order puzzle uses in-world sequence activatio
   // The room is now a physical rite system driven by the reusable interact model.
   assert.match(journeyComponentSource, /MUMMIFICATION_ROOM_INTERACT_VERSION = 'mummification-room-interact-system-2026-06-05'/);
   assert.match(journeyComponentSource, /The seal does not trust an unfinished rite\./);
-  assert.match(journeyComponentSource, /The seal listens\. The name is restored, and the crossing may begin\./);
+  assert.match(journeyComponentSource, /The scratched mark glows\. The seal opens\./);
+  assert.match(journeyComponentSource, /The name is set right\. Anubis says nothing\./);
   assert.match(journeyComponentSource, /The scent of resin rises from the stone\./);
   assert.match(journeyComponentSource, /current\.mummificationChamberPuzzleSolved = true/);
   assert.match(journeyComponentSource, /current\.mummificationChamberExitUnlocked = true/);
@@ -1569,6 +1571,35 @@ test('reusable Journey Room Interact system drives the mummification chamber wit
   assert.match(journeyComponentSource, /journeyInteractHoldTick\(interaction/);
   assert.match(journeyComponentSource, /journeyInteractPickUp\(interaction/);
   assert.match(journeyComponentSource, /journeyInteractPlace\(interaction/);
+  // Polish: each rite shows a short action hint, and carrying the wrong item to a
+  // hold target gives the clue instead of failing silently.
+  [
+    'Carry each jar to the plinth with its matching symbol.',
+    'One vessel calms the room. The others do not.',
+    'Hold E at the table to wrap — stay still or the linen slips.',
+  ].forEach((hint) => {
+    assert.match(journeyComponentSource, new RegExp(hint.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  });
+  assert.match(journeyComponentSource, /isHoldTarget\(target\) && carried && carried !== target\.acceptsItemId/);
+
+  // Story-lock upgrade: cold Anubis on careless hands, a chamber that "stirs",
+  // three oils (one calms), and a three-fragment damaged-name ordering.
+  assert.match(journeyComponentSource, /MUMMIFICATION_ANUBIS_WARNINGS = Object\.freeze/);
+  assert.match(journeyComponentSource, /One careless hand can undo centuries\./);
+  assert.match(journeyComponentSource, /A name scratched from stone is not silence\. It is a wound\./);
+  assert.match(journeyComponentSource, /const stirChamber = /);
+  assert.match(journeyComponentSource, /mummificationChamberDisturbanceTimer/);
+  ['oil-common', 'oil-bitter', 'oil-sacred'].forEach((id) => {
+    assert.match(journeyComponentSource, new RegExp(`id: '${id}'`));
+  });
+  ['name-frag-1', 'name-frag-2', 'name-frag-3', 'name-slot-1', 'name-slot-2', 'name-slot-3'].forEach((id) => {
+    assert.match(journeyComponentSource, new RegExp(`id: '${id}'`));
+  });
+  assert.match(journeyComponentSource, /The flame recoils\. This is not the sacred resin\./);
+  assert.match(journeyComponentSource, /The scent turns bitter\. The chamber stirs\./);
+  assert.match(journeyComponentSource, /This name was not worn by time\. It was scratched out by hand\./);
+  // Matching is genuine inference now — the old "correct target" auto-glow is gone.
+  assert.doesNotMatch(journeyComponentSource, /const validTarget = Boolean\(carriedId\)/);
   // No parallel room / puzzle / interaction system was created.
   assert.doesNotMatch(journeyComponentSource, /createMummificationRoomSystem|JourneyRoomInteract\.jsx|class\s+JourneyRoomInteract/);
 });
@@ -1580,7 +1611,8 @@ test('mummification chamber atmosphere wakes from existing inspection and puzzle
   assert.match(journeyComponentSource, /mummificationChamberRitualStep/);
   assert.match(journeyComponentSource, /ritualRatio/);
   assert.match(journeyComponentSource, /mummificationChamberPuzzleSolved \|\| current\.mummificationChamberExitUnlocked/);
-  assert.match(journeyComponentSource, /particleCount:\s*Math\.min\(32,/);
+  assert.match(journeyComponentSource, /particleCount:\s*Math\.min\(40,/);
+  assert.match(journeyComponentSource, /disturbance/);
   assert.match(journeyComponentSource, /wakeProgress/);
   assert.match(journeyComponentSource, /glyphGlowAlpha/);
   assert.match(journeyComponentSource, /linenMotion/);

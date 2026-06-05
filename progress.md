@@ -11,6 +11,16 @@ Current source-of-truth note:
 - Corrected `AGENTS.md` current WIP notes: the active branch is `mummification-ritual-lock-upgrade`, with Journey/mummification-room files dirty, not the older Training Phase layout pass.
 - No gameplay code, asset loaders, room data, or runtime systems were changed during this documentation audit.
 
+2026-06-05 Mummification ritual-lock upgrade:
+- Upgraded the existing Mummification Chamber (no new room/puzzle/progression system) from a guided "walk to glow and press interact" sequence into a tense, story-driven ritual lock, extending the in-place Journey chamber logic in `ExpeditionJourney.jsx` and the reusable interact primitives in `journeyUtils.js`.
+- Reduced hand-holding: removed the auto-glow that revealed the correct plinth and softened the "next object" glow, so jar/fragment matching is genuine symbol inference; kept one short atmospheric hint per rite so it stays fair.
+- Added a chamber "disturbance" reaction that reuses existing atmosphere systems — careless/wrong actions flare the candles, dim-flash the room, pulse the seal, and shake the camera (`mummificationChamberDisturbanceTimer` + `stirChamber`).
+- Added a cold, judgement-only Anubis who speaks sparingly on repeated carelessness (`MUMMIFICATION_ANUBIS_WARNINGS`), never friendly, never revealing the larger theme.
+- Rite 3 now offers three vessels (thin, bitter, sacred) with distinct wrong-clues; Rite 5 became a three-fragment ordering that restores a deliberately scratched-out name, planting the "the name was damaged by hand" beat without revealing the memory theme.
+- Wrong jar/oil/fragment gives feedback but never resets completed rites; the exit seal stays locked until all five rites and their sub-steps are done.
+- Revised chamber copy to stay sacred/tense/mysterious and avoid early "memory/teaching" framing.
+- Updated and extended the focused mummification tests; verified lint and production build.
+
 Original prompt: Implement "Lost Site Expedition" as a small MVP game mode in the Archaeology-Dig-App repo.
 
 2026-05-31 update:

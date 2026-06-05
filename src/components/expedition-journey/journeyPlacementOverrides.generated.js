@@ -29,14 +29,17 @@ const journeyPlacementOverrides = {
       "id": "opening-pyramid-facade-structure",
       "sectionId": "desert-entry",
       "type": "generated-opening-pyramid-facade",
-      "x": 522,
-      "y": -4,
+      "x": 533,
+      "y": -170,
       "width": 1208,
       "height": 664,
       "depth": "midground",
       "alpha": 0.98,
       "label": "editable opening pyramid facade landmark with scarab seal approach",
-      "rotation": 0
+      "scale": 1.15,
+      "rotation": 10,
+      "groundContactLayer": [],
+      "editorBoundsInsetBottom": 0
     },
     {
       "id": "mummification-chamber-exterior-structure",
@@ -429,6 +432,132 @@ const journeyPlacementOverrides = {
       "sandMoundHeight": 0
     },
     {
+      "id": "opening-rubble-left",
+      "sectionId": "desert-entry",
+      "type": "atmosphere-prop",
+      "atmosphereAssetKey": "rubbleDustSmall",
+      "x": 181,
+      "y": 561,
+      "width": 112,
+      "height": 42,
+      "yOffset": 8,
+      "alpha": 1,
+      "depth": "midground",
+      "tint": "warm",
+      "shadow": 0.08,
+      "dust": 0.66,
+      "bury": 0.18,
+      "label": "scattered rubble at the base of the pyramid left approach"
+    },
+    {
+      "id": "opening-supply-jars-left",
+      "sectionId": "desert-entry",
+      "type": "atmosphere-prop",
+      "atmosphereAssetKey": "supplyJars",
+      "x": 266,
+      "y": 557,
+      "width": 72,
+      "height": 50,
+      "yOffset": 8,
+      "alpha": 1,
+      "depth": "midground",
+      "tint": "warm",
+      "shadow": 0.08,
+      "dust": 0.54,
+      "bury": 0.26,
+      "label": "supply jar cluster at the pyramid base left — expedition camp cache"
+    },
+    {
+      "id": "opening-pillar-caps-base",
+      "sectionId": "desert-entry",
+      "type": "atmosphere-prop",
+      "atmosphereAssetKey": "pillarCaps",
+      "x": 689,
+      "y": 557,
+      "width": 88,
+      "height": 52,
+      "yOffset": 8,
+      "alpha": 1,
+      "depth": "midground",
+      "tint": "warm",
+      "shadow": 0.09,
+      "dust": 0.62,
+      "bury": 0.28,
+      "label": "broken pillar cap debris at the pyramid right base"
+    },
+    {
+      "id": "opening-fallen-column-base",
+      "sectionId": "desert-entry",
+      "type": "atmosphere-prop",
+      "atmosphereAssetKey": "fallenColumn",
+      "x": 836,
+      "y": 557,
+      "width": 122,
+      "height": 48,
+      "yOffset": 8,
+      "alpha": 1,
+      "depth": "midground",
+      "tint": "warm",
+      "shadow": 0.11,
+      "dust": 0.64,
+      "bury": 0.22,
+      "label": "fallen stone column at the pyramid base right — once framed the entrance"
+    },
+    {
+      "id": "opening-desert-rubble-1",
+      "sectionId": "desert-entry",
+      "type": "atmosphere-prop",
+      "atmosphereAssetKey": "rubbleDustSmall",
+      "x": 1232,
+      "y": 561,
+      "width": 128,
+      "height": 46,
+      "yOffset": 8,
+      "alpha": 0.86,
+      "depth": "background",
+      "tint": "warm",
+      "shadow": 0.06,
+      "dust": 0.72,
+      "bury": 0.24,
+      "label": "light desert rubble in the open sand beyond the pyramid"
+    },
+    {
+      "id": "opening-desert-boundary-tablet",
+      "sectionId": "desert-entry",
+      "type": "atmosphere-prop",
+      "atmosphereAssetKey": "stoneTablet",
+      "x": 1424,
+      "y": 529,
+      "width": 44,
+      "height": 64,
+      "yOffset": 24,
+      "alpha": 0.78,
+      "depth": "background",
+      "tint": "warm",
+      "shadow": 0.04,
+      "dust": 0.52,
+      "bury": 0.18,
+      "label": "ancient boundary stone in the open desert — carved survey marker"
+    },
+    {
+      "id": "opening-desert-pillar-debris",
+      "sectionId": "desert-entry",
+      "type": "atmosphere-prop",
+      "atmosphereAssetKey": "pillarCaps",
+      "x": 1639,
+      "y": 555,
+      "width": 78,
+      "height": 48,
+      "yOffset": 8,
+      "alpha": 0.72,
+      "depth": "background",
+      "tint": "warm",
+      "shadow": 0.05,
+      "dust": 0.68,
+      "bury": 0.32,
+      "label": "eroded pillar cap debris half-buried in open desert sand"
+    },
+    {
       "id": "desert-entry-sand-piles-1",
       "sectionId": "desert-entry",
       "type": "atmosphere-prop",
@@ -522,8 +651,8 @@ const journeyPlacementOverrides = {
       "atmosphereAssetKey": "fallen_lintel",
       "scale": 1.4,
       "layer": "route-edge",
-      "x": 467,
-      "y": 455,
+      "x": 495,
+      "y": 344,
       "label": "fallen lintel",
       "width": 118,
       "height": 112,
@@ -550,31 +679,33 @@ const journeyPlacementOverrides = {
       "atmosphereAssetKey": "fallen_lintel",
       "scale": 1.4,
       "layer": "foreground",
-      "x": 272,
-      "y": 599,
+      "x": 271,
+      "y": 513,
       "label": "fallen lintel",
       "width": 118,
       "height": 112,
       "rotation": 0,
-      "shadowOpacity": 0.22,
-      "shadowWidth": 128,
-      "sandOverlapHeight": 12,
-      "sandMoundWidth": 132,
-      "groundPebbles": 4,
+      "shadowOpacity": 0,
+      "shadowWidth": 0,
+      "sandOverlapHeight": 0,
+      "sandMoundWidth": 0,
+      "groundPebbles": 0,
       "depth": "grounded",
       "mirrorX": true,
       "brightness": 0.9,
-      "colorGradeFilter": "sepia(0%) hue-rotate(4deg) saturate(110%) brightness(83%) contrast(145%)"
+      "colorGradeFilter": "sepia(0%) hue-rotate(4deg) saturate(110%) brightness(83%) contrast(145%)",
+      "shadowHeight": 0,
+      "sandMoundHeight": 0
     },
     {
       "id": "desert-entry-incense-stands-1",
       "sectionId": "desert-entry",
       "type": "atmosphere-prop",
       "atmosphereAssetKey": "incense_stands",
-      "scale": 1.15,
+      "scale": 1,
       "layer": "route-edge",
-      "x": 729,
-      "y": 283,
+      "x": 860,
+      "y": 153,
       "label": "incense stands",
       "yOffset": 0,
       "width": 111,
@@ -586,7 +717,8 @@ const journeyPlacementOverrides = {
       "sandOverlapHeight": 7,
       "sandMoundWidth": 0,
       "groundPebbles": 2,
-      "depth": "foreground-occluder"
+      "depth": "foreground-occluder",
+      "height": 108
     },
     {
       "id": "desert-entry-route-gate-front-1",
@@ -689,121 +821,35 @@ const journeyPlacementOverrides = {
       "label": "ram statue fragment",
       "rotation": -10,
       "mirrorX": true
+    },
+    {
+      "id": "desert-entry-ledge-helper-excavation-assist-kit-1",
+      "sectionId": "desert-entry",
+      "type": "atmosphere-prop",
+      "atmosphereAssetKey": "ledgeHelperExcavationAssistKit",
+      "width": 332,
+      "height": 249,
+      "scale": 0.9,
+      "layer": "foreground",
+      "depth": "route-edge",
+      "placementPreset": "desertEntryGroundedRuin",
+      "tint": "warm",
+      "colorGradeFilter": "none",
+      "alpha": 0.97,
+      "shadowOpacity": 0.2,
+      "sandOverlapHeight": 10,
+      "sandMoundWidth": 292,
+      "groundPebbles": 3,
+      "x": 141,
+      "y": 664,
+      "label": "excavation assist kit",
+      "yOffset": 75,
+      "rotation": 0,
+      "mirrorX": true
     }
   ],
   "deletedPropIds": [],
   "platforms": [
-    {
-      "id": "desert-entry-platform-1",
-      "sectionId": "desert-entry",
-      "width": 192,
-      "height": 18,
-      "label": "editable platform",
-      "invisible": true,
-      "layer": "platform",
-      "x": 2180,
-      "y": 584
-    },
-    {
-      "id": "desert-entry-platform-2",
-      "sectionId": "desert-entry",
-      "width": 94,
-      "height": 18,
-      "label": "editable platform",
-      "invisible": true,
-      "layer": "platform",
-      "x": 1828,
-      "y": 428
-    },
-    {
-      "id": "desert-entry-platform-3",
-      "sectionId": "desert-entry",
-      "width": 99,
-      "height": 15,
-      "label": "editable platform",
-      "invisible": true,
-      "layer": "platform",
-      "x": 2697,
-      "y": 507
-    },
-    {
-      "id": "desert-entry-platform-4",
-      "sectionId": "desert-entry",
-      "width": 192,
-      "height": 18,
-      "label": "editable platform",
-      "invisible": true,
-      "layer": "platform",
-      "x": 7081,
-      "y": 91
-    },
-    {
-      "id": "desert-entry-platform-5",
-      "sectionId": "desert-entry",
-      "width": 114,
-      "height": 18,
-      "label": "editable platform",
-      "invisible": true,
-      "layer": "platform",
-      "x": 7141,
-      "y": 47
-    },
-    {
-      "id": "desert-entry-platform-6",
-      "sectionId": "desert-entry",
-      "width": 187,
-      "height": 20,
-      "label": "editable platform",
-      "invisible": true,
-      "layer": "platform",
-      "x": 368,
-      "y": 344,
-      "zIndex": -17
-    },
-    {
-      "id": "desert-entry-platform-7",
-      "sectionId": "desert-entry",
-      "width": 171,
-      "height": 18,
-      "label": "editable platform",
-      "invisible": true,
-      "layer": "platform",
-      "x": 186,
-      "y": 491
-    },
-    {
-      "id": "desert-entry-platform-8",
-      "sectionId": "desert-entry",
-      "width": 41,
-      "height": 18,
-      "label": "editable platform",
-      "invisible": true,
-      "layer": "platform",
-      "x": 685,
-      "y": 204
-    },
-    {
-      "id": "desert-entry-platform-9",
-      "sectionId": "desert-entry",
-      "width": 35,
-      "height": 18,
-      "label": "editable platform",
-      "invisible": true,
-      "layer": "platform",
-      "x": 732,
-      "y": 223
-    },
-    {
-      "id": "desert-entry-platform-10",
-      "sectionId": "desert-entry",
-      "width": 50,
-      "height": 18,
-      "label": "editable platform",
-      "invisible": true,
-      "layer": "platform",
-      "x": 1775,
-      "y": 525
-    },
     {
       "id": "desert-entry-floor",
       "x": 34,
@@ -813,41 +859,9 @@ const journeyPlacementOverrides = {
       "label": "desert track"
     },
     {
-      "id": "temple-floor",
-      "x": 13334,
-      "y": 595,
-      "width": 9323,
-      "height": 60,
-      "label": "temple floor"
-    },
-    {
-      "id": "catacomb-path-floor",
-      "x": 22657,
-      "y": 595,
-      "width": 10735,
-      "height": 60,
-      "label": "catacomb path"
-    },
-    {
-      "id": "escape-road-floor",
-      "x": 33392,
-      "y": 595,
-      "width": 8193,
-      "height": 60,
-      "label": "escape road"
-    },
-    {
-      "id": "dig-site-rise-floor",
-      "x": 41584,
-      "y": 595,
-      "width": 9605,
-      "height": 60,
-      "label": "dig-site rise"
-    },
-    {
       "id": "opening-lower-ruin-ledge",
-      "x": 0,
-      "y": 553,
+      "x": -10,
+      "y": 469,
       "width": 330,
       "height": 18,
       "label": "invisible marked lower pyramid ledge",
@@ -855,27 +869,27 @@ const journeyPlacementOverrides = {
     },
     {
       "id": "opening-first-terrace",
-      "x": 355,
-      "y": 406,
-      "width": 365,
+      "x": 335,
+      "y": 294,
+      "width": 443,
       "height": 18,
       "label": "invisible marked first pyramid terrace",
       "invisible": true
     },
     {
       "id": "opening-second-terrace",
-      "x": 505,
-      "y": 259,
-      "width": 355,
+      "x": 509,
+      "y": 137,
+      "width": 404,
       "height": 18,
       "label": "invisible marked second pyramid terrace",
       "invisible": true
     },
     {
       "id": "opening-scarab-seal-summit",
-      "x": 773,
-      "y": 105,
-      "width": 280,
+      "x": 805,
+      "y": -46,
+      "width": 333,
       "height": 18,
       "label": "invisible marked scarab artefact platform",
       "invisible": true
@@ -1061,17 +1075,6 @@ const journeyPlacementOverrides = {
       "invisible": true
     },
     {
-      "id": "mummification-chamber-floor",
-      "sceneId": "mummification-chamber",
-      "x": 2949,
-      "y": 502,
-      "width": 1356,
-      "height": 18,
-      "label": "invisible full Mummification Chamber floor",
-      "secret": true,
-      "invisible": true
-    },
-    {
       "id": "forgotten-mural-lower-masonry",
       "x": 6856,
       "y": 191,
@@ -1212,6 +1215,160 @@ const journeyPlacementOverrides = {
       "invisible": true
     },
     {
+      "id": "desert-entry-platform-1",
+      "sectionId": "desert-entry",
+      "width": 192,
+      "height": 18,
+      "label": "editable platform",
+      "invisible": true,
+      "layer": "platform",
+      "x": 2180,
+      "y": 584
+    },
+    {
+      "id": "desert-entry-platform-2",
+      "sectionId": "desert-entry",
+      "width": 94,
+      "height": 18,
+      "label": "editable platform",
+      "invisible": true,
+      "layer": "platform",
+      "x": 1828,
+      "y": 428
+    },
+    {
+      "id": "desert-entry-platform-3",
+      "sectionId": "desert-entry",
+      "width": 99,
+      "height": 15,
+      "label": "editable platform",
+      "invisible": true,
+      "layer": "platform",
+      "x": 2697,
+      "y": 507
+    },
+    {
+      "id": "desert-entry-platform-4",
+      "sectionId": "desert-entry",
+      "width": 192,
+      "height": 18,
+      "label": "editable platform",
+      "invisible": true,
+      "layer": "platform",
+      "x": 7081,
+      "y": 91
+    },
+    {
+      "id": "desert-entry-platform-5",
+      "sectionId": "desert-entry",
+      "width": 114,
+      "height": 18,
+      "label": "editable platform",
+      "invisible": true,
+      "layer": "platform",
+      "x": 7141,
+      "y": 47
+    },
+    {
+      "id": "desert-entry-platform-6",
+      "sectionId": "desert-entry",
+      "width": 165,
+      "height": 20,
+      "label": "editable platform",
+      "invisible": true,
+      "layer": "platform",
+      "x": 406,
+      "y": 237,
+      "zIndex": -17
+    },
+    {
+      "id": "desert-entry-platform-7",
+      "sectionId": "desert-entry",
+      "width": 171,
+      "height": 18,
+      "label": "editable platform",
+      "invisible": true,
+      "layer": "platform",
+      "x": 176,
+      "y": 401
+    },
+    {
+      "id": "desert-entry-platform-10",
+      "sectionId": "desert-entry",
+      "width": 50,
+      "height": 18,
+      "label": "editable platform",
+      "invisible": true,
+      "layer": "platform",
+      "x": 1775,
+      "y": 525
+    },
+    {
+      "id": "desert-entry-platform-11",
+      "sectionId": "desert-entry",
+      "width": 140,
+      "height": 18,
+      "label": "editable platform",
+      "invisible": true,
+      "layer": "platform",
+      "x": 684,
+      "y": 515
+    },
+    {
+      "id": "desert-entry-platform-8",
+      "sectionId": "desert-entry",
+      "width": 130,
+      "height": 18,
+      "label": "editable platform",
+      "invisible": true,
+      "layer": "platform",
+      "x": 80,
+      "y": 546
+    },
+    {
+      "id": "temple-floor",
+      "x": 13334,
+      "y": 595,
+      "width": 9323,
+      "height": 60,
+      "label": "temple floor"
+    },
+    {
+      "id": "catacomb-path-floor",
+      "x": 22657,
+      "y": 595,
+      "width": 10735,
+      "height": 60,
+      "label": "catacomb path"
+    },
+    {
+      "id": "escape-road-floor",
+      "x": 33392,
+      "y": 595,
+      "width": 8193,
+      "height": 60,
+      "label": "escape road"
+    },
+    {
+      "id": "dig-site-rise-floor",
+      "x": 41584,
+      "y": 595,
+      "width": 9605,
+      "height": 60,
+      "label": "dig-site rise"
+    },
+    {
+      "id": "mummification-chamber-floor",
+      "sceneId": "mummification-chamber",
+      "x": 2949,
+      "y": 502,
+      "width": 1356,
+      "height": 18,
+      "label": "invisible full Mummification Chamber floor",
+      "secret": true,
+      "invisible": true
+    },
+    {
       "id": "switch-1-raised-return-plinth",
       "x": 15086,
       "y": 539,
@@ -1316,6 +1473,32 @@ const journeyPlacementOverrides = {
   ],
   "deletedPlatformIds": [],
   "hazards": [
+    {
+      "id": "sealed-sand",
+      "name": "sealed sand",
+      "emoji": "!",
+      "x": 7232,
+      "y": 565,
+      "width": 62,
+      "height": 30,
+      "penalty": {
+        "time": 6
+      },
+      "message": "A marked patch of sealed sand slowed the approach."
+    },
+    {
+      "id": "desert-low-ridge",
+      "name": "low sand ridge",
+      "emoji": "!",
+      "x": 2430,
+      "y": 565,
+      "width": 64,
+      "height": 30,
+      "penalty": {
+        "time": 4
+      },
+      "message": "A low sand ridge slowed the survey line."
+    },
     {
       "id": "thorn-bush",
       "name": "thorn bush",
@@ -1463,17 +1646,30 @@ const journeyPlacementOverrides = {
       "roomId": "desert-entry"
     },
     {
-      "id": "sealed-sand",
-      "name": "sealed sand",
+      "id": "desert-soft-ridge",
+      "name": "soft sand ridge",
       "emoji": "!",
-      "x": 7232,
+      "x": 6356,
       "y": 565,
-      "width": 62,
+      "width": 86,
       "height": 30,
       "penalty": {
-        "time": 6
+        "time": 4
       },
-      "message": "A marked patch of sealed sand slowed the approach."
+      "message": "A soft sand ridge slowed the upper route."
+    },
+    {
+      "id": "broken-ruins-loose-stones",
+      "name": "loose ruin stones",
+      "emoji": "!",
+      "x": 7119,
+      "y": 565,
+      "width": 74,
+      "height": 30,
+      "penalty": {
+        "stamina": 5
+      },
+      "message": "Loose ruin stones shifted underfoot."
     },
     {
       "id": "loose-temple-floor",
@@ -1526,19 +1722,6 @@ const journeyPlacementOverrides = {
         "time": 6
       },
       "message": "Survey ropes slowed the final site access path."
-    },
-    {
-      "id": "desert-low-ridge",
-      "name": "low sand ridge",
-      "emoji": "!",
-      "x": 2430,
-      "y": 565,
-      "width": 64,
-      "height": 30,
-      "penalty": {
-        "time": 4
-      },
-      "message": "A low sand ridge slowed the survey line."
     },
     {
       "id": "spike-trap",
@@ -1683,32 +1866,6 @@ const journeyPlacementOverrides = {
         "stamina": 10
       },
       "message": "Loose stones made the final climb harder."
-    },
-    {
-      "id": "desert-soft-ridge",
-      "name": "soft sand ridge",
-      "emoji": "!",
-      "x": 6356,
-      "y": 565,
-      "width": 86,
-      "height": 30,
-      "penalty": {
-        "time": 4
-      },
-      "message": "A soft sand ridge slowed the upper route."
-    },
-    {
-      "id": "broken-ruins-loose-stones",
-      "name": "loose ruin stones",
-      "emoji": "!",
-      "x": 7119,
-      "y": 565,
-      "width": 74,
-      "height": 30,
-      "penalty": {
-        "stamina": 5
-      },
-      "message": "Loose ruin stones shifted underfoot."
     },
     {
       "id": "temple-threshold-hairline-crack",
@@ -1894,7 +2051,7 @@ const journeyPlacementOverrides = {
       "width": 34,
       "height": 274,
       "hideArchVisual": true,
-      "message": "The ancient Map Tablet and 6 lost fragments must be restored before the path deeper wakes.",
+      "message": "Sealed. Read the Lost Map Tablet (behind you in the desert) and restore 6 relic fragments to pass.",
       "requires": {
         "objective": "desert-entry",
         "shards": 6
