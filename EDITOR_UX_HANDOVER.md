@@ -104,6 +104,18 @@ hidden — search `editor.previewMode` to see all the touch points end-to-end.
 
 Roughly highest-impact first. These are observations, not bugs; the editor functions.
 
+> **Progress (2026-06-06):**
+> - ✅ **#1 done** — added a **collapse toggle** (chevron ▾/▸ in the panel header). Collapses
+>   the panel to a slim header+toolbar bar via an `is-collapsed` class; flag `panelCollapsed`
+>   follows the `previewMode` pattern. (Chose collapse over dock/auto-shift per user.)
+> - ✅ **#2 done** — toolbar **grouped** into "Actions" (Undo/Redo/Save) and "Modes" (the six
+>   toggles) with labeled `.journey-prop-editor-action-group` sections + divider.
+> - ✅ **#3 done** — locked-click affordance: selecting a locked item now shows a prominent
+>   amber `.journey-prop-editor-lock-notice` banner with an inline **"🔓 Unlock to edit"**
+>   button (and an unlocked/relock variant). Replaces the tiny grey "Selected item is locked"
+>   line. Verified: click locked item → unlock → count 218→217.
+> - ⏭️ Remaining: **#4 redundant transform info**.
+
 1. **Panel covers the work area.** `.journey-prop-editor-panel` is `position:absolute;
    top:0.62rem; left:0.72rem; width:min(21rem,…)`. At the displayed canvas size it covers
    ~40% of the left side, so objects you select on the left are hidden behind the panel

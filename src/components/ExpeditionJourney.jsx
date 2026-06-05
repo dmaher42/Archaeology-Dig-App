@@ -415,6 +415,8 @@ const PLAYER_ATTACK_RANGE = 92;
 const PLAYER_ATTACK_HEIGHT = 36;
 const PLAYER_ATTACK_BACK_REACH = 10;
 const PLAYER_ATTACK_FINISHER_ROW = 'attack_pick_swing_sweep';
+const PLAYER_FINISHER_SLASH_EFFECT_SRC = 'assets/expedition/player/asha-finisher-slash-effect-2026-06-06.png';
+const PLAYER_FINISHER_SLASH_EFFECT_VERSION = 'asha-finisher-slash-effect-2026-06-06';
 const PLAYER_ATTACK_COMBO_TIMINGS = [
   { windup: ATTACK_WINDUP_DURATION, swing: ATTACK_DURATION, recoil: ATTACK_RECOIL_DURATION, cooldown: ATTACK_COOLDOWN },
   { windup: ATTACK_WINDUP_DURATION, swing: ATTACK_DURATION, recoil: ATTACK_RECOIL_DURATION, cooldown: ATTACK_COOLDOWN },
@@ -3297,6 +3299,7 @@ export default function ExpeditionJourney({
     selectedPaletteCategory: 'prop',
     showTrapTriggers: true,
     previewMode: false,
+    panelCollapsed: false,
     floorPickMode: false,
     createdProps: [],
     createdPlatforms: [],
@@ -3341,6 +3344,7 @@ export default function ExpeditionJourney({
     selectedPaletteCategory: 'prop',
     showTrapTriggers: true,
     previewMode: false,
+    panelCollapsed: false,
     floorPickMode: false,
     palette: [],
     selectedLockKey: null,
@@ -3387,6 +3391,7 @@ export default function ExpeditionJourney({
   const bossSpriteAssetsRef = useRef(createBossSpriteState());
   const collectibleSpriteAssetsRef = useRef(createCollectibleSpriteState());
   const playerWeaponSpriteRef = useRef(createPlayerWeaponSpriteState());
+  const playerFinisherSlashEffectRef = useRef({ image: null, loaded: false, failed: false, version: PLAYER_FINISHER_SLASH_EFFECT_VERSION });
   const dynamicWorldAssetsRef = useRef(createDynamicWorldAssetState());
   const markerSpriteAssetsRef = useRef(createMarkerSpriteState());
   const openingScarabSealImageRef = useRef({ image: null, loaded: false, failed: false });
@@ -4176,6 +4181,7 @@ export default function ExpeditionJourney({
       selectedPaletteCategory: editor.selectedPaletteCategory,
       showTrapTriggers: editor.showTrapTriggers,
       previewMode: editor.previewMode,
+      panelCollapsed: editor.panelCollapsed,
       floorPickMode: editor.floorPickMode,
       palette,
       selectedLockKey,
@@ -4890,6 +4896,24 @@ export default function ExpeditionJourney({
     window.addEventListener('keydown', handleCharacterLoaderHotkey);
     return () => window.removeEventListener('keydown', handleCharacterLoaderHotkey);
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const image = new Image();
+    image.onload = () => {
+      if (cancelled) return;
+      playerFinisherSlashEffectRef.current = { image, loaded: true, failed: false, version: PLAYER_FINISHER_SLASH_EFFECT_VERSION };
+      syncHud();
+    };
+    image.onerror = () => {
+      if (cancelled) return;
+      playerFinisherSlashEffectRef.current = { image: null, loaded: false, failed: true, version: PLAYER_FINISHER_SLASH_EFFECT_VERSION };
+    };
+    image.src = `${import.meta.env.BASE_URL}${PLAYER_FINISHER_SLASH_EFFECT_SRC}?v=${PLAYER_FINISHER_SLASH_EFFECT_VERSION}`;
+    return () => {
+      cancelled = true;
+    };
+  }, [syncHud]);
 
   useEffect(() => {
     let cancelled = false;
@@ -14291,6 +14315,36 @@ export default function ExpeditionJourney({
       ctx.strokeStyle = effect.color || '#facc15';
       ctx.fillStyle = effect.color || '#facc15';
       ctx.lineWidth = 3;
+      if (effect.type === 'finisher-slash') {
+        const slashState = playerFinisherSlashEffectRef.current;
+        const direction = effect.direction || 1;
+        const ease = 1 - Math.pow(1 - Math.max(0, Math.min(1, progress)), 2);
+        if (slashState.loaded && slashState.image) {
+          const drawWidth = effect.width || 220;
+          const drawHeight = drawWidth * (slashState.image.height / slashState.image.width);
+          ctx.globalAlpha = Math.max(0, Math.min(1, ease * 0.88));
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.translate(x, y);
+          if (direction < 0) ctx.scale(-1, 1);
+          ctx.rotate((effect.angle || -0.05) * direction);
+          ctx.drawImage(
+            slashState.image,
+            -drawWidth * 0.42 - (1 - progress) * 10,
+            -drawHeight * 0.58,
+            drawWidth,
+            drawHeight,
+          );
+        } else {
+          ctx.globalAlpha = Math.max(0, progress * 0.34);
+          ctx.strokeStyle = 'rgba(251, 191, 36, 0.86)';
+          ctx.lineWidth = 7;
+          ctx.beginPath();
+          ctx.ellipse(x + direction * 40, y, 76, 22, -0.18 * direction, 0, Math.PI * 1.45);
+          ctx.stroke();
+        }
+        ctx.restore();
+        return;
+      }
       if (['movement-dust', 'landing-dust', 'jump-dust', 'knockback-dust', 'sand-skid'].includes(effect.type)) {
         const direction = effect.direction || 1;
         const dustWidth = effect.type === 'landing-dust' ? 44 : effect.type === 'jump-dust' ? 34 : effect.type === 'sand-skid' ? 38 : 28;
@@ -18989,6 +19043,16 @@ export default function ExpeditionJourney({
           maxTimer: isFinisher ? 0.32 : 0.24,
         });
         if (current.lastAttackResult === 'finisher') {
+          addCombatEffect(current, {
+            type: 'finisher-slash',
+            x: player.x + player.width / 2 + player.direction * 70,
+            y: player.y + player.height * 0.38,
+            direction: player.direction,
+            width: 245,
+            angle: -0.04,
+            timer: 0.32,
+            maxTimer: 0.32,
+          });
           audioControls?.playExpeditionSfx?.('finisherHit', { volume: 1.04 });
         } else if (current.lastAttackResult === 'parry') {
           audioControls?.playExpeditionSfx?.('parryClash', { volume: 1.0 });
@@ -20578,7 +20642,11 @@ export default function ExpeditionJourney({
             />
 
             {import.meta.env.DEV && propEditorUi.enabled && (
-              <div className="journey-prop-editor-panel" aria-live="polite" ref={setEditorPanelNode}>
+              <div
+                className={`journey-prop-editor-panel${propEditorUi.panelCollapsed ? ' is-collapsed' : ''}`}
+                aria-live="polite"
+                ref={setEditorPanelNode}
+              >
                 <div
                   className="journey-prop-editor-header"
                   onPointerDown={handleEditorPanelDragStart}
@@ -20589,8 +20657,23 @@ export default function ExpeditionJourney({
                   <strong>EDIT MODE</strong>
                   <span className="journey-prop-editor-drag-hint" aria-hidden="true">⠿ drag</span>
                   <span>{propEditorUi.gridSnap ? `Grid ${propEditorUi.gridSize}` : 'Free move'}</span>
+                  <button
+                    type="button"
+                    className="journey-prop-editor-collapse"
+                    aria-expanded={!propEditorUi.panelCollapsed}
+                    title={propEditorUi.panelCollapsed ? 'Expand editor panel' : 'Collapse editor panel (show more canvas)'}
+                    onClick={() => {
+                      propPlacementEditorRef.current.panelCollapsed = !propPlacementEditorRef.current.panelCollapsed;
+                      refreshPropEditorUi();
+                    }}
+                  >
+                    {propEditorUi.panelCollapsed ? '▸' : '▾'}
+                  </button>
                 </div>
                 <div className="journey-prop-editor-actions" aria-label="Editor actions">
+                  <div className="journey-prop-editor-action-group" role="group" aria-label="Actions">
+                  <span className="journey-prop-editor-action-group-label">Actions</span>
+                  <div className="journey-prop-editor-action-buttons">
                   <button
                     type="button"
                     disabled={!propEditorUi.canUndo}
@@ -20610,6 +20693,11 @@ export default function ExpeditionJourney({
                   <button type="button" onClick={savePropPlacementExport}>
                     Save export
                   </button>
+                  </div>
+                  </div>
+                  <div className="journey-prop-editor-action-group" role="group" aria-label="Modes">
+                  <span className="journey-prop-editor-action-group-label">Modes</span>
+                  <div className="journey-prop-editor-action-buttons">
                   <button
                     type="button"
                     className={propEditorUi.paletteOpen ? 'is-selected' : ''}
@@ -20670,13 +20758,39 @@ export default function ExpeditionJourney({
                   >
                     {propEditorUi.selectedLocked ? 'Unlock' : 'Lock'}
                   </button>
+                  </div>
+                  </div>
                 </div>
                 </div>
                 {propEditorUi.selectedLockKey && (
-                  <div className="journey-prop-editor-empty">
-                    {propEditorUi.selectedLocked ? 'Selected item is locked' : 'Selected item is unlocked'}
-                    {propEditorUi.lockedCount > 0 ? ` (${propEditorUi.lockedCount} locked)` : ''}
-                  </div>
+                  propEditorUi.selectedLocked ? (
+                    <div className="journey-prop-editor-lock-notice" role="status">
+                      <span className="journey-prop-editor-lock-notice-text">
+                        🔒 This item is locked — unlock it to move or edit.
+                      </span>
+                      <button
+                        type="button"
+                        className="journey-prop-editor-lock-unlock"
+                        onClick={toggleSelectedEditorLock}
+                      >
+                        🔓 Unlock to edit
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="journey-prop-editor-lock-notice is-unlocked" role="status">
+                      <span className="journey-prop-editor-lock-notice-text">
+                        🔓 Unlocked — drag or edit freely.
+                        {propEditorUi.lockedCount > 0 ? ` (${propEditorUi.lockedCount} still locked)` : ''}
+                      </span>
+                      <button
+                        type="button"
+                        className="journey-prop-editor-lock-unlock is-relock"
+                        onClick={toggleSelectedEditorLock}
+                      >
+                        Lock
+                      </button>
+                    </div>
+                  )
                 )}
                 {propEditorUi.unsavedChangeSummary?.hasChanges && (
                   <div className="journey-prop-editor-change-summary" aria-label="Placement editor changed items">

@@ -15286,6 +15286,42 @@ main {
   background: rgba(94, 234, 212, 0.28);
 }
 
+.journey-prop-editor-panel.is-collapsed {
+  max-height: none;
+  overflow: visible;
+}
+
+.journey-prop-editor-panel.is-collapsed > *:not(.journey-prop-editor-header) {
+  display: none;
+}
+
+.journey-prop-editor-panel.is-collapsed .journey-prop-editor-header {
+  margin-bottom: 0;
+  border-bottom: none;
+}
+
+.journey-prop-editor-collapse {
+  flex: 0 0 auto;
+  width: 1.4rem;
+  height: 1.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid rgba(94, 234, 212, 0.34);
+  border-radius: 5px;
+  background: rgba(236, 254, 255, 0.07);
+  color: #5eead4;
+  font-size: 0.7rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.journey-prop-editor-collapse:hover {
+  border-color: rgba(94, 234, 212, 0.68);
+  background: rgba(20, 184, 166, 0.18);
+}
+
 .journey-prop-editor-header {
   position: sticky;
   top: 0;
@@ -15337,10 +15373,34 @@ main {
 }
 
 .journey-prop-editor-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.44rem;
+}
+
+.journey-prop-editor-action-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.26rem;
+}
+
+.journey-prop-editor-action-group + .journey-prop-editor-action-group {
+  padding-top: 0.4rem;
+  border-top: 1px solid rgba(94, 234, 212, 0.16);
+}
+
+.journey-prop-editor-action-group-label {
+  font: 900 0.54rem 'Outfit', sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(94, 234, 212, 0.6);
+}
+
+.journey-prop-editor-action-buttons {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.34rem;
-  margin-top: 0.44rem;
 }
 
 .journey-prop-editor-actions button {
@@ -15366,6 +15426,62 @@ main {
   border-color: rgba(236, 254, 255, 0.12);
   background: rgba(236, 254, 255, 0.04);
   color: rgba(236, 254, 255, 0.5);
+}
+
+.journey-prop-editor-lock-notice {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.46rem 0.5rem;
+  border: 1px solid rgba(251, 191, 36, 0.5);
+  border-radius: 5px;
+  background: rgba(120, 53, 15, 0.32);
+}
+
+.journey-prop-editor-lock-notice.is-unlocked {
+  border-color: rgba(94, 234, 212, 0.34);
+  background: rgba(15, 23, 42, 0.52);
+}
+
+.journey-prop-editor-lock-notice-text {
+  flex: 1 1 auto;
+  font-size: 0.66rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #fde68a;
+}
+
+.journey-prop-editor-lock-notice.is-unlocked .journey-prop-editor-lock-notice-text {
+  color: rgba(204, 251, 241, 0.85);
+}
+
+.journey-prop-editor-lock-unlock {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid rgba(251, 191, 36, 0.6);
+  border-radius: 5px;
+  background: rgba(251, 191, 36, 0.16);
+  color: #fef3c7;
+  font: 900 0.62rem 'Outfit', sans-serif;
+  cursor: pointer;
+}
+
+.journey-prop-editor-lock-unlock:hover {
+  border-color: rgba(251, 191, 36, 0.85);
+  background: rgba(251, 191, 36, 0.28);
+}
+
+.journey-prop-editor-lock-unlock.is-relock {
+  border-color: rgba(94, 234, 212, 0.5);
+  background: rgba(20, 184, 166, 0.16);
+  color: #ccfbf1;
+}
+
+.journey-prop-editor-lock-unlock.is-relock:hover {
+  border-color: rgba(94, 234, 212, 0.8);
+  background: rgba(20, 184, 166, 0.28);
 }
 
 .journey-prop-editor-change-summary {
