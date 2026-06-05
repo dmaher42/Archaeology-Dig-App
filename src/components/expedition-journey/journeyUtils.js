@@ -99,6 +99,7 @@ export const applyJourneyPropPlacementEdit = (prop = {}, edit = {}) => {
   if (Number.isFinite(edit.scale)) next.scale = Math.max(0.1, Math.round(edit.scale * 100) / 100);
   if (Number.isFinite(edit.rotation)) next.rotation = Math.round(edit.rotation * 10) / 10;
   if (typeof edit.mirrorX === 'boolean') next.mirrorX = edit.mirrorX;
+  if (typeof edit.mirrorY === 'boolean') next.mirrorY = edit.mirrorY;
   if (Number.isFinite(edit.brightness)) next.brightness = Math.max(0.4, Math.min(1.8, Math.round(edit.brightness * 100) / 100));
   if (typeof edit.depth === 'string' && edit.depth.trim()) next.depth = edit.depth;
   if (typeof edit.layer === 'string' && edit.layer.trim()) next.layer = edit.layer;
@@ -243,6 +244,7 @@ const PROP_TEMPLATE_FIELDS = [
   'scale',
   'rotation',
   'mirrorX',
+  'mirrorY',
   'brightness',
   'groundContactLayer',
 ];

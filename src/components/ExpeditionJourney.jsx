@@ -4019,6 +4019,7 @@ export default function ExpeditionJourney({
         scale: Number.isFinite(prop.scale) ? prop.scale : 1,
         rotation: Number.isFinite(prop.rotation) ? prop.rotation : 0,
         mirrorX: Boolean(prop.mirrorX),
+        mirrorY: Boolean(prop.mirrorY),
         brightness: Number.isFinite(prop.brightness) ? prop.brightness : 1,
         depth: getStoryPropDepth(prop),
         layer: prop.layer || 'default',
@@ -9235,7 +9236,7 @@ export default function ExpeditionJourney({
         ctx.filter = entry.filter || 'sepia(10%) saturate(82%) brightness(88%) contrast(96%)';
         ctx.translate(centerX, destY + destHeight / 2);
         if (Number.isFinite(entry.rotation)) ctx.rotate((entry.rotation * Math.PI) / 180);
-        if (entry.mirrorX) ctx.scale(-1, 1);
+        if (entry.mirrorX || entry.mirrorY) ctx.scale(entry.mirrorX ? -1 : 1, entry.mirrorY ? -1 : 1);
         const drawn = drawAtlasRegion(ctx, assets, entry.assetKey, {
           x: -destWidth / 2,
           y: -destHeight / 2,
@@ -10595,7 +10596,7 @@ export default function ExpeditionJourney({
       const drawMirroredPropAsset = () => {
         ctx.save();
         ctx.translate(drawX + propSize.width / 2, drawY + propSize.height / 2);
-        ctx.scale(-1, 1);
+        ctx.scale(propForAsset.mirrorX ? -1 : 1, propForAsset.mirrorY ? -1 : 1);
         const didDraw = drawPropImageAsset({
           x: -propSize.width / 2,
           y: -propSize.height / 2,
@@ -10605,7 +10606,7 @@ export default function ExpeditionJourney({
         ctx.restore();
         return didDraw;
       };
-      const drawn = propForAsset.mirrorX ? drawMirroredPropAsset() : drawPropImageAsset({
+      const drawn = (propForAsset.mirrorX || propForAsset.mirrorY) ? drawMirroredPropAsset() : drawPropImageAsset({
         x: drawX,
         y: drawY,
         width: propSize.width,
@@ -19766,6 +19767,22 @@ export default function ExpeditionJourney({
         }
         return;
       }
+      if (event.code === 'KeyF' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        event.preventDefault();
+        const selectedProp = getPropEditorSelectedProp();
+        if (selectedProp) {
+          updateSelectedPropEditorTransform({ mirrorX: !selectedProp.mirrorX });
+        }
+        return;
+      }
+      if (event.code === 'KeyV' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        event.preventDefault();
+        const selectedProp = getPropEditorSelectedProp();
+        if (selectedProp) {
+          updateSelectedPropEditorTransform({ mirrorY: !selectedProp.mirrorY });
+        }
+        return;
+      }
       if ((['Equal', 'NumpadAdd', 'NumpadMultiply'].includes(event.code) || event.key === '+' || event.key === '*') && !event.ctrlKey && !event.metaKey && !event.altKey) {
         event.preventDefault();
         const selectedProp = getPropEditorSelectedProp();
@@ -20304,7 +20321,7 @@ export default function ExpeditionJourney({
                     <div><span>Height</span><strong>{propEditorUi.selectedProp.height}</strong></div>
                     <div><span>Scale</span><strong>{propEditorUi.selectedProp.scale.toFixed(2)}</strong></div>
                     <div><span>Rotation</span><strong>{Math.round(propEditorUi.selectedProp.rotation)} deg</strong></div>
-                    <div><span>Mirror</span><strong>{propEditorUi.selectedProp.mirrorX ? 'mirrored' : 'normal'}</strong></div>
+                    <div><span>Flip</span><strong>{[propEditorUi.selectedProp.mirrorX ? 'H' : null, propEditorUi.selectedProp.mirrorY ? 'V' : null].filter(Boolean).join('+') || 'none'}</strong></div>
                     <div><span>Brightness</span><strong>{propEditorUi.selectedProp.brightness.toFixed(2)}</strong></div>
                     <div><span>Depth</span><strong>{propEditorUi.selectedProp.depth}</strong></div>
                     <div><span>Layer</span><strong>{propEditorUi.selectedProp.layer}</strong></div>
@@ -20506,11 +20523,19 @@ export default function ExpeditionJourney({
                         />
                       </label>
                       <label className="journey-prop-editor-checkbox">
-                        <span>Mirror</span>
+                        <span>Flip H</span>
                         <input
                           type="checkbox"
                           checked={propEditorUi.selectedProp.mirrorX || false}
                           onChange={(event) => updateSelectedPropEditorTransform({ mirrorX: event.target.checked })}
+                        />
+                      </label>
+                      <label className="journey-prop-editor-checkbox">
+                        <span>Flip V</span>
+                        <input
+                          type="checkbox"
+                          checked={propEditorUi.selectedProp.mirrorY || false}
+                          onChange={(event) => updateSelectedPropEditorTransform({ mirrorY: event.target.checked })}
                         />
                       </label>
                       <label>
