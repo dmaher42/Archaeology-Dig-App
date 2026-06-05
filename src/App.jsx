@@ -1266,6 +1266,19 @@ export default function App() {
     if (!EXPEDITION_BACKGROUND_MUSIC_ENABLED) baseAudioControls.stopExpeditionMusic?.();
   }, []);
 
+  // Dev-only quick start: visiting the app with `?play` in the URL skips every
+  // menu and drops straight into the Expedition journey (ExpeditionMode reads
+  // the same flag to auto-select Egypt and jump past the briefing). Bookmark
+  // `<dev-server-url>/?play` to reload back into the game after a refresh.
+  useEffect(() => {
+    if (!import.meta.env.DEV || typeof window === 'undefined') return;
+    if (!new URLSearchParams(window.location.search).has('play')) return;
+    if (expeditionSfxEnabled) baseAudioControls.unlockExpeditionSfx?.();
+    baseAudioControls.stopExpeditionMusic?.();
+    setIsSiteSelectionActive(false);
+    setPhase('expedition');
+  }, []);
+
   useEffect(() => {
     if (!import.meta.env.DEV || typeof window === 'undefined') return undefined;
     window.__playExpeditionSfxDebug = (sfxKey, options) => {

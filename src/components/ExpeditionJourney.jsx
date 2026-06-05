@@ -92,6 +92,7 @@ import {
   applyJourneyRouteGateDoorwayPlacementEdit,
   applyJourneyRouteGatePlacementEdit,
   clamp,
+  createJourneyGroundDetailsPalette,
   createJourneyPlatformFromPaletteItem,
   createJourneyPlatformPalette,
   createJourneyPropFromPaletteItem,
@@ -398,10 +399,11 @@ const PLAYER_ATTACK_STAMINA_COST = 1;
 const MISSED_ATTACK_EXTRA_STAMINA_COST = 1;
 const PROTECTED_HIT_EXTRA_STAMINA_COST = 1;
 const PLAYER_DODGE_STAMINA_COST = 8;
-const PLAYER_DODGE_SPEED = 430;
-const PLAYER_DODGE_DURATION = 0.22;
-const PLAYER_DODGE_INVULNERABLE_DURATION = 0.14;
-const PLAYER_DODGE_RECOVERY_DURATION = 0.08;
+const PLAYER_DODGE_SPEED = 320;
+const PLAYER_DODGE_DURATION = 0.34;
+const PLAYER_DODGE_INVULNERABLE_DURATION = 0.18;
+const PLAYER_DODGE_RECOVERY_DURATION = 0.1;
+const PLAYER_DODGE_FRAME_SEQUENCE = [0, 1, 2, 2, 2, 3, 3, 4, 5, 6, 7];
 const PLAYER_COMBO_WINDOW_DURATION = 0.72;
 const PLAYER_COMBO_PRESERVE_AFTER_DODGE_DURATION = 0.62;
 const PLAYER_COMBO_MAX_STEP = 3;
@@ -1594,7 +1596,7 @@ const getHeroSpriteFrameKey = (current, atlas, now) => {
     const frameCount = Math.max(1, row.frameCount || row.frames?.length || 1);
     const dodgeProgress = clamp((PLAYER_DODGE_DURATION - Math.max(0, current.dodgeTimer || 0)) / PLAYER_DODGE_DURATION, 0, 1);
     const frameIndex = row.name === 'dodge'
-      ? Math.min(frameCount - 1, Math.max(0, Math.floor(dodgeProgress * frameCount)))
+      ? Math.min(frameCount - 1, PLAYER_DODGE_FRAME_SEQUENCE[Math.min(PLAYER_DODGE_FRAME_SEQUENCE.length - 1, Math.floor(dodgeProgress * PLAYER_DODGE_FRAME_SEQUENCE.length))] ?? 0)
       : Math.min(frameCount - 1, Math.max(0, Math.floor((0.35 + dodgeProgress * 0.45) * frameCount)));
     return row.frames?.[frameIndex] || null;
   }
@@ -3248,6 +3250,7 @@ export default function ExpeditionJourney({
     characterPresetId: selectedCharacterPresetId,
   }), [backgroundPackId, selectedCharacterPresetId, targetCivilisation]);
   const propEditorPalette = useMemo(() => createJourneyPropPalette(STORY_PROPS, lostSitePropRegistry), []);
+  const groundDetailsEditorPalette = useMemo(() => createJourneyGroundDetailsPalette(), []);
   const trapEditorPalette = useMemo(() => createJourneyTrapPalette(), []);
   const platformEditorPalette = useMemo(() => createJourneyPlatformPalette(), []);
   const selectedCharacterPreset = getPlayerCharacterPreset(selectedCharacterPresetId);
@@ -3295,6 +3298,10 @@ export default function ExpeditionJourney({
     savedAt: null,
   });
   const propEditorPersistTimeoutRef = useRef(null);
+  const editorUndoStackRef = useRef([]);
+  const editorRedoStackRef = useRef([]);
+  const editorHistoryBaselineRef = useRef(null);
+  const editorHistoryTimeoutRef = useRef(null);
   const editorPanelRef = useRef(null);
   const editorPanelPosRef = useRef(null);
   const editorPanelDragRef = useRef(null);
@@ -3998,9 +4005,11 @@ export default function ExpeditionJourney({
       ? trapEditorPalette
       : editor.selectedPaletteCategory === 'platform'
         ? platformEditorPalette
-        : editor.selectedPaletteCategory === 'ledge'
-          ? propEditorPalette.filter(item => item.category === 'Ledge Helpers')
-          : propEditorPalette;
+        : editor.selectedPaletteCategory === 'ground-detail'
+          ? groundDetailsEditorPalette
+          : editor.selectedPaletteCategory === 'ledge'
+            ? propEditorPalette.filter(item => item.category === 'Ledge Helpers')
+            : propEditorPalette;
     const palette = paletteSource
       .map(item => ({ ...item, preview: getPropPalettePreview(item) }))
       .filter(item => item.preview);
@@ -4107,8 +4116,12 @@ export default function ExpeditionJourney({
         height: Math.round(getScarabQueenLairPlacement(lair).height),
         bossX: Math.round(lair.x),
         bossY: Math.round(lair.y),
+        bossWidth: Number.isFinite(lair.width) ? Math.round(lair.width) : '',
+        bossHeight: Number.isFinite(lair.height) ? Math.round(lair.height) : '',
         arenaStart: Math.round(lair.arenaStart),
         arenaEnd: Math.round(lair.arenaEnd),
+        patrolMin: Number.isFinite(lair.patrolMin) ? Math.round(lair.patrolMin) : '',
+        patrolMax: Number.isFinite(lair.patrolMax) ? Math.round(lair.patrolMax) : '',
       } : null,
       selectedCheckpoint: checkpoint ? {
         id: checkpoint.id,
@@ -4134,8 +4147,10 @@ export default function ExpeditionJourney({
       aiInstructions: editor.aiInstructions,
       exportVisible: editor.exportVisible,
       savedAt: editor.savedAt,
+      canUndo: editorUndoStackRef.current.length > 0,
+      canRedo: editorRedoStackRef.current.length > 0,
     };
-  }, [getActivePropEditorRoomId, getHazardEditorRoomId, getPlatformEditorRoomId, getPropEditorSelectedArch, getPropEditorSelectedCheckpoint, getPropEditorSelectedHazard, getPropEditorSelectedLair, getPropEditorSelectedPlatform, getPropEditorSelectedProp, getPropPalettePreview, getScarabQueenLairPlacement, platformEditorPalette, propEditorPalette, trapEditorPalette]);
+  }, [getActivePropEditorRoomId, getHazardEditorRoomId, getPlatformEditorRoomId, getPropEditorSelectedArch, getPropEditorSelectedCheckpoint, getPropEditorSelectedHazard, getPropEditorSelectedLair, getPropEditorSelectedPlatform, getPropEditorSelectedProp, getPropPalettePreview, getScarabQueenLairPlacement, groundDetailsEditorPalette, platformEditorPalette, propEditorPalette, trapEditorPalette]);
 
   const persistPropEditorState = useCallback(() => {
     if (!import.meta.env.DEV || typeof window === 'undefined') return;
@@ -4159,10 +4174,47 @@ export default function ExpeditionJourney({
     }, 400);
   }, [persistPropEditorState]);
 
+  // Snapshot of the editable layer as a JSON string, used as history entries.
+  const snapshotEditorHistoryState = useCallback(() => (
+    JSON.stringify(serializeJourneyPropEditorState(propPlacementEditorRef.current))
+  ), []);
+
+  // Commit the latest edit burst as one undo step. Pushes the PRE-change baseline
+  // onto the undo stack only when the editable layer actually changed, so UI-only
+  // actions (selecting, toggling grid) never create history noise.
+  const commitEditorHistory = useCallback(() => {
+    if (editorHistoryTimeoutRef.current) {
+      window.clearTimeout(editorHistoryTimeoutRef.current);
+      editorHistoryTimeoutRef.current = null;
+    }
+    const current = snapshotEditorHistoryState();
+    const baseline = editorHistoryBaselineRef.current;
+    if (baseline === null) {
+      editorHistoryBaselineRef.current = current;
+      return;
+    }
+    if (current === baseline) return;
+    editorUndoStackRef.current.push(baseline);
+    if (editorUndoStackRef.current.length > 60) editorUndoStackRef.current.shift();
+    editorRedoStackRef.current = [];
+    editorHistoryBaselineRef.current = current;
+  }, [snapshotEditorHistoryState]);
+
+  const scheduleEditorHistoryCommit = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    if (editorHistoryTimeoutRef.current) window.clearTimeout(editorHistoryTimeoutRef.current);
+    // Debounce so a continuous drag coalesces into a single undo step.
+    editorHistoryTimeoutRef.current = window.setTimeout(() => {
+      editorHistoryTimeoutRef.current = null;
+      commitEditorHistory();
+    }, 450);
+  }, [commitEditorHistory]);
+
   const refreshPropEditorUi = useCallback(() => {
     setPropEditorUi(getPropEditorUiState());
     schedulePropEditorPersist();
-  }, [getPropEditorUiState, schedulePropEditorPersist]);
+    scheduleEditorHistoryCommit();
+  }, [getPropEditorUiState, schedulePropEditorPersist, scheduleEditorHistoryCommit]);
 
   const clearSavedPropEditorState = useCallback(() => {
     const editor = propPlacementEditorRef.current;
@@ -4193,26 +4245,64 @@ export default function ExpeditionJourney({
         // Ignore storage failures.
       }
     }
+    // Clearing everything is itself an undoable step.
+    commitEditorHistory();
     refreshPropEditorUi();
-  }, [refreshPropEditorUi]);
+  }, [commitEditorHistory, refreshPropEditorUi]);
+
+  const restoreEditorHistoryState = useCallback((serialized) => {
+    const editor = propPlacementEditorRef.current;
+    const restored = restoreJourneyPropEditorState(JSON.parse(serialized));
+    Object.assign(editor, restored);
+    // A restored state may reference items that are no longer selected cleanly.
+    editor.dragging = null;
+    editorHistoryBaselineRef.current = serialized;
+    refreshPropEditorUi();
+    persistPropEditorState();
+  }, [refreshPropEditorUi, persistPropEditorState]);
+
+  const undoEditorChange = useCallback(() => {
+    // Fold any in-progress edit into history first so it can be undone too.
+    commitEditorHistory();
+    if (editorUndoStackRef.current.length === 0) return;
+    const current = snapshotEditorHistoryState();
+    const previous = editorUndoStackRef.current.pop();
+    editorRedoStackRef.current.push(current);
+    restoreEditorHistoryState(previous);
+  }, [commitEditorHistory, snapshotEditorHistoryState, restoreEditorHistoryState]);
+
+  const redoEditorChange = useCallback(() => {
+    commitEditorHistory();
+    if (editorRedoStackRef.current.length === 0) return;
+    const current = snapshotEditorHistoryState();
+    const next = editorRedoStackRef.current.pop();
+    editorUndoStackRef.current.push(current);
+    restoreEditorHistoryState(next);
+  }, [commitEditorHistory, snapshotEditorHistoryState, restoreEditorHistoryState]);
 
   useEffect(() => {
     if (!import.meta.env.DEV || typeof window === 'undefined') return;
     try {
       const raw = window.localStorage.getItem(JOURNEY_PROP_EDITOR_STORAGE_KEY);
-      if (!raw) return;
-      const restored = restoreJourneyPropEditorState(JSON.parse(raw));
-      // The game loop reads this ref every frame, so restored edits show up in the
-      // live world immediately; the editor panel picks them up when opened (Shift+E).
-      Object.assign(propPlacementEditorRef.current, restored);
+      if (raw) {
+        const restored = restoreJourneyPropEditorState(JSON.parse(raw));
+        // The game loop reads this ref every frame, so restored edits show up in the
+        // live world immediately; the editor panel picks them up when opened (Shift+E).
+        Object.assign(propPlacementEditorRef.current, restored);
+      }
     } catch {
       // Ignore corrupt saved state — fall back to a clean editor.
     }
+    // Seed the undo baseline with whatever we start from (saved edits or empty).
+    editorHistoryBaselineRef.current = JSON.stringify(
+      serializeJourneyPropEditorState(propPlacementEditorRef.current),
+    );
   }, []);
 
   useEffect(() => () => {
-    if (typeof window !== 'undefined' && propEditorPersistTimeoutRef.current) {
-      window.clearTimeout(propEditorPersistTimeoutRef.current);
+    if (typeof window !== 'undefined') {
+      if (propEditorPersistTimeoutRef.current) window.clearTimeout(propEditorPersistTimeoutRef.current);
+      if (editorHistoryTimeoutRef.current) window.clearTimeout(editorHistoryTimeoutRef.current);
     }
   }, []);
 
@@ -4662,7 +4752,10 @@ export default function ExpeditionJourney({
 
   const createPropFromEditorPalette = useCallback((pointer) => {
     const editor = propPlacementEditorRef.current;
-    const paletteItem = propEditorPalette.find(item => item.key === editor.selectedPaletteKey);
+    const propPaletteSource = editor.selectedPaletteCategory === 'ground-detail'
+      ? groundDetailsEditorPalette
+      : propEditorPalette;
+    const paletteItem = propPaletteSource.find(item => item.key === editor.selectedPaletteKey);
     if (!paletteItem) return null;
     const roomId = getActivePropEditorRoomId(stateRef.current);
     const nextProp = createJourneyPropFromPaletteItem({
@@ -4685,7 +4778,7 @@ export default function ExpeditionJourney({
     editor.deletedIds.delete(nextProp.id);
     refreshPropEditorUi();
     return nextProp;
-  }, [getActivePropEditorRoomId, getGroundAwareStoryPropEditorEdit, getPropEditorExistingIds, propEditorPalette, refreshPropEditorUi]);
+  }, [getActivePropEditorRoomId, getGroundAwareStoryPropEditorEdit, getPropEditorExistingIds, groundDetailsEditorPalette, propEditorPalette, refreshPropEditorUi]);
 
   const createTrapFromEditorPalette = useCallback((pointer) => {
     const editor = propPlacementEditorRef.current;
@@ -8516,10 +8609,13 @@ export default function ExpeditionJourney({
       ? clamp(current.dodgeTimer / PLAYER_DODGE_DURATION, 0, 1)
       : 0;
     const dodging = dodgeProgress > 0;
+    const dodgeElapsedProgress = dodging ? 1 - dodgeProgress : 0;
+    const dedicatedDodgeDuck = usingDedicatedDodgeFrame ? Math.sin(Math.PI * clamp(dodgeElapsedProgress, 0, 1)) : 0;
     const applyRuntimeDodgeEffects = dodging && !usingDedicatedDodgeFrame;
     const dodgeLean = applyRuntimeDodgeEffects ? (current.dodgeDirection || direction) * 14 * dodgeProgress : 0;
-    const squashX = applyRuntimeDodgeEffects ? 1 + dodgeProgress * 0.12 : 1 + landingPulse * 0.045;
-    const squashY = applyRuntimeDodgeEffects ? 1 - dodgeProgress * 0.08 : 1 - landingPulse * 0.035;
+    const dodgeDuckSink = usingDedicatedDodgeFrame ? dedicatedDodgeDuck * 5 : 0;
+    const squashX = applyRuntimeDodgeEffects ? 1 + dodgeProgress * 0.12 : 1 + landingPulse * 0.045 + dedicatedDodgeDuck * 0.035;
+    const squashY = applyRuntimeDodgeEffects ? 1 - dodgeProgress * 0.08 : 1 - landingPulse * 0.035 - dedicatedDodgeDuck * 0.04;
     const knowledgeScale = current.player.knowledgeVisualScale || 1;
 
     ctx.save();
@@ -8530,7 +8626,7 @@ export default function ExpeditionJourney({
     ctx.ellipse(footX, footY + 1, w * (applyRuntimeDodgeEffects ? 1.28 : 1.05), 5, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.translate(footX + attackLean + movementLean + hurtShake + dodgeLean, footY + jumpLift);
+    ctx.translate(footX + attackLean + movementLean + hurtShake + dodgeLean, footY + jumpLift + dodgeDuckSink);
     if (knowledgeScale > 1) {
       ctx.shadowColor = 'rgba(250, 204, 21, 0.54)';
       ctx.shadowBlur = 18;
@@ -10578,6 +10674,24 @@ export default function ExpeditionJourney({
       ctx.rotate((prop.rotation * Math.PI) / 180);
       ctx.translate(-centerX, -centerY);
     }
+    if (prop.type === 'ground-contact-detail-prop') {
+      const detailSize = getStoryPropEditorSize(prop);
+      const width = Number.isFinite(prop.width) ? prop.width : detailSize.width;
+      const groundY = prop.y + (Number.isFinite(prop.yOffset) ? prop.yOffset : 0);
+      const left = x - width / 2;
+      const underlayContact = drawEgyptStructureGroundContactLayer(ctx, prop.groundContactLayer, left, width, groundY, 'underlay');
+      const overlayContact = drawEgyptStructureGroundContactLayer(ctx, prop.groundContactLayer, left, width, groundY, 'overlay');
+      if (stateRef.current.renderStats) {
+        stateRef.current.renderStats.groundDetailPropCount = (stateRef.current.renderStats.groundDetailPropCount || 0) + 1;
+        stateRef.current.renderStats.groundDetailAssetKeys = Array.from(new Set([
+          ...(stateRef.current.renderStats.groundDetailAssetKeys || []),
+          ...underlayContact.keys,
+          ...overlayContact.keys,
+        ]));
+      }
+      ctx.restore();
+      return;
+    }
     const propForAsset = prop;
     const atmospherePropAssetKey = propForAsset.atmosphereAssetKey
       ? getEnvironmentAssetKeyForStoryProp(propForAsset, ENVIRONMENT_ASSET_PACK_IDS.EGYPT_ATMOSPHERE)
@@ -11067,6 +11181,7 @@ export default function ExpeditionJourney({
   }, [
     drawContactShadow,
     drawDecorativeBaseBlend,
+    drawEgyptStructureGroundContactLayer,
     drawForegroundSettlingDetails,
     drawMummificationChamberExteriorAsset,
     drawForgottenMuralGeneratedAsset,
@@ -15924,7 +16039,7 @@ export default function ExpeditionJourney({
       }
       ctx.textAlign = 'start';
     }
-  }, [backgroundPackId, drawAncientRouteGround, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawForegroundDepthLayer, drawMummificationChamberInterior, drawForgottenMuralChamberInterior, drawForgottenMuralChamberTransition, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawPremiumEgyptianChamberDoor, drawPropPlacementEditorOverlay, drawRouteGate, drawRouteGroundApron, drawScarabQueenLairOpeningProp, drawScribeLockedChamberInterior, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawTrapProjectile, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getDoorwayGateStatus, getEditedMiniBoss, getGateGuidance, getPlayerAttackState, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getRenderableStoryProps, getZIndexSortedRenderableStoryProps, getRouteGateDoorwayEntries, getScarabQueenLairPlacement, isRouteRewardAccessible, drawPlayerSprite, drawFieldNoteLabel]);
+  }, [backgroundPackId, drawAncientRouteGround, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawForegroundDepthLayer, drawMummificationChamberInterior, drawForgottenMuralChamberInterior, drawForgottenMuralChamberTransition, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawPremiumEgyptianChamberDoor, drawPropPlacementEditorOverlay, drawRouteGate, drawRouteGroundApron, drawScarabQueenLairOpeningProp, drawScribeLockedChamberInterior, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawTrapProjectile, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getDoorwayGateStatus, getEditedMiniBoss, getGateGuidance, getPlayerAttackState, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getZIndexSortedRenderableStoryProps, getRouteGateDoorwayEntries, getScarabQueenLairPlacement, isRouteRewardAccessible, drawPlayerSprite, drawFieldNoteLabel]);
 
   const startOpeningCinematic = useCallback(({ speechEnabled = true } = {}) => {
     const current = stateRef.current;
@@ -15975,6 +16090,19 @@ export default function ExpeditionJourney({
     syncHud();
   }, [audioControls, openingAtmosphereSfxKey, syncHud]);
 
+  // Dev-only quick start (paired with the `?play` flag in App.jsx / ExpeditionMode):
+  // once the journey mounts, skip its briefing + opening cinematic so a cold
+  // `?play` load lands directly in playable gameplay. Fires once per session.
+  const quickStartConsumedRef = useRef(false);
+  useEffect(() => {
+    if (!import.meta.env.DEV || typeof window === 'undefined') return undefined;
+    if (quickStartConsumedRef.current) return undefined;
+    if (!new URLSearchParams(window.location.search).has('play')) return undefined;
+    quickStartConsumedRef.current = true;
+    startJourneyWithoutOpeningScene();
+    return undefined;
+  }, [startJourneyWithoutOpeningScene]);
+
   const skipOpeningCinematic = useCallback(() => {
     const current = stateRef.current;
     if (!current.openingCinematic) return;
@@ -16016,6 +16144,7 @@ export default function ExpeditionJourney({
       : leftPressed && !rightPressed
         ? -1
         : -(player.direction || 1);
+    const dodgeFacingDirection = -dodgeDirection;
     if (current.attackTimer > 0 && !current.attackComboLanded) resetPlayerCombo(current);
     if (current.attackComboLanded) current.attackComboWindowTimer = Math.max(current.attackComboWindowTimer || 0, PLAYER_COMBO_PRESERVE_AFTER_DODGE_DURATION);
     current.attackComboPreserved = Boolean(current.attackComboLanded);
@@ -16029,12 +16158,13 @@ export default function ExpeditionJourney({
     current.dodgeInvulnerableTimer = PLAYER_DODGE_INVULNERABLE_DURATION;
     current.dodgeRecoveryTimer = PLAYER_DODGE_DURATION + PLAYER_DODGE_RECOVERY_DURATION;
     current.dodgeDirection = dodgeDirection;
+    current.dodgeFacingDirection = dodgeFacingDirection;
     current.lastDodgeResult = current.attackComboPreserved ? 'combo-preserved' : 'evade';
     current.resources.stamina = Math.max(1, current.resources.stamina - PLAYER_DODGE_STAMINA_COST);
     current.lastStaminaDelta = -PLAYER_DODGE_STAMINA_COST;
     current.lastStaminaLossReason = 'Dodge';
     current.staminaFeedbackTimer = Math.max(current.staminaFeedbackTimer || 0, 0.4);
-    player.direction = dodgeDirection;
+    player.direction = dodgeFacingDirection;
     player.vx = dodgeDirection * PLAYER_DODGE_SPEED;
     player.jumpBufferTimer = 0;
     current.dodgeTrail = [];
@@ -19844,6 +19974,17 @@ export default function ExpeditionJourney({
         refreshPropEditorUi();
         return;
       }
+      if ((event.ctrlKey || event.metaKey) && event.code === 'KeyZ') {
+        event.preventDefault();
+        if (event.shiftKey) redoEditorChange();
+        else undoEditorChange();
+        return;
+      }
+      if ((event.ctrlKey || event.metaKey) && event.code === 'KeyY') {
+        event.preventDefault();
+        redoEditorChange();
+        return;
+      }
       if ((event.ctrlKey || event.metaKey) && event.code === 'KeyS') {
         event.preventDefault();
         savePropPlacementExport();
@@ -19917,16 +20058,16 @@ export default function ExpeditionJourney({
     };
     window.addEventListener('keydown', handlePropEditorKeyDown);
     return () => window.removeEventListener('keydown', handlePropEditorKeyDown);
-  }, [applyDefaultEditorLocks, deleteSelectedPropFromEditor, duplicateSelectedPropInEditor, getPropEditorSelectedProp, refreshPropEditorUi, savePropPlacementExport, updateSelectedPropEditorTransform]);
+  }, [applyDefaultEditorLocks, deleteSelectedPropFromEditor, duplicateSelectedPropInEditor, getPropEditorSelectedProp, redoEditorChange, refreshPropEditorUi, savePropPlacementExport, undoEditorChange, updateSelectedPropEditorTransform]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (isJourneyEditorFormTarget(e.target)) return;
       if (paused || briefingOpen || stateRef.current.activeGuardianChallenge || stateRef.current.forgottenMuralRelicSlidePuzzleOpen) return;
-      if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'Space', 'KeyA', 'KeyD', 'KeyW', 'KeyJ', 'KeyK', 'KeyL', 'ShiftLeft', 'ShiftRight'].includes(e.code)) e.preventDefault();
+      if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'Space', 'KeyA', 'KeyD', 'KeyW', 'KeyJ', 'KeyK', 'KeyL'].includes(e.code)) e.preventDefault();
       audioControls?.unlockExpeditionSfx?.();
       if (e.code === 'KeyJ' || e.code === 'KeyK') { queueAttack(); return; }
-      if (e.code === 'ShiftLeft' || e.code === 'ShiftRight' || e.code === 'KeyL') { queueDodge(); return; }
+      if (e.code === 'KeyL') { queueDodge(); return; }
       keysRef.current[e.code] = true;
     };
     const handleKeyUp = (e) => {
@@ -20348,6 +20489,22 @@ export default function ExpeditionJourney({
                   <span>{propEditorUi.gridSnap ? `Grid ${propEditorUi.gridSize}` : 'Free move'}</span>
                 </div>
                 <div className="journey-prop-editor-actions" aria-label="Editor actions">
+                  <button
+                    type="button"
+                    disabled={!propEditorUi.canUndo}
+                    title="Undo (Ctrl+Z)"
+                    onClick={undoEditorChange}
+                  >
+                    ↶ Undo
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!propEditorUi.canRedo}
+                    title="Redo (Ctrl+Shift+Z)"
+                    onClick={redoEditorChange}
+                  >
+                    ↷ Redo
+                  </button>
                   <button type="button" onClick={savePropPlacementExport}>
                     Save export
                   </button>
@@ -20488,8 +20645,11 @@ export default function ExpeditionJourney({
                     <div><span>Y</span><strong>{propEditorUi.selectedLair.y}</strong></div>
                     <div><span>Width</span><strong>{propEditorUi.selectedLair.width}</strong></div>
                     <div><span>Height</span><strong>{propEditorUi.selectedLair.height}</strong></div>
+                    <div><span>Boss X</span><strong>{propEditorUi.selectedLair.bossX}</strong></div>
+                    <div><span>Boss Y</span><strong>{propEditorUi.selectedLair.bossY}</strong></div>
                     <div><span>Arena Start</span><strong>{propEditorUi.selectedLair.arenaStart}</strong></div>
                     <div><span>Arena End</span><strong>{propEditorUi.selectedLair.arenaEnd}</strong></div>
+                    <div><span>Patrol</span><strong>{`${propEditorUi.selectedLair.patrolMin || 'auto'} / ${propEditorUi.selectedLair.patrolMax || 'auto'}`}</strong></div>
                   </div>
                 ) : propEditorUi.selectedCheckpoint ? (
                   <div className="journey-prop-editor-readout">
@@ -21529,82 +21689,169 @@ export default function ExpeditionJourney({
                   </div>
                 )}
                 {propEditorUi.selectedLair && (
-                  <div className="journey-prop-editor-controls">
-                    <label>
-                      <span>X</span>
-                      <input
-                        type="number"
-                        step="1"
-                        value={propEditorUi.selectedLair.x}
-                        onChange={(event) => {
-                          const nextX = Number(event.target.value);
-                          if (Number.isFinite(nextX)) updateSelectedLairEditorTransform({ lairX: Math.round(nextX) });
-                        }}
-                      />
-                    </label>
-                    <label>
-                      <span>Y</span>
-                      <input
-                        type="number"
-                        step="1"
-                        value={propEditorUi.selectedLair.y}
-                        onChange={(event) => {
-                          const nextY = Number(event.target.value);
-                          if (Number.isFinite(nextY)) updateSelectedLairEditorTransform({ lairY: Math.round(nextY) });
-                        }}
-                      />
-                    </label>
-                    <label>
-                      <span>Width</span>
-                      <input
-                        type="number"
-                        min="1"
-                        step="1"
-                        value={propEditorUi.selectedLair.width}
-                        onChange={(event) => {
-                          const nextWidth = Number(event.target.value);
-                          if (Number.isFinite(nextWidth)) updateSelectedLairEditorTransform({ lairWidth: Math.max(1, Math.round(nextWidth)) });
-                        }}
-                      />
-                    </label>
-                    <label>
-                      <span>Height</span>
-                      <input
-                        type="number"
-                        min="1"
-                        step="1"
-                        value={propEditorUi.selectedLair.height}
-                        onChange={(event) => {
-                          const nextHeight = Number(event.target.value);
-                          if (Number.isFinite(nextHeight)) updateSelectedLairEditorTransform({ lairHeight: Math.max(1, Math.round(nextHeight)) });
-                        }}
-                      />
-                    </label>
-                    <label>
-                      <span>Arena Start</span>
-                      <input
-                        type="number"
-                        step="1"
-                        value={propEditorUi.selectedLair.arenaStart}
-                        onChange={(event) => {
-                          const nextArenaStart = Number(event.target.value);
-                          if (Number.isFinite(nextArenaStart)) updateSelectedLairEditorTransform({ arenaStart: Math.round(nextArenaStart) });
-                        }}
-                      />
-                    </label>
-                    <label>
-                      <span>Arena End</span>
-                      <input
-                        type="number"
-                        step="1"
-                        value={propEditorUi.selectedLair.arenaEnd}
-                        onChange={(event) => {
-                          const nextArenaEnd = Number(event.target.value);
-                          if (Number.isFinite(nextArenaEnd)) updateSelectedLairEditorTransform({ arenaEnd: Math.round(nextArenaEnd) });
-                        }}
-                      />
-                    </label>
-                  </div>
+                  <>
+                    <div className="journey-prop-editor-group-header">Lair box</div>
+                    <div className="journey-prop-editor-controls">
+                      <label>
+                        <span>Lair X</span>
+                        <input
+                          type="number"
+                          step="1"
+                          value={propEditorUi.selectedLair.x}
+                          onChange={(event) => {
+                            const next = Number(event.target.value);
+                            if (Number.isFinite(next)) updateSelectedLairEditorTransform({ lairX: Math.round(next) });
+                          }}
+                        />
+                      </label>
+                      <label>
+                        <span>Lair Y</span>
+                        <input
+                          type="number"
+                          step="1"
+                          value={propEditorUi.selectedLair.y}
+                          onChange={(event) => {
+                            const next = Number(event.target.value);
+                            if (Number.isFinite(next)) updateSelectedLairEditorTransform({ lairY: Math.round(next) });
+                          }}
+                        />
+                      </label>
+                      <label>
+                        <span>Lair W</span>
+                        <input
+                          type="number"
+                          min="1"
+                          step="1"
+                          value={propEditorUi.selectedLair.width}
+                          onChange={(event) => {
+                            const next = Number(event.target.value);
+                            if (Number.isFinite(next)) updateSelectedLairEditorTransform({ lairWidth: Math.max(1, Math.round(next)) });
+                          }}
+                        />
+                      </label>
+                      <label>
+                        <span>Lair H</span>
+                        <input
+                          type="number"
+                          min="1"
+                          step="1"
+                          value={propEditorUi.selectedLair.height}
+                          onChange={(event) => {
+                            const next = Number(event.target.value);
+                            if (Number.isFinite(next)) updateSelectedLairEditorTransform({ lairHeight: Math.max(1, Math.round(next)) });
+                          }}
+                        />
+                      </label>
+                    </div>
+
+                    <div className="journey-prop-editor-group-header">Boss</div>
+                    <div className="journey-prop-editor-controls">
+                      <label>
+                        <span>Boss X</span>
+                        <input
+                          type="number"
+                          step="1"
+                          value={propEditorUi.selectedLair.bossX}
+                          onChange={(event) => {
+                            const next = Number(event.target.value);
+                            if (Number.isFinite(next)) updateSelectedLairEditorTransform({ x: Math.round(next) });
+                          }}
+                        />
+                      </label>
+                      <label>
+                        <span>Boss Y</span>
+                        <input
+                          type="number"
+                          step="1"
+                          value={propEditorUi.selectedLair.bossY}
+                          onChange={(event) => {
+                            const next = Number(event.target.value);
+                            if (Number.isFinite(next)) updateSelectedLairEditorTransform({ y: Math.round(next) });
+                          }}
+                        />
+                      </label>
+                      <label>
+                        <span>Boss W</span>
+                        <input
+                          type="number"
+                          min="1"
+                          step="1"
+                          value={propEditorUi.selectedLair.bossWidth}
+                          onChange={(event) => {
+                            const next = Number(event.target.value);
+                            if (Number.isFinite(next)) updateSelectedLairEditorTransform({ width: Math.max(1, Math.round(next)) });
+                          }}
+                        />
+                      </label>
+                      <label>
+                        <span>Boss H</span>
+                        <input
+                          type="number"
+                          min="1"
+                          step="1"
+                          value={propEditorUi.selectedLair.bossHeight}
+                          onChange={(event) => {
+                            const next = Number(event.target.value);
+                            if (Number.isFinite(next)) updateSelectedLairEditorTransform({ height: Math.max(1, Math.round(next)) });
+                          }}
+                        />
+                      </label>
+                    </div>
+
+                    <div className="journey-prop-editor-group-header">Arena &amp; Patrol</div>
+                    <div className="journey-prop-editor-controls">
+                      <label>
+                        <span>Arena Start</span>
+                        <input
+                          type="number"
+                          step="1"
+                          value={propEditorUi.selectedLair.arenaStart}
+                          onChange={(event) => {
+                            const next = Number(event.target.value);
+                            if (Number.isFinite(next)) updateSelectedLairEditorTransform({ arenaStart: Math.round(next) });
+                          }}
+                        />
+                      </label>
+                      <label>
+                        <span>Arena End</span>
+                        <input
+                          type="number"
+                          step="1"
+                          value={propEditorUi.selectedLair.arenaEnd}
+                          onChange={(event) => {
+                            const next = Number(event.target.value);
+                            if (Number.isFinite(next)) updateSelectedLairEditorTransform({ arenaEnd: Math.round(next) });
+                          }}
+                        />
+                      </label>
+                      <label>
+                        <span>Patrol Min</span>
+                        <input
+                          type="number"
+                          step="1"
+                          placeholder="auto"
+                          value={propEditorUi.selectedLair.patrolMin}
+                          onChange={(event) => {
+                            const next = Number(event.target.value);
+                            if (Number.isFinite(next)) updateSelectedLairEditorTransform({ patrolMin: Math.round(next) });
+                          }}
+                        />
+                      </label>
+                      <label>
+                        <span>Patrol Max</span>
+                        <input
+                          type="number"
+                          step="1"
+                          placeholder="auto"
+                          value={propEditorUi.selectedLair.patrolMax}
+                          onChange={(event) => {
+                            const next = Number(event.target.value);
+                            if (Number.isFinite(next)) updateSelectedLairEditorTransform({ patrolMax: Math.round(next) });
+                          }}
+                        />
+                      </label>
+                    </div>
+                  </>
                 )}
                 {propEditorUi.selectedCheckpoint && (
                   <div className="journey-prop-editor-controls">
@@ -21640,13 +21887,14 @@ export default function ExpeditionJourney({
             {import.meta.env.DEV && propEditorUi.enabled && propEditorUi.paletteOpen && (
               <div className="journey-prop-palette-panel" aria-label="Prop palette">
                 <div className="journey-prop-editor-export-header">
-                  <strong>{propEditorUi.selectedPaletteCategory === 'trap' ? 'Trap palette' : propEditorUi.selectedPaletteCategory === 'platform' ? 'Platform palette' : propEditorUi.selectedPaletteCategory === 'ledge' ? 'Ledge palette' : 'Prop palette'}</strong>
+                  <strong>{propEditorUi.selectedPaletteCategory === 'trap' ? 'Trap palette' : propEditorUi.selectedPaletteCategory === 'platform' ? 'Platform palette' : propEditorUi.selectedPaletteCategory === 'ground-detail' ? 'Ground Details palette' : propEditorUi.selectedPaletteCategory === 'ledge' ? 'Ledge palette' : 'Prop palette'}</strong>
                   <span>{propEditorUi.palette.length}</span>
                 </div>
                 <div className="journey-prop-palette-tabs">
                   {[
                     ['prop', 'Props'],
                     ['ledge', 'Ledges'],
+                    ['ground-detail', 'Ground Details'],
                     ['platform', 'Platforms'],
                     ['trap', 'Traps'],
                   ].map(([category, label]) => (

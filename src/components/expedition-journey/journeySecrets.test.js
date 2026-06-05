@@ -14,6 +14,7 @@ import {
   applyJourneyPlatformPlacementExportToPlatforms,
   applyJourneyHazardPlacementEdit,
   applyJourneyHazardPlacementExportToHazards,
+  createJourneyGroundDetailsPalette,
   createJourneyPropFromPaletteItem,
   createJourneyPlacementChangeSummary,
   createJourneyPropPlacementExport,
@@ -438,6 +439,60 @@ test('journey prop editor palette includes reusable Lost Site prop registry entr
   ]);
 });
 
+test('journey editor exposes premium Egypt ground details as reusable palette props', () => {
+  const palette = createJourneyGroundDetailsPalette();
+  const paletteKeys = palette.map(item => item.key);
+
+  assert.ok(palette.length >= 8);
+  assert.ok(paletteKeys.includes('ground-detail:premiumLongSandLip'));
+  assert.ok(paletteKeys.includes('ground-detail:premiumSmallStoneScatter'));
+  assert.ok(paletteKeys.includes('ground-detail:premiumRubbleContactShadow'));
+  palette.forEach((item) => {
+    assert.equal(item.category, 'Ground Details');
+    assert.equal(item.type, 'ground-contact-detail-prop');
+    assert.equal(item.template.type, 'ground-contact-detail-prop');
+    assert.equal(item.template.shadowOpacity, 0);
+    assert.equal(item.template.sandOverlapHeight, 0);
+    assert.equal(item.template.groundPebbles, 0);
+    assert.equal(item.template.groundContactLayer.length, 1);
+    assert.equal(item.template.groundContactLayer[0].assetKey, item.assetKey);
+  });
+});
+
+test('journey editor creates ground detail props through the canonical prop factory', () => {
+  const paletteItem = createJourneyGroundDetailsPalette()
+    .find(item => item.key === 'ground-detail:premiumSmallStoneScatter');
+
+  const created = createJourneyPropFromPaletteItem({
+    paletteItem,
+    roomId: 'desert-entry',
+    x: 712,
+    y: 510,
+    existingIds: ['desert-entry-premium-small-stone-scatter-1'],
+  });
+
+  assert.equal(created.id, 'desert-entry-premium-small-stone-scatter-2');
+  assert.equal(created.sectionId, 'desert-entry');
+  assert.equal(created.type, 'ground-contact-detail-prop');
+  assert.equal(created.label, 'small stone scatter');
+  assert.equal(created.shadowOpacity, 0);
+  assert.equal(created.sandOverlapHeight, 0);
+  assert.equal(created.groundPebbles, 0);
+  assert.deepEqual(created.groundContactLayer, [
+    {
+      assetKey: 'premiumSmallStoneScatter',
+      layer: 'overlay',
+      xRatio: 0.5,
+      widthRatio: 1,
+      height: 55,
+      yOffset: -55,
+      alpha: 0.64,
+      mode: 'stretch',
+      alignY: 'bottom',
+    },
+  ]);
+});
+
 test('journey prop editor creates and duplicates props using canonical prop fields', () => {
   const paletteItem = {
     type: 'atmosphere-prop',
@@ -674,7 +729,8 @@ test('journey editor exposes platform resizing and robust prop scale shortcuts',
   assert.match(journeyComponentSource, /event\.key === '\+' \|\| event\.key === '\*'/);
   assert.match(journeyComponentSource, /event\.key === '-' \|\| event\.key === '_'/);
   assert.match(journeyComponentSource, /<span>Scale<\/span>[\s\S]*?updateSelectedPropEditorTransform\(\{ scale:/);
-  assert.match(journeyComponentSource, /<span>Mirror<\/span>[\s\S]*?updateSelectedPropEditorTransform\(\{ mirrorX:/);
+  assert.match(journeyComponentSource, /<span>Flip H<\/span>[\s\S]*?updateSelectedPropEditorTransform\(\{ mirrorX:/);
+  assert.match(journeyComponentSource, /<span>Flip V<\/span>[\s\S]*?updateSelectedPropEditorTransform\(\{ mirrorY:/);
   assert.match(journeyComponentSource, /<span>Brightness<\/span>[\s\S]*?updateSelectedPropEditorNumberField\('brightness'/);
   assert.match(journeyComponentSource, /brightness\(\$\{Math\.round\(clamp\(propSize\.brightness,\s*0\.4,\s*1\.8\) \* 100\)\}%\)/);
   assert.match(journeyComponentSource, /propForAsset\.mirrorX/);
@@ -692,7 +748,7 @@ test('journey prop editor exposes environmental blending controls for selected p
   assert.match(journeyComponentSource, /<span>Sand overlap<\/span>[\s\S]*?updateSelectedPropEditorNumberField\('sandOverlapHeight'/);
   assert.match(journeyComponentSource, /<span>Sand mound width<\/span>[\s\S]*?updateSelectedPropEditorNumberField\('sandMoundWidth'/);
   assert.match(journeyComponentSource, /<span>Ground pebbles<\/span>[\s\S]*?updateSelectedPropEditorNumberField\('groundPebbles'/);
-  assert.match(journeyComponentSource, /<span>Colour grade<\/span>[\s\S]*?updateSelectedPropEditorField\('colorGradeFilter'/);
+  assert.match(journeyComponentSource, /<div className="journey-prop-editor-group-header">Colour &amp; Light<\/div>[\s\S]*?updateSelectedPropEditorField\('colorGradeFilter'/);
 });
 
 test('journey prop editor exposes generated structure ground-contact controls', () => {
@@ -2259,7 +2315,7 @@ test('route props stay out of the opening pyramid facade and use the grounded ru
   assert.doesNotMatch(storyProps, /sectionId:\s*'desert-entry'[^}]*type:\s*'survey-rope'/);
   assert.match(
     journeyComponentSource,
-    /getRenderablePlatforms\(current\)[\s\S]*?\.forEach\(\(platform\) => drawPlatform\(ctx, platform, cameraX, current\)\)[\s\S]*?getRenderableStoryProps\(current\)\.forEach\(\(prop\) => drawStoryProp\(ctx, prop, cameraX, now, 'route-edge'\)\)/,
+    /getRenderablePlatforms\(current\)[\s\S]*?\.forEach\(\(platform\) => drawPlatform\(ctx, platform, cameraX, current\)\)[\s\S]*?getZIndexSortedRenderableStoryProps\(current\)\.forEach\(\(prop\) => drawStoryProp\(ctx, prop, cameraX, now, 'route-edge'\)\)/,
   );
   assert.match(journeyComponentSource, /if \(\['background', 'midground', 'grounded', 'route-edge', 'foreground-occluder'\]\.includes\(prop\.depth\)\) return prop\.depth;/);
   assert.match(journeyComponentSource, /if \(placementPreset\?\.depth\) return placementPreset\.depth;/);
@@ -2406,9 +2462,9 @@ test('Egypt Journey uses the Asha atlas through the existing player renderer', (
   assert.match(journeyConstantsSource, /PLAYER_HERO_SPRITE_ATLAS_JSON/);
   assert.match(journeyConstantsSource, /asha-reference-warrior-dodge-preview-spritesheet\.json/);
   assert.doesNotMatch(journeyConstantsSource, /asha-v4-spritesheet\.json/);
-  assert.match(journeyConstantsSource, /PLAYER_HERO_SPRITE_VERSION = 'asha-reference-warrior-dodge-preview-2026-06-04'/);
+  assert.match(journeyConstantsSource, /PLAYER_HERO_SPRITE_VERSION = 'asha-reference-warrior-dodge-backstep-tone-matched-2026-06-05'/);
   assert.equal(ashaReferenceWarriorDodgePreviewAtlas.masterReference, 'asha-reference-warrior-master-reference.png');
-  assert.equal(ashaReferenceWarriorDodgePreviewAtlas.status, 'preview-asha-reference-warrior-dodge-row-candidate-03');
+  assert.equal(ashaReferenceWarriorDodgePreviewAtlas.status, 'approved-asha-reference-warrior-dodge-backstep-tone-matched');
   assert.match(journeyComponentSource, /characterId:\s*'asha-reference-warrior'/);
   assert.match(journeyComponentSource, /asha-final-production-spritesheet\.json/);
   assert.match(journeyConstantsSource, /PLAYER_HERO_PREVIOUS_SPRITE_ATLAS_JSON/);
@@ -2545,7 +2601,7 @@ test('Asha Reference Warrior remains available as a separate character-loader at
   assert.match(journeyComponentSource, /label:\s*'Asha Reference Warrior'/);
   assert.match(journeyComponentSource, /atlasPath:\s*PLAYER_HERO_SPRITE_ATLAS_JSON/);
   assert.match(journeyComponentSource, /assets\/expedition\/player\/asha-reference-warrior-reference\.png/);
-  assert.equal(ashaReferenceWarriorPlayerAtlas.status, 'approved-asha-reference-warrior-combo-upgrade');
+  assert.equal(ashaReferenceWarriorPlayerAtlas.status, 'approved-asha-reference-warrior-dodge-backstep-tone-matched');
   assert.equal(ashaReferenceWarriorPlayerAtlas.productionReference, 'asha-reference-warrior-reference.png');
   assert.equal(ashaReferenceWarriorPlayerAtlas.draw.height, 130);
   assert.equal(ashaReferenceWarriorPlayerAtlas.frame.width, 390);
@@ -2562,19 +2618,20 @@ test('Asha Reference Warrior remains available as a separate character-loader at
     'attack_pick_swing_sweep',
   ]);
   assert.match(journeyComponentSource, /attackChainRows/);
-  assert.equal(ashaReferenceWarriorPlayerAtlas.rows.length, 14);
+  assert.equal(ashaReferenceWarriorPlayerAtlas.rows.length, 15);
   assert.equal(ashaReferenceWarriorPlayerAtlas.rows.find(row => row.name === 'idle')?.frameCount, 8);
   assert.equal(ashaReferenceWarriorPlayerAtlas.rows.find(row => row.name === 'run')?.frameCount, 8);
   assert.equal(ashaReferenceWarriorPlayerAtlas.rows.find(row => row.name === 'jump')?.frameCount, 8);
   assert.equal(ashaReferenceWarriorPlayerAtlas.rows.find(row => row.name === 'attack_pick_swing')?.frameCount, 8);
+  assert.equal(ashaReferenceWarriorPlayerAtlas.rows.find(row => row.name === 'dodge')?.frameCount, 8);
   assert.equal(ashaReferenceWarriorPlayerAtlas.rows.find(row => row.name === 'attack_pick_swing_alt')?.frameCount, 8);
   assert.equal(ashaReferenceWarriorPlayerAtlas.rows.find(row => row.name === 'attack_pick_swing_sweep')?.frameCount, 8);
   assert.equal(ashaReferenceWarriorPlayerAtlas.rows.find(row => row.name === 'hurt')?.frameCount, 5);
   assert.equal(ashaReferenceWarriorPlayerAtlas.rows.find(row => row.name === 'interact')?.frameCount, 6);
   assert.equal(ashaReferenceWarriorPlayerAtlas.rows.find(row => row.name === 'climb')?.frameCount, 8);
   assert.equal(ashaReferenceWarriorPlayerAtlas.rows.find(row => row.name === 'push_pull')?.frameCount, 8);
-  assert.equal(Object.keys(ashaReferenceWarriorPlayerAtlas.regions).length, 107);
-  assert.equal(Object.keys(ashaReferenceWarriorPlayerAtlas.poseSources).length, 107);
+  assert.equal(Object.keys(ashaReferenceWarriorPlayerAtlas.regions).length, 115);
+  assert.equal(Object.keys(ashaReferenceWarriorPlayerAtlas.poseSources).length, 115);
   assert.equal(
     ashaReferenceWarriorPlayerAtlas.poseSources.idle_00,
     'asha-reference-warrior-idle-still-guard-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_00',
@@ -2613,7 +2670,7 @@ test('Asha Reference Warrior remains available as a separate character-loader at
   ) >= 170);
   assert.equal(
     ashaReferenceWarriorPlayerAtlas.source,
-    'asha-reference-warrior-combo-upgrade-2026-06-03',
+    'asha-reference-warrior-dodge-backstep-tone-matched-2026-06-05',
   );
   assert.match(journeyComponentSource, /PLAYER_ATTACK_FINISHER_ROW\s*=\s*'attack_pick_swing_sweep'/);
   assert.match(journeyComponentSource, /getPlayerAttackTiming\(nextAttackSequenceIndex\)/);
@@ -3614,7 +3671,7 @@ test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, an
   assert.match(journeyComponentSource, /PROP_EDITOR_DEPTH_OPTIONS = \['background', 'midground', 'grounded', 'route-edge', 'foreground-occluder'\]/);
   assert.match(journeyComponentSource, /drawPlayerSprite\(ctx, player\.x - cameraX[\s\S]*?drawStoryProp\(ctx, prop, cameraX, now, 'foreground-occluder'\)/);
   assert.match(journeyComponentSource, /drawStandalonePropAsset/);
-  assert.match(journeyComponentSource, /propForAsset\.mirrorX \? drawMirroredPropAsset\(\) : drawPropImageAsset/);
+  assert.match(journeyComponentSource, /\(propForAsset\.mirrorX \|\| propForAsset\.mirrorY\) \? drawMirroredPropAsset\(\) : drawPropImageAsset/);
 });
 
 test('Egypt atmosphere layout fills each Journey section without changing gameplay systems', () => {
@@ -3988,6 +4045,18 @@ test('generated Egypt structure contact renderer supports asymmetry controls', (
   assert.match(functionSource, /ctx\.scale/);
 });
 
+test('ground detail palette renders reusable contact sprites without atmosphere prop fallback art', () => {
+  const drawStoryPropSource = getComponentFunctionSource('drawStoryProp');
+
+  assert.match(journeyComponentSource, /createJourneyGroundDetailsPalette/);
+  assert.match(journeyComponentSource, /selectedPaletteCategory === 'ground-detail'/);
+  assert.match(journeyComponentSource, /\['ground-detail', 'Ground Details'\]/);
+  assert.match(journeyComponentSource, /Ground Details palette/);
+  assert.match(drawStoryPropSource, /prop\.type === 'ground-contact-detail-prop'/);
+  assert.match(drawStoryPropSource, /drawEgyptStructureGroundContactLayer\(ctx, prop\.groundContactLayer/);
+  assert.doesNotMatch(drawStoryPropSource, /getEnvironmentAssetKeyForStoryProp\(propForAsset, ENVIRONMENT_ASSET_PACK_IDS\.EGYPT_PREMIUM_GROUND_CONTACT\)/);
+});
+
 test('desert entry no longer draws old procedural fallback scenery', () => {
   assert.doesNotMatch(journeyComponentSource, /Parallax Hills/);
   assert.doesNotMatch(journeyComponentSource, /Parallax Ridges/);
@@ -4297,17 +4366,22 @@ test('fast fluid combat slice adds dodge-cancel and flow combo contracts', () =>
   assert.match(journeyComponentSource, /const PLAYER_DODGE_STAMINA_COST = \d+/);
   assert.match(journeyComponentSource, /const PLAYER_DODGE_DURATION = 0\.\d+/);
   assert.match(journeyComponentSource, /const PLAYER_DODGE_INVULNERABLE_DURATION = 0\.\d+/);
+  assert.match(journeyComponentSource, /const PLAYER_DODGE_FRAME_SEQUENCE = \[0,\s*1,\s*2,\s*2,\s*2,\s*3,\s*3,\s*4,\s*5,\s*6,\s*7\]/);
   assert.match(journeyComponentSource, /const PLAYER_COMBO_WINDOW_DURATION = 0\.\d+/);
   assert.match(journeyComponentSource, /const PLAYER_COMBO_PRESERVE_AFTER_DODGE_DURATION = 0\.\d+/);
   assert.match(journeyComponentSource, /const PLAYER_ATTACK_FINISHER_DAMAGE = \d+/);
   assert.match(journeyUtilsSource, /attackComboWindowTimer:\s*0/);
   assert.match(journeyUtilsSource, /attackComboLanded:\s*false/);
   assert.match(journeyUtilsSource, /dodgeTimer:\s*0/);
+  assert.match(journeyUtilsSource, /dodgeFacingDirection:\s*0/);
   assert.match(journeyComponentSource, /const queueDodge = useCallback\(\(\) => \{/);
   assert.match(journeyComponentSource, /if \(current\.attackTimer > 0 && !current\.attackComboLanded\) resetPlayerCombo\(current\);/);
   assert.match(journeyComponentSource, /if \(current\.attackComboLanded\) current\.attackComboWindowTimer = Math\.max\(current\.attackComboWindowTimer \|\| 0, PLAYER_COMBO_PRESERVE_AFTER_DODGE_DURATION\);/);
   assert.match(journeyComponentSource, /current\.playerAttackBox = null;/);
   assert.match(journeyComponentSource, /current\.dodgeInvulnerableTimer = PLAYER_DODGE_INVULNERABLE_DURATION;/);
+  assert.match(journeyComponentSource, /const dodgeFacingDirection = -dodgeDirection;/);
+  assert.match(journeyComponentSource, /current\.dodgeFacingDirection = dodgeFacingDirection;/);
+  assert.match(journeyComponentSource, /player\.direction = dodgeFacingDirection;/);
   assert.match(journeyComponentSource, /e\.health -= isFinisher \? PLAYER_ATTACK_FINISHER_DAMAGE : \(isParry \? 2 : 1\)/);
   assert.match(journeyComponentSource, /const comboCanAdvance = current\.attackComboWindowTimer > 0 && current\.attackComboLanded;/);
   assert.match(journeyComponentSource, /if \(current\.attackComboWindowTimer <= 0 && current\.attackSequenceIndex > 0 && current\.attackPhase === 'ready'\) resetPlayerCombo\(current\);/);
@@ -4331,13 +4405,23 @@ test('dodge visual state uses the preview dodge atlas row with the old fallback 
   assert.equal(dodgeRow?.row, 14);
   assert.equal(dodgeRow?.frameCount, 8);
   assert.equal(dodgeRow?.loop, false);
+  assert.match(journeyConstantsSource, /asha-reference-warrior-dodge-backstep-tone-matched-2026-06-05/);
+  assert.equal(ashaReferenceWarriorDodgePreviewAtlas.source, 'asha-reference-warrior-dodge-backstep-tone-matched-2026-06-05');
+  assert.equal(ashaReferenceWarriorDodgePreviewAtlas.status, 'approved-asha-reference-warrior-dodge-backstep-tone-matched');
   assert.equal(dodgeRow?.frames?.[3], 'dodge_03');
-  assert.equal(ashaReferenceWarriorDodgePreviewAtlas.regions.dodge_03, undefined);
-  assert.equal(ashaReferenceWarriorDodgePreviewAtlas.frames.dodge_03.w, 390);
-  assert.equal(ashaReferenceWarriorDodgePreviewAtlas.frames.dodge_03.h, 256);
+  assert.equal(ashaReferenceWarriorDodgePreviewAtlas.regions.dodge_02.w, 390);
+  assert.equal(ashaReferenceWarriorDodgePreviewAtlas.regions.dodge_02.h, 256);
+  assert.equal(ashaReferenceWarriorDodgePreviewAtlas.regions.dodge_02.groundLineY, 236);
+  assert.equal(ashaReferenceWarriorDodgePreviewAtlas.regions.dodge_06.w, 390);
+  assert.equal(ashaReferenceWarriorDodgePreviewAtlas.regions.dodge_07.h, 256);
+  assert.match(ashaReferenceWarriorDodgePreviewAtlas.poseSources.dodge_02, /asha-reference-warrior-dodge-backstep-approved-3120x256-2026-06-05\.png:frame_02/);
+  assert.match(ashaReferenceWarriorDodgePreviewAtlas.poseSources.dodge_06, /asha-reference-warrior-dodge-backstep-approved-3120x256-2026-06-05\.png:frame_06/);
+  assert.match(ashaReferenceWarriorDodgePreviewAtlas.poseSources.dodge_07, /asha-reference-warrior-dodge-backstep-approved-3120x256-2026-06-05\.png:frame_07/);
   assert.match(journeyComponentSource, /if \(animationState === 'dodge'\) \{/);
   assert.match(journeyComponentSource, /getHeroSpriteRow\(atlas,\s*'dodge'\)\s*\|\|\s*getHeroSpriteRow\(atlas,\s*'run'\)/);
+  assert.match(journeyComponentSource, /PLAYER_DODGE_FRAME_SEQUENCE\[Math\.min\(PLAYER_DODGE_FRAME_SEQUENCE\.length - 1, Math\.floor\(dodgeProgress \* PLAYER_DODGE_FRAME_SEQUENCE\.length\)\)\]/);
   assert.match(journeyComponentSource, /const dodgeProgress = current\.dodgeTimer > 0/);
+  assert.match(journeyComponentSource, /const dedicatedDodgeDuck = usingDedicatedDodgeFrame \? Math\.sin\(Math\.PI \* clamp\(dodgeElapsedProgress, 0, 1\)\) : 0;/);
   assert.match(journeyComponentSource, /const usingDedicatedDodgeFrame = typeof heroFrameKey === 'string' && heroFrameKey\.startsWith\('dodge_'\);/);
   assert.match(journeyComponentSource, /heroAtlas\?\.regions\?\.\[heroFrameKey\]\s*\|\|\s*heroAtlas\?\.frames\?\.\[heroFrameKey\]/);
   assert.match(journeyComponentSource, /const movementLean = usingDedicatedDodgeFrame\s*\?\s*0/);

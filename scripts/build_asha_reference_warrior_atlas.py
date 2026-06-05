@@ -16,6 +16,8 @@ TARGET_JSON = TARGET_DIR / "asha-reference-warrior-spritesheet.json"
 TARGET_PNG = TARGET_DIR / "asha-reference-warrior-spritesheet.png"
 TARGET_REFERENCE = TARGET_DIR / "asha-reference-warrior-reference.png"
 TARGET_MASTER_REFERENCE = TARGET_DIR / "asha-reference-warrior-master-reference.png"
+DODGE_PREVIEW_JSON = TARGET_DIR / "asha-reference-warrior-dodge-preview-spritesheet.json"
+DODGE_PREVIEW_PNG = TARGET_DIR / "asha-reference-warrior-dodge-preview-spritesheet.png"
 
 TARGET_CELL_WIDTH = 390
 TARGET_CELL_HEIGHT = 256
@@ -32,6 +34,7 @@ SOURCES = {
     "attack_pick_swing_alt": SOURCE_DIR / "asha-reference-warrior-attack-chain-02-rising-diagonal-framebyframe-approved-4096x512-2026-06-03.png",
     "attack_pick_swing_sweep": SOURCE_DIR / "asha-reference-warrior-attack-chain-03-heavy-sweep-framebyframe-approved-4096x512-2026-06-03.png",
     "hurt": SOURCE_DIR / "asha-reference-warrior-hurt-framebyframe-pass1-normalized-2560x512-candidate-2026-05-30.png",
+    "dodge": SOURCE_DIR / "asha-reference-warrior-dodge-backstep-approved-3120x256-2026-06-05.png",
 }
 
 SOURCE_FRAME_COUNTS = {
@@ -42,6 +45,7 @@ SOURCE_FRAME_COUNTS = {
     "attack_pick_swing_alt": 8,
     "attack_pick_swing_sweep": 8,
     "hurt": 5,
+    "dodge": 8,
 }
 
 ROW_INDEX = {
@@ -59,6 +63,7 @@ ROW_INDEX = {
     "push_pull": 11,
     "attack_pick_swing_alt": 12,
     "attack_pick_swing_sweep": 13,
+    "dodge": 14,
 }
 
 ROW_SOURCE = {
@@ -76,6 +81,7 @@ ROW_SOURCE = {
     "interact": ("idle", [0, 1, 2, 3, 4, 5]),
     "climb": ("jump", [0, 1, 2, 3, 4, 5, 6, 7]),
     "push_pull": ("attack_pick_swing", [0, 1, 2, 3, 4, 5, 6, 7]),
+    "dodge": ("dodge", [0, 1, 2, 3, 4, 5, 6, 7]),
 }
 
 ROW_SPRITE_SCALE = {
@@ -93,6 +99,7 @@ ROW_SPRITE_SCALE = {
     "interact": 1.018,
     "climb": 1.017,
     "push_pull": 1.018,
+    "dodge": 1,
 }
 
 
@@ -189,6 +196,17 @@ def extract_frames(source_name: str) -> list[Image.Image]:
     return frames
 
 
+def extract_exact_cell_frames(source_name: str) -> list[Image.Image]:
+    source = Image.open(SOURCES[source_name]).convert("RGBA")
+    frame_count = SOURCE_FRAME_COUNTS[source_name]
+    frames = []
+    for index in range(frame_count):
+        left = index * TARGET_CELL_WIDTH
+        right = left + TARGET_CELL_WIDTH
+        frames.append(source.crop((left, 0, right, TARGET_CELL_HEIGHT)))
+    return frames
+
+
 def trim_to_visible(image: Image.Image) -> Image.Image:
     alpha = image.getchannel("A")
     bbox = alpha.point(lambda value: 255 if value > 4 else 0).getbbox()
@@ -253,6 +271,36 @@ def paste_sprite_cell(
     }
 
 
+def paste_exact_sprite_cell(
+    target: Image.Image,
+    sprite: Image.Image,
+    *,
+    row_index: int,
+    column: int,
+    cell_w: int,
+    cell_h: int,
+    ground_line_y: int,
+) -> dict[str, int]:
+    target_x = column * cell_w
+    target_y = row_index * cell_h
+    target.alpha_composite(sprite, (target_x, target_y))
+    final_cell = target.crop((target_x, target_y, target_x + cell_w, target_y + cell_h))
+    final_bounds = measure_bounds(final_cell)
+    return {
+        "x": target_x,
+        "y": target_y,
+        "w": cell_w,
+        "h": cell_h,
+        "drawBounds": {
+            "x": final_bounds["x"],
+            "y": final_bounds["y"],
+            "w": final_bounds["w"],
+            "h": final_bounds["h"],
+        },
+        "groundLineY": ground_line_y,
+    }
+
+
 def main() -> None:
     metadata = json.loads(BASE_ATLAS_JSON.read_text(encoding="utf-8"))
     cell_w = TARGET_CELL_WIDTH
@@ -261,7 +309,10 @@ def main() -> None:
     max_source_height = TARGET_SOURCE_HEIGHT
     max_columns = max(len(source_indices) for _source_name, source_indices in ROW_SOURCE.values())
     target = Image.new("RGBA", (cell_w * max_columns, cell_h * len(ROW_INDEX)), (0, 0, 0, 0))
-    extracted = {source_name: extract_frames(source_name) for source_name in SOURCES}
+    extracted = {
+        source_name: extract_exact_cell_frames(source_name) if source_name == "dodge" else extract_frames(source_name)
+        for source_name in SOURCES
+    }
     regions = {}
     pose_sources = {}
 
@@ -269,17 +320,28 @@ def main() -> None:
         source_name, source_indices = ROW_SOURCE[row_name]
         for column, source_index in enumerate(source_indices):
             key = frame_key(row_name, column)
-            regions[key] = paste_sprite_cell(
-                target,
-                extracted[source_name][source_index],
-                row_name=row_name,
-                row_index=row_index,
-                column=column,
-                cell_w=cell_w,
-                cell_h=cell_h,
-                ground_line_y=ground_line_y,
-                max_source_height=max_source_height,
-            )
+            if source_name == "dodge":
+                regions[key] = paste_exact_sprite_cell(
+                    target,
+                    extracted[source_name][source_index],
+                    row_index=row_index,
+                    column=column,
+                    cell_w=cell_w,
+                    cell_h=cell_h,
+                    ground_line_y=ground_line_y,
+                )
+            else:
+                regions[key] = paste_sprite_cell(
+                    target,
+                    extracted[source_name][source_index],
+                    row_name=row_name,
+                    row_index=row_index,
+                    column=column,
+                    cell_w=cell_w,
+                    cell_h=cell_h,
+                    ground_line_y=ground_line_y,
+                    max_source_height=max_source_height,
+                )
             pose_sources[key] = f"{SOURCES[source_name].name}:frame_{source_index:02d}"
 
     base_rows = {row["name"]: row for row in metadata["rows"]}
@@ -291,11 +353,13 @@ def main() -> None:
         next_row["row"] = row_index
         next_row["frameCount"] = len(source_indices)
         next_row["frames"] = [frame_key(row_name, index) for index in range(len(source_indices))]
+        if row_name == "dodge":
+            next_row["loop"] = False
         rows.append(next_row)
 
     metadata["image"] = TARGET_PNG.name
-    metadata["source"] = "asha-reference-warrior-combo-upgrade-2026-06-03"
-    metadata["status"] = "approved-asha-reference-warrior-combo-upgrade"
+    metadata["source"] = "asha-reference-warrior-dodge-backstep-tone-matched-2026-06-05"
+    metadata["status"] = "approved-asha-reference-warrior-dodge-backstep-tone-matched"
     metadata["productionReference"] = TARGET_REFERENCE.name
     metadata["masterReference"] = TARGET_MASTER_REFERENCE.name
     metadata["description"] = (
@@ -306,7 +370,9 @@ def main() -> None:
         "now separates a quick horizontal entry slash, rising diagonal follow-up, and heavy "
         "finisher sweep with clearer windup and follow-through poses. Utility "
         "rows borrow from those rows so the runtime atlas does not mix in older Asha identities "
-        "while final utility animation rows await visual approval."
+        "while final utility animation rows await visual approval. The atlas also includes an "
+        "approved eight-frame dodge/backstep row with the peak evade on frame 02 and a low, "
+        "braced recovery through frames 06-07."
     )
     metadata["frame"]["width"] = cell_w
     metadata["frame"]["height"] = cell_h
@@ -336,8 +402,14 @@ def main() -> None:
     target.save(TARGET_PNG)
     trim_to_visible(extracted["idle"][0]).save(TARGET_REFERENCE)
     TARGET_JSON.write_text(f"{json.dumps(metadata, indent=2)}\n", encoding="utf-8")
+    preview_metadata = deepcopy(metadata)
+    preview_metadata["image"] = DODGE_PREVIEW_PNG.name
+    target.save(DODGE_PREVIEW_PNG)
+    DODGE_PREVIEW_JSON.write_text(f"{json.dumps(preview_metadata, indent=2)}\n", encoding="utf-8")
     print(f"Wrote {TARGET_PNG.relative_to(ROOT)}")
     print(f"Wrote {TARGET_JSON.relative_to(ROOT)}")
+    print(f"Wrote {DODGE_PREVIEW_PNG.relative_to(ROOT)}")
+    print(f"Wrote {DODGE_PREVIEW_JSON.relative_to(ROOT)}")
     print(f"Wrote {TARGET_REFERENCE.relative_to(ROOT)}")
 
 

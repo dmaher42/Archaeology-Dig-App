@@ -212,6 +212,7 @@ const PROP_TEMPLATE_FIELDS = [
   'type',
   'atmosphereAssetKey',
   'imageAssetKey',
+  'groundDetailAssetKey',
   'assetPath',
   'width',
   'height',
@@ -247,6 +248,19 @@ const PROP_TEMPLATE_FIELDS = [
   'mirrorY',
   'brightness',
   'groundContactLayer',
+];
+
+const JOURNEY_GROUND_DETAIL_PALETTE_ITEMS = [
+  { assetKey: 'premiumLongSandLip', label: 'Long Sand Lip', width: 320, height: 58, alpha: 0.54 },
+  { assetKey: 'premiumShortSandLip', label: 'Short Sand Lip', width: 176, height: 48, alpha: 0.58 },
+  { assetKey: 'premiumDoorThresholdBuildup', label: 'Door Threshold Buildup', width: 220, height: 58, alpha: 0.62 },
+  { assetKey: 'premiumBrokenMasonryFooting', label: 'Broken Masonry Footing', width: 168, height: 64, alpha: 0.66 },
+  { assetKey: 'premiumRubbleContactShadow', label: 'Rubble Contact Shadow', width: 184, height: 52, alpha: 0.46 },
+  { assetKey: 'premiumHalfBuriedStairSupport', label: 'Half Buried Stair Support', width: 154, height: 62, alpha: 0.66 },
+  { assetKey: 'premiumCarvedStoneEdge', label: 'Carved Stone Edge', width: 172, height: 56, alpha: 0.64 },
+  { assetKey: 'premiumSmallStoneScatter', label: 'Small Stone Scatter', width: 132, height: 55, alpha: 0.64 },
+  { assetKey: 'premiumLowSedimentRibbon', label: 'Low Sediment Ribbon', width: 214, height: 42, alpha: 0.48 },
+  { assetKey: 'premiumRubbleMoundBlend', label: 'Rubble Mound Blend', width: 260, height: 70, alpha: 0.6 },
 ];
 
 const toJourneyPropWords = (value = '') => String(value)
@@ -424,6 +438,38 @@ export const createJourneyPropPalette = (props = [], registryEntries = []) => {
   return [...entries.values()];
 };
 
+export const createJourneyGroundDetailsPalette = () => JOURNEY_GROUND_DETAIL_PALETTE_ITEMS.map((item) => ({
+  key: `ground-detail:${item.assetKey}`,
+  label: item.label,
+  type: 'ground-contact-detail-prop',
+  category: 'Ground Details',
+  assetKey: item.assetKey,
+  template: {
+    type: 'ground-contact-detail-prop',
+    groundDetailAssetKey: item.assetKey,
+    width: item.width,
+    height: item.height,
+    depth: 'route-edge',
+    layer: 'route-edge',
+    shadowOpacity: 0,
+    sandOverlapHeight: 0,
+    groundPebbles: 0,
+    groundContactLayer: [
+      {
+        assetKey: item.assetKey,
+        layer: 'overlay',
+        xRatio: 0.5,
+        widthRatio: 1,
+        height: item.height,
+        yOffset: -item.height,
+        alpha: item.alpha,
+        mode: 'stretch',
+        alignY: 'bottom',
+      },
+    ],
+  },
+}));
+
 export const createJourneyPropFromPaletteItem = ({
   paletteItem = {},
   roomId,
@@ -433,7 +479,7 @@ export const createJourneyPropFromPaletteItem = ({
 } = {}) => {
   const template = { ...(paletteItem.template || paletteItem) };
   const type = template.type || paletteItem.type || 'prop';
-  const assetSegment = template.imageAssetKey || template.atmosphereAssetKey || type;
+  const assetSegment = template.groundDetailAssetKey || template.imageAssetKey || template.atmosphereAssetKey || type;
   const idBase = `${toJourneyPropIdSegment(roomId || 'room')}-${toJourneyPropIdSegment(assetSegment)}`;
   const id = makeUniqueJourneyPropId(`${idBase}-1`, existingIds);
   const roomKey = roomId || 'unknown-room';
@@ -1660,6 +1706,7 @@ export const makeInitialState = ({ targetCivilisation, permanentUpgradeIds = [],
   dodgeInvulnerableTimer: 0,
   dodgeRecoveryTimer: 0,
   dodgeDirection: 0,
+  dodgeFacingDirection: 0,
   dodgeTrail: [],
   lastDodgeResult: 'ready',
   enduranceExhausted: false,

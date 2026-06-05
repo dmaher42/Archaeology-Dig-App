@@ -4185,6 +4185,27 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
     return () => window.removeEventListener('expedition-dev-jump', handleExpeditionDevJump);
   }, [baseCampOpen, devJumpToBaseCamp, devJumpToExcavation, devJumpToJourney, expeditionStage]);
 
+  // Dev-only quick start (paired with the `?play` flag handled in App.jsx):
+  // auto-select the playable Egypt stage, then skip the archive prologue +
+  // briefing so a cold load lands directly in the journey gameplay. The
+  // skip-to-journey step is deferred to a macrotask so it runs *after*
+  // openExpeditionStage's state (which opens the prologue/briefing) has
+  // committed — otherwise it gets clobbered by the entry render.
+  useEffect(() => {
+    if (!import.meta.env.DEV || typeof window === 'undefined') return undefined;
+    if (selectedExpedition) return undefined;
+    if (!new URLSearchParams(window.location.search).has('play')) return undefined;
+    const stage = EXPEDITION_STAGES.find(s => s.id === PLAYABLE_EXPEDITION_STAGE_ID) || EXPEDITION_STAGES[0];
+    if (!stage) return undefined;
+    openExpeditionStage(stage);
+    const timer = window.setTimeout(() => {
+      setPrologueCinematicStep(null);
+      setExpeditionStage('journey');
+      setBriefingOpen(false);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
   useEffect(() => () => {
     if (journeyCursorTimerRef.current) window.clearTimeout(journeyCursorTimerRef.current);
   }, []);

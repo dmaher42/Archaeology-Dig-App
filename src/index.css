@@ -15360,6 +15360,14 @@ main {
   color: #ccfbf1;
 }
 
+.journey-prop-editor-actions button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  border-color: rgba(236, 254, 255, 0.12);
+  background: rgba(236, 254, 255, 0.04);
+  color: rgba(236, 254, 255, 0.5);
+}
+
 .journey-prop-editor-change-summary {
   margin-top: 0.5rem;
   padding: 0.46rem 0.5rem;
