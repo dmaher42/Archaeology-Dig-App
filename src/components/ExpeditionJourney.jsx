@@ -669,6 +669,8 @@ const OPENING_CAMERA_REVEAL_HOLD_SECONDS = 0.18;
 const OPENING_PYRAMID_ASSET_VERSION = 'opening-pyramid-climb-pack-2026-05-18';
 const ROUTE_GATE_ASSET_VERSION = 'imagegen-egypt-route-gate-arch-column-slab-2026-05-31';
 const OPENING_PYRAMID_FACADE_VERSION = 'opening-pyramid-facade-2026-05-19';
+const OPENING_PYRAMID_FACADE_ASSET_WIDTH = 1669;
+const OPENING_PYRAMID_FACADE_ASSET_HEIGHT = 917;
 const OPENING_TOMB_STAIRWELL_VERSION = 'opening-tomb-stairwell-generated-2026-05-21';
 const MUMMIFICATION_CHAMBER_EXTERIOR_VERSION = 'imagegen-mummification-chamber-visible-climb-structure-2026-05-29';
 const MUMMIFICATION_CHAMBER_INTERIOR_VERSION = 'imagegen-mummification-chamber-side-scroll-puzzle-ready-2026-05-31';
@@ -1404,6 +1406,7 @@ const isPlayerAttackVisualPhase = (attackState) => (
 
 const CHARACTER_LOADER_STORAGE_KEY = 'expedition-character-loader-choice';
 const JOURNEY_PROP_EDITOR_STORAGE_KEY = 'expedition-journey-prop-editor-edits-v1';
+const JOURNEY_PROP_EDITOR_PANEL_POS_KEY = 'expedition-journey-prop-editor-panel-pos-v1';
 const CHARACTER_LOADER_VISIBILITY_STORAGE_KEY = 'expedition-character-loader-visible-v3';
 const PLAYER_CHARACTER_PRESETS = [
   {
@@ -3291,6 +3294,9 @@ export default function ExpeditionJourney({
     savedAt: null,
   });
   const propEditorPersistTimeoutRef = useRef(null);
+  const editorPanelRef = useRef(null);
+  const editorPanelPosRef = useRef(null);
+  const editorPanelDragRef = useRef(null);
   const [propEditorUi, setPropEditorUi] = useState({
     enabled: false,
     selectedProp: null,
@@ -4194,6 +4200,90 @@ export default function ExpeditionJourney({
     if (typeof window !== 'undefined' && propEditorPersistTimeoutRef.current) {
       window.clearTimeout(propEditorPersistTimeoutRef.current);
     }
+  }, []);
+
+  // Load the saved editor panel position so a dragged panel returns to where
+  // you left it after a reload.
+  useEffect(() => {
+    if (!import.meta.env.DEV || typeof window === 'undefined') return;
+    try {
+      const raw = window.localStorage.getItem(JOURNEY_PROP_EDITOR_PANEL_POS_KEY);
+      if (raw) {
+        const pos = JSON.parse(raw);
+        if (Number.isFinite(pos?.x) && Number.isFinite(pos?.y)) editorPanelPosRef.current = pos;
+      }
+    } catch {
+      // Ignore corrupt saved position.
+    }
+  }, []);
+
+  // Callback ref: when the panel mounts, apply any saved drag position.
+  const setEditorPanelNode = useCallback((node) => {
+    editorPanelRef.current = node;
+    const pos = editorPanelPosRef.current;
+    if (node && pos) {
+      node.style.left = `${pos.x}px`;
+      node.style.top = `${pos.y}px`;
+      node.style.right = 'auto';
+    }
+  }, []);
+
+  const resetEditorPanelPosition = useCallback(() => {
+    const node = editorPanelRef.current;
+    if (node) {
+      node.style.left = '';
+      node.style.top = '';
+      node.style.right = '';
+    }
+    editorPanelPosRef.current = null;
+    if (typeof window !== 'undefined') {
+      try {
+        window.localStorage.removeItem(JOURNEY_PROP_EDITOR_PANEL_POS_KEY);
+      } catch {
+        // Ignore storage failures.
+      }
+    }
+  }, []);
+
+  const handleEditorPanelDragStart = useCallback((event) => {
+    const node = editorPanelRef.current;
+    if (!node || typeof window === 'undefined') return;
+    // Let buttons / inputs inside the header behave normally.
+    if (event.target.closest('button, input, select, textarea, a')) return;
+    event.preventDefault();
+    const rect = node.getBoundingClientRect();
+    editorPanelDragRef.current = {
+      offsetX: event.clientX - rect.left,
+      offsetY: event.clientY - rect.top,
+    };
+    node.style.right = 'auto';
+    const handleMove = (moveEvent) => {
+      const drag = editorPanelDragRef.current;
+      if (!drag) return;
+      const parentRect = node.offsetParent?.getBoundingClientRect?.()
+        || { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
+      const maxX = Math.max(0, parentRect.width - node.offsetWidth);
+      const maxY = Math.max(0, parentRect.height - node.offsetHeight);
+      const x = Math.max(0, Math.min(moveEvent.clientX - parentRect.left - drag.offsetX, maxX));
+      const y = Math.max(0, Math.min(moveEvent.clientY - parentRect.top - drag.offsetY, maxY));
+      node.style.left = `${x}px`;
+      node.style.top = `${y}px`;
+      editorPanelPosRef.current = { x, y };
+    };
+    const handleUp = () => {
+      window.removeEventListener('pointermove', handleMove);
+      window.removeEventListener('pointerup', handleUp);
+      editorPanelDragRef.current = null;
+      if (editorPanelPosRef.current) {
+        try {
+          window.localStorage.setItem(JOURNEY_PROP_EDITOR_PANEL_POS_KEY, JSON.stringify(editorPanelPosRef.current));
+        } catch {
+          // Ignore storage failures.
+        }
+      }
+    };
+    window.addEventListener('pointermove', handleMove);
+    window.addEventListener('pointerup', handleUp);
   }, []);
 
   useEffect(() => {
@@ -8514,6 +8604,103 @@ export default function ExpeditionJourney({
     return true;
   }, []);
 
+  const drawOpeningPyramidFacadeStairConcealment = useCallback((ctx, x, y, width, height) => {
+    const scaleX = width / OPENING_PYRAMID_FACADE_ASSET_WIDTH;
+    const scaleY = height / OPENING_PYRAMID_FACADE_ASSET_HEIGHT;
+    const toX = assetX => x + assetX * scaleX;
+    const toY = assetY => y + assetY * scaleY;
+    const regions = [
+      {
+        points: [[260, 806], [320, 836], [1018, 326], [984, 292]],
+        rowStart: 326,
+        rowEnd: 812,
+        rowStep: 34,
+        blockStart: 260,
+        blockEnd: 1018,
+        rubble: [[310, 800, 22], [430, 704, 18], [548, 612, 16], [675, 518, 20], [834, 392, 17], [955, 336, 15]],
+      },
+      {
+        points: [[1186, 736], [1276, 606], [1584, 525], [1604, 596], [1515, 701], [1324, 770]],
+        rowStart: 548,
+        rowEnd: 748,
+        rowStep: 32,
+        blockStart: 1200,
+        blockEnd: 1588,
+        rubble: [[1232, 720, 24], [1310, 675, 19], [1402, 638, 21], [1495, 600, 18], [1558, 560, 16]],
+      },
+    ];
+
+    ctx.save();
+    ctx.globalAlpha *= 0.72;
+    regions.forEach((region, regionIndex) => {
+      ctx.save();
+      ctx.beginPath();
+      region.points.forEach(([px, py], index) => {
+        const mappedX = toX(px);
+        const mappedY = toY(py);
+        if (index === 0) ctx.moveTo(mappedX, mappedY);
+        else ctx.lineTo(mappedX, mappedY);
+      });
+      ctx.closePath();
+      ctx.clip();
+
+      const gradient = ctx.createLinearGradient(0, toY(region.rowStart), 0, toY(region.rowEnd));
+      gradient.addColorStop(0, 'rgba(176, 106, 42, 0.62)');
+      gradient.addColorStop(0.46, 'rgba(107, 62, 28, 0.68)');
+      gradient.addColorStop(1, 'rgba(58, 34, 18, 0.64)');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(toX(region.blockStart - 24), toY(region.rowStart - 20), toX(region.blockEnd + 24) - toX(region.blockStart - 24), toY(region.rowEnd + 20) - toY(region.rowStart - 20));
+
+      for (let rowY = region.rowStart; rowY <= region.rowEnd; rowY += region.rowStep) {
+        const stagger = ((rowY + regionIndex * 41) % 68) - 34;
+        ctx.strokeStyle = 'rgba(38, 25, 15, 0.54)';
+        ctx.lineWidth = Math.max(0.8, 1.2 * scaleY);
+        ctx.beginPath();
+        ctx.moveTo(toX(region.blockStart - 18), toY(rowY));
+        ctx.lineTo(toX(region.blockEnd + 18), toY(rowY + Math.sin(rowY * 0.06) * 2));
+        ctx.stroke();
+
+        for (let blockX = region.blockStart + stagger; blockX < region.blockEnd; blockX += 68) {
+          const chip = ((blockX + rowY + regionIndex * 29) % 13) - 6;
+          ctx.strokeStyle = 'rgba(47, 30, 17, 0.46)';
+          ctx.beginPath();
+          ctx.moveTo(toX(blockX), toY(rowY - region.rowStep + 4));
+          ctx.lineTo(toX(blockX + chip), toY(rowY - 3));
+          ctx.stroke();
+        }
+      }
+
+      ctx.globalCompositeOperation = 'screen';
+      ctx.globalAlpha *= 0.22;
+      ctx.fillStyle = 'rgba(255, 202, 103, 0.92)';
+      ctx.fillRect(toX(region.blockStart - 8), toY(region.rowStart - 2), toX(region.blockEnd) - toX(region.blockStart - 8), Math.max(2, 5 * scaleY));
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.globalAlpha /= 0.22;
+
+      region.rubble.forEach(([stoneX, stoneY, radius], stoneIndex) => {
+        const sx = toX(stoneX);
+        const sy = toY(stoneY);
+        const rx = Math.max(4, radius * scaleX);
+        const ry = Math.max(3, radius * 0.62 * scaleY);
+        ctx.fillStyle = stoneIndex % 2 === 0 ? 'rgba(150, 91, 35, 0.82)' : 'rgba(107, 64, 28, 0.84)';
+        ctx.beginPath();
+        ctx.ellipse(sx, sy, rx, ry, -0.16, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(45, 28, 15, 0.5)';
+        ctx.lineWidth = Math.max(0.8, 1.1 * scaleY);
+        ctx.stroke();
+        ctx.strokeStyle = 'rgba(245, 182, 82, 0.34)';
+        ctx.beginPath();
+        ctx.moveTo(sx - rx * 0.62, sy - ry * 0.35);
+        ctx.lineTo(sx + rx * 0.28, sy - ry * 0.55);
+        ctx.stroke();
+      });
+
+      ctx.restore();
+    });
+    ctx.restore();
+  }, []);
+
   const drawOpeningPyramidFacade = useCallback((ctx, cameraX, _now = 0, prop = null) => {
     void _now;
     const facade = openingPyramidFacadeRef.current;
@@ -8532,6 +8719,7 @@ export default function ExpeditionJourney({
     ctx.filter = 'sepia(4%) saturate(98%) brightness(91%) contrast(102%)';
     ctx.drawImage(facade.image, x, y, width, height);
     ctx.filter = 'none';
+    drawOpeningPyramidFacadeStairConcealment(ctx, x, y, width, height);
     const baseFade = ctx.createLinearGradient(0, GROUND_Y - 52, 0, GROUND_Y + 24);
     baseFade.addColorStop(0, 'rgba(171, 103, 42, 0)');
     baseFade.addColorStop(0.74, 'rgba(171, 103, 42, 0.24)');
@@ -8540,7 +8728,7 @@ export default function ExpeditionJourney({
     ctx.fillRect(Math.max(-40, x), GROUND_Y - 52, Math.min(width + 80, CANVAS_WIDTH + 80), 82);
     ctx.restore();
     return true;
-  }, []);
+  }, [drawOpeningPyramidFacadeStairConcealment]);
 
   const drawOpeningPyramidMasonryBack = useCallback((ctx, cameraX, now = 0, current = stateRef.current) => {
     if (openingPyramidFacadeRef.current.loaded && openingPyramidFacadeRef.current.image) {
@@ -20228,9 +20416,16 @@ export default function ExpeditionJourney({
             />
 
             {import.meta.env.DEV && propEditorUi.enabled && (
-              <div className="journey-prop-editor-panel" aria-live="polite">
+              <div className="journey-prop-editor-panel" aria-live="polite" ref={setEditorPanelNode}>
+                <div
+                  className="journey-prop-editor-header"
+                  onPointerDown={handleEditorPanelDragStart}
+                  onDoubleClick={resetEditorPanelPosition}
+                  title="Drag to move · double-click to reset position"
+                >
                 <div className="journey-prop-editor-topline">
                   <strong>EDIT MODE</strong>
+                  <span className="journey-prop-editor-drag-hint" aria-hidden="true">⠿ drag</span>
                   <span>{propEditorUi.gridSnap ? `Grid ${propEditorUi.gridSize}` : 'Free move'}</span>
                 </div>
                 <div className="journey-prop-editor-actions" aria-label="Editor actions">
@@ -20286,6 +20481,7 @@ export default function ExpeditionJourney({
                   >
                     {propEditorUi.selectedLocked ? 'Unlock' : 'Lock'}
                   </button>
+                </div>
                 </div>
                 {propEditorUi.selectedLockKey && (
                   <div className="journey-prop-editor-empty">

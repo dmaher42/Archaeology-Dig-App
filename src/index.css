@@ -15266,7 +15266,7 @@ main {
   max-height: min(39rem, calc(100% - 1.24rem));
   overflow: auto;
   transform: none;
-  padding: 0.54rem 0.64rem;
+  padding: 0 0.64rem 0.62rem;
   border: 1px solid rgba(94, 234, 212, 0.42);
   border-radius: 6px;
   background: rgba(8, 13, 22, 0.86);
@@ -15275,6 +15275,42 @@ main {
   backdrop-filter: blur(8px);
   pointer-events: auto;
   scrollbar-gutter: stable;
+}
+
+.journey-prop-editor-panel::-webkit-scrollbar {
+  width: 0.5rem;
+}
+
+.journey-prop-editor-panel::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(94, 234, 212, 0.28);
+}
+
+.journey-prop-editor-header {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  margin: 0 -0.64rem 0;
+  padding: 0.5rem 0.64rem 0.44rem;
+  background: linear-gradient(rgba(8, 13, 22, 0.98), rgba(8, 13, 22, 0.92));
+  border-bottom: 1px solid rgba(94, 234, 212, 0.2);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.journey-prop-editor-header:active {
+  cursor: grabbing;
+}
+
+.journey-prop-editor-header button {
+  cursor: pointer;
+}
+
+.journey-prop-editor-drag-hint {
+  color: rgba(94, 234, 212, 0.66) !important;
+  font-size: 0.6rem !important;
+  letter-spacing: 0.04em;
 }
 
 .journey-prop-editor-topline,
@@ -15302,9 +15338,9 @@ main {
 
 .journey-prop-editor-actions {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.32rem;
-  margin-top: 0.48rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.34rem;
+  margin-top: 0.44rem;
 }
 
 .journey-prop-editor-actions button {
@@ -15377,11 +15413,26 @@ main {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.34rem 0.5rem;
-  margin-top: 0.48rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.54rem;
+  border: 1px solid rgba(94, 234, 212, 0.18);
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.42);
 }
 
 .journey-prop-editor-readout div {
   min-width: 0;
+}
+
+.journey-prop-editor-readout div:first-child {
+  grid-column: 1 / -1;
+  padding-bottom: 0.34rem;
+  border-bottom: 1px solid rgba(94, 234, 212, 0.14);
+}
+
+.journey-prop-editor-readout div:first-child strong {
+  font-size: 0.78rem;
+  color: #5eead4;
 }
 
 .journey-prop-editor-readout span {
