@@ -119,7 +119,15 @@ Roughly highest-impact first. These are observations, not bugs; the editor funct
 >   the raw-CSS **Filter** field is a full-width monospace row (was overflowing/wrapping);
 >   inputs are `box-sizing:border-box` so they can't spill. CSS scoped to
 >   `.journey-prop-editor-contact-row`. (JSX: added `journey-prop-editor-contact-asset` class.)
-> - ⏭️ Remaining: **#4 redundant transform info**.
+> - ✅ **#4 done** — redundant transform info. The **prop** readout card was 16 read-only rows
+>   that all duplicated editable controls below it (X/Y/Y offset/Width/Height/Scale/Rotation/
+>   Flip/Depth/Layer/Z-index in "Transform", Brightness in "Colour & Light"). Trimmed it to a
+>   3-row **identity card** (category/id, Type, Room — the only read-only-only fields); class
+>   `journey-prop-editor-readout-identity`. Editable sections are now the single source of truth.
+> - ⏭️ Optional follow-up: the **other** selection types (platform/hazard/arch/lair/checkpoint)
+>   still have a *milder* version of the same duplication. Platform is safe to trim the same way
+>   (X/Y/Width/Height/Layer/Z-index are editable below); hazard keeps read-only-only values
+>   (Damage/Cooldown/Burial) so trim carefully. Not done — confirm with user if wanted.
 
 1. **Panel covers the work area.** `.journey-prop-editor-panel` is `position:absolute;
    top:0.62rem; left:0.72rem; width:min(21rem,…)`. At the displayed canvas size it covers

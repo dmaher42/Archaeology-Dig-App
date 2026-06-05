@@ -415,6 +415,8 @@ const PLAYER_ATTACK_RANGE = 92;
 const PLAYER_ATTACK_HEIGHT = 36;
 const PLAYER_ATTACK_BACK_REACH = 10;
 const PLAYER_ATTACK_FINISHER_ROW = 'attack_pick_swing_sweep';
+const PLAYER_COMBO_SLASH_EFFECT_SRC = 'assets/expedition/player/asha-combo-slash-effect-2026-06-06.png';
+const PLAYER_COMBO_SLASH_EFFECT_VERSION = 'asha-combo-slash-effect-2026-06-06';
 const PLAYER_FINISHER_SLASH_EFFECT_SRC = 'assets/expedition/player/asha-finisher-slash-effect-2026-06-06.png';
 const PLAYER_FINISHER_SLASH_EFFECT_VERSION = 'asha-finisher-slash-effect-2026-06-06';
 const PLAYER_ATTACK_COMBO_TIMINGS = [
@@ -3391,6 +3393,7 @@ export default function ExpeditionJourney({
   const bossSpriteAssetsRef = useRef(createBossSpriteState());
   const collectibleSpriteAssetsRef = useRef(createCollectibleSpriteState());
   const playerWeaponSpriteRef = useRef(createPlayerWeaponSpriteState());
+  const playerComboSlashEffectRef = useRef({ image: null, loaded: false, failed: false, version: PLAYER_COMBO_SLASH_EFFECT_VERSION });
   const playerFinisherSlashEffectRef = useRef({ image: null, loaded: false, failed: false, version: PLAYER_FINISHER_SLASH_EFFECT_VERSION });
   const dynamicWorldAssetsRef = useRef(createDynamicWorldAssetState());
   const markerSpriteAssetsRef = useRef(createMarkerSpriteState());
@@ -20809,22 +20812,10 @@ export default function ExpeditionJourney({
                   </div>
                 )}
                 {propEditorUi.selectedProp ? (
-                  <div className="journey-prop-editor-readout">
+                  <div className="journey-prop-editor-readout journey-prop-editor-readout-identity">
                     <div><span>{propEditorUi.selectedProp.category}</span><strong>{propEditorUi.selectedProp.id}</strong></div>
                     <div><span>Type</span><strong>{propEditorUi.selectedProp.type}</strong></div>
                     <div><span>Room</span><strong>{propEditorUi.selectedProp.roomId}</strong></div>
-                    <div><span>X</span><strong>{propEditorUi.selectedProp.x}</strong></div>
-                    <div><span>Y</span><strong>{propEditorUi.selectedProp.y}</strong></div>
-                    <div><span>Y offset</span><strong>{propEditorUi.selectedProp.yOffset}</strong></div>
-                    <div><span>Width</span><strong>{propEditorUi.selectedProp.width}</strong></div>
-                    <div><span>Height</span><strong>{propEditorUi.selectedProp.height}</strong></div>
-                    <div><span>Scale</span><strong>{propEditorUi.selectedProp.scale.toFixed(2)}</strong></div>
-                    <div><span>Rotation</span><strong>{Math.round(propEditorUi.selectedProp.rotation)} deg</strong></div>
-                    <div><span>Flip</span><strong>{[propEditorUi.selectedProp.mirrorX ? 'H' : null, propEditorUi.selectedProp.mirrorY ? 'V' : null].filter(Boolean).join('+') || 'none'}</strong></div>
-                    <div><span>Brightness</span><strong>{propEditorUi.selectedProp.brightness.toFixed(2)}</strong></div>
-                    <div><span>Depth</span><strong>{propEditorUi.selectedProp.depth}</strong></div>
-                    <div><span>Layer</span><strong>{propEditorUi.selectedProp.layer}</strong></div>
-                    <div><span>Z-index</span><strong>{propEditorUi.selectedProp.zIndex}</strong></div>
                   </div>
                 ) : propEditorUi.selectedHazard ? (
                   <div className="journey-prop-editor-readout">
