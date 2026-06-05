@@ -40,6 +40,35 @@ def tone(freq: float, t: float, wave_type: str = "sine") -> float:
     return math.sin(phase)
 
 
+def soft_clip(value: float, drive: float = 1.7) -> float:
+    return math.tanh(value * drive) / math.tanh(drive)
+
+
+def cinematic_sub_stack(t: float, duration: float, base_freq: float, movement: float = 1.0) -> float:
+    drift = math.sin(t * 0.73 * movement) * 2.4 + math.sin(t * 1.91 * movement) * 1.35
+    pitch = max(18.0, base_freq + drift)
+    layer_a = tone(pitch, t) * 0.42
+    layer_b = tone(pitch * 0.505, t + 0.003) * 0.34
+    layer_c = tone(pitch * 1.015, t + 0.011, "triangle") * 0.18
+    return (layer_a + layer_b + layer_c) * envelope(t, duration, 0.38, 1.16)
+
+
+def air_mass_texture(t: float, duration: float, rng: random.Random, low: float, gain: float = 1.0) -> float:
+    breathing = low * envelope(t, duration, 0.5, 1.45) * 0.22
+    high_dust = noise(rng) * envelope(t, duration, 0.9, 2.2) * 0.035
+    room_sway = tone(118 + math.sin(t * 2.7) * 36, t, "triangle") * envelope(t, duration, 0.75, 1.8) * 0.025
+    return (breathing + high_dust + room_sway) * gain
+
+
+def stone_stress_crackle(t: float, duration: float, rng: random.Random, offsets: tuple[float, ...] = ()) -> float:
+    crackle = noise(rng) * envelope(t, duration, 0.08, 2.8) * 0.018
+    for offset in offsets:
+        local = max(0.0, t - offset)
+        crackle += noise(rng) * envelope(local, 0.11, 0.001, 5.4) * 0.075
+        crackle += tone(420 + (offset * 180) + math.sin(local * 70) * 72, local, "triangle") * envelope(local, 0.16, 0.002, 4.2) * 0.025
+    return crackle
+
+
 def render(duration: float, fn) -> list[float]:
     rng = random.Random(SEED + int(duration * 1000))
     total = int(SAMPLE_RATE * duration)
@@ -257,6 +286,36 @@ def final_guardian_dread(t: float, duration: float, rng: random.Random, low: flo
     return bell + sub + throat
 
 
+def void_bass_swell(t: float, duration: float, rng: random.Random, low: float) -> float:
+    rise = min(1.0, t / max(duration * 0.72, 0.1))
+    sub = cinematic_sub_stack(t, duration, 30 + rise * 3.5, 0.86) * 0.72
+    undertow = air_mass_texture(t, duration, rng, low, 1.1)
+    inverted_tail = tone(212 - rise * 36 + math.sin(t * 4.2) * 14, t, "saw") * envelope(t, duration, 1.1, 1.42) * 0.045
+    shimmer = tone(610 + math.sin(t * 3.1) * 180, t, "triangle") * envelope(t, duration, 1.45, 1.9) * 0.018
+    return soft_clip(sub + undertow + inverted_tail + shimmer, 2.15) * 0.86
+
+
+def underworld_heart_drone(t: float, duration: float, rng: random.Random, low: float) -> float:
+    beat = 0.0
+    for offset in (0.08, 0.38, 1.48, 1.78, 2.88, 3.18, 4.18):
+        local = max(0.0, t - offset)
+        beat += cinematic_sub_stack(local, 0.72, 39 - 7 * min(local, 0.42), 1.25) * envelope(local, 0.68, 0.004, 2.45) * 0.45
+    drone = cinematic_sub_stack(t, duration, 27, 0.52) * 0.42
+    breath = air_mass_texture(t, duration, rng, low, 1.25)
+    pressure = tone(96 + math.sin(t * 5.8) * 24, t, "saw") * envelope(t, duration, 0.62, 1.7) * 0.035
+    return soft_clip(beat + drone + breath + pressure, 2.05) * 0.88
+
+
+def reality_tear_rumble(t: float, duration: float, rng: random.Random, low: float) -> float:
+    progress = min(t / max(duration, 0.1), 1.0)
+    sub = cinematic_sub_stack(t, duration, 34 - progress * 5.5, 1.8) * 0.68
+    rip = tone(58 - 24 * progress + math.sin(t * 13) * 8, t, "saw") * envelope(t, duration, 0.035, 1.18) * 0.2
+    air = air_mass_texture(t, duration, rng, low, 0.9)
+    crackle = stone_stress_crackle(t, duration, rng, (0.18, 0.48, 0.9, 1.33, 1.86, 2.42))
+    harmonic = tone(880 + math.sin(t * 9.5) * 260, t, "triangle") * envelope(t, duration, 0.22, 2.35) * 0.018
+    return soft_clip(sub + rip + air + crackle + harmonic, 2.35) * 0.9
+
+
 def main() -> None:
     specs = {
         "land-soft.wav": (0.36, land_soft),
@@ -285,6 +344,9 @@ def main() -> None:
         "bridge-stone-crack.wav": (1.4, bridge_stone_crack),
         "unstable-excavation-tremor.wav": (2.2, unstable_excavation_tremor),
         "final-guardian-dread.wav": (2.8, final_guardian_dread),
+        "void-bass-swell.wav": (4.4, void_bass_swell),
+        "underworld-heart-drone.wav": (4.8, underworld_heart_drone),
+        "reality-tear-rumble.wav": (3.2, reality_tear_rumble),
     }
     for filename, (duration, fn) in specs.items():
       write_wav(OUT_DIR / filename, render(duration, fn))

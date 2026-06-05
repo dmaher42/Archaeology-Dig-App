@@ -5,6 +5,7 @@ import test from 'node:test';
 const journeyDataSource = readFileSync(new URL('./journeyLevelData.js', import.meta.url), 'utf8');
 const journeyComponentSource = readFileSync(new URL('../ExpeditionJourney.jsx', import.meta.url), 'utf8');
 const appSource = readFileSync(new URL('../../App.jsx', import.meta.url), 'utf8');
+const sfxGeneratorSource = readFileSync(new URL('../../../scripts/generate_expedition_sfx.py', import.meta.url), 'utf8');
 const egyptAudioTracksUrl = new URL('./egyptAudioTracks.js', import.meta.url);
 const egyptAudioTracksSource = existsSync(egyptAudioTracksUrl)
   ? readFileSync(egyptAudioTracksUrl, 'utf8')
@@ -24,6 +25,12 @@ const requiredEventCues = [
   ['escape-warning', 'structureRipping'],
   ['escape-unstable-excavation', 'unstableExcavationTremor'],
   ['final-boundary', 'finalGuardianDread'],
+];
+
+const requiredAmbientBassCues = [
+  'voidBassSwell',
+  'underworldHeartDrone',
+  'realityTearRumble',
 ];
 
 test('Egypt Journey dramatic events declare explicit SFX cue keys', () => {
@@ -54,6 +61,7 @@ test('Egypt SFX catalog registers the dramatic cue keys without crowding App.jsx
     'finalGuardianDread',
     'combatDangerHit',
     'ashaHurtBreath',
+    ...requiredAmbientBassCues,
   ].forEach((sfxKey) => {
     assert.match(egyptAudioTracksSource, new RegExp(`${sfxKey}:\\s*\\{`), `${sfxKey} should be configured`);
   });
@@ -65,4 +73,21 @@ test('Journey runtime plays event cue keys and schedules rare ambient threat sou
   assert.match(journeyComponentSource, /current\.ambientDramaTimer/);
   assert.match(journeyComponentSource, /getAmbientDramaSfxKey/);
   assert.match(journeyComponentSource, /audioControls\?\.playExpeditionSfx\?\.\(ambientDramaSfxKey/);
+  requiredAmbientBassCues.forEach((sfxKey) => {
+    assert.match(journeyComponentSource, new RegExp(`AMBIENT_DRAMA_SFX_BY_SECTION[\\s\\S]*?'${sfxKey}'`), `${sfxKey} should be scheduled as ambient drama`);
+  });
+});
+
+test('otherworldly ambience generator uses layered production-style sound design helpers', () => {
+  ['soft_clip', 'cinematic_sub_stack', 'air_mass_texture', 'stone_stress_crackle'].forEach((helperName) => {
+    assert.match(sfxGeneratorSource, new RegExp(`def ${helperName}\\(`), `${helperName} should exist`);
+  });
+  ['void_bass_swell', 'underworld_heart_drone', 'reality_tear_rumble'].forEach((fnName) => {
+    const fnStart = sfxGeneratorSource.indexOf(`def ${fnName}(`);
+    const nextFnStart = sfxGeneratorSource.indexOf('\ndef ', fnStart + 1);
+    const fnBody = sfxGeneratorSource.slice(fnStart, nextFnStart === -1 ? undefined : nextFnStart);
+    assert.match(fnBody, /cinematic_sub_stack\(/, `${fnName} should layer detuned sub weight`);
+    assert.match(fnBody, /air_mass_texture\(/, `${fnName} should layer noisy air or room movement`);
+    assert.match(fnBody, /soft_clip\(/, `${fnName} should saturate instead of sounding like raw tones`);
+  });
 });

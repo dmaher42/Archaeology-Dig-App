@@ -2496,11 +2496,11 @@ const ENEMY_HIT_SFX_BY_TYPE = {
 const getEnemyHitSfxKey = (enemy) => ENEMY_HIT_SFX_BY_TYPE[enemy?.type] || 'enemyHit';
 
 const AMBIENT_DRAMA_SFX_BY_SECTION = {
-  'desert-entry': ['distantRockfall', 'distantMonsterCall'],
-  'ruined-temple': ['templeStoneGroan', 'distantRuinCollapse', 'distantMonsterCall'],
-  catacombs: ['distantMonsterCall', 'templeStoneGroan'],
-  'escape-sequence': ['structureRipping', 'majorCaveIn', 'distantRuinCollapse'],
-  'dig-site-entrance': ['distantMonsterCall', 'distantRockfall'],
+  'desert-entry': ['distantRockfall', 'distantMonsterCall', 'voidBassSwell'],
+  'ruined-temple': ['templeStoneGroan', 'distantRuinCollapse', 'underworldHeartDrone', 'distantMonsterCall'],
+  catacombs: ['distantMonsterCall', 'underworldHeartDrone', 'voidBassSwell'],
+  'escape-sequence': ['structureRipping', 'majorCaveIn', 'realityTearRumble', 'distantRuinCollapse'],
+  'dig-site-entrance': ['distantMonsterCall', 'voidBassSwell', 'realityTearRumble'],
 };
 
 const getAmbientDramaSfxKey = (current, sectionId) => {

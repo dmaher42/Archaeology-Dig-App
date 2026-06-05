@@ -93,6 +93,27 @@ export const EGYPT_AUDIO_TRACKS = {
         { path: 'assets/expedition/sfx/generated/distant-monster-call.wav', volume: 0.16, delay: 600, playbackRate: 0.64 },
       ],
     },
+    voidBassSwell: {
+      cooldownMs: 26000,
+      clips: [
+        { path: 'assets/expedition/sfx/generated/void-bass-swell.wav', volume: 0.68, playbackRate: 0.78 },
+        { path: 'assets/expedition/sfx/opening/opening-deep-rumble.ogg', volume: 0.18, delay: 320, playbackRate: 0.32 },
+      ],
+    },
+    underworldHeartDrone: {
+      cooldownMs: 28000,
+      clips: [
+        { path: 'assets/expedition/sfx/generated/underworld-heart-drone.wav', volume: 0.62, playbackRate: 0.82 },
+        { path: 'assets/expedition/sfx/generated/bass-impact.wav', volume: 0.16, delay: 1220, playbackRate: 0.5 },
+      ],
+    },
+    realityTearRumble: {
+      cooldownMs: 22000,
+      clips: [
+        { path: 'assets/expedition/sfx/generated/reality-tear-rumble.wav', volume: 0.72, playbackRate: 0.76 },
+        { path: 'assets/expedition/sfx/generated/structure-ripping.wav', volume: 0.18, delay: 520, playbackRate: 0.62 },
+      ],
+    },
     combatDangerHit: {
       cooldownMs: 200,
       clips: [
