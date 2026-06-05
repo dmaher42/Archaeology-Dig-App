@@ -1393,6 +1393,21 @@ export default function App() {
     setPhase('expedition');
   };
 
+  // Dev-only quick play: jump straight into the desert-entry journey gameplay,
+  // bypassing the expedition selector, archive prologue, briefing and opening
+  // cinematic. Reuses the same `?play` machinery as the URL bookmark — we set
+  // the flag in the URL so ExpeditionMode/ExpeditionJourney's skip effects pick
+  // it up on mount. handleBackToMenu clears it again so the normal "Launch
+  // Expedition" button is unaffected afterwards.
+  const handleQuickPlay = () => {
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.set('play', '1');
+      window.history.replaceState({}, '', url);
+    }
+    handleStartExpedition();
+  };
+
   const handleExpeditionMusicToggle = () => {
     setExpeditionMusicEnabled((enabled) => {
       if (enabled) baseAudioControls.stopExpeditionMusic?.();
@@ -1419,6 +1434,13 @@ export default function App() {
   const handleBackToMenu = () => {
     audioControls.stopExpeditionMusic?.();
     audioControls.stopExpeditionLoopingSfx?.();
+    // Clear the quick-play flag so the normal "Launch Expedition" button does
+    // not start skipping the prologue/briefing after a quick-play session.
+    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('play')) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('play');
+      window.history.replaceState({}, '', url);
+    }
     setPhase('menu');
   };
 
@@ -1433,6 +1455,7 @@ export default function App() {
             onStartTraining={handleStartTraining}
             onStartBureau={handleStartBureau}
             onStartExpedition={handleStartExpedition}
+            onQuickPlay={handleQuickPlay}
             savedGames={savedGames}
             onResumeInvestigation={() => applySavedSession(savedGames.archaeology)}
             onResumeBureau={() => applySavedSession(savedGames.bureau)}

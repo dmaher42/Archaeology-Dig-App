@@ -34,7 +34,8 @@ export function ActivityMenu({
   onStartTraining, 
   onStartBureau, 
   onStartExpedition,
-  savedGames, 
+  onQuickPlay = () => {},
+  savedGames,
   onResumeInvestigation, 
   onResumeBureau,
   onSiteSelectionChange = () => {},
@@ -324,6 +325,11 @@ export function ActivityMenu({
               <button type="button" className="premium-action-btn" onClick={onStartExpedition}>
                 Launch Expedition
               </button>
+              {import.meta.env.DEV && (
+                <button type="button" className="premium-action-btn secondary-btn" onClick={onQuickPlay}>
+                  Dev: Skip to Desert Entry
+                </button>
+              )}
             </div>
         </article>
       </div>
