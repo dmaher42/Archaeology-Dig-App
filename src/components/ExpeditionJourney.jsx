@@ -21352,7 +21352,7 @@ export default function ExpeditionJourney({
                       {(propEditorUi.selectedProp.groundContactLayer || []).map((entry, index) => (
                         <div className="journey-prop-editor-contact-row" key={`${propEditorUi.selectedProp.id}-contact-${index}`}>
                           <strong>Contact {index + 1}</strong>
-                          <label>
+                          <label className="journey-prop-editor-contact-asset">
                             <span>Asset key</span>
                             <input
                               type="text"

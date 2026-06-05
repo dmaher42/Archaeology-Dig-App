@@ -114,6 +114,11 @@ Roughly highest-impact first. These are observations, not bugs; the editor funct
 >   amber `.journey-prop-editor-lock-notice` banner with an inline **"🔓 Unlock to edit"**
 >   button (and an unlocked/relock variant). Replaces the tiny grey "Selected item is locked"
 >   line. Verified: click locked item → unlock → count 218→217.
+> - ✅ **#5 done** (new, user-flagged) — **Ground contact layers** section cleanup. The bare
+>   `<label>`s now get the panel's grid/uppercase-caption styling; Asset key spans 2 columns;
+>   the raw-CSS **Filter** field is a full-width monospace row (was overflowing/wrapping);
+>   inputs are `box-sizing:border-box` so they can't spill. CSS scoped to
+>   `.journey-prop-editor-contact-row`. (JSX: added `journey-prop-editor-contact-asset` class.)
 > - ⏭️ Remaining: **#4 redundant transform info**.
 
 1. **Panel covers the work area.** `.journey-prop-editor-panel` is `position:absolute;

@@ -15783,8 +15783,54 @@ main {
   text-transform: uppercase;
 }
 
+.journey-prop-editor-contact-row label {
+  display: grid;
+  gap: 0.16rem;
+  min-width: 0;
+  align-content: start;
+}
+
+.journey-prop-editor-contact-row label > span {
+  color: rgba(236, 254, 255, 0.58);
+  font-size: 0.58rem;
+  font-weight: 800;
+  line-height: 1.15;
+  text-transform: uppercase;
+}
+
+.journey-prop-editor-contact-row input,
+.journey-prop-editor-contact-row select {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 0.22rem 0.36rem;
+  border: 1px solid rgba(94, 234, 212, 0.36);
+  border-radius: 5px;
+  background: rgba(2, 6, 23, 0.78);
+  color: #ecfeff;
+  font: 800 0.72rem 'Outfit', sans-serif;
+}
+
+.journey-prop-editor-contact-row .journey-prop-editor-contact-asset {
+  grid-column: span 2;
+}
+
+.journey-prop-editor-contact-row .journey-prop-editor-checkbox {
+  align-content: start;
+}
+
+.journey-prop-editor-contact-row .journey-prop-editor-checkbox input {
+  width: 1rem;
+  height: 1rem;
+}
+
 .journey-prop-editor-contact-row .journey-prop-editor-contact-filter {
-  grid-column: span 3;
+  grid-column: 1 / -1;
+}
+
+.journey-prop-editor-contact-row .journey-prop-editor-contact-filter input {
+  font: 700 0.66rem 'Roboto Mono', ui-monospace, 'Courier New', monospace;
+  letter-spacing: -0.01em;
 }
 
 .journey-prop-editor-contact-remove {
