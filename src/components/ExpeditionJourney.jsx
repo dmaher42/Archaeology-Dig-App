@@ -2491,6 +2491,24 @@ const ENEMY_HIT_SFX_BY_TYPE = {
 
 const getEnemyHitSfxKey = (enemy) => ENEMY_HIT_SFX_BY_TYPE[enemy?.type] || 'enemyHit';
 
+const AMBIENT_DRAMA_SFX_BY_SECTION = {
+  'desert-entry': ['distantRockfall', 'distantMonsterCall'],
+  'ruined-temple': ['templeStoneGroan', 'distantRuinCollapse', 'distantMonsterCall'],
+  catacombs: ['distantMonsterCall', 'templeStoneGroan'],
+  'escape-sequence': ['structureRipping', 'majorCaveIn', 'distantRuinCollapse'],
+  'dig-site-entrance': ['distantMonsterCall', 'distantRockfall'],
+};
+
+const getAmbientDramaSfxKey = (current, sectionId) => {
+  const cues = AMBIENT_DRAMA_SFX_BY_SECTION[sectionId] || AMBIENT_DRAMA_SFX_BY_SECTION['desert-entry'];
+  if (!cues?.length) return null;
+  const pressure = current?.resources?.stamina <= 30 || sectionId === 'escape-sequence' || current?.bossDomain
+    ? 1
+    : 0;
+  const index = Math.floor(Math.random() * cues.length + pressure) % cues.length;
+  return cues[index];
+};
+
 const SAND_TRAP_HAZARD_IDS = new Set([
   'sealed-sand',
   'sand-pit',
@@ -3278,6 +3296,7 @@ export default function ExpeditionJourney({
     selectedPaletteKey: null,
     selectedPaletteCategory: 'prop',
     showTrapTriggers: true,
+    previewMode: false,
     floorPickMode: false,
     createdProps: [],
     createdPlatforms: [],
@@ -3321,6 +3340,7 @@ export default function ExpeditionJourney({
     selectedPaletteKey: null,
     selectedPaletteCategory: 'prop',
     showTrapTriggers: true,
+    previewMode: false,
     floorPickMode: false,
     palette: [],
     selectedLockKey: null,
@@ -4155,6 +4175,7 @@ export default function ExpeditionJourney({
       selectedPaletteKey: editor.selectedPaletteKey,
       selectedPaletteCategory: editor.selectedPaletteCategory,
       showTrapTriggers: editor.showTrapTriggers,
+      previewMode: editor.previewMode,
       floorPickMode: editor.floorPickMode,
       palette,
       selectedLockKey,
@@ -14832,6 +14853,26 @@ export default function ExpeditionJourney({
   const drawPropPlacementEditorOverlay = useCallback((ctx, current, cameraX) => {
     const editor = propPlacementEditorRef.current;
     if (!import.meta.env.DEV || !editor.enabled) return;
+    // Preview mode: suppress all editor chrome (selection border, tinted overlay,
+    // corner markers, labels, grid) so the object's real appearance is visible
+    // without leaving the editor. A small badge reminds how to toggle back.
+    if (editor.previewMode) {
+      ctx.save();
+      ctx.globalAlpha = 0.9;
+      ctx.fillStyle = 'rgba(8, 13, 22, 0.78)';
+      ctx.strokeStyle = 'rgba(94, 234, 212, 0.7)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(CANVAS_WIDTH - 150, 12, 138, 24, 6);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#ecfeff';
+      ctx.font = '800 11px Outfit, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('PREVIEW — press H', CANVAS_WIDTH - 140, 28);
+      ctx.restore();
+      return;
+    }
     ctx.save();
     if (editor.gridSnap) {
       const gridSize = clamp(Number(editor.gridSize) || DEFAULT_JOURNEY_PROP_EDITOR_GRID_SIZE, 2, 128);
@@ -17241,7 +17282,9 @@ export default function ExpeditionJourney({
         current.cameraShakeTimer = ev.duration * 0.4;
         current.cameraShakeStrength = ev.shake;
         current.notice = ev.message;
-        if (ev.id === 'scarab-queen-lair-dread-wind') {
+        if (ev.sfxKey) {
+          audioControls?.playExpeditionSfx?.(ev.sfxKey, { volume: ev.sfxVolume ?? 1 });
+        } else if (ev.id === 'scarab-queen-lair-dread-wind') {
           audioControls?.playExpeditionSfx?.('scarabQueenApproachAtmosphere');
         } else if (ev.type === 'shrine-glow') {
           audioControls?.playExpeditionStinger?.('evidenceDiscovery');
@@ -17264,6 +17307,22 @@ export default function ExpeditionJourney({
       }
     } else if (player.x <= 2825) {
       current.pressurePulseTimer = null;
+    }
+
+    if (!inInteriorChamberScene && !current.openingThresholdScene?.lockMovement) {
+      current.ambientDramaTimer ??= 24 + Math.random() * 28;
+      current.ambientDramaTimer -= dt;
+      if (current.ambientDramaTimer <= 0) {
+        const ambientDramaSfxKey = getAmbientDramaSfxKey(current, section.id);
+        if (ambientDramaSfxKey) {
+          audioControls?.playExpeditionSfx?.(ambientDramaSfxKey, { volume: section.id === 'escape-sequence' ? 0.72 : 0.46 });
+        }
+        current.ambientDramaTimer = section.id === 'escape-sequence'
+          ? 18 + Math.random() * 22
+          : 34 + Math.random() * 44;
+      }
+    } else {
+      current.ambientDramaTimer = null;
     }
 
     const forgottenMuralPlayerCenterX = player.x + player.width / 2;
@@ -18512,6 +18571,10 @@ export default function ExpeditionJourney({
         maxTimer: 0.32,
       });
       audioControls?.playExpeditionSfx?.('playerHit');
+      if (!scopedJourneyAssetPacks.isChinaJourney && !scopedJourneyAssetPacks.isRomeJourney) {
+        audioControls?.playExpeditionSfx?.('combatDangerHit', { volume: Math.min(1.12, 0.78 + amount / 28) });
+        audioControls?.playExpeditionSfx?.('ashaHurtBreath', { volume: amount >= 8 ? 0.72 : 0.5 });
+      }
       audioControls?.playError?.();
       if (options.canOverwhelm && newStamina < 0) triggerJourneyRescue(FIELD_RESCUE_STAMINA_REASON);
     };
@@ -20007,6 +20070,12 @@ export default function ExpeditionJourney({
         refreshPropEditorUi();
         return;
       }
+      if (event.code === 'KeyH' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        event.preventDefault();
+        editor.previewMode = !editor.previewMode;
+        refreshPropEditorUi();
+        return;
+      }
       if ((event.ctrlKey || event.metaKey) && event.code === 'KeyZ') {
         event.preventDefault();
         if (event.shiftKey) redoEditorChange();
@@ -20571,6 +20640,17 @@ export default function ExpeditionJourney({
                     }}
                   >
                     Triggers
+                  </button>
+                  <button
+                    type="button"
+                    className={propEditorUi.previewMode ? 'is-selected' : ''}
+                    title="Hide selection border + overlay to preview the object's real look (H)"
+                    onClick={() => {
+                      propPlacementEditorRef.current.previewMode = !propPlacementEditorRef.current.previewMode;
+                      refreshPropEditorUi();
+                    }}
+                  >
+                    {propEditorUi.previewMode ? 'Preview On' : 'Preview'}
                   </button>
                   <button
                     type="button"
