@@ -15525,6 +15525,97 @@ main {
   accent-color: #facc15;
 }
 
+.journey-prop-editor-color {
+  display: grid;
+  gap: 0.46rem;
+  margin-top: 0.44rem;
+}
+
+.journey-prop-editor-color-presets {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.3rem;
+}
+
+.journey-prop-editor-color-presets button {
+  min-height: 1.7rem;
+  padding: 0.16rem 0.2rem;
+  border: 1px solid rgba(236, 254, 255, 0.18);
+  border-radius: 5px;
+  background: rgba(236, 254, 255, 0.07);
+  color: #ecfeff;
+  font: 900 0.6rem 'Outfit', sans-serif;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.journey-prop-editor-color-presets button:hover,
+.journey-prop-editor-color-presets button.is-selected {
+  border-color: rgba(94, 234, 212, 0.68);
+  background: rgba(20, 184, 166, 0.18);
+  color: #ccfbf1;
+}
+
+.journey-prop-editor-color-presets button.journey-prop-editor-color-reset {
+  border-color: rgba(248, 113, 113, 0.4);
+  color: #fecaca;
+}
+
+.journey-prop-editor-color-presets button.journey-prop-editor-color-reset:hover {
+  background: rgba(127, 29, 29, 0.32);
+}
+
+.journey-prop-editor-slider {
+  display: grid;
+  grid-template-columns: 4.3rem 1fr 2.3rem;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.journey-prop-editor-slider > span {
+  color: rgba(236, 254, 255, 0.6);
+  font-size: 0.58rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.journey-prop-editor-slider input[type='range'] {
+  width: 100%;
+  height: 0.9rem;
+  accent-color: #5eead4;
+  cursor: pointer;
+}
+
+.journey-prop-editor-slider output {
+  color: #fff7ed;
+  font: 800 0.66rem 'Space Mono', monospace;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.journey-prop-editor-color-advanced {
+  display: grid;
+  gap: 0.18rem;
+  margin-top: 0.1rem;
+}
+
+.journey-prop-editor-color-advanced span {
+  color: rgba(236, 254, 255, 0.46);
+  font-size: 0.54rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.journey-prop-editor-color-advanced input {
+  width: 100%;
+  padding: 0.22rem 0.36rem;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 5px;
+  background: rgba(2, 6, 23, 0.7);
+  color: rgba(236, 254, 255, 0.82);
+  font: 700 0.6rem 'Space Mono', monospace;
+}
+
 .journey-prop-editor-contact-controls {
   display: grid;
   grid-column: 1 / -1;

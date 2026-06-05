@@ -104,6 +104,9 @@ import {
   createJourneyPropPlacementExport,
   serializeJourneyPropEditorState,
   restoreJourneyPropEditorState,
+  parseColorGradeFilter,
+  composeColorGradeFilter,
+  JOURNEY_PROP_TINT_PRESETS,
   DEFAULT_JOURNEY_PROP_EDITOR_ROTATION_STEP,
   DEFAULT_JOURNEY_PROP_EDITOR_GRID_SIZE,
   DEFAULT_JOURNEY_PROP_EDITOR_SCALE_STEP,
@@ -636,7 +639,7 @@ const FORGOTTEN_MURAL_CHAMBER_SWITCH_SECONDS = FORGOTTEN_MURAL_CHAMBER_FADE_OUT_
 const FORGOTTEN_MURAL_CHAMBER_FADE_IN_SECONDS = 0.72;
 const OPENING_SCARAB_SEAL_IMAGE_SRC = 'assets/expedition/environment/egypt-opening/scarab-seal-ground-embedded.png';
 const OPENING_PYRAMID_CLIMB_PACK_SRC = 'assets/expedition/environment/egypt-opening/pyramid-climb-pack.png';
-const OPENING_PYRAMID_FACADE_SRC = 'assets/expedition/environment/egypt-opening/opening-pyramid-facade.png';
+const OPENING_PYRAMID_FACADE_SRC = 'assets/expedition/environment/egypt-opening/opening-pyramid-facade-no-stairs-v2.png';
 const OPENING_TRAP_DECAL_PACK_SRC = 'assets/expedition/environment/egypt-opening/opening-trap-decals.png';
 const OPENING_HAZARD_DECAL_PACK_SRC = 'assets/expedition/environment/egypt-opening/opening-hazard-decals.png';
 const OPENING_TOMB_STAIRWELL_SRC = 'assets/expedition/environment/egypt-opening/opening-tomb-stairwell.png';
@@ -668,9 +671,7 @@ const OPENING_CAMERA_REVEAL_PAN_SECONDS = 0.55;
 const OPENING_CAMERA_REVEAL_HOLD_SECONDS = 0.18;
 const OPENING_PYRAMID_ASSET_VERSION = 'opening-pyramid-climb-pack-2026-05-18';
 const ROUTE_GATE_ASSET_VERSION = 'imagegen-egypt-route-gate-arch-column-slab-2026-05-31';
-const OPENING_PYRAMID_FACADE_VERSION = 'opening-pyramid-facade-2026-05-19';
-const OPENING_PYRAMID_FACADE_ASSET_WIDTH = 1669;
-const OPENING_PYRAMID_FACADE_ASSET_HEIGHT = 917;
+const OPENING_PYRAMID_FACADE_VERSION = 'opening-pyramid-facade-no-stairs-v2-2026-06-05';
 const OPENING_TOMB_STAIRWELL_VERSION = 'opening-tomb-stairwell-generated-2026-05-21';
 const MUMMIFICATION_CHAMBER_EXTERIOR_VERSION = 'imagegen-mummification-chamber-visible-climb-structure-2026-05-29';
 const MUMMIFICATION_CHAMBER_INTERIOR_VERSION = 'imagegen-mummification-chamber-side-scroll-puzzle-ready-2026-05-31';
@@ -4027,6 +4028,7 @@ export default function ExpeditionJourney({
         mirrorX: Boolean(prop.mirrorX),
         mirrorY: Boolean(prop.mirrorY),
         brightness: Number.isFinite(prop.brightness) ? prop.brightness : 1,
+        colorGradeFilter: typeof prop.colorGradeFilter === 'string' ? prop.colorGradeFilter : '',
         depth: getStoryPropDepth(prop),
         layer: prop.layer || 'default',
         zIndex: Number.isFinite(prop.zIndex) ? prop.zIndex : 'auto',
@@ -4501,7 +4503,10 @@ export default function ExpeditionJourney({
       ...(editor.edits[selectedProp.id] || {}),
       [field]: value,
     };
-  }, [getPropEditorSelectedProp]);
+    // Controlled inputs (colour sliders) need the snapshot rebuilt so the new
+    // value flows back to them; uncontrolled inputs are unaffected by the refresh.
+    refreshPropEditorUi();
+  }, [getPropEditorSelectedProp, refreshPropEditorUi]);
 
   const updateSelectedPropEditorNumberField = useCallback((field, value, {
     min = -Infinity,
@@ -8604,103 +8609,6 @@ export default function ExpeditionJourney({
     return true;
   }, []);
 
-  const drawOpeningPyramidFacadeStairConcealment = useCallback((ctx, x, y, width, height) => {
-    const scaleX = width / OPENING_PYRAMID_FACADE_ASSET_WIDTH;
-    const scaleY = height / OPENING_PYRAMID_FACADE_ASSET_HEIGHT;
-    const toX = assetX => x + assetX * scaleX;
-    const toY = assetY => y + assetY * scaleY;
-    const regions = [
-      {
-        points: [[260, 806], [320, 836], [1018, 326], [984, 292]],
-        rowStart: 326,
-        rowEnd: 812,
-        rowStep: 34,
-        blockStart: 260,
-        blockEnd: 1018,
-        rubble: [[310, 800, 22], [430, 704, 18], [548, 612, 16], [675, 518, 20], [834, 392, 17], [955, 336, 15]],
-      },
-      {
-        points: [[1186, 736], [1276, 606], [1584, 525], [1604, 596], [1515, 701], [1324, 770]],
-        rowStart: 548,
-        rowEnd: 748,
-        rowStep: 32,
-        blockStart: 1200,
-        blockEnd: 1588,
-        rubble: [[1232, 720, 24], [1310, 675, 19], [1402, 638, 21], [1495, 600, 18], [1558, 560, 16]],
-      },
-    ];
-
-    ctx.save();
-    ctx.globalAlpha *= 0.72;
-    regions.forEach((region, regionIndex) => {
-      ctx.save();
-      ctx.beginPath();
-      region.points.forEach(([px, py], index) => {
-        const mappedX = toX(px);
-        const mappedY = toY(py);
-        if (index === 0) ctx.moveTo(mappedX, mappedY);
-        else ctx.lineTo(mappedX, mappedY);
-      });
-      ctx.closePath();
-      ctx.clip();
-
-      const gradient = ctx.createLinearGradient(0, toY(region.rowStart), 0, toY(region.rowEnd));
-      gradient.addColorStop(0, 'rgba(176, 106, 42, 0.62)');
-      gradient.addColorStop(0.46, 'rgba(107, 62, 28, 0.68)');
-      gradient.addColorStop(1, 'rgba(58, 34, 18, 0.64)');
-      ctx.fillStyle = gradient;
-      ctx.fillRect(toX(region.blockStart - 24), toY(region.rowStart - 20), toX(region.blockEnd + 24) - toX(region.blockStart - 24), toY(region.rowEnd + 20) - toY(region.rowStart - 20));
-
-      for (let rowY = region.rowStart; rowY <= region.rowEnd; rowY += region.rowStep) {
-        const stagger = ((rowY + regionIndex * 41) % 68) - 34;
-        ctx.strokeStyle = 'rgba(38, 25, 15, 0.54)';
-        ctx.lineWidth = Math.max(0.8, 1.2 * scaleY);
-        ctx.beginPath();
-        ctx.moveTo(toX(region.blockStart - 18), toY(rowY));
-        ctx.lineTo(toX(region.blockEnd + 18), toY(rowY + Math.sin(rowY * 0.06) * 2));
-        ctx.stroke();
-
-        for (let blockX = region.blockStart + stagger; blockX < region.blockEnd; blockX += 68) {
-          const chip = ((blockX + rowY + regionIndex * 29) % 13) - 6;
-          ctx.strokeStyle = 'rgba(47, 30, 17, 0.46)';
-          ctx.beginPath();
-          ctx.moveTo(toX(blockX), toY(rowY - region.rowStep + 4));
-          ctx.lineTo(toX(blockX + chip), toY(rowY - 3));
-          ctx.stroke();
-        }
-      }
-
-      ctx.globalCompositeOperation = 'screen';
-      ctx.globalAlpha *= 0.22;
-      ctx.fillStyle = 'rgba(255, 202, 103, 0.92)';
-      ctx.fillRect(toX(region.blockStart - 8), toY(region.rowStart - 2), toX(region.blockEnd) - toX(region.blockStart - 8), Math.max(2, 5 * scaleY));
-      ctx.globalCompositeOperation = 'source-over';
-      ctx.globalAlpha /= 0.22;
-
-      region.rubble.forEach(([stoneX, stoneY, radius], stoneIndex) => {
-        const sx = toX(stoneX);
-        const sy = toY(stoneY);
-        const rx = Math.max(4, radius * scaleX);
-        const ry = Math.max(3, radius * 0.62 * scaleY);
-        ctx.fillStyle = stoneIndex % 2 === 0 ? 'rgba(150, 91, 35, 0.82)' : 'rgba(107, 64, 28, 0.84)';
-        ctx.beginPath();
-        ctx.ellipse(sx, sy, rx, ry, -0.16, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = 'rgba(45, 28, 15, 0.5)';
-        ctx.lineWidth = Math.max(0.8, 1.1 * scaleY);
-        ctx.stroke();
-        ctx.strokeStyle = 'rgba(245, 182, 82, 0.34)';
-        ctx.beginPath();
-        ctx.moveTo(sx - rx * 0.62, sy - ry * 0.35);
-        ctx.lineTo(sx + rx * 0.28, sy - ry * 0.55);
-        ctx.stroke();
-      });
-
-      ctx.restore();
-    });
-    ctx.restore();
-  }, []);
-
   const drawOpeningPyramidFacade = useCallback((ctx, cameraX, _now = 0, prop = null) => {
     void _now;
     const facade = openingPyramidFacadeRef.current;
@@ -8719,7 +8627,6 @@ export default function ExpeditionJourney({
     ctx.filter = 'sepia(4%) saturate(98%) brightness(91%) contrast(102%)';
     ctx.drawImage(facade.image, x, y, width, height);
     ctx.filter = 'none';
-    drawOpeningPyramidFacadeStairConcealment(ctx, x, y, width, height);
     const baseFade = ctx.createLinearGradient(0, GROUND_Y - 52, 0, GROUND_Y + 24);
     baseFade.addColorStop(0, 'rgba(171, 103, 42, 0)');
     baseFade.addColorStop(0.74, 'rgba(171, 103, 42, 0.24)');
@@ -8728,7 +8635,7 @@ export default function ExpeditionJourney({
     ctx.fillRect(Math.max(-40, x), GROUND_Y - 52, Math.min(width + 80, CANVAS_WIDTH + 80), 82);
     ctx.restore();
     return true;
-  }, [drawOpeningPyramidFacadeStairConcealment]);
+  }, []);
 
   const drawOpeningPyramidMasonryBack = useCallback((ctx, cameraX, now = 0, current = stateRef.current) => {
     if (openingPyramidFacadeRef.current.loaded && openingPyramidFacadeRef.current.image) {
@@ -20827,32 +20734,107 @@ export default function ExpeditionJourney({
                       </label>
                     </div>
 
-                    <div className="journey-prop-editor-group-header">Visual Tuning</div>
-                    <div className="journey-prop-editor-controls">
-                      <label>
-                        <span>Brightness</span>
-                        <input
-                          type="number"
-                          min="0.4"
-                          max="1.8"
-                          step="0.05"
-                          defaultValue={Number((propEditorUi.selectedProp.brightness ?? 1).toFixed(2))}
-                          onChange={(event) => {
-                            const nextBrightness = clamp(Number(event.target.value), 0.4, 1.8);
-                            if (Number.isFinite(nextBrightness)) updateSelectedPropEditorNumberField('brightness', nextBrightness, { min: 0.4, max: 1.8, decimals: 2 });
-                          }}
-                        />
-                      </label>
-                      <label>
-                        <span>Colour grade</span>
-                        <input
-                          key={`${propEditorUi.selectedProp.id}-colorGradeFilter`}
-                          type="text"
-                          defaultValue={propEditorUi.selectedProp.colorGradeFilter ?? ''}
-                          onChange={(event) => updateSelectedPropEditorField('colorGradeFilter', event.target.value)}
-                        />
-                      </label>
-                    </div>
+                    <div className="journey-prop-editor-group-header">Colour &amp; Light</div>
+                    {(() => {
+                      const grade = parseColorGradeFilter(propEditorUi.selectedProp.colorGradeFilter);
+                      const brightnessValue = Number((propEditorUi.selectedProp.brightness ?? 1).toFixed(2));
+                      const setGrade = (patch) => updateSelectedPropEditorField('colorGradeFilter', composeColorGradeFilter({ ...grade, ...patch }));
+                      return (
+                        <div className="journey-prop-editor-color">
+                          <div className="journey-prop-editor-color-presets">
+                            {JOURNEY_PROP_TINT_PRESETS.map(preset => (
+                              <button
+                                key={preset.key}
+                                type="button"
+                                className={propEditorUi.selectedProp.colorGradeFilter === preset.filter ? 'is-selected' : ''}
+                                onClick={() => updateSelectedPropEditorField('colorGradeFilter', preset.filter)}
+                              >
+                                {preset.label}
+                              </button>
+                            ))}
+                            <button
+                              type="button"
+                              className="journey-prop-editor-color-reset"
+                              onClick={() => updateSelectedPropEditorField('colorGradeFilter', '')}
+                            >
+                              Reset
+                            </button>
+                          </div>
+                          <div className="journey-prop-editor-slider">
+                            <span>Brightness</span>
+                            <input
+                              type="range"
+                              min="0.4"
+                              max="1.8"
+                              step="0.05"
+                              value={brightnessValue}
+                              onChange={(event) => {
+                                const next = clamp(Number(event.target.value), 0.4, 1.8);
+                                if (Number.isFinite(next)) updateSelectedPropEditorNumberField('brightness', next, { min: 0.4, max: 1.8, decimals: 2 });
+                              }}
+                            />
+                            <output>{brightnessValue.toFixed(2)}</output>
+                          </div>
+                          <div className="journey-prop-editor-slider">
+                            <span>Warmth</span>
+                            <input
+                              type="range"
+                              min="0"
+                              max="100"
+                              step="1"
+                              value={grade.sepia}
+                              onChange={(event) => setGrade({ sepia: Number(event.target.value) })}
+                            />
+                            <output>{Math.round(grade.sepia)}%</output>
+                          </div>
+                          <div className="journey-prop-editor-slider">
+                            <span>Saturation</span>
+                            <input
+                              type="range"
+                              min="0"
+                              max="200"
+                              step="1"
+                              value={grade.saturate}
+                              onChange={(event) => setGrade({ saturate: Number(event.target.value) })}
+                            />
+                            <output>{Math.round(grade.saturate)}%</output>
+                          </div>
+                          <div className="journey-prop-editor-slider">
+                            <span>Contrast</span>
+                            <input
+                              type="range"
+                              min="50"
+                              max="150"
+                              step="1"
+                              value={grade.contrast}
+                              onChange={(event) => setGrade({ contrast: Number(event.target.value) })}
+                            />
+                            <output>{Math.round(grade.contrast)}%</output>
+                          </div>
+                          <div className="journey-prop-editor-slider">
+                            <span>Hue shift</span>
+                            <input
+                              type="range"
+                              min="-60"
+                              max="60"
+                              step="1"
+                              value={grade.hue}
+                              onChange={(event) => setGrade({ hue: Number(event.target.value) })}
+                            />
+                            <output>{Math.round(grade.hue)}°</output>
+                          </div>
+                          <label className="journey-prop-editor-color-advanced">
+                            <span>Filter (advanced)</span>
+                            <input
+                              type="text"
+                              value={propEditorUi.selectedProp.colorGradeFilter ?? ''}
+                              placeholder="none"
+                              onChange={(event) => updateSelectedPropEditorField('colorGradeFilter', event.target.value)}
+                            />
+                          </label>
+                        </div>
+                      );
+                    })()}
 
                     <div className="journey-prop-editor-group-header">Shadows & Sand</div>
                     <div className="journey-prop-editor-controls">

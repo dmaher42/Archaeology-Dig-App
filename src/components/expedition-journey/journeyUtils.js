@@ -689,6 +689,48 @@ export const restoreJourneyPropEditorState = (saved = {}) => {
   return result;
 };
 
+// One-click colour looks for the prop editor. Each writes a clean colorGradeFilter
+// string (no brightness() — brightness stays a separate control) so the slider
+// parser can round-trip them.
+export const JOURNEY_PROP_TINT_PRESETS = Object.freeze([
+  { key: 'warm', label: 'Warm', filter: 'saturate(96%) sepia(18%) contrast(98%)' },
+  { key: 'stone', label: 'Stone', filter: 'saturate(78%) sepia(8%) contrast(96%)' },
+  { key: 'cool', label: 'Cool', filter: 'saturate(62%) contrast(96%) hue-rotate(8deg)' },
+  { key: 'dust', label: 'Dust', filter: 'saturate(64%) sepia(24%) contrast(92%)' },
+  { key: 'buried', label: 'Buried', filter: 'saturate(72%) sepia(30%) contrast(94%)' },
+]);
+
+// Identity values for each colour channel (the look when no grade is applied).
+export const JOURNEY_COLOR_GRADE_DEFAULTS = Object.freeze({ saturate: 100, sepia: 0, contrast: 100, hue: 0 });
+
+// Pull the saturate/sepia/contrast/hue values out of a CSS filter string so the
+// editor sliders can show the prop's current look. brightness() is intentionally
+// ignored — it is driven by the separate Brightness control.
+export const parseColorGradeFilter = (value = '') => {
+  const str = typeof value === 'string' ? value : '';
+  const readNumber = (regex, fallback) => {
+    const match = str.match(regex);
+    return match ? Number(match[1]) : fallback;
+  };
+  return {
+    saturate: readNumber(/saturate\((-?\d+(?:\.\d+)?)%\)/, JOURNEY_COLOR_GRADE_DEFAULTS.saturate),
+    sepia: readNumber(/sepia\((-?\d+(?:\.\d+)?)%\)/, JOURNEY_COLOR_GRADE_DEFAULTS.sepia),
+    contrast: readNumber(/contrast\((-?\d+(?:\.\d+)?)%\)/, JOURNEY_COLOR_GRADE_DEFAULTS.contrast),
+    hue: readNumber(/hue-rotate\((-?\d+(?:\.\d+)?)deg\)/, JOURNEY_COLOR_GRADE_DEFAULTS.hue),
+  };
+};
+
+// Build a tidy CSS filter string from slider values, omitting any channel that is
+// at its identity so unedited props keep an empty grade (and fall back to tint).
+export const composeColorGradeFilter = ({ saturate = 100, sepia = 0, contrast = 100, hue = 0 } = {}) => {
+  const parts = [];
+  if (Math.round(saturate) !== JOURNEY_COLOR_GRADE_DEFAULTS.saturate) parts.push(`saturate(${Math.round(saturate)}%)`);
+  if (Math.round(sepia) !== JOURNEY_COLOR_GRADE_DEFAULTS.sepia) parts.push(`sepia(${Math.round(sepia)}%)`);
+  if (Math.round(contrast) !== JOURNEY_COLOR_GRADE_DEFAULTS.contrast) parts.push(`contrast(${Math.round(contrast)}%)`);
+  if (Math.round(hue) !== JOURNEY_COLOR_GRADE_DEFAULTS.hue) parts.push(`hue-rotate(${Math.round(hue)}deg)`);
+  return parts.join(' ');
+};
+
 export const applyJourneyPropPlacementExportToProps = ({
   existingProps = [],
   exportData = {},
