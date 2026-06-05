@@ -1,4 +1,5 @@
 import { lazy, Suspense, useState, useEffect, useMemo, useReducer } from 'react';
+import { EGYPT_AUDIO_TRACKS } from './components/expedition-journey/egyptAudioTracks';
 import { ROME_AUDIO_TRACKS } from './components/expedition-journey/rome/romeAudioTracks';
 import { CHINA_AUDIO_TRACKS } from './components/expedition-journey/chinaAudioTracks';
 import './index.css';
@@ -345,6 +346,7 @@ const EXPEDITION_AUDIO_TRACKS = {
         { path: 'assets/expedition/sfx/opening/opening-deep-rumble.ogg', volume: 0.18, playbackRate: 0.45 },
       ],
     },
+    ...EGYPT_AUDIO_TRACKS.sfx,
     // Expansion SFX
     ...ROME_AUDIO_TRACKS.sfx,
     ...CHINA_AUDIO_TRACKS.sfx,

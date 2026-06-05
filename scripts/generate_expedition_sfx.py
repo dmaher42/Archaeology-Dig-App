@@ -135,6 +135,76 @@ def stone_gate_blocked(t: float, duration: float, rng: random.Random, low: float
     return knock + dust
 
 
+def bass_impact(t: float, duration: float, rng: random.Random, low: float) -> float:
+    drop = tone(54 - (28 * t / duration), t) * envelope(t, duration, 0.006, 2.1) * 0.52
+    air = low * envelope(t, duration, 0.008, 2.6) * 0.18
+    return drop + air
+
+
+def distant_rockfall(t: float, duration: float, rng: random.Random, low: float) -> float:
+    thumps = 0.0
+    for offset, gain, freq in [(0.04, 0.34, 72), (0.42, 0.24, 58), (0.93, 0.18, 66), (1.38, 0.12, 84)]:
+        local = max(0.0, t - offset)
+        thumps += tone(freq - (22 * min(local, 0.6)), local) * envelope(local, 0.55, 0.006, 2.9) * gain
+    gravel = low * envelope(t, duration, 0.05, 1.7) * 0.26
+    grit = noise(rng) * envelope(t, duration, 0.03, 2.4) * 0.05
+    return thumps + gravel + grit
+
+
+def temple_stone_groan(t: float, duration: float, rng: random.Random, low: float) -> float:
+    bend = tone(92 + math.sin(t * 3.6) * 18, t, "triangle") * envelope(t, duration, 0.18, 1.25) * 0.18
+    sub = tone(38 + math.sin(t * 2.1) * 5, t) * envelope(t, duration, 0.24, 1.1) * 0.34
+    scrape = low * envelope(t, duration, 0.12, 1.35) * 0.24
+    return bend + sub + scrape
+
+
+def distant_ruin_collapse(t: float, duration: float, rng: random.Random, low: float) -> float:
+    blast = bass_impact(t, duration, rng, low) * 0.72
+    fall = distant_rockfall(max(0.0, t - 0.18), max(0.1, duration - 0.18), rng, low) * 0.86
+    dust = low * envelope(t, duration, 0.28, 1.15) * 0.18
+    return blast + fall + dust
+
+
+def distant_monster_call(t: float, duration: float, rng: random.Random, low: float) -> float:
+    growl_env = envelope(t, duration, 0.24, 1.7)
+    throat = tone(78 + math.sin(t * 14) * 9, t, "saw") * growl_env * 0.13
+    chest = tone(42 + math.sin(t * 7) * 4, t) * growl_env * 0.28
+    breath = low * envelope(t, duration, 0.08, 1.9) * 0.24
+    click = noise(rng) * envelope(max(0.0, t - 1.05), 0.16, 0.01, 3.2) * 0.06
+    return throat + chest + breath + click
+
+
+def major_cave_in(t: float, duration: float, rng: random.Random, low: float) -> float:
+    first = distant_ruin_collapse(t, duration, rng, low) * 0.9
+    second = distant_rockfall(max(0.0, t - 0.72), max(0.1, duration - 0.72), rng, low) * 0.72
+    sub = tone(34 - (8 * min(t / duration, 1)), t) * envelope(t, duration, 0.03, 1.2) * 0.32
+    return first + second + sub
+
+
+def structure_ripping(t: float, duration: float, rng: random.Random, low: float) -> float:
+    tear = low * envelope(t, duration, 0.08, 1.1) * 0.32
+    stress = tone(150 + math.sin(t * 18) * 46, t, "saw") * envelope(t, duration, 0.16, 1.45) * 0.08
+    cracks = 0.0
+    for offset in (0.22, 0.74, 1.26):
+        local = max(0.0, t - offset)
+        cracks += noise(rng) * envelope(local, 0.12, 0.002, 4.0) * 0.12
+    return tear + stress + cracks
+
+
+def combat_danger_hit(t: float, duration: float, rng: random.Random, low: float) -> float:
+    punch = tone(70 - (36 * t / duration), t) * envelope(t, 0.28, 0.003, 2.6) * 0.42
+    shock = low * envelope(t, duration, 0.004, 2.4) * 0.18
+    snap = noise(rng) * envelope(t, 0.045, 0.001, 4.2) * 0.1
+    return punch + shock + snap
+
+
+def asha_hurt_breath(t: float, duration: float, rng: random.Random, low: float) -> float:
+    exhale = low * envelope(t, duration, 0.015, 2.0) * 0.12
+    voiced = tone(210 - (86 * t / duration), t, "triangle") * envelope(t, 0.22, 0.012, 2.6) * 0.055
+    air = noise(rng) * envelope(t, duration, 0.02, 2.8) * 0.035
+    return exhale + voiced + air
+
+
 def main() -> None:
     specs = {
         "land-soft.wav": (0.36, land_soft),
@@ -147,6 +217,15 @@ def main() -> None:
         "boss-warning.wav": (0.72, boss_warning),
         "stone-gate-open.wav": (0.9, stone_gate_open),
         "stone-gate-blocked.wav": (0.42, stone_gate_blocked),
+        "bass-impact.wav": (0.9, bass_impact),
+        "distant-rockfall.wav": (2.4, distant_rockfall),
+        "temple-stone-groan.wav": (2.8, temple_stone_groan),
+        "distant-ruin-collapse.wav": (3.1, distant_ruin_collapse),
+        "distant-monster-call.wav": (2.2, distant_monster_call),
+        "major-cave-in.wav": (3.4, major_cave_in),
+        "structure-ripping.wav": (2.2, structure_ripping),
+        "combat-danger-hit.wav": (0.42, combat_danger_hit),
+        "asha-hurt-breath.wav": (0.36, asha_hurt_breath),
     }
     for filename, (duration, fn) in specs.items():
       write_wav(OUT_DIR / filename, render(duration, fn))
