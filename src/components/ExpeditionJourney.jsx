@@ -100,6 +100,7 @@ import {
   createJourneyTrapPalette,
   createForgottenMuralRelicSlidePuzzleTiles,
   createJourneyPlacementChangeSummary,
+  createJourneyPlacementAiInstructions,
   createJourneyPropPlacementExport,
   DEFAULT_JOURNEY_PROP_EDITOR_ROTATION_STEP,
   DEFAULT_JOURNEY_PROP_EDITOR_GRID_SIZE,
@@ -3282,6 +3283,7 @@ export default function ExpeditionJourney({
     deletedPlatformIds: new Set(),
     deletedHazardIds: new Set(),
     exportText: '',
+    aiInstructions: '',
     exportVisible: false,
     savedAt: null,
   });
@@ -3306,6 +3308,7 @@ export default function ExpeditionJourney({
     lockedCount: 0,
     unsavedChangeSummary: createJourneyPlacementChangeSummary(),
     exportText: '',
+    aiInstructions: '',
     exportVisible: false,
     savedAt: null,
   });
@@ -3972,7 +3975,9 @@ export default function ExpeditionJourney({
       ? trapEditorPalette
       : editor.selectedPaletteCategory === 'platform'
         ? platformEditorPalette
-        : propEditorPalette;
+        : editor.selectedPaletteCategory === 'ledge'
+          ? propEditorPalette.filter(item => item.category === 'Ledge Helpers')
+          : propEditorPalette;
     const palette = paletteSource
       .map(item => ({ ...item, preview: getPropPalettePreview(item) }))
       .filter(item => item.preview);
@@ -4101,6 +4106,7 @@ export default function ExpeditionJourney({
       lockedCount: editor.lockedItems.size,
       unsavedChangeSummary: createJourneyPlacementChangeSummary(editor),
       exportText: editor.exportText,
+      aiInstructions: editor.aiInstructions,
       exportVisible: editor.exportVisible,
       savedAt: editor.savedAt,
     };
@@ -4219,6 +4225,7 @@ export default function ExpeditionJourney({
       checkpoints: roomCheckpoints,
       miniBosses: roomMiniBosses,
     });
+    editor.aiInstructions = createJourneyPlacementAiInstructions(editor, { roomId });
     editor.exportVisible = true;
     editor.savedAt = new Date().toLocaleTimeString();
     refreshPropEditorUi();
@@ -21339,12 +21346,13 @@ export default function ExpeditionJourney({
             {import.meta.env.DEV && propEditorUi.enabled && propEditorUi.paletteOpen && (
               <div className="journey-prop-palette-panel" aria-label="Prop palette">
                 <div className="journey-prop-editor-export-header">
-                  <strong>{propEditorUi.selectedPaletteCategory === 'trap' ? 'Trap palette' : propEditorUi.selectedPaletteCategory === 'platform' ? 'Platform palette' : 'Prop palette'}</strong>
+                  <strong>{propEditorUi.selectedPaletteCategory === 'trap' ? 'Trap palette' : propEditorUi.selectedPaletteCategory === 'platform' ? 'Platform palette' : propEditorUi.selectedPaletteCategory === 'ledge' ? 'Ledge palette' : 'Prop palette'}</strong>
                   <span>{propEditorUi.palette.length}</span>
                 </div>
                 <div className="journey-prop-palette-tabs">
                   {[
                     ['prop', 'Props'],
+                    ['ledge', 'Ledges'],
                     ['platform', 'Platforms'],
                     ['trap', 'Traps'],
                   ].map(([category, label]) => (
@@ -21425,6 +21433,29 @@ export default function ExpeditionJourney({
                     }}
                   >
                     Close
+                  </button>
+                </div>
+                <div className="journey-prop-editor-export-subhead">
+                  <strong>AI instructions (paste into AI)</strong>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard?.writeText(propEditorUi.aiInstructions || '');
+                    }}
+                  >
+                    Copy
+                  </button>
+                </div>
+                <textarea readOnly value={propEditorUi.aiInstructions} aria-label="AI change instructions" />
+                <div className="journey-prop-editor-export-subhead">
+                  <strong>Export JSON (for apply script)</strong>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard?.writeText(propEditorUi.exportText || '');
+                    }}
+                  >
+                    Copy
                   </button>
                 </div>
                 <textarea readOnly value={propEditorUi.exportText} aria-label="Placement editor export JSON" />

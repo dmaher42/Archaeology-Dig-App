@@ -566,6 +566,82 @@ export const createJourneyPlacementChangeSummary = (editor = {}, { limit = 8 } =
   };
 };
 
+const PLACEMENT_OVERRIDES_FILE = 'src/components/expedition-journey/journeyPlacementOverrides.generated.js';
+
+const formatJourneyPlacementAiValue = (value) => {
+  if (typeof value === 'number') {
+    return Number.isInteger(value) ? String(value) : String(Math.round(value * 100) / 100);
+  }
+  if (typeof value === 'string') return `"${value}"`;
+  if (typeof value === 'boolean') return String(value);
+  if (value === null || value === undefined) return 'null';
+  return JSON.stringify(value);
+};
+
+const formatJourneyPlacementFieldList = (item = {}, { skipKeys = ['id'] } = {}) => Object.entries(item)
+  .filter(([key, value]) => !skipKeys.includes(key) && value !== undefined)
+  .map(([key, value]) => `${key} = ${formatJourneyPlacementAiValue(value)}`)
+  .join(', ');
+
+const addJourneyPlacementAiEditLines = (lines, kind, edits = {}) => {
+  Object.entries(edits || {}).forEach(([id, edit]) => {
+    const fields = formatJourneyPlacementFieldList(edit, { skipKeys: [] });
+    if (!fields) return;
+    lines.push(`- ${kind} "${id}": set ${fields}`);
+  });
+};
+
+const addJourneyPlacementAiAddLines = (lines, kind, createdItems = []) => {
+  (Array.isArray(createdItems) ? createdItems : []).forEach((item) => {
+    if (!item?.id) return;
+    const fields = formatJourneyPlacementFieldList(item);
+    lines.push(`- ADD ${kind} "${item.id}"${fields ? ` with ${fields}` : ''}`);
+  });
+};
+
+const addJourneyPlacementAiDeleteLines = (lines, kind, ids = []) => {
+  toJourneyEditorIdList(ids).forEach((id) => {
+    lines.push(`- DELETE ${kind} "${id}"`);
+  });
+};
+
+// Produces a plain-English instruction block you can paste straight into an AI
+// chat. It describes only what changed in the editor, keyed by id, so the AI can
+// edit the single generated overrides file without being handed any source code.
+export const createJourneyPlacementAiInstructions = (editor = {}, { roomId } = {}) => {
+  const lines = [];
+
+  addJourneyPlacementAiEditLines(lines, 'prop', editor.edits);
+  addJourneyPlacementAiAddLines(lines, 'prop', editor.createdProps);
+  addJourneyPlacementAiDeleteLines(lines, 'prop', editor.deletedIds);
+  addJourneyPlacementAiEditLines(lines, 'platform', editor.platformEdits);
+  addJourneyPlacementAiAddLines(lines, 'platform', editor.createdPlatforms);
+  addJourneyPlacementAiDeleteLines(lines, 'platform', editor.deletedPlatformIds);
+  addJourneyPlacementAiEditLines(lines, 'trap', editor.hazardEdits);
+  addJourneyPlacementAiAddLines(lines, 'trap', editor.createdHazards);
+  addJourneyPlacementAiDeleteLines(lines, 'trap', editor.deletedHazardIds);
+  addJourneyPlacementAiEditLines(lines, 'route gate', editor.routeGateEdits);
+  addJourneyPlacementAiEditLines(lines, 'doorway arch', editor.routeGateDoorwayEdits);
+  addJourneyPlacementAiEditLines(lines, 'checkpoint', editor.checkpointEdits);
+  addJourneyPlacementAiEditLines(lines, 'lair', editor.miniBossEdits);
+
+  if (lines.length === 0) {
+    return 'No changes yet — move, add, or delete something in the editor first, then copy this text.';
+  }
+
+  const header = [
+    `Edit only this file: ${PLACEMENT_OVERRIDES_FILE}`,
+    roomId ? `Room: ${roomId}` : null,
+    'Match each item by its "id". Change only the fields listed and leave every other field untouched.',
+    'If an item id is not already in the file, add it to the matching array (props / platforms / hazards / etc).',
+    'Do not edit any other file.',
+    '',
+    'Changes:',
+  ].filter(line => line !== null).join('\n');
+
+  return `${header}\n${lines.join('\n')}`;
+};
+
 export const applyJourneyPropPlacementExportToProps = ({
   existingProps = [],
   exportData = {},
