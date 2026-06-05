@@ -694,12 +694,155 @@ const journeyPlacementOverrides = {
   "deletedPropIds": [],
   "platforms": [
     {
+      "id": "desert-entry-platform-1",
+      "sectionId": "desert-entry",
+      "width": 192,
+      "height": 18,
+      "label": "editable platform",
+      "invisible": true,
+      "layer": "platform",
+      "x": 2180,
+      "y": 584
+    },
+    {
+      "id": "desert-entry-platform-2",
+      "sectionId": "desert-entry",
+      "width": 94,
+      "height": 18,
+      "label": "editable platform",
+      "invisible": true,
+      "layer": "platform",
+      "x": 1828,
+      "y": 428
+    },
+    {
+      "id": "desert-entry-platform-3",
+      "sectionId": "desert-entry",
+      "width": 99,
+      "height": 15,
+      "label": "editable platform",
+      "invisible": true,
+      "layer": "platform",
+      "x": 2697,
+      "y": 507
+    },
+    {
+      "id": "desert-entry-platform-4",
+      "sectionId": "desert-entry",
+      "width": 192,
+      "height": 18,
+      "label": "editable platform",
+      "invisible": true,
+      "layer": "platform",
+      "x": 7081,
+      "y": 91
+    },
+    {
+      "id": "desert-entry-platform-5",
+      "sectionId": "desert-entry",
+      "width": 114,
+      "height": 18,
+      "label": "editable platform",
+      "invisible": true,
+      "layer": "platform",
+      "x": 7141,
+      "y": 47
+    },
+    {
+      "id": "desert-entry-platform-6",
+      "sectionId": "desert-entry",
+      "width": 187,
+      "height": 20,
+      "label": "editable platform",
+      "invisible": true,
+      "layer": "platform",
+      "x": 368,
+      "y": 344,
+      "zIndex": -17
+    },
+    {
+      "id": "desert-entry-platform-7",
+      "sectionId": "desert-entry",
+      "width": 171,
+      "height": 18,
+      "label": "editable platform",
+      "invisible": true,
+      "layer": "platform",
+      "x": 186,
+      "y": 491
+    },
+    {
+      "id": "desert-entry-platform-8",
+      "sectionId": "desert-entry",
+      "width": 41,
+      "height": 18,
+      "label": "editable platform",
+      "invisible": true,
+      "layer": "platform",
+      "x": 685,
+      "y": 204
+    },
+    {
+      "id": "desert-entry-platform-9",
+      "sectionId": "desert-entry",
+      "width": 35,
+      "height": 18,
+      "label": "editable platform",
+      "invisible": true,
+      "layer": "platform",
+      "x": 732,
+      "y": 223
+    },
+    {
+      "id": "desert-entry-platform-10",
+      "sectionId": "desert-entry",
+      "width": 50,
+      "height": 18,
+      "label": "editable platform",
+      "invisible": true,
+      "layer": "platform",
+      "x": 1775,
+      "y": 525
+    },
+    {
       "id": "desert-entry-floor",
       "x": 34,
       "y": 595,
       "width": 13334,
       "height": 73,
       "label": "desert track"
+    },
+    {
+      "id": "temple-floor",
+      "x": 13334,
+      "y": 595,
+      "width": 9323,
+      "height": 60,
+      "label": "temple floor"
+    },
+    {
+      "id": "catacomb-path-floor",
+      "x": 22657,
+      "y": 595,
+      "width": 10735,
+      "height": 60,
+      "label": "catacomb path"
+    },
+    {
+      "id": "escape-road-floor",
+      "x": 33392,
+      "y": 595,
+      "width": 8193,
+      "height": 60,
+      "label": "escape road"
+    },
+    {
+      "id": "dig-site-rise-floor",
+      "x": 41584,
+      "y": 595,
+      "width": 9605,
+      "height": 60,
+      "label": "dig-site rise"
     },
     {
       "id": "opening-lower-ruin-ledge",
@@ -918,6 +1061,17 @@ const journeyPlacementOverrides = {
       "invisible": true
     },
     {
+      "id": "mummification-chamber-floor",
+      "sceneId": "mummification-chamber",
+      "x": 2949,
+      "y": 502,
+      "width": 1356,
+      "height": 18,
+      "label": "invisible full Mummification Chamber floor",
+      "secret": true,
+      "invisible": true
+    },
+    {
       "id": "forgotten-mural-lower-masonry",
       "x": 6856,
       "y": 191,
@@ -1058,145 +1212,110 @@ const journeyPlacementOverrides = {
       "invisible": true
     },
     {
-      "id": "desert-entry-platform-1",
-      "sectionId": "desert-entry",
-      "width": 192,
+      "id": "switch-1-raised-return-plinth",
+      "x": 15086,
+      "y": 539,
+      "width": 128,
       "height": 18,
-      "label": "editable platform",
-      "invisible": true,
-      "layer": "platform",
-      "x": 2180,
-      "y": 584
+      "label": "switch raised return plinth",
+      "requiresObjective": "switch-1"
     },
     {
-      "id": "desert-entry-platform-2",
-      "sectionId": "desert-entry",
-      "width": 94,
+      "id": "temple-sandfall-cracked-column-step",
+      "x": 16046,
+      "y": 517,
+      "width": 138,
       "height": 18,
-      "label": "editable platform",
-      "invisible": true,
-      "layer": "platform",
-      "x": 1828,
-      "y": 428
+      "label": "collapsing column step",
+      "reactive": {
+        "type": "collapsing bridge piece",
+        "delay": 1.25,
+        "respawn": 3.2,
+        "shake": 0.12
+      },
+      "challengeId": "temple-sandfall-climb",
+      "challengeFailY": 561,
+      "challengeFailMessage": "You slipped from the sandfall climb. The team reset at the checkpoint."
     },
     {
-      "id": "desert-entry-platform-3",
-      "sectionId": "desert-entry",
-      "width": 99,
-      "height": 15,
-      "label": "editable platform",
-      "invisible": true,
-      "layer": "platform",
-      "x": 2697,
-      "y": 507
-    },
-    {
-      "id": "desert-entry-platform-4",
-      "sectionId": "desert-entry",
-      "width": 192,
+      "id": "catacomb-torch-cracked-ledge",
+      "x": 24267,
+      "y": 521,
+      "width": 145,
       "height": 18,
-      "label": "editable platform",
-      "invisible": true,
-      "layer": "platform",
-      "x": 7081,
-      "y": 91
+      "label": "torch safe ledge",
+      "reactive": {
+        "type": "unstable ledge",
+        "delay": 1.42,
+        "respawn": 3,
+        "shake": 0.1
+      },
+      "challengeId": "catacomb-torch-climb",
+      "challengeFailY": 565,
+      "challengeFailMessage": "You missed the torch climb and dropped into the dark path. Retry from the checkpoint."
     },
     {
-      "id": "desert-entry-platform-5",
-      "sectionId": "desert-entry",
-      "width": 114,
+      "id": "catacomb-bone-dry-bridge",
+      "x": 28589,
+      "y": 513,
+      "width": 210,
       "height": 18,
-      "label": "editable platform",
-      "invisible": true,
-      "layer": "platform",
-      "x": 7141,
-      "y": 47
+      "label": "bone-dry bridge",
+      "reactive": {
+        "type": "unstable ledge",
+        "delay": 1.8,
+        "respawn": 3.4,
+        "shake": 0.1
+      }
     },
     {
-      "id": "desert-entry-platform-6",
-      "sectionId": "desert-entry",
-      "width": 187,
-      "height": 20,
-      "label": "editable platform",
-      "invisible": true,
-      "layer": "platform",
-      "x": 368,
-      "y": 344,
-      "zIndex": -17
-    },
-    {
-      "id": "desert-entry-platform-7",
-      "sectionId": "desert-entry",
-      "width": 171,
+      "id": "escape-falling-stair",
+      "x": 34013,
+      "y": 535,
+      "width": 160,
       "height": 18,
-      "label": "editable platform",
-      "invisible": true,
-      "layer": "platform",
-      "x": 186,
-      "y": 491
+      "label": "falling stair",
+      "reactive": {
+        "type": "unstable platform",
+        "delay": 1.4,
+        "respawn": 3.2,
+        "shake": 0.12
+      }
     },
     {
-      "id": "desert-entry-platform-8",
-      "sectionId": "desert-entry",
-      "width": 41,
+      "id": "escape-broken-bridge-step",
+      "x": 34889,
+      "y": 523,
+      "width": 118,
       "height": 18,
-      "label": "editable platform",
-      "invisible": true,
-      "layer": "platform",
-      "x": 685,
-      "y": 204
+      "label": "broken bridge step",
+      "reactive": {
+        "type": "collapsing bridge piece",
+        "delay": 1.2,
+        "respawn": 3.6,
+        "shake": 0.14
+      }
     },
     {
-      "id": "desert-entry-platform-9",
-      "sectionId": "desert-entry",
-      "width": 35,
+      "id": "final-site-rope-cracked-ledge",
+      "x": 43646,
+      "y": 505,
+      "width": 118,
       "height": 18,
-      "label": "editable platform",
-      "invisible": true,
-      "layer": "platform",
-      "x": 732,
-      "y": 223
-    },
-    {
-      "id": "desert-entry-platform-10",
-      "sectionId": "desert-entry",
-      "width": 50,
-      "height": 18,
-      "label": "editable platform",
-      "invisible": true,
-      "layer": "platform",
-      "x": 1775,
-      "y": 525
+      "label": "survey rope ledge",
+      "reactive": {
+        "type": "unstable ledge",
+        "delay": 1.35,
+        "respawn": 3,
+        "shake": 0.12
+      },
+      "challengeId": "final-site-permit-climb",
+      "challengeFailY": 563,
+      "challengeFailMessage": "You missed the final permit climb. The survey team pulled you back to the checkpoint."
     }
   ],
   "deletedPlatformIds": [],
   "hazards": [
-    {
-      "id": "sealed-sand",
-      "name": "sealed sand",
-      "emoji": "!",
-      "x": 7232,
-      "y": 565,
-      "width": 62,
-      "height": 30,
-      "penalty": {
-        "time": 6
-      },
-      "message": "A marked patch of sealed sand slowed the approach."
-    },
-    {
-      "id": "desert-low-ridge",
-      "name": "low sand ridge",
-      "emoji": "!",
-      "x": 2430,
-      "y": 565,
-      "width": 64,
-      "height": 30,
-      "penalty": {
-        "time": 4
-      },
-      "message": "A low sand ridge slowed the survey line."
-    },
     {
       "id": "thorn-bush",
       "name": "thorn bush",
@@ -1344,6 +1463,228 @@ const journeyPlacementOverrides = {
       "roomId": "desert-entry"
     },
     {
+      "id": "sealed-sand",
+      "name": "sealed sand",
+      "emoji": "!",
+      "x": 7232,
+      "y": 565,
+      "width": 62,
+      "height": 30,
+      "penalty": {
+        "time": 6
+      },
+      "message": "A marked patch of sealed sand slowed the approach."
+    },
+    {
+      "id": "loose-temple-floor",
+      "name": "loose temple floor",
+      "emoji": "!",
+      "x": 19888,
+      "y": 565,
+      "width": 72,
+      "height": 30,
+      "penalty": {
+        "stamina": 8
+      },
+      "message": "Loose temple stones made the guardian route harder."
+    },
+    {
+      "id": "glyph-tripwire",
+      "name": "glyph tripwire",
+      "emoji": "!",
+      "x": 30821,
+      "y": 565,
+      "width": 78,
+      "height": 30,
+      "penalty": {
+        "stamina": 8
+      },
+      "message": "A glyph tripwire flashed underfoot."
+    },
+    {
+      "id": "warning-rubble",
+      "name": "warning rubble",
+      "emoji": "!",
+      "x": 39550,
+      "y": 559,
+      "width": 80,
+      "height": 36,
+      "penalty": {
+        "stamina": 8
+      },
+      "message": "Warning rubble narrowed the route."
+    },
+    {
+      "id": "survey-rope",
+      "name": "survey rope",
+      "emoji": "!",
+      "x": 45172,
+      "y": 565,
+      "width": 76,
+      "height": 30,
+      "penalty": {
+        "time": 6
+      },
+      "message": "Survey ropes slowed the final site access path."
+    },
+    {
+      "id": "desert-low-ridge",
+      "name": "low sand ridge",
+      "emoji": "!",
+      "x": 2430,
+      "y": 565,
+      "width": 64,
+      "height": 30,
+      "penalty": {
+        "time": 4
+      },
+      "message": "A low sand ridge slowed the survey line."
+    },
+    {
+      "id": "spike-trap",
+      "name": "temple trap",
+      "emoji": "ðŸ§±",
+      "x": 16442,
+      "y": 565,
+      "width": 70,
+      "height": 30,
+      "penalty": {
+        "stamina": 12
+      },
+      "message": "A temple trap clipped your route. Endurance reduced."
+    },
+    {
+      "id": "temple-loose-step",
+      "name": "loose stone step",
+      "emoji": "!",
+      "x": 14549,
+      "y": 565,
+      "width": 62,
+      "height": 30,
+      "penalty": {
+        "stamina": 5
+      },
+      "message": "A loose stone shifted underfoot."
+    },
+    {
+      "id": "rolling-stones",
+      "name": "rolling stones",
+      "emoji": "ðŸª¨",
+      "x": 21385,
+      "y": 553,
+      "width": 70,
+      "height": 42,
+      "penalty": {
+        "stamina": 12,
+        "time": 5
+      },
+      "message": "Rolling stones forced a scramble."
+    },
+    {
+      "id": "dark-gap",
+      "name": "dark gap",
+      "emoji": "â¬›",
+      "x": 24408,
+      "y": 579,
+      "width": 90,
+      "height": 18,
+      "penalty": {
+        "stamina": 10
+      },
+      "message": "You stumbled in a dark gap."
+    },
+    {
+      "id": "catacomb-small-gap",
+      "name": "small dark gap",
+      "emoji": "!",
+      "x": 23984,
+      "y": 579,
+      "width": 68,
+      "height": 18,
+      "penalty": {
+        "stamina": 5
+      },
+      "message": "A small dark gap broke the safe path."
+    },
+    {
+      "id": "bat-cloud",
+      "name": "bat cloud",
+      "emoji": "ðŸ¦‡",
+      "x": 30115,
+      "y": 479,
+      "width": 105,
+      "height": 78,
+      "penalty": {
+        "time": 9
+      },
+      "message": "A cloud of bats scattered the team."
+    },
+    {
+      "id": "falling-blocks",
+      "name": "falling blocks",
+      "emoji": "ðŸ§±",
+      "x": 35087,
+      "y": 553,
+      "width": 90,
+      "height": 42,
+      "penalty": {
+        "stamina": 14
+      },
+      "message": "Falling blocks made the escape tense."
+    },
+    {
+      "id": "escape-cracked-step",
+      "name": "cracked bridge step",
+      "emoji": "!",
+      "x": 34776,
+      "y": 561,
+      "width": 74,
+      "height": 34,
+      "penalty": {
+        "stamina": 5
+      },
+      "message": "A cracked bridge step shifted."
+    },
+    {
+      "id": "dust-wave",
+      "name": "dust wave",
+      "emoji": "ðŸ’¨",
+      "x": 38533,
+      "y": 551,
+      "width": 130,
+      "height": 44,
+      "penalty": {
+        "time": 12
+      },
+      "message": "Dust reduced visibility. Time reduced."
+    },
+    {
+      "id": "camp-low-rope",
+      "name": "low survey rope",
+      "emoji": "!",
+      "x": 42799,
+      "y": 565,
+      "width": 62,
+      "height": 30,
+      "penalty": {
+        "time": 4
+      },
+      "message": "A low survey rope slowed the final approach."
+    },
+    {
+      "id": "loose-slope",
+      "name": "loose slope",
+      "emoji": "ðŸ“‰",
+      "x": 43901,
+      "y": 565,
+      "width": 110,
+      "height": 30,
+      "penalty": {
+        "stamina": 10
+      },
+      "message": "Loose stones made the final climb harder."
+    },
+    {
       "id": "desert-soft-ridge",
       "name": "soft sand ridge",
       "emoji": "!",
@@ -1368,6 +1709,164 @@ const journeyPlacementOverrides = {
         "stamina": 5
       },
       "message": "Loose ruin stones shifted underfoot."
+    },
+    {
+      "id": "temple-threshold-hairline-crack",
+      "name": "hairline floor crack",
+      "emoji": "!",
+      "x": 13927,
+      "y": 565,
+      "width": 76,
+      "height": 30,
+      "penalty": {
+        "time": 3
+      },
+      "message": "A hairline crack warned the team to step carefully."
+    },
+    {
+      "id": "temple-floor-crack",
+      "name": "floor crack",
+      "emoji": "!",
+      "x": 15509,
+      "y": 565,
+      "width": 70,
+      "height": 30,
+      "penalty": {
+        "stamina": 8
+      },
+      "message": "Cracked floor stones shifted underfoot."
+    },
+    {
+      "id": "sandfall-warning-dust",
+      "name": "falling sand warning",
+      "emoji": "!",
+      "x": 15764,
+      "y": 565,
+      "width": 62,
+      "height": 30,
+      "penalty": {
+        "time": 3
+      },
+      "message": "Falling sand warned that the stones ahead were unstable."
+    },
+    {
+      "id": "sandfall-collapsing-stones",
+      "name": "collapsing stones",
+      "emoji": "!",
+      "x": 16159,
+      "y": 553,
+      "width": 82,
+      "height": 42,
+      "penalty": {
+        "stamina": 8,
+        "time": 3
+      },
+      "message": "Collapsing stones forced a careful jump."
+    },
+    {
+      "id": "temple-falling-chip",
+      "name": "falling stone chip",
+      "emoji": "!",
+      "x": 18786,
+      "y": 553,
+      "width": 70,
+      "height": 42,
+      "penalty": {
+        "stamina": 8,
+        "time": 3
+      },
+      "message": "Small stones fell from the temple wall."
+    },
+    {
+      "id": "sandfall-soft-pit",
+      "name": "sandfall soft pit",
+      "emoji": "!",
+      "x": 16922,
+      "y": 565,
+      "width": 76,
+      "height": 30,
+      "penalty": {
+        "time": 5
+      },
+      "message": "A soft sand pocket slowed the recovery step."
+    },
+    {
+      "id": "catacomb-gap-2",
+      "name": "narrow dark gap",
+      "emoji": "!",
+      "x": 25566,
+      "y": 579,
+      "width": 90,
+      "height": 18,
+      "penalty": {
+        "stamina": 8
+      },
+      "message": "A narrow gap interrupted the catacomb path."
+    },
+    {
+      "id": "catacomb-bat-pocket",
+      "name": "bat pocket",
+      "emoji": "!",
+      "x": 28250,
+      "y": 479,
+      "width": 96,
+      "height": 76,
+      "penalty": {
+        "time": 6
+      },
+      "message": "A small bat pocket broke the team rhythm."
+    },
+    {
+      "id": "escape-falling-chip",
+      "name": "falling stone chip",
+      "emoji": "!",
+      "x": 36556,
+      "y": 553,
+      "width": 86,
+      "height": 42,
+      "penalty": {
+        "stamina": 10
+      },
+      "message": "Loose ceiling stones fell near the escape path."
+    },
+    {
+      "id": "escape-dust-pocket",
+      "name": "dust pocket",
+      "emoji": "!",
+      "x": 38166,
+      "y": 551,
+      "width": 118,
+      "height": 44,
+      "penalty": {
+        "time": 8
+      },
+      "message": "Dust swept across the broken route."
+    },
+    {
+      "id": "dig-site-loose-rope",
+      "name": "loose survey rope",
+      "emoji": "!",
+      "x": 43420,
+      "y": 565,
+      "width": 76,
+      "height": 30,
+      "penalty": {
+        "time": 5
+      },
+      "message": "Loose survey rope slowed the final approach."
+    },
+    {
+      "id": "dig-site-loose-slope-2",
+      "name": "loose final slope",
+      "emoji": "!",
+      "x": 46302,
+      "y": 565,
+      "width": 105,
+      "height": 30,
+      "penalty": {
+        "stamina": 8
+      },
+      "message": "Loose stones shifted before the final guardian path."
     }
   ],
   "deletedHazardIds": [],
