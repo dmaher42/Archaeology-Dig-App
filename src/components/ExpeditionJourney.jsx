@@ -118,7 +118,15 @@ import {
   getSectionForX,
   isForgottenMuralRelicSlidePuzzleSolved,
   isLandingOnPlatform,
+  isMummificationChamberComplete,
   isReusableJourneyTrap,
+  createJourneyRoomInteractionState,
+  journeyInteractHoldTick,
+  journeyInteractInspect,
+  journeyInteractPickUp,
+  journeyInteractPlace,
+  JOURNEY_INTERACT_OBJECT_STATES,
+  JOURNEY_INTERACT_VERBS,
   JOURNEY_TRAP_DIRECTIONS,
   JOURNEY_TRAP_TYPES,
   makeInitialState,
@@ -893,7 +901,7 @@ const MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS = Object.freeze([
     id: 'mummification-embalming-table',
     assetKey: 'embalmingTableMarker',
     name: 'Embalming Table',
-    message: 'This was not only a body being preserved. It was the self being carried across.',
+    message: 'This was a work of care. Every hand here moved slowly, and in silence.',
     successMessage: 'The chamber grows still.',
     pulseText: 'TABLE HONOURED',
     screen: { x: 565, y: 340, width: 120, height: 84 },
@@ -904,7 +912,7 @@ const MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS = Object.freeze([
     assetKey: 'linenWrappings',
     name: 'Linen Wrappings',
     message: 'Layer by layer. Not hidden. Held together.',
-    successMessage: 'The linen shifts as if remembering its purpose.',
+    successMessage: 'The linen settles, smooth and patient under careful hands.',
     pulseText: 'LINEN PREPARED',
     screen: { x: 295, y: 446, width: 114, height: 82 },
     hitbox: { x: 245, y: 410, width: 170, height: 150 },
@@ -1025,6 +1033,118 @@ const getMummificationChamberAtmosphere = (current) => {
     sealGlowAlpha: solved ? 0.66 : ritualStep > 0 ? 0.36 : 0.14 + inspectedRatio * 0.18,
   };
 };
+
+// ---------------------------------------------------------------------------
+// Mummification Chamber — physical rite interactables (Journey Room Interact)
+// ---------------------------------------------------------------------------
+// The five rites keep their order via mummificationChamberRitualStep (0..5,
+// indexed by MUMMIFICATION_RITE_SEQUENCE). Each rite exposes in-world sub-objects
+// the player handles directly: inspect / pick up / carry / place / hold-apply /
+// hold-wrap / restore. hitbox.x is screen-space (cameraX is added at runtime);
+// hitbox.y is world-y. The standing player's body hitbox sits ~y514..552 in the
+// fixed chamber camera, so rite hitboxes reach down into that band.
+const MUMMIFICATION_ROOM_INTERACT_VERSION = 'mummification-room-interact-system-2026-06-05';
+const MUMMIFICATION_HOLD_DURATIONS = Object.freeze({ apply: 1.5, wrap: 1.8 });
+// Four Sons of Horus — jar symbol/colour matched to a scrambled plinth set.
+const MUMMIFICATION_JAR_SYMBOLS = Object.freeze({
+  imsety: { glyph: 'I', color: '#d6b06a', label: 'Imsety' },
+  hapi: { glyph: 'H', color: '#7c9bd1', label: 'Hapi' },
+  duamutef: { glyph: 'D', color: '#c98a4b', label: 'Duamutef' },
+  qebehsenuef: { glyph: 'Q', color: '#8fb98a', label: 'Qebehsenuef' },
+});
+const MUMMIFICATION_CHAMBER_RITES = Object.freeze([
+  {
+    rite: 'cleanse',
+    objects: [
+      { id: 'cleanse-table', role: 'inspect', verb: JOURNEY_INTERACT_VERBS.INSPECT, prompt: 'E Inspect',
+        label: 'Embalming table', message: 'The body is washed with care. The crossing begins in silence.',
+        screen: { x: 560, y: 332, width: 150, height: 60 }, hitbox: { x: 470, y: 440, width: 200, height: 132 } },
+      { id: 'cleanse-bowl-left', role: 'activate', verb: JOURNEY_INTERACT_VERBS.INSPECT, prompt: 'E Cleanse',
+        label: 'Purification bowl', message: 'The water is poured. The chamber listens.',
+        screen: { x: 360, y: 508, width: 56, height: 40 }, hitbox: { x: 304, y: 482, width: 112, height: 90 } },
+      { id: 'cleanse-bowl-right', role: 'activate', verb: JOURNEY_INTERACT_VERBS.INSPECT, prompt: 'E Cleanse',
+        label: 'Purification bowl', message: 'The second bowl is emptied. Stillness gathers.',
+        screen: { x: 760, y: 508, width: 56, height: 40 }, hitbox: { x: 704, y: 482, width: 112, height: 90 } },
+    ],
+    // Rite is complete once the table is inspected and both bowls are activated.
+    requires: ['cleanse-table', 'cleanse-bowl-left', 'cleanse-bowl-right'],
+    completeNotice: 'The chamber grows still.',
+    completeLine: 'Cleansed. Nothing careless may follow.',
+  },
+  {
+    rite: 'jars',
+    objects: [
+      { id: 'jar-imsety', role: 'source', verb: JOURNEY_INTERACT_VERBS.PICK_UP, prompt: 'E Pick up', symbol: 'imsety',
+        label: 'Imsety jar', screen: { x: 150, y: 500, width: 48, height: 64 }, hitbox: { x: 108, y: 470, width: 100, height: 102 } },
+      { id: 'jar-hapi', role: 'source', verb: JOURNEY_INTERACT_VERBS.PICK_UP, prompt: 'E Pick up', symbol: 'hapi',
+        label: 'Hapi jar', screen: { x: 268, y: 500, width: 48, height: 64 }, hitbox: { x: 226, y: 470, width: 100, height: 102 } },
+      { id: 'jar-duamutef', role: 'source', verb: JOURNEY_INTERACT_VERBS.PICK_UP, prompt: 'E Pick up', symbol: 'duamutef',
+        label: 'Duamutef jar', screen: { x: 386, y: 500, width: 48, height: 64 }, hitbox: { x: 344, y: 470, width: 100, height: 102 } },
+      { id: 'jar-qebehsenuef', role: 'source', verb: JOURNEY_INTERACT_VERBS.PICK_UP, prompt: 'E Pick up', symbol: 'qebehsenuef',
+        label: 'Qebehsenuef jar', screen: { x: 504, y: 500, width: 48, height: 64 }, hitbox: { x: 462, y: 470, width: 100, height: 102 } },
+      { id: 'plinth-a', role: 'target', verb: JOURNEY_INTERACT_VERBS.PLACE, prompt: 'E Place', symbol: 'duamutef', acceptsItemId: 'jar-duamutef',
+        label: 'Plinth', screen: { x: 640, y: 512, width: 66, height: 58 }, hitbox: { x: 600, y: 480, width: 100, height: 92 } },
+      { id: 'plinth-b', role: 'target', verb: JOURNEY_INTERACT_VERBS.PLACE, prompt: 'E Place', symbol: 'imsety', acceptsItemId: 'jar-imsety',
+        label: 'Plinth', screen: { x: 760, y: 512, width: 66, height: 58 }, hitbox: { x: 720, y: 480, width: 100, height: 92 } },
+      { id: 'plinth-c', role: 'target', verb: JOURNEY_INTERACT_VERBS.PLACE, prompt: 'E Place', symbol: 'qebehsenuef', acceptsItemId: 'jar-qebehsenuef',
+        label: 'Plinth', screen: { x: 880, y: 512, width: 66, height: 58 }, hitbox: { x: 840, y: 480, width: 100, height: 92 } },
+      { id: 'plinth-d', role: 'target', verb: JOURNEY_INTERACT_VERBS.PLACE, prompt: 'E Place', symbol: 'hapi', acceptsItemId: 'jar-hapi',
+        label: 'Plinth', screen: { x: 1000, y: 512, width: 66, height: 58 }, hitbox: { x: 960, y: 480, width: 100, height: 92 } },
+    ],
+    requires: ['plinth-a', 'plinth-b', 'plinth-c', 'plinth-d'],
+    wrongTargetNotice: 'That jar does not belong here. Match the symbol to the plinth.',
+    completeNotice: 'The jars settle into silence.',
+    completeLine: 'Each one safekept. Nothing of them is lost.',
+  },
+  {
+    rite: 'oils',
+    objects: [
+      { id: 'oil-common', role: 'source', verb: JOURNEY_INTERACT_VERBS.PICK_UP, prompt: 'E Pick up',
+        label: 'Plain oil', screen: { x: 700, y: 502, width: 52, height: 56 }, hitbox: { x: 652, y: 472, width: 104, height: 100 } },
+      { id: 'oil-sacred', role: 'source', verb: JOURNEY_INTERACT_VERBS.PICK_UP, prompt: 'E Pick up', sacred: true,
+        label: 'Sacred resin', screen: { x: 820, y: 502, width: 52, height: 56 }, hitbox: { x: 772, y: 472, width: 104, height: 100 } },
+      { id: 'oils-apply-table', role: 'apply', verb: JOURNEY_INTERACT_VERBS.HOLD_APPLY, prompt: 'Hold E Apply',
+        acceptsItemId: 'oil-sacred', holdKey: 'apply',
+        label: 'Embalming table', screen: { x: 560, y: 332, width: 150, height: 60 }, hitbox: { x: 470, y: 440, width: 200, height: 132 } },
+    ],
+    requires: ['oils-apply-table'],
+    wrongTargetNotice: 'This oil is not the sacred resin. The seal does not trust it.',
+    completeNotice: 'The scent of resin rises from the stone.',
+    completeLine: 'Anointed. The crossing is honoured.',
+  },
+  {
+    rite: 'linen',
+    objects: [
+      { id: 'linen-roll', role: 'source', verb: JOURNEY_INTERACT_VERBS.PICK_UP, prompt: 'E Pick up',
+        label: 'Linen', screen: { x: 320, y: 500, width: 60, height: 56 }, hitbox: { x: 262, y: 466, width: 116, height: 106 } },
+      { id: 'linen-wrap-table', role: 'wrap', verb: JOURNEY_INTERACT_VERBS.HOLD_WRAP, prompt: 'Hold E Wrap',
+        acceptsItemId: 'linen-roll', holdKey: 'wrap',
+        label: 'Embalming table', screen: { x: 560, y: 332, width: 150, height: 60 }, hitbox: { x: 470, y: 440, width: 200, height: 132 } },
+    ],
+    requires: ['linen-wrap-table'],
+    slipNotice: 'The linen slips. One careless hand can undo centuries. Begin the wrap again.',
+    completeNotice: 'The linen settles, smooth and patient under careful hands.',
+    completeLine: 'Wrapped. Held together, not hidden away.',
+  },
+  {
+    rite: 'name',
+    objects: [
+      { id: 'name-fragment', role: 'source', verb: JOURNEY_INTERACT_VERBS.PICK_UP, prompt: 'E Pick up',
+        label: 'Name fragment', screen: { x: 300, y: 500, width: 44, height: 52 }, hitbox: { x: 244, y: 470, width: 112, height: 102 } },
+      { id: 'name-tablet', role: 'restore', verb: JOURNEY_INTERACT_VERBS.RESTORE, prompt: 'E Restore',
+        acceptsItemId: 'name-fragment',
+        label: 'Ritual tablet', message: 'The name was scratched away. Someone removed more than stone.',
+        screen: { x: 800, y: 456, width: 90, height: 100 }, hitbox: { x: 744, y: 430, width: 120, height: 150 } },
+    ],
+    requires: ['name-tablet'],
+    completeNotice: 'A faint line of the name returns.',
+    completeLine: 'The seal listens. The name is restored, and the crossing may begin.',
+  },
+]);
+const MUMMIFICATION_CHAMBER_RITE_OBJECTS = MUMMIFICATION_CHAMBER_RITES
+  .flatMap(rite => rite.objects.map(object => ({ ...object, rite: rite.rite })));
+const getMummificationRiteByIndex = (step) => MUMMIFICATION_CHAMBER_RITES[step] || null;
+
 const FORGOTTEN_MURAL_CHAMBER_ENTRY_SPAWN = {
   x: scaleJourneyX(918),
   y: openingJourneyY(318),
@@ -9665,6 +9785,177 @@ export default function ExpeditionJourney({
     if (!unlocked) {
       drawFieldNoteLabel(ctx, exitX + 38, GROUND_Y - 192, 'Entrance sealed', '#facc15');
     }
+
+    // --- Journey Room Interact: rite sub-objects, carried item, hold ring, prompt ---
+    const interaction = current.mummificationChamberInteraction;
+    if (interaction) {
+      const carriedId = interaction.carriedItemId;
+      const objStates = interaction.objectStates || {};
+      const wrongFlash = interaction.wrongFlash || {};
+      const activeRite = getMummificationRiteByIndex(chamberRitualStep);
+      const flashPulse = 0.5 + Math.sin(now / 70) * 0.5;
+
+      MUMMIFICATION_CHAMBER_RITE_OBJECTS.forEach((object) => {
+        const state = objStates[object.id] || JOURNEY_INTERACT_OBJECT_STATES.IDLE;
+        const isActiveRite = activeRite && object.rite === activeRite.rite;
+        const completed = state === JOURNEY_INTERACT_OBJECT_STATES.COMPLETED
+          || state === JOURNEY_INTERACT_OBJECT_STATES.USED;
+        // Future-rite objects aren't placed in the room yet; completed ones stay settled.
+        if (!isActiveRite && !completed) return;
+        if (carriedId === object.id) return; // carried items render on the player
+        const sx = object.screen.x;
+        const sy = object.screen.y;
+        const w = object.screen.width;
+        const h = object.screen.height;
+        const sym = object.symbol ? MUMMIFICATION_JAR_SYMBOLS[object.symbol] : null;
+        const isHoldTarget = object.role === 'apply' || object.role === 'wrap';
+        const validTarget = Boolean(carriedId) && object.acceptsItemId === carriedId
+          && (object.role === 'target' || object.role === 'restore' || isHoldTarget);
+        const flashStroke = wrongFlash[object.id]
+          ? `rgba(248, 113, 113, ${0.4 + flashPulse * 0.5})`
+          : null;
+        ctx.save();
+        if (validTarget) {
+          ctx.shadowColor = 'rgba(94, 234, 212, 0.8)';
+          ctx.shadowBlur = 16 + flashPulse * 8;
+        } else if (isActiveRite && object.role === 'source' && !completed) {
+          ctx.shadowColor = 'rgba(250, 204, 21, 0.5)';
+          ctx.shadowBlur = 9;
+        }
+        if (object.role === 'target') {
+          ctx.fillStyle = completed ? 'rgba(34, 28, 18, 0.95)' : 'rgba(54, 41, 24, 0.92)';
+          ctx.strokeStyle = flashStroke || (validTarget ? 'rgba(94, 234, 212, 0.85)' : 'rgba(214, 176, 106, 0.5)');
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.roundRect(sx - w / 2, sy - h / 2, w, h, 6);
+          ctx.fill();
+          ctx.stroke();
+          if (sym) {
+            ctx.fillStyle = completed ? 'rgba(94, 234, 212, 0.92)' : sym.color;
+            ctx.font = '900 20px Cinzel, serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(sym.glyph, sx, sy - 2);
+          }
+          if (completed) {
+            ctx.fillStyle = sym ? sym.color : '#caa86a';
+            ctx.beginPath();
+            ctx.ellipse(sx, sy - h / 2 - 14, 14, 22, 0, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        } else if (object.role === 'source') {
+          ctx.globalAlpha = completed ? 0.4 : 1;
+          ctx.fillStyle = sym ? sym.color : (object.id === 'linen-roll' ? '#e8ddc4' : '#caa86a');
+          ctx.beginPath();
+          ctx.ellipse(sx, sy, w / 2, h / 2, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = flashStroke || 'rgba(20, 12, 6, 0.5)';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          if (sym) {
+            ctx.fillStyle = 'rgba(20, 12, 6, 0.82)';
+            ctx.font = '900 16px Cinzel, serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(sym.glyph, sx, sy);
+          }
+        } else {
+          // inspect / activate / apply / wrap markers
+          ctx.strokeStyle = flashStroke
+            || (validTarget ? 'rgba(94, 234, 212, 0.8)'
+              : completed ? 'rgba(94, 234, 212, 0.5)' : 'rgba(250, 204, 21, 0.42)');
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(sx, sy, Math.max(w, h) / 2, 0, Math.PI * 2);
+          ctx.stroke();
+          if (object.role === 'activate') {
+            ctx.fillStyle = completed ? 'rgba(94, 234, 212, 0.5)' : 'rgba(120, 170, 210, 0.55)';
+            ctx.beginPath();
+            ctx.ellipse(sx, sy + 5, w / 2 - 4, h / 3, 0, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+        ctx.restore();
+      });
+
+      // Hold progress ring over the active apply/wrap target.
+      if (interaction.holdItemId && interaction.holdDuration > 0) {
+        const holdObj = MUMMIFICATION_CHAMBER_RITE_OBJECTS.find(o => o.id === interaction.holdItemId);
+        if (holdObj) {
+          const ratio = clamp(interaction.holdProgress / interaction.holdDuration, 0, 1);
+          const cx = holdObj.screen.x;
+          const cy = holdObj.screen.y - 34;
+          ctx.save();
+          ctx.lineWidth = 6;
+          ctx.strokeStyle = 'rgba(18, 12, 8, 0.65)';
+          ctx.beginPath();
+          ctx.arc(cx, cy, 26, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.strokeStyle = 'rgba(94, 234, 212, 0.95)';
+          ctx.beginPath();
+          ctx.arc(cx, cy, 26, -Math.PI / 2, -Math.PI / 2 + ratio * Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+
+      // Carried item floating above Asha.
+      if (carriedId) {
+        const carriedObj = MUMMIFICATION_CHAMBER_RITE_OBJECTS.find(o => o.id === carriedId);
+        const pcx = worldToScreenX(current.player.x + current.player.width / 2, current.cameraX);
+        const pcy = current.player.y - 24;
+        const sym = carriedObj?.symbol ? MUMMIFICATION_JAR_SYMBOLS[carriedObj.symbol] : null;
+        ctx.save();
+        ctx.shadowColor = 'rgba(94, 234, 212, 0.7)';
+        ctx.shadowBlur = 14;
+        ctx.fillStyle = sym ? sym.color : (carriedId === 'linen-roll' ? '#e8ddc4' : '#d8c08a');
+        ctx.beginPath();
+        ctx.ellipse(pcx, pcy, 13, 18, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        if (sym) {
+          ctx.fillStyle = 'rgba(20, 12, 6, 0.85)';
+          ctx.font = '900 13px Cinzel, serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(sym.glyph, pcx, pcy);
+        }
+        ctx.font = '800 11px Outfit, sans-serif';
+        ctx.fillStyle = 'rgba(255, 247, 237, 0.92)';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`Carrying: ${carriedObj?.label || 'item'}`, pcx, pcy - 28);
+        ctx.restore();
+      }
+
+      // Interact prompt pill near the active object — only when close enough to act.
+      if (interaction.activePrompt && interaction.activePromptId) {
+        const promptObj = MUMMIFICATION_CHAMBER_RITE_OBJECTS.find(o => o.id === interaction.activePromptId)
+          || MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS.find(o => o.id === interaction.activePromptId);
+        if (promptObj) {
+          const label = interaction.activePrompt;
+          const px = promptObj.screen.x;
+          const ph = promptObj.screen.height || 60;
+          const py = promptObj.screen.y - ph / 2 - 30;
+          ctx.save();
+          ctx.font = '800 13px Outfit, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          const pw = ctx.measureText(label).width + 24;
+          ctx.fillStyle = 'rgba(15, 23, 24, 0.86)';
+          ctx.strokeStyle = 'rgba(94, 234, 212, 0.7)';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.roundRect(px - pw / 2, py - 13, pw, 26, 8);
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = 'rgba(224, 252, 247, 0.96)';
+          ctx.fillText(label, px, py);
+          ctx.restore();
+        }
+      }
+    }
+
     const particleCount = atmosphere.particleCount;
     ctx.globalAlpha = 0.16 + atmosphere.wakeProgress * 0.26;
     ctx.fillStyle = unlocked ? 'rgba(94, 234, 212, 0.34)' : 'rgba(245, 158, 11, 0.25)';
@@ -9691,6 +9982,10 @@ export default function ExpeditionJourney({
       current.renderStats.mummificationChamberGlyphGlowAlpha = Number(atmosphere.glyphGlowAlpha.toFixed(2));
       current.renderStats.visibleMummificationChamberInteractionObjects = MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS.map(item => item.id);
       current.renderStats.mummificationChamberInspectedObjects = Array.from(inspectedObjectIds);
+      current.renderStats.mummificationChamberInteractVersion = MUMMIFICATION_ROOM_INTERACT_VERSION;
+      current.renderStats.mummificationChamberCarriedItemId = current.mummificationChamberInteraction?.carriedItemId || null;
+      current.renderStats.mummificationChamberActivePrompt = current.mummificationChamberInteraction?.activePrompt || null;
+      current.renderStats.mummificationChamberHoldProgress = Number((current.mummificationChamberInteraction?.holdProgress || 0).toFixed(2));
     }
     ctx.restore();
     return true;
@@ -16557,121 +16852,234 @@ export default function ExpeditionJourney({
 
       const playerBody = getPlayerBodyHitbox(player);
       current.mummificationChamberInspectedObjectIds ??= new Set();
+      current.mummificationChamberInteraction ??= createJourneyRoomInteractionState();
+      let interaction = current.mummificationChamberInteraction;
+      interaction.wrongFlash ??= {};
       const inspectedObjectIds = current.mummificationChamberInspectedObjectIds;
       const ritualStep = current.mummificationChamberRitualStep || 0;
-      const nextStepInfo = MUMMIFICATION_CHAMBER_RITUAL_STEPS[ritualStep];
 
-      // Collect all overlapping interaction objects
-      const overlapping = MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS.filter((item) => {
-        const box = {
-          x: current.cameraX + item.hitbox.x,
-          y: item.hitbox.y,
-          width: item.hitbox.width,
-          height: item.hitbox.height,
-        };
-        return rectsOverlap(playerBody, box);
+      // Tick down any wrong-target flickers regardless of input.
+      Object.keys(interaction.wrongFlash).forEach((id) => {
+        interaction.wrongFlash[id] = Math.max(0, (interaction.wrongFlash[id] || 0) - dt);
+        if (interaction.wrongFlash[id] <= 0) delete interaction.wrongFlash[id];
       });
 
-      if (overlapping.length === 0) return null;
+      const interactDown = !!keys.KeyE;
+      const interactPressed = interactDown && !interaction.interactHeldPrev;
+      const moving = Math.abs(player.vx) > 0.1;
+      interaction.interactHeldPrev = interactDown;
+      // Render hints recomputed every frame.
+      interaction.activePromptId = null;
+      interaction.activePrompt = null;
 
-      // Exit seal takes priority — check it first
-      const exitSealItem = overlapping.find((item) => item.exitSeal);
-      if (exitSealItem) {
-        if (current.mummificationChamberPuzzleSolved) return { id: exitSealItem.id, alreadyUnlocked: true };
-        if ((current.itemPurposeNoticeTimer || 0) <= 0) {
-          current.notice = exitSealItem.lockedMessage;
+      const overlaps = (item) => rectsOverlap(playerBody, {
+        x: current.cameraX + item.hitbox.x,
+        y: item.hitbox.y,
+        width: item.hitbox.width,
+        height: item.hitbox.height,
+      });
+      const setObjectState = (id, state) => { interaction.objectStates[id] = state; };
+      const isDone = (state) => [
+        JOURNEY_INTERACT_OBJECT_STATES.INSPECTED,
+        JOURNEY_INTERACT_OBJECT_STATES.PLACED,
+        JOURNEY_INTERACT_OBJECT_STATES.USED,
+        JOURNEY_INTERACT_OBJECT_STATES.COMPLETED,
+      ].includes(state);
+      // Helpers clone the interaction state; commit() re-binds the live object so
+      // later reads (e.g. rite-completion checks) see the freshly applied change.
+      const commit = (result) => {
+        interaction = result.interaction;
+        current.mummificationChamberInteraction = interaction;
+        return result;
+      };
+
+      // Exit seal: priority overlap that stays locked until every rite is done.
+      const exitSealItem = MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS.find(item => item.exitSeal);
+      if (exitSealItem && overlaps(exitSealItem)) {
+        if (current.mummificationChamberExitUnlocked) {
+          interaction.activePromptId = exitSealItem.id;
+          interaction.activePrompt = 'Exit open';
+          return { id: exitSealItem.id, alreadyUnlocked: true };
+        }
+        interaction.activePromptId = exitSealItem.id;
+        interaction.activePrompt = 'Sealed';
+        if (interactPressed && (current.itemPurposeNoticeTimer || 0) <= 0) {
+          current.notice = 'The seal does not trust an unfinished rite.';
           current.itemPurposeNoticeTimer = 1.35;
           audioControls?.playExpeditionSfx?.('gateBlocked');
         }
         return { id: exitSealItem.id, blocked: true };
       }
 
-      // Sort ritual items by their sequence index (lowest = most relevant to process first)
-      const ritualItems = overlapping.slice().sort((a, b) => {
-        const aIdx = MUMMIFICATION_CHAMBER_RITUAL_SEQUENCE.indexOf(a.id);
-        const bIdx = MUMMIFICATION_CHAMBER_RITUAL_SEQUENCE.indexOf(b.id);
-        return aIdx - bIdx;
-      });
+      const riteDef = getMummificationRiteByIndex(ritualStep);
+      if (!riteDef) return null; // all rites complete
 
-      // Debounce all ritual interactions with shared timer
-      if ((current.itemPurposeNoticeTimer || 0) > 0) {
-        return { id: ritualItems[0].id, waiting: true };
-      }
+      const advanceRiteIfComplete = (item) => {
+        const done = riteDef.requires.every(id => isDone(interaction.objectStates[id]));
+        if (!done) return false;
+        const stepInfo = MUMMIFICATION_CHAMBER_RITUAL_STEPS[ritualStep];
+        const nextStep = ritualStep + 1;
+        current.mummificationChamberRitualStep = nextStep;
+        // Keep the atmosphere/guidance systems progressing on the canonical objects.
+        if (stepInfo?.id) inspectedObjectIds.add(stepInfo.id);
+        const isComplete = isMummificationChamberComplete(nextStep);
+        current.notice = riteDef.completeNotice;
+        current.cinematicEvent = {
+          id: isComplete ? 'mummification-chamber-ritual-complete' : `mummification-rite-${riteDef.rite}`,
+          name: 'Asha',
+          message: riteDef.completeLine,
+          temporary: true,
+        };
+        current.cinematicTimer = isComplete ? 3.2 : 2.1;
+        current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, isComplete ? 2.0 : 1.1);
+        current.hitStopTimer = Math.max(current.hitStopTimer, isComplete ? 0.04 : 0.022);
+        addRewardPulse(item.id, current.cameraX + item.screen.x, item.screen.y,
+          isComplete ? 'RITE SEALED' : (stepInfo?.pulseText || 'RITE DONE'), {
+            color: isComplete ? '#5eead4' : '#facc15',
+            fill: isComplete ? 'rgba(94, 234, 212, 0.12)' : 'rgba(250, 204, 21, 0.12)',
+            radius: isComplete ? 72 : 48,
+            timer: isComplete ? 0.9 : 0.6,
+          });
+        if (isComplete) {
+          current.mummificationChamberPuzzleSolved = true;
+          current.mummificationChamberExitUnlocked = true;
+          interaction.carriedItemId = null;
+          audioControls?.playLevelUp?.();
+          syncHud();
+        } else {
+          audioControls?.playSuccess?.();
+        }
+        return true;
+      };
 
-      for (const item of ritualItems) {
-        const ritualIndex = MUMMIFICATION_CHAMBER_RITUAL_SEQUENCE.indexOf(item.id);
-
-        // Already activated in correct sequence — silently skip
-        if (ritualIndex < ritualStep) continue;
-
-        // This is the next expected item — activate it
-        if (ritualIndex === ritualStep) {
-          const stepInfo = MUMMIFICATION_CHAMBER_RITUAL_STEPS[ritualIndex];
-          const nextStep = ritualStep + 1;
-          current.mummificationChamberRitualStep = nextStep;
-          inspectedObjectIds.add(item.id);
-
-          const isComplete = nextStep >= MUMMIFICATION_CHAMBER_RITUAL_SEQUENCE.length;
-          current.notice = isComplete
-            ? 'They were not buried with riches. They were buried with memories.'
-            : `${stepInfo?.rite || item.name}. ${item.successMessage}`;
-          current.cinematicEvent = {
-            id: isComplete ? 'mummification-chamber-ritual-complete' : item.id,
-            name: isComplete ? 'Anubis' : item.name,
-            message: isComplete
-              ? 'You call them relics. I call them the pieces of a life.'
-              : `${stepInfo?.guideLabel || item.name}: ${item.successMessage}`,
-            temporary: true,
-          };
-          current.cinematicTimer = isComplete ? 3.2 : 2.2;
-          current.itemPurposeNoticeTimer = isComplete ? 2.0 : 1.25;
-          current.hitStopTimer = Math.max(current.hitStopTimer, isComplete ? 0.04 : 0.025);
-          addRewardPulse(item.id, current.cameraX + item.screen.x, item.screen.y,
-            isComplete ? 'RITUAL COMPLETE' : stepInfo?.pulseText || item.pulseText, {
-              color: isComplete ? '#5eead4' : '#facc15',
-              fill: isComplete ? 'rgba(94, 234, 212, 0.12)' : 'rgba(250, 204, 21, 0.12)',
-              radius: isComplete ? 72 : 48,
-              timer: isComplete ? 0.9 : 0.62,
-            });
+      const flashWrong = (item, message) => {
+        interaction.wrongFlash[item.id] = 0.55;
+        if ((current.itemPurposeNoticeTimer || 0) <= 0) {
+          current.notice = message;
+          current.itemPurposeNoticeTimer = 1.35;
+          audioControls?.playExpeditionSfx?.('gateBlocked');
+          current.hitStopTimer = Math.max(current.hitStopTimer, 0.016);
           addCombatEffect(current, {
-            type: 'secret-found',
+            type: 'environment-dust',
             x: current.cameraX + item.screen.x,
             y: item.screen.y,
-            text: stepInfo?.pulseText || item.pulseText,
-            color: '#facc15',
-            radius: 42,
-            timer: 0.58,
-            maxTimer: 0.58,
+            color: 'rgba(245, 158, 11, 0.6)',
+            timer: 0.4,
+            maxTimer: 0.4,
           });
-          if (isComplete) {
-            current.mummificationChamberPuzzleSolved = true;
-            current.mummificationChamberExitUnlocked = true;
-            audioControls?.playLevelUp?.();
-            syncHud();
-          } else {
-            audioControls?.playSuccess?.();
-          }
-          return { id: item.id, activated: true };
         }
+      };
 
-        // Wrong order: keep progress and point to the next rite.
-        current.notice = nextStepInfo?.hint || 'The room remains still. Preparation must follow its order.';
-        current.itemPurposeNoticeTimer = 1.45;
-        current.hitStopTimer = Math.max(current.hitStopTimer, 0.018);
-        audioControls?.playExpeditionSfx?.('gateBlocked');
-        addCombatEffect(current, {
-          type: 'environment-dust',
-          x: current.cameraX + item.screen.x,
-          y: item.screen.y,
-          text: nextStepInfo ? `NEXT: ${nextStepInfo.shortLabel.toUpperCase()}` : 'OUT OF ORDER',
-          color: 'rgba(94, 234, 212, 0.72)',
-          timer: 0.4,
-          maxTimer: 0.4,
-        });
-        return { id: item.id, wrongOrder: true, expectedId: nextStepInfo?.id || null };
+      const carried = interaction.carriedItemId;
+      const overlappingObjects = riteDef.objects.filter(overlaps);
+      const isHoldTarget = (object) => object.role === 'apply' || object.role === 'wrap';
+
+      // Choose the object the player can act on right now: when carrying, prefer a
+      // valid hold/place target; otherwise prefer a source/inspect/activate object.
+      const target = carried
+        ? (overlappingObjects.find(o => isHoldTarget(o) && o.acceptsItemId === carried)
+          || overlappingObjects.find(o => o.role === 'target' || o.role === 'restore')
+          || overlappingObjects.find(o => o.id === carried) // returning to its source
+          || overlappingObjects.find(o => isHoldTarget(o)))
+        : (overlappingObjects.find(o => o.role === 'source')
+          || overlappingObjects.find(o => o.role === 'inspect' && !isDone(interaction.objectStates[o.id]))
+          || overlappingObjects.find(o => o.role === 'activate' && !isDone(interaction.objectStates[o.id]))
+          || overlappingObjects.find(o => o.role === 'inspect' || o.role === 'activate'));
+
+      // Hold-to-use (apply / wrap): accumulate only while stationary and held.
+      if (target && isHoldTarget(target) && carried === target.acceptsItemId) {
+        const duration = MUMMIFICATION_HOLD_DURATIONS[target.holdKey] || 1.5;
+        const hold = commit(journeyInteractHoldTick(interaction, {
+          itemId: target.id, verb: target.verb, duration, dt,
+          holding: interactDown, moving,
+        }));
+        interaction.activePromptId = target.id;
+        interaction.activePrompt = target.prompt;
+        if (hold.completed) {
+          setObjectState(target.id, JOURNEY_INTERACT_OBJECT_STATES.COMPLETED);
+          setObjectState(carried, JOURNEY_INTERACT_OBJECT_STATES.USED);
+          interaction.carriedItemId = null;
+          advanceRiteIfComplete(target);
+        } else if (hold.cancelled && moving && riteDef.slipNotice && (current.itemPurposeNoticeTimer || 0) <= 0) {
+          // Linen slip etc. — retry only this hold, nothing else resets.
+          current.notice = riteDef.slipNotice;
+          current.itemPurposeNoticeTimer = 1.2;
+        }
+        return { id: target.id, holding: hold.reason === 'holding' };
       }
 
-      return null;
+      // Expose the current prompt for rendering even when the player isn't pressing.
+      if (target) {
+        if (carried && target.id === carried) {
+          interaction.activePrompt = 'E Put back';
+        } else if (carried && isHoldTarget(target) && target.acceptsItemId !== carried) {
+          interaction.activePrompt = null; // wrong item: no hold prompt
+        } else {
+          interaction.activePrompt = target.prompt;
+        }
+        interaction.activePromptId = interaction.activePrompt ? target.id : null;
+      }
+
+      if (!interactPressed || !target) {
+        return target ? { id: target.id } : null;
+      }
+      if ((current.itemPurposeNoticeTimer || 0) > 0) {
+        return { id: target.id, waiting: true };
+      }
+
+      // Tap actions.
+      if (target.role === 'inspect' || target.role === 'activate') {
+        commit(journeyInteractInspect(interaction, target));
+        current.notice = target.message || `${target.label} honoured.`;
+        current.itemPurposeNoticeTimer = 1.0;
+        audioControls?.playSuccess?.();
+        addRewardPulse(target.id, current.cameraX + target.screen.x, target.screen.y, 'HONOURED', {
+          color: '#facc15', radius: 40, timer: 0.5,
+        });
+        advanceRiteIfComplete(target);
+        return { id: target.id, inspected: true };
+      }
+
+      if (target.role === 'source') {
+        if (carried && carried === target.id) {
+          // Put the carried item back where it came from.
+          interaction.carriedItemId = null;
+          setObjectState(target.id, JOURNEY_INTERACT_OBJECT_STATES.IDLE);
+          current.notice = `${target.label} set back down.`;
+          current.itemPurposeNoticeTimer = 0.8;
+          audioControls?.playSuccess?.();
+          return { id: target.id, returned: true };
+        }
+        const result = commit(journeyInteractPickUp(interaction, target));
+        if (!result.ok) {
+          current.notice = 'Both hands are full. Place what I carry first.';
+          current.itemPurposeNoticeTimer = 1.1;
+          audioControls?.playExpeditionSfx?.('gateBlocked');
+          return { id: target.id, handsFull: true };
+        }
+        current.notice = `Carrying the ${target.label}.`;
+        current.itemPurposeNoticeTimer = 0.6;
+        audioControls?.playSuccess?.();
+        return { id: target.id, pickedUp: true };
+      }
+
+      if (target.role === 'target' || target.role === 'restore') {
+        const result = commit(journeyInteractPlace(interaction, target));
+        if (!result.ok) {
+          flashWrong(target, riteDef.wrongTargetNotice || 'That does not belong here.');
+          return { id: target.id, wrongTarget: true };
+        }
+        current.notice = target.message || riteDef.completeNotice;
+        current.itemPurposeNoticeTimer = 0.9;
+        audioControls?.playSuccess?.();
+        addRewardPulse(target.id, current.cameraX + target.screen.x, target.screen.y, 'PLACED', {
+          color: '#5eead4', radius: 44, timer: 0.55,
+        });
+        advanceRiteIfComplete(target);
+        return { id: target.id, placed: true };
+      }
+
+      return { id: target.id };
     })();
     const mummificationChamberDoorwayActive = backgroundPackId !== 'china-river-valley'
       && currentSceneId === JOURNEY_SCENE_IDS.EXTERIOR
@@ -19091,7 +19499,9 @@ export default function ExpeditionJourney({
     const handlePropEditorKeyDown = (event) => {
       if (isJourneyEditorFormTarget(event.target)) return;
       const editor = propPlacementEditorRef.current;
-      if (event.code === 'KeyE' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+      // Plain E is reserved for the in-world Journey Room interact system, so the
+      // dev prop-editor toggle requires Shift+E.
+      if (event.code === 'KeyE' && event.shiftKey && !event.ctrlKey && !event.metaKey && !event.altKey) {
         event.preventDefault();
         editor.enabled = !editor.enabled;
         if (editor.enabled) {

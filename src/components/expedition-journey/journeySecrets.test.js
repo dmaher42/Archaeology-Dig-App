@@ -1454,19 +1454,27 @@ test('mummification chamber interaction objects reuse Journey asset packs and no
   assert.match(journeyUtilsSource, /mummificationChamberInspectedObjectIds:\s*new Set\(\)/);
   assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS = Object\.freeze/);
   [
-    'This was not only a body being preserved. It was the self being carried across.',
+    'This was a work of care. Every hand here moved slowly, and in silence.',
     'Layer by layer. Not hidden. Held together.',
     'Not storage. Safekeeping.',
     'The name has been scratched away. Someone tried to remove more than stone.',
     'Preservation was care. Not display.',
     'The seal recognises care before passage.',
     'The scent of resin rises from the stone.',
-    'The linen shifts as if remembering its purpose.',
+    'The linen settles, smooth and patient under careful hands.',
     'The jars settle into silence.',
     'A faint line of the name returns.',
     'The chamber grows still.',
   ].forEach((line) => {
     assert.match(journeyComponentSource, new RegExp(line.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  });
+  // Tone guard: the chamber copy must avoid the early "memory" framing.
+  [
+    'the self being carried across',
+    'remembering its purpose',
+    'buried with memories',
+  ].forEach((banned) => {
+    assert.doesNotMatch(journeyComponentSource, new RegExp(banned.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   });
   assert.match(journeyComponentSource, /current\.mummificationChamberPuzzleSolved = true/);
   assert.match(journeyComponentSource, /current\.mummificationChamberExitUnlocked = true/);
@@ -1490,8 +1498,10 @@ test('mummification chamber ritual-order puzzle uses in-world sequence activatio
   assert.match(journeyComponentSource, /mummificationChamberRitualStep/);
   assert.match(journeyComponentSource, /That order is not right\./);
   assert.match(journeyComponentSource, /The ritual order is understood\./);
-  assert.match(journeyComponentSource, /The room remains still\. Preparation must follow its order\./);
-  assert.match(journeyComponentSource, /They were not buried with riches\. They were buried with memories\./);
+  // The room is now a physical rite system driven by the reusable interact model.
+  assert.match(journeyComponentSource, /MUMMIFICATION_ROOM_INTERACT_VERSION = 'mummification-room-interact-system-2026-06-05'/);
+  assert.match(journeyComponentSource, /The seal does not trust an unfinished rite\./);
+  assert.match(journeyComponentSource, /The seal listens\. The name is restored, and the crossing may begin\./);
   assert.match(journeyComponentSource, /The scent of resin rises from the stone\./);
   assert.match(journeyComponentSource, /current\.mummificationChamberPuzzleSolved = true/);
   assert.match(journeyComponentSource, /current\.mummificationChamberExitUnlocked = true/);
@@ -1513,9 +1523,54 @@ test('mummification chamber ritual puzzle teaches the next rite without punishin
   });
   assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_RITUAL_SEQUENCE = MUMMIFICATION_CHAMBER_RITUAL_STEPS\.map\(step => step\.id\)/);
   assert.match(journeyComponentSource, /currentStepInfo = MUMMIFICATION_CHAMBER_RITUAL_STEPS\[chamberRitualStep\]/);
-  assert.match(journeyComponentSource, /nextStepInfo = MUMMIFICATION_CHAMBER_RITUAL_STEPS\[ritualStep\]/);
-  assert.match(journeyComponentSource, /current\.notice = nextStepInfo\?\.hint \|\| 'The room remains still\. Preparation must follow its order\.'/);
+  // Wrong placement teaches via a clue + flicker and never resets prior progress.
+  assert.match(journeyComponentSource, /riteDef\.wrongTargetNotice/);
+  assert.match(journeyComponentSource, /That jar does not belong here\. Match the symbol to the plinth\./);
+  assert.match(journeyComponentSource, /One careless hand can undo centuries/);
   assert.doesNotMatch(journeyComponentSource, /current\.mummificationChamberRitualStep = 0;[\s\S]*?MUMMIFICATION_CHAMBER_RITUAL_SEQUENCE\.forEach\(\(id\) => inspectedObjectIds\.delete\(id\)\)/);
+});
+
+test('reusable Journey Room Interact system drives the mummification chamber with physical verbs', () => {
+  // Reusable primitives live in the existing helper area, not a parallel folder.
+  assert.match(journeyUtilsSource, /export const JOURNEY_INTERACT_VERBS = Object\.freeze/);
+  assert.match(journeyUtilsSource, /export const JOURNEY_INTERACT_OBJECT_STATES = Object\.freeze/);
+  assert.match(journeyUtilsSource, /export const JOURNEY_INTERACT_PROMPTS = Object\.freeze/);
+  ['INSPECT', 'PICK_UP', 'CARRY', 'PLACE', 'HOLD_APPLY', 'HOLD_WRAP', 'RESTORE'].forEach((verb) => {
+    assert.match(journeyUtilsSource, new RegExp(`${verb}:`));
+  });
+  ['IDLE', 'INSPECTED', 'HELD', 'PLACED', 'USED', 'COMPLETED', 'LOCKED'].forEach((state) => {
+    assert.match(journeyUtilsSource, new RegExp(`${state}:`));
+  });
+  assert.match(journeyUtilsSource, /export const createJourneyRoomInteractionState = /);
+  assert.match(journeyUtilsSource, /export const journeyInteractPickUp = /);
+  assert.match(journeyUtilsSource, /export const journeyInteractPlace = /);
+  assert.match(journeyUtilsSource, /export const journeyInteractHoldTick = /);
+  assert.match(journeyUtilsSource, /export const MUMMIFICATION_RITE_SEQUENCE = /);
+  // One carried item at a time + wrong-target keeps progress, encoded in the helper.
+  assert.match(journeyUtilsSource, /if \(next\.carriedItemId\) \{/);
+  assert.match(journeyUtilsSource, /reason: 'hands-full'/);
+  assert.match(journeyUtilsSource, /reason: 'wrong-target'/);
+
+  // The chamber state lives in the existing Journey flow and is wired into the room.
+  assert.match(journeyUtilsSource, /mummificationChamberInteraction: createJourneyRoomInteractionState\(\)/);
+  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_RITE_OBJECTS = MUMMIFICATION_CHAMBER_RITES/);
+  assert.match(journeyComponentSource, /MUMMIFICATION_HOLD_DURATIONS = Object\.freeze\(\{ apply:/);
+  // The four canopic jars and their scrambled plinths.
+  ['jar-imsety', 'jar-hapi', 'jar-duamutef', 'jar-qebehsenuef'].forEach((id) => {
+    assert.match(journeyComponentSource, new RegExp(`id: '${id}'`));
+  });
+  ['plinth-a', 'plinth-b', 'plinth-c', 'plinth-d'].forEach((id) => {
+    assert.match(journeyComponentSource, new RegExp(`id: '${id}'`));
+  });
+  // Real interact key (plain E), with the dev prop editor moved to Shift+E.
+  assert.match(journeyComponentSource, /const interactDown = !!keys\.KeyE/);
+  assert.match(journeyComponentSource, /event\.code === 'KeyE' && event\.shiftKey/);
+  // Hold-to-use and carry are routed through the reusable primitives.
+  assert.match(journeyComponentSource, /journeyInteractHoldTick\(interaction/);
+  assert.match(journeyComponentSource, /journeyInteractPickUp\(interaction/);
+  assert.match(journeyComponentSource, /journeyInteractPlace\(interaction/);
+  // No parallel room / puzzle / interaction system was created.
+  assert.doesNotMatch(journeyComponentSource, /createMummificationRoomSystem|JourneyRoomInteract\.jsx|class\s+JourneyRoomInteract/);
 });
 
 test('mummification chamber atmosphere wakes from existing inspection and puzzle state', () => {

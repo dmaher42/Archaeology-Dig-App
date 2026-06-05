@@ -1147,6 +1147,166 @@ export const makeBossKeyItem = (item) => ({
   collected: false,
 });
 
+// ---------------------------------------------------------------------------
+// Reusable Journey Room Interact System
+// ---------------------------------------------------------------------------
+// A lightweight, pure (no React / no canvas) model for in-world interaction in
+// Journey rooms. The Mummification Chamber is the first consumer; the same
+// primitives are intended for later rooms (Scribe Chamber, Queen Chamber).
+// Verbs describe what the player is about to do; object states describe how an
+// object should read/render. The transition helpers are pure: they clone the
+// interaction state and return { ok, interaction, reason } so they can be unit
+// tested and reused without dragging gameplay side effects along.
+export const JOURNEY_INTERACT_VERBS = Object.freeze({
+  INSPECT: 'inspect',
+  PICK_UP: 'pick-up',
+  CARRY: 'carry',
+  PLACE: 'place',
+  HOLD_APPLY: 'hold-apply',
+  HOLD_WRAP: 'hold-wrap',
+  RESTORE: 'restore',
+});
+
+export const JOURNEY_INTERACT_OBJECT_STATES = Object.freeze({
+  IDLE: 'idle',
+  INSPECTED: 'inspected',
+  HELD: 'held',
+  PLACED: 'placed',
+  USED: 'used',
+  COMPLETED: 'completed',
+  LOCKED: 'locked',
+});
+
+export const JOURNEY_INTERACT_PROMPTS = Object.freeze({
+  [JOURNEY_INTERACT_VERBS.INSPECT]: 'E Inspect',
+  [JOURNEY_INTERACT_VERBS.PICK_UP]: 'E Pick up',
+  [JOURNEY_INTERACT_VERBS.CARRY]: 'E Carry',
+  [JOURNEY_INTERACT_VERBS.PLACE]: 'E Place',
+  [JOURNEY_INTERACT_VERBS.HOLD_APPLY]: 'Hold E Apply',
+  [JOURNEY_INTERACT_VERBS.HOLD_WRAP]: 'Hold E Wrap',
+  [JOURNEY_INTERACT_VERBS.RESTORE]: 'E Restore',
+});
+
+export const getJourneyInteractPrompt = (verb) => JOURNEY_INTERACT_PROMPTS[verb] || 'E Interact';
+
+// One carried item at a time, per-object states, and a single live hold action.
+export const createJourneyRoomInteractionState = () => ({
+  carriedItemId: null,
+  objectStates: {},
+  holdItemId: null,
+  holdVerb: null,
+  holdProgress: 0,
+  holdDuration: 0,
+  interactHeldPrev: false,
+  feedback: null,
+});
+
+export const getJourneyInteractObjectState = (interaction, id) =>
+  interaction?.objectStates?.[id] || JOURNEY_INTERACT_OBJECT_STATES.IDLE;
+
+const cloneJourneyInteraction = (interaction) => {
+  const base = interaction || createJourneyRoomInteractionState();
+  return {
+    ...base,
+    objectStates: { ...(base.objectStates || {}) },
+  };
+};
+
+export const journeyInteractInspect = (interaction, item) => {
+  const next = cloneJourneyInteraction(interaction);
+  const id = item?.id;
+  if (!id) return { ok: false, interaction: next, reason: 'no-item' };
+  // Don't downgrade an object that already advanced past inspection.
+  const existing = next.objectStates[id];
+  if (!existing || existing === JOURNEY_INTERACT_OBJECT_STATES.IDLE) {
+    next.objectStates[id] = JOURNEY_INTERACT_OBJECT_STATES.INSPECTED;
+  }
+  next.feedback = { type: 'inspected', id };
+  return { ok: true, interaction: next, reason: null };
+};
+
+export const journeyInteractPickUp = (interaction, item) => {
+  const next = cloneJourneyInteraction(interaction);
+  const id = item?.id;
+  if (!id) return { ok: false, interaction: next, reason: 'no-item' };
+  if (next.carriedItemId) {
+    // Hands are already full — enforce one carried item at a time.
+    next.feedback = { type: 'hands-full', id };
+    return { ok: false, interaction: next, reason: 'hands-full' };
+  }
+  next.carriedItemId = id;
+  next.objectStates[id] = JOURNEY_INTERACT_OBJECT_STATES.HELD;
+  next.feedback = { type: 'picked-up', id };
+  return { ok: true, interaction: next, reason: null };
+};
+
+// Places the carried item only at a valid target (target.acceptsItemId matches).
+// A wrong target keeps the carried item AND all prior progress — nothing resets.
+export const journeyInteractPlace = (interaction, target) => {
+  const next = cloneJourneyInteraction(interaction);
+  const carried = next.carriedItemId;
+  if (!carried) return { ok: false, interaction: next, reason: 'empty-handed' };
+  if (!target?.id) return { ok: false, interaction: next, reason: 'no-target' };
+  if (target.acceptsItemId !== carried) {
+    // Wrong placement: feedback only, carried item retained, no reset.
+    next.feedback = { type: 'wrong-target', id: target.id, itemId: carried };
+    return { ok: false, interaction: next, reason: 'wrong-target' };
+  }
+  next.carriedItemId = null;
+  next.objectStates[carried] = JOURNEY_INTERACT_OBJECT_STATES.COMPLETED;
+  next.objectStates[target.id] = JOURNEY_INTERACT_OBJECT_STATES.COMPLETED;
+  next.feedback = { type: 'placed', id: target.id, itemId: carried };
+  return { ok: true, interaction: next, reason: null };
+};
+
+// Advances a hold-to-use action. Releasing the key or moving cancels ONLY the
+// current hold (progress resets to 0); it never touches other rite progress.
+export const journeyInteractHoldTick = (
+  interaction,
+  { itemId = null, verb = null, duration = 1, dt = 0, holding = false, moving = false } = {},
+) => {
+  const next = cloneJourneyInteraction(interaction);
+  if (!holding || moving) {
+    const cancelled = next.holdProgress > 0;
+    next.holdItemId = null;
+    next.holdVerb = null;
+    next.holdProgress = 0;
+    next.holdDuration = 0;
+    if (cancelled) next.feedback = { type: 'hold-cancelled', id: itemId, moving: Boolean(moving) };
+    return { ok: false, interaction: next, reason: moving ? 'moved' : 'released', cancelled, completed: false };
+  }
+  // Restart accumulation if the hold target changed.
+  if (next.holdItemId !== itemId || next.holdVerb !== verb) {
+    next.holdItemId = itemId;
+    next.holdVerb = verb;
+    next.holdProgress = 0;
+  }
+  next.holdDuration = duration;
+  next.holdProgress = Math.min(duration, next.holdProgress + Math.max(0, dt));
+  const completed = next.holdProgress >= duration;
+  if (completed) {
+    next.holdItemId = null;
+    next.holdVerb = null;
+    next.holdProgress = 0;
+    next.holdDuration = 0;
+    next.feedback = { type: 'hold-complete', id: itemId, verb };
+  }
+  return { ok: completed, interaction: next, reason: completed ? 'completed' : 'holding', cancelled: false, completed };
+};
+
+// Mummification rite order — exported so tests can drive the five-rite flow and
+// confirm the exit seal stays locked until every rite is complete.
+export const MUMMIFICATION_RITE_SEQUENCE = Object.freeze([
+  'cleanse',
+  'jars',
+  'oils',
+  'linen',
+  'name',
+]);
+
+export const isMummificationChamberComplete = (ritualStep) =>
+  (ritualStep || 0) >= MUMMIFICATION_RITE_SEQUENCE.length;
+
 export const makeInitialState = ({ targetCivilisation, permanentUpgradeIds = [], permanentUpgradeEffects = {} } = {}) => ({
   player: {
     x: 44,
@@ -1225,6 +1385,7 @@ export const makeInitialState = ({ targetCivilisation, permanentUpgradeIds = [],
   mummificationChamberPuzzleSolved: false,
   mummificationChamberRitualStep: 0,
   mummificationChamberInspectedObjectIds: new Set(),
+  mummificationChamberInteraction: createJourneyRoomInteractionState(),
   forgottenMuralLooterSeen: false,
   forgottenMuralChamberEntered: false,
   forgottenMuralChamberActive: false,
