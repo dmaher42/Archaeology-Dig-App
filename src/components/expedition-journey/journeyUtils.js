@@ -472,6 +472,8 @@ export const createJourneyGroundDetailsPalette = () => JOURNEY_GROUND_DETAIL_PAL
     shadowOpacity: 0,
     sandOverlapHeight: 0,
     groundPebbles: 0,
+    brightness: 1,
+    colorGradeFilter: '',
     groundContactLayer: [
       {
         assetKey: item.assetKey,
@@ -504,6 +506,8 @@ export const createJourneyForegroundDetailsPalette = () => JOURNEY_FOREGROUND_DE
     shadowOpacity: 0,
     sandOverlapHeight: 0,
     groundPebbles: 0,
+    brightness: 1,
+    colorGradeFilter: '',
     groundContactLayer: [
       {
         assetKey: item.assetKey,

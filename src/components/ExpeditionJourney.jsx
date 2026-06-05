@@ -10699,8 +10699,21 @@ export default function ExpeditionJourney({
       const width = Number.isFinite(prop.width) ? prop.width : detailSize.width;
       const groundY = prop.y + (Number.isFinite(prop.yOffset) ? prop.yOffset : 0);
       const left = x - width / 2;
-      const underlayContact = drawEgyptStructureGroundContactLayer(ctx, prop.groundContactLayer, left, width, groundY, 'underlay');
-      const overlayContact = drawEgyptStructureGroundContactLayer(ctx, prop.groundContactLayer, left, width, groundY, 'overlay');
+      const detailColorFilter = typeof prop.colorGradeFilter === 'string' && prop.colorGradeFilter.trim() && prop.colorGradeFilter.trim() !== 'none'
+        ? prop.colorGradeFilter.trim()
+        : '';
+      const detailBrightnessFilter = Number.isFinite(prop.brightness) && prop.brightness !== 1
+        ? `brightness(${Math.round(clamp(prop.brightness, 0.4, 1.8) * 100)}%)`
+        : '';
+      const detailFilter = [detailColorFilter, detailBrightnessFilter].filter(Boolean).join(' ');
+      const detailContactLayer = detailFilter
+        ? (prop.groundContactLayer || []).map((entry) => ({
+          ...entry,
+          filter: [entry.filter, detailFilter].filter(Boolean).join(' '),
+        }))
+        : prop.groundContactLayer;
+      const underlayContact = drawEgyptStructureGroundContactLayer(ctx, detailContactLayer, left, width, groundY, 'underlay');
+      const overlayContact = drawEgyptStructureGroundContactLayer(ctx, detailContactLayer, left, width, groundY, 'overlay');
       if (stateRef.current.renderStats) {
         stateRef.current.renderStats.groundDetailPropCount = (stateRef.current.renderStats.groundDetailPropCount || 0) + 1;
         stateRef.current.renderStats.groundDetailAssetKeys = Array.from(new Set([

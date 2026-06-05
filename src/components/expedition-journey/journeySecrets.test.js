@@ -455,6 +455,8 @@ test('journey editor exposes premium Egypt ground details as reusable palette pr
     assert.equal(item.template.shadowOpacity, 0);
     assert.equal(item.template.sandOverlapHeight, 0);
     assert.equal(item.template.groundPebbles, 0);
+    assert.equal(item.template.brightness, 1);
+    assert.equal(item.template.colorGradeFilter, '');
     assert.equal(item.template.groundContactLayer.length, 1);
     assert.equal(item.template.groundContactLayer[0].assetKey, item.assetKey);
   });
@@ -479,6 +481,8 @@ test('journey editor creates ground detail props through the canonical prop fact
   assert.equal(created.shadowOpacity, 0);
   assert.equal(created.sandOverlapHeight, 0);
   assert.equal(created.groundPebbles, 0);
+  assert.equal(created.brightness, 1);
+  assert.equal(created.colorGradeFilter, '');
   assert.deepEqual(created.groundContactLayer, [
     {
       assetKey: 'premiumSmallStoneScatter',
@@ -513,6 +517,8 @@ test('journey editor exposes Egypt foreground depth assets as reusable palette p
     assert.equal(item.template.shadowOpacity, 0);
     assert.equal(item.template.sandOverlapHeight, 0);
     assert.equal(item.template.groundPebbles, 0);
+    assert.equal(item.template.brightness, 1);
+    assert.equal(item.template.colorGradeFilter, '');
     assert.equal(item.template.groundContactLayer.length, 1);
     assert.equal(item.template.groundContactLayer[0].assetKey, item.assetKey);
   });
@@ -538,6 +544,8 @@ test('journey editor creates foreground detail props through the canonical prop 
   assert.equal(created.shadowOpacity, 0);
   assert.equal(created.sandOverlapHeight, 0);
   assert.equal(created.groundPebbles, 0);
+  assert.equal(created.brightness, 1);
+  assert.equal(created.colorGradeFilter, '');
   assert.deepEqual(created.groundContactLayer, [
     {
       assetKey: 'buriedCarvedHead',
@@ -4114,8 +4122,11 @@ test('ground detail palette renders reusable contact sprites without atmosphere 
   assert.match(journeyComponentSource, /Ground Details palette/);
   assert.match(journeyComponentSource, /template\.groundDetailAssetKey/);
   assert.match(journeyComponentSource, /premiumGroundContactAssetsRef\.current/);
+  assert.match(drawStoryPropSource, /detailContactLayer/);
+  assert.match(drawStoryPropSource, /colorGradeFilter/);
+  assert.match(drawStoryPropSource, /brightness\(/);
   assert.match(drawStoryPropSource, /prop\.type === 'ground-contact-detail-prop'/);
-  assert.match(drawStoryPropSource, /drawEgyptStructureGroundContactLayer\(ctx, prop\.groundContactLayer/);
+  assert.match(drawStoryPropSource, /drawEgyptStructureGroundContactLayer\(ctx, detailContactLayer/);
   assert.doesNotMatch(drawStoryPropSource, /getEnvironmentAssetKeyForStoryProp\(propForAsset, ENVIRONMENT_ASSET_PACK_IDS\.EGYPT_PREMIUM_GROUND_CONTACT\)/);
 });
 
@@ -4127,7 +4138,8 @@ test('foreground detail palette renders foreground depth sprites without atmosph
   assert.match(journeyComponentSource, /\['foreground-detail', 'Foreground Details'\]/);
   assert.match(journeyComponentSource, /Foreground Details palette/);
   assert.match(drawStoryPropSource, /prop\.type === 'ground-contact-detail-prop' \|\| prop\.type === 'foreground-depth-detail-prop'/);
-  assert.match(drawStoryPropSource, /drawEgyptStructureGroundContactLayer\(ctx, prop\.groundContactLayer/);
+  assert.match(drawStoryPropSource, /detailContactLayer/);
+  assert.match(drawStoryPropSource, /drawEgyptStructureGroundContactLayer\(ctx, detailContactLayer/);
   assert.doesNotMatch(drawStoryPropSource, /getEnvironmentAssetKeyForStoryProp\(propForAsset, ENVIRONMENT_ASSET_PACK_IDS\.EGYPT_FOREGROUND_DEPTH\)/);
 });
 
