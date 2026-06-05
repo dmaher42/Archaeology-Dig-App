@@ -642,6 +642,51 @@ export const createJourneyPlacementAiInstructions = (editor = {}, { roomId } = {
   return `${header}\n${lines.join('\n')}`;
 };
 
+// Keys of the prop-editor ref that hold real placement work (everything else is
+// transient UI state like the current selection or whether the palette is open).
+const JOURNEY_PROP_EDITOR_OBJECT_KEYS = [
+  'edits', 'platformEdits', 'hazardEdits', 'routeGateEdits',
+  'routeGateDoorwayEdits', 'checkpointEdits', 'miniBossEdits',
+];
+const JOURNEY_PROP_EDITOR_ARRAY_KEYS = ['createdProps', 'createdPlatforms', 'createdHazards'];
+const JOURNEY_PROP_EDITOR_SET_KEYS = ['deletedIds', 'deletedPlatformIds', 'deletedHazardIds', 'lockedItems'];
+
+// Convert the editor's live edit layer into a plain JSON-safe object so it can be
+// written to localStorage. Sets are flattened to arrays.
+export const serializeJourneyPropEditorState = (editor = {}) => {
+  const result = { version: 1 };
+  JOURNEY_PROP_EDITOR_OBJECT_KEYS.forEach((key) => {
+    result[key] = { ...(editor[key] || {}) };
+  });
+  JOURNEY_PROP_EDITOR_ARRAY_KEYS.forEach((key) => {
+    result[key] = Array.isArray(editor[key]) ? editor[key].map(item => ({ ...item })) : [];
+  });
+  JOURNEY_PROP_EDITOR_SET_KEYS.forEach((key) => {
+    if (editor[key] instanceof Set) result[key] = [...editor[key]];
+    else if (Array.isArray(editor[key])) result[key] = [...editor[key]];
+    else result[key] = [];
+  });
+  return result;
+};
+
+// Rebuild the editable slice of editor state from a previously serialized object.
+// Returns only the keys present in the saved payload so it can be Object.assign'd
+// onto the live ref without clobbering transient UI fields.
+export const restoreJourneyPropEditorState = (saved = {}) => {
+  const result = {};
+  if (!saved || typeof saved !== 'object') return result;
+  JOURNEY_PROP_EDITOR_OBJECT_KEYS.forEach((key) => {
+    if (saved[key] && typeof saved[key] === 'object') result[key] = { ...saved[key] };
+  });
+  JOURNEY_PROP_EDITOR_ARRAY_KEYS.forEach((key) => {
+    if (Array.isArray(saved[key])) result[key] = saved[key].map(item => ({ ...item }));
+  });
+  JOURNEY_PROP_EDITOR_SET_KEYS.forEach((key) => {
+    if (Array.isArray(saved[key])) result[key] = new Set(saved[key]);
+  });
+  return result;
+};
+
 export const applyJourneyPropPlacementExportToProps = ({
   existingProps = [],
   exportData = {},

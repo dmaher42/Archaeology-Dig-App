@@ -102,6 +102,8 @@ import {
   createJourneyPlacementChangeSummary,
   createJourneyPlacementAiInstructions,
   createJourneyPropPlacementExport,
+  serializeJourneyPropEditorState,
+  restoreJourneyPropEditorState,
   DEFAULT_JOURNEY_PROP_EDITOR_ROTATION_STEP,
   DEFAULT_JOURNEY_PROP_EDITOR_GRID_SIZE,
   DEFAULT_JOURNEY_PROP_EDITOR_SCALE_STEP,
@@ -1401,6 +1403,7 @@ const isPlayerAttackVisualPhase = (attackState) => (
 );
 
 const CHARACTER_LOADER_STORAGE_KEY = 'expedition-character-loader-choice';
+const JOURNEY_PROP_EDITOR_STORAGE_KEY = 'expedition-journey-prop-editor-edits-v1';
 const CHARACTER_LOADER_VISIBILITY_STORAGE_KEY = 'expedition-character-loader-visible-v3';
 const PLAYER_CHARACTER_PRESETS = [
   {
@@ -3287,6 +3290,7 @@ export default function ExpeditionJourney({
     exportVisible: false,
     savedAt: null,
   });
+  const propEditorPersistTimeoutRef = useRef(null);
   const [propEditorUi, setPropEditorUi] = useState({
     enabled: false,
     selectedProp: null,
@@ -4112,9 +4116,84 @@ export default function ExpeditionJourney({
     };
   }, [getActivePropEditorRoomId, getHazardEditorRoomId, getPlatformEditorRoomId, getPropEditorSelectedArch, getPropEditorSelectedCheckpoint, getPropEditorSelectedHazard, getPropEditorSelectedLair, getPropEditorSelectedPlatform, getPropEditorSelectedProp, getPropPalettePreview, getScarabQueenLairPlacement, platformEditorPalette, propEditorPalette, trapEditorPalette]);
 
+  const persistPropEditorState = useCallback(() => {
+    if (!import.meta.env.DEV || typeof window === 'undefined') return;
+    try {
+      const serialized = serializeJourneyPropEditorState(propPlacementEditorRef.current);
+      window.localStorage.setItem(JOURNEY_PROP_EDITOR_STORAGE_KEY, JSON.stringify(serialized));
+    } catch {
+      // Ignore storage failures (quota exceeded, private mode, disabled storage).
+    }
+  }, []);
+
+  const schedulePropEditorPersist = useCallback(() => {
+    if (!import.meta.env.DEV || typeof window === 'undefined') return;
+    if (propEditorPersistTimeoutRef.current) {
+      window.clearTimeout(propEditorPersistTimeoutRef.current);
+    }
+    // Debounce so dragging (which fires every frame) writes at most ~2x/second.
+    propEditorPersistTimeoutRef.current = window.setTimeout(() => {
+      propEditorPersistTimeoutRef.current = null;
+      persistPropEditorState();
+    }, 400);
+  }, [persistPropEditorState]);
+
   const refreshPropEditorUi = useCallback(() => {
     setPropEditorUi(getPropEditorUiState());
-  }, [getPropEditorUiState]);
+    schedulePropEditorPersist();
+  }, [getPropEditorUiState, schedulePropEditorPersist]);
+
+  const clearSavedPropEditorState = useCallback(() => {
+    const editor = propPlacementEditorRef.current;
+    editor.edits = {};
+    editor.platformEdits = {};
+    editor.hazardEdits = {};
+    editor.routeGateEdits = {};
+    editor.routeGateDoorwayEdits = {};
+    editor.checkpointEdits = {};
+    editor.miniBossEdits = {};
+    editor.createdProps = [];
+    editor.createdPlatforms = [];
+    editor.createdHazards = [];
+    editor.deletedIds = new Set();
+    editor.deletedPlatformIds = new Set();
+    editor.deletedHazardIds = new Set();
+    editor.selectedPropId = null;
+    editor.selectedPlatformId = null;
+    editor.selectedHazardId = null;
+    editor.selectedArchId = null;
+    editor.selectedCheckpointId = null;
+    editor.selectedLairId = null;
+    editor.dragging = null;
+    if (typeof window !== 'undefined') {
+      try {
+        window.localStorage.removeItem(JOURNEY_PROP_EDITOR_STORAGE_KEY);
+      } catch {
+        // Ignore storage failures.
+      }
+    }
+    refreshPropEditorUi();
+  }, [refreshPropEditorUi]);
+
+  useEffect(() => {
+    if (!import.meta.env.DEV || typeof window === 'undefined') return;
+    try {
+      const raw = window.localStorage.getItem(JOURNEY_PROP_EDITOR_STORAGE_KEY);
+      if (!raw) return;
+      const restored = restoreJourneyPropEditorState(JSON.parse(raw));
+      // The game loop reads this ref every frame, so restored edits show up in the
+      // live world immediately; the editor panel picks them up when opened (Shift+E).
+      Object.assign(propPlacementEditorRef.current, restored);
+    } catch {
+      // Ignore corrupt saved state — fall back to a clean editor.
+    }
+  }, []);
+
+  useEffect(() => () => {
+    if (typeof window !== 'undefined' && propEditorPersistTimeoutRef.current) {
+      window.clearTimeout(propEditorPersistTimeoutRef.current);
+    }
+  }, []);
 
   useEffect(() => {
     if (!import.meta.env.DEV || !propPlacementEditorRef.current.enabled) return;
@@ -21425,6 +21504,16 @@ export default function ExpeditionJourney({
                 <div className="journey-prop-editor-export-header">
                   <strong>Placement export</strong>
                   {propEditorUi.savedAt && <span>{propEditorUi.savedAt}</span>}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (window.confirm('Discard all unsaved editor edits (moves, additions, deletions) for every room? This cannot be undone.')) {
+                        clearSavedPropEditorState();
+                      }
+                    }}
+                  >
+                    Clear saved
+                  </button>
                   <button
                     type="button"
                     onClick={() => {
