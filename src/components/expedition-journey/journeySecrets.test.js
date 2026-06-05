@@ -3510,7 +3510,7 @@ test('Egypt atmosphere prop pack is registered and drawn through existing story 
 });
 
 test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, and atlas regions', () => {
-  assert.equal(lostSitePropRegistry.length, 39);
+  assert.equal(lostSitePropRegistry.length, 40);
   const registryIds = new Set(lostSitePropRegistry.map(entry => entry.id));
   assert.equal(registryIds.has('standingPillar'), false, 'removed weak standing column should not be available in the prop editor');
   assert.equal(registryIds.has('stoneDoorFrame'), false, 'removed weak temple arch should not be available in the prop editor');
@@ -3522,6 +3522,7 @@ test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, an
   assert.ok(registryIds.has('ledgeHelperFallenColumnSteps'), 'fallen column ledge helper should be available in the prop editor');
   assert.ok(registryIds.has('ledgeHelperRopeLadderScaffold'), 'rope ladder ledge helper should be available in the prop editor');
   assert.ok(registryIds.has('ledgeHelperBuriedRampBlocks'), 'buried ramp ledge helper should be available in the prop editor');
+  assert.ok(registryIds.has('openingPyramidClimbPack'), 'opening pyramid climb pack should be available in the prop editor');
   lostSitePropRegistry
     .filter(entry => entry.category === 'Ledge Helpers')
     .forEach((entry) => {
@@ -3546,9 +3547,19 @@ test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, an
     'suspicious_sand_patch',
     'scarab_carving',
   ]);
-  const standaloneRouteGateEntries = new Map([
-    ['routeGateFront', 'assets/expedition/environment/egypt-opening/route-gate-front.png'],
-    ['routeGateBack', 'assets/expedition/environment/egypt-opening/route-gate-back.png'],
+  const standaloneImageEntries = new Map([
+    ['routeGateFront', {
+      assetPath: 'assets/expedition/environment/egypt-opening/route-gate-front.png',
+      defaultType: 'route-gate-prop',
+    }],
+    ['routeGateBack', {
+      assetPath: 'assets/expedition/environment/egypt-opening/route-gate-back.png',
+      defaultType: 'route-gate-prop',
+    }],
+    ['openingPyramidClimbPack', {
+      assetPath: 'assets/expedition/environment/egypt-opening/pyramid-climb-pack.png',
+      defaultType: 'image-prop',
+    }],
   ]);
 
   lostSitePropRegistry.forEach((entry) => {
@@ -3558,10 +3569,11 @@ test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, an
     assert.equal(entry.defaultLayer, premiumFloorKitIds.has(entry.id) ? 'route-edge' : 'foreground');
     assert.equal(entry.collidable, false);
     assert.equal(entry.inspectable, false);
-    if (standaloneRouteGateEntries.has(entry.id)) {
-      assert.equal(entry.defaultType, 'route-gate-prop');
+    if (standaloneImageEntries.has(entry.id)) {
+      const standaloneEntry = standaloneImageEntries.get(entry.id);
+      assert.equal(entry.defaultType, standaloneEntry.defaultType);
       assert.equal(entry.imageAssetKey, entry.id);
-      assert.equal(entry.assetPath, standaloneRouteGateEntries.get(entry.id));
+      assert.equal(entry.assetPath, standaloneEntry.assetPath);
       assert.ok(
         existsSync(new URL(`../../../public/${entry.assetPath}`, import.meta.url)),
         `${entry.assetPath} should exist as an individual transparent PNG`,
@@ -3581,6 +3593,7 @@ test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, an
   assert.match(journeyComponentSource, /lostSitePropRegistry/);
   assert.match(journeyComponentSource, /createJourneyPropPalette\(STORY_PROPS,\s*lostSitePropRegistry\)/);
   assert.match(journeyComponentSource, /propForAsset\.imageAssetKey === 'routeGateFront'/);
+  assert.match(journeyComponentSource, /propForAsset\.imageAssetKey === 'openingPyramidClimbPack'/);
   assert.match(journeyComponentSource, /ROUTE_GATE_STANDALONE_PROP_COLOR_GRADE_FILTER/);
   assert.match(journeyComponentSource, /PROP_EDITOR_DEPTH_OPTIONS = \['background', 'midground', 'grounded', 'route-edge', 'foreground-occluder'\]/);
   assert.match(journeyComponentSource, /drawPlayerSprite\(ctx, player\.x - cameraX[\s\S]*?drawStoryProp\(ctx, prop, cameraX, now, 'foreground-occluder'\)/);
@@ -4001,7 +4014,7 @@ test('story props render local contact sediment and occlusion around asset bases
   assert.match(journeyPlacementOverridesSource, /'colorGradeFilter'[\s\S]*'sandOverlapHeight'[\s\S]*'groundPebbles'/);
   assert.match(journeyPlacementGeneratedOverrideSource, /"id": "desert-entry-premium-column-1"[\s\S]*?"shadowOpacity": 0[\s\S]*?"sandOverlapHeight": 0[\s\S]*?"groundPebbles": 6[\s\S]*?"depth": "foreground-occluder"[\s\S]*?"scale": 2\.3/);
   assert.match(journeyPlacementGeneratedOverrideSource, /"id": "desert-entry-cracked-stone-blocks-1"[\s\S]*?"shadowOpacity": 0\.22[\s\S]*?"sandOverlapHeight": 10/);
-  assert.match(journeyPlacementGeneratedOverrideSource, /"id": "desert-entry-fallen-lintel-1"[\s\S]*?"shadowOpacity": 0[\s\S]*?"sandOverlapHeight": 0/);
+  assert.match(journeyPlacementGeneratedOverrideSource, /"id": "desert-entry-fallen-lintel-1"[\s\S]*?"shadowOpacity": 0\.3[\s\S]*?"sandOverlapHeight": 0/);
 });
 
 test('editor supports half-buried trap visuals without moving collision by hand', () => {

@@ -10394,6 +10394,7 @@ export default function ExpeditionJourney({
       if (propForAsset.imageAssetKey === 'routeGateFront') return routeGateFrontRef.current;
       if (propForAsset.imageAssetKey === 'routeGateBack') return routeGateBackRef.current;
       if (propForAsset.imageAssetKey === 'routeGateSlab') return routeGateSlabRef.current;
+      if (propForAsset.imageAssetKey === 'openingPyramidClimbPack') return openingPyramidClimbPackRef.current;
       return null;
     })();
     if (propAssetKey || (standalonePropAsset?.loaded && standalonePropAsset.image)) {

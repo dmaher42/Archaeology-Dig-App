@@ -528,5 +528,27 @@
     "defaultGroundPebbles": 5,
     "collidable": false,
     "inspectable": false
+  },
+  {
+    "id": "openingPyramidClimbPack",
+    "displayName": "Opening Pyramid Climb Pack",
+    "category": "Ledge Helpers",
+    "assetPath": "assets/expedition/environment/egypt-opening/pyramid-climb-pack.png",
+    "imageAssetKey": "openingPyramidClimbPack",
+    "defaultType": "image-prop",
+    "defaultWidth": 640,
+    "defaultHeight": 393,
+    "defaultScale": 1,
+    "defaultLayer": "foreground",
+    "defaultDepth": "route-edge",
+    "defaultTint": "warm",
+    "defaultColorGradeFilter": "none",
+    "defaultAlpha": 0.98,
+    "defaultShadowOpacity": 0.2,
+    "defaultSandOverlapHeight": 10,
+    "defaultSandMoundWidth": 420,
+    "defaultGroundPebbles": 3,
+    "collidable": false,
+    "inspectable": false
   }
 ]
