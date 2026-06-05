@@ -12,7 +12,7 @@ export const CHINA_RIVER_VALLEY_ENVIRONMENT_ATLAS_JSON = `${CHINA_RIVER_VALLEY_E
 export const ATLAS_TUNING_VERSION = 'environment-atlas-tuning-2026-05-10';
 export const DESERT_VISUAL_TUNING_VERSION = 'desert-entry-final-visual-tuning-2026-05-10';
 export const JOURNEY_ASSET_GROUNDING_VERSION = 'journey-asset-grounding-2026-05-11';
-export const EGYPT_ATMOSPHERE_ASSET_VERSION = 'gemini-egypt-atmosphere-props-2026-05-21';
+export const EGYPT_ATMOSPHERE_ASSET_VERSION = 'opening-pyramid-split-props-2026-06-05';
 export const EGYPT_FOREGROUND_DEPTH_ASSET_VERSION = 'lost-site-foreground-depth-contact-pack-2026-06-01';
 export const EGYPT_PREMIUM_GROUND_CONTACT_ASSET_VERSION = 'imagegen-premium-ground-contact-kit-2026-06-02';
 export const MUMMIFICATION_CHAMBER_INTERACTIONS_ASSET_VERSION = 'imagegen-mummification-chamber-interaction-atlas-2026-05-28';
@@ -109,6 +109,17 @@ export const EXPECTED_LOST_SITE_PROP_ASSET_KEYS = [
   'ledgeHelperFallenColumnSteps',
   'ledgeHelperRopeLadderScaffold',
   'ledgeHelperBuriedRampBlocks',
+  'openingPyramidLeftStairFace',
+  'openingPyramidRightStairFace',
+  'openingPyramidTerraceWall',
+  'openingPyramidTrapSlab',
+  'openingPyramidCrackedBlock',
+  'openingPyramidCarvedColumn',
+  'openingPyramidPaintedColumn',
+  'openingPyramidPedestal',
+  'openingPyramidSeal',
+  'openingPyramidRubble',
+  'openingPyramidDust',
 ];
 
 export const EXPECTED_MUMMIFICATION_CHAMBER_INTERACTION_ASSET_KEYS = [
@@ -204,6 +215,7 @@ export const ENVIRONMENT_ASSET_PACKS = {
     basePath: EGYPT_ATMOSPHERE_ATLAS_BASE_PATH,
     atlasPath: EGYPT_ATMOSPHERE_ATLAS_JSON,
     expectedKeys: EXPECTED_EGYPT_ATMOSPHERE_ASSET_KEYS,
+    version: EGYPT_ATMOSPHERE_ASSET_VERSION,
   },
   [ENVIRONMENT_ASSET_PACK_IDS.EGYPT_FOREGROUND_DEPTH]: {
     id: ENVIRONMENT_ASSET_PACK_IDS.EGYPT_FOREGROUND_DEPTH,
@@ -257,7 +269,8 @@ export const getMissingEnvironmentAssets = (assets) => {
 export const loadEnvironmentAssetPack = ({ baseUrl = '/', onUpdate, packId = DEFAULT_ENVIRONMENT_ASSET_PACK_ID }) => {
   let cancelled = false;
   const packConfig = getEnvironmentAssetPackConfig(packId);
-  const atlasPath = `${baseUrl}${packConfig.atlasPath}`;
+  const versionQuery = packConfig.version ? `?v=${encodeURIComponent(packConfig.version)}` : '';
+  const atlasPath = `${baseUrl}${packConfig.atlasPath}${versionQuery}`;
 
   const fail = (error) => {
     if (cancelled) return;
@@ -293,7 +306,7 @@ export const loadEnvironmentAssetPack = ({ baseUrl = '/', onUpdate, packId = DEF
         onUpdate?.(next);
       };
       image.onerror = () => fail(new Error('Environment atlas image failed to load.'));
-      image.src = `${baseUrl}${packConfig.basePath}${atlas.image}`;
+      image.src = `${baseUrl}${packConfig.basePath}${atlas.image}${versionQuery}`;
     })
     .catch(fail);
 

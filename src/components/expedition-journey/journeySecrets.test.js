@@ -105,7 +105,7 @@ const forgottenMuralChamberPath = new URL('../../../public/assets/expedition/env
 const forgottenMuralHiddenRevealPath = new URL('../../../public/assets/expedition/environment/desert-temple/forgotten-mural-hidden-memory-reveal-2026-06-01.png', import.meta.url);
 const mummificationChamberExteriorPath = new URL('../../../public/assets/expedition/environment/desert-temple/mummification-chamber-exterior-climb-structure.png', import.meta.url);
 const mummificationChamberInteriorPath = new URL('../../../public/assets/expedition/environment/desert-temple/mummification-chamber-interior-side-scroll-2026-05-31.png', import.meta.url);
-const scribeChamberExteriorPath = new URL('../../../public/assets/expedition/environment/desert-temple/scribe-locked-chamber-exterior-climb-structure.png', import.meta.url);
+const scribeChamberExteriorPath = new URL('../../../public/assets/expedition/environment/desert-temple/scribe-locked-chamber-exterior-climb-structure-v3.png', import.meta.url);
 const scribeChamberInteriorPath = new URL('../../../public/assets/expedition/environment/desert-temple/scribe-locked-chamber-interior-2026-06-01.png', import.meta.url);
 const mummificationChamberInteractionAtlasPath = new URL('../../../public/assets/expedition/environment/desert-temple/mummification-chamber/mummification-chamber-interaction-atlas.png', import.meta.url);
 const desertEntryGroundingOverlayPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-grounding-overlay.png', import.meta.url);
@@ -1185,8 +1185,8 @@ test('scribe locked chamber reuses the Journey scene and challenge systems for o
   assert.match(journeyComponentSource, /SCRIBE_LOCKED_CHAMBER:\s*'scribe-locked-chamber'/);
   assert.ok(existsSync(scribeChamberExteriorPath), 'Scribe Chamber exterior production PNG should exist');
   assert.ok(existsSync(scribeChamberInteriorPath), 'Scribe Chamber interior replacement PNG should exist');
-  assert.match(journeyComponentSource, /SCRIBE_CHAMBER_EXTERIOR_SRC = 'assets\/expedition\/environment\/desert-temple\/scribe-locked-chamber-exterior-climb-structure\.png'/);
-  assert.match(journeyComponentSource, /SCRIBE_CHAMBER_EXTERIOR_VERSION = 'imagegen-scribe-locked-chamber-exterior-asset-sheet-replacement-2026-06-01'/);
+  assert.match(journeyComponentSource, /SCRIBE_CHAMBER_EXTERIOR_SRC = 'assets\/expedition\/environment\/desert-temple\/scribe-locked-chamber-exterior-climb-structure-v3\.png'/);
+  assert.match(journeyComponentSource, /SCRIBE_CHAMBER_EXTERIOR_VERSION = 'imagegen-scribe-locked-chamber-exterior-v3-2026-06-05'/);
   assert.match(journeyComponentSource, /SCRIBE_CHAMBER_INTERIOR_SRC = 'assets\/expedition\/environment\/desert-temple\/scribe-locked-chamber-interior-2026-06-01\.png'/);
   assert.match(journeyComponentSource, /SCRIBE_CHAMBER_INTERIOR_VERSION = 'imagegen-scribe-locked-chamber-interior-2026-06-01'/);
   assert.match(journeyComponentSource, /scribeChamberExteriorRef/);
@@ -2205,6 +2205,9 @@ test('opening pyramid facade stays active as the opening gameplay landmark', () 
   assert.match(storyProps, /id:\s*'opening-pyramid-facade-structure'[\s\S]*?type:\s*'generated-opening-pyramid-facade'[\s\S]*?width:\s*1208[\s\S]*?height:\s*664/);
   assert.match(journeyComponentSource, /GENERATED_STORY_PROP_BOUNDS[\s\S]*?'generated-opening-pyramid-facade':\s*\{\s*width:\s*1208,\s*height:\s*664\s*\}/);
   assert.match(journeyComponentSource, /GENERATED_STORY_PROP_PREVIEW_SOURCES[\s\S]*?'generated-opening-pyramid-facade'[\s\S]*?OPENING_PYRAMID_FACADE_SRC/);
+  assert.match(journeyComponentSource, /OPENING_PYRAMID_FACADE_SRC = 'assets\/expedition\/environment\/egypt-opening\/opening-pyramid-facade-no-stairs-v2\.png'/);
+  assert.match(journeyComponentSource, /OPENING_PYRAMID_FACADE_VERSION = 'opening-pyramid-facade-no-stairs-v2-2026-06-05'/);
+  assert.doesNotMatch(journeyComponentSource, /drawOpeningPyramidFacadeStairConcealment/);
   assert.match(journeyComponentSource, /const openingPyramidFacadeProp = getRenderableStoryProps\(current\)\.find\(prop => prop\.id === 'opening-pyramid-facade-structure'\)/);
   assert.match(journeyComponentSource, /drawOpeningPyramidFacade\(ctx, cameraX, now, openingPyramidFacadeProp\)/);
   assert.match(
@@ -3501,7 +3504,9 @@ test('Egypt atmosphere prop pack is registered and drawn through existing story 
     'curated atmosphere atlas image should exist in public assets',
   );
   assert.match(journeyRenderAssetsSource, /EGYPT_ATMOSPHERE:\s*'egypt-atmosphere'/);
-  assert.match(journeyRenderAssetsSource, /EGYPT_ATMOSPHERE_ASSET_VERSION = 'gemini-egypt-atmosphere-props-2026-05-21'/);
+  assert.match(journeyRenderAssetsSource, /EGYPT_ATMOSPHERE_ASSET_VERSION = 'opening-pyramid-split-props-2026-06-05'/);
+  assert.match(journeyRenderAssetsSource, /versionQuery = packConfig\.version \? `\?v=\$\{encodeURIComponent\(packConfig\.version\)\}` : ''/);
+  assert.match(journeyRenderAssetsSource, /image\.src = `\$\{baseUrl\}\$\{packConfig\.basePath\}\$\{atlas\.image\}\$\{versionQuery\}`/);
   assert.match(journeyComponentSource, /atmosphereEnvironmentAssetsRef/);
   assert.match(journeyComponentSource, /packId:\s*ENVIRONMENT_ASSET_PACK_IDS\.EGYPT_ATMOSPHERE/);
   assert.match(journeyComponentSource, /atmospherePropCount/);
@@ -3510,7 +3515,7 @@ test('Egypt atmosphere prop pack is registered and drawn through existing story 
 });
 
 test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, and atlas regions', () => {
-  assert.equal(lostSitePropRegistry.length, 40);
+  assert.equal(lostSitePropRegistry.length, 50);
   const registryIds = new Set(lostSitePropRegistry.map(entry => entry.id));
   assert.equal(registryIds.has('standingPillar'), false, 'removed weak standing column should not be available in the prop editor');
   assert.equal(registryIds.has('stoneDoorFrame'), false, 'removed weak temple arch should not be available in the prop editor');
@@ -3522,7 +3527,20 @@ test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, an
   assert.ok(registryIds.has('ledgeHelperFallenColumnSteps'), 'fallen column ledge helper should be available in the prop editor');
   assert.ok(registryIds.has('ledgeHelperRopeLadderScaffold'), 'rope ladder ledge helper should be available in the prop editor');
   assert.ok(registryIds.has('ledgeHelperBuriedRampBlocks'), 'buried ramp ledge helper should be available in the prop editor');
-  assert.ok(registryIds.has('openingPyramidClimbPack'), 'opening pyramid climb pack should be available in the prop editor');
+  assert.equal(registryIds.has('openingPyramidClimbPack'), false, 'full opening pyramid sheet should not be exposed as one editor prop');
+  [
+    'openingPyramidLeftStairFace',
+    'openingPyramidRightStairFace',
+    'openingPyramidTerraceWall',
+    'openingPyramidTrapSlab',
+    'openingPyramidCrackedBlock',
+    'openingPyramidCarvedColumn',
+    'openingPyramidPaintedColumn',
+    'openingPyramidPedestal',
+    'openingPyramidSeal',
+    'openingPyramidRubble',
+    'openingPyramidDust',
+  ].forEach(id => assert.ok(registryIds.has(id), `${id} should be available in the prop editor`));
   lostSitePropRegistry
     .filter(entry => entry.category === 'Ledge Helpers')
     .forEach((entry) => {
@@ -3556,10 +3574,6 @@ test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, an
       assetPath: 'assets/expedition/environment/egypt-opening/route-gate-back.png',
       defaultType: 'route-gate-prop',
     }],
-    ['openingPyramidClimbPack', {
-      assetPath: 'assets/expedition/environment/egypt-opening/pyramid-climb-pack.png',
-      defaultType: 'image-prop',
-    }],
   ]);
 
   lostSitePropRegistry.forEach((entry) => {
@@ -3592,6 +3606,8 @@ test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, an
 
   assert.match(journeyComponentSource, /lostSitePropRegistry/);
   assert.match(journeyComponentSource, /createJourneyPropPalette\(STORY_PROPS,\s*lostSitePropRegistry\)/);
+  assert.match(journeyComponentSource, /selectedPaletteCategory === 'ledge'[\s\S]*?category === 'Ledge Helpers'/);
+  assert.match(journeyComponentSource, /\['ledge', 'Ledges'\]/);
   assert.match(journeyComponentSource, /propForAsset\.imageAssetKey === 'routeGateFront'/);
   assert.match(journeyComponentSource, /propForAsset\.imageAssetKey === 'openingPyramidClimbPack'/);
   assert.match(journeyComponentSource, /ROUTE_GATE_STANDALONE_PROP_COLOR_GRADE_FILTER/);

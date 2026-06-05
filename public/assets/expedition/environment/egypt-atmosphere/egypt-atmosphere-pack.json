@@ -385,6 +385,83 @@
       "w": 512,
       "h": 512,
       "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/ledge_helper_buried_ramp_blocks.png"
+    },
+    "openingPyramidLeftStairFace": {
+      "x": 1024,
+      "y": 3584,
+      "w": 430,
+      "h": 160,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/opening_pyramid_left_stair_face.png"
+    },
+    "openingPyramidRightStairFace": {
+      "x": 1458,
+      "y": 3584,
+      "w": 402,
+      "h": 164,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/opening_pyramid_right_stair_face.png"
+    },
+    "openingPyramidTerraceWall": {
+      "x": 1024,
+      "y": 3748,
+      "w": 320,
+      "h": 130,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/opening_pyramid_terrace_wall.png"
+    },
+    "openingPyramidTrapSlab": {
+      "x": 1348,
+      "y": 3748,
+      "w": 315,
+      "h": 72,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/opening_pyramid_trap_slab.png"
+    },
+    "openingPyramidCrackedBlock": {
+      "x": 1024,
+      "y": 3882,
+      "w": 325,
+      "h": 82,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/opening_pyramid_cracked_block.png"
+    },
+    "openingPyramidCarvedColumn": {
+      "x": 1353,
+      "y": 3824,
+      "w": 76,
+      "h": 164,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/opening_pyramid_carved_column.png"
+    },
+    "openingPyramidPaintedColumn": {
+      "x": 1433,
+      "y": 3824,
+      "w": 74,
+      "h": 166,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/opening_pyramid_painted_column.png"
+    },
+    "openingPyramidPedestal": {
+      "x": 1511,
+      "y": 3824,
+      "w": 148,
+      "h": 128,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/opening_pyramid_pedestal.png"
+    },
+    "openingPyramidSeal": {
+      "x": 1663,
+      "y": 3748,
+      "w": 178,
+      "h": 178,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/opening_pyramid_seal.png"
+    },
+    "openingPyramidRubble": {
+      "x": 1663,
+      "y": 3930,
+      "w": 128,
+      "h": 58,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/opening_pyramid_rubble.png"
+    },
+    "openingPyramidDust": {
+      "x": 1795,
+      "y": 3930,
+      "w": 250,
+      "h": 60,
+      "assetPath": "assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/opening_pyramid_dust.png"
     }
   },
   "imageWidth": 2048,
