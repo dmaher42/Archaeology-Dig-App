@@ -4216,12 +4216,15 @@ test('dodge visual state uses the preview dodge atlas row with the old fallback 
   assert.equal(dodgeRow?.frameCount, 8);
   assert.equal(dodgeRow?.loop, false);
   assert.equal(dodgeRow?.frames?.[3], 'dodge_03');
+  assert.equal(ashaReferenceWarriorDodgePreviewAtlas.regions.dodge_03, undefined);
   assert.equal(ashaReferenceWarriorDodgePreviewAtlas.frames.dodge_03.w, 390);
   assert.equal(ashaReferenceWarriorDodgePreviewAtlas.frames.dodge_03.h, 256);
   assert.match(journeyComponentSource, /if \(animationState === 'dodge'\) \{/);
   assert.match(journeyComponentSource, /getHeroSpriteRow\(atlas,\s*'dodge'\)\s*\|\|\s*getHeroSpriteRow\(atlas,\s*'run'\)/);
   assert.match(journeyComponentSource, /const dodgeProgress = current\.dodgeTimer > 0/);
   assert.match(journeyComponentSource, /const usingDedicatedDodgeFrame = typeof heroFrameKey === 'string' && heroFrameKey\.startsWith\('dodge_'\);/);
+  assert.match(journeyComponentSource, /heroAtlas\?\.regions\?\.\[heroFrameKey\]\s*\|\|\s*heroAtlas\?\.frames\?\.\[heroFrameKey\]/);
+  assert.match(journeyComponentSource, /const movementLean = usingDedicatedDodgeFrame\s*\?\s*0/);
   assert.match(journeyComponentSource, /const applyRuntimeDodgeEffects = dodging && !usingDedicatedDodgeFrame;/);
   assert.match(journeyComponentSource, /const dodgeLean = applyRuntimeDodgeEffects \? \(current\.dodgeDirection \|\| direction\) \* 14 \* dodgeProgress : 0;/);
   assert.match(journeyComponentSource, /const hasDedicatedDodgeRow = playerSpriteRef\.current\.mode === 'hero-atlas'/);

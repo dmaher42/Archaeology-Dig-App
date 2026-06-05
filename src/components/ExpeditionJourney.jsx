@@ -8116,7 +8116,9 @@ export default function ExpeditionJourney({
     const heroAtlas = sprite.mode === 'hero-atlas' ? sprite.atlas : null;
     const heroFrameKey = heroAtlas ? getHeroSpriteFrameKey(current, heroAtlas, now) : null;
     const usingDedicatedDodgeFrame = typeof heroFrameKey === 'string' && heroFrameKey.startsWith('dodge_');
-    const heroRegion = heroFrameKey ? heroAtlas?.regions?.[heroFrameKey] : null;
+    const heroRegion = heroFrameKey
+      ? heroAtlas?.regions?.[heroFrameKey] || heroAtlas?.frames?.[heroFrameKey]
+      : null;
     const frame = clamp(current.player.animationFrame ?? 1, 0, PLAYER_SPRITE_FRAME_COUNT - 1);
     const heroDrawBounds = heroRegion?.drawBounds || null;
     const sourceX = (heroRegion?.x ?? frame * PLAYER_SPRITE_FRAME_WIDTH) + (heroDrawBounds?.x || 0);
@@ -8154,7 +8156,13 @@ export default function ExpeditionJourney({
           : 0;
     const animationState = current.player.animationState || 'idle';
     const walkStyle = current.player.visualWalkStyle || 'none';
-    const movementLean = walkStyle === 'run' ? direction * 2.5 : walkStyle === 'survey-walk' ? -direction * 1.25 : 0;
+    const movementLean = usingDedicatedDodgeFrame
+      ? 0
+      : walkStyle === 'run'
+        ? direction * 2.5
+        : walkStyle === 'survey-walk'
+          ? -direction * 1.25
+          : 0;
     const jumpLift = animationState === 'jump' ? -3 : animationState === 'fall' ? 1 : animationState === 'land' ? 2 : 0;
     const hurtShake = animationState === 'hurt' ? Math.sin(now / 24) * 2 : 0;
     const landingPulse = clamp((current.player.landingFeedbackTimer || 0) / 0.16, 0, 1);
