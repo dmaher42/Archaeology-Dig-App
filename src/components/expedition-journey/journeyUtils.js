@@ -213,6 +213,7 @@ const PROP_TEMPLATE_FIELDS = [
   'atmosphereAssetKey',
   'imageAssetKey',
   'groundDetailAssetKey',
+  'foregroundDetailAssetKey',
   'assetPath',
   'width',
   'height',
@@ -261,6 +262,23 @@ const JOURNEY_GROUND_DETAIL_PALETTE_ITEMS = [
   { assetKey: 'premiumSmallStoneScatter', label: 'Small Stone Scatter', width: 132, height: 55, alpha: 0.64 },
   { assetKey: 'premiumLowSedimentRibbon', label: 'Low Sediment Ribbon', width: 214, height: 42, alpha: 0.48 },
   { assetKey: 'premiumRubbleMoundBlend', label: 'Rubble Mound Blend', width: 260, height: 70, alpha: 0.6 },
+];
+
+const JOURNEY_FOREGROUND_DETAIL_PALETTE_ITEMS = [
+  { assetKey: 'leftBrokenColumn', label: 'Left Broken Column', width: 112, height: 188, alpha: 0.82 },
+  { assetKey: 'rightBrokenColumn', label: 'Right Broken Column', width: 118, height: 188, alpha: 0.82 },
+  { assetKey: 'rubbleClusterLarge', label: 'Rubble Cluster Large', width: 180, height: 114, alpha: 0.84 },
+  { assetKey: 'rubbleClusterSmall', label: 'Rubble Cluster Small', width: 132, height: 86, alpha: 0.84 },
+  { assetKey: 'softSandDrift', label: 'Soft Sand Drift', width: 214, height: 72, alpha: 0.62, mode: 'stretch' },
+  { assetKey: 'buriedCarvedHead', label: 'Buried Carved Head', width: 128, height: 118, alpha: 0.88 },
+  { assetKey: 'damagedWallFragment', label: 'Damaged Wall Fragment', width: 162, height: 112, alpha: 0.84 },
+  { assetKey: 'dryShrub', label: 'Dry Shrub', width: 92, height: 86, alpha: 0.74 },
+  { assetKey: 'deadPalmRemnant', label: 'Dead Palm Remnant', width: 156, height: 120, alpha: 0.74 },
+  { assetKey: 'edgePebbleScatter', label: 'Edge Pebble Scatter', width: 182, height: 72, alpha: 0.72, mode: 'stretch' },
+  { assetKey: 'egyptBaseSandDrift', label: 'Base Sand Drift', width: 220, height: 70, alpha: 0.58, mode: 'stretch' },
+  { assetKey: 'egyptRubbleContactShadow', label: 'Rubble Contact Edge', width: 184, height: 76, alpha: 0.58, mode: 'stretch' },
+  { assetKey: 'egyptBuriedStoneEdge', label: 'Buried Stone Edge', width: 166, height: 112, alpha: 0.72 },
+  { assetKey: 'egyptStructureBaseRubble', label: 'Structure Base Rubble', width: 174, height: 108, alpha: 0.74 },
 ];
 
 const toJourneyPropWords = (value = '') => String(value)
@@ -470,6 +488,38 @@ export const createJourneyGroundDetailsPalette = () => JOURNEY_GROUND_DETAIL_PAL
   },
 }));
 
+export const createJourneyForegroundDetailsPalette = () => JOURNEY_FOREGROUND_DETAIL_PALETTE_ITEMS.map((item) => ({
+  key: `foreground-detail:${item.assetKey}`,
+  label: item.label,
+  type: 'foreground-depth-detail-prop',
+  category: 'Foreground Details',
+  assetKey: item.assetKey,
+  template: {
+    type: 'foreground-depth-detail-prop',
+    foregroundDetailAssetKey: item.assetKey,
+    width: item.width,
+    height: item.height,
+    depth: 'route-edge',
+    layer: 'route-edge',
+    shadowOpacity: 0,
+    sandOverlapHeight: 0,
+    groundPebbles: 0,
+    groundContactLayer: [
+      {
+        assetKey: item.assetKey,
+        layer: 'overlay',
+        xRatio: 0.5,
+        widthRatio: 1,
+        height: item.height,
+        yOffset: -item.height,
+        alpha: item.alpha,
+        mode: item.mode || 'contain',
+        alignY: 'bottom',
+      },
+    ],
+  },
+}));
+
 export const createJourneyPropFromPaletteItem = ({
   paletteItem = {},
   roomId,
@@ -479,7 +529,7 @@ export const createJourneyPropFromPaletteItem = ({
 } = {}) => {
   const template = { ...(paletteItem.template || paletteItem) };
   const type = template.type || paletteItem.type || 'prop';
-  const assetSegment = template.groundDetailAssetKey || template.imageAssetKey || template.atmosphereAssetKey || type;
+  const assetSegment = template.foregroundDetailAssetKey || template.groundDetailAssetKey || template.imageAssetKey || template.atmosphereAssetKey || type;
   const idBase = `${toJourneyPropIdSegment(roomId || 'room')}-${toJourneyPropIdSegment(assetSegment)}`;
   const id = makeUniqueJourneyPropId(`${idBase}-1`, existingIds);
   const roomKey = roomId || 'unknown-room';

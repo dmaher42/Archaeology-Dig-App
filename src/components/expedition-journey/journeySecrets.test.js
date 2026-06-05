@@ -14,6 +14,7 @@ import {
   applyJourneyPlatformPlacementExportToPlatforms,
   applyJourneyHazardPlacementEdit,
   applyJourneyHazardPlacementExportToHazards,
+  createJourneyForegroundDetailsPalette,
   createJourneyGroundDetailsPalette,
   createJourneyPropFromPaletteItem,
   createJourneyPlacementChangeSummary,
@@ -488,6 +489,65 @@ test('journey editor creates ground detail props through the canonical prop fact
       yOffset: -55,
       alpha: 0.64,
       mode: 'stretch',
+      alignY: 'bottom',
+    },
+  ]);
+});
+
+test('journey editor exposes Egypt foreground depth assets as reusable palette props', () => {
+  const palette = createJourneyForegroundDetailsPalette();
+  const paletteKeys = palette.map(item => item.key);
+
+  assert.ok(palette.length >= 12);
+  assert.ok(paletteKeys.includes('foreground-detail:leftBrokenColumn'));
+  assert.ok(paletteKeys.includes('foreground-detail:softSandDrift'));
+  assert.ok(paletteKeys.includes('foreground-detail:buriedCarvedHead'));
+  assert.ok(paletteKeys.includes('foreground-detail:egyptStructureBaseRubble'));
+  assert.ok(!paletteKeys.includes('foreground-detail:lowDustVeil'));
+  assert.ok(!paletteKeys.includes('foreground-detail:egyptGroundSkirtLong'));
+  assert.ok(!paletteKeys.includes('foreground-detail:egyptGroundSkirtShort'));
+  palette.forEach((item) => {
+    assert.equal(item.category, 'Foreground Details');
+    assert.equal(item.type, 'foreground-depth-detail-prop');
+    assert.equal(item.template.type, 'foreground-depth-detail-prop');
+    assert.equal(item.template.shadowOpacity, 0);
+    assert.equal(item.template.sandOverlapHeight, 0);
+    assert.equal(item.template.groundPebbles, 0);
+    assert.equal(item.template.groundContactLayer.length, 1);
+    assert.equal(item.template.groundContactLayer[0].assetKey, item.assetKey);
+  });
+});
+
+test('journey editor creates foreground detail props through the canonical prop factory', () => {
+  const paletteItem = createJourneyForegroundDetailsPalette()
+    .find(item => item.key === 'foreground-detail:buriedCarvedHead');
+
+  const created = createJourneyPropFromPaletteItem({
+    paletteItem,
+    roomId: 'desert-entry',
+    x: 1240,
+    y: 526,
+    existingIds: ['desert-entry-buried-carved-head-1'],
+  });
+
+  assert.equal(created.id, 'desert-entry-buried-carved-head-2');
+  assert.equal(created.sectionId, 'desert-entry');
+  assert.equal(created.type, 'foreground-depth-detail-prop');
+  assert.equal(created.label, 'buried carved head');
+  assert.equal(created.foregroundDetailAssetKey, 'buriedCarvedHead');
+  assert.equal(created.shadowOpacity, 0);
+  assert.equal(created.sandOverlapHeight, 0);
+  assert.equal(created.groundPebbles, 0);
+  assert.deepEqual(created.groundContactLayer, [
+    {
+      assetKey: 'buriedCarvedHead',
+      layer: 'overlay',
+      xRatio: 0.5,
+      widthRatio: 1,
+      height: 118,
+      yOffset: -118,
+      alpha: 0.88,
+      mode: 'contain',
       alignY: 'bottom',
     },
   ]);
@@ -4052,9 +4112,23 @@ test('ground detail palette renders reusable contact sprites without atmosphere 
   assert.match(journeyComponentSource, /selectedPaletteCategory === 'ground-detail'/);
   assert.match(journeyComponentSource, /\['ground-detail', 'Ground Details'\]/);
   assert.match(journeyComponentSource, /Ground Details palette/);
+  assert.match(journeyComponentSource, /template\.groundDetailAssetKey/);
+  assert.match(journeyComponentSource, /premiumGroundContactAssetsRef\.current/);
   assert.match(drawStoryPropSource, /prop\.type === 'ground-contact-detail-prop'/);
   assert.match(drawStoryPropSource, /drawEgyptStructureGroundContactLayer\(ctx, prop\.groundContactLayer/);
   assert.doesNotMatch(drawStoryPropSource, /getEnvironmentAssetKeyForStoryProp\(propForAsset, ENVIRONMENT_ASSET_PACK_IDS\.EGYPT_PREMIUM_GROUND_CONTACT\)/);
+});
+
+test('foreground detail palette renders foreground depth sprites without atmosphere prop fallback art', () => {
+  const drawStoryPropSource = getComponentFunctionSource('drawStoryProp');
+
+  assert.match(journeyComponentSource, /createJourneyForegroundDetailsPalette/);
+  assert.match(journeyComponentSource, /selectedPaletteCategory === 'foreground-detail'/);
+  assert.match(journeyComponentSource, /\['foreground-detail', 'Foreground Details'\]/);
+  assert.match(journeyComponentSource, /Foreground Details palette/);
+  assert.match(drawStoryPropSource, /prop\.type === 'ground-contact-detail-prop' \|\| prop\.type === 'foreground-depth-detail-prop'/);
+  assert.match(drawStoryPropSource, /drawEgyptStructureGroundContactLayer\(ctx, prop\.groundContactLayer/);
+  assert.doesNotMatch(drawStoryPropSource, /getEnvironmentAssetKeyForStoryProp\(propForAsset, ENVIRONMENT_ASSET_PACK_IDS\.EGYPT_FOREGROUND_DEPTH\)/);
 });
 
 test('desert entry no longer draws old procedural fallback scenery', () => {

@@ -92,6 +92,7 @@ import {
   applyJourneyRouteGateDoorwayPlacementEdit,
   applyJourneyRouteGatePlacementEdit,
   clamp,
+  createJourneyForegroundDetailsPalette,
   createJourneyGroundDetailsPalette,
   createJourneyPlatformFromPaletteItem,
   createJourneyPlatformPalette,
@@ -3251,6 +3252,7 @@ export default function ExpeditionJourney({
   }), [backgroundPackId, selectedCharacterPresetId, targetCivilisation]);
   const propEditorPalette = useMemo(() => createJourneyPropPalette(STORY_PROPS, lostSitePropRegistry), []);
   const groundDetailsEditorPalette = useMemo(() => createJourneyGroundDetailsPalette(), []);
+  const foregroundDetailsEditorPalette = useMemo(() => createJourneyForegroundDetailsPalette(), []);
   const trapEditorPalette = useMemo(() => createJourneyTrapPalette(), []);
   const platformEditorPalette = useMemo(() => createJourneyPlatformPalette(), []);
   const selectedCharacterPreset = getPlayerCharacterPreset(selectedCharacterPresetId);
@@ -3953,6 +3955,20 @@ export default function ExpeditionJourney({
         assetKey: template.atmosphereAssetKey,
       });
     }
+    if (template.foregroundDetailAssetKey) {
+      candidates.push({
+        assets: foregroundDepthEnvironmentAssetsRef.current,
+        packId: ENVIRONMENT_ASSET_PACK_IDS.EGYPT_FOREGROUND_DEPTH,
+        assetKey: template.foregroundDetailAssetKey,
+      });
+    }
+    if (template.groundDetailAssetKey) {
+      candidates.push({
+        assets: premiumGroundContactAssetsRef.current,
+        packId: ENVIRONMENT_ASSET_PACK_IDS.EGYPT_PREMIUM_GROUND_CONTACT,
+        assetKey: template.groundDetailAssetKey,
+      });
+    }
     candidates.push({
       assets: environmentAssetsRef.current,
       packId: environmentAssetsRef.current.packId,
@@ -4007,9 +4023,11 @@ export default function ExpeditionJourney({
         ? platformEditorPalette
         : editor.selectedPaletteCategory === 'ground-detail'
           ? groundDetailsEditorPalette
-          : editor.selectedPaletteCategory === 'ledge'
-            ? propEditorPalette.filter(item => item.category === 'Ledge Helpers')
-            : propEditorPalette;
+          : editor.selectedPaletteCategory === 'foreground-detail'
+            ? foregroundDetailsEditorPalette
+            : editor.selectedPaletteCategory === 'ledge'
+              ? propEditorPalette.filter(item => item.category === 'Ledge Helpers')
+              : propEditorPalette;
     const palette = paletteSource
       .map(item => ({ ...item, preview: getPropPalettePreview(item) }))
       .filter(item => item.preview);
@@ -4150,7 +4168,7 @@ export default function ExpeditionJourney({
       canUndo: editorUndoStackRef.current.length > 0,
       canRedo: editorRedoStackRef.current.length > 0,
     };
-  }, [getActivePropEditorRoomId, getHazardEditorRoomId, getPlatformEditorRoomId, getPropEditorSelectedArch, getPropEditorSelectedCheckpoint, getPropEditorSelectedHazard, getPropEditorSelectedLair, getPropEditorSelectedPlatform, getPropEditorSelectedProp, getPropPalettePreview, getScarabQueenLairPlacement, groundDetailsEditorPalette, platformEditorPalette, propEditorPalette, trapEditorPalette]);
+  }, [getActivePropEditorRoomId, getHazardEditorRoomId, getPlatformEditorRoomId, getPropEditorSelectedArch, getPropEditorSelectedCheckpoint, getPropEditorSelectedHazard, getPropEditorSelectedLair, getPropEditorSelectedPlatform, getPropEditorSelectedProp, getPropPalettePreview, getScarabQueenLairPlacement, foregroundDetailsEditorPalette, groundDetailsEditorPalette, platformEditorPalette, propEditorPalette, trapEditorPalette]);
 
   const persistPropEditorState = useCallback(() => {
     if (!import.meta.env.DEV || typeof window === 'undefined') return;
@@ -4754,6 +4772,8 @@ export default function ExpeditionJourney({
     const editor = propPlacementEditorRef.current;
     const propPaletteSource = editor.selectedPaletteCategory === 'ground-detail'
       ? groundDetailsEditorPalette
+      : editor.selectedPaletteCategory === 'foreground-detail'
+        ? foregroundDetailsEditorPalette
       : propEditorPalette;
     const paletteItem = propPaletteSource.find(item => item.key === editor.selectedPaletteKey);
     if (!paletteItem) return null;
@@ -4778,7 +4798,7 @@ export default function ExpeditionJourney({
     editor.deletedIds.delete(nextProp.id);
     refreshPropEditorUi();
     return nextProp;
-  }, [getActivePropEditorRoomId, getGroundAwareStoryPropEditorEdit, getPropEditorExistingIds, groundDetailsEditorPalette, propEditorPalette, refreshPropEditorUi]);
+  }, [getActivePropEditorRoomId, getGroundAwareStoryPropEditorEdit, getPropEditorExistingIds, foregroundDetailsEditorPalette, groundDetailsEditorPalette, propEditorPalette, refreshPropEditorUi]);
 
   const createTrapFromEditorPalette = useCallback((pointer) => {
     const editor = propPlacementEditorRef.current;
@@ -10674,7 +10694,7 @@ export default function ExpeditionJourney({
       ctx.rotate((prop.rotation * Math.PI) / 180);
       ctx.translate(-centerX, -centerY);
     }
-    if (prop.type === 'ground-contact-detail-prop') {
+    if (prop.type === 'ground-contact-detail-prop' || prop.type === 'foreground-depth-detail-prop') {
       const detailSize = getStoryPropEditorSize(prop);
       const width = Number.isFinite(prop.width) ? prop.width : detailSize.width;
       const groundY = prop.y + (Number.isFinite(prop.yOffset) ? prop.yOffset : 0);
@@ -21887,7 +21907,7 @@ export default function ExpeditionJourney({
             {import.meta.env.DEV && propEditorUi.enabled && propEditorUi.paletteOpen && (
               <div className="journey-prop-palette-panel" aria-label="Prop palette">
                 <div className="journey-prop-editor-export-header">
-                  <strong>{propEditorUi.selectedPaletteCategory === 'trap' ? 'Trap palette' : propEditorUi.selectedPaletteCategory === 'platform' ? 'Platform palette' : propEditorUi.selectedPaletteCategory === 'ground-detail' ? 'Ground Details palette' : propEditorUi.selectedPaletteCategory === 'ledge' ? 'Ledge palette' : 'Prop palette'}</strong>
+                  <strong>{propEditorUi.selectedPaletteCategory === 'trap' ? 'Trap palette' : propEditorUi.selectedPaletteCategory === 'platform' ? 'Platform palette' : propEditorUi.selectedPaletteCategory === 'ground-detail' ? 'Ground Details palette' : propEditorUi.selectedPaletteCategory === 'foreground-detail' ? 'Foreground Details palette' : propEditorUi.selectedPaletteCategory === 'ledge' ? 'Ledge palette' : 'Prop palette'}</strong>
                   <span>{propEditorUi.palette.length}</span>
                 </div>
                 <div className="journey-prop-palette-tabs">
@@ -21895,6 +21915,7 @@ export default function ExpeditionJourney({
                     ['prop', 'Props'],
                     ['ledge', 'Ledges'],
                     ['ground-detail', 'Ground Details'],
+                    ['foreground-detail', 'Foreground Details'],
                     ['platform', 'Platforms'],
                     ['trap', 'Traps'],
                   ].map(([category, label]) => (
