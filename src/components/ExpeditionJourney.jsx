@@ -419,6 +419,9 @@ const PLAYER_HEAVY_FOLLOWUP_CUE_DURATION = 0.42;
 const PLAYER_ATTACK_LIGHT_DAMAGE = 1 * COMBAT_DAMAGE_SCALE;
 const PLAYER_ATTACK_PARRY_DAMAGE = 2 * COMBAT_DAMAGE_SCALE;
 const PLAYER_ATTACK_FINISHER_DAMAGE = 3 * COMBAT_DAMAGE_SCALE;
+// Unprimed-heavy "shove" (K with no primed follow-up): a space-maker, not a damage move.
+// Deals only chip damage (~30% of a light hit) but pushes hard and reliably staggers.
+const PLAYER_ATTACK_SHOVE_DAMAGE = Math.round(0.3 * COMBAT_DAMAGE_SCALE);
 const PLAYER_ATTACK_FINISHER_EXTRA_STAMINA_COST = 2;
 const PLAYER_HEAVY_FOLLOWUP_HIT_REFUND = 6;
 const PLAYER_ATTACK_RANGE = 92;
@@ -473,6 +476,31 @@ const COMBAT_HIT_IMPACT_PROFILES = {
     sparkFill: 'rgba(224, 190, 112, 0.22)',
     sfxKey: 'combatHitCombo2',
     sfxVolume: 1.02,
+  },
+  shove: {
+    // Unprimed-heavy space-maker: strong knockback (near finisher-level spacing) and a big
+    // dust kick, but a cooler/duller palette and lighter hit-stop so it reads as a push,
+    // not the gold finisher payoff.
+    hitStop: 0.1,
+    cameraShakeTimer: 0.16,
+    cameraShakeStrength: 0.3,
+    cameraPunchTimer: 0.09,
+    hitFlash: 0.32,
+    targetKnockback: 0.6,
+    targetShift: 96,
+    playerRecoil: 40,
+    impactTimer: 0.32,
+    sparkTimer: 0.24,
+    slashEffect: 'combo',
+    slashWidth: 150,
+    slashTimer: 0.2,
+    dustTimer: 0.3,
+    dustWidth: 50,
+    color: '#b8c4d0',
+    sparkColor: '#cdd8e0',
+    sparkFill: 'rgba(176, 196, 214, 0.2)',
+    sfxKey: 'combatHitCombo2',
+    sfxVolume: 1.0,
   },
   finisher: {
     hitStop: 0.18,
@@ -19458,7 +19486,7 @@ export default function ExpeditionJourney({
         const isFinisher = current.attackComboFinisherActive;
         const isHeavyAttack = current.attackType === PLAYER_ATTACK_TYPES.HEAVY;
         e.parried = false;
-        e.health -= isFinisher ? PLAYER_ATTACK_FINISHER_DAMAGE : (isParry ? PLAYER_ATTACK_PARRY_DAMAGE : PLAYER_ATTACK_LIGHT_DAMAGE);
+        e.health -= isFinisher ? PLAYER_ATTACK_FINISHER_DAMAGE : (isParry ? PLAYER_ATTACK_PARRY_DAMAGE : (isHeavyAttack ? PLAYER_ATTACK_SHOVE_DAMAGE : PLAYER_ATTACK_LIGHT_DAMAGE));
         if (!current.attackRewarded) {
           const heavyFollowupRefund = isFinisher ? PLAYER_HEAVY_FOLLOWUP_HIT_REFUND : (isParry ? 8 : (isHeavyAttack ? 0 : 1));
           current.resources.stamina = Math.min(current.upgradeEffects?.maxStamina || 100, current.resources.stamina + heavyFollowupRefund);
@@ -19484,12 +19512,12 @@ export default function ExpeditionJourney({
           });
         }
         const exhausted = current.resources.stamina > 0 && current.resources.stamina < 25;
-        e.stunTimer = isFinisher ? 1.55 : (isParry ? 1.4 : (exhausted ? 0.38 : 0.8));
+        e.stunTimer = isFinisher ? 1.55 : (isParry ? 1.4 : (isHeavyAttack ? 1.1 : (exhausted ? 0.38 : 0.8)));
         e.attackWindup = 0;
         e.attackTimer = 0;
         e.attackReady = false;
-        e.attackCooldown = Math.max(e.attackCooldown, isFinisher ? 1.55 : (isParry ? 1.4 : (exhausted ? 0.32 : 0.6)));
-        e.attackRecovery = isFinisher ? 0.72 : (isParry ? 0.6 : (exhausted ? 0.22 : 0.45));
+        e.attackCooldown = Math.max(e.attackCooldown, isFinisher ? 1.55 : (isParry ? 1.4 : (isHeavyAttack ? 0.95 : (exhausted ? 0.32 : 0.6))));
+        e.attackRecovery = isFinisher ? 0.72 : (isParry ? 0.6 : (isHeavyAttack ? 0.55 : (exhausted ? 0.22 : 0.45)));
         e.vulnerabilityTimer = isFinisher ? 0.62 : (isParry ? 0.55 : 0.35);
         e.shieldTimer = 0;
         const combatHitImpactType = isFinisher
@@ -19497,7 +19525,7 @@ export default function ExpeditionJourney({
             : e.health <= 0
               ? 'defeated'
             : isHeavyAttack
-              ? 'combo2'
+              ? 'shove'
               : 'light';
         if (isParry && e.health > 0) {
           addCombatEffect(current, {
@@ -19517,9 +19545,9 @@ export default function ExpeditionJourney({
           defeated: e.health <= 0,
           direction: player.direction,
           targetKind: 'enemy',
-          color: isFinisher ? '#fbbf24' : (e.health <= 0 ? '#b8943c' : '#7dd3fc'),
-          sparkColor: current.lastAttackResult === 'finisher' ? '#fbbf24' : (current.lastAttackResult === 'parry' ? '#fde68a' : (current.lastAttackResult === 'counter-hit' ? '#bbf7d0' : '#e2d5c0')),
-          sparkFill: current.lastAttackResult === 'finisher' ? 'rgba(251, 191, 36, 0.38)' : (current.lastAttackResult === 'parry' ? 'rgba(251, 191, 36, 0.32)' : (current.lastAttackResult === 'counter-hit' ? 'rgba(34, 197, 94, 0.18)' : 'rgba(190, 168, 128, 0.18)')),
+          color: isFinisher ? '#fbbf24' : (e.health <= 0 ? '#b8943c' : (combatHitImpactType === 'shove' ? '#b8c4d0' : '#7dd3fc')),
+          sparkColor: current.lastAttackResult === 'finisher' ? '#fbbf24' : (current.lastAttackResult === 'parry' ? '#fde68a' : (current.lastAttackResult === 'counter-hit' ? '#bbf7d0' : (combatHitImpactType === 'shove' ? '#cdd8e0' : '#e2d5c0'))),
+          sparkFill: current.lastAttackResult === 'finisher' ? 'rgba(251, 191, 36, 0.38)' : (current.lastAttackResult === 'parry' ? 'rgba(251, 191, 36, 0.32)' : (current.lastAttackResult === 'counter-hit' ? 'rgba(34, 197, 94, 0.18)' : (combatHitImpactType === 'shove' ? 'rgba(176, 196, 214, 0.2)' : 'rgba(190, 168, 128, 0.18)'))),
           sfxKey: isParry ? 'parryClash' : (combatHitImpactType === 'light' ? getEnemyHitSfxKey(e) : undefined),
           sfxOptions: isParry
             ? { volume: 1.0 }
@@ -19546,7 +19574,7 @@ export default function ExpeditionJourney({
             : `Enemy dropped ${e.shards} relic shard${e.shards === 1 ? '' : 's'}. Spend these at Base Camp.`;
           current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 1.8);
         } else {
-          current.notice = isFinisher ? `${e.name} thrown back by Asha's finisher.` : (isParry ? 'Parried! Asha deflected the blow.' : `${e.name} stunned.`);
+          current.notice = isFinisher ? `${e.name} thrown back by Asha's finisher.` : (isParry ? 'Parried! Asha deflected the blow.' : (isHeavyAttack ? `${e.name} shoved back. Land J first for a heavy.` : `${e.name} stunned.`));
         }
       }
     });

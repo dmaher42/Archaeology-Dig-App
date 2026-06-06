@@ -4473,7 +4473,7 @@ test('fast fluid combat slice adds dodge-cancel and flow combo contracts', () =>
   assert.match(journeyComponentSource, /const dodgeFacingDirection = -dodgeDirection;/);
   assert.match(journeyComponentSource, /current\.dodgeFacingDirection = dodgeFacingDirection;/);
   assert.match(journeyComponentSource, /player\.direction = dodgeFacingDirection;/);
-  assert.match(journeyComponentSource, /e\.health -= isFinisher \? PLAYER_ATTACK_FINISHER_DAMAGE : \(isParry \? PLAYER_ATTACK_PARRY_DAMAGE : PLAYER_ATTACK_LIGHT_DAMAGE\)/);
+  assert.match(journeyComponentSource, /e\.health -= isFinisher \? PLAYER_ATTACK_FINISHER_DAMAGE : \(isParry \? PLAYER_ATTACK_PARRY_DAMAGE : \(isHeavyAttack \? PLAYER_ATTACK_SHOVE_DAMAGE : PLAYER_ATTACK_LIGHT_DAMAGE\)\)/);
   assert.match(journeyComponentSource, /const heavyFollowupPrimed = isHeavyAttack && finisherAllowed && \(current\.attackQueuedHeavyFollowupPrimed \|\| \(current\.attackComboWindowTimer > 0 && current\.attackComboLanded\)\);/);
   assert.match(journeyComponentSource, /if \(current\.attackComboWindowTimer <= 0 && current\.attackSequenceIndex > 0 && current\.attackPhase === 'ready'\) resetPlayerCombo\(current\);/);
   assert.match(journeyComponentSource, /audioControls\?\.playExpeditionSfx\?\.\(isFinisher \? 'attackFinisher' : isHeavyAttack \? 'attackSwing2' : 'attackSwing1'\)/);
@@ -4546,7 +4546,7 @@ test('combo opening hits use a restrained realistic slash overlay before the fin
 
 test('combat hit impact feedback is centralized by physical hit type profiles', () => {
   assert.match(journeyComponentSource, /const COMBAT_HIT_IMPACT_PROFILES = \{/);
-  ['light', 'combo2', 'finisher', 'blocked', 'defeated'].forEach((hitType) => {
+  ['light', 'combo2', 'shove', 'finisher', 'blocked', 'defeated'].forEach((hitType) => {
     assert.match(
       journeyComponentSource,
       new RegExp(`${hitType}:\\s*\\{[\\s\\S]*?hitStop:[\\s\\S]*?cameraShakeStrength:[\\s\\S]*?hitFlash:[\\s\\S]*?targetKnockback`),
@@ -4558,10 +4558,25 @@ test('combat hit impact feedback is centralized by physical hit type profiles', 
   assert.match(journeyComponentSource, /type:\s*'knockback-dust'/);
   assert.match(journeyComponentSource, /audioControls\?\.playExpeditionSfx\?\.\(resolvedSfxKey/);
   assert.match(journeyComponentSource, /applyCombatHitImpact\(\{[\s\S]*?hitType:\s*'blocked'/);
-  assert.match(journeyComponentSource, /const combatHitImpactType = isFinisher[\s\S]*?'finisher'[\s\S]*?'defeated'[\s\S]*?'combo2'[\s\S]*?'light'/);
+  assert.match(journeyComponentSource, /const combatHitImpactType = isFinisher[\s\S]*?'finisher'[\s\S]*?'defeated'[\s\S]*?'shove'[\s\S]*?'light'/);
   assert.match(journeyComponentSource, /applyCombatHitImpact\(\{[\s\S]*?hitType:\s*isParry \? 'combo2' : combatHitImpactType/);
   assert.match(appSource, /combatHitCombo2:\s*\{/);
   assert.match(appSource, /enemyDefeated:\s*\{/);
+});
+
+test('unprimed heavy K is a shove: chip damage, strong knockback, reliable stagger', () => {
+  // Chip damage constant (~30% of a light hit on the combat scale), distinct from light
+  assert.match(journeyComponentSource, /const PLAYER_ATTACK_SHOVE_DAMAGE = Math\.round\(0\.3 \* COMBAT_DAMAGE_SCALE\)/);
+  // Unprimed heavy deals shove damage, not light or finisher damage
+  assert.match(journeyComponentSource, /isParry \? PLAYER_ATTACK_PARRY_DAMAGE : \(isHeavyAttack \? PLAYER_ATTACK_SHOVE_DAMAGE : PLAYER_ATTACK_LIGHT_DAMAGE\)/);
+  // Dedicated shove impact profile: strong knockback / near-finisher spacing, big dust kick
+  assert.match(journeyComponentSource, /shove:\s*\{[\s\S]*?targetKnockback:\s*0\.6[\s\S]*?targetShift:\s*96[\s\S]*?dustWidth:\s*50/);
+  // Unprimed heavy routes through the shove impact, not combo2
+  assert.match(journeyComponentSource, /: isHeavyAttack\s*\?\s*'shove'\s*:\s*'light'/);
+  // Longer, reliable interrupt stagger than a light hit (light = 0.8s)
+  assert.match(journeyComponentSource, /e\.stunTimer = isFinisher \? 1\.55 : \(isParry \? 1\.4 : \(isHeavyAttack \? 1\.1 :/);
+  // Shove still primes nothing and earns no Endurance refund (it is a survival tool, not a payoff)
+  assert.match(journeyComponentSource, /heavyFollowupRefund = isFinisher \? PLAYER_HEAVY_FOLLOWUP_HIT_REFUND : \(isParry \? 8 : \(isHeavyAttack \? 0 : 1\)\)/);
 });
 
 test('combat uses explicit J light and K heavy follow-up instead of hidden same-button combo', () => {
@@ -4836,7 +4851,7 @@ test('jump contact only bounces enemies while attacks defeat them in three to fi
   assert.match(journeyComponentSource, /current\.notice = `\$\{enemy\.name\} bounced away\. Use J or K to defeat it\.`/);
   assert.doesNotMatch(journeyComponentSource, /const applyEnemyStomp = \(enemy\) => \{[\s\S]*?enemy\.health -= 1[\s\S]*?\};/);
   assert.doesNotMatch(journeyComponentSource, /const applyEnemyStomp = \(enemy\) => \{[\s\S]*?current\.defeatedEnemies\.add\(enemy\.id\)[\s\S]*?\};/);
-  assert.match(journeyComponentSource, /if \(attackRect && !current\.attackHitIds\.has\(e\.id\) && rectsOverlap\(attackRect, getAttackHurtbox\(e\)\)\) \{[\s\S]*?e\.health -= isFinisher \? PLAYER_ATTACK_FINISHER_DAMAGE : \(isParry \? PLAYER_ATTACK_PARRY_DAMAGE : PLAYER_ATTACK_LIGHT_DAMAGE\)/);
+  assert.match(journeyComponentSource, /if \(attackRect && !current\.attackHitIds\.has\(e\.id\) && rectsOverlap\(attackRect, getAttackHurtbox\(e\)\)\) \{[\s\S]*?e\.health -= isFinisher \? PLAYER_ATTACK_FINISHER_DAMAGE : \(isParry \? PLAYER_ATTACK_PARRY_DAMAGE : \(isHeavyAttack \? PLAYER_ATTACK_SHOVE_DAMAGE : PLAYER_ATTACK_LIGHT_DAMAGE\)\)/);
   assert.match(journeyUtilsSource, /if\s*\(enemy\.firstSealRouteRamp\)\s*return Math\.max\(3, enemy\.health\)/);
   assert.match(journeyUtilsSource, /return clamp\(Math\.max\(enemy\.health \+ bonus, Math\.ceil\(enemy\.health \* 1\.55\)\), 3, 5\)/);
 });
