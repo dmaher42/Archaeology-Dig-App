@@ -424,6 +424,10 @@ const PLAYER_ATTACK_FINISHER_DAMAGE = 3 * COMBAT_DAMAGE_SCALE;
 const PLAYER_ATTACK_SHOVE_DAMAGE = Math.round(0.3 * COMBAT_DAMAGE_SCALE);
 const PLAYER_ATTACK_FINISHER_EXTRA_STAMINA_COST = 2;
 const PLAYER_HEAVY_FOLLOWUP_HIT_REFUND = 6;
+// Earned-Endurance rewards (ChatGPT Option A): clean play refunds Endurance so long
+// fights stay sustainable — spend to survive, earn it back by playing well.
+const PLAYER_DEFEAT_ENDURANCE_REWARD = 4;
+const PLAYER_BOSS_STAGGER_ENDURANCE_REWARD = 10;
 const PLAYER_ATTACK_RANGE = 92;
 const PLAYER_ATTACK_HEIGHT = 36;
 const PLAYER_ATTACK_BACK_REACH = 10;
@@ -19572,6 +19576,11 @@ export default function ExpeditionJourney({
           current.notice = shardGateProgress
             ? `Enemy dropped ${e.shards} relic shard${e.shards === 1 ? '' : 's'}: ${Math.min(current.relicShardCount, shardGateProgress.required)}/${shardGateProgress.required} for ${shardGateProgress.gateName}.`
             : `Enemy dropped ${e.shards} relic shard${e.shards === 1 ? '' : 's'}. Spend these at Base Camp.`;
+          // Clean defeat refunds a little Endurance so chained fights stay sustainable.
+          const enduranceBeforeDefeat = current.resources.stamina;
+          current.resources.stamina = Math.min(current.upgradeEffects?.maxStamina || 100, enduranceBeforeDefeat + PLAYER_DEFEAT_ENDURANCE_REWARD);
+          const defeatEnduranceGained = Math.round(current.resources.stamina - enduranceBeforeDefeat);
+          if (defeatEnduranceGained > 0) current.notice = `${current.notice} +${defeatEnduranceGained} Endurance.`;
           current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 1.8);
         } else {
           current.notice = isFinisher ? `${e.name} thrown back by Asha's finisher.` : (isParry ? 'Parried! Asha deflected the blow.' : (isHeavyAttack ? `${e.name} shoved back. Land J first for a heavy.` : `${e.name} stunned.`));
@@ -19597,6 +19606,7 @@ export default function ExpeditionJourney({
         const phase = getBossPhaseConfig(b);
         b.attackRecovery = phase.recovery;
         b.vulnerabilityTimer = phase.vulnerableAfter;
+        b.staggerRewarded = false; // a fresh opening — punishing it can earn the stagger reward again
         addCombatEffect(current, {
           type: 'boss-vulnerable',
           x: b.x + b.width / 2,
@@ -19821,6 +19831,7 @@ export default function ExpeditionJourney({
         }
         const isFinisher = current.attackComboFinisherActive;
         const isHeavyAttack = current.attackType === PLAYER_ATTACK_TYPES.HEAVY;
+        const bossWasVulnerable = b.vulnerabilityTimer > 0 || b.attackRecovery > 0;
         b.health -= (b.playerDamageMultiplier || 1) * COMBAT_DAMAGE_SCALE;
         if (!current.attackRewarded) {
           const heavyFollowupRefund = isFinisher ? PLAYER_HEAVY_FOLLOWUP_HIT_REFUND : (isHeavyAttack ? 0 : 1);
@@ -19835,6 +19846,14 @@ export default function ExpeditionJourney({
         current.attackComboStep = primesHeavyFollowup ? current.attackSequenceIndex : 0;
         current.lastAttackResult = isFinisher ? 'finisher' : (b.vulnerabilityTimer > 0 || b.attackRecovery > 0 ? 'counter-hit' : 'hit');
         current.shieldedHitFeedback = '';
+        // Punishing the boss's vulnerable opening restores a chunk of Endurance — once per opening.
+        let bossStaggerEnduranceGain = 0;
+        if (bossWasVulnerable && !b.staggerRewarded) {
+          const enduranceBeforeStagger = current.resources.stamina;
+          current.resources.stamina = Math.min(current.upgradeEffects?.maxStamina || 100, enduranceBeforeStagger + PLAYER_BOSS_STAGGER_ENDURANCE_REWARD);
+          bossStaggerEnduranceGain = Math.round(current.resources.stamina - enduranceBeforeStagger);
+          b.staggerRewarded = true;
+        }
         if (primesHeavyFollowup) {
           addCombatEffect(current, {
             type: 'heavy-ready-cue',
@@ -19876,7 +19895,7 @@ export default function ExpeditionJourney({
           sfxKey: bossHitImpactType === 'light' ? hitSfx : undefined,
           sfxOptions: { volume: b.health <= 0 ? 1.2 : 1 },
         });
-        current.notice = `${b.name} staggered.`;
+        current.notice = bossStaggerEnduranceGain > 0 ? `${b.name} staggered. +${bossStaggerEnduranceGain} Endurance.` : `${b.name} staggered.`;
         if (b.health <= 0) {
           b.defeated = true;
           b.hitFlash = 0;

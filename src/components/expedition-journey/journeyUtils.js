@@ -1386,6 +1386,7 @@ export const makeMiniBoss = (boss) => ({
   damage: Math.max(boss.damage + 2, Math.ceil(boss.damage * 1.3)),
   defeated: false,
   awakened: false,
+  staggerRewarded: false,
   stunTimer: 0,
   hitFlash: 0,
   attackWindup: 0,

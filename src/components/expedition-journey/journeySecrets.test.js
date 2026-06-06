@@ -4579,6 +4579,21 @@ test('unprimed heavy K is a shove: chip damage, strong knockback, reliable stagg
   assert.match(journeyComponentSource, /heavyFollowupRefund = isFinisher \? PLAYER_HEAVY_FOLLOWUP_HIT_REFUND : \(isParry \? 8 : \(isHeavyAttack \? 0 : 1\)\)/);
 });
 
+test('step 3 earned-Endurance rewards: defeat +4 and boss stagger +10', () => {
+  assert.match(journeyComponentSource, /const PLAYER_DEFEAT_ENDURANCE_REWARD = 4/);
+  assert.match(journeyComponentSource, /const PLAYER_BOSS_STAGGER_ENDURANCE_REWARD = 10/);
+  // Defeating an enemy grants the clamped defeat reward with notice feedback
+  assert.match(journeyComponentSource, /enduranceBeforeDefeat \+ PLAYER_DEFEAT_ENDURANCE_REWARD/);
+  assert.match(journeyComponentSource, /if \(defeatEnduranceGained > 0\) current\.notice =/);
+  // Boss stagger reward: capture the vulnerable opening before it is reset, reward once per opening
+  assert.match(journeyComponentSource, /const bossWasVulnerable = b\.vulnerabilityTimer > 0 \|\| b\.attackRecovery > 0/);
+  assert.match(journeyComponentSource, /if \(bossWasVulnerable && !b\.staggerRewarded\) \{[\s\S]{0,260}PLAYER_BOSS_STAGGER_ENDURANCE_REWARD[\s\S]{0,160}b\.staggerRewarded = true;/);
+  // Flag resets when the boss opens a fresh vulnerability window
+  assert.match(journeyComponentSource, /b\.vulnerabilityTimer = phase\.vulnerableAfter;\s*b\.staggerRewarded = false;/);
+  // Boss factory initialises the flag
+  assert.match(journeyUtilsSource, /awakened:\s*false,\s*staggerRewarded:\s*false,/);
+});
+
 test('combat uses explicit J light and K heavy follow-up instead of hidden same-button combo', () => {
   assert.match(journeyComponentSource, /const PLAYER_ATTACK_TYPES = Object\.freeze\(\{[\s\S]*?LIGHT:\s*'light'[\s\S]*?HEAVY:\s*'heavy'/);
   assert.match(journeyComponentSource, /const PLAYER_HEAVY_FOLLOWUP_HIT_REFUND = \d+/);
