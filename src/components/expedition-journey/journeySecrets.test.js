@@ -1159,6 +1159,23 @@ test('room restoration remains story evidence rather than mandatory route paymen
   assert.match(journeyComponentSource, /getRoomRestorationStatus\(secret, current\)/);
 });
 
+test('Journey HUD surfaces sacred room restoration as Anubis judgement evidence', () => {
+  const routeGates = extractExportedArray('ROUTE_GATES');
+
+  assert.match(journeyComponentSource, /const SACRED_ROOM_EVIDENCE_LABELS = \[/);
+  assert.match(journeyComponentSource, /label:\s*'Body'[\s\S]*?setId:\s*'mummification-body-self'/);
+  assert.match(journeyComponentSource, /label:\s*'Image'[\s\S]*?setId:\s*'forgotten-mural-seal'/);
+  assert.match(journeyComponentSource, /label:\s*'Name'[\s\S]*?setId:\s*'scribe-name-record'/);
+  assert.match(journeyComponentSource, /const sacredRoomEvidenceRows = getSacredRoomEvidenceRows\(gameState\)/);
+  assert.match(journeyComponentSource, /const restoredSacredRoomCount = sacredRoomEvidenceRows\.filter\(row => row\.restored\)\.length/);
+  assert.match(journeyComponentSource, /Sacred room evidence/);
+  assert.match(journeyComponentSource, /Anubis judges restored evidence, not promises\./);
+  assert.match(journeyComponentSource, /journey-floating-hud-restoration/);
+  assert.match(journeyComponentSource, /restoredSacredRoomCount\}\/\{sacredRoomEvidenceRows\.length\}/);
+  assert.doesNotMatch(routeGates, /mummification-body-self|forgotten-mural-seal|scribe-name-record|mummificationChamberRestored|forgottenMuralChamberRestored|scribeChamberRecordRestored/);
+  assert.doesNotMatch(journeyComponentSource, /trustMeter|anubisTrust/);
+});
+
 test('first Egypt secret route rewards curiosity without changing main progression', () => {
   const hiddenRoutes = extractExportedArray('HIDDEN_ROUTES');
   const secretCollectibles = extractExportedArray('SECRET_COLLECTIBLES');
@@ -4477,8 +4494,11 @@ test('Egypt opening combat ramps gently before the first route seal', () => {
     true,
     'first teaching enemies should keep low authored health and low damage so the seal proof stays readable',
   );
-  assert.ok(totalOpeningHealth <= 24, 'first seal should not require too many regular enemy hits before the guardian');
-  assert.ok(totalOpeningDamage <= 64, 'opening regular enemy damage budget should leave room for early-route mistakes');
+  // Budget raised intentionally: the opening now includes the scorpion-nest arena (a moderate
+  // combat-intro ramp near the mummification building) before the first seal. The arena still
+  // uses openingRouteRamp tuning and avoids high-damage (>8) enemies, so the opening stays fair.
+  assert.ok(totalOpeningHealth <= 30, 'first seal should not require too many regular enemy hits before the guardian');
+  assert.ok(totalOpeningDamage <= 80, 'opening regular enemy damage budget should leave room for early-route mistakes');
   assert.equal(highDamageOpeningRows.length, 0, 'opening route should avoid high-damage regular enemies before the first seal');
 
   const checkpoints = extractExportedArray('CHECKPOINTS');

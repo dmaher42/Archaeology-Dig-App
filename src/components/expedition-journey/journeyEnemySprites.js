@@ -506,6 +506,9 @@ export const getEnemySpritePack = (assets, family) => {
 
 export const getEnemySpriteFamily = (enemy) => {
   if (!enemy) return null;
+  // The scorpion nest is a stationary destructible spawner with its own placeholder
+  // render — it must NOT resolve to the scorpion sprite (its name contains "scorpion").
+  if (enemy.type === 'scorpion-nest') return null;
   const name = (enemy.name || '').toLowerCase();
   // Rome enemy types
   if (enemy.type === 'legion-shade'       || name.includes('legion shade') || name.includes('praetorian shade') || name.includes('bath shade') || name.includes('forum shade') || name.includes('ruins guard') || name.includes('apse guard')) return 'legionShade';

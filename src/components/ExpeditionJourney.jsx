@@ -138,6 +138,7 @@ import {
   JOURNEY_INTERACT_VERBS,
   JOURNEY_TRAP_DIRECTIONS,
   JOURNEY_TRAP_TYPES,
+  makeEnemy,
   makeInitialState,
   normalizeJourneyTrap,
   rectsOverlap,
@@ -16240,6 +16241,28 @@ export default function ExpeditionJourney({
         if (enemy.defeated) {
           drawContactShadow(ctx, ex + enemy.width / 2, enemy.y + enemy.height + 3, enemy.width * 0.62, 0.12, 0.75);
           drawGroundDustLip(ctx, ex + enemy.width / 2, enemy.y + enemy.height + 2, enemy.width * 0.68, 'rgba(95, 58, 27, 0.24)');
+        } else if (enemy.type === 'scorpion-nest') {
+          // Placeholder nest visual: a sand mound with a dark burrow opening (final art TBD).
+          const nestCx = ex + enemy.width / 2 + shakeX;
+          const nestBaseY = enemy.y + enemy.height;
+          drawContactShadow(ctx, nestCx, nestBaseY + 3, enemy.width * 0.95, 0.26, 0.9);
+          ctx.fillStyle = '#7a4a1f';
+          ctx.strokeStyle = 'rgba(28, 16, 6, 0.5)';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.ellipse(nestCx, nestBaseY - enemy.height * 0.32, enemy.width * 0.5, enemy.height * 0.5, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = '#160d05';
+          ctx.beginPath();
+          ctx.ellipse(nestCx, nestBaseY - enemy.height * 0.34, enemy.width * 0.24, enemy.height * 0.3, 0, 0, Math.PI * 2);
+          ctx.fill();
+          const nestGlow = 0.4 + Math.sin(now / 220) * 0.25;
+          ctx.fillStyle = `rgba(217, 119, 47, ${nestGlow})`;
+          ctx.beginPath();
+          ctx.ellipse(nestCx - 6, nestBaseY - enemy.height * 0.36, 2.4, 2.4, 0, 0, Math.PI * 2);
+          ctx.ellipse(nestCx + 6, nestBaseY - enemy.height * 0.36, 2.4, 2.4, 0, 0, Math.PI * 2);
+          ctx.fill();
         } else {
           drawContactShadow(ctx, ex + enemy.width / 2, enemy.y + enemy.height + 3, enemy.width * 0.72, 0.16, 0.75);
           ctx.fillStyle = enemy.type === 'guardian' || enemy.type === 'statue' ? '#6b7280' : '#78350f';
@@ -19672,6 +19695,64 @@ export default function ExpeditionJourney({
         } else {
           current.notice = isFinisher ? `${e.name} thrown back by Asha's finisher.` : (isParry ? 'Parried! Asha deflected the blow.' : (isHeavyAttack ? `${e.name} shoved back. Land J first for a heavy.` : `${e.name} stunned.`));
         }
+      }
+    });
+
+    // --- Scorpion nest spawner: stationary nests spit scorpions until destroyed ---
+    current.enemies.forEach(nest => {
+      if (nest.type !== 'scorpion-nest' || nest.defeated) return;
+      if (!isEntityActiveInScene(nest, current)) return;
+      // Keep the nest inert — it never moves or attacks, it only spawns.
+      nest.attackWindup = 0;
+      nest.attackTimer = 0;
+      nest.attackReady = false;
+      nest.attackRecovery = 0;
+      nest.vx = 0;
+      // Only spawn while the player is engaged with the arena (nest roughly on-screen).
+      const playerNearNest = Math.abs((player.x + player.width / 2) - (nest.x + nest.width / 2)) < CANVAS_WIDTH * 0.85;
+      if (!playerNearNest) {
+        nest.spawnTimer = nest.spawnInitialDelay ?? 0.9;
+        return;
+      }
+      if (nest.spawnTimer == null) nest.spawnTimer = nest.spawnInitialDelay ?? 0.9;
+      nest.spawnTimer -= dt;
+      const aliveBrood = current.enemies.filter(other => other.nestParentId === nest.id && !other.defeated).length;
+      const spawnCap = nest.spawnCap ?? 3;
+      if (nest.spawnTimer <= 0 && aliveBrood < spawnCap) {
+        nest.spawnTimer = nest.spawnInterval ?? 3.4;
+        nest.broodCount = (nest.broodCount || 0) + 1;
+        const spawnDir = (player.x + player.width / 2) >= (nest.x + nest.width / 2) ? 1 : -1;
+        const broodHeight = 30;
+        current.enemies.push(makeEnemy({
+          id: `${nest.id}-spawn-${nest.broodCount}`,
+          name: 'Nest Scorpion',
+          type: 'scorpion',
+          emoji: 'S',
+          x: nest.x + nest.width / 2 - 23 + spawnDir * 18,
+          y: GROUND_Y - broodHeight - 2,
+          width: 46,
+          height: broodHeight,
+          patrolMin: nest.x - 150,
+          patrolMax: nest.x + nest.width + 150,
+          speed: 64,
+          health: 2,
+          damage: 6,
+          openingRouteRamp: true,
+          attackPatternTuning: { windup: 0.62, duration: 0.32, cooldown: 1.68, recovery: 0.66, vulnerableAfter: 0.74, speed: 50, range: 28, height: 62, yOffset: -38, backReach: 42, damageScale: 1.4 },
+          shards: 1,
+          direction: spawnDir,
+          nestParentId: nest.id,
+          encounterRole: 'nest brood',
+        }));
+        addCombatEffect(current, {
+          type: 'sand-skid',
+          x: nest.x + nest.width / 2,
+          y: nest.y + nest.height,
+          direction: spawnDir,
+          color: 'rgba(136, 82, 36, 0.5)',
+          timer: 0.4,
+          maxTimer: 0.4,
+        });
       }
     });
 
