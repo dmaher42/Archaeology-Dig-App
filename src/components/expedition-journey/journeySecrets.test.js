@@ -4601,6 +4601,22 @@ test('heavy follow-up window is readable through HUD and physical cue feedback',
   assert.match(journeyComponentSource, /Math\.max\(current\.heavyFollowupReadyTimer \|\| 0, current\.heavyFollowupCueTimer \|\| 0\)/);
 });
 
+test('missed attacks give physical near-miss spacing feedback without widening hitboxes', () => {
+  assert.match(journeyComponentSource, /const PLAYER_ATTACK_NEAR_MISS_DISTANCE = 44;/);
+  assert.match(journeyComponentSource, /const PLAYER_ATTACK_NEAR_MISS_VERTICAL_TOLERANCE = 34;/);
+  assert.match(journeyComponentSource, /const getPlayerAttackNearMissTarget = useCallback\(\(current, attackRect\) => \{/);
+  assert.match(journeyComponentSource, /const gap = direction >= 0\s*\? hurtbox\.x - \(attackRect\.x \+ attackRect\.width\)\s*:\s*attackRect\.x - \(hurtbox\.x \+ hurtbox\.width\);/);
+  assert.match(journeyComponentSource, /gap >= 0 && gap <= PLAYER_ATTACK_NEAR_MISS_DISTANCE/);
+  assert.match(journeyComponentSource, /verticalGap <= PLAYER_ATTACK_NEAR_MISS_VERTICAL_TOLERANCE/);
+  assert.match(journeyComponentSource, /const expiredAttackBox = wasSwinging && current\.attackTimer <= 0 \? current\.playerAttackBox : null;/);
+  assert.match(journeyComponentSource, /const nearMissTarget = getPlayerAttackNearMissTarget\(current, expiredAttackBox\);/);
+  assert.match(journeyComponentSource, /type:\s*'near-miss-spacing'/);
+  assert.match(journeyComponentSource, /current\.lastAttackResult = nearMissTarget \? 'near-miss' : 'missed';/);
+  assert.match(journeyComponentSource, /current\.notice = 'Close - step in and land J before K\.';/);
+  assert.match(journeyComponentSource, /if \(effect\.type === 'near-miss-spacing'\) \{/);
+  assert.doesNotMatch(journeyComponentSource, /PLAYER_ATTACK_RANGE\s*=\s*9[3-9]|PLAYER_ATTACK_RANGE\s*=\s*1\d{2}/);
+});
+
 test('dodge visual state uses the preview dodge atlas row with the old fallback intact', () => {
   const dodgeRow = ashaReferenceWarriorDodgePreviewAtlas.rows.find((row) => row.name === 'dodge');
 

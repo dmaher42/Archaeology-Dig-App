@@ -420,6 +420,8 @@ const PLAYER_HEAVY_FOLLOWUP_HIT_REFUND = 6;
 const PLAYER_ATTACK_RANGE = 92;
 const PLAYER_ATTACK_HEIGHT = 36;
 const PLAYER_ATTACK_BACK_REACH = 10;
+const PLAYER_ATTACK_NEAR_MISS_DISTANCE = 44;
+const PLAYER_ATTACK_NEAR_MISS_VERTICAL_TOLERANCE = 34;
 const PLAYER_ATTACK_FINISHER_ROW = 'attack_pick_swing_sweep';
 const PLAYER_COMBO_SLASH_EFFECT_SRC = 'assets/expedition/player/asha-combo-slash-effect-2026-06-06.png';
 const PLAYER_COMBO_SLASH_EFFECT_VERSION = 'asha-combo-slash-effect-2026-06-06';
@@ -1776,6 +1778,11 @@ const PARRY_WINDOW_DURATION = 0.12;
 // How close an enemy's front edge must be to the player body before committing to a windup.
 // Kept deliberately small so the freeze reads as "right on you" not "approaching from afar".
 const ENEMY_ATTACK_TRIGGER_REACH = 16;
+
+// Gap (in px) an enemy keeps between its body edge and Asha's body edge when
+// pressing the attack. Larger than 0 so sprites never overlap/"share her space",
+// but smaller than ENEMY_ATTACK_TRIGGER_REACH so melee still lands at standoff.
+const ENEMY_COMBAT_STANDOFF_GAP = 6;
 
 const getPlayerAttackTiming = (sequenceIndex = 1) => {
   const timingIndex = Math.max(0, sequenceIndex - 1) % PLAYER_ATTACK_COMBO_TIMINGS.length;
@@ -6452,6 +6459,41 @@ export default function ExpeditionJourney({
   const getAttackHurtbox = useCallback((hostile, { boss = false } = {}) => {
     return getEnemyAttackHurtbox(hostile, { boss });
   }, []);
+
+  const getPlayerAttackNearMissTarget = useCallback((current, attackRect) => {
+    if (!current || !attackRect) return null;
+    const direction = current.player?.direction >= 0 ? 1 : -1;
+    const candidates = [
+      ...(current.enemies || []).filter(enemy => !enemy.defeated).map(enemy => ({ target: enemy, boss: false })),
+      ...(current.miniBosses || []).filter(boss => boss.awakened && !boss.defeated).map(boss => ({ target: boss, boss: true })),
+    ];
+    let best = null;
+    candidates.forEach(({ target, boss }) => {
+      const hurtbox = getAttackHurtbox(target, { boss });
+      const verticalGap = Math.max(
+        attackRect.y - (hurtbox.y + hurtbox.height),
+        hurtbox.y - (attackRect.y + attackRect.height),
+        0,
+      );
+      const gap = direction >= 0
+        ? hurtbox.x - (attackRect.x + attackRect.width)
+        : attackRect.x - (hurtbox.x + hurtbox.width);
+      if (
+        gap >= 0 && gap <= PLAYER_ATTACK_NEAR_MISS_DISTANCE
+        && verticalGap <= PLAYER_ATTACK_NEAR_MISS_VERTICAL_TOLERANCE
+        && (!best || gap < best.gap)
+      ) {
+        best = {
+          target,
+          boss,
+          hurtbox,
+          gap,
+          direction,
+        };
+      }
+    });
+    return best;
+  }, [getAttackHurtbox]);
 
   const addCombatEffect = useCallback((current, effect) => {
     current.combatHitEffects.push({
@@ -14710,6 +14752,36 @@ export default function ExpeditionJourney({
         ctx.restore();
         return;
       }
+      if (effect.type === 'near-miss-spacing') {
+        const direction = effect.direction || 1;
+        const pulse = 1 - progress;
+        ctx.globalAlpha = Math.max(0, progress * 0.54);
+        ctx.strokeStyle = effect.color || 'rgba(226, 213, 192, 0.78)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.moveTo(x - direction * (effect.gap || 24), y - 5);
+        ctx.lineTo(x + direction * 10, y - 5);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.globalAlpha = Math.max(0, progress * 0.34);
+        ctx.fillStyle = 'rgba(159, 126, 80, 0.36)';
+        for (let i = 0; i < 3; i += 1) {
+          ctx.beginPath();
+          ctx.ellipse(
+            x - direction * (4 + i * 8 + pulse * 8),
+            y + 22 - i,
+            9 + pulse * 5,
+            3 + pulse * 2,
+            -0.08 * direction,
+            0,
+            Math.PI * 2,
+          );
+          ctx.fill();
+        }
+        ctx.restore();
+        return;
+      }
       if (effect.type === 'heavy-ready-cue') {
         const direction = effect.direction || 1;
         const pulse = 1 - progress;
@@ -17199,6 +17271,7 @@ export default function ExpeditionJourney({
         current.enduranceExhausted = false;
       }
     }
+    const expiredAttackBox = wasSwinging && current.attackTimer <= 0 ? current.playerAttackBox : null;
     if (current.attackTimer <= 0) current.playerAttackBox = null;
     if (wasWindingUp && current.attackWindupTimer <= 0) {
       current.attackTimer = current.attackSwingDuration || ATTACK_DURATION;
@@ -17206,9 +17279,23 @@ export default function ExpeditionJourney({
     }
     if (wasSwinging && current.attackTimer <= 0 && current.attackRecoilTimer <= 0) {
       if (current.attackHitIds.size === 0) {
-        current.lastAttackResult = 'missed';
+        const nearMissTarget = getPlayerAttackNearMissTarget(current, expiredAttackBox);
+        current.lastAttackResult = nearMissTarget ? 'near-miss' : 'missed';
         applyAttackStaminaCost(MISSED_ATTACK_EXTRA_STAMINA_COST, 'Missed attack', '-1');
         audioControls?.playExpeditionSfx?.('attackMiss', { volume: 0.72 });
+        if (nearMissTarget) {
+          addCombatEffect(current, {
+            type: 'near-miss-spacing',
+            x: nearMissTarget.direction >= 0 ? nearMissTarget.hurtbox.x : nearMissTarget.hurtbox.x + nearMissTarget.hurtbox.width,
+            y: nearMissTarget.hurtbox.y + nearMissTarget.hurtbox.height * 0.56,
+            direction: nearMissTarget.direction,
+            gap: nearMissTarget.gap,
+            color: 'rgba(226, 213, 192, 0.78)',
+            timer: 0.28,
+            maxTimer: 0.28,
+          });
+          current.notice = 'Close - step in and land J before K.';
+        }
         resetPlayerCombo(current);
       }
       if (current.attackComboFinisherActive) resetPlayerCombo(current);
@@ -19244,30 +19331,56 @@ export default function ExpeditionJourney({
 
       if (e.stunTimer <= 0 && e.attackWindup <= 0 && e.attackTimer <= 0 && e.attackRecovery <= 0) {
         const isAggroChasing = (e.aggroMemoryTimer || 0) > 0;
+        const sameCombatPlane = Math.abs(player.y - e.y) < 118 + (e.encounterRole ? 16 : 0);
         const isPressingPlayer = isAggroChasing
           || (
             Math.abs(distanceToPlayer) < (baseNearPlayerX * awarenessMultiplier * 1.55)
-            && Math.abs(player.y - e.y) < 118 + (e.encounterRole ? 16 : 0)
+            && sameCombatPlane
           );
-        if (isPressingPlayer) {
-          e.direction = distanceToPlayer >= 0 ? 1 : -1;
-        }
         const slowPursuitBoost = e.type === 'scorpion' && playerIsVenomSlowed ? 1.48 : 1;
         const chaseSpeedMultiplier = isAggroChasing
           ? (tacticalPattern.chaseMultiplier || 1.65) * (e.type === 'scorpion' ? SCORPION_CHASE_SPEED_MULTIPLIER * slowPursuitBoost : 1)
           : 1;
         const patrolSpeed = (e.baseSpeed || e.speed) * updateHostileStepMultiplier(e, dt) * chaseSpeedMultiplier;
-        e.x += e.direction * patrolSpeed * dt;
         const movementMin = isAggroChasing ? e.patrolMin - ENEMY_AGGRO_PATROL_PADDING : e.patrolMin;
         const movementMax = isAggroChasing ? e.patrolMax + ENEMY_AGGRO_PATROL_PADDING : e.patrolMax;
-        if (e.x <= movementMin) {
-          e.x = movementMin;
-          e.direction = 1;
-          e.stepShiftTimer = 0;
-        } else if (e.x >= movementMax) {
-          e.x = movementMax;
-          e.direction = -1;
-          e.stepShiftTimer = 0;
+
+        if (isPressingPlayer && sameCombatPlane) {
+          // Hold a consistent standoff slot just in front of or behind Asha
+          // instead of sharing her space. Commit to whichever side the enemy
+          // approached from so the choice can't flip-flop frame to frame (that
+          // flip-flop is what looked like the enemy spinning on top of her).
+          const playerCenter = player.x + player.width / 2;
+          const enemyCenter = e.x + e.width / 2;
+          if (!e.combatSide) {
+            const rawSide = enemyCenter - playerCenter;
+            e.combatSide = Math.abs(rawSide) > 1 ? Math.sign(rawSide) : -(e.direction || 1);
+          }
+          const standoffDistance = e.width / 2 + player.width / 2 + ENEMY_COMBAT_STANDOFF_GAP;
+          let targetX = playerCenter + e.combatSide * standoffDistance - e.width / 2;
+          targetX = Math.min(movementMax, Math.max(movementMin, targetX));
+          const step = patrolSpeed * dt;
+          const toTarget = targetX - e.x;
+          e.x += Math.abs(toTarget) <= step ? toTarget : Math.sign(toTarget) * step;
+          // Always face Asha while holding the line.
+          e.direction = e.combatSide >= 0 ? -1 : 1;
+        } else {
+          // Not locked into a combat slot: patrol/chase normally and release the
+          // committed side so it is re-picked on the next approach.
+          e.combatSide = 0;
+          if (isPressingPlayer) {
+            e.direction = distanceToPlayer >= 0 ? 1 : -1;
+          }
+          e.x += e.direction * patrolSpeed * dt;
+          if (e.x <= movementMin) {
+            e.x = movementMin;
+            e.direction = 1;
+            e.stepShiftTimer = 0;
+          } else if (e.x >= movementMax) {
+            e.x = movementMax;
+            e.direction = -1;
+            e.stepShiftTimer = 0;
+          }
         }
       }
       const contact = resolveEnemyContact(player, previousPlayer, e);
@@ -19880,7 +19993,7 @@ export default function ExpeditionJourney({
       if (current.resources.time <= 0) triggerJourneyRescue('Time expired. Field team rescued.');
     }
 
-  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, backgroundPackId, openingAtmosphereSfxKey, scopedJourneyAssetPacks.isChinaJourney, scopedJourneyAssetPacks.isRomeJourney, targetCivilisation, buildBossRewardMoment, completeOpeningThresholdScene, enterLevelFromThreshold, startLevelThresholdEncounter, startTempleThresholdTransition, getActiveHiddenRoutes, getActiveSecretCollectibles, getActiveShardGateProgress, getAttackBox, getAttackHurtbox, getBossPhaseConfig, getBossVulnerabilityState, getDoorwayGateStatus, getEnemyPatternConfig, getObjectiveProgress, getGateGuidance, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getRenderableTrapPlatforms, getRouteAccessState, getRouteGateDoorwayEntries, isRouteRewardAccessible, isLowStamina, addCombatEffect, applyCombatHitImpact, recordEnvironmentInteraction, getPlayerAttackState, getSectionDisplayName, getSectionDisplayTitle, syncHud]);
+  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, backgroundPackId, openingAtmosphereSfxKey, scopedJourneyAssetPacks.isChinaJourney, scopedJourneyAssetPacks.isRomeJourney, targetCivilisation, buildBossRewardMoment, completeOpeningThresholdScene, enterLevelFromThreshold, startLevelThresholdEncounter, startTempleThresholdTransition, getActiveHiddenRoutes, getActiveSecretCollectibles, getActiveShardGateProgress, getAttackBox, getAttackHurtbox, getPlayerAttackNearMissTarget, getBossPhaseConfig, getBossVulnerabilityState, getDoorwayGateStatus, getEnemyPatternConfig, getObjectiveProgress, getGateGuidance, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getRenderableTrapPlatforms, getRouteAccessState, getRouteGateDoorwayEntries, isRouteRewardAccessible, isLowStamina, addCombatEffect, applyCombatHitImpact, recordEnvironmentInteraction, getPlayerAttackState, getSectionDisplayName, getSectionDisplayTitle, syncHud]);
 
   const step = useCallback((ms) => {
     const dt = Math.min(ms / 1000, 0.05);
