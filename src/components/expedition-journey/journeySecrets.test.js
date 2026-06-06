@@ -114,6 +114,8 @@ const desertEntryGroundingOverlayPath = new URL('../../../public/assets/expediti
 const desertEntryPremiumCausewayLanePath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-premium-causeway-lane.png', import.meta.url);
 const egyptForegroundDepthAtlasPath = new URL('../../../public/assets/expedition/environment/egypt-foreground/egypt-foreground-depth-pack.json', import.meta.url);
 const egyptForegroundDepthPngPath = new URL('../../../public/assets/expedition/environment/egypt-foreground/egypt-foreground-depth-pack.png', import.meta.url);
+const ashaComboSlashEffectPath = new URL('../../../public/assets/expedition/player/asha-combo-slash-effect-2026-06-06.png', import.meta.url);
+const ashaFinisherSlashEffectPath = new URL('../../../public/assets/expedition/player/asha-finisher-slash-effect-2026-06-06.png', import.meta.url);
 const extractExportedArray = (name) => {
   const startToken = `export const ${name} = [`;
   const start = source.indexOf(startToken);
@@ -4443,7 +4445,8 @@ test('combat audio uses creature and deflection cues instead of gate sounds', ()
   assert.match(journeyComponentSource, /snake:\s*'snakeHit'/);
   assert.match(journeyComponentSource, /'sand-wisp':\s*'sandWispHit'/);
   assert.match(journeyComponentSource, /getEnemyHitSfxKey\(e\)/);
-  assert.match(journeyComponentSource, /playExpeditionSfx\?\.\('combatDeflect'/);
+  assert.match(journeyComponentSource, /blocked:\s*\{[\s\S]*?sfxKey:\s*'combatDeflect'/);
+  assert.match(journeyComponentSource, /audioControls\?\.playExpeditionSfx\?\.\(resolvedSfxKey/);
   assert.match(journeyComponentSource, /bossHit.*playExpeditionSfx|playExpeditionSfx.*bossHit|hitSfx.*bossHit/);
   assert.doesNotMatch(journeyComponentSource, /blocked the rushed hit[\s\S]{0,180}playExpeditionSfx\?\.\('gateBlocked'/);
 });
@@ -4469,15 +4472,133 @@ test('fast fluid combat slice adds dodge-cancel and flow combo contracts', () =>
   assert.match(journeyComponentSource, /current\.dodgeFacingDirection = dodgeFacingDirection;/);
   assert.match(journeyComponentSource, /player\.direction = dodgeFacingDirection;/);
   assert.match(journeyComponentSource, /e\.health -= isFinisher \? PLAYER_ATTACK_FINISHER_DAMAGE : \(isParry \? 2 : 1\)/);
-  assert.match(journeyComponentSource, /const comboCanAdvance = current\.attackComboWindowTimer > 0 && current\.attackComboLanded;/);
+  assert.match(journeyComponentSource, /const heavyFollowupPrimed = isHeavyAttack && current\.attackComboWindowTimer > 0 && current\.attackComboLanded && finisherAllowed;/);
   assert.match(journeyComponentSource, /if \(current\.attackComboWindowTimer <= 0 && current\.attackSequenceIndex > 0 && current\.attackPhase === 'ready'\) resetPlayerCombo\(current\);/);
-  assert.match(journeyComponentSource, /audioControls\?\.playExpeditionSfx\?\.\(isFinisher \? 'attackFinisher' : nextAttackSequenceIndex === 2 \? 'attackSwing2' : 'attackSwing1'\)/);
+  assert.match(journeyComponentSource, /audioControls\?\.playExpeditionSfx\?\.\(isFinisher \? 'attackFinisher' : isHeavyAttack \? 'attackSwing2' : 'attackSwing1'\)/);
   assert.match(appSource, /dodgeStep:\s*\{/);
   assert.match(appSource, /attackSwing1:\s*\{/);
   assert.match(appSource, /attackSwing2:\s*\{/);
   assert.match(appSource, /attackFinisher:\s*\{/);
   assert.match(appSource, /attackMiss:\s*\{/);
   assert.match(appSource, /finisherHit:\s*\{/);
+});
+
+test('combo finisher uses the approved slash overlay through combat hit effects', () => {
+  const slashBytes = readFileSync(ashaFinisherSlashEffectPath);
+  assert.equal(slashBytes.toString('ascii', 1, 4), 'PNG');
+  assert.equal(slashBytes.readUInt32BE(16), 636);
+  assert.equal(slashBytes.readUInt32BE(20), 294);
+  assert.equal(slashBytes[25], 6, 'finisher slash should stay RGBA so it can render as an overlay');
+
+  assert.match(journeyComponentSource, /const PLAYER_FINISHER_SLASH_EFFECT_SRC = 'assets\/expedition\/player\/asha-finisher-slash-effect-2026-06-06\.png';/);
+  assert.match(journeyComponentSource, /const playerFinisherSlashEffectRef = useRef\(\{ image: null, loaded: false, failed: false, version: PLAYER_FINISHER_SLASH_EFFECT_VERSION \}\);/);
+  assert.match(journeyComponentSource, /playerFinisherSlashEffectRef\.current = \{ image, loaded: true, failed: false, version: PLAYER_FINISHER_SLASH_EFFECT_VERSION \};/);
+  assert.match(journeyComponentSource, /image\.src = `\$\{import\.meta\.env\.BASE_URL\}\$\{PLAYER_FINISHER_SLASH_EFFECT_SRC\}\?v=\$\{PLAYER_FINISHER_SLASH_EFFECT_VERSION\}`;/);
+
+  const finisherDrawStart = journeyComponentSource.indexOf("if (effect.type === 'finisher-slash') {");
+  const finisherDrawEnd = journeyComponentSource.indexOf("if (['movement-dust'", finisherDrawStart);
+  assert.notEqual(finisherDrawStart, -1, 'finisher slash draw branch should exist');
+  assert.notEqual(finisherDrawEnd, -1, 'finisher slash draw branch should remain before normal compact effects');
+  const finisherDrawBranch = journeyComponentSource.slice(finisherDrawStart, finisherDrawEnd);
+  assert.match(finisherDrawBranch, /const slashState = playerFinisherSlashEffectRef\.current;/);
+  assert.match(finisherDrawBranch, /ctx\.globalCompositeOperation = 'lighter';/);
+  assert.match(finisherDrawBranch, /if \(direction < 0\) ctx\.scale\(-1, 1\);/);
+  assert.match(finisherDrawBranch, /ctx\.drawImage\(\s*slashState\.image,/);
+
+  assert.match(journeyComponentSource, /current\.lastAttackResult = isFinisher \? 'finisher' :/);
+  assert.match(journeyComponentSource, /finisher:\s*\{[\s\S]*?slashEffect:\s*'finisher'[\s\S]*?slashWidth:\s*260[\s\S]*?slashTimer:\s*0\.34[\s\S]*?sfxKey:\s*'finisherHit'/);
+  assert.match(journeyComponentSource, /type: profile\.slashEffect === 'finisher' \? 'finisher-slash' : 'combo-slash'/);
+  assert.match(journeyComponentSource, /hitType:\s*isParry \? 'combo2' : combatHitImpactType/);
+  assert.match(journeyComponentSource, /suppressSlash:\s*isParry/);
+});
+
+test('combo opening hits use a restrained realistic slash overlay before the finisher payoff', () => {
+  const slashBytes = readFileSync(ashaComboSlashEffectPath);
+  assert.equal(slashBytes.toString('ascii', 1, 4), 'PNG');
+  assert.equal(slashBytes.readUInt32BE(16), 420);
+  assert.equal(slashBytes.readUInt32BE(20), 210);
+  assert.equal(slashBytes[25], 6, 'combo slash should stay RGBA so normal hits keep a realistic overlay');
+
+  assert.match(journeyComponentSource, /const PLAYER_COMBO_SLASH_EFFECT_SRC = 'assets\/expedition\/player\/asha-combo-slash-effect-2026-06-06\.png';/);
+  assert.match(journeyComponentSource, /const playerComboSlashEffectRef = useRef\(\{ image: null, loaded: false, failed: false, version: PLAYER_COMBO_SLASH_EFFECT_VERSION \}\);/);
+  assert.match(journeyComponentSource, /playerComboSlashEffectRef\.current = \{ image, loaded: true, failed: false, version: PLAYER_COMBO_SLASH_EFFECT_VERSION \};/);
+  assert.match(journeyComponentSource, /image\.src = `\$\{import\.meta\.env\.BASE_URL\}\$\{PLAYER_COMBO_SLASH_EFFECT_SRC\}\?v=\$\{PLAYER_COMBO_SLASH_EFFECT_VERSION\}`;/);
+
+  const comboDrawStart = journeyComponentSource.indexOf("if (effect.type === 'combo-slash') {");
+  const comboDrawEnd = journeyComponentSource.indexOf("if (effect.type === 'finisher-slash')", comboDrawStart);
+  assert.notEqual(comboDrawStart, -1, 'combo slash draw branch should exist');
+  assert.notEqual(comboDrawEnd, -1, 'combo slash should draw before the finisher branch');
+  const comboDrawBranch = journeyComponentSource.slice(comboDrawStart, comboDrawEnd);
+  assert.match(comboDrawBranch, /const slashState = playerComboSlashEffectRef\.current;/);
+  assert.match(comboDrawBranch, /ctx\.globalCompositeOperation = 'lighter';/);
+  assert.match(comboDrawBranch, /if \(direction < 0\) ctx\.scale\(-1, 1\);/);
+  assert.match(comboDrawBranch, /ctx\.drawImage\(\s*slashState\.image,/);
+
+  assert.match(journeyComponentSource, /light:\s*\{[\s\S]*?slashEffect:\s*'combo'[\s\S]*?slashWidth:\s*138[\s\S]*?slashTimer:\s*0\.2/);
+  assert.match(journeyComponentSource, /combo2:\s*\{[\s\S]*?slashEffect:\s*'combo'[\s\S]*?slashWidth:\s*178[\s\S]*?slashTimer:\s*0\.24[\s\S]*?sfxKey:\s*'combatHitCombo2'/);
+  assert.match(journeyComponentSource, /type: profile\.slashEffect === 'finisher' \? 'finisher-slash' : 'combo-slash'/);
+  assert.match(journeyComponentSource, /comboStep:\s*hitType === 'combo2' \? 2 : 1/);
+  assert.match(journeyComponentSource, /suppressSlash:\s*isParry/);
+  assert.doesNotMatch(journeyComponentSource, /lastAttackResult !== 'finisher'[\s\S]*type:\s*'finisher-slash'/);
+});
+
+test('combat hit impact feedback is centralized by physical hit type profiles', () => {
+  assert.match(journeyComponentSource, /const COMBAT_HIT_IMPACT_PROFILES = \{/);
+  ['light', 'combo2', 'finisher', 'blocked', 'defeated'].forEach((hitType) => {
+    assert.match(
+      journeyComponentSource,
+      new RegExp(`${hitType}:\\s*\\{[\\s\\S]*?hitStop:[\\s\\S]*?cameraShakeStrength:[\\s\\S]*?hitFlash:[\\s\\S]*?targetKnockback`),
+      `${hitType} impact profile should own physical feedback tuning`,
+    );
+  });
+  assert.match(journeyComponentSource, /const applyCombatHitImpact = useCallback\(\(\{/);
+  assert.match(journeyComponentSource, /type: profile\.slashEffect === 'finisher' \? 'finisher-slash' : 'combo-slash'/);
+  assert.match(journeyComponentSource, /type:\s*'knockback-dust'/);
+  assert.match(journeyComponentSource, /audioControls\?\.playExpeditionSfx\?\.\(resolvedSfxKey/);
+  assert.match(journeyComponentSource, /applyCombatHitImpact\(\{[\s\S]*?hitType:\s*'blocked'/);
+  assert.match(journeyComponentSource, /const combatHitImpactType = isFinisher[\s\S]*?'finisher'[\s\S]*?'defeated'[\s\S]*?'combo2'[\s\S]*?'light'/);
+  assert.match(journeyComponentSource, /applyCombatHitImpact\(\{[\s\S]*?hitType:\s*isParry \? 'combo2' : combatHitImpactType/);
+  assert.match(appSource, /combatHitCombo2:\s*\{/);
+  assert.match(appSource, /enemyDefeated:\s*\{/);
+});
+
+test('combat uses explicit J light and K heavy follow-up instead of hidden same-button combo', () => {
+  assert.match(journeyComponentSource, /const PLAYER_ATTACK_TYPES = Object\.freeze\(\{[\s\S]*?LIGHT:\s*'light'[\s\S]*?HEAVY:\s*'heavy'/);
+  assert.match(journeyComponentSource, /const PLAYER_HEAVY_FOLLOWUP_HIT_REFUND = \d+/);
+  assert.match(journeyUtilsSource, /attackQueuedType:\s*'light'/);
+  assert.match(journeyUtilsSource, /heavyFollowupReadyTimer:\s*0/);
+  assert.match(journeyComponentSource, /const queueAttack = useCallback\(\(attackType = PLAYER_ATTACK_TYPES\.LIGHT\) => \{/);
+  assert.match(journeyComponentSource, /current\.attackQueuedType = attackType === PLAYER_ATTACK_TYPES\.HEAVY\s*\? PLAYER_ATTACK_TYPES\.HEAVY\s*:\s*PLAYER_ATTACK_TYPES\.LIGHT;/);
+  assert.match(journeyComponentSource, /if \(e\.code === 'KeyJ'\) \{ queueAttack\(PLAYER_ATTACK_TYPES\.LIGHT\); return; \}/);
+  assert.match(journeyComponentSource, /if \(e\.code === 'KeyK'\) \{ queueAttack\(PLAYER_ATTACK_TYPES\.HEAVY\); return; \}/);
+  assert.doesNotMatch(journeyComponentSource, /if \(e\.code === 'KeyJ' \|\| e\.code === 'KeyK'\) \{ queueAttack\(\); return; \}/);
+
+  assert.match(journeyComponentSource, /const queuedAttackType = current\.attackQueuedType === PLAYER_ATTACK_TYPES\.HEAVY[\s\S]*?const isHeavyAttack = queuedAttackType === PLAYER_ATTACK_TYPES\.HEAVY/);
+  assert.match(journeyComponentSource, /const finisherAllowed = !current\.enduranceExhausted;/);
+  assert.match(journeyComponentSource, /const heavyFollowupPrimed = isHeavyAttack && current\.attackComboWindowTimer > 0 && current\.attackComboLanded && finisherAllowed;/);
+  assert.match(journeyComponentSource, /const nextAttackSequenceIndex = heavyFollowupPrimed[\s\S]*?PLAYER_COMBO_MAX_STEP[\s\S]*?isHeavyAttack[\s\S]*?2[\s\S]*?1/);
+  assert.match(journeyComponentSource, /current\.attackComboFinisherActive = heavyFollowupPrimed;/);
+  assert.match(journeyComponentSource, /if \(isHeavyAttack && !heavyFollowupPrimed\) applyAttackStaminaCost\(PLAYER_ATTACK_FINISHER_EXTRA_STAMINA_COST, 'Heavy swing'\);/);
+
+  assert.match(journeyComponentSource, /current\.heavyFollowupReadyTimer = primesHeavyFollowup \? PLAYER_COMBO_WINDOW_DURATION : 0;/);
+  assert.match(journeyComponentSource, /type:\s*'heavy-ready-cue'/);
+  assert.match(journeyComponentSource, /const heavyFollowupRefund = isFinisher \? PLAYER_HEAVY_FOLLOWUP_HIT_REFUND/);
+  assert.match(journeyComponentSource, /current\.resources\.stamina = Math\.min\(current\.upgradeEffects\?\.maxStamina \|\| 100, current\.resources\.stamina \+ heavyFollowupRefund\);/);
+});
+
+test('heavy follow-up window is readable through HUD and physical cue feedback', () => {
+  assert.match(journeyComponentSource, /const PLAYER_HEAVY_FOLLOWUP_PROMPT_LABEL = 'K';/);
+  assert.match(journeyComponentSource, /const PLAYER_HEAVY_FOLLOWUP_CUE_DURATION = 0\.42;/);
+  assert.match(journeyUtilsSource, /heavyFollowupCueTimer:\s*0/);
+  assert.match(journeyComponentSource, /heavyFollowupPromptActive:\s*\(current\.heavyFollowupReadyTimer \|\| 0\) > 0/);
+  assert.match(journeyComponentSource, /heavyFollowupCueMs:\s*Math\.round\(\(current\.heavyFollowupCueTimer \|\| 0\) \* 1000\)/);
+  assert.match(journeyComponentSource, /gameState\.playerCombatState\?\.heavyFollowupReady/);
+  assert.match(journeyComponentSource, /className="journey-heavy-followup-cue"/);
+  assert.match(journeyComponentSource, /<kbd>\{PLAYER_HEAVY_FOLLOWUP_PROMPT_LABEL\}<\/kbd>/);
+  assert.match(indexCssSource, /\.journey-heavy-followup-cue/);
+  assert.match(indexCssSource, /@keyframes journey-heavy-followup-pulse/);
+  assert.match(journeyComponentSource, /current\.heavyFollowupCueTimer = primesHeavyFollowup \? PLAYER_HEAVY_FOLLOWUP_CUE_DURATION : 0;/);
+  assert.match(journeyComponentSource, /Math\.max\(current\.heavyFollowupReadyTimer \|\| 0, current\.heavyFollowupCueTimer \|\| 0\)/);
 });
 
 test('dodge visual state uses the preview dodge atlas row with the old fallback intact', () => {

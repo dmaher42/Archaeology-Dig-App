@@ -189,6 +189,24 @@ const EXPEDITION_AUDIO_TRACKS = {
         { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/impactPunch_medium_000.ogg', volume: 0.28, playbackRate: 1.06 },
       ],
     },
+    combatHitCombo2: {
+      synth: 'creatureHit',
+      synthVolume: 1.18,
+      cooldownMs: 120,
+      clips: [
+        { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/impactPunch_medium_000.ogg', volume: 0.24, playbackRate: 0.96 },
+        { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/impactPlate_medium_001.ogg', volume: 0.12, delay: 18, playbackRate: 1.08 },
+      ],
+    },
+    enemyDefeated: {
+      synth: 'bossHit',
+      synthVolume: 0.94,
+      cooldownMs: 150,
+      clips: [
+        { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/impactGeneric_light_001.ogg', volume: 0.20, playbackRate: 0.78 },
+        { path: 'assets/expedition/sfx/generated/land-soft.wav', volume: 0.16, delay: 28, playbackRate: 0.84 },
+      ],
+    },
     scarabHit: {
       synth: 'scarabShellHit',
       synthVolume: 1.22,

@@ -408,9 +408,15 @@ const PLAYER_DODGE_FRAME_SEQUENCE = [0, 1, 2, 2, 2, 3, 3, 4, 5, 6, 7];
 const PLAYER_COMBO_WINDOW_DURATION = 0.72;
 const PLAYER_COMBO_PRESERVE_AFTER_DODGE_DURATION = 0.62;
 const PLAYER_COMBO_MAX_STEP = 3;
+const PLAYER_ATTACK_TYPES = Object.freeze({
+  LIGHT: 'light',
+  HEAVY: 'heavy',
+});
+const PLAYER_HEAVY_FOLLOWUP_PROMPT_LABEL = 'K';
+const PLAYER_HEAVY_FOLLOWUP_CUE_DURATION = 0.42;
 const PLAYER_ATTACK_FINISHER_DAMAGE = 3;
 const PLAYER_ATTACK_FINISHER_EXTRA_STAMINA_COST = 2;
-const PLAYER_ATTACK_FINISHER_HIT_REFUND = 4;
+const PLAYER_HEAVY_FOLLOWUP_HIT_REFUND = 6;
 const PLAYER_ATTACK_RANGE = 92;
 const PLAYER_ATTACK_HEIGHT = 36;
 const PLAYER_ATTACK_BACK_REACH = 10;
@@ -419,6 +425,107 @@ const PLAYER_COMBO_SLASH_EFFECT_SRC = 'assets/expedition/player/asha-combo-slash
 const PLAYER_COMBO_SLASH_EFFECT_VERSION = 'asha-combo-slash-effect-2026-06-06';
 const PLAYER_FINISHER_SLASH_EFFECT_SRC = 'assets/expedition/player/asha-finisher-slash-effect-2026-06-06.png';
 const PLAYER_FINISHER_SLASH_EFFECT_VERSION = 'asha-finisher-slash-effect-2026-06-06';
+const COMBAT_HIT_IMPACT_PROFILES = {
+  light: {
+    hitStop: 0.085,
+    cameraShakeTimer: 0.1,
+    cameraShakeStrength: 0.16,
+    cameraPunchTimer: 0.055,
+    hitFlash: 0.3,
+    targetKnockback: 0.32,
+    targetShift: 44,
+    playerRecoil: 30,
+    impactTimer: 0.28,
+    sparkTimer: 0.22,
+    slashEffect: 'combo',
+    slashWidth: 138,
+    slashTimer: 0.2,
+    dustTimer: 0.16,
+    dustWidth: 30,
+    color: '#7dd3fc',
+    sparkColor: '#e2d5c0',
+    sparkFill: 'rgba(190, 168, 128, 0.18)',
+  },
+  combo2: {
+    hitStop: 0.115,
+    cameraShakeTimer: 0.14,
+    cameraShakeStrength: 0.26,
+    cameraPunchTimer: 0.085,
+    hitFlash: 0.4,
+    targetKnockback: 0.44,
+    targetShift: 66,
+    playerRecoil: 42,
+    impactTimer: 0.32,
+    sparkTimer: 0.26,
+    slashEffect: 'combo',
+    slashWidth: 178,
+    slashTimer: 0.24,
+    dustTimer: 0.22,
+    dustWidth: 38,
+    color: '#93c5fd',
+    sparkColor: '#f8e7b6',
+    sparkFill: 'rgba(224, 190, 112, 0.22)',
+    sfxKey: 'combatHitCombo2',
+    sfxVolume: 1.02,
+  },
+  finisher: {
+    hitStop: 0.18,
+    cameraShakeTimer: 0.24,
+    cameraShakeStrength: 0.48,
+    cameraPunchTimer: 0.14,
+    hitFlash: 0.58,
+    targetKnockback: 0.66,
+    targetShift: 104,
+    playerRecoil: 66,
+    impactTimer: 0.36,
+    sparkTimer: 0.34,
+    slashEffect: 'finisher',
+    slashWidth: 260,
+    slashTimer: 0.34,
+    dustTimer: 0.34,
+    dustWidth: 58,
+    color: '#fbbf24',
+    sparkColor: '#fbbf24',
+    sparkFill: 'rgba(251, 191, 36, 0.42)',
+    sfxKey: 'finisherHit',
+    sfxVolume: 1.06,
+  },
+  blocked: {
+    hitStop: 0.052,
+    cameraShakeTimer: 0.08,
+    cameraShakeStrength: 0.13,
+    cameraPunchTimer: 0.045,
+    hitFlash: 0.14,
+    targetKnockback: 0,
+    targetShift: 0,
+    playerRecoil: 48,
+    sparkTimer: 0.34,
+    guardTimer: 0.34,
+    color: '#7dd3fc',
+    sparkColor: 'rgba(214, 185, 92, 0.78)',
+    sfxKey: 'combatDeflect',
+    sfxVolume: 0.78,
+  },
+  defeated: {
+    hitStop: 0.14,
+    cameraShakeTimer: 0.17,
+    cameraShakeStrength: 0.3,
+    cameraPunchTimer: 0.1,
+    hitFlash: 0.24,
+    targetKnockback: 0.42,
+    targetShift: 60,
+    playerRecoil: 44,
+    impactTimer: 0.38,
+    sparkTimer: 0.28,
+    dustTimer: 0.38,
+    dustWidth: 52,
+    color: '#b8943c',
+    sparkColor: '#f7d28a',
+    sparkFill: 'rgba(214, 185, 92, 0.28)',
+    sfxKey: 'enemyDefeated',
+    sfxVolume: 1.08,
+  },
+};
 const PLAYER_ATTACK_COMBO_TIMINGS = [
   { windup: ATTACK_WINDUP_DURATION, swing: ATTACK_DURATION, recoil: ATTACK_RECOIL_DURATION, cooldown: ATTACK_COOLDOWN },
   { windup: ATTACK_WINDUP_DURATION, swing: ATTACK_DURATION, recoil: ATTACK_RECOIL_DURATION, cooldown: ATTACK_COOLDOWN },
@@ -1682,6 +1789,10 @@ const resetPlayerCombo = (current) => {
   current.attackComboStep = 0;
   current.attackComboFinisherActive = false;
   current.attackSequenceIndex = 0;
+  current.attackQueuedType = PLAYER_ATTACK_TYPES.LIGHT;
+  current.attackType = PLAYER_ATTACK_TYPES.LIGHT;
+  current.heavyFollowupReadyTimer = 0;
+  current.heavyFollowupCueTimer = 0;
 };
 
 const DEFAULT_ENEMY_ATTACK_PATTERN = {
@@ -4905,6 +5016,24 @@ export default function ExpeditionJourney({
     const image = new Image();
     image.onload = () => {
       if (cancelled) return;
+      playerComboSlashEffectRef.current = { image, loaded: true, failed: false, version: PLAYER_COMBO_SLASH_EFFECT_VERSION };
+      syncHud();
+    };
+    image.onerror = () => {
+      if (cancelled) return;
+      playerComboSlashEffectRef.current = { image: null, loaded: false, failed: true, version: PLAYER_COMBO_SLASH_EFFECT_VERSION };
+    };
+    image.src = `${import.meta.env.BASE_URL}${PLAYER_COMBO_SLASH_EFFECT_SRC}?v=${PLAYER_COMBO_SLASH_EFFECT_VERSION}`;
+    return () => {
+      cancelled = true;
+    };
+  }, [syncHud]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const image = new Image();
+    image.onload = () => {
+      if (cancelled) return;
       playerFinisherSlashEffectRef.current = { image, loaded: true, failed: false, version: PLAYER_FINISHER_SLASH_EFFECT_VERSION };
       syncHud();
     };
@@ -6333,6 +6462,135 @@ export default function ExpeditionJourney({
     if (current.combatHitEffects.length > 18) current.combatHitEffects.shift();
   }, []);
 
+  const applyCombatHitImpact = useCallback(({
+    current,
+    target,
+    player,
+    hitType = 'light',
+    direction = player?.direction || 1,
+    defeated = false,
+    targetKind = 'enemy',
+    color,
+    sparkColor,
+    sparkFill,
+    sfxKey,
+    sfxOptions = {},
+    shieldEffectType = null,
+    guardEffectType = 'enemy-guard-deflect',
+    guardColor,
+    suppressSlash = false,
+  }) => {
+    if (!current || !target || !player) return;
+    const profile = COMBAT_HIT_IMPACT_PROFILES[hitType] || COMBAT_HIT_IMPACT_PROFILES.light;
+    const defeatedProfile = defeated ? COMBAT_HIT_IMPACT_PROFILES.defeated : null;
+    const impact = {
+      hitStop: Math.max(profile.hitStop || 0, defeatedProfile?.hitStop || 0),
+      cameraShakeTimer: Math.max(profile.cameraShakeTimer || 0, defeatedProfile?.cameraShakeTimer || 0),
+      cameraShakeStrength: Math.max(profile.cameraShakeStrength || 0, defeatedProfile?.cameraShakeStrength || 0),
+      cameraPunchTimer: Math.max(profile.cameraPunchTimer || 0, defeatedProfile?.cameraPunchTimer || 0),
+      hitFlash: Math.max(profile.hitFlash || 0, defeatedProfile?.hitFlash || 0),
+      targetKnockback: Math.max(profile.targetKnockback || 0, defeatedProfile?.targetKnockback || 0),
+      targetShift: Math.max(profile.targetShift || 0, defeatedProfile?.targetShift || 0),
+      playerRecoil: Math.max(profile.playerRecoil || 0, defeatedProfile?.playerRecoil || 0),
+      dustTimer: Math.max(profile.dustTimer || 0, defeatedProfile?.dustTimer || 0),
+      dustWidth: Math.max(profile.dustWidth || 0, defeatedProfile?.dustWidth || 0),
+    };
+    const centerX = target.x + target.width / 2;
+    const centerY = target.y + target.height / 2;
+
+    target.hitFlash = Math.max(target.hitFlash || 0, impact.hitFlash);
+    if (impact.targetKnockback > 0) {
+      target.knockbackTimer = Math.max(target.knockbackTimer || 0, impact.targetKnockback);
+      target.knockbackDirection = direction;
+    }
+    if (impact.targetShift > 0) {
+      target.x += direction * impact.targetShift;
+    }
+    current.hitStopTimer = Math.max(current.hitStopTimer, impact.hitStop);
+    current.cameraShakeTimer = Math.max(current.cameraShakeTimer, impact.cameraShakeTimer);
+    current.cameraShakeStrength = Math.max(current.cameraShakeStrength, impact.cameraShakeStrength);
+    current.cameraPunchTimer = Math.max(current.cameraPunchTimer || 0, impact.cameraPunchTimer);
+    current.cameraPunchDirection = direction;
+    if (impact.playerRecoil > 0) {
+      player.vx += -direction * impact.playerRecoil;
+    }
+
+    if (shieldEffectType) {
+      addCombatEffect(current, {
+        type: shieldEffectType,
+        x: centerX,
+        y: centerY,
+        color: profile.color || '#7dd3fc',
+        timer: profile.guardTimer || 0.34,
+        maxTimer: profile.guardTimer || 0.34,
+      });
+    }
+    if (hitType === 'blocked') {
+      addCombatEffect(current, {
+        type: guardEffectType,
+        x: centerX,
+        y: centerY,
+        color: guardColor || profile.sparkColor,
+        timer: profile.guardTimer || 0.34,
+        maxTimer: profile.guardTimer || 0.34,
+      });
+    } else {
+      addCombatEffect(current, {
+        type: defeated ? (targetKind === 'boss' ? 'boss-defeat' : 'defeat') : 'combat-impact',
+        x: centerX,
+        y: centerY,
+        direction,
+        color: color || (defeated ? defeatedProfile?.color : profile.color),
+        timer: defeated ? defeatedProfile?.impactTimer || profile.impactTimer : profile.impactTimer,
+        maxTimer: defeated ? defeatedProfile?.impactTimer || profile.impactTimer : profile.impactTimer,
+      });
+      addCombatEffect(current, {
+        type: 'weapon-hit-spark',
+        x: centerX - direction * 6,
+        y: target.y + target.height * 0.42,
+        direction,
+        color: sparkColor || profile.sparkColor,
+        fill: sparkFill || profile.sparkFill,
+        timer: profile.sparkTimer,
+        maxTimer: profile.sparkTimer,
+      });
+    }
+    if (profile.slashEffect && !suppressSlash) {
+      addCombatEffect(current, {
+        type: profile.slashEffect === 'finisher' ? 'finisher-slash' : 'combo-slash',
+        x: player.x + player.width / 2 + direction * (profile.slashEffect === 'finisher' ? 70 : 56),
+        y: player.y + player.height * (profile.slashEffect === 'finisher' ? 0.38 : 0.39),
+        direction,
+        comboStep: hitType === 'combo2' ? 2 : 1,
+        width: profile.slashWidth,
+        angle: profile.slashEffect === 'finisher' ? -0.04 : (hitType === 'combo2' ? -0.06 : -0.09),
+        timer: profile.slashTimer,
+        maxTimer: profile.slashTimer,
+      });
+    }
+    if (impact.dustTimer > 0) {
+      addCombatEffect(current, {
+        type: 'knockback-dust',
+        x: centerX - direction * 8,
+        y: target.y + target.height - 2,
+        direction,
+        color: 'rgba(217, 161, 88, 0.62)',
+        width: impact.dustWidth,
+        timer: impact.dustTimer,
+        maxTimer: impact.dustTimer,
+      });
+    }
+    const resolvedSfxKey = sfxKey || (defeated && hitType !== 'finisher' ? defeatedProfile?.sfxKey : profile.sfxKey);
+    if (resolvedSfxKey) {
+      audioControls?.playExpeditionSfx?.(resolvedSfxKey, {
+        volume: defeated && hitType !== 'finisher'
+          ? defeatedProfile?.sfxVolume
+          : profile.sfxVolume,
+        ...sfxOptions,
+      });
+    }
+  }, [addCombatEffect, audioControls]);
+
   const recordEnvironmentInteraction = useCallback((current, interaction, reason = 'touched') => {
     current.triggeredEnvironmentIds?.add(interaction.id);
     current.recentEnvironmentInteractions = [
@@ -7139,6 +7397,11 @@ export default function ExpeditionJourney({
         attackWindup: Number(current.attackWindupTimer.toFixed(2)),
         attackRecoil: Number(current.attackRecoilTimer.toFixed(2)),
         attackState: getPlayerAttackState(current),
+        attackType: current.attackType || PLAYER_ATTACK_TYPES.LIGHT,
+        heavyFollowupReady: (current.heavyFollowupReadyTimer || 0) > 0,
+        heavyFollowupPromptActive: (current.heavyFollowupReadyTimer || 0) > 0,
+        heavyFollowupReadyMs: Math.round((current.heavyFollowupReadyTimer || 0) * 1000),
+        heavyFollowupCueMs: Math.round((current.heavyFollowupCueTimer || 0) * 1000),
         hitStop: Number(current.hitStopTimer.toFixed(2)),
         facing: current.player.direction >= 0 ? 'right' : 'left',
         animationState: current.player.animationState || 'idle',
@@ -14318,6 +14581,37 @@ export default function ExpeditionJourney({
       ctx.strokeStyle = effect.color || '#facc15';
       ctx.fillStyle = effect.color || '#facc15';
       ctx.lineWidth = 3;
+      if (effect.type === 'combo-slash') {
+        const slashState = playerComboSlashEffectRef.current;
+        const direction = effect.direction || 1;
+        const ease = 1 - Math.pow(1 - Math.max(0, Math.min(1, progress)), 2);
+        if (slashState.loaded && slashState.image) {
+          const drawWidth = effect.width || 138;
+          const drawHeight = drawWidth * (slashState.image.height / slashState.image.width);
+          const comboStepAlpha = effect.comboStep >= 2 ? 0.74 : 0.54;
+          ctx.globalAlpha = Math.max(0, Math.min(1, ease * comboStepAlpha));
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.translate(x, y);
+          if (direction < 0) ctx.scale(-1, 1);
+          ctx.rotate((effect.angle || -0.08) * direction);
+          ctx.drawImage(
+            slashState.image,
+            -drawWidth * 0.46 - (1 - progress) * 8,
+            -drawHeight * 0.54,
+            drawWidth,
+            drawHeight,
+          );
+        } else {
+          ctx.globalAlpha = Math.max(0, progress * (effect.comboStep >= 2 ? 0.28 : 0.18));
+          ctx.strokeStyle = 'rgba(226, 213, 192, 0.82)';
+          ctx.lineWidth = effect.comboStep >= 2 ? 4 : 3;
+          ctx.beginPath();
+          ctx.ellipse(x + direction * 30, y, effect.comboStep >= 2 ? 56 : 42, effect.comboStep >= 2 ? 15 : 11, -0.18 * direction, 0, Math.PI * 1.28);
+          ctx.stroke();
+        }
+        ctx.restore();
+        return;
+      }
       if (effect.type === 'finisher-slash') {
         const slashState = playerFinisherSlashEffectRef.current;
         const direction = effect.direction || 1;
@@ -14413,6 +14707,39 @@ export default function ExpeditionJourney({
           ctx.lineTo(x + Math.cos(angle) * length, y + Math.sin(angle) * length);
           ctx.stroke();
         }
+        ctx.restore();
+        return;
+      }
+      if (effect.type === 'heavy-ready-cue') {
+        const direction = effect.direction || 1;
+        const pulse = 1 - progress;
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.globalAlpha = Math.max(0, Math.min(1, progress * 0.82));
+        ctx.strokeStyle = effect.color || '#f8e7b6';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.ellipse(x + direction * 10, y, 28 + pulse * 10, 8 + pulse * 4, -0.18 * direction, 0, Math.PI * 1.45);
+        ctx.stroke();
+        ctx.globalAlpha = Math.max(0, progress * 0.38);
+        ctx.strokeStyle = 'rgba(255, 247, 221, 0.66)';
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.moveTo(x - direction * 8, y + 8);
+        ctx.quadraticCurveTo(x + direction * 20, y - 12 - pulse * 5, x + direction * 54, y - 2);
+        ctx.stroke();
+        ctx.globalAlpha = Math.max(0, progress * 0.58);
+        ctx.fillStyle = 'rgba(248, 231, 182, 0.62)';
+        for (let i = 0; i < 4; i += 1) {
+          ctx.beginPath();
+          ctx.arc(x + direction * (12 + i * 8), y - 6 - i * 2 - pulse * 10, 1.4 + i * 0.18, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.globalAlpha = Math.max(0, progress * 0.24);
+        ctx.fillStyle = 'rgba(159, 126, 80, 0.36)';
+        ctx.beginPath();
+        ctx.ellipse(x + direction * 8, y + 26, 24 + pulse * 12, 5 + pulse * 2, -0.04 * direction, 0, Math.PI * 2);
+        ctx.fill();
         ctx.restore();
         return;
       }
@@ -16251,12 +16578,15 @@ export default function ExpeditionJourney({
     syncHud();
   }, [syncHud]);
 
-  const queueAttack = useCallback(() => {
+  const queueAttack = useCallback((attackType = PLAYER_ATTACK_TYPES.LIGHT) => {
     const current = stateRef.current;
     if (briefingOpen || current.failed || current.completed || current.openingCinematic || current.openingCameraRevealTimer > 0 || current.openingThresholdScene?.lockMovement || current.templeThresholdTransition?.lockMovement) return;
     if (current.attackCooldown > 0 || current.attackWindupTimer > 0 || current.attackTimer > 0 || current.attackRecoilTimer > 0) return;
     if (current.dodgeTimer > 0 || current.dodgeRecoveryTimer > 0) return;
     current.attackQueued = true;
+    current.attackQueuedType = attackType === PLAYER_ATTACK_TYPES.HEAVY
+      ? PLAYER_ATTACK_TYPES.HEAVY
+      : PLAYER_ATTACK_TYPES.LIGHT;
   }, [briefingOpen]);
 
   const queueDodge = useCallback(() => {
@@ -16841,6 +17171,8 @@ export default function ExpeditionJourney({
     current.attackTimer = Math.max(0, current.attackTimer - dt);
     current.attackRecoilTimer = Math.max(0, current.attackRecoilTimer - dt);
     current.attackComboWindowTimer = Math.max(0, (current.attackComboWindowTimer || 0) - dt);
+    current.heavyFollowupReadyTimer = Math.max(0, (current.heavyFollowupReadyTimer || 0) - dt);
+    current.heavyFollowupCueTimer = Math.max(0, (current.heavyFollowupCueTimer || 0) - dt);
     current.dodgeTimer = Math.max(0, (current.dodgeTimer || 0) - dt);
     current.dodgeInvulnerableTimer = Math.max(0, (current.dodgeInvulnerableTimer || 0) - dt);
     current.dodgeRecoveryTimer = Math.max(0, (current.dodgeRecoveryTimer || 0) - dt);
@@ -18493,16 +18825,22 @@ export default function ExpeditionJourney({
     // Attacks
     let attackRect = null;
     if (current.attackQueued) {
-      const comboCanAdvance = current.attackComboWindowTimer > 0 && current.attackComboLanded;
       const finisherAllowed = !current.enduranceExhausted;
-      const nextAttackSequenceIndex = comboCanAdvance && finisherAllowed
-        ? Math.min(PLAYER_COMBO_MAX_STEP, (current.attackSequenceIndex || 0) + 1)
-        : comboCanAdvance
-          ? Math.min(PLAYER_COMBO_MAX_STEP - 1, (current.attackSequenceIndex || 0) + 1)
+      const queuedAttackType = current.attackQueuedType === PLAYER_ATTACK_TYPES.HEAVY
+        ? PLAYER_ATTACK_TYPES.HEAVY
+        : PLAYER_ATTACK_TYPES.LIGHT;
+      const isHeavyAttack = queuedAttackType === PLAYER_ATTACK_TYPES.HEAVY;
+      const heavyFollowupPrimed = isHeavyAttack && current.attackComboWindowTimer > 0 && current.attackComboLanded && finisherAllowed;
+      const nextAttackSequenceIndex = heavyFollowupPrimed
+        ? PLAYER_COMBO_MAX_STEP
+        : isHeavyAttack
+          ? 2
           : 1;
       const isFinisher = nextAttackSequenceIndex === PLAYER_COMBO_MAX_STEP;
       const attackTiming = getPlayerAttackTiming(nextAttackSequenceIndex);
       current.attackQueued = false;
+      current.attackQueuedType = PLAYER_ATTACK_TYPES.LIGHT;
+      current.attackType = queuedAttackType;
       current.attackWindupDuration = attackTiming.windup;
       current.attackSwingDuration = attackTiming.swing;
       current.attackRecoilDuration = attackTiming.recoil;
@@ -18515,12 +18853,15 @@ export default function ExpeditionJourney({
       current.attackComboStep = nextAttackSequenceIndex;
       current.attackComboLanded = false;
       current.attackComboPreserved = false;
-      current.attackComboFinisherActive = isFinisher;
+      current.attackComboFinisherActive = heavyFollowupPrimed;
+      current.heavyFollowupReadyTimer = 0;
+      current.heavyFollowupCueTimer = 0;
       current.attackHitIds.clear();
       current.attackRewarded = false;
       current.lastAttackResult = 'started';
       current.shieldedHitFeedback = '';
       applyAttackStaminaCost(PLAYER_ATTACK_STAMINA_COST, 'Attack swing');
+      if (isHeavyAttack && !heavyFollowupPrimed) applyAttackStaminaCost(PLAYER_ATTACK_FINISHER_EXTRA_STAMINA_COST, 'Heavy swing');
       if (isFinisher) applyAttackStaminaCost(PLAYER_ATTACK_FINISHER_EXTRA_STAMINA_COST, 'Finisher swing');
       addCombatEffect(current, {
         type: 'attack-burst',
@@ -18531,7 +18872,7 @@ export default function ExpeditionJourney({
         timer: isFinisher ? 0.32 : 0.22,
         maxTimer: isFinisher ? 0.32 : 0.22,
       });
-      audioControls?.playExpeditionSfx?.(isFinisher ? 'attackFinisher' : nextAttackSequenceIndex === 2 ? 'attackSwing2' : 'attackSwing1');
+      audioControls?.playExpeditionSfx?.(isFinisher ? 'attackFinisher' : isHeavyAttack ? 'attackSwing2' : 'attackSwing1');
       audioControls?.playAction?.();
     }
     if (current.attackTimer > 0) {
@@ -18941,67 +19282,74 @@ export default function ExpeditionJourney({
           || (e.attackWindup > 0 && pattern.protectedDuringWindup)
           || (e.attackTimer > 0 && pattern.protectedDuringAttack && e.vulnerabilityTimer <= 0);
         if (protectedEnemy) {
-          e.hitFlash = 0.14;
           e.attackCooldown = Math.max(e.attackCooldown, 0.35);
           current.attackRecoilTimer = Math.max(current.attackRecoilTimer, 0.1);
           current.lastAttackResult = 'protected';
           resetPlayerCombo(current);
           current.shieldedHitFeedback = `${e.name} blocked the rushed hit.`;
-          player.vx += -player.direction * 45;
           applyAttackStaminaCost(PROTECTED_HIT_EXTRA_STAMINA_COST, 'Protected enemy blocked attack', '-1');
-          addCombatEffect(current, {
-            type: 'enemy-shield',
-            x: e.x + e.width / 2,
-            y: e.y + e.height / 2,
-            color: '#7dd3fc',
-          });
-          addCombatEffect(current, {
-            type: 'enemy-guard-deflect',
-            x: e.x + e.width / 2,
-            y: e.y + e.height / 2,
-            color: 'rgba(214, 185, 92, 0.78)',
-            timer: 0.34,
-            maxTimer: 0.34,
+          applyCombatHitImpact({
+            current,
+            target: e,
+            player,
+            hitType: 'blocked',
+            direction: player.direction,
+            shieldEffectType: 'enemy-shield',
+            guardColor: 'rgba(214, 185, 92, 0.78)',
+            sfxOptions: { volume: e.type === 'scarab' ? 0.92 : 0.78 },
           });
           current.notice = `${e.name} blocked the rushed hit. Wait for an opening.`;
-          audioControls?.playExpeditionSfx?.('combatDeflect', { volume: e.type === 'scarab' ? 0.92 : 0.78 });
           return;
         }
         const isScarabFrontalHit = e.type === 'scarab'
           && Math.sign((player.x + player.width / 2) - (e.x + e.width / 2)) === Math.sign(e.direction);
         if (isScarabFrontalHit) {
-          e.hitFlash = 0.1;
           current.lastAttackResult = 'shell-deflect';
           resetPlayerCombo(current);
           current.notice = 'Scarab shell absorbed the blow. Get behind it.';
           current.damageNoticeTimer = Math.max(current.damageNoticeTimer || 0, 1.1);
-          addCombatEffect(current, {
-            type: 'enemy-guard-deflect',
-            x: e.x + e.width / 2,
-            y: e.y + e.height / 2,
-            color: 'rgba(170, 140, 90, 0.72)',
-            timer: 0.28,
-            maxTimer: 0.28,
+          applyCombatHitImpact({
+            current,
+            target: e,
+            player,
+            hitType: 'blocked',
+            direction: player.direction,
+            guardColor: 'rgba(170, 140, 90, 0.72)',
+            sfxOptions: { volume: 0.68 },
           });
-          audioControls?.playExpeditionSfx?.('combatDeflect', { volume: 0.68 });
           return;
         }
         const isParry = e.parried || (e.attackTimer > 0 && e.attackTimer <= PARRY_WINDOW_DURATION);
         const isFinisher = current.attackComboFinisherActive;
+        const isHeavyAttack = current.attackType === PLAYER_ATTACK_TYPES.HEAVY;
         e.parried = false;
         e.health -= isFinisher ? PLAYER_ATTACK_FINISHER_DAMAGE : (isParry ? 2 : 1);
         if (!current.attackRewarded) {
-          current.resources.stamina = Math.min(current.upgradeEffects?.maxStamina || 100, current.resources.stamina + (isFinisher ? PLAYER_ATTACK_FINISHER_HIT_REFUND : (isParry ? 8 : 1)));
+          const heavyFollowupRefund = isFinisher ? PLAYER_HEAVY_FOLLOWUP_HIT_REFUND : (isParry ? 8 : (isHeavyAttack ? 0 : 1));
+          current.resources.stamina = Math.min(current.upgradeEffects?.maxStamina || 100, current.resources.stamina + heavyFollowupRefund);
           current.attackRewarded = true;
         }
-        current.attackComboLanded = !isFinisher;
-        current.attackComboWindowTimer = isFinisher ? 0 : PLAYER_COMBO_WINDOW_DURATION;
-        current.attackComboStep = isFinisher ? 0 : current.attackSequenceIndex;
+        const primesHeavyFollowup = !isFinisher && !isHeavyAttack;
+        current.attackComboLanded = primesHeavyFollowup;
+        current.attackComboWindowTimer = primesHeavyFollowup ? PLAYER_COMBO_WINDOW_DURATION : 0;
+        current.heavyFollowupReadyTimer = primesHeavyFollowup ? PLAYER_COMBO_WINDOW_DURATION : 0;
+        current.heavyFollowupCueTimer = primesHeavyFollowup ? PLAYER_HEAVY_FOLLOWUP_CUE_DURATION : 0;
+        current.attackComboStep = primesHeavyFollowup ? current.attackSequenceIndex : 0;
         current.lastAttackResult = isFinisher ? 'finisher' : (isParry ? 'parry' : (e.vulnerabilityTimer > 0 || e.attackRecovery > 0 ? 'counter-hit' : 'hit'));
         current.shieldedHitFeedback = '';
+        if (primesHeavyFollowup) {
+          addCombatEffect(current, {
+            type: 'heavy-ready-cue',
+            x: player.x + player.width / 2 + player.direction * 30,
+            y: player.y + player.height * 0.28,
+            direction: player.direction,
+            color: '#f8e7b6',
+            timer: Math.max(current.heavyFollowupReadyTimer || 0, current.heavyFollowupCueTimer || 0),
+            maxTimer: Math.max(current.heavyFollowupReadyTimer || 0, current.heavyFollowupCueTimer || 0),
+          });
+        }
         const exhausted = current.resources.stamina > 0 && current.resources.stamina < 25;
         e.stunTimer = isFinisher ? 1.55 : (isParry ? 1.4 : (exhausted ? 0.38 : 0.8));
-        e.hitFlash = isFinisher ? 0.56 : (isParry ? 0.5 : 0.34);
         e.attackWindup = 0;
         e.attackTimer = 0;
         e.attackReady = false;
@@ -19009,15 +19357,13 @@ export default function ExpeditionJourney({
         e.attackRecovery = isFinisher ? 0.72 : (isParry ? 0.6 : (exhausted ? 0.22 : 0.45));
         e.vulnerabilityTimer = isFinisher ? 0.62 : (isParry ? 0.55 : 0.35);
         e.shieldTimer = 0;
-        e.knockbackTimer = isFinisher ? 0.6 : (isParry ? 0.48 : 0.38);
-        e.knockbackDirection = player.direction;
-        e.x += player.direction * (isFinisher ? 92 : (isParry ? 72 : 52));
-        current.hitStopTimer = Math.max(current.hitStopTimer, isFinisher ? 0.16 : (e.health <= 0 ? 0.12 : (isParry ? 0.15 : 0.10)));
-        current.cameraShakeTimer = Math.max(current.cameraShakeTimer, isFinisher ? 0.2 : (isParry ? 0.16 : 0.11));
-        current.cameraShakeStrength = Math.max(current.cameraShakeStrength, isFinisher ? 0.42 : (e.health <= 0 ? 0.26 : (isParry ? 0.35 : 0.20)));
-        current.cameraPunchTimer = Math.max(current.cameraPunchTimer || 0, isFinisher ? 0.12 : (isParry ? 0.09 : 0.07));
-        current.cameraPunchDirection = player.direction;
-        player.vx += -player.direction * (isFinisher ? 62 : (isParry ? 52 : 36));
+        const combatHitImpactType = isFinisher
+          ? 'finisher'
+            : e.health <= 0
+              ? 'defeated'
+            : isHeavyAttack
+              ? 'combo2'
+              : 'light';
         if (isParry && e.health > 0) {
           addCombatEffect(current, {
             type: 'parry-burst',
@@ -19028,42 +19374,23 @@ export default function ExpeditionJourney({
             maxTimer: 0.4,
           });
         }
-        addCombatEffect(current, {
-          type: e.health <= 0 ? 'defeat' : 'combat-impact',
-          x: e.x + e.width / 2,
-          y: e.y + e.height / 2,
+        applyCombatHitImpact({
+          current,
+          target: e,
+          player,
+          hitType: isParry ? 'combo2' : combatHitImpactType,
+          defeated: e.health <= 0,
           direction: player.direction,
+          targetKind: 'enemy',
           color: isFinisher ? '#fbbf24' : (e.health <= 0 ? '#b8943c' : '#7dd3fc'),
+          sparkColor: current.lastAttackResult === 'finisher' ? '#fbbf24' : (current.lastAttackResult === 'parry' ? '#fde68a' : (current.lastAttackResult === 'counter-hit' ? '#bbf7d0' : '#e2d5c0')),
+          sparkFill: current.lastAttackResult === 'finisher' ? 'rgba(251, 191, 36, 0.38)' : (current.lastAttackResult === 'parry' ? 'rgba(251, 191, 36, 0.32)' : (current.lastAttackResult === 'counter-hit' ? 'rgba(34, 197, 94, 0.18)' : 'rgba(190, 168, 128, 0.18)')),
+          sfxKey: isParry ? 'parryClash' : (combatHitImpactType === 'light' ? getEnemyHitSfxKey(e) : undefined),
+          sfxOptions: isParry
+            ? { volume: 1.0 }
+            : { volume: e.health <= 0 ? 1.12 : (current.lastAttackResult === 'counter-hit' ? 1.02 : 0.92) },
+          suppressSlash: isParry,
         });
-        addCombatEffect(current, {
-          type: 'weapon-hit-spark',
-          x: e.x + e.width / 2 - player.direction * 6,
-          y: e.y + e.height * 0.42,
-          direction: player.direction,
-          color: current.lastAttackResult === 'finisher' ? '#fbbf24' : (current.lastAttackResult === 'parry' ? '#fde68a' : (current.lastAttackResult === 'counter-hit' ? '#bbf7d0' : '#e2d5c0')),
-          fill: current.lastAttackResult === 'finisher' ? 'rgba(251, 191, 36, 0.38)' : (current.lastAttackResult === 'parry' ? 'rgba(251, 191, 36, 0.32)' : (current.lastAttackResult === 'counter-hit' ? 'rgba(34, 197, 94, 0.18)' : 'rgba(190, 168, 128, 0.18)')),
-          timer: isFinisher ? 0.32 : 0.24,
-          maxTimer: isFinisher ? 0.32 : 0.24,
-        });
-        if (current.lastAttackResult === 'finisher') {
-          addCombatEffect(current, {
-            type: 'finisher-slash',
-            x: player.x + player.width / 2 + player.direction * 70,
-            y: player.y + player.height * 0.38,
-            direction: player.direction,
-            width: 245,
-            angle: -0.04,
-            timer: 0.32,
-            maxTimer: 0.32,
-          });
-          audioControls?.playExpeditionSfx?.('finisherHit', { volume: 1.04 });
-        } else if (current.lastAttackResult === 'parry') {
-          audioControls?.playExpeditionSfx?.('parryClash', { volume: 1.0 });
-        } else {
-          audioControls?.playExpeditionSfx?.(getEnemyHitSfxKey(e), {
-            volume: e.health <= 0 ? 1.12 : (current.lastAttackResult === 'counter-hit' ? 1.02 : 0.92),
-          });
-        }
         if (e.health <= 0) {
           e.defeated = true;
           e.hitFlash = 0;
@@ -19310,31 +19637,52 @@ export default function ExpeditionJourney({
         const { shielded, vulnerable } = getBossVulnerabilityState(b);
         const protectedBoss = shielded || ((b.attackWindup > 0 || b.attackTimer > 0) && !vulnerable);
         if (protectedBoss) {
-          b.hitFlash = 0.16;
           b.attackCooldown = Math.max(b.attackCooldown, 0.35);
           current.attackRecoilTimer = Math.max(current.attackRecoilTimer, 0.12);
           current.lastAttackResult = 'protected';
           current.shieldedHitFeedback = `${b.name} protected itself.`;
-          player.vx += -player.direction * 55;
           applyAttackStaminaCost(PROTECTED_HIT_EXTRA_STAMINA_COST, 'Protected boss blocked attack', '-1');
-          addCombatEffect(current, {
-            type: 'boss-shield',
-            x: b.x + b.width / 2,
-            y: b.y + b.height / 2,
-            color: '#7dd3fc',
+          applyCombatHitImpact({
+            current,
+            target: b,
+            player,
+            hitType: 'blocked',
+            direction: player.direction,
+            targetKind: 'boss',
+            shieldEffectType: 'boss-shield',
+            guardEffectType: 'boss-shield',
+            sfxOptions: { volume: 1.04, playbackRate: 0.88 },
           });
           current.notice = `${b.name} blocked the rushed hit. Wait for the counter window.`;
-          audioControls?.playExpeditionSfx?.('combatDeflect', { volume: 1.04, playbackRate: 0.88 });
           return;
         }
+        const isFinisher = current.attackComboFinisherActive;
+        const isHeavyAttack = current.attackType === PLAYER_ATTACK_TYPES.HEAVY;
         b.health -= (b.playerDamageMultiplier || 1);
         if (!current.attackRewarded) {
-          current.resources.stamina = Math.min(current.upgradeEffects?.maxStamina || 100, current.resources.stamina + 1);
+          const heavyFollowupRefund = isFinisher ? PLAYER_HEAVY_FOLLOWUP_HIT_REFUND : (isHeavyAttack ? 0 : 1);
+          current.resources.stamina = Math.min(current.upgradeEffects?.maxStamina || 100, current.resources.stamina + heavyFollowupRefund);
           current.attackRewarded = true;
         }
-        current.lastAttackResult = b.vulnerabilityTimer > 0 || b.attackRecovery > 0 ? 'counter-hit' : 'hit';
+        const primesHeavyFollowup = !isFinisher && !isHeavyAttack;
+        current.attackComboLanded = primesHeavyFollowup;
+        current.attackComboWindowTimer = primesHeavyFollowup ? PLAYER_COMBO_WINDOW_DURATION : 0;
+        current.heavyFollowupReadyTimer = primesHeavyFollowup ? PLAYER_COMBO_WINDOW_DURATION : 0;
+        current.heavyFollowupCueTimer = primesHeavyFollowup ? PLAYER_HEAVY_FOLLOWUP_CUE_DURATION : 0;
+        current.attackComboStep = primesHeavyFollowup ? current.attackSequenceIndex : 0;
+        current.lastAttackResult = isFinisher ? 'finisher' : (b.vulnerabilityTimer > 0 || b.attackRecovery > 0 ? 'counter-hit' : 'hit');
         current.shieldedHitFeedback = '';
-        b.hitFlash = 0.36;
+        if (primesHeavyFollowup) {
+          addCombatEffect(current, {
+            type: 'heavy-ready-cue',
+            x: player.x + player.width / 2 + player.direction * 30,
+            y: player.y + player.height * 0.28,
+            direction: player.direction,
+            color: '#f8e7b6',
+            timer: Math.max(current.heavyFollowupReadyTimer || 0, current.heavyFollowupCueTimer || 0),
+            maxTimer: Math.max(current.heavyFollowupReadyTimer || 0, current.heavyFollowupCueTimer || 0),
+          });
+        }
         b.stunTimer = 0.75;
         b.attackWindup = 0;
         b.attackTimer = 0;
@@ -19343,34 +19691,28 @@ export default function ExpeditionJourney({
         b.attackRecovery = 0.75;
         b.vulnerabilityTimer = 0.55;
         b.shieldTimer = 0;
-        b.knockbackTimer = 0.36;
-        b.knockbackDirection = player.direction;
-        b.x += player.direction * 34;
-        current.hitStopTimer = Math.max(current.hitStopTimer, b.health <= 0 ? 0.14 : 0.11);
-        current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.12);
-        current.cameraShakeStrength = Math.max(current.cameraShakeStrength, b.health <= 0 ? 0.32 : 0.24);
-        current.cameraPunchTimer = Math.max(current.cameraPunchTimer || 0, 0.09);
-        current.cameraPunchDirection = player.direction;
-        player.vx += -player.direction * 38;
-        addCombatEffect(current, {
-          type: b.health <= 0 ? 'boss-defeat' : 'combat-impact',
-          x: b.x + b.width / 2,
-          y: b.y + b.height / 2,
-          direction: player.direction,
-          color: b.health <= 0 ? '#facc15' : '#fb923c',
-        });
-        addCombatEffect(current, {
-          type: 'weapon-hit-spark',
-          x: b.x + b.width / 2 - player.direction * 8,
-          y: b.y + b.height * 0.42,
-          direction: player.direction,
-          color: current.lastAttackResult === 'counter-hit' ? '#bbf7d0' : '#fff7ad',
-          fill: current.lastAttackResult === 'counter-hit' ? 'rgba(34, 197, 94, 0.18)' : 'rgba(251, 146, 60, 0.2)',
-          timer: 0.26,
-          maxTimer: 0.26,
-        });
         const hitSfx = scopedJourneyAssetPacks.isRomeJourney ? 'romeBossHit' : scopedJourneyAssetPacks.isChinaJourney ? 'chinaBossHit' : 'bossHit';
-        audioControls?.playExpeditionSfx?.(hitSfx, { volume: b.health <= 0 ? 1.2 : 1 });
+        const bossHitImpactType = current.attackComboFinisherActive
+          ? 'finisher'
+          : b.health <= 0
+            ? 'defeated'
+            : isHeavyAttack
+              ? 'combo2'
+              : 'light';
+        applyCombatHitImpact({
+          current,
+          target: b,
+          player,
+          hitType: bossHitImpactType,
+          defeated: b.health <= 0,
+          direction: player.direction,
+          targetKind: 'boss',
+          color: b.health <= 0 ? '#facc15' : '#fb923c',
+          sparkColor: current.lastAttackResult === 'counter-hit' ? '#bbf7d0' : '#fff7ad',
+          sparkFill: current.lastAttackResult === 'counter-hit' ? 'rgba(34, 197, 94, 0.18)' : 'rgba(251, 146, 60, 0.2)',
+          sfxKey: bossHitImpactType === 'light' ? hitSfx : undefined,
+          sfxOptions: { volume: b.health <= 0 ? 1.2 : 1 },
+        });
         current.notice = `${b.name} staggered.`;
         if (b.health <= 0) {
           b.defeated = true;
@@ -19538,7 +19880,7 @@ export default function ExpeditionJourney({
       if (current.resources.time <= 0) triggerJourneyRescue('Time expired. Field team rescued.');
     }
 
-  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, backgroundPackId, openingAtmosphereSfxKey, scopedJourneyAssetPacks.isChinaJourney, scopedJourneyAssetPacks.isRomeJourney, targetCivilisation, buildBossRewardMoment, completeOpeningThresholdScene, enterLevelFromThreshold, startLevelThresholdEncounter, startTempleThresholdTransition, getActiveHiddenRoutes, getActiveSecretCollectibles, getActiveShardGateProgress, getAttackBox, getAttackHurtbox, getBossPhaseConfig, getBossVulnerabilityState, getDoorwayGateStatus, getEnemyPatternConfig, getObjectiveProgress, getGateGuidance, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getRenderableTrapPlatforms, getRouteAccessState, getRouteGateDoorwayEntries, isRouteRewardAccessible, isLowStamina, addCombatEffect, recordEnvironmentInteraction, getPlayerAttackState, getSectionDisplayName, getSectionDisplayTitle, syncHud]);
+  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, backgroundPackId, openingAtmosphereSfxKey, scopedJourneyAssetPacks.isChinaJourney, scopedJourneyAssetPacks.isRomeJourney, targetCivilisation, buildBossRewardMoment, completeOpeningThresholdScene, enterLevelFromThreshold, startLevelThresholdEncounter, startTempleThresholdTransition, getActiveHiddenRoutes, getActiveSecretCollectibles, getActiveShardGateProgress, getAttackBox, getAttackHurtbox, getBossPhaseConfig, getBossVulnerabilityState, getDoorwayGateStatus, getEnemyPatternConfig, getObjectiveProgress, getGateGuidance, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getRenderableTrapPlatforms, getRouteAccessState, getRouteGateDoorwayEntries, isRouteRewardAccessible, isLowStamina, addCombatEffect, applyCombatHitImpact, recordEnvironmentInteraction, getPlayerAttackState, getSectionDisplayName, getSectionDisplayTitle, syncHud]);
 
   const step = useCallback((ms) => {
     const dt = Math.min(ms / 1000, 0.05);
@@ -20235,7 +20577,8 @@ export default function ExpeditionJourney({
       if (paused || briefingOpen || stateRef.current.activeGuardianChallenge || stateRef.current.forgottenMuralRelicSlidePuzzleOpen) return;
       if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'Space', 'KeyA', 'KeyD', 'KeyW', 'KeyJ', 'KeyK', 'KeyL'].includes(e.code)) e.preventDefault();
       audioControls?.unlockExpeditionSfx?.();
-      if (e.code === 'KeyJ' || e.code === 'KeyK') { queueAttack(); return; }
+      if (e.code === 'KeyJ') { queueAttack(PLAYER_ATTACK_TYPES.LIGHT); return; }
+      if (e.code === 'KeyK') { queueAttack(PLAYER_ATTACK_TYPES.HEAVY); return; }
       if (e.code === 'KeyL') { queueDodge(); return; }
       keysRef.current[e.code] = true;
     };
@@ -20294,6 +20637,7 @@ export default function ExpeditionJourney({
       : gameState.staminaFeedbackTimer > 0 && gameState.lastStaminaDelta === 0
         ? 'recent-loss'
         : 'stable';
+  const heavyFollowupPromptActive = Boolean(gameState.playerCombatState?.heavyFollowupReady);
   const activeGuardianChallenge = guardianChallengeUi || gameState.activeGuardianChallenge;
   const activeGuardianQuestion = activeGuardianChallenge?.questions?.[activeGuardianChallenge.currentIndex] || null;
   const forgottenMuralRelicSlidePuzzleTiles = gameState.forgottenMuralRelicSlidePuzzleTiles?.length
@@ -22352,6 +22696,13 @@ export default function ExpeditionJourney({
                   </div>
                 </div>
               </div>
+
+              {heavyFollowupPromptActive && (
+                <div className="journey-heavy-followup-cue" role="status" aria-live="polite">
+                  <kbd>{PLAYER_HEAVY_FOLLOWUP_PROMPT_LABEL}</kbd>
+                  <span>Heavy ready</span>
+                </div>
+              )}
 
               {!bossDomainHudSuppressed && (
                 <div className="journey-floating-hud-cluster journey-floating-hud-count journey-floating-hud-gate">

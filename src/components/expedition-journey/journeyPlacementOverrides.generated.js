@@ -486,60 +486,6 @@ const journeyPlacementOverrides = {
       "label": "fallen stone column at the pyramid base right — once framed the entrance"
     },
     {
-      "id": "opening-desert-rubble-1",
-      "sectionId": "desert-entry",
-      "type": "atmosphere-prop",
-      "atmosphereAssetKey": "rubbleDustSmall",
-      "x": 1232,
-      "y": 561,
-      "width": 128,
-      "height": 46,
-      "yOffset": 8,
-      "alpha": 0.86,
-      "depth": "background",
-      "tint": "warm",
-      "shadow": 0.06,
-      "dust": 0.72,
-      "bury": 0.24,
-      "label": "light desert rubble in the open sand beyond the pyramid"
-    },
-    {
-      "id": "opening-desert-boundary-tablet",
-      "sectionId": "desert-entry",
-      "type": "atmosphere-prop",
-      "atmosphereAssetKey": "stoneTablet",
-      "x": 1424,
-      "y": 529,
-      "width": 44,
-      "height": 64,
-      "yOffset": 24,
-      "alpha": 0.78,
-      "depth": "background",
-      "tint": "warm",
-      "shadow": 0.04,
-      "dust": 0.52,
-      "bury": 0.18,
-      "label": "ancient boundary stone in the open desert — carved survey marker"
-    },
-    {
-      "id": "opening-desert-pillar-debris",
-      "sectionId": "desert-entry",
-      "type": "atmosphere-prop",
-      "atmosphereAssetKey": "pillarCaps",
-      "x": 1639,
-      "y": 555,
-      "width": 78,
-      "height": 48,
-      "yOffset": 8,
-      "alpha": 0.72,
-      "depth": "background",
-      "tint": "warm",
-      "shadow": 0.05,
-      "dust": 0.68,
-      "bury": 0.32,
-      "label": "eroded pillar cap debris half-buried in open desert sand"
-    },
-    {
       "id": "desert-entry-sand-piles-1",
       "sectionId": "desert-entry",
       "type": "atmosphere-prop",
@@ -632,13 +578,27 @@ const journeyPlacementOverrides = {
       "sandMoundWidth": 0,
       "groundPebbles": 0,
       "depth": "foreground-occluder",
-      "brightness": 0.8,
-      "colorGradeFilter": "saturate(96%) sepia(18%) contrast(98%)",
+      "brightness": 0.75,
+      "colorGradeFilter": "",
       "editorBoundsInsetTop": 31,
       "editorBoundsInsetBottom": 31,
       "zIndex": 0,
       "shadowHeight": 10,
-      "sandMoundHeight": 1
+      "sandMoundHeight": 1,
+      "groundContactLayer": [
+        {
+          "assetKey": "premiumSmallStoneScatter",
+          "layer": "overlay",
+          "xRatio": 0.5,
+          "widthRatio": 0.24,
+          "height": 28,
+          "yOffset": -42,
+          "rotation": 0,
+          "alpha": 0.48,
+          "mirrorX": false,
+          "filter": "sepia(0%) saturate(104%) brightness(96%) contrast(98%)"
+        }
+      ]
     },
     {
       "id": "desert-entry-fallen-lintel-1-copy-1",
@@ -673,9 +633,9 @@ const journeyPlacementOverrides = {
       "scale": 1,
       "layer": "route-edge",
       "x": 860,
-      "y": 153,
+      "y": 156,
       "label": "incense stands",
-      "yOffset": 0,
+      "yOffset": 2,
       "width": 111,
       "rotation": 0,
       "mirrorX": false,
@@ -687,7 +647,7 @@ const journeyPlacementOverrides = {
       "sandMoundWidth": 0,
       "groundPebbles": 2,
       "depth": "foreground-occluder",
-      "height": 108,
+      "height": 103,
       "zIndex": 58
     },
     {
@@ -708,6 +668,7 @@ const journeyPlacementOverrides = {
       "sandMoundWidth": 260,
       "x": 4836,
       "y": 613,
+      "zIndex": 0,
       "label": "route gate front"
     },
     {
@@ -729,6 +690,7 @@ const journeyPlacementOverrides = {
       "mirrorX": true,
       "x": 4984,
       "y": 624,
+      "zIndex": 0,
       "label": "route gate back"
     },
     {
@@ -779,7 +741,7 @@ const journeyPlacementOverrides = {
       "yOffset": 10,
       "brightness": 1,
       "depth": "grounded",
-      "colorGradeFilter": "saturate(96%) sepia(18%) contrast(98%)",
+      "colorGradeFilter": "saturate(96%) sepia(18%) contrast(133%) hue-rotate(2deg)",
       "shadowWidth": 0
     },
     {
@@ -798,7 +760,8 @@ const journeyPlacementOverrides = {
       "sandMoundHeight": 0,
       "groundPebbles": 0,
       "shadowOpacity": 0.42,
-      "shadowWidth": 34
+      "shadowWidth": 34,
+      "colorGradeFilter": "saturate(119%) contrast(140%)"
     },
     {
       "id": "desert-entry-opening-pyramid-rubble-1",
@@ -872,6 +835,71 @@ const journeyPlacementOverrides = {
       "yOffset": 75,
       "rotation": 0,
       "mirrorX": true
+    },
+    {
+      "id": "desert-entry-premium-short-sand-lip-1",
+      "sectionId": "desert-entry",
+      "type": "ground-contact-detail-prop",
+      "groundDetailAssetKey": "premiumShortSandLip",
+      "width": 389,
+      "height": 48,
+      "depth": "grounded",
+      "layer": "route-edge",
+      "shadowOpacity": 0,
+      "sandOverlapHeight": 0,
+      "groundPebbles": 0,
+      "groundContactLayer": [
+        {
+          "assetKey": "premiumShortSandLip",
+          "layer": "overlay",
+          "mode": "stretch",
+          "alignY": "bottom",
+          "xRatio": 0.5,
+          "widthRatio": 1,
+          "yOffset": -48,
+          "height": 48,
+          "alpha": 1
+        }
+      ],
+      "x": 983,
+      "y": 591,
+      "label": "short sand lip",
+      "scale": 0.95,
+      "colorGradeFilter": "saturate(168%) sepia(93%) contrast(138%) hue-rotate(48deg)",
+      "brightness": 1.65
+    },
+    {
+      "id": "desert-entry-premium-short-sand-lip-2",
+      "sectionId": "desert-entry",
+      "type": "ground-contact-detail-prop",
+      "groundDetailAssetKey": "premiumShortSandLip",
+      "width": 176,
+      "height": 24,
+      "depth": "foreground-occluder",
+      "layer": "route-edge",
+      "shadowOpacity": 0,
+      "sandOverlapHeight": 0,
+      "groundPebbles": 0,
+      "brightness": 1,
+      "colorGradeFilter": "",
+      "groundContactLayer": [
+        {
+          "assetKey": "premiumShortSandLip",
+          "layer": "overlay",
+          "xRatio": 0.5,
+          "widthRatio": 1,
+          "height": 48,
+          "yOffset": -48,
+          "alpha": 0.58,
+          "mode": "stretch",
+          "alignY": "bottom"
+        }
+      ],
+      "x": 499,
+      "y": 300,
+      "label": "short sand lip",
+      "zIndex": 110,
+      "scale": 0.75
     }
   ],
   "deletedPropIds": [],
@@ -1538,10 +1566,11 @@ const journeyPlacementOverrides = {
       "id": "desert-low-ridge",
       "name": "low sand ridge",
       "emoji": "!",
-      "x": 2430,
-      "y": 565,
-      "width": 64,
+      "x": 2431,
+      "y": 574,
+      "width": 71,
       "height": 30,
+      "alpha": 0.65,
       "penalty": {
         "time": 4
       },

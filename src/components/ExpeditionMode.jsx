@@ -5012,7 +5012,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
               </button>
               <div className="journey-pause-controls" aria-label="Controls">
                 <div><Keyboard size={15} /><span><kbd>W/A/S/D</kbd> Move and jump</span></div>
-                <div><Keyboard size={15} /><span><kbd>J/K</kbd> Use tool</span></div>
+                <div><Keyboard size={15} /><span><kbd>J</kbd> Light attack / <kbd>K</kbd> Heavy attack</span></div>
               </div>
               <button type="button" className="journey-pause-secondary" onClick={onBackToMenu}>
                 <Home size={16} /> Back to menu
