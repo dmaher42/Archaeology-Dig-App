@@ -834,7 +834,97 @@ const SCRIBE_CHAMBER_EXTERIOR_VERSION = 'imagegen-scribe-locked-chamber-exterior
 const SCRIBE_CHAMBER_INTERIOR_VERSION = 'imagegen-scribe-locked-chamber-interior-2026-06-01';
 const DESERT_ENTRY_BURIED_CAUSEWAY_GROUND_VERSION = 'png-premium-causeway-lane-2026-06-02';
 const SACRED_RECORD_WAY_BACKGROUND_VERSION = 'imagegen-sacred-record-way-background-2026-05-29';
+const MUMMIFICATION_CHAMBER_RESTORATION_IDS = [
+  'egypt-mummification-body-fragment-1',
+  'egypt-mummification-body-fragment-2',
+  'egypt-mummification-body-fragment-3',
+];
 const FORGOTTEN_MURAL_CHAMBER_RESTORATION_IDS = ['egypt-scarab-fragment-1', 'egypt-scarab-fragment-2', 'egypt-scarab-fragment-3'];
+const SCRIBE_CHAMBER_RESTORATION_IDS = [
+  'egypt-scribe-name-fragment-1',
+  'egypt-scribe-name-fragment-2',
+  'egypt-scribe-name-fragment-3',
+];
+const ROOM_RESTORATION_SETS = {
+  'mummification-body-self': {
+    ids: MUMMIFICATION_CHAMBER_RESTORATION_IDS,
+    restoredStateKey: 'mummificationChamberRestored',
+    restoresStoryFlag: 'mummification-body-restored',
+    effectText: 'BODY RESTORED',
+    fallbackRestoreMessage: 'Asha restores the body rite as a protected memory.',
+    fallbackAnubisReaction: 'Care is not innocence. But it is care.',
+  },
+  'forgotten-mural-seal': {
+    ids: FORGOTTEN_MURAL_CHAMBER_RESTORATION_IDS,
+    restoredStateKey: 'forgottenMuralChamberRestored',
+    restoresStoryFlag: 'forgotten-mural-restored',
+    opensMuralPuzzle: true,
+    effectText: 'RELIC READY',
+    fallbackRestoreMessage: 'Asha restores the broken warning mural.',
+    fallbackAnubisReaction: 'Do not mistake this for trust.',
+  },
+  'scribe-name-record': {
+    ids: SCRIBE_CHAMBER_RESTORATION_IDS,
+    restoredStateKey: 'scribeChamberRecordRestored',
+    restoresStoryFlag: 'scribe-name-restored',
+    effectText: 'NAME RESTORED',
+    fallbackRestoreMessage: 'Asha restores the broken name-line.',
+    fallbackAnubisReaction: 'A name remembered can still accuse.',
+  },
+};
+
+const getSacredRoomRestorationEvidence = (current) => Object.fromEntries(
+  Object.entries(ROOM_RESTORATION_SETS).map(([setId, config]) => {
+    const recoveredCount = config.ids.filter(id => current.collectedSecretIds?.has(id)).length;
+    return [setId, {
+      recoveredCount,
+      requiredCount: config.ids.length,
+      fragmentsRecovered: recoveredCount === config.ids.length,
+      restored: Boolean(config.restoredStateKey && current[config.restoredStateKey]),
+    }];
+  }),
+);
+
+const getRoomRestorationStatus = (secret, current) => {
+  const config = ROOM_RESTORATION_SETS[secret?.restorationSetId];
+  if (!config) {
+    return {
+      config: null,
+      restoration: secret,
+      evidence: null,
+      fragmentsRecovered: false,
+      alreadyRestored: false,
+      puzzleReady: false,
+      roomRestored: false,
+    };
+  }
+  const evidence = getSacredRoomRestorationEvidence(current)[secret.restorationSetId];
+  const fragmentsRecovered = Boolean(evidence?.fragmentsRecovered);
+  const alreadyRestored = Boolean(config.restoredStateKey && current[config.restoredStateKey]);
+  const restoration = SECRET_COLLECTIBLES.find(item => (
+    item.restorationSetId === secret.restorationSetId
+    && item.restoresStoryFlag === config.restoresStoryFlag
+  )) || secret;
+  return {
+    config,
+    restoration,
+    evidence,
+    fragmentsRecovered,
+    alreadyRestored,
+    puzzleReady: Boolean(config.opensMuralPuzzle && fragmentsRecovered && !alreadyRestored && !current.forgottenMuralRelicSlidePuzzleSolved),
+    roomRestored: Boolean(!config.opensMuralPuzzle && fragmentsRecovered && !alreadyRestored),
+  };
+};
+
+const getAnubisRestorationReaction = (restorationStatus, current) => {
+  if (!restorationStatus?.roomRestored) return null;
+  const restoredCount = Object.values(getSacredRoomRestorationEvidence(current))
+    .filter(evidence => evidence.restored)
+    .length;
+  return restorationStatus.restoration?.anubisReaction
+    || restorationStatus.config?.fallbackAnubisReaction
+    || (restoredCount > 1 ? 'You keep choosing memory over speed.' : 'Do not mistake this for trust.');
+};
 const OPENING_PYRAMID_FACADE_WORLD_LEFT_X = -82;
 const OPENING_PYRAMID_GROUND_JUMP_MULTIPLIER = 1.32;
 const OPENING_PYRAMID_AIR_JUMP_MULTIPLIER = 1.6;
@@ -7412,6 +7502,7 @@ export default function ExpeditionJourney({
       })),
       collectedSecretCollectibles: Array.from(current.collectedSecretIds || []),
       secretCollectibleCount: current.collectedSecretIds?.size || 0,
+      sacredRoomRestorationEvidence: getSacredRoomRestorationEvidence(current),
       mummificationChamberEntranceDiscovered: Boolean(current.mummificationChamberEntranceDiscovered),
       forgottenMuralLooterSeen: Boolean(current.forgottenMuralLooterSeen),
       forgottenMuralChamberEntered: Boolean(current.forgottenMuralChamberEntered),
@@ -7454,6 +7545,7 @@ export default function ExpeditionJourney({
       mummificationChamberDoorSealed: Boolean(current.mummificationChamberDoorSealed),
       mummificationChamberExitUnlocked: Boolean(current.mummificationChamberExitUnlocked),
       mummificationChamberPuzzleSolved: Boolean(current.mummificationChamberPuzzleSolved),
+      mummificationChamberRestored: Boolean(current.mummificationChamberRestored),
       mummificationChamberRitualStep: current.mummificationChamberRitualStep || 0,
       mummificationChamberInspectedObjects: Array.from(current.mummificationChamberInspectedObjectIds || []),
       scribeChamberEntered: Boolean(current.scribeChamberEntered),
@@ -7463,6 +7555,7 @@ export default function ExpeditionJourney({
       scribeChamberWallInspected: Boolean(current.scribeChamberWallInspected),
       scribeChamberExitUnlocked: Boolean(current.scribeChamberExitUnlocked),
       scribeChamberPuzzleSolved: Boolean(current.scribeChamberPuzzleSolved),
+      scribeChamberRecordRestored: Boolean(current.scribeChamberRecordRestored),
       completedCollectionSets: Array.from(current.completedCollectionSetIds || []),
       loreTablets: LORE_TABLETS.map(tablet => ({
         id: tablet.id,
@@ -18643,19 +18736,13 @@ export default function ExpeditionJourney({
       if (secret.routeId && !isRouteRewardAccessible(secret.routeId, current)) return;
       if (rectsOverlap(getPlayerBodyHitbox(player), getCollectibleHitbox(secret, { width: 32, height: 32 }))) {
         current.collectedSecretIds.add(secret.id);
-        const forgottenMuralFragmentsRecovered = secret.restorationSetId === 'forgotten-mural-seal'
-          && FORGOTTEN_MURAL_CHAMBER_RESTORATION_IDS.every(id => current.collectedSecretIds.has(id));
-        const forgottenMuralPuzzleReady = secret.restorationSetId === 'forgotten-mural-seal'
-          && forgottenMuralFragmentsRecovered
-          && !current.forgottenMuralChamberRestored
-          && !current.forgottenMuralRelicSlidePuzzleSolved;
-        const restoredForgottenMural = secret.restorationSetId !== 'forgotten-mural-seal'
-          && secret.restoresStoryFlag === 'forgotten-mural-restored';
-        const forgottenMuralRestoration = restoredForgottenMural && secret.restorationSetId === 'forgotten-mural-seal'
-          ? SECRET_COLLECTIBLES.find(item => item.restoresStoryFlag === 'forgotten-mural-restored')
-          : secret;
-        if (restoredForgottenMural) {
-          current.forgottenMuralChamberRestored = true;
+        const restorationStatus = getRoomRestorationStatus(secret, current);
+        const forgottenMuralPuzzleReady = restorationStatus.puzzleReady;
+        const restoredRoom = restorationStatus.roomRestored;
+        const restoration = restorationStatus.restoration || secret;
+        const restorationReaction = getAnubisRestorationReaction(restorationStatus, current);
+        if (restoredRoom && restorationStatus.config?.restoredStateKey) {
+          current[restorationStatus.config.restoredStateKey] = true;
         }
         if (forgottenMuralPuzzleReady) {
           current.forgottenMuralRelicSlidePuzzleOpen = true;
@@ -18665,27 +18752,27 @@ export default function ExpeditionJourney({
         }
         current.notice = forgottenMuralPuzzleReady
           ? 'The scarab mural has been broken into pieces. Not destroyed. Rearranged.'
-          : restoredForgottenMural
-          ? (forgottenMuralRestoration?.restoreMessage || 'Asha restores the broken warning mural.')
+          : restoredRoom
+          ? (restoration?.restoreMessage || restorationStatus.config?.fallbackRestoreMessage || 'Asha restores a sacred room fragment set.')
           : (secret.discoveryMessage || 'Collection Piece Recovered.');
         current.cinematicEvent = {
-          id: forgottenMuralPuzzleReady ? 'forgotten-mural-relic-slide-puzzle-opened' : restoredForgottenMural ? `${secret.id}-restored` : `${secret.id}-collected`,
-          name: forgottenMuralPuzzleReady ? 'Asha' : restoredForgottenMural ? 'Anubis' : 'Secret Found',
+          id: forgottenMuralPuzzleReady ? 'forgotten-mural-relic-slide-puzzle-opened' : restoredRoom ? `${secret.id}-restored` : `${secret.id}-collected`,
+          name: forgottenMuralPuzzleReady ? 'Asha' : restoredRoom ? 'Anubis' : 'Secret Found',
           message: forgottenMuralPuzzleReady
             ? 'If the image is wrong, the story is wrong.'
-            : restoredForgottenMural
-            ? (forgottenMuralRestoration?.anubisReaction || 'Do not mistake this for trust.')
+            : restoredRoom
+            ? (restorationReaction || 'Do not mistake this for trust.')
             : `${secret.name} has been added to the field journal.`,
           temporary: true,
         };
-        current.cinematicTimer = forgottenMuralPuzzleReady ? 2.8 : restoredForgottenMural ? 3.2 : 2.8;
-        current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, forgottenMuralPuzzleReady ? 2.4 : restoredForgottenMural ? 2.6 : 1.8);
+        current.cinematicTimer = forgottenMuralPuzzleReady ? 2.8 : restoredRoom ? 3.2 : 2.8;
+        current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, forgottenMuralPuzzleReady ? 2.4 : restoredRoom ? 2.6 : 1.8);
         current.hitStopTimer = Math.max(current.hitStopTimer, 0.04);
         addCombatEffect(current, {
           type: 'secret-found',
           x: secret.x,
           y: secret.y,
-          text: forgottenMuralPuzzleReady ? 'RELIC READY' : restoredForgottenMural ? 'MURAL RESTORED' : 'SECRET FOUND',
+          text: forgottenMuralPuzzleReady ? 'RELIC READY' : restoredRoom ? (restorationStatus.config?.effectText || 'ROOM RESTORED') : 'SECRET FOUND',
           color: secret.color || '#facc15',
           fill: 'rgba(250, 204, 21, 0.12)',
           radius: 48,

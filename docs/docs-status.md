@@ -32,15 +32,17 @@ Use these files first when making decisions:
    - Narrative sequence, character arcs, room story roles, and threshold mystery.
 5. `docs/egypt-act-1-room-order.md`
    - Egypt Act 1 route order and room placement.
-6. `docs/lost-site-expedition-design-brief.md`
+6. `docs/lost-site-expedition-journey-progression-map.md`
+   - Journey section progression, shard/restoration choice, Anubis judgement pressure, and revisit structure.
+7. `docs/lost-site-expedition-design-brief.md`
    - High-level design vision.
-7. `docs/docs-status.md`
+8. `docs/docs-status.md`
    - Which Markdown files are current, supporting, historical, or stale.
-8. `AGENTS.md`
+9. `AGENTS.md`
    - Codex handover rules, current working checkout, canonical implementation paths, and current dirty-worktree warning.
-9. `README.md`
+10. `README.md`
    - Public project overview and technical run commands.
-10. `progress.md`
+11. `progress.md`
    - Running implementation history and recent work notes.
 
 If any older planning, handover, or asset document conflicts with these files, follow the current source-of-truth files above.
@@ -75,6 +77,7 @@ These files should be read early and kept visible:
 | `docs/lost-site-expedition-story-bible.md` | Absolute | Current narrative foundation. |
 | `docs/lost-site-expedition-story-arc.md` | Absolute | Current sequence, character arc, room purpose, and reveal pacing. |
 | `docs/egypt-act-1-room-order.md` | Absolute | Canonical Egypt Act 1 route and room placement. |
+| `docs/lost-site-expedition-journey-progression-map.md` | Current supporting | Journey section progression, shard/restoration choice, revisit structure, and Anubis judgement pressure. |
 | `docs/lost-site-expedition-design-brief.md` | Current supporting | High-level design vision; supports the files above. |
 | `docs/docs-status.md` | Current supporting | This interpretation map. Keep it linked from entry points. |
 | `AGENTS.md` | Current supporting | Codex workflow, checkout, verification commands, and dirty-worktree context. |

@@ -1066,6 +1066,99 @@ test('secret collectibles support Egypt and China discovery sets', () => {
   assert.match(secretCollectibles, /y:\s*JY\(/);
 });
 
+test('sacred room restoration fragments use secret collectibles without becoming route-gate currency', () => {
+  const hiddenRoutes = extractExportedArray('HIDDEN_ROUTES');
+  const secretCollectibles = extractExportedArray('SECRET_COLLECTIBLES');
+  const storyProps = extractExportedArray('STORY_PROPS');
+  const routeGates = extractExportedArray('ROUTE_GATES');
+  const relicShardLayout = source.slice(source.indexOf('const RELIC_SHARD_LAYOUT = ['), source.indexOf('export const RELIC_SHARDS'));
+
+  [
+    {
+      routeId: 'mummification-chamber-route',
+      sceneId: 'mummification-chamber',
+      restorationSetId: 'mummification-body-self',
+      finalId: 'egypt-mummification-body-fragment-3',
+      restoresStoryFlag: 'mummification-body-restored',
+      stateFlag: 'mummificationChamberRestored',
+      propId: 'mummification-body-restoration-cue',
+    },
+    {
+      routeId: 'desert-upper-survey-route',
+      sceneId: 'forgotten-mural-chamber',
+      restorationSetId: 'forgotten-mural-seal',
+      finalId: 'egypt-scarab-fragment-3',
+      restoresStoryFlag: 'forgotten-mural-restored',
+      stateFlag: 'forgottenMuralChamberRestored',
+      propId: 'forgotten-mural-image-restoration-cue',
+    },
+    {
+      routeId: 'scribe-locked-chamber-route',
+      sceneId: 'scribe-locked-chamber',
+      restorationSetId: 'scribe-name-record',
+      finalId: 'egypt-scribe-name-fragment-3',
+      restoresStoryFlag: 'scribe-name-restored',
+      stateFlag: 'scribeChamberRecordRestored',
+      propId: 'scribe-name-restoration-cue',
+    },
+  ].forEach(({ routeId, sceneId, restorationSetId, finalId, restoresStoryFlag, stateFlag, propId }) => {
+    const route = getDataRowById(hiddenRoutes, routeId);
+    assert.match(route, /optional:\s*true/);
+    assert.equal(
+      (secretCollectibles.match(new RegExp(`restorationSetId:\\s*'${restorationSetId}'`, 'g')) || []).length,
+      3,
+      `${restorationSetId} should define exactly 3 secret collectible fragments`,
+    );
+
+    const finalFragment = getDataRowById(secretCollectibles, finalId);
+    assert.match(finalFragment, new RegExp(`routeId:\\s*'${routeId}'`));
+    assert.match(finalFragment, new RegExp(`sceneId:\\s*'${sceneId}'`));
+    assert.match(finalFragment, new RegExp(`restoresStoryFlag:\\s*'${restoresStoryFlag}'`));
+    assert.match(finalFragment, /restoreMessage:/);
+    assert.match(finalFragment, /anubisReaction:/);
+
+    assert.match(journeyUtilsSource, new RegExp(`${stateFlag}:\\s*false`));
+    const prop = getDataRowById(storyProps, propId);
+    assert.match(prop, new RegExp(`sceneId:\\s*'${sceneId}'`), `${propId} should belong to ${sceneId}`);
+  });
+
+  assert.doesNotMatch(relicShardLayout, /sceneId:\s*'mummification-chamber'|sceneId:\s*'forgotten-mural-chamber'|sceneId:\s*'scribe-locked-chamber'/);
+  assert.doesNotMatch(routeGates, /restoredFragments|restoredFragment|restorationSetId|anubisTrust|trustMeter/);
+  assert.doesNotMatch(journeyComponentSource, /anubisTrust|trustMeter/);
+  assert.match(journeyComponentSource, /const ROOM_RESTORATION_SETS = \{/);
+  assert.match(journeyComponentSource, /const getRoomRestorationStatus = \(secret, current\) =>/);
+  assert.match(journeyComponentSource, /const getSacredRoomRestorationEvidence = \(current\) =>/);
+  assert.match(journeyComponentSource, /roomRestored:\s*Boolean\(!config\.opensMuralPuzzle && fragmentsRecovered && !alreadyRestored\)/);
+  assert.doesNotMatch(journeyComponentSource, /finalFragmentCollected/);
+});
+
+test('room restoration remains story evidence rather than mandatory route payment', () => {
+  const routeGates = extractExportedArray('ROUTE_GATES');
+
+  [
+    'mummificationChamberRestored',
+    'forgottenMuralChamberRestored',
+    'scribeChamberRecordRestored',
+  ].forEach((stateFlag) => {
+    assert.doesNotMatch(routeGates, new RegExp(stateFlag));
+  });
+
+  const shardCollectionIndex = journeyComponentSource.indexOf('current.relicShardCount += 1');
+  assert.notEqual(shardCollectionIndex, -1, 'route shard collection should increment relicShardCount');
+  const shardCollectionLoopStart = journeyComponentSource.lastIndexOf('RELIC_SHARDS.forEach(shard => {', shardCollectionIndex);
+  const shardCollectionLoopEnd = journeyComponentSource.indexOf('getActiveSecretCollectibles().forEach', shardCollectionIndex);
+  assert.notEqual(shardCollectionLoopStart, -1, 'route shard collection loop should start before relicShardCount increment');
+  assert.notEqual(shardCollectionLoopEnd, -1, 'secret collectible loop should follow route shard collection loop');
+  assert.ok(shardCollectionLoopStart < shardCollectionIndex, 'route shard loop start should precede relicShardCount increment');
+  assert.ok(shardCollectionIndex < shardCollectionLoopEnd, 'route shard loop should end before secret collectible loop begins');
+  const relicShardCollectionLoop = journeyComponentSource.slice(shardCollectionLoopStart, shardCollectionLoopEnd);
+  assert.match(relicShardCollectionLoop, /RELIC_SHARDS\.forEach\(shard => \{/);
+  assert.match(relicShardCollectionLoop, /if \(inInteriorChamberScene\) return;/);
+  assert.match(relicShardCollectionLoop, /current\.relicShardCount \+= 1/);
+  assert.match(journeyComponentSource, /getActiveSecretCollectibles\(\)\.forEach/);
+  assert.match(journeyComponentSource, /getRoomRestorationStatus\(secret, current\)/);
+});
+
 test('first Egypt secret route rewards curiosity without changing main progression', () => {
   const hiddenRoutes = extractExportedArray('HIDDEN_ROUTES');
   const secretCollectibles = extractExportedArray('SECRET_COLLECTIBLES');
@@ -1209,10 +1302,10 @@ test('first Egypt secret route rewards curiosity without changing main progressi
   assert.match(routeGates, /id:\s*'guardian-prep-seal'[\s\S]*?requires:\s*\{\s*objective:\s*'desert-entry'[\s\S]*?shards:\s*6/);
   assert.match(routeGates, /id:\s*'desert-seal'[\s\S]*?requires:\s*\{\s*objective:\s*'desert-entry',\s*miniBoss:\s*'scarab-queen',\s*keyItem:\s*'brush-handle',\s*shards:\s*10/);
   assert.match(journeyComponentSource, /forgottenMuralRestored:\s*Boolean\(current\.forgottenMuralChamberRestored/);
-  assert.match(journeyComponentSource, /secret\.restorationSetId === 'forgotten-mural-seal'/);
+  assert.match(journeyComponentSource, /getRoomRestorationStatus\(secret, current\)/);
   assert.match(journeyComponentSource, /forgottenMuralCameraFrameActive/);
   assert.match(journeyComponentSource, /secretVerticalCameraOffset/);
-  assert.match(journeyComponentSource, /name:\s*forgottenMuralPuzzleReady \? 'Asha' : restoredForgottenMural \? 'Anubis' : 'Secret Found'/);
+  assert.match(journeyComponentSource, /name:\s*forgottenMuralPuzzleReady \? 'Asha' : restoredRoom \? 'Anubis' : 'Secret Found'/);
   assert.match(journeyComponentSource, /If the image is wrong, the story is wrong\./);
   assert.match(journeyComponentSource, /The scarab mural has been broken into pieces\. Not destroyed\. Rearranged\./);
   assert.match(journeyComponentSource, /You pass my seals, but I still see only an intruder\./);
@@ -4186,7 +4279,7 @@ test('story props render local contact sediment and occlusion around asset bases
   assert.match(drawStoryPropSource, /drawPropSandOcclusion\(ctx, x, anchorY, propSize, section\.id, propGrounding\)/);
   assert.match(drawPropSandOcclusionSource, /fillRect\(x - moundW \/ 2 - 2,\s*overlapY,\s*moundW \+ 4/);
   assert.match(journeyPlacementOverridesSource, /'colorGradeFilter'[\s\S]*'sandOverlapHeight'[\s\S]*'groundPebbles'/);
-  assert.match(journeyPlacementGeneratedOverrideSource, /"id": "desert-entry-premium-column-1"[\s\S]*?"shadowOpacity": 0[\s\S]*?"sandOverlapHeight": 0[\s\S]*?"groundPebbles": 6[\s\S]*?"depth": "foreground-occluder"[\s\S]*?"scale": 2\.3/);
+  assert.match(journeyPlacementGeneratedOverrideSource, /"id": "desert-entry-premium-column-1"[\s\S]*?"shadowOpacity": 0\.2[\s\S]*?"sandOverlapHeight": 32[\s\S]*?"groundPebbles": 6[\s\S]*?"depth": "foreground-occluder"[\s\S]*?"scale": 2\.3/);
   assert.match(journeyPlacementGeneratedOverrideSource, /"id": "desert-entry-cracked-stone-blocks-1"[\s\S]*?"shadowOpacity": 0\.22[\s\S]*?"sandOverlapHeight": 10/);
   assert.match(journeyPlacementGeneratedOverrideSource, /"id": "desert-entry-fallen-lintel-1"[\s\S]*?"shadowOpacity": 0\.3[\s\S]*?"sandOverlapHeight": 0/);
 });
