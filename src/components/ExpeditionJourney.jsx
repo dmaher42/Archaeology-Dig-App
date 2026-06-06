@@ -47,6 +47,8 @@ import {
   PLAYER_LEGACY_SPRITE_SRC,
   PLAYER_SPRITE_SCALE,
   JOURNEY_VERTICAL_OFFSET,
+  sacredMuralExteriorX,
+  sacredScribeExteriorX,
   scaleJourneyX,
 } from './expedition-journey/journeyConstants';
 
@@ -1103,6 +1105,8 @@ const EGYPT_HAZARD_DECAL_PLACEMENT_BY_HAZARD = {
   'escape-dust-pocket': { xPad: 26, widthPad: 52, height: 78, footInset: 1 },
 };
 const openingJourneyY = (y) => y + JOURNEY_VERTICAL_OFFSET;
+const SACRED_MURAL_APPROACH_X = sacredMuralExteriorX;
+const SACRED_SCRIBE_APPROACH_X = sacredScribeExteriorX;
 const MUMMIFICATION_CHAMBER_ENTRY_SPAWN = {
   x: scaleJourneyX(596),
   y: openingJourneyY(318),
@@ -1433,14 +1437,14 @@ const FORGOTTEN_MURAL_CHAMBER_ENTRY_SPAWN = {
   direction: 1,
 };
 const FORGOTTEN_MURAL_CHAMBER_RETURN_FALLBACK = {
-  x: scaleJourneyX(1220),
+  x: SACRED_MURAL_APPROACH_X(1220),
   y: openingJourneyY(318),
   cameraAnchorRatio: 0.42,
   direction: 1,
 };
 const FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER = {
-  minX: scaleJourneyX(1213),
-  maxX: scaleJourneyX(1247),
+  minX: SACRED_MURAL_APPROACH_X(1213),
+  maxX: SACRED_MURAL_APPROACH_X(1247),
   maxY: GROUND_Y - 170,
   footY: openingJourneyY(-42),
   footTolerance: 18,

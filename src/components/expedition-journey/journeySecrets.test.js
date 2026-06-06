@@ -1218,17 +1218,17 @@ test('first Egypt secret route rewards curiosity without changing main progressi
   assert.match(platforms, /id:\s*'forgotten-mural-forward-passage-step'[\s\S]*?forward stonework return from the hidden alcove/);
   assert.match(platforms, /id:\s*'forgotten-mural-alcove-floor'[\s\S]*?invisible:\s*true/);
   [
-    ['forgotten-mural-carved-wall-ledge', 6101, 218, 230],
-    ['forgotten-mural-broken-warning-step', 6286, 160, 240],
-    ['forgotten-mural-priest-passage-shelf', 6471, 104, 260],
-    ['forgotten-mural-column-shelf', 6666, 44, 230],
-    ['forgotten-mural-upper-doorway-floor', 6850, -42, 250],
-    ['forgotten-mural-alcove-floor', 5010, 318, 2600],
-    ['forgotten-mural-forward-passage-step', 6908, -54, 220],
-    ['forgotten-mural-return-masonry', 6885, 52, 235],
-  ].forEach(([id, x, y, width]) => {
+    ['forgotten-mural-carved-wall-ledge', 'SACRED_MURAL_APPROACH_X\\(1080\\)', 218, 230],
+    ['forgotten-mural-broken-warning-step', 'SACRED_MURAL_APPROACH_X\\(1113\\)', 160, 240],
+    ['forgotten-mural-priest-passage-shelf', 'SACRED_MURAL_APPROACH_X\\(1145\\)', 104, 260],
+    ['forgotten-mural-column-shelf', 'SACRED_MURAL_APPROACH_X\\(1180\\)', 44, 230],
+    ['forgotten-mural-upper-doorway-floor', 'SACRED_MURAL_APPROACH_X\\(1212\\)', -42, 250],
+    ['forgotten-mural-alcove-floor', '5010', 318, 2600],
+    ['forgotten-mural-forward-passage-step', 'SACRED_MURAL_APPROACH_X\\(1223\\)', -54, 220],
+    ['forgotten-mural-return-masonry', 'SACRED_MURAL_APPROACH_X\\(1219\\)', 52, 235],
+  ].forEach(([id, xPattern, y, width]) => {
     const platformRow = getDataRowById(platforms, id);
-    assert.match(platformRow, new RegExp(`x:\\s*${x}[\\s\\S]*?y:\\s*JY\\(${y}\\)[\\s\\S]*?width:\\s*${width}[\\s\\S]*?invisible:\\s*true`));
+    assert.match(platformRow, new RegExp(`x:\\s*${xPattern}[\\s\\S]*?y:\\s*JY\\(${y}\\)[\\s\\S]*?width:\\s*${width}[\\s\\S]*?invisible:\\s*true`));
     assert.doesNotMatch(platformRow, /secretVisibility:\s*'visible'/);
   });
   assert.match(platforms, /id:\s*'forgotten-mural-lower-masonry'/);
@@ -1279,7 +1279,7 @@ test('first Egypt secret route rewards curiosity without changing main progressi
   assert.match(journeyComponentSource, /FORGOTTEN_MURAL_CHAMBER_ENTRY_SPAWN = \{/);
   assert.match(journeyComponentSource, /x:\s*scaleJourneyX\(918\)/);
   assert.match(journeyComponentSource, /y:\s*openingJourneyY\(318\)/);
-  assert.match(journeyComponentSource, /FORGOTTEN_MURAL_CHAMBER_RETURN_FALLBACK = \{[\s\S]*?x:\s*scaleJourneyX\(1220\)[\s\S]*?y:\s*openingJourneyY\(318\)/);
+  assert.match(journeyComponentSource, /FORGOTTEN_MURAL_CHAMBER_RETURN_FALLBACK = \{[\s\S]*?x:\s*SACRED_MURAL_APPROACH_X\(1220\)[\s\S]*?y:\s*openingJourneyY\(318\)/);
   assert.doesNotMatch(journeyComponentSource, /FORGOTTEN_MURAL_CHAMBER_RETURN_FALLBACK = \{[\s\S]*?x:\s*scaleJourneyX\(1030\)/);
   assert.doesNotMatch(journeyComponentSource, /FORGOTTEN_MURAL_CHAMBER_RETURN_FALLBACK = \{[\s\S]*?x:\s*scaleJourneyX\(665\)/);
   assert.match(journeyComponentSource, /player\.x = FORGOTTEN_MURAL_CHAMBER_ENTRY_SPAWN\.x - player\.width \/ 2/);
@@ -1290,9 +1290,9 @@ test('first Egypt secret route rewards curiosity without changing main progressi
   assert.match(journeyComponentSource, /player\.x = clamp\([\s\S]*?FORGOTTEN_MURAL_CHAMBER_BOUNDS\.minX[\s\S]*?FORGOTTEN_MURAL_CHAMBER_BOUNDS\.maxX - player\.width/);
   assert.match(journeyComponentSource, /id:\s*'forgotten-mural-chamber-exit'/);
   assert.match(journeyComponentSource, /toSceneId:\s*JOURNEY_SCENE_IDS\.EXTERIOR/);
-  assert.match(journeyComponentSource, /FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?minX:\s*scaleJourneyX\(1213\)[\s\S]*?maxX:\s*scaleJourneyX\(1247\)/);
+  assert.match(journeyComponentSource, /FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?minX:\s*SACRED_MURAL_APPROACH_X\(1213\)[\s\S]*?maxX:\s*SACRED_MURAL_APPROACH_X\(1247\)/);
   assert.match(journeyComponentSource, /FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?footY:\s*openingJourneyY\(-42\)[\s\S]*?footTolerance:\s*18/);
-  assert.match(platforms, /id:\s*'forgotten-mural-upper-doorway-floor'[\s\S]*?x:\s*6850[\s\S]*?y:\s*JY\(-42\)[\s\S]*?width:\s*250/);
+  assert.match(platforms, /id:\s*'forgotten-mural-upper-doorway-floor'[\s\S]*?x:\s*SACRED_MURAL_APPROACH_X\(1212\)[\s\S]*?y:\s*JY\(-42\)[\s\S]*?width:\s*250/);
   assert.match(journeyComponentSource, /FORGOTTEN_MURAL_CHAMBER_EXIT_TRIGGER = \{[\s\S]*?minX:\s*scaleJourneyX\(880\)[\s\S]*?maxX:\s*scaleJourneyX\(906\)[\s\S]*?maxY:\s*GROUND_Y - 20/);
   assert.match(journeyComponentSource, /FORGOTTEN_MURAL_CHAMBER_EXIT_TRIGGER = \{[\s\S]*?footY:\s*openingJourneyY\(318\)[\s\S]*?footTolerance:\s*20/);
   assert.doesNotMatch(journeyComponentSource, /FORGOTTEN_MURAL_CHAMBER_EXIT_TRIGGER = \{[\s\S]*?maxX:\s*scaleJourneyX\(950\)/);
@@ -1386,7 +1386,7 @@ test('scribe locked chamber reuses the Journey scene and challenge systems for o
   assert.match(scribeRoute, /civilisation:\s*'Ancient Egypt'/);
   assert.match(scribeRoute, /sectionId:\s*'desert-entry'/);
   assert.match(scribeRoute, /optional:\s*true/);
-  assert.match(scribeRoute, /x:\s*X\(1684\)/);
+  assert.match(scribeRoute, /x:\s*SACRED_SCRIBE_APPROACH_X\(1684\)/);
   assert.match(scribeRoute, /y:\s*JY\(62\)/);
   assert.match(scribeRoute, /rewardHint:\s*'A raised scribe doorway glows above the ruined stairs\.'/);
   assert.match(scribeRoute, /gateType:\s*'sealed scribe doorway'/);
@@ -1394,7 +1394,7 @@ test('scribe locked chamber reuses the Journey scene and challenge systems for o
   assert.match(chamberFloor, /sceneId:\s*'scribe-locked-chamber'/);
   assert.match(storyProps, /id:\s*'scribe-chamber-doorway-structure'[\s\S]*?type:\s*'generated-scribe-chamber-doorway'[\s\S]*?depth:\s*'route-edge'/);
   assert.match(scribeDoorway, /sectionId:\s*'desert-entry'/);
-  assert.match(scribeDoorway, /x:\s*X\(1685\)/);
+  assert.match(scribeDoorway, /x:\s*SACRED_SCRIBE_APPROACH_X\(1685\)/);
   assert.match(scribeDoorway, /y:\s*JY\(-259\)/);
   assert.match(scribeDoorway, /width:\s*1120/);
   assert.match(scribeDoorway, /height:\s*620/);
@@ -1405,12 +1405,12 @@ test('scribe locked chamber reuses the Journey scene and challenge systems for o
     ['scribe-chamber-doorway-threshold', '1684', '62', '180'],
   ].forEach(([platformId, authoredX, authoredY, width]) => {
     const platform = getDataRowById(platforms, platformId);
-    assert.match(platform, new RegExp(`x:\\s*X\\(${authoredX}\\)`));
+    assert.match(platform, new RegExp(`x:\\s*SACRED_SCRIBE_APPROACH_X\\(${authoredX}\\)`));
     assert.match(platform, new RegExp(`y:\\s*JY\\(${authoredY}\\)`));
     assert.match(platform, new RegExp(`width:\\s*${width}`));
     assert.match(platform, /invisible:\s*true/);
   });
-  assert.match(platforms, /id:\s*'scribe-chamber-buried-lower-block'[\s\S]*?x:\s*X\(1597\)[\s\S]*?y:\s*JY\(284\)[\s\S]*?width:\s*95/);
+  assert.match(platforms, /id:\s*'scribe-chamber-buried-lower-block'[\s\S]*?x:\s*SACRED_SCRIBE_APPROACH_X\(1597\)[\s\S]*?y:\s*JY\(284\)[\s\S]*?width:\s*95/);
   assert.ok(hiddenRoutes.indexOf("id: 'desert-upper-survey-route'") < hiddenRoutes.indexOf("id: 'scribe-locked-chamber-route'"));
   assert.ok(hiddenRoutes.indexOf("id: 'scribe-locked-chamber-route'") < hiddenRoutes.indexOf("id: 'temple-cracked-wall-passage'"));
   assert.match(journeyUtilsSource, /scribeChamberEntered:\s*false/);
@@ -1447,8 +1447,8 @@ test('scribe locked chamber reuses the Journey scene and challenge systems for o
   assert.match(journeyComponentSource, /Knowledge was the key\./);
   assert.match(journeyComponentSource, /scribeChamberExitUnlocked/);
   assert.match(journeyComponentSource, /activeGuardianChallenge\.type === 'scribe-chamber-puzzle'/);
-  assert.match(journeyComponentSource, /SCRIBE_CHAMBER_RETURN_FALLBACK = \{[\s\S]*?x:\s*scaleJourneyX\(1684\)[\s\S]*?y:\s*openingJourneyY\(122\)/);
-  assert.match(journeyComponentSource, /SCRIBE_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?minX:\s*scaleJourneyX\(1684\)[\s\S]*?maxX:\s*scaleJourneyX\(1714\)[\s\S]*?footY:\s*openingJourneyY\(62\)/);
+  assert.match(journeyComponentSource, /SCRIBE_CHAMBER_RETURN_FALLBACK = \{[\s\S]*?x:\s*SACRED_SCRIBE_APPROACH_X\(1684\)[\s\S]*?y:\s*openingJourneyY\(122\)/);
+  assert.match(journeyComponentSource, /SCRIBE_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?minX:\s*SACRED_SCRIBE_APPROACH_X\(1684\)[\s\S]*?maxX:\s*SACRED_SCRIBE_APPROACH_X\(1714\)[\s\S]*?footY:\s*openingJourneyY\(62\)/);
   assert.match(journeyComponentSource, /scarabQueenRequiresScribe/);
   assert.match(journeyComponentSource, /!current\.scribeChamberPuzzleSolved/);
   assert.doesNotMatch(journeyComponentSource, /createScribeEscapeRoomMode|ScribeEscapeRoom\.jsx/);
@@ -1461,24 +1461,29 @@ test('Egypt chamber exteriors have a ten-second walking rhythm before the Queen'
   const sections = extractExportedArray('SECTIONS');
 
   const mummificationDoorX = 770;
-  const muralDoorX = 1230;
-  const scribeDoorX = 1690;
-  const queenX = 2150;
-  const secondsAtAshaSpeed = (from, to) => ((to - from) * 6.78) / 260;
+  const muralDoorX = 1350;
+  const scribeDoorX = 1930;
+  const secondsAtAshaSpeed = (from, to) => ((to - from) * 5.65) / 260;
 
   [
     ['mummification-to-mural', mummificationDoorX, muralDoorX],
     ['mural-to-scribe', muralDoorX, scribeDoorX],
-    ['scribe-to-queen', scribeDoorX, queenX],
   ].forEach(([, from, to]) => {
-    assert.ok(secondsAtAshaSpeed(from, to) >= 9.9);
+    assert.ok(secondsAtAshaSpeed(from, to) >= 12);
   });
 
+  assert.match(journeyConstantsSource, /SACRED_EXTERIOR_SPACING_BASE_UNITS/);
+  assert.match(journeyConstantsSource, /sacredMuralExteriorX/);
+  assert.match(journeyConstantsSource, /sacredScribeExteriorX/);
+  assert.match(source, /SACRED_MURAL_APPROACH_X/);
+  assert.match(source, /SACRED_SCRIBE_APPROACH_X/);
+  assert.match(journeyComponentSource, /SACRED_MURAL_APPROACH_X/);
+  assert.match(journeyComponentSource, /SACRED_SCRIBE_APPROACH_X/);
   assert.match(sections, /id:\s*'desert-entry'[\s\S]*?end:\s*X\(2360\)/);
   assert.match(sections, /id:\s*'ruined-temple'[\s\S]*?start:\s*X\(2360\)/);
   assert.match(hiddenRoutes, /id:\s*'mummification-chamber-route'[\s\S]*?x:\s*X\(520\)/);
-  assert.match(hiddenRoutes, /id:\s*'desert-upper-survey-route'[\s\S]*?x:\s*X\(1125\)/);
-  assert.match(hiddenRoutes, /id:\s*'scribe-locked-chamber-route'[\s\S]*?x:\s*X\(1684\)/);
+  assert.match(hiddenRoutes, /id:\s*'desert-upper-survey-route'[\s\S]*?x:\s*SACRED_MURAL_APPROACH_X\(1125\)/);
+  assert.match(hiddenRoutes, /id:\s*'scribe-locked-chamber-route'[\s\S]*?x:\s*SACRED_SCRIBE_APPROACH_X\(1684\)/);
   assert.match(miniBosses, /id:\s*'scarab-queen'[\s\S]*?x:\s*X\(2150\)[\s\S]*?arenaStart:\s*X\(2020\)[\s\S]*?arenaEnd:\s*X\(2235\)/);
   assert.match(routeGates, /id:\s*'desert-seal'[\s\S]*?x:\s*X\(2285\)/);
 });
@@ -1494,7 +1499,7 @@ test('Egypt chamber interiors stay separate and exit back to their exterior artw
   );
   assert.match(
     journeyComponentSource,
-    /SCRIBE_CHAMBER_RETURN_FALLBACK = \{[\s\S]*?x:\s*scaleJourneyX\(1684\)[\s\S]*?y:\s*openingJourneyY\(122\)[\s\S]*?direction:\s*1/,
+    /SCRIBE_CHAMBER_RETURN_FALLBACK = \{[\s\S]*?x:\s*SACRED_SCRIBE_APPROACH_X\(1684\)[\s\S]*?y:\s*openingJourneyY\(122\)[\s\S]*?direction:\s*1/,
   );
 });
 
@@ -1575,7 +1580,7 @@ test('mummification chamber exterior reuses Journey routes, ledges, assets, and 
   assert.match(mummificationRoute, /sectionId:\s*'desert-entry'/);
   assert.match(mummificationRoute, /optional:\s*true/);
   assert.match(mummificationRoute, /x:\s*X\(520\)/);
-  assert.match(muralRoute, /x:\s*X\(1125\)/);
+  assert.match(muralRoute, /x:\s*SACRED_MURAL_APPROACH_X\(1125\)/);
   assert.ok(hiddenRoutes.indexOf("id: 'mummification-chamber-route'") < hiddenRoutes.indexOf("id: 'desert-upper-survey-route'"));
   assert.match(mummificationRoute, /gateType:\s*'partly buried sacred doorway'/);
   assert.match(mummificationRoute, /first sacred mystery/i);
