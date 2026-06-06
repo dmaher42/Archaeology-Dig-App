@@ -27,6 +27,13 @@ export const ATTACK_WINDUP_DURATION = 0.12;
 export const ATTACK_RECOIL_DURATION = 0.18;
 export const INVULNERABLE_DURATION = 0.58;
 
+// Combat damage scale. Enemy/boss effective HP and Asha's attack damage are both
+// multiplied by this factor so tuning has finer resolution (e.g. an unprimed-heavy
+// "shove" can deal a little damage instead of being stuck at 0 or 1). Kill-counts are
+// unchanged because both sides scale together: 1 raw HP unit = 1 light hit = this value.
+// Note: enemy damage TO Asha is NOT scaled — her Endurance is already a 0-100 pool.
+export const COMBAT_DAMAGE_SCALE = 10;
+
 export const PLAYER_HERO_SPRITE_ATLAS_JSON = 'assets/expedition/player/asha-reference-warrior-dodge-preview-spritesheet.json';
 export const PLAYER_HERO_SPRITE_VERSION = 'asha-reference-warrior-dodge-backstep-tone-matched-2026-06-05';
 export const PLAYER_HERO_PREVIOUS_SPRITE_ATLAS_JSON = 'assets/expedition/player/asha-hooded-warrior-explorer-spritesheet.json';

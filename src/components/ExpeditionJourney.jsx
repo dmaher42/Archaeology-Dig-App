@@ -31,6 +31,7 @@ import {
   ATTACK_COOLDOWN,
   ATTACK_RECOIL_DURATION,
   ATTACK_WINDUP_DURATION,
+  COMBAT_DAMAGE_SCALE,
   PLAYER_SPRITE_DRAW_HEIGHT,
   PLAYER_SPRITE_FRAME_COUNT,
   PLAYER_SPRITE_FRAME_HEIGHT,
@@ -414,7 +415,10 @@ const PLAYER_ATTACK_TYPES = Object.freeze({
 });
 const PLAYER_HEAVY_FOLLOWUP_PROMPT_LABEL = 'K';
 const PLAYER_HEAVY_FOLLOWUP_CUE_DURATION = 0.42;
-const PLAYER_ATTACK_FINISHER_DAMAGE = 3;
+// Player attack damage on the combat scale (1:2:3 ratio preserved, scaled for resolution).
+const PLAYER_ATTACK_LIGHT_DAMAGE = 1 * COMBAT_DAMAGE_SCALE;
+const PLAYER_ATTACK_PARRY_DAMAGE = 2 * COMBAT_DAMAGE_SCALE;
+const PLAYER_ATTACK_FINISHER_DAMAGE = 3 * COMBAT_DAMAGE_SCALE;
 const PLAYER_ATTACK_FINISHER_EXTRA_STAMINA_COST = 2;
 const PLAYER_HEAVY_FOLLOWUP_HIT_REFUND = 6;
 const PLAYER_ATTACK_RANGE = 92;
@@ -1797,6 +1801,7 @@ const resetPlayerCombo = (current) => {
   current.attackComboFinisherActive = false;
   current.attackSequenceIndex = 0;
   current.attackQueuedType = PLAYER_ATTACK_TYPES.LIGHT;
+  current.attackQueuedHeavyFollowupPrimed = false;
   current.attackType = PLAYER_ATTACK_TYPES.LIGHT;
   current.heavyFollowupReadyTimer = 0;
   current.heavyFollowupCueTimer = 0;
@@ -16141,7 +16146,7 @@ export default function ExpeditionJourney({
       }
 
       // Only show normal enemy health after damage so full bars do not read as platforms.
-      if (!enemy.defeated && enemy.health > 1 && enemy.health < enemy.maxHealth) {
+      if (!enemy.defeated && enemy.health > COMBAT_DAMAGE_SCALE && enemy.health < enemy.maxHealth) {
         const enemyDrawBox = getEnemySpriteDrawBox(enemy, ex, 0, getCombatMode(enemy)) || {
           x: ex,
           y: enemy.y,
@@ -16653,12 +16658,23 @@ export default function ExpeditionJourney({
   const queueAttack = useCallback((attackType = PLAYER_ATTACK_TYPES.LIGHT) => {
     const current = stateRef.current;
     if (briefingOpen || current.failed || current.completed || current.openingCinematic || current.openingCameraRevealTimer > 0 || current.openingThresholdScene?.lockMovement || current.templeThresholdTransition?.lockMovement) return;
-    if (current.attackCooldown > 0 || current.attackWindupTimer > 0 || current.attackTimer > 0 || current.attackRecoilTimer > 0) return;
     if (current.dodgeTimer > 0 || current.dodgeRecoveryTimer > 0) return;
+    const canBufferHeavyFollowup = attackType === PLAYER_ATTACK_TYPES.HEAVY
+      && current.attackComboWindowTimer > 0
+      && current.attackComboLanded;
+    if (current.attackCooldown > 0 || current.attackWindupTimer > 0 || current.attackTimer > 0 || current.attackRecoilTimer > 0) {
+      if (!canBufferHeavyFollowup) return;
+      current.attackQueued = true;
+      current.attackQueuedType = PLAYER_ATTACK_TYPES.HEAVY;
+      current.attackQueuedHeavyFollowupPrimed = true;
+      current.heavyFollowupReadyTimer = Math.max(current.heavyFollowupReadyTimer || 0, current.attackComboWindowTimer || 0);
+      return;
+    }
     current.attackQueued = true;
     current.attackQueuedType = attackType === PLAYER_ATTACK_TYPES.HEAVY
       ? PLAYER_ATTACK_TYPES.HEAVY
       : PLAYER_ATTACK_TYPES.LIGHT;
+    current.attackQueuedHeavyFollowupPrimed = attackType === PLAYER_ATTACK_TYPES.HEAVY && canBufferHeavyFollowup;
   }, [briefingOpen]);
 
   const queueDodge = useCallback(() => {
@@ -16682,6 +16698,7 @@ export default function ExpeditionJourney({
     if (current.attackComboLanded) current.attackComboWindowTimer = Math.max(current.attackComboWindowTimer || 0, PLAYER_COMBO_PRESERVE_AFTER_DODGE_DURATION);
     current.attackComboPreserved = Boolean(current.attackComboLanded);
     current.attackQueued = false;
+    current.attackQueuedHeavyFollowupPrimed = false;
     current.attackWindupTimer = 0;
     current.attackTimer = 0;
     current.attackRecoilTimer = 0;
@@ -18911,13 +18928,17 @@ export default function ExpeditionJourney({
 
     // Attacks
     let attackRect = null;
-    if (current.attackQueued) {
+    const attackActionReady = current.attackCooldown <= 0
+      && current.attackWindupTimer <= 0
+      && current.attackTimer <= 0
+      && current.attackRecoilTimer <= 0;
+    if (current.attackQueued && attackActionReady) {
       const finisherAllowed = !current.enduranceExhausted;
       const queuedAttackType = current.attackQueuedType === PLAYER_ATTACK_TYPES.HEAVY
         ? PLAYER_ATTACK_TYPES.HEAVY
         : PLAYER_ATTACK_TYPES.LIGHT;
       const isHeavyAttack = queuedAttackType === PLAYER_ATTACK_TYPES.HEAVY;
-      const heavyFollowupPrimed = isHeavyAttack && current.attackComboWindowTimer > 0 && current.attackComboLanded && finisherAllowed;
+      const heavyFollowupPrimed = isHeavyAttack && finisherAllowed && (current.attackQueuedHeavyFollowupPrimed || (current.attackComboWindowTimer > 0 && current.attackComboLanded));
       const nextAttackSequenceIndex = heavyFollowupPrimed
         ? PLAYER_COMBO_MAX_STEP
         : isHeavyAttack
@@ -18927,6 +18948,7 @@ export default function ExpeditionJourney({
       const attackTiming = getPlayerAttackTiming(nextAttackSequenceIndex);
       current.attackQueued = false;
       current.attackQueuedType = PLAYER_ATTACK_TYPES.LIGHT;
+      current.attackQueuedHeavyFollowupPrimed = false;
       current.attackType = queuedAttackType;
       current.attackWindupDuration = attackTiming.windup;
       current.attackSwingDuration = attackTiming.swing;
@@ -19436,7 +19458,7 @@ export default function ExpeditionJourney({
         const isFinisher = current.attackComboFinisherActive;
         const isHeavyAttack = current.attackType === PLAYER_ATTACK_TYPES.HEAVY;
         e.parried = false;
-        e.health -= isFinisher ? PLAYER_ATTACK_FINISHER_DAMAGE : (isParry ? 2 : 1);
+        e.health -= isFinisher ? PLAYER_ATTACK_FINISHER_DAMAGE : (isParry ? PLAYER_ATTACK_PARRY_DAMAGE : PLAYER_ATTACK_LIGHT_DAMAGE);
         if (!current.attackRewarded) {
           const heavyFollowupRefund = isFinisher ? PLAYER_HEAVY_FOLLOWUP_HIT_REFUND : (isParry ? 8 : (isHeavyAttack ? 0 : 1));
           current.resources.stamina = Math.min(current.upgradeEffects?.maxStamina || 100, current.resources.stamina + heavyFollowupRefund);
@@ -19771,7 +19793,7 @@ export default function ExpeditionJourney({
         }
         const isFinisher = current.attackComboFinisherActive;
         const isHeavyAttack = current.attackType === PLAYER_ATTACK_TYPES.HEAVY;
-        b.health -= (b.playerDamageMultiplier || 1);
+        b.health -= (b.playerDamageMultiplier || 1) * COMBAT_DAMAGE_SCALE;
         if (!current.attackRewarded) {
           const heavyFollowupRefund = isFinisher ? PLAYER_HEAVY_FOLLOWUP_HIT_REFUND : (isHeavyAttack ? 0 : 1);
           current.resources.stamina = Math.min(current.upgradeEffects?.maxStamina || 100, current.resources.stamina + heavyFollowupRefund);

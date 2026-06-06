@@ -1,4 +1,5 @@
 import {
+  COMBAT_DAMAGE_SCALE,
   GROUND_Y,
   INITIAL_JOURNEY_NOTICE,
   PLAYER_HEIGHT,
@@ -1207,10 +1208,12 @@ const ENEMY_TOUGHNESS_BONUS = {
 };
 
 const tuneEnemyHealth = (enemy) => {
-  if (enemy.firstSealRouteRamp) return Math.max(3, enemy.health);
-  if (enemy.openingRouteRamp) return Math.max(3, enemy.health);
+  // Returns effective runtime HP in light-hit units (3-5 hits), then scales to the
+  // combat damage resolution. Authored enemy.health stays small; the scale lives here.
+  if (enemy.firstSealRouteRamp) return Math.max(3, enemy.health) * COMBAT_DAMAGE_SCALE;
+  if (enemy.openingRouteRamp) return Math.max(3, enemy.health) * COMBAT_DAMAGE_SCALE;
   const bonus = ENEMY_TOUGHNESS_BONUS[enemy.type] ?? 1;
-  return clamp(Math.max(enemy.health + bonus, Math.ceil(enemy.health * 1.55)), 3, 5);
+  return clamp(Math.max(enemy.health + bonus, Math.ceil(enemy.health * 1.55)), 3, 5) * COMBAT_DAMAGE_SCALE;
 };
 
 const tuneEnemyDamage = (enemy) => {
@@ -1378,8 +1381,8 @@ export const makeEnemy = (enemy) => ({
 export const makeMiniBoss = (boss) => ({
   ...boss,
   direction: 1,
-  health: Math.max(boss.health + 1, Math.ceil(boss.health * 1.35)),
-  maxHealth: Math.max(boss.health + 1, Math.ceil(boss.health * 1.35)),
+  health: Math.max(boss.health + 1, Math.ceil(boss.health * 1.35)) * COMBAT_DAMAGE_SCALE,
+  maxHealth: Math.max(boss.health + 1, Math.ceil(boss.health * 1.35)) * COMBAT_DAMAGE_SCALE,
   damage: Math.max(boss.damage + 2, Math.ceil(boss.damage * 1.3)),
   defeated: false,
   awakened: false,
@@ -1745,6 +1748,7 @@ export const makeInitialState = ({ targetCivilisation, permanentUpgradeIds = [],
   attackPhase: 'ready',
   attackQueued: false,
   attackQueuedType: 'light',
+  attackQueuedHeavyFollowupPrimed: false,
   attackType: 'light',
   attackSequenceIndex: 0,
   attackComboWindowTimer: 0,

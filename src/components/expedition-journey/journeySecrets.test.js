@@ -29,6 +29,7 @@ import {
   snapJourneyPropCoordinate,
 } from './journeyUtils.js';
 import { CHINA_ENEMIES, ENEMIES, STORY_PROPS } from './journeyLevelData.js';
+import { COMBAT_DAMAGE_SCALE } from './journeyConstants.js';
 import journeyPlacementOverrides from './journeyPlacementOverrides.generated.js';
 
 const source = readFileSync(new URL('./journeyLevelData.js', import.meta.url), 'utf8');
@@ -4394,15 +4395,16 @@ test('Egypt opening combat ramps gently before the first route seal', () => {
 
 test('normal enemies take at least three weapon hits at runtime', () => {
   const runtimeEnemies = [...ENEMIES, ...CHINA_ENEMIES].map(makeEnemy);
+  const minHits = 3 * COMBAT_DAMAGE_SCALE; // at least three light hits on the combat damage scale
   const tooFragileEnemies = runtimeEnemies
-    .filter(enemy => enemy.maxHealth < 3 || enemy.health < 3)
+    .filter(enemy => enemy.maxHealth < minHits || enemy.health < minHits)
     .map(enemy => `${enemy.id}:${enemy.health}/${enemy.maxHealth}`);
 
   assert.deepEqual(tooFragileEnemies, []);
   assert.equal(
     runtimeEnemies
       .filter(enemy => enemy.firstSealRouteRamp)
-      .every(enemy => enemy.health >= 3 && enemy.maxHealth >= 3),
+      .every(enemy => enemy.health >= minHits && enemy.maxHealth >= minHits),
     true,
     'first-seal teaching enemies should still take at least three weapon hits',
   );
@@ -4471,8 +4473,8 @@ test('fast fluid combat slice adds dodge-cancel and flow combo contracts', () =>
   assert.match(journeyComponentSource, /const dodgeFacingDirection = -dodgeDirection;/);
   assert.match(journeyComponentSource, /current\.dodgeFacingDirection = dodgeFacingDirection;/);
   assert.match(journeyComponentSource, /player\.direction = dodgeFacingDirection;/);
-  assert.match(journeyComponentSource, /e\.health -= isFinisher \? PLAYER_ATTACK_FINISHER_DAMAGE : \(isParry \? 2 : 1\)/);
-  assert.match(journeyComponentSource, /const heavyFollowupPrimed = isHeavyAttack && current\.attackComboWindowTimer > 0 && current\.attackComboLanded && finisherAllowed;/);
+  assert.match(journeyComponentSource, /e\.health -= isFinisher \? PLAYER_ATTACK_FINISHER_DAMAGE : \(isParry \? PLAYER_ATTACK_PARRY_DAMAGE : PLAYER_ATTACK_LIGHT_DAMAGE\)/);
+  assert.match(journeyComponentSource, /const heavyFollowupPrimed = isHeavyAttack && finisherAllowed && \(current\.attackQueuedHeavyFollowupPrimed \|\| \(current\.attackComboWindowTimer > 0 && current\.attackComboLanded\)\);/);
   assert.match(journeyComponentSource, /if \(current\.attackComboWindowTimer <= 0 && current\.attackSequenceIndex > 0 && current\.attackPhase === 'ready'\) resetPlayerCombo\(current\);/);
   assert.match(journeyComponentSource, /audioControls\?\.playExpeditionSfx\?\.\(isFinisher \? 'attackFinisher' : isHeavyAttack \? 'attackSwing2' : 'attackSwing1'\)/);
   assert.match(appSource, /dodgeStep:\s*\{/);
@@ -4575,7 +4577,7 @@ test('combat uses explicit J light and K heavy follow-up instead of hidden same-
 
   assert.match(journeyComponentSource, /const queuedAttackType = current\.attackQueuedType === PLAYER_ATTACK_TYPES\.HEAVY[\s\S]*?const isHeavyAttack = queuedAttackType === PLAYER_ATTACK_TYPES\.HEAVY/);
   assert.match(journeyComponentSource, /const finisherAllowed = !current\.enduranceExhausted;/);
-  assert.match(journeyComponentSource, /const heavyFollowupPrimed = isHeavyAttack && current\.attackComboWindowTimer > 0 && current\.attackComboLanded && finisherAllowed;/);
+  assert.match(journeyComponentSource, /const heavyFollowupPrimed = isHeavyAttack && finisherAllowed && \(current\.attackQueuedHeavyFollowupPrimed \|\| \(current\.attackComboWindowTimer > 0 && current\.attackComboLanded\)\);/);
   assert.match(journeyComponentSource, /const nextAttackSequenceIndex = heavyFollowupPrimed[\s\S]*?PLAYER_COMBO_MAX_STEP[\s\S]*?isHeavyAttack[\s\S]*?2[\s\S]*?1/);
   assert.match(journeyComponentSource, /current\.attackComboFinisherActive = heavyFollowupPrimed;/);
   assert.match(journeyComponentSource, /if \(isHeavyAttack && !heavyFollowupPrimed\) applyAttackStaminaCost\(PLAYER_ATTACK_FINISHER_EXTRA_STAMINA_COST, 'Heavy swing'\);/);
@@ -4599,6 +4601,16 @@ test('heavy follow-up window is readable through HUD and physical cue feedback',
   assert.match(indexCssSource, /@keyframes journey-heavy-followup-pulse/);
   assert.match(journeyComponentSource, /current\.heavyFollowupCueTimer = primesHeavyFollowup \? PLAYER_HEAVY_FOLLOWUP_CUE_DURATION : 0;/);
   assert.match(journeyComponentSource, /Math\.max\(current\.heavyFollowupReadyTimer \|\| 0, current\.heavyFollowupCueTimer \|\| 0\)/);
+});
+
+test('heavy follow-up input buffers during the visible combo window until Asha is ready', () => {
+  assert.match(journeyUtilsSource, /attackQueuedHeavyFollowupPrimed:\s*false/);
+  assert.match(journeyComponentSource, /const canBufferHeavyFollowup\s*=[\s\S]{0,220}current\.attackComboWindowTimer > 0[\s\S]{0,220}current\.attackComboLanded/);
+  assert.match(journeyComponentSource, /if \(current\.attackCooldown > 0 \|\| current\.attackWindupTimer > 0 \|\| current\.attackTimer > 0 \|\| current\.attackRecoilTimer > 0\) \{[\s\S]{0,360}current\.attackQueuedHeavyFollowupPrimed = true;/);
+  assert.match(journeyComponentSource, /const attackActionReady = current\.attackCooldown <= 0[\s\S]{0,180}current\.attackRecoilTimer <= 0;/);
+  assert.match(journeyComponentSource, /if \(current\.attackQueued && attackActionReady\) \{/);
+  assert.match(journeyComponentSource, /const heavyFollowupPrimed = isHeavyAttack && finisherAllowed && \(current\.attackQueuedHeavyFollowupPrimed[\s\S]{0,160}current\.attackComboLanded\)/);
+  assert.match(journeyComponentSource, /current\.attackQueuedHeavyFollowupPrimed = false;/);
 });
 
 test('missed attacks give physical near-miss spacing feedback without widening hitboxes', () => {
@@ -4801,8 +4813,9 @@ test('endurance model slice 2: exhausted state, overwhelm rescue, trap floor, an
   assert.match(journeyUtilsSource, /enduranceExhausted:\s*false/);
   // Dodge is blocked when exhausted (check appears inside queueDodge body)
   assert.match(journeyComponentSource, /queueDodge[\s\S]{0,700}enduranceExhausted/);
-  // Finisher is blocked when exhausted (finisherAllowed gate near isFinisher)
-  assert.match(journeyComponentSource, /enduranceExhausted[\s\S]{0,500}isFinisher/);
+  // Finisher is blocked when exhausted (finisherAllowed derives from enduranceExhausted and gates the primed follow-up)
+  assert.match(journeyComponentSource, /finisherAllowed\s*=\s*!current\.enduranceExhausted/);
+  assert.match(journeyComponentSource, /heavyFollowupPrimed\s*=[\s\S]{0,200}finisherAllowed/);
   // Last-chance recovery constant exists
   assert.match(journeyComponentSource, /EXHAUSTED_RECOVERY_RATE\s*=/);
   // Recovery applies while exhausted
@@ -4823,7 +4836,7 @@ test('jump contact only bounces enemies while attacks defeat them in three to fi
   assert.match(journeyComponentSource, /current\.notice = `\$\{enemy\.name\} bounced away\. Use J or K to defeat it\.`/);
   assert.doesNotMatch(journeyComponentSource, /const applyEnemyStomp = \(enemy\) => \{[\s\S]*?enemy\.health -= 1[\s\S]*?\};/);
   assert.doesNotMatch(journeyComponentSource, /const applyEnemyStomp = \(enemy\) => \{[\s\S]*?current\.defeatedEnemies\.add\(enemy\.id\)[\s\S]*?\};/);
-  assert.match(journeyComponentSource, /if \(attackRect && !current\.attackHitIds\.has\(e\.id\) && rectsOverlap\(attackRect, getAttackHurtbox\(e\)\)\) \{[\s\S]*?e\.health -= isFinisher \? PLAYER_ATTACK_FINISHER_DAMAGE : \(isParry \? 2 : 1\)/);
+  assert.match(journeyComponentSource, /if \(attackRect && !current\.attackHitIds\.has\(e\.id\) && rectsOverlap\(attackRect, getAttackHurtbox\(e\)\)\) \{[\s\S]*?e\.health -= isFinisher \? PLAYER_ATTACK_FINISHER_DAMAGE : \(isParry \? PLAYER_ATTACK_PARRY_DAMAGE : PLAYER_ATTACK_LIGHT_DAMAGE\)/);
   assert.match(journeyUtilsSource, /if\s*\(enemy\.firstSealRouteRamp\)\s*return Math\.max\(3, enemy\.health\)/);
   assert.match(journeyUtilsSource, /return clamp\(Math\.max\(enemy\.health \+ bonus, Math\.ceil\(enemy\.health \* 1\.55\)\), 3, 5\)/);
 });
