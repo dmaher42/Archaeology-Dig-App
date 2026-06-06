@@ -2,11 +2,12 @@ import * as EgyptData from './journeyLevelData.js';
 import * as ChinaData from './chinaJourneyData.js';
 import * as RomeData from './romeJourneyData.js';
 import journeyPlacementOverrides from './journeyPlacementOverrides.generated.js';
+import journeyPropBlendOverrides from './journeyPropBlendOverrides.js';
 import { applyJourneyPlacementOverrides } from './journeyPlacementOverrides.js';
 
 let currentCiv = 'Ancient Egypt';
 
-const EgyptPlacementData = applyJourneyPlacementOverrides({
+const EgyptEditorPlacementData = applyJourneyPlacementOverrides({
   props: EgyptData.STORY_PROPS,
   platforms: EgyptData.PLATFORMS,
   hazards: EgyptData.HAZARDS,
@@ -15,6 +16,11 @@ const EgyptPlacementData = applyJourneyPlacementOverrides({
   checkpoints: EgyptData.CHECKPOINTS,
   miniBosses: EgyptData.MINI_BOSSES,
 }, journeyPlacementOverrides);
+
+// Small, hand-authored polish layer for scene-blending fixes that should survive
+// future editor exports. Use this for deliberate fake-bury/contact-strip passes,
+// not broad room layout changes.
+const EgyptPlacementData = applyJourneyPlacementOverrides(EgyptEditorPlacementData, journeyPropBlendOverrides);
 
 export const setExpeditionJourneyCiv = (civ) => {
   currentCiv = civ;
