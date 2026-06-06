@@ -1464,7 +1464,7 @@ test('Egypt chamber exteriors have a ten-second walking rhythm before the Queen'
   const muralDoorX = 1230;
   const scribeDoorX = 1690;
   const queenX = 2150;
-  const secondsAtAshaSpeed = (from, to) => ((to - from) * 5.65) / 260;
+  const secondsAtAshaSpeed = (from, to) => ((to - from) * 6.78) / 260;
 
   [
     ['mummification-to-mural', mummificationDoorX, muralDoorX],

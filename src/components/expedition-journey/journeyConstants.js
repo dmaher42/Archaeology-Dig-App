@@ -2,7 +2,10 @@ export const CANVAS_WIDTH = 1120;
 export const CANVAS_HEIGHT = 630;
 export const CANVAS_NATIVE_WIDTH = 1280;
 export const CANVAS_NATIVE_HEIGHT = 720;
-export const JOURNEY_HORIZONTAL_SCALE = 5.65;
+// Horizontal world scale: larger = more walking/fighting space between landmarks.
+// Bumped 5.65 -> 6.78 (+20%) to stretch the gaps between buildings. Editor-placed prop
+// positions in journeyPlacementOverrides.generated.js are rescaled by the same ratio.
+export const JOURNEY_HORIZONTAL_SCALE = 6.78;
 export const BASE_WORLD_WIDTH = 9060;
 export const scaleJourneyX = (x) => Math.round(x * JOURNEY_HORIZONTAL_SCALE);
 export const WORLD_WIDTH = scaleJourneyX(BASE_WORLD_WIDTH);
