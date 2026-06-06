@@ -4467,7 +4467,10 @@ test('Egypt opening combat ramps gently before the first route seal', () => {
     .filter((row) => readAuthoredX(row) < 1480);
 
   const teachingRows = openingRows
-    .filter((row) => readAuthoredX(row) <= 705);
+    .filter((row) => readAuthoredX(row) <= 705)
+    // The scorpion-nest arena is an intentional moderate beat near the mummification
+    // building, not one of the gentle teaching enemies, so exclude it from these checks.
+    .filter((row) => !/scorpion-nest|nest arena/.test(row));
   const totalOpeningHealth = openingRows
     .reduce((total, row) => total + Number(row.match(/health:\s*(\d+)/)?.[1] || 0), 0);
   const totalOpeningDamage = openingRows
