@@ -16265,6 +16265,56 @@ main {
   transition: width 0.25s ease;
 }
 
+.journey-heavy-followup-cue {
+  grid-column: 2;
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.34rem;
+  width: max-content;
+  max-width: min(13rem, 100%);
+  margin-top: 1.88rem;
+  padding: 0.18rem 0.42rem 0.18rem 0.24rem;
+  border: 1px solid rgba(248, 231, 182, 0.42);
+  border-radius: 6px;
+  background: rgba(38, 31, 22, 0.72);
+  color: #fff7dd;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 900;
+  line-height: 1;
+  box-shadow: 0 0 0 1px rgba(248, 231, 182, 0.12), 0 8px 18px rgba(18, 10, 4, 0.24);
+  animation: journey-heavy-followup-pulse 0.42s ease-out;
+}
+
+.journey-heavy-followup-cue kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.32rem;
+  height: 1.1rem;
+  border: 1px solid rgba(255, 247, 221, 0.62);
+  border-radius: 4px;
+  background: rgba(255, 247, 221, 0.18);
+  color: #fff7dd;
+  font: 0.68rem 'Space Mono', monospace;
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.18);
+}
+
+@keyframes journey-heavy-followup-pulse {
+  0% {
+    opacity: 0;
+    transform: translateY(0.24rem) scale(0.92);
+  }
+  42% {
+    opacity: 1;
+    transform: translateY(0) scale(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .journey-floating-hud-count {
   display: inline-flex;
   align-items: center;
@@ -21521,121 +21571,236 @@ main {
   pointer-events: none;
 }
 
-.training-survey-zone {
+/* --- Survey map: interactive numbered pins --- */
+.training-survey-map-legend {
+  position: absolute;
+  top: 0.85rem;
+  left: 0.95rem;
+  z-index: 4;
+  padding: 0.32rem 0.75rem;
+  border: 1px solid rgba(255, 224, 141, 0.34);
+  border-radius: 999px;
+  background: rgba(20, 12, 6, 0.62);
+  color: #ffe9b0;
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.training-survey-pin {
   position: absolute;
   z-index: 3;
-  display: grid;
-  gap: 0.2rem;
-  width: clamp(9.5rem, 24%, 13.5rem);
-  min-height: 5.8rem;
-  padding: 0.6rem 0.7rem;
-  border: 1px solid rgba(55, 75, 38, 0.42);
-  border-radius: 8px;
-  background: rgba(255, 248, 225, 0.9);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.5rem;
+  width: clamp(10rem, 26%, 14rem);
+  padding: 0.55rem 0.65rem;
+  border: 1px solid rgba(80, 55, 28, 0.5);
+  border-radius: 10px;
+  background: rgba(255, 248, 225, 0.93);
   color: #302012;
   text-align: left;
-  box-shadow: 0 10px 20px rgba(40, 24, 11, 0.22);
+  box-shadow: 0 10px 22px rgba(40, 24, 11, 0.28);
   cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
 
-.training-survey-zone:hover,
-.training-survey-zone:focus-visible {
-  outline: 3px solid rgba(38, 119, 104, 0.4);
-  outline-offset: 2px;
-  transform: translateY(-2px);
+.training-survey-pin:hover,
+.training-survey-pin:focus-visible {
+  transform: translateY(-3px);
+  border-color: rgba(38, 119, 104, 0.6);
+  box-shadow: 0 16px 30px rgba(40, 24, 11, 0.36);
+  outline: none;
 }
 
-.training-survey-zone strong,
-.training-survey-card strong {
-  color: #3b200b;
+.training-survey-pin-num {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 1.65rem;
+  height: 1.65rem;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #c98a3c, #8a571f);
+  color: #fff5db;
   font-family: 'Cinzel', serif;
-  font-size: 0.78rem;
+  font-weight: 900;
+  font-size: 0.85rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.training-survey-pin-label {
+  display: grid;
+  gap: 0.12rem;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.training-survey-pin-label strong {
+  font-family: 'Cinzel', serif;
+  font-size: 0.8rem;
+  color: #3b200b;
   line-height: 1.1;
 }
 
-.training-survey-zone span,
-.training-survey-zone em,
-.training-survey-card span {
-  color: #5f4126;
-  font-size: 0.72rem;
+.training-survey-pin-label em {
   font-style: normal;
-  line-height: 1.25;
+  font-size: 0.7rem;
+  color: #5f4126;
+  line-height: 1.22;
 }
 
-.training-survey-zone em {
-  padding-top: 0.22rem;
-  border-top: 1px solid rgba(95, 65, 38, 0.18);
-  color: #1f5f52;
-  font-weight: 800;
+.training-survey-pin-clue {
+  width: 100%;
+  margin-top: 0.35rem;
+  padding-top: 0.38rem;
+  border-top: 1px solid rgba(95, 65, 38, 0.22);
+  color: #1d6354;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.3;
 }
 
-.training-survey-zone.inspected {
-  border-color: rgba(38, 119, 104, 0.52);
-  background: rgba(232, 246, 230, 0.93);
+.training-survey-pin.inspected {
+  border-color: rgba(38, 119, 104, 0.5);
+  background: rgba(232, 246, 230, 0.95);
 }
 
-.training-survey-zone.selected {
-  border-color: rgba(30, 122, 70, 0.74);
-  background: rgba(220, 240, 225, 0.96);
-  box-shadow: 0 0 0 4px rgba(30, 122, 70, 0.16), 0 12px 24px rgba(40, 24, 11, 0.26);
+.training-survey-pin.focused {
+  box-shadow: 0 0 0 3px rgba(38, 119, 104, 0.32), 0 16px 30px rgba(40, 24, 11, 0.36);
 }
 
-.training-survey-zone.zone-central-depression {
-  left: 43%;
-  top: 43%;
+.training-survey-pin.selected {
+  border-color: rgba(30, 122, 70, 0.8);
+  background: rgba(220, 240, 225, 0.97);
+  box-shadow: 0 0 0 4px rgba(30, 122, 70, 0.2), 0 12px 24px rgba(40, 24, 11, 0.3);
 }
 
-.training-survey-zone.zone-ridge-scatter {
-  left: 10%;
-  top: 16%;
+.training-survey-pin.selected .training-survey-pin-num {
+  background: linear-gradient(180deg, #2faa6a, #1d7a46);
 }
 
-.training-survey-zone.zone-washout-edge {
-  right: 8%;
+.training-survey-pin.zone-central-depression {
+  left: 41%;
+  top: 40%;
+}
+
+.training-survey-pin.zone-ridge-scatter {
+  left: 9%;
+  top: 15%;
+}
+
+.training-survey-pin.zone-washout-edge {
+  right: 7%;
   bottom: 12%;
 }
 
-.training-survey-map-note {
-  position: absolute;
-  left: 1rem;
-  bottom: 1rem;
-  z-index: 4;
-  max-width: min(28rem, calc(100% - 2rem));
-  padding: 0.48rem 0.65rem;
-  border: 1px solid rgba(38, 119, 104, 0.32);
-  border-radius: 8px;
-  background: rgba(255, 248, 225, 0.92);
-  color: #3b200b;
-  font-size: 0.82rem;
-  font-weight: 800;
-}
-
-.training-survey-map-note.selected {
+/* --- Survey action panel (right) --- */
+.training-difficulty-segment {
   display: grid;
-  gap: 0.42rem;
-  width: min(25rem, calc(100% - 2rem));
-  border-color: rgba(30, 122, 70, 0.48);
-  background: rgba(220, 240, 225, 0.95);
-  box-shadow: 0 0 0 5px rgba(30, 122, 70, 0.14), 0 12px 24px rgba(40, 24, 11, 0.22);
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.4rem;
 }
 
-.training-survey-map-note strong {
-  color: #1d5230;
+.training-difficulty-seg {
+  display: grid;
+  gap: 0.12rem;
+  padding: 0.5rem 0.4rem;
+  border: 1px solid rgba(217, 168, 78, 0.4);
+  border-radius: 9px;
+  background: rgba(35, 21, 10, 0.5);
+  color: #e9d3a8;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.14s ease, border-color 0.14s ease, background 0.14s ease;
+}
+
+.training-difficulty-seg:hover {
+  transform: translateY(-1px);
+  border-color: rgba(217, 168, 78, 0.72);
+}
+
+.training-difficulty-seg strong {
   font-family: 'Cinzel', serif;
-  font-size: 0.84rem;
+  font-size: 0.78rem;
+}
+
+.training-difficulty-seg span {
+  font-size: 0.6rem;
+  line-height: 1.15;
+  opacity: 0.82;
+}
+
+.training-difficulty-seg.active {
+  border-color: rgba(46, 170, 106, 0.8);
+  background: rgba(30, 90, 55, 0.5);
+  box-shadow: inset 0 0 0 1px rgba(46, 170, 106, 0.5);
+  color: #d8f3e0;
+}
+
+.training-zone-detail {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid rgba(217, 168, 78, 0.4);
+  border-radius: 10px;
+  background: rgba(35, 21, 10, 0.55);
+}
+
+.training-zone-detail.selected {
+  border-color: rgba(46, 170, 106, 0.7);
+  background: rgba(28, 70, 45, 0.5);
+}
+
+.training-zone-detail-kicker {
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: #c9a86a;
+}
+
+.training-zone-detail strong {
+  font-family: 'Cinzel', serif;
+  font-size: 0.98rem;
+  color: #ffe9b0;
   line-height: 1.1;
 }
 
-.training-survey-map-note span {
-  color: #355d3d;
+.training-zone-detail-terrain {
+  margin: 0;
   font-size: 0.78rem;
-  line-height: 1.2;
+  color: #d8c29a;
 }
 
-.training-survey-map-note .btn {
-  min-height: 2.35rem;
-  padding: 0.42rem 0.72rem;
-  font-size: 0.72rem;
+.training-zone-detail-clue {
+  margin: 0;
+  padding: 0.4rem 0.5rem;
+  border-radius: 7px;
+  background: rgba(31, 95, 82, 0.25);
+  color: #8fe0c4;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.training-zone-detail-note {
+  margin: 0;
+  font-size: 0.74rem;
+  font-style: italic;
+  color: #b9a079;
+  line-height: 1.3;
+}
+
+.training-zone-detail .btn {
+  margin-top: 0.3rem;
+  width: 100%;
+}
+
+.training-survey-zoom-btn {
+  width: 100%;
 }
 
 .training-soil-preview {

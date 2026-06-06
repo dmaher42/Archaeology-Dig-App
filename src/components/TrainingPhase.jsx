@@ -51,6 +51,7 @@ export function TrainingPhase({
   const [isGridded, setIsGridded] = useState(() => getInitialTrainingState().isGridded);
   const [inspectedSurveyZoneIds, setInspectedSurveyZoneIds] = useState(() => getInitialTrainingState().inspectedSurveyZoneIds);
   const [selectedSurveyZoneId, setSelectedSurveyZoneId] = useState(() => getInitialTrainingState().selectedSurveyZoneId);
+  const [focusedSurveyZoneId, setFocusedSurveyZoneId] = useState(() => getInitialTrainingState().selectedSurveyZoneId);
   const [surveyQuality, setSurveyQuality] = useState(() => getInitialTrainingState().surveyQuality);
   const [gridAccuracy, setGridAccuracy] = useState(() => getInitialTrainingState().gridAccuracy);
   const [gridTiles, setGridTiles] = useState(() => getInitialTrainingState().gridTiles || createDefaultTrainingGridTiles());
@@ -79,6 +80,8 @@ export function TrainingPhase({
   const markedTilesCount = gridTiles.filter(item => item.isMarked && !item.isRevealed).length;
   const hasExcavationProgress = revealedCluesCount > 0 || markedTilesCount > 0;
   const selectedSurveyZone = getTrainingSurveyZone(selectedSurveyZoneId);
+  const focusedSurveyZone = getTrainingSurveyZone(focusedSurveyZoneId) || selectedSurveyZone;
+  const isFocusedZoneInspected = focusedSurveyZone ? inspectedSurveyZoneIds.includes(focusedSurveyZone.id) : false;
 
   useEffect(() => {
     onTrainingStateChange?.({
@@ -137,6 +140,7 @@ export function TrainingPhase({
     setInspectedSurveyZoneIds(prev => (
       prev.includes(zoneId) ? prev : [...prev, zoneId]
     ));
+    setFocusedSurveyZoneId(zoneId);
     setTrainingFeedback(`${zone.title}: ${zone.clue}`, 'info');
   };
 
@@ -155,6 +159,7 @@ export function TrainingPhase({
 
     setInspectedSurveyZoneIds(nextInspectedIds);
     setSelectedSurveyZoneId(zoneId);
+    setFocusedSurveyZoneId(zoneId);
     setSurveyQuality(nextSurveyQuality);
     setIsSurveyed(true);
     setIsGridded(false);
@@ -178,6 +183,7 @@ export function TrainingPhase({
     setIsGridded(false);
     setInspectedSurveyZoneIds([]);
     setSelectedSurveyZoneId(null);
+    setFocusedSurveyZoneId(null);
     setSurveyQuality(0);
     setGridAccuracy(null);
     setGridTiles(createTrainingGridTiles(nextDifficulty.id));
@@ -461,36 +467,31 @@ export function TrainingPhase({
   const renderSurveyMap = () => (
     <div className="training-site-stage training-site-stage--survey-map vintage-panel">
       <div className="training-survey-map-bg" aria-hidden="true" />
-      {TRAINING_SURVEY_ZONES.map(zone => {
+      <div className="training-survey-map-legend">Field Survey — tap a marker to read its clue</div>
+      {TRAINING_SURVEY_ZONES.map((zone, index) => {
         const isInspected = inspectedSurveyZoneIds.includes(zone.id);
+        const isFocused = focusedSurveyZoneId === zone.id;
         const isSelected = selectedSurveyZoneId === zone.id;
 
         return (
           <button
             key={zone.id}
             type="button"
-            className={`training-survey-zone zone-${zone.id} ${isInspected ? 'inspected' : ''} ${isSelected ? 'selected' : ''}`}
+            className={`training-survey-pin zone-${zone.id} ${isInspected ? 'inspected' : ''} ${isFocused ? 'focused' : ''} ${isSelected ? 'selected' : ''}`}
             onClick={() => handleSurveyZoneInspect(zone.id)}
+            aria-pressed={isSelected}
           >
-            <strong>{zone.title}</strong>
-            <span>{zone.terrain}</span>
-            {isInspected && <em>{zone.clue}</em>}
+            <span className="training-survey-pin-num">{isSelected ? '✓' : index + 1}</span>
+            <span className="training-survey-pin-label">
+              <strong>{zone.title}</strong>
+              <em>{zone.terrain}</em>
+            </span>
+            {isInspected && isFocused && (
+              <span className="training-survey-pin-clue">{zone.clue}</span>
+            )}
           </button>
         );
       })}
-      <div className={`training-survey-map-note ${selectedSurveyZone ? 'selected' : ''}`}>
-        {selectedSurveyZone ? (
-          <>
-            <strong>{selectedSurveyZone.title} selected</strong>
-            <span>The field map will now narrow into this area for grid setup.</span>
-            <button className="btn pulse-glow" type="button" onClick={handleNextStep}>
-              Zoom into selected area
-            </button>
-          </>
-        ) : (
-          'Inspect surface zones, then choose where to excavate.'
-        )}
-      </div>
     </div>
   );
 
@@ -550,15 +551,16 @@ export function TrainingPhase({
     switch (currentStepIndex) {
       case 0:
         return (
-          <div className="training-action-card">
+          <div className="training-action-card training-survey-action">
             <h4>Current action</h4>
-            <p>Inspect the surface zones, then choose the area with the strongest excavation context.</p>
-            <div className="training-difficulty-grid" aria-label="Training difficulty">
+            <p>Tap a marker on the map to read its surface clue, then choose the area with the strongest excavation context.</p>
+
+            <div className="training-difficulty-segment" role="group" aria-label="Training difficulty">
               {TRAINING_DIFFICULTIES.map(difficulty => (
                 <button
                   key={difficulty.id}
                   type="button"
-                  className={`training-difficulty-card ${difficulty.id === difficultyId ? 'active' : ''}`}
+                  className={`training-difficulty-seg ${difficulty.id === difficultyId ? 'active' : ''}`}
                   onClick={() => handleDifficultySelect(difficulty.id)}
                 >
                   <strong>{difficulty.label}</strong>
@@ -566,45 +568,36 @@ export function TrainingPhase({
                 </button>
               ))}
             </div>
-            <div className="training-survey-list">
-              {TRAINING_SURVEY_ZONES.map(zone => {
-                const isInspected = inspectedSurveyZoneIds.includes(zone.id);
-                const isSelected = selectedSurveyZoneId === zone.id;
 
-                return (
-                  <article key={zone.id} className={`training-survey-card ${isSelected ? 'selected' : ''}`}>
-                    <div>
-                      <strong>{zone.title}</strong>
-                      <span>{isInspected ? zone.fieldNote : zone.terrain}</span>
-                    </div>
-                    <div className="training-survey-card-actions">
-                      <button
-                        className="btn btn-secondary"
-                        type="button"
-                        onClick={() => handleSurveyZoneInspect(zone.id)}
-                      >
-                        {isInspected ? 'Review clue' : 'Inspect'}
-                      </button>
-                      {isInspected && (
-                        <button
-                          className="btn"
-                          type="button"
-                          onClick={() => handleSurveyZoneSelect(zone.id)}
-                        >
-                          Choose area
-                        </button>
-                      )}
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-            {!isSurveyed ? (
-              <div className="training-mini-brief">
-                Survey reveals field evidence, not exact find locations. Inspect at least one zone to choose an excavation area.
+            {focusedSurveyZone ? (
+              <div className={`training-zone-detail ${selectedSurveyZoneId === focusedSurveyZone.id ? 'selected' : ''}`}>
+                <span className="training-zone-detail-kicker">
+                  {selectedSurveyZoneId === focusedSurveyZone.id ? 'Chosen area' : 'Inspecting'}
+                </span>
+                <strong>{focusedSurveyZone.title}</strong>
+                <p className="training-zone-detail-terrain">{focusedSurveyZone.terrain}</p>
+                {isFocusedZoneInspected && (
+                  <p className="training-zone-detail-clue">{focusedSurveyZone.clue}</p>
+                )}
+                <p className="training-zone-detail-note">{focusedSurveyZone.fieldNote}</p>
+                <button
+                  className={`btn ${selectedSurveyZoneId === focusedSurveyZone.id ? 'btn-secondary' : 'pulse-glow'}`}
+                  type="button"
+                  onClick={() => handleSurveyZoneSelect(focusedSurveyZone.id)}
+                >
+                  {selectedSurveyZoneId === focusedSurveyZone.id ? 'Re-confirm this area' : 'Choose this area'}
+                </button>
               </div>
             ) : (
-              <button className="btn pulse-glow" type="button" onClick={handleNextStep}>Zoom into Selected Area</button>
+              <div className="training-mini-brief">
+                Survey reveals field evidence, not exact find locations. Tap at least one marker to inspect a zone.
+              </div>
+            )}
+
+            {isSurveyed && (
+              <button className="btn pulse-glow training-survey-zoom-btn" type="button" onClick={handleNextStep}>
+                Zoom into Selected Area
+              </button>
             )}
           </div>
         );
