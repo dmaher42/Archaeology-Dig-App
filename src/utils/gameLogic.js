@@ -95,7 +95,7 @@ export const TRAINING_DIFFICULTIES = [
   },
 ];
 
-export const DEFAULT_TRAINING_DIFFICULTY_ID = 'intermediate';
+export const DEFAULT_TRAINING_DIFFICULTY_ID = 'beginner';
 
 export const TRAINING_SURVEY_ZONES = [
   {
