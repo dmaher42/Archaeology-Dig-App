@@ -47,13 +47,17 @@ She does not begin the story believing in magic, gods, mirror worlds, or superna
 
 When she touches the plain stone scarab to compare it with the forgotten tomb-painting photo, it activates as a threshold seal. The ground opens beneath her, and she is pulled into the Lost Site.
 
-Crossing the seal changes Asha's modern field clothes into ancient, combat-ready garb because the Lost Site marks trespassers for judgement and survival. This is not proof she is chosen, blessed, or trusted. It is another sign that the site is forcing her into a trial she does not understand.
+Crossing the seal is intended to change Asha's modern field clothes into ancient, combat-ready garb because the Lost Site marks trespassers for judgement and survival. This is not proof she is chosen, blessed, or trusted. It is another sign that the site is forcing her into a trial she does not understand.
+
+> Implementation status: the clothes-change is design canon but is **not yet depicted in-game**. Until the prologue shows modern field clothes and the Lost Site shows the changed garb (a clear before/after), this beat is a planned visual, not a shipped one. Do not reference it in dialogue as if the player has seen it.
 
 The deeper truth, which Asha does not understand at the beginning, is:
 
 > The scarab surfaced because the hidden world is failing.
 
 The old tomb painting may contain a damaged phrase that later resolves toward "a memory returns", but this must not be translated clearly in the opening. At first it should feel like an unreadable warning, not an explanation.
+
+> Payoff status: the "a memory returns" caption is currently **planted in the prologue only**, with no later beat that resolves it. This is an open thread. A future Journey/Queen moment must re-surface and recontextualise the phrase (pairs naturally with the optional secret line "That image should not know you"), or the caption should be cut. Do not leave it as a dangling hook.
 
 The central theme is:
 

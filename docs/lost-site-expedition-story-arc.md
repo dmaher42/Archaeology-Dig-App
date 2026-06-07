@@ -38,7 +38,7 @@ The player should first feel:
 
 Asha should not begin by believing in gods, magic, or supernatural danger. She starts with evidence, photographs, site records, and curiosity. Any damaged phrase near the painted scarab should remain unreadable or uncertain at this stage; the player should not understand the memory theme yet.
 
-When she touches the plain stone scarab to examine it, the threshold opens and pulls her into the Lost Site. The crossing changes her field clothes into trial-garb suited to the hidden world; this should feel unsettling and practical, not heroic destiny.
+When she touches the plain stone scarab to examine it, the threshold opens and pulls her into the Lost Site. The crossing is intended to change her field clothes into trial-garb suited to the hidden world; this should feel unsettling and practical, not heroic destiny. (Planned visual — not yet depicted in-game; see the story bible's implementation-status note.)
 
 ---
 

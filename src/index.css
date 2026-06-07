@@ -15824,6 +15824,56 @@ main {
   font-variant-numeric: tabular-nums;
 }
 
+.journey-prop-editor-tint {
+  display: grid;
+  grid-template-columns: 2.6rem 1.7rem 1fr 2.3rem auto;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.journey-prop-editor-tint > span {
+  color: rgba(236, 254, 255, 0.6);
+  font-size: 0.58rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.journey-prop-editor-tint input[type='color'] {
+  width: 1.7rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 1px solid rgba(236, 254, 255, 0.24);
+  border-radius: 5px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.journey-prop-editor-tint input[type='range'] {
+  width: 100%;
+  height: 0.9rem;
+  accent-color: #5eead4;
+  cursor: pointer;
+}
+
+.journey-prop-editor-tint output {
+  color: #fff7ed;
+  font: 800 0.66rem 'Space Mono', monospace;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.journey-prop-editor-tint button {
+  min-height: 1.5rem;
+  padding: 0.1rem 0.4rem;
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  border-radius: 5px;
+  background: rgba(236, 254, 255, 0.07);
+  color: #fecaca;
+  font: 800 0.58rem 'Outfit', sans-serif;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
 .journey-prop-editor-color-advanced {
   display: grid;
   gap: 0.18rem;

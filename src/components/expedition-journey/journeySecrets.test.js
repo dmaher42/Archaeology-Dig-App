@@ -1022,7 +1022,7 @@ test('opening cinematic starts on the main expedition path and has a styled dram
   assert.match(journeyComponentSource, /The Gate Refuses/);
   assert.match(journeyComponentSource, /I was in Cairo\. I touched the scarab and the pyramid disappeared\./);
   assert.match(journeyComponentSource, /The seal marks trespassers for trial\. That is not permission\./);
-  assert.match(journeyComponentSource, /I tried\. Even this gate no longer obeys\./);
+  assert.match(journeyComponentSource, /I tried\. The seal does not open backward\. You leave by trial or not at all\./);
   assert.doesNotMatch(journeyComponentSource, /The past is not treasure to own/);
   assert.doesNotMatch(journeyComponentSource, /You did not come to take/);
   assert.match(journeyComponentSource, /opening-cinematic-memory-runes/);
@@ -3130,7 +3130,7 @@ test('Egypt opening archive prologue grounds Asha before the Lost Site transport
   assert.match(expeditionModeSource, /setExpeditionStage\('journey'\)/);
   assert.match(journeyComponentSource, /The Gate Refuses/);
   assert.match(journeyComponentSource, /I was in Cairo\. I touched the scarab and the pyramid disappeared\./);
-  assert.match(journeyComponentSource, /I tried\. Even this gate no longer obeys\./);
+  assert.match(journeyComponentSource, /I tried\. The seal does not open backward\. You leave by trial or not at all\./);
   assert.doesNotMatch(journeyComponentSource, /The past is not treasure to own\. It is memory to protect\./);
   assert.doesNotMatch(journeyComponentSource, /You did not come to take\. Prove it beyond the First Seal\./);
   assert.doesNotMatch(journeyComponentSource, /OPENING_ARCHIVE_EVIDENCE/);

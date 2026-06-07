@@ -718,7 +718,7 @@ const OPENING_CINEMATIC_LINES = [
     at: OPENING_CINEMATIC_SPELL_IMPACT_AT,
     speaker: 'Anubis',
     voice: 'guardian',
-    text: 'I tried. Even this gate no longer obeys.',
+    text: 'I tried. The seal does not open backward. You leave by trial or not at all.',
   },
   {
     id: 'asha-survive',
@@ -3658,6 +3658,7 @@ export default function ExpeditionJourney({
     savedAt: null,
   });
   const canvasRef = useRef(null);
+  const propTintBufferRef = useRef(null);
   const stateRef = useRef(gameState);
   const keysRef = useRef({});
   const spokenOpeningLineRef = useRef(null);
@@ -4458,6 +4459,8 @@ export default function ExpeditionJourney({
         mirrorY: Boolean(prop.mirrorY),
         brightness: Number.isFinite(prop.brightness) ? prop.brightness : 1,
         colorGradeFilter: typeof prop.colorGradeFilter === 'string' ? prop.colorGradeFilter : '',
+        tintColor: typeof prop.tintColor === 'string' && prop.tintColor ? prop.tintColor : '#b88a4a',
+        tintStrength: Number.isFinite(prop.tintStrength) ? prop.tintStrength : 0,
         depth: getStoryPropDepth(prop),
         layer: prop.layer || 'default',
         zIndex: Number.isFinite(prop.zIndex) ? prop.zIndex : 'auto',
@@ -5155,6 +5158,8 @@ export default function ExpeditionJourney({
     editor.copiedLook = {
       colorGradeFilter: typeof selectedProp.colorGradeFilter === 'string' ? selectedProp.colorGradeFilter : '',
       brightness: Number.isFinite(selectedProp.brightness) ? selectedProp.brightness : 1,
+      tintColor: typeof selectedProp.tintColor === 'string' ? selectedProp.tintColor : '',
+      tintStrength: Number.isFinite(selectedProp.tintStrength) ? selectedProp.tintStrength : 0,
     };
     refreshPropEditorUi();
   }, [getPropEditorSelectedProp, refreshPropEditorUi]);
@@ -5165,6 +5170,8 @@ export default function ExpeditionJourney({
     updateSelectedPropEditorTransform({
       colorGradeFilter: look.colorGradeFilter,
       brightness: look.brightness,
+      ...(typeof look.tintColor === 'string' && look.tintColor ? { tintColor: look.tintColor } : {}),
+      tintStrength: Number.isFinite(look.tintStrength) ? look.tintStrength : 0,
     });
   }, [updateSelectedPropEditorTransform]);
 
@@ -11586,6 +11593,8 @@ export default function ExpeditionJourney({
         ...(propForAsset.sceneBlend ? { sceneBlend: propForAsset.sceneBlend } : {}),
         ...(standalonePropAsset ? { colorGradeFilter: ROUTE_GATE_STANDALONE_PROP_COLOR_GRADE_FILTER } : {}),
         ...(propForAsset.colorGradeFilter ? { colorGradeFilter: propForAsset.colorGradeFilter } : {}),
+        ...(propForAsset.tintColor ? { tintColor: propForAsset.tintColor } : {}),
+        ...(Number.isFinite(propForAsset.tintStrength) ? { tintStrength: propForAsset.tintStrength } : {}),
       };
       if (Number.isFinite(propSize.scale)) {
         propSize.width *= propSize.scale;
@@ -11686,6 +11695,46 @@ export default function ExpeditionJourney({
         ctx.shadowBlur = 0;
         ctx.shadowOffsetY = 0;
         ctx.globalAlpha = 1;
+        // Colour tint overlay: multiply a picked colour over just this prop's pixels.
+        // Gated by tintStrength > 0 so every untinted prop renders exactly as before.
+        // Uses an offscreen buffer masked to the prop's alpha (source-in) so only the
+        // prop is tinted, never the scene behind it. Atlas-drawn props only.
+        const tintStrength = clamp(Number(propSize.tintStrength) || 0, 0, 1);
+        if (tintStrength > 0 && propAssetKey && typeof propSize.tintColor === 'string'
+            && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(propSize.tintColor.trim())) {
+          const bufW = Math.max(1, Math.round(propSize.width));
+          const bufH = Math.max(1, Math.round(propSize.height));
+          const buf = propTintBufferRef.current || (propTintBufferRef.current = document.createElement('canvas'));
+          if (buf.width !== bufW) buf.width = bufW;
+          if (buf.height !== bufH) buf.height = bufH;
+          const bctx = buf.getContext('2d');
+          if (bctx) {
+            bctx.setTransform(1, 0, 0, 1, 0, 0);
+            bctx.globalCompositeOperation = 'source-over';
+            bctx.globalAlpha = 1;
+            bctx.clearRect(0, 0, bufW, bufH);
+            const masked = drawAtlasRegion(bctx, propAssets, propAssetKey, { x: 0, y: 0, width: bufW, height: bufH }, { mode: 'contain' });
+            if (masked) {
+              // Keep the fill only where the prop drew pixels, turning the shape into solid tint.
+              bctx.globalCompositeOperation = 'source-in';
+              bctx.fillStyle = propSize.tintColor.trim();
+              bctx.fillRect(0, 0, bufW, bufH);
+              bctx.globalCompositeOperation = 'source-over';
+              // Multiply that tinted shape over the already-drawn prop, scaled by strength.
+              ctx.save();
+              ctx.globalCompositeOperation = 'multiply';
+              ctx.globalAlpha = tintStrength;
+              if (propForAsset.mirrorX || propForAsset.mirrorY) {
+                ctx.translate(drawX + propSize.width / 2, drawY + propSize.height / 2);
+                ctx.scale(propForAsset.mirrorX ? -1 : 1, propForAsset.mirrorY ? -1 : 1);
+                ctx.drawImage(buf, -propSize.width / 2, -propSize.height / 2, propSize.width, propSize.height);
+              } else {
+                ctx.drawImage(buf, drawX, drawY, propSize.width, propSize.height);
+              }
+              ctx.restore();
+            }
+          }
+        }
         drawPropSandOcclusion(ctx, x, anchorY, propSize, section.id, propGrounding);
         if (stateRef.current.renderStats) stateRef.current.renderStats.groundedPropCount += 1;
         if (atmospherePropAssetKey && stateRef.current.renderStats) {
@@ -22545,6 +22594,32 @@ export default function ExpeditionJourney({
                               onClick={() => updateSelectedPropEditorField('colorGradeFilter', '')}
                             >
                               Reset
+                            </button>
+                          </div>
+                          <div className="journey-prop-editor-tint">
+                            <span>Tint</span>
+                            <input
+                              type="color"
+                              value={/^#([0-9a-f]{6})$/i.test(propEditorUi.selectedProp.tintColor || '') ? propEditorUi.selectedProp.tintColor : '#b88a4a'}
+                              onChange={(event) => updateSelectedPropEditorField('tintColor', event.target.value)}
+                              title="Pick a colour to tint this prop toward, then raise the strength"
+                            />
+                            <input
+                              type="range"
+                              min="0"
+                              max="1"
+                              step="0.05"
+                              value={propEditorUi.selectedProp.tintStrength ?? 0}
+                              onChange={(event) => updateSelectedPropEditorNumberField('tintStrength', clamp(Number(event.target.value), 0, 1), { min: 0, max: 1, decimals: 2 })}
+                            />
+                            <output>{Math.round((propEditorUi.selectedProp.tintStrength ?? 0) * 100)}%</output>
+                            <button
+                              type="button"
+                              className="journey-prop-editor-color-reset"
+                              onClick={() => updateSelectedPropEditorNumberField('tintStrength', 0, { min: 0, max: 1, decimals: 2 })}
+                              title="Remove tint"
+                            >
+                              Clear
                             </button>
                           </div>
                           <div className="journey-prop-editor-slider">
