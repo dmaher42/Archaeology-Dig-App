@@ -11,37 +11,6 @@ const journeyPlacementOverrides = {
   "room": "desert-entry",
   "props": [
     {
-      "id": "desert-entry-rubble-cluster-small-1",
-      "sectionId": "desert-entry",
-      "type": "foreground-depth-detail-prop",
-      "foregroundDetailAssetKey": "rubbleClusterSmall",
-      "x": 1215,
-      "y": 556,
-      "width": 132,
-      "height": 86,
-      "depth": "route-edge",
-      "layer": "route-edge",
-      "brightness": 1,
-      "colorGradeFilter": "",
-      "groundPebbles": 0,
-      "sandOverlapHeight": 0,
-      "shadowOpacity": 0,
-      "label": "rubble cluster small",
-      "groundContactLayer": [
-        {
-          "assetKey": "rubbleClusterSmall",
-          "alignY": "bottom",
-          "alpha": 0.84,
-          "height": 86,
-          "layer": "overlay",
-          "mode": "contain",
-          "widthRatio": 1,
-          "xRatio": 0.5,
-          "yOffset": -86
-        }
-      ]
-    },
-    {
       "id": "desert-entry-egypt-base-sand-drift-1",
       "sectionId": "desert-entry",
       "type": "foreground-depth-detail-prop",
@@ -61,45 +30,15 @@ const journeyPlacementOverrides = {
       "groundContactLayer": [
         {
           "assetKey": "egyptBaseSandDrift",
+          "layer": "overlay",
+          "filter": "saturate(63%) sepia(56%) contrast(9%) hue-rotate(-3deg)",
+          "mode": "stretch",
           "alignY": "bottom",
-          "alpha": 0.58,
+          "xRatio": 0.5,
+          "widthRatio": 1,
+          "yOffset": -70,
           "height": 70,
-          "layer": "overlay",
-          "mode": "stretch",
-          "widthRatio": 1,
-          "xRatio": 0.5,
-          "yOffset": -70
-        }
-      ]
-    },
-    {
-      "id": "desert-entry-edge-pebble-scatter-1",
-      "sectionId": "desert-entry",
-      "type": "foreground-depth-detail-prop",
-      "foregroundDetailAssetKey": "edgePebbleScatter",
-      "x": 1839,
-      "y": 562,
-      "width": 182,
-      "height": 72,
-      "depth": "route-edge",
-      "layer": "route-edge",
-      "brightness": 1,
-      "colorGradeFilter": "",
-      "groundPebbles": 0,
-      "sandOverlapHeight": 0,
-      "shadowOpacity": 0,
-      "label": "edge pebble scatter",
-      "groundContactLayer": [
-        {
-          "assetKey": "edgePebbleScatter",
-          "alignY": "bottom",
-          "alpha": 0.72,
-          "height": 72,
-          "layer": "overlay",
-          "mode": "stretch",
-          "widthRatio": 1,
-          "xRatio": 0.5,
-          "yOffset": -72
+          "alpha": 0.58
         }
       ]
     },
@@ -127,9 +66,11 @@ const journeyPlacementOverrides = {
       "groundContactLayer": [],
       "editorBoundsInsetBottom": 0,
       "brightness": 0.95,
-      "colorGradeFilter": "saturate(63%) sepia(56%) contrast(99%) hue-rotate(-23deg)pp",
+      "colorGradeFilter": "sepia(40%) hue-rotate(-5deg) saturate(135%)",
       "mirrorX": false,
-      "zIndex": 5
+      "zIndex": 5,
+      "tintColor": "#ab8754",
+      "tintStrength": 0.4
     },
     {
       "id": "mummification-chamber-exterior-structure",
@@ -578,14 +519,16 @@ const journeyPlacementOverrides = {
       "sandMoundWidth": 0,
       "groundPebbles": 0,
       "depth": "grounded",
-      "brightness": 0.9,
-      "colorGradeFilter": "saturate(113%) contrast(98%)",
+      "brightness": 0.8,
+      "colorGradeFilter": "saturate(120%) sepia(40%) contrast(105%) hue-rotate(-5deg)",
       "editorBoundsInsetTop": 31,
       "editorBoundsInsetBottom": 31,
       "zIndex": -70,
       "shadowHeight": 0,
       "sandMoundHeight": 1,
-      "groundContactLayer": []
+      "groundContactLayer": [],
+      "tintColor": "#3f3527",
+      "tintStrength": 0.4
     },
     {
       "id": "desert-entry-fallen-lintel-1-copy-1",
@@ -594,7 +537,7 @@ const journeyPlacementOverrides = {
       "atmosphereAssetKey": "fallen_lintel",
       "scale": 1.4,
       "layer": "foreground",
-      "x": 342,
+      "x": 343,
       "y": 541,
       "label": "fallen lintel",
       "width": 118,
@@ -607,11 +550,13 @@ const journeyPlacementOverrides = {
       "groundPebbles": 0,
       "depth": "grounded",
       "mirrorX": true,
-      "brightness": 0.9,
-      "colorGradeFilter": "saturate(113%) contrast(98%)",
+      "brightness": 0.7,
+      "colorGradeFilter": "saturate(143%) sepia(40%) hue-rotate(-1deg)",
       "shadowHeight": 9,
       "sandMoundHeight": 0,
-      "yOffset": -18
+      "yOffset": -18,
+      "tintColor": "#272116",
+      "tintStrength": 0.4
     },
     {
       "id": "desert-entry-incense-stands-1",
@@ -817,7 +762,7 @@ const journeyPlacementOverrides = {
       "depth": "route-edge",
       "placementPreset": "desertEntryGroundedRuin",
       "tint": "warm",
-      "colorGradeFilter": "saturate(113%) contrast(98%)",
+      "colorGradeFilter": "saturate(132%) sepia(40%) hue-rotate(-5deg)",
       "alpha": 0.97,
       "shadowOpacity": 0,
       "sandOverlapHeight": 0,
@@ -831,7 +776,9 @@ const journeyPlacementOverrides = {
       "mirrorX": false,
       "mirrorY": true,
       "shadowHeight": 0,
-      "brightness": 0.85
+      "brightness": 0.55,
+      "tintColor": "#331e00",
+      "tintStrength": 0.4
     },
     {
       "id": "desert-entry-premium-short-sand-lip-1",
@@ -840,7 +787,7 @@ const journeyPlacementOverrides = {
       "groundDetailAssetKey": "premiumShortSandLip",
       "width": 389,
       "height": 32,
-      "depth": "grounded",
+      "depth": "route-edge",
       "layer": "route-edge",
       "shadowOpacity": 0,
       "sandOverlapHeight": 0,
@@ -860,13 +807,15 @@ const journeyPlacementOverrides = {
           "mirrorX": false
         }
       ],
-      "x": 1241,
-      "y": 603,
+      "x": 1235,
+      "y": 600,
       "label": "short sand lip",
       "scale": 0.65,
-      "colorGradeFilter": "saturate(107%) sepia(11%) contrast(136%) hue-rotate(-3deg)",
-      "brightness": 0.85,
-      "zIndex": -43
+      "colorGradeFilter": "saturate(200%) sepia(40%) hue-rotate(-4deg)",
+      "brightness": 0.95,
+      "zIndex": -43,
+      "tintColor": "#593908",
+      "tintStrength": 0.4
     },
     {
       "id": "desert-entry-premium-short-sand-lip-2",
@@ -946,25 +895,27 @@ const journeyPlacementOverrides = {
       "shadowOpacity": 0,
       "sandOverlapHeight": 0,
       "groundPebbles": 0,
-      "brightness": 1,
-      "colorGradeFilter": "saturate(104%) sepia(12%) contrast(82%) hue-rotate(1deg)",
+      "brightness": 0.8,
+      "colorGradeFilter": "sepia(70%) hue-rotate(-13deg) saturate(225%)",
       "groundContactLayer": [
         {
           "assetKey": "premiumCarvedStoneEdge",
           "layer": "overlay",
+          "filter": "saturate(63%) sepia(56%) contrast(99%) hue-rotate(-3deg)",
           "mode": "stretch",
           "alignY": "bottom",
           "xRatio": 0.5,
           "widthRatio": 1,
           "yOffset": -56,
           "height": 81,
-          "alpha": 1,
-          "filter": "saturate(92%) sepia(28%) contrast(90%) hue-rotate(6deg)"
+          "alpha": 1
         }
       ],
-      "x": 1581,
-      "y": 577,
-      "label": "carved stone edge"
+      "x": 1498,
+      "y": 553,
+      "label": "carved stone edge",
+      "tintColor": "#833c01",
+      "tintStrength": 0.7
     },
     {
       "id": "desert-entry-premium-carved-stone-edge-2",
@@ -972,31 +923,38 @@ const journeyPlacementOverrides = {
       "type": "ground-contact-detail-prop",
       "groundDetailAssetKey": "premiumCarvedStoneEdge",
       "width": 191,
-      "height": 56,
+      "height": 60,
       "depth": "route-edge",
       "layer": "route-edge",
       "shadowOpacity": 0,
       "sandOverlapHeight": 0,
       "groundPebbles": 0,
-      "brightness": 0.95,
-      "colorGradeFilter": "saturate(72%) sepia(30%) contrast(94%)",
+      "brightness": 1.5,
+      "colorGradeFilter": "sepia(40%) hue-rotate(-14deg) saturate(143%)",
       "groundContactLayer": [
         {
           "assetKey": "premiumCarvedStoneEdge",
           "layer": "overlay",
-          "filter": "saturate(145%) sepia(17%) contrast(78%) hue-rotate(3deg)",
+          "filter": "saturate(63%) sepia(56%) contrast(99%) hue-rotate(-2deg)pp",
           "mode": "stretch",
           "alignY": "bottom",
           "xRatio": 0.5,
           "widthRatio": 1,
           "yOffset": -56,
-          "height": 56,
-          "alpha": 1
+          "height": 66,
+          "rotation": 366,
+          "alpha": 1,
+          "mirrorX": true
         }
       ],
-      "x": 1688,
-      "y": 586,
-      "label": "carved stone edge"
+      "x": 1631,
+      "y": 568,
+      "label": "carved stone edge",
+      "mirrorX": false,
+      "mirrorY": false,
+      "scale": 1.1,
+      "tintColor": "#7f512d",
+      "tintStrength": 0.4
     },
     {
       "id": "desert-entry-damaged-jackal-statue-1",
@@ -1007,14 +965,16 @@ const journeyPlacementOverrides = {
       "label": "damaged jackal statue",
       "depth": "grounded",
       "zIndex": 0,
-      "colorGradeFilter": "saturate(104%) sepia(12%) contrast(82%) hue-rotate(1deg)",
+      "colorGradeFilter": "sepia(40%) hue-rotate(-5deg) saturate(136%)",
       "sandMoundWidth": 0,
       "sandMoundHeight": 0,
       "groundPebbles": 0,
       "sandOverlapHeight": 0,
       "shadowHeight": 0,
       "brightness": 0.9,
-      "scale": 1.4
+      "scale": 1.4,
+      "tintColor": "#372b1a",
+      "tintStrength": 0.4
     },
     {
       "id": "desert-entry-old-baskets-1",
@@ -1123,9 +1083,11 @@ const journeyPlacementOverrides = {
       "y": 606,
       "label": "short sand lip",
       "scale": 0.65,
-      "colorGradeFilter": "saturate(96%) sepia(18%) contrast(98%)",
+      "colorGradeFilter": "sepia(40%) hue-rotate(-1deg) saturate(121%)",
       "brightness": 0.95,
-      "zIndex": 33
+      "zIndex": 33,
+      "tintColor": "#8b8374",
+      "tintStrength": 0.4
     },
     {
       "id": "desert-entry-premium-broken-masonry-footing-1",
@@ -1177,7 +1139,7 @@ const journeyPlacementOverrides = {
       "sandOverlapHeight": 0,
       "groundPebbles": 0,
       "brightness": 1,
-      "colorGradeFilter": "saturate(113%) contrast(98%)",
+      "colorGradeFilter": "sepia(40%) hue-rotate(-6deg) saturate(149%)",
       "groundContactLayer": [
         {
           "assetKey": "premiumRubbleContactShadow",
@@ -1195,7 +1157,9 @@ const journeyPlacementOverrides = {
       "x": 553,
       "y": 334,
       "label": "rubble contact shadow",
-      "scale": 0.7
+      "scale": 0.7,
+      "tintColor": "#493213",
+      "tintStrength": 0.4
     },
     {
       "id": "desert-entry-premium-rubble-contact-shadow-4",
@@ -1263,34 +1227,6 @@ const journeyPlacementOverrides = {
       "groundPebbles": 0
     },
     {
-      "id": "desert-entry-ledge-helper-buried-ramp-blocks-1",
-      "sectionId": "desert-entry",
-      "type": "atmosphere-prop",
-      "atmosphereAssetKey": "ledgeHelperBuriedRampBlocks",
-      "width": 408,
-      "height": 270,
-      "scale": 1.35,
-      "layer": "foreground",
-      "depth": "route-edge",
-      "placementPreset": "desertEntryGroundedRuin",
-      "tint": "buried-stone",
-      "colorGradeFilter": "saturate(94%) contrast(112%)",
-      "alpha": 0.98,
-      "shadowOpacity": 0.22,
-      "sandOverlapHeight": 16,
-      "sandMoundWidth": 330,
-      "groundPebbles": 5,
-      "x": 2652,
-      "y": 698,
-      "label": "buried ramp blocks",
-      "yOffset": 109,
-      "zIndex": -38,
-      "mirrorY": false,
-      "mirrorX": false,
-      "brightness": 1.05,
-      "rotation": 10
-    },
-    {
       "id": "desert-entry-premium-low-sediment-ribbon-1",
       "sectionId": "desert-entry",
       "type": "ground-contact-detail-prop",
@@ -1323,35 +1259,66 @@ const journeyPlacementOverrides = {
       "zIndex": 28
     },
     {
-      "id": "desert-entry-premium-rubble-contact-shadow-5",
+      "id": "desert-entry-hieroglyphic-tablets-1",
       "sectionId": "desert-entry",
-      "type": "ground-contact-detail-prop",
-      "groundDetailAssetKey": "premiumRubbleContactShadow",
-      "width": 184,
-      "height": 52,
+      "type": "atmosphere-prop",
+      "atmosphereAssetKey": "hieroglyphic_tablets",
+      "scale": 1,
+      "layer": "foreground",
+      "x": 1395,
+      "y": 501,
+      "label": "hieroglyphic tablets",
+      "zIndex": 8,
       "depth": "route-edge",
-      "layer": "route-edge",
+      "yOffset": 14,
+      "height": 94,
+      "tintColor": "#7e3302",
+      "tintStrength": 0.4,
+      "colorGradeFilter": "saturate(126%) hue-rotate(-2deg)"
+    },
+    {
+      "id": "desert-entry-desert-entry-premium-threshold-slab-1",
+      "sectionId": "desert-entry",
+      "type": "atmosphere-prop",
+      "atmosphereAssetKey": "desertEntryPremiumThresholdSlab",
+      "width": 126,
+      "height": 30,
+      "placementPreset": "desertEntryGroundedRuin",
+      "shadowWidth": 132,
       "shadowOpacity": 0,
-      "sandOverlapHeight": 0,
-      "groundPebbles": 0,
-      "brightness": 1,
-      "colorGradeFilter": "",
-      "groundContactLayer": [
-        {
-          "assetKey": "premiumRubbleContactShadow",
-          "layer": "overlay",
-          "xRatio": 0.5,
-          "widthRatio": 1,
-          "height": 52,
-          "yOffset": -52,
-          "alpha": 0.46,
-          "mode": "stretch",
-          "alignY": "bottom"
-        }
-      ],
-      "x": 2546,
-      "y": 251,
-      "label": "rubble contact shadow"
+      "sandOverlapHeight": 9,
+      "sandMoundWidth": 138,
+      "x": 1345,
+      "y": 575,
+      "label": "desert entry premium threshold slab",
+      "yOffset": -14,
+      "scale": 2.6,
+      "colorGradeFilter": "saturate(187%) sepia(40%) hue-rotate(-11deg)",
+      "tintColor": "#994d05",
+      "tintStrength": 0.4,
+      "brightness": 0.75
+    },
+    {
+      "id": "desert-entry-desert-entry-premium-threshold-slab-1-copy-1",
+      "sectionId": "desert-entry",
+      "type": "atmosphere-prop",
+      "atmosphereAssetKey": "desertEntryPremiumThresholdSlab",
+      "width": 126,
+      "height": 30,
+      "placementPreset": "desertEntryGroundedRuin",
+      "shadowWidth": 132,
+      "shadowOpacity": 0,
+      "sandOverlapHeight": 9,
+      "sandMoundWidth": 138,
+      "x": 1377,
+      "y": 543,
+      "label": "desert entry premium threshold slab",
+      "yOffset": -14,
+      "scale": 2.6,
+      "brightness": 0.75,
+      "colorGradeFilter": "saturate(187%) sepia(40%) hue-rotate(-11deg)",
+      "tintColor": "#994d05",
+      "tintStrength": 0.4
     }
   ],
   "deletedPropIds": [
@@ -1359,7 +1326,11 @@ const journeyPlacementOverrides = {
     "opening-pillar-caps-base",
     "desert-entry-rubble-scatter-1",
     "desert-entry-sand-piles-1",
-    "desert-boundary-marker"
+    "desert-boundary-marker",
+    "desert-entry-premium-rubble-contact-shadow-5",
+    "desert-entry-ledge-helper-buried-ramp-blocks-1",
+    "desert-entry-edge-pebble-scatter-1",
+    "desert-entry-rubble-cluster-small-1"
   ],
   "platforms": [
     {
@@ -2025,7 +1996,6 @@ const journeyPlacementOverrides = {
       },
       "message": "A low sand ridge slowed the survey line."
     },
-
     {
       "id": "opening-seal-reset-trap",
       "name": "buried spike trap",
@@ -2555,11 +2525,6 @@ const journeyPlacementOverrides = {
         "objective": "desert-entry",
         "shards": 6
       }
-    },
-    {
-      "id": "desert-entry-scorpion-nest-gate",
-      "x": 3244,
-      "y": 296
     },
     {
       "id": "desert-seal",

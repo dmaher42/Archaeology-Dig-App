@@ -279,8 +279,8 @@ export const ENEMIES = [
   { id: 'scorpion-pottery-1', name: 'Pottery Scorpion', type: 'scorpion', emoji: 'S', x: X(535), y: JY(328), width: 46, height: 30, patrolMin: X(485), patrolMax: X(620), speed: 62, health: 1, damage: 5, openingRouteRamp: true, firstSealRouteRamp: true, attackPatternTuning: { windup: 0.64, duration: 0.32, cooldown: 1.72, recovery: 0.68, vulnerableAfter: 0.76, speed: 48, range: 28, height: 62, yOffset: -38, backReach: 42, damageScale: 1.45, protectedDuringWindup: true }, shards: 1, encounterRole: 'shard cache guard', protectsRouteId: 'desert-opening-shard-cache' },
   // --- Opening combat ramp + scorpion-nest arena (pyramid -> mummification building) ---
   { id: 'scorpion-approach-2', name: 'Sand Scorpion', type: 'scorpion', emoji: 'S', x: X(745), y: JY(328), width: 46, height: 30, patrolMin: X(715), patrolMax: X(795), speed: 58, health: 2, damage: 6, openingRouteRamp: true, attackPatternTuning: { windup: 0.66, duration: 0.34, cooldown: 1.74, recovery: 0.7, vulnerableAfter: 0.78, speed: 46, range: 28, height: 62, yOffset: -38, backReach: 42, damageScale: 1.4 }, shards: 2, encounterRole: 'approach pressure', pressureHint: 'Another sand scorpion patrols the approach to the nest.' },
-  // Stationary destructible spawner. Inert by data (speed/range/damage 0); spawn behaviour + render handled in ExpeditionJourney.jsx. The arena gate requires this enemy's defeat.
-  { id: 'desert-entry-scorpion-nest-1', name: 'Scorpion Nest', type: 'scorpion-nest', emoji: 'N', x: X(500), y: JY(316), width: 84, height: 54, patrolMin: X(500), patrolMax: X(500), speed: 0, health: 6, damage: 0, openingRouteRamp: true, shards: 5, spawnInterval: 3.4, spawnCap: 3, spawnInitialDelay: 0.9, attackPatternTuning: { windup: 99, duration: 0.1, cooldown: 99, recovery: 0.1, vulnerableAfter: 0.1, speed: 0, range: 0, height: 0, yOffset: 0, backReach: 0, damageScale: 0 }, encounterRole: 'nest arena', combatRole: 'destructible spawner', protectsRouteId: 'desert-entry-scorpion-nest-gate', pressureHint: 'Scorpions pour from the nest. Destroy the nest to stop the swarm and open the sealed way.' },
+  // Stationary destructible spawner. Inert by data (speed/range/damage 0); spawn behaviour + render handled in ExpeditionJourney.jsx.
+  { id: 'desert-entry-scorpion-nest-1', name: 'Scorpion Nest', type: 'scorpion-nest', emoji: 'N', x: X(500), y: JY(316), width: 84, height: 54, patrolMin: X(500), patrolMax: X(500), speed: 0, health: 6, damage: 0, openingRouteRamp: true, shards: 5, spawnInterval: 3.4, spawnCap: 3, spawnInitialDelay: 0.9, attackPatternTuning: { windup: 99, duration: 0.1, cooldown: 99, recovery: 0.1, vulnerableAfter: 0.1, speed: 0, range: 0, height: 0, yOffset: 0, backReach: 0, damageScale: 0 }, encounterRole: 'nest arena', combatRole: 'destructible spawner', pressureHint: 'Scorpions pour from the nest. Destroy the nest to stop the swarm.' },
   { id: 'sand-wisp-arena-1', name: 'Sand Wisp', type: 'sand-wisp', emoji: 'W', x: X(545), y: JY(300), width: 32, height: 30, patrolMin: X(510), patrolMax: X(580), speed: 70, health: 2, damage: 5, openingRouteRamp: true, initialAttackCooldown: 2.2, attackPatternTuning: { windup: 0.56, cooldown: 1.7, recovery: 0.66, vulnerableAfter: 0.72, speed: 122, range: 34 }, shards: 2, flying: true, encounterRole: 'nest arena pressure', pressureHint: 'A sand wisp harries you while the nest spits scorpions.' },
   { id: 'scarab-arena-1', name: 'Scarab', type: 'scarab', emoji: 'B', x: X(455), y: JY(334), width: 34, height: 26, patrolMin: X(425), patrolMax: X(490), speed: 76, health: 2, damage: 6, openingRouteRamp: true, initialAttackCooldown: 1.9, shards: 2, encounterRole: 'nest arena pressure' },
   { id: 'scarab-scout-1', name: 'Scarab Scout', type: 'scarab', emoji: 'ðŸž', x: X(705), y: JY(334), width: 34, height: 26, patrolMin: X(680), patrolMax: X(760), speed: 74, health: 1, damage: 5, openingRouteRamp: true, firstSealRouteRamp: true, shards: 2, encounterRole: 'basic timing scout', combatRole: 'basic timing enemy', protectsRouteId: 'temple-approach-seal', pressureHint: 'Anubis\'s scout patrols the temple approach. The seal will not open while it remains.', attackPatternTuning: { label: 'Scout Charge', windup: 0.72, duration: 0.24, cooldown: 1.72, recovery: 0.82, vulnerableAfter: 0.9, speed: 138, range: 34 } },
@@ -405,22 +405,6 @@ export const CHECKPOINTS = [
 ];
 
 export const ROUTE_GATES = [
-  {
-    // Required arena gate: locks the path near the mummification building until the
-    // scorpion nest (desert-entry-scorpion-nest-1) is destroyed. Reuses requires.enemies.
-    id: 'desert-entry-scorpion-nest-gate',
-    name: 'Infested Seal',
-    x: X(610),
-    y: JY(86),
-    width: 34,
-    height: 274,
-    message: 'The way is sealed while scorpions pour from the nest. Destroy the nest to break the seal.',
-    readyHint: 'The nest is destroyed. The seal gives way — press on toward the temple approach.',
-    openMessage: 'With the nest shattered, the seal grinds open.',
-    requires: {
-      enemies: ['desert-entry-scorpion-nest-1'],
-    },
-  },
   {
     id: 'temple-approach-seal',
     name: 'Temple Approach Seal',
