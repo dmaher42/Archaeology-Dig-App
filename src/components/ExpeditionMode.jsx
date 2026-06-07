@@ -149,6 +149,12 @@ const EGYPT_ARCHIVE_ASSETS = {
   notes: 'assets/expedition/opening/archive-prologue/asha-field-notebook-2026-06-07.png',
 };
 
+const EGYPT_ARCHIVE_TRANSPORT_ASSETS = {
+  site: 'assets/expedition/opening/scarab-transport/pyramid-scarab-site-approach-2026-06-07.png',
+  touch: 'assets/expedition/opening/scarab-transport/scarab-photo-comparison-touch-2026-06-07.png',
+  threshold: 'assets/expedition/opening/scarab-transport/scarab-threshold-opening-2026-06-07.png',
+};
+
 const EGYPT_ARCHIVE_PROLOGUE_ITEMS = [
   {
     id: 'museum-report',
@@ -241,6 +247,8 @@ const EGYPT_ARCHIVE_CINEMATIC_STEPS = [
     id: 'pyramid-site',
     kicker: 'Location shift',
     title: 'Pyramid Site',
+    visualSrc: EGYPT_ARCHIVE_TRANSPORT_ASSETS.site,
+    visualObjectPosition: 'center',
     lines: EGYPT_ARCHIVE_SITE_TRANSITION_LINES,
     actionLabel: 'Approach the scarab',
   },
@@ -248,6 +256,8 @@ const EGYPT_ARCHIVE_CINEMATIC_STEPS = [
     id: 'scarab-floor-carving',
     kicker: 'Scarab - Site Comparison',
     title: 'The old photograph matches now.',
+    visualSrc: EGYPT_ARCHIVE_TRANSPORT_ASSETS.touch,
+    visualObjectPosition: 'center',
     lines: EGYPT_ARCHIVE_SCARAB_CINEMATIC_LINES,
     actionLabel: 'Examine the scarab',
   },
@@ -255,6 +265,8 @@ const EGYPT_ARCHIVE_CINEMATIC_STEPS = [
     id: 'threshold-opened',
     kicker: 'Threshold Opened',
     title: 'The seal answers.',
+    visualSrc: EGYPT_ARCHIVE_TRANSPORT_ASSETS.threshold,
+    visualObjectPosition: 'center',
     lines: EGYPT_ARCHIVE_ACTIVATION_LINES,
     note: 'The world below is not the site Asha climbed.',
     actionLabel: 'Enter the Lost Site',
@@ -4921,6 +4933,43 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
               <h2 style={{ fontFamily: 'Cinzel, serif', color: '#fff3dd', margin: '0 0 0.95rem', fontSize: '1.45rem', letterSpacing: 0 }}>
                 {cinematicStep.title}
               </h2>
+              {cinematicStep.visualSrc && (
+                <div style={{
+                  position: 'relative',
+                  height: 'clamp(190px, 35vw, 330px)',
+                  marginBottom: '1.15rem',
+                  border: `1px solid ${finalCinematicStep ? 'rgba(242, 210, 140, 0.34)' : 'rgba(198, 160, 89, 0.24)'}`,
+                  borderRadius: 8,
+                  overflow: 'hidden',
+                  background: 'rgba(12, 10, 8, 0.92)',
+                  boxShadow: finalCinematicStep
+                    ? '0 20px 56px rgba(0, 0, 0, 0.42), 0 0 32px rgba(198, 160, 89, 0.12)'
+                    : '0 18px 45px rgba(0, 0, 0, 0.32)',
+                }} aria-hidden="true">
+                  <img
+                    src={cinematicStep.visualSrc}
+                    alt=""
+                    loading={prologueCinematicStep === 0 ? 'eager' : 'lazy'}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      objectPosition: cinematicStep.visualObjectPosition || 'center',
+                      display: 'block',
+                      filter: finalCinematicStep
+                        ? 'saturate(1.05) contrast(1.04)'
+                        : 'saturate(1.02) contrast(1.02)',
+                    }}
+                  />
+                  <div style={{
+                    position: 'absolute',
+                    inset: 0,
+                    background: finalCinematicStep
+                      ? 'linear-gradient(180deg, rgba(10, 7, 5, 0.05), rgba(10, 7, 5, 0.22))'
+                      : 'linear-gradient(180deg, rgba(10, 7, 5, 0.02), rgba(10, 7, 5, 0.18))',
+                  }} />
+                </div>
+              )}
               <div style={{ display: 'grid', gap: '0.3rem', marginBottom: '1.4rem' }}>
                 {cinematicStep.lines.map((line, i) => (
                   <div key={line} style={{ fontSize: '0.98rem', color: finalCinematicStep && i >= 10 ? '#f2d28c' : '#d3c09a', fontStyle: finalCinematicStep && i >= 10 ? 'italic' : 'normal', lineHeight: 1.55 }}>{line}</div>

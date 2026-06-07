@@ -3138,6 +3138,29 @@ test('Egypt opening archive prologue grounds Asha before the Lost Site transport
   assert.doesNotMatch(indexCssSource, /\.opening-archive-card/);
 });
 
+test('Egypt archive transport beat uses project-bound cinematic PNGs before Journey handoff', () => {
+  assert.match(expeditionModeSource, /const EGYPT_ARCHIVE_TRANSPORT_ASSETS = \{/);
+  [
+    'assets/expedition/opening/scarab-transport/pyramid-scarab-site-approach-2026-06-07.png',
+    'assets/expedition/opening/scarab-transport/scarab-photo-comparison-touch-2026-06-07.png',
+    'assets/expedition/opening/scarab-transport/scarab-threshold-opening-2026-06-07.png',
+  ].forEach((assetPath) => {
+    assert.ok(
+      existsSync(new URL(`../../../public/${assetPath}`, import.meta.url)),
+      `${assetPath} should exist as a project-bound scarab transport PNG`,
+    );
+    assert.match(expeditionModeSource, new RegExp(assetPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  });
+  assert.match(expeditionModeSource, /id:\s*'pyramid-site'[\s\S]*?visualSrc:\s*EGYPT_ARCHIVE_TRANSPORT_ASSETS\.site/);
+  assert.match(expeditionModeSource, /id:\s*'scarab-floor-carving'[\s\S]*?visualSrc:\s*EGYPT_ARCHIVE_TRANSPORT_ASSETS\.touch/);
+  assert.match(expeditionModeSource, /id:\s*'threshold-opened'[\s\S]*?visualSrc:\s*EGYPT_ARCHIVE_TRANSPORT_ASSETS\.threshold/);
+  assert.match(expeditionModeSource, /src=\{cinematicStep\.visualSrc\}/);
+  assert.match(expeditionModeSource, /This isn\\'t the excavation site\./);
+  assert.match(expeditionModeSource, /setExpeditionStage\('journey'\)/);
+  assert.doesNotMatch(expeditionModeSource, /OPENING_TRANSPORT_SCENE/);
+  assert.doesNotMatch(journeyComponentSource, /archiveTransportStep/);
+});
+
 test('low-quality generated sacred trap pack is not part of the live asset contract', () => {
   assert.equal(
     existsSync(new URL('../../../public/assets/expedition/environment/desert-temple/egypt-sacred-traps-pack.json', import.meta.url)),
