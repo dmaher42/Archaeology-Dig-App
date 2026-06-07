@@ -149,6 +149,57 @@ import {
   updateJourneyTrapRuntime,
   updatePlayerAnimation,
 } from './expedition-journey/journeyUtils';
+import {
+  COMBAT_CHALLENGE_MODE,
+  COMBAT_HIT_IMPACT_PROFILES,
+  COMBAT_INTENSITY_VERSION,
+  ENEMY_AGGRO_MEMORY_SECONDS,
+  ENEMY_AGGRO_PATROL_PADDING,
+  ENEMY_DEFEATED_VISIBLE_SECONDS,
+  isEnemyDefeatedVisible,
+  MISSED_ATTACK_EXTRA_STAMINA_COST,
+  PLAYER_ATTACK_BACK_REACH,
+  PLAYER_ATTACK_COMBO_TIMINGS,
+  PLAYER_ATTACK_FINISHER_DAMAGE,
+  PLAYER_ATTACK_FINISHER_EXTRA_STAMINA_COST,
+  PLAYER_ATTACK_FINISHER_ROW,
+  PLAYER_ATTACK_HEIGHT,
+  PLAYER_ATTACK_LIGHT_DAMAGE,
+  PLAYER_ATTACK_NEAR_MISS_DISTANCE,
+  PLAYER_ATTACK_NEAR_MISS_VERTICAL_TOLERANCE,
+  PLAYER_ATTACK_PARRY_DAMAGE,
+  PLAYER_ATTACK_RANGE,
+  PLAYER_ATTACK_SHOVE_DAMAGE,
+  PLAYER_ATTACK_STAMINA_COST,
+  PLAYER_ATTACK_TYPES,
+  PLAYER_BOSS_STAGGER_ENDURANCE_REWARD,
+  PLAYER_COMBO_MAX_STEP,
+  PLAYER_COMBO_PRESERVE_AFTER_DODGE_DURATION,
+  PLAYER_COMBO_SLASH_EFFECT_SRC,
+  PLAYER_COMBO_SLASH_EFFECT_VERSION,
+  PLAYER_COMBO_WINDOW_DURATION,
+  PLAYER_DEFEAT_ENDURANCE_REWARD,
+  PLAYER_DODGE_DURATION,
+  PLAYER_DODGE_FRAME_SEQUENCE,
+  PLAYER_DODGE_INVULNERABLE_DURATION,
+  PLAYER_DODGE_RECOVERY_DURATION,
+  PLAYER_DODGE_SPEED,
+  PLAYER_DODGE_STAMINA_COST,
+  PLAYER_FINISHER_SLASH_EFFECT_SRC,
+  PLAYER_FINISHER_SLASH_EFFECT_VERSION,
+  PLAYER_HEAVY_FOLLOWUP_CUE_DURATION,
+  PLAYER_HEAVY_FOLLOWUP_HIT_REFUND,
+  PLAYER_HEAVY_FOLLOWUP_PROMPT_LABEL,
+  PLAYER_HIT_SCREEN_SHAKE_DURATION,
+  PLAYER_HIT_SCREEN_SHAKE_PIXELS,
+  PROTECTED_HIT_EXTRA_STAMINA_COST,
+  SCORPION_ATTACK_RANGE_MULTIPLIER,
+  SCORPION_CHASE_SPEED_MULTIPLIER,
+  SCORPION_VENOM_SLOW_DURATION,
+  SCORPION_VENOM_SLOW_MULTIPLIER,
+  SCORPION_VENOM_SPIT_RANGE,
+  updateEnemyDefeatedVisibility,
+} from './expedition-journey/journeyCombat.js';
 
 import {
   clampCameraX,
@@ -397,190 +448,6 @@ const BOSS_ATTACK_PHASES = {
     { ...DEFAULT_BOSS_ATTACK_PHASES[1], id: 'legate-shield-bash', label: 'Shield Bash Wave', kind: 'area', windup: 1.0, range: 128, cooldown: 2.3, vulnerableAfter: 1.2, damageScale: 0.75, shieldDuringWindup: true },
   ],
 };
-
-const COMBAT_CHALLENGE_MODE = 'skill-windows-v1';
-const COMBAT_INTENSITY_VERSION = 'combat-impact-pressure-2026-05-16';
-const PLAYER_ATTACK_STAMINA_COST = 1;
-const MISSED_ATTACK_EXTRA_STAMINA_COST = 1;
-const PROTECTED_HIT_EXTRA_STAMINA_COST = 1;
-const PLAYER_DODGE_STAMINA_COST = 8;
-const PLAYER_DODGE_SPEED = 320;
-const PLAYER_DODGE_DURATION = 0.34;
-const PLAYER_DODGE_INVULNERABLE_DURATION = 0.18;
-const PLAYER_DODGE_RECOVERY_DURATION = 0.1;
-const PLAYER_DODGE_FRAME_SEQUENCE = [0, 1, 2, 2, 2, 3, 3, 4, 5, 6, 7];
-const PLAYER_COMBO_WINDOW_DURATION = 0.72;
-const PLAYER_COMBO_PRESERVE_AFTER_DODGE_DURATION = 0.62;
-const PLAYER_COMBO_MAX_STEP = 3;
-const PLAYER_ATTACK_TYPES = Object.freeze({
-  LIGHT: 'light',
-  HEAVY: 'heavy',
-});
-const PLAYER_HEAVY_FOLLOWUP_PROMPT_LABEL = 'K';
-const PLAYER_HEAVY_FOLLOWUP_CUE_DURATION = 0.42;
-// Player attack damage on the combat scale (1:2:3 ratio preserved, scaled for resolution).
-const PLAYER_ATTACK_LIGHT_DAMAGE = 1 * COMBAT_DAMAGE_SCALE;
-const PLAYER_ATTACK_PARRY_DAMAGE = 2 * COMBAT_DAMAGE_SCALE;
-const PLAYER_ATTACK_FINISHER_DAMAGE = 3 * COMBAT_DAMAGE_SCALE;
-// Unprimed-heavy "shove" (K with no primed follow-up): a space-maker, not a damage move.
-// Deals only chip damage (~30% of a light hit) but pushes hard and reliably staggers.
-const PLAYER_ATTACK_SHOVE_DAMAGE = Math.round(0.3 * COMBAT_DAMAGE_SCALE);
-const PLAYER_ATTACK_FINISHER_EXTRA_STAMINA_COST = 2;
-const PLAYER_HEAVY_FOLLOWUP_HIT_REFUND = 6;
-// Earned-Endurance rewards (ChatGPT Option A): clean play refunds Endurance so long
-// fights stay sustainable — spend to survive, earn it back by playing well.
-const PLAYER_DEFEAT_ENDURANCE_REWARD = 4;
-const PLAYER_BOSS_STAGGER_ENDURANCE_REWARD = 10;
-const PLAYER_ATTACK_RANGE = 92;
-const PLAYER_ATTACK_HEIGHT = 36;
-const PLAYER_ATTACK_BACK_REACH = 10;
-const PLAYER_ATTACK_NEAR_MISS_DISTANCE = 44;
-const PLAYER_ATTACK_NEAR_MISS_VERTICAL_TOLERANCE = 34;
-const PLAYER_ATTACK_FINISHER_ROW = 'attack_pick_swing_sweep';
-const PLAYER_COMBO_SLASH_EFFECT_SRC = 'assets/expedition/player/asha-combo-slash-effect-2026-06-06.png';
-const PLAYER_COMBO_SLASH_EFFECT_VERSION = 'asha-combo-slash-effect-2026-06-06';
-const PLAYER_FINISHER_SLASH_EFFECT_SRC = 'assets/expedition/player/asha-finisher-slash-effect-2026-06-06.png';
-const PLAYER_FINISHER_SLASH_EFFECT_VERSION = 'asha-finisher-slash-effect-2026-06-06';
-const COMBAT_HIT_IMPACT_PROFILES = {
-  light: {
-    hitStop: 0.085,
-    cameraShakeTimer: 0.1,
-    cameraShakeStrength: 0.16,
-    cameraPunchTimer: 0.055,
-    hitFlash: 0.3,
-    targetKnockback: 0.32,
-    targetShift: 44,
-    playerRecoil: 30,
-    impactTimer: 0.28,
-    sparkTimer: 0.22,
-    slashEffect: 'combo',
-    slashWidth: 138,
-    slashTimer: 0.2,
-    dustTimer: 0.16,
-    dustWidth: 30,
-    color: '#7dd3fc',
-    sparkColor: '#e2d5c0',
-    sparkFill: 'rgba(190, 168, 128, 0.18)',
-  },
-  combo2: {
-    hitStop: 0.115,
-    cameraShakeTimer: 0.14,
-    cameraShakeStrength: 0.26,
-    cameraPunchTimer: 0.085,
-    hitFlash: 0.4,
-    targetKnockback: 0.44,
-    targetShift: 66,
-    playerRecoil: 42,
-    impactTimer: 0.32,
-    sparkTimer: 0.26,
-    slashEffect: 'combo',
-    slashWidth: 178,
-    slashTimer: 0.24,
-    dustTimer: 0.22,
-    dustWidth: 38,
-    color: '#93c5fd',
-    sparkColor: '#f8e7b6',
-    sparkFill: 'rgba(224, 190, 112, 0.22)',
-    sfxKey: 'combatHitCombo2',
-    sfxVolume: 1.02,
-  },
-  shove: {
-    // Unprimed-heavy space-maker: strong knockback (near finisher-level spacing) and a big
-    // dust kick, but a cooler/duller palette and lighter hit-stop so it reads as a push,
-    // not the gold finisher payoff.
-    hitStop: 0.1,
-    cameraShakeTimer: 0.16,
-    cameraShakeStrength: 0.3,
-    cameraPunchTimer: 0.09,
-    hitFlash: 0.32,
-    targetKnockback: 0.6,
-    targetShift: 96,
-    playerRecoil: 40,
-    impactTimer: 0.32,
-    sparkTimer: 0.24,
-    slashEffect: 'combo',
-    slashWidth: 150,
-    slashTimer: 0.2,
-    dustTimer: 0.3,
-    dustWidth: 50,
-    color: '#b8c4d0',
-    sparkColor: '#cdd8e0',
-    sparkFill: 'rgba(176, 196, 214, 0.2)',
-    sfxKey: 'combatHitCombo2',
-    sfxVolume: 1.0,
-  },
-  finisher: {
-    hitStop: 0.18,
-    cameraShakeTimer: 0.24,
-    cameraShakeStrength: 0.48,
-    cameraPunchTimer: 0.14,
-    hitFlash: 0.58,
-    targetKnockback: 0.66,
-    targetShift: 104,
-    playerRecoil: 66,
-    impactTimer: 0.36,
-    sparkTimer: 0.34,
-    slashEffect: 'finisher',
-    slashWidth: 260,
-    slashTimer: 0.34,
-    dustTimer: 0.34,
-    dustWidth: 58,
-    color: '#fbbf24',
-    sparkColor: '#fbbf24',
-    sparkFill: 'rgba(251, 191, 36, 0.42)',
-    sfxKey: 'finisherHit',
-    sfxVolume: 1.06,
-  },
-  blocked: {
-    hitStop: 0.052,
-    cameraShakeTimer: 0.08,
-    cameraShakeStrength: 0.13,
-    cameraPunchTimer: 0.045,
-    hitFlash: 0.14,
-    targetKnockback: 0,
-    targetShift: 0,
-    playerRecoil: 48,
-    sparkTimer: 0.34,
-    guardTimer: 0.34,
-    color: '#7dd3fc',
-    sparkColor: 'rgba(214, 185, 92, 0.78)',
-    sfxKey: 'combatDeflect',
-    sfxVolume: 0.78,
-  },
-  defeated: {
-    hitStop: 0.14,
-    cameraShakeTimer: 0.17,
-    cameraShakeStrength: 0.3,
-    cameraPunchTimer: 0.1,
-    hitFlash: 0.24,
-    targetKnockback: 0.42,
-    targetShift: 60,
-    playerRecoil: 44,
-    impactTimer: 0.38,
-    sparkTimer: 0.28,
-    dustTimer: 0.38,
-    dustWidth: 52,
-    color: '#b8943c',
-    sparkColor: '#f7d28a',
-    sparkFill: 'rgba(214, 185, 92, 0.28)',
-    sfxKey: 'enemyDefeated',
-    sfxVolume: 1.08,
-  },
-};
-const PLAYER_ATTACK_COMBO_TIMINGS = [
-  { windup: ATTACK_WINDUP_DURATION, swing: ATTACK_DURATION, recoil: ATTACK_RECOIL_DURATION, cooldown: ATTACK_COOLDOWN },
-  { windup: ATTACK_WINDUP_DURATION, swing: ATTACK_DURATION, recoil: ATTACK_RECOIL_DURATION, cooldown: ATTACK_COOLDOWN },
-  { windup: 0.18, swing: 0.52, recoil: 0.28, cooldown: 0.5 },
-];
-const PLAYER_HIT_SCREEN_SHAKE_DURATION = 0.22;
-const PLAYER_HIT_SCREEN_SHAKE_PIXELS = 2.4;
-const SCORPION_ATTACK_RANGE_MULTIPLIER = 1.4;
-const SCORPION_CHASE_SPEED_MULTIPLIER = 1.15;
-const SCORPION_VENOM_SPIT_RANGE = CANVAS_WIDTH * 0.5;
-const SCORPION_VENOM_SLOW_DURATION = 2.25;
-const SCORPION_VENOM_SLOW_MULTIPLIER = 0.48;
-const ENEMY_AGGRO_MEMORY_SECONDS = 7.5;
-const ENEMY_AGGRO_PATROL_PADDING = 320;
 
 const KNOWLEDGE_CHALLENGE_SIZE = 3;
 const GUARDIAN_KNOWLEDGE_CHALLENGES_ENABLED = false;
@@ -1950,7 +1817,6 @@ const ENEMY_ATTACK_TRIGGER_REACH = 16;
 // pressing the attack. Larger than 0 so sprites never overlap/"share her space",
 // but smaller than ENEMY_ATTACK_TRIGGER_REACH so melee still lands at standoff.
 const ENEMY_COMBAT_STANDOFF_GAP = 6;
-
 const getPlayerAttackTiming = (sequenceIndex = 1) => {
   const timingIndex = Math.max(0, sequenceIndex - 1) % PLAYER_ATTACK_COMBO_TIMINGS.length;
   return PLAYER_ATTACK_COMBO_TIMINGS[timingIndex] || PLAYER_ATTACK_COMBO_TIMINGS[0];
@@ -16643,6 +16509,7 @@ export default function ExpeditionJourney({
     });
 
     current.enemies.forEach((enemy) => {
+      if (!isEnemyDefeatedVisible(enemy)) return;
       if (!isEntityActiveInScene(enemy, current)) return;
       const activeBossDomain = current.bossDomain
         && !current.defeatedMiniBosses.has(current.bossDomain.bossId)
@@ -19748,8 +19615,11 @@ export default function ExpeditionJourney({
 
     // Enemies
     current.enemies.forEach(e => {
+      if (e.defeated) {
+        updateEnemyDefeatedVisibility(e, dt);
+        return;
+      }
       if (!isEntityActiveInScene(e, current)) return;
-      if (e.defeated) return;
       const activeBossDomain = current.bossDomain
         && !current.defeatedMiniBosses.has(current.bossDomain.bossId)
         ? current.bossDomain
@@ -20131,6 +20001,7 @@ export default function ExpeditionJourney({
         });
         if (e.health <= 0) {
           e.defeated = true;
+          e.defeatedVisibleTimer = ENEMY_DEFEATED_VISIBLE_SECONDS;
           e.hitFlash = 0;
           e.stunTimer = 0;
           e.attackWindup = 0;

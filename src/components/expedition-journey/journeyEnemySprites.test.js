@@ -15,6 +15,11 @@ import {
   shouldUseEnemySpritePack,
   shouldFlipEnemySprite,
 } from './journeyEnemySprites.js';
+import {
+  ENEMY_DEFEATED_VISIBLE_SECONDS,
+  isEnemyDefeatedVisible,
+  updateEnemyDefeatedVisibility,
+} from './journeyCombat.js';
 import { readFileSync } from 'node:fs';
 
 const journeyComponentSource = readFileSync(new URL('../ExpeditionJourney.jsx', import.meta.url), 'utf8');
@@ -363,6 +368,24 @@ test('combat feedback avoids arcade text labels in the playfield', () => {
   assert.doesNotMatch(journeyComponentSource, /text:\s*'RESET'/);
   assert.doesNotMatch(journeyComponentSource, /text:\s*'WAIT'/);
   assert.doesNotMatch(journeyComponentSource, /text:\s*'HIT'/);
+});
+
+test('defeated enemies remain visible briefly then disappear from the playfield', () => {
+  assert.equal(ENEMY_DEFEATED_VISIBLE_SECONDS, 3);
+  const enemy = { defeated: true, defeatedVisibleTimer: ENEMY_DEFEATED_VISIBLE_SECONDS };
+
+  assert.equal(isEnemyDefeatedVisible(enemy), true);
+  assert.equal(updateEnemyDefeatedVisibility(enemy, 2.9), true);
+  assert.equal(enemy.defeatedVisibleTimer > 0, true);
+  assert.equal(isEnemyDefeatedVisible(enemy), true);
+  assert.equal(updateEnemyDefeatedVisibility(enemy, 0.1), false);
+  assert.equal(enemy.defeatedVisibleTimer, 0);
+  assert.equal(isEnemyDefeatedVisible(enemy), false);
+
+  assert.match(journeyUtilsSource, /defeatedVisibleTimer:\s*0/);
+  assert.match(journeyComponentSource, /e\.defeatedVisibleTimer = ENEMY_DEFEATED_VISIBLE_SECONDS;/);
+  assert.match(journeyComponentSource, /if \(e\.defeated\) \{[\s\S]*?updateEnemyDefeatedVisibility\(e, dt\);[\s\S]*?return;[\s\S]*?\}/);
+  assert.match(journeyComponentSource, /if \(!isEnemyDefeatedVisible\(enemy\)\) return;/);
 });
 
 test('awakened boss health draws as a compact screen-top bar, not over the boss sprite', () => {

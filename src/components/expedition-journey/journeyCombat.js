@@ -1,0 +1,197 @@
+import {
+  ATTACK_COOLDOWN,
+  ATTACK_DURATION,
+  ATTACK_RECOIL_DURATION,
+  ATTACK_WINDUP_DURATION,
+  CANVAS_WIDTH,
+  COMBAT_DAMAGE_SCALE,
+} from './journeyConstants.js';
+
+export const COMBAT_CHALLENGE_MODE = 'skill-windows-v1';
+export const COMBAT_INTENSITY_VERSION = 'combat-impact-pressure-2026-05-16';
+export const PLAYER_ATTACK_STAMINA_COST = 1;
+export const MISSED_ATTACK_EXTRA_STAMINA_COST = 1;
+export const PROTECTED_HIT_EXTRA_STAMINA_COST = 1;
+export const PLAYER_DODGE_STAMINA_COST = 8;
+export const PLAYER_DODGE_SPEED = 320;
+export const PLAYER_DODGE_DURATION = 0.34;
+export const PLAYER_DODGE_INVULNERABLE_DURATION = 0.18;
+export const PLAYER_DODGE_RECOVERY_DURATION = 0.1;
+export const PLAYER_DODGE_FRAME_SEQUENCE = [0, 1, 2, 2, 2, 3, 3, 4, 5, 6, 7];
+export const PLAYER_COMBO_WINDOW_DURATION = 0.72;
+export const PLAYER_COMBO_PRESERVE_AFTER_DODGE_DURATION = 0.62;
+export const PLAYER_COMBO_MAX_STEP = 3;
+export const PLAYER_ATTACK_TYPES = Object.freeze({
+  LIGHT: 'light',
+  HEAVY: 'heavy',
+});
+export const PLAYER_HEAVY_FOLLOWUP_PROMPT_LABEL = 'K';
+export const PLAYER_HEAVY_FOLLOWUP_CUE_DURATION = 0.42;
+export const PLAYER_ATTACK_LIGHT_DAMAGE = 1 * COMBAT_DAMAGE_SCALE;
+export const PLAYER_ATTACK_PARRY_DAMAGE = 2 * COMBAT_DAMAGE_SCALE;
+export const PLAYER_ATTACK_FINISHER_DAMAGE = 3 * COMBAT_DAMAGE_SCALE;
+export const PLAYER_ATTACK_SHOVE_DAMAGE = Math.round(0.3 * COMBAT_DAMAGE_SCALE);
+export const PLAYER_ATTACK_FINISHER_EXTRA_STAMINA_COST = 2;
+export const PLAYER_HEAVY_FOLLOWUP_HIT_REFUND = 6;
+export const PLAYER_DEFEAT_ENDURANCE_REWARD = 4;
+export const PLAYER_BOSS_STAGGER_ENDURANCE_REWARD = 10;
+export const PLAYER_ATTACK_RANGE = 92;
+export const PLAYER_ATTACK_HEIGHT = 36;
+export const PLAYER_ATTACK_BACK_REACH = 10;
+export const PLAYER_ATTACK_NEAR_MISS_DISTANCE = 44;
+export const PLAYER_ATTACK_NEAR_MISS_VERTICAL_TOLERANCE = 34;
+export const PLAYER_ATTACK_FINISHER_ROW = 'attack_pick_swing_sweep';
+export const PLAYER_COMBO_SLASH_EFFECT_SRC = 'assets/expedition/player/asha-combo-slash-effect-2026-06-06.png';
+export const PLAYER_COMBO_SLASH_EFFECT_VERSION = 'asha-combo-slash-effect-2026-06-06';
+export const PLAYER_FINISHER_SLASH_EFFECT_SRC = 'assets/expedition/player/asha-finisher-slash-effect-2026-06-06.png';
+export const PLAYER_FINISHER_SLASH_EFFECT_VERSION = 'asha-finisher-slash-effect-2026-06-06';
+export const PLAYER_ATTACK_COMBO_TIMINGS = [
+  { windup: ATTACK_WINDUP_DURATION, swing: ATTACK_DURATION, recoil: ATTACK_RECOIL_DURATION, cooldown: ATTACK_COOLDOWN },
+  { windup: ATTACK_WINDUP_DURATION, swing: ATTACK_DURATION, recoil: ATTACK_RECOIL_DURATION, cooldown: ATTACK_COOLDOWN },
+  { windup: 0.18, swing: 0.52, recoil: 0.28, cooldown: 0.5 },
+];
+export const PLAYER_HIT_SCREEN_SHAKE_DURATION = 0.22;
+export const PLAYER_HIT_SCREEN_SHAKE_PIXELS = 2.4;
+export const SCORPION_ATTACK_RANGE_MULTIPLIER = 1.4;
+export const SCORPION_CHASE_SPEED_MULTIPLIER = 1.15;
+export const SCORPION_VENOM_SPIT_RANGE = CANVAS_WIDTH * 0.5;
+export const SCORPION_VENOM_SLOW_DURATION = 2.25;
+export const SCORPION_VENOM_SLOW_MULTIPLIER = 0.48;
+export const ENEMY_AGGRO_MEMORY_SECONDS = 7.5;
+export const ENEMY_AGGRO_PATROL_PADDING = 320;
+export const ENEMY_DEFEATED_VISIBLE_SECONDS = 3;
+
+export const COMBAT_HIT_IMPACT_PROFILES = {
+  light: {
+    hitStop: 0.085,
+    cameraShakeTimer: 0.1,
+    cameraShakeStrength: 0.16,
+    cameraPunchTimer: 0.055,
+    hitFlash: 0.3,
+    targetKnockback: 0.32,
+    targetShift: 44,
+    playerRecoil: 30,
+    impactTimer: 0.28,
+    sparkTimer: 0.22,
+    slashEffect: 'combo',
+    slashWidth: 138,
+    slashTimer: 0.2,
+    dustTimer: 0.16,
+    dustWidth: 30,
+    color: '#7dd3fc',
+    sparkColor: '#e2d5c0',
+    sparkFill: 'rgba(190, 168, 128, 0.18)',
+  },
+  combo2: {
+    hitStop: 0.115,
+    cameraShakeTimer: 0.14,
+    cameraShakeStrength: 0.26,
+    cameraPunchTimer: 0.085,
+    hitFlash: 0.4,
+    targetKnockback: 0.44,
+    targetShift: 66,
+    playerRecoil: 42,
+    impactTimer: 0.32,
+    sparkTimer: 0.26,
+    slashEffect: 'combo',
+    slashWidth: 178,
+    slashTimer: 0.24,
+    dustTimer: 0.22,
+    dustWidth: 38,
+    color: '#93c5fd',
+    sparkColor: '#f8e7b6',
+    sparkFill: 'rgba(224, 190, 112, 0.22)',
+    sfxKey: 'combatHitCombo2',
+    sfxVolume: 1.02,
+  },
+  shove: {
+    hitStop: 0.1,
+    cameraShakeTimer: 0.16,
+    cameraShakeStrength: 0.3,
+    cameraPunchTimer: 0.09,
+    hitFlash: 0.32,
+    targetKnockback: 0.6,
+    targetShift: 96,
+    playerRecoil: 40,
+    impactTimer: 0.32,
+    sparkTimer: 0.24,
+    slashEffect: 'combo',
+    slashWidth: 150,
+    slashTimer: 0.2,
+    dustTimer: 0.3,
+    dustWidth: 50,
+    color: '#b8c4d0',
+    sparkColor: '#cdd8e0',
+    sparkFill: 'rgba(176, 196, 214, 0.2)',
+    sfxKey: 'combatHitCombo2',
+    sfxVolume: 1.0,
+  },
+  finisher: {
+    hitStop: 0.18,
+    cameraShakeTimer: 0.24,
+    cameraShakeStrength: 0.48,
+    cameraPunchTimer: 0.14,
+    hitFlash: 0.58,
+    targetKnockback: 0.66,
+    targetShift: 104,
+    playerRecoil: 66,
+    impactTimer: 0.36,
+    sparkTimer: 0.34,
+    slashEffect: 'finisher',
+    slashWidth: 260,
+    slashTimer: 0.34,
+    dustTimer: 0.34,
+    dustWidth: 58,
+    color: '#fbbf24',
+    sparkColor: '#fbbf24',
+    sparkFill: 'rgba(251, 191, 36, 0.42)',
+    sfxKey: 'finisherHit',
+    sfxVolume: 1.06,
+  },
+  blocked: {
+    hitStop: 0.052,
+    cameraShakeTimer: 0.08,
+    cameraShakeStrength: 0.13,
+    cameraPunchTimer: 0.045,
+    hitFlash: 0.14,
+    targetKnockback: 0,
+    targetShift: 0,
+    playerRecoil: 48,
+    sparkTimer: 0.34,
+    guardTimer: 0.34,
+    color: '#7dd3fc',
+    sparkColor: 'rgba(214, 185, 92, 0.78)',
+    sfxKey: 'combatDeflect',
+    sfxVolume: 0.78,
+  },
+  defeated: {
+    hitStop: 0.14,
+    cameraShakeTimer: 0.17,
+    cameraShakeStrength: 0.3,
+    cameraPunchTimer: 0.1,
+    hitFlash: 0.24,
+    targetKnockback: 0.42,
+    targetShift: 60,
+    playerRecoil: 44,
+    impactTimer: 0.38,
+    sparkTimer: 0.28,
+    dustTimer: 0.38,
+    dustWidth: 52,
+    color: '#b8943c',
+    sparkColor: '#f7d28a',
+    sparkFill: 'rgba(214, 185, 92, 0.28)',
+    sfxKey: 'enemyDefeated',
+    sfxVolume: 1.08,
+  },
+};
+
+export const updateEnemyDefeatedVisibility = (enemy, dt, visibleSeconds = ENEMY_DEFEATED_VISIBLE_SECONDS) => {
+  if (!enemy?.defeated) return false;
+  const nextTimer = Math.max(0, (enemy.defeatedVisibleTimer ?? visibleSeconds) - dt);
+  enemy.defeatedVisibleTimer = nextTimer <= 0.001 ? 0 : nextTimer;
+  return enemy.defeatedVisibleTimer > 0;
+};
+
+export const isEnemyDefeatedVisible = (enemy, visibleSeconds = ENEMY_DEFEATED_VISIBLE_SECONDS) => (
+  !enemy?.defeated || (enemy.defeatedVisibleTimer ?? visibleSeconds) > 0
+);

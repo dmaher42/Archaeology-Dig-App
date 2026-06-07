@@ -1359,6 +1359,7 @@ export const makeEnemy = (enemy) => ({
   maxHealth: tuneEnemyHealth(enemy),
   damage: tuneEnemyDamage(enemy),
   defeated: false,
+  defeatedVisibleTimer: 0,
   stunTimer: 0,
   hitFlash: 0,
   attackWindup: 0,
