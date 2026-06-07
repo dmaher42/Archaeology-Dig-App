@@ -690,42 +690,42 @@ const OPENING_CINEMATIC_LINES = [
     at: 1.2,
     speaker: 'Anubis',
     voice: 'guardian',
-    text: 'You stand where you should not. Humans always take.',
+    text: 'You stand where you should not. Another human hand at the seal.',
   },
   {
     id: 'asha-scarab',
     at: 5.2,
     speaker: 'Asha',
     voice: 'asha',
-    text: 'I did not come to take. The scarab opened beneath my hand.',
+    text: 'I was in Cairo. I touched the scarab and the pyramid disappeared.',
   },
   {
-    id: 'anubis-memory',
+    id: 'anubis-mark',
     at: 9.4,
     speaker: 'Anubis',
     voice: 'guardian',
-    text: 'The past is not treasure to own. It is memory to protect.',
+    text: 'The seal marks trespassers for trial. That is not permission.',
   },
   {
-    id: 'asha-restore',
+    id: 'asha-return',
     at: 13.8,
     speaker: 'Asha',
     voice: 'asha',
-    text: 'Then watch what I protect. I will restore what was broken.',
+    text: 'Then send me back.',
   },
   {
     id: 'anubis-begin',
     at: OPENING_CINEMATIC_SPELL_IMPACT_AT,
     speaker: 'Anubis',
     voice: 'guardian',
-    text: 'You did not come to take. Prove it beyond the First Seal.',
+    text: 'I tried. Even this gate no longer obeys.',
   },
   {
-    id: 'asha-called',
+    id: 'asha-survive',
     at: 21.2,
     speaker: 'Asha',
     voice: 'asha',
-    text: 'The path opened because it needed someone. I am still here.',
+    text: 'Then I keep moving until I find a way out.',
   },
 ];
 // Rome opening cinematic — Legate Revenant speaks as Asha descends the Via Sacra.
@@ -23795,7 +23795,7 @@ export default function ExpeditionJourney({
                 </div>
                 <div className="opening-cinematic-copy">
                   <div className="opening-cinematic-kicker">The First Seal</div>
-                  <h2>The Past Remembers</h2>
+                  <h2>The Gate Refuses</h2>
                   {activeOpeningCinematicLine && (
                     <div className={`opening-cinematic-dialogue ${activeOpeningCinematicLine.voice === 'guardian' ? 'is-guardian' : 'is-asha'}`}>
                       <span>{activeOpeningCinematicLine.speaker}</span>
@@ -24087,7 +24087,7 @@ export default function ExpeditionJourney({
                   Expedition Arrival
                 </div>
                 <h1 className="premium-text-glow cinzel-header" style={{ fontSize: "2.5rem", margin: "0.2rem 0" }}>Lost Site Expedition</h1>
-                <p>Asha reaches a sealed Egyptian site. Anubis is already watching from the first seal.</p>
+                <p>Asha reaches a sealed site where the first guardian is already watching.</p>
               </div>
               <div className="briefing-hero-mark" aria-hidden="true">
                 <img
@@ -24100,9 +24100,9 @@ export default function ExpeditionJourney({
             <div className="briefing-content">
               <div className="mission-dossier expedition-start-dossier">
                 <div className="dossier-tag">SEALED SITE</div>
-                <h2 className="mission-title">Anubis tests the expedition</h2>
+                <h2 className="mission-title">The site tests the expedition</h2>
                 <p className="mission-desc">
-                  The route below will not open to a looter. Asha must restore broken seals and prove the expedition came to protect what it finds.
+                  The route below will not open easily. Asha must read the site, recover what it still recognises, and survive its guardians.
                 </p>
               </div>
               <div className="briefing-task-panel">
@@ -24116,7 +24116,7 @@ export default function ExpeditionJourney({
                     'Recover relic shards',
                     'Read the Map Tablet',
                     'Survive the Guardian Prep route',
-                    'Defeat the Scarab Queen',
+                    'Defeat the first guardian',
                     'Reach Base Camp Outpost',
                   ].map(task => (
                     <li key={task}>

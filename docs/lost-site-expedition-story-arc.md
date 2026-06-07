@@ -30,15 +30,15 @@ Arrival -> Rejection -> Preparation -> Guardian Test -> Sacred Rooms -> Queen Tr
 
 Asha begins in the present day as a heritage researcher / archaeologist-in-training in Egypt.
 
-Her opening motivation is routine and grounded: a newly surfaced scarab carving does not match earlier records, and she recognises the form from an older photograph taken at another Egyptian site.
+Her opening motivation is routine and grounded: a newly surfaced scarab carving does not match earlier records, and she recognises the arrangement from a forgotten decades-old photograph of a tomb painting. The painting showed a scarab above the pyramid, but the real pyramid never had that scarab until now.
 
 The player should first feel:
 
 > I have found something important, but this place does not want me here.
 
-Asha should not begin by believing in gods, magic, or supernatural danger. She starts with evidence, photographs, site records, and curiosity.
+Asha should not begin by believing in gods, magic, or supernatural danger. She starts with evidence, photographs, site records, and curiosity. Any damaged phrase near the painted scarab should remain unreadable or uncertain at this stage; the player should not understand the memory theme yet.
 
-When she touches the plain stone scarab to examine it, the threshold opens and pulls her into the Lost Site.
+When she touches the plain stone scarab to examine it, the threshold opens and pulls her into the Lost Site. The crossing changes her field clothes into trial-garb suited to the hidden world; this should feel unsettling and practical, not heroic destiny.
 
 ---
 
