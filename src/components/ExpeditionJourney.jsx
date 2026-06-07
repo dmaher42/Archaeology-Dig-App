@@ -823,6 +823,11 @@ const DESERT_END_GATEWAY_VERSION = 'imagegen-desert-end-threshold-angled-blended
 const SCARAB_QUEEN_LAIR_OPENING_IMAGE_SRC = 'assets/expedition/bosses/scarab-queen-buried-lair-opening.png';
 const SCORPION_NEST_SRC = 'assets/expedition/enemies/scorpion-nest.png';
 const SCORPION_NEST_VERSION = 'imagegen-scorpion-nest-2026-06-07';
+// Editor-tunable render defaults for the scorpion-nest art. widthScale multiplies the
+// data box width to set the drawn footprint (height follows the PNG's native aspect);
+// yOffset nudges the ground anchor up/down (negative lifts); glowYFactor places the amber
+// glow above the base (× data height); glowSize scales the glow ellipse.
+const SCORPION_NEST_EDITOR_DEFAULTS = { widthScale: 1.85, yOffset: 0, glowYFactor: 0.42, glowSize: 1 };
 const OPENING_CAMERA_REVEAL_DURATION = 1.55;
 const OPENING_CAMERA_REVEAL_PAN_SECONDS = 0.55;
 const OPENING_CAMERA_REVEAL_HOLD_SECONDS = 0.18;
@@ -3545,6 +3550,7 @@ export default function ExpeditionJourney({
     selectedArchId: null,
     selectedCheckpointId: null,
     selectedLairId: null,
+    selectedNestId: null,
     dragging: null,
     gridSnap: false,
     gridSize: DEFAULT_JOURNEY_PROP_EDITOR_GRID_SIZE,
@@ -3565,6 +3571,7 @@ export default function ExpeditionJourney({
     routeGateDoorwayEdits: {},
     checkpointEdits: {},
     miniBossEdits: {},
+    scorpionNestEdits: {},
     lockedItems: new Set(),
     defaultLocksApplied: false,
     deletedIds: new Set(),
@@ -3591,6 +3598,7 @@ export default function ExpeditionJourney({
     selectedArch: null,
     selectedCheckpoint: null,
     selectedLair: null,
+    selectedNest: null,
     gridSnap: false,
     gridSize: DEFAULT_JOURNEY_PROP_EDITOR_GRID_SIZE,
     paletteOpen: false,
@@ -4008,6 +4016,65 @@ export default function ExpeditionJourney({
       .at(-1)?.boss || null;
   }, [getLairEditorBounds, getRenderableScarabLairs]);
 
+  // --- Scorpion-nest editor helpers (drag to place, keys to tune size/anchor/glow) ---
+  const getRenderableScorpionNests = useCallback(() => (
+    (stateRef.current.enemies || []).filter(enemy => enemy?.type === 'scorpion-nest')
+  ), []);
+
+  const getScorpionNestArtAspect = useCallback(() => {
+    const image = scorpionNestRef.current.image;
+    if (!image) return 1.5;
+    const w = image.naturalWidth || image.width || 3;
+    const h = image.naturalHeight || image.height || 2;
+    return h > 0 ? w / h : 1.5;
+  }, []);
+
+  const getEditedNestParams = useCallback((enemy) => {
+    const edit = propPlacementEditorRef.current.scorpionNestEdits[enemy?.id] || {};
+    return {
+      x: Number.isFinite(edit.x) ? edit.x : enemy.x,
+      y: Number.isFinite(edit.y) ? edit.y : enemy.y,
+      widthScale: Number.isFinite(edit.widthScale) ? edit.widthScale : SCORPION_NEST_EDITOR_DEFAULTS.widthScale,
+      yOffset: Number.isFinite(edit.yOffset) ? edit.yOffset : SCORPION_NEST_EDITOR_DEFAULTS.yOffset,
+      glowYFactor: Number.isFinite(edit.glowYFactor) ? edit.glowYFactor : SCORPION_NEST_EDITOR_DEFAULTS.glowYFactor,
+      glowSize: Number.isFinite(edit.glowSize) ? edit.glowSize : SCORPION_NEST_EDITOR_DEFAULTS.glowSize,
+    };
+  }, []);
+
+  const getNestEditorBounds = useCallback((enemy, cameraX) => {
+    const params = getEditedNestParams(enemy);
+    const drawWidth = enemy.width * params.widthScale;
+    const drawHeight = drawWidth / getScorpionNestArtAspect();
+    const baseY = params.y + enemy.height + params.yOffset;
+    const centerScreenX = worldToScreenX(params.x, cameraX) + enemy.width / 2;
+    return {
+      x: centerScreenX - drawWidth / 2,
+      y: baseY - drawHeight,
+      width: drawWidth,
+      height: drawHeight,
+    };
+  }, [getEditedNestParams, getScorpionNestArtAspect]);
+
+  const findEditableNestAt = useCallback((screenX, screenY) => {
+    const cameraX = Number.isFinite(stateRef.current.cameraX) ? stateRef.current.cameraX : 0;
+    return getRenderableScorpionNests()
+      .map((enemy, index) => ({ enemy, index, bounds: getNestEditorBounds(enemy, cameraX) }))
+      .filter(({ bounds }) => (
+        screenX >= bounds.x
+        && screenX <= bounds.x + bounds.width
+        && screenY >= bounds.y
+        && screenY <= bounds.y + bounds.height
+      ))
+      .sort((a, b) => a.index - b.index)
+      .at(-1)?.enemy || null;
+  }, [getNestEditorBounds, getRenderableScorpionNests]);
+
+  const getPropEditorSelectedNest = useCallback(() => {
+    const id = propPlacementEditorRef.current.selectedNestId;
+    if (!id) return null;
+    return getRenderableScorpionNests().find(enemy => enemy.id === id) || null;
+  }, [getRenderableScorpionNests]);
+
   const getArchEditorBounds = useCallback((arch, cameraX) => {
     const worldX = arch.editorKind === 'doorway'
       ? Number.isFinite(arch.anchorX) ? arch.anchorX : arch.blockX
@@ -4285,6 +4352,7 @@ export default function ExpeditionJourney({
     const lair = !prop && !hazard && !platform ? getPropEditorSelectedLair(current) : null;
     const arch = !prop && !hazard && !platform && !lair ? getPropEditorSelectedArch(current) : null;
     const checkpoint = !prop && !hazard && !platform && !arch && !lair ? getPropEditorSelectedCheckpoint(current) : null;
+    const nest = !prop && !hazard && !platform && !arch && !lair && !checkpoint ? getPropEditorSelectedNest() : null;
     const roomId = prop
       ? getJourneyPropRoomId(prop, getJourneySceneId(current), current.currentSectionId)
       : hazard
@@ -4324,6 +4392,8 @@ export default function ExpeditionJourney({
         ? `checkpoint:${checkpoint.id}`
       : lair
         ? `lair:${lair.id}`
+      : nest
+        ? `nest:${nest.id}`
       : null;
     return {
       enabled: editor.enabled,
@@ -4429,6 +4499,20 @@ export default function ExpeditionJourney({
         x: Math.round(checkpoint.x),
         y: Math.round(checkpoint.y),
       } : null,
+      selectedNest: nest ? (() => {
+        const params = getEditedNestParams(nest);
+        return {
+          id: nest.id,
+          name: nest.name || 'Scorpion Nest',
+          roomId,
+          x: Math.round(params.x),
+          y: Math.round(params.y),
+          widthScale: Number(params.widthScale.toFixed(2)),
+          yOffset: Math.round(params.yOffset),
+          glowYFactor: Number(params.glowYFactor.toFixed(2)),
+          glowSize: Number(params.glowSize.toFixed(2)),
+        };
+      })() : null,
       gridSnap: editor.gridSnap,
       gridSize: editor.gridSize,
       paletteOpen: editor.paletteOpen,
@@ -4451,7 +4535,7 @@ export default function ExpeditionJourney({
       canUndo: editorUndoStackRef.current.length > 0,
       canRedo: editorRedoStackRef.current.length > 0,
     };
-  }, [getActivePropEditorRoomId, getHazardEditorRoomId, getPlatformEditorRoomId, getPropEditorSelectedArch, getPropEditorSelectedCheckpoint, getPropEditorSelectedHazard, getPropEditorSelectedLair, getPropEditorSelectedPlatform, getPropEditorSelectedProp, getPropPalettePreview, getScarabQueenLairPlacement, foregroundDetailsEditorPalette, groundDetailsEditorPalette, platformEditorPalette, propEditorPalette, trapEditorPalette]);
+  }, [getActivePropEditorRoomId, getHazardEditorRoomId, getPlatformEditorRoomId, getPropEditorSelectedArch, getPropEditorSelectedCheckpoint, getPropEditorSelectedHazard, getPropEditorSelectedLair, getPropEditorSelectedNest, getEditedNestParams, getPropEditorSelectedPlatform, getPropEditorSelectedProp, getPropPalettePreview, getScarabQueenLairPlacement, foregroundDetailsEditorPalette, groundDetailsEditorPalette, platformEditorPalette, propEditorPalette, trapEditorPalette]);
 
   const persistPropEditorState = useCallback(() => {
     if (!import.meta.env.DEV || typeof window === 'undefined') return;
@@ -4526,6 +4610,7 @@ export default function ExpeditionJourney({
     editor.routeGateDoorwayEdits = {};
     editor.checkpointEdits = {};
     editor.miniBossEdits = {};
+    editor.scorpionNestEdits = {};
     editor.createdProps = [];
     editor.createdPlatforms = [];
     editor.createdHazards = [];
@@ -4538,6 +4623,7 @@ export default function ExpeditionJourney({
     editor.selectedArchId = null;
     editor.selectedCheckpointId = null;
     editor.selectedLairId = null;
+    editor.selectedNestId = null;
     editor.dragging = null;
     if (typeof window !== 'undefined') {
       try {
@@ -5045,6 +5131,7 @@ export default function ExpeditionJourney({
     editor.selectedArchId = null;
     editor.selectedCheckpointId = null;
     editor.selectedLairId = null;
+    editor.selectedNestId = null;
     editor.edits[duplicate.id] = {};
     editor.deletedIds.delete(duplicate.id);
     editor.paletteOpen = false;
@@ -5076,6 +5163,7 @@ export default function ExpeditionJourney({
     editor.selectedArchId = null;
     editor.selectedCheckpointId = null;
     editor.selectedLairId = null;
+    editor.selectedNestId = null;
     editor.selectedPaletteKey = null;
     editor.paletteOpen = false;
     editor.deletedIds.delete(nextProp.id);
@@ -5102,6 +5190,7 @@ export default function ExpeditionJourney({
     editor.selectedArchId = null;
     editor.selectedCheckpointId = null;
     editor.selectedLairId = null;
+    editor.selectedNestId = null;
     editor.selectedPaletteKey = null;
     editor.paletteOpen = false;
     editor.deletedHazardIds.delete(nextTrap.id);
@@ -5128,6 +5217,7 @@ export default function ExpeditionJourney({
     editor.selectedArchId = null;
     editor.selectedCheckpointId = null;
     editor.selectedLairId = null;
+    editor.selectedNestId = null;
     editor.selectedPaletteKey = null;
     editor.paletteOpen = false;
     editor.deletedPlatformIds.delete(nextPlatform.id || nextPlatform.label);
@@ -15732,6 +15822,34 @@ export default function ExpeditionJourney({
       ctx.textAlign = 'left';
       ctx.fillText(`${selectedLair.id} lair  x:${Math.round(placement.x)} y:${Math.round(placement.y)} w:${Math.round(placement.width)} h:${Math.round(placement.height)}`, labelX + 8, labelY + 16);
     }
+    const selectedNest = getPropEditorSelectedNest();
+    if (selectedNest) {
+      const params = getEditedNestParams(selectedNest);
+      const bounds = getNestEditorBounds(selectedNest, cameraX);
+      ctx.save();
+      ctx.setLineDash([6, 4]);
+      ctx.strokeStyle = 'rgba(251, 191, 36, 0.9)';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(bounds.x, bounds.y, bounds.width, bounds.height);
+      ctx.restore();
+      const labelX = clamp(bounds.x, 12, CANVAS_WIDTH - 360);
+      const labelY = clamp(bounds.y - 44, 14, CANVAS_HEIGHT - 52);
+      ctx.setLineDash([]);
+      ctx.fillStyle = 'rgba(8, 13, 22, 0.9)';
+      ctx.strokeStyle = 'rgba(251, 191, 36, 0.74)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(labelX, labelY, 352, 40, 6);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#fef3c7';
+      ctx.font = '800 11px Outfit, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(`${selectedNest.id}  x:${Math.round(params.x)} y:${Math.round(params.y)} size:${params.widthScale.toFixed(2)} anchor:${Math.round(params.yOffset)} glowY:${params.glowYFactor.toFixed(2)} glowS:${params.glowSize.toFixed(2)}`, labelX + 8, labelY + 15);
+      ctx.fillStyle = 'rgba(254, 243, 199, 0.7)';
+      ctx.font = '600 10px Outfit, sans-serif';
+      ctx.fillText('drag=move  [ ]=size  ; \'=anchor  , .=glowY  9 0=glow size  \\=reset', labelX + 8, labelY + 31);
+    }
     const selectedArch = getPropEditorSelectedArch(current);
     if (selectedArch) {
       const bounds = getArchEditorBounds(selectedArch, cameraX);
@@ -15770,7 +15888,7 @@ export default function ExpeditionJourney({
       ctx.fillText(`${selectedCheckpoint.id}  x:${Math.round(selectedCheckpoint.x)} y:${Math.round(selectedCheckpoint.y)}`, labelX + 8, labelY + 16);
     }
     ctx.restore();
-  }, [getArchEditorBounds, getCheckpointEditorBounds, getHazardEditorBounds, getLairEditorBounds, getPlatformEditorBounds, getPropEditorSelectedArch, getPropEditorSelectedCheckpoint, getPropEditorSelectedHazard, getPropEditorSelectedLair, getPropEditorSelectedPlatform, getPropEditorSelectedProp, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getRenderableRouteGateDoorways, getRenderableRouteGates, getRenderableScarabLairs, getRenderableStoryProps, getScarabQueenLairPlacement]);
+  }, [getArchEditorBounds, getCheckpointEditorBounds, getEditedNestParams, getHazardEditorBounds, getLairEditorBounds, getNestEditorBounds, getPlatformEditorBounds, getPropEditorSelectedArch, getPropEditorSelectedCheckpoint, getPropEditorSelectedHazard, getPropEditorSelectedLair, getPropEditorSelectedNest, getPropEditorSelectedPlatform, getPropEditorSelectedProp, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getRenderableRouteGateDoorways, getRenderableRouteGates, getRenderableScarabLairs, getRenderableStoryProps, getScarabQueenLairPlacement]);
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -16277,8 +16395,11 @@ export default function ExpeditionJourney({
           drawContactShadow(ctx, ex + enemy.width / 2, enemy.y + enemy.height + 3, enemy.width * 0.62, 0.12, 0.75);
           drawGroundDustLip(ctx, ex + enemy.width / 2, enemy.y + enemy.height + 2, enemy.width * 0.68, 'rgba(95, 58, 27, 0.24)');
         } else if (enemy.type === 'scorpion-nest') {
-          const nestCx = ex + enemy.width / 2 + shakeX;
-          const nestBaseY = enemy.y + enemy.height;
+          // Placement + appearance are editor-tunable (Shift+E, click the nest); falls
+          // back to SCORPION_NEST_EDITOR_DEFAULTS when no edit exists.
+          const nestParams = getEditedNestParams(enemy);
+          const nestCx = worldToScreenX(nestParams.x, cameraX) + enemy.width / 2 + shakeX;
+          const nestBaseY = nestParams.y + enemy.height + nestParams.yOffset;
           const nestAsset = scorpionNestRef.current;
           const nestGlow = 0.4 + Math.sin(now / 220) * 0.25;
           if (nestAsset.loaded && nestAsset.image) {
@@ -16287,22 +16408,22 @@ export default function ExpeditionJourney({
             // ground line so it sits flush. Native aspect avoids horizontal stretch.
             const nestNativeAspect = (nestAsset.image.naturalWidth || nestAsset.image.width || 3)
               / (nestAsset.image.naturalHeight || nestAsset.image.height || 2);
-            const nestDrawWidth = enemy.width * 1.85;
+            const nestDrawWidth = enemy.width * nestParams.widthScale;
             const nestDrawHeight = nestDrawWidth / nestNativeAspect;
             const nestDrawX = nestCx - nestDrawWidth / 2;
             const nestDrawY = nestBaseY - nestDrawHeight;
             drawContactShadow(ctx, nestCx, nestBaseY + 3, nestDrawWidth * 0.52, 0.26, 0.9);
             ctx.drawImage(nestAsset.image, nestDrawX, nestDrawY, nestDrawWidth, nestDrawHeight);
             // Pulsing amber glow over the burrow mouth (centered near the base).
-            const glowY = nestBaseY - enemy.height * 0.42;
+            const glowY = nestBaseY - enemy.height * nestParams.glowYFactor;
             ctx.save();
             ctx.globalCompositeOperation = 'lighter';
-            const glowGrad = ctx.createRadialGradient(nestCx, glowY, 1, nestCx, glowY, 16);
+            const glowGrad = ctx.createRadialGradient(nestCx, glowY, 1, nestCx, glowY, 16 * nestParams.glowSize);
             glowGrad.addColorStop(0, `rgba(255, 168, 76, ${nestGlow})`);
             glowGrad.addColorStop(1, 'rgba(255, 168, 76, 0)');
             ctx.fillStyle = glowGrad;
             ctx.beginPath();
-            ctx.ellipse(nestCx, glowY, 18, 11, 0, 0, Math.PI * 2);
+            ctx.ellipse(nestCx, glowY, 18 * nestParams.glowSize, 11 * nestParams.glowSize, 0, 0, Math.PI * 2);
             ctx.fill();
             ctx.restore();
           } else {
@@ -16785,7 +16906,7 @@ export default function ExpeditionJourney({
       }
       ctx.textAlign = 'start';
     }
-  }, [backgroundPackId, drawAncientRouteGround, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawForegroundDepthLayer, drawMummificationChamberInterior, drawForgottenMuralChamberInterior, drawForgottenMuralChamberTransition, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawPremiumEgyptianChamberDoor, drawPropPlacementEditorOverlay, drawRouteGate, drawRouteGroundApron, drawScarabQueenLairOpeningProp, drawScribeLockedChamberInterior, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawTrapProjectile, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getDoorwayGateStatus, getEditedMiniBoss, getGateGuidance, getPlayerAttackState, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getZIndexSortedRenderableStoryProps, getRouteGateDoorwayEntries, getScarabQueenLairPlacement, isRouteRewardAccessible, drawPlayerSprite, drawFieldNoteLabel]);
+  }, [backgroundPackId, drawAncientRouteGround, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawForegroundDepthLayer, drawMummificationChamberInterior, drawForgottenMuralChamberInterior, drawForgottenMuralChamberTransition, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawPremiumEgyptianChamberDoor, drawPropPlacementEditorOverlay, drawRouteGate, drawRouteGroundApron, drawScarabQueenLairOpeningProp, drawScribeLockedChamberInterior, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawTrapProjectile, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getDoorwayGateStatus, getEditedMiniBoss, getEditedNestParams, getGateGuidance, getPlayerAttackState, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getZIndexSortedRenderableStoryProps, getRouteGateDoorwayEntries, getScarabQueenLairPlacement, isRouteRewardAccessible, drawPlayerSprite, drawFieldNoteLabel]);
 
   const startOpeningCinematic = useCallback(({ speechEnabled = true } = {}) => {
     const current = stateRef.current;
@@ -20867,12 +20988,64 @@ export default function ExpeditionJourney({
           editor.selectedArchId = null;
           editor.selectedCheckpointId = null;
           editor.selectedLairId = null;
+          editor.selectedNestId = null;
           editor.dragging = null;
         }
         refreshPropEditorUi();
         return;
       }
       if (!editor.enabled) return;
+      // Scorpion-nest tuning: keys adjust the selected nest's size/anchor/glow.
+      const selectedNestForKeys = getPropEditorSelectedNest();
+      if (selectedNestForKeys && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        const id = selectedNestForKeys.id;
+        const cur = getEditedNestParams(selectedNestForKeys);
+        const applyNest = (patch) => {
+          editor.scorpionNestEdits[id] = { ...(editor.scorpionNestEdits[id] || {}), ...patch };
+          refreshPropEditorUi();
+        };
+        switch (event.code) {
+          case 'BracketLeft':
+            event.preventDefault();
+            applyNest({ widthScale: Math.max(0.3, Number((cur.widthScale - 0.05).toFixed(2))) });
+            return;
+          case 'BracketRight':
+            event.preventDefault();
+            applyNest({ widthScale: Number((cur.widthScale + 0.05).toFixed(2)) });
+            return;
+          case 'Semicolon':
+            event.preventDefault();
+            applyNest({ yOffset: cur.yOffset - 1 });
+            return;
+          case 'Quote':
+            event.preventDefault();
+            applyNest({ yOffset: cur.yOffset + 1 });
+            return;
+          case 'Comma':
+            event.preventDefault();
+            applyNest({ glowYFactor: Number((cur.glowYFactor - 0.02).toFixed(2)) });
+            return;
+          case 'Period':
+            event.preventDefault();
+            applyNest({ glowYFactor: Number((cur.glowYFactor + 0.02).toFixed(2)) });
+            return;
+          case 'Digit9':
+            event.preventDefault();
+            applyNest({ glowSize: Math.max(0.1, Number((cur.glowSize - 0.05).toFixed(2))) });
+            return;
+          case 'Digit0':
+            event.preventDefault();
+            applyNest({ glowSize: Number((cur.glowSize + 0.05).toFixed(2)) });
+            return;
+          case 'Backslash':
+            event.preventDefault();
+            delete editor.scorpionNestEdits[id];
+            refreshPropEditorUi();
+            return;
+          default:
+            break;
+        }
+      }
       if (event.code === 'KeyG' && !event.ctrlKey && !event.metaKey && !event.altKey) {
         event.preventDefault();
         editor.gridSnap = !editor.gridSnap;
@@ -20982,7 +21155,7 @@ export default function ExpeditionJourney({
     };
     window.addEventListener('keydown', handlePropEditorKeyDown);
     return () => window.removeEventListener('keydown', handlePropEditorKeyDown);
-  }, [applyDefaultEditorLocks, deleteSelectedPropFromEditor, duplicateSelectedPropInEditor, getPropEditorSelectedProp, redoEditorChange, refreshPropEditorUi, savePropPlacementExport, undoEditorChange, updateSelectedPropEditorTransform]);
+  }, [applyDefaultEditorLocks, deleteSelectedPropFromEditor, duplicateSelectedPropInEditor, getEditedNestParams, getPropEditorSelectedNest, getPropEditorSelectedProp, redoEditorChange, refreshPropEditorUi, savePropPlacementExport, undoEditorChange, updateSelectedPropEditorTransform]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -21089,6 +21262,31 @@ export default function ExpeditionJourney({
       const selectedForcedFloor = editor.floorPickMode
         ? findEditablePlatformAt(pointer.screenX, pointer.screenY, { floorOnly: true })
         : null;
+      // Scorpion nest takes priority over the crowded selection chain (but not forced
+      // floor-pick mode). Handled here with an early return so the tested hazard ->
+      // platform -> prop ordering below stays byte-for-byte intact.
+      const selectedNest = selectedForcedFloor ? null : findEditableNestAt(pointer.screenX, pointer.screenY);
+      if (selectedNest && !isEditorLockKeyLocked(`nest:${selectedNest.id}`)) {
+        editor.selectedPropId = null;
+        editor.selectedPlatformId = null;
+        editor.selectedHazardId = null;
+        editor.selectedArchId = null;
+        editor.selectedCheckpointId = null;
+        editor.selectedLairId = null;
+        editor.selectedNestId = selectedNest.id;
+        const params = getEditedNestParams(selectedNest);
+        editor.dragging = {
+          kind: 'nest',
+          nestId: selectedNest.id,
+          offsetX: pointer.worldX - params.x,
+          offsetY: pointer.worldY - params.y,
+        };
+        e.currentTarget.setPointerCapture?.(e.pointerId);
+        e.preventDefault();
+        draw();
+        refreshPropEditorUi();
+        return;
+      }
       const selectedHazard = selectedForcedFloor ? null : findEditableHazardAt(pointer.screenX, pointer.screenY);
       const selectedLair = selectedHazard || selectedForcedFloor ? null : findEditableScarabLairAt(pointer.screenX, pointer.screenY);
       const selectedCheckpoint = selectedHazard || selectedLair || selectedForcedFloor ? null : findEditableCheckpointAt(pointer.screenX, pointer.screenY);
@@ -21107,6 +21305,7 @@ export default function ExpeditionJourney({
       editor.selectedArchId = selectedArch?.editorId || null;
       editor.selectedCheckpointId = selectedCheckpoint?.id || null;
       editor.selectedLairId = selectedLair?.id || null;
+      editor.selectedNestId = null;
       const selectedLockKey = selectedProp
         ? `prop:${selectedProp.id}`
         : selectedPlatform
@@ -21224,6 +21423,18 @@ export default function ExpeditionJourney({
           ...(editor.miniBossEdits[baseLair.id] || {}),
           lairX: nextX,
           lairY: nextY,
+        };
+      } else if (editor.dragging.kind === 'nest') {
+        const baseNest = getRenderableScorpionNests().find(enemy => enemy.id === editor.dragging.nestId);
+        if (!baseNest) return;
+        const rawX = pointer.worldX - editor.dragging.offsetX;
+        const rawY = pointer.worldY - editor.dragging.offsetY;
+        const nextX = editor.gridSnap ? snapJourneyPropCoordinate(rawX, editor.gridSize) : Math.round(rawX);
+        const nextY = editor.gridSnap ? snapJourneyPropCoordinate(rawY, editor.gridSize) : Math.round(rawY);
+        editor.scorpionNestEdits[baseNest.id] = {
+          ...(editor.scorpionNestEdits[baseNest.id] || {}),
+          x: nextX,
+          y: nextY,
         };
       } else if (editor.dragging.kind === 'arch') {
         const [, id] = editor.dragging.archId.split(':');
