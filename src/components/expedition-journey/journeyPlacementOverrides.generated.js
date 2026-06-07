@@ -10,6 +10,99 @@ const journeyPlacementOverrides = {
   "room": "desert-entry",
   "props": [
     {
+      "id": "desert-entry-rubble-cluster-small-1",
+      "sectionId": "desert-entry",
+      "type": "foreground-depth-detail-prop",
+      "foregroundDetailAssetKey": "rubbleClusterSmall",
+      "x": 1215,
+      "y": 556,
+      "width": 132,
+      "height": 86,
+      "depth": "route-edge",
+      "layer": "route-edge",
+      "brightness": 1,
+      "colorGradeFilter": "",
+      "groundPebbles": 0,
+      "sandOverlapHeight": 0,
+      "shadowOpacity": 0,
+      "label": "rubble cluster small",
+      "groundContactLayer": [
+        {
+          "assetKey": "rubbleClusterSmall",
+          "alignY": "bottom",
+          "alpha": 0.84,
+          "height": 86,
+          "layer": "overlay",
+          "mode": "contain",
+          "widthRatio": 1,
+          "xRatio": 0.5,
+          "yOffset": -86
+        }
+      ]
+    },
+    {
+      "id": "desert-entry-egypt-base-sand-drift-1",
+      "sectionId": "desert-entry",
+      "type": "foreground-depth-detail-prop",
+      "foregroundDetailAssetKey": "egyptBaseSandDrift",
+      "x": 1581,
+      "y": 560,
+      "width": 220,
+      "height": 70,
+      "depth": "route-edge",
+      "layer": "route-edge",
+      "brightness": 1,
+      "colorGradeFilter": "",
+      "groundPebbles": 0,
+      "sandOverlapHeight": 0,
+      "shadowOpacity": 0,
+      "label": "base sand drift",
+      "groundContactLayer": [
+        {
+          "assetKey": "egyptBaseSandDrift",
+          "alignY": "bottom",
+          "alpha": 0.58,
+          "height": 70,
+          "layer": "overlay",
+          "mode": "stretch",
+          "widthRatio": 1,
+          "xRatio": 0.5,
+          "yOffset": -70
+        }
+      ]
+    },
+    {
+      "id": "desert-entry-edge-pebble-scatter-1",
+      "sectionId": "desert-entry",
+      "type": "foreground-depth-detail-prop",
+      "foregroundDetailAssetKey": "edgePebbleScatter",
+      "x": 1839,
+      "y": 562,
+      "width": 182,
+      "height": 72,
+      "depth": "route-edge",
+      "layer": "route-edge",
+      "brightness": 1,
+      "colorGradeFilter": "",
+      "groundPebbles": 0,
+      "sandOverlapHeight": 0,
+      "shadowOpacity": 0,
+      "label": "edge pebble scatter",
+      "groundContactLayer": [
+        {
+          "assetKey": "edgePebbleScatter",
+          "alignY": "bottom",
+          "alpha": 0.72,
+          "height": 72,
+          "layer": "overlay",
+          "mode": "stretch",
+          "widthRatio": 1,
+          "xRatio": 0.5,
+          "yOffset": -72
+        }
+      ]
+    },
+    {
       "id": "opening-archaeologist-field-kit",
       "sectionId": "desert-entry",
       "type": "camp",
