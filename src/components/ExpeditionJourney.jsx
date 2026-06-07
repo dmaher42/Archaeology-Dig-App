@@ -3211,6 +3211,45 @@ const STORY_PROP_DEPTH_ORDER = {
 };
 const PROP_EDITOR_DEPTH_OPTIONS = ['background', 'midground', 'grounded', 'route-edge', 'foreground-occluder'];
 
+// Turn a picked hex colour into HSL so the tint picker can build a colorize filter.
+const journeyHexToHsl = (hex) => {
+  let value = String(hex || '').trim().replace(/^#/, '');
+  if (value.length === 3) value = value.split('').map(ch => ch + ch).join('');
+  if (!/^[0-9a-f]{6}$/i.test(value)) return null;
+  const r = parseInt(value.slice(0, 2), 16) / 255;
+  const g = parseInt(value.slice(2, 4), 16) / 255;
+  const b = parseInt(value.slice(4, 6), 16) / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const delta = max - min;
+  const l = (max + min) / 2;
+  const s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
+  let h = 0;
+  if (delta !== 0) {
+    if (max === r) h = ((g - b) / delta) % 6;
+    else if (max === g) h = (b - r) / delta + 2;
+    else h = (r - g) / delta + 4;
+    h *= 60;
+    if (h < 0) h += 360;
+  }
+  return { h, s, l };
+};
+
+// Build a CSS colour-grade filter that tints a prop toward a picked colour at a given
+// strength (0-1), reusing the existing colorGradeFilter render path (which works on every
+// gradeable prop). sepia creates a colour base, hue-rotate aims it at the target hue, and
+// saturate reaches the target chroma. Brightness stays a separate control.
+const buildJourneyTintGradeFilter = (hex, strength) => {
+  const st = Math.max(0, Math.min(1, Number(strength) || 0));
+  if (st <= 0) return '';
+  const hsl = journeyHexToHsl(hex);
+  if (!hsl) return '';
+  const sepia = Math.round(st * 100);
+  const hueRot = Math.round(hsl.h - 40);
+  const saturate = Math.round((1 + st * (0.4 + hsl.s * 1.4)) * 100);
+  return `sepia(${sepia}%) hue-rotate(${hueRot}deg) saturate(${saturate}%)`;
+};
+
 // Filter the (77-item) prop palette by a free-text query, matching label, key, or asset key.
 const filterJourneyPaletteBySearch = (items = [], query = '') => {
   const q = String(query || '').trim().toLowerCase();
@@ -3658,7 +3697,6 @@ export default function ExpeditionJourney({
     savedAt: null,
   });
   const canvasRef = useRef(null);
-  const propTintBufferRef = useRef(null);
   const stateRef = useRef(gameState);
   const keysRef = useRef({});
   const spokenOpeningLineRef = useRef(null);
@@ -11593,8 +11631,6 @@ export default function ExpeditionJourney({
         ...(propForAsset.sceneBlend ? { sceneBlend: propForAsset.sceneBlend } : {}),
         ...(standalonePropAsset ? { colorGradeFilter: ROUTE_GATE_STANDALONE_PROP_COLOR_GRADE_FILTER } : {}),
         ...(propForAsset.colorGradeFilter ? { colorGradeFilter: propForAsset.colorGradeFilter } : {}),
-        ...(propForAsset.tintColor ? { tintColor: propForAsset.tintColor } : {}),
-        ...(Number.isFinite(propForAsset.tintStrength) ? { tintStrength: propForAsset.tintStrength } : {}),
       };
       if (Number.isFinite(propSize.scale)) {
         propSize.width *= propSize.scale;
@@ -11695,46 +11731,6 @@ export default function ExpeditionJourney({
         ctx.shadowBlur = 0;
         ctx.shadowOffsetY = 0;
         ctx.globalAlpha = 1;
-        // Colour tint overlay: multiply a picked colour over just this prop's pixels.
-        // Gated by tintStrength > 0 so every untinted prop renders exactly as before.
-        // Uses an offscreen buffer masked to the prop's alpha (source-in) so only the
-        // prop is tinted, never the scene behind it. Atlas-drawn props only.
-        const tintStrength = clamp(Number(propSize.tintStrength) || 0, 0, 1);
-        if (tintStrength > 0 && propAssetKey && typeof propSize.tintColor === 'string'
-            && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(propSize.tintColor.trim())) {
-          const bufW = Math.max(1, Math.round(propSize.width));
-          const bufH = Math.max(1, Math.round(propSize.height));
-          const buf = propTintBufferRef.current || (propTintBufferRef.current = document.createElement('canvas'));
-          if (buf.width !== bufW) buf.width = bufW;
-          if (buf.height !== bufH) buf.height = bufH;
-          const bctx = buf.getContext('2d');
-          if (bctx) {
-            bctx.setTransform(1, 0, 0, 1, 0, 0);
-            bctx.globalCompositeOperation = 'source-over';
-            bctx.globalAlpha = 1;
-            bctx.clearRect(0, 0, bufW, bufH);
-            const masked = drawAtlasRegion(bctx, propAssets, propAssetKey, { x: 0, y: 0, width: bufW, height: bufH }, { mode: 'contain' });
-            if (masked) {
-              // Keep the fill only where the prop drew pixels, turning the shape into solid tint.
-              bctx.globalCompositeOperation = 'source-in';
-              bctx.fillStyle = propSize.tintColor.trim();
-              bctx.fillRect(0, 0, bufW, bufH);
-              bctx.globalCompositeOperation = 'source-over';
-              // Multiply that tinted shape over the already-drawn prop, scaled by strength.
-              ctx.save();
-              ctx.globalCompositeOperation = 'multiply';
-              ctx.globalAlpha = tintStrength;
-              if (propForAsset.mirrorX || propForAsset.mirrorY) {
-                ctx.translate(drawX + propSize.width / 2, drawY + propSize.height / 2);
-                ctx.scale(propForAsset.mirrorX ? -1 : 1, propForAsset.mirrorY ? -1 : 1);
-                ctx.drawImage(buf, -propSize.width / 2, -propSize.height / 2, propSize.width, propSize.height);
-              } else {
-                ctx.drawImage(buf, drawX, drawY, propSize.width, propSize.height);
-              }
-              ctx.restore();
-            }
-          }
-        }
         drawPropSandOcclusion(ctx, x, anchorY, propSize, section.id, propGrounding);
         if (stateRef.current.renderStats) stateRef.current.renderStats.groundedPropCount += 1;
         if (atmospherePropAssetKey && stateRef.current.renderStats) {
@@ -22601,7 +22597,12 @@ export default function ExpeditionJourney({
                             <input
                               type="color"
                               value={/^#([0-9a-f]{6})$/i.test(propEditorUi.selectedProp.tintColor || '') ? propEditorUi.selectedProp.tintColor : '#b88a4a'}
-                              onChange={(event) => updateSelectedPropEditorField('tintColor', event.target.value)}
+                              onChange={(event) => {
+                                const color = event.target.value;
+                                const strength = Number.isFinite(propEditorUi.selectedProp.tintStrength) && propEditorUi.selectedProp.tintStrength > 0
+                                  ? propEditorUi.selectedProp.tintStrength : 0.4;
+                                updateSelectedPropEditorTransform({ tintColor: color, tintStrength: strength, colorGradeFilter: buildJourneyTintGradeFilter(color, strength) });
+                              }}
                               title="Pick a colour to tint this prop toward, then raise the strength"
                             />
                             <input
@@ -22610,13 +22611,17 @@ export default function ExpeditionJourney({
                               max="1"
                               step="0.05"
                               value={propEditorUi.selectedProp.tintStrength ?? 0}
-                              onChange={(event) => updateSelectedPropEditorNumberField('tintStrength', clamp(Number(event.target.value), 0, 1), { min: 0, max: 1, decimals: 2 })}
+                              onChange={(event) => {
+                                const strength = clamp(Number(event.target.value), 0, 1);
+                                const color = /^#([0-9a-f]{6})$/i.test(propEditorUi.selectedProp.tintColor || '') ? propEditorUi.selectedProp.tintColor : '#b88a4a';
+                                updateSelectedPropEditorTransform({ tintStrength: strength, tintColor: color, colorGradeFilter: buildJourneyTintGradeFilter(color, strength) });
+                              }}
                             />
                             <output>{Math.round((propEditorUi.selectedProp.tintStrength ?? 0) * 100)}%</output>
                             <button
                               type="button"
                               className="journey-prop-editor-color-reset"
-                              onClick={() => updateSelectedPropEditorNumberField('tintStrength', 0, { min: 0, max: 1, decimals: 2 })}
+                              onClick={() => updateSelectedPropEditorTransform({ tintStrength: 0, colorGradeFilter: '' })}
                               title="Remove tint"
                             >
                               Clear
