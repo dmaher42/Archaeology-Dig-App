@@ -2514,8 +2514,8 @@ const journeyPlacementOverrides = {
     },
     {
       "id": "desert-entry-scorpion-nest-gate",
-      "x": 2977,
-      "y": 338
+      "x": 2996,
+      "y": 293
     },
     {
       "id": "desert-seal",
