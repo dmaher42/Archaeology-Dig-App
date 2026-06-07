@@ -8,6 +8,7 @@ import { applyJourneyPlacementOverrides } from './journeyPlacementOverrides.js';
 let currentCiv = 'Ancient Egypt';
 
 const EgyptEditorPlacementData = applyJourneyPlacementOverrides({
+  enemies: EgyptData.ENEMIES,
   props: EgyptData.STORY_PROPS,
   platforms: EgyptData.PLATFORMS,
   hazards: EgyptData.HAZARDS,
@@ -82,7 +83,7 @@ export const getJourneyEnemies = (targetCivilisation) => {
   const civ = typeof targetCivilisation === 'string' ? targetCivilisation.toLowerCase() : '';
   if (civ.includes('rome'))  return RomeData.ROME_ENEMIES;
   if (civ.includes('china')) return EgyptData.CHINA_ENEMIES;
-  return EgyptData.ENEMIES;
+  return EgyptPlacementData.enemies;
 };
 
 export const getJourneyMiniBosses = (targetCivilisation) => {

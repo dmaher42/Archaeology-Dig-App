@@ -36,6 +36,7 @@ const HAZARD_EXPORT_SOURCE = 'src/components/expedition-journey/journeyLevelData
 const ROUTE_GATE_EXPORT_SOURCE = 'src/components/expedition-journey/journeyLevelData.js::ROUTE_GATES';
 const ROUTE_GATE_DOORWAY_EXPORT_SOURCE = 'src/components/expedition-journey/journeyLevelData.js::ROUTE_GATE_DOORWAYS';
 const CHECKPOINT_EXPORT_SOURCE = 'src/components/expedition-journey/journeyLevelData.js::CHECKPOINTS';
+const ENEMY_EXPORT_SOURCE = 'src/components/expedition-journey/journeyLevelData.js::ENEMIES';
 const MINI_BOSS_EXPORT_SOURCE = 'src/components/expedition-journey/journeyLevelData.js::MINI_BOSSES';
 
 export const snapJourneyPropCoordinate = (value, gridSize = DEFAULT_JOURNEY_PROP_EDITOR_GRID_SIZE) => {
@@ -583,6 +584,7 @@ export const createJourneyPropPlacementExport = ({
   routeGateSource = ROUTE_GATE_EXPORT_SOURCE,
   routeGateDoorwaySource = ROUTE_GATE_DOORWAY_EXPORT_SOURCE,
   checkpointSource = CHECKPOINT_EXPORT_SOURCE,
+  enemySource = ENEMY_EXPORT_SOURCE,
   miniBossSource = MINI_BOSS_EXPORT_SOURCE,
   roomId,
   props = [],
@@ -594,6 +596,7 @@ export const createJourneyPropPlacementExport = ({
   routeGates = [],
   routeGateDoorways = [],
   checkpoints = [],
+  enemies = [],
   miniBosses = [],
 } = {}) => JSON.stringify({
   source,
@@ -602,6 +605,7 @@ export const createJourneyPropPlacementExport = ({
   routeGateSource,
   routeGateDoorwaySource,
   checkpointSource,
+  enemySource,
   miniBossSource,
   room: roomId || 'unknown-room',
   props: props.map(cloneJourneyPlacementExportItem),
@@ -613,6 +617,7 @@ export const createJourneyPropPlacementExport = ({
   routeGates: routeGates.map(gate => ({ ...gate })),
   routeGateDoorways: routeGateDoorways.map(doorway => ({ ...doorway })),
   checkpoints: checkpoints.map(checkpoint => ({ ...checkpoint })),
+  enemies: enemies.map(enemy => ({ ...enemy })),
   miniBosses: miniBosses.map(boss => ({ ...boss })),
 }, null, 2);
 

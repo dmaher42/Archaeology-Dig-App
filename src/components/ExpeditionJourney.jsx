@@ -3951,10 +3951,18 @@ export default function ExpeditionJourney({
     return {
       x: Number.isFinite(edit.x) ? edit.x : enemy.x,
       y: Number.isFinite(edit.y) ? edit.y : enemy.y,
-      widthScale: Number.isFinite(edit.widthScale) ? edit.widthScale : SCORPION_NEST_EDITOR_DEFAULTS.widthScale,
-      yOffset: Number.isFinite(edit.yOffset) ? edit.yOffset : SCORPION_NEST_EDITOR_DEFAULTS.yOffset,
-      glowYFactor: Number.isFinite(edit.glowYFactor) ? edit.glowYFactor : SCORPION_NEST_EDITOR_DEFAULTS.glowYFactor,
-      glowSize: Number.isFinite(edit.glowSize) ? edit.glowSize : SCORPION_NEST_EDITOR_DEFAULTS.glowSize,
+      widthScale: Number.isFinite(edit.widthScale)
+        ? edit.widthScale
+        : Number.isFinite(enemy.widthScale) ? enemy.widthScale : SCORPION_NEST_EDITOR_DEFAULTS.widthScale,
+      yOffset: Number.isFinite(edit.yOffset)
+        ? edit.yOffset
+        : Number.isFinite(enemy.yOffset) ? enemy.yOffset : SCORPION_NEST_EDITOR_DEFAULTS.yOffset,
+      glowYFactor: Number.isFinite(edit.glowYFactor)
+        ? edit.glowYFactor
+        : Number.isFinite(enemy.glowYFactor) ? enemy.glowYFactor : SCORPION_NEST_EDITOR_DEFAULTS.glowYFactor,
+      glowSize: Number.isFinite(edit.glowSize)
+        ? edit.glowSize
+        : Number.isFinite(enemy.glowSize) ? enemy.glowSize : SCORPION_NEST_EDITOR_DEFAULTS.glowSize,
     };
   }, []);
 
@@ -4879,6 +4887,23 @@ export default function ExpeditionJourney({
       .filter(doorway => getSectionForX(Number.isFinite(doorway.anchorX) ? doorway.anchorX : doorway.blockX || 0)?.id === roomId);
     const roomCheckpoints = getRenderableCheckpoints()
       .filter(checkpoint => getSectionForX(Number(checkpoint.x) || 0)?.id === roomId);
+    const roomEnemies = getRenderableScorpionNests()
+      .map((enemy) => {
+        const params = getEditedNestParams(enemy);
+        return {
+          id: enemy.id,
+          sectionId: enemy.sectionId || getSectionForX(Number(params.x) || 0)?.id || roomId,
+          x: Math.round(params.x),
+          y: Math.round(params.y),
+          width: Math.round(Number(enemy.width) || 1),
+          height: Math.round(Number(enemy.height) || 1),
+          widthScale: Number(params.widthScale.toFixed(2)),
+          yOffset: Math.round(params.yOffset),
+          glowYFactor: Number(params.glowYFactor.toFixed(2)),
+          glowSize: Number(params.glowSize.toFixed(2)),
+        };
+      })
+      .filter(enemy => enemy?.id && enemy.sectionId === roomId);
     const roomMiniBosses = getJourneyMiniBosses(targetCivilisation)
       .map(boss => getEditedMiniBoss(boss))
       .filter(boss => boss?.id && (boss.sectionId || getSectionForX(Number(boss.x) || 0)?.id) === roomId);
@@ -4902,13 +4927,14 @@ export default function ExpeditionJourney({
       routeGates: roomRouteGates,
       routeGateDoorways: roomRouteGateDoorways,
       checkpoints: roomCheckpoints,
+      enemies: roomEnemies,
       miniBosses: roomMiniBosses,
     });
     editor.aiInstructions = createJourneyPlacementAiInstructions(editor, { roomId });
     editor.exportVisible = true;
     editor.savedAt = new Date().toLocaleTimeString();
     refreshPropEditorUi();
-  }, [getActivePropEditorRoomId, getAllPropEditorHazards, getAllPropEditorPlatforms, getAllPropEditorStoryProps, getEditedHazard, getEditedMiniBoss, getEditedPlatform, getEditedStoryProp, getHazardEditorBaseHazardById, getHazardEditorRoomId, getPlatformEditorBasePlatformById, getPlatformEditorRoomId, getPropEditorBasePropById, getRenderableCheckpoints, getRenderableRouteGateDoorways, getRenderableRouteGates, refreshPropEditorUi, targetCivilisation]);
+  }, [getActivePropEditorRoomId, getAllPropEditorHazards, getAllPropEditorPlatforms, getAllPropEditorStoryProps, getEditedHazard, getEditedMiniBoss, getEditedNestParams, getEditedPlatform, getEditedStoryProp, getHazardEditorBaseHazardById, getHazardEditorRoomId, getPlatformEditorBasePlatformById, getPlatformEditorRoomId, getPropEditorBasePropById, getRenderableCheckpoints, getRenderableRouteGateDoorways, getRenderableRouteGates, getRenderableScorpionNests, refreshPropEditorUi, targetCivilisation]);
 
   const deleteSelectedPropFromEditor = useCallback(() => {
     const editor = propPlacementEditorRef.current;

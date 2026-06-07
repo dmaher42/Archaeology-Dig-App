@@ -26,6 +26,10 @@ const EDITABLE_FIELDS = Object.freeze({
   routeGates: ['id', 'sectionId', 'sceneId', 'x', 'y', 'width', 'height'],
   routeGateDoorways: ['id', 'gateIds', 'anchorX', 'blockX', 'y', 'width', 'height', 'opening', 'slab', 'label'],
   checkpoints: ['id', 'name', 'x', 'markerX', 'y'],
+  enemies: [
+    'id', 'sectionId', 'sceneId', 'x', 'y', 'width', 'height', 'widthScale',
+    'yOffset', 'glowYFactor', 'glowSize',
+  ],
   miniBosses: [
     'id', 'sectionId', 'x', 'y', 'width', 'height', 'lairX', 'lairY', 'lairWidth',
     'lairHeight', 'patrolMin', 'patrolMax', 'arenaStart', 'arenaEnd',
@@ -108,6 +112,7 @@ export const normalizeJourneyPlacementExportForOverrides = (exportData = {}) => 
     routeGates: dedupeJourneyItemsById(exportData.routeGates),
     routeGateDoorways: dedupeJourneyItemsById(exportData.routeGateDoorways),
     checkpoints: dedupeJourneyItemsById(exportData.checkpoints),
+    enemies: dedupeJourneyItemsById(exportData.enemies),
     miniBosses: dedupeJourneyItemsById(exportData.miniBosses),
   };
 };
@@ -121,6 +126,7 @@ export const applyJourneyPlacementOverrides = (baseData = {}, overrideData = {})
     routeGates: mergeJourneyItemsById(baseData.routeGates, overrides.routeGates, [], EDITABLE_FIELDS.routeGates),
     routeGateDoorways: mergeJourneyItemsById(baseData.routeGateDoorways, overrides.routeGateDoorways, [], EDITABLE_FIELDS.routeGateDoorways),
     checkpoints: mergeJourneyItemsById(baseData.checkpoints, overrides.checkpoints, [], EDITABLE_FIELDS.checkpoints),
+    enemies: mergeJourneyItemsById(baseData.enemies, overrides.enemies, [], EDITABLE_FIELDS.enemies),
     miniBosses: mergeJourneyItemsById(baseData.miniBosses, overrides.miniBosses, [], EDITABLE_FIELDS.miniBosses),
   };
 };

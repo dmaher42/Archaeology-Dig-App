@@ -6,6 +6,7 @@ const journeyPlacementOverrides = {
   "routeGateSource": "src/components/expedition-journey/journeyLevelData.js::ROUTE_GATES",
   "routeGateDoorwaySource": "src/components/expedition-journey/journeyLevelData.js::ROUTE_GATE_DOORWAYS",
   "checkpointSource": "src/components/expedition-journey/journeyLevelData.js::CHECKPOINTS",
+  "enemySource": "src/components/expedition-journey/journeyLevelData.js::ENEMIES",
   "miniBossSource": "src/components/expedition-journey/journeyLevelData.js::MINI_BOSSES",
   "room": "desert-entry",
   "props": [
@@ -111,14 +112,6 @@ const journeyPlacementOverrides = {
       "label": "archaeologist arrival field kit"
     },
     {
-      "id": "desert-boundary-marker",
-      "sectionId": "desert-entry",
-      "type": "guardian-seal",
-      "x": 4405,
-      "y": 544,
-      "label": "ancient boundary seal"
-    },
-    {
       "id": "opening-pyramid-facade-structure",
       "sectionId": "desert-entry",
       "type": "generated-opening-pyramid-facade",
@@ -142,11 +135,11 @@ const journeyPlacementOverrides = {
       "id": "mummification-chamber-exterior-structure",
       "sectionId": "desert-entry",
       "type": "generated-mummification-chamber-entrance",
-      "x": 4310,
+      "x": 4307,
       "y": -225,
       "width": 1500,
       "height": 760,
-      "depth": "background",
+      "depth": "midground",
       "alpha": 1,
       "layer": "background",
       "groundContactLayer": [],
@@ -505,23 +498,6 @@ const journeyPlacementOverrides = {
       "label": "fallen stone column at the pyramid base right — once framed the entrance"
     },
     {
-      "id": "desert-entry-sand-piles-1",
-      "sectionId": "desert-entry",
-      "type": "atmosphere-prop",
-      "atmosphereAssetKey": "sand_piles",
-      "scale": 1.8,
-      "layer": "route-edge",
-      "x": 3751,
-      "y": 715,
-      "label": "sand piles",
-      "height": 87,
-      "brightness": 1.15,
-      "depth": "route-edge",
-      "colorGradeFilter": "sepia(21%) saturate(103%) brightness(84%) contrast(100%)",
-      "zIndex": 58,
-      "mirrorX": true
-    },
-    {
       "id": "desert-entry-rubble-mounds-1",
       "sectionId": "desert-entry",
       "type": "atmosphere-prop",
@@ -567,7 +543,7 @@ const journeyPlacementOverrides = {
       "y": 432,
       "label": "cracked stone blocks",
       "rotation": 10,
-      "colorGradeFilter": "saturate(162%) contrast(99%) hue-rotate(9deg)",
+      "colorGradeFilter": "saturate(188%) contrast(86%) hue-rotate(8deg)",
       "alpha": 1,
       "shadowOpacity": 0.22,
       "shadowWidth": 106,
@@ -576,7 +552,7 @@ const journeyPlacementOverrides = {
       "groundPebbles": 4,
       "depth": "route-edge",
       "zIndex": 91,
-      "brightness": 1.15,
+      "brightness": 1,
       "yOffset": -5,
       "height": 164,
       "mirrorX": true,
@@ -788,20 +764,22 @@ const journeyPlacementOverrides = {
       "height": 58,
       "scale": 1.15,
       "layer": "foreground",
-      "depth": "route-edge",
+      "depth": "grounded",
       "tint": "buried-stone",
-      "colorGradeFilter": "sepia(24%) hue-rotate(12deg) saturate(58%) brightness(72%) contrast(116%)",
+      "colorGradeFilter": "saturate(126%) sepia(3%) contrast(92%) hue-rotate(-1deg)",
       "alpha": 0.96,
       "shadowOpacity": 0.14,
       "sandOverlapHeight": 5,
       "sandMoundWidth": 116,
       "groundPebbles": 2,
-      "x": 3276,
-      "y": 377,
+      "x": 3669,
+      "y": 602,
       "label": "opening pyramid rubble",
       "mirrorY": false,
-      "mirrorX": true,
-      "zIndex": 117
+      "mirrorX": false,
+      "zIndex": -1,
+      "brightness": 0.95,
+      "yOffset": -19
     },
     {
       "id": "desert-entry-opening-pyramid-cracked-block-1",
@@ -1252,8 +1230,8 @@ const journeyPlacementOverrides = {
     },
     {
       "id": "desert-entry-right-prop-sand-cover-strip",
-      "x": 2729,
-      "y": 588,
+      "x": 2668,
+      "y": 606,
       "groundContactLayer": [
         {
           "assetKey": "premiumLongSandLip",
@@ -1268,7 +1246,7 @@ const journeyPlacementOverrides = {
           "alpha": 1
         }
       ],
-      "colorGradeFilter": "saturate(96%) sepia(18%) contrast(98%)",
+      "colorGradeFilter": "saturate(179%) contrast(120%) hue-rotate(-16deg)",
       "mirrorY": true,
       "depth": "route-edge",
       "sectionId": "desert-entry",
@@ -1278,17 +1256,110 @@ const journeyPlacementOverrides = {
       "height": 38,
       "layer": "route-edge",
       "label": "right prop cluster sand cover strip",
-      "brightness": 0.82,
+      "brightness": 0.7,
       "zIndex": 4,
       "shadowOpacity": 0,
       "sandOverlapHeight": 0,
       "groundPebbles": 0
+    },
+    {
+      "id": "desert-entry-ledge-helper-buried-ramp-blocks-1",
+      "sectionId": "desert-entry",
+      "type": "atmosphere-prop",
+      "atmosphereAssetKey": "ledgeHelperBuriedRampBlocks",
+      "width": 408,
+      "height": 270,
+      "scale": 1.35,
+      "layer": "foreground",
+      "depth": "route-edge",
+      "placementPreset": "desertEntryGroundedRuin",
+      "tint": "buried-stone",
+      "colorGradeFilter": "saturate(94%) contrast(112%)",
+      "alpha": 0.98,
+      "shadowOpacity": 0.22,
+      "sandOverlapHeight": 16,
+      "sandMoundWidth": 330,
+      "groundPebbles": 5,
+      "x": 2652,
+      "y": 698,
+      "label": "buried ramp blocks",
+      "yOffset": 109,
+      "zIndex": -38,
+      "mirrorY": false,
+      "mirrorX": false,
+      "brightness": 1.05,
+      "rotation": 10
+    },
+    {
+      "id": "desert-entry-premium-low-sediment-ribbon-1",
+      "sectionId": "desert-entry",
+      "type": "ground-contact-detail-prop",
+      "groundDetailAssetKey": "premiumLowSedimentRibbon",
+      "width": 372,
+      "height": 42,
+      "depth": "route-edge",
+      "layer": "route-edge",
+      "shadowOpacity": 0,
+      "sandOverlapHeight": 0,
+      "groundPebbles": 0,
+      "brightness": 0.6,
+      "colorGradeFilter": "saturate(160%) sepia(4%) contrast(68%) hue-rotate(-12deg)",
+      "groundContactLayer": [
+        {
+          "assetKey": "premiumLowSedimentRibbon",
+          "layer": "overlay",
+          "mode": "stretch",
+          "alignY": "bottom",
+          "xRatio": 0.5,
+          "widthRatio": 1,
+          "yOffset": -42,
+          "height": 42,
+          "alpha": 1
+        }
+      ],
+      "x": 2681,
+      "y": 610,
+      "label": "low sediment ribbon",
+      "zIndex": 28
+    },
+    {
+      "id": "desert-entry-premium-rubble-contact-shadow-5",
+      "sectionId": "desert-entry",
+      "type": "ground-contact-detail-prop",
+      "groundDetailAssetKey": "premiumRubbleContactShadow",
+      "width": 184,
+      "height": 52,
+      "depth": "route-edge",
+      "layer": "route-edge",
+      "shadowOpacity": 0,
+      "sandOverlapHeight": 0,
+      "groundPebbles": 0,
+      "brightness": 1,
+      "colorGradeFilter": "",
+      "groundContactLayer": [
+        {
+          "assetKey": "premiumRubbleContactShadow",
+          "layer": "overlay",
+          "xRatio": 0.5,
+          "widthRatio": 1,
+          "height": 52,
+          "yOffset": -52,
+          "alpha": 0.46,
+          "mode": "stretch",
+          "alignY": "bottom"
+        }
+      ],
+      "x": 2546,
+      "y": 251,
+      "label": "rubble contact shadow"
     }
   ],
   "deletedPropIds": [
     "desert-entry-premium-threshold-slab-1",
     "opening-pillar-caps-base",
-    "desert-entry-rubble-scatter-1"
+    "desert-entry-rubble-scatter-1",
+    "desert-entry-sand-piles-1",
+    "desert-boundary-marker"
   ],
   "platforms": [
     {
@@ -1747,13 +1818,13 @@ const journeyPlacementOverrides = {
     {
       "id": "desert-entry-platform-9",
       "sectionId": "desert-entry",
-      "width": 192,
+      "width": 254,
       "height": 18,
       "label": "editable platform",
       "invisible": true,
       "layer": "platform",
-      "x": 3390,
-      "y": 550
+      "x": 3225,
+      "y": 542
     },
     {
       "id": "desert-entry-platform-11",
@@ -1954,36 +2025,7 @@ const journeyPlacementOverrides = {
       },
       "message": "A low sand ridge slowed the survey line."
     },
-    {
-      "id": "thorn-bush",
-      "name": "thorn bush",
-      "emoji": "ðŸŒ¿",
-      "x": 3605,
-      "y": 500,
-      "width": 126,
-      "height": 70,
-      "penalty": {
-        "stamina": 5
-      },
-      "message": "Thorn scrub slowed the team. Stamina reduced.",
-      "sectionId": "desert-entry",
-      "triggerArea": {
-        "x": 0,
-        "y": 0,
-        "width": 112,
-        "height": 58
-      },
-      "damage": 20,
-      "reset": false,
-      "cooldown": 1.2,
-      "depth": "grounded",
-      "linkedObjectIds": [],
-      "editorVisible": true,
-      "burial": 0.35,
-      "brightness": 0.88,
-      "alpha": 0.92,
-      "colorGradeFilter": "sepia(0%) hue-rotate(8deg) saturate(72%) brightness(78%) contrast(90%)"
-    },
+
     {
       "id": "opening-seal-reset-trap",
       "name": "buried spike trap",
@@ -2481,7 +2523,9 @@ const journeyPlacementOverrides = {
       "message": "Loose stones shifted before the final guardian path."
     }
   ],
-  "deletedHazardIds": [],
+  "deletedHazardIds": [
+    "thorn-bush"
+  ],
   "routeGates": [
     {
       "id": "temple-approach-seal",
@@ -2514,8 +2558,8 @@ const journeyPlacementOverrides = {
     },
     {
       "id": "desert-entry-scorpion-nest-gate",
-      "x": 2996,
-      "y": 293
+      "x": 3244,
+      "y": 296
     },
     {
       "id": "desert-seal",
@@ -2548,6 +2592,14 @@ const journeyPlacementOverrides = {
       "name": "Desert Survey Checkpoint",
       "x": 6306,
       "y": 517
+    }
+  ],
+  "enemies": [
+    {
+      "id": "desert-entry-scorpion-nest-1",
+      "sectionId": "desert-entry",
+      "widthScale": 5.6,
+      "yOffset": 15
     }
   ],
   "miniBosses": [

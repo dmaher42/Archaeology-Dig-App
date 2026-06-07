@@ -24,6 +24,9 @@ test('applyJourneyPlacementOverrides merges exported editor items by id without 
     routeGates: [
       { id: 'gate-a', x: 300, y: 20 },
     ],
+    enemies: [
+      { id: 'nest-a', x: 120, y: 220, widthScale: 1.85, yOffset: 0, health: 6 },
+    ],
     miniBosses: [
       { id: 'scarab-queen', x: 400, arenaStart: 350, arenaEnd: 450 },
     ],
@@ -45,6 +48,9 @@ test('applyJourneyPlacementOverrides merges exported editor items by id without 
     ],
     routeGates: [
       { id: 'gate-a', x: 330, y: 20 },
+    ],
+    enemies: [
+      { id: 'nest-a', widthScale: 5.6, yOffset: 15, health: 999 },
     ],
     miniBosses: [
       { id: 'scarab-queen', x: 420, arenaStart: 370, arenaEnd: 470 },
@@ -68,6 +74,9 @@ test('applyJourneyPlacementOverrides merges exported editor items by id without 
   ]);
   assert.deepEqual(merged.routeGates, [
     { id: 'gate-a', x: 330, y: 20 },
+  ]);
+  assert.deepEqual(merged.enemies, [
+    { id: 'nest-a', x: 120, y: 220, widthScale: 5.6, yOffset: 15, health: 6 },
   ]);
   assert.deepEqual(merged.miniBosses, [
     { id: 'scarab-queen', x: 420, arenaStart: 370, arenaEnd: 470 },
