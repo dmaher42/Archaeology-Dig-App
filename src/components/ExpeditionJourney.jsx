@@ -821,6 +821,8 @@ const STAGE_ENTRANCE_DOORWAY_VERSION = 'imagegen-egypt-tomb-doorway-transition-2
 const DESERT_END_GATEWAY_SRC = 'assets/expedition/environment/stage-entrances/desert-end-threshold-angled.png';
 const DESERT_END_GATEWAY_VERSION = 'imagegen-desert-end-threshold-angled-blended-2026-05-23';
 const SCARAB_QUEEN_LAIR_OPENING_IMAGE_SRC = 'assets/expedition/bosses/scarab-queen-buried-lair-opening.png';
+const SCORPION_NEST_SRC = 'assets/expedition/enemies/scorpion-nest.png';
+const SCORPION_NEST_VERSION = 'imagegen-scorpion-nest-2026-06-07';
 const OPENING_CAMERA_REVEAL_DURATION = 1.55;
 const OPENING_CAMERA_REVEAL_PAN_SECONDS = 0.55;
 const OPENING_CAMERA_REVEAL_HOLD_SECONDS = 0.18;
@@ -3649,6 +3651,7 @@ export default function ExpeditionJourney({
   const markerSpriteAssetsRef = useRef(createMarkerSpriteState());
   const openingScarabSealImageRef = useRef({ image: null, loaded: false, failed: false });
   const scarabQueenLairOpeningImageRef = useRef({ image: null, loaded: false, failed: false });
+  const scorpionNestRef = useRef({ image: null, loaded: false, failed: false, version: SCORPION_NEST_VERSION });
   const openingSphinxApparitionRef = useRef({ image: null, loaded: false, failed: false });
   const openingPyramidClimbPackRef = useRef({ image: null, loaded: false, failed: false });
   const openingPyramidFacadeRef = useRef({ image: null, loaded: false, failed: false });
@@ -5409,6 +5412,34 @@ export default function ExpeditionJourney({
       };
     };
     image.src = `${import.meta.env.BASE_URL}${OPENING_TOMB_STAIRWELL_SRC}`;
+    return () => {
+      cancelled = true;
+    };
+  }, [syncHud]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const image = new Image();
+    image.onload = () => {
+      if (cancelled) return;
+      scorpionNestRef.current = {
+        image,
+        loaded: true,
+        failed: false,
+        version: SCORPION_NEST_VERSION,
+      };
+      syncHud();
+    };
+    image.onerror = () => {
+      if (cancelled) return;
+      scorpionNestRef.current = {
+        image: null,
+        loaded: false,
+        failed: true,
+        version: SCORPION_NEST_VERSION,
+      };
+    };
+    image.src = `${import.meta.env.BASE_URL}${SCORPION_NEST_SRC}`;
     return () => {
       cancelled = true;
     };
@@ -16246,27 +16277,55 @@ export default function ExpeditionJourney({
           drawContactShadow(ctx, ex + enemy.width / 2, enemy.y + enemy.height + 3, enemy.width * 0.62, 0.12, 0.75);
           drawGroundDustLip(ctx, ex + enemy.width / 2, enemy.y + enemy.height + 2, enemy.width * 0.68, 'rgba(95, 58, 27, 0.24)');
         } else if (enemy.type === 'scorpion-nest') {
-          // Placeholder nest visual: a sand mound with a dark burrow opening (final art TBD).
           const nestCx = ex + enemy.width / 2 + shakeX;
           const nestBaseY = enemy.y + enemy.height;
-          drawContactShadow(ctx, nestCx, nestBaseY + 3, enemy.width * 0.95, 0.26, 0.9);
-          ctx.fillStyle = '#7a4a1f';
-          ctx.strokeStyle = 'rgba(28, 16, 6, 0.5)';
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.ellipse(nestCx, nestBaseY - enemy.height * 0.32, enemy.width * 0.5, enemy.height * 0.5, 0, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.stroke();
-          ctx.fillStyle = '#160d05';
-          ctx.beginPath();
-          ctx.ellipse(nestCx, nestBaseY - enemy.height * 0.34, enemy.width * 0.24, enemy.height * 0.3, 0, 0, Math.PI * 2);
-          ctx.fill();
+          const nestAsset = scorpionNestRef.current;
           const nestGlow = 0.4 + Math.sin(now / 220) * 0.25;
-          ctx.fillStyle = `rgba(217, 119, 47, ${nestGlow})`;
-          ctx.beginPath();
-          ctx.ellipse(nestCx - 6, nestBaseY - enemy.height * 0.36, 2.4, 2.4, 0, 0, Math.PI * 2);
-          ctx.ellipse(nestCx + 6, nestBaseY - enemy.height * 0.36, 2.4, 2.4, 0, 0, Math.PI * 2);
-          ctx.fill();
+          if (nestAsset.loaded && nestAsset.image) {
+            // Real nest art: widen the footprint to the art's native aspect (~2.4:1
+            // visible nest baked into the PNG) and anchor the flat burrow lip at the
+            // ground line so it sits flush. Native aspect avoids horizontal stretch.
+            const nestNativeAspect = (nestAsset.image.naturalWidth || nestAsset.image.width || 3)
+              / (nestAsset.image.naturalHeight || nestAsset.image.height || 2);
+            const nestDrawWidth = enemy.width * 1.85;
+            const nestDrawHeight = nestDrawWidth / nestNativeAspect;
+            const nestDrawX = nestCx - nestDrawWidth / 2;
+            const nestDrawY = nestBaseY - nestDrawHeight;
+            drawContactShadow(ctx, nestCx, nestBaseY + 3, nestDrawWidth * 0.52, 0.26, 0.9);
+            ctx.drawImage(nestAsset.image, nestDrawX, nestDrawY, nestDrawWidth, nestDrawHeight);
+            // Pulsing amber glow over the burrow mouth (centered near the base).
+            const glowY = nestBaseY - enemy.height * 0.42;
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            const glowGrad = ctx.createRadialGradient(nestCx, glowY, 1, nestCx, glowY, 16);
+            glowGrad.addColorStop(0, `rgba(255, 168, 76, ${nestGlow})`);
+            glowGrad.addColorStop(1, 'rgba(255, 168, 76, 0)');
+            ctx.fillStyle = glowGrad;
+            ctx.beginPath();
+            ctx.ellipse(nestCx, glowY, 18, 11, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+          } else {
+            // Placeholder nest visual (final art not yet loaded): a sand mound with a
+            // dark burrow opening and pulsing amber eyes.
+            drawContactShadow(ctx, nestCx, nestBaseY + 3, enemy.width * 0.95, 0.26, 0.9);
+            ctx.fillStyle = '#7a4a1f';
+            ctx.strokeStyle = 'rgba(28, 16, 6, 0.5)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.ellipse(nestCx, nestBaseY - enemy.height * 0.32, enemy.width * 0.5, enemy.height * 0.5, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.fillStyle = '#160d05';
+            ctx.beginPath();
+            ctx.ellipse(nestCx, nestBaseY - enemy.height * 0.34, enemy.width * 0.24, enemy.height * 0.3, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = `rgba(217, 119, 47, ${nestGlow})`;
+            ctx.beginPath();
+            ctx.ellipse(nestCx - 6, nestBaseY - enemy.height * 0.36, 2.4, 2.4, 0, 0, Math.PI * 2);
+            ctx.ellipse(nestCx + 6, nestBaseY - enemy.height * 0.36, 2.4, 2.4, 0, 0, Math.PI * 2);
+            ctx.fill();
+          }
         } else {
           drawContactShadow(ctx, ex + enemy.width / 2, enemy.y + enemy.height + 3, enemy.width * 0.72, 0.16, 0.75);
           ctx.fillStyle = enemy.type === 'guardian' || enemy.type === 'statue' ? '#6b7280' : '#78350f';
