@@ -164,9 +164,9 @@ const EGYPT_ARCHIVE_PROLOGUE_ITEMS = [
     visualType: 'report',
     visualSrc: EGYPT_ARCHIVE_ASSETS.report,
     body: [
-      'A new site photograph shows a scarab form at the pyramid crown.',
-      'Earlier surveys record blank stone in the same position.',
-      'The real pyramid never carried that scarab until now.',
+      'A new site photograph records a scarab form at the pyramid crown.',
+      'Earlier surveys list blank stone in the same position.',
+      'Discrepancy flagged for field verification.',
     ],
   },
   {
@@ -192,8 +192,8 @@ const EGYPT_ARCHIVE_PROLOGUE_ITEMS = [
     visualSrc: EGYPT_ARCHIVE_ASSETS.notes,
     body: [
       'Everyone else treated the photograph as symbolic, mistaken, or too strange to explain.',
-      'Asha remembers it because the new site report finally matches the old painting.',
-      'If the photograph was not showing what was stolen, it may have been showing what would return.',
+      'But the new report matches the old painting exactly: the real pyramid never carried that scarab until now.',
+      'I keep wanting to write that it is showing what would return. That is not a conclusion. It is a question I cannot close.',
       'Either way, the scarab needs to be checked in person.',
     ],
   },

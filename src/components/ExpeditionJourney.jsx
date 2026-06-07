@@ -3089,6 +3089,45 @@ const STORY_PROP_DEPTH_ORDER = {
 };
 const PROP_EDITOR_DEPTH_OPTIONS = ['background', 'midground', 'grounded', 'route-edge', 'foreground-occluder'];
 
+// Turn a picked hex colour into HSL so the tint picker can build a colorize filter.
+const journeyHexToHsl = (hex) => {
+  let value = String(hex || '').trim().replace(/^#/, '');
+  if (value.length === 3) value = value.split('').map(ch => ch + ch).join('');
+  if (!/^[0-9a-f]{6}$/i.test(value)) return null;
+  const r = parseInt(value.slice(0, 2), 16) / 255;
+  const g = parseInt(value.slice(2, 4), 16) / 255;
+  const b = parseInt(value.slice(4, 6), 16) / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const delta = max - min;
+  const l = (max + min) / 2;
+  const s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
+  let h = 0;
+  if (delta !== 0) {
+    if (max === r) h = ((g - b) / delta) % 6;
+    else if (max === g) h = (b - r) / delta + 2;
+    else h = (r - g) / delta + 4;
+    h *= 60;
+    if (h < 0) h += 360;
+  }
+  return { h, s, l };
+};
+
+// Build a CSS colour-grade filter that tints a prop toward a picked colour at a given
+// strength (0-1), reusing the existing colorGradeFilter render path (which works on every
+// gradeable prop). sepia creates a colour base, hue-rotate aims it at the target hue, and
+// saturate reaches the target chroma. Brightness stays a separate control.
+const buildJourneyTintGradeFilter = (hex, strength) => {
+  const st = Math.max(0, Math.min(1, Number(strength) || 0));
+  if (st <= 0) return '';
+  const hsl = journeyHexToHsl(hex);
+  if (!hsl) return '';
+  const sepia = Math.round(st * 100);
+  const hueRot = Math.round(hsl.h - 40);
+  const saturate = Math.round((1 + st * (0.4 + hsl.s * 1.4)) * 100);
+  return `sepia(${sepia}%) hue-rotate(${hueRot}deg) saturate(${saturate}%)`;
+};
+
 // Filter the (77-item) prop palette by a free-text query, matching label, key, or asset key.
 const filterJourneyPaletteBySearch = (items = [], query = '') => {
   const q = String(query || '').trim().toLowerCase();
@@ -4344,6 +4383,8 @@ export default function ExpeditionJourney({
         mirrorY: Boolean(prop.mirrorY),
         brightness: Number.isFinite(prop.brightness) ? prop.brightness : 1,
         colorGradeFilter: typeof prop.colorGradeFilter === 'string' ? prop.colorGradeFilter : '',
+        tintColor: typeof prop.tintColor === 'string' && prop.tintColor ? prop.tintColor : '#b88a4a',
+        tintStrength: Number.isFinite(prop.tintStrength) ? prop.tintStrength : 0,
         depth: getStoryPropDepth(prop),
         layer: prop.layer || 'default',
         zIndex: Number.isFinite(prop.zIndex) ? prop.zIndex : 'auto',
@@ -5059,6 +5100,8 @@ export default function ExpeditionJourney({
     editor.copiedLook = {
       colorGradeFilter: typeof selectedProp.colorGradeFilter === 'string' ? selectedProp.colorGradeFilter : '',
       brightness: Number.isFinite(selectedProp.brightness) ? selectedProp.brightness : 1,
+      tintColor: typeof selectedProp.tintColor === 'string' ? selectedProp.tintColor : '',
+      tintStrength: Number.isFinite(selectedProp.tintStrength) ? selectedProp.tintStrength : 0,
     };
     refreshPropEditorUi();
   }, [getPropEditorSelectedProp, refreshPropEditorUi]);
@@ -5069,6 +5112,8 @@ export default function ExpeditionJourney({
     updateSelectedPropEditorTransform({
       colorGradeFilter: look.colorGradeFilter,
       brightness: look.brightness,
+      ...(typeof look.tintColor === 'string' && look.tintColor ? { tintColor: look.tintColor } : {}),
+      tintStrength: Number.isFinite(look.tintStrength) ? look.tintStrength : 0,
     });
   }, [updateSelectedPropEditorTransform]);
 
@@ -22437,6 +22482,41 @@ export default function ExpeditionJourney({
                               onClick={() => updateSelectedPropEditorField('colorGradeFilter', '')}
                             >
                               Reset
+                            </button>
+                          </div>
+                          <div className="journey-prop-editor-tint">
+                            <span>Tint</span>
+                            <input
+                              type="color"
+                              value={/^#([0-9a-f]{6})$/i.test(propEditorUi.selectedProp.tintColor || '') ? propEditorUi.selectedProp.tintColor : '#b88a4a'}
+                              onChange={(event) => {
+                                const color = event.target.value;
+                                const strength = Number.isFinite(propEditorUi.selectedProp.tintStrength) && propEditorUi.selectedProp.tintStrength > 0
+                                  ? propEditorUi.selectedProp.tintStrength : 0.4;
+                                updateSelectedPropEditorTransform({ tintColor: color, tintStrength: strength, colorGradeFilter: buildJourneyTintGradeFilter(color, strength) });
+                              }}
+                              title="Pick a colour to tint this prop toward, then raise the strength"
+                            />
+                            <input
+                              type="range"
+                              min="0"
+                              max="1"
+                              step="0.05"
+                              value={propEditorUi.selectedProp.tintStrength ?? 0}
+                              onChange={(event) => {
+                                const strength = clamp(Number(event.target.value), 0, 1);
+                                const color = /^#([0-9a-f]{6})$/i.test(propEditorUi.selectedProp.tintColor || '') ? propEditorUi.selectedProp.tintColor : '#b88a4a';
+                                updateSelectedPropEditorTransform({ tintStrength: strength, tintColor: color, colorGradeFilter: buildJourneyTintGradeFilter(color, strength) });
+                              }}
+                            />
+                            <output>{Math.round((propEditorUi.selectedProp.tintStrength ?? 0) * 100)}%</output>
+                            <button
+                              type="button"
+                              className="journey-prop-editor-color-reset"
+                              onClick={() => updateSelectedPropEditorTransform({ tintStrength: 0, colorGradeFilter: '' })}
+                              title="Remove tint"
+                            >
+                              Clear
                             </button>
                           </div>
                           <div className="journey-prop-editor-slider">

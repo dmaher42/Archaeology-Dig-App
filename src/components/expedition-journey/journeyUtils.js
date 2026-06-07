@@ -114,6 +114,8 @@ export const applyJourneyPropPlacementEdit = (prop = {}, edit = {}) => {
   if (Number.isFinite(edit.sandMoundHeight)) next.sandMoundHeight = Math.max(0, Math.round(edit.sandMoundHeight));
   if (Number.isFinite(edit.groundPebbles)) next.groundPebbles = Math.max(0, Math.round(edit.groundPebbles));
   if (typeof edit.colorGradeFilter === 'string') next.colorGradeFilter = edit.colorGradeFilter;
+  if (typeof edit.tintColor === 'string') next.tintColor = edit.tintColor;
+  if (Number.isFinite(edit.tintStrength)) next.tintStrength = Math.max(0, Math.min(1, Math.round(edit.tintStrength * 100) / 100));
   if (Array.isArray(edit.groundContactLayer)) next.groundContactLayer = normalizeJourneyGroundContactLayer(edit.groundContactLayer);
   return next;
 };
