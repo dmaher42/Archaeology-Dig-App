@@ -562,7 +562,7 @@ const OPENING_CINEMATIC_LINES = [
     at: 1.2,
     speaker: 'Anubis',
     voice: 'guardian',
-    text: 'You stand where you should not. Another human hand at the seal. Always reaching. Always taking.',
+    text: 'You stand where you should not. Living breath at my seal. None of your kind has crossed into the dead in longer than your cities have stood.',
   },
   {
     id: 'asha-scarab',
@@ -583,7 +583,7 @@ const OPENING_CINEMATIC_LINES = [
     at: 10.1,
     speaker: 'Anubis',
     voice: 'guardian',
-    text: 'The seal marks trespassers for trial. It gives cloth and iron so judgement can watch what you do with them. That is not permission.',
+    text: 'The seal dresses trespassers for trial, to watch what your hands do here. For a thousand years your kind has only ever reached and taken. This is not permission.',
   },
   {
     id: 'asha-return',
@@ -597,7 +597,7 @@ const OPENING_CINEMATIC_LINES = [
     at: OPENING_CINEMATIC_SPELL_IMPACT_AT,
     speaker: 'Anubis',
     voice: 'guardian',
-    text: 'I tried. Even this gate no longer obeys. Centuries of human hands taught it fear.',
+    text: 'There is no going back. This is the house of the dead, and you are not welcome in it. The seal opens only forward. You leave by trial, or not at all.',
   },
   {
     id: 'asha-survive',

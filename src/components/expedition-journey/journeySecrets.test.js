@@ -1023,8 +1023,8 @@ test('opening cinematic starts on the main expedition path and has a styled dram
   assert.match(journeyComponentSource, /I was in Cairo\. I touched the scarab and the pyramid disappeared\./);
   assert.match(journeyComponentSource, /Where did my field clothes go\?/);
   assert.match(journeyComponentSource, /This blade was not on my belt\./);
-  assert.match(journeyComponentSource, /It gives cloth and iron so judgement can watch what you do with them\./);
-  assert.match(journeyComponentSource, /I tried\. Even this gate no longer obeys\./);
+  assert.match(journeyComponentSource, /to watch what your hands do here\./);
+  assert.match(journeyComponentSource, /you are not welcome in it\./);
   assert.doesNotMatch(journeyComponentSource, /The past is not treasure to own/);
   assert.doesNotMatch(journeyComponentSource, /You did not come to take/);
   assert.match(journeyComponentSource, /opening-cinematic-memory-runes/);
@@ -1043,15 +1043,16 @@ test('Lost Site arrival dialogue sells confusion, changed gear, failed return, a
 
   assert.notEqual(openingStart, -1);
   assert.notEqual(openingEnd, -1);
-  assert.match(openingLines, /Another human hand at the seal\. Always reaching\. Always taking\./);
+  assert.match(openingLines, /Living breath at my seal\. None of your kind has crossed into the dead/);
   assert.match(openingLines, /Where did my field clothes go\?/);
   assert.match(openingLines, /This blade was not on my belt\./);
-  assert.match(openingLines, /It gives cloth and iron so judgement can watch what you do with them\./);
+  assert.match(openingLines, /For a thousand years your kind has only ever reached and taken\./);
   assert.match(openingLines, /Then send me back\. I did not come here to steal from you\./);
-  assert.match(openingLines, /I tried\. Even this gate no longer obeys\./);
-  assert.match(openingLines, /Centuries of human hands taught it fear\./);
+  assert.match(openingLines, /This is the house of the dead, and you are not welcome in it\./);
+  assert.match(openingLines, /The seal opens only forward\. You leave by trial, or not at all\./);
   assert.match(openingLines, /Then I keep moving\. If the way out is deeper, I find it\./);
   assert.doesNotMatch(openingLines, /memory to protect|It was not treasure they stole|chosen|destiny/i);
+  assert.doesNotMatch(openingLines, /no longer obeys|taught it fear/i);
 });
 
 test('opening transport and arrival use dedicated scarab, threshold, Anubis, and Lost Site SFX cues', () => {
@@ -3183,7 +3184,7 @@ test('Egypt opening archive prologue grounds Asha before the Lost Site transport
   assert.match(expeditionModeSource, /setExpeditionStage\('journey'\)/);
   assert.match(journeyComponentSource, /The Gate Refuses/);
   assert.match(journeyComponentSource, /I was in Cairo\. I touched the scarab and the pyramid disappeared\./);
-  assert.match(journeyComponentSource, /I tried\. Even this gate no longer obeys\./);
+  assert.match(journeyComponentSource, /This is the house of the dead, and you are not welcome in it\./);
   assert.doesNotMatch(journeyComponentSource, /The past is not treasure to own\. It is memory to protect\./);
   assert.doesNotMatch(journeyComponentSource, /You did not come to take\. Prove it beyond the First Seal\./);
   assert.doesNotMatch(journeyComponentSource, /OPENING_ARCHIVE_EVIDENCE/);
