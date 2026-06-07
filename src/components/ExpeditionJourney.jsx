@@ -16433,7 +16433,7 @@ export default function ExpeditionJourney({
       const routeRewardAccessible = isRouteRewardAccessible(secret.routeId, current);
       if (!routeRewardAccessible && Math.abs(secret.x - current.player.x) > 260) return;
       drawCollectible(ctx, secret.x, secret.y, cameraX, now, secret.shortName?.slice(0, 1) || 'S', secret.color || '#b45309', true, false, {
-        key: 'loreTablet',
+        key: secret.spriteKey || 'loreTablet',
         kind: 'objective',
         size: 34,
         ringSize: 48,

@@ -2,7 +2,7 @@ import { drawAtlasRegion } from './journeyRenderAssets';
 
 export const COLLECTIBLE_ATLAS_BASE_PATH = 'assets/expedition/collectibles/';
 export const COLLECTIBLE_ATLAS_JSON = `${COLLECTIBLE_ATLAS_BASE_PATH}journey-collectibles-pack.json`;
-export const COLLECTIBLE_SPRITE_ATLAS_VERSION = 'journey-collectibles-field-kit-icons-2026-05-27';
+export const COLLECTIBLE_SPRITE_ATLAS_VERSION = 'journey-collectibles-restoration-fragments-2026-06-07';
 
 export const EXPECTED_COLLECTIBLE_ASSET_KEYS = [
   'brush',
@@ -27,6 +27,15 @@ export const EXPECTED_COLLECTIBLE_ASSET_KEYS = [
   'lockedDimOverlay',
   'availableGlowRing',
   'objectiveHighlightRing',
+  'linenMemoryFragment',
+  'resinRiteFragment',
+  'canopicNameFragment',
+  'scarabWingFragment',
+  'muralFaienceFragment',
+  'muralPlasterFragment',
+  'inkNameFragment',
+  'witnessLineFragment',
+  'royalRecordFragment',
 ];
 
 export const createCollectibleSpriteState = () => ({

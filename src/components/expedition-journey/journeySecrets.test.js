@@ -40,6 +40,7 @@ const journeyEnemySpritesSource = readFileSync(new URL('./journeyEnemySprites.js
 const journeyBossSpritesSource = readFileSync(new URL('./journeyBossSprites.js', import.meta.url), 'utf8');
 const journeyMarkerSpritesSource = readFileSync(new URL('./journeyMarkerSprites.js', import.meta.url), 'utf8');
 const journeyBackgroundAssetsSource = readFileSync(new URL('./journeyBackgroundAssets.js', import.meta.url), 'utf8');
+const journeyCollectibleSpritesSource = readFileSync(new URL('./journeyCollectibleSprites.js', import.meta.url), 'utf8');
 const journeyRenderAssetsSource = readFileSync(new URL('./journeyRenderAssets.js', import.meta.url), 'utf8');
 const journeyPlacementOverridesSource = readFileSync(new URL('./journeyPlacementOverrides.js', import.meta.url), 'utf8');
 const journeyPlacementGeneratedOverrideSource = readFileSync(new URL('./journeyPlacementOverrides.generated.js', import.meta.url), 'utf8');
@@ -1069,9 +1070,21 @@ test('secret collectibles support Egypt and China discovery sets', () => {
 test('sacred room restoration fragments use secret collectibles without becoming route-gate currency', () => {
   const hiddenRoutes = extractExportedArray('HIDDEN_ROUTES');
   const secretCollectibles = extractExportedArray('SECRET_COLLECTIBLES');
+  const collectibleAtlas = JSON.parse(readFileSync(new URL('../../../public/assets/expedition/collectibles/journey-collectibles-pack.json', import.meta.url), 'utf8'));
   const storyProps = extractExportedArray('STORY_PROPS');
   const routeGates = extractExportedArray('ROUTE_GATES');
   const relicShardLayout = source.slice(source.indexOf('const RELIC_SHARD_LAYOUT = ['), source.indexOf('export const RELIC_SHARDS'));
+  const restorationSpriteKeys = [
+    'linenMemoryFragment',
+    'resinRiteFragment',
+    'canopicNameFragment',
+    'scarabWingFragment',
+    'muralFaienceFragment',
+    'muralPlasterFragment',
+    'inkNameFragment',
+    'witnessLineFragment',
+    'royalRecordFragment',
+  ];
 
   [
     {
@@ -1122,6 +1135,12 @@ test('sacred room restoration fragments use secret collectibles without becoming
     assert.match(prop, new RegExp(`sceneId:\\s*'${sceneId}'`), `${propId} should belong to ${sceneId}`);
   });
 
+  restorationSpriteKeys.forEach((key) => {
+    assert.match(secretCollectibles, new RegExp(`spriteKey:\\s*'${key}'`));
+    assert.match(journeyCollectibleSpritesSource, new RegExp(`'${key}'`));
+    assert.ok(collectibleAtlas.regions[key], `${key} should exist in the collectible atlas`);
+  });
+  assert.match(journeyComponentSource, /key:\s*secret\.spriteKey\s*\|\|\s*'loreTablet'/);
   assert.doesNotMatch(relicShardLayout, /sceneId:\s*'mummification-chamber'|sceneId:\s*'forgotten-mural-chamber'|sceneId:\s*'scribe-locked-chamber'/);
   assert.doesNotMatch(routeGates, /restoredFragments|restoredFragment|restorationSetId|anubisTrust|trustMeter/);
   assert.doesNotMatch(journeyComponentSource, /anubisTrust|trustMeter/);
