@@ -5115,6 +5115,27 @@ export default function ExpeditionJourney({
     refreshPropEditorUi();
   }, [getPropEditorSelectedLair, isEditorEntityLocked, refreshPropEditorUi]);
 
+  const updateSelectedNestEditorTransform = useCallback((edit) => {
+    const editor = propPlacementEditorRef.current;
+    const selectedNest = getPropEditorSelectedNest();
+    if (!selectedNest?.id) return;
+    if (isEditorEntityLocked('nest', selectedNest.id)) return;
+    editor.scorpionNestEdits[selectedNest.id] = {
+      ...(editor.scorpionNestEdits[selectedNest.id] || {}),
+      ...edit,
+    };
+    refreshPropEditorUi();
+  }, [getPropEditorSelectedNest, isEditorEntityLocked, refreshPropEditorUi]);
+
+  const resetSelectedNestEditor = useCallback(() => {
+    const editor = propPlacementEditorRef.current;
+    const selectedNest = getPropEditorSelectedNest();
+    if (!selectedNest?.id) return;
+    if (isEditorEntityLocked('nest', selectedNest.id)) return;
+    delete editor.scorpionNestEdits[selectedNest.id];
+    refreshPropEditorUi();
+  }, [getPropEditorSelectedNest, isEditorEntityLocked, refreshPropEditorUi]);
+
   const duplicateSelectedPropInEditor = useCallback(() => {
     const editor = propPlacementEditorRef.current;
     const selectedProp = getPropEditorSelectedProp();
@@ -21845,8 +21866,20 @@ export default function ExpeditionJourney({
                     <div><span>X</span><strong>{propEditorUi.selectedCheckpoint.x}</strong></div>
                     <div><span>Y</span><strong>{propEditorUi.selectedCheckpoint.y}</strong></div>
                   </div>
+                ) : propEditorUi.selectedNest ? (
+                  <div className="journey-prop-editor-readout">
+                    <div><span>Scorpion Nest</span><strong>{propEditorUi.selectedNest.id}</strong></div>
+                    <div><span>Name</span><strong>{propEditorUi.selectedNest.name}</strong></div>
+                    <div><span>Room</span><strong>{propEditorUi.selectedNest.roomId}</strong></div>
+                    <div><span>X</span><strong>{propEditorUi.selectedNest.x}</strong></div>
+                    <div><span>Y</span><strong>{propEditorUi.selectedNest.y}</strong></div>
+                    <div><span>Size</span><strong>{propEditorUi.selectedNest.widthScale}</strong></div>
+                    <div><span>Anchor</span><strong>{propEditorUi.selectedNest.yOffset}</strong></div>
+                    <div><span>Glow Y</span><strong>{propEditorUi.selectedNest.glowYFactor}</strong></div>
+                    <div><span>Glow Size</span><strong>{propEditorUi.selectedNest.glowSize}</strong></div>
+                  </div>
                 ) : (
-                  <div className="journey-prop-editor-empty">No prop, structure, trap, platform, floor, arch, lair, or checkpoint selected</div>
+                  <div className="journey-prop-editor-empty">No prop, structure, trap, platform, floor, arch, lair, nest, or checkpoint selected</div>
                 )}
                 <label className="journey-prop-editor-grid">
                   <span>Grid size</span>
@@ -23066,6 +23099,96 @@ export default function ExpeditionJourney({
                       />
                     </label>
                   </div>
+                )}
+                {propEditorUi.selectedNest && (
+                  <>
+                    <div className="journey-prop-editor-group-header">Nest placement</div>
+                    <div className="journey-prop-editor-controls">
+                      <label>
+                        <span>X</span>
+                        <input
+                          type="number"
+                          step="1"
+                          value={propEditorUi.selectedNest.x}
+                          onChange={(event) => {
+                            const next = Number(event.target.value);
+                            if (Number.isFinite(next)) updateSelectedNestEditorTransform({ x: Math.round(next) });
+                          }}
+                        />
+                      </label>
+                      <label>
+                        <span>Y</span>
+                        <input
+                          type="number"
+                          step="1"
+                          value={propEditorUi.selectedNest.y}
+                          onChange={(event) => {
+                            const next = Number(event.target.value);
+                            if (Number.isFinite(next)) updateSelectedNestEditorTransform({ y: Math.round(next) });
+                          }}
+                        />
+                      </label>
+                      <label>
+                        <span>Size</span>
+                        <input
+                          type="number"
+                          min="0.3"
+                          step="0.05"
+                          value={propEditorUi.selectedNest.widthScale}
+                          onChange={(event) => {
+                            const next = Number(event.target.value);
+                            if (Number.isFinite(next)) updateSelectedNestEditorTransform({ widthScale: Math.max(0.3, Number(next.toFixed(2))) });
+                          }}
+                        />
+                      </label>
+                      <label>
+                        <span>Anchor</span>
+                        <input
+                          type="number"
+                          step="1"
+                          value={propEditorUi.selectedNest.yOffset}
+                          onChange={(event) => {
+                            const next = Number(event.target.value);
+                            if (Number.isFinite(next)) updateSelectedNestEditorTransform({ yOffset: Math.round(next) });
+                          }}
+                        />
+                      </label>
+                    </div>
+
+                    <div className="journey-prop-editor-group-header">Nest glow</div>
+                    <div className="journey-prop-editor-controls">
+                      <label>
+                        <span>Glow Y</span>
+                        <input
+                          type="number"
+                          step="0.02"
+                          value={propEditorUi.selectedNest.glowYFactor}
+                          onChange={(event) => {
+                            const next = Number(event.target.value);
+                            if (Number.isFinite(next)) updateSelectedNestEditorTransform({ glowYFactor: Number(next.toFixed(2)) });
+                          }}
+                        />
+                      </label>
+                      <label>
+                        <span>Glow Size</span>
+                        <input
+                          type="number"
+                          min="0.1"
+                          step="0.05"
+                          value={propEditorUi.selectedNest.glowSize}
+                          onChange={(event) => {
+                            const next = Number(event.target.value);
+                            if (Number.isFinite(next)) updateSelectedNestEditorTransform({ glowSize: Math.max(0.1, Number(next.toFixed(2))) });
+                          }}
+                        />
+                      </label>
+                    </div>
+                    <div className="journey-prop-editor-controls">
+                      <button type="button" onClick={resetSelectedNestEditor}>
+                        Reset nest
+                      </button>
+                    </div>
+                  </>
                 )}
               </div>
             )}

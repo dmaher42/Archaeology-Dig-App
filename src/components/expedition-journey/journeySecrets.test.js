@@ -885,7 +885,7 @@ test('journey editor exposes floor platforms without blocking prop selection', (
   assert.match(journeyComponentSource, /const isJourneyFloorPlatform = \(platform = \{\}\) =>/);
   assert.match(journeyComponentSource, /const selectedFallbackFloor = editor\.floorPickMode \|\| selectedHazard \|\| selectedLair \|\| selectedCheckpoint \|\| selectedArch \|\| selectedSolidPlatform \|\| selectedProp[\s\S]{0,180}findEditablePlatformAt\(pointer\.screenX, pointer\.screenY, \{ floorOnly: true \}\);/);
   assert.match(journeyComponentSource, /category: isJourneyFloorPlatform\(platform\) \? 'Floor' : 'Platform'/);
-  assert.match(journeyComponentSource, /No prop, structure, trap, platform, floor, arch, lair, or checkpoint selected/);
+  assert.match(journeyComponentSource, /No prop, structure, trap, platform, floor, arch, lair, nest, or checkpoint selected/);
 });
 
 test('journey editor can force-pick floor platforms for moving collision floors', () => {
@@ -990,7 +990,7 @@ test('journey editor treats generated buildings as structure props with image pr
   assert.match(journeyComponentSource, /const isGeneratedStoryStructureProp = \(prop = \{\}\) => GENERATED_STORY_PROP_TYPES\.has\(prop\.type\)/);
   assert.match(journeyComponentSource, /category: isGeneratedStoryStructureProp\(prop\) \? 'Structure' : 'Prop'/);
   assert.match(journeyComponentSource, /<span>\{propEditorUi\.selectedProp\.category\}<\/span><strong>\{propEditorUi\.selectedProp\.id\}<\/strong>/);
-  assert.match(journeyComponentSource, /No prop, structure, trap, platform, floor, arch, lair, or checkpoint selected/);
+  assert.match(journeyComponentSource, /No prop, structure, trap, platform, floor, arch, lair, nest, or checkpoint selected/);
   assert.match(journeyComponentSource, /backgroundImage: `url\(\$\{import\.meta\.env\.BASE_URL\}\$\{generatedPreview\.src\}\)`/);
 });
 
