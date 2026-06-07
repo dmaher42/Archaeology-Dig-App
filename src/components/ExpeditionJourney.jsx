@@ -3552,6 +3552,7 @@ export default function ExpeditionJourney({
     selectedLairId: null,
     selectedNestId: null,
     dragging: null,
+    hover: null,
     gridSnap: false,
     gridSize: DEFAULT_JOURNEY_PROP_EDITOR_GRID_SIZE,
     paletteOpen: false,
@@ -4838,6 +4839,74 @@ export default function ExpeditionJourney({
       })
       .at(-1)?.prop || null;
   }, [getRenderableStoryProps]);
+
+  // --- Editor hover: preview what a click will select (plain label) and let Tab cycle
+  // through entities stacked under the cursor. Shared by the overlay + pointer/key handlers. ---
+  const getEditorEntityBounds = useCallback((descriptor, cameraX, current) => {
+    if (!descriptor) return null;
+    const { kind, entity } = descriptor;
+    switch (kind) {
+      case 'hazard': return getHazardEditorBounds(entity, cameraX);
+      case 'lair': return getLairEditorBounds(entity, cameraX);
+      case 'nest': return getNestEditorBounds(entity, cameraX);
+      case 'checkpoint': return getCheckpointEditorBounds(entity, cameraX);
+      case 'arch': return getArchEditorBounds(entity, cameraX);
+      case 'platform': return getPlatformEditorBounds(entity, cameraX, current);
+      case 'prop': return getStoryPropEditorBounds(entity, cameraX, current);
+      default: return null;
+    }
+  }, [getArchEditorBounds, getCheckpointEditorBounds, getHazardEditorBounds, getLairEditorBounds, getNestEditorBounds, getPlatformEditorBounds]);
+
+  const getEditorEntityLabel = useCallback((descriptor) => {
+    if (!descriptor) return '';
+    const { kind, entity } = descriptor;
+    switch (kind) {
+      case 'hazard': return `${JOURNEY_TRAP_TYPES[entity.type]?.label || entity.name || 'Trap'} — trap`;
+      case 'lair': return `${entity.name || 'Scarab Lair'} — boss lair`;
+      case 'nest': return `${entity.name || 'Scorpion Nest'} — spawner`;
+      case 'checkpoint': return `${entity.name || 'Checkpoint'} — checkpoint`;
+      case 'arch': return entity.editorKind === 'doorway' ? 'Doorway — gate' : 'Route Gate — gate';
+      case 'platform': return descriptor.floor ? 'Floor — collision' : `${entity.label || entity.id || 'Platform'} — platform`;
+      case 'prop': return `${entity.name || entity.category || 'Prop'} — ${entity.category ? `prop · ${entity.category}` : 'prop'}`;
+      default: return '';
+    }
+  }, []);
+
+  const buildEditorHoverStack = useCallback((screenX, screenY) => {
+    const editor = propPlacementEditorRef.current;
+    const stack = [];
+    const push = (kind, entity, extra = {}) => {
+      if (!entity) return;
+      const id = entity.id || entity.editorId || entity.label || kind;
+      stack.push({ kind, entity, id, ...extra });
+    };
+    if (editor.floorPickMode) {
+      push('platform', findEditablePlatformAt(screenX, screenY, { floorOnly: true }), { floor: true });
+      return stack;
+    }
+    // Same priority order as the click selection cascade so stack[0] === default pick.
+    push('hazard', findEditableHazardAt(screenX, screenY));
+    push('lair', findEditableScarabLairAt(screenX, screenY));
+    push('nest', findEditableNestAt(screenX, screenY));
+    push('checkpoint', findEditableCheckpointAt(screenX, screenY));
+    push('arch', findEditableArchAt(screenX, screenY));
+    push('platform', findEditablePlatformAt(screenX, screenY, { includeFloors: false }));
+    push('prop', findEditableStoryPropAt(screenX, screenY));
+    push('platform', findEditablePlatformAt(screenX, screenY, { floorOnly: true }), { floor: true });
+    return stack;
+  }, [findEditableArchAt, findEditableCheckpointAt, findEditableHazardAt, findEditableNestAt, findEditablePlatformAt, findEditableScarabLairAt, findEditableStoryPropAt]);
+
+  const updateEditorHover = useCallback((screenX, screenY) => {
+    const editor = propPlacementEditorRef.current;
+    const stack = buildEditorHoverStack(screenX, screenY);
+    const signature = stack.map(d => `${d.kind}:${d.id}`).join('|');
+    const prev = editor.hover;
+    // Keep the cycle index while the cursor stays over the same stack; reset otherwise.
+    const index = prev && prev.signature === signature
+      ? Math.min(prev.index, Math.max(0, stack.length - 1))
+      : 0;
+    editor.hover = stack.length ? { signature, stack, index, screenX, screenY } : null;
+  }, [buildEditorHoverStack]);
 
   const savePropPlacementExport = useCallback(() => {
     const editor = propPlacementEditorRef.current;
@@ -15908,8 +15977,43 @@ export default function ExpeditionJourney({
       ctx.textAlign = 'left';
       ctx.fillText(`${selectedCheckpoint.id}  x:${Math.round(selectedCheckpoint.x)} y:${Math.round(selectedCheckpoint.y)}`, labelX + 8, labelY + 16);
     }
+    // Hover preview: outline + plain label of the entity a click would select, with a
+    // Tab counter when several entities are stacked under the cursor.
+    const hover = editor.hover;
+    if (!editor.dragging && hover && hover.stack && hover.stack.length) {
+      const descriptor = hover.stack[Math.min(hover.index, hover.stack.length - 1)];
+      const bounds = getEditorEntityBounds(descriptor, cameraX, current);
+      if (bounds) {
+        ctx.save();
+        ctx.setLineDash([5, 4]);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.92)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(bounds.x, bounds.y, bounds.width, bounds.height);
+        ctx.restore();
+        drawEditorSelectionCorners(ctx, bounds, 'rgba(255, 255, 255, 0.98)');
+        const cycleSuffix = hover.stack.length > 1 ? `   ⇥ ${hover.index + 1}/${hover.stack.length}` : '';
+        const text = `${getEditorEntityLabel(descriptor)}${cycleSuffix}`;
+        ctx.save();
+        ctx.setLineDash([]);
+        ctx.font = '800 12px Outfit, sans-serif';
+        const textWidth = ctx.measureText(text).width;
+        const labelX = clamp(bounds.x, 12, CANVAS_WIDTH - (textWidth + 30));
+        const labelY = clamp(bounds.y - 26, 14, CANVAS_HEIGHT - 34);
+        ctx.fillStyle = 'rgba(8, 13, 22, 0.92)';
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.82)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.roundRect(labelX, labelY, textWidth + 18, 22, 6);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#f8fafc';
+        ctx.textAlign = 'left';
+        ctx.fillText(text, labelX + 9, labelY + 15);
+        ctx.restore();
+      }
+    }
     ctx.restore();
-  }, [getArchEditorBounds, getCheckpointEditorBounds, getEditedNestParams, getHazardEditorBounds, getLairEditorBounds, getNestEditorBounds, getPlatformEditorBounds, getPropEditorSelectedArch, getPropEditorSelectedCheckpoint, getPropEditorSelectedHazard, getPropEditorSelectedLair, getPropEditorSelectedNest, getPropEditorSelectedPlatform, getPropEditorSelectedProp, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getRenderableRouteGateDoorways, getRenderableRouteGates, getRenderableScarabLairs, getRenderableStoryProps, getScarabQueenLairPlacement]);
+  }, [getArchEditorBounds, getCheckpointEditorBounds, getEditedNestParams, getEditorEntityBounds, getEditorEntityLabel, getHazardEditorBounds, getLairEditorBounds, getNestEditorBounds, getPlatformEditorBounds, getPropEditorSelectedArch, getPropEditorSelectedCheckpoint, getPropEditorSelectedHazard, getPropEditorSelectedLair, getPropEditorSelectedNest, getPropEditorSelectedPlatform, getPropEditorSelectedProp, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getRenderableRouteGateDoorways, getRenderableRouteGates, getRenderableScarabLairs, getRenderableStoryProps, getScarabQueenLairPlacement]);
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -21011,11 +21115,25 @@ export default function ExpeditionJourney({
           editor.selectedLairId = null;
           editor.selectedNestId = null;
           editor.dragging = null;
+          editor.hover = null;
         }
         refreshPropEditorUi();
         return;
       }
       if (!editor.enabled) return;
+      // Tab cycles through entities stacked under the cursor (the hover preview updates,
+      // and the next click selects whatever is highlighted).
+      if (event.code === 'Tab' && editor.hover && editor.hover.stack && editor.hover.stack.length > 1) {
+        event.preventDefault();
+        const count = editor.hover.stack.length;
+        const step = event.shiftKey ? -1 : 1;
+        editor.hover = {
+          ...editor.hover,
+          index: ((editor.hover.index + step) % count + count) % count,
+        };
+        draw();
+        return;
+      }
       // Scorpion-nest tuning: keys adjust the selected nest's size/anchor/glow.
       const selectedNestForKeys = getPropEditorSelectedNest();
       if (selectedNestForKeys && !event.ctrlKey && !event.metaKey && !event.altKey) {
@@ -21176,7 +21294,7 @@ export default function ExpeditionJourney({
     };
     window.addEventListener('keydown', handlePropEditorKeyDown);
     return () => window.removeEventListener('keydown', handlePropEditorKeyDown);
-  }, [applyDefaultEditorLocks, deleteSelectedPropFromEditor, duplicateSelectedPropInEditor, getEditedNestParams, getPropEditorSelectedNest, getPropEditorSelectedProp, redoEditorChange, refreshPropEditorUi, savePropPlacementExport, undoEditorChange, updateSelectedPropEditorTransform]);
+  }, [applyDefaultEditorLocks, deleteSelectedPropFromEditor, draw, duplicateSelectedPropInEditor, getEditedNestParams, getPropEditorSelectedNest, getPropEditorSelectedProp, redoEditorChange, refreshPropEditorUi, savePropPlacementExport, undoEditorChange, updateSelectedPropEditorTransform]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -21279,6 +21397,62 @@ export default function ExpeditionJourney({
         e.preventDefault();
         draw();
         return;
+      }
+      // If the user has Tab-cycled to a buried entity at this point, select that one
+      // (what the hover preview shows). index 0 falls through to the normal cascade so
+      // default clicks behave exactly as before.
+      const hover = editor.hover;
+      if (hover && hover.index > 0 && hover.stack && hover.stack.length > hover.index) {
+        const clickStack = buildEditorHoverStack(pointer.screenX, pointer.screenY);
+        const signature = clickStack.map(d => `${d.kind}:${d.id}`).join('|');
+        if (signature === hover.signature) {
+          const descriptor = clickStack[hover.index];
+          if (!isEditorLockKeyLocked(`${descriptor.kind}:${descriptor.id}`)) {
+            editor.selectedPropId = null;
+            editor.selectedPlatformId = null;
+            editor.selectedHazardId = null;
+            editor.selectedArchId = null;
+            editor.selectedCheckpointId = null;
+            editor.selectedLairId = null;
+            editor.selectedNestId = null;
+            const { kind, entity } = descriptor;
+            if (kind === 'prop') {
+              editor.selectedPropId = entity.id;
+              editor.dragging = { kind: 'prop', propId: entity.id, offsetX: pointer.worldX - entity.x, offsetY: pointer.worldY - entity.y };
+            } else if (kind === 'platform') {
+              const platformId = entity.id || entity.label;
+              editor.selectedPlatformId = platformId;
+              editor.dragging = { kind: 'platform', platformId, offsetX: pointer.worldX - entity.x, offsetY: pointer.worldY - entity.y };
+            } else if (kind === 'hazard') {
+              editor.selectedHazardId = entity.id;
+              editor.dragging = { kind: 'hazard', hazardId: entity.id, offsetX: pointer.worldX - entity.x, offsetY: pointer.screenY - entity.y };
+            } else if (kind === 'arch') {
+              editor.selectedArchId = entity.editorId;
+              const archX = entity.editorKind === 'doorway'
+                ? (Number.isFinite(entity.anchorX) ? entity.anchorX : entity.blockX)
+                : entity.x;
+              editor.dragging = { kind: 'arch', archId: entity.editorId, offsetX: pointer.worldX - archX, offsetY: pointer.screenY - entity.y };
+            } else if (kind === 'checkpoint') {
+              editor.selectedCheckpointId = entity.id;
+              editor.dragging = { kind: 'checkpoint', checkpointId: entity.id, offsetX: pointer.worldX - entity.x, offsetY: pointer.screenY - entity.y };
+            } else if (kind === 'lair') {
+              editor.selectedLairId = entity.id;
+              const placement = getScarabQueenLairPlacement(entity);
+              editor.dragging = { kind: 'lair', lairId: entity.id, offsetX: pointer.worldX - placement.x, offsetY: pointer.screenY - placement.y };
+            } else if (kind === 'nest') {
+              editor.selectedNestId = entity.id;
+              const params = getEditedNestParams(entity);
+              editor.dragging = { kind: 'nest', nestId: entity.id, offsetX: pointer.worldX - params.x, offsetY: pointer.worldY - params.y };
+            }
+            e.currentTarget.setPointerCapture?.(e.pointerId);
+          } else {
+            editor.dragging = null;
+          }
+          e.preventDefault();
+          draw();
+          refreshPropEditorUi();
+          return;
+        }
       }
       const selectedForcedFloor = editor.floorPickMode
         ? findEditablePlatformAt(pointer.screenX, pointer.screenY, { floorOnly: true })
@@ -21430,6 +21604,14 @@ export default function ExpeditionJourney({
 
   const handlePointerMove = (e) => {
     const editor = propPlacementEditorRef.current;
+    if (import.meta.env.DEV && editor.enabled && !editor.dragging && !editor.selectedPaletteKey) {
+      const pointer = getPropEditorPointer(e);
+      if (pointer) {
+        updateEditorHover(pointer.screenX, pointer.screenY);
+        draw();
+      }
+      return;
+    }
     if (import.meta.env.DEV && editor.enabled && editor.dragging) {
       const pointer = getPropEditorPointer(e);
       if (!pointer) return;
