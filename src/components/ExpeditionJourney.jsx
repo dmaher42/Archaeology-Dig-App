@@ -3210,7 +3210,16 @@ const STORY_PROP_DEPTH_ORDER = {
   'foreground-occluder': 4,
 };
 const PROP_EDITOR_DEPTH_OPTIONS = ['background', 'midground', 'grounded', 'route-edge', 'foreground-occluder'];
-const PROP_EDITOR_LAYER_OPTIONS = ['default', 'background', 'midground', 'foreground', 'ruin-detail', 'route-edge'];
+
+// Filter the (77-item) prop palette by a free-text query, matching label, key, or asset key.
+const filterJourneyPaletteBySearch = (items = [], query = '') => {
+  const q = String(query || '').trim().toLowerCase();
+  if (!q) return items;
+  return items.filter((item) => {
+    const assetKey = item.preview?.assetKey || item.atmosphereAssetKey || item.type || '';
+    return `${item.label || ''} ${item.key || ''} ${assetKey}`.toLowerCase().includes(q);
+  });
+};
 
 const getStoryPropEditorSize = (prop = {}) => {
   const generated = GENERATED_STORY_PROP_BOUNDS[prop.type];
@@ -4549,6 +4558,7 @@ export default function ExpeditionJourney({
       collapsedPaletteGroups: editor.collapsedPaletteGroups || {},
       selectedPaletteKey: editor.selectedPaletteKey,
       selectedPaletteCategory: editor.selectedPaletteCategory,
+      paletteSearch: editor.paletteSearch || '',
       showTrapTriggers: editor.showTrapTriggers,
       previewMode: editor.previewMode,
       panelCollapsed: editor.panelCollapsed,
@@ -4557,6 +4567,7 @@ export default function ExpeditionJourney({
       selectedLockKey,
       selectedLocked: Boolean(selectedLockKey && editor.lockedItems.has(selectedLockKey)),
       lockedCount: editor.lockedItems.size,
+      hasCopiedLook: Boolean(editor.copiedLook),
       unsavedChangeSummary: createJourneyPlacementChangeSummary(editor),
       exportText: editor.exportText,
       aiInstructions: editor.aiInstructions,
@@ -5112,6 +5123,50 @@ export default function ExpeditionJourney({
     };
     refreshPropEditorUi();
   }, [getGroundAwareStoryPropEditorEdit, getPropEditorSelectedProp, isEditorEntityLocked, refreshPropEditorUi]);
+
+  // Reorder the selected prop within its depth band. Props only stack against other
+  // props in the SAME depth (background/midground/grounded/route-edge/foreground-occluder);
+  // zIndex is the tie-breaker inside a band, so front/back compute against same-band siblings.
+  const nudgeSelectedPropZOrder = useCallback((mode) => {
+    const selectedProp = getPropEditorSelectedProp();
+    if (!selectedProp) return;
+    if (isEditorEntityLocked('prop', selectedProp.id)) return;
+    const depth = getStoryPropDepth(selectedProp);
+    const currentZ = Number.isFinite(Number(selectedProp.zIndex)) ? Number(selectedProp.zIndex) : 0;
+    const siblingZ = getRenderableStoryProps()
+      .filter(prop => prop.id !== selectedProp.id && getStoryPropDepth(prop) === depth)
+      .map(prop => (Number.isFinite(Number(prop.zIndex)) ? Number(prop.zIndex) : 0));
+    const maxZ = siblingZ.length ? Math.max(...siblingZ) : currentZ;
+    const minZ = siblingZ.length ? Math.min(...siblingZ) : currentZ;
+    const nextZ = mode === 'front' ? maxZ + 1
+      : mode === 'back' ? minZ - 1
+      : mode === 'forward' ? currentZ + 1
+      : mode === 'backward' ? currentZ - 1
+      : currentZ;
+    updateSelectedPropEditorTransform({ zIndex: Math.round(nextZ) });
+  }, [getPropEditorSelectedProp, getRenderableStoryProps, isEditorEntityLocked, updateSelectedPropEditorTransform]);
+
+  // Copy the selected prop's colour look (grade + brightness) so it can be stamped
+  // onto other props — speeds up keeping a whole scene's props tonally consistent.
+  const copySelectedPropLook = useCallback(() => {
+    const selectedProp = getPropEditorSelectedProp();
+    if (!selectedProp) return;
+    const editor = propPlacementEditorRef.current;
+    editor.copiedLook = {
+      colorGradeFilter: typeof selectedProp.colorGradeFilter === 'string' ? selectedProp.colorGradeFilter : '',
+      brightness: Number.isFinite(selectedProp.brightness) ? selectedProp.brightness : 1,
+    };
+    refreshPropEditorUi();
+  }, [getPropEditorSelectedProp, refreshPropEditorUi]);
+
+  const pasteSelectedPropLook = useCallback(() => {
+    const look = propPlacementEditorRef.current.copiedLook;
+    if (!look) return;
+    updateSelectedPropEditorTransform({
+      colorGradeFilter: look.colorGradeFilter,
+      brightness: look.brightness,
+    });
+  }, [updateSelectedPropEditorTransform]);
 
   const updateSelectedPropEditorField = useCallback((field, value) => {
     const editor = propPlacementEditorRef.current;
@@ -13853,6 +13908,15 @@ export default function ExpeditionJourney({
       ctx.beginPath();
       ctx.ellipse(gateCenter, GROUND_Y - 58, 94, 62, 0, 0, Math.PI * 2);
       ctx.fill();
+      // Interior depth: dark recess behind/around the slab so it reads as set INTO
+      // the arch rather than flush against a flat wall.
+      const recess = ctx.createLinearGradient(slabDest.x, slabDest.y, slabDest.x + slabDest.width, slabDest.y);
+      recess.addColorStop(0, 'rgba(20, 11, 5, 0.55)');
+      recess.addColorStop(0.22, 'rgba(20, 11, 5, 0)');
+      recess.addColorStop(0.78, 'rgba(20, 11, 5, 0)');
+      recess.addColorStop(1, 'rgba(20, 11, 5, 0.55)');
+      ctx.fillStyle = recess;
+      ctx.fillRect(slabDest.x - 8, slabDest.y - 6, slabDest.width + 16, slabDest.height + 6);
       const slabDrawn = drawGateAsset(routeGateSlabRef, slabDest, {
         alpha: 0.98,
         filter: 'sepia(3%) saturate(96%) brightness(95%) contrast(104%)',
@@ -13868,6 +13932,29 @@ export default function ExpeditionJourney({
         ctx.fillRect(slabDest.x, slabDest.y, slabDest.width, slabDest.height);
         ctx.strokeRect(slabDest.x, slabDest.y, slabDest.width, slabDest.height);
       }
+      // Active-checkpoint signal: a warm sealed-energy light shaft rising from the
+      // opening, gently pulsing so the gate reads as "break the seal", not set dressing.
+      const seam = gateCenter;
+      const pulse = Math.sin(performance.now() / 620) * 0.5 + 0.5; // 0..1
+      const shaftTop = slabDest.y + 6;
+      const shaftBottom = slabDest.y + slabDest.height;
+      const shaft = ctx.createLinearGradient(seam, shaftBottom, seam, shaftTop);
+      shaft.addColorStop(0, `rgba(250, 196, 84, ${0.12 + pulse * 0.16})`);
+      shaft.addColorStop(0.5, `rgba(252, 211, 110, ${0.07 + pulse * 0.1})`);
+      shaft.addColorStop(1, 'rgba(252, 211, 110, 0)');
+      ctx.save();
+      ctx.globalCompositeOperation = 'screen';
+      const shaftWidth = 30 + pulse * 8;
+      ctx.fillStyle = shaft;
+      ctx.fillRect(seam - shaftWidth / 2, shaftTop, shaftWidth, shaftBottom - shaftTop);
+      const seamGlow = ctx.createRadialGradient(seam, shaftTop + 18, 4, seam, shaftTop + 18, 46 + pulse * 10);
+      seamGlow.addColorStop(0, `rgba(255, 224, 140, ${0.22 + pulse * 0.18})`);
+      seamGlow.addColorStop(1, 'rgba(255, 224, 140, 0)');
+      ctx.fillStyle = seamGlow;
+      ctx.beginPath();
+      ctx.ellipse(seam, shaftTop + 18, 40 + pulse * 8, 56 + pulse * 10, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
     }
 
     const archBackDrawn = drawGateAsset(routeGateBackRef, backDest, {
@@ -15774,9 +15861,12 @@ export default function ExpeditionJourney({
     });
     const selectedProp = getPropEditorSelectedProp(current);
     if (selectedProp) {
-      const bounds = getStoryPropEditorBounds(selectedProp, cameraX, current);
-      const labelX = clamp(bounds.x, 12, CANVAS_WIDTH - 280);
-      const labelY = clamp(bounds.y - 28, 14, CANVAS_HEIGHT - 36);
+      // Pin the id/coords readout to a fixed clear spot (bottom-left, clear of the panel,
+      // the top HUD bars and the bottom-right seal HUD) instead of floating it over the
+      // asset, where the name was covering the very thing being positioned. Same info also
+      // lives in the side panel.
+      const labelX = 12;
+      const labelY = CANVAS_HEIGHT - 30;
       const selectedScale = Number.isFinite(selectedProp.scale) ? selectedProp.scale : 1;
       const selectedRotation = Number.isFinite(selectedProp.rotation) ? selectedProp.rotation : 0;
       drawEditorSelectionLabel(
@@ -21293,6 +21383,36 @@ export default function ExpeditionJourney({
         duplicateSelectedPropInEditor();
         return;
       }
+      // Anchor nudge: ; lifts and ' drops the selected prop's vertical anchor (yOffset),
+      // mirroring the scorpion-nest anchor keys so any asset can be placed exactly. Hold
+      // Shift for a coarse 10px step. Negative yOffset lifts the art up off the ground line.
+      if ((event.code === 'Semicolon' || event.code === 'Quote') && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        event.preventDefault();
+        const selectedProp = getPropEditorSelectedProp();
+        if (selectedProp) {
+          const step = event.shiftKey ? 10 : 1;
+          const direction = event.code === 'Semicolon' ? -1 : 1;
+          const currentYOffset = Number.isFinite(selectedProp.yOffset) ? selectedProp.yOffset : 0;
+          updateSelectedPropEditorTransform({ yOffset: Math.round(currentYOffset + direction * step) });
+        }
+        return;
+      }
+      // Arrow keys fine-nudge the selected prop's position (Shift = 10px). A/D still walk
+      // the camera, so deselect (or use WASD) to move around. preventDefault + the gameplay
+      // guard below stop the player from also moving while a prop is selected.
+      if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.code) && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        const selectedProp = getPropEditorSelectedProp();
+        if (selectedProp) {
+          event.preventDefault();
+          const step = event.shiftKey ? 10 : 1;
+          const dx = event.code === 'ArrowLeft' ? -step : event.code === 'ArrowRight' ? step : 0;
+          const dy = event.code === 'ArrowUp' ? -step : event.code === 'ArrowDown' ? step : 0;
+          const currentX = Number.isFinite(selectedProp.x) ? selectedProp.x : 0;
+          const currentY = Number.isFinite(selectedProp.y) ? selectedProp.y : 0;
+          updateSelectedPropEditorTransform({ x: Math.round(currentX + dx), y: Math.round(currentY + dy) });
+          return;
+        }
+      }
       if (event.code === 'KeyQ' && !event.ctrlKey && !event.metaKey && !event.altKey) {
         event.preventDefault();
         const selectedProp = getPropEditorSelectedProp();
@@ -21362,6 +21482,10 @@ export default function ExpeditionJourney({
     const handleKeyDown = (e) => {
       if (isJourneyEditorFormTarget(e.target)) return;
       if (paused || briefingOpen || stateRef.current.activeGuardianChallenge || stateRef.current.forgottenMuralRelicSlidePuzzleOpen) return;
+      // While the prop editor has a prop selected, arrow keys nudge that prop (handled in the
+      // editor keydown effect), so don't also walk the player. A/D/W still move the camera.
+      if (propPlacementEditorRef.current?.enabled && propPlacementEditorRef.current?.selectedPropId
+          && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.code)) return;
       if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'Space', 'KeyA', 'KeyD', 'KeyW', 'KeyJ', 'KeyK', 'KeyL'].includes(e.code)) e.preventDefault();
       audioControls?.unlockExpeditionSfx?.();
       if (e.code === 'KeyJ') { queueAttack(PLAYER_ATTACK_TYPES.LIGHT); return; }
@@ -22204,8 +22328,8 @@ export default function ExpeditionJourney({
                           }}
                         />
                       </label>
-                      <label>
-                        <span>Y offset</span>
+                      <label title="Anchor: ; lifts, ' drops (hold Shift for x10)">
+                        <span>Y offset ; '</span>
                         <input
                           key={`${propEditorUi.selectedProp.id}-editorBoundsInsetBottom`}
                           type="number"
@@ -22307,15 +22431,13 @@ export default function ExpeditionJourney({
                         </select>
                       </label>
                       <label>
-                        <span>Layer</span>
-                        <select
-                          value={PROP_EDITOR_LAYER_OPTIONS.includes(propEditorUi.selectedProp.layer) ? propEditorUi.selectedProp.layer : 'default'}
-                          onChange={(event) => updateSelectedPropEditorTransform({ layer: event.target.value })}
-                        >
-                          {PROP_EDITOR_LAYER_OPTIONS.map(option => (
-                            <option key={option} value={option}>{option}</option>
-                          ))}
-                        </select>
+                        <span>Z-order</span>
+                        <div className="journey-prop-editor-zorder">
+                          <button type="button" title="Send to back (behind same-depth props)" onClick={() => nudgeSelectedPropZOrder('back')}>«</button>
+                          <button type="button" title="Send backward one step" onClick={() => nudgeSelectedPropZOrder('backward')}>‹</button>
+                          <button type="button" title="Bring forward one step" onClick={() => nudgeSelectedPropZOrder('forward')}>›</button>
+                          <button type="button" title="Bring to front (above same-depth props)" onClick={() => nudgeSelectedPropZOrder('front')}>»</button>
+                        </div>
                       </label>
                       <label>
                         <span>Z-index</span>
@@ -22389,6 +22511,17 @@ export default function ExpeditionJourney({
                     </div>
 
                     <div className="journey-prop-editor-group-header">Colour &amp; Light</div>
+                    <div className="journey-prop-editor-color-presets">
+                      <button type="button" onClick={copySelectedPropLook} title="Copy this prop's colour grade + brightness">Copy look</button>
+                      <button
+                        type="button"
+                        onClick={pasteSelectedPropLook}
+                        disabled={!propEditorUi.hasCopiedLook}
+                        title={propEditorUi.hasCopiedLook ? 'Apply the copied look to this prop' : 'Copy a look first'}
+                      >
+                        Paste look
+                      </button>
+                    </div>
                     {(() => {
                       const grade = parseColorGradeFilter(propEditorUi.selectedProp.colorGradeFilter);
                       const brightnessValue = Number((propEditorUi.selectedProp.brightness ?? 1).toFixed(2));
@@ -23460,7 +23593,7 @@ export default function ExpeditionJourney({
               <div className="journey-prop-palette-panel" aria-label="Prop palette">
                 <div className="journey-prop-editor-export-header">
                   <strong>{propEditorUi.selectedPaletteCategory === 'trap' ? 'Trap palette' : propEditorUi.selectedPaletteCategory === 'platform' ? 'Platform palette' : propEditorUi.selectedPaletteCategory === 'ground-detail' ? 'Ground Details palette' : propEditorUi.selectedPaletteCategory === 'foreground-detail' ? 'Foreground Details palette' : propEditorUi.selectedPaletteCategory === 'ledge' ? 'Ledge palette' : 'Prop palette'}</strong>
-                  <span>{propEditorUi.palette.length}</span>
+                  <span>{filterJourneyPaletteBySearch(propEditorUi.palette, propEditorUi.paletteSearch).length}</span>
                 </div>
                 <div className="journey-prop-palette-tabs">
                   {[
@@ -23485,8 +23618,18 @@ export default function ExpeditionJourney({
                     </button>
                   ))}
                 </div>
+                <input
+                  type="search"
+                  className="journey-prop-palette-search"
+                  placeholder="Search palette…"
+                  value={propEditorUi.paletteSearch}
+                  onChange={(event) => {
+                    propPlacementEditorRef.current.paletteSearch = event.target.value;
+                    refreshPropEditorUi();
+                  }}
+                />
                 <div className="journey-prop-palette-list">
-                  {Object.entries(propEditorUi.palette.reduce((acc, item) => {
+                  {Object.entries(filterJourneyPaletteBySearch(propEditorUi.palette, propEditorUi.paletteSearch).reduce((acc, item) => {
                     const group = item.category || 'General';
                     if (!acc[group]) acc[group] = [];
                     acc[group].push(item);
