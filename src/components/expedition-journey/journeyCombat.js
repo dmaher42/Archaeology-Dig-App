@@ -195,3 +195,51 @@ export const updateEnemyDefeatedVisibility = (enemy, dt, visibleSeconds = ENEMY_
 export const isEnemyDefeatedVisible = (enemy, visibleSeconds = ENEMY_DEFEATED_VISIBLE_SECONDS) => (
   !enemy?.defeated || (enemy.defeatedVisibleTimer ?? visibleSeconds) > 0
 );
+
+export const updateEnemyCombatTimers = (enemy, dt) => {
+  const wasAttacking = enemy.attackTimer > 0;
+  enemy.hitFlash = Math.max(0, enemy.hitFlash - dt);
+  enemy.stunTimer = Math.max(0, enemy.stunTimer - dt);
+  enemy.attackWindup = Math.max(0, enemy.attackWindup - dt);
+  enemy.attackTimer = Math.max(0, enemy.attackTimer - dt);
+  enemy.attackCooldown = Math.max(0, enemy.attackCooldown - dt);
+  enemy.attackRecovery = Math.max(0, enemy.attackRecovery - dt);
+  enemy.aggroMemoryTimer = Math.max(0, (enemy.aggroMemoryTimer || 0) - dt);
+  enemy.vulnerabilityTimer = Math.max(0, (enemy.vulnerabilityTimer || 0) - dt);
+  enemy.shieldTimer = Math.max(0, (enemy.shieldTimer || 0) - dt);
+  enemy.knockbackTimer = Math.max(0, enemy.knockbackTimer - dt);
+  return wasAttacking;
+};
+
+export const suppressEnemyForBossFocus = (enemy) => {
+  enemy.attackWindup = 0;
+  enemy.attackTimer = 0;
+  enemy.attackReady = false;
+  enemy.attackRecovery = 0;
+  enemy.vulnerabilityTimer = 0;
+  enemy.shieldTimer = 0;
+  enemy.aggroMemoryTimer = 0;
+  enemy.attackCooldown = Math.max(enemy.attackCooldown || 0, 0.45);
+};
+
+export const openEnemyCounterWindow = (enemy, pattern) => {
+  enemy.attackRecovery = pattern.recovery;
+  enemy.vulnerabilityTimer = pattern.vulnerableAfter;
+};
+
+export const beginEnemyAttackSwing = (enemy, pattern) => {
+  enemy.attackTimer = pattern.duration;
+  enemy.attackReady = false;
+};
+
+export const beginEnemyAttackWindup = (enemy, pattern, { attackDirection, attackCooldown }) => {
+  enemy.attackWindup = pattern.windup;
+  enemy.attackDirection = attackDirection;
+  enemy.attackHasHit = false;
+  enemy.attackReady = true;
+  enemy.attackPattern = pattern.id;
+  enemy.attackPhaseLabel = pattern.label;
+  enemy.attackCooldown = attackCooldown;
+  enemy.vulnerabilityTimer = 0;
+  enemy.shieldTimer = pattern.shieldDuringWindup ? Math.min(0.45, pattern.windup * 0.7) : 0;
+};

@@ -17,10 +17,19 @@ import {
   PLAYER_HEAVY_FOLLOWUP_PROMPT_LABEL,
   SCORPION_CHASE_SPEED_MULTIPLIER,
   SCORPION_VENOM_SLOW_MULTIPLIER,
+  beginEnemyAttackWindup,
+  beginEnemyAttackSwing,
+  openEnemyCounterWindow,
+  suppressEnemyForBossFocus,
+  updateEnemyCombatTimers,
   isEnemyDefeatedVisible,
   updateEnemyDefeatedVisibility,
 } from './journeyCombat.js';
 import { COMBAT_DAMAGE_SCALE } from './journeyConstants.js';
+
+const assertClose = (actual, expected) => {
+  assert.ok(Math.abs(actual - expected) < 0.000001, `expected ${actual} to be close to ${expected}`);
+};
 
 test('defeated enemy visibility expires after the combat defeat delay', () => {
   assert.equal(ENEMY_DEFEATED_VISIBLE_SECONDS, 3);
@@ -38,6 +47,125 @@ test('defeated enemy visibility expires after the combat defeat delay', () => {
 test('active enemies remain drawable through the combat visibility predicate', () => {
   assert.equal(isEnemyDefeatedVisible({ defeated: false, defeatedVisibleTimer: 0 }), true);
   assert.equal(isEnemyDefeatedVisible(null), true);
+});
+
+test('enemy combat timers tick down without crossing below zero', () => {
+  const enemy = {
+    hitFlash: 0.5,
+    stunTimer: 0.3,
+    attackWindup: 0.1,
+    attackTimer: 0.2,
+    attackCooldown: 0.4,
+    attackRecovery: 0.6,
+    aggroMemoryTimer: 0.8,
+    vulnerabilityTimer: 0.05,
+    shieldTimer: 0.9,
+    knockbackTimer: 0.7,
+  };
+
+  const wasAttacking = updateEnemyCombatTimers(enemy, 0.25);
+
+  assert.equal(wasAttacking, true);
+  assertClose(enemy.hitFlash, 0.25);
+  assertClose(enemy.stunTimer, 0.05);
+  assert.equal(enemy.attackWindup, 0);
+  assert.equal(enemy.attackTimer, 0);
+  assertClose(enemy.attackCooldown, 0.15);
+  assertClose(enemy.attackRecovery, 0.35);
+  assertClose(enemy.aggroMemoryTimer, 0.55);
+  assert.equal(enemy.vulnerabilityTimer, 0);
+  assertClose(enemy.shieldTimer, 0.65);
+  assertClose(enemy.knockbackTimer, 0.45);
+});
+
+test('boss focus suppression clears normal enemy runtime pressure', () => {
+  const enemy = {
+    attackWindup: 0.5,
+    attackTimer: 0.4,
+    attackReady: true,
+    attackRecovery: 0.3,
+    vulnerabilityTimer: 0.2,
+    shieldTimer: 0.1,
+    aggroMemoryTimer: 1.5,
+    attackCooldown: 0.1,
+  };
+
+  suppressEnemyForBossFocus(enemy);
+
+  assert.equal(enemy.attackWindup, 0);
+  assert.equal(enemy.attackTimer, 0);
+  assert.equal(enemy.attackReady, false);
+  assert.equal(enemy.attackRecovery, 0);
+  assert.equal(enemy.vulnerabilityTimer, 0);
+  assert.equal(enemy.shieldTimer, 0);
+  assert.equal(enemy.aggroMemoryTimer, 0);
+  assert.equal(enemy.attackCooldown, 0.45);
+});
+
+test('enemy counter window opens from the finished attack pattern', () => {
+  const enemy = {
+    attackRecovery: 0,
+    vulnerabilityTimer: 0,
+  };
+  const pattern = {
+    recovery: 0.62,
+    vulnerableAfter: 0.34,
+  };
+
+  openEnemyCounterWindow(enemy, pattern);
+
+  assert.equal(enemy.attackRecovery, 0.62);
+  assert.equal(enemy.vulnerabilityTimer, 0.34);
+});
+
+test('enemy attack swing begins from the ready windup state', () => {
+  const enemy = {
+    attackReady: true,
+    attackTimer: 0,
+  };
+  const pattern = {
+    duration: 0.48,
+  };
+
+  beginEnemyAttackSwing(enemy, pattern);
+
+  assert.equal(enemy.attackTimer, 0.48);
+  assert.equal(enemy.attackReady, false);
+});
+
+test('enemy attack windup stores the selected pattern and combat state', () => {
+  const enemy = {
+    attackWindup: 0,
+    attackDirection: 0,
+    attackHasHit: true,
+    attackReady: false,
+    attackPattern: null,
+    attackPhaseLabel: null,
+    attackCooldown: 0,
+    vulnerabilityTimer: 0.4,
+    shieldTimer: 0,
+  };
+  const pattern = {
+    id: 'tail-lash',
+    label: 'tail lash',
+    windup: 0.31,
+    shieldDuringWindup: true,
+  };
+
+  beginEnemyAttackWindup(enemy, pattern, {
+    attackDirection: -1,
+    attackCooldown: 0.82,
+  });
+
+  assert.equal(enemy.attackWindup, 0.31);
+  assert.equal(enemy.attackDirection, -1);
+  assert.equal(enemy.attackHasHit, false);
+  assert.equal(enemy.attackReady, true);
+  assert.equal(enemy.attackPattern, 'tail-lash');
+  assert.equal(enemy.attackPhaseLabel, 'tail lash');
+  assert.equal(enemy.attackCooldown, 0.82);
+  assert.equal(enemy.vulnerabilityTimer, 0);
+  assertClose(enemy.shieldTimer, 0.217);
 });
 
 test('combat constants expose the stable player and enemy tuning contract', () => {

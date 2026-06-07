@@ -197,6 +197,11 @@ import {
   SCORPION_VENOM_SLOW_DURATION,
   SCORPION_VENOM_SLOW_MULTIPLIER,
   SCORPION_VENOM_SPIT_RANGE,
+  beginEnemyAttackWindup,
+  beginEnemyAttackSwing,
+  openEnemyCounterWindow,
+  suppressEnemyForBossFocus,
+  updateEnemyCombatTimers,
   updateEnemyDefeatedVisibility,
 } from './expedition-journey/journeyCombat.js';
 
@@ -19638,31 +19643,13 @@ export default function ExpeditionJourney({
         ? current.bossDomain
         : null;
       if (isNormalEnemyInsideBossFocus(e, activeBossDomain)) {
-        e.attackWindup = 0;
-        e.attackTimer = 0;
-        e.attackReady = false;
-        e.attackRecovery = 0;
-        e.vulnerabilityTimer = 0;
-        e.shieldTimer = 0;
-        e.aggroMemoryTimer = 0;
-        e.attackCooldown = Math.max(e.attackCooldown || 0, 0.45);
+        suppressEnemyForBossFocus(e);
         return;
       }
-      const wasEnemyAttacking = e.attackTimer > 0;
-      e.hitFlash = Math.max(0, e.hitFlash - dt);
-      e.stunTimer = Math.max(0, e.stunTimer - dt);
-      e.attackWindup = Math.max(0, e.attackWindup - dt);
-      e.attackTimer = Math.max(0, e.attackTimer - dt);
-      e.attackCooldown = Math.max(0, e.attackCooldown - dt);
-      e.attackRecovery = Math.max(0, e.attackRecovery - dt);
-      e.aggroMemoryTimer = Math.max(0, (e.aggroMemoryTimer || 0) - dt);
-      e.vulnerabilityTimer = Math.max(0, (e.vulnerabilityTimer || 0) - dt);
-      e.shieldTimer = Math.max(0, (e.shieldTimer || 0) - dt);
-      e.knockbackTimer = Math.max(0, e.knockbackTimer - dt);
+      const wasEnemyAttacking = updateEnemyCombatTimers(e, dt);
       if (wasEnemyAttacking && e.attackTimer <= 0) {
         const pattern = getEnemyPatternConfig(e);
-        e.attackRecovery = pattern.recovery;
-        e.vulnerabilityTimer = pattern.vulnerableAfter;
+        openEnemyCounterWindow(e, pattern);
         addCombatEffect(current, {
           type: 'enemy-counter-window',
           x: e.x + e.width / 2,
@@ -19728,12 +19715,6 @@ export default function ExpeditionJourney({
           : isHeavyAttack
             ? HEAVY_ATTACK_PATTERNS[e.type]
             : tacticalPattern;
-        e.attackWindup = pattern.windup;
-        e.attackDirection = attackDirectionToPlayer;
-        e.attackHasHit = false;
-        e.attackReady = true;
-        e.attackPattern = pattern.id;
-        e.attackPhaseLabel = pattern.label;
         // Depth pressure: enemies deeper in the site attack more frequently
         const deepZone = e.x > scaleJourneyX(1480);
         const deepZoneCooldownMultiplier = deepZone
@@ -19742,9 +19723,11 @@ export default function ExpeditionJourney({
         // Wound state: below half health, enemies become more desperate
         const woundState = e.health < e.maxHealth * 0.5;
         const woundMultiplier = woundState ? 0.80 : 1;
-        e.attackCooldown = Math.max(0.55, pattern.cooldown * deepZoneCooldownMultiplier * woundMultiplier);
-        e.vulnerabilityTimer = 0;
-        e.shieldTimer = pattern.shieldDuringWindup ? Math.min(0.45, pattern.windup * 0.7) : 0;
+        const attackCooldown = Math.max(0.55, pattern.cooldown * deepZoneCooldownMultiplier * woundMultiplier);
+        beginEnemyAttackWindup(e, pattern, {
+          attackDirection: attackDirectionToPlayer,
+          attackCooldown,
+        });
         if (e.encounterRole) {
           addCombatEffect(current, {
             type: 'enemy-pressure',
@@ -19783,8 +19766,7 @@ export default function ExpeditionJourney({
       }
 
       if (e.attackReady && e.attackWindup <= 0 && e.attackTimer <= 0) {
-        e.attackTimer = getEnemyPatternConfig(e).duration;
-        e.attackReady = false;
+        beginEnemyAttackSwing(e, getEnemyPatternConfig(e));
       }
 
       if (e.attackTimer > 0) {
