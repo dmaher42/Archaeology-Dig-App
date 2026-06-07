@@ -39,15 +39,21 @@ Core rule:
 
 Asha is a present-day heritage researcher / archaeologist-in-training living and working in Egypt.
 
-She notices an ordinary archaeological inconsistency: a newly surfaced scarab carving at a pyramid does not match earlier surveys. Asha recognises the scarab shape from an older photograph taken at another Egyptian site and visits the pyramid as part of routine heritage work.
+She notices an ordinary archaeological inconsistency: a newly surfaced scarab carving at a pyramid does not match earlier surveys. Asha recognises the scarab arrangement from a decades-old photograph of a tomb painting. The painting showed a pyramid with a scarab above it, but the real pyramid never had that scarab until now.
+
+The old photograph was forgotten because earlier researchers treated the painting as symbolic, miscatalogued, or unresolved. Asha remembers it and realises the new site report finally matches the old image.
 
 She does not begin the story believing in magic, gods, mirror worlds, or supernatural danger. She is curious, careful, and professionally responsible. Her first goal is simply to understand why the scarab has appeared.
 
-When she touches the plain stone scarab to compare it with the old photograph, it activates as a threshold seal. The ground opens beneath her, and she is pulled into the Lost Site.
+When she touches the plain stone scarab to compare it with the forgotten tomb-painting photo, it activates as a threshold seal. The ground opens beneath her, and she is pulled into the Lost Site.
+
+Crossing the seal changes Asha's modern field clothes into ancient, combat-ready garb because the Lost Site marks trespassers for judgement and survival. This is not proof she is chosen, blessed, or trusted. It is another sign that the site is forcing her into a trial she does not understand.
 
 The deeper truth, which Asha does not understand at the beginning, is:
 
 > The scarab surfaced because the hidden world is failing.
+
+The old tomb painting may contain a damaged phrase that later resolves toward "a memory returns", but this must not be translated clearly in the opening. At first it should feel like an unreadable warning, not an explanation.
 
 The central theme is:
 
@@ -715,9 +721,9 @@ Prefer story-driven writing such as:
 
 **Asha:** Young female heritage researcher / archaeologist-in-training living and working in Egypt.
 
-**Opening motivation:** Routine heritage investigation. A newly surfaced scarab carving at a pyramid does not match earlier records, and Asha recognises the scarab shape from an older photograph taken at another Egyptian site.
+**Opening motivation:** Routine heritage investigation. A newly surfaced scarab carving at a pyramid does not match earlier records, and Asha recognises the scarab arrangement from a forgotten decades-old photograph of a tomb painting. The painting showed a scarab above the pyramid, but the real pyramid never had that scarab until now.
 
-**Inciting event:** Asha inspects the plain, ordinary-looking real-world scarab carving. When she touches it, the scarab activates as a threshold seal and pulls her into the Lost Site.
+**Inciting event:** Asha inspects the plain, ordinary-looking real-world scarab carving. When she touches it, the scarab activates as a threshold seal and pulls her into the Lost Site. The crossing marks her with trial-garb suited to the hidden world, but she does not yet understand why she is there or what the scarab represents.
 
 **Public history:** Tomb objects are understood as treasure, status, religious objects, grave goods, or museum artefacts.
 

@@ -1019,8 +1019,12 @@ test('opening cinematic starts on the main expedition path and has a styled dram
   assert.match(journeyComponentSource, /opening-cinematic-banishment-ring/);
   assert.match(journeyComponentSource, /opening-cinematic-shockwave/);
   assert.match(journeyComponentSource, /asha-opening-reference-cutscene\.png/);
-  assert.match(journeyComponentSource, /The past is not treasure to own/);
-  assert.match(journeyComponentSource, /You did not come to take/);
+  assert.match(journeyComponentSource, /The Gate Refuses/);
+  assert.match(journeyComponentSource, /I was in Cairo\. I touched the scarab and the pyramid disappeared\./);
+  assert.match(journeyComponentSource, /The seal marks trespassers for trial\. That is not permission\./);
+  assert.match(journeyComponentSource, /I tried\. Even this gate no longer obeys\./);
+  assert.doesNotMatch(journeyComponentSource, /The past is not treasure to own/);
+  assert.doesNotMatch(journeyComponentSource, /You did not come to take/);
   assert.match(journeyComponentSource, /opening-cinematic-memory-runes/);
   assert.match(indexCssSource, /\.opening-cinematic-overlay\s*\{/);
   assert.match(indexCssSource, /\.opening-cinematic-backdrop\s*\{/);
@@ -2063,7 +2067,7 @@ test('Expedition framing presents Journey, Base Camp, and excavation as in-world
     'Recover relic shards',
     'Read the Map Tablet',
     'Survive the Guardian Prep route',
-    'Defeat the Scarab Queen',
+    'Defeat the first guardian',
     'Reach Base Camp Outpost',
     'Relic shards',
   ].forEach((copy) => assert.match(journeyComponentSource, new RegExp(copy)));
@@ -3096,6 +3100,42 @@ test('Egypt opening scene uses the existing scarab seal path for a brief Anubis 
   assert.match(journeyComponentSource, /const OPENING_SPHINX_DURATION = 14/);
   assert.match(journeyComponentSource, /speaker:\s*SCARAB_SEAL_TRIGGER\.dialogueSpeakers\?\.\[index\]/);
   assert.match(journeyComponentSource, /at:\s*SCARAB_SEAL_TRIGGER\.dialogueTiming\?\.\[index\]/);
+});
+
+test('Egypt opening archive prologue grounds Asha before the Lost Site transport', () => {
+  assert.match(expeditionModeSource, /const EGYPT_ARCHIVE_PROLOGUE_ITEMS = \[/);
+  assert.match(expeditionModeSource, /const EGYPT_ARCHIVE_ASSETS = \{/);
+  [
+    'assets/expedition/opening/archive-prologue/cairo-archive-desk-2026-06-07.png',
+    'assets/expedition/opening/archive-prologue/modern-pyramid-scarab-site-2026-06-07.png',
+    'assets/expedition/opening/archive-prologue/tomb-painting-photo-2026-06-07.png',
+    'assets/expedition/opening/archive-prologue/asha-field-notebook-2026-06-07.png',
+  ].forEach((assetPath) => {
+    assert.ok(
+      existsSync(new URL(`../../../public/${assetPath}`, import.meta.url)),
+      `${assetPath} should exist as a project-bound archive prologue PNG`,
+    );
+    assert.match(expeditionModeSource, new RegExp(assetPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  });
+  assert.match(expeditionModeSource, /visualSrc:\s*EGYPT_ARCHIVE_ASSETS\.report/);
+  assert.match(expeditionModeSource, /visualSrc:\s*EGYPT_ARCHIVE_ASSETS\.painting/);
+  assert.match(expeditionModeSource, /visualSrc:\s*EGYPT_ARCHIVE_ASSETS\.notes/);
+  assert.match(expeditionModeSource, /src=\{item\.visualSrc\}/);
+  assert.match(expeditionModeSource, /src=\{EGYPT_ARCHIVE_ASSETS\.desk\}/);
+  assert.match(expeditionModeSource, /id:\s*'tomb-painting-photo'[\s\S]*?Decades-old tomb-painting photograph/i);
+  assert.match(expeditionModeSource, /The painting shows this pyramid with a scarab above it/);
+  assert.match(expeditionModeSource, /the real pyramid never carried that scarab/i);
+  assert.match(expeditionModeSource, /Everyone else treated the photograph as symbolic, mistaken, or too strange to explain\./);
+  assert.match(expeditionModeSource, /A memory returns/);
+  assert.match(expeditionModeSource, /setExpeditionStage\('journey'\)/);
+  assert.match(journeyComponentSource, /The Gate Refuses/);
+  assert.match(journeyComponentSource, /I was in Cairo\. I touched the scarab and the pyramid disappeared\./);
+  assert.match(journeyComponentSource, /I tried\. Even this gate no longer obeys\./);
+  assert.doesNotMatch(journeyComponentSource, /The past is not treasure to own\. It is memory to protect\./);
+  assert.doesNotMatch(journeyComponentSource, /You did not come to take\. Prove it beyond the First Seal\./);
+  assert.doesNotMatch(journeyComponentSource, /OPENING_ARCHIVE_EVIDENCE/);
+  assert.doesNotMatch(journeyComponentSource, /openingArchiveReviewedCount/);
+  assert.doesNotMatch(indexCssSource, /\.opening-archive-card/);
 });
 
 test('low-quality generated sacred trap pack is not part of the live asset contract', () => {

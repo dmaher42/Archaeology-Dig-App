@@ -110,7 +110,8 @@ The intended emotional arc is:
 Current story rules:
 
 - Asha is the single protagonist: a present-day female heritage researcher / archaeologist-in-training living and working in Egypt.
-- She enters the Lost Site through an ordinary-looking scarab threshold after investigating a site-record inconsistency.
+- She enters the Lost Site through an ordinary-looking scarab threshold after connecting a new site-record inconsistency to a forgotten tomb-painting photograph.
+- The threshold changes her modern field clothes into trial-ready Lost Site garb; this is a judgement/survival mark, not a chosen-one reveal.
 - The Lost Site is a hidden Duat-touched memory-world, not ordinary historical Egypt.
 - Tomb objects are not generic loot. In the hidden mythology, they are memory anchors.
 - Memory anchors preserve names, identity, relationships, rituals, afterlife passage, and the wholeness of the dead.

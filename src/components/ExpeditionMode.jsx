@@ -142,28 +142,39 @@ const CHINA_EXCAVATION_MAP_THEME = {
   playerGlowAlpha: 0.58,
 };
 
+const EGYPT_ARCHIVE_ASSETS = {
+  desk: 'assets/expedition/opening/archive-prologue/cairo-archive-desk-2026-06-07.png',
+  report: 'assets/expedition/opening/archive-prologue/modern-pyramid-scarab-site-2026-06-07.png',
+  painting: 'assets/expedition/opening/archive-prologue/tomb-painting-photo-2026-06-07.png',
+  notes: 'assets/expedition/opening/archive-prologue/asha-field-notebook-2026-06-07.png',
+};
+
 const EGYPT_ARCHIVE_PROLOGUE_ITEMS = [
   {
     id: 'museum-report',
     label: 'Site Update',
     title: 'Museum Report',
     format: 'Field record',
+    visualType: 'report',
+    visualSrc: EGYPT_ARCHIVE_ASSETS.report,
     body: [
-      'A newly exposed scarab carving has been recorded near the summit of the pyramid ruin.',
-      'Earlier surveys do not show the marking.',
-      'Cause of exposure unknown.',
+      'A new site photograph shows a scarab form at the pyramid crown.',
+      'Earlier surveys record blank stone in the same position.',
+      'The real pyramid never carried that scarab until now.',
     ],
   },
   {
-    id: 'excavation-photo',
+    id: 'tomb-painting-photo',
     label: 'Archive Photograph',
-    title: 'Excavation Photo',
-    format: 'Photographic cross-reference',
+    title: 'Tomb Painting Photo',
+    format: 'Decades-old tomb-painting photograph',
+    visualType: 'painting',
+    visualSrc: EGYPT_ARCHIVE_ASSETS.painting,
     body: [
-      'Asha has seen this scarab shape before.',
-      'It appears in an older photograph from another Egyptian site.',
-      'At the time, it was treated as an oddity.',
-      'No matching scarab had ever been recorded at this pyramid.',
+      'The painting shows this pyramid with a scarab above it.',
+      'No one could explain the scene when the photograph was filed.',
+      'Damaged margin: "[...] A memory returns [...]"',
+      'It reads like a broken caption, not an answer.',
     ],
   },
   {
@@ -171,11 +182,13 @@ const EGYPT_ARCHIVE_PROLOGUE_ITEMS = [
     label: "Asha's Field Notes",
     title: "Asha's Notes",
     format: 'Notebook entry',
+    visualType: 'notes',
+    visualSrc: EGYPT_ARCHIVE_ASSETS.notes,
     body: [
-      'The records do not match.',
-      'If the scarab was always there, why did no earlier survey record it?',
-      'If it is new, who placed it there?',
-      'Either way, it needs to be checked.',
+      'Everyone else treated the photograph as symbolic, mistaken, or too strange to explain.',
+      'Asha remembers it because the new site report finally matches the old painting.',
+      'If the photograph was not showing what was stolen, it may have been showing what would return.',
+      'Either way, the scarab needs to be checked in person.',
     ],
   },
 ];
@@ -185,19 +198,22 @@ const EGYPT_ARCHIVE_SITE_TRANSITION_LINES = [
   'Sun on stone.',
   'Wind across the sand.',
   'A routine site check.',
-  'Then Asha sees it.',
-  'The scarab from the photograph.',
-  'Plain stone.',
-  'Half exposed.',
-  'Easy to miss.',
-  'Exactly where the new report said it would be.',
+  'Asha carries the old tomb-painting photograph in her field notebook.',
+  'The pyramid should be blank at the crown.',
+  'Today, stone catches the light there.',
+  'The scarab from the painting is real.',
+  'It should not be here.',
 ];
 
 const EGYPT_ARCHIVE_SCARAB_CINEMATIC_LINES = [
-  'Old stone.',
-  'A symbol worn almost smooth.',
-  'Cross-reference with excavation photo.',
   'Plain stone.',
+  'No metal fitting.',
+  'No modern tool marks.',
+  'Asha holds the old photograph beside it.',
+  'The painted scarab and the real scarab line up.',
+  'The damaged caption still refuses translation.',
+  '"A memory returns" is all she can make out.',
+  'It sounds like a bad reading, not an answer.',
   'No glow.',
   'No sound.',
 ];
@@ -208,15 +224,15 @@ const EGYPT_ARCHIVE_ACTIVATION_LINES = [
   'Old stone.',
   'No glow.',
   'No sound.',
-  'She compares it with the photograph.',
+  'She checks the edge of the carving with her palm.',
   'The shape matches.',
   'The fracture matches.',
-  'She presses her palm against the carving.',
   'For a moment, nothing happens.',
-  'Then the stone beneath her moves.',
-  'The scarab was not decoration.',
+  'Then the pyramid drops away.',
+  'The scarab was not a stolen object.',
   'It was a seal.',
   'The ground opens beneath her.',
+  'The archive, the sun, the site - gone.',
   'She falls.',
 ];
 
@@ -230,8 +246,8 @@ const EGYPT_ARCHIVE_CINEMATIC_STEPS = [
   },
   {
     id: 'scarab-floor-carving',
-    kicker: 'Scarab - Floor Carving',
-    title: 'Plain stone. Easy to miss.',
+    kicker: 'Scarab - Site Comparison',
+    title: 'The old photograph matches now.',
     lines: EGYPT_ARCHIVE_SCARAB_CINEMATIC_LINES,
     actionLabel: 'Examine the scarab',
   },
@@ -4427,6 +4443,173 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
       : null;
     const cinematicActive = Boolean(cinematicStep);
     const finalCinematicStep = prologueCinematicStep === EGYPT_ARCHIVE_CINEMATIC_STEPS.length - 1;
+    const renderArchiveEvidenceVisual = (item, isInspected) => {
+      const accent = isInspected ? '#77b66e' : '#c6a059';
+      const baseStyle = {
+        position: 'relative',
+        minHeight: 86,
+        marginBottom: '0.8rem',
+        border: `1px solid ${isInspected ? 'rgba(119, 182, 110, 0.34)' : 'rgba(198, 160, 89, 0.24)'}`,
+        borderRadius: 6,
+        overflow: 'hidden',
+        background: 'linear-gradient(135deg, rgba(56, 39, 22, 0.72), rgba(16, 12, 9, 0.88))',
+      };
+
+      if (item.visualSrc) {
+        return (
+          <div style={baseStyle} aria-hidden="true">
+            <img
+              src={item.visualSrc}
+              alt=""
+              loading="lazy"
+              style={{
+                width: '100%',
+                height: '100%',
+                minHeight: 112,
+                objectFit: 'cover',
+                objectPosition: item.visualType === 'report' ? 'center top' : 'center',
+                display: 'block',
+                filter: isInspected ? 'saturate(1.02) contrast(1.02)' : 'saturate(0.62) brightness(0.56) contrast(0.92)',
+                transform: isInspected ? 'scale(1.01)' : 'scale(1.04)',
+                transition: 'filter 240ms ease, transform 240ms ease',
+              }}
+            />
+            {!isInspected && (
+              <div style={{
+                position: 'absolute',
+                inset: 0,
+                background: 'linear-gradient(180deg, rgba(11, 8, 6, 0.08), rgba(11, 8, 6, 0.48))',
+              }} />
+            )}
+          </div>
+        );
+      }
+
+      if (item.visualType === 'painting') {
+        return (
+          <div style={baseStyle} aria-hidden="true">
+            <div style={{
+              position: 'absolute',
+              left: '14%',
+              bottom: '14%',
+              width: '46%',
+              height: '50%',
+              background: 'rgba(218, 179, 102, 0.72)',
+              clipPath: 'polygon(50% 0, 100% 100%, 0 100%)',
+              boxShadow: 'inset 0 -0.85rem 0 rgba(64, 40, 20, 0.32)',
+            }} />
+            <div style={{
+              position: 'absolute',
+              left: '48%',
+              top: '15%',
+              width: '18%',
+              height: '23%',
+              border: `2px solid ${accent}`,
+              borderRadius: '50% 50% 42% 42%',
+              background: 'rgba(42, 182, 199, 0.14)',
+              boxShadow: '0 0 1rem rgba(42, 182, 199, 0.16)',
+            }} />
+            <div style={{
+              position: 'absolute',
+              right: '12%',
+              bottom: '13%',
+              width: '12%',
+              height: '46%',
+              borderRadius: '42% 42% 10% 10%',
+              background: 'rgba(7, 6, 5, 0.62)',
+            }} />
+            <div style={{
+              position: 'absolute',
+              left: '9%',
+              top: '10%',
+              color: isInspected ? 'rgba(242, 210, 140, 0.7)' : 'rgba(143, 125, 93, 0.55)',
+              fontSize: '0.63rem',
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+            }}>
+              {isInspected ? 'A memory returns' : 'damaged caption'}
+            </div>
+          </div>
+        );
+      }
+
+      if (item.visualType === 'notes') {
+        return (
+          <div style={baseStyle} aria-hidden="true">
+            <div style={{
+              position: 'absolute',
+              inset: '12% 52% 12% 9%',
+              border: `2px solid ${accent}`,
+              transform: 'rotate(-4deg)',
+              opacity: 0.78,
+            }} />
+            <div style={{
+              position: 'absolute',
+              left: '17%',
+              top: '28%',
+              width: '20%',
+              height: '4px',
+              background: 'rgba(242, 210, 140, 0.56)',
+              boxShadow: '0 12px 0 rgba(242, 210, 140, 0.38), 0 24px 0 rgba(242, 210, 140, 0.24)',
+            }} />
+            <div style={{
+              position: 'absolute',
+              right: '15%',
+              top: '22%',
+              width: '21%',
+              height: '28%',
+              border: `2px solid ${accent}`,
+              borderRadius: '50% 50% 42% 42%',
+              opacity: 0.7,
+            }} />
+            <div style={{
+              position: 'absolute',
+              right: '12%',
+              bottom: '20%',
+              width: '32%',
+              height: '4px',
+              background: 'rgba(242, 210, 140, 0.5)',
+              boxShadow: '0 11px 0 rgba(242, 210, 140, 0.3)',
+            }} />
+          </div>
+        );
+      }
+
+      return (
+        <div style={baseStyle} aria-hidden="true">
+          <div style={{
+            position: 'absolute',
+            left: '11%',
+            top: '15%',
+            width: '34%',
+            height: '58%',
+            border: `2px solid ${accent}`,
+            borderRadius: 3,
+            opacity: 0.74,
+          }} />
+          <div style={{
+            position: 'absolute',
+            right: '16%',
+            top: '22%',
+            width: '24%',
+            height: '24%',
+            border: `2px solid ${accent}`,
+            borderRadius: '50%',
+            opacity: 0.72,
+          }} />
+          <div style={{
+            position: 'absolute',
+            right: '12%',
+            bottom: '19%',
+            width: '36%',
+            height: '4px',
+            background: 'rgba(242, 210, 140, 0.5)',
+            boxShadow: '0 12px 0 rgba(242, 210, 140, 0.32), 0 24px 0 rgba(242, 210, 140, 0.18)',
+          }} />
+        </div>
+      );
+    };
+
     return (
       <div style={{
         minHeight: '100vh',
@@ -4446,7 +4629,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
             paddingBottom: '1rem',
           }}>
             <div style={{ marginBottom: '0.5rem', fontSize: '0.72rem', letterSpacing: '0.12em', color: '#caa86e', textTransform: 'uppercase', fontWeight: 800 }}>
-              Heritage Research — Cairo
+              Heritage Research - Cairo
             </div>
             <h1 style={{
               margin: 0,
@@ -4459,8 +4642,30 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
               The archive points to one scarab.
             </h1>
             <p style={{ fontSize: '0.98rem', color: '#bda983', margin: '0.75rem 0 0', lineHeight: 1.55, maxWidth: 620 }}>
-              Asha reviews the available records in her normal working context before visiting the pyramid site.
+              Asha reviews a forgotten tomb-painting photograph before visiting the pyramid site.
             </p>
+            <div style={{
+              marginTop: '1rem',
+              height: 'clamp(140px, 25vw, 238px)',
+              border: '1px solid rgba(198, 160, 89, 0.22)',
+              borderRadius: 8,
+              overflow: 'hidden',
+              background: 'rgba(17, 13, 10, 0.72)',
+              boxShadow: '0 18px 45px rgba(0, 0, 0, 0.28)',
+            }} aria-hidden="true">
+              <img
+                src={EGYPT_ARCHIVE_ASSETS.desk}
+                alt=""
+                loading="eager"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  objectPosition: 'center',
+                  display: 'block',
+                }}
+              />
+            </div>
           </header>
 
           <section style={{
@@ -4514,6 +4719,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', marginBottom: '0.75rem' }}>
                     <div style={{ flex: 1 }}>
+                      {renderArchiveEvidenceVisual(item, isInspected)}
                       <div style={{ fontSize: '0.68rem', color: '#caa86e', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 800 }}>
                         {item.label}
                       </div>
@@ -4581,8 +4787,61 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
                 The records point to the pyramid.
               </h2>
               <p style={{ color: '#d3c09a', margin: '0 0 1rem', lineHeight: 1.5, maxWidth: 620 }}>
-                Asha has enough evidence to leave the archive and verify the scarab in person.
+                Asha has enough evidence to leave the archive and verify why the old painting finally matches the real site.
               </p>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                gap: '0.75rem',
+                marginBottom: '1rem',
+              }} aria-hidden="true">
+                <div style={{
+                  position: 'relative',
+                  minHeight: 132,
+                  border: '1px solid rgba(198, 160, 89, 0.28)',
+                  borderRadius: 6,
+                  background: 'linear-gradient(180deg, rgba(80, 52, 27, 0.82), rgba(18, 13, 10, 0.92))',
+                  overflow: 'hidden',
+                }}>
+                  <img
+                    src={EGYPT_ARCHIVE_ASSETS.painting}
+                    alt=""
+                    loading="lazy"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      minHeight: 132,
+                      objectFit: 'cover',
+                      objectPosition: 'center',
+                      display: 'block',
+                    }}
+                  />
+                  <div style={{ position: 'absolute', left: '8%', top: '9%', color: 'rgba(242, 210, 140, 0.82)', fontSize: '0.66rem', letterSpacing: '0.08em', textTransform: 'uppercase', textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>old painting</div>
+                </div>
+                <div style={{
+                  position: 'relative',
+                  minHeight: 132,
+                  border: '1px solid rgba(119, 182, 110, 0.34)',
+                  borderRadius: 6,
+                  background: 'linear-gradient(180deg, rgba(101, 77, 43, 0.66), rgba(18, 13, 10, 0.9))',
+                  overflow: 'hidden',
+                }}>
+                  <img
+                    src={EGYPT_ARCHIVE_ASSETS.report}
+                    alt=""
+                    loading="lazy"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      minHeight: 132,
+                      objectFit: 'cover',
+                      objectPosition: 'center top',
+                      display: 'block',
+                    }}
+                  />
+                  <div style={{ position: 'absolute', left: '8%', top: '9%', color: 'rgba(189, 231, 173, 0.82)', fontSize: '0.66rem', letterSpacing: '0.08em', textTransform: 'uppercase', textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>current site</div>
+                </div>
+              </div>
               <button
                 type="button"
                 onClick={() => setPrologueCinematicStep(0)}
@@ -4618,11 +4877,11 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
             }}>
               <div style={{ flex: '1 1 260px' }}>
                 <div style={{ fontSize: '0.72rem', color: allInspected ? '#caa86e' : '#736247', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 800 }}>
-                  Scarab — Floor Carving
+                  Scarab - Site Comparison
                 </div>
                 <div style={{ fontSize: '0.9rem', color: allInspected ? '#cdbb95' : '#76664c', marginTop: '0.35rem', lineHeight: 1.45 }}>
                   {allInspected
-                    ? 'Old stone. A symbol worn almost smooth. Cross-reference with excavation photo.'
+                    ? 'Old stone. The tomb-painting photograph finally matches the site.'
                     : 'Review all evidence first.'}
                 </div>
               </div>
