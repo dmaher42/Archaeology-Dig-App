@@ -4869,6 +4869,36 @@ export default function ExpeditionJourney({
       .at(-1)?.prop || null;
   }, [getRenderableStoryProps]);
 
+  // All props under the cursor, top-most first (so [0] matches the single-pick default
+  // above). Lets Tab cycle through every stacked prop, not just the top one.
+  const findAllEditableStoryPropsAt = useCallback((screenX, screenY) => {
+    const current = stateRef.current;
+    const cameraX = Number.isFinite(current.cameraX) ? current.cameraX : 0;
+    return getRenderableStoryProps(current)
+      .map((prop, index) => ({
+        prop,
+        index,
+        bounds: getStoryPropEditorBounds(prop, cameraX, current),
+      }))
+      .filter(({ bounds }) => (
+        screenX >= bounds.x
+        && screenX <= bounds.x + bounds.width
+        && screenY >= bounds.y
+        && screenY <= bounds.y + bounds.height
+      ))
+      .sort((a, b) => {
+        const depthDelta = (STORY_PROP_DEPTH_ORDER[a.bounds.depth] || 0) - (STORY_PROP_DEPTH_ORDER[b.bounds.depth] || 0);
+        if (depthDelta !== 0) return depthDelta;
+        const zDelta = (Number(a.prop.zIndex) || 0) - (Number(b.prop.zIndex) || 0);
+        if (zDelta !== 0) return zDelta;
+        const areaDelta = (b.bounds.width * b.bounds.height) - (a.bounds.width * a.bounds.height);
+        if (areaDelta !== 0) return areaDelta;
+        return a.index - b.index;
+      })
+      .reverse()
+      .map(({ prop }) => prop);
+  }, [getRenderableStoryProps]);
+
   // --- Editor hover: preview what a click will select (plain label) and let Tab cycle
   // through entities stacked under the cursor. Shared by the overlay + pointer/key handlers. ---
   const getEditorEntityBounds = useCallback((descriptor, cameraX, current) => {
@@ -4896,7 +4926,7 @@ export default function ExpeditionJourney({
       case 'checkpoint': return `${entity.name || 'Checkpoint'} — checkpoint`;
       case 'arch': return entity.editorKind === 'doorway' ? 'Doorway — gate' : 'Route Gate — gate';
       case 'platform': return descriptor.floor ? 'Floor — collision' : `${entity.label || entity.id || 'Platform'} — platform`;
-      case 'prop': return `${entity.name || entity.category || 'Prop'} — ${entity.category ? `prop · ${entity.category}` : 'prop'}`;
+      case 'prop': return `${entity.name || entity.category || 'Prop'} — prop${entity.id ? ` · ${entity.id}` : ''}`;
       default: return '';
     }
   }, []);
@@ -4920,10 +4950,11 @@ export default function ExpeditionJourney({
     push('checkpoint', findEditableCheckpointAt(screenX, screenY));
     push('arch', findEditableArchAt(screenX, screenY));
     push('platform', findEditablePlatformAt(screenX, screenY, { includeFloors: false }));
-    push('prop', findEditableStoryPropAt(screenX, screenY));
+    // Every prop under the cursor (top-most first), so Tab reaches stacked props.
+    findAllEditableStoryPropsAt(screenX, screenY).forEach(prop => push('prop', prop));
     push('platform', findEditablePlatformAt(screenX, screenY, { floorOnly: true }), { floor: true });
     return stack;
-  }, [findEditableArchAt, findEditableCheckpointAt, findEditableHazardAt, findEditableNestAt, findEditablePlatformAt, findEditableScarabLairAt, findEditableStoryPropAt]);
+  }, [findAllEditableStoryPropsAt, findEditableArchAt, findEditableCheckpointAt, findEditableHazardAt, findEditableNestAt, findEditablePlatformAt, findEditableScarabLairAt]);
 
   const updateEditorHover = useCallback((screenX, screenY) => {
     const editor = propPlacementEditorRef.current;
