@@ -14579,6 +14579,85 @@ main {
   font-weight: 700;
 }
 
+.journey-sacred-evidence {
+  display: grid;
+  gap: 0.34rem;
+  margin-top: 0.58rem;
+  padding: 0.5rem;
+  border: 1px solid rgba(120, 53, 15, 0.18);
+  border-radius: 7px;
+  background: rgba(255, 247, 237, 0.48);
+}
+
+.journey-sacred-evidence-title,
+.journey-sacred-evidence-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.34rem;
+}
+
+.journey-sacred-evidence-title {
+  color: var(--bureau-ink);
+  font-size: 0.66rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.journey-sacred-evidence-title strong {
+  color: #78350f;
+  font-size: 0.7rem;
+}
+
+.journey-sacred-evidence p {
+  margin: 0;
+  color: rgba(95, 50, 20, 0.72);
+  font-size: 0.66rem;
+  font-weight: 700;
+  line-height: 1.28;
+}
+
+.journey-sacred-evidence-list {
+  display: grid;
+  gap: 0.24rem;
+}
+
+.journey-sacred-evidence-row {
+  grid-template-columns: 3.2rem auto minmax(0, 1fr);
+  min-height: 1.38rem;
+  padding: 0.2rem 0.28rem;
+  border: 1px solid rgba(120, 53, 15, 0.12);
+  border-radius: 5px;
+  background: rgba(255, 251, 235, 0.55);
+  color: rgba(95, 50, 20, 0.76);
+  font-size: 0.66rem;
+  font-weight: 800;
+}
+
+.journey-sacred-evidence-row strong {
+  color: #92400e;
+  font-size: 0.68rem;
+}
+
+.journey-sacred-evidence-row em {
+  min-width: 0;
+  color: rgba(68, 64, 60, 0.74);
+  font-size: 0.6rem;
+  font-style: normal;
+  text-align: right;
+}
+
+.journey-sacred-evidence-row.is-restored {
+  border-color: rgba(20, 83, 45, 0.3);
+  background: rgba(220, 252, 231, 0.62);
+  color: #14532d;
+}
+
+.journey-sacred-evidence-row.is-restored strong,
+.journey-sacred-evidence-row.is-restored em {
+  color: #166534;
+}
+
 .journey-key-items {
   display: grid;
   gap: 0.28rem;
@@ -16136,6 +16215,42 @@ main {
   font-size: 0.74rem;
 }
 
+.journey-floating-hud-restoration {
+  grid-column: 1;
+  grid-row: 2;
+  justify-self: start;
+  gap: 0.22rem;
+  margin-top: 0.12rem;
+  background: rgba(31, 24, 18, 0.54);
+  border-color: rgba(248, 224, 162, 0.18);
+  font-family: 'Outfit', sans-serif;
+}
+
+.journey-floating-hud-restoration svg {
+  width: 0.78rem;
+  height: 0.78rem;
+  color: #f8e0a2;
+}
+
+.journey-floating-hud-restoration span,
+.journey-floating-hud-restoration em {
+  color: rgba(248, 239, 225, 0.76);
+  font-size: 0.48rem;
+  font-style: normal;
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.journey-floating-hud-restoration strong {
+  color: #fffaf0;
+  font-size: 0.72rem;
+}
+
+.journey-floating-hud-restoration em {
+  color: #f8e0a2;
+}
+
 .journey-floating-hud-gate {
   position: absolute;
   right: 0;
@@ -16173,6 +16288,8 @@ main {
 }
 
 .journey-floating-hud-meters {
+  grid-column: 2;
+  grid-row: 1;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-self: start;
@@ -16376,9 +16493,17 @@ main {
   }
 
   .journey-floating-hud-meters {
+    grid-column: 1;
+    grid-row: auto;
     grid-template-columns: 1fr;
     gap: 0.34rem;
     width: 100%;
+  }
+
+  .journey-floating-hud-restoration {
+    grid-column: 1;
+    grid-row: auto;
+    max-width: 100%;
   }
 
   .journey-floating-hud-gate {

@@ -74,7 +74,7 @@ const journeyPlacementOverrides = {
       "id": "forgotten-mural-climb-structure",
       "sectionId": "desert-entry",
       "type": "generated-climb-structure",
-      "x": 8144,
+      "x": 7465,
       "y": -176,
       "width": 1420,
       "height": 690,
@@ -190,7 +190,7 @@ const journeyPlacementOverrides = {
       "id": "scribe-chamber-doorway-structure",
       "sectionId": "desert-entry",
       "type": "generated-scribe-chamber-doorway",
-      "x": 11424,
+      "x": 10876,
       "y": -24,
       "width": 1120,
       "height": 620,
@@ -1388,7 +1388,7 @@ const journeyPlacementOverrides = {
     },
     {
       "id": "forgotten-mural-lower-masonry",
-      "x": 8227,
+      "x": 7534,
       "y": 191,
       "width": 104,
       "height": 18,
@@ -1398,7 +1398,7 @@ const journeyPlacementOverrides = {
     },
     {
       "id": "forgotten-mural-carved-wall-ledge",
-      "x": 7943,
+      "x": 7297,
       "y": 484,
       "width": 133,
       "height": 18,
@@ -1408,7 +1408,7 @@ const journeyPlacementOverrides = {
     },
     {
       "id": "forgotten-mural-broken-warning-step",
-      "x": 7682,
+      "x": 7080,
       "y": 536,
       "width": 149,
       "height": 18,
@@ -1418,7 +1418,7 @@ const journeyPlacementOverrides = {
     },
     {
       "id": "forgotten-mural-priest-passage-shelf",
-      "x": 7373,
+      "x": 6822,
       "y": 454,
       "width": 79,
       "height": 18,
@@ -1428,7 +1428,7 @@ const journeyPlacementOverrides = {
     },
     {
       "id": "forgotten-mural-column-shelf",
-      "x": 7649,
+      "x": 7052,
       "y": 328,
       "width": 63,
       "height": 18,
@@ -1438,7 +1438,7 @@ const journeyPlacementOverrides = {
     },
     {
       "id": "forgotten-mural-upper-doorway-floor",
-      "x": 8220,
+      "x": 7528,
       "y": 193,
       "width": 250,
       "height": 18,
@@ -1448,7 +1448,7 @@ const journeyPlacementOverrides = {
     },
     {
       "id": "forgotten-mural-forward-passage-step",
-      "x": 7948,
+      "x": 7301,
       "y": 246,
       "width": 174,
       "height": 18,
@@ -1458,7 +1458,7 @@ const journeyPlacementOverrides = {
     },
     {
       "id": "forgotten-mural-return-masonry",
-      "x": 8192,
+      "x": 7505,
       "y": 398,
       "width": 390,
       "height": 18,
@@ -1468,7 +1468,7 @@ const journeyPlacementOverrides = {
     },
     {
       "id": "forgotten-mural-lower-return",
-      "x": 7459,
+      "x": 6894,
       "y": 368,
       "width": 122,
       "height": 18,
@@ -1478,7 +1478,7 @@ const journeyPlacementOverrides = {
     },
     {
       "id": "scribe-chamber-buried-lower-block",
-      "x": 10828,
+      "x": 10379,
       "y": 519,
       "width": 95,
       "height": 18,
@@ -1488,7 +1488,7 @@ const journeyPlacementOverrides = {
     },
     {
       "id": "scribe-chamber-collapsed-stair-slab",
-      "x": 11132,
+      "x": 10633,
       "y": 473,
       "width": 120,
       "height": 18,
@@ -1498,7 +1498,7 @@ const journeyPlacementOverrides = {
     },
     {
       "id": "scribe-chamber-middle-rubble-landing",
-      "x": 11309,
+      "x": 10780,
       "y": 433,
       "width": 235,
       "height": 18,
@@ -1508,7 +1508,7 @@ const journeyPlacementOverrides = {
     },
     {
       "id": "scribe-chamber-upper-carved-landing",
-      "x": 11377,
+      "x": 10837,
       "y": 357,
       "width": 210,
       "height": 18,
@@ -1518,7 +1518,7 @@ const journeyPlacementOverrides = {
     },
     {
       "id": "scribe-chamber-doorway-threshold",
-      "x": 11418,
+      "x": 10871,
       "y": 297,
       "width": 180,
       "height": 18,
@@ -1964,7 +1964,7 @@ const journeyPlacementOverrides = {
       "id": "desert-soft-ridge",
       "name": "soft sand ridge",
       "emoji": "!",
-      "x": 7627,
+      "x": 7034,
       "y": 565,
       "width": 86,
       "height": 30,
@@ -1977,7 +1977,7 @@ const journeyPlacementOverrides = {
       "id": "broken-ruins-loose-stones",
       "name": "loose ruin stones",
       "emoji": "!",
-      "x": 8543,
+      "x": 7797,
       "y": 565,
       "width": 74,
       "height": 30,

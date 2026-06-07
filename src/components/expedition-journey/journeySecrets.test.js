@@ -1507,6 +1507,7 @@ test('Sacred Record Way worldbuilding connects Egypt evidence chambers through b
   const storyProps = extractExportedArray('STORY_PROPS');
   const landmarks = extractExportedArray('WORLD_CONTINUITY_LANDMARKS');
   const events = extractExportedArray('ENVIRONMENT_EVENTS');
+  const hiddenRoutes = extractExportedArray('HIDDEN_ROUTES');
   const backgroundBeats = [
     ['sacred-record-way-mummification-link', 'mummification-link', 'body preparation records continue behind the route'],
     ['sacred-record-way-mural-link', 'mural-link', 'mural images turn into caption marks'],
@@ -1553,6 +1554,31 @@ test('Sacred Record Way worldbuilding connects Egypt evidence chambers through b
   assert.match(journeyComponentSource, /landmark\.type === 'record-way-png'/);
   assert.match(journeyComponentSource, /sacredRecordWayBackgroundRef/);
   assert.doesNotMatch(journeyComponentSource, /SacredRecordWaySystem|createWorldbuildingSystem|RecordWayController/);
+
+  const bodyRoute = getDataRowById(hiddenRoutes, 'mummification-chamber-route');
+  const imageRoute = getDataRowById(hiddenRoutes, 'desert-upper-survey-route');
+  const nameRoute = getDataRowById(hiddenRoutes, 'scribe-locked-chamber-route');
+  assert.match(bodyRoute, /Body \/ preservation/);
+  assert.match(bodyRoute, /Exit back to the exterior route/);
+  assert.match(imageRoute, /Image \/ memory/);
+  assert.match(imageRoute, /damaged pictures and missing captions/);
+  assert.match(nameRoute, /Name \/ identity/);
+  assert.match(nameRoute, /Queen\\'s public story is incomplete/);
+
+  [
+    ['anubis-body-judgement', 'Body Judged', 'You touched the dead carefully. That is not trust.'],
+    ['body-to-image-clue', 'Body to Image', 'The linen mark repeats in broken wall images ahead.'],
+    ['anubis-image-judgement', 'Image Judged', 'You repaired an image instead of taking from it.'],
+    ['image-to-name-clue', 'Image to Name', 'The restored picture exposes missing captions and scribe cuts.'],
+    ['anubis-name-judgement', 'Name Judged', 'A name remembered can still accuse.'],
+    ['queen-story-contradiction', 'Contradictory Record', 'The Queen was not only guarding treasure.'],
+  ].forEach(([id, name, message]) => {
+    const event = getDataRowById(events, id);
+    assert.match(event, /sectionId:\s*'desert-entry'/);
+    assert.match(event, new RegExp(`name:\\s*'${name}'`));
+    assert.match(event, new RegExp(message.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+    assert.doesNotMatch(event, /requires|gate|shards|trustMeter|anubisTrust/);
+  });
 });
 
 test('Sacred Record Way polish does not add foreground inspection interactions or runtime state', () => {
