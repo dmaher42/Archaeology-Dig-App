@@ -35,6 +35,7 @@ import journeyPlacementOverrides from './journeyPlacementOverrides.generated.js'
 const source = readFileSync(new URL('./journeyLevelData.js', import.meta.url), 'utf8');
 const journeyUtilsSource = readFileSync(new URL('./journeyUtils.js', import.meta.url), 'utf8');
 const journeyConstantsSource = readFileSync(new URL('./journeyConstants.js', import.meta.url), 'utf8');
+const journeyCombatSource = readFileSync(new URL('./journeyCombat.js', import.meta.url), 'utf8');
 const journeyDataRouterSource = readFileSync(new URL('./journeyDataRouter.js', import.meta.url), 'utf8');
 const journeyEnemySpritesSource = readFileSync(new URL('./journeyEnemySprites.js', import.meta.url), 'utf8');
 const journeyBossSpritesSource = readFileSync(new URL('./journeyBossSprites.js', import.meta.url), 'utf8');
@@ -52,6 +53,11 @@ const menuSource = readFileSync(new URL('../Menu.jsx', import.meta.url), 'utf8')
 const appSource = readFileSync(new URL('../../App.jsx', import.meta.url), 'utf8');
 const journeyComponentSource = readFileSync(new URL('../ExpeditionJourney.jsx', import.meta.url), 'utf8');
 const indexCssSource = readFileSync(new URL('../../index.css', import.meta.url), 'utf8');
+const journeyCombatContractSource = journeyCombatSource.replace(/\bexport const\b/g, 'const');
+const journeyGameplayContractSource = [
+  journeyComponentSource,
+  journeyCombatContractSource,
+].join('\n');
 const egyptPlayerAtlas = JSON.parse(
   readFileSync(new URL('../../../public/assets/expedition/player/asha-final-production-spritesheet.json', import.meta.url), 'utf8'),
 );
@@ -996,7 +1002,7 @@ test('journey editor treats generated buildings as structure props with image pr
 });
 
 test('opening cinematic starts on the main expedition path and has a styled dramatic overlay', () => {
-  assert.match(journeyComponentSource, /OPENING_CINEMATIC_DURATION = 22/);
+  assert.match(journeyComponentSource, /OPENING_CINEMATIC_DURATION = 54/);
   assert.match(journeyComponentSource, /OPENING_CINEMATIC_ENABLED = true/);
   assert.match(journeyComponentSource, /OPENING_CINEMATIC_LINES = \[/);
   assert.match(journeyComponentSource, /speaker:\s*'Anubis'[\s\S]*?voice:\s*'guardian'/);
@@ -1007,7 +1013,7 @@ test('opening cinematic starts on the main expedition path and has a styled dram
   assert.match(journeyComponentSource, /openingCinematicState:\s*current\.openingCinematic/);
   assert.match(journeyComponentSource, /window\.speechSynthesis/);
   assert.match(journeyComponentSource, /drawOpeningCinematic/);
-  assert.match(journeyComponentSource, /OPENING_CINEMATIC_SPELL_IMPACT_AT = 18\.6/);
+  assert.match(journeyComponentSource, /OPENING_CINEMATIC_SPELL_IMPACT_AT = 49\.4/);
   assert.match(journeyComponentSource, /spellImpactTriggered/);
   assert.match(journeyComponentSource, /shieldShattered/);
   assert.match(journeyComponentSource, /current\.player\.x = 44/);
@@ -1020,11 +1026,11 @@ test('opening cinematic starts on the main expedition path and has a styled dram
   assert.match(journeyComponentSource, /opening-cinematic-shockwave/);
   assert.match(journeyComponentSource, /asha-opening-reference-cutscene\.png/);
   assert.match(journeyComponentSource, /The Gate Refuses/);
-  assert.match(journeyComponentSource, /I was in Cairo\. I touched the scarab and the pyramid disappeared\./);
-  assert.match(journeyComponentSource, /Where did my field clothes go\?/);
-  assert.match(journeyComponentSource, /This blade was not on my belt\./);
-  assert.match(journeyComponentSource, /to watch what your hands do here\./);
-  assert.match(journeyComponentSource, /you are not welcome in it\./);
+  assert.match(journeyComponentSource, /This is not the Field of Reeds\. It's too broken\./);
+  assert.match(journeyComponentSource, /A mortal stands beyond my seal\./);
+  assert.match(journeyComponentSource, /There is one road beyond life\./);
+  assert.match(journeyComponentSource, /Your kind broke tombs\./);
+  assert.match(journeyComponentSource, /Forward is judgement\./);
   assert.doesNotMatch(journeyComponentSource, /The past is not treasure to own/);
   assert.doesNotMatch(journeyComponentSource, /You did not come to take/);
   assert.match(journeyComponentSource, /opening-cinematic-memory-runes/);
@@ -1036,21 +1042,26 @@ test('opening cinematic starts on the main expedition path and has a styled dram
   assert.doesNotMatch(journeyComponentSource, /<video|opening-cinematic-video|createOpeningMovieMode/);
 });
 
-test('Lost Site arrival dialogue sells confusion, changed gear, failed return, and Anubis judgement without early memory exposition', () => {
+test('Lost Site arrival dialogue sells confusion, mortal-crossing shock, greed judgement, and forced path forward without early memory exposition', () => {
   const openingStart = journeyComponentSource.indexOf('const OPENING_CINEMATIC_LINES = [');
   const openingEnd = journeyComponentSource.indexOf('// Rome opening cinematic');
   const openingLines = journeyComponentSource.slice(openingStart, openingEnd);
 
   assert.notEqual(openingStart, -1);
   assert.notEqual(openingEnd, -1);
-  assert.match(openingLines, /Living breath at my seal\. None of your kind has crossed into the dead/);
-  assert.match(openingLines, /Where did my field clothes go\?/);
-  assert.match(openingLines, /This blade was not on my belt\./);
-  assert.match(openingLines, /For a thousand years your kind has only ever reached and taken\./);
-  assert.match(openingLines, /Then send me back\. I did not come here to steal from you\./);
-  assert.match(openingLines, /This is the house of the dead, and you are not welcome in it\./);
-  assert.match(openingLines, /The seal opens only forward\. You leave by trial, or not at all\./);
-  assert.match(openingLines, /Then I keep moving\. If the way out is deeper, I find it\./);
+  // Asha reads the broken setting through her knowledge of the afterlife journey
+  assert.match(openingLines, /This is not the Field of Reeds\. It's too broken\./);
+  assert.match(openingLines, /But it's shaped like the journey\./);
+  // Anubis is shocked a living mortal crossed his seal; death is the only road beyond life
+  assert.match(openingLines, /A mortal stands beyond my seal\./);
+  assert.match(openingLines, /There is one road beyond life\./);
+  // Anubis judges humanity as greedy trespassers and assumes the same of Asha
+  assert.match(openingLines, /Your kind broke tombs\./);
+  assert.match(openingLines, /Your kind always has words for trespass\./);
+  // The way back is gone and the path forward means judgement
+  assert.match(openingLines, /The way back is gone\./);
+  assert.match(openingLines, /Forward is judgement\./);
+  assert.match(openingLines, /Then I keep moving\./);
   assert.doesNotMatch(openingLines, /memory to protect|It was not treasure they stole|chosen|destiny/i);
   assert.doesNotMatch(openingLines, /no longer obeys|taught it fear/i);
 });
@@ -1078,8 +1089,8 @@ test('opening transport and arrival use dedicated scarab, threshold, Anubis, and
   );
 });
 
-test('opening arrival aftermath confirms Asha is trapped, changed, watched, and must move forward', () => {
-  assert.match(journeyComponentSource, /const OPENING_ARRIVAL_AFTERSHOCK_NOTICE = 'The way back is sealed\. The blade is real\. Anubis is still watching\. The only path is forward\.'/);
+test('opening arrival aftermath confirms Asha is trapped, watched, and must move forward into judgement', () => {
+  assert.match(journeyComponentSource, /const OPENING_ARRIVAL_AFTERSHOCK_NOTICE = 'The way back is gone\. Anubis is still watching\. The only path is forward, into judgement\.'/);
   assert.match(journeyComponentSource, /current\.notice = OPENING_ARRIVAL_AFTERSHOCK_NOTICE/);
   assert.match(journeyComponentSource, /id:\s*'opening-arrival-aftershock'/);
   assert.match(journeyComponentSource, /name:\s*'Asha'/);
@@ -2728,9 +2739,9 @@ test('player polish extends the canonical Journey animation and weapon paths', (
   assert.match(journeyComponentSource, /drawPlayerKhopesh/);
   assert.match(journeyComponentSource, /weapon-hit-spark/);
   assert.match(journeyComponentSource, /playerAttackBox/);
-  assert.match(journeyComponentSource, /PLAYER_ATTACK_RANGE = 92/);
-  assert.match(journeyComponentSource, /PLAYER_ATTACK_HEIGHT = 36/);
-  assert.match(journeyComponentSource, /PLAYER_ATTACK_BACK_REACH = 10/);
+  assert.match(journeyGameplayContractSource, /PLAYER_ATTACK_RANGE = 92/);
+  assert.match(journeyGameplayContractSource, /PLAYER_ATTACK_HEIGHT = 36/);
+  assert.match(journeyGameplayContractSource, /PLAYER_ATTACK_BACK_REACH = 10/);
   assert.doesNotMatch(journeyUtilsSource, /PLAYER_WIDTH\s*=/);
   assert.doesNotMatch(journeyUtilsSource, /PLAYER_HEIGHT\s*=/);
 });
@@ -2961,7 +2972,7 @@ test('Asha Reference Warrior remains available as a separate character-loader at
     ashaReferenceWarriorPlayerAtlas.source,
     'asha-reference-warrior-dodge-backstep-tone-matched-2026-06-05',
   );
-  assert.match(journeyComponentSource, /PLAYER_ATTACK_FINISHER_ROW\s*=\s*'attack_pick_swing_sweep'/);
+  assert.match(journeyGameplayContractSource, /PLAYER_ATTACK_FINISHER_ROW\s*=\s*'attack_pick_swing_sweep'/);
   assert.match(journeyComponentSource, /getPlayerAttackTiming\(nextAttackSequenceIndex\)/);
   assert.match(journeyComponentSource, /current\.attackSwingDuration\s*=\s*attackTiming\.swing/);
 });
@@ -3183,8 +3194,8 @@ test('Egypt opening archive prologue grounds Asha before the Lost Site transport
   assert.match(expeditionModeSource, /A memory returns/);
   assert.match(expeditionModeSource, /setExpeditionStage\('journey'\)/);
   assert.match(journeyComponentSource, /The Gate Refuses/);
-  assert.match(journeyComponentSource, /I was in Cairo\. I touched the scarab and the pyramid disappeared\./);
-  assert.match(journeyComponentSource, /This is the house of the dead, and you are not welcome in it\./);
+  assert.match(journeyComponentSource, /A mortal stands beyond my seal\./);
+  assert.match(journeyComponentSource, /Forward is judgement\./);
   assert.doesNotMatch(journeyComponentSource, /The past is not treasure to own\. It is memory to protect\./);
   assert.doesNotMatch(journeyComponentSource, /You did not come to take\. Prove it beyond the First Seal\./);
   assert.doesNotMatch(journeyComponentSource, /OPENING_ARCHIVE_EVIDENCE/);
@@ -3498,7 +3509,8 @@ test('active boss domains suppress normal enemy noise near the guardian arena', 
   assert.match(journeyComponentSource, /const isNormalEnemyInsideBossFocus = \(enemy, bossDomain\) =>/);
   assert.match(journeyComponentSource, /bossDomain\.bossId === SCARAB_SEAL_TRIGGER\.bossId[\s\S]*?\? SCARAB_QUEEN_ENEMY_FOCUS_PADDING[\s\S]*?: BOSS_DOMAIN_ENEMY_FOCUS_PADDING/);
   assert.match(journeyComponentSource, /current\.bossDomain[\s\S]*?!current\.defeatedMiniBosses\.has\(current\.bossDomain\.bossId\)[\s\S]*?isNormalEnemyInsideBossFocus\(e, activeBossDomain\)/);
-  assert.match(journeyComponentSource, /e\.attackWindup = 0;[\s\S]*?e\.attackTimer = 0;[\s\S]*?e\.aggroMemoryTimer = 0;[\s\S]*?return;/);
+  assert.match(journeyComponentSource, /suppressEnemyForBossFocus\(e\);[\s\S]*?return;/);
+  assert.match(journeyCombatContractSource, /const suppressEnemyForBossFocus = \(enemy\) => \{[\s\S]*?enemy\.attackWindup = 0;[\s\S]*?enemy\.attackTimer = 0;[\s\S]*?enemy\.aggroMemoryTimer = 0;/);
   assert.match(journeyComponentSource, /current\.enemies\.forEach\(\(enemy\) => \{[\s\S]*?if \(!enemy\.defeated && isNormalEnemyInsideBossFocus\(enemy, activeBossDomain\)\) return;/);
 });
 
@@ -4344,7 +4356,7 @@ test('generated Egypt structure contact layers use asymmetric buried-base polish
 
 test('generated overrides preserve polished structure contact layers when re-exported', () => {
   const backgroundOverride = journeyPlacementOverrides.props.find((prop) => prop.id === 'mummification-chamber-exterior-structure');
-  assert.equal(backgroundOverride?.depth, 'background');
+  assert.equal(backgroundOverride?.depth, 'midground');
   assert.equal(backgroundOverride?.layer, 'background');
   assert.deepEqual(backgroundOverride?.groundContactLayer, []);
   [
@@ -4695,8 +4707,8 @@ test('normal enemies take at least three weapon hits at runtime', () => {
 
 test('regular enemy families use distinct combat role timings without a new AI system', () => {
   assert.match(journeyComponentSource, /const ENEMY_ATTACK_PATTERNS = \{/);
-  assert.match(journeyComponentSource, /const ENEMY_AGGRO_MEMORY_SECONDS = 7\.5/);
-  assert.match(journeyComponentSource, /const ENEMY_AGGRO_PATROL_PADDING = 320/);
+  assert.match(journeyGameplayContractSource, /const ENEMY_AGGRO_MEMORY_SECONDS = 7\.5/);
+  assert.match(journeyGameplayContractSource, /const ENEMY_AGGRO_PATROL_PADDING = 320/);
   assert.match(journeyComponentSource, /scarab:\s*\{[\s\S]*?awareness:\s*1\.70[\s\S]*?chase:\s*2\.05/);
   assert.match(journeyComponentSource, /scorpion:\s*\{[\s\S]*?awareness:\s*1\.60[\s\S]*?chase:\s*1\.85/);
   assert.match(journeyComponentSource, /scarab:\s*\{[\s\S]*?id:\s*'charge'[\s\S]*?windup:\s*0\.42[\s\S]*?speed:\s*185[\s\S]*?range:\s*38/);
@@ -4705,7 +4717,8 @@ test('regular enemy families use distinct combat role timings without a new AI s
   assert.match(journeyComponentSource, /'sand-wisp':\s*\{[\s\S]*?id:\s*'sand-burst'[\s\S]*?windup:\s*0\.5[\s\S]*?speed:\s*150/);
   assert.match(journeyComponentSource, /guardian:\s*\{[\s\S]*?id:\s*'slam'[\s\S]*?windup:\s*0\.84[\s\S]*?speed:\s*52[\s\S]*?shieldDuringWindup:\s*true/);
   assert.match(journeyComponentSource, /if \(e\.attackTimer > 0\) \{[\s\S]*?e\.x \+= e\.attackDirection \* pattern\.speed \* dt/);
-  assert.match(journeyComponentSource, /e\.attackRecovery = pattern\.recovery;[\s\S]*?e\.vulnerabilityTimer = pattern\.vulnerableAfter;/);
+  assert.match(journeyComponentSource, /openEnemyCounterWindow\(e, pattern\);/);
+  assert.match(journeyCombatContractSource, /const openEnemyCounterWindow = \(enemy, pattern\) => \{[\s\S]*?enemy\.attackRecovery = pattern\.recovery;[\s\S]*?enemy\.vulnerabilityTimer = pattern\.vulnerableAfter;/);
   assert.match(journeyComponentSource, /e\.aggroMemoryTimer = Math\.max\(e\.aggroMemoryTimer \|\| 0, ENEMY_AGGRO_MEMORY_SECONDS \* \(tacticalPattern\.aggroMemoryMultiplier \|\| 1\)\)/);
   assert.match(journeyComponentSource, /const isAggroChasing = \(e\.aggroMemoryTimer \|\| 0\) > 0/);
   assert.match(journeyComponentSource, /const slowPursuitBoost = e\.type === 'scorpion' && playerIsVenomSlowed \? 1\.48 : 1/);
@@ -4730,20 +4743,20 @@ test('combat audio uses creature and deflection cues instead of gate sounds', ()
   assert.match(journeyComponentSource, /snake:\s*'snakeHit'/);
   assert.match(journeyComponentSource, /'sand-wisp':\s*'sandWispHit'/);
   assert.match(journeyComponentSource, /getEnemyHitSfxKey\(e\)/);
-  assert.match(journeyComponentSource, /blocked:\s*\{[\s\S]*?sfxKey:\s*'combatDeflect'/);
+  assert.match(journeyGameplayContractSource, /blocked:\s*\{[\s\S]*?sfxKey:\s*'combatDeflect'/);
   assert.match(journeyComponentSource, /audioControls\?\.playExpeditionSfx\?\.\(resolvedSfxKey/);
   assert.match(journeyComponentSource, /bossHit.*playExpeditionSfx|playExpeditionSfx.*bossHit|hitSfx.*bossHit/);
   assert.doesNotMatch(journeyComponentSource, /blocked the rushed hit[\s\S]{0,180}playExpeditionSfx\?\.\('gateBlocked'/);
 });
 
 test('fast fluid combat slice adds dodge-cancel and flow combo contracts', () => {
-  assert.match(journeyComponentSource, /const PLAYER_DODGE_STAMINA_COST = \d+/);
-  assert.match(journeyComponentSource, /const PLAYER_DODGE_DURATION = 0\.\d+/);
-  assert.match(journeyComponentSource, /const PLAYER_DODGE_INVULNERABLE_DURATION = 0\.\d+/);
-  assert.match(journeyComponentSource, /const PLAYER_DODGE_FRAME_SEQUENCE = \[0,\s*1,\s*2,\s*2,\s*2,\s*3,\s*3,\s*4,\s*5,\s*6,\s*7\]/);
-  assert.match(journeyComponentSource, /const PLAYER_COMBO_WINDOW_DURATION = 0\.\d+/);
-  assert.match(journeyComponentSource, /const PLAYER_COMBO_PRESERVE_AFTER_DODGE_DURATION = 0\.\d+/);
-  assert.match(journeyComponentSource, /const PLAYER_ATTACK_FINISHER_DAMAGE = \d+/);
+  assert.match(journeyGameplayContractSource, /const PLAYER_DODGE_STAMINA_COST = \d+/);
+  assert.match(journeyGameplayContractSource, /const PLAYER_DODGE_DURATION = 0\.\d+/);
+  assert.match(journeyGameplayContractSource, /const PLAYER_DODGE_INVULNERABLE_DURATION = 0\.\d+/);
+  assert.match(journeyGameplayContractSource, /const PLAYER_DODGE_FRAME_SEQUENCE = \[0,\s*1,\s*2,\s*2,\s*2,\s*3,\s*3,\s*4,\s*5,\s*6,\s*7\]/);
+  assert.match(journeyGameplayContractSource, /const PLAYER_COMBO_WINDOW_DURATION = 0\.\d+/);
+  assert.match(journeyGameplayContractSource, /const PLAYER_COMBO_PRESERVE_AFTER_DODGE_DURATION = 0\.\d+/);
+  assert.match(journeyGameplayContractSource, /const PLAYER_ATTACK_FINISHER_DAMAGE = \d+/);
   assert.match(journeyUtilsSource, /attackComboWindowTimer:\s*0/);
   assert.match(journeyUtilsSource, /attackComboLanded:\s*false/);
   assert.match(journeyUtilsSource, /dodgeTimer:\s*0/);
@@ -4775,7 +4788,7 @@ test('combo finisher uses the approved slash overlay through combat hit effects'
   assert.equal(slashBytes.readUInt32BE(20), 294);
   assert.equal(slashBytes[25], 6, 'finisher slash should stay RGBA so it can render as an overlay');
 
-  assert.match(journeyComponentSource, /const PLAYER_FINISHER_SLASH_EFFECT_SRC = 'assets\/expedition\/player\/asha-finisher-slash-effect-2026-06-06\.png';/);
+  assert.match(journeyGameplayContractSource, /const PLAYER_FINISHER_SLASH_EFFECT_SRC = 'assets\/expedition\/player\/asha-finisher-slash-effect-2026-06-06\.png';/);
   assert.match(journeyComponentSource, /const playerFinisherSlashEffectRef = useRef\(\{ image: null, loaded: false, failed: false, version: PLAYER_FINISHER_SLASH_EFFECT_VERSION \}\);/);
   assert.match(journeyComponentSource, /playerFinisherSlashEffectRef\.current = \{ image, loaded: true, failed: false, version: PLAYER_FINISHER_SLASH_EFFECT_VERSION \};/);
   assert.match(journeyComponentSource, /image\.src = `\$\{import\.meta\.env\.BASE_URL\}\$\{PLAYER_FINISHER_SLASH_EFFECT_SRC\}\?v=\$\{PLAYER_FINISHER_SLASH_EFFECT_VERSION\}`;/);
@@ -4791,7 +4804,7 @@ test('combo finisher uses the approved slash overlay through combat hit effects'
   assert.match(finisherDrawBranch, /ctx\.drawImage\(\s*slashState\.image,/);
 
   assert.match(journeyComponentSource, /current\.lastAttackResult = isFinisher \? 'finisher' :/);
-  assert.match(journeyComponentSource, /finisher:\s*\{[\s\S]*?slashEffect:\s*'finisher'[\s\S]*?slashWidth:\s*260[\s\S]*?slashTimer:\s*0\.34[\s\S]*?sfxKey:\s*'finisherHit'/);
+  assert.match(journeyGameplayContractSource, /finisher:\s*\{[\s\S]*?slashEffect:\s*'finisher'[\s\S]*?slashWidth:\s*260[\s\S]*?slashTimer:\s*0\.34[\s\S]*?sfxKey:\s*'finisherHit'/);
   assert.match(journeyComponentSource, /type: profile\.slashEffect === 'finisher' \? 'finisher-slash' : 'combo-slash'/);
   assert.match(journeyComponentSource, /hitType:\s*isParry \? 'combo2' : combatHitImpactType/);
   assert.match(journeyComponentSource, /suppressSlash:\s*isParry/);
@@ -4804,7 +4817,7 @@ test('combo opening hits use a restrained realistic slash overlay before the fin
   assert.equal(slashBytes.readUInt32BE(20), 210);
   assert.equal(slashBytes[25], 6, 'combo slash should stay RGBA so normal hits keep a realistic overlay');
 
-  assert.match(journeyComponentSource, /const PLAYER_COMBO_SLASH_EFFECT_SRC = 'assets\/expedition\/player\/asha-combo-slash-effect-2026-06-06\.png';/);
+  assert.match(journeyGameplayContractSource, /const PLAYER_COMBO_SLASH_EFFECT_SRC = 'assets\/expedition\/player\/asha-combo-slash-effect-2026-06-06\.png';/);
   assert.match(journeyComponentSource, /const playerComboSlashEffectRef = useRef\(\{ image: null, loaded: false, failed: false, version: PLAYER_COMBO_SLASH_EFFECT_VERSION \}\);/);
   assert.match(journeyComponentSource, /playerComboSlashEffectRef\.current = \{ image, loaded: true, failed: false, version: PLAYER_COMBO_SLASH_EFFECT_VERSION \};/);
   assert.match(journeyComponentSource, /image\.src = `\$\{import\.meta\.env\.BASE_URL\}\$\{PLAYER_COMBO_SLASH_EFFECT_SRC\}\?v=\$\{PLAYER_COMBO_SLASH_EFFECT_VERSION\}`;/);
@@ -4819,8 +4832,8 @@ test('combo opening hits use a restrained realistic slash overlay before the fin
   assert.match(comboDrawBranch, /if \(direction < 0\) ctx\.scale\(-1, 1\);/);
   assert.match(comboDrawBranch, /ctx\.drawImage\(\s*slashState\.image,/);
 
-  assert.match(journeyComponentSource, /light:\s*\{[\s\S]*?slashEffect:\s*'combo'[\s\S]*?slashWidth:\s*138[\s\S]*?slashTimer:\s*0\.2/);
-  assert.match(journeyComponentSource, /combo2:\s*\{[\s\S]*?slashEffect:\s*'combo'[\s\S]*?slashWidth:\s*178[\s\S]*?slashTimer:\s*0\.24[\s\S]*?sfxKey:\s*'combatHitCombo2'/);
+  assert.match(journeyGameplayContractSource, /light:\s*\{[\s\S]*?slashEffect:\s*'combo'[\s\S]*?slashWidth:\s*138[\s\S]*?slashTimer:\s*0\.2/);
+  assert.match(journeyGameplayContractSource, /combo2:\s*\{[\s\S]*?slashEffect:\s*'combo'[\s\S]*?slashWidth:\s*178[\s\S]*?slashTimer:\s*0\.24[\s\S]*?sfxKey:\s*'combatHitCombo2'/);
   assert.match(journeyComponentSource, /type: profile\.slashEffect === 'finisher' \? 'finisher-slash' : 'combo-slash'/);
   assert.match(journeyComponentSource, /comboStep:\s*hitType === 'combo2' \? 2 : 1/);
   assert.match(journeyComponentSource, /suppressSlash:\s*isParry/);
@@ -4828,10 +4841,10 @@ test('combo opening hits use a restrained realistic slash overlay before the fin
 });
 
 test('combat hit impact feedback is centralized by physical hit type profiles', () => {
-  assert.match(journeyComponentSource, /const COMBAT_HIT_IMPACT_PROFILES = \{/);
+  assert.match(journeyGameplayContractSource, /const COMBAT_HIT_IMPACT_PROFILES = \{/);
   ['light', 'combo2', 'shove', 'finisher', 'blocked', 'defeated'].forEach((hitType) => {
     assert.match(
-      journeyComponentSource,
+      journeyGameplayContractSource,
       new RegExp(`${hitType}:\\s*\\{[\\s\\S]*?hitStop:[\\s\\S]*?cameraShakeStrength:[\\s\\S]*?hitFlash:[\\s\\S]*?targetKnockback`),
       `${hitType} impact profile should own physical feedback tuning`,
     );
@@ -4849,11 +4862,11 @@ test('combat hit impact feedback is centralized by physical hit type profiles', 
 
 test('unprimed heavy K is a shove: chip damage, strong knockback, reliable stagger', () => {
   // Chip damage constant (~30% of a light hit on the combat scale), distinct from light
-  assert.match(journeyComponentSource, /const PLAYER_ATTACK_SHOVE_DAMAGE = Math\.round\(0\.3 \* COMBAT_DAMAGE_SCALE\)/);
+  assert.match(journeyGameplayContractSource, /const PLAYER_ATTACK_SHOVE_DAMAGE = Math\.round\(0\.3 \* COMBAT_DAMAGE_SCALE\)/);
   // Unprimed heavy deals shove damage, not light or finisher damage
   assert.match(journeyComponentSource, /isParry \? PLAYER_ATTACK_PARRY_DAMAGE : \(isHeavyAttack \? PLAYER_ATTACK_SHOVE_DAMAGE : PLAYER_ATTACK_LIGHT_DAMAGE\)/);
   // Dedicated shove impact profile: strong knockback / near-finisher spacing, big dust kick
-  assert.match(journeyComponentSource, /shove:\s*\{[\s\S]*?targetKnockback:\s*0\.6[\s\S]*?targetShift:\s*96[\s\S]*?dustWidth:\s*50/);
+  assert.match(journeyGameplayContractSource, /shove:\s*\{[\s\S]*?targetKnockback:\s*0\.6[\s\S]*?targetShift:\s*96[\s\S]*?dustWidth:\s*50/);
   // Unprimed heavy routes through the shove impact, not combo2
   assert.match(journeyComponentSource, /: isHeavyAttack\s*\?\s*'shove'\s*:\s*'light'/);
   // Longer, reliable interrupt stagger than a light hit (light = 0.8s)
@@ -4863,8 +4876,8 @@ test('unprimed heavy K is a shove: chip damage, strong knockback, reliable stagg
 });
 
 test('step 3 earned-Endurance rewards: defeat +4 and boss stagger +10', () => {
-  assert.match(journeyComponentSource, /const PLAYER_DEFEAT_ENDURANCE_REWARD = 4/);
-  assert.match(journeyComponentSource, /const PLAYER_BOSS_STAGGER_ENDURANCE_REWARD = 10/);
+  assert.match(journeyGameplayContractSource, /const PLAYER_DEFEAT_ENDURANCE_REWARD = 4/);
+  assert.match(journeyGameplayContractSource, /const PLAYER_BOSS_STAGGER_ENDURANCE_REWARD = 10/);
   // Defeating an enemy grants the clamped defeat reward with notice feedback
   assert.match(journeyComponentSource, /enduranceBeforeDefeat \+ PLAYER_DEFEAT_ENDURANCE_REWARD/);
   assert.match(journeyComponentSource, /if \(defeatEnduranceGained > 0\) current\.notice =/);
@@ -4878,8 +4891,8 @@ test('step 3 earned-Endurance rewards: defeat +4 and boss stagger +10', () => {
 });
 
 test('combat uses explicit J light and K heavy follow-up instead of hidden same-button combo', () => {
-  assert.match(journeyComponentSource, /const PLAYER_ATTACK_TYPES = Object\.freeze\(\{[\s\S]*?LIGHT:\s*'light'[\s\S]*?HEAVY:\s*'heavy'/);
-  assert.match(journeyComponentSource, /const PLAYER_HEAVY_FOLLOWUP_HIT_REFUND = \d+/);
+  assert.match(journeyGameplayContractSource, /const PLAYER_ATTACK_TYPES = Object\.freeze\(\{[\s\S]*?LIGHT:\s*'light'[\s\S]*?HEAVY:\s*'heavy'/);
+  assert.match(journeyGameplayContractSource, /const PLAYER_HEAVY_FOLLOWUP_HIT_REFUND = \d+/);
   assert.match(journeyUtilsSource, /attackQueuedType:\s*'light'/);
   assert.match(journeyUtilsSource, /heavyFollowupReadyTimer:\s*0/);
   assert.match(journeyComponentSource, /const queueAttack = useCallback\(\(attackType = PLAYER_ATTACK_TYPES\.LIGHT\) => \{/);
@@ -4902,8 +4915,8 @@ test('combat uses explicit J light and K heavy follow-up instead of hidden same-
 });
 
 test('heavy follow-up window is readable through HUD and physical cue feedback', () => {
-  assert.match(journeyComponentSource, /const PLAYER_HEAVY_FOLLOWUP_PROMPT_LABEL = 'K';/);
-  assert.match(journeyComponentSource, /const PLAYER_HEAVY_FOLLOWUP_CUE_DURATION = 0\.42;/);
+  assert.match(journeyGameplayContractSource, /const PLAYER_HEAVY_FOLLOWUP_PROMPT_LABEL = 'K';/);
+  assert.match(journeyGameplayContractSource, /const PLAYER_HEAVY_FOLLOWUP_CUE_DURATION = 0\.42;/);
   assert.match(journeyUtilsSource, /heavyFollowupCueTimer:\s*0/);
   assert.match(journeyComponentSource, /heavyFollowupPromptActive:\s*\(current\.heavyFollowupReadyTimer \|\| 0\) > 0/);
   assert.match(journeyComponentSource, /heavyFollowupCueMs:\s*Math\.round\(\(current\.heavyFollowupCueTimer \|\| 0\) \* 1000\)/);
@@ -4927,8 +4940,8 @@ test('heavy follow-up input buffers during the visible combo window until Asha i
 });
 
 test('missed attacks give physical near-miss spacing feedback without widening hitboxes', () => {
-  assert.match(journeyComponentSource, /const PLAYER_ATTACK_NEAR_MISS_DISTANCE = 44;/);
-  assert.match(journeyComponentSource, /const PLAYER_ATTACK_NEAR_MISS_VERTICAL_TOLERANCE = 34;/);
+  assert.match(journeyGameplayContractSource, /const PLAYER_ATTACK_NEAR_MISS_DISTANCE = 44;/);
+  assert.match(journeyGameplayContractSource, /const PLAYER_ATTACK_NEAR_MISS_VERTICAL_TOLERANCE = 34;/);
   assert.match(journeyComponentSource, /const getPlayerAttackNearMissTarget = useCallback\(\(current, attackRect\) => \{/);
   assert.match(journeyComponentSource, /const gap = direction >= 0\s*\? hurtbox\.x - \(attackRect\.x \+ attackRect\.width\)\s*:\s*attackRect\.x - \(hurtbox\.x \+ hurtbox\.width\);/);
   assert.match(journeyComponentSource, /gap >= 0 && gap <= PLAYER_ATTACK_NEAR_MISS_DISTANCE/);
