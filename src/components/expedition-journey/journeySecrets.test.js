@@ -40,6 +40,7 @@ const journeyEnemySpritesSource = readFileSync(new URL('./journeyEnemySprites.js
 const journeyBossSpritesSource = readFileSync(new URL('./journeyBossSprites.js', import.meta.url), 'utf8');
 const journeyMarkerSpritesSource = readFileSync(new URL('./journeyMarkerSprites.js', import.meta.url), 'utf8');
 const journeyBackgroundAssetsSource = readFileSync(new URL('./journeyBackgroundAssets.js', import.meta.url), 'utf8');
+const journeyCollectibleSpritesSource = readFileSync(new URL('./journeyCollectibleSprites.js', import.meta.url), 'utf8');
 const journeyRenderAssetsSource = readFileSync(new URL('./journeyRenderAssets.js', import.meta.url), 'utf8');
 const journeyPlacementOverridesSource = readFileSync(new URL('./journeyPlacementOverrides.js', import.meta.url), 'utf8');
 const journeyPlacementGeneratedOverrideSource = readFileSync(new URL('./journeyPlacementOverrides.generated.js', import.meta.url), 'utf8');
@@ -1069,9 +1070,21 @@ test('secret collectibles support Egypt and China discovery sets', () => {
 test('sacred room restoration fragments use secret collectibles without becoming route-gate currency', () => {
   const hiddenRoutes = extractExportedArray('HIDDEN_ROUTES');
   const secretCollectibles = extractExportedArray('SECRET_COLLECTIBLES');
+  const collectibleAtlas = JSON.parse(readFileSync(new URL('../../../public/assets/expedition/collectibles/journey-collectibles-pack.json', import.meta.url), 'utf8'));
   const storyProps = extractExportedArray('STORY_PROPS');
   const routeGates = extractExportedArray('ROUTE_GATES');
   const relicShardLayout = source.slice(source.indexOf('const RELIC_SHARD_LAYOUT = ['), source.indexOf('export const RELIC_SHARDS'));
+  const restorationSpriteKeys = [
+    'linenMemoryFragment',
+    'resinRiteFragment',
+    'canopicNameFragment',
+    'scarabWingFragment',
+    'muralFaienceFragment',
+    'muralPlasterFragment',
+    'inkNameFragment',
+    'witnessLineFragment',
+    'royalRecordFragment',
+  ];
 
   [
     {
@@ -1122,6 +1135,12 @@ test('sacred room restoration fragments use secret collectibles without becoming
     assert.match(prop, new RegExp(`sceneId:\\s*'${sceneId}'`), `${propId} should belong to ${sceneId}`);
   });
 
+  restorationSpriteKeys.forEach((key) => {
+    assert.match(secretCollectibles, new RegExp(`spriteKey:\\s*'${key}'`));
+    assert.match(journeyCollectibleSpritesSource, new RegExp(`'${key}'`));
+    assert.ok(collectibleAtlas.regions[key], `${key} should exist in the collectible atlas`);
+  });
+  assert.match(journeyComponentSource, /key:\s*secret\.spriteKey\s*\|\|\s*'loreTablet'/);
   assert.doesNotMatch(relicShardLayout, /sceneId:\s*'mummification-chamber'|sceneId:\s*'forgotten-mural-chamber'|sceneId:\s*'scribe-locked-chamber'/);
   assert.doesNotMatch(routeGates, /restoredFragments|restoredFragment|restorationSetId|anubisTrust|trustMeter/);
   assert.doesNotMatch(journeyComponentSource, /anubisTrust|trustMeter/);
@@ -1507,6 +1526,7 @@ test('Sacred Record Way worldbuilding connects Egypt evidence chambers through b
   const storyProps = extractExportedArray('STORY_PROPS');
   const landmarks = extractExportedArray('WORLD_CONTINUITY_LANDMARKS');
   const events = extractExportedArray('ENVIRONMENT_EVENTS');
+  const hiddenRoutes = extractExportedArray('HIDDEN_ROUTES');
   const backgroundBeats = [
     ['sacred-record-way-mummification-link', 'mummification-link', 'body preparation records continue behind the route'],
     ['sacred-record-way-mural-link', 'mural-link', 'mural images turn into caption marks'],
@@ -1553,6 +1573,31 @@ test('Sacred Record Way worldbuilding connects Egypt evidence chambers through b
   assert.match(journeyComponentSource, /landmark\.type === 'record-way-png'/);
   assert.match(journeyComponentSource, /sacredRecordWayBackgroundRef/);
   assert.doesNotMatch(journeyComponentSource, /SacredRecordWaySystem|createWorldbuildingSystem|RecordWayController/);
+
+  const bodyRoute = getDataRowById(hiddenRoutes, 'mummification-chamber-route');
+  const imageRoute = getDataRowById(hiddenRoutes, 'desert-upper-survey-route');
+  const nameRoute = getDataRowById(hiddenRoutes, 'scribe-locked-chamber-route');
+  assert.match(bodyRoute, /Body \/ preservation/);
+  assert.match(bodyRoute, /Exit back to the exterior route/);
+  assert.match(imageRoute, /Image \/ memory/);
+  assert.match(imageRoute, /damaged pictures and missing captions/);
+  assert.match(nameRoute, /Name \/ identity/);
+  assert.match(nameRoute, /Queen\\'s public story is incomplete/);
+
+  [
+    ['anubis-body-judgement', 'Body Judged', 'You touched the dead carefully. That is not trust.'],
+    ['body-to-image-clue', 'Body to Image', 'The linen mark repeats in broken wall images ahead.'],
+    ['anubis-image-judgement', 'Image Judged', 'You repaired an image instead of taking from it.'],
+    ['image-to-name-clue', 'Image to Name', 'The restored picture exposes missing captions and scribe cuts.'],
+    ['anubis-name-judgement', 'Name Judged', 'A name remembered can still accuse.'],
+    ['queen-story-contradiction', 'Contradictory Record', 'The Queen was not only guarding treasure.'],
+  ].forEach(([id, name, message]) => {
+    const event = getDataRowById(events, id);
+    assert.match(event, /sectionId:\s*'desert-entry'/);
+    assert.match(event, new RegExp(`name:\\s*'${name}'`));
+    assert.match(event, new RegExp(message.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+    assert.doesNotMatch(event, /requires|gate|shards|trustMeter|anubisTrust/);
+  });
 });
 
 test('Sacred Record Way polish does not add foreground inspection interactions or runtime state', () => {

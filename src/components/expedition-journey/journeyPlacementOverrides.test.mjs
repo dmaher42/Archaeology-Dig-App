@@ -6,7 +6,9 @@ import {
 } from './journeyPlacementOverrides.js';
 import { PLATFORMS as BASE_PLATFORMS } from './journeyLevelData.js';
 import {
+  HAZARDS as ROUTED_HAZARDS,
   PLATFORMS as ROUTED_PLATFORMS,
+  STORY_PROPS as ROUTED_STORY_PROPS,
   setExpeditionJourneyCiv,
 } from './journeyDataRouter.js';
 
@@ -125,4 +127,22 @@ test('journeyDataRouter exposes editor overrides while journeyLevelData keeps au
 
   assert.equal(basePlatform.width, 311);
   assert.equal(routedPlatform.width, 233);
+});
+
+test('sacred exterior editor overrides stay aligned after horizontal scale changes', () => {
+  setExpeditionJourneyCiv('Ancient Egypt');
+
+  const propById = (id) => ROUTED_STORY_PROPS.find(prop => prop.id === id);
+  const platformById = (id) => ROUTED_PLATFORMS.find(platform => platform.id === id);
+  const hazardById = (id) => ROUTED_HAZARDS.find(hazard => hazard.id === id);
+
+  assert.equal(propById('forgotten-mural-climb-structure')?.x, 7465);
+  assert.equal(platformById('forgotten-mural-upper-doorway-floor')?.x, 7528);
+  assert.equal(platformById('forgotten-mural-upper-doorway-floor')?.y, 193);
+  assert.equal(hazardById('desert-soft-ridge')?.x, 7034);
+  assert.equal(hazardById('broken-ruins-loose-stones')?.x, 7797);
+
+  assert.equal(propById('scribe-chamber-doorway-structure')?.x, 10876);
+  assert.equal(platformById('scribe-chamber-doorway-threshold')?.x, 10871);
+  assert.equal(platformById('scribe-chamber-doorway-threshold')?.y, 297);
 });

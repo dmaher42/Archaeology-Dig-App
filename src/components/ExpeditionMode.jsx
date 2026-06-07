@@ -4197,14 +4197,23 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
     if (!new URLSearchParams(window.location.search).has('play')) return undefined;
     const stage = EXPEDITION_STAGES.find(s => s.id === PLAYABLE_EXPEDITION_STAGE_ID) || EXPEDITION_STAGES[0];
     if (!stage) return undefined;
-    openExpeditionStage(stage);
+    const timer = window.setTimeout(() => {
+      openExpeditionStage(stage);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [openExpeditionStage, selectedExpedition]);
+
+  useEffect(() => {
+    if (!import.meta.env.DEV || typeof window === 'undefined') return undefined;
+    if (!selectedExpedition) return undefined;
+    if (!new URLSearchParams(window.location.search).has('play')) return undefined;
     const timer = window.setTimeout(() => {
       setPrologueCinematicStep(null);
       setExpeditionStage('journey');
       setBriefingOpen(false);
     }, 0);
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [selectedExpedition]);
 
   useEffect(() => () => {
     if (journeyCursorTimerRef.current) window.clearTimeout(journeyCursorTimerRef.current);

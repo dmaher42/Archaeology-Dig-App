@@ -883,6 +883,27 @@ const ROOM_RESTORATION_SETS = {
   },
 };
 
+const SACRED_ROOM_EVIDENCE_LABELS = [
+  {
+    label: 'Body',
+    setId: 'mummification-body-self',
+    room: 'Mummification',
+    clue: 'Preservation',
+  },
+  {
+    label: 'Image',
+    setId: 'forgotten-mural-seal',
+    room: 'Mural',
+    clue: 'Memory',
+  },
+  {
+    label: 'Name',
+    setId: 'scribe-name-record',
+    room: 'Scribe',
+    clue: 'Identity',
+  },
+];
+
 const getSacredRoomRestorationEvidence = (current) => Object.fromEntries(
   Object.entries(ROOM_RESTORATION_SETS).map(([setId, config]) => {
     const recoveredCount = config.ids.filter(id => current.collectedSecretIds?.has(id)).length;
@@ -894,6 +915,14 @@ const getSacredRoomRestorationEvidence = (current) => Object.fromEntries(
     }];
   }),
 );
+
+const getSacredRoomEvidenceRows = (current) => {
+  const evidence = getSacredRoomRestorationEvidence(current);
+  return SACRED_ROOM_EVIDENCE_LABELS.map(item => ({
+    ...item,
+    ...(evidence[item.setId] || { recoveredCount: 0, requiredCount: 3, fragmentsRecovered: false, restored: false }),
+  }));
+};
 
 const getRoomRestorationStatus = (secret, current) => {
   const config = ROOM_RESTORATION_SETS[secret?.restorationSetId];
@@ -1475,14 +1504,14 @@ const SCRIBE_CHAMBER_ENTRY_SPAWN = {
   direction: 1,
 };
 const SCRIBE_CHAMBER_RETURN_FALLBACK = {
-  x: scaleJourneyX(1684),
+  x: SACRED_SCRIBE_APPROACH_X(1684),
   y: openingJourneyY(122),
   cameraAnchorRatio: 0.42,
   direction: 1,
 };
 const SCRIBE_CHAMBER_ENTRY_TRIGGER = {
-  minX: scaleJourneyX(1684),
-  maxX: scaleJourneyX(1714),
+  minX: SACRED_SCRIBE_APPROACH_X(1684),
+  maxX: SACRED_SCRIBE_APPROACH_X(1714),
   maxY: GROUND_Y - 250,
   footY: openingJourneyY(62),
   footTolerance: 24,
@@ -16709,7 +16738,7 @@ export default function ExpeditionJourney({
       const routeRewardAccessible = isRouteRewardAccessible(secret.routeId, current);
       if (!routeRewardAccessible && Math.abs(secret.x - current.player.x) > 260) return;
       drawCollectible(ctx, secret.x, secret.y, cameraX, now, secret.shortName?.slice(0, 1) || 'S', secret.color || '#b45309', true, false, {
-        key: 'loreTablet',
+        key: secret.spriteKey || 'loreTablet',
         kind: 'objective',
         size: 34,
         ringSize: 48,
@@ -17091,8 +17120,10 @@ export default function ExpeditionJourney({
     if (quickStartConsumedRef.current) return undefined;
     if (!new URLSearchParams(window.location.search).has('play')) return undefined;
     quickStartConsumedRef.current = true;
-    startJourneyWithoutOpeningScene();
-    return undefined;
+    const timer = window.setTimeout(() => {
+      startJourneyWithoutOpeningScene();
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [startJourneyWithoutOpeningScene]);
 
   const skipOpeningCinematic = useCallback(() => {
@@ -21352,6 +21383,9 @@ export default function ExpeditionJourney({
   const activeHudGateGuidance = activeHudGate ? getGateGuidance(activeHudGate, gameState) : null;
   const activeHudShardRequirement = activeHudGateGuidance?.gateRequirements.find(req => req.type === 'shards') || null;
   const activeHudFirstMissing = activeHudGateGuidance?.gateMissingRequirements?.[0] || null;
+  const sacredRoomEvidenceRows = getSacredRoomEvidenceRows(gameState);
+  const restoredSacredRoomCount = sacredRoomEvidenceRows.filter(row => row.restored).length;
+  const activeSacredRoomEvidence = sacredRoomEvidenceRows.find(row => !row.restored) || sacredRoomEvidenceRows[sacredRoomEvidenceRows.length - 1];
   const staminaWarningState = getStaminaWarningState(gameState);
   const staminaPercent = Math.min(100, Math.round((gameState.resources.stamina / (gameState.upgradeEffects?.maxStamina || 100)) * 100));
   const timePercent = Math.min(100, Math.max(0, Math.round((gameState.resources.time / 900) * 100)));
@@ -21767,6 +21801,22 @@ export default function ExpeditionJourney({
               <div>Upgrades: {gameState.collectedUpgrades.size} / {UPGRADES.length}</div>
               <div>Hidden Routes: {gameState.discoveredHiddenRouteIds?.size || 0} / {getActiveHiddenRoutes().length}</div>
               <div>Secrets: {gameState.collectedSecretIds?.size || 0} / {getActiveSecretCollectibles().length}</div>
+            </div>
+            <div className="journey-sacred-evidence" aria-label="Sacred room evidence">
+              <div className="journey-sacred-evidence-title">
+                <span>Sacred room evidence</span>
+                <strong>{restoredSacredRoomCount}/{sacredRoomEvidenceRows.length}</strong>
+              </div>
+              <p>Anubis judges restored evidence, not promises.</p>
+              <div className="journey-sacred-evidence-list">
+                {sacredRoomEvidenceRows.map(row => (
+                  <div key={row.setId} className={`journey-sacred-evidence-row ${row.restored ? 'is-restored' : ''}`}>
+                    <span>{row.label}</span>
+                    <strong>{row.recoveredCount}/{row.requiredCount}</strong>
+                    <em>{row.restored ? 'Restored' : row.clue}</em>
+                  </div>
+                ))}
+              </div>
             </div>
             <div className="journey-key-items" aria-label="Recovered excavation kit pieces">
               <div className="journey-key-items-title">Excavation Kit Pieces</div>
@@ -23599,6 +23649,17 @@ export default function ExpeditionJourney({
                 <div className="journey-floating-hud-status">
                   {getSectionDisplayName(gameState.currentSectionId) || 'Surveying'}
                 </div>
+              </div>
+
+              <div className="journey-floating-hud-cluster journey-floating-hud-restoration">
+                <ShieldAlert size={15} />
+                <span>Evidence</span>
+                <strong>{restoredSacredRoomCount}/{sacredRoomEvidenceRows.length}</strong>
+                <em>
+                  {activeSacredRoomEvidence.restored
+                    ? 'Rooms restored'
+                    : `${activeSacredRoomEvidence.label} ${activeSacredRoomEvidence.recoveredCount}/${activeSacredRoomEvidence.requiredCount}`}
+                </em>
               </div>
 
               <div className="journey-floating-hud-cluster journey-floating-hud-meters">

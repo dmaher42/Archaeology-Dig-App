@@ -1291,13 +1291,16 @@ export default function App() {
   // the same flag to auto-select Egypt and jump past the briefing). Bookmark
   // `<dev-server-url>/?play` to reload back into the game after a refresh.
   useEffect(() => {
-    if (!import.meta.env.DEV || typeof window === 'undefined') return;
-    if (!new URLSearchParams(window.location.search).has('play')) return;
-    if (expeditionSfxEnabled) baseAudioControls.unlockExpeditionSfx?.();
-    baseAudioControls.stopExpeditionMusic?.();
-    setIsSiteSelectionActive(false);
-    setPhase('expedition');
-  }, []);
+    if (!import.meta.env.DEV || typeof window === 'undefined') return undefined;
+    if (!new URLSearchParams(window.location.search).has('play')) return undefined;
+    const timer = window.setTimeout(() => {
+      if (expeditionSfxEnabled) baseAudioControls.unlockExpeditionSfx?.();
+      baseAudioControls.stopExpeditionMusic?.();
+      setIsSiteSelectionActive(false);
+      setPhase('expedition');
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [expeditionSfxEnabled]);
 
   useEffect(() => {
     if (!import.meta.env.DEV || typeof window === 'undefined') return undefined;
