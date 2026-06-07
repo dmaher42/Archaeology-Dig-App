@@ -1021,7 +1021,9 @@ test('opening cinematic starts on the main expedition path and has a styled dram
   assert.match(journeyComponentSource, /asha-opening-reference-cutscene\.png/);
   assert.match(journeyComponentSource, /The Gate Refuses/);
   assert.match(journeyComponentSource, /I was in Cairo\. I touched the scarab and the pyramid disappeared\./);
-  assert.match(journeyComponentSource, /The seal marks trespassers for trial\. That is not permission\./);
+  assert.match(journeyComponentSource, /Where did my field clothes go\?/);
+  assert.match(journeyComponentSource, /This blade was not on my belt\./);
+  assert.match(journeyComponentSource, /It gives cloth and iron so judgement can watch what you do with them\./);
   assert.match(journeyComponentSource, /I tried\. Even this gate no longer obeys\./);
   assert.doesNotMatch(journeyComponentSource, /The past is not treasure to own/);
   assert.doesNotMatch(journeyComponentSource, /You did not come to take/);
@@ -1032,6 +1034,57 @@ test('opening cinematic starts on the main expedition path and has a styled dram
   assert.match(indexCssSource, /\.opening-cinematic-dialogue\.is-guardian\s*\{/);
   assert.match(indexCssSource, /@keyframes openingAnubisPresence/);
   assert.doesNotMatch(journeyComponentSource, /<video|opening-cinematic-video|createOpeningMovieMode/);
+});
+
+test('Lost Site arrival dialogue sells confusion, changed gear, failed return, and Anubis judgement without early memory exposition', () => {
+  const openingStart = journeyComponentSource.indexOf('const OPENING_CINEMATIC_LINES = [');
+  const openingEnd = journeyComponentSource.indexOf('// Rome opening cinematic');
+  const openingLines = journeyComponentSource.slice(openingStart, openingEnd);
+
+  assert.notEqual(openingStart, -1);
+  assert.notEqual(openingEnd, -1);
+  assert.match(openingLines, /Another human hand at the seal\. Always reaching\. Always taking\./);
+  assert.match(openingLines, /Where did my field clothes go\?/);
+  assert.match(openingLines, /This blade was not on my belt\./);
+  assert.match(openingLines, /It gives cloth and iron so judgement can watch what you do with them\./);
+  assert.match(openingLines, /Then send me back\. I did not come here to steal from you\./);
+  assert.match(openingLines, /I tried\. Even this gate no longer obeys\./);
+  assert.match(openingLines, /Centuries of human hands taught it fear\./);
+  assert.match(openingLines, /Then I keep moving\. If the way out is deeper, I find it\./);
+  assert.doesNotMatch(openingLines, /memory to protect|It was not treasure they stole|chosen|destiny/i);
+});
+
+test('opening transport and arrival use dedicated scarab, threshold, Anubis, and Lost Site SFX cues', () => {
+  assert.match(
+    expeditionModeSource,
+    /cinematicStep\.id === 'scarab-floor-carving'[\s\S]*?audioControls\.playExpeditionSfx\?\.\('scarabTouchWhisper'/,
+  );
+  assert.match(
+    expeditionModeSource,
+    /finalCinematicStep[\s\S]*?audioControls\.playExpeditionSfx\?\.\('thresholdRealityTear'/,
+  );
+  assert.match(
+    journeyComponentSource,
+    /startOpeningCinematic[\s\S]*?audioControls\?\.playExpeditionSfx\?\.\('anubisPresenceStinger'/,
+  );
+  assert.match(
+    journeyComponentSource,
+    /spellImpactTriggered[\s\S]*?audioControls\?\.playExpeditionSfx\?\.\('thresholdRealityTear'/,
+  );
+  assert.match(
+    journeyComponentSource,
+    /opening-arrival-aftershock[\s\S]*?audioControls\?\.playExpeditionSfx\?\.\('lostSiteAirShift'/,
+  );
+});
+
+test('opening arrival aftermath confirms Asha is trapped, changed, watched, and must move forward', () => {
+  assert.match(journeyComponentSource, /const OPENING_ARRIVAL_AFTERSHOCK_NOTICE = 'The way back is sealed\. The blade is real\. Anubis is still watching\. The only path is forward\.'/);
+  assert.match(journeyComponentSource, /current\.notice = OPENING_ARRIVAL_AFTERSHOCK_NOTICE/);
+  assert.match(journeyComponentSource, /id:\s*'opening-arrival-aftershock'/);
+  assert.match(journeyComponentSource, /name:\s*'Asha'/);
+  assert.match(journeyComponentSource, /message:\s*OPENING_ARRIVAL_AFTERSHOCK_NOTICE/);
+  assert.match(journeyComponentSource, /skipOpeningCinematic[\s\S]*?OPENING_ARRIVAL_AFTERSHOCK_NOTICE/);
+  assert.doesNotMatch(journeyComponentSource, /opening-arrival-aftershock[\s\S]{0,400}(chosen|destiny|memory to protect|It was not treasure they stole)/i);
 });
 
 test('hidden routes are optional and never required for main progression', () => {

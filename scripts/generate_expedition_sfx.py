@@ -69,6 +69,53 @@ def stone_stress_crackle(t: float, duration: float, rng: random.Random, offsets:
     return crackle
 
 
+def ancient_signal_chime(t: float, duration: float) -> float:
+    shimmer = 0.0
+    for offset, freq, gain in (
+        (0.025, 520, 0.072),
+        (0.135, 780, 0.058),
+        (0.315, 1040, 0.046),
+        (0.57, 1380, 0.032),
+    ):
+        local = max(0.0, t - offset)
+        bend = math.sin(local * 9.5) * 28 + math.sin(local * 3.2) * 18
+        shimmer += tone(freq + bend, local, "triangle") * envelope(local, 1.18, 0.004, 2.7) * gain
+    reverse_wake = tone(360 + (min(t / max(duration, 0.1), 1.0) * 230), t, "triangle") * envelope(t, duration, 1.05, 1.9) * 0.026
+    return shimmer + reverse_wake
+
+
+def threshold_shear_burst(t: float, duration: float, rng: random.Random, low: float) -> float:
+    progress = min(t / max(duration, 0.1), 1.0)
+    shear = tone(980 - progress * 620 + math.sin(t * 34) * 140, t, "saw") * envelope(t, 0.92, 0.012, 1.9) * 0.042
+    torn_air = noise(rng) * envelope(t, duration, 0.05, 1.24) * (0.07 + progress * 0.03)
+    pressure_snap = cinematic_sub_stack(max(0.0, t - 0.18), 1.55, 28, 1.65) * envelope(max(0.0, t - 0.18), 1.7, 0.003, 2.15) * 0.24
+    downward_warp = tone(188 - progress * 122 + math.sin(t * 11) * 16, t, "triangle") * envelope(t, duration, 0.06, 1.65) * 0.058
+    dust_pull = low * envelope(t, duration, 0.18, 1.42) * 0.11
+    return shear + torn_air + pressure_snap + downward_warp + dust_pull
+
+
+def guardian_overtone_chorus(t: float, duration: float) -> float:
+    verdict = tone(44 + math.sin(t * 3.4) * 2.5, t, "saw") * envelope(t, duration, 0.11, 1.45) * 0.18
+    harmonics = 0.0
+    for freq, drift, gain in ((88, 4.4, 0.09), (132, 6.2, 0.052), (176, 7.6, 0.036), (264, 9.3, 0.021)):
+        harmonics += tone(freq + math.sin(t * drift) * (freq * 0.035), t, "triangle") * gain
+    pulse = 0.0
+    for offset in (0.03, 0.34, 0.88):
+        local = max(0.0, t - offset)
+        pulse += tone(32 - min(local, 0.45) * 8, local) * envelope(local, 0.64, 0.002, 2.8) * 0.2
+    return (verdict + harmonics * envelope(t, duration, 0.18, 2.0) + pulse)
+
+
+def lost_site_pressure_release(t: float, duration: float, rng: random.Random, low: float) -> float:
+    progress = min(t / max(duration, 0.1), 1.0)
+    opening_vacuum = low * envelope(t, duration, 0.18, 1.08) * (0.16 + progress * 0.05)
+    room_inhale = noise(rng) * envelope(t, duration, 0.8, 1.85) * 0.046
+    pressure_tone = tone(96 + math.sin(t * 2.4) * 22 + progress * 34, t, "triangle") * envelope(t, duration, 0.72, 1.64) * 0.052
+    far_gate = tone(34 + math.sin(t * 1.1) * 3, t) * envelope(max(0.0, t - 0.48), max(0.1, duration - 0.48), 0.28, 1.35) * 0.12
+    grit = stone_stress_crackle(t, duration, rng, (0.92, 1.84, 3.22)) * 0.34
+    return opening_vacuum + room_inhale + pressure_tone + far_gate + grit
+
+
 def render(duration: float, fn) -> list[float]:
     rng = random.Random(SEED + int(duration * 1000))
     total = int(SAMPLE_RATE * duration)
@@ -318,51 +365,44 @@ def reality_tear_rumble(t: float, duration: float, rng: random.Random, low: floa
 
 def scarab_touch_whisper(t: float, duration: float, rng: random.Random, low: float) -> float:
     progress = min(t / max(duration, 0.1), 1.0)
-    stone_skin = low * envelope(t, duration, 0.02, 2.0) * 0.18
-    contact = tone(126 - 52 * progress, t, "triangle") * envelope(t, 0.26, 0.002, 3.2) * 0.2
-    memory_chime = 0.0
-    for offset, freq, gain in ((0.04, 640, 0.08), (0.16, 970, 0.052), (0.44, 1340, 0.034)):
-        local = max(0.0, t - offset)
-        memory_chime += tone(freq + math.sin(local * 13) * 42, local, "triangle") * envelope(local, 0.82, 0.004, 3.1) * gain
-    sub = cinematic_sub_stack(t, duration, 36 + math.sin(t * 1.2) * 1.5, 0.62) * 0.18
-    air = air_mass_texture(t, duration, rng, low, 0.74)
-    crackle = stone_stress_crackle(t, duration, rng, (0.11, 0.38, 0.82)) * 0.65
-    return soft_clip(stone_skin + contact + memory_chime + sub + air + crackle, 2.1) * 0.74
+    stone_skin = low * envelope(t, duration, 0.012, 2.1) * 0.2
+    contact = tone(118 - 46 * progress, t, "triangle") * envelope(t, 0.34, 0.002, 3.1) * 0.24
+    signal = ancient_signal_chime(t, duration)
+    sub = cinematic_sub_stack(t, duration, 35 + math.sin(t * 1.2) * 1.5, 0.62) * 0.2
+    air = air_mass_texture(t, duration, rng, low, 0.82)
+    crackle = stone_stress_crackle(t, duration, rng, (0.1, 0.36, 0.88, 1.42)) * 0.72
+    return soft_clip(stone_skin + contact + signal + sub + air + crackle, 2.2) * 0.78
 
 
 def threshold_reality_tear(t: float, duration: float, rng: random.Random, low: float) -> float:
     progress = min(t / max(duration, 0.1), 1.0)
-    sub = cinematic_sub_stack(t, duration, 35 - progress * 7.5, 2.15) * 0.7
-    rip = tone(70 - 34 * progress + math.sin(t * 17) * 10, t, "saw") * envelope(t, duration, 0.035, 1.04) * 0.18
-    strained_air = air_mass_texture(t, duration, rng, low, 1.45)
-    crackle = stone_stress_crackle(t, duration, rng, (0.12, 0.31, 0.58, 0.93, 1.44, 2.12, 2.74)) * 1.15
-    falling_tail = cinematic_sub_stack(max(0.0, t - 1.18), 1.65, 29, 1.4) * envelope(max(0.0, t - 1.18), 1.8, 0.006, 2.15) * 0.28
-    bright_shear = tone(760 + math.sin(t * 21) * 220, t, "triangle") * envelope(t, duration, 0.18, 2.2) * 0.022
-    return soft_clip(sub + rip + strained_air + crackle + falling_tail + bright_shear, 2.45) * 0.92
+    sub = cinematic_sub_stack(t, duration, 36 - progress * 8.5, 2.2) * 0.68
+    rip = tone(70 - 34 * progress + math.sin(t * 17) * 10, t, "saw") * envelope(t, duration, 0.035, 1.04) * 0.16
+    shear = threshold_shear_burst(t, duration, rng, low)
+    strained_air = air_mass_texture(t, duration, rng, low, 1.36)
+    crackle = stone_stress_crackle(t, duration, rng, (0.1, 0.29, 0.56, 0.92, 1.46, 2.2, 3.06)) * 1.05
+    falling_tail = cinematic_sub_stack(max(0.0, t - 1.18), 2.0, 28, 1.4) * envelope(max(0.0, t - 1.18), 2.08, 0.006, 2.05) * 0.3
+    bright_shear = tone(760 + math.sin(t * 21) * 220, t, "triangle") * envelope(t, duration, 0.18, 2.2) * 0.024
+    return soft_clip(sub + rip + shear + strained_air + crackle + falling_tail + bright_shear, 2.42) * 0.91
 
 
 def anubis_presence_stinger(t: float, duration: float, rng: random.Random, low: float) -> float:
     local_hit = min(t, 0.95)
-    impact = cinematic_sub_stack(local_hit, 0.95, 31 - 5.5 * local_hit, 1.65) * envelope(local_hit, 0.95, 0.003, 2.35) * 0.92
-    chamber_breath = air_mass_texture(t, duration, rng, low, 1.18)
-    judgement = tone(48 + math.sin(t * 4.6) * 3.5, t, "saw") * envelope(t, duration, 0.12, 1.58) * 0.16
-    overtones = (
-        tone(96 + math.sin(t * 2.1) * 6, t, "triangle") * 0.08
-        + tone(192 + math.sin(t * 3.4) * 11, t, "triangle") * 0.045
-        + tone(384 + math.sin(t * 5.8) * 24, t, "triangle") * 0.018
-    ) * envelope(t, duration, 0.06, 2.05)
-    stone_warning = stone_stress_crackle(t, duration, rng, (0.28, 0.84, 1.42)) * 0.82
-    return soft_clip(impact + chamber_breath + judgement + overtones + stone_warning, 2.28) * 0.88
+    impact = cinematic_sub_stack(local_hit, 0.95, 30 - 5.8 * local_hit, 1.7) * envelope(local_hit, 0.95, 0.003, 2.35) * 0.98
+    chamber_breath = air_mass_texture(t, duration, rng, low, 1.12)
+    chorus = guardian_overtone_chorus(t, duration)
+    stone_warning = stone_stress_crackle(t, duration, rng, (0.28, 0.84, 1.48, 2.16)) * 0.8
+    return soft_clip(impact + chamber_breath + chorus + stone_warning, 2.32) * 0.9
 
 
 def lost_site_air_shift(t: float, duration: float, rng: random.Random, low: float) -> float:
     progress = min(t / max(duration, 0.1), 1.0)
-    undertow = cinematic_sub_stack(t, duration, 28 + math.sin(t * 0.8) * 2.4, 0.5) * 0.34
-    old_air = air_mass_texture(t, duration, rng, low, 1.58)
-    dust_shear = noise(rng) * envelope(t, duration, 1.0, 2.1) * 0.035
-    pressure = tone(118 + math.sin(t * 2.2) * 38 + progress * 24, t, "triangle") * envelope(t, duration, 0.85, 1.7) * 0.036
-    distant_stone = stone_stress_crackle(t, duration, rng, (1.18, 2.36, 3.15)) * 0.48
-    return soft_clip(undertow + old_air + dust_shear + pressure + distant_stone, 2.05) * 0.76
+    undertow = cinematic_sub_stack(t, duration, 27 + math.sin(t * 0.8) * 2.4, 0.48) * 0.32
+    old_air = air_mass_texture(t, duration, rng, low, 1.44)
+    pressure_release = lost_site_pressure_release(t, duration, rng, low)
+    dust_shear = noise(rng) * envelope(t, duration, 1.0, 2.1) * 0.032
+    high_drift = tone(310 + math.sin(t * 1.7) * 80 + progress * 120, t, "triangle") * envelope(t, duration, 1.35, 2.2) * 0.018
+    return soft_clip(undertow + old_air + pressure_release + dust_shear + high_drift, 2.08) * 0.78
 
 
 def main() -> None:
@@ -396,10 +436,10 @@ def main() -> None:
         "void-bass-swell.wav": (4.4, void_bass_swell),
         "underworld-heart-drone.wav": (4.8, underworld_heart_drone),
         "reality-tear-rumble.wav": (3.2, reality_tear_rumble),
-        "scarab-touch-whisper.wav": (2.0, scarab_touch_whisper),
-        "threshold-reality-tear.wav": (3.4, threshold_reality_tear),
-        "anubis-presence-stinger.wav": (2.3, anubis_presence_stinger),
-        "lost-site-air-shift.wav": (4.2, lost_site_air_shift),
+        "scarab-touch-whisper.wav": (2.35, scarab_touch_whisper),
+        "threshold-reality-tear.wav": (3.85, threshold_reality_tear),
+        "anubis-presence-stinger.wav": (2.85, anubis_presence_stinger),
+        "lost-site-air-shift.wav": (4.7, lost_site_air_shift),
     }
     for filename, (duration, fn) in specs.items():
       write_wav(OUT_DIR / filename, render(duration, fn))

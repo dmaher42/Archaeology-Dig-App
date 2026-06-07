@@ -28,7 +28,6 @@ import {
   WORLD_WIDTH,
   GRAVITY,
   ATTACK_DURATION,
-  ATTACK_COOLDOWN,
   ATTACK_RECOIL_DURATION,
   ATTACK_WINDUP_DURATION,
   COMBAT_DAMAGE_SCALE,
@@ -551,13 +550,14 @@ const OPENING_CINEMATIC_ENABLED = true;
 const OPENING_CINEMATIC_DURATION = 22;
 const OPENING_CINEMATIC_SPELL_IMPACT_AT = 18.6;
 const OPENING_ASHA_CUTSCENE_SRC = 'assets/expedition/player/asha-opening-reference-cutscene.png';
+const OPENING_ARRIVAL_AFTERSHOCK_NOTICE = 'The way back is sealed. The blade is real. Anubis is still watching. The only path is forward.';
 const OPENING_CINEMATIC_LINES = [
   {
     id: 'anubis-watches',
     at: 1.2,
     speaker: 'Anubis',
     voice: 'guardian',
-    text: 'You stand where you should not. Another human hand at the seal.',
+    text: 'You stand where you should not. Another human hand at the seal. Always reaching. Always taking.',
   },
   {
     id: 'asha-scarab',
@@ -567,32 +567,39 @@ const OPENING_CINEMATIC_LINES = [
     text: 'I was in Cairo. I touched the scarab and the pyramid disappeared.',
   },
   {
+    id: 'asha-marked',
+    at: 7.4,
+    speaker: 'Asha',
+    voice: 'asha',
+    text: 'Where did my field clothes go? This blade was not on my belt.',
+  },
+  {
     id: 'anubis-mark',
-    at: 9.4,
+    at: 10.1,
     speaker: 'Anubis',
     voice: 'guardian',
-    text: 'The seal marks trespassers for trial. That is not permission.',
+    text: 'The seal marks trespassers for trial. It gives cloth and iron so judgement can watch what you do with them. That is not permission.',
   },
   {
     id: 'asha-return',
-    at: 13.8,
+    at: 14.4,
     speaker: 'Asha',
     voice: 'asha',
-    text: 'Then send me back.',
+    text: 'Then send me back. I did not come here to steal from you.',
   },
   {
     id: 'anubis-begin',
     at: OPENING_CINEMATIC_SPELL_IMPACT_AT,
     speaker: 'Anubis',
     voice: 'guardian',
-    text: 'I tried. Even this gate no longer obeys.',
+    text: 'I tried. Even this gate no longer obeys. Centuries of human hands taught it fear.',
   },
   {
     id: 'asha-survive',
     at: 21.2,
     speaker: 'Asha',
     voice: 'asha',
-    text: 'Then I keep moving until I find a way out.',
+    text: 'Then I keep moving. If the way out is deeper, I find it.',
   },
 ];
 // Rome opening cinematic — Legate Revenant speaks as Asha descends the Via Sacra.
@@ -17053,10 +17060,13 @@ export default function ExpeditionJourney({
   const startOpeningCinematic = useCallback(({ speechEnabled = true } = {}) => {
     const current = stateRef.current;
     audioControls?.unlockExpeditionSfx?.();
+    const isRomeCinematic = typeof targetCivilisation === 'string' && targetCivilisation.toLowerCase().includes('rome');
     audioControls?.playExpeditionSfx?.(openingAtmosphereSfxKey);
+    if (!isRomeCinematic) {
+      audioControls?.playExpeditionSfx?.('anubisPresenceStinger', { volume: 0.82 });
+    }
     spokenOpeningLineRef.current = null;
     const activeCinematicLines = getOpeningCinematicLines(targetCivilisation);
-    const isRomeCinematic = typeof targetCivilisation === 'string' && targetCivilisation.toLowerCase().includes('rome');
     current.openingCinematic = {
       id: isRomeCinematic ? 'asha-legate-opening-cinematic' : 'asha-anubis-opening-cinematic',
       title: isRomeCinematic ? 'The Vault Speaks First' : 'The First Seal Watches',
@@ -17119,17 +17129,18 @@ export default function ExpeditionJourney({
     if (!current.openingCinematic) return;
     if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel();
     current.openingCinematic = null;
-    current.notice = SCARAB_SEAL_TRIGGER.objectiveEchoLine;
+    current.notice = OPENING_ARRIVAL_AFTERSHOCK_NOTICE;
     current.cinematicEvent = {
-      id: 'opening-cinematic-skipped',
-      name: 'First Seal',
-      message: SCARAB_SEAL_TRIGGER.objectiveEchoLine,
+      id: 'opening-arrival-aftershock',
+      name: 'Asha',
+      message: OPENING_ARRIVAL_AFTERSHOCK_NOTICE,
       temporary: true,
     };
-    current.cinematicTimer = 2.8;
+    current.cinematicTimer = 3.4;
+    audioControls?.playExpeditionSfx?.('lostSiteAirShift', { volume: 0.54 });
     current.openingCameraRevealTimer = Math.max(current.openingCameraRevealTimer, OPENING_CAMERA_REVEAL_DURATION);
     syncHud();
-  }, [syncHud]);
+  }, [audioControls, syncHud]);
 
   const queueAttack = useCallback((attackType = PLAYER_ATTACK_TYPES.LIGHT) => {
     const current = stateRef.current;
@@ -17372,6 +17383,7 @@ export default function ExpeditionJourney({
         current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.7);
         current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.42);
         audioControls?.playExpeditionSfx?.('openingThresholdFinalPulse');
+        audioControls?.playExpeditionSfx?.('thresholdRealityTear', { volume: 0.86 });
       }
       if (cinematic.timer <= 0) {
         current.openingCinematic = null;
@@ -17379,14 +17391,15 @@ export default function ExpeditionJourney({
         current.player.y = GROUND_Y - current.player.height;
         current.cameraX = 0;
         current.targetCameraX = 0;
-        current.notice = SCARAB_SEAL_TRIGGER.objectiveEchoLine;
+        current.notice = OPENING_ARRIVAL_AFTERSHOCK_NOTICE;
         current.cinematicEvent = {
-          id: 'opening-cinematic-complete',
-          name: 'First Seal',
-          message: SCARAB_SEAL_TRIGGER.objectiveEchoLine,
+          id: 'opening-arrival-aftershock',
+          name: 'Asha',
+          message: OPENING_ARRIVAL_AFTERSHOCK_NOTICE,
           temporary: true,
         };
-        current.cinematicTimer = 2.8;
+        current.cinematicTimer = 3.4;
+        audioControls?.playExpeditionSfx?.('lostSiteAirShift', { volume: 0.64 });
         current.openingCameraRevealTimer = Math.max(current.openingCameraRevealTimer, OPENING_CAMERA_REVEAL_DURATION);
         current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.24);
         current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.12);

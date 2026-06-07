@@ -86,6 +86,30 @@ test('opening scarab and Anubis presence cues have generated WAV assets', () => 
   });
 });
 
+test('opening transport cues are built from named cinematic sound-design layers', () => {
+  [
+    'ancient_signal_chime',
+    'threshold_shear_burst',
+    'guardian_overtone_chorus',
+    'lost_site_pressure_release',
+  ].forEach((helperName) => {
+    assert.match(sfxGeneratorSource, new RegExp(`def ${helperName}\\(`), `${helperName} should exist`);
+  });
+
+  [
+    ['scarab_touch_whisper', 'ancient_signal_chime'],
+    ['threshold_reality_tear', 'threshold_shear_burst'],
+    ['anubis_presence_stinger', 'guardian_overtone_chorus'],
+    ['lost_site_air_shift', 'lost_site_pressure_release'],
+  ].forEach(([fnName, helperName]) => {
+    const fnStart = sfxGeneratorSource.indexOf(`def ${fnName}(`);
+    const nextFnStart = sfxGeneratorSource.indexOf('\ndef ', fnStart + 1);
+    const fnBody = sfxGeneratorSource.slice(fnStart, nextFnStart === -1 ? undefined : nextFnStart);
+    assert.match(fnBody, new RegExp(`${helperName}\\(`), `${fnName} should use ${helperName}`);
+    assert.match(fnBody, /soft_clip\(/, `${fnName} should saturate the layered cue`);
+  });
+});
+
 test('Journey runtime plays event cue keys and schedules rare ambient threat sounds', () => {
   assert.match(journeyComponentSource, /if\s*\(ev\.sfxKey\)\s*\{/);
   assert.match(journeyComponentSource, /audioControls\?\.playExpeditionSfx\?\.\(ev\.sfxKey/);

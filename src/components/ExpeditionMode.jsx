@@ -4983,7 +4983,12 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
               <button
                 type="button"
                 onClick={() => {
+                  audioControls.unlockExpeditionSfx?.();
+                  if (cinematicStep.id === 'scarab-floor-carving') {
+                    audioControls.playExpeditionSfx?.('scarabTouchWhisper', { volume: 0.74 });
+                  }
                   if (finalCinematicStep) {
+                    audioControls.playExpeditionSfx?.('thresholdRealityTear', { volume: 0.82 });
                     setExpeditionStage('journey');
                     setPrologueCinematicStep(null);
                     setNotice('This isn\'t the excavation site.');
