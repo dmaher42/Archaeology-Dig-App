@@ -316,6 +316,55 @@ def reality_tear_rumble(t: float, duration: float, rng: random.Random, low: floa
     return soft_clip(sub + rip + air + crackle + harmonic, 2.35) * 0.9
 
 
+def scarab_touch_whisper(t: float, duration: float, rng: random.Random, low: float) -> float:
+    progress = min(t / max(duration, 0.1), 1.0)
+    stone_skin = low * envelope(t, duration, 0.02, 2.0) * 0.18
+    contact = tone(126 - 52 * progress, t, "triangle") * envelope(t, 0.26, 0.002, 3.2) * 0.2
+    memory_chime = 0.0
+    for offset, freq, gain in ((0.04, 640, 0.08), (0.16, 970, 0.052), (0.44, 1340, 0.034)):
+        local = max(0.0, t - offset)
+        memory_chime += tone(freq + math.sin(local * 13) * 42, local, "triangle") * envelope(local, 0.82, 0.004, 3.1) * gain
+    sub = cinematic_sub_stack(t, duration, 36 + math.sin(t * 1.2) * 1.5, 0.62) * 0.18
+    air = air_mass_texture(t, duration, rng, low, 0.74)
+    crackle = stone_stress_crackle(t, duration, rng, (0.11, 0.38, 0.82)) * 0.65
+    return soft_clip(stone_skin + contact + memory_chime + sub + air + crackle, 2.1) * 0.74
+
+
+def threshold_reality_tear(t: float, duration: float, rng: random.Random, low: float) -> float:
+    progress = min(t / max(duration, 0.1), 1.0)
+    sub = cinematic_sub_stack(t, duration, 35 - progress * 7.5, 2.15) * 0.7
+    rip = tone(70 - 34 * progress + math.sin(t * 17) * 10, t, "saw") * envelope(t, duration, 0.035, 1.04) * 0.18
+    strained_air = air_mass_texture(t, duration, rng, low, 1.45)
+    crackle = stone_stress_crackle(t, duration, rng, (0.12, 0.31, 0.58, 0.93, 1.44, 2.12, 2.74)) * 1.15
+    falling_tail = cinematic_sub_stack(max(0.0, t - 1.18), 1.65, 29, 1.4) * envelope(max(0.0, t - 1.18), 1.8, 0.006, 2.15) * 0.28
+    bright_shear = tone(760 + math.sin(t * 21) * 220, t, "triangle") * envelope(t, duration, 0.18, 2.2) * 0.022
+    return soft_clip(sub + rip + strained_air + crackle + falling_tail + bright_shear, 2.45) * 0.92
+
+
+def anubis_presence_stinger(t: float, duration: float, rng: random.Random, low: float) -> float:
+    local_hit = min(t, 0.95)
+    impact = cinematic_sub_stack(local_hit, 0.95, 31 - 5.5 * local_hit, 1.65) * envelope(local_hit, 0.95, 0.003, 2.35) * 0.92
+    chamber_breath = air_mass_texture(t, duration, rng, low, 1.18)
+    judgement = tone(48 + math.sin(t * 4.6) * 3.5, t, "saw") * envelope(t, duration, 0.12, 1.58) * 0.16
+    overtones = (
+        tone(96 + math.sin(t * 2.1) * 6, t, "triangle") * 0.08
+        + tone(192 + math.sin(t * 3.4) * 11, t, "triangle") * 0.045
+        + tone(384 + math.sin(t * 5.8) * 24, t, "triangle") * 0.018
+    ) * envelope(t, duration, 0.06, 2.05)
+    stone_warning = stone_stress_crackle(t, duration, rng, (0.28, 0.84, 1.42)) * 0.82
+    return soft_clip(impact + chamber_breath + judgement + overtones + stone_warning, 2.28) * 0.88
+
+
+def lost_site_air_shift(t: float, duration: float, rng: random.Random, low: float) -> float:
+    progress = min(t / max(duration, 0.1), 1.0)
+    undertow = cinematic_sub_stack(t, duration, 28 + math.sin(t * 0.8) * 2.4, 0.5) * 0.34
+    old_air = air_mass_texture(t, duration, rng, low, 1.58)
+    dust_shear = noise(rng) * envelope(t, duration, 1.0, 2.1) * 0.035
+    pressure = tone(118 + math.sin(t * 2.2) * 38 + progress * 24, t, "triangle") * envelope(t, duration, 0.85, 1.7) * 0.036
+    distant_stone = stone_stress_crackle(t, duration, rng, (1.18, 2.36, 3.15)) * 0.48
+    return soft_clip(undertow + old_air + dust_shear + pressure + distant_stone, 2.05) * 0.76
+
+
 def main() -> None:
     specs = {
         "land-soft.wav": (0.36, land_soft),
@@ -347,6 +396,10 @@ def main() -> None:
         "void-bass-swell.wav": (4.4, void_bass_swell),
         "underworld-heart-drone.wav": (4.8, underworld_heart_drone),
         "reality-tear-rumble.wav": (3.2, reality_tear_rumble),
+        "scarab-touch-whisper.wav": (2.0, scarab_touch_whisper),
+        "threshold-reality-tear.wav": (3.4, threshold_reality_tear),
+        "anubis-presence-stinger.wav": (2.3, anubis_presence_stinger),
+        "lost-site-air-shift.wav": (4.2, lost_site_air_shift),
     }
     for filename, (duration, fn) in specs.items():
       write_wav(OUT_DIR / filename, render(duration, fn))

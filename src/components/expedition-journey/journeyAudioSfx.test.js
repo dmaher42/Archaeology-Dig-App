@@ -33,6 +33,13 @@ const requiredAmbientBassCues = [
   'realityTearRumble',
 ];
 
+const requiredOpeningPresenceCues = [
+  ['scarabTouchWhisper', 'scarab-touch-whisper.wav', 'scarab_touch_whisper'],
+  ['thresholdRealityTear', 'threshold-reality-tear.wav', 'threshold_reality_tear'],
+  ['anubisPresenceStinger', 'anubis-presence-stinger.wav', 'anubis_presence_stinger'],
+  ['lostSiteAirShift', 'lost-site-air-shift.wav', 'lost_site_air_shift'],
+];
+
 test('Egypt Journey dramatic events declare explicit SFX cue keys', () => {
   requiredEventCues.forEach(([eventId, sfxKey]) => {
     const eventPattern = new RegExp(`id:\\s*'${eventId}'[\\s\\S]*?sfxKey:\\s*'${sfxKey}'`);
@@ -62,8 +69,20 @@ test('Egypt SFX catalog registers the dramatic cue keys without crowding App.jsx
     'combatDangerHit',
     'ashaHurtBreath',
     ...requiredAmbientBassCues,
+    ...requiredOpeningPresenceCues.map(([sfxKey]) => sfxKey),
   ].forEach((sfxKey) => {
     assert.match(egyptAudioTracksSource, new RegExp(`${sfxKey}:\\s*\\{`), `${sfxKey} should be configured`);
+  });
+});
+
+test('opening scarab and Anubis presence cues have generated WAV assets', () => {
+  requiredOpeningPresenceCues.forEach(([sfxKey, filename, generatorName]) => {
+    assert.match(egyptAudioTracksSource, new RegExp(`${sfxKey}:\\s*\\{[\\s\\S]*?${filename}`), `${sfxKey} should use ${filename}`);
+    assert.ok(
+      existsSync(new URL(`../../../public/assets/expedition/sfx/generated/${filename}`, import.meta.url)),
+      `${filename} should exist as a generated Expedition SFX asset`,
+    );
+    assert.match(sfxGeneratorSource, new RegExp(`def ${generatorName}\\(`), `${generatorName} should generate ${filename}`);
   });
 });
 

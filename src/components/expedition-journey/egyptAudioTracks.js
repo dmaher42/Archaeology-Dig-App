@@ -114,6 +114,34 @@ export const EGYPT_AUDIO_TRACKS = {
         { path: 'assets/expedition/sfx/generated/structure-ripping.wav', volume: 0.18, delay: 520, playbackRate: 0.62 },
       ],
     },
+    scarabTouchWhisper: {
+      cooldownMs: 9000,
+      clips: [
+        { path: 'assets/expedition/sfx/generated/scarab-touch-whisper.wav', volume: 0.52, playbackRate: 0.92 },
+        { path: 'assets/expedition/sfx/opening/opening-deep-rumble.ogg', volume: 0.08, delay: 180, playbackRate: 0.34 },
+      ],
+    },
+    thresholdRealityTear: {
+      cooldownMs: 14000,
+      clips: [
+        { path: 'assets/expedition/sfx/generated/threshold-reality-tear.wav', volume: 0.68, playbackRate: 0.82 },
+        { path: 'assets/expedition/sfx/opening/opening-earth-shake.flac', volume: 0.14, delay: 460, playbackRate: 0.66 },
+      ],
+    },
+    anubisPresenceStinger: {
+      cooldownMs: 12000,
+      clips: [
+        { path: 'assets/expedition/sfx/generated/anubis-presence-stinger.wav', volume: 0.64, playbackRate: 0.86 },
+        { path: 'assets/expedition/sfx/generated/bass-impact.wav', volume: 0.12, delay: 80, playbackRate: 0.48 },
+      ],
+    },
+    lostSiteAirShift: {
+      cooldownMs: 18000,
+      clips: [
+        { path: 'assets/expedition/sfx/generated/lost-site-air-shift.wav', volume: 0.44, playbackRate: 0.86 },
+        { path: 'assets/expedition/sfx/opening/opening-desert-wind.ogg', volume: 0.08, delay: 620, playbackRate: 0.58 },
+      ],
+    },
     combatDangerHit: {
       cooldownMs: 200,
       clips: [
