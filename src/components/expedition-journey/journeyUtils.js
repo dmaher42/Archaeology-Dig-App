@@ -1387,6 +1387,13 @@ export const updatePlayerAnimation = (current, dt) => {
 
 export const makeEnemy = (enemy) => ({
   ...enemy,
+  // Stationary spawners (scorpion nests) never walk, so their patrol bounds must stay
+  // pinned to their placed x. Otherwise the patrol-boundary clamp in the movement loop
+  // snaps an editor-moved or override-relocated nest back to the original patrol range
+  // every frame (e.g. an x override is ignored because patrolMin/Max weren't moved too).
+  ...(enemy.type === 'scorpion-nest' && Number.isFinite(enemy.x)
+    ? { patrolMin: enemy.x, patrolMax: enemy.x }
+    : {}),
   direction: 1,
   health: tuneEnemyHealth(enemy),
   maxHealth: tuneEnemyHealth(enemy),
