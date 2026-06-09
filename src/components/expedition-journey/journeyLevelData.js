@@ -4,6 +4,7 @@ import { sacredMuralExteriorX, sacredScribeExteriorX } from './journeyConstants.
 
 const JY = (y) => y + JOURNEY_VERTICAL_OFFSET;
 const X = scaleJourneyX;
+const MUMMIFICATION_EXTERIOR_X = (x) => X(x + 70);
 const SACRED_MURAL_APPROACH_X = sacredMuralExteriorX;
 const SACRED_SCRIBE_APPROACH_X = sacredScribeExteriorX;
 
@@ -43,25 +44,42 @@ export const PLATFORMS = [
   { id: 'opening-first-terrace', x: 355, y: JY(171), width: 365, height: 18, label: 'invisible marked first pyramid terrace', invisible: true },
   { id: 'opening-second-terrace', x: 505, y: JY(24), width: 355, height: 18, label: 'invisible marked second pyramid terrace', invisible: true },
   { id: 'opening-scarab-seal-summit', x: 770, y: JY(-135), width: 280, height: 18, label: 'invisible marked scarab artefact platform', invisible: true },
-  { id: 'mummification-chamber-bottom-secret-threshold', x: X(638), y: JY(257), width: 176, height: 18, label: 'invisible bottom secret threshold at the base of the Mummification Chamber exterior', secret: true, invisible: true },
-  { id: 'mummification-chamber-sand-buried-block', x: X(647), y: JY(223), width: 176, height: 18, label: 'invisible buried block at the Mummification Chamber exterior', secret: true, invisible: true },
-  { id: 'mummification-chamber-far-left-ground-shelf', x: X(563), y: JY(175), width: 176, height: 18, label: 'invisible far left ground shelf on the Mummification Chamber exterior', secret: true, invisible: true },
-  { id: 'mummification-chamber-right-low-landing', x: X(724), y: JY(240), width: 197, height: 18, label: 'invisible right low landing on the Mummification Chamber exterior', secret: true, invisible: true },
-  { id: 'mummification-chamber-central-left-shelf', x: X(657), y: JY(148), width: 210, height: 18, label: 'invisible central left shelf on the Mummification Chamber exterior', secret: true, invisible: true },
-  { id: 'mummification-chamber-right-stair-landing', x: X(701), y: JY(135), width: 155, height: 18, label: 'invisible right stair landing on the Mummification Chamber exterior', secret: true, invisible: true },
-  { id: 'mummification-chamber-left-lower-terrace', x: X(586), y: JY(115), width: 311, height: 18, label: 'invisible left lower terrace on the Mummification Chamber exterior', secret: true, invisible: true },
-  { id: 'mummification-chamber-central-drop-slab', x: X(681), y: JY(55), width: 192, height: 18, label: 'invisible central drop slab on the Mummification Chamber exterior', secret: true, invisible: true },
-  { id: 'mummification-chamber-carved-lower-ledge', x: X(708), y: JY(0), width: 212, height: 18, label: 'invisible carved lower ledge on the Mummification Chamber exterior', secret: true, invisible: true },
-  { id: 'mummification-chamber-left-sandstone-shelf', x: X(586), y: JY(-25), width: 212, height: 18, label: 'invisible left sandstone shelf on the Mummification Chamber exterior', secret: true, invisible: true },
-  { id: 'mummification-chamber-right-column-cap', x: X(726), y: JY(-30), width: 212, height: 18, label: 'invisible right column cap on the Mummification Chamber exterior', secret: true, invisible: true },
-  { id: 'mummification-chamber-left-column-cap', x: X(606), y: JY(-63), width: 130, height: 18, label: 'invisible left column cap on the Mummification Chamber exterior', secret: true, invisible: true },
-  { id: 'mummification-chamber-upper-rite-ledge', x: X(684), y: JY(-109), width: 218, height: 18, label: 'invisible upper rite ledge at the Mummification Chamber exterior', secret: true, invisible: true },
-  { id: 'mummification-chamber-left-pedestal-top', x: X(608), y: JY(-145), width: 155, height: 18, label: 'invisible left pedestal top cap on the Mummification Chamber exterior', secret: true, invisible: true },
-  { id: 'mummification-chamber-left-doorway-ledge', x: X(659), y: JY(-156), width: 259, height: 18, label: 'invisible left doorway ledge at the Mummification Chamber exterior', secret: true, invisible: true },
-  { id: 'mummification-chamber-upper-right-platform', x: X(745), y: JY(-156), width: 228, height: 18, label: 'invisible upper right platform at the Mummification Chamber exterior', secret: true, invisible: true },
-  { id: 'mummification-chamber-doorway-floor', x: X(708), y: JY(-222), width: 228, height: 18, label: 'invisible high doorway floor at the Mummification Chamber entrance', secret: true, invisible: true },
-  { id: 'mummification-chamber-upper-left-platform', x: X(659), y: JY(-255), width: 238, height: 18, label: 'invisible upper left platform at the Mummification Chamber exterior', secret: true, invisible: true },
+  { id: 'mummification-chamber-bottom-secret-threshold', x: MUMMIFICATION_EXTERIOR_X(638), y: JY(257), width: 176, height: 18, label: 'invisible bottom secret threshold at the base of the Mummification Chamber exterior', secret: true, invisible: true },
+  { id: 'mummification-chamber-sand-buried-block', x: MUMMIFICATION_EXTERIOR_X(647), y: JY(223), width: 176, height: 18, label: 'invisible buried block at the Mummification Chamber exterior', secret: true, invisible: true },
+  { id: 'mummification-chamber-far-left-ground-shelf', x: MUMMIFICATION_EXTERIOR_X(563), y: JY(175), width: 176, height: 18, label: 'invisible far left ground shelf on the Mummification Chamber exterior', secret: true, invisible: true },
+  { id: 'mummification-chamber-right-low-landing', x: MUMMIFICATION_EXTERIOR_X(724), y: JY(240), width: 197, height: 18, label: 'invisible right low landing on the Mummification Chamber exterior', secret: true, invisible: true },
+  { id: 'mummification-chamber-central-left-shelf', x: MUMMIFICATION_EXTERIOR_X(657), y: JY(148), width: 210, height: 18, label: 'invisible central left shelf on the Mummification Chamber exterior', secret: true, invisible: true },
+  { id: 'mummification-chamber-right-stair-landing', x: MUMMIFICATION_EXTERIOR_X(701), y: JY(135), width: 155, height: 18, label: 'invisible right stair landing on the Mummification Chamber exterior', secret: true, invisible: true },
+  { id: 'mummification-chamber-left-lower-terrace', x: MUMMIFICATION_EXTERIOR_X(586), y: JY(115), width: 311, height: 18, label: 'invisible left lower terrace on the Mummification Chamber exterior', secret: true, invisible: true },
+  { id: 'mummification-chamber-central-drop-slab', x: MUMMIFICATION_EXTERIOR_X(681), y: JY(55), width: 192, height: 18, label: 'invisible central drop slab on the Mummification Chamber exterior', secret: true, invisible: true },
+  { id: 'mummification-chamber-carved-lower-ledge', x: MUMMIFICATION_EXTERIOR_X(708), y: JY(0), width: 212, height: 18, label: 'invisible carved lower ledge on the Mummification Chamber exterior', secret: true, invisible: true },
+  { id: 'mummification-chamber-left-sandstone-shelf', x: MUMMIFICATION_EXTERIOR_X(586), y: JY(-25), width: 212, height: 18, label: 'invisible left sandstone shelf on the Mummification Chamber exterior', secret: true, invisible: true },
+  { id: 'mummification-chamber-right-column-cap', x: MUMMIFICATION_EXTERIOR_X(726), y: JY(-30), width: 212, height: 18, label: 'invisible right column cap on the Mummification Chamber exterior', secret: true, invisible: true },
+  { id: 'mummification-chamber-left-column-cap', x: MUMMIFICATION_EXTERIOR_X(606), y: JY(-63), width: 130, height: 18, label: 'invisible left column cap on the Mummification Chamber exterior', secret: true, invisible: true },
+  { id: 'mummification-chamber-upper-rite-ledge', x: MUMMIFICATION_EXTERIOR_X(684), y: JY(-109), width: 218, height: 18, label: 'invisible upper rite ledge at the Mummification Chamber exterior', secret: true, invisible: true },
+  { id: 'mummification-chamber-left-pedestal-top', x: MUMMIFICATION_EXTERIOR_X(608), y: JY(-145), width: 155, height: 18, label: 'invisible left pedestal top cap on the Mummification Chamber exterior', secret: true, invisible: true },
+  { id: 'mummification-chamber-left-doorway-ledge', x: MUMMIFICATION_EXTERIOR_X(659), y: JY(-156), width: 259, height: 18, label: 'invisible left doorway ledge at the Mummification Chamber exterior', secret: true, invisible: true },
+  { id: 'mummification-chamber-upper-right-platform', x: MUMMIFICATION_EXTERIOR_X(745), y: JY(-156), width: 228, height: 18, label: 'invisible upper right platform at the Mummification Chamber exterior', secret: true, invisible: true },
+  { id: 'mummification-chamber-doorway-floor', x: MUMMIFICATION_EXTERIOR_X(708), y: JY(-222), width: 228, height: 18, label: 'invisible high doorway floor at the Mummification Chamber entrance', secret: true, invisible: true },
+  { id: 'mummification-chamber-upper-left-platform', x: MUMMIFICATION_EXTERIOR_X(659), y: JY(-255), width: 238, height: 18, label: 'invisible upper left platform at the Mummification Chamber exterior', secret: true, invisible: true },
   { id: 'mummification-chamber-floor', sceneId: 'mummification-chamber', x: X(520), y: JY(318), width: X(240), height: 18, label: 'invisible full Mummification Chamber floor', secret: true, invisible: true },
+  // --- Ravine Bridge encounter: narrow elevated stone bridge across a scorpion ravine, the
+  // first major environmental combat beat before the Mummification Chamber. The bridge deck
+  // (variant 'lost-bridge', y JY(130)=365) floats ~188px above the desert-entry-floor, which
+  // doubles as the recovery ravine. Knock-offs fall to the ground (no challengeFailY = no
+  // rescue) and the player must fight along the ravine and climb back up. Compact clean-zone
+  // layout: the whole encounter stays LEFT of the chamber facade climb (facade ledges begin at
+  // x~4138 / base 563), so falls land cleanly in the ravine over the combat slabs; the far
+  // landing then merges into the facade for arrival. Climb steps exist at both ends. ---
+  { id: 'lost-bridge-approach-step-1', x: X(415), y: JY(272), width: 150, height: 16, variant: 'lost-bridge', label: 'broken sandstone approach step to the ravine bridge' },
+  { id: 'lost-bridge-approach-step-2', x: X(437), y: JY(214), width: 130, height: 16, variant: 'lost-bridge', label: 'cracked sandstone approach step to the ravine bridge' },
+  { id: 'lost-bridge-approach-step-3', x: X(452), y: JY(168), width: 120, height: 16, variant: 'lost-bridge', label: 'upper sandstone approach step to the ravine bridge entrance' },
+  { id: 'lost-bridge-near-landing', x: X(458), y: JY(130), width: 180, height: 16, variant: 'lost-bridge', label: 'ravine bridge near landing with collapsed railings' },
+  { id: 'lost-bridge-slab-1', x: X(490), y: JY(130), width: 150, height: 14, variant: 'lost-bridge', reactive: { type: 'collapsing bridge piece', delay: 1.3, respawn: 3.4, shake: 0.14 }, label: 'unstable ravine bridge slab repaired with timber' },
+  { id: 'lost-bridge-slab-2', x: X(523), y: JY(130), width: 150, height: 14, variant: 'lost-bridge', reactive: { type: 'collapsing bridge piece', delay: 1.2, respawn: 3.4, shake: 0.16 }, label: 'unstable ravine bridge slab over the deepest drop' },
+  { id: 'lost-bridge-far-landing', x: X(556), y: JY(130), width: 170, height: 16, variant: 'lost-bridge', label: 'ravine bridge far landing at the Mummification Chamber threshold' },
+  { id: 'lost-bridge-recovery-step-1', x: X(540), y: JY(272), width: 130, height: 16, variant: 'lost-bridge', label: 'broken ravine recovery step back up to the far landing' },
+  { id: 'lost-bridge-recovery-step-2', x: X(556), y: JY(214), width: 120, height: 16, variant: 'lost-bridge', label: 'upper ravine recovery step back up to the far landing' },
   { id: 'forgotten-mural-lower-masonry', x: SACRED_MURAL_APPROACH_X(1048), y: JY(276), width: 230, height: 18, label: 'invisible collapsed ceremonial masonry step over generated mural structure', secret: true, invisible: true },
   { id: 'forgotten-mural-carved-wall-ledge', x: SACRED_MURAL_APPROACH_X(1080), y: JY(218), width: 230, height: 18, label: 'invisible carved wall ledge in hidden priest passage art', secret: true, invisible: true },
   { id: 'forgotten-mural-broken-warning-step', x: SACRED_MURAL_APPROACH_X(1113), y: JY(160), width: 240, height: 18, label: 'invisible broken warning-stone ledge over generated mural structure', secret: true, invisible: true },
@@ -193,6 +211,8 @@ export const HAZARDS = [
   { id: 'opening-seal-reset-trap', name: 'buried spike trap', emoji: '!', x: X(250), y: JY(340), width: 87, height: 16, penalty: { stamina: 8 }, message: 'Buried spikes jabbed out of the sand. Jump cleanly over them.' },
   { id: 'entry-pressure-plate', name: 'pressure plate dart launcher', emoji: '!', type: 'dart-launcher', x: X(735), y: JY(326), width: 126, height: 34, triggerArea: { x: 0, y: 0, width: 126, height: 34 }, damage: 8, reset: true, cooldown: 1.6, depth: 'midground', direction: 'right', launcherX: X(690), launcherY: JY(254), penalty: { stamina: 8, time: 3 }, message: 'A carved pressure plate shuddered. A wall dart snapped from a hidden launcher.' },
   { id: 'entry-cracked-floor-trap', name: 'cracked collapsing floor', emoji: '!', type: 'collapsing-stone-floor', x: X(900), y: JY(328), width: 104, height: 32, triggerArea: { x: 0, y: -4, width: 104, height: 36 }, damage: 9, reset: false, cooldown: 0.9, depth: 'grounded', penalty: { stamina: 9 }, message: 'Cracked floor stones shook, then gave way underfoot.' },
+  { id: 'lost-bridge-ravine-spikes', name: 'ravine spikes', emoji: '!', x: X(495), y: JY(340), width: 92, height: 16, penalty: { stamina: 10 }, message: 'Jagged ravine spikes bit at the team on the bridge floor.' },
+  { id: 'lost-bridge-ravine-sand', name: 'soft ravine sand', emoji: '!', x: X(540), y: JY(330), width: 84, height: 30, penalty: { time: 5 }, message: 'Soft ravine sand slowed the climb back up to the bridge.' },
   { id: 'sand-pit', name: 'hidden sand pit', emoji: '!', type: 'hidden-sand-pit', x: X(1060), y: JY(328), width: 132, height: 32, triggerArea: { x: 6, y: -2, width: 120, height: 34 }, damage: 7, reset: false, cooldown: 1.2, depth: 'grounded', linkedObjectIds: ['opening-lower-passage-hint'], penalty: { time: 9 }, message: 'The disturbed sand gave way beneath Asha.' },
   { id: 'spike-trap', name: 'temple trap', emoji: 'ðŸ§±', x: X(2910), y: JY(330), width: 70, height: 30, penalty: { stamina: 12 }, message: 'A temple trap clipped your route. Endurance reduced.' },
   { id: 'temple-loose-step', name: 'loose stone step', emoji: '!', x: X(2575), y: JY(330), width: 62, height: 30, penalty: { stamina: 5 }, message: 'A loose stone shifted underfoot.' },
@@ -225,7 +245,7 @@ export const HAZARD_PURPOSES = {
   'buried-spike-floor': {
     purpose: 'Visible floor trap that teaches jump timing and punishes careless movement without resetting the run.',
     placementRule: 'Embed the spike base in the ground plane; spikes should rise from sand or stone, never float above it.',
-    hazardIds: ['opening-seal-reset-trap', 'spike-trap'],
+    hazardIds: ['opening-seal-reset-trap', 'spike-trap', 'lost-bridge-ravine-spikes'],
   },
   'pressure-and-seal-trigger': {
     purpose: 'Readable threshold trap used near protected seals to show the site is testing entry.',
@@ -240,7 +260,7 @@ export const HAZARD_PURPOSES = {
   'soft-ground': {
     purpose: 'Slows movement through sand pockets and ridges without looking like a mechanical trap.',
     placementRule: 'Draw as shallow sand depressions blended into the floor.',
-    hazardIds: ['desert-low-ridge', 'sand-pit', 'desert-soft-ridge', 'sandfall-soft-pit'],
+    hazardIds: ['desert-low-ridge', 'sand-pit', 'desert-soft-ridge', 'sandfall-soft-pit', 'lost-bridge-ravine-sand'],
   },
   'loose-rubble': {
     purpose: 'Marks unstable ruins, tumbling stones, and collapsed route edges.',
@@ -284,6 +304,15 @@ export const ENEMIES = [
   { id: 'sand-wisp-arena-1', name: 'Sand Wisp', type: 'sand-wisp', emoji: 'W', x: X(545), y: JY(300), width: 32, height: 30, patrolMin: X(510), patrolMax: X(580), speed: 70, health: 2, damage: 5, openingRouteRamp: true, initialAttackCooldown: 2.2, attackPatternTuning: { windup: 0.56, cooldown: 1.7, recovery: 0.66, vulnerableAfter: 0.72, speed: 122, range: 34 }, shards: 2, flying: true, encounterRole: 'nest arena pressure', pressureHint: 'A sand wisp harries you while the nest spits scorpions.' },
   { id: 'scarab-arena-1', name: 'Scarab', type: 'scarab', emoji: 'B', x: X(455), y: JY(334), width: 34, height: 26, patrolMin: X(425), patrolMax: X(490), speed: 76, health: 2, damage: 6, openingRouteRamp: true, initialAttackCooldown: 1.9, shards: 2, encounterRole: 'nest arena pressure' },
   { id: 'scarab-scout-1', name: 'Scarab Scout', type: 'scarab', emoji: 'ðŸž', x: X(705), y: JY(334), width: 34, height: 26, patrolMin: X(680), patrolMax: X(760), speed: 74, health: 1, damage: 5, openingRouteRamp: true, firstSealRouteRamp: true, shards: 2, encounterRole: 'basic timing scout', combatRole: 'basic timing enemy', protectsRouteId: 'temple-approach-seal', pressureHint: 'Anubis\'s scout patrols the temple approach. The seal will not open while it remains.', attackPatternTuning: { label: 'Scout Charge', windup: 0.72, duration: 0.24, cooldown: 1.72, recovery: 0.82, vulnerableAfter: 0.9, speed: 138, range: 34 } },
+  // --- Ravine Bridge encounter enemies. Bridge deck (y JY(104)/JY(100), fixed-Y patrol so
+  // they hold the walkway over the gaps) pressures the crossing; ravine-floor scorpions are the
+  // recovery-route fight if the player is knocked off. Bridge scarabs carry a high
+  // playerKnockbackMultiplier so a charge can shove the player off the deck. ---
+  { id: 'scarab-bridge-1', name: 'Bridge Scarab', type: 'scarab', emoji: 'B', x: X(475), y: JY(104), width: 36, height: 26, patrolMin: X(462), patrolMax: X(520), speed: 92, health: 2, damage: 8, openingRouteRamp: true, initialAttackCooldown: 1.6, shards: 3, playerKnockbackMultiplier: 2.6, encounterRole: 'ravine bridge charger', pressureHint: 'A scarab charges the narrow bridge. Dodge behind it - a face-on charge can shove you into the ravine.' },
+  { id: 'scorpion-bridge-1', name: 'Bridge Scorpion', type: 'scorpion', emoji: 'S', x: X(508), y: JY(100), width: 46, height: 30, patrolMin: X(496), patrolMax: X(548), speed: 56, health: 2, damage: 8, openingRouteRamp: true, attackPatternTuning: { windup: 0.66, duration: 0.34, cooldown: 1.74, recovery: 0.7, vulnerableAfter: 0.78, speed: 46, range: 28, height: 62, yOffset: -38, backReach: 42, damageScale: 1.4 }, shards: 3, encounterRole: 'ravine bridge venom', pressureHint: 'Its venom slows you on the bridge - a scarab charge right after can knock you off.' },
+  { id: 'scarab-bridge-2', name: 'Bridge Scarab', type: 'scarab', emoji: 'B', x: X(540), y: JY(104), width: 36, height: 26, patrolMin: X(525), patrolMax: X(565), speed: 94, health: 2, damage: 8, openingRouteRamp: true, initialAttackCooldown: 1.5, shards: 3, playerKnockbackMultiplier: 2.6, encounterRole: 'ravine bridge charger', pressureHint: 'A second scarab guards the far slabs. Clear the bridge methodically instead of rushing.' },
+  { id: 'scorpion-ravine-1', name: 'Ravine Scorpion', type: 'scorpion', emoji: 'S', x: X(478), y: JY(330), width: 46, height: 30, patrolMin: X(458), patrolMax: X(540), speed: 60, health: 2, damage: 8, openingRouteRamp: true, attackPatternTuning: { windup: 0.64, duration: 0.32, cooldown: 1.72, recovery: 0.68, vulnerableAfter: 0.76, speed: 46, range: 28, height: 62, yOffset: -38, backReach: 42, damageScale: 1.4 }, shards: 2, encounterRole: 'ravine bridge recovery', pressureHint: 'The ravine floor beneath the bridge is infested. Fight clear and climb back up.' },
+  { id: 'scorpion-ravine-2', name: 'Ravine Scorpion', type: 'scorpion', emoji: 'S', x: X(528), y: JY(330), width: 46, height: 30, patrolMin: X(512), patrolMax: X(560), speed: 58, health: 2, damage: 8, openingRouteRamp: true, attackPatternTuning: { windup: 0.66, duration: 0.34, cooldown: 1.74, recovery: 0.7, vulnerableAfter: 0.78, speed: 46, range: 28, height: 62, yOffset: -38, backReach: 42, damageScale: 1.4 }, shards: 2, encounterRole: 'ravine bridge recovery', pressureHint: 'A second ravine scorpion guards the far recovery climb.' },
   // --- Light pressure across the stretched mummification -> mural walk (kept within the gentle opening budget) ---
   { id: 'scorpion-mural-approach-1', name: 'Sand Scorpion', type: 'scorpion', emoji: 'S', x: X(885), y: JY(328), width: 46, height: 30, patrolMin: X(845), patrolMax: X(945), speed: 56, health: 2, damage: 7, openingRouteRamp: true, initialAttackCooldown: 1.9, attackPatternTuning: { windup: 0.66, duration: 0.34, cooldown: 1.74, recovery: 0.7, vulnerableAfter: 0.78, speed: 46, range: 28, height: 62, yOffset: -38, backReach: 42, damageScale: 1.4 }, shards: 2, encounterRole: 'approach pressure', pressureHint: 'A scorpion works the open sand between the chambers.' },
   { id: 'sand-wisp-mural-1', name: 'Sand Wisp', type: 'sand-wisp', emoji: 'W', x: X(985), y: JY(300), width: 32, height: 30, patrolMin: X(945), patrolMax: X(1040), speed: 72, health: 2, damage: 6, openingRouteRamp: true, initialAttackCooldown: 2.1, flying: true, attackPatternTuning: { windup: 0.56, cooldown: 1.7, recovery: 0.66, vulnerableAfter: 0.72, speed: 124, range: 34 }, shards: 2, encounterRole: 'upper-route pressure', pressureHint: 'A wisp drifts the upper line over the mural approach.' },
@@ -397,6 +426,7 @@ export const UPGRADES = [
 
 export const CHECKPOINTS = [
   { id: 'desert-entry', name: 'Desert Entry', x: X(80), markerX: X(24), y: JY(282) },
+  { id: 'mummification-bridge', name: 'Ravine Bridge', x: X(410), y: JY(282) },
   { id: 'desert-survey-marker', name: 'Desert Survey Checkpoint', x: X(930), y: JY(282) },
   { id: 'ruined-temple', name: 'Ruined Temple', x: X(2420), y: JY(282) },
   { id: 'catacombs', name: 'Catacombs', x: X(4080), y: JY(282) },
@@ -1165,7 +1195,7 @@ export const STORY_PROPS = [
     id: 'mummification-chamber-exterior-structure',
     sectionId: 'desert-entry',
     type: 'generated-mummification-chamber-entrance',
-    x: X(685),
+    x: MUMMIFICATION_EXTERIOR_X(685),
     y: JY(-400),
     width: 1500,
     height: 760,
@@ -1799,6 +1829,8 @@ export const ENVIRONMENT_EVENTS = [
   { id: 'air-wrongness', sectionId: 'desert-entry', x: X(800), type: 'air-wrongness' },
   { id: 'scarab-queen-lair-dread-wind', sectionId: 'desert-entry', x: X(1953), name: 'Lair Wind', message: 'A low wind pulls sand toward something buried ahead.', type: 'dust-gust', duration: 4.2, shake: 0.18, dynamic: true, card: false },
   { id: 'desert-birds-scatter', sectionId: 'desert-entry', x: X(2075), name: 'Birds Scatter', message: 'Birds scatter from the far ruins.', type: 'birds-scatter', duration: 2.4, shake: 0.08, dynamic: true, card: false },
+  { id: 'lost-bridge-warning', sectionId: 'desert-entry', x: X(410), name: 'Ravine Bridge', message: 'A narrow bridge spans a deep scorpion ravine. Clear it, or be knocked into the dark.', type: 'collapse', duration: 2.8, shake: 0.2, sfxKey: 'bridgeStoneCrack' },
+  { id: 'lost-bridge-chamber-arrival', sectionId: 'desert-entry', x: X(556), name: 'Chamber Reached', message: 'Across the ravine, the Mummification Chamber rises. You crossed to reach it.', type: 'shrine-glow', duration: 3.2, shake: 0.12 },
   { id: 'desert-marker', sectionId: 'desert-entry', x: X(700), name: 'Threshold Marker', message: 'A jackal guardian marks the threshold into the ancient site.', type: 'arrival', duration: 2.2, shake: 0.1 },
   { id: 'opening-sacred-threshold-watch', sectionId: 'desert-entry', x: X(590), name: 'Sacred Threshold', message: 'The guardian watches. Prove you can move with care.', type: 'arrival', duration: 2.1, shake: 0.08, card: false },
   { id: 'anubis-body-judgement', sectionId: 'desert-entry', x: X(884), name: 'Body Judged', message: 'Anubis: You touched the dead carefully. That is not trust.', type: 'shrine-glow', duration: 2.8, shake: 0.08, card: false },

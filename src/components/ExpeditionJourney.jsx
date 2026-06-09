@@ -44,6 +44,8 @@ import {
   PLAYER_HERO_SPRITE_ATLAS_JSON,
   PLAYER_HERO_SPRITE_VERSION,
   PLAYER_LEGACY_SPRITE_SRC,
+  PLAYER_HEIGHT,
+  PLAYER_WIDTH,
   PLAYER_SPRITE_SCALE,
   JOURNEY_VERTICAL_OFFSET,
   sacredMuralExteriorX,
@@ -111,6 +113,7 @@ import {
   parseColorGradeFilter,
   composeColorGradeFilter,
   JOURNEY_PROP_TINT_PRESETS,
+  JOURNEY_PROP_SCENE_BLEND_RECIPE,
   DEFAULT_JOURNEY_PROP_EDITOR_ROTATION_STEP,
   DEFAULT_JOURNEY_PROP_EDITOR_GRID_SIZE,
   DEFAULT_JOURNEY_PROP_EDITOR_SCALE_STEP,
@@ -547,6 +550,91 @@ const OPENING_THRESHOLD_FADE_SECONDS = 1.2;
 const OPENING_THRESHOLD_STAIR_REVEAL_SECONDS = 3.8;
 const OPENING_THRESHOLD_FALL_DELAY_SECONDS = 0.45;
 const OPENING_THRESHOLD_FALL_DURATION_SECONDS = 1.6;
+const ARRIVAL_THRESHOLD_BACKGROUND_SRC = 'assets/expedition/backgrounds/arrival-threshold/arrival-threshold-full-scene-2026-06-08.png';
+const ARRIVAL_THRESHOLD_ASSET_VERSION = 'arrival-threshold-final-art-2026-06-08';
+
+// Ravine Bridge painted art (chroma-keyed cutouts + transparent floor/ravine blend).
+const LOST_BRIDGE_ASSET_VERSION = 'lost-bridge-art-2026-06-09b';
+const LOST_BRIDGE_ASSET_DIR = 'assets/expedition/environment/egypt-opening/lost-bridge/';
+const LOST_BRIDGE_STRUCTURE_SRC = `${LOST_BRIDGE_ASSET_DIR}lost-bridge-structure-cutout-2026-06-08.png`;
+const LOST_BRIDGE_RAVINE_FLOOR_VARIANT_SRCS = {
+  lostBridgeRavineFloor: `${LOST_BRIDGE_ASSET_DIR}lost-bridge-ravine-drop-strip-clean-edge-2026-06-09.png`,
+  lostBridgeRavineFloorWide: `${LOST_BRIDGE_ASSET_DIR}lost-bridge-ravine-test-wide-2026-06-09.png`,
+  lostBridgeRavineFloorDeep: `${LOST_BRIDGE_ASSET_DIR}lost-bridge-ravine-test-deep-2026-06-09.png`,
+  lostBridgeRavineFloorTallWide: `${LOST_BRIDGE_ASSET_DIR}lost-bridge-ravine-test-tall-wide-2026-06-09.png`,
+};
+const LOST_BRIDGE_RAVINE_FLOOR_ASSET_KEYS = new Set(Object.keys(LOST_BRIDGE_RAVINE_FLOOR_VARIANT_SRCS));
+const LOST_BRIDGE_RAVINE_FLOOR_BLEND_SRC = LOST_BRIDGE_RAVINE_FLOOR_VARIANT_SRCS.lostBridgeRavineFloor;
+const LOST_BRIDGE_PIECE_SRCS = {
+  slab: `${LOST_BRIDGE_ASSET_DIR}lost-bridge-deck-slab-cutout-2026-06-08.png`,
+  landing: `${LOST_BRIDGE_ASSET_DIR}lost-bridge-end-landing-cutout-2026-06-08.png`,
+  timber: `${LOST_BRIDGE_ASSET_DIR}lost-bridge-timber-span-cutout-2026-06-08.png`,
+  pillar: `${LOST_BRIDGE_ASSET_DIR}lost-bridge-pillar-span-cutout-2026-06-08.png`,
+};
+// Per-piece alignment measured from the source art: horizontal padding fractions and the
+// vertical fraction where the walkable deck surface sits, so the art lines up to the platform rect.
+const LOST_BRIDGE_PIECE_TUNING = {
+  slab: { padL: 0.0119, padR: 0.0119, deckTopFrac: 0.0497 },
+  landing: { padL: 0.0117, padR: 0.0117, deckTopFrac: 0.0473 },
+  timber: { padL: 0.0114, padR: 0.0114, deckTopFrac: 0.055 },
+  pillar: { padL: 0.012, padR: 0.012, deckTopFrac: 0.0475 },
+};
+const LOST_BRIDGE_STRUCTURE_SIDE_PAD = 64;
+const LOST_BRIDGE_STRUCTURE_DECK_TOP_FRAC = 0.34;
+const LOST_BRIDGE_STRUCTURE_DECK_MAX_Y = 390;
+const LOST_BRIDGE_STRUCTURE_DECK_IDS = new Set([
+  'lost-bridge-near-landing',
+  'lost-bridge-slab-1',
+  'lost-bridge-slab-2',
+  'lost-bridge-far-landing',
+]);
+const LOST_BRIDGE_RAVINE_FLOOR_PROP_ID = 'desert-entry-lost-bridge-ravine-floor-1';
+const isLostBridgeRavineFloorProp = (prop = {}) => (
+  prop.id === LOST_BRIDGE_RAVINE_FLOOR_PROP_ID
+  || LOST_BRIDGE_RAVINE_FLOOR_ASSET_KEYS.has(prop.imageAssetKey)
+);
+const LOST_BRIDGE_RAVINE_FALL_DEPTH = 88;
+const LOST_BRIDGE_RAVINE_FALL_SIDE_PAD = 210;
+const LOST_BRIDGE_RAVINE_BLEND_SIDE_PAD = 320;
+const LOST_BRIDGE_RAVINE_BLEND_DECK_FRAC = 0.38;
+const LOST_BRIDGE_RAVINE_BLEND_CLIP_TOP_OFFSET = 8;
+const LOST_BRIDGE_RAVINE_BLEND_CLIP_PAD = 44;
+const isLostBridgeStructureDeckPlatform = (platform = {}) => (
+  platform.variant === 'lost-bridge'
+    && LOST_BRIDGE_STRUCTURE_DECK_IDS.has(platform.id)
+    && Number.isFinite(platform.y)
+    && platform.y <= LOST_BRIDGE_STRUCTURE_DECK_MAX_Y
+    && (platform.zIndex ?? 0) > -50
+);
+const getLostBridgeDeckBounds = (platforms = []) => {
+  const deckPlatforms = platforms.filter(isLostBridgeStructureDeckPlatform);
+  if (deckPlatforms.length === 0) return null;
+  const left = Math.min(...deckPlatforms.map(platform => platform.x));
+  const right = Math.max(...deckPlatforms.map(platform => platform.x + platform.width));
+  const y = Math.min(...deckPlatforms.map(platform => platform.y));
+  return { left, right, y, span: right - left };
+};
+const ARRIVAL_THRESHOLD_SPAWN_X = 440;
+const ARRIVAL_THRESHOLD_LEFT_BOUND = 120;
+const ARRIVAL_THRESHOLD_RIGHT_BOUND = 1120;
+const ARRIVAL_THRESHOLD_LEFT_INSPECT_X = 245;
+const ARRIVAL_THRESHOLD_MARKINGS_INSPECT_X = 880;
+const ARRIVAL_THRESHOLD_FORWARD_GATE_TRIGGER_X = 1040;
+const ARRIVAL_THRESHOLD_OBJECTIVE_LINE = 'Find where the seal brought you.';
+const ARRIVAL_THRESHOLD_LEFT_OBJECTIVE_LINE = 'Look for another path.';
+const ARRIVAL_THRESHOLD_GATE_OBJECTIVE_LINE = 'The way back is gone. Move forward.';
+const ARRIVAL_THRESHOLD_SPAWN_LINE = 'The pyramid... where is it?';
+const ARRIVAL_THRESHOLD_LEFT_LINES = [
+  'I was outside. Wind. Sunlight. Open desert.',
+  "Now there's no horizon. No sound.",
+  'The way back is sealed.',
+];
+const ARRIVAL_THRESHOLD_MARKING_LINES = [
+  "These gates... these aren't part of the site.",
+  'Funerary markings. Passage symbols.',
+  "It's arranged like a journey for the dead.",
+  "But I'm not dead.",
+];
 const OPENING_SPHINX_DURATION = 14;
 const OPENING_SPHINX_EXIT_SECONDS = 2.35;
 const OPENING_SPHINX_ARRIVAL_SECONDS = 1.05;
@@ -1009,14 +1097,15 @@ const getStageEntranceTriggerX = (feature) => {
 const areRouteGateRequirementsMetForState = (gate, current) => {
   if (!gate?.requires) return true;
   const requirements = gate.requires;
+  const enemiesDisabled = Boolean(current?.enemiesDisabled);
   if (requirements.objective && !current.completedObjectiveIds?.has(requirements.objective)) return false;
-  if (requirements.miniBoss && !current.defeatedMiniBosses?.has(requirements.miniBoss)) return false;
+  if (!enemiesDisabled && requirements.miniBoss && !current.defeatedMiniBosses?.has(requirements.miniBoss)) return false;
   if (requirements.keyItem) {
     const collected = current.collectedBossKeyIds?.has(requirements.keyItem)
       || current.bossKeyItems?.some(item => item.id === requirements.keyItem && item.collected);
-    if (!collected) return false;
+    if (!enemiesDisabled && !collected) return false;
   }
-  if (requirements.enemies?.some(enemyId => !current.defeatedEnemies?.has(enemyId))) return false;
+  if (!enemiesDisabled && requirements.enemies?.some(enemyId => !current.defeatedEnemies?.has(enemyId))) return false;
   if (Number.isFinite(requirements.shards) && (current.relicShardCount || 0) < requirements.shards) return false;
   if (requirements.upgrades?.some(upgradeId => !current.permanentUpgradeIds?.has(upgradeId))) return false;
   if (requirements.checkpoint && current.activeCheckpoint?.id !== requirements.checkpoint) return false;
@@ -1104,6 +1193,8 @@ const OPENING_TRAP_DECAL_BY_HAZARD = {
   'sandfall-soft-pit': 'softSandPit',
 };
 const OPENING_HAZARD_DECAL_BY_HAZARD = {
+  'lost-bridge-ravine-spikes': 'spikeTrap',
+  'lost-bridge-ravine-sand': 'softSandPit',
   'thorn-bush': 'thornScrub',
   'dark-gap': 'darkGap',
   'catacomb-small-gap': 'darkGap',
@@ -1155,6 +1246,8 @@ const EGYPT_HAZARD_DECAL_PLACEMENT_BY_HAZARD = {
 const openingJourneyY = (y) => y + JOURNEY_VERTICAL_OFFSET;
 const SACRED_MURAL_APPROACH_X = sacredMuralExteriorX;
 const SACRED_SCRIBE_APPROACH_X = sacredScribeExteriorX;
+const MUMMIFICATION_EXTERIOR_WORLD_OFFSET = scaleJourneyX(70);
+const mummificationExteriorWorldX = (x) => scaleJourneyX(x) + MUMMIFICATION_EXTERIOR_WORLD_OFFSET;
 const MUMMIFICATION_CHAMBER_ENTRY_SPAWN = {
   x: scaleJourneyX(596),
   y: openingJourneyY(318),
@@ -1162,14 +1255,14 @@ const MUMMIFICATION_CHAMBER_ENTRY_SPAWN = {
   direction: 1,
 };
 const MUMMIFICATION_CHAMBER_RETURN_FALLBACK = {
-  x: scaleJourneyX(710),
+  x: mummificationExteriorWorldX(710),
   y: openingJourneyY(-7),
   cameraAnchorRatio: 0.42,
   direction: 1,
 };
 const MUMMIFICATION_CHAMBER_ENTRY_TRIGGER = {
-  minX: scaleJourneyX(652),
-  maxX: scaleJourneyX(692),
+  minX: mummificationExteriorWorldX(652),
+  maxX: mummificationExteriorWorldX(692),
   maxY: GROUND_Y - 50,
   footY: openingJourneyY(-207),
   footTolerance: 36,
@@ -2329,8 +2422,8 @@ const HEAVY_ATTACK_INTERVAL = {
 };
 
 const ENEMY_TYPE_STAKE_MESSAGES = {
-  scarab: 'Scarab charges. Move or jump, then strike.',
-  scorpion: 'Scorpion tails block the path. Defeat them before moving forward.',
+  scarab: 'Scarab face armor blocks frontal hits. Let it charge past, then strike from behind.',
+  scorpion: 'Scorpion venom slows Asha. If a scarab is nearby, its charge gets faster.',
   'sand-wisp': 'Sand wisps tense before they burst. Wait for the opening.',
   snake: 'Snake lunges from mid-range. Watch the coil.',
   bat: 'Beware: Bats swoop across gaps. Watch their movement.',
@@ -2777,6 +2870,29 @@ const ENEMY_TACTICAL_PRESSURE = {
   'river-crab': { windup: 0.94, cooldown: 0.86, speed: 1.1, range: 1.12, recovery: 0.94, vulnerableAfter: 0.92, awareness: 1.5, chase: 1.85 },
   'watchtower-sentry': { windup: 0.88, cooldown: 0.8, speed: 1.16, range: 1.12, recovery: 0.9, vulnerableAfter: 0.88, awareness: 1.54, chase: 1.82, shieldDuringWindup: true },
   'clay-guardian': { windup: 1, cooldown: 0.94, speed: 0.86, range: 1.08, recovery: 1.05, vulnerableAfter: 1.04, awareness: 1.36, chase: 1.48 },
+};
+
+const SCARAB_POISONED_CHARGE_SPEED_MULTIPLIER = 1.28;
+const SCARAB_POISONED_CHARGE_START_BONUS = 110;
+
+const drawScarabFrontalArmorCue = (ctx, enemy, centerX, bodyY, facing, now) => {
+  const pulse = Math.sin(now / 120) * 0.5 + 0.5;
+  const frontX = centerX + facing * enemy.width * 0.36;
+  ctx.save();
+  ctx.globalAlpha = 0.72 + pulse * 0.18;
+  ctx.strokeStyle = 'rgba(250, 204, 21, 0.92)';
+  ctx.fillStyle = 'rgba(180, 83, 9, 0.22)';
+  ctx.lineWidth = 2.4;
+  ctx.beginPath();
+  ctx.ellipse(frontX, bodyY - 4, Math.max(8, enemy.width * 0.2), Math.max(9, enemy.height * 0.32), 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.globalAlpha = 0.4 + pulse * 0.25;
+  ctx.strokeStyle = 'rgba(253, 224, 71, 0.82)';
+  ctx.beginPath();
+  ctx.arc(frontX + facing * 2, bodyY - 4, Math.max(13, enemy.width * 0.29), -Math.PI * 0.48, Math.PI * 0.48);
+  ctx.stroke();
+  ctx.restore();
 };
 
 const ENEMY_HIT_SFX_BY_TYPE = {
@@ -3261,6 +3377,28 @@ const buildJourneyTintGradeFilter = (hex, strength) => {
   return `sepia(${sepia}%) hue-rotate(${hueRot}deg) saturate(${saturate}%)`;
 };
 
+// True-colour "paint" tint. Unlike buildJourneyTintGradeFilter (a photo filter that
+// can only shift existing colours, so vivid/clean targets come out muddy), this
+// multiplies a solid colour onto the sprite — so picking blue gives blue while the
+// art's light/shadow detail is preserved. Works only on image/atlas props (procedural
+// props draw their own colours and ignore it). Done in an offscreen buffer so the
+// multiply is clipped to the sprite's silhouette and never bleeds onto the scene.
+let journeyPaintTintBuffer = null;
+const getJourneyPaintTintBuffer = (width, height) => {
+  if (typeof document === 'undefined') return null;
+  if (!journeyPaintTintBuffer) {
+    journeyPaintTintBuffer = document.createElement('canvas');
+  }
+  const buf = journeyPaintTintBuffer;
+  if (buf.width < width || buf.height < height) {
+    buf.width = Math.max(buf.width, width);
+    buf.height = Math.max(buf.height, height);
+  }
+  const ctx = buf.getContext('2d');
+  if (!ctx) return null;
+  return { canvas: buf, ctx };
+};
+
 // Filter the (77-item) prop palette by a free-text query, matching label, key, or asset key.
 const filterJourneyPaletteBySearch = (items = [], query = '') => {
   const q = String(query || '').trim().toLowerCase();
@@ -3348,6 +3486,41 @@ const getStoryPropEditorBounds = (prop, cameraX, current) => {
     height: trimmedHeight,
     depth: propDepth,
   };
+};
+
+const getScaledDetailContactLayer = (prop = {}, detailSize = {}) => {
+  const baseWidth = Math.max(1, Number(prop.width) || Number(detailSize.width) || 1);
+  const baseHeight = Math.max(1, Number(prop.height) || Number(detailSize.height) || 1);
+  const widthRatio = Math.max(0.01, (Number(detailSize.width) || baseWidth) / baseWidth);
+  const heightRatio = Math.max(0.01, (Number(detailSize.height) || baseHeight) / baseHeight);
+  return (prop.groundContactLayer || []).map(entry => ({
+    ...entry,
+    widthRatio: Number.isFinite(entry.widthRatio) ? entry.widthRatio * widthRatio : widthRatio,
+    height: Number.isFinite(entry.height) ? entry.height * heightRatio : detailSize.height,
+    yOffset: Number.isFinite(entry.yOffset) ? entry.yOffset * heightRatio : -detailSize.height,
+  }));
+};
+
+// On-canvas transform handles for the selected story prop. Corner squares scale the
+// prop (uniform, since the renderer fits art aspect-locked); the knob above the box
+// rotates it. Sizes shared between the draw + hit-test so the visuals match the clicks.
+const PROP_EDITOR_HANDLE_DRAW_SIZE = 9; // side length of the filled corner square
+const PROP_EDITOR_HANDLE_HIT = 11;      // forgiving half hit radius
+const PROP_EDITOR_ROTATE_OFFSET = 26;   // px above the box for the rotate knob
+const hitTestPropTransformHandle = (px, py, bounds) => {
+  const corners = [
+    ['nw', bounds.x, bounds.y],
+    ['ne', bounds.x + bounds.width, bounds.y],
+    ['sw', bounds.x, bounds.y + bounds.height],
+    ['se', bounds.x + bounds.width, bounds.y + bounds.height],
+  ];
+  for (const [name, hx, hy] of corners) {
+    if (Math.abs(px - hx) <= PROP_EDITOR_HANDLE_HIT && Math.abs(py - hy) <= PROP_EDITOR_HANDLE_HIT) return name;
+  }
+  const cx = bounds.x + bounds.width / 2;
+  const rotY = bounds.y - PROP_EDITOR_ROTATE_OFFSET;
+  if (Math.hypot(px - cx, py - rotY) <= PROP_EDITOR_HANDLE_HIT) return 'rotate';
+  return null;
 };
 
 const finiteNumber = (value, fallback) => (Number.isFinite(value) ? value : fallback);
@@ -3476,6 +3649,14 @@ const getCameraFollowTarget = (current) => {
       mode: 'opening-threshold',
       focusTarget: Math.round(current.openingThresholdScene.focusX || playerCenterX),
       targetCameraX: clampCameraX((current.openingThresholdScene.focusX || playerCenterX) - CANVAS_WIDTH * 0.54),
+    };
+  }
+
+  if (current.arrivalThresholdActive) {
+    return {
+      mode: 'arrival-threshold',
+      focusTarget: Math.round(playerCenterX),
+      targetCameraX: clampCameraX(playerCenterX - CANVAS_WIDTH * 0.5),
     };
   }
 
@@ -3662,6 +3843,7 @@ export default function ExpeditionJourney({
     miniBossEdits: {},
     scorpionNestEdits: {},
     lockedItems: new Set(),
+    hiddenIds: new Set(),
     defaultLocksApplied: false,
     deletedIds: new Set(),
     deletedPlatformIds: new Set(),
@@ -3670,6 +3852,7 @@ export default function ExpeditionJourney({
     aiInstructions: '',
     exportVisible: false,
     savedAt: null,
+    writeStatus: null,
   });
   const propEditorPersistTimeoutRef = useRef(null);
   const editorUndoStackRef = useRef([]);
@@ -3707,6 +3890,7 @@ export default function ExpeditionJourney({
     exportVisible: false,
     savedAt: null,
   });
+  const [outlinerOpen, setOutlinerOpen] = useState(true);
   const canvasRef = useRef(null);
   const stateRef = useRef(gameState);
   const keysRef = useRef({});
@@ -3750,8 +3934,16 @@ export default function ExpeditionJourney({
   const scarabQueenLairOpeningImageRef = useRef({ image: null, loaded: false, failed: false });
   const scorpionNestRef = useRef({ image: null, loaded: false, failed: false, version: SCORPION_NEST_VERSION });
   const openingSphinxApparitionRef = useRef({ image: null, loaded: false, failed: false });
+  const arrivalThresholdBackgroundRef = useRef({ image: null, loaded: false, failed: false, version: ARRIVAL_THRESHOLD_ASSET_VERSION });
+  const lostBridgeAssetsRef = useRef({ images: {}, structure: null, floorBlend: null, floorBlends: {} });
   const openingPyramidClimbPackRef = useRef({ image: null, loaded: false, failed: false });
   const openingPyramidFacadeRef = useRef({ image: null, loaded: false, failed: false });
+  // Generic lazy loader/cache for standalone image props (keyed by assetPath).
+  // Any story prop carrying { imageAssetKey, assetPath } renders through this without
+  // needing a dedicated ref + loader effect. The RAF render loop picks up the image
+  // on the first frame after it decodes.
+  // (Plain object cache keyed by assetPath — `Map` is shadowed in this module scope.)
+  const standaloneImagePropCacheRef = useRef({});
   const routeGateFrontRef = useRef({ image: null, loaded: false, failed: false, version: ROUTE_GATE_ASSET_VERSION });
   const routeGateBackRef = useRef({ image: null, loaded: false, failed: false, version: ROUTE_GATE_ASSET_VERSION });
   const routeGateSlabRef = useRef({ image: null, loaded: false, failed: false, version: ROUTE_GATE_ASSET_VERSION });
@@ -3781,6 +3973,49 @@ export default function ExpeditionJourney({
       }
       : null);
   }, []);
+
+  const toggleEnemyPlaytestAssist = useCallback(() => {
+    const current = stateRef.current;
+    const nextEnemiesDisabled = !current.enemiesDisabled;
+    current.enemiesDisabled = nextEnemiesDisabled;
+    current.attackHitIds?.clear?.();
+    if (nextEnemiesDisabled) {
+      current.enemyCooldown = 0;
+      current.bossIntro = null;
+      current.bossIntroTimer = 0;
+      current.bossIntroPauseTimer = 0;
+      current.bossDomain = null;
+      current.cameraMode = 'follow';
+      current.cameraFocusTarget = null;
+      current.pendingGuardianChallenge = null;
+      current.enemies?.forEach(enemy => {
+        enemy.attackWindup = 0;
+        enemy.attackTimer = 0;
+        enemy.attackReady = false;
+        enemy.attackRecovery = 0;
+        enemy.vulnerabilityTimer = 0;
+        enemy.shieldTimer = 0;
+        enemy.knockbackTimer = 0;
+        enemy.aggroMemoryTimer = 0;
+        enemy.spawnTimer = enemy.spawnInitialDelay ?? enemy.spawnTimer ?? 0.9;
+      });
+      current.miniBosses?.forEach(boss => {
+        boss.attackWindup = 0;
+        boss.attackTimer = 0;
+        boss.attackReady = false;
+        boss.attackRecovery = 0;
+        boss.vulnerabilityTimer = 0;
+        boss.shieldTimer = 0;
+        boss.knockbackTimer = 0;
+        boss.aggroMemoryTimer = 0;
+      });
+      current.notice = 'Enemies disabled for play-testing.';
+    } else {
+      current.notice = 'Enemies enabled.';
+    }
+    current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 1.4);
+    syncHud();
+  }, [syncHud]);
 
   const getActivePropEditorRoomId = useCallback((current = stateRef.current) => {
     const sceneId = getJourneySceneId(current);
@@ -3831,6 +4066,26 @@ export default function ExpeditionJourney({
       .map(prop => getEditedStoryProp(prop))
       .filter(prop => prop && isEntityActiveInScene(prop, current))
   ), [getAllPropEditorStoryProps, getEditedStoryProp]);
+
+  const getLostBridgeRavineFloorPlacement = useCallback((current = stateRef.current) => {
+    const ravineProps = getRenderableStoryProps(current).filter(isLostBridgeRavineFloorProp);
+    if (ravineProps.length === 0) return null;
+    const selectedId = propPlacementEditorRef.current?.selectedPropId;
+    const prop = ravineProps.find(item => item.id === selectedId) || ravineProps[ravineProps.length - 1];
+    if (!prop) return null;
+    const propDepth = getStoryPropDepth(prop);
+    const propSize = getStoryPropEditorSize(prop);
+    const shouldGroundLock = shouldGroundLockAtmosphereProp(prop, propDepth);
+    const propGrounding = resolvePropGroundingSettings({ ...propSize, x: prop.x });
+    const anchorY = getStoryPropAnchorY(prop, propSize, shouldGroundLock);
+    return {
+      prop,
+      drawWorldLeft: prop.x - propSize.width / 2,
+      drawY: anchorY - propSize.height * propGrounding.contactRatio,
+      width: propSize.width,
+      height: propSize.height,
+    };
+  }, [getRenderableStoryProps]);
 
   // Draw order within each depth pass: lower zIndex first (behind), higher last
   // (on top). Original array order is the stable tie-breaker for equal zIndex.
@@ -4063,7 +4318,7 @@ export default function ExpeditionJourney({
       const id = platform?.id || platform?.label;
       if (id) editor.lockedItems.add(`platform:${id}`);
     });
-    getRenderableHazards(current).forEach((hazard) => {
+    if (!current.arrivalThresholdActive) getRenderableHazards(current).forEach((hazard) => {
       if (hazard?.id) editor.lockedItems.add(`hazard:${hazard.id}`);
     });
     getRenderableRouteGateDoorways().forEach((doorway) => {
@@ -4492,6 +4747,37 @@ export default function ExpeditionJourney({
       : nest
         ? `nest:${nest.id}`
       : null;
+    // Scene Outliner: every prop in the active room, grouped by depth band and sorted
+    // by z within the band — the same ordering the renderer and z-order buttons use.
+    const outlinerRoomId = getActivePropEditorRoomId(current);
+    const outlinerProps = getRenderableStoryProps(current)
+      .filter(item => item?.id && getJourneyPropRoomId(item, getJourneySceneId(current), current.currentSectionId) === outlinerRoomId)
+      .map(item => ({
+        id: item.id,
+        label: item.label || item.name || item.id,
+        depth: getStoryPropDepth(item),
+        zIndex: Number.isFinite(item.zIndex) ? item.zIndex : 0,
+        x: Math.round(Number(item.x) || 0),
+        locked: editor.lockedItems.has(`prop:${item.id}`),
+        hidden: editor.hiddenIds.has(item.id),
+        selected: editor.selectedPropId === item.id,
+      }));
+    const outlinerGroups = Object.entries(outlinerProps.reduce((groups, item) => {
+      (groups[item.depth] ||= []).push(item);
+      return groups;
+    }, {}))
+      .map(([depth, items]) => ({
+        depth,
+        order: STORY_PROP_DEPTH_ORDER[depth] ?? 99,
+        items: items.sort((a, b) => (a.zIndex - b.zIndex) || (a.x - b.x)),
+      }))
+      .sort((a, b) => a.order - b.order);
+    const sceneOutliner = {
+      roomId: outlinerRoomId,
+      groups: outlinerGroups,
+      total: outlinerProps.length,
+      hiddenCount: editor.hiddenIds.size,
+    };
     return {
       enabled: editor.enabled,
       selectedProp: prop ? {
@@ -4518,6 +4804,8 @@ export default function ExpeditionJourney({
         colorGradeFilter: typeof prop.colorGradeFilter === 'string' ? prop.colorGradeFilter : '',
         tintColor: typeof prop.tintColor === 'string' && prop.tintColor ? prop.tintColor : '#b88a4a',
         tintStrength: Number.isFinite(prop.tintStrength) ? prop.tintStrength : 0,
+        paintColor: typeof prop.paintColor === 'string' && prop.paintColor ? prop.paintColor : '#7c5a32',
+        paintStrength: Number.isFinite(prop.paintStrength) ? prop.paintStrength : 0,
         depth: getStoryPropDepth(prop),
         layer: prop.layer || 'default',
         zIndex: Number.isFinite(prop.zIndex) ? prop.zIndex : 'auto',
@@ -4633,10 +4921,12 @@ export default function ExpeditionJourney({
       aiInstructions: editor.aiInstructions,
       exportVisible: editor.exportVisible,
       savedAt: editor.savedAt,
+      writeStatus: editor.writeStatus,
+      sceneOutliner,
       canUndo: editorUndoStackRef.current.length > 0,
       canRedo: editorRedoStackRef.current.length > 0,
     };
-  }, [getActivePropEditorRoomId, getHazardEditorRoomId, getPlatformEditorRoomId, getPropEditorSelectedArch, getPropEditorSelectedCheckpoint, getPropEditorSelectedHazard, getPropEditorSelectedLair, getPropEditorSelectedNest, getEditedNestParams, getPropEditorSelectedPlatform, getPropEditorSelectedProp, getPropPalettePreview, getScarabQueenLairPlacement, foregroundDetailsEditorPalette, groundDetailsEditorPalette, platformEditorPalette, propEditorPalette, trapEditorPalette]);
+  }, [getActivePropEditorRoomId, getHazardEditorRoomId, getPlatformEditorRoomId, getPropEditorSelectedArch, getPropEditorSelectedCheckpoint, getPropEditorSelectedHazard, getPropEditorSelectedLair, getPropEditorSelectedNest, getEditedNestParams, getPropEditorSelectedPlatform, getPropEditorSelectedProp, getPropPalettePreview, getRenderableStoryProps, getScarabQueenLairPlacement, foregroundDetailsEditorPalette, groundDetailsEditorPalette, platformEditorPalette, propEditorPalette, trapEditorPalette]);
 
   const persistPropEditorState = useCallback(() => {
     if (!import.meta.env.DEV || typeof window === 'undefined') return;
@@ -4897,6 +5187,55 @@ export default function ExpeditionJourney({
     refreshPropEditorUi();
   }, [getSelectedEditorLockKey, refreshPropEditorUi]);
 
+  // --- Scene Outliner: select / hide / lock a prop straight from the layer list,
+  // including props that are currently off-screen or buried behind others. ---
+  const selectEditorPropFromOutliner = useCallback((propId) => {
+    const editor = propPlacementEditorRef.current;
+    const current = stateRef.current;
+    editor.selectedPropId = propId;
+    editor.selectedPlatformId = null;
+    editor.selectedHazardId = null;
+    editor.selectedArchId = null;
+    editor.selectedCheckpointId = null;
+    editor.selectedLairId = null;
+    editor.selectedNestId = null;
+    editor.dragging = null;
+    // Recenter the camera so picking an off-screen prop brings it into view.
+    const prop = getRenderableStoryProps(current).find(item => item.id === propId);
+    if (prop && Number.isFinite(prop.x)) {
+      const nextCameraX = clampCameraX(prop.x - CANVAS_WIDTH / 2);
+      current.cameraX = nextCameraX;
+      current.targetCameraX = nextCameraX;
+    }
+    refreshPropEditorUi();
+  }, [getRenderableStoryProps, refreshPropEditorUi]);
+
+  const toggleEditorPropHidden = useCallback((propId) => {
+    const editor = propPlacementEditorRef.current;
+    if (editor.hiddenIds.has(propId)) editor.hiddenIds.delete(propId);
+    else editor.hiddenIds.add(propId);
+    refreshPropEditorUi();
+  }, [refreshPropEditorUi]);
+
+  const showAllEditorProps = useCallback(() => {
+    const editor = propPlacementEditorRef.current;
+    if (!editor.hiddenIds.size) return;
+    editor.hiddenIds.clear();
+    refreshPropEditorUi();
+  }, [refreshPropEditorUi]);
+
+  const toggleEditorPropLockFromOutliner = useCallback((propId) => {
+    const editor = propPlacementEditorRef.current;
+    const key = `prop:${propId}`;
+    if (editor.lockedItems.has(key)) {
+      editor.lockedItems.delete(key);
+    } else {
+      editor.lockedItems.add(key);
+      if (editor.selectedPropId === propId) editor.dragging = null;
+    }
+    refreshPropEditorUi();
+  }, [refreshPropEditorUi]);
+
   const getPropEditorPointer = useCallback((event) => {
     const canvas = canvasRef.current;
     if (!canvas) return null;
@@ -5110,6 +5449,46 @@ export default function ExpeditionJourney({
     refreshPropEditorUi();
   }, [getActivePropEditorRoomId, getAllPropEditorHazards, getAllPropEditorPlatforms, getAllPropEditorStoryProps, getEditedHazard, getEditedMiniBoss, getEditedNestParams, getEditedPlatform, getEditedStoryProp, getHazardEditorBaseHazardById, getHazardEditorRoomId, getPlatformEditorBasePlatformById, getPlatformEditorRoomId, getPropEditorBasePropById, getRenderableCheckpoints, getRenderableRouteGateDoorways, getRenderableRouteGates, getRenderableScorpionNests, refreshPropEditorUi, targetCivilisation]);
 
+  // Closes the save loop: build the same per-room export, then POST it to the DEV-only
+  // Vite endpoint that rewrites journeyPlacementOverrides.generated.js in place — no more
+  // copy-JSON-then-run-npm step. No-op outside `npm run dev`.
+  const writeJourneyOverridesToSource = useCallback(async () => {
+    if (!import.meta.env.DEV) return;
+    const editor = propPlacementEditorRef.current;
+    savePropPlacementExport();
+    const payload = editor.exportText;
+    editor.writeStatus = { state: 'writing', message: 'Writing to source…' };
+    refreshPropEditorUi();
+    try {
+      const response = await fetch('/__journey/write-overrides', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: payload,
+      });
+      const result = await response.json().catch(() => ({}));
+      if (response.ok && result.ok) {
+        editor.writeStatus = {
+          state: 'ok',
+          message: `Saved to source · ${result.props ?? 0} prop(s)`,
+          at: new Date().toLocaleTimeString(),
+        };
+      } else {
+        editor.writeStatus = {
+          state: 'error',
+          message: result.error || `Write failed (HTTP ${response.status})`,
+          at: new Date().toLocaleTimeString(),
+        };
+      }
+    } catch (error) {
+      editor.writeStatus = {
+        state: 'error',
+        message: `Write failed: ${error.message}`,
+        at: new Date().toLocaleTimeString(),
+      };
+    }
+    refreshPropEditorUi();
+  }, [refreshPropEditorUi, savePropPlacementExport]);
+
   const deleteSelectedPropFromEditor = useCallback(() => {
     const editor = propPlacementEditorRef.current;
     if (isEditorLockKeyLocked(getSelectedEditorLockKey())) {
@@ -5235,6 +5614,8 @@ export default function ExpeditionJourney({
       brightness: Number.isFinite(selectedProp.brightness) ? selectedProp.brightness : 1,
       tintColor: typeof selectedProp.tintColor === 'string' ? selectedProp.tintColor : '',
       tintStrength: Number.isFinite(selectedProp.tintStrength) ? selectedProp.tintStrength : 0,
+      paintColor: typeof selectedProp.paintColor === 'string' ? selectedProp.paintColor : '',
+      paintStrength: Number.isFinite(selectedProp.paintStrength) ? selectedProp.paintStrength : 0,
     };
     refreshPropEditorUi();
   }, [getPropEditorSelectedProp, refreshPropEditorUi]);
@@ -5247,7 +5628,15 @@ export default function ExpeditionJourney({
       brightness: look.brightness,
       ...(typeof look.tintColor === 'string' && look.tintColor ? { tintColor: look.tintColor } : {}),
       tintStrength: Number.isFinite(look.tintStrength) ? look.tintStrength : 0,
+      ...(typeof look.paintColor === 'string' && look.paintColor ? { paintColor: look.paintColor } : {}),
+      paintStrength: Number.isFinite(look.paintStrength) ? look.paintStrength : 0,
     });
+  }, [updateSelectedPropEditorTransform]);
+
+  // One-click golden-hour blend: applies the desaturate/warm/dim recipe + a soft
+  // grounding shadow so a "pasted-looking" prop settles into the desert scene.
+  const blendSelectedPropIntoScene = useCallback(() => {
+    updateSelectedPropEditorTransform({ ...JOURNEY_PROP_SCENE_BLEND_RECIPE });
   }, [updateSelectedPropEditorTransform]);
 
   const updateSelectedPropEditorField = useCallback((field, value) => {
@@ -5546,6 +5935,62 @@ export default function ExpeditionJourney({
     return () => {
       cancelled = true;
     };
+  }, [syncHud]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const image = new Image();
+    image.onload = () => {
+      if (cancelled) return;
+      arrivalThresholdBackgroundRef.current = {
+        image,
+        loaded: true,
+        failed: false,
+        version: ARRIVAL_THRESHOLD_ASSET_VERSION,
+      };
+      syncHud();
+    };
+    image.onerror = () => {
+      if (cancelled) return;
+      arrivalThresholdBackgroundRef.current = {
+        image: null,
+        loaded: false,
+        failed: true,
+        version: ARRIVAL_THRESHOLD_ASSET_VERSION,
+      };
+    };
+    image.src = `${import.meta.env.BASE_URL}${ARRIVAL_THRESHOLD_BACKGROUND_SRC}?v=${ARRIVAL_THRESHOLD_ASSET_VERSION}`;
+    return () => {
+      cancelled = true;
+    };
+  }, [syncHud]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadImage = (src) => {
+      const img = new Image();
+      img.src = `${import.meta.env.BASE_URL}${src}?v=${LOST_BRIDGE_ASSET_VERSION}`;
+      return img;
+    };
+    Object.entries(LOST_BRIDGE_PIECE_SRCS).forEach(([key, src]) => {
+      const img = loadImage(src);
+      img.onload = () => { if (!cancelled) { lostBridgeAssetsRef.current.images[key] = img; syncHud(); } };
+    });
+    const structure = loadImage(LOST_BRIDGE_STRUCTURE_SRC);
+    structure.onload = () => { if (!cancelled) { lostBridgeAssetsRef.current.structure = structure; syncHud(); } };
+    Object.entries(LOST_BRIDGE_RAVINE_FLOOR_VARIANT_SRCS).forEach(([assetKey, src]) => {
+      const floorBlend = loadImage(src);
+      floorBlend.onload = () => {
+        if (cancelled) return;
+        lostBridgeAssetsRef.current.floorBlends[assetKey] = floorBlend;
+        lostBridgeAssetsRef.current.floorBlends[src] = floorBlend;
+        if (assetKey === 'lostBridgeRavineFloor') {
+          lostBridgeAssetsRef.current.floorBlend = floorBlend;
+        }
+        syncHud();
+      };
+    });
+    return () => { cancelled = true; };
   }, [syncHud]);
 
   useEffect(() => {
@@ -6676,6 +7121,7 @@ export default function ExpeditionJourney({
   const getGateRequirements = useCallback((gate, current) => {
     const reqs = [];
     if (!gate.requires) return reqs;
+    const enemiesDisabled = Boolean(current?.enemiesDisabled);
     const isChinaJourney = backgroundPackId === 'china-river-valley';
     const objectiveLabels = isChinaJourney ? CHINA_OBJECTIVE_LABELS : OBJECTIVE_LABELS;
     const objectiveSingularLabels = isChinaJourney ? CHINA_OBJECTIVE_SINGULAR_LABELS : OBJECTIVE_SINGULAR_LABELS;
@@ -6707,16 +7153,19 @@ export default function ExpeditionJourney({
       const boss = current.miniBosses.find(item => item.id === gate.requires.miniBoss);
       const bossName = boss?.name || gate.requires.miniBoss;
       const direction = getDirectionFromPlayer(current.player.x, boss?.x);
+      const miniBossMet = enemiesDisabled || current.defeatedMiniBosses.has(gate.requires.miniBoss);
       reqs.push({
         type: 'miniBoss',
         id: gate.requires.miniBoss,
-        label: `${bossName}: ${current.defeatedMiniBosses.has(gate.requires.miniBoss) ? 'defeated' : 'active'}`,
+        label: `${bossName}: ${enemiesDisabled ? 'bypassed' : miniBossMet ? 'defeated' : 'active'}`,
         checklistLabel: `${bossName} defeated`,
-        shortMissing: `defeat ${bossName}`,
-        met: current.defeatedMiniBosses.has(gate.requires.miniBoss),
-        found: current.defeatedMiniBosses.has(gate.requires.miniBoss) ? 1 : 0,
+        shortMissing: enemiesDisabled ? 'enemies disabled for play-test' : `defeat ${bossName}`,
+        met: miniBossMet,
+        found: miniBossMet ? 1 : 0,
         required: 1,
-        hint: `${bossName} is still active ${getDirectionText(direction)}. Watch the warning tell, dodge, then counter.`,
+        hint: enemiesDisabled
+          ? 'Enemies are disabled for play-testing; this guardian requirement is bypassed.'
+          : `${bossName} is still active ${getDirectionText(direction)}. Watch the warning tell, dodge, then counter.`,
         targetX: boss?.x,
         nearestObjective: boss ? {
           type: 'miniBoss',
@@ -6732,6 +7181,7 @@ export default function ExpeditionJourney({
         || BOSS_KEY_ITEMS.find(item => item.id === gate.requires.keyItem);
       const boss = current.miniBosses.find(item => item.id === keyItem?.bossId);
       const collected = current.collectedBossKeyIds?.has(gate.requires.keyItem) || Boolean(keyItem?.collected);
+      const keyItemMet = enemiesDisabled || collected;
       const targetX = keyItem?.dropped ? keyItem.x : boss?.x;
       const direction = getDirectionFromPlayer(current.player.x, targetX);
       const keyItemCopy = isChinaJourney ? CHINA_BOSS_KEY_ITEM_COPY[gate.requires.keyItem] : null;
@@ -6739,15 +7189,17 @@ export default function ExpeditionJourney({
       reqs.push({
         type: 'toolPiece',
         id: gate.requires.keyItem,
-        label: `${keyItemName}: ${collected ? 'recovered' : 'needed'}`,
+        label: `${keyItemName}: ${enemiesDisabled && !collected ? 'bypassed' : collected ? 'recovered' : 'needed'}`,
         checklistLabel: keyItemCopy?.checklistLabel || keyItem?.name || 'Tool piece',
-        shortMissing: `recover ${keyItemName}`,
-        met: collected,
-        found: collected ? 1 : 0,
+        shortMissing: enemiesDisabled ? 'enemies disabled for play-test' : `recover ${keyItemName}`,
+        met: keyItemMet,
+        found: keyItemMet ? 1 : 0,
         required: 1,
-        hint: keyItem?.dropped
-          ? `${keyItemName} is waiting ${getDirectionText(direction)}. Collect it to prepare the excavation kit.`
-          : `Defeat ${boss?.name || 'the guardian'} to reveal ${keyItemName}.`,
+        hint: enemiesDisabled
+          ? 'Enemies are disabled for play-testing; this guardian reward requirement is bypassed.'
+          : keyItem?.dropped
+            ? `${keyItemName} is waiting ${getDirectionText(direction)}. Collect it to prepare the excavation kit.`
+            : `Defeat ${boss?.name || 'the guardian'} to reveal ${keyItemName}.`,
         targetX,
         nearestObjective: targetX ? {
           type: 'toolPiece',
@@ -6762,20 +7214,25 @@ export default function ExpeditionJourney({
       const requiredEnemies = gate.requires.enemies
         .map(enemyId => current.enemies.find(enemy => enemy.id === enemyId))
         .filter(Boolean);
-      const missingEnemies = requiredEnemies.filter(enemy => !current.defeatedEnemies?.has(enemy.id));
+      const missingEnemies = enemiesDisabled
+        ? []
+        : requiredEnemies.filter(enemy => !current.defeatedEnemies?.has(enemy.id));
       const nearestEnemy = missingEnemies
         .sort((a, b) => Math.abs(a.x - current.player.x) - Math.abs(b.x - current.player.x))[0] || null;
       const direction = getDirectionFromPlayer(current.player.x, nearestEnemy?.x);
+      const enemyClearFound = enemiesDisabled ? requiredEnemies.length : requiredEnemies.length - missingEnemies.length;
       reqs.push({
         type: 'enemyClear',
         id: `${gate.id}-route-guards`,
-        label: `Route Guards: ${requiredEnemies.length - missingEnemies.length}/${requiredEnemies.length}`,
+        label: `Route Guards: ${enemyClearFound}/${requiredEnemies.length}`,
         checklistLabel: 'Route Guards defeated',
-        shortMissing: `defeat ${missingEnemies.length} route guard${missingEnemies.length === 1 ? '' : 's'}`,
+        shortMissing: enemiesDisabled ? 'enemies disabled for play-test' : `defeat ${missingEnemies.length} route guard${missingEnemies.length === 1 ? '' : 's'}`,
         met: missingEnemies.length === 0,
-        found: requiredEnemies.length - missingEnemies.length,
+        found: enemyClearFound,
         required: requiredEnemies.length,
-        hint: nearestEnemy
+        hint: enemiesDisabled
+          ? 'Enemies are disabled for play-testing; route guards are bypassed.'
+          : nearestEnemy
           ? `${nearestEnemy.name} still guards the seal route ${getDirectionText(direction)}. Clear it before forcing the seal.`
           : 'Clear the route guards before forcing the seal.',
         targetX: nearestEnemy?.x,
@@ -7001,7 +7458,7 @@ export default function ExpeditionJourney({
   }, []);
 
   const getPlayerAttackNearMissTarget = useCallback((current, attackRect) => {
-    if (!current || !attackRect) return null;
+    if (!current || !attackRect || current.enemiesDisabled) return null;
     const direction = current.player?.direction >= 0 ? 1 : -1;
     const candidates = [
       ...(current.enemies || []).filter(enemy => !enemy.defeated).map(enemy => ({ target: enemy, boss: false })),
@@ -7079,13 +7536,14 @@ export default function ExpeditionJourney({
     };
     const centerX = target.x + target.width / 2;
     const centerY = target.y + target.height / 2;
+    const targetImmovable = target.type === 'scorpion-nest';
 
     target.hitFlash = Math.max(target.hitFlash || 0, impact.hitFlash);
-    if (impact.targetKnockback > 0) {
+    if (!targetImmovable && impact.targetKnockback > 0) {
       target.knockbackTimer = Math.max(target.knockbackTimer || 0, impact.targetKnockback);
       target.knockbackDirection = direction;
     }
-    if (impact.targetShift > 0) {
+    if (!targetImmovable && impact.targetShift > 0) {
       target.x += direction * impact.targetShift;
     }
     current.hitStopTimer = Math.max(current.hitStopTimer, impact.hitStop);
@@ -7340,14 +7798,19 @@ export default function ExpeditionJourney({
   }), [getCombatMode]);
 
   const createJourneySnapshot = useCallback((current = stateRef.current) => {
-    const section = getSectionForX(current.player.x);
+    const fallbackSection = getSectionForX(current.player.x);
+    const sectionId = current.currentSectionId || fallbackSection.id;
+    const section = SECTIONS.find(item => item.id === sectionId) || fallbackSection;
     const objective = getObjectiveProgress(section.id, current);
-    const activeMiniBoss = current.miniBosses.find(boss => boss.awakened && !boss.defeated && Math.abs(boss.x - current.player.x) < 520);
-    const nearbyCombatEnemy = current.enemies
+    const enemiesDisabled = Boolean(current.enemiesDisabled);
+    const activeMiniBoss = enemiesDisabled
+      ? null
+      : current.miniBosses.find(boss => boss.awakened && !boss.defeated && Math.abs(boss.x - current.player.x) < 520);
+    const nearbyCombatEnemy = enemiesDisabled ? null : current.enemies
       .filter(enemy => !enemy.defeated && Math.abs(enemy.x - current.player.x) < 520)
       .sort((a, b) => Math.abs(a.x - current.player.x) - Math.abs(b.x - current.player.x))[0] || null;
-    const activeEnemyCounterWindow = current.enemies.find(enemy => !enemy.defeated && (enemy.vulnerabilityTimer > 0 || enemy.attackRecovery > 0));
-    const activeBossCounterWindow = current.miniBosses.find(boss => !boss.defeated && (boss.vulnerabilityTimer > 0 || boss.attackRecovery > 0));
+    const activeEnemyCounterWindow = enemiesDisabled ? null : current.enemies.find(enemy => !enemy.defeated && (enemy.vulnerabilityTimer > 0 || enemy.attackRecovery > 0));
+    const activeBossCounterWindow = enemiesDisabled ? null : current.miniBosses.find(boss => !boss.defeated && (boss.vulnerabilityTimer > 0 || boss.attackRecovery > 0));
     const activeHiddenRoutes = getActiveHiddenRoutes();
     const activeSecretCollectibles = getActiveSecretCollectibles();
     const environmentAssets = environmentAssetsRef.current;
@@ -7655,6 +8118,17 @@ export default function ExpeditionJourney({
         fading: current.openingThresholdScene.timer <= OPENING_THRESHOLD_FADE_SECONDS,
         transitionTargetSectionId: current.openingThresholdScene.transitionTargetSectionId,
       } : null,
+      arrivalThresholdState: current.arrivalThresholdActive ? {
+        active: true,
+        started: Boolean(current.arrivalThresholdStarted),
+        leftInspected: Boolean(current.arrivalThresholdLeftInspected),
+        markingsInspected: Boolean(current.arrivalThresholdMarkingsInspected),
+        gateTriggered: Boolean(current.arrivalThresholdGateTriggered),
+        playerX: Math.round(current.player.x),
+        objective: current.notice,
+        backgroundLoaded: Boolean(arrivalThresholdBackgroundRef.current.loaded),
+        backgroundSrc: ARRIVAL_THRESHOLD_BACKGROUND_SRC,
+      } : null,
       templeThresholdTransitionState: current.templeThresholdTransition ? {
         id: current.templeThresholdTransition.id,
         phase: current.templeThresholdTransition.phase,
@@ -7880,6 +8354,11 @@ export default function ExpeditionJourney({
         ...getBossVulnerabilityState(activeMiniBoss),
       } : null,
       defeatedEnemies: Array.from(current.defeatedEnemies),
+      enemiesDisabled,
+      enemyPlaytestAssistActive: enemiesDisabled,
+      activeEnemyCount: enemiesDisabled
+        ? 0
+        : current.enemies.filter(enemy => !enemy.defeated && isEntityActiveInScene(enemy, current)).length,
       seenEnemyTypeNoticeIds: Array.from(current.seenEnemyTypeNoticeIds || []),
       defeatedMiniBosses: Array.from(current.defeatedMiniBosses),
       hiddenRoomsFound: Array.from(current.hiddenRoomsFound),
@@ -8042,7 +8521,7 @@ export default function ExpeditionJourney({
           .filter(effect => ['movement-dust', 'landing-dust', 'jump-dust', 'attack-burst', 'knockback-dust'].includes(effect.type))
           .map(effect => effect.type),
       },
-      enemyStates: current.enemies
+      enemyStates: enemiesDisabled ? [] : current.enemies
         .filter(enemy => Math.abs(enemy.x - current.player.x) < 700 || current.defeatedEnemies.has(enemy.id))
         .map(enemy => ({
           id: enemy.id,
@@ -8057,7 +8536,7 @@ export default function ExpeditionJourney({
           pressureHint: enemy.pressureHint || null,
           ...getEntityCombatState(enemy),
         })),
-      enemyCombatStates: current.enemies
+      enemyCombatStates: enemiesDisabled ? [] : current.enemies
         .filter(enemy => Math.abs(enemy.x - current.player.x) < 700 || current.defeatedEnemies.has(enemy.id))
         .map(enemy => ({
           id: enemy.id,
@@ -8433,6 +8912,62 @@ export default function ExpeditionJourney({
       drawOpeningSphinxDialogue(ctx, encounter, sx, sy, alpha);
     }
   }, [drawContactShadow, drawOpeningSphinxDialogue, getOpeningSphinxSpriteFrame]);
+
+  const drawArrivalThresholdScene = useCallback((ctx, current, now) => {
+    const asset = arrivalThresholdBackgroundRef.current;
+    const playerCenter = current.player.x + current.player.width / 2;
+    const travelProgress = clamp(
+      (playerCenter - ARRIVAL_THRESHOLD_LEFT_BOUND) / (ARRIVAL_THRESHOLD_RIGHT_BOUND - ARRIVAL_THRESHOLD_LEFT_BOUND),
+      0,
+      1,
+    );
+
+    ctx.save();
+    if (asset.loaded && asset.image) {
+      const scale = CANVAS_HEIGHT / (asset.image.naturalHeight || asset.image.height || CANVAS_HEIGHT);
+      const drawWidth = (asset.image.naturalWidth || asset.image.width || CANVAS_WIDTH) * scale;
+      const panX = Math.max(0, drawWidth - CANVAS_WIDTH) * travelProgress;
+      ctx.drawImage(asset.image, -panX, 0, drawWidth, CANVAS_HEIGHT);
+    } else {
+      const gradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
+      gradient.addColorStop(0, '#07080a');
+      gradient.addColorStop(0.55, '#20140f');
+      gradient.addColorStop(1, '#6f4522');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+      ctx.fillStyle = 'rgba(191, 124, 49, 0.22)';
+      ctx.fillRect(CANVAS_WIDTH * 0.68, 86, 235, 422);
+      ctx.fillStyle = 'rgba(21, 13, 10, 0.72)';
+      ctx.fillRect(98, 230, 245, 235);
+    }
+
+    const floorGradient = ctx.createLinearGradient(0, GROUND_Y - 64, 0, CANVAS_HEIGHT);
+    floorGradient.addColorStop(0, 'rgba(118, 71, 31, 0)');
+    floorGradient.addColorStop(1, 'rgba(26, 15, 10, 0.58)');
+    ctx.fillStyle = floorGradient;
+    ctx.fillRect(0, GROUND_Y - 64, CANVAS_WIDTH, CANVAS_HEIGHT - GROUND_Y + 64);
+
+    for (let index = 0; index < 36; index += 1) {
+      const seed = index * 67.7;
+      const x = (seed + now * 0.006 * (1 + (index % 3))) % (CANVAS_WIDTH + 80) - 40;
+      const y = 92 + ((index * 41) % 420);
+      const alpha = 0.08 + ((index % 5) * 0.018);
+      ctx.fillStyle = `rgba(245, 197, 116, ${alpha})`;
+      ctx.beginPath();
+      ctx.arc(x, y + Math.sin(now / 780 + index) * 5, 1.2 + (index % 3) * 0.6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    if (current.renderStats) {
+      current.renderStats.parallaxLayersActive = true;
+      current.renderStats.activeBackgroundSection = 'arrival-threshold';
+      current.renderStats.backgroundDepthMode = 'arrival-threshold-final-art-v1';
+      current.renderStats.arrivalThresholdAssetLoaded = Boolean(asset.loaded && asset.image);
+      current.renderStats.arrivalThresholdAssetVersion = ARRIVAL_THRESHOLD_ASSET_VERSION;
+    }
+    ctx.restore();
+    return true;
+  }, []);
 
   const drawOpeningThresholdScene = useCallback((ctx, scene, cameraX, now) => {
     if (!scene || scene.timer <= 0) return;
@@ -10081,6 +10616,277 @@ export default function ExpeditionJourney({
     ctx.restore();
   }, [drawOpeningPyramidAssetRegion]);
 
+  const drawLostBridgeRavineDepth = useCallback((ctx, platforms, cameraX, current) => {
+    const bounds = getLostBridgeDeckBounds(platforms || []);
+    if (!bounds) return false;
+    const editorPlacement = getLostBridgeRavineFloorPlacement(current);
+    const activeRavineAssetKey = editorPlacement?.prop?.imageAssetKey || 'lostBridgeRavineFloor';
+    const activeRavineAssetPath = editorPlacement?.prop?.assetPath || LOST_BRIDGE_RAVINE_FLOOR_BLEND_SRC;
+    const blend = lostBridgeAssetsRef.current?.floorBlends?.[activeRavineAssetKey]
+      || lostBridgeAssetsRef.current?.floorBlends?.[activeRavineAssetPath]
+      || lostBridgeAssetsRef.current?.floorBlend;
+    const drawWorldLeft = editorPlacement
+      ? editorPlacement.drawWorldLeft
+      : bounds.left - LOST_BRIDGE_RAVINE_BLEND_SIDE_PAD;
+    const drawW = editorPlacement
+      ? editorPlacement.width
+      : bounds.span + LOST_BRIDGE_RAVINE_BLEND_SIDE_PAD * 2;
+    if (!isHorizontallyVisible(drawWorldLeft, drawW, cameraX, 180)) return false;
+
+    ctx.save();
+    const drawX = worldToScreenX(drawWorldLeft, cameraX);
+    const ravineFallWorldLeft = bounds.left + LOST_BRIDGE_RAVINE_FALL_SIDE_PAD * 0.82;
+    const ravineFallWorldRight = bounds.right - LOST_BRIDGE_RAVINE_FALL_SIDE_PAD * 0.72;
+    const ravineFallWidth = Math.max(0, ravineFallWorldRight - ravineFallWorldLeft);
+
+    if (blend?.naturalWidth && blend?.naturalHeight) {
+      const drawH = editorPlacement
+        ? editorPlacement.height
+        : drawW * (blend.naturalHeight / blend.naturalWidth);
+      const drawY = editorPlacement
+        ? editorPlacement.drawY
+        : bounds.y + 6 - drawH * LOST_BRIDGE_RAVINE_BLEND_DECK_FRAC;
+      const visibleTop = editorPlacement
+        ? Math.max(0, drawY)
+        : bounds.y + LOST_BRIDGE_RAVINE_BLEND_CLIP_TOP_OFFSET;
+      ctx.beginPath();
+      ctx.rect(
+        drawX - LOST_BRIDGE_RAVINE_BLEND_CLIP_PAD,
+        visibleTop,
+        drawW + LOST_BRIDGE_RAVINE_BLEND_CLIP_PAD * 2,
+        CANVAS_HEIGHT - visibleTop + 24,
+      );
+      ctx.clip();
+      ctx.globalAlpha = 1;
+      ctx.filter = 'sepia(4%) saturate(96%) brightness(88%) contrast(112%)';
+      ctx.drawImage(blend, drawX, drawY, drawW, drawH);
+      ctx.filter = 'none';
+      ctx.globalAlpha = 1;
+      if (current.renderStats) {
+        current.renderStats.lostBridgeRavineDepth = {
+          x: Math.round(ravineFallWorldLeft),
+          width: Math.round(ravineFallWidth),
+          fallDepth: LOST_BRIDGE_RAVINE_FALL_DEPTH,
+          floorBlendVersion: LOST_BRIDGE_ASSET_VERSION,
+          floorBlendAssetKey: activeRavineAssetKey,
+          floorBlendAssetPath: activeRavineAssetPath,
+          editorControlled: Boolean(editorPlacement),
+          controllerPropId: editorPlacement?.prop?.id || null,
+        };
+        current.renderStats.lostBridgeRavineStripBounds = {
+          x: Math.round(drawWorldLeft),
+          y: Math.round(drawY),
+          width: Math.round(drawW),
+          height: Math.round(drawH),
+          clipTop: Math.round(visibleTop),
+          layer: 'above-floor-below-bridge-platforms',
+          editorControlled: Boolean(editorPlacement),
+        };
+        current.renderStats.lostBridgeRavineFloorBlendLoaded = true;
+      }
+      ctx.restore();
+      return true;
+    }
+
+    const fallbackCenterX = drawX + drawW * 0.5;
+    const dust = ctx.createLinearGradient(0, GROUND_Y - 40, 0, GROUND_Y + 46);
+    dust.addColorStop(0, 'rgba(224, 157, 78, 0)');
+    dust.addColorStop(0.48, 'rgba(221, 155, 82, 0.18)');
+    dust.addColorStop(1, 'rgba(221, 155, 82, 0)');
+    ctx.fillStyle = dust;
+    ctx.beginPath();
+    ctx.ellipse(fallbackCenterX, GROUND_Y + 2, Math.max(180, drawW * 0.38), 48, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    if (current.renderStats) {
+      current.renderStats.lostBridgeRavineDepth = {
+        x: Math.round(ravineFallWorldLeft),
+        width: Math.round(ravineFallWidth),
+        fallDepth: LOST_BRIDGE_RAVINE_FALL_DEPTH,
+        floorBlendLoaded: false,
+        floorBlendAssetKey: activeRavineAssetKey,
+        floorBlendAssetPath: activeRavineAssetPath,
+      };
+    }
+    return true;
+  }, [getLostBridgeRavineFloorPlacement]);
+
+  const drawLostBridgeStructure = useCallback((ctx, platforms, cameraX, current) => {
+    const structure = lostBridgeAssetsRef.current?.structure;
+    if (!structure || !structure.naturalWidth) return false;
+    const bounds = getLostBridgeDeckBounds(platforms || []);
+    if (!bounds) return false;
+
+    const drawWorldLeft = bounds.left - LOST_BRIDGE_STRUCTURE_SIDE_PAD;
+    const drawW = bounds.span + LOST_BRIDGE_STRUCTURE_SIDE_PAD * 2;
+    if (!isHorizontallyVisible(drawWorldLeft, drawW, cameraX, 160)) return false;
+
+    const drawX = worldToScreenX(drawWorldLeft, cameraX);
+    const drawH = drawW * (structure.naturalHeight / structure.naturalWidth);
+    const drawY = bounds.y - drawH * LOST_BRIDGE_STRUCTURE_DECK_TOP_FRAC;
+
+    ctx.save();
+    const ravineY = bounds.y + 18;
+    ctx.save();
+    ctx.translate(drawX + drawW * 0.5, ravineY + 98);
+    ctx.scale(Math.max(1, drawW * 0.38), 92);
+    const ravineShadow = ctx.createRadialGradient(0, 0, 0.08, 0, 0, 1);
+    ravineShadow.addColorStop(0, 'rgba(44, 24, 8, 0.18)');
+    ravineShadow.addColorStop(0.58, 'rgba(44, 24, 8, 0.08)');
+    ravineShadow.addColorStop(1, 'rgba(44, 24, 8, 0)');
+    ctx.fillStyle = ravineShadow;
+    ctx.beginPath();
+    ctx.arc(0, 0, 1, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    ctx.filter = 'sepia(8%) saturate(94%) brightness(93%) contrast(106%)';
+    ctx.drawImage(structure, drawX, drawY, drawW, drawH);
+    ctx.filter = 'none';
+    ctx.restore();
+
+    if (current.renderStats) {
+      current.renderStats.lostBridgeStructureVersion = LOST_BRIDGE_ASSET_VERSION;
+      current.renderStats.lostBridgeStructureLoaded = true;
+      current.renderStats.lostBridgeStructureBounds = {
+        x: Math.round(drawWorldLeft),
+        y: Math.round(drawY),
+        width: Math.round(drawW),
+        height: Math.round(drawH),
+      };
+    }
+    return true;
+  }, []);
+
+  const drawLostBridgePlatform = useCallback((ctx, platform, x, visualY, visualHeight, reactiveActive, reactivePulse, unstableShift) => {
+    const w = platform.width;
+    const seed = Math.round(platform.x);
+    const isDeck = platform.y <= 140 + JOURNEY_VERTICAL_OFFSET;
+
+    // Painted art path: draw the chroma-keyed cutout aligned to the platform rect. Falls back
+    // to the code-drawn bridge below if the image has not loaded yet.
+    const bridgeKey = platform.reactive
+      ? 'timber'
+      : platform.id === 'lost-bridge-near-landing'
+        ? 'landing'
+        : platform.id === 'lost-bridge-far-landing'
+          ? 'pillar'
+          : 'slab';
+    const bridgeImage = lostBridgeAssetsRef.current?.images?.[bridgeKey];
+    const bridgeTune = LOST_BRIDGE_PIECE_TUNING[bridgeKey];
+    if (bridgeImage && bridgeImage.naturalWidth && bridgeTune) {
+      const contentFrac = 1 - bridgeTune.padL - bridgeTune.padR;
+      const drawW = w / contentFrac;
+      const drawH = drawW * (bridgeImage.naturalHeight / bridgeImage.naturalWidth);
+      const dx = x - bridgeTune.padL * drawW;
+      const dy = visualY - bridgeTune.deckTopFrac * drawH;
+      ctx.save();
+      // Soft drop-shadow into the ravine beneath the piece.
+      const sh = ctx.createLinearGradient(0, visualY + visualHeight, 0, visualY + visualHeight + 70);
+      sh.addColorStop(0, 'rgba(14, 9, 5, 0.32)');
+      sh.addColorStop(1, 'rgba(14, 9, 5, 0)');
+      ctx.fillStyle = sh;
+      ctx.fillRect(x - 6, visualY + visualHeight, w + 12, 70);
+      ctx.drawImage(bridgeImage, dx, dy, drawW, drawH);
+      if (reactiveActive) {
+        ctx.fillStyle = `rgba(214, 150, 70, ${0.14 + reactivePulse * 0.12})`;
+        ctx.fillRect(x, visualY - 2, w, 4);
+      }
+      ctx.restore();
+      return;
+    }
+
+    ctx.save();
+
+    // Drop-shadow / ravine darkness beneath the slab (sells the "deadly drop").
+    const shadow = ctx.createLinearGradient(0, visualY + visualHeight, 0, visualY + visualHeight + 90);
+    shadow.addColorStop(0, 'rgba(18, 11, 6, 0.42)');
+    shadow.addColorStop(1, 'rgba(18, 11, 6, 0)');
+    ctx.fillStyle = shadow;
+    ctx.fillRect(x - 6, visualY + visualHeight, w + 12, 90);
+
+    // Timber support struts hanging under the deck.
+    if (isDeck) {
+      ctx.strokeStyle = 'rgba(58, 38, 18, 0.5)';
+      ctx.lineWidth = 4;
+      for (let sx = x + 18; sx < x + w - 12; sx += 64) {
+        const lean = ((seed + sx) % 7) - 3;
+        ctx.beginPath();
+        ctx.moveTo(sx, visualY + visualHeight - 2);
+        ctx.lineTo(sx + lean, visualY + visualHeight + 26);
+        ctx.stroke();
+      }
+      // A frayed rope of hanging debris.
+      ctx.strokeStyle = 'rgba(92, 70, 40, 0.42)';
+      ctx.lineWidth = 1.6;
+      const ropeX = x + 10 + (seed % Math.max(20, w - 30));
+      ctx.beginPath();
+      ctx.moveTo(ropeX, visualY + visualHeight - 1);
+      ctx.lineTo(ropeX + 2, visualY + visualHeight + 34);
+      ctx.stroke();
+    }
+
+    // Stone slab body.
+    ctx.fillStyle = reactiveActive ? '#7a5630' : '#83602f';
+    ctx.fillRect(x, visualY, w, visualHeight);
+    // Darker base / weathered underside.
+    ctx.fillStyle = 'rgba(36, 22, 10, 0.5)';
+    ctx.fillRect(x, visualY + visualHeight - 6, w, 6);
+    // Lit top edge.
+    ctx.fillStyle = 'rgba(247, 220, 158, 0.32)';
+    ctx.fillRect(x, visualY, w, 4);
+
+    // Timber plank repairs across the deck (the "missing sections repaired with timber").
+    ctx.fillStyle = 'rgba(105, 70, 36, 0.7)';
+    const plankCount = Math.max(2, Math.floor(w / 46));
+    for (let i = 0; i < plankCount; i += 1) {
+      if ((seed + i * 13) % 3 === 0) {
+        const px = x + 6 + (i * (w - 12)) / plankCount;
+        ctx.fillRect(px, visualY + 2, Math.min(14, (w - 12) / plankCount - 3), visualHeight - 5);
+      }
+    }
+
+    // Weathered cracks.
+    ctx.strokeStyle = 'rgba(28, 16, 6, 0.4)';
+    ctx.lineWidth = 1;
+    for (let i = 30; i < w; i += 58) {
+      ctx.beginPath();
+      ctx.moveTo(x + i, visualY + 4);
+      ctx.lineTo(x + i + 4, visualY + visualHeight - 4);
+      ctx.stroke();
+    }
+
+    // Collapsed railing posts on the landings (broken, leaning).
+    if (!isDeck || w >= 200) {
+      ctx.strokeStyle = 'rgba(70, 47, 22, 0.62)';
+      ctx.lineWidth = 3;
+      [x + 10, x + w - 12].forEach((postX, idx) => {
+        const lean = idx === 0 ? -3 : 3;
+        ctx.beginPath();
+        ctx.moveTo(postX, visualY);
+        ctx.lineTo(postX + lean, visualY - 14 - ((seed + idx) % 6));
+        ctx.stroke();
+      });
+    }
+
+    // Reactive (collapsing) emphasis: shuddering crack glow.
+    if (reactiveActive) {
+      ctx.fillStyle = `rgba(214, 150, 70, ${0.18 + reactivePulse * 0.12})`;
+      ctx.fillRect(x, visualY - 2, w, 4);
+      ctx.strokeStyle = `rgba(255, 196, 120, ${0.4 + reactivePulse * 0.2})`;
+      ctx.setLineDash([7, 6]);
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.moveTo(x + 8, visualY + visualHeight * 0.5);
+      ctx.lineTo(x + w - 8, visualY + visualHeight * 0.5 + unstableShift);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    ctx.restore();
+  }, []);
+
   const drawPlatform = useCallback((ctx, platform, cameraX, current) => {
     const x = worldToScreenX(platform.x, cameraX);
     if (!isHorizontallyVisible(platform.x, platform.width, cameraX, 50)) return;
@@ -10142,6 +10948,28 @@ export default function ExpeditionJourney({
       && !platform.assetKey
       && platform.x < scaleJourneyX(720)
       && openingPyramidFacadeRef.current.loaded;
+    if (platform.variant === 'lost-bridge') {
+      const bridgeStructureReady = Boolean(lostBridgeAssetsRef.current?.structure?.naturalWidth);
+      if (bridgeStructureReady && isLostBridgeStructureDeckPlatform(platform)) {
+        if (reactiveActive) {
+          ctx.fillStyle = `rgba(214, 150, 70, ${0.18 + reactivePulse * 0.12})`;
+          ctx.fillRect(x + 8, visualY - 3, Math.max(12, platform.width - 16), 6);
+          ctx.strokeStyle = `rgba(255, 196, 120, ${0.45 + reactivePulse * 0.2})`;
+          ctx.setLineDash([7, 6]);
+          ctx.lineWidth = 1.6;
+          ctx.beginPath();
+          ctx.moveTo(x + 14, visualY + 4);
+          ctx.lineTo(x + platform.width - 14, visualY + 4 + unstableShift);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+        ctx.restore();
+        return;
+      }
+      drawLostBridgePlatform(ctx, platform, x, visualY, visualHeight, reactiveActive, reactivePulse, unstableShift);
+      ctx.restore();
+      return;
+    }
     if (facadeIntegratedOpeningPlatform) {
       const hiddenFacadeTread = /stair tread|stair helper|pressure stair slab|cracked summit trap slab/i.test(platform.label || '');
       drawDesertOpeningPlatformFace(ctx, platform, x, visualY, visualHeight, reactiveActive);
@@ -10318,7 +11146,7 @@ export default function ExpeditionJourney({
     ctx.lineWidth = 2;
     ctx.strokeRect(x, visualY, platform.width, platform.height);
     ctx.restore();
-  }, [drawBuriedStoneCausewaySurface, drawContactShadow, drawDesertEntryPlatformSupport, drawDesertOpeningPlatformFace, drawForegroundSettlingDetails, drawGroundDustLip]);
+  }, [drawBuriedStoneCausewaySurface, drawContactShadow, drawDesertEntryPlatformSupport, drawDesertOpeningPlatformFace, drawForegroundSettlingDetails, drawGroundDustLip, drawLostBridgePlatform]);
 
   const drawEgyptStructureGroundContactLayer = useCallback((ctx, contactLayer, left, width, groundY, phase = 'overlay') => {
     const foregroundAssets = foregroundDepthEnvironmentAssetsRef.current;
@@ -11572,6 +12400,12 @@ export default function ExpeditionJourney({
   const drawStoryProp = useCallback((ctx, prop, cameraX, now, requestedDepth = null) => {
     const propDepth = getStoryPropDepth(prop);
     if (requestedDepth && propDepth !== requestedDepth) return;
+    // Scene Outliner: props toggled off in the outliner are hidden while the editor
+    // is open (view-only — never affects gameplay or the export).
+    if (import.meta.env.DEV) {
+      const outlinerEditor = propPlacementEditorRef.current;
+      if (outlinerEditor?.enabled && outlinerEditor.hiddenIds?.has(prop.id)) return;
+    }
     const x = worldToScreenX(prop.x, cameraX);
     const visibilityWidth = Math.max(440, Number(prop.width) || 0);
     if (!isHorizontallyVisible(prop.x - visibilityWidth / 2, visibilityWidth, cameraX)) return;
@@ -11579,6 +12413,10 @@ export default function ExpeditionJourney({
     ctx.save();
     const section = getSectionForX(prop.x);
     if (prop.id === 'opening-warrior-guide-marker') {
+      ctx.restore();
+      return;
+    }
+    if (isLostBridgeRavineFloorProp(prop)) {
       ctx.restore();
       return;
     }
@@ -11592,7 +12430,7 @@ export default function ExpeditionJourney({
     }
     if (prop.type === 'ground-contact-detail-prop' || prop.type === 'foreground-depth-detail-prop') {
       const detailSize = getStoryPropEditorSize(prop);
-      const width = Number.isFinite(prop.width) ? prop.width : detailSize.width;
+      const width = detailSize.width;
       const groundY = prop.y + (Number.isFinite(prop.yOffset) ? prop.yOffset : 0);
       const left = x - width / 2;
       const detailColorFilter = typeof prop.colorGradeFilter === 'string' && prop.colorGradeFilter.trim() && prop.colorGradeFilter.trim() !== 'none'
@@ -11602,12 +12440,13 @@ export default function ExpeditionJourney({
         ? `brightness(${Math.round(clamp(prop.brightness, 0.4, 1.8) * 100)}%)`
         : '';
       const detailFilter = [detailColorFilter, detailBrightnessFilter].filter(Boolean).join(' ');
+      const scaledDetailContactLayer = getScaledDetailContactLayer(prop, detailSize);
       const detailContactLayer = detailFilter
-        ? (prop.groundContactLayer || []).map((entry) => ({
+        ? scaledDetailContactLayer.map((entry) => ({
           ...entry,
           filter: [entry.filter, detailFilter].filter(Boolean).join(' '),
         }))
-        : prop.groundContactLayer;
+        : scaledDetailContactLayer;
       const underlayContact = drawEgyptStructureGroundContactLayer(ctx, detailContactLayer, left, width, groundY, 'underlay');
       const overlayContact = drawEgyptStructureGroundContactLayer(ctx, detailContactLayer, left, width, groundY, 'overlay');
       if (stateRef.current.renderStats) {
@@ -11632,6 +12471,19 @@ export default function ExpeditionJourney({
       if (propForAsset.imageAssetKey === 'routeGateBack') return routeGateBackRef.current;
       if (propForAsset.imageAssetKey === 'routeGateSlab') return routeGateSlabRef.current;
       if (propForAsset.imageAssetKey === 'openingPyramidClimbPack') return openingPyramidClimbPackRef.current;
+      if (propForAsset.imageAssetKey && propForAsset.assetPath) {
+        const cache = standaloneImagePropCacheRef.current;
+        let entry = cache[propForAsset.assetPath];
+        if (!entry) {
+          const image = new Image();
+          entry = { image, loaded: false, failed: false };
+          image.onload = () => { entry.loaded = true; };
+          image.onerror = () => { entry.failed = true; };
+          image.src = `${import.meta.env.BASE_URL}${propForAsset.assetPath}`;
+          cache[propForAsset.assetPath] = entry;
+        }
+        return entry;
+      }
       return null;
     })();
     if (propAssetKey || (standalonePropAsset?.loaded && standalonePropAsset.image)) {
@@ -11668,11 +12520,19 @@ export default function ExpeditionJourney({
         ...(propForAsset.sceneBlend ? { sceneBlend: propForAsset.sceneBlend } : {}),
         ...(standalonePropAsset ? { colorGradeFilter: ROUTE_GATE_STANDALONE_PROP_COLOR_GRADE_FILTER } : {}),
         ...(propForAsset.colorGradeFilter ? { colorGradeFilter: propForAsset.colorGradeFilter } : {}),
+        ...(typeof propForAsset.paintColor === 'string' && propForAsset.paintColor ? { paintColor: propForAsset.paintColor } : {}),
+        ...(Number.isFinite(propForAsset.paintStrength) ? { paintStrength: propForAsset.paintStrength } : {}),
       };
       if (Number.isFinite(propSize.scale)) {
         propSize.width *= propSize.scale;
         propSize.height *= propSize.scale;
       }
+      // Horizontal-only squash: narrows the prop along its own width axis (the draw
+      // frame is already rotated, so this thins the silhouette regardless of tilt)
+      // without changing its height — unlike scale/width, which resize uniformly.
+      const horizontalSquash = Number.isFinite(propForAsset.widthScale)
+        ? clamp(propForAsset.widthScale, 0.2, 3)
+        : 1;
       const shouldGroundLock = shouldGroundLockAtmosphereProp(propForAsset, propDepth);
       if (shouldGroundLock) {
         if (propDepth === 'grounded') propSize.depth = 'grounded';
@@ -11721,7 +12581,7 @@ export default function ExpeditionJourney({
         const baseFilter = ctx.filter && ctx.filter !== 'none' ? `${ctx.filter} ` : '';
         ctx.filter = `${baseFilter}brightness(${Math.round(clamp(propSize.brightness, 0.4, 1.8) * 100)}%)`;
       }
-      const drawStandalonePropAsset = (image, target) => {
+      const drawStandalonePropAsset = (targetCtx, image, target) => {
         if (!image) return false;
         const sourceWidth = Number(image.naturalWidth || image.width) || target.width;
         const sourceHeight = Number(image.naturalHeight || image.height) || target.height;
@@ -11729,7 +12589,7 @@ export default function ExpeditionJourney({
         const containScale = Math.min(target.width / sourceWidth, target.height / sourceHeight);
         const drawWidth = sourceWidth * containScale;
         const drawHeight = sourceHeight * containScale;
-        ctx.drawImage(
+        targetCtx.drawImage(
           image,
           target.x + (target.width - drawWidth) / 2,
           target.y + (target.height - drawHeight) / 2,
@@ -11738,30 +12598,73 @@ export default function ExpeditionJourney({
         );
         return true;
       };
-      const drawPropImageAsset = (target) => (
+      const drawPropImageAsset = (targetCtx, target) => (
         standalonePropAsset?.loaded && standalonePropAsset.image
-          ? drawStandalonePropAsset(standalonePropAsset.image, target)
-          : drawAtlasRegion(ctx, propAssets, propAssetKey, target, { mode: 'contain' })
+          ? drawStandalonePropAsset(targetCtx, standalonePropAsset.image, target)
+          : drawAtlasRegion(targetCtx, propAssets, propAssetKey, target, { mode: 'contain' })
       );
-      const drawMirroredPropAsset = () => {
+      // Render the sprite into an offscreen buffer, multiply the paint colour onto only
+      // its opaque pixels (re-masked via destination-in), and return the buffer so the
+      // caller can composite it at paintStrength. Returns null if nothing drew.
+      const buildPaintTintBuffer = (paintColor) => {
+        const bw = Math.max(1, Math.ceil(propSize.width));
+        const bh = Math.max(1, Math.ceil(propSize.height));
+        const buffer = getJourneyPaintTintBuffer(bw, bh);
+        if (!buffer) return null;
+        const bctx = buffer.ctx;
+        bctx.setTransform(1, 0, 0, 1, 0, 0);
+        bctx.globalAlpha = 1;
+        bctx.globalCompositeOperation = 'source-over';
+        bctx.clearRect(0, 0, buffer.canvas.width, buffer.canvas.height);
+        const target = { x: 0, y: 0, width: bw, height: bh };
+        bctx.filter = propColorFilter && propColorFilter !== 'none' ? propColorFilter : 'none';
+        const drew = drawPropImageAsset(bctx, target);
+        bctx.filter = 'none';
+        if (!drew) return null;
+        bctx.globalCompositeOperation = 'multiply';
+        bctx.fillStyle = paintColor;
+        bctx.fillRect(0, 0, bw, bh);
+        bctx.globalCompositeOperation = 'destination-in';
+        drawPropImageAsset(bctx, target);
+        bctx.globalCompositeOperation = 'source-over';
+        return { canvas: buffer.canvas, width: bw, height: bh };
+      };
+      const paintColor = typeof propSize.paintColor === 'string' && /^#([0-9a-f]{6})$/i.test(propSize.paintColor.trim())
+        ? propSize.paintColor.trim()
+        : '';
+      const paintStrength = paintColor ? clamp(Number(propSize.paintStrength) || 0, 0, 1) : 0;
+      const drawTransformedPropAsset = () => {
         ctx.save();
         ctx.translate(drawX + propSize.width / 2, drawY + propSize.height / 2);
-        ctx.scale(propForAsset.mirrorX ? -1 : 1, propForAsset.mirrorY ? -1 : 1);
-        const didDraw = drawPropImageAsset({
+        ctx.scale((propForAsset.mirrorX ? -1 : 1) * horizontalSquash, propForAsset.mirrorY ? -1 : 1);
+        const local = {
           x: -propSize.width / 2,
           y: -propSize.height / 2,
           width: propSize.width,
           height: propSize.height,
-        });
+        };
+        const didDraw = drawPropImageAsset(ctx, local);
+        if (didDraw && paintStrength > 0) {
+          const tinted = buildPaintTintBuffer(paintColor);
+          if (tinted) {
+            const baseAlpha = ctx.globalAlpha;
+            ctx.filter = 'none';
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetY = 0;
+            ctx.globalAlpha = baseAlpha * paintStrength;
+            ctx.drawImage(
+              tinted.canvas,
+              0, 0, tinted.width, tinted.height,
+              local.x, local.y, local.width, local.height,
+            );
+            ctx.globalAlpha = baseAlpha;
+          }
+        }
         ctx.restore();
         return didDraw;
       };
-      const drawn = (propForAsset.mirrorX || propForAsset.mirrorY) ? drawMirroredPropAsset() : drawPropImageAsset({
-        x: drawX,
-        y: drawY,
-        width: propSize.width,
-        height: propSize.height,
-      });
+      const drawn = drawTransformedPropAsset();
       if (drawn) {
         ctx.filter = 'none';
         ctx.shadowColor = 'transparent';
@@ -14384,6 +15287,10 @@ export default function ExpeditionJourney({
       ? enemy.attackDirection
       : enemy.direction;
     const shouldFlip = shouldFlipEnemySprite(family, facing);
+    const playerForArmorCue = stateRef.current.player;
+    const scarabArmorFacesPlayer = enemy.type === 'scarab'
+      && !enemy.defeated
+      && Math.sign((playerForArmorCue.x + playerForArmorCue.width / 2) - (enemy.x + enemy.width / 2)) === Math.sign(facing || 1);
 
     ctx.save();
     ctx.globalAlpha = 1;
@@ -14442,6 +15349,9 @@ export default function ExpeditionJourney({
       { mode: 'contain', alignY: 'bottom' },
     );
     ctx.restore();
+    if (scarabArmorFacesPlayer) {
+      drawScarabFrontalArmorCue(ctx, enemy, centerX, groundedDrawBox.y + groundedDrawBox.height * 0.56, facing || 1, now);
+    }
 
     if (drawn && stateRef.current.renderStats) {
       const stats = stateRef.current.renderStats;
@@ -14462,6 +15372,10 @@ export default function ExpeditionJourney({
     const facing = (enemy.attackTimer > 0 || enemy.attackWindup > 0)
       ? enemy.attackDirection
       : enemy.direction;
+    const playerForArmorCue = stateRef.current.player;
+    const scarabArmorFacesPlayer = enemy.type === 'scarab'
+      && !enemy.defeated
+      && Math.sign((playerForArmorCue.x + playerForArmorCue.width / 2) - (enemy.x + enemy.width / 2)) === Math.sign(facing || 1);
 
     if (enemy.type === 'scarab' || enemy.type === 'snake' || enemy.type === 'scorpion' || enemy.type === 'sand-wisp') {
       const pulse = Math.sin(now / 140) * 0.5 + 0.5;
@@ -14508,6 +15422,9 @@ export default function ExpeditionJourney({
         ctx.beginPath();
         ctx.arc(centerX + facing * enemy.width * 0.22, bodyY - 5, 2.4, 0, Math.PI * 2);
         ctx.fill();
+        if (scarabArmorFacesPlayer) {
+          drawScarabFrontalArmorCue(ctx, enemy, centerX, bodyY, facing, now);
+        }
       } else if (enemy.type === 'snake') {
         const bodyY = baseY - 13 + (defeated ? 6 : 0);
         drawContactShadow(ctx, centerX, baseY + 3, enemy.width * 0.76, defeated ? 0.08 : 0.16, 0.8);
@@ -15861,6 +16778,26 @@ export default function ExpeditionJourney({
       ctx.lineTo(x + xDir * cornerLength, y);
       ctx.stroke();
     });
+    // Interactive grab targets: filled corner squares (scale) + a rotate knob above.
+    const hs = PROP_EDITOR_HANDLE_DRAW_SIZE;
+    ctx.fillStyle = color;
+    [
+      [bounds.x, bounds.y],
+      [bounds.x + bounds.width, bounds.y],
+      [bounds.x, bounds.y + bounds.height],
+      [bounds.x + bounds.width, bounds.y + bounds.height],
+    ].forEach(([hx, hy]) => {
+      ctx.fillRect(hx - hs / 2, hy - hs / 2, hs, hs);
+    });
+    const knobX = bounds.x + bounds.width / 2;
+    const knobY = bounds.y - PROP_EDITOR_ROTATE_OFFSET;
+    ctx.beginPath();
+    ctx.moveTo(knobX, bounds.y);
+    ctx.lineTo(knobX, knobY);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(knobX, knobY, hs / 2 + 1, 0, Math.PI * 2);
+    ctx.fill();
     ctx.restore();
   };
 
@@ -16436,10 +17373,15 @@ export default function ExpeditionJourney({
       ctx.translate(playerImpactShakeX, playerImpactShakeY);
     }
 
-    const chinaBackgroundDrawn = drawChinaRiverValleyBackground(ctx, cameraX);
-    const desertBackgroundDrawn = !chinaBackgroundDrawn && drawDesertEntryBackground(ctx, section, cameraX);
-    const sectionParallaxDrawn = !chinaBackgroundDrawn && !desertBackgroundDrawn && drawSectionParallaxBackground(ctx, section, cameraX);
-    if (chinaBackgroundDrawn) {
+    const arrivalThresholdDrawn = current.arrivalThresholdActive && drawArrivalThresholdScene(ctx, current, now);
+    const chinaBackgroundDrawn = !arrivalThresholdDrawn && drawChinaRiverValleyBackground(ctx, cameraX);
+    const desertBackgroundDrawn = !arrivalThresholdDrawn && !chinaBackgroundDrawn && drawDesertEntryBackground(ctx, section, cameraX);
+    const sectionParallaxDrawn = !arrivalThresholdDrawn && !chinaBackgroundDrawn && !desertBackgroundDrawn && drawSectionParallaxBackground(ctx, section, cameraX);
+    if (arrivalThresholdDrawn) {
+      current.renderStats.parallaxLayersActive = true;
+      current.renderStats.activeBackgroundSection = 'arrival-threshold';
+      current.renderStats.backgroundDepthMode = 'arrival-threshold-final-art-v1';
+    } else if (chinaBackgroundDrawn) {
       current.renderStats.parallaxLayersActive = true;
       current.renderStats.activeBackgroundSection = 'china-river-valley';
       current.renderStats.backgroundDepthMode = 'china-river-valley-parallax-v3-seam-reduced';
@@ -16461,7 +17403,7 @@ export default function ExpeditionJourney({
 
     }
 
-    const parallaxBackgroundDrawn = chinaBackgroundDrawn || desertBackgroundDrawn || sectionParallaxDrawn;
+    const parallaxBackgroundDrawn = arrivalThresholdDrawn || chinaBackgroundDrawn || desertBackgroundDrawn || sectionParallaxDrawn;
 
     // --- Ground & Props ---
     ctx.save();
@@ -16469,7 +17411,7 @@ export default function ExpeditionJourney({
       ctx.translate(0, secretVerticalCameraOffset);
     }
     if (!parallaxBackgroundDrawn) drawTempleBackdrop(ctx, section, cameraX);
-    if (!chamberSceneActive) {
+    if (!chamberSceneActive && !current.arrivalThresholdActive) {
       WORLD_CONTINUITY_LANDMARKS.forEach((landmark) => drawWorldContinuityLandmark(ctx, landmark, cameraX, now));
       WORLD_TRANSITION_STORY_MARKERS.forEach((marker) => drawWorldTransitionMarker(ctx, marker, cameraX, now));
       getZIndexSortedRenderableStoryProps(current).forEach((prop) => drawStoryProp(ctx, prop, cameraX, now, 'background'));
@@ -16494,7 +17436,7 @@ export default function ExpeditionJourney({
       renderParallaxLayer(0.18, `${atmosphere.skyBottom}99`, 0.9);
       renderParallaxLayer(0.28, `${atmosphere.skyBottom}cc`, 0.5);
     }
-    if (!chamberSceneActive) {
+    if (!chamberSceneActive && !current.arrivalThresholdActive) {
       drawDesertForegroundAtmosphere(ctx, section, cameraX);
       drawSectionParallaxForeground(ctx, section, cameraX);
       drawOpeningPyramidMasonryBack(ctx, cameraX, now, current);
@@ -16516,11 +17458,15 @@ export default function ExpeditionJourney({
       getZIndexSortedRenderableStoryProps(current).forEach((prop) => drawStoryProp(ctx, prop, cameraX, now, 'grounded'));
       CHAMBER_DOOR_VISUALS.forEach((door) => drawPremiumEgyptianChamberDoor(ctx, door, cameraX, current, now));
     }
+    const renderablePlatforms = current.arrivalThresholdActive ? [] : getRenderablePlatforms(current);
     drawMummificationChamberInterior(ctx, current, now);
     drawForgottenMuralChamberInterior(ctx, current, now);
     drawScribeLockedChamberInterior(ctx, current, now);
+    if (!chamberSceneActive && !current.arrivalThresholdActive) {
+      drawLostBridgeStructure(ctx, renderablePlatforms, cameraX, current);
+    }
 
-    const activeBossDomain = !chamberSceneActive && current.bossDomain
+    const activeBossDomain = !chamberSceneActive && !current.arrivalThresholdActive && current.bossDomain
       && !current.defeatedMiniBosses.has(current.bossDomain.bossId)
       && !current.bossDomain.suppressVisuals
       ? current.bossDomain
@@ -16613,18 +17559,25 @@ export default function ExpeditionJourney({
     }
 
     // --- Entities ---
-    getRenderablePlatforms(current)
-      .forEach((platform) => drawPlatform(ctx, platform, cameraX, current));
-    getZIndexSortedRenderableStoryProps(current).forEach((prop) => drawStoryProp(ctx, prop, cameraX, now, 'route-edge'));
-    if (!chamberSceneActive) {
+    if (!current.arrivalThresholdActive) {
+      const bridgePlatforms = renderablePlatforms.filter(platform => platform.variant === 'lost-bridge');
+      const nonBridgePlatforms = renderablePlatforms.filter(platform => platform.variant !== 'lost-bridge');
+      nonBridgePlatforms.forEach((platform) => drawPlatform(ctx, platform, cameraX, current));
+      if (!chamberSceneActive) drawLostBridgeRavineDepth(ctx, renderablePlatforms, cameraX, current);
+      bridgePlatforms.forEach((platform) => drawPlatform(ctx, platform, cameraX, current));
+      getZIndexSortedRenderableStoryProps(current).forEach((prop) => drawStoryProp(ctx, prop, cameraX, now, 'route-edge'));
+    }
+    if (!chamberSceneActive && !current.arrivalThresholdActive) {
       getActiveHiddenRoutes().forEach(route => drawHiddenRouteHint(ctx, route, cameraX, current, now));
       drawSectionTransitionBlend(ctx, cameraX);
     }
     
-    getRenderableHazards(current).forEach((hazard) => drawHazard(ctx, hazard, cameraX, current, now));
-    (current.trapProjectiles || []).forEach((projectile) => drawTrapProjectile(ctx, projectile, cameraX));
+    if (!current.arrivalThresholdActive) {
+      getRenderableHazards(current).forEach((hazard) => drawHazard(ctx, hazard, cameraX, current, now));
+      (current.trapProjectiles || []).forEach((projectile) => drawTrapProjectile(ctx, projectile, cameraX));
+    }
 
-    if (!chamberSceneActive) getRenderableCheckpoints().forEach((checkpoint) => {
+    if (!chamberSceneActive && !current.arrivalThresholdActive) getRenderableCheckpoints().forEach((checkpoint) => {
       const markerX = checkpoint.markerX ?? checkpoint.x;
       const cx = worldToScreenX(markerX, cameraX);
       if (!isHorizontallyVisible(markerX, 1, cameraX, 130)) return;
@@ -16700,7 +17653,7 @@ export default function ExpeditionJourney({
       && !current.defeatedMiniBosses.has(current.bossDomain.bossId)
       ? current.bossDomain
       : null;
-    if (!chamberSceneActive) getRouteGateDoorwayEntries().forEach((entry) => {
+    if (!chamberSceneActive && !current.arrivalThresholdActive) getRouteGateDoorwayEntries().forEach((entry) => {
       const status = getDoorwayGateStatus(entry, current);
       const gate = status.activeGate;
       const doorway = entry.doorway;
@@ -16717,14 +17670,14 @@ export default function ExpeditionJourney({
       if (!isHorizontallyVisible(doorwayLeft, doorwayWidth, cameraX, 100)) return;
       drawRouteGate(ctx, gate, gx, current, status.complete, 'base', doorway);
     });
-    if (!chamberSceneActive && !activeBossDomainForObjectiveMarkers) drawMissingObjectiveMarker(ctx, activeGateGuidance, cameraX, now);
+    if (!chamberSceneActive && !current.arrivalThresholdActive && !activeBossDomainForObjectiveMarkers) drawMissingObjectiveMarker(ctx, activeGateGuidance, cameraX, now);
 
-    if (!chamberSceneActive) STAGE_ENTRANCE_FEATURES.forEach((feature) => {
+    if (!chamberSceneActive && !current.arrivalThresholdActive) STAGE_ENTRANCE_FEATURES.forEach((feature) => {
       if (!shouldRenderStageEntranceFeatureForState(feature, current)) return;
       drawStageEntranceFeature(ctx, feature, cameraX, now);
     });
 
-    current.enemies.forEach((enemy) => {
+    if (!current.arrivalThresholdActive && !current.enemiesDisabled) current.enemies.forEach((enemy) => {
       if (!isEnemyDefeatedVisible(enemy)) return;
       if (!isEntityActiveInScene(enemy, current)) return;
       const activeBossDomain = current.bossDomain
@@ -16856,7 +17809,7 @@ export default function ExpeditionJourney({
       ctx.restore();
     });
 
-    current.miniBosses.forEach((boss) => {
+    if (!current.enemiesDisabled) current.miniBosses.forEach((boss) => {
       const editedBoss = getEditedMiniBoss(boss);
       const lairPlacement = getScarabQueenLairPlacement(editedBoss);
       if (!isEntityActiveInScene(boss, current)) return;
@@ -17264,10 +18217,14 @@ export default function ExpeditionJourney({
       }
       ctx.textAlign = 'start';
     }
-  }, [backgroundPackId, drawAncientRouteGround, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawForegroundDepthLayer, drawMummificationChamberInterior, drawForgottenMuralChamberInterior, drawForgottenMuralChamberTransition, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawPremiumEgyptianChamberDoor, drawPropPlacementEditorOverlay, drawRouteGate, drawRouteGroundApron, drawScarabQueenLairOpeningProp, drawScribeLockedChamberInterior, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawTrapProjectile, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getDoorwayGateStatus, getEditedMiniBoss, getEditedNestParams, getGateGuidance, getPlayerAttackState, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getZIndexSortedRenderableStoryProps, getRouteGateDoorwayEntries, getScarabQueenLairPlacement, isRouteRewardAccessible, drawPlayerSprite, drawFieldNoteLabel]);
+  }, [backgroundPackId, drawAncientRouteGround, drawArrivalThresholdScene, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawForegroundDepthLayer, drawMummificationChamberInterior, drawForgottenMuralChamberInterior, drawForgottenMuralChamberTransition, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawLostBridgeRavineDepth, drawLostBridgeStructure, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawPremiumEgyptianChamberDoor, drawPropPlacementEditorOverlay, drawRouteGate, drawRouteGroundApron, drawScarabQueenLairOpeningProp, drawScribeLockedChamberInterior, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawTrapProjectile, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getDoorwayGateStatus, getEditedMiniBoss, getEditedNestParams, getGateGuidance, getPlayerAttackState, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getZIndexSortedRenderableStoryProps, getRouteGateDoorwayEntries, getScarabQueenLairPlacement, isRouteRewardAccessible, drawPlayerSprite, drawFieldNoteLabel]);
 
-  const startOpeningCinematic = useCallback(({ speechEnabled = true } = {}) => {
+  const startOpeningCinematic = useCallback(({ speechEnabled = true, fromArrivalThreshold = false } = {}) => {
     const current = stateRef.current;
+    if (fromArrivalThreshold) {
+      current.arrivalThresholdActive = false;
+      current.arrivalThresholdGateTriggered = true;
+    }
     audioControls?.unlockExpeditionSfx?.();
     const isRomeCinematic = typeof targetCivilisation === 'string' && targetCivilisation.toLowerCase().includes('rome');
     audioControls?.playExpeditionSfx?.(openingAtmosphereSfxKey);
@@ -17428,28 +18385,35 @@ export default function ExpeditionJourney({
       current.player.vx = 0;
       current.player.vy = 0;
       current.player.direction = 1;
-      current.player.y = current.openingThresholdScene?.playerFallEndY ?? current.player.y;
+      current.player.x = ARRIVAL_THRESHOLD_SPAWN_X;
+      current.player.y = GROUND_Y - current.player.height;
       current.player.onGround = true;
       current.activeCheckpoint = openingCheckpoint;
-      current.cameraX = clampCameraX(current.player.x - CANVAS_WIDTH * 0.42);
+      current.cameraX = clampCameraX(ARRIVAL_THRESHOLD_SPAWN_X - CANVAS_WIDTH * 0.44);
       current.targetCameraX = current.cameraX;
     }
     current.openingThresholdScene = null;
     current.openingSphinxEncounter = null;
+    current.arrivalThresholdActive = true;
+    current.arrivalThresholdStarted = true;
+    current.arrivalThresholdLeftInspected = false;
+    current.arrivalThresholdMarkingsInspected = false;
+    current.arrivalThresholdGateTriggered = false;
+    current.arrivalThresholdNoticeTimer = 2.4;
     current.dynamicEnvironmentEvent = null;
     current.dynamicEnvironmentEventTimer = 0;
     current.collapsedPlatformIds.delete('opening-scarab-seal-summit');
     current.sectionTransition = null;
     current.sectionTransitionTimer = 0;
     current.lastSectionId = openingSection?.id || 'desert-entry';
-    current.notice = SCARAB_SEAL_TRIGGER.objectiveEchoLine;
+    current.notice = ARRIVAL_THRESHOLD_OBJECTIVE_LINE;
     current.cinematicEvent = {
-      id: 'opening-first-objective-echo',
-      name: 'First Objective',
-      message: SCARAB_SEAL_TRIGGER.objectiveEchoLine,
+      id: 'arrival-threshold-spawn',
+      name: 'Asha',
+      message: ARRIVAL_THRESHOLD_SPAWN_LINE,
       temporary: true,
     };
-    current.cinematicTimer = 2.8;
+    current.cinematicTimer = 2.4;
     current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 2.4);
     current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.18);
     current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.08);
@@ -17509,8 +18473,8 @@ export default function ExpeditionJourney({
       y: OPENING_SPHINX_FOOT_Y - OPENING_SPHINX_SCREEN_Y_OFFSET - 126,
       lines: encounter.lines || [],
       message: (encounter.lines || []).join(' '),
-      duration: encounter.duration || 5.3,
-      timer: encounter.duration || 5.3,
+      duration: encounter.duration || OPENING_SPHINX_DURATION,
+      timer: encounter.duration || OPENING_SPHINX_DURATION,
       silhouetteReveal: false,
       suppressDialogue: false,
       dialogueX: encounter.dialogueX,
@@ -17568,6 +18532,7 @@ export default function ExpeditionJourney({
     if (briefingOpen || current.completed || current.failed) return;
 
     const player = current.player;
+    const enemiesDisabled = Boolean(current.enemiesDisabled);
     if (current.openingCinematic) {
       const cinematic = current.openingCinematic;
       cinematic.timer = Math.max(0, cinematic.timer - dt);
@@ -18273,6 +19238,74 @@ export default function ExpeditionJourney({
         ),
       );
     }
+    if (current.arrivalThresholdActive) {
+      player.x = clamp(player.x, ARRIVAL_THRESHOLD_LEFT_BOUND, ARRIVAL_THRESHOLD_RIGHT_BOUND - player.width);
+      player.y = GROUND_Y - player.height;
+      player.vy = 0;
+      player.onGround = true;
+      player.airJumpsUsed = 0;
+      current.attackQueued = false;
+      current.attackWindupTimer = 0;
+      current.attackTimer = 0;
+      current.attackRecoilTimer = 0;
+      current.trapProjectiles = [];
+      current.currentSectionId = 'desert-entry';
+      current.lastSectionId = 'desert-entry';
+      current.resources.stamina = Math.max(current.resources.stamina, Math.min(maxStamina, 35));
+      current.arrivalThresholdNoticeTimer = Math.max(0, (current.arrivalThresholdNoticeTimer || 0) - dt);
+      const arrivalCenterX = player.x + player.width / 2;
+      if (!current.arrivalThresholdLeftInspected && arrivalCenterX <= ARRIVAL_THRESHOLD_LEFT_INSPECT_X) {
+        current.arrivalThresholdLeftInspected = true;
+        current.notice = ARRIVAL_THRESHOLD_LEFT_OBJECTIVE_LINE;
+        current.cinematicEvent = {
+          id: 'arrival-threshold-way-back',
+          name: 'Asha',
+          message: ARRIVAL_THRESHOLD_LEFT_LINES.join(' '),
+          temporary: true,
+        };
+        current.cinematicTimer = 3.1;
+        current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 2.0);
+        audioControls?.playExpeditionSfx?.('gateBlocked', { volume: 0.58 });
+      }
+      if (!current.arrivalThresholdMarkingsInspected && arrivalCenterX >= ARRIVAL_THRESHOLD_MARKINGS_INSPECT_X) {
+        current.arrivalThresholdMarkingsInspected = true;
+        current.notice = ARRIVAL_THRESHOLD_GATE_OBJECTIVE_LINE;
+        current.cinematicEvent = {
+          id: 'arrival-threshold-funerary-markings',
+          name: 'Asha',
+          message: ARRIVAL_THRESHOLD_MARKING_LINES.join(' '),
+          temporary: true,
+        };
+        current.cinematicTimer = 3.4;
+        current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 2.0);
+        audioControls?.playExpeditionSfx?.('lostSiteAirShift', { volume: 0.46 });
+      }
+      if (!current.arrivalThresholdGateTriggered && arrivalCenterX >= ARRIVAL_THRESHOLD_FORWARD_GATE_TRIGGER_X) {
+        current.arrivalThresholdGateTriggered = true;
+        player.vx = 0;
+        player.vy = 0;
+        current.cinematicEvent = null;
+        current.cinematicTimer = 0;
+        current.notice = 'The forward gate answers.';
+        audioControls?.playExpeditionSfx?.('openingThresholdFinalPulse', { volume: 0.82 });
+        startOpeningCinematic({ speechEnabled: true, fromArrivalThreshold: true });
+        syncHud();
+        return;
+      }
+      const camera = getCameraFollowTarget(current);
+      current.targetCameraX = camera.targetCameraX;
+      current.cameraMode = camera.mode;
+      current.cameraFocusTarget = camera.focusTarget;
+      if (!Number.isFinite(current.cameraX)) current.cameraX = camera.targetCameraX;
+      const cameraStep = clamp(
+        (current.targetCameraX - current.cameraX) * 0.16,
+        -JOURNEY_CAMERA.maxStep,
+        JOURNEY_CAMERA.maxStep,
+      );
+      current.cameraX = clampCameraX(current.cameraX + cameraStep);
+      syncHud();
+      return;
+    }
     if (player.y > JOURNEY_VIEWPORT.height + JOURNEY_WORLD_LAYOUT.rescueFallPadding) {
       triggerJourneyRescue('The team stumbled into a ravine. Field rescue required.');
     }
@@ -18393,6 +19426,32 @@ export default function ExpeditionJourney({
       current.activePlatformChallenge = null;
       triggerJourneyRescue('Missed platform jump. Field rescue required.', challengeMessage);
     }
+    const lostBridgeDeckBounds = getLostBridgeDeckBounds(available);
+    if (lostBridgeDeckBounds && !current.failed && !isInteriorChamberScene(current)) {
+      const playerCenterX = player.x + player.width / 2;
+      const playerFootY = player.y + player.height;
+      const ravineFallLeft = lostBridgeDeckBounds.left + LOST_BRIDGE_RAVINE_FALL_SIDE_PAD;
+      const ravineFallRight = lostBridgeDeckBounds.right - LOST_BRIDGE_RAVINE_FALL_SIDE_PAD * 0.74;
+      const belowBridgeDeck = playerFootY >= lostBridgeDeckBounds.y + LOST_BRIDGE_RAVINE_FALL_DEPTH;
+      if (playerCenterX >= ravineFallLeft && playerCenterX <= ravineFallRight && belowBridgeDeck) {
+        current.activePlatformChallenge = null;
+        addCombatEffect(current, {
+          type: 'environment-dust',
+          x: playerCenterX,
+          y: Math.min(GROUND_Y + 16, playerFootY),
+          text: 'RAVINE',
+          color: 'rgba(120, 53, 15, 0.62)',
+          timer: 0.42,
+          maxTimer: 0.42,
+        });
+        current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.18);
+        current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.16);
+        triggerJourneyRescue(
+          'Asha fell into the ravine. Field rescue required.',
+          'The bridge drops into a ravine here. Climb to the bridge deck before crossing.',
+        );
+      }
+    }
     if (player.onGround && Math.abs(player.vx) > 20) {
       const groundSpeed = Math.abs(player.vx);
       const isRunFeedback = groundSpeed > 190;
@@ -18423,7 +19482,7 @@ export default function ExpeditionJourney({
 
     // Sections
     const section = getSectionForX(player.x);
-    if (!inInteriorChamberScene && section.id !== current.lastSectionId) {
+    if (!inInteriorChamberScene && !current.arrivalThresholdActive && section.id !== current.lastSectionId) {
       const atmosphere = SECTION_ATMOSPHERES[section.id];
       const sectionTitle = getSectionDisplayTitle(section.id) || atmosphere.title;
       current.sectionTransition = { id: section.id, name: getSectionDisplayName(section.id), message: sectionTitle };
@@ -18433,7 +19492,7 @@ export default function ExpeditionJourney({
       audioControls?.playLevelUp?.();
     }
 
-    const reachedCheckpoint = !inInteriorChamberScene && getRenderableCheckpoints()
+    const reachedCheckpoint = !inInteriorChamberScene && !current.arrivalThresholdActive && getRenderableCheckpoints()
       .filter(checkpoint => player.x + player.width / 2 >= checkpoint.x)
       .at(-1);
     if (reachedCheckpoint && current.activeCheckpoint.id !== reachedCheckpoint.id) {
@@ -18451,7 +19510,7 @@ export default function ExpeditionJourney({
     }
 
     // Events
-    if (!inInteriorChamberScene) ENVIRONMENT_EVENTS.forEach(ev => {
+    if (!inInteriorChamberScene && !current.arrivalThresholdActive) ENVIRONMENT_EVENTS.forEach(ev => {
       const triggerRange = ev.dynamic ? 145 : 70;
       const crossedEvent = (previousPlayer.x <= ev.x && player.x >= ev.x) || (previousPlayer.x >= ev.x && player.x <= ev.x);
       if (!current.triggeredEnvironmentEventIds.has(ev.id) && (Math.abs(player.x - ev.x) < triggerRange || crossedEvent)) {
@@ -18487,7 +19546,7 @@ export default function ExpeditionJourney({
 
     // Recurring underground pressure pulse — active once player passes the pyramid into open desert
     // X(500) = Math.round(500 * 5.65) = 2825
-    if (!inInteriorChamberScene && player.x > 2825) {
+    if (!inInteriorChamberScene && !current.arrivalThresholdActive && player.x > 2825) {
       if (current.pressurePulseTimer == null) {
         current.pressurePulseTimer = 20 + Math.random() * 25;
       }
@@ -18500,7 +19559,7 @@ export default function ExpeditionJourney({
       current.pressurePulseTimer = null;
     }
 
-    if (!inInteriorChamberScene && !current.openingThresholdScene?.lockMovement) {
+    if (!inInteriorChamberScene && !current.arrivalThresholdActive && !current.openingThresholdScene?.lockMovement) {
       current.ambientDramaTimer ??= 24 + Math.random() * 28;
       current.ambientDramaTimer -= dt;
       if (current.ambientDramaTimer <= 0) {
@@ -19075,12 +20134,11 @@ export default function ExpeditionJourney({
         current.openingConfrontationSeen = true;
         current.collapsedPlatformIds.add('opening-scarab-seal-summit');
         current.triggeredEnvironmentEventIds.add(SCARAB_SEAL_TRIGGER.id);
-        const sphinxX = Math.min(player.x + 360, SCARAB_SEAL_TRIGGER.x + 430);
-        const thresholdLines = SCARAB_SEAL_TRIGGER.messages.map((text, index) => ({
-          speaker: SCARAB_SEAL_TRIGGER.dialogueSpeakers?.[index] || 'Anubis',
-          text,
-          at: SCARAB_SEAL_TRIGGER.dialogueTiming?.[index] ?? index * 2.2,
-        }));
+        const thresholdLines = [
+          { speaker: 'Asha', text: ARRIVAL_THRESHOLD_SPAWN_LINE, at: 0.8 },
+          { speaker: 'Asha', text: 'The world fell away.', at: 3.0 },
+          { speaker: 'Asha', text: 'I have to find where the seal brought me.', at: 6.0 },
+        ];
         current.openingThresholdScene = {
           id: 'opening-false-scarab-threshold',
           phase: 'false-discovery',
@@ -19102,20 +20160,7 @@ export default function ExpeditionJourney({
           stoneShiftSfxPlayed: false,
           finalPulseSfxPlayed: false,
         };
-        current.openingSphinxEncounter = {
-          id: 'opening-sphinx-encounter',
-          name: SCARAB_SEAL_TRIGGER.eventName,
-          playerX: player.x,
-          x: sphinxX,
-          y: OPENING_SPHINX_FOOT_Y - OPENING_SPHINX_SCREEN_Y_OFFSET - 126,
-          lines: SCARAB_SEAL_TRIGGER.messages,
-          message: SCARAB_SEAL_TRIGGER.messages.join(' '),
-          guideFollowUpLine: SCARAB_SEAL_TRIGGER.guideFollowUpLine,
-          duration: OPENING_SPHINX_DURATION,
-          timer: OPENING_SPHINX_DURATION,
-          silhouetteReveal: true,
-          suppressDialogue: true,
-        };
+        current.openingSphinxEncounter = null;
         current.sectionTransition = null;
         current.sectionTransitionTimer = 0;
         current.environmentEvent = null;
@@ -19815,8 +20860,13 @@ export default function ExpeditionJourney({
       enemy.attackRecovery = 0.35;
       enemy.vulnerabilityTimer = Math.max(enemy.vulnerabilityTimer || 0, 0.25);
       enemy.shieldTimer = 0;
-      enemy.knockbackTimer = 0.18;
-      enemy.knockbackDirection = player.direction;
+      if (enemy.type === 'scorpion-nest') {
+        enemy.knockbackTimer = 0;
+        enemy.knockbackDirection = 0;
+      } else {
+        enemy.knockbackTimer = 0.18;
+        enemy.knockbackDirection = player.direction;
+      }
       player.vy = -JUMP_SPEED * 0.42;
       player.onGround = false;
       player.coyoteTimer = 0;
@@ -19836,7 +20886,19 @@ export default function ExpeditionJourney({
     };
 
     // Enemies
-    current.enemies.forEach(e => {
+    if (enemiesDisabled) {
+      current.enemies.forEach(e => {
+        e.attackWindup = 0;
+        e.attackTimer = 0;
+        e.attackReady = false;
+        e.attackRecovery = 0;
+        e.vulnerabilityTimer = 0;
+        e.shieldTimer = 0;
+        e.knockbackTimer = 0;
+        e.aggroMemoryTimer = 0;
+        if (e.defeated) updateEnemyDefeatedVisibility(e, dt);
+      });
+    } else current.enemies.forEach(e => {
       if (e.defeated) {
         updateEnemyDefeatedVisibility(e, dt);
         return;
@@ -19887,8 +20949,12 @@ export default function ExpeditionJourney({
       );
       const playerIsVenomSlowed = (player.venomSlowTimer || 0) > 0;
       const shouldUseVenomSpit = e.type === 'scorpion' && !meleeReachesPlayer && scorpionVenomCanReach && !playerIsVenomSlowed;
-      const enemyCanStartAttack = (nearPlayer && meleeReachesPlayer) || shouldUseVenomSpit;
-      if (nearPlayer || shouldUseVenomSpit || (e.type === 'scorpion' && playerIsVenomSlowed && scorpionVenomCanReach)) {
+      const scarabPoisonChargeCanReach = e.type === 'scarab'
+        && playerIsVenomSlowed
+        && nearPlayer
+        && Math.abs(distanceToPlayer) <= (ENEMY_ATTACK_TRIGGER_REACH + SCARAB_POISONED_CHARGE_START_BONUS);
+      const enemyCanStartAttack = (nearPlayer && meleeReachesPlayer) || shouldUseVenomSpit || scarabPoisonChargeCanReach;
+      if (nearPlayer || shouldUseVenomSpit || scarabPoisonChargeCanReach || (e.type === 'scorpion' && playerIsVenomSlowed && scorpionVenomCanReach)) {
         e.aggroMemoryTimer = Math.max(e.aggroMemoryTimer || 0, ENEMY_AGGRO_MEMORY_SECONDS * (tacticalPattern.aggroMemoryMultiplier || 1));
       }
       if (!current.seenEnemyTypeNoticeIds) current.seenEnemyTypeNoticeIds = new Set();
@@ -19962,7 +21028,10 @@ export default function ExpeditionJourney({
           current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.14);
           current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.18);
         }
-        if ((current.itemPurposeNoticeTimer || 0) <= 0 && (current.damageNoticeTimer || 0) <= 0) {
+        const scarabPoisonedChargeNotice = e.type === 'scarab' && playerIsVenomSlowed;
+        if (scarabPoisonedChargeNotice) {
+          current.notice = 'Scarab charges faster while venom slows Asha. Dodge behind it.';
+        } else if ((current.itemPurposeNoticeTimer || 0) <= 0 && (current.damageNoticeTimer || 0) <= 0) {
           current.notice = isHeavyAttack
             ? `${e.name} — heavy ${pattern.label}. Stay back.`
             : `${e.name} winds up ${pattern.label}. Dodge, then counter.`;
@@ -19975,7 +21044,8 @@ export default function ExpeditionJourney({
 
       if (e.attackTimer > 0) {
         const pattern = getEnemyPatternConfig(e);
-        e.x += e.attackDirection * pattern.speed * dt;
+        const scarabPoisonChargeBoost = e.type === 'scarab' && playerIsVenomSlowed ? SCARAB_POISONED_CHARGE_SPEED_MULTIPLIER : 1;
+        e.x += e.attackDirection * pattern.speed * scarabPoisonChargeBoost * dt;
         const enemyAttackBox = getAttackBox(e, pattern.range, pattern.height, e.attackDirection, pattern.yOffset || 0, pattern.backReach || 0);
         const contact = resolveEnemyContact(player, previousPlayer, e);
         const playerBodyHitbox = getPlayerBodyHitbox(player);
@@ -20019,7 +21089,7 @@ export default function ExpeditionJourney({
         }
       }
 
-      if (e.knockbackTimer > 0) {
+      if (e.knockbackTimer > 0 && e.type !== 'scorpion-nest') {
         e.x += e.knockbackDirection * 95 * dt;
       }
 
@@ -20113,7 +21183,7 @@ export default function ExpeditionJourney({
         if (isScarabFrontalHit) {
           current.lastAttackResult = 'shell-deflect';
           resetPlayerCombo(current);
-          current.notice = 'Scarab shell absorbed the blow. Get behind it.';
+          current.notice = 'Scarab shell absorbed the blow. Dodge behind it after the charge.';
           current.damageNoticeTimer = Math.max(current.damageNoticeTimer || 0, 1.1);
           applyCombatHitImpact({
             current,
@@ -20230,7 +21300,7 @@ export default function ExpeditionJourney({
     });
 
     // --- Scorpion nest spawner: stationary nests spit scorpions until destroyed ---
-    current.enemies.forEach(nest => {
+    if (!enemiesDisabled) current.enemies.forEach(nest => {
       if (nest.type !== 'scorpion-nest' || nest.defeated) return;
       if (!isEntityActiveInScene(nest, current)) return;
       // Keep the nest inert — it never moves or attacks, it only spawns.
@@ -20288,7 +21358,7 @@ export default function ExpeditionJourney({
     });
 
     // Bosses
-    current.miniBosses.forEach(b => {
+    if (!enemiesDisabled) current.miniBosses.forEach(b => {
       if (!isEntityActiveInScene(b, current)) return;
       if (b.defeated) return;
       const wasBossAttacking = b.attackTimer > 0;
@@ -20784,13 +21854,16 @@ export default function ExpeditionJourney({
         const nextX = Number(x);
         if (!Number.isFinite(nextX)) return createJourneySnapshot(current);
         const nextY = Number(y);
-        current.player.x = clamp(nextX, 0, WORLD_WIDTH - current.player.width);
+        const playerWidth = PLAYER_WIDTH;
+        const playerHeight = PLAYER_HEIGHT;
+        const groundPlayerY = GROUND_Y - playerHeight;
+        current.player.x = clamp(nextX, 0, WORLD_WIDTH - playerWidth);
         current.player.y = Number.isFinite(nextY)
-          ? clamp(nextY, 0, GROUND_Y - current.player.height)
-          : GROUND_Y - current.player.height;
+          ? clamp(nextY, 0, groundPlayerY)
+          : groundPlayerY;
         current.player.vx = 0;
         current.player.vy = 0;
-        current.player.onGround = current.player.y >= GROUND_Y - current.player.height - 1;
+        current.player.onGround = current.player.y >= groundPlayerY - 1;
         current.cameraX = clampCameraX(current.player.x - CANVAS_WIDTH * 0.42);
         current.targetCameraX = current.cameraX;
         step(0);
@@ -21024,6 +22097,8 @@ export default function ExpeditionJourney({
           current.player.vy = 0;
           current.player.direction = 1;
           current.player.onGround = true;
+          current.currentSectionId = boss.sectionId;
+          current.lastSectionId = boss.sectionId;
           current.activeCheckpoint = sectionCheckpoint || current.activeCheckpoint;
           if (section) {
             SECTIONS
@@ -21601,6 +22676,7 @@ export default function ExpeditionJourney({
   }, [gameState.forgottenMuralRelicSlidePuzzleOpen]);
 
   const bossDomainHudSuppressed = gameState.bossDomain
+    && !gameState.enemiesDisabled
     && !gameState.defeatedMiniBosses?.has(gameState.bossDomain.bossId);
   const activeHudGate = bossDomainHudSuppressed
     ? null
@@ -21656,6 +22732,45 @@ export default function ExpeditionJourney({
         e.preventDefault();
         draw();
         return;
+      }
+      // Transform handles on the already-selected prop take priority over re-selecting:
+      // corner squares scale, the knob above rotates. Only fires on a precise handle
+      // hit, so normal click-to-select/move below is untouched.
+      if (editor.selectedPropId) {
+        const current = stateRef.current;
+        const selectedForHandle = getPropEditorSelectedProp(current);
+        if (selectedForHandle && !isEditorLockKeyLocked(`prop:${selectedForHandle.id}`)) {
+          const handleBounds = getStoryPropEditorBounds(selectedForHandle, current.cameraX || 0, current);
+          const handle = hitTestPropTransformHandle(pointer.screenX, pointer.screenY, handleBounds);
+          if (handle) {
+            const cx = handleBounds.x + handleBounds.width / 2;
+            const cy = handleBounds.y + handleBounds.height / 2;
+            if (handle === 'rotate') {
+              editor.dragging = {
+                kind: 'prop-rotate',
+                propId: selectedForHandle.id,
+                cx,
+                cy,
+                startRotation: Number.isFinite(selectedForHandle.rotation) ? selectedForHandle.rotation : 0,
+                startAngle: Math.atan2(pointer.screenY - cy, pointer.screenX - cx) * 180 / Math.PI,
+              };
+            } else {
+              editor.dragging = {
+                kind: 'prop-scale',
+                propId: selectedForHandle.id,
+                cx,
+                cy,
+                startScale: Number.isFinite(selectedForHandle.scale) ? selectedForHandle.scale : 1,
+                startDist: Math.max(1, Math.hypot(pointer.screenX - cx, pointer.screenY - cy)),
+              };
+            }
+            e.currentTarget.setPointerCapture?.(e.pointerId);
+            e.preventDefault();
+            draw();
+            refreshPropEditorUi();
+            return;
+          }
+        }
       }
       // If the user has Tab-cycled to a buried entity at this point, select that one
       // (what the hover preview shows). index 0 falls through to the normal cascade so
@@ -21958,6 +23073,28 @@ export default function ExpeditionJourney({
           x: nextX,
           y: nextY,
         };
+      } else if (editor.dragging.kind === 'prop-scale') {
+        const baseProp = getPropEditorBasePropById(editor.dragging.propId);
+        if (!baseProp) return;
+        const dist = Math.hypot(pointer.screenX - editor.dragging.cx, pointer.screenY - editor.dragging.cy);
+        const ratio = dist / editor.dragging.startDist;
+        const nextScale = Math.round(clamp(editor.dragging.startScale * ratio, 0.1, 12) * 100) / 100;
+        editor.edits[baseProp.id] = {
+          ...(editor.edits[baseProp.id] || {}),
+          scale: nextScale,
+        };
+      } else if (editor.dragging.kind === 'prop-rotate') {
+        const baseProp = getPropEditorBasePropById(editor.dragging.propId);
+        if (!baseProp) return;
+        const angle = Math.atan2(pointer.screenY - editor.dragging.cy, pointer.screenX - editor.dragging.cx) * 180 / Math.PI;
+        let nextRotation = editor.dragging.startRotation + (angle - editor.dragging.startAngle);
+        nextRotation = ((nextRotation + 180) % 360 + 360) % 360 - 180; // normalize to (-180, 180]
+        if (editor.gridSnap) nextRotation = Math.round(nextRotation / 15) * 15; // snap to 15° with grid snap on
+        nextRotation = Math.round(nextRotation * 10) / 10;
+        editor.edits[baseProp.id] = {
+          ...(editor.edits[baseProp.id] || {}),
+          rotation: nextRotation,
+        };
       } else {
         const baseProp = getPropEditorBasePropById(editor.dragging.propId);
         if (!baseProp) return;
@@ -22142,7 +23279,34 @@ export default function ExpeditionJourney({
                   <button type="button" onClick={savePropPlacementExport}>
                     Save export
                   </button>
+                  <button
+                    type="button"
+                    title="Write the export straight into journeyPlacementOverrides.generated.js (dev server only)"
+                    onClick={writeJourneyOverridesToSource}
+                    disabled={propEditorUi.writeStatus?.state === 'writing'}
+                  >
+                    {propEditorUi.writeStatus?.state === 'writing' ? 'Writing…' : '💾 Write to source'}
+                  </button>
                   </div>
+                  {propEditorUi.writeStatus && (
+                    <div
+                      className={`journey-prop-editor-write-status is-${propEditorUi.writeStatus.state}`}
+                      role="status"
+                      style={{
+                        marginTop: 4,
+                        fontSize: 11,
+                        color: propEditorUi.writeStatus.state === 'error'
+                          ? '#ffb4a8'
+                          : propEditorUi.writeStatus.state === 'ok'
+                            ? '#9be7a0'
+                            : '#e6c98a',
+                      }}
+                    >
+                      {propEditorUi.writeStatus.state === 'ok' ? '✓ ' : propEditorUi.writeStatus.state === 'error' ? '⚠ ' : ''}
+                      {propEditorUi.writeStatus.message}
+                      {propEditorUi.writeStatus.at ? ` · ${propEditorUi.writeStatus.at}` : ''}
+                    </div>
+                  )}
                   </div>
                   <div className="journey-prop-editor-action-group" role="group" aria-label="Modes">
                   <span className="journey-prop-editor-action-group-label">Modes</span>
@@ -22257,6 +23421,95 @@ export default function ExpeditionJourney({
                     </ul>
                   </div>
                 )}
+                {propEditorUi.sceneOutliner && (
+                  <div className="journey-prop-editor-outliner" style={{ marginBottom: 8 }}>
+                    <div
+                      className="journey-prop-editor-group-header"
+                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
+                      onClick={() => setOutlinerOpen(open => !open)}
+                    >
+                      <span>{outlinerOpen ? '▾' : '▸'} Scene · {propEditorUi.sceneOutliner.total} props</span>
+                      {propEditorUi.sceneOutliner.hiddenCount > 0 && (
+                        <button
+                          type="button"
+                          style={{ fontSize: 10, padding: '1px 6px' }}
+                          onClick={(event) => { event.stopPropagation(); showAllEditorProps(); }}
+                          title="Show every hidden prop again"
+                        >
+                          Show all ({propEditorUi.sceneOutliner.hiddenCount})
+                        </button>
+                      )}
+                    </div>
+                    {outlinerOpen && (
+                      <div style={{ maxHeight: 220, overflowY: 'auto', marginTop: 4 }}>
+                        {propEditorUi.sceneOutliner.groups.length === 0 && (
+                          <div className="journey-prop-editor-empty">No props in this room yet</div>
+                        )}
+                        {propEditorUi.sceneOutliner.groups.map(group => (
+                          <div key={group.depth} className="journey-prop-editor-outliner-group">
+                            <div style={{ fontSize: 10, opacity: 0.6, textTransform: 'uppercase', letterSpacing: '0.04em', margin: '4px 0 2px' }}>
+                              {group.depth} · {group.items.length}
+                            </div>
+                            {group.items.map(item => (
+                              <div
+                                key={item.id}
+                                className={`journey-prop-editor-outliner-row${item.selected ? ' is-selected' : ''}`}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 4,
+                                  padding: '2px 4px',
+                                  borderRadius: 3,
+                                  fontSize: 11,
+                                  background: item.selected ? 'rgba(214, 158, 73, 0.26)' : 'transparent',
+                                  opacity: item.hidden ? 0.5 : 1,
+                                }}
+                              >
+                                <button
+                                  type="button"
+                                  title={item.hidden ? 'Show prop' : 'Hide prop (editor view only)'}
+                                  onClick={() => toggleEditorPropHidden(item.id)}
+                                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 12, lineHeight: 1 }}
+                                >
+                                  {item.hidden ? '🚫' : '👁'}
+                                </button>
+                                <button
+                                  type="button"
+                                  title={item.locked ? 'Unlock prop' : 'Lock prop'}
+                                  onClick={() => toggleEditorPropLockFromOutliner(item.id)}
+                                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 11, lineHeight: 1 }}
+                                >
+                                  {item.locked ? '🔒' : '🔓'}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => selectEditorPropFromOutliner(item.id)}
+                                  title={`${item.id} · z${item.zIndex} · x${item.x} — click to select & center`}
+                                  style={{
+                                    flex: 1,
+                                    textAlign: 'left',
+                                    background: 'none',
+                                    border: 'none',
+                                    color: 'inherit',
+                                    cursor: 'pointer',
+                                    padding: 0,
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                    fontWeight: item.selected ? 700 : 400,
+                                  }}
+                                >
+                                  {item.label}
+                                </button>
+                                <span style={{ fontSize: 9, opacity: 0.5 }}>z{item.zIndex}</span>
+                              </div>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
                 {propEditorUi.selectedProp ? (
                   <div className="journey-prop-editor-readout journey-prop-editor-readout-identity">
                     <div><span>{propEditorUi.selectedProp.category}</span><strong>{propEditorUi.selectedProp.id}</strong></div>
@@ -22275,7 +23528,7 @@ export default function ExpeditionJourney({
                     <div><span>Height</span><strong>{propEditorUi.selectedHazard.height}</strong></div>
                     <div><span>Damage</span><strong>{propEditorUi.selectedHazard.damage}</strong></div>
                     <div><span>Cooldown</span><strong>{propEditorUi.selectedHazard.cooldown.toFixed(2)}</strong></div>
-                    <div><span>Burial</span><strong>{propEditorUi.selectedHazard.burial.toFixed(2)}</strong></div>
+                    <div><span>Burial</span><strong>{(propEditorUi.selectedHazard.burial || 0).toFixed(2)}</strong></div>
                     <div><span>Triggers</span><strong>{propEditorUi.showTrapTriggers ? 'shown' : 'hidden'}</strong></div>
                   </div>
                 ) : propEditorUi.selectedPlatform ? (
@@ -22462,6 +23715,20 @@ export default function ExpeditionJourney({
                         />
                       </label>
                       <label>
+                        <span>Width</span>
+                        <input
+                          type="number"
+                          min="0.2"
+                          max="3"
+                          step="0.05"
+                          value={Number((propEditorUi.selectedProp.widthScale ?? 1).toFixed(2))}
+                          onChange={(event) => {
+                            const nextWidthScale = clamp(Number(event.target.value), 0.2, 3);
+                            if (Number.isFinite(nextWidthScale)) updateSelectedPropEditorTransform({ widthScale: Number(nextWidthScale.toFixed(2)) });
+                          }}
+                        />
+                      </label>
+                      <label>
                         <span>Rotation</span>
                         <input
                           type="number"
@@ -22591,6 +23858,13 @@ export default function ExpeditionJourney({
                       >
                         Paste look
                       </button>
+                      <button
+                        type="button"
+                        onClick={blendSelectedPropIntoScene}
+                        title="Apply the golden-hour desert blend (desaturate + warm + dim + soft shadow) so this prop stops looking pasted-on"
+                      >
+                        Blend into scene
+                      </button>
                     </div>
                     {(() => {
                       const grade = parseColorGradeFilter(propEditorUi.selectedProp.colorGradeFilter);
@@ -22648,6 +23922,41 @@ export default function ExpeditionJourney({
                               className="journey-prop-editor-color-reset"
                               onClick={() => updateSelectedPropEditorTransform({ tintStrength: 0, colorGradeFilter: '' })}
                               title="Remove tint"
+                            >
+                              Clear
+                            </button>
+                          </div>
+                          <div className="journey-prop-editor-tint">
+                            <span title="Multiplies a solid colour onto the sprite — reaches true colours (clean blue, green, red) that the Tint above can't. Image props only; code-drawn props won't change.">Paint</span>
+                            <input
+                              type="color"
+                              value={/^#([0-9a-f]{6})$/i.test(propEditorUi.selectedProp.paintColor || '') ? propEditorUi.selectedProp.paintColor : '#7c5a32'}
+                              onChange={(event) => {
+                                const color = event.target.value;
+                                const strength = Number.isFinite(propEditorUi.selectedProp.paintStrength) && propEditorUi.selectedProp.paintStrength > 0
+                                  ? propEditorUi.selectedProp.paintStrength : 0.6;
+                                updateSelectedPropEditorTransform({ paintColor: color, paintStrength: strength });
+                              }}
+                              title="Pick the exact colour to paint this prop, then raise the strength"
+                            />
+                            <input
+                              type="range"
+                              min="0"
+                              max="1"
+                              step="0.05"
+                              value={propEditorUi.selectedProp.paintStrength ?? 0}
+                              onChange={(event) => {
+                                const strength = clamp(Number(event.target.value), 0, 1);
+                                const color = /^#([0-9a-f]{6})$/i.test(propEditorUi.selectedProp.paintColor || '') ? propEditorUi.selectedProp.paintColor : '#7c5a32';
+                                updateSelectedPropEditorTransform({ paintStrength: strength, paintColor: color });
+                              }}
+                            />
+                            <output>{Math.round((propEditorUi.selectedProp.paintStrength ?? 0) * 100)}%</output>
+                            <button
+                              type="button"
+                              className="journey-prop-editor-color-reset"
+                              onClick={() => updateSelectedPropEditorTransform({ paintStrength: 0 })}
+                              title="Remove paint colour"
                             >
                               Clear
                             </button>
@@ -23125,7 +24434,7 @@ export default function ExpeditionJourney({
                         min="0"
                         max="0.85"
                         step="0.05"
-                        value={Number(propEditorUi.selectedHazard.burial.toFixed(2))}
+                        value={Number((propEditorUi.selectedHazard.burial || 0).toFixed(2))}
                         onChange={(event) => {
                           const nextBurial = clamp(Number(event.target.value), 0, 0.85);
                           if (Number.isFinite(nextBurial)) updateSelectedHazardEditorTransform({ burial: Number(nextBurial.toFixed(2)) });
@@ -23940,6 +25249,17 @@ export default function ExpeditionJourney({
                     : `${activeSacredRoomEvidence.label} ${activeSacredRoomEvidence.recoveredCount}/${activeSacredRoomEvidence.requiredCount}`}
                 </em>
               </div>
+
+              <button
+                type="button"
+                className={`journey-enemy-toggle ${gameState.enemiesDisabled ? 'is-off' : ''}`}
+                onClick={toggleEnemyPlaytestAssist}
+                aria-pressed={gameState.enemiesDisabled}
+                title={gameState.enemiesDisabled ? 'Turn enemies back on' : 'Turn enemies off for bridge play-testing'}
+              >
+                <ShieldAlert size={14} />
+                <span>{gameState.enemiesDisabled ? 'Enemies off' : 'Enemies on'}</span>
+              </button>
 
               <div className="journey-floating-hud-cluster journey-floating-hud-meters">
                 <div className={`journey-floating-hud-meter ${staminaWarningState !== 'stable' ? `stamina-alert stamina-${staminaWarningState}` : ''}`}>

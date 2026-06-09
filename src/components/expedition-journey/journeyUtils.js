@@ -99,6 +99,7 @@ export const applyJourneyPropPlacementEdit = (prop = {}, edit = {}) => {
   if (Number.isFinite(edit.editorBoundsInsetBottom)) next.editorBoundsInsetBottom = Math.max(0, Math.round(edit.editorBoundsInsetBottom));
   if (Number.isFinite(edit.editorBoundsInsetLeft)) next.editorBoundsInsetLeft = Math.max(0, Math.round(edit.editorBoundsInsetLeft));
   if (Number.isFinite(edit.scale)) next.scale = Math.max(0.1, Math.round(edit.scale * 100) / 100);
+  if (Number.isFinite(edit.widthScale)) next.widthScale = clamp(Math.round(edit.widthScale * 100) / 100, 0.2, 3);
   if (Number.isFinite(edit.rotation)) next.rotation = Math.round(edit.rotation * 10) / 10;
   if (typeof edit.mirrorX === 'boolean') next.mirrorX = edit.mirrorX;
   if (typeof edit.mirrorY === 'boolean') next.mirrorY = edit.mirrorY;
@@ -116,6 +117,10 @@ export const applyJourneyPropPlacementEdit = (prop = {}, edit = {}) => {
   if (typeof edit.colorGradeFilter === 'string') next.colorGradeFilter = edit.colorGradeFilter;
   if (typeof edit.tintColor === 'string') next.tintColor = edit.tintColor;
   if (Number.isFinite(edit.tintStrength)) next.tintStrength = Math.max(0, Math.min(1, Math.round(edit.tintStrength * 100) / 100));
+  // Paint tint: a solid colour multiplied onto the sprite (reaches true target
+  // colours, unlike the photo-filter colorGradeFilter). Independent of tintColor.
+  if (typeof edit.paintColor === 'string') next.paintColor = edit.paintColor;
+  if (Number.isFinite(edit.paintStrength)) next.paintStrength = Math.max(0, Math.min(1, Math.round(edit.paintStrength * 100) / 100));
   if (Array.isArray(edit.groundContactLayer)) next.groundContactLayer = normalizeJourneyGroundContactLayer(edit.groundContactLayer);
   return next;
 };
@@ -248,6 +253,7 @@ const PROP_TEMPLATE_FIELDS = [
   'sandMoundHeight',
   'groundPebbles',
   'scale',
+  'widthScale',
   'rotation',
   'mirrorX',
   'mirrorY',
@@ -663,6 +669,7 @@ export const createJourneyPlacementChangeSummary = (editor = {}, { limit = 8 } =
   addJourneyEditorChangeEntries(changes, 'Route gate', 'edited', getJourneyEditorChangedObjectIds(editor.routeGateEdits));
   addJourneyEditorChangeEntries(changes, 'Doorway arch', 'edited', getJourneyEditorChangedObjectIds(editor.routeGateDoorwayEdits));
   addJourneyEditorChangeEntries(changes, 'Checkpoint', 'edited', getJourneyEditorChangedObjectIds(editor.checkpointEdits));
+  addJourneyEditorChangeEntries(changes, 'Enemy', 'edited', getJourneyEditorChangedObjectIds(editor.scorpionNestEdits));
   addJourneyEditorChangeEntries(changes, 'Lair', 'edited', getJourneyEditorChangedObjectIds(editor.miniBossEdits));
 
   const totalCount = changes.length;
@@ -733,6 +740,7 @@ export const createJourneyPlacementAiInstructions = (editor = {}, { roomId } = {
   addJourneyPlacementAiEditLines(lines, 'route gate', editor.routeGateEdits);
   addJourneyPlacementAiEditLines(lines, 'doorway arch', editor.routeGateDoorwayEdits);
   addJourneyPlacementAiEditLines(lines, 'checkpoint', editor.checkpointEdits);
+  addJourneyPlacementAiEditLines(lines, 'enemy', editor.scorpionNestEdits);
   addJourneyPlacementAiEditLines(lines, 'lair', editor.miniBossEdits);
 
   if (lines.length === 0) {
@@ -756,7 +764,7 @@ export const createJourneyPlacementAiInstructions = (editor = {}, { roomId } = {
 // transient UI state like the current selection or whether the palette is open).
 const JOURNEY_PROP_EDITOR_OBJECT_KEYS = [
   'edits', 'platformEdits', 'hazardEdits', 'routeGateEdits',
-  'routeGateDoorwayEdits', 'checkpointEdits', 'miniBossEdits',
+  'routeGateDoorwayEdits', 'checkpointEdits', 'scorpionNestEdits', 'miniBossEdits',
 ];
 const JOURNEY_PROP_EDITOR_ARRAY_KEYS = ['createdProps', 'createdPlatforms', 'createdHazards'];
 const JOURNEY_PROP_EDITOR_SET_KEYS = ['deletedIds', 'deletedPlatformIds', 'deletedHazardIds', 'lockedItems'];
@@ -807,6 +815,16 @@ export const JOURNEY_PROP_TINT_PRESETS = Object.freeze([
   { key: 'dust', label: 'Dust', filter: 'saturate(64%) sepia(24%) contrast(92%)' },
   { key: 'buried', label: 'Buried', filter: 'saturate(72%) sepia(30%) contrast(94%)' },
 ]);
+
+// One-click "blend into scene" recipe for the Egypt golden-hour desert: desaturate
+// (kills painted blue/gold pop), warm sepia, lower contrast (matches atmospheric haze),
+// dim brightness, and a soft grounding shadow so the prop reads grounded, not pasted.
+// Applied as a unit by the editor's "Blend into scene" button.
+export const JOURNEY_PROP_SCENE_BLEND_RECIPE = Object.freeze({
+  colorGradeFilter: 'saturate(70%) sepia(24%) contrast(92%)',
+  brightness: 0.74,
+  shadowOpacity: 0.22,
+});
 
 // Identity values for each colour channel (the look when no grade is applied).
 export const JOURNEY_COLOR_GRADE_DEFAULTS = Object.freeze({ saturate: 100, sepia: 0, contrast: 100, hue: 0 });
@@ -1217,10 +1235,18 @@ const ENEMY_TOUGHNESS_BONUS = {
 const tuneEnemyHealth = (enemy) => {
   // Returns effective runtime HP in light-hit units (3-5 hits), then scales to the
   // combat damage resolution. Authored enemy.health stays small; the scale lives here.
-  if (enemy.firstSealRouteRamp) return Math.max(3, enemy.health) * COMBAT_DAMAGE_SCALE;
-  if (enemy.openingRouteRamp) return Math.max(3, enemy.health) * COMBAT_DAMAGE_SCALE;
+  if (enemy.firstSealRouteRamp) {
+    const tunedHealth = Math.max(3, enemy.health) * COMBAT_DAMAGE_SCALE;
+    return enemy.type === 'scorpion' ? Math.ceil(tunedHealth * 1.5) : tunedHealth;
+  }
+  if (enemy.openingRouteRamp) {
+    const tunedHealth = Math.max(3, enemy.health) * COMBAT_DAMAGE_SCALE;
+    return enemy.type === 'scorpion' ? Math.ceil(tunedHealth * 1.5) : tunedHealth;
+  }
   const bonus = ENEMY_TOUGHNESS_BONUS[enemy.type] ?? 1;
-  return clamp(Math.max(enemy.health + bonus, Math.ceil(enemy.health * 1.55)), 3, 5) * COMBAT_DAMAGE_SCALE;
+  const tunedHealth = clamp(Math.max(enemy.health + bonus, Math.ceil(enemy.health * 1.55)), 3, 5) * COMBAT_DAMAGE_SCALE;
+  if (enemy.type === 'scorpion') return Math.ceil(tunedHealth * 1.5);
+  return tunedHealth;
 };
 
 const tuneEnemyDamage = (enemy) => {
@@ -1642,6 +1668,7 @@ export const makeInitialState = ({ targetCivilisation, permanentUpgradeIds = [],
   collectedObjectiveIds: new Set(),
   collectedBossKeyIds: new Set(),
   enemies: getJourneyEnemies(targetCivilisation).map(makeEnemy),
+  enemiesDisabled: false,
   miniBosses: getJourneyMiniBosses(targetCivilisation).map(makeMiniBoss),
   bossKeyItems: BOSS_KEY_ITEMS.map(makeBossKeyItem),
   defeatedEnemies: new Set(),
@@ -1687,6 +1714,12 @@ export const makeInitialState = ({ targetCivilisation, permanentUpgradeIds = [],
   sceneTransition: null,
   sceneReturn: null,
   forgottenMuralChamberRestored: false,
+  arrivalThresholdActive: false,
+  arrivalThresholdStarted: false,
+  arrivalThresholdLeftInspected: false,
+  arrivalThresholdMarkingsInspected: false,
+  arrivalThresholdGateTriggered: false,
+  arrivalThresholdNoticeTimer: 0,
   openingThresholdScene: null,
   openingCinematic: null,
   templeThresholdTransition: null,

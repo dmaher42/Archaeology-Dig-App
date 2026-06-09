@@ -5,7 +5,6 @@ import {
   RANDOM_EVENTS,
   SCENARIOS,
   TRAINING_SURVEY_ZONES,
-  createDefaultTrainingGridTiles,
   createTrainingGridTiles,
   createSavePayload,
   getTrainingSurveyScore,
@@ -60,7 +59,7 @@ test('training save payload restores the current certification progress', () => 
   const scenario = SCENARIOS[0];
   const event = RANDOM_EVENTS[0];
   const activeArtifacts = scenario.evidence.slice(0, 2);
-  const gridTiles = createDefaultTrainingGridTiles();
+  const gridTiles = createTrainingGridTiles('intermediate', { selectedSurveyZoneId: 'central-depression' });
   gridTiles[0] = { ...gridTiles[0], isRevealed: true };
   gridTiles[10] = { ...gridTiles[10], isRevealed: true, isMarked: true };
   const trainingState = {

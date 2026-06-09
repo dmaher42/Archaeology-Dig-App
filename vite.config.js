@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import { journeyOverridesDevPlugin } from './scripts/journeyOverridesDevPlugin.mjs'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -8,6 +9,7 @@ export default defineConfig({
   base: '/Archaeology-Dig-App/',
   plugins: [
     react(),
+    journeyOverridesDevPlugin(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'pwa-192.png', 'pwa-512.png'],

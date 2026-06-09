@@ -2,7 +2,7 @@ export const CANVAS_WIDTH = 1120;
 export const CANVAS_HEIGHT = 630;
 export const CANVAS_NATIVE_WIDTH = 1280;
 export const CANVAS_NATIVE_HEIGHT = 720;
-export const JOURNEY_HORIZONTAL_SCALE = 5.65;
+export const JOURNEY_HORIZONTAL_SCALE = 7.35;
 export const BASE_WORLD_WIDTH = 9060;
 export const scaleJourneyX = (x) => Math.round(x * JOURNEY_HORIZONTAL_SCALE);
 export const SACRED_EXTERIOR_SPACING_BASE_UNITS = Object.freeze({

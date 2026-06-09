@@ -15346,12 +15346,13 @@ main {
   overflow: auto;
   transform: none;
   padding: 0 0.64rem 0.62rem;
-  border: 1px solid rgba(94, 234, 212, 0.42);
-  border-radius: 6px;
-  background: rgba(8, 13, 22, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(12, 16, 24, 0.75);
   color: #ecfeff;
-  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.34);
-  backdrop-filter: blur(8px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   pointer-events: auto;
   scrollbar-gutter: stable;
 }
@@ -15490,6 +15491,11 @@ main {
   background: rgba(236, 254, 255, 0.07);
   color: #ecfeff;
   font: 900 0.62rem 'Outfit', sans-serif;
+  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s ease, border-color 0.2s ease;
+}
+
+.journey-prop-editor-actions button:active {
+  transform: scale(0.96);
 }
 
 .journey-prop-editor-actions button:hover,
@@ -15673,11 +15679,21 @@ main {
 .journey-prop-editor-controls select {
   width: 4.5rem;
   padding: 0.22rem 0.36rem;
-  border: 1px solid rgba(94, 234, 212, 0.36);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 5px;
-  background: rgba(2, 6, 23, 0.78);
+  background: rgba(0, 0, 0, 0.35);
   color: #ecfeff;
   font: 800 0.74rem 'Outfit', sans-serif;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.journey-prop-editor-grid input:focus-visible,
+.journey-prop-editor-controls input:focus-visible,
+.journey-prop-editor-controls select:focus-visible {
+  border-color: rgba(94, 234, 212, 0.7);
+  background: rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 0 2px rgba(94, 234, 212, 0.2);
 }
 
 .journey-prop-editor-controls {
@@ -16003,12 +16019,13 @@ main {
   width: min(17rem, calc(100vw - 1.44rem));
   max-height: min(30rem, calc(100% - 1.44rem));
   padding: 0.64rem;
-  border: 1px solid rgba(251, 191, 36, 0.36);
-  border-radius: 6px;
-  background: rgba(12, 10, 9, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(12, 10, 9, 0.75);
   color: #fff7ed;
-  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(8px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   pointer-events: auto;
 }
 
@@ -16019,6 +16036,16 @@ main {
   margin-top: 0.56rem;
   overflow: auto;
   padding-right: 0.14rem;
+  scrollbar-gutter: stable;
+}
+
+.journey-prop-palette-list::-webkit-scrollbar {
+  width: 0.5rem;
+}
+
+.journey-prop-palette-list::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(251, 191, 36, 0.28);
 }
 
 .journey-prop-palette-group {
@@ -16061,6 +16088,37 @@ main {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.34rem;
   margin-top: 0.5rem;
+}
+
+.journey-prop-palette-search-row {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.journey-prop-palette-search-row .journey-prop-palette-search {
+  margin-top: 0;
+  flex: 1;
+}
+
+.journey-prop-palette-view-toggle {
+  flex: 0 0 auto;
+  width: 2.2rem;
+  height: 2.2rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 247, 237, 0.18);
+  border-radius: 5px;
+  background: rgba(12, 10, 9, 0.55);
+  color: #fde68a;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.journey-prop-palette-view-toggle:hover {
+  background: rgba(255, 247, 237, 0.1);
 }
 
 .journey-prop-palette-search {
@@ -16106,6 +16164,12 @@ main {
   background: rgba(255, 247, 237, 0.06);
   color: #fff7ed;
   text-align: left;
+  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s ease, border-color 0.2s ease;
+}
+
+.journey-prop-palette-list button:active {
+  transform: scale(0.96);
+  background: rgba(255, 247, 237, 0.12);
 }
 
 .journey-prop-palette-list .journey-prop-palette-group-toggle {
@@ -16168,12 +16232,13 @@ main {
   z-index: 46;
   width: min(34rem, calc(100vw - 1.44rem));
   padding: 0.64rem;
-  border: 1px solid rgba(250, 204, 21, 0.34);
-  border-radius: 6px;
-  background: rgba(13, 9, 6, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(13, 9, 6, 0.75);
   color: #fff7ed;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.42);
-  backdrop-filter: blur(8px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   pointer-events: auto;
 }
 
@@ -16189,6 +16254,12 @@ main {
   background: rgba(255, 247, 237, 0.08);
   color: #fff7ed;
   font: 800 0.66rem 'Outfit', sans-serif;
+  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s ease;
+}
+
+.journey-prop-editor-export-header button:active {
+  transform: scale(0.92);
+  background: rgba(255, 247, 237, 0.2);
 }
 
 .journey-prop-editor-export-subhead {
@@ -16342,6 +16413,54 @@ main {
 
 .journey-floating-hud-restoration em {
   color: #f8e0a2;
+}
+
+.journey-enemy-toggle {
+  grid-column: 1;
+  grid-row: 3;
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.24rem;
+  min-height: 1.48rem;
+  margin-top: 0.1rem;
+  padding: 0.14rem 0.42rem;
+  border: 1px solid rgba(255, 231, 190, 0.16);
+  border-radius: 6px;
+  background: rgba(27, 23, 19, 0.54);
+  color: #f8efe1;
+  box-shadow: 0 5px 12px rgba(18, 10, 4, 0.2);
+  backdrop-filter: blur(5px);
+  cursor: pointer;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.52rem;
+  font-weight: 900;
+  line-height: 1;
+  pointer-events: auto;
+  text-transform: uppercase;
+}
+
+.journey-enemy-toggle svg {
+  width: 0.78rem;
+  height: 0.78rem;
+  color: #f8e0a2;
+}
+
+.journey-enemy-toggle:hover,
+.journey-enemy-toggle:focus-visible {
+  border-color: rgba(248, 224, 162, 0.34);
+  background: rgba(50, 37, 24, 0.74);
+  outline: none;
+}
+
+.journey-enemy-toggle.is-off {
+  border-color: rgba(248, 113, 113, 0.42);
+  background: rgba(88, 28, 14, 0.72);
+  color: #fee2e2;
+}
+
+.journey-enemy-toggle.is-off svg {
+  color: #fecaca;
 }
 
 .journey-floating-hud-gate {
@@ -16597,6 +16716,11 @@ main {
     grid-column: 1;
     grid-row: auto;
     max-width: 100%;
+  }
+
+  .journey-enemy-toggle {
+    grid-column: 1;
+    grid-row: auto;
   }
 
   .journey-floating-hud-gate {

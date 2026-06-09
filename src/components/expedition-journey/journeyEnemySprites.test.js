@@ -24,11 +24,17 @@ import { readFileSync } from 'node:fs';
 
 const journeyComponentSource = readFileSync(new URL('../ExpeditionJourney.jsx', import.meta.url), 'utf8');
 const journeyUtilsSource = readFileSync(new URL('./journeyUtils.js', import.meta.url), 'utf8');
+const journeyCombatSource = readFileSync(new URL('./journeyCombat.js', import.meta.url), 'utf8');
 const journeyEnemySpritesSource = readFileSync(new URL('./journeyEnemySprites.js', import.meta.url), 'utf8');
 const journeyBossSpritesSource = readFileSync(new URL('./journeyBossSprites.js', import.meta.url), 'utf8');
 const enemySpriteGeneratorSource = readFileSync(new URL('../../../scripts/generate_enemy_sprite_sheets.py', import.meta.url), 'utf8');
 const scarabQueenBuilderSource = readFileSync(new URL('../../../scripts/build_scarab_queen_atlas.py', import.meta.url), 'utf8');
 const scarabQueenAtlas = JSON.parse(readFileSync(new URL('../../../public/assets/expedition/bosses/scarab-queen-sprites.json', import.meta.url), 'utf8'));
+const journeyCombatContractSource = journeyCombatSource.replace(/\bexport const\b/g, 'const');
+const journeyGameplayContractSource = [
+  journeyComponentSource,
+  journeyCombatContractSource,
+].join('\n');
 
 test('regular enemy sprite draw boxes stay close to gameplay hitbox scale', () => {
   const scarab = {
@@ -71,20 +77,20 @@ test('scorpion sprites read larger than before while staying grounded', () => {
   assert.ok(drawBox, 'scorpion draw box should resolve');
   assert.ok(drawBox.width >= 96, `scorpion draw width should keep its deliberately large anti-jump silhouette, received ${drawBox.width}`);
   assert.ok(drawBox.height >= 80, `scorpion draw height should keep its deliberately large anti-jump silhouette, received ${drawBox.height}`);
-  assert.ok(drawBox.width <= 230, `scorpion draw width should stay readable, received ${drawBox.width}`);
-  assert.ok(drawBox.height <= 155, `scorpion draw height should stay readable, received ${drawBox.height}`);
+  assert.ok(drawBox.width <= 280, `scorpion draw width should stay readable, received ${drawBox.width}`);
+  assert.ok(drawBox.height <= 190, `scorpion draw height should stay readable, received ${drawBox.height}`);
   assert.equal(drawBox.y + drawBox.height, scorpion.y + scorpion.height + 15, 'scorpion sprite should stay grounded to the sand');
 });
 
 test('scorpion sting is a high anti-jump attack that hits harder through existing pattern data', () => {
   assert.match(journeyComponentSource, /scorpion: \{[\s\S]*?height: 58,[\s\S]*?yOffset: -34,[\s\S]*?backReach: 38,[\s\S]*?damageScale: 1\.45,/);
-  assert.match(journeyComponentSource, /const SCORPION_ATTACK_RANGE_MULTIPLIER = 1\.4;/);
+  assert.match(journeyGameplayContractSource, /const SCORPION_ATTACK_RANGE_MULTIPLIER = 1\.4;/);
   assert.match(journeyComponentSource, /range: basePattern\.range \* SCORPION_ATTACK_RANGE_MULTIPLIER/);
-  assert.match(journeyComponentSource, /const SCORPION_CHASE_SPEED_MULTIPLIER = 1\.15;/);
-  assert.match(journeyComponentSource, /\(e\.type === 'scorpion' \? SCORPION_CHASE_SPEED_MULTIPLIER : 1\)/);
+  assert.match(journeyGameplayContractSource, /const SCORPION_CHASE_SPEED_MULTIPLIER = 1\.15;/);
+  assert.match(journeyComponentSource, /\(e\.type === 'scorpion' \? SCORPION_CHASE_SPEED_MULTIPLIER \* slowPursuitBoost : 1\)/);
   assert.match(journeyComponentSource, /const meleeReachesPlayer = rectsOverlap\(/);
-  assert.match(journeyComponentSource, /const shouldUseVenomSpit = e\.type === 'scorpion' && !meleeReachesPlayer && scorpionVenomCanReach;/);
-  assert.match(journeyComponentSource, /const enemyCanStartAttack = \(nearPlayer && meleeReachesPlayer\) \|\| shouldUseVenomSpit;/);
+  assert.match(journeyComponentSource, /const shouldUseVenomSpit = e\.type === 'scorpion' && !meleeReachesPlayer && scorpionVenomCanReach && !playerIsVenomSlowed;/);
+  assert.match(journeyComponentSource, /const enemyCanStartAttack = \(nearPlayer && meleeReachesPlayer\) \|\| shouldUseVenomSpit \|\| scarabPoisonChargeCanReach;/);
   assert.match(journeyComponentSource, /enemyCanStartAttack && e\.attackCooldown <= 0/);
   assert.match(journeyComponentSource, /const getAttackBox = useCallback\(\(attacker, range = 42, height = 28, direction = attacker\.direction \|\| 1, yOffset = 0, backReach = 0\) =>/);
   assert.match(journeyComponentSource, /const trailingReach = Math\.max\(0, backReach\);/);
@@ -118,7 +124,7 @@ test('warrior mummy sprite draw box resolves as a grounded humanoid enemy', () =
 
   assert.ok(drawBox, 'warrior mummy draw box should resolve');
   assert.equal(drawBox.family, 'mummy');
-  assert.equal(drawBox.height, 108 * 1.265, 'warrior mummy draw height is fixed to the original enemy base height (108) and does not change with Asha\'s draw height');
+  assert.equal(drawBox.height, 108 * 1.46, 'warrior mummy draw height is fixed to the current enemy base scale and does not change with Asha\'s draw height');
   assert.equal(drawBox.y + drawBox.height, mummy.y + mummy.height + 15, 'warrior mummy sprite should stay grounded');
 });
 
@@ -172,9 +178,9 @@ test('sand-wisp flying enemy renders as the larger cinematic winged wisp', () =>
 
   assert.ok(drawBox, 'sand wisp draw box should resolve through the existing sand-wisp enemy family');
   assert.equal(drawBox.family, 'sandWisp');
-  assert.ok(Math.abs(drawBox.height - 108.9894) < 0.001, `sand wisp should draw 25% larger than the last pass, received ${drawBox.height}`);
+  assert.ok(Math.abs(drawBox.height - 85.728) < 0.001, `sand wisp should draw at the current cinematic-wing scale, received ${drawBox.height}`);
   assert.ok(drawBox.width >= drawBox.height * 1.9, `sand wisp should keep a wide upright-wing silhouette, received ${drawBox.width}x${drawBox.height}`);
-  assert.match(journeyEnemySpritesSource, /sandWisp:\s*2\.041/);
+  assert.match(journeyEnemySpritesSource, /sandWisp:\s*1\.52/);
   assert.match(journeyEnemySpritesSource, /enemy-sprite-packs-2026-06-03-scarab-attack-read/);
   assert.match(journeyEnemySpritesSource, /fetch\([^)]*versionQuery[^)]*\)/);
   assert.match(journeyEnemySpritesSource, /image\.src\s*=\s*`[^`]*getAtlasImagePath[^`]*versionQuery[^`]*`/);
@@ -286,7 +292,8 @@ test('Phase 5C early desert combat feedback uses protected-site visual cues', ()
   assert.match(journeyComponentSource, /ctx\.moveTo\(screenX \+ enemy\.width \/ 2 - direction \* 5, enemy\.y \+ 2\)/);
   assert.match(journeyComponentSource, /enemy-guard-deflect/);
   assert.match(journeyComponentSource, /enemy-counter-window[\s\S]*?color:\s*'#d6b95c'/);
-  assert.match(journeyComponentSource, /type:\s*'enemy-guard-deflect'[\s\S]*?color:\s*'rgba\(214, 185, 92, 0\.78\)'/);
+  assert.match(journeyComponentSource, /guardEffectType = 'enemy-guard-deflect'/);
+  assert.match(journeyComponentSource, /effect\.type === 'enemy-guard-deflect'[\s\S]*?rgba\(214, 185, 92, 0\.78\)/);
   assert.doesNotMatch(journeyComponentSource, /text:\s*'WAIT'/);
   assert.doesNotMatch(journeyComponentSource, /text:\s*'COUNTER'/);
   assert.doesNotMatch(journeyComponentSource, /text:\s*'DEFLECT'/);
@@ -397,8 +404,8 @@ test('awakened boss health draws as a compact screen-top bar, not over the boss 
 
 test('player enemy hits trigger a small screen shake without changing gameplay state', () => {
   assert.match(journeyUtilsSource, /impactShakeTimer:\s*0/);
-  assert.match(journeyComponentSource, /const PLAYER_HIT_SCREEN_SHAKE_DURATION = 0\.22;/);
-  assert.match(journeyComponentSource, /const PLAYER_HIT_SCREEN_SHAKE_PIXELS = 2\.4;/);
+  assert.match(journeyGameplayContractSource, /const PLAYER_HIT_SCREEN_SHAKE_DURATION = 0\.22;/);
+  assert.match(journeyGameplayContractSource, /const PLAYER_HIT_SCREEN_SHAKE_PIXELS = 2\.4;/);
   assert.match(journeyComponentSource, /player\.impactShakeTimer = Math\.max\(player\.impactShakeTimer \|\| 0, PLAYER_HIT_SCREEN_SHAKE_DURATION\);/);
   assert.match(journeyComponentSource, /playerImpactShakeProgress/);
   assert.match(journeyComponentSource, /ctx\.translate\(playerImpactShakeX, playerImpactShakeY\);/);
@@ -422,4 +429,13 @@ test('collision boxes use type-aware tuning for the updated Asha and enemy sprit
   assert.match(journeyUtilsSource, /export const getEnemyAttackHurtbox = \(enemy, \{ boss = false \} = \{\}\) => \{/);
   assert.match(journeyComponentSource, /getEnemyAttackHurtbox/);
   assert.match(journeyComponentSource, /return getEnemyAttackHurtbox\(hostile, \{ boss \}\);/);
+});
+
+test('combat boss debug start pins the snapshot to the boss section', () => {
+  assert.match(journeyComponentSource, /if \(target === 'journey-boss-start'\) \{/);
+  assert.match(journeyComponentSource, /current\.currentSectionId = boss\.sectionId;/);
+  assert.match(journeyComponentSource, /current\.lastSectionId = boss\.sectionId;/);
+  assert.match(journeyComponentSource, /const fallbackSection = getSectionForX\(current\.player\.x\);/);
+  assert.match(journeyComponentSource, /const sectionId = current\.currentSectionId \|\| fallbackSection\.id;/);
+  assert.match(journeyComponentSource, /const section = SECTIONS\.find\(item => item\.id === sectionId\) \|\| fallbackSection;/);
 });

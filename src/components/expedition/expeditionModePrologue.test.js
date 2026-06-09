@@ -8,20 +8,20 @@ const journeyLevelDataSource = readFileSync(new URL('../expedition-journey/journ
 
 test('Egypt archive prologue keeps the required grounded story sequence before Journey', () => {
   assert.match(expeditionModeSource, /EGYPT_ARCHIVE_PROLOGUE_ITEMS/);
-  assert.match(expeditionModeSource, /Heritage Research\s*—\s*Cairo/);
+  assert.match(expeditionModeSource, /Heritage Research\s*-\s*Cairo/);
   assert.match(expeditionModeSource, /Review the evidence/);
   assert.match(expeditionModeSource, /Site Update/);
   assert.match(expeditionModeSource, /Archive Photograph/);
-  assert.match(expeditionModeSource, /Asha['’]s Field Notes/);
+  assert.match(expeditionModeSource, /Asha['\u2019]s Field Notes/);
   assert.match(expeditionModeSource, /Inspect each record before Asha visits the site\./);
   assert.match(expeditionModeSource, /The records are enough to justify a site check\./);
   assert.match(expeditionModeSource, /Travel to Pyramid/);
   assert.match(expeditionModeSource, /prologueCinematicStep/);
   assert.match(expeditionModeSource, /Pyramid Site/);
-  assert.match(expeditionModeSource, /Scarab\s*—\s*Floor Carving/);
+  assert.match(expeditionModeSource, /Scarab\s*-\s*Site Comparison/);
   assert.match(expeditionModeSource, /Review all evidence first\./);
   assert.match(expeditionModeSource, /Examine the scarab/);
-  assert.match(expeditionModeSource, /Then the stone beneath her moves\./);
+  assert.match(expeditionModeSource, /Then the pyramid drops away\./);
   assert.match(expeditionModeSource, /The world below is not the site Asha climbed\./);
   assert.match(expeditionModeSource, /setExpeditionStage\('journey'\)/);
 });
