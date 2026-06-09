@@ -168,6 +168,8 @@ const PLATFORM_FIELD_ORDER = [
   'reactive',
   'routeId',
   'layer',
+  'collision',
+  'blockerShape',
   'zIndex',
   'label',
 ];

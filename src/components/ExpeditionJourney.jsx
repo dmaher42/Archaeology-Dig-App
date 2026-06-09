@@ -3600,6 +3600,47 @@ const isJourneyFloorPlatform = (platform = {}) => {
     || platformKey.includes('rise');
 };
 
+const isJourneyBlockerPlatform = (platform = {}) => platform.collision === 'blocker';
+
+const getJourneyBlockerLineX = (blocker, player) => {
+  if (blocker.blockerShape !== 'left-slant' && blocker.blockerShape !== 'right-slant') return null;
+  const blockerHeight = Math.max(1, Number(blocker.height) || 1);
+  const centerY = clamp(
+    player.y + player.height / 2,
+    blocker.y,
+    blocker.y + blockerHeight,
+  );
+  const yRatio = clamp((centerY - blocker.y) / blockerHeight, 0, 1);
+  const width = Math.max(1, Number(blocker.width) || 1);
+  if (blocker.blockerShape === 'left-slant') return blocker.x + width * (1 - yRatio);
+  if (blocker.blockerShape === 'right-slant') return blocker.x + width * yRatio;
+  return null;
+};
+
+const resolveJourneyBlockerPlatformCollision = (player, previousPlayer, blocker) => {
+  if (!isJourneyBlockerPlatform(blocker) || !rectsOverlap(player, blocker)) return false;
+  const slantLineX = getJourneyBlockerLineX(blocker, player);
+  if (Number.isFinite(slantLineX)) {
+    const movedRight = player.x >= previousPlayer.x;
+    player.x = movedRight
+      ? slantLineX - player.width - 1
+      : slantLineX + 1;
+    player.vx = movedRight ? Math.min(0, player.vx) : Math.max(0, player.vx);
+    return true;
+  }
+  const previousRight = previousPlayer.x + previousPlayer.width;
+  const blockerRight = blocker.x + blocker.width;
+  const crossedFromLeft = previousRight <= blocker.x + 2;
+  const crossedFromRight = previousPlayer.x >= blockerRight - 2;
+  const movedRight = crossedFromLeft || (!crossedFromRight && player.x >= previousPlayer.x);
+
+  player.x = movedRight
+    ? blocker.x - player.width - 1
+    : blockerRight + 1;
+  player.vx = movedRight ? Math.min(0, player.vx) : Math.max(0, player.vx);
+  return true;
+};
+
 const isJourneyEditorFormTarget = (target) => {
   const tagName = target?.tagName;
   return tagName === 'INPUT'
@@ -4621,12 +4662,13 @@ export default function ExpeditionJourney({
 
   const getPlatformEditorBounds = useCallback((platform, cameraX, current) => {
     const isFloor = isJourneyFloorPlatform(platform);
-    const editorHeight = isFloor ? Math.max(platform.height + 58, 96) : Math.max(platform.height, 30);
+    const isBlocker = isJourneyBlockerPlatform(platform);
+    const editorHeight = isFloor ? Math.max(platform.height + 58, 96) : Math.max(platform.height, isBlocker ? 36 : 30);
     const verticalOffset = !isInteriorChamberScene(current) ? current.secretVerticalCameraOffset || 0 : 0;
     const y = platform.y + verticalOffset;
     return {
       x: worldToScreenX(platform.x, cameraX),
-      y: isFloor ? y - 46 : y - Math.max(0, (editorHeight - platform.height) / 2),
+      y: isFloor ? y - 46 : isBlocker ? y : y - Math.max(0, (editorHeight - platform.height) / 2),
       width: platform.width,
       height: editorHeight,
     };
@@ -4700,18 +4742,34 @@ export default function ExpeditionJourney({
     }
     if (paletteItem?.type === 'platform' || paletteItem?.type === 'floor' || String(paletteItem?.key || '').startsWith('platform:')) {
       const floor = paletteItem?.type === 'floor';
+      const blocker = paletteItem?.type === 'blocker';
+      const slantShape = template.blockerShape === 'left-slant'
+        ? 'polygon(100% 0, 100% 100%, 0 100%)'
+        : template.blockerShape === 'right-slant'
+          ? 'polygon(0 0, 100% 100%, 0 100%)'
+          : undefined;
       return {
-        assetKey: floor ? 'collision floor' : 'collision platform',
+        assetKey: blocker
+          ? template.blockerShape === 'left-slant'
+            ? 'left slant blocker'
+            : template.blockerShape === 'right-slant'
+              ? 'right slant blocker'
+              : 'movement blocker'
+          : floor ? 'collision floor' : 'collision platform',
         style: {
-          background: floor
+          background: blocker
+            ? 'linear-gradient(90deg, rgba(45, 212, 191, 0.44), rgba(14, 165, 233, 0.22))'
+            : floor
             ? 'linear-gradient(180deg, rgba(253, 224, 71, 0.38), rgba(245, 158, 11, 0.18))'
             : 'linear-gradient(180deg, rgba(251, 191, 36, 0.36), rgba(249, 115, 22, 0.2))',
-          border: `2px solid ${floor ? 'rgba(253, 224, 71, 0.95)' : 'rgba(251, 146, 60, 0.95)'}`,
+          border: `2px solid ${blocker ? 'rgba(45, 212, 191, 0.95)' : floor ? 'rgba(253, 224, 71, 0.95)' : 'rgba(251, 146, 60, 0.95)'}`,
           borderRadius: floor ? '3px' : '5px',
-          boxShadow: '0 0 12px rgba(253, 224, 71, 0.28)',
-          width: '100%',
-          height: floor ? '70%' : '44%',
-          marginTop: floor ? '15%' : '28%',
+          boxShadow: `0 0 12px ${blocker ? 'rgba(45, 212, 191, 0.28)' : 'rgba(253, 224, 71, 0.28)'}`,
+          width: blocker ? '34%' : '100%',
+          height: floor ? '70%' : blocker ? '92%' : '44%',
+          margin: blocker ? '4% auto 0' : undefined,
+          marginTop: blocker ? undefined : floor ? '15%' : '28%',
+          clipPath: slantShape,
         },
       };
     }
@@ -4932,14 +4990,16 @@ export default function ExpeditionJourney({
       } : null,
       selectedPlatform: platform ? {
         id: platform.id || platform.label || 'platform',
-        category: isJourneyFloorPlatform(platform) ? 'Floor' : 'Platform',
+        category: isJourneyBlockerPlatform(platform) ? 'Blocker' : isJourneyFloorPlatform(platform) ? 'Floor' : 'Platform',
         roomId,
         x: Math.round(platform.x),
         y: Math.round(platform.y),
         width: Math.round(platform.width),
         height: Math.round(platform.height),
-        depth: isJourneyFloorPlatform(platform) ? 'floor/collision' : 'collision',
-        layer: platform.layer || (isJourneyFloorPlatform(platform) ? 'floor' : 'platform'),
+        collision: platform.collision || 'landing',
+        blockerShape: platform.blockerShape || 'box',
+        depth: isJourneyBlockerPlatform(platform) ? 'blocker/collision' : isJourneyFloorPlatform(platform) ? 'floor/collision' : 'collision',
+        layer: platform.layer || (isJourneyBlockerPlatform(platform) ? 'blocker' : isJourneyFloorPlatform(platform) ? 'floor' : 'platform'),
         zIndex: Number.isFinite(platform.zIndex) ? platform.zIndex : 'auto',
       } : null,
       selectedHazard: hazard ? {
@@ -17123,13 +17183,17 @@ export default function ExpeditionJourney({
       const bounds = getStoryPropEditorBounds(prop, cameraX, current);
       if (bounds.x + bounds.width < -80 || bounds.x > CANVAS_WIDTH + 80) return;
       const selected = prop.id === editor.selectedPropId;
-      ctx.strokeStyle = selected ? 'rgba(94, 234, 212, 0.98)' : 'rgba(250, 204, 21, 0.42)';
-      ctx.fillStyle = 'rgba(250, 204, 21, 0.06)';
+      ctx.save();
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+      ctx.shadowBlur = 3;
+      ctx.strokeStyle = selected ? 'rgba(72, 187, 205, 0.9)' : 'rgba(72, 187, 205, 0.5)';
+      ctx.fillStyle = 'rgba(72, 187, 205, 0.05)';
       ctx.lineWidth = selected ? 3 : 1.5;
       ctx.setLineDash(selected ? [] : [6, 5]);
       ctx.strokeRect(bounds.x, bounds.y, bounds.width, bounds.height);
+      ctx.restore();
       if (selected) {
-        drawEditorSelectionCorners(ctx, bounds, 'rgba(94, 234, 212, 0.98)');
+        drawEditorSelectionCorners(ctx, bounds, 'rgba(72, 187, 205, 0.92)');
       } else {
         ctx.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
       }
@@ -17157,22 +17221,46 @@ export default function ExpeditionJourney({
       const bounds = getPlatformEditorBounds(platform, cameraX, current);
       if (bounds.x + bounds.width < -80 || bounds.x > CANVAS_WIDTH + 80) return;
       const floor = isJourneyFloorPlatform(platform);
+      const blocker = isJourneyBlockerPlatform(platform);
       const selected = platformId === editor.selectedPlatformId;
+      ctx.save();
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+      ctx.shadowBlur = 3;
       ctx.strokeStyle = selected
-        ? floor ? 'rgba(253, 224, 71, 1)' : 'rgba(251, 191, 36, 1)'
-        : floor ? 'rgba(253, 224, 71, 0.72)' : 'rgba(251, 191, 36, 0.76)';
+        ? blocker ? 'rgba(56, 170, 156, 0.9)' : floor ? 'rgba(150, 130, 210, 0.9)' : 'rgba(130, 190, 80, 0.9)'
+        : blocker ? 'rgba(56, 170, 156, 0.6)' : floor ? 'rgba(150, 130, 210, 0.58)' : 'rgba(130, 190, 80, 0.58)';
       ctx.fillStyle = selected
-        ? floor ? 'rgba(253, 224, 71, 0.2)' : 'rgba(251, 191, 36, 0.22)'
-        : floor ? 'rgba(253, 224, 71, 0.11)' : 'rgba(251, 191, 36, 0.13)';
+        ? blocker ? 'rgba(56, 170, 156, 0.16)' : floor ? 'rgba(150, 130, 210, 0.16)' : 'rgba(130, 190, 80, 0.16)'
+        : blocker ? 'rgba(56, 170, 156, 0.1)' : floor ? 'rgba(150, 130, 210, 0.1)' : 'rgba(130, 190, 80, 0.1)';
       ctx.lineWidth = selected ? 3.5 : 2.25;
-      ctx.setLineDash(selected ? [] : floor ? [14, 7] : [8, 5]);
+      ctx.setLineDash(selected ? [] : blocker ? [3, 3] : floor ? [14, 7] : [8, 5]);
       ctx.strokeRect(bounds.x, bounds.y, bounds.width, bounds.height);
       ctx.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
-      if (platform.invisible || floor) {
-        ctx.fillStyle = floor ? 'rgba(255, 251, 235, 0.98)' : 'rgba(255, 237, 213, 0.96)';
+      if (blocker && (platform.blockerShape === 'left-slant' || platform.blockerShape === 'right-slant')) {
+        ctx.setLineDash([]);
+        ctx.strokeStyle = selected ? 'rgba(204, 251, 241, 0.98)' : 'rgba(204, 251, 241, 0.72)';
+        ctx.lineWidth = selected ? 2.5 : 1.75;
+        ctx.beginPath();
+        if (platform.blockerShape === 'left-slant') {
+          ctx.moveTo(bounds.x + bounds.width, bounds.y);
+          ctx.lineTo(bounds.x, bounds.y + bounds.height);
+        } else {
+          ctx.moveTo(bounds.x, bounds.y);
+          ctx.lineTo(bounds.x + bounds.width, bounds.y + bounds.height);
+        }
+        ctx.stroke();
+      }
+      ctx.restore();
+      if (platform.invisible || floor || blocker) {
+        ctx.fillStyle = blocker ? 'rgba(204, 251, 241, 0.98)' : floor ? 'rgba(255, 251, 235, 0.98)' : 'rgba(255, 237, 213, 0.96)';
         ctx.font = '800 10px Outfit, sans-serif';
         ctx.textAlign = 'left';
-        ctx.fillText(floor ? 'floor' : 'platform', bounds.x + 4, bounds.y + 11);
+        const platformLabel = blocker && platform.blockerShape === 'left-slant'
+          ? 'left slant'
+          : blocker && platform.blockerShape === 'right-slant'
+            ? 'right slant'
+            : blocker ? 'blocker' : floor ? 'floor' : 'platform';
+        ctx.fillText(platformLabel, bounds.x + 4, bounds.y + 11);
       }
     });
     getRenderableHazards(current).forEach((hazard) => {
@@ -17205,8 +17293,8 @@ export default function ExpeditionJourney({
       const bounds = getLairEditorBounds(boss, cameraX);
       if (bounds.x + bounds.width < -80 || bounds.x > CANVAS_WIDTH + 80) return;
       const selected = boss.id === editor.selectedLairId;
-      ctx.strokeStyle = selected ? 'rgba(20, 184, 166, 0.98)' : 'rgba(20, 184, 166, 0.52)';
-      ctx.fillStyle = selected ? 'rgba(20, 184, 166, 0.16)' : 'rgba(20, 184, 166, 0.07)';
+      ctx.strokeStyle = selected ? 'rgba(214, 132, 64, 0.9)' : 'rgba(214, 132, 64, 0.55)';
+      ctx.fillStyle = selected ? 'rgba(214, 132, 64, 0.15)' : 'rgba(214, 132, 64, 0.07)';
       ctx.lineWidth = selected ? 3 : 1.5;
       ctx.setLineDash(selected ? [] : [3, 5]);
       ctx.strokeRect(bounds.x, bounds.y, bounds.width, bounds.height);
@@ -19504,6 +19592,12 @@ export default function ExpeditionJourney({
           (activeBossDomainBounds.arenaEnd ?? WORLD_WIDTH) - player.width - 16,
         ),
       );
+    }
+    const movementBlocker = getRenderablePlatforms(current)
+      .filter(isJourneyBlockerPlatform)
+      .find(blocker => resolveJourneyBlockerPlatformCollision(player, previousPlayer, blocker));
+    if (movementBlocker) {
+      player.x = clamp(player.x, 0, WORLD_WIDTH - player.width);
     }
     const liveScorpionNestBlocker = getLiveScorpionNestBlockers(current)
       .find(blocker => rectsOverlap(player, blocker));
@@ -23942,6 +24036,8 @@ export default function ExpeditionJourney({
                     <div><span>Width</span><strong>{propEditorUi.selectedPlatform.width}</strong></div>
                     <div><span>Height</span><strong>{propEditorUi.selectedPlatform.height}</strong></div>
                     <div><span>Depth</span><strong>{propEditorUi.selectedPlatform.depth}</strong></div>
+                    <div><span>Collision</span><strong>{propEditorUi.selectedPlatform.collision}</strong></div>
+                    <div><span>Shape</span><strong>{propEditorUi.selectedPlatform.blockerShape}</strong></div>
                     <div><span>Layer</span><strong>{propEditorUi.selectedPlatform.layer}</strong></div>
                     <div><span>Z-index</span><strong>{propEditorUi.selectedPlatform.zIndex}</strong></div>
                   </div>
@@ -24727,6 +24823,36 @@ export default function ExpeditionJourney({
                         onChange={(event) => updateSelectedPlatformEditorTransform({ layer: event.target.value })}
                       />
                     </label>
+                    <label>
+                      <span>Collision</span>
+                      <select
+                        value={propEditorUi.selectedPlatform.collision}
+                        onChange={(event) => updateSelectedPlatformEditorTransform({
+                          collision: event.target.value === 'blocker' ? 'blocker' : 'landing',
+                          layer: event.target.value === 'blocker' ? 'blocker' : propEditorUi.selectedPlatform.layer,
+                        })}
+                      >
+                        <option value="landing">Landing</option>
+                        <option value="blocker">Blocker</option>
+                      </select>
+                    </label>
+                    {propEditorUi.selectedPlatform.collision === 'blocker' && (
+                      <label>
+                        <span>Shape</span>
+                        <select
+                          value={propEditorUi.selectedPlatform.blockerShape}
+                          onChange={(event) => updateSelectedPlatformEditorTransform({
+                            blockerShape: event.target.value === 'left-slant' || event.target.value === 'right-slant'
+                              ? event.target.value
+                              : 'box',
+                          })}
+                        >
+                          <option value="box">Box</option>
+                          <option value="left-slant">Left slant</option>
+                          <option value="right-slant">Right slant</option>
+                        </select>
+                      </label>
+                    )}
                     <label>
                       <span>Z-index</span>
                       <input

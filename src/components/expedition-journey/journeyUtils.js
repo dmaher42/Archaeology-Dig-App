@@ -132,6 +132,8 @@ export const applyJourneyPlatformPlacementEdit = (platform = {}, edit = {}) => {
   if (Number.isFinite(edit.width)) next.width = Math.max(1, Math.round(edit.width));
   if (Number.isFinite(edit.height)) next.height = Math.max(1, Math.round(edit.height));
   if (typeof edit.layer === 'string' && edit.layer.trim()) next.layer = edit.layer;
+  if (typeof edit.collision === 'string') next.collision = edit.collision;
+  if (typeof edit.blockerShape === 'string') next.blockerShape = edit.blockerShape;
   if (Number.isFinite(edit.zIndex)) next.zIndex = edit.zIndex;
   return next;
 };
@@ -402,6 +404,47 @@ export const createJourneyPlatformPalette = () => [
       label: 'editable floor',
       invisible: true,
       layer: 'floor',
+    },
+  },
+  {
+    key: 'platform:blocker',
+    label: 'Blocker',
+    type: 'blocker',
+    template: {
+      width: 36,
+      height: 96,
+      label: 'editable movement blocker',
+      invisible: true,
+      layer: 'blocker',
+      collision: 'blocker',
+    },
+  },
+  {
+    key: 'platform:blocker-left-slant',
+    label: 'Left Slant Blocker',
+    type: 'blocker',
+    template: {
+      width: 84,
+      height: 96,
+      label: 'editable left slant movement blocker',
+      invisible: true,
+      layer: 'blocker',
+      collision: 'blocker',
+      blockerShape: 'left-slant',
+    },
+  },
+  {
+    key: 'platform:blocker-right-slant',
+    label: 'Right Slant Blocker',
+    type: 'blocker',
+    template: {
+      width: 84,
+      height: 96,
+      label: 'editable right slant movement blocker',
+      invisible: true,
+      layer: 'blocker',
+      collision: 'blocker',
+      blockerShape: 'right-slant',
     },
   },
 ];
@@ -1135,6 +1178,7 @@ export const getPlatformLandingHitbox = (platform) => {
 };
 
 export const isLandingOnPlatform = (player, previousPlayer, platform) => {
+  if (platform?.collision === 'blocker') return false;
   if (player.vy < 0) return false;
   const feet = getPlayerFeetHitbox(player);
   const previousFeetY = previousPlayer.y + previousPlayer.height;

@@ -167,6 +167,54 @@ test('mergeJourneyPlacementOverrideExports preserves existing generated placemen
   assert.deepEqual(merged.deletedPropIds, ['remove-me']);
 });
 
+test('mergeJourneyPlacementOverrideExports treats missing same-room editable items as deleted', () => {
+  const merged = mergeJourneyPlacementOverrideExports({
+    room: 'desert-entry',
+    props: [
+      { id: 'keep-entry-prop', sectionId: 'desert-entry', x: 100, y: 200 },
+      { id: 'stale-entry-prop', sectionId: 'desert-entry', x: 160, y: 220 },
+      { id: 'mural-door', sceneId: 'forgotten-mural', x: 900, y: 120 },
+    ],
+    platforms: [
+      { id: 'keep-entry-platform', sectionId: 'desert-entry', x: 100, y: 520, width: 200 },
+      { id: 'stale-entry-platform', sectionId: 'desert-entry', x: 180, y: 510, width: 140 },
+      { id: 'mural-floor', sceneId: 'forgotten-mural', x: 820, y: 500, width: 300 },
+    ],
+    hazards: [
+      { id: 'keep-entry-hazard', sectionId: 'desert-entry', x: 120, y: 540, width: 80 },
+      { id: 'stale-entry-hazard', sectionId: 'desert-entry', x: 170, y: 540, width: 80 },
+      { id: 'mural-hazard', sceneId: 'forgotten-mural', x: 850, y: 540, width: 80 },
+    ],
+  }, {
+    room: 'desert-entry',
+    props: [
+      { id: 'keep-entry-prop', sectionId: 'desert-entry', x: 140, y: 210 },
+    ],
+    platforms: [
+      { id: 'keep-entry-platform', sectionId: 'desert-entry', x: 120, y: 500, width: 220 },
+    ],
+    hazards: [
+      { id: 'keep-entry-hazard', sectionId: 'desert-entry', x: 130, y: 540, width: 80 },
+    ],
+  });
+
+  assert.deepEqual(merged.props, [
+    { id: 'keep-entry-prop', sectionId: 'desert-entry', x: 140, y: 210 },
+    { id: 'mural-door', sceneId: 'forgotten-mural', x: 900, y: 120 },
+  ]);
+  assert.deepEqual(merged.platforms, [
+    { id: 'keep-entry-platform', sectionId: 'desert-entry', x: 120, y: 500, width: 220 },
+    { id: 'mural-floor', sceneId: 'forgotten-mural', x: 820, y: 500, width: 300 },
+  ]);
+  assert.deepEqual(merged.hazards, [
+    { id: 'keep-entry-hazard', sectionId: 'desert-entry', x: 130, y: 540, width: 80 },
+    { id: 'mural-hazard', sceneId: 'forgotten-mural', x: 850, y: 540, width: 80 },
+  ]);
+  assert.deepEqual(merged.deletedPropIds, ['stale-entry-prop']);
+  assert.deepEqual(merged.deletedPlatformIds, ['stale-entry-platform']);
+  assert.deepEqual(merged.deletedHazardIds, ['stale-entry-hazard']);
+});
+
 test('journeyDataRouter exposes editor overrides while journeyLevelData keeps authored base placement', () => {
   setExpeditionJourneyCiv('Ancient Egypt');
 

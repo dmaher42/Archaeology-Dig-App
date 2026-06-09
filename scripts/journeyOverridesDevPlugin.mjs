@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
 import { formatJourneyPlacementOverridesModule } from './apply-journey-prop-export.mjs';
 import {
+  countJourneyPlacementImplicitRoomDeletions,
   mergeJourneyPlacementOverrideExports,
   normalizeJourneyPlacementExportForOverrides,
 } from '../src/components/expedition-journey/journeyPlacementOverrides.js';
@@ -85,16 +86,18 @@ export const journeyOverridesDevPlugin = () => ({
 
           const nextExport = mergeJourneyPlacementOverrideExports(existingExport, exportData);
 
-          // Final safety net: the merge is additive apart from EXPLICIT deletions, so the
-          // result must never drop more items than were deleted on purpose. If it would,
-          // something went wrong upstream — bail out instead of overwriting good data.
+          // Final safety net: the merge preserves other rooms, but a current-room
+          // editor export is complete for props, platforms, and traps. Missing
+          // current-room items are therefore intentional deletions.
           const existingCount = countOverrideItems(normalizeJourneyPlacementExportForOverrides(existingExport));
           const nextCount = countOverrideItems(nextExport);
           const explicitDeletions = (exportData.deletedPropIds?.length || 0)
             + (exportData.deletedPlatformIds?.length || 0)
             + (exportData.deletedHazardIds?.length || 0);
-          if (existingCount > 0 && nextCount < existingCount - explicitDeletions) {
-            sendError(500, `Refusing to write: merge would drop ${existingCount - nextCount} override item(s) but only ${explicitDeletions} deletion(s) were requested. Existing overrides left intact.`);
+          const allowedDeletions = explicitDeletions
+            + countJourneyPlacementImplicitRoomDeletions(existingExport, exportData);
+          if (existingCount > 0 && nextCount < existingCount - allowedDeletions) {
+            sendError(500, `Refusing to write: merge would drop ${existingCount - nextCount} override item(s) but only ${allowedDeletions} current-room deletion(s) were detected. Existing overrides left intact.`);
             return;
           }
 

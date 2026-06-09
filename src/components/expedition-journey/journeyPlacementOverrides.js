@@ -17,7 +17,7 @@ const EDITABLE_FIELDS = Object.freeze({
     'shadowHeight', 'dust', 'bury', 'burialDepth', 'sandOverlapHeight', 'sandMoundWidth', 'sandMoundHeight',
     'groundPebbles', 'groundPlaneY', 'groundPlaneOffset', 'assetContactYRatio', 'sandSeed', 'groundContactLayer', 'label',
   ],
-  platforms: ['id', 'sectionId', 'sceneId', 'x', 'y', 'width', 'height', 'layer', 'zIndex', 'label'],
+  platforms: ['id', 'sectionId', 'sceneId', 'x', 'y', 'width', 'height', 'layer', 'collision', 'blockerShape', 'zIndex', 'label'],
   hazards: [
     'id', 'sectionId', 'sceneId', 'type', 'x', 'y', 'width', 'height', 'triggerArea', 'damage',
     'reset', 'cooldown', 'depth', 'direction', 'launcherX', 'launcherY', 'linkedObjectIds',
@@ -93,7 +93,51 @@ const mergeJourneyItemsById = (baseItems = [], overrideItems = [], deletedIds = 
   return merged;
 };
 
-const mergeOverrideExportItemsById = (existingItems = [], incomingItems = [], deletedIds = []) => {
+const getExportRoomId = (exportData = {}) => {
+  const roomId = typeof exportData?.room === 'string' ? exportData.room.trim() : '';
+  return roomId || null;
+};
+
+const getOverrideItemRoomId = (item = {}) => {
+  const getRoomField = value => (
+    typeof value === 'string' && value.trim() && value !== 'unknown-room'
+      ? value.trim()
+      : null
+  );
+
+  return getRoomField(item.sceneId) || getRoomField(item.sectionId) || getRoomField(item.roomId);
+};
+
+const isOverrideItemInRoom = (item, roomId) => (
+  Boolean(roomId && getOverrideItemRoomId(item) === roomId)
+);
+
+const getImplicitDeletedOverrideIds = (
+  existingItems = [],
+  incomingItems = [],
+  deletedIds = [],
+  roomId = null,
+  pruneMissingRoomItems = false,
+) => {
+  if (!pruneMissingRoomItems || !roomId) return [];
+  const deleted = new Set(Array.isArray(deletedIds) ? deletedIds : []);
+  const incomingIds = new Set((Array.isArray(incomingItems) ? incomingItems : [])
+    .map(item => item?.id)
+    .filter(Boolean));
+
+  return (Array.isArray(existingItems) ? existingItems : [])
+    .filter(item => item?.id && isOverrideItemInRoom(item, roomId))
+    .map(item => item.id)
+    .filter(itemId => !incomingIds.has(itemId) && !deleted.has(itemId));
+};
+
+const mergeOverrideExportItemsById = (
+  existingItems = [],
+  incomingItems = [],
+  deletedIds = [],
+  roomId = null,
+  pruneMissingRoomItems = false,
+) => {
   const deleted = new Set(Array.isArray(deletedIds) ? deletedIds : []);
   const incomingById = new Map((Array.isArray(incomingItems) ? incomingItems : [])
     .filter(item => item?.id)
@@ -108,6 +152,7 @@ const mergeOverrideExportItemsById = (existingItems = [], incomingItems = [], de
       seen.add(item.id);
       return;
     }
+    if (pruneMissingRoomItems && isOverrideItemInRoom(item, roomId)) return;
     merged.push(cloneItem(item));
     seen.add(item.id);
   });
@@ -122,6 +167,41 @@ const mergeOverrideExportItemsById = (existingItems = [], incomingItems = [], de
 
 const mergeDeletedIds = (...idLists) => (
   [...new Set(idLists.flatMap(ids => (Array.isArray(ids) ? ids : [])).filter(Boolean))]
+);
+
+export const getJourneyPlacementImplicitRoomDeletedIds = (existingExport = {}, incomingExport = {}) => {
+  const existing = normalizeJourneyPlacementExportForOverrides(existingExport);
+  const incoming = normalizeJourneyPlacementExportForOverrides(incomingExport);
+  const roomId = getExportRoomId(incomingExport);
+
+  return {
+    props: getImplicitDeletedOverrideIds(
+      existing.props,
+      incoming.props,
+      incoming.deletedPropIds,
+      roomId,
+      Array.isArray(incomingExport.props),
+    ),
+    platforms: getImplicitDeletedOverrideIds(
+      existing.platforms,
+      incoming.platforms,
+      incoming.deletedPlatformIds,
+      roomId,
+      Array.isArray(incomingExport.platforms),
+    ),
+    hazards: getImplicitDeletedOverrideIds(
+      existing.hazards,
+      incoming.hazards,
+      incoming.deletedHazardIds,
+      roomId,
+      Array.isArray(incomingExport.hazards),
+    ),
+  };
+};
+
+export const countJourneyPlacementImplicitRoomDeletions = (existingExport = {}, incomingExport = {}) => (
+  Object.values(getJourneyPlacementImplicitRoomDeletedIds(existingExport, incomingExport))
+    .reduce((sum, ids) => sum + ids.length, 0)
 );
 
 export const normalizeJourneyPlacementExportForOverrides = (exportData = {}) => {
@@ -151,21 +231,41 @@ export const normalizeJourneyPlacementExportForOverrides = (exportData = {}) => 
 export const mergeJourneyPlacementOverrideExports = (existingExport = {}, incomingExport = {}) => {
   const existing = normalizeJourneyPlacementExportForOverrides(existingExport);
   const incoming = normalizeJourneyPlacementExportForOverrides(incomingExport);
+  const roomId = getExportRoomId(incomingExport);
+  const implicitDeletedIds = getJourneyPlacementImplicitRoomDeletedIds(existingExport, incomingExport);
 
   return {
     ...existing,
     ...incoming,
-    props: mergeOverrideExportItemsById(existing.props, incoming.props, incoming.deletedPropIds),
-    platforms: mergeOverrideExportItemsById(existing.platforms, incoming.platforms, incoming.deletedPlatformIds),
-    hazards: mergeOverrideExportItemsById(existing.hazards, incoming.hazards, incoming.deletedHazardIds),
+    props: mergeOverrideExportItemsById(
+      existing.props,
+      incoming.props,
+      mergeDeletedIds(incoming.deletedPropIds, implicitDeletedIds.props),
+      roomId,
+      Array.isArray(incomingExport.props),
+    ),
+    platforms: mergeOverrideExportItemsById(
+      existing.platforms,
+      incoming.platforms,
+      mergeDeletedIds(incoming.deletedPlatformIds, implicitDeletedIds.platforms),
+      roomId,
+      Array.isArray(incomingExport.platforms),
+    ),
+    hazards: mergeOverrideExportItemsById(
+      existing.hazards,
+      incoming.hazards,
+      mergeDeletedIds(incoming.deletedHazardIds, implicitDeletedIds.hazards),
+      roomId,
+      Array.isArray(incomingExport.hazards),
+    ),
     routeGates: mergeOverrideExportItemsById(existing.routeGates, incoming.routeGates),
     routeGateDoorways: mergeOverrideExportItemsById(existing.routeGateDoorways, incoming.routeGateDoorways),
     checkpoints: mergeOverrideExportItemsById(existing.checkpoints, incoming.checkpoints),
     enemies: mergeOverrideExportItemsById(existing.enemies, incoming.enemies),
     miniBosses: mergeOverrideExportItemsById(existing.miniBosses, incoming.miniBosses),
-    deletedPropIds: mergeDeletedIds(existing.deletedPropIds, incoming.deletedPropIds),
-    deletedPlatformIds: mergeDeletedIds(existing.deletedPlatformIds, incoming.deletedPlatformIds),
-    deletedHazardIds: mergeDeletedIds(existing.deletedHazardIds, incoming.deletedHazardIds),
+    deletedPropIds: mergeDeletedIds(existing.deletedPropIds, incoming.deletedPropIds, implicitDeletedIds.props),
+    deletedPlatformIds: mergeDeletedIds(existing.deletedPlatformIds, incoming.deletedPlatformIds, implicitDeletedIds.platforms),
+    deletedHazardIds: mergeDeletedIds(existing.deletedHazardIds, incoming.deletedHazardIds, implicitDeletedIds.hazards),
   };
 };
 

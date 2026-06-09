@@ -14,6 +14,8 @@ import {
   applyJourneyPlatformPlacementExportToPlatforms,
   applyJourneyHazardPlacementEdit,
   applyJourneyHazardPlacementExportToHazards,
+  createJourneyPlatformFromPaletteItem,
+  createJourneyPlatformPalette,
   createJourneyForegroundDetailsPalette,
   createJourneyGroundDetailsPalette,
   createJourneyPropFromPaletteItem,
@@ -695,6 +697,52 @@ test('journey platform placement helpers preserve canonical platform fields whil
   assert.notEqual(edited, platform);
 });
 
+test('journey platform palette keeps blocker tools compact and editable', () => {
+  const palette = createJourneyPlatformPalette();
+  const blockerItems = palette.filter(item => item.template.collision === 'blocker');
+
+  assert.deepEqual(blockerItems.map(item => item.label), [
+    'Blocker',
+    'Left Slant Blocker',
+    'Right Slant Blocker',
+  ]);
+  assert.equal(palette.some(item => item.label === 'Low Blocker'), false);
+  assert.equal(palette.some(item => item.label === 'Tall Blocker'), false);
+  assert.equal(palette.some(item => item.label === 'Wide Blocker'), false);
+
+  const plainBlocker = blockerItems.find(item => item.label === 'Blocker');
+  const leftSlant = blockerItems.find(item => item.label === 'Left Slant Blocker');
+  const rightSlant = blockerItems.find(item => item.label === 'Right Slant Blocker');
+
+  assert.equal(plainBlocker?.template.collision, 'blocker');
+  assert.equal(leftSlant?.template.blockerShape, 'left-slant');
+  assert.equal(rightSlant?.template.blockerShape, 'right-slant');
+
+  const created = createJourneyPlatformFromPaletteItem({
+    paletteItem: leftSlant,
+    roomId: 'desert-entry',
+    x: 840,
+    y: 348,
+    existingIds: [],
+  });
+
+  assert.equal(created.collision, 'blocker');
+  assert.equal(created.blockerShape, 'left-slant');
+
+  const edited = applyJourneyPlatformPlacementEdit(created, {
+    width: 36,
+    height: 124,
+    blockerShape: 'right-slant',
+  });
+
+  assert.equal(edited.width, 36);
+  assert.equal(edited.height, 124);
+  assert.equal(edited.blockerShape, 'right-slant');
+  assert.match(journeyUtilsSource, /if \(platform\?\.collision === 'blocker'\) return false;/);
+  assert.match(journeyComponentSource, /const isJourneyBlockerPlatform = \(platform = \{\}\) => platform\.collision === 'blocker';/);
+  assert.match(journeyPlacementOverridesSource, /'blockerShape'/);
+});
+
 test('journey placement export can merge platform position updates', () => {
   const existingPlatforms = [
     { id: 'route-platform-a', sectionId: 'ruined-temple', x: 1420, y: 440, width: 128, height: 18 },
@@ -901,7 +949,7 @@ test('journey editor exposes floor platforms without blocking prop selection', (
   });
   assert.match(journeyComponentSource, /const isJourneyFloorPlatform = \(platform = \{\}\) =>/);
   assert.match(journeyComponentSource, /const selectedFallbackFloor = editor\.floorPickMode \|\| selectedHazard \|\| selectedLair \|\| selectedCheckpoint \|\| selectedArch \|\| selectedSolidPlatform \|\| selectedProp[\s\S]{0,180}findEditablePlatformAt\(pointer\.screenX, pointer\.screenY, \{ floorOnly: true \}\);/);
-  assert.match(journeyComponentSource, /category: isJourneyFloorPlatform\(platform\) \? 'Floor' : 'Platform'/);
+  assert.match(journeyComponentSource, /category: isJourneyBlockerPlatform\(platform\) \? 'Blocker' : isJourneyFloorPlatform\(platform\) \? 'Floor' : 'Platform'/);
   assert.match(journeyComponentSource, /Nothing selected — click an item on the canvas, or open the Palette to place one\./);
 });
 
@@ -3804,6 +3852,39 @@ test('ravine bridge uses a structure cutout over the existing desert background'
     false,
     'second duplicate clean-edge ravine floor copy should not stay as a stuck foreground layer',
   );
+  [
+    'desert-entry-premium-pillar-caps-1',
+    'desert-entry-broken-amphora-1',
+    'desert-entry-old-baskets-1',
+    'desert-entry-dried-reeds-2-copy-1-copy-1-copy-1',
+    'lost-bridge-visual-left-ramp-ledge',
+    'lost-bridge-visual-near-shelf',
+    'lost-bridge-visual-near-span-slab',
+    'desert-entry-bridge-carved-support-pier-1-copy-1-copy-1-copy-2',
+  ].forEach((id) => {
+    assert.equal(
+      journeyPlacementOverrides.props.some(entry => entry.id === id),
+      false,
+      `${id} should stay removed from the cleaned bridge/ramp layout`,
+    );
+    assert.ok(journeyPlacementOverrides.deletedPropIds.includes(id), `${id} should be recorded as deleted`);
+  });
+  [
+    'desert-entry-blocker-1',
+    'desert-entry-blocker-2',
+    'desert-entry-blocker-3',
+    'desert-entry-blocker-4',
+    'desert-entry-blocker-5',
+    'desert-entry-blocker-6',
+    'desert-entry-blocker-7',
+    'desert-entry-blocker-8',
+    'desert-entry-blocker-9',
+    'desert-entry-blocker-10',
+  ].forEach((id) => {
+    const blocker = journeyPlacementOverrides.platforms.find(entry => entry.id === id);
+    assert.equal(blocker?.collision, 'blocker', `${id} should persist as an invisible movement blocker`);
+    assert.equal(blocker?.layer, 'blocker');
+  });
   const tallWideRavine = journeyPlacementOverrides.props.find(entry => entry.id === 'desert-entry-lost-bridge-ravine-floor-tall-wide-1');
   assert.equal(tallWideRavine?.imageAssetKey, 'lostBridgeRavineFloorTallWide');
   assert.equal(tallWideRavine?.x, 3488);
@@ -4584,7 +4665,7 @@ test('generated Egypt structure contact layers use asymmetric buried-base polish
 });
 
 test('generated overrides preserve polished structure contact layers when re-exported', () => {
-  const backgroundOverride = journeyPlacementOverrides.props.find((prop) => prop.id === 'mummification-chamber-exterior-structure');
+  const backgroundOverride = journeyPlacementOverrides.props.find((prop) => prop.id === 'desert-entry-generated-mummification-chamber-entrance-1');
   assert.equal(backgroundOverride?.depth, 'midground');
   assert.equal(backgroundOverride?.layer, 'background');
   assert.deepEqual(backgroundOverride?.groundContactLayer, []);
@@ -4706,7 +4787,10 @@ test('story props render local contact sediment and occlusion around asset bases
   assert.match(journeyPlacementOverridesSource, /'colorGradeFilter'[\s\S]*'sandOverlapHeight'[\s\S]*'groundPebbles'/);
   assert.match(journeyPlacementGeneratedOverrideSource, /"id": "desert-entry-premium-carved-stone-edge-1"[\s\S]*?"shadowOpacity": 0\.22[\s\S]*?"sandOverlapHeight": 0[\s\S]*?"groundContactLayer": \[[\s\S]*?"assetKey": "premiumCarvedStoneEdge"/);
   assert.match(journeyPlacementGeneratedOverrideSource, /"id": "desert-entry-premium-broken-masonry-footing-1"[\s\S]*?"shadowOpacity": 0\.22[\s\S]*?"sandOverlapHeight": 1[\s\S]*?"groundContactLayer": \[[\s\S]*?"assetKey": "premiumBrokenMasonryFooting"/);
-  assert.match(journeyPlacementGeneratedOverrideSource, /"id": "desert-entry-fallen-lintel-1"[\s\S]*?"shadowOpacity": 0\.3[\s\S]*?"sandOverlapHeight": 0/);
+  assert.ok(
+    journeyPlacementOverrides.deletedPropIds.includes('desert-entry-fallen-lintel-1'),
+    'the old fallen lintel should stay deleted by the cleaned bridge/ramp layout',
+  );
 });
 
 test('editor supports half-buried trap visuals without moving collision by hand', () => {
@@ -4982,7 +5066,7 @@ test('scorpion and scarab combo creates tactical poison and armor pressure', () 
 });
 
 test('scorpion nest becomes the post-Mummification destroy-to-pass obstacle', () => {
-  const mummificationExterior = journeyPlacementOverrides.props.find(prop => prop.id === 'mummification-chamber-exterior-structure');
+  const mummificationExterior = journeyPlacementOverrides.props.find(prop => prop.id === 'desert-entry-generated-mummification-chamber-entrance-1');
   const muralExterior = journeyPlacementOverrides.props.find(prop => prop.id === 'forgotten-mural-climb-structure');
   const nestOverride = journeyPlacementOverrides.enemies.find(enemy => enemy.id === 'desert-entry-scorpion-nest-1');
   const nestData = ENEMIES.find(enemy => enemy.id === 'desert-entry-scorpion-nest-1');
@@ -4994,7 +5078,7 @@ test('scorpion nest becomes the post-Mummification destroy-to-pass obstacle', ()
 
   const exactThreeQuarterX = Math.round(mummificationExterior.x + (muralExterior.x - mummificationExterior.x) * 0.75);
   const routeProgress = (nestOverride.x - mummificationExterior.x) / (muralExterior.x - mummificationExterior.x);
-  assert.equal(exactThreeQuarterX, 6804);
+  assert.equal(exactThreeQuarterX, 6542);
   assert.ok(routeProgress >= 0.65 && routeProgress <= 0.8, 'Nest should sit roughly three-quarters of the way to the mural structure');
   assert.ok(nestOverride.x > mummificationExterior.x, 'Nest should be after the Mummification Chamber exterior');
   assert.ok(nestOverride.x < muralExterior.x, 'Nest should be before the Forgotten Mural structure');
