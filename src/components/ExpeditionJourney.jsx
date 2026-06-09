@@ -564,7 +564,6 @@ const LOST_BRIDGE_RAVINE_FLOOR_VARIANT_SRCS = {
   lostBridgeRavineFloorTallWide: `${LOST_BRIDGE_ASSET_DIR}lost-bridge-ravine-test-tall-wide-2026-06-09.png`,
 };
 const LOST_BRIDGE_RAVINE_FLOOR_ASSET_KEYS = new Set(Object.keys(LOST_BRIDGE_RAVINE_FLOOR_VARIANT_SRCS));
-const LOST_BRIDGE_RAVINE_FLOOR_BLEND_SRC = LOST_BRIDGE_RAVINE_FLOOR_VARIANT_SRCS.lostBridgeRavineFloor;
 const LOST_BRIDGE_PIECE_SRCS = {
   slab: `${LOST_BRIDGE_ASSET_DIR}lost-bridge-deck-slab-cutout-2026-06-08.png`,
   landing: `${LOST_BRIDGE_ASSET_DIR}lost-bridge-end-landing-cutout-2026-06-08.png`,
@@ -588,6 +587,9 @@ const LOST_BRIDGE_STRUCTURE_DECK_IDS = new Set([
   'lost-bridge-slab-2',
   'lost-bridge-far-landing',
 ]);
+const LOST_BRIDGE_EDITOR_DECK_IDS = new Set([
+  'desert-entry-platform-9',
+]);
 const LOST_BRIDGE_RAVINE_FLOOR_PROP_ID = 'desert-entry-lost-bridge-ravine-floor-1';
 const isLostBridgeRavineFloorProp = (prop = {}) => (
   prop.id === LOST_BRIDGE_RAVINE_FLOOR_PROP_ID
@@ -595,13 +597,13 @@ const isLostBridgeRavineFloorProp = (prop = {}) => (
 );
 const LOST_BRIDGE_RAVINE_FALL_DEPTH = 88;
 const LOST_BRIDGE_RAVINE_FALL_SIDE_PAD = 210;
-const LOST_BRIDGE_RAVINE_BLEND_SIDE_PAD = 320;
-const LOST_BRIDGE_RAVINE_BLEND_DECK_FRAC = 0.38;
 const LOST_BRIDGE_RAVINE_BLEND_CLIP_TOP_OFFSET = 8;
 const LOST_BRIDGE_RAVINE_BLEND_CLIP_PAD = 44;
 const isLostBridgeStructureDeckPlatform = (platform = {}) => (
-  platform.variant === 'lost-bridge'
-    && LOST_BRIDGE_STRUCTURE_DECK_IDS.has(platform.id)
+  (
+    (platform.variant === 'lost-bridge' && LOST_BRIDGE_STRUCTURE_DECK_IDS.has(platform.id))
+    || LOST_BRIDGE_EDITOR_DECK_IDS.has(platform.id)
+  )
     && Number.isFinite(platform.y)
     && platform.y <= LOST_BRIDGE_STRUCTURE_DECK_MAX_Y
     && (platform.zIndex ?? 0) > -50
@@ -1795,6 +1797,7 @@ const isPlayerAttackVisualPhase = (attackState) => (
 
 const CHARACTER_LOADER_STORAGE_KEY = 'expedition-character-loader-choice';
 const JOURNEY_PROP_EDITOR_STORAGE_KEY = 'expedition-journey-prop-editor-edits-v1';
+const JOURNEY_PROP_EDITOR_SECTIONS_KEY = 'expedition-journey-prop-editor-collapsed-sections-v1';
 const JOURNEY_PROP_EDITOR_PANEL_POS_KEY = 'expedition-journey-prop-editor-panel-pos-v1';
 const CHARACTER_LOADER_VISIBILITY_STORAGE_KEY = 'expedition-character-loader-visible-v3';
 const PLAYER_CHARACTER_PRESETS = [
@@ -3822,12 +3825,17 @@ export default function ExpeditionJourney({
     selectedNestId: null,
     dragging: null,
     hover: null,
+    stackPicker: null,
+    outlinerSearch: '',
     gridSnap: false,
     gridSize: DEFAULT_JOURNEY_PROP_EDITOR_GRID_SIZE,
     paletteOpen: false,
     selectedPaletteKey: null,
     selectedPaletteCategory: 'prop',
+    recentPaletteKeys: [],
+    stampMode: false,
     showTrapTriggers: true,
+    showHoverLabels: true,
     previewMode: false,
     panelCollapsed: false,
     floorPickMode: false,
@@ -3876,7 +3884,9 @@ export default function ExpeditionJourney({
     paletteOpen: false,
     selectedPaletteKey: null,
     selectedPaletteCategory: 'prop',
+    stampMode: false,
     showTrapTriggers: true,
+    showHoverLabels: true,
     previewMode: false,
     panelCollapsed: false,
     floorPickMode: false,
@@ -3891,6 +3901,48 @@ export default function ExpeditionJourney({
     savedAt: null,
   });
   const [outlinerOpen, setOutlinerOpen] = useState(true);
+  const [collapsedPanelSections, setCollapsedPanelSections] = useState(() => {
+    try {
+      return JSON.parse(window.localStorage.getItem(JOURNEY_PROP_EDITOR_SECTIONS_KEY)) || {};
+    } catch {
+      return {};
+    }
+  });
+  const toggleEditorPanelSection = useCallback((key) => {
+    setCollapsedPanelSections((prev) => {
+      const next = { ...prev, [key]: !prev[key] };
+      try {
+        window.localStorage.setItem(JOURNEY_PROP_EDITOR_SECTIONS_KEY, JSON.stringify(next));
+      } catch {
+        /* ignore persistence errors */
+      }
+      return next;
+    });
+  }, []);
+  const renderEditorSectionHeader = (key, label) => (
+    <button
+      type="button"
+      className="journey-prop-editor-group-header"
+      aria-expanded={!collapsedPanelSections[key]}
+      onClick={() => toggleEditorPanelSection(key)}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        width: '100%',
+        cursor: 'pointer',
+        background: 'none',
+        border: 'none',
+        color: 'inherit',
+        font: 'inherit',
+        textAlign: 'left',
+        padding: 0,
+      }}
+    >
+      <span>{label}</span>
+      <span aria-hidden="true" style={{ opacity: 0.6, fontSize: 10 }}>{collapsedPanelSections[key] ? '▸' : '▾'}</span>
+    </button>
+  );
   const canvasRef = useRef(null);
   const stateRef = useRef(gameState);
   const keysRef = useRef({});
@@ -4043,14 +4095,17 @@ export default function ExpeditionJourney({
       || sceneId;
   }, []);
 
-  const getAllPropEditorStoryProps = useCallback(() => ([
-    ...STORY_PROPS,
-    ...propPlacementEditorRef.current.createdProps,
-  ]), []);
+  const getAllPropEditorStoryProps = useCallback(() => {
+    const sourceIds = new Set(STORY_PROPS.map(prop => prop?.id).filter(Boolean));
+    return [
+      ...STORY_PROPS,
+      ...propPlacementEditorRef.current.createdProps.filter(prop => prop?.id && !sourceIds.has(prop.id)),
+    ];
+  }, []);
 
   const getPropEditorBasePropById = useCallback((propId) => (
-    propPlacementEditorRef.current.createdProps.find(prop => prop.id === propId)
-    || STORY_PROPS.find(prop => prop.id === propId)
+    STORY_PROPS.find(prop => prop.id === propId)
+    || propPlacementEditorRef.current.createdProps.find(prop => prop.id === propId)
     || null
   ), []);
 
@@ -4068,7 +4123,9 @@ export default function ExpeditionJourney({
   ), [getAllPropEditorStoryProps, getEditedStoryProp]);
 
   const getLostBridgeRavineFloorPlacement = useCallback((current = stateRef.current) => {
-    const ravineProps = getRenderableStoryProps(current).filter(isLostBridgeRavineFloorProp);
+    const editor = propPlacementEditorRef.current;
+    const ravineProps = getRenderableStoryProps(current)
+      .filter(prop => isLostBridgeRavineFloorProp(prop) && !editor.hiddenIds.has(prop.id));
     if (ravineProps.length === 0) return null;
     const selectedId = propPlacementEditorRef.current?.selectedPropId;
     const prop = ravineProps.find(item => item.id === selectedId) || ravineProps[ravineProps.length - 1];
@@ -4407,6 +4464,31 @@ export default function ExpeditionJourney({
     };
   }, [getEditedNestParams, getScorpionNestArtAspect]);
 
+  const getLiveScorpionNestBlockers = useCallback((current = stateRef.current) => {
+    if (!current || current.enemiesDisabled) return [];
+    return (current.enemies || [])
+      .filter(enemy => (
+        enemy.type === 'scorpion-nest'
+        && !enemy.defeated
+        && isEntityActiveInScene(enemy, current)
+      ))
+      .map((enemy) => {
+        const params = getEditedNestParams(enemy);
+        const widthScale = Number.isFinite(params.widthScale) ? params.widthScale : SCORPION_NEST_EDITOR_DEFAULTS.widthScale;
+        const blockWidth = Math.max(enemy.width, enemy.width * widthScale);
+        const baseY = params.y + enemy.height + params.yOffset;
+        const blockHeight = Math.max(enemy.height + 36, 118);
+        return {
+          id: enemy.id,
+          enemy,
+          x: params.x + enemy.width / 2 - blockWidth / 2,
+          y: Math.min(params.y, baseY - blockHeight),
+          width: blockWidth,
+          height: blockHeight,
+        };
+      });
+  }, [getEditedNestParams]);
+
   const findEditableNestAt = useCallback((screenX, screenY) => {
     const cameraX = Number.isFinite(stateRef.current.cameraX) ? stateRef.current.cameraX : 0;
     return getRenderableScorpionNests()
@@ -4732,6 +4814,22 @@ export default function ExpeditionJourney({
     const palette = paletteSource
       .map(item => ({ ...item, preview: getPropPalettePreview(item) }))
       .filter(item => item.preview);
+    const paletteSourceForCategory = (category) => (
+      category === 'trap' ? trapEditorPalette
+      : category === 'platform' ? platformEditorPalette
+      : category === 'ground-detail' ? groundDetailsEditorPalette
+      : category === 'foreground-detail' ? foregroundDetailsEditorPalette
+      : propEditorPalette
+    );
+    const recentPaletteItems = (editor.recentPaletteKeys || [])
+      .map(({ key, category }) => {
+        const item = paletteSourceForCategory(category).find(i => i.key === key);
+        if (!item) return null;
+        const preview = getPropPalettePreview(item);
+        if (!preview) return null;
+        return { key, category, label: item.label, preview };
+      })
+      .filter(Boolean);
     const selectedLockKey = prop
       ? `prop:${prop.id}`
       : platform
@@ -4750,8 +4848,10 @@ export default function ExpeditionJourney({
     // Scene Outliner: every prop in the active room, grouped by depth band and sorted
     // by z within the band — the same ordering the renderer and z-order buttons use.
     const outlinerRoomId = getActivePropEditorRoomId(current);
+    const outlinerQuery = (editor.outlinerSearch || '').trim().toLowerCase();
     const outlinerProps = getRenderableStoryProps(current)
       .filter(item => item?.id && getJourneyPropRoomId(item, getJourneySceneId(current), current.currentSectionId) === outlinerRoomId)
+      .filter(item => !outlinerQuery || `${item.label || item.name || ''} ${item.id}`.toLowerCase().includes(outlinerQuery))
       .map(item => ({
         id: item.id,
         label: item.label || item.name || item.id,
@@ -4772,10 +4872,15 @@ export default function ExpeditionJourney({
         items: items.sort((a, b) => (a.zIndex - b.zIndex) || (a.x - b.x)),
       }))
       .sort((a, b) => a.order - b.order);
+    const outlinerRoomTotal = getRenderableStoryProps(current)
+      .filter(item => item?.id && getJourneyPropRoomId(item, getJourneySceneId(current), current.currentSectionId) === outlinerRoomId)
+      .length;
     const sceneOutliner = {
       roomId: outlinerRoomId,
       groups: outlinerGroups,
       total: outlinerProps.length,
+      roomTotal: outlinerRoomTotal,
+      search: editor.outlinerSearch || '',
       hiddenCount: editor.hiddenIds.size,
     };
     return {
@@ -4906,8 +5011,11 @@ export default function ExpeditionJourney({
       collapsedPaletteGroups: editor.collapsedPaletteGroups || {},
       selectedPaletteKey: editor.selectedPaletteKey,
       selectedPaletteCategory: editor.selectedPaletteCategory,
+      recentPaletteItems,
+      stampMode: editor.stampMode === true,
       paletteSearch: editor.paletteSearch || '',
       showTrapTriggers: editor.showTrapTriggers,
+      showHoverLabels: editor.showHoverLabels !== false,
       previewMode: editor.previewMode,
       panelCollapsed: editor.panelCollapsed,
       floorPickMode: editor.floorPickMode,
@@ -4923,6 +5031,7 @@ export default function ExpeditionJourney({
       savedAt: editor.savedAt,
       writeStatus: editor.writeStatus,
       sceneOutliner,
+      stackPicker: editor.stackPicker,
       canUndo: editorUndoStackRef.current.length > 0,
       canRedo: editorRedoStackRef.current.length > 0,
     };
@@ -5236,6 +5345,45 @@ export default function ExpeditionJourney({
     refreshPropEditorUi();
   }, [refreshPropEditorUi]);
 
+  const setEditorOutlinerSearch = useCallback((value) => {
+    propPlacementEditorRef.current.outlinerSearch = value;
+    refreshPropEditorUi();
+  }, [refreshPropEditorUi]);
+
+  // Select an entity chosen from the on-canvas stack picker (Alt/right-click). Selection
+  // only — no drag — since the user is choosing among overlapping items, not grabbing one.
+  const selectEditorEntityFromStack = useCallback((kind, id) => {
+    const editor = propPlacementEditorRef.current;
+    if (isEditorLockKeyLocked(`${kind}:${id}`)) {
+      editor.stackPicker = null;
+      refreshPropEditorUi();
+      return;
+    }
+    editor.selectedPropId = null;
+    editor.selectedPlatformId = null;
+    editor.selectedHazardId = null;
+    editor.selectedArchId = null;
+    editor.selectedCheckpointId = null;
+    editor.selectedLairId = null;
+    editor.selectedNestId = null;
+    editor.dragging = null;
+    if (kind === 'prop') editor.selectedPropId = id;
+    else if (kind === 'platform') editor.selectedPlatformId = id;
+    else if (kind === 'hazard') editor.selectedHazardId = id;
+    else if (kind === 'arch') editor.selectedArchId = id;
+    else if (kind === 'checkpoint') editor.selectedCheckpointId = id;
+    else if (kind === 'lair') editor.selectedLairId = id;
+    else if (kind === 'nest') editor.selectedNestId = id;
+    editor.stackPicker = null;
+    refreshPropEditorUi();
+  }, [isEditorLockKeyLocked, refreshPropEditorUi]);
+
+  const dismissEditorStackPicker = useCallback(() => {
+    if (!propPlacementEditorRef.current.stackPicker) return;
+    propPlacementEditorRef.current.stackPicker = null;
+    refreshPropEditorUi();
+  }, [refreshPropEditorUi]);
+
   const getPropEditorPointer = useCallback((event) => {
     const canvas = canvasRef.current;
     if (!canvas) return null;
@@ -5503,9 +5651,11 @@ export default function ExpeditionJourney({
       const confirmed = window.confirm(`Delete prop "${selectedProp.id}" from ${getJourneyPropRoomId(selectedProp, getJourneySceneId(stateRef.current), stateRef.current.currentSectionId)}?`);
       if (!confirmed) return;
       const createdIndex = editor.createdProps.findIndex(prop => prop.id === selectedId);
+      const sourcePropExists = STORY_PROPS.some(prop => prop.id === selectedId);
       if (createdIndex >= 0) {
         editor.createdProps.splice(createdIndex, 1);
-      } else {
+      }
+      if (sourcePropExists || createdIndex < 0) {
         editor.deletedIds.add(selectedId);
       }
       delete editor.edits[selectedId];
@@ -5840,8 +5990,14 @@ export default function ExpeditionJourney({
     editor.selectedCheckpointId = null;
     editor.selectedLairId = null;
     editor.selectedNestId = null;
-    editor.selectedPaletteKey = null;
-    editor.paletteOpen = false;
+    editor.recentPaletteKeys = [
+      { key: paletteItem.key, category: editor.selectedPaletteCategory },
+      ...(editor.recentPaletteKeys || []).filter(r => r.key !== paletteItem.key),
+    ].slice(0, 8);
+    if (!editor.stampMode) {
+      editor.selectedPaletteKey = null;
+      editor.paletteOpen = false;
+    }
     editor.deletedIds.delete(nextProp.id);
     refreshPropEditorUi();
     return nextProp;
@@ -5867,8 +6023,14 @@ export default function ExpeditionJourney({
     editor.selectedCheckpointId = null;
     editor.selectedLairId = null;
     editor.selectedNestId = null;
-    editor.selectedPaletteKey = null;
-    editor.paletteOpen = false;
+    editor.recentPaletteKeys = [
+      { key: paletteItem.key, category: 'trap' },
+      ...(editor.recentPaletteKeys || []).filter(r => r.key !== paletteItem.key),
+    ].slice(0, 8);
+    if (!editor.stampMode) {
+      editor.selectedPaletteKey = null;
+      editor.paletteOpen = false;
+    }
     editor.deletedHazardIds.delete(nextTrap.id);
     refreshPropEditorUi();
     return nextTrap;
@@ -5894,8 +6056,14 @@ export default function ExpeditionJourney({
     editor.selectedCheckpointId = null;
     editor.selectedLairId = null;
     editor.selectedNestId = null;
-    editor.selectedPaletteKey = null;
-    editor.paletteOpen = false;
+    editor.recentPaletteKeys = [
+      { key: paletteItem.key, category: 'platform' },
+      ...(editor.recentPaletteKeys || []).filter(r => r.key !== paletteItem.key),
+    ].slice(0, 8);
+    if (!editor.stampMode) {
+      editor.selectedPaletteKey = null;
+      editor.paletteOpen = false;
+    }
     editor.deletedPlatformIds.delete(nextPlatform.id || nextPlatform.label);
     refreshPropEditorUi();
     return nextPlatform;
@@ -10620,17 +10788,14 @@ export default function ExpeditionJourney({
     const bounds = getLostBridgeDeckBounds(platforms || []);
     if (!bounds) return false;
     const editorPlacement = getLostBridgeRavineFloorPlacement(current);
-    const activeRavineAssetKey = editorPlacement?.prop?.imageAssetKey || 'lostBridgeRavineFloor';
-    const activeRavineAssetPath = editorPlacement?.prop?.assetPath || LOST_BRIDGE_RAVINE_FLOOR_BLEND_SRC;
+    if (!editorPlacement) return false;
+    const activeRavineAssetKey = editorPlacement.prop?.imageAssetKey || 'lostBridgeRavineFloor';
+    const activeRavineAssetPath = editorPlacement.prop?.assetPath || LOST_BRIDGE_RAVINE_FLOOR_VARIANT_SRCS.lostBridgeRavineFloor;
     const blend = lostBridgeAssetsRef.current?.floorBlends?.[activeRavineAssetKey]
       || lostBridgeAssetsRef.current?.floorBlends?.[activeRavineAssetPath]
       || lostBridgeAssetsRef.current?.floorBlend;
-    const drawWorldLeft = editorPlacement
-      ? editorPlacement.drawWorldLeft
-      : bounds.left - LOST_BRIDGE_RAVINE_BLEND_SIDE_PAD;
-    const drawW = editorPlacement
-      ? editorPlacement.width
-      : bounds.span + LOST_BRIDGE_RAVINE_BLEND_SIDE_PAD * 2;
+    const drawWorldLeft = editorPlacement.drawWorldLeft;
+    const drawW = editorPlacement.width;
     if (!isHorizontallyVisible(drawWorldLeft, drawW, cameraX, 180)) return false;
 
     ctx.save();
@@ -10640,15 +10805,9 @@ export default function ExpeditionJourney({
     const ravineFallWidth = Math.max(0, ravineFallWorldRight - ravineFallWorldLeft);
 
     if (blend?.naturalWidth && blend?.naturalHeight) {
-      const drawH = editorPlacement
-        ? editorPlacement.height
-        : drawW * (blend.naturalHeight / blend.naturalWidth);
-      const drawY = editorPlacement
-        ? editorPlacement.drawY
-        : bounds.y + 6 - drawH * LOST_BRIDGE_RAVINE_BLEND_DECK_FRAC;
-      const visibleTop = editorPlacement
-        ? Math.max(0, drawY)
-        : bounds.y + LOST_BRIDGE_RAVINE_BLEND_CLIP_TOP_OFFSET;
+      const drawH = editorPlacement.height;
+      const drawY = editorPlacement.drawY;
+      const visibleTop = Math.max(0, drawY + LOST_BRIDGE_RAVINE_BLEND_CLIP_TOP_OFFSET);
       ctx.beginPath();
       ctx.rect(
         drawX - LOST_BRIDGE_RAVINE_BLEND_CLIP_PAD,
@@ -10670,8 +10829,8 @@ export default function ExpeditionJourney({
           floorBlendVersion: LOST_BRIDGE_ASSET_VERSION,
           floorBlendAssetKey: activeRavineAssetKey,
           floorBlendAssetPath: activeRavineAssetPath,
-          editorControlled: Boolean(editorPlacement),
-          controllerPropId: editorPlacement?.prop?.id || null,
+          editorControlled: true,
+          controllerPropId: editorPlacement.prop?.id || null,
         };
         current.renderStats.lostBridgeRavineStripBounds = {
           x: Math.round(drawWorldLeft),
@@ -10680,7 +10839,7 @@ export default function ExpeditionJourney({
           height: Math.round(drawH),
           clipTop: Math.round(visibleTop),
           layer: 'above-floor-below-bridge-platforms',
-          editorControlled: Boolean(editorPlacement),
+          editorControlled: true,
         };
         current.renderStats.lostBridgeRavineFloorBlendLoaded = true;
       }
@@ -17160,8 +17319,16 @@ export default function ExpeditionJourney({
         ctx.strokeRect(bounds.x, bounds.y, bounds.width, bounds.height);
         ctx.restore();
         drawEditorSelectionCorners(ctx, bounds, 'rgba(255, 255, 255, 0.98)');
-        const cycleSuffix = hover.stack.length > 1 ? `   ⇥ ${hover.index + 1}/${hover.stack.length}` : '';
-        const text = `${getEditorEntityLabel(descriptor)}${cycleSuffix}`;
+        if (editor.showHoverLabels !== false) {
+        const cycleSuffix = hover.stack.length > 1 ? `   ⇥ ${hover.index + 1}/${hover.stack.length} · right-click for list` : '';
+        // Long prop names sprawl over the asset you're positioning, so show a compact
+        // name: drop the trailing " · <id>" and redundant " — prop", then cap the length.
+        const HOVER_LABEL_MAX = 26;
+        let compact = getEditorEntityLabel(descriptor)
+          .replace(/\s·\s.*$/, '')
+          .replace(/\s—\sprop$/, '');
+        if (compact.length > HOVER_LABEL_MAX) compact = `${compact.slice(0, HOVER_LABEL_MAX - 1).trimEnd()}…`;
+        const text = `${compact}${cycleSuffix}`;
         ctx.save();
         ctx.setLineDash([]);
         ctx.font = '800 12px Outfit, sans-serif';
@@ -17179,6 +17346,7 @@ export default function ExpeditionJourney({
         ctx.textAlign = 'left';
         ctx.fillText(text, labelX + 9, labelY + 15);
         ctx.restore();
+        }
       }
     }
     ctx.restore();
@@ -18915,6 +19083,7 @@ export default function ExpeditionJourney({
     current.hazardCooldown = Math.max(0, current.hazardCooldown - dt);
     current.staminaFeedbackTimer = Math.max(0, current.staminaFeedbackTimer - dt);
     current.enemyCooldown = Math.max(0, current.enemyCooldown - dt);
+    current.scorpionNestBlockNoticeCooldown = Math.max(0, (current.scorpionNestBlockNoticeCooldown || 0) - dt);
     current.attackCooldown = Math.max(0, current.attackCooldown - dt);
     const wasWindingUp = current.attackWindupTimer > 0;
     const wasSwinging = current.attackTimer > 0;
@@ -19198,6 +19367,7 @@ export default function ExpeditionJourney({
     }
     keys.jumpHeld = jump;
 
+    const previousPlayerX = player.x;
     player.vy += GRAVITY * dt;
     player.x += player.vx * dt;
     player.y += player.vy * dt;
@@ -19237,6 +19407,22 @@ export default function ExpeditionJourney({
           (activeBossDomainBounds.arenaEnd ?? WORLD_WIDTH) - player.width - 16,
         ),
       );
+    }
+    const liveScorpionNestBlocker = getLiveScorpionNestBlockers(current)
+      .find(blocker => rectsOverlap(player, blocker));
+    if (liveScorpionNestBlocker) {
+      const movedRight = player.x >= previousPlayerX;
+      player.x = movedRight
+        ? liveScorpionNestBlocker.x - player.width - 3
+        : liveScorpionNestBlocker.x + liveScorpionNestBlocker.width + 3;
+      player.x = clamp(player.x, 0, WORLD_WIDTH - player.width);
+      player.vx = movedRight ? Math.min(0, player.vx) : Math.max(0, player.vx);
+      current.notice = 'The scorpion nest blocks the route. Destroy it to clear the path.';
+      current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 1.55);
+      if ((current.scorpionNestBlockNoticeCooldown || 0) <= 0) {
+        current.scorpionNestBlockNoticeCooldown = 0.85;
+        audioControls?.playExpeditionSfx?.('gateBlocked');
+      }
     }
     if (current.arrivalThresholdActive) {
       player.x = clamp(player.x, ARRIVAL_THRESHOLD_LEFT_BOUND, ARRIVAL_THRESHOLD_RIGHT_BOUND - player.width);
@@ -21324,13 +21510,18 @@ export default function ExpeditionJourney({
         nest.broodCount = (nest.broodCount || 0) + 1;
         const spawnDir = (player.x + player.width / 2) >= (nest.x + nest.width / 2) ? 1 : -1;
         const broodHeight = 30;
+        const nestBaseY = nest.y + nest.height + (
+          Number.isFinite(nest.yOffset)
+            ? nest.yOffset
+            : SCORPION_NEST_EDITOR_DEFAULTS.yOffset
+        );
         current.enemies.push(makeEnemy({
           id: `${nest.id}-spawn-${nest.broodCount}`,
           name: 'Nest Scorpion',
           type: 'scorpion',
           emoji: 'S',
           x: nest.x + nest.width / 2 - 23 + spawnDir * 18,
-          y: GROUND_Y - broodHeight - 2,
+          y: nestBaseY - broodHeight - 2,
           width: 46,
           height: broodHeight,
           patrolMin: nest.x - 150,
@@ -21348,7 +21539,7 @@ export default function ExpeditionJourney({
         addCombatEffect(current, {
           type: 'sand-skid',
           x: nest.x + nest.width / 2,
-          y: nest.y + nest.height,
+          y: nestBaseY,
           direction: spawnDir,
           color: 'rgba(136, 82, 36, 0.5)',
           timer: 0.4,
@@ -21831,7 +22022,7 @@ export default function ExpeditionJourney({
       if (current.resources.time <= 0) triggerJourneyRescue('Time expired. Field team rescued.');
     }
 
-  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, backgroundPackId, openingAtmosphereSfxKey, scopedJourneyAssetPacks.isChinaJourney, scopedJourneyAssetPacks.isRomeJourney, targetCivilisation, buildBossRewardMoment, completeOpeningThresholdScene, enterLevelFromThreshold, startLevelThresholdEncounter, startTempleThresholdTransition, getActiveHiddenRoutes, getActiveSecretCollectibles, getActiveShardGateProgress, getAttackBox, getAttackHurtbox, getPlayerAttackNearMissTarget, getBossPhaseConfig, getBossVulnerabilityState, getDoorwayGateStatus, getEnemyPatternConfig, getObjectiveProgress, getGateGuidance, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getRenderableTrapPlatforms, getRouteAccessState, getRouteGateDoorwayEntries, isRouteRewardAccessible, isLowStamina, addCombatEffect, applyCombatHitImpact, recordEnvironmentInteraction, getPlayerAttackState, getSectionDisplayName, getSectionDisplayTitle, syncHud]);
+  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, backgroundPackId, openingAtmosphereSfxKey, scopedJourneyAssetPacks.isChinaJourney, scopedJourneyAssetPacks.isRomeJourney, targetCivilisation, buildBossRewardMoment, completeOpeningThresholdScene, enterLevelFromThreshold, startLevelThresholdEncounter, startTempleThresholdTransition, getActiveHiddenRoutes, getActiveSecretCollectibles, getActiveShardGateProgress, getAttackBox, getAttackHurtbox, getPlayerAttackNearMissTarget, getBossPhaseConfig, getBossVulnerabilityState, getDoorwayGateStatus, getEnemyPatternConfig, getObjectiveProgress, getGateGuidance, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getRenderableTrapPlatforms, getLiveScorpionNestBlockers, getRouteAccessState, getRouteGateDoorwayEntries, isRouteRewardAccessible, isLowStamina, addCombatEffect, applyCombatHitImpact, recordEnvironmentInteraction, getPlayerAttackState, getSectionDisplayName, getSectionDisplayTitle, syncHud]);
 
   const step = useCallback((ms) => {
     const dt = Math.min(ms / 1000, 0.05);
@@ -22733,6 +22924,27 @@ export default function ExpeditionJourney({
         draw();
         return;
       }
+      // Alt+click or right-click opens a clickable list of every entity stacked under
+      // the cursor, so buried props can be selected without Tab-cycling through them.
+      const wantsStackPicker = e.button === 2 || (e.button === 0 && e.altKey);
+      if (wantsStackPicker) {
+        const stack = buildEditorHoverStack(pointer.screenX, pointer.screenY);
+        editor.stackPicker = stack.length ? {
+          clientX: e.clientX,
+          clientY: e.clientY,
+          items: stack.map(d => ({
+            kind: d.kind,
+            id: d.id,
+            label: getEditorEntityLabel(d),
+            locked: isEditorLockKeyLocked(`${d.kind}:${d.id}`),
+          })),
+        } : null;
+        e.preventDefault();
+        refreshPropEditorUi();
+        return;
+      }
+      // Any normal click dismisses an open stack picker before selecting.
+      if (editor.stackPicker) editor.stackPicker = null;
       // Transform handles on the already-selected prop take priority over re-selecting:
       // corner squares scale, the knob above rotates. Only fires on a precise handle
       // hit, so normal click-to-select/move below is untouched.
@@ -23225,7 +23437,68 @@ export default function ExpeditionJourney({
               onPointerMove={handlePointerMove}
               onPointerUp={handlePointerUp}
               onPointerLeave={handlePointerUp}
+              onContextMenu={(event) => {
+                if (import.meta.env.DEV && propPlacementEditorRef.current.enabled) event.preventDefault();
+              }}
             />
+
+            {import.meta.env.DEV && propEditorUi.enabled && propEditorUi.stackPicker && (
+              <>
+                <div
+                  className="journey-prop-editor-stackpicker-backdrop"
+                  onPointerDown={dismissEditorStackPicker}
+                  style={{ position: 'fixed', inset: 0, zIndex: 59 }}
+                />
+                <div
+                  className="journey-prop-editor-stackpicker"
+                  style={{
+                    position: 'fixed',
+                    left: Math.min(propEditorUi.stackPicker.clientX + 4, (typeof window !== 'undefined' ? window.innerWidth : 1920) - 240),
+                    top: Math.min(propEditorUi.stackPicker.clientY + 4, (typeof window !== 'undefined' ? window.innerHeight : 1080) - 40 - propEditorUi.stackPicker.items.length * 26),
+                    zIndex: 60,
+                    minWidth: 200,
+                    maxWidth: 320,
+                    maxHeight: 360,
+                    overflowY: 'auto',
+                    background: 'rgba(8, 13, 22, 0.97)',
+                    border: '1px solid rgba(214, 158, 73, 0.55)',
+                    borderRadius: 6,
+                    padding: 4,
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+                    fontSize: 12,
+                  }}
+                >
+                  <div style={{ fontSize: 10, opacity: 0.6, textTransform: 'uppercase', letterSpacing: '0.04em', padding: '2px 6px 4px' }}>
+                    {propEditorUi.stackPicker.items.length} under cursor
+                  </div>
+                  {propEditorUi.stackPicker.items.map((item, index) => (
+                    <button
+                      key={`${item.kind}:${item.id}:${index}`}
+                      type="button"
+                      disabled={item.locked}
+                      onClick={() => selectEditorEntityFromStack(item.kind, item.id)}
+                      title={item.locked ? 'Locked — unlock to select' : `Select ${item.id}`}
+                      style={{
+                        display: 'block',
+                        width: '100%',
+                        textAlign: 'left',
+                        padding: '4px 6px',
+                        borderRadius: 3,
+                        border: 'none',
+                        background: 'none',
+                        color: item.locked ? 'rgba(255,255,255,0.4)' : '#f8fafc',
+                        cursor: item.locked ? 'not-allowed' : 'pointer',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {item.locked ? '🔒 ' : ''}{item.label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
 
             {import.meta.env.DEV && propEditorUi.enabled && (
               <div
@@ -23344,6 +23617,17 @@ export default function ExpeditionJourney({
                   </button>
                   <button
                     type="button"
+                    className={propEditorUi.showHoverLabels ? 'is-selected' : ''}
+                    title="Show/hide the floating name label when hovering a prop (the dashed outline stays either way)"
+                    onClick={() => {
+                      propPlacementEditorRef.current.showHoverLabels = propPlacementEditorRef.current.showHoverLabels === false;
+                      refreshPropEditorUi();
+                    }}
+                  >
+                    Labels
+                  </button>
+                  <button
+                    type="button"
                     className={propEditorUi.previewMode ? 'is-selected' : ''}
                     title="Hide selection border + overlay to preview the object's real look (H)"
                     onClick={() => {
@@ -23428,7 +23712,9 @@ export default function ExpeditionJourney({
                       style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
                       onClick={() => setOutlinerOpen(open => !open)}
                     >
-                      <span>{outlinerOpen ? '▾' : '▸'} Scene · {propEditorUi.sceneOutliner.total} props</span>
+                      <span>{outlinerOpen ? '▾' : '▸'} Scene · {propEditorUi.sceneOutliner.search
+                        ? `${propEditorUi.sceneOutliner.total} / ${propEditorUi.sceneOutliner.roomTotal}`
+                        : propEditorUi.sceneOutliner.total} props</span>
                       {propEditorUi.sceneOutliner.hiddenCount > 0 && (
                         <button
                           type="button"
@@ -23441,9 +23727,29 @@ export default function ExpeditionJourney({
                       )}
                     </div>
                     {outlinerOpen && (
-                      <div style={{ maxHeight: 220, overflowY: 'auto', marginTop: 4 }}>
+                      <>
+                      <input
+                        type="search"
+                        value={propEditorUi.sceneOutliner.search}
+                        placeholder="Filter props by name or id…"
+                        onChange={(event) => setEditorOutlinerSearch(event.target.value)}
+                        style={{
+                          width: '100%',
+                          boxSizing: 'border-box',
+                          margin: '4px 0 2px',
+                          padding: '3px 6px',
+                          fontSize: 11,
+                          borderRadius: 3,
+                          border: '1px solid rgba(214, 158, 73, 0.4)',
+                          background: 'rgba(0,0,0,0.3)',
+                          color: '#f8fafc',
+                        }}
+                      />
+                      <div style={{ maxHeight: 340, overflowY: 'auto', marginTop: 4 }}>
                         {propEditorUi.sceneOutliner.groups.length === 0 && (
-                          <div className="journey-prop-editor-empty">No props in this room yet</div>
+                          <div className="journey-prop-editor-empty">
+                            {propEditorUi.sceneOutliner.search ? 'No props match your filter' : 'No props in this room yet'}
+                          </div>
                         )}
                         {propEditorUi.sceneOutliner.groups.map(group => (
                           <div key={group.depth} className="journey-prop-editor-outliner-group">
@@ -23507,6 +23813,7 @@ export default function ExpeditionJourney({
                           </div>
                         ))}
                       </div>
+                      </>
                     )}
                   </div>
                 )}
@@ -23623,8 +23930,8 @@ export default function ExpeditionJourney({
                 </label>
                 {propEditorUi.selectedProp && (
                   <>
-                    <div className="journey-prop-editor-group-header">Transform</div>
-                    <div className="journey-prop-editor-controls">
+                    {renderEditorSectionHeader('prop-transform', 'Transform')}
+                    <div className="journey-prop-editor-controls" style={collapsedPanelSections['prop-transform'] ? { display: 'none' } : undefined}>
                       <label>
                         <span>X</span>
                         <input
@@ -23791,8 +24098,8 @@ export default function ExpeditionJourney({
                     </label>
                   </div>
 
-                    <div className="journey-prop-editor-group-header">Editor Box</div>
-                    <div className="journey-prop-editor-controls">
+                    {renderEditorSectionHeader('prop-box', 'Editor Box')}
+                    <div className="journey-prop-editor-controls" style={collapsedPanelSections['prop-box'] ? { display: 'none' } : undefined}>
                       <label>
                         <span>Trim top</span>
                         <input
@@ -23847,7 +24154,9 @@ export default function ExpeditionJourney({
                       </label>
                     </div>
 
-                    <div className="journey-prop-editor-group-header">Colour &amp; Light</div>
+                    {renderEditorSectionHeader('prop-colour', 'Colour & Light')}
+                    {!collapsedPanelSections['prop-colour'] && (
+                    <>
                     <div className="journey-prop-editor-color-presets">
                       <button type="button" onClick={copySelectedPropLook} title="Copy this prop's colour grade + brightness">Copy look</button>
                       <button
@@ -24036,9 +24345,11 @@ export default function ExpeditionJourney({
                         </div>
                       );
                     })()}
+                    </>
+                    )}
 
-                    <div className="journey-prop-editor-group-header">Shadows & Sand</div>
-                    <div className="journey-prop-editor-controls">
+                    {renderEditorSectionHeader('prop-shadows', 'Shadows & Sand')}
+                    <div className="journey-prop-editor-controls" style={collapsedPanelSections['prop-shadows'] ? { display: 'none' } : undefined}>
                       <label>
                         <span>Shadow opacity</span>
                         <input
@@ -24719,8 +25030,8 @@ export default function ExpeditionJourney({
                 )}
                 {propEditorUi.selectedLair && (
                   <>
-                    <div className="journey-prop-editor-group-header">Lair box</div>
-                    <div className="journey-prop-editor-controls">
+                    {renderEditorSectionHeader('lair-box', 'Lair box')}
+                    <div className="journey-prop-editor-controls" style={collapsedPanelSections['lair-box'] ? { display: 'none' } : undefined}>
                       <label>
                         <span>Lair X</span>
                         <input
@@ -24773,8 +25084,8 @@ export default function ExpeditionJourney({
                       </label>
                     </div>
 
-                    <div className="journey-prop-editor-group-header">Boss</div>
-                    <div className="journey-prop-editor-controls">
+                    {renderEditorSectionHeader('lair-boss', 'Boss')}
+                    <div className="journey-prop-editor-controls" style={collapsedPanelSections['lair-boss'] ? { display: 'none' } : undefined}>
                       <label>
                         <span>Boss X</span>
                         <input
@@ -24827,8 +25138,8 @@ export default function ExpeditionJourney({
                       </label>
                     </div>
 
-                    <div className="journey-prop-editor-group-header">Arena &amp; Patrol</div>
-                    <div className="journey-prop-editor-controls">
+                    {renderEditorSectionHeader('lair-arena', 'Arena & Patrol')}
+                    <div className="journey-prop-editor-controls" style={collapsedPanelSections['lair-arena'] ? { display: 'none' } : undefined}>
                       <label>
                         <span>Arena Start</span>
                         <input
@@ -24912,8 +25223,8 @@ export default function ExpeditionJourney({
                 )}
                 {propEditorUi.selectedNest && (
                   <>
-                    <div className="journey-prop-editor-group-header">Nest placement</div>
-                    <div className="journey-prop-editor-controls">
+                    {renderEditorSectionHeader('nest-placement', 'Nest placement')}
+                    <div className="journey-prop-editor-controls" style={collapsedPanelSections['nest-placement'] ? { display: 'none' } : undefined}>
                       <label>
                         <span>X</span>
                         <input
@@ -24965,8 +25276,8 @@ export default function ExpeditionJourney({
                       </label>
                     </div>
 
-                    <div className="journey-prop-editor-group-header">Nest glow</div>
-                    <div className="journey-prop-editor-controls">
+                    {renderEditorSectionHeader('nest-glow', 'Nest glow')}
+                    <div className="journey-prop-editor-controls" style={collapsedPanelSections['nest-glow'] ? { display: 'none' } : undefined}>
                       <label>
                         <span>Glow Y</span>
                         <input
@@ -25009,6 +25320,32 @@ export default function ExpeditionJourney({
                   <strong>{propEditorUi.selectedPaletteCategory === 'trap' ? 'Trap palette' : propEditorUi.selectedPaletteCategory === 'platform' ? 'Platform palette' : propEditorUi.selectedPaletteCategory === 'ground-detail' ? 'Ground Details palette' : propEditorUi.selectedPaletteCategory === 'foreground-detail' ? 'Foreground Details palette' : propEditorUi.selectedPaletteCategory === 'ledge' ? 'Ledge palette' : 'Prop palette'}</strong>
                   <span>{filterJourneyPaletteBySearch(propEditorUi.palette, propEditorUi.paletteSearch).length}</span>
                 </div>
+                <button
+                  type="button"
+                  className={propEditorUi.stampMode ? 'is-selected' : ''}
+                  title="Stamp mode: keep the palette open and the selected item armed after placing, so you can drop the same prop repeatedly without reopening the palette."
+                  onClick={() => {
+                    const ed = propPlacementEditorRef.current;
+                    ed.stampMode = !ed.stampMode;
+                    // Turning stamp mode off disarms the held item so clicks select/move again.
+                    if (!ed.stampMode) ed.selectedPaletteKey = null;
+                    refreshPropEditorUi();
+                  }}
+                  style={{
+                    width: '100%',
+                    margin: '0 0 4px',
+                    padding: '4px 8px',
+                    borderRadius: 4,
+                    border: propEditorUi.stampMode ? '1px solid rgba(94,234,212,0.85)' : '1px solid rgba(255,255,255,0.18)',
+                    background: propEditorUi.stampMode ? 'rgba(94,234,212,0.18)' : 'rgba(255,255,255,0.05)',
+                    color: '#f8fafc',
+                    cursor: 'pointer',
+                    fontSize: 11,
+                    textAlign: 'left',
+                  }}
+                >
+                  {propEditorUi.stampMode ? '📌 Stamp mode ON — keeps placing the same item' : '📌 Stamp mode OFF — palette closes after each place'}
+                </button>
                 <div className="journey-prop-palette-tabs">
                   {[
                     ['prop', 'Props'],
@@ -25032,6 +25369,45 @@ export default function ExpeditionJourney({
                     </button>
                   ))}
                 </div>
+                {propEditorUi.recentPaletteItems?.length > 0 && (
+                  <div
+                    className="journey-prop-palette-recent"
+                    style={{ display: 'flex', flexWrap: 'wrap', gap: 4, padding: '4px 0', borderBottom: '1px solid rgba(214,158,73,0.25)', marginBottom: 4 }}
+                  >
+                    <span style={{ width: '100%', fontSize: 9, opacity: 0.55, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Recent</span>
+                    {propEditorUi.recentPaletteItems.map(item => (
+                      <button
+                        key={`recent-${item.category}-${item.key}`}
+                        type="button"
+                        className={propEditorUi.selectedPaletteKey === item.key ? 'is-selected' : ''}
+                        title={`${item.label} — click to place again`}
+                        onClick={() => {
+                          propPlacementEditorRef.current.selectedPaletteCategory = item.category;
+                          propPlacementEditorRef.current.selectedPaletteKey = item.key;
+                          refreshPropEditorUi();
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          maxWidth: 130,
+                          padding: '2px 6px 2px 2px',
+                          borderRadius: 4,
+                          border: propEditorUi.selectedPaletteKey === item.key ? '1px solid rgba(214,158,73,0.85)' : '1px solid rgba(255,255,255,0.12)',
+                          background: propEditorUi.selectedPaletteKey === item.key ? 'rgba(214,158,73,0.22)' : 'rgba(255,255,255,0.04)',
+                          color: '#f8fafc',
+                          cursor: 'pointer',
+                          fontSize: 10,
+                        }}
+                      >
+                        <span className="journey-prop-palette-thumb" aria-hidden="true" style={{ flex: '0 0 auto' }}>
+                          <span style={item.preview.style} />
+                        </span>
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <input
                   type="search"
                   className="journey-prop-palette-search"
