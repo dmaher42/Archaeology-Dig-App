@@ -591,10 +591,29 @@ const LOST_BRIDGE_EDITOR_DECK_IDS = new Set([
   'desert-entry-platform-9',
 ]);
 const LOST_BRIDGE_RAVINE_FLOOR_PROP_ID = 'desert-entry-lost-bridge-ravine-floor-1';
+const LOST_BRIDGE_OBSOLETE_RAVINE_FLOOR_PROP_IDS = new Set([
+  'desert-entry-lost-bridge-ravine-floor-1-copy-1',
+  'desert-entry-lost-bridge-ravine-floor-1-copy-1-copy-1',
+]);
 const isLostBridgeRavineFloorProp = (prop = {}) => (
   prop.id === LOST_BRIDGE_RAVINE_FLOOR_PROP_ID
   || LOST_BRIDGE_RAVINE_FLOOR_ASSET_KEYS.has(prop.imageAssetKey)
 );
+const isObsoleteLostBridgeRavineFloorEditorProp = (prop = {}) => (
+  LOST_BRIDGE_OBSOLETE_RAVINE_FLOOR_PROP_IDS.has(prop.id)
+);
+const pruneObsoleteLostBridgeRavineFloorEditorProps = (editor = {}) => {
+  if (!Array.isArray(editor.createdProps)) return;
+  editor.createdProps = editor.createdProps.filter(prop => !isObsoleteLostBridgeRavineFloorEditorProp(prop));
+  LOST_BRIDGE_OBSOLETE_RAVINE_FLOOR_PROP_IDS.forEach((id) => {
+    if (editor.edits) delete editor.edits[id];
+    if (editor.deletedIds?.delete) editor.deletedIds.delete(id);
+    if (editor.hiddenIds?.delete) editor.hiddenIds.delete(id);
+  });
+  if (LOST_BRIDGE_OBSOLETE_RAVINE_FLOOR_PROP_IDS.has(editor.selectedPropId)) {
+    editor.selectedPropId = null;
+  }
+};
 const LOST_BRIDGE_RAVINE_FALL_DEPTH = 88;
 const LOST_BRIDGE_RAVINE_FALL_SIDE_PAD = 210;
 const LOST_BRIDGE_RAVINE_BLEND_CLIP_TOP_OFFSET = 8;
@@ -925,6 +944,9 @@ const DESERT_END_GATEWAY_VERSION = 'imagegen-desert-end-threshold-angled-blended
 const SCARAB_QUEEN_LAIR_OPENING_IMAGE_SRC = 'assets/expedition/bosses/scarab-queen-buried-lair-opening.png';
 const SCORPION_NEST_SRC = 'assets/expedition/enemies/scorpion-nest.png';
 const SCORPION_NEST_VERSION = 'imagegen-scorpion-nest-2026-06-07';
+const SCORPION_VENOM_SPIT_EFFECT_SRC = 'assets/expedition/effects/scorpion-venom-spit-strip-2026-06-09.png';
+const SCORPION_VENOM_SPIT_EFFECT_VERSION = 'imagegen-scorpion-venom-spit-strip-2026-06-09';
+const SCORPION_VENOM_SPIT_EFFECT_FRAMES = 6;
 // Editor-tunable render defaults for the scorpion-nest art. widthScale multiplies the
 // data box width to set the drawn footprint (height follows the PNG's native aspect);
 // yOffset nudges the ground anchor up/down (negative lifts); glowYFactor places the amber
@@ -2481,6 +2503,7 @@ const SCORPION_VENOM_ATTACK_PATTERN = {
   protectedDuringAttack: false,
   protectedDuringWindup: false,
 };
+const SCORPION_VENOM_SPIT_VISUAL_TRAVEL_TIME = 0.48;
 
 const isNormalEnemyInsideBossFocus = (enemy, bossDomain) => {
   if (!enemy || !bossDomain) return false;
@@ -3900,13 +3923,17 @@ export default function ExpeditionJourney({
     exportVisible: false,
     savedAt: null,
   });
-  const [outlinerOpen, setOutlinerOpen] = useState(true);
+  const [outlinerOpen, setOutlinerOpen] = useState(false);
   const [collapsedPanelSections, setCollapsedPanelSections] = useState(() => {
+    let stored;
     try {
-      return JSON.parse(window.localStorage.getItem(JOURNEY_PROP_EDITOR_SECTIONS_KEY)) || {};
+      stored = JSON.parse(window.localStorage.getItem(JOURNEY_PROP_EDITOR_SECTIONS_KEY)) || {};
     } catch {
-      return {};
+      stored = {};
     }
+    // The shortcuts legend is reference-only, so default it collapsed to keep the panel tidy.
+    if (stored.shortcuts === undefined) stored.shortcuts = true;
+    return stored;
   });
   const toggleEditorPanelSection = useCallback((key) => {
     setCollapsedPanelSections((prev) => {
@@ -3985,6 +4012,7 @@ export default function ExpeditionJourney({
   const openingScarabSealImageRef = useRef({ image: null, loaded: false, failed: false });
   const scarabQueenLairOpeningImageRef = useRef({ image: null, loaded: false, failed: false });
   const scorpionNestRef = useRef({ image: null, loaded: false, failed: false, version: SCORPION_NEST_VERSION });
+  const scorpionVenomSpitEffectRef = useRef({ image: null, loaded: false, failed: false, version: SCORPION_VENOM_SPIT_EFFECT_VERSION });
   const openingSphinxApparitionRef = useRef({ image: null, loaded: false, failed: false });
   const arrivalThresholdBackgroundRef = useRef({ image: null, loaded: false, failed: false, version: ARRIVAL_THRESHOLD_ASSET_VERSION });
   const lostBridgeAssetsRef = useRef({ images: {}, structure: null, floorBlend: null, floorBlends: {} });
@@ -4099,7 +4127,11 @@ export default function ExpeditionJourney({
     const sourceIds = new Set(STORY_PROPS.map(prop => prop?.id).filter(Boolean));
     return [
       ...STORY_PROPS,
-      ...propPlacementEditorRef.current.createdProps.filter(prop => prop?.id && !sourceIds.has(prop.id)),
+      ...propPlacementEditorRef.current.createdProps.filter(prop => (
+        prop?.id
+        && !sourceIds.has(prop.id)
+        && !isObsoleteLostBridgeRavineFloorEditorProp(prop)
+      )),
     ];
   }, []);
 
@@ -5101,7 +5133,7 @@ export default function ExpeditionJourney({
     scheduleEditorHistoryCommit();
   }, [getPropEditorUiState, schedulePropEditorPersist, scheduleEditorHistoryCommit]);
 
-  const clearSavedPropEditorState = useCallback(() => {
+  const clearPropEditorDraftLayer = useCallback(({ clearSelection = true } = {}) => {
     const editor = propPlacementEditorRef.current;
     editor.edits = {};
     editor.platformEdits = {};
@@ -5117,13 +5149,15 @@ export default function ExpeditionJourney({
     editor.deletedIds = new Set();
     editor.deletedPlatformIds = new Set();
     editor.deletedHazardIds = new Set();
-    editor.selectedPropId = null;
-    editor.selectedPlatformId = null;
-    editor.selectedHazardId = null;
-    editor.selectedArchId = null;
-    editor.selectedCheckpointId = null;
-    editor.selectedLairId = null;
-    editor.selectedNestId = null;
+    if (clearSelection) {
+      editor.selectedPropId = null;
+      editor.selectedPlatformId = null;
+      editor.selectedHazardId = null;
+      editor.selectedArchId = null;
+      editor.selectedCheckpointId = null;
+      editor.selectedLairId = null;
+      editor.selectedNestId = null;
+    }
     editor.dragging = null;
     if (typeof window !== 'undefined') {
       try {
@@ -5132,15 +5166,25 @@ export default function ExpeditionJourney({
         // Ignore storage failures.
       }
     }
-    // Clearing everything is itself an undoable step.
-    commitEditorHistory();
+    if (editorHistoryTimeoutRef.current && typeof window !== 'undefined') {
+      window.clearTimeout(editorHistoryTimeoutRef.current);
+      editorHistoryTimeoutRef.current = null;
+    }
+    editorUndoStackRef.current = [];
+    editorRedoStackRef.current = [];
+    editorHistoryBaselineRef.current = JSON.stringify(serializeJourneyPropEditorState(editor));
+  }, []);
+
+  const clearSavedPropEditorState = useCallback(() => {
+    clearPropEditorDraftLayer();
     refreshPropEditorUi();
-  }, [commitEditorHistory, refreshPropEditorUi]);
+  }, [clearPropEditorDraftLayer, refreshPropEditorUi]);
 
   const restoreEditorHistoryState = useCallback((serialized) => {
     const editor = propPlacementEditorRef.current;
     const restored = restoreJourneyPropEditorState(JSON.parse(serialized));
     Object.assign(editor, restored);
+    pruneObsoleteLostBridgeRavineFloorEditorProps(editor);
     // A restored state may reference items that are no longer selected cleanly.
     editor.dragging = null;
     editorHistoryBaselineRef.current = serialized;
@@ -5170,12 +5214,17 @@ export default function ExpeditionJourney({
   useEffect(() => {
     if (!import.meta.env.DEV || typeof window === 'undefined') return;
     try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('clearJourneyEditorDraft') === '1') {
+        window.localStorage.removeItem(JOURNEY_PROP_EDITOR_STORAGE_KEY);
+      }
       const raw = window.localStorage.getItem(JOURNEY_PROP_EDITOR_STORAGE_KEY);
       if (raw) {
         const restored = restoreJourneyPropEditorState(JSON.parse(raw));
         // The game loop reads this ref every frame, so restored edits show up in the
         // live world immediately; the editor panel picks them up when opened (Shift+E).
         Object.assign(propPlacementEditorRef.current, restored);
+        pruneObsoleteLostBridgeRavineFloorEditorProps(propPlacementEditorRef.current);
       }
     } catch {
       // Ignore corrupt saved state — fall back to a clean editor.
@@ -5615,11 +5664,16 @@ export default function ExpeditionJourney({
       });
       const result = await response.json().catch(() => ({}));
       if (response.ok && result.ok) {
+        const savedCounts = [
+          result.props ? `${result.props} prop(s)` : null,
+          result.enemies ? `${result.enemies} enemy(s)` : null,
+        ].filter(Boolean).join(' + ') || '0 item(s)';
         editor.writeStatus = {
           state: 'ok',
-          message: `Saved to source · ${result.props ?? 0} prop(s)`,
+          message: `Saved to source · ${savedCounts} · editor draft cleared`,
           at: new Date().toLocaleTimeString(),
         };
+        clearPropEditorDraftLayer();
       } else {
         editor.writeStatus = {
           state: 'error',
@@ -5635,7 +5689,7 @@ export default function ExpeditionJourney({
       };
     }
     refreshPropEditorUi();
-  }, [refreshPropEditorUi, savePropPlacementExport]);
+  }, [clearPropEditorDraftLayer, refreshPropEditorUi, savePropPlacementExport]);
 
   const deleteSelectedPropFromEditor = useCallback(() => {
     const editor = propPlacementEditorRef.current;
@@ -6100,6 +6154,24 @@ export default function ExpeditionJourney({
       playerComboSlashEffectRef.current = { image: null, loaded: false, failed: true, version: PLAYER_COMBO_SLASH_EFFECT_VERSION };
     };
     image.src = `${import.meta.env.BASE_URL}${PLAYER_COMBO_SLASH_EFFECT_SRC}?v=${PLAYER_COMBO_SLASH_EFFECT_VERSION}`;
+    return () => {
+      cancelled = true;
+    };
+  }, [syncHud]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const image = new Image();
+    image.onload = () => {
+      if (cancelled) return;
+      scorpionVenomSpitEffectRef.current = { image, loaded: true, failed: false, version: SCORPION_VENOM_SPIT_EFFECT_VERSION };
+      syncHud();
+    };
+    image.onerror = () => {
+      if (cancelled) return;
+      scorpionVenomSpitEffectRef.current = { image: null, loaded: false, failed: true, version: SCORPION_VENOM_SPIT_EFFECT_VERSION };
+    };
+    image.src = `${import.meta.env.BASE_URL}${SCORPION_VENOM_SPIT_EFFECT_SRC}?v=${SCORPION_VENOM_SPIT_EFFECT_VERSION}`;
     return () => {
       cancelled = true;
     };
@@ -15449,6 +15521,7 @@ export default function ExpeditionJourney({
     const playerForArmorCue = stateRef.current.player;
     const scarabArmorFacesPlayer = enemy.type === 'scarab'
       && !enemy.defeated
+      && enemy.attackWindup <= 0
       && Math.sign((playerForArmorCue.x + playerForArmorCue.width / 2) - (enemy.x + enemy.width / 2)) === Math.sign(facing || 1);
 
     ctx.save();
@@ -16481,6 +16554,34 @@ export default function ExpeditionJourney({
         const nx = x + (targetX - x) * t2;
         const ny = y + (targetY - y) * t2 - Math.sin(t2 * Math.PI) * arcH;
         const motionAngle = Math.atan2(ny - spitY, nx - spitX);
+        const venomAsset = scorpionVenomSpitEffectRef.current;
+        if (venomAsset.loaded && venomAsset.image) {
+          const frameWidth = venomAsset.image.width / SCORPION_VENOM_SPIT_EFFECT_FRAMES;
+          const frameHeight = venomAsset.image.height;
+          const frameIndex = clamp(Math.floor(travel * SCORPION_VENOM_SPIT_EFFECT_FRAMES), 0, SCORPION_VENOM_SPIT_EFFECT_FRAMES - 1);
+          const splashFrame = frameIndex >= SCORPION_VENOM_SPIT_EFFECT_FRAMES - 2;
+          const drawWidth = (splashFrame ? 88 : 72) * (0.96 + Math.sin(travel * 9) * 0.035);
+          const drawHeight = drawWidth * (frameHeight / frameWidth);
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.globalAlpha = Math.max(0, Math.min(1, progress * (splashFrame ? 0.72 : 0.86)));
+          ctx.shadowColor = 'rgba(160, 220, 36, 0.55)';
+          ctx.shadowBlur = splashFrame ? 8 : 5;
+          ctx.translate(spitX, spitY);
+          ctx.rotate(motionAngle);
+          ctx.drawImage(
+            venomAsset.image,
+            frameIndex * frameWidth,
+            0,
+            frameWidth,
+            frameHeight,
+            -drawWidth * 0.5,
+            -drawHeight * 0.5,
+            drawWidth,
+            drawHeight,
+          );
+          ctx.restore();
+          return;
+        }
 
         // Organic pulse — blobs wobble as they fly
         const wobble = 1 + 0.09 * Math.sin(travel * 13);
@@ -16559,21 +16660,54 @@ export default function ExpeditionJourney({
         return;
       }
       if (effect.type === 'venom-slow') {
-        ctx.globalAlpha = Math.max(0, progress * 0.44);
-        ctx.strokeStyle = 'rgba(90, 58, 28, 0.6)';
-        ctx.fillStyle = 'rgba(80, 50, 20, 0.14)';
-        ctx.lineWidth = 1.5;
+        const burst = 1 - progress;
+        const radius = effect.radius || 34;
+        const footY = effect.footY ?? y + 28;
+        const pulse = 0.68 + Math.sin(burst * Math.PI * 3) * 0.12;
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.globalAlpha = Math.max(0, progress * 0.25);
+        const venomGlow = ctx.createRadialGradient(x, y + 14, 5, x, y + 14, radius * (1.2 + burst * 0.45));
+        venomGlow.addColorStop(0, 'rgba(150, 230, 28, 0.32)');
+        venomGlow.addColorStop(0.5, 'rgba(72, 158, 24, 0.13)');
+        venomGlow.addColorStop(1, 'rgba(58, 120, 16, 0)');
+        ctx.fillStyle = venomGlow;
         ctx.beginPath();
-        ctx.ellipse(x, y, 16 + (1 - progress) * 14, 7 + (1 - progress) * 7, -0.08, 0, Math.PI * 2);
+        ctx.ellipse(x - 4, y + 18, radius * 0.86, radius * 1.02, -0.16, 0, Math.PI * 2);
         ctx.fill();
-        ctx.stroke();
-        ctx.globalAlpha = Math.max(0, progress * 0.48);
-        ctx.fillStyle = 'rgba(100, 65, 25, 0.55)';
-        for (let i = 0; i < 4; i += 1) {
+
+        for (let i = 0; i < 7; i += 1) {
+          const side = i % 2 === 0 ? -1 : 1;
+          const drift = side * (10 + i * 3.4) * (0.45 + burst * 0.55);
+          const wispX = x + drift + Math.sin(i * 1.3 + burst * 5) * 3;
+          const wispY = y + 24 - i * 6 - burst * (10 + i * 2.5);
+          const wispWidth = radius * (0.18 + i * 0.018) * (1 + burst * 0.4);
+          const wispHeight = radius * (0.34 + i * 0.025);
+          ctx.globalAlpha = Math.max(0, progress * (0.16 + i * 0.018));
+          ctx.fillStyle = i % 3 === 0 ? 'rgba(185, 245, 36, 0.34)' : 'rgba(78, 174, 26, 0.24)';
           ctx.beginPath();
-          ctx.arc(x - 12 + i * 8, y - 10 - (1 - progress) * (4 + i), 1.8, 0, Math.PI * 2);
+          ctx.ellipse(wispX, wispY, wispWidth, wispHeight, side * 0.28, 0, Math.PI * 2);
           ctx.fill();
         }
+
+        ctx.globalAlpha = Math.max(0, progress * 0.52);
+        ctx.fillStyle = 'rgba(126, 218, 28, 0.38)';
+        ctx.beginPath();
+        ctx.ellipse(x - 5, footY, radius * (0.72 + burst * 0.22), 7 + burst * 6, -0.1, 0, Math.PI * 2);
+        ctx.ellipse(x + 16, footY + 1, radius * (0.46 + burst * 0.18), 5 + burst * 4, 0.14, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(197, 252, 48, 0.62)';
+        for (let i = 0; i < 13; i += 1) {
+          const side = i % 2 === 0 ? -1 : 1;
+          const spread = 4 + i * 3.7;
+          const bubbleX = x + side * spread * (0.5 + burst * 0.46) + Math.sin(i * 2.1) * 2;
+          const bubbleY = footY - 3 - burst * (10 + i * 2.1) - Math.sin(i * 1.7 + burst * 5) * 3;
+          const bubbleRadius = (1.1 + (i % 4) * 0.45) * pulse;
+          ctx.globalAlpha = Math.max(0, progress * (0.42 + (i % 3) * 0.08));
+          ctx.beginPath();
+          ctx.arc(bubbleX, bubbleY, bubbleRadius, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalCompositeOperation = 'source-over';
         ctx.restore();
         return;
       }
@@ -21029,9 +21163,10 @@ export default function ExpeditionJourney({
         type: 'venom-slow',
         x: player.x + player.width / 2,
         y: player.y + player.height * 0.42,
-        radius: 30,
-        timer: 0.62,
-        maxTimer: 0.62,
+        footY: player.y + player.height + 5,
+        radius: 34,
+        timer: 0.92,
+        maxTimer: 0.92,
       });
       audioControls?.playExpeditionSfx?.('enemyHit', { volume: 0.5, playbackRate: 0.72 });
     };
@@ -21195,7 +21330,7 @@ export default function ExpeditionJourney({
           });
         }
         if (pattern.id === SCORPION_VENOM_ATTACK_PATTERN.id) {
-          const venomTravelTime = pattern.windup + pattern.duration;
+          const venomTravelTime = SCORPION_VENOM_SPIT_VISUAL_TRAVEL_TIME;
           const rawLead = (player.vx || 0) * venomTravelTime * 0.85;
           const velocityLead = Math.max(-160, Math.min(160, rawLead));
           addCombatEffect(current, {
@@ -22814,6 +22949,23 @@ export default function ExpeditionJourney({
     return () => window.removeEventListener('keydown', handlePropEditorKeyDown);
   }, [applyDefaultEditorLocks, deleteSelectedPropFromEditor, draw, duplicateSelectedPropInEditor, getEditedNestParams, getPropEditorSelectedNest, getPropEditorSelectedProp, redoEditorChange, refreshPropEditorUi, savePropPlacementExport, undoEditorChange, updateSelectedPropEditorTransform]);
 
+  // Right-click over the canvas (and the stack-picker overlay) opens our own selection
+  // list, so suppress the browser's native context menu there while the editor is on.
+  // A document-level listener is needed because the stack-picker backdrop (fixed, full
+  // viewport) becomes the contextmenu target the moment the picker opens, bypassing any
+  // handler bound only to the canvas.
+  useEffect(() => {
+    if (!import.meta.env.DEV) return undefined;
+    const handleContextMenu = (event) => {
+      if (!propPlacementEditorRef.current.enabled) return;
+      const target = event.target;
+      const overPicker = target?.closest?.('.journey-prop-editor-stackpicker, .journey-prop-editor-stackpicker-backdrop');
+      if (target === canvasRef.current || overPicker) event.preventDefault();
+    };
+    document.addEventListener('contextmenu', handleContextMenu);
+    return () => document.removeEventListener('contextmenu', handleContextMenu);
+  }, []);
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (isJourneyEditorFormTarget(e.target)) return;
@@ -23549,8 +23701,8 @@ export default function ExpeditionJourney({
                   >
                     ↷ Redo
                   </button>
-                  <button type="button" onClick={savePropPlacementExport}>
-                    Save export
+                  <button type="button" title="Build the placement export (JSON + AI instructions) and open the export panel" onClick={savePropPlacementExport}>
+                    Build export
                   </button>
                   <button
                     type="button"
@@ -23558,7 +23710,7 @@ export default function ExpeditionJourney({
                     onClick={writeJourneyOverridesToSource}
                     disabled={propEditorUi.writeStatus?.state === 'writing'}
                   >
-                    {propEditorUi.writeStatus?.state === 'writing' ? 'Writing…' : '💾 Write to source'}
+                    {propEditorUi.writeStatus?.state === 'writing' ? 'Writing…' : '💾 Write to file'}
                   </button>
                   </div>
                   {propEditorUi.writeStatus && (
@@ -23593,7 +23745,7 @@ export default function ExpeditionJourney({
                       refreshPropEditorUi();
                     }}
                   >
-                    Palette
+                    {propEditorUi.paletteOpen ? '✓ Palette' : 'Palette'}
                   </button>
                   <button
                     type="button"
@@ -23603,7 +23755,7 @@ export default function ExpeditionJourney({
                       refreshPropEditorUi();
                     }}
                   >
-                    Grid
+                    {propEditorUi.gridSnap ? '✓ Grid' : 'Grid'}
                   </button>
                   <button
                     type="button"
@@ -23613,7 +23765,7 @@ export default function ExpeditionJourney({
                       refreshPropEditorUi();
                     }}
                   >
-                    Triggers
+                    {propEditorUi.showTrapTriggers ? '✓ Triggers' : 'Triggers'}
                   </button>
                   <button
                     type="button"
@@ -23624,7 +23776,7 @@ export default function ExpeditionJourney({
                       refreshPropEditorUi();
                     }}
                   >
-                    Labels
+                    {propEditorUi.showHoverLabels ? '✓ Labels' : 'Labels'}
                   </button>
                   <button
                     type="button"
@@ -23635,74 +23787,54 @@ export default function ExpeditionJourney({
                       refreshPropEditorUi();
                     }}
                   >
-                    {propEditorUi.previewMode ? 'Preview On' : 'Preview'}
+                    {propEditorUi.previewMode ? '✓ Preview' : 'Preview'}
                   </button>
                   <button
                     type="button"
                     className={propEditorUi.floorPickMode ? 'is-selected' : ''}
+                    title="Floor-pick mode: clicks select only the invisible collision floors, ignoring props"
                     onClick={() => {
                       propPlacementEditorRef.current.floorPickMode = !propPlacementEditorRef.current.floorPickMode;
                       refreshPropEditorUi();
                     }}
                   >
-                    Floors
-                  </button>
-                  <button
-                    type="button"
-                    className={propEditorUi.selectedLocked ? 'is-selected' : ''}
-                    disabled={!propEditorUi.selectedLockKey}
-                    onClick={toggleSelectedEditorLock}
-                  >
-                    {propEditorUi.selectedLocked ? 'Unlock' : 'Lock'}
+                    {propEditorUi.floorPickMode ? '✓ Floors' : 'Floors'}
                   </button>
                   </div>
+                  {propEditorUi.gridSnap && (
+                    <label className="journey-prop-editor-grid" style={{ marginTop: 6 }}>
+                      <span>Grid size</span>
+                      <input
+                        type="number"
+                        min="2"
+                        max="128"
+                        step="1"
+                        value={propEditorUi.gridSize}
+                        onChange={(event) => {
+                          const nextGridSize = clamp(Number(event.target.value), 2, 128);
+                          propPlacementEditorRef.current.gridSize = Number.isFinite(nextGridSize)
+                            ? Math.round(nextGridSize)
+                            : DEFAULT_JOURNEY_PROP_EDITOR_GRID_SIZE;
+                          refreshPropEditorUi();
+                        }}
+                      />
+                    </label>
+                  )}
                   </div>
                 </div>
                 </div>
-                {propEditorUi.selectedLockKey && (
-                  propEditorUi.selectedLocked ? (
-                    <div className="journey-prop-editor-lock-notice" role="status">
-                      <span className="journey-prop-editor-lock-notice-text">
-                        🔒 This item is locked — unlock it to move or edit.
-                      </span>
-                      <button
-                        type="button"
-                        className="journey-prop-editor-lock-unlock"
-                        onClick={toggleSelectedEditorLock}
-                      >
-                        🔓 Unlock to edit
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="journey-prop-editor-lock-notice is-unlocked" role="status">
-                      <span className="journey-prop-editor-lock-notice-text">
-                        🔓 Unlocked — drag or edit freely.
-                        {propEditorUi.lockedCount > 0 ? ` (${propEditorUi.lockedCount} still locked)` : ''}
-                      </span>
-                      <button
-                        type="button"
-                        className="journey-prop-editor-lock-unlock is-relock"
-                        onClick={toggleSelectedEditorLock}
-                      >
-                        Lock
-                      </button>
-                    </div>
-                  )
-                )}
-                {propEditorUi.unsavedChangeSummary?.hasChanges && (
-                  <div className="journey-prop-editor-change-summary" aria-label="Placement editor changed items">
-                    <div className="journey-prop-editor-change-summary-header">
-                      <strong>Changed items</strong>
-                      <span>{propEditorUi.unsavedChangeSummary.totalCount}</span>
-                    </div>
-                    <ul>
-                      {propEditorUi.unsavedChangeSummary.entries.map(entry => (
-                        <li key={entry.key}>{entry.label}</li>
-                      ))}
-                      {propEditorUi.unsavedChangeSummary.hiddenCount > 0 && (
-                        <li>{propEditorUi.unsavedChangeSummary.hiddenCount} more</li>
-                      )}
-                    </ul>
+                {renderEditorSectionHeader('shortcuts', '⌨ Keyboard shortcuts')}
+                {!collapsedPanelSections['shortcuts'] && (
+                  <div className="journey-prop-editor-shortcuts" style={{ fontSize: 11, lineHeight: 1.7, opacity: 0.85, margin: '2px 0 8px', padding: '0 2px' }}>
+                    <div><strong>Shift+E</strong> — toggle editor</div>
+                    <div><strong>Arrows</strong> — nudge selected (×10 with Shift)</div>
+                    <div><strong>; / '</strong> — raise / lower anchor (Y offset)</div>
+                    <div><strong>Q / R</strong> — rotate · <strong>+ / −</strong> — scale</div>
+                    <div><strong>F / V</strong> — flip horizontal / vertical</div>
+                    <div><strong>Tab</strong> / <strong>right-click</strong> — cycle / list stacked items</div>
+                    <div><strong>G / P / T / H</strong> — toggle grid / palette / triggers / preview</div>
+                    <div><strong>Ctrl+Z / Ctrl+Shift+Z</strong> — undo / redo</div>
+                    <div><strong>Ctrl+S</strong> — build export · <strong>Ctrl+D</strong> — duplicate</div>
                   </div>
                 )}
                 {propEditorUi.sceneOutliner && (
@@ -23896,38 +24028,19 @@ export default function ExpeditionJourney({
                     <div><span>Glow Size</span><strong>{propEditorUi.selectedNest.glowSize}</strong></div>
                   </div>
                 ) : (
-                  <div className="journey-prop-editor-empty">No prop, structure, trap, platform, floor, arch, lair, nest, or checkpoint selected</div>
+                  <div className="journey-prop-editor-empty">Nothing selected — click an item on the canvas, or open the Palette to place one.</div>
                 )}
-                <label className="journey-prop-editor-grid">
-                  <span>Grid size</span>
-                  <input
-                    type="number"
-                    min="2"
-                    max="128"
-                    step="1"
-                    value={propEditorUi.gridSize}
-                    onChange={(event) => {
-                      const nextGridSize = clamp(Number(event.target.value), 2, 128);
-                      propPlacementEditorRef.current.gridSize = Number.isFinite(nextGridSize)
-                        ? Math.round(nextGridSize)
-                        : DEFAULT_JOURNEY_PROP_EDITOR_GRID_SIZE;
-                      refreshPropEditorUi();
-                    }}
-                  />
-                </label>
-                <label className="journey-prop-editor-grid">
-                  <span>Trap triggers</span>
-                  <select
-                    value={propEditorUi.showTrapTriggers ? 'show' : 'hide'}
-                    onChange={(event) => {
-                      propPlacementEditorRef.current.showTrapTriggers = event.target.value === 'show';
-                      refreshPropEditorUi();
-                    }}
+                {propEditorUi.selectedLockKey && (
+                  <button
+                    type="button"
+                    className={`journey-prop-editor-selection-lock${propEditorUi.selectedLocked ? ' is-selected' : ''}`}
+                    onClick={toggleSelectedEditorLock}
+                    title={propEditorUi.selectedLocked ? 'Locked — click to unlock for editing' : 'Click to lock this item and protect it from edits'}
+                    style={{ width: '100%', margin: '6px 0 8px', padding: '5px 8px', borderRadius: 4, cursor: 'pointer', textAlign: 'left', fontSize: 12 }}
                   >
-                    <option value="show">Show</option>
-                    <option value="hide">Hide</option>
-                  </select>
-                </label>
+                    {propEditorUi.selectedLocked ? '🔒 Locked — click to unlock' : '🔓 Unlocked — click to lock'}
+                  </button>
+                )}
                 {propEditorUi.selectedProp && (
                   <>
                     {renderEditorSectionHeader('prop-transform', 'Transform')}
@@ -23972,7 +24085,7 @@ export default function ExpeditionJourney({
                         />
                       </label>
                       <label>
-                        <span>Width</span>
+                        <span>Width (px)</span>
                         <input
                           key={`${propEditorUi.selectedProp.id}-editorBoundsInsetLeft`}
                           type="number"
@@ -24022,7 +24135,7 @@ export default function ExpeditionJourney({
                         />
                       </label>
                       <label>
-                        <span>Width</span>
+                        <span>Width ×</span>
                         <input
                           type="number"
                           min="0.2"

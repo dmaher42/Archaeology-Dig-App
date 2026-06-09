@@ -1812,5 +1812,27 @@
     "defaultGroundPebbles": 0,
     "collidable": false,
     "inspectable": false
+  },
+  {
+    "id": "bridgeRubbleRampClimb",
+    "displayName": "Bridge Rubble Ramp Climb",
+    "category": "Bridge Kit",
+    "imageAssetKey": "bridgeRubbleRampClimb",
+    "assetPath": "assets/expedition/environment/egypt-opening/lost-bridge/lost-bridge-rubble-ramp-climb-2026-06-09.png",
+    "defaultType": "image-prop",
+    "defaultWidth": 1774,
+    "defaultHeight": 887,
+    "defaultDepth": "route-edge",
+    "defaultScale": 1,
+    "defaultLayer": "route-edge",
+    "defaultTint": "buried-stone",
+    "defaultColorGradeFilter": "none",
+    "defaultAlpha": 1,
+    "defaultShadowOpacity": 0,
+    "defaultSandOverlapHeight": 0,
+    "defaultSandMoundWidth": 0,
+    "defaultGroundPebbles": 0,
+    "collidable": false,
+    "inspectable": false
   }
 ]

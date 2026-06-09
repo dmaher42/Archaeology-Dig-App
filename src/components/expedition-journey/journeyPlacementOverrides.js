@@ -93,6 +93,37 @@ const mergeJourneyItemsById = (baseItems = [], overrideItems = [], deletedIds = 
   return merged;
 };
 
+const mergeOverrideExportItemsById = (existingItems = [], incomingItems = [], deletedIds = []) => {
+  const deleted = new Set(Array.isArray(deletedIds) ? deletedIds : []);
+  const incomingById = new Map((Array.isArray(incomingItems) ? incomingItems : [])
+    .filter(item => item?.id)
+    .map(item => [item.id, cloneItem(item)]));
+  const seen = new Set();
+  const merged = [];
+
+  (Array.isArray(existingItems) ? existingItems : []).forEach((item) => {
+    if (!item?.id || deleted.has(item.id)) return;
+    if (incomingById.has(item.id)) {
+      merged.push(cloneItem(incomingById.get(item.id)));
+      seen.add(item.id);
+      return;
+    }
+    merged.push(cloneItem(item));
+    seen.add(item.id);
+  });
+
+  incomingById.forEach((item, itemId) => {
+    if (deleted.has(itemId) || seen.has(itemId)) return;
+    merged.push(cloneItem(item));
+  });
+
+  return merged;
+};
+
+const mergeDeletedIds = (...idLists) => (
+  [...new Set(idLists.flatMap(ids => (Array.isArray(ids) ? ids : [])).filter(Boolean))]
+);
+
 export const normalizeJourneyPlacementExportForOverrides = (exportData = {}) => {
   const roomId = exportData.room || 'unknown-room';
   const hazards = Array.isArray(exportData.hazards)
@@ -114,6 +145,27 @@ export const normalizeJourneyPlacementExportForOverrides = (exportData = {}) => 
     checkpoints: dedupeJourneyItemsById(exportData.checkpoints),
     enemies: dedupeJourneyItemsById(exportData.enemies),
     miniBosses: dedupeJourneyItemsById(exportData.miniBosses),
+  };
+};
+
+export const mergeJourneyPlacementOverrideExports = (existingExport = {}, incomingExport = {}) => {
+  const existing = normalizeJourneyPlacementExportForOverrides(existingExport);
+  const incoming = normalizeJourneyPlacementExportForOverrides(incomingExport);
+
+  return {
+    ...existing,
+    ...incoming,
+    props: mergeOverrideExportItemsById(existing.props, incoming.props, incoming.deletedPropIds),
+    platforms: mergeOverrideExportItemsById(existing.platforms, incoming.platforms, incoming.deletedPlatformIds),
+    hazards: mergeOverrideExportItemsById(existing.hazards, incoming.hazards, incoming.deletedHazardIds),
+    routeGates: mergeOverrideExportItemsById(existing.routeGates, incoming.routeGates),
+    routeGateDoorways: mergeOverrideExportItemsById(existing.routeGateDoorways, incoming.routeGateDoorways),
+    checkpoints: mergeOverrideExportItemsById(existing.checkpoints, incoming.checkpoints),
+    enemies: mergeOverrideExportItemsById(existing.enemies, incoming.enemies),
+    miniBosses: mergeOverrideExportItemsById(existing.miniBosses, incoming.miniBosses),
+    deletedPropIds: mergeDeletedIds(existing.deletedPropIds, incoming.deletedPropIds),
+    deletedPlatformIds: mergeDeletedIds(existing.deletedPlatformIds, incoming.deletedPlatformIds),
+    deletedHazardIds: mergeDeletedIds(existing.deletedHazardIds, incoming.deletedHazardIds),
   };
 };
 

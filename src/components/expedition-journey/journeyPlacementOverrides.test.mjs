@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   applyJourneyPlacementOverrides,
+  mergeJourneyPlacementOverrideExports,
   normalizeJourneyPlacementExportForOverrides,
 } from './journeyPlacementOverrides.js';
 import { PLATFORMS as BASE_PLATFORMS } from './journeyLevelData.js';
@@ -126,6 +127,44 @@ test('normalizeJourneyPlacementExportForOverrides dedupes repeated editor item i
   assert.deepEqual(normalized.props, [
     { id: 'prop-a', x: 2 },
   ]);
+});
+
+test('mergeJourneyPlacementOverrideExports preserves existing generated placements while updating the current export', () => {
+  const merged = mergeJourneyPlacementOverrideExports({
+    room: 'desert-entry',
+    props: [
+      { id: 'entry-statue', sectionId: 'desert-entry', x: 100, y: 200 },
+      { id: 'mural-door', sceneId: 'forgotten-mural', x: 900, y: 120 },
+      { id: 'remove-me', sectionId: 'desert-entry', x: 160, y: 220 },
+    ],
+    enemies: [
+      { id: 'desert-entry-scorpion-nest-1', sectionId: 'desert-entry', x: 2782, y: 333 },
+    ],
+    platforms: [
+      { id: 'mural-floor', sceneId: 'forgotten-mural', x: 820, y: 500, width: 300 },
+    ],
+  }, {
+    room: 'desert-entry',
+    props: [
+      { id: 'entry-statue', sectionId: 'desert-entry', x: 140, y: 210 },
+    ],
+    deletedPropIds: ['remove-me'],
+    enemies: [
+      { id: 'desert-entry-scorpion-nest-1', sectionId: 'desert-entry', x: 6605, y: 484, widthScale: 5.6 },
+    ],
+  });
+
+  assert.deepEqual(merged.props, [
+    { id: 'entry-statue', sectionId: 'desert-entry', x: 140, y: 210 },
+    { id: 'mural-door', sceneId: 'forgotten-mural', x: 900, y: 120 },
+  ]);
+  assert.deepEqual(merged.enemies, [
+    { id: 'desert-entry-scorpion-nest-1', sectionId: 'desert-entry', x: 6605, y: 484, widthScale: 5.6 },
+  ]);
+  assert.deepEqual(merged.platforms, [
+    { id: 'mural-floor', sceneId: 'forgotten-mural', x: 820, y: 500, width: 300 },
+  ]);
+  assert.deepEqual(merged.deletedPropIds, ['remove-me']);
 });
 
 test('journeyDataRouter exposes editor overrides while journeyLevelData keeps authored base placement', () => {

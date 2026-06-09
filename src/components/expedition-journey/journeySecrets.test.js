@@ -902,14 +902,14 @@ test('journey editor exposes floor platforms without blocking prop selection', (
   assert.match(journeyComponentSource, /const isJourneyFloorPlatform = \(platform = \{\}\) =>/);
   assert.match(journeyComponentSource, /const selectedFallbackFloor = editor\.floorPickMode \|\| selectedHazard \|\| selectedLair \|\| selectedCheckpoint \|\| selectedArch \|\| selectedSolidPlatform \|\| selectedProp[\s\S]{0,180}findEditablePlatformAt\(pointer\.screenX, pointer\.screenY, \{ floorOnly: true \}\);/);
   assert.match(journeyComponentSource, /category: isJourneyFloorPlatform\(platform\) \? 'Floor' : 'Platform'/);
-  assert.match(journeyComponentSource, /No prop, structure, trap, platform, floor, arch, lair, nest, or checkpoint selected/);
+  assert.match(journeyComponentSource, /Nothing selected — click an item on the canvas, or open the Palette to place one\./);
 });
 
 test('journey editor can force-pick floor platforms for moving collision floors', () => {
   assert.match(journeyComponentSource, /floorPickMode:\s*false/);
   assert.match(journeyComponentSource, /floorPickMode:\s*editor\.floorPickMode/);
   assert.match(journeyComponentSource, /propPlacementEditorRef\.current\.floorPickMode = !propPlacementEditorRef\.current\.floorPickMode/);
-  assert.match(journeyComponentSource, />\s*Floors\s*</);
+  assert.match(journeyComponentSource, /floorPickMode \? '✓ Floors' : 'Floors'/);
   assert.match(journeyComponentSource, /const selectedForcedFloor = editor\.floorPickMode[\s\S]{0,180}findEditablePlatformAt\(pointer\.screenX, pointer\.screenY, \{ floorOnly: true \}\)/);
   assert.match(journeyComponentSource, /const selectedHazard = selectedForcedFloor \? null : findEditableHazardAt\(pointer\.screenX, pointer\.screenY\);/);
   assert.match(journeyComponentSource, /const selectedSolidPlatform = selectedHazard \|\| selectedLair \|\| selectedCheckpoint \|\| selectedArch \|\| selectedForcedFloor[\s\S]{0,180}findEditablePlatformAt\(pointer\.screenX, pointer\.screenY, \{ includeFloors: false \}\);/);
@@ -983,14 +983,15 @@ test('journey placement editor polish keeps controls usable and scoped to editor
   assert.match(journeyComponentSource, /if \(isJourneyEditorFormTarget\(event\.target\)\) return;/);
   assert.match(journeyComponentSource, /if \(isJourneyEditorFormTarget\(e\.target\)\) return;/);
   assert.match(journeyComponentSource, /journey-prop-editor-actions/);
-  assert.match(journeyComponentSource, />\s*Save export\s*</);
-  assert.match(journeyComponentSource, />\s*Palette\s*</);
-  assert.match(journeyComponentSource, />\s*Grid\s*</);
-  assert.match(journeyComponentSource, />\s*Triggers\s*</);
+  assert.match(journeyComponentSource, />\s*Build export\s*</);
+  assert.match(journeyComponentSource, /paletteOpen \? '✓ Palette' : 'Palette'/);
+  assert.match(journeyComponentSource, /gridSnap \? '✓ Grid' : 'Grid'/);
+  assert.match(journeyComponentSource, /showTrapTriggers \? '✓ Triggers' : 'Triggers'/);
   assert.match(journeyComponentSource, /lockedItems:\s*new Set\(\)/);
   assert.match(journeyComponentSource, /const getSelectedEditorLockKey = useCallback/);
   assert.match(journeyComponentSource, /const toggleSelectedEditorLock = useCallback/);
-  assert.match(journeyComponentSource, />\s*\{propEditorUi\.selectedLocked \? 'Unlock' : 'Lock'\}\s*</);
+  assert.match(journeyComponentSource, /journey-prop-editor-selection-lock/);
+  assert.match(journeyComponentSource, /Locked — click to unlock/);
   assert.match(journeyComponentSource, /if \(isEditorLockKeyLocked\(selectedLockKey\)\)[\s\S]*?editor\.dragging = null/);
   assert.match(journeyComponentSource, /if \(isEditorEntityLocked\('prop', selectedProp\.id\)\) return;/);
   assert.match(journeyComponentSource, /if \(isEditorEntityLocked\('platform', platformId\)\) return;/);
@@ -1007,7 +1008,7 @@ test('journey editor treats generated buildings as structure props with image pr
   assert.match(journeyComponentSource, /const isGeneratedStoryStructureProp = \(prop = \{\}\) => GENERATED_STORY_PROP_TYPES\.has\(prop\.type\)/);
   assert.match(journeyComponentSource, /category: isGeneratedStoryStructureProp\(prop\) \? 'Structure' : 'Prop'/);
   assert.match(journeyComponentSource, /<span>\{propEditorUi\.selectedProp\.category\}<\/span><strong>\{propEditorUi\.selectedProp\.id\}<\/strong>/);
-  assert.match(journeyComponentSource, /No prop, structure, trap, platform, floor, arch, lair, nest, or checkpoint selected/);
+  assert.match(journeyComponentSource, /Nothing selected — click an item on the canvas, or open the Palette to place one\./);
   assert.match(journeyComponentSource, /backgroundImage: `url\(\$\{import\.meta\.env\.BASE_URL\}\$\{generatedPreview\.src\}\)`/);
 });
 
@@ -3730,14 +3731,19 @@ test('ravine bridge uses a structure cutout over the existing desert background'
   assert.match(journeyComponentSource, /lostBridgeAssetsRef\.current\.floorBlends\[assetKey\] = floorBlend/);
   assert.match(journeyComponentSource, /LOST_BRIDGE_ASSET_VERSION = 'lost-bridge-art-2026-06-09b'/);
   assert.match(journeyComponentSource, /LOST_BRIDGE_RAVINE_FLOOR_PROP_ID = 'desert-entry-lost-bridge-ravine-floor-1'/);
+  assert.match(journeyComponentSource, /LOST_BRIDGE_OBSOLETE_RAVINE_FLOOR_PROP_IDS = new Set/);
+  assert.match(journeyComponentSource, /pruneObsoleteLostBridgeRavineFloorEditorProps\(propPlacementEditorRef\.current\)/);
   assert.match(journeyComponentSource, /const getLostBridgeRavineFloorPlacement = useCallback/);
+  assert.match(journeyComponentSource, /isLostBridgeRavineFloorProp\(prop\) && !editor\.hiddenIds\.has\(prop\.id\)/);
   assert.match(journeyComponentSource, /ravineProps\.find\(item => item\.id === selectedId\) \|\| ravineProps\[ravineProps\.length - 1\]/);
   assert.match(journeyComponentSource, /const editorPlacement = getLostBridgeRavineFloorPlacement\(current\)/);
+  assert.match(journeyComponentSource, /if \(!editorPlacement\) return false;/);
   assert.match(journeyComponentSource, /activeRavineAssetKey/);
+  assert.match(journeyComponentSource, /LOST_BRIDGE_RAVINE_FLOOR_VARIANT_SRCS\.lostBridgeRavineFloor/);
   assert.match(journeyComponentSource, /floorBlendAssetKey/);
-  assert.match(journeyComponentSource, /drawWorldLeft = editorPlacement/);
-  assert.match(journeyComponentSource, /drawH = editorPlacement/);
-  assert.match(journeyComponentSource, /editorControlled: Boolean\(editorPlacement\)/);
+  assert.match(journeyComponentSource, /drawWorldLeft = editorPlacement\.drawWorldLeft/);
+  assert.match(journeyComponentSource, /drawH = editorPlacement\.height/);
+  assert.match(journeyComponentSource, /editorControlled: true/);
   assert.match(journeyComponentSource, /if \(isLostBridgeRavineFloorProp\(prop\)\) \{[\s\S]*?ctx\.restore\(\);[\s\S]*?return;/);
   assert.match(journeyComponentSource, /LOST_BRIDGE_RAVINE_BLEND_CLIP_TOP_OFFSET/);
   assert.match(journeyComponentSource, /ctx\.clip\(\)/);
@@ -3751,15 +3757,20 @@ test('ravine bridge uses a structure cutout over the existing desert background'
   assert.match(journeyComponentSource, /layer:\s*'above-floor-below-bridge-platforms'/);
   assert.match(journeyComponentSource, /lostBridgeRavineStripBounds/);
   assert.match(journeyComponentSource, /LOST_BRIDGE_STRUCTURE_DECK_IDS = new Set/);
+  assert.match(journeyComponentSource, /LOST_BRIDGE_EDITOR_DECK_IDS = new Set/);
+  assert.match(journeyComponentSource, /'desert-entry-platform-9'/);
   assert.match(journeyComponentSource, /LOST_BRIDGE_STRUCTURE_DECK_IDS\.has\(platform\.id\)/);
+  assert.match(journeyComponentSource, /LOST_BRIDGE_EDITOR_DECK_IDS\.has\(platform\.id\)/);
   assert.match(journeyComponentSource, /\(platform\.zIndex \?\? 0\) > -50/);
   assert.match(journeyComponentSource, /isLostBridgeStructureDeckPlatform\(platform\)/);
   assert.match(journeyComponentSource, /Asha fell into the ravine\. Field rescue required\./);
   assert.match(journeyComponentSource, /The bridge drops into a ravine here\. Climb to the bridge deck before crossing\./);
-  const deckIds = ['lost-bridge-near-landing', 'lost-bridge-slab-2', 'lost-bridge-far-landing'];
-  deckIds.forEach((id) => {
-    const platform = journeyPlacementOverrides.platforms.find(entry => entry.id === id);
-    assert.equal(platform?.y, 365, `${id} should anchor the ravine bridge art to the main crossing deck`);
+  const editorDeckPlatform = journeyPlacementOverrides.platforms.find(entry => entry.id === 'desert-entry-platform-9');
+  assert.equal(editorDeckPlatform?.y, 173, 'editor high bridge platform should now anchor the ravine crossing deck');
+  assert.equal(editorDeckPlatform?.width, 1311);
+  assert.equal(editorDeckPlatform?.invisible, true, 'high bridge deck should stay collision-only while art props carry the visual bridge');
+  ['lost-bridge-near-landing', 'lost-bridge-slab-1', 'lost-bridge-slab-2'].forEach((id) => {
+    assert.ok(journeyPlacementOverrides.deletedPlatformIds.includes(id), `${id} should be removed by the high bridge editor layout`);
   });
   assert.ok(
     existsSync(new URL('../../../public/assets/expedition/environment/egypt-opening/lost-bridge/lost-bridge-structure-cutout-2026-06-08.png', import.meta.url)),
@@ -3779,12 +3790,35 @@ test('ravine bridge uses a structure cutout over the existing desert background'
       `${filename} should exist as a real ravine test asset`,
     );
   });
-  const ravineFloorProp = journeyPlacementOverrides.props.find(entry => entry.id === 'desert-entry-lost-bridge-ravine-floor-1');
-  assert.equal(ravineFloorProp?.assetPath, 'assets/expedition/environment/egypt-opening/lost-bridge/lost-bridge-ravine-drop-strip-clean-edge-2026-06-09.png');
-  assert.equal(ravineFloorProp?.x, 3812);
-  assert.equal(ravineFloorProp?.y, 592);
-  assert.equal(ravineFloorProp?.width, 1531);
-  assert.equal(ravineFloorProp?.height, 356);
+  assert.ok(
+    journeyPlacementOverrides.deletedPropIds.includes('desert-entry-lost-bridge-ravine-floor-1'),
+    'the original ravine strip should be replaced by the editor-tested ravine variants',
+  );
+  assert.equal(
+    journeyPlacementOverrides.props.some(entry => entry.id === 'desert-entry-lost-bridge-ravine-floor-1-copy-1'),
+    false,
+    'duplicate clean-edge ravine floor copy should not stay as a stuck foreground layer',
+  );
+  assert.equal(
+    journeyPlacementOverrides.props.some(entry => entry.id === 'desert-entry-lost-bridge-ravine-floor-1-copy-1-copy-1'),
+    false,
+    'second duplicate clean-edge ravine floor copy should not stay as a stuck foreground layer',
+  );
+  const tallWideRavine = journeyPlacementOverrides.props.find(entry => entry.id === 'desert-entry-lost-bridge-ravine-floor-tall-wide-1');
+  assert.equal(tallWideRavine?.imageAssetKey, 'lostBridgeRavineFloorTallWide');
+  assert.equal(tallWideRavine?.x, 3488);
+  assert.equal(tallWideRavine?.y, 320);
+  assert.equal(tallWideRavine?.width, 1900);
+  assert.equal(tallWideRavine?.height, 556);
+  const rubbleRampClimb = journeyPlacementOverrides.props.find(entry => entry.id === 'lost-bridge-visual-rubble-ramp-climb');
+  assert.equal(rubbleRampClimb?.imageAssetKey, 'bridgeRubbleRampClimb');
+  assert.equal(rubbleRampClimb?.assetPath, 'assets/expedition/environment/egypt-opening/lost-bridge/lost-bridge-rubble-ramp-climb-2026-06-09.png');
+  assert.equal(rubbleRampClimb?.depth, 'route-edge');
+  assert.equal(rubbleRampClimb?.zIndex, 79);
+  assert.ok(
+    existsSync(new URL('../../../public/assets/expedition/environment/egypt-opening/lost-bridge/lost-bridge-rubble-ramp-climb-2026-06-09.png', import.meta.url)),
+    'rubble ramp climb asset should exist as a real project PNG',
+  );
 });
 
 test('platform polish creates purposeful jump challenges with checkpoint rescue hooks', () => {
@@ -4036,7 +4070,7 @@ test('Egypt atmosphere prop pack is registered and drawn through existing story 
 });
 
 test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, and atlas regions', () => {
-  assert.equal(lostSitePropRegistry.length, 99);
+  assert.equal(lostSitePropRegistry.length, 100);
   const registryIds = new Set(lostSitePropRegistry.map(entry => entry.id));
   assert.equal(registryIds.has('standingPillar'), false, 'removed weak standing column should not be available in the prop editor');
   assert.equal(registryIds.has('stoneDoorFrame'), false, 'removed weak temple arch should not be available in the prop editor');
@@ -4071,6 +4105,14 @@ test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, an
     assert.equal(item?.template?.width, width);
     assert.equal(item?.template?.height, height);
   });
+  const rubbleRampPaletteItem = editorPalette.find(item => item.imageAssetKey === 'bridgeRubbleRampClimb');
+  assert.equal(rubbleRampPaletteItem?.label, 'Bridge Rubble Ramp Climb');
+  assert.equal(rubbleRampPaletteItem?.category, 'Bridge Kit');
+  assert.equal(rubbleRampPaletteItem?.template?.type, 'image-prop');
+  assert.equal(rubbleRampPaletteItem?.template?.depth, 'route-edge');
+  assert.equal(rubbleRampPaletteItem?.template?.assetPath, 'assets/expedition/environment/egypt-opening/lost-bridge/lost-bridge-rubble-ramp-climb-2026-06-09.png');
+  assert.equal(rubbleRampPaletteItem?.template?.width, 1774);
+  assert.equal(rubbleRampPaletteItem?.template?.height, 887);
   [
     'propEdgeLongRubble',
     'propEdgeBuriedBlocks',
@@ -4085,6 +4127,7 @@ test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, an
     'bridgeBuriedRampLedge',
     'bridgeNarrowCrackedShelf',
     'bridgeFootholdStoneCluster',
+    'bridgeRubbleRampClimb',
     'lostBridgeRavineFloor',
     'lostBridgeRavineFloorWide',
     'lostBridgeRavineFloorDeep',
@@ -4149,6 +4192,8 @@ test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, an
       assert.equal(entry.defaultScale, 1);
       assert.equal(entry.collidable, false);
       assert.equal(entry.defaultColorGradeFilter, 'none');
+      const bridgeLostBridgeAsset = entry.category === 'Bridge Kit'
+        && entry.assetPath.startsWith('assets/expedition/environment/egypt-opening/lost-bridge/');
       const categoryFolder = entry.category === 'Arrival Threshold'
         ? 'arrival-threshold'
         : entry.category === 'Prop Edge Kit' || entry.category === 'Bridge Kit'
@@ -4159,7 +4204,9 @@ test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, an
       const categoryPathRoot = entry.category === 'Ravine Bridge'
         ? 'assets/expedition/environment/egypt-opening'
         : 'assets/expedition/environment/egypt-atmosphere/props';
-      assert.match(entry.assetPath, new RegExp(`^${categoryPathRoot}/${categoryFolder}/.+\\.png$`));
+      if (!bridgeLostBridgeAsset) {
+        assert.match(entry.assetPath, new RegExp(`^${categoryPathRoot}/${categoryFolder}/.+\\.png$`));
+      }
       if (entry.category === 'Prop Edge Kit' || entry.category === 'Bridge Kit' || entry.category === 'Ravine Bridge') {
         assert.equal(entry.defaultType, 'image-prop');
         assert.equal(entry.imageAssetKey, entry.id);
@@ -4932,8 +4979,43 @@ test('scorpion and scarab combo creates tactical poison and armor pressure', () 
 
   const nestOverride = journeyPlacementOverrides.enemies.find(enemy => enemy.id === 'desert-entry-scorpion-nest-1');
   assert.ok(nestOverride, 'The opening scorpion nest should keep its generated placement override');
-  assert.equal(nestOverride.y, 333);
   assert.ok(nestOverride.y < 650, 'The opening scorpion nest must remain visible in the combat arena');
+});
+
+test('scorpion nest becomes the post-Mummification destroy-to-pass obstacle', () => {
+  const mummificationExterior = journeyPlacementOverrides.props.find(prop => prop.id === 'mummification-chamber-exterior-structure');
+  const muralExterior = journeyPlacementOverrides.props.find(prop => prop.id === 'forgotten-mural-climb-structure');
+  const nestOverride = journeyPlacementOverrides.enemies.find(enemy => enemy.id === 'desert-entry-scorpion-nest-1');
+  const nestData = ENEMIES.find(enemy => enemy.id === 'desert-entry-scorpion-nest-1');
+
+  assert.ok(mummificationExterior, 'Mummification Chamber exterior placement should exist');
+  assert.ok(muralExterior, 'Forgotten Mural exterior placement should exist as the next major structure');
+  assert.ok(nestOverride, 'The existing scorpion nest should be moved through its generated placement override');
+  assert.ok(nestData, 'The existing scorpion nest enemy row should remain the canonical implementation');
+
+  const exactThreeQuarterX = Math.round(mummificationExterior.x + (muralExterior.x - mummificationExterior.x) * 0.75);
+  const routeProgress = (nestOverride.x - mummificationExterior.x) / (muralExterior.x - mummificationExterior.x);
+  assert.equal(exactThreeQuarterX, 6804);
+  assert.ok(routeProgress >= 0.65 && routeProgress <= 0.8, 'Nest should sit roughly three-quarters of the way to the mural structure');
+  assert.ok(nestOverride.x > mummificationExterior.x, 'Nest should be after the Mummification Chamber exterior');
+  assert.ok(nestOverride.x < muralExterior.x, 'Nest should be before the Forgotten Mural structure');
+  assert.equal(nestData.type, 'scorpion-nest');
+  assert.equal(nestData.combatRole, 'destructible spawner');
+  assert.match(nestData.pressureHint, /Destroy the nest to stop the swarm/);
+  assert.equal(nestOverride.widthScale, 5.6);
+
+  assert.match(journeyComponentSource, /const getLiveScorpionNestBlockers = useCallback/);
+  assert.match(journeyComponentSource, /enemy\.type === 'scorpion-nest'[\s\S]*?!enemy\.defeated[\s\S]*?getEditedNestParams\(enemy\)/);
+  assert.match(journeyComponentSource, /The scorpion nest blocks the route\. Destroy it to clear the path\./);
+  assert.match(journeyComponentSource, /audioControls\?\.playExpeditionSfx\?\.\('gateBlocked'\)/);
+  assert.match(journeyComponentSource, /nest\.type !== 'scorpion-nest' \|\| nest\.defeated/);
+  assert.match(journeyComponentSource, /x:\s*nest\.x \+ nest\.width \/ 2 - 23 \+ spawnDir \* 18/);
+  assert.match(journeyComponentSource, /const nestBaseY = nest\.y \+ nest\.height/);
+  assert.match(journeyComponentSource, /y:\s*nestBaseY - broodHeight - 2/);
+  assert.doesNotMatch(journeyComponentSource, /y:\s*GROUND_Y - broodHeight - 2/);
+  assert.match(journeyComponentSource, /patrolMin:\s*nest\.x - 150/);
+  assert.match(journeyComponentSource, /patrolMax:\s*nest\.x \+ nest\.width \+ 150/);
+  assert.match(journeyComponentSource, /nestParentId:\s*nest\.id/);
 });
 
 test('combat audio uses creature and deflection cues instead of gate sounds', () => {

@@ -1,6 +1,8 @@
 import { writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { formatJourneyPlacementOverridesModule } from './apply-journey-prop-export.mjs';
+import { mergeJourneyPlacementOverrideExports } from '../src/components/expedition-journey/journeyPlacementOverrides.js';
 
 // DEV-only bridge for the in-game Journey prop editor's "Write to source" button.
 // It accepts the same per-room export JSON the editor already produces and rewrites
@@ -36,14 +38,23 @@ export const journeyOverridesDevPlugin = () => ({
         if (aborted) return;
         try {
           const exportData = JSON.parse(body);
-          const nextModule = formatJourneyPlacementOverridesModule(exportData);
-          await writeFile(resolve(server.config.root, OVERRIDES_PATH), nextModule);
+          const overridesPath = resolve(server.config.root, OVERRIDES_PATH);
+          let existingExport = {};
+          try {
+            existingExport = (await import(`${pathToFileURL(overridesPath).href}?t=${Date.now()}`)).default || {};
+          } catch {
+            // If the generated module is missing or malformed, fall back to the incoming export.
+          }
+          const nextExport = mergeJourneyPlacementOverrideExports(existingExport, exportData);
+          const nextModule = formatJourneyPlacementOverridesModule(nextExport);
+          await writeFile(overridesPath, nextModule);
           res.statusCode = 200;
           res.setHeader('Content-Type', 'application/json');
           res.end(JSON.stringify({
             ok: true,
             room: exportData.room ?? null,
             props: Array.isArray(exportData.props) ? exportData.props.length : 0,
+            enemies: Array.isArray(exportData.enemies) ? exportData.enemies.length : 0,
           }));
         } catch (error) {
           res.statusCode = 400;
