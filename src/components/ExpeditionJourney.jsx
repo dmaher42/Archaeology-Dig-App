@@ -2901,26 +2901,6 @@ const ENEMY_TACTICAL_PRESSURE = {
 const SCARAB_POISONED_CHARGE_SPEED_MULTIPLIER = 1.28;
 const SCARAB_POISONED_CHARGE_START_BONUS = 110;
 
-const drawScarabFrontalArmorCue = (ctx, enemy, centerX, bodyY, facing, now) => {
-  const pulse = Math.sin(now / 120) * 0.5 + 0.5;
-  const frontX = centerX + facing * enemy.width * 0.36;
-  ctx.save();
-  ctx.globalAlpha = 0.72 + pulse * 0.18;
-  ctx.strokeStyle = 'rgba(250, 204, 21, 0.92)';
-  ctx.fillStyle = 'rgba(180, 83, 9, 0.22)';
-  ctx.lineWidth = 2.4;
-  ctx.beginPath();
-  ctx.ellipse(frontX, bodyY - 4, Math.max(8, enemy.width * 0.2), Math.max(9, enemy.height * 0.32), 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.stroke();
-  ctx.globalAlpha = 0.4 + pulse * 0.25;
-  ctx.strokeStyle = 'rgba(253, 224, 71, 0.82)';
-  ctx.beginPath();
-  ctx.arc(frontX + facing * 2, bodyY - 4, Math.max(13, enemy.width * 0.29), -Math.PI * 0.48, Math.PI * 0.48);
-  ctx.stroke();
-  ctx.restore();
-};
-
 const ENEMY_HIT_SFX_BY_TYPE = {
   scarab: 'scarabHit',
   scorpion: 'scorpionHit',
@@ -15518,12 +15498,6 @@ export default function ExpeditionJourney({
       ? enemy.attackDirection
       : enemy.direction;
     const shouldFlip = shouldFlipEnemySprite(family, facing);
-    const playerForArmorCue = stateRef.current.player;
-    const scarabArmorFacesPlayer = enemy.type === 'scarab'
-      && !enemy.defeated
-      && enemy.attackWindup <= 0
-      && Math.sign((playerForArmorCue.x + playerForArmorCue.width / 2) - (enemy.x + enemy.width / 2)) === Math.sign(facing || 1);
-
     ctx.save();
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = 'source-over';
@@ -15581,9 +15555,6 @@ export default function ExpeditionJourney({
       { mode: 'contain', alignY: 'bottom' },
     );
     ctx.restore();
-    if (scarabArmorFacesPlayer) {
-      drawScarabFrontalArmorCue(ctx, enemy, centerX, groundedDrawBox.y + groundedDrawBox.height * 0.56, facing || 1, now);
-    }
 
     if (drawn && stateRef.current.renderStats) {
       const stats = stateRef.current.renderStats;
@@ -15604,11 +15575,6 @@ export default function ExpeditionJourney({
     const facing = (enemy.attackTimer > 0 || enemy.attackWindup > 0)
       ? enemy.attackDirection
       : enemy.direction;
-    const playerForArmorCue = stateRef.current.player;
-    const scarabArmorFacesPlayer = enemy.type === 'scarab'
-      && !enemy.defeated
-      && Math.sign((playerForArmorCue.x + playerForArmorCue.width / 2) - (enemy.x + enemy.width / 2)) === Math.sign(facing || 1);
-
     if (enemy.type === 'scarab' || enemy.type === 'snake' || enemy.type === 'scorpion' || enemy.type === 'sand-wisp') {
       const pulse = Math.sin(now / 140) * 0.5 + 0.5;
       const defeated = combatMode === 'defeated';
@@ -15654,9 +15620,6 @@ export default function ExpeditionJourney({
         ctx.beginPath();
         ctx.arc(centerX + facing * enemy.width * 0.22, bodyY - 5, 2.4, 0, Math.PI * 2);
         ctx.fill();
-        if (scarabArmorFacesPlayer) {
-          drawScarabFrontalArmorCue(ctx, enemy, centerX, bodyY, facing, now);
-        }
       } else if (enemy.type === 'snake') {
         const bodyY = baseY - 13 + (defeated ? 6 : 0);
         drawContactShadow(ctx, centerX, baseY + 3, enemy.width * 0.76, defeated ? 0.08 : 0.16, 0.8);

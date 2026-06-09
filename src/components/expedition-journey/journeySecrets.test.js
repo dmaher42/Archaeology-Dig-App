@@ -4971,8 +4971,7 @@ test('scorpion and scarab combo creates tactical poison and armor pressure', () 
   assert.match(journeyComponentSource, /const scarabPoisonChargeBoost = e\.type === 'scarab' && playerIsVenomSlowed \? SCARAB_POISONED_CHARGE_SPEED_MULTIPLIER : 1/);
   assert.match(journeyComponentSource, /e\.x \+= e\.attackDirection \* pattern\.speed \* scarabPoisonChargeBoost \* dt/);
   assert.match(journeyComponentSource, /Scarab charges faster while venom slows Asha\. Dodge behind it\./);
-  assert.match(journeyComponentSource, /const scarabArmorFacesPlayer = enemy\.type === 'scarab'/);
-  assert.match(journeyComponentSource, /drawScarabFrontalArmorCue\(ctx, enemy, centerX, bodyY, facing, now\)/);
+  assert.doesNotMatch(journeyComponentSource, /drawScarabFrontalArmorCue/);
   assert.match(journeyComponentSource, /current\.notice = 'Scarab shell absorbed the blow\. Dodge behind it after the charge\.'/);
   assert.match(journeyComponentSource, /const playerHeight = PLAYER_HEIGHT/);
   assert.match(journeyComponentSource, /const groundPlayerY = GROUND_Y - playerHeight/);
