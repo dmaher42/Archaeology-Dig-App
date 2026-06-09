@@ -836,7 +836,7 @@ test('journey prop editor exposes environmental blending controls for selected p
   assert.match(journeyComponentSource, /<span>Sand overlap<\/span>[\s\S]*?updateSelectedPropEditorNumberField\('sandOverlapHeight'/);
   assert.match(journeyComponentSource, /<span>Sand mound width<\/span>[\s\S]*?updateSelectedPropEditorNumberField\('sandMoundWidth'/);
   assert.match(journeyComponentSource, /<span>Ground pebbles<\/span>[\s\S]*?updateSelectedPropEditorNumberField\('groundPebbles'/);
-  assert.match(journeyComponentSource, /<div className="journey-prop-editor-group-header">Colour &amp; Light<\/div>[\s\S]*?updateSelectedPropEditorField\('colorGradeFilter'/);
+  assert.match(journeyComponentSource, /renderEditorSectionHeader\('prop-colour', 'Colour & Light'\)[\s\S]*?updateSelectedPropEditorField\('colorGradeFilter'/);
 });
 
 test('journey prop editor exposes generated structure ground-contact controls', () => {
