@@ -22693,14 +22693,6 @@ export default function ExpeditionJourney({
         editor.enabled = !editor.enabled;
         if (editor.enabled) {
           applyDefaultEditorLocks(stateRef.current);
-          // Open the editor centered on Asha so you land in the painted scene rather
-          // than an unpainted margin (where only the flat section base color shows).
-          const cur = stateRef.current;
-          if (Number.isFinite(cur.player?.x)) {
-            const nextCameraX = clampCameraX(cur.player.x + (cur.player.width || 0) / 2 - CANVAS_WIDTH / 2);
-            cur.cameraX = nextCameraX;
-            cur.targetCameraX = nextCameraX;
-          }
         } else {
           editor.selectedPropId = null;
           editor.selectedPlatformId = null;

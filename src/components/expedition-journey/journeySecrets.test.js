@@ -936,6 +936,23 @@ test('journey editor platform overlays follow the vertical camera during climb s
   assert.match(journeyComponentSource, /editor\.dragging\.kind === 'platform'[\s\S]*?const rawY = pointer\.worldY - editor\.dragging\.offsetY/);
 });
 
+test('journey editor toggle preserves the current camera view', () => {
+  const toggleStart = journeyComponentSource.indexOf("if (event.code === 'KeyE' && event.shiftKey");
+  assert.notEqual(toggleStart, -1, 'Shift+E editor toggle should exist');
+  const toggleEnd = journeyComponentSource.indexOf('if (!editor.enabled) return;', toggleStart);
+  assert.notEqual(toggleEnd, -1, 'Shift+E editor toggle should end before editor-only shortcuts');
+  const toggleSource = journeyComponentSource.slice(toggleStart, toggleEnd);
+
+  assert.match(toggleSource, /editor\.enabled = !editor\.enabled;/);
+  assert.match(toggleSource, /applyDefaultEditorLocks\(stateRef\.current\)/);
+  assert.doesNotMatch(toggleSource, /cameraX\s*=/, 'opening the editor should not jump the camera away from the painted game view');
+  assert.match(
+    journeyComponentSource,
+    /selectEditorPropFromOutliner[\s\S]*?current\.cameraX = nextCameraX/,
+    'the outliner may still recenter when deliberately choosing an off-screen item',
+  );
+});
+
 test('journey editor exposes floor platforms without blocking prop selection', () => {
   const platforms = extractExportedArray('PLATFORMS');
   [
