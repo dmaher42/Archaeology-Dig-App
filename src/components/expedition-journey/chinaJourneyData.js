@@ -157,6 +157,14 @@ export const CHINA_SECTION_ATMOSPHERES = {
   'terracotta-tomb': { title: 'The Terracotta Tomb', description: 'The silent army stands guard.', color: '#3a5a40' }
 };
 
+export const CHINA_SECTION_COPY = Object.fromEntries(CHINA_SECTIONS.map(section => [
+  section.id,
+  {
+    name: section.name,
+    title: CHINA_SECTION_ATMOSPHERES[section.id]?.title || section.name,
+  },
+]));
+
 export const CHINA_CHECKPOINTS = [];
 export const CHINA_ENVIRONMENT_INTERACTIONS = [];
 export const CHINA_HIDDEN_ROUTES = [];

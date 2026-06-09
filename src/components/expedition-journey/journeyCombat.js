@@ -6,6 +6,7 @@ import {
   CANVAS_WIDTH,
   COMBAT_DAMAGE_SCALE,
 } from './journeyConstants.js';
+import { ROME_LEGATE_REVENANT_BOSS_ID } from './rome/romeBossSprites.js';
 
 export const COMBAT_CHALLENGE_MODE = 'skill-windows-v1';
 export const COMBAT_INTENSITY_VERSION = 'combat-impact-pressure-2026-05-16';
@@ -60,6 +61,65 @@ export const SCORPION_VENOM_SLOW_MULTIPLIER = 0.48;
 export const ENEMY_AGGRO_MEMORY_SECONDS = 7.5;
 export const ENEMY_AGGRO_PATROL_PADDING = 320;
 export const ENEMY_DEFEATED_VISIBLE_SECONDS = 3;
+
+export const DEFAULT_BOSS_ATTACK_PHASES = [
+  {
+    id: 'heavy-swipe',
+    label: 'Heavy Swipe',
+    kind: 'close',
+    windup: 0.72,
+    duration: 0.34,
+    cooldown: 1.85,
+    recovery: 0.78,
+    vulnerableAfter: 0.85,
+    range: 58,
+    height: 40,
+    speed: 72,
+    color: '#fb923c',
+  },
+  {
+    id: 'pulse-ring',
+    label: 'Pulse Ring',
+    kind: 'area',
+    windup: 0.92,
+    duration: 0.36,
+    cooldown: 2.15,
+    recovery: 0.88,
+    vulnerableAfter: 1,
+    range: 118,
+    height: 54,
+    damageScale: 0.85,
+    shieldDuringWindup: true,
+    color: '#facc15',
+  },
+];
+
+export const BOSS_ATTACK_PHASES = {
+  'scarab-queen': [
+    { ...DEFAULT_BOSS_ATTACK_PHASES[0], id: 'queen-charge', label: 'Sand Charge', speed: 118, cooldown: 1.85, vulnerableAfter: 1.05 },
+    { ...DEFAULT_BOSS_ATTACK_PHASES[1], id: 'scarab-burst', label: 'Scarab Burst', kind: 'area', cooldown: 2.2, vulnerableAfter: 1.15, damageScale: 0.65 },
+  ],
+  'temple-guardian': [
+    { ...DEFAULT_BOSS_ATTACK_PHASES[0], id: 'stone-swipe', label: 'Stone Swipe', windup: 0.9, duration: 0.42, speed: 58 },
+    { ...DEFAULT_BOSS_ATTACK_PHASES[1], id: 'shockwave-slam', label: 'Shockwave Slam', windup: 1.05, range: 132, damageScale: 0.8 },
+  ],
+  'giant-serpent': [
+    { ...DEFAULT_BOSS_ATTACK_PHASES[0], id: 'wall-lunge', label: 'Wall Lunge', speed: 120, cooldown: 1.75 },
+    { ...DEFAULT_BOSS_ATTACK_PHASES[1], id: 'venom-line', label: 'Venom Line', kind: 'ranged', windup: 0.8, range: 126, height: 30, cooldown: 2, damageScale: 0.75 },
+  ],
+  'looter-captain': [
+    { ...DEFAULT_BOSS_ATTACK_PHASES[0], id: 'dash-shove', label: 'Dash Shove', windup: 0.58, duration: 0.28, speed: 145, cooldown: 1.45 },
+    { ...DEFAULT_BOSS_ATTACK_PHASES[1], id: 'sand-throw', label: 'Sand Throw', kind: 'ranged', windup: 0.76, range: 112, height: 28, cooldown: 1.85, damageScale: 0.7 },
+  ],
+  'ancient-construct': [
+    { ...DEFAULT_BOSS_ATTACK_PHASES[0], id: 'construct-slam', label: 'Construct Slam', windup: 1, duration: 0.44, speed: 54, cooldown: 2 },
+    { ...DEFAULT_BOSS_ATTACK_PHASES[1], id: 'core-pulse', label: 'Core Pulse', windup: 1.1, range: 140, cooldown: 2.25, damageScale: 0.85 },
+  ],
+  [ROME_LEGATE_REVENANT_BOSS_ID]: [
+    { ...DEFAULT_BOSS_ATTACK_PHASES[0], id: 'legate-charge', label: 'Gladius Charge', speed: 130, cooldown: 1.75, vulnerableAfter: 1.05 },
+    { ...DEFAULT_BOSS_ATTACK_PHASES[1], id: 'legate-shield-bash', label: 'Shield Bash Wave', kind: 'area', windup: 1.0, range: 128, cooldown: 2.3, vulnerableAfter: 1.2, damageScale: 0.75, shieldDuringWindup: true },
+  ],
+};
 
 export const COMBAT_HIT_IMPACT_PROFILES = {
   light: {

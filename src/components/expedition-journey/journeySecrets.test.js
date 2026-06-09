@@ -753,20 +753,20 @@ test('journey placement export can merge platform position updates', () => {
     roomId: 'ruined-temple',
     props: [],
     platforms: [
-      { id: 'route-platform-a', sectionId: 'ruined-temple', x: 1440, y: 416, width: 128, height: 18 },
+      { id: 'route-platform-a', sectionId: 'ruined-temple', x: 1440, y: 416, width: 128, height: 18, collision: 'blocker' },
     ],
   });
   const parsed = JSON.parse(exportJson);
 
   assert.equal(parsed.platformSource, 'src/components/expedition-journey/journeyLevelData.js::PLATFORMS');
   assert.deepEqual(parsed.platforms, [
-    { id: 'route-platform-a', sectionId: 'ruined-temple', x: 1440, y: 416, width: 128, height: 18 },
+    { id: 'route-platform-a', sectionId: 'ruined-temple', x: 1440, y: 416, width: 128, height: 18, collision: 'blocker' },
   ]);
   assert.deepEqual(applyJourneyPlatformPlacementExportToPlatforms({
     existingPlatforms,
     exportData: parsed,
   }), [
-    { id: 'route-platform-a', sectionId: 'ruined-temple', x: 1440, y: 416, width: 128, height: 18 },
+    { id: 'route-platform-a', sectionId: 'ruined-temple', x: 1440, y: 416, width: 128, height: 18, collision: 'blocker' },
     { id: 'route-platform-b', sectionId: 'ruined-temple', x: 1610, y: 388, width: 96, height: 18 },
   ]);
 });
@@ -951,6 +951,16 @@ test('journey editor exposes floor platforms without blocking prop selection', (
   assert.match(journeyComponentSource, /const selectedFallbackFloor = editor\.floorPickMode \|\| selectedHazard \|\| selectedLair \|\| selectedCheckpoint \|\| selectedArch \|\| selectedSolidPlatform \|\| selectedProp[\s\S]{0,180}findEditablePlatformAt\(pointer\.screenX, pointer\.screenY, \{ floorOnly: true \}\);/);
   assert.match(journeyComponentSource, /category: isJourneyBlockerPlatform\(platform\) \? 'Blocker' : isJourneyFloorPlatform\(platform\) \? 'Floor' : 'Platform'/);
   assert.match(journeyComponentSource, /Nothing selected — click an item on the canvas, or open the Palette to place one\./);
+});
+
+test('journey editor movement blockers stop side walking without becoming ledges', () => {
+  assert.match(journeyUtilsSource, /key:\s*'platform:blocker'/);
+  assert.match(journeyUtilsSource, /collision:\s*'blocker'/);
+  assert.match(journeyUtilsSource, /if \(platform\?\.collision === 'blocker'\) return false;/);
+  assert.match(journeyComponentSource, /const isJourneyBlockerPlatform = \(platform = \{\}\) => platform\.collision === 'blocker';/);
+  assert.match(journeyComponentSource, /resolveJourneyBlockerPlatformCollision\(player, previousPlayer, blocker\)/);
+  assert.match(journeyComponentSource, /\.filter\(isJourneyBlockerPlatform\)/);
+  assert.match(journeyComponentSource, /<option value="blocker">Blocker<\/option>/);
 });
 
 test('journey editor can force-pick floor platforms for moving collision floors', () => {
@@ -3885,12 +3895,15 @@ test('ravine bridge uses a structure cutout over the existing desert background'
     assert.equal(blocker?.collision, 'blocker', `${id} should persist as an invisible movement blocker`);
     assert.equal(blocker?.layer, 'blocker');
   });
-  const tallWideRavine = journeyPlacementOverrides.props.find(entry => entry.id === 'desert-entry-lost-bridge-ravine-floor-tall-wide-1');
-  assert.equal(tallWideRavine?.imageAssetKey, 'lostBridgeRavineFloorTallWide');
-  assert.equal(tallWideRavine?.x, 3488);
-  assert.equal(tallWideRavine?.y, 320);
-  assert.equal(tallWideRavine?.width, 1900);
-  assert.equal(tallWideRavine?.height, 556);
+  assert.equal(
+    journeyPlacementOverrides.props.some(entry => entry.id === 'desert-entry-lost-bridge-ravine-floor-tall-wide-1'),
+    false,
+    'tall-wide ravine floor should stay removed from the cleaned bridge/ramp layout',
+  );
+  assert.ok(
+    journeyPlacementOverrides.deletedPropIds.includes('desert-entry-lost-bridge-ravine-floor-tall-wide-1'),
+    'tall-wide ravine floor should be recorded as deleted',
+  );
   const rubbleRampClimb = journeyPlacementOverrides.props.find(entry => entry.id === 'lost-bridge-visual-rubble-ramp-climb');
   assert.equal(rubbleRampClimb?.imageAssetKey, 'bridgeRubbleRampClimb');
   assert.equal(rubbleRampClimb?.assetPath, 'assets/expedition/environment/egypt-opening/lost-bridge/lost-bridge-rubble-ramp-climb-2026-06-09.png');

@@ -46,6 +46,7 @@ const makeProxy = (egyptObj, chinaObj, romeObj) => {
 };
 
 export const SECTIONS = makeProxy(EgyptData.SECTIONS, ChinaData.CHINA_SECTIONS, RomeData.ROME_JOURNEY_SECTIONS);
+export const SECTION_COPY = makeProxy(EgyptData.SECTION_COPY, ChinaData.CHINA_SECTION_COPY, RomeData.ROME_SECTION_COPY);
 export const PLATFORMS = makeProxy(EgyptPlacementData.platforms, ChinaData.CHINA_PLATFORMS, RomeData.ROME_JOURNEY_PLATFORMS);
 export const HAZARDS = makeProxy(EgyptPlacementData.hazards, ChinaData.CHINA_HAZARDS, RomeData.ROME_HAZARDS);
 export const ROUTE_GATES = makeProxy(EgyptPlacementData.routeGates, ChinaData.CHINA_ROUTE_GATES, RomeData.ROME_ROUTE_GATES);

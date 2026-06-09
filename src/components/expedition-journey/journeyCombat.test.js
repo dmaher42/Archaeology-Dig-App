@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  BOSS_ATTACK_PHASES,
   COMBAT_HIT_IMPACT_PROFILES,
+  DEFAULT_BOSS_ATTACK_PHASES,
   ENEMY_DEFEATED_VISIBLE_SECONDS,
   ENEMY_AGGRO_MEMORY_SECONDS,
   ENEMY_AGGRO_PATROL_PADDING,
@@ -26,6 +28,7 @@ import {
   updateEnemyDefeatedVisibility,
 } from './journeyCombat.js';
 import { COMBAT_DAMAGE_SCALE } from './journeyConstants.js';
+import { ROME_LEGATE_REVENANT_BOSS_ID } from './rome/romeBossSprites.js';
 
 const assertClose = (actual, expected) => {
   assert.ok(Math.abs(actual - expected) < 0.000001, `expected ${actual} to be close to ${expected}`);
@@ -201,4 +204,22 @@ test('combat hit impact profiles preserve the expected effect keys', () => {
   assert.equal(COMBAT_HIT_IMPACT_PROFILES.blocked.sfxKey, 'combatDeflect');
   assert.equal(COMBAT_HIT_IMPACT_PROFILES.defeated.sfxKey, 'enemyDefeated');
   assert.equal(COMBAT_HIT_IMPACT_PROFILES.defeated.sfxVolume, 1.08);
+});
+
+test('boss attack phase data lives with combat contracts', () => {
+  assert.deepEqual(DEFAULT_BOSS_ATTACK_PHASES.map(phase => phase.id), ['heavy-swipe', 'pulse-ring']);
+  assert.equal(DEFAULT_BOSS_ATTACK_PHASES[0].label, 'Heavy Swipe');
+  assert.equal(DEFAULT_BOSS_ATTACK_PHASES[1].shieldDuringWindup, true);
+
+  assert.deepEqual(Object.keys(BOSS_ATTACK_PHASES), [
+    'scarab-queen',
+    'temple-guardian',
+    'giant-serpent',
+    'looter-captain',
+    'ancient-construct',
+    ROME_LEGATE_REVENANT_BOSS_ID,
+  ]);
+  assert.equal(BOSS_ATTACK_PHASES['scarab-queen'][0].id, 'queen-charge');
+  assert.equal(BOSS_ATTACK_PHASES['ancient-construct'][1].label, 'Core Pulse');
+  assert.equal(BOSS_ATTACK_PHASES[ROME_LEGATE_REVENANT_BOSS_ID][1].shieldDuringWindup, true);
 });

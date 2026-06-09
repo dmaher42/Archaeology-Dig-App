@@ -1,0 +1,25 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
+import {
+  SECTION_COPY,
+  setExpeditionJourneyCiv,
+} from './journeyDataRouter.js';
+
+test('section display copy is routed per civilisation', () => {
+  setExpeditionJourneyCiv('Ancient Egypt');
+  assert.equal(SECTION_COPY['desert-entry'].name, 'Desert Entry');
+  assert.equal(SECTION_COPY['desert-entry'].title, 'Restore the first seal to earn passage below.');
+
+  setExpeditionJourneyCiv('Ancient China');
+  assert.equal(SECTION_COPY['bamboo-forest'].name, 'Bamboo Forest');
+  assert.equal(SECTION_COPY['bamboo-forest'].title, 'The Silent Bamboo');
+  assert.equal(SECTION_COPY['desert-entry'], undefined);
+
+  setExpeditionJourneyCiv('Ancient Rome');
+  assert.equal(SECTION_COPY['via-sacra'].name, 'Via Sacra');
+  assert.equal(SECTION_COPY['via-sacra'].title, 'The Sacred Road — cracked limestone, collapsed arches.');
+  assert.equal(SECTION_COPY['desert-entry'], undefined);
+
+  setExpeditionJourneyCiv('Ancient Egypt');
+});

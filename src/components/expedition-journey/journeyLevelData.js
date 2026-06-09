@@ -1174,6 +1174,14 @@ export const SECTION_ATMOSPHERES = {
   },
 };
 
+export const SECTION_COPY = Object.fromEntries(SECTIONS.map(section => [
+  section.id,
+  {
+    name: section.name,
+    title: SECTION_ATMOSPHERES[section.id]?.title || section.name,
+  },
+]));
+
 export const STORY_PROPS = [
   { id: 'opening-archaeologist-field-kit', sectionId: 'desert-entry', type: 'camp', x: X(92), y: JY(312), label: 'archaeologist arrival field kit' },
 

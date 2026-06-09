@@ -188,6 +188,22 @@ export const ROME_SECTION_ATMOSPHERES = {
   },
 };
 
+const ROME_SECTION_DISPLAY_TITLES = {
+  'via-sacra': 'The Sacred Road — cracked limestone, collapsed arches.',
+  'forum-ruins': 'The Buried Forum — column stumps rise from volcanic ash.',
+  'subterranean-thermae': 'Beneath the Baths — steam channels still run in the dark.',
+  'basilica-interior': 'The Darkened Basilica — clerestory light and settling dust.',
+  'sealed-vault': 'Sealed in 79 AD. The archive the Senate wanted buried.',
+};
+
+export const ROME_SECTION_COPY = Object.fromEntries(ROME_JOURNEY_SECTIONS.map(section => [
+  section.id,
+  {
+    name: section.name,
+    title: ROME_SECTION_DISPLAY_TITLES[section.id] || ROME_SECTION_ATMOSPHERES[section.id]?.title || section.name,
+  },
+]));
+
 // --- Checkpoints ---
 export const ROME_CHECKPOINTS = [
   { id: 'checkpoint-via-sacra',  x: 1800, sectionId: 'via-sacra' },

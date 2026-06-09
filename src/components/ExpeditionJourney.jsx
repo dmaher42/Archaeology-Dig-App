@@ -72,6 +72,7 @@ import {
   SCARAB_SEAL_TRIGGER,
   SECTIONS,
   SECTION_ATMOSPHERES,
+  SECTION_COPY,
   SECRET_COLLECTIBLES,
   STAGE_ENTRANCE_FEATURES,
   STORY_PROPS,
@@ -152,9 +153,11 @@ import {
   updatePlayerAnimation,
 } from './expedition-journey/journeyUtils';
 import {
+  BOSS_ATTACK_PHASES,
   COMBAT_CHALLENGE_MODE,
   COMBAT_HIT_IMPACT_PROFILES,
   COMBAT_INTENSITY_VERSION,
+  DEFAULT_BOSS_ATTACK_PHASES,
   ENEMY_AGGRO_MEMORY_SECONDS,
   ENEMY_AGGRO_PATROL_PADDING,
   ENEMY_DEFEATED_VISIBLE_SECONDS,
@@ -291,7 +294,6 @@ import {
   getLegateRevenantDrawBox,
   isRomeBossSpriteId,
   getRomeBossSpritePack,
-  ROME_LEGATE_REVENANT_BOSS_ID,
 } from './expedition-journey/rome/romeBossSprites';
 
 import {
@@ -362,99 +364,7 @@ import {
   MARKER_SPRITE_VERSION,
 } from './expedition-journey/journeyMarkerSprites';
 
-const DEFAULT_BOSS_ATTACK_PHASES = [
-  {
-    id: 'heavy-swipe',
-    label: 'Heavy Swipe',
-    kind: 'close',
-    windup: 0.72,
-    duration: 0.34,
-    cooldown: 1.85,
-    recovery: 0.78,
-    vulnerableAfter: 0.85,
-    range: 58,
-    height: 40,
-    speed: 72,
-    color: '#fb923c',
-  },
-  {
-    id: 'pulse-ring',
-    label: 'Pulse Ring',
-    kind: 'area',
-    windup: 0.92,
-    duration: 0.36,
-    cooldown: 2.15,
-    recovery: 0.88,
-    vulnerableAfter: 1,
-    range: 118,
-    height: 54,
-    damageScale: 0.85,
-    shieldDuringWindup: true,
-    color: '#facc15',
-  },
-];
-
 const INITIAL_BOSS_SPRITE_LOAD_DELAY_MS = 9000;
-
-const CHINA_SECTION_COPY = {
-  'desert-entry': {
-    name: 'River Valley',
-    title: 'The river valley opens toward an ancient settlement.',
-  },
-  'ruined-temple': {
-    name: 'Bronze Workshop',
-    title: 'Workshop ruins show traces of skilled bronze and timber work.',
-  },
-  catacombs: {
-    name: 'Oracle Archive',
-    title: 'Stored records and broken vessels mark the archive path.',
-  },
-  'escape-sequence': {
-    name: 'Rammed Earth Works',
-    title: 'Loose earth and old construction lines make the route unstable.',
-  },
-  'dig-site-entrance': {
-    name: 'Excavation Approach',
-    title: 'The Ancient China excavation site is in sight.',
-  },
-};
-
-// Rome section copy — maps Rome section IDs to display names and titles
-const ROME_SECTION_COPY = {
-  'via-sacra':            { name: 'Via Sacra',              title: 'The Sacred Road — cracked limestone, collapsed arches.' },
-  'forum-ruins':          { name: 'Forum Ruins',            title: 'The Buried Forum — column stumps rise from volcanic ash.' },
-  'subterranean-thermae': { name: 'Subterranean Thermae',   title: 'Beneath the Baths — steam channels still run in the dark.' },
-  'basilica-interior':    { name: 'Basilica Interior',      title: 'The Darkened Basilica — clerestory light and settling dust.' },
-  'sealed-vault':         { name: 'The Legate\'s Vault',    title: 'Sealed in 79 AD. The archive the Senate wanted buried.' },
-};
-
-const BOSS_ATTACK_PHASES = {
-  'scarab-queen': [
-    { ...DEFAULT_BOSS_ATTACK_PHASES[0], id: 'queen-charge', label: 'Sand Charge', speed: 118, cooldown: 1.85, vulnerableAfter: 1.05 },
-    { ...DEFAULT_BOSS_ATTACK_PHASES[1], id: 'scarab-burst', label: 'Scarab Burst', kind: 'area', cooldown: 2.2, vulnerableAfter: 1.15, damageScale: 0.65 },
-  ],
-  'temple-guardian': [
-    { ...DEFAULT_BOSS_ATTACK_PHASES[0], id: 'stone-swipe', label: 'Stone Swipe', windup: 0.9, duration: 0.42, speed: 58 },
-    { ...DEFAULT_BOSS_ATTACK_PHASES[1], id: 'shockwave-slam', label: 'Shockwave Slam', windup: 1.05, range: 132, damageScale: 0.8 },
-  ],
-  'giant-serpent': [
-    { ...DEFAULT_BOSS_ATTACK_PHASES[0], id: 'wall-lunge', label: 'Wall Lunge', speed: 120, cooldown: 1.75 },
-    { ...DEFAULT_BOSS_ATTACK_PHASES[1], id: 'venom-line', label: 'Venom Line', kind: 'ranged', windup: 0.8, range: 126, height: 30, cooldown: 2, damageScale: 0.75 },
-  ],
-  'looter-captain': [
-    { ...DEFAULT_BOSS_ATTACK_PHASES[0], id: 'dash-shove', label: 'Dash Shove', windup: 0.58, duration: 0.28, speed: 145, cooldown: 1.45 },
-    { ...DEFAULT_BOSS_ATTACK_PHASES[1], id: 'sand-throw', label: 'Sand Throw', kind: 'ranged', windup: 0.76, range: 112, height: 28, cooldown: 1.85, damageScale: 0.7 },
-  ],
-  'ancient-construct': [
-    { ...DEFAULT_BOSS_ATTACK_PHASES[0], id: 'construct-slam', label: 'Construct Slam', windup: 1, duration: 0.44, speed: 54, cooldown: 2 },
-    { ...DEFAULT_BOSS_ATTACK_PHASES[1], id: 'core-pulse', label: 'Core Pulse', windup: 1.1, range: 140, cooldown: 2.25, damageScale: 0.85 },
-  ],
-  // Rome boss — Legate Revenant
-  [ROME_LEGATE_REVENANT_BOSS_ID]: [
-    { ...DEFAULT_BOSS_ATTACK_PHASES[0], id: 'legate-charge',      label: 'Gladius Charge',  speed: 130, cooldown: 1.75, vulnerableAfter: 1.05 },
-    { ...DEFAULT_BOSS_ATTACK_PHASES[1], id: 'legate-shield-bash', label: 'Shield Bash Wave', kind: 'area', windup: 1.0, range: 128, cooldown: 2.3, vulnerableAfter: 1.2, damageScale: 0.75, shieldDuringWindup: true },
-  ],
-};
 
 const KNOWLEDGE_CHALLENGE_SIZE = 3;
 const GUARDIAN_KNOWLEDGE_CHALLENGES_ENABLED = false;
@@ -959,7 +869,7 @@ const OPENING_PYRAMID_ASSET_VERSION = 'opening-pyramid-climb-pack-2026-05-18';
 const ROUTE_GATE_ASSET_VERSION = 'imagegen-egypt-route-gate-arch-column-slab-2026-05-31';
 const OPENING_PYRAMID_FACADE_VERSION = 'opening-pyramid-facade-no-stairs-v2-2026-06-05';
 const OPENING_TOMB_STAIRWELL_VERSION = 'opening-tomb-stairwell-generated-2026-05-21';
-const MUMMIFICATION_CHAMBER_EXTERIOR_VERSION = 'imagegen-mummification-chamber-visible-climb-structure-2026-05-29';
+const MUMMIFICATION_CHAMBER_EXTERIOR_VERSION = 'imagegen-mummification-chamber-bridge-secret-exit-no-stairs-2026-06-09';
 const MUMMIFICATION_CHAMBER_INTERIOR_VERSION = 'imagegen-mummification-chamber-side-scroll-puzzle-ready-2026-05-31';
 const FORGOTTEN_MURAL_ALCOVE_CLIMB_STRUCTURE_VERSION = 'imagegen-forgotten-mural-alcove-climb-structure-2026-05-24';
 const FORGOTTEN_MURAL_CHAMBER_VERSION = 'imagegen-forgotten-mural-chamber-2026-05-24';
@@ -6449,7 +6359,7 @@ export default function ExpeditionJourney({
         version: MUMMIFICATION_CHAMBER_EXTERIOR_VERSION,
       };
     };
-    image.src = `${import.meta.env.BASE_URL}${MUMMIFICATION_CHAMBER_EXTERIOR_SRC}`;
+    image.src = `${import.meta.env.BASE_URL}${MUMMIFICATION_CHAMBER_EXTERIOR_SRC}?v=${MUMMIFICATION_CHAMBER_EXTERIOR_VERSION}`;
     return () => {
       cancelled = true;
     };
@@ -6852,18 +6762,12 @@ export default function ExpeditionJourney({
   })();
 
   const getSectionDisplayName = useCallback((sectionId) => {
-    const { isRomeJourney, isChinaJourney } = scopedJourneyAssetPacks;
-    if (isRomeJourney) return ROME_SECTION_COPY[sectionId]?.name || sectionId;
-    if (isChinaJourney) return CHINA_SECTION_COPY[sectionId]?.name || SECTIONS.find(s => s.id === sectionId)?.name || sectionId;
-    return SECTIONS.find(s => s.id === sectionId)?.name || sectionId;
-  }, [scopedJourneyAssetPacks]);
+    return SECTION_COPY[sectionId]?.name || SECTIONS.find(s => s.id === sectionId)?.name || sectionId;
+  }, []);
 
   const getSectionDisplayTitle = useCallback((sectionId) => {
-    const { isRomeJourney, isChinaJourney } = scopedJourneyAssetPacks;
-    if (isRomeJourney) return ROME_SECTION_COPY[sectionId]?.title || SECTION_ATMOSPHERES[sectionId]?.title || '';
-    if (isChinaJourney) return CHINA_SECTION_COPY[sectionId]?.title || SECTION_ATMOSPHERES[sectionId]?.title || '';
-    return SECTION_ATMOSPHERES[sectionId]?.title || '';
-  }, [scopedJourneyAssetPacks]);
+    return SECTION_COPY[sectionId]?.title || SECTION_ATMOSPHERES[sectionId]?.title || '';
+  }, []);
 
   // Resolves to the correct opening atmosphere SFX key for the current expedition.
   const openingAtmosphereSfxKey = scopedJourneyAssetPacks.isRomeJourney
@@ -17076,9 +16980,12 @@ export default function ExpeditionJourney({
     ctx.restore();
   }, [drawContactShadow, drawFieldNoteLabel, drawGroundDustLip]);
 
-  const drawEditorSelectionCorners = (ctx, bounds, color = 'rgba(94, 234, 212, 0.98)') => {
+  const drawEditorSelectionCorners = (ctx, bounds, color = 'rgba(34, 211, 238, 0.98)') => {
     const cornerLength = Math.min(18, Math.max(8, Math.min(bounds.width, bounds.height) * 0.2));
     ctx.save();
+    // Dark halo so the bright handles stay legible over light desert/sky/stone.
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+    ctx.shadowBlur = 4;
     ctx.strokeStyle = color;
     ctx.lineWidth = 3;
     ctx.setLineDash([]);
@@ -22786,6 +22693,14 @@ export default function ExpeditionJourney({
         editor.enabled = !editor.enabled;
         if (editor.enabled) {
           applyDefaultEditorLocks(stateRef.current);
+          // Open the editor centered on Asha so you land in the painted scene rather
+          // than an unpainted margin (where only the flat section base color shows).
+          const cur = stateRef.current;
+          if (Number.isFinite(cur.player?.x)) {
+            const nextCameraX = clampCameraX(cur.player.x + (cur.player.width || 0) / 2 - CANVAS_WIDTH / 2);
+            cur.cameraX = nextCameraX;
+            cur.targetCameraX = nextCameraX;
+          }
         } else {
           editor.selectedPropId = null;
           editor.selectedPlatformId = null;

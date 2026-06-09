@@ -1195,29 +1195,6 @@ const journeyPlacementOverrides = {
       "label": "lost bridge ravine floor - wide"
     },
     {
-      "id": "desert-entry-lost-bridge-ravine-floor-tall-wide-1",
-      "sectionId": "desert-entry",
-      "type": "image-prop",
-      "imageAssetKey": "lostBridgeRavineFloorTallWide",
-      "assetPath": "assets/expedition/environment/egypt-opening/lost-bridge/lost-bridge-ravine-test-tall-wide-2026-06-09.png",
-      "width": 1900,
-      "height": 556,
-      "scale": 1,
-      "layer": "background",
-      "depth": "background",
-      "tint": "warm",
-      "colorGradeFilter": "none",
-      "alpha": 0.94,
-      "shadowOpacity": 0,
-      "sandOverlapHeight": 0,
-      "sandMoundWidth": 0,
-      "groundPebbles": 0,
-      "brightness": 0.96,
-      "x": 3488,
-      "y": 320,
-      "label": "lost bridge ravine floor - tall wide"
-    },
-    {
       "id": "desert-entry-lost-bridge-ravine-floor-deep-1",
       "sectionId": "desert-entry",
       "type": "image-prop",
@@ -1285,6 +1262,28 @@ const journeyPlacementOverrides = {
       "x": 3771,
       "y": 327,
       "label": "generated mummification chamber entrance"
+    },
+    {
+      "id": "desert-entry-bridge-rubble-ramp-climb-1",
+      "sectionId": "desert-entry",
+      "type": "image-prop",
+      "imageAssetKey": "bridgeRubbleRampClimb",
+      "assetPath": "assets/expedition/environment/egypt-opening/lost-bridge/lost-bridge-rubble-ramp-climb-2026-06-09.png",
+      "width": 1120,
+      "height": 560,
+      "alpha": 0.96,
+      "depth": "route-edge",
+      "layer": "route-edge",
+      "zIndex": 79,
+      "colorGradeFilter": "saturate(104%) sepia(20%) contrast(102%) brightness(86%)",
+      "shadowOpacity": 0,
+      "sandOverlapHeight": 0,
+      "sandMoundWidth": 0,
+      "groundPebbles": 0,
+      "scale": 1,
+      "x": 2712,
+      "y": 706,
+      "label": "bridge rubble ramp climb"
     }
   ],
   "deletedPropIds": [
@@ -1330,7 +1329,8 @@ const journeyPlacementOverrides = {
     "desert-entry-bridge-carved-support-pier-1-copy-1-copy-1",
     "desert-entry-bridge-carved-support-pier-1-copy-1-copy-1-copy-1",
     "desert-entry-bridge-carved-support-pier-1-copy-1-copy-1-copy-1-copy-1",
-    "desert-entry-bridge-carved-support-pier-1-copy-1-copy-1-copy-2"
+    "desert-entry-bridge-carved-support-pier-1-copy-1-copy-1-copy-2",
+    "desert-entry-lost-bridge-ravine-floor-tall-wide-1"
   ],
   "platforms": [
     {
@@ -1894,17 +1894,6 @@ const journeyPlacementOverrides = {
       "y": 484
     },
     {
-      "id": "desert-entry-platform-18",
-      "sectionId": "desert-entry",
-      "width": 192,
-      "height": 18,
-      "label": "editable platform",
-      "invisible": true,
-      "layer": "platform",
-      "x": 2546,
-      "y": 474
-    },
-    {
       "id": "desert-entry-platform-19",
       "sectionId": "desert-entry",
       "width": 192,
@@ -1927,17 +1916,6 @@ const journeyPlacementOverrides = {
       "y": 428
     },
     {
-      "id": "desert-entry-platform-21",
-      "sectionId": "desert-entry",
-      "width": 192,
-      "height": 18,
-      "label": "editable platform",
-      "invisible": true,
-      "layer": "platform",
-      "x": 2579,
-      "y": 460
-    },
-    {
       "id": "desert-entry-platform-22",
       "sectionId": "desert-entry",
       "width": 192,
@@ -1947,17 +1925,6 @@ const journeyPlacementOverrides = {
       "layer": "platform",
       "x": 2374,
       "y": 562
-    },
-    {
-      "id": "desert-entry-platform-23",
-      "sectionId": "desert-entry",
-      "width": 192,
-      "height": 18,
-      "label": "editable platform",
-      "invisible": true,
-      "layer": "platform",
-      "x": 2419,
-      "y": 465
     },
     {
       "id": "desert-entry-platform-24",
@@ -2100,7 +2067,10 @@ const journeyPlacementOverrides = {
     "lost-bridge-slab-1",
     "lost-bridge-approach-step-3",
     "mummification-chamber-far-left-ground-shelf",
-    "lost-bridge-recovery-step-1"
+    "lost-bridge-recovery-step-1",
+    "desert-entry-platform-21",
+    "desert-entry-platform-23",
+    "desert-entry-platform-18"
   ],
   "hazards": [
     {
