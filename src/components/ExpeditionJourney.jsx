@@ -464,7 +464,7 @@ const ARRIVAL_THRESHOLD_BACKGROUND_SRC = 'assets/expedition/backgrounds/arrival-
 const ARRIVAL_THRESHOLD_ASSET_VERSION = 'arrival-threshold-final-art-2026-06-08';
 
 // Ravine Bridge painted art (chroma-keyed cutouts + transparent floor/ravine blend).
-const LOST_BRIDGE_ASSET_VERSION = 'lost-bridge-art-2026-06-10b';
+const LOST_BRIDGE_ASSET_VERSION = 'lost-bridge-art-2026-06-10c';
 const LOST_BRIDGE_ASSET_DIR = 'assets/expedition/environment/egypt-opening/lost-bridge/';
 const LOST_BRIDGE_STRUCTURE_SRC = `${LOST_BRIDGE_ASSET_DIR}lost-bridge-structure-cutout-2026-06-08.png`;
 const LOST_BRIDGE_RAVINE_FLOOR_VARIANT_SRCS = {
@@ -472,6 +472,7 @@ const LOST_BRIDGE_RAVINE_FLOOR_VARIANT_SRCS = {
   lostBridgeRavineFloorWide: `${LOST_BRIDGE_ASSET_DIR}lost-bridge-ravine-test-wide-2026-06-09.png`,
   lostBridgeRavineFloorDeep: `${LOST_BRIDGE_ASSET_DIR}lost-bridge-ravine-test-deep-2026-06-09.png`,
   lostBridgeRavineFloorTallWide: `${LOST_BRIDGE_ASSET_DIR}lost-bridge-ravine-test-tall-wide-2026-06-09.png`,
+  lostBridgeRavineFinal: `${LOST_BRIDGE_ASSET_DIR}lost-bridge-ravine-final-2026-06-10.png`,
 };
 const LOST_BRIDGE_RAVINE_FLOOR_ASSET_KEYS = new Set(Object.keys(LOST_BRIDGE_RAVINE_FLOOR_VARIANT_SRCS));
 const LOST_BRIDGE_PIECE_SRCS = {

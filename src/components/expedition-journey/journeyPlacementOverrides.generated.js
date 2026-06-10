@@ -1198,10 +1198,10 @@ const journeyPlacementOverrides = {
       "id": "desert-entry-lost-bridge-ravine-floor-deep-1",
       "sectionId": "desert-entry",
       "type": "image-prop",
-      "imageAssetKey": "lostBridgeRavineFloorDeep",
-      "assetPath": "assets/expedition/environment/egypt-opening/lost-bridge/lost-bridge-ravine-test-deep-2026-06-09.png",
+      "imageAssetKey": "lostBridgeRavineFinal",
+      "assetPath": "assets/expedition/environment/egypt-opening/lost-bridge/lost-bridge-ravine-final-2026-06-10.png",
       "width": 1530,
-      "height": 535,
+      "height": 858,
       "scale": 1,
       "layer": "background",
       "depth": "background",
@@ -1215,7 +1215,7 @@ const journeyPlacementOverrides = {
       "brightness": 0.96,
       "x": 3616,
       "y": 736,
-      "label": "lost bridge ravine floor - deep",
+      "label": "lost bridge ravine - final",
       "mirrorX": true
     },
     {
