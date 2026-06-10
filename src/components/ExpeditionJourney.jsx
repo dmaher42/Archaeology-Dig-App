@@ -464,7 +464,7 @@ const ARRIVAL_THRESHOLD_BACKGROUND_SRC = 'assets/expedition/backgrounds/arrival-
 const ARRIVAL_THRESHOLD_ASSET_VERSION = 'arrival-threshold-final-art-2026-06-08';
 
 // Ravine Bridge painted art (chroma-keyed cutouts + transparent floor/ravine blend).
-const LOST_BRIDGE_ASSET_VERSION = 'lost-bridge-art-2026-06-09b';
+const LOST_BRIDGE_ASSET_VERSION = 'lost-bridge-art-2026-06-10';
 const LOST_BRIDGE_ASSET_DIR = 'assets/expedition/environment/egypt-opening/lost-bridge/';
 const LOST_BRIDGE_STRUCTURE_SRC = `${LOST_BRIDGE_ASSET_DIR}lost-bridge-structure-cutout-2026-06-08.png`;
 const LOST_BRIDGE_RAVINE_FLOOR_VARIANT_SRCS = {
