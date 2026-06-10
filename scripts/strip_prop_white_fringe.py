@@ -7,7 +7,12 @@ edge, very light, and low-saturation gets its alpha reduced (and its colour
 pulled slightly toward a sand tone so partially-kept pixels don't glow).
 
 Usage:
-    python scripts/strip_prop_white_fringe.py <image.png> [more.png ...]
+    python scripts/strip_prop_white_fringe.py [--grey-halo] <image.png> [more.png ...]
+
+--grey-halo additionally removes the 1-2px desaturated grey ring that
+white-background anti-aliasing leaves around a sprite (grey = light-ish AND
+low saturation right at the silhouette). Opt-in because it would eat the
+edges of genuinely grey/stone-coloured art.
 
 Overwrites the input file(s); rely on git for the original.
 """
@@ -34,7 +39,16 @@ def clamp01(v):
     return 0.0 if v < 0.0 else 1.0 if v > 1.0 else v
 
 
-def strip_fringe(path):
+# --grey-halo: pixels this close to the edge that are light-ish and
+# desaturated get faded as white-AA remnants.
+GREY_BAND = 2
+GREY_LUM_LO = 110.0
+GREY_LUM_HI = 180.0
+GREY_SAT_LO = 0.10
+GREY_SAT_HI = 0.25
+
+
+def strip_fringe(path, grey_halo=False):
     im = Image.open(path).convert("RGBA")
     w, h = im.size
     px = im.load()
@@ -68,6 +82,15 @@ def strip_fringe(path):
             whiteness = clamp01((lum - LUM_LO) / (LUM_HI - LUM_LO))
             proximity = clamp01((EDGE_BAND + 1 - d) / EDGE_BAND) ** 0.7
             k = whiteness * proximity
+            if grey_halo and d <= GREY_BAND:
+                hi = max(r, g, b)
+                sat = 0.0 if hi == 0 else (hi - min(r, g, b)) / hi
+                greyness = (
+                    clamp01((lum - GREY_LUM_LO) / (GREY_LUM_HI - GREY_LUM_LO))
+                    * clamp01((GREY_SAT_HI - sat) / (GREY_SAT_HI - GREY_SAT_LO))
+                    * (1.0 if d == 1 else 0.6)
+                )
+                k = max(k, greyness)
             if k <= 0.0 and d > 1:
                 continue
             new_a = int(round(a * (1.0 - k)))
@@ -89,7 +112,10 @@ def strip_fringe(path):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
+    args = sys.argv[1:]
+    grey = "--grey-halo" in args
+    paths = [a for a in args if a != "--grey-halo"]
+    if not paths:
         sys.exit(__doc__)
-    for p in sys.argv[1:]:
-        strip_fringe(p)
+    for p in paths:
+        strip_fringe(p, grey_halo=grey)
