@@ -17094,15 +17094,12 @@ export default function ExpeditionJourney({
       ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
       ctx.shadowBlur = 3;
       ctx.strokeStyle = selected ? 'rgba(72, 187, 205, 0.9)' : 'rgba(72, 187, 205, 0.5)';
-      ctx.fillStyle = 'rgba(72, 187, 205, 0.05)';
       ctx.lineWidth = selected ? 3 : 1.5;
       ctx.setLineDash(selected ? [] : [6, 5]);
       ctx.strokeRect(bounds.x, bounds.y, bounds.width, bounds.height);
       ctx.restore();
       if (selected) {
         drawEditorSelectionCorners(ctx, bounds, 'rgba(72, 187, 205, 0.92)');
-      } else {
-        ctx.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
       }
     });
     const selectedProp = getPropEditorSelectedProp(current);

@@ -921,6 +921,7 @@ test('journey prop editor overlay does not wash selected assets', () => {
   assert.match(overlaySource, /drawEditorSelectionLabel/);
   assert.match(propOverlaySource, /if \(selected\) \{[\s\S]*?drawEditorSelectionCorners/);
   assert.doesNotMatch(selectedPropBranchSource, /fillRect/);
+  assert.doesNotMatch(propOverlaySource, /ctx\.fillRect\(bounds\.x, bounds\.y, bounds\.width, bounds\.height\)/);
   assert.doesNotMatch(propOverlaySource, /selected\s*\?\s*'rgba\([^']+0\.1[2-9]/);
 });
 
