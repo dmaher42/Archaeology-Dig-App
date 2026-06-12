@@ -27,6 +27,123 @@ export {
 
 export const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
+export const isJourneyProgressRouteGate = (gate = {}) => (
+  Boolean(gate?.id)
+  && Number.isFinite(gate.x)
+  && Boolean(gate.requires)
+  && Object.keys(gate.requires).length > 0
+);
+
+const getRouteGateRightEdge = gate => (
+  gate.x + Math.max(1, Number.isFinite(gate.width) ? gate.width : 0)
+);
+
+const getRouteGateCenterX = gate => (
+  gate.x + Math.max(1, Number.isFinite(gate.width) ? gate.width : 0) / 2
+);
+
+export const getNextJourneyRouteGate = (routeGates = [], current = {}) => {
+  const openedRouteGateIds = current?.openedRouteGateIds;
+  const playerX = Number.isFinite(current?.player?.x) ? current.player.x : -Infinity;
+  const playerWidth = Number.isFinite(current?.player?.width) ? current.player.width : 0;
+  const playerCenterX = playerX + playerWidth / 2;
+  const candidates = Array.from(routeGates || [])
+    .filter(isJourneyProgressRouteGate)
+    .filter(gate => !openedRouteGateIds?.has?.(gate.id));
+
+  const aheadGate = candidates.find(gate => (
+    getRouteGateRightEdge(gate) >= playerCenterX - 12
+  ));
+  if (aheadGate) return aheadGate;
+
+  return candidates
+    .slice()
+    .sort((a, b) => (
+      Math.abs(getRouteGateCenterX(a) - playerCenterX) - Math.abs(getRouteGateCenterX(b) - playerCenterX)
+    ))[0] || null;
+};
+
+export const getJourneyCameraXForWorldX = (worldX, cameraAnchorRatio = 0.42, canvasWidth = 960, worldWidth = Infinity) => {
+  const maxCameraX = Number.isFinite(worldWidth) && Number.isFinite(canvasWidth)
+    ? Math.max(0, worldWidth - canvasWidth)
+    : Infinity;
+  return clamp(worldX - canvasWidth * cameraAnchorRatio, 0, maxCameraX);
+};
+
+export const resolveJourneyChamberEntryTrigger = ({
+  door = {},
+  route = null,
+  platform = null,
+} = {}) => {
+  const fallback = door?.trigger;
+  if (!fallback) return null;
+  if (!route && !platform) return fallback;
+
+  const fallbackWidth = Math.max(1, (fallback.maxX || 0) - (fallback.minX || 0));
+  const routeLeft = Number.isFinite(route?.x) ? route.x : -Infinity;
+  const routeRight = Number.isFinite(route?.x) && Number.isFinite(route?.width)
+    ? route.x + route.width
+    : Infinity;
+  const platformLeft = Number.isFinite(platform?.x) ? platform.x : null;
+  const platformRight = platformLeft !== null && Number.isFinite(platform?.width)
+    ? platform.x + platform.width
+    : null;
+  const sourceLeft = platformLeft ?? (Number.isFinite(route?.x) ? route.x : fallback.minX);
+  const sourceRight = platformRight ?? (
+    Number.isFinite(route?.x) && Number.isFinite(route?.width)
+      ? route.x + route.width
+      : fallback.maxX
+  );
+  const padding = Math.max(24, Math.min(52, fallbackWidth * 0.18));
+  let minX = sourceLeft - padding;
+  let maxX = sourceRight + padding;
+  if (route) {
+    minX = Math.max(minX, routeLeft);
+    maxX = Math.min(maxX, routeRight);
+  }
+  if (!(maxX > minX)) {
+    minX = fallback.minX;
+    maxX = fallback.maxX;
+  }
+
+  return {
+    ...fallback,
+    minX,
+    maxX,
+    footY: Number.isFinite(platform?.y) ? platform.y : fallback.footY,
+    footTolerance: Math.max(fallback.footTolerance || 0, Number.isFinite(platform?.height) ? platform.height + 6 : 0),
+    routeId: door.routeId || null,
+    entryPlatformId: door.entryPlatformId || null,
+  };
+};
+
+export const resolveJourneyChamberReturnPoint = ({
+  door = {},
+  route = null,
+  platform = null,
+  direction = 1,
+  exteriorSceneId = 'egypt-exterior-route',
+  canvasWidth = 960,
+  worldWidth = Infinity,
+} = {}) => {
+  const fallback = door?.returnFallback || {};
+  const trigger = resolveJourneyChamberEntryTrigger({ door, route, platform });
+  const x = trigger
+    ? (trigger.minX + trigger.maxX) / 2
+    : fallback.x;
+  const y = Number.isFinite(trigger?.footY) ? trigger.footY : fallback.y;
+  const cameraAnchorRatio = fallback.cameraAnchorRatio;
+
+  return {
+    sceneId: exteriorSceneId,
+    x,
+    y,
+    direction: direction || fallback.direction || 1,
+    cameraAnchorRatio,
+    cameraX: getJourneyCameraXForWorldX(x, cameraAnchorRatio ?? 0.42, canvasWidth, worldWidth),
+  };
+};
+
 export const DEFAULT_JOURNEY_PROP_EDITOR_GRID_SIZE = 16;
 export const DEFAULT_JOURNEY_PROP_EDITOR_SCALE_STEP = 0.1;
 export const DEFAULT_JOURNEY_PROP_EDITOR_ROTATION_STEP = 5;
@@ -1079,8 +1196,7 @@ export const ENEMY_HITBOX_PROFILES = {
     hurt: { widthScale: 1.38, heightScale: 0.96, minWidth: 40, minHeight: 24, footInset: 0 },
   },
   scorpion: {
-    damage: { widthScale: 1.74, heightScale: 6.8, minWidth: 66, minHeight: 190, footInset: -2 },
-    blocker: { widthScale: 1.86, heightScale: 7.4, minWidth: 72, minHeight: 220, footInset: -2 },
+    damage: { widthScale: 1.6, heightScale: 1.1, minWidth: 56, minHeight: 34, footInset: -2 },
     stomp: { disabled: true },
     hurt: { widthScale: 1.46, heightScale: 1.06, minWidth: 52, minHeight: 32, footInset: 0 },
   },
@@ -1228,12 +1344,6 @@ export const getEnemyStompHitbox = (enemy) => {
   };
 };
 
-export const getEnemyMovementBlockHitbox = (enemy) => {
-  const profile = getEnemyHitboxProfile(enemy)?.blocker;
-  if (!profile) return null;
-  return buildEnemyHitbox(enemy, profile);
-};
-
 export const getEnemyAttackHurtbox = (enemy, { boss = false } = {}) => {
   if (boss) {
     const insetX = Math.max(6, enemy.width * 0.1);
@@ -1287,6 +1397,12 @@ const tuneEnemyHealth = (enemy) => {
     const tunedHealth = Math.max(3, enemy.health) * COMBAT_DAMAGE_SCALE;
     return enemy.type === 'scorpion' ? Math.ceil(tunedHealth * 1.5) : tunedHealth;
   }
+  // Authored health of 4+ is an explicit light-hit count (Rome's gladiators run 5-7 and
+  // golems 8-10); the small-enemy clamp below would flatten all of them to 5 hits.
+  if (enemy.health >= 4) {
+    const tunedHealth = Math.min(10, enemy.health) * COMBAT_DAMAGE_SCALE;
+    return enemy.type === 'scorpion' ? Math.ceil(tunedHealth * 1.5) : tunedHealth;
+  }
   const bonus = ENEMY_TOUGHNESS_BONUS[enemy.type] ?? 1;
   const tunedHealth = clamp(Math.max(enemy.health + bonus, Math.ceil(enemy.health * 1.55)), 3, 5) * COMBAT_DAMAGE_SCALE;
   if (enemy.type === 'scorpion') return Math.ceil(tunedHealth * 1.5);
@@ -1295,9 +1411,12 @@ const tuneEnemyHealth = (enemy) => {
 
 const tuneEnemyDamage = (enemy) => {
   if (enemy.firstSealRouteRamp) return Math.max(1, enemy.damage);
+  // Late-game inflation is deliberately mild: with heavy attacks now resolving at their
+  // 1.5-1.8x damage scales, normal hits should land ~19-33 of the 100 Endurance pool and
+  // heavies top out near half the bar instead of one-shotting it.
   return enemy.openingRouteRamp
     ? Math.max(enemy.damage + 1, Math.ceil(enemy.damage * 1.3))
-    : Math.max(enemy.damage + 5, Math.ceil(enemy.damage * 1.65));
+    : Math.max(enemy.damage + 3, Math.ceil(enemy.damage * 1.35));
 };
 
 const makeStepProfile = (entity, { boss = false } = {}) => {
@@ -1328,17 +1447,11 @@ export const getHazardHitbox = (hazard) => insetRect(getJourneyTrapTriggerRect(h
   bottom: Math.min(JOURNEY_HITBOX_TUNING.hazard.bottomInset, hazard.height / 3),
 });
 
+// Body contact is deliberately harmless (attacks and stomps are the only ways enemies and
+// the player hurt each other); the 'damage' result here only supplies the knockback
+// direction when an attack swing lands while the bodies overlap.
 export const resolveEnemyContact = (player, previousPlayer, enemy) => {
   if (enemy.defeated) return { type: 'none' };
-  const movementBlockHitbox = getEnemyMovementBlockHitbox(enemy);
-  if (movementBlockHitbox && rectsOverlap(getPlayerBodyHitbox(player), movementBlockHitbox)) {
-    return {
-      type: 'damage',
-      direction: (player.x + player.width / 2) >= (enemy.x + enemy.width / 2) ? 1 : -1,
-      blocked: true,
-    };
-  }
-
   const playerFeet = getPlayerFeetHitbox(player);
   const previousFeetY = previousPlayer.y + previousPlayer.height;
   if (
@@ -1466,8 +1579,10 @@ export const makeEnemy = (enemy) => ({
 export const makeMiniBoss = (boss) => ({
   ...boss,
   direction: 1,
-  health: Math.max(boss.health + 1, Math.ceil(boss.health * 1.35)) * COMBAT_DAMAGE_SCALE,
-  maxHealth: Math.max(boss.health + 1, Math.ceil(boss.health * 1.35)) * COMBAT_DAMAGE_SCALE,
+  // Bosses take typed player damage (light 10 / finisher 30), so HP runs deeper than the
+  // old flat-10-per-hit pool: authored 1-3 health maps to 40-60 effective HP.
+  health: Math.max(boss.health + 2, Math.ceil(boss.health * 1.8)) * COMBAT_DAMAGE_SCALE,
+  maxHealth: Math.max(boss.health + 2, Math.ceil(boss.health * 1.8)) * COMBAT_DAMAGE_SCALE,
   damage: Math.max(boss.damage + 2, Math.ceil(boss.damage * 1.3)),
   defeated: false,
   awakened: false,

@@ -49,7 +49,7 @@ export const PLATFORMS = [
   { id: 'mummification-chamber-far-left-ground-shelf', x: MUMMIFICATION_EXTERIOR_X(563), y: JY(175), width: 176, height: 18, label: 'invisible far left ground shelf on the Mummification Chamber exterior', secret: true, invisible: true },
   { id: 'mummification-chamber-right-low-landing', x: MUMMIFICATION_EXTERIOR_X(724), y: JY(240), width: 197, height: 18, label: 'invisible right low landing on the Mummification Chamber exterior', secret: true, invisible: true },
   { id: 'mummification-chamber-central-left-shelf', x: MUMMIFICATION_EXTERIOR_X(657), y: JY(148), width: 210, height: 18, label: 'invisible central left shelf on the Mummification Chamber exterior', secret: true, invisible: true },
-  { id: 'mummification-chamber-right-stair-landing', x: MUMMIFICATION_EXTERIOR_X(701), y: JY(135), width: 155, height: 18, label: 'invisible right stair landing on the Mummification Chamber exterior', secret: true, invisible: true },
+  { id: 'mummification-chamber-right-stair-landing', x: MUMMIFICATION_EXTERIOR_X(701), y: JY(135), width: 155, height: 18, label: 'invisible right middle ledge on the Mummification Chamber exterior', secret: true, invisible: true },
   { id: 'mummification-chamber-left-lower-terrace', x: MUMMIFICATION_EXTERIOR_X(586), y: JY(115), width: 311, height: 18, label: 'invisible left lower terrace on the Mummification Chamber exterior', secret: true, invisible: true },
   { id: 'mummification-chamber-central-drop-slab', x: MUMMIFICATION_EXTERIOR_X(681), y: JY(55), width: 192, height: 18, label: 'invisible central drop slab on the Mummification Chamber exterior', secret: true, invisible: true },
   { id: 'mummification-chamber-carved-lower-ledge', x: MUMMIFICATION_EXTERIOR_X(708), y: JY(0), width: 212, height: 18, label: 'invisible carved lower ledge on the Mummification Chamber exterior', secret: true, invisible: true },
@@ -381,7 +381,7 @@ export const CHINA_ENEMIES = [
 ];
 
 const RELIC_SHARD_LAYOUT = [
-  { x: 300, y: 320 }, { x: 445, y: 274 }, { x: 590, y: 226 }, { x: 760, y: 320 },
+  { x: 300, y: 320 }, { x: 525, y: 130 }, { x: 590, y: 226 }, { x: 760, y: 320 },
   { x: 940, y: 320 }, { x: 1010, y: 320 }, { x: 1295, y: 242 }, { x: 1490, y: 320 },
   1660, 1760, 1840, 2020, 2265, 2360, 2440, 2600, 2835,
   3015, 3260, 3430, 3615, 3765, 3925, 4210, 4360, 4565, 4720, 4890, 5165, 5320,
@@ -1021,11 +1021,11 @@ export const OBJECTIVE_MARKERS = [
 ];
 
 export const MINI_BOSSES = [
-  { id: 'scarab-queen', sectionId: 'desert-entry', name: 'Scarab Queen', type: 'scarab', x: X(2150), y: JY(318), width: 58, height: 42, patrolMin: X(2090), patrolMax: X(2215), speed: 66, health: 1, damage: 4, shards: 6, intro: 'Buried Lair: Scarab Queen. The buried scarab lair splits open beneath the sand. The Scarab Queen rises as the first trial of Anubis. The site will not yield easily.', dialogue: 'The buried scarab lair splits open beneath the sand. The Scarab Queen rises as the first trial of Anubis. The site will not yield easily.', domainName: 'First Guardian Domain', arenaStart: X(2020), arenaEnd: X(2235) },
-  { id: 'temple-guardian', sectionId: 'ruined-temple', name: 'Anubis', type: 'guardian', x: X(3820), y: JY(306), width: 54, height: 54, patrolMin: X(3720), patrolMax: X(3920), speed: 58, health: 2, damage: 6, shards: 8, intro: 'Guardian Encounter: Anubis. Anubis stands at the temple path. Only those who move with respect may pass.', dialogue: 'Anubis stands at the temple path. Only those who move with respect may pass.', domainName: 'Anubis Gate', arenaStart: X(3645), arenaEnd: X(3950) },
-  { id: 'giant-serpent', sectionId: 'catacombs', name: 'The Uraeus', type: 'snake', x: X(5720), y: JY(308), width: 72, height: 52, patrolMin: X(5590), patrolMax: X(5825), speed: 70, health: 2, damage: 6, shards: 8, intro: 'Guardian Encounter: The Uraeus. The Uraeus coils around the sacred seal. The path forward is protected.', dialogue: 'The Uraeus coils around the sacred seal. The path forward is protected.', domainName: 'Uraeus Seal Domain', arenaStart: X(5485), arenaEnd: X(5845) },
-  { id: 'looter-captain', sectionId: 'escape-sequence', name: 'Bes', type: 'bes', x: X(7190), y: JY(306), width: 54, height: 54, patrolMin: X(7060), patrolMax: X(7295), speed: 86, health: 2, damage: 6, shards: 8, intro: 'Guardian Encounter: Bes. Bes blocks the broken passage with a fierce grin. This place will not be rushed.', dialogue: 'Bes blocks the broken passage with a fierce grin. This place will not be rushed.', domainName: 'Bes Trial', arenaStart: X(6970), arenaEnd: X(7320) },
-  { id: 'ancient-construct', sectionId: 'dig-site-entrance', name: 'The Sphinx', type: 'statue', x: X(8610), y: JY(300), width: 62, height: 60, patrolMin: X(8510), patrolMax: X(8795), speed: 54, health: 3, damage: 7, shards: 10, intro: 'Guardian Encounter: The Sphinx. The Sphinx rises before the expedition site. These artefacts are protected for a reason.', dialogue: 'The Sphinx rises before the expedition site. These artefacts are protected for a reason.', domainName: 'Sphinx Gate', arenaStart: X(8420), arenaEnd: X(8810) },
+  { id: 'scarab-queen', sectionId: 'desert-entry', name: 'Scarab Queen', type: 'scarab', x: X(2150), y: JY(318), width: 58, height: 42, patrolMin: X(2090), patrolMax: X(2215), speed: 66, health: 2, damage: 7, shards: 6, intro: 'Buried Lair: Scarab Queen. The buried scarab lair splits open beneath the sand. The Scarab Queen rises as the first trial of Anubis. The site will not yield easily.', dialogue: 'The buried scarab lair splits open beneath the sand. The Scarab Queen rises as the first trial of Anubis. The site will not yield easily.', domainName: 'First Guardian Domain', arenaStart: X(2020), arenaEnd: X(2235) },
+  { id: 'temple-guardian', sectionId: 'ruined-temple', name: 'Anubis', type: 'guardian', x: X(3820), y: JY(306), width: 54, height: 54, patrolMin: X(3720), patrolMax: X(3920), speed: 58, health: 2, damage: 11, shards: 8, intro: 'Guardian Encounter: Anubis. Anubis stands at the temple path. Only those who move with respect may pass.', dialogue: 'Anubis stands at the temple path. Only those who move with respect may pass.', domainName: 'Anubis Gate', arenaStart: X(3645), arenaEnd: X(3950) },
+  { id: 'giant-serpent', sectionId: 'catacombs', name: 'The Uraeus', type: 'snake', x: X(5720), y: JY(308), width: 72, height: 52, patrolMin: X(5590), patrolMax: X(5825), speed: 70, health: 2, damage: 11, shards: 8, intro: 'Guardian Encounter: The Uraeus. The Uraeus coils around the sacred seal. The path forward is protected.', dialogue: 'The Uraeus coils around the sacred seal. The path forward is protected.', domainName: 'Uraeus Seal Domain', arenaStart: X(5485), arenaEnd: X(5845) },
+  { id: 'looter-captain', sectionId: 'escape-sequence', name: 'Bes', type: 'bes', x: X(7190), y: JY(306), width: 54, height: 54, patrolMin: X(7060), patrolMax: X(7295), speed: 86, health: 2, damage: 11, shards: 8, intro: 'Guardian Encounter: Bes. Bes blocks the broken passage with a fierce grin. This place will not be rushed.', dialogue: 'Bes blocks the broken passage with a fierce grin. This place will not be rushed.', domainName: 'Bes Trial', arenaStart: X(6970), arenaEnd: X(7320) },
+  { id: 'ancient-construct', sectionId: 'dig-site-entrance', name: 'The Sphinx', type: 'statue', x: X(8610), y: JY(300), width: 62, height: 60, patrolMin: X(8510), patrolMax: X(8795), speed: 54, health: 3, damage: 14, shards: 10, intro: 'Guardian Encounter: The Sphinx. The Sphinx rises before the expedition site. These artefacts are protected for a reason.', dialogue: 'The Sphinx rises before the expedition site. These artefacts are protected for a reason.', domainName: 'Sphinx Gate', arenaStart: X(8420), arenaEnd: X(8810) },
 ];
 
 export const CHINA_MINI_BOSSES = [
@@ -1210,8 +1210,17 @@ export const STORY_PROPS = [
     depth: 'background',
     alpha: 1,
     layer: 'background',
-    groundContactLayer: [],
-    label: 'generated Mummification Chamber exterior with bottom secret entrance, climbable sandstone ledges, damaged stairs, torches, and glowing hieroglyphs',
+    groundContactLayer: [
+      { layer: 'underlay', assetKey: 'premiumRubbleContactShadow', xRatio: 0.5, widthRatio: 0.9, height: 68, yOffset: -48, alpha: 0.54, filter: 'sepia(18%) saturate(88%) brightness(66%) contrast(112%)' },
+      { layer: 'underlay', assetKey: 'premiumBrokenMasonryFooting', xRatio: 0.27, widthRatio: 0.32, height: 72, yOffset: -72, alpha: 0.4, rotation: -2, filter: 'sepia(12%) saturate(90%) brightness(82%) contrast(106%)' },
+      { layer: 'underlay', assetKey: 'premiumBrokenMasonryFooting', xRatio: 0.78, widthRatio: 0.34, height: 72, yOffset: -70, alpha: 0.38, rotation: 3, mirrorX: true, filter: 'sepia(12%) saturate(88%) brightness(80%) contrast(104%)' },
+      { layer: 'overlay', assetKey: 'premiumRubbleMoundBlend', xRatio: 0.52, widthRatio: 0.68, height: 88, yOffset: -78, alpha: 0.54, rotation: -1, filter: 'sepia(12%) saturate(88%) brightness(86%) contrast(100%)' },
+      { layer: 'overlay', assetKey: 'premiumLowSedimentRibbon', xRatio: 0.26, widthRatio: 0.42, height: 42, yOffset: -38, alpha: 0.58, rotation: -1, filter: 'sepia(10%) saturate(86%) brightness(94%) contrast(94%)' },
+      { layer: 'overlay', assetKey: 'premiumLowSedimentRibbon', xRatio: 0.75, widthRatio: 0.42, height: 40, yOffset: -36, alpha: 0.54, rotation: 2, mirrorX: true, filter: 'sepia(10%) saturate(86%) brightness(94%) contrast(94%)' },
+      { layer: 'overlay', assetKey: 'premiumSmallStoneScatter', xRatio: 0.17, widthRatio: 0.22, height: 38, yOffset: -54, alpha: 0.58, rotation: 4, filter: 'sepia(10%) saturate(86%) brightness(90%) contrast(98%)' },
+      { layer: 'overlay', assetKey: 'premiumSmallStoneScatter', xRatio: 0.83, widthRatio: 0.22, height: 38, yOffset: -54, alpha: 0.56, rotation: -5, mirrorX: true, filter: 'sepia(10%) saturate(86%) brightness(90%) contrast(98%)' },
+    ],
+    label: 'production Mummification Chamber exterior with high doorway, climbable sandstone ledges, deep doorway shadow, torches, and grounded rubble base',
   },
   {
     id: 'mummification-body-restoration-cue',

@@ -100,13 +100,14 @@ test('scorpion sting is a high anti-jump attack that hits harder through existin
   assert.match(journeyComponentSource, /Math\.max\(e\.damage, Math\.round\(e\.damage \* \(pattern\.damageScale \|\| 1\)\)\)/);
 });
 
-test('scorpion tail blocks movement until defeated instead of allowing stomp bypass', () => {
-  assert.match(journeyUtilsSource, /scorpion:\s*\{[\s\S]*?blocker:\s*\{[\s\S]*?minHeight:\s*220/);
+test('scorpion denies stomps while body contact stays deliberately harmless', () => {
   assert.match(journeyUtilsSource, /scorpion:\s*\{[\s\S]*?stomp:\s*\{\s*disabled:\s*true\s*\}/);
-  assert.match(journeyUtilsSource, /export const getEnemyMovementBlockHitbox = \(enemy\) =>/);
-  assert.match(journeyUtilsSource, /if \(enemy\.defeated\) return \{ type: 'none' \};[\s\S]*?const movementBlockHitbox = getEnemyMovementBlockHitbox\(enemy\);/);
-  assert.match(journeyUtilsSource, /movementBlockHitbox && rectsOverlap\(getPlayerBodyHitbox\(player\), movementBlockHitbox\)/);
-  assert.match(journeyUtilsSource, /blocked:\s*true/);
+  // Body contact is harmless by design (attacks and stomps are the only damage paths),
+  // so no movement-blocker hitbox machinery should remain.
+  assert.doesNotMatch(journeyUtilsSource, /getEnemyMovementBlockHitbox/);
+  assert.match(journeyUtilsSource, /Body contact is deliberately harmless/);
+  // Jump-overs are punished by the raised sting attack box, not by a body blocker.
+  assert.match(journeyComponentSource, /scorpion:\s*\{[\s\S]*?height:\s*58,\s*yOffset:\s*-34/);
 });
 
 test('warrior mummy sprite draw box resolves as a grounded humanoid enemy', () => {

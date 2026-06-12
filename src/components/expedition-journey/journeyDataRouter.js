@@ -14,6 +14,7 @@ const EgyptEditorPlacementData = applyJourneyPlacementOverrides({
   hazards: EgyptData.HAZARDS,
   routeGates: EgyptData.ROUTE_GATES,
   routeGateDoorways: EgyptData.ROUTE_GATE_DOORWAYS,
+  hiddenRoutes: EgyptData.HIDDEN_ROUTES,
   checkpoints: EgyptData.CHECKPOINTS,
   miniBosses: EgyptData.MINI_BOSSES,
 }, journeyPlacementOverrides);
@@ -59,7 +60,7 @@ export const STORY_PROPS = makeProxy(EgyptPlacementData.props, ChinaData.CHINA_S
 export const SECTION_ATMOSPHERES = makeProxy(EgyptData.SECTION_ATMOSPHERES, ChinaData.CHINA_SECTION_ATMOSPHERES, RomeData.ROME_SECTION_ATMOSPHERES);
 export const CHECKPOINTS = makeProxy(EgyptPlacementData.checkpoints, ChinaData.CHINA_CHECKPOINTS, RomeData.ROME_CHECKPOINTS);
 export const ENVIRONMENT_INTERACTIONS = makeProxy(EgyptData.ENVIRONMENT_INTERACTIONS, ChinaData.CHINA_ENVIRONMENT_INTERACTIONS, RomeData.ROME_ENVIRONMENT_INTERACTIONS);
-export const HIDDEN_ROUTES = makeProxy(EgyptData.HIDDEN_ROUTES, ChinaData.CHINA_HIDDEN_ROUTES, RomeData.ROME_HIDDEN_ROUTES);
+export const HIDDEN_ROUTES = makeProxy(EgyptPlacementData.hiddenRoutes, ChinaData.CHINA_HIDDEN_ROUTES, RomeData.ROME_HIDDEN_ROUTES);
 export const STAGE_ENTRANCE_FEATURES = makeProxy(EgyptData.STAGE_ENTRANCE_FEATURES, ChinaData.CHINA_STAGE_ENTRANCE_FEATURES, RomeData.ROME_STAGE_ENTRANCE_FEATURES);
 export const ENVIRONMENT_EVENTS = makeProxy(EgyptData.ENVIRONMENT_EVENTS, ChinaData.CHINA_ENVIRONMENT_EVENTS, RomeData.ROME_ENVIRONMENT_EVENTS);
 export const SECTION_OBJECTIVES = makeProxy(EgyptData.SECTION_OBJECTIVES, ChinaData.CHINA_SECTION_OBJECTIVES, RomeData.ROME_SECTION_OBJECTIVES);

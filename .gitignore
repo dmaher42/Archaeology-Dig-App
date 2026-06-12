@@ -16,6 +16,7 @@ dist-ssr
 .playwright-cli/
 output/
 scratch/sfx-source/
+scratch/tut-assets/
 test-results/
 
 # Editor directories and files

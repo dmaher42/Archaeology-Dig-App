@@ -87,7 +87,8 @@ const EXPEDITION_AUDIO_TRACKS = {
     jump: { path: 'assets/expedition/sfx/generated/land-soft.wav', volume: 0.3, playbackRate: 1.28 },
     land: {
       clips: [
-        { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/footstep_concrete_000.ogg', volume: 0.38, playbackRate: 0.72 },
+        { path: 'assets/expedition/sfx/sonniss/land-thud-body.ogg', volume: 0.32 },
+        { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/footstep_concrete_000.ogg', volume: 0.3, playbackRate: 0.72, delay: 24 },
         { path: 'assets/expedition/sfx/generated/land-soft.wav', volume: 0.22, delay: 18 },
       ],
     },
@@ -102,57 +103,79 @@ const EXPEDITION_AUDIO_TRACKS = {
         { path: 'assets/expedition/sfx/generated/relic-shard.wav', volume: 0.28, playbackRate: 0.96 },
         { path: 'assets/expedition/sfx/generated/metal-click.wav', volume: 0.16, delay: 70, playbackRate: 1.18 },
         { path: 'assets/expedition/sfx/generated/relic-shard.wav', volume: 0.14, delay: 125, playbackRate: 1.28 },
+        { path: 'assets/expedition/sfx/sonniss/coin-ting.ogg', volume: 0.14, delay: 40, playbackRate: 1.08 },
       ],
     },
     pickupUpgrade: { path: 'assets/expedition/sfx/generated/metal-click.wav', volume: 0.42, playbackRate: 0.92 },
-    gateUnlock: { path: 'assets/expedition/sfx/generated/stone-gate-open.wav', volume: 0.52 },
+    gateUnlock: {
+      clips: [
+        { path: 'assets/expedition/sfx/sonniss/mech-latch-thunk.ogg', volume: 0.5 },
+        { path: 'assets/expedition/sfx/generated/stone-gate-open.wav', volume: 0.52, delay: 140 },
+      ],
+    },
     gateBlocked: { path: 'assets/expedition/sfx/generated/stone-gate-blocked.wav', volume: 0.44 },
+    // Real blade recordings from the Sonniss GDC bundle (royalty-free,
+    // license PDF lives alongside the clips in sfx/sonniss/).
+    // sword-swing-deep is the blade recording pitched down with the ringy
+    // highs rolled off; sword-swing-blade stays as a quiet edge accent only.
     attackSwing: {
       synth: 'softSwing',
-      synthVolume: 1.3,
+      synthVolume: 0.6,
       cooldownMs: 260,
       clips: [
+        { path: 'assets/expedition/sfx/sonniss/sword-swing-deep.ogg', volume: 0.36 },
+        { path: 'assets/expedition/sfx/sonniss/sword-swing-blade.ogg', volume: 0.09 },
+        { path: 'assets/expedition/sfx/sonniss/sword-thud-body.ogg', volume: 0.2, delay: 60 },
         { path: 'assets/expedition/sfx/generated/satchel-leather.wav', volume: 0.12, delay: 32, playbackRate: 0.96 },
       ],
     },
     attackSwing1: {
       synth: 'softSwing',
-      synthVolume: 1.2,
+      synthVolume: 0.55,
       cooldownMs: 170,
       clips: [
+        { path: 'assets/expedition/sfx/sonniss/sword-swing-deep.ogg', volume: 0.34, playbackRate: 1.12 },
+        { path: 'assets/expedition/sfx/sonniss/sword-swing-blade.ogg', volume: 0.08, playbackRate: 1.12 },
+        { path: 'assets/expedition/sfx/sonniss/sword-thud-body.ogg', volume: 0.16, delay: 60, playbackRate: 1.1 },
         { path: 'assets/expedition/sfx/generated/satchel-leather.wav', volume: 0.1, delay: 28, playbackRate: 1.04 },
       ],
     },
     attackSwing2: {
       synth: 'softSwing',
-      synthVolume: 1.35,
+      synthVolume: 0.6,
       cooldownMs: 170,
       clips: [
+        { path: 'assets/expedition/sfx/sonniss/sword-heavy-swing.ogg', volume: 0.38, playbackRate: 0.94 },
+        { path: 'assets/expedition/sfx/sonniss/sword-thud-body.ogg', volume: 0.2, delay: 90, playbackRate: 0.9 },
         { path: 'assets/expedition/sfx/generated/satchel-leather.wav', volume: 0.12, delay: 24, playbackRate: 1.14 },
       ],
     },
     attackFinisher: {
       synth: 'softSwing',
-      synthVolume: 1.7,
+      synthVolume: 0.8,
       cooldownMs: 240,
       clips: [
+        { path: 'assets/expedition/sfx/sonniss/sword-slice-special.ogg', volume: 0.3 },
+        { path: 'assets/expedition/sfx/sonniss/sword-thud-body.ogg', volume: 0.26, delay: 90, playbackRate: 0.86 },
         { path: 'assets/expedition/sfx/generated/satchel-leather.wav', volume: 0.16, delay: 22, playbackRate: 0.86 },
-        { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/impactMetal_heavy_001.ogg', volume: 0.14, delay: 80, playbackRate: 0.72 },
+        { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/impactMetal_heavy_001.ogg', volume: 0.1, delay: 80, playbackRate: 0.72 },
       ],
     },
     attackMiss: {
       synth: 'softSwing',
-      synthVolume: 0.72,
+      synthVolume: 0.4,
       cooldownMs: 180,
       clips: [
+        { path: 'assets/expedition/sfx/sonniss/sword-swing-deep.ogg', volume: 0.22, playbackRate: 1.24 },
         { path: 'assets/expedition/sfx/generated/satchel-leather.wav', volume: 0.08, delay: 34, playbackRate: 1.28 },
       ],
     },
     dodgeStep: {
       cooldownMs: 130,
       clips: [
-        { path: 'assets/expedition/sfx/generated/land-soft.wav', volume: 0.18, playbackRate: 1.35 },
-        { path: 'assets/expedition/sfx/generated/satchel-leather.wav', volume: 0.08, delay: 34, playbackRate: 1.18 },
+        { path: 'assets/expedition/sfx/sonniss/dodge-whoosh-air.ogg', volume: 0.3 },
+        { path: 'assets/expedition/sfx/generated/land-soft.wav', volume: 0.16, playbackRate: 1.35, delay: 130 },
+        { path: 'assets/expedition/sfx/generated/satchel-leather.wav', volume: 0.1, delay: 60, playbackRate: 1.18 },
       ],
     },
     finisherHit: {
@@ -161,7 +184,8 @@ const EXPEDITION_AUDIO_TRACKS = {
       cooldownMs: 120,
       clips: [
         { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/impactPunch_heavy_000.ogg', volume: 0.34, playbackRate: 0.78 },
-        { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/impactBell_heavy_000.ogg', volume: 0.18, delay: 24, playbackRate: 0.92 },
+        { path: 'assets/expedition/sfx/sonniss/sword-thud-body.ogg', volume: 0.24, delay: 20, playbackRate: 0.82 },
+        { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/impactBell_heavy_000.ogg', volume: 0.08, delay: 24, playbackRate: 0.7 },
       ],
     },
     combatDeflect: {
@@ -293,6 +317,7 @@ const EXPEDITION_AUDIO_TRACKS = {
       cooldownMs: 130,
       clips: [
         { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/impactPlate_heavy_001.ogg', volume: 0.26, playbackRate: 0.90 },
+        { path: 'assets/expedition/sfx/sonniss/creature-exhale-short.ogg', volume: 0.24, delay: 30, playbackRate: 0.92 },
       ],
     },
     guardianHit: {
@@ -301,6 +326,7 @@ const EXPEDITION_AUDIO_TRACKS = {
       cooldownMs: 140,
       clips: [
         { path: 'assets/expedition/sfx/kenney_impact-sounds/Audio/impactMining_001.ogg', volume: 0.28, playbackRate: 0.84 },
+        { path: 'assets/expedition/sfx/sonniss/creature-exhale-short.ogg', volume: 0.18, delay: 36, playbackRate: 0.78 },
       ],
     },
     statueHit: {
@@ -331,6 +357,7 @@ const EXPEDITION_AUDIO_TRACKS = {
         { path: 'assets/expedition/sfx/opening/opening-deep-rumble.ogg', volume: 0.18, delay: 650, playbackRate: 0.44 },
         { path: 'assets/expedition/sfx/opening/opening-deep-rumble.ogg', volume: 0.13, delay: 4800, playbackRate: 0.38 },
         { path: 'assets/expedition/sfx/opening/opening-deep-rumble.ogg', volume: 0.11, delay: 9800, playbackRate: 0.34 },
+        { path: 'assets/expedition/sfx/sonniss/insectoid-tremble.ogg', volume: 0.22, delay: 1400, playbackRate: 0.82 },
       ],
     },
     earthPressurePulse: {

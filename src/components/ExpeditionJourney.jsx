@@ -127,6 +127,7 @@ import {
   getEnemyAttackHurtbox,
   getHazardHitbox,
   getJourneyTrapTriggerRect,
+  getNextJourneyRouteGate,
   getJourneyPropRoomId,
   getPlayerBodyHitbox,
   getSectionForX,
@@ -148,6 +149,8 @@ import {
   normalizeJourneyTrap,
   rectsOverlap,
   resolveEnemyContact,
+  resolveJourneyChamberEntryTrigger,
+  resolveJourneyChamberReturnPoint,
   snapJourneyPropCoordinate,
   updateJourneyTrapRuntime,
   updatePlayerAnimation,
@@ -464,7 +467,7 @@ const ARRIVAL_THRESHOLD_BACKGROUND_SRC = 'assets/expedition/backgrounds/arrival-
 const ARRIVAL_THRESHOLD_ASSET_VERSION = 'arrival-threshold-final-art-2026-06-08';
 
 // Ravine Bridge painted art (chroma-keyed cutouts + transparent floor/ravine blend).
-const LOST_BRIDGE_ASSET_VERSION = 'lost-bridge-art-2026-06-10d';
+const LOST_BRIDGE_ASSET_VERSION = 'lost-bridge-art-2026-06-10f';
 const LOST_BRIDGE_ASSET_DIR = 'assets/expedition/environment/egypt-opening/lost-bridge/';
 const LOST_BRIDGE_STRUCTURE_SRC = `${LOST_BRIDGE_ASSET_DIR}lost-bridge-structure-cutout-2026-06-08.png`;
 const LOST_BRIDGE_RAVINE_FLOOR_VARIANT_SRCS = {
@@ -474,8 +477,12 @@ const LOST_BRIDGE_RAVINE_FLOOR_VARIANT_SRCS = {
   lostBridgeRavineFloorTallWide: `${LOST_BRIDGE_ASSET_DIR}lost-bridge-ravine-test-tall-wide-2026-06-09.png`,
   lostBridgeRavineFinal: `${LOST_BRIDGE_ASSET_DIR}lost-bridge-ravine-final-2026-06-10.png`,
   lostBridgeRavineCrevasse: `${LOST_BRIDGE_ASSET_DIR}lost-bridge-ravine-crevasse-2026-06-10.png`,
+  lostBridgeRavineTempleGapOption2: `${LOST_BRIDGE_ASSET_DIR}lost-bridge-ravine-temple-gap-option2-2026-06-10.png`,
+  lostBridgeRavineDepthInsertOption3: `${LOST_BRIDGE_ASSET_DIR}lost-bridge-ravine-depth-insert-option3-2026-06-10.png`,
+  lostBridgeRavineUnderBridgeInsert: `${LOST_BRIDGE_ASSET_DIR}lost-bridge-ravine-under-bridge-insert-2026-06-10.png`,
 };
 const LOST_BRIDGE_RAVINE_FLOOR_ASSET_KEYS = new Set(Object.keys(LOST_BRIDGE_RAVINE_FLOOR_VARIANT_SRCS));
+const LOST_BRIDGE_RAVINE_NORMAL_IMAGE_PROP_KEYS = new Set(['lostBridgeRavineUnderBridgeInsert']);
 const LOST_BRIDGE_PIECE_SRCS = {
   slab: `${LOST_BRIDGE_ASSET_DIR}lost-bridge-deck-slab-cutout-2026-06-08.png`,
   landing: `${LOST_BRIDGE_ASSET_DIR}lost-bridge-end-landing-cutout-2026-06-08.png`,
@@ -511,6 +518,12 @@ const isLostBridgeRavineFloorProp = (prop = {}) => (
   prop.id === LOST_BRIDGE_RAVINE_FLOOR_PROP_ID
   || LOST_BRIDGE_RAVINE_FLOOR_ASSET_KEYS.has(prop.imageAssetKey)
 );
+const isLostBridgeRavineNormalImageProp = (prop = {}) => (
+  LOST_BRIDGE_RAVINE_NORMAL_IMAGE_PROP_KEYS.has(prop.imageAssetKey)
+);
+const isLostBridgeRavineSpecialRendererProp = (prop = {}) => (
+  isLostBridgeRavineFloorProp(prop) && !isLostBridgeRavineNormalImageProp(prop)
+);
 const isObsoleteLostBridgeRavineFloorEditorProp = (prop = {}) => (
   LOST_BRIDGE_OBSOLETE_RAVINE_FLOOR_PROP_IDS.has(prop.id)
 );
@@ -530,6 +543,7 @@ const LOST_BRIDGE_RAVINE_FALL_DEPTH = 88;
 const LOST_BRIDGE_RAVINE_FALL_SIDE_PAD = 210;
 const LOST_BRIDGE_RAVINE_BLEND_CLIP_TOP_OFFSET = 8;
 const LOST_BRIDGE_RAVINE_BLEND_CLIP_PAD = 44;
+const LOST_BRIDGE_RAVINE_THROAT_TOP_OFFSET = 86;
 const isLostBridgeStructureDeckPlatform = (platform = {}) => (
   (
     (platform.variant === 'lost-bridge' && LOST_BRIDGE_STRUCTURE_DECK_IDS.has(platform.id))
@@ -835,7 +849,7 @@ const ROUTE_GATE_FRONT_SRC = 'assets/expedition/environment/egypt-opening/route-
 const ROUTE_GATE_BACK_SRC = 'assets/expedition/environment/egypt-opening/route-gate-back.png';
 const ROUTE_GATE_SLAB_SRC = 'assets/expedition/environment/egypt-opening/route-gate-slab.png';
 const ROUTE_GATE_STANDALONE_PROP_COLOR_GRADE_FILTER = 'sepia(8%) saturate(100%) brightness(98%) contrast(106%)';
-const MUMMIFICATION_CHAMBER_EXTERIOR_SRC = 'assets/expedition/environment/desert-temple/mummification-chamber-exterior-climb-structure.png';
+const MUMMIFICATION_CHAMBER_EXTERIOR_SRC = 'assets/expedition/environment/desert-temple/mummification-chamber-exterior-ledged-building-2026-06-12.png';
 const MUMMIFICATION_CHAMBER_INTERIOR_SRC = 'assets/expedition/environment/desert-temple/mummification-chamber-interior-side-scroll-2026-05-31.png';
 const FORGOTTEN_MURAL_ALCOVE_CLIMB_STRUCTURE_SRC = 'assets/expedition/environment/desert-temple/forgotten-mural-alcove-climb-structure.png';
 const FORGOTTEN_MURAL_CHAMBER_SRC = 'assets/expedition/environment/desert-temple/forgotten-mural-chamber.png';
@@ -871,7 +885,7 @@ const OPENING_PYRAMID_ASSET_VERSION = 'opening-pyramid-climb-pack-2026-05-18';
 const ROUTE_GATE_ASSET_VERSION = 'imagegen-egypt-route-gate-arch-column-slab-2026-05-31';
 const OPENING_PYRAMID_FACADE_VERSION = 'opening-pyramid-facade-no-stairs-v2-2026-06-05';
 const OPENING_TOMB_STAIRWELL_VERSION = 'opening-tomb-stairwell-generated-2026-05-21';
-const MUMMIFICATION_CHAMBER_EXTERIOR_VERSION = 'imagegen-mummification-chamber-bridge-secret-exit-no-stairs-2026-06-09';
+const MUMMIFICATION_CHAMBER_EXTERIOR_VERSION = 'imagegen-mummification-ledged-building-production-2026-06-12';
 const MUMMIFICATION_CHAMBER_INTERIOR_VERSION = 'imagegen-mummification-chamber-side-scroll-puzzle-ready-2026-05-31';
 const FORGOTTEN_MURAL_ALCOVE_CLIMB_STRUCTURE_VERSION = 'imagegen-forgotten-mural-alcove-climb-structure-2026-05-24';
 const FORGOTTEN_MURAL_CHAMBER_VERSION = 'imagegen-forgotten-mural-chamber-2026-05-24';
@@ -1001,8 +1015,34 @@ const getAnubisRestorationReaction = (restorationStatus, current) => {
     || (restoredCount > 1 ? 'You keep choosing memory over speed.' : 'Do not mistake this for trust.');
 };
 const OPENING_PYRAMID_FACADE_WORLD_LEFT_X = -82;
+const DESERT_ENTRY_OPENING_REBUILD_BACKGROUND_START_X = 0;
+const DESERT_ENTRY_OPENING_REBUILD_BACKGROUND_END_X = 17400;
+const DESERT_ENTRY_REBUILD_BACKGROUND_CROSSFADE_WIDTH = 640;
+const DESERT_ENTRY_REBUILD_BACKGROUND_PLATE_IDS = Object.freeze([
+  'desert-entry-opening-pyramid-to-ravine-background-1',
+  'desert-entry-ravine-bridge-background-1',
+  'desert-entry-ravine-to-mummification-background-1',
+  'desert-entry-mummification-exterior-arrival-background-1',
+  'desert-entry-mummification-to-mural-background-1',
+  'desert-entry-mural-to-scribe-background-1',
+  'desert-entry-scribe-to-queen-background-1',
+  'desert-entry-queen-to-ruined-gateway-background-1',
+]);
+const DESERT_ENTRY_REBUILD_BACKGROUND_PLATE_ID_SET = new Set(DESERT_ENTRY_REBUILD_BACKGROUND_PLATE_IDS);
 const OPENING_PYRAMID_GROUND_JUMP_MULTIPLIER = 1.32;
 const OPENING_PYRAMID_AIR_JUMP_MULTIPLIER = 1.6;
+
+const isDesertEntryRebuildBackgroundPlateProp = (prop = {}) => (
+  DESERT_ENTRY_REBUILD_BACKGROUND_PLATE_ID_SET.has(prop.id)
+);
+
+const getDesertEntryOpeningRebuildViewportCoverage = (cameraX = 0) => {
+  const viewportLeft = Number.isFinite(cameraX) ? cameraX : 0;
+  const viewportRight = viewportLeft + CANVAS_WIDTH;
+  const overlap = Math.min(viewportRight, DESERT_ENTRY_OPENING_REBUILD_BACKGROUND_END_X)
+    - Math.max(viewportLeft, DESERT_ENTRY_OPENING_REBUILD_BACKGROUND_START_X);
+  return Math.max(0, Math.min(1, overlap / CANVAS_WIDTH));
+};
 
 const DEFAULT_LEVEL_TRANSITION = {
   title: 'ROUTE COMPLETE',
@@ -1192,16 +1232,16 @@ const MUMMIFICATION_CHAMBER_ENTRY_SPAWN = {
 };
 const MUMMIFICATION_CHAMBER_RETURN_FALLBACK = {
   x: mummificationExteriorWorldX(710),
-  y: openingJourneyY(-7),
+  y: openingJourneyY(-134),
   cameraAnchorRatio: 0.42,
   direction: 1,
 };
 const MUMMIFICATION_CHAMBER_ENTRY_TRIGGER = {
-  minX: mummificationExteriorWorldX(652),
-  maxX: mummificationExteriorWorldX(692),
+  minX: mummificationExteriorWorldX(688),
+  maxX: mummificationExteriorWorldX(724),
   maxY: GROUND_Y - 50,
-  footY: openingJourneyY(-207),
-  footTolerance: 36,
+  footY: openingJourneyY(-135),
+  footTolerance: 42,
 };
 const MUMMIFICATION_CHAMBER_CAMERA_X = scaleJourneyX(520);
 const MUMMIFICATION_CHAMBER_BOUNDS = {
@@ -1573,7 +1613,10 @@ const CHAMBER_DOOR_VISUALS = Object.freeze([
   {
     id: 'mummification-chamber-entry-door',
     roomId: 'egypt-exterior-route',
+    routeId: 'mummification-chamber-route',
+    entryPlatformId: 'mummification-chamber-doorway-floor',
     trigger: MUMMIFICATION_CHAMBER_ENTRY_TRIGGER,
+    returnFallback: MUMMIFICATION_CHAMBER_RETURN_FALLBACK,
     title: 'Ritual Chamber',
     prompt: 'E Enter',
     seal: 'ankh',
@@ -1588,7 +1631,10 @@ const CHAMBER_DOOR_VISUALS = Object.freeze([
   {
     id: 'forgotten-mural-entry-door',
     roomId: 'egypt-exterior-route',
+    routeId: 'desert-upper-survey-route',
+    entryPlatformId: 'forgotten-mural-upper-doorway-floor',
     trigger: FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER,
+    returnFallback: FORGOTTEN_MURAL_CHAMBER_RETURN_FALLBACK,
     title: 'Mural Doorway',
     prompt: 'Inspect Door',
     seal: 'scarab',
@@ -1603,7 +1649,10 @@ const CHAMBER_DOOR_VISUALS = Object.freeze([
   {
     id: 'scribe-chamber-entry-door',
     roomId: 'egypt-exterior-route',
+    routeId: 'scribe-locked-chamber-route',
+    entryPlatformId: 'scribe-chamber-doorway-threshold',
     trigger: SCRIBE_CHAMBER_ENTRY_TRIGGER,
+    returnFallback: SCRIBE_CHAMBER_RETURN_FALLBACK,
     title: 'Scribe Door',
     prompt: 'E Enter',
     seal: 'ankh',
@@ -1616,6 +1665,9 @@ const CHAMBER_DOOR_VISUALS = Object.freeze([
     dust: false,
   },
 ]);
+const CHAMBER_DOOR_VISUALS_BY_ID = Object.freeze(
+  Object.fromEntries(CHAMBER_DOOR_VISUALS.map(door => [door.id, door])),
+);
 const SCRIBE_CHAMBER_TABLET_REGION = {
   x: scaleJourneyX(1254),
   y: openingJourneyY(240),
@@ -2188,7 +2240,7 @@ const HEAVY_ATTACK_PATTERNS = {
     vulnerableAfter: 0.9,
     speed: 240,
     range: 44,
-    damageScale: 1.9,
+    damageScale: 1.6,
     shieldDuringWindup: true,
     protectedDuringWindup: true,
     color: '#b45309',
@@ -2207,7 +2259,7 @@ const HEAVY_ATTACK_PATTERNS = {
     height: 68,
     yOffset: -38,
     backReach: 44,
-    damageScale: 2.1,
+    damageScale: 1.7,
     shieldDuringWindup: true,
     protectedDuringWindup: true,
     color: '#b45309',
@@ -2223,7 +2275,7 @@ const HEAVY_ATTACK_PATTERNS = {
     vulnerableAfter: 0.88,
     speed: 220,
     range: 72,
-    damageScale: 1.9,
+    damageScale: 1.6,
     shieldDuringWindup: false,
     protectedDuringWindup: false,
     color: '#b45309',
@@ -2240,7 +2292,7 @@ const HEAVY_ATTACK_PATTERNS = {
     speed: 260,
     range: 50,
     height: 40,
-    damageScale: 1.8,
+    damageScale: 1.5,
     shieldDuringWindup: false,
     protectedDuringWindup: false,
     color: '#b45309',
@@ -2257,7 +2309,7 @@ const HEAVY_ATTACK_PATTERNS = {
     speed: 180,
     range: 56,
     height: 44,
-    damageScale: 1.8,
+    damageScale: 1.5,
     shieldDuringWindup: false,
     protectedDuringWindup: false,
     color: '#b45309',
@@ -2274,7 +2326,7 @@ const HEAVY_ATTACK_PATTERNS = {
     speed: 44,
     range: 62,
     height: 40,
-    damageScale: 2.2,
+    damageScale: 1.7,
     shieldDuringWindup: true,
     protectedDuringWindup: true,
     color: '#92400e',
@@ -2293,7 +2345,7 @@ const HEAVY_ATTACK_PATTERNS = {
     height: 72,
     yOffset: -28,
     backReach: 32,
-    damageScale: 2.2,
+    damageScale: 1.7,
     shieldDuringWindup: true,
     protectedDuringWindup: true,
     color: '#92400e',
@@ -2309,7 +2361,7 @@ const HEAVY_ATTACK_PATTERNS = {
     vulnerableAfter: 0.56,
     speed: 240,
     range: 48,
-    damageScale: 1.7,
+    damageScale: 1.5,
     shieldDuringWindup: false,
     protectedDuringWindup: false,
     color: '#b45309',
@@ -2328,7 +2380,7 @@ const HEAVY_ATTACK_PATTERNS = {
     height: 76,
     yOffset: -32,
     backReach: 34,
-    damageScale: 2.3,
+    damageScale: 1.8,
     shieldDuringWindup: true,
     protectedDuringWindup: true,
     color: '#92400e',
@@ -2345,7 +2397,7 @@ const HEAVY_ATTACK_PATTERNS = {
     speed: 38,
     range: 64,
     height: 40,
-    damageScale: 2.4,
+    damageScale: 1.8,
     shieldDuringWindup: true,
     protectedDuringWindup: true,
     color: '#92400e',
@@ -2691,7 +2743,7 @@ const GATE_HINTS = {
     'escape-sequence': 'Reach the escape marker before the route seal will open.',
     'dig-site-entrance': 'The final guardian seal opens after the Ancient Construct falls.',
   },
-  shards: 'Search the nearby platforms and lower route for more relic shards.',
+  shards: 'Climb the ravine bridge route for the next relic shard; the lower path is only a recovery route.',
   upgrade: 'Look back through this section for the missing upgrade route.',
 };
 
@@ -3222,7 +3274,7 @@ const getStoryPropDepth = (prop) => {
 
 const GENERATED_STORY_PROP_BOUNDS = {
   'generated-opening-pyramid-facade': { width: 1208, height: 664 },
-  'generated-mummification-chamber-entrance': { width: 1360, height: 705 },
+  'generated-mummification-chamber-entrance': { width: 1500, height: 760 },
   'generated-climb-structure': { width: 1420, height: 690 },
   'generated-scribe-chamber-doorway': { width: 1120, height: 620 },
 };
@@ -3988,6 +4040,27 @@ export default function ExpeditionJourney({
       : null);
   }, []);
 
+  const getStandaloneImagePropAsset = useCallback((propForAsset = {}) => {
+    if (propForAsset.imageAssetKey === 'routeGateFront') return routeGateFrontRef.current;
+    if (propForAsset.imageAssetKey === 'routeGateBack') return routeGateBackRef.current;
+    if (propForAsset.imageAssetKey === 'routeGateSlab') return routeGateSlabRef.current;
+    if (propForAsset.imageAssetKey === 'openingPyramidClimbPack') return openingPyramidClimbPackRef.current;
+    if (propForAsset.imageAssetKey && propForAsset.assetPath) {
+      const cache = standaloneImagePropCacheRef.current;
+      let entry = cache[propForAsset.assetPath];
+      if (!entry) {
+        const image = new Image();
+        entry = { image, loaded: false, failed: false };
+        image.onload = () => { entry.loaded = true; };
+        image.onerror = () => { entry.failed = true; };
+        image.src = `${import.meta.env.BASE_URL}${propForAsset.assetPath}`;
+        cache[propForAsset.assetPath] = entry;
+      }
+      return entry;
+    }
+    return null;
+  }, []);
+
   const toggleEnemyPlaytestAssist = useCallback(() => {
     const current = stateRef.current;
     const nextEnemiesDisabled = !current.enemiesDisabled;
@@ -4091,7 +4164,11 @@ export default function ExpeditionJourney({
   const getLostBridgeRavineFloorPlacement = useCallback((current = stateRef.current) => {
     const editor = propPlacementEditorRef.current;
     const ravineProps = getRenderableStoryProps(current)
-      .filter(prop => isLostBridgeRavineFloorProp(prop) && !editor.hiddenIds.has(prop.id));
+      .filter(prop => (
+        isLostBridgeRavineSpecialRendererProp(prop)
+        && !editor.hiddenIds.has(prop.id)
+        && (!Number.isFinite(prop.alpha) || prop.alpha > 0)
+      ));
     if (ravineProps.length === 0) return null;
     const selectedId = propPlacementEditorRef.current?.selectedPropId;
     const prop = ravineProps.find(item => item.id === selectedId) || ravineProps[ravineProps.length - 1];
@@ -7570,10 +7647,8 @@ export default function ExpeditionJourney({
   }, [getGateGuidance]);
 
   const getActiveShardGateProgress = useCallback((current) => {
-    const gate = ROUTE_GATES.find(item => (
-      !current.openedRouteGateIds.has(item.id) && Number.isFinite(item.requires?.shards)
-    ));
-    if (!gate) return null;
+    const gate = getNextJourneyRouteGate(ROUTE_GATES, current);
+    if (!gate || !Number.isFinite(gate.requires?.shards)) return null;
     const gateName = backgroundPackId === 'china-river-valley'
       ? CHINA_GATE_NAMES[gate.id] || gate.name
       : gate.name;
@@ -7891,6 +7966,31 @@ export default function ExpeditionJourney({
     getActiveHiddenRoutes().find(route => route.id === routeId) || null
   ), [getActiveHiddenRoutes]);
 
+  const getPlatformById = useCallback((platformId) => (
+    PLATFORMS.find(platform => platform.id === platformId) || null
+  ), []);
+
+  const getChamberDoorResolvedPlacement = useCallback((door) => ({
+    door,
+    route: door?.routeId ? getRouteById(door.routeId) : null,
+    platform: door?.entryPlatformId ? getPlatformById(door.entryPlatformId) : null,
+  }), [getPlatformById, getRouteById]);
+
+  const resolveChamberReturnPoint = useCallback((door, direction = 1) => {
+    const placement = getChamberDoorResolvedPlacement(door);
+    return resolveJourneyChamberReturnPoint({
+      ...placement,
+      direction,
+      exteriorSceneId: JOURNEY_SCENE_IDS.EXTERIOR,
+      canvasWidth: CANVAS_WIDTH,
+      worldWidth: WORLD_WIDTH,
+    });
+  }, [getChamberDoorResolvedPlacement]);
+
+  const resolveChamberEntryTrigger = useCallback((door) => (
+    resolveJourneyChamberEntryTrigger(getChamberDoorResolvedPlacement(door))
+  ), [getChamberDoorResolvedPlacement]);
+
   const isRouteRewardAccessible = useCallback((routeId, current) => {
     if (!routeId) return true;
     const route = getRouteById(routeId);
@@ -7907,6 +8007,20 @@ export default function ExpeditionJourney({
   const getEnemyPatternConfig = useCallback((enemy) => {
     if (enemy.type === 'scorpion' && enemy.attackPattern === SCORPION_VENOM_ATTACK_PATTERN.id) {
       return SCORPION_VENOM_ATTACK_PATTERN;
+    }
+    // While a heavy attack is in flight (windup -> swing), resolve the heavy pattern so the
+    // swing carries heavy damage, reach, speed, and duration. attackPattern keeps the last-used
+    // id after the attack ends, so outside the attack lifecycle the normal pattern must drive
+    // patrol/chase/awareness behaviour.
+    const heavyPattern = HEAVY_ATTACK_PATTERNS[enemy.type];
+    if (
+      heavyPattern
+      && enemy.attackPattern === heavyPattern.id
+      && (enemy.attackWindup > 0 || enemy.attackTimer > 0 || enemy.attackReady)
+    ) {
+      return enemy.type === 'scorpion'
+        ? { ...heavyPattern, range: heavyPattern.range * SCORPION_ATTACK_RANGE_MULTIPLIER }
+        : heavyPattern;
     }
     const basePattern = {
       ...(ENEMY_ATTACK_PATTERNS[enemy.type] || DEFAULT_ENEMY_ATTACK_PATTERN),
@@ -8070,6 +8184,7 @@ export default function ExpeditionJourney({
         height: current.playerAttackBox.height,
       }
       : null;
+    const nextRouteGate = getNextJourneyRouteGate(ROUTE_GATES, current);
 
     return {
       stage: 'journey',
@@ -8759,8 +8874,8 @@ export default function ExpeditionJourney({
         visualScale: boss.visualScale || 1,
         ...getEntityCombatState(boss),
       })),
-      routeGateStatus: ROUTE_GATES.find(gate => !current.openedRouteGateIds.has(gate.id)) ? (() => {
-        const gate = ROUTE_GATES.find(item => !current.openedRouteGateIds.has(item.id));
+      routeGateStatus: nextRouteGate ? (() => {
+        const gate = nextRouteGate;
         const guidance = getGateGuidance(gate, current);
         const requirements = guidance.gateRequirements;
         return {
@@ -10804,10 +10919,15 @@ export default function ExpeditionJourney({
   }, [drawOpeningPyramidAssetRegion]);
 
   const drawLostBridgeRavineDepth = useCallback((ctx, platforms, cameraX, current) => {
-    const bounds = getLostBridgeDeckBounds(platforms || []);
-    if (!bounds) return false;
     const editorPlacement = getLostBridgeRavineFloorPlacement(current);
     if (!editorPlacement) return false;
+    const deckBounds = getLostBridgeDeckBounds(platforms || []);
+    const bounds = deckBounds || {
+      left: editorPlacement.drawWorldLeft + editorPlacement.width * 0.18,
+      right: editorPlacement.drawWorldLeft + editorPlacement.width * 0.82,
+      y: Math.max(0, editorPlacement.drawY + editorPlacement.height * 0.08),
+      span: editorPlacement.width * 0.64,
+    };
     const activeRavineAssetKey = editorPlacement.prop?.imageAssetKey || 'lostBridgeRavineFloor';
     const activeRavineAssetPath = editorPlacement.prop?.assetPath || LOST_BRIDGE_RAVINE_FLOOR_VARIANT_SRCS.lostBridgeRavineFloor;
     const blend = lostBridgeAssetsRef.current?.floorBlends?.[activeRavineAssetKey]
@@ -10840,6 +10960,30 @@ export default function ExpeditionJourney({
       ctx.drawImage(blend, drawX, drawY, drawW, drawH);
       ctx.filter = 'none';
       ctx.globalAlpha = 1;
+      const throatX = worldToScreenX(ravineFallWorldLeft, cameraX);
+      const throatTop = bounds.y + LOST_BRIDGE_RAVINE_THROAT_TOP_OFFSET;
+      const throatBottom = Math.min(CANVAS_HEIGHT + 24, GROUND_Y + 58);
+      const throatHeight = Math.max(120, throatBottom - throatTop);
+      const throatGradient = ctx.createLinearGradient(0, throatTop, 0, throatBottom);
+      throatGradient.addColorStop(0, 'rgba(35, 21, 12, 0)');
+      throatGradient.addColorStop(0.24, 'rgba(22, 14, 9, 0.36)');
+      throatGradient.addColorStop(0.7, 'rgba(6, 7, 10, 0.76)');
+      throatGradient.addColorStop(1, 'rgba(6, 7, 10, 0.18)');
+      ctx.save();
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.fillStyle = throatGradient;
+      ctx.beginPath();
+      ctx.ellipse(
+        throatX + ravineFallWidth * 0.5,
+        throatTop + throatHeight * 0.58,
+        Math.max(120, ravineFallWidth * 0.54),
+        Math.max(92, throatHeight * 0.5),
+        0,
+        0,
+        Math.PI * 2,
+      );
+      ctx.fill();
+      ctx.restore();
       if (current.renderStats) {
         current.renderStats.lostBridgeRavineDepth = {
           x: Math.round(ravineFallWorldLeft),
@@ -10850,6 +10994,7 @@ export default function ExpeditionJourney({
           floorBlendAssetPath: activeRavineAssetPath,
           editorControlled: true,
           controllerPropId: editorPlacement.prop?.id || null,
+          deckBoundsFallback: !deckBounds,
         };
         current.renderStats.lostBridgeRavineStripBounds = {
           x: Math.round(drawWorldLeft),
@@ -10859,6 +11004,13 @@ export default function ExpeditionJourney({
           clipTop: Math.round(visibleTop),
           layer: 'above-floor-below-bridge-platforms',
           editorControlled: true,
+        };
+        current.renderStats.lostBridgeRavineThroat = {
+          x: Math.round(ravineFallWorldLeft),
+          width: Math.round(ravineFallWidth),
+          top: Math.round(throatTop),
+          bottom: Math.round(throatBottom),
+          layer: 'shadow-over-ravine-under-bridge-platforms',
         };
         current.renderStats.lostBridgeRavineFloorBlendLoaded = true;
       }
@@ -11410,21 +11562,53 @@ export default function ExpeditionJourney({
     const structureAsset = mummificationChamberExteriorRef.current;
     if (!structureAsset.loaded || !structureAsset.image) return false;
 
-    const width = prop.width || 1360;
-    const height = prop.height || 705;
+    const width = prop.width || 1500;
+    const height = prop.height || 760;
     const drawX = x - width / 2;
     const drawY = prop.y;
     const left = drawX;
     const baseY = drawY + height;
     const groundY = Math.min(GROUND_Y - 2, baseY - 4);
     const pulse = 0.75 + Math.sin(now / 420) * 0.12;
+    const visualAlpha = prop.alpha ?? 1;
 
     const underlayContact = drawEgyptStructureGroundContactLayer(ctx, prop.groundContactLayer, left, width, groundY, 'underlay');
-    ctx.globalAlpha = prop.alpha ?? 1;
+    ctx.save();
+    ctx.globalAlpha = 0.28 * visualAlpha;
+    ctx.filter = 'brightness(0) sepia(30%) saturate(130%) blur(4px)';
+    ctx.drawImage(structureAsset.image, drawX + width * 0.014, drawY + 10, width * 1.008, height * 1.006);
+    ctx.restore();
+
+    ctx.save();
+    const baseShadow = ctx.createRadialGradient(x, groundY - 4, width * 0.08, x, groundY - 4, width * 0.52);
+    baseShadow.addColorStop(0, `rgba(31, 18, 9, ${0.3 * visualAlpha})`);
+    baseShadow.addColorStop(0.52, `rgba(39, 23, 12, ${0.18 * visualAlpha})`);
+    baseShadow.addColorStop(1, 'rgba(39, 23, 12, 0)');
+    ctx.fillStyle = baseShadow;
+    ctx.beginPath();
+    ctx.ellipse(x, groundY + 10, width * 0.5, 38, -0.02, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    ctx.globalAlpha = visualAlpha;
     ctx.filter = `sepia(6%) saturate(108%) brightness(${98 + pulse * 3}%) contrast(106%)`;
     ctx.drawImage(structureAsset.image, drawX, drawY, width, height);
     ctx.filter = 'none';
     ctx.globalAlpha = 1;
+
+    ctx.save();
+    const doorwayX = left + width * 0.535;
+    const doorwayY = drawY + height * 0.105;
+    const doorwayW = width * 0.085;
+    const doorwayH = height * 0.25;
+    const doorwayDepth = ctx.createLinearGradient(0, doorwayY, 0, doorwayY + doorwayH);
+    doorwayDepth.addColorStop(0, 'rgba(12, 7, 4, 0.08)');
+    doorwayDepth.addColorStop(0.45, 'rgba(4, 3, 2, 0.24)');
+    doorwayDepth.addColorStop(1, 'rgba(4, 3, 2, 0.1)');
+    ctx.fillStyle = doorwayDepth;
+    ctx.fillRect(doorwayX, doorwayY, doorwayW, doorwayH);
+    ctx.restore();
+
     drawEgyptStructureWeatheringOverlay(ctx, left, width, groundY, { alpha: 0.74 });
     const overlayContact = drawEgyptStructureGroundContactLayer(ctx, prop.groundContactLayer, left, width, groundY, 'overlay');
     if (stateRef.current.renderStats) {
@@ -12594,7 +12778,15 @@ export default function ExpeditionJourney({
       ctx.restore();
       return;
     }
-    if (isLostBridgeRavineFloorProp(prop)) {
+    if (isLostBridgeRavineSpecialRendererProp(prop)) {
+      ctx.restore();
+      return;
+    }
+    if (isDesertEntryRebuildBackgroundPlateProp(prop)) {
+      ctx.restore();
+      return;
+    }
+    if (Number.isFinite(prop.alpha) && prop.alpha <= 0) {
       ctx.restore();
       return;
     }
@@ -12644,26 +12836,7 @@ export default function ExpeditionJourney({
       : null;
     const propAssetKey = atmospherePropAssetKey
       || getEnvironmentAssetKeyForStoryProp(propForAsset, environmentAssetsRef.current.packId);
-    const standalonePropAsset = (() => {
-      if (propForAsset.imageAssetKey === 'routeGateFront') return routeGateFrontRef.current;
-      if (propForAsset.imageAssetKey === 'routeGateBack') return routeGateBackRef.current;
-      if (propForAsset.imageAssetKey === 'routeGateSlab') return routeGateSlabRef.current;
-      if (propForAsset.imageAssetKey === 'openingPyramidClimbPack') return openingPyramidClimbPackRef.current;
-      if (propForAsset.imageAssetKey && propForAsset.assetPath) {
-        const cache = standaloneImagePropCacheRef.current;
-        let entry = cache[propForAsset.assetPath];
-        if (!entry) {
-          const image = new Image();
-          entry = { image, loaded: false, failed: false };
-          image.onload = () => { entry.loaded = true; };
-          image.onerror = () => { entry.failed = true; };
-          image.src = `${import.meta.env.BASE_URL}${propForAsset.assetPath}`;
-          cache[propForAsset.assetPath] = entry;
-        }
-        return entry;
-      }
-      return null;
-    })();
+    const standalonePropAsset = getStandaloneImagePropAsset(propForAsset);
     if (propAssetKey || (standalonePropAsset?.loaded && standalonePropAsset.image)) {
       const placementPreset = getStoryPropPlacementPreset(propForAsset) || {};
       const propSize = {
@@ -13196,6 +13369,7 @@ export default function ExpeditionJourney({
     drawMummificationChamberExteriorAsset,
     drawForgottenMuralGeneratedAsset,
     drawGroundDustLip,
+    getStandaloneImagePropAsset,
     drawPropGroundContact,
     drawPropSandOcclusion,
     drawScribeChamberDoorwayStructure,
@@ -14551,19 +14725,33 @@ export default function ExpeditionJourney({
 
     const layerOptions = { canvasWidth: CANVAS_WIDTH, cameraX };
     if (assets.atlas?.runtimeMode === 'single-composited-backdrop') {
+      const openingRebuildCoverage = getDesertEntryOpeningRebuildViewportCoverage(cameraX);
+      if (openingRebuildCoverage > 0) {
+        const rebuildSky = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
+        rebuildSky.addColorStop(0, '#171d2b');
+        rebuildSky.addColorStop(0.36, '#2f2c29');
+        rebuildSky.addColorStop(0.68, '#695532');
+        rebuildSky.addColorStop(1, '#241d17');
+        ctx.save();
+        ctx.globalAlpha = openingRebuildCoverage;
+        ctx.fillStyle = rebuildSky;
+        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        ctx.restore();
+      }
+      const oldBackdropAlpha = 1 - openingRebuildCoverage;
       const backdropDrawn = drawDesertBackgroundLayer(
         ctx,
         assets,
         'sky',
         { y: 0, height: CANVAS_HEIGHT },
-        { ...layerOptions, parallax: 0, alpha: 1 },
+        { ...layerOptions, parallax: 0, alpha: oldBackdropAlpha },
       );
       const groundingOverlayDrawn = drawDesertBackgroundLayer(
         ctx,
         assets,
         'groundingOverlay',
         { y: 0, height: CANVAS_HEIGHT },
-        { ...layerOptions, parallax: 0, alpha: 1 },
+        { ...layerOptions, parallax: 0, alpha: oldBackdropAlpha },
       );
       return backdropDrawn && groundingOverlayDrawn;
     }
@@ -14575,6 +14763,103 @@ export default function ExpeditionJourney({
     ];
     return drawn.every(Boolean);
   }, []);
+
+  const drawDesertEntryRebuildBackgroundPlates = useCallback((ctx, current, cameraX) => {
+    const plates = getRenderableStoryProps(current)
+      .filter(isDesertEntryRebuildBackgroundPlateProp)
+      .sort((a, b) => {
+        const indexA = DESERT_ENTRY_REBUILD_BACKGROUND_PLATE_IDS.indexOf(a.id);
+        const indexB = DESERT_ENTRY_REBUILD_BACKGROUND_PLATE_IDS.indexOf(b.id);
+        return (indexA - indexB) || ((a.x || 0) - (b.x || 0));
+      });
+    if (plates.length === 0) return false;
+
+    const viewportCenterX = cameraX + CANVAS_WIDTH / 2;
+    const plateEntries = plates.map((plate, index) => ({
+      plate,
+      index,
+      centerX: Number.isFinite(plate.x) ? plate.x : 0,
+      segmentLeft: index > 0
+        ? (plates[index - 1].x + plate.x) / 2
+        : DESERT_ENTRY_OPENING_REBUILD_BACKGROUND_START_X,
+      segmentRight: index < plates.length - 1
+        ? (plate.x + plates[index + 1].x) / 2
+        : DESERT_ENTRY_OPENING_REBUILD_BACKGROUND_END_X,
+      asset: getStandaloneImagePropAsset(plate),
+    }));
+    let drawnCount = 0;
+    const pendingCount = plateEntries.filter(entry => !entry.asset?.loaded || !entry.asset.image).length;
+
+    const drawPlate = (entry, transitionAlpha = 1) => {
+      const { plate, asset, segmentLeft, segmentRight } = entry;
+      if (!asset?.loaded || !asset.image || transitionAlpha <= 0.01) return false;
+      const image = asset.image;
+      const imageWidth = Number(image.naturalWidth || image.width) || Number(plate.width) || CANVAS_WIDTH;
+      const imageHeight = Number(image.naturalHeight || image.height) || Number(plate.height) || CANVAS_HEIGHT;
+      const scale = Math.max(CANVAS_WIDTH / imageWidth, CANVAS_HEIGHT / imageHeight);
+      const drawWidth = imageWidth * scale;
+      const drawHeight = imageHeight * scale;
+      const segmentSpan = Math.max(1, segmentRight - segmentLeft);
+      const panProgress = clamp((viewportCenterX - segmentLeft) / segmentSpan, 0, 1);
+      const drawX = (CANVAS_WIDTH - drawWidth) * panProgress;
+      const drawY = (CANVAS_HEIGHT - drawHeight) * 0.5;
+
+      ctx.save();
+      ctx.globalAlpha = clamp(transitionAlpha, 0, 1);
+      const colorGradeFilter = typeof plate.colorGradeFilter === 'string' ? plate.colorGradeFilter.trim() : '';
+      const brightnessFilter = Number.isFinite(plate.brightness) && plate.brightness !== 1
+        ? `brightness(${Math.round(clamp(plate.brightness, 0.4, 1.8) * 100)}%)`
+        : '';
+      const filter = [colorGradeFilter && colorGradeFilter !== 'none' ? colorGradeFilter : '', brightnessFilter]
+        .filter(Boolean)
+        .join(' ');
+      if (filter) ctx.filter = filter;
+      ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
+      ctx.restore();
+      drawnCount += 1;
+      return true;
+    };
+
+    let baseIndex = 0;
+    let overlayIndex = null;
+    let overlayAlpha = 0;
+    for (let index = 0; index < plateEntries.length - 1; index += 1) {
+      const currentEntry = plateEntries[index];
+      const nextEntry = plateEntries[index + 1];
+      const boundaryX = (currentEntry.centerX + nextEntry.centerX) / 2;
+      const fadeStart = boundaryX - DESERT_ENTRY_REBUILD_BACKGROUND_CROSSFADE_WIDTH / 2;
+      const fadeEnd = boundaryX + DESERT_ENTRY_REBUILD_BACKGROUND_CROSSFADE_WIDTH / 2;
+      if (viewportCenterX < fadeStart) {
+        baseIndex = index;
+        overlayIndex = null;
+        overlayAlpha = 0;
+        break;
+      }
+      if (viewportCenterX <= fadeEnd) {
+        baseIndex = index;
+        overlayIndex = index + 1;
+        overlayAlpha = clamp(
+          (viewportCenterX - fadeStart) / DESERT_ENTRY_REBUILD_BACKGROUND_CROSSFADE_WIDTH,
+          0,
+          1,
+        );
+        break;
+      }
+      baseIndex = index + 1;
+      overlayIndex = null;
+      overlayAlpha = 0;
+    }
+
+    drawPlate(plateEntries[baseIndex], 1);
+    if (overlayIndex !== null) drawPlate(plateEntries[overlayIndex], overlayAlpha);
+
+    if (current.renderStats) {
+      current.renderStats.desertEntryRebuildBackgroundPlateMode = 'full-canvas-route-crossfade-background-v1';
+      current.renderStats.desertEntryRebuildBackgroundPlateCount = drawnCount;
+      current.renderStats.desertEntryRebuildBackgroundPlatePendingCount = pendingCount;
+    }
+    return drawnCount > 0;
+  }, [getRenderableStoryProps, getStandaloneImagePropAsset]);
 
   const drawChinaRiverValleyBackground = useCallback((ctx, cameraX) => {
     if (backgroundPackId !== 'china-river-valley') return false;
@@ -17245,11 +17530,11 @@ export default function ExpeditionJourney({
       ctx.fillText('checkpoint', bounds.x + 4, bounds.y + 11);
     });
     // Chamber entry trigger zones — teal boxes showing where Asha must stand to enter
-    const chamberEntryTriggers = [
-      { id: 'mummification-chamber-entry', label: 'entry: mummification', trigger: MUMMIFICATION_CHAMBER_ENTRY_TRIGGER },
-      { id: 'forgotten-mural-entry', label: 'entry: forgotten mural', trigger: FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER },
-      { id: 'scribe-chamber-entry', label: 'entry: scribe', trigger: SCRIBE_CHAMBER_ENTRY_TRIGGER },
-    ];
+    const chamberEntryTriggers = CHAMBER_DOOR_VISUALS.map(door => ({
+      id: door.id,
+      label: `entry: ${door.title}`,
+      trigger: resolveChamberEntryTrigger(door),
+    })).filter(entry => entry.trigger);
     chamberEntryTriggers.forEach(({ label, trigger }) => {
       const sx = worldToScreenX(trigger.minX, cameraX);
       const sw = worldToScreenX(trigger.maxX, cameraX) - sx;
@@ -17442,7 +17727,7 @@ export default function ExpeditionJourney({
       }
     }
     ctx.restore();
-  }, [getArchEditorBounds, getCheckpointEditorBounds, getEditedNestParams, getEditorEntityBounds, getEditorEntityLabel, getHazardEditorBounds, getLairEditorBounds, getNestEditorBounds, getPlatformEditorBounds, getPropEditorSelectedArch, getPropEditorSelectedCheckpoint, getPropEditorSelectedHazard, getPropEditorSelectedLair, getPropEditorSelectedNest, getPropEditorSelectedPlatform, getPropEditorSelectedProp, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getRenderableRouteGateDoorways, getRenderableRouteGates, getRenderableScarabLairs, getRenderableStoryProps, getScarabQueenLairPlacement]);
+  }, [getArchEditorBounds, getCheckpointEditorBounds, getEditedNestParams, getEditorEntityBounds, getEditorEntityLabel, getHazardEditorBounds, getLairEditorBounds, getNestEditorBounds, getPlatformEditorBounds, getPropEditorSelectedArch, getPropEditorSelectedCheckpoint, getPropEditorSelectedHazard, getPropEditorSelectedLair, getPropEditorSelectedNest, getPropEditorSelectedPlatform, getPropEditorSelectedProp, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getRenderableRouteGateDoorways, getRenderableRouteGates, getRenderableScarabLairs, getRenderableStoryProps, getScarabQueenLairPlacement, resolveChamberEntryTrigger]);
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -17480,7 +17765,7 @@ export default function ExpeditionJourney({
       : 0;
     const isPlayerNear = (worldX, distance = 240) => Math.abs((player.x + player.width / 2) - worldX) < distance;
     const chamberSceneActive = isInteriorChamberScene(current);
-    const activeRouteGate = chamberSceneActive ? null : ROUTE_GATES.find(gate => !current.openedRouteGateIds.has(gate.id));
+    const activeRouteGate = chamberSceneActive ? null : getNextJourneyRouteGate(ROUTE_GATES, current);
     const activeGateGuidance = activeRouteGate ? getGateGuidance(activeRouteGate, current) : null;
     const playerCenterX = player.x + player.width / 2;
     const crowdedGateActive = Boolean(activeRouteGate && Math.abs((activeRouteGate.x + activeRouteGate.width / 2) - playerCenterX) < 360);
@@ -17664,6 +17949,14 @@ export default function ExpeditionJourney({
     }
 
     const parallaxBackgroundDrawn = arrivalThresholdDrawn || chinaBackgroundDrawn || desertBackgroundDrawn || sectionParallaxDrawn;
+    const desertEntryRebuildBackgroundPlatesDrawn = !arrivalThresholdDrawn
+      && !chamberSceneActive
+      && section.id === 'desert-entry'
+      && drawDesertEntryRebuildBackgroundPlates(ctx, current, cameraX);
+    if (desertEntryRebuildBackgroundPlatesDrawn && current.renderStats) {
+      current.renderStats.activeBackgroundSection = 'desert-entry';
+      current.renderStats.backgroundDepthMode = 'desert-entry-rebuild-full-canvas-route-crossfade-background-v1';
+    }
 
     // --- Ground & Props ---
     ctx.save();
@@ -17716,7 +18009,10 @@ export default function ExpeditionJourney({
       drawDynamicEnvironmentEvent(ctx, current.dynamicEnvironmentEvent, cameraX, now, current.dynamicEnvironmentEventTimer);
       drawAncientRouteGround(ctx, section, cameraX, now, current);
       getZIndexSortedRenderableStoryProps(current).forEach((prop) => drawStoryProp(ctx, prop, cameraX, now, 'grounded'));
-      CHAMBER_DOOR_VISUALS.forEach((door) => drawPremiumEgyptianChamberDoor(ctx, door, cameraX, current, now));
+      CHAMBER_DOOR_VISUALS
+        .map(door => ({ ...door, trigger: resolveChamberEntryTrigger(door) }))
+        .filter(door => door.trigger)
+        .forEach((door) => drawPremiumEgyptianChamberDoor(ctx, door, cameraX, current, now));
     }
     const renderablePlatforms = current.arrivalThresholdActive ? [] : getRenderablePlatforms(current);
     drawMummificationChamberInterior(ctx, current, now);
@@ -18477,7 +18773,7 @@ export default function ExpeditionJourney({
       }
       ctx.textAlign = 'start';
     }
-  }, [backgroundPackId, drawAncientRouteGround, drawArrivalThresholdScene, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawForegroundDepthLayer, drawMummificationChamberInterior, drawForgottenMuralChamberInterior, drawForgottenMuralChamberTransition, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawLostBridgeRavineDepth, drawLostBridgeStructure, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawPremiumEgyptianChamberDoor, drawPropPlacementEditorOverlay, drawRouteGate, drawRouteGroundApron, drawScarabQueenLairOpeningProp, drawScribeLockedChamberInterior, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawTrapProjectile, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getDoorwayGateStatus, getEditedMiniBoss, getEditedNestParams, getGateGuidance, getPlayerAttackState, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getZIndexSortedRenderableStoryProps, getRouteGateDoorwayEntries, getScarabQueenLairPlacement, isRouteRewardAccessible, drawPlayerSprite, drawFieldNoteLabel]);
+  }, [backgroundPackId, drawAncientRouteGround, drawArrivalThresholdScene, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertEntryRebuildBackgroundPlates, drawDesertForegroundAtmosphere, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawForegroundDepthLayer, drawMummificationChamberInterior, drawForgottenMuralChamberInterior, drawForgottenMuralChamberTransition, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawLostBridgeRavineDepth, drawLostBridgeStructure, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawPremiumEgyptianChamberDoor, drawPropPlacementEditorOverlay, drawRouteGate, drawRouteGroundApron, drawScarabQueenLairOpeningProp, drawScribeLockedChamberInterior, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawTrapProjectile, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getDoorwayGateStatus, getEditedMiniBoss, getEditedNestParams, getGateGuidance, getPlayerAttackState, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getZIndexSortedRenderableStoryProps, getRouteGateDoorwayEntries, getScarabQueenLairPlacement, isRouteRewardAccessible, resolveChamberEntryTrigger, drawPlayerSprite, drawFieldNoteLabel]);
 
   const startOpeningCinematic = useCallback(({ speechEnabled = true, fromArrivalThreshold = false } = {}) => {
     const current = stateRef.current;
@@ -19067,13 +19363,10 @@ export default function ExpeditionJourney({
           current.scribeChamberExitUnlocked = Boolean(current.scribeChamberPuzzleSolved);
           current.hiddenRoomsFound?.add('scribe-locked-chamber');
           current.discoveredHiddenRouteIds?.add('scribe-locked-chamber-route');
-          current.sceneReturn = {
-            sceneId: JOURNEY_SCENE_IDS.EXTERIOR,
-            x: SCRIBE_CHAMBER_RETURN_FALLBACK.x,
-            y: SCRIBE_CHAMBER_RETURN_FALLBACK.y,
-            direction: SCRIBE_CHAMBER_RETURN_FALLBACK.direction,
-            cameraX: clampCameraX(SCRIBE_CHAMBER_RETURN_FALLBACK.x - CANVAS_WIDTH * SCRIBE_CHAMBER_RETURN_FALLBACK.cameraAnchorRatio),
-          };
+          current.sceneReturn = resolveChamberReturnPoint(
+            CHAMBER_DOOR_VISUALS_BY_ID['scribe-chamber-entry-door'],
+            SCRIBE_CHAMBER_RETURN_FALLBACK.direction,
+          );
           player.x = SCRIBE_CHAMBER_ENTRY_SPAWN.x - player.width / 2;
           player.y = SCRIBE_CHAMBER_ENTRY_SPAWN.y - player.height;
           player.direction = SCRIBE_CHAMBER_ENTRY_SPAWN.direction;
@@ -20143,20 +20436,30 @@ export default function ExpeditionJourney({
 
       return { id: target.id };
     })();
+    const mummificationEntryDoor = CHAMBER_DOOR_VISUALS_BY_ID['mummification-chamber-entry-door'];
+    const forgottenMuralEntryDoor = CHAMBER_DOOR_VISUALS_BY_ID['forgotten-mural-entry-door'];
+    const scribeEntryDoor = CHAMBER_DOOR_VISUALS_BY_ID['scribe-chamber-entry-door'];
+    const mummificationEntryTrigger = resolveChamberEntryTrigger(mummificationEntryDoor) || MUMMIFICATION_CHAMBER_ENTRY_TRIGGER;
+    const forgottenMuralEntryTrigger = resolveChamberEntryTrigger(forgottenMuralEntryDoor) || FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER;
+    const scribeEntryTrigger = resolveChamberEntryTrigger(scribeEntryDoor) || SCRIBE_CHAMBER_ENTRY_TRIGGER;
+    const mummificationReturnPoint = (direction = 1) => resolveChamberReturnPoint(mummificationEntryDoor, direction);
+    const forgottenMuralReturnPoint = (direction = 1) => resolveChamberReturnPoint(forgottenMuralEntryDoor, direction);
+    const scribeReturnPoint = (direction = 1) => resolveChamberReturnPoint(scribeEntryDoor, direction);
+
     const mummificationChamberDoorwayActive = backgroundPackId !== 'china-river-valley'
       && currentSceneId === JOURNEY_SCENE_IDS.EXTERIOR
       && player.onGround
-      && forgottenMuralPlayerCenterX >= MUMMIFICATION_CHAMBER_ENTRY_TRIGGER.minX
-      && forgottenMuralPlayerCenterX <= MUMMIFICATION_CHAMBER_ENTRY_TRIGGER.maxX
-      && player.y < MUMMIFICATION_CHAMBER_ENTRY_TRIGGER.maxY
-      && Math.abs(forgottenMuralPlayerFootY - MUMMIFICATION_CHAMBER_ENTRY_TRIGGER.footY) <= MUMMIFICATION_CHAMBER_ENTRY_TRIGGER.footTolerance;
+      && forgottenMuralPlayerCenterX >= mummificationEntryTrigger.minX
+      && forgottenMuralPlayerCenterX <= mummificationEntryTrigger.maxX
+      && player.y < mummificationEntryTrigger.maxY
+      && Math.abs(forgottenMuralPlayerFootY - mummificationEntryTrigger.footY) <= mummificationEntryTrigger.footTolerance;
     const forgottenMuralDoorwayActive = backgroundPackId !== 'china-river-valley'
       && currentSceneId === JOURNEY_SCENE_IDS.EXTERIOR
       && player.onGround
-      && forgottenMuralPlayerCenterX >= FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER.minX
-      && forgottenMuralPlayerCenterX <= FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER.maxX
-      && player.y < FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER.maxY
-      && Math.abs(forgottenMuralPlayerFootY - FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER.footY) <= FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER.footTolerance;
+      && forgottenMuralPlayerCenterX >= forgottenMuralEntryTrigger.minX
+      && forgottenMuralPlayerCenterX <= forgottenMuralEntryTrigger.maxX
+      && player.y < forgottenMuralEntryTrigger.maxY
+      && Math.abs(forgottenMuralPlayerFootY - forgottenMuralEntryTrigger.footY) <= forgottenMuralEntryTrigger.footTolerance;
     const forgottenMuralChamberExitActive = currentSceneId === JOURNEY_SCENE_IDS.FORGOTTEN_MURAL_CHAMBER
       && forgottenMuralPlayerCenterX >= FORGOTTEN_MURAL_CHAMBER_EXIT_TRIGGER.minX
       && forgottenMuralPlayerCenterX <= FORGOTTEN_MURAL_CHAMBER_EXIT_TRIGGER.maxX
@@ -20171,13 +20474,7 @@ export default function ExpeditionJourney({
       current.mummificationChamberEntranceDiscovered = true;
       current.hiddenRoomsFound?.add('mummification-chamber');
       current.discoveredHiddenRouteIds?.add('mummification-chamber-route');
-      current.sceneReturn = {
-        sceneId: JOURNEY_SCENE_IDS.EXTERIOR,
-        x: MUMMIFICATION_CHAMBER_RETURN_FALLBACK.x,
-        y: MUMMIFICATION_CHAMBER_RETURN_FALLBACK.y,
-        direction: player.direction || 1,
-        cameraX: clampCameraX(MUMMIFICATION_CHAMBER_RETURN_FALLBACK.x - CANVAS_WIDTH * MUMMIFICATION_CHAMBER_RETURN_FALLBACK.cameraAnchorRatio),
-      };
+      current.sceneReturn = mummificationReturnPoint(player.direction || 1);
       const transition = {
         id: 'mummification-chamber-doorway',
         phase: 'doorway-fade',
@@ -20195,8 +20492,8 @@ export default function ExpeditionJourney({
         id: 'mummification-chamber-threshold',
         name: 'Asha',
         type: 'mummification-chamber-threshold',
-        x: (MUMMIFICATION_CHAMBER_ENTRY_TRIGGER.minX + MUMMIFICATION_CHAMBER_ENTRY_TRIGGER.maxX) / 2,
-        y: MUMMIFICATION_CHAMBER_ENTRY_TRIGGER.footY - 92,
+        x: (mummificationEntryTrigger.minX + mummificationEntryTrigger.maxX) / 2,
+        y: mummificationEntryTrigger.footY - 92,
         duration: 2.6,
         timer: 2.6,
         message: 'This chamber still holds power...',
@@ -20217,13 +20514,7 @@ export default function ExpeditionJourney({
           audioControls?.playExpeditionSfx?.('gateBlocked');
         }
       } else if (!mummificationInteractionResult?.unlocked) {
-        current.sceneReturn = {
-          sceneId: JOURNEY_SCENE_IDS.EXTERIOR,
-          x: MUMMIFICATION_CHAMBER_RETURN_FALLBACK.x,
-          y: MUMMIFICATION_CHAMBER_RETURN_FALLBACK.y,
-          direction: MUMMIFICATION_CHAMBER_RETURN_FALLBACK.direction,
-          cameraX: clampCameraX(MUMMIFICATION_CHAMBER_RETURN_FALLBACK.x - CANVAS_WIDTH * MUMMIFICATION_CHAMBER_RETURN_FALLBACK.cameraAnchorRatio),
-        };
+        current.sceneReturn = mummificationReturnPoint(MUMMIFICATION_CHAMBER_RETURN_FALLBACK.direction);
         const transition = {
           id: 'mummification-chamber-exit',
           phase: 'doorway-fade',
@@ -20241,13 +20532,7 @@ export default function ExpeditionJourney({
         audioControls?.playTransition?.();
       }
     } else if (forgottenMuralDoorwayActive && !(current.sceneTransition || current.forgottenMuralChamberTransition)) {
-      current.sceneReturn = {
-        sceneId: JOURNEY_SCENE_IDS.EXTERIOR,
-        x: FORGOTTEN_MURAL_CHAMBER_RETURN_FALLBACK.x,
-        y: FORGOTTEN_MURAL_CHAMBER_RETURN_FALLBACK.y,
-        direction: player.direction || 1,
-        cameraX: clampCameraX(FORGOTTEN_MURAL_CHAMBER_RETURN_FALLBACK.x - CANVAS_WIDTH * FORGOTTEN_MURAL_CHAMBER_RETURN_FALLBACK.cameraAnchorRatio),
-      };
+      current.sceneReturn = forgottenMuralReturnPoint(player.direction || 1);
       const transition = {
         id: 'forgotten-mural-chamber-doorway',
         phase: 'doorway-fade',
@@ -20264,13 +20549,7 @@ export default function ExpeditionJourney({
       current.hitStopTimer = Math.max(current.hitStopTimer, 0.035);
       audioControls?.playExpeditionStinger?.('evidenceDiscovery');
     } else if (forgottenMuralChamberExitActive && !(current.sceneTransition || current.forgottenMuralChamberTransition)) {
-      current.sceneReturn = {
-        sceneId: JOURNEY_SCENE_IDS.EXTERIOR,
-        x: FORGOTTEN_MURAL_CHAMBER_RETURN_FALLBACK.x,
-        y: FORGOTTEN_MURAL_CHAMBER_RETURN_FALLBACK.y,
-        direction: FORGOTTEN_MURAL_CHAMBER_RETURN_FALLBACK.direction,
-        cameraX: clampCameraX(FORGOTTEN_MURAL_CHAMBER_RETURN_FALLBACK.x - CANVAS_WIDTH * FORGOTTEN_MURAL_CHAMBER_RETURN_FALLBACK.cameraAnchorRatio),
-      };
+      current.sceneReturn = forgottenMuralReturnPoint(FORGOTTEN_MURAL_CHAMBER_RETURN_FALLBACK.direction);
       const transition = {
         id: 'forgotten-mural-chamber-exit',
         phase: 'doorway-fade',
@@ -20293,23 +20572,17 @@ export default function ExpeditionJourney({
     const scribeDoorwayActive = backgroundPackId !== 'china-river-valley'
       && currentSceneId === JOURNEY_SCENE_IDS.EXTERIOR
       && player.onGround
-      && forgottenMuralPlayerCenterX >= SCRIBE_CHAMBER_ENTRY_TRIGGER.minX
-      && forgottenMuralPlayerCenterX <= SCRIBE_CHAMBER_ENTRY_TRIGGER.maxX
-      && player.y < SCRIBE_CHAMBER_ENTRY_TRIGGER.maxY
-      && Math.abs(forgottenMuralPlayerFootY - SCRIBE_CHAMBER_ENTRY_TRIGGER.footY) <= SCRIBE_CHAMBER_ENTRY_TRIGGER.footTolerance;
+      && forgottenMuralPlayerCenterX >= scribeEntryTrigger.minX
+      && forgottenMuralPlayerCenterX <= scribeEntryTrigger.maxX
+      && player.y < scribeEntryTrigger.maxY
+      && Math.abs(forgottenMuralPlayerFootY - scribeEntryTrigger.footY) <= scribeEntryTrigger.footTolerance;
     const scribeChamberExitActive = currentSceneId === JOURNEY_SCENE_IDS.SCRIBE_LOCKED_CHAMBER
       && forgottenMuralPlayerCenterX >= SCRIBE_CHAMBER_EXIT_TRIGGER.minX
       && forgottenMuralPlayerCenterX <= SCRIBE_CHAMBER_EXIT_TRIGGER.maxX
       && player.y < SCRIBE_CHAMBER_EXIT_TRIGGER.maxY
       && Math.abs(forgottenMuralPlayerFootY - SCRIBE_CHAMBER_EXIT_TRIGGER.footY) <= SCRIBE_CHAMBER_EXIT_TRIGGER.footTolerance;
     if (scribeDoorwayActive && !(current.sceneTransition || current.forgottenMuralChamberTransition)) {
-      current.sceneReturn = {
-        sceneId: JOURNEY_SCENE_IDS.EXTERIOR,
-        x: SCRIBE_CHAMBER_RETURN_FALLBACK.x,
-        y: SCRIBE_CHAMBER_RETURN_FALLBACK.y,
-        direction: player.direction || -1,
-        cameraX: clampCameraX(SCRIBE_CHAMBER_RETURN_FALLBACK.x - CANVAS_WIDTH * SCRIBE_CHAMBER_RETURN_FALLBACK.cameraAnchorRatio),
-      };
+      current.sceneReturn = scribeReturnPoint(player.direction || -1);
       current.sceneTransition = {
         id: 'scribe-locked-chamber-doorway',
         phase: 'doorway-fade',
@@ -20333,13 +20606,7 @@ export default function ExpeditionJourney({
           audioControls?.playExpeditionSfx?.('gateBlocked');
         }
       } else {
-        current.sceneReturn = {
-          sceneId: JOURNEY_SCENE_IDS.EXTERIOR,
-          x: SCRIBE_CHAMBER_RETURN_FALLBACK.x,
-          y: SCRIBE_CHAMBER_RETURN_FALLBACK.y,
-          direction: SCRIBE_CHAMBER_RETURN_FALLBACK.direction,
-          cameraX: clampCameraX(SCRIBE_CHAMBER_RETURN_FALLBACK.x - CANVAS_WIDTH * SCRIBE_CHAMBER_RETURN_FALLBACK.cameraAnchorRatio),
-        };
+        current.sceneReturn = scribeReturnPoint(SCRIBE_CHAMBER_RETURN_FALLBACK.direction);
         current.sceneTransition = {
           id: 'scribe-locked-chamber-exit',
           phase: 'doorway-fade',
@@ -21199,7 +21466,12 @@ export default function ExpeditionJourney({
       }
       const wasEnemyAttacking = updateEnemyCombatTimers(e, dt);
       if (wasEnemyAttacking && e.attackTimer <= 0) {
-        const pattern = getEnemyPatternConfig(e);
+        // The swing just ended, so the in-flight timers are already zero — resolve the
+        // heavy pattern by id here so heavies open their longer counter windows.
+        const endedHeavyPattern = HEAVY_ATTACK_PATTERNS[e.type];
+        const pattern = endedHeavyPattern && e.attackPattern === endedHeavyPattern.id
+          ? endedHeavyPattern
+          : getEnemyPatternConfig(e);
         openEnemyCounterWindow(e, pattern);
         addCombatEffect(current, {
           type: 'enemy-counter-window',
@@ -21833,11 +22105,13 @@ export default function ExpeditionJourney({
         if (phase.kind === 'close') {
           b.x += b.attackDirection * phase.speed * dt;
         }
+        // Area attacks span the phase's authored range centred on the boss, so wider
+        // rings (Core Pulse 140 vs Scarab Burst 118) actually differ in reach.
         const bossAttackBox = phase.kind === 'area'
           ? {
-            x: b.x - 36,
+            x: b.x + b.width / 2 - phase.range / 2,
             y: b.y + b.height - 48,
-            width: b.width + 72,
+            width: phase.range,
             height: 54,
           }
           : getAttackBox(b, phase.range, phase.height, b.attackDirection);
@@ -21891,7 +22165,14 @@ export default function ExpeditionJourney({
         const isFinisher = current.attackComboFinisherActive;
         const isHeavyAttack = current.attackType === PLAYER_ATTACK_TYPES.HEAVY;
         const bossWasVulnerable = b.vulnerabilityTimer > 0 || b.attackRecovery > 0;
-        b.health -= (b.playerDamageMultiplier || 1) * COMBAT_DAMAGE_SCALE;
+        // Bosses take the same typed damage as regular enemies so finishers and the
+        // light -> primed-heavy loop stay meaningful in boss fights.
+        const bossHitDamage = isFinisher
+          ? PLAYER_ATTACK_FINISHER_DAMAGE
+          : isHeavyAttack
+            ? PLAYER_ATTACK_SHOVE_DAMAGE
+            : PLAYER_ATTACK_LIGHT_DAMAGE;
+        b.health -= (b.playerDamageMultiplier || 1) * bossHitDamage;
         if (!current.attackRewarded) {
           const heavyFollowupRefund = isFinisher ? PLAYER_HEAVY_FOLLOWUP_HIT_REFUND : (isHeavyAttack ? 0 : 1);
           current.resources.stamina = Math.min(current.upgradeEffects?.maxStamina || 100, current.resources.stamina + heavyFollowupRefund);
@@ -22121,7 +22402,7 @@ export default function ExpeditionJourney({
       if (current.resources.time <= 0) triggerJourneyRescue('Time expired. Field team rescued.');
     }
 
-  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, backgroundPackId, openingAtmosphereSfxKey, scopedJourneyAssetPacks.isChinaJourney, scopedJourneyAssetPacks.isRomeJourney, targetCivilisation, buildBossRewardMoment, completeOpeningThresholdScene, enterLevelFromThreshold, startLevelThresholdEncounter, startTempleThresholdTransition, getActiveHiddenRoutes, getActiveSecretCollectibles, getActiveShardGateProgress, getAttackBox, getAttackHurtbox, getPlayerAttackNearMissTarget, getBossPhaseConfig, getBossVulnerabilityState, getDoorwayGateStatus, getEnemyPatternConfig, getObjectiveProgress, getGateGuidance, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getRenderableTrapPlatforms, getLiveScorpionNestBlockers, getRouteAccessState, getRouteGateDoorwayEntries, isRouteRewardAccessible, isLowStamina, addCombatEffect, applyCombatHitImpact, recordEnvironmentInteraction, getPlayerAttackState, getSectionDisplayName, getSectionDisplayTitle, syncHud]);
+  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, backgroundPackId, openingAtmosphereSfxKey, scopedJourneyAssetPacks.isChinaJourney, scopedJourneyAssetPacks.isRomeJourney, targetCivilisation, buildBossRewardMoment, completeOpeningThresholdScene, enterLevelFromThreshold, startLevelThresholdEncounter, startTempleThresholdTransition, getActiveHiddenRoutes, getActiveSecretCollectibles, getActiveShardGateProgress, getAttackBox, getAttackHurtbox, getPlayerAttackNearMissTarget, getBossPhaseConfig, getBossVulnerabilityState, getDoorwayGateStatus, getEnemyPatternConfig, getObjectiveProgress, getGateGuidance, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getRenderableTrapPlatforms, getLiveScorpionNestBlockers, getRouteAccessState, getRouteGateDoorwayEntries, isRouteRewardAccessible, isLowStamina, addCombatEffect, applyCombatHitImpact, recordEnvironmentInteraction, getPlayerAttackState, getSectionDisplayName, getSectionDisplayTitle, resolveChamberEntryTrigger, resolveChamberReturnPoint, syncHud]);
 
   const step = useCallback((ms) => {
     const dt = Math.min(ms / 1000, 0.05);
@@ -22996,7 +23277,7 @@ export default function ExpeditionJourney({
     && !gameState.defeatedMiniBosses?.has(gameState.bossDomain.bossId);
   const activeHudGate = bossDomainHudSuppressed
     ? null
-    : ROUTE_GATES.find(gate => !gameState.openedRouteGateIds.has(gate.id));
+    : getNextJourneyRouteGate(ROUTE_GATES, gameState);
   const activeHudGateGuidance = activeHudGate ? getGateGuidance(activeHudGate, gameState) : null;
   const activeHudShardRequirement = activeHudGateGuidance?.gateRequirements.find(req => req.type === 'shards') || null;
   const activeHudFirstMissing = activeHudGateGuidance?.gateMissingRequirements?.[0] || null;

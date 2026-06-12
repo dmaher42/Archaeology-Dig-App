@@ -14,6 +14,8 @@ import {
   JOURNEY_INTERACT_PROMPTS,
   JOURNEY_INTERACT_VERBS,
   MUMMIFICATION_RITE_SEQUENCE,
+  resolveJourneyChamberEntryTrigger,
+  resolveJourneyChamberReturnPoint,
 } from './journeyUtils.js';
 
 test('prompts cover every interact verb with "E" / "Hold E" labels', () => {
@@ -123,4 +125,49 @@ test('exit seal stays locked until all five rites complete, then unlocks', () =>
     assert.equal(isMummificationChamberComplete(step), false, `step ${step} should keep the seal locked`);
   }
   assert.equal(isMummificationChamberComplete(MUMMIFICATION_RITE_SEQUENCE.length), true);
+});
+
+test('chamber entry trigger resolves to the physical doorway platform within its hidden route', () => {
+  const trigger = resolveJourneyChamberEntryTrigger({
+    door: {
+      routeId: 'scribe-locked-chamber-route',
+      entryPlatformId: 'scribe-chamber-doorway-threshold',
+      trigger: { minX: 100, maxX: 180, maxY: 600, footY: 520, footTolerance: 8 },
+    },
+    route: { id: 'scribe-locked-chamber-route', x: 10650, y: 297, width: 540, height: 104 },
+    platform: { id: 'scribe-chamber-doorway-threshold', x: 10871, y: 297, width: 180, height: 18 },
+  });
+
+  assert.equal(trigger.minX, 10847);
+  assert.equal(trigger.maxX, 11075);
+  assert.equal(trigger.footY, 297);
+  assert.equal(trigger.footTolerance, 24);
+  assert.equal(trigger.routeId, 'scribe-locked-chamber-route');
+  assert.equal(trigger.entryPlatformId, 'scribe-chamber-doorway-threshold');
+});
+
+test('chamber return point centers Asha on the resolved exterior doorway', () => {
+  const returnPoint = resolveJourneyChamberReturnPoint({
+    door: {
+      routeId: 'desert-upper-survey-route',
+      entryPlatformId: 'forgotten-mural-upper-doorway-floor',
+      trigger: { minX: 7050, maxX: 7150, maxY: 620, footY: 545, footTolerance: 10 },
+      returnFallback: { x: 7400, y: 500, direction: -1, cameraAnchorRatio: 0.4 },
+    },
+    route: { id: 'desert-upper-survey-route', x: 7100, y: 81, width: 980, height: 124 },
+    platform: { id: 'forgotten-mural-upper-doorway-floor', x: 7528, y: 193, width: 250, height: 18 },
+    exteriorSceneId: 'egypt-exterior-route',
+    direction: 1,
+    canvasWidth: 960,
+    worldWidth: 20000,
+  });
+
+  assert.deepEqual(returnPoint, {
+    sceneId: 'egypt-exterior-route',
+    x: 7653,
+    y: 193,
+    direction: 1,
+    cameraAnchorRatio: 0.4,
+    cameraX: 7269,
+  });
 });

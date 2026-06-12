@@ -20,7 +20,7 @@ const MAX_BODY_BYTES = 8 * 1024 * 1024;
 
 const OVERRIDE_ITEM_KEYS = [
   'props', 'platforms', 'hazards', 'routeGates',
-  'routeGateDoorways', 'checkpoints', 'enemies', 'miniBosses',
+  'routeGateDoorways', 'hiddenRoutes', 'checkpoints', 'enemies', 'miniBosses',
 ];
 
 const countOverrideItems = (data) => OVERRIDE_ITEM_KEYS.reduce(

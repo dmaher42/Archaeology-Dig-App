@@ -30,7 +30,7 @@ import {
   makeEnemy,
   snapJourneyPropCoordinate,
 } from './journeyUtils.js';
-import { CHINA_ENEMIES, ENEMIES, STORY_PROPS } from './journeyLevelData.js';
+import { CHINA_ENEMIES, ENEMIES, RELIC_SHARDS, STORY_PROPS } from './journeyLevelData.js';
 import {
   COMBAT_DAMAGE_SCALE,
   JOURNEY_HORIZONTAL_SCALE,
@@ -1475,11 +1475,13 @@ test('first Egypt secret route rewards curiosity without changing main progressi
   assert.match(journeyComponentSource, /forgottenMuralLooterSeen/);
   assert.match(journeyComponentSource, /forgottenMuralChamberRestored/);
   assert.match(journeyComponentSource, /forgottenMuralChamberTransitionState/);
-  assert.match(journeyComponentSource, /forgottenMuralPlayerCenterX >= FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER\.minX/);
-  assert.match(journeyComponentSource, /forgottenMuralPlayerCenterX <= FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER\.maxX/);
-  assert.match(journeyComponentSource, /player\.y < FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER\.maxY/);
-  assert.match(journeyComponentSource, /currentSceneId === JOURNEY_SCENE_IDS\.EXTERIOR[\s\S]*?&& player\.onGround[\s\S]*?FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER\.minX/);
-  assert.match(journeyComponentSource, /Math\.abs\(forgottenMuralPlayerFootY - FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER\.footY\) <= FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER\.footTolerance/);
+  assert.match(journeyComponentSource, /id:\s*'forgotten-mural-entry-door'[\s\S]*?routeId:\s*'desert-upper-survey-route'[\s\S]*?entryPlatformId:\s*'forgotten-mural-upper-doorway-floor'/);
+  assert.match(journeyComponentSource, /forgottenMuralEntryTrigger = resolveChamberEntryTrigger\(forgottenMuralEntryDoor\)/);
+  assert.match(journeyComponentSource, /forgottenMuralPlayerCenterX >= forgottenMuralEntryTrigger\.minX/);
+  assert.match(journeyComponentSource, /forgottenMuralPlayerCenterX <= forgottenMuralEntryTrigger\.maxX/);
+  assert.match(journeyComponentSource, /player\.y < forgottenMuralEntryTrigger\.maxY/);
+  assert.match(journeyComponentSource, /currentSceneId === JOURNEY_SCENE_IDS\.EXTERIOR[\s\S]*?&& player\.onGround[\s\S]*?forgottenMuralEntryTrigger\.minX/);
+  assert.match(journeyComponentSource, /Math\.abs\(forgottenMuralPlayerFootY - forgottenMuralEntryTrigger\.footY\) <= forgottenMuralEntryTrigger\.footTolerance/);
   assert.match(journeyComponentSource, /Math\.abs\(forgottenMuralPlayerFootY - FORGOTTEN_MURAL_CHAMBER_EXIT_TRIGGER\.footY\) <= FORGOTTEN_MURAL_CHAMBER_EXIT_TRIGGER\.footTolerance/);
   assert.match(journeyComponentSource, /secretClimbRouteIds = \['mummification-chamber-route', 'desert-upper-survey-route'\]/);
   assert.match(journeyComponentSource, /const desiredSecretVerticalCameraOffset = !chamberSceneActive && inVerticalCameraWindow/);
@@ -2208,7 +2210,7 @@ test('Ancient Egypt opening stages archaeologist arrival and warrior-guide story
   assert.match(routeGates, /id:\s*'desert-seal'[\s\S]*?requires:\s*\{\s*objective:\s*'desert-entry',\s*miniBoss:\s*'scarab-queen',\s*keyItem:\s*'brush-handle',\s*shards:\s*10/);
   assert.match(routeGates, /The Desert Map Seal waits for the Map Tablet, the Brush Handle, the fall of the Scarab Queen, and 10 lost fragments\./);
   assert.match(routeGates, /Carry the record forward into the ruined temple\./);
-  assert.match(miniBosses, /id:\s*'scarab-queen'[\s\S]*?health:\s*1,\s*damage:\s*4/);
+  assert.match(miniBosses, /id:\s*'scarab-queen'[\s\S]*?health:\s*2,\s*damage:\s*7/);
   assert.match(miniBosses, /The buried scarab lair splits open beneath the sand\. The Scarab Queen rises as the first trial of Anubis\. The site will not yield easily\./);
   assert.match(bossKeyItems, /id:\s*'brush-handle'[\s\S]*?The Scarab Queen falls\. Asha has permission, not trust\. Brush Handle recovered\. The Desert Map Seal answers\./);
   assert.match(journeyComponentSource, /const GUARDIAN_KNOWLEDGE_CHALLENGES_ENABLED = false;/);
@@ -2287,11 +2289,11 @@ test('Egypt Phase 1 boss identity changes preserve progression ids and China nam
   const routeGates = extractExportedArray('ROUTE_GATES');
 
   [
-    /id:\s*'scarab-queen'[\s\S]*?name:\s*'Scarab Queen'[\s\S]*?health:\s*1,\s*damage:\s*4[\s\S]*?domainName:\s*'First Guardian Domain'/,
-    /id:\s*'temple-guardian'[\s\S]*?name:\s*'Anubis'[\s\S]*?health:\s*2,\s*damage:\s*6[\s\S]*?domainName:\s*'Anubis Gate'/,
-    /id:\s*'giant-serpent'[\s\S]*?name:\s*'The Uraeus'[\s\S]*?health:\s*2,\s*damage:\s*6[\s\S]*?domainName:\s*'Uraeus Seal Domain'/,
-    /id:\s*'looter-captain'[\s\S]*?name:\s*'Bes'[\s\S]*?health:\s*2,\s*damage:\s*6[\s\S]*?domainName:\s*'Bes Trial'/,
-    /id:\s*'ancient-construct'[\s\S]*?name:\s*'The Sphinx'[\s\S]*?health:\s*3,\s*damage:\s*7[\s\S]*?domainName:\s*'Sphinx Gate'/,
+    /id:\s*'scarab-queen'[\s\S]*?name:\s*'Scarab Queen'[\s\S]*?health:\s*2,\s*damage:\s*7[\s\S]*?domainName:\s*'First Guardian Domain'/,
+    /id:\s*'temple-guardian'[\s\S]*?name:\s*'Anubis'[\s\S]*?health:\s*2,\s*damage:\s*11[\s\S]*?domainName:\s*'Anubis Gate'/,
+    /id:\s*'giant-serpent'[\s\S]*?name:\s*'The Uraeus'[\s\S]*?health:\s*2,\s*damage:\s*11[\s\S]*?domainName:\s*'Uraeus Seal Domain'/,
+    /id:\s*'looter-captain'[\s\S]*?name:\s*'Bes'[\s\S]*?health:\s*2,\s*damage:\s*11[\s\S]*?domainName:\s*'Bes Trial'/,
+    /id:\s*'ancient-construct'[\s\S]*?name:\s*'The Sphinx'[\s\S]*?health:\s*3,\s*damage:\s*14[\s\S]*?domainName:\s*'Sphinx Gate'/,
   ].forEach((pattern) => assert.match(miniBosses, pattern));
 
   [
@@ -2561,7 +2563,7 @@ test('opening Scarab Seal becomes a restrained false-discovery threshold scene',
 
   assert.match(routeGates, /id:\s*'desert-seal'[\s\S]*?miniBoss:\s*'scarab-queen'[\s\S]*?keyItem:\s*'brush-handle'/);
   assert.match(routeGates, /id:\s*'desert-seal'[\s\S]*?requires:\s*\{\s*objective:\s*'desert-entry',\s*miniBoss:\s*'scarab-queen',\s*keyItem:\s*'brush-handle',\s*shards:\s*10/);
-  assert.match(miniBosses, /id:\s*'scarab-queen'[\s\S]*?health:\s*1,\s*damage:\s*4/);
+  assert.match(miniBosses, /id:\s*'scarab-queen'[\s\S]*?health:\s*2,\s*damage:\s*7/);
   assert.match(bossKeyItems, /id:\s*'brush-handle'[\s\S]*?bossId:\s*'scarab-queen'[\s\S]*?gateId:\s*'desert-seal'/);
   assert.doesNotMatch(journeyComponentSource, /current\.defeatedMiniBosses\.add\(SCARAB_SEAL_TRIGGER\.bossId\)/);
   assert.doesNotMatch(journeyComponentSource, /current\.collectedBossKeyIds\.add\('brush-handle'\)/);
@@ -3238,6 +3240,21 @@ test('Egypt opening loop makes the first seal require enemies, shards, and the m
   assert.match(journeyComponentSource, /key:\s*'relicShard'[\s\S]*?ringKey:\s*'availableGlowRing'/);
 });
 
+test('ravine bridge route carries an obvious required relic shard above the recovery path', () => {
+  const bridgeShard = RELIC_SHARDS.find(shard => shard.id === 'shard-2');
+  assert.ok(bridgeShard, 'the second visible shard should exist before the first seal');
+  assert.equal(bridgeShard.x, scaleJourneyX(525), 'the ravine bridge shard should sit over the upper crossing');
+  assert.equal(bridgeShard.y, 365, 'the ravine bridge shard should sit on the bridge deck height, not the lower recovery path');
+  assert.equal(bridgeShard.hidden, false, 'the bridge reward should be obvious, not hidden');
+  assert.equal(bridgeShard.routeId, null, 'the bridge reward should count toward the required Temple Approach Seal shards');
+  const gateHintsStart = journeyComponentSource.indexOf('const GATE_HINTS = {');
+  const gateHintsEnd = journeyComponentSource.indexOf('const HAZARD_VISUALS = {', gateHintsStart);
+  const gateHintsSource = journeyComponentSource.slice(gateHintsStart, gateHintsEnd);
+  assert.match(gateHintsSource, /shards:\s*'Climb the ravine bridge route for the next relic shard; the lower path is only a recovery route\.'/);
+  assert.doesNotMatch(gateHintsSource, /shards:\s*'Search the nearby bridge route and platforms for more relic shards\.'/);
+  assert.doesNotMatch(gateHintsSource, /shards:\s*'Search the nearby platforms and lower route for more relic shards\.'/);
+});
+
 test('Egypt opening scene uses the existing scarab seal path for a brief Anubis and Asha setup', () => {
   const scarabSealStart = source.indexOf('export const SCARAB_SEAL_TRIGGER = {');
   const scarabSealEnd = source.indexOf('export const HAZARDS = [');
@@ -3746,7 +3763,7 @@ test('Egypt chamber entry triggers render as configurable premium doors outside 
   assert.notEqual(drawStart, -1, 'draw should exist');
   assert.notEqual(drawEnd, -1, 'draw should end before startOpeningCinematic');
   const drawSource = journeyComponentSource.slice(drawStart, drawEnd);
-  assert.match(drawSource, /CHAMBER_DOOR_VISUALS\.forEach/);
+  assert.match(drawSource, /CHAMBER_DOOR_VISUALS[\s\S]*?resolveChamberEntryTrigger\(door\)[\s\S]*?drawPremiumEgyptianChamberDoor/);
   assert.match(drawSource, /drawPremiumEgyptianChamberDoor/);
 
   const editorOverlayStart = journeyComponentSource.indexOf('const drawPropPlacementEditorOverlay = useCallback');
@@ -3798,32 +3815,46 @@ test('ravine bridge uses a structure cutout over the existing desert background'
   assert.match(journeyComponentSource, /lost-bridge-ravine-test-wide-2026-06-09\.png/);
   assert.match(journeyComponentSource, /lost-bridge-ravine-test-deep-2026-06-09\.png/);
   assert.match(journeyComponentSource, /lost-bridge-ravine-test-tall-wide-2026-06-09\.png/);
+  assert.match(journeyComponentSource, /lost-bridge-ravine-temple-gap-option2-2026-06-10\.png/);
+  assert.match(journeyComponentSource, /lost-bridge-ravine-depth-insert-option3-2026-06-10\.png/);
+  assert.match(journeyComponentSource, /lost-bridge-ravine-under-bridge-insert-2026-06-10\.png/);
   assert.doesNotMatch(journeyComponentSource, /LOST_BRIDGE_RAVINE_FLOOR_BLEND_SRC = `\$\{LOST_BRIDGE_ASSET_DIR\}lost-bridge-ravine-drop-strip-2026-06-09\.png`/);
   assert.doesNotMatch(journeyComponentSource, /lost-bridge-ravine-backdrop-soft-2026-06-08\.png/);
   assert.match(journeyComponentSource, /LOST_BRIDGE_RAVINE_FLOOR_VARIANT_SRCS/);
   assert.match(journeyComponentSource, /LOST_BRIDGE_RAVINE_FLOOR_ASSET_KEYS/);
+  assert.match(journeyComponentSource, /LOST_BRIDGE_RAVINE_NORMAL_IMAGE_PROP_KEYS = new Set\(\['lostBridgeRavineUnderBridgeInsert'\]\)/);
+  assert.match(journeyComponentSource, /isLostBridgeRavineSpecialRendererProp/);
   assert.match(journeyComponentSource, /lostBridgeAssetsRef = useRef\(\{ images: \{\}, structure: null, floorBlend: null, floorBlends: \{\} \}\)/);
   assert.match(journeyComponentSource, /lostBridgeAssetsRef\.current\.floorBlend = floorBlend/);
   assert.match(journeyComponentSource, /lostBridgeAssetsRef\.current\.floorBlends\[assetKey\] = floorBlend/);
-  assert.match(journeyComponentSource, /LOST_BRIDGE_ASSET_VERSION = 'lost-bridge-art-2026-06-09b'/);
+  assert.match(journeyComponentSource, /LOST_BRIDGE_ASSET_VERSION = 'lost-bridge-art-2026-06-10f'/);
   assert.match(journeyComponentSource, /LOST_BRIDGE_RAVINE_FLOOR_PROP_ID = 'desert-entry-lost-bridge-ravine-floor-1'/);
   assert.match(journeyComponentSource, /LOST_BRIDGE_OBSOLETE_RAVINE_FLOOR_PROP_IDS = new Set/);
   assert.match(journeyComponentSource, /pruneObsoleteLostBridgeRavineFloorEditorProps\(propPlacementEditorRef\.current\)/);
   assert.match(journeyComponentSource, /const getLostBridgeRavineFloorPlacement = useCallback/);
-  assert.match(journeyComponentSource, /isLostBridgeRavineFloorProp\(prop\) && !editor\.hiddenIds\.has\(prop\.id\)/);
+  assert.match(
+    journeyComponentSource,
+    /isLostBridgeRavineSpecialRendererProp\(prop\)[\s\S]*?!editor\.hiddenIds\.has\(prop\.id\)[\s\S]*?!Number\.isFinite\(prop\.alpha\) \|\| prop\.alpha > 0/,
+    'retired ravine inserts with alpha 0 should not be drawn by the custom ravine renderer',
+  );
   assert.match(journeyComponentSource, /ravineProps\.find\(item => item\.id === selectedId\) \|\| ravineProps\[ravineProps\.length - 1\]/);
   assert.match(journeyComponentSource, /const editorPlacement = getLostBridgeRavineFloorPlacement\(current\)/);
   assert.match(journeyComponentSource, /if \(!editorPlacement\) return false;/);
+  assert.match(journeyComponentSource, /const deckBounds = getLostBridgeDeckBounds\(platforms \|\| \[\]\)/);
+  assert.match(journeyComponentSource, /const bounds = deckBounds \|\|/);
   assert.match(journeyComponentSource, /activeRavineAssetKey/);
   assert.match(journeyComponentSource, /LOST_BRIDGE_RAVINE_FLOOR_VARIANT_SRCS\.lostBridgeRavineFloor/);
   assert.match(journeyComponentSource, /floorBlendAssetKey/);
+  assert.match(journeyComponentSource, /deckBoundsFallback: !deckBounds/);
   assert.match(journeyComponentSource, /drawWorldLeft = editorPlacement\.drawWorldLeft/);
   assert.match(journeyComponentSource, /drawH = editorPlacement\.height/);
   assert.match(journeyComponentSource, /editorControlled: true/);
-  assert.match(journeyComponentSource, /if \(isLostBridgeRavineFloorProp\(prop\)\) \{[\s\S]*?ctx\.restore\(\);[\s\S]*?return;/);
+  assert.match(journeyComponentSource, /if \(isLostBridgeRavineSpecialRendererProp\(prop\)\) \{[\s\S]*?ctx\.restore\(\);[\s\S]*?return;/);
   assert.match(journeyComponentSource, /LOST_BRIDGE_RAVINE_BLEND_CLIP_TOP_OFFSET/);
   assert.match(journeyComponentSource, /ctx\.clip\(\)/);
   assert.match(journeyComponentSource, /ctx\.drawImage\(blend, drawX, drawY, drawW, drawH\)/);
+  assert.match(journeyComponentSource, /LOST_BRIDGE_RAVINE_THROAT_TOP_OFFSET/);
+  assert.match(journeyComponentSource, /lostBridgeRavineThroat/);
   assert.match(journeyComponentSource, /drawLostBridgeStructure\(ctx, renderablePlatforms, cameraX, current\)/);
   assert.match(
     journeyComponentSource,
@@ -3842,9 +3873,15 @@ test('ravine bridge uses a structure cutout over the existing desert background'
   assert.match(journeyComponentSource, /Asha fell into the ravine\. Field rescue required\./);
   assert.match(journeyComponentSource, /The bridge drops into a ravine here\. Climb to the bridge deck before crossing\./);
   const editorDeckPlatform = journeyPlacementOverrides.platforms.find(entry => entry.id === 'desert-entry-platform-9');
-  assert.equal(editorDeckPlatform?.y, 173, 'editor high bridge platform should now anchor the ravine crossing deck');
+  assert.equal(editorDeckPlatform?.y, 121, 'editor high bridge platform should now anchor the ravine crossing deck');
   assert.equal(editorDeckPlatform?.width, 1311);
   assert.equal(editorDeckPlatform?.invisible, true, 'high bridge deck should stay collision-only while art props carry the visual bridge');
+  const mummificationThresholdWalkway = journeyPlacementOverrides.platforms.find(entry => entry.id === 'lost-bridge-mummification-threshold-walkway');
+  assert.equal(mummificationThresholdWalkway?.x, 4750, 'visible threshold deck should stay supported after the bridge platform ends');
+  assert.equal(mummificationThresholdWalkway?.y, 121);
+  assert.equal(mummificationThresholdWalkway?.width, 770);
+  assert.equal(mummificationThresholdWalkway?.height, 18);
+  assert.equal(mummificationThresholdWalkway?.invisible, true);
   ['lost-bridge-near-landing', 'lost-bridge-slab-1', 'lost-bridge-slab-2'].forEach((id) => {
     assert.ok(journeyPlacementOverrides.deletedPlatformIds.includes(id), `${id} should be removed by the high bridge editor layout`);
   });
@@ -3860,6 +3897,11 @@ test('ravine bridge uses a structure cutout over the existing desert background'
     'lost-bridge-ravine-test-wide-2026-06-09.png',
     'lost-bridge-ravine-test-deep-2026-06-09.png',
     'lost-bridge-ravine-test-tall-wide-2026-06-09.png',
+    'lost-bridge-ravine-temple-gap-option2-2026-06-10.png',
+    'lost-bridge-ravine-depth-insert-option3-2026-06-10.png',
+    'lost-bridge-ravine-under-bridge-insert-2026-06-10.png',
+    'lost-bridge-to-mummification-slope-blend-2026-06-11.png',
+    'lost-bridge-mummification-dust-veil-2026-06-11.png',
   ].forEach((filename) => {
     assert.ok(
       existsSync(new URL(`../../../public/assets/expedition/environment/egypt-opening/lost-bridge/${filename}`, import.meta.url)),
@@ -3922,11 +3964,86 @@ test('ravine bridge uses a structure cutout over the existing desert background'
     journeyPlacementOverrides.deletedPropIds.includes('desert-entry-lost-bridge-ravine-floor-tall-wide-1'),
     'tall-wide ravine floor should be recorded as deleted',
   );
-  const rubbleRampClimb = journeyPlacementOverrides.props.find(entry => entry.id === 'lost-bridge-visual-rubble-ramp-climb');
-  assert.equal(rubbleRampClimb?.imageAssetKey, 'bridgeRubbleRampClimb');
-  assert.equal(rubbleRampClimb?.assetPath, 'assets/expedition/environment/egypt-opening/lost-bridge/lost-bridge-rubble-ramp-climb-2026-06-09.png');
-  assert.equal(rubbleRampClimb?.depth, 'route-edge');
-  assert.equal(rubbleRampClimb?.zIndex, 79);
+  const activeRavineOption = journeyPlacementOverrides.props.find(entry => entry.id === 'desert-entry-lost-bridge-ravine-floor-deep-1');
+  assert.equal(activeRavineOption?.imageAssetKey, 'lostBridgeRavineUnderBridgeInsert');
+  assert.equal(activeRavineOption?.assetPath, 'assets/expedition/backgrounds/desert-entry-opening-rebuild/desert-entry-ravine-bridge-depth-overlay-2026-06-11.png');
+  assert.equal(activeRavineOption?.width, 1700);
+  assert.equal(activeRavineOption?.height, 638);
+  assert.equal(activeRavineOption?.depth, 'midground');
+  assert.equal(activeRavineOption?.alpha, 0);
+  assert.equal(activeRavineOption?.x, 3990);
+  assert.equal(activeRavineOption?.y, 430);
+  assert.match(journeyComponentSource, /Number\.isFinite\(prop\.alpha\) && prop\.alpha <= 0/);
+  [
+    'desert-entry-opening-pyramid-to-ravine-background-raw-2026-06-11.png',
+    'desert-entry-ravine-bridge-background-clean-2026-06-12.png',
+    'desert-entry-ravine-to-mummification-background-raw-2026-06-11.png',
+    'desert-entry-mummification-exterior-arrival-background-raw-2026-06-11.png',
+    'desert-entry-ravine-bridge-depth-overlay-2026-06-11.png',
+  ].forEach((filename) => {
+    assert.ok(
+      existsSync(new URL(`../../../public/assets/expedition/backgrounds/desert-entry-opening-rebuild/${filename}`, import.meta.url)),
+      `${filename} should exist as a real opening rebuild background asset`,
+    );
+  });
+  assert.match(journeyComponentSource, /DESERT_ENTRY_REBUILD_BACKGROUND_PLATE_IDS = Object\.freeze/);
+  assert.match(journeyComponentSource, /DESERT_ENTRY_REBUILD_BACKGROUND_CROSSFADE_WIDTH = 640/);
+  assert.match(journeyComponentSource, /drawDesertEntryRebuildBackgroundPlates = useCallback/);
+  assert.match(journeyComponentSource, /isDesertEntryRebuildBackgroundPlateProp\(prop\)/);
+  assert.match(journeyComponentSource, /full-canvas-route-crossfade-background-v1/);
+  assert.match(journeyComponentSource, /desert-entry-rebuild-full-canvas-route-crossfade-background-v1/);
+  const transitionApron = journeyPlacementOverrides.props.find(entry => entry.id === 'desert-entry-lost-bridge-mummification-transition-apron-1');
+  assert.equal(transitionApron?.imageAssetKey, 'lostBridgeMummificationSlopeBlend');
+  assert.equal(transitionApron?.assetPath, 'assets/expedition/environment/egypt-opening/lost-bridge/lost-bridge-to-mummification-slope-blend-2026-06-11.png');
+  assert.equal(transitionApron?.width, 600);
+  assert.equal(transitionApron?.height, 320);
+  assert.equal(transitionApron?.depth, 'background');
+  assert.equal(transitionApron?.zIndex, -20);
+  assert.equal(transitionApron?.alpha, 0);
+  assert.equal(transitionApron?.x, 5000);
+  assert.equal(transitionApron?.y, 700);
+  const transitionDustVeil = journeyPlacementOverrides.props.find(entry => entry.id === 'desert-entry-bridge-mummification-dust-veil-1');
+  assert.equal(transitionDustVeil?.imageAssetKey, 'lostBridgeMummificationDustVeil');
+  assert.equal(transitionDustVeil?.assetPath, 'assets/expedition/environment/egypt-opening/lost-bridge/lost-bridge-mummification-dust-veil-2026-06-11.png');
+  assert.equal(transitionDustVeil?.width, 520);
+  assert.equal(transitionDustVeil?.height, 630);
+  assert.equal(transitionDustVeil?.depth, 'midground');
+  assert.equal(transitionDustVeil?.zIndex, 12);
+  assert.equal(transitionDustVeil?.alpha, 0);
+  assert.equal(transitionDustVeil?.x, 5085);
+  assert.equal(transitionDustVeil?.y, 650);
+  [
+    ['desert-entry-bridge-mummification-span-left-1', 'bridgeCrackedSpanSlab', 4250, 193, 620, 72, 8],
+    ['desert-entry-bridge-mummification-span-right-1', 'bridgeCrackedSpanSlab', 4810, 190, 560, 66, 8],
+    ['desert-entry-bridge-mummification-broken-left-cap-1', 'bridgeBrokenEndCap', 3996, 286, 370, 166, 9],
+    ['desert-entry-bridge-mummification-slope-fill-1', 'bridgeBuriedRampLedge', 4995, 540, 460, 161, 6, 'midground', 'background'],
+    ['desert-entry-bridge-mummification-threshold-shelf-1', 'bridgeNarrowCrackedShelf', 5230, 190, 440, 68, 10],
+    ['desert-entry-bridge-mummification-seam-support-pier-1', 'bridgeCarvedSupportPier', 5138, 500, 150, 271, 6],
+  ].forEach(([id, imageAssetKey, x, y, width, height, zIndex, depth = 'route-edge', layer = 'route-edge']) => {
+    const piece = journeyPlacementOverrides.props.find(entry => entry.id === id);
+    assert.equal(piece?.imageAssetKey, imageAssetKey, `${id} should use the expected bridge kit asset`);
+    assert.equal(piece?.depth, depth, `${id} should draw in the expected scene depth`);
+    assert.equal(piece?.layer, layer, `${id} should remain in the expected editor layer`);
+    assert.equal(piece?.x, x);
+    assert.equal(piece?.y, y);
+    assert.equal(piece?.width, width);
+    assert.equal(piece?.height, height);
+    assert.equal(piece?.zIndex, zIndex);
+  });
+  assert.equal(
+    journeyPlacementOverrides.props.find(entry => entry.id === 'desert-entry-bridge-mummification-slope-fill-1')?.alpha,
+    0,
+    'old slope-fill haze should be visually retired behind the regenerated mummification approach plate',
+  );
+  assert.equal(
+    journeyPlacementOverrides.props.some(entry => entry.id === 'lost-bridge-visual-rubble-ramp-climb'),
+    false,
+    'old rubble ramp climb prop should stay removed from the active bridge layout',
+  );
+  assert.ok(
+    journeyPlacementOverrides.deletedPropIds.includes('lost-bridge-visual-rubble-ramp-climb'),
+    'old rubble ramp climb prop should be recorded as deleted',
+  );
   assert.ok(
     existsSync(new URL('../../../public/assets/expedition/environment/egypt-opening/lost-bridge/lost-bridge-rubble-ramp-climb-2026-06-09.png', import.meta.url)),
     'rubble ramp climb asset should exist as a real project PNG',
@@ -4207,12 +4324,17 @@ test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, an
     ['lostBridgeRavineFloorWide', 'Lost Bridge Ravine Floor - Wide', 'lost-bridge-ravine-test-wide-2026-06-09.png', 1700, 366],
     ['lostBridgeRavineFloorDeep', 'Lost Bridge Ravine Floor - Deep', 'lost-bridge-ravine-test-deep-2026-06-09.png', 1530, 535],
     ['lostBridgeRavineFloorTallWide', 'Lost Bridge Ravine Floor - Tall Wide', 'lost-bridge-ravine-test-tall-wide-2026-06-09.png', 1900, 556],
-  ].forEach(([imageAssetKey, displayName, filename, width, height]) => {
+    ['lostBridgeRavineTempleGapOption2', 'Lost Bridge Ravine - Temple Gap (Option 2)', 'lost-bridge-ravine-temple-gap-option2-2026-06-10.png', 1774, 887],
+    ['lostBridgeRavineDepthInsertOption3', 'Lost Bridge Ravine - Depth Insert (Option 3)', 'lost-bridge-ravine-depth-insert-option3-2026-06-10.png', 1774, 887, 'background'],
+    ['lostBridgeRavineUnderBridgeInsert', 'Lost Bridge Ravine - Under Bridge Insert', 'lost-bridge-ravine-under-bridge-insert-2026-06-10.png', 1700, 638, 'midground'],
+    ['lostBridgeMummificationSlopeBlend', 'Lost Bridge To Mummification Slope Blend', 'lost-bridge-to-mummification-slope-blend-2026-06-11.png', 600, 320, 'background'],
+    ['lostBridgeMummificationDustVeil', 'Lost Bridge To Mummification Dust Veil', 'lost-bridge-mummification-dust-veil-2026-06-11.png', 520, 630, 'midground'],
+  ].forEach(([imageAssetKey, displayName, filename, width, height, depth = 'background']) => {
     const item = editorPalette.find(entry => entry.imageAssetKey === imageAssetKey);
     assert.equal(item?.label, displayName);
     assert.equal(item?.category, 'Ravine Bridge');
     assert.equal(item?.template?.type, 'image-prop');
-    assert.equal(item?.template?.depth, 'background');
+    assert.equal(item?.template?.depth, depth);
     assert.equal(item?.template?.assetPath, `assets/expedition/environment/egypt-opening/lost-bridge/${filename}`);
     assert.equal(item?.template?.width, width);
     assert.equal(item?.template?.height, height);
@@ -4244,6 +4366,11 @@ test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, an
     'lostBridgeRavineFloorWide',
     'lostBridgeRavineFloorDeep',
     'lostBridgeRavineFloorTallWide',
+    'lostBridgeRavineTempleGapOption2',
+    'lostBridgeRavineDepthInsertOption3',
+    'lostBridgeRavineUnderBridgeInsert',
+    'lostBridgeMummificationSlopeBlend',
+    'lostBridgeMummificationDustVeil',
   ].forEach(id => assert.ok(registryIds.has(id), `${id} should be available in the prop editor`));
   [
     'openingPyramidLeftStairFace',
@@ -4696,10 +4823,11 @@ test('generated Egypt structure contact layers use asymmetric buried-base polish
 });
 
 test('generated overrides preserve polished structure contact layers when re-exported', () => {
-  const backgroundOverride = journeyPlacementOverrides.props.find((prop) => prop.id === 'desert-entry-generated-mummification-chamber-entrance-1');
-  assert.equal(backgroundOverride?.depth, 'midground');
-  assert.equal(backgroundOverride?.layer, 'background');
-  assert.deepEqual(backgroundOverride?.groundContactLayer, []);
+  const mummificationOverride = journeyPlacementOverrides.props.find((prop) => prop.id === 'desert-entry-generated-mummification-chamber-entrance-1');
+  assert.equal(mummificationOverride?.depth, 'route-edge');
+  assert.equal(mummificationOverride?.layer, 'route-edge');
+  assert.ok(mummificationOverride?.alpha >= 0.82, 'Mummification exterior should remain visible as a room landmark');
+  assert.deepEqual(mummificationOverride?.groundContactLayer, []);
   [
     'forgotten-mural-climb-structure',
     'scribe-chamber-doorway-structure',
@@ -4969,7 +5097,7 @@ test('combat pressure encounters guard optional rewards without blocking progres
   assert.match(journeyUtilsSource, /enemy\.type === 'scorpion' \? Math\.ceil\(tunedHealth \* 1\.5\) : tunedHealth/);
   assert.match(journeyUtilsSource, /Math\.ceil\(enemy\.health \* 1\.55\)/);
   assert.match(journeyUtilsSource, /if\s*\(enemy\.firstSealRouteRamp\)\s*return Math\.max\(1, enemy\.damage\)/);
-  assert.match(journeyUtilsSource, /Math\.ceil\(enemy\.damage \* 1\.65\)/);
+  assert.match(journeyUtilsSource, /Math\.ceil\(enemy\.damage \* 1\.35\)/);
   assert.match(journeyUtilsSource, /baseSpeed: entity\.speed \* \(entity\.openingRouteRamp \? 1\.12 : 1\.32\)/);
   assert.match(journeyComponentSource, /const ENEMY_TACTICAL_PRESSURE = \{/);
   assert.match(journeyComponentSource, /awarenessMultiplier/);
@@ -5420,15 +5548,16 @@ test('hazards and traps use trap audio instead of door sounds', () => {
 test('enemy hits land harder while player pushback stays short', () => {
   assert.match(journeyUtilsSource, /enemy\.openingRouteRamp\s*\?\s*Math\.max\(enemy\.damage \+ 1, Math\.ceil\(enemy\.damage \* 1\.3\)\)/);
   assert.match(journeyUtilsSource, /if\s*\(enemy\.firstSealRouteRamp\)\s*return Math\.max\(1, enemy\.damage\)/);
-  assert.match(journeyUtilsSource, /Math\.max\(enemy\.damage \+ 5, Math\.ceil\(enemy\.damage \* 1\.65\)\)/);
+  assert.match(journeyUtilsSource, /Math\.max\(enemy\.damage \+ 3, Math\.ceil\(enemy\.damage \* 1\.35\)\)/);
   assert.match(journeyComponentSource, /player\.knockbackMaxTimer = Math\.max\(0\.06, 0\.12 \* effectiveKnockbackMultiplier\)/);
   assert.match(journeyComponentSource, /player\.vx = approach\(player\.vx, direction \* 95 \* effectiveKnockbackMultiplier, 160\)/);
   assert.match(journeyComponentSource, /player\.vx \+= player\.knockbackDirection \* \(55 \+ knockbackProgress \* 42\.5\) \* knockbackMultiplier/);
 });
 
 test('enemy threat pass slice 4: danger scaling, wound state, depth pressure, and combat roles', () => {
-  // Damage multiplier bumped to 1.65x for mid/late enemies
-  assert.match(journeyUtilsSource, /Math\.max\(enemy\.damage \+ 5, Math\.ceil\(enemy\.damage \* 1\.65\)\)/);
+  // Mid/late enemies hit harder than the opening ramp, but the inflation stays mild
+  // (1.35x) now that heavy attacks resolve at their full damage scales.
+  assert.match(journeyUtilsSource, /Math\.max\(enemy\.damage \+ 3, Math\.ceil\(enemy\.damage \* 1\.35\)\)/);
   // Wound state: enemies below half health attack faster
   assert.match(journeyComponentSource, /woundState|wound_state|woundMultiplier|e\.health.*e\.maxHealth.*0\.5|health.*maxHealth.*wound/i);
   // Depth pressure: enemies past X(1480) have shorter cooldowns

@@ -1,0 +1,106 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Mummification structure blend preview</title>
+<style>
+  body { margin: 0; padding: 14px; background: #1a1610; color: #e8dcc4; font-family: Segoe UI, sans-serif; }
+  h1 { font-size: 15px; margin: 0 0 10px; font-weight: 600; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 1250px; }
+  .panel { position: relative; }
+  .caption { font-size: 12px; margin: 4px 0 0; color: #cdbf9e; }
+  .stage { position: relative; width: 610px; height: 343px; overflow: hidden; border: 1px solid #4a3f2c; border-radius: 4px; }
+  .stage img.bg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .stage img.structure {
+    position: absolute;
+    width: 98.7%;        /* 1650 of 1672 world px, live prop scale */
+    left: 0.65%;
+    bottom: 2%;
+  }
+  /* Panel 1: raw paste, no treatment */
+  .raw .structure { }
+  /* Panel 2: the exact grade the live entrance prop uses today */
+  .graded .structure {
+    filter: saturate(78%) sepia(8%) contrast(96%) brightness(86%);
+    opacity: 0.92;
+  }
+  /* Panel 3: same grade + sunset warm shift + grounding */
+  .polished .structure {
+    filter: saturate(82%) sepia(26%) hue-rotate(-4deg) contrast(92%) brightness(82%)
+            drop-shadow(0 5px 9px rgba(46, 24, 8, 0.6));
+    opacity: 0.94;
+  }
+  .contact-shadow {
+    position: absolute;
+    left: 4%; bottom: 0.5%;
+    width: 92%; height: 7%;
+    background: radial-gradient(ellipse at 50% 100%, rgba(40, 20, 6, 0.55) 0%, rgba(40, 20, 6, 0) 70%);
+  }
+  .sand-lip {
+    position: absolute;
+    left: 0; bottom: 0;
+    width: 100%; height: 5.5%;
+    background: linear-gradient(to top, rgba(196, 150, 88, 0.85) 0%, rgba(196, 150, 88, 0) 100%);
+  }
+  .haze {
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom, rgba(255, 170, 80, 0.10) 0%, rgba(255, 140, 60, 0.05) 55%, rgba(120, 70, 30, 0.08) 100%);
+    pointer-events: none;
+  }
+  .player {
+    position: absolute;
+    bottom: 2.4%;
+    left: 24%;
+    width: 0.95%;          /* ~16 world px wide */
+    height: 4.45%;         /* 42 world px of 941 */
+    background: #2c241a;
+    border: 1px solid #efe2c0;
+    border-radius: 2px;
+  }
+  .player-label {
+    position: absolute;
+    bottom: 7.5%; left: 18.5%;
+    font-size: 10px; color: #ffe9bd; text-shadow: 0 1px 2px #000;
+  }
+  .notes { font-size: 12.5px; line-height: 1.55; padding: 6px 10px; }
+  .notes b { color: #ffd98a; }
+</style>
+</head>
+<body>
+<h1>Candidate 1 "broad ritual facade" over the real in-game arrival plate (live size: structure 1650w on 1672w plate)</h1>
+<div class="grid">
+  <div class="panel">
+    <div class="stage raw">
+      <img class="bg" src="../assets/expedition/backgrounds/desert-entry-opening-rebuild/desert-entry-mummification-exterior-arrival-background-raw-2026-06-11.png">
+      <img class="structure" src="../assets/expedition/environment/desert-temple/mummification-structure-candidates/mummification-structure-candidate-1-broad-ritual-facade-alpha-2026-06-12.png">
+      <div class="player"></div>
+      <div class="player-label">player size</div>
+    </div>
+    <p class="caption">1. RAW PASTE - no treatment (the "cutout" look you're worried about)</p>
+  </div>
+  <div class="panel">
+    <div class="stage graded">
+      <img class="bg" src="../assets/expedition/backgrounds/desert-entry-opening-rebuild/desert-entry-mummification-exterior-arrival-background-raw-2026-06-11.png">
+      <img class="structure" src="../assets/expedition/environment/desert-temple/mummification-structure-candidates/mummification-structure-candidate-1-broad-ritual-facade-alpha-2026-06-12.png">
+      <div class="player"></div>
+    </div>
+    <p class="caption">2. IN-GAME TODAY - exact grade the live entrance prop uses: saturate(78%) sepia(8%) contrast(96%) brightness(86%), alpha 0.92</p>
+  </div>
+  <div class="panel">
+    <div class="stage polished">
+      <img class="bg" src="../assets/expedition/backgrounds/desert-entry-opening-rebuild/desert-entry-mummification-exterior-arrival-background-raw-2026-06-11.png">
+      <img class="structure" src="../assets/expedition/environment/desert-temple/mummification-structure-candidates/mummification-structure-candidate-1-broad-ritual-facade-alpha-2026-06-12.png">
+      <div class="contact-shadow"></div>
+      <div class="sand-lip"></div>
+      <div class="haze"></div>
+      <div class="player"></div>
+    </div>
+    <p class="caption">3. RECOMMENDED - warmer sunset grade + base contact shadow + sand lip burying the rubble + scene haze</p>
+  </div>
+  <div class="panel notes">
+    <p><b>What changes between 1 and 3:</b> the structure's neutral midday lighting gets pulled toward the plate's orange sunset, contrast comes down to match the haze, the base rubble gets a soft contact shadow and a sand lip so it reads as sitting IN the ground, and a thin warm haze ties both layers together.</p>
+    <p><b>Values used in panel 3:</b> saturate(82%) sepia(26%) hue-rotate(-4deg) contrast(92%) brightness(82%) - all tunable in the Shift+E editor.</p>
+  </div>
+</div>
+</body>
+</html>

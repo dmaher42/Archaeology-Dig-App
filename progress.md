@@ -4,6 +4,26 @@ Current source-of-truth note:
 - Future implementation should follow `docs/lost-site-expedition-production-bible.md`.
 - The production bible now defines implementation hierarchy, room pipelines, asset roles, and quality expectations.
 
+2026-06-12 Desert Entry ravine bridge polish:
+- Kept the bridge-route motivation in the existing Journey seal/shard guidance path rather than adding a separate tutorial.
+- The required Temple Approach Seal shard now sits on the upper ravine bridge route, and the locked-seal HUD hint explicitly tells players to climb the bridge for the next shard while treating the lower path as recovery.
+- Added focused test coverage so the bridge reward stays visible, required, and above the recovery path.
+- Verified the focused Journey route tests, nearby Journey regression tests, targeted eslint, and production build.
+- Fixed the missing visible room landmark at the Mummification exterior: the generated entrance prop is no longer retired behind the background plate and now renders as a route-edge structure again, with focused placement/room-entry tests updated to protect visible sacred-room exteriors.
+
+2026-06-11 Desert Entry transition guidance update:
+- Continued the Desert Entry rebuild follow-up by tightening route-gate guidance after the Mummification, Mural, Scribe, Queen, Desert Seal, and Ruined Temple gateway stretch.
+- Added a reusable next-route-gate helper so HUD/debug/shard guidance ignores editor-only route markers and skips stale gates that are already behind Asha after the rebuilt path.
+- Added focused route-gate tests alongside the existing placement-rebuild tests.
+- Continued the transition pass by moving chamber entry/return math into tested Journey helpers; Mummification, Mural, and Scribe room returns now share the same verified doorway-platform centering contract.
+
+2026-06-11 Desert Entry regenerated background batch:
+- Generated four new Desert Entry route background plates for the rebuilt path: Mummification-to-Mural, Mural-to-Scribe, Scribe-to-Queen, and Queen/Seal-to-Ruined-Temple-gateway.
+- Saved raw and normalized PNGs under `public/assets/expedition/backgrounds/desert-entry-regenerated/`; the normalized gameplay files are `2172x724` and had lower-right generated signature marks cropped out where needed.
+- Wired the normalized plates into the existing Journey `image-prop` rendering path in `journeyPlacementOverrides.generated.js`, with non-colliding background-depth placements behind the rebuilt route beats.
+- Added focused placement test coverage so the routed Desert Entry data keeps the regenerated plates, file paths, ordering, and disk assets intact.
+- Browser debug capture verified the first regenerated plate in the live Journey canvas at the Mummification-to-Mural stretch; subsequent automated screenshots hit the animated-canvas capture timeout, so the remaining route points are covered by route-state checks, asset serving checks, dimensions, and renderer camera-window tests.
+
 2026-06-05 Markdown audit update:
 - Promoted `docs/docs-status.md` as the repo's Markdown interpretation map: what is absolute, what is current supporting context, what is specialist source, and what is historical/reference.
 - Confirmed the absolute current docs are the Production Bible, Standalone Game Rule, Story Bible, Story Arc, and Egypt Act 1 Room Order.
