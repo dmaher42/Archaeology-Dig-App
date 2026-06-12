@@ -3317,13 +3317,14 @@ const getJourneyPaintTintBuffer = (width, height) => {
   return { canvas: buf, ctx };
 };
 
-// Filter the (77-item) prop palette by a free-text query, matching label, key, or asset key.
+// Filter the prop palette by a free-text query, matching label, key, asset key, or
+// group/category name (so e.g. "tomb" finds everything under Tomb Architecture).
 const filterJourneyPaletteBySearch = (items = [], query = '') => {
   const q = String(query || '').trim().toLowerCase();
   if (!q) return items;
   return items.filter((item) => {
     const assetKey = item.preview?.assetKey || item.atmosphereAssetKey || item.type || '';
-    return `${item.label || ''} ${item.key || ''} ${assetKey}`.toLowerCase().includes(q);
+    return `${item.label || ''} ${item.key || ''} ${item.category || ''} ${assetKey}`.toLowerCase().includes(q);
   });
 };
 
@@ -22784,6 +22785,15 @@ export default function ExpeditionJourney({
         refreshPropEditorUi();
         return;
       }
+      // Escape is two-stage while the palette is open: first press disarms the held
+      // item (back to select/move clicks), second press closes the palette.
+      if (event.code === 'Escape' && editor.paletteOpen) {
+        event.preventDefault();
+        if (editor.selectedPaletteKey) editor.selectedPaletteKey = null;
+        else editor.paletteOpen = false;
+        refreshPropEditorUi();
+        return;
+      }
       if (event.code === 'KeyT' && !event.ctrlKey && !event.metaKey && !event.altKey) {
         event.preventDefault();
         editor.showTrapTriggers = !editor.showTrapTriggers;
@@ -25422,15 +25432,37 @@ export default function ExpeditionJourney({
               </div>
             )}
 
-            {import.meta.env.DEV && propEditorUi.enabled && propEditorUi.paletteOpen && (
+            {import.meta.env.DEV && propEditorUi.enabled && propEditorUi.paletteOpen && (() => {
+              const paletteTitles = {
+                trap: 'Trap palette',
+                platform: 'Platform palette',
+                'ground-detail': 'Ground Details palette',
+                'foreground-detail': 'Foreground Details palette',
+                ledge: 'Ledge palette',
+              };
+              const paletteSearching = Boolean(String(propEditorUi.paletteSearch || '').trim());
+              const filteredPalette = filterJourneyPaletteBySearch(propEditorUi.palette, propEditorUi.paletteSearch);
+              const armedPaletteItem = propEditorUi.selectedPaletteKey
+                ? propEditorUi.palette.find(item => item.key === propEditorUi.selectedPaletteKey)
+                : null;
+              const closePalette = () => {
+                const ed = propPlacementEditorRef.current;
+                ed.paletteOpen = false;
+                ed.selectedPaletteKey = null;
+                refreshPropEditorUi();
+              };
+              return (
               <div className="journey-prop-palette-panel" aria-label="Prop palette">
                 <div className="journey-prop-editor-export-header">
-                  <strong>{propEditorUi.selectedPaletteCategory === 'trap' ? 'Trap palette' : propEditorUi.selectedPaletteCategory === 'platform' ? 'Platform palette' : propEditorUi.selectedPaletteCategory === 'ground-detail' ? 'Ground Details palette' : propEditorUi.selectedPaletteCategory === 'foreground-detail' ? 'Foreground Details palette' : propEditorUi.selectedPaletteCategory === 'ledge' ? 'Ledge palette' : 'Prop palette'}</strong>
-                  <span>{filterJourneyPaletteBySearch(propEditorUi.palette, propEditorUi.paletteSearch).length}</span>
+                  <strong>{paletteTitles[propEditorUi.selectedPaletteCategory] || 'Prop palette'}</strong>
+                  <span>{paletteSearching ? `${filteredPalette.length} of ${propEditorUi.palette.length}` : `${propEditorUi.palette.length} items`}</span>
+                  <button type="button" title="Close palette (P or Esc)" onClick={closePalette}>
+                    ✕
+                  </button>
                 </div>
                 <button
                   type="button"
-                  className={propEditorUi.stampMode ? 'is-selected' : ''}
+                  className={`journey-prop-palette-stamp${propEditorUi.stampMode ? ' is-selected' : ''}`}
                   title="Stamp mode: keep the palette open and the selected item armed after placing, so you can drop the same prop repeatedly without reopening the palette."
                   onClick={() => {
                     const ed = propPlacementEditorRef.current;
@@ -25438,18 +25470,6 @@ export default function ExpeditionJourney({
                     // Turning stamp mode off disarms the held item so clicks select/move again.
                     if (!ed.stampMode) ed.selectedPaletteKey = null;
                     refreshPropEditorUi();
-                  }}
-                  style={{
-                    width: '100%',
-                    margin: '0 0 4px',
-                    padding: '4px 8px',
-                    borderRadius: 4,
-                    border: propEditorUi.stampMode ? '1px solid rgba(94,234,212,0.85)' : '1px solid rgba(255,255,255,0.18)',
-                    background: propEditorUi.stampMode ? 'rgba(94,234,212,0.18)' : 'rgba(255,255,255,0.05)',
-                    color: '#f8fafc',
-                    cursor: 'pointer',
-                    fontSize: 11,
-                    textAlign: 'left',
                   }}
                 >
                   {propEditorUi.stampMode ? '📌 Stamp mode ON — keeps placing the same item' : '📌 Stamp mode OFF — palette closes after each place'}
@@ -25478,67 +25498,97 @@ export default function ExpeditionJourney({
                   ))}
                 </div>
                 {propEditorUi.recentPaletteItems?.length > 0 && (
-                  <div
-                    className="journey-prop-palette-recent"
-                    style={{ display: 'flex', flexWrap: 'wrap', gap: 4, padding: '4px 0', borderBottom: '1px solid rgba(214,158,73,0.25)', marginBottom: 4 }}
-                  >
-                    <span style={{ width: '100%', fontSize: 9, opacity: 0.55, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Recent</span>
-                    {propEditorUi.recentPaletteItems.map(item => (
-                      <button
-                        key={`recent-${item.category}-${item.key}`}
-                        type="button"
-                        className={propEditorUi.selectedPaletteKey === item.key ? 'is-selected' : ''}
-                        title={`${item.label} — click to place again`}
-                        onClick={() => {
-                          propPlacementEditorRef.current.selectedPaletteCategory = item.category;
-                          propPlacementEditorRef.current.selectedPaletteKey = item.key;
-                          refreshPropEditorUi();
-                        }}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 4,
-                          maxWidth: 130,
-                          padding: '2px 6px 2px 2px',
-                          borderRadius: 4,
-                          border: propEditorUi.selectedPaletteKey === item.key ? '1px solid rgba(214,158,73,0.85)' : '1px solid rgba(255,255,255,0.12)',
-                          background: propEditorUi.selectedPaletteKey === item.key ? 'rgba(214,158,73,0.22)' : 'rgba(255,255,255,0.04)',
-                          color: '#f8fafc',
-                          cursor: 'pointer',
-                          fontSize: 10,
-                        }}
-                      >
-                        <span className="journey-prop-palette-thumb" aria-hidden="true" style={{ flex: '0 0 auto' }}>
-                          <span style={item.preview.style} />
-                        </span>
-                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.label}</span>
-                      </button>
-                    ))}
+                  <div className="journey-prop-palette-recent">
+                    <span className="journey-prop-palette-recent-label">Recent</span>
+                    {propEditorUi.recentPaletteItems.map(item => {
+                      const isArmed = propEditorUi.selectedPaletteKey === item.key;
+                      return (
+                        <button
+                          key={`recent-${item.category}-${item.key}`}
+                          type="button"
+                          className={`journey-prop-palette-recent-item${isArmed ? ' is-selected' : ''}`}
+                          title={isArmed ? `${item.label} — click again to disarm` : `${item.label} — click to place again`}
+                          onClick={() => {
+                            const ed = propPlacementEditorRef.current;
+                            if (isArmed) {
+                              ed.selectedPaletteKey = null;
+                            } else {
+                              ed.selectedPaletteCategory = item.category;
+                              ed.selectedPaletteKey = item.key;
+                            }
+                            refreshPropEditorUi();
+                          }}
+                        >
+                          <span className="journey-prop-palette-thumb" aria-hidden="true">
+                            <span style={item.preview.style} />
+                          </span>
+                          <span className="journey-prop-palette-recent-name">{item.label}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
                 <input
                   type="search"
                   className="journey-prop-palette-search"
                   placeholder="Search palette…"
+                  title="Type to filter. Enter arms the first match. Esc clears the search, then closes the palette."
                   value={propEditorUi.paletteSearch}
+                  autoFocus
                   onChange={(event) => {
                     propPlacementEditorRef.current.paletteSearch = event.target.value;
                     refreshPropEditorUi();
                   }}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Escape') {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      const ed = propPlacementEditorRef.current;
+                      if (String(ed.paletteSearch || '').trim()) {
+                        ed.paletteSearch = '';
+                        refreshPropEditorUi();
+                      } else {
+                        closePalette();
+                      }
+                      return;
+                    }
+                    if (event.key === 'Enter' && filteredPalette.length > 0) {
+                      event.preventDefault();
+                      propPlacementEditorRef.current.selectedPaletteKey = filteredPalette[0].key;
+                      refreshPropEditorUi();
+                    }
+                  }}
                 />
                 <div className="journey-prop-palette-list">
-                  {Object.entries(filterJourneyPaletteBySearch(propEditorUi.palette, propEditorUi.paletteSearch).reduce((acc, item) => {
+                  {filteredPalette.length === 0 && (
+                    <div className="journey-prop-palette-empty">
+                      <span>No matches for “{String(propEditorUi.paletteSearch || '').trim()}”</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          propPlacementEditorRef.current.paletteSearch = '';
+                          refreshPropEditorUi();
+                        }}
+                      >
+                        Clear search
+                      </button>
+                    </div>
+                  )}
+                  {Object.entries(filteredPalette.reduce((acc, item) => {
                     const group = item.category || 'General';
                     if (!acc[group]) acc[group] = [];
                     acc[group].push(item);
                     return acc;
                   }, {})).map(([groupName, items]) => {
-                    const isCollapsed = propEditorUi.collapsedPaletteGroups?.[groupName] || false;
+                    // While searching, force every group open so matches are never hidden
+                    // behind a collapsed header.
+                    const isCollapsed = !paletteSearching && (propEditorUi.collapsedPaletteGroups?.[groupName] || false);
                     return (
                     <div key={groupName} className="journey-prop-palette-group">
                       <button
                         type="button"
                         className="journey-prop-palette-group-toggle"
+                        disabled={paletteSearching}
                         onClick={() => {
                           if (!propPlacementEditorRef.current.collapsedPaletteGroups) {
                             propPlacementEditorRef.current.collapsedPaletteGroups = {};
@@ -25551,30 +25601,43 @@ export default function ExpeditionJourney({
                         <strong>{groupName}</strong>
                         <em>{items.length}</em>
                       </button>
-                      {!isCollapsed && items.map(item => (
-                        <button
-                          key={item.key}
-                          type="button"
-                          className={propEditorUi.selectedPaletteKey === item.key ? 'is-selected' : ''}
-                          onClick={() => {
-                            propPlacementEditorRef.current.selectedPaletteKey = item.key;
-                            refreshPropEditorUi();
-                          }}
-                        >
-                          <span className="journey-prop-palette-thumb" aria-hidden="true">
-                            <span style={item.preview.style} />
-                          </span>
-                          <span className="journey-prop-palette-copy">
-                            <strong>{item.label}</strong>
-                            <span>{item.preview.assetKey || item.atmosphereAssetKey || item.type}</span>
-                          </span>
-                        </button>
-                      ))}
+                      {!isCollapsed && items.map(item => {
+                        const isArmed = propEditorUi.selectedPaletteKey === item.key;
+                        return (
+                          <button
+                            key={item.key}
+                            type="button"
+                            className={isArmed ? 'is-selected' : ''}
+                            title={isArmed ? `${item.label} — click again to disarm` : `${item.label} — click to arm, then click in the world to place`}
+                            onClick={() => {
+                              propPlacementEditorRef.current.selectedPaletteKey = isArmed ? null : item.key;
+                              refreshPropEditorUi();
+                            }}
+                          >
+                            <span className="journey-prop-palette-thumb" aria-hidden="true">
+                              <span style={item.preview.style} />
+                            </span>
+                            <span className="journey-prop-palette-copy">
+                              <strong>{item.label}</strong>
+                              <span>{item.preview.assetKey || item.atmosphereAssetKey || item.type}</span>
+                            </span>
+                          </button>
+                        );
+                      })}
                     </div>
                   );})}
                 </div>
+                {armedPaletteItem && (
+                  <div className="journey-prop-palette-armed-hint">
+                    <strong>{armedPaletteItem.label}</strong>
+                    {propEditorUi.stampMode
+                      ? ' armed — click in the world to place. Stamp mode keeps it armed. Esc cancels.'
+                      : ' armed — click in the world to place. Esc cancels.'}
+                  </div>
+                )}
               </div>
-            )}
+              );
+            })()}
 
             {import.meta.env.DEV && propEditorUi.exportVisible && (
               <div className="journey-prop-editor-export">
