@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import test from 'node:test';
 import {
   applyJourneyPlacementOverrides,
@@ -17,6 +17,12 @@ import {
   STORY_PROPS as ROUTED_STORY_PROPS,
   setExpeditionJourneyCiv,
 } from './journeyDataRouter.js';
+import {
+  DESERT_JOURNEY_BACKGROUND_SYSTEM_VERSION,
+  DESERT_JOURNEY_LAYER_ROLES,
+  DESERT_JOURNEY_SCENE_PANELS,
+  DESERT_JOURNEY_TRANSITION_MASKS,
+} from './journeyDesertBackgroundPanels.js';
 
 const JOURNEY_TEST_VIEWPORT_WIDTH = 1280;
 
@@ -254,6 +260,64 @@ test('mergeJourneyPlacementOverrideExports treats missing same-room editable ite
   assert.deepEqual(merged.deletedHazardIds, ['stale-entry-hazard']);
 });
 
+test('desert entry first spawn has quiet boot-level grounding props for Asha', () => {
+  setExpeditionJourneyCiv('Ancient Egypt');
+
+  const groundingProps = ROUTED_STORY_PROPS.filter((prop) => prop.id?.startsWith('desert-entry-asha-grounding-'));
+
+  assert.equal(groundingProps.length, 4);
+
+  groundingProps.forEach((prop) => {
+    assert.equal(prop.sectionId, 'desert-entry');
+    assert.equal(prop.type, 'image-prop');
+    assert.equal(prop.depth, 'foreground-occluder');
+    assert.equal(prop.collidable, false);
+    assert.equal(prop.inspectable, false);
+    assert.match(prop.assetPath, /^assets\/expedition\/environment\/egypt-atmosphere\/props\/grounding-kit-2026-06-13-final\/grounding-/);
+    assert.ok(existsSync(`public/${prop.assetPath}`), `${prop.id} should point at a real cropped grounding PNG`);
+    assert.ok(prop.x >= 0 && prop.x <= 160, `${prop.id} should stay close to Asha's first-spawn camera`);
+    assert.ok(prop.y >= 620 && prop.y <= 628, `${prop.id} should sit at boot/ground level`);
+    assert.ok(prop.height <= 28, `${prop.id} should stay low enough to avoid becoming a set piece`);
+    assert.ok(prop.alpha >= 0.55 && prop.alpha <= 0.7, `${prop.id} should be present but quiet`);
+    assert.equal(prop.sceneBlend, 'desert-entry-sand');
+    assert.equal(prop.groundContactLayer, undefined, `${prop.id} should avoid separate contact overlays that can float`);
+  });
+});
+
+test('Desert Entry background rebuild uses continuous scene panels with the PNG plates as primary art', () => {
+  const journeySource = readFileSync(new URL('../ExpeditionJourney.jsx', import.meta.url), 'utf8');
+
+  assert.equal(DESERT_JOURNEY_BACKGROUND_SYSTEM_VERSION, 'desert-journey-continuous-panels-2026-06-14');
+  assert.deepEqual(DESERT_JOURNEY_LAYER_ROLES, ['sky', 'far', 'mid', 'ground', 'foreground']);
+  assert.equal(DESERT_JOURNEY_SCENE_PANELS.length, 7);
+  assert.equal(DESERT_JOURNEY_TRANSITION_MASKS.length, 6);
+  assert.deepEqual(
+    DESERT_JOURNEY_SCENE_PANELS.map(panel => panel.id),
+    [
+      'opening',
+      'ravine-bridge',
+      'ravine-to-mummification',
+      'mummification-arrival',
+      'mummification-to-mural',
+      'mural-to-scribe',
+      'scribe-to-queen-gateway',
+    ],
+  );
+  assert.match(journeySource, /drawDesertJourneyScenePanels = useCallback/);
+  assert.match(journeySource, /drawDesertJourneySceneMasks = useCallback/);
+  assert.match(journeySource, /drawDesertEntryPrimaryBackgroundPlates = useCallback/);
+  assert.match(journeySource, /drawDesertJourneyPanelLayer/);
+  assert.match(journeySource, /drawDesertJourneyTransitionMask/);
+  assert.match(journeySource, /DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_IDS/);
+  assert.match(journeySource, /DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_SEAM_MASKS/);
+  assert.match(journeySource, /desertEntryPrimaryBackgroundPlateIds/);
+  assert.match(journeySource, /desertEntryPrimaryBackgroundPlateSeamMasks/);
+  assert.match(journeySource, /full-canvas-route-crossfade-primary-png-v2/);
+  assert.match(journeySource, /DESERT_JOURNEY_BACKGROUND_SYSTEM_VERSION/);
+  assert.doesNotMatch(journeySource, /full-canvas-route-crossfade-background-v1/);
+  assert.doesNotMatch(journeySource, /DESERT_ENTRY_REBUILD_BACKGROUND_CROSSFADE_WIDTH/);
+});
+
 test('journeyDataRouter exposes editor overrides while journeyLevelData keeps authored base placement', () => {
   setExpeditionJourneyCiv('Ancient Egypt');
 
@@ -373,7 +437,8 @@ test('Desert Entry rebuild keeps visible scenery and walkable ground continuous 
   const featureById = (id) => ROUTED_STAGE_ENTRANCE_FEATURES.find(feature => feature.id === id);
   const queen = getJourneyMiniBosses('Ancient Egypt').find(boss => boss.id === 'scarab-queen');
   const ruinedTempleGate = featureById('ruined-temple-colossus-gate');
-  const desertFloor = platformById('desert-entry-floor');
+  const desertFloorBeforeRavine = platformById('desert-entry-floor-opening');
+  const desertFloorAfterRavine = platformById('desert-entry-floor-after-ravine');
 
   const rebuiltSequenceIds = [
     'desert-entry-mummification-exterior-arrival-background-1',
@@ -401,10 +466,15 @@ test('Desert Entry rebuild keeps visible scenery and walkable ground continuous 
 
   assert.ok(queen, 'Scarab Queen should exist in routed mini-boss data');
   assert.ok(ruinedTempleGate, 'Ruined Temple gateway should exist in routed stage entrance data');
-  assert.ok(desertFloor, 'Desert Entry floor should exist in routed platform data');
+  assert.ok(desertFloorBeforeRavine, 'Desert Entry floor should exist before the ravine in routed platform data');
+  assert.ok(desertFloorAfterRavine, 'Desert Entry floor should resume after the ravine in routed platform data');
   assert.ok(
-    desertFloor.x + desertFloor.width >= ruinedTempleGate.x,
-    'Desert Entry floor should remain walkable through the Ruined Temple gateway center',
+    desertFloorBeforeRavine.x + desertFloorBeforeRavine.width < desertFloorAfterRavine.x,
+    'Desert Entry floor should leave a real non-walkable ravine gap under the bridge',
+  );
+  assert.ok(
+    desertFloorAfterRavine.x + desertFloorAfterRavine.width >= ruinedTempleGate.x,
+    'Desert Entry floor should remain walkable after the ravine through the Ruined Temple gateway center',
   );
   assert.ok(
     propById('desert-entry-queen-arena-scarab-carving-1').x >= queen.arenaStart
@@ -474,11 +544,20 @@ test('Desert Entry opening rebuild carries the pyramid, ravine, and Mummificatio
     assert.equal(prop.layer, 'background');
     assert.equal(prop.width, expectedBackgroundSizes[id].width);
     assert.equal(prop.height, expectedBackgroundSizes[id].height);
+    if (id === 'desert-entry-opening-pyramid-to-ravine-background-1') {
+      assert.equal(
+        prop.assetPath,
+        'assets/expedition/backgrounds/desert-entry/desert-entry-opening-benchmark-no-platforms.png',
+        'opening background should use the clean no-platforms plate so the circled mid-ground ruin maze stays removed',
+      );
+    }
     assert.equal(prop.alpha, 1, `${id} should draw at full placement opacity`);
-    assert.ok(
-      prop.assetPath?.startsWith('assets/expedition/backgrounds/desert-entry-opening-rebuild/'),
-      `${id} should load from the regenerated opening rebuild background folder`,
-    );
+    if (id !== 'desert-entry-opening-pyramid-to-ravine-background-1') {
+      assert.ok(
+        prop.assetPath?.startsWith('assets/expedition/backgrounds/desert-entry-opening-rebuild/'),
+        `${id} should load from the regenerated opening rebuild background folder`,
+      );
+    }
     assert.ok(existsSync(`public/${prop.assetPath}`), `${id} image file should exist on disk`);
     const checkpoint = routeCheckpoints.find(item => item.id === id);
     const cameraX = Math.max(0, checkpoint.targetX - JOURNEY_TEST_VIEWPORT_WIDTH * 0.42);
@@ -495,10 +574,11 @@ test('Desert Entry opening rebuild carries the pyramid, ravine, and Mummificatio
     return current;
   });
 
-  assert.ok(laterMummificationPlate, 'later Mummification-to-Mural background should still exist');
-  assert.ok(
-    backgrounds[3].x < laterMummificationPlate.x,
-    'Mummification exterior arrival plate should hand off before the later Mural approach plate',
+  assert.ok(laterMummificationPlate, 'retired Mummification-to-Mural background should remain traceable for editor history');
+  assert.equal(
+    laterMummificationPlate.alpha,
+    0,
+    'the busy Mummification-to-Mural background plate should stay visually retired so close background ruins do not draw',
   );
   assert.equal(
     ravineOverlay?.assetPath,
@@ -526,17 +606,19 @@ test('Desert Entry rebuild includes regenerated route background plates through 
   const routeById = (id) => ROUTED_HIDDEN_ROUTES.find(route => route.id === id);
   const queen = getJourneyMiniBosses('Ancient Egypt').find(boss => boss.id === 'scarab-queen');
   const regeneratedBackgroundIds = [
-    'desert-entry-mummification-to-mural-background-1',
     'desert-entry-mural-to-scribe-background-1',
     'desert-entry-scribe-to-queen-background-1',
     'desert-entry-queen-to-ruined-gateway-background-1',
   ];
   const routeCheckpoints = [
-    { id: 'desert-entry-mummification-to-mural-background-1', targetX: 6400 },
     { id: 'desert-entry-mural-to-scribe-background-1', targetX: 9500 },
     { id: 'desert-entry-scribe-to-queen-background-1', targetX: 13520 },
     { id: 'desert-entry-queen-to-ruined-gateway-background-1', targetX: 16240 },
   ];
+  const retiredMuralApproachBackground = propById('desert-entry-mummification-to-mural-background-1');
+
+  assert.ok(retiredMuralApproachBackground, 'retired close-ruin mural approach background should remain traceable');
+  assert.equal(retiredMuralApproachBackground.alpha, 0);
 
   const backgrounds = regeneratedBackgroundIds.map((id) => {
     const prop = propById(id);
@@ -572,11 +654,11 @@ test('Desert Entry rebuild includes regenerated route background plates through 
   assert.ok(queen, 'Scarab Queen should exist in routed mini-boss data');
   assert.ok(scribeRoute, 'Scribe route should exist in routed hidden route data');
   assert.ok(
-    backgrounds[2].x > scribeRoute.x + scribeRoute.width && backgrounds[2].x < queen.x,
+    backgrounds[1].x > scribeRoute.x + scribeRoute.width && backgrounds[1].x < queen.x,
     'Scribe-to-Queen background should sit between the Scribe room and Queen center',
   );
   assert.ok(
-    backgrounds[3].x > queen.arenaEnd,
+    backgrounds[2].x > queen.arenaEnd,
     'Queen-to-gateway background should sit after the Queen arena',
   );
 });

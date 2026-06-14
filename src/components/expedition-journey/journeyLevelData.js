@@ -35,7 +35,8 @@ export const TOOL_LAYOUT = [
 ];
 
 export const PLATFORMS = [
-  { id: 'desert-entry-floor', x: X(0), y: GROUND_Y, width: X(2360), height: 60, label: 'desert track' },
+  { id: 'desert-entry-floor-opening', x: X(0), y: GROUND_Y, width: X(405), height: 60, label: 'desert track before the ravine' },
+  { id: 'desert-entry-floor-after-ravine', x: X(580), y: GROUND_Y, width: X(2360) - X(580), height: 60, label: 'desert track after the ravine bridge' },
   { id: 'temple-floor', x: X(2360), y: GROUND_Y, width: X(1650), height: 60, label: 'temple floor' },
   { id: 'catacomb-path-floor', x: X(4010), y: GROUND_Y, width: X(1900), height: 60, label: 'catacomb path' },
   { id: 'escape-road-floor', x: X(5910), y: GROUND_Y, width: X(1450), height: 60, label: 'escape road' },
@@ -63,14 +64,11 @@ export const PLATFORMS = [
   { id: 'mummification-chamber-doorway-floor', x: MUMMIFICATION_EXTERIOR_X(708), y: JY(-222), width: 228, height: 18, label: 'invisible high doorway floor at the Mummification Chamber entrance', secret: true, invisible: true },
   { id: 'mummification-chamber-upper-left-platform', x: MUMMIFICATION_EXTERIOR_X(659), y: JY(-255), width: 238, height: 18, label: 'invisible upper left platform at the Mummification Chamber exterior', secret: true, invisible: true },
   { id: 'mummification-chamber-floor', sceneId: 'mummification-chamber', x: X(520), y: JY(318), width: X(240), height: 18, label: 'invisible full Mummification Chamber floor', secret: true, invisible: true },
-  // --- Ravine Bridge encounter: narrow elevated stone bridge across a scorpion ravine, the
-  // first major environmental combat beat before the Mummification Chamber. The bridge deck
-  // (variant 'lost-bridge', y JY(130)=365) floats ~188px above the desert-entry-floor, which
-  // doubles as the recovery ravine. Knock-offs fall to the ground (no challengeFailY = no
-  // rescue) and the player must fight along the ravine and climb back up. Compact clean-zone
-  // layout: the whole encounter stays LEFT of the chamber facade climb (facade ledges begin at
-  // x~4138 / base 563), so falls land cleanly in the ravine over the combat slabs; the far
-  // landing then merges into the facade for arrival. Climb steps exist at both ends. ---
+  // --- Ravine Bridge encounter: narrow elevated stone bridge across a deep ravine, the
+  // first major environmental beat before the Mummification Chamber. The bridge deck
+  // (variant 'lost-bridge', y JY(130)=365) is the only playable crossing; the lower floor is
+  // deliberately split away so knock-offs fall into the rescue zone instead of reading as a
+  // walkable route. The far landing reconnects to the desert track after the chasm. ---
   { id: 'lost-bridge-approach-step-1', x: X(415), y: JY(272), width: 150, height: 16, variant: 'lost-bridge', label: 'broken sandstone approach step to the ravine bridge' },
   { id: 'lost-bridge-approach-step-2', x: X(437), y: JY(214), width: 130, height: 16, variant: 'lost-bridge', label: 'cracked sandstone approach step to the ravine bridge' },
   { id: 'lost-bridge-approach-step-3', x: X(452), y: JY(168), width: 120, height: 16, variant: 'lost-bridge', label: 'upper sandstone approach step to the ravine bridge entrance' },
@@ -78,8 +76,6 @@ export const PLATFORMS = [
   { id: 'lost-bridge-slab-1', x: X(490), y: JY(130), width: 150, height: 14, variant: 'lost-bridge', reactive: { type: 'collapsing bridge piece', delay: 1.3, respawn: 3.4, shake: 0.14 }, label: 'unstable ravine bridge slab repaired with timber' },
   { id: 'lost-bridge-slab-2', x: X(523), y: JY(130), width: 150, height: 14, variant: 'lost-bridge', reactive: { type: 'collapsing bridge piece', delay: 1.2, respawn: 3.4, shake: 0.16 }, label: 'unstable ravine bridge slab over the deepest drop' },
   { id: 'lost-bridge-far-landing', x: X(556), y: JY(130), width: 170, height: 16, variant: 'lost-bridge', label: 'ravine bridge far landing at the Mummification Chamber threshold' },
-  { id: 'lost-bridge-recovery-step-1', x: X(540), y: JY(272), width: 130, height: 16, variant: 'lost-bridge', label: 'broken ravine recovery step back up to the far landing' },
-  { id: 'lost-bridge-recovery-step-2', x: X(556), y: JY(214), width: 120, height: 16, variant: 'lost-bridge', label: 'upper ravine recovery step back up to the far landing' },
   { id: 'forgotten-mural-lower-masonry', x: SACRED_MURAL_APPROACH_X(1048), y: JY(276), width: 230, height: 18, label: 'invisible collapsed ceremonial masonry step over generated mural structure', secret: true, invisible: true },
   { id: 'forgotten-mural-carved-wall-ledge', x: SACRED_MURAL_APPROACH_X(1080), y: JY(218), width: 230, height: 18, label: 'invisible carved wall ledge in hidden priest passage art', secret: true, invisible: true },
   { id: 'forgotten-mural-broken-warning-step', x: SACRED_MURAL_APPROACH_X(1113), y: JY(160), width: 240, height: 18, label: 'invisible broken warning-stone ledge over generated mural structure', secret: true, invisible: true },
@@ -305,14 +301,11 @@ export const ENEMIES = [
   { id: 'scarab-arena-1', name: 'Scarab', type: 'scarab', emoji: 'B', x: X(455), y: JY(334), width: 34, height: 26, patrolMin: X(425), patrolMax: X(490), speed: 76, health: 2, damage: 6, openingRouteRamp: true, initialAttackCooldown: 1.9, shards: 2, encounterRole: 'nest arena pressure' },
   { id: 'scarab-scout-1', name: 'Scarab Scout', type: 'scarab', emoji: 'ðŸž', x: X(705), y: JY(334), width: 34, height: 26, patrolMin: X(680), patrolMax: X(760), speed: 74, health: 1, damage: 5, openingRouteRamp: true, firstSealRouteRamp: true, shards: 2, encounterRole: 'basic timing scout', combatRole: 'basic timing enemy', protectsRouteId: 'temple-approach-seal', pressureHint: 'Anubis\'s scout patrols the temple approach. The seal will not open while it remains.', attackPatternTuning: { label: 'Scout Charge', windup: 0.72, duration: 0.24, cooldown: 1.72, recovery: 0.82, vulnerableAfter: 0.9, speed: 138, range: 34 } },
   // --- Ravine Bridge encounter enemies. Bridge deck (y JY(104)/JY(100), fixed-Y patrol so
-  // they hold the walkway over the gaps) pressures the crossing; ravine-floor scorpions are the
-  // recovery-route fight if the player is knocked off. Bridge scarabs carry a high
-  // playerKnockbackMultiplier so a charge can shove the player off the deck. ---
+  // they hold the walkway over the gap) pressures the crossing. Bridge scarabs carry a high
+  // playerKnockbackMultiplier so a charge can shove the player into the ravine rescue zone. ---
   { id: 'scarab-bridge-1', name: 'Bridge Scarab', type: 'scarab', emoji: 'B', x: X(475), y: JY(104), width: 36, height: 26, patrolMin: X(462), patrolMax: X(520), speed: 92, health: 2, damage: 8, openingRouteRamp: true, initialAttackCooldown: 1.6, shards: 3, playerKnockbackMultiplier: 2.6, encounterRole: 'ravine bridge charger', pressureHint: 'A scarab charges the narrow bridge. Dodge behind it - a face-on charge can shove you into the ravine.' },
   { id: 'scorpion-bridge-1', name: 'Bridge Scorpion', type: 'scorpion', emoji: 'S', x: X(508), y: JY(100), width: 46, height: 30, patrolMin: X(496), patrolMax: X(548), speed: 56, health: 2, damage: 8, openingRouteRamp: true, attackPatternTuning: { windup: 0.66, duration: 0.34, cooldown: 1.74, recovery: 0.7, vulnerableAfter: 0.78, speed: 46, range: 28, height: 62, yOffset: -38, backReach: 42, damageScale: 1.4 }, shards: 3, encounterRole: 'ravine bridge venom', pressureHint: 'Its venom slows you on the bridge - a scarab charge right after can knock you off.' },
   { id: 'scarab-bridge-2', name: 'Bridge Scarab', type: 'scarab', emoji: 'B', x: X(540), y: JY(104), width: 36, height: 26, patrolMin: X(525), patrolMax: X(565), speed: 94, health: 2, damage: 8, openingRouteRamp: true, initialAttackCooldown: 1.5, shards: 3, playerKnockbackMultiplier: 2.6, encounterRole: 'ravine bridge charger', pressureHint: 'A second scarab guards the far slabs. Clear the bridge methodically instead of rushing.' },
-  { id: 'scorpion-ravine-1', name: 'Ravine Scorpion', type: 'scorpion', emoji: 'S', x: X(478), y: JY(330), width: 46, height: 30, patrolMin: X(458), patrolMax: X(540), speed: 60, health: 2, damage: 8, openingRouteRamp: true, attackPatternTuning: { windup: 0.64, duration: 0.32, cooldown: 1.72, recovery: 0.68, vulnerableAfter: 0.76, speed: 46, range: 28, height: 62, yOffset: -38, backReach: 42, damageScale: 1.4 }, shards: 2, encounterRole: 'ravine bridge recovery', pressureHint: 'The ravine floor beneath the bridge is infested. Fight clear and climb back up.' },
-  { id: 'scorpion-ravine-2', name: 'Ravine Scorpion', type: 'scorpion', emoji: 'S', x: X(528), y: JY(330), width: 46, height: 30, patrolMin: X(512), patrolMax: X(560), speed: 58, health: 2, damage: 8, openingRouteRamp: true, attackPatternTuning: { windup: 0.66, duration: 0.34, cooldown: 1.74, recovery: 0.7, vulnerableAfter: 0.78, speed: 46, range: 28, height: 62, yOffset: -38, backReach: 42, damageScale: 1.4 }, shards: 2, encounterRole: 'ravine bridge recovery', pressureHint: 'A second ravine scorpion guards the far recovery climb.' },
   // --- Light pressure across the stretched mummification -> mural walk (kept within the gentle opening budget) ---
   { id: 'scorpion-mural-approach-1', name: 'Sand Scorpion', type: 'scorpion', emoji: 'S', x: X(885), y: JY(328), width: 46, height: 30, patrolMin: X(845), patrolMax: X(945), speed: 56, health: 2, damage: 7, openingRouteRamp: true, initialAttackCooldown: 1.9, attackPatternTuning: { windup: 0.66, duration: 0.34, cooldown: 1.74, recovery: 0.7, vulnerableAfter: 0.78, speed: 46, range: 28, height: 62, yOffset: -38, backReach: 42, damageScale: 1.4 }, shards: 2, encounterRole: 'approach pressure', pressureHint: 'A scorpion works the open sand between the chambers.' },
   { id: 'sand-wisp-mural-1', name: 'Sand Wisp', type: 'sand-wisp', emoji: 'W', x: X(985), y: JY(300), width: 32, height: 30, patrolMin: X(945), patrolMax: X(1040), speed: 72, health: 2, damage: 6, openingRouteRamp: true, initialAttackCooldown: 2.1, flying: true, attackPatternTuning: { windup: 0.56, cooldown: 1.7, recovery: 0.66, vulnerableAfter: 0.72, speed: 124, range: 34 }, shards: 2, encounterRole: 'upper-route pressure', pressureHint: 'A wisp drifts the upper line over the mural approach.' },

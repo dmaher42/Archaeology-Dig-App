@@ -22,6 +22,7 @@ import {
   createJourneyPlacementChangeSummary,
   createJourneyPropPlacementExport,
   createJourneyPropPalette,
+  createJourneyShardPropsPalette,
   duplicateJourneyPropForEditor,
   createForgottenMuralRelicSlidePuzzleTiles,
   getForgottenMuralRelicSlideMove,
@@ -583,6 +584,61 @@ test('journey editor creates foreground detail props through the canonical prop 
   ]);
 });
 
+test('journey editor exposes collectible shard PNGs as reusable palette props', () => {
+  const palette = createJourneyShardPropsPalette();
+  const paletteKeys = palette.map(item => item.key);
+
+  assert.ok(palette.length >= 9);
+  assert.ok(paletteKeys.includes('shard-prop:scarabWingFragment'));
+  assert.ok(paletteKeys.includes('shard-prop:muralFaienceFragment'));
+  assert.ok(paletteKeys.includes('shard-prop:royalRecordFragment'));
+  palette.forEach((item) => {
+    assert.equal(item.category, 'Shards');
+    assert.equal(item.type, 'collectible-shard-prop');
+    assert.equal(item.collectibleSpriteKey, item.template.collectibleSpriteKey);
+    assert.equal(item.template.type, 'collectible-shard-prop');
+    assert.equal(item.template.depth, 'foreground');
+    assert.equal(item.template.layer, 'foreground');
+    assert.equal(item.template.brightness, 1);
+    assert.equal(item.template.colorGradeFilter, '');
+    assert.equal(item.template.shadowOpacity, 0.18);
+  });
+});
+
+test('journey editor creates collectible shard props through the canonical prop factory', () => {
+  const paletteItem = createJourneyShardPropsPalette()
+    .find(item => item.key === 'shard-prop:scarabWingFragment');
+
+  const created = createJourneyPropFromPaletteItem({
+    paletteItem,
+    roomId: 'desert-entry',
+    x: 934,
+    y: 320,
+    existingIds: ['desert-entry-scarab-wing-fragment-1'],
+  });
+
+  assert.equal(created.id, 'desert-entry-scarab-wing-fragment-2');
+  assert.equal(created.sectionId, 'desert-entry');
+  assert.equal(created.type, 'collectible-shard-prop');
+  assert.equal(created.label, 'scarab wing fragment');
+  assert.equal(created.collectibleSpriteKey, 'scarabWingFragment');
+  assert.equal(created.width, 42);
+  assert.equal(created.height, 42);
+  assert.equal(created.alpha, 1);
+  assert.equal(created.brightness, 1);
+  assert.equal(created.colorGradeFilter, '');
+  assert.equal(created.shadowOpacity, 0.18);
+});
+
+test('journey prop editor wires shard props into the palette UI and collectible atlas renderer', () => {
+  assert.match(journeyComponentSource, /createJourneyShardPropsPalette/);
+  assert.match(journeyComponentSource, /const shardPropsEditorPalette = useMemo\(\(\) => createJourneyShardPropsPalette\(\), \[\]\)/);
+  assert.match(journeyComponentSource, /selectedPaletteCategory === 'shard-prop'[\s\S]*?shardPropsEditorPalette/);
+  assert.match(journeyComponentSource, /\['shard-prop', 'Shards'\]/);
+  assert.match(journeyComponentSource, /prop\.type === 'collectible-shard-prop'/);
+  assert.match(journeyComponentSource, /drawCollectibleAtlasRegion\([\s\S]*?prop\.collectibleSpriteKey/);
+});
+
 test('journey prop editor creates and duplicates props using canonical prop fields', () => {
   const paletteItem = {
     type: 'atmosphere-prop',
@@ -957,7 +1013,8 @@ test('journey editor toggle preserves the current camera view', () => {
 test('journey editor exposes floor platforms without blocking prop selection', () => {
   const platforms = extractExportedArray('PLATFORMS');
   [
-    'desert-entry-floor',
+    'desert-entry-floor-opening',
+    'desert-entry-floor-after-ravine',
     'temple-floor',
     'catacomb-path-floor',
     'escape-road-floor',
@@ -2663,7 +2720,6 @@ test('opening pyramid facade stays active as the opening gameplay landmark', () 
     /if \(x > CANVAS_WIDTH \+ 80 \|\| x \+ width < -80\) return false;[\s\S]*?ctx\.globalAlpha = Number\.isFinite\(renderProp\.alpha\) \? renderProp\.alpha : 0\.98;/,
   );
   assert.match(journeyComponentSource, /drawOpeningPyramidMasonryBack\(ctx, cameraX, now, current\)/);
-  assert.doesNotMatch(journeyComponentSource, /clipRight/);
   assert.doesNotMatch(journeyComponentSource, /OPENING_PYRAMID_FACADE_MIN_VISIBLE_WIDTH/);
   assert.doesNotMatch(journeyComponentSource, /OPENING_PYRAMID_FACADE_FADE_START_X/);
   assert.doesNotMatch(journeyComponentSource, /OPENING_PYRAMID_FACADE_PLAYER_FADE_START_X/);
@@ -2727,7 +2783,7 @@ test('story prop depth changes preserve the original asset colour grade', () => 
 test('opening pyramid zone only contains the intentional first-screen stairway platforms', () => {
   const platforms = extractExportedArray('PLATFORMS');
   const allowedOpeningLabels = new Set([
-    'desert track',
+    'desert track before the ravine',
     'invisible marked lower pyramid ledge',
     'invisible marked first pyramid terrace',
     'invisible marked second pyramid terrace',
@@ -2761,7 +2817,7 @@ test('opening pyramid zone only contains the intentional first-screen stairway p
     .map((platform) => platform.label);
 
   assert.deepEqual(unexpectedLabels, []);
-  assert.equal(openingZonePlatforms.filter((platform) => platform.label !== 'desert track').length, 4);
+  assert.equal(openingZonePlatforms.filter((platform) => platform.label !== 'desert track before the ravine').length, 4);
 });
 
 test('obsolete Desert Entry challenge platforms do not crowd the opening pyramid', () => {
@@ -3237,20 +3293,38 @@ test('Egypt opening loop makes the first seal require enemies, shards, and the m
   assert.doesNotMatch(journeyComponentSource, /gateRequirementLabel/);
   assert.match(journeyComponentSource, /journey-collectible-shard-atlas-upgrade-2026-05-21/);
   assert.match(journeyComponentSource, /relicShard:\s*\{[\s\S]*?ringSize:\s*Math\.round\(54 \* PICKUP_GLOW_SCALE\)/);
-  assert.match(journeyComponentSource, /key:\s*'relicShard'[\s\S]*?ringKey:\s*'availableGlowRing'/);
+  assert.match(journeyComponentSource, /key:\s*getRelicShardSpriteKey\(shard\)[\s\S]*?ringKey:\s*'availableGlowRing'/);
+  assert.doesNotMatch(journeyComponentSource, /key:\s*'relicShard'[\s\S]*?kind:\s*'shard'/);
+  assert.match(journeyCollectibleSpritesSource, /RELIC_SHARD_FRAGMENT_SPRITE_KEYS\s*=\s*\[/);
+  assert.match(journeyCollectibleSpritesSource, /getRelicShardSpriteKey\s*=\s*\(shard\)/);
+  assert.doesNotMatch(journeyCollectibleSpritesSource, /RELIC_SHARD_FRAGMENT_SPRITE_KEYS\s*=\s*\[[\s\S]*?'relicShard'/);
+  [
+    'linenMemoryFragment',
+    'resinRiteFragment',
+    'canopicNameFragment',
+    'scarabWingFragment',
+    'muralFaienceFragment',
+    'muralPlasterFragment',
+    'inkNameFragment',
+    'witnessLineFragment',
+    'royalRecordFragment',
+  ].forEach((key) => {
+    assert.match(journeyCollectibleSpritesSource, new RegExp(`'${key}'`), `${key} should stay in the collectible atlas contract`);
+  });
 });
 
-test('ravine bridge route carries an obvious required relic shard above the recovery path', () => {
+test('ravine bridge route carries an obvious required relic shard above the unsafe drop', () => {
   const bridgeShard = RELIC_SHARDS.find(shard => shard.id === 'shard-2');
   assert.ok(bridgeShard, 'the second visible shard should exist before the first seal');
   assert.equal(bridgeShard.x, scaleJourneyX(525), 'the ravine bridge shard should sit over the upper crossing');
-  assert.equal(bridgeShard.y, 365, 'the ravine bridge shard should sit on the bridge deck height, not the lower recovery path');
+  assert.equal(bridgeShard.y, 365, 'the ravine bridge shard should sit on the bridge deck height, not the unsafe drop');
   assert.equal(bridgeShard.hidden, false, 'the bridge reward should be obvious, not hidden');
   assert.equal(bridgeShard.routeId, null, 'the bridge reward should count toward the required Temple Approach Seal shards');
   const gateHintsStart = journeyComponentSource.indexOf('const GATE_HINTS = {');
   const gateHintsEnd = journeyComponentSource.indexOf('const HAZARD_VISUALS = {', gateHintsStart);
   const gateHintsSource = journeyComponentSource.slice(gateHintsStart, gateHintsEnd);
-  assert.match(gateHintsSource, /shards:\s*'Climb the ravine bridge route for the next relic shard; the lower path is only a recovery route\.'/);
+  assert.match(gateHintsSource, /shards:\s*'Climb the ravine bridge route for the next relic shard; the drop below is not a safe path\.'/);
+  assert.doesNotMatch(gateHintsSource, /the lower path is only a recovery route/);
   assert.doesNotMatch(gateHintsSource, /shards:\s*'Search the nearby bridge route and platforms for more relic shards\.'/);
   assert.doesNotMatch(gateHintsSource, /shards:\s*'Search the nearby platforms and lower route for more relic shards\.'/);
 });
@@ -3809,7 +3883,7 @@ test('environment interactions include reactive foreground and movement elements
   assert.match(platforms, /respawn:/);
 });
 
-test('ravine bridge uses a structure cutout over the existing desert background', () => {
+test('ravine bridge uses structure cutouts over the continuous Desert Entry panel background', () => {
   assert.match(journeyComponentSource, /lost-bridge-structure-cutout-2026-06-08\.png/);
   assert.match(journeyComponentSource, /lost-bridge-ravine-drop-strip-clean-edge-2026-06-09\.png/);
   assert.match(journeyComponentSource, /lost-bridge-ravine-test-wide-2026-06-09\.png/);
@@ -3883,7 +3957,20 @@ test('ravine bridge uses a structure cutout over the existing desert background'
   assert.equal(mummificationThresholdWalkway?.height, 18);
   assert.equal(mummificationThresholdWalkway?.invisible, true);
   ['lost-bridge-near-landing', 'lost-bridge-slab-1', 'lost-bridge-slab-2'].forEach((id) => {
-    assert.ok(journeyPlacementOverrides.deletedPlatformIds.includes(id), `${id} should be removed by the high bridge editor layout`);
+    assert.doesNotMatch(
+      extractExportedArray('PLATFORMS'),
+      new RegExp(`id:\\s*'${id}'[\\s\\S]*?y:\\s*JY\\(340\\)`),
+      `${id} should not be a lower ravine-floor ledge`,
+    );
+    assert.match(
+      extractExportedArray('PLATFORMS'),
+      new RegExp(`id:\\s*'${id}'[\\s\\S]*?variant:\\s*'lost-bridge'`),
+      `${id} should remain part of the playable bridge route`,
+    );
+    assert.ok(
+      !journeyPlacementOverrides.deletedPlatformIds.includes(id),
+      `${id} should stay active because the bridge is the only safe crossing`,
+    );
   });
   assert.ok(
     existsSync(new URL('../../../public/assets/expedition/environment/egypt-opening/lost-bridge/lost-bridge-structure-cutout-2026-06-08.png', import.meta.url)),
@@ -3951,9 +4038,10 @@ test('ravine bridge uses a structure cutout over the existing desert background'
     'desert-entry-blocker-9',
     'desert-entry-blocker-10',
   ].forEach((id) => {
-    const blocker = journeyPlacementOverrides.platforms.find(entry => entry.id === id);
-    assert.equal(blocker?.collision, 'blocker', `${id} should persist as an invisible movement blocker`);
-    assert.equal(blocker?.layer, 'blocker');
+    assert.ok(
+      journeyPlacementOverrides.deletedPlatformIds.includes(id),
+      `${id} should stay deleted so the ravine does not rely on invisible lower-route blockers`,
+    );
   });
   assert.equal(
     journeyPlacementOverrides.props.some(entry => entry.id === 'desert-entry-lost-bridge-ravine-floor-tall-wide-1'),
@@ -3975,23 +4063,32 @@ test('ravine bridge uses a structure cutout over the existing desert background'
   assert.equal(activeRavineOption?.y, 430);
   assert.match(journeyComponentSource, /Number\.isFinite\(prop\.alpha\) && prop\.alpha <= 0/);
   [
-    'desert-entry-opening-pyramid-to-ravine-background-raw-2026-06-11.png',
-    'desert-entry-ravine-bridge-background-clean-2026-06-12.png',
-    'desert-entry-ravine-to-mummification-background-raw-2026-06-11.png',
-    'desert-entry-mummification-exterior-arrival-background-raw-2026-06-11.png',
-    'desert-entry-ravine-bridge-depth-overlay-2026-06-11.png',
-  ].forEach((filename) => {
+    ['desert-entry/desert-entry-opening-benchmark-no-platforms.png', 'clean opening background without the circled mid-ground ruin clutter'],
+    ['desert-entry-opening-rebuild/desert-entry-ravine-bridge-background-clean-2026-06-12.png', 'ravine bridge background'],
+    ['desert-entry-opening-rebuild/desert-entry-ravine-to-mummification-background-raw-2026-06-11.png', 'ravine to Mummification background'],
+    ['desert-entry-opening-rebuild/desert-entry-mummification-exterior-arrival-background-raw-2026-06-11.png', 'Mummification exterior arrival background'],
+    ['desert-entry-opening-rebuild/desert-entry-ravine-bridge-depth-overlay-2026-06-11.png', 'ravine bridge depth overlay'],
+  ].forEach(([filename, label]) => {
     assert.ok(
-      existsSync(new URL(`../../../public/assets/expedition/backgrounds/desert-entry-opening-rebuild/${filename}`, import.meta.url)),
-      `${filename} should exist as a real opening rebuild background asset`,
+      existsSync(new URL(`../../../public/assets/expedition/backgrounds/${filename}`, import.meta.url)),
+      `${label} should exist as a real opening rebuild background asset`,
     );
   });
-  assert.match(journeyComponentSource, /DESERT_ENTRY_REBUILD_BACKGROUND_PLATE_IDS = Object\.freeze/);
-  assert.match(journeyComponentSource, /DESERT_ENTRY_REBUILD_BACKGROUND_CROSSFADE_WIDTH = 640/);
-  assert.match(journeyComponentSource, /drawDesertEntryRebuildBackgroundPlates = useCallback/);
+  assert.match(journeyComponentSource, /DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_IDS = Object\.freeze/);
+  assert.match(journeyComponentSource, /DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_SEAM_MASKS = Object\.freeze/);
+  assert.match(journeyComponentSource, /drawDesertJourneyScenePanels = useCallback/);
+  assert.match(journeyComponentSource, /drawDesertJourneySceneMasks = useCallback/);
+  assert.match(journeyComponentSource, /drawDesertEntryPrimaryBackgroundPlates = useCallback/);
+  assert.match(journeyComponentSource, /drawDesertJourneyPanelLayer/);
+  assert.match(journeyComponentSource, /drawDesertJourneyTransitionMask/);
+  assert.match(journeyComponentSource, /DESERT_JOURNEY_BACKGROUND_SYSTEM_VERSION/);
+  assert.match(journeyComponentSource, /desertJourneyBackgroundSystemVersion/);
+  assert.match(journeyComponentSource, /desertEntryPrimaryBackgroundPlateIds/);
+  assert.match(journeyComponentSource, /desertEntryPrimaryBackgroundPlateSeamMasks/);
+  assert.match(journeyComponentSource, /full-canvas-route-crossfade-primary-png-v2/);
   assert.match(journeyComponentSource, /isDesertEntryRebuildBackgroundPlateProp\(prop\)/);
-  assert.match(journeyComponentSource, /full-canvas-route-crossfade-background-v1/);
-  assert.match(journeyComponentSource, /desert-entry-rebuild-full-canvas-route-crossfade-background-v1/);
+  assert.doesNotMatch(journeyComponentSource, /full-canvas-route-crossfade-background-v1/);
+  assert.doesNotMatch(journeyComponentSource, /desert-entry-rebuild-full-canvas-route-crossfade-background-v1/);
   const transitionApron = journeyPlacementOverrides.props.find(entry => entry.id === 'desert-entry-lost-bridge-mummification-transition-apron-1');
   assert.equal(transitionApron?.imageAssetKey, 'lostBridgeMummificationSlopeBlend');
   assert.equal(transitionApron?.assetPath, 'assets/expedition/environment/egypt-opening/lost-bridge/lost-bridge-to-mummification-slope-blend-2026-06-11.png');

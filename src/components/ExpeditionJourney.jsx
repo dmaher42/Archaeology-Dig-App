@@ -3,11 +3,8 @@ import {
   Backpack,
   CheckCircle2,
   Flag,
-  Gauge,
-  Gem,
   Map,
   ShieldAlert,
-  Sparkles,
 } from 'lucide-react';
 
 import {
@@ -103,6 +100,7 @@ import {
   createJourneyPlatformPalette,
   createJourneyPropFromPaletteItem,
   createJourneyPropPalette,
+  createJourneyShardPropsPalette,
   createJourneyTrapFromPaletteItem,
   createJourneyTrapPalette,
   createForgottenMuralRelicSlidePuzzleTiles,
@@ -265,6 +263,14 @@ import {
 } from './expedition-journey/journeyBackgroundAssets';
 
 import {
+  DESERT_JOURNEY_BACKGROUND_SYSTEM_VERSION,
+  DESERT_JOURNEY_LAYER_ROLES,
+  DESERT_JOURNEY_SCENE_PANELS,
+  getDesertJourneyPanelsForViewport,
+  getDesertJourneyTransitionMasksForViewport,
+} from './expedition-journey/journeyDesertBackgroundPanels';
+
+import {
   ANCIENT_CONSTRUCT_SPRITE_ATLAS_JSON,
   BOSS_SPRITE_ATLAS_JSON,
   BOSS_SPRITE_ATLAS_VERSION,
@@ -335,6 +341,7 @@ import {
   drawCollectibleAtlasRegion,
   getMissingCollectibleSpriteAssets,
   getObjectiveSpriteKey,
+  getRelicShardSpriteKey,
   getToolSpriteKey,
   getUpgradeSpriteKey,
   loadCollectibleSpritePack,
@@ -587,6 +594,10 @@ const OPENING_SPHINX_EXIT_SECONDS = 2.35;
 const OPENING_SPHINX_ARRIVAL_SECONDS = 1.05;
 const OPENING_SPHINX_LINE_SECONDS = 2.15;
 const OPENING_CINEMATIC_ENABLED = true;
+// The opening plays silent-with-subtitles. The robotic browser TTS made the
+// pacing feel like a prototype, so it stays off until real per-line voiceover is
+// recorded — flip this to true (or wire VO clips by line id) when that lands.
+const OPENING_CINEMATIC_VOICE_ENABLED = false;
 const OPENING_CINEMATIC_DURATION = 54;
 const OPENING_CINEMATIC_SPELL_IMPACT_AT = 49.4;
 const OPENING_ASHA_CUTSCENE_SRC = 'assets/expedition/player/asha-opening-reference-cutscene.png';
@@ -840,6 +851,10 @@ const FORGOTTEN_MURAL_CHAMBER_BLACK_HOLD_SECONDS = 0.38;
 const FORGOTTEN_MURAL_CHAMBER_SWITCH_SECONDS = FORGOTTEN_MURAL_CHAMBER_FADE_OUT_SECONDS + FORGOTTEN_MURAL_CHAMBER_BLACK_HOLD_SECONDS;
 const FORGOTTEN_MURAL_CHAMBER_FADE_IN_SECONDS = 0.72;
 const OPENING_SCARAB_SEAL_IMAGE_SRC = 'assets/expedition/environment/egypt-opening/scarab-seal-ground-embedded.png';
+// Glowing Anubis judgement circle for the opening cut scene. Drop the generated
+// PNG (bright teal+gold sigil on a transparent/black field) at this path; until
+// then the cinematic falls back to the original embedded-seal art via onError.
+const OPENING_JUDGEMENT_SEAL_IMAGE_SRC = 'assets/expedition/environment/egypt-opening/anubis-judgement-seal-2026-06-13.png';
 const OPENING_PYRAMID_CLIMB_PACK_SRC = 'assets/expedition/environment/egypt-opening/pyramid-climb-pack.png';
 const OPENING_PYRAMID_FACADE_SRC = 'assets/expedition/environment/egypt-opening/opening-pyramid-facade-no-stairs-v2.png';
 const OPENING_TRAP_DECAL_PACK_SRC = 'assets/expedition/environment/egypt-opening/opening-trap-decals.png';
@@ -1015,10 +1030,10 @@ const getAnubisRestorationReaction = (restorationStatus, current) => {
     || (restoredCount > 1 ? 'You keep choosing memory over speed.' : 'Do not mistake this for trust.');
 };
 const OPENING_PYRAMID_FACADE_WORLD_LEFT_X = -82;
-const DESERT_ENTRY_OPENING_REBUILD_BACKGROUND_START_X = 0;
-const DESERT_ENTRY_OPENING_REBUILD_BACKGROUND_END_X = 17400;
-const DESERT_ENTRY_REBUILD_BACKGROUND_CROSSFADE_WIDTH = 640;
-const DESERT_ENTRY_REBUILD_BACKGROUND_PLATE_IDS = Object.freeze([
+const DESERT_ENTRY_CONTINUOUS_BACKGROUND_START_X = DESERT_JOURNEY_SCENE_PANELS[0]?.worldStart ?? 0;
+const DESERT_ENTRY_CONTINUOUS_BACKGROUND_END_X = DESERT_JOURNEY_SCENE_PANELS[DESERT_JOURNEY_SCENE_PANELS.length - 1]?.worldEnd ?? 17400;
+const DESERT_ENTRY_PRIMARY_BACKGROUND_CROSSFADE_WIDTH = 640;
+const DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_IDS = Object.freeze([
   'desert-entry-opening-pyramid-to-ravine-background-1',
   'desert-entry-ravine-bridge-background-1',
   'desert-entry-ravine-to-mummification-background-1',
@@ -1028,19 +1043,27 @@ const DESERT_ENTRY_REBUILD_BACKGROUND_PLATE_IDS = Object.freeze([
   'desert-entry-scribe-to-queen-background-1',
   'desert-entry-queen-to-ruined-gateway-background-1',
 ]);
-const DESERT_ENTRY_REBUILD_BACKGROUND_PLATE_ID_SET = new Set(DESERT_ENTRY_REBUILD_BACKGROUND_PLATE_IDS);
+const DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_SEAM_MASKS = Object.freeze([
+  { id: 'opening-png-to-ravine-png-dust', worldX: 2090, width: 620, mask: 'dust-haze' },
+  { id: 'ravine-png-to-mummification-png-dust', worldX: 4160, width: 760, mask: 'dust-haze' },
+  { id: 'mummification-approach-png-to-arrival-png-pillar', worldX: 5185, width: 620, mask: 'broken-pillar' },
+  { id: 'arrival-png-to-record-way-png-doorway', worldX: 6500, width: 720, mask: 'temple-doorway' },
+  { id: 'mural-png-to-scribe-png-arch', worldX: 10840, width: 620, mask: 'ruined-arch' },
+  { id: 'scribe-png-to-queen-png-corridor', worldX: 14880, width: 720, mask: 'shadowed-corridor' },
+]);
+const DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_ID_SET = new Set(DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_IDS);
 const OPENING_PYRAMID_GROUND_JUMP_MULTIPLIER = 1.32;
 const OPENING_PYRAMID_AIR_JUMP_MULTIPLIER = 1.6;
 
 const isDesertEntryRebuildBackgroundPlateProp = (prop = {}) => (
-  DESERT_ENTRY_REBUILD_BACKGROUND_PLATE_ID_SET.has(prop.id)
+  DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_ID_SET.has(prop.id)
 );
 
 const getDesertEntryOpeningRebuildViewportCoverage = (cameraX = 0) => {
   const viewportLeft = Number.isFinite(cameraX) ? cameraX : 0;
   const viewportRight = viewportLeft + CANVAS_WIDTH;
-  const overlap = Math.min(viewportRight, DESERT_ENTRY_OPENING_REBUILD_BACKGROUND_END_X)
-    - Math.max(viewportLeft, DESERT_ENTRY_OPENING_REBUILD_BACKGROUND_START_X);
+  const overlap = Math.min(viewportRight, DESERT_ENTRY_CONTINUOUS_BACKGROUND_END_X)
+    - Math.max(viewportLeft, DESERT_ENTRY_CONTINUOUS_BACKGROUND_START_X);
   return Math.max(0, Math.min(1, overlap / CANVAS_WIDTH));
 };
 
@@ -2743,7 +2766,7 @@ const GATE_HINTS = {
     'escape-sequence': 'Reach the escape marker before the route seal will open.',
     'dig-site-entrance': 'The final guardian seal opens after the Ancient Construct falls.',
   },
-  shards: 'Climb the ravine bridge route for the next relic shard; the lower path is only a recovery route.',
+  shards: 'Climb the ravine bridge route for the next relic shard; the drop below is not a safe path.',
   upgrade: 'Look back through this section for the missing upgrade route.',
 };
 
@@ -3541,6 +3564,37 @@ const REACTIVE_ENVIRONMENT_VERSION = 'reactive-expedition-world-2026-05-16';
 const DYNAMIC_WORLD_VERSION = 'dynamic-expedition-world-storytelling-2026-05-16';
 const DISCOVERY_ENTRANCE_REVEAL_SECONDS = 2.2;
 
+// Expedition HUD glyphs — period iconography in place of stock UI icons so the
+// overlay reads as part of the dig, not a debug layer.
+const ShardGlyph = () => (
+  <svg viewBox="0 0 12 14" aria-hidden="true" focusable="false">
+    <path d="M6 0.8 L11.2 4.8 L8.4 13.2 L3.6 13.2 L0.8 4.8 Z" fill="currentColor" />
+    <path d="M6 0.8 L6 13.2 M0.8 4.8 L11.2 4.8" stroke="rgba(61, 42, 16, 0.35)" strokeWidth="0.8" fill="none" />
+  </svg>
+);
+
+const HorusEyeGlyph = () => (
+  <svg viewBox="0 0 16 12" aria-hidden="true" focusable="false">
+    <path d="M1 5.2 Q8 -0.6 15 5.2 Q8 11 1 5.2 Z" fill="none" stroke="currentColor" strokeWidth="1.1" />
+    <circle cx="8" cy="5.2" r="2.1" fill="currentColor" />
+    <path d="M11.4 7.6 Q12.6 10 14.8 10.4" fill="none" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
+    <path d="M5.4 7.8 L4.6 10.6" fill="none" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
+  </svg>
+);
+
+const AnkhGlyph = () => (
+  <svg viewBox="0 0 12 16" aria-hidden="true" focusable="false">
+    <path d="M6 1.1c1.8 0 3.2 1.4 3.2 3 0 1.4-1 2.8-1.9 3.7h2.9v1.7H7v5.4H5V9.5H1.8V7.8h2.9C3.8 6.9 2.8 5.5 2.8 4.1c0-1.6 1.4-3 3.2-3Zm0 1.6c-.9 0-1.6.7-1.6 1.5 0 .9.8 2 1.6 2.8.8-.8 1.6-1.9 1.6-2.8 0-.8-.7-1.5-1.6-1.5Z" fill="currentColor" />
+  </svg>
+);
+
+const SunDiscGlyph = () => (
+  <svg viewBox="0 0 18 10" aria-hidden="true" focusable="false">
+    <circle cx="9" cy="4.6" r="3" fill="currentColor" />
+    <path d="M1 6.4 Q5 2.6 7.2 5 M17 6.4 Q13 2.6 10.8 5" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+  </svg>
+);
+
 const SECTION_PARALLAX_LAYERS = {
   'ruined-temple': [
     { key: 'templeSky', y: 0, height: CANVAS_HEIGHT, parallax: 0, alpha: 1 },
@@ -3813,6 +3867,7 @@ export default function ExpeditionJourney({
   const propEditorPalette = useMemo(() => createJourneyPropPalette(STORY_PROPS, lostSitePropRegistry), []);
   const groundDetailsEditorPalette = useMemo(() => createJourneyGroundDetailsPalette(), []);
   const foregroundDetailsEditorPalette = useMemo(() => createJourneyForegroundDetailsPalette(), []);
+  const shardPropsEditorPalette = useMemo(() => createJourneyShardPropsPalette(), []);
   const trapEditorPalette = useMemo(() => createJourneyTrapPalette(), []);
   const platformEditorPalette = useMemo(() => createJourneyPlatformPalette(), []);
   const selectedCharacterPreset = getPlayerCharacterPreset(selectedCharacterPresetId);
@@ -4789,6 +4844,19 @@ export default function ExpeditionJourney({
         },
       };
     }
+    if (template.collectibleSpriteKey) {
+      return {
+        assetKey: template.collectibleSpriteKey,
+        style: {
+          background: 'radial-gradient(circle at 50% 45%, rgba(250, 204, 21, 0.22), transparent 58%), linear-gradient(135deg, rgba(214, 173, 98, 0.95), rgba(77, 48, 24, 0.95))',
+          clipPath: 'polygon(22% 12%, 86% 24%, 72% 86%, 20% 76%, 8% 38%)',
+          boxShadow: 'inset 0 0 0 2px rgba(252, 211, 77, 0.42), 0 0 10px rgba(250, 204, 21, 0.25)',
+          width: '76%',
+          height: '76%',
+          margin: '12%',
+        },
+      };
+    }
     const candidates = [];
     if (template.atmosphereAssetKey) {
       candidates.push({
@@ -4868,9 +4936,11 @@ export default function ExpeditionJourney({
           ? groundDetailsEditorPalette
           : editor.selectedPaletteCategory === 'foreground-detail'
             ? foregroundDetailsEditorPalette
-            : editor.selectedPaletteCategory === 'ledge'
-              ? propEditorPalette.filter(item => item.category === 'Ledge Helpers')
-              : propEditorPalette;
+            : editor.selectedPaletteCategory === 'shard-prop'
+              ? shardPropsEditorPalette
+              : editor.selectedPaletteCategory === 'ledge'
+                ? propEditorPalette.filter(item => item.category === 'Ledge Helpers')
+                : propEditorPalette;
     const palette = paletteSource
       .map(item => ({ ...item, preview: getPropPalettePreview(item) }))
       .filter(item => item.preview);
@@ -4879,6 +4949,7 @@ export default function ExpeditionJourney({
       : category === 'platform' ? platformEditorPalette
       : category === 'ground-detail' ? groundDetailsEditorPalette
       : category === 'foreground-detail' ? foregroundDetailsEditorPalette
+      : category === 'shard-prop' ? shardPropsEditorPalette
       : propEditorPalette
     );
     const recentPaletteItems = (editor.recentPaletteKeys || [])
@@ -5097,7 +5168,7 @@ export default function ExpeditionJourney({
       canUndo: editorUndoStackRef.current.length > 0,
       canRedo: editorRedoStackRef.current.length > 0,
     };
-  }, [getActivePropEditorRoomId, getHazardEditorRoomId, getPlatformEditorRoomId, getPropEditorSelectedArch, getPropEditorSelectedCheckpoint, getPropEditorSelectedHazard, getPropEditorSelectedLair, getPropEditorSelectedNest, getEditedNestParams, getPropEditorSelectedPlatform, getPropEditorSelectedProp, getPropPalettePreview, getRenderableStoryProps, getScarabQueenLairPlacement, foregroundDetailsEditorPalette, groundDetailsEditorPalette, platformEditorPalette, propEditorPalette, trapEditorPalette]);
+  }, [getActivePropEditorRoomId, getHazardEditorRoomId, getPlatformEditorRoomId, getPropEditorSelectedArch, getPropEditorSelectedCheckpoint, getPropEditorSelectedHazard, getPropEditorSelectedLair, getPropEditorSelectedNest, getEditedNestParams, getPropEditorSelectedPlatform, getPropEditorSelectedProp, getPropPalettePreview, getRenderableStoryProps, getScarabQueenLairPlacement, foregroundDetailsEditorPalette, groundDetailsEditorPalette, platformEditorPalette, propEditorPalette, shardPropsEditorPalette, trapEditorPalette]);
 
   const persistPropEditorState = useCallback(() => {
     if (!import.meta.env.DEV || typeof window === 'undefined') return;
@@ -6054,6 +6125,8 @@ export default function ExpeditionJourney({
       ? groundDetailsEditorPalette
       : editor.selectedPaletteCategory === 'foreground-detail'
         ? foregroundDetailsEditorPalette
+      : editor.selectedPaletteCategory === 'shard-prop'
+        ? shardPropsEditorPalette
       : propEditorPalette;
     const paletteItem = propPaletteSource.find(item => item.key === editor.selectedPaletteKey);
     if (!paletteItem) return null;
@@ -6085,7 +6158,7 @@ export default function ExpeditionJourney({
     editor.deletedIds.delete(nextProp.id);
     refreshPropEditorUi();
     return nextProp;
-  }, [getActivePropEditorRoomId, getGroundAwareStoryPropEditorEdit, getPropEditorExistingIds, foregroundDetailsEditorPalette, groundDetailsEditorPalette, propEditorPalette, refreshPropEditorUi]);
+  }, [getActivePropEditorRoomId, getGroundAwareStoryPropEditorEdit, getPropEditorExistingIds, foregroundDetailsEditorPalette, groundDetailsEditorPalette, propEditorPalette, refreshPropEditorUi, shardPropsEditorPalette]);
 
   const createTrapFromEditorPalette = useCallback((pointer) => {
     const editor = propPlacementEditorRef.current;
@@ -6871,9 +6944,14 @@ export default function ExpeditionJourney({
     audioControls?.playExpeditionMusic?.(currentMusicCue);
   }, [audioControls, briefingOpen, currentMusicCue]);
 
+  // Opening cut-scene voice. Dormant while OPENING_CINEMATIC_VOICE_ENABLED is
+  // false, so the intro plays silent-with-subtitles. This is the per-line
+  // voiceover seam: each dialogue beat already carries a stable `id` + `at`
+  // timestamp, so recorded VO can be triggered here by line id when it's ready
+  // (or just flip the constant to re-enable browser TTS).
   useEffect(() => {
     const cinematic = gameState.openingCinematic;
-    if (!cinematic?.speechEnabled || typeof window === 'undefined' || !window.speechSynthesis) return undefined;
+    if (!OPENING_CINEMATIC_VOICE_ENABLED || !cinematic?.speechEnabled || typeof window === 'undefined' || !window.speechSynthesis) return undefined;
     const activeLine = getOpeningCinematicLine(cinematic);
     if (!activeLine || spokenOpeningLineRef.current === activeLine.id) return undefined;
 
@@ -8351,6 +8429,12 @@ export default function ExpeditionJourney({
       parallaxLayersActive: Boolean(renderStats.parallaxLayersActive),
       activeBackgroundSection: renderStats.activeBackgroundSection || null,
       backgroundDepthMode: renderStats.backgroundDepthMode || 'canvas-fallback',
+      desertJourneyBackgroundSystemVersion: renderStats.desertJourneyBackgroundSystemVersion || null,
+      desertJourneyPanelIds: renderStats.desertJourneyPanelIds || [],
+      desertJourneyLayerRoles: renderStats.desertJourneyLayerRoles || [],
+      desertJourneyLayerDrawCount: renderStats.desertJourneyLayerDrawCount || 0,
+      desertJourneyTransitionMasks: renderStats.desertJourneyTransitionMasks || [],
+      desertEntryPrimaryBackgroundPlateIds: renderStats.desertEntryPrimaryBackgroundPlateIds || [],
       visibleLabelCount: renderStats.visibleLabelCount || 0,
       labelSuppressionActive: Boolean(renderStats.labelSuppressionActive),
       platformVisualTuningActive: Boolean(renderStats.platformVisualTuningActive),
@@ -10942,6 +11026,60 @@ export default function ExpeditionJourney({
     const ravineFallWorldLeft = bounds.left + LOST_BRIDGE_RAVINE_FALL_SIDE_PAD * 0.82;
     const ravineFallWorldRight = bounds.right - LOST_BRIDGE_RAVINE_FALL_SIDE_PAD * 0.72;
     const ravineFallWidth = Math.max(0, ravineFallWorldRight - ravineFallWorldLeft);
+    const drawNonFloorRavineVoid = () => {
+      if (ravineFallWidth <= 0) return;
+      const throatX = worldToScreenX(ravineFallWorldLeft, cameraX);
+      const throatTop = Math.max(0, bounds.y + 18);
+      const throatBottom = Math.min(CANVAS_HEIGHT + 42, GROUND_Y + 68);
+      const voidGradient = ctx.createLinearGradient(0, throatTop, 0, throatBottom);
+      voidGradient.addColorStop(0, 'rgba(79, 45, 18, 0.08)');
+      voidGradient.addColorStop(0.2, 'rgba(43, 25, 13, 0.48)');
+      voidGradient.addColorStop(0.68, 'rgba(8, 9, 13, 0.92)');
+      voidGradient.addColorStop(1, 'rgba(2, 4, 8, 0.72)');
+      ctx.save();
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.fillStyle = voidGradient;
+      ctx.beginPath();
+      ctx.moveTo(throatX - 96, throatTop + 14);
+      ctx.bezierCurveTo(throatX + ravineFallWidth * 0.08, throatTop + 50, throatX + ravineFallWidth * 0.26, throatTop + 32, throatX + ravineFallWidth * 0.42, throatTop + 62);
+      ctx.bezierCurveTo(throatX + ravineFallWidth * 0.58, throatTop + 34, throatX + ravineFallWidth * 0.84, throatTop + 54, throatX + ravineFallWidth + 96, throatTop + 12);
+      ctx.lineTo(throatX + ravineFallWidth + 148, throatBottom + 40);
+      ctx.lineTo(throatX - 148, throatBottom + 40);
+      ctx.closePath();
+      ctx.fill();
+      ctx.globalCompositeOperation = 'source-over';
+      const depthGlow = ctx.createRadialGradient(
+        throatX + ravineFallWidth * 0.5,
+        throatTop + 132,
+        Math.max(24, ravineFallWidth * 0.14),
+        throatX + ravineFallWidth * 0.5,
+        throatTop + 170,
+        Math.max(220, ravineFallWidth * 0.72),
+      );
+      depthGlow.addColorStop(0, 'rgba(0, 3, 7, 0.64)');
+      depthGlow.addColorStop(0.58, 'rgba(6, 7, 10, 0.36)');
+      depthGlow.addColorStop(1, 'rgba(6, 7, 10, 0)');
+      ctx.fillStyle = depthGlow;
+      ctx.beginPath();
+      ctx.ellipse(
+        throatX + ravineFallWidth * 0.5,
+        throatTop + 154,
+        Math.max(210, ravineFallWidth * 0.64),
+        170,
+        0,
+        0,
+        Math.PI * 2,
+      );
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255, 218, 148, 0.18)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(throatX - 84, throatTop + 14);
+      ctx.bezierCurveTo(throatX + ravineFallWidth * 0.16, throatTop + 46, throatX + ravineFallWidth * 0.4, throatTop + 36, throatX + ravineFallWidth * 0.5, throatTop + 66);
+      ctx.bezierCurveTo(throatX + ravineFallWidth * 0.66, throatTop + 36, throatX + ravineFallWidth * 0.84, throatTop + 50, throatX + ravineFallWidth + 84, throatTop + 14);
+      ctx.stroke();
+      ctx.restore();
+    };
 
     if (blend?.naturalWidth && blend?.naturalHeight) {
       const drawH = editorPlacement.height;
@@ -10984,6 +11122,7 @@ export default function ExpeditionJourney({
       );
       ctx.fill();
       ctx.restore();
+      drawNonFloorRavineVoid();
       if (current.renderStats) {
         current.renderStats.lostBridgeRavineDepth = {
           x: Math.round(ravineFallWorldLeft),
@@ -10995,6 +11134,7 @@ export default function ExpeditionJourney({
           editorControlled: true,
           controllerPropId: editorPlacement.prop?.id || null,
           deckBoundsFallback: !deckBounds,
+          visualMode: 'dark-non-floor-chasm-under-bridge',
         };
         current.renderStats.lostBridgeRavineStripBounds = {
           x: Math.round(drawWorldLeft),
@@ -11027,6 +11167,7 @@ export default function ExpeditionJourney({
     ctx.beginPath();
     ctx.ellipse(fallbackCenterX, GROUND_Y + 2, Math.max(180, drawW * 0.38), 48, 0, 0, Math.PI * 2);
     ctx.fill();
+    drawNonFloorRavineVoid();
     ctx.restore();
 
     if (current.renderStats) {
@@ -11037,10 +11178,73 @@ export default function ExpeditionJourney({
         floorBlendLoaded: false,
         floorBlendAssetKey: activeRavineAssetKey,
         floorBlendAssetPath: activeRavineAssetPath,
+        visualMode: 'dark-non-floor-chasm-under-bridge',
       };
     }
     return true;
   }, [getLostBridgeRavineFloorPlacement]);
+
+  const drawLostBridgeRavineForegroundVoid = useCallback((ctx, platforms, cameraX, current) => {
+    const bounds = getLostBridgeDeckBounds(platforms || []);
+    if (!bounds) return false;
+    const voidWorldLeft = bounds.left - 520;
+    const voidWorldRight = bounds.right + 720;
+    if (!isHorizontallyVisible(voidWorldLeft, voidWorldRight - voidWorldLeft, cameraX, 120)) return false;
+    const left = worldToScreenX(voidWorldLeft, cameraX);
+    const right = worldToScreenX(voidWorldRight, cameraX);
+    const width = right - left;
+    const top = bounds.y + 82;
+    const bottom = CANVAS_HEIGHT + 48;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(left - 80, top, width + 160, bottom - top);
+    ctx.clip();
+
+    const voidWash = ctx.createLinearGradient(0, top, 0, bottom);
+    voidWash.addColorStop(0, 'rgba(43, 25, 13, 0)');
+    voidWash.addColorStop(0.14, 'rgba(31, 20, 16, 0.54)');
+    voidWash.addColorStop(0.52, 'rgba(7, 8, 12, 0.9)');
+    voidWash.addColorStop(1, 'rgba(2, 3, 6, 0.96)');
+    ctx.fillStyle = voidWash;
+    ctx.fillRect(left - 80, top, width + 160, bottom - top);
+
+    ctx.globalCompositeOperation = 'multiply';
+    const core = ctx.createRadialGradient(
+      left + width * 0.48,
+      top + 118,
+      Math.max(60, width * 0.12),
+      left + width * 0.52,
+      top + 190,
+      Math.max(320, width * 0.55),
+    );
+    core.addColorStop(0, 'rgba(1, 2, 6, 0.92)');
+    core.addColorStop(0.64, 'rgba(4, 5, 9, 0.62)');
+    core.addColorStop(1, 'rgba(4, 5, 9, 0)');
+    ctx.fillStyle = core;
+    ctx.beginPath();
+    ctx.ellipse(left + width * 0.5, top + 152, Math.max(280, width * 0.48), 188, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
+
+    const dust = ctx.createLinearGradient(0, top - 18, 0, top + 96);
+    dust.addColorStop(0, 'rgba(225, 167, 88, 0)');
+    dust.addColorStop(0.5, 'rgba(207, 139, 67, 0.18)');
+    dust.addColorStop(1, 'rgba(73, 44, 24, 0)');
+    ctx.fillStyle = dust;
+    ctx.fillRect(left - 80, top - 18, width + 160, 130);
+    ctx.restore();
+
+    if (current.renderStats) {
+      current.renderStats.lostBridgeRavineForegroundVoid = {
+        x: Math.round(voidWorldLeft),
+        width: Math.round(voidWorldRight - voidWorldLeft),
+        top: Math.round(top),
+        visualMode: 'late-lower-chasm-occlusion',
+      };
+    }
+    return true;
+  }, []);
 
   const drawLostBridgeStructure = useCallback((ctx, platforms, cameraX, current) => {
     const structure = lostBridgeAssetsRef.current?.structure;
@@ -12769,7 +12973,8 @@ export default function ExpeditionJourney({
       if (outlinerEditor?.enabled && outlinerEditor.hiddenIds?.has(prop.id)) return;
     }
     const x = worldToScreenX(prop.x, cameraX);
-    const visibilityWidth = Math.max(440, Number(prop.width) || 0);
+    const isPrimaryBackgroundPlate = isDesertEntryRebuildBackgroundPlateProp(prop);
+    const visibilityWidth = Math.max(isPrimaryBackgroundPlate ? CANVAS_WIDTH * 1.6 : 440, Number(prop.width) || 0);
     if (!isHorizontallyVisible(prop.x - visibilityWidth / 2, visibilityWidth, cameraX)) return;
 
     ctx.save();
@@ -12825,6 +13030,39 @@ export default function ExpeditionJourney({
           ...(stateRef.current.renderStats.groundDetailAssetKeys || []),
           ...underlayContact.keys,
           ...overlayContact.keys,
+        ]));
+      }
+      ctx.restore();
+      return;
+    }
+    if (prop.type === 'collectible-shard-prop') {
+      const detailSize = getStoryPropEditorSize(prop);
+      const width = detailSize.width;
+      const height = detailSize.height;
+      const drawX = x - width / 2;
+      const drawY = prop.y + (Number.isFinite(prop.yOffset) ? prop.yOffset : 0) - height / 2;
+      const colorFilter = typeof prop.colorGradeFilter === 'string' && prop.colorGradeFilter.trim() && prop.colorGradeFilter.trim() !== 'none'
+        ? prop.colorGradeFilter.trim()
+        : '';
+      const brightnessFilter = Number.isFinite(prop.brightness) && prop.brightness !== 1
+        ? `brightness(${Math.round(clamp(prop.brightness, 0.4, 1.8) * 100)}%)`
+        : '';
+      const filter = [colorFilter, brightnessFilter].filter(Boolean).join(' ');
+      if (filter) ctx.filter = filter;
+      const shadowOpacity = Number.isFinite(prop.shadowOpacity) ? clamp(prop.shadowOpacity, 0, 1) : 0.18;
+      if (shadowOpacity > 0) drawContactShadow(ctx, x, drawY + height + 2, width * 0.72, shadowOpacity, 0.82);
+      ctx.globalAlpha = Number.isFinite(prop.alpha) ? clamp(prop.alpha, 0, 1) : 1;
+      const drawn = drawCollectibleAtlasRegion(
+        ctx,
+        collectibleSpriteAssetsRef.current,
+        prop.collectibleSpriteKey,
+        { x: drawX, y: drawY, width, height },
+      );
+      if (stateRef.current.renderStats && drawn) {
+        stateRef.current.renderStats.shardPropCount = (stateRef.current.renderStats.shardPropCount || 0) + 1;
+        stateRef.current.renderStats.shardPropSpriteKeys = Array.from(new Set([
+          ...(stateRef.current.renderStats.shardPropSpriteKeys || []),
+          prop.collectibleSpriteKey,
         ]));
       }
       ctx.restore();
@@ -14764,12 +15002,414 @@ export default function ExpeditionJourney({
     return drawn.every(Boolean);
   }, []);
 
-  const drawDesertEntryRebuildBackgroundPlates = useCallback((ctx, current, cameraX) => {
+  const drawDesertJourneyPanelLayer = useCallback((ctx, panel, layer, cameraX, now) => {
+    const clipLeft = Math.max(0, Math.floor(panel.worldStart - cameraX));
+    const clipRight = Math.min(CANVAS_WIDTH, Math.ceil(panel.worldEnd - cameraX));
+    if (clipRight <= clipLeft) return false;
+
+    const panelIndex = DESERT_JOURNEY_SCENE_PANELS.findIndex(item => item.id === panel.id);
+    const panelSpan = panel.worldEnd - panel.worldStart;
+    const cameraDelta = cameraX - panel.worldStart;
+    const layerOriginX = -cameraDelta * layer.parallax;
+    const at = (relativeX) => layerOriginX + relativeX;
+    const wave = Math.sin(now / 2600 + panelIndex * 0.9) * 1.8;
+
+    const drawDuneBand = (baseY, amplitude, color, alpha, phase = 0) => {
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(clipLeft - 120, CANVAS_HEIGHT + 40);
+      for (let x = clipLeft - 120; x <= clipRight + 140; x += 56) {
+        const worldWaveX = x + cameraX * layer.parallax + panelIndex * 180;
+        const y = baseY
+          + Math.sin(worldWaveX * 0.004 + phase) * amplitude
+          + Math.cos(worldWaveX * 0.0017 + phase * 0.6) * amplitude * 0.52;
+        ctx.lineTo(x, y);
+      }
+      ctx.lineTo(clipRight + 140, CANVAS_HEIGHT + 40);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    };
+
+    const drawPyramid = (x, y, width, height, color, alpha = 1) => {
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + width / 2, y - height);
+      ctx.lineTo(x + width, y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255, 219, 144, 0.08)';
+      ctx.beginPath();
+      ctx.moveTo(x + width / 2, y - height);
+      ctx.lineTo(x + width, y);
+      ctx.lineTo(x + width * 0.62, y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    };
+
+    const drawStoneBlock = (x, y, width, height, color, alpha = 1) => {
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.roundRect(x, y, width, height, 4);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(79, 49, 24, 0.16)';
+      ctx.lineWidth = 1;
+      for (let row = 1; row < 4; row += 1) {
+        const lineY = y + (height / 4) * row;
+        ctx.beginPath();
+        ctx.moveTo(x + 8, lineY);
+        ctx.lineTo(x + width - 8, lineY + Math.sin(row + panelIndex) * 2);
+        ctx.stroke();
+      }
+      ctx.restore();
+    };
+
+    const drawBrokenColumn = (x, y, height, color, alpha = 1) => {
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = color;
+      ctx.fillRect(x - 14, y - height, 28, height);
+      ctx.fillRect(x - 24, y - height - 10, 48, 10);
+      ctx.fillRect(x - 20, y, 40, 12);
+      ctx.strokeStyle = 'rgba(68, 43, 23, 0.18)';
+      ctx.beginPath();
+      ctx.moveTo(x - 6, y - height + 8);
+      ctx.lineTo(x - 10, y - 8);
+      ctx.moveTo(x + 7, y - height + 18);
+      ctx.lineTo(x + 4, y - 12);
+      ctx.stroke();
+      ctx.restore();
+    };
+
+    const drawArch = (x, y, width, height, color, alpha = 1) => {
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = color;
+      ctx.fillRect(x - width / 2, y - height * 0.58, width, height * 0.58);
+      ctx.beginPath();
+      ctx.arc(x, y - height * 0.58, width / 2, Math.PI, 0);
+      ctx.lineTo(x + width / 2, y);
+      ctx.lineTo(x - width / 2, y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = 'rgba(29, 23, 22, 0.72)';
+      ctx.beginPath();
+      ctx.arc(x, y - height * 0.5, width * 0.27, Math.PI, 0);
+      ctx.lineTo(x + width * 0.27, y);
+      ctx.lineTo(x - width * 0.27, y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    };
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(clipLeft, 0, clipRight - clipLeft, CANVAS_HEIGHT);
+    ctx.clip();
+
+    if (layer.role === 'sky') {
+      const sky = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
+      sky.addColorStop(0, '#172033');
+      sky.addColorStop(0.28, '#5f5144');
+      sky.addColorStop(0.56, '#c28d4d');
+      sky.addColorStop(1, '#6d4b2b');
+      ctx.fillStyle = sky;
+      ctx.fillRect(clipLeft, 0, clipRight - clipLeft, CANVAS_HEIGHT);
+
+      if (panel.id === 'opening' || panel.id === 'ravine-bridge') {
+        const sunX = panel.id === 'opening' ? at(250) : at(170);
+        const sunY = 102 + wave;
+        const glow = ctx.createRadialGradient(sunX, sunY, 12, sunX, sunY, 250);
+        glow.addColorStop(0, 'rgba(255, 226, 142, 0.72)');
+        glow.addColorStop(0.2, 'rgba(247, 181, 82, 0.24)');
+        glow.addColorStop(1, 'rgba(247, 181, 82, 0)');
+        ctx.fillStyle = glow;
+        ctx.fillRect(clipLeft, 0, clipRight - clipLeft, CANVAS_HEIGHT);
+        ctx.fillStyle = 'rgba(255, 236, 169, 0.86)';
+        ctx.beginPath();
+        ctx.arc(sunX, sunY, 26, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      const haze = ctx.createLinearGradient(0, panel.horizonY - 70, 0, panel.horizonY + 90);
+      haze.addColorStop(0, 'rgba(245, 196, 104, 0)');
+      haze.addColorStop(0.45, 'rgba(245, 196, 104, 0.18)');
+      haze.addColorStop(1, 'rgba(245, 196, 104, 0)');
+      ctx.fillStyle = haze;
+      ctx.fillRect(clipLeft, panel.horizonY - 80, clipRight - clipLeft, 180);
+    } else if (layer.role === 'far') {
+      drawDuneBand(322, 18, '#9a733f', 0.28, 0.5);
+      drawDuneBand(365, 24, '#8b6236', 0.32, 1.3);
+      const farBase = panel.horizonY + 102;
+      [
+        [at(120), farBase, 270, 135, 0.18],
+        [at(panelSpan * 0.42), farBase + 6, 210, 96, 0.14],
+        [at(panelSpan * 0.78), farBase + 2, 245, 112, 0.16],
+      ].forEach(([x, y, width, height, alpha]) => {
+        drawPyramid(x, y, width, height, '#d1a064', alpha);
+      });
+      if (panel.id === 'scribe-to-queen-gateway') {
+        drawPyramid(at(panelSpan * 0.72), farBase + 18, 360, 164, '#bc874d', 0.2);
+      }
+    } else if (layer.role === 'mid') {
+      drawDuneBand(448, 15, '#7c5731', 0.22, 2.2);
+      const baseY = panel.groundY - 55;
+      if (panel.id === 'opening') {
+        drawPyramid(at(90), baseY + 4, 440, 250, '#b47a41', 0.62);
+        drawStoneBlock(at(680), baseY - 64, 250, 94, '#9f7040', 0.48);
+        drawStoneBlock(at(1010), baseY - 38, 190, 68, '#ad7b45', 0.42);
+      } else if (panel.id === 'ravine-bridge') {
+        const leftCliff = at(350);
+        const rightCliff = at(panelSpan - 250);
+        ctx.fillStyle = '#6d432a';
+        ctx.beginPath();
+        ctx.moveTo(leftCliff - 520, baseY - 12);
+        ctx.lineTo(leftCliff + 250, baseY - 28);
+        ctx.lineTo(leftCliff + 160, CANVAS_HEIGHT + 30);
+        ctx.lineTo(leftCliff - 560, CANVAS_HEIGHT + 30);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = '#744a2d';
+        ctx.beginPath();
+        ctx.moveTo(rightCliff - 160, baseY - 36);
+        ctx.lineTo(rightCliff + 620, baseY - 20);
+        ctx.lineTo(rightCliff + 660, CANVAS_HEIGHT + 30);
+        ctx.lineTo(rightCliff - 90, CANVAS_HEIGHT + 30);
+        ctx.closePath();
+        ctx.fill();
+        drawStoneBlock(at(860), baseY - 132, 72, 160, '#8d6138', 0.6);
+        drawStoneBlock(at(1280), baseY - 148, 86, 176, '#7d5434', 0.58);
+      } else if (panel.id === 'ravine-to-mummification') {
+        drawStoneBlock(at(180), baseY - 70, 230, 112, '#8b6038', 0.42);
+        drawStoneBlock(at(520), baseY - 120, 380, 156, '#9e6e3d', 0.52);
+        drawBrokenColumn(at(760), baseY + 10, 145, '#8e623a', 0.46);
+      } else if (panel.id === 'mummification-arrival') {
+        drawStoneBlock(at(210), baseY - 160, 520, 210, '#a3713d', 0.58);
+        drawArch(at(460), baseY + 20, 180, 210, '#81562f', 0.48);
+        drawBrokenColumn(at(780), baseY + 12, 185, '#9b6d3f', 0.5);
+      } else if (panel.id === 'mummification-to-mural') {
+        drawStoneBlock(at(150), baseY - 92, 330, 132, '#9c6b3d', 0.48);
+        drawStoneBlock(at(560), baseY - 128, 510, 168, '#a57944', 0.48);
+        drawBrokenColumn(at(1060), baseY + 10, 150, '#8f6239', 0.5);
+      } else if (panel.id === 'mural-to-scribe') {
+        drawStoneBlock(at(220), baseY - 126, 560, 170, '#98704a', 0.46);
+        drawArch(at(980), baseY + 18, 220, 240, '#8e6139', 0.5);
+        drawStoneBlock(at(1580), baseY - 150, 430, 198, '#a06f3e', 0.54);
+        drawBrokenColumn(at(2040), baseY + 10, 168, '#8f653e', 0.48);
+      } else if (panel.id === 'scribe-to-queen-gateway') {
+        drawStoneBlock(at(240), baseY - 130, 460, 180, '#9a6d42', 0.46);
+        drawArch(at(1240), baseY + 14, 260, 270, '#865634', 0.5);
+        drawStoneBlock(at(2050), baseY - 176, 520, 230, '#a1723e', 0.55);
+        drawArch(at(2580), baseY + 16, 360, 320, '#7c4d30', 0.58);
+        drawStoneBlock(at(3140), baseY - 126, 360, 176, '#95663a', 0.44);
+      }
+    } else if (layer.role === 'ground') {
+      const ground = ctx.createLinearGradient(0, panel.groundY - 126, 0, CANVAS_HEIGHT);
+      ground.addColorStop(0, 'rgba(197, 131, 59, 0.18)');
+      ground.addColorStop(0.42, '#a56b34');
+      ground.addColorStop(1, '#5b3823');
+      ctx.fillStyle = ground;
+      ctx.fillRect(clipLeft, panel.groundY - 116, clipRight - clipLeft, CANVAS_HEIGHT - panel.groundY + 116);
+
+      if (panel.id === 'ravine-bridge') {
+        const gapLeft = at(650);
+        const gapRight = at(1590);
+        const chasm = ctx.createLinearGradient(0, panel.groundY - 72, 0, CANVAS_HEIGHT);
+        chasm.addColorStop(0, 'rgba(58, 31, 23, 0.72)');
+        chasm.addColorStop(0.46, 'rgba(21, 19, 22, 0.94)');
+        chasm.addColorStop(1, 'rgba(6, 8, 12, 0.98)');
+        ctx.fillStyle = chasm;
+        ctx.beginPath();
+        ctx.moveTo(gapLeft, panel.groundY - 54);
+        ctx.lineTo(gapRight, panel.groundY - 58);
+        ctx.lineTo(gapRight + 128, CANVAS_HEIGHT + 30);
+        ctx.lineTo(gapLeft - 126, CANVAS_HEIGHT + 30);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = 'rgba(16, 14, 16, 0.5)';
+        ctx.fillRect(gapLeft + 120, panel.groundY - 36, Math.max(80, gapRight - gapLeft - 240), 110);
+      } else {
+        drawDuneBand(panel.groundY - 48, 12, 'rgba(218, 151, 73, 0.38)', 1, 1.6);
+      }
+
+      ctx.strokeStyle = 'rgba(255, 218, 142, 0.08)';
+      ctx.lineWidth = 1.1;
+      for (let line = 0; line < 7; line += 1) {
+        const y = panel.groundY - 84 + line * 24;
+        ctx.beginPath();
+        for (let x = clipLeft - 80; x <= clipRight + 80; x += 80) {
+          const ripple = Math.sin((x + cameraX * 0.23) * 0.015 + line + panelIndex) * 5;
+          if (x === clipLeft - 80) ctx.moveTo(x, y + ripple);
+          else ctx.lineTo(x, y + ripple);
+        }
+        ctx.stroke();
+      }
+    } else if (layer.role === 'foreground') {
+      const haze = ctx.createLinearGradient(0, panel.groundY - 74, 0, CANVAS_HEIGHT);
+      haze.addColorStop(0, 'rgba(232, 165, 91, 0)');
+      haze.addColorStop(0.55, 'rgba(232, 165, 91, 0.16)');
+      haze.addColorStop(1, 'rgba(86, 50, 29, 0.24)');
+      ctx.fillStyle = haze;
+      ctx.fillRect(clipLeft, panel.groundY - 90, clipRight - clipLeft, CANVAS_HEIGHT - panel.groundY + 90);
+
+      for (let i = 0; i < 18; i += 1) {
+        const x = at((i * 173 + panelIndex * 91) % Math.max(panelSpan, 1));
+        const y = panel.groundY - 22 + Math.sin(i * 1.7 + panelIndex) * 14;
+        ctx.fillStyle = i % 4 === 0 ? 'rgba(66, 42, 27, 0.24)' : 'rgba(189, 119, 55, 0.2)';
+        ctx.beginPath();
+        ctx.ellipse(x, y, 10 + (i % 5) * 3, 3 + (i % 3), -0.08 * i, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      if (panel.id === 'ravine-bridge') {
+        const center = at(1120);
+        const shadow = ctx.createRadialGradient(center, panel.groundY - 20, 40, center, panel.groundY + 40, 460);
+        shadow.addColorStop(0, 'rgba(6, 7, 10, 0.72)');
+        shadow.addColorStop(0.45, 'rgba(20, 16, 17, 0.44)');
+        shadow.addColorStop(1, 'rgba(20, 16, 17, 0)');
+        ctx.fillStyle = shadow;
+        ctx.fillRect(center - 560, panel.groundY - 130, 1120, 300);
+      }
+    }
+
+    ctx.restore();
+    return true;
+  }, []);
+
+  const drawDesertJourneyTransitionMask = useCallback((ctx, transition, cameraX, now) => {
+    const x = transition.worldX - cameraX;
+    if (x + transition.width / 2 < -80 || x - transition.width / 2 > CANVAS_WIDTH + 80) return false;
+    const w = transition.width;
+    const left = x - w / 2;
+    const shimmer = Math.sin(now / 1200 + transition.worldX * 0.002) * 5;
+
+    ctx.save();
+    if (transition.mask === 'dust-haze' || transition.mask === 'sandstorm-overlay') {
+      const dust = ctx.createLinearGradient(left, 0, left + w, 0);
+      dust.addColorStop(0, 'rgba(226, 159, 82, 0)');
+      dust.addColorStop(0.4, 'rgba(226, 159, 82, 0.48)');
+      dust.addColorStop(0.54, 'rgba(246, 204, 127, 0.42)');
+      dust.addColorStop(0.68, 'rgba(245, 205, 128, 0.34)');
+      dust.addColorStop(1, 'rgba(226, 159, 82, 0)');
+      ctx.fillStyle = dust;
+      ctx.fillRect(left, 0, w, CANVAS_HEIGHT);
+    } else if (transition.mask === 'cliff-wall') {
+      const rock = ctx.createLinearGradient(left, 0, left + w, 0);
+      rock.addColorStop(0, 'rgba(55, 34, 25, 0)');
+      rock.addColorStop(0.42, 'rgba(83, 50, 31, 0.78)');
+      rock.addColorStop(0.58, 'rgba(121, 78, 42, 0.7)');
+      rock.addColorStop(1, 'rgba(55, 34, 25, 0)');
+      ctx.fillStyle = rock;
+      ctx.beginPath();
+      ctx.moveTo(x - w * 0.16, 270);
+      ctx.lineTo(x + w * 0.12, 248 + shimmer);
+      ctx.lineTo(x + w * 0.26, CANVAS_HEIGHT + 20);
+      ctx.lineTo(x - w * 0.3, CANVAS_HEIGHT + 20);
+      ctx.closePath();
+      ctx.fill();
+    } else if (transition.mask === 'broken-pillar') {
+      ctx.fillStyle = 'rgba(96, 61, 35, 0.78)';
+      ctx.fillRect(x - 32, 276 + shimmer, 64, 318);
+      ctx.fillRect(x - 58, 264 + shimmer, 116, 20);
+      ctx.fillStyle = 'rgba(176, 112, 55, 0.24)';
+      ctx.fillRect(x - 18, 290 + shimmer, 12, 286);
+      ctx.fillRect(x + 14, 286 + shimmer, 9, 292);
+    } else if (transition.mask === 'temple-doorway') {
+      const shadow = ctx.createRadialGradient(x, 414, 24, x, 430, w * 0.62);
+      shadow.addColorStop(0, 'rgba(12, 11, 14, 0.72)');
+      shadow.addColorStop(0.44, 'rgba(33, 24, 20, 0.48)');
+      shadow.addColorStop(1, 'rgba(168, 102, 45, 0)');
+      ctx.fillStyle = shadow;
+      ctx.fillRect(left, 130, w, CANVAS_HEIGHT - 130);
+      ctx.fillStyle = 'rgba(90, 57, 33, 0.46)';
+      ctx.fillRect(x - 110, 260, 52, 330);
+      ctx.fillRect(x + 58, 260, 52, 330);
+      ctx.fillRect(x - 110, 248, 220, 34);
+    } else if (transition.mask === 'ruined-arch') {
+      ctx.strokeStyle = 'rgba(92, 59, 35, 0.78)';
+      ctx.lineWidth = 42;
+      ctx.beginPath();
+      ctx.arc(x, 452, 138, Math.PI, 0);
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(84, 55, 35, 0.62)';
+      ctx.fillRect(x - 168, 420, 56, 190);
+      ctx.fillRect(x + 112, 420, 56, 190);
+    } else if (transition.mask === 'shadowed-corridor') {
+      const corridor = ctx.createLinearGradient(left, 0, left + w, 0);
+      corridor.addColorStop(0, 'rgba(38, 27, 25, 0)');
+      corridor.addColorStop(0.36, 'rgba(30, 22, 24, 0.5)');
+      corridor.addColorStop(0.62, 'rgba(92, 60, 39, 0.4)');
+      corridor.addColorStop(1, 'rgba(38, 27, 25, 0)');
+      ctx.fillStyle = corridor;
+      ctx.fillRect(left, 188, w, CANVAS_HEIGHT - 188);
+      ctx.fillStyle = 'rgba(236, 181, 101, 0.18)';
+      for (let i = 0; i < 14; i += 1) {
+        const px = left + ((i * 71 + now * 0.012) % w);
+        ctx.beginPath();
+        ctx.ellipse(px, 310 + i * 19, 10 + (i % 3) * 4, 2.5, -0.18, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+    return true;
+  }, []);
+
+  const drawDesertJourneyScenePanels = useCallback((ctx, current, cameraX, now) => {
+    const panels = getDesertJourneyPanelsForViewport(cameraX, CANVAS_WIDTH, 160);
+    if (panels.length === 0) return false;
+
+    let layerDrawCount = 0;
+    DESERT_JOURNEY_LAYER_ROLES.forEach((role) => {
+      panels.forEach((panel) => {
+        const layer = panel.layers.find(item => item.role === role);
+        if (layer && drawDesertJourneyPanelLayer(ctx, panel, layer, cameraX, now)) {
+          layerDrawCount += 1;
+        }
+      });
+    });
+
+    if (current.renderStats) {
+      current.renderStats.desertJourneyBackgroundSystemVersion = DESERT_JOURNEY_BACKGROUND_SYSTEM_VERSION;
+      current.renderStats.desertJourneyPanelIds = panels.map(panel => panel.id);
+      current.renderStats.desertJourneyLayerRoles = DESERT_JOURNEY_LAYER_ROLES;
+      current.renderStats.desertJourneyLayerDrawCount = layerDrawCount;
+      current.renderStats.desertEntryPrimaryBackgroundPlateIds = DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_IDS;
+    }
+
+    return layerDrawCount > 0;
+  }, [drawDesertJourneyPanelLayer]);
+
+  const drawDesertJourneySceneMasks = useCallback((ctx, current, cameraX, now) => {
+    const routeMasks = getDesertJourneyTransitionMasksForViewport(cameraX, CANVAS_WIDTH, 220);
+    const plateMasks = DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_SEAM_MASKS.filter(mask => (
+      isHorizontallyVisible(mask.worldX - mask.width / 2, mask.width, cameraX, 220)
+    ));
+    const masks = [...routeMasks, ...plateMasks];
+    const drawnMasks = masks.filter(mask => drawDesertJourneyTransitionMask(ctx, mask, cameraX, now));
+
+    if (current.renderStats) {
+      current.renderStats.desertJourneyTransitionMasks = drawnMasks.map(mask => mask.mask);
+      current.renderStats.desertEntryPrimaryBackgroundPlateSeamMasks = plateMasks.map(mask => mask.id);
+    }
+
+    return drawnMasks.length > 0;
+  }, [drawDesertJourneyTransitionMask]);
+
+  const drawDesertEntryPrimaryBackgroundPlates = useCallback((ctx, current, cameraX) => {
     const plates = getRenderableStoryProps(current)
       .filter(isDesertEntryRebuildBackgroundPlateProp)
+      .filter(plate => !Number.isFinite(plate.alpha) || plate.alpha > 0)
       .sort((a, b) => {
-        const indexA = DESERT_ENTRY_REBUILD_BACKGROUND_PLATE_IDS.indexOf(a.id);
-        const indexB = DESERT_ENTRY_REBUILD_BACKGROUND_PLATE_IDS.indexOf(b.id);
+        const indexA = DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_IDS.indexOf(a.id);
+        const indexB = DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_IDS.indexOf(b.id);
         return (indexA - indexB) || ((a.x || 0) - (b.x || 0));
       });
     if (plates.length === 0) return false;
@@ -14781,10 +15421,10 @@ export default function ExpeditionJourney({
       centerX: Number.isFinite(plate.x) ? plate.x : 0,
       segmentLeft: index > 0
         ? (plates[index - 1].x + plate.x) / 2
-        : DESERT_ENTRY_OPENING_REBUILD_BACKGROUND_START_X,
+        : DESERT_ENTRY_CONTINUOUS_BACKGROUND_START_X,
       segmentRight: index < plates.length - 1
         ? (plate.x + plates[index + 1].x) / 2
-        : DESERT_ENTRY_OPENING_REBUILD_BACKGROUND_END_X,
+        : DESERT_ENTRY_CONTINUOUS_BACKGROUND_END_X,
       asset: getStandaloneImagePropAsset(plate),
     }));
     let drawnCount = 0;
@@ -14827,8 +15467,8 @@ export default function ExpeditionJourney({
       const currentEntry = plateEntries[index];
       const nextEntry = plateEntries[index + 1];
       const boundaryX = (currentEntry.centerX + nextEntry.centerX) / 2;
-      const fadeStart = boundaryX - DESERT_ENTRY_REBUILD_BACKGROUND_CROSSFADE_WIDTH / 2;
-      const fadeEnd = boundaryX + DESERT_ENTRY_REBUILD_BACKGROUND_CROSSFADE_WIDTH / 2;
+      const fadeStart = boundaryX - DESERT_ENTRY_PRIMARY_BACKGROUND_CROSSFADE_WIDTH / 2;
+      const fadeEnd = boundaryX + DESERT_ENTRY_PRIMARY_BACKGROUND_CROSSFADE_WIDTH / 2;
       if (viewportCenterX < fadeStart) {
         baseIndex = index;
         overlayIndex = null;
@@ -14839,24 +15479,26 @@ export default function ExpeditionJourney({
         baseIndex = index;
         overlayIndex = index + 1;
         overlayAlpha = clamp(
-          (viewportCenterX - fadeStart) / DESERT_ENTRY_REBUILD_BACKGROUND_CROSSFADE_WIDTH,
+          (viewportCenterX - fadeStart) / DESERT_ENTRY_PRIMARY_BACKGROUND_CROSSFADE_WIDTH,
           0,
           1,
         );
         break;
       }
       baseIndex = index + 1;
-      overlayIndex = null;
-      overlayAlpha = 0;
     }
 
     drawPlate(plateEntries[baseIndex], 1);
     if (overlayIndex !== null) drawPlate(plateEntries[overlayIndex], overlayAlpha);
 
     if (current.renderStats) {
-      current.renderStats.desertEntryRebuildBackgroundPlateMode = 'full-canvas-route-crossfade-background-v1';
-      current.renderStats.desertEntryRebuildBackgroundPlateCount = drawnCount;
-      current.renderStats.desertEntryRebuildBackgroundPlatePendingCount = pendingCount;
+      current.renderStats.desertEntryPrimaryBackgroundPlateMode = 'full-canvas-route-crossfade-primary-png-v2';
+      current.renderStats.desertEntryPrimaryBackgroundPlateCount = drawnCount;
+      current.renderStats.desertEntryPrimaryBackgroundPlatePendingCount = pendingCount;
+      current.renderStats.desertEntryPrimaryBackgroundPlateActiveIds = [
+        plateEntries[baseIndex]?.plate?.id,
+        overlayIndex !== null ? plateEntries[overlayIndex]?.plate?.id : null,
+      ].filter(Boolean);
     }
     return drawnCount > 0;
   }, [getRenderableStoryProps, getStandaloneImagePropAsset]);
@@ -17949,13 +18591,17 @@ export default function ExpeditionJourney({
     }
 
     const parallaxBackgroundDrawn = arrivalThresholdDrawn || chinaBackgroundDrawn || desertBackgroundDrawn || sectionParallaxDrawn;
-    const desertEntryRebuildBackgroundPlatesDrawn = !arrivalThresholdDrawn
+    const desertJourneyScenePanelsDrawn = !arrivalThresholdDrawn
       && !chamberSceneActive
       && section.id === 'desert-entry'
-      && drawDesertEntryRebuildBackgroundPlates(ctx, current, cameraX);
-    if (desertEntryRebuildBackgroundPlatesDrawn && current.renderStats) {
+      && drawDesertJourneyScenePanels(ctx, current, cameraX, now);
+    const desertEntryPrimaryBackgroundPlatesDrawn = desertJourneyScenePanelsDrawn
+      && drawDesertEntryPrimaryBackgroundPlates(ctx, current, cameraX);
+    if ((desertJourneyScenePanelsDrawn || desertEntryPrimaryBackgroundPlatesDrawn) && current.renderStats) {
       current.renderStats.activeBackgroundSection = 'desert-entry';
-      current.renderStats.backgroundDepthMode = 'desert-entry-rebuild-full-canvas-route-crossfade-background-v1';
+      current.renderStats.backgroundDepthMode = desertEntryPrimaryBackgroundPlatesDrawn
+        ? 'desert-journey-continuous-panels-with-primary-png-plates-2026-06-14'
+        : DESERT_JOURNEY_BACKGROUND_SYSTEM_VERSION;
     }
 
     // --- Ground & Props ---
@@ -17969,6 +18615,7 @@ export default function ExpeditionJourney({
       WORLD_TRANSITION_STORY_MARKERS.forEach((marker) => drawWorldTransitionMarker(ctx, marker, cameraX, now));
       getZIndexSortedRenderableStoryProps(current).forEach((prop) => drawStoryProp(ctx, prop, cameraX, now, 'background'));
       drawParticles(ctx, atmosphere, cameraX, now);
+      if (desertJourneyScenePanelsDrawn) drawDesertJourneySceneMasks(ctx, current, cameraX, now);
     }
 
     // --- Environment Layers (Parallax) ---
@@ -18386,6 +19033,10 @@ export default function ExpeditionJourney({
       if (!bossIntroActive) drawEnemyAttackTell(ctx, boss, bx, cameraX, now, true, true);
     });
 
+    if (!chamberSceneActive && !current.arrivalThresholdActive) {
+      drawLostBridgeRavineForegroundVoid(ctx, renderablePlatforms, cameraX, current);
+    }
+
     (current.bossKeyItems || []).forEach((keyItem) => {
       if (chamberSceneActive) return;
       if (!keyItem.dropped || keyItem.collected) return;
@@ -18426,7 +19077,7 @@ export default function ExpeditionJourney({
         && (!shard.routeId || routeRewardAccessible);
       if (visible) {
         drawCollectible(ctx, shard.x, shard.y, cameraX, now, '💎', '#f59e0b', shard.hidden, true, {
-          key: 'relicShard',
+          key: getRelicShardSpriteKey(shard),
           kind: 'shard',
           size: COLLECTIBLE_VISUAL_BASE.relicShard.size,
           ringSize: COLLECTIBLE_VISUAL_BASE.relicShard.ringSize,
@@ -18773,7 +19424,7 @@ export default function ExpeditionJourney({
       }
       ctx.textAlign = 'start';
     }
-  }, [backgroundPackId, drawAncientRouteGround, drawArrivalThresholdScene, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertEntryRebuildBackgroundPlates, drawDesertForegroundAtmosphere, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawForegroundDepthLayer, drawMummificationChamberInterior, drawForgottenMuralChamberInterior, drawForgottenMuralChamberTransition, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawLostBridgeRavineDepth, drawLostBridgeStructure, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawPremiumEgyptianChamberDoor, drawPropPlacementEditorOverlay, drawRouteGate, drawRouteGroundApron, drawScarabQueenLairOpeningProp, drawScribeLockedChamberInterior, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawTrapProjectile, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getDoorwayGateStatus, getEditedMiniBoss, getEditedNestParams, getGateGuidance, getPlayerAttackState, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getZIndexSortedRenderableStoryProps, getRouteGateDoorwayEntries, getScarabQueenLairPlacement, isRouteRewardAccessible, resolveChamberEntryTrigger, drawPlayerSprite, drawFieldNoteLabel]);
+  }, [backgroundPackId, drawAncientRouteGround, drawArrivalThresholdScene, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertEntryPrimaryBackgroundPlates, drawDesertForegroundAtmosphere, drawDesertJourneySceneMasks, drawDesertJourneyScenePanels, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawForegroundDepthLayer, drawMummificationChamberInterior, drawForgottenMuralChamberInterior, drawForgottenMuralChamberTransition, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawLostBridgeRavineDepth, drawLostBridgeRavineForegroundVoid, drawLostBridgeStructure, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawPremiumEgyptianChamberDoor, drawPropPlacementEditorOverlay, drawRouteGate, drawRouteGroundApron, drawScarabQueenLairOpeningProp, drawScribeLockedChamberInterior, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawTrapProjectile, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getDoorwayGateStatus, getEditedMiniBoss, getEditedNestParams, getGateGuidance, getPlayerAttackState, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getZIndexSortedRenderableStoryProps, getRouteGateDoorwayEntries, getScarabQueenLairPlacement, isRouteRewardAccessible, resolveChamberEntryTrigger, drawPlayerSprite, drawFieldNoteLabel]);
 
   const startOpeningCinematic = useCallback(({ speechEnabled = true, fromArrivalThreshold = false } = {}) => {
     const current = stateRef.current;
@@ -25719,6 +26370,7 @@ export default function ExpeditionJourney({
                 platform: 'Platform palette',
                 'ground-detail': 'Ground Details palette',
                 'foreground-detail': 'Foreground Details palette',
+                'shard-prop': 'Shards palette',
                 ledge: 'Ledge palette',
               };
               const paletteSearching = Boolean(String(propEditorUi.paletteSearch || '').trim());
@@ -25761,6 +26413,7 @@ export default function ExpeditionJourney({
                     ['ledge', 'Ledges'],
                     ['ground-detail', 'Ground Details'],
                     ['foreground-detail', 'Foreground Details'],
+                    ['shard-prop', 'Shards'],
                     ['platform', 'Platforms'],
                     ['trap', 'Traps'],
                   ].map(([category, label]) => (
@@ -25990,7 +26643,13 @@ export default function ExpeditionJourney({
                   <div className="opening-cinematic-depth opening-cinematic-depth-right" />
                   <img
                     className="opening-cinematic-seal"
-                    src={OPENING_SCARAB_SEAL_IMAGE_SRC}
+                    src={`${import.meta.env.BASE_URL}${OPENING_JUDGEMENT_SEAL_IMAGE_SRC}`}
+                    onError={(event) => {
+                      const fallback = `${import.meta.env.BASE_URL}${OPENING_SCARAB_SEAL_IMAGE_SRC}`;
+                      if (!event.currentTarget.src.endsWith(OPENING_SCARAB_SEAL_IMAGE_SRC)) {
+                        event.currentTarget.src = fallback;
+                      }
+                    }}
                     alt=""
                   />
                   <img
@@ -26005,11 +26664,6 @@ export default function ExpeditionJourney({
                     <span />
                     <span />
                   </div>
-                  <img
-                    className="opening-cinematic-asha"
-                    src={OPENING_ASHA_CUTSCENE_SRC}
-                    alt=""
-                  />
                   <div className="opening-cinematic-banishment-ring">
                     <span />
                     <span />
@@ -26035,16 +26689,27 @@ export default function ExpeditionJourney({
                   <div className="opening-cinematic-shockwave" />
                   <div className="opening-cinematic-dust" />
                 </div>
+                {/* Asha renders ABOVE the backdrop's grain/vignette so nothing veils
+                    her — she reads as the solid living figure. Anubis stays inside
+                    the backdrop layer so the film grain keeps him spectral. */}
+                <img
+                  className="opening-cinematic-asha"
+                  src={OPENING_ASHA_CUTSCENE_SRC}
+                  alt=""
+                />
                 <div className="opening-cinematic-copy">
                   <div className="opening-cinematic-kicker">The First Seal</div>
                   <h2>The Gate Refuses</h2>
-                  {activeOpeningCinematicLine && (
-                    <div className={`opening-cinematic-dialogue ${activeOpeningCinematicLine.voice === 'guardian' ? 'is-guardian' : 'is-asha'}`}>
-                      <span>{activeOpeningCinematicLine.speaker}</span>
-                      <p>{activeOpeningCinematicLine.text}</p>
-                    </div>
-                  )}
                 </div>
+                {activeOpeningCinematicLine && (
+                  <div
+                    key={activeOpeningCinematicLine.id}
+                    className={`opening-cinematic-dialogue ${activeOpeningCinematicLine.voice === 'guardian' ? 'is-guardian' : 'is-asha'}`}
+                  >
+                    <span>{activeOpeningCinematicLine.speaker}</span>
+                    <p>{activeOpeningCinematicLine.text}</p>
+                  </div>
+                )}
                 <div className="opening-cinematic-progress" aria-hidden="true">
                   <span style={{ width: `${Math.round(openingIntroProgress * 100)}%` }} />
                 </div>
@@ -26056,43 +26721,45 @@ export default function ExpeditionJourney({
 
             {!openingCinematicActive && (
             <div className="journey-floating-hud" aria-label="Expedition status">
-              <div className="journey-floating-hud-cluster">
+              <div className="journey-hud-ledger">
                 <div className={`journey-floating-hud-gems ${gameState.itemPurposeNoticeTimer > 0 ? 'is-rewarding' : ''}`}>
-                  <Gem size={18} />
+                  <ShardGlyph />
                   <strong>{gameState.relicShardCount}</strong>
                   <span>Relic shards</span>
+                </div>
+                <div className="journey-hud-ledger-divider" aria-hidden="true" />
+                <div className="journey-floating-hud-restoration">
+                  <HorusEyeGlyph />
+                  <span>Evidence</span>
+                  <strong>{restoredSacredRoomCount}/{sacredRoomEvidenceRows.length}</strong>
+                  <em>
+                    {activeSacredRoomEvidence.restored
+                      ? 'Rooms restored'
+                      : `${activeSacredRoomEvidence.label} ${activeSacredRoomEvidence.recoveredCount}/${activeSacredRoomEvidence.requiredCount}`}
+                  </em>
                 </div>
                 <div className="journey-floating-hud-status">
                   {getSectionDisplayName(gameState.currentSectionId) || 'Surveying'}
                 </div>
               </div>
 
-              <div className="journey-floating-hud-cluster journey-floating-hud-restoration">
-                <ShieldAlert size={15} />
-                <span>Evidence</span>
-                <strong>{restoredSacredRoomCount}/{sacredRoomEvidenceRows.length}</strong>
-                <em>
-                  {activeSacredRoomEvidence.restored
-                    ? 'Rooms restored'
-                    : `${activeSacredRoomEvidence.label} ${activeSacredRoomEvidence.recoveredCount}/${activeSacredRoomEvidence.requiredCount}`}
-                </em>
-              </div>
-
-              <button
-                type="button"
-                className={`journey-enemy-toggle ${gameState.enemiesDisabled ? 'is-off' : ''}`}
-                onClick={toggleEnemyPlaytestAssist}
-                aria-pressed={gameState.enemiesDisabled}
-                title={gameState.enemiesDisabled ? 'Turn enemies back on' : 'Turn enemies off for bridge play-testing'}
-              >
-                <ShieldAlert size={14} />
-                <span>{gameState.enemiesDisabled ? 'Enemies off' : 'Enemies on'}</span>
-              </button>
+              {import.meta.env.DEV && (
+                <button
+                  type="button"
+                  className={`journey-enemy-toggle ${gameState.enemiesDisabled ? 'is-off' : ''}`}
+                  onClick={toggleEnemyPlaytestAssist}
+                  aria-pressed={gameState.enemiesDisabled}
+                  title={gameState.enemiesDisabled ? 'Turn enemies back on' : 'Turn enemies off for bridge play-testing'}
+                >
+                  <ShieldAlert size={14} />
+                  <span>{gameState.enemiesDisabled ? 'Enemies off' : 'Enemies on'}</span>
+                </button>
+              )}
 
               <div className="journey-floating-hud-cluster journey-floating-hud-meters">
                 <div className={`journey-floating-hud-meter ${staminaWarningState !== 'stable' ? `stamina-alert stamina-${staminaWarningState}` : ''}`}>
                   <div className="journey-floating-hud-meter-label">
-                    <Gauge size={15} />
+                    <AnkhGlyph />
                     <span>Endurance</span>
                   </div>
                   <div className="journey-floating-hud-bar">
@@ -26105,7 +26772,7 @@ export default function ExpeditionJourney({
 
                 <div className={`journey-floating-hud-meter ${timeWarningState !== 'stable' ? `time-alert time-${timeWarningState}` : ''}`}>
                   <div className="journey-floating-hud-meter-label">
-                    <Sparkles size={15} />
+                    <SunDiscGlyph />
                     <span>Time</span>
                   </div>
                   <div className="journey-floating-hud-bar">
@@ -26125,6 +26792,13 @@ export default function ExpeditionJourney({
                 <div className="journey-floating-hud-cluster journey-floating-hud-count journey-floating-hud-gate">
                   <span>Next seal</span>
                   <strong>{activeHudGateGuidance?.activeGateName || 'Route Seal'}</strong>
+                  {activeHudShardRequirement && activeHudShardRequirement.required <= 8 && (
+                    <span className="journey-hud-pips" aria-hidden="true">
+                      {Array.from({ length: activeHudShardRequirement.required }, (_, pipIndex) => (
+                        <i key={pipIndex} className={`journey-hud-pip ${pipIndex < activeHudShardRequirement.found ? 'is-filled' : ''}`} />
+                      ))}
+                    </span>
+                  )}
                   <em>
                     {activeHudShardRequirement
                       ? `${activeHudShardRequirement.found}/${activeHudShardRequirement.required} shards`

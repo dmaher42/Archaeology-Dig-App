@@ -1,4 +1,4 @@
-import { drawAtlasRegion } from './journeyRenderAssets';
+import { drawAtlasRegion } from './journeyRenderAssets.js';
 
 export const COLLECTIBLE_ATLAS_BASE_PATH = 'assets/expedition/collectibles/';
 export const COLLECTIBLE_ATLAS_JSON = `${COLLECTIBLE_ATLAS_BASE_PATH}journey-collectibles-pack.json`;
@@ -37,6 +37,28 @@ export const EXPECTED_COLLECTIBLE_ASSET_KEYS = [
   'witnessLineFragment',
   'royalRecordFragment',
 ];
+
+export const RELIC_SHARD_FRAGMENT_SPRITE_KEYS = [
+  'linenMemoryFragment',
+  'resinRiteFragment',
+  'canopicNameFragment',
+  'scarabWingFragment',
+  'muralFaienceFragment',
+  'muralPlasterFragment',
+  'inkNameFragment',
+  'witnessLineFragment',
+  'royalRecordFragment',
+];
+
+export const getRelicShardSpriteKey = (shard) => {
+  if (RELIC_SHARD_FRAGMENT_SPRITE_KEYS.includes(shard?.spriteKey)) {
+    return shard.spriteKey;
+  }
+
+  const seed = `${shard?.id || ''}:${Math.round(shard?.x || 0)}:${Math.round(shard?.y || 0)}`;
+  const hash = Array.from(seed).reduce((total, char) => total + char.charCodeAt(0), 0);
+  return RELIC_SHARD_FRAGMENT_SPRITE_KEYS[hash % RELIC_SHARD_FRAGMENT_SPRITE_KEYS.length];
+};
 
 export const createCollectibleSpriteState = () => ({
   image: null,

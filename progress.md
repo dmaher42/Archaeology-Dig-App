@@ -4,6 +4,20 @@ Current source-of-truth note:
 - Future implementation should follow `docs/lost-site-expedition-production-bible.md`.
 - The production bible now defines implementation hierarchy, room pipelines, asset roles, and quality expectations.
 
+2026-06-14 Desert Entry continuous background rebuild:
+- Added a canonical continuous panel contract in `src/components/expedition-journey/journeyDesertBackgroundPanels.js` while restoring the generated PNG plates as the primary full-canvas route art.
+- The Desert Entry route now has seven ordered panels from opening through Queen gateway, each with sky, far, mid, ground, and foreground layer roles, shared horizon/ground/light/style values, and explicit natural transition masks.
+- `ExpeditionJourney.jsx` now draws the continuous panels as fallback/structure, then renders the PNG plates through a full-canvas camera-panned crossfade path; plate props are skipped by ordinary prop drawing so they do not create hard world-prop seams.
+- Collision/platform data was scoped only where the ravine floor was tied to the broken visual read: the lower floor/recovery helpers under the bridge were split/removed so the bridge remains the safe crossing and the ravine reads as a real drop.
+- Added `journeyDesertBackgroundPanels.test.mjs` plus updated placement/secret assertions for the new background contract. Focused panel and placement tests pass; the broad `journeySecrets.test.js` still has unrelated active-WIP failures in mummification exterior, Scarab Queen staging, registry/contact-layer expectations, and scorpion nest placement.
+
+2026-06-13 Desert Entry first-spawn visual grounding:
+- Confirmed the Journey renderer already supports standalone PNG props through `imageAssetKey` and `assetPath`, with depth, shadow, colour grading, and sand-overlap controls, so no new rendering system was needed.
+- Added a quiet four-prop Asha/world grounding cluster at the first Desert Entry spawn using the existing `image-prop` path and cropped PNGs under `public/assets/expedition/environment/egypt-atmosphere/props/grounding-kit-2026-06-13-final/`.
+- Removed two visual-only premium rubble contact-shadow props that read as floating distant ruins in the first viewport.
+- Added focused placement test coverage so the first-spawn grounding props remain low, local to Asha, non-interactive, and real PNG-backed.
+- Locked the opening-to-ravine far background to the first regenerated plate through the ravine approach so the sky, pyramids, sphinx, and distant temple mass no longer swap to a different painting while Asha moves through the first stretch.
+
 2026-06-12 Desert Entry ravine bridge polish:
 - Kept the bridge-route motivation in the existing Journey seal/shard guidance path rather than adding a separate tutorial.
 - The required Temple Approach Seal shard now sits on the upper ravine bridge route, and the locked-seal HUD hint explicitly tells players to climb the bridge for the next shard while treating the lower path as recovery.

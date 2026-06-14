@@ -13,6 +13,7 @@ import {
   getJourneyTrapTriggerRect,
   isReusableJourneyTrap,
 } from './journeyTraps.js';
+import { RELIC_SHARD_FRAGMENT_SPRITE_KEYS } from './journeyCollectibleSprites.js';
 
 export {
   createJourneyTrapFromPaletteItem,
@@ -342,6 +343,7 @@ const PROP_TEMPLATE_FIELDS = [
   'imageAssetKey',
   'groundDetailAssetKey',
   'foregroundDetailAssetKey',
+  'collectibleSpriteKey',
   'assetPath',
   'width',
   'height',
@@ -409,6 +411,18 @@ const JOURNEY_FOREGROUND_DETAIL_PALETTE_ITEMS = [
   { assetKey: 'egyptBuriedStoneEdge', label: 'Buried Stone Edge', width: 166, height: 112, alpha: 0.72 },
   { assetKey: 'egyptStructureBaseRubble', label: 'Structure Base Rubble', width: 174, height: 108, alpha: 0.74 },
 ];
+
+const JOURNEY_SHARD_PROP_PALETTE_ITEMS = [
+  { collectibleSpriteKey: 'linenMemoryFragment', label: 'Linen Memory Fragment' },
+  { collectibleSpriteKey: 'resinRiteFragment', label: 'Resin Rite Fragment' },
+  { collectibleSpriteKey: 'canopicNameFragment', label: 'Canopic Name Fragment' },
+  { collectibleSpriteKey: 'scarabWingFragment', label: 'Scarab Wing Fragment' },
+  { collectibleSpriteKey: 'muralFaienceFragment', label: 'Mural Faience Fragment' },
+  { collectibleSpriteKey: 'muralPlasterFragment', label: 'Mural Plaster Fragment' },
+  { collectibleSpriteKey: 'inkNameFragment', label: 'Ink Name Fragment' },
+  { collectibleSpriteKey: 'witnessLineFragment', label: 'Witness Line Fragment' },
+  { collectibleSpriteKey: 'royalRecordFragment', label: 'Royal Record Fragment' },
+].filter(item => RELIC_SHARD_FRAGMENT_SPRITE_KEYS.includes(item.collectibleSpriteKey));
 
 const toJourneyPropWords = (value = '') => String(value)
   .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
@@ -694,6 +708,26 @@ export const createJourneyForegroundDetailsPalette = () => JOURNEY_FOREGROUND_DE
   },
 }));
 
+export const createJourneyShardPropsPalette = () => JOURNEY_SHARD_PROP_PALETTE_ITEMS.map((item) => ({
+  key: `shard-prop:${item.collectibleSpriteKey}`,
+  label: item.label,
+  type: 'collectible-shard-prop',
+  category: 'Shards',
+  collectibleSpriteKey: item.collectibleSpriteKey,
+  template: {
+    type: 'collectible-shard-prop',
+    collectibleSpriteKey: item.collectibleSpriteKey,
+    width: 42,
+    height: 42,
+    depth: 'foreground',
+    layer: 'foreground',
+    alpha: 1,
+    brightness: 1,
+    colorGradeFilter: '',
+    shadowOpacity: 0.18,
+  },
+}));
+
 export const createJourneyPropFromPaletteItem = ({
   paletteItem = {},
   roomId,
@@ -703,7 +737,7 @@ export const createJourneyPropFromPaletteItem = ({
 } = {}) => {
   const template = { ...(paletteItem.template || paletteItem) };
   const type = template.type || paletteItem.type || 'prop';
-  const assetSegment = template.foregroundDetailAssetKey || template.groundDetailAssetKey || template.imageAssetKey || template.atmosphereAssetKey || type;
+  const assetSegment = template.collectibleSpriteKey || template.foregroundDetailAssetKey || template.groundDetailAssetKey || template.imageAssetKey || template.atmosphereAssetKey || type;
   const idBase = `${toJourneyPropIdSegment(roomId || 'room')}-${toJourneyPropIdSegment(assetSegment)}`;
   const id = makeUniqueJourneyPropId(`${idBase}-1`, existingIds);
   const roomKey = roomId || 'unknown-room';
