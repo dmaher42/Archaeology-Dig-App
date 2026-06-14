@@ -6,7 +6,10 @@ import {
   mergeJourneyPlacementOverrideExports,
   normalizeJourneyPlacementExportForOverrides,
 } from './journeyPlacementOverrides.js';
-import { PLATFORMS as BASE_PLATFORMS } from './journeyLevelData.js';
+import {
+  PLATFORMS as BASE_PLATFORMS,
+  SCARAB_SEAL_TRIGGER,
+} from './journeyLevelData.js';
 import {
   getJourneyMiniBosses,
   HAZARDS as ROUTED_HAZARDS,
@@ -25,6 +28,16 @@ import {
 } from './journeyDesertBackgroundPanels.js';
 
 const JOURNEY_TEST_VIEWPORT_WIDTH = 1280;
+
+const readPngInfo = (assetPath) => {
+  const buffer = readFileSync(`public/${assetPath}`);
+  assert.equal(buffer.toString('ascii', 1, 4), 'PNG', `${assetPath} should be a PNG file`);
+  return {
+    width: buffer.readUInt32BE(16),
+    height: buffer.readUInt32BE(20),
+    colorType: buffer[25],
+  };
+};
 
 const isHorizontallyVisibleForTest = (worldX, width, cameraX, margin = 0) => {
   const screenX = worldX - cameraX;
@@ -284,7 +297,38 @@ test('desert entry first spawn has quiet boot-level grounding props for Asha', (
   });
 });
 
-test('Desert Entry background rebuild uses continuous scene panels with the PNG plates as primary art', () => {
+test('desert entry opening has a physical scarab threshold that explains the Anubis trigger', () => {
+  setExpeditionJourneyCiv('Ancient Egypt');
+
+  const prop = ROUTED_STORY_PROPS.find(item => item.id === 'desert-entry-opening-scarab-threshold-physical-1');
+
+  assert.ok(prop, 'opening Anubis trigger should have a visible physical scarab threshold prop');
+  assert.equal(prop.sectionId, 'desert-entry');
+  assert.equal(prop.type, 'image-prop');
+  assert.equal(prop.depth, 'route-edge');
+  assert.equal(prop.layer, 'route-edge');
+  assert.equal(prop.collidable, false);
+  assert.equal(prop.inspectable, true);
+  assert.equal(prop.triggerId, SCARAB_SEAL_TRIGGER.id);
+  assert.equal(prop.imageAssetKey, 'desertEntryOpeningScarabThresholdPhysical');
+  assert.equal(
+    prop.assetPath,
+    'assets/expedition/environment/egypt-opening/desert-entry-production-2026-06-14/opening-scarab-threshold-2026-06-14.png',
+  );
+  assert.ok(existsSync(`public/${prop.assetPath}`), 'opening scarab threshold PNG should exist on disk');
+  assert.ok(Math.abs(prop.x - SCARAB_SEAL_TRIGGER.x) <= 16, 'visible threshold should align with the actual Anubis trigger');
+  assert.ok(prop.width >= 430 && prop.width <= 560, 'threshold should be large enough to read as a trigger object');
+  assert.ok(prop.height >= 120 && prop.height <= 190, 'threshold should stay low and not read as a wall');
+  assert.ok(prop.y >= 528 && prop.y <= 590, 'threshold should sit on the Desert Entry route surface');
+  assert.ok(prop.alpha >= 0.95, 'threshold should render as a real object, not a faint hint');
+  assert.equal(prop.sceneRole, 'opening-anubis-threshold');
+  assert.equal(prop.transitionPurpose, 'physical-trigger');
+  const png = readPngInfo(prop.assetPath);
+  assert.equal(png.colorType, 6, 'opening scarab threshold should preserve transparency');
+  assert.ok(png.width >= 1200 && png.height >= 800, 'opening scarab threshold should use a high-resolution generated PNG');
+});
+
+test('Desert Entry background rebuild uses clean physical transitions instead of full-screen PNG morphing', () => {
   const journeySource = readFileSync(new URL('../ExpeditionJourney.jsx', import.meta.url), 'utf8');
 
   assert.equal(DESERT_JOURNEY_BACKGROUND_SYSTEM_VERSION, 'desert-journey-continuous-panels-2026-06-14');
@@ -312,8 +356,12 @@ test('Desert Entry background rebuild uses continuous scene panels with the PNG 
   assert.match(journeySource, /DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_SEAM_MASKS/);
   assert.match(journeySource, /desertEntryPrimaryBackgroundPlateIds/);
   assert.match(journeySource, /desertEntryPrimaryBackgroundPlateSeamMasks/);
-  assert.match(journeySource, /full-canvas-route-crossfade-primary-png-v2/);
+  assert.match(journeySource, /single-plate-camera-pan-primary-png-v3/);
   assert.match(journeySource, /DESERT_JOURNEY_BACKGROUND_SYSTEM_VERSION/);
+  assert.doesNotMatch(journeySource, /DESERT_ENTRY_PRIMARY_BACKGROUND_CROSSFADE_WIDTH/);
+  assert.doesNotMatch(journeySource, /overlayAlpha/);
+  assert.doesNotMatch(journeySource, /overlayIndex/);
+  assert.doesNotMatch(journeySource, /full-canvas-route-crossfade-primary-png-v2/);
   assert.doesNotMatch(journeySource, /full-canvas-route-crossfade-background-v1/);
   assert.doesNotMatch(journeySource, /DESERT_ENTRY_REBUILD_BACKGROUND_CROSSFADE_WIDTH/);
 });
@@ -398,6 +446,54 @@ test('sacred room entry routes contain their physical doorway platforms', () => 
       `${platformId} should sit inside ${routeId}`,
     );
   });
+});
+
+test('ravine crossing resolves into a physical Mummification doorway transition', () => {
+  setExpeditionJourneyCiv('Ancient Egypt');
+
+  const prop = ROUTED_STORY_PROPS.find(item => item.id === 'desert-entry-ravine-mummification-doorway-transition-1');
+  const retiredGateFront = ROUTED_STORY_PROPS.find(item => item.id === 'desert-entry-route-gate-front-1');
+  const retiredGateBack = ROUTED_STORY_PROPS.find(item => item.id === 'desert-entry-route-gate-back-1');
+  const guardianPrepSeal = ROUTED_ROUTE_GATES.find(item => item.id === 'guardian-prep-seal');
+  const route = ROUTED_HIDDEN_ROUTES.find(item => item.id === 'mummification-chamber-route');
+  const doorwayPlatform = ROUTED_PLATFORMS.find(item => item.id === 'mummification-chamber-doorway-floor');
+
+  assert.ok(prop, 'ravine-to-Mummification handoff should have a visible enterable doorway prop');
+  assert.equal(retiredGateFront?.alpha, 0, 'old foreground route-gate front art should not sit over the physical Mummification doorway');
+  assert.equal(retiredGateBack?.alpha, 0, 'old foreground route-gate back art should not sit over the physical Mummification doorway');
+  assert.equal(guardianPrepSeal?.suppressRouteGateVisual, true, 'the old abstract gate visual should not sit inside the physical Mummification doorway');
+  assert.equal(guardianPrepSeal?.physicalDoorwayPropId, prop.id, 'the progression gate should be visually represented by the physical doorway prop');
+  assert.ok(route, 'Mummification hidden route should exist');
+  assert.ok(doorwayPlatform, 'Mummification doorway floor should exist');
+  assert.equal(prop.sectionId, 'desert-entry');
+  assert.equal(prop.type, 'image-prop');
+  assert.equal(prop.depth, 'route-edge');
+  assert.equal(prop.layer, 'route-edge');
+  assert.equal(prop.collidable, false);
+  assert.equal(prop.inspectable, true);
+  assert.equal(prop.hiddenRouteId, 'mummification-chamber-route');
+  assert.equal(prop.entryPlatformId, 'mummification-chamber-doorway-floor');
+  assert.equal(prop.transitionPurpose, 'doorway-clean-cut');
+  assert.equal(prop.sceneRole, 'ravine-to-mummification-entry');
+  assert.equal(prop.imageAssetKey, 'desertEntryRavineMummificationDoorwayTransition');
+  assert.equal(
+    prop.assetPath,
+    'assets/expedition/environment/egypt-opening/desert-entry-production-2026-06-14/ravine-mummification-doorway-deep-shadow-2026-06-14.png',
+  );
+  assert.ok(existsSync(`public/${prop.assetPath}`), 'ravine-to-Mummification doorway PNG should exist on disk');
+  assert.ok(prop.x > route.x && prop.x < route.x + route.width, 'doorway should sit inside the Mummification route trigger');
+  assert.ok(
+    guardianPrepSeal.x > prop.x - prop.width / 2 && guardianPrepSeal.x < prop.x + prop.width / 2,
+    'the old progression gate logic should remain covered by the physical doorway art',
+  );
+  assert.ok(prop.x > doorwayPlatform.x && prop.x < doorwayPlatform.x + doorwayPlatform.width, 'doorway art should align with the actual entry platform');
+  assert.ok(prop.width >= 1080 && prop.width <= 1260, 'doorway should be dominant enough to read as the enterable building, not background paint');
+  assert.ok(prop.height >= 820 && prop.height <= 940, 'doorway should fill the scene vertically enough to hide a clean cut');
+  assert.ok(prop.y >= 590 && prop.y <= 625, 'doorway base should sit on the desert route surface');
+  assert.ok(prop.alpha >= 0.95, 'doorway should render as a real scene structure');
+  const png = readPngInfo(prop.assetPath);
+  assert.equal(png.colorType, 6, 'ravine-to-Mummification doorway should preserve transparency');
+  assert.ok(png.width >= 1200 && png.height >= 1000, 'ravine-to-Mummification doorway should use a high-resolution generated PNG');
 });
 
 test('routed Desert Entry spine reaches the Queen, seal, and next section in order', () => {
@@ -495,7 +591,8 @@ test('Desert Entry opening rebuild carries the pyramid, ravine, and Mummificatio
   const misplacedBridgePyramid = propById('desert-entry-generated-opening-pyramid-facade-1');
   const ravineOverlay = propById('desert-entry-lost-bridge-ravine-floor-deep-1');
   const laterMummificationPlate = propById('desert-entry-mummification-to-mural-background-1');
-  const mummificationExterior = propById('desert-entry-generated-mummification-chamber-entrance-1');
+  const retiredMummificationExterior = propById('desert-entry-generated-mummification-chamber-entrance-1');
+  const mummificationDoorway = propById('desert-entry-ravine-mummification-doorway-transition-1');
   const openingRebuildIds = [
     'desert-entry-opening-pyramid-to-ravine-background-1',
     'desert-entry-ravine-bridge-background-1',
@@ -521,13 +618,16 @@ test('Desert Entry opening rebuild carries the pyramid, ravine, and Mummificatio
     0,
     'the old generated opening pyramid should be visually retired behind the regenerated opening plate',
   );
-  assert.ok(mummificationExterior, 'the Mummification exterior entrance should remain available as a visible room landmark');
-  assert.equal(mummificationExterior.type, 'generated-mummification-chamber-entrance');
-  assert.equal(mummificationExterior.depth, 'route-edge');
-  assert.equal(mummificationExterior.layer, 'route-edge');
+  assert.ok(retiredMummificationExterior, 'the old Mummification exterior record should remain available for editor continuity');
+  assert.equal(retiredMummificationExterior.type, 'generated-mummification-chamber-entrance');
+  assert.equal(retiredMummificationExterior.alpha, 0, 'the old generated exterior should be visually retired behind the physical doorway');
+  assert.ok(mummificationDoorway, 'the Mummification approach should use a physical doorway as the visible room landmark');
+  assert.equal(mummificationDoorway.type, 'image-prop');
+  assert.equal(mummificationDoorway.depth, 'route-edge');
+  assert.equal(mummificationDoorway.layer, 'route-edge');
   assert.ok(
-    mummificationExterior.alpha >= 0.82,
-    'the Mummification exterior entrance should be visible over the rebuilt background plate',
+    mummificationDoorway.alpha >= 0.95,
+    'the physical Mummification doorway should be visible over the rebuilt background plate',
   );
   assert.equal(
     misplacedBridgePyramid,

@@ -16689,6 +16689,211 @@ main {
   content: ' —';
 }
 
+/* ---- In-game Controls & Combat help (HUD button + overlay + shared reference) ---- */
+.journey-help-btn {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  z-index: 5;
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  pointer-events: auto;
+  border: 1px solid rgba(245, 214, 143, 0.5);
+  border-radius: 999px;
+  background: rgba(14, 10, 6, 0.66);
+  color: #f6dca0;
+  font-family: 'Cinzel', serif;
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: background 0.15s, border-color 0.15s, transform 0.15s;
+}
+
+.journey-help-btn:hover,
+.journey-help-btn:focus-visible {
+  background: rgba(36, 25, 12, 0.82);
+  border-color: rgba(255, 231, 167, 0.85);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.journey-help-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 95;
+  display: grid;
+  place-items: center;
+  padding: 1.4rem;
+  background: rgba(4, 3, 2, 0.7);
+  backdrop-filter: blur(3px);
+  animation: openingDialogueIn 0.2s ease-out both;
+}
+
+.journey-help-card {
+  width: min(34rem, 100%);
+  max-height: calc(100% - 2rem);
+  overflow-y: auto;
+  padding: 1.1rem 1.3rem 1.3rem;
+  border: 1px solid rgba(245, 214, 143, 0.34);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(20, 14, 9, 0.96), rgba(10, 7, 4, 0.96));
+  color: #f6ecd6;
+  box-shadow: 0 1.4rem 3rem rgba(0, 0, 0, 0.6);
+}
+
+.journey-help-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+}
+
+.journey-help-header h2 {
+  margin: 0;
+  font-family: 'Cinzel', serif;
+  font-size: 1.4rem;
+  color: #fff7dc;
+}
+
+.journey-help-close {
+  width: 1.9rem;
+  height: 1.9rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(245, 214, 143, 0.3);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  color: #f6dca0;
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.journey-help-close:hover { background: rgba(60, 40, 18, 0.6); }
+
+.journey-help-footer {
+  margin: 0.9rem 0 0;
+  font-family: system-ui, sans-serif;
+  font-size: 0.78rem;
+  color: rgba(246, 236, 214, 0.6);
+  text-align: center;
+}
+
+.journey-controls-reference {
+  display: grid;
+  gap: 0.9rem;
+  font-family: system-ui, sans-serif;
+}
+
+.journey-controls-keys-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem 1.1rem;
+}
+
+.journey-control-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.journey-control-keys {
+  display: inline-flex;
+  gap: 0.22rem;
+  flex: 0 0 auto;
+}
+
+.journey-controls-reference kbd {
+  min-width: 1.35rem;
+  padding: 0.12rem 0.34rem;
+  border: 1px solid rgba(245, 214, 143, 0.4);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.34);
+  color: #f6dca0;
+  font-family: 'Cinzel', serif;
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.journey-control-label {
+  font-size: 0.85rem;
+  color: #e8dcc4;
+}
+
+.journey-controls-legend {
+  display: grid;
+  gap: 0.4rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid rgba(245, 214, 143, 0.16);
+}
+
+.journey-controls-legend-title {
+  font-family: 'Cinzel', serif;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #f4c76d;
+}
+
+.journey-telegraph-row {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+}
+
+.journey-telegraph-dot {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 999px;
+  background: var(--tell-color, #facc15);
+  box-shadow: 0 0 0.5rem var(--tell-color, #facc15);
+}
+
+.journey-telegraph-name {
+  font-weight: 700;
+  color: #fff3d6;
+}
+
+.journey-telegraph-desc {
+  color: rgba(232, 220, 196, 0.82);
+}
+
+.journey-controls-parry-tip {
+  margin: 0.3rem 0 0;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: #e8dcc4;
+}
+
+.journey-controls-parry-tip strong { color: #7fe9ff; }
+
+.journey-controls-parry-tip kbd,
+.briefing-controls-hint kbd {
+  min-width: 1.2rem;
+  padding: 0.05rem 0.3rem;
+  border: 1px solid rgba(245, 214, 143, 0.4);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.34);
+  color: #f6dca0;
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+}
+
+.briefing-controls-hint {
+  margin: 0.6rem 0 0;
+  font-size: 0.76rem;
+  color: rgba(232, 220, 196, 0.7);
+}
+
 .journey-floating-hud-meters {
   grid-column: 2;
   grid-row: 1;
@@ -17271,17 +17476,28 @@ main {
 }
 
 .expedition-briefing-card {
-  width: min(760px, calc(100vw - 2rem));
-  max-height: min(92vh, 720px);
+  width: min(980px, calc(100vw - 2rem));
+  max-height: min(96vh, 680px);
   display: grid;
-  gap: clamp(0.8rem, 1.6vw, 1.15rem);
-  padding: clamp(1rem, 2.4vw, 1.55rem) !important;
+  gap: clamp(0.55rem, 1.2vw, 0.9rem);
+  padding: clamp(0.85rem, 1.9vw, 1.3rem) !important;
   overflow: auto;
   border: 1px solid rgba(255, 210, 124, 0.45) !important;
   border-radius: 10px !important;
   background: linear-gradient(135deg, rgba(43, 29, 17, 0.95), rgba(12, 10, 8, 0.98)) !important;
   box-shadow: 0 28px 70px rgba(0, 0, 0, 0.75), inset 0 0 0 1px rgba(198, 160, 89, 0.15) !important;
   color: #f1e6cf;
+}
+
+/* The briefing + help cards inherit .glass-card, whose :hover tilts the card.
+   That reads as a glitch on a full-screen panel, so neutralise it here. */
+.expedition-briefing-card:hover {
+  transform: none;
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.75), inset 0 0 0 1px rgba(198, 160, 89, 0.15);
+}
+
+.journey-help-card:hover {
+  transform: none;
 }
 
 .expedition-briefing-card::after {
@@ -17302,11 +17518,11 @@ main {
 .briefing-header {
   position: relative;
   display: grid !important;
-  grid-template-columns: minmax(0, 1fr) minmax(7rem, 11rem);
+  grid-template-columns: minmax(0, 1fr) minmax(5.5rem, 8.5rem);
   align-items: stretch;
-  gap: clamp(0.8rem, 2vw, 1.35rem);
+  gap: clamp(0.7rem, 1.6vw, 1.1rem);
   margin-bottom: 0 !important;
-  padding: clamp(0.85rem, 1.8vw, 1.15rem) !important;
+  padding: clamp(0.7rem, 1.5vw, 1rem) !important;
   overflow: hidden;
   border: 1px solid rgba(139, 106, 72, 0.24) !important;
   border-radius: 8px;
@@ -17338,22 +17554,22 @@ main {
 
 .briefing-header h1 {
   color: #fff7df !important;
-  font-size: clamp(2rem, 4.4vw, 3.35rem) !important;
-  line-height: 0.96;
+  font-size: clamp(1.85rem, 3.4vw, 2.6rem) !important;
+  line-height: 0.98;
   text-shadow: 0 6px 24px rgba(0, 0, 0, 0.42);
 }
 
 .briefing-header p {
-  max-width: 46ch;
+  max-width: 52ch;
   margin: 0;
   color: #f6e6c4;
-  font-size: clamp(0.92rem, 1.4vw, 1.02rem);
-  line-height: 1.42;
+  font-size: clamp(0.86rem, 1.25vw, 0.96rem);
+  line-height: 1.38;
 }
 
 .briefing-hero-mark {
   position: relative;
-  min-height: 10rem;
+  min-height: 7rem;
   overflow: hidden;
 }
 
@@ -17389,22 +17605,22 @@ main {
 
 .briefing-header h1 {
   color: #fff7df !important;
-  font-size: clamp(2rem, 4.4vw, 3.35rem) !important;
-  line-height: 0.96;
+  font-size: clamp(1.85rem, 3.4vw, 2.6rem) !important;
+  line-height: 0.98;
   text-shadow: 0 6px 24px rgba(0, 0, 0, 0.42);
 }
 
 .briefing-header p {
-  max-width: 46ch;
+  max-width: 52ch;
   margin: 0;
   color: #f6e6c4;
-  font-size: clamp(0.92rem, 1.4vw, 1.02rem);
-  line-height: 1.42;
+  font-size: clamp(0.86rem, 1.25vw, 0.96rem);
+  line-height: 1.38;
 }
 
 .briefing-hero-mark {
   position: relative;
-  min-height: 10rem;
+  min-height: 7rem;
   overflow: hidden;
 }
 
@@ -17420,26 +17636,45 @@ main {
 .briefing-hero-portrait {
   position: absolute;
   left: 50%;
+  bottom: 0;
   transform: translateX(-50%);
-  bottom: -1rem;
-  height: 125%;
+  height: 100%;
+  max-width: 100%;
   object-fit: contain;
-  filter: drop-shadow(-8px 12px 24px rgba(0, 0, 0, 0.7));
+  object-position: bottom center;
+  filter: drop-shadow(-6px 8px 18px rgba(0, 0, 0, 0.62));
   z-index: 2;
 }
 
 .briefing-content {
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(15rem, 0.95fr);
-  gap: clamp(0.8rem, 1.6vw, 1rem);
+  grid-template-columns: minmax(0, 1.06fr) minmax(0, 0.9fr) minmax(0, 1.04fr);
+  gap: clamp(0.55rem, 1.2vw, 0.85rem);
   align-items: stretch;
 }
 
+/* Matched trio of panels, each with a themed left accent. */
+.expedition-start-dossier { border-left-width: 4px !important; }
+
+.briefing-content .briefing-task-panel:not(.briefing-controls-panel) {
+  border-left: 4px solid rgba(214, 169, 85, 0.7);
+}
+
+.briefing-content .briefing-controls-panel {
+  border-left: 4px solid rgba(127, 222, 244, 0.66);
+}
+
+.briefing-controls-panel .journey-controls-reference { gap: 0.5rem; }
+.briefing-controls-panel .journey-controls-keys-grid { gap: 0.28rem 0.5rem; }
+.briefing-controls-panel .journey-controls-legend { gap: 0.28rem; padding-top: 0.5rem; }
+.briefing-controls-panel .journey-controls-parry-tip { font-size: 0.76rem; line-height: 1.36; }
+.briefing-controls-panel .briefing-controls-hint { margin-top: 0.45rem; }
+
 .expedition-start-dossier {
   display: grid;
-  gap: 0.45rem;
+  gap: 0.4rem;
   margin: 0 !important;
-  padding: clamp(0.85rem, 1.6vw, 1.05rem) !important;
+  padding: clamp(0.7rem, 1.3vw, 0.92rem) !important;
   border: 1px solid rgba(198, 160, 89, 0.24) !important;
   border-left: 5px solid #b91c1c !important;
   border-radius: 8px !important;
@@ -17456,22 +17691,22 @@ main {
 .expedition-start-dossier .mission-title {
   margin: 0;
   color: #fff3dd;
-  font-size: clamp(1.15rem, 2vw, 1.45rem);
-  line-height: 1.12;
+  font-size: clamp(1.02rem, 1.7vw, 1.25rem);
+  line-height: 1.14;
 }
 
 .expedition-start-dossier .mission-desc {
   margin: 0;
   color: #bda983;
-  font-size: 0.95rem;
-  line-height: 1.5;
+  font-size: 0.88rem;
+  line-height: 1.42;
 }
 
 .briefing-task-panel {
   display: grid;
   align-content: start;
-  gap: 0.7rem;
-  padding: clamp(0.85rem, 1.6vw, 1.05rem);
+  gap: 0.55rem;
+  padding: clamp(0.7rem, 1.3vw, 0.92rem);
   border: 1px solid rgba(198, 160, 89, 0.22);
   border-radius: 8px;
   background: rgba(255, 247, 229, 0.045);
@@ -17495,7 +17730,7 @@ main {
 .briefing-task-list {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 0.45rem;
+  gap: 0.36rem;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -17504,11 +17739,11 @@ main {
 .briefing-task-list li {
   display: flex;
   align-items: flex-start;
-  gap: 0.45rem;
+  gap: 0.42rem;
   color: #cdbb95;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 800;
-  line-height: 1.3;
+  line-height: 1.26;
 }
 
 .briefing-task-list svg {

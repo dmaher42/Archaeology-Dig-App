@@ -2276,10 +2276,10 @@ test('Ancient Egypt opening stages archaeologist arrival and warrior-guide story
 test('Expedition framing presents Journey, Base Camp, and excavation as in-world adventure systems', () => {
   [
     'The site refuses easy entry',
-    'Restore the outer seal',
+    'Read the Lost Map Tablet',
     'Recover relic shards',
-    'Read the Map Tablet',
-    'Survive the Guardian Prep route',
+    'Restore the Temple Approach Seal',
+    'Open the Guardian Prep Seal',
     'Defeat the first guardian',
     'Reach Base Camp Outpost',
     'Relic shards',
@@ -3785,6 +3785,7 @@ test('Journey progress gates use arch and slab assets instead of artificial padl
   assert.match(routeGateDrawSource, /drawGateAsset\(routeGateSlabRef/);
   assert.match(routeGateDrawSource, /drawGateAsset\(routeGateBackRef/);
   assert.match(routeGateDrawSource, /drawGateAsset\(routeGateFrontRef/);
+  assert.match(routeGateDrawSource, /if \(gate\.suppressRouteGateVisual\) return;/);
   assert.match(routeGateDrawSource, /frontPillarPassageOffset = -Math\.round\(frontWidth \* 0\.37\)/);
   assert.match(routeGateDrawSource, /x: gateCenter - Math\.round\(frontWidth \/ 2\) \+ frontPillarPassageOffset/);
   assert.match(routeGateDrawSource, /flipX:\s*true/);
@@ -4085,7 +4086,8 @@ test('ravine bridge uses structure cutouts over the continuous Desert Entry pane
   assert.match(journeyComponentSource, /desertJourneyBackgroundSystemVersion/);
   assert.match(journeyComponentSource, /desertEntryPrimaryBackgroundPlateIds/);
   assert.match(journeyComponentSource, /desertEntryPrimaryBackgroundPlateSeamMasks/);
-  assert.match(journeyComponentSource, /full-canvas-route-crossfade-primary-png-v2/);
+  assert.match(journeyComponentSource, /single-plate-camera-pan-primary-png-v3/);
+  assert.doesNotMatch(journeyComponentSource, /full-canvas-route-crossfade-primary-png-v2/);
   assert.match(journeyComponentSource, /isDesertEntryRebuildBackgroundPlateProp\(prop\)/);
   assert.doesNotMatch(journeyComponentSource, /full-canvas-route-crossfade-background-v1/);
   assert.doesNotMatch(journeyComponentSource, /desert-entry-rebuild-full-canvas-route-crossfade-background-v1/);
@@ -4921,10 +4923,22 @@ test('generated Egypt structure contact layers use asymmetric buried-base polish
 
 test('generated overrides preserve polished structure contact layers when re-exported', () => {
   const mummificationOverride = journeyPlacementOverrides.props.find((prop) => prop.id === 'desert-entry-generated-mummification-chamber-entrance-1');
+  const mummificationDoorway = journeyPlacementOverrides.props.find((prop) => prop.id === 'desert-entry-ravine-mummification-doorway-transition-1');
+  const retiredGateFront = journeyPlacementOverrides.props.find((prop) => prop.id === 'desert-entry-route-gate-front-1');
+  const retiredGateBack = journeyPlacementOverrides.props.find((prop) => prop.id === 'desert-entry-route-gate-back-1');
+  assert.match(
+    source,
+    /id:\s*'guardian-prep-seal'[\s\S]*?suppressRouteGateVisual:\s*true[\s\S]*?physicalDoorwayPropId:\s*'desert-entry-ravine-mummification-doorway-transition-1'/,
+  );
   assert.equal(mummificationOverride?.depth, 'route-edge');
   assert.equal(mummificationOverride?.layer, 'route-edge');
-  assert.ok(mummificationOverride?.alpha >= 0.82, 'Mummification exterior should remain visible as a room landmark');
-  assert.deepEqual(mummificationOverride?.groundContactLayer, []);
+  assert.equal(mummificationOverride?.alpha, 0, 'The old Mummification exterior should stay retired behind the physical doorway');
+  assert.equal(retiredGateFront?.alpha, 0, 'The old route gate front should stay retired so it does not block the physical doorway');
+  assert.equal(retiredGateBack?.alpha, 0, 'The old route gate back should stay retired so it does not block the physical doorway');
+  assert.equal(mummificationDoorway?.depth, 'route-edge');
+  assert.equal(mummificationDoorway?.layer, 'route-edge');
+  assert.ok(mummificationDoorway?.alpha >= 0.95, 'Physical Mummification doorway should remain visible as the room landmark');
+  assert.equal(mummificationDoorway?.transitionPurpose, 'doorway-clean-cut');
   [
     'forgotten-mural-climb-structure',
     'scribe-chamber-doorway-structure',
@@ -5410,6 +5424,53 @@ test('fast fluid combat slice adds dodge-cancel and flow combo contracts', () =>
   assert.match(appSource, /attackFinisher:\s*\{/);
   assert.match(appSource, /attackMiss:\s*\{/);
   assert.match(appSource, /finisherHit:\s*\{/);
+});
+
+test('combat telegraphs are colour-coded by danger and unblockable attacks cannot be parried', () => {
+  // Sekiro-style telegraph language: gold = normal, orange = heavy, red = unblockable.
+  assert.match(journeyComponentSource, /const ATTACK_TELEGRAPH_CLASSES = \{/);
+  assert.match(journeyComponentSource, /normal:\s*\{[^}]*color:\s*'#facc15'[^}]*parryable:\s*true/);
+  assert.match(journeyComponentSource, /heavy:\s*\{[^}]*color:\s*'#fb7a1e'[^}]*parryable:\s*true/);
+  assert.match(journeyComponentSource, /unblockable:\s*\{[^}]*color:\s*'#ef4444'[^}]*parryable:\s*false/);
+  // Classifier: shielded heavy charges (protectedDuringWindup) are the unblockable/red set.
+  assert.match(journeyComponentSource, /const getEnemyAttackTelegraph = \(enemy\) => \{/);
+  assert.match(journeyComponentSource, /if \(isHeavyActive && heavy\.protectedDuringWindup\) return ATTACK_TELEGRAPH_CLASSES\.unblockable;/);
+  assert.match(journeyComponentSource, /if \(isHeavyActive\) return ATTACK_TELEGRAPH_CLASSES\.heavy;/);
+  // Unblockable attacks cannot be parried — both the defensive parry and the player-hit parry path are gated.
+  assert.match(journeyComponentSource, /&& getEnemyAttackTelegraph\(e\)\.parryable\s+&& rectsOverlap\(attackRect, getAttackHurtbox\(e\)\)/);
+  assert.match(journeyComponentSource, /const isParry = getEnemyAttackTelegraph\(e\)\.parryable/);
+  // The telegraph render uses the class colour, and the first red attack teaches the player.
+  assert.match(journeyComponentSource, /const telegraph = getEnemyAttackTelegraph\(enemy\);/);
+  assert.match(journeyComponentSource, /current\.redAttackHintShown = true;/);
+  assert.match(journeyComponentSource, /glows RED/);
+});
+
+test('perfect dodge deflects any attack and an in-game help panel teaches the controls', () => {
+  // Perfect dodge: a last-instant dodge (still in i-frames) deflects + staggers and refunds Endurance.
+  assert.match(journeyComponentSource, /const PERFECT_DODGE_ENDURANCE_REWARD = \d+/);
+  assert.match(journeyComponentSource, /const playerIsPerfectDodging = current\.dodgeInvulnerableTimer > 0;/);
+  assert.match(journeyComponentSource, /current\.lastAttackResult = 'perfect-dodge';/);
+  assert.match(journeyComponentSource, /current\.resources\.stamina \+ PERFECT_DODGE_ENDURANCE_REWARD/);
+  // Perfect dodge is evaluated before the parry/damage branches, so it wins even on red attacks.
+  assert.match(journeyComponentSource, /if \(playerIsPerfectDodging\) \{[\s\S]*?\} else if \(playerIsParrying\)/);
+
+  // Shared controls reference, used by both the briefing primer and the help panel.
+  assert.match(journeyComponentSource, /function JourneyControlsReference\(\) \{/);
+  assert.match(journeyComponentSource, /keys: \['A', 'D', '←', '→'\], label: 'Move'/);
+  assert.match(journeyComponentSource, /keys: \['W', 'Space', '↑'\], label: 'Jump'/);
+  assert.match(journeyComponentSource, /label: 'Dodge'/);
+  assert.match(journeyComponentSource, /const JOURNEY_TELEGRAPH_LEGEND = \[/);
+  assert.match(journeyComponentSource, /Perfect dodge:/);
+
+  // Always-available help panel: state, "?" toggle, HUD button, overlay.
+  assert.match(journeyComponentSource, /const \[helpOpen, setHelpOpen\] = useState\(false\);/);
+  assert.match(journeyComponentSource, /if \(e\.code === 'Slash'\) \{ e\.preventDefault\(\); setHelpOpen\(v => !v\); return; \}/);
+  assert.match(journeyComponentSource, /className="journey-help-btn"/);
+  assert.match(journeyComponentSource, /\{helpOpen && \(/);
+
+  // Styles exist.
+  assert.match(indexCssSource, /\.journey-help-overlay\s*\{/);
+  assert.match(indexCssSource, /\.journey-telegraph-dot\s*\{/);
 });
 
 test('combo finisher uses the approved slash overlay through combat hit effects', () => {

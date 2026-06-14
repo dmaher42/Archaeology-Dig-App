@@ -1032,7 +1032,6 @@ const getAnubisRestorationReaction = (restorationStatus, current) => {
 const OPENING_PYRAMID_FACADE_WORLD_LEFT_X = -82;
 const DESERT_ENTRY_CONTINUOUS_BACKGROUND_START_X = DESERT_JOURNEY_SCENE_PANELS[0]?.worldStart ?? 0;
 const DESERT_ENTRY_CONTINUOUS_BACKGROUND_END_X = DESERT_JOURNEY_SCENE_PANELS[DESERT_JOURNEY_SCENE_PANELS.length - 1]?.worldEnd ?? 17400;
-const DESERT_ENTRY_PRIMARY_BACKGROUND_CROSSFADE_WIDTH = 640;
 const DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_IDS = Object.freeze([
   'desert-entry-opening-pyramid-to-ravine-background-1',
   'desert-entry-ravine-bridge-background-1',
@@ -2059,6 +2058,10 @@ const getHeroSpriteFrameKey = (current, atlas, now) => {
 };
 
 const PARRY_WINDOW_DURATION = 0.12;
+// Perfect dodge: a last-instant dodge (the blow lands while Asha is still in her
+// dodge i-frames) deflects ANY attack — even red unblockables — and refunds some
+// Endurance, turning evasion into the primary, readable parry.
+const PERFECT_DODGE_ENDURANCE_REWARD = 6;
 // How close an enemy's front edge must be to the player body before committing to a windup.
 // Kept deliberately small so the freeze reads as "right on you" not "approaching from afar".
 const ENEMY_ATTACK_TRIGGER_REACH = 16;
@@ -2432,6 +2435,74 @@ const HEAVY_ATTACK_INTERVAL = {
   scarab: 3, scorpion: 3, snake: 3, bat: 3, 'sand-wisp': 3,
   guardian: 2, mummy: 2, bes: 2, statue: 2, looter: 3,
 };
+
+// Attack telegraph language (Sekiro-style colour code):
+//   gold   = normal strike  — parry or dodge
+//   orange = heavy strike    — parry or dodge, but hits harder
+//   red    = unblockable     — MUST dodge (cannot be parried)
+const ATTACK_TELEGRAPH_CLASSES = {
+  normal: { id: 'normal', color: '#facc15', glow: 'rgba(250, 204, 21, 0.55)', parryable: true },
+  heavy: { id: 'heavy', color: '#fb7a1e', glow: 'rgba(251, 122, 30, 0.6)', parryable: true },
+  unblockable: { id: 'unblockable', color: '#ef4444', glow: 'rgba(239, 68, 68, 0.66)', parryable: false },
+};
+
+// Classify an enemy's currently-selected attack for telegraph colour + parry rule.
+// Unblockable = the shielded heavy charges (protectedDuringWindup); the red
+// telegraph means the player must dodge rather than parry.
+const getEnemyAttackTelegraph = (enemy) => {
+  const heavy = HEAVY_ATTACK_PATTERNS[enemy?.type];
+  const isHeavyActive = Boolean(heavy && enemy?.attackPattern === heavy.id);
+  if (isHeavyActive && heavy.protectedDuringWindup) return ATTACK_TELEGRAPH_CLASSES.unblockable;
+  if (isHeavyActive) return ATTACK_TELEGRAPH_CLASSES.heavy;
+  return ATTACK_TELEGRAPH_CLASSES.normal;
+};
+
+// Player-facing instructions, shared by the briefing primer and the in-game help
+// panel so the controls + combat language are authored once.
+const JOURNEY_CONTROL_ROWS = [
+  { keys: ['A', 'D', '←', '→'], label: 'Move' },
+  { keys: ['W', 'Space', '↑'], label: 'Jump' },
+  { keys: ['E'], label: 'Interact' },
+  { keys: ['J'], label: 'Attack' },
+  { keys: ['K'], label: 'Heavy' },
+  { keys: ['L'], label: 'Dodge' },
+];
+const JOURNEY_TELEGRAPH_LEGEND = [
+  { color: ATTACK_TELEGRAPH_CLASSES.normal.color, name: 'Gold', desc: 'Parry or dodge.' },
+  { color: ATTACK_TELEGRAPH_CLASSES.heavy.color, name: 'Orange', desc: 'Hits harder — parry or dodge.' },
+  { color: ATTACK_TELEGRAPH_CLASSES.unblockable.color, name: 'Red', desc: 'Dodge only — no parry.' },
+];
+
+function JourneyControlsReference() {
+  return (
+    <div className="journey-controls-reference">
+      <div className="journey-controls-keys-grid">
+        {JOURNEY_CONTROL_ROWS.map(row => (
+          <div className="journey-control-row" key={row.label}>
+            <span className="journey-control-keys">
+              {row.keys.map(key => <kbd key={key}>{key}</kbd>)}
+            </span>
+            <span className="journey-control-label">{row.label}</span>
+          </div>
+        ))}
+      </div>
+      <div className="journey-controls-legend">
+        <div className="journey-controls-legend-title">Read the attack tells</div>
+        {JOURNEY_TELEGRAPH_LEGEND.map(row => (
+          <div className="journey-telegraph-row" key={row.name}>
+            <span className="journey-telegraph-dot" style={{ '--tell-color': row.color }} aria-hidden="true" />
+            <span className="journey-telegraph-name">{row.name}</span>
+            <span className="journey-telegraph-desc">{row.desc}</span>
+          </div>
+        ))}
+        <p className="journey-controls-parry-tip">
+          <strong>Perfect dodge:</strong> tap <kbd>L</kbd> right as a blow lands to deflect it and
+          stagger the enemy — even red.
+        </p>
+      </div>
+    </div>
+  );
+}
 
 const ENEMY_TYPE_STAKE_MESSAGES = {
   scarab: 'Scarab face armor blocks frontal hits. Let it charge past, then strike from behind.',
@@ -3877,6 +3948,12 @@ export default function ExpeditionJourney({
     permanentUpgradeEffects,
   }));
   const [briefingOpen, setBriefingOpen] = useState(true);
+  // In-game Controls & Combat help panel (toggled by the "?" key / HUD button).
+  // A ref mirrors it so the keydown handler and frame loop can read it without
+  // re-subscribing.
+  const [helpOpen, setHelpOpen] = useState(false);
+  const helpOpenRef = useRef(false);
+  useEffect(() => { helpOpenRef.current = helpOpen; }, [helpOpen]);
   const [guardianChallengeUi, setGuardianChallengeUi] = useState(null);
   const propPlacementEditorRef = useRef({
     enabled: false,
@@ -11775,6 +11852,7 @@ export default function ExpeditionJourney({
     const groundY = Math.min(GROUND_Y - 2, baseY - 4);
     const pulse = 0.75 + Math.sin(now / 420) * 0.12;
     const visualAlpha = prop.alpha ?? 1;
+    if (visualAlpha <= 0.01) return false;
 
     const underlayContact = drawEgyptStructureGroundContactLayer(ctx, prop.groundContactLayer, left, width, groundY, 'underlay');
     ctx.save();
@@ -15427,12 +15505,17 @@ export default function ExpeditionJourney({
         : DESERT_ENTRY_CONTINUOUS_BACKGROUND_END_X,
       asset: getStandaloneImagePropAsset(plate),
     }));
-    let drawnCount = 0;
     const pendingCount = plateEntries.filter(entry => !entry.asset?.loaded || !entry.asset.image).length;
+    const activeEntry = plateEntries.find(entry => viewportCenterX >= entry.segmentLeft && viewportCenterX <= entry.segmentRight)
+      || plateEntries.reduce((closest, entry) => {
+        const closestDistance = Math.abs(viewportCenterX - closest.centerX);
+        const entryDistance = Math.abs(viewportCenterX - entry.centerX);
+        return entryDistance < closestDistance ? entry : closest;
+      }, plateEntries[0]);
 
-    const drawPlate = (entry, transitionAlpha = 1) => {
+    const drawPlate = (entry) => {
       const { plate, asset, segmentLeft, segmentRight } = entry;
-      if (!asset?.loaded || !asset.image || transitionAlpha <= 0.01) return false;
+      if (!asset?.loaded || !asset.image) return false;
       const image = asset.image;
       const imageWidth = Number(image.naturalWidth || image.width) || Number(plate.width) || CANVAS_WIDTH;
       const imageHeight = Number(image.naturalHeight || image.height) || Number(plate.height) || CANVAS_HEIGHT;
@@ -15445,7 +15528,7 @@ export default function ExpeditionJourney({
       const drawY = (CANVAS_HEIGHT - drawHeight) * 0.5;
 
       ctx.save();
-      ctx.globalAlpha = clamp(transitionAlpha, 0, 1);
+      ctx.globalAlpha = 1;
       const colorGradeFilter = typeof plate.colorGradeFilter === 'string' ? plate.colorGradeFilter.trim() : '';
       const brightnessFilter = Number.isFinite(plate.brightness) && plate.brightness !== 1
         ? `brightness(${Math.round(clamp(plate.brightness, 0.4, 1.8) * 100)}%)`
@@ -15456,51 +15539,20 @@ export default function ExpeditionJourney({
       if (filter) ctx.filter = filter;
       ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
       ctx.restore();
-      drawnCount += 1;
       return true;
     };
 
-    let baseIndex = 0;
-    let overlayIndex = null;
-    let overlayAlpha = 0;
-    for (let index = 0; index < plateEntries.length - 1; index += 1) {
-      const currentEntry = plateEntries[index];
-      const nextEntry = plateEntries[index + 1];
-      const boundaryX = (currentEntry.centerX + nextEntry.centerX) / 2;
-      const fadeStart = boundaryX - DESERT_ENTRY_PRIMARY_BACKGROUND_CROSSFADE_WIDTH / 2;
-      const fadeEnd = boundaryX + DESERT_ENTRY_PRIMARY_BACKGROUND_CROSSFADE_WIDTH / 2;
-      if (viewportCenterX < fadeStart) {
-        baseIndex = index;
-        overlayIndex = null;
-        overlayAlpha = 0;
-        break;
-      }
-      if (viewportCenterX <= fadeEnd) {
-        baseIndex = index;
-        overlayIndex = index + 1;
-        overlayAlpha = clamp(
-          (viewportCenterX - fadeStart) / DESERT_ENTRY_PRIMARY_BACKGROUND_CROSSFADE_WIDTH,
-          0,
-          1,
-        );
-        break;
-      }
-      baseIndex = index + 1;
-    }
-
-    drawPlate(plateEntries[baseIndex], 1);
-    if (overlayIndex !== null) drawPlate(plateEntries[overlayIndex], overlayAlpha);
+    const drawn = drawPlate(activeEntry) ? 1 : 0;
 
     if (current.renderStats) {
-      current.renderStats.desertEntryPrimaryBackgroundPlateMode = 'full-canvas-route-crossfade-primary-png-v2';
-      current.renderStats.desertEntryPrimaryBackgroundPlateCount = drawnCount;
+      current.renderStats.desertEntryPrimaryBackgroundPlateMode = 'single-plate-camera-pan-primary-png-v3';
+      current.renderStats.desertEntryPrimaryBackgroundPlateCount = drawn;
       current.renderStats.desertEntryPrimaryBackgroundPlatePendingCount = pendingCount;
-      current.renderStats.desertEntryPrimaryBackgroundPlateActiveIds = [
-        plateEntries[baseIndex]?.plate?.id,
-        overlayIndex !== null ? plateEntries[overlayIndex]?.plate?.id : null,
-      ].filter(Boolean);
+      current.renderStats.desertEntryPrimaryBackgroundPlateActiveIds = drawn
+        ? [activeEntry?.plate?.id].filter(Boolean)
+        : [];
     }
-    return drawnCount > 0;
+    return drawn > 0;
   }, [getRenderableStoryProps, getStandaloneImagePropAsset]);
 
   const drawChinaRiverValleyBackground = useCallback((ctx, cameraX) => {
@@ -15859,6 +15911,7 @@ export default function ExpeditionJourney({
   }, []);
 
   const drawRouteGate = useCallback((ctx, gate, screenX, current, complete, layer = 'base', doorway = null) => {
+    if (gate.suppressRouteGateVisual) return;
     if (gate.hideArchVisual) {
       if (layer !== 'base' || complete) return;
       const cx = (doorway?.anchorX ? screenX : screenX + gate.width / 2);
@@ -17136,50 +17189,95 @@ export default function ExpeditionJourney({
     const tellActive = enemy.attackWindup > 0;
     const attackActive = enemy.attackTimer > 0;
     const recoveryActive = enemy.attackRecovery > 0 || enemy.vulnerabilityTimer > 0;
-    const guardedTell = tellActive && pattern.protectedDuringWindup;
-    if (!tellActive && !attackActive && !recoveryActive && !guardedTell) return;
+    if (!tellActive && !attackActive && !recoveryActive) return;
 
+    const telegraph = getEnemyAttackTelegraph(enemy);
     const boxX = attackBox.x - cameraX;
+    const centerX = screenX + enemy.width / 2 - direction * 4;
     const footY = enemy.y + enemy.height + 4;
     const pulse = 0.72 + Math.sin(now / 90) * 0.18;
-    const protectedSitePulse = 0.55 + Math.sin(now / 110) * 0.22;
     const recoveryGoldPulse = 0.46 + Math.sin(now / 125) * 0.16;
     ctx.save();
     ctx.lineWidth = 1.5;
     if (recoveryActive) {
+      // Gold punish-window cue: the enemy is open — strike now.
       ctx.globalAlpha = 0.18 + recoveryGoldPulse * 0.07;
       ctx.fillStyle = 'rgba(110, 68, 28, 0.28)';
       ctx.beginPath();
-      ctx.ellipse(screenX + enemy.width / 2 - direction * 4, footY, enemy.width * 0.78, 4.5, 0, 0, Math.PI * 2);
+      ctx.ellipse(centerX, footY, enemy.width * 0.78, 4.5, 0, 0, Math.PI * 2);
       ctx.fill();
     } else if (tellActive) {
-      ctx.globalAlpha = guardedTell ? 0.18 + protectedSitePulse * 0.08 : 0.16;
-      ctx.fillStyle = guardedTell ? 'rgba(80, 114, 122, 0.22)' : 'rgba(136, 82, 36, 0.2)';
-      ctx.beginPath();
-      ctx.ellipse(screenX + enemy.width / 2 - direction * 4, footY, enemy.width * 0.62, 4, 0, 0, Math.PI * 2);
-      ctx.fill();
-      if (guardedTell) {
-        ctx.globalAlpha = 0.12 + protectedSitePulse * 0.06;
-        ctx.strokeStyle = 'rgba(125, 211, 252, 0.28)';
+      // Charging telegraph — the colour tells the player how to answer:
+      // gold/orange = parry or dodge, red = unblockable, dodge only.
+      const windupDuration = Math.max(0.001, pattern.windup || 0.4);
+      const charge = clamp(1 - enemy.attackWindup / windupDuration, 0, 1);
+      const isUnblockable = !telegraph.parryable;
+      const ringR = enemy.width * 0.6;
+
+      // Attack zone (where the blow will land) — readable fill that brightens as it charges.
+      if (!pattern.ranged) {
+        ctx.globalAlpha = (0.14 + charge * 0.2) * (isUnblockable ? 1.1 : 1);
+        ctx.fillStyle = telegraph.color;
         ctx.beginPath();
-        ctx.moveTo(screenX + enemy.width / 2 - direction * 5, enemy.y + 2);
-        ctx.lineTo(screenX + enemy.width / 2 + direction * 8, enemy.y - 7);
+        ctx.roundRect(boxX, attackBox.y, attackBox.width, attackBox.height, 6);
+        ctx.fill();
+        ctx.globalAlpha = 0.3 + charge * 0.4;
+        ctx.lineWidth = 1.5 + charge;
+        ctx.strokeStyle = telegraph.color;
         ctx.stroke();
       }
-      if (!pattern.ranged) {
-        ctx.globalAlpha = (guardedTell ? 0.07 : 0.1) * pulse;
-        ctx.fillStyle = pattern.color || '#facc15';
+
+      // Ground ring under the enemy: a dim full circle plus a bright arc that
+      // sweeps to full as the swing charges, flattened onto the floor plane.
+      ctx.save();
+      ctx.translate(centerX, footY);
+      ctx.scale(1, 0.32);
+      ctx.globalAlpha = 0.22 + pulse * 0.06;
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = telegraph.color;
+      ctx.beginPath();
+      ctx.arc(0, 0, ringR, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.globalAlpha = 0.55 + pulse * 0.25;
+      ctx.lineWidth = 3 + charge * 1.5;
+      ctx.shadowColor = telegraph.glow;
+      ctx.shadowBlur = 8;
+      ctx.beginPath();
+      ctx.arc(0, 0, ringR, -Math.PI / 2, -Math.PI / 2 + charge * Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+
+      // Unblockable: a pulsing red aura around the body so it reads "dodge, don't parry".
+      if (isUnblockable) {
+        const auraPulse = 0.5 + Math.sin(now / 130) * 0.5;
+        ctx.globalAlpha = 0.3 + auraPulse * 0.45 + charge * 0.2;
+        ctx.lineWidth = 2 + auraPulse * 2;
+        ctx.strokeStyle = telegraph.color;
+        ctx.shadowColor = telegraph.glow;
+        ctx.shadowBlur = 8 + auraPulse * 10;
         ctx.beginPath();
-        ctx.roundRect(boxX, attackBox.y, attackBox.width, attackBox.height, 6);
-        ctx.fill();
+        ctx.ellipse(screenX + enemy.width / 2, enemy.y + enemy.height * 0.5, enemy.width * 0.58, enemy.height * 0.52, 0, 0, Math.PI * 2);
+        ctx.stroke();
       }
     } else if (attackActive) {
+      // Strike flash; on parryable attacks a bright gold pulse marks the parry window.
+      const parryNow = telegraph.parryable && enemy.attackTimer <= PARRY_WINDOW_DURATION;
       if (!pattern.ranged) {
-        ctx.globalAlpha = 0.11;
-        ctx.fillStyle = pattern.color || '#fb923c';
+        ctx.globalAlpha = parryNow ? 0.32 : 0.16;
+        ctx.fillStyle = parryNow ? '#fff7cc' : telegraph.color;
         ctx.beginPath();
         ctx.roundRect(boxX, attackBox.y, attackBox.width, attackBox.height, 6);
         ctx.fill();
+        if (parryNow) {
+          ctx.globalAlpha = 0.82;
+          ctx.lineWidth = 2.5;
+          ctx.strokeStyle = '#fff2b0';
+          ctx.shadowColor = 'rgba(255, 240, 170, 0.7)';
+          ctx.shadowBlur = 10;
+          ctx.beginPath();
+          ctx.roundRect(boxX, attackBox.y, attackBox.width, attackBox.height, 6);
+          ctx.stroke();
+        }
       }
     }
     ctx.restore();
@@ -18973,23 +19071,9 @@ export default function ExpeditionJourney({
         }
       }
 
-      const isUnblockableWindup = !enemy.defeated
-        && enemy.attackWindup > 0
-        && HEAVY_ATTACK_PATTERNS[enemy.type]?.protectedDuringWindup
-        && enemy.attackPattern === HEAVY_ATTACK_PATTERNS[enemy.type]?.id;
-      if (isUnblockableWindup) {
-        const windupFraction = clamp(1 - enemy.attackWindup / (HEAVY_ATTACK_PATTERNS[enemy.type].windup || 1), 0, 1);
-        const pulse = 0.5 + Math.sin(now / 140) * 0.5;
-        ctx.save();
-        ctx.strokeStyle = `rgba(245, 222, 185, ${0.22 + pulse * 0.40 + windupFraction * 0.20})`;
-        ctx.lineWidth = 2 + pulse * 1.5;
-        ctx.shadowColor = 'rgba(255, 210, 140, 0.6)';
-        ctx.shadowBlur = 6 + pulse * 8;
-        ctx.beginPath();
-        ctx.ellipse(ex + enemy.width / 2, enemy.y + enemy.height * 0.52, enemy.width * 0.60, enemy.height * 0.50, 0, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.restore();
-      }
+      // Unblockable windup aura is now drawn (in red) by drawEnemyAttackTell's
+      // colour-coded telegraph, so the old pale-gold ellipse here was removed to
+      // avoid a conflicting double ring.
 
       // Only show normal enemy health after damage so full bars do not read as platforms.
       if (!enemy.defeated && enemy.health > COMBAT_DAMAGE_SCALE && enemy.health < enemy.maxHealth) {
@@ -22237,12 +22321,24 @@ export default function ExpeditionJourney({
           current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.18);
         }
         const scarabPoisonedChargeNotice = e.type === 'scarab' && playerIsVenomSlowed;
+        const isUnblockableAttack = isHeavyAttack && pattern.protectedDuringWindup;
         if (scarabPoisonedChargeNotice) {
           current.notice = 'Scarab charges faster while venom slows Asha. Dodge behind it.';
         } else if ((current.itemPurposeNoticeTimer || 0) <= 0 && (current.damageNoticeTimer || 0) <= 0) {
-          current.notice = isHeavyAttack
-            ? `${e.name} — heavy ${pattern.label}. Stay back.`
-            : `${e.name} winds up ${pattern.label}. Dodge, then counter.`;
+          if (isUnblockableAttack) {
+            if (!current.redAttackHintShown) {
+              // First red attack of the run — teach the colour language explicitly.
+              current.redAttackHintShown = true;
+              current.notice = `${e.name} glows RED — unblockable. You can't parry it; dodge (L)!`;
+              current.damageNoticeTimer = Math.max(current.damageNoticeTimer || 0, 2.6);
+            } else {
+              current.notice = `${e.name} — red ${pattern.label}. Unblockable, dodge it!`;
+            }
+          } else {
+            current.notice = isHeavyAttack
+              ? `${e.name} — orange ${pattern.label}. Parry or dodge.`
+              : `${e.name} winds up ${pattern.label}. Parry or dodge.`;
+          }
         }
       }
 
@@ -22263,11 +22359,40 @@ export default function ExpeditionJourney({
         }
         if (!e.attackHasHit && rectsOverlap(enemyAttackBox, playerBodyHitbox)) {
           e.attackHasHit = true;
+          // Perfect dodge takes precedence: if the blow lands while Asha is in her
+          // dodge i-frames, she deflects it (any colour, including red) and the
+          // enemy is left staggered for a punish.
+          const playerIsPerfectDodging = current.dodgeInvulnerableTimer > 0;
           const playerIsParrying = attackRect
             && e.attackTimer <= PARRY_WINDOW_DURATION
             && !current.attackHitIds.has(e.id)
+            && getEnemyAttackTelegraph(e).parryable
             && rectsOverlap(attackRect, getAttackHurtbox(e));
-          if (playerIsParrying) {
+          if (playerIsPerfectDodging) {
+            e.attackTimer = 0;
+            e.attackWindup = 0;
+            e.attackReady = false;
+            e.stunTimer = Math.max(e.stunTimer || 0, 1.3);
+            e.attackCooldown = Math.max(e.attackCooldown || 0, 1.3);
+            e.attackRecovery = 0.6;
+            e.vulnerabilityTimer = Math.max(e.vulnerabilityTimer || 0, 0.6);
+            current.resources.stamina = Math.min(maxStamina, current.resources.stamina + PERFECT_DODGE_ENDURANCE_REWARD);
+            current.lastAttackResult = 'perfect-dodge';
+            current.notice = `Perfect dodge! ${e.name} is staggered — strike now.`;
+            current.damageNoticeTimer = Math.max(current.damageNoticeTimer || 0, 1.4);
+            current.hitStopTimer = Math.max(current.hitStopTimer, 0.08);
+            current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.18);
+            current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.35);
+            addCombatEffect(current, {
+              type: 'parry-burst',
+              x: player.x + player.width / 2,
+              y: player.y + player.height * 0.42,
+              color: '#7fe9ff',
+              timer: 0.42,
+              maxTimer: 0.42,
+            });
+            audioControls?.playExpeditionSfx?.('parryClash', { volume: 0.7 });
+          } else if (playerIsParrying) {
             e.parried = true;
           } else if (pattern.slowDuration) {
             applyPlayerVenomSlow(e, pattern);
@@ -22404,7 +22529,8 @@ export default function ExpeditionJourney({
           });
           return;
         }
-        const isParry = e.parried || (e.attackTimer > 0 && e.attackTimer <= PARRY_WINDOW_DURATION);
+        const isParry = getEnemyAttackTelegraph(e).parryable
+          && (e.parried || (e.attackTimer > 0 && e.attackTimer <= PARRY_WINDOW_DURATION));
         const isFinisher = current.attackComboFinisherActive;
         const isHeavyAttack = current.attackType === PLAYER_ATTACK_TYPES.HEAVY;
         e.parried = false;
@@ -23875,6 +24001,13 @@ export default function ExpeditionJourney({
     const handleKeyDown = (e) => {
       if (isJourneyEditorFormTarget(e.target)) return;
       if (paused || briefingOpen || stateRef.current.activeGuardianChallenge || stateRef.current.forgottenMuralRelicSlidePuzzleOpen) return;
+      // "?" / "/" toggles the Controls & Combat help panel; while it's open, the
+      // world is frozen (see the frame loop) and gameplay input is suppressed.
+      if (e.code === 'Slash') { e.preventDefault(); setHelpOpen(v => !v); return; }
+      if (helpOpenRef.current) {
+        if (e.code === 'Escape') setHelpOpen(false);
+        return;
+      }
       // While the prop editor has a prop selected, arrow keys nudge that prop (handled in the
       // editor keydown effect), so don't also walk the player. A/D/W still move the camera.
       if (propPlacementEditorRef.current?.enabled && propPlacementEditorRef.current?.selectedPropId
@@ -23896,7 +24029,7 @@ export default function ExpeditionJourney({
     
     const frame = (t) => {
       if (!lastFrameRef.current) lastFrameRef.current = t;
-      if (!document.hidden && !paused) {
+      if (!document.hidden && !paused && !helpOpenRef.current) {
         step(t - lastFrameRef.current);
       }
       lastFrameRef.current = t;
@@ -26721,6 +26854,15 @@ export default function ExpeditionJourney({
 
             {!openingCinematicActive && (
             <div className="journey-floating-hud" aria-label="Expedition status">
+              <button
+                type="button"
+                className="journey-help-btn"
+                onClick={() => setHelpOpen(true)}
+                aria-label="Controls and combat help"
+                title="Controls & combat ( ? )"
+              >
+                ?
+              </button>
               <div className="journey-hud-ledger">
                 <div className={`journey-floating-hud-gems ${gameState.itemPurposeNoticeTimer > 0 ? 'is-rewarding' : ''}`}>
                   <ShardGlyph />
@@ -27004,6 +27146,25 @@ export default function ExpeditionJourney({
         </div>
       </div>
 
+      {helpOpen && (
+        <div
+          className="journey-help-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Controls and combat help"
+          onClick={() => setHelpOpen(false)}
+        >
+          <div className="journey-help-card glass-card" onClick={(event) => event.stopPropagation()}>
+            <div className="journey-help-header">
+              <h2>Controls &amp; Combat</h2>
+              <button type="button" className="journey-help-close" onClick={() => setHelpOpen(false)} aria-label="Close help">×</button>
+            </div>
+            <JourneyControlsReference />
+            <p className="journey-help-footer">Press <kbd>?</kbd> or <kbd>Esc</kbd> to close.</p>
+          </div>
+        </div>
+      )}
+
       {briefingOpen && (
         <div className="expedition-briefing-overlay">
           <div className="expedition-briefing-card glass-card animate-slide-up">
@@ -27029,7 +27190,8 @@ export default function ExpeditionJourney({
                 <div className="dossier-tag">SEALED SITE</div>
                 <h2 className="mission-title">The site tests the expedition</h2>
                 <p className="mission-desc">
-                  The route below will not open easily. Asha must read the site, recover what it still recognises, and survive its guardians.
+                  The site won't open easily. Read what it still remembers, recover the scattered
+                  relics, and outlast the guardians that watch it.
                 </p>
               </div>
               <div className="briefing-task-panel">
@@ -27039,10 +27201,10 @@ export default function ExpeditionJourney({
                 </div>
                 <ul className="briefing-task-list">
                   {[
-                    'Restore the outer seal',
+                    'Read the Lost Map Tablet',
                     'Recover relic shards',
-                    'Read the Map Tablet',
-                    'Survive the Guardian Prep route',
+                    'Restore the Temple Approach Seal',
+                    'Open the Guardian Prep Seal',
                     'Defeat the first guardian',
                     'Reach Base Camp Outpost',
                   ].map(task => (
@@ -27052,6 +27214,13 @@ export default function ExpeditionJourney({
                     </li>
                   ))}
                 </ul>
+              </div>
+              <div className="briefing-task-panel briefing-controls-panel">
+                <div className="briefing-task-heading">
+                  <ShieldAlert size={18} />
+                  <h2>Controls &amp; combat</h2>
+                </div>
+                <JourneyControlsReference />
               </div>
             </div>
             <div className="briefing-actions" style={{ display: "flex", justifyContent: "center", marginTop: "1rem" }}>

@@ -451,6 +451,8 @@ export const ROUTE_GATES = [
     width: 34,
     height: 274,
     hideArchVisual: true,
+    suppressRouteGateVisual: true,
+    physicalDoorwayPropId: 'desert-entry-ravine-mummification-doorway-transition-1',
     message: 'Sealed. Read the Lost Map Tablet (behind you in the desert) and restore 6 relic fragments to pass.',
     requires: {
       objective: 'desert-entry',
@@ -1201,7 +1203,7 @@ export const STORY_PROPS = [
     width: 1500,
     height: 760,
     depth: 'background',
-    alpha: 1,
+    alpha: 0,
     layer: 'background',
     groundContactLayer: [
       { layer: 'underlay', assetKey: 'premiumRubbleContactShadow', xRatio: 0.5, widthRatio: 0.9, height: 68, yOffset: -48, alpha: 0.54, filter: 'sepia(18%) saturate(88%) brightness(66%) contrast(112%)' },
@@ -1213,7 +1215,7 @@ export const STORY_PROPS = [
       { layer: 'overlay', assetKey: 'premiumSmallStoneScatter', xRatio: 0.17, widthRatio: 0.22, height: 38, yOffset: -54, alpha: 0.58, rotation: 4, filter: 'sepia(10%) saturate(86%) brightness(90%) contrast(98%)' },
       { layer: 'overlay', assetKey: 'premiumSmallStoneScatter', xRatio: 0.83, widthRatio: 0.22, height: 38, yOffset: -54, alpha: 0.56, rotation: -5, mirrorX: true, filter: 'sepia(10%) saturate(86%) brightness(90%) contrast(98%)' },
     ],
-    label: 'production Mummification Chamber exterior with high doorway, climbable sandstone ledges, deep doorway shadow, torches, and grounded rubble base',
+    label: 'visually retired Mummification Chamber exterior; replaced by physical ravine doorway transition',
   },
   {
     id: 'mummification-body-restoration-cue',

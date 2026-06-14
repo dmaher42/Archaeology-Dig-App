@@ -4,10 +4,16 @@ Current source-of-truth note:
 - Future implementation should follow `docs/lost-site-expedition-production-bible.md`.
 - The production bible now defines implementation hierarchy, room pipelines, asset roles, and quality expectations.
 
+2026-06-14 Desert Entry first two area production pass:
+- Replaced the fake Desert Entry full-canvas background morph with a single-plate camera-panned renderer mode, so the route cuts cleanly instead of fading one painting into another.
+- Added high-resolution transparent PNG scene objects for the first Anubis trigger and the ravine-to-Mummification transition under `public/assets/expedition/environment/egypt-opening/desert-entry-production-2026-06-14/`.
+- The first Asha area now has a physical scarab threshold aligned to the real Anubis trigger, and the ravine exit now has an enterable Mummification doorway aligned to the existing hidden route and doorway floor.
+- Added focused Journey placement tests to protect the physical threshold, physical doorway, PNG transparency/assets, and clean-transition renderer contract.
+
 2026-06-14 Desert Entry continuous background rebuild:
 - Added a canonical continuous panel contract in `src/components/expedition-journey/journeyDesertBackgroundPanels.js` while restoring the generated PNG plates as the primary full-canvas route art.
 - The Desert Entry route now has seven ordered panels from opening through Queen gateway, each with sky, far, mid, ground, and foreground layer roles, shared horizon/ground/light/style values, and explicit natural transition masks.
-- `ExpeditionJourney.jsx` now draws the continuous panels as fallback/structure, then renders the PNG plates through a full-canvas camera-panned crossfade path; plate props are skipped by ordinary prop drawing so they do not create hard world-prop seams.
+- `ExpeditionJourney.jsx` drew the continuous panels as fallback/structure, then rendered the PNG plates through a full-canvas camera-panned crossfade path; the later first-two-area pass replaced that morph with a clean single-plate handoff.
 - Collision/platform data was scoped only where the ravine floor was tied to the broken visual read: the lower floor/recovery helpers under the bridge were split/removed so the bridge remains the safe crossing and the ravine reads as a real drop.
 - Added `journeyDesertBackgroundPanels.test.mjs` plus updated placement/secret assertions for the new background contract. Focused panel and placement tests pass; the broad `journeySecrets.test.js` still has unrelated active-WIP failures in mummification exterior, Scarab Queen staging, registry/contact-layer expectations, and scorpion nest placement.
 
