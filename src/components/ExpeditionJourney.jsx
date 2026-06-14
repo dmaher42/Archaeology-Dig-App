@@ -2473,7 +2473,7 @@ const JOURNEY_TELEGRAPH_LEGEND = [
   { color: ATTACK_TELEGRAPH_CLASSES.unblockable.color, name: 'Red', desc: 'Dodge only — no parry.' },
 ];
 
-function JourneyControlsReference({ compactMovementKeys = false } = {}) {
+export function JourneyControlsReference({ compactMovementKeys = false } = {}) {
   return (
     <div className="journey-controls-reference">
       <div className="journey-controls-keys-grid">
@@ -3953,12 +3953,8 @@ export default function ExpeditionJourney({
     permanentUpgradeEffects,
   }));
   const [briefingOpen, setBriefingOpen] = useState(true);
-  // In-game Controls & Combat help panel (toggled by the "?" key / HUD button).
-  // A ref mirrors it so the keydown handler and frame loop can read it without
-  // re-subscribing.
-  const [helpOpen, setHelpOpen] = useState(false);
-  const helpOpenRef = useRef(false);
-  useEffect(() => { helpOpenRef.current = helpOpen; }, [helpOpen]);
+  // Controls & combat reference now lives in the single Esc/"?" pause menu
+  // (owned by ExpeditionMode), so there is no separate in-journey help state.
   const [guardianChallengeUi, setGuardianChallengeUi] = useState(null);
   const propPlacementEditorRef = useRef({
     enabled: false,
@@ -24009,13 +24005,6 @@ export default function ExpeditionJourney({
     const handleKeyDown = (e) => {
       if (isJourneyEditorFormTarget(e.target)) return;
       if (paused || briefingOpen || stateRef.current.activeGuardianChallenge || stateRef.current.forgottenMuralRelicSlidePuzzleOpen) return;
-      // "?" / "/" toggles the Controls & Combat help panel; while it's open, the
-      // world is frozen (see the frame loop) and gameplay input is suppressed.
-      if (e.code === 'Slash') { e.preventDefault(); setHelpOpen(v => !v); return; }
-      if (helpOpenRef.current) {
-        if (e.code === 'Escape') setHelpOpen(false);
-        return;
-      }
       // While the prop editor has a prop selected, arrow keys nudge that prop (handled in the
       // editor keydown effect), so don't also walk the player. A/D/W still move the camera.
       if (propPlacementEditorRef.current?.enabled && propPlacementEditorRef.current?.selectedPropId
@@ -24037,7 +24026,7 @@ export default function ExpeditionJourney({
     
     const frame = (t) => {
       if (!lastFrameRef.current) lastFrameRef.current = t;
-      if (!document.hidden && !paused && !helpOpenRef.current) {
+      if (!document.hidden && !paused) {
         step(t - lastFrameRef.current);
       }
       lastFrameRef.current = t;
@@ -26862,15 +26851,6 @@ export default function ExpeditionJourney({
 
             {!openingCinematicActive && (
             <div className="journey-floating-hud" aria-label="Expedition status">
-              <button
-                type="button"
-                className="journey-help-btn"
-                onClick={() => setHelpOpen(true)}
-                aria-label="Controls and combat help"
-                title="Controls & combat ( ? )"
-              >
-                ?
-              </button>
               <div className="journey-hud-ledger">
                 <div className={`journey-floating-hud-gems ${gameState.itemPurposeNoticeTimer > 0 ? 'is-rewarding' : ''}`}>
                   <ShardGlyph />
@@ -27153,25 +27133,6 @@ export default function ExpeditionJourney({
           </div>
         </div>
       </div>
-
-      {helpOpen && (
-        <div
-          className="journey-help-overlay"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Controls and combat help"
-          onClick={() => setHelpOpen(false)}
-        >
-          <div className="journey-help-card glass-card" onClick={(event) => event.stopPropagation()}>
-            <div className="journey-help-header">
-              <h2>Controls &amp; Combat</h2>
-              <button type="button" className="journey-help-close" onClick={() => setHelpOpen(false)} aria-label="Close help">×</button>
-            </div>
-            <JourneyControlsReference />
-            <p className="journey-help-footer">Press <kbd>?</kbd> or <kbd>Esc</kbd> to close.</p>
-          </div>
-        </div>
-      )}
 
       {briefingOpen && (
         <div className="expedition-briefing-overlay">

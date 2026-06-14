@@ -5445,7 +5445,7 @@ test('combat telegraphs are colour-coded by danger and unblockable attacks canno
   assert.match(journeyComponentSource, /glows RED/);
 });
 
-test('perfect dodge deflects any attack and an in-game help panel teaches the controls', () => {
+test('perfect dodge deflects any attack and the single Esc/"?" menu teaches the controls', () => {
   // Perfect dodge: a last-instant dodge (still in i-frames) deflects + staggers and refunds Endurance.
   assert.match(journeyComponentSource, /const PERFECT_DODGE_ENDURANCE_REWARD = \d+/);
   assert.match(journeyComponentSource, /const playerIsPerfectDodging = current\.dodgeInvulnerableTimer > 0;/);
@@ -5454,22 +5454,26 @@ test('perfect dodge deflects any attack and an in-game help panel teaches the co
   // Perfect dodge is evaluated before the parry/damage branches, so it wins even on red attacks.
   assert.match(journeyComponentSource, /if \(playerIsPerfectDodging\) \{[\s\S]*?\} else if \(playerIsParrying\)/);
 
-  // Shared controls reference, used by both the briefing primer and the help panel.
-  assert.match(journeyComponentSource, /function JourneyControlsReference\(\{ compactMovementKeys = false \} = \{\}\) \{/);
+  // Shared controls reference, authored once and exported for reuse by the
+  // briefing primer and the consolidated pause menu.
+  assert.match(journeyComponentSource, /export function JourneyControlsReference\(\{ compactMovementKeys = false \} = \{\}\) \{/);
   assert.match(journeyComponentSource, /keys: \['A', 'D', '←', '→'\], label: 'Move'/);
   assert.match(journeyComponentSource, /keys: \['W', 'Space', '↑'\], label: 'Jump'/);
   assert.match(journeyComponentSource, /label: 'Dodge'/);
   assert.match(journeyComponentSource, /const JOURNEY_TELEGRAPH_LEGEND = \[/);
   assert.match(journeyComponentSource, /Perfect dodge:/);
 
-  // Always-available help panel: state, "?" toggle, HUD button, overlay.
-  assert.match(journeyComponentSource, /const \[helpOpen, setHelpOpen\] = useState\(false\);/);
-  assert.match(journeyComponentSource, /if \(e\.code === 'Slash'\) \{ e\.preventDefault\(\); setHelpOpen\(v => !v\); return; \}/);
-  assert.match(journeyComponentSource, /className="journey-help-btn"/);
-  assert.match(journeyComponentSource, /\{helpOpen && \(/);
+  // The separate in-journey help button + overlay are gone: one surface only.
+  assert.doesNotMatch(journeyComponentSource, /journey-help-btn/);
+  assert.doesNotMatch(journeyComponentSource, /helpOpen/);
+  assert.doesNotMatch(indexCssSource, /\.journey-help-overlay\s*\{/);
+
+  // The single pause menu (opened by Esc or "?") owns the controls reference now.
+  assert.match(expeditionModeSource, /import ExpeditionJourney, \{ JourneyControlsReference \} from '\.\/ExpeditionJourney';/);
+  assert.match(expeditionModeSource, /e\.code === 'Escape' \|\| e\.code === 'Slash'/);
+  assert.match(expeditionModeSource, /<JourneyControlsReference compactMovementKeys \/>/);
 
   // Styles exist.
-  assert.match(indexCssSource, /\.journey-help-overlay\s*\{/);
   assert.match(indexCssSource, /\.journey-telegraph-dot\s*\{/);
 });
 

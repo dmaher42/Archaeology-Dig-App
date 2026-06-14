@@ -16700,108 +16700,6 @@ main {
 
 /* ---- In-game Controls & Combat help (HUD button + overlay + shared reference) ---- */
 /* Carved bronze medallion so the help affordance matches the meters and cartouche */
-.journey-help-btn {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  z-index: 5;
-  width: 2rem;
-  height: 2rem;
-  display: grid;
-  place-items: center;
-  pointer-events: auto;
-  border: 1px solid #c9a548;
-  border-radius: 999px;
-  background: linear-gradient(rgba(58, 43, 28, 0.95), rgba(30, 20, 9, 0.95));
-  color: #f2e3bd;
-  font-family: 'Cinzel', serif;
-  font-size: 1.02rem;
-  font-weight: 700;
-  line-height: 1;
-  cursor: pointer;
-  box-shadow:
-    inset 0 1px 0 rgba(231, 197, 122, 0.32),
-    inset 0 0 0 1px rgba(0, 0, 0, 0.45),
-    0 2px 6px rgba(20, 12, 4, 0.45);
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.55);
-  transition: background 0.15s, border-color 0.15s, transform 0.15s, box-shadow 0.15s;
-}
-
-.journey-help-btn:hover,
-.journey-help-btn:focus-visible {
-  background: linear-gradient(rgba(74, 55, 35, 0.97), rgba(46, 31, 16, 0.97));
-  border-color: #e7c57a;
-  transform: translateY(-1px);
-  box-shadow:
-    inset 0 1px 0 rgba(231, 197, 122, 0.45),
-    inset 0 0 0 1px rgba(0, 0, 0, 0.45),
-    0 0 0 1px rgba(201, 165, 72, 0.3),
-    0 3px 8px rgba(20, 12, 4, 0.5);
-  outline: none;
-}
-
-.journey-help-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 95;
-  display: grid;
-  place-items: center;
-  padding: 1.4rem;
-  background: rgba(4, 3, 2, 0.7);
-  backdrop-filter: blur(3px);
-  animation: openingDialogueIn 0.2s ease-out both;
-}
-
-.journey-help-card {
-  width: min(34rem, 100%);
-  max-height: calc(100% - 2rem);
-  overflow-y: auto;
-  padding: 1.1rem 1.3rem 1.3rem;
-  border: 1px solid rgba(245, 214, 143, 0.34);
-  border-radius: 14px;
-  background: linear-gradient(180deg, rgba(20, 14, 9, 0.96), rgba(10, 7, 4, 0.96));
-  color: #f6ecd6;
-  box-shadow: 0 1.4rem 3rem rgba(0, 0, 0, 0.6);
-}
-
-.journey-help-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.85rem;
-}
-
-.journey-help-header h2 {
-  margin: 0;
-  font-family: 'Cinzel', serif;
-  font-size: 1.4rem;
-  color: #fff7dc;
-}
-
-.journey-help-close {
-  width: 1.9rem;
-  height: 1.9rem;
-  display: grid;
-  place-items: center;
-  border: 1px solid rgba(245, 214, 143, 0.3);
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.3);
-  color: #f6dca0;
-  font-size: 1.3rem;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.journey-help-close:hover { background: rgba(60, 40, 18, 0.6); }
-
-.journey-help-footer {
-  margin: 0.9rem 0 0;
-  font-family: system-ui, sans-serif;
-  font-size: 0.78rem;
-  color: rgba(246, 236, 214, 0.6);
-  text-align: center;
-}
-
 .journey-controls-reference {
   display: grid;
   gap: 0.9rem;
@@ -17519,10 +17417,6 @@ main {
 .expedition-briefing-card:hover {
   transform: none;
   box-shadow: 0 28px 70px rgba(0, 0, 0, 0.75), inset 0 0 0 1px rgba(198, 160, 89, 0.15);
-}
-
-.journey-help-card:hover {
-  transform: none;
 }
 
 .expedition-briefing-card::after {
@@ -21312,33 +21206,31 @@ main {
   outline-offset: 3px;
 }
 
+/* Container for the shared JourneyControlsReference (the component styles itself) */
 .journey-pause-controls {
-  display: grid;
-  gap: 0.34rem;
-  padding: 0.58rem;
+  padding: 0.62rem 0.7rem;
   border: 1px solid rgba(255, 226, 170, 0.16);
   border-radius: 8px;
-  background: rgba(0, 0, 0, 0.16);
+  background: rgba(0, 0, 0, 0.18);
 }
 
-.journey-pause-controls div {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  color: #f5dfb7;
-  font-size: 0.72rem;
-  font-weight: 800;
+.journey-pause-hint {
+  margin: 0;
+  text-align: center;
+  color: rgba(245, 223, 183, 0.72);
+  font-size: 0.66rem;
+  letter-spacing: 0.02em;
 }
 
-.journey-pause-controls kbd {
+.journey-pause-hint kbd {
   display: inline-flex;
-  margin-right: 0.25rem;
-  padding: 0.08rem 0.32rem;
+  padding: 0.04rem 0.3rem;
+  border: 1px solid rgba(245, 214, 143, 0.4);
   border-radius: 4px;
-  background: rgba(255, 246, 220, 0.16);
-  color: #fff7dd;
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 0.68rem;
+  background: rgba(0, 0, 0, 0.34);
+  color: #f6dca0;
+  font-family: 'Cinzel', serif;
+  font-size: 0.62rem;
 }
 
 

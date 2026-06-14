@@ -18,7 +18,6 @@ import {
   Compass,
   Hammer,
   Home,
-  Keyboard,
   Pause,
   Play,
   Gem,
@@ -28,7 +27,7 @@ import {
 } from 'lucide-react';
 import { SCENARIOS } from '../data';
 import { BUREAU_CASES, getCategoryTitle } from '../utils/gameLogic';
-import ExpeditionJourney from './ExpeditionJourney';
+import ExpeditionJourney, { JourneyControlsReference } from './ExpeditionJourney';
 import {
   createExcavationMapAssetState,
   drawExcavationMapRegion,
@@ -4293,7 +4292,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
     if (expeditionStage !== 'journey') return undefined;
 
     const handleKeyDown = (e) => {
-      if (e.code === 'Escape') {
+      // Esc and "?" (Slash) both toggle the single pause/controls menu.
+      if (e.code === 'Escape' || e.code === 'Slash') {
         e.preventDefault();
         setJourneyPaused(prev => !prev);
       }
@@ -5338,13 +5338,13 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
               <button type="button" className="journey-pause-primary" onClick={() => setJourneyPaused(false)}>
                 <Play size={16} /> Resume
               </button>
-              <div className="journey-pause-controls" aria-label="Controls">
-                <div><Keyboard size={15} /><span><kbd>W/A/S/D</kbd> Move and jump</span></div>
-                <div><Keyboard size={15} /><span><kbd>J</kbd> Light attack / <kbd>K</kbd> Heavy attack</span></div>
+              <div className="journey-pause-controls" aria-label="Controls and combat">
+                <JourneyControlsReference compactMovementKeys />
               </div>
               <button type="button" className="journey-pause-secondary" onClick={onBackToMenu}>
                 <Home size={16} /> Back to menu
               </button>
+              <p className="journey-pause-hint">Press <kbd>Esc</kbd> or <kbd>?</kbd> to resume.</p>
             </div>
           </div>
         )}
