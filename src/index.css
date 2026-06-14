@@ -16453,15 +16453,18 @@ main {
   grid-row: 1;
   width: max-content;
   max-width: min(17rem, 46vw);
-  padding: 0.36rem 0.55rem 0.32rem;
+  padding: 0.38rem 0.6rem 0.34rem;
   border: 1px solid #8a6a3a;
   border-radius: 4px;
-  background: linear-gradient(172deg, #e8cf9d 0%, #d8b680 48%, #c5a168 100%);
+  background: linear-gradient(172deg, #ecd4a2 0%, #d8b680 50%, #c19c61 100%);
   box-shadow:
-    inset 0 0 0 2px rgba(255, 238, 196, 0.45),
-    inset 0 0 14px rgba(120, 82, 38, 0.3),
-    0 3px 9px rgba(28, 17, 7, 0.45);
+    inset 0 1px 0 rgba(255, 245, 214, 0.7),
+    inset 0 0 0 2px rgba(255, 238, 196, 0.4),
+    inset 0 -2px 6px rgba(120, 82, 38, 0.35),
+    0 3px 10px rgba(28, 17, 7, 0.5);
   color: #4a3214;
+  /* engraved ink: a hair of light below each glyph reads as carved depth */
+  text-shadow: 0 1px 0 rgba(255, 246, 218, 0.5);
 }
 
 .journey-hud-ledger-divider {
@@ -16556,12 +16559,12 @@ main {
   align-items: center;
   gap: 0.24rem;
   margin-top: 0.1rem;
-  padding: 0.16rem 0.42rem;
+  padding: 0.16rem 0.46rem;
   border: 1px solid rgba(168, 132, 63, 0.7);
   border-radius: 4px;
   background: linear-gradient(rgba(58, 43, 28, 0.92), rgba(41, 29, 17, 0.92));
   color: #dfc282;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(20, 12, 4, 0.4);
+  box-shadow: inset 0 1px 0 rgba(231, 197, 122, 0.28), inset 0 0 0 1px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(20, 12, 4, 0.4);
   cursor: pointer;
   font-family: 'Cinzel', serif;
   font-size: 0.5rem;
@@ -16569,7 +16572,9 @@ main {
   letter-spacing: 0.08em;
   line-height: 1;
   pointer-events: auto;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .journey-enemy-toggle svg {
@@ -16605,12 +16610,16 @@ main {
   gap: 0.08rem;
   max-width: min(15rem, 38%);
   min-height: 0;
-  padding: 0.4rem 0.62rem 0.42rem 0.78rem;
-  background: linear-gradient(rgba(48, 33, 17, 0.92), rgba(32, 21, 10, 0.92));
+  padding: 0.4rem 0.62rem 0.42rem 0.82rem;
+  background: linear-gradient(rgba(52, 36, 19, 0.94), rgba(30, 20, 9, 0.94));
   border: 1px solid #c9a548;
   border-radius: 0.7rem;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.5), 0 3px 9px rgba(20, 12, 4, 0.45);
-  opacity: 0.96;
+  box-shadow:
+    inset 0 1px 0 rgba(231, 197, 122, 0.3),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.5),
+    0 3px 10px rgba(20, 12, 4, 0.5);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.55);
+  opacity: 0.97;
 }
 
 .journey-floating-hud-gate::before {
@@ -16690,6 +16699,7 @@ main {
 }
 
 /* ---- In-game Controls & Combat help (HUD button + overlay + shared reference) ---- */
+/* Carved bronze medallion so the help affordance matches the meters and cartouche */
 .journey-help-btn {
   position: absolute;
   left: 0;
@@ -16700,24 +16710,33 @@ main {
   display: grid;
   place-items: center;
   pointer-events: auto;
-  border: 1px solid rgba(245, 214, 143, 0.5);
+  border: 1px solid #c9a548;
   border-radius: 999px;
-  background: rgba(14, 10, 6, 0.66);
-  color: #f6dca0;
+  background: linear-gradient(rgba(58, 43, 28, 0.95), rgba(30, 20, 9, 0.95));
+  color: #f2e3bd;
   font-family: 'Cinzel', serif;
-  font-size: 1.05rem;
-  font-weight: 800;
+  font-size: 1.02rem;
+  font-weight: 700;
   line-height: 1;
   cursor: pointer;
-  backdrop-filter: blur(4px);
-  transition: background 0.15s, border-color 0.15s, transform 0.15s;
+  box-shadow:
+    inset 0 1px 0 rgba(231, 197, 122, 0.32),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.45),
+    0 2px 6px rgba(20, 12, 4, 0.45);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.55);
+  transition: background 0.15s, border-color 0.15s, transform 0.15s, box-shadow 0.15s;
 }
 
 .journey-help-btn:hover,
 .journey-help-btn:focus-visible {
-  background: rgba(36, 25, 12, 0.82);
-  border-color: rgba(255, 231, 167, 0.85);
+  background: linear-gradient(rgba(74, 55, 35, 0.97), rgba(46, 31, 16, 0.97));
+  border-color: #e7c57a;
   transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(231, 197, 122, 0.45),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(201, 165, 72, 0.3),
+    0 3px 8px rgba(20, 12, 4, 0.5);
   outline: none;
 }
 
@@ -16911,13 +16930,16 @@ main {
   display: grid;
   grid-template-columns: auto minmax(52px, 1fr);
   align-items: center;
-  gap: 0.26rem;
-  min-height: 1.2rem;
-  padding: 0.14rem 0.32rem;
-  background: linear-gradient(#3a2b1c, #291d11);
+  gap: 0.28rem;
+  min-height: 1.24rem;
+  padding: 0.16rem 0.34rem;
+  background: linear-gradient(#41301f, #261a0f);
   border: 1px solid #a8843f;
   border-radius: 4px;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(20, 12, 4, 0.45);
+  box-shadow:
+    inset 0 1px 0 rgba(231, 197, 122, 0.35),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.4),
+    0 2px 6px rgba(20, 12, 4, 0.45);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -16933,7 +16955,7 @@ main {
 .journey-floating-hud-meter.stamina-low,
 .journey-floating-hud-meter.stamina-empty {
   border-color: #c65b35;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(198, 91, 53, 0.3), 0 2px 6px rgba(20, 12, 4, 0.45);
+  box-shadow: inset 0 1px 0 rgba(231, 197, 122, 0.35), inset 0 0 0 1px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(198, 91, 53, 0.3), 0 2px 6px rgba(20, 12, 4, 0.45);
 }
 
 .journey-floating-hud-meter.time-recent-loss {
@@ -16943,7 +16965,7 @@ main {
 .journey-floating-hud-meter.time-low,
 .journey-floating-hud-meter.time-empty {
   border-color: #e3bd6a;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(227, 189, 106, 0.3), 0 2px 6px rgba(20, 12, 4, 0.45);
+  box-shadow: inset 0 1px 0 rgba(231, 197, 122, 0.35), inset 0 0 0 1px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(227, 189, 106, 0.3), 0 2px 6px rgba(20, 12, 4, 0.45);
 }
 
 .journey-floating-hud-meter.time-low .time-fill,
@@ -16953,44 +16975,47 @@ main {
 
 @keyframes journeyMeterWarningPulse {
   0%, 100% {
-    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.4), 0 0 0 rgba(201, 165, 72, 0);
+    box-shadow: inset 0 1px 0 rgba(231, 197, 122, 0.35), inset 0 0 0 1px rgba(0, 0, 0, 0.4), 0 0 0 rgba(201, 165, 72, 0);
   }
   50% {
-    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.4), 0 0 0 3px rgba(201, 165, 72, 0.22);
+    box-shadow: inset 0 1px 0 rgba(231, 197, 122, 0.35), inset 0 0 0 1px rgba(0, 0, 0, 0.4), 0 0 0 3px rgba(201, 165, 72, 0.22);
   }
 }
 
 .journey-floating-hud-meter-label {
   display: inline-flex;
   align-items: center;
-  gap: 0.18rem;
-  color: #dfc282;
+  gap: 0.2rem;
+  color: #e6c88a;
   font-size: 0.48rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.55);
 }
 
 .journey-floating-hud-meter-label svg {
-  width: 0.66rem;
-  height: 0.66rem;
+  width: 0.7rem;
+  height: 0.7rem;
   color: #c9a548;
 }
 
 .journey-floating-hud-bar {
   position: relative;
-  height: 0.3rem;
+  height: 0.34rem;
   min-width: 0;
   overflow: hidden;
   border-radius: 2px;
-  background: #170f08;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.8);
+  background: #140d06;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.85), inset 0 0 0 1px rgba(0, 0, 0, 0.5);
 }
 
 .journey-floating-hud-fill {
   display: block;
   height: 100%;
   border-radius: inherit;
+  /* top sheen so the fill reads as a polished gemstone inlay */
+  box-shadow: inset 0 1px 0 rgba(255, 240, 214, 0.35);
   transition: width 0.25s ease;
 }
 
