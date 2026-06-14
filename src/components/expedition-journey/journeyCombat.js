@@ -128,8 +128,9 @@ export const COMBAT_HIT_IMPACT_PROFILES = {
     cameraShakeStrength: 0.16,
     cameraPunchTimer: 0.055,
     hitFlash: 0.3,
-    targetKnockback: 0.32,
-    targetShift: 44,
+    // Light hits no longer knock the enemy back, so combos stay in range.
+    targetKnockback: 0,
+    targetShift: 0,
     playerRecoil: 30,
     impactTimer: 0.28,
     sparkTimer: 0.22,

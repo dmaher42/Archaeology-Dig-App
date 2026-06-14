@@ -2473,18 +2473,23 @@ const JOURNEY_TELEGRAPH_LEGEND = [
   { color: ATTACK_TELEGRAPH_CLASSES.unblockable.color, name: 'Red', desc: 'Dodge only — no parry.' },
 ];
 
-function JourneyControlsReference() {
+function JourneyControlsReference({ compactMovementKeys = false } = {}) {
   return (
     <div className="journey-controls-reference">
       <div className="journey-controls-keys-grid">
-        {JOURNEY_CONTROL_ROWS.map(row => (
-          <div className="journey-control-row" key={row.label}>
-            <span className="journey-control-keys">
-              {row.keys.map(key => <kbd key={key}>{key}</kbd>)}
-            </span>
-            <span className="journey-control-label">{row.label}</span>
-          </div>
-        ))}
+        {JOURNEY_CONTROL_ROWS.map(row => {
+          const keys = compactMovementKeys
+            ? row.keys.filter(key => !['←', '→', '↑'].includes(key))
+            : row.keys;
+          return (
+            <div className="journey-control-row" key={row.label}>
+              <span className="journey-control-keys">
+                {keys.map(key => <kbd key={key}>{key}</kbd>)}
+              </span>
+              <span className="journey-control-label">{row.label}</span>
+            </div>
+          );
+        })}
       </div>
       <div className="journey-controls-legend">
         <div className="journey-controls-legend-title">Read the attack tells</div>
@@ -10479,13 +10484,16 @@ export default function ExpeditionJourney({
     const frameWidth = heroDrawBounds?.w || heroRegion?.w || PLAYER_SPRITE_FRAME_WIDTH;
     const frameHeight = heroDrawBounds?.h || heroRegion?.h || PLAYER_SPRITE_FRAME_HEIGHT;
     const heroDrawHeight = Number(heroAtlas?.draw?.height) || PLAYER_SPRITE_DRAW_HEIGHT;
-    // When a per-frame drawBounds exists, scale against the actual cropped content height
-    // so every animation pose renders at the same heroDrawHeight regardless of crop differences.
-    const nominalFrameHeight = heroDrawBounds
-      ? frameHeight
-      : heroRegion
-        ? Number(heroAtlas?.draw?.sourceHeight) || Number(heroAtlas?.frame?.height) || heroRegion.h || frameHeight
-        : frameHeight;
+    // Scale every frame against the atlas's CONSTANT source height (draw.sourceHeight),
+    // NOT each frame's cropped drawBounds height. Normalising to the per-frame crop made
+    // compact poses (attack swings, climb, interact) scale Asha's body up and "pop" bigger
+    // than her idle/run size. A constant basis keeps her body the same scale across every
+    // animation; poses that are naturally shorter simply render shorter, feet still planted
+    // via groundLineY.
+    const atlasNominalHeight = Number(heroAtlas?.draw?.sourceHeight) || Number(heroAtlas?.frame?.height);
+    const nominalFrameHeight = atlasNominalHeight
+      || (heroRegion ? heroRegion.h : frameHeight)
+      || frameHeight;
     const drawScale = heroDrawHeight / nominalFrameHeight;
     const drawWidth = frameWidth * drawScale;
     const renderedHeight = frameHeight * drawScale;
@@ -27197,16 +27205,15 @@ export default function ExpeditionJourney({
               <div className="briefing-task-panel">
                 <div className="briefing-task-heading">
                   <Map size={18} />
-                  <h2>The site refuses easy entry</h2>
+                  <h2>What to do first</h2>
                 </div>
                 <ul className="briefing-task-list">
                   {[
-                    'Read the Lost Map Tablet',
-                    'Recover relic shards',
-                    'Restore the Temple Approach Seal',
-                    'Open the Guardian Prep Seal',
+                    'Find and read the Lost Map Tablet',
+                    'Collect relic shards along the route',
+                    'Use shards to open sealed paths',
                     'Defeat the first guardian',
-                    'Reach Base Camp Outpost',
+                    'Reach Base Camp',
                   ].map(task => (
                     <li key={task}>
                       <CheckCircle2 size={16} />
@@ -27220,7 +27227,7 @@ export default function ExpeditionJourney({
                   <ShieldAlert size={18} />
                   <h2>Controls &amp; combat</h2>
                 </div>
-                <JourneyControlsReference />
+                <JourneyControlsReference compactMovementKeys />
               </div>
             </div>
             <div className="briefing-actions" style={{ display: "flex", justifyContent: "center", marginTop: "1rem" }}>

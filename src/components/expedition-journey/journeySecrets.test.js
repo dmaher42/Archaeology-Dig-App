@@ -2275,15 +2275,15 @@ test('Ancient Egypt opening stages archaeologist arrival and warrior-guide story
 
 test('Expedition framing presents Journey, Base Camp, and excavation as in-world adventure systems', () => {
   [
-    'The site refuses easy entry',
-    'Read the Lost Map Tablet',
-    'Recover relic shards',
-    'Restore the Temple Approach Seal',
-    'Open the Guardian Prep Seal',
+    'What to do first',
+    'Find and read the Lost Map Tablet',
+    'Collect relic shards along the route',
+    'Use shards to open sealed paths',
     'Defeat the first guardian',
-    'Reach Base Camp Outpost',
+    'Reach Base Camp',
     'Relic shards',
   ].forEach((copy) => assert.match(journeyComponentSource, new RegExp(copy)));
+  assert.match(journeyComponentSource, /<JourneyControlsReference compactMovementKeys \/>/);
 
   [
     'Opening objective',
@@ -5455,7 +5455,7 @@ test('perfect dodge deflects any attack and an in-game help panel teaches the co
   assert.match(journeyComponentSource, /if \(playerIsPerfectDodging\) \{[\s\S]*?\} else if \(playerIsParrying\)/);
 
   // Shared controls reference, used by both the briefing primer and the help panel.
-  assert.match(journeyComponentSource, /function JourneyControlsReference\(\) \{/);
+  assert.match(journeyComponentSource, /function JourneyControlsReference\(\{ compactMovementKeys = false \} = \{\}\) \{/);
   assert.match(journeyComponentSource, /keys: \['A', 'D', '←', '→'\], label: 'Move'/);
   assert.match(journeyComponentSource, /keys: \['W', 'Space', '↑'\], label: 'Jump'/);
   assert.match(journeyComponentSource, /label: 'Dodge'/);
