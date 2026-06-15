@@ -4,6 +4,17 @@ Current source-of-truth note:
 - Future implementation should follow `docs/lost-site-expedition-production-bible.md`.
 - The production bible now defines implementation hierarchy, room pipelines, asset roles, and quality expectations.
 
+2026-06-15 Asha heavy attack scale normalization:
+- Fixed Asha's heavy attack visual scale in the existing Journey hero atlas renderer instead of replacing or regenerating character art.
+- Added atlas metadata for row-level scaling on the heavy follow-up sweep and frame-level scaling on the plain K heavy mid-swing frames, preserving combat timing, collision, and the approved Asha sprite atlas.
+- Updated the Asha reference-warrior atlas builder so future atlas rebuilds keep the same scale metadata.
+- Verified focused Asha atlas tests, JSON metadata checks, Python builder syntax, targeted lint, production build, and a local browser Journey load with no console errors. Full `npm.cmd run lint` timed out in this dirty worktree, so targeted lint was used for the changed JS files.
+
+2026-06-15 Asha run scale normalization:
+- Continued the same existing Journey hero-atlas scale metadata path after play-test feedback that Asha looked larger while running.
+- Measured idle at 135.22 rendered pixels high and walk/run/survey-walk at 138.71 before tuning; after play-test feedback that 0.975 still looked slightly too tall, lowered the movement row scale to 0.965 for `walk`, `run`, and `survey_walk`, bringing movement rows to about 133.85 rendered pixels high without changing collision, movement speed, animation timing, or source art.
+- Updated both Asha reference-warrior atlas JSONs, the builder script, and focused atlas tests so the run-scale correction survives future rebuilds.
+
 2026-06-14 Desert Entry first two area production pass:
 - Replaced the fake Desert Entry full-canvas background morph with a single-plate camera-panned renderer mode, so the route cuts cleanly instead of fading one painting into another.
 - Added high-resolution transparent PNG scene objects for the first Anubis trigger and the ravine-to-Mummification transition under `public/assets/expedition/environment/egypt-opening/desert-entry-production-2026-06-14/`.

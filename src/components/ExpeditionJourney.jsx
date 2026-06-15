@@ -1058,7 +1058,15 @@ const isDesertEntryRebuildBackgroundPlateProp = (prop = {}) => (
   DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_ID_SET.has(prop.id)
 );
 
+// When true, the desert opening shows the original bright photoreal sphinx backdrop
+// at full brightness instead of the dimmer "opening rebuild" painted plates and dark
+// sky wash (whose shaded mummification-temple side read as a dark shadow on the right).
+// This forces the rebuild-sky coverage to 0 (so the backdrop is no longer faded out)
+// and disables the scene panels + primary PNG plates that were layered over it.
+const DESERT_ENTRY_RESTORE_ORIGINAL_BACKDROP = true;
+
 const getDesertEntryOpeningRebuildViewportCoverage = (cameraX = 0) => {
+  if (DESERT_ENTRY_RESTORE_ORIGINAL_BACKDROP) return 0;
   const viewportLeft = Number.isFinite(cameraX) ? cameraX : 0;
   const viewportRight = viewportLeft + CANVAS_WIDTH;
   const overlap = Math.min(viewportRight, DESERT_ENTRY_CONTINUOUS_BACKGROUND_END_X)
@@ -1780,6 +1788,21 @@ const getAtlasImagePath = (atlasPath, imageName) => {
 };
 
 const getHeroSpriteRow = (atlas, rowName) => atlas?.rows?.find(row => row.name === rowName) || null;
+
+const getHeroSpriteFrameRowName = (atlas, frameKey) => {
+  if (!frameKey) return null;
+  return atlas?.rows?.find(row => Array.isArray(row.frames) && row.frames.includes(frameKey))?.name || null;
+};
+
+const getHeroSpriteRowScale = (atlas, rowName) => {
+  const scale = Number(atlas?.draw?.rowScaleMultipliers?.[rowName]);
+  return Number.isFinite(scale) && scale > 0 ? scale : 1;
+};
+
+const getHeroSpriteFrameScale = (atlas, frameKey) => {
+  const scale = Number(atlas?.draw?.frameScaleMultipliers?.[frameKey]);
+  return Number.isFinite(scale) && scale > 0 ? scale : 1;
+};
 
 const getHeroSpriteFrameDistance = (atlas, rowName) => {
   const atlasDistance = Number(atlas?.draw?.frameDistance?.[rowName]);
@@ -10497,6 +10520,7 @@ export default function ExpeditionJourney({
     const heroRegion = heroFrameKey
       ? heroAtlas?.regions?.[heroFrameKey] || heroAtlas?.frames?.[heroFrameKey]
       : null;
+    const heroFrameRowName = getHeroSpriteFrameRowName(heroAtlas, heroFrameKey);
     const frame = clamp(current.player.animationFrame ?? 1, 0, PLAYER_SPRITE_FRAME_COUNT - 1);
     const heroDrawBounds = heroRegion?.drawBounds || null;
     const sourceX = (heroRegion?.x ?? frame * PLAYER_SPRITE_FRAME_WIDTH) + (heroDrawBounds?.x || 0);
@@ -10519,7 +10543,9 @@ export default function ExpeditionJourney({
     const nominalFrameHeight = atlasNominalHeight
       || (heroRegion ? heroRegion.h : frameHeight)
       || frameHeight;
-    const drawScale = heroDrawHeight / nominalFrameHeight;
+    const heroRowScale = getHeroSpriteRowScale(heroAtlas, heroFrameRowName);
+    const heroFrameScale = getHeroSpriteFrameScale(heroAtlas, heroFrameKey);
+    const drawScale = (heroDrawHeight / nominalFrameHeight) * heroRowScale * heroFrameScale;
     const drawWidth = frameWidth * drawScale;
     const renderedHeight = frameHeight * drawScale;
     const footX = x + w / 2;
@@ -10599,6 +10625,8 @@ export default function ExpeditionJourney({
     if (current.renderStats && heroFrameKey) {
       current.renderStats.playerSpriteFrame = heroFrameKey;
       current.renderStats.playerSpriteVisualMode = 'hero-atlas';
+      current.renderStats.playerSpriteRowScale = heroRowScale;
+      current.renderStats.playerSpriteFrameScale = heroFrameScale;
     }
 
     const suppressExternalWeapon = heroAtlas?.draw?.suppressExternalWeapon
@@ -18733,7 +18761,8 @@ export default function ExpeditionJourney({
     }
 
     const parallaxBackgroundDrawn = arrivalThresholdDrawn || chinaBackgroundDrawn || desertBackgroundDrawn || sectionParallaxDrawn;
-    const desertJourneyScenePanelsDrawn = !arrivalThresholdDrawn
+    const desertJourneyScenePanelsDrawn = !DESERT_ENTRY_RESTORE_ORIGINAL_BACKDROP
+      && !arrivalThresholdDrawn
       && !chamberSceneActive
       && section.id === 'desert-entry'
       && drawDesertJourneyScenePanels(ctx, current, cameraX, now);

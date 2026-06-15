@@ -388,6 +388,18 @@ def main() -> None:
         "walk": 24,
         "survey_walk": 34,
     }
+    metadata["draw"]["rowScaleMultipliers"] = {
+        "walk": 0.965,
+        "run": 0.965,
+        "survey_walk": 0.965,
+        "attack_pick_swing_sweep": 1.16,
+    }
+    metadata["draw"]["frameScaleMultipliers"] = {
+        "attack_pick_swing_alt_02": 1.12,
+        "attack_pick_swing_alt_03": 1.3,
+        "attack_pick_swing_alt_04": 1.24,
+        "attack_pick_swing_alt_05": 1.22,
+    }
     metadata["draw"]["fixedFrame"] = {}
     metadata["draw"]["attackChainRows"] = [
         "attack_pick_swing",

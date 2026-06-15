@@ -2913,6 +2913,9 @@ test('Egypt Journey uses the Asha atlas through the existing player renderer', (
   assert.match(journeyConstantsSource, /PLAYER_HERO_SPRITE_VERSION = 'asha-reference-warrior-dodge-backstep-tone-matched-2026-06-05'/);
   assert.equal(ashaReferenceWarriorDodgePreviewAtlas.masterReference, 'asha-reference-warrior-master-reference.png');
   assert.equal(ashaReferenceWarriorDodgePreviewAtlas.status, 'approved-asha-reference-warrior-dodge-backstep-tone-matched');
+  assert.equal(ashaReferenceWarriorDodgePreviewAtlas.draw.rowScaleMultipliers.run, 0.965);
+  assert.equal(ashaReferenceWarriorDodgePreviewAtlas.draw.rowScaleMultipliers.attack_pick_swing_sweep, 1.16);
+  assert.equal(ashaReferenceWarriorDodgePreviewAtlas.draw.frameScaleMultipliers.attack_pick_swing_alt_03, 1.3);
   assert.match(journeyComponentSource, /characterId:\s*'asha-reference-warrior'/);
   assert.match(journeyComponentSource, /asha-final-production-spritesheet\.json/);
   assert.match(journeyConstantsSource, /PLAYER_HERO_PREVIOUS_SPRITE_ATLAS_JSON/);
@@ -3065,7 +3068,16 @@ test('Asha Reference Warrior remains available as a separate character-loader at
     'attack_pick_swing_alt',
     'attack_pick_swing_sweep',
   ]);
+  assert.equal(ashaReferenceWarriorPlayerAtlas.draw.rowScaleMultipliers.walk, 0.965);
+  assert.equal(ashaReferenceWarriorPlayerAtlas.draw.rowScaleMultipliers.run, 0.965);
+  assert.equal(ashaReferenceWarriorPlayerAtlas.draw.rowScaleMultipliers.survey_walk, 0.965);
+  assert.equal(ashaReferenceWarriorPlayerAtlas.draw.rowScaleMultipliers.attack_pick_swing_sweep, 1.16);
+  assert.equal(ashaReferenceWarriorPlayerAtlas.draw.frameScaleMultipliers.attack_pick_swing_alt_03, 1.3);
   assert.match(journeyComponentSource, /attackChainRows/);
+  assert.match(journeyComponentSource, /rowScaleMultipliers/);
+  assert.match(journeyComponentSource, /frameScaleMultipliers/);
+  assert.match(journeyComponentSource, /playerSpriteRowScale/);
+  assert.match(journeyComponentSource, /playerSpriteFrameScale/);
   assert.equal(ashaReferenceWarriorPlayerAtlas.rows.length, 15);
   assert.equal(ashaReferenceWarriorPlayerAtlas.rows.find(row => row.name === 'idle')?.frameCount, 8);
   assert.equal(ashaReferenceWarriorPlayerAtlas.rows.find(row => row.name === 'run')?.frameCount, 8);
