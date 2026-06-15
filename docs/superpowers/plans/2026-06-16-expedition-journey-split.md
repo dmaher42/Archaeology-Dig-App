@@ -309,7 +309,7 @@ Expected: sacred room evidence counts, mummification ritual prompts, mural slide
 - Test: `src/components/expedition-journey/journeySecrets.test.js`
 - Test: `src/components/expedition-journey/journeyAudioSfx.test.js`
 
-- [ ] **Step 1: Move pure opening scene declarations**
+- [x] **Step 1: Move pure opening scene declarations**
 
 Move existing top-level declarations that are copy/config only:
 
@@ -351,11 +351,11 @@ getOpeningCinematicLine
 easeInOutCubic
 ```
 
-- [ ] **Step 2: Keep transition mutation callbacks in `ExpeditionJourney.jsx`**
+- [x] **Step 2: Keep transition mutation callbacks in `ExpeditionJourney.jsx`**
 
 Do not move `startOpeningCinematic`, `completeOpeningThresholdScene`, `enterLevelFromThreshold`, or `startTempleThresholdTransition` in this task. They mutate `stateRef.current`, call audio, and sync HUD.
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Run:
 
