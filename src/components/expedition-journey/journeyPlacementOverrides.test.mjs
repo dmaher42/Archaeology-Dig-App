@@ -497,8 +497,10 @@ test('ravine crossing resolves into a physical Mummification doorway transition'
   assert.equal(prop.imageAssetKey, 'desertEntryRavineMummificationDoorwayTransition');
   assert.equal(
     prop.assetPath,
-    'assets/expedition/environment/egypt-opening/desert-entry-production-2026-06-14/ravine-mummification-doorway-deep-shadow-2026-06-14.png',
+    'assets/expedition/environment/egypt-opening/desert-entry-production-2026-06-14/ravine-mummification-doorway-clear-entry-2026-06-15.png',
   );
+  assert.ok(prop.assetPath.includes('clear-entry'), 'doorway should use the cleaned transparent-entry PNG');
+  assert.equal(prop.assetPath.includes('deep-shadow'), false, 'doorway should not use the old baked black-shadow PNG');
   assert.ok(existsSync(`public/${prop.assetPath}`), 'ravine-to-Mummification doorway PNG should exist on disk');
   assert.ok(prop.x > route.x && prop.x < route.x + route.width, 'doorway should sit inside the Mummification route trigger');
   assert.ok(
@@ -506,9 +508,12 @@ test('ravine crossing resolves into a physical Mummification doorway transition'
     'the old progression gate logic should remain covered by the physical doorway art',
   );
   assert.ok(prop.x > doorwayPlatform.x && prop.x < doorwayPlatform.x + doorwayPlatform.width, 'doorway art should align with the actual entry platform');
-  assert.ok(prop.width >= 1080 && prop.width <= 1260, 'doorway should be dominant enough to read as the enterable building, not background paint');
-  assert.ok(prop.height >= 820 && prop.height <= 940, 'doorway should fill the scene vertically enough to hide a clean cut');
+  assert.ok(prop.width >= 700 && prop.width <= 860, 'doorway should be large enough to read as enterable without casting across the ravine view');
+  assert.ok(prop.height >= 560 && prop.height <= 700, 'doorway should cover the entry cleanly without becoming a giant black wall');
   assert.ok(prop.y >= 590 && prop.y <= 625, 'doorway base should sit on the desert route surface');
+  assert.equal(prop.shadowOpacity, 0, 'doorway prop should not add an artificial black contact shadow over the ravine');
+  assert.equal(prop.shadowWidth, 0, 'doorway prop should not carry a wide artificial shadow layer');
+  assert.equal(prop.shadowHeight, 0, 'doorway prop should not carry a tall artificial shadow layer');
   assert.ok(prop.alpha >= 0.95, 'doorway should render as a real scene structure');
   const png = readPngInfo(prop.assetPath);
   assert.equal(png.colorType, 6, 'ravine-to-Mummification doorway should preserve transparency');
