@@ -3406,6 +3406,10 @@ const STORY_PROP_DEPTH_ORDER = {
   'foreground-occluder': 4,
 };
 const PROP_EDITOR_DEPTH_OPTIONS = ['background', 'midground', 'grounded', 'route-edge', 'foreground-occluder'];
+// Named render layers a prop can be tagged with. Depth (above) drives stacking order;
+// layer is the broader band the prop belongs to. Free-form in the data, but these are
+// the values in active use — the editor appends any custom value so none is ever lost.
+const PROP_EDITOR_LAYER_OPTIONS = ['default', 'background', 'foreground', 'overlay', 'route-edge'];
 
 // Turn a picked hex colour into HSL so the tint picker can build a colorize filter.
 const journeyHexToHsl = (hex) => {
@@ -4065,30 +4069,50 @@ export default function ExpeditionJourney({
       return next;
     });
   }, []);
-  const renderEditorSectionHeader = (key, label) => (
-    <button
-      type="button"
-      className="journey-prop-editor-group-header"
-      aria-expanded={!collapsedPanelSections[key]}
-      onClick={() => toggleEditorPanelSection(key)}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        width: '100%',
-        cursor: 'pointer',
-        background: 'none',
-        border: 'none',
-        color: 'inherit',
-        font: 'inherit',
-        textAlign: 'left',
-        padding: 0,
-      }}
-    >
-      <span>{label}</span>
-      <span aria-hidden="true" style={{ opacity: 0.6, fontSize: 10 }}>{collapsedPanelSections[key] ? '▸' : '▾'}</span>
-    </button>
-  );
+  const renderEditorSectionHeader = (key, label) => {
+    const isCollapsed = Boolean(collapsedPanelSections[key]);
+    return (
+      <button
+        type="button"
+        className={`journey-prop-editor-group-header${isCollapsed ? ' is-collapsed' : ''}`}
+        aria-expanded={!isCollapsed}
+        title={isCollapsed ? `Show ${label} controls` : `Hide ${label} controls`}
+        onClick={() => toggleEditorPanelSection(key)}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'flex-start',
+          gap: 8,
+          width: '100%',
+          cursor: 'pointer',
+          background: 'none',
+          border: 'none',
+          color: 'inherit',
+          font: 'inherit',
+          textAlign: 'left',
+          padding: 0,
+        }}
+      >
+        <span
+          aria-hidden="true"
+          style={{
+            display: 'inline-block',
+            width: '1.05em',
+            color: '#facc15',
+            fontSize: '0.92em',
+            transform: isCollapsed ? 'none' : 'rotate(90deg)',
+            transition: 'transform 120ms ease',
+          }}
+        >
+          ▶
+        </span>
+        <span style={{ flex: 1 }}>{label}</span>
+        <span aria-hidden="true" style={{ opacity: 0.75, fontSize: '0.62em', letterSpacing: '0.04em' }}>
+          {isCollapsed ? 'SHOW' : 'HIDE'}
+        </span>
+      </button>
+    );
+  };
   const canvasRef = useRef(null);
   const stateRef = useRef(gameState);
   const keysRef = useRef({});
@@ -10486,6 +10510,11 @@ export default function ExpeditionJourney({
     // than her idle/run size. A constant basis keeps her body the same scale across every
     // animation; poses that are naturally shorter simply render shorter, feet still planted
     // via groundLineY.
+    // ONE constant scale for every animation frame: scale against the atlas's fixed
+    // source height, never the per-frame cropped height. Asha's body is therefore the
+    // exact same on-screen size in every pose — the animation frames themselves carry
+    // the movement (she crouches, leans, and reaches into a swing), so she never grows
+    // or shrinks; only her pose changes. Feet stay planted via groundLineY.
     const atlasNominalHeight = Number(heroAtlas?.draw?.sourceHeight) || Number(heroAtlas?.frame?.height);
     const nominalFrameHeight = atlasNominalHeight
       || (heroRegion ? heroRegion.h : frameHeight)
@@ -15405,16 +15434,27 @@ export default function ExpeditionJourney({
       ctx.fillRect(x - 18, 290 + shimmer, 12, 286);
       ctx.fillRect(x + 14, 286 + shimmer, 9, 292);
     } else if (transition.mask === 'temple-doorway') {
-      const shadow = ctx.createRadialGradient(x, 414, 24, x, 430, w * 0.62);
-      shadow.addColorStop(0, 'rgba(12, 11, 14, 0.72)');
-      shadow.addColorStop(0.44, 'rgba(33, 24, 20, 0.48)');
-      shadow.addColorStop(1, 'rgba(168, 102, 45, 0)');
-      ctx.fillStyle = shadow;
-      ctx.fillRect(left, 130, w, CANVAS_HEIGHT - 130);
-      ctx.fillStyle = 'rgba(90, 57, 33, 0.46)';
-      ctx.fillRect(x - 110, 260, 52, 330);
-      ctx.fillRect(x + 58, 260, 52, 330);
-      ctx.fillRect(x - 110, 248, 220, 34);
+      const floorShadow = ctx.createRadialGradient(x, 556, 18, x, 558, 188);
+      floorShadow.addColorStop(0, 'rgba(31, 22, 17, 0.28)');
+      floorShadow.addColorStop(0.48, 'rgba(61, 40, 25, 0.14)');
+      floorShadow.addColorStop(1, 'rgba(168, 102, 45, 0)');
+      ctx.fillStyle = floorShadow;
+      ctx.fillRect(x - 220, 478, 440, 132);
+
+      const doorwayShade = ctx.createLinearGradient(x - 62, 0, x + 62, 0);
+      doorwayShade.addColorStop(0, 'rgba(24, 18, 16, 0.06)');
+      doorwayShade.addColorStop(0.5, 'rgba(18, 15, 14, 0.3)');
+      doorwayShade.addColorStop(1, 'rgba(24, 18, 16, 0.06)');
+      ctx.fillStyle = doorwayShade;
+      ctx.fillRect(x - 62, 304, 124, 230);
+
+      ctx.fillStyle = 'rgba(103, 67, 39, 0.52)';
+      ctx.fillRect(x - 108, 268 + shimmer, 44, 292);
+      ctx.fillRect(x + 64, 268 + shimmer, 44, 292);
+      ctx.fillRect(x - 112, 250 + shimmer, 224, 30);
+      ctx.fillStyle = 'rgba(197, 130, 62, 0.16)';
+      ctx.fillRect(x - 94, 282 + shimmer, 8, 258);
+      ctx.fillRect(x + 82, 282 + shimmer, 8, 258);
     } else if (transition.mask === 'ruined-arch') {
       ctx.strokeStyle = 'rgba(92, 59, 35, 0.78)';
       ctx.lineWidth = 42;
@@ -24985,10 +25025,22 @@ export default function ExpeditionJourney({
                   </div>
                 )}
                 {propEditorUi.selectedProp ? (
-                  <div className="journey-prop-editor-readout journey-prop-editor-readout-identity">
+                  <div className="journey-prop-editor-readout">
                     <div><span>{propEditorUi.selectedProp.category}</span><strong>{propEditorUi.selectedProp.id}</strong></div>
                     <div><span>Type</span><strong>{propEditorUi.selectedProp.type}</strong></div>
                     <div><span>Room</span><strong>{propEditorUi.selectedProp.roomId}</strong></div>
+                    <div><span>X</span><strong>{propEditorUi.selectedProp.x}</strong></div>
+                    <div><span>Y</span><strong>{propEditorUi.selectedProp.y}</strong></div>
+                    <div><span>Y offset</span><strong>{propEditorUi.selectedProp.yOffset}</strong></div>
+                    <div><span>Width</span><strong>{propEditorUi.selectedProp.width}</strong></div>
+                    <div><span>Height</span><strong>{propEditorUi.selectedProp.height}</strong></div>
+                    <div><span>Scale</span><strong>{(propEditorUi.selectedProp.scale ?? 1).toFixed(2)}</strong></div>
+                    <div><span>Rotation</span><strong>{Math.round(propEditorUi.selectedProp.rotation ?? 0)} deg</strong></div>
+                    <div><span>Flip</span><strong>{[propEditorUi.selectedProp.mirrorX ? 'H' : null, propEditorUi.selectedProp.mirrorY ? 'V' : null].filter(Boolean).join('+') || 'none'}</strong></div>
+                    <div><span>Brightness</span><strong>{(propEditorUi.selectedProp.brightness ?? 1).toFixed(2)}</strong></div>
+                    <div><span>Depth</span><strong>{propEditorUi.selectedProp.depth}</strong></div>
+                    <div><span>Layer</span><strong>{propEditorUi.selectedProp.layer}</strong></div>
+                    <div><span>Z-index</span><strong>{propEditorUi.selectedProp.zIndex}</strong></div>
                   </div>
                 ) : propEditorUi.selectedHazard ? (
                   <div className="journey-prop-editor-readout">
@@ -25220,6 +25272,20 @@ export default function ExpeditionJourney({
                           onChange={(event) => updateSelectedPropEditorTransform({ depth: event.target.value })}
                         >
                           {PROP_EDITOR_DEPTH_OPTIONS.map(option => (
+                            <option key={option} value={option}>{option}</option>
+                          ))}
+                        </select>
+                      </label>
+                      <label>
+                        <span>Layer</span>
+                        <select
+                          value={propEditorUi.selectedProp.layer || 'default'}
+                          onChange={(event) => updateSelectedPropEditorTransform({ layer: event.target.value })}
+                        >
+                          {(PROP_EDITOR_LAYER_OPTIONS.includes(propEditorUi.selectedProp.layer || 'default')
+                            ? PROP_EDITOR_LAYER_OPTIONS
+                            : [...PROP_EDITOR_LAYER_OPTIONS, propEditorUi.selectedProp.layer]
+                          ).map(option => (
                             <option key={option} value={option}>{option}</option>
                           ))}
                         </select>

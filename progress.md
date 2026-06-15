@@ -8,6 +8,7 @@ Current source-of-truth note:
 - Replaced the fake Desert Entry full-canvas background morph with a single-plate camera-panned renderer mode, so the route cuts cleanly instead of fading one painting into another.
 - Added high-resolution transparent PNG scene objects for the first Anubis trigger and the ravine-to-Mummification transition under `public/assets/expedition/environment/egypt-opening/desert-entry-production-2026-06-14/`.
 - The first Asha area now has a physical scarab threshold aligned to the real Anubis trigger, and the ravine exit now has an enterable Mummification doorway aligned to the existing hidden route and doorway floor.
+- Retired the old Mummification route-gate front/back props and suppressed the old abstract Guardian Prep Seal visual where the physical doorway now carries the transition read.
 - Added focused Journey placement tests to protect the physical threshold, physical doorway, PNG transparency/assets, and clean-transition renderer contract.
 
 2026-06-14 Desert Entry continuous background rebuild:

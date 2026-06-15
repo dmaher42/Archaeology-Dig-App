@@ -364,6 +364,25 @@ test('Desert Entry background rebuild uses clean physical transitions instead of
   assert.doesNotMatch(journeySource, /full-canvas-route-crossfade-primary-png-v2/);
   assert.doesNotMatch(journeySource, /full-canvas-route-crossfade-background-v1/);
   assert.doesNotMatch(journeySource, /DESERT_ENTRY_REBUILD_BACKGROUND_CROSSFADE_WIDTH/);
+  const templeDoorwayMaskSource = journeySource.slice(
+    journeySource.indexOf("transition.mask === 'temple-doorway'"),
+    journeySource.indexOf("transition.mask === 'ruined-arch'"),
+  );
+  assert.doesNotMatch(
+    templeDoorwayMaskSource,
+    /fillRect\(left,\s*130,\s*w,\s*CANVAS_HEIGHT - 130\)/,
+    'temple doorway seam should not paint a broad full-height shadow over the ravine approach',
+  );
+  assert.doesNotMatch(
+    templeDoorwayMaskSource,
+    /w \* 0\.62/,
+    'temple doorway seam should avoid a half-screen radial shadow wash',
+  );
+  assert.match(
+    templeDoorwayMaskSource,
+    /fillRect\(x - 62,\s*304,\s*124,\s*230\)/,
+    'temple doorway seam should keep darkness localized inside the actual doorway opening',
+  );
 });
 
 test('journeyDataRouter exposes editor overrides while journeyLevelData keeps authored base placement', () => {
