@@ -3830,7 +3830,8 @@ test('Journey route gates use doorway anchors so linked seals draw as one blocke
 });
 
 test('Egypt chamber entry triggers render as configurable premium doors outside debug overlay', () => {
-  assert.match(journeyComponentSource, /const CHAMBER_DOOR_VISUALS = Object\.freeze\(\[/);
+  assert.match(journeyComponentSource, /createChamberDoorVisuals = \(\{/);
+  assert.match(journeyComponentSource, /const CHAMBER_DOOR_VISUALS = createChamberDoorVisuals\(\{/);
   [
     'mummification-chamber-entry-door',
     'forgotten-mural-entry-door',

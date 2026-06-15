@@ -246,7 +246,7 @@ Expected: Asha sprite selection, dodge frames, attack frames, and character load
 - Test: `src/components/expedition-journey/journeySecrets.test.js`
 - Test: `src/components/expedition-journey/journeyRoomInteract.test.js`
 
-- [ ] **Step 1: Move chamber copy and restoration helpers**
+- [x] **Step 1: Move chamber copy and restoration helpers**
 
 Move these existing top-level declarations unchanged:
 
@@ -274,7 +274,7 @@ getMummificationRiteByIndex
 CHAMBER_DOOR_VISUALS
 ```
 
-- [ ] **Step 2: Keep scene-entry coordinates in `ExpeditionJourney.jsx` for now**
+- [x] **Step 2: Keep scene-entry coordinates in `ExpeditionJourney.jsx` for now**
 
 Do not move these yet:
 
@@ -288,7 +288,7 @@ SCRIBE_CHAMBER_ENTRY_SPAWN
 
 Those are tightly coupled to camera, platform, and transition logic and should move only after the renderer split.
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Run:
 
