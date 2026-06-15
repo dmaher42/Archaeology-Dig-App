@@ -84,6 +84,12 @@ import {
   setExpeditionJourneyCiv,
 } from './expedition-journey/journeyDataRouter';
 import lostSitePropRegistry from './expedition-journey/lostSitePropRegistry.json';
+import {
+  HEAVY_ATTACK_INTERVAL,
+  getEnemyAttackTelegraph,
+} from './expedition-journey/journeyCombatTelegraphs';
+import { JourneyControlsReference } from './expedition-journey/journeyControlsReference.jsx';
+export { JourneyControlsReference } from './expedition-journey/journeyControlsReference.jsx';
 
 import {
   applyJourneyHazardPlacementEdit,
@@ -2452,85 +2458,6 @@ const HEAVY_ATTACK_PATTERNS = {
     color: '#92400e',
   },
 };
-
-// How many normal attacks before the heavy fires (resets after each heavy)
-const HEAVY_ATTACK_INTERVAL = {
-  scarab: 3, scorpion: 3, snake: 3, bat: 3, 'sand-wisp': 3,
-  guardian: 2, mummy: 2, bes: 2, statue: 2, looter: 3,
-};
-
-// Attack telegraph language (Sekiro-style colour code):
-//   gold   = normal strike  — parry or dodge
-//   orange = heavy strike    — parry or dodge, but hits harder
-//   red    = unblockable     — MUST dodge (cannot be parried)
-const ATTACK_TELEGRAPH_CLASSES = {
-  normal: { id: 'normal', color: '#facc15', glow: 'rgba(250, 204, 21, 0.55)', parryable: true },
-  heavy: { id: 'heavy', color: '#fb7a1e', glow: 'rgba(251, 122, 30, 0.6)', parryable: true },
-  unblockable: { id: 'unblockable', color: '#ef4444', glow: 'rgba(239, 68, 68, 0.66)', parryable: false },
-};
-
-// Classify an enemy's currently-selected attack for telegraph colour + parry rule.
-// Unblockable = the shielded heavy charges (protectedDuringWindup); the red
-// telegraph means the player must dodge rather than parry.
-const getEnemyAttackTelegraph = (enemy) => {
-  const heavy = HEAVY_ATTACK_PATTERNS[enemy?.type];
-  const isHeavyActive = Boolean(heavy && enemy?.attackPattern === heavy.id);
-  if (isHeavyActive && heavy.protectedDuringWindup) return ATTACK_TELEGRAPH_CLASSES.unblockable;
-  if (isHeavyActive) return ATTACK_TELEGRAPH_CLASSES.heavy;
-  return ATTACK_TELEGRAPH_CLASSES.normal;
-};
-
-// Player-facing instructions, shared by the briefing primer and the in-game help
-// panel so the controls + combat language are authored once.
-const JOURNEY_CONTROL_ROWS = [
-  { keys: ['A', 'D', '←', '→'], label: 'Move' },
-  { keys: ['W', 'Space', '↑'], label: 'Jump' },
-  { keys: ['E'], label: 'Interact' },
-  { keys: ['J'], label: 'Attack' },
-  { keys: ['K'], label: 'Heavy' },
-  { keys: ['L'], label: 'Dodge' },
-];
-const JOURNEY_TELEGRAPH_LEGEND = [
-  { color: ATTACK_TELEGRAPH_CLASSES.normal.color, name: 'Gold', desc: 'Parry or dodge.' },
-  { color: ATTACK_TELEGRAPH_CLASSES.heavy.color, name: 'Orange', desc: 'Hits harder — parry or dodge.' },
-  { color: ATTACK_TELEGRAPH_CLASSES.unblockable.color, name: 'Red', desc: 'Dodge only — no parry.' },
-];
-
-export function JourneyControlsReference({ compactMovementKeys = false } = {}) {
-  return (
-    <div className="journey-controls-reference">
-      <div className="journey-controls-keys-grid">
-        {JOURNEY_CONTROL_ROWS.map(row => {
-          const keys = compactMovementKeys
-            ? row.keys.filter(key => !['←', '→', '↑'].includes(key))
-            : row.keys;
-          return (
-            <div className="journey-control-row" key={row.label}>
-              <span className="journey-control-keys">
-                {keys.map(key => <kbd key={key}>{key}</kbd>)}
-              </span>
-              <span className="journey-control-label">{row.label}</span>
-            </div>
-          );
-        })}
-      </div>
-      <div className="journey-controls-legend">
-        <div className="journey-controls-legend-title">Read the attack tells</div>
-        {JOURNEY_TELEGRAPH_LEGEND.map(row => (
-          <div className="journey-telegraph-row" key={row.name}>
-            <span className="journey-telegraph-dot" style={{ '--tell-color': row.color }} aria-hidden="true" />
-            <span className="journey-telegraph-name">{row.name}</span>
-            <span className="journey-telegraph-desc">{row.desc}</span>
-          </div>
-        ))}
-        <p className="journey-controls-parry-tip">
-          <strong>Perfect dodge:</strong> tap <kbd>L</kbd> right as a blow lands to deflect it and
-          stagger the enemy — even red.
-        </p>
-      </div>
-    </div>
-  );
-}
 
 const ENEMY_TYPE_STAKE_MESSAGES = {
   scarab: 'Scarab face armor blocks frontal hits. Let it charge past, then strike from behind.',
@@ -17263,7 +17190,7 @@ export default function ExpeditionJourney({
     const recoveryActive = enemy.attackRecovery > 0 || enemy.vulnerabilityTimer > 0;
     if (!tellActive && !attackActive && !recoveryActive) return;
 
-    const telegraph = getEnemyAttackTelegraph(enemy);
+    const telegraph = getEnemyAttackTelegraph(enemy, HEAVY_ATTACK_PATTERNS);
     const boxX = attackBox.x - cameraX;
     const centerX = screenX + enemy.width / 2 - direction * 4;
     const footY = enemy.y + enemy.height + 4;
@@ -22439,7 +22366,7 @@ export default function ExpeditionJourney({
           const playerIsParrying = attackRect
             && e.attackTimer <= PARRY_WINDOW_DURATION
             && !current.attackHitIds.has(e.id)
-            && getEnemyAttackTelegraph(e).parryable
+            && getEnemyAttackTelegraph(e, HEAVY_ATTACK_PATTERNS).parryable
             && rectsOverlap(attackRect, getAttackHurtbox(e));
           if (playerIsPerfectDodging) {
             e.attackTimer = 0;
@@ -22602,7 +22529,7 @@ export default function ExpeditionJourney({
           });
           return;
         }
-        const isParry = getEnemyAttackTelegraph(e).parryable
+        const isParry = getEnemyAttackTelegraph(e, HEAVY_ATTACK_PATTERNS).parryable
           && (e.parried || (e.attackTimer > 0 && e.attackTimer <= PARRY_WINDOW_DURATION));
         const isFinisher = current.attackComboFinisherActive;
         const isHeavyAttack = current.attackType === PLAYER_ATTACK_TYPES.HEAVY;

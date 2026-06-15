@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import test from 'node:test';
+import { journeyComponentSource } from './journeySourceText.test-utils.mjs';
 
 const journeyDataSource = readFileSync(new URL('./journeyLevelData.js', import.meta.url), 'utf8');
-const journeyComponentSource = readFileSync(new URL('../ExpeditionJourney.jsx', import.meta.url), 'utf8');
 const appSource = readFileSync(new URL('../../App.jsx', import.meta.url), 'utf8');
 const sfxGeneratorSource = readFileSync(new URL('../../../scripts/generate_expedition_sfx.py', import.meta.url), 'utf8');
 const egyptAudioTracksUrl = new URL('./egyptAudioTracks.js', import.meta.url);

@@ -20,9 +20,9 @@ import {
   isEnemyDefeatedVisible,
   updateEnemyDefeatedVisibility,
 } from './journeyCombat.js';
+import { journeyComponentSource } from './journeySourceText.test-utils.mjs';
 import { readFileSync } from 'node:fs';
 
-const journeyComponentSource = readFileSync(new URL('../ExpeditionJourney.jsx', import.meta.url), 'utf8');
 const journeyUtilsSource = readFileSync(new URL('./journeyUtils.js', import.meta.url), 'utf8');
 const journeyCombatSource = readFileSync(new URL('./journeyCombat.js', import.meta.url), 'utf8');
 const journeyEnemySpritesSource = readFileSync(new URL('./journeyEnemySprites.js', import.meta.url), 'utf8');
@@ -284,13 +284,14 @@ test('enemy attack tells use compact timing overlays without arcade labels', () 
   assert.doesNotMatch(journeyComponentSource, /enemyVisibilityAssistActive = true/);
 });
 
-test('Phase 5C early desert combat feedback uses protected-site visual cues', () => {
-  assert.match(journeyComponentSource, /protectedSitePulse/);
+test('Phase 5C early desert combat feedback uses compact color-coded visual cues', () => {
+  assert.match(journeyComponentSource, /const pulse = 0\.72 \+ Math\.sin\(now \/ 90\) \* 0\.18/);
   assert.match(journeyComponentSource, /drawDeflectRing/);
   assert.match(journeyComponentSource, /recoveryGoldPulse/);
-  assert.match(journeyComponentSource, /guardedTell \? 0\.18 \+ protectedSitePulse \* 0\.08 : 0\.16/);
-  assert.match(journeyComponentSource, /guardedTell \? 'rgba\(80, 114, 122, 0\.22\)' : 'rgba\(136, 82, 36, 0\.2\)'/);
-  assert.match(journeyComponentSource, /ctx\.moveTo\(screenX \+ enemy\.width \/ 2 - direction \* 5, enemy\.y \+ 2\)/);
+  assert.match(journeyComponentSource, /const telegraph = getEnemyAttackTelegraph\(enemy, HEAVY_ATTACK_PATTERNS\)/);
+  assert.match(journeyComponentSource, /ctx\.fillStyle = telegraph\.color/);
+  assert.match(journeyComponentSource, /const parryNow = telegraph\.parryable && enemy\.attackTimer <= PARRY_WINDOW_DURATION/);
+  assert.match(journeyComponentSource, /ctx\.ellipse\(centerX, footY, enemy\.width \* 0\.78, 4\.5/);
   assert.match(journeyComponentSource, /enemy-guard-deflect/);
   assert.match(journeyComponentSource, /enemy-counter-window[\s\S]*?color:\s*'#d6b95c'/);
   assert.match(journeyComponentSource, /guardEffectType = 'enemy-guard-deflect'/);
