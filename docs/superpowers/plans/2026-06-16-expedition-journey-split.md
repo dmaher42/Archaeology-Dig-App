@@ -200,7 +200,7 @@ Expected: no gameplay-visible change. `ExpeditionMode.jsx` still imports `Journe
 - Test: `src/components/expedition-journey/journeySecrets.test.js`
 - Test: `src/components/expedition-journey/journeyEnemySprites.test.js`
 
-- [ ] **Step 1: Move only pure player visual declarations**
+- [x] **Step 1: Move only pure player visual declarations**
 
 Move these existing top-level declarations unchanged:
 
@@ -221,11 +221,11 @@ getHeroSpriteFrameKey
 
 Keep runtime collision, movement, stamina, and attack behavior in `ExpeditionJourney.jsx`.
 
-- [ ] **Step 2: Import the extracted helpers back into the component**
+- [x] **Step 2: Import the extracted helpers back into the component**
 
 Add imports from `journeyPlayerVisuals.js` for the moved names. Do not change the existing player atlas JSON imports until this task is green.
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Run:
 
