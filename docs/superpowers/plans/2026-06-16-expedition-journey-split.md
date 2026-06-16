@@ -376,7 +376,7 @@ Expected: opening intro, skip intro, arrival threshold, and opening audio refere
 - Test: `src/components/expedition-journey/journeySecrets.test.js`
 - Test: `src/components/expedition-journey/journeyPlacementOverrides.test.mjs`
 
-- [ ] **Step 1: Move the stack picker JSX into a component**
+- [x] **Step 1: Move the stack picker JSX into a component**
 
 Create `JourneyPlacementEditorStackPicker` inside `JourneyPlacementEditorPanel.jsx`. Pass the currently-used values as props:
 
@@ -393,7 +393,7 @@ export function JourneyPlacementEditorStackPicker({
 
 Replace `return null;` by moving the existing stack picker JSX unchanged from `ExpeditionJourney.jsx`. Keep the inline styles during the first move.
 
-- [ ] **Step 2: Move the editor panel JSX into a component**
+- [x] **Step 2: Move the editor panel JSX into a component**
 
 Create `JourneyPlacementEditorPanel` with explicit props for state and callbacks:
 
@@ -445,7 +445,7 @@ export function JourneyPlacementEditorPanel({
 
 Replace `return null;` by moving only the existing dev editor panel JSX. Do not move editor state, persistence, export/write logic, or pointer logic yet.
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Run:
 
