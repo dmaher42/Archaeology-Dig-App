@@ -595,6 +595,9 @@ Progress note: attack-arc placeholder renderer (`drawAttackArc`) has been moved 
 Progress note: placement editor overlay renderer (`drawPropPlacementEditorOverlay`) has been moved into `useJourneyRenderer.js`; stale source-inspection tests now read exported renderer frame functions; verified with scoped lint, Journey tests, enemy sprite tests, and build.
 Progress note: first main-draw tail slice (`drawCinematicCards`) has been moved into `useJourneyRenderer.js`; verified with scoped lint, Journey tests, enemy sprite tests, and build.
 Progress note: player feedback overlay slice (`drawPlayerFeedbackOverlays`) has been moved into `useJourneyRenderer.js`; verified with scoped lint, Journey tests, enemy sprite tests, and build.
+Progress note: debug platform overlay slice (`drawDebugPlatformOverlay`) has been moved into `useJourneyRenderer.js`; verified with scoped lint, Journey tests, enemy sprite tests, and build.
+Progress note: foreground occluder prop slice (`drawForegroundOccluderProps`) has been moved into `useJourneyRenderer.js`; route gates and stage foreground occluders were intentionally left in `ExpeditionJourney.jsx` because their draw callbacks are declared later in the component; verified with scoped lint, Journey tests, enemy sprite tests, and build.
+Progress note: missing objective marker renderer (`drawMissingObjectiveMarker`) has been moved into `useJourneyRenderer.js`; stale route-gate source-inspection delimiters now stop at the hazard renderer instead of the old marker callback; verified with scoped lint, Journey tests, enemy sprite tests, and build.
 
 Each moved callback should receive refs/callbacks through `deps`; do not import `stateRef` or `canvasRef` into the renderer module.
 

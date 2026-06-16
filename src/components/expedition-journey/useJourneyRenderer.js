@@ -6233,6 +6233,77 @@ export function drawPlayerFeedbackOverlaysFrame(ctx, current, cameraX, secretVer
   }
 }
 
+export function drawDebugPlatformOverlayFrame(ctx, current, cameraX, deps) {
+  const {
+    getRenderablePlatforms,
+    isHorizontallyVisible,
+    worldToScreenX,
+  } = deps;
+  const debugShow = window._pShow || [];
+  if (debugShow.length <= 0) return;
+  getRenderablePlatforms(current).forEach(p => {
+    if (!p.id || !debugShow.some(pfx => p.id.startsWith(pfx))) return;
+    const px = worldToScreenX(p.x, cameraX);
+    if (!isHorizontallyVisible(p.x, p.width, cameraX, 50)) return;
+    const adjustment = (window._pAdj || {})[p.id] || {};
+    const ay = adjustment.y || 0;
+    const ax = adjustment.x || 0;
+    const aw = adjustment.w || 0;
+    const dy = p.y + ay;
+    const dx = px + ax;
+    const dw = p.width + aw;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,100,0,0.95)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(dx, dy, dw, p.height);
+    ctx.fillStyle = 'rgba(255,100,0,0.22)';
+    ctx.fillRect(dx, dy, dw, p.height);
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 10px monospace';
+    ctx.fillText(`${p.id}  y=${Math.round(dy)}  x=${Math.round(p.x + ax)}  w=${Math.round(dw)}`, dx + 3, dy + 12);
+    ctx.restore();
+  });
+}
+
+export function drawForegroundOccluderPropsFrame(ctx, current, cameraX, now, deps) {
+  const { getZIndexSortedRenderableStoryProps } = deps;
+  getZIndexSortedRenderableStoryProps(current).forEach((prop) => (
+    drawStoryPropFrame(ctx, prop, cameraX, now, 'foreground-occluder', deps)
+  ));
+}
+
+export function drawMissingObjectiveMarkerFrame(ctx, guidance, cameraX, now, deps) {
+  const {
+    CANVAS_WIDTH,
+    worldToScreenX,
+  } = deps;
+  if (!guidance?.activeGateLocked || !guidance.nearestMissingObjective) return;
+  const target = guidance.nearestMissingObjective;
+  const isShardTarget = target.type === 'shards' || String(target.id || '').startsWith('shard-');
+  if (isShardTarget) return;
+  const targetScreenX = worldToScreenX(target.x, cameraX);
+  const pulse = Math.sin(now / 140) * 0.25 + 0.75;
+  ctx.save();
+  ctx.strokeStyle = `rgba(251, 191, 36, ${pulse})`;
+  ctx.fillStyle = '#78350f';
+  ctx.lineWidth = 3;
+  if (targetScreenX > 24 && targetScreenX < CANVAS_WIDTH - 24) {
+    ctx.beginPath();
+    ctx.arc(targetScreenX, 292, 20 + pulse * 6, 0, Math.PI * 2);
+    ctx.stroke();
+  } else {
+    const arrowX = targetScreenX < 0 ? 30 : CANVAS_WIDTH - 30;
+    const direction = targetScreenX < 0 ? -1 : 1;
+    ctx.beginPath();
+    ctx.moveTo(arrowX + direction * 13, 112);
+    ctx.lineTo(arrowX - direction * 13, 98);
+    ctx.lineTo(arrowX - direction * 13, 126);
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
 export function useJourneyRenderer(deps) {
   return {
     draw: deps.draw,
@@ -6269,6 +6340,7 @@ export function useJourneyRenderer(deps) {
     drawDesertJourneyScenePanels: (ctx, current, cameraX, now) => (
       drawDesertJourneyScenePanelsFrame(ctx, current, cameraX, now, deps)
     ),
+    drawDebugPlatformOverlay: (ctx, current, cameraX) => drawDebugPlatformOverlayFrame(ctx, current, cameraX, deps),
     drawEgyptAmbientLife: (ctx, section, cameraX, now) => drawEgyptAmbientLifeFrame(ctx, section, cameraX, now, deps),
     drawEnemyAttackTell: (ctx, enemy, screenX, cameraX, now, boss = false) => (
       drawEnemyAttackTellFrame(ctx, enemy, screenX, cameraX, now, boss, deps)
@@ -6276,11 +6348,17 @@ export function useJourneyRenderer(deps) {
     drawForegroundDepthLayer: (ctx, section, cameraX, now) => (
       drawForegroundDepthLayerFrame(ctx, section, cameraX, now, deps)
     ),
+    drawForegroundOccluderProps: (ctx, current, cameraX, now) => (
+      drawForegroundOccluderPropsFrame(ctx, current, cameraX, now, deps)
+    ),
     drawForgottenMuralChamberTransition: (ctx, scene) => drawForgottenMuralChamberTransitionFrame(ctx, scene, deps),
     drawLinkedEnemySprite: (ctx, enemy, screenX, now, shakeX = 0) => (
       drawLinkedEnemySpriteFrame(ctx, enemy, screenX, now, shakeX, deps)
     ),
     drawMiniBoss: (ctx, boss, screenX, now) => drawMiniBossFrame(ctx, boss, screenX, now, deps),
+    drawMissingObjectiveMarker: (ctx, guidance, cameraX, now) => (
+      drawMissingObjectiveMarkerFrame(ctx, guidance, cameraX, now, deps)
+    ),
     drawOpeningCinematic: (ctx, cinematic, now) => drawOpeningCinematicFrame(ctx, cinematic, now, deps),
     drawOpeningSphinxEncounter: (ctx, encounter, cameraX, now) => (
       drawOpeningSphinxEncounterFrame(ctx, encounter, cameraX, now, deps)

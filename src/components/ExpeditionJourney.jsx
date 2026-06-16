@@ -670,7 +670,7 @@ const isDesertEntryRebuildBackgroundPlateProp = (prop = {}) => (
 // sky wash (whose shaded mummification-temple side read as a dark shadow on the right).
 // This forces the rebuild-sky coverage to 0 (so the backdrop is no longer faded out)
 // and disables the scene panels + primary PNG plates that were layered over it.
-const DESERT_ENTRY_RESTORE_ORIGINAL_BACKDROP = true;
+const DESERT_ENTRY_RESTORE_ORIGINAL_BACKDROP = false;
 
 const getDesertEntryOpeningRebuildViewportCoverage = (cameraX = 0) => {
   if (DESERT_ENTRY_RESTORE_ORIGINAL_BACKDROP) return 0;
@@ -8880,12 +8880,15 @@ export default function ExpeditionJourney({
     drawDesertForegroundAtmosphere,
     drawDesertJourneySceneMasks,
     drawDesertJourneyScenePanels,
+    drawDebugPlatformOverlay,
     drawEgyptAmbientLife,
     drawEnemyAttackTell,
     drawForegroundDepthLayer,
+    drawForegroundOccluderProps,
     drawForgottenMuralChamberTransition,
     drawLinkedEnemySprite,
     drawMiniBoss,
+    drawMissingObjectiveMarker,
     drawOpeningCinematic,
     drawOpeningSphinxEncounter,
     drawOpeningThresholdScene,
@@ -9080,6 +9083,7 @@ export default function ExpeditionJourney({
     getStoryPropEditorBounds,
     getStoryPropEditorSize,
     getStoryPropPlacementPreset,
+    getZIndexSortedRenderableStoryProps,
     isDesertEntryRebuildBackgroundPlateProp,
     isLostBridgeRavineSpecialRendererProp,
     JOURNEY_FLAG_VISUAL_MODE,
@@ -11220,34 +11224,6 @@ export default function ExpeditionJourney({
     ctx.restore();
   }, []);
 
-  const drawMissingObjectiveMarker = useCallback((ctx, guidance, cameraX, now) => {
-    if (!guidance?.activeGateLocked || !guidance.nearestMissingObjective) return;
-    const target = guidance.nearestMissingObjective;
-    const isShardTarget = target.type === 'shards' || String(target.id || '').startsWith('shard-');
-    if (isShardTarget) return;
-    const targetScreenX = worldToScreenX(target.x, cameraX);
-    const pulse = Math.sin(now / 140) * 0.25 + 0.75;
-    ctx.save();
-    ctx.strokeStyle = `rgba(251, 191, 36, ${pulse})`;
-    ctx.fillStyle = '#78350f';
-    ctx.lineWidth = 3;
-    if (targetScreenX > 24 && targetScreenX < CANVAS_WIDTH - 24) {
-      ctx.beginPath();
-      ctx.arc(targetScreenX, 292, 20 + pulse * 6, 0, Math.PI * 2);
-      ctx.stroke();
-    } else {
-      const arrowX = targetScreenX < 0 ? 30 : CANVAS_WIDTH - 30;
-      const direction = targetScreenX < 0 ? -1 : 1;
-      ctx.beginPath();
-      ctx.moveTo(arrowX + direction * 13, 112);
-      ctx.lineTo(arrowX - direction * 13, 98);
-      ctx.lineTo(arrowX - direction * 13, 126);
-      ctx.closePath();
-      ctx.fill();
-    }
-    ctx.restore();
-  }, []);
-
   const drawHazardBurialCover = useCallback((ctx, centerX, footY, width, burial, sectionId) => {
     if (burial <= 0) return;
     const coverHeight = Math.max(5, width * (0.04 + burial * 0.08));
@@ -12679,7 +12655,7 @@ export default function ExpeditionJourney({
       });
     }
     drawPlayerSprite(ctx, player.x - cameraX, player.y, player.width, player.height, player.direction, player.invulnerable, now);
-    getZIndexSortedRenderableStoryProps(current).forEach((prop) => drawStoryProp(ctx, prop, cameraX, now, 'foreground-occluder'));
+    drawForegroundOccluderProps(ctx, current, cameraX, now);
     if (!chamberSceneActive) getRouteGateDoorwayEntries().forEach((entry) => {
       const status = getDoorwayGateStatus(entry, current);
       const gate = status.activeGate;
@@ -12701,7 +12677,9 @@ export default function ExpeditionJourney({
       if (!shouldRenderStageEntranceFeatureForState(feature, current)) return;
       drawStageEntranceForegroundOccluder(ctx, feature, cameraX, now);
     });
-    if (!chamberSceneActive && ENABLE_FOREGROUND_DEPTH_LAYER) drawForegroundDepthLayer(ctx, section, cameraX, now);
+    if (!chamberSceneActive && ENABLE_FOREGROUND_DEPTH_LAYER) {
+      drawForegroundDepthLayer(ctx, section, cameraX, now);
+    }
     drawOpeningThresholdScene(ctx, current.openingThresholdScene, cameraX, now);
     drawTempleThresholdTransition(ctx, current.templeThresholdTransition, now);
     drawForgottenMuralChamberTransition(ctx, current.forgottenMuralChamberTransition);
@@ -12710,33 +12688,14 @@ export default function ExpeditionJourney({
 
     drawPlayerFeedbackOverlays(ctx, current, cameraX, secretVerticalCameraOffset, now);
 
-    // DEBUG PLATFORM OVERLAY — drawn last so it appears on top of all building artwork
-    const _dbgShow = window._pShow || [];
-    if (_dbgShow.length > 0) {
-      getRenderablePlatforms(current).forEach(p => {
-        if (!p.id || !_dbgShow.some(pfx => p.id.startsWith(pfx))) return;
-        const px = worldToScreenX(p.x, cameraX);
-        if (!isHorizontallyVisible(p.x, p.width, cameraX, 50)) return;
-        const _e = (window._pAdj || {})[p.id] || {};
-        const ay = _e.y||0, ax = _e.x||0, aw = _e.w||0;
-        const dy = p.y + ay, dx = px + ax, dw = p.width + aw;
-        ctx.save();
-        ctx.strokeStyle = 'rgba(255,100,0,0.95)'; ctx.lineWidth = 2;
-        ctx.strokeRect(dx, dy, dw, p.height);
-        ctx.fillStyle = 'rgba(255,100,0,0.22)';
-        ctx.fillRect(dx, dy, dw, p.height);
-        ctx.fillStyle = '#fff'; ctx.font = 'bold 10px monospace';
-        ctx.fillText(p.id + '  y=' + Math.round(dy) + '  x=' + Math.round(p.x+ax) + '  w=' + Math.round(dw), dx + 3, dy + 12);
-        ctx.restore();
-      });
-    }
+    drawDebugPlatformOverlay(ctx, current, cameraX);
 
     drawPropPlacementEditorOverlay(ctx, current, cameraX);
 
     ctx.restore();
 
     drawCinematicCards(ctx, current);
-  }, [backgroundPackId, drawAncientRouteGround, drawArrivalThresholdScene, drawAttackArc, drawCinematicCards, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertEntryPrimaryBackgroundPlates, drawDesertForegroundAtmosphere, drawDesertJourneySceneMasks, drawDesertJourneyScenePanels, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawForegroundDepthLayer, drawMummificationChamberInterior, drawForgottenMuralChamberInterior, drawForgottenMuralChamberTransition, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawLostBridgeRavineDepth, drawLostBridgeRavineForegroundVoid, drawLostBridgeStructure, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawPlayerFeedbackOverlays, drawPremiumEgyptianChamberDoor, drawPropPlacementEditorOverlay, drawRouteGate, drawScarabQueenLairOpeningProp, drawScribeLockedChamberInterior, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawTrapProjectile, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getDoorwayGateStatus, getEditedMiniBoss, getEditedNestParams, getGateGuidance, getPlayerAttackState, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getZIndexSortedRenderableStoryProps, getRouteGateDoorwayEntries, getScarabQueenLairPlacement, isRouteRewardAccessible, resolveChamberEntryTrigger, drawPlayerSprite, drawFieldNoteLabel]);
+  }, [backgroundPackId, drawAncientRouteGround, drawArrivalThresholdScene, drawAttackArc, drawCinematicCards, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawChinaRiverValleyBackground, drawDebugPlatformOverlay, drawDesertEntryBackground, drawDesertEntryPrimaryBackgroundPlates, drawDesertForegroundAtmosphere, drawDesertJourneySceneMasks, drawDesertJourneyScenePanels, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawForegroundDepthLayer, drawForegroundOccluderProps, drawMummificationChamberInterior, drawForgottenMuralChamberInterior, drawForgottenMuralChamberTransition, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawLostBridgeRavineDepth, drawLostBridgeRavineForegroundVoid, drawLostBridgeStructure, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawPlayerFeedbackOverlays, drawPremiumEgyptianChamberDoor, drawPropPlacementEditorOverlay, drawRouteGate, drawScarabQueenLairOpeningProp, drawScribeLockedChamberInterior, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawTrapProjectile, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getDoorwayGateStatus, getEditedMiniBoss, getEditedNestParams, getGateGuidance, getPlayerAttackState, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getZIndexSortedRenderableStoryProps, getRouteGateDoorwayEntries, getScarabQueenLairPlacement, isRouteRewardAccessible, resolveChamberEntryTrigger, drawPlayerSprite, drawFieldNoteLabel]);
 
   const startOpeningCinematic = useCallback(({ speechEnabled = true, fromArrivalThreshold = false } = {}) => {
     const current = stateRef.current;

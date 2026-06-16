@@ -3815,11 +3815,11 @@ test('Expedition map avoids artificial in-world canvas text labels', () => {
 
 test('Journey progress gates use arch and slab assets instead of artificial padlock markers', () => {
   const drawStart = journeyComponentSource.indexOf('const drawRouteGate = useCallback');
-  const drawEnd = journeyComponentSource.indexOf('const drawMissingObjectiveMarker = useCallback', drawStart);
+  const drawEnd = journeyComponentSource.indexOf('const drawHazardBurialCover = useCallback', drawStart);
   const routeGateDrawSource = journeyComponentSource.slice(drawStart, drawEnd);
 
   assert.notEqual(drawStart, -1, 'Journey route gate renderer should exist');
-  assert.notEqual(drawEnd, -1, 'Missing-objective marker should follow route gate renderer');
+  assert.notEqual(drawEnd, -1, 'Hazard renderer should follow route gate renderer');
   assert.match(journeyComponentSource, /ROUTE_GATE_BACK_SRC = 'assets\/expedition\/environment\/egypt-opening\/route-gate-back\.png'/);
   assert.match(journeyComponentSource, /ROUTE_GATE_FRONT_SRC = 'assets\/expedition\/environment\/egypt-opening\/route-gate-front\.png'/);
   assert.match(journeyComponentSource, /ROUTE_GATE_SLAB_SRC = 'assets\/expedition\/environment\/egypt-opening\/route-gate-slab\.png'/);
@@ -3832,6 +3832,7 @@ test('Journey progress gates use arch and slab assets instead of artificial padl
   assert.match(routeGateDrawSource, /x: gateCenter - Math\.round\(frontWidth \/ 2\) \+ frontPillarPassageOffset/);
   assert.match(routeGateDrawSource, /flipX:\s*true/);
   assert.match(routeGateDrawSource, /layer === 'foreground'[\s\S]*?if \(complete\)/);
+  assert.match(useJourneyRendererSource, /drawMissingObjectiveMarkerFrame[\s\S]*?nearestMissingObjective/);
   assert.match(journeyComponentSource, /status\.complete/);
   assert.doesNotMatch(routeGateDrawSource, /drawFieldNoteLabel|gateRequirementLabel|gate\.name/);
   assert.doesNotMatch(routeGateDrawSource, /ctx\.arc\(gateCenter[\s\S]*?ctx\.fillRect\(gateCenter - 7/);
@@ -3839,7 +3840,7 @@ test('Journey progress gates use arch and slab assets instead of artificial padl
 
 test('Journey route gates use doorway anchors so linked seals draw as one blocked path', () => {
   const drawStart = journeyComponentSource.indexOf('const drawRouteGate = useCallback');
-  const drawEnd = journeyComponentSource.indexOf('const drawMissingObjectiveMarker = useCallback', drawStart);
+  const drawEnd = journeyComponentSource.indexOf('const drawHazardBurialCover = useCallback', drawStart);
   const routeGateDrawSource = journeyComponentSource.slice(drawStart, drawEnd);
   const collisionStart = journeyComponentSource.indexOf('// Gates');
   const collisionEnd = journeyComponentSource.indexOf('// Final Goal', collisionStart);
@@ -4652,7 +4653,8 @@ test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, an
   assert.match(journeyComponentSource, /propForAsset\.imageAssetKey === 'openingPyramidClimbPack'/);
   assert.match(journeyComponentSource, /ROUTE_GATE_STANDALONE_PROP_COLOR_GRADE_FILTER/);
   assert.match(journeyComponentSource, /PROP_EDITOR_DEPTH_OPTIONS = \['background', 'midground', 'grounded', 'route-edge', 'foreground-occluder'\]/);
-  assert.match(journeyComponentSource, /drawPlayerSprite\(ctx, player\.x - cameraX[\s\S]*?drawStoryProp\(ctx, prop, cameraX, now, 'foreground-occluder'\)/);
+  assert.match(journeyComponentSource, /drawPlayerSprite\(ctx, player\.x - cameraX[\s\S]*?drawForegroundOccluderProps\(ctx, current, cameraX, now\)/);
+  assert.match(useJourneyRendererSource, /drawForegroundOccluderPropsFrame[\s\S]*?drawStoryPropFrame\(ctx, prop, cameraX, now, 'foreground-occluder'/);
   assert.match(journeyComponentSource, /drawStandalonePropAsset/);
   assert.match(journeyComponentSource, /ctx\.scale\(\(propForAsset\.mirrorX \? -1 : 1\) \* horizontalSquash,\s*propForAsset\.mirrorY \? -1 : 1\)/);
   assert.match(journeyComponentSource, /const drawn = drawTransformedPropAsset\(\)/);
