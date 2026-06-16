@@ -26,6 +26,8 @@ import {
   DESERT_JOURNEY_SCENE_PANELS,
   DESERT_JOURNEY_TRANSITION_MASKS,
 } from './journeyDesertBackgroundPanels.js';
+import journeyPlacementOverrides from './journeyPlacementOverrides.generated.js';
+import { journeyComponentSource } from './journeySourceText.test-utils.mjs';
 
 const JOURNEY_TEST_VIEWPORT_WIDTH = 1280;
 
@@ -329,7 +331,7 @@ test('desert entry opening has a physical scarab threshold that explains the Anu
 });
 
 test('Desert Entry background rebuild uses clean physical transitions instead of full-screen PNG morphing', () => {
-  const journeySource = readFileSync(new URL('../ExpeditionJourney.jsx', import.meta.url), 'utf8');
+  const journeySource = journeyComponentSource;
 
   assert.equal(DESERT_JOURNEY_BACKGROUND_SYSTEM_VERSION, 'desert-journey-continuous-panels-2026-06-14');
   assert.deepEqual(DESERT_JOURNEY_LAYER_ROLES, ['sky', 'far', 'mid', 'ground', 'foreground']);
@@ -617,31 +619,34 @@ test('Desert Entry opening rebuild carries the pyramid, ravine, and Mummificatio
   const laterMummificationPlate = propById('desert-entry-mummification-to-mural-background-1');
   const retiredMummificationExterior = propById('desert-entry-generated-mummification-chamber-entrance-1');
   const mummificationDoorway = propById('desert-entry-ravine-mummification-doorway-transition-1');
-  const openingRebuildIds = [
+  const primaryBackgroundPlateIds = [
     'desert-entry-opening-pyramid-to-ravine-background-1',
     'desert-entry-ravine-bridge-background-1',
+  ];
+  const openingRebuildIds = [
     'desert-entry-ravine-to-mummification-background-1',
     'desert-entry-mummification-exterior-arrival-background-1',
   ];
   const routeCheckpoints = [
-    { id: 'desert-entry-opening-pyramid-to-ravine-background-1', targetX: 542 },
-    { id: 'desert-entry-ravine-bridge-background-1', targetX: 3014 },
     { id: 'desert-entry-ravine-to-mummification-background-1', targetX: 4550 },
     { id: 'desert-entry-mummification-exterior-arrival-background-1', targetX: 5600 },
   ];
   const expectedBackgroundSizes = {
-    'desert-entry-opening-pyramid-to-ravine-background-1': { width: 1672, height: 941 },
-    'desert-entry-ravine-bridge-background-1': { width: 1672, height: 941 },
     'desert-entry-ravine-to-mummification-background-1': { width: 1774, height: 887 },
     'desert-entry-mummification-exterior-arrival-background-1': { width: 1672, height: 941 },
   };
 
-  assert.ok(openingPyramid, 'the old editable opening pyramid record should remain available');
   assert.equal(
-    openingPyramid.alpha,
-    0,
-    'the old generated opening pyramid should be visually retired behind the regenerated opening plate',
+    openingPyramid,
+    undefined,
+    'the old generated opening pyramid should stay removed behind the primary background plates',
   );
+  assert.ok(journeyPlacementOverrides.deletedPropIds.includes('opening-pyramid-facade-structure'));
+  primaryBackgroundPlateIds.forEach((id) => {
+    assert.equal(propById(id), undefined, `${id} should be drawn by the primary plate renderer, not routed editor props`);
+    assert.ok(journeyPlacementOverrides.deletedPropIds.includes(id), `${id} should stay removed from routed editor props`);
+    assert.match(journeyComponentSource, new RegExp(`'${id}'`));
+  });
   assert.ok(retiredMummificationExterior, 'the old Mummification exterior record should remain available for editor continuity');
   assert.equal(retiredMummificationExterior.type, 'generated-mummification-chamber-entrance');
   assert.equal(retiredMummificationExterior.alpha, 0, 'the old generated exterior should be visually retired behind the physical doorway');
@@ -668,20 +673,11 @@ test('Desert Entry opening rebuild carries the pyramid, ravine, and Mummificatio
     assert.equal(prop.layer, 'background');
     assert.equal(prop.width, expectedBackgroundSizes[id].width);
     assert.equal(prop.height, expectedBackgroundSizes[id].height);
-    if (id === 'desert-entry-opening-pyramid-to-ravine-background-1') {
-      assert.equal(
-        prop.assetPath,
-        'assets/expedition/backgrounds/desert-entry/desert-entry-opening-benchmark-no-platforms.png',
-        'opening background should use the clean no-platforms plate so the circled mid-ground ruin maze stays removed',
-      );
-    }
     assert.equal(prop.alpha, 1, `${id} should draw at full placement opacity`);
-    if (id !== 'desert-entry-opening-pyramid-to-ravine-background-1') {
-      assert.ok(
-        prop.assetPath?.startsWith('assets/expedition/backgrounds/desert-entry-opening-rebuild/'),
-        `${id} should load from the regenerated opening rebuild background folder`,
-      );
-    }
+    assert.ok(
+      prop.assetPath?.startsWith('assets/expedition/backgrounds/desert-entry-opening-rebuild/'),
+      `${id} should load from the regenerated opening rebuild background folder`,
+    );
     assert.ok(existsSync(`public/${prop.assetPath}`), `${id} image file should exist on disk`);
     const checkpoint = routeCheckpoints.find(item => item.id === id);
     const cameraX = Math.max(0, checkpoint.targetX - JOURNEY_TEST_VIEWPORT_WIDTH * 0.42);
@@ -705,12 +701,11 @@ test('Desert Entry opening rebuild carries the pyramid, ravine, and Mummificatio
     'the busy Mummification-to-Mural background plate should stay visually retired so close background ruins do not draw',
   );
   assert.equal(
-    ravineOverlay?.assetPath,
-    'assets/expedition/backgrounds/desert-entry-opening-rebuild/desert-entry-ravine-bridge-depth-overlay-2026-06-11.png',
-    'retired ravine depth overlay should remain traceable but not visible over the rebuilt raw background',
+    ravineOverlay,
+    undefined,
+    'retired ravine depth overlay should stay removed from routed editor props',
   );
-  assert.equal(ravineOverlay?.alpha, 0);
-  assert.ok(existsSync(`public/${ravineOverlay.assetPath}`), 'ravine depth overlay image file should exist on disk');
+  assert.ok(journeyPlacementOverrides.deletedPropIds.includes('desert-entry-lost-bridge-ravine-floor-deep-1'));
 
   [
     'desert-entry-lost-bridge-mummification-transition-apron-1',

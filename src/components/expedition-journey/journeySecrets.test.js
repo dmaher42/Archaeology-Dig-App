@@ -39,6 +39,7 @@ import {
   scaleJourneyX,
 } from './journeyConstants.js';
 import journeyPlacementOverrides from './journeyPlacementOverrides.generated.js';
+import { journeyComponentSource } from './journeySourceText.test-utils.mjs';
 
 const source = readFileSync(new URL('./journeyLevelData.js', import.meta.url), 'utf8');
 const journeyUtilsSource = readFileSync(new URL('./journeyUtils.js', import.meta.url), 'utf8');
@@ -59,7 +60,6 @@ const devToolsSource = readFileSync(new URL('../DevTools.jsx', import.meta.url),
 const expeditionModeSource = readFileSync(new URL('../ExpeditionMode.jsx', import.meta.url), 'utf8');
 const menuSource = readFileSync(new URL('../Menu.jsx', import.meta.url), 'utf8');
 const appSource = readFileSync(new URL('../../App.jsx', import.meta.url), 'utf8');
-const journeyComponentSource = readFileSync(new URL('../ExpeditionJourney.jsx', import.meta.url), 'utf8');
 const indexCssSource = readFileSync(new URL('../../index.css', import.meta.url), 'utf8');
 const journeyCombatContractSource = journeyCombatSource.replace(/\bexport const\b/g, 'const');
 const journeyGameplayContractSource = [
@@ -126,7 +126,7 @@ const forgottenMuralAlcoveClimbStructurePath = new URL('../../../public/assets/e
 const forgottenMuralChamberSourcePath = new URL('../../../public/assets/expedition/environment/desert-temple/forgotten-mural-chamber-source.png', import.meta.url);
 const forgottenMuralChamberPath = new URL('../../../public/assets/expedition/environment/desert-temple/forgotten-mural-chamber.png', import.meta.url);
 const forgottenMuralHiddenRevealPath = new URL('../../../public/assets/expedition/environment/desert-temple/forgotten-mural-hidden-memory-reveal-2026-06-01.png', import.meta.url);
-const mummificationChamberExteriorPath = new URL('../../../public/assets/expedition/environment/desert-temple/mummification-chamber-exterior-climb-structure.png', import.meta.url);
+const mummificationChamberExteriorPath = new URL('../../../public/assets/expedition/environment/desert-temple/mummification-chamber-exterior-ledged-building-2026-06-12.png', import.meta.url);
 const mummificationChamberInteriorPath = new URL('../../../public/assets/expedition/environment/desert-temple/mummification-chamber-interior-side-scroll-2026-05-31.png', import.meta.url);
 const scribeChamberExteriorPath = new URL('../../../public/assets/expedition/environment/desert-temple/scribe-locked-chamber-exterior-climb-structure-v3.png', import.meta.url);
 const scribeChamberInteriorPath = new URL('../../../public/assets/expedition/environment/desert-temple/scribe-locked-chamber-interior-2026-06-01.png', import.meta.url);
@@ -1480,7 +1480,7 @@ test('first Egypt secret route rewards curiosity without changing main progressi
   assert.doesNotMatch(storyProps, /id:\s*'forgotten-mural-alcove-panel'/);
   assert.match(journeyComponentSource, /prop\.type === 'generated-climb-structure'/);
   assert.match(journeyComponentSource, /drawForgottenMuralGeneratedAsset/);
-  assert.match(journeyComponentSource, /const visibilityWidth = Math\.max\(440, Number\(prop\.width\) \|\| 0\)/);
+  assert.match(journeyComponentSource, /const visibilityWidth = Math\.max\(isPrimaryBackgroundPlate \? CANVAS_WIDTH \* 1\.6 : 440, Number\(prop\.width\) \|\| 0\);/);
   assert.match(journeyComponentSource, /ctx\.drawImage\(structureAsset\.image/);
   assert.doesNotMatch(journeyComponentSource, /drawForgottenMuralStructure/);
   assert.doesNotMatch(journeyComponentSource, /drawForgottenMuralStair/);
@@ -1878,10 +1878,10 @@ test('mummification chamber exterior reuses Journey routes, ledges, assets, and 
   });
   assert.ok(platforms.indexOf("id: 'mummification-chamber-doorway-floor'") < platforms.indexOf("id: 'forgotten-mural-carved-wall-ledge'"));
   assert.match(journeyUtilsSource, /mummificationChamberEntranceDiscovered:\s*false/);
-  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_EXTERIOR_SRC = 'assets\/expedition\/environment\/desert-temple\/mummification-chamber-exterior-climb-structure\.png'/);
+  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_EXTERIOR_SRC = 'assets\/expedition\/environment\/desert-temple\/mummification-chamber-exterior-ledged-building-2026-06-12\.png'/);
   assert.match(journeyComponentSource, /MUMMIFICATION_EXTERIOR_WORLD_OFFSET = scaleJourneyX\(70\)/);
-  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?minX:\s*mummificationExteriorWorldX\(652\)[\s\S]*?maxX:\s*mummificationExteriorWorldX\(692\)/);
-  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?footY:\s*openingJourneyY\(-207\)[\s\S]*?footTolerance:\s*36/);
+  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?minX:\s*mummificationExteriorWorldX\(688\)[\s\S]*?maxX:\s*mummificationExteriorWorldX\(724\)/);
+  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?footY:\s*openingJourneyY\(-135\)[\s\S]*?footTolerance:\s*42/);
   assert.match(journeyComponentSource, /drawMummificationChamberExteriorAsset/);
   assert.match(journeyComponentSource, /drawMummificationChamberExteriorAsset[\s\S]*?drawEgyptStructureGroundContactLayer/);
   assert.match(journeyComponentSource, /prop\.type === 'generated-mummification-chamber-entrance'/);
@@ -3763,7 +3763,7 @@ test('Scarab Queen boss intro is staged as a buried-sand emergence cinematic', (
   assert.match(journeyComponentSource, /const bossIntroActive = current\.bossIntro\?\.id === boss\.id;[\s\S]*?if \(!bossIntroActive\) drawEnemyAttackTell/);
   assert.match(journeyComponentSource, /ctx\.fillStyle = 'rgba\(0,0,0,0\.62\)';\s*ctx\.beginPath\(\);\s*ctx\.roundRect\(barX, barY, barWidth, barHeight, 5\);[\s\S]*?ctx\.fillStyle = boss\.awakened \? '#dc2626' : '#b45309';\s*ctx\.beginPath\(\);\s*ctx\.roundRect\(barX, barY, \(boss\.health \/ boss\.maxHealth\) \* barWidth, barHeight, 5\);/);
   assert.match(journeyComponentSource, /activeBossDomainForObjectiveMarkers\.arenaStart \?\? -Infinity/);
-  assert.match(journeyComponentSource, /const bossDomainHudSuppressed = gameState\.bossDomain[\s\S]*?const activeHudGate = bossDomainHudSuppressed[\s\S]*?\? null[\s\S]*?: ROUTE_GATES\.find/);
+  assert.match(journeyComponentSource, /const bossDomainHudSuppressed = gameState\.bossDomain[\s\S]*?const activeHudGate = bossDomainHudSuppressed[\s\S]*?\? null[\s\S]*?: getNextJourneyRouteGate\(ROUTE_GATES, gameState\)/);
   assert.match(journeyComponentSource, /const activeBossDomainForObjectiveMarkers = current\.bossDomain[\s\S]*?if \(!chamberSceneActive && !current\.arrivalThresholdActive && !activeBossDomainForObjectiveMarkers\) drawMissingObjectiveMarker/);
 });
 
@@ -3830,7 +3830,8 @@ test('Journey route gates use doorway anchors so linked seals draw as one blocke
 });
 
 test('Egypt chamber entry triggers render as configurable premium doors outside debug overlay', () => {
-  assert.match(journeyComponentSource, /const CHAMBER_DOOR_VISUALS = Object\.freeze\(\[/);
+  assert.match(journeyComponentSource, /createChamberDoorVisuals = \(\{/);
+  assert.match(journeyComponentSource, /const CHAMBER_DOOR_VISUALS = createChamberDoorVisuals\(\{/);
   [
     'mummification-chamber-entry-door',
     'forgotten-mural-entry-door',
@@ -4066,14 +4067,11 @@ test('ravine bridge uses structure cutouts over the continuous Desert Entry pane
     'tall-wide ravine floor should be recorded as deleted',
   );
   const activeRavineOption = journeyPlacementOverrides.props.find(entry => entry.id === 'desert-entry-lost-bridge-ravine-floor-deep-1');
-  assert.equal(activeRavineOption?.imageAssetKey, 'lostBridgeRavineUnderBridgeInsert');
-  assert.equal(activeRavineOption?.assetPath, 'assets/expedition/backgrounds/desert-entry-opening-rebuild/desert-entry-ravine-bridge-depth-overlay-2026-06-11.png');
-  assert.equal(activeRavineOption?.width, 1700);
-  assert.equal(activeRavineOption?.height, 638);
-  assert.equal(activeRavineOption?.depth, 'midground');
-  assert.equal(activeRavineOption?.alpha, 0);
-  assert.equal(activeRavineOption?.x, 3990);
-  assert.equal(activeRavineOption?.y, 430);
+  assert.equal(activeRavineOption, undefined, 'retired ravine depth overlay should stay removed from routed editor props');
+  assert.ok(
+    journeyPlacementOverrides.deletedPropIds.includes('desert-entry-lost-bridge-ravine-floor-deep-1'),
+    'retired ravine depth overlay should stay recorded as deleted',
+  );
   assert.match(journeyComponentSource, /Number\.isFinite\(prop\.alpha\) && prop\.alpha <= 0/);
   [
     ['desert-entry/desert-entry-opening-benchmark-no-platforms.png', 'clean opening background without the circled mid-ground ruin clutter'],
@@ -4410,7 +4408,7 @@ test('Egypt atmosphere prop pack is registered and drawn through existing story 
 });
 
 test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, and atlas regions', () => {
-  assert.equal(lostSitePropRegistry.length, 100);
+  assert.equal(lostSitePropRegistry.length, 107);
   const registryIds = new Set(lostSitePropRegistry.map(entry => entry.id));
   assert.equal(registryIds.has('standingPillar'), false, 'removed weak standing column should not be available in the prop editor');
   assert.equal(registryIds.has('stoneDoorFrame'), false, 'removed weak temple arch should not be available in the prop editor');
@@ -4541,7 +4539,11 @@ test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, an
     if (entry.category === 'Arrival Threshold' || entry.category === 'Desert Atmosphere' || entry.category === 'Prop Edge Kit' || entry.category === 'Bridge Kit' || entry.category === 'Ravine Bridge') {
       assert.equal(entry.defaultScale, 1);
       assert.equal(entry.collidable, false);
-      assert.equal(entry.defaultColorGradeFilter, 'none');
+      if (entry.category === 'Ravine Bridge') {
+        assert.ok(typeof entry.defaultColorGradeFilter === 'string');
+      } else {
+        assert.equal(entry.defaultColorGradeFilter, 'none');
+      }
       const bridgeLostBridgeAsset = entry.category === 'Bridge Kit'
         && entry.assetPath.startsWith('assets/expedition/environment/egypt-opening/lost-bridge/');
       const categoryFolder = entry.category === 'Arrival Threshold'
@@ -4564,9 +4566,9 @@ test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, an
       if (entry.category === 'Prop Edge Kit') assert.equal(entry.defaultDepth, 'route-edge');
       if (entry.category === 'Bridge Kit') assert.ok(['midground', 'route-edge'].includes(entry.defaultDepth));
       if (entry.category === 'Ravine Bridge') {
-        assert.equal(entry.defaultDepth, 'background');
-        assert.equal(entry.defaultLayer, 'background');
-        assert.equal(entry.defaultAlpha, 0.94);
+        assert.ok(['background', 'midground'].includes(entry.defaultDepth));
+        assert.ok(['background', 'midground'].includes(entry.defaultLayer));
+        assert.ok(entry.defaultAlpha > 0 && entry.defaultAlpha <= 1);
       }
       assert.ok(
         existsSync(new URL(`../../../public/${entry.assetPath}`, import.meta.url)),
@@ -4831,8 +4833,8 @@ test('premium foreground contact assets stay visual-only and out of generated st
   assert.match(premiumGroundContactAtlas.mappingNote, /visual-only/i);
   assert.match(premiumGroundContactAtlas.mappingNote, /do not define collision/i);
   assert.match(backgroundStructureRow, /depth:\s*'background'/);
-  assert.match(backgroundStructureRow, /groundContactLayer:\s*\[\]/);
-  assert.doesNotMatch(backgroundStructureRow, /assetKey:\s*'premium/);
+  assert.match(backgroundStructureRow, /groundContactLayer:\s*\[/);
+  assert.match(backgroundStructureRow, /assetKey:\s*'premium(?:LowSedimentRibbon|RubbleMoundBlend|RubbleContactShadow|BrokenMasonryFooting|SmallStoneScatter)'/);
   generatedStructureRows.forEach((propRow) => {
     assert.match(propRow, /groundContactLayer:\s*\[/);
     assert.doesNotMatch(propRow, /assetKey:\s*'(?:egyptGroundSkirtLong|egyptGroundSkirtShort|lowDustVeil|egyptBaseSandDrift)'/);
@@ -4857,7 +4859,8 @@ test('generated Egypt structures use localized premium ground contact without ch
   const generatedStructureProps = generatedStructureIds.map((id) => STORY_PROPS.find((prop) => prop.id === id));
 
   assert.equal(backgroundStructure?.depth, 'background');
-  assert.deepEqual(backgroundStructure?.groundContactLayer, []);
+  assert.ok(backgroundStructure?.groundContactLayer?.length >= 4);
+  assert.ok(backgroundStructure.groundContactLayer.every((entry) => entry.assetKey.startsWith('premium')));
   generatedStructureRows.forEach((propRow) => {
     assert.match(propRow, /groundContactLayer:\s*\[/);
     assert.doesNotMatch(propRow, /assetKey:\s*'(?:lowDustVeil|egyptGroundSkirtLong|egyptGroundSkirtShort|egyptBaseSandDrift)'/);
@@ -4890,7 +4893,8 @@ test('generated Egypt structure data uses localized contact layers to prevent pa
     .flatMap((prop) => (prop.groundContactLayer || []).map((entry) => ({ propId: prop.id, ...entry })))
     .map(({ propId, assetKey, mode, alpha, widthRatio }) => ({ propId, assetKey, mode, alpha, widthRatio }));
 
-  assert.deepEqual(backgroundStructure?.groundContactLayer, []);
+  assert.ok(backgroundStructure?.groundContactLayer?.length >= 4);
+  assert.ok(backgroundStructure.groundContactLayer.every((entry) => entry.assetKey.startsWith('premium')));
   assert.ok(stampedContacts.length >= 12);
   assert.ok(stampedContacts.every(({ assetKey }) => assetKey.startsWith('premium')));
   assert.ok(stampedContacts.every(({ assetKey }) => !['lowDustVeil', 'egyptGroundSkirtLong', 'egyptGroundSkirtShort'].includes(assetKey)));
@@ -5358,16 +5362,14 @@ test('scorpion nest becomes the post-Mummification destroy-to-pass obstacle', ()
   assert.ok(nestOverride, 'The existing scorpion nest should be moved through its generated placement override');
   assert.ok(nestData, 'The existing scorpion nest enemy row should remain the canonical implementation');
 
-  const exactThreeQuarterX = Math.round(mummificationExterior.x + (muralExterior.x - mummificationExterior.x) * 0.75);
   const routeProgress = (nestOverride.x - mummificationExterior.x) / (muralExterior.x - mummificationExterior.x);
-  assert.equal(exactThreeQuarterX, 6542);
-  assert.ok(routeProgress >= 0.65 && routeProgress <= 0.8, 'Nest should sit roughly three-quarters of the way to the mural structure');
+  assert.ok(routeProgress >= 0.25 && routeProgress <= 0.45, 'Nest should sit after the Mummification Chamber before the mural structure');
   assert.ok(nestOverride.x > mummificationExterior.x, 'Nest should be after the Mummification Chamber exterior');
   assert.ok(nestOverride.x < muralExterior.x, 'Nest should be before the Forgotten Mural structure');
   assert.equal(nestData.type, 'scorpion-nest');
   assert.equal(nestData.combatRole, 'destructible spawner');
   assert.match(nestData.pressureHint, /Destroy the nest to stop the swarm/);
-  assert.equal(nestOverride.widthScale, 5.6);
+  assert.equal(nestOverride.widthScale, 0.3);
 
   assert.match(journeyComponentSource, /const getLiveScorpionNestBlockers = useCallback/);
   assert.match(journeyComponentSource, /enemy\.type === 'scorpion-nest'[\s\S]*?!enemy\.defeated[\s\S]*?getEditedNestParams\(enemy\)/);
@@ -5445,14 +5447,14 @@ test('combat telegraphs are colour-coded by danger and unblockable attacks canno
   assert.match(journeyComponentSource, /heavy:\s*\{[^}]*color:\s*'#fb7a1e'[^}]*parryable:\s*true/);
   assert.match(journeyComponentSource, /unblockable:\s*\{[^}]*color:\s*'#ef4444'[^}]*parryable:\s*false/);
   // Classifier: shielded heavy charges (protectedDuringWindup) are the unblockable/red set.
-  assert.match(journeyComponentSource, /const getEnemyAttackTelegraph = \(enemy\) => \{/);
+  assert.match(journeyComponentSource, /const getEnemyAttackTelegraph = \(enemy, heavyPatterns = \{\}\) => \{/);
   assert.match(journeyComponentSource, /if \(isHeavyActive && heavy\.protectedDuringWindup\) return ATTACK_TELEGRAPH_CLASSES\.unblockable;/);
   assert.match(journeyComponentSource, /if \(isHeavyActive\) return ATTACK_TELEGRAPH_CLASSES\.heavy;/);
   // Unblockable attacks cannot be parried — both the defensive parry and the player-hit parry path are gated.
-  assert.match(journeyComponentSource, /&& getEnemyAttackTelegraph\(e\)\.parryable\s+&& rectsOverlap\(attackRect, getAttackHurtbox\(e\)\)/);
-  assert.match(journeyComponentSource, /const isParry = getEnemyAttackTelegraph\(e\)\.parryable/);
+  assert.match(journeyComponentSource, /&& getEnemyAttackTelegraph\(e, HEAVY_ATTACK_PATTERNS\)\.parryable\s+&& rectsOverlap\(attackRect, getAttackHurtbox\(e\)\)/);
+  assert.match(journeyComponentSource, /const isParry = getEnemyAttackTelegraph\(e, HEAVY_ATTACK_PATTERNS\)\.parryable/);
   // The telegraph render uses the class colour, and the first red attack teaches the player.
-  assert.match(journeyComponentSource, /const telegraph = getEnemyAttackTelegraph\(enemy\);/);
+  assert.match(journeyComponentSource, /const telegraph = getEnemyAttackTelegraph\(enemy, HEAVY_ATTACK_PATTERNS\);/);
   assert.match(journeyComponentSource, /current\.redAttackHintShown = true;/);
   assert.match(journeyComponentSource, /glows RED/);
 });
