@@ -466,7 +466,7 @@ Expected: editor still opens, builds export, writes to source in dev, clears dra
 - Modify: `src/components/ExpeditionJourney.jsx`
 - Test: `src/components/expedition-journey/journeySecrets.test.js`
 
-- [ ] **Step 1: Move only presentational overlays**
+- [x] **Step 1: Move only presentational overlays**
 
 Move these JSX regions into exported components:
 
@@ -483,11 +483,11 @@ briefing overlay
 
 Keep all state mutation callbacks in `ExpeditionJourney.jsx` and pass them down as props.
 
-- [ ] **Step 2: Keep the canvas and pointer handlers in `ExpeditionJourney.jsx`**
+- [x] **Step 2: Keep the canvas and pointer handlers in `ExpeditionJourney.jsx`**
 
 Do not move `<canvas>`, `handlePointerDown`, `handlePointerMove`, or `handlePointerUp` in this task.
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Run:
 
