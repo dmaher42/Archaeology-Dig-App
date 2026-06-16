@@ -52,6 +52,7 @@ const journeyMarkerSpritesSource = readFileSync(new URL('./journeyMarkerSprites.
 const journeyBackgroundAssetsSource = readFileSync(new URL('./journeyBackgroundAssets.js', import.meta.url), 'utf8');
 const journeyCollectibleSpritesSource = readFileSync(new URL('./journeyCollectibleSprites.js', import.meta.url), 'utf8');
 const journeyRenderAssetsSource = readFileSync(new URL('./journeyRenderAssets.js', import.meta.url), 'utf8');
+const useJourneyRendererSource = readFileSync(new URL('./useJourneyRenderer.js', import.meta.url), 'utf8');
 const journeyPlacementOverridesSource = readFileSync(new URL('./journeyPlacementOverrides.js', import.meta.url), 'utf8');
 const journeyPlacementGeneratedOverrideSource = readFileSync(new URL('./journeyPlacementOverrides.generated.js', import.meta.url), 'utf8');
 const journeyTrapsSource = readFileSync(new URL('./journeyTraps.js', import.meta.url), 'utf8');
@@ -92,6 +93,13 @@ test('Journey world stretch uses the widened horizontal route scale', () => {
   assert.ok(JOURNEY_HORIZONTAL_SCALE >= 7.3);
   assert.equal(WORLD_WIDTH, scaleJourneyX(9060));
 });
+
+test('Journey renderer receives the horizontal scale helper used by platform drawing', () => {
+  assert.match(useJourneyRendererSource, /scaleJourneyX,/);
+  assert.match(useJourneyRendererSource, /platform\.x < scaleJourneyX\(720\)/);
+  assert.match(journeyComponentSource, /useJourneyRenderer\(\{[\s\S]*?scaleJourneyX,[\s\S]*?worldToScreenX,/);
+});
+
 const egyptPreviousPlayerAtlas = JSON.parse(
   readFileSync(new URL('../../../public/assets/expedition/player/asha-hooded-warrior-explorer-spritesheet.json', import.meta.url), 'utf8'),
 );
@@ -3754,8 +3762,8 @@ test('Scarab Queen boss intro is staged as a buried-sand emergence cinematic', (
   assert.doesNotMatch(journeyComponentSource, /SCARAB_QUEEN_TRIGGER_LOOTER_OFFSET/);
   assert.match(journeyComponentSource, /const SCARAB_QUEEN_CINEMATIC_CAMERA_ANCHOR_RATIO = 0\.72/);
   assert.match(journeyComponentSource, /const SCARAB_QUEEN_LAIR_OPENING_IMAGE_SRC = 'assets\/expedition\/bosses\/scarab-queen-buried-lair-opening\.png'/);
-  assert.match(journeyComponentSource, /const drawScarabQueenLairOpeningProp = useCallback/);
-  assert.match(journeyComponentSource, /width.*crack \* 64/);
+  assert.match(useJourneyRendererSource, /export function drawScarabQueenLairOpeningPropFrame/);
+  assert.match(useJourneyRendererSource, /width.*crack \* 64/);
   assert.match(journeyComponentSource, /const getScarabQueenEmergenceBeat = \(introProgress\) =>/);
   assert.match(journeyComponentSource, /buriedSealCrack:/);
   assert.match(journeyComponentSource, /glyphGlow:/);
@@ -3769,15 +3777,15 @@ test('Scarab Queen boss intro is staged as a buried-sand emergence cinematic', (
   assert.match(journeyComponentSource, /cameraAnchorRatio:\s*scarabQueenCinematic \? SCARAB_QUEEN_CINEMATIC_CAMERA_ANCHOR_RATIO : null/);
   assert.match(journeyComponentSource, /const bossIntroTriggerDistance = scarabSealRequired \? SCARAB_QUEEN_INTRO_TRIGGER_DISTANCE : 400/);
   assert.doesNotMatch(journeyComponentSource, /LAIR OPENS|QUEEN RISES|FIELD TEAM/);
-  assert.match(journeyComponentSource, /const buriedSandEmergenceActive = Boolean\(activeBossDomain\?\.buriedSandEmergence && introActive\)/);
-  assert.match(journeyComponentSource, /cinematicBeat:\s*buriedSandEmergenceActive \? getScarabQueenEmergenceBeat\(introProgress\) : null/);
+  assert.match(useJourneyRendererSource, /const buriedSandEmergenceActive = Boolean\(activeBossDomain\?\.buriedSandEmergence && introActive\)/);
+  assert.match(useJourneyRendererSource, /cinematicBeat:\s*buriedSandEmergenceActive \? getScarabQueenEmergenceBeat\(introProgress\) : null/);
   assert.doesNotMatch(journeyComponentSource, /id:\s*'scarab-queen-trigger-looter'[\s\S]*?type:\s*'looter'/);
-  assert.match(journeyComponentSource, /if \(boss\.id === 'scarab-queen' && bossVisualState\?\.buriedSandEmergence && bossVisualState\.cinematicBeat\?\.queenRise <= 0\) return false;/);
+  assert.match(useJourneyRendererSource, /if \(boss\.id === 'scarab-queen' && bossVisualState\?\.buriedSandEmergence && bossVisualState\.cinematicBeat\?\.queenRise <= 0\) return false;/);
   assert.match(journeyComponentSource, /if \(isBuriedScarabQueen && current\.bossDomain\?\.bossId === boss\.id\) \{[\s\S]*?drawScarabQueenLairOpeningProp\(ctx,/);
   assert.match(journeyComponentSource, /SCARAB_QUEEN_EMERGENCE_INTRO_SECONDS[\s\S]*?current\.bossIntro = \{[\s\S]*?title:\s*`Buried Lair: \$\{boss\.name\}`/);
   assert.match(journeyComponentSource, /target === 'journey-boss-intro-progress'/);
   assert.match(journeyComponentSource, /const bossIntroActive = current\.bossIntro\?\.id === boss\.id;[\s\S]*?if \(!bossIntroActive\) drawEnemyAttackTell/);
-  assert.match(journeyComponentSource, /ctx\.fillStyle = 'rgba\(0,0,0,0\.62\)';\s*ctx\.beginPath\(\);\s*ctx\.roundRect\(barX, barY, barWidth, barHeight, 5\);[\s\S]*?ctx\.fillStyle = boss\.awakened \? '#dc2626' : '#b45309';\s*ctx\.beginPath\(\);\s*ctx\.roundRect\(barX, barY, \(boss\.health \/ boss\.maxHealth\) \* barWidth, barHeight, 5\);/);
+  assert.match(useJourneyRendererSource, /ctx\.fillStyle = 'rgba\(0,0,0,0\.62\)';\s*ctx\.beginPath\(\);\s*ctx\.roundRect\(barX, barY, barWidth, barHeight, 5\);[\s\S]*?ctx\.fillStyle = boss\.awakened \? '#dc2626' : '#b45309';\s*ctx\.beginPath\(\);\s*ctx\.roundRect\(barX, barY, \(boss\.health \/ boss\.maxHealth\) \* barWidth, barHeight, 5\);/);
   assert.match(journeyComponentSource, /activeBossDomainForObjectiveMarkers\.arenaStart \?\? -Infinity/);
   assert.match(journeyComponentSource, /const bossDomainHudSuppressed = gameState\.bossDomain[\s\S]*?const activeHudGate = bossDomainHudSuppressed[\s\S]*?\? null[\s\S]*?: getNextJourneyRouteGate\(ROUTE_GATES, gameState\)/);
   assert.match(journeyComponentSource, /const activeBossDomainForObjectiveMarkers = current\.bossDomain[\s\S]*?if \(!chamberSceneActive && !current\.arrivalThresholdActive && !activeBossDomainForObjectiveMarkers\) drawMissingObjectiveMarker/);
@@ -3967,6 +3975,19 @@ test('ravine bridge uses structure cutouts over the continuous Desert Entry pane
   );
   assert.match(journeyComponentSource, /layer:\s*'above-floor-below-bridge-platforms'/);
   assert.match(journeyComponentSource, /lostBridgeRavineStripBounds/);
+  assert.match(journeyComponentSource, /LOST_BRIDGE_RAVINE_FOREGROUND_VOID_SIDE_PAD = 180/);
+  assert.match(journeyComponentSource, /LOST_BRIDGE_RAVINE_FOREGROUND_VOID_MIN_TOP_OFFSET = 310/);
+  assert.match(journeyComponentSource, /LOST_BRIDGE_RAVINE_FOREGROUND_VOID_GROUND_CLEARANCE = 8/);
+  assert.match(journeyComponentSource, /const voidWorldLeft = bounds\.left - LOST_BRIDGE_RAVINE_FOREGROUND_VOID_SIDE_PAD/);
+  assert.match(journeyComponentSource, /const voidWorldRight = bounds\.right \+ LOST_BRIDGE_RAVINE_FOREGROUND_VOID_SIDE_PAD/);
+  assert.match(
+    journeyComponentSource,
+    /const top = Math\.max\([\s\S]*?bounds\.y \+ LOST_BRIDGE_RAVINE_FOREGROUND_VOID_MIN_TOP_OFFSET,[\s\S]*?GROUND_Y \+ LOST_BRIDGE_RAVINE_FOREGROUND_VOID_GROUND_CLEARANCE,[\s\S]*?\);/,
+    'late ravine foreground void should stay below the walking lane instead of washing over Asha',
+  );
+  assert.doesNotMatch(journeyComponentSource, /const voidWorldLeft = bounds\.left - 520/);
+  assert.doesNotMatch(journeyComponentSource, /bounds\.right \+ 720/);
+  assert.doesNotMatch(journeyComponentSource, /ctx\.rect\(left - 80, top, width \+ 160/);
   assert.match(journeyComponentSource, /LOST_BRIDGE_STRUCTURE_DECK_IDS = new Set/);
   assert.match(journeyComponentSource, /LOST_BRIDGE_EDITOR_DECK_IDS = new Set/);
   assert.match(journeyComponentSource, /'desert-entry-platform-9'/);
@@ -4103,18 +4124,18 @@ test('ravine bridge uses structure cutouts over the continuous Desert Entry pane
   });
   assert.match(journeyComponentSource, /DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_IDS = Object\.freeze/);
   assert.match(journeyComponentSource, /DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_SEAM_MASKS = Object\.freeze/);
-  assert.match(journeyComponentSource, /drawDesertJourneyScenePanels = useCallback/);
-  assert.match(journeyComponentSource, /drawDesertJourneySceneMasks = useCallback/);
-  assert.match(journeyComponentSource, /drawDesertEntryPrimaryBackgroundPlates = useCallback/);
-  assert.match(journeyComponentSource, /drawDesertJourneyPanelLayer/);
-  assert.match(journeyComponentSource, /drawDesertJourneyTransitionMask/);
-  assert.match(journeyComponentSource, /DESERT_JOURNEY_BACKGROUND_SYSTEM_VERSION/);
-  assert.match(journeyComponentSource, /desertJourneyBackgroundSystemVersion/);
-  assert.match(journeyComponentSource, /desertEntryPrimaryBackgroundPlateIds/);
-  assert.match(journeyComponentSource, /desertEntryPrimaryBackgroundPlateSeamMasks/);
-  assert.match(journeyComponentSource, /single-plate-camera-pan-primary-png-v3/);
+  assert.match(useJourneyRendererSource, /drawDesertJourneyScenePanelsFrame/);
+  assert.match(useJourneyRendererSource, /drawDesertJourneySceneMasksFrame/);
+  assert.match(useJourneyRendererSource, /drawDesertEntryPrimaryBackgroundPlatesFrame/);
+  assert.match(useJourneyRendererSource, /drawDesertJourneyPanelLayerFrame/);
+  assert.match(useJourneyRendererSource, /drawDesertJourneyTransitionMaskFrame/);
+  assert.match(useJourneyRendererSource, /DESERT_JOURNEY_BACKGROUND_SYSTEM_VERSION/);
+  assert.match(useJourneyRendererSource, /desertJourneyBackgroundSystemVersion/);
+  assert.match(useJourneyRendererSource, /desertEntryPrimaryBackgroundPlateIds/);
+  assert.match(useJourneyRendererSource, /desertEntryPrimaryBackgroundPlateSeamMasks/);
+  assert.match(useJourneyRendererSource, /single-plate-camera-pan-primary-png-v3/);
   assert.doesNotMatch(journeyComponentSource, /full-canvas-route-crossfade-primary-png-v2/);
-  assert.match(journeyComponentSource, /isDesertEntryRebuildBackgroundPlateProp\(prop\)/);
+  assert.match(useJourneyRendererSource, /isDesertEntryRebuildBackgroundPlateProp/);
   assert.doesNotMatch(journeyComponentSource, /full-canvas-route-crossfade-background-v1/);
   assert.doesNotMatch(journeyComponentSource, /desert-entry-rebuild-full-canvas-route-crossfade-background-v1/);
   const transitionApron = journeyPlacementOverrides.props.find(entry => entry.id === 'desert-entry-lost-bridge-mummification-transition-apron-1');

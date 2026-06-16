@@ -579,6 +579,16 @@ Progress note: player draw callbacks have been moved into `useJourneyRenderer.js
 Progress note: safe platform/ground pass started by moving route-ground and buried-causeway ground callbacks into `useJourneyRenderer.js`; verified with scoped lint, Journey tests, and build.
 Progress note: remaining platform renderer chain (`drawPlatform` plus support, opening-platform face, and lost-bridge platform helpers) has been moved into `useJourneyRenderer.js`; verified with scoped lint, Journey tests, and build.
 Progress note: story prop draw callbacks (`drawStoryProp` plus prop ground contact and sand occlusion helpers) have been moved into `useJourneyRenderer.js`; stale source-inspection tests now read exported renderer frame functions; verified with scoped lint, Journey tests, and build.
+Progress note: collectible draw callbacks (`drawCollectible` plus sprite glow and render-stat sprite recording helpers) have been moved into `useJourneyRenderer.js`; verified with scoped lint, Journey tests, and build.
+Progress note: first background/parallax slice (section parallax background/foreground, desert foreground atmosphere, foreground depth layer, and temple backdrop) has been moved into `useJourneyRenderer.js`; verified with scoped lint, Journey tests, and build.
+Progress note: asset-backed Desert Entry and China River Valley background callbacks have been moved into `useJourneyRenderer.js`; verified with scoped lint, Journey tests, and build.
+Progress note: procedural Desert Entry journey panel layers, transition masks, and primary background plate callbacks have been moved into `useJourneyRenderer.js`; stale source-inspection tests now read exported renderer frame functions; verified with scoped lint, Journey tests, and build.
+Progress note: section-transition blending, connected-world ambient shimmer, and Egypt ambient-life callbacks have been moved into `useJourneyRenderer.js`; verified with scoped lint, Journey tests, and build.
+Progress note: first enemy renderer slice (`drawSmallEnemySprite`) has been moved into `useJourneyRenderer.js`; verified with scoped lint, Journey tests, enemy sprite tests, and build.
+Progress note: linked/fallback enemy renderer (`drawLinkedEnemySprite`) has been moved into `useJourneyRenderer.js`; verified with scoped lint, Journey tests, enemy sprite tests, and build.
+Progress note: Scarab Queen lair opening prop renderer (`drawScarabQueenLairOpeningProp`) has been moved into `useJourneyRenderer.js`; stale source-inspection tests now read exported renderer frame functions; verified with scoped lint, Journey tests, enemy sprite tests, and build.
+Progress note: boss sprite atlas renderer (`drawBossSprite`) has been moved into `useJourneyRenderer.js`; verified with scoped lint, Journey tests, enemy sprite tests, and build.
+Progress note: mini-boss wrapper renderer (`drawMiniBoss`) and its visible-box helper have been moved into `useJourneyRenderer.js`; stale source-inspection tests now read exported renderer frame functions; verified with scoped lint, Journey tests, enemy sprite tests, and build.
 
 Each moved callback should receive refs/callbacks through `deps`; do not import `stateRef` or `canvasRef` into the renderer module.
 

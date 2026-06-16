@@ -27,6 +27,7 @@ const journeyUtilsSource = readFileSync(new URL('./journeyUtils.js', import.meta
 const journeyCombatSource = readFileSync(new URL('./journeyCombat.js', import.meta.url), 'utf8');
 const journeyEnemySpritesSource = readFileSync(new URL('./journeyEnemySprites.js', import.meta.url), 'utf8');
 const journeyBossSpritesSource = readFileSync(new URL('./journeyBossSprites.js', import.meta.url), 'utf8');
+const useJourneyRendererSource = readFileSync(new URL('./useJourneyRenderer.js', import.meta.url), 'utf8');
 const enemySpriteGeneratorSource = readFileSync(new URL('../../../scripts/generate_enemy_sprite_sheets.py', import.meta.url), 'utf8');
 const scarabQueenBuilderSource = readFileSync(new URL('../../../scripts/build_scarab_queen_atlas.py', import.meta.url), 'utf8');
 const scarabQueenAtlas = JSON.parse(readFileSync(new URL('../../../public/assets/expedition/bosses/scarab-queen-sprites.json', import.meta.url), 'utf8'));
@@ -398,10 +399,10 @@ test('defeated enemies remain visible briefly then disappear from the playfield'
 });
 
 test('awakened boss health draws as a compact screen-top bar, not over the boss sprite', () => {
-  assert.match(journeyComponentSource, /const healthCenterX = boss\.awakened \? CANVAS_WIDTH \/ 2 : visibleBox\.x \+ visibleBox\.width \/ 2;/);
-  assert.match(journeyComponentSource, /const barWidth = boss\.awakened \? Math\.min\(390, CANVAS_WIDTH - 120\)/);
-  assert.match(journeyComponentSource, /const barY = boss\.awakened \? 18 : Math\.max\(18, visibleBox\.y - 16\);/);
-  assert.match(journeyComponentSource, /if \(boss\.id !== 'scarab-queen'\) \{[\s\S]*?drawContactShadow\(ctx, centerX, baseY \+ 3/);
+  assert.match(useJourneyRendererSource, /const healthCenterX = boss\.awakened \? CANVAS_WIDTH \/ 2 : visibleBox\.x \+ visibleBox\.width \/ 2;/);
+  assert.match(useJourneyRendererSource, /const barWidth = boss\.awakened \? Math\.min\(390, CANVAS_WIDTH - 120\)/);
+  assert.match(useJourneyRendererSource, /const barY = boss\.awakened \? 18 : Math\.max\(18, visibleBox\.y - 16\);/);
+  assert.match(useJourneyRendererSource, /if \(boss\.id !== 'scarab-queen'\) \{[\s\S]*?drawContactShadow\(ctx, centerX, baseY \+ 3/);
 });
 
 test('player enemy hits trigger a small screen shake without changing gameplay state', () => {
