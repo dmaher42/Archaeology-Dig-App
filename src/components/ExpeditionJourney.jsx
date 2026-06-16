@@ -80,6 +80,17 @@ import {
   JourneyPlayerOverlays,
   JourneySidebarStatus,
 } from './expedition-journey/JourneyHudOverlays.jsx';
+import {
+  PROP_EDITOR_HANDLE_HIT,
+  PROP_EDITOR_ROTATE_OFFSET,
+  drawContactShadow,
+  drawDecorativeBaseBlend,
+  drawEditorSelectionCorners,
+  drawEditorSelectionLabel,
+  drawGroundDustLip,
+  drawHazardGroundApron,
+  drawRouteGroundApron,
+} from './expedition-journey/journeyRenderPrimitives.js';
 export { JourneyControlsReference } from './expedition-journey/journeyControlsReference.jsx';
 import {
   ARRIVAL_THRESHOLD_ASSET_VERSION,
@@ -2488,10 +2499,7 @@ const getScaledDetailContactLayer = (prop = {}, detailSize = {}) => {
 
 // On-canvas transform handles for the selected story prop. Corner squares scale the
 // prop (uniform, since the renderer fits art aspect-locked); the knob above the box
-// rotates it. Sizes shared between the draw + hit-test so the visuals match the clicks.
-const PROP_EDITOR_HANDLE_DRAW_SIZE = 9; // side length of the filled corner square
-const PROP_EDITOR_HANDLE_HIT = 11;      // forgiving half hit radius
-const PROP_EDITOR_ROTATE_OFFSET = 26;   // px above the box for the rotate knob
+// rotates it. Sizes are imported from the primitive drawer so visuals match clicks.
 const hitTestPropTransformHandle = (px, py, bounds) => {
   const corners = [
     ['nw', bounds.x, bounds.y],
@@ -8065,30 +8073,6 @@ export default function ExpeditionJourney({
     ctx.restore();
   }, []);
 
-  const drawContactShadow = useCallback((ctx, x, y, width, intensity = 0.28, blur = 0, options = {}) => {
-    const shadowHeight = options.height ?? Math.max(4, width / 16);
-    ctx.save();
-    ctx.globalAlpha = intensity;
-    if (blur > 0) ctx.filter = `blur(${blur}px)`;
-    ctx.fillStyle = options.color || '#1f1308';
-    ctx.beginPath();
-    ctx.ellipse(x, y, Math.max(16, width / 2), shadowHeight, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.globalAlpha = intensity * 0.42;
-    ctx.beginPath();
-    ctx.ellipse(
-      x + (options.coreOffsetX || 0),
-      y + (options.coreOffsetY || 0),
-      Math.max(10, width / 3.4),
-      Math.max(2.5, shadowHeight * 0.52),
-      0,
-      0,
-      Math.PI * 2,
-    );
-    ctx.fill();
-    ctx.restore();
-  }, []);
-
   const getOpeningSphinxSpriteFrame = useCallback((encounter, now) => {
     if (!encounter) return 'ancientConstructIdle';
     const elapsed = encounter.duration - encounter.timer;
@@ -8260,7 +8244,7 @@ export default function ExpeditionJourney({
     if (!encounter.suppressDialogue) {
       drawOpeningSphinxDialogue(ctx, encounter, sx, sy, alpha);
     }
-  }, [drawContactShadow, drawOpeningSphinxDialogue, getOpeningSphinxSpriteFrame]);
+  }, [drawOpeningSphinxDialogue, getOpeningSphinxSpriteFrame]);
 
   const drawArrivalThresholdScene = useCallback((ctx, current, now) => {
     const asset = arrivalThresholdBackgroundRef.current;
@@ -8717,118 +8701,6 @@ export default function ExpeditionJourney({
     ctx.restore();
   }, []);
 
-  const drawGroundDustLip = useCallback((ctx, x, y, width, color = 'rgba(210, 160, 92, 0.28)') => {
-    ctx.save();
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.ellipse(x, y, Math.max(18, width / 2.4), Math.max(3, width / 24), 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  }, []);
-
-  const drawHazardGroundApron = useCallback((ctx, x, y, width, sectionId, intensity = 1) => {
-    const sandColor = sectionId === 'catacombs'
-      ? 'rgba(74, 58, 42, 0.34)'
-      : sectionId === 'escape-sequence'
-        ? 'rgba(123, 72, 34, 0.34)'
-        : 'rgba(185, 119, 55, 0.34)';
-    const highlight = sectionId === 'catacombs'
-      ? 'rgba(156, 125, 86, 0.24)'
-      : 'rgba(226, 162, 83, 0.28)';
-    ctx.save();
-    ctx.globalAlpha = 0.85 * intensity;
-    ctx.fillStyle = sandColor;
-    ctx.beginPath();
-    ctx.ellipse(x, y, Math.max(24, width / 2.05), Math.max(5, width / 18), 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.globalAlpha = 0.7 * intensity;
-    ctx.strokeStyle = highlight;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(x - width * 0.36, y - 2);
-    ctx.quadraticCurveTo(x - width * 0.08, y + 4, x + width * 0.22, y - 1);
-    ctx.quadraticCurveTo(x + width * 0.34, y - 4, x + width * 0.44, y + 1);
-    ctx.stroke();
-    ctx.restore();
-  }, []);
-
-  const drawDecorativeBaseBlend = useCallback((ctx, x, y, width, sectionId, depth = 'background', intensity = 1) => {
-    const base = sectionId === 'catacombs'
-      ? 'rgba(46, 37, 30, 0.36)'
-      : sectionId === 'escape-sequence'
-        ? 'rgba(112, 66, 33, 0.3)'
-        : sectionId === 'dig-site-entrance'
-          ? 'rgba(177, 120, 61, 0.24)'
-          : 'rgba(170, 111, 52, 0.28)';
-    const highlight = depth === 'background'
-      ? 'rgba(228, 171, 98, 0.12)'
-      : 'rgba(235, 178, 94, 0.2)';
-    ctx.save();
-    ctx.globalAlpha = intensity;
-    ctx.fillStyle = base;
-    ctx.beginPath();
-    ctx.ellipse(x, y, Math.max(18, width / 2.25), Math.max(4, width / 22), 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.globalAlpha *= 0.82;
-    ctx.strokeStyle = highlight;
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(x - width * 0.32, y - 1);
-    ctx.quadraticCurveTo(x - width * 0.08, y + 3, x + width * 0.24, y);
-    ctx.stroke();
-    ctx.restore();
-  }, []);
-
-  const drawRouteGroundApron = useCallback((ctx, x, y, width, sectionId, intensity = 1, detailSeed = 0) => {
-    const isCatacombs = sectionId === 'catacombs';
-    const isEscape = sectionId === 'escape-sequence';
-    const base = isCatacombs
-      ? 'rgba(65, 51, 38, 0.38)'
-      : isEscape
-        ? 'rgba(138, 79, 36, 0.34)'
-        : 'rgba(185, 119, 55, 0.34)';
-    const warmEdge = isCatacombs
-      ? 'rgba(143, 112, 76, 0.24)'
-      : 'rgba(235, 174, 91, 0.28)';
-    const shadow = isCatacombs
-      ? 'rgba(24, 18, 13, 0.18)'
-      : 'rgba(70, 38, 15, 0.15)';
-
-    ctx.save();
-    ctx.globalAlpha = 0.86 * intensity;
-    ctx.fillStyle = base;
-    ctx.beginPath();
-    ctx.ellipse(x, y + 2, Math.max(34, width / 2), Math.max(8, width / 18), 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.globalAlpha = 0.58 * intensity;
-    ctx.fillStyle = shadow;
-    ctx.beginPath();
-    ctx.ellipse(x + width * 0.08, y + 7, Math.max(28, width / 2.6), Math.max(5, width / 28), -0.04, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.globalAlpha = 0.72 * intensity;
-    ctx.strokeStyle = warmEdge;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(x - width * 0.42, y - 1);
-    ctx.quadraticCurveTo(x - width * 0.18, y + 5, x + width * 0.1, y + 1);
-    ctx.quadraticCurveTo(x + width * 0.28, y - 3, x + width * 0.44, y + 2);
-    ctx.stroke();
-
-    ctx.globalAlpha = 0.5 * intensity;
-    ctx.fillStyle = isCatacombs ? 'rgba(100, 78, 55, 0.28)' : 'rgba(135, 82, 35, 0.22)';
-    for (let i = 0; i < 4; i += 1) {
-      const offset = ((detailSeed + i * 37) % 100) / 100;
-      const rockX = x - width * 0.34 + width * 0.68 * offset;
-      const rockY = y + 1 + ((detailSeed + i * 17) % 5);
-      ctx.beginPath();
-      ctx.ellipse(rockX, rockY, 4 + (i % 2) * 2, 2.2, 0.16 * (i - 1), 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.restore();
-  }, []);
-
   const drawBuriedStoneCausewaySurface = useCallback((ctx, platform, x, cameraX, now) => {
     const section = getSectionForX(platform.x);
     if (section.id !== 'desert-entry' || platform.y !== GROUND_Y) return false;
@@ -8984,7 +8856,7 @@ export default function ExpeditionJourney({
       if (section.id === 'desert-entry') current.renderStats.desertGroundStyle = 'buried-stone-causeway-under-windblown-sand';
     }
     ctx.restore();
-  }, [drawRouteGroundApron, getRenderableCheckpoints]);
+  }, [getRenderableCheckpoints]);
 
   const drawForegroundSettlingDetails = useCallback((ctx, x, y, width, sectionId, options = {}) => {
     const intensity = options.intensity ?? 1;
@@ -9017,7 +8889,7 @@ export default function ExpeditionJourney({
     ctx.quadraticCurveTo(x - width * 0.08, y + 7, x + width * 0.24, y + 3);
     ctx.stroke();
     ctx.restore();
-  }, [drawRouteGroundApron]);
+  }, []);
 
   const drawPropGroundContact = useCallback((ctx, x, anchorY, propSize, sectionId, grounding) => {
     if (grounding.shadowOpacity <= 0) return;
@@ -9030,7 +8902,7 @@ export default function ExpeditionJourney({
       1.2,
       { height: grounding.shadowHeight, color: 'rgba(31, 19, 8, 0.96)' },
     );
-  }, [drawContactShadow]);
+  }, []);
 
   const drawPropSandOcclusion = useCallback((ctx, x, anchorY, propSize, sectionId, grounding) => {
     if (grounding.sandOverlapHeight <= 0) return;
@@ -9125,7 +8997,7 @@ export default function ExpeditionJourney({
       ctx.fill();
       ctx.restore();
     });
-  }, [drawGroundDustLip]);
+  }, []);
 
   const drawPlayerWeaponFallback = useCallback((ctx, attackState, direction, scale = 1) => {
     const attacking = attackState === 'swing';
@@ -9842,7 +9714,7 @@ export default function ExpeditionJourney({
 
     drawGroundDustLip(ctx, centerX, supportBottom + 1, platform.width * 0.72, 'rgba(171, 103, 42, 0.16)');
     ctx.restore();
-  }, [drawDecorativeBaseBlend, drawGroundDustLip, drawOpeningPyramidAssetRegion]);
+  }, [drawOpeningPyramidAssetRegion]);
 
   const drawDesertOpeningPlatformFace = useCallback((ctx, platform, x, visualY, visualHeight, reactiveActive = false) => {
     const isOpeningPlatform = platform.x < scaleJourneyX(720);
@@ -10656,7 +10528,7 @@ export default function ExpeditionJourney({
     ctx.lineWidth = 2;
     ctx.strokeRect(x, visualY, platform.width, platform.height);
     ctx.restore();
-  }, [drawBuriedStoneCausewaySurface, drawContactShadow, drawDesertEntryPlatformSupport, drawDesertOpeningPlatformFace, drawForegroundSettlingDetails, drawGroundDustLip, drawLostBridgePlatform]);
+  }, [drawBuriedStoneCausewaySurface, drawDesertEntryPlatformSupport, drawDesertOpeningPlatformFace, drawForegroundSettlingDetails, drawLostBridgePlatform]);
 
   const drawEgyptStructureGroundContactLayer = useCallback((ctx, contactLayer, left, width, groundY, phase = 'overlay') => {
     const foregroundAssets = foregroundDepthEnvironmentAssetsRef.current;
@@ -10993,7 +10865,7 @@ export default function ExpeditionJourney({
     }
     ctx.restore();
     return true;
-  }, [drawContactShadow, drawEgyptStructureGroundContactLayer, drawEgyptStructureWeatheringOverlay]);
+  }, [drawEgyptStructureGroundContactLayer, drawEgyptStructureWeatheringOverlay]);
 
   const drawForgottenMuralChamberInterior = useCallback((ctx, current, now) => {
     if (!isForgottenMuralChamberScene(current)) return false;
@@ -12576,19 +12448,7 @@ export default function ExpeditionJourney({
       ctx.fill();
     }
     ctx.restore();
-  }, [
-    drawContactShadow,
-    drawDecorativeBaseBlend,
-    drawEgyptStructureGroundContactLayer,
-    drawForegroundSettlingDetails,
-    drawMummificationChamberExteriorAsset,
-    drawForgottenMuralGeneratedAsset,
-    drawGroundDustLip,
-    getStandaloneImagePropAsset,
-    drawPropGroundContact,
-    drawPropSandOcclusion,
-    drawScribeChamberDoorwayStructure,
-  ]);
+  }, [drawEgyptStructureGroundContactLayer, drawForegroundSettlingDetails, drawMummificationChamberExteriorAsset, drawForgottenMuralGeneratedAsset, getStandaloneImagePropAsset, drawPropGroundContact, drawPropSandOcclusion, drawScribeChamberDoorwayStructure]);
 
   const drawWorldContinuityLandmark = useCallback((ctx, landmark, cameraX, now) => {
     const parallax = landmark.parallax ?? 0.2;
@@ -12889,7 +12749,7 @@ export default function ExpeditionJourney({
     }
     ctx.restore();
     return true;
-  }, [drawDecorativeBaseBlend]);
+  }, []);
 
   const drawWorldTransitionMarker = useCallback((ctx, marker, cameraX, now) => {
     const x = worldToScreenX(marker.x, cameraX);
@@ -12926,7 +12786,7 @@ export default function ExpeditionJourney({
     }
     ctx.restore();
     return true;
-  }, [drawContactShadow]);
+  }, []);
 
   const drawStageEntranceFeature = useCallback((ctx, feature, cameraX, now) => {
     const centerX = worldToScreenX(feature.x, cameraX);
@@ -13028,7 +12888,7 @@ export default function ExpeditionJourney({
     }
     ctx.restore();
     return true;
-  }, [drawContactShadow, drawGroundDustLip, drawRouteGroundApron]);
+  }, []);
 
   const drawStageEntranceForegroundOccluder = useCallback((ctx, feature, cameraX) => {
     const occluders = feature.foregroundOccluders || (feature.foregroundOccluder ? [feature.foregroundOccluder] : []);
@@ -13501,7 +13361,7 @@ export default function ExpeditionJourney({
       stats.visibleEnvironmentInteractions = Array.from(new Set([...(stats.visibleEnvironmentInteractions || []), item.id])).slice(-12);
     }
     ctx.restore();
-  }, [drawContactShadow, drawDecorativeBaseBlend]);
+  }, []);
 
   const drawHiddenRouteHint = useCallback((ctx, route, cameraX, current, now) => {
     if (!isHorizontallyVisible(route.x, route.width, cameraX, 80)) return;
@@ -13931,7 +13791,7 @@ export default function ExpeditionJourney({
       ctx.fillText(label, screenX, centerY + 7);
     }
     ctx.restore();
-  }, [drawCollectibleSpriteGlow, drawContactShadow, recordCollectibleSprite]);
+  }, [drawCollectibleSpriteGlow, recordCollectibleSprite]);
 
   const drawDesertEntryBackground = useCallback((ctx, section, cameraX) => {
     const isNearDesertEntry = section.id === 'desert-entry';
@@ -15020,7 +14880,7 @@ export default function ExpeditionJourney({
     drawGroundDustLip(ctx, gateCenter, GROUND_Y + 1, gateWidth * 0.82, 'rgba(184, 116, 52, 0.22)');
     if (current.renderStats) current.renderStats.groundedPropCount += 1;
     ctx.restore();
-  }, [drawContactShadow, drawDecorativeBaseBlend, drawGroundDustLip]);
+  }, []);
 
   const drawMissingObjectiveMarker = useCallback((ctx, guidance, cameraX, now) => {
     if (!guidance?.activeGateLocked || !guidance.nearestMissingObjective) return;
@@ -15298,7 +15158,7 @@ export default function ExpeditionJourney({
       drawHazardBurialCover(ctx, centerX, footY, dustWidth, burial, section.id);
     }
     ctx.restore();
-  }, [drawContactShadow, drawGroundDustLip, drawHazardBurialCover, drawHazardGroundApron, drawOpeningHazardDecalRegion]);
+  }, [drawHazardBurialCover, drawOpeningHazardDecalRegion]);
 
   const drawTrapProjectile = useCallback((ctx, projectile, cameraX) => {
     const x = worldToScreenX(projectile.x, cameraX);
@@ -15422,7 +15282,7 @@ export default function ExpeditionJourney({
     }
 
     return drawn;
-  }, [drawContactShadow, drawGroundDustLip, getCombatMode]);
+  }, [getCombatMode]);
 
   const drawLinkedEnemySprite = useCallback((ctx, enemy, screenX, now, shakeX = 0) => {
     const combatMode = getCombatMode(enemy);
@@ -15733,7 +15593,7 @@ export default function ExpeditionJourney({
     }
 
     return false;
-  }, [drawContactShadow, getCombatMode]);
+  }, [getCombatMode]);
 
   const drawScarabQueenLairOpeningProp = useCallback((ctx, worldCenterX, cameraX, now, beat = null, placement = null) => {
     const screenX = worldToScreenX(worldCenterX, cameraX);
@@ -15820,7 +15680,7 @@ export default function ExpeditionJourney({
     }
     ctx.restore();
     return true;
-  }, [drawContactShadow, drawGroundDustLip]);
+  }, []);
 
   const drawBossSprite = useCallback((ctx, boss, screenX, now, bossVisualState) => {
     const spriteBossId = boss.spriteBossId || boss.id;
@@ -15948,7 +15808,7 @@ export default function ExpeditionJourney({
     }
 
     return drawn;
-  }, [drawContactShadow, drawGroundDustLip, getCombatMode]);
+  }, [getCombatMode]);
 
   const getBossVisibleDrawBox = useCallback((boss, screenX) => {
     if (isChinaGuardianBossSpriteId(boss.spriteBossId)) return getClayGuardianDrawBox(boss, screenX);
@@ -16763,7 +16623,7 @@ export default function ExpeditionJourney({
       drawFieldNoteLabel(ctx, centerX, entrance.y - 16, entrance.title, entrance.glowColor);
     }
     ctx.restore();
-  }, [drawContactShadow, drawFieldNoteLabel, drawGroundDustLip]);
+  }, [drawFieldNoteLabel]);
 
   const drawPremiumEgyptianChamberDoor = useCallback((ctx, door, cameraX, current, now) => {
     if (!door?.trigger || getJourneySceneId(current) !== JOURNEY_SCENE_IDS.EXTERIOR) return;
@@ -16916,68 +16776,7 @@ export default function ExpeditionJourney({
       drawFieldNoteLabel(ctx, centerX, top - 16, promptText, accent);
     }
     ctx.restore();
-  }, [drawContactShadow, drawFieldNoteLabel, drawGroundDustLip]);
-
-  const drawEditorSelectionCorners = (ctx, bounds, color = 'rgba(34, 211, 238, 0.98)') => {
-    const cornerLength = Math.min(18, Math.max(8, Math.min(bounds.width, bounds.height) * 0.2));
-    ctx.save();
-    // Dark halo so the bright handles stay legible over light desert/sky/stone.
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
-    ctx.shadowBlur = 4;
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 3;
-    ctx.setLineDash([]);
-    [
-      [bounds.x, bounds.y, 1, 1],
-      [bounds.x + bounds.width, bounds.y, -1, 1],
-      [bounds.x, bounds.y + bounds.height, 1, -1],
-      [bounds.x + bounds.width, bounds.y + bounds.height, -1, -1],
-    ].forEach(([x, y, xDir, yDir]) => {
-      ctx.beginPath();
-      ctx.moveTo(x, y + yDir * cornerLength);
-      ctx.lineTo(x, y);
-      ctx.lineTo(x + xDir * cornerLength, y);
-      ctx.stroke();
-    });
-    // Interactive grab targets: filled corner squares (scale) + a rotate knob above.
-    const hs = PROP_EDITOR_HANDLE_DRAW_SIZE;
-    ctx.fillStyle = color;
-    [
-      [bounds.x, bounds.y],
-      [bounds.x + bounds.width, bounds.y],
-      [bounds.x, bounds.y + bounds.height],
-      [bounds.x + bounds.width, bounds.y + bounds.height],
-    ].forEach(([hx, hy]) => {
-      ctx.fillRect(hx - hs / 2, hy - hs / 2, hs, hs);
-    });
-    const knobX = bounds.x + bounds.width / 2;
-    const knobY = bounds.y - PROP_EDITOR_ROTATE_OFFSET;
-    ctx.beginPath();
-    ctx.moveTo(knobX, bounds.y);
-    ctx.lineTo(knobX, knobY);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(knobX, knobY, hs / 2 + 1, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  };
-
-  const drawEditorSelectionLabel = (ctx, x, y, text, strokeColor = 'rgba(94, 234, 212, 0.74)') => {
-    ctx.save();
-    ctx.setLineDash([]);
-    ctx.fillStyle = 'rgba(8, 13, 22, 0.86)';
-    ctx.strokeStyle = strokeColor;
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.roundRect(x, y, 270, 24, 6);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = '#ecfeff';
-    ctx.font = '800 11px Outfit, sans-serif';
-    ctx.textAlign = 'left';
-    ctx.fillText(text, x + 8, y + 16);
-    ctx.restore();
-  };
+  }, [drawFieldNoteLabel]);
 
   const drawPropPlacementEditorOverlay = useCallback((ctx, current, cameraX) => {
     const editor = propPlacementEditorRef.current;
@@ -18419,7 +18218,7 @@ export default function ExpeditionJourney({
       }
       ctx.textAlign = 'start';
     }
-  }, [backgroundPackId, drawAncientRouteGround, drawArrivalThresholdScene, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawContactShadow, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertEntryPrimaryBackgroundPlates, drawDesertForegroundAtmosphere, drawDesertJourneySceneMasks, drawDesertJourneyScenePanels, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawForegroundDepthLayer, drawMummificationChamberInterior, drawForgottenMuralChamberInterior, drawForgottenMuralChamberTransition, drawGroundDustLip, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawLostBridgeRavineDepth, drawLostBridgeRavineForegroundVoid, drawLostBridgeStructure, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawPremiumEgyptianChamberDoor, drawPropPlacementEditorOverlay, drawRouteGate, drawRouteGroundApron, drawScarabQueenLairOpeningProp, drawScribeLockedChamberInterior, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawTrapProjectile, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getDoorwayGateStatus, getEditedMiniBoss, getEditedNestParams, getGateGuidance, getPlayerAttackState, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getZIndexSortedRenderableStoryProps, getRouteGateDoorwayEntries, getScarabQueenLairPlacement, isRouteRewardAccessible, resolveChamberEntryTrigger, drawPlayerSprite, drawFieldNoteLabel]);
+  }, [backgroundPackId, drawAncientRouteGround, drawArrivalThresholdScene, drawAttackArc, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawChinaRiverValleyBackground, drawDesertEntryBackground, drawDesertEntryPrimaryBackgroundPlates, drawDesertForegroundAtmosphere, drawDesertJourneySceneMasks, drawDesertJourneyScenePanels, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawForegroundDepthLayer, drawMummificationChamberInterior, drawForgottenMuralChamberInterior, drawForgottenMuralChamberTransition, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawLostBridgeRavineDepth, drawLostBridgeRavineForegroundVoid, drawLostBridgeStructure, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawPremiumEgyptianChamberDoor, drawPropPlacementEditorOverlay, drawRouteGate, drawScarabQueenLairOpeningProp, drawScribeLockedChamberInterior, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawTrapProjectile, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getDoorwayGateStatus, getEditedMiniBoss, getEditedNestParams, getGateGuidance, getPlayerAttackState, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getZIndexSortedRenderableStoryProps, getRouteGateDoorwayEntries, getScarabQueenLairPlacement, isRouteRewardAccessible, resolveChamberEntryTrigger, drawPlayerSprite, drawFieldNoteLabel]);
 
   const startOpeningCinematic = useCallback(({ speechEnabled = true, fromArrivalThreshold = false } = {}) => {
     const current = stateRef.current;

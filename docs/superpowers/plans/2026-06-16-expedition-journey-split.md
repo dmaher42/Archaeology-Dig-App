@@ -508,7 +508,7 @@ Expected: visible UI is the same. This task is mostly internal, but the player s
 - Test: `src/components/expedition-journey/journeySecrets.test.js`
 - Test: `src/components/expedition-journey/journeyEnemySprites.test.js`
 
-- [ ] **Step 1: Move drawing helpers that do not use React refs or component state**
+- [x] **Step 1: Move drawing helpers that do not use React refs or component state**
 
 Start with small helpers only:
 
@@ -524,7 +524,7 @@ drawEditorSelectionLabel
 
 If a helper touches `stateRef`, an asset ref, `audioControls`, or another `useCallback`, leave it in `ExpeditionJourney.jsx`.
 
-- [ ] **Step 2: Verify**
+- [x] **Step 2: Verify**
 
 Run:
 
