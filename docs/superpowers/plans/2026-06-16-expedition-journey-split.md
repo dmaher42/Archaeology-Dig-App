@@ -545,7 +545,7 @@ Expected: no visible change. This task only moves pure canvas helper functions.
 - Test: `src/components/expedition-journey/journeySecrets.test.js`
 - Test: `src/components/expedition-journey/journeyEnemySprites.test.js`
 
-- [ ] **Step 1: Create the renderer hook shell**
+- [x] **Step 1: Create the renderer hook shell**
 
 Create a hook that accepts dependency objects rather than importing runtime state directly:
 
@@ -573,6 +573,12 @@ combat effect draw callbacks
 editor overlay draw callbacks
 main draw callback
 ```
+
+Progress note: opening/arrival cinematic draw callbacks have been moved into `useJourneyRenderer.js` and verified with scoped lint, Journey tests, and build.
+Progress note: player draw callbacks have been moved into `useJourneyRenderer.js` and verified with scoped lint, Journey tests, and build.
+Progress note: safe platform/ground pass started by moving route-ground and buried-causeway ground callbacks into `useJourneyRenderer.js`; verified with scoped lint, Journey tests, and build.
+Progress note: remaining platform renderer chain (`drawPlatform` plus support, opening-platform face, and lost-bridge platform helpers) has been moved into `useJourneyRenderer.js`; verified with scoped lint, Journey tests, and build.
+Progress note: story prop draw callbacks (`drawStoryProp` plus prop ground contact and sand occlusion helpers) have been moved into `useJourneyRenderer.js`; stale source-inspection tests now read exported renderer frame functions; verified with scoped lint, Journey tests, and build.
 
 Each moved callback should receive refs/callbacks through `deps`; do not import `stateRef` or `canvasRef` into the renderer module.
 

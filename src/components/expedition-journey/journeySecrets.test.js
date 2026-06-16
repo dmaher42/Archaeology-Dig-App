@@ -176,13 +176,29 @@ const getDataRowById = (arraySource, id) => {
   return '';
 };
 
+const rendererFrameFunctionNames = {
+  drawPropGroundContact: 'drawPropGroundContactFrame',
+  drawPropSandOcclusion: 'drawPropSandOcclusionFrame',
+  drawStoryProp: 'drawStoryPropFrame',
+};
+
 const getComponentFunctionSource = (functionName) => {
+  const frameFunctionName = rendererFrameFunctionNames[functionName] || functionName;
+  const exportFunctionToken = `export function ${frameFunctionName}(`;
+  const exportFunctionStart = journeyComponentSource.indexOf(exportFunctionToken);
+  if (exportFunctionStart !== -1) {
+    const remainderStart = exportFunctionStart + exportFunctionToken.length;
+    const nextExportFunctionOffset = journeyComponentSource.slice(remainderStart).search(/\nexport function /);
+    assert.notEqual(nextExportFunctionOffset, -1, `${frameFunctionName} source should have a following exported function`);
+    return journeyComponentSource.slice(exportFunctionStart, remainderStart + nextExportFunctionOffset);
+  }
+
   const start = journeyComponentSource.indexOf(`const ${functionName} =`);
   assert.notEqual(start, -1, `${functionName} should exist`);
   const remainderStart = start + functionName.length;
-  const nextDrawFunctionOffset = journeyComponentSource.slice(remainderStart).search(/\n {2}const draw[A-Z]/);
-  assert.notEqual(nextDrawFunctionOffset, -1, `${functionName} source should have a following draw function`);
-  return journeyComponentSource.slice(start, remainderStart + nextDrawFunctionOffset);
+  const nextFunctionOffset = journeyComponentSource.slice(remainderStart).search(/\n {2}const [A-Za-z_{]/);
+  assert.notEqual(nextFunctionOffset, -1, `${functionName} source should have a following component function`);
+  return journeyComponentSource.slice(start, remainderStart + nextFunctionOffset);
 };
 
 test('journey prop placement helpers preserve canonical prop fields while editing', () => {
