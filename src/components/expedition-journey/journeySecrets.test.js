@@ -3779,6 +3779,12 @@ test('Scarab Queen boss intro is staged as a buried-sand emergence cinematic', (
   assert.match(journeyComponentSource, /const bossIntroActive = current\.bossIntro\?\.id === boss\.id;[\s\S]*?if \(!bossIntroActive\) drawEnemyAttackTell/);
   assert.match(journeyComponentSource, /ctx\.fillStyle = 'rgba\(0,0,0,0\.62\)';\s*ctx\.beginPath\(\);\s*ctx\.roundRect\(barX, barY, barWidth, barHeight, 5\);[\s\S]*?ctx\.fillStyle = boss\.awakened \? '#dc2626' : '#b45309';\s*ctx\.beginPath\(\);\s*ctx\.roundRect\(barX, barY, \(boss\.health \/ boss\.maxHealth\) \* barWidth, barHeight, 5\);/);
   assert.match(journeyComponentSource, /activeBossDomainForObjectiveMarkers\.arenaStart \?\? -Infinity/);
+  assert.match(journeyComponentSource, /const domainAtmosphere = ctx\.createRadialGradient/);
+  assert.doesNotMatch(
+    journeyComponentSource,
+    /ctx\.fillRect\(Math\.max\(0, domainStartX\), 0, Math\.min\(CANVAS_WIDTH, domainWidth\), CANVAS_HEIGHT\)/,
+    'boss arena visuals should not draw a hard full-height rectangle over the desert backdrop',
+  );
   assert.match(journeyComponentSource, /const bossDomainHudSuppressed = gameState\.bossDomain[\s\S]*?const activeHudGate = bossDomainHudSuppressed[\s\S]*?\? null[\s\S]*?: getNextJourneyRouteGate\(ROUTE_GATES, gameState\)/);
   assert.match(journeyComponentSource, /const activeBossDomainForObjectiveMarkers = current\.bossDomain[\s\S]*?if \(!chamberSceneActive && !current\.arrivalThresholdActive && !activeBossDomainForObjectiveMarkers\) drawMissingObjectiveMarker/);
 });
