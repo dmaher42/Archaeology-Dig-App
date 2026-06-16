@@ -589,6 +589,12 @@ Progress note: linked/fallback enemy renderer (`drawLinkedEnemySprite`) has been
 Progress note: Scarab Queen lair opening prop renderer (`drawScarabQueenLairOpeningProp`) has been moved into `useJourneyRenderer.js`; stale source-inspection tests now read exported renderer frame functions; verified with scoped lint, Journey tests, enemy sprite tests, and build.
 Progress note: boss sprite atlas renderer (`drawBossSprite`) has been moved into `useJourneyRenderer.js`; verified with scoped lint, Journey tests, enemy sprite tests, and build.
 Progress note: mini-boss wrapper renderer (`drawMiniBoss`) and its visible-box helper have been moved into `useJourneyRenderer.js`; stale source-inspection tests now read exported renderer frame functions; verified with scoped lint, Journey tests, enemy sprite tests, and build.
+Progress note: first combat-effect renderer slice (`drawEnemyAttackTell`) has been moved into `useJourneyRenderer.js`; stale source-inspection tests now read exported renderer frame functions; verified with scoped lint, Journey tests, enemy sprite tests, and build.
+Progress note: combat hit/effect renderer (`drawCombatEffects`) has been moved into `useJourneyRenderer.js`; stale source-inspection tests now read exported renderer frame functions; verified with scoped lint, Journey tests, enemy sprite tests, and build.
+Progress note: attack-arc placeholder renderer (`drawAttackArc`) has been moved into `useJourneyRenderer.js`; stale source-inspection tests now read exported renderer frame functions; verified with scoped lint, Journey tests, enemy sprite tests, and build.
+Progress note: placement editor overlay renderer (`drawPropPlacementEditorOverlay`) has been moved into `useJourneyRenderer.js`; stale source-inspection tests now read exported renderer frame functions; verified with scoped lint, Journey tests, enemy sprite tests, and build.
+Progress note: first main-draw tail slice (`drawCinematicCards`) has been moved into `useJourneyRenderer.js`; verified with scoped lint, Journey tests, enemy sprite tests, and build.
+Progress note: player feedback overlay slice (`drawPlayerFeedbackOverlays`) has been moved into `useJourneyRenderer.js`; verified with scoped lint, Journey tests, enemy sprite tests, and build.
 
 Each moved callback should receive refs/callbacks through `deps`; do not import `stateRef` or `canvasRef` into the renderer module.
 

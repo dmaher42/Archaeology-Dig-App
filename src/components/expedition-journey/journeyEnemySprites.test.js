@@ -276,8 +276,8 @@ test('Scarab Queen draw box matches the fixed atlas ratio closely enough to stay
 });
 
 test('enemy attack tells use compact timing overlays without arcade labels', () => {
-  assert.match(journeyComponentSource, /const drawEnemyAttackTell = useCallback\(\(ctx, enemy/);
-  assert.match(journeyComponentSource, /if \(boss \|\| enemy\.defeated\) return/);
+  assert.match(useJourneyRendererSource, /export function drawEnemyAttackTellFrame\(ctx, enemy/);
+  assert.match(useJourneyRendererSource, /if \(boss \|\| enemy\.defeated\) return/);
   assert.match(journeyComponentSource, /attackTellActive/);
   assert.match(journeyComponentSource, /recoveryWindowActive/);
   assert.doesNotMatch(journeyComponentSource, /const drawChargeLane = \(\) => \{/);
@@ -286,13 +286,13 @@ test('enemy attack tells use compact timing overlays without arcade labels', () 
 });
 
 test('Phase 5C early desert combat feedback uses compact color-coded visual cues', () => {
-  assert.match(journeyComponentSource, /const pulse = 0\.72 \+ Math\.sin\(now \/ 90\) \* 0\.18/);
-  assert.match(journeyComponentSource, /drawDeflectRing/);
-  assert.match(journeyComponentSource, /recoveryGoldPulse/);
-  assert.match(journeyComponentSource, /const telegraph = getEnemyAttackTelegraph\(enemy, HEAVY_ATTACK_PATTERNS\)/);
-  assert.match(journeyComponentSource, /ctx\.fillStyle = telegraph\.color/);
-  assert.match(journeyComponentSource, /const parryNow = telegraph\.parryable && enemy\.attackTimer <= PARRY_WINDOW_DURATION/);
-  assert.match(journeyComponentSource, /ctx\.ellipse\(centerX, footY, enemy\.width \* 0\.78, 4\.5/);
+  assert.match(useJourneyRendererSource, /const pulse = 0\.72 \+ Math\.sin\(now \/ 90\) \* 0\.18/);
+  assert.match(useJourneyRendererSource, /drawDeflectRing/);
+  assert.match(useJourneyRendererSource, /recoveryGoldPulse/);
+  assert.match(useJourneyRendererSource, /const telegraph = getEnemyAttackTelegraph\(enemy, HEAVY_ATTACK_PATTERNS\)/);
+  assert.match(useJourneyRendererSource, /ctx\.fillStyle = telegraph\.color/);
+  assert.match(useJourneyRendererSource, /const parryNow = telegraph\.parryable && enemy\.attackTimer <= PARRY_WINDOW_DURATION/);
+  assert.match(useJourneyRendererSource, /ctx\.ellipse\(centerX, footY, enemy\.width \* 0\.78, 4\.5/);
   assert.match(journeyComponentSource, /enemy-guard-deflect/);
   assert.match(journeyComponentSource, /enemy-counter-window[\s\S]*?color:\s*'#d6b95c'/);
   assert.match(journeyComponentSource, /guardEffectType = 'enemy-guard-deflect'/);
@@ -336,7 +336,7 @@ test('Phase 5C animation-led desert telegraphs use body language instead of larg
   assert.match(journeyComponentSource, /getEnemyBodyLanguagePose\(enemy, combatMode\)/);
   assert.match(journeyComponentSource, /ctx\.rotate\(bodyPose\.rotation\)/);
   assert.match(journeyComponentSource, /sand-skid/);
-  assert.doesNotMatch(journeyComponentSource, /drawDeflectRing\(16 \+ \(1 - progress\) \* 16/);
+  assert.doesNotMatch(useJourneyRendererSource, /drawDeflectRing\(16 \+ \(1 - progress\) \* 16/);
 });
 
 test('Egypt heavy windups use dedicated premium atlas frames without changing normal windups', () => {

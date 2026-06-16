@@ -983,11 +983,11 @@ test('journey prop editor exposes generated structure ground-contact controls', 
 });
 
 test('journey prop editor overlay does not wash selected assets', () => {
-  const overlayStart = journeyComponentSource.indexOf('const drawPropPlacementEditorOverlay =');
-  const drawStart = journeyComponentSource.indexOf('  const draw = useCallback', overlayStart);
+  const overlayStart = useJourneyRendererSource.indexOf('export function drawPropPlacementEditorOverlayFrame');
+  const drawStart = useJourneyRendererSource.indexOf('export function useJourneyRenderer', overlayStart);
   assert.notEqual(overlayStart, -1);
   assert.notEqual(drawStart, -1);
-  const overlaySource = journeyComponentSource.slice(overlayStart, drawStart);
+  const overlaySource = useJourneyRendererSource.slice(overlayStart, drawStart);
   const propOverlaySource = overlaySource.slice(
     overlaySource.indexOf('getRenderableStoryProps(current).forEach'),
     overlaySource.indexOf('const selectedProp = getPropEditorSelectedProp(current);'),
@@ -3884,11 +3884,11 @@ test('Egypt chamber entry triggers render as configurable premium doors outside 
   assert.match(drawSource, /CHAMBER_DOOR_VISUALS[\s\S]*?resolveChamberEntryTrigger\(door\)[\s\S]*?drawPremiumEgyptianChamberDoor/);
   assert.match(drawSource, /drawPremiumEgyptianChamberDoor/);
 
-  const editorOverlayStart = journeyComponentSource.indexOf('const drawPropPlacementEditorOverlay = useCallback');
-  const editorOverlayEnd = journeyComponentSource.indexOf('const draw = useCallback', editorOverlayStart);
+  const editorOverlayStart = useJourneyRendererSource.indexOf('export function drawPropPlacementEditorOverlayFrame');
+  const editorOverlayEnd = useJourneyRendererSource.indexOf('export function useJourneyRenderer', editorOverlayStart);
   assert.notEqual(editorOverlayStart, -1, 'drawPropPlacementEditorOverlay should exist');
   assert.notEqual(editorOverlayEnd, -1, 'drawPropPlacementEditorOverlay should end before draw');
-  const editorOverlaySource = journeyComponentSource.slice(editorOverlayStart, editorOverlayEnd);
+  const editorOverlaySource = useJourneyRendererSource.slice(editorOverlayStart, editorOverlayEnd);
   assert.match(editorOverlaySource, /if \(!import\.meta\.env\.DEV \|\| !editor\.enabled\) return/);
   assert.match(editorOverlaySource, /Chamber entry trigger zones/);
   assert.match(editorOverlaySource, /rgba\(45, 212, 191/);
@@ -4251,10 +4251,10 @@ test('platform polish creates purposeful jump challenges with checkpoint rescue 
   assert.doesNotMatch(journeyComponentSource, /visualHazardId === 'entry-pressure-plate'[\s\S]*?ctx\.roundRect/);
   assert.doesNotMatch(journeyComponentSource, /visualHazardId === 'entry-cracked-floor-trap'[\s\S]*?ctx\.strokeRect/);
   assert.doesNotMatch(journeyComponentSource, /hazard\.id === 'sand-pit'[\s\S]*?ctx\.arc/);
-  assert.match(journeyComponentSource, /const drawEnemyAttackTell = useCallback\(\(ctx, enemy/);
+  assert.match(useJourneyRendererSource, /export function drawEnemyAttackTellFrame\(ctx, enemy/);
   assert.match(journeyComponentSource, /attackTellActive/);
   assert.match(journeyComponentSource, /recoveryWindowActive/);
-  assert.match(journeyComponentSource, /const drawAttackArc = useCallback\(\(\) => \{\}, \[\]\)/);
+  assert.match(useJourneyRendererSource, /export function drawAttackArcFrame\(\) \{\}/);
 
   assert.match(upgrades, /id:\s*'basecamp-upgrade-voucher'[\s\S]*?x:\s*X\(925\)[\s\S]*?y:\s*JY\(320\)/);
   assert.match(upgrades, /id:\s*'reinforced-boots'[\s\S]*?x:\s*X\(1310\)[\s\S]*?y:\s*JY\(270\)/);
@@ -4991,7 +4991,7 @@ test('generated overrides preserve polished structure contact layers when re-exp
   );
   assert.equal(mummificationOverride?.depth, 'route-edge');
   assert.equal(mummificationOverride?.layer, 'route-edge');
-  assert.equal(mummificationOverride?.alpha, 0, 'The old Mummification exterior should stay retired behind the physical doorway');
+  assert.equal(mummificationOverride?.alpha, 1, 'The Mummification exterior should stay visible as the near structure behind the physical doorway');
   assert.equal(retiredGateFront?.alpha, 0, 'The old route gate front should stay retired so it does not block the physical doorway');
   assert.equal(retiredGateBack?.alpha, 0, 'The old route gate back should stay retired so it does not block the physical doorway');
   assert.equal(mummificationDoorway?.depth, 'route-edge');
@@ -5497,7 +5497,7 @@ test('combat telegraphs are colour-coded by danger and unblockable attacks canno
   assert.match(journeyComponentSource, /&& getEnemyAttackTelegraph\(e, HEAVY_ATTACK_PATTERNS\)\.parryable\s+&& rectsOverlap\(attackRect, getAttackHurtbox\(e\)\)/);
   assert.match(journeyComponentSource, /const isParry = getEnemyAttackTelegraph\(e, HEAVY_ATTACK_PATTERNS\)\.parryable/);
   // The telegraph render uses the class colour, and the first red attack teaches the player.
-  assert.match(journeyComponentSource, /const telegraph = getEnemyAttackTelegraph\(enemy, HEAVY_ATTACK_PATTERNS\);/);
+  assert.match(useJourneyRendererSource, /const telegraph = getEnemyAttackTelegraph\(enemy, HEAVY_ATTACK_PATTERNS\);/);
   assert.match(journeyComponentSource, /current\.redAttackHintShown = true;/);
   assert.match(journeyComponentSource, /glows RED/);
 });
@@ -5546,11 +5546,11 @@ test('combo finisher uses the approved slash overlay through combat hit effects'
   assert.match(journeyComponentSource, /playerFinisherSlashEffectRef\.current = \{ image, loaded: true, failed: false, version: PLAYER_FINISHER_SLASH_EFFECT_VERSION \};/);
   assert.match(journeyComponentSource, /image\.src = `\$\{import\.meta\.env\.BASE_URL\}\$\{PLAYER_FINISHER_SLASH_EFFECT_SRC\}\?v=\$\{PLAYER_FINISHER_SLASH_EFFECT_VERSION\}`;/);
 
-  const finisherDrawStart = journeyComponentSource.indexOf("if (effect.type === 'finisher-slash') {");
-  const finisherDrawEnd = journeyComponentSource.indexOf("if (['movement-dust'", finisherDrawStart);
+  const finisherDrawStart = useJourneyRendererSource.indexOf("if (effect.type === 'finisher-slash') {");
+  const finisherDrawEnd = useJourneyRendererSource.indexOf("if (['movement-dust'", finisherDrawStart);
   assert.notEqual(finisherDrawStart, -1, 'finisher slash draw branch should exist');
   assert.notEqual(finisherDrawEnd, -1, 'finisher slash draw branch should remain before normal compact effects');
-  const finisherDrawBranch = journeyComponentSource.slice(finisherDrawStart, finisherDrawEnd);
+  const finisherDrawBranch = useJourneyRendererSource.slice(finisherDrawStart, finisherDrawEnd);
   assert.match(finisherDrawBranch, /const slashState = playerFinisherSlashEffectRef\.current;/);
   assert.match(finisherDrawBranch, /ctx\.globalCompositeOperation = 'lighter';/);
   assert.match(finisherDrawBranch, /if \(direction < 0\) ctx\.scale\(-1, 1\);/);
@@ -5575,11 +5575,11 @@ test('combo opening hits use a restrained realistic slash overlay before the fin
   assert.match(journeyComponentSource, /playerComboSlashEffectRef\.current = \{ image, loaded: true, failed: false, version: PLAYER_COMBO_SLASH_EFFECT_VERSION \};/);
   assert.match(journeyComponentSource, /image\.src = `\$\{import\.meta\.env\.BASE_URL\}\$\{PLAYER_COMBO_SLASH_EFFECT_SRC\}\?v=\$\{PLAYER_COMBO_SLASH_EFFECT_VERSION\}`;/);
 
-  const comboDrawStart = journeyComponentSource.indexOf("if (effect.type === 'combo-slash') {");
-  const comboDrawEnd = journeyComponentSource.indexOf("if (effect.type === 'finisher-slash')", comboDrawStart);
+  const comboDrawStart = useJourneyRendererSource.indexOf("if (effect.type === 'combo-slash') {");
+  const comboDrawEnd = useJourneyRendererSource.indexOf("if (effect.type === 'finisher-slash')", comboDrawStart);
   assert.notEqual(comboDrawStart, -1, 'combo slash draw branch should exist');
   assert.notEqual(comboDrawEnd, -1, 'combo slash should draw before the finisher branch');
-  const comboDrawBranch = journeyComponentSource.slice(comboDrawStart, comboDrawEnd);
+  const comboDrawBranch = useJourneyRendererSource.slice(comboDrawStart, comboDrawEnd);
   assert.match(comboDrawBranch, /const slashState = playerComboSlashEffectRef\.current;/);
   assert.match(comboDrawBranch, /ctx\.globalCompositeOperation = 'lighter';/);
   assert.match(comboDrawBranch, /if \(direction < 0\) ctx\.scale\(-1, 1\);/);
@@ -5857,8 +5857,8 @@ test('Phase 5A desert combat gives Scarab Scout and Seal Warden readable counter
   assert.match(journeyComponentSource, /attackTellActive:\s*entity\.attackWindup > 0/);
   assert.match(journeyComponentSource, /recoveryWindowActive:\s*entity\.attackRecovery > 0/);
   assert.match(journeyComponentSource, /counterWindowActive:\s*entity\.vulnerabilityTimer > 0 \|\| entity\.attackRecovery > 0/);
-  assert.match(journeyComponentSource, /drawEnemyAttackTell = useCallback\(\(ctx, enemy/);
-  assert.match(journeyComponentSource, /if \(boss \|\| enemy\.defeated\) return/);
+  assert.match(useJourneyRendererSource, /drawEnemyAttackTellFrame\(ctx, enemy/);
+  assert.match(useJourneyRendererSource, /if \(boss \|\| enemy\.defeated\) return/);
   assert.match(journeyComponentSource, /pattern\.protectedDuringWindup/);
 });
 
