@@ -13024,11 +13024,38 @@ export default function ExpeditionJourney({
           ? Math.min(1, current.bossIntroTimer / (activeBossDomain.introSeconds || 3.2))
           : 0;
         ctx.save();
-        ctx.fillStyle = activeBossDomain.tint || 'rgba(67, 24, 24, 0.16)';
-        ctx.fillRect(Math.max(0, domainStartX), 0, Math.min(CANVAS_WIDTH, domainWidth), CANVAS_HEIGHT);
+        const domainFocusWorldX = activeBossDomain.bossStartX
+          || current.bossIntro?.focusX
+          || ((activeBossDomain.arenaStart ?? 0) + (activeBossDomain.arenaEnd ?? WORLD_WIDTH)) / 2;
+        const domainFocusX = worldToScreenX(domainFocusWorldX, cameraX);
+        const domainRadius = Math.max(360, Math.min(CANVAS_WIDTH * 0.92, Math.abs(domainWidth) * 0.58));
+        const domainAtmosphere = ctx.createRadialGradient(
+          domainFocusX,
+          GROUND_Y - 92,
+          92,
+          domainFocusX,
+          GROUND_Y - 38,
+          domainRadius,
+        );
+        domainAtmosphere.addColorStop(0, activeBossDomain.tint || 'rgba(67, 24, 24, 0.18)');
+        domainAtmosphere.addColorStop(0.52, 'rgba(36, 22, 16, 0.12)');
+        domainAtmosphere.addColorStop(1, 'rgba(36, 22, 16, 0)');
+        ctx.fillStyle = domainAtmosphere;
+        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         if (introProgress > 0) {
-          ctx.fillStyle = `rgba(12, 8, 5, ${0.22 + introProgress * 0.2})`;
-          ctx.fillRect(Math.max(0, domainStartX), 0, Math.min(CANVAS_WIDTH, domainWidth), CANVAS_HEIGHT);
+          const introAtmosphere = ctx.createRadialGradient(
+            domainFocusX,
+            GROUND_Y - 62,
+            80,
+            domainFocusX,
+            GROUND_Y - 24,
+            domainRadius * 0.82,
+          );
+          introAtmosphere.addColorStop(0, `rgba(12, 8, 5, ${0.16 + introProgress * 0.18})`);
+          introAtmosphere.addColorStop(0.58, `rgba(12, 8, 5, ${0.06 + introProgress * 0.08})`);
+          introAtmosphere.addColorStop(1, 'rgba(12, 8, 5, 0)');
+          ctx.fillStyle = introAtmosphere;
+          ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
           if (activeBossDomain.buriedSandEmergence) {
             const beat = getScarabQueenEmergenceBeat(introProgress);
             const sealScreenX = worldToScreenX(activeBossDomain.bossStartX || current.bossIntro.focusX, cameraX);
