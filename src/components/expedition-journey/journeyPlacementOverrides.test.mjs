@@ -275,27 +275,20 @@ test('mergeJourneyPlacementOverrideExports treats missing same-room editable ite
   assert.deepEqual(merged.deletedHazardIds, ['stale-entry-hazard']);
 });
 
-test('desert entry first spawn has quiet boot-level grounding props for Asha', () => {
+test('desert entry first spawn deletes old boot-level grounding overlays', () => {
   setExpeditionJourneyCiv('Ancient Egypt');
 
   const groundingProps = ROUTED_STORY_PROPS.filter((prop) => prop.id?.startsWith('desert-entry-asha-grounding-'));
+  const retiredGroundingIds = [
+    'desert-entry-asha-grounding-rubble-crumbs-1',
+    'desert-entry-asha-grounding-tile-chips-1',
+    'desert-entry-asha-grounding-boot-dust-1',
+    'desert-entry-asha-grounding-foreground-edge-1',
+  ];
 
-  assert.equal(groundingProps.length, 4);
-
-  groundingProps.forEach((prop) => {
-    assert.equal(prop.sectionId, 'desert-entry');
-    assert.equal(prop.type, 'image-prop');
-    assert.equal(prop.depth, 'foreground-occluder');
-    assert.equal(prop.collidable, false);
-    assert.equal(prop.inspectable, false);
-    assert.match(prop.assetPath, /^assets\/expedition\/environment\/egypt-atmosphere\/props\/grounding-kit-2026-06-13-final\/grounding-/);
-    assert.ok(existsSync(`public/${prop.assetPath}`), `${prop.id} should point at a real cropped grounding PNG`);
-    assert.ok(prop.x >= 0 && prop.x <= 160, `${prop.id} should stay close to Asha's first-spawn camera`);
-    assert.ok(prop.y >= 620 && prop.y <= 628, `${prop.id} should sit at boot/ground level`);
-    assert.ok(prop.height <= 28, `${prop.id} should stay low enough to avoid becoming a set piece`);
-    assert.ok(prop.alpha >= 0.55 && prop.alpha <= 0.7, `${prop.id} should be present but quiet`);
-    assert.equal(prop.sceneBlend, 'desert-entry-sand');
-    assert.equal(prop.groundContactLayer, undefined, `${prop.id} should avoid separate contact overlays that can float`);
+  assert.equal(groundingProps.length, 0);
+  retiredGroundingIds.forEach((id) => {
+    assert.ok(journeyPlacementOverrides.deletedPropIds.includes(id), `${id} should stay deleted so the panorama is not covered by prototype sand/detail overlays`);
   });
 });
 
@@ -408,16 +401,18 @@ test('sacred exterior editor overrides stay aligned after horizontal scale chang
   assert.equal(hazardById('desert-soft-ridge')?.x, 7034);
   assert.equal(hazardById('broken-ruins-loose-stones')?.x, 7797);
 
-  assert.equal(propById('scribe-chamber-doorway-structure')?.x, 10876);
+  assert.equal(propById('scribe-chamber-doorway-structure'), undefined);
+  assert.ok(journeyPlacementOverrides.deletedPropIds.includes('scribe-chamber-doorway-structure'));
   assert.equal(platformById('scribe-chamber-doorway-threshold')?.x, 10871);
   assert.equal(platformById('scribe-chamber-doorway-threshold')?.y, 297);
 });
 
-test('sacred room entry triggers align with their visible Desert Entry exteriors', () => {
+test('sacred room entry triggers align with their retained route anchors', () => {
   setExpeditionJourneyCiv('Ancient Egypt');
 
   const propById = (id) => ROUTED_STORY_PROPS.find(prop => prop.id === id);
   const routeById = (id) => ROUTED_HIDDEN_ROUTES.find(route => route.id === id);
+  const platformById = (id) => ROUTED_PLATFORMS.find(platform => platform.id === id);
   const generatedBounds = (prop) => {
     const width = (prop.width || 0) * (prop.scale || 1);
     return {
@@ -430,9 +425,8 @@ test('sacred room entry triggers align with their visible Desert Entry exteriors
   );
 
   [
-    ['mummification-chamber-route', 'desert-entry-generated-mummification-chamber-entrance-1'],
+    ['mummification-chamber-route', 'desert-entry-ravine-mummification-doorway-transition-1'],
     ['desert-upper-survey-route', 'forgotten-mural-climb-structure'],
-    ['scribe-locked-chamber-route', 'scribe-chamber-doorway-structure'],
   ].forEach(([routeId, propId]) => {
     const route = routeById(routeId);
     const prop = propById(propId);
@@ -440,9 +434,19 @@ test('sacred room entry triggers align with their visible Desert Entry exteriors
     assert.ok(prop, `${propId} should be available through routed Journey data`);
     assert.ok(
       overlaps(route, generatedBounds(prop)),
-      `${routeId} trigger should overlap the visible ${propId} exterior`,
+      `${routeId} trigger should overlap the visible ${propId} doorway/exterior`,
     );
   });
+  const scribeRoute = routeById('scribe-locked-chamber-route');
+  const scribePlatform = platformById('scribe-chamber-doorway-threshold');
+  assert.ok(scribeRoute, 'scribe-locked-chamber-route should be available through routed Journey data');
+  assert.ok(scribePlatform, 'scribe-chamber-doorway-threshold should stay as the physical route anchor');
+  assert.ok(
+    scribeRoute.x < scribePlatform.x + scribePlatform.width && scribeRoute.x + scribeRoute.width > scribePlatform.x,
+    'scribe route trigger should still overlap the retained physical doorway platform',
+  );
+  assert.equal(propById('scribe-chamber-doorway-structure'), undefined);
+  assert.ok(journeyPlacementOverrides.deletedPropIds.includes('scribe-chamber-doorway-structure'));
 });
 
 test('sacred room entry routes contain their physical doorway platforms', () => {
@@ -467,7 +471,7 @@ test('sacred room entry routes contain their physical doorway platforms', () => 
   });
 });
 
-test('ravine crossing resolves into a physical Mummification doorway transition', () => {
+test('ravine crossing keeps the Mummification doorway data while retiring its close ruin art', () => {
   setExpeditionJourneyCiv('Ancient Egypt');
 
   const prop = ROUTED_STORY_PROPS.find(item => item.id === 'desert-entry-ravine-mummification-doorway-transition-1');
@@ -477,9 +481,11 @@ test('ravine crossing resolves into a physical Mummification doorway transition'
   const route = ROUTED_HIDDEN_ROUTES.find(item => item.id === 'mummification-chamber-route');
   const doorwayPlatform = ROUTED_PLATFORMS.find(item => item.id === 'mummification-chamber-doorway-floor');
 
-  assert.ok(prop, 'ravine-to-Mummification handoff should have a visible enterable doorway prop');
-  assert.equal(retiredGateFront?.alpha, 0, 'old foreground route-gate front art should not sit over the physical Mummification doorway');
-  assert.equal(retiredGateBack?.alpha, 0, 'old foreground route-gate back art should not sit over the physical Mummification doorway');
+  assert.ok(prop, 'ravine-to-Mummification handoff should keep the enterable doorway prop data');
+  assert.equal(retiredGateFront, undefined, 'old foreground route-gate front art should be deleted from routed props');
+  assert.equal(retiredGateBack, undefined, 'old foreground route-gate back art should be deleted from routed props');
+  assert.ok(journeyPlacementOverrides.deletedPropIds.includes('desert-entry-route-gate-front-1'));
+  assert.ok(journeyPlacementOverrides.deletedPropIds.includes('desert-entry-route-gate-back-1'));
   assert.equal(guardianPrepSeal?.suppressRouteGateVisual, true, 'the old abstract gate visual should not sit inside the physical Mummification doorway');
   assert.equal(guardianPrepSeal?.physicalDoorwayPropId, prop.id, 'the progression gate should be visually represented by the physical doorway prop');
   assert.ok(route, 'Mummification hidden route should exist');
@@ -515,7 +521,7 @@ test('ravine crossing resolves into a physical Mummification doorway transition'
   assert.equal(prop.shadowOpacity, 0, 'doorway prop should not add an artificial black contact shadow over the ravine');
   assert.equal(prop.shadowWidth, 0, 'doorway prop should not carry a wide artificial shadow layer');
   assert.equal(prop.shadowHeight, 0, 'doorway prop should not carry a tall artificial shadow layer');
-  assert.ok(prop.alpha >= 0.95, 'doorway should render as a real scene structure');
+  assert.equal(prop.alpha, 0, 'doorway art should be visually retired with the close ruin row');
   const png = readPngInfo(prop.assetPath);
   assert.equal(png.colorType, 6, 'ravine-to-Mummification doorway should preserve transparency');
   assert.ok(png.width >= 1200 && png.height >= 1000, 'ravine-to-Mummification doorway should use a high-resolution generated PNG');
@@ -539,14 +545,15 @@ test('Mummification approach reads as a near climbable structure with a doorway 
     'mummification-chamber-doorway-floor',
   ];
 
-  assert.ok(exterior, 'Mummification exterior should be routed as a visible approach structure');
+  assert.ok(exterior, 'retired oversized Mummification exterior should remain routed for editor history');
   assert.ok(doorway, 'Mummification doorway prop should be routed');
   assert.ok(route, 'Mummification room route should exist');
   assert.equal(exterior.depth, 'route-edge');
   assert.equal(exterior.layer, 'route-edge');
-  assert.equal(exterior.alpha, 1);
-  assert.ok(exterior.width >= 1400, 'near structure should be large enough to read beside Asha');
-  assert.ok(exterior.x >= route.x && exterior.x <= route.x + route.width, 'near structure should overlap the room route trigger');
+  assert.equal(exterior.alpha, 0, 'oversized generated exterior should be visually retired so it does not draw a ruin row behind the doorway');
+  assert.ok(exterior.width >= 1400, 'retired structure should preserve editor sizing history');
+  assert.ok(doorway.width >= 700, 'physical doorway should be large enough to read beside Asha');
+  assert.ok(doorway.x >= route.x && doorway.x <= route.x + route.width, 'physical doorway should overlap the room route trigger');
   assert.equal(doorway.entryPlatformId, 'mummification-chamber-doorway-floor');
   assert.equal(doorway.hiddenRouteId, route.id);
 
@@ -598,7 +605,7 @@ test('routed Desert Entry spine reaches the Queen, seal, and next section in ord
   assert.ok(desertSeal.x < ruinedTempleGate.x, 'Ruined Temple gate should come after Desert Seal');
 });
 
-test('Desert Entry rebuild keeps visible scenery and walkable ground continuous through the Ruined Temple gateway', () => {
+test('Desert Entry rebuild keeps walkable ground continuous while old scenery overlays stay deleted', () => {
   setExpeditionJourneyCiv('Ancient Egypt');
 
   const propById = (id) => ROUTED_STORY_PROPS.find(prop => prop.id === id);
@@ -608,30 +615,6 @@ test('Desert Entry rebuild keeps visible scenery and walkable ground continuous 
   const ruinedTempleGate = featureById('ruined-temple-colossus-gate');
   const desertFloorBeforeRavine = platformById('desert-entry-floor-opening');
   const desertFloorAfterRavine = platformById('desert-entry-floor-after-ravine');
-
-  const rebuiltSequenceIds = [
-    'desert-entry-mummification-exterior-arrival-background-1',
-    'desert-entry-mummification-mural-record-wall-1',
-    'forgotten-mural-climb-structure',
-    'desert-entry-mural-scribe-record-wall-1',
-    'scribe-chamber-doorway-structure',
-    'desert-entry-scribe-queen-record-road-1',
-    'desert-entry-queen-arena-scarab-carving-1',
-    'desert-entry-desert-seal-return-stone-1',
-    'desert-entry-seal-gateway-collapsed-road-1',
-    'desert-entry-ruined-temple-gateway-dust-motes-1',
-  ];
-
-  const rebuiltProps = rebuiltSequenceIds.map((id) => {
-    const prop = propById(id);
-    assert.ok(prop, `${id} should exist in routed Desert Entry story props`);
-    return prop;
-  });
-
-  rebuiltProps.reduce((previous, current) => {
-    assert.ok(previous.x < current.x, `${previous.id} should appear before ${current.id}`);
-    return current;
-  });
 
   assert.ok(queen, 'Scarab Queen should exist in routed mini-boss data');
   assert.ok(ruinedTempleGate, 'Ruined Temple gateway should exist in routed stage entrance data');
@@ -646,17 +629,37 @@ test('Desert Entry rebuild keeps visible scenery and walkable ground continuous 
     'Desert Entry floor should remain walkable after the ravine through the Ruined Temple gateway center',
   );
   assert.ok(
-    propById('desert-entry-queen-arena-scarab-carving-1').x >= queen.arenaStart
-      && propById('desert-entry-queen-arena-scarab-carving-1').x <= queen.arenaEnd,
-    'Queen arena scarab carving should sit inside the Queen arena',
+    journeyPlacementOverrides.deletedPropIds.includes('desert-entry-scribe-queen-record-road-1'),
+    'old record-road scenery should stay deleted so the panorama remains coherent',
   );
   assert.ok(
-    propById('desert-entry-seal-gateway-collapsed-road-1').x < ruinedTempleGate.x,
-    'Collapsed road dressing should lead into the Ruined Temple gateway',
+    journeyPlacementOverrides.deletedPropIds.includes('desert-entry-queen-arena-dust-veil-1'),
+    'old Queen arena dust veil should stay deleted so the panorama remains coherent',
   );
+  assert.ok(
+    journeyPlacementOverrides.deletedPropIds.includes('scribe-chamber-doorway-structure'),
+    'old scribe exterior structure should stay deleted so the panorama remains coherent',
+  );
+  [
+    'desert-entry-desert-seal-jackal-left-1',
+    'desert-entry-desert-seal-return-stone-1',
+    'desert-entry-desert-seal-glyph-panel-1',
+    'desert-entry-desert-seal-jackal-right-1',
+  ].forEach((id) => {
+    assert.equal(propById(id), undefined, `${id} should not render as old seal scenery`);
+    assert.ok(journeyPlacementOverrides.deletedPropIds.includes(id), `${id} should stay recorded as deleted`);
+  });
+  [
+    'desert-entry-mural-scribe-record-wall-1',
+    'desert-entry-seal-gateway-collapsed-road-1',
+    'desert-entry-ruined-temple-gateway-dust-motes-1',
+  ].forEach((id) => {
+    assert.equal(propById(id), undefined, `${id} should be deleted with the obsolete midground ruin dressing`);
+    assert.ok(journeyPlacementOverrides.deletedPropIds.includes(id), `${id} should stay recorded as deleted`);
+  });
 });
 
-test('Desert Entry opening rebuild carries the pyramid, ravine, and Mummification approach as one regenerated section', () => {
+test('Desert Entry opening rebuild carries arrival, scarab seal, ravine, and Mummification doorway in one clean panorama', () => {
   setExpeditionJourneyCiv('Ancient Egypt');
 
   const propById = (id) => ROUTED_STORY_PROPS.find(prop => prop.id === id);
@@ -665,56 +668,155 @@ test('Desert Entry opening rebuild carries the pyramid, ravine, and Mummificatio
   const ravineOverlay = propById('desert-entry-lost-bridge-ravine-floor-deep-1');
   const laterMummificationPlate = propById('desert-entry-mummification-to-mural-background-1');
   const retiredMummificationExterior = propById('desert-entry-generated-mummification-chamber-entrance-1');
+  const retiredMuralClimbStructure = propById('forgotten-mural-climb-structure');
   const mummificationDoorway = propById('desert-entry-ravine-mummification-doorway-transition-1');
-  const openingRebuildIds = [
+  const panorama = propById('desert-entry-arrival-ravine-mummification-panorama-1');
+  const retiredOpeningPlateIds = [
     'desert-entry-opening-pyramid-to-ravine-background-1',
     'desert-entry-ravine-bridge-background-1',
     'desert-entry-ravine-to-mummification-background-1',
     'desert-entry-mummification-exterior-arrival-background-1',
+    'desert-entry-mummification-to-mural-background-1',
+    'desert-entry-mural-to-scribe-background-1',
+    'desert-entry-scribe-to-queen-background-1',
+    'desert-entry-queen-to-ruined-gateway-background-1',
   ];
-  const routeCheckpoints = [
-    { id: 'desert-entry-opening-pyramid-to-ravine-background-1', targetX: 1086 },
-    { id: 'desert-entry-ravine-bridge-background-1', targetX: 3100 },
-    { id: 'desert-entry-ravine-to-mummification-background-1', targetX: 4550 },
-    { id: 'desert-entry-mummification-exterior-arrival-background-1', targetX: 5600 },
+  const retiredEarlyBackgroundDressingIds = [
+    'opening-rubble-left',
+    'desert-entry-premium-carved-stone-edge-1',
+    'desert-entry-premium-carved-stone-edge-2',
+    'desert-entry-premium-carved-stone-edge-4',
+    'desert-entry-premium-broken-masonry-footing-1',
+    'desert-entry-cracked-stone-blocks-2',
+    'desert-entry-desert-entry-relief-wall-fragment-1',
+    'desert-entry-opening-pyramid-cracked-block-2',
+    'desert-entry-opening-pyramid-cracked-block-2-copy-1',
+    'desert-entry-opening-pyramid-cracked-block-2-copy-1-copy-1',
+    'desert-entry-opening-pyramid-cracked-block-2-copy-2',
+    'desert-entry-mummification-mural-record-wall-1',
+    'desert-entry-mummification-mural-buried-causeway-1',
+    'desert-entry-mummification-mural-sand-wisp-1',
+    'desert-entry-mural-threshold-rubble-1',
+    'desert-entry-mural-scribe-record-wall-1',
+    'desert-entry-mural-scribe-causeway-slab-1',
+    'desert-entry-scribe-threshold-rubble-1',
+    'desert-entry-scribe-queen-causeway-slab-1',
+    'desert-entry-scribe-queen-buried-column-1',
+    'desert-entry-queen-arena-rubble-ring-1',
+    'desert-entry-queen-arena-left-warning-column-1',
+    'desert-entry-queen-arena-right-warning-column-1',
+    'desert-entry-desert-seal-gate-back-1',
+    'desert-entry-desert-seal-gate-front-1',
+    'desert-entry-seal-gateway-collapsed-road-1',
+    'desert-entry-seal-gateway-broken-endcap-1',
+    'desert-entry-ruined-temple-gateway-collapsed-arch-1',
+    'desert-entry-ruined-temple-gateway-rubble-1',
+    'desert-entry-ruined-temple-gateway-dust-motes-1',
+    'desert-entry-route-gate-front-1',
+    'desert-entry-route-gate-back-1',
+    'desert-entry-lost-bridge-mummification-transition-apron-1',
+    'desert-entry-bridge-mummification-dust-veil-1',
+    'desert-entry-bridge-mummification-span-left-1',
+    'desert-entry-bridge-mummification-span-right-1',
+    'desert-entry-bridge-mummification-broken-left-cap-1',
+    'desert-entry-bridge-mummification-slope-fill-1',
+    'desert-entry-bridge-mummification-threshold-shelf-1',
+    'desert-entry-bridge-mummification-seam-support-pier-1',
+    'desert-entry-broken-shrine-pieces-1',
   ];
-  const expectedBackgroundSizes = {
-    'desert-entry-opening-pyramid-to-ravine-background-1': { width: 1672, height: 941 },
-    'desert-entry-ravine-bridge-background-1': { width: 1672, height: 941 },
-    'desert-entry-ravine-to-mummification-background-1': { width: 1774, height: 887 },
-    'desert-entry-mummification-exterior-arrival-background-1': { width: 1672, height: 941 },
-  };
 
   assert.match(
     journeyComponentSource,
     /const DESERT_ENTRY_RESTORE_ORIGINAL_BACKDROP = false;/,
     'the temporary original-backdrop restore switch should be off so the continuous route can render',
   );
+  const primaryPlateListSource = journeyComponentSource.slice(
+    journeyComponentSource.indexOf('const DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_IDS'),
+    journeyComponentSource.indexOf('const DESERT_ENTRY_RETIRED_BACKGROUND_PROP_IDS'),
+  );
+  assert.match(journeyComponentSource, /'desert-entry-arrival-ravine-mummification-panorama-1'/);
+  assert.doesNotMatch(primaryPlateListSource, /'desert-entry-opening-pyramid-to-ravine-background-1',\s*[\r\n]\s*'desert-entry-ravine-bridge-background-1'/);
+  assert.doesNotMatch(journeyComponentSource, /opening-png-to-ravine-png-dust|ravine-png-to-mummification-png-dust|mummification-approach-png-to-arrival-png-pillar/);
   assert.equal(
     openingPyramid,
     undefined,
     'the old generated opening pyramid should stay removed behind the primary background plates',
   );
   assert.ok(journeyPlacementOverrides.deletedPropIds.includes('opening-pyramid-facade-structure'));
-  openingRebuildIds.forEach((id) => {
+  assert.ok(panorama, 'the clean panoramic Desert Entry background should exist in routed story props');
+  assert.equal(panorama.sectionId, 'desert-entry');
+  assert.equal(panorama.type, 'image-prop');
+  assert.equal(panorama.depth, 'background');
+  assert.equal(panorama.layer, 'background');
+  assert.equal(panorama.width, 2172);
+  assert.equal(panorama.height, 724);
+  assert.equal(panorama.alpha, 1, 'the clean panorama should be the visible early route background');
+  assert.equal(panorama.colorGradeFilter, 'none', 'the approved panorama should not be flattened by the old beige color grade');
+  assert.equal(panorama.brightness, 1);
+  assert.equal(panorama.x, 3300);
+  assert.equal(
+    panorama.assetPath,
+    'assets/expedition/backgrounds/desert-entry-opening-rebuild/desert-entry-arrival-ravine-mummification-panorama-clean-desert-2026-06-18.png',
+  );
+  assert.ok(existsSync(`public/${panorama.assetPath}`), 'clean panorama image file should exist on disk');
+  assert.ok(
+    isHorizontallyVisibleForTest(panorama.x - panorama.width / 2, panorama.width, Math.max(0, 3100 - JOURNEY_TEST_VIEWPORT_WIDTH * 0.42)),
+    'the clean panorama should cover the ravine/scarab route camera window',
+  );
+  retiredOpeningPlateIds.forEach((id) => {
+    const prop = propById(id);
     assert.equal(
       journeyPlacementOverrides.deletedPropIds.includes(id),
-      false,
-      `${id} should stay routed so the primary PNG plate renderer has an image to draw`,
+      true,
+      `${id} should be deleted from routed story props so old background plates cannot return`,
+    );
+    assert.equal(
+      prop,
+      undefined,
+      `${id} should not remain in routed Desert Entry story props`,
     );
   });
-  assert.ok(retiredMummificationExterior, 'the Mummification exterior should be available as the near playable structure');
+  retiredEarlyBackgroundDressingIds.forEach((id) => {
+    const prop = propById(id);
+    assert.ok(journeyPlacementOverrides.deletedPropIds.includes(id), `${id} should be recorded as deleted`);
+    assert.equal(
+      prop,
+      undefined,
+      `${id} should be removed so the early route background is carried by the clean panorama only`,
+    );
+  });
+  assert.deepEqual(
+    ROUTED_STORY_PROPS
+      .filter(prop => (
+        prop.sectionId === 'desert-entry'
+        && Number.isFinite(prop.x)
+        && prop.x <= 7000
+        && (prop.alpha ?? 1) > 0
+        && (prop.depth === 'background' || prop.depth === 'midground' || prop.layer === 'background')
+      ))
+      .map(prop => prop.id),
+    ['desert-entry-arrival-ravine-mummification-panorama-1'],
+    'the clean panorama should be the only visible early Desert Entry background/midground layer',
+  );
+  assert.ok(retiredMummificationExterior, 'the oversized Mummification exterior should remain traceable for editor history');
   assert.equal(retiredMummificationExterior.type, 'generated-mummification-chamber-entrance');
   assert.equal(retiredMummificationExterior.depth, 'route-edge');
   assert.equal(retiredMummificationExterior.layer, 'route-edge');
-  assert.equal(retiredMummificationExterior.alpha, 1, 'the Mummification exterior should be visible as a close structure Asha approaches');
-  assert.ok(mummificationDoorway, 'the Mummification approach should use a physical doorway as the visible room landmark');
+  assert.equal(retiredMummificationExterior.alpha, 0, 'the oversized generated exterior should be visually retired so only the physical doorway reads as the room landmark');
+  assert.ok(retiredMuralClimbStructure, 'the retired Forgotten Mural climb structure should remain traceable for editor history');
+  assert.equal(
+    retiredMuralClimbStructure.alpha,
+    0,
+    'the close Forgotten Mural ruin row should stay visually retired until a proper near-doorway approach replaces it',
+  );
+  assert.ok(mummificationDoorway, 'the Mummification approach should keep the physical doorway data for routing');
   assert.equal(mummificationDoorway.type, 'image-prop');
   assert.equal(mummificationDoorway.depth, 'route-edge');
   assert.equal(mummificationDoorway.layer, 'route-edge');
-  assert.ok(
-    mummificationDoorway.alpha >= 0.95,
-    'the physical Mummification doorway should be visible over the rebuilt background plate',
+  assert.equal(
+    mummificationDoorway.alpha,
+    0,
+    'the physical Mummification doorway art should be visually retired with the marked close ruins',
   );
   assert.equal(
     misplacedBridgePyramid,
@@ -722,41 +824,14 @@ test('Desert Entry opening rebuild carries the pyramid, ravine, and Mummificatio
     'the duplicate pyramid facade should not sit in the ravine/Mummification handoff',
   );
 
-  const backgrounds = openingRebuildIds.map((id) => {
-    const prop = propById(id);
-    assert.ok(prop, `${id} should exist in routed Desert Entry story props`);
-    assert.equal(prop.sectionId, 'desert-entry');
-    assert.equal(prop.type, 'image-prop');
-    assert.equal(prop.depth, 'background');
-    assert.equal(prop.layer, 'background');
-    assert.equal(prop.width, expectedBackgroundSizes[id].width);
-    assert.equal(prop.height, expectedBackgroundSizes[id].height);
-    assert.equal(prop.alpha, 1, `${id} should draw at full placement opacity`);
-    assert.ok(
-      prop.assetPath?.startsWith('assets/expedition/backgrounds/desert-entry-opening-rebuild/'),
-      `${id} should load from the regenerated opening rebuild background folder`,
-    );
-    assert.ok(existsSync(`public/${prop.assetPath}`), `${id} image file should exist on disk`);
-    const checkpoint = routeCheckpoints.find(item => item.id === id);
-    const cameraX = Math.max(0, checkpoint.targetX - JOURNEY_TEST_VIEWPORT_WIDTH * 0.42);
-    const visibilityWidth = Math.max(440, prop.width);
-    assert.ok(
-      isHorizontallyVisibleForTest(prop.x - visibilityWidth / 2, visibilityWidth, cameraX),
-      `${id} should overlap the renderer camera window at x=${checkpoint.targetX}`,
-    );
-    return prop;
-  });
-
-  backgrounds.reduce((previous, current) => {
-    assert.ok(previous.x < current.x, `${previous.id} should appear before ${current.id}`);
-    return current;
-  });
-
-  assert.ok(laterMummificationPlate, 'retired Mummification-to-Mural background should remain traceable for editor history');
+  assert.ok(
+    journeyPlacementOverrides.deletedPropIds.includes('desert-entry-mummification-to-mural-background-1'),
+    'retired Mummification-to-Mural background should be recorded as deleted',
+  );
   assert.equal(
-    laterMummificationPlate.alpha,
-    0,
-    'the busy Mummification-to-Mural background plate should stay visually retired so close background ruins do not draw',
+    laterMummificationPlate,
+    undefined,
+    'the busy Mummification-to-Mural background plate should be removed so close background ruins do not draw',
   );
   assert.equal(
     ravineOverlay,
@@ -765,18 +840,9 @@ test('Desert Entry opening rebuild carries the pyramid, ravine, and Mummificatio
   );
   assert.ok(journeyPlacementOverrides.deletedPropIds.includes('desert-entry-lost-bridge-ravine-floor-deep-1'));
 
-  [
-    'desert-entry-lost-bridge-mummification-transition-apron-1',
-    'desert-entry-bridge-mummification-dust-veil-1',
-    'desert-entry-bridge-mummification-slope-fill-1',
-  ].forEach((id) => {
-    const prop = propById(id);
-    assert.ok(prop, `${id} should remain available as an editor record`);
-    assert.equal(prop.alpha, 0, `${id} should be visually retired from the rebuilt opening route`);
-  });
 });
 
-test('Desert Entry rebuild includes regenerated route background plates through the Ruined Temple gateway', () => {
+test('Desert Entry rebuild deletes regenerated route background plates through the Ruined Temple gateway', () => {
   setExpeditionJourneyCiv('Ancient Egypt');
 
   const propById = (id) => ROUTED_STORY_PROPS.find(prop => prop.id === id);
@@ -787,55 +853,18 @@ test('Desert Entry rebuild includes regenerated route background plates through 
     'desert-entry-scribe-to-queen-background-1',
     'desert-entry-queen-to-ruined-gateway-background-1',
   ];
-  const routeCheckpoints = [
-    { id: 'desert-entry-mural-to-scribe-background-1', targetX: 9500 },
-    { id: 'desert-entry-scribe-to-queen-background-1', targetX: 13520 },
-    { id: 'desert-entry-queen-to-ruined-gateway-background-1', targetX: 16240 },
-  ];
-  const retiredMuralApproachBackground = propById('desert-entry-mummification-to-mural-background-1');
+  assert.ok(
+    journeyPlacementOverrides.deletedPropIds.includes('desert-entry-mummification-to-mural-background-1'),
+    'retired close-ruin mural approach background should be deleted from routed props',
+  );
+  assert.equal(propById('desert-entry-mummification-to-mural-background-1'), undefined);
 
-  assert.ok(retiredMuralApproachBackground, 'retired close-ruin mural approach background should remain traceable');
-  assert.equal(retiredMuralApproachBackground.alpha, 0);
-
-  const backgrounds = regeneratedBackgroundIds.map((id) => {
-    const prop = propById(id);
-    assert.ok(prop, `${id} should exist in routed Desert Entry story props`);
-    assert.equal(prop.sectionId, 'desert-entry');
-    assert.equal(prop.type, 'image-prop');
-    assert.equal(prop.depth, 'background');
-    assert.equal(prop.layer, 'background');
-    assert.equal(prop.width, 1280);
-    assert.equal(prop.height, 768);
-    assert.equal(prop.alpha, 1, `${id} should draw at full placement opacity`);
-    assert.ok(
-      prop.assetPath?.startsWith('assets/expedition/backgrounds/desert-entry-regenerated/'),
-      `${id} should load from the regenerated Desert Entry background folder`,
-    );
-    assert.ok(existsSync(`public/${prop.assetPath}`), `${id} image file should exist on disk`);
-    const checkpoint = routeCheckpoints.find(item => item.id === id);
-    const cameraX = Math.max(0, checkpoint.targetX - JOURNEY_TEST_VIEWPORT_WIDTH * 0.42);
-    const visibilityWidth = Math.max(440, prop.width);
-    assert.ok(
-      isHorizontallyVisibleForTest(prop.x - visibilityWidth / 2, visibilityWidth, cameraX),
-      `${id} should overlap the renderer camera window at x=${checkpoint.targetX}`,
-    );
-    return prop;
-  });
-
-  backgrounds.reduce((previous, current) => {
-    assert.ok(previous.x < current.x, `${previous.id} should appear before ${current.id}`);
-    return current;
+  regeneratedBackgroundIds.forEach((id) => {
+    assert.equal(propById(id), undefined, `${id} should be deleted from routed Desert Entry story props`);
+    assert.ok(journeyPlacementOverrides.deletedPropIds.includes(id), `${id} should stay recorded as deleted`);
   });
 
   const scribeRoute = routeById('scribe-locked-chamber-route');
   assert.ok(queen, 'Scarab Queen should exist in routed mini-boss data');
   assert.ok(scribeRoute, 'Scribe route should exist in routed hidden route data');
-  assert.ok(
-    backgrounds[1].x > scribeRoute.x + scribeRoute.width && backgrounds[1].x < queen.x,
-    'Scribe-to-Queen background should sit between the Scribe room and Queen center',
-  );
-  assert.ok(
-    backgrounds[2].x > queen.arenaEnd,
-    'Queen-to-gateway background should sit after the Queen arena',
-  );
 });

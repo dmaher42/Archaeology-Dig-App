@@ -1324,12 +1324,34 @@ export function drawAncientRouteGroundFrame(ctx, section, cameraX, now, current,
   ctx.restore();
 }
 
+export function drawOpeningPyramidAssetRegionFrame(ctx, regionKey, dest, options = {}, deps) {
+  const {
+    OPENING_PYRAMID_ASSET_REGIONS,
+    openingPyramidClimbPackRef,
+  } = deps;
+  const pack = openingPyramidClimbPackRef.current;
+  const region = OPENING_PYRAMID_ASSET_REGIONS[regionKey];
+  if (!pack.loaded || !pack.image || !region) return false;
+  const alpha = options.alpha ?? 1;
+  ctx.save();
+  ctx.globalAlpha *= alpha;
+  if (options.filter) ctx.filter = options.filter;
+  if (options.flipX) {
+    ctx.translate(dest.x + dest.width / 2, dest.y + dest.height / 2);
+    ctx.scale(-1, 1);
+    ctx.drawImage(pack.image, region.x, region.y, region.w, region.h, -dest.width / 2, -dest.height / 2, dest.width, dest.height);
+  } else {
+    ctx.drawImage(pack.image, region.x, region.y, region.w, region.h, dest.x, dest.y, dest.width, dest.height);
+  }
+  ctx.restore();
+  return true;
+}
+
 export function drawDesertEntryPlatformSupportFrame(ctx, platform, screenX, visualY, visualHeight, reactiveActive = false, deps) {
   const {
     GROUND_Y,
     drawDecorativeBaseBlend,
     drawGroundDustLip,
-    drawOpeningPyramidAssetRegion,
     openingPyramidClimbPackRef,
     scaleJourneyX,
   } = deps;
@@ -1387,12 +1409,12 @@ export function drawDesertEntryPlatformSupportFrame(ctx, platform, screenX, visu
       const columnHeight = Math.max(22, columnBottom - columnTop);
       if (openingSetPiece && openingPyramidClimbPackRef.current.loaded) {
         const columnRegion = index % 2 ? 'paintedColumn' : 'carvedColumn';
-        drawOpeningPyramidAssetRegion(ctx, columnRegion, {
+        drawOpeningPyramidAssetRegionFrame(ctx, columnRegion, {
           x: columnX - columnWidth / 2 + lean - 12,
           y: columnTop - 9,
           width: columnWidth + 24,
           height: columnHeight + 15,
-        }, { alpha: compactOpeningSupport ? 0.34 : 0.46, filter: 'sepia(8%) saturate(84%) brightness(84%) contrast(92%)' });
+        }, { alpha: compactOpeningSupport ? 0.34 : 0.46, filter: 'sepia(8%) saturate(84%) brightness(84%) contrast(92%)' }, deps);
         continue;
       }
       const columnGradient = ctx.createLinearGradient(0, columnTop, 0, columnBottom);
@@ -1496,7 +1518,6 @@ export function drawDesertEntryPlatformSupportFrame(ctx, platform, screenX, visu
 
 export function drawDesertOpeningPlatformFaceFrame(ctx, platform, x, visualY, visualHeight, reactiveActive = false, deps) {
   const {
-    drawOpeningPyramidAssetRegion,
     openingPyramidClimbPackRef,
     openingPyramidFacadeRef,
     scaleJourneyX,
@@ -1550,7 +1571,7 @@ export function drawDesertOpeningPlatformFaceFrame(ctx, platform, x, visualY, vi
         : platform.reactive
           ? 0.88
           : 0.78;
-      drawOpeningPyramidAssetRegion(ctx, sourceKey, {
+      drawOpeningPyramidAssetRegionFrame(ctx, sourceKey, {
         x: x - 4,
         y: topY - 7,
         width: platform.width + 8,
@@ -1558,7 +1579,7 @@ export function drawDesertOpeningPlatformFaceFrame(ctx, platform, x, visualY, vi
       }, {
         alpha: reactiveActive ? Math.min(1, embeddedAlpha + 0.08) : embeddedAlpha,
         filter: reactiveActive ? 'saturate(112%) brightness(108%)' : 'sepia(6%) saturate(96%) brightness(94%) contrast(98%)',
-      });
+      }, deps);
       ctx.save();
       ctx.globalCompositeOperation = 'multiply';
       ctx.fillStyle = 'rgba(99, 55, 24, 0.18)';
@@ -1767,12 +1788,47 @@ export function drawLostBridgePlatformFrame(ctx, platform, x, visualY, visualHei
     ctx.restore();
 }
 
+export function drawForegroundSettlingDetailsFrame(ctx, x, y, width, sectionId, options = {}, deps) {
+  const {
+    drawRouteGroundApron,
+  } = deps;
+  const intensity = options.intensity ?? 1;
+  const seed = options.seed ?? 0;
+  const isCatacombs = sectionId === 'catacombs';
+  const stoneColor = isCatacombs ? 'rgba(105, 82, 56, 0.42)' : 'rgba(126, 77, 34, 0.36)';
+  const highlight = isCatacombs ? 'rgba(178, 145, 96, 0.2)' : 'rgba(238, 184, 101, 0.24)';
+
+  ctx.save();
+  drawRouteGroundApron(ctx, x, y, width, sectionId, 0.56 * intensity, seed);
+
+  ctx.globalAlpha = 0.64 * intensity;
+  ctx.fillStyle = stoneColor;
+  const stoneCount = options.stones ?? 5;
+  for (let i = 0; i < stoneCount; i += 1) {
+    const t = stoneCount <= 1 ? 0.5 : i / (stoneCount - 1);
+    const jitter = Math.sin(seed * 0.07 + i * 1.9);
+    const stoneX = x - width * 0.42 + width * 0.84 * t + jitter * 8;
+    const stoneY = y + 4 + Math.cos(seed * 0.05 + i) * 3;
+    ctx.beginPath();
+    ctx.roundRect(stoneX - 6, stoneY - 3, 10 + (i % 3) * 3, 5 + (i % 2) * 2, 2);
+    ctx.fill();
+  }
+
+  ctx.globalAlpha = 0.72 * intensity;
+  ctx.strokeStyle = highlight;
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.moveTo(x - width * 0.32, y + 1);
+  ctx.quadraticCurveTo(x - width * 0.08, y + 7, x + width * 0.24, y + 3);
+  ctx.stroke();
+  ctx.restore();
+}
+
 export function drawPlatformFrame(ctx, platform, cameraX, current, deps) {
   const {
     GROUND_Y,
     drawAtlasRegion,
     drawContactShadow,
-    drawForegroundSettlingDetails,
     drawGroundDustLip,
     environmentAssetsRef,
     getEnvironmentAssetKeyForPlatform,
@@ -1900,11 +1956,11 @@ export function drawPlatformFrame(ctx, platform, cameraX, current, deps) {
       if (desertSetPiecePlatform) {
         drawDesertEntryPlatformSupport(ctx, platform, x, visualY, visualHeight, reactiveActive);
       }
-      drawForegroundSettlingDetails(ctx, x + platform.width / 2, platform.y + visualHeight + 4, platform.width * 1.28, section.id, {
+      drawForegroundSettlingDetailsFrame(ctx, x + platform.width / 2, platform.y + visualHeight + 4, platform.width * 1.28, section.id, {
         intensity: 0.74,
         seed: Math.round(platform.x),
         stones: 6,
-      });
+      }, deps);
       drawContactShadow(ctx, x + platform.width / 2, platform.y + visualHeight + 5, platform.width * 0.94, 0.32, 1.5);
       ctx.fillStyle = 'rgba(30, 18, 8, 0.34)';
       ctx.fillRect(platformX, visualY + visualHeight - 8, platformWidth, 8);
@@ -2149,7 +2205,6 @@ export function drawStoryPropFrame(ctx, prop, cameraX, now, requestedDepth = nul
     drawContactShadow,
     drawDecorativeBaseBlend,
     drawEgyptStructureGroundContactLayer,
-    drawForegroundSettlingDetails,
     drawForgottenMuralGeneratedAsset,
     drawGroundDustLip,
     drawMarkerSprite,
@@ -2683,11 +2738,11 @@ export function drawStoryPropFrame(ctx, prop, cameraX, now, requestedDepth = nul
     const flagHeight = 104;
     const flagWidth = 96;
     const flagBaseY = prop.y + 42;
-    drawForegroundSettlingDetails(ctx, x, flagBaseY + 1, 74, section.id, {
+    drawForegroundSettlingDetailsFrame(ctx, x, flagBaseY + 1, 74, section.id, {
       intensity: propDepth === 'background' ? 0.52 : 0.78,
       seed: Math.round(prop.x),
       stones: 4,
-    });
+    }, deps);
     drawContactShadow(ctx, x, flagBaseY + 1, 52, 0.15, 1);
     const flagDest = {
       x: x - flagWidth / 2,
@@ -3322,45 +3377,17 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
     CANVAS_WIDTH,
     desertBackgroundAssetsRef,
     drawDesertBackgroundLayer,
-    getDesertEntryOpeningRebuildViewportCoverage,
     getSectionBackgroundAssets,
   } = deps;
   const isNearDesertEntry = section.id === 'desert-entry';
   const assets = getSectionBackgroundAssets(desertBackgroundAssetsRef.current, 'desert-entry');
   if (!isNearDesertEntry || !assets?.ready) return false;
 
-  const layerOptions = { canvasWidth: CANVAS_WIDTH, cameraX };
   if (assets.atlas?.runtimeMode === 'single-composited-backdrop') {
-    const openingRebuildCoverage = getDesertEntryOpeningRebuildViewportCoverage(cameraX);
-    if (openingRebuildCoverage > 0) {
-      const rebuildSky = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-      rebuildSky.addColorStop(0, '#171d2b');
-      rebuildSky.addColorStop(0.36, '#2f2c29');
-      rebuildSky.addColorStop(0.68, '#695532');
-      rebuildSky.addColorStop(1, '#241d17');
-      ctx.save();
-      ctx.globalAlpha = openingRebuildCoverage;
-      ctx.fillStyle = rebuildSky;
-      ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-      ctx.restore();
-    }
-    const oldBackdropAlpha = 1 - openingRebuildCoverage;
-    const backdropDrawn = drawDesertBackgroundLayer(
-      ctx,
-      assets,
-      'sky',
-      { y: 0, height: CANVAS_HEIGHT },
-      { ...layerOptions, parallax: 0, alpha: oldBackdropAlpha },
-    );
-    const groundingOverlayDrawn = drawDesertBackgroundLayer(
-      ctx,
-      assets,
-      'groundingOverlay',
-      { y: 0, height: CANVAS_HEIGHT },
-      { ...layerOptions, parallax: 0, alpha: oldBackdropAlpha },
-    );
-    return backdropDrawn && groundingOverlayDrawn;
+    return false;
   }
+
+  const layerOptions = { canvasWidth: CANVAS_WIDTH, cameraX };
 
   const drawn = [
     drawDesertBackgroundLayer(ctx, assets, 'sky', { y: 0, height: CANVAS_HEIGHT }, { ...layerOptions, parallax: 0, alpha: 1 }),
@@ -3553,63 +3580,6 @@ export function drawDesertJourneyPanelLayerFrame(ctx, panel, layer, cameraX, now
     ctx.restore();
   };
 
-  const drawStoneBlock = (x, y, width, height, color, alpha = 1) => {
-    ctx.save();
-    ctx.globalAlpha = alpha;
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.roundRect(x, y, width, height, 4);
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(79, 49, 24, 0.16)';
-    ctx.lineWidth = 1;
-    for (let row = 1; row < 4; row += 1) {
-      const lineY = y + (height / 4) * row;
-      ctx.beginPath();
-      ctx.moveTo(x + 8, lineY);
-      ctx.lineTo(x + width - 8, lineY + Math.sin(row + panelIndex) * 2);
-      ctx.stroke();
-    }
-    ctx.restore();
-  };
-
-  const drawBrokenColumn = (x, y, height, color, alpha = 1) => {
-    ctx.save();
-    ctx.globalAlpha = alpha;
-    ctx.fillStyle = color;
-    ctx.fillRect(x - 14, y - height, 28, height);
-    ctx.fillRect(x - 24, y - height - 10, 48, 10);
-    ctx.fillRect(x - 20, y, 40, 12);
-    ctx.strokeStyle = 'rgba(68, 43, 23, 0.18)';
-    ctx.beginPath();
-    ctx.moveTo(x - 6, y - height + 8);
-    ctx.lineTo(x - 10, y - 8);
-    ctx.moveTo(x + 7, y - height + 18);
-    ctx.lineTo(x + 4, y - 12);
-    ctx.stroke();
-    ctx.restore();
-  };
-
-  const drawArch = (x, y, width, height, color, alpha = 1) => {
-    ctx.save();
-    ctx.globalAlpha = alpha;
-    ctx.fillStyle = color;
-    ctx.fillRect(x - width / 2, y - height * 0.58, width, height * 0.58);
-    ctx.beginPath();
-    ctx.arc(x, y - height * 0.58, width / 2, Math.PI, 0);
-    ctx.lineTo(x + width / 2, y);
-    ctx.lineTo(x - width / 2, y);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = 'rgba(29, 23, 22, 0.72)';
-    ctx.beginPath();
-    ctx.arc(x, y - height * 0.5, width * 0.27, Math.PI, 0);
-    ctx.lineTo(x + width * 0.27, y);
-    ctx.lineTo(x - width * 0.27, y);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-  };
-
   ctx.save();
   ctx.beginPath();
   ctx.rect(clipLeft, 0, clipRight - clipLeft, CANVAS_HEIGHT);
@@ -3664,8 +3634,6 @@ export function drawDesertJourneyPanelLayerFrame(ctx, panel, layer, cameraX, now
     const baseY = panel.groundY - 55;
     if (panel.id === 'opening') {
       drawPyramid(at(90), baseY + 4, 440, 250, '#b47a41', 0.62);
-      drawStoneBlock(at(680), baseY - 64, 250, 94, '#9f7040', 0.48);
-      drawStoneBlock(at(1010), baseY - 38, 190, 68, '#ad7b45', 0.42);
     } else if (panel.id === 'ravine-bridge') {
       const leftCliff = at(350);
       const rightCliff = at(panelSpan - 250);
@@ -3685,31 +3653,9 @@ export function drawDesertJourneyPanelLayerFrame(ctx, panel, layer, cameraX, now
       ctx.lineTo(rightCliff - 90, CANVAS_HEIGHT + 30);
       ctx.closePath();
       ctx.fill();
-      drawStoneBlock(at(860), baseY - 132, 72, 160, '#8d6138', 0.6);
-      drawStoneBlock(at(1280), baseY - 148, 86, 176, '#7d5434', 0.58);
-    } else if (panel.id === 'ravine-to-mummification') {
-      drawStoneBlock(at(180), baseY - 70, 230, 112, '#8b6038', 0.42);
-      drawStoneBlock(at(520), baseY - 120, 380, 156, '#9e6e3d', 0.52);
-      drawBrokenColumn(at(760), baseY + 10, 145, '#8e623a', 0.46);
-    } else if (panel.id === 'mummification-arrival') {
-      drawStoneBlock(at(210), baseY - 160, 520, 210, '#a3713d', 0.58);
-      drawArch(at(460), baseY + 20, 180, 210, '#81562f', 0.48);
-      drawBrokenColumn(at(780), baseY + 12, 185, '#9b6d3f', 0.5);
-    } else if (panel.id === 'mummification-to-mural') {
-      drawStoneBlock(at(150), baseY - 92, 330, 132, '#9c6b3d', 0.48);
-      drawStoneBlock(at(560), baseY - 128, 510, 168, '#a57944', 0.48);
-      drawBrokenColumn(at(1060), baseY + 10, 150, '#8f6239', 0.5);
-    } else if (panel.id === 'mural-to-scribe') {
-      drawStoneBlock(at(220), baseY - 126, 560, 170, '#98704a', 0.46);
-      drawArch(at(980), baseY + 18, 220, 240, '#8e6139', 0.5);
-      drawStoneBlock(at(1580), baseY - 150, 430, 198, '#a06f3e', 0.54);
-      drawBrokenColumn(at(2040), baseY + 10, 168, '#8f653e', 0.48);
-    } else if (panel.id === 'scribe-to-queen-gateway') {
-      drawStoneBlock(at(240), baseY - 130, 460, 180, '#9a6d42', 0.46);
-      drawArch(at(1240), baseY + 14, 260, 270, '#865634', 0.5);
-      drawStoneBlock(at(2050), baseY - 176, 520, 230, '#a1723e', 0.55);
-      drawArch(at(2580), baseY + 16, 360, 320, '#7c4d30', 0.58);
-      drawStoneBlock(at(3140), baseY - 126, 360, 176, '#95663a', 0.44);
+    } else {
+      drawDuneBand(baseY + 18, 12, 'rgba(133, 89, 48, 0.2)', 1, panelIndex * 0.7);
+      drawDuneBand(baseY + 48, 10, 'rgba(211, 143, 67, 0.14)', 1, panelIndex * 0.9);
     }
   } else if (layer.role === 'ground') {
     const ground = ctx.createLinearGradient(0, panel.groundY - 126, 0, CANVAS_HEIGHT);
@@ -6304,6 +6250,238 @@ export function drawMissingObjectiveMarkerFrame(ctx, guidance, cameraX, now, dep
   ctx.restore();
 }
 
+export function drawHiddenRouteHintFrame(ctx, route, cameraX, current, now, deps) {
+  const {
+    CANVAS_WIDTH,
+    clamp,
+    getRouteAccessState,
+    isHorizontallyVisible,
+    worldToScreenX,
+  } = deps;
+  if (!isHorizontallyVisible(route.x, route.width, cameraX, 80)) return;
+  const x = worldToScreenX(route.x, cameraX);
+  const discovered = current.discoveredHiddenRouteIds?.has(route.id);
+  const access = getRouteAccessState(route, current);
+  const locked = access.locked;
+  const routeCenterX = x + route.width * 0.5;
+  const labelX = clamp(routeCenterX, 130, CANVAS_WIDTH - 130);
+  const pulse = 0.78 + Math.sin(now / 360 + route.x * 0.002) * 0.18;
+  const useNaturalUpperRouteHint = route.id === 'desert-upper-survey-route';
+  ctx.save();
+  if (discovered) {
+    ctx.restore();
+    return;
+  }
+  if (useNaturalUpperRouteHint) {
+    const baseY = route.y + route.height - 5;
+    const sandTrail = ctx.createLinearGradient(x, baseY - 38, x, baseY + 8);
+    sandTrail.addColorStop(0, 'rgba(226, 167, 91, 0)');
+    sandTrail.addColorStop(0.55, discovered ? 'rgba(226, 172, 84, 0.2)' : 'rgba(206, 143, 69, 0.16)');
+    sandTrail.addColorStop(1, 'rgba(130, 79, 36, 0.22)');
+    ctx.globalAlpha = discovered ? 0.84 : locked ? 0.66 : 0.58;
+    ctx.fillStyle = sandTrail;
+    ctx.beginPath();
+    ctx.ellipse(routeCenterX, baseY - 7, Math.min(210, route.width * 0.32), 22, -0.04, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = discovered
+      ? `rgba(250, 204, 21, ${0.13 * pulse})`
+      : `rgba(166, 105, 48, ${0.12 * pulse})`;
+    ctx.beginPath();
+    ctx.ellipse(routeCenterX + 26, baseY - 15, Math.min(120, route.width * 0.18), 9, -0.05, 0, Math.PI * 2);
+    ctx.fill();
+    const stoneColor = discovered ? 'rgba(142, 91, 45, 0.34)' : 'rgba(119, 76, 42, 0.26)';
+    [-210, -132, -54, 38, 128, 214].forEach((offset, index) => {
+      const stoneX = routeCenterX + offset;
+      if (stoneX < -30 || stoneX > CANVAS_WIDTH + 30) return;
+      ctx.fillStyle = stoneColor;
+      ctx.beginPath();
+      ctx.ellipse(stoneX, baseY - 10 + (index % 2) * 4, 18 - (index % 3) * 3, 6, 0.08, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    if (!discovered && !locked) {
+      ctx.restore();
+      return;
+    }
+  } else {
+    ctx.globalAlpha = discovered ? 0.78 : locked ? 0.5 : 0.42;
+    ctx.fillStyle = discovered
+      ? 'rgba(250, 204, 21, 0.08)'
+      : locked
+        ? 'rgba(14, 116, 144, 0.08)'
+        : 'rgba(15, 23, 42, 0.08)';
+    ctx.strokeStyle = discovered
+      ? 'rgba(250, 204, 21, 0.74)'
+      : locked
+        ? 'rgba(125, 211, 252, 0.48)'
+        : 'rgba(255, 247, 212, 0.34)';
+    ctx.lineWidth = discovered ? 2.5 : locked ? 2 : 1.5;
+    ctx.setLineDash(discovered ? [] : locked ? [12, 7, 3, 7] : [8, 9]);
+    ctx.beginPath();
+    ctx.roundRect(x, route.y, route.width, route.height, 14);
+    ctx.fill();
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = discovered
+      ? `rgba(250, 204, 21, ${0.2 * pulse})`
+      : locked
+        ? `rgba(125, 211, 252, ${0.16 * pulse})`
+        : `rgba(255, 247, 212, ${0.13 * pulse})`;
+    ctx.beginPath();
+    ctx.ellipse(x + route.width * 0.5, route.y + route.height - 10, Math.min(120, route.width * 0.34), 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  if (locked) {
+    ctx.globalAlpha = 0.72;
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.62)';
+    ctx.beginPath();
+    ctx.roundRect(labelX - 14, route.y + 10, 28, 24, 6);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(186, 230, 253, 0.75)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(labelX, route.y + 21, 6, Math.PI, 0);
+    ctx.stroke();
+    ctx.strokeRect(labelX - 7, route.y + 19, 14, 9);
+  }
+  ctx.restore();
+}
+
+export function drawParticlesFrame(ctx, atmosphere, cameraX, now, deps) {
+  const { CANVAS_WIDTH } = deps;
+  ctx.save();
+  ctx.fillStyle = atmosphere.particleColor;
+  const count = atmosphere.particle === 'dust and debris' ? 45 : 34;
+  for (let i = 0; i < count; i += 1) {
+    const speedMult = atmosphere.particle === 'dust and debris' ? 2.5 : 1;
+    const drift = (now / (35 / speedMult)) % 2000;
+    const x = ((i * 137 + drift + cameraX * 0.1) % (CANVAS_WIDTH + 100)) - 50;
+    const yBase = atmosphere.particle === 'glyph motes' ? 120 : atmosphere.particle === 'fireflies' ? 150 : 60;
+    const yRange = atmosphere.particle === 'dust and debris' ? 300 : 200;
+    const y = yBase + ((i * 71 + Math.sin(now / 500 + i) * 30) % yRange);
+
+    if (atmosphere.particle === 'glyph motes') {
+      ctx.globalAlpha = 0.35;
+      ctx.font = 'bold 10px serif';
+      ctx.fillText(['\u{132f9}', '\u{132bd}', '\u{130fb}', '\u{131f3}'][i % 4], x, y);
+    } else {
+      const size = atmosphere.particle === 'dust and debris' ? 2 + (i % 4) : 1.5 + (i % 2);
+      ctx.globalAlpha = 0.5;
+      ctx.beginPath();
+      ctx.arc(x, y, size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+export function drawWorldTransitionMarkerFrame(ctx, marker, cameraX, now, deps) {
+  const {
+    CANVAS_WIDTH,
+    GROUND_Y,
+    drawContactShadow,
+    stateRef,
+    worldToScreenX,
+  } = deps;
+  const x = worldToScreenX(marker.x, cameraX);
+  if (x < -90 || x > CANVAS_WIDTH + 90) return false;
+  const pulse = 0.7 + Math.sin(now / 420 + marker.x * 0.01) * 0.12;
+  const baseY = GROUND_Y - 26;
+  ctx.save();
+  ctx.globalAlpha = 0.48;
+  ctx.strokeStyle = 'rgba(255, 247, 212, 0.38)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([12, 10]);
+  ctx.beginPath();
+  ctx.moveTo(x, 88);
+  ctx.lineTo(x, baseY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  drawContactShadow(ctx, x, baseY + 28, 96, 0.12, 1.2);
+  ctx.fillStyle = `rgba(250, 204, 21, ${0.18 * pulse})`;
+  ctx.beginPath();
+  ctx.arc(x, baseY - 32, 38, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(69, 26, 3, 0.6)';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(x - 26, baseY - 2);
+  ctx.lineTo(x - 4, baseY - 62);
+  ctx.lineTo(x + 28, baseY - 2);
+  ctx.stroke();
+  ctx.fillStyle = '#b45309';
+  ctx.fillRect(x - 34, baseY - 6, 68, 10);
+  const stats = stateRef.current.renderStats;
+  if (stats) {
+    stats.visibleTransitionStoryMarkers = Array.from(new Set([...(stats.visibleTransitionStoryMarkers || []), marker.id])).slice(-8);
+  }
+  ctx.restore();
+  return true;
+}
+
+export function drawStageEntranceForegroundOccluderFrame(ctx, feature, cameraX, deps) {
+  const {
+    CANVAS_HEIGHT,
+    CANVAS_WIDTH,
+    STAGE_ENTRANCE_THEME_FILTERS,
+    clamp,
+    desertEndGatewayRef,
+    stageEntranceDoorwayRef,
+    stateRef,
+    worldToScreenX,
+  } = deps;
+  const occluders = feature.foregroundOccluders || (feature.foregroundOccluder ? [feature.foregroundOccluder] : []);
+  if (!occluders.length) return false;
+  const doorwayAsset = feature.assetKey === 'desertEndGateway'
+    ? desertEndGatewayRef.current
+    : stageEntranceDoorwayRef.current;
+  if (!doorwayAsset.loaded || !doorwayAsset.image) return false;
+  const centerX = worldToScreenX(feature.x, cameraX);
+  const width = feature.width || CANVAS_WIDTH * 1.12;
+  const height = feature.height || CANVAS_HEIGHT;
+  if (centerX < -width * 0.58 || centerX > CANVAS_WIDTH + width * 0.58) return false;
+
+  const drawX = centerX - width / 2;
+  const drawY = Math.min(0, CANVAS_HEIGHT - height) + (feature.yOffset || 0);
+  const current = stateRef.current;
+  const playerCenterX = current.player.x + current.player.width / 2;
+  const passageVisual = feature.passageVisual || {};
+  const doorwayCenterX = drawX + width * (passageVisual.centerX ?? 0.5);
+  let drewLayer = false;
+
+  occluders.forEach((occluder) => {
+    const sourceX = doorwayAsset.image.width * occluder.sourceX;
+    const sourceY = doorwayAsset.image.height * occluder.sourceY;
+    const sourceWidth = doorwayAsset.image.width * occluder.sourceWidth;
+    const sourceHeight = doorwayAsset.image.height * occluder.sourceHeight;
+    const destX = drawX + width * occluder.destX;
+    const destY = drawY + height * occluder.destY;
+    const destWidth = width * occluder.destWidth;
+    const destHeight = height * occluder.destHeight;
+    const nearRadius = occluder.nearRadius ?? width * 0.18;
+    const playerNearAmount = clamp(1 - Math.abs(worldToScreenX(playerCenterX, cameraX) - doorwayCenterX) / nearRadius, 0, 1);
+    const layerAlpha = (occluder.alpha ?? 1) * (occluder.onlyWhenPlayerNear ? playerNearAmount : 1);
+
+    if (layerAlpha <= 0.02) return;
+    ctx.save();
+    ctx.globalAlpha = layerAlpha;
+    ctx.filter = STAGE_ENTRANCE_THEME_FILTERS[feature.structureTheme] || 'drop-shadow(0 16px 16px rgba(34, 18, 8, 0.24))';
+    ctx.drawImage(
+      doorwayAsset.image,
+      sourceX,
+      sourceY,
+      sourceWidth,
+      sourceHeight,
+      destX,
+      destY,
+      destWidth,
+      destHeight,
+    );
+    ctx.restore();
+    drewLayer = true;
+  });
+  return drewLayer;
+}
+
 export function drawTrapProjectileFrame(ctx, projectile, cameraX, deps) {
   const {
     CANVAS_WIDTH,
@@ -6377,6 +6555,9 @@ export function useJourneyRenderer(deps) {
       drawForegroundOccluderPropsFrame(ctx, current, cameraX, now, deps)
     ),
     drawForgottenMuralChamberTransition: (ctx, scene) => drawForgottenMuralChamberTransitionFrame(ctx, scene, deps),
+    drawHiddenRouteHint: (ctx, route, cameraX, current, now) => (
+      drawHiddenRouteHintFrame(ctx, route, cameraX, current, now, deps)
+    ),
     drawLinkedEnemySprite: (ctx, enemy, screenX, now, shakeX = 0) => (
       drawLinkedEnemySpriteFrame(ctx, enemy, screenX, now, shakeX, deps)
     ),
@@ -6392,6 +6573,7 @@ export function useJourneyRenderer(deps) {
       drawOpeningSphinxDialogueFrame(ctx, encounter, screenX, screenY, alpha, deps)
     ),
     drawOpeningThresholdScene: (ctx, scene, cameraX, now) => drawOpeningThresholdSceneFrame(ctx, scene, cameraX, now, deps),
+    drawParticles: (ctx, atmosphere, cameraX, now) => drawParticlesFrame(ctx, atmosphere, cameraX, now, deps),
     drawPlatform: (ctx, platform, cameraX, current) => drawPlatformFrame(ctx, platform, cameraX, current, deps),
     drawPlayerSprite: (ctx, x, y, w, h, direction, invuln, now) => (
       drawPlayerSpriteFrame(ctx, x, y, w, h, direction, invuln, now, deps)
@@ -6418,9 +6600,15 @@ export function useJourneyRenderer(deps) {
     drawSmallEnemySprite: (ctx, enemy, screenX, now, shakeX = 0) => (
       drawSmallEnemySpriteFrame(ctx, enemy, screenX, now, shakeX, deps)
     ),
+    drawStageEntranceForegroundOccluder: (ctx, feature, cameraX) => (
+      drawStageEntranceForegroundOccluderFrame(ctx, feature, cameraX, deps)
+    ),
     drawTempleBackdrop: (ctx, section, cameraX) => drawTempleBackdropFrame(ctx, section, cameraX, deps),
     getOpeningSphinxSpriteFrame: (encounter, now) => getOpeningSphinxSpriteFrame(encounter, now, deps),
     drawTempleThresholdTransition: (ctx, scene, now) => drawTempleThresholdTransitionFrame(ctx, scene, now, deps),
     drawTrapProjectile: (ctx, projectile, cameraX) => drawTrapProjectileFrame(ctx, projectile, cameraX, deps),
+    drawWorldTransitionMarker: (ctx, marker, cameraX, now) => (
+      drawWorldTransitionMarkerFrame(ctx, marker, cameraX, now, deps)
+    ),
   };
 }
