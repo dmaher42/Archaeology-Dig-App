@@ -8904,6 +8904,7 @@ export default function ExpeditionJourney({
     drawSmallEnemySprite,
     drawTempleBackdrop,
     drawTempleThresholdTransition,
+    drawTrapProjectile,
   } = useJourneyRenderer({
     ANCIENT_CONSTRUCT_SPRITE_ATLAS_JSON,
     ARRIVAL_THRESHOLD_ASSET_VERSION,
@@ -11473,27 +11474,6 @@ export default function ExpeditionJourney({
     }
     ctx.restore();
   }, [drawHazardBurialCover, drawOpeningHazardDecalRegion]);
-
-  const drawTrapProjectile = useCallback((ctx, projectile, cameraX) => {
-    const x = worldToScreenX(projectile.x, cameraX);
-    if (x > CANVAS_WIDTH + 80 || x + projectile.width < -80) return;
-    ctx.save();
-    ctx.translate(x + projectile.width / 2, projectile.y + projectile.height / 2);
-    if (projectile.direction === 'up') ctx.rotate(-Math.PI / 2);
-    if (projectile.direction === 'down') ctx.rotate(Math.PI / 2);
-    if (projectile.direction === 'left') ctx.rotate(Math.PI);
-    ctx.fillStyle = '#4b3424';
-    ctx.strokeStyle = 'rgba(250, 204, 142, 0.72)';
-    ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    ctx.moveTo(-projectile.width / 2, -3);
-    ctx.lineTo(projectile.width / 2, 0);
-    ctx.lineTo(-projectile.width / 2, 3);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-    ctx.restore();
-  }, []);
 
   const drawDiscoveryEntrance = useCallback((ctx, entrance, cameraX, current, now) => {
     const screenX = entrance.x - cameraX;

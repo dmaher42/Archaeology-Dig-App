@@ -6304,6 +6304,31 @@ export function drawMissingObjectiveMarkerFrame(ctx, guidance, cameraX, now, dep
   ctx.restore();
 }
 
+export function drawTrapProjectileFrame(ctx, projectile, cameraX, deps) {
+  const {
+    CANVAS_WIDTH,
+    worldToScreenX,
+  } = deps;
+  const x = worldToScreenX(projectile.x, cameraX);
+  if (x > CANVAS_WIDTH + 80 || x + projectile.width < -80) return;
+  ctx.save();
+  ctx.translate(x + projectile.width / 2, projectile.y + projectile.height / 2);
+  if (projectile.direction === 'up') ctx.rotate(-Math.PI / 2);
+  if (projectile.direction === 'down') ctx.rotate(Math.PI / 2);
+  if (projectile.direction === 'left') ctx.rotate(Math.PI);
+  ctx.fillStyle = '#4b3424';
+  ctx.strokeStyle = 'rgba(250, 204, 142, 0.72)';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(-projectile.width / 2, -3);
+  ctx.lineTo(projectile.width / 2, 0);
+  ctx.lineTo(-projectile.width / 2, 3);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+}
+
 export function useJourneyRenderer(deps) {
   return {
     draw: deps.draw,
@@ -6396,5 +6421,6 @@ export function useJourneyRenderer(deps) {
     drawTempleBackdrop: (ctx, section, cameraX) => drawTempleBackdropFrame(ctx, section, cameraX, deps),
     getOpeningSphinxSpriteFrame: (encounter, now) => getOpeningSphinxSpriteFrame(encounter, now, deps),
     drawTempleThresholdTransition: (ctx, scene, now) => drawTempleThresholdTransitionFrame(ctx, scene, now, deps),
+    drawTrapProjectile: (ctx, projectile, cameraX) => drawTrapProjectileFrame(ctx, projectile, cameraX, deps),
   };
 }

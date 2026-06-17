@@ -598,6 +598,7 @@ Progress note: player feedback overlay slice (`drawPlayerFeedbackOverlays`) has 
 Progress note: debug platform overlay slice (`drawDebugPlatformOverlay`) has been moved into `useJourneyRenderer.js`; verified with scoped lint, Journey tests, enemy sprite tests, and build.
 Progress note: foreground occluder prop slice (`drawForegroundOccluderProps`) has been moved into `useJourneyRenderer.js`; route gates and stage foreground occluders were intentionally left in `ExpeditionJourney.jsx` because their draw callbacks are declared later in the component; verified with scoped lint, Journey tests, enemy sprite tests, and build.
 Progress note: missing objective marker renderer (`drawMissingObjectiveMarker`) has been moved into `useJourneyRenderer.js`; stale route-gate source-inspection delimiters now stop at the hazard renderer instead of the old marker callback; verified with scoped lint, Journey tests, enemy sprite tests, and build.
+Progress note: trap projectile renderer (`drawTrapProjectile`) has been moved into `useJourneyRenderer.js`; verified with scoped lint, Journey tests, enemy sprite tests, placement override tests, and build.
 
 Each moved callback should receive refs/callbacks through `deps`; do not import `stateRef` or `canvasRef` into the renderer module.
 
