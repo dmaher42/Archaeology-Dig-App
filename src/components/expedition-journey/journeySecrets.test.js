@@ -4108,6 +4108,7 @@ test('ravine bridge uses structure cutouts over the continuous Desert Entry pane
   [
     ['desert-entry/desert-entry-opening-benchmark-no-platforms.png', 'clean opening background without the circled mid-ground ruin clutter'],
     ['desert-entry-opening-rebuild/desert-entry-arrival-ravine-mummification-panorama-approved-open-sky-2026-06-17.png', 'approved open-sky arrival-ravine-Mummification panorama'],
+    ['desert-entry-opening-rebuild/desert-entry-clean-canyon-panorama-2026-06-18.png', 'clean canyon Desert Entry panorama'],
     ['desert-entry-opening-rebuild/desert-entry-ravine-bridge-depth-overlay-2026-06-11.png', 'ravine bridge depth overlay'],
   ].forEach(([filename, label]) => {
     assert.ok(

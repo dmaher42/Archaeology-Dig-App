@@ -3930,7 +3930,8 @@ export function drawDesertEntryPrimaryBackgroundPlatesFrame(ctx, current, camera
     const drawWidth = imageWidth * scale;
     const drawHeight = imageHeight * scale;
     const segmentSpan = Math.max(1, segmentRight - segmentLeft);
-    const panProgress = clamp((viewportCenterX - segmentLeft) / segmentSpan, 0, 1);
+    const panBias = Number.isFinite(plate.panoramaCropBias) ? plate.panoramaCropBias : 0;
+    const panProgress = clamp((viewportCenterX - segmentLeft) / segmentSpan + panBias, 0, 1);
     const drawX = (CANVAS_WIDTH - drawWidth) * panProgress;
     const drawY = (CANVAS_HEIGHT - drawHeight) * 0.5;
 

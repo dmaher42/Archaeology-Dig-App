@@ -752,11 +752,12 @@ test('Desert Entry opening rebuild carries arrival, scarab seal, ravine, and Mum
   assert.equal(panorama.height, 724);
   assert.equal(panorama.alpha, 1, 'the clean panorama should be the visible early route background');
   assert.equal(panorama.colorGradeFilter, 'none', 'the approved panorama should not be flattened by the old beige color grade');
+  assert.equal(panorama.panoramaCropBias, 0.24, 'the opening camera should frame the canyon depth of the clean panorama');
   assert.equal(panorama.brightness, 1);
   assert.equal(panorama.x, 3300);
   assert.equal(
     panorama.assetPath,
-    'assets/expedition/backgrounds/desert-entry-opening-rebuild/desert-entry-arrival-ravine-mummification-panorama-clean-desert-2026-06-18.png',
+    'assets/expedition/backgrounds/desert-entry-opening-rebuild/desert-entry-clean-canyon-panorama-2026-06-18.png',
   );
   assert.ok(existsSync(`public/${panorama.assetPath}`), 'clean panorama image file should exist on disk');
   assert.ok(
