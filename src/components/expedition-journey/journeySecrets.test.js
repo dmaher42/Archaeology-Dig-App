@@ -54,7 +54,6 @@ const journeyCollectibleSpritesSource = readFileSync(new URL('./journeyCollectib
 const journeyRenderAssetsSource = readFileSync(new URL('./journeyRenderAssets.js', import.meta.url), 'utf8');
 const useJourneyRendererSource = readFileSync(new URL('./useJourneyRenderer.js', import.meta.url), 'utf8');
 const journeyPlacementOverridesSource = readFileSync(new URL('./journeyPlacementOverrides.js', import.meta.url), 'utf8');
-const journeyPlacementGeneratedOverrideSource = readFileSync(new URL('./journeyPlacementOverrides.generated.js', import.meta.url), 'utf8');
 const journeyTrapsSource = readFileSync(new URL('./journeyTraps.js', import.meta.url), 'utf8');
 const expeditionStagesSource = readFileSync(new URL('../expedition/expeditionStages.js', import.meta.url), 'utf8');
 const devToolsSource = readFileSync(new URL('../DevTools.jsx', import.meta.url), 'utf8');
