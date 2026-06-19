@@ -1,6 +1,8 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
+import './styles/print.css'
+import './styles/dig-phase.css'
 import App from './App.jsx'
 
 // A service worker installed by a previous production-build preview keeps

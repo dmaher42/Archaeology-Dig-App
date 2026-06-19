@@ -2,7 +2,6 @@ import { lazy, Suspense, useState, useEffect, useMemo, useReducer } from 'react'
 import { EGYPT_AUDIO_TRACKS } from './components/expedition-journey/egyptAudioTracks';
 import { ROME_AUDIO_TRACKS } from './components/expedition-journey/rome/romeAudioTracks';
 import { CHINA_AUDIO_TRACKS } from './components/expedition-journey/chinaAudioTracks';
-import './index.css';
 
 // Components
 import { ActivityMenu } from './components/Menu';
