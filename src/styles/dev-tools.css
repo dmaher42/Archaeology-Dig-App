@@ -1,0 +1,64 @@
+/* Dev Tools Overlay */
+.dev-tools {
+  position: fixed;
+  top: 5.25rem;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.9);
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--accent);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  z-index: 9999;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  transition: all 0.3s ease;
+  max-height: calc(100vh - 6.5rem);
+  overflow-y: auto;
+}
+
+.dev-tools-label {
+  font-size: 0.6rem;
+  color: var(--accent);
+  font-weight: bold;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.dev-tools-section-label {
+  width: 100%;
+  margin: 0.25rem 0 0.1rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+  color: #f8d46a;
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.dev-tools button {
+  background: #333;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.dev-tools button:hover {
+  background: var(--accent);
+  color: #000;
+}
+
+.dev-tools button.active {
+  background: var(--accent);
+  color: #000;
+}

@@ -7,6 +7,8 @@ const appSource = readFileSync(new URL('../App.jsx', import.meta.url), 'utf8');
 const indexCss = readFileSync(new URL('../index.css', import.meta.url), 'utf8');
 const digPhaseCssUrl = new URL('./dig-phase.css', import.meta.url);
 const printCssUrl = new URL('./print.css', import.meta.url);
+const reportPhaseCssUrl = new URL('./report-phase.css', import.meta.url);
+const devToolsCssUrl = new URL('./dev-tools.css', import.meta.url);
 
 test('dig phase polish styles live in their own imported stylesheet', () => {
   assert.match(
@@ -52,4 +54,27 @@ test('removed museum and clue panel placeholders do not linger in index.css', ()
   ].forEach((oldMarker) => {
     assert.equal(indexCss.includes(oldMarker), false, `${oldMarker} should not remain in index.css`);
   });
+});
+
+test('report phase base styles live in their own imported stylesheet', () => {
+  assert.match(
+    mainSource,
+    /import\s+['"]\.\/styles\/report-phase\.css['"]/,
+    'main.jsx should import the extracted report phase stylesheet after index.css',
+  );
+  assert.equal(existsSync(reportPhaseCssUrl), true, 'report-phase.css should exist');
+  assert.equal(indexCss.includes('/* Report Phase */'), false, 'base report phase section should not remain in index.css');
+  assert.equal(indexCss.includes('.report-container {'), false, 'base report container selector should not remain in index.css');
+});
+
+test('dev tools overlay styles live in their own imported stylesheet', () => {
+  assert.match(
+    mainSource,
+    /import\s+['"]\.\/styles\/dev-tools\.css['"]/,
+    'main.jsx should import the extracted dev tools stylesheet after index.css',
+  );
+  assert.equal(existsSync(devToolsCssUrl), true, 'dev-tools.css should exist');
+  assert.equal(indexCss.includes('Dev Tools Overlay'), false, 'dev tools section should not remain in index.css');
+  assert.doesNotMatch(indexCss, /^\.dev-tools\s*\{/m, 'standalone dev tools panel selector should not remain in index.css');
+  assert.equal(indexCss.includes('.dev-tools-label'), false, 'dev tools label selector should not remain in index.css');
 });
