@@ -14,6 +14,8 @@ const bureauTextureCssUrl = new URL('./bureau-texture.css', import.meta.url);
 const bureauCaseFileStatusCssUrl = new URL('./bureau-case-file-status.css', import.meta.url);
 const basecampChecklistCssUrl = new URL('./basecamp-checklist.css', import.meta.url);
 const photoCornersCssUrl = new URL('./photo-corners.css', import.meta.url);
+const labPhaseCssUrl = new URL('./lab-phase.css', import.meta.url);
+const mainCanvasCssUrl = new URL('./main-canvas.css', import.meta.url);
 const journeyPropPaletteDrawerCssUrl = new URL('./journey-prop-palette-drawer.css', import.meta.url);
 
 test('dig phase polish styles live in their own imported stylesheet', () => {
@@ -143,6 +145,34 @@ test('photo corners training polish styles live in their own imported stylesheet
   assert.equal(indexCss.includes('/* Photo corners */'), false, 'photo corners marker should not remain in index.css');
   assert.equal(indexCss.includes('.vintage-panel::after,'), false, 'photo corner pseudo-element selector should not remain in index.css');
   assert.equal(indexCss.includes('.historical-context-box::before'), false, 'historical context decoration from this section should not remain in index.css');
+});
+
+test('phase 3 lab styles live in their own imported stylesheet', () => {
+  assert.match(
+    mainSource,
+    /import\s+['"]\.\/styles\/lab-phase\.css['"]/,
+    'main.jsx should import the extracted lab phase stylesheet after index.css',
+  );
+  assert.equal(existsSync(labPhaseCssUrl), true, 'lab-phase.css should exist');
+  assert.equal(indexCss.includes('/* Phase 3: Lab */'), false, 'phase 3 lab marker should not remain in index.css');
+  assert.equal(
+    indexCss.includes('/* Full Investigation Lab phase compact dossier workspace */'),
+    false,
+    'full investigation lab workspace marker should not remain in index.css',
+  );
+  assert.equal(indexCss.includes('.lab-briefing-card {'), false, 'lab briefing card selector should not remain in index.css');
+});
+
+test('main canvas area styles live in their own imported stylesheet', () => {
+  assert.match(
+    mainSource,
+    /import\s+['"]\.\/styles\/main-canvas\.css['"]/,
+    'main.jsx should import the extracted main canvas stylesheet after index.css',
+  );
+  assert.equal(existsSync(mainCanvasCssUrl), true, 'main-canvas.css should exist');
+  assert.equal(indexCss.includes('/* Main Canvas Area */'), false, 'main canvas marker should not remain in index.css');
+  assert.equal(indexCss.includes('.canvas-wrapper {'), false, 'canvas wrapper selector should not remain in index.css');
+  assert.doesNotMatch(indexCss, /^\.world-map-image-stage\s*\{/m, 'standalone world map image stage selector should not remain in index.css');
 });
 
 test('journey prop palette drawer override stays isolated and imported after the main stylesheet', () => {
