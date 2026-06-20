@@ -17,6 +17,7 @@ const photoCornersCssUrl = new URL('./photo-corners.css', import.meta.url);
 const labPhaseCssUrl = new URL('./lab-phase.css', import.meta.url);
 const mainCanvasCssUrl = new URL('./main-canvas.css', import.meta.url);
 const lostSiteExpeditionCssUrl = new URL('./lost-site-expedition.css', import.meta.url);
+const decorativeDeskPropsCssUrl = new URL('./decorative-desk-props.css', import.meta.url);
 const journeyPropPaletteDrawerCssUrl = new URL('./journey-prop-palette-drawer.css', import.meta.url);
 
 test('dig phase polish styles live in their own imported stylesheet', () => {
@@ -186,6 +187,18 @@ test('lost site expedition shell styles live in their own imported stylesheet', 
   assert.equal(indexCss.includes('/* Lost Site Expedition */'), false, 'lost site expedition marker should not remain in index.css');
   assert.equal(indexCss.includes('.expedition-shell {'), false, 'expedition shell selector should not remain in index.css');
   assert.equal(indexCss.includes('.expedition-topbar {'), false, 'expedition topbar selector should not remain in index.css');
+});
+
+test('decorative desk prop styles live in their own imported stylesheet', () => {
+  assert.match(
+    mainSource,
+    /import\s+['"]\.\/styles\/decorative-desk-props\.css['"]/,
+    'main.jsx should import the extracted decorative desk props stylesheet after index.css',
+  );
+  assert.equal(existsSync(decorativeDeskPropsCssUrl), true, 'decorative-desk-props.css should exist');
+  assert.equal(indexCss.includes('/* ---- Decorative desk props ---- */'), false, 'decorative desk props marker should not remain in index.css');
+  assert.equal(indexCss.includes('.training-table-prop {'), false, 'training table prop selector should not remain in index.css');
+  assert.equal(indexCss.includes('.training-desk-scene {'), false, 'training desk scene selector should not remain in index.css');
 });
 
 test('journey prop palette drawer override stays isolated and imported after the main stylesheet', () => {
