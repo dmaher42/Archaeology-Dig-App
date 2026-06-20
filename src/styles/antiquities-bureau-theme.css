@@ -1,0 +1,572 @@
+/* Antiquities Bureau final case-file theme pass */
+.bureau-phase {
+  --bureau-paper: #f7edd5;
+  --bureau-paper-light: #fff9eb;
+  --bureau-paper-shadow: #dfc999;
+  --bureau-folder: #d6ad63;
+  --bureau-folder-dark: #9b6d30;
+  --bureau-line: #b79257;
+  --bureau-ink: #24180f;
+  --bureau-ink-muted: #5a422b;
+  --bureau-seal: #9d2e24;
+  --bureau-museum-blue: #28556b;
+  --bureau-green: #355f4a;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(255, 244, 198, 0.46), transparent 24rem),
+    radial-gradient(circle at 82% 8%, rgba(40, 85, 107, 0.18), transparent 18rem),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.04) 0 2px, rgba(93, 57, 20, 0.035) 2px 6px),
+    linear-gradient(135deg, #4c3521 0%, #7b5a35 45%, #3b2a1c 100%) !important;
+  color: var(--bureau-ink);
+  padding: clamp(1rem, 2vw, 1.6rem);
+  min-height: 100vh;
+}
+
+.bureau-phase::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(255, 248, 224, 0.08) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(255, 248, 224, 0.06) 1px, transparent 1px);
+  background-size: 84px 84px;
+  opacity: 0.34;
+}
+
+.bureau-phase .glass-card,
+.bureau-case-file,
+.bureau-suspect-board,
+.bureau-mission-audit,
+.bureau-claim-screen,
+.bureau-log,
+.bureau-feedback,
+.bureau-comparison,
+.bureau-results,
+.bureau-briefing-modal {
+  background-color: var(--bureau-paper) !important;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(112, 74, 36, 0.04) 0 1px, transparent 1px 22px),
+    linear-gradient(110deg, rgba(255, 255, 255, 0.58), transparent 42%),
+    linear-gradient(180deg, var(--bureau-paper-light), var(--bureau-paper)) !important;
+  border: 2px solid rgba(92, 57, 25, 0.46) !important;
+  border-radius: 6px !important;
+  box-shadow: 0 22px 44px rgba(20, 12, 7, 0.32), inset 0 0 0 1px rgba(255, 255, 255, 0.42) !important;
+  color: var(--bureau-ink) !important;
+  backdrop-filter: none !important;
+}
+
+.bureau-investigation-layout {
+  width: min(1280px, calc(100vw - 2rem)) !important;
+  max-width: 1280px !important;
+  min-height: auto !important;
+  margin: 0.9rem auto 2rem !important;
+  padding: 0 !important;
+  display: grid !important;
+  grid-template-columns: minmax(390px, 0.92fr) minmax(440px, 1.08fr) !important;
+  gap: clamp(1rem, 2vw, 1.4rem) !important;
+  align-items: start !important;
+}
+
+.bureau-case-file,
+.bureau-suspect-board {
+  position: relative !important;
+  overflow: visible !important;
+  padding: clamp(0.95rem, 1.7vw, 1.25rem) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.75rem !important;
+}
+
+.bureau-case-file::before,
+.bureau-suspect-board::before {
+  content: "";
+  position: absolute;
+  left: 1.1rem;
+  top: -0.75rem;
+  width: 9rem;
+  height: 1.25rem;
+  border: 1px solid rgba(82, 51, 23, 0.38);
+  border-bottom: 0;
+  border-radius: 7px 7px 0 0;
+  background: linear-gradient(180deg, #e0bd73, var(--bureau-folder));
+  box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.13);
+  z-index: -1;
+}
+
+.bureau-suspect-board::before {
+  left: 1.4rem;
+  width: 10.5rem;
+  background: linear-gradient(180deg, #c5d3cb, #8ca996);
+}
+
+.bureau-case-file::after,
+.bureau-suspect-board::after {
+  content: "";
+  position: absolute;
+  right: 1.3rem;
+  top: 0.9rem;
+  width: 2.35rem;
+  height: 0.72rem;
+  transform: rotate(7deg);
+  border-radius: 2px;
+  background: rgba(255, 247, 217, 0.7);
+  border: 1px solid rgba(116, 82, 42, 0.2);
+  box-shadow: 0 1px 2px rgba(40, 25, 12, 0.15);
+  pointer-events: none;
+}
+
+.bureau-file-banner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid rgba(101, 66, 32, 0.38);
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.35), rgba(218, 190, 127, 0.28));
+  color: var(--bureau-ink);
+  font-family: "Courier New", Courier, monospace;
+  text-transform: uppercase;
+  font-weight: 800;
+  font-size: clamp(0.78rem, 1.1vw, 0.9rem);
+}
+
+.bureau-file-banner span {
+  color: var(--bureau-seal);
+}
+
+.bureau-file-banner strong {
+  color: var(--bureau-museum-blue);
+  text-align: right;
+}
+
+.bureau-dossier-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0;
+}
+
+.bureau-dossier-tab {
+  position: relative;
+  min-height: 1.8rem;
+  padding: 0.38rem 0.72rem 0.35rem;
+  border: 1px solid rgba(87, 57, 25, 0.42);
+  border-bottom-color: rgba(87, 57, 25, 0.18);
+  border-radius: 7px 7px 2px 2px;
+  background: #e2c27b;
+  color: #3a2819;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.bureau-dossier-tab.active {
+  background: var(--bureau-paper-light);
+  color: var(--bureau-seal);
+  box-shadow: 0 4px 10px rgba(53, 33, 14, 0.12);
+}
+
+.bureau-report-header {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 1rem !important;
+  align-items: start !important;
+  margin-bottom: 0 !important;
+  padding-bottom: 0.65rem !important;
+  border-bottom: 2px solid rgba(112, 72, 34, 0.28) !important;
+}
+
+.bureau-case-info {
+  position: relative;
+  min-width: 0;
+}
+
+.bureau-case-info::after {
+  content: "CLASSIFIED";
+  display: inline-block;
+  margin-top: 0.3rem;
+  padding: 0.23rem 0.55rem;
+  transform: rotate(-3deg);
+  border: 2px solid rgba(157, 46, 36, 0.72);
+  color: var(--bureau-seal);
+  font-family: "Courier New", Courier, monospace;
+  font-weight: 900;
+  font-size: 0.82rem;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.bureau-case-file h2,
+.bureau-suspect-board h2,
+.bureau-briefing-modal h2,
+.bureau-claim-screen h2,
+.bureau-log h2,
+.bureau-feedback h2,
+.bureau-comparison h2 {
+  color: var(--bureau-ink) !important;
+  font-size: clamp(1.35rem, 2vw, 1.9rem) !important;
+  line-height: 1.12 !important;
+  margin: 0.15rem 0 0.25rem !important;
+  border-bottom: 0 !important;
+}
+
+.bureau-round-tag,
+.bureau-unlock-tag,
+.bureau-score-label,
+.bureau-score-stamp,
+.training-kicker {
+  font-family: "Courier New", Courier, monospace !important;
+  letter-spacing: 0.08em !important;
+}
+
+.bureau-round-tag {
+  display: inline-flex !important;
+  width: fit-content;
+  margin-top: 0.35rem !important;
+  padding: 0.28rem 0.6rem !important;
+  border: 1px solid rgba(40, 85, 107, 0.4) !important;
+  border-radius: 999px !important;
+  background: rgba(40, 85, 107, 0.11) !important;
+  color: var(--bureau-museum-blue) !important;
+  font-weight: 800 !important;
+}
+
+.bureau-score-badge {
+  min-width: 6.2rem !important;
+  padding: 0.7rem !important;
+  border-radius: 6px !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  background: var(--bureau-paper-light) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+}
+
+.bureau-score-value {
+  color: var(--bureau-seal) !important;
+  font-size: 2rem !important;
+}
+
+.bureau-case-instruction,
+.bureau-suspect-instruction,
+.bureau-phase p {
+  color: var(--bureau-ink-muted) !important;
+  font-size: clamp(0.98rem, 1.3vw, 1.08rem) !important;
+  line-height: 1.55 !important;
+}
+
+.bureau-tier-tabs {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.5rem !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.bureau-tier-tab {
+  flex: 1 1 9rem !important;
+  min-width: 8.8rem !important;
+  min-height: 3.55rem !important;
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 0.55rem !important;
+  padding: 0.55rem 0.65rem !important;
+  border-radius: 6px !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  background: var(--bureau-paper-light) !important;
+  color: var(--bureau-ink) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  transform: none !important;
+}
+
+.bureau-tier-tab.current,
+.bureau-tier-tab.active-selection {
+  border-color: var(--bureau-seal) !important;
+  background: var(--bureau-paper) !important;
+  box-shadow: 0 0 0 1px var(--bureau-seal), 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.bureau-tier-tab.complete {
+  background: var(--bureau-folder-dark) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+.bureau-tier-tab.locked {
+  opacity: 0.5 !important;
+}
+
+.bureau-tier-icon {
+  width: 1.75rem !important;
+  height: 1.75rem !important;
+  border-radius: 50% !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(255, 255, 255, 0.52) !important;
+  color: var(--bureau-museum-blue) !important;
+}
+
+.bureau-tier-info {
+  display: grid !important;
+  gap: 0.08rem !important;
+  font-size: 0.95rem !important;
+  font-weight: 900 !important;
+}
+
+.bureau-tier-info span {
+  display: block !important;
+  color: var(--bureau-ink-muted) !important;
+  font-size: 0.78rem !important;
+  font-weight: 800 !important;
+}
+
+.bureau-evidence-box {
+  position: relative !important;
+  flex: initial !important;
+  min-height: clamp(9.5rem, 24vh, 16rem) !important;
+  max-height: none !important;
+  padding: 1rem !important;
+  overflow: visible !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  border-radius: 6px !important;
+  background: var(--bureau-paper-light) !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+}
+
+.bureau-section-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: center;
+  margin: 0 0 0.8rem;
+  color: var(--bureau-ink);
+  font-family: "Courier New", Courier, monospace;
+  font-weight: 900;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+}
+
+.bureau-section-label strong {
+  color: var(--bureau-museum-blue);
+  font-size: 0.75rem;
+}
+
+.bureau-evidence-text-list {
+  display: grid !important;
+  gap: 0.8rem !important;
+}
+
+.bureau-clue-dossier-item {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  gap: 0.8rem !important;
+  align-items: start !important;
+  padding: 0.85rem 0.9rem !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  border-radius: 4px !important;
+  background: var(--bureau-paper) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+}
+
+.bureau-clue-dossier-item::before {
+  display: none !important;
+}
+
+.bureau-clue-badge {
+  min-width: 4.4rem !important;
+  padding: 0.35rem 0.55rem !important;
+  border-radius: 4px !important;
+  border: 1px solid rgba(157, 46, 36, 0.5) !important;
+  background: rgba(157, 46, 36, 0.08) !important;
+  color: var(--bureau-seal) !important;
+  font-family: "Courier New", Courier, monospace !important;
+  font-size: 0.82rem !important;
+  font-weight: 900 !important;
+  text-align: center !important;
+}
+
+.bureau-clue-content p {
+  margin: 0 !important;
+  color: var(--bureau-ink) !important;
+  font-size: clamp(1rem, 1.3vw, 1.08rem) !important;
+}
+
+.bureau-case-actions,
+.bureau-briefing-actions {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.8rem !important;
+  align-items: stretch !important;
+  justify-content: center !important;
+  padding-top: 1.2rem !important;
+  margin-top: 1.5rem !important;
+  border-top: 1px dashed rgba(0, 0, 0, 0.15) !important;
+  position: relative !important;
+  background: transparent !important;
+  z-index: 10 !important;
+}
+
+.bureau-case-actions .btn,
+.bureau-briefing-actions .btn {
+  min-height: 2.8rem !important;
+  border-radius: 6px !important;
+  font-weight: 900 !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+  transition: all 0.2s ease !important;
+}
+
+.bureau-solve-btn,
+.bureau-briefing-actions .primary-btn {
+  background: var(--bureau-ink) !important;
+  color: var(--bureau-paper) !important;
+  border-color: rgba(0, 0, 0, 0.2) !important;
+}
+
+.bureau-reveal-btn {
+  background: var(--bureau-paper-light) !important;
+  color: var(--bureau-ink) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+.bureau-back-btn {
+  width: auto !important;
+  margin-top: 0 !important;
+  margin-left: auto !important;
+  color: var(--bureau-ink-muted) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.bureau-case-actions .btn:hover,
+.bureau-briefing-actions .btn:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+}
+
+.bureau-clue-cost {
+  color: var(--bureau-ink-muted) !important;
+  font-weight: 800 !important;
+  font-size: 0.92rem !important;
+}
+
+.bureau-header-row {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 0.75rem !important;
+}
+
+.bureau-unlock-tags {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.35rem !important;
+  justify-content: flex-end !important;
+}
+
+.bureau-unlock-tag {
+  border-radius: 999px !important;
+  border: 1px solid rgba(40, 85, 107, 0.38) !important;
+  background: rgba(40, 85, 107, 0.1) !important;
+  color: var(--bureau-museum-blue) !important;
+  padding: 0.25rem 0.55rem !important;
+  font-size: 0.72rem !important;
+  font-weight: 900 !important;
+}
+
+
+.bureau-feedback-note {
+  border-left: 0.35rem solid var(--bureau-museum-blue) !important;
+  background: rgba(40, 85, 107, 0.1) !important;
+  color: var(--bureau-ink) !important;
+}
+
+.bureau-briefing-overlay {
+  background:
+    radial-gradient(circle at center, rgba(89, 61, 34, 0.68), rgba(18, 12, 8, 0.9)) !important;
+  backdrop-filter: blur(5px) !important;
+}
+
+.bureau-briefing-modal {
+  width: min(92vw, 680px) !important;
+  padding: clamp(1.3rem, 3vw, 2.2rem) !important;
+}
+
+.bureau-briefing-modal::before {
+  content: "CASE BRIEFING" !important;
+  background: var(--bureau-folder) !important;
+  color: #2c1d12 !important;
+}
+
+.bureau-briefing-modal.expedition-stage-preview-modal::before {
+  content: "EXPEDITION PREVIEW" !important;
+  background: #c9a15a !important;
+  color: #2c1d12 !important;
+}
+
+.expedition-stage-preview-modal .bureau-briefing-actions .primary-btn {
+  min-width: 8rem !important;
+  background: linear-gradient(180deg, #fffaf0, #ead8ae) !important;
+  color: var(--bureau-ink) !important;
+  border-color: rgba(112, 72, 34, 0.34) !important;
+}
+
+.expedition-stage-preview-modal .bureau-briefing-actions .primary-btn:hover {
+  background: #fffaf0 !important;
+  color: var(--bureau-ink) !important;
+}
+
+.activity-card--bureau {
+  border-color: rgba(157, 46, 36, 0.28) !important;
+}
+
+.activity-card--bureau .activity-card-icon--bureau {
+  background: linear-gradient(180deg, #fff4d5, #d6ad63) !important;
+  color: #7a221a !important;
+}
+
+@media (max-width: 1120px) {
+  .bureau-investigation-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .bureau-suspect-grid {
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)) !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .bureau-phase {
+    padding: 0.8rem;
+  }
+
+  .bureau-investigation-layout {
+    width: 100% !important;
+    margin-top: 0.8rem !important;
+  }
+
+  .bureau-report-header,
+  .bureau-file-banner {
+    grid-template-columns: 1fr !important;
+  }
+
+  .bureau-file-banner strong {
+    text-align: left;
+  }
+
+  .bureau-case-actions .btn,
+  .bureau-briefing-actions .btn,
+  .bureau-back-btn {
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+
+  .bureau-clue-dossier-item {
+    grid-template-columns: 1fr !important;
+  }
+
+  .bureau-suspect-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}

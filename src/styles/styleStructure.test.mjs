@@ -12,12 +12,14 @@ const devToolsCssUrl = new URL('./dev-tools.css', import.meta.url);
 const museumExportCssUrl = new URL('./museum-export.css', import.meta.url);
 const bureauTextureCssUrl = new URL('./bureau-texture.css', import.meta.url);
 const bureauCaseFileStatusCssUrl = new URL('./bureau-case-file-status.css', import.meta.url);
+const antiquitiesBureauThemeCssUrl = new URL('./antiquities-bureau-theme.css', import.meta.url);
 const basecampChecklistCssUrl = new URL('./basecamp-checklist.css', import.meta.url);
 const photoCornersCssUrl = new URL('./photo-corners.css', import.meta.url);
 const labPhaseCssUrl = new URL('./lab-phase.css', import.meta.url);
 const mainCanvasCssUrl = new URL('./main-canvas.css', import.meta.url);
 const lostSiteExpeditionCssUrl = new URL('./lost-site-expedition.css', import.meta.url);
 const decorativeDeskPropsCssUrl = new URL('./decorative-desk-props.css', import.meta.url);
+const mainMenuPolishCssUrl = new URL('./main-menu-polish.css', import.meta.url);
 const journeyPropPaletteDrawerCssUrl = new URL('./journey-prop-palette-drawer.css', import.meta.url);
 
 test('dig phase polish styles live in their own imported stylesheet', () => {
@@ -124,6 +126,18 @@ test('bureau case file status and clue reveal styles live in their own imported 
   assert.equal(indexCss.includes('.clue-reveal-container {'), false, 'clue reveal selector should not remain in index.css');
 });
 
+test('antiquities bureau theme styles live in their own imported stylesheet', () => {
+  assert.match(
+    mainSource,
+    /import\s+['"]\.\/styles\/antiquities-bureau-theme\.css['"]/,
+    'main.jsx should import the extracted antiquities bureau theme stylesheet after index.css',
+  );
+  assert.equal(existsSync(antiquitiesBureauThemeCssUrl), true, 'antiquities-bureau-theme.css should exist');
+  assert.equal(indexCss.includes('/* Antiquities Bureau final case-file theme pass */'), false, 'antiquities bureau theme marker should not remain in index.css');
+  assert.equal(indexCss.includes('.bureau-file-banner {'), false, 'bureau file banner selector should not remain in index.css');
+  assert.equal(indexCss.includes('.bureau-dossier-tab.active {'), false, 'bureau dossier tab active selector should not remain in index.css');
+});
+
 test('base camp checklist and shop polish styles live in their own imported stylesheet', () => {
   assert.match(
     mainSource,
@@ -199,6 +213,18 @@ test('decorative desk prop styles live in their own imported stylesheet', () => 
   assert.equal(indexCss.includes('/* ---- Decorative desk props ---- */'), false, 'decorative desk props marker should not remain in index.css');
   assert.equal(indexCss.includes('.training-table-prop {'), false, 'training table prop selector should not remain in index.css');
   assert.equal(indexCss.includes('.training-desk-scene {'), false, 'training desk scene selector should not remain in index.css');
+});
+
+test('main menu polish styles live in their own imported stylesheet', () => {
+  assert.match(
+    mainSource,
+    /import\s+['"]\.\/styles\/main-menu-polish\.css['"]/,
+    'main.jsx should import the extracted main menu polish stylesheet after index.css',
+  );
+  assert.equal(existsSync(mainMenuPolishCssUrl), true, 'main-menu-polish.css should exist');
+  assert.equal(indexCss.includes('/* Main Menu UI Polish Pass */'), false, 'main menu polish marker should not remain in index.css');
+  assert.equal(indexCss.includes('.menu-phase::before {'), false, 'main menu background overlay selector should not remain in index.css');
+  assert.equal(indexCss.includes('.dig-emergency-banner {'), false, 'main menu emergency banner selector should not remain in index.css');
 });
 
 test('journey prop palette drawer override stays isolated and imported after the main stylesheet', () => {
