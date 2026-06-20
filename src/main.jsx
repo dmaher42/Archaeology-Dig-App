@@ -5,6 +5,7 @@ import './styles/print.css'
 import './styles/report-phase.css'
 import './styles/dev-tools.css'
 import './styles/dig-phase.css'
+import './styles/journey-prop-palette-drawer.css'
 import App from './App.jsx'
 
 // A service worker installed by a previous production-build preview keeps
@@ -20,3 +21,4 @@ createRoot(document.getElementById('root')).render(
     <App />
   </StrictMode>,
 )
+

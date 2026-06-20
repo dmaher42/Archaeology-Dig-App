@@ -9,6 +9,7 @@ const digPhaseCssUrl = new URL('./dig-phase.css', import.meta.url);
 const printCssUrl = new URL('./print.css', import.meta.url);
 const reportPhaseCssUrl = new URL('./report-phase.css', import.meta.url);
 const devToolsCssUrl = new URL('./dev-tools.css', import.meta.url);
+const journeyPropPaletteDrawerCssUrl = new URL('./journey-prop-palette-drawer.css', import.meta.url);
 
 test('dig phase polish styles live in their own imported stylesheet', () => {
   assert.match(
@@ -77,4 +78,25 @@ test('dev tools overlay styles live in their own imported stylesheet', () => {
   assert.equal(indexCss.includes('Dev Tools Overlay'), false, 'dev tools section should not remain in index.css');
   assert.doesNotMatch(indexCss, /^\.dev-tools\s*\{/m, 'standalone dev tools panel selector should not remain in index.css');
   assert.equal(indexCss.includes('.dev-tools-label'), false, 'dev tools label selector should not remain in index.css');
+});
+test('journey prop palette drawer override stays isolated and imported after the main stylesheet', () => {
+  const drawerCss = readFileSync(journeyPropPaletteDrawerCssUrl, 'utf8');
+  const indexImport = mainSource.indexOf("import './index.css'");
+  const drawerImport = mainSource.indexOf("import './styles/journey-prop-palette-drawer.css'");
+  const appImport = mainSource.indexOf("import App from './App.jsx'");
+
+  assert.notEqual(indexImport, -1, 'main.jsx should import index.css');
+  assert.notEqual(drawerImport, -1, 'main.jsx should import the prop palette drawer stylesheet');
+  assert.ok(drawerImport > indexImport, 'the drawer stylesheet should load after index.css so it overrides old palette rules');
+  assert.ok(drawerImport < appImport, 'the drawer stylesheet should load before the app renders');
+  assert.equal(existsSync(journeyPropPaletteDrawerCssUrl), true, 'journey-prop-palette-drawer.css should exist');
+  assert.match(drawerCss, /\.journey-prop-palette-panel\s*\{[^}]*top:\s*auto;[^}]*left:\s*0\.72rem;[^}]*right:\s*0\.72rem;[^}]*bottom:\s*0\.72rem;/);
+  assert.match(drawerCss, /\.journey-prop-palette-panel\s*\{[^}]*box-sizing:\s*border-box;[^}]*width:\s*auto;[^}]*max-height:\s*min\(6\.3rem, calc\(100% - 1\.44rem\)\);/);
+  assert.match(drawerCss, /\.journey-prop-palette-browser\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\);/);
+  assert.match(drawerCss, /\.journey-prop-palette-category-rail\s*\{[^}]*display:\s*flex;[^}]*overflow-x:\s*auto;[^}]*border-bottom:/);
+  assert.match(drawerCss, /\.journey-prop-palette-grid\s*\{[^}]*grid-auto-columns:\s*minmax\(5\.65rem, 6\.7rem\);[^}]*grid-auto-flow:\s*column;/);
+  assert.match(drawerCss, /\.journey-prop-palette-list\s*\{[^}]*max-height:\s*2\.74rem;[^}]*overflow-x:\s*auto;[^}]*overflow-y:\s*hidden;/);
+  assert.match(drawerCss, /\.journey-prop-palette-recent\s*\{[^}]*display:\s*none;/);
+  assert.match(drawerCss, /\.journey-prop-palette-copy span\s*\{[^}]*display:\s*none;/);
+  assert.match(drawerCss, /\.journey-prop-palette-list \.journey-prop-palette-group-toggle\s*\{[^}]*display:\s*none;/);
 });

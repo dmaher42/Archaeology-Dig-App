@@ -123,6 +123,36 @@ export function JourneyPlacementEditorPanel({
   parseColorGradeFilter,
   composeColorGradeFilter,
 }) {
+  const handlePaletteSearchChange = (event) => {
+    propPlacementEditorRef.current.paletteSearch = event.target.value;
+    refreshPropEditorUi();
+  };
+
+  const handlePaletteSearchKeyDown = (event) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+      const ed = propPlacementEditorRef.current;
+      if (String(ed.paletteSearch || '').trim()) {
+        ed.paletteSearch = '';
+      } else {
+        ed.paletteOpen = false;
+        ed.selectedPaletteKey = null;
+      }
+      refreshPropEditorUi();
+      return;
+    }
+    if (event.key === 'Enter') {
+      const ed = propPlacementEditorRef.current;
+      const filteredPalette = filterJourneyPaletteBySearch(propEditorUi.palette, ed.paletteSearch);
+      if (filteredPalette.length > 0) {
+        event.preventDefault();
+        ed.selectedPaletteKey = filteredPalette[0].key;
+        refreshPropEditorUi();
+      }
+    }
+  };
+
   return (
     <>
             {import.meta.env.DEV && propEditorUi.enabled && (
@@ -1965,35 +1995,51 @@ export function JourneyPlacementEditorPanel({
               const armedPaletteItem = propEditorUi.selectedPaletteKey
                 ? propEditorUi.palette.find(item => item.key === propEditorUi.selectedPaletteKey)
                 : null;
-              const closePalette = () => {
-                const ed = propPlacementEditorRef.current;
-                ed.paletteOpen = false;
-                ed.selectedPaletteKey = null;
-                refreshPropEditorUi();
-              };
               return (
               <div className="journey-prop-palette-panel" aria-label="Prop palette">
                 <div className="journey-prop-editor-export-header">
                   <strong>{paletteTitles[propEditorUi.selectedPaletteCategory] || 'Prop palette'}</strong>
+                  <input
+                    type="search"
+                    className="journey-prop-palette-search"
+                    placeholder="Search palette..."
+                    title="Type to filter. Enter arms the first match. Esc clears the search, then closes the palette."
+                    value={propEditorUi.paletteSearch}
+                    autoFocus
+                    onChange={handlePaletteSearchChange}
+                    onKeyDown={handlePaletteSearchKeyDown}
+                  />
                   <span>{paletteSearching ? `${filteredPalette.length} of ${propEditorUi.palette.length}` : `${propEditorUi.palette.length} items`}</span>
-                  <button type="button" title="Close palette (P or Esc)" onClick={closePalette}>
+                  <button
+                    type="button"
+                    className={`journey-prop-palette-stamp${propEditorUi.stampMode ? ' is-selected' : ''}`}
+                    title="Stamp mode: keep the palette open and the selected item armed after placing."
+                    onClick={() => {
+                      const ed = propPlacementEditorRef.current;
+                      ed.stampMode = !ed.stampMode;
+                      if (!ed.stampMode) ed.selectedPaletteKey = null;
+                      refreshPropEditorUi();
+                    }}
+                  >
+                    {propEditorUi.stampMode ? 'Stamp on' : 'Stamp off'}
+                  </button>
+                  <button
+                    type="button"
+                    title="Close palette (P or Esc)"
+                    onClick={() => {
+                      const ed = propPlacementEditorRef.current;
+                      ed.paletteOpen = false;
+                      ed.selectedPaletteKey = null;
+                      refreshPropEditorUi();
+                    }}
+                  >
                     ✕
                   </button>
                 </div>
-                <button
-                  type="button"
-                  className={`journey-prop-palette-stamp${propEditorUi.stampMode ? ' is-selected' : ''}`}
-                  title="Stamp mode: keep the palette open and the selected item armed after placing, so you can drop the same prop repeatedly without reopening the palette."
-                  onClick={() => {
-                    const ed = propPlacementEditorRef.current;
-                    ed.stampMode = !ed.stampMode;
-                    // Turning stamp mode off disarms the held item so clicks select/move again.
-                    if (!ed.stampMode) ed.selectedPaletteKey = null;
-                    refreshPropEditorUi();
-                  }}
-                >
-                  {propEditorUi.stampMode ? '📌 Stamp mode ON — keeps placing the same item' : '📌 Stamp mode OFF — palette closes after each place'}
-                </button>
+                <div className="journey-prop-palette-browser">
+                  <div className="journey-prop-palette-main">
+                    <div className="journey-prop-palette-category-rail" aria-label="Palette categories">
+                      <span className="journey-prop-palette-recent-label">Categories</span>
                 <div className="journey-prop-palette-tabs">
                   {[
                     ['prop', 'Props'],
@@ -2018,6 +2064,7 @@ export function JourneyPlacementEditorPanel({
                     </button>
                   ))}
                 </div>
+                    </div>
                 {propEditorUi.recentPaletteItems?.length > 0 && (
                   <div className="journey-prop-palette-recent">
                     <span className="journey-prop-palette-recent-label">Recent</span>
@@ -2049,38 +2096,7 @@ export function JourneyPlacementEditorPanel({
                     })}
                   </div>
                 )}
-                <input
-                  type="search"
-                  className="journey-prop-palette-search"
-                  placeholder="Search palette…"
-                  title="Type to filter. Enter arms the first match. Esc clears the search, then closes the palette."
-                  value={propEditorUi.paletteSearch}
-                  autoFocus
-                  onChange={(event) => {
-                    propPlacementEditorRef.current.paletteSearch = event.target.value;
-                    refreshPropEditorUi();
-                  }}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Escape') {
-                      event.preventDefault();
-                      event.stopPropagation();
-                      const ed = propPlacementEditorRef.current;
-                      if (String(ed.paletteSearch || '').trim()) {
-                        ed.paletteSearch = '';
-                        refreshPropEditorUi();
-                      } else {
-                        closePalette();
-                      }
-                      return;
-                    }
-                    if (event.key === 'Enter' && filteredPalette.length > 0) {
-                      event.preventDefault();
-                      propPlacementEditorRef.current.selectedPaletteKey = filteredPalette[0].key;
-                      refreshPropEditorUi();
-                    }
-                  }}
-                />
-                <div className="journey-prop-palette-list">
+                <div className="journey-prop-palette-list journey-prop-palette-grid">
                   {filteredPalette.length === 0 && (
                     <div className="journey-prop-palette-empty">
                       <span>No matches for “{String(propEditorUi.paletteSearch || '').trim()}”</span>
@@ -2148,8 +2164,10 @@ export function JourneyPlacementEditorPanel({
                     </div>
                   );})}
                 </div>
+                  </div>
+                </div>
                 {armedPaletteItem && (
-                  <div className="journey-prop-palette-armed-hint">
+                  <div className="journey-prop-palette-armed-hint journey-prop-palette-selection-tray">
                     <strong>{armedPaletteItem.label}</strong>
                     {propEditorUi.stampMode
                       ? ' armed — click in the world to place. Stamp mode keeps it armed. Esc cancels.'
