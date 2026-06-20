@@ -9,6 +9,10 @@ const digPhaseCssUrl = new URL('./dig-phase.css', import.meta.url);
 const printCssUrl = new URL('./print.css', import.meta.url);
 const reportPhaseCssUrl = new URL('./report-phase.css', import.meta.url);
 const devToolsCssUrl = new URL('./dev-tools.css', import.meta.url);
+const museumExportCssUrl = new URL('./museum-export.css', import.meta.url);
+const bureauTextureCssUrl = new URL('./bureau-texture.css', import.meta.url);
+const bureauCaseFileStatusCssUrl = new URL('./bureau-case-file-status.css', import.meta.url);
+const basecampChecklistCssUrl = new URL('./basecamp-checklist.css', import.meta.url);
 const journeyPropPaletteDrawerCssUrl = new URL('./journey-prop-palette-drawer.css', import.meta.url);
 
 test('dig phase polish styles live in their own imported stylesheet', () => {
@@ -79,6 +83,55 @@ test('dev tools overlay styles live in their own imported stylesheet', () => {
   assert.doesNotMatch(indexCss, /^\.dev-tools\s*\{/m, 'standalone dev tools panel selector should not remain in index.css');
   assert.equal(indexCss.includes('.dev-tools-label'), false, 'dev tools label selector should not remain in index.css');
 });
+
+test('museum export and field evidence styles live in their own imported stylesheet', () => {
+  assert.match(
+    mainSource,
+    /import\s+['"]\.\/styles\/museum-export\.css['"]/,
+    'main.jsx should import the extracted museum export stylesheet after index.css',
+  );
+  assert.equal(existsSync(museumExportCssUrl), true, 'museum-export.css should exist');
+  assert.equal(indexCss.includes('/* Museum Export Styles */'), false, 'museum export section should not remain in index.css');
+  assert.equal(indexCss.includes('/* Field Evidence List */'), false, 'field evidence section should not remain in index.css');
+  assert.equal(indexCss.includes('/* Print Buttons */'), false, 'print button section should not remain in index.css');
+});
+
+test('bureau paper texture styles live in their own imported stylesheet', () => {
+  assert.match(
+    mainSource,
+    /import\s+['"]\.\/styles\/bureau-texture\.css['"]/,
+    'main.jsx should import the extracted bureau texture stylesheet after index.css',
+  );
+  assert.equal(existsSync(bureauTextureCssUrl), true, 'bureau-texture.css should exist');
+  assert.equal(indexCss.includes('/* Texture & Polish */'), false, 'bureau texture section should not remain in index.css');
+  assert.equal(indexCss.includes('.bureau-paper-texture {'), false, 'bureau paper texture selector should not remain in index.css');
+});
+
+test('bureau case file status and clue reveal styles live in their own imported stylesheet', () => {
+  assert.match(
+    mainSource,
+    /import\s+['"]\.\/styles\/bureau-case-file-status\.css['"]/,
+    'main.jsx should import the extracted bureau case file status stylesheet after index.css',
+  );
+  assert.equal(existsSync(bureauCaseFileStatusCssUrl), true, 'bureau-case-file-status.css should exist');
+  assert.equal(indexCss.includes('.bureau-tier-status {'), false, 'bureau tier status selector should not remain in index.css');
+  assert.equal(indexCss.includes('.bureau-tier-indicator {'), false, 'bureau tier indicator selector should not remain in index.css');
+  assert.equal(indexCss.includes('.clue-reveal-container {'), false, 'clue reveal selector should not remain in index.css');
+});
+
+test('base camp checklist and shop polish styles live in their own imported stylesheet', () => {
+  assert.match(
+    mainSource,
+    /import\s+['"]\.\/styles\/basecamp-checklist\.css['"]/,
+    'main.jsx should import the extracted base camp checklist stylesheet after index.css',
+  );
+  assert.equal(existsSync(basecampChecklistCssUrl), true, 'basecamp-checklist.css should exist');
+  assert.equal(indexCss.includes('/* --- BASE CAMP CHECKLIST POLISH --- */'), false, 'base camp checklist marker should not remain in index.css');
+  assert.equal(indexCss.includes('.expedition-basecamp-shell {'), false, 'base camp shell selector should not remain in index.css');
+  assert.equal(indexCss.includes('.basecamp-shop-summary {'), false, 'base camp shop summary selector should not remain in index.css');
+  assert.equal(indexCss.includes('.basecamp-shop-grid {'), false, 'base camp shop grid selector should not remain in index.css');
+});
+
 test('journey prop palette drawer override stays isolated and imported after the main stylesheet', () => {
   const drawerCss = readFileSync(journeyPropPaletteDrawerCssUrl, 'utf8');
   const indexImport = mainSource.indexOf("import './index.css'");

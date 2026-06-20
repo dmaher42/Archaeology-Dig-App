@@ -1,0 +1,49 @@
+/* Case File Status & Clue Reveal */
+.bureau-tier-status {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+  padding: 0.8rem 1.2rem;
+  background: rgba(139, 106, 72, 0.05);
+  border-radius: 8px;
+  border: 1px dashed rgba(139, 106, 72, 0.2);
+}
+
+.bureau-tier-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--bureau-ink-muted);
+}
+
+.bureau-tier-indicator.active {
+  color: var(--bureau-ink);
+}
+
+.bureau-indicator-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.1);
+}
+
+.bureau-indicator-dot.unlocked { background-color: var(--success); box-shadow: 0 0 8px var(--success); }
+
+.clue-reveal-container {
+  background: rgba(255, 255, 255, 0.4);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid rgba(0,0,0,0.05);
+  margin: 1.5rem 0;
+  min-height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  text-align: center;
+}

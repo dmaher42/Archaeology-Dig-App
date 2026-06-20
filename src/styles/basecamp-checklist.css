@@ -1,0 +1,372 @@
+/* --- BASE CAMP CHECKLIST POLISH --- */
+.expedition-basecamp-shell {
+  max-width: 1000px; /* More focused for checklist */
+}
+
+.expedition-basecamp-card {
+  background:
+    linear-gradient(rgba(244, 238, 224, 0.85), rgba(244, 238, 224, 0.85)),
+    url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E"),
+    var(--bureau-parchment);
+  border: 1px solid #c2b29a;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  padding: 2.5rem;
+  border-radius: 4px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.expedition-basecamp-card::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border: 1px solid rgba(139, 106, 72, 0.15);
+  pointer-events: none;
+}
+
+.expedition-basecamp-card::after {
+  content: "OFFICIAL BUREAU CHECKLIST";
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  font-weight: 900;
+  color: var(--bureau-gold-dark);
+  opacity: 0.4;
+  letter-spacing: 0.15em;
+}
+
+.basecamp-section-header {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.section-icon-circle {
+  width: 44px;
+  height: 44px;
+  background: rgba(139, 106, 72, 0.1);
+  border: 1px solid var(--bureau-gold-muted);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--bureau-gold-dark);
+}
+
+.basecamp-section-header h3 {
+  font-family: 'Cinzel', serif;
+  font-size: 1.4rem;
+  color: var(--bureau-ink);
+  margin: 0;
+}
+
+.basecamp-section-description {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--bureau-ink-muted);
+  max-width: 700px;
+  margin: 0;
+}
+
+.basecamp-shop-section {
+  display: grid;
+  gap: 1rem;
+}
+
+.basecamp-shop-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(139, 106, 72, 0.26);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.46);
+}
+
+.basecamp-shop-summary p {
+  margin: 0;
+  color: var(--bureau-ink-muted);
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.basecamp-shop-summary-copy {
+  display: grid;
+  gap: 0.45rem;
+  justify-items: end;
+}
+
+.basecamp-active-kit {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  color: var(--bureau-ink-muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.basecamp-active-kit > span {
+  color: #6b5a42;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.basecamp-active-kit strong,
+.basecamp-active-kit em {
+  padding: 0.18rem 0.42rem;
+  border: 1px solid rgba(45, 90, 39, 0.18);
+  border-radius: 999px;
+  background: rgba(45, 90, 39, 0.08);
+  color: #214315;
+  font-style: normal;
+  line-height: 1.25;
+}
+
+.basecamp-active-kit em {
+  border-color: rgba(139, 106, 72, 0.18);
+  background: rgba(255, 255, 255, 0.42);
+  color: var(--bureau-ink-muted);
+}
+
+.basecamp-shard-bank {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 176px;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid rgba(146, 64, 14, 0.22);
+  border-radius: 7px;
+  background: rgba(251, 191, 36, 0.13);
+  color: #713f12;
+  font-weight: 900;
+}
+
+.basecamp-shard-bank strong {
+  margin-left: auto;
+  font-size: 1.25rem;
+  color: #854d0e;
+}
+
+.basecamp-shard-bank.is-rewarding {
+  animation: basecampShardPulse 0.82s ease-out;
+}
+
+.basecamp-shop-feedback {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.8rem 0.95rem;
+  border: 1px solid rgba(45, 90, 39, 0.3);
+  border-radius: 8px;
+  background: rgba(45, 90, 39, 0.1);
+  color: #214315;
+  position: relative;
+  overflow: hidden;
+  animation: basecampPurchaseGlow 0.7s ease-out;
+}
+
+.basecamp-shop-feedback::after {
+  content: '';
+  position: absolute;
+  inset: -45%;
+  pointer-events: none;
+  background:
+    radial-gradient(circle, rgba(250, 204, 21, 0.28) 0 2px, transparent 3px),
+    radial-gradient(circle, rgba(255, 255, 255, 0.42) 0 1px, transparent 2px);
+  background-size: 3.4rem 3.4rem, 2.4rem 2.4rem;
+  opacity: 0;
+  animation: basecampRewardSparkle 0.9s ease-out;
+}
+
+.basecamp-shop-feedback.blocked {
+  border-color: rgba(146, 64, 14, 0.28);
+  background: rgba(146, 64, 14, 0.09);
+  color: #6b2d12;
+}
+
+.basecamp-shop-feedback strong {
+  font-size: 0.92rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.basecamp-shop-feedback span {
+  font-size: 0.9rem;
+}
+
+.basecamp-shop-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.basecamp-shop-category {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.95rem;
+  border: 1px solid rgba(139, 106, 72, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 250, 240, 0.5);
+}
+
+.basecamp-shop-category h4 {
+  margin: 0;
+  font-family: 'Cinzel', serif;
+  color: var(--bureau-ink);
+  font-size: 0.96rem;
+}
+
+.basecamp-shop-items {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.basecamp-shop-item { display: grid; gap: 0.58rem; padding: 0.75rem; border: 1px solid rgba(139, 106, 72, 0.25); border-radius: 4px; background: #fdfcfa; }
+
+.basecamp-shop-item.is-owned {
+  border-color: rgba(45, 90, 39, 0.32);
+  background: rgba(45, 90, 39, 0.08);
+}
+
+.basecamp-shop-item.is-locked {
+  opacity: 0.72;
+}
+
+.basecamp-shop-item.just-purchased {
+  animation: basecampPurchaseGlow 0.9s ease-out;
+}
+
+.basecamp-shop-item-main {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.basecamp-shop-item-main strong {
+  display: block;
+  color: var(--bureau-ink);
+  font-size: 0.94rem;
+}
+
+.basecamp-shop-item-main span {
+  color: var(--bureau-ink-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.basecamp-shop-cost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #854d0e;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.basecamp-shop-cost span {
+  color: #92400e;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+}
+
+.basecamp-shop-item p {
+  margin: 0;
+  color: var(--bureau-ink-muted);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.basecamp-shop-route-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  width: fit-content;
+  padding: 0.18rem 0.44rem;
+  border: 1px solid rgba(14, 116, 144, 0.2);
+  border-radius: 999px;
+  background: rgba(14, 116, 144, 0.08);
+  color: #155e75;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.basecamp-shop-buy-btn {
+  min-height: 34px;
+  padding: 0.38rem 0.62rem;
+  justify-self: start;
+  border-radius: 6px;
+}
+
+.basecamp-shop-buy-btn:disabled {
+  opacity: 0.68;
+  cursor: not-allowed;
+}
+
+@keyframes basecampPurchaseGlow {
+  0% {
+    box-shadow: 0 0 0 rgba(250, 204, 21, 0);
+    transform: translateY(0);
+  }
+  35% {
+    box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.22), 0 14px 28px rgba(133, 77, 14, 0.14);
+    transform: translateY(-1px);
+  }
+  100% {
+    box-shadow: 0 0 0 rgba(250, 204, 21, 0);
+    transform: translateY(0);
+  }
+}
+
+@keyframes basecampShardPulse {
+  0% {
+    box-shadow: 0 0 0 rgba(250, 204, 21, 0);
+    transform: scale(1);
+  }
+  40% {
+    box-shadow: 0 0 0 5px rgba(250, 204, 21, 0.18);
+    transform: scale(1.025);
+  }
+  100% {
+    box-shadow: 0 0 0 rgba(250, 204, 21, 0);
+    transform: scale(1);
+  }
+}
+
+@keyframes basecampRewardSparkle {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.98);
+  }
+  34% {
+    opacity: 0.65;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-0.4rem) scale(1.03);
+  }
+}
+
+@media (max-width: 820px) {
+  .basecamp-shop-summary,
+  .basecamp-shop-item-main {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .basecamp-shop-summary-copy,
+  .basecamp-active-kit {
+    justify-items: start;
+    justify-content: flex-start;
+  }
+
+  .basecamp-shop-grid {
+    grid-template-columns: 1fr;
+  }
+}

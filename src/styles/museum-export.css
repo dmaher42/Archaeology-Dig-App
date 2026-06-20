@@ -1,0 +1,200 @@
+/* Museum Export Styles */
+.museum-export-section {
+  background: rgba(44, 29, 18, 0.04);
+  padding: 2rem;
+  border-radius: 12px;
+  margin-bottom: 3rem;
+  border: 1px dashed rgba(44, 29, 18, 0.2);
+}
+
+.museum-export-final-statement {
+  background: #1a1510;
+  color: #f4ece1;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.museum-export-final-statement strong {
+  display: block;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--arch-accent);
+  margin-bottom: 0.75rem;
+}
+
+.museum-export-final-statement p {
+  font-size: 1.15rem;
+  line-height: 1.6;
+  font-family: 'Playfair Display', serif;
+}
+
+.museum-export-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.museum-export-card {
+  background: white;
+  border: 1px solid #c5bba0;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.museum-export-card-number {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  background: #1a1510;
+  color: #f4ece1;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  z-index: 2;
+  border-radius: 2px;
+}
+
+.museum-export-card img {
+  width: 100%;
+  height: 200px;
+  object-fit: contain;
+  background: #f8f8f8;
+  border-bottom: 1px solid #eee;
+  padding: 1rem;
+}
+
+.museum-export-card-body {
+  padding: 1.5rem;
+}
+
+.museum-export-category {
+  font-size: 0.65rem;
+  font-weight: 900;
+  color: #8b6a48;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 0.4rem;
+}
+
+.museum-export-card h4 {
+  font-family: 'Cinzel', serif;
+  font-size: 1.25rem;
+  color: #1a1510;
+  margin-bottom: 1rem;
+}
+
+.museum-export-label,
+.museum-export-evidence,
+.museum-export-analysis {
+  margin-bottom: 1.25rem;
+}
+
+.museum-export-label strong,
+.museum-export-evidence strong,
+.museum-export-analysis strong {
+  display: block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: #8b6a48;
+  margin-bottom: 0.4rem;
+  border-bottom: 1px solid rgba(139, 106, 72, 0.2);
+}
+
+.museum-export-label p {
+  font-size: 1.05rem;
+  line-height: 1.5;
+  color: #2c1d12;
+  font-weight: 600;
+}
+
+.museum-export-evidence p {
+  font-size: 0.9rem;
+  color: #555;
+  font-style: italic;
+}
+
+.museum-export-analysis p {
+  font-size: 0.95rem;
+  color: #1a1510;
+}
+
+.museum-export-analysis span {
+  font-weight: 800;
+  color: #8b6a48;
+}
+
+/* Field Evidence List */
+.report-category {
+  margin-bottom: 2rem;
+}
+
+.report-category h4 {
+  background: #1a1510;
+  color: #f4ece1;
+  padding: 0.5rem 1rem;
+  font-family: 'Cinzel', serif;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.report-item {
+  list-style: none;
+  padding: 1rem;
+  border-bottom: 1px solid rgba(44, 29, 18, 0.1);
+  display: grid;
+  gap: 0.5rem;
+}
+
+.report-item:last-child {
+  border-bottom: none;
+}
+
+.report-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+}
+
+.report-item-header strong {
+  font-size: 1.1rem;
+  color: #1a1510;
+}
+
+.report-clue {
+  font-family: monospace;
+  font-size: 0.9rem;
+  color: #8b6a48;
+  background: rgba(139, 106, 72, 0.1);
+  padding: 0.1rem 0.5rem;
+  border-radius: 4px;
+}
+
+.report-hypothesis {
+  font-size: 0.85rem;
+  color: #4a3620;
+}
+
+.report-feedback {
+  font-size: 1rem;
+  color: #2c1d12;
+  background: rgba(255, 255, 255, 0.3);
+  padding: 0.75rem;
+  border-radius: 6px;
+  border-left: 3px solid #8b6a48;
+}
+
+/* Print Buttons */
+.report-actions {
+  max-width: 1000px;
+  margin: 1.5rem auto 0;
+  display: flex;
+  gap: 1rem;
+  padding: 0 1rem;
+}

@@ -3,6 +3,10 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import './styles/print.css'
 import './styles/report-phase.css'
+import './styles/museum-export.css'
+import './styles/bureau-texture.css'
+import './styles/bureau-case-file-status.css'
+import './styles/basecamp-checklist.css'
 import './styles/dev-tools.css'
 import './styles/dig-phase.css'
 import './styles/journey-prop-palette-drawer.css'
@@ -21,4 +25,3 @@ createRoot(document.getElementById('root')).render(
     <App />
   </StrictMode>,
 )
-
