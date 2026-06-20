@@ -1,0 +1,349 @@
+/* --- Survey action panel (right) --- */
+.training-difficulty-segment {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.4rem;
+}
+
+.training-difficulty-seg {
+  display: grid;
+  gap: 0.12rem;
+  padding: 0.5rem 0.4rem;
+  border: 1px solid rgba(217, 168, 78, 0.4);
+  border-radius: 9px;
+  background: rgba(35, 21, 10, 0.5);
+  color: #e9d3a8;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.14s ease, border-color 0.14s ease, background 0.14s ease;
+}
+
+.training-difficulty-seg:hover {
+  transform: translateY(-1px);
+  border-color: rgba(217, 168, 78, 0.72);
+}
+
+.training-difficulty-seg strong {
+  font-family: 'Cinzel', serif;
+  font-size: 0.78rem;
+}
+
+.training-difficulty-seg span {
+  font-size: 0.6rem;
+  line-height: 1.15;
+  opacity: 0.82;
+}
+
+.training-difficulty-seg.active {
+  border-color: rgba(46, 170, 106, 0.8);
+  background: rgba(30, 90, 55, 0.5);
+  box-shadow: inset 0 0 0 1px rgba(46, 170, 106, 0.5);
+  color: #d8f3e0;
+}
+
+.training-zone-detail {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid rgba(217, 168, 78, 0.4);
+  border-radius: 10px;
+  background: rgba(35, 21, 10, 0.55);
+}
+
+.training-zone-detail.selected {
+  border-color: rgba(46, 170, 106, 0.7);
+  background: rgba(28, 70, 45, 0.5);
+}
+
+.training-zone-detail-kicker {
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: #c9a86a;
+}
+
+.training-zone-detail strong {
+  font-family: 'Cinzel', serif;
+  font-size: 0.98rem;
+  color: #ffe9b0;
+  line-height: 1.1;
+}
+
+.training-zone-detail-terrain {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #d8c29a;
+}
+
+.training-zone-detail-clue {
+  margin: 0;
+  padding: 0.4rem 0.5rem;
+  border-radius: 7px;
+  background: rgba(31, 95, 82, 0.25);
+  color: #8fe0c4;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.training-zone-detail-note {
+  margin: 0;
+  font-size: 0.74rem;
+  font-style: italic;
+  color: #b9a079;
+  line-height: 1.3;
+}
+
+.training-zone-detail .btn {
+  margin-top: 0.3rem;
+  width: 100%;
+}
+
+.training-survey-zoom-btn {
+  width: 100%;
+}
+
+.training-soil-preview {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.training-survey-hotspot {
+  position: absolute;
+  left: 56%;
+  top: 56%;
+  z-index: 5;
+  transform: translate(-50%, -50%);
+  min-height: 2.65rem;
+  padding: 0.55rem 0.95rem;
+  border: 2px solid rgba(80, 45, 18, 0.6);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 245, 211, 0.95), rgba(221, 181, 111, 0.95));
+  color: #3b200b;
+  font-family: 'Cinzel', serif;
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: 0 0 0 8px rgba(118, 75, 34, 0.12), 0 8px 20px rgba(40, 24, 11, 0.28);
+  cursor: pointer;
+}
+
+.training-survey-clue {
+  position: absolute;
+  left: 62.5%;
+  top: 62.5%;
+  z-index: 4;
+  transform: translate(-50%, -50%);
+  padding: 0.34rem 0.52rem;
+  border-radius: 999px;
+  border: 1px solid rgba(87, 58, 28, 0.4);
+  background: rgba(255, 245, 211, 0.9);
+  color: #5f2c12;
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.training-grid-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: repeat(var(--training-cols, 4), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--training-rows, 4), minmax(0, 1fr));
+  pointer-events: none;
+}
+
+.training-grid-overlay > div {
+  padding: 0.16rem 0.18rem;
+  border-right: 1px solid rgba(255, 224, 141, 0.5);
+  border-bottom: 1px solid rgba(255, 224, 141, 0.48);
+  color: #ffe8b6;
+  font-size: clamp(0.42rem, 0.7vw, 0.68rem);
+  font-weight: 900;
+  line-height: 1;
+  text-shadow:
+    0 1px 0 rgba(82, 46, 17, 0.75),
+    0 0 6px rgba(24, 13, 5, 0.95);
+}
+
+.training-site-stage.large-board .training-grid-overlay > div {
+  font-size: clamp(0.34rem, 0.52vw, 0.52rem);
+}
+
+.training-mine-tile {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid rgba(255, 224, 141, 0.24);
+  background:
+    radial-gradient(circle at 45% 39%, rgba(255, 220, 132, 0.28), transparent 42%),
+    linear-gradient(180deg, rgba(119, 68, 30, 0.98), rgba(70, 39, 16, 0.99));
+  color: #ffe7aa;
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 237, 184, 0.24),
+    inset 0 -2px 4px rgba(39, 20, 6, 0.34);
+  transition: background-color 0.14s ease, box-shadow 0.14s ease, transform 0.14s ease;
+}
+
+.training-mine-tile:hover,
+.training-mine-tile:focus-visible {
+  z-index: 5;
+  outline: 3px solid rgba(255, 224, 141, 0.94);
+  outline-offset: -3px;
+  background:
+    radial-gradient(circle at 45% 38%, rgba(255, 232, 163, 0.5), transparent 44%),
+    linear-gradient(180deg, rgba(147, 83, 34, 0.98), rgba(86, 48, 19, 0.98));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 247, 215, 0.36),
+    inset 0 -2px 4px rgba(39, 20, 6, 0.28),
+    0 0 16px rgba(255, 224, 141, 0.32),
+    0 0 0 1px rgba(255, 241, 193, 0.22);
+}
+
+.training-mine-tile.starter-probe::after {
+  content: '';
+  position: absolute;
+  right: 0.42rem;
+  bottom: 0.4rem;
+  width: 0.48rem;
+  height: 0.48rem;
+  border-radius: 999px;
+  background: #3d2410;
+  box-shadow:
+    0 0 0 2px rgba(255, 229, 151, 0.44),
+    0 0 12px rgba(255, 218, 123, 0.34);
+}
+
+.training-mine-tile.revealed {
+  background:
+    radial-gradient(circle at 50% 48%, rgba(255, 238, 176, 0.96), rgba(169, 100, 39, 0.94));
+  border-color: rgba(76, 45, 17, 0.46);
+  cursor: default;
+  box-shadow:
+    inset 0 2px 8px rgba(67, 37, 12, 0.28),
+    inset 0 0 0 1px rgba(255, 246, 214, 0.16);
+}
+
+.training-mine-tile.artifact {
+  background:
+    radial-gradient(circle at 46% 42%, #ffe88e 0%, #d7a93a 42%, #8f4f1c 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 245, 187, 0.42),
+    0 0 18px rgba(221, 169, 62, 0.36);
+}
+
+.mine-marker {
+  width: clamp(1rem, 2vw, 1.45rem);
+  height: clamp(1rem, 2vw, 1.45rem);
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 224, 164, 0.52);
+  background:
+    radial-gradient(circle at 42% 34%, rgba(255, 225, 169, 0.18), transparent 45%),
+    #561d12;
+  color: #fff8dc;
+  font-size: clamp(0.52rem, 0.85vw, 0.7rem);
+  font-weight: 900;
+  box-shadow: 0 3px 8px rgba(38, 15, 5, 0.34);
+}
+
+.mine-number {
+  position: relative;
+  z-index: 5;
+  color: #234c2e;
+  font-size: clamp(0.72rem, 1.45vw, 1.7rem);
+  font-weight: 900;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+.number-1 { color: #235d34; }
+.number-2 { color: #1f5d73; }
+.number-3 { color: #7a2a1f; }
+.number-4 { color: #442a75; }
+.number-5,
+.number-6,
+.number-7,
+.number-8 { color: #2d1a0c; }
+
+.training-site-stage.large-board .mine-number {
+  font-size: clamp(0.52rem, 0.95vw, 1.05rem);
+}
+
+.mine-artifact-icon {
+  position: relative;
+  z-index: 5;
+  width: clamp(2rem, 4vw, 3.4rem);
+  height: clamp(2rem, 4vw, 3.4rem);
+  filter: drop-shadow(0 4px 8px rgba(50, 24, 8, 0.35));
+}
+
+.training-feedback-slot {
+  min-height: 2.65rem;
+  display: flex;
+  align-items: stretch;
+}
+
+.training-feedback-slot .feedback-banner {
+  width: 100%;
+  display: grid;
+  place-items: center;
+  padding: 0.55rem 0.75rem;
+  border-radius: 9px;
+  border: 1px solid rgba(217, 168, 78, 0.32);
+  background:
+    linear-gradient(180deg, rgba(54, 34, 18, 0.92), rgba(24, 15, 10, 0.94));
+  color: #ffe8b6;
+  font-size: 0.86rem;
+  font-weight: 750;
+  line-height: 1.25;
+  text-align: center;
+}
+
+.training-feedback-slot .feedback-banner.success {
+  border-color: rgba(79, 157, 102, 0.56);
+  background: linear-gradient(180deg, rgba(32, 80, 45, 0.9), rgba(17, 38, 25, 0.94));
+  color: #d6f6ca;
+}
+
+.training-feedback-slot .feedback-banner.error {
+  border-color: rgba(179, 67, 46, 0.62);
+  background: linear-gradient(180deg, rgba(100, 31, 23, 0.94), rgba(42, 16, 12, 0.96));
+  color: #ffd7c8;
+}
+
+/* ============================================================
+   Step 3 — Premium excavation "field desk" tabletop
+   ============================================================ */
+.training-excavation-tabletop {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 0.85rem;
+  width: 100%;
+  height: calc(100dvh - 1.5rem);
+  max-height: calc(100dvh - 1.5rem);
+  box-sizing: border-box;
+  overflow: hidden;
+  padding: 0.9rem;
+  border: 1px solid rgba(217, 168, 78, 0.32);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(255, 212, 126, 0.1), transparent 26%),
+    radial-gradient(circle at 84% 88%, rgba(95, 50, 18, 0.26), transparent 30%),
+    linear-gradient(180deg, #4a2c14 0%, #2d1a0c 60%, #1c1009 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 237, 185, 0.12),
+    inset 0 0 90px rgba(8, 5, 3, 0.6),
+    0 22px 44px rgba(0, 0, 0, 0.5);
+}

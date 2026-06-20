@@ -1,0 +1,322 @@
+/* Emergency excavation: fixed-height play console */
+.app-wrapper--dig main.main-content,
+.app-wrapper--dig .main-content {
+  height: 100vh !important;
+  min-height: 0 !important;
+  padding-bottom: 0 !important;
+  overflow: hidden !important;
+}
+
+.app-wrapper--dig {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.phase-container.dig-phase {
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: 100vh !important;
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) auto !important;
+  gap: clamp(0.35rem, 0.75vh, 0.55rem) !important;
+  padding: clamp(0.35rem, 0.7vw, 0.65rem) clamp(0.55rem, 1vw, 1rem) !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+.phase-container.dig-phase .dig-status-panel {
+  min-height: clamp(3rem, 5.6vh, 3.8rem);
+  display: grid !important;
+  grid-template-columns: minmax(14rem, 0.8fr) minmax(18rem, 1.1fr) auto auto;
+  align-items: center;
+  gap: clamp(0.58rem, 1vw, 1rem);
+  padding: 0.42rem clamp(0.8rem, 1.4vw, 1.35rem) !important;
+  border-radius: 1rem !important;
+  background:
+    linear-gradient(90deg, rgba(255, 251, 234, 0.96), rgba(238, 228, 206, 0.92)),
+    var(--arch-panel);
+}
+
+.phase-container.dig-phase .status-info-row {
+  min-width: 0;
+  gap: clamp(0.45rem, 0.8vw, 0.75rem);
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+.phase-container.dig-phase .status-phase-label,
+.phase-container.dig-phase .status-warning-text {
+  white-space: nowrap;
+}
+
+.phase-container.dig-phase .status-phase-label {
+  color: #6b4b2b;
+}
+
+.phase-container.dig-phase .status-warning-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.phase-container.dig-phase .dig-objective-panel {
+  min-width: 0;
+  display: grid;
+  gap: 0.04rem;
+  padding: 0.28rem 0.62rem;
+  border: 1px solid rgba(124, 80, 38, 0.2);
+  border-radius: 0.75rem;
+  background: rgba(255, 252, 243, 0.64);
+  color: #3d2b18;
+}
+
+.phase-container.dig-phase .dig-objective-panel span,
+.phase-container.dig-phase .dig-objective-panel small {
+  overflow: hidden;
+  color: #7a5a32;
+  font-size: 0.56rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.phase-container.dig-phase .dig-objective-panel strong {
+  overflow: hidden;
+  color: #2c1e12;
+  font-family: 'Cinzel', serif;
+  font-size: clamp(0.82rem, 1vw, 1rem);
+  line-height: 1.05;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.phase-container.dig-phase .timer-horizontal {
+  justify-self: center;
+  min-width: clamp(11rem, 14vw, 15.5rem);
+  justify-content: center;
+  padding: 0.38rem 1.05rem !important;
+  background: rgba(53, 47, 39, 0.55);
+  border-color: rgba(80, 65, 43, 0.24);
+}
+
+.phase-container.dig-phase .timer-horizontal .timer-value {
+  font-size: clamp(1.45rem, 2vw, 1.9rem);
+}
+
+.phase-container.dig-phase .dig-pressure-chip {
+  justify-self: end;
+  max-width: 100%;
+}
+
+.phase-container.dig-phase .dig-status-actions {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.phase-container.dig-phase .radar-btn-compact {
+  justify-self: end;
+  min-height: 2.1rem;
+  white-space: nowrap;
+}
+
+.phase-container.dig-phase .dig-game-panel {
+  min-height: 0;
+  height: 100%;
+  width: auto !important;
+  box-sizing: border-box !important;
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: clamp(0.32rem, 0.7vh, 0.55rem);
+  padding: clamp(0.45rem, 0.8vw, 0.7rem) !important;
+  border-radius: 1.1rem !important;
+  overflow: hidden !important;
+}
+
+.phase-container.dig-phase .dig-briefing-strip {
+  min-height: 0;
+  display: grid;
+  gap: 0.32rem;
+}
+
+.phase-container.dig-phase .instruction-row {
+  box-sizing: border-box;
+  min-height: 2rem;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid rgba(207, 155, 78, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 251, 239, 0.14);
+  color: var(--sand-100);
+  font-size: clamp(0.82rem, 1vw, 0.95rem);
+  letter-spacing: 0.01em;
+  opacity: 1;
+}
+
+.phase-container.dig-phase .game-board-container {
+  min-height: 0;
+  height: 100%;
+  width: auto !important;
+  box-sizing: border-box !important;
+  padding: clamp(0.45rem, 0.9vw, 0.9rem) !important;
+  border-radius: 1rem !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.phase-container.dig-phase .memory-grid {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.phase-container.dig-phase .artifact-label {
+  font-size: clamp(0.58rem, 0.8vw, 0.7rem);
+}
+
+.phase-container.dig-phase .memory-tile,
+.phase-container.dig-phase .tile-front,
+.phase-container.dig-phase .tile-back {
+  border-radius: clamp(0.42rem, 0.65vw, 0.62rem);
+}
+
+.phase-container.dig-phase .dig-footer-panel-compact {
+  min-height: clamp(2.7rem, 5vh, 3.4rem);
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: clamp(0.5rem, 1vw, 0.9rem);
+  align-items: center;
+  box-sizing: border-box !important;
+  padding: 0.42rem clamp(0.75rem, 1.25vw, 1.2rem) !important;
+  border-radius: 1rem !important;
+  background:
+    linear-gradient(90deg, rgba(255, 251, 234, 0.96), rgba(238, 228, 206, 0.92)),
+    var(--arch-panel);
+}
+
+.phase-container.dig-phase .footer-stats-group {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(0.65rem, 1.3vw, 1.4rem);
+}
+
+.phase-container.dig-phase .footer-stat-item {
+  white-space: nowrap;
+}
+
+.phase-container.dig-phase .help-btn-compact,
+.phase-container.dig-phase .dig-menu-btn-compact {
+  min-height: 2rem;
+  white-space: nowrap;
+}
+
+.phase-container.dig-phase .help-btn-compact,
+.phase-container.dig-phase .dig-menu-btn-compact,
+.phase-container.dig-phase .radar-btn-compact {
+  border-radius: 999px;
+  font-weight: 900;
+}
+
+.phase-container.dig-phase .dig-menu-btn-compact {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid rgba(97, 66, 37, 0.24);
+  background: rgba(255, 252, 243, 0.78);
+  color: #3d2b18;
+  cursor: pointer;
+}
+
+.phase-container.dig-phase .dig-menu-btn-compact:hover,
+.phase-container.dig-phase .dig-menu-btn-compact:focus-visible {
+  background: #fffaf0;
+  border-color: rgba(156, 45, 34, 0.36);
+}
+
+.dig-feedback-toast {
+  position: fixed;
+  left: clamp(1rem, 2vw, 2rem);
+  bottom: clamp(4rem, 7vh, 5rem);
+  z-index: 100;
+  margin-top: 0;
+  width: min(28rem, calc(100vw - 2rem));
+  transform: none !important;
+  box-shadow: 0 14px 28px rgba(20, 12, 6, 0.24);
+}
+
+.phase-container.dig-phase .field-note-card--dig {
+  top: clamp(6.1rem, 10vh, 7.4rem);
+  right: clamp(1.1rem, 2vw, 2rem);
+  bottom: auto;
+  width: min(21rem, 24vw);
+  max-height: min(18rem, 42vh);
+  overflow: hidden;
+}
+
+.dig-feedback-toast.accent,
+.sort-feedback.accent {
+  color: #064e3b;
+  background: rgba(236, 253, 245, 0.96);
+  border: 1px solid rgba(16, 185, 129, 0.42);
+}
+
+.dig-setup-brief {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.42rem;
+  margin: 0.65rem 0 0.7rem;
+}
+
+.dig-setup-brief div {
+  min-width: 0;
+  display: grid;
+  gap: 0.16rem;
+  padding: 0.52rem 0.58rem;
+  border: 1px solid rgba(232, 158, 93, 0.18);
+  border-radius: 0.58rem;
+  background: rgba(255, 246, 225, 0.08);
+}
+
+.dig-setup-brief strong {
+  color: var(--accent);
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.dig-setup-brief span {
+  color: var(--sand-100);
+  font-size: 0.7rem;
+  line-height: 1.24;
+}
+
+@media (max-height: 820px) and (min-width: 1001px) {
+  .phase-container.dig-phase {
+    gap: 0.28rem !important;
+    padding-top: 0.28rem !important;
+    padding-bottom: 0.28rem !important;
+  }
+
+  .phase-container.dig-phase .dig-status-panel {
+    min-height: 2.75rem;
+  }
+
+  .phase-container.dig-phase .dig-objective-panel small {
+    display: none;
+  }
+
+  .phase-container.dig-phase .instruction-row {
+    min-height: 1.65rem;
+    padding-top: 0.18rem;
+    padding-bottom: 0.18rem;
+  }
+
+  .phase-container.dig-phase .dig-footer-panel-compact {
+    min-height: 2.45rem;
+  }
+}

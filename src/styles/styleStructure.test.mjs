@@ -9,6 +9,7 @@ const digPhaseCssUrl = new URL('./dig-phase.css', import.meta.url);
 const printCssUrl = new URL('./print.css', import.meta.url);
 const reportPhaseCssUrl = new URL('./report-phase.css', import.meta.url);
 const devToolsCssUrl = new URL('./dev-tools.css', import.meta.url);
+const modalCssUrl = new URL('./modal.css', import.meta.url);
 const museumExportCssUrl = new URL('./museum-export.css', import.meta.url);
 const bureauTextureCssUrl = new URL('./bureau-texture.css', import.meta.url);
 const bureauCaseFileStatusCssUrl = new URL('./bureau-case-file-status.css', import.meta.url);
@@ -20,6 +21,10 @@ const mainCanvasCssUrl = new URL('./main-canvas.css', import.meta.url);
 const lostSiteExpeditionCssUrl = new URL('./lost-site-expedition.css', import.meta.url);
 const decorativeDeskPropsCssUrl = new URL('./decorative-desk-props.css', import.meta.url);
 const mainMenuPolishCssUrl = new URL('./main-menu-polish.css', import.meta.url);
+const compactMissionPlanCssUrl = new URL('./compact-mission-plan.css', import.meta.url);
+const surveyActionPanelCssUrl = new URL('./survey-action-panel.css', import.meta.url);
+const emergencyExcavationConsoleCssUrl = new URL('./emergency-excavation-console.css', import.meta.url);
+const trainingCertificationCssUrl = new URL('./training-certification.css', import.meta.url);
 const journeyPropPaletteDrawerCssUrl = new URL('./journey-prop-palette-drawer.css', import.meta.url);
 
 test('dig phase polish styles live in their own imported stylesheet', () => {
@@ -89,6 +94,18 @@ test('dev tools overlay styles live in their own imported stylesheet', () => {
   assert.equal(indexCss.includes('Dev Tools Overlay'), false, 'dev tools section should not remain in index.css');
   assert.doesNotMatch(indexCss, /^\.dev-tools\s*\{/m, 'standalone dev tools panel selector should not remain in index.css');
   assert.equal(indexCss.includes('.dev-tools-label'), false, 'dev tools label selector should not remain in index.css');
+});
+
+test('modal styles live in their own imported stylesheet', () => {
+  assert.match(
+    mainSource,
+    /import\s+['"]\.\/styles\/modal\.css['"]/,
+    'main.jsx should import the extracted modal stylesheet after index.css',
+  );
+  assert.equal(existsSync(modalCssUrl), true, 'modal.css should exist');
+  assert.equal(indexCss.includes('/* Modal */'), false, 'modal marker should not remain in index.css');
+  assert.equal(indexCss.includes('.modal-overlay {'), false, 'modal overlay selector should not remain in index.css');
+  assert.equal(indexCss.includes('.modal-content {'), false, 'modal content selector should not remain in index.css');
 });
 
 test('museum export and field evidence styles live in their own imported stylesheet', () => {
@@ -225,6 +242,54 @@ test('main menu polish styles live in their own imported stylesheet', () => {
   assert.equal(indexCss.includes('/* Main Menu UI Polish Pass */'), false, 'main menu polish marker should not remain in index.css');
   assert.equal(indexCss.includes('.menu-phase::before {'), false, 'main menu background overlay selector should not remain in index.css');
   assert.equal(indexCss.includes('.dig-emergency-banner {'), false, 'main menu emergency banner selector should not remain in index.css');
+});
+
+test('compact mission plan selection styles live in their own imported stylesheet', () => {
+  assert.match(
+    mainSource,
+    /import\s+['"]\.\/styles\/compact-mission-plan\.css['"]/,
+    'main.jsx should import the extracted compact mission plan stylesheet after index.css',
+  );
+  assert.equal(existsSync(compactMissionPlanCssUrl), true, 'compact-mission-plan.css should exist');
+  assert.equal(indexCss.includes('/* Compact Mission Plan selection screen */'), false, 'compact mission plan marker should not remain in index.css');
+  assert.equal(indexCss.includes('.phase-container.menu-phase.selection-view {'), false, 'selection view shell selector should not remain in index.css');
+  assert.equal(indexCss.includes('.phase-container.menu-phase.selection-view .selection-command-bar {'), false, 'selection command bar selector should not remain in index.css');
+});
+
+test('survey action panel styles live in their own imported stylesheet', () => {
+  assert.match(
+    mainSource,
+    /import\s+['"]\.\/styles\/survey-action-panel\.css['"]/,
+    'main.jsx should import the extracted survey action panel stylesheet after index.css',
+  );
+  assert.equal(existsSync(surveyActionPanelCssUrl), true, 'survey-action-panel.css should exist');
+  assert.equal(indexCss.includes('/* --- Survey action panel (right) --- */'), false, 'survey action panel marker should not remain in index.css');
+  assert.equal(indexCss.includes('.training-difficulty-segment {'), false, 'training difficulty segment selector should not remain in index.css');
+  assert.equal(indexCss.includes('.training-action-card {'), false, 'training action card selector should not remain in index.css');
+});
+
+test('emergency excavation console styles live in their own imported stylesheet', () => {
+  assert.match(
+    mainSource,
+    /import\s+['"]\.\/styles\/emergency-excavation-console\.css['"]/,
+    'main.jsx should import the extracted emergency excavation console stylesheet after index.css',
+  );
+  assert.equal(existsSync(emergencyExcavationConsoleCssUrl), true, 'emergency-excavation-console.css should exist');
+  assert.equal(indexCss.includes('/* Emergency excavation: fixed-height play console */'), false, 'emergency excavation console marker should not remain in index.css');
+  assert.equal(indexCss.includes('.app-wrapper--dig main.main-content,'), false, 'dig app wrapper console selector should not remain in index.css');
+  assert.equal(indexCss.includes('.phase-container.dig-phase .dig-status-panel {'), false, 'dig status panel console selector should not remain in index.css');
+});
+
+test('training certification styles live in their own imported stylesheet', () => {
+  assert.match(
+    mainSource,
+    /import\s+['"]\.\/styles\/training-certification\.css['"]/,
+    'main.jsx should import the extracted training certification stylesheet after index.css',
+  );
+  assert.equal(existsSync(trainingCertificationCssUrl), true, 'training-certification.css should exist');
+  assert.equal(indexCss.includes('/* Student-challenge certification pass: keep the practice game readable without handing over the answer */'), false, 'training certification marker should not remain in index.css');
+  assert.equal(indexCss.includes('.training-phase--certification {'), false, 'training certification shell selector should not remain in index.css');
+  assert.equal(indexCss.includes('.training-layout--certification {'), false, 'training certification layout selector should not remain in index.css');
 });
 
 test('journey prop palette drawer override stays isolated and imported after the main stylesheet', () => {
