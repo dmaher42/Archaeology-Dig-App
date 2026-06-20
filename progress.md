@@ -10,6 +10,8 @@ Current source-of-truth note:
 - Verified the ramp appears in `createJourneyPropPalette` as `Temple Approach Gatehouse Ramp` with the correct PNG path and grounded/no-sand defaults.
 - `npm.cmd run build` passed. Broad Journey placement tests still have unrelated active-WIP failures around older scarab/Mummification route-history expectations.
 - Follow-up alignment tweak: shifted the smooth Temple Approach ramp assist start from the far-left flat approach to the painted lower ramp lip, so Asha should stay on the flat ground until she actually reaches the stone ramp surface.
+- Follow-up snap fix: changed the smooth ramp surface to begin at true `GROUND_Y` and lowered the snap-up tolerance from 340 to 72, so Asha should ease onto the first ramp stones instead of jumping upward at the ramp base.
+- Lower-path bypass: ramp assist now requires climb intent (`Jump`/`W`/`ArrowUp`) or an already-raised foot position, so simply holding right should keep Asha on the lower foreground path under the Temple Approach instead of forcing her up the ramp.
 
 2026-06-15 Asha heavy attack scale normalization:
 - Fixed Asha's heavy attack visual scale in the existing Journey hero atlas renderer instead of replacing or regenerating character art.

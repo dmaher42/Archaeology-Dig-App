@@ -5285,10 +5285,12 @@ test('Temple Approach gatehouse ramp has a walk-up collision path to the door', 
   assert.match(journeyComponentSource, /TEMPLE_THRESHOLD_HALL_ENTRY_TRIGGER = \{[\s\S]*?minX:\s*805[\s\S]*?maxX:\s*935[\s\S]*?footY:\s*275/);
   assert.equal(platformOverridesById.get('desert-entry-platform-11')?.y, 275);
   assert.equal(platformOverridesById.get('desert-entry-ramp-approach-step-17')?.y, 290);
-  assert.match(journeyComponentSource, /TEMPLE_APPROACH_RAMP_WALK_SURFACE = \[[\s\S]*?\{ x:\s*245,\s*y:\s*506 \}[\s\S]*?\{ x:\s*865,\s*y:\s*275 \}/);
-  assert.match(journeyComponentSource, /TEMPLE_APPROACH_RAMP_ASSIST = \{[\s\S]*?minX:\s*220[\s\S]*?maxSnapDown:\s*340[\s\S]*?maxSnapUp:\s*56/);
+  assert.match(journeyComponentSource, /TEMPLE_APPROACH_RAMP_WALK_SURFACE = \[[\s\S]*?\{ x:\s*245,\s*y:\s*GROUND_Y \}[\s\S]*?\{ x:\s*310,\s*y:\s*555 \}[\s\S]*?\{ x:\s*865,\s*y:\s*275 \}/);
+  assert.match(journeyComponentSource, /TEMPLE_APPROACH_RAMP_ASSIST = \{[\s\S]*?minX:\s*220[\s\S]*?maxSnapDown:\s*72[\s\S]*?maxSnapUp:\s*56/);
+  assert.match(journeyComponentSource, /TEMPLE_APPROACH_RAMP_LOWER_PATH_FOOT_Y = GROUND_Y - 8/);
   assert.match(journeyComponentSource, /getTempleApproachRampSurfaceY/);
-  assert.match(journeyComponentSource, /playerCenterXForRamp[\s\S]*?TEMPLE_APPROACH_RAMP_ASSIST\.minX[\s\S]*?player\.y = rampSurfaceY - player\.height/);
+  assert.match(journeyComponentSource, /const templeApproachRampClimbRequested = jump[\s\S]*?playerFootY < TEMPLE_APPROACH_RAMP_LOWER_PATH_FOOT_Y/);
+  assert.match(journeyComponentSource, /playerCenterXForRamp[\s\S]*?TEMPLE_APPROACH_RAMP_ASSIST\.minX[\s\S]*?templeApproachRampClimbRequested[\s\S]*?player\.y = rampSurfaceY - player\.height/);
   assert.doesNotMatch(journeyComponentSource, /playerCenterXForRamp[\s\S]*?current\.currentSectionId === 'desert-entry'[\s\S]*?TEMPLE_APPROACH_RAMP_ASSIST\.minX/);
   assert.match(journeyComponentSource, /target === 'journey-temple-approach-ramp'[\s\S]*?current\.player\.x = clamp\(42[\s\S]*?current\.player\.y = GROUND_Y - current\.player\.height/);
   assert.match(journeyComponentSource, /window\.__setExpeditionJourneyDebugPosition = \(x, y = null\)[\s\S]*?const nextY = y === null \? Number\.NaN : Number\(y\)/);

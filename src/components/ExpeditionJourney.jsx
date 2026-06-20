@@ -974,7 +974,8 @@ const SACRED_SCRIBE_APPROACH_X = sacredScribeExteriorX;
 const MUMMIFICATION_EXTERIOR_WORLD_OFFSET = scaleJourneyX(70);
 const mummificationExteriorWorldX = (x) => scaleJourneyX(x) + MUMMIFICATION_EXTERIOR_WORLD_OFFSET;
 const TEMPLE_APPROACH_RAMP_WALK_SURFACE = [
-  { x: 245, y: 506 },
+  { x: 245, y: GROUND_Y },
+  { x: 310, y: 555 },
   { x: 445, y: 442 },
   { x: 635, y: 350 },
   { x: 865, y: 275 },
@@ -983,9 +984,10 @@ const TEMPLE_APPROACH_RAMP_WALK_SURFACE = [
 const TEMPLE_APPROACH_RAMP_ASSIST = {
   minX: 220,
   maxX: 946,
-  maxSnapDown: 340,
+  maxSnapDown: 72,
   maxSnapUp: 56,
 };
+const TEMPLE_APPROACH_RAMP_LOWER_PATH_FOOT_Y = GROUND_Y - 8;
 const getTempleApproachRampSurfaceY = (centerX) => {
   const points = TEMPLE_APPROACH_RAMP_WALK_SURFACE;
   if (centerX <= points[0].x) return points[0].y;
@@ -13875,14 +13877,16 @@ export default function ExpeditionJourney({
     });
 
     const playerCenterXForRamp = player.x + player.width / 2;
+    const playerFootY = player.y + player.height;
+    const templeApproachRampClimbRequested = jump || playerFootY < TEMPLE_APPROACH_RAMP_LOWER_PATH_FOOT_Y;
     if (
       getJourneySceneId(current) === JOURNEY_SCENE_IDS.EXTERIOR
       && playerCenterXForRamp >= TEMPLE_APPROACH_RAMP_ASSIST.minX
       && playerCenterXForRamp <= TEMPLE_APPROACH_RAMP_ASSIST.maxX
       && player.vy >= -25
+      && templeApproachRampClimbRequested
     ) {
       const rampSurfaceY = getTempleApproachRampSurfaceY(playerCenterXForRamp);
-      const playerFootY = player.y + player.height;
       const snapDistance = playerFootY - rampSurfaceY;
       if (
         snapDistance >= -TEMPLE_APPROACH_RAMP_ASSIST.maxSnapUp
