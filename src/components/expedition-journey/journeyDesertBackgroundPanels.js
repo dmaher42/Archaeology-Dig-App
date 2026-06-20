@@ -1,6 +1,8 @@
 import { scaleJourneyX } from './journeyConstants.js';
 
-export const DESERT_JOURNEY_BACKGROUND_SYSTEM_VERSION = 'desert-journey-continuous-panels-2026-06-14';
+export const DESERT_ENTRY_STORY_LOCKED_RECOVERY_VERSION = 'desert-entry-story-locked-recovery-2026-06-19';
+export const DESERT_ENTRY_PROCEDURAL_PANEL_FALLBACK_ENABLED = false;
+export const DESERT_JOURNEY_BACKGROUND_SYSTEM_VERSION = 'desert-journey-continuous-panels-2026-06-14-archived';
 
 export const DESERT_JOURNEY_LAYER_ROLES = Object.freeze([
   'sky',
@@ -243,6 +245,7 @@ const getViewportBounds = (cameraX = 0, viewportWidth = 1120, margin = 0) => {
 };
 
 export const getDesertJourneyPanelsForViewport = (cameraX = 0, viewportWidth = 1120, margin = 0) => {
+  if (!DESERT_ENTRY_PROCEDURAL_PANEL_FALLBACK_ENABLED) return [];
   const viewport = getViewportBounds(cameraX, viewportWidth, margin);
   return DESERT_JOURNEY_SCENE_PANELS.filter(panel => (
     panel.worldStart < viewport.right && panel.worldEnd > viewport.left
@@ -250,6 +253,7 @@ export const getDesertJourneyPanelsForViewport = (cameraX = 0, viewportWidth = 1
 };
 
 export const getDesertJourneyTransitionMasksForViewport = (cameraX = 0, viewportWidth = 1120, margin = 0) => {
+  if (!DESERT_ENTRY_PROCEDURAL_PANEL_FALLBACK_ENABLED) return [];
   const viewport = getViewportBounds(cameraX, viewportWidth, margin);
   return DESERT_JOURNEY_TRANSITION_MASKS.filter(transition => (
     transition.worldX + transition.width / 2 >= viewport.left

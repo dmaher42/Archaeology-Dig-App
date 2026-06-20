@@ -5,8 +5,8 @@
   bottom: 0.72rem;
   box-sizing: border-box;
   width: auto;
-  max-height: min(6.3rem, calc(100% - 1.44rem));
-  padding: 0.28rem 0.42rem;
+  max-height: min(9.45rem, calc(100% - 1.44rem));
+  padding: 0.34rem 0.46rem;
   overflow: hidden;
 }
 
@@ -82,7 +82,7 @@
   grid-auto-columns: minmax(5.65rem, 6.7rem);
   grid-auto-flow: column;
   grid-template-columns: none;
-  grid-template-rows: 1fr;
+  grid-template-rows: repeat(2, minmax(2.65rem, 1fr));
   align-content: center;
 }
 
@@ -92,7 +92,7 @@
 
 .journey-prop-palette-list {
   gap: 0.22rem;
-  max-height: 2.74rem;
+  max-height: 5.7rem;
   margin-top: 0;
   overflow-x: auto;
   overflow-y: hidden;
@@ -130,8 +130,8 @@
   align-content: start;
   justify-items: center;
   gap: 0.14rem;
-  min-height: 2.55rem;
-  padding: 0.16rem;
+  min-height: 2.64rem;
+  padding: 0.18rem;
   text-align: center;
 }
 
@@ -140,8 +140,8 @@
 }
 
 .journey-prop-palette-thumb {
-  width: 1.85rem;
-  height: 1.42rem;
+  width: 2rem;
+  height: 1.48rem;
 }
 
 .journey-prop-palette-copy {
@@ -169,7 +169,7 @@
     right: 0.5rem;
     bottom: 0.5rem;
     width: auto;
-    max-height: min(7.25rem, calc(100% - 1rem));
+    max-height: min(10.25rem, calc(100% - 1rem));
   }
 
   .journey-prop-palette-category-rail,

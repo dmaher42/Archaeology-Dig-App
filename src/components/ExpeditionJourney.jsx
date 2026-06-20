@@ -765,7 +765,8 @@ const isRetiredDesertEntryBackgroundProp = (prop = {}) => {
   return DESERT_ENTRY_RETIRED_BACKGROUND_ASSET_PATH_MARKERS.some(marker => assetPath.includes(marker));
 };
 const shouldRenderChamberDoorVisual = (door = {}) => (
-  !DESERT_ENTRY_RETIRED_CHAMBER_DOOR_VISUAL_IDS.has(door.id)
+  door.renderDoorVisual !== false
+  && !DESERT_ENTRY_RETIRED_CHAMBER_DOOR_VISUAL_IDS.has(door.id)
 );
 const DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_SEAM_MASKS = Object.freeze([]);
 const DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_ID_SET = new Set(DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_IDS);
@@ -972,6 +973,70 @@ const SACRED_MURAL_APPROACH_X = sacredMuralExteriorX;
 const SACRED_SCRIBE_APPROACH_X = sacredScribeExteriorX;
 const MUMMIFICATION_EXTERIOR_WORLD_OFFSET = scaleJourneyX(70);
 const mummificationExteriorWorldX = (x) => scaleJourneyX(x) + MUMMIFICATION_EXTERIOR_WORLD_OFFSET;
+const TEMPLE_APPROACH_RAMP_WALK_SURFACE = [
+  { x: 245, y: 506 },
+  { x: 445, y: 442 },
+  { x: 635, y: 350 },
+  { x: 865, y: 275 },
+  { x: 935, y: 275 },
+];
+const TEMPLE_APPROACH_RAMP_ASSIST = {
+  minX: 220,
+  maxX: 946,
+  maxSnapDown: 340,
+  maxSnapUp: 56,
+};
+const getTempleApproachRampSurfaceY = (centerX) => {
+  const points = TEMPLE_APPROACH_RAMP_WALK_SURFACE;
+  if (centerX <= points[0].x) return points[0].y;
+  for (let index = 1; index < points.length; index += 1) {
+    const previous = points[index - 1];
+    const current = points[index];
+    if (centerX <= current.x) {
+      const progress = clamp((centerX - previous.x) / Math.max(1, current.x - previous.x), 0, 1);
+      return previous.y + (current.y - previous.y) * progress;
+    }
+  }
+  return points[points.length - 1].y;
+};
+const TEMPLE_THRESHOLD_HALL_ENTRY_SPAWN = {
+  x: scaleJourneyX(150),
+  y: openingJourneyY(318),
+  cameraAnchorRatio: 0.38,
+  direction: 1,
+};
+const TEMPLE_THRESHOLD_HALL_RETURN_FALLBACK = {
+  x: 865,
+  y: 275,
+  cameraAnchorRatio: 0.5,
+  direction: -1,
+};
+const TEMPLE_THRESHOLD_HALL_ENTRY_TRIGGER = {
+  minX: 805,
+  maxX: 935,
+  maxY: GROUND_Y - 235,
+  footY: 275,
+  footTolerance: 32,
+};
+const TEMPLE_THRESHOLD_HALL_CAMERA_X = scaleJourneyX(80);
+const TEMPLE_THRESHOLD_HALL_BOUNDS = {
+  minX: scaleJourneyX(80),
+  maxX: scaleJourneyX(290),
+};
+const TEMPLE_THRESHOLD_HALL_EXIT_TRIGGER = {
+  minX: scaleJourneyX(96),
+  maxX: scaleJourneyX(126),
+  maxY: GROUND_Y - 20,
+  footY: openingJourneyY(318),
+  footTolerance: 20,
+};
+const TEMPLE_THRESHOLD_HALL_SEAL_TRIGGER = {
+  minX: scaleJourneyX(210),
+  maxX: scaleJourneyX(246),
+  maxY: GROUND_Y - 20,
+  footY: openingJourneyY(318),
+  footTolerance: 24,
+};
 const MUMMIFICATION_CHAMBER_ENTRY_SPAWN = {
   x: scaleJourneyX(596),
   y: openingJourneyY(318),
@@ -1077,6 +1142,8 @@ const SCRIBE_CHAMBER_EXIT_TRIGGER = {
   footTolerance: 20,
 };
 const CHAMBER_DOOR_VISUALS = createChamberDoorVisuals({
+  TEMPLE_THRESHOLD_HALL_ENTRY_TRIGGER,
+  TEMPLE_THRESHOLD_HALL_RETURN_FALLBACK,
   MUMMIFICATION_CHAMBER_ENTRY_TRIGGER,
   MUMMIFICATION_CHAMBER_RETURN_FALLBACK,
   FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER,
@@ -1618,16 +1685,23 @@ const isNormalEnemyInsideBossFocus = (enemy, bossDomain) => {
 
 const JOURNEY_SCENE_IDS = Object.freeze({
   EXTERIOR: 'egypt-exterior-route',
+  TEMPLE_THRESHOLD_HALL: 'temple-threshold-hall',
   MUMMIFICATION_CHAMBER: 'mummification-chamber',
   FORGOTTEN_MURAL_CHAMBER: 'forgotten-mural-chamber',
   SCRIBE_LOCKED_CHAMBER: 'scribe-locked-chamber',
 });
 
 const getJourneySceneId = (current) => current?.currentSceneId || JOURNEY_SCENE_IDS.EXTERIOR;
+const isTempleThresholdHallScene = (current) => getJourneySceneId(current) === JOURNEY_SCENE_IDS.TEMPLE_THRESHOLD_HALL;
 const isMummificationChamberScene = (current) => getJourneySceneId(current) === JOURNEY_SCENE_IDS.MUMMIFICATION_CHAMBER;
 const isForgottenMuralChamberScene = (current) => getJourneySceneId(current) === JOURNEY_SCENE_IDS.FORGOTTEN_MURAL_CHAMBER;
 const isScribeLockedChamberScene = (current) => getJourneySceneId(current) === JOURNEY_SCENE_IDS.SCRIBE_LOCKED_CHAMBER;
-const isInteriorChamberScene = (current) => isMummificationChamberScene(current) || isForgottenMuralChamberScene(current) || isScribeLockedChamberScene(current);
+const isInteriorChamberScene = (current) => (
+  isTempleThresholdHallScene(current)
+  || isMummificationChamberScene(current)
+  || isForgottenMuralChamberScene(current)
+  || isScribeLockedChamberScene(current)
+);
 const getEntitySceneId = (entity) => entity?.sceneId || JOURNEY_SCENE_IDS.EXTERIOR;
 const isEntityActiveInScene = (entity, current) => getEntitySceneId(entity) === getJourneySceneId(current);
 
@@ -2665,10 +2739,10 @@ const resolvePropGroundingSettings = (config = {}) => {
 const DECORATIVE_PROP_LAYER_MODE = 'background-midground-grounded-depth-v3';
 const PROP_DEPTH_TUNING_VERSION = 'journey-grounded-placement-presets-2026-05-26';
 const PROP_GROUNDING_INTEGRATION_VERSION = 'prop-contact-shadow-local-sediment-occlusion-v4';
-const ROUTE_GROUND_VISUAL_MODE = 'buried-stone-causeway-under-windblown-sand-v1';
-const DESERT_ENTRY_CAUSEWAY_DRAW_HEIGHT = 64;
-const DESERT_ENTRY_CAUSEWAY_DRAW_Y_OFFSET = -28;
-const ROUTE_GROUND_HAZE_FIX_VERSION = 'route-ground-buried-stone-causeway-2026-06-01';
+const ROUTE_GROUND_VISUAL_MODE = 'clean-stone-causeway-no-sand-sheet-v2';
+const DESERT_ENTRY_CAUSEWAY_DRAW_HEIGHT = 34;
+const DESERT_ENTRY_CAUSEWAY_DRAW_Y_OFFSET = -4;
+const ROUTE_GROUND_HAZE_FIX_VERSION = 'route-ground-clean-causeway-no-sand-sheet-2026-06-19';
 const FOREGROUND_DEPTH_LAYER_MODE = 'edge-framed-visual-only-no-collision';
 const ENABLE_FOREGROUND_DEPTH_LAYER = false;
 const DRAW_JOURNEY_FLAG_MARKERS = false;
@@ -2773,6 +2847,13 @@ const formatMissingSummary = (missing) => {
 
 const getCameraFollowTarget = (current) => {
   const playerCenterX = current.player.x + current.player.width / 2;
+  if (isTempleThresholdHallScene(current)) {
+    return {
+      mode: 'fixed-scene',
+      focusTarget: Math.round(playerCenterX),
+      targetCameraX: TEMPLE_THRESHOLD_HALL_CAMERA_X,
+    };
+  }
   if (isMummificationChamberScene(current)) {
     return {
       mode: 'fixed-scene',
@@ -7836,6 +7917,9 @@ export default function ExpeditionJourney({
       collectedSecretCollectibles: Array.from(current.collectedSecretIds || []),
       secretCollectibleCount: current.collectedSecretIds?.size || 0,
       sacredRoomRestorationEvidence: getSacredRoomRestorationEvidence(current),
+      templeThresholdHallEntranceDiscovered: Boolean(current.templeThresholdHallEntranceDiscovered),
+      templeThresholdHallEntered: Boolean(current.templeThresholdHallEntered),
+      templeThresholdHallCleared: Boolean(current.templeThresholdHallCleared),
       mummificationChamberEntranceDiscovered: Boolean(current.mummificationChamberEntranceDiscovered),
       forgottenMuralLooterSeen: Boolean(current.forgottenMuralLooterSeen),
       forgottenMuralChamberEntered: Boolean(current.forgottenMuralChamberEntered),
@@ -8134,13 +8218,6 @@ export default function ExpeditionJourney({
     ctx.globalAlpha = Number.isFinite(renderProp.alpha) ? renderProp.alpha : 0.98;
     ctx.filter = 'sepia(4%) saturate(98%) brightness(91%) contrast(102%)';
     ctx.drawImage(facade.image, x, y, width, height);
-    ctx.filter = 'none';
-    const baseFade = ctx.createLinearGradient(0, GROUND_Y - 52, 0, GROUND_Y + 24);
-    baseFade.addColorStop(0, 'rgba(171, 103, 42, 0)');
-    baseFade.addColorStop(0.74, 'rgba(171, 103, 42, 0.24)');
-    baseFade.addColorStop(1, 'rgba(91, 51, 21, 0.32)');
-    ctx.fillStyle = baseFade;
-    ctx.fillRect(Math.max(-40, x), GROUND_Y - 52, Math.min(width + 80, CANVAS_WIDTH + 80), 82);
     ctx.restore();
     return true;
   }, []);
@@ -9145,6 +9222,57 @@ export default function ExpeditionJourney({
     scaleJourneyX,
     worldToScreenX,
   });
+
+  const drawTempleThresholdHallInterior = useCallback((ctx, current, now) => {
+    if (!isTempleThresholdHallScene(current)) return false;
+    const chamberAsset = arrivalThresholdBackgroundRef.current;
+    const flicker = 0.82 + Math.sin(now / 240) * 0.08 + Math.sin(now / 91) * 0.04;
+
+    ctx.save();
+    ctx.fillStyle = 'rgba(8, 5, 4, 0.96)';
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    if (chamberAsset.loaded && chamberAsset.image) {
+      ctx.globalAlpha = 0.99;
+      ctx.drawImage(chamberAsset.image, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    } else {
+      const wallGradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
+      wallGradient.addColorStop(0, '#0b0808');
+      wallGradient.addColorStop(0.52, '#211813');
+      wallGradient.addColorStop(1, '#090605');
+      ctx.fillStyle = wallGradient;
+      ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+      ctx.fillStyle = 'rgba(71, 45, 30, 0.72)';
+      ctx.fillRect(CANVAS_WIDTH * 0.62, 82, CANVAS_WIDTH * 0.26, CANVAS_HEIGHT * 0.66);
+    }
+
+    ctx.fillStyle = 'rgba(5, 4, 4, 0.16)';
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    const sealGlow = ctx.createRadialGradient(CANVAS_WIDTH * 0.78, CANVAS_HEIGHT * 0.48, 20, CANVAS_WIDTH * 0.78, CANVAS_HEIGHT * 0.48, 210);
+    sealGlow.addColorStop(0, `rgba(250, 204, 21, ${0.18 * flicker})`);
+    sealGlow.addColorStop(0.45, `rgba(168, 85, 247, ${0.1 * flicker})`);
+    sealGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = sealGlow;
+    ctx.fillRect(CANVAS_WIDTH * 0.54, 80, CANVAS_WIDTH * 0.42, CANVAS_HEIGHT * 0.72);
+    ctx.restore();
+
+    if (current.templeThresholdHallCleared) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'screen';
+      ctx.fillStyle = `rgba(250, 204, 21, ${0.12 * flicker})`;
+      ctx.fillRect(CANVAS_WIDTH * 0.68, CANVAS_HEIGHT * 0.2, CANVAS_WIDTH * 0.22, CANVAS_HEIGHT * 0.5);
+      ctx.restore();
+    }
+
+    if (current.renderStats) {
+      current.renderStats.templeThresholdHallVersion = ARRIVAL_THRESHOLD_ASSET_VERSION;
+      current.renderStats.templeThresholdHallLoaded = Boolean(chamberAsset.loaded && chamberAsset.image);
+    }
+    ctx.restore();
+    return true;
+  }, []);
 
   const drawForgottenMuralChamberInterior = useCallback((ctx, current, now) => {
     if (!isForgottenMuralChamberScene(current)) return false;
@@ -11692,6 +11820,8 @@ export default function ExpeditionJourney({
       scribeChamberExteriorLoaded: scribeChamberExteriorRef.current.loaded,
       scribeChamberInteriorVersion: SCRIBE_CHAMBER_INTERIOR_VERSION,
       scribeChamberInteriorLoaded: scribeChamberInteriorRef.current.loaded,
+      templeThresholdHallActive: Boolean(current.templeThresholdHallActive),
+      templeThresholdHallCleared: Boolean(current.templeThresholdHallCleared),
       forgottenMuralChamberActive: Boolean(current.forgottenMuralChamberActive),
       currentSceneId: getJourneySceneId(current),
       sceneTransitionActive: Boolean(current.sceneTransition || current.forgottenMuralChamberTransition),
@@ -11803,13 +11933,16 @@ export default function ExpeditionJourney({
         ? 'desert-entry-clean-panorama-only-2026-06-18'
         : DESERT_JOURNEY_BACKGROUND_SYSTEM_VERSION;
     }
+    const routeBackgroundArtDrawn = parallaxBackgroundDrawn
+      || desertJourneyScenePanelsDrawn
+      || desertEntryPrimaryBackgroundPlatesDrawn;
 
     // --- Ground & Props ---
     ctx.save();
     if (secretVerticalCameraOffset > 0.5) {
       ctx.translate(0, secretVerticalCameraOffset);
     }
-    if (!parallaxBackgroundDrawn) drawTempleBackdrop(ctx, section, cameraX);
+    if (!routeBackgroundArtDrawn) drawTempleBackdrop(ctx, section, cameraX);
     if (!chamberSceneActive && !current.arrivalThresholdActive) {
       WORLD_CONTINUITY_LANDMARKS.forEach((landmark) => drawWorldContinuityLandmark(ctx, landmark, cameraX, now));
       WORLD_TRANSITION_STORY_MARKERS.forEach((marker) => drawWorldTransitionMarker(ctx, marker, cameraX, now));
@@ -11819,7 +11952,7 @@ export default function ExpeditionJourney({
     }
 
     // --- Environment Layers (Parallax) ---
-    if (!parallaxBackgroundDrawn && section.id !== 'ruined-temple') {
+    if (!routeBackgroundArtDrawn && section.id !== 'ruined-temple') {
       const renderParallaxLayer = (depth, color, heightMult) => {
         ctx.fillStyle = color;
         ctx.beginPath();
@@ -11866,6 +11999,7 @@ export default function ExpeditionJourney({
         .forEach((door) => drawPremiumEgyptianChamberDoor(ctx, door, cameraX, current, now));
     }
     const renderablePlatforms = current.arrivalThresholdActive ? [] : getRenderablePlatforms(current);
+    drawTempleThresholdHallInterior(ctx, current, now);
     drawMummificationChamberInterior(ctx, current, now);
     drawForgottenMuralChamberInterior(ctx, current, now);
     drawScribeLockedChamberInterior(ctx, current, now);
@@ -12502,7 +12636,7 @@ export default function ExpeditionJourney({
     ctx.restore();
 
     drawCinematicCards(ctx, current);
-  }, [backgroundPackId, drawAncientRouteGround, drawArrivalThresholdScene, drawAttackArc, drawCinematicCards, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawChinaRiverValleyBackground, drawDebugPlatformOverlay, drawDesertEntryBackground, drawDesertEntryPrimaryBackgroundPlates, drawDesertForegroundAtmosphere, drawDesertJourneySceneMasks, drawDesertJourneyScenePanels, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawForegroundDepthLayer, drawForegroundOccluderProps, drawMummificationChamberInterior, drawForgottenMuralChamberInterior, drawForgottenMuralChamberTransition, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawLostBridgeRavineDepth, drawLostBridgeRavineForegroundVoid, drawLostBridgeStructure, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawPlayerFeedbackOverlays, drawPremiumEgyptianChamberDoor, drawPropPlacementEditorOverlay, drawRouteGate, drawScarabQueenLairOpeningProp, drawScribeLockedChamberInterior, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawTrapProjectile, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getDoorwayGateStatus, getEditedMiniBoss, getEditedNestParams, getGateGuidance, getPlayerAttackState, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getZIndexSortedRenderableStoryProps, getRouteGateDoorwayEntries, getScarabQueenLairPlacement, isRouteRewardAccessible, resolveChamberEntryTrigger, drawPlayerSprite, drawFieldNoteLabel]);
+  }, [backgroundPackId, drawAncientRouteGround, drawArrivalThresholdScene, drawAttackArc, drawCinematicCards, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawChinaRiverValleyBackground, drawDebugPlatformOverlay, drawDesertEntryBackground, drawDesertEntryPrimaryBackgroundPlates, drawDesertForegroundAtmosphere, drawDesertJourneySceneMasks, drawDesertJourneyScenePanels, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawForegroundDepthLayer, drawForegroundOccluderProps, drawTempleThresholdHallInterior, drawMummificationChamberInterior, drawForgottenMuralChamberInterior, drawForgottenMuralChamberTransition, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawLostBridgeRavineDepth, drawLostBridgeRavineForegroundVoid, drawLostBridgeStructure, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawPlayerFeedbackOverlays, drawPremiumEgyptianChamberDoor, drawPropPlacementEditorOverlay, drawRouteGate, drawScarabQueenLairOpeningProp, drawScribeLockedChamberInterior, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawTrapProjectile, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getDoorwayGateStatus, getEditedMiniBoss, getEditedNestParams, getGateGuidance, getPlayerAttackState, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getZIndexSortedRenderableStoryProps, getRouteGateDoorwayEntries, getScarabQueenLairPlacement, isRouteRewardAccessible, resolveChamberEntryTrigger, drawPlayerSprite, drawFieldNoteLabel]);
 
   const startOpeningCinematic = useCallback(({ speechEnabled = true, fromArrivalThreshold = false } = {}) => {
     const current = stateRef.current;
@@ -13034,10 +13168,13 @@ export default function ExpeditionJourney({
       const transitionElapsed = clamp((transition.duration || 0) - (transition.timer || 0), 0, transition.duration || 0);
       if (!transition.switched && transitionElapsed >= FORGOTTEN_MURAL_CHAMBER_SWITCH_SECONDS) {
         transition.switched = true;
+        const enteringTempleThresholdHall = transition.toSceneId === JOURNEY_SCENE_IDS.TEMPLE_THRESHOLD_HALL;
         const enteringMummificationChamber = transition.toSceneId === JOURNEY_SCENE_IDS.MUMMIFICATION_CHAMBER;
         const enteringForgottenMuralChamber = transition.toSceneId === JOURNEY_SCENE_IDS.FORGOTTEN_MURAL_CHAMBER;
         const enteringScribeChamber = transition.toSceneId === JOURNEY_SCENE_IDS.SCRIBE_LOCKED_CHAMBER;
-        transition.phase = enteringMummificationChamber
+        transition.phase = enteringTempleThresholdHall
+          ? 'temple-threshold-hall-reveal'
+          : enteringMummificationChamber
           ? 'mummification-chamber-reveal'
           : enteringForgottenMuralChamber
             ? 'chamber-reveal'
@@ -13046,10 +13183,28 @@ export default function ExpeditionJourney({
             : 'exterior-return';
         current.previousSceneId = transition.fromSceneId || getJourneySceneId(current);
         current.currentSceneId = transition.toSceneId || JOURNEY_SCENE_IDS.EXTERIOR;
+        current.templeThresholdHallActive = enteringTempleThresholdHall;
         current.mummificationChamberActive = enteringMummificationChamber;
         current.forgottenMuralChamberActive = enteringForgottenMuralChamber;
         current.scribeChamberActive = enteringScribeChamber;
-        if (enteringMummificationChamber) {
+        if (enteringTempleThresholdHall) {
+          current.templeThresholdHallEntered = true;
+          current.hiddenRoomsFound?.add('temple-threshold-hall');
+          current.discoveredHiddenRouteIds?.add('temple-threshold-hall-route');
+          player.x = TEMPLE_THRESHOLD_HALL_ENTRY_SPAWN.x - player.width / 2;
+          player.y = TEMPLE_THRESHOLD_HALL_ENTRY_SPAWN.y - player.height;
+          player.direction = TEMPLE_THRESHOLD_HALL_ENTRY_SPAWN.direction;
+          current.cameraX = TEMPLE_THRESHOLD_HALL_CAMERA_X;
+          current.targetCameraX = current.cameraX;
+          current.notice = 'The first hall is not abandoned. It is waiting.';
+          current.cinematicEvent = {
+            id: 'temple-threshold-hall-entered',
+            name: 'Temple Approach',
+            message: 'The first hall is not abandoned. It is waiting.',
+            temporary: true,
+          };
+          current.cinematicTimer = 2.8;
+        } else if (enteringMummificationChamber) {
           current.mummificationChamberEntered = true;
           current.mummificationChamberDoorSealed = true;
           current.mummificationChamberExitUnlocked = Boolean(current.mummificationChamberPuzzleSolved);
@@ -13120,11 +13275,14 @@ export default function ExpeditionJourney({
           current.targetCameraX = current.cameraX;
           current.notice = current.scribeChamberPuzzleSolved
             ? 'Asha leaves the Scribe\'s Chamber with the message recorded.'
+            : current.templeThresholdHallCleared
+              ? 'Asha returns to the temple approach with the threshold warning recorded.'
             : current.forgottenMuralChamberRestored
               ? 'Asha returns to the exterior route with the warning preserved.'
               : current.mummificationChamberPuzzleSolved
               ? 'Asha leaves the Mummification Chamber with the sacred rite recorded.'
                 : 'Asha returns to the exterior route.';
+          current.templeThresholdHallActive = false;
           current.mummificationChamberActive = false;
           current.scribeChamberActive = false;
         }
@@ -13133,12 +13291,15 @@ export default function ExpeditionJourney({
         player.onGround = true;
       }
       if (transition.timer <= 0) {
+        const endedInTempleThresholdHall = getJourneySceneId(current) === JOURNEY_SCENE_IDS.TEMPLE_THRESHOLD_HALL;
         const endedInMummificationChamber = getJourneySceneId(current) === JOURNEY_SCENE_IDS.MUMMIFICATION_CHAMBER;
         const endedInForgottenMuralChamber = getJourneySceneId(current) === JOURNEY_SCENE_IDS.FORGOTTEN_MURAL_CHAMBER;
         const endedInScribeChamber = getJourneySceneId(current) === JOURNEY_SCENE_IDS.SCRIBE_LOCKED_CHAMBER;
         current.sceneTransition = null;
         current.forgottenMuralChamberTransition = null;
-        current.notice = endedInMummificationChamber
+        current.notice = endedInTempleThresholdHall
+          ? 'The threshold hall listens for proof.'
+          : endedInMummificationChamber
           ? 'The entrance sealed behind me.'
           : endedInForgottenMuralChamber
             ? 'The hidden chamber is quiet. Recover the broken scarab fragments.'
@@ -13489,7 +13650,13 @@ export default function ExpeditionJourney({
 
     // Bounds
     player.x = clamp(player.x, 0, WORLD_WIDTH - player.width);
-    if (isMummificationChamberScene(current)) {
+    if (isTempleThresholdHallScene(current)) {
+      player.x = clamp(
+        player.x,
+        TEMPLE_THRESHOLD_HALL_BOUNDS.minX,
+        TEMPLE_THRESHOLD_HALL_BOUNDS.maxX - player.width,
+      );
+    } else if (isMummificationChamberScene(current)) {
       player.x = clamp(
         player.x,
         MUMMIFICATION_CHAMBER_BOUNDS.minX,
@@ -13706,6 +13873,29 @@ export default function ExpeditionJourney({
         }
       }
     });
+
+    const playerCenterXForRamp = player.x + player.width / 2;
+    if (
+      getJourneySceneId(current) === JOURNEY_SCENE_IDS.EXTERIOR
+      && playerCenterXForRamp >= TEMPLE_APPROACH_RAMP_ASSIST.minX
+      && playerCenterXForRamp <= TEMPLE_APPROACH_RAMP_ASSIST.maxX
+      && player.vy >= -25
+    ) {
+      const rampSurfaceY = getTempleApproachRampSurfaceY(playerCenterXForRamp);
+      const playerFootY = player.y + player.height;
+      const snapDistance = playerFootY - rampSurfaceY;
+      if (
+        snapDistance >= -TEMPLE_APPROACH_RAMP_ASSIST.maxSnapUp
+        && snapDistance <= TEMPLE_APPROACH_RAMP_ASSIST.maxSnapDown
+      ) {
+        player.y = rampSurfaceY - player.height;
+        player.vy = 0;
+        player.onGround = true;
+        player.coyoteTimer = COYOTE_TIME;
+        player.airJumpsUsed = 0;
+        landedThisFrame = true;
+      }
+    }
 
     if (landedThisFrame && !wasGroundedRef.current) {
       player.landingFeedbackTimer = Math.min(0.22, 0.1 + (player.lastLandingImpact || 0) / 9000);
@@ -14165,15 +14355,105 @@ export default function ExpeditionJourney({
 
       return { id: target.id };
     })();
+    const templeThresholdEntryDoor = CHAMBER_DOOR_VISUALS_BY_ID['temple-threshold-hall-entry-door'];
     const mummificationEntryDoor = CHAMBER_DOOR_VISUALS_BY_ID['mummification-chamber-entry-door'];
     const forgottenMuralEntryDoor = CHAMBER_DOOR_VISUALS_BY_ID['forgotten-mural-entry-door'];
     const scribeEntryDoor = CHAMBER_DOOR_VISUALS_BY_ID['scribe-chamber-entry-door'];
+    const templeThresholdEntryTrigger = resolveChamberEntryTrigger(templeThresholdEntryDoor) || TEMPLE_THRESHOLD_HALL_ENTRY_TRIGGER;
     const mummificationEntryTrigger = resolveChamberEntryTrigger(mummificationEntryDoor) || MUMMIFICATION_CHAMBER_ENTRY_TRIGGER;
     const forgottenMuralEntryTrigger = resolveChamberEntryTrigger(forgottenMuralEntryDoor) || FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER;
     const scribeEntryTrigger = resolveChamberEntryTrigger(scribeEntryDoor) || SCRIBE_CHAMBER_ENTRY_TRIGGER;
+    const templeThresholdReturnPoint = (direction = -1) => resolveChamberReturnPoint(templeThresholdEntryDoor, direction);
     const mummificationReturnPoint = (direction = 1) => resolveChamberReturnPoint(mummificationEntryDoor, direction);
     const forgottenMuralReturnPoint = (direction = 1) => resolveChamberReturnPoint(forgottenMuralEntryDoor, direction);
     const scribeReturnPoint = (direction = 1) => resolveChamberReturnPoint(scribeEntryDoor, direction);
+
+    const templeThresholdDoorwayActive = backgroundPackId !== 'china-river-valley'
+      && currentSceneId === JOURNEY_SCENE_IDS.EXTERIOR
+      && player.onGround
+      && forgottenMuralPlayerCenterX >= templeThresholdEntryTrigger.minX
+      && forgottenMuralPlayerCenterX <= templeThresholdEntryTrigger.maxX
+      && player.y < templeThresholdEntryTrigger.maxY
+      && Math.abs(forgottenMuralPlayerFootY - templeThresholdEntryTrigger.footY) <= templeThresholdEntryTrigger.footTolerance;
+    const templeThresholdExitActive = currentSceneId === JOURNEY_SCENE_IDS.TEMPLE_THRESHOLD_HALL
+      && forgottenMuralPlayerCenterX >= TEMPLE_THRESHOLD_HALL_EXIT_TRIGGER.minX
+      && forgottenMuralPlayerCenterX <= TEMPLE_THRESHOLD_HALL_EXIT_TRIGGER.maxX
+      && player.y < TEMPLE_THRESHOLD_HALL_EXIT_TRIGGER.maxY
+      && Math.abs(forgottenMuralPlayerFootY - TEMPLE_THRESHOLD_HALL_EXIT_TRIGGER.footY) <= TEMPLE_THRESHOLD_HALL_EXIT_TRIGGER.footTolerance;
+    const templeThresholdSealActive = currentSceneId === JOURNEY_SCENE_IDS.TEMPLE_THRESHOLD_HALL
+      && forgottenMuralPlayerCenterX >= TEMPLE_THRESHOLD_HALL_SEAL_TRIGGER.minX
+      && forgottenMuralPlayerCenterX <= TEMPLE_THRESHOLD_HALL_SEAL_TRIGGER.maxX
+      && player.y < TEMPLE_THRESHOLD_HALL_SEAL_TRIGGER.maxY
+      && Math.abs(forgottenMuralPlayerFootY - TEMPLE_THRESHOLD_HALL_SEAL_TRIGGER.footY) <= TEMPLE_THRESHOLD_HALL_SEAL_TRIGGER.footTolerance;
+    if (templeThresholdDoorwayActive && !(current.sceneTransition || current.forgottenMuralChamberTransition)) {
+      current.templeThresholdHallEntranceDiscovered = true;
+      current.hiddenRoomsFound?.add('temple-threshold-hall');
+      current.discoveredHiddenRouteIds?.add('temple-threshold-hall-route');
+      current.sceneReturn = templeThresholdReturnPoint(player.direction || -1);
+      const transition = {
+        id: 'temple-threshold-hall-doorway',
+        phase: 'doorway-fade',
+        fromSceneId: JOURNEY_SCENE_IDS.EXTERIOR,
+        toSceneId: JOURNEY_SCENE_IDS.TEMPLE_THRESHOLD_HALL,
+        lockMovement: true,
+        switched: false,
+        duration: FORGOTTEN_MURAL_CHAMBER_TRANSITION_DURATION,
+        timer: FORGOTTEN_MURAL_CHAMBER_TRANSITION_DURATION,
+      };
+      current.sceneTransition = transition;
+      current.forgottenMuralChamberTransition = transition;
+      current.notice = 'Asha steps into the threshold hall.';
+      current.cinematicEvent = {
+        id: 'temple-threshold-hall-threshold',
+        name: 'Temple Approach',
+        type: 'temple-threshold-hall-threshold',
+        x: (templeThresholdEntryTrigger.minX + templeThresholdEntryTrigger.maxX) / 2,
+        y: templeThresholdEntryTrigger.footY - 92,
+        duration: 2.6,
+        timer: 2.6,
+        message: 'The door opens into a guarded hall.',
+      };
+      current.cinematicTimer = Math.max(current.cinematicTimer || 0, 2.2);
+      current.hitStopTimer = Math.max(current.hitStopTimer, 0.035);
+      addRewardPulse('temple-threshold-hall-found', current.cinematicEvent.x, current.cinematicEvent.y, 'THRESHOLD', {
+        color: '#facc15',
+        radius: 82,
+        timer: 0.72,
+      });
+      audioControls?.playExpeditionStinger?.('evidenceDiscovery');
+    } else if (templeThresholdSealActive && !current.templeThresholdHallCleared && !(current.sceneTransition || current.forgottenMuralChamberTransition)) {
+      current.templeThresholdHallCleared = true;
+      current.completedObjectiveIds.add('temple-threshold-hall');
+      current.notice = 'The sealed door answers. This is only the first judgement.';
+      current.cinematicEvent = {
+        id: 'temple-threshold-hall-seal-warning',
+        name: 'Threshold Seal',
+        message: 'The sealed door answers. This is only the first judgement.',
+        temporary: true,
+      };
+      current.cinematicTimer = 3.0;
+      current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 2.0);
+      audioControls?.playExpeditionSfx?.('openingThresholdFinalPulse');
+    } else if (templeThresholdExitActive && !(current.sceneTransition || current.forgottenMuralChamberTransition)) {
+      current.sceneReturn = templeThresholdReturnPoint(TEMPLE_THRESHOLD_HALL_RETURN_FALLBACK.direction);
+      const transition = {
+        id: 'temple-threshold-hall-exit',
+        phase: 'doorway-fade',
+        fromSceneId: JOURNEY_SCENE_IDS.TEMPLE_THRESHOLD_HALL,
+        toSceneId: JOURNEY_SCENE_IDS.EXTERIOR,
+        lockMovement: true,
+        switched: false,
+        duration: FORGOTTEN_MURAL_CHAMBER_TRANSITION_DURATION,
+        timer: FORGOTTEN_MURAL_CHAMBER_TRANSITION_DURATION,
+      };
+      current.sceneTransition = transition;
+      current.forgottenMuralChamberTransition = transition;
+      current.notice = 'Asha returns to the temple approach doorway.';
+      current.hitStopTimer = Math.max(current.hitStopTimer, 0.035);
+      audioControls?.playTransition?.();
+    } else {
+      current.templeThresholdHallActive = isTempleThresholdHallScene(current);
+    }
 
     const mummificationChamberDoorwayActive = backgroundPackId !== 'china-river-valley'
       && currentSceneId === JOURNEY_SCENE_IDS.EXTERIOR
@@ -16173,7 +16453,7 @@ export default function ExpeditionJourney({
       if (current.resources.time <= 0) triggerJourneyRescue('Time expired. Field team rescued.');
     }
 
-  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, backgroundPackId, openingAtmosphereSfxKey, scopedJourneyAssetPacks.isChinaJourney, scopedJourneyAssetPacks.isRomeJourney, targetCivilisation, buildBossRewardMoment, completeOpeningThresholdScene, enterLevelFromThreshold, startLevelThresholdEncounter, startTempleThresholdTransition, getActiveHiddenRoutes, getActiveSecretCollectibles, getActiveShardGateProgress, getAttackBox, getAttackHurtbox, getPlayerAttackNearMissTarget, getBossPhaseConfig, getBossVulnerabilityState, getDoorwayGateStatus, getEnemyPatternConfig, getObjectiveProgress, getGateGuidance, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getRenderableTrapPlatforms, getLiveScorpionNestBlockers, getRouteAccessState, getRouteGateDoorwayEntries, isRouteRewardAccessible, isLowStamina, addCombatEffect, applyCombatHitImpact, recordEnvironmentInteraction, getPlayerAttackState, getSectionDisplayName, getSectionDisplayTitle, resolveChamberEntryTrigger, resolveChamberReturnPoint, syncHud]);
+  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, backgroundPackId, openingAtmosphereSfxKey, scopedJourneyAssetPacks.isChinaJourney, scopedJourneyAssetPacks.isRomeJourney, targetCivilisation, buildBossRewardMoment, completeOpeningThresholdScene, enterLevelFromThreshold, startLevelThresholdEncounter, startOpeningCinematic, startTempleThresholdTransition, getActiveHiddenRoutes, getActiveSecretCollectibles, getActiveShardGateProgress, getAttackBox, getAttackHurtbox, getPlayerAttackNearMissTarget, getBossPhaseConfig, getBossVulnerabilityState, getDoorwayGateStatus, getEnemyPatternConfig, getObjectiveProgress, getGateGuidance, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getRenderableTrapPlatforms, getLiveScorpionNestBlockers, getRouteAccessState, getRouteGateDoorwayEntries, isRouteRewardAccessible, isLowStamina, addCombatEffect, applyCombatHitImpact, recordEnvironmentInteraction, getPlayerAttackState, getSectionDisplayName, getSectionDisplayTitle, resolveChamberEntryTrigger, resolveChamberReturnPoint, syncHud]);
 
   const step = useCallback((ms) => {
     const dt = Math.min(ms / 1000, 0.05);
@@ -16195,7 +16475,7 @@ export default function ExpeditionJourney({
         const current = stateRef.current;
         const nextX = Number(x);
         if (!Number.isFinite(nextX)) return createJourneySnapshot(current);
-        const nextY = Number(y);
+        const nextY = y === null ? Number.NaN : Number(y);
         const playerWidth = PLAYER_WIDTH;
         const playerHeight = PLAYER_HEIGHT;
         const groundPlayerY = GROUND_Y - playerHeight;
@@ -16577,6 +16857,38 @@ export default function ExpeditionJourney({
           syncHud();
           return;
         }
+        if (target === 'journey-temple-approach-ramp') {
+          const current = stateRef.current;
+          current.openingThresholdScene = null;
+          current.openingSphinxEncounter = null;
+          current.openingSphinxTimer = 0;
+          current.bossIntro = null;
+          current.bossIntroTimer = 0;
+          current.bossIntroPauseTimer = 0;
+          current.bossDomain = null;
+          current.cinematicEvent = null;
+          current.cinematicTimer = 0;
+          current.activeGuardianChallenge = null;
+          current.sceneTransition = null;
+          current.forgottenMuralChamberTransition = null;
+          current.templeThresholdHallActive = false;
+          current.currentSceneId = JOURNEY_SCENE_IDS.EXTERIOR;
+          current.currentSectionId = 'desert-entry';
+          current.lastSectionId = 'desert-entry';
+          current.player.x = clamp(42, 0, WORLD_WIDTH - current.player.width);
+          current.player.y = GROUND_Y - current.player.height;
+          current.player.vx = 0;
+          current.player.vy = 0;
+          current.player.onGround = true;
+          current.player.direction = 1;
+          current.cameraX = 0;
+          current.targetCameraX = 0;
+          current.notice = 'Developer mode: Temple Approach ramp.';
+          current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 2.0);
+          step(0);
+          syncHud();
+          return;
+        }
         if (target === 'journey-mummification-chamber') {
           const current = stateRef.current;
           current.openingThresholdScene = null;
@@ -16606,6 +16918,39 @@ export default function ExpeditionJourney({
           current.cameraX = MUMMIFICATION_CHAMBER_CAMERA_X;
           current.targetCameraX = MUMMIFICATION_CHAMBER_CAMERA_X;
           current.notice = 'Developer mode: Mummification Chamber.';
+          current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 2.0);
+          step(0);
+          syncHud();
+          return;
+        }
+        if (target === 'journey-temple-threshold-hall') {
+          const current = stateRef.current;
+          current.openingThresholdScene = null;
+          current.openingSphinxEncounter = null;
+          current.openingSphinxTimer = 0;
+          current.bossIntro = null;
+          current.bossIntroTimer = 0;
+          current.bossIntroPauseTimer = 0;
+          current.bossDomain = null;
+          current.cinematicEvent = null;
+          current.cinematicTimer = 0;
+          current.activeGuardianChallenge = null;
+          current.sceneTransition = null;
+          current.forgottenMuralChamberTransition = null;
+          current.currentSceneId = JOURNEY_SCENE_IDS.TEMPLE_THRESHOLD_HALL;
+          current.templeThresholdHallEntered = true;
+          current.templeThresholdHallActive = true;
+          current.hiddenRoomsFound?.add('temple-threshold-hall');
+          current.discoveredHiddenRouteIds?.add('temple-threshold-hall-route');
+          current.player.x = TEMPLE_THRESHOLD_HALL_ENTRY_SPAWN.x - current.player.width / 2;
+          current.player.y = TEMPLE_THRESHOLD_HALL_ENTRY_SPAWN.y - current.player.height;
+          current.player.vx = 0;
+          current.player.vy = 0;
+          current.player.onGround = true;
+          current.player.direction = TEMPLE_THRESHOLD_HALL_ENTRY_SPAWN.direction;
+          current.cameraX = TEMPLE_THRESHOLD_HALL_CAMERA_X;
+          current.targetCameraX = TEMPLE_THRESHOLD_HALL_CAMERA_X;
+          current.notice = 'Developer mode: Temple Threshold Hall.';
           current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 2.0);
           step(0);
           syncHud();

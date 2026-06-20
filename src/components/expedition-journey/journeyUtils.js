@@ -356,6 +356,7 @@ const PROP_TEMPLATE_FIELDS = [
   'depth',
   'layer',
   'zIndex',
+  'collidable',
   'tint',
   'colorGradeFilter',
   'shadow',
@@ -484,14 +485,22 @@ const getJourneyPropRegistryTemplate = (entry = {}) => {
   if (Number.isFinite(entry.defaultScale)) template.scale = entry.defaultScale;
   if (entry.defaultLayer) template.layer = entry.defaultLayer;
   if (entry.defaultDepth) template.depth = entry.defaultDepth;
+  if (Number.isFinite(entry.defaultZIndex)) template.zIndex = entry.defaultZIndex;
+  if (typeof entry.collidable === 'boolean') template.collidable = entry.collidable;
   if (entry.defaultPlacementPreset) template.placementPreset = entry.defaultPlacementPreset;
+  if (entry.defaultSceneBlend) template.sceneBlend = entry.defaultSceneBlend;
   if (entry.defaultTint) template.tint = entry.defaultTint;
   if (entry.defaultColorGradeFilter) template.colorGradeFilter = entry.defaultColorGradeFilter;
   if (Number.isFinite(entry.defaultAlpha)) template.alpha = entry.defaultAlpha;
+  if (Number.isFinite(entry.defaultShadowWidth)) template.shadowWidth = entry.defaultShadowWidth;
+  if (Number.isFinite(entry.defaultShadowHeight)) template.shadowHeight = entry.defaultShadowHeight;
   if (Number.isFinite(entry.defaultShadowOpacity)) template.shadowOpacity = entry.defaultShadowOpacity;
   if (Number.isFinite(entry.defaultSandOverlapHeight)) template.sandOverlapHeight = entry.defaultSandOverlapHeight;
   if (Number.isFinite(entry.defaultSandMoundWidth)) template.sandMoundWidth = entry.defaultSandMoundWidth;
+  if (Number.isFinite(entry.defaultSandMoundHeight)) template.sandMoundHeight = entry.defaultSandMoundHeight;
   if (Number.isFinite(entry.defaultGroundPebbles)) template.groundPebbles = entry.defaultGroundPebbles;
+  if (Number.isFinite(entry.defaultAssetContactYRatio)) template.assetContactYRatio = entry.defaultAssetContactYRatio;
+  if (Number.isFinite(entry.defaultWidthScale)) template.widthScale = entry.defaultWidthScale;
   if (typeof entry.defaultMirrorX === 'boolean') template.mirrorX = entry.defaultMirrorX;
   if (Number.isFinite(entry.defaultBrightness)) template.brightness = entry.defaultBrightness;
   return template;
@@ -1882,6 +1891,10 @@ export const makeInitialState = ({ targetCivilisation, permanentUpgradeIds = [],
   scarabSealActivated: false,
   openingConfrontationSeen: false,
   openingFirstShardEchoSeen: false,
+  templeThresholdHallEntranceDiscovered: false,
+  templeThresholdHallEntered: false,
+  templeThresholdHallActive: false,
+  templeThresholdHallCleared: false,
   mummificationChamberEntranceDiscovered: false,
   mummificationChamberEntered: false,
   mummificationChamberActive: false,

@@ -4,6 +4,13 @@ Current source-of-truth note:
 - Future implementation should follow `docs/lost-site-expedition-production-bible.md`.
 - The production bible now defines implementation hierarchy, room pipelines, asset roles, and quality expectations.
 
+2026-06-20 Temple Approach ramp editor prop:
+- Added the approved Temple Approach Gatehouse Ramp PNG to the Journey prop editor registry under a new `Temple Approach` category.
+- Extended the editor palette template path so registry image props can preserve grounded depth, z-index, scene blend, contact ratio, shadow sizing, width scale, and non-collidable settings when stamped from the editor.
+- Verified the ramp appears in `createJourneyPropPalette` as `Temple Approach Gatehouse Ramp` with the correct PNG path and grounded/no-sand defaults.
+- `npm.cmd run build` passed. Broad Journey placement tests still have unrelated active-WIP failures around older scarab/Mummification route-history expectations.
+- Follow-up alignment tweak: shifted the smooth Temple Approach ramp assist start from the far-left flat approach to the painted lower ramp lip, so Asha should stay on the flat ground until she actually reaches the stone ramp surface.
+
 2026-06-15 Asha heavy attack scale normalization:
 - Fixed Asha's heavy attack visual scale in the existing Journey hero atlas renderer instead of replacing or regenerating character art.
 - Added atlas metadata for row-level scaling on the heavy follow-up sweep and frame-level scaling on the plain K heavy mid-swing frames, preserving combat timing, collision, and the approved Asha sprite atlas.
@@ -62,6 +69,25 @@ Current source-of-truth note:
 - Updated `README.md` and `AGENTS.md` so future Codex passes see the docs-status guide and current source-of-truth hierarchy sooner.
 - Corrected `AGENTS.md` current WIP notes: the active branch is `mummification-ritual-lock-upgrade`, with Journey/mummification-room files dirty, not the older Training Phase layout pass.
 - No gameplay code, asset loaders, room data, or runtime systems were changed during this documentation audit.
+
+2026-06-20 Desert Entry background recovery:
+- Fast-forwarded local `main` to the remote clean-canyon fix, then restored the known-good Desert Entry recovery slice from `codex/journey-split-task-9-renderer-slice-next`.
+- Reinstated the story-route mega panorama and purpose-built Temple Approach gatehouse ramp PNGs through the canonical Journey override path instead of adding a parallel background system.
+- Restored matching Desert Entry renderer/data/test files so the clean causeway, no-sand-sheet rendering, purposeful combat metadata, and gatehouse/ramp placement remain aligned.
+- Verified `journeyPlacementOverrides.test.mjs`, `journeySecrets.test.js`, and `journeyDesertBackgroundPanels.test.mjs`; next check is browser screenshot/build.
+
+2026-06-20 Temple Threshold Hall first chunk:
+- Wired the Temple Approach gatehouse door into a new playable Threshold Hall scene using the existing Journey sacred-room transition path instead of creating a parallel room system.
+- Reused the approved dark interior threshold artwork as the full room background, added an invisible floor for Asha, and suppressed extra fake door art so the generated PNG remains the visual source of truth.
+- Added first-pass room logic: exterior doorway entry, interior left-side return, right-side sealed-door warning beat, QA dev jump, and state flags for entered/cleared/active.
+- Verified focused Journey tests, production build, and a browser screenshot showing Asha grounded inside the room with no browser errors. Next chunk should tune the exterior ramp/door approach so normal play reliably gets Asha to the doorway.
+
+2026-06-20 Temple Approach ramp walk-up chunk:
+- Converted the gatehouse approach from four large jump-style invisible ledges into a safer walk-up path by adding hidden contact steps under the purpose-built ramp art.
+- Added a narrowly scoped Temple Approach ramp surface assist so holding right carries Asha up the realistic ramp to the gatehouse door without making the PNG itself collidable or changing the rest of the movement system.
+- Added a QA-only `journey-temple-approach-ramp` jump for future browser checks of this exact area.
+- Verified focused placement/secret tests, production build, a clean ramp screenshot, and a movement screenshot where Asha reaches the Threshold Hall from the ramp with no browser errors.
+- Follow-up after play-test feedback: the first QA check started Asha too high on the ramp and missed the lower-approach failure. The ramp assist now catches Asha from the lower ground approach, no longer depends on the section flag, and the QA jump starts before the ramp. Verified again from before the ramp into the Threshold Hall.
 
 2026-06-05 Mummification ritual-lock upgrade:
 - Upgraded the existing Mummification Chamber (no new room/puzzle/progression system) from a guided "walk to glow and press interact" sequence into a tense, story-driven ritual lock, extending the in-place Journey chamber logic in `ExpeditionJourney.jsx` and the reusable interact primitives in `journeyUtils.js`.

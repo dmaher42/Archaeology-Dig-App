@@ -31,7 +31,7 @@ import {
   makeEnemy,
   snapJourneyPropCoordinate,
 } from './journeyUtils.js';
-import { CHINA_ENEMIES, ENEMIES, RELIC_SHARDS, STORY_PROPS } from './journeyLevelData.js';
+import { CHINA_ENEMIES, ENEMIES, HIDDEN_ROUTES, RELIC_SHARDS, STORY_PROPS } from './journeyLevelData.js';
 import {
   COMBAT_DAMAGE_SCALE,
   JOURNEY_HORIZONTAL_SCALE,
@@ -61,6 +61,7 @@ const expeditionModeSource = readFileSync(new URL('../ExpeditionMode.jsx', impor
 const menuSource = readFileSync(new URL('../Menu.jsx', import.meta.url), 'utf8');
 const appSource = readFileSync(new URL('../../App.jsx', import.meta.url), 'utf8');
 const indexCssSource = readFileSync(new URL('../../index.css', import.meta.url), 'utf8');
+const journeyPropPaletteDrawerCssSource = readFileSync(new URL('../../styles/journey-prop-palette-drawer.css', import.meta.url), 'utf8');
 const journeyCombatContractSource = journeyCombatSource.replace(/\bexport const\b/g, 'const');
 const journeyGameplayContractSource = [
   journeyComponentSource,
@@ -140,6 +141,7 @@ const scribeChamberInteriorPath = new URL('../../../public/assets/expedition/env
 const mummificationChamberInteractionAtlasPath = new URL('../../../public/assets/expedition/environment/desert-temple/mummification-chamber/mummification-chamber-interaction-atlas.png', import.meta.url);
 const desertEntryGroundingOverlayPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-grounding-overlay.png', import.meta.url);
 const desertEntryPremiumCausewayLanePath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-premium-causeway-lane.png', import.meta.url);
+const desertEntryMegaPanoramaPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry-opening-rebuild/desert-entry-mega-panorama-story-route-2026-06-19.png', import.meta.url);
 const egyptForegroundDepthAtlasPath = new URL('../../../public/assets/expedition/environment/egypt-foreground/egypt-foreground-depth-pack.json', import.meta.url);
 const egyptForegroundDepthPngPath = new URL('../../../public/assets/expedition/environment/egypt-foreground/egypt-foreground-depth-pack.png', import.meta.url);
 const ashaComboSlashEffectPath = new URL('../../../public/assets/expedition/player/asha-combo-slash-effect-2026-06-06.png', import.meta.url);
@@ -458,6 +460,7 @@ test('journey prop editor palette includes reusable Lost Site prop registry entr
         atmosphereAssetKey: 'cracked_stone_blocks',
         scale: 1,
         layer: 'foreground',
+        collidable: false,
         colorGradeFilter: 'sepia(34%) saturate(135%) brightness(88%) contrast(102%)',
         shadowOpacity: 0.2,
         sandOverlapHeight: 9,
@@ -481,6 +484,7 @@ test('journey prop editor palette includes reusable Lost Site prop registry entr
         scale: 1,
         layer: 'foreground',
         depth: 'foreground-occluder',
+        collidable: false,
       },
     },
   ]);
@@ -1105,9 +1109,9 @@ test('journey editor prop palette exposes premium modular floor kit inserts', ()
 });
 
 test('desert entry buried causeway visual is narrower than the floor collision band', () => {
-  assert.match(journeyComponentSource, /DESERT_ENTRY_CAUSEWAY_DRAW_HEIGHT = 64/);
-  assert.match(journeyComponentSource, /DESERT_ENTRY_CAUSEWAY_DRAW_Y_OFFSET = -28/);
-  assert.match(journeyComponentSource, /desertEntryCausewayVisualMode:\s*'narrow-premium-causeway-with-modular-floor-kit'/);
+  assert.match(journeyComponentSource, /DESERT_ENTRY_CAUSEWAY_DRAW_HEIGHT = 34/);
+  assert.match(journeyComponentSource, /DESERT_ENTRY_CAUSEWAY_DRAW_Y_OFFSET = -4/);
+  assert.match(journeyComponentSource, /desertEntryCausewayVisualMode\s*=\s*'clean-stone-causeway-no-sand-sheet'/);
   assert.doesNotMatch(journeyComponentSource, /const drawHeight = 96;\s*const drawY = platform\.y - 42;/);
 });
 
@@ -1157,6 +1161,26 @@ test('journey placement editor polish keeps controls usable and scoped to editor
   assert.match(indexCssSource, /\.journey-prop-editor-panel\s*\{[^}]*transform:\s*none;/);
   assert.match(indexCssSource, /\.journey-prop-editor-panel\s*\{[^}]*max-height:\s*min\(39rem, calc\(100% - 1\.24rem\)\);[^}]*overflow:\s*auto;/);
   assert.match(indexCssSource, /\.journey-prop-editor-actions/);
+});
+
+test('journey prop palette uses the protected bottom drawer browser', () => {
+  assert.match(journeyComponentSource, /journey-prop-palette-browser/);
+  assert.match(journeyComponentSource, /journey-prop-palette-category-rail/);
+  assert.match(journeyComponentSource, /journey-prop-palette-grid/);
+  assert.match(journeyComponentSource, /journey-prop-palette-selection-tray/);
+  assert.match(journeyComponentSource, /<button[\s\S]*?className=\{`journey-prop-palette-stamp/);
+  assert.match(journeyComponentSource, /Stamp on' : 'Stamp off'/);
+  assert.doesNotMatch(journeyComponentSource, /journey-prop-palette-toolbar/);
+  assert.doesNotMatch(journeyComponentSource, /<div className="journey-prop-palette-list">\s*\{/);
+  assert.match(journeyPropPaletteDrawerCssSource, /\.journey-prop-palette-panel\s*\{[^}]*top:\s*auto;[^}]*left:\s*0\.72rem;[^}]*right:\s*0\.72rem;[^}]*bottom:\s*0\.72rem;/);
+  assert.match(journeyPropPaletteDrawerCssSource, /\.journey-prop-palette-panel\s*\{[^}]*box-sizing:\s*border-box;[^}]*width:\s*auto;[^}]*max-height:\s*min\(9\.45rem, calc\(100% - 1\.44rem\)\);/);
+  assert.match(journeyPropPaletteDrawerCssSource, /\.journey-prop-palette-browser\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\);/);
+  assert.match(journeyPropPaletteDrawerCssSource, /\.journey-prop-palette-category-rail\s*\{[^}]*display:\s*flex;[^}]*overflow-x:\s*auto;[^}]*border-bottom:/);
+  assert.match(journeyPropPaletteDrawerCssSource, /\.journey-prop-palette-grid\s*\{[^}]*grid-auto-columns:\s*minmax\(5\.65rem, 6\.7rem\);[^}]*grid-auto-flow:\s*column;[^}]*grid-template-rows:\s*repeat\(2, minmax\(2\.65rem, 1fr\)\);/);
+  assert.match(journeyPropPaletteDrawerCssSource, /\.journey-prop-palette-list\s*\{[^}]*max-height:\s*5\.7rem;[^}]*overflow-x:\s*auto;[^}]*overflow-y:\s*hidden;/);
+  assert.match(journeyPropPaletteDrawerCssSource, /\.journey-prop-palette-recent\s*\{[^}]*display:\s*none;/);
+  assert.match(journeyPropPaletteDrawerCssSource, /\.journey-prop-palette-copy span\s*\{[^}]*display:\s*none;/);
+  assert.match(journeyPropPaletteDrawerCssSource, /\.journey-prop-palette-list \.journey-prop-palette-group-toggle\s*\{[^}]*display:\s*none;/);
 });
 
 test('journey editor treats generated buildings as structure props with image previews', () => {
@@ -1516,7 +1540,14 @@ test('first Egypt secret route rewards curiosity without changing main progressi
   assert.match(journeyComponentSource, /FORGOTTEN_MURAL_CHAMBER_TRANSITION_DURATION = 2\.15/);
   assert.match(journeyComponentSource, /phase:\s*'doorway-fade'/);
   assert.match(journeyComponentSource, /JOURNEY_SCENE_IDS = Object\.freeze/);
+  assert.match(journeyComponentSource, /TEMPLE_THRESHOLD_HALL:\s*'temple-threshold-hall'/);
   assert.match(journeyComponentSource, /FORGOTTEN_MURAL_CHAMBER:\s*'forgotten-mural-chamber'/);
+  assert.match(journeyComponentSource, /TEMPLE_THRESHOLD_HALL_ENTRY_TRIGGER = \{[\s\S]*?minX:\s*805[\s\S]*?maxX:\s*935/);
+  assert.match(journeyComponentSource, /TEMPLE_THRESHOLD_HALL_EXIT_TRIGGER = \{[\s\S]*?minX:\s*scaleJourneyX\(96\)[\s\S]*?maxX:\s*scaleJourneyX\(126\)/);
+  assert.match(journeyComponentSource, /id:\s*'temple-threshold-hall-doorway'[\s\S]*?toSceneId:\s*JOURNEY_SCENE_IDS\.TEMPLE_THRESHOLD_HALL/);
+  assert.match(journeyComponentSource, /id:\s*'temple-threshold-hall-exit'[\s\S]*?toSceneId:\s*JOURNEY_SCENE_IDS\.EXTERIOR/);
+  assert.match(journeyComponentSource, /drawTempleThresholdHallInterior/);
+  assert.match(platforms, /id:\s*'temple-threshold-hall-floor'[\s\S]*?sceneId:\s*'temple-threshold-hall'/);
   assert.match(journeyComponentSource, /currentSceneId:\s*getJourneySceneId\(current\)/);
   assert.match(journeyComponentSource, /sceneTransitionState:/);
   assert.match(journeyComponentSource, /sceneReturn:/);
@@ -1568,6 +1599,8 @@ test('first Egypt secret route rewards curiosity without changing main progressi
   assert.match(journeyUtilsSource, /forgottenMuralChamberActive:\s*false/);
   assert.match(journeyUtilsSource, /forgottenMuralChamberTransition:\s*null/);
   assert.match(journeyUtilsSource, /currentSceneId:\s*'egypt-exterior-route'/);
+  assert.match(journeyUtilsSource, /templeThresholdHallActive:\s*false/);
+  assert.match(journeyUtilsSource, /templeThresholdHallCleared:\s*false/);
   assert.match(journeyUtilsSource, /sceneTransition:\s*null/);
   assert.match(journeyUtilsSource, /sceneReturn:\s*null/);
   assert.match(journeyUtilsSource, /forgottenMuralLooterSeen:\s*false/);
@@ -1691,7 +1724,6 @@ test('scribe locked chamber reuses the Journey scene and challenge systems for o
   assert.match(journeyComponentSource, /drawScribeChamberDoorwayStructure/);
   assert.match(journeyComponentSource, /scribeChamberExteriorLoaded:\s*scribeChamberExteriorRef\.current\.loaded/);
   assert.match(journeyComponentSource, /scribeChamberGroundBlendAssetKeys/);
-  assert.match(journeyComponentSource, /'softSandDrift'/);
   assert.match(journeyComponentSource, /'edgePebbleScatter'/);
   assert.match(journeyComponentSource, /'rubbleClusterSmall'/);
   assert.match(journeyComponentSource, /'rubbleClusterLarge'/);
@@ -2804,7 +2836,7 @@ test('opening pyramid zone only contains the intentional first-screen stairway p
   const platformLines = platforms
     .split('\n')
     .map((line) => line.trim())
-    .filter((line) => line.startsWith('{') && line.includes('label:'));
+    .filter((line) => line.startsWith('{') && line.includes('label:') && !line.includes('sceneId:'));
   const horizontalScale = Number(journeyConstantsSource.match(/JOURNEY_HORIZONTAL_SCALE\s*=\s*([\d.]+)/)?.[1] || NaN);
   assert.ok(Number.isFinite(horizontalScale), 'Journey horizontal scale should be parseable');
   const openingZonePlatforms = platformLines
@@ -3850,10 +3882,13 @@ test('Egypt chamber entry triggers render as configurable premium doors outside 
   assert.match(journeyComponentSource, /const CHAMBER_DOOR_VISUALS = createChamberDoorVisuals\(\{/);
   assert.match(journeyComponentSource, /DESERT_ENTRY_RETIRED_CHAMBER_DOOR_VISUAL_IDS = new Set\(\[[\s\S]*?'mummification-chamber-entry-door'/);
   [
+    'temple-threshold-hall-entry-door',
     'mummification-chamber-entry-door',
     'forgotten-mural-entry-door',
     'scribe-chamber-entry-door',
   ].forEach((id) => assert.match(journeyComponentSource, new RegExp(`id:\\s*'${id}'`)));
+  assert.match(journeyComponentSource, /shouldRenderChamberDoorVisual = \(door = \{\}\) => \([\s\S]*?door\.renderDoorVisual !== false/);
+  assert.match(journeyComponentSource, /id:\s*'temple-threshold-hall-entry-door'[\s\S]*?renderDoorVisual:\s*false/);
 
   const chamberDoorVisuals = getComponentFunctionSource('drawPremiumEgyptianChamberDoor');
   assert.match(chamberDoorVisuals, /shouldRenderChamberDoorVisual\(door\)[\s\S]*?return/);
@@ -4454,7 +4489,7 @@ test('Egypt atmosphere prop pack is registered and drawn through existing story 
 });
 
 test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, and atlas regions', () => {
-  assert.equal(lostSitePropRegistry.length, 107);
+  assert.equal(lostSitePropRegistry.length, 108);
   const registryIds = new Set(lostSitePropRegistry.map(entry => entry.id));
   assert.equal(registryIds.has('standingPillar'), false, 'removed weak standing column should not be available in the prop editor');
   assert.equal(registryIds.has('stoneDoorFrame'), false, 'removed weak temple arch should not be available in the prop editor');
@@ -4466,8 +4501,30 @@ test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, an
   assert.ok(registryIds.has('ledgeHelperFallenColumnSteps'), 'fallen column ledge helper should be available in the prop editor');
   assert.ok(registryIds.has('ledgeHelperRopeLadderScaffold'), 'rope ladder ledge helper should be available in the prop editor');
   assert.ok(registryIds.has('ledgeHelperBuriedRampBlocks'), 'buried ramp ledge helper should be available in the prop editor');
+  assert.ok(registryIds.has('templeApproachGatehouseRampV2'), 'Temple Approach gatehouse ramp should be available in the prop editor');
   assert.equal(registryIds.has('openingPyramidClimbPack'), false, 'full opening pyramid sheet should not be exposed as one editor prop');
   const editorPalette = createJourneyPropPalette([], lostSitePropRegistry);
+  const templeApproachRampPaletteItem = editorPalette.find(item => item.imageAssetKey === 'templeApproachGatehouseRampV2');
+  assert.equal(templeApproachRampPaletteItem?.label, 'Temple Approach Gatehouse Ramp');
+  assert.equal(templeApproachRampPaletteItem?.category, 'Temple Approach');
+  assert.equal(templeApproachRampPaletteItem?.template?.type, 'image-prop');
+  assert.equal(templeApproachRampPaletteItem?.template?.depth, 'grounded');
+  assert.equal(templeApproachRampPaletteItem?.template?.layer, 'grounded');
+  assert.equal(templeApproachRampPaletteItem?.template?.zIndex, -8);
+  assert.equal(templeApproachRampPaletteItem?.template?.assetPath, 'assets/expedition/environment/egypt-opening/temple-approach-gatehouse-ramp-v2-2026-06-19.png');
+  assert.equal(templeApproachRampPaletteItem?.template?.width, 900);
+  assert.equal(templeApproachRampPaletteItem?.template?.height, 600);
+  assert.equal(templeApproachRampPaletteItem?.template?.sceneBlend, 'desert-entry-sand');
+  assert.equal(templeApproachRampPaletteItem?.template?.colorGradeFilter, 'sepia(18%) saturate(92%) brightness(82%) contrast(104%)');
+  assert.equal(templeApproachRampPaletteItem?.template?.shadowWidth, 720);
+  assert.equal(templeApproachRampPaletteItem?.template?.shadowHeight, 16);
+  assert.equal(templeApproachRampPaletteItem?.template?.shadowOpacity, 0.18);
+  assert.equal(templeApproachRampPaletteItem?.template?.sandOverlapHeight, 0);
+  assert.equal(templeApproachRampPaletteItem?.template?.sandMoundWidth, 0);
+  assert.equal(templeApproachRampPaletteItem?.template?.sandMoundHeight, 0);
+  assert.equal(templeApproachRampPaletteItem?.template?.assetContactYRatio, 1);
+  assert.equal(templeApproachRampPaletteItem?.template?.widthScale, 1);
+  assert.equal(templeApproachRampPaletteItem?.template?.collidable, false);
   const ravineFloorPaletteItem = editorPalette.find(item => item.imageAssetKey === 'lostBridgeRavineFloor');
   assert.equal(ravineFloorPaletteItem?.category, 'Ravine Bridge');
   assert.equal(ravineFloorPaletteItem?.template?.type, 'image-prop');
@@ -4559,6 +4616,7 @@ test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, an
     'Prop Edge Kit',
     'Bridge Kit',
     'Ravine Bridge',
+    'Temple Approach',
   ].forEach(category => assert.ok(categories.has(category), `${category} should be represented`));
 
   const premiumFloorKitIds = new Set([
@@ -4582,10 +4640,10 @@ test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, an
   lostSitePropRegistry.forEach((entry) => {
     assert.ok(entry.id, 'registry entry should have an id');
     assert.ok(entry.displayName, `${entry.id} should have a display name`);
-    if (entry.category === 'Arrival Threshold' || entry.category === 'Desert Atmosphere' || entry.category === 'Prop Edge Kit' || entry.category === 'Bridge Kit' || entry.category === 'Ravine Bridge') {
+    if (entry.category === 'Arrival Threshold' || entry.category === 'Desert Atmosphere' || entry.category === 'Prop Edge Kit' || entry.category === 'Bridge Kit' || entry.category === 'Ravine Bridge' || entry.category === 'Temple Approach') {
       assert.equal(entry.defaultScale, 1);
       assert.equal(entry.collidable, false);
-      if (entry.category === 'Ravine Bridge') {
+      if (entry.category === 'Ravine Bridge' || entry.category === 'Temple Approach') {
         assert.ok(typeof entry.defaultColorGradeFilter === 'string');
       } else {
         assert.equal(entry.defaultColorGradeFilter, 'none');
@@ -4596,21 +4654,27 @@ test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, an
         ? 'arrival-threshold'
         : entry.category === 'Prop Edge Kit' || entry.category === 'Bridge Kit'
           ? 'edge-kit'
-          : entry.category === 'Ravine Bridge'
+        : entry.category === 'Ravine Bridge'
             ? 'lost-bridge'
+            : entry.category === 'Temple Approach'
+              ? ''
           : 'desert-entry';
-      const categoryPathRoot = entry.category === 'Ravine Bridge'
+      const categoryPathRoot = entry.category === 'Ravine Bridge' || entry.category === 'Temple Approach'
         ? 'assets/expedition/environment/egypt-opening'
         : 'assets/expedition/environment/egypt-atmosphere/props';
       if (!bridgeLostBridgeAsset) {
-        assert.match(entry.assetPath, new RegExp(`^${categoryPathRoot}/${categoryFolder}/.+\\.png$`));
+        const expectedCategoryAssetPath = entry.category === 'Temple Approach'
+          ? /^assets\/expedition\/environment\/egypt-opening\/temple-approach-gatehouse-ramp-v2-2026-06-19\.png$/
+          : new RegExp(`^${categoryPathRoot}/${categoryFolder}/.+\\.png$`);
+        assert.match(entry.assetPath, expectedCategoryAssetPath);
       }
-      if (entry.category === 'Prop Edge Kit' || entry.category === 'Bridge Kit' || entry.category === 'Ravine Bridge') {
+      if (entry.category === 'Prop Edge Kit' || entry.category === 'Bridge Kit' || entry.category === 'Ravine Bridge' || entry.category === 'Temple Approach') {
         assert.equal(entry.defaultType, 'image-prop');
         assert.equal(entry.imageAssetKey, entry.id);
       }
       if (entry.category === 'Prop Edge Kit') assert.equal(entry.defaultDepth, 'route-edge');
       if (entry.category === 'Bridge Kit') assert.ok(['midground', 'route-edge'].includes(entry.defaultDepth));
+      if (entry.category === 'Temple Approach') assert.equal(entry.defaultDepth, 'grounded');
       if (entry.category === 'Ravine Bridge') {
         assert.ok(['background', 'midground'].includes(entry.defaultDepth));
         assert.ok(['background', 'midground'].includes(entry.defaultLayer));
@@ -4782,6 +4846,38 @@ test('desert entry single-backdrop mode is bypassed in favor of the approved pan
   assert.match(journeyComponentSource, /desert-entry-clean-panorama-only-2026-06-18/);
   assert.doesNotMatch(journeyComponentSource, /'dustOverlay'/);
   assert.doesNotMatch(journeyComponentSource, /'foregroundParallax'/);
+});
+
+test('Desert Entry active panorama uses the story-route mega panorama PNG', () => {
+  const panorama = journeyPlacementOverrides.props.find((prop) => (
+    prop.id === 'desert-entry-arrival-ravine-mummification-panorama-1'
+  ));
+
+  assert.equal(
+    panorama?.assetPath,
+    'assets/expedition/backgrounds/desert-entry-opening-rebuild/desert-entry-mega-panorama-story-route-2026-06-19.png',
+  );
+  assert.equal(panorama?.width, 2172);
+  assert.equal(panorama?.height, 724);
+  assert.equal(panorama?.depth, 'background');
+  assert.equal(panorama?.layer, 'background');
+  assert.equal(panorama?.panoramaCropBias, 0.32);
+  assert.match(
+    panorama?.label || '',
+    /scarab arrival through ravine, sacred chambers, mural records, scribe route, and scarab queen approach/,
+  );
+  assert.ok(
+    !journeyPlacementOverrides.props.some((prop) => (
+      prop.id === 'desert-entry-arrival-ravine-mummification-panorama-1'
+      && prop.assetPath === 'assets/expedition/backgrounds/desert-entry-opening-rebuild/desert-entry-clean-canyon-panorama-2026-06-18.png'
+    )),
+  );
+
+  const panoramaBytes = readFileSync(desertEntryMegaPanoramaPath);
+  assert.equal(panoramaBytes.toString('ascii', 1, 4), 'PNG');
+  assert.equal(panoramaBytes.readUInt32BE(16), 2172);
+  assert.equal(panoramaBytes.readUInt32BE(20), 724);
+  assert.equal(panoramaBytes[25], 2, 'mega panorama should be RGB PNG art for the opaque background plate');
 });
 
 test('desert entry grounding overlay stays a transparent archaeological sediment layer', () => {
@@ -4995,30 +5091,16 @@ test('generated overrides preserve polished structure contact layers when re-exp
     source,
     /id:\s*'guardian-prep-seal'[\s\S]*?suppressRouteGateVisual:\s*true[\s\S]*?physicalDoorwayPropId:\s*'desert-entry-ravine-mummification-doorway-transition-1'/,
   );
-  assert.equal(mummificationOverride?.depth, 'route-edge');
-  assert.equal(mummificationOverride?.layer, 'route-edge');
-  assert.equal(mummificationOverride?.alpha, 0, 'The oversized Mummification exterior should stay visually retired so it does not draw a ruin row behind the physical doorway');
+  assert.equal(mummificationOverride, undefined, 'The old oversized Mummification exterior should stay deleted so it does not draw a ruin row over the panorama');
+  assert.ok(journeyPlacementOverrides.deletedPropIds.includes('desert-entry-generated-mummification-chamber-entrance-1'));
   assert.equal(retiredGateFront, undefined, 'The old route gate front should be deleted so it does not block the physical doorway');
   assert.equal(retiredGateBack, undefined, 'The old route gate back should be deleted so it does not block the physical doorway');
   assert.ok(journeyPlacementOverrides.deletedPropIds.includes('desert-entry-route-gate-front-1'));
   assert.ok(journeyPlacementOverrides.deletedPropIds.includes('desert-entry-route-gate-back-1'));
-  assert.equal(mummificationDoorway?.depth, 'route-edge');
-  assert.equal(mummificationDoorway?.layer, 'route-edge');
-  assert.equal(mummificationDoorway?.alpha, 0, 'Physical Mummification doorway art should stay visually retired with the close ruin row');
-  assert.equal(mummificationDoorway?.transitionPurpose, 'doorway-clean-cut');
-  assert.equal(forgottenMuralClimbStructure?.alpha, 0, 'Forgotten Mural climb structure should stay visually retired so the Temple Approach view does not show a close ruin row');
-  [
-    'forgotten-mural-climb-structure',
-  ].forEach((propId) => {
-    const overrideProp = journeyPlacementOverrides.props.find((prop) => prop.id === propId);
-    assert.ok(overrideProp, `${propId} generated override should exist for placement edits`);
-    if (!Array.isArray(overrideProp.groundContactLayer)) return;
-    const overlayContacts = overrideProp.groundContactLayer.filter((entry) => (entry.layer || 'overlay') === 'overlay');
-    assert.ok(overrideProp.groundContactLayer.length >= 8, `${propId} generated override should keep separate contact pieces`);
-    assert.ok(overlayContacts.every((entry) => !Number.isFinite(entry.widthRatio) || entry.widthRatio <= 0.68), `${propId} generated override should avoid a broad overlay strip`);
-    assert.ok(overrideProp.groundContactLayer.some((entry) => Number.isFinite(entry.rotation)), `${propId} generated override should keep contact rotation`);
-    assert.ok(overrideProp.groundContactLayer.some((entry) => entry.mirrorX === true), `${propId} generated override should keep mirrored contact pieces`);
-  });
+  assert.equal(mummificationDoorway, undefined, 'The old close Mummification doorway art should stay deleted while the panorama carries that approach');
+  assert.ok(journeyPlacementOverrides.deletedPropIds.includes('desert-entry-ravine-mummification-doorway-transition-1'));
+  assert.equal(forgottenMuralClimbStructure, undefined, 'Forgotten Mural climb structure should stay deleted so the Temple Approach view does not show a close ruin row');
+  assert.ok(journeyPlacementOverrides.deletedPropIds.includes('forgotten-mural-climb-structure'));
   assert.equal(
     journeyPlacementOverrides.props.find((prop) => prop.id === 'scribe-chamber-doorway-structure'),
     undefined,
@@ -5040,6 +5122,15 @@ test('generated Egypt structure renderers avoid broad procedural base haze', () 
     assert.doesNotMatch(functionSource, /drawDecorativeBaseBlend/, `${functionName} should not paint a broad decorative base blend`);
     assert.doesNotMatch(functionSource, /drawGroundDustLip/, `${functionName} should not paint broad dust lips`);
   });
+});
+
+test('Desert Entry foreground depth layer avoids broad artificial sand veils', () => {
+  const drawForegroundDepthLayerSource = getComponentFunctionSource('drawForegroundDepthLayerFrame');
+  assert.doesNotMatch(drawForegroundDepthLayerSource, /lowDustVeil/);
+  assert.doesNotMatch(drawForegroundDepthLayerSource, /softSandDrift/);
+  assert.match(drawForegroundDepthLayerSource, /rubbleClusterSmall/);
+  assert.match(drawForegroundDepthLayerSource, /rubbleClusterLarge/);
+  assert.match(drawForegroundDepthLayerSource, /edgePebbleScatter/);
 });
 
 test('mummification background structure avoids boxed shadow treatment', () => {
@@ -5098,15 +5189,127 @@ test('desert entry no longer draws old procedural fallback scenery', () => {
   assert.doesNotMatch(journeyComponentSource, /desert-survey-camp-life/);
 });
 
-test('desert entry ground reads as buried stone causeway under windblown sand', () => {
-  assert.match(journeyComponentSource, /ROUTE_GROUND_VISUAL_MODE = 'buried-stone-causeway-under-windblown-sand-v1'/);
+test('Desert Entry panorama blocks old procedural foreground parallax overlays', () => {
+  assert.match(
+    journeyComponentSource,
+    /const routeBackgroundArtDrawn = parallaxBackgroundDrawn\s*\|\|\s*desertJourneyScenePanelsDrawn\s*\|\|\s*desertEntryPrimaryBackgroundPlatesDrawn/,
+  );
+  assert.match(journeyComponentSource, /if \(!routeBackgroundArtDrawn\) drawTempleBackdrop/);
+  assert.match(journeyComponentSource, /if \(!routeBackgroundArtDrawn && section\.id !== 'ruined-temple'\)/);
+  assert.doesNotMatch(journeyComponentSource, /if \(!parallaxBackgroundDrawn\) drawTempleBackdrop/);
+  assert.doesNotMatch(journeyComponentSource, /if \(!parallaxBackgroundDrawn && section\.id !== 'ruined-temple'\)/);
+});
+
+test('Desert Entry invisible ledge cues avoid translucent collision panels in normal gameplay', () => {
+  const ledgeCueStart = useJourneyRendererSource.indexOf('function drawDesertEntryInvisibleLedgeCueFrame(');
+  assert.notEqual(ledgeCueStart, -1, 'drawDesertEntryInvisibleLedgeCueFrame should exist in the renderer helpers');
+  const ledgeCueEnd = useJourneyRendererSource.indexOf('\nexport function drawLostBridgePlatformFrame', ledgeCueStart);
+  assert.notEqual(ledgeCueEnd, -1, 'drawDesertEntryInvisibleLedgeCueFrame should end before the next exported renderer helper');
+  const ledgeCueSource = useJourneyRendererSource.slice(ledgeCueStart, ledgeCueEnd);
+  assert.match(ledgeCueSource, /underhangHeight/);
+  assert.match(ledgeCueSource, /underhangAlpha/);
+  assert.match(ledgeCueSource, /rubbleAlpha/);
+  assert.match(ledgeCueSource, /createRadialGradient/);
+  assert.match(ledgeCueSource, /drawOpeningPyramidAssetRegionFrame\(ctx,\s*'crackedBlock'/);
+  assert.match(ledgeCueSource, /alpha:\s*cueStyle\.underhangAlpha/);
+  assert.match(ledgeCueSource, /alpha:\s*cueStyle\.topAlpha/);
+  assert.match(ledgeCueSource, /underhangAlpha:\s*0\.18/);
+  assert.match(ledgeCueSource, /underhangAlpha:\s*0\.22/);
+  assert.doesNotMatch(ledgeCueSource, /underhangAlpha:\s*0\.[3-9]/);
+  assert.doesNotMatch(ledgeCueSource, /topAlpha:\s*0\.[89]/);
+  assert.doesNotMatch(ledgeCueSource, /Math\.min\(260,\s*Math\.max\(86,\s*GROUND_Y - topY - 30\)/);
+  assert.doesNotMatch(ledgeCueSource, /terraceWall/);
+  assert.doesNotMatch(ledgeCueSource, /carvedColumn/);
+  assert.doesNotMatch(ledgeCueSource, /paintedColumn/);
+  assert.doesNotMatch(ledgeCueSource, /ctx\.clip\(\)/);
+  assert.doesNotMatch(ledgeCueSource, /wallAlpha/);
+  assert.doesNotMatch(ledgeCueSource, /supportMaxDrop/);
+});
+
+test('Desert Entry opening ledge overrides form a rising stone ramp route', () => {
+  const platformOverridesById = new Map(
+    journeyPlacementOverrides.platforms.map((platform) => [platform.id, platform]),
+  );
+  const deletedPlatformIds = new Set(journeyPlacementOverrides.deletedPlatformIds || []);
+  [
+    'desert-entry-platform-8',
+    'desert-entry-platform-7',
+    'desert-entry-platform-6',
+  ].forEach((platformId) => {
+    assert.equal(platformOverridesById.get(platformId), undefined, `${platformId} should stay retired so Asha follows the painted ramp surface`);
+    assert.ok(deletedPlatformIds.has(platformId), `${platformId} should remain explicitly deleted from the old floating-step route`);
+  });
+
+  const summit = platformOverridesById.get('desert-entry-platform-11');
+  assert.deepEqual(
+    { id: summit?.id, x: summit?.x, y: summit?.y, width: summit?.width, label: summit?.label },
+    { id: 'desert-entry-platform-11', x: 790, y: 275, width: 150, label: 'opening ramp summit stone landing' },
+  );
+
+  const wallBackedClimb = journeyPlacementOverrides.props.find(
+    (prop) => prop.id === 'desert-entry-opening-wall-backed-climb-1',
+  );
+  assert.ok(wallBackedClimb, 'the opening ramp should have wall-backed ruin art so ledges do not read as floating blocks');
+  assert.equal(wallBackedClimb.type, 'image-prop');
+  assert.equal(wallBackedClimb.depth, 'grounded');
+  assert.equal(wallBackedClimb.layer, 'grounded');
+  assert.equal(wallBackedClimb.assetPath, 'assets/expedition/environment/egypt-opening/temple-approach-gatehouse-ramp-v2-2026-06-19.png');
+  assert.equal(wallBackedClimb.mirrorX, false);
+  assert.equal(wallBackedClimb.collidable, false);
+  assert.equal(wallBackedClimb.sandOverlapHeight, 0);
+  assert.equal(wallBackedClimb.widthScale, 1);
+  assert.ok(wallBackedClimb.alpha >= 0.8, 'the ramp-block climb should render as a solid object, not a transparent overlay');
+  assert.match(wallBackedClimb.colorGradeFilter, /brightness\(82%\)/);
+  assert.match(wallBackedClimb.label, /without reading as a transparent wall overlay/);
+
+  assert.equal(
+    journeyPlacementOverrides.props.find((prop) => prop.id === 'desert-entry-opening-temple-threshold-shelf-1'),
+    undefined,
+    'the final ledge should not add a pasted-on shelf in front of the temple doorway',
+  );
+});
+
+test('Temple Approach gatehouse ramp has a walk-up collision path to the door', () => {
+  const platformOverridesById = new Map(
+    journeyPlacementOverrides.platforms.map((platform) => [platform.id, platform]),
+  );
+  const deletedPlatformIds = new Set(journeyPlacementOverrides.deletedPlatformIds || []);
+  const retiredStepIds = Array.from({ length: 18 }, (_, index) => (
+    `desert-entry-ramp-approach-step-${String(index + 1).padStart(2, '0')}`
+  )).filter(id => id !== 'desert-entry-ramp-approach-step-17');
+  retiredStepIds.forEach((id) => {
+    assert.equal(platformOverridesById.get(id), undefined, `${id} should not reintroduce a visible floating-step path`);
+    assert.ok(deletedPlatformIds.has(id), `${id} should remain retired while the smooth ramp assist owns the climb`);
+  });
+
+  assert.match(journeyComponentSource, /TEMPLE_THRESHOLD_HALL_ENTRY_TRIGGER = \{[\s\S]*?minX:\s*805[\s\S]*?maxX:\s*935[\s\S]*?footY:\s*275/);
+  assert.equal(platformOverridesById.get('desert-entry-platform-11')?.y, 275);
+  assert.equal(platformOverridesById.get('desert-entry-ramp-approach-step-17')?.y, 290);
+  assert.match(journeyComponentSource, /TEMPLE_APPROACH_RAMP_WALK_SURFACE = \[[\s\S]*?\{ x:\s*245,\s*y:\s*506 \}[\s\S]*?\{ x:\s*865,\s*y:\s*275 \}/);
+  assert.match(journeyComponentSource, /TEMPLE_APPROACH_RAMP_ASSIST = \{[\s\S]*?minX:\s*220[\s\S]*?maxSnapDown:\s*340[\s\S]*?maxSnapUp:\s*56/);
+  assert.match(journeyComponentSource, /getTempleApproachRampSurfaceY/);
+  assert.match(journeyComponentSource, /playerCenterXForRamp[\s\S]*?TEMPLE_APPROACH_RAMP_ASSIST\.minX[\s\S]*?player\.y = rampSurfaceY - player\.height/);
+  assert.doesNotMatch(journeyComponentSource, /playerCenterXForRamp[\s\S]*?current\.currentSectionId === 'desert-entry'[\s\S]*?TEMPLE_APPROACH_RAMP_ASSIST\.minX/);
+  assert.match(journeyComponentSource, /target === 'journey-temple-approach-ramp'[\s\S]*?current\.player\.x = clamp\(42[\s\S]*?current\.player\.y = GROUND_Y - current\.player\.height/);
+  assert.match(journeyComponentSource, /window\.__setExpeditionJourneyDebugPosition = \(x, y = null\)[\s\S]*?const nextY = y === null \? Number\.NaN : Number\(y\)/);
+});
+
+test('desert entry ground reads as a clean stone causeway without a sand sheet', () => {
+  const drawBuriedStoneCausewaySurfaceSource = getComponentFunctionSource('drawBuriedStoneCausewaySurfaceFrame');
+  assert.match(journeyComponentSource, /ROUTE_GROUND_VISUAL_MODE = 'clean-stone-causeway-no-sand-sheet-v2'/);
+  assert.match(journeyComponentSource, /ROUTE_GROUND_HAZE_FIX_VERSION = 'route-ground-clean-causeway-no-sand-sheet-2026-06-19'/);
   assert.match(journeyComponentSource, /drawBuriedStoneCausewaySurface/);
   assert.match(journeyComponentSource, /section\.id !== 'desert-entry' \|\| platform\.y !== GROUND_Y/);
   assert.match(journeyComponentSource, /DESERT_ENTRY_BURIED_CAUSEWAY_GROUND_SRC = 'assets\/expedition\/backgrounds\/desert-entry\/desert-entry-premium-causeway-lane\.png'/);
   assert.match(journeyComponentSource, /DESERT_ENTRY_BURIED_CAUSEWAY_GROUND_VERSION = 'png-premium-causeway-lane-2026-06-02'/);
   assert.match(journeyComponentSource, /desertEntryBuriedCausewayGroundRef = useRef/);
-  assert.match(journeyComponentSource, /ctx\.drawImage\(causewayAsset\.image/);
-  assert.match(journeyComponentSource, /desertGroundStyle = 'buried-stone-causeway-under-windblown-sand'/);
+  assert.match(drawBuriedStoneCausewaySurfaceSource, /sourceCropY = Math\.round\(sourceHeight \* 0\.26\)/);
+  assert.match(drawBuriedStoneCausewaySurfaceSource, /sourceCropHeight = Math\.round\(sourceHeight \* 0\.48\)/);
+  assert.match(drawBuriedStoneCausewaySurfaceSource, /ctx\.globalAlpha = 1/);
+  assert.match(drawBuriedStoneCausewaySurfaceSource, /ctx\.drawImage\(\s*causewayAsset\.image,\s*0,\s*sourceCropY,\s*sourceWidth,\s*sourceCropHeight/);
+  assert.doesNotMatch(drawBuriedStoneCausewaySurfaceSource, /createLinearGradient\(0, surfaceTop - 4/);
+  assert.doesNotMatch(drawBuriedStoneCausewaySurfaceSource, /drift\.addColorStop/);
+  assert.match(journeyComponentSource, /desertGroundStyle = 'clean-stone-causeway-no-sand-sheet'/);
   assert.match(journeyComponentSource, /drawBuriedStoneCausewaySurface\(ctx, platform, x, cameraX, Date\.now\(\)\)/);
   assert.equal(desertEntryBackgroundAtlas.regions.groundCausewayOverlay.image, 'desert-entry-premium-causeway-lane.png');
   const causewayBytes = readFileSync(desertEntryPremiumCausewayLanePath);
@@ -5204,6 +5407,19 @@ test('desert entry props use visible atlas art instead of weak placeholders', ()
   assert.doesNotMatch(storyProps, /sectionId:\s*'desert-entry'[\s\S]{0,220}type:\s*'mural'/);
 });
 
+test('restored Desert Entry atmosphere props use real image assets', () => {
+  [
+    'desert-entry-restored-ravine-exit-rubble-edge-1',
+    'desert-entry-restored-mural-base-edge-1',
+    'desert-entry-restored-scribe-route-buried-blocks-1',
+  ].forEach((propId) => {
+    const prop = journeyPlacementOverrides.props.find(item => item.id === propId);
+    assert.equal(prop?.sectionId, 'desert-entry');
+    assert.ok(prop.assetPath || prop.imageAssetKey || prop.atmosphereAssetKey);
+    assert.notEqual(prop.shadowOpacity, undefined);
+  });
+});
+
 test('atlas story props default to opaque rendering unless explicitly edited', () => {
   const drawStoryPropSource = getComponentFunctionSource('drawStoryProp');
 
@@ -5242,11 +5458,16 @@ test('small atmosphere floor assets are permanently ground-locked instead of bac
 });
 
 test('route ground uses a narrow floor edge instead of a full-width bottom haze', () => {
-  assert.match(journeyComponentSource, /ROUTE_GROUND_VISUAL_MODE = 'buried-stone-causeway-under-windblown-sand-v1'/);
-  assert.match(journeyComponentSource, /ROUTE_GROUND_HAZE_FIX_VERSION = 'route-ground-buried-stone-causeway-2026-06-01'/);
+  const drawAncientRouteGroundSource = getComponentFunctionSource('drawAncientRouteGroundFrame');
+  const drawOpeningPyramidFacadeSource = getComponentFunctionSource('drawOpeningPyramidFacade');
+  assert.match(journeyComponentSource, /ROUTE_GROUND_VISUAL_MODE = 'clean-stone-causeway-no-sand-sheet-v2'/);
+  assert.match(journeyComponentSource, /ROUTE_GROUND_HAZE_FIX_VERSION = 'route-ground-clean-causeway-no-sand-sheet-2026-06-19'/);
   assert.match(journeyComponentSource, /const floorBandTop = GROUND_Y -/);
   assert.match(journeyComponentSource, /routeGroundVisualMode: ROUTE_GROUND_VISUAL_MODE/);
   assert.match(journeyComponentSource, /routeGroundHazeFixVersion: ROUTE_GROUND_HAZE_FIX_VERSION/);
+  assert.match(drawAncientRouteGroundSource, /if \(section\.id !== 'desert-entry'\) \{\s*const blendPoints = \[/);
+  assert.doesNotMatch(drawOpeningPyramidFacadeSource, /baseFade/);
+  assert.doesNotMatch(drawOpeningPyramidFacadeSource, /GROUND_Y - 52/);
   assert.doesNotMatch(journeyComponentSource, /const pathBottom = CANVAS_HEIGHT/);
   assert.doesNotMatch(journeyComponentSource, /ctx\.lineTo\(CANVAS_WIDTH, pathBottom\)/);
   assert.doesNotMatch(journeyComponentSource, /routeGroundVisualMode = 'wide-sand-stone-apron'/);
@@ -5294,6 +5515,25 @@ test('combat pressure encounters guard optional rewards without blocking progres
   assert.match(journeyComponentSource, /chaseMultiplier/);
   assert.match(journeyComponentSource, /shieldDuringWindup: tunedPattern\.shieldDuringWindup \|\| Boolean\(pressure\.shieldDuringWindup\)/);
   assert.match(journeyComponentSource, /if \(isPressingPlayer\) \{[\s\S]*?e\.direction = distanceToPlayer >= 0 \? 1 : -1;/);
+});
+
+test('Desert Entry combat encounters declare a story or gameplay purpose', () => {
+  const validPurposes = new Set([
+    'route-pressure',
+    'guardian-threshold',
+    'memory-corruption',
+    'room-survival',
+    'objective-defense',
+    'boss-preparation',
+  ]);
+  const desertCombatEnemies = ENEMIES.filter(enemy => enemy.openingRouteRamp || enemy.sectionId === 'desert-entry');
+  assert.ok(desertCombatEnemies.length >= 10, 'Desert Entry should have enough encounters to audit');
+  desertCombatEnemies.forEach((enemy) => {
+    assert.ok(enemy.combatPurpose, `${enemy.id} should declare combatPurpose`);
+    assert.ok(validPurposes.has(enemy.combatPurpose), `${enemy.id} should use an approved combatPurpose`);
+    assert.ok(enemy.encounterRole || enemy.combatRole, `${enemy.id} should keep encounterRole or combatRole`);
+    assert.ok(enemy.pressureHint || enemy.protectsRouteId, `${enemy.id} should explain what it pressures or protects`);
+  });
 });
 
 test('Egypt opening combat ramps gently before the first route seal', () => {
@@ -5415,20 +5655,20 @@ test('scorpion and scarab combo creates tactical poison and armor pressure', () 
 });
 
 test('scorpion nest becomes the post-Mummification destroy-to-pass obstacle', () => {
-  const mummificationExterior = journeyPlacementOverrides.props.find(prop => prop.id === 'desert-entry-generated-mummification-chamber-entrance-1');
-  const muralExterior = journeyPlacementOverrides.props.find(prop => prop.id === 'forgotten-mural-climb-structure');
+  const mummificationRoute = HIDDEN_ROUTES.find(route => route.id === 'mummification-chamber-route');
+  const muralRoute = HIDDEN_ROUTES.find(route => route.id === 'desert-upper-survey-route');
   const nestOverride = journeyPlacementOverrides.enemies.find(enemy => enemy.id === 'desert-entry-scorpion-nest-1');
   const nestData = ENEMIES.find(enemy => enemy.id === 'desert-entry-scorpion-nest-1');
 
-  assert.ok(mummificationExterior, 'Mummification Chamber exterior placement should exist');
-  assert.ok(muralExterior, 'Forgotten Mural exterior placement should exist as the next major structure');
+  assert.ok(mummificationRoute, 'Mummification Chamber route should exist');
+  assert.ok(muralRoute, 'Forgotten Mural route should exist as the next major route');
   assert.ok(nestOverride, 'The existing scorpion nest should be moved through its generated placement override');
   assert.ok(nestData, 'The existing scorpion nest enemy row should remain the canonical implementation');
 
-  const routeProgress = (nestOverride.x - mummificationExterior.x) / (muralExterior.x - mummificationExterior.x);
+  const routeProgress = (nestOverride.x - mummificationRoute.x) / (muralRoute.x - mummificationRoute.x);
   assert.ok(routeProgress >= 0.25 && routeProgress <= 0.45, 'Nest should sit after the Mummification Chamber before the mural structure');
-  assert.ok(nestOverride.x > mummificationExterior.x, 'Nest should be after the Mummification Chamber exterior');
-  assert.ok(nestOverride.x < muralExterior.x, 'Nest should be before the Forgotten Mural structure');
+  assert.ok(nestOverride.x > mummificationRoute.x, 'Nest should be after the Mummification Chamber route');
+  assert.ok(nestOverride.x < muralRoute.x, 'Nest should be before the Forgotten Mural route');
   assert.equal(nestData.type, 'scorpion-nest');
   assert.equal(nestData.combatRole, 'destructible spawner');
   assert.match(nestData.pressureHint, /Destroy the nest to stop the swarm/);
@@ -5446,6 +5686,27 @@ test('scorpion nest becomes the post-Mummification destroy-to-pass obstacle', ()
   assert.match(journeyComponentSource, /patrolMin:\s*nest\.x - 150/);
   assert.match(journeyComponentSource, /patrolMax:\s*nest\.x \+ nest\.width \+ 150/);
   assert.match(journeyComponentSource, /nestParentId:\s*nest\.id/);
+});
+
+test('fixed Desert Entry opening combat enemies remain aligned to visible sand support', () => {
+  const openingFloorEndX = scaleJourneyX(405);
+  const fixedEnemies = [
+    { id: 'scorpion-start-1', y: 563, role: 'shard cache guard' },
+    { id: 'scorpion-pottery-1', y: 563, role: 'shard cache guard' },
+    { id: 'scarab-arena-1', y: 569, role: 'nest arena pressure' },
+  ];
+
+  fixedEnemies.forEach(({ id, y, role }) => {
+    const enemy = ENEMIES.find(item => item.id === id);
+    assert.ok(enemy, `${id} should exist`);
+    assert.equal(enemy.combatPurpose, 'objective-defense');
+    assert.equal(enemy.encounterRole, role);
+    assert.equal(enemy.y, y);
+    assert.ok(enemy.patrolMin < enemy.x);
+    assert.ok(enemy.patrolMax > enemy.x);
+    assert.ok(enemy.x + enemy.width <= openingFloorEndX);
+    assert.ok(enemy.patrolMax + enemy.width <= openingFloorEndX);
+  });
 });
 
 test('combat audio uses creature and deflection cues instead of gate sounds', () => {
@@ -5814,6 +6075,9 @@ test('Journey HUD can disable enemies for bridge playtesting without deleting co
   assert.match(journeyComponentSource, /const nextEnemiesDisabled = !current\.enemiesDisabled/);
   assert.match(journeyComponentSource, /current\.enemiesDisabled = nextEnemiesDisabled/);
   assert.match(journeyComponentSource, /current\.bossDomain = null/);
+  assert.match(journeyComponentSource, /const showDevEnemyPlaytestAssist = import\.meta\.env\.DEV/);
+  assert.match(journeyComponentSource, /new URLSearchParams\(window\.location\.search\)\.has\('enemyAssist'\)/);
+  assert.match(journeyComponentSource, /\{showDevEnemyPlaytestAssist && \(/);
   assert.match(journeyComponentSource, /aria-pressed=\{gameState\.enemiesDisabled\}/);
   assert.match(journeyComponentSource, /className=\{`journey-enemy-toggle \$\{gameState\.enemiesDisabled \? 'is-off' : ''\}`\}/);
   assert.match(journeyComponentSource, /if \(!current\.arrivalThresholdActive && !current\.enemiesDisabled\) current\.enemies\.forEach/);

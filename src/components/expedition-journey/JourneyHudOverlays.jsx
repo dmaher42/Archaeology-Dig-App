@@ -166,6 +166,10 @@ export function JourneyPlayerOverlays({
   FIELD_RESCUE_MESSAGE,
   respawnAtCheckpoint,
 }) {
+  const showDevEnemyPlaytestAssist = import.meta.env.DEV
+    && typeof window !== 'undefined'
+    && new URLSearchParams(window.location.search).has('enemyAssist');
+
   return (
     <>
             {!openingCinematicActive && (
@@ -192,7 +196,7 @@ export function JourneyPlayerOverlays({
                 </div>
               </div>
 
-              {import.meta.env.DEV && (
+              {showDevEnemyPlaytestAssist && (
                 <button
                   type="button"
                   className={`journey-enemy-toggle ${gameState.enemiesDisabled ? 'is-off' : ''}`}

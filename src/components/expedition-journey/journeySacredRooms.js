@@ -482,6 +482,8 @@ export const MUMMIFICATION_CHAMBER_RITE_OBJECTS = MUMMIFICATION_CHAMBER_RITES
 export const getMummificationRiteByIndex = (step) => MUMMIFICATION_CHAMBER_RITES[step] || null;
 
 export const createChamberDoorVisuals = ({
+  TEMPLE_THRESHOLD_HALL_ENTRY_TRIGGER,
+  TEMPLE_THRESHOLD_HALL_RETURN_FALLBACK,
   MUMMIFICATION_CHAMBER_ENTRY_TRIGGER,
   MUMMIFICATION_CHAMBER_RETURN_FALLBACK,
   FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER,
@@ -489,6 +491,25 @@ export const createChamberDoorVisuals = ({
   SCRIBE_CHAMBER_ENTRY_TRIGGER,
   SCRIBE_CHAMBER_RETURN_FALLBACK,
 }) => Object.freeze([
+  {
+    id: 'temple-threshold-hall-entry-door',
+    roomId: 'egypt-exterior-route',
+    routeId: 'temple-threshold-hall-route',
+    entryPlatformId: 'desert-entry-platform-11',
+    trigger: TEMPLE_THRESHOLD_HALL_ENTRY_TRIGGER,
+    returnFallback: TEMPLE_THRESHOLD_HALL_RETURN_FALLBACK,
+    title: 'Threshold Hall',
+    prompt: 'E Enter',
+    seal: 'scarab',
+    accent: '#d97706',
+    glow: '#facc15',
+    width: 150,
+    height: 214,
+    yOffset: -18,
+    slabInset: 0.5,
+    dust: false,
+    renderDoorVisual: false,
+  },
   {
     id: 'mummification-chamber-entry-door',
     roomId: 'egypt-exterior-route',
