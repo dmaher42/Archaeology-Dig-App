@@ -1,0 +1,2246 @@
+/* Lost Site Expedition */
+.expedition-phase {
+  align-items: stretch;
+}
+
+.expedition-shell {
+  display: grid;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.expedition-shell.briefing-paused {
+  filter: blur(2px);
+  opacity: 0.72;
+  transform: scale(0.995);
+  pointer-events: none;
+}
+
+.expedition-topbar,
+.expedition-map-card,
+.expedition-panel {
+  background-color: var(--bureau-parchment) !important;
+  background-image:
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.04' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.12'/%3E%3C/svg%3E"),
+    linear-gradient(180deg, rgba(255,255,255,0.5), rgba(232,216,176,0.55));
+  border: 1px solid #c2b29a;
+  color: var(--bureau-ink);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.22);
+}
+
+.expedition-topbar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.68rem 0.85rem;
+  border-radius: 4px 26px 4px 4px;
+}
+
+.expedition-title {
+  min-width: 0;
+  text-align: center;
+}
+
+.expedition-title h2 {
+  margin: 0.15rem 0 0;
+  font-family: 'Cinzel', serif;
+  font-size: clamp(1.45rem, 2vw, 2.25rem);
+  color: var(--bureau-ink);
+}
+
+.expedition-gate-badge {
+  display: grid;
+  grid-auto-flow: row;
+  align-items: center;
+  justify-items: center;
+  gap: 0.4rem;
+  min-height: 2.25rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(139, 106, 72, 0.12);
+  border: 1px solid var(--bureau-gold-light);
+  color: var(--bureau-ink-muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.expedition-gate-badge.unlocked {
+  background: rgba(45, 90, 39, 0.12);
+  border-color: rgba(45, 90, 39, 0.35);
+  color: #2d5a27;
+}
+
+.expedition-gate-badge span,
+.expedition-gate-badge small {
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.expedition-title {
+  min-width: 0;
+  text-align: center;
+}
+
+.expedition-title h2 {
+  margin: 0.15rem 0 0;
+  font-family: 'Cinzel', serif;
+  font-size: clamp(1.45rem, 2vw, 2.25rem);
+  color: var(--bureau-ink);
+}
+
+.expedition-gate-badge {
+  display: grid;
+  grid-auto-flow: row;
+  align-items: center;
+  justify-items: center;
+  gap: 0.4rem;
+  min-height: 2.25rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(139, 106, 72, 0.12);
+  border: 1px solid var(--bureau-gold-light);
+  color: var(--bureau-ink-muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.expedition-gate-badge.unlocked {
+  background: rgba(45, 90, 39, 0.12);
+  border-color: rgba(45, 90, 39, 0.35);
+  color: #2d5a27;
+}
+
+.expedition-gate-badge span,
+.expedition-gate-badge small {
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.expedition-gate-badge small {
+  font-size: 0.67rem;
+}
+
+.museum-layout {
+  display: grid;
+  grid-template-columns: minmax(270px, 0.72fr) minmax(0, 2.28fr);
+  gap: 0.5rem;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  margin: 0 !important;
+}
+
+.expedition-layout {
+  display: grid;
+  grid-template-columns: 1fr minmax(280px, 320px);
+  gap: 1rem;
+  align-items: start;
+  width: 100%;
+  max-width: 100%;
+  padding: 0 1rem;
+}
+
+.expedition-stage-select-shell {
+  width: min(1180px, calc(100% - 2rem)) !important;
+  gap: 0.85rem;
+  padding-top: clamp(0.35rem, 1.2vw, 0.9rem);
+}
+
+.expedition-stage-select-topbar {
+  position: relative;
+  min-height: 6.25rem;
+  padding: 0.65rem 0.8rem !important;
+  border-radius: 8px !important;
+  overflow: hidden;
+}
+
+.expedition-stage-select-topbar .bureau-hint-btn {
+  min-height: 2.6rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: 6px;
+}
+
+.expedition-stage-select-topbar .expedition-title h2 {
+  font-size: clamp(1.65rem, 2.2vw, 2.25rem);
+  line-height: 1;
+}
+
+.expedition-stage-select-topbar .training-kicker {
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+}
+
+.expedition-stage-select-topbar .expedition-gate-badge {
+  min-width: 8.4rem;
+  min-height: 3.25rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: 24px;
+}
+
+.expedition-stage-header-art {
+  display: grid;
+  grid-template-columns: minmax(7.5rem, 10rem) auto;
+  gap: 0.7rem;
+  align-items: center;
+  justify-self: end;
+  min-width: 18rem;
+}
+
+.expedition-stage-character-strip {
+  position: relative;
+  height: 5.35rem;
+  min-width: 9.6rem;
+  overflow: hidden;
+  border: 1px solid rgba(139, 106, 72, 0.22);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 26% 20%, rgba(255, 246, 219, 0.9), transparent 3.8rem),
+    linear-gradient(180deg, rgba(255, 250, 240, 0.72), rgba(232, 216, 176, 0.44));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.38);
+}
+
+.expedition-stage-character {
+  position: absolute;
+  bottom: -1.2rem;
+  width: 4.1rem;
+  height: 7rem;
+  object-fit: contain;
+  object-position: bottom center;
+  filter: drop-shadow(0 9px 9px rgba(39, 25, 14, 0.28));
+}
+
+.expedition-stage-character--ancient-china {
+  left: 0.2rem;
+  z-index: 3;
+}
+
+.expedition-stage-character--ancient-rome {
+  left: 3rem;
+  z-index: 2;
+}
+
+.expedition-stage-character--lake-mungo {
+  left: 5.9rem;
+  z-index: 1;
+}
+
+.expedition-stage-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+.expedition-stage-card {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  gap: 0.62rem;
+  min-height: 16.6rem;
+  padding: 0.86rem;
+  overflow: hidden;
+  border: 1px solid rgba(139, 106, 72, 0.28);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 252, 243, 0.96), rgba(235, 220, 184, 0.86)),
+    var(--bureau-parchment);
+  color: var(--bureau-ink);
+  box-shadow: 0 10px 22px rgba(39, 25, 14, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.58);
+}
+
+.expedition-stage-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: rgba(139, 106, 72, 0.55);
+}
+
+.expedition-stage-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.34), transparent 36%),
+    radial-gradient(circle at 90% 8%, rgba(139, 106, 72, 0.09), transparent 7rem);
+  opacity: 0.86;
+}
+
+.expedition-stage-card--playable {
+  border-color: rgba(45, 90, 39, 0.42);
+}
+
+.expedition-stage-card--playable::before {
+  background: #2d6a36;
+}
+
+.expedition-stage-card--development {
+  border-color: rgba(13, 94, 115, 0.38);
+}
+
+.expedition-stage-card--development::before {
+  background: #0f7890;
+}
+
+.expedition-stage-card--soon {
+  border-color: rgba(120, 83, 48, 0.36);
+}
+
+.expedition-stage-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.expedition-stage-card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.45rem;
+  align-items: flex-start;
+}
+
+.expedition-stage-dossier-tag,
+.expedition-stage-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.45rem;
+  padding: 0.2rem 0.45rem;
+  border-radius: 999px;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  font-size: 0.58rem;
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.expedition-stage-dossier-tag {
+  color: #6f4b26;
+  background: rgba(139, 106, 72, 0.12);
+  border: 1px solid rgba(139, 106, 72, 0.22);
+}
+
+.expedition-stage-status {
+  max-width: 8.8rem;
+  text-align: center;
+  justify-content: center;
+}
+
+.expedition-stage-status--playable {
+  color: #1f5f2f;
+  background: rgba(74, 222, 128, 0.14);
+  border: 1px solid rgba(34, 117, 57, 0.28);
+}
+
+.expedition-stage-status--development {
+  color: #0f5969;
+  background: rgba(103, 232, 249, 0.16);
+  border: 1px solid rgba(8, 145, 178, 0.24);
+}
+
+.expedition-stage-status--soon {
+  color: #6f4b26;
+  background: rgba(217, 174, 103, 0.18);
+  border: 1px solid rgba(139, 106, 72, 0.24);
+}
+
+.expedition-stage-card-body {
+  display: grid;
+  gap: 0.26rem;
+  padding-top: 0.1rem;
+}
+
+.expedition-stage-card-body h3 {
+  margin: 0;
+  color: var(--bureau-ink);
+  font-family: 'Cinzel', serif;
+  font-size: clamp(1.02rem, 1.05vw, 1.22rem);
+  line-height: 1.12;
+}
+
+.expedition-stage-card-body p,
+.expedition-stage-teaser,
+.expedition-stage-preview-header p,
+.expedition-stage-preview-note p,
+.expedition-stage-preview-status {
+  margin: 0;
+  color: var(--bureau-ink-muted);
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  font-size: 0.8rem;
+  line-height: 1.42;
+}
+
+.expedition-stage-teaser {
+  align-self: start;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.expedition-stage-action {
+  width: 100%;
+  min-height: 2.55rem;
+  padding: 0.62rem 0.78rem;
+  border-radius: 6px;
+  justify-content: center;
+  gap: 0.42rem;
+  font-size: 0.74rem;
+  letter-spacing: 0.035em;
+}
+
+.expedition-stage-card .secondary-btn {
+  color: var(--bureau-ink) !important;
+  background: rgba(255, 250, 240, 0.72) !important;
+  border-color: rgba(139, 106, 72, 0.28) !important;
+}
+
+.expedition-stage-card .secondary-btn:hover {
+  color: var(--bureau-ink) !important;
+  background: #fffaf0 !important;
+}
+
+.expedition-stage-preview-modal {
+  max-width: min(620px, calc(100vw - 2rem)) !important;
+  display: grid;
+  gap: 1rem !important;
+  padding: 1.35rem !important;
+}
+
+.expedition-stage-preview-modal::before {
+  content: "EXPEDITION PREVIEW" !important;
+}
+
+.expedition-stage-preview-header {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.expedition-stage-preview-header h2 {
+  margin: 0 !important;
+}
+
+.expedition-stage-preview-note {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.65rem;
+  align-items: start;
+  padding: 0.75rem;
+  border: 1px solid rgba(139, 106, 72, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 250, 240, 0.64);
+}
+
+.expedition-stage-preview-note svg {
+  color: #0f5969;
+}
+
+.expedition-stage-preview-assets {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.expedition-stage-preview-asset {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  min-width: 0;
+}
+
+.expedition-stage-preview-asset img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border: 1px solid rgba(139, 106, 72, 0.24);
+  border-radius: 6px;
+  background: rgba(255, 250, 240, 0.58);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.34);
+}
+
+.expedition-stage-preview-asset figcaption {
+  overflow: hidden;
+  color: var(--bureau-ink-muted);
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  font-size: 0.66rem;
+  font-weight: 800;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 1120px) {
+  .expedition-stage-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .expedition-stage-card {
+    min-height: 14.75rem;
+  }
+}
+
+@media (max-width: 680px) {
+  .expedition-stage-select-shell {
+    width: min(100%, calc(100% - 1rem)) !important;
+    padding-top: 0.25rem;
+  }
+
+  .expedition-stage-select-topbar {
+    grid-template-columns: 1fr;
+    justify-items: stretch;
+    gap: 0.55rem;
+    text-align: left;
+    overflow: visible;
+  }
+
+  .expedition-stage-select-topbar .expedition-title {
+    text-align: left;
+  }
+
+  .expedition-stage-header-art {
+    grid-template-columns: minmax(8.2rem, 1fr) auto;
+    justify-self: stretch;
+    min-width: 0;
+  }
+
+  .expedition-stage-character-strip {
+    min-width: 8.2rem;
+    height: 4.25rem;
+  }
+
+  .expedition-stage-character {
+    bottom: -1.35rem;
+    width: 3.45rem;
+    height: 6rem;
+  }
+
+  .expedition-stage-character--ancient-china {
+    left: 0.25rem;
+  }
+
+  .expedition-stage-character--ancient-rome {
+    left: 2.55rem;
+  }
+
+  .expedition-stage-character--lake-mungo {
+    left: 4.85rem;
+  }
+
+  .expedition-stage-select-topbar .expedition-gate-badge {
+    justify-self: start;
+    min-width: 7.8rem;
+  }
+
+  .expedition-stage-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .expedition-stage-card {
+    min-height: auto;
+  }
+
+  .expedition-stage-preview-assets {
+    grid-template-columns: 1fr;
+  }
+}
+
+.expedition-map-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 4px;
+}
+
+.expedition-map-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.48rem 0.7rem;
+  border-bottom: 1px solid rgba(139, 106, 72, 0.22);
+  color: var(--bureau-ink-muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.expedition-map-status span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.expedition-canvas {
+  display: block;
+  width: min(100%, 820px);
+  height: auto;
+  aspect-ratio: 800 / 560;
+  background: #ead8b8;
+  cursor: pointer;
+  justify-self: center;
+  margin: 0 auto;
+}
+
+.expedition-zone-preview {
+  position: absolute;
+  top: 3.25rem;
+  right: 0.75rem;
+  display: grid;
+  gap: 0.45rem;
+  width: min(270px, calc(100% - 1.5rem));
+  padding: 0.62rem;
+  border: 1px solid rgba(91, 61, 33, 0.32);
+  border-radius: 6px;
+  background:
+    linear-gradient(180deg, rgba(255, 249, 232, 0.96), rgba(238, 219, 178, 0.94)),
+    url('/assets/expedition/excavation/egypt-zone-challenge-ui-pack.png');
+  background-size: cover;
+  background-blend-mode: screen;
+  box-shadow: 0 10px 24px rgba(47, 31, 18, 0.18);
+  color: var(--bureau-ink);
+  pointer-events: none;
+  z-index: 4;
+}
+
+.expedition-zone-preview-kicker {
+  display: block;
+  margin-bottom: 0.12rem;
+  color: var(--bureau-ink-muted);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.expedition-zone-preview strong {
+  display: block;
+  font-family: 'Cinzel', serif;
+  font-size: 1rem;
+}
+
+.expedition-zone-preview p {
+  margin: 0.16rem 0 0;
+  color: var(--bureau-ink-muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.expedition-zone-preview dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem;
+  margin: 0;
+}
+
+.expedition-zone-preview dl div {
+  display: grid;
+  gap: 0.12rem;
+  padding: 0.34rem 0.4rem;
+  border: 1px solid rgba(139, 106, 72, 0.22);
+  border-radius: 5px;
+  background: rgba(255, 250, 240, 0.75);
+}
+
+.expedition-zone-preview dt,
+.expedition-zone-preview dd {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.expedition-zone-preview dt {
+  color: var(--bureau-ink-muted);
+  text-transform: uppercase;
+}
+
+.expedition-zone-preview .btn {
+  min-height: 2.2rem;
+  justify-content: center;
+  pointer-events: auto;
+}
+
+.expedition-inspect-prompt {
+  position: absolute;
+  left: 50%;
+  bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  max-width: min(520px, calc(100% - 2rem));
+  padding: 0.65rem 0.8rem;
+  border: 1px solid rgba(139, 106, 72, 0.35);
+  border-radius: 8px;
+  background: rgba(255, 250, 240, 0.96);
+  color: var(--bureau-ink);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.25);
+  transform: translateX(-50%);
+  z-index: 5;
+}
+
+.expedition-inspect-prompt div {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.expedition-inspect-prompt strong {
+  color: var(--bureau-ink);
+  font-size: 0.9rem;
+  line-height: 1.1;
+}
+
+.expedition-inspect-prompt span {
+  color: var(--bureau-ink-muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.expedition-inspect-prompt .btn {
+  min-width: 150px;
+  white-space: nowrap;
+}
+
+.expedition-survey-prompt {
+  border-color: rgba(45, 90, 39, 0.35);
+  background: rgba(248, 241, 223, 0.96);
+}
+
+.expedition-inspect-prompt kbd {
+  min-width: 2rem;
+  min-height: 2rem;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid rgba(139, 106, 72, 0.35);
+  border-bottom-width: 3px;
+  border-radius: 6px;
+  background: #fffaf0;
+  color: var(--bureau-ink);
+  font-weight: 900;
+}
+
+.expedition-side-panel {
+  display: grid;
+  gap: 0.75rem;
+  max-height: calc(100vh - 9.25rem);
+  overflow-y: auto;
+  padding-right: 0.2rem;
+}
+
+.expedition-panel {
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.85rem;
+  border-radius: 4px;
+}
+
+.expedition-mission-card {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid rgba(139, 106, 72, 0.3);
+  border-radius: 6px;
+  background: rgba(255, 250, 240, 0.6);
+}
+
+.expedition-mission-card strong {
+  color: var(--bureau-ink);
+  font-size: 0.95rem;
+}
+
+.expedition-mission-card span,
+.expedition-mission-card p,
+.expedition-mission-progress {
+  color: var(--bureau-ink-muted);
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.expedition-mission-progress {
+  font-weight: 900;
+}
+
+.expedition-mission-progress span {
+  color: var(--bureau-ink);
+}
+
+.expedition-panel h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0;
+  font-family: 'Cinzel', serif;
+  font-size: 1rem;
+  color: var(--bureau-ink);
+}
+
+.resource-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.45rem;
+}
+
+.resource-list div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid rgba(139, 106, 72, 0.2);
+  background: rgba(255,255,255,0.35);
+  border-radius: 6px;
+}
+
+.resource-list strong {
+  color: var(--bureau-ink);
+  font-size: 1.05rem;
+}
+
+.resource-list span,
+.expedition-evidence-item span,
+.expedition-control-copy,
+.expedition-empty,
+.expedition-hazard-list {
+  color: var(--bureau-ink-muted);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.expedition-evidence-list {
+  display: grid;
+  gap: 0.55rem;
+  max-height: 290px;
+  overflow: auto;
+}
+
+.expedition-evidence-item {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.65rem;
+  border: 1px solid rgba(139, 106, 72, 0.22);
+  background: #fffaf0;
+  color: var(--bureau-ink);
+  border-radius: 6px;
+}
+
+.expedition-evidence-item strong {
+  color: var(--bureau-ink);
+}
+
+.expedition-evidence-clue-group {
+  color: var(--bureau-ink-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.expedition-evidence-item p {
+  margin: 0;
+  color: var(--bureau-ink);
+  font-size: 0.86rem;
+  line-height: 1.35;
+}
+
+.expedition-inventory-count {
+  color: var(--bureau-ink-muted);
+  font-size: 0.72rem;
+  font-weight: 900;
+  margin-left: auto;
+}
+
+.expedition-inventory-choice,
+.expedition-replacement-picker {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.expedition-inventory-choice p,
+.expedition-replacement-picker p {
+  color: var(--bureau-ink);
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.expedition-inventory-choice-actions {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.expedition-replacement-grid {
+  display: grid;
+  gap: 0.5rem;
+  max-height: 220px;
+  overflow: auto;
+}
+
+.expedition-replacement-card {
+  display: grid;
+  gap: 0.2rem;
+  width: 100%;
+  padding: 0.65rem 0.7rem;
+  border: 1px solid rgba(139, 106, 72, 0.24);
+  border-radius: 6px;
+  background: #fffaf0;
+  color: var(--bureau-ink);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.expedition-replacement-card:hover {
+  background: #fff3df;
+  border-color: rgba(232, 158, 93, 0.45);
+  transform: translateY(-1px);
+}
+
+.expedition-replacement-card strong {
+  color: var(--bureau-ink);
+  font-size: 0.88rem;
+}
+
+.expedition-replacement-card span {
+  color: var(--bureau-ink-muted);
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
+.expedition-satchel-decision {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.expedition-satchel-decision-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(220px, 0.85fr);
+  gap: 0.65rem;
+  align-items: start;
+}
+
+.expedition-satchel-decision .expedition-evidence-list {
+  max-height: 190px;
+}
+
+.expedition-satchel-decision .expedition-evidence-item {
+  gap: 0.18rem;
+  padding: 0.5rem 0.58rem;
+}
+
+.expedition-satchel-decision .expedition-evidence-item p {
+  font-size: 0.8rem;
+  line-height: 1.28;
+}
+
+.expedition-satchel-decision .new-evidence-advice {
+  margin-top: 0.15rem;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.78rem;
+}
+
+.expedition-satchel-decision-note,
+.expedition-mission-review-note {
+  margin: 0;
+  padding: 0.7rem 0.8rem;
+  border-left: 4px solid rgba(146, 64, 14, 0.38);
+  background: rgba(255, 244, 220, 0.72);
+  color: var(--bureau-ink);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.expedition-satchel-decision-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.expedition-satchel-column {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.expedition-satchel-column h3 {
+  margin: 0;
+  color: var(--bureau-ink);
+  font-size: 0.92rem;
+}
+
+.expedition-satchel-summary-card {
+  width: 100%;
+}
+
+.expedition-mission-review {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.expedition-replacement-action {
+  color: var(--bureau-ink-muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+.expedition-evidence-item.is-mission {
+  border-color: rgba(45, 90, 39, 0.35);
+  background: rgba(45, 90, 39, 0.06);
+}
+
+@media (max-width: 760px) {
+  .expedition-satchel-decision-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+.expedition-hazard-list {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.expedition-claim-modal {
+  display: grid;
+  gap: 1rem;
+}
+
+.expedition-claim-modal::before {
+  content: "FINAL CLAIM" !important;
+}
+
+.expedition-briefing-overlay {
+  background: rgba(26, 21, 16, 0.58) !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+.expedition-mission-briefing-modal {
+  max-width: min(780px, calc(100vw - 2rem)) !important;
+  max-height: calc(100vh - 4rem) !important;
+  overflow-y: auto !important;
+  display: grid;
+  gap: 0.5rem !important;
+  padding: 1.5rem 2rem !important;
+  border: 2px solid rgba(92, 66, 38, 0.72) !important;
+  border-radius: 8px !important;
+  box-shadow:
+    0 28px 80px rgba(0, 0, 0, 0.42),
+    inset 0 0 0 1px rgba(255, 250, 240, 0.42) !important;
+}
+
+.expedition-mission-briefing-modal::before {
+  content: "BUREAU MEMO" !important;
+}
+
+.expedition-mission-briefing-modal h2 {
+  margin: 0 !important;
+  font-size: clamp(1.4rem, 2.5vw, 1.8rem) !important;
+  line-height: 1.1 !important;
+}
+
+.expedition-mission-briefing-modal p {
+  margin: 0 !important;
+  font-size: 0.95rem !important;
+  line-height: 1.4 !important;
+}
+
+.expedition-briefing-mission {
+  margin-top: 0.1rem;
+  padding: 0.5rem 0.75rem !important;
+}
+
+.expedition-briefing-mission p {
+  font-size: 0.85rem !important;
+  margin-bottom: 0.25rem !important;
+}
+
+.expedition-briefing-mission strong {
+  font-size: 0.9rem !important;
+}
+
+.expedition-briefing-stamp {
+  justify-self: end;
+  width: max-content;
+  padding: 0.22rem 0.65rem;
+  border: 3px solid rgba(130, 35, 24, 0.8);
+  border-radius: 4px;
+  color: #7f1d1d;
+  font-family: 'Cinzel', serif;
+  font-size: 0.8rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transform: rotate(3deg);
+}
+
+.expedition-briefing-rules {
+  padding: 0.75rem;
+  border: 1px solid rgba(139, 106, 72, 0.35);
+  border-radius: 6px;
+  background: rgba(255, 250, 240, 0.48);
+}
+
+.expedition-briefing-rules h3 {
+  margin: 0 0 0.4rem;
+  color: var(--bureau-ink);
+  font-family: 'Cinzel', serif;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+}
+
+.expedition-briefing-rules ol {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.expedition-briefing-rules li {
+  color: var(--bureau-ink);
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.expedition-briefing-rules li strong {
+  display: inline-block;
+  margin-right: 0.5rem;
+}
+
+.expedition-briefing-rules li span {
+  display: inline;
+}
+
+.expedition-briefing-rules li strong {
+  font-weight: 900;
+}
+
+.expedition-briefing-warning {
+  justify-self: center;
+  padding: 0.35rem 0.7rem;
+  margin-top: 0.25rem;
+  border: 1px dashed rgba(130, 35, 24, 0.65);
+  border-radius: 4px;
+  color: #7f1d1d !important;
+  font-weight: 900;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+
+
+.expedition-replacement-card span {
+  color: var(--bureau-ink-muted);
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
+.expedition-satchel-decision {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.expedition-satchel-decision-note,
+.expedition-mission-review-note {
+  margin: 0;
+  padding: 0.7rem 0.8rem;
+  border-left: 4px solid rgba(146, 64, 14, 0.38);
+  background: rgba(255, 244, 220, 0.72);
+  color: var(--bureau-ink);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.expedition-satchel-decision-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.expedition-satchel-column {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.expedition-satchel-column h3 {
+  margin: 0;
+  color: var(--bureau-ink);
+  font-size: 0.92rem;
+}
+
+.expedition-satchel-summary-card {
+  width: 100%;
+}
+
+.expedition-mission-review {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.expedition-replacement-action {
+  color: var(--bureau-ink-muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+.expedition-evidence-item.is-mission {
+  border-color: rgba(45, 90, 39, 0.35);
+  background: rgba(45, 90, 39, 0.06);
+}
+
+.expedition-hazard-list {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.expedition-claim-modal {
+  display: grid;
+  gap: 1rem;
+}
+
+.expedition-claim-modal::before {
+  content: "FINAL CLAIM" !important;
+}
+
+.expedition-briefing-overlay {
+  background: rgba(26, 21, 16, 0.58) !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+.expedition-mission-briefing-modal {
+  max-width: min(780px, calc(100vw - 2rem)) !important;
+  max-height: calc(100vh - 4rem) !important;
+  overflow-y: auto !important;
+  display: grid;
+  gap: 0.5rem !important;
+  padding: 1.5rem 2rem !important;
+  border: 2px solid rgba(92, 66, 38, 0.72) !important;
+  border-radius: 8px !important;
+  box-shadow:
+    0 28px 80px rgba(0, 0, 0, 0.42),
+    inset 0 0 0 1px rgba(255, 250, 240, 0.42) !important;
+}
+
+.expedition-mission-briefing-modal::before {
+  content: "BUREAU MEMO" !important;
+}
+
+.expedition-mission-briefing-modal h2 {
+  margin: 0 !important;
+  font-size: clamp(1.4rem, 2.5vw, 1.8rem) !important;
+  line-height: 1.1 !important;
+}
+
+.expedition-mission-briefing-modal p {
+  margin: 0 !important;
+  font-size: 0.95rem !important;
+  line-height: 1.4 !important;
+}
+
+.expedition-briefing-mission {
+  margin-top: 0.1rem;
+  padding: 0.5rem 0.75rem !important;
+}
+
+.expedition-briefing-mission p {
+  font-size: 0.85rem !important;
+  margin-bottom: 0.25rem !important;
+}
+
+.expedition-briefing-mission strong {
+  font-size: 0.9rem !important;
+}
+
+.expedition-briefing-stamp {
+  justify-self: end;
+  width: max-content;
+  padding: 0.22rem 0.65rem;
+  border: 3px solid rgba(130, 35, 24, 0.8);
+  border-radius: 4px;
+  color: #7f1d1d;
+  font-family: 'Cinzel', serif;
+  font-size: 0.8rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transform: rotate(3deg);
+}
+
+.expedition-briefing-rules {
+  padding: 0.75rem;
+  border: 1px solid rgba(139, 106, 72, 0.35);
+  border-radius: 6px;
+  background: rgba(255, 250, 240, 0.48);
+}
+
+.expedition-briefing-rules h3 {
+  margin: 0 0 0.4rem;
+  color: var(--bureau-ink);
+  font-family: 'Cinzel', serif;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+}
+
+.expedition-briefing-rules ol {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.expedition-briefing-rules li {
+  color: var(--bureau-ink);
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.expedition-briefing-rules li strong {
+  display: inline-block;
+  margin-right: 0.5rem;
+}
+
+.expedition-briefing-rules li span {
+  display: inline;
+}
+
+.expedition-briefing-rules li strong {
+  font-weight: 900;
+}
+
+.expedition-briefing-warning {
+  justify-self: center;
+  padding: 0.35rem 0.7rem;
+  margin-top: 0.25rem;
+  border: 1px dashed rgba(130, 35, 24, 0.65);
+  border-radius: 4px;
+  color: #7f1d1d !important;
+  font-weight: 900;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.expedition-begin-btn {
+  min-width: 200px;
+  justify-content: center;
+  font-size: 1rem;
+  padding: 0.65rem 1.5rem !important;
+}
+
+.expedition-inspection-modal,
+.expedition-grid-modal,
+.expedition-survey-modal,
+.expedition-claim-modal,
+.expedition-result-modal {
+  max-width: 720px;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+  padding: 1.25rem 2rem 1.25rem 3.5rem !important;
+  gap: 0.75rem !important;
+}
+
+.expedition-inspection-modal::before {
+  content: "FIELD INSPECTION" !important;
+}
+
+.expedition-inspection-meta {
+  justify-self: center;
+  padding: 0.25rem 0.65rem;
+  border: 1px solid rgba(139, 106, 72, 0.28);
+  border-radius: 999px;
+  background: rgba(139, 106, 72, 0.1);
+  color: var(--bureau-ink-muted);
+  font-size: 0.76rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.expedition-survey-modal h2,
+.expedition-grid-modal h2,
+.expedition-inspection-modal h2 {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.expedition-inspection-question {
+  padding: 0.75rem 0.9rem;
+  border-left: 4px solid var(--bureau-gold);
+  background: rgba(139, 106, 72, 0.1);
+  color: var(--bureau-ink);
+  font-family: 'Playfair Display', serif;
+  font-size: 1.15rem;
+  line-height: 1.4;
+}
+
+.expedition-inspection-clue-group {
+  padding: 0.4rem 0.65rem;
+  border-left: 3px solid rgba(92, 66, 38, 0.45);
+  background: rgba(255, 250, 240, 0.6);
+  color: var(--bureau-ink-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.expedition-tool-effect-hint {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid rgba(139, 106, 72, 0.24);
+  border-left: 4px solid var(--bureau-gold);
+  border-radius: 6px;
+  background: rgba(255, 250, 240, 0.68);
+  color: var(--bureau-ink-muted);
+  text-align: left;
+}
+
+.expedition-tool-effect-hint strong {
+  color: var(--bureau-ink);
+  font-size: 0.82rem;
+}
+
+.expedition-tool-effect-hint span {
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.expedition-tool-effect-hint.match {
+  border-left-color: #2d5a27;
+  background: rgba(45, 90, 39, 0.1);
+}
+
+.expedition-tool-effect-hint.miss {
+  border-left-color: #92400e;
+  background: rgba(146, 64, 14, 0.09);
+}
+
+.expedition-note-item {
+  background: rgba(255, 250, 240, 0.72);
+}
+
+.expedition-tool-impact-list li {
+  align-items: start;
+}
+
+.expedition-tool-impact-list p {
+  grid-column: 1 / -1;
+  margin: 0.15rem 0 0;
+  color: var(--bureau-ink-muted);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.expedition-tool-impact-list.compact {
+  gap: 0.45rem;
+}
+
+.expedition-tool-impact-list.compact p {
+  font-size: 0.76rem;
+}
+
+.expedition-result-modal {
+  max-width: 920px;
+}
+
+.expedition-rescue-modal {
+  max-width: 560px;
+}
+
+.expedition-rescue-modal h2 {
+  color: #7c2d12;
+}
+
+.expedition-rescue-modal p {
+  text-align: left;
+}
+
+.expedition-survey-report-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+  margin: 0.6rem 0;
+  text-align: left;
+}
+
+.expedition-survey-report-grid section {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.72rem 0.82rem;
+  border: 1px solid rgba(139, 106, 72, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 250, 240, 0.68);
+}
+
+.expedition-survey-report-grid strong {
+  color: var(--bureau-ink);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.expedition-survey-report-grid span,
+.expedition-survey-process-note {
+  color: var(--bureau-ink-muted);
+  font-size: 0.9rem;
+  line-height: 1.38;
+}
+
+.expedition-zone-challenge-overlay {
+  align-items: center;
+  background: rgba(38, 24, 12, 0.36) !important;
+  backdrop-filter: blur(1.5px);
+}
+
+.expedition-zone-challenge-modal {
+  max-width: 640px !important;
+  max-height: min(86vh, 640px);
+  overflow-y: auto;
+  padding: 1rem 1.2rem !important;
+  background:
+    linear-gradient(180deg, rgba(255, 249, 232, 0.97), rgba(235, 214, 174, 0.96)),
+    url('/assets/expedition/excavation/egypt-zone-challenge-ui-pack.png');
+  background-size: cover;
+  background-blend-mode: screen;
+}
+
+.expedition-zone-challenge-layout {
+  display: grid;
+  grid-template-columns: 82px minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: start;
+  margin-top: 0.75rem;
+}
+
+.expedition-zone-challenge-icon {
+  width: 78px;
+  aspect-ratio: 1;
+  border: 1px solid rgba(139, 106, 72, 0.28);
+  border-radius: 999px;
+  background:
+    rgba(255, 250, 240, 0.78)
+    url('/assets/expedition/excavation/egypt-survey-marker-pack.png')
+    6% 8% / 780% auto no-repeat;
+  box-shadow: inset 0 0 0 4px rgba(179, 136, 67, 0.18), 0 8px 18px rgba(47, 31, 18, 0.12);
+}
+
+.expedition-zone-answer-list {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.expedition-zone-answer {
+  width: 100%;
+  min-height: 2.65rem;
+  padding: 0.58rem 0.75rem;
+  border: 1px solid rgba(139, 106, 72, 0.32);
+  border-radius: 6px;
+  background: rgba(255, 250, 240, 0.82);
+  color: var(--bureau-ink);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 800;
+  line-height: 1.3;
+  text-align: left;
+  cursor: pointer;
+}
+
+.expedition-zone-answer:hover:not(:disabled),
+.expedition-zone-answer.is-selected {
+  border-color: rgba(179, 136, 67, 0.82);
+  background: rgba(255, 244, 214, 0.94);
+}
+
+.expedition-zone-answer.is-correct {
+  border-color: rgba(45, 90, 39, 0.7);
+  background: rgba(220, 252, 231, 0.88);
+}
+
+.expedition-zone-answer.is-incorrect {
+  border-color: rgba(146, 64, 14, 0.68);
+  background: rgba(255, 237, 213, 0.9);
+}
+
+.expedition-zone-feedback {
+  display: grid;
+  gap: 0.18rem;
+  margin-top: 0.7rem;
+  padding: 0.58rem 0.72rem;
+  border: 1px solid rgba(139, 106, 72, 0.24);
+  border-left: 4px solid rgba(139, 106, 72, 0.65);
+  border-radius: 6px;
+  background: rgba(255, 250, 240, 0.76);
+  color: var(--bureau-ink-muted);
+  text-align: left;
+}
+
+.expedition-zone-feedback strong {
+  color: var(--bureau-ink);
+  font-size: 0.86rem;
+  text-transform: uppercase;
+}
+
+.expedition-zone-feedback span {
+  font-size: 0.86rem;
+  line-height: 1.35;
+}
+
+.expedition-zone-feedback.is-correct {
+  border-left-color: #2d5a27;
+}
+
+.expedition-zone-feedback.is-incorrect {
+  border-left-color: #92400e;
+}
+
+@media (max-width: 720px) {
+  .expedition-zone-challenge-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .expedition-zone-challenge-icon {
+    display: none;
+  }
+}
+
+@media (max-height: 820px) and (min-width: 900px) {
+  .expedition-shell {
+    gap: 0.55rem;
+  }
+
+  .expedition-title h2 {
+    font-size: 1.45rem;
+  }
+
+  .expedition-canvas {
+    width: min(100%, 760px);
+  }
+
+  .expedition-side-panel {
+    max-height: calc(100vh - 8.2rem);
+  }
+
+  .expedition-zone-preview {
+    top: 3rem;
+    width: min(250px, calc(100% - 1.5rem));
+  }
+}
+
+@media (max-width: 1120px) {
+  .expedition-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .expedition-side-panel {
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
+  }
+}
+
+.expedition-grid-prompt {
+  border-color: rgba(74, 54, 32, 0.22);
+}
+
+.expedition-grid-explainer,
+.expedition-grid-review {
+  margin-top: 1rem;
+}
+
+.expedition-grid-square-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.expedition-grid-square {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.85rem;
+  border: 1px solid rgba(139, 106, 72, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 250, 240, 0.7);
+  text-align: left;
+}
+
+.expedition-grid-square.is-opened {
+  border-color: rgba(34, 197, 94, 0.34);
+  background: rgba(240, 253, 244, 0.72);
+}
+
+.expedition-grid-square strong,
+.expedition-grid-review strong {
+  color: var(--bureau-ink);
+  font-size: 0.92rem;
+}
+
+.expedition-grid-square span,
+.expedition-grid-review span {
+  color: var(--bureau-ink-muted);
+  font-size: 0.88rem;
+}
+
+.expedition-grid-square p {
+  margin: 0;
+  color: var(--bureau-ink);
+  line-height: 1.45;
+}
+
+.expedition-grid-square-meta {
+  display: grid;
+  gap: 0.28rem;
+  color: var(--bureau-ink-muted);
+}
+
+.expedition-grid-square-meta small {
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.expedition-excavation-method-panel {
+  display: grid;
+  gap: 0.7rem;
+  margin: 1rem 0;
+}
+
+.expedition-excavation-method-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.expedition-excavation-method-card {
+  display: grid;
+  gap: 0.38rem;
+  padding: 0.78rem;
+  border: 1px solid rgba(139, 106, 72, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 250, 240, 0.72);
+  text-align: left;
+}
+
+.expedition-excavation-method-card strong {
+  color: var(--bureau-ink);
+  font-size: 0.9rem;
+}
+
+.expedition-excavation-method-card span,
+.expedition-excavation-method-card p {
+  margin: 0;
+  color: var(--bureau-ink-muted);
+  font-size: 0.8rem;
+  line-height: 1.34;
+}
+
+.expedition-excavation-method-card .btn {
+  margin-top: 0.1rem;
+}
+
+.expedition-map-panel {
+  display: grid;
+  gap: 0.7rem;
+  margin: 1rem 0;
+}
+
+.expedition-map-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.expedition-map-summary section {
+  display: grid;
+  gap: 0.22rem;
+  padding: 0.7rem 0.75rem;
+  border: 1px solid rgba(139, 106, 72, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 250, 240, 0.72);
+}
+
+.expedition-map-summary strong {
+  color: var(--bureau-ink);
+  font-size: 0.84rem;
+  text-transform: uppercase;
+}
+
+.expedition-map-summary span {
+  color: var(--bureau-ink-muted);
+  font-size: 0.86rem;
+  line-height: 1.34;
+}
+
+.expedition-map-type-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.expedition-map-type-btn {
+  min-height: 100%;
+  padding: 0.7rem 0.55rem;
+  border-radius: 8px;
+  border: 1px solid rgba(139, 106, 72, 0.22);
+  background: rgba(255, 250, 240, 0.72);
+  color: var(--bureau-ink);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.expedition-map-type-btn.is-selected {
+  border-color: var(--bureau-gold);
+  background: rgba(214, 174, 127, 0.22);
+  box-shadow: inset 0 0 0 1px rgba(214, 174, 127, 0.45);
+}
+
+.expedition-method-kit-note,
+.expedition-quality-feedback {
+  color: #2d5a27 !important;
+  font-weight: 700;
+}
+
+@media (max-width: 760px) {
+  .expedition-grid-square-list,
+  .expedition-excavation-method-grid,
+  .expedition-map-summary,
+  .expedition-map-type-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.expedition-result-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  margin: 0.6rem 0 1rem;
+  padding: 0.85rem;
+  border: 1px solid rgba(139, 106, 72, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 250, 240, 0.7);
+  text-align: left;
+}
+
+.expedition-result-header h2 {
+  margin: 0 0 0.25rem;
+}
+
+.expedition-result-header p {
+  margin: 0;
+}
+
+.expedition-score-badge {
+  display: grid;
+  place-items: center;
+  min-width: 94px;
+  min-height: 94px;
+  border: 3px solid var(--bureau-gold);
+  border-radius: 50%;
+  background: rgba(84, 55, 29, 0.08);
+  color: var(--bureau-ink);
+}
+
+.expedition-score-badge strong {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.expedition-score-badge span {
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.expedition-result-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+  text-align: left;
+}
+
+.expedition-result-card {
+  padding: 0.85rem;
+  border: 1px solid rgba(139, 106, 72, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 250, 240, 0.56);
+}
+
+.expedition-result-card-wide {
+  grid-column: 1 / -1;
+}
+
+.expedition-result-card h3 {
+  margin: 0 0 0.55rem;
+  color: var(--bureau-ink);
+}
+
+.expedition-result-card dl {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+}
+
+.expedition-result-card dl div,
+.expedition-result-stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.45rem;
+}
+
+.expedition-result-card dt {
+  color: var(--bureau-ink-muted);
+  font-weight: 700;
+}
+
+.expedition-result-card dd {
+  margin: 0;
+  color: var(--bureau-ink);
+  font-weight: 800;
+}
+
+.expedition-result-stats {
+  margin-bottom: 0.7rem;
+}
+
+.expedition-result-stats span {
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+  background: rgba(139, 106, 72, 0.1);
+}
+
+.expedition-result-lists {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.expedition-result-lists p {
+  margin: 0.2rem 0 0;
+}
+
+.expedition-field-kit-impact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.expedition-field-kit-impact {
+  padding: 0.65rem;
+  border: 1px solid rgba(139, 106, 72, 0.18);
+  border-left: 4px solid #92400e;
+  border-radius: 7px;
+  background: rgba(255, 250, 240, 0.58);
+}
+
+.expedition-field-kit-impact.is-collected {
+  border-left-color: #2d5a27;
+  background: rgba(45, 90, 39, 0.08);
+}
+
+.expedition-field-kit-impact strong,
+.expedition-field-kit-impact span {
+  display: block;
+}
+
+.expedition-field-kit-impact span {
+  margin: 0.1rem 0 0.25rem;
+  color: var(--bureau-ink-muted);
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.expedition-field-kit-impact p {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.35;
+}
+
+.expedition-inspection-actions {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.expedition-inspection-actions .btn:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+}
+
+.expedition-evidence-stamp {
+  align-self: center;
+  justify-self: end;
+  display: inline-grid;
+  place-items: center;
+  margin-left: auto;
+  min-width: 142px;
+  padding: 0.32rem 0.55rem;
+  border: 3px solid currentColor;
+  border-radius: 4px;
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+  transform: rotate(-2deg);
+}
+
+.expedition-evidence-stamp.verified {
+  color: #166534;
+}
+
+.expedition-evidence-stamp.collected {
+  color: #92400e;
+}
+
+.expedition-claim-field {
+  display: grid;
+  gap: 0.35rem;
+  text-align: left;
+}
+
+.expedition-claim-field span {
+  color: var(--bureau-ink-muted);
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.expedition-claim-field select {
+  width: 100%;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--bureau-gold-light);
+  border-radius: 6px;
+  background: #fffaf0;
+  color: var(--bureau-ink);
+  font: inherit;
+  font-weight: 800;
+}
+
+.expedition-claim-feedback {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.85rem;
+  border-radius: 6px;
+  text-align: left;
+}
+
+.expedition-claim-feedback.correct {
+  background: rgba(45, 90, 39, 0.12);
+  border: 1px solid rgba(45, 90, 39, 0.32);
+  color: #2d5a27;
+}
+
+.expedition-claim-feedback.incorrect {
+  background: rgba(185, 28, 28, 0.1);
+  border: 1px solid rgba(185, 28, 28, 0.25);
+  color: #7f1d1d;
+}
+
+.expedition-claim-feedback p {
+  margin: 0.2rem 0 0;
+  color: inherit;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.expedition-journey-shell {
+  align-content: start;
+}
+
+.expedition-journey-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 310px;
+  gap: 1rem;
+  align-items: start;
+}
+
+.expedition-journey-canvas-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--bureau-parchment);
+  border: 1px solid #c2b29a;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.22);
+}
+
+.expedition-journey-canvas-card canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 900 / 420;
+}
+
+.expedition-panel-stack {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.expedition-tool-list {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.expedition-mission-card { background: rgba(255, 255, 255, 0.6); border: 1px solid var(--bureau-gold-muted); border-left: 4px solid var(--bureau-red, #9d2e24); padding: 1.5rem; border-radius: 4px; position: relative; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }
+
+.mission-category-tag {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  background: var(--bureau-gold);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  border-radius: 4px;
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+.mission-question {
+  font-size: 1.15rem;
+  color: var(--bureau-ink);
+  margin: 0 0 0.5rem 0;
+  line-height: 1.4;
+}
+
+.mission-instruction {
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  color: var(--bureau-ink-muted);
+  margin: 0;
+  font-style: italic;
+}
+
+.expedition-field-kit-impact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+}
+
+.expedition-field-kit-impact { padding: 1.25rem; background: #fdfcfa; border: 1px solid rgba(139, 106, 72, 0.25); border-radius: 4px; display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  transition: all 0.2s ease;
+}
+
+.expedition-field-kit-impact.is-collected {
+  background: rgba(16, 185, 129, 0.05);
+  border-color: rgba(16, 185, 129, 0.25);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.05);
+}
+
+.expedition-impact-header {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.expedition-tool-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  background: #fff;
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid rgba(0,0,0,0.08);
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.expedition-resource span {
+  font-size: 0.8rem;
+  color: var(--bureau-ink-muted);
+}
+
+.expedition-resource strong {
+  font-size: 1.2rem;
+  color: var(--bureau-ink);
+}
+
+.expedition-tool-list,
+.expedition-hazard-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.expedition-tool-list li,
+.expedition-hazard-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem;
+  padding: 0.38rem 0.48rem;
+  border: 1px solid rgba(139, 106, 72, 0.22);
+  border-radius: 6px;
+  background: rgba(255,255,255,0.35);
+  color: var(--bureau-ink-muted);
+  font-size: 0.82rem;
+}
+
+.expedition-tool-list li.is-collected {
+  border-color: rgba(45, 90, 39, 0.32);
+  background: rgba(45, 90, 39, 0.1);
+  color: #2d5a27;
+}
+
+.expedition-hazard-list li {
+  background: rgba(185, 28, 28, 0.05);
+  color: #b91c1c;
+  border-color: rgba(185, 28, 28, 0.1);
+}
+
+.expedition-tool-list strong {
+  color: inherit;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+}
+
+.expedition-small-note {
+  margin: 0;
+  color: var(--bureau-ink-muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+  font-style: italic;
+  font-family: 'Courier New', Courier, monospace;
+}
+.expedition-warning-note {
+  padding: 0.45rem 0.55rem;
+  border-left: 3px solid #92400e;
+  background: rgba(146, 64, 14, 0.1);
+  color: #6b2d12;
+}
+
+/* --- Lost Site Expedition Journey: High Fidelity UI --- */
+
+.expedition-journey-container {
+  --journey-stage-inline-padding: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  height: 100dvh;
+  max-width: none;
+  margin: 0 auto;
+  padding: var(--journey-stage-inline-padding);
+  gap: 0;
+  animation: fadeIn 0.8s ease-out;
+}
+
+.expedition-journey-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  flex: 1;
+  min-height: 0;
+  align-items: stretch;
+}

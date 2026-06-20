@@ -16,6 +16,7 @@ const basecampChecklistCssUrl = new URL('./basecamp-checklist.css', import.meta.
 const photoCornersCssUrl = new URL('./photo-corners.css', import.meta.url);
 const labPhaseCssUrl = new URL('./lab-phase.css', import.meta.url);
 const mainCanvasCssUrl = new URL('./main-canvas.css', import.meta.url);
+const lostSiteExpeditionCssUrl = new URL('./lost-site-expedition.css', import.meta.url);
 const journeyPropPaletteDrawerCssUrl = new URL('./journey-prop-palette-drawer.css', import.meta.url);
 
 test('dig phase polish styles live in their own imported stylesheet', () => {
@@ -173,6 +174,18 @@ test('main canvas area styles live in their own imported stylesheet', () => {
   assert.equal(indexCss.includes('/* Main Canvas Area */'), false, 'main canvas marker should not remain in index.css');
   assert.equal(indexCss.includes('.canvas-wrapper {'), false, 'canvas wrapper selector should not remain in index.css');
   assert.doesNotMatch(indexCss, /^\.world-map-image-stage\s*\{/m, 'standalone world map image stage selector should not remain in index.css');
+});
+
+test('lost site expedition shell styles live in their own imported stylesheet', () => {
+  assert.match(
+    mainSource,
+    /import\s+['"]\.\/styles\/lost-site-expedition\.css['"]/,
+    'main.jsx should import the extracted lost site expedition stylesheet after index.css',
+  );
+  assert.equal(existsSync(lostSiteExpeditionCssUrl), true, 'lost-site-expedition.css should exist');
+  assert.equal(indexCss.includes('/* Lost Site Expedition */'), false, 'lost site expedition marker should not remain in index.css');
+  assert.equal(indexCss.includes('.expedition-shell {'), false, 'expedition shell selector should not remain in index.css');
+  assert.equal(indexCss.includes('.expedition-topbar {'), false, 'expedition topbar selector should not remain in index.css');
 });
 
 test('journey prop palette drawer override stays isolated and imported after the main stylesheet', () => {
