@@ -13,6 +13,7 @@ const museumExportCssUrl = new URL('./museum-export.css', import.meta.url);
 const bureauTextureCssUrl = new URL('./bureau-texture.css', import.meta.url);
 const bureauCaseFileStatusCssUrl = new URL('./bureau-case-file-status.css', import.meta.url);
 const basecampChecklistCssUrl = new URL('./basecamp-checklist.css', import.meta.url);
+const photoCornersCssUrl = new URL('./photo-corners.css', import.meta.url);
 const journeyPropPaletteDrawerCssUrl = new URL('./journey-prop-palette-drawer.css', import.meta.url);
 
 test('dig phase polish styles live in their own imported stylesheet', () => {
@@ -132,6 +133,18 @@ test('base camp checklist and shop polish styles live in their own imported styl
   assert.equal(indexCss.includes('.basecamp-shop-grid {'), false, 'base camp shop grid selector should not remain in index.css');
 });
 
+test('photo corners training polish styles live in their own imported stylesheet', () => {
+  assert.match(
+    mainSource,
+    /import\s+['"]\.\/styles\/photo-corners\.css['"]/,
+    'main.jsx should import the extracted photo corners stylesheet after index.css',
+  );
+  assert.equal(existsSync(photoCornersCssUrl), true, 'photo-corners.css should exist');
+  assert.equal(indexCss.includes('/* Photo corners */'), false, 'photo corners marker should not remain in index.css');
+  assert.equal(indexCss.includes('.vintage-panel::after,'), false, 'photo corner pseudo-element selector should not remain in index.css');
+  assert.equal(indexCss.includes('.historical-context-box::before'), false, 'historical context decoration from this section should not remain in index.css');
+});
+
 test('journey prop palette drawer override stays isolated and imported after the main stylesheet', () => {
   const drawerCss = readFileSync(journeyPropPaletteDrawerCssUrl, 'utf8');
   const indexImport = mainSource.indexOf("import './index.css'");
@@ -144,11 +157,11 @@ test('journey prop palette drawer override stays isolated and imported after the
   assert.ok(drawerImport < appImport, 'the drawer stylesheet should load before the app renders');
   assert.equal(existsSync(journeyPropPaletteDrawerCssUrl), true, 'journey-prop-palette-drawer.css should exist');
   assert.match(drawerCss, /\.journey-prop-palette-panel\s*\{[^}]*top:\s*auto;[^}]*left:\s*0\.72rem;[^}]*right:\s*0\.72rem;[^}]*bottom:\s*0\.72rem;/);
-  assert.match(drawerCss, /\.journey-prop-palette-panel\s*\{[^}]*box-sizing:\s*border-box;[^}]*width:\s*auto;[^}]*max-height:\s*min\(6\.3rem, calc\(100% - 1\.44rem\)\);/);
+  assert.match(drawerCss, /\.journey-prop-palette-panel\s*\{[^}]*box-sizing:\s*border-box;[^}]*width:\s*auto;[^}]*max-height:\s*min\(9\.45rem, calc\(100% - 1\.44rem\)\);/);
   assert.match(drawerCss, /\.journey-prop-palette-browser\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\);/);
   assert.match(drawerCss, /\.journey-prop-palette-category-rail\s*\{[^}]*display:\s*flex;[^}]*overflow-x:\s*auto;[^}]*border-bottom:/);
-  assert.match(drawerCss, /\.journey-prop-palette-grid\s*\{[^}]*grid-auto-columns:\s*minmax\(5\.65rem, 6\.7rem\);[^}]*grid-auto-flow:\s*column;/);
-  assert.match(drawerCss, /\.journey-prop-palette-list\s*\{[^}]*max-height:\s*2\.74rem;[^}]*overflow-x:\s*auto;[^}]*overflow-y:\s*hidden;/);
+  assert.match(drawerCss, /\.journey-prop-palette-grid\s*\{[^}]*grid-auto-columns:\s*minmax\(5\.65rem, 6\.7rem\);[^}]*grid-auto-flow:\s*column;[^}]*grid-template-rows:\s*repeat\(2, minmax\(2\.65rem, 1fr\)\);/);
+  assert.match(drawerCss, /\.journey-prop-palette-list\s*\{[^}]*max-height:\s*5\.7rem;[^}]*overflow-x:\s*auto;[^}]*overflow-y:\s*hidden;/);
   assert.match(drawerCss, /\.journey-prop-palette-recent\s*\{[^}]*display:\s*none;/);
   assert.match(drawerCss, /\.journey-prop-palette-copy span\s*\{[^}]*display:\s*none;/);
   assert.match(drawerCss, /\.journey-prop-palette-list \.journey-prop-palette-group-toggle\s*\{[^}]*display:\s*none;/);
