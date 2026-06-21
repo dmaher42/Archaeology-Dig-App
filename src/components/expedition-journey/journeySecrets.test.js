@@ -3605,6 +3605,7 @@ test('Arrival Threshold Duat Echo Trial teaches combat before the Anubis confron
   assert.match(journeyComponentSource, /updateArrivalThresholdTrial\(current, player, dt\)/);
   assert.match(journeyComponentSource, /drawArrivalThresholdTrial\(ctx, current, now\)/);
   assert.match(journeyComponentSource, /arrivalThresholdTrialState:/);
+  assert.match(journeyComponentSource, /echoX:\s*current\.arrivalThresholdTrial\.echo \? Math\.round\(current\.arrivalThresholdTrial\.echo\.x \|\| 0\) : null/);
   assert.match(journeyComponentSource, /if \(!current\.arrivalThresholdTrial\?\.completed\) \{/);
   assert.match(journeyComponentSource, /The breach waits\. The threshold is still measuring Asha\./);
   assert.match(journeyComponentSource, /The threshold measured you\./);

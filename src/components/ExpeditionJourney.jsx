@@ -7841,6 +7841,7 @@ export default function ExpeditionJourney({
         completed: Boolean(current.arrivalThresholdTrial.completed),
         activeStepId: current.arrivalThresholdTrial.activeStepId || null,
         completedStepIds: current.arrivalThresholdTrial.completedStepIds || [],
+        echoX: current.arrivalThresholdTrial.echo ? Math.round(current.arrivalThresholdTrial.echo.x || 0) : null,
       } : null,
       templeThresholdTransitionState: current.templeThresholdTransition ? {
         id: current.templeThresholdTransition.id,
