@@ -5,30 +5,98 @@ export const OPENING_THRESHOLD_FADE_SECONDS = 1.2;
 export const OPENING_THRESHOLD_STAIR_REVEAL_SECONDS = 3.8;
 export const OPENING_THRESHOLD_FALL_DELAY_SECONDS = 0.45;
 export const OPENING_THRESHOLD_FALL_DURATION_SECONDS = 1.6;
-export const ARRIVAL_THRESHOLD_BACKGROUND_SRC = 'assets/expedition/backgrounds/arrival-threshold/arrival-threshold-full-scene-2026-06-08.png';
-export const ARRIVAL_THRESHOLD_ASSET_VERSION = 'arrival-threshold-final-art-2026-06-08';
+export const ARRIVAL_THRESHOLD_BACKGROUND_SRC = 'assets/expedition/backgrounds/arrival-threshold/arrival-threshold-duat-training-chamber-2026-06-21.png';
+export const ARRIVAL_THRESHOLD_DOORWAY_OCCLUDER_SRC = 'assets/expedition/backgrounds/arrival-threshold/arrival-threshold-duat-training-chamber-foreground-2026-06-21.png';
+export const ARRIVAL_THRESHOLD_DOORWAY_GLOW_SRC = 'assets/expedition/backgrounds/arrival-threshold/arrival-threshold-duat-training-chamber-glow-2026-06-21.png';
+export const ARRIVAL_THRESHOLD_ASSET_VERSION = 'arrival-threshold-duat-training-chamber-2026-06-21';
 
-export const ARRIVAL_THRESHOLD_SPAWN_X = 440;
-export const ARRIVAL_THRESHOLD_LEFT_BOUND = 120;
-export const ARRIVAL_THRESHOLD_RIGHT_BOUND = 1120;
-export const ARRIVAL_THRESHOLD_LEFT_INSPECT_X = 245;
-export const ARRIVAL_THRESHOLD_MARKINGS_INSPECT_X = 880;
-export const ARRIVAL_THRESHOLD_FORWARD_GATE_TRIGGER_X = 1040;
-export const ARRIVAL_THRESHOLD_OBJECTIVE_LINE = 'Find where the seal brought you.';
-export const ARRIVAL_THRESHOLD_LEFT_OBJECTIVE_LINE = 'Look for another path.';
-export const ARRIVAL_THRESHOLD_GATE_OBJECTIVE_LINE = 'The way back is gone. Move forward.';
-export const ARRIVAL_THRESHOLD_SPAWN_LINE = 'The pyramid... where is it?';
+export const ARRIVAL_THRESHOLD_SPAWN_X = 910;
+export const ARRIVAL_THRESHOLD_LEFT_BOUND = 96;
+export const ARRIVAL_THRESHOLD_RIGHT_BOUND = 1100;
+export const ARRIVAL_THRESHOLD_LEFT_INSPECT_X = 420;
+export const ARRIVAL_THRESHOLD_MARKINGS_INSPECT_X = 745;
+export const ARRIVAL_THRESHOLD_FORWARD_GATE_TRIGGER_X = 285;
+export const ARRIVAL_THRESHOLD_EXIT_WALK_END_X = 128;
+export const ARRIVAL_THRESHOLD_EXIT_WALK_SECONDS = 1.35;
+export const ARRIVAL_THRESHOLD_RAMP_START_X = 330;
+export const ARRIVAL_THRESHOLD_RAMP_END_X = 155;
+export const ARRIVAL_THRESHOLD_RAMP_RISE = 44;
+export const ARRIVAL_THRESHOLD_OBJECTIVE_LINE = 'The portal behind me is sealed. The breach is the only path.';
+export const ARRIVAL_THRESHOLD_LEFT_OBJECTIVE_LINE = 'The broken scarab breach leads onward.';
+export const ARRIVAL_THRESHOLD_GATE_OBJECTIVE_LINE = 'That doorway brought me here. It will not take me back.';
+export const ARRIVAL_THRESHOLD_SPAWN_LINE = 'That doorway brought me here... and now it is closing.';
 export const ARRIVAL_THRESHOLD_LEFT_LINES = [
-  'I was outside. Wind. Sunlight. Open desert.',
-  "Now there's no horizon. No sound.",
-  'The way back is sealed.',
+  'The scarab seal is broken open.',
+  'Those steps are not part of the excavation.',
+  'They lead into the Duat.',
 ];
 export const ARRIVAL_THRESHOLD_MARKING_LINES = [
-  "These gates... these aren't part of the site.",
-  'Funerary markings. Passage symbols.',
-  "It's arranged like a journey for the dead.",
-  "But I'm not dead.",
+  'That gate brought me here.',
+  'The passage symbols are fading.',
+  'It is not a way back.',
 ];
+export const ARRIVAL_THRESHOLD_TRIAL_STEPS = [
+  {
+    id: 'still-echo',
+    name: 'Still Echo',
+    objective: 'Strike the still echo.',
+    ashaLine: 'It is not alive. It is a shape. A warning.',
+    x: 665,
+    yOffset: 0,
+    width: 42,
+    height: 70,
+    movement: 'still',
+  },
+  {
+    id: 'moving-echo',
+    name: 'Moving Echo',
+    objective: 'Track the moving echo.',
+    ashaLine: 'The room is measuring how I move.',
+    x: 610,
+    patrolMin: 500,
+    patrolMax: 780,
+    width: 42,
+    height: 70,
+    speed: 78,
+    movement: 'patrol',
+  },
+  {
+    id: 'striking-echo',
+    name: 'Striking Echo',
+    objective: 'Dodge the striking echo.',
+    ashaLine: 'Not a welcome. A test.',
+    x: 640,
+    width: 48,
+    height: 74,
+    speed: 120,
+    movement: 'strike',
+  },
+];
+export const ARRIVAL_THRESHOLD_TRIAL_COMPLETE_LINE = 'The breach opened. So the rules are real enough.';
+export const ARRIVAL_THRESHOLD_TRIAL_EXIT_LOCKED_LINE = 'The breach waits. The threshold is still measuring Asha.';
+export const ARRIVAL_THRESHOLD_ANUBIS_TRIAL_LINES = [
+  'The threshold measured you.',
+  'It found motion. Not innocence.',
+  'Do not mistake survival for passage.',
+];
+
+export const createArrivalThresholdTrialState = () => ({
+  active: true,
+  completed: false,
+  stepIndex: 0,
+  activeStepId: ARRIVAL_THRESHOLD_TRIAL_STEPS[0]?.id || null,
+  echo: {
+    ...ARRIVAL_THRESHOLD_TRIAL_STEPS[0],
+    direction: -1,
+    timer: 0,
+    hitFlash: 0,
+    attackCue: 0,
+    cleared: false,
+  },
+  completedStepIds: [],
+  lineShownForStepId: null,
+  completionAnnounced: false,
+});
 export const OPENING_SPHINX_DURATION = 14;
 export const OPENING_SPHINX_EXIT_SECONDS = 2.35;
 export const OPENING_SPHINX_ARRIVAL_SECONDS = 1.05;

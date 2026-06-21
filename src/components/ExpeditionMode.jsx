@@ -1953,6 +1953,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
   const [baseCampOpen, setBaseCampOpen] = useState(false);
   const [fieldKit, setFieldKit] = useState([]);
   const [journeyRunId, setJourneyRunId] = useState(0);
+  const [journeyOpeningMode, setJourneyOpeningMode] = useState('standard');
   const [journeyPaused, setJourneyPaused] = useState(false);
   const [journeyCursorHidden, setJourneyCursorHidden] = useState(false);
   const [baseCampProgression, setBaseCampProgression] = useState(loadBaseCampProgression);
@@ -2597,6 +2598,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
     const isRome  = stage.id === EXPEDITION_STAGE_IDS.ROME;
     const hasPrologue = isEgypt || isRome;
     setExpeditionStage(content.startsAt === 'excavation' ? 'excavation' : hasPrologue ? 'archive-prologue' : 'journey');
+    setJourneyOpeningMode(isEgypt ? 'arrival-threshold' : 'standard');
     setInspectedPrologueItems(new Set());
     setPrologueCinematicStep(null);
     setBaseCampOpen(false);
@@ -4090,6 +4092,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
     const nextMission = chooseEvidenceHuntMission(activeMission.id, stageContent.missions);
     // Reset goes to 'journey' not 'archive-prologue' — prologue is a one-time entry moment per run, not a replay gate.
     setExpeditionStage(stageContent.startsAt === 'excavation' ? 'excavation' : 'journey');
+    setJourneyOpeningMode('standard');
     setBaseCampOpen(false);
     setJourneyPaused(false);
     const savedTools = (baseCampProgressionRef.current?.purchasedUpgrades || []).filter(id =>
@@ -4163,6 +4166,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
     keysRef.current = {};
     tickAccumulatorRef.current = 0;
     setExpeditionStage('journey');
+    setJourneyOpeningMode('standard');
     setBaseCampOpen(false);
     setExpeditionFailure(null);
     setJourneyPaused(false);
@@ -4242,6 +4246,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
     if (!new URLSearchParams(window.location.search).has('play')) return undefined;
     const timer = window.setTimeout(() => {
       setPrologueCinematicStep(null);
+      setJourneyOpeningMode('standard');
       setExpeditionStage('journey');
       setBriefingOpen(false);
     }, 0);
@@ -4995,6 +5000,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
                   }
                   if (finalCinematicStep) {
                     audioControls.playExpeditionSfx?.('thresholdRealityTear', { volume: 0.82 });
+                    setJourneyOpeningMode('arrival-threshold');
                     setExpeditionStage('journey');
                     setPrologueCinematicStep(null);
                     setNotice('This isn\'t the excavation site.');
@@ -5271,6 +5277,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
                 type="button"
                 onClick={() => {
                   if (finalCinematicStep) {
+                    setJourneyOpeningMode('standard');
                     setExpeditionStage('journey');
                     setPrologueCinematicStep(null);
                     setNotice('The Senate sealed this. Now it is open.');
@@ -5349,7 +5356,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
           </div>
         )}
         <ExpeditionJourney
-          key={`${selectedStageId}-${journeyRunId}`}
+          key={`${selectedStageId}-${journeyRunId}-${journeyOpeningMode}`}
           mission={activeMission}
           onBackToMenu={onBackToMenu}
           onComplete={handleJourneyComplete}
@@ -5361,6 +5368,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
           backgroundPackId={stageContent.journeyBackgroundPackId}
           permanentUpgradeIds={baseCampProgression.purchasedUpgrades}
           permanentUpgradeEffects={permanentUpgradeEffects}
+          openingStartMode={journeyOpeningMode}
         />
       </div>
     );

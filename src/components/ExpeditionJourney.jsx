@@ -78,7 +78,6 @@ import {
 import {
   JourneyBriefingOverlay,
   JourneyPlayerOverlays,
-  JourneySidebarStatus,
 } from './expedition-journey/JourneyHudOverlays.jsx';
 import {
   PROP_EDITOR_HANDLE_HIT,
@@ -95,10 +94,18 @@ import {
   drawOpeningPyramidAssetRegionFrame,
   useJourneyRenderer,
 } from './expedition-journey/useJourneyRenderer.js';
+import { useJourneyInteriorRenderers } from './expedition-journey/journeyInteriorRenderers.js';
+import { useJourneyPlacementEditorShortcuts } from './expedition-journey/useJourneyPlacementEditorShortcuts.js';
+import { useJourneyPlacementEditorPointerHandlers } from './expedition-journey/useJourneyPlacementEditorPointerHandlers.js';
 export { JourneyControlsReference } from './expedition-journey/journeyControlsReference.jsx';
 import {
   ARRIVAL_THRESHOLD_ASSET_VERSION,
+  ARRIVAL_THRESHOLD_ANUBIS_TRIAL_LINES,
   ARRIVAL_THRESHOLD_BACKGROUND_SRC,
+  ARRIVAL_THRESHOLD_DOORWAY_GLOW_SRC,
+  ARRIVAL_THRESHOLD_DOORWAY_OCCLUDER_SRC,
+  ARRIVAL_THRESHOLD_EXIT_WALK_END_X,
+  ARRIVAL_THRESHOLD_EXIT_WALK_SECONDS,
   ARRIVAL_THRESHOLD_FORWARD_GATE_TRIGGER_X,
   ARRIVAL_THRESHOLD_GATE_OBJECTIVE_LINE,
   ARRIVAL_THRESHOLD_LEFT_BOUND,
@@ -108,9 +115,15 @@ import {
   ARRIVAL_THRESHOLD_MARKING_LINES,
   ARRIVAL_THRESHOLD_MARKINGS_INSPECT_X,
   ARRIVAL_THRESHOLD_OBJECTIVE_LINE,
+  ARRIVAL_THRESHOLD_RAMP_END_X,
+  ARRIVAL_THRESHOLD_RAMP_RISE,
+  ARRIVAL_THRESHOLD_RAMP_START_X,
   ARRIVAL_THRESHOLD_RIGHT_BOUND,
   ARRIVAL_THRESHOLD_SPAWN_LINE,
   ARRIVAL_THRESHOLD_SPAWN_X,
+  ARRIVAL_THRESHOLD_TRIAL_COMPLETE_LINE,
+  ARRIVAL_THRESHOLD_TRIAL_EXIT_LOCKED_LINE,
+  ARRIVAL_THRESHOLD_TRIAL_STEPS,
   OPENING_ARRIVAL_AFTERSHOCK_NOTICE,
   OPENING_ASHA_CUTSCENE_SRC,
   OPENING_CINEMATIC_DURATION,
@@ -126,6 +139,7 @@ import {
   OPENING_THRESHOLD_FALL_DURATION_SECONDS,
   OPENING_THRESHOLD_SCENE_DURATION,
   OPENING_THRESHOLD_STAIR_REVEAL_SECONDS,
+  createArrivalThresholdTrialState,
   easeInOutCubic,
   getOpeningCinematicLine,
   getOpeningCinematicLines,
@@ -454,6 +468,29 @@ import {
 } from './expedition-journey/journeyMarkerSprites';
 
 const INITIAL_BOSS_SPRITE_LOAD_DELAY_MS = 9000;
+
+const getArrivalThresholdGroundY = (centerX) => {
+  const rampProgress = clamp(
+    (ARRIVAL_THRESHOLD_RAMP_START_X - centerX) / (ARRIVAL_THRESHOLD_RAMP_START_X - ARRIVAL_THRESHOLD_RAMP_END_X),
+    0,
+    1,
+  );
+  return GROUND_Y - ARRIVAL_THRESHOLD_RAMP_RISE * rampProgress;
+};
+
+const getArrivalThresholdEchoHitbox = (echo) => {
+  if (!echo) return null;
+  const width = echo.width || 44;
+  const height = echo.height || 70;
+  const centerX = echo.x || 0;
+  const groundY = getArrivalThresholdGroundY(centerX);
+  return {
+    x: centerX - width / 2,
+    y: groundY - height,
+    width,
+    height,
+  };
+};
 
 const KNOWLEDGE_CHALLENGE_SIZE = 3;
 const GUARDIAN_KNOWLEDGE_CHALLENGES_ENABLED = false;
@@ -2993,6 +3030,7 @@ export default function ExpeditionJourney({
   backgroundPackId = null,
   permanentUpgradeIds = [],
   permanentUpgradeEffects = {},
+  openingStartMode = 'standard',
 }) {
   const [selectedCharacterPresetId, setSelectedCharacterPresetId] = useState(() => {
     if (typeof window === 'undefined') return 'auto';
@@ -3023,7 +3061,7 @@ export default function ExpeditionJourney({
     permanentUpgradeIds,
     permanentUpgradeEffects,
   }));
-  const [briefingOpen, setBriefingOpen] = useState(true);
+  const [briefingOpen, setBriefingOpen] = useState(() => openingStartMode !== 'arrival-threshold');
   // Controls & combat reference now lives in the single Esc/"?" pause menu
   // (owned by ExpeditionMode), so there is no separate in-journey help state.
   const [guardianChallengeUi, setGuardianChallengeUi] = useState(null);
@@ -3183,6 +3221,7 @@ export default function ExpeditionJourney({
   const canvasRef = useRef(null);
   const stateRef = useRef(gameState);
   const keysRef = useRef({});
+  const openingStartModeConsumedRef = useRef(false);
   const spokenOpeningLineRef = useRef(null);
   const lastFrameRef = useRef(0);
   const animationRef = useRef(null);
@@ -3225,6 +3264,8 @@ export default function ExpeditionJourney({
   const scorpionVenomSpitEffectRef = useRef({ image: null, loaded: false, failed: false, version: SCORPION_VENOM_SPIT_EFFECT_VERSION });
   const openingSphinxApparitionRef = useRef({ image: null, loaded: false, failed: false });
   const arrivalThresholdBackgroundRef = useRef({ image: null, loaded: false, failed: false, version: ARRIVAL_THRESHOLD_ASSET_VERSION });
+  const arrivalThresholdDoorwayGlowRef = useRef({ image: null, loaded: false, failed: false, version: ARRIVAL_THRESHOLD_ASSET_VERSION });
+  const arrivalThresholdDoorwayOccluderRef = useRef({ image: null, loaded: false, failed: false, version: ARRIVAL_THRESHOLD_ASSET_VERSION });
   const lostBridgeAssetsRef = useRef({ images: {}, structure: null, floorBlend: null, floorBlends: {} });
   const openingPyramidClimbPackRef = useRef({ image: null, loaded: false, failed: false });
   const openingPyramidFacadeRef = useRef({ image: null, loaded: false, failed: false });
@@ -5454,27 +5495,32 @@ export default function ExpeditionJourney({
 
   useEffect(() => {
     let cancelled = false;
-    const image = new Image();
-    image.onload = () => {
-      if (cancelled) return;
-      arrivalThresholdBackgroundRef.current = {
-        image,
-        loaded: true,
-        failed: false,
-        version: ARRIVAL_THRESHOLD_ASSET_VERSION,
+    const loadArrivalThresholdImage = (src, ref) => {
+      const image = new Image();
+      image.onload = () => {
+        if (cancelled) return;
+        ref.current = {
+          image,
+          loaded: true,
+          failed: false,
+          version: ARRIVAL_THRESHOLD_ASSET_VERSION,
+        };
+        syncHud();
       };
-      syncHud();
-    };
-    image.onerror = () => {
-      if (cancelled) return;
-      arrivalThresholdBackgroundRef.current = {
-        image: null,
-        loaded: false,
-        failed: true,
-        version: ARRIVAL_THRESHOLD_ASSET_VERSION,
+      image.onerror = () => {
+        if (cancelled) return;
+        ref.current = {
+          image: null,
+          loaded: false,
+          failed: true,
+          version: ARRIVAL_THRESHOLD_ASSET_VERSION,
+        };
       };
+      image.src = `${import.meta.env.BASE_URL}${src}?v=${ARRIVAL_THRESHOLD_ASSET_VERSION}`;
     };
-    image.src = `${import.meta.env.BASE_URL}${ARRIVAL_THRESHOLD_BACKGROUND_SRC}?v=${ARRIVAL_THRESHOLD_ASSET_VERSION}`;
+    loadArrivalThresholdImage(ARRIVAL_THRESHOLD_BACKGROUND_SRC, arrivalThresholdBackgroundRef);
+    loadArrivalThresholdImage(ARRIVAL_THRESHOLD_DOORWAY_GLOW_SRC, arrivalThresholdDoorwayGlowRef);
+    loadArrivalThresholdImage(ARRIVAL_THRESHOLD_DOORWAY_OCCLUDER_SRC, arrivalThresholdDoorwayOccluderRef);
     return () => {
       cancelled = true;
     };
@@ -6053,6 +6099,7 @@ export default function ExpeditionJourney({
   })();
 
   const getSectionDisplayName = useCallback((sectionId) => {
+    if (sectionId === 'arrival-threshold') return 'Arrival Threshold';
     return SECTION_COPY[sectionId]?.name || SECTIONS.find(s => s.id === sectionId)?.name || sectionId;
   }, []);
 
@@ -6931,6 +6978,141 @@ export default function ExpeditionJourney({
     };
   }, []);
 
+  const addCombatEffect = useCallback((current, effect) => {
+    current.combatHitEffects.push({
+      timer: 0.35,
+      maxTimer: 0.35,
+      ...effect,
+    });
+    if (current.combatHitEffects.length > 18) current.combatHitEffects.shift();
+  }, []);
+
+  const completeArrivalThresholdTrialStep = useCallback((current, trial, step, message = null) => {
+    if (!trial || !step || trial.completed) return;
+    if (!trial.completedStepIds.includes(step.id)) trial.completedStepIds.push(step.id);
+    const nextIndex = trial.stepIndex + 1;
+    const nextStep = ARRIVAL_THRESHOLD_TRIAL_STEPS[nextIndex];
+    addCombatEffect(current, {
+      type: 'parry-burst',
+      x: step.x,
+      y: getArrivalThresholdGroundY(step.x) - (step.height || 70) * 0.55,
+      color: '#5eead4',
+      timer: 0.46,
+      maxTimer: 0.46,
+    });
+    if (!nextStep) {
+      trial.completed = true;
+      trial.active = false;
+      trial.echo = null;
+      trial.activeStepId = null;
+      trial.completionAnnounced = true;
+      current.notice = ARRIVAL_THRESHOLD_TRIAL_COMPLETE_LINE;
+      current.cinematicEvent = {
+        id: 'arrival-threshold-duat-echo-trial-complete',
+        name: 'Asha',
+        message: ARRIVAL_THRESHOLD_TRIAL_COMPLETE_LINE,
+        temporary: true,
+      };
+      current.cinematicTimer = 3.1;
+      current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 2.0);
+      audioControls?.playExpeditionSfx?.('gateUnlock', { volume: 0.72 });
+      return;
+    }
+    trial.stepIndex = nextIndex;
+    trial.activeStepId = nextStep.id;
+    trial.echo = {
+      ...nextStep,
+      direction: -1,
+      timer: 0,
+      hitFlash: 0,
+      attackCue: 0,
+      cleared: false,
+    };
+    trial.lineShownForStepId = null;
+    current.notice = message || nextStep.objective;
+    current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 1.4);
+    audioControls?.playExpeditionSfx?.('lostSiteAirShift', { volume: 0.44 });
+  }, [addCombatEffect, audioControls]);
+
+  const updateArrivalThresholdTrial = useCallback((current, player, dt) => {
+    const trial = current.arrivalThresholdTrial;
+    if (!trial || trial.completed) return;
+    const step = ARRIVAL_THRESHOLD_TRIAL_STEPS[trial.stepIndex];
+    if (!step) {
+      trial.completed = true;
+      trial.active = false;
+      trial.echo = null;
+      return;
+    }
+    const echo = trial.echo || {
+      ...step,
+      direction: -1,
+      timer: 0,
+      hitFlash: 0,
+      attackCue: 0,
+      cleared: false,
+    };
+    trial.echo = echo;
+    echo.timer = (echo.timer || 0) + dt;
+    echo.hitFlash = Math.max(0, (echo.hitFlash || 0) - dt);
+    echo.attackCue = Math.max(0, (echo.attackCue || 0) - dt);
+    if (trial.lineShownForStepId !== step.id) {
+      trial.lineShownForStepId = step.id;
+      current.notice = step.ashaLine;
+      current.cinematicEvent = {
+        id: `arrival-threshold-${step.id}`,
+        name: 'Asha',
+        message: `${step.ashaLine} ${step.objective}`,
+        temporary: true,
+      };
+      current.cinematicTimer = 3.0;
+      current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 1.6);
+    }
+    if (step.movement === 'patrol') {
+      const minX = step.patrolMin ?? step.x - 100;
+      const maxX = step.patrolMax ?? step.x + 100;
+      echo.x += (echo.direction || -1) * (step.speed || 70) * dt;
+      if (echo.x <= minX) {
+        echo.x = minX;
+        echo.direction = 1;
+      } else if (echo.x >= maxX) {
+        echo.x = maxX;
+        echo.direction = -1;
+      }
+    } else if (step.movement === 'strike') {
+      const playerCenterX = player.x + player.width / 2;
+      const echoCenterX = echo.x;
+      const distance = playerCenterX - echoCenterX;
+      echo.direction = distance >= 0 ? 1 : -1;
+      if (Math.abs(distance) < 210) {
+        echo.attackCue = Math.max(echo.attackCue || 0, 0.32);
+        echo.x += Math.sign(distance || echo.direction || 1) * (step.speed || 110) * dt;
+      }
+      if (current.dodgeTimer > 0 && Math.abs(distance) < 180) {
+        completeArrivalThresholdTrialStep(current, trial, step, 'The echo breaks when Asha moves with the strike.');
+        return;
+      }
+    }
+    const echoHitbox = getArrivalThresholdEchoHitbox(echo);
+    if (current.attackQueued && current.attackCooldown <= 0 && current.attackWindupTimer <= 0 && current.attackTimer <= 0 && current.attackRecoilTimer <= 0) {
+      current.attackQueued = false;
+      current.attackCooldown = 0.34;
+      current.attackTimer = 0.16;
+      current.attackRecoilTimer = 0.12;
+      current.attackHitIds.clear();
+      const attackBox = getAttackBox(player, PLAYER_ATTACK_RANGE, PLAYER_ATTACK_HEIGHT, player.direction, 0, PLAYER_ATTACK_BACK_REACH);
+      current.playerAttackBox = attackBox;
+      audioControls?.playExpeditionSfx?.('attackSwing1', { volume: 0.76 });
+      if (echoHitbox && rectsOverlap(attackBox, echoHitbox)) {
+        echo.hitFlash = 0.22;
+        completeArrivalThresholdTrialStep(current, trial, step, `${step.name} breaks into dust.`);
+      } else {
+        current.notice = `${step.name} is just out of reach. Step closer, then strike.`;
+        current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 1.1);
+      }
+    }
+  }, [audioControls, completeArrivalThresholdTrialStep, getAttackBox]);
+
   const getAttackHurtbox = useCallback((hostile, { boss = false } = {}) => {
     return getEnemyAttackHurtbox(hostile, { boss });
   }, []);
@@ -6969,15 +7151,6 @@ export default function ExpeditionJourney({
     });
     return best;
   }, [getAttackHurtbox]);
-
-  const addCombatEffect = useCallback((current, effect) => {
-    current.combatHitEffects.push({
-      timer: 0.35,
-      maxTimer: 0.35,
-      ...effect,
-    });
-    if (current.combatHitEffects.length > 18) current.combatHitEffects.shift();
-  }, []);
 
   const applyCombatHitImpact = useCallback(({
     current,
@@ -7648,10 +7821,26 @@ export default function ExpeditionJourney({
         leftInspected: Boolean(current.arrivalThresholdLeftInspected),
         markingsInspected: Boolean(current.arrivalThresholdMarkingsInspected),
         gateTriggered: Boolean(current.arrivalThresholdGateTriggered),
+        exitTransitionActive: Boolean(current.arrivalThresholdExitTransition),
+        exitTransitionProgress: current.arrivalThresholdExitTransition
+          ? Number(clamp(
+            (current.arrivalThresholdExitTransition.timer || 0) / (current.arrivalThresholdExitTransition.duration || ARRIVAL_THRESHOLD_EXIT_WALK_SECONDS),
+            0,
+            1,
+          ).toFixed(3))
+          : 0,
         playerX: Math.round(current.player.x),
         objective: current.notice,
         backgroundLoaded: Boolean(arrivalThresholdBackgroundRef.current.loaded),
+        doorwayGlowLoaded: Boolean(arrivalThresholdDoorwayGlowRef.current.loaded),
+        doorwayOccluderLoaded: Boolean(arrivalThresholdDoorwayOccluderRef.current.loaded),
         backgroundSrc: ARRIVAL_THRESHOLD_BACKGROUND_SRC,
+      } : null,
+      arrivalThresholdTrialState: current.arrivalThresholdTrial ? {
+        active: Boolean(current.arrivalThresholdTrial.active),
+        completed: Boolean(current.arrivalThresholdTrial.completed),
+        activeStepId: current.arrivalThresholdTrial.activeStepId || null,
+        completedStepIds: current.arrivalThresholdTrial.completedStepIds || [],
       } : null,
       templeThresholdTransitionState: current.templeThresholdTransition ? {
         id: current.templeThresholdTransition.id,
@@ -8983,6 +9172,7 @@ export default function ExpeditionJourney({
 
   const {
     drawAncientRouteGround,
+    drawArrivalThresholdDoorwayOccluder,
     drawArrivalThresholdScene,
     drawAttackArc,
     drawCinematicCards,
@@ -9000,6 +9190,14 @@ export default function ExpeditionJourney({
     drawEnemyAttackTell,
     drawForegroundDepthLayer,
     drawForegroundOccluderProps,
+    drawWorldContinuityLandmark,
+    drawStageEntranceFeature,
+    drawDynamicEnvironmentEvent,
+    drawEnvironmentInteraction,
+    drawRouteGate,
+    drawHazard,
+    drawDiscoveryEntrance,
+    drawPremiumEgyptianChamberDoor,
     drawForgottenMuralChamberTransition,
     drawHiddenRouteHint,
     drawLinkedEnemySprite,
@@ -9083,6 +9281,8 @@ export default function ExpeditionJourney({
     TEMPLE_THRESHOLD_FADE_OUT_SECONDS,
     TEMPLE_THRESHOLD_SWITCH_SECONDS,
     arrivalThresholdBackgroundRef,
+    arrivalThresholdDoorwayGlowRef,
+    arrivalThresholdDoorwayOccluderRef,
     bossSpriteAssetsRef,
     clamp,
     desertEntryBuriedCausewayGroundRef,
@@ -9160,6 +9360,32 @@ export default function ExpeditionJourney({
     getScarabQueenEmergenceBeat,
     getScarabQueenSpriteFrame,
     getSectionForX,
+    areRouteGateRequirementsMetForState,
+    DISCOVERY_ENTRANCE_REVEAL_SECONDS,
+    drawFieldNoteLabel,
+    drawHazardGroundApron,
+    drawOpeningHazardDecalRegion,
+    dynamicWorldAssetsRef,
+    GATE,
+    getDynamicWorldEffectRegion,
+    getEgyptHazardDecalDescriptor,
+    getEgyptHazardDecalDest,
+    getEnvironmentAssetKeyForHazard,
+    getHazardBurialAmount,
+    getHazardGroundingConfig,
+    getHazardVisualConfig,
+    getHazardVisualId,
+    getJourneySceneId,
+    HAZARD_VISUALS,
+    isReusableJourneyTrap,
+    normalizeJourneyTrap,
+    placeGateOnGround,
+    ROUTE_GATES,
+    routeGateBackRef,
+    routeGateFrontRef,
+    routeGateSlabRef,
+    shouldRenderChamberDoorVisual,
+    usesPaintedDynamicWorldEffect,
     getStoneGuardianDrawBox,
     getStoneGuardianSpriteFrame,
     isChinaGuardianBossSpriteId,
@@ -9225,2477 +9451,106 @@ export default function ExpeditionJourney({
     worldToScreenX,
   });
 
-  const drawTempleThresholdHallInterior = useCallback((ctx, current, now) => {
-    if (!isTempleThresholdHallScene(current)) return false;
-    const chamberAsset = arrivalThresholdBackgroundRef.current;
-    const flicker = 0.82 + Math.sin(now / 240) * 0.08 + Math.sin(now / 91) * 0.04;
+  const {
+    drawTempleThresholdHallInterior,
+    drawMummificationChamberInterior,
+    drawForgottenMuralChamberInterior,
+    drawScribeLockedChamberInterior,
+  } = useJourneyInteriorRenderers({
+    ARRIVAL_THRESHOLD_ASSET_VERSION,
+    CANVAS_HEIGHT,
+    CANVAS_WIDTH,
+    GROUND_Y,
+    JOURNEY_INTERACT_OBJECT_STATES,
+    MUMMIFICATION_CHAMBER_ATMOSPHERE_VERSION,
+    MUMMIFICATION_CHAMBER_EXIT_TRIGGER,
+    MUMMIFICATION_CHAMBER_INTERACTIONS_ASSET_VERSION,
+    MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS,
+    MUMMIFICATION_CHAMBER_INTERIOR_VERSION,
+    MUMMIFICATION_CHAMBER_READABILITY,
+    MUMMIFICATION_CHAMBER_RITUAL_GUIDANCE_VERSION,
+    MUMMIFICATION_CHAMBER_RITUAL_SEQUENCE,
+    MUMMIFICATION_CHAMBER_RITUAL_STEPS,
+    MUMMIFICATION_CHAMBER_RITE_OBJECTS,
+    MUMMIFICATION_JAR_SYMBOLS,
+    MUMMIFICATION_ROOM_INTERACT_VERSION,
+    SCRIBE_CHAMBER_EXIT_TRIGGER,
+    SCRIBE_CHAMBER_INTERIOR_VERSION,
+    SCRIBE_CHAMBER_TABLET_REGION,
+    arrivalThresholdBackgroundRef,
+    clamp,
+    drawAtlasRegion,
+    drawFieldNoteLabel,
+    forgottenMuralChamberRef,
+    forgottenMuralHiddenRevealRef,
+    getMummificationChamberAtmosphere,
+    getMummificationRiteByIndex,
+    isForgottenMuralChamberScene,
+    isMummificationChamberScene,
+    isScribeLockedChamberScene,
+    isTempleThresholdHallScene,
+    mummificationChamberInteriorRef,
+    mummificationInteractionAssetsRef,
+    scribeChamberInteriorRef,
+    worldToScreenX,
+  });
 
-    ctx.save();
-    ctx.fillStyle = 'rgba(8, 5, 4, 0.96)';
-    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    if (chamberAsset.loaded && chamberAsset.image) {
-      ctx.globalAlpha = 0.99;
-      ctx.drawImage(chamberAsset.image, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    } else {
-      const wallGradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-      wallGradient.addColorStop(0, '#0b0808');
-      wallGradient.addColorStop(0.52, '#211813');
-      wallGradient.addColorStop(1, '#090605');
-      ctx.fillStyle = wallGradient;
-      ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-      ctx.fillStyle = 'rgba(71, 45, 30, 0.72)';
-      ctx.fillRect(CANVAS_WIDTH * 0.62, 82, CANVAS_WIDTH * 0.26, CANVAS_HEIGHT * 0.66);
-    }
 
-    ctx.fillStyle = 'rgba(5, 4, 4, 0.16)';
-    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    ctx.save();
-    ctx.globalCompositeOperation = 'screen';
-    const sealGlow = ctx.createRadialGradient(CANVAS_WIDTH * 0.78, CANVAS_HEIGHT * 0.48, 20, CANVAS_WIDTH * 0.78, CANVAS_HEIGHT * 0.48, 210);
-    sealGlow.addColorStop(0, `rgba(250, 204, 21, ${0.18 * flicker})`);
-    sealGlow.addColorStop(0.45, `rgba(168, 85, 247, ${0.1 * flicker})`);
-    sealGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    ctx.fillStyle = sealGlow;
-    ctx.fillRect(CANVAS_WIDTH * 0.54, 80, CANVAS_WIDTH * 0.42, CANVAS_HEIGHT * 0.72);
-    ctx.restore();
 
-    if (current.templeThresholdHallCleared) {
-      ctx.save();
-      ctx.globalCompositeOperation = 'screen';
-      ctx.fillStyle = `rgba(250, 204, 21, ${0.12 * flicker})`;
-      ctx.fillRect(CANVAS_WIDTH * 0.68, CANVAS_HEIGHT * 0.2, CANVAS_WIDTH * 0.22, CANVAS_HEIGHT * 0.5);
-      ctx.restore();
-    }
 
-    if (current.renderStats) {
-      current.renderStats.templeThresholdHallVersion = ARRIVAL_THRESHOLD_ASSET_VERSION;
-      current.renderStats.templeThresholdHallLoaded = Boolean(chamberAsset.loaded && chamberAsset.image);
-    }
-    ctx.restore();
-    return true;
-  }, []);
-
-  const drawForgottenMuralChamberInterior = useCallback((ctx, current, now) => {
-    if (!isForgottenMuralChamberScene(current)) return false;
-    const chamberAsset = forgottenMuralChamberRef.current;
-    const flicker = 0.78 + Math.sin(now / 260) * 0.12;
-
-    ctx.save();
-    ctx.globalAlpha = 0.98;
-    ctx.fillStyle = 'rgba(8, 5, 4, 0.96)';
-    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-    if (chamberAsset.loaded && chamberAsset.image) {
-      ctx.drawImage(chamberAsset.image, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    } else {
-      const wall = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-      wall.addColorStop(0, '#1c1714');
-      wall.addColorStop(0.58, '#2b211a');
-      wall.addColorStop(1, '#0b0706');
-      ctx.fillStyle = wall;
-      ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-      ctx.fillStyle = 'rgba(45, 31, 23, 0.72)';
-      ctx.fillRect(110, 92, CANVAS_WIDTH - 220, CANVAS_HEIGHT - 170);
-      ctx.strokeStyle = 'rgba(96, 165, 250, 0.26)';
-      ctx.lineWidth = 5;
-      ctx.strokeRect(386, 150, 348, 190);
-    }
-
-    ctx.globalCompositeOperation = 'screen';
-    const glow = ctx.createRadialGradient(CANVAS_WIDTH * 0.52, CANVAS_HEIGHT * 0.42, 18, CANVAS_WIDTH * 0.52, CANVAS_HEIGHT * 0.42, 240);
-    glow.addColorStop(0, `rgba(96, 165, 250, ${0.26 * flicker})`);
-    glow.addColorStop(0.42, `rgba(250, 204, 21, ${0.14 * flicker})`);
-    glow.addColorStop(1, 'rgba(8, 13, 24, 0)');
-    ctx.fillStyle = glow;
-    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    ctx.globalCompositeOperation = 'source-over';
-
-    if (current.forgottenMuralChamberRestored) {
-      const revealAsset = forgottenMuralHiddenRevealRef.current;
-      const revealPulse = current.cinematicEvent?.id === 'forgotten-mural-relic-slide-puzzle-solved'
-        ? clamp(current.cinematicTimer / 4.2, 0, 1)
-        : 0;
-      const muralX = 390;
-      const muralY = 78;
-      const muralWidth = 420;
-      const muralHeight = 420;
-      const muralCenterX = muralX + muralWidth / 2;
-      const muralCenterY = muralY + muralHeight / 2;
-      const revealedGlow = 0.74 + Math.sin(now / 260) * 0.08 + revealPulse * 0.38;
-
-      ctx.save();
-      ctx.globalCompositeOperation = 'screen';
-      const revealBacklight = ctx.createRadialGradient(muralCenterX, muralCenterY, 30, muralCenterX, muralCenterY, 350);
-      revealBacklight.addColorStop(0, `rgba(250, 204, 21, ${0.3 * revealedGlow})`);
-      revealBacklight.addColorStop(0.34, `rgba(37, 99, 235, ${0.16 * revealedGlow})`);
-      revealBacklight.addColorStop(1, 'rgba(8, 13, 24, 0)');
-      ctx.fillStyle = revealBacklight;
-      ctx.fillRect(muralX - 130, muralY - 120, muralWidth + 260, muralHeight + 220);
-      ctx.restore();
-
-      ctx.save();
-      ctx.globalAlpha = 0.72 + revealPulse * 0.12;
-      ctx.fillStyle = 'rgba(15, 10, 7, 0.72)';
-      ctx.shadowColor = 'rgba(250, 204, 21, 0.52)';
-      ctx.shadowBlur = 16 + revealPulse * 22;
-      ctx.fillRect(muralX - 10, muralY - 10, muralWidth + 20, muralHeight + 20);
-      ctx.strokeStyle = `rgba(250, 204, 21, ${0.64 + revealPulse * 0.18})`;
-      ctx.lineWidth = 3;
-      ctx.strokeRect(muralX - 10, muralY - 10, muralWidth + 20, muralHeight + 20);
-      ctx.restore();
-
-      if (revealAsset.loaded && revealAsset.image) {
-        ctx.save();
-        ctx.globalAlpha = 0.9 + revealPulse * 0.08;
-        ctx.shadowColor = 'rgba(250, 204, 21, 0.5)';
-        ctx.shadowBlur = 16 + revealPulse * 26;
-        ctx.filter = `sepia(3%) saturate(108%) brightness(${100 + revealPulse * 6}%) contrast(106%)`;
-        ctx.drawImage(revealAsset.image, muralX, muralY, muralWidth, muralHeight);
-        ctx.filter = 'none';
-        ctx.restore();
-      } else {
-        ctx.save();
-        ctx.globalAlpha = 0.16;
-        ctx.fillStyle = 'rgba(250, 204, 21, 0.38)';
-        ctx.fillRect(muralX, muralY, muralWidth, muralHeight);
-        ctx.restore();
-      }
-    }
-
-    ctx.globalAlpha = 0.36;
-    ctx.fillStyle = 'rgba(245, 158, 11, 0.28)';
-    for (let i = 0; i < 14; i += 1) {
-      const dustX = 180 + i * 68 + Math.sin(now / 720 + i) * 10;
-      const dustY = 60 + ((now / 36 + i * 37) % 370);
-      ctx.beginPath();
-      ctx.ellipse(dustX, dustY, 1.6 + (i % 3), 3.5, 0, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.restore();
-    return true;
-  }, []);
-
-  const drawMummificationChamberInterior = useCallback((ctx, current, now) => {
-    if (!isMummificationChamberScene(current)) return false;
-    const chamberAsset = mummificationChamberInteriorRef.current;
-    const atmosphere = getMummificationChamberAtmosphere(current);
-    const flickerBase = 0.82 + Math.sin(now / 190) * 0.1 + Math.sin(now / 83) * 0.05;
-    const flicker = clamp(flickerBase * atmosphere.candleFlickerBoost, 0.62, 1.2);
-    const unlocked = Boolean(current.mummificationChamberExitUnlocked);
-
-    ctx.save();
-    ctx.fillStyle = 'rgba(8, 5, 4, 0.96)';
-    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    if (chamberAsset.loaded && chamberAsset.image) {
-      ctx.globalAlpha = 0.98;
-      ctx.drawImage(chamberAsset.image, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    } else {
-      const wallGradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-      wallGradient.addColorStop(0, '#120b07');
-      wallGradient.addColorStop(0.42, '#2c1b10');
-      wallGradient.addColorStop(0.78, '#3b2614');
-      wallGradient.addColorStop(1, '#090604');
-      ctx.fillStyle = wallGradient;
-      ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-      ctx.globalAlpha = 0.32;
-      ctx.strokeStyle = 'rgba(179, 128, 56, 0.5)';
-      ctx.lineWidth = 1.4;
-      for (let y = 74; y < CANVAS_HEIGHT - 70; y += 54) {
-        ctx.beginPath();
-        ctx.moveTo(70, y + Math.sin(now / 2200 + y) * 2);
-        ctx.lineTo(CANVAS_WIDTH - 70, y + Math.cos(now / 2300 + y) * 2);
-        ctx.stroke();
-      }
-      for (let x = 118; x < CANVAS_WIDTH - 90; x += 94) {
-        ctx.beginPath();
-        ctx.moveTo(x + Math.sin(now / 2600 + x) * 3, 42);
-        ctx.lineTo(x + 34, CANVAS_HEIGHT - 68);
-        ctx.stroke();
-      }
-    }
-
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.fillStyle = `rgba(7, 4, 3, ${atmosphere.roomDimAlpha})`;
-    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-    ctx.globalCompositeOperation = 'screen';
-    const roomLight = ctx.createRadialGradient(CANVAS_WIDTH * 0.5, CANVAS_HEIGHT * 0.42, 20, CANVAS_WIDTH * 0.5, CANVAS_HEIGHT * 0.42, CANVAS_WIDTH * 0.58);
-    roomLight.addColorStop(0, `rgba(255, 235, 179, ${atmosphere.roomLightAlpha * flicker})`);
-    roomLight.addColorStop(0.36, `rgba(250, 204, 21, ${atmosphere.roomLightAlpha * 0.52})`);
-    roomLight.addColorStop(1, 'rgba(69, 26, 3, 0)');
-    ctx.fillStyle = roomLight;
-    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-    const glyphAlpha = atmosphere.glyphGlowAlpha * flicker;
-    [
-      { x: 164, y: 72, width: 720, height: 72 },
-      { x: 142, y: 158, width: 760, height: 48 },
-      { x: 72, y: 236, width: 180, height: 184 },
-      { x: 946, y: 198, width: 118, height: 236 },
-    ].forEach((zone, index) => {
-      ctx.save();
-      ctx.globalAlpha = 0.72;
-      ctx.shadowColor = index % 2 === 0 ? 'rgba(250, 204, 21, 0.9)' : 'rgba(94, 234, 212, 0.62)';
-      ctx.shadowBlur = 20 + atmosphere.wakeProgress * 18;
-      ctx.fillStyle = index % 2 === 0
-        ? `rgba(250, 204, 21, ${glyphAlpha * 0.32})`
-        : `rgba(45, 212, 191, ${glyphAlpha * 0.2})`;
-      ctx.fillRect(zone.x, zone.y, zone.width, zone.height);
-      ctx.restore();
-    });
-
-    const tableZone = MUMMIFICATION_CHAMBER_READABILITY.mummificationChamberPuzzleCenterpiece;
-    const tableGlow = ctx.createRadialGradient(tableZone.x, tableZone.y, 20, tableZone.x, tableZone.y, tableZone.radiusX);
-    tableGlow.addColorStop(0, `rgba(250, 204, 21, ${(0.16 + atmosphere.wakeProgress * 0.18) * flicker})`);
-    tableGlow.addColorStop(0.5, `rgba(245, 158, 11, ${(0.08 + atmosphere.wakeProgress * 0.1) * flicker})`);
-    tableGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    ctx.fillStyle = tableGlow;
-    ctx.fillRect(tableZone.x - tableZone.radiusX, tableZone.y - tableZone.radiusY * 2, tableZone.radiusX * 2, tableZone.radiusY * 4);
-    ctx.globalCompositeOperation = 'source-over';
-
-    const candleGlow = (x, y, radius = 86) => {
-      ctx.save();
-      ctx.globalCompositeOperation = 'screen';
-      const glow = ctx.createRadialGradient(x, y, 2, x, y, radius);
-      glow.addColorStop(0, `rgba(255, 240, 180, ${(0.2 + atmosphere.wakeProgress * 0.26) * flicker})`);
-      glow.addColorStop(0.35, `rgba(245, 158, 11, ${(0.1 + atmosphere.wakeProgress * 0.18) * flicker})`);
-      glow.addColorStop(1, 'rgba(88, 28, 5, 0)');
-      ctx.fillStyle = glow;
-      ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
-      ctx.restore();
-    };
-
-    candleGlow(120, 255, 96);
-    candleGlow(232, 336, 72);
-    candleGlow(CANVAS_WIDTH - 128, 256, 102);
-    candleGlow(CANVAS_WIDTH - 242, 332, 72);
-
-    const torch = (x, y, direction = 1) => {
-      ctx.save();
-      const flame = ctx.createRadialGradient(x, y - 12, 2, x, y - 12, 112);
-      flame.addColorStop(0, `rgba(255, 230, 151, ${0.74 * flicker})`);
-      flame.addColorStop(0.32, `rgba(245, 158, 11, ${0.42 * flicker})`);
-      flame.addColorStop(1, 'rgba(88, 28, 5, 0)');
-      ctx.fillStyle = flame;
-      ctx.fillRect(x - 132, y - 130, 264, 230);
-      ctx.strokeStyle = '#4a2b17';
-      ctx.lineWidth = 8;
-      ctx.beginPath();
-      ctx.moveTo(x - direction * 10, y + 18);
-      ctx.lineTo(x + direction * 28, y + 82);
-      ctx.stroke();
-      ctx.fillStyle = '#f59e0b';
-      ctx.shadowColor = 'rgba(250, 204, 21, 0.9)';
-      ctx.shadowBlur = 24;
-      ctx.beginPath();
-      ctx.ellipse(x, y - 12, 12 + Math.sin(now / 120) * 2, 26, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#fff7ad';
-      ctx.beginPath();
-      ctx.ellipse(x + direction * 2, y - 18, 5, 12, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    };
-
-    if (!chamberAsset.loaded || !chamberAsset.image) {
-      torch(132, 164, 1);
-      torch(CANVAS_WIDTH - 132, 164, -1);
-    }
-
-    const tableX = CANVAS_WIDTH * 0.5;
-    const tableY = GROUND_Y - 84;
-    if (!chamberAsset.loaded || !chamberAsset.image) {
-      const tableGradient = ctx.createLinearGradient(tableX - 250, tableY, tableX + 250, tableY + 90);
-      tableGradient.addColorStop(0, '#4f351f');
-      tableGradient.addColorStop(0.48, '#a16207');
-      tableGradient.addColorStop(1, '#321b0d');
-      ctx.globalAlpha = 0.96;
-      ctx.fillStyle = tableGradient;
-      ctx.beginPath();
-      ctx.roundRect(tableX - 260, tableY, 520, 88, 14);
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(250, 204, 21, 0.42)';
-      ctx.lineWidth = 4;
-      ctx.stroke();
-
-      ctx.fillStyle = 'rgba(236, 201, 126, 0.9)';
-      ctx.beginPath();
-      ctx.roundRect(tableX - 150, tableY - 36, 300, 48, 22);
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(92, 49, 18, 0.52)';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-      ctx.fillStyle = 'rgba(91, 52, 24, 0.54)';
-      ctx.fillRect(tableX - 112, tableY - 19, 224, 8);
-
-      const jarColors = ['#b45309', '#92400e', '#854d0e', '#a16207'];
-      jarColors.forEach((color, index) => {
-        const jarX = tableX - 198 + index * 132;
-        ctx.fillStyle = color;
-        ctx.beginPath();
-        ctx.ellipse(jarX, tableY - 8, 24, 36, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = 'rgba(250, 204, 21, 0.36)';
-        ctx.fillRect(jarX - 15, tableY - 42, 30, 10);
-      });
-    }
-
-    const exitX = worldToScreenX(MUMMIFICATION_CHAMBER_EXIT_TRIGGER.minX + 24, current.cameraX);
-    ctx.fillStyle = unlocked ? 'rgba(13, 49, 38, 0.84)' : 'rgba(24, 15, 10, 0.96)';
-    ctx.beginPath();
-    ctx.roundRect(exitX - 32, GROUND_Y - 176, 96, 176, 12);
-    ctx.fill();
-    ctx.strokeStyle = unlocked ? 'rgba(94, 234, 212, 0.72)' : 'rgba(250, 204, 21, 0.48)';
-    ctx.lineWidth = 4;
-    ctx.stroke();
-    if (!unlocked) {
-      ctx.fillStyle = 'rgba(250, 204, 21, 0.3)';
-      ctx.fillRect(exitX - 24, GROUND_Y - 104, 80, 12);
-      ctx.fillRect(exitX + 10, GROUND_Y - 162, 12, 144);
-    }
-    ctx.save();
-    ctx.globalCompositeOperation = 'screen';
-    const sealPulse = 0.78 + Math.sin(now / 260) * 0.22;
-    const sealGlow = ctx.createRadialGradient(exitX + 16, GROUND_Y - 92, 10, exitX + 16, GROUND_Y - 92, unlocked ? 150 : 108);
-    sealGlow.addColorStop(0, unlocked
-      ? `rgba(94, 234, 212, ${atmosphere.sealGlowAlpha * sealPulse})`
-      : `rgba(250, 204, 21, ${atmosphere.sealGlowAlpha * sealPulse})`);
-    sealGlow.addColorStop(0.42, unlocked
-      ? `rgba(45, 212, 191, ${atmosphere.sealGlowAlpha * 0.36})`
-      : `rgba(245, 158, 11, ${atmosphere.sealGlowAlpha * 0.24})`);
-    sealGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    ctx.fillStyle = sealGlow;
-    ctx.fillRect(exitX - 142, GROUND_Y - 244, 316, 300);
-    ctx.restore();
-
-    const interactionAssets = mummificationInteractionAssetsRef.current;
-    const inspectedObjectIds = current.mummificationChamberInspectedObjectIds || new Set();
-    const chamberRitualStep = current.mummificationChamberRitualStep || 0;
-    const currentStepInfo = MUMMIFICATION_CHAMBER_RITUAL_STEPS[chamberRitualStep];
-    if (!unlocked && currentStepInfo) {
-      const activeRiteDef = getMummificationRiteByIndex(chamberRitualStep);
-      const actionHint = activeRiteDef?.actionHint;
-      const panelX = CANVAS_WIDTH * 0.5 - 230;
-      const panelY = 70;
-      const panelH = actionHint ? 98 : 76;
-      ctx.save();
-      ctx.fillStyle = 'rgba(22, 13, 8, 0.78)';
-      ctx.strokeStyle = 'rgba(250, 204, 21, 0.44)';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.roundRect(panelX, panelY, 460, panelH, 10);
-      ctx.fill();
-      ctx.stroke();
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.font = '900 13px Cinzel, serif';
-      ctx.fillStyle = 'rgba(250, 204, 21, 0.9)';
-      ctx.fillText(`Rite ${chamberRitualStep + 1}/${MUMMIFICATION_CHAMBER_RITUAL_STEPS.length}`, CANVAS_WIDTH * 0.5, panelY + 22);
-      ctx.font = '800 15px Outfit, sans-serif';
-      ctx.fillStyle = 'rgba(255, 247, 237, 0.9)';
-      ctx.fillText(currentStepInfo.guideLabel, CANVAS_WIDTH * 0.5, panelY + 48);
-      if (actionHint) {
-        ctx.font = '600 12px Outfit, sans-serif';
-        ctx.fillStyle = 'rgba(94, 234, 212, 0.86)';
-        ctx.fillText(actionHint, CANVAS_WIDTH * 0.5, panelY + 76);
-      }
-      ctx.restore();
-    }
-    MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS.forEach((item) => {
-      // activated = ritual step completed for this item (drives glow/alpha); inspected = same (kept for label logic)
-      const ritualIdx = MUMMIFICATION_CHAMBER_RITUAL_SEQUENCE.indexOf(item.id);
-      const activated = item.exitSeal ? unlocked : (ritualIdx >= 0 && ritualIdx < chamberRitualStep);
-      const isCurrentRitualStep = !unlocked && currentStepInfo?.id === item.id;
-      const inspected = activated || inspectedObjectIds.has(item.id);
-      const dest = {
-        x: item.screen.x - item.screen.width / 2,
-        y: item.screen.y - item.screen.height / 2,
-        width: item.screen.width,
-        height: item.screen.height,
-      };
-      if (item.assetKey === 'linenWrappings') {
-        dest.x += Math.sin(now / 540) * atmosphere.linenMotion * 5;
-        dest.y += Math.sin(now / 360) * atmosphere.linenMotion * 9;
-      }
-      ctx.save();
-      ctx.globalAlpha = item.exitSeal
-        ? (unlocked ? 0.94 : 0.74)
-        : item.assetKey === 'linenWrappings'
-          ? (inspected ? 0.62 : 0.82) + atmosphere.wakeProgress * 0.1
-          : isCurrentRitualStep ? 0.96 : (inspected ? 0.62 : 0.86);
-      ctx.filter = item.exitSeal
-        ? `drop-shadow(0 0 ${unlocked ? 22 : 10 + atmosphere.wakeProgress * 8}px ${unlocked ? 'rgba(94, 234, 212, 0.72)' : 'rgba(250, 204, 21, 0.62)'})`
-        : item.assetKey === 'linenWrappings'
-          ? `drop-shadow(0 0 ${8 + atmosphere.wakeProgress * 14}px rgba(255, 244, 214, 0.38))`
-          : isCurrentRitualStep
-            ? 'drop-shadow(0 0 10px rgba(250, 204, 21, 0.32))'
-            : 'drop-shadow(0 8px 10px rgba(18, 10, 6, 0.42))';
-      const drewAsset = drawAtlasRegion(ctx, interactionAssets, item.assetKey, dest, { mode: 'contain' });
-      ctx.restore();
-
-      if (!drewAsset) {
-        ctx.save();
-        ctx.globalAlpha = inspected ? 0.54 : 0.82;
-        ctx.fillStyle = item.exitSeal ? 'rgba(250, 204, 21, 0.32)' : 'rgba(146, 64, 14, 0.44)';
-        ctx.strokeStyle = item.exitSeal ? 'rgba(250, 204, 21, 0.72)' : 'rgba(253, 230, 138, 0.58)';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.roundRect(dest.x, dest.y, dest.width, dest.height, item.exitSeal ? 40 : 10);
-        ctx.fill();
-        ctx.stroke();
-        ctx.restore();
-      }
-
-      if (isCurrentRitualStep) {
-        drawFieldNoteLabel(ctx, item.screen.x, dest.y - 8, `Next: ${currentStepInfo.shortLabel}`, '#5eead4');
-      } else if (!inspected || (item.exitSeal && unlocked)) {
-        const markerColor = item.exitSeal && unlocked ? '#5eead4' : '#facc15';
-        drawFieldNoteLabel(ctx, item.screen.x, dest.y - 8, item.exitSeal && unlocked ? 'Exit open' : 'Inspect', markerColor);
-      }
-    });
-
-    if (!chamberAsset.loaded || !chamberAsset.image) {
-      const glyphPanelX = CANVAS_WIDTH * 0.5 - 230;
-      const glyphPanelY = 74;
-      ctx.fillStyle = 'rgba(22, 13, 8, 0.74)';
-      ctx.strokeStyle = `rgba(250, 204, 21, ${0.38 + flicker * 0.16})`;
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.roundRect(glyphPanelX, glyphPanelY, 460, 190, 12);
-      ctx.fill();
-      ctx.stroke();
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.font = '900 18px Cinzel, serif';
-      ctx.fillStyle = `rgba(255, 231, 143, ${0.88 * flicker})`;
-      ctx.fillText('PREPARATION RITES', CANVAS_WIDTH * 0.5, glyphPanelY + 42);
-      ctx.font = '700 13px Outfit, sans-serif';
-      ctx.fillStyle = 'rgba(255, 247, 237, 0.74)';
-      ctx.fillText('The jars, wrappings, and sealed door wait for the puzzle.', CANVAS_WIDTH * 0.5, glyphPanelY + 92);
-      ctx.fillStyle = `rgba(250, 204, 21, ${0.44 * flicker})`;
-      ['ANKH', 'JAR', 'LINEN', 'DOOR'].forEach((label, index) => {
-        ctx.fillText(label, glyphPanelX + 85 + index * 96, glyphPanelY + 144);
-      });
-    }
-
-    if (!unlocked) {
-      drawFieldNoteLabel(ctx, exitX + 38, GROUND_Y - 192, 'Entrance sealed', '#facc15');
-    }
-
-    // --- Journey Room Interact: rite sub-objects, carried item, hold ring, prompt ---
-    const interaction = current.mummificationChamberInteraction;
-    if (interaction) {
-      const carriedId = interaction.carriedItemId;
-      const objStates = interaction.objectStates || {};
-      const wrongFlash = interaction.wrongFlash || {};
-      const activeRite = getMummificationRiteByIndex(chamberRitualStep);
-      const flashPulse = 0.5 + Math.sin(now / 70) * 0.5;
-
-      // The chamber "stirs" — a brief ember-coloured flush over the room when a
-      // careless action disturbs it (reuses the atmosphere disturbance value).
-      if (atmosphere.disturbance > 0.01) {
-        ctx.save();
-        ctx.globalCompositeOperation = 'screen';
-        ctx.fillStyle = `rgba(214, 84, 32, ${atmosphere.disturbance * 0.18})`;
-        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-        ctx.restore();
-      }
-
-      MUMMIFICATION_CHAMBER_RITE_OBJECTS.forEach((object) => {
-        const state = objStates[object.id] || JOURNEY_INTERACT_OBJECT_STATES.IDLE;
-        const isActiveRite = activeRite && object.rite === activeRite.rite;
-        const completed = state === JOURNEY_INTERACT_OBJECT_STATES.COMPLETED
-          || state === JOURNEY_INTERACT_OBJECT_STATES.USED;
-        // Future-rite objects aren't placed in the room yet; completed ones stay settled.
-        if (!isActiveRite && !completed) return;
-        if (carriedId === object.id) return; // carried items render on the player
-        const sx = object.screen.x;
-        const sy = object.screen.y;
-        const w = object.screen.width;
-        const h = object.screen.height;
-        const sym = object.symbol ? MUMMIFICATION_JAR_SYMBOLS[object.symbol] : null;
-        const mark = sym?.glyph || object.fragMark || null;
-        const oilColor = object.oilTone === 'sacred' ? '#7fd6c0'
-          : object.oilTone === 'bitter' ? '#6f5f33'
-            : object.oilTone === 'thin' ? '#b9a06a' : null;
-        const baseColor = sym?.color || oilColor || (object.id === 'linen-roll' ? '#e8ddc4' : '#caa86a');
-        const isSlot = object.role === 'target' || object.role === 'restore';
-        const flashStroke = wrongFlash[object.id]
-          ? `rgba(248, 113, 113, ${0.4 + flashPulse * 0.5})`
-          : null;
-        ctx.save();
-        // Subtle presence glow only — no "this is the correct one" highlight, so
-        // matching the jar/fragment to its mark stays genuine inference.
-        if (isActiveRite && !completed) {
-          ctx.shadowColor = isSlot ? 'rgba(214, 176, 106, 0.38)' : 'rgba(250, 204, 21, 0.46)';
-          ctx.shadowBlur = 8;
-        }
-        if (isSlot) {
-          ctx.fillStyle = completed ? 'rgba(34, 28, 18, 0.95)' : 'rgba(54, 41, 24, 0.9)';
-          ctx.strokeStyle = flashStroke || (completed ? 'rgba(94, 234, 212, 0.8)' : 'rgba(214, 176, 106, 0.5)');
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.roundRect(sx - w / 2, sy - h / 2, w, h, 6);
-          ctx.fill();
-          ctx.stroke();
-          if (mark) {
-            ctx.fillStyle = completed ? 'rgba(94, 234, 212, 0.92)' : baseColor;
-            ctx.font = '900 18px Cinzel, serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(mark, sx, sy - 2);
-          }
-          if (completed) {
-            ctx.fillStyle = baseColor;
-            ctx.beginPath();
-            ctx.ellipse(sx, sy - h / 2 - 12, 13, 20, 0, 0, Math.PI * 2);
-            ctx.fill();
-          }
-        } else if (object.role === 'source') {
-          ctx.globalAlpha = completed ? 0.35 : 1;
-          ctx.fillStyle = baseColor;
-          ctx.beginPath();
-          ctx.ellipse(sx, sy, w / 2, h / 2, 0, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.strokeStyle = flashStroke || 'rgba(20, 12, 6, 0.5)';
-          ctx.lineWidth = 2;
-          ctx.stroke();
-          if (mark) {
-            ctx.fillStyle = 'rgba(20, 12, 6, 0.82)';
-            ctx.font = '900 14px Cinzel, serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(mark, sx, sy);
-          }
-        } else {
-          // inspect / activate / apply / wrap markers
-          ctx.strokeStyle = flashStroke
-            || (completed ? 'rgba(94, 234, 212, 0.5)' : 'rgba(250, 204, 21, 0.42)');
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.arc(sx, sy, Math.max(w, h) / 2, 0, Math.PI * 2);
-          ctx.stroke();
-          if (object.role === 'activate') {
-            ctx.fillStyle = completed ? 'rgba(94, 234, 212, 0.5)' : 'rgba(120, 170, 210, 0.55)';
-            ctx.beginPath();
-            ctx.ellipse(sx, sy + 5, w / 2 - 4, h / 3, 0, 0, Math.PI * 2);
-            ctx.fill();
-          }
-        }
-        ctx.restore();
-      });
-
-      // Hold progress ring over the active apply/wrap target.
-      if (interaction.holdItemId && interaction.holdProgress > 0 && interaction.holdDuration > 0) {
-        const holdObj = MUMMIFICATION_CHAMBER_RITE_OBJECTS.find(o => o.id === interaction.holdItemId);
-        if (holdObj) {
-          const ratio = clamp(interaction.holdProgress / interaction.holdDuration, 0, 1);
-          const cx = holdObj.screen.x;
-          const cy = holdObj.screen.y - 36;
-          const pulse = 0.85 + Math.sin(now / 90) * 0.15;
-          ctx.save();
-          ctx.lineWidth = 6;
-          ctx.strokeStyle = 'rgba(18, 12, 8, 0.65)';
-          ctx.beginPath();
-          ctx.arc(cx, cy, 26, 0, Math.PI * 2);
-          ctx.stroke();
-          ctx.shadowColor = 'rgba(94, 234, 212, 0.7)';
-          ctx.shadowBlur = 12 * pulse;
-          ctx.strokeStyle = `rgba(94, 234, 212, ${0.85 + ratio * 0.15})`;
-          ctx.beginPath();
-          ctx.arc(cx, cy, 26, -Math.PI / 2, -Math.PI / 2 + ratio * Math.PI * 2);
-          ctx.stroke();
-          ctx.shadowBlur = 0;
-          ctx.fillStyle = 'rgba(224, 252, 247, 0.95)';
-          ctx.font = '800 12px Outfit, sans-serif';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(holdObj.holdKey === 'wrap' ? 'Wrapping…' : 'Applying…', cx, cy - 40);
-          ctx.restore();
-        }
-      }
-
-      // Carried item floating above Asha.
-      if (carriedId) {
-        const carriedObj = MUMMIFICATION_CHAMBER_RITE_OBJECTS.find(o => o.id === carriedId);
-        const pcx = worldToScreenX(current.player.x + current.player.width / 2, current.cameraX);
-        const pcy = current.player.y - 24;
-        const sym = carriedObj?.symbol ? MUMMIFICATION_JAR_SYMBOLS[carriedObj.symbol] : null;
-        const carriedMark = sym?.glyph || carriedObj?.fragMark || null;
-        const carriedOilColor = carriedObj?.oilTone === 'sacred' ? '#7fd6c0'
-          : carriedObj?.oilTone === 'bitter' ? '#6f5f33'
-            : carriedObj?.oilTone === 'thin' ? '#b9a06a' : null;
-        ctx.save();
-        ctx.shadowColor = 'rgba(94, 234, 212, 0.7)';
-        ctx.shadowBlur = 14;
-        ctx.fillStyle = sym?.color || carriedOilColor || (carriedId === 'linen-roll' ? '#e8ddc4' : '#d8c08a');
-        ctx.beginPath();
-        ctx.ellipse(pcx, pcy, 13, 18, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-        if (carriedMark) {
-          ctx.fillStyle = 'rgba(20, 12, 6, 0.85)';
-          ctx.font = '900 13px Cinzel, serif';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(carriedMark, pcx, pcy);
-        }
-        ctx.font = '800 11px Outfit, sans-serif';
-        ctx.fillStyle = 'rgba(255, 247, 237, 0.92)';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(`Carrying: ${carriedObj?.label || 'item'}`, pcx, pcy - 28);
-        ctx.restore();
-      }
-
-      // Interact prompt pill near the active object — only when close enough to act.
-      if (interaction.activePrompt && interaction.activePromptId) {
-        const promptObj = MUMMIFICATION_CHAMBER_RITE_OBJECTS.find(o => o.id === interaction.activePromptId)
-          || MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS.find(o => o.id === interaction.activePromptId);
-        if (promptObj) {
-          const label = interaction.activePrompt;
-          const px = promptObj.screen.x;
-          const ph = promptObj.screen.height || 60;
-          const py = promptObj.screen.y - ph / 2 - 30;
-          ctx.save();
-          ctx.font = '800 13px Outfit, sans-serif';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          const pw = ctx.measureText(label).width + 24;
-          ctx.fillStyle = 'rgba(15, 23, 24, 0.86)';
-          ctx.strokeStyle = 'rgba(94, 234, 212, 0.7)';
-          ctx.lineWidth = 1.5;
-          ctx.beginPath();
-          ctx.roundRect(px - pw / 2, py - 13, pw, 26, 8);
-          ctx.fill();
-          ctx.stroke();
-          ctx.fillStyle = 'rgba(224, 252, 247, 0.96)';
-          ctx.fillText(label, px, py);
-          ctx.restore();
-        }
-      }
-    }
-
-    const particleCount = atmosphere.particleCount;
-    ctx.globalAlpha = 0.16 + atmosphere.wakeProgress * 0.26;
-    ctx.fillStyle = unlocked ? 'rgba(94, 234, 212, 0.34)' : 'rgba(245, 158, 11, 0.25)';
-    for (let i = 0; i < particleCount; i += 1) {
-      const driftSpeed = 60 - atmosphere.wakeProgress * 24;
-      const dustX = 112 + i * 38 + Math.sin(now / 620 + i) * (7 + atmosphere.wakeProgress * 9);
-      const dustY = 50 + ((now / driftSpeed + i * 31) % 420);
-      ctx.beginPath();
-      ctx.ellipse(dustX, dustY, 1.1 + (i % 3) + atmosphere.wakeProgress * 0.8, 3 + atmosphere.wakeProgress * 2.2, 0, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    if (current.renderStats) {
-      current.renderStats.mummificationChamberInteriorVersion = MUMMIFICATION_CHAMBER_INTERIOR_VERSION;
-      current.renderStats.mummificationChamberInteriorLoaded = Boolean(chamberAsset.loaded && chamberAsset.image);
-      current.renderStats.mummificationChamberInteractionAssetVersion = MUMMIFICATION_CHAMBER_INTERACTIONS_ASSET_VERSION;
-      current.renderStats.mummificationChamberInteractionAssetsLoaded = Boolean(interactionAssets.loaded && interactionAssets.image);
-      current.renderStats.mummificationChamberRitualGuidanceVersion = MUMMIFICATION_CHAMBER_RITUAL_GUIDANCE_VERSION;
-      current.renderStats.mummificationChamberCurrentRite = currentStepInfo?.rite || null;
-      current.renderStats.mummificationChamberNextObjectId = currentStepInfo?.id || null;
-      current.renderStats.mummificationChamberAtmosphereVersion = MUMMIFICATION_CHAMBER_ATMOSPHERE_VERSION;
-      current.renderStats.mummificationChamberAtmosphereState = atmosphere.state;
-      current.renderStats.mummificationChamberWakeProgress = Number(atmosphere.wakeProgress.toFixed(2));
-      current.renderStats.mummificationChamberParticleCount = particleCount;
-      current.renderStats.mummificationChamberGlyphGlowAlpha = Number(atmosphere.glyphGlowAlpha.toFixed(2));
-      current.renderStats.visibleMummificationChamberInteractionObjects = MUMMIFICATION_CHAMBER_INTERACTION_OBJECTS.map(item => item.id);
-      current.renderStats.mummificationChamberInspectedObjects = Array.from(inspectedObjectIds);
-      current.renderStats.mummificationChamberInteractVersion = MUMMIFICATION_ROOM_INTERACT_VERSION;
-      current.renderStats.mummificationChamberCarriedItemId = current.mummificationChamberInteraction?.carriedItemId || null;
-      current.renderStats.mummificationChamberActivePrompt = current.mummificationChamberInteraction?.activePrompt || null;
-      current.renderStats.mummificationChamberHoldProgress = Number((current.mummificationChamberInteraction?.holdProgress || 0).toFixed(2));
-      current.renderStats.mummificationChamberDisturbance = Number((atmosphere.disturbance || 0).toFixed(2));
-      current.renderStats.mummificationChamberWrongCount = current.mummificationChamberWrongCount || 0;
-    }
-    ctx.restore();
-    return true;
-  }, [drawFieldNoteLabel]);
-
-  const drawScribeLockedChamberInterior = useCallback((ctx, current, now) => {
-    if (!isScribeLockedChamberScene(current)) return false;
-    const chamberAsset = scribeChamberInteriorRef.current;
-    const hasInteriorAsset = Boolean(chamberAsset.loaded && chamberAsset.image);
-    const flicker = 0.82 + Math.sin(now / 220) * 0.1 + Math.sin(now / 91) * 0.04;
-    const unlocked = Boolean(current.scribeChamberExitUnlocked);
-
-    ctx.save();
-    ctx.fillStyle = 'rgba(8, 5, 4, 0.96)';
-    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    if (hasInteriorAsset) {
-      ctx.globalAlpha = 0.98;
-      ctx.drawImage(chamberAsset.image, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-      ctx.globalAlpha = 1;
-      ctx.fillStyle = unlocked ? 'rgba(7, 4, 3, 0.1)' : 'rgba(7, 4, 3, 0.18)';
-      ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-      ctx.save();
-      ctx.globalCompositeOperation = 'screen';
-      const scribeRoomLight = ctx.createRadialGradient(CANVAS_WIDTH * 0.52, CANVAS_HEIGHT * 0.42, 30, CANVAS_WIDTH * 0.52, CANVAS_HEIGHT * 0.42, CANVAS_WIDTH * 0.56);
-      scribeRoomLight.addColorStop(0, `rgba(255, 225, 154, ${0.14 * flicker})`);
-      scribeRoomLight.addColorStop(0.44, `rgba(245, 158, 11, ${0.07 * flicker})`);
-      scribeRoomLight.addColorStop(1, 'rgba(0, 0, 0, 0)');
-      ctx.fillStyle = scribeRoomLight;
-      ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-      ctx.restore();
-    } else {
-    const wallGradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-    wallGradient.addColorStop(0, '#0b0806');
-    wallGradient.addColorStop(0.38, '#21170f');
-    wallGradient.addColorStop(0.72, '#2b1d12');
-    wallGradient.addColorStop(1, '#070504');
-    ctx.fillStyle = wallGradient;
-    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-    ctx.globalAlpha = 0.34;
-    ctx.strokeStyle = 'rgba(120, 87, 49, 0.5)';
-    ctx.lineWidth = 1.5;
-    for (let x = -40; x < CANVAS_WIDTH + 60; x += 96) {
-      ctx.beginPath();
-      ctx.moveTo(x + Math.sin(now / 3000 + x) * 4, 36);
-      ctx.lineTo(x + 32, CANVAS_HEIGHT - 64);
-      ctx.stroke();
-    }
-    for (let y = 80; y < CANVAS_HEIGHT - 70; y += 58) {
-      ctx.beginPath();
-      ctx.moveTo(60, y + Math.sin(now / 2400 + y) * 2);
-      ctx.lineTo(CANVAS_WIDTH - 60, y + Math.cos(now / 2200 + y) * 2);
-      ctx.stroke();
-    }
-
-    const torch = (x, y, direction = 1) => {
-      ctx.save();
-      const flame = ctx.createRadialGradient(x, y - 12, 2, x, y - 12, 90);
-      flame.addColorStop(0, `rgba(255, 218, 117, ${0.72 * flicker})`);
-      flame.addColorStop(0.32, `rgba(245, 158, 11, ${0.36 * flicker})`);
-      flame.addColorStop(1, 'rgba(88, 28, 5, 0)');
-      ctx.fillStyle = flame;
-      ctx.fillRect(x - 110, y - 118, 220, 210);
-      ctx.strokeStyle = '#4a2b17';
-      ctx.lineWidth = 8;
-      ctx.beginPath();
-      ctx.moveTo(x - direction * 10, y + 18);
-      ctx.lineTo(x + direction * 28, y + 82);
-      ctx.stroke();
-      ctx.fillStyle = '#f59e0b';
-      ctx.shadowColor = 'rgba(250, 204, 21, 0.9)';
-      ctx.shadowBlur = 22;
-      ctx.beginPath();
-      ctx.ellipse(x, y - 12, 12 + Math.sin(now / 120) * 2, 25, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#fff7ad';
-      ctx.beginPath();
-      ctx.ellipse(x + direction * 2, y - 18, 5, 12, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    };
-
-    torch(104, 154, 1);
-    torch(CANVAS_WIDTH - 104, 154, -1);
-
-    const wallX = 245;
-    const wallY = 70;
-    const wallW = 610;
-    const wallH = 272;
-    const wallPanel = ctx.createLinearGradient(wallX, wallY, wallX, wallY + wallH);
-    wallPanel.addColorStop(0, '#201712');
-    wallPanel.addColorStop(0.48, '#110d0b');
-    wallPanel.addColorStop(1, '#2f2118');
-    ctx.globalAlpha = 0.95;
-    ctx.fillStyle = wallPanel;
-    ctx.beginPath();
-    ctx.roundRect(wallX, wallY, wallW, wallH, 12);
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(180, 129, 57, 0.5)';
-    ctx.lineWidth = 4;
-    ctx.stroke();
-
-    const drawMiniGlyph = (x, y, kind, damaged = false, scale = 1) => {
-      ctx.save();
-      ctx.translate(x, y);
-      ctx.scale(scale, scale);
-      ctx.globalAlpha = damaged ? 0.58 : 0.86;
-      ctx.strokeStyle = damaged ? 'rgba(217, 119, 6, 0.82)' : 'rgba(255, 231, 143, 0.95)';
-      ctx.fillStyle = damaged ? 'rgba(217, 119, 6, 0.64)' : 'rgba(250, 204, 21, 0.86)';
-      ctx.shadowColor = 'rgba(250, 204, 21, 0.7)';
-      ctx.shadowBlur = damaged ? 5 : 13;
-      ctx.lineWidth = 2.2;
-      if (kind === 'sun') {
-        ctx.beginPath();
-        ctx.arc(0, 0, 8, 0, Math.PI * 2);
-        ctx.stroke();
-        for (let ray = 0; ray < 8; ray += 1) {
-          const angle = (Math.PI * 2 * ray) / 8;
-          ctx.beginPath();
-          ctx.moveTo(Math.cos(angle) * 12, Math.sin(angle) * 12);
-          ctx.lineTo(Math.cos(angle) * 18, Math.sin(angle) * 18);
-          ctx.stroke();
-        }
-      } else if (kind === 'water') {
-        for (let row = -1; row <= 1; row += 1) {
-          ctx.beginPath();
-          ctx.moveTo(-17, row * 7);
-          for (let i = -16; i <= 18; i += 8) ctx.quadraticCurveTo(i + 4, row * 7 - 5, i + 8, row * 7);
-          ctx.stroke();
-        }
-      } else if (kind === 'ankh') {
-        ctx.beginPath();
-        ctx.ellipse(0, -10, 7, 10, 0, 0, Math.PI * 2);
-        ctx.moveTo(0, 0);
-        ctx.lineTo(0, 22);
-        ctx.moveTo(-14, 8);
-        ctx.lineTo(14, 8);
-        ctx.stroke();
-      } else if (kind === 'eye') {
-        ctx.beginPath();
-        ctx.ellipse(0, 0, 18, 8, 0, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(0, 0, 4, 0, Math.PI * 2);
-        ctx.fill();
-      } else if (kind === 'feather') {
-        ctx.beginPath();
-        ctx.moveTo(-6, 18);
-        ctx.quadraticCurveTo(5, -18, 14, -22);
-        ctx.quadraticCurveTo(19, -4, -6, 18);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(-4, 14);
-        ctx.lineTo(12, -14);
-        ctx.stroke();
-      } else if (kind === 'reed') {
-        ctx.beginPath();
-        ctx.moveTo(0, 22);
-        ctx.lineTo(0, -18);
-        ctx.moveTo(0, -12);
-        ctx.lineTo(12, -22);
-        ctx.stroke();
-      } else if (kind === 'bird') {
-        ctx.beginPath();
-        ctx.moveTo(-18, 8);
-        ctx.quadraticCurveTo(-5, -16, 13, -4);
-        ctx.quadraticCurveTo(3, 0, 17, 14);
-        ctx.moveTo(-2, 10);
-        ctx.lineTo(-8, 22);
-        ctx.stroke();
-      } else {
-        ctx.beginPath();
-        ctx.roundRect(-10, -16, 20, 32, 3);
-        ctx.moveTo(-10, 0);
-        ctx.lineTo(10, 0);
-        ctx.stroke();
-      }
-      if (damaged) {
-        ctx.shadowBlur = 0;
-        ctx.strokeStyle = 'rgba(17, 12, 8, 0.88)';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(-16, -17);
-        ctx.lineTo(-2, 2);
-        ctx.lineTo(-8, 19);
-        ctx.stroke();
-      }
-      ctx.restore();
-    };
-
-    const miniGlyphTypes = ['sun', 'water', 'ankh', 'door', 'eye', 'feather', 'reed', 'bird'];
-    for (let col = 0; col < 10; col += 1) {
-      const x = wallX + 36 + col * 58;
-      ctx.globalAlpha = 0.24;
-      ctx.strokeStyle = 'rgba(250, 204, 21, 0.3)';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(x + 27, wallY + 18);
-      ctx.lineTo(x + 27, wallY + wallH - 24);
-      ctx.stroke();
-      for (let row = 0; row < 6; row += 1) {
-        drawMiniGlyph(x, wallY + 42 + row * 36, miniGlyphTypes[(col + row) % miniGlyphTypes.length], (col + row) % 7 === 0, 0.72);
-      }
-    }
-
-    const glyphs = [
-      ['sun', 'Sun', 344, 156, false],
-      ['water', 'Water', 476, 156, false],
-      ['ankh', 'Ankh', 608, 156, false],
-      ['door', 'Door', 740, 156, false],
-      ['eye', 'Eye', 392, 252, false],
-      ['feather', 'Feather', 514, 252, true],
-      ['reed', 'Reed', 636, 252, false],
-      ['bird', 'Bird', 758, 252, true],
-    ];
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    glyphs.forEach(([kind, label, x, y, cracked], index) => {
-      const pulse = flicker + Math.sin(now / 320 + index) * 0.08;
-      ctx.save();
-      ctx.globalAlpha = cracked ? 0.82 : 0.98;
-      ctx.fillStyle = 'rgba(36, 25, 16, 0.92)';
-      ctx.strokeStyle = cracked ? 'rgba(180, 83, 9, 0.65)' : 'rgba(250, 204, 21, 0.72)';
-      ctx.lineWidth = 3;
-      ctx.shadowColor = cracked ? 'rgba(245, 158, 11, 0.42)' : 'rgba(250, 204, 21, 0.74)';
-      ctx.shadowBlur = cracked ? 12 : 22;
-      ctx.beginPath();
-      ctx.roundRect(x - 35, y - 38, 70, 76, 10);
-      ctx.fill();
-      ctx.stroke();
-      ctx.restore();
-      drawMiniGlyph(x, y - 4, kind, cracked, index < 4 ? 1.42 : 1.1);
-      ctx.save();
-      ctx.shadowColor = 'rgba(250, 204, 21, 0.55)';
-      ctx.shadowBlur = cracked ? 4 : 10;
-      ctx.font = '10px Cinzel, serif';
-      ctx.fillStyle = cracked ? `rgba(217, 119, 6, ${0.66 * pulse})` : `rgba(255, 231, 143, ${0.92 * pulse})`;
-      ctx.fillText(label.toUpperCase(), x, y + 32);
-      ctx.restore();
-    });
+  const drawArrivalThresholdTrial = useCallback((ctx, current, now) => {
+    const trial = current.arrivalThresholdTrial;
+    const echo = trial?.echo;
+    if (!current.arrivalThresholdActive || !trial || trial.completed || !echo) return false;
+    const hitbox = getArrivalThresholdEchoHitbox(echo);
+    if (!hitbox) return false;
+    const cameraX = current.cameraX || 0;
+    const x = hitbox.x - cameraX;
+    const y = hitbox.y;
+    const pulse = 0.7 + Math.sin(now / 220 + (echo.timer || 0) * 3) * 0.18;
+    const alpha = clamp((echo.hitFlash || 0) > 0 ? 0.92 : 0.48 + pulse * 0.2, 0.35, 0.9);
 
     ctx.save();
     ctx.globalCompositeOperation = 'screen';
-    const glyphGlow = ctx.createRadialGradient(552, 175, 30, 552, 175, 360);
-    glyphGlow.addColorStop(0, `rgba(250, 204, 21, ${0.34 * flicker})`);
-    glyphGlow.addColorStop(0.45, `rgba(245, 158, 11, ${0.16 * flicker})`);
-    glyphGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    ctx.fillStyle = glyphGlow;
-    ctx.fillRect(160, 10, 790, 410);
-    ctx.restore();
-    }
-
-    const pedestalX = worldToScreenX(SCRIBE_CHAMBER_TABLET_REGION.x + SCRIBE_CHAMBER_TABLET_REGION.width / 2, current.cameraX);
-    const pedestalY = GROUND_Y - 70;
-    ctx.fillStyle = '#4b3524';
-    ctx.beginPath();
-    ctx.roundRect(pedestalX - 42, pedestalY, 84, 82, 8);
-    ctx.fill();
-    ctx.fillStyle = '#7c5b38';
-    ctx.beginPath();
-    ctx.roundRect(pedestalX - 54, pedestalY - 12, 108, 22, 8);
-    ctx.fill();
-    ctx.fillStyle = current.scribeChamberTabletInspected ? '#fde68a' : '#d6b66b';
-    ctx.shadowColor = 'rgba(250, 204, 21, 0.55)';
-    ctx.shadowBlur = 12;
-    ctx.beginPath();
-    ctx.roundRect(pedestalX - 34, pedestalY - 44, 68, 34, 5);
-    ctx.fill();
-    ctx.shadowBlur = 0;
-    ctx.font = '10px Cinzel, serif';
-    ctx.fillStyle = '#3b2614';
-    ctx.fillText('SUN WATER ANKH DOOR', pedestalX, pedestalY - 27);
-
-    const exitX = worldToScreenX(SCRIBE_CHAMBER_EXIT_TRIGGER.minX + 24, current.cameraX);
-    ctx.fillStyle = unlocked ? 'rgba(13, 49, 38, 0.84)' : 'rgba(28, 18, 13, 0.94)';
-    ctx.beginPath();
-    ctx.roundRect(exitX - 30, GROUND_Y - 172, 92, 172, 12);
-    ctx.fill();
-    ctx.strokeStyle = unlocked ? 'rgba(94, 234, 212, 0.7)' : 'rgba(250, 204, 21, 0.48)';
-    ctx.lineWidth = 4;
-    ctx.stroke();
-    if (!unlocked) {
-      ctx.fillStyle = 'rgba(250, 204, 21, 0.28)';
-      ctx.fillRect(exitX - 22, GROUND_Y - 100, 76, 12);
-      ctx.fillRect(exitX + 10, GROUND_Y - 160, 12, 142);
-    }
-
-    ctx.globalAlpha = 0.36;
-    ctx.fillStyle = 'rgba(245, 158, 11, 0.26)';
-    for (let i = 0; i < 22; i += 1) {
-      const dustX = 120 + i * 42 + Math.sin(now / 760 + i) * 9;
-      const dustY = 46 + ((now / 42 + i * 31) % 380);
-      ctx.beginPath();
-      ctx.ellipse(dustX, dustY, 1.2 + (i % 3), 3.2, 0, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    if (current.scribeChamberTabletInspected) {
-      drawFieldNoteLabel(ctx, pedestalX, pedestalY - 72, 'Translation tablet recorded', '#facc15');
-    }
-    if (current.scribeChamberWallInspected && !current.scribeChamberPuzzleSolved) {
-      drawFieldNoteLabel(ctx, CANVAS_WIDTH * 0.52, 52, 'Decode the glowing wall', '#facc15');
-    }
-    if (current.renderStats) {
-      current.renderStats.scribeChamberInteriorVersion = SCRIBE_CHAMBER_INTERIOR_VERSION;
-      current.renderStats.scribeChamberInteriorLoaded = hasInteriorAsset;
-    }
-    ctx.restore();
-    return true;
-  }, [drawFieldNoteLabel]);
-
-  const drawWorldContinuityLandmark = useCallback((ctx, landmark, cameraX, now) => {
-    const parallax = landmark.parallax ?? 0.2;
-    const section = getSectionForX(landmark.x);
-    const viewSection = getSectionForX(cameraX + CANVAS_WIDTH / 2);
-    if (section.id !== viewSection.id) return false;
-    if (section.id === 'desert-entry' && ['gate', 'tower'].includes(landmark.type)) return false;
-
-    const width = landmark.width || 120;
-    const height = landmark.height || 100;
-    const sectionWidth = Math.max(1, section.end - section.start);
-    const sectionProgress = clamp((cameraX - section.start) / Math.max(1, sectionWidth - CANVAS_WIDTH), 0, 1);
-    const localAnchor = ((landmark.x - section.start) / sectionWidth) * CANVAS_WIDTH;
-    const x = 120 + localAnchor - sectionProgress * CANVAS_WIDTH * parallax;
-    if (x < -width || x > CANVAS_WIDTH + width) return false;
-
-    const baseY = landmark.y + height;
-    const pulse = 0.78 + Math.sin(now / 900 + landmark.x * 0.002) * 0.08;
-
-    ctx.save();
-    const landmarkAlpha = Number.isFinite(landmark.alpha)
-      ? landmark.alpha
-      : landmark.type === 'excavation-camp'
-        ? 0.58
-        : landmark.layer === 'between-chambers'
-          ? 0.62
-          : 0.38;
-    ctx.globalAlpha = landmarkAlpha;
-    drawDecorativeBaseBlend(ctx, x, baseY, width * 0.78, section.id, 'background', 0.38);
-
-    if (landmark.type === 'mountains') {
-      ctx.fillStyle = 'rgba(37, 62, 79, 0.34)';
-      ctx.beginPath();
-      ctx.moveTo(x - width * 0.58, baseY - height * 0.06);
-      ctx.lineTo(x - width * 0.32, baseY - height * 0.92);
-      ctx.lineTo(x - width * 0.08, baseY - height * 0.24);
-      ctx.lineTo(x + width * 0.18, baseY - height);
-      ctx.lineTo(x + width * 0.52, baseY - height * 0.08);
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(255, 247, 212, 0.16)';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-    } else if (landmark.type === 'tower') {
-      ctx.fillStyle = 'rgba(61, 45, 31, 0.54)';
-      ctx.fillRect(x - width * 0.18, baseY - height, width * 0.36, height);
-      ctx.fillRect(x - width * 0.32, baseY - height * 0.28, width * 0.64, height * 0.28);
-      ctx.strokeStyle = 'rgba(255, 236, 179, 0.18)';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(x - width * 0.36, baseY - height);
-      ctx.lineTo(x, baseY - height * 1.16);
-      ctx.lineTo(x + width * 0.36, baseY - height);
-      ctx.stroke();
-      ctx.fillStyle = 'rgba(250, 204, 21, 0.18)';
-      ctx.fillRect(x - 8, baseY - height * 0.72, 16, 22);
-    } else if (landmark.type === 'gate') {
-      const ruinGradient = ctx.createLinearGradient(x, baseY - height, x, baseY);
-      ruinGradient.addColorStop(0, 'rgba(123, 82, 42, 0.2)');
-      ruinGradient.addColorStop(1, 'rgba(86, 55, 31, 0.34)');
-      ctx.fillStyle = ruinGradient;
-      [
-        { left: -0.39, right: -0.22, lean: -0.04 },
-        { left: 0.22, right: 0.39, lean: 0.035 },
-      ].forEach((pillar) => {
-        ctx.beginPath();
-        ctx.moveTo(x + width * (pillar.left + pillar.lean), baseY - height * 0.82);
-        ctx.lineTo(x + width * (pillar.right + pillar.lean), baseY - height * 0.8);
-        ctx.lineTo(x + width * pillar.right, baseY - height * 0.08);
-        ctx.lineTo(x + width * pillar.left, baseY - height * 0.04);
-        ctx.closePath();
-        ctx.fill();
-      });
-      ctx.fillStyle = 'rgba(139, 92, 45, 0.24)';
-      ctx.beginPath();
-      ctx.moveTo(x - width * 0.5, baseY - height * 0.86);
-      ctx.lineTo(x - width * 0.18, baseY - height * 0.96);
-      ctx.lineTo(x + width * 0.47, baseY - height * 0.85);
-      ctx.lineTo(x + width * 0.4, baseY - height * 0.74);
-      ctx.lineTo(x - width * 0.48, baseY - height * 0.72);
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(111, 78, 42, 0.28)';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(x, baseY - height * 0.22, width * 0.25, Math.PI, 0);
-      ctx.stroke();
-    } else if (landmark.type === 'bridge') {
-      ctx.strokeStyle = 'rgba(80, 43, 24, 0.5)';
-      ctx.lineWidth = 6;
-      ctx.beginPath();
-      ctx.moveTo(x - width * 0.5, baseY - height * 0.48);
-      ctx.lineTo(x - width * 0.12, baseY - height * 0.62);
-      ctx.moveTo(x + width * 0.04, baseY - height * 0.66);
-      ctx.lineTo(x + width * 0.52, baseY - height * 0.5);
-      ctx.stroke();
-      ctx.lineWidth = 2;
-      for (let i = -4; i <= 4; i += 1) {
-        ctx.beginPath();
-        ctx.moveTo(x + i * 22, baseY - height * 0.7);
-        ctx.lineTo(x + i * 22 + 8, baseY - height * 0.38);
-        ctx.stroke();
-      }
-    } else if (landmark.type === 'record-causeway') {
-      ctx.fillStyle = 'rgba(44, 31, 22, 0.26)';
-      ctx.beginPath();
-      ctx.moveTo(x - width * 0.48, baseY - height * 0.18);
-      ctx.lineTo(x - width * 0.34, baseY - height * 0.24);
-      ctx.lineTo(x - width * 0.1, baseY - height * 0.21);
-      ctx.lineTo(x + width * 0.18, baseY - height * 0.27);
-      ctx.lineTo(x + width * 0.48, baseY - height * 0.2);
-      ctx.lineTo(x + width * 0.42, baseY - height * 0.08);
-      ctx.lineTo(x - width * 0.46, baseY - height * 0.08);
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(255, 238, 180, 0.18)';
-      ctx.lineWidth = 2;
-      for (let column = 0; column < 7; column += 1) {
-        const columnX = x - width * 0.39 + column * width * 0.13;
-        ctx.fillStyle = column % 2 === 0 ? 'rgba(88, 57, 31, 0.36)' : 'rgba(59, 39, 24, 0.32)';
-        ctx.beginPath();
-        ctx.roundRect(columnX - 9, baseY - height * 0.58, 18, height * 0.42, 4);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.moveTo(columnX - 15, baseY - height * 0.6);
-        ctx.lineTo(columnX + 15, baseY - height * 0.6);
-        ctx.moveTo(columnX - 13, baseY - height * 0.17);
-        ctx.lineTo(columnX + 13, baseY - height * 0.17);
-        ctx.stroke();
-      }
-      ctx.strokeStyle = `rgba(250, 204, 21, ${0.16 * pulse})`;
-      ctx.lineWidth = 1.5;
-      for (let row = 0; row < 3; row += 1) {
-        const rowY = baseY - height * (0.5 - row * 0.1);
-        ctx.beginPath();
-        ctx.moveTo(x - width * 0.32, rowY);
-        ctx.lineTo(x - width * 0.18, rowY + Math.sin(now / 1200 + row) * 1.5);
-        ctx.moveTo(x + width * 0.02, rowY + 3);
-        ctx.lineTo(x + width * 0.3, rowY + Math.sin(now / 1200 + row + 1) * 1.5);
-        ctx.stroke();
-      }
-    } else if (landmark.type === 'record-frieze') {
-      const slabGradient = ctx.createLinearGradient(x - width / 2, baseY - height, x + width / 2, baseY);
-      slabGradient.addColorStop(0, 'rgba(92, 57, 28, 0.3)');
-      slabGradient.addColorStop(0.48, 'rgba(171, 112, 55, 0.42)');
-      slabGradient.addColorStop(1, 'rgba(65, 39, 22, 0.32)');
-      ctx.fillStyle = slabGradient;
-      ctx.beginPath();
-      ctx.roundRect(x - width * 0.5, baseY - height * 0.86, width, height * 0.58, 8);
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(250, 204, 21, 0.3)';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-      ctx.fillStyle = `rgba(250, 204, 21, ${0.16 * pulse})`;
-      for (let mark = 0; mark < 5; mark += 1) {
-        const markX = x - width * 0.35 + mark * width * 0.17;
-        ctx.beginPath();
-        ctx.ellipse(markX, baseY - height * 0.58, 9, 18, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillRect(markX - 2, baseY - height * 0.42, 4, 16);
-      }
-    } else if (landmark.type === 'record-image-wall') {
-      ctx.fillStyle = 'rgba(75, 48, 28, 0.44)';
-      ctx.beginPath();
-      ctx.roundRect(x - width * 0.5, baseY - height * 0.9, width, height * 0.68, 10);
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(255, 236, 179, 0.22)';
-      ctx.lineWidth = 3;
-      ctx.stroke();
-      ctx.fillStyle = `rgba(96, 165, 250, ${0.14 * pulse})`;
-      ctx.beginPath();
-      ctx.arc(x - width * 0.12, baseY - height * 0.58, 24, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(255, 247, 212, 0.24)';
-      ctx.lineWidth = 2;
-      [-0.32, -0.12, 0.12, 0.32].forEach((offset, index) => {
-        const glyphX = x + width * offset;
-        ctx.beginPath();
-        ctx.moveTo(glyphX - 12, baseY - height * (0.72 - index * 0.02));
-        ctx.lineTo(glyphX + 12, baseY - height * (0.72 - index * 0.02));
-        ctx.moveTo(glyphX, baseY - height * 0.78);
-        ctx.lineTo(glyphX, baseY - height * 0.46);
-        ctx.stroke();
-      });
-    } else if (landmark.type === 'record-script-panel') {
-      ctx.fillStyle = 'rgba(52, 35, 24, 0.5)';
-      ctx.beginPath();
-      ctx.roundRect(x - width * 0.36, baseY - height * 0.9, width * 0.72, height * 0.82, 8);
-      ctx.fill();
-      ctx.strokeStyle = `rgba(250, 204, 21, ${0.28 * pulse})`;
-      ctx.lineWidth = 2;
-      ctx.stroke();
-      ctx.strokeStyle = 'rgba(255, 236, 179, 0.3)';
-      ctx.lineWidth = 1.5;
-      for (let row = 0; row < 5; row += 1) {
-        const rowY = baseY - height * 0.72 + row * height * 0.12;
-        ctx.beginPath();
-        ctx.moveTo(x - width * 0.22, rowY);
-        ctx.lineTo(x + width * 0.22, rowY + Math.sin(now / 900 + row) * 2);
-        ctx.stroke();
-      }
-    } else if (landmark.type === 'guardian-ruin') {
-      ctx.fillStyle = 'rgba(98, 74, 48, 0.3)';
-      ctx.beginPath();
-      ctx.moveTo(x - width * 0.3, baseY - height * 0.1);
-      ctx.lineTo(x - width * 0.24, baseY - height * 0.62);
-      ctx.lineTo(x + width * 0.04, baseY - height * 0.72);
-      ctx.lineTo(x + width * 0.3, baseY - height * 0.18);
-      ctx.closePath();
-      ctx.fill();
-      ctx.beginPath();
-      ctx.roundRect(x - width * 0.2, baseY - height * 0.92, width * 0.4, height * 0.22, 8);
-      ctx.fill();
-      ctx.fillStyle = `rgba(45, 212, 191, ${0.14 * pulse})`;
-      ctx.beginPath();
-      ctx.ellipse(x, baseY - height * 0.46, 10, 8, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(255, 247, 212, 0.16)';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(x - width * 0.32, baseY - height * 0.11);
-      ctx.lineTo(x + width * 0.32, baseY - height * 0.14);
-      ctx.stroke();
-    } else if (landmark.type === 'excavation-camp') {
-      ctx.fillStyle = `rgba(254, 240, 138, ${0.18 * pulse})`;
-      ctx.beginPath();
-      ctx.arc(x, baseY - height * 0.5, width * 0.52, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(69, 26, 3, 0.48)';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(x - width * 0.34, baseY - height * 0.15);
-      ctx.lineTo(x - width * 0.08, baseY - height * 0.62);
-      ctx.lineTo(x + width * 0.22, baseY - height * 0.15);
-      ctx.stroke();
-      [-34, 8, 44].forEach((offset) => {
-        ctx.fillStyle = 'rgba(250, 204, 21, 0.58)';
-        ctx.beginPath();
-        ctx.arc(x + offset, baseY - height * 0.42, 5, 0, Math.PI * 2);
-        ctx.fill();
-      });
-    } else if (landmark.type === 'shrine') {
-      ctx.fillStyle = `rgba(45, 212, 191, ${0.16 * pulse})`;
-      ctx.beginPath();
-      ctx.arc(x, baseY - height * 0.46, width * 0.5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = 'rgba(31, 41, 55, 0.48)';
-      ctx.beginPath();
-      ctx.roundRect(x - width * 0.24, baseY - height * 0.78, width * 0.48, height * 0.68, 8);
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(204, 251, 241, 0.24)';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(x - width * 0.34, baseY - height * 0.78);
-      ctx.lineTo(x, baseY - height);
-      ctx.lineTo(x + width * 0.34, baseY - height * 0.78);
-      ctx.stroke();
-      ctx.fillStyle = `rgba(250, 204, 21, ${0.2 * pulse})`;
-      ctx.fillRect(x - 7, baseY - height * 0.56, 14, 20);
-    } else if (landmark.type === 'blocked-tunnel') {
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.44)';
-      ctx.beginPath();
-      ctx.ellipse(x, baseY - height * 0.26, width * 0.48, height * 0.4, 0, Math.PI, 0);
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(125, 211, 252, 0.22)';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.arc(x, baseY - height * 0.26, width * 0.34, Math.PI, 0);
-      ctx.stroke();
-      ctx.fillStyle = 'rgba(71, 85, 105, 0.45)';
-      for (let i = 0; i < 7; i += 1) {
-        ctx.beginPath();
-        ctx.ellipse(x - width * 0.32 + i * width * 0.1, baseY - height * 0.18 + (i % 2) * 6, 8, 5, 0.2, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-
-    const stats = stateRef.current.renderStats;
-    if (stats) {
-      stats.visibleWorldLandmarks = Array.from(new Set([...(stats.visibleWorldLandmarks || []), landmark.id])).slice(-12);
-    }
-    ctx.restore();
-    return true;
-  }, []);
-
-  const drawStageEntranceFeature = useCallback((ctx, feature, cameraX, now) => {
-    const centerX = worldToScreenX(feature.x, cameraX);
-    const width = feature.width || CANVAS_WIDTH * 1.12;
-    const height = feature.height || CANVAS_HEIGHT;
-    if (centerX < -width * 0.58 || centerX > CANVAS_WIDTH + width * 0.58) return false;
-
-    const doorwayAsset = feature.assetKey === 'desertEndGateway'
-      ? desertEndGatewayRef.current
-      : stageEntranceDoorwayRef.current;
-    if (!doorwayAsset.loaded || !doorwayAsset.image) return false;
-
-    const drawX = centerX - width / 2;
-    const drawY = Math.min(0, CANVAS_HEIGHT - height) + (feature.yOffset || 0);
-    const floorY = Math.min(GROUND_Y + 6, drawY + height - 26);
-    const sectionId = feature.to || getSectionForX(feature.x).id;
-    const pulse = 0.72 + Math.sin(now / 580 + feature.x * 0.006) * 0.08;
-    const revealDistance = Math.abs(centerX - CANVAS_WIDTH * 0.5);
-    const focus = clamp(1 - revealDistance / (CANVAS_WIDTH * 0.72), 0, 1);
-    const current = stateRef.current;
-    const routeGate = ROUTE_GATES.find(item => item.id === feature.routeGateId);
-    const doorwayUnlocked = !routeGate || current.openedRouteGateIds?.has(routeGate.id) || areRouteGateRequirementsMetForState(routeGate, current);
-    const permanentStructure = Boolean(feature.permanentStructure);
-    const passageVisual = feature.passageVisual || {};
-    const doorwayCenterX = drawX + width * (passageVisual.centerX ?? 0.5);
-    const doorwayCenterY = drawY + height * (passageVisual.centerY ?? 0.54);
-    const doorwayRadiusX = width * (passageVisual.radiusX ?? 0.14);
-    const doorwayRadiusY = height * (passageVisual.radiusY ?? 0.25);
-
-    ctx.save();
-    drawRouteGroundApron(ctx, centerX, floorY - 2, width * 0.72, sectionId, 0.78, Math.round(feature.x));
-    if (!permanentStructure) {
-      drawContactShadow(ctx, centerX, floorY + 2, width * 0.62, 0.28, 1.22);
-    }
-    ctx.save();
-    ctx.filter = STAGE_ENTRANCE_THEME_FILTERS[feature.structureTheme] || 'drop-shadow(0 16px 16px rgba(34, 18, 8, 0.24))';
-    ctx.drawImage(doorwayAsset.image, drawX, drawY, width, height);
-    ctx.restore();
-
-    if (feature.structureTheme === 'cool-catacomb-descent') {
-      ctx.globalAlpha = 0.18 + focus * 0.1;
-      ctx.fillStyle = 'rgba(56, 189, 248, 0.22)';
-      ctx.fillRect(drawX + width * 0.38, drawY + height * 0.18, width * 0.24, height * 0.7);
-      ctx.globalAlpha = 1;
-    } else if (feature.structureTheme === 'collapsed-breach') {
-      ctx.globalAlpha = 0.2 + focus * 0.14;
-      ctx.fillStyle = 'rgba(249, 115, 22, 0.2)';
-      ctx.beginPath();
-      ctx.moveTo(centerX - width * 0.18, drawY + height * 0.2);
-      ctx.lineTo(centerX + width * 0.2, drawY + height * 0.48);
-      ctx.lineTo(centerX - width * 0.08, drawY + height * 0.78);
-      ctx.closePath();
-      ctx.fill();
-      ctx.globalAlpha = 1;
-    } else if (feature.structureTheme === 'open-dig-site-threshold') {
-      ctx.globalAlpha = 0.14 + focus * 0.1;
-      ctx.fillStyle = 'rgba(134, 239, 172, 0.18)';
-      ctx.fillRect(drawX + width * 0.32, drawY + height * 0.2, width * 0.36, height * 0.68);
-      ctx.globalAlpha = 1;
-    }
-
-    if (!permanentStructure) {
-      const vignette = ctx.createRadialGradient(doorwayCenterX, doorwayCenterY, width * 0.08, doorwayCenterX, doorwayCenterY, width * 0.5);
-      vignette.addColorStop(0, `rgba(20, 184, 166, ${doorwayUnlocked ? 0.08 + focus * 0.1 : 0.03})`);
-      vignette.addColorStop(0.5, 'rgba(20, 10, 5, 0)');
-      vignette.addColorStop(1, `rgba(18, 10, 6, ${0.08 + focus * 0.18})`);
-      ctx.fillStyle = vignette;
-      ctx.fillRect(drawX, drawY, width, height);
-
-      ctx.globalAlpha = doorwayUnlocked ? 0.18 + focus * 0.16 + pulse * 0.04 : 0.32 + focus * 0.08;
-      ctx.fillStyle = doorwayUnlocked ? 'rgba(8, 18, 24, 0.72)' : 'rgba(18, 13, 9, 0.82)';
-      ctx.beginPath();
-      ctx.ellipse(doorwayCenterX, doorwayCenterY, doorwayRadiusX, doorwayRadiusY, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.globalAlpha = 1;
-
-      if (!doorwayUnlocked) {
-        const lockPulse = 0.7 + Math.sin(now / 260) * 0.12;
-        ctx.globalAlpha = 0.78;
-        ctx.fillStyle = 'rgba(30, 19, 10, 0.72)';
-        ctx.beginPath();
-        ctx.roundRect(doorwayCenterX - 38, doorwayCenterY - 34, 76, 76, 12);
-        ctx.fill();
-        ctx.strokeStyle = `rgba(250, 204, 21, ${0.48 + lockPulse * 0.24})`;
-        ctx.lineWidth = 3;
-        ctx.stroke();
-        ctx.fillStyle = `rgba(250, 204, 21, ${0.34 + lockPulse * 0.2})`;
-        ctx.beginPath();
-        ctx.ellipse(doorwayCenterX, doorwayCenterY + 2, 22, 28, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.globalAlpha = 1;
-      }
-    }
-
-    drawGroundDustLip(ctx, centerX, floorY, width * 0.72, 'rgba(216, 154, 82, 0.26)');
-    const stats = stateRef.current.renderStats;
-    if (stats) {
-      stats.visibleStageEntranceFeatures = Array.from(new Set([...(stats.visibleStageEntranceFeatures || []), feature.id])).slice(-6);
-    }
-    ctx.restore();
-    return true;
-  }, []);
-
-  const drawDynamicEnvironmentEvent = useCallback((ctx, event, cameraX, now, timer = 0) => {
-    if (!event || timer <= 0) return false;
-    const x = worldToScreenX(event.x, cameraX);
-    if (x < -220 || x > CANVAS_WIDTH + 220) return false;
-    const preview = Boolean(event.preview);
-    const progress = preview
-      ? 0.62 + Math.sin(now / 520 + event.x * 0.003) * 0.1
-      : clamp(timer / Math.max(0.1, event.duration || 1), 0, 1);
-    const reveal = preview ? 0.46 + Math.sin(now / 620 + event.x * 0.004) * 0.18 : 1 - progress;
-    const visibility = preview ? 0.62 : 1;
-    const pulse = 0.75 + Math.sin(now / 220 + event.x * 0.01) * 0.18;
-    const baseY = GROUND_Y - 46;
-    const recordVisibleEvent = () => {
-      const stats = stateRef.current.renderStats;
-      if (stats) {
-        stats.visibleDynamicWorldEvents = Array.from(new Set([...(stats.visibleDynamicWorldEvents || []), event.id])).slice(-8);
-      }
-    };
-
-    ctx.save();
-
-    if (!preview && event.id === 'scarab-queen-lair-dread-wind') {
-      const envelope = Math.sin(clamp(reveal, 0, 1) * Math.PI);
-      ctx.save();
-      ctx.globalCompositeOperation = 'source-over';
-
-      // Directional vignette — amber pressing in from the right (lair's direction)
-      const vg = ctx.createLinearGradient(CANVAS_WIDTH, 0, 0, 0);
-      vg.addColorStop(0, `rgba(60, 20, 0, ${0.36 * envelope})`);
-      vg.addColorStop(0.42, `rgba(40, 12, 0, ${0.14 * envelope})`);
-      vg.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = vg;
-      ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-      const rg = ctx.createRadialGradient(CANVAS_WIDTH * 0.45, CANVAS_HEIGHT * 0.5, CANVAS_WIDTH * 0.18, CANVAS_WIDTH * 0.45, CANVAS_HEIGHT * 0.5, CANVAS_WIDTH * 0.86);
-      rg.addColorStop(0, 'rgba(0,0,0,0)');
-      rg.addColorStop(0.68, `rgba(20, 6, 0, ${0.09 * envelope})`);
-      rg.addColorStop(1, `rgba(10, 3, 0, ${0.32 * envelope})`);
-      ctx.fillStyle = rg;
-      ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-      // Sand streaks flying right-to-left from the lair
-      for (let i = 0; i < 26; i++) {
-        const seed = i * 137.508;
-        const yPos = CANVAS_HEIGHT * 0.04 + (seed % (CANVAS_HEIGHT * 0.92));
-        const speed = 180 + (i * 29 % 170);
-        const len = 44 + (i * 19 % 110);
-        const stride = CANVAS_WIDTH + len;
-        const t = (now * speed * 0.001 + (i / 26) * stride) % stride;
-        const sx = CANVAS_WIDTH - t + len * 0.5;
-        ctx.globalAlpha = (0.14 + (i % 5) * 0.07) * envelope;
-        ctx.strokeStyle = i % 4 === 0 ? 'rgba(255, 215, 110, 0.9)' : 'rgba(220, 155, 65, 0.75)';
-        ctx.lineWidth = 0.7 + (i % 4) * 0.55;
-        ctx.beginPath();
-        ctx.moveTo(sx, yPos);
-        ctx.lineTo(sx + len, yPos + (i % 5) - 2);
-        ctx.stroke();
-      }
-
-      ctx.restore();
-    }
-
-    const effectAssets = dynamicWorldAssetsRef.current;
-    const effectRegion = getDynamicWorldEffectRegion(event.type);
-    if (usesPaintedDynamicWorldEffect(event.type) && effectAssets.loaded && effectAssets.image && effectRegion) {
-      const assetAlpha = (preview ? 0.82 : 1) * (0.82 + pulse * 0.12);
-      const drawEffect = (width, height, offsetX, offsetY, options = {}) => {
-        ctx.save();
-        ctx.globalAlpha = clamp(assetAlpha * (options.alpha ?? 1), 0, 1);
-        if (options.flipX) {
-          ctx.translate(x + offsetX + width / 2, baseY + offsetY + height / 2);
-          ctx.scale(-1, 1);
-          ctx.drawImage(
-            effectAssets.image,
-            effectRegion.x,
-            effectRegion.y,
-            effectRegion.w,
-            effectRegion.h,
-            -width / 2,
-            -height / 2,
-            width,
-            height,
-          );
-        } else {
-          ctx.drawImage(
-            effectAssets.image,
-            effectRegion.x,
-            effectRegion.y,
-            effectRegion.w,
-            effectRegion.h,
-            x + offsetX,
-            baseY + offsetY,
-            width,
-            height,
-          );
-        }
-        ctx.restore();
-      };
-
-      if (event.type === 'dust-gust' || event.type === 'moving-fog' || event.type === 'unstable-excavation') {
-        drawEffect(360 + pulse * 16, 230 + pulse * 8, -180 + reveal * 34, -205, { alpha: event.type === 'moving-fog' ? 0.72 : 0.96 });
-        ctx.restore();
-        recordVisibleEvent();
-        return true;
-      }
-      if (event.type === 'birds-scatter') {
-        drawEffect(290 + reveal * 34, 190 + reveal * 12, -120 + reveal * 48, -370 - reveal * 28, { alpha: 0.98 });
-        ctx.restore();
-        recordVisibleEvent();
-        return true;
-      }
-      if (event.type === 'shrine-glow') {
-        ctx.globalCompositeOperation = 'screen';
-        drawEffect(250 + pulse * 28, 280 + pulse * 24, -126, -330, { alpha: 0.86 });
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.restore();
-        recordVisibleEvent();
-        return true;
-      }
-      if (event.type === 'rockfall' || event.type === 'ruin-collapse') {
-        drawEffect(300 + reveal * 20, 320 + reveal * 16, -146, -322 + reveal * 10, { alpha: 0.95 });
-        ctx.restore();
-        recordVisibleEvent();
-        return true;
-      }
-    }
-
-    if (event.type === 'looter-shadow') {
-      const run = preview ? 0.32 + Math.sin(now / 520) * 0.08 : clamp(1 - progress, 0, 1);
-      const looterX = x - 86 + run * 255;
-      const looterY = GROUND_Y - 392 - Math.sin(run * Math.PI) * 14;
-      ctx.globalAlpha = (preview ? 0.44 : 0.9) * visibility;
-      ctx.fillStyle = 'rgba(10, 8, 7, 0.86)';
-      ctx.beginPath();
-      ctx.ellipse(looterX, looterY + 28, 13, 24, -0.08, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.ellipse(looterX + 2, looterY + 5, 10, 11, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(10, 8, 7, 0.82)';
-      ctx.lineWidth = 6;
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      ctx.moveTo(looterX - 4, looterY + 34);
-      ctx.lineTo(looterX - 24 + Math.sin(run * 12) * 8, looterY + 53);
-      ctx.moveTo(looterX + 8, looterY + 34);
-      ctx.lineTo(looterX + 30 - Math.sin(run * 12) * 7, looterY + 52);
-      ctx.stroke();
-      ctx.globalCompositeOperation = 'screen';
-      const glow = ctx.createRadialGradient(looterX + 28, looterY + 22, 4, looterX + 28, looterY + 22, 54);
-      glow.addColorStop(0, 'rgba(96, 165, 250, 0.75)');
-      glow.addColorStop(0.42, 'rgba(250, 204, 21, 0.28)');
-      glow.addColorStop(1, 'rgba(15, 23, 42, 0)');
-      ctx.fillStyle = glow;
-      ctx.fillRect(looterX - 34, looterY - 36, 124, 124);
-      ctx.globalCompositeOperation = 'source-over';
-      ctx.globalAlpha = (preview ? 0.28 : 0.52) * visibility;
-      ctx.fillStyle = 'rgba(217, 119, 6, 0.34)';
-      ctx.beginPath();
-      ctx.ellipse(x + 205, looterY + 62 + reveal * 10, 92 + reveal * 24, 12, -0.08, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-      recordVisibleEvent();
-      return true;
-    }
-
-    if (event.type === 'rockfall') {
-      ctx.globalAlpha = 0.58 * progress * visibility;
-      ctx.fillStyle = 'rgba(100, 76, 52, 0.66)';
-      for (let i = 0; i < 7; i += 1) {
-        const fall = reveal * (50 + i * 18);
-        ctx.beginPath();
-        ctx.ellipse(x + i * 18 - 54, baseY - 150 + fall, 4 + (i % 3), 3, 0.2, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.fillStyle = 'rgba(217, 161, 88, 0.26)';
-      ctx.beginPath();
-      ctx.ellipse(x, baseY - 16, 128 + reveal * 44, 13, -0.08, 0, Math.PI * 2);
-      ctx.fill();
-    } else if (event.type === 'dust-gust' || event.type === 'moving-fog') {
-      const fog = event.type === 'moving-fog';
-      ctx.globalAlpha = (fog ? 0.42 : 0.66) * progress * visibility;
-      ctx.fillStyle = fog ? 'rgba(191, 219, 254, 0.28)' : 'rgba(245, 158, 11, 0.32)';
-      for (let i = 0; i < 6; i += 1) {
-        const drift = reveal * (110 + i * 26);
-        ctx.beginPath();
-        ctx.ellipse(x - 120 + drift + i * 38, fog ? GROUND_Y - 170 + i * 16 : GROUND_Y - 108 + i * 12, 112 - i * 6, fog ? 14 : 10, -0.08, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      if (!fog) {
-        ctx.strokeStyle = 'rgba(255, 247, 212, 0.38)';
-        ctx.lineWidth = 2;
-        for (let i = 0; i < 4; i += 1) {
-          const drift = reveal * (90 + i * 24);
-          ctx.beginPath();
-          ctx.moveTo(x - 150 + drift, GROUND_Y - 130 + i * 17);
-          ctx.quadraticCurveTo(x - 45 + drift, GROUND_Y - 146 + i * 10, x + 92 + drift, GROUND_Y - 118 + i * 12);
-          ctx.stroke();
-        }
-      }
-    } else if (event.type === 'birds-scatter') {
-      ctx.globalAlpha = 0.78 * progress * visibility;
-      ctx.strokeStyle = 'rgba(69, 26, 3, 0.58)';
-      ctx.lineWidth = 2.2;
-      for (let i = 0; i < 6; i += 1) {
-        const bx = x + reveal * (70 + i * 16) + i * 16;
-        const by = GROUND_Y - 270 - reveal * (50 + i * 5) + Math.sin(now / 120 + i) * 6;
-        ctx.beginPath();
-        ctx.moveTo(bx - 10, by);
-        ctx.lineTo(bx, by - 4);
-        ctx.lineTo(bx + 10, by);
-        ctx.stroke();
-      }
-    } else if (event.type === 'ruin-collapse') {
-      ctx.globalAlpha = 0.5 * progress * visibility;
-      ctx.fillStyle = 'rgba(61, 45, 31, 0.58)';
-      ctx.fillRect(x - 30, baseY - 170 + reveal * 18, 24, 132);
-      ctx.fillRect(x + 14, baseY - 138 + reveal * 26, 22, 98);
-      ctx.fillStyle = 'rgba(190, 119, 62, 0.32)';
-      for (let i = 0; i < 8; i += 1) {
-        ctx.beginPath();
-        ctx.ellipse(x - 60 + i * 18, baseY - 32 + reveal * i * 5, 5, 3, 0.2, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    } else if (event.type === 'shrine-glow') {
-      ctx.globalAlpha = 0.92 * progress * visibility;
-      const glow = ctx.createRadialGradient(x, baseY - 126, 8, x, baseY - 126, 92 * pulse);
-      glow.addColorStop(0, 'rgba(250, 204, 21, 0.46)');
-      glow.addColorStop(0.42, 'rgba(45, 212, 191, 0.24)');
-      glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-      ctx.fillStyle = glow;
-      ctx.beginPath();
-      ctx.arc(x, baseY - 126, 92 * pulse, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(204, 251, 241, 0.34)';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(x, baseY - 126, 28 + reveal * 18, 0, Math.PI * 2);
-      ctx.stroke();
-    } else if (event.type === 'unstable-excavation') {
-      ctx.globalAlpha = 0.64 * progress * visibility;
-      ctx.strokeStyle = 'rgba(137, 104, 72, 0.36)';
-      ctx.lineWidth = 3;
-      for (let i = 0; i < 5; i += 1) {
-        ctx.beginPath();
-        ctx.moveTo(x - 80 + i * 34, baseY - 8);
-        ctx.lineTo(x - 62 + i * 34 + Math.sin(now / 80 + i) * 5, baseY + 14);
-        ctx.lineTo(x - 42 + i * 34, baseY + 6);
-        ctx.stroke();
-      }
-      ctx.fillStyle = 'rgba(217, 161, 88, 0.16)';
-      ctx.beginPath();
-      ctx.ellipse(x, baseY + 10, 118, 12, 0, 0, Math.PI * 2);
-      ctx.fill();
-    } else {
-      ctx.restore();
-      return false;
-    }
-    ctx.restore();
-
-    recordVisibleEvent();
-    return true;
-  }, []);
-
-  const drawEnvironmentInteraction = useCallback((ctx, item, cameraX, now, current) => {
-    if (current.brokenEnvironmentIds?.has(item.id)) return;
-    if (!isHorizontallyVisible(item.x, item.width, cameraX, 90)) return;
-    const x = worldToScreenX(item.x, cameraX);
-    const section = getSectionForX(item.x);
-    const wobble = Math.sin(now / 420 + item.x * 0.01);
-    const touched = current.triggeredEnvironmentIds?.has(item.id);
-
-    ctx.save();
-    ctx.globalAlpha = touched ? 0.9 : 0.78;
-    if (item.type === 'breakable-crate') {
-      drawContactShadow(ctx, x + item.width / 2, item.y + item.height + 4, item.width * 0.9, 0.16, 1.2);
-      drawDecorativeBaseBlend(ctx, x + item.width / 2, item.y + item.height + 4, item.width * 0.8, section.id, 'midground', 0.66);
-      ctx.fillStyle = '#92400e';
-      ctx.fillRect(x, item.y, item.width, item.height);
-      ctx.strokeStyle = touched ? '#fde68a' : '#451a03';
-      ctx.lineWidth = 3;
-      ctx.strokeRect(x + 3, item.y + 3, item.width - 6, item.height - 6);
-      ctx.beginPath();
-      ctx.moveTo(x + 6, item.y + item.height - 6);
-      ctx.lineTo(x + item.width - 6, item.y + 6);
-      ctx.stroke();
-    } else if (item.type === 'loose-rocks') {
-      drawDecorativeBaseBlend(ctx, x + item.width / 2, item.y + item.height, item.width, section.id, 'midground', 0.58);
-      ctx.fillStyle = touched ? 'rgba(148, 163, 184, 0.72)' : 'rgba(100, 76, 52, 0.62)';
-      for (let i = 0; i < 5; i += 1) {
-        ctx.beginPath();
-        ctx.ellipse(x + 8 + i * 14, item.y + 15 + (i % 2) * 5, 8 + (i % 2) * 2, 5, 0.2, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    } else if (item.type === 'hanging-rope') {
-      const sway = wobble * 10;
-      ctx.strokeStyle = 'rgba(92, 49, 18, 0.68)';
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.moveTo(x + item.width / 2, item.y);
-      ctx.quadraticCurveTo(x + item.width / 2 + sway, item.y + item.height * 0.48, x + item.width / 2 - sway * 0.3, item.y + item.height);
-      ctx.stroke();
-      ctx.fillStyle = 'rgba(250, 204, 21, 0.22)';
-      ctx.beginPath();
-      ctx.arc(x + item.width / 2 - sway * 0.3, item.y + item.height, 10, 0, Math.PI * 2);
-      ctx.fill();
-    } else if (item.type === 'swinging-banner') {
-      const sway = wobble * 8;
-      ctx.fillStyle = '#451a03';
-      ctx.fillRect(x + item.width / 2 - 2, item.y, 4, item.height);
-      ctx.fillStyle = touched ? '#f59e0b' : '#b45309';
-      ctx.beginPath();
-      ctx.moveTo(x + item.width / 2 + 4, item.y + 8);
-      ctx.quadraticCurveTo(x + item.width + sway, item.y + 26, x + item.width / 2 + 6, item.y + 62);
-      ctx.closePath();
-      ctx.fill();
-    } else if (item.type === 'collapsing-bridge') {
-      drawContactShadow(ctx, x + item.width / 2, item.y + item.height + 4, item.width, 0.18, 1.2);
-      ctx.strokeStyle = touched ? 'rgba(137, 104, 72, 0.72)' : 'rgba(69, 26, 3, 0.66)';
-      ctx.lineWidth = 5;
-      ctx.beginPath();
-      ctx.moveTo(x, item.y + 16 + wobble * 2);
-      ctx.lineTo(x + item.width * 0.38, item.y + 8);
-      ctx.moveTo(x + item.width * 0.48, item.y + 10);
-      ctx.lineTo(x + item.width, item.y + 22 - wobble * 2);
-      ctx.stroke();
-    } else if (item.type === 'watchtower-section') {
-      drawContactShadow(ctx, x + item.width / 2, item.y + item.height + 4, item.width * 0.8, 0.12, 1.2);
-      ctx.strokeStyle = 'rgba(69, 26, 3, 0.62)';
-      ctx.lineWidth = 4;
-      ctx.strokeRect(x + 14, item.y, item.width - 28, item.height);
-      ctx.lineWidth = 2;
-      for (let rung = 18; rung < item.height - 8; rung += 20) {
-        ctx.beginPath();
-        ctx.moveTo(x + 14, item.y + rung);
-        ctx.lineTo(x + item.width - 14, item.y + rung + wobble * 1.2);
-        ctx.stroke();
-      }
-    } else if (item.type === 'rippling-water') {
-      ctx.strokeStyle = 'rgba(125, 211, 252, 0.42)';
-      ctx.lineWidth = 2;
-      for (let i = 0; i < 3; i += 1) {
-        ctx.beginPath();
-        ctx.ellipse(x + item.width / 2 + wobble * 10, item.y + 5 + i * 6, item.width * (0.26 + i * 0.09), 3, 0, 0, Math.PI * 2);
-        ctx.stroke();
-      }
-    } else if (item.type === 'blowing-grass') {
-      ctx.strokeStyle = 'rgba(34, 197, 94, 0.46)';
-      ctx.lineWidth = 2;
-      for (let i = 0; i < 12; i += 1) {
-        const bladeX = x + i * 10;
-        ctx.beginPath();
-        ctx.moveTo(bladeX, item.y + item.height);
-        ctx.quadraticCurveTo(bladeX + wobble * 7, item.y + item.height * 0.44, bladeX + 3 + wobble * 9, item.y + 2);
-        ctx.stroke();
-      }
-    }
-
-    const stats = stateRef.current.renderStats;
-    if (stats) {
-      stats.visibleEnvironmentInteractions = Array.from(new Set([...(stats.visibleEnvironmentInteractions || []), item.id])).slice(-12);
-    }
-    ctx.restore();
-  }, []);
-
-  const drawRouteGate = useCallback((ctx, gate, screenX, current, complete, layer = 'base', doorway = null) => {
-    if (gate.suppressRouteGateVisual) return;
-    if (gate.hideArchVisual) {
-      if (layer !== 'base' || complete) return;
-      const cx = (doorway?.anchorX ? screenX : screenX + gate.width / 2);
-      ctx.save();
-      const sealedShadow = ctx.createRadialGradient(cx, GROUND_Y - 62, 12, cx, GROUND_Y - 62, 94);
-      sealedShadow.addColorStop(0, 'rgba(70, 37, 13, 0.26)');
-      sealedShadow.addColorStop(1, 'rgba(70, 37, 13, 0)');
-      ctx.fillStyle = sealedShadow;
-      ctx.beginPath();
-      ctx.ellipse(cx, GROUND_Y - 58, 94, 62, 0, 0, Math.PI * 2);
-      ctx.fill();
-      const slabGradient = ctx.createLinearGradient(cx - 92, GROUND_Y - 288, cx + 92, GROUND_Y);
-      slabGradient.addColorStop(0, '#d1a96b');
-      slabGradient.addColorStop(0.56, '#927047');
-      slabGradient.addColorStop(1, '#5f4327');
-      ctx.fillStyle = slabGradient;
-      ctx.strokeStyle = 'rgba(58, 35, 18, 0.62)';
-      ctx.lineWidth = 2;
-      ctx.fillRect(cx - 17, GROUND_Y - 274, 34, 274);
-      ctx.strokeRect(cx - 17, GROUND_Y - 274, 34, 274);
-      ctx.restore();
-      return;
-    }
-    const gateCenter = doorway?.anchorX ? screenX : screenX + gate.width / 2;
-    ctx.save();
-    // Assets are 1024×682 (back/front) and 1024×637 (slab) — ratio ≈ 1.50:1.
-    // Draw at natural aspect ratio to avoid squashing, and sink into ground by 20px
-    // so the stone base sits flush rather than floating.
-    const ASSET_RATIO = 1024 / 682; // ≈ 1.501
-    const gateHeight = 340;
-    const gateTop = placeGateOnGround(gateHeight) + 15; // +15 sinks base into ground line
-    const backWidth = Math.round(gateHeight * ASSET_RATIO); // 510
-    const frontWidth = Math.round((gateHeight + 20) * ASSET_RATIO); // 540
-    const frontPillarPassageOffset = -Math.round(frontWidth * 0.37);
-    const gateWidth = backWidth;
-
-    const drawGateAsset = (ref, dest, options = {}) => {
-      if (!ref.current.loaded || !ref.current.image) return false;
-      ctx.save();
-      ctx.globalAlpha *= options.alpha ?? 1;
-      if (options.filter) ctx.filter = options.filter;
-      if (options.flipX) {
-        ctx.translate(dest.x + dest.width / 2, 0);
-        ctx.scale(-1, 1);
-        ctx.drawImage(ref.current.image, -dest.width / 2, dest.y, dest.width, dest.height);
-      } else {
-        ctx.drawImage(ref.current.image, dest.x, dest.y, dest.width, dest.height);
-      }
-      ctx.restore();
-      return true;
-    };
-
-    // 3/4 Perspective Layout — both assets are landscape (1024×682).
-    // Back arch: left column + spanning lintel, centred on gateCenter.
-    const backDest = {
-      x: gateCenter - Math.round(backWidth / 2),
-      y: gateTop,
-      width: backWidth,   // 510
-      height: gateHeight, // 340
-    };
-    // Front column: near foreground occluder, offset clear of the walk-through opening.
-    const frontDest = {
-      x: gateCenter - Math.round(frontWidth / 2) + frontPillarPassageOffset,
-      y: gateTop - 8,     // slightly higher — closer to camera = taller
-      width: frontWidth,  // 540
-      height: gateHeight + 20, // 360
-    };
-    // Slab fills the arch opening when locked.
-    const slabDest = doorway?.slab
-      ? {
-          x: gateCenter + doorway.slab.x,
-          y: GROUND_Y + doorway.slab.y,
-          width: doorway.slab.width,
-          height: doorway.slab.height,
-        }
-      : {
-          x: gateCenter - 105,
-          y: gateTop + 52,
-          width: 185,
-          height: gateHeight - 42,
-        };
-
-    const drawFallbackArch = () => {
-      const stone = ctx.createLinearGradient(gateCenter - gateWidth / 2, gateTop, gateCenter + gateWidth / 2, GROUND_Y);
-      stone.addColorStop(0, complete ? '#d8c092' : '#b89768');
-      stone.addColorStop(0.55, complete ? '#a98455' : '#806242');
-      stone.addColorStop(1, '#4f3825');
-      ctx.fillStyle = stone;
-      ctx.strokeStyle = 'rgba(58, 35, 18, 0.76)';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(gateCenter - gateWidth * 0.42, GROUND_Y);
-      ctx.lineTo(gateCenter - gateWidth * 0.42, gateTop + 54);
-      ctx.quadraticCurveTo(gateCenter, gateTop - 14, gateCenter + gateWidth * 0.42, gateTop + 54);
-      ctx.lineTo(gateCenter + gateWidth * 0.42, GROUND_Y);
-      ctx.lineTo(gateCenter + gateWidth * 0.24, GROUND_Y);
-      ctx.lineTo(gateCenter + gateWidth * 0.24, gateTop + 70);
-      ctx.quadraticCurveTo(gateCenter, gateTop + 36, gateCenter - gateWidth * 0.24, gateTop + 70);
-      ctx.lineTo(gateCenter - gateWidth * 0.24, GROUND_Y);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-    };
-
-    if (layer === 'foreground') {
-      const archDrawn = drawGateAsset(routeGateFrontRef, frontDest, {
-        alpha: 0.99,
-        filter: 'sepia(2%) saturate(104%) brightness(108%) contrast(102%) drop-shadow(-8px 6px 12px rgba(46, 28, 12, 0.35))',
-        flipX: true,
-      });
-      if (!archDrawn && complete) drawFallbackArch();
-      ctx.restore();
-      return;
-    }
-
-    drawContactShadow(ctx, gateCenter, GROUND_Y + 2, gateWidth * 0.9, complete ? 0.18 : 0.24, 1.15);
-    drawDecorativeBaseBlend(ctx, gateCenter, GROUND_Y + 2, gateWidth * 0.86, getSectionForX(gate.x).id, 'midground', 0.74);
-
-    if (complete) {
-      const openGlow = ctx.createRadialGradient(gateCenter, GROUND_Y - 70, 8, gateCenter, GROUND_Y - 70, 104);
-      openGlow.addColorStop(0, 'rgba(70, 217, 190, 0.2)');
-      openGlow.addColorStop(0.42, 'rgba(250, 204, 21, 0.12)');
-      openGlow.addColorStop(1, 'rgba(250, 204, 21, 0)');
-      ctx.fillStyle = openGlow;
-      ctx.beginPath();
-      ctx.ellipse(gateCenter, GROUND_Y - 70, 104, 74, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = 'rgba(26, 16, 9, 0.46)';
-      ctx.beginPath();
-      ctx.roundRect(gateCenter - 35, GROUND_Y - 115, 70, 108, 8);
-      ctx.fill();
-    } else {
-      const sealedShadow = ctx.createRadialGradient(gateCenter, GROUND_Y - 62, 12, gateCenter, GROUND_Y - 62, 94);
-      sealedShadow.addColorStop(0, 'rgba(70, 37, 13, 0.26)');
-      sealedShadow.addColorStop(1, 'rgba(70, 37, 13, 0)');
-      ctx.fillStyle = sealedShadow;
-      ctx.beginPath();
-      ctx.ellipse(gateCenter, GROUND_Y - 58, 94, 62, 0, 0, Math.PI * 2);
-      ctx.fill();
-      // Interior depth: dark recess behind/around the slab so it reads as set INTO
-      // the arch rather than flush against a flat wall.
-      const recess = ctx.createLinearGradient(slabDest.x, slabDest.y, slabDest.x + slabDest.width, slabDest.y);
-      recess.addColorStop(0, 'rgba(20, 11, 5, 0.55)');
-      recess.addColorStop(0.22, 'rgba(20, 11, 5, 0)');
-      recess.addColorStop(0.78, 'rgba(20, 11, 5, 0)');
-      recess.addColorStop(1, 'rgba(20, 11, 5, 0.55)');
-      ctx.fillStyle = recess;
-      ctx.fillRect(slabDest.x - 8, slabDest.y - 6, slabDest.width + 16, slabDest.height + 6);
-      const slabDrawn = drawGateAsset(routeGateSlabRef, slabDest, {
-        alpha: 0.98,
-        filter: 'sepia(3%) saturate(96%) brightness(95%) contrast(104%)',
-      });
-      if (!slabDrawn) {
-        const slabGradient = ctx.createLinearGradient(slabDest.x, slabDest.y, slabDest.x + slabDest.width, slabDest.y + slabDest.height);
-        slabGradient.addColorStop(0, '#d1a96b');
-        slabGradient.addColorStop(0.56, '#927047');
-        slabGradient.addColorStop(1, '#5f4327');
-        ctx.fillStyle = slabGradient;
-        ctx.strokeStyle = 'rgba(58, 35, 18, 0.62)';
-        ctx.lineWidth = 2;
-        ctx.fillRect(slabDest.x, slabDest.y, slabDest.width, slabDest.height);
-        ctx.strokeRect(slabDest.x, slabDest.y, slabDest.width, slabDest.height);
-      }
-      // Active-checkpoint signal: a warm sealed-energy light shaft rising from the
-      // opening, gently pulsing so the gate reads as "break the seal", not set dressing.
-      const seam = gateCenter;
-      const pulse = Math.sin(performance.now() / 620) * 0.5 + 0.5; // 0..1
-      const shaftTop = slabDest.y + 6;
-      const shaftBottom = slabDest.y + slabDest.height;
-      const shaft = ctx.createLinearGradient(seam, shaftBottom, seam, shaftTop);
-      shaft.addColorStop(0, `rgba(250, 196, 84, ${0.12 + pulse * 0.16})`);
-      shaft.addColorStop(0.5, `rgba(252, 211, 110, ${0.07 + pulse * 0.1})`);
-      shaft.addColorStop(1, 'rgba(252, 211, 110, 0)');
-      ctx.save();
-      ctx.globalCompositeOperation = 'screen';
-      const shaftWidth = 30 + pulse * 8;
-      ctx.fillStyle = shaft;
-      ctx.fillRect(seam - shaftWidth / 2, shaftTop, shaftWidth, shaftBottom - shaftTop);
-      const seamGlow = ctx.createRadialGradient(seam, shaftTop + 18, 4, seam, shaftTop + 18, 46 + pulse * 10);
-      seamGlow.addColorStop(0, `rgba(255, 224, 140, ${0.22 + pulse * 0.18})`);
-      seamGlow.addColorStop(1, 'rgba(255, 224, 140, 0)');
-      ctx.fillStyle = seamGlow;
-      ctx.beginPath();
-      ctx.ellipse(seam, shaftTop + 18, 40 + pulse * 8, 56 + pulse * 10, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    }
-
-    const archBackDrawn = drawGateAsset(routeGateBackRef, backDest, {
-      alpha: 0.96,
-      filter: 'sepia(5%) saturate(94%) brightness(94%) contrast(106%) drop-shadow(0 6px 8px rgba(46, 28, 12, 0.3))',
-      flipX: true,
-    });
-    if (!archBackDrawn && !complete) drawFallbackArch();
-
-    drawGroundDustLip(ctx, gateCenter, GROUND_Y + 1, gateWidth * 0.82, 'rgba(184, 116, 52, 0.22)');
-    if (current.renderStats) current.renderStats.groundedPropCount += 1;
-    ctx.restore();
-  }, []);
-
-  const drawHazardBurialCover = useCallback((ctx, centerX, footY, width, burial, sectionId) => {
-    if (burial <= 0) return;
-    const coverHeight = Math.max(5, width * (0.04 + burial * 0.08));
-    const coverWidth = width * (0.92 + burial * 0.34);
-    const isCatacombs = sectionId === 'catacombs';
-
-    ctx.save();
-    ctx.globalAlpha = 0.42 + burial * 0.32;
-    const sand = ctx.createLinearGradient(0, footY - coverHeight * 1.6, 0, footY + coverHeight * 0.95);
-    sand.addColorStop(0, isCatacombs ? 'rgba(110, 86, 56, 0)' : 'rgba(233, 181, 96, 0)');
-    sand.addColorStop(0.46, isCatacombs ? 'rgba(107, 84, 57, 0.48)' : 'rgba(214, 149, 69, 0.54)');
-    sand.addColorStop(1, isCatacombs ? 'rgba(52, 39, 28, 0.5)' : 'rgba(124, 70, 29, 0.5)');
-    ctx.fillStyle = sand;
-    ctx.beginPath();
-    ctx.ellipse(centerX, footY - coverHeight * 0.18, coverWidth / 2, coverHeight, -0.03, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.globalAlpha = 0.3 + burial * 0.22;
-    ctx.strokeStyle = isCatacombs ? 'rgba(170, 135, 86, 0.32)' : 'rgba(250, 203, 119, 0.36)';
-    ctx.lineWidth = 1.4;
-    ctx.beginPath();
-    ctx.moveTo(centerX - coverWidth * 0.38, footY - coverHeight * 0.48);
-    ctx.quadraticCurveTo(centerX - coverWidth * 0.08, footY + coverHeight * 0.14, centerX + coverWidth * 0.24, footY - coverHeight * 0.18);
-    ctx.quadraticCurveTo(centerX + coverWidth * 0.36, footY - coverHeight * 0.36, centerX + coverWidth * 0.45, footY - coverHeight * 0.04);
-    ctx.stroke();
-    ctx.restore();
-  }, []);
-
-  const drawHazard = useCallback((ctx, hazard, cameraX, current, now) => {
-    const hx = worldToScreenX(hazard.x, cameraX);
-    if (!isHorizontallyVisible(hazard.x, hazard.width, cameraX, 50)) return;
-
-    const trapRuntime = current.trapStates?.[hazard.id] || {};
-    const reusableTrap = isReusableJourneyTrap(hazard) ? normalizeJourneyTrap(hazard) : null;
-    const trapPhase = trapRuntime.phase || 'armed';
-    const visualHazardId = reusableTrap?.type === 'hidden-sand-pit' && trapPhase === 'revealed'
-      ? 'dark-gap'
-      : getHazardVisualId(hazard);
-    const visual = HAZARD_VISUALS[visualHazardId] || getHazardVisualConfig(hazard);
-    const shakeY = reusableTrap?.type === 'collapsing-stone-floor' && trapPhase === 'shaking'
-      ? Math.sin(now / 22) * 2
-      : 0;
-    const baseY = hazard.y + shakeY;
-    const section = getSectionForX(hazard.x);
-    const grounding = getHazardGroundingConfig(hazard);
-    const centerX = hx + hazard.width / 2;
-    const footY = baseY + hazard.height;
-    const dustWidth = hazard.width * (grounding.dustWidth || 0.9);
-    const burial = getHazardBurialAmount(hazard);
-    const hazardAlpha = Number.isFinite(hazard.alpha) ? clamp(hazard.alpha, 0, 1) : 1;
-    const hazardFilterBase = hazard.colorGradeFilter || grounding.filter || 'none';
-    const hazardFilter = Number.isFinite(hazard.brightness) && hazard.brightness !== 1
-      ? `${hazardFilterBase && hazardFilterBase !== 'none' ? `${hazardFilterBase} ` : ''}brightness(${Math.round(clamp(hazard.brightness, 0.4, 1.8) * 100)}%)`
-      : hazardFilterBase;
-
-    ctx.save();
-    ctx.globalAlpha *= hazardAlpha;
-    if (reusableTrap?.type === 'dart-launcher') {
-      const launcherX = worldToScreenX(reusableTrap.launcherX, cameraX);
-      const launcherY = reusableTrap.launcherY;
-      ctx.save();
-      ctx.fillStyle = 'rgba(37, 25, 17, 0.82)';
-      ctx.strokeStyle = 'rgba(180, 137, 76, 0.72)';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.roundRect(launcherX - 16, launcherY - 13, 32, 26, 5);
-      ctx.fill();
-      ctx.stroke();
-      ctx.fillStyle = 'rgba(8, 13, 22, 0.9)';
-      ctx.beginPath();
-      ctx.ellipse(launcherX, launcherY, reusableTrap.direction === 'up' || reusableTrap.direction === 'down' ? 5 : 10, reusableTrap.direction === 'up' || reusableTrap.direction === 'down' ? 10 : 5, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    }
-    if (reusableTrap?.type === 'collapsing-stone-floor' && trapPhase === 'collapsed') {
-      ctx.globalAlpha = 0.9;
-    }
-    const hazardAssetKey = getEnvironmentAssetKeyForHazard(hazard, environmentAssetsRef.current.packId);
-    const hazardDest = {
-      x: hx - grounding.xPad,
-      y: baseY - grounding.yOffset,
-      width: hazard.width + grounding.widthPad,
-      height: Math.max(12, hazard.height + grounding.heightPad),
-    };
-    const decalDescriptor = reusableTrap?.type === 'hidden-sand-pit' && trapPhase === 'revealed'
-      ? null
-      : getEgyptHazardDecalDescriptor(hazard);
-    const decalDest = decalDescriptor
-      ? getEgyptHazardDecalDest(hazard, hx, footY, decalDescriptor.regionKey)
-      : hazardDest;
-    if (visualHazardId === 'spike-trap' && current.lastHazardHit?.id === hazard.id && current.hazardCooldown > 0.4) {
-      decalDest.y -= 18;
-    }
-    if (visualHazardId !== 'bat-cloud' && visualHazardId !== 'dust-wave') {
-      drawContactShadow(ctx, centerX, footY + 3, hazard.width * 0.92, grounding.shadow, 0.9);
-    }
-    if (dustWidth > 0) {
-      drawGroundDustLip(ctx, centerX, footY + 1, dustWidth, 'rgba(122, 78, 37, 0.16)');
-    }
-    if (decalDescriptor) {
-      const decalDrawn = drawOpeningHazardDecalRegion(ctx, decalDescriptor, decalDest, {
-        alpha: 0.94 * hazardAlpha,
-        filter: hazardFilter,
-        ...(visualHazardId === 'spike-trap' ? { cropBottomRatio: 0.56, alignY: 'bottom' } : {}),
-      });
-      if (decalDrawn) {
-        if (dustWidth > 0) {
-          const apronIntensity = visualHazardId === 'spike-trap'
-            ? 1.08
-            : visualHazardId === 'sand-pit' || visualHazardId === 'dark-gap'
-              ? 1.2
-              : 0.82;
-          drawGroundDustLip(ctx, centerX, footY + 2, dustWidth * 0.9, visualHazardId === 'spike-trap' ? 'rgba(209, 143, 72, 0.32)' : 'rgba(209, 143, 72, 0.24)');
-          drawHazardGroundApron(ctx, centerX, footY + 4, dustWidth, section.id, apronIntensity);
-        }
-        drawHazardBurialCover(ctx, centerX, footY, dustWidth, burial, section.id);
-        ctx.restore();
-        return;
-      }
-    }
-    ctx.save();
-    ctx.filter = hazardFilter;
-    const hazardDrawn = drawAtlasRegion(
-      ctx,
-      environmentAssetsRef.current,
-      hazardAssetKey,
-      hazardDest,
-      { mode: 'contain' },
+    const aura = ctx.createRadialGradient(
+      x + hitbox.width / 2,
+      y + hitbox.height * 0.56,
+      8,
+      x + hitbox.width / 2,
+      y + hitbox.height * 0.56,
+      58,
     );
-    ctx.restore();
-    if (hazardDrawn) {
-      if (dustWidth > 0) {
-        const apronIntensity = visualHazardId === 'spike-trap'
-          ? 1.08
-          : visualHazardId === 'sand-pit' || visualHazardId === 'dark-gap'
-            ? 1.2
-            : 0.82;
-        drawGroundDustLip(ctx, centerX, footY + 2, dustWidth * 0.9, visualHazardId === 'spike-trap' ? 'rgba(209, 143, 72, 0.32)' : 'rgba(209, 143, 72, 0.24)');
-        drawHazardGroundApron(ctx, centerX, footY + 4, dustWidth, section.id, apronIntensity);
-      }
-      drawHazardBurialCover(ctx, centerX, footY, dustWidth, burial, section.id);
-      ctx.restore();
-      return;
-    }
-
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = visual.color;
-    ctx.fillStyle = visual.fill;
-    ctx.globalAlpha = 0.88;
-
-    if (visualHazardId === 'dark-gap') {
-      const gradient = ctx.createRadialGradient(hx + hazard.width / 2, baseY + hazard.height / 2, 6, hx + hazard.width / 2, baseY + hazard.height / 2, hazard.width / 1.5);
-      gradient.addColorStop(0, '#020617');
-      gradient.addColorStop(1, 'rgba(15, 23, 42, 0.72)');
-      ctx.fillStyle = gradient;
-      ctx.beginPath();
-      ctx.ellipse(hx + hazard.width / 2, baseY + hazard.height / 2, hazard.width / 2, Math.max(12, hazard.height), 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-      ctx.fillStyle = 'rgba(56, 189, 248, 0.6)';
-      ctx.fillRect(hx + 8, baseY + 3, hazard.width - 16, 2);
-    } else if (visualHazardId === 'thorn-bush') {
-      ctx.beginPath();
-      ctx.roundRect(hx, baseY + 8, hazard.width, hazard.height - 4, 8);
-      ctx.fill();
-      ctx.stroke();
-      ctx.strokeStyle = visual.accent;
-      for (let i = 8; i < hazard.width; i += 12) {
-        ctx.beginPath();
-        ctx.moveTo(hx + i, baseY + hazard.height + 2);
-        ctx.lineTo(hx + i + 6, baseY + 5);
-        ctx.lineTo(hx + i + 12, baseY + hazard.height + 2);
-        ctx.stroke();
-      }
-    } else if (visualHazardId === 'sand-pit') {
-      ctx.beginPath();
-      ctx.ellipse(hx + hazard.width / 2, baseY + hazard.height / 2, hazard.width / 2, hazard.height / 2, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-      ctx.strokeStyle = visual.accent;
-      for (let i = 0; i < 4; i += 1) {
-        ctx.beginPath();
-        ctx.arc(hx + 18 + i * 18, baseY + 15 + Math.sin(now / 220 + i) * 3, 5, 0, Math.PI * 2);
-        ctx.stroke();
-      }
-    } else if (visualHazardId === 'spike-trap') {
-      ctx.fillRect(hx, baseY + 10, hazard.width, hazard.height - 8);
-      ctx.strokeRect(hx, baseY + 10, hazard.width, hazard.height - 8);
-      ctx.fillStyle = visual.accent;
-      for (let i = 4; i < hazard.width - 4; i += 14) {
-        ctx.beginPath();
-        ctx.moveTo(hx + i, baseY + 10);
-        ctx.lineTo(hx + i + 7, baseY - 8);
-        ctx.lineTo(hx + i + 14, baseY + 10);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-      }
-    } else if (visualHazardId === 'rolling-stones' || visualHazardId === 'falling-blocks') {
-      ctx.fillRect(hx, baseY + 10, hazard.width, hazard.height - 8);
-      ctx.strokeRect(hx, baseY + 10, hazard.width, hazard.height - 8);
-      ctx.strokeStyle = visual.accent;
-      ctx.beginPath();
-      ctx.moveTo(hx + 8, baseY + 18);
-      ctx.lineTo(hx + hazard.width * 0.45, baseY + 8);
-      ctx.lineTo(hx + hazard.width - 10, baseY + 22);
-      ctx.stroke();
-      ctx.fillStyle = visual.color;
-      for (let i = 0; i < 3; i += 1) {
-        ctx.beginPath();
-        ctx.arc(hx + 18 + i * 22, baseY + 6 + Math.sin(now / 160 + i) * 4, 5 + i, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    } else if (visualHazardId === 'bat-cloud' || visualHazardId === 'dust-wave') {
-      ctx.beginPath();
-      ctx.roundRect(hx, baseY, hazard.width, hazard.height, 18);
-      ctx.fill();
-      ctx.stroke();
-      ctx.fillStyle = visual.accent;
-      for (let i = 0; i < 7; i += 1) {
-        ctx.globalAlpha = 0.42;
-        ctx.beginPath();
-        ctx.arc(hx + 14 + i * 15, baseY + 18 + Math.sin(now / 130 + i) * 14, 3 + (i % 3), 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.globalAlpha = 1;
-    } else {
-      ctx.beginPath();
-      ctx.moveTo(hx, baseY + hazard.height);
-      ctx.lineTo(hx + hazard.width * 0.35, baseY + 8);
-      ctx.lineTo(hx + hazard.width, baseY + hazard.height);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-      ctx.strokeStyle = visual.accent;
-      ctx.beginPath();
-      ctx.moveTo(hx + 12, baseY + hazard.height - 8);
-      ctx.lineTo(hx + hazard.width - 10, baseY + 12);
-      ctx.stroke();
-    }
-
-    ctx.globalAlpha = 0.82;
-    if (visualHazardId !== 'bat-cloud' && visualHazardId !== 'dust-wave') {
-      drawGroundDustLip(ctx, centerX, footY + 2, dustWidth * 0.82, 'rgba(185, 110, 45, 0.2)');
-      drawHazardGroundApron(ctx, centerX, footY + 4, dustWidth, section.id, visualHazardId === 'sand-pit' || visualHazardId === 'dark-gap' ? 1.2 : 0.82);
-      drawHazardBurialCover(ctx, centerX, footY, dustWidth, burial, section.id);
-    }
-    ctx.restore();
-  }, [drawHazardBurialCover, drawOpeningHazardDecalRegion]);
-
-  const drawDiscoveryEntrance = useCallback((ctx, entrance, cameraX, current, now) => {
-    const screenX = entrance.x - cameraX;
-    const centerX = screenX + entrance.width / 2;
-    const footY = GATE.y + GATE.height;
-    if (screenX > CANVAS_WIDTH + 260 || screenX + entrance.width < -260) return;
-
-    const revealProgress = current.discoveryEntranceActive
-      ? 1 - clamp((current.discoveryEntranceTimer || 0) / DISCOVERY_ENTRANCE_REVEAL_SECONDS, 0, 1)
-      : 0;
-    const pulse = 0.5 + Math.sin(now / 210) * 0.5;
-    const glowAlpha = 0.16 + pulse * 0.08 + revealProgress * 0.2;
-    const lampFlicker = 0.82 + Math.sin(now / 95) * 0.1;
-
-    ctx.save();
-    drawContactShadow(ctx, centerX, footY + 4, entrance.width * 0.9, 0.34, 1.2);
-
-    const aura = ctx.createRadialGradient(centerX, entrance.y + 82, 18, centerX, entrance.y + 82, entrance.width * 0.84);
-    aura.addColorStop(0, `rgba(250, 204, 21, ${glowAlpha})`);
-    aura.addColorStop(0.48, `rgba(187, 247, 208, ${0.12 + revealProgress * 0.12})`);
-    aura.addColorStop(1, 'rgba(6, 78, 59, 0)');
+    aura.addColorStop(0, `rgba(94, 234, 212, ${0.34 * alpha})`);
+    aura.addColorStop(0.55, `rgba(56, 189, 248, ${0.16 * alpha})`);
+    aura.addColorStop(1, 'rgba(0, 0, 0, 0)');
     ctx.fillStyle = aura;
-    ctx.beginPath();
-    ctx.ellipse(centerX, entrance.y + 82, entrance.width * 0.72, entrance.height * 0.62, 0, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.fillRect(x - 64, y - 24, hitbox.width + 128, hitbox.height + 72);
 
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.28)';
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = (echo.attackCue || 0) > 0 ? 'rgba(250, 204, 21, 0.44)' : 'rgba(34, 211, 238, 0.36)';
     ctx.beginPath();
-    ctx.ellipse(centerX + 12, footY + 13, entrance.width * 0.56, 13, 0, 0, Math.PI * 2);
+    ctx.ellipse(x + hitbox.width / 2, y + hitbox.height * 0.48, hitbox.width * 0.45, hitbox.height * 0.48, 0, 0, Math.PI * 2);
     ctx.fill();
-
-    const leftPillarX = screenX + 18;
-    const rightPillarX = screenX + entrance.width - 46;
-    const pillarGradient = ctx.createLinearGradient(screenX, entrance.y, screenX + entrance.width, entrance.y);
-    pillarGradient.addColorStop(0, '#1f3f2e');
-    pillarGradient.addColorStop(0.45, entrance.stoneColor);
-    pillarGradient.addColorStop(1, '#163425');
-    ctx.fillStyle = pillarGradient;
-    ctx.strokeStyle = 'rgba(187, 247, 208, 0.34)';
+    ctx.strokeStyle = (echo.attackCue || 0) > 0 ? 'rgba(253, 224, 71, 0.82)' : 'rgba(153, 246, 228, 0.72)';
     ctx.lineWidth = 2;
-    [leftPillarX, rightPillarX].forEach((pillarX) => {
-      ctx.beginPath();
-      ctx.roundRect(pillarX, entrance.y + 30, 28, entrance.height - 26, 6);
-      ctx.fill();
-      ctx.stroke();
-      ctx.fillStyle = 'rgba(250, 204, 21, 0.18)';
-      ctx.fillRect(pillarX + 6, entrance.y + 52, 16, entrance.height - 84);
-      ctx.fillStyle = pillarGradient;
-    });
-
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(232, 244, 255, 0.78)';
     ctx.beginPath();
-    ctx.moveTo(screenX + 18, entrance.y + 56);
-    ctx.quadraticCurveTo(centerX, entrance.y - 8, screenX + entrance.width - 18, entrance.y + 56);
-    ctx.lineTo(screenX + entrance.width - 6, entrance.y + 86);
-    ctx.quadraticCurveTo(centerX, entrance.y + 22, screenX + 6, entrance.y + 86);
+    ctx.moveTo(x + hitbox.width / 2, y + 9);
+    ctx.lineTo(x + hitbox.width * 0.72, y + hitbox.height * 0.5);
+    ctx.lineTo(x + hitbox.width / 2, y + hitbox.height - 8);
+    ctx.lineTo(x + hitbox.width * 0.28, y + hitbox.height * 0.5);
     ctx.closePath();
     ctx.fill();
-    ctx.stroke();
-
-    const doorGradient = ctx.createLinearGradient(centerX, entrance.y + 40, centerX, footY);
-    doorGradient.addColorStop(0, 'rgba(6, 78, 59, 0.9)');
-    doorGradient.addColorStop(0.58, '#10291f');
-    doorGradient.addColorStop(1, '#07150f');
-    ctx.fillStyle = doorGradient;
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = 'rgba(94, 234, 212, 0.5)';
     ctx.beginPath();
-    ctx.roundRect(centerX - 31, entrance.y + 54, 62, entrance.height - 42, 24);
-    ctx.fill();
-    ctx.strokeStyle = `rgba(250, 204, 21, ${0.38 + revealProgress * 0.24})`;
-    ctx.lineWidth = 3;
+    ctx.ellipse(x + hitbox.width / 2, getArrivalThresholdGroundY(echo.x) + 4, hitbox.width * 0.82, 8, 0, 0, Math.PI * 2);
     ctx.stroke();
-
-    ctx.fillStyle = `rgba(250, 204, 21, ${0.38 + revealProgress * 0.28})`;
-    ctx.beginPath();
-    ctx.arc(centerX, entrance.y + 104, 12 + revealProgress * 4, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(255, 247, 237, 0.52)';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    for (let index = 0; index < 5; index += 1) {
-      const stairY = footY - 2 + index * 8;
-      const stairWidth = entrance.width * (0.52 + index * 0.08);
-      ctx.fillStyle = `rgba(49, 84, 61, ${0.86 - index * 0.06})`;
-      ctx.fillRect(centerX - stairWidth / 2, stairY, stairWidth, 5);
-      ctx.fillStyle = 'rgba(250, 204, 21, 0.08)';
-      ctx.fillRect(centerX - stairWidth / 2, stairY, stairWidth, 1);
-    }
-
-    [-1, 1].forEach((side) => {
-      const torchX = centerX + side * 54;
-      ctx.fillStyle = '#5c4033';
-      ctx.fillRect(torchX - 3, entrance.y + 82, 6, 28);
-      ctx.fillStyle = `rgba(250, 204, 21, ${0.74 * lampFlicker})`;
-      ctx.beginPath();
-      ctx.ellipse(torchX, entrance.y + 76, 7 + revealProgress * 2, 14, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = `rgba(255, 247, 237, ${0.38 * lampFlicker})`;
-      ctx.beginPath();
-      ctx.ellipse(torchX, entrance.y + 78, 3, 7, 0, 0, Math.PI * 2);
-      ctx.fill();
-    });
-
-    ctx.strokeStyle = 'rgba(187, 247, 208, 0.28)';
-    ctx.lineWidth = 1;
-    for (let index = 0; index < 6; index += 1) {
-      const crackX = screenX + 34 + index * 18;
-      ctx.beginPath();
-      ctx.moveTo(crackX, entrance.y + 46 + (index % 2) * 12);
-      ctx.lineTo(crackX + 7, entrance.y + 72 + (index % 3) * 8);
-      ctx.lineTo(crackX + 3, entrance.y + 102 + (index % 2) * 10);
-      ctx.stroke();
-    }
-
-    drawGroundDustLip(ctx, centerX, footY + 3, entrance.width * 0.78, 'rgba(250, 204, 21, 0.2)');
-    if (Math.abs((current.player.x + current.player.width / 2) - (entrance.x + entrance.width / 2)) < 240) {
-      drawFieldNoteLabel(ctx, centerX, entrance.y - 16, entrance.title, entrance.glowColor);
-    }
     ctx.restore();
-  }, [drawFieldNoteLabel]);
-
-  const drawPremiumEgyptianChamberDoor = useCallback((ctx, door, cameraX, current, now) => {
-    if (!door?.trigger || getJourneySceneId(current) !== JOURNEY_SCENE_IDS.EXTERIOR) return;
-    if (!shouldRenderChamberDoorVisual(door)) return;
-    const centerWorldX = (door.trigger.minX + door.trigger.maxX) / 2;
-    const centerX = worldToScreenX(centerWorldX, cameraX);
-    const width = door.width || 148;
-    const height = door.height || 210;
-    const baseY = door.trigger.footY + (door.yOffset || 0);
-    const top = baseY - height;
-    if (centerX + width < -80 || centerX - width > CANVAS_WIDTH + 80) return;
-
-    const playerCenterX = current.player.x + current.player.width / 2;
-    const playerFootY = current.player.y + current.player.height;
-    const playerNear = Math.abs(playerCenterX - centerWorldX) < width * 0.72
-      && Math.abs(playerFootY - door.trigger.footY) <= Math.max(door.trigger.footTolerance * 2.2, 58);
-    const pulse = 0.72 + Math.sin(now / 360) * 0.18;
-    const glowColor = door.glow || '#facc15';
-    const accent = door.accent || '#facc15';
-
-    ctx.save();
-    drawContactShadow(ctx, centerX, baseY + 7, width * 0.86, 0.22, 1.25);
-
-    const aura = ctx.createRadialGradient(centerX, top + height * 0.48, 12, centerX, top + height * 0.48, width * 0.9);
-    aura.addColorStop(0, `rgba(250, 204, 21, ${0.1 + pulse * 0.06})`);
-    aura.addColorStop(0.4, `rgba(94, 234, 212, ${playerNear ? 0.12 : 0.06})`);
-    aura.addColorStop(1, 'rgba(94, 234, 212, 0)');
-    ctx.fillStyle = aura;
-    ctx.beginPath();
-    ctx.ellipse(centerX, top + height * 0.48, width * 0.7, height * 0.42, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    const frameGradient = ctx.createLinearGradient(centerX - width / 2, top, centerX + width / 2, baseY);
-    frameGradient.addColorStop(0, '#d7bd83');
-    frameGradient.addColorStop(0.28, '#8f6c42');
-    frameGradient.addColorStop(0.72, '#5c3d23');
-    frameGradient.addColorStop(1, '#2d1b10');
-    ctx.fillStyle = frameGradient;
-    ctx.strokeStyle = 'rgba(38, 24, 13, 0.86)';
-    ctx.lineWidth = 3;
-
-    // Carved stone doorway frame.
-    ctx.beginPath();
-    ctx.roundRect(centerX - width * 0.5, top + height * 0.12, width, height * 0.86, 12);
-    ctx.fill();
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.roundRect(centerX - width * 0.34, top + height * 0.28, width * 0.68, height * 0.68, 30);
-    ctx.fillStyle = 'rgba(17, 24, 39, 0.5)';
-    ctx.fill();
-
-    // Sealed slab, kept visual-only so transition triggers remain unchanged.
-    const slabWidth = width * (door.slabInset || 0.5);
-    const slabHeight = height * 0.58;
-    const slabX = centerX - slabWidth / 2;
-    const slabY = top + height * 0.34;
-    const slabGradient = ctx.createLinearGradient(slabX, slabY, slabX + slabWidth, slabY + slabHeight);
-    slabGradient.addColorStop(0, '#c7a66e');
-    slabGradient.addColorStop(0.55, '#7c5832');
-    slabGradient.addColorStop(1, '#3d2515');
-    ctx.fillStyle = slabGradient;
-    ctx.strokeStyle = 'rgba(246, 202, 108, 0.5)';
-    ctx.lineWidth = 2.4;
-    ctx.beginPath();
-    ctx.roundRect(slabX, slabY, slabWidth, slabHeight, 10);
-    ctx.fill();
-    ctx.stroke();
-
-    // Hieroglyphs are simple carved marks on the frame, not new assets.
-    ctx.strokeStyle = 'rgba(36, 21, 12, 0.58)';
-    ctx.lineWidth = 1.4;
-    [-1, 1].forEach((side) => {
-      const glyphX = centerX + side * width * 0.36;
-      for (let i = 0; i < 5; i += 1) {
-        const glyphY = top + height * (0.26 + i * 0.11);
-        ctx.beginPath();
-        if (i % 3 === 0) {
-          ctx.moveTo(glyphX - 5, glyphY);
-          ctx.lineTo(glyphX + 5, glyphY);
-          ctx.lineTo(glyphX, glyphY + 8);
-        } else if (i % 3 === 1) {
-          ctx.ellipse(glyphX, glyphY + 4, 5, 7, 0, 0, Math.PI * 2);
-        } else {
-          ctx.moveTo(glyphX, glyphY - 2);
-          ctx.lineTo(glyphX, glyphY + 10);
-          ctx.moveTo(glyphX - 5, glyphY + 4);
-          ctx.lineTo(glyphX + 5, glyphY + 4);
-        }
-        ctx.stroke();
-      }
-    });
-
-    // Glowing ankh or scarab seal.
-    const sealX = centerX;
-    const sealY = slabY + slabHeight * 0.38;
-    ctx.save();
-    ctx.globalCompositeOperation = 'screen';
-    const sealGlow = ctx.createRadialGradient(sealX, sealY, 3, sealX, sealY, 42 + pulse * 14);
-    sealGlow.addColorStop(0, `rgba(255, 247, 203, ${0.5 + pulse * 0.22})`);
-    sealGlow.addColorStop(0.52, `rgba(250, 204, 21, ${0.18 + pulse * 0.12})`);
-    sealGlow.addColorStop(1, 'rgba(250, 204, 21, 0)');
-    ctx.fillStyle = sealGlow;
-    ctx.beginPath();
-    ctx.arc(sealX, sealY, 42 + pulse * 10, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = glowColor;
-    ctx.lineWidth = 2.6;
-    if (door.seal === 'scarab') {
-      ctx.beginPath();
-      ctx.ellipse(sealX, sealY, 15, 20, 0, 0, Math.PI * 2);
-      ctx.moveTo(sealX, sealY - 20);
-      ctx.lineTo(sealX, sealY + 20);
-      ctx.moveTo(sealX - 21, sealY - 6);
-      ctx.lineTo(sealX + 21, sealY - 6);
-      ctx.moveTo(sealX - 18, sealY + 8);
-      ctx.lineTo(sealX + 18, sealY + 8);
-      ctx.stroke();
-    } else {
-      ctx.beginPath();
-      ctx.ellipse(sealX, sealY - 15, 8, 10, 0, 0, Math.PI * 2);
-      ctx.moveTo(sealX, sealY - 4);
-      ctx.lineTo(sealX, sealY + 24);
-      ctx.moveTo(sealX - 15, sealY + 6);
-      ctx.lineTo(sealX + 15, sealY + 6);
-      ctx.moveTo(sealX - 9, sealY + 24);
-      ctx.lineTo(sealX + 9, sealY + 24);
-      ctx.stroke();
-    }
-    ctx.restore();
-
-    // Subtle gold rim light around the active passage edge.
-    ctx.strokeStyle = `rgba(250, 204, 21, ${playerNear ? 0.62 : 0.34})`;
-    ctx.lineWidth = playerNear ? 3 : 2;
-    ctx.beginPath();
-    ctx.roundRect(slabX - 7, slabY - 8, slabWidth + 14, slabHeight + 16, 13);
-    ctx.stroke();
-
-    if (door.dust !== false) {
-      ctx.fillStyle = `rgba(244, 196, 113, ${0.16 + pulse * 0.06})`;
-      for (let i = 0; i < 6; i += 1) {
-        const drift = Math.sin(now / (520 + i * 31) + i) * 5;
-        ctx.beginPath();
-        ctx.arc(centerX - width * 0.34 + i * width * 0.14 + drift, baseY - 18 - (i % 3) * 8, 1.7 + (i % 2), 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-
-    drawGroundDustLip(ctx, centerX, baseY + 2, width * 0.76, 'rgba(198, 130, 55, 0.24)');
-    if (playerNear) {
-      const promptText = door.prompt || 'E Enter';
-      drawFieldNoteLabel(ctx, centerX, top - 16, promptText, accent);
-    }
-    ctx.restore();
-  }, [drawFieldNoteLabel]);
+    return true;
+  }, []);
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -12585,6 +10440,7 @@ export default function ExpeditionJourney({
     } else if (current.attackTimer > 0 && current.renderStats) {
       current.renderStats.playerAttackArcMode = 'integrated-hero-atlas';
     }
+    drawArrivalThresholdTrial(ctx, current, now);
     drawOpeningSphinxEncounter(ctx, current.openingSphinxEncounter, cameraX, now);
     drawCombatEffects(ctx, current.combatHitEffects, cameraX, now);
     const hasDedicatedDodgeRow = playerSpriteRef.current.mode === 'hero-atlas'
@@ -12620,6 +10476,7 @@ export default function ExpeditionJourney({
       if (!shouldRenderStageEntranceFeatureForState(feature, current)) return;
       drawStageEntranceForegroundOccluder(ctx, feature, cameraX, now);
     });
+    drawArrivalThresholdDoorwayOccluder(ctx, current, now);
     if (!chamberSceneActive && ENABLE_FOREGROUND_DEPTH_LAYER) {
       drawForegroundDepthLayer(ctx, section, cameraX, now);
     }
@@ -12638,13 +10495,40 @@ export default function ExpeditionJourney({
     ctx.restore();
 
     drawCinematicCards(ctx, current);
-  }, [backgroundPackId, drawAncientRouteGround, drawArrivalThresholdScene, drawAttackArc, drawCinematicCards, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawChinaRiverValleyBackground, drawDebugPlatformOverlay, drawDesertEntryBackground, drawDesertEntryPrimaryBackgroundPlates, drawDesertForegroundAtmosphere, drawDesertJourneySceneMasks, drawDesertJourneyScenePanels, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawForegroundDepthLayer, drawForegroundOccluderProps, drawTempleThresholdHallInterior, drawMummificationChamberInterior, drawForgottenMuralChamberInterior, drawForgottenMuralChamberTransition, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawLostBridgeRavineDepth, drawLostBridgeRavineForegroundVoid, drawLostBridgeStructure, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawPlayerFeedbackOverlays, drawPremiumEgyptianChamberDoor, drawPropPlacementEditorOverlay, drawRouteGate, drawScarabQueenLairOpeningProp, drawScribeLockedChamberInterior, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawTrapProjectile, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getDoorwayGateStatus, getEditedMiniBoss, getEditedNestParams, getGateGuidance, getPlayerAttackState, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getZIndexSortedRenderableStoryProps, getRouteGateDoorwayEntries, getScarabQueenLairPlacement, isRouteRewardAccessible, resolveChamberEntryTrigger, drawPlayerSprite, drawFieldNoteLabel]);
+  }, [backgroundPackId, drawAncientRouteGround, drawArrivalThresholdDoorwayOccluder, drawArrivalThresholdScene, drawArrivalThresholdTrial, drawAttackArc, drawCinematicCards, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawChinaRiverValleyBackground, drawDebugPlatformOverlay, drawDesertEntryBackground, drawDesertEntryPrimaryBackgroundPlates, drawDesertForegroundAtmosphere, drawDesertJourneySceneMasks, drawDesertJourneyScenePanels, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawForegroundDepthLayer, drawForegroundOccluderProps, drawTempleThresholdHallInterior, drawMummificationChamberInterior, drawForgottenMuralChamberInterior, drawForgottenMuralChamberTransition, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawLostBridgeRavineDepth, drawLostBridgeRavineForegroundVoid, drawLostBridgeStructure, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawPlayerFeedbackOverlays, drawPremiumEgyptianChamberDoor, drawPropPlacementEditorOverlay, drawRouteGate, drawScarabQueenLairOpeningProp, drawScribeLockedChamberInterior, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawTrapProjectile, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getDoorwayGateStatus, getEditedMiniBoss, getEditedNestParams, getGateGuidance, getPlayerAttackState, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getZIndexSortedRenderableStoryProps, getRouteGateDoorwayEntries, getScarabQueenLairPlacement, isRouteRewardAccessible, resolveChamberEntryTrigger, drawPlayerSprite, drawFieldNoteLabel]);
 
   const startOpeningCinematic = useCallback(({ speechEnabled = true, fromArrivalThreshold = false } = {}) => {
     const current = stateRef.current;
     if (fromArrivalThreshold) {
       current.arrivalThresholdActive = false;
       current.arrivalThresholdGateTriggered = true;
+    }
+    if (current.openingConfrontationSeen) {
+      current.openingCinematic = null;
+      current.openingThresholdScene = null;
+      current.openingSphinxEncounter = null;
+      current.sectionTransition = null;
+      current.sectionTransitionTimer = 0;
+      current.environmentEvent = null;
+      current.environmentEventTimer = 0;
+      current.cinematicEvent = {
+        id: 'opening-confrontation-replay-skipped',
+        name: 'Asha',
+        message: OPENING_ARRIVAL_AFTERSHOCK_NOTICE,
+        temporary: true,
+      };
+      current.cinematicTimer = 3.0;
+      current.notice = OPENING_ARRIVAL_AFTERSHOCK_NOTICE;
+      current.player.x = 44;
+      current.player.y = GROUND_Y - current.player.height;
+      current.player.vx = 0;
+      current.player.vy = 0;
+      current.cameraX = 0;
+      current.targetCameraX = 0;
+      current.openingCameraRevealTimer = Math.max(current.openingCameraRevealTimer, OPENING_CAMERA_REVEAL_DURATION);
+      setBriefingOpen(false);
+      syncHud();
+      return;
     }
     audioControls?.unlockExpeditionSfx?.();
     const isRomeCinematic = typeof targetCivilisation === 'string' && targetCivilisation.toLowerCase().includes('rome');
@@ -12653,12 +10537,32 @@ export default function ExpeditionJourney({
       audioControls?.playExpeditionSfx?.('anubisPresenceStinger', { volume: 0.82 });
     }
     spokenOpeningLineRef.current = null;
-    const activeCinematicLines = getOpeningCinematicLines(targetCivilisation);
+    const baseCinematicLines = getOpeningCinematicLines(targetCivilisation);
+    const thresholdTrialReactionLines = fromArrivalThreshold && current.arrivalThresholdTrial?.completed
+      ? ARRIVAL_THRESHOLD_ANUBIS_TRIAL_LINES.map((text, index) => ({
+        id: `anubis-threshold-trial-${index + 1}`,
+        at: 10.2 + index * 1.8,
+        speaker: 'Anubis',
+        voice: 'guardian',
+        text,
+      }))
+      : [];
+    const reactionTimeShift = thresholdTrialReactionLines.length * 1.8;
+    const activeCinematicLines = thresholdTrialReactionLines.length
+      ? [
+        ...baseCinematicLines.slice(0, 4),
+        ...thresholdTrialReactionLines,
+        ...baseCinematicLines.slice(4).map(line => ({
+          ...line,
+          at: line.at + reactionTimeShift,
+        })),
+      ]
+      : baseCinematicLines;
     current.openingCinematic = {
       id: isRomeCinematic ? 'asha-legate-opening-cinematic' : 'asha-anubis-opening-cinematic',
       title: isRomeCinematic ? 'The Vault Speaks First' : 'The First Seal Watches',
-      duration: OPENING_CINEMATIC_DURATION,
-      timer: OPENING_CINEMATIC_DURATION,
+      duration: OPENING_CINEMATIC_DURATION + reactionTimeShift,
+      timer: OPENING_CINEMATIC_DURATION + reactionTimeShift,
       speechEnabled,
       lines: activeCinematicLines,
       activeLineId: activeCinematicLines[0].id,
@@ -12805,9 +10709,9 @@ export default function ExpeditionJourney({
     if (openingCheckpoint) {
       current.player.vx = 0;
       current.player.vy = 0;
-      current.player.direction = 1;
+      current.player.direction = -1;
       current.player.x = ARRIVAL_THRESHOLD_SPAWN_X;
-      current.player.y = GROUND_Y - current.player.height;
+      current.player.y = getArrivalThresholdGroundY(ARRIVAL_THRESHOLD_SPAWN_X + current.player.width / 2) - current.player.height;
       current.player.onGround = true;
       current.activeCheckpoint = openingCheckpoint;
       current.cameraX = clampCameraX(ARRIVAL_THRESHOLD_SPAWN_X - CANVAS_WIDTH * 0.44);
@@ -12815,11 +10719,13 @@ export default function ExpeditionJourney({
     }
     current.openingThresholdScene = null;
     current.openingSphinxEncounter = null;
+    current.currentSectionId = 'arrival-threshold';
     current.arrivalThresholdActive = true;
     current.arrivalThresholdStarted = true;
     current.arrivalThresholdLeftInspected = false;
     current.arrivalThresholdMarkingsInspected = false;
     current.arrivalThresholdGateTriggered = false;
+    current.arrivalThresholdTrial = createArrivalThresholdTrialState();
     current.arrivalThresholdNoticeTimer = 2.4;
     current.dynamicEnvironmentEvent = null;
     current.dynamicEnvironmentEventTimer = 0;
@@ -12840,6 +10746,19 @@ export default function ExpeditionJourney({
     current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.08);
     syncHud();
   }, [getRenderableCheckpoints, syncHud]);
+
+  useEffect(() => {
+    if (openingStartModeConsumedRef.current) return undefined;
+    if (openingStartMode !== 'arrival-threshold') return undefined;
+    const current = stateRef.current;
+    current.openingConfrontationSeen = false;
+    current.openingCinematic = null;
+    current.openingThresholdScene = null;
+    current.openingSphinxEncounter = null;
+    completeOpeningThresholdScene(current);
+    openingStartModeConsumedRef.current = true;
+    return undefined;
+  }, [completeOpeningThresholdScene, openingStartMode]);
 
   const enterLevelFromThreshold = useCallback((current, transition) => {
     const destinationSectionId = transition?.to || transition?.revealSectionId || 'ruined-temple';
@@ -13715,20 +11634,64 @@ export default function ExpeditionJourney({
     }
     if (current.arrivalThresholdActive) {
       player.x = clamp(player.x, ARRIVAL_THRESHOLD_LEFT_BOUND, ARRIVAL_THRESHOLD_RIGHT_BOUND - player.width);
-      player.y = GROUND_Y - player.height;
+      const arrivalCenterX = player.x + player.width / 2;
+      player.y = getArrivalThresholdGroundY(arrivalCenterX) - player.height;
       player.vy = 0;
       player.onGround = true;
       player.airJumpsUsed = 0;
-      current.attackQueued = false;
-      current.attackWindupTimer = 0;
-      current.attackTimer = 0;
-      current.attackRecoilTimer = 0;
+      updateArrivalThresholdTrial(current, player, dt);
       current.trapProjectiles = [];
-      current.currentSectionId = 'desert-entry';
+      current.currentSectionId = 'arrival-threshold';
       current.lastSectionId = 'desert-entry';
       current.resources.stamina = Math.max(current.resources.stamina, Math.min(maxStamina, 35));
       current.arrivalThresholdNoticeTimer = Math.max(0, (current.arrivalThresholdNoticeTimer || 0) - dt);
-      const arrivalCenterX = player.x + player.width / 2;
+      if (current.arrivalThresholdExitTransition) {
+        const transition = current.arrivalThresholdExitTransition;
+        transition.timer = Math.min(transition.duration, (transition.timer || 0) + dt);
+        const progress = clamp(transition.timer / transition.duration, 0, 1);
+        const eased = 1 - ((1 - progress) * (1 - progress));
+        player.x = clamp(
+          transition.startX + (transition.endX - transition.startX) * eased,
+          ARRIVAL_THRESHOLD_LEFT_BOUND,
+          ARRIVAL_THRESHOLD_RIGHT_BOUND - player.width,
+        );
+        player.y = getArrivalThresholdGroundY(player.x + player.width / 2) - player.height;
+        player.vx = 0;
+        player.vy = 0;
+        player.onGround = true;
+        player.direction = -1;
+        current.notice = 'Asha climbs through the broken scarab breach.';
+        if (progress >= 1) {
+          player.x = 44;
+          player.y = GROUND_Y - player.height;
+          player.direction = 1;
+          current.arrivalThresholdActive = false;
+          current.arrivalThresholdExitTransition = null;
+          current.openingCinematic = null;
+          current.openingThresholdScene = null;
+          current.openingSphinxEncounter = null;
+          current.sectionTransition = null;
+          current.sectionTransitionTimer = 0;
+          current.currentSectionId = 'desert-entry';
+          current.lastSectionId = 'desert-entry';
+          current.environmentEvent = null;
+          current.environmentEventTimer = 0;
+          current.dynamicEnvironmentEvent = null;
+          current.dynamicEnvironmentEventTimer = 0;
+          current.cinematicEvent = null;
+          current.cinematicTimer = 0;
+          current.cameraX = 0;
+          current.targetCameraX = 0;
+          if (!current.openingConfrontationSeen) {
+            startOpeningCinematic({ speechEnabled: true, fromArrivalThreshold: true });
+          } else {
+            current.notice = OPENING_ARRIVAL_AFTERSHOCK_NOTICE;
+            current.openingCameraRevealTimer = Math.max(current.openingCameraRevealTimer, OPENING_CAMERA_REVEAL_DURATION);
+          }
+        }
+        syncHud();
+        return;
+      }
       if (!current.arrivalThresholdLeftInspected && arrivalCenterX <= ARRIVAL_THRESHOLD_LEFT_INSPECT_X) {
         current.arrivalThresholdLeftInspected = true;
         current.notice = ARRIVAL_THRESHOLD_LEFT_OBJECTIVE_LINE;
@@ -13755,15 +11718,40 @@ export default function ExpeditionJourney({
         current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 2.0);
         audioControls?.playExpeditionSfx?.('lostSiteAirShift', { volume: 0.46 });
       }
-      if (!current.arrivalThresholdGateTriggered && arrivalCenterX >= ARRIVAL_THRESHOLD_FORWARD_GATE_TRIGGER_X) {
+      if (!current.arrivalThresholdGateTriggered && arrivalCenterX <= ARRIVAL_THRESHOLD_FORWARD_GATE_TRIGGER_X) {
+        if (!current.arrivalThresholdTrial?.completed) {
+          current.notice = ARRIVAL_THRESHOLD_TRIAL_EXIT_LOCKED_LINE;
+          current.cinematicEvent = {
+            id: 'arrival-threshold-trial-incomplete',
+            name: 'Asha',
+            message: ARRIVAL_THRESHOLD_TRIAL_EXIT_LOCKED_LINE,
+            temporary: true,
+          };
+          current.cinematicTimer = 2.2;
+          current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 1.6);
+          player.vx = Math.max(player.vx, 80);
+          audioControls?.playExpeditionSfx?.('gateBlocked', { volume: 0.58 });
+          syncHud();
+          return;
+        }
         current.arrivalThresholdGateTriggered = true;
         player.vx = 0;
         player.vy = 0;
-        current.cinematicEvent = null;
-        current.cinematicTimer = 0;
-        current.notice = 'The forward gate answers.';
+        current.arrivalThresholdExitTransition = {
+          timer: 0,
+          duration: ARRIVAL_THRESHOLD_EXIT_WALK_SECONDS,
+          startX: player.x,
+          endX: ARRIVAL_THRESHOLD_EXIT_WALK_END_X - player.width / 2,
+        };
+        current.cinematicEvent = {
+          id: 'arrival-threshold-doorway-crossing',
+          name: 'Asha',
+          message: 'The broken scarab breach opens toward the Duat. Asha climbs through.',
+          temporary: true,
+        };
+        current.cinematicTimer = ARRIVAL_THRESHOLD_EXIT_WALK_SECONDS;
+        current.notice = 'Asha climbs through the broken scarab breach.';
         audioControls?.playExpeditionSfx?.('openingThresholdFinalPulse', { volume: 0.82 });
-        startOpeningCinematic({ speechEnabled: true, fromArrivalThreshold: true });
         syncHud();
         return;
       }
@@ -14694,8 +12682,8 @@ export default function ExpeditionJourney({
         height: SCARAB_SEAL_TRIGGER.height,
       };
       if (rectsOverlap(getPlayerBodyHitbox(player), scarabSealHitbox)) {
+        const thresholdAlreadyIntroduced = Boolean(current.openingConfrontationSeen);
         current.scarabSealActivated = true;
-        current.openingConfrontationSeen = true;
         current.collapsedPlatformIds.add('opening-scarab-seal-summit');
         current.triggeredEnvironmentEventIds.add(SCARAB_SEAL_TRIGGER.id);
         const thresholdLines = [
@@ -14703,27 +12691,32 @@ export default function ExpeditionJourney({
           { speaker: 'Asha', text: 'The world fell away.', at: 3.0 },
           { speaker: 'Asha', text: 'I have to find where the seal brought me.', at: 6.0 },
         ];
-        current.openingThresholdScene = {
-          id: 'opening-false-scarab-threshold',
-          phase: 'false-discovery',
-          lockMovement: true,
-          playerX: player.x,
-          playerY: player.y,
-          playerStartY: player.y,
-          playerFallEndY: GROUND_Y - player.height,
-          playerFallDelay: OPENING_THRESHOLD_FALL_DELAY_SECONDS,
-          playerFallDuration: OPENING_THRESHOLD_FALL_DURATION_SECONDS,
-          playerOnGround: false,
-          focusX: SCARAB_SEAL_TRIGGER.x,
-          transitionTargetSectionId: 'desert-entry',
-          stairwellRevealLine: SCARAB_SEAL_TRIGGER.stairwellRevealLine,
-          lines: thresholdLines,
-          duration: OPENING_THRESHOLD_SCENE_DURATION,
-          timer: OPENING_THRESHOLD_SCENE_DURATION,
-          fallSfxPlayed: false,
-          stoneShiftSfxPlayed: false,
-          finalPulseSfxPlayed: false,
-        };
+        if (!thresholdAlreadyIntroduced) {
+          current.openingThresholdScene = {
+            id: 'opening-false-scarab-threshold',
+            phase: 'false-discovery',
+            lockMovement: true,
+            playerX: player.x,
+            playerY: player.y,
+            playerStartY: player.y,
+            playerFallEndY: GROUND_Y - player.height,
+            playerFallDelay: OPENING_THRESHOLD_FALL_DELAY_SECONDS,
+            playerFallDuration: OPENING_THRESHOLD_FALL_DURATION_SECONDS,
+            playerOnGround: false,
+            focusX: SCARAB_SEAL_TRIGGER.x,
+            transitionTargetSectionId: 'desert-entry',
+            stairwellRevealLine: SCARAB_SEAL_TRIGGER.stairwellRevealLine,
+            lines: thresholdLines,
+            duration: OPENING_THRESHOLD_SCENE_DURATION,
+            timer: OPENING_THRESHOLD_SCENE_DURATION,
+            fallSfxPlayed: false,
+            stoneShiftSfxPlayed: false,
+            finalPulseSfxPlayed: false,
+          };
+        }
+        if (thresholdAlreadyIntroduced) {
+          current.openingConfrontationSeen = true;
+        }
         current.openingSphinxEncounter = null;
         current.sectionTransition = null;
         current.sectionTransitionTimer = 0;
@@ -14743,11 +12736,16 @@ export default function ExpeditionJourney({
         current.dynamicEnvironmentEventTimer = SCARAB_SEAL_TRIGGER.duration;
         current.openingCameraRevealDuration = SCARAB_SEAL_TRIGGER.cameraRevealDuration;
         current.openingCameraRevealTimer = Math.max(current.openingCameraRevealTimer || 0, SCARAB_SEAL_TRIGGER.cameraRevealDuration);
-        current.cinematicEvent = null;
-        current.cinematicTimer = 0;
+        current.cinematicEvent = thresholdAlreadyIntroduced ? {
+          id: 'scarab-seal-anubis-warning',
+          name: SCARAB_SEAL_TRIGGER.eventName,
+          message: `${SCARAB_SEAL_TRIGGER.messages.slice(0, 8).join(' ')} ${SCARAB_SEAL_TRIGGER.objectiveEchoLine}`,
+          temporary: true,
+        } : null;
+        current.cinematicTimer = thresholdAlreadyIntroduced ? 5.4 : 0;
         current.cameraShakeTimer = Math.max(current.cameraShakeTimer, SCARAB_SEAL_TRIGGER.duration * 0.45);
         current.cameraShakeStrength = Math.max(current.cameraShakeStrength, SCARAB_SEAL_TRIGGER.shake);
-        current.notice = '';
+        current.notice = thresholdAlreadyIntroduced ? SCARAB_SEAL_TRIGGER.objectiveEchoLine : '';
         current.hitStopTimer = Math.max(current.hitStopTimer, 0.12);
         addRewardPulse('scarab-seal-awakening', SCARAB_SEAL_TRIGGER.x, SCARAB_SEAL_TRIGGER.y, SCARAB_SEAL_TRIGGER.sealPulseLabel, {
           color: '#38bdf8',
@@ -16457,7 +14455,7 @@ export default function ExpeditionJourney({
       if (current.resources.time <= 0) triggerJourneyRescue('Time expired. Field team rescued.');
     }
 
-  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, backgroundPackId, openingAtmosphereSfxKey, scopedJourneyAssetPacks.isChinaJourney, scopedJourneyAssetPacks.isRomeJourney, targetCivilisation, buildBossRewardMoment, completeOpeningThresholdScene, enterLevelFromThreshold, startLevelThresholdEncounter, startOpeningCinematic, startTempleThresholdTransition, getActiveHiddenRoutes, getActiveSecretCollectibles, getActiveShardGateProgress, getAttackBox, getAttackHurtbox, getPlayerAttackNearMissTarget, getBossPhaseConfig, getBossVulnerabilityState, getDoorwayGateStatus, getEnemyPatternConfig, getObjectiveProgress, getGateGuidance, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getRenderableTrapPlatforms, getLiveScorpionNestBlockers, getRouteAccessState, getRouteGateDoorwayEntries, isRouteRewardAccessible, isLowStamina, addCombatEffect, applyCombatHitImpact, recordEnvironmentInteraction, getPlayerAttackState, getSectionDisplayName, getSectionDisplayTitle, resolveChamberEntryTrigger, resolveChamberReturnPoint, syncHud]);
+  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, backgroundPackId, openingAtmosphereSfxKey, scopedJourneyAssetPacks.isChinaJourney, scopedJourneyAssetPacks.isRomeJourney, targetCivilisation, buildBossRewardMoment, completeOpeningThresholdScene, enterLevelFromThreshold, startOpeningCinematic, startLevelThresholdEncounter, startTempleThresholdTransition, getActiveHiddenRoutes, getActiveSecretCollectibles, getActiveShardGateProgress, getAttackBox, getAttackHurtbox, getPlayerAttackNearMissTarget, getBossPhaseConfig, getBossVulnerabilityState, getDoorwayGateStatus, getEnemyPatternConfig, getObjectiveProgress, getGateGuidance, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getRenderableTrapPlatforms, getLiveScorpionNestBlockers, getRouteAccessState, getRouteGateDoorwayEntries, isRouteRewardAccessible, isLowStamina, addCombatEffect, applyCombatHitImpact, recordEnvironmentInteraction, getPlayerAttackState, getSectionDisplayName, getSectionDisplayTitle, resolveChamberEntryTrigger, resolveChamberReturnPoint, syncHud, updateArrivalThresholdTrial]);
 
   const step = useCallback((ms) => {
     const dt = Math.min(ms / 1000, 0.05);
@@ -17082,263 +15080,71 @@ export default function ExpeditionJourney({
     };
   }, [addCombatEffect, backgroundPackId, buildBossRewardMoment, createJourneySnapshot, getRenderableCheckpoints, startTempleThresholdTransition, step, syncHud]);
 
-  useEffect(() => {
-    if (!import.meta.env.DEV) return undefined;
-    const handlePropEditorKeyDown = (event) => {
-      if (isJourneyEditorFormTarget(event.target)) return;
-      const editor = propPlacementEditorRef.current;
-      // Plain E is reserved for the in-world Journey Room interact system, so the
-      // dev prop-editor toggle requires Shift+E.
-      if (event.code === 'KeyE' && event.shiftKey && !event.ctrlKey && !event.metaKey && !event.altKey) {
-        event.preventDefault();
-        editor.enabled = !editor.enabled;
-        if (editor.enabled) {
-          applyDefaultEditorLocks(stateRef.current);
-        } else {
-          editor.selectedPropId = null;
-          editor.selectedPlatformId = null;
-          editor.selectedHazardId = null;
-          editor.selectedArchId = null;
-          editor.selectedCheckpointId = null;
-          editor.selectedLairId = null;
-          editor.selectedNestId = null;
-          editor.dragging = null;
-          editor.hover = null;
-        }
-        refreshPropEditorUi();
-        return;
-      }
-      if (!editor.enabled) return;
-      // Tab cycles through entities stacked under the cursor (the hover preview updates,
-      // and the next click selects whatever is highlighted).
-      if (event.code === 'Tab' && editor.hover && editor.hover.stack && editor.hover.stack.length > 1) {
-        event.preventDefault();
-        const count = editor.hover.stack.length;
-        const step = event.shiftKey ? -1 : 1;
-        editor.hover = {
-          ...editor.hover,
-          index: ((editor.hover.index + step) % count + count) % count,
-        };
-        draw();
-        return;
-      }
-      // Scorpion-nest tuning: keys adjust the selected nest's size/anchor/glow.
-      const selectedNestForKeys = getPropEditorSelectedNest();
-      if (selectedNestForKeys && !event.ctrlKey && !event.metaKey && !event.altKey) {
-        const id = selectedNestForKeys.id;
-        const cur = getEditedNestParams(selectedNestForKeys);
-        const applyNest = (patch) => {
-          editor.scorpionNestEdits[id] = { ...(editor.scorpionNestEdits[id] || {}), ...patch };
-          refreshPropEditorUi();
-        };
-        switch (event.code) {
-          case 'BracketLeft':
-            event.preventDefault();
-            applyNest({ widthScale: Math.max(0.3, Number((cur.widthScale - 0.05).toFixed(2))) });
-            return;
-          case 'BracketRight':
-            event.preventDefault();
-            applyNest({ widthScale: Number((cur.widthScale + 0.05).toFixed(2)) });
-            return;
-          case 'Semicolon':
-            event.preventDefault();
-            applyNest({ yOffset: cur.yOffset - 1 });
-            return;
-          case 'Quote':
-            event.preventDefault();
-            applyNest({ yOffset: cur.yOffset + 1 });
-            return;
-          case 'Comma':
-            event.preventDefault();
-            applyNest({ glowYFactor: Number((cur.glowYFactor - 0.02).toFixed(2)) });
-            return;
-          case 'Period':
-            event.preventDefault();
-            applyNest({ glowYFactor: Number((cur.glowYFactor + 0.02).toFixed(2)) });
-            return;
-          case 'Digit9':
-            event.preventDefault();
-            applyNest({ glowSize: Math.max(0.1, Number((cur.glowSize - 0.05).toFixed(2))) });
-            return;
-          case 'Digit0':
-            event.preventDefault();
-            applyNest({ glowSize: Number((cur.glowSize + 0.05).toFixed(2)) });
-            return;
-          case 'Backslash':
-            event.preventDefault();
-            delete editor.scorpionNestEdits[id];
-            refreshPropEditorUi();
-            return;
-          default:
-            break;
-        }
-      }
-      if (event.code === 'KeyG' && !event.ctrlKey && !event.metaKey && !event.altKey) {
-        event.preventDefault();
-        editor.gridSnap = !editor.gridSnap;
-        refreshPropEditorUi();
-        return;
-      }
-      if (event.code === 'KeyP' && !event.ctrlKey && !event.metaKey && !event.altKey) {
-        event.preventDefault();
-        editor.paletteOpen = !editor.paletteOpen;
-        if (!editor.paletteOpen) editor.selectedPaletteKey = null;
-        refreshPropEditorUi();
-        return;
-      }
-      // Escape is two-stage while the palette is open: first press disarms the held
-      // item (back to select/move clicks), second press closes the palette.
-      if (event.code === 'Escape' && editor.paletteOpen) {
-        event.preventDefault();
-        if (editor.selectedPaletteKey) editor.selectedPaletteKey = null;
-        else editor.paletteOpen = false;
-        refreshPropEditorUi();
-        return;
-      }
-      if (event.code === 'KeyT' && !event.ctrlKey && !event.metaKey && !event.altKey) {
-        event.preventDefault();
-        editor.showTrapTriggers = !editor.showTrapTriggers;
-        refreshPropEditorUi();
-        return;
-      }
-      if (event.code === 'KeyH' && !event.ctrlKey && !event.metaKey && !event.altKey) {
-        event.preventDefault();
-        editor.previewMode = !editor.previewMode;
-        refreshPropEditorUi();
-        return;
-      }
-      if ((event.ctrlKey || event.metaKey) && event.code === 'KeyZ') {
-        event.preventDefault();
-        if (event.shiftKey) redoEditorChange();
-        else undoEditorChange();
-        return;
-      }
-      if ((event.ctrlKey || event.metaKey) && event.code === 'KeyY') {
-        event.preventDefault();
-        redoEditorChange();
-        return;
-      }
-      if ((event.ctrlKey || event.metaKey) && event.code === 'KeyS') {
-        event.preventDefault();
-        savePropPlacementExport();
-        return;
-      }
-      if ((event.ctrlKey || event.metaKey) && event.code === 'KeyD') {
-        event.preventDefault();
-        duplicateSelectedPropInEditor();
-        return;
-      }
-      // Anchor nudge: ; lifts and ' drops the selected prop's vertical anchor (yOffset),
-      // mirroring the scorpion-nest anchor keys so any asset can be placed exactly. Hold
-      // Shift for a coarse 10px step. Negative yOffset lifts the art up off the ground line.
-      if ((event.code === 'Semicolon' || event.code === 'Quote') && !event.ctrlKey && !event.metaKey && !event.altKey) {
-        event.preventDefault();
-        const selectedProp = getPropEditorSelectedProp();
-        if (selectedProp) {
-          const step = event.shiftKey ? 10 : 1;
-          const direction = event.code === 'Semicolon' ? -1 : 1;
-          const currentYOffset = Number.isFinite(selectedProp.yOffset) ? selectedProp.yOffset : 0;
-          updateSelectedPropEditorTransform({ yOffset: Math.round(currentYOffset + direction * step) });
-        }
-        return;
-      }
-      // Arrow keys fine-nudge the selected prop's position (Shift = 10px). A/D still walk
-      // the camera, so deselect (or use WASD) to move around. preventDefault + the gameplay
-      // guard below stop the player from also moving while a prop is selected.
-      if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.code) && !event.ctrlKey && !event.metaKey && !event.altKey) {
-        const selectedProp = getPropEditorSelectedProp();
-        if (selectedProp) {
-          event.preventDefault();
-          const step = event.shiftKey ? 10 : 1;
-          const dx = event.code === 'ArrowLeft' ? -step : event.code === 'ArrowRight' ? step : 0;
-          const dy = event.code === 'ArrowUp' ? -step : event.code === 'ArrowDown' ? step : 0;
-          const currentX = Number.isFinite(selectedProp.x) ? selectedProp.x : 0;
-          const currentY = Number.isFinite(selectedProp.y) ? selectedProp.y : 0;
-          updateSelectedPropEditorTransform({ x: Math.round(currentX + dx), y: Math.round(currentY + dy) });
-          return;
-        }
-      }
-      if (event.code === 'KeyQ' && !event.ctrlKey && !event.metaKey && !event.altKey) {
-        event.preventDefault();
-        const selectedProp = getPropEditorSelectedProp();
-        if (selectedProp) {
-          updateSelectedPropEditorTransform({
-            rotation: (Number.isFinite(selectedProp.rotation) ? selectedProp.rotation : 0) - DEFAULT_JOURNEY_PROP_EDITOR_ROTATION_STEP,
-          });
-        }
-        return;
-      }
-      if (event.code === 'KeyR' && !event.ctrlKey && !event.metaKey && !event.altKey) {
-        event.preventDefault();
-        const selectedProp = getPropEditorSelectedProp();
-        if (selectedProp) {
-          updateSelectedPropEditorTransform({
-            rotation: (Number.isFinite(selectedProp.rotation) ? selectedProp.rotation : 0) + DEFAULT_JOURNEY_PROP_EDITOR_ROTATION_STEP,
-          });
-        }
-        return;
-      }
-      if (event.code === 'KeyF' && !event.ctrlKey && !event.metaKey && !event.altKey) {
-        event.preventDefault();
-        const selectedProp = getPropEditorSelectedProp();
-        if (selectedProp) {
-          updateSelectedPropEditorTransform({ mirrorX: !selectedProp.mirrorX });
-        }
-        return;
-      }
-      if (event.code === 'KeyV' && !event.ctrlKey && !event.metaKey && !event.altKey) {
-        event.preventDefault();
-        const selectedProp = getPropEditorSelectedProp();
-        if (selectedProp) {
-          updateSelectedPropEditorTransform({ mirrorY: !selectedProp.mirrorY });
-        }
-        return;
-      }
-      if ((['Equal', 'NumpadAdd', 'NumpadMultiply'].includes(event.code) || event.key === '+' || event.key === '*') && !event.ctrlKey && !event.metaKey && !event.altKey) {
-        event.preventDefault();
-        const selectedProp = getPropEditorSelectedProp();
-        if (selectedProp) {
-          updateSelectedPropEditorTransform({
-            scale: (Number.isFinite(selectedProp.scale) ? selectedProp.scale : 1) + DEFAULT_JOURNEY_PROP_EDITOR_SCALE_STEP,
-          });
-        }
-        return;
-      }
-      if ((['Minus', 'NumpadSubtract', 'NumpadDivide'].includes(event.code) || event.key === '-' || event.key === '_') && !event.ctrlKey && !event.metaKey && !event.altKey) {
-        event.preventDefault();
-        const selectedProp = getPropEditorSelectedProp();
-        if (selectedProp) {
-          updateSelectedPropEditorTransform({
-            scale: Math.max(0.1, (Number.isFinite(selectedProp.scale) ? selectedProp.scale : 1) - DEFAULT_JOURNEY_PROP_EDITOR_SCALE_STEP),
-          });
-        }
-        return;
-      }
-      if (event.code === 'Delete' || event.code === 'Backspace') {
-        event.preventDefault();
-        deleteSelectedPropFromEditor();
-      }
-    };
-    window.addEventListener('keydown', handlePropEditorKeyDown);
-    return () => window.removeEventListener('keydown', handlePropEditorKeyDown);
-  }, [applyDefaultEditorLocks, deleteSelectedPropFromEditor, draw, duplicateSelectedPropInEditor, getEditedNestParams, getPropEditorSelectedNest, getPropEditorSelectedProp, redoEditorChange, refreshPropEditorUi, savePropPlacementExport, undoEditorChange, updateSelectedPropEditorTransform]);
+  useJourneyPlacementEditorShortcuts({
+    DEFAULT_JOURNEY_PROP_EDITOR_ROTATION_STEP,
+    DEFAULT_JOURNEY_PROP_EDITOR_SCALE_STEP,
+    applyDefaultEditorLocks,
+    deleteSelectedPropFromEditor,
+    draw,
+    duplicateSelectedPropInEditor,
+    getEditedNestParams,
+    getPropEditorSelectedNest,
+    getPropEditorSelectedProp,
+    isJourneyEditorFormTarget,
+    propPlacementEditorRef,
+    redoEditorChange,
+    refreshPropEditorUi,
+    savePropPlacementExport,
+    stateRef,
+    undoEditorChange,
+    updateSelectedPropEditorTransform,
+  });
 
-  // Right-click over the canvas (and the stack-picker overlay) opens our own selection
-  // list, so suppress the browser's native context menu there while the editor is on.
-  // A document-level listener is needed because the stack-picker backdrop (fixed, full
-  // viewport) becomes the contextmenu target the moment the picker opens, bypassing any
-  // handler bound only to the canvas.
-  useEffect(() => {
-    if (!import.meta.env.DEV) return undefined;
-    const handleContextMenu = (event) => {
-      if (!propPlacementEditorRef.current.enabled) return;
-      const target = event.target;
-      const overPicker = target?.closest?.('.journey-prop-editor-stackpicker, .journey-prop-editor-stackpicker-backdrop');
-      if (target === canvasRef.current || overPicker) event.preventDefault();
-    };
-    document.addEventListener('contextmenu', handleContextMenu);
-    return () => document.removeEventListener('contextmenu', handleContextMenu);
-  }, []);
+  const {
+    handlePointerDown,
+    handlePointerMove,
+    handlePointerUp,
+  } = useJourneyPlacementEditorPointerHandlers({
+    JOURNEY_VERTICAL_OFFSET,
+    PLATFORMS,
+    buildEditorHoverStack,
+    canvasRef,
+    clamp,
+    createPlatformFromEditorPalette,
+    createPropFromEditorPalette,
+    createTrapFromEditorPalette,
+    draw,
+    findEditableArchAt,
+    findEditableCheckpointAt,
+    findEditableHazardAt,
+    findEditableNestAt,
+    findEditablePlatformAt,
+    findEditableScarabLairAt,
+    findEditableStoryPropAt,
+    getCheckpointEditorBaseCheckpointById,
+    getEditedNestParams,
+    getEditedStoryProp,
+    getEditorEntityLabel,
+    getGroundAwareStoryPropEditorEdit,
+    getHazardEditorBaseHazardById,
+    getMiniBossEditorBaseBossById,
+    getPlatformEditorBasePlatformById,
+    getPropEditorBasePropById,
+    getPropEditorPointer,
+    getPropEditorSelectedProp,
+    getRenderableScorpionNests,
+    getRouteGateEditorBaseDoorwayById,
+    getRouteGateEditorBaseGateById,
+    getScarabQueenLairPlacement,
+    getStoryPropEditorBounds,
+    hitTestPropTransformHandle,
+    isEditorLockKeyLocked,
+    propPlacementEditorRef,
+    refreshPropEditorUi,
+    snapJourneyPropCoordinate,
+    stateRef,
+    updateEditorHover,
+  });
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -17432,467 +15238,9 @@ export default function ExpeditionJourney({
   const openingShieldShattered = Boolean(gameState.openingCinematic?.shieldShattered || openingSpellImpactActive);
   const openingCinematicActive = Boolean(gameState.openingCinematic || gameState.openingThresholdScene || gameState.templeThresholdTransition);
 
-  const handlePointerDown = (e) => {
-    const editor = propPlacementEditorRef.current;
-    if (import.meta.env.DEV && editor.enabled) {
-      const pointer = getPropEditorPointer(e);
-      if (!pointer) return;
-      if (editor.selectedPaletteKey) {
-        if (String(editor.selectedPaletteKey).startsWith('trap:') || editor.selectedPaletteCategory === 'trap') {
-          createTrapFromEditorPalette(pointer);
-        } else if (String(editor.selectedPaletteKey).startsWith('platform:') || editor.selectedPaletteCategory === 'platform') {
-          createPlatformFromEditorPalette(pointer);
-        } else {
-          createPropFromEditorPalette(pointer);
-        }
-        editor.dragging = null;
-        e.preventDefault();
-        draw();
-        return;
-      }
-      // Alt+click or right-click opens a clickable list of every entity stacked under
-      // the cursor, so buried props can be selected without Tab-cycling through them.
-      const wantsStackPicker = e.button === 2 || (e.button === 0 && e.altKey);
-      if (wantsStackPicker) {
-        const stack = buildEditorHoverStack(pointer.screenX, pointer.screenY);
-        editor.stackPicker = stack.length ? {
-          clientX: e.clientX,
-          clientY: e.clientY,
-          items: stack.map(d => ({
-            kind: d.kind,
-            id: d.id,
-            label: getEditorEntityLabel(d),
-            locked: isEditorLockKeyLocked(`${d.kind}:${d.id}`),
-          })),
-        } : null;
-        e.preventDefault();
-        refreshPropEditorUi();
-        return;
-      }
-      // Any normal click dismisses an open stack picker before selecting.
-      if (editor.stackPicker) editor.stackPicker = null;
-      // Transform handles on the already-selected prop take priority over re-selecting:
-      // corner squares scale, the knob above rotates. Only fires on a precise handle
-      // hit, so normal click-to-select/move below is untouched.
-      if (editor.selectedPropId) {
-        const current = stateRef.current;
-        const selectedForHandle = getPropEditorSelectedProp(current);
-        if (selectedForHandle && !isEditorLockKeyLocked(`prop:${selectedForHandle.id}`)) {
-          const handleBounds = getStoryPropEditorBounds(selectedForHandle, current.cameraX || 0, current);
-          const handle = hitTestPropTransformHandle(pointer.screenX, pointer.screenY, handleBounds);
-          if (handle) {
-            const cx = handleBounds.x + handleBounds.width / 2;
-            const cy = handleBounds.y + handleBounds.height / 2;
-            if (handle === 'rotate') {
-              editor.dragging = {
-                kind: 'prop-rotate',
-                propId: selectedForHandle.id,
-                cx,
-                cy,
-                startRotation: Number.isFinite(selectedForHandle.rotation) ? selectedForHandle.rotation : 0,
-                startAngle: Math.atan2(pointer.screenY - cy, pointer.screenX - cx) * 180 / Math.PI,
-              };
-            } else {
-              editor.dragging = {
-                kind: 'prop-scale',
-                propId: selectedForHandle.id,
-                cx,
-                cy,
-                startScale: Number.isFinite(selectedForHandle.scale) ? selectedForHandle.scale : 1,
-                startDist: Math.max(1, Math.hypot(pointer.screenX - cx, pointer.screenY - cy)),
-              };
-            }
-            e.currentTarget.setPointerCapture?.(e.pointerId);
-            e.preventDefault();
-            draw();
-            refreshPropEditorUi();
-            return;
-          }
-        }
-      }
-      // If the user has Tab-cycled to a buried entity at this point, select that one
-      // (what the hover preview shows). index 0 falls through to the normal cascade so
-      // default clicks behave exactly as before.
-      const hover = editor.hover;
-      if (hover && hover.index > 0 && hover.stack && hover.stack.length > hover.index) {
-        const clickStack = buildEditorHoverStack(pointer.screenX, pointer.screenY);
-        const signature = clickStack.map(d => `${d.kind}:${d.id}`).join('|');
-        if (signature === hover.signature) {
-          const descriptor = clickStack[hover.index];
-          if (!isEditorLockKeyLocked(`${descriptor.kind}:${descriptor.id}`)) {
-            editor.selectedPropId = null;
-            editor.selectedPlatformId = null;
-            editor.selectedHazardId = null;
-            editor.selectedArchId = null;
-            editor.selectedCheckpointId = null;
-            editor.selectedLairId = null;
-            editor.selectedNestId = null;
-            const { kind, entity } = descriptor;
-            if (kind === 'prop') {
-              editor.selectedPropId = entity.id;
-              editor.dragging = { kind: 'prop', propId: entity.id, offsetX: pointer.worldX - entity.x, offsetY: pointer.worldY - entity.y };
-            } else if (kind === 'platform') {
-              const platformId = entity.id || entity.label;
-              editor.selectedPlatformId = platformId;
-              editor.dragging = { kind: 'platform', platformId, offsetX: pointer.worldX - entity.x, offsetY: pointer.worldY - entity.y };
-            } else if (kind === 'hazard') {
-              editor.selectedHazardId = entity.id;
-              editor.dragging = { kind: 'hazard', hazardId: entity.id, offsetX: pointer.worldX - entity.x, offsetY: pointer.screenY - entity.y };
-            } else if (kind === 'arch') {
-              editor.selectedArchId = entity.editorId;
-              const archX = entity.editorKind === 'doorway'
-                ? (Number.isFinite(entity.anchorX) ? entity.anchorX : entity.blockX)
-                : entity.x;
-              editor.dragging = { kind: 'arch', archId: entity.editorId, offsetX: pointer.worldX - archX, offsetY: pointer.screenY - entity.y };
-            } else if (kind === 'checkpoint') {
-              editor.selectedCheckpointId = entity.id;
-              editor.dragging = { kind: 'checkpoint', checkpointId: entity.id, offsetX: pointer.worldX - entity.x, offsetY: pointer.screenY - entity.y };
-            } else if (kind === 'lair') {
-              editor.selectedLairId = entity.id;
-              const placement = getScarabQueenLairPlacement(entity);
-              editor.dragging = { kind: 'lair', lairId: entity.id, offsetX: pointer.worldX - placement.x, offsetY: pointer.screenY - placement.y };
-            } else if (kind === 'nest') {
-              editor.selectedNestId = entity.id;
-              const params = getEditedNestParams(entity);
-              editor.dragging = { kind: 'nest', nestId: entity.id, offsetX: pointer.worldX - params.x, offsetY: pointer.worldY - params.y };
-            }
-            e.currentTarget.setPointerCapture?.(e.pointerId);
-          } else {
-            editor.dragging = null;
-          }
-          e.preventDefault();
-          draw();
-          refreshPropEditorUi();
-          return;
-        }
-      }
-      const selectedForcedFloor = editor.floorPickMode
-        ? findEditablePlatformAt(pointer.screenX, pointer.screenY, { floorOnly: true })
-        : null;
-      // Scorpion nest takes priority over the crowded selection chain (but not forced
-      // floor-pick mode). Handled here with an early return so the tested hazard ->
-      // platform -> prop ordering below stays byte-for-byte intact.
-      const selectedNest = selectedForcedFloor ? null : findEditableNestAt(pointer.screenX, pointer.screenY);
-      if (selectedNest && !isEditorLockKeyLocked(`nest:${selectedNest.id}`)) {
-        editor.selectedPropId = null;
-        editor.selectedPlatformId = null;
-        editor.selectedHazardId = null;
-        editor.selectedArchId = null;
-        editor.selectedCheckpointId = null;
-        editor.selectedLairId = null;
-        editor.selectedNestId = selectedNest.id;
-        const params = getEditedNestParams(selectedNest);
-        editor.dragging = {
-          kind: 'nest',
-          nestId: selectedNest.id,
-          offsetX: pointer.worldX - params.x,
-          offsetY: pointer.worldY - params.y,
-        };
-        e.currentTarget.setPointerCapture?.(e.pointerId);
-        e.preventDefault();
-        draw();
-        refreshPropEditorUi();
-        return;
-      }
-      const selectedHazard = selectedForcedFloor ? null : findEditableHazardAt(pointer.screenX, pointer.screenY);
-      const selectedLair = selectedHazard || selectedForcedFloor ? null : findEditableScarabLairAt(pointer.screenX, pointer.screenY);
-      const selectedCheckpoint = selectedHazard || selectedLair || selectedForcedFloor ? null : findEditableCheckpointAt(pointer.screenX, pointer.screenY);
-      const selectedArch = selectedHazard || selectedLair || selectedCheckpoint || selectedForcedFloor ? null : findEditableArchAt(pointer.screenX, pointer.screenY);
-      const selectedSolidPlatform = selectedHazard || selectedLair || selectedCheckpoint || selectedArch || selectedForcedFloor
-        ? null
-        : findEditablePlatformAt(pointer.screenX, pointer.screenY, { includeFloors: false });
-      const selectedProp = selectedHazard || selectedLair || selectedCheckpoint || selectedArch || selectedForcedFloor || selectedSolidPlatform ? null : findEditableStoryPropAt(pointer.screenX, pointer.screenY);
-      const selectedFallbackFloor = editor.floorPickMode || selectedHazard || selectedLair || selectedCheckpoint || selectedArch || selectedSolidPlatform || selectedProp
-        ? null
-        : findEditablePlatformAt(pointer.screenX, pointer.screenY, { floorOnly: true });
-      const selectedPlatform = selectedForcedFloor || selectedSolidPlatform || selectedFallbackFloor;
-      editor.selectedPropId = selectedProp?.id || null;
-      editor.selectedPlatformId = selectedPlatform ? selectedPlatform.id || selectedPlatform.label : null;
-      editor.selectedHazardId = selectedHazard?.id || null;
-      editor.selectedArchId = selectedArch?.editorId || null;
-      editor.selectedCheckpointId = selectedCheckpoint?.id || null;
-      editor.selectedLairId = selectedLair?.id || null;
-      editor.selectedNestId = null;
-      const selectedLockKey = selectedProp
-        ? `prop:${selectedProp.id}`
-        : selectedPlatform
-          ? `platform:${selectedPlatform.id || selectedPlatform.label}`
-        : selectedHazard
-          ? `hazard:${selectedHazard.id}`
-        : selectedArch
-          ? `arch:${selectedArch.editorId}`
-        : selectedCheckpoint
-          ? `checkpoint:${selectedCheckpoint.id}`
-        : selectedLair
-          ? `lair:${selectedLair.id}`
-        : null;
-      if (isEditorLockKeyLocked(selectedLockKey)) {
-        editor.dragging = null;
-        e.preventDefault();
-        draw();
-        refreshPropEditorUi();
-        return;
-      }
-      if (selectedProp) {
-        editor.dragging = {
-          kind: 'prop',
-          propId: selectedProp.id,
-          offsetX: pointer.worldX - selectedProp.x,
-          offsetY: pointer.worldY - selectedProp.y,
-        };
-        e.currentTarget.setPointerCapture?.(e.pointerId);
-      } else if (selectedPlatform) {
-        editor.dragging = {
-          kind: 'platform',
-          platformId: selectedPlatform.id || selectedPlatform.label,
-          offsetX: pointer.worldX - selectedPlatform.x,
-          offsetY: pointer.worldY - selectedPlatform.y,
-        };
-        e.currentTarget.setPointerCapture?.(e.pointerId);
-      } else if (selectedHazard) {
-        editor.dragging = {
-          kind: 'hazard',
-          hazardId: selectedHazard.id,
-          offsetX: pointer.worldX - selectedHazard.x,
-          offsetY: pointer.screenY - selectedHazard.y,
-        };
-        e.currentTarget.setPointerCapture?.(e.pointerId);
-      } else if (selectedLair) {
-        const placement = getScarabQueenLairPlacement(selectedLair);
-        editor.dragging = {
-          kind: 'lair',
-          lairId: selectedLair.id,
-          offsetX: pointer.worldX - placement.x,
-          offsetY: pointer.screenY - placement.y,
-        };
-        e.currentTarget.setPointerCapture?.(e.pointerId);
-      } else if (selectedArch) {
-        const archX = selectedArch.editorKind === 'doorway'
-          ? Number.isFinite(selectedArch.anchorX) ? selectedArch.anchorX : selectedArch.blockX
-          : selectedArch.x;
-        editor.dragging = {
-          kind: 'arch',
-          archId: selectedArch.editorId,
-          offsetX: pointer.worldX - archX,
-          offsetY: pointer.screenY - selectedArch.y,
-        };
-        e.currentTarget.setPointerCapture?.(e.pointerId);
-      } else if (selectedCheckpoint) {
-        editor.dragging = {
-          kind: 'checkpoint',
-          checkpointId: selectedCheckpoint.id,
-          offsetX: pointer.worldX - selectedCheckpoint.x,
-          offsetY: pointer.screenY - selectedCheckpoint.y,
-        };
-        e.currentTarget.setPointerCapture?.(e.pointerId);
-      } else {
-        editor.dragging = null;
-      }
-      e.preventDefault();
-      draw();
-      refreshPropEditorUi();
-      return;
-    }
-    if (!window.__expeditionDebugOverlay) return;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const pointer = getPropEditorPointer(e);
-    if (!pointer) return;
-    
-    const worldX = pointer.worldX;
-    const worldY = pointer.worldY - JOURNEY_VERTICAL_OFFSET;
-
-    const platform = PLATFORMS.find(p => 
-      worldX >= p.x && worldX <= p.x + p.width &&
-      worldY >= p.y && worldY <= p.y + p.height
-    );
-
-    if (platform) {
-      window.__draggedPlatform = platform;
-      window.__dragOffsetX = worldX - platform.x;
-      window.__dragOffsetY = worldY - platform.y;
-    }
-  };
-
-  const handlePointerMove = (e) => {
-    const editor = propPlacementEditorRef.current;
-    if (import.meta.env.DEV && editor.enabled && !editor.dragging && !editor.selectedPaletteKey) {
-      const pointer = getPropEditorPointer(e);
-      if (pointer) {
-        updateEditorHover(pointer.screenX, pointer.screenY);
-        draw();
-      }
-      return;
-    }
-    if (import.meta.env.DEV && editor.enabled && editor.dragging) {
-      const pointer = getPropEditorPointer(e);
-      if (!pointer) return;
-      if (editor.dragging.kind === 'lair') {
-        const baseLair = getMiniBossEditorBaseBossById(editor.dragging.lairId);
-        if (!baseLair) return;
-        const rawX = pointer.worldX - editor.dragging.offsetX;
-        const rawY = pointer.screenY - editor.dragging.offsetY;
-        const nextX = editor.gridSnap ? snapJourneyPropCoordinate(rawX, editor.gridSize) : Math.round(rawX);
-        const nextY = editor.gridSnap ? snapJourneyPropCoordinate(rawY, editor.gridSize) : Math.round(rawY);
-        editor.miniBossEdits[baseLair.id] = {
-          ...(editor.miniBossEdits[baseLair.id] || {}),
-          lairX: nextX,
-          lairY: nextY,
-        };
-      } else if (editor.dragging.kind === 'nest') {
-        const baseNest = getRenderableScorpionNests().find(enemy => enemy.id === editor.dragging.nestId);
-        if (!baseNest) return;
-        const rawX = pointer.worldX - editor.dragging.offsetX;
-        const rawY = pointer.worldY - editor.dragging.offsetY;
-        const nextX = editor.gridSnap ? snapJourneyPropCoordinate(rawX, editor.gridSize) : Math.round(rawX);
-        const nextY = editor.gridSnap ? snapJourneyPropCoordinate(rawY, editor.gridSize) : Math.round(rawY);
-        editor.scorpionNestEdits[baseNest.id] = {
-          ...(editor.scorpionNestEdits[baseNest.id] || {}),
-          x: nextX,
-          y: nextY,
-        };
-      } else if (editor.dragging.kind === 'arch') {
-        const [, id] = editor.dragging.archId.split(':');
-        const baseArch = editor.dragging.archId.startsWith('doorway:')
-          ? getRouteGateEditorBaseDoorwayById(id)
-          : getRouteGateEditorBaseGateById(id);
-        if (!baseArch) return;
-        const rawX = pointer.worldX - editor.dragging.offsetX;
-        const rawY = pointer.screenY - editor.dragging.offsetY;
-        const nextX = editor.gridSnap ? snapJourneyPropCoordinate(rawX, editor.gridSize) : Math.round(rawX);
-        const nextY = editor.gridSnap ? snapJourneyPropCoordinate(rawY, editor.gridSize) : Math.round(rawY);
-        if (editor.dragging.archId.startsWith('doorway:')) {
-          editor.routeGateDoorwayEdits[id] = {
-            ...(editor.routeGateDoorwayEdits[id] || {}),
-            x: nextX,
-            y: nextY,
-          };
-        } else {
-          editor.routeGateEdits[id] = {
-            ...(editor.routeGateEdits[id] || {}),
-            x: nextX,
-            y: nextY,
-          };
-        }
-      } else if (editor.dragging.kind === 'checkpoint') {
-        const baseCheckpoint = getCheckpointEditorBaseCheckpointById(editor.dragging.checkpointId);
-        if (!baseCheckpoint) return;
-        const rawX = pointer.worldX - editor.dragging.offsetX;
-        const rawY = pointer.screenY - editor.dragging.offsetY;
-        const nextX = editor.gridSnap ? snapJourneyPropCoordinate(rawX, editor.gridSize) : Math.round(rawX);
-        const nextY = editor.gridSnap ? snapJourneyPropCoordinate(rawY, editor.gridSize) : Math.round(rawY);
-        editor.checkpointEdits[baseCheckpoint.id] = {
-          ...(editor.checkpointEdits[baseCheckpoint.id] || {}),
-          x: nextX,
-          y: nextY,
-        };
-      } else if (editor.dragging.kind === 'hazard') {
-        const baseHazard = getHazardEditorBaseHazardById(editor.dragging.hazardId);
-        if (!baseHazard) return;
-        const rawX = pointer.worldX - editor.dragging.offsetX;
-        const rawY = pointer.screenY - editor.dragging.offsetY;
-        const nextX = editor.gridSnap ? snapJourneyPropCoordinate(rawX, editor.gridSize) : Math.round(rawX);
-        const nextY = editor.gridSnap ? snapJourneyPropCoordinate(rawY, editor.gridSize) : Math.round(rawY);
-        editor.hazardEdits[baseHazard.id] = {
-          ...(editor.hazardEdits[baseHazard.id] || {}),
-          x: nextX,
-          y: nextY,
-        };
-      } else if (editor.dragging.kind === 'platform') {
-        const basePlatform = getPlatformEditorBasePlatformById(editor.dragging.platformId);
-        if (!basePlatform) return;
-        const platformId = basePlatform.id || basePlatform.label;
-        const rawX = pointer.worldX - editor.dragging.offsetX;
-        const rawY = pointer.worldY - editor.dragging.offsetY;
-        const nextX = editor.gridSnap ? snapJourneyPropCoordinate(rawX, editor.gridSize) : Math.round(rawX);
-        const nextY = editor.gridSnap ? snapJourneyPropCoordinate(rawY, editor.gridSize) : Math.round(rawY);
-        editor.platformEdits[platformId] = {
-          ...(editor.platformEdits[platformId] || {}),
-          x: nextX,
-          y: nextY,
-        };
-      } else if (editor.dragging.kind === 'prop-scale') {
-        const baseProp = getPropEditorBasePropById(editor.dragging.propId);
-        if (!baseProp) return;
-        const dist = Math.hypot(pointer.screenX - editor.dragging.cx, pointer.screenY - editor.dragging.cy);
-        const ratio = dist / editor.dragging.startDist;
-        const nextScale = Math.round(clamp(editor.dragging.startScale * ratio, 0.1, 12) * 100) / 100;
-        editor.edits[baseProp.id] = {
-          ...(editor.edits[baseProp.id] || {}),
-          scale: nextScale,
-        };
-      } else if (editor.dragging.kind === 'prop-rotate') {
-        const baseProp = getPropEditorBasePropById(editor.dragging.propId);
-        if (!baseProp) return;
-        const angle = Math.atan2(pointer.screenY - editor.dragging.cy, pointer.screenX - editor.dragging.cx) * 180 / Math.PI;
-        let nextRotation = editor.dragging.startRotation + (angle - editor.dragging.startAngle);
-        nextRotation = ((nextRotation + 180) % 360 + 360) % 360 - 180; // normalize to (-180, 180]
-        if (editor.gridSnap) nextRotation = Math.round(nextRotation / 15) * 15; // snap to 15° with grid snap on
-        nextRotation = Math.round(nextRotation * 10) / 10;
-        editor.edits[baseProp.id] = {
-          ...(editor.edits[baseProp.id] || {}),
-          rotation: nextRotation,
-        };
-      } else {
-        const baseProp = getPropEditorBasePropById(editor.dragging.propId);
-        if (!baseProp) return;
-        const rawX = pointer.worldX - editor.dragging.offsetX;
-        const rawY = pointer.worldY - editor.dragging.offsetY;
-        const nextX = editor.gridSnap ? snapJourneyPropCoordinate(rawX, editor.gridSize) : Math.round(rawX);
-        const nextY = editor.gridSnap ? snapJourneyPropCoordinate(rawY, editor.gridSize) : Math.round(rawY);
-        const nextEdit = getGroundAwareStoryPropEditorEdit(getEditedStoryProp(baseProp) || baseProp, { x: nextX, y: nextY });
-        editor.edits[baseProp.id] = {
-          ...(editor.edits[baseProp.id] || {}),
-          ...nextEdit,
-        };
-      }
-      e.preventDefault();
-      draw();
-      refreshPropEditorUi();
-      return;
-    }
-    if (!window.__draggedPlatform) return;
-    const pointer = getPropEditorPointer(e);
-    if (!pointer) return;
-    
-    const worldX = pointer.worldX;
-    const worldY = pointer.worldY - JOURNEY_VERTICAL_OFFSET;
-
-    window.__draggedPlatform.x = Math.round(worldX - window.__dragOffsetX);
-    window.__draggedPlatform.y = Math.round(worldY - window.__dragOffsetY);
-  };
-
-  const handlePointerUp = (e) => {
-    const editor = propPlacementEditorRef.current;
-    if (import.meta.env.DEV && editor.dragging) {
-      editor.dragging = null;
-      e?.currentTarget?.releasePointerCapture?.(e.pointerId);
-      refreshPropEditorUi();
-      return;
-    }
-    if (window.__draggedPlatform) {
-      console.log(`Platform ${window.__draggedPlatform.id} dragged to x: ${window.__draggedPlatform.x}, y: ${window.__draggedPlatform.y}`);
-      window.__draggedPlatform = null;
-    }
-  };
-
   return (
     <section className={`expedition-journey-container ${openingCinematicActive ? 'is-opening-cinematic' : ''}`} id="expedition-journey">
       <div className="expedition-journey-grid">
-        <JourneySidebarStatus
-          JOURNEY_TOOLS={JOURNEY_TOOLS}
-          gameState={gameState}
-          getSectionDisplayName={getSectionDisplayName}
-          RELIC_SHARDS={RELIC_SHARDS}
-          UPGRADES={UPGRADES}
-          getActiveHiddenRoutes={getActiveHiddenRoutes}
-          getActiveSecretCollectibles={getActiveSecretCollectibles}
-          restoredSacredRoomCount={restoredSacredRoomCount}
-          sacredRoomEvidenceRows={sacredRoomEvidenceRows}
-          BOSS_KEY_ITEMS={BOSS_KEY_ITEMS}
-          activeHudGateGuidance={activeHudGateGuidance}
-        />
-
         <div className="expedition-main">
           <div className="canvas-wrapper">
             <canvas

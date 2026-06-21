@@ -53,6 +53,27 @@ const journeyBackgroundAssetsSource = readFileSync(new URL('./journeyBackgroundA
 const journeyCollectibleSpritesSource = readFileSync(new URL('./journeyCollectibleSprites.js', import.meta.url), 'utf8');
 const journeyRenderAssetsSource = readFileSync(new URL('./journeyRenderAssets.js', import.meta.url), 'utf8');
 const useJourneyRendererSource = readFileSync(new URL('./useJourneyRenderer.js', import.meta.url), 'utf8');
+const journeyEditorShortcutsPath = new URL('./useJourneyPlacementEditorShortcuts.js', import.meta.url);
+const journeyEditorShortcutsSource = existsSync(journeyEditorShortcutsPath)
+  ? readFileSync(journeyEditorShortcutsPath, 'utf8')
+  : '';
+const journeyEditorPointerHandlersPath = new URL('./useJourneyPlacementEditorPointerHandlers.js', import.meta.url);
+const journeyEditorPointerHandlersSource = existsSync(journeyEditorPointerHandlersPath)
+  ? readFileSync(journeyEditorPointerHandlersPath, 'utf8')
+  : '';
+const journeyEditorLogicSource = [
+  journeyComponentSource,
+  journeyEditorShortcutsSource,
+  journeyEditorPointerHandlersSource,
+].join('\n');
+const journeyInteriorRenderersPath = new URL('./journeyInteriorRenderers.js', import.meta.url);
+const journeyInteriorRenderersSource = existsSync(journeyInteriorRenderersPath)
+  ? readFileSync(journeyInteriorRenderersPath, 'utf8')
+  : '';
+const journeySceneRendererSource = [
+  journeyComponentSource,
+  journeyInteriorRenderersSource,
+].join('\n');
 const journeyPlacementOverridesSource = readFileSync(new URL('./journeyPlacementOverrides.js', import.meta.url), 'utf8');
 const journeyTrapsSource = readFileSync(new URL('./journeyTraps.js', import.meta.url), 'utf8');
 const expeditionStagesSource = readFileSync(new URL('../expedition/expeditionStages.js', import.meta.url), 'utf8');
@@ -60,7 +81,10 @@ const devToolsSource = readFileSync(new URL('../DevTools.jsx', import.meta.url),
 const expeditionModeSource = readFileSync(new URL('../ExpeditionMode.jsx', import.meta.url), 'utf8');
 const menuSource = readFileSync(new URL('../Menu.jsx', import.meta.url), 'utf8');
 const appSource = readFileSync(new URL('../../App.jsx', import.meta.url), 'utf8');
-const indexCssSource = readFileSync(new URL('../../index.css', import.meta.url), 'utf8');
+const indexCssSource = [
+  readFileSync(new URL('../../index.css', import.meta.url), 'utf8'),
+  readFileSync(new URL('../../styles/lost-site-expedition.css', import.meta.url), 'utf8'),
+].join('\n');
 const journeyPropPaletteDrawerCssSource = readFileSync(new URL('../../styles/journey-prop-palette-drawer.css', import.meta.url), 'utf8');
 const journeyCombatContractSource = journeyCombatSource.replace(/\bexport const\b/g, 'const');
 const journeyGameplayContractSource = [
@@ -98,6 +122,49 @@ test('Journey renderer receives the horizontal scale helper used by platform dra
   assert.match(useJourneyRendererSource, /scaleJourneyX,/);
   assert.match(useJourneyRendererSource, /platform\.x < scaleJourneyX\(720\)/);
   assert.match(journeyComponentSource, /useJourneyRenderer\(\{[\s\S]*?scaleJourneyX,[\s\S]*?worldToScreenX,/);
+});
+
+test('Journey interior room scene renderers live in a focused module', () => {
+  assert.match(journeyComponentSource, /useJourneyInteriorRenderers\(\{[\s\S]*?drawFieldNoteLabel,[\s\S]*?worldToScreenX,/);
+  assert.match(journeyInteriorRenderersSource, /export function useJourneyInteriorRenderers/);
+  [
+    'drawTempleThresholdHallInteriorFrame',
+    'drawMummificationChamberInteriorFrame',
+    'drawForgottenMuralChamberInteriorFrame',
+    'drawScribeLockedChamberInteriorFrame',
+  ].forEach((rendererName) => {
+    assert.match(journeyInteriorRenderersSource, new RegExp(`export function ${rendererName}\\(`));
+  });
+  [
+    'drawTempleThresholdHallInterior',
+    'drawMummificationChamberInterior',
+    'drawForgottenMuralChamberInterior',
+    'drawScribeLockedChamberInterior',
+  ].forEach((rendererName) => {
+    assert.doesNotMatch(journeyComponentSource, new RegExp(`const ${rendererName} = useCallback\\(`));
+  });
+});
+
+test('Journey placement editor shortcut logic lives in a focused hook module', () => {
+  assert.match(journeyEditorShortcutsSource, /export function useJourneyPlacementEditorShortcuts/);
+  assert.match(journeyComponentSource, /useJourneyPlacementEditorShortcuts\(\{/);
+  assert.match(journeyEditorShortcutsSource, /dev prop-editor toggle requires Shift\+E/);
+  assert.match(journeyEditorShortcutsSource, /event\.code === 'KeyE' && event\.shiftKey/);
+  assert.match(journeyEditorShortcutsSource, /event\.code === 'Tab' && editor\.hover && editor\.hover\.stack/);
+  assert.match(journeyEditorShortcutsSource, /savePropPlacementExport\(\)/);
+  assert.doesNotMatch(journeyComponentSource, /const handlePropEditorKeyDown = \(event\) =>/);
+});
+
+test('Journey placement editor pointer logic lives in a focused hook module', () => {
+  assert.match(journeyEditorPointerHandlersSource, /export function useJourneyPlacementEditorPointerHandlers/);
+  assert.match(journeyComponentSource, /useJourneyPlacementEditorPointerHandlers\(\{/);
+  assert.match(journeyEditorPointerHandlersSource, /const handlePointerDown = \(e\) =>/);
+  assert.match(journeyEditorPointerHandlersSource, /const handlePointerMove = \(e\) =>/);
+  assert.match(journeyEditorPointerHandlersSource, /const handlePointerUp = \(e\) =>/);
+  assert.match(journeyEditorPointerHandlersSource, /document\.addEventListener\('contextmenu', handleContextMenu\)/);
+  assert.doesNotMatch(journeyComponentSource, /const handlePointerDown = \(e\) =>/);
+  assert.doesNotMatch(journeyComponentSource, /const handlePointerMove = \(e\) =>/);
+  assert.doesNotMatch(journeyComponentSource, /const handlePointerUp = \(e\) =>/);
 });
 
 const egyptPreviousPlayerAtlas = JSON.parse(
@@ -186,8 +253,11 @@ const getDataRowById = (arraySource, id) => {
 };
 
 const rendererFrameFunctionNames = {
+  drawHazard: 'drawHazardFrame',
+  drawPremiumEgyptianChamberDoor: 'drawPremiumEgyptianChamberDoorFrame',
   drawPropGroundContact: 'drawPropGroundContactFrame',
   drawPropSandOcclusion: 'drawPropSandOcclusionFrame',
+  drawRouteGate: 'drawRouteGateFrame',
   drawStoryProp: 'drawStoryPropFrame',
 };
 
@@ -914,7 +984,7 @@ test('journey placement export can merge trap position updates', () => {
 
 test('journey editor prioritises platform selection over building props', () => {
   assert.match(
-    journeyComponentSource,
+    journeyEditorLogicSource,
     /const selectedSolidPlatform = selectedHazard \|\| selectedLair \|\| selectedCheckpoint \|\| selectedArch \|\| selectedForcedFloor[\s\S]{0,180}findEditablePlatformAt\(pointer\.screenX, pointer\.screenY, \{ includeFloors: false \}\);[\s\S]{0,260}const selectedProp = selectedHazard \|\| selectedLair \|\| selectedCheckpoint \|\| selectedArch \|\| selectedForcedFloor \|\| selectedSolidPlatform \? null : findEditableStoryPropAt\(pointer\.screenX, pointer\.screenY\);/,
   );
   assert.match(
@@ -924,10 +994,10 @@ test('journey editor prioritises platform selection over building props', () => 
 });
 
 test('journey editor prioritises trap selection above platforms and building props', () => {
-  const floorSelectionIndex = journeyComponentSource.indexOf('const selectedForcedFloor = editor.floorPickMode');
-  const hazardSelectionIndex = journeyComponentSource.indexOf('const selectedHazard = selectedForcedFloor ? null : findEditableHazardAt(pointer.screenX, pointer.screenY);');
-  const platformSelectionIndex = journeyComponentSource.indexOf('const selectedSolidPlatform = selectedHazard || selectedLair || selectedCheckpoint || selectedArch || selectedForcedFloor');
-  const propSelectionIndex = journeyComponentSource.indexOf('const selectedProp = selectedHazard || selectedLair || selectedCheckpoint || selectedArch || selectedForcedFloor || selectedSolidPlatform ? null : findEditableStoryPropAt(pointer.screenX, pointer.screenY);');
+  const floorSelectionIndex = journeyEditorLogicSource.indexOf('const selectedForcedFloor = editor.floorPickMode');
+  const hazardSelectionIndex = journeyEditorLogicSource.indexOf('const selectedHazard = selectedForcedFloor ? null : findEditableHazardAt(pointer.screenX, pointer.screenY);');
+  const platformSelectionIndex = journeyEditorLogicSource.indexOf('const selectedSolidPlatform = selectedHazard || selectedLair || selectedCheckpoint || selectedArch || selectedForcedFloor');
+  const propSelectionIndex = journeyEditorLogicSource.indexOf('const selectedProp = selectedHazard || selectedLair || selectedCheckpoint || selectedArch || selectedForcedFloor || selectedSolidPlatform ? null : findEditableStoryPropAt(pointer.screenX, pointer.screenY);');
   assert.ok(floorSelectionIndex > -1, 'floor override should be checked before crowded editor layers');
   assert.ok(hazardSelectionIndex > floorSelectionIndex, 'hazard selection should still run before normal platforms when no floor is forced');
   assert.ok(platformSelectionIndex > hazardSelectionIndex, 'platform selection should be blocked by selected hazards');
@@ -945,8 +1015,8 @@ test('journey editor exposes platform resizing and robust prop scale shortcuts',
   assert.match(journeyComponentSource, /selectedPlatform[\s\S]*?<span>Width<\/span>[\s\S]*?updateSelectedPlatformEditorTransform\(\{ width:/);
   assert.match(journeyComponentSource, /updateSelectedPropEditorTransform\(\{ width:/);
   assert.match(journeyComponentSource, /updateSelectedPropEditorTransform\(\{[\s\S]*?height,/);
-  assert.match(journeyComponentSource, /event\.key === '\+' \|\| event\.key === '\*'/);
-  assert.match(journeyComponentSource, /event\.key === '-' \|\| event\.key === '_'/);
+  assert.match(journeyEditorLogicSource, /event\.key === '\+' \|\| event\.key === '\*'/);
+  assert.match(journeyEditorLogicSource, /event\.key === '-' \|\| event\.key === '_'/);
   assert.match(journeyComponentSource, /<span>Scale<\/span>[\s\S]*?updateSelectedPropEditorTransform\(\{ scale:/);
   assert.match(journeyComponentSource, /<span>Flip H<\/span>[\s\S]*?updateSelectedPropEditorTransform\(\{ mirrorX:/);
   assert.match(journeyComponentSource, /<span>Flip V<\/span>[\s\S]*?updateSelectedPropEditorTransform\(\{ mirrorY:/);
@@ -1016,16 +1086,16 @@ test('journey editor platform overlays follow the vertical camera during climb s
   assert.match(platformBoundsSource, /platform\.y \+ verticalOffset/);
   assert.match(journeyComponentSource, /getPlatformEditorBounds\(platform,\s*cameraX,\s*current\)/);
   assert.match(journeyComponentSource, /getPlatformEditorBounds\(selectedPlatform,\s*cameraX,\s*current\)/);
-  assert.match(journeyComponentSource, /kind:\s*'platform'[\s\S]*?offsetY:\s*pointer\.worldY - selectedPlatform\.y/);
-  assert.match(journeyComponentSource, /editor\.dragging\.kind === 'platform'[\s\S]*?const rawY = pointer\.worldY - editor\.dragging\.offsetY/);
+  assert.match(journeyEditorLogicSource, /kind:\s*'platform'[\s\S]*?offsetY:\s*pointer\.worldY - selectedPlatform\.y/);
+  assert.match(journeyEditorLogicSource, /editor\.dragging\.kind === 'platform'[\s\S]*?const rawY = pointer\.worldY - editor\.dragging\.offsetY/);
 });
 
 test('journey editor toggle preserves the current camera view', () => {
-  const toggleStart = journeyComponentSource.indexOf("if (event.code === 'KeyE' && event.shiftKey");
+  const toggleStart = journeyEditorLogicSource.indexOf("if (event.code === 'KeyE' && event.shiftKey");
   assert.notEqual(toggleStart, -1, 'Shift+E editor toggle should exist');
-  const toggleEnd = journeyComponentSource.indexOf('if (!editor.enabled) return;', toggleStart);
+  const toggleEnd = journeyEditorLogicSource.indexOf('if (!editor.enabled) return;', toggleStart);
   assert.notEqual(toggleEnd, -1, 'Shift+E editor toggle should end before editor-only shortcuts');
-  const toggleSource = journeyComponentSource.slice(toggleStart, toggleEnd);
+  const toggleSource = journeyEditorLogicSource.slice(toggleStart, toggleEnd);
 
   assert.match(toggleSource, /editor\.enabled = !editor\.enabled;/);
   assert.match(toggleSource, /applyDefaultEditorLocks\(stateRef\.current\)/);
@@ -1050,7 +1120,7 @@ test('journey editor exposes floor platforms without blocking prop selection', (
     assert.match(platforms, new RegExp(`id:\\s*'${platformId}'[\\s\\S]*?y:\\s*GROUND_Y`));
   });
   assert.match(journeyComponentSource, /const isJourneyFloorPlatform = \(platform = \{\}\) =>/);
-  assert.match(journeyComponentSource, /const selectedFallbackFloor = editor\.floorPickMode \|\| selectedHazard \|\| selectedLair \|\| selectedCheckpoint \|\| selectedArch \|\| selectedSolidPlatform \|\| selectedProp[\s\S]{0,180}findEditablePlatformAt\(pointer\.screenX, pointer\.screenY, \{ floorOnly: true \}\);/);
+  assert.match(journeyEditorLogicSource, /const selectedFallbackFloor = editor\.floorPickMode \|\| selectedHazard \|\| selectedLair \|\| selectedCheckpoint \|\| selectedArch \|\| selectedSolidPlatform \|\| selectedProp[\s\S]{0,180}findEditablePlatformAt\(pointer\.screenX, pointer\.screenY, \{ floorOnly: true \}\);/);
   assert.match(journeyComponentSource, /category: isJourneyBlockerPlatform\(platform\) \? 'Blocker' : isJourneyFloorPlatform\(platform\) \? 'Floor' : 'Platform'/);
   assert.match(journeyComponentSource, /Nothing selected — click an item on the canvas, or open the Palette to place one\./);
 });
@@ -1070,11 +1140,11 @@ test('journey editor can force-pick floor platforms for moving collision floors'
   assert.match(journeyComponentSource, /floorPickMode:\s*editor\.floorPickMode/);
   assert.match(journeyComponentSource, /propPlacementEditorRef\.current\.floorPickMode = !propPlacementEditorRef\.current\.floorPickMode/);
   assert.match(journeyComponentSource, /floorPickMode \? '✓ Floors' : 'Floors'/);
-  assert.match(journeyComponentSource, /const selectedForcedFloor = editor\.floorPickMode[\s\S]{0,180}findEditablePlatformAt\(pointer\.screenX, pointer\.screenY, \{ floorOnly: true \}\)/);
-  assert.match(journeyComponentSource, /const selectedHazard = selectedForcedFloor \? null : findEditableHazardAt\(pointer\.screenX, pointer\.screenY\);/);
-  assert.match(journeyComponentSource, /const selectedSolidPlatform = selectedHazard \|\| selectedLair \|\| selectedCheckpoint \|\| selectedArch \|\| selectedForcedFloor[\s\S]{0,180}findEditablePlatformAt\(pointer\.screenX, pointer\.screenY, \{ includeFloors: false \}\);/);
-  assert.match(journeyComponentSource, /const selectedFallbackFloor = editor\.floorPickMode \|\| selectedHazard \|\| selectedLair \|\| selectedCheckpoint \|\| selectedArch \|\| selectedSolidPlatform \|\| selectedProp[\s\S]{0,180}findEditablePlatformAt\(pointer\.screenX, pointer\.screenY, \{ floorOnly: true \}\);/);
-  assert.match(journeyComponentSource, /const selectedPlatform = selectedForcedFloor \|\| selectedSolidPlatform \|\| selectedFallbackFloor;/);
+  assert.match(journeyEditorLogicSource, /const selectedForcedFloor = editor\.floorPickMode[\s\S]{0,180}findEditablePlatformAt\(pointer\.screenX, pointer\.screenY, \{ floorOnly: true \}\)/);
+  assert.match(journeyEditorLogicSource, /const selectedHazard = selectedForcedFloor \? null : findEditableHazardAt\(pointer\.screenX, pointer\.screenY\);/);
+  assert.match(journeyEditorLogicSource, /const selectedSolidPlatform = selectedHazard \|\| selectedLair \|\| selectedCheckpoint \|\| selectedArch \|\| selectedForcedFloor[\s\S]{0,180}findEditablePlatformAt\(pointer\.screenX, pointer\.screenY, \{ includeFloors: false \}\);/);
+  assert.match(journeyEditorLogicSource, /const selectedFallbackFloor = editor\.floorPickMode \|\| selectedHazard \|\| selectedLair \|\| selectedCheckpoint \|\| selectedArch \|\| selectedSolidPlatform \|\| selectedProp[\s\S]{0,180}findEditablePlatformAt\(pointer\.screenX, pointer\.screenY, \{ floorOnly: true \}\);/);
+  assert.match(journeyEditorLogicSource, /const selectedPlatform = selectedForcedFloor \|\| selectedSolidPlatform \|\| selectedFallbackFloor;/);
 });
 
 test('journey editor prop palette exposes premium modular floor kit inserts', () => {
@@ -1140,7 +1210,7 @@ test('journey editor exposes the Scarab Queen lair through mini-boss placement d
 
 test('journey placement editor polish keeps controls usable and scoped to editor input', () => {
   assert.match(journeyComponentSource, /const isJourneyEditorFormTarget = \(target\) =>/);
-  assert.match(journeyComponentSource, /if \(isJourneyEditorFormTarget\(event\.target\)\) return;/);
+  assert.match(journeyEditorLogicSource, /if \(isJourneyEditorFormTarget\(event\.target\)\) return;/);
   assert.match(journeyComponentSource, /if \(isJourneyEditorFormTarget\(e\.target\)\) return;/);
   assert.match(journeyComponentSource, /journey-prop-editor-actions/);
   assert.match(journeyComponentSource, />\s*Build export\s*</);
@@ -1152,7 +1222,7 @@ test('journey placement editor polish keeps controls usable and scoped to editor
   assert.match(journeyComponentSource, /const toggleSelectedEditorLock = useCallback/);
   assert.match(journeyComponentSource, /journey-prop-editor-selection-lock/);
   assert.match(journeyComponentSource, /Locked — click to unlock/);
-  assert.match(journeyComponentSource, /if \(isEditorLockKeyLocked\(selectedLockKey\)\)[\s\S]*?editor\.dragging = null/);
+  assert.match(journeyEditorLogicSource, /if \(isEditorLockKeyLocked\(selectedLockKey\)\)[\s\S]*?editor\.dragging = null/);
   assert.match(journeyComponentSource, /if \(isEditorEntityLocked\('prop', selectedProp\.id\)\) return;/);
   assert.match(journeyComponentSource, /if \(isEditorEntityLocked\('platform', platformId\)\) return;/);
   assert.match(journeyComponentSource, /<strong>Placement export<\/strong>/);
@@ -1644,11 +1714,11 @@ test('forgotten mural relic fragments open an in-room slide puzzle before restor
   assert.match(journeyComponentSource, /This does not show a theft\. It shows a rescue\./);
   assert.match(journeyComponentSource, /Slide the rearranged stone cuts until the image tells the right story\./);
   assert.match(journeyComponentSource, /3 seal cuts placed/);
-  assert.match(journeyComponentSource, /if \(current\.forgottenMuralChamberRestored\) \{/);
+  assert.match(journeySceneRendererSource, /if \(current\.forgottenMuralChamberRestored\) \{/);
   assert.match(journeyComponentSource, /FORGOTTEN_MURAL_HIDDEN_MEMORY_REVEAL_SRC = 'assets\/expedition\/environment\/desert-temple\/forgotten-mural-hidden-memory-reveal-2026-06-01\.png'/);
   assert.match(journeyComponentSource, /forgottenMuralHiddenRevealRef/);
   assert.match(journeyComponentSource, /forgottenMuralHiddenRevealLoaded:\s*forgottenMuralHiddenRevealRef\.current\.loaded/);
-  assert.match(journeyComponentSource, /ctx\.drawImage\(revealAsset\.image,\s*muralX,\s*muralY,\s*muralWidth,\s*muralHeight\)/);
+  assert.match(journeySceneRendererSource, /ctx\.drawImage\(revealAsset\.image,\s*muralX,\s*muralY,\s*muralWidth,\s*muralHeight\)/);
   assert.doesNotMatch(journeyComponentSource, /memoryAnchorDots/);
   assert.match(journeyComponentSource, /forgottenMuralPuzzleReady[\s\S]*?current\.forgottenMuralRelicSlidePuzzleOpen = true/);
   assert.match(journeyComponentSource, /isForgottenMuralRelicSlidePuzzleSolved\(nextTiles\)[\s\S]*?current\.forgottenMuralChamberRestored = true/);
@@ -1719,7 +1789,7 @@ test('scribe locked chamber reuses the Journey scene and challenge systems for o
   assert.match(journeyComponentSource, /scribeChamberExteriorRef/);
   assert.match(journeyComponentSource, /scribeChamberInteriorRef/);
   assert.match(journeyComponentSource, /image\.src = `\$\{import\.meta\.env\.BASE_URL\}\$\{SCRIBE_CHAMBER_INTERIOR_SRC\}`/);
-  assert.match(journeyComponentSource, /const chamberAsset = scribeChamberInteriorRef\.current/);
+  assert.match(journeySceneRendererSource, /const chamberAsset = scribeChamberInteriorRef\.current/);
   assert.match(journeyComponentSource, /scribeChamberInteriorLoaded:\s*scribeChamberInteriorRef\.current\.loaded/);
   assert.match(journeyComponentSource, /drawScribeChamberDoorwayStructure/);
   assert.match(journeyComponentSource, /scribeChamberExteriorLoaded:\s*scribeChamberExteriorRef\.current\.loaded/);
@@ -1969,8 +2039,8 @@ test('mummification chamber interior uses a project-bound game-ready environment
   assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_ENTRY_SPAWN = \{\s*x:\s*scaleJourneyX\(596\)/);
   assert.match(journeyComponentSource, /mummificationChamberInteriorRef/);
   assert.match(journeyComponentSource, /image\.src = `\$\{import\.meta\.env\.BASE_URL\}\$\{MUMMIFICATION_CHAMBER_INTERIOR_SRC\}`/);
-  assert.match(journeyComponentSource, /const chamberAsset = mummificationChamberInteriorRef\.current/);
-  assert.match(journeyComponentSource, /ctx\.drawImage\(chamberAsset\.image, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT\)/);
+  assert.match(journeySceneRendererSource, /const chamberAsset = mummificationChamberInteriorRef\.current/);
+  assert.match(journeySceneRendererSource, /ctx\.drawImage\(chamberAsset\.image, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT\)/);
   assert.match(journeyComponentSource, /mummificationChamberInteriorLoaded:\s*mummificationChamberInteriorRef\.current\.loaded/);
   assert.match(journeyComponentSource, /mummificationChamberPuzzleCenterpiece/);
   assert.match(journeyComponentSource, /mummificationChamberReadableZones/);
@@ -2024,7 +2094,7 @@ test('mummification chamber interaction objects reuse Journey asset packs and no
   });
   assert.match(journeyComponentSource, /current\.mummificationChamberPuzzleSolved = true/);
   assert.match(journeyComponentSource, /current\.mummificationChamberExitUnlocked = true/);
-  assert.match(journeyComponentSource, /drawAtlasRegion\(ctx, interactionAssets, item\.assetKey/);
+  assert.match(journeySceneRendererSource, /drawAtlasRegion\(ctx, interactionAssets, item\.assetKey/);
   assert.doesNotMatch(journeyComponentSource, /createMummificationInteractionSystem|MummificationInteractionObjects\.jsx|class\s+MummificationInteraction/);
 });
 
@@ -2069,7 +2139,7 @@ test('mummification chamber ritual puzzle teaches the next rite without punishin
     assert.match(journeyComponentSource, new RegExp(`id:\\s*'${id}'[\\s\\S]*?rite:\\s*'${rite.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}'`));
   });
   assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_RITUAL_SEQUENCE = MUMMIFICATION_CHAMBER_RITUAL_STEPS\.map\(step => step\.id\)/);
-  assert.match(journeyComponentSource, /currentStepInfo = MUMMIFICATION_CHAMBER_RITUAL_STEPS\[chamberRitualStep\]/);
+  assert.match(journeySceneRendererSource, /currentStepInfo = MUMMIFICATION_CHAMBER_RITUAL_STEPS\[chamberRitualStep\]/);
   // Wrong placement teaches via a clue + flicker and never resets prior progress.
   assert.match(journeyComponentSource, /riteDef\.wrongTargetNotice/);
   assert.match(journeyComponentSource, /That jar does not belong here\. Match the symbol to the plinth\./);
@@ -2111,7 +2181,7 @@ test('reusable Journey Room Interact system drives the mummification chamber wit
   });
   // Real interact key (plain E), with the dev prop editor moved to Shift+E.
   assert.match(journeyComponentSource, /const interactDown = !!keys\.KeyE/);
-  assert.match(journeyComponentSource, /event\.code === 'KeyE' && event\.shiftKey/);
+  assert.match(journeyEditorLogicSource, /event\.code === 'KeyE' && event\.shiftKey/);
   // Hold-to-use and carry are routed through the reusable primitives.
   assert.match(journeyComponentSource, /journeyInteractHoldTick\(interaction/);
   assert.match(journeyComponentSource, /journeyInteractPickUp\(interaction/);
@@ -3399,7 +3469,7 @@ test('Egypt opening scene uses the existing scarab seal path for a brief Anubis 
   assert.match(journeyComponentSource, /const OPENING_SPHINX_DURATION = 14/);
   assert.match(journeyComponentSource, /speaker:\s*'Asha',\s*text:\s*ARRIVAL_THRESHOLD_SPAWN_LINE/);
   assert.match(journeyComponentSource, /speaker:\s*'Asha',\s*text:\s*'The world fell away\.'/);
-  assert.match(journeyComponentSource, /startOpeningCinematic\(\{ speechEnabled: true, fromArrivalThreshold: true \}\)/);
+  assert.match(journeyComponentSource, /current\.arrivalThresholdActive = false[\s\S]*?current\.openingCinematic = \{/);
 });
 
 test('Egypt opening archive prologue grounds Asha before the Lost Site transport', () => {
@@ -3427,7 +3497,16 @@ test('Egypt opening archive prologue grounds Asha before the Lost Site transport
   assert.match(expeditionModeSource, /the real pyramid never carried that scarab/i);
   assert.match(expeditionModeSource, /Everyone else treated the photograph as symbolic, mistaken, or too strange to explain\./);
   assert.match(expeditionModeSource, /A memory returns/);
+  assert.match(expeditionModeSource, /const \[journeyOpeningMode, setJourneyOpeningMode\] = useState\('standard'\)/);
+  assert.match(expeditionModeSource, /setJourneyOpeningMode\('arrival-threshold'\)/);
+  assert.match(expeditionModeSource, /openingStartMode=\{journeyOpeningMode\}/);
+  assert.match(expeditionModeSource, /key=\{`\$\{selectedStageId\}-\$\{journeyRunId\}-\$\{journeyOpeningMode\}`\}/);
   assert.match(expeditionModeSource, /setExpeditionStage\('journey'\)/);
+  assert.match(journeyComponentSource, /openingStartMode = 'standard'/);
+  assert.match(journeyComponentSource, /useState\(\(\) => openingStartMode !== 'arrival-threshold'\)/);
+  assert.match(journeyComponentSource, /openingStartMode !== 'arrival-threshold'/);
+  assert.match(journeyComponentSource, /completeOpeningThresholdScene\(current\)/);
+  assert.match(journeyComponentSource, /setBriefingOpen\(false\)/);
   assert.match(journeyComponentSource, /The Gate Refuses/);
   assert.match(journeyComponentSource, /A mortal stands beyond my seal\./);
   assert.match(journeyComponentSource, /Forward is judgement\./);
@@ -3462,21 +3541,88 @@ test('Egypt archive transport beat uses project-bound cinematic PNGs before Jour
 });
 
 test('Arrival Threshold becomes a playable bridge between scarab fall and Anubis refusal', () => {
-  assert.match(journeyComponentSource, /ARRIVAL_THRESHOLD_BACKGROUND_SRC = 'assets\/expedition\/backgrounds\/arrival-threshold\/arrival-threshold-full-scene-2026-06-08\.png'/);
+  assert.match(journeyComponentSource, /ARRIVAL_THRESHOLD_BACKGROUND_SRC = 'assets\/expedition\/backgrounds\/arrival-threshold\/arrival-threshold-duat-training-chamber-2026-06-21\.png'/);
+  assert.match(journeyComponentSource, /ARRIVAL_THRESHOLD_DOORWAY_OCCLUDER_SRC = 'assets\/expedition\/backgrounds\/arrival-threshold\/arrival-threshold-duat-training-chamber-foreground-2026-06-21\.png'/);
+  assert.match(journeyComponentSource, /ARRIVAL_THRESHOLD_DOORWAY_GLOW_SRC = 'assets\/expedition\/backgrounds\/arrival-threshold\/arrival-threshold-duat-training-chamber-glow-2026-06-21\.png'/);
+  [
+    'assets/expedition/backgrounds/arrival-threshold/arrival-threshold-duat-training-chamber-2026-06-21.png',
+    'assets/expedition/backgrounds/arrival-threshold/arrival-threshold-duat-training-chamber-foreground-2026-06-21.png',
+    'assets/expedition/backgrounds/arrival-threshold/arrival-threshold-duat-training-chamber-glow-2026-06-21.png',
+  ].forEach((assetPath) => {
+    assert.ok(
+      existsSync(new URL(`../../../public/${assetPath}`, import.meta.url)),
+      `${assetPath} should exist as a project-bound Arrival Threshold PNG`,
+    );
+  });
   assert.match(journeyComponentSource, /ARRIVAL_THRESHOLD_SPAWN_X/);
   assert.match(journeyComponentSource, /ARRIVAL_THRESHOLD_LEFT_BOUND/);
   assert.match(journeyComponentSource, /ARRIVAL_THRESHOLD_FORWARD_GATE_TRIGGER_X/);
+  assert.match(journeyComponentSource, /ARRIVAL_THRESHOLD_EXIT_WALK_END_X/);
+  assert.match(journeyComponentSource, /ARRIVAL_THRESHOLD_EXIT_WALK_SECONDS/);
+  assert.match(journeyComponentSource, /ARRIVAL_THRESHOLD_RAMP_START_X/);
+  assert.match(journeyComponentSource, /ARRIVAL_THRESHOLD_RAMP_END_X/);
+  assert.match(journeyComponentSource, /ARRIVAL_THRESHOLD_RAMP_RISE/);
+  assert.match(journeyComponentSource, /const getArrivalThresholdGroundY = \(centerX\) =>/);
+  assert.match(journeyComponentSource, /if \(sectionId === 'arrival-threshold'\) return 'Arrival Threshold'/);
   assert.match(journeyUtilsSource, /arrivalThresholdActive:\s*false/);
   assert.match(journeyComponentSource, /completeOpeningThresholdScene[\s\S]*?current\.arrivalThresholdActive = true/);
+  assert.match(journeyComponentSource, /completeOpeningThresholdScene[\s\S]*?current\.player\.direction = -1/);
   assert.match(journeyComponentSource, /current\.notice = ARRIVAL_THRESHOLD_OBJECTIVE_LINE/);
   assert.match(journeyComponentSource, /current\.openingSphinxEncounter = null/);
+  assert.match(journeyComponentSource, /current\.arrivalThresholdExitTransition = \{/);
+  assert.match(journeyComponentSource, /arrivalCenterX <= ARRIVAL_THRESHOLD_FORWARD_GATE_TRIGGER_X/);
+  assert.match(journeyComponentSource, /Asha climbs through the broken scarab breach\./);
+  assert.match(journeyComponentSource, /The broken scarab breach opens toward the Duat\. Asha climbs through\./);
+  assert.match(journeyComponentSource, /current\.arrivalThresholdActive = false/);
+  assert.match(journeyComponentSource, /current\.notice = OPENING_ARRIVAL_AFTERSHOCK_NOTICE/);
+  assert.match(journeyComponentSource, /current\.openingCameraRevealTimer = Math\.max\(current\.openingCameraRevealTimer, OPENING_CAMERA_REVEAL_DURATION\)/);
   assert.match(journeyComponentSource, /startOpeningCinematic\(\{ speechEnabled: true, fromArrivalThreshold: true \}\)/);
   assert.match(journeyComponentSource, /current\.arrivalThresholdActive = false[\s\S]*?current\.openingCinematic = \{/);
   assert.match(journeyComponentSource, /drawArrivalThresholdScene\(ctx, current, now\)/);
+  assert.match(journeyComponentSource, /drawArrivalThresholdDoorwayOccluder\(ctx, current, now\)/);
   assert.match(journeyComponentSource, /arrivalThresholdState:/);
-  assert.match(journeyComponentSource, /The pyramid\.\.\. where is it\?/);
-  assert.match(journeyComponentSource, /The way back is sealed\./);
-  assert.match(journeyComponentSource, /But I'm not dead\./);
+  assert.match(journeyComponentSource, /doorwayGlowLoaded:/);
+  assert.match(journeyComponentSource, /doorwayOccluderLoaded:/);
+  assert.match(journeyComponentSource, /That doorway brought me here\.\.\. and now it is closing\./);
+  assert.match(journeyComponentSource, /The portal behind me is sealed\. The breach is the only path\./);
+  assert.match(journeyComponentSource, /They lead into the Duat\./);
+  assert.match(journeyComponentSource, /const thresholdAlreadyIntroduced = Boolean\(current\.openingConfrontationSeen\)/);
+  assert.match(journeyComponentSource, /if \(!thresholdAlreadyIntroduced\) \{[\s\S]*?current\.openingThresholdScene = \{/);
+  assert.match(journeyComponentSource, /if \(thresholdAlreadyIntroduced\) \{[\s\S]*?current\.openingConfrontationSeen = true/);
+  assert.match(journeyComponentSource, /scarab-seal-anubis-warning/);
+  assert.match(journeyComponentSource, /current\.notice = thresholdAlreadyIntroduced \? SCARAB_SEAL_TRIGGER\.objectiveEchoLine : ''/);
+});
+
+test('Arrival Threshold Duat Echo Trial teaches combat before the Anubis confrontation', () => {
+  assert.match(journeyComponentSource, /ARRIVAL_THRESHOLD_TRIAL_STEPS = \[/);
+  assert.match(journeyComponentSource, /id:\s*'still-echo'[\s\S]*?objective:\s*'Strike the still echo\.'/);
+  assert.match(journeyComponentSource, /id:\s*'moving-echo'[\s\S]*?objective:\s*'Track the moving echo\.'/);
+  assert.match(journeyComponentSource, /id:\s*'striking-echo'[\s\S]*?objective:\s*'Dodge the striking echo\.'/);
+  assert.match(journeyComponentSource, /export const createArrivalThresholdTrialState = \(\) =>/);
+  assert.match(journeyUtilsSource, /arrivalThresholdTrial:\s*null/);
+  assert.match(journeyComponentSource, /current\.arrivalThresholdTrial = createArrivalThresholdTrialState\(\)/);
+  assert.match(journeyComponentSource, /updateArrivalThresholdTrial\(current, player, dt\)/);
+  assert.match(journeyComponentSource, /drawArrivalThresholdTrial\(ctx, current, now\)/);
+  assert.match(journeyComponentSource, /arrivalThresholdTrialState:/);
+  assert.match(journeyComponentSource, /if \(!current\.arrivalThresholdTrial\?\.completed\) \{/);
+  assert.match(journeyComponentSource, /The breach waits\. The threshold is still measuring Asha\./);
+  assert.match(journeyComponentSource, /The threshold measured you\./);
+  assert.match(journeyComponentSource, /It found motion\. Not innocence\./);
+  assert.match(journeyComponentSource, /Do not mistake survival for passage\./);
+});
+
+test('Opening Anubis confrontation cannot replay after it has already been seen', () => {
+  const startOpeningStart = journeyComponentSource.indexOf('const startOpeningCinematic = useCallback');
+  const startOpeningEnd = journeyComponentSource.indexOf('const startJourneyWithoutOpeningScene = useCallback', startOpeningStart);
+  assert.notEqual(startOpeningStart, -1);
+  assert.notEqual(startOpeningEnd, -1);
+  const startOpeningBlock = journeyComponentSource.slice(startOpeningStart, startOpeningEnd);
+
+  assert.match(startOpeningBlock, /if \(current\.openingConfrontationSeen\) \{/);
+  assert.match(startOpeningBlock, /current\.openingCinematic = null/);
+  assert.match(startOpeningBlock, /current\.arrivalThresholdActive = false/);
+  assert.match(startOpeningBlock, /current\.notice = OPENING_ARRIVAL_AFTERSHOCK_NOTICE/);
+  assert.match(startOpeningBlock, /return;/);
 });
 
 test('low-quality generated sacred trap pack is not part of the live asset contract', () => {
@@ -3831,12 +3977,8 @@ test('Expedition map avoids artificial in-world canvas text labels', () => {
 });
 
 test('Journey progress gates use arch and slab assets instead of artificial padlock markers', () => {
-  const drawStart = journeyComponentSource.indexOf('const drawRouteGate = useCallback');
-  const drawEnd = journeyComponentSource.indexOf('const drawHazardBurialCover = useCallback', drawStart);
-  const routeGateDrawSource = journeyComponentSource.slice(drawStart, drawEnd);
+  const routeGateDrawSource = getComponentFunctionSource('drawRouteGate');
 
-  assert.notEqual(drawStart, -1, 'Journey route gate renderer should exist');
-  assert.notEqual(drawEnd, -1, 'Hazard renderer should follow route gate renderer');
   assert.match(journeyComponentSource, /ROUTE_GATE_BACK_SRC = 'assets\/expedition\/environment\/egypt-opening\/route-gate-back\.png'/);
   assert.match(journeyComponentSource, /ROUTE_GATE_FRONT_SRC = 'assets\/expedition\/environment\/egypt-opening\/route-gate-front\.png'/);
   assert.match(journeyComponentSource, /ROUTE_GATE_SLAB_SRC = 'assets\/expedition\/environment\/egypt-opening\/route-gate-slab\.png'/);
@@ -3856,9 +3998,7 @@ test('Journey progress gates use arch and slab assets instead of artificial padl
 });
 
 test('Journey route gates use doorway anchors so linked seals draw as one blocked path', () => {
-  const drawStart = journeyComponentSource.indexOf('const drawRouteGate = useCallback');
-  const drawEnd = journeyComponentSource.indexOf('const drawHazardBurialCover = useCallback', drawStart);
-  const routeGateDrawSource = journeyComponentSource.slice(drawStart, drawEnd);
+  const routeGateDrawSource = getComponentFunctionSource('drawRouteGate');
   const collisionStart = journeyComponentSource.indexOf('// Gates');
   const collisionEnd = journeyComponentSource.indexOf('// Final Goal', collisionStart);
   const routeGateCollisionSource = journeyComponentSource.slice(collisionStart, collisionEnd);
@@ -6077,8 +6217,8 @@ test('Journey HUD can disable enemies for bridge playtesting without deleting co
   assert.match(journeyComponentSource, /const nextEnemiesDisabled = !current\.enemiesDisabled/);
   assert.match(journeyComponentSource, /current\.enemiesDisabled = nextEnemiesDisabled/);
   assert.match(journeyComponentSource, /current\.bossDomain = null/);
-  assert.match(journeyComponentSource, /const showDevEnemyPlaytestAssist = import\.meta\.env\.DEV/);
-  assert.match(journeyComponentSource, /new URLSearchParams\(window\.location\.search\)\.has\('enemyAssist'\)/);
+  assert.match(journeyComponentSource, /const showDevEnemyPlaytestAssist = import\.meta\.env\.DEV;/);
+  assert.doesNotMatch(journeyComponentSource, /new URLSearchParams\(window\.location\.search\)\.has\('enemyAssist'\)/);
   assert.match(journeyComponentSource, /\{showDevEnemyPlaytestAssist && \(/);
   assert.match(journeyComponentSource, /aria-pressed=\{gameState\.enemiesDisabled\}/);
   assert.match(journeyComponentSource, /className=\{`journey-enemy-toggle \$\{gameState\.enemiesDisabled \? 'is-off' : ''\}`\}/);

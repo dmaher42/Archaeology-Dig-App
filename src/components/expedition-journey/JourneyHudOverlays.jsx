@@ -166,9 +166,7 @@ export function JourneyPlayerOverlays({
   FIELD_RESCUE_MESSAGE,
   respawnAtCheckpoint,
 }) {
-  const showDevEnemyPlaytestAssist = import.meta.env.DEV
-    && typeof window !== 'undefined'
-    && new URLSearchParams(window.location.search).has('enemyAssist');
+  const showDevEnemyPlaytestAssist = import.meta.env.DEV;
 
   return (
     <>

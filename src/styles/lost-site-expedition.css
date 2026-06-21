@@ -2244,3 +2244,28 @@
   min-height: 0;
   align-items: stretch;
 }
+
+.expedition-journey-container .expedition-canvas {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  margin: 0;
+  aspect-ratio: auto;
+  object-fit: fill;
+  background: #000;
+}
+
+.journey-prop-editor-panel {
+  position: fixed;
+  top: 0.72rem;
+  left: 0.72rem;
+  transform: none;
+  max-width: min(26rem, calc(100vw - 1.44rem));
+  max-height: min(39rem, calc(100% - 1.24rem));
+  overflow: auto;
+}
+
+.journey-prop-editor-actions {
+  display: grid;
+  gap: 0.45rem;
+}
