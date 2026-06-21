@@ -9495,10 +9495,6 @@ export default function ExpeditionJourney({
     worldToScreenX,
   });
 
-
-
-
-
   const drawArrivalThresholdTrial = useCallback((ctx, current, now) => {
     const trial = current.arrivalThresholdTrial;
     const echo = trial?.echo;
