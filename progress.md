@@ -4,6 +4,13 @@ Current source-of-truth note:
 - Future implementation should follow `docs/lost-site-expedition-production-bible.md`.
 - The production bible now defines implementation hierarchy, room pipelines, asset roles, and quality expectations.
 
+2026-06-21 Arrival Threshold Duat Echo Trial:
+- Implemented the Arrival Threshold as Asha's first playable Duat threshold after the scarab transport, using the new high-resolution threshold chamber art and existing Journey opening flow.
+- Added a story-tied practice combat sequence in the room: still echo, moving echo, and striking echo. The broken scarab breach stays locked until the trial is complete.
+- Anubis now acknowledges the room trial before the main confrontation: "The threshold measured you", "It found motion. Not innocence", and "Do not mistake survival for passage."
+- Fixed the dev quick-start path so `?play` starts in Arrival Threshold instead of jumping straight into the old Anubis cinematic.
+- Verified focused opening tests, lint, production build, and a browser Journey check confirming blocked early exit, all three echo steps, breach exit, and Anubis handoff.
+
 2026-06-20 Temple Approach ramp editor prop:
 - Added the approved Temple Approach Gatehouse Ramp PNG to the Journey prop editor registry under a new `Temple Approach` category.
 - Extended the editor palette template path so registry image props can preserve grounded depth, z-index, scene blend, contact ratio, shadow sizing, width scale, and non-collidable settings when stamped from the editor.
