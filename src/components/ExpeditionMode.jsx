@@ -4246,7 +4246,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
     if (!new URLSearchParams(window.location.search).has('play')) return undefined;
     const timer = window.setTimeout(() => {
       setPrologueCinematicStep(null);
-      setJourneyOpeningMode('standard');
+      setJourneyOpeningMode('arrival-threshold');
       setExpeditionStage('journey');
       setBriefingOpen(false);
     }, 0);

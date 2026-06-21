@@ -3499,6 +3499,7 @@ test('Egypt opening archive prologue grounds Asha before the Lost Site transport
   assert.match(expeditionModeSource, /A memory returns/);
   assert.match(expeditionModeSource, /const \[journeyOpeningMode, setJourneyOpeningMode\] = useState\('standard'\)/);
   assert.match(expeditionModeSource, /setJourneyOpeningMode\('arrival-threshold'\)/);
+  assert.match(expeditionModeSource, /URLSearchParams\(window\.location\.search\)\.has\('play'\)[\s\S]*?setJourneyOpeningMode\('arrival-threshold'\)/);
   assert.match(expeditionModeSource, /openingStartMode=\{journeyOpeningMode\}/);
   assert.match(expeditionModeSource, /key=\{`\$\{selectedStageId\}-\$\{journeyRunId\}-\$\{journeyOpeningMode\}`\}/);
   assert.match(expeditionModeSource, /setExpeditionStage\('journey'\)/);
