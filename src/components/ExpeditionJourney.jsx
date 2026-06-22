@@ -94,6 +94,7 @@ import {
   drawOpeningPyramidAssetRegionFrame,
   useJourneyRenderer,
 } from './expedition-journey/useJourneyRenderer.js';
+import { useJourneyExteriorStructureRenderers } from './expedition-journey/journeyExteriorStructureRenderers.js';
 import { useJourneyInteriorRenderers } from './expedition-journey/journeyInteriorRenderers.js';
 import { useJourneyPlacementEditorShortcuts } from './expedition-journey/useJourneyPlacementEditorShortcuts.js';
 import { useJourneyPlacementEditorPointerHandlers } from './expedition-journey/useJourneyPlacementEditorPointerHandlers.js';
@@ -101,11 +102,17 @@ export { JourneyControlsReference } from './expedition-journey/journeyControlsRe
 import {
   ARRIVAL_THRESHOLD_ASSET_VERSION,
   ARRIVAL_THRESHOLD_ANUBIS_TRIAL_LINES,
+  ARRIVAL_THRESHOLD_AWAKENED_SRC,
+  ARRIVAL_THRESHOLD_WAKE_SECONDS,
   ARRIVAL_THRESHOLD_BACKGROUND_SRC,
+  ARRIVAL_THRESHOLD_DUAT_ECHO_SRC,
   ARRIVAL_THRESHOLD_DOORWAY_GLOW_SRC,
   ARRIVAL_THRESHOLD_DOORWAY_OCCLUDER_SRC,
+  ARRIVAL_THRESHOLD_ECHO_INTRO_DRIFT_SECONDS,
+  ARRIVAL_THRESHOLD_ECHO_SPAWN_SECONDS,
   ARRIVAL_THRESHOLD_EXIT_WALK_END_X,
   ARRIVAL_THRESHOLD_EXIT_WALK_SECONDS,
+  ARRIVAL_THRESHOLD_FLOOR_Y,
   ARRIVAL_THRESHOLD_FORWARD_GATE_TRIGGER_X,
   ARRIVAL_THRESHOLD_GATE_OBJECTIVE_LINE,
   ARRIVAL_THRESHOLD_LEFT_BOUND,
@@ -119,6 +126,7 @@ import {
   ARRIVAL_THRESHOLD_RAMP_RISE,
   ARRIVAL_THRESHOLD_RAMP_START_X,
   ARRIVAL_THRESHOLD_RIGHT_BOUND,
+  ARRIVAL_THRESHOLD_SEAL_VEIL_SRC,
   ARRIVAL_THRESHOLD_SPAWN_LINE,
   ARRIVAL_THRESHOLD_SPAWN_X,
   ARRIVAL_THRESHOLD_TRIAL_COMPLETE_LINE,
@@ -475,7 +483,7 @@ const getArrivalThresholdGroundY = (centerX) => {
     0,
     1,
   );
-  return GROUND_Y - ARRIVAL_THRESHOLD_RAMP_RISE * rampProgress;
+  return ARRIVAL_THRESHOLD_FLOOR_Y - ARRIVAL_THRESHOLD_RAMP_RISE * rampProgress;
 };
 
 const getArrivalThresholdEchoHitbox = (echo) => {
@@ -2927,7 +2935,7 @@ const getCameraFollowTarget = (current) => {
     return {
       mode: 'arrival-threshold',
       focusTarget: Math.round(playerCenterX),
-      targetCameraX: clampCameraX(playerCenterX - CANVAS_WIDTH * 0.5),
+      targetCameraX: 0,
     };
   }
 
@@ -3264,8 +3272,12 @@ export default function ExpeditionJourney({
   const scorpionVenomSpitEffectRef = useRef({ image: null, loaded: false, failed: false, version: SCORPION_VENOM_SPIT_EFFECT_VERSION });
   const openingSphinxApparitionRef = useRef({ image: null, loaded: false, failed: false });
   const arrivalThresholdBackgroundRef = useRef({ image: null, loaded: false, failed: false, version: ARRIVAL_THRESHOLD_ASSET_VERSION });
+  const arrivalThresholdDuatEchoRef = useRef({ image: null, loaded: false, failed: false, version: ARRIVAL_THRESHOLD_ASSET_VERSION });
   const arrivalThresholdDoorwayGlowRef = useRef({ image: null, loaded: false, failed: false, version: ARRIVAL_THRESHOLD_ASSET_VERSION });
   const arrivalThresholdDoorwayOccluderRef = useRef({ image: null, loaded: false, failed: false, version: ARRIVAL_THRESHOLD_ASSET_VERSION });
+  const arrivalThresholdSealVeilRef = useRef({ image: null, loaded: false, failed: false, version: ARRIVAL_THRESHOLD_ASSET_VERSION });
+  const arrivalThresholdAwakenedRef = useRef({ image: null, loaded: false, failed: false, version: ARRIVAL_THRESHOLD_ASSET_VERSION });
+  const arrivalThresholdGlowCanvasRef = useRef(null);
   const lostBridgeAssetsRef = useRef({ images: {}, structure: null, floorBlend: null, floorBlends: {} });
   const openingPyramidClimbPackRef = useRef({ image: null, loaded: false, failed: false });
   const openingPyramidFacadeRef = useRef({ image: null, loaded: false, failed: false });
@@ -5519,8 +5531,11 @@ export default function ExpeditionJourney({
       image.src = `${import.meta.env.BASE_URL}${src}?v=${ARRIVAL_THRESHOLD_ASSET_VERSION}`;
     };
     loadArrivalThresholdImage(ARRIVAL_THRESHOLD_BACKGROUND_SRC, arrivalThresholdBackgroundRef);
+    loadArrivalThresholdImage(ARRIVAL_THRESHOLD_DUAT_ECHO_SRC, arrivalThresholdDuatEchoRef);
     loadArrivalThresholdImage(ARRIVAL_THRESHOLD_DOORWAY_GLOW_SRC, arrivalThresholdDoorwayGlowRef);
     loadArrivalThresholdImage(ARRIVAL_THRESHOLD_DOORWAY_OCCLUDER_SRC, arrivalThresholdDoorwayOccluderRef);
+    loadArrivalThresholdImage(ARRIVAL_THRESHOLD_SEAL_VEIL_SRC, arrivalThresholdSealVeilRef);
+    loadArrivalThresholdImage(ARRIVAL_THRESHOLD_AWAKENED_SRC, arrivalThresholdAwakenedRef);
     return () => {
       cancelled = true;
     };
@@ -7001,6 +7016,12 @@ export default function ExpeditionJourney({
       maxTimer: 0.46,
     });
     if (!nextStep) {
+      trial.defeatedEcho = {
+        ...(trial.echo || step),
+        defeatTimer: 0.55,
+        hitFlash: 0,
+        attackCue: 0,
+      };
       trial.completed = true;
       trial.active = false;
       trial.echo = null;
@@ -7024,6 +7045,8 @@ export default function ExpeditionJourney({
       ...nextStep,
       direction: -1,
       timer: 0,
+      awakeTimer: 0,
+      spawnTimer: ARRIVAL_THRESHOLD_ECHO_SPAWN_SECONDS,
       hitFlash: 0,
       attackCue: 0,
       cleared: false,
@@ -7036,7 +7059,12 @@ export default function ExpeditionJourney({
 
   const updateArrivalThresholdTrial = useCallback((current, player, dt) => {
     const trial = current.arrivalThresholdTrial;
-    if (!trial || trial.completed) return;
+    if (!trial) return;
+    if (trial.defeatedEcho) {
+      trial.defeatedEcho.defeatTimer = Math.max(0, (trial.defeatedEcho.defeatTimer || 0) - dt);
+      if (trial.defeatedEcho.defeatTimer <= 0) trial.defeatedEcho = null;
+    }
+    if (trial.completed) return;
     const step = ARRIVAL_THRESHOLD_TRIAL_STEPS[trial.stepIndex];
     if (!step) {
       trial.completed = true;
@@ -7048,12 +7076,15 @@ export default function ExpeditionJourney({
       ...step,
       direction: -1,
       timer: 0,
+      awakeTimer: 0,
+      spawnTimer: ARRIVAL_THRESHOLD_ECHO_SPAWN_SECONDS,
       hitFlash: 0,
       attackCue: 0,
       cleared: false,
     };
     trial.echo = echo;
     echo.timer = (echo.timer || 0) + dt;
+    echo.spawnTimer = Math.max(0, (echo.spawnTimer || 0) - dt);
     echo.hitFlash = Math.max(0, (echo.hitFlash || 0) - dt);
     echo.attackCue = Math.max(0, (echo.attackCue || 0) - dt);
     if (trial.lineShownForStepId !== step.id) {
@@ -7067,6 +7098,14 @@ export default function ExpeditionJourney({
       };
       current.cinematicTimer = 3.0;
       current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 1.6);
+      audioControls?.playExpeditionSfx?.('lostSiteAirShift', { volume: 0.34 });
+    }
+    if ((echo.spawnTimer || 0) > 0) {
+      return;
+    }
+    echo.awakeTimer = (echo.awakeTimer || 0) + dt;
+    if (step.movement === 'still' && echo.awakeTimer < ARRIVAL_THRESHOLD_ECHO_INTRO_DRIFT_SECONDS) {
+      echo.x += (echo.direction || -1) * 18 * dt;
     }
     if (step.movement === 'patrol') {
       const minX = step.patrolMin ?? step.x - 100;
@@ -7834,6 +7873,7 @@ export default function ExpeditionJourney({
         backgroundLoaded: Boolean(arrivalThresholdBackgroundRef.current.loaded),
         doorwayGlowLoaded: Boolean(arrivalThresholdDoorwayGlowRef.current.loaded),
         doorwayOccluderLoaded: Boolean(arrivalThresholdDoorwayOccluderRef.current.loaded),
+        duatEchoLoaded: Boolean(arrivalThresholdDuatEchoRef.current.loaded),
         backgroundSrc: ARRIVAL_THRESHOLD_BACKGROUND_SRC,
       } : null,
       arrivalThresholdTrialState: current.arrivalThresholdTrial ? {
@@ -8393,447 +8433,6 @@ export default function ExpeditionJourney({
     return true;
   }, []);
 
-  const drawOpeningPyramidFacade = useCallback((ctx, cameraX, _now = 0, prop = null) => {
-    void _now;
-    const facade = openingPyramidFacadeRef.current;
-    if (!facade.loaded || !facade.image) return false;
-    const renderProp = getGeneratedStoryPropRenderProp(prop || {});
-    const width = Number.isFinite(renderProp.width) ? renderProp.width : 1208;
-    const height = Number.isFinite(renderProp.height) ? renderProp.height : 664;
-    const worldLeftX = Number.isFinite(renderProp.x)
-      ? renderProp.x - width / 2
-      : OPENING_PYRAMID_FACADE_WORLD_LEFT_X;
-    const x = worldToScreenX(worldLeftX, cameraX);
-    const y = Number.isFinite(renderProp.y) ? renderProp.y : -4;
-    if (x > CANVAS_WIDTH + 80 || x + width < -80) return false;
-    ctx.save();
-    ctx.globalAlpha = Number.isFinite(renderProp.alpha) ? renderProp.alpha : 0.98;
-    ctx.filter = 'sepia(4%) saturate(98%) brightness(91%) contrast(102%)';
-    ctx.drawImage(facade.image, x, y, width, height);
-    ctx.restore();
-    return true;
-  }, []);
-
-  const drawOpeningPyramidMasonryBack = useCallback((ctx, cameraX, now = 0, current = stateRef.current) => {
-    const openingPyramidFacadeProp = getRenderableStoryProps(current).find(prop => prop.id === 'opening-pyramid-facade-structure');
-    if (!openingPyramidFacadeProp) return;
-    if (openingPyramidFacadeRef.current.loaded && openingPyramidFacadeRef.current.image) {
-      drawOpeningPyramidFacade(ctx, cameraX, now, openingPyramidFacadeProp);
-      return;
-    }
-    const facadeStartX = 80;
-    const facadeEndX = 1760;
-    if (!isHorizontallyVisible(facadeStartX, facadeEndX - facadeStartX, cameraX, 180)) return;
-    const baseY = GROUND_Y + 12;
-    ctx.save();
-
-    OPENING_PYRAMID_FACADE_TIERS.forEach((tier, index) => {
-      const sx = worldToScreenX(tier.x, cameraX);
-      const topY = tier.y;
-      const tierBottom = Math.min(baseY, tier.y + tier.height);
-      const height = tierBottom - topY;
-      if (sx > CANVAS_WIDTH + 160 || sx + tier.width < -160 || height <= 0) return;
-
-      ctx.save();
-      ctx.globalAlpha = tier.alpha;
-      ctx.beginPath();
-      ctx.moveTo(sx + tier.inset, topY);
-      ctx.lineTo(sx + tier.width - tier.inset * 0.3, topY);
-      ctx.lineTo(sx + tier.width, tierBottom);
-      ctx.lineTo(sx, tierBottom);
-      ctx.closePath();
-      ctx.clip();
-
-      const faceGradient = ctx.createLinearGradient(0, topY, 0, tierBottom);
-      faceGradient.addColorStop(0, 'rgb(183, 117, 49)');
-      faceGradient.addColorStop(0.5, 'rgb(110, 63, 27)');
-      faceGradient.addColorStop(1, 'rgb(58, 34, 16)');
-      ctx.fillStyle = faceGradient;
-      ctx.fillRect(sx, topY, tier.width, height);
-
-      const region = index < 3 ? 'leftStairFace' : index < 5 ? 'rightStairFace' : 'terraceWall';
-      drawOpeningPyramidAssetRegion(ctx, region, {
-        x: sx - 10,
-        y: topY - 5,
-        width: tier.width + 20,
-        height: height + 18,
-      }, {
-        alpha: 0.58,
-        filter: 'sepia(10%) saturate(88%) brightness(70%) contrast(112%)',
-      });
-
-      ctx.globalAlpha = tier.alpha * 0.86;
-      ctx.strokeStyle = 'rgba(48, 27, 12, 0.42)';
-      ctx.lineWidth = 1.2;
-      for (let rowY = topY + 13; rowY < tierBottom - 8; rowY += 16) {
-        ctx.beginPath();
-        ctx.moveTo(sx + 18, rowY);
-        ctx.lineTo(sx + tier.width - 18, rowY + Math.sin(rowY * 0.09 + index) * 1.4);
-        ctx.stroke();
-        for (let jointX = sx + 42 + ((index * 23 + rowY) % 58); jointX < sx + tier.width - 36; jointX += 72) {
-          ctx.beginPath();
-          ctx.moveTo(jointX, rowY - 13);
-          ctx.lineTo(jointX + Math.sin(jointX * 0.04) * 5, rowY - 2);
-          ctx.stroke();
-        }
-      }
-
-      ctx.globalCompositeOperation = 'screen';
-      ctx.globalAlpha = tier.alpha * 0.34;
-      ctx.fillStyle = 'rgba(255, 220, 142, 0.9)';
-      ctx.fillRect(sx + tier.inset * 0.7, topY, tier.width - tier.inset, 6);
-      ctx.globalCompositeOperation = 'multiply';
-      ctx.globalAlpha = tier.alpha * 0.2;
-      ctx.fillStyle = 'rgba(41, 23, 9, 0.95)';
-      ctx.fillRect(sx + tier.width * 0.42, topY + 8, tier.width * 0.58, Math.max(12, height - 10));
-      ctx.restore();
-    });
-
-    const summitX = worldToScreenX(scaleJourneyX(488), cameraX);
-    drawOpeningPyramidAssetRegion(ctx, 'terraceWall', {
-      x: summitX - 84,
-      y: openingJourneyY(98),
-      width: 246,
-      height: 86,
-    }, { alpha: 0.82, filter: 'sepia(8%) saturate(92%) brightness(82%) contrast(102%)' });
-    drawOpeningPyramidAssetRegion(ctx, 'carvedColumn', {
-      x: summitX - 58,
-      y: openingJourneyY(129),
-      width: 54,
-      height: 118,
-    }, { alpha: 0.64, filter: 'sepia(8%) saturate(86%) brightness(80%) contrast(96%)' });
-    drawOpeningPyramidAssetRegion(ctx, 'paintedColumn', {
-      x: summitX + 84,
-      y: openingJourneyY(128),
-      width: 54,
-      height: 120,
-    }, { alpha: 0.6, filter: 'sepia(8%) saturate(86%) brightness(80%) contrast(96%)' });
-
-    const lowerX = worldToScreenX(scaleJourneyX(110), cameraX);
-    drawOpeningPyramidAssetRegion(ctx, 'carvedColumn', {
-      x: lowerX + 20,
-      y: openingJourneyY(270),
-      width: 58,
-      height: 118,
-    }, { alpha: 0.48, filter: 'sepia(8%) saturate(84%) brightness(78%) contrast(96%)' });
-    drawOpeningPyramidAssetRegion(ctx, 'paintedColumn', {
-      x: lowerX + 318,
-      y: openingJourneyY(226),
-      width: 58,
-      height: 122,
-    }, { alpha: 0.48, filter: 'sepia(8%) saturate(84%) brightness(78%) contrast(96%)' });
-
-    const x = worldToScreenX(scaleJourneyX(84), cameraX);
-    drawOpeningPyramidAssetRegion(ctx, 'rubble', {
-      x: x + 510,
-      y: GROUND_Y - 64,
-      width: 128,
-      height: 58,
-    }, { alpha: 0.74 });
-    drawOpeningPyramidAssetRegion(ctx, 'dust', {
-      x: x + 80,
-      y: GROUND_Y - 42,
-      width: 520,
-      height: 58,
-    }, { alpha: 0.3 });
-    ctx.restore();
-  }, [drawOpeningPyramidAssetRegion, drawOpeningPyramidFacade, getRenderableStoryProps]);
-
-  const drawLostBridgeRavineDepth = useCallback((ctx, platforms, cameraX, current) => {
-    const editorPlacement = getLostBridgeRavineFloorPlacement(current);
-    if (!editorPlacement) return false;
-    const deckBounds = getLostBridgeDeckBounds(platforms || []);
-    const bounds = deckBounds || {
-      left: editorPlacement.drawWorldLeft + editorPlacement.width * 0.18,
-      right: editorPlacement.drawWorldLeft + editorPlacement.width * 0.82,
-      y: Math.max(0, editorPlacement.drawY + editorPlacement.height * 0.08),
-      span: editorPlacement.width * 0.64,
-    };
-    const activeRavineAssetKey = editorPlacement.prop?.imageAssetKey || 'lostBridgeRavineFloor';
-    const activeRavineAssetPath = editorPlacement.prop?.assetPath || LOST_BRIDGE_RAVINE_FLOOR_VARIANT_SRCS.lostBridgeRavineFloor;
-    const blend = lostBridgeAssetsRef.current?.floorBlends?.[activeRavineAssetKey]
-      || lostBridgeAssetsRef.current?.floorBlends?.[activeRavineAssetPath]
-      || lostBridgeAssetsRef.current?.floorBlend;
-    const drawWorldLeft = editorPlacement.drawWorldLeft;
-    const drawW = editorPlacement.width;
-    if (!isHorizontallyVisible(drawWorldLeft, drawW, cameraX, 180)) return false;
-
-    ctx.save();
-    const drawX = worldToScreenX(drawWorldLeft, cameraX);
-    const ravineFallWorldLeft = bounds.left + LOST_BRIDGE_RAVINE_FALL_SIDE_PAD * 0.82;
-    const ravineFallWorldRight = bounds.right - LOST_BRIDGE_RAVINE_FALL_SIDE_PAD * 0.72;
-    const ravineFallWidth = Math.max(0, ravineFallWorldRight - ravineFallWorldLeft);
-    const drawNonFloorRavineVoid = () => {
-      if (ravineFallWidth <= 0) return;
-      const throatX = worldToScreenX(ravineFallWorldLeft, cameraX);
-      const throatTop = Math.max(0, bounds.y + 18);
-      const throatBottom = Math.min(CANVAS_HEIGHT + 42, GROUND_Y + 68);
-      const voidGradient = ctx.createLinearGradient(0, throatTop, 0, throatBottom);
-      voidGradient.addColorStop(0, 'rgba(79, 45, 18, 0.08)');
-      voidGradient.addColorStop(0.2, 'rgba(43, 25, 13, 0.48)');
-      voidGradient.addColorStop(0.68, 'rgba(8, 9, 13, 0.92)');
-      voidGradient.addColorStop(1, 'rgba(2, 4, 8, 0.72)');
-      ctx.save();
-      ctx.globalCompositeOperation = 'multiply';
-      ctx.fillStyle = voidGradient;
-      ctx.beginPath();
-      ctx.moveTo(throatX - 96, throatTop + 14);
-      ctx.bezierCurveTo(throatX + ravineFallWidth * 0.08, throatTop + 50, throatX + ravineFallWidth * 0.26, throatTop + 32, throatX + ravineFallWidth * 0.42, throatTop + 62);
-      ctx.bezierCurveTo(throatX + ravineFallWidth * 0.58, throatTop + 34, throatX + ravineFallWidth * 0.84, throatTop + 54, throatX + ravineFallWidth + 96, throatTop + 12);
-      ctx.lineTo(throatX + ravineFallWidth + 148, throatBottom + 40);
-      ctx.lineTo(throatX - 148, throatBottom + 40);
-      ctx.closePath();
-      ctx.fill();
-      ctx.globalCompositeOperation = 'source-over';
-      const depthGlow = ctx.createRadialGradient(
-        throatX + ravineFallWidth * 0.5,
-        throatTop + 132,
-        Math.max(24, ravineFallWidth * 0.14),
-        throatX + ravineFallWidth * 0.5,
-        throatTop + 170,
-        Math.max(220, ravineFallWidth * 0.72),
-      );
-      depthGlow.addColorStop(0, 'rgba(0, 3, 7, 0.64)');
-      depthGlow.addColorStop(0.58, 'rgba(6, 7, 10, 0.36)');
-      depthGlow.addColorStop(1, 'rgba(6, 7, 10, 0)');
-      ctx.fillStyle = depthGlow;
-      ctx.beginPath();
-      ctx.ellipse(
-        throatX + ravineFallWidth * 0.5,
-        throatTop + 154,
-        Math.max(210, ravineFallWidth * 0.64),
-        170,
-        0,
-        0,
-        Math.PI * 2,
-      );
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(255, 218, 148, 0.18)';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(throatX - 84, throatTop + 14);
-      ctx.bezierCurveTo(throatX + ravineFallWidth * 0.16, throatTop + 46, throatX + ravineFallWidth * 0.4, throatTop + 36, throatX + ravineFallWidth * 0.5, throatTop + 66);
-      ctx.bezierCurveTo(throatX + ravineFallWidth * 0.66, throatTop + 36, throatX + ravineFallWidth * 0.84, throatTop + 50, throatX + ravineFallWidth + 84, throatTop + 14);
-      ctx.stroke();
-      ctx.restore();
-    };
-
-    if (blend?.naturalWidth && blend?.naturalHeight) {
-      const drawH = editorPlacement.height;
-      const drawY = editorPlacement.drawY;
-      const visibleTop = Math.max(0, drawY + LOST_BRIDGE_RAVINE_BLEND_CLIP_TOP_OFFSET);
-      ctx.beginPath();
-      ctx.rect(
-        drawX - LOST_BRIDGE_RAVINE_BLEND_CLIP_PAD,
-        visibleTop,
-        drawW + LOST_BRIDGE_RAVINE_BLEND_CLIP_PAD * 2,
-        CANVAS_HEIGHT - visibleTop + 24,
-      );
-      ctx.clip();
-      ctx.globalAlpha = 1;
-      ctx.filter = 'sepia(4%) saturate(96%) brightness(88%) contrast(112%)';
-      ctx.drawImage(blend, drawX, drawY, drawW, drawH);
-      ctx.filter = 'none';
-      ctx.globalAlpha = 1;
-      const throatX = worldToScreenX(ravineFallWorldLeft, cameraX);
-      const throatTop = bounds.y + LOST_BRIDGE_RAVINE_THROAT_TOP_OFFSET;
-      const throatBottom = Math.min(CANVAS_HEIGHT + 24, GROUND_Y + 58);
-      const throatHeight = Math.max(120, throatBottom - throatTop);
-      const throatGradient = ctx.createLinearGradient(0, throatTop, 0, throatBottom);
-      throatGradient.addColorStop(0, 'rgba(35, 21, 12, 0)');
-      throatGradient.addColorStop(0.24, 'rgba(22, 14, 9, 0.36)');
-      throatGradient.addColorStop(0.7, 'rgba(6, 7, 10, 0.76)');
-      throatGradient.addColorStop(1, 'rgba(6, 7, 10, 0.18)');
-      ctx.save();
-      ctx.globalCompositeOperation = 'multiply';
-      ctx.fillStyle = throatGradient;
-      ctx.beginPath();
-      ctx.ellipse(
-        throatX + ravineFallWidth * 0.5,
-        throatTop + throatHeight * 0.58,
-        Math.max(120, ravineFallWidth * 0.54),
-        Math.max(92, throatHeight * 0.5),
-        0,
-        0,
-        Math.PI * 2,
-      );
-      ctx.fill();
-      ctx.restore();
-      drawNonFloorRavineVoid();
-      if (current.renderStats) {
-        current.renderStats.lostBridgeRavineDepth = {
-          x: Math.round(ravineFallWorldLeft),
-          width: Math.round(ravineFallWidth),
-          fallDepth: LOST_BRIDGE_RAVINE_FALL_DEPTH,
-          floorBlendVersion: LOST_BRIDGE_ASSET_VERSION,
-          floorBlendAssetKey: activeRavineAssetKey,
-          floorBlendAssetPath: activeRavineAssetPath,
-          editorControlled: true,
-          controllerPropId: editorPlacement.prop?.id || null,
-          deckBoundsFallback: !deckBounds,
-          visualMode: 'dark-non-floor-chasm-under-bridge',
-        };
-        current.renderStats.lostBridgeRavineStripBounds = {
-          x: Math.round(drawWorldLeft),
-          y: Math.round(drawY),
-          width: Math.round(drawW),
-          height: Math.round(drawH),
-          clipTop: Math.round(visibleTop),
-          layer: 'above-floor-below-bridge-platforms',
-          editorControlled: true,
-        };
-        current.renderStats.lostBridgeRavineThroat = {
-          x: Math.round(ravineFallWorldLeft),
-          width: Math.round(ravineFallWidth),
-          top: Math.round(throatTop),
-          bottom: Math.round(throatBottom),
-          layer: 'shadow-over-ravine-under-bridge-platforms',
-        };
-        current.renderStats.lostBridgeRavineFloorBlendLoaded = true;
-      }
-      ctx.restore();
-      return true;
-    }
-
-    const fallbackCenterX = drawX + drawW * 0.5;
-    const dust = ctx.createLinearGradient(0, GROUND_Y - 40, 0, GROUND_Y + 46);
-    dust.addColorStop(0, 'rgba(224, 157, 78, 0)');
-    dust.addColorStop(0.48, 'rgba(221, 155, 82, 0.18)');
-    dust.addColorStop(1, 'rgba(221, 155, 82, 0)');
-    ctx.fillStyle = dust;
-    ctx.beginPath();
-    ctx.ellipse(fallbackCenterX, GROUND_Y + 2, Math.max(180, drawW * 0.38), 48, 0, 0, Math.PI * 2);
-    ctx.fill();
-    drawNonFloorRavineVoid();
-    ctx.restore();
-
-    if (current.renderStats) {
-      current.renderStats.lostBridgeRavineDepth = {
-        x: Math.round(ravineFallWorldLeft),
-        width: Math.round(ravineFallWidth),
-        fallDepth: LOST_BRIDGE_RAVINE_FALL_DEPTH,
-        floorBlendLoaded: false,
-        floorBlendAssetKey: activeRavineAssetKey,
-        floorBlendAssetPath: activeRavineAssetPath,
-        visualMode: 'dark-non-floor-chasm-under-bridge',
-      };
-    }
-    return true;
-  }, [getLostBridgeRavineFloorPlacement]);
-
-  const drawLostBridgeRavineForegroundVoid = useCallback((ctx, platforms, cameraX, current) => {
-    const bounds = getLostBridgeDeckBounds(platforms || []);
-    if (!bounds) return false;
-    const voidWorldLeft = bounds.left - LOST_BRIDGE_RAVINE_FOREGROUND_VOID_SIDE_PAD;
-    const voidWorldRight = bounds.right + LOST_BRIDGE_RAVINE_FOREGROUND_VOID_SIDE_PAD;
-    if (!isHorizontallyVisible(voidWorldLeft, voidWorldRight - voidWorldLeft, cameraX, 120)) return false;
-    const left = worldToScreenX(voidWorldLeft, cameraX);
-    const right = worldToScreenX(voidWorldRight, cameraX);
-    const width = right - left;
-    const top = Math.max(
-      bounds.y + LOST_BRIDGE_RAVINE_FOREGROUND_VOID_MIN_TOP_OFFSET,
-      GROUND_Y + LOST_BRIDGE_RAVINE_FOREGROUND_VOID_GROUND_CLEARANCE,
-    );
-    const bottom = CANVAS_HEIGHT + 48;
-    if (top >= bottom) return false;
-
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(left, top, width, bottom - top);
-    ctx.clip();
-
-    const voidWash = ctx.createLinearGradient(0, top, 0, bottom);
-    voidWash.addColorStop(0, 'rgba(43, 25, 13, 0)');
-    voidWash.addColorStop(0.14, 'rgba(31, 20, 16, 0.54)');
-    voidWash.addColorStop(0.52, 'rgba(7, 8, 12, 0.9)');
-    voidWash.addColorStop(1, 'rgba(2, 3, 6, 0.96)');
-    ctx.fillStyle = voidWash;
-    ctx.fillRect(left, top, width, bottom - top);
-
-    ctx.globalCompositeOperation = 'multiply';
-    const core = ctx.createRadialGradient(
-      left + width * 0.48,
-      top + 118,
-      Math.max(60, width * 0.12),
-      left + width * 0.52,
-      top + 190,
-      Math.max(320, width * 0.55),
-    );
-    core.addColorStop(0, 'rgba(1, 2, 6, 0.92)');
-    core.addColorStop(0.64, 'rgba(4, 5, 9, 0.62)');
-    core.addColorStop(1, 'rgba(4, 5, 9, 0)');
-    ctx.fillStyle = core;
-    ctx.beginPath();
-    ctx.ellipse(left + width * 0.5, top + 152, Math.max(280, width * 0.48), 188, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.globalCompositeOperation = 'source-over';
-
-    const dust = ctx.createLinearGradient(0, top - 18, 0, top + 96);
-    dust.addColorStop(0, 'rgba(225, 167, 88, 0)');
-    dust.addColorStop(0.5, 'rgba(207, 139, 67, 0.18)');
-    dust.addColorStop(1, 'rgba(73, 44, 24, 0)');
-    ctx.fillStyle = dust;
-    ctx.fillRect(left, top - 18, width, 96);
-    ctx.restore();
-
-    if (current.renderStats) {
-      current.renderStats.lostBridgeRavineForegroundVoid = {
-        x: Math.round(voidWorldLeft),
-        width: Math.round(voidWorldRight - voidWorldLeft),
-        top: Math.round(top),
-        visualMode: 'late-lower-chasm-occlusion',
-      };
-    }
-    return true;
-  }, []);
-
-  const drawLostBridgeStructure = useCallback((ctx, platforms, cameraX, current) => {
-    const structure = lostBridgeAssetsRef.current?.structure;
-    if (!structure || !structure.naturalWidth) return false;
-    const bounds = getLostBridgeDeckBounds(platforms || []);
-    if (!bounds) return false;
-
-    const drawWorldLeft = bounds.left - LOST_BRIDGE_STRUCTURE_SIDE_PAD;
-    const drawW = bounds.span + LOST_BRIDGE_STRUCTURE_SIDE_PAD * 2;
-    if (!isHorizontallyVisible(drawWorldLeft, drawW, cameraX, 160)) return false;
-
-    const drawX = worldToScreenX(drawWorldLeft, cameraX);
-    const drawH = drawW * (structure.naturalHeight / structure.naturalWidth);
-    const drawY = bounds.y - drawH * LOST_BRIDGE_STRUCTURE_DECK_TOP_FRAC;
-
-    ctx.save();
-    const ravineY = bounds.y + 18;
-    ctx.save();
-    ctx.translate(drawX + drawW * 0.5, ravineY + 98);
-    ctx.scale(Math.max(1, drawW * 0.38), 92);
-    const ravineShadow = ctx.createRadialGradient(0, 0, 0.08, 0, 0, 1);
-    ravineShadow.addColorStop(0, 'rgba(44, 24, 8, 0.18)');
-    ravineShadow.addColorStop(0.58, 'rgba(44, 24, 8, 0.08)');
-    ravineShadow.addColorStop(1, 'rgba(44, 24, 8, 0)');
-    ctx.fillStyle = ravineShadow;
-    ctx.beginPath();
-    ctx.arc(0, 0, 1, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-
-    ctx.filter = 'sepia(8%) saturate(94%) brightness(93%) contrast(106%)';
-    ctx.drawImage(structure, drawX, drawY, drawW, drawH);
-    ctx.filter = 'none';
-    ctx.restore();
-
-    if (current.renderStats) {
-      current.renderStats.lostBridgeStructureVersion = LOST_BRIDGE_ASSET_VERSION;
-      current.renderStats.lostBridgeStructureLoaded = true;
-      current.renderStats.lostBridgeStructureBounds = {
-        x: Math.round(drawWorldLeft),
-        y: Math.round(drawY),
-        width: Math.round(drawW),
-        height: Math.round(drawH),
-      };
-    }
-    return true;
-  }, []);
-
   const drawEgyptStructureGroundContactLayer = useCallback((ctx, contactLayer, left, width, groundY, phase = 'overlay') => {
     const foregroundAssets = foregroundDepthEnvironmentAssetsRef.current;
     const premiumAssets = premiumGroundContactAssetsRef.current;
@@ -8914,267 +8513,59 @@ export default function ExpeditionJourney({
     ctx.restore();
   }, []);
 
-  const drawMummificationChamberExteriorAsset = useCallback((ctx, prop, x, section, now) => {
-    const structureAsset = mummificationChamberExteriorRef.current;
-    if (!structureAsset.loaded || !structureAsset.image) return false;
-
-    const width = prop.width || 1500;
-    const height = prop.height || 760;
-    const drawX = x - width / 2;
-    const drawY = prop.y;
-    const left = drawX;
-    const baseY = drawY + height;
-    const groundY = Math.min(GROUND_Y - 2, baseY - 4);
-    const pulse = 0.75 + Math.sin(now / 420) * 0.12;
-    const visualAlpha = prop.alpha ?? 1;
-    if (visualAlpha <= 0.01) return false;
-
-    const underlayContact = drawEgyptStructureGroundContactLayer(ctx, prop.groundContactLayer, left, width, groundY, 'underlay');
-    ctx.save();
-    ctx.globalAlpha = 0.28 * visualAlpha;
-    ctx.filter = 'brightness(0) sepia(30%) saturate(130%) blur(4px)';
-    ctx.drawImage(structureAsset.image, drawX + width * 0.014, drawY + 10, width * 1.008, height * 1.006);
-    ctx.restore();
-
-    ctx.save();
-    const baseShadow = ctx.createRadialGradient(x, groundY - 4, width * 0.08, x, groundY - 4, width * 0.52);
-    baseShadow.addColorStop(0, `rgba(31, 18, 9, ${0.3 * visualAlpha})`);
-    baseShadow.addColorStop(0.52, `rgba(39, 23, 12, ${0.18 * visualAlpha})`);
-    baseShadow.addColorStop(1, 'rgba(39, 23, 12, 0)');
-    ctx.fillStyle = baseShadow;
-    ctx.beginPath();
-    ctx.ellipse(x, groundY + 10, width * 0.5, 38, -0.02, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-
-    ctx.globalAlpha = visualAlpha;
-    ctx.filter = `sepia(6%) saturate(108%) brightness(${98 + pulse * 3}%) contrast(106%)`;
-    ctx.drawImage(structureAsset.image, drawX, drawY, width, height);
-    ctx.filter = 'none';
-    ctx.globalAlpha = 1;
-
-    ctx.save();
-    const doorwayX = left + width * 0.535;
-    const doorwayY = drawY + height * 0.105;
-    const doorwayW = width * 0.085;
-    const doorwayH = height * 0.25;
-    const doorwayDepth = ctx.createLinearGradient(0, doorwayY, 0, doorwayY + doorwayH);
-    doorwayDepth.addColorStop(0, 'rgba(12, 7, 4, 0.08)');
-    doorwayDepth.addColorStop(0.45, 'rgba(4, 3, 2, 0.24)');
-    doorwayDepth.addColorStop(1, 'rgba(4, 3, 2, 0.1)');
-    ctx.fillStyle = doorwayDepth;
-    ctx.fillRect(doorwayX, doorwayY, doorwayW, doorwayH);
-    ctx.restore();
-
-    drawEgyptStructureWeatheringOverlay(ctx, left, width, groundY, { alpha: 0.74 });
-    const overlayContact = drawEgyptStructureGroundContactLayer(ctx, prop.groundContactLayer, left, width, groundY, 'overlay');
-    if (stateRef.current.renderStats) {
-      stateRef.current.renderStats.mummificationChamberExteriorVersion = MUMMIFICATION_CHAMBER_EXTERIOR_VERSION;
-      stateRef.current.renderStats.mummificationChamberExteriorLoaded = true;
-      stateRef.current.renderStats.mummificationGroundBlendAssetKeys = Array.from(new Set([
-        ...underlayContact.keys,
-        ...overlayContact.keys,
-      ]));
-      stateRef.current.renderStats.mummificationGroundBlendElementCount = underlayContact.count + overlayContact.count;
-    }
-    return true;
-  }, [drawEgyptStructureGroundContactLayer, drawEgyptStructureWeatheringOverlay]);
-
-  const drawForgottenMuralGeneratedAsset = useCallback((ctx, prop, x) => {
-    const structureAsset = forgottenMuralAlcoveStructureRef.current;
-    if (!structureAsset.loaded || !structureAsset.image) return false;
-
-    const width = prop.width || 1420;
-    const height = prop.height || 690;
-    const drawX = x - width / 2;
-    const drawY = prop.y;
-    const left = drawX;
-    const baseY = drawY + height;
-    const groundY = Math.min(GROUND_Y - 2, baseY - 6);
-
-    const underlayContact = drawEgyptStructureGroundContactLayer(ctx, prop.groundContactLayer, left, width, groundY, 'underlay');
-    ctx.globalAlpha = prop.alpha ?? 0.98;
-    ctx.filter = 'sepia(2%) saturate(102%) brightness(98%) contrast(104%)';
-    ctx.drawImage(structureAsset.image, drawX, drawY, width, height);
-    ctx.filter = 'none';
-    ctx.globalAlpha = 1;
-    drawEgyptStructureWeatheringOverlay(ctx, left, width, groundY, { alpha: 0.86 });
-    const overlayContact = drawEgyptStructureGroundContactLayer(ctx, prop.groundContactLayer, left, width, groundY, 'overlay');
-    if (stateRef.current.renderStats) {
-      stateRef.current.renderStats.forgottenMuralGroundBlendAssetKeys = Array.from(new Set([
-        ...underlayContact.keys,
-        ...overlayContact.keys,
-      ]));
-      stateRef.current.renderStats.forgottenMuralGroundBlendElementCount = underlayContact.count + overlayContact.count;
-    }
-    return true;
-  }, [drawEgyptStructureGroundContactLayer, drawEgyptStructureWeatheringOverlay]);
-
-  const drawScribeChamberDoorwayStructure = useCallback((ctx, prop, x, section, now) => {
-    const width = prop.width || 1120;
-    const height = prop.height || 620;
-    const left = x - width / 2;
-    const top = prop.y;
-    const baseY = top + height;
-    const centerX = x;
-    const pulse = 0.76 + Math.sin(now / 310) * 0.16;
-    const lamp = 0.78 + Math.sin(now / 93) * 0.12;
-    const current = stateRef.current;
-    const discovered = Boolean(current.discoveredHiddenRouteIds?.has('scribe-locked-chamber-route'));
-    const structureAsset = scribeChamberExteriorRef.current;
-
-    if (structureAsset.loaded && structureAsset.image) {
-      ctx.save();
-      ctx.globalAlpha = prop.alpha ?? 1;
-      const groundY = Math.min(GROUND_Y - 3, baseY - 8);
-      const underlayContact = drawEgyptStructureGroundContactLayer(ctx, prop.groundContactLayer, left, width, groundY, 'underlay');
-      ctx.filter = `sepia(4%) saturate(108%) brightness(${98 + pulse * 4}%) contrast(106%)`;
-      ctx.drawImage(structureAsset.image, left, top, width, height);
-      ctx.filter = 'none';
-
-      drawEgyptStructureWeatheringOverlay(ctx, left, width, groundY, { alpha: 0.92 });
-      const overlayContact = drawEgyptStructureGroundContactLayer(ctx, prop.groundContactLayer, left, width, groundY, 'overlay');
-      const groundBlendCount = underlayContact.count + overlayContact.count;
-
-      ctx.globalCompositeOperation = 'screen';
-      const doorwayGlow = ctx.createRadialGradient(centerX, top + height * 0.38, 28, centerX, top + height * 0.38, width * 0.22);
-      doorwayGlow.addColorStop(0, `rgba(250, 204, 21, ${0.14 * pulse})`);
-      doorwayGlow.addColorStop(0.52, `rgba(180, 83, 9, ${0.08 * pulse})`);
-      doorwayGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-      ctx.fillStyle = doorwayGlow;
-      ctx.fillRect(centerX - width * 0.28, top + height * 0.12, width * 0.56, height * 0.48);
-      ctx.globalCompositeOperation = 'source-over';
-      if (stateRef.current.renderStats) {
-        stateRef.current.renderStats.scribeChamberExteriorVersion = SCRIBE_CHAMBER_EXTERIOR_VERSION;
-        stateRef.current.renderStats.scribeChamberExteriorLoaded = true;
-        stateRef.current.renderStats.scribeChamberGroundBlendAssetKeys = Array.from(new Set([
-          ...underlayContact.keys,
-          ...overlayContact.keys,
-        ]));
-        stateRef.current.renderStats.scribeChamberGroundBlendElementCount = groundBlendCount;
-        stateRef.current.renderStats.visibleWorldLandmarks = Array.from(new Set([
-          ...(stateRef.current.renderStats.visibleWorldLandmarks || []),
-          prop.id,
-        ])).slice(-12);
-      }
-      ctx.restore();
-      return true;
-    }
-
-    ctx.save();
-    ctx.globalAlpha = prop.alpha ?? 1;
-    drawContactShadow(ctx, centerX, Math.min(GROUND_Y - 2, baseY - 3), width * 0.72, 0.18, 1.25);
-    const glow = ctx.createRadialGradient(centerX, top + height * 0.44, 22, centerX, top + height * 0.44, width * 0.64);
-    glow.addColorStop(0, `rgba(250, 204, 21, ${0.2 * pulse})`);
-    glow.addColorStop(0.46, `rgba(180, 83, 9, ${0.12 * pulse})`);
-    glow.addColorStop(1, 'rgba(69, 26, 3, 0)');
-    ctx.fillStyle = glow;
-    ctx.fillRect(left - 90, top - 42, width + 180, height + 80);
-
-    const stone = ctx.createLinearGradient(left, top, left + width, top + height);
-    stone.addColorStop(0, '#2a1e17');
-    stone.addColorStop(0.48, '#5a3f2a');
-    stone.addColorStop(1, '#1f1510');
-    ctx.fillStyle = stone;
-    ctx.strokeStyle = 'rgba(250, 204, 21, 0.26)';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.roundRect(left + 18, top + 34, width - 36, height - 52, 12);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = 'rgba(17, 12, 8, 0.94)';
-    ctx.beginPath();
-    ctx.roundRect(centerX - 54, top + 94, 108, height - 118, 34);
-    ctx.fill();
-    ctx.strokeStyle = `rgba(250, 204, 21, ${discovered ? 0.72 : 0.46})`;
-    ctx.lineWidth = 4;
-    ctx.stroke();
-
-    ctx.fillStyle = 'rgba(250, 204, 21, 0.28)';
-    ctx.fillRect(centerX - 48, top + height - 122, 96, 11);
-    ctx.fillRect(centerX - 6, top + 106, 12, height - 132);
-    ctx.fillStyle = `rgba(255, 231, 143, ${0.62 * pulse})`;
-    ctx.beginPath();
-    ctx.arc(centerX, top + 158, 12, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.strokeStyle = `rgba(255, 231, 143, ${0.78 * pulse})`;
-    ctx.fillStyle = `rgba(250, 204, 21, ${0.5 * pulse})`;
-    ctx.shadowColor = 'rgba(250, 204, 21, 0.8)';
-    ctx.shadowBlur = 13;
-    ctx.lineWidth = 2;
-    const glyphY = top + 72;
-    [-105, -72, 78, 112].forEach((offset, index) => {
-      const gx = centerX + offset;
-      if (index % 2 === 0) {
-        ctx.beginPath();
-        ctx.arc(gx, glyphY + 4, 8, 0, Math.PI * 2);
-        ctx.stroke();
-        for (let ray = 0; ray < 8; ray += 1) {
-          const angle = (Math.PI * 2 * ray) / 8;
-          ctx.beginPath();
-          ctx.moveTo(gx + Math.cos(angle) * 12, glyphY + 4 + Math.sin(angle) * 12);
-          ctx.lineTo(gx + Math.cos(angle) * 18, glyphY + 4 + Math.sin(angle) * 18);
-          ctx.stroke();
-        }
-      } else {
-        for (let row = 0; row < 3; row += 1) {
-          ctx.beginPath();
-          ctx.moveTo(gx - 16, glyphY - 8 + row * 8);
-          for (let i = -16; i <= 12; i += 8) ctx.quadraticCurveTo(gx + i + 4, glyphY - 13 + row * 8, gx + i + 8, glyphY - 8 + row * 8);
-          ctx.stroke();
-        }
-      }
-    });
-    ctx.shadowBlur = 0;
-
-    ctx.strokeStyle = 'rgba(36, 20, 12, 0.72)';
-    ctx.lineWidth = 2;
-    [left + 58, left + width - 64].forEach((crackX, index) => {
-      ctx.beginPath();
-      ctx.moveTo(crackX, top + 78);
-      ctx.lineTo(crackX + (index ? -10 : 14), top + 118);
-      ctx.lineTo(crackX + (index ? -3 : 8), top + 172);
-      ctx.stroke();
-    });
-
-    [-1, 1].forEach((side) => {
-      const torchX = centerX + side * 126;
-      ctx.strokeStyle = '#4a2b17';
-      ctx.lineWidth = 6;
-      ctx.beginPath();
-      ctx.moveTo(torchX - side * 9, top + 164);
-      ctx.lineTo(torchX + side * 22, top + 220);
-      ctx.stroke();
-      ctx.fillStyle = `rgba(245, 158, 11, ${0.76 * lamp})`;
-      ctx.shadowColor = 'rgba(250, 204, 21, 0.9)';
-      ctx.shadowBlur = 18;
-      ctx.beginPath();
-      ctx.ellipse(torchX, top + 150, 9, 20, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.shadowBlur = 0;
-    });
-
-    for (let step = 0; step < 4; step += 1) {
-      const stepWidth = width * (0.38 + step * 0.08);
-      ctx.fillStyle = `rgba(93, 64, 42, ${0.74 - step * 0.06})`;
-      ctx.fillRect(centerX - stepWidth / 2, baseY - 18 + step * 7, stepWidth, 6);
-    }
-    if (stateRef.current.renderStats) {
-      stateRef.current.renderStats.visibleWorldLandmarks = Array.from(new Set([
-        ...(stateRef.current.renderStats.visibleWorldLandmarks || []),
-        prop.id,
-      ])).slice(-12);
-    }
-    ctx.restore();
-    return true;
-  }, [drawEgyptStructureGroundContactLayer, drawEgyptStructureWeatheringOverlay]);
+  const {
+    drawForgottenMuralGeneratedAsset,
+    drawLostBridgeRavineDepth,
+    drawLostBridgeRavineForegroundVoid,
+    drawLostBridgeStructure,
+    drawMummificationChamberExteriorAsset,
+    drawOpeningPyramidMasonryBack,
+    drawScribeChamberDoorwayStructure,
+  } = useJourneyExteriorStructureRenderers({
+    CANVAS_WIDTH,
+    CANVAS_HEIGHT,
+    GROUND_Y,
+    LOST_BRIDGE_ASSET_VERSION,
+    LOST_BRIDGE_RAVINE_BLEND_CLIP_PAD,
+    LOST_BRIDGE_RAVINE_BLEND_CLIP_TOP_OFFSET,
+    LOST_BRIDGE_RAVINE_FALL_DEPTH,
+    LOST_BRIDGE_RAVINE_FALL_SIDE_PAD,
+    LOST_BRIDGE_RAVINE_FLOOR_VARIANT_SRCS,
+    LOST_BRIDGE_RAVINE_FOREGROUND_VOID_GROUND_CLEARANCE,
+    LOST_BRIDGE_RAVINE_FOREGROUND_VOID_MIN_TOP_OFFSET,
+    LOST_BRIDGE_RAVINE_FOREGROUND_VOID_SIDE_PAD,
+    LOST_BRIDGE_RAVINE_THROAT_TOP_OFFSET,
+    LOST_BRIDGE_STRUCTURE_DECK_TOP_FRAC,
+    LOST_BRIDGE_STRUCTURE_SIDE_PAD,
+    MUMMIFICATION_CHAMBER_EXTERIOR_VERSION,
+    OPENING_PYRAMID_FACADE_TIERS,
+    OPENING_PYRAMID_FACADE_WORLD_LEFT_X,
+    SCRIBE_CHAMBER_EXTERIOR_VERSION,
+    drawContactShadow,
+    drawEgyptStructureGroundContactLayer,
+    drawEgyptStructureWeatheringOverlay,
+    drawOpeningPyramidAssetRegion,
+    forgottenMuralAlcoveStructureRef,
+    getGeneratedStoryPropRenderProp,
+    getLostBridgeDeckBounds,
+    getLostBridgeRavineFloorPlacement,
+    getRenderableStoryProps,
+    isHorizontallyVisible,
+    lostBridgeAssetsRef,
+    mummificationChamberExteriorRef,
+    openingJourneyY,
+    openingPyramidFacadeRef,
+    scaleJourneyX,
+    scribeChamberExteriorRef,
+    stateRef,
+    worldToScreenX,
+  });
 
   const {
     drawAncientRouteGround,
     drawArrivalThresholdDoorwayOccluder,
     drawArrivalThresholdScene,
+    drawArrivalThresholdTrial,
     drawAttackArc,
     drawCinematicCards,
     drawCollectible,
@@ -9227,6 +8618,7 @@ export default function ExpeditionJourney({
     ANCIENT_CONSTRUCT_SPRITE_ATLAS_JSON,
     ARRIVAL_THRESHOLD_ASSET_VERSION,
     ARRIVAL_THRESHOLD_LEFT_BOUND,
+    ARRIVAL_THRESHOLD_LEFT_INSPECT_X,
     ARRIVAL_THRESHOLD_RIGHT_BOUND,
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
@@ -9281,9 +8673,14 @@ export default function ExpeditionJourney({
     TEMPLE_THRESHOLD_FADE_IN_SECONDS,
     TEMPLE_THRESHOLD_FADE_OUT_SECONDS,
     TEMPLE_THRESHOLD_SWITCH_SECONDS,
+    ARRIVAL_THRESHOLD_ECHO_SPAWN_SECONDS,
     arrivalThresholdBackgroundRef,
+    arrivalThresholdDuatEchoRef,
     arrivalThresholdDoorwayGlowRef,
     arrivalThresholdDoorwayOccluderRef,
+    arrivalThresholdSealVeilRef,
+    arrivalThresholdAwakenedRef,
+    arrivalThresholdGlowCanvasRef,
     bossSpriteAssetsRef,
     clamp,
     desertEntryBuriedCausewayGroundRef,
@@ -9309,6 +8706,8 @@ export default function ExpeditionJourney({
     getClayGuardianDrawBox,
     getClayGuardianSpriteFrame,
     getSectionBackgroundAssets,
+    getArrivalThresholdEchoHitbox,
+    getArrivalThresholdGroundY,
     getEnvironmentAssetKeyForPlatform,
     getDesertEntryOpeningRebuildViewportCoverage,
     getDesertJourneyPanelsForViewport,
@@ -9495,59 +8894,6 @@ export default function ExpeditionJourney({
     scribeChamberInteriorRef,
     worldToScreenX,
   });
-
-  const drawArrivalThresholdTrial = useCallback((ctx, current, now) => {
-    const trial = current.arrivalThresholdTrial;
-    const echo = trial?.echo;
-    if (!current.arrivalThresholdActive || !trial || trial.completed || !echo) return false;
-    const hitbox = getArrivalThresholdEchoHitbox(echo);
-    if (!hitbox) return false;
-    const cameraX = current.cameraX || 0;
-    const x = hitbox.x - cameraX;
-    const y = hitbox.y;
-    const pulse = 0.7 + Math.sin(now / 220 + (echo.timer || 0) * 3) * 0.18;
-    const alpha = clamp((echo.hitFlash || 0) > 0 ? 0.92 : 0.48 + pulse * 0.2, 0.35, 0.9);
-
-    ctx.save();
-    ctx.globalCompositeOperation = 'screen';
-    const aura = ctx.createRadialGradient(
-      x + hitbox.width / 2,
-      y + hitbox.height * 0.56,
-      8,
-      x + hitbox.width / 2,
-      y + hitbox.height * 0.56,
-      58,
-    );
-    aura.addColorStop(0, `rgba(94, 234, 212, ${0.34 * alpha})`);
-    aura.addColorStop(0.55, `rgba(56, 189, 248, ${0.16 * alpha})`);
-    aura.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    ctx.fillStyle = aura;
-    ctx.fillRect(x - 64, y - 24, hitbox.width + 128, hitbox.height + 72);
-
-    ctx.globalAlpha = alpha;
-    ctx.fillStyle = (echo.attackCue || 0) > 0 ? 'rgba(250, 204, 21, 0.44)' : 'rgba(34, 211, 238, 0.36)';
-    ctx.beginPath();
-    ctx.ellipse(x + hitbox.width / 2, y + hitbox.height * 0.48, hitbox.width * 0.45, hitbox.height * 0.48, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = (echo.attackCue || 0) > 0 ? 'rgba(253, 224, 71, 0.82)' : 'rgba(153, 246, 228, 0.72)';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.fillStyle = 'rgba(232, 244, 255, 0.78)';
-    ctx.beginPath();
-    ctx.moveTo(x + hitbox.width / 2, y + 9);
-    ctx.lineTo(x + hitbox.width * 0.72, y + hitbox.height * 0.5);
-    ctx.lineTo(x + hitbox.width / 2, y + hitbox.height - 8);
-    ctx.lineTo(x + hitbox.width * 0.28, y + hitbox.height * 0.5);
-    ctx.closePath();
-    ctx.fill();
-    ctx.globalAlpha = 1;
-    ctx.strokeStyle = 'rgba(94, 234, 212, 0.5)';
-    ctx.beginPath();
-    ctx.ellipse(x + hitbox.width / 2, getArrivalThresholdGroundY(echo.x) + 4, hitbox.width * 0.82, 8, 0, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.restore();
-    return true;
-  }, []);
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -10582,12 +9928,63 @@ export default function ExpeditionJourney({
     syncHud();
   }, [audioControls, openingAtmosphereSfxKey, syncHud, targetCivilisation]);
 
+  const completeOpeningThresholdScene = useCallback((current) => {
+    const openingCheckpoint = getRenderableCheckpoints().find(checkpoint => checkpoint.id === 'desert-entry');
+    const openingSection = SECTIONS.find(section => section.id === 'desert-entry');
+    if (openingCheckpoint) {
+      current.player.vx = 0;
+      current.player.vy = 0;
+      current.player.direction = -1;
+      current.player.x = ARRIVAL_THRESHOLD_SPAWN_X;
+      current.player.y = getArrivalThresholdGroundY(ARRIVAL_THRESHOLD_SPAWN_X + current.player.width / 2) - current.player.height;
+      current.player.onGround = true;
+      current.activeCheckpoint = openingCheckpoint;
+      current.cameraX = 0;
+      current.targetCameraX = current.cameraX;
+    }
+    current.openingThresholdScene = null;
+    current.openingSphinxEncounter = null;
+    current.currentSectionId = 'arrival-threshold';
+    current.arrivalThresholdActive = true;
+    current.arrivalThresholdStarted = true;
+    current.arrivalThresholdLeftInspected = false;
+    current.arrivalThresholdMarkingsInspected = false;
+    current.arrivalThresholdGateTriggered = false;
+    current.arrivalThresholdTrial = null;
+    current.arrivalThresholdWakeProgress = 0;
+    current.arrivalThresholdNoticeTimer = 2.4;
+    current.dynamicEnvironmentEvent = null;
+    current.dynamicEnvironmentEventTimer = 0;
+    current.collapsedPlatformIds.delete('opening-scarab-seal-summit');
+    current.sectionTransition = null;
+    current.sectionTransitionTimer = 0;
+    current.lastSectionId = openingSection?.id || 'desert-entry';
+    current.notice = ARRIVAL_THRESHOLD_OBJECTIVE_LINE;
+    current.cinematicEvent = {
+      id: 'arrival-threshold-spawn',
+      name: 'Asha',
+      message: ARRIVAL_THRESHOLD_SPAWN_LINE,
+      temporary: true,
+    };
+    current.cinematicTimer = 2.4;
+    current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 2.4);
+    current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.18);
+    current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.08);
+    syncHud();
+  }, [getRenderableCheckpoints, syncHud]);
+
   const startJourneyWithoutOpeningScene = useCallback(() => {
     const current = stateRef.current;
     audioControls?.unlockExpeditionSfx?.();
     audioControls?.playExpeditionSfx?.(openingAtmosphereSfxKey);
     if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel();
     spokenOpeningLineRef.current = null;
+    if (openingStartMode === 'arrival-threshold') {
+      current.openingConfrontationSeen = false;
+      completeOpeningThresholdScene(current);
+      openingStartModeConsumedRef.current = true;
+      return;
+    }
     current.openingCinematic = null;
     current.openingConfrontationSeen = true;
     current.player.vx = 0;
@@ -10595,7 +9992,7 @@ export default function ExpeditionJourney({
     current.notice = SCARAB_SEAL_TRIGGER.objectiveEchoLine;
     setBriefingOpen(false);
     syncHud();
-  }, [audioControls, openingAtmosphereSfxKey, syncHud]);
+  }, [audioControls, completeOpeningThresholdScene, openingAtmosphereSfxKey, openingStartMode, syncHud]);
 
   // Dev-only quick start (paired with the `?play` flag in App.jsx / ExpeditionMode):
   // once the journey mounts, skip its briefing + opening cinematic so a cold
@@ -10699,50 +10096,6 @@ export default function ExpeditionJourney({
     addCombatEffect(current, { ...dustBase, x: player.x + player.width / 2 - dodgeDirection * 26, timer: 0.16 });
     audioControls?.playExpeditionSfx?.('dodgeStep', { volume: 0.78 });
   }, [audioControls, briefingOpen, addCombatEffect]);
-
-  const completeOpeningThresholdScene = useCallback((current) => {
-    const openingCheckpoint = getRenderableCheckpoints().find(checkpoint => checkpoint.id === 'desert-entry');
-    const openingSection = SECTIONS.find(section => section.id === 'desert-entry');
-    if (openingCheckpoint) {
-      current.player.vx = 0;
-      current.player.vy = 0;
-      current.player.direction = -1;
-      current.player.x = ARRIVAL_THRESHOLD_SPAWN_X;
-      current.player.y = getArrivalThresholdGroundY(ARRIVAL_THRESHOLD_SPAWN_X + current.player.width / 2) - current.player.height;
-      current.player.onGround = true;
-      current.activeCheckpoint = openingCheckpoint;
-      current.cameraX = clampCameraX(ARRIVAL_THRESHOLD_SPAWN_X - CANVAS_WIDTH * 0.44);
-      current.targetCameraX = current.cameraX;
-    }
-    current.openingThresholdScene = null;
-    current.openingSphinxEncounter = null;
-    current.currentSectionId = 'arrival-threshold';
-    current.arrivalThresholdActive = true;
-    current.arrivalThresholdStarted = true;
-    current.arrivalThresholdLeftInspected = false;
-    current.arrivalThresholdMarkingsInspected = false;
-    current.arrivalThresholdGateTriggered = false;
-    current.arrivalThresholdTrial = createArrivalThresholdTrialState();
-    current.arrivalThresholdNoticeTimer = 2.4;
-    current.dynamicEnvironmentEvent = null;
-    current.dynamicEnvironmentEventTimer = 0;
-    current.collapsedPlatformIds.delete('opening-scarab-seal-summit');
-    current.sectionTransition = null;
-    current.sectionTransitionTimer = 0;
-    current.lastSectionId = openingSection?.id || 'desert-entry';
-    current.notice = ARRIVAL_THRESHOLD_OBJECTIVE_LINE;
-    current.cinematicEvent = {
-      id: 'arrival-threshold-spawn',
-      name: 'Asha',
-      message: ARRIVAL_THRESHOLD_SPAWN_LINE,
-      temporary: true,
-    };
-    current.cinematicTimer = 2.4;
-    current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 2.4);
-    current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.18);
-    current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.08);
-    syncHud();
-  }, [getRenderableCheckpoints, syncHud]);
 
   useEffect(() => {
     if (openingStartModeConsumedRef.current) return undefined;
@@ -11637,6 +10990,14 @@ export default function ExpeditionJourney({
       player.onGround = true;
       player.airJumpsUsed = 0;
       updateArrivalThresholdTrial(current, player, dt);
+      // Room wakes up once Asha reaches the breach (the refusal beat) and stays awake.
+      if (current.arrivalThresholdLeftInspected) {
+        current.arrivalThresholdWakeProgress = clamp(
+          (current.arrivalThresholdWakeProgress || 0) + dt / ARRIVAL_THRESHOLD_WAKE_SECONDS,
+          0,
+          1,
+        );
+      }
       current.trapProjectiles = [];
       current.currentSectionId = 'arrival-threshold';
       current.lastSectionId = 'desert-entry';
@@ -11700,6 +11061,9 @@ export default function ExpeditionJourney({
         };
         current.cinematicTimer = 3.1;
         current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 2.0);
+        if (!current.arrivalThresholdTrial) {
+          current.arrivalThresholdTrial = createArrivalThresholdTrialState();
+        }
         audioControls?.playExpeditionSfx?.('gateBlocked', { volume: 0.58 });
       }
       if (!current.arrivalThresholdMarkingsInspected && arrivalCenterX >= ARRIVAL_THRESHOLD_MARKINGS_INSPECT_X) {

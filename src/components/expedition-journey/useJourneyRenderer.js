@@ -612,28 +612,34 @@ export function drawArrivalThresholdSceneFrame(ctx, current, now, deps) {
   const {
     ARRIVAL_THRESHOLD_ASSET_VERSION,
     ARRIVAL_THRESHOLD_LEFT_BOUND,
+    ARRIVAL_THRESHOLD_LEFT_INSPECT_X,
     ARRIVAL_THRESHOLD_RIGHT_BOUND,
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
     GROUND_Y,
     arrivalThresholdBackgroundRef,
     arrivalThresholdDoorwayGlowRef,
+    arrivalThresholdSealVeilRef,
+    arrivalThresholdAwakenedRef,
+    arrivalThresholdGlowCanvasRef,
     clamp,
   } = deps;
   const asset = arrivalThresholdBackgroundRef.current;
   const glowAsset = arrivalThresholdDoorwayGlowRef?.current;
+  const sealVeilAsset = arrivalThresholdSealVeilRef?.current;
   const playerCenter = current.player.x + current.player.width / 2;
   const travelProgress = clamp(
     (playerCenter - ARRIVAL_THRESHOLD_LEFT_BOUND) / (ARRIVAL_THRESHOLD_RIGHT_BOUND - ARRIVAL_THRESHOLD_LEFT_BOUND),
     0,
     1,
   );
+  let panX = 0;
 
   ctx.save();
   if (asset.loaded && asset.image) {
     const scale = CANVAS_HEIGHT / (asset.image.naturalHeight || asset.image.height || CANVAS_HEIGHT);
     const drawWidth = (asset.image.naturalWidth || asset.image.width || CANVAS_WIDTH) * scale;
-    const panX = Math.max(0, drawWidth - CANVAS_WIDTH) * travelProgress;
+    panX = Math.max(0, drawWidth - CANVAS_WIDTH) * travelProgress;
     ctx.drawImage(asset.image, -panX, 0, drawWidth, CANVAS_HEIGHT);
   } else {
     const gradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
@@ -654,6 +660,55 @@ export function drawArrivalThresholdSceneFrame(ctx, current, now, deps) {
   ctx.fillStyle = floorGradient;
   ctx.fillRect(0, GROUND_Y - 64, CANVAS_WIDTH, CANVAS_HEIGHT - GROUND_Y + 64);
 
+  // Room "wakes up": keep the dormant plate as the base and additively reveal the light
+  // difference toward the awakened plate, ramped by wakeProgress. Built once into an
+  // offscreen canvas (awakened minus dormant), then added with 'lighter' — the room
+  // ignites instead of cross-fading (no morph).
+  const wakeRaw = clamp(current.arrivalThresholdWakeProgress || 0, 0, 1);
+  const awakenedImage = arrivalThresholdAwakenedRef?.current?.image || null;
+  if (wakeRaw > 0 && asset.image && awakenedImage) {
+    let glowCanvas = arrivalThresholdGlowCanvasRef?.current || null;
+    if (!glowCanvas) {
+      const gw = awakenedImage.naturalWidth || awakenedImage.width || CANVAS_WIDTH;
+      const gh = awakenedImage.naturalHeight || awakenedImage.height || CANVAS_HEIGHT;
+      glowCanvas = document.createElement('canvas');
+      glowCanvas.width = gw;
+      glowCanvas.height = gh;
+      const glowCtx = glowCanvas.getContext('2d');
+      glowCtx.drawImage(awakenedImage, 0, 0, gw, gh);
+      glowCtx.globalCompositeOperation = 'difference';
+      glowCtx.drawImage(asset.image, 0, 0, gw, gh);
+      if (arrivalThresholdGlowCanvasRef) arrivalThresholdGlowCanvasRef.current = glowCanvas;
+    }
+    const wakeDrawWidth = (asset.image.naturalWidth || asset.image.width || CANVAS_WIDTH)
+      * (CANVAS_HEIGHT / (asset.image.naturalHeight || asset.image.height || CANVAS_HEIGHT));
+    const wakeEased = wakeRaw * wakeRaw * (3 - 2 * wakeRaw);
+    const wakeFlicker = 0.95 + Math.sin(now / 250) * 0.035 + Math.sin(now / 105) * 0.018;
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = clamp(wakeEased * wakeFlicker, 0, 1);
+    ctx.drawImage(glowCanvas, -panX, 0, wakeDrawWidth, CANVAS_HEIGHT);
+    ctx.restore();
+  }
+
+  const trialComplete = Boolean(current.arrivalThresholdTrial?.completed);
+  const barrierApproach = clamp((ARRIVAL_THRESHOLD_LEFT_INSPECT_X + 220 - playerCenter) / 260, 0, 1);
+  const barrierActive = !trialComplete && !current.arrivalThresholdExitTransition && barrierApproach > 0.01;
+  if (barrierActive) {
+    if (sealVeilAsset?.loaded && sealVeilAsset.image) {
+      const sealScale = CANVAS_HEIGHT / (sealVeilAsset.image.naturalHeight || sealVeilAsset.image.height || CANVAS_HEIGHT);
+      const sealDrawWidth = (sealVeilAsset.image.naturalWidth || sealVeilAsset.image.width || CANVAS_WIDTH) * sealScale;
+      const barrierPulse = 0.78 + Math.sin(now / 520) * 0.08 + Math.sin(now / 1370) * 0.04;
+      ctx.save();
+      ctx.globalAlpha = clamp(barrierApproach * barrierPulse, 0, 0.88);
+      ctx.drawImage(sealVeilAsset.image, -panX, 0, sealDrawWidth, CANVAS_HEIGHT);
+      ctx.globalCompositeOperation = 'screen';
+      ctx.globalAlpha = clamp(barrierApproach * (0.08 + Math.sin(now / 360) * 0.025), 0.04, 0.12);
+      ctx.drawImage(sealVeilAsset.image, -panX, 0, sealDrawWidth, CANVAS_HEIGHT);
+      ctx.restore();
+    }
+  }
+
   for (let index = 0; index < 36; index += 1) {
     const seed = index * 67.7;
     const x = (seed + now * 0.006 * (1 + (index % 3))) % (CANVAS_WIDTH + 80) - 40;
@@ -671,7 +726,10 @@ export function drawArrivalThresholdSceneFrame(ctx, current, now, deps) {
     current.renderStats.backgroundDepthMode = 'arrival-threshold-final-art-v1';
     current.renderStats.arrivalThresholdAssetLoaded = Boolean(asset.loaded && asset.image);
     current.renderStats.arrivalThresholdDoorwayGlowLoaded = Boolean(glowAsset?.loaded && glowAsset.image);
+    current.renderStats.arrivalThresholdSealVeilLoaded = Boolean(sealVeilAsset?.loaded && sealVeilAsset.image);
+    current.renderStats.arrivalThresholdSealVeilActive = Boolean(barrierActive);
     current.renderStats.arrivalThresholdAssetVersion = ARRIVAL_THRESHOLD_ASSET_VERSION;
+    current.renderStats.arrivalThresholdWakeProgress = Number((current.arrivalThresholdWakeProgress || 0).toFixed(2));
   }
 
   if (current.arrivalThresholdExitTransition) {
@@ -723,6 +781,123 @@ export function drawArrivalThresholdDoorwayOccluderFrame(ctx, current, now, deps
   if (current.renderStats) {
     current.renderStats.arrivalThresholdDoorwayOccluderLoaded = true;
   }
+  return true;
+}
+
+export function drawArrivalThresholdTrialFrame(ctx, current, now, deps) {
+  const {
+    ARRIVAL_THRESHOLD_ECHO_SPAWN_SECONDS = 0.85,
+    arrivalThresholdDuatEchoRef,
+    clamp,
+    getArrivalThresholdEchoHitbox,
+    getArrivalThresholdGroundY,
+  } = deps;
+  const trial = current.arrivalThresholdTrial;
+  const echo = trial?.echo || trial?.defeatedEcho;
+  if (!current.arrivalThresholdActive || !trial || !echo) return false;
+  const hitbox = getArrivalThresholdEchoHitbox(echo);
+  if (!hitbox) return false;
+  const cameraX = current.cameraX || 0;
+  const x = hitbox.x - cameraX;
+  const y = hitbox.y;
+  const pulse = 0.7 + Math.sin(now / 220 + (echo.timer || 0) * 3) * 0.18;
+  const spawnProgress = clamp(1 - ((echo.spawnTimer || 0) / ARRIVAL_THRESHOLD_ECHO_SPAWN_SECONDS), 0, 1);
+  const formedProgress = spawnProgress * spawnProgress * (3 - 2 * spawnProgress);
+  const auraAlpha = clamp((echo.hitFlash || 0) > 0 ? 0.62 : 0.28 + pulse * 0.12, 0.25, 0.62);
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  const aura = ctx.createRadialGradient(
+    x + hitbox.width / 2,
+    y + hitbox.height * 0.56,
+    8,
+    x + hitbox.width / 2,
+    y + hitbox.height * 0.56,
+    58,
+  );
+  aura.addColorStop(0, `rgba(94, 234, 212, ${0.34 * auraAlpha})`);
+  aura.addColorStop(0.55, `rgba(56, 189, 248, ${0.16 * auraAlpha})`);
+  aura.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = aura;
+  ctx.fillRect(x - 64, y - 24, hitbox.width + 128, hitbox.height + 72);
+  if (spawnProgress < 1) {
+    const groundY = getArrivalThresholdGroundY(echo.x);
+    ctx.globalAlpha = 0.72 * (1 - spawnProgress * 0.35);
+    ctx.strokeStyle = 'rgba(94, 234, 212, 0.58)';
+    ctx.lineWidth = 1.5;
+    for (let i = 0; i < 9; i += 1) {
+      const angle = now / 240 + i * 0.75;
+      const radius = 9 + i * 4.2 + spawnProgress * 22;
+      const px = x + hitbox.width / 2 + Math.cos(angle) * radius;
+      const py = groundY - 8 - Math.sin(angle * 1.4) * 26 - i * 2;
+      ctx.beginPath();
+      ctx.moveTo(px, py + 10);
+      ctx.lineTo(px + Math.sin(angle) * 8, py - 14 - spawnProgress * 18);
+      ctx.stroke();
+    }
+  }
+
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = (trial.defeatedEcho && !trial.echo ? 0.82 : 0.96) * clamp(formedProgress * 1.25, 0, 1);
+  const echoAsset = arrivalThresholdDuatEchoRef?.current;
+  if (echoAsset?.loaded && echoAsset.image) {
+    const frameWidth = 256;
+    const frameHeight = 256;
+    const frameIndex = spawnProgress < 0.62
+      ? 5
+      : trial.defeatedEcho && !trial.echo
+      ? 5
+      : (echo.hitFlash || 0) > 0
+        ? 4
+        : (echo.attackCue || 0) > 0
+          ? 2
+          : echo.movement === 'strike'
+            ? 3
+            : echo.movement === 'patrol'
+              ? Math.floor(now / 180) % 2 === 0 ? 1 : 0
+              : 0;
+    const bob = Math.sin(now / 260 + (echo.awakeTimer || 0) * 2.2) * 4;
+    const visualHeight = hitbox.height * (1.45 + formedProgress * 0.45);
+    const visualWidth = visualHeight * (frameWidth / frameHeight);
+    const visualX = x + hitbox.width / 2 - visualWidth / 2;
+    const materialiseRise = (1 - formedProgress) * 18;
+    const visualY = getArrivalThresholdGroundY(echo.x) - visualHeight + 12 + materialiseRise + bob;
+    const shouldFaceLeft = (echo.direction || -1) < 0;
+    if (shouldFaceLeft) {
+      ctx.save();
+      ctx.translate(visualX + visualWidth, 0);
+      ctx.scale(-1, 1);
+    }
+    ctx.drawImage(
+      echoAsset.image,
+      frameIndex * frameWidth,
+      0,
+      frameWidth,
+      frameHeight,
+      shouldFaceLeft ? 0 : visualX,
+      visualY,
+      visualWidth,
+      visualHeight,
+    );
+    if (shouldFaceLeft) ctx.restore();
+  } else {
+    ctx.fillStyle = (echo.attackCue || 0) > 0 ? 'rgba(250, 204, 21, 0.44)' : 'rgba(34, 211, 238, 0.36)';
+    ctx.beginPath();
+    ctx.ellipse(x + hitbox.width / 2, y + hitbox.height * 0.48, hitbox.width * 0.45, hitbox.height * 0.48, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = (echo.attackCue || 0) > 0 ? 'rgba(253, 224, 71, 0.82)' : 'rgba(153, 246, 228, 0.72)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(232, 244, 255, 0.78)';
+    ctx.beginPath();
+    ctx.moveTo(x + hitbox.width / 2, y + 9);
+    ctx.lineTo(x + hitbox.width * 0.72, y + hitbox.height * 0.5);
+    ctx.lineTo(x + hitbox.width / 2, y + hitbox.height - 8);
+    ctx.lineTo(x + hitbox.width * 0.28, y + hitbox.height * 0.5);
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.restore();
   return true;
 }
 
@@ -8258,6 +8433,7 @@ export function useJourneyRenderer(deps) {
       drawArrivalThresholdDoorwayOccluderFrame(ctx, current, now, deps)
     ),
     drawArrivalThresholdScene: (ctx, current, now) => drawArrivalThresholdSceneFrame(ctx, current, now, deps),
+    drawArrivalThresholdTrial: (ctx, current, now) => drawArrivalThresholdTrialFrame(ctx, current, now, deps),
     drawAttackArc: () => drawAttackArcFrame(),
     drawBuriedStoneCausewaySurface: (ctx, platform, x, cameraX, now) => (
       drawBuriedStoneCausewaySurfaceFrame(ctx, platform, x, cameraX, now, deps)

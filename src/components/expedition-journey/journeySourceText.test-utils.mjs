@@ -8,6 +8,7 @@ export const JOURNEY_SOURCE_URLS = [
   new URL('./journeyPlayerVisuals.js', import.meta.url),
   new URL('./journeySacredRooms.js', import.meta.url),
   new URL('./journeyOpeningScenes.js', import.meta.url),
+  new URL('./journeyExteriorStructureRenderers.js', import.meta.url),
   new URL('./JourneyPlacementEditorPanel.jsx', import.meta.url),
   new URL('./JourneyHudOverlays.jsx', import.meta.url),
   new URL('./journeyRenderPrimitives.js', import.meta.url),

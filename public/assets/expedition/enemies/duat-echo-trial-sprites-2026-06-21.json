@@ -1,0 +1,53 @@
+﻿{
+    "image":  "duat-echo-trial-sprites-2026-06-21.png",
+    "source":  "Generated 6-frame Duat Echo trial enemy sheet from ImageGen candidate v1, chroma-keyed and normalized into fixed transparent cells.",
+    "status":  "runtime-candidate-wired-for-arrival-threshold-trial",
+    "coordinateNote":  "Six fixed cells: Idle, Move, Windup, Attack, Hit, Defeated. Regions share one bottom-center anchor.",
+    "frameContract":  [
+                          "Idle",
+                          "Move",
+                          "Windup",
+                          "Attack",
+                          "Hit",
+                          "Defeated"
+                      ],
+    "baseline":  "bottom-center shared per family; mostly opaque enemy body with transparent sheet background",
+    "regions":  {
+                    "duatEchoIdle":  {
+                                         "x":  0,
+                                         "y":  0,
+                                         "w":  256,
+                                         "h":  256
+                                     },
+                    "duatEchoMove":  {
+                                         "x":  256,
+                                         "y":  0,
+                                         "w":  256,
+                                         "h":  256
+                                     },
+                    "duatEchoWindup":  {
+                                           "x":  512,
+                                           "y":  0,
+                                           "w":  256,
+                                           "h":  256
+                                       },
+                    "duatEchoAttack":  {
+                                           "x":  768,
+                                           "y":  0,
+                                           "w":  256,
+                                           "h":  256
+                                       },
+                    "duatEchoHit":  {
+                                        "x":  1024,
+                                        "y":  0,
+                                        "w":  256,
+                                        "h":  256
+                                    },
+                    "duatEchoDefeated":  {
+                                             "x":  1280,
+                                             "y":  0,
+                                             "w":  256,
+                                             "h":  256
+                                         }
+                }
+}

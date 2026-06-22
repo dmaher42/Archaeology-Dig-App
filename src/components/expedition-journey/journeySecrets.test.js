@@ -34,10 +34,20 @@ import {
 import { CHINA_ENEMIES, ENEMIES, HIDDEN_ROUTES, RELIC_SHARDS, STORY_PROPS } from './journeyLevelData.js';
 import {
   COMBAT_DAMAGE_SCALE,
+  GROUND_Y,
   JOURNEY_HORIZONTAL_SCALE,
   WORLD_WIDTH,
   scaleJourneyX,
 } from './journeyConstants.js';
+import {
+  ARRIVAL_THRESHOLD_DUAT_ECHO_SRC,
+  ARRIVAL_THRESHOLD_ECHO_INTRO_DRIFT_SECONDS,
+  ARRIVAL_THRESHOLD_ECHO_SPAWN_SECONDS,
+  ARRIVAL_THRESHOLD_FLOOR_Y,
+  ARRIVAL_THRESHOLD_RAMP_RISE,
+  ARRIVAL_THRESHOLD_SEAL_VEIL_SRC,
+  ARRIVAL_THRESHOLD_SPAWN_X,
+} from './journeyOpeningScenes.js';
 import journeyPlacementOverrides from './journeyPlacementOverrides.generated.js';
 import { journeyComponentSource } from './journeySourceText.test-utils.mjs';
 
@@ -116,6 +126,16 @@ const ashaV6HiresPlayerAtlas = JSON.parse(
 test('Journey world stretch uses the widened horizontal route scale', () => {
   assert.ok(JOURNEY_HORIZONTAL_SCALE >= 7.3);
   assert.equal(WORLD_WIDTH, scaleJourneyX(9060));
+});
+
+test('Arrival Threshold spawn floor matches the raised chamber artwork', () => {
+  assert.equal(ARRIVAL_THRESHOLD_SPAWN_X, 905);
+  assert.equal(ARRIVAL_THRESHOLD_FLOOR_Y, 470);
+  assert.equal(GROUND_Y - ARRIVAL_THRESHOLD_FLOOR_Y, 125);
+  assert.equal(ARRIVAL_THRESHOLD_RAMP_RISE, 44);
+  assert.match(journeyComponentSource, /return ARRIVAL_THRESHOLD_FLOOR_Y - ARRIVAL_THRESHOLD_RAMP_RISE \* rampProgress;/);
+  assert.match(journeyComponentSource, /mode:\s*'arrival-threshold'[\s\S]*?targetCameraX:\s*0/);
+  assert.match(journeyComponentSource, /completeOpeningThresholdScene[\s\S]*?current\.cameraX = 0;[\s\S]*?current\.targetCameraX = current\.cameraX;/);
 });
 
 test('Journey renderer receives the horizontal scale helper used by platform drawing', () => {
@@ -254,10 +274,14 @@ const getDataRowById = (arraySource, id) => {
 
 const rendererFrameFunctionNames = {
   drawHazard: 'drawHazardFrame',
+  drawForgottenMuralGeneratedAsset: 'drawForgottenMuralGeneratedAssetFrame',
+  drawMummificationChamberExteriorAsset: 'drawMummificationChamberExteriorAssetFrame',
+  drawOpeningPyramidFacade: 'drawOpeningPyramidFacadeFrame',
   drawPremiumEgyptianChamberDoor: 'drawPremiumEgyptianChamberDoorFrame',
   drawPropGroundContact: 'drawPropGroundContactFrame',
   drawPropSandOcclusion: 'drawPropSandOcclusionFrame',
   drawRouteGate: 'drawRouteGateFrame',
+  drawScribeChamberDoorwayStructure: 'drawScribeChamberDoorwayStructureFrame',
   drawStoryProp: 'drawStoryPropFrame',
 };
 
@@ -2825,7 +2849,7 @@ test('opening pyramid facade stays active as the opening gameplay landmark', () 
   assert.match(journeyComponentSource, /OPENING_PYRAMID_FACADE_VERSION = 'opening-pyramid-facade-no-stairs-v2-2026-06-05'/);
   assert.doesNotMatch(journeyComponentSource, /drawOpeningPyramidFacadeStairConcealment/);
   assert.match(journeyComponentSource, /const openingPyramidFacadeProp = getRenderableStoryProps\(current\)\.find\(prop => prop\.id === 'opening-pyramid-facade-structure'\)/);
-  assert.match(journeyComponentSource, /drawOpeningPyramidFacade\(ctx, cameraX, now, openingPyramidFacadeProp\)/);
+  assert.match(journeyComponentSource, /drawOpeningPyramidFacadeFrame\(ctx, cameraX, now, openingPyramidFacadeProp, deps\)/);
   assert.match(
     journeyComponentSource,
     /if \(x > CANVAS_WIDTH \+ 80 \|\| x \+ width < -80\) return false;[\s\S]*?ctx\.globalAlpha = Number\.isFinite\(renderProp\.alpha\) \? renderProp\.alpha : 0\.98;/,
@@ -3506,6 +3530,7 @@ test('Egypt opening archive prologue grounds Asha before the Lost Site transport
   assert.match(journeyComponentSource, /openingStartMode = 'standard'/);
   assert.match(journeyComponentSource, /useState\(\(\) => openingStartMode !== 'arrival-threshold'\)/);
   assert.match(journeyComponentSource, /openingStartMode !== 'arrival-threshold'/);
+  assert.match(journeyComponentSource, /if \(openingStartMode === 'arrival-threshold'\) \{[\s\S]*?completeOpeningThresholdScene\(current\);[\s\S]*?openingStartModeConsumedRef\.current = true;[\s\S]*?return;/);
   assert.match(journeyComponentSource, /completeOpeningThresholdScene\(current\)/);
   assert.match(journeyComponentSource, /setBriefingOpen\(false\)/);
   assert.match(journeyComponentSource, /The Gate Refuses/);
@@ -3542,13 +3567,15 @@ test('Egypt archive transport beat uses project-bound cinematic PNGs before Jour
 });
 
 test('Arrival Threshold becomes a playable bridge between scarab fall and Anubis refusal', () => {
-  assert.match(journeyComponentSource, /ARRIVAL_THRESHOLD_BACKGROUND_SRC = 'assets\/expedition\/backgrounds\/arrival-threshold\/arrival-threshold-duat-training-chamber-2026-06-21\.png'/);
+  assert.match(journeyComponentSource, /ARRIVAL_THRESHOLD_BACKGROUND_SRC = 'assets\/expedition\/backgrounds\/arrival-threshold\/arrival-threshold-duat-night-dormant-2026-06-21\.png'/);
   assert.match(journeyComponentSource, /ARRIVAL_THRESHOLD_DOORWAY_OCCLUDER_SRC = 'assets\/expedition\/backgrounds\/arrival-threshold\/arrival-threshold-duat-training-chamber-foreground-2026-06-21\.png'/);
   assert.match(journeyComponentSource, /ARRIVAL_THRESHOLD_DOORWAY_GLOW_SRC = 'assets\/expedition\/backgrounds\/arrival-threshold\/arrival-threshold-duat-training-chamber-glow-2026-06-21\.png'/);
+  assert.match(journeyComponentSource, /ARRIVAL_THRESHOLD_SEAL_VEIL_SRC = 'assets\/expedition\/backgrounds\/arrival-threshold\/arrival-threshold-duat-seal-veil-2026-06-22\.png'/);
   [
-    'assets/expedition/backgrounds/arrival-threshold/arrival-threshold-duat-training-chamber-2026-06-21.png',
+    'assets/expedition/backgrounds/arrival-threshold/arrival-threshold-duat-night-dormant-2026-06-21.png',
     'assets/expedition/backgrounds/arrival-threshold/arrival-threshold-duat-training-chamber-foreground-2026-06-21.png',
     'assets/expedition/backgrounds/arrival-threshold/arrival-threshold-duat-training-chamber-glow-2026-06-21.png',
+    'assets/expedition/backgrounds/arrival-threshold/arrival-threshold-duat-seal-veil-2026-06-22.png',
   ].forEach((assetPath) => {
     assert.ok(
       existsSync(new URL(`../../../public/${assetPath}`, import.meta.url)),
@@ -3595,13 +3622,49 @@ test('Arrival Threshold becomes a playable bridge between scarab fall and Anubis
 });
 
 test('Arrival Threshold Duat Echo Trial teaches combat before the Anubis confrontation', () => {
+  assert.match(ARRIVAL_THRESHOLD_DUAT_ECHO_SRC, /assets\/expedition\/enemies\/duat-echo-trial-sprites-2026-06-21\.png/);
+  assert.ok(
+    existsSync(new URL(`../../../public/${ARRIVAL_THRESHOLD_DUAT_ECHO_SRC}`, import.meta.url)),
+    'Arrival Threshold Duat Echo should be a project-bound PNG asset',
+  );
+  assert.ok(
+    existsSync(new URL('../../../public/assets/expedition/enemies/duat-echo-trial-sprites-2026-06-21.json', import.meta.url)),
+    'Arrival Threshold Duat Echo should include a frame map for the six-frame sheet',
+  );
   assert.match(journeyComponentSource, /ARRIVAL_THRESHOLD_TRIAL_STEPS = \[/);
   assert.match(journeyComponentSource, /id:\s*'still-echo'[\s\S]*?objective:\s*'Strike the still echo\.'/);
   assert.match(journeyComponentSource, /id:\s*'moving-echo'[\s\S]*?objective:\s*'Track the moving echo\.'/);
   assert.match(journeyComponentSource, /id:\s*'striking-echo'[\s\S]*?objective:\s*'Dodge the striking echo\.'/);
+  assert.equal(ARRIVAL_THRESHOLD_ECHO_SPAWN_SECONDS, 0.85);
+  assert.equal(ARRIVAL_THRESHOLD_ECHO_INTRO_DRIFT_SECONDS, 0.9);
   assert.match(journeyComponentSource, /export const createArrivalThresholdTrialState = \(\) =>/);
   assert.match(journeyUtilsSource, /arrivalThresholdTrial:\s*null/);
-  assert.match(journeyComponentSource, /current\.arrivalThresholdTrial = createArrivalThresholdTrialState\(\)/);
+  assert.match(journeyComponentSource, /completeOpeningThresholdScene[\s\S]*?current\.arrivalThresholdTrial = null/);
+  assert.match(journeyComponentSource, /arrival-threshold-way-back[\s\S]*?current\.arrivalThresholdTrial = createArrivalThresholdTrialState\(\)/);
+  assert.match(journeyComponentSource, /arrivalThresholdDuatEchoRef/);
+  assert.match(useJourneyRendererSource, /const trialComplete = Boolean\(current\.arrivalThresholdTrial\?\.completed\);/);
+  assert.match(ARRIVAL_THRESHOLD_SEAL_VEIL_SRC, /assets\/expedition\/backgrounds\/arrival-threshold\/arrival-threshold-duat-seal-veil-2026-06-22\.png/);
+  assert.ok(
+    existsSync(new URL(`../../../public/${ARRIVAL_THRESHOLD_SEAL_VEIL_SRC}`, import.meta.url)),
+    'Arrival Threshold breach seal should be a project-bound PNG overlay',
+  );
+  assert.match(useJourneyRendererSource, /const barrierApproach = clamp\(\(ARRIVAL_THRESHOLD_LEFT_INSPECT_X \+ 220 - playerCenter\) \/ 260, 0, 1\);/);
+  assert.match(useJourneyRendererSource, /const barrierActive = !trialComplete && !current\.arrivalThresholdExitTransition && barrierApproach > 0\.01;/);
+  assert.match(useJourneyRendererSource, /sealVeilAsset\?\.loaded && sealVeilAsset\.image/);
+  assert.match(useJourneyRendererSource, /ctx\.drawImage\(sealVeilAsset\.image, -panX, 0, sealDrawWidth, CANVAS_HEIGHT\);/);
+  assert.match(journeyComponentSource, /spawnTimer:\s*ARRIVAL_THRESHOLD_ECHO_SPAWN_SECONDS/);
+  assert.match(journeyComponentSource, /if \(\(echo\.spawnTimer \|\| 0\) > 0\) \{[\s\S]*?return;/);
+  assert.match(journeyComponentSource, /step\.movement === 'still' && echo\.awakeTimer < ARRIVAL_THRESHOLD_ECHO_INTRO_DRIFT_SECONDS/);
+  assert.match(useJourneyRendererSource, /frameIndex \* frameWidth[\s\S]*?ctx\.drawImage/);
+  assert.match(useJourneyRendererSource, /const spawnProgress = clamp\(1 - \(\(echo\.spawnTimer \|\| 0\) \/ ARRIVAL_THRESHOLD_ECHO_SPAWN_SECONDS\), 0, 1\);/);
+  assert.match(useJourneyRendererSource, /if \(spawnProgress < 1\) \{[\s\S]*?ctx\.lineTo\(px \+ Math\.sin\(angle\) \* 8, py - 14 - spawnProgress \* 18\);/);
+  assert.match(useJourneyRendererSource, /const auraAlpha = clamp\(\(echo\.hitFlash \|\| 0\) > 0 \? 0\.62 : 0\.28 \+ pulse \* 0\.12, 0\.25, 0\.62\);/);
+  assert.match(useJourneyRendererSource, /ctx\.globalCompositeOperation = 'source-over';[\s\S]*?ctx\.globalAlpha = \(trial\.defeatedEcho && !trial\.echo \? 0\.82 : 0\.96\) \* clamp\(formedProgress \* 1\.25, 0, 1\);/);
+  assert.match(useJourneyRendererSource, /const visualHeight = hitbox\.height \* \(1\.45 \+ formedProgress \* 0\.45\);/);
+  assert.match(useJourneyRendererSource, /const shouldFaceLeft = \(echo\.direction \|\| -1\) < 0;/);
+  assert.match(useJourneyRendererSource, /ctx\.scale\(-1, 1\);[\s\S]*?shouldFaceLeft \? 0 : visualX/);
+  assert.doesNotMatch(useJourneyRendererSource, /ctx\.ellipse\(x \+ hitbox\.width \/ 2, getArrivalThresholdGroundY\(echo\.x\) \+ 4/);
+  assert.match(journeyComponentSource, /trial\.defeatedEcho = \{/);
   assert.match(journeyComponentSource, /updateArrivalThresholdTrial\(current, player, dt\)/);
   assert.match(journeyComponentSource, /drawArrivalThresholdTrial\(ctx, current, now\)/);
   assert.match(journeyComponentSource, /arrivalThresholdTrialState:/);
@@ -4150,6 +4213,11 @@ test('ravine bridge uses structure cutouts over the continuous Desert Entry pane
   assert.match(journeyComponentSource, /LOST_BRIDGE_RAVINE_FOREGROUND_VOID_SIDE_PAD = 180/);
   assert.match(journeyComponentSource, /LOST_BRIDGE_RAVINE_FOREGROUND_VOID_MIN_TOP_OFFSET = 310/);
   assert.match(journeyComponentSource, /LOST_BRIDGE_RAVINE_FOREGROUND_VOID_GROUND_CLEARANCE = 8/);
+  assert.match(
+    journeyComponentSource,
+    /useJourneyExteriorStructureRenderers\(\{\s*CANVAS_WIDTH,\s*CANVAS_HEIGHT,\s*GROUND_Y,/,
+    'exterior structure renderers need canvas height so ravine gradients receive finite coordinates',
+  );
   assert.match(journeyComponentSource, /const voidWorldLeft = bounds\.left - LOST_BRIDGE_RAVINE_FOREGROUND_VOID_SIDE_PAD/);
   assert.match(journeyComponentSource, /const voidWorldRight = bounds\.right \+ LOST_BRIDGE_RAVINE_FOREGROUND_VOID_SIDE_PAD/);
   assert.match(

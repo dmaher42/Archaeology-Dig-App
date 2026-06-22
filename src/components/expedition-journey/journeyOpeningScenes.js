@@ -5,12 +5,19 @@ export const OPENING_THRESHOLD_FADE_SECONDS = 1.2;
 export const OPENING_THRESHOLD_STAIR_REVEAL_SECONDS = 3.8;
 export const OPENING_THRESHOLD_FALL_DELAY_SECONDS = 0.45;
 export const OPENING_THRESHOLD_FALL_DURATION_SECONDS = 1.6;
-export const ARRIVAL_THRESHOLD_BACKGROUND_SRC = 'assets/expedition/backgrounds/arrival-threshold/arrival-threshold-duat-training-chamber-2026-06-21.png';
+export const ARRIVAL_THRESHOLD_BACKGROUND_SRC = 'assets/expedition/backgrounds/arrival-threshold/arrival-threshold-duat-night-dormant-2026-06-21.png';
 export const ARRIVAL_THRESHOLD_DOORWAY_OCCLUDER_SRC = 'assets/expedition/backgrounds/arrival-threshold/arrival-threshold-duat-training-chamber-foreground-2026-06-21.png';
 export const ARRIVAL_THRESHOLD_DOORWAY_GLOW_SRC = 'assets/expedition/backgrounds/arrival-threshold/arrival-threshold-duat-training-chamber-glow-2026-06-21.png';
-export const ARRIVAL_THRESHOLD_ASSET_VERSION = 'arrival-threshold-duat-training-chamber-2026-06-21';
+export const ARRIVAL_THRESHOLD_SEAL_VEIL_SRC = 'assets/expedition/backgrounds/arrival-threshold/arrival-threshold-duat-seal-veil-2026-06-22.png';
+export const ARRIVAL_THRESHOLD_DUAT_ECHO_SRC = 'assets/expedition/enemies/duat-echo-trial-sprites-2026-06-21.png';
+export const ARRIVAL_THRESHOLD_ASSET_VERSION = 'arrival-threshold-duat-smoky-seal-2026-06-22';
+// The room "wakes up": the dormant plate (BACKGROUND_SRC) stays as the base, and the
+// light difference toward this awakened plate is additively revealed over WAKE_SECONDS
+// once Asha reaches the breach — light is added, never cross-faded, so it ignites.
+export const ARRIVAL_THRESHOLD_AWAKENED_SRC = 'assets/expedition/backgrounds/arrival-threshold/arrival-threshold-duat-night-awakened-2026-06-21.png';
+export const ARRIVAL_THRESHOLD_WAKE_SECONDS = 2.6;
 
-export const ARRIVAL_THRESHOLD_SPAWN_X = 910;
+export const ARRIVAL_THRESHOLD_SPAWN_X = 905;
 export const ARRIVAL_THRESHOLD_LEFT_BOUND = 96;
 export const ARRIVAL_THRESHOLD_RIGHT_BOUND = 1100;
 export const ARRIVAL_THRESHOLD_LEFT_INSPECT_X = 420;
@@ -18,6 +25,7 @@ export const ARRIVAL_THRESHOLD_MARKINGS_INSPECT_X = 745;
 export const ARRIVAL_THRESHOLD_FORWARD_GATE_TRIGGER_X = 285;
 export const ARRIVAL_THRESHOLD_EXIT_WALK_END_X = 128;
 export const ARRIVAL_THRESHOLD_EXIT_WALK_SECONDS = 1.35;
+export const ARRIVAL_THRESHOLD_FLOOR_Y = 470;
 export const ARRIVAL_THRESHOLD_RAMP_START_X = 330;
 export const ARRIVAL_THRESHOLD_RAMP_END_X = 155;
 export const ARRIVAL_THRESHOLD_RAMP_RISE = 44;
@@ -74,6 +82,8 @@ export const ARRIVAL_THRESHOLD_TRIAL_STEPS = [
 ];
 export const ARRIVAL_THRESHOLD_TRIAL_COMPLETE_LINE = 'The breach opened. So the rules are real enough.';
 export const ARRIVAL_THRESHOLD_TRIAL_EXIT_LOCKED_LINE = 'The breach waits. The threshold is still measuring Asha.';
+export const ARRIVAL_THRESHOLD_ECHO_SPAWN_SECONDS = 0.85;
+export const ARRIVAL_THRESHOLD_ECHO_INTRO_DRIFT_SECONDS = 0.9;
 export const ARRIVAL_THRESHOLD_ANUBIS_TRIAL_LINES = [
   'The threshold measured you.',
   'It found motion. Not innocence.',
@@ -89,6 +99,8 @@ export const createArrivalThresholdTrialState = () => ({
     ...ARRIVAL_THRESHOLD_TRIAL_STEPS[0],
     direction: -1,
     timer: 0,
+    awakeTimer: 0,
+    spawnTimer: ARRIVAL_THRESHOLD_ECHO_SPAWN_SECONDS,
     hitFlash: 0,
     attackCue: 0,
     cleared: false,
