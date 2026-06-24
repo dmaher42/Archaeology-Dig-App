@@ -4,6 +4,11 @@ Current source-of-truth note:
 - Future implementation should follow `docs/lost-site-expedition-production-bible.md`.
 - The production bible now defines implementation hierarchy, room pipelines, asset roles, and quality expectations.
 
+2026-06-25 China background bleed fix:
+- Found a route-switch/loading weakness where the China Journey could fall through to the old generic temple backdrop before its `china-river-valley` PNG pack was ready.
+- Patched the canonical China background renderer so China owns the frame with a China-coloured opaque base during PNG loading and before alpha-keyed parallax layers draw.
+- Added a focused guard test for the loading path so Ancient China cannot display Egypt background art while the China pack is still resolving.
+
 2026-06-25 Civilisation separation audit pass 4:
 - Separated China/Rome/Egypt Journey field-kit identity through the existing Journey data router instead of adding a parallel tool system.
 - Added China-specific Journey tool names such as Soft Bamboo Brush, River Measuring Cord, and Dynasty Field Guide while preserving the canonical tool ids used by saves, pickups, scoring, and HUD state.

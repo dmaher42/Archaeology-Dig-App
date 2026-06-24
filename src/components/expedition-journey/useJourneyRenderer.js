@@ -3819,16 +3819,45 @@ export function drawChinaRiverValleyBackgroundFrame(ctx, cameraX, deps) {
   const isChinaRiverValleyBackground = backgroundPackId === 'china-river-valley'
     || environmentPackId === ENVIRONMENT_ASSET_PACK_IDS.CHINA_RIVER_VALLEY;
   if (!isChinaRiverValleyBackground) return false;
+  const drawChinaFallbackBase = () => {
+    ctx.save();
+    const sky = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
+    sky.addColorStop(0, '#7f9ca1');
+    sky.addColorStop(0.48, '#d9c58f');
+    sky.addColorStop(0.78, '#9a7a44');
+    sky.addColorStop(1, '#5d482b');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    const distantRidge = ctx.createLinearGradient(0, 245, 0, 470);
+    distantRidge.addColorStop(0, 'rgba(212, 222, 202, 0)');
+    distantRidge.addColorStop(0.3, 'rgba(212, 222, 202, 0.28)');
+    distantRidge.addColorStop(0.66, 'rgba(92, 116, 88, 0.2)');
+    distantRidge.addColorStop(1, 'rgba(92, 116, 88, 0)');
+    ctx.fillStyle = distantRidge;
+    ctx.fillRect(0, 230, CANVAS_WIDTH, 260);
+
+    const groundWash = ctx.createLinearGradient(0, CANVAS_HEIGHT - 170, 0, CANVAS_HEIGHT);
+    groundWash.addColorStop(0, 'rgba(143, 107, 55, 0)');
+    groundWash.addColorStop(0.42, 'rgba(143, 107, 55, 0.34)');
+    groundWash.addColorStop(1, 'rgba(65, 47, 28, 0.56)');
+    ctx.fillStyle = groundWash;
+    ctx.fillRect(0, CANVAS_HEIGHT - 180, CANVAS_WIDTH, 180);
+    ctx.restore();
+  };
   const assets = getSectionBackgroundAssets(desertBackgroundAssetsRef.current, 'china-river-valley');
-  if (!assets?.ready) return false;
+  if (!assets?.ready) {
+    drawChinaFallbackBase();
+    return true;
+  }
   const layerOptions = { canvasWidth: CANVAS_WIDTH, cameraX };
   if (assets.atlas?.runtimeMode === 'layered-parallax') {
     // Five stacked bands from china-river-valley-layered-pack.png, drawn back-to-front
-    // at increasing parallax for depth. Sky is the opaque base; the rest are transparent
-    // bands that layer over it. dest y/height are tuned for screen placement; each draw
-    // no-ops (returns false) if its region is absent, so partial art degrades gracefully.
+    // at increasing parallax for depth. The procedural base prevents old section art from
+    // showing during route switches or if any alpha-keyed layer leaves uncovered pixels.
+    drawChinaFallbackBase();
     const skyDrawn = drawDesertBackgroundLayer(ctx, assets, 'skyLayer', { y: 0, height: CANVAS_HEIGHT }, { ...layerOptions, parallax: 0.012, alpha: 1 });
-    if (!skyDrawn) return false;
+    if (!skyDrawn) return true;
     drawDesertBackgroundLayer(ctx, assets, 'farMountains',    { y: 150, height: 260 }, { ...layerOptions, parallax: 0.05, alpha: 0.92 });
     drawDesertBackgroundLayer(ctx, assets, 'riverValley',     { y: 232, height: 268 }, { ...layerOptions, parallax: 0.12, alpha: 0.96 });
     drawDesertBackgroundLayer(ctx, assets, 'watchtowerRidge', { y: 300, height: 320 }, { ...layerOptions, parallax: 0.22, alpha: 1 });
