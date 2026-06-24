@@ -463,6 +463,7 @@ export function JourneyBriefingOverlay({
   targetCivilisation = 'Ancient Egypt',
 }) {
   const isRomeBriefing = String(targetCivilisation).toLowerCase().includes('rome');
+  const isChinaBriefing = String(targetCivilisation).toLowerCase().includes('china');
   const briefingCopy = isRomeBriefing
     ? {
         kicker: 'Forum Breach',
@@ -481,6 +482,24 @@ export function JourneyBriefingOverlay({
           'Open the sealed vault beneath the Forum',
         ],
       }
+    : isChinaBriefing
+      ? {
+          kicker: 'River Frontier',
+          title: 'Ancient China',
+          intro: 'Asha reaches the Yellow River frontier, where the old wall and archive gates are already awake.',
+          tag: 'DYNASTY ROUTE',
+          missionTitle: 'Restore the dynasty line',
+          missionDesc: 'Follow the river, recover dynasty evidence, open the rammed-earth seals, and prove the order of Shang, Zhou, Qin and Han.',
+          portraitSrc: 'assets/expedition/player/china-asha-cutscene-2026-06-24.png',
+          portraitAlt: 'Asha ready for the Ancient China expedition',
+          tasks: [
+            'Follow the Yellow River frontier',
+            'Recover dynasty evidence and relic fragments',
+            'Open the Wall Breach Seal',
+            'Defeat the frontier guardians',
+            'Restore the dynasty line at the Imperial Gate',
+          ],
+        }
     : {
         kicker: 'Expedition Arrival',
         title: 'Lost Site Expedition',

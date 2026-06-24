@@ -25,9 +25,11 @@ Scope: inspection and asset planning, updated after the 2026-06-24 civilisation 
 
 Ancient China now has real runtime PNG atlas packs for the Journey background, Journey environment, excavation room map, excavation UI, survey/gateway map pieces, stage character, profile image, opening cinematic, and enemy/guardian sprite sheets.
 
-The largest remaining asset issue is not missing files. It is mixed reuse: the China Journey still runs on the Egypt-authored Journey structure, route ids, objective model, key-item rewards, section ids, some helper copy, shared generic archaeology collectibles, and the Egypt khopesh weapon sprite. The stage scaffold in `expeditionStages.js` is also stale: it still labels some China implementation slots as placeholders even though runtime assets now exist and are wired in deeper Expedition/Journey config.
+The largest remaining asset issue is not missing files. It is mixed visual reuse: the China Journey still uses the Egypt khopesh weapon sprite, some shared generic archaeology collectibles, repeated guardian art for later bosses, and a few internal compatibility/debug names that still carry Egypt-era ids. The stage scaffold in `expeditionStages.js` is also stale: it still labels some China implementation slots as placeholders even though runtime assets now exist and are wired in deeper Expedition/Journey config.
 
 2026-06-24 Pass 3 update: the China opening no longer inherits the Egypt/Anubis cinematic or aftermath notice. It now uses China-specific Watchtower/River Valley Seal copy, the clean China river-valley background, a derived transparent China Asha cutscene PNG, the China watchtower PNG, and the sealed timber gate PNG. The active gameplay background manifest now uses the clean full rectangular `china-river-valley-parallax-pack.png` rather than the retired layered source that showed checkerboard blocks in browser review.
+
+2026-06-25 Pass 4 update: China route identity now uses China-specific Journey data for visible sections, gates, objectives, lore, key rewards, start briefing, and field-kit tool names. `JOURNEY_TOOLS` now routes by civilisation, so China shows names such as Dynasty Field Guide and River Measuring Cord while Rome keeps Wax Tablet / Measuring Chain and Egypt keeps Papyrus Guide. Expedition field-kit descriptions, the explorer profile line, and generic objective-progress fallback now also change safely by selected civilisation.
 
 ## Asset Area Audit
 
@@ -46,7 +48,7 @@ The largest remaining asset issue is not missing files. It is mixed reuse: the C
 | China Stage Select character visual | `public/assets/expedition/stage-characters/ancient-china-character.png` | Real PNG, 1024x1536 | Expedition Stage Select header character | Already present; keep | P3 done |
 | China opening cinematic assets | `china-river-valley-parallax-pack.png`, `china-asha-cutscene-2026-06-24.png`, `china-watchtower.png`, `china-imperial-gate-sealed.png` | Real PNG assets wired into the existing Journey opening overlay | China Journey opening and skip-intro aftermath | Present and browser verified | P1 done |
 | China excavation hazards/guardians | Uses China map atlas for terrain/markers plus config objects in `ExpeditionMode.jsx` | Mostly real map art, but hazard/guardian labels are data-driven and can fall back to simple canvas/label treatment depending draw path | China excavation map hazards and Site Watcher | Good enough for prototype; custom hazard icons can polish | P3 |
-| China Journey route/section visuals | China background/environment pack, but Egypt section ids remain: `desert-entry`, `ruined-temple`, `catacombs`, `escape-sequence`, `dig-site-entrance` | Mixed: real China art over Egypt-authored section structure and some Egypt helper labels/messages | Journey route, objectives, transitions, gates and events | Needs copy/data pass before standalone-finished China | P1 |
+| China Journey route/section visuals | China background/environment pack plus China Journey section ids: `yellow-river-frontier`, `rammed-earth-wall`, `frontier-settlement`, `hidden-archive`, `imperial-gate` | Visible route identity is now China-specific; remaining reuse is mostly generic collectible/weapon visuals and internal compatibility names | Journey route, objectives, transitions, gates and events | Playable route identity pass complete; continue visual polish | P1 done / P2 polish |
 
 ## Missing Assets
 
@@ -78,10 +80,10 @@ The missing or not-yet-China-specific visual sets are:
 ## Reused Egypt Or Egypt-Authored Assets
 
 - `public/assets/expedition/player/khopesh-weapon-pack.png` and `.json` are still the Journey weapon sprite atlas. This is the clearest Egypt-specific visual reuse.
-- `src/components/expedition-journey/journeyLevelData.js` keeps Egypt route ids and structure: `desert-entry`, `ruined-temple`, `catacombs`, `escape-sequence`, `dig-site-entrance`.
-- `SECTION_OBJECTIVES`, `OBJECTIVE_MARKERS`, `ROUTE_GATES`, `BOSS_KEY_ITEMS`, `GUARDIAN_KNOWLEDGE_QUESTIONS`, `GUARDIAN_KNOWLEDGE_CHALLENGES`, `SECTION_ATMOSPHERES`, `STORY_PROPS`, `ENVIRONMENT_EVENTS`, and `BOSS_INTROS` are still the shared Egypt-authored Journey model. China has enemy and mini-boss swaps, including river crab, watchtower sentry, and clay guardian regular-enemy families, but not a full China-specific Journey data set.
+- China visible route ids, route gates, section objectives, objective markers, boss key items, atmospheres, story props, lore tablets and stage transition markers now route through `src/components/expedition-journey/chinaJourneyData.js`.
+- Some internal Journey compatibility ids and debug labels still carry Egypt-era names, including the shared `scarab-queen` boss id used as a stable boss hook. These are not currently the main visible player-facing conflict, but they are worth cleaning only when it can be done without breaking canonical Journey state.
 - Pass 2 fixed the China Journey route music cue from the shared desert track to the China `bamboo-forest` cue.
-- Field-kit text still says the field guide helps identify "Egyptian pottery and architectural styles".
+- Pass 4 fixed the cross-civilisation field-kit text and tool-name routing for China/Rome/Egypt.
 - Some Journey snapshot/debug fields still use `desertBackground...` names even when the China background pack is active. This is naming reuse rather than a visible asset problem.
 
 ## CSS-Only Or Canvas Placeholders
@@ -129,7 +131,7 @@ Recommended new files:
 P1 required for China Journey to look playable:
 
 1. Replace the Egypt khopesh weapon pack with a China-safe field tool weapon pack.
-2. Create a China-specific Journey data/copy pass for route names, objective names, route gates, section events, boss intros, and field-kit wording.
+2. Create a China-specific Journey data/copy pass for route names, objective names, route gates, section events, boss intros, and field-kit wording. Done for visible route identity and field-kit wording in Pass 4; optional internal/debug cleanup remains.
 3. Update stale China scaffold implementation slot labels so planning UI/docs do not claim runtime assets are placeholders.
 
 P2 required for China Excavation/Museum to feel complete:
@@ -147,7 +149,7 @@ P3 polish only:
 
 ## Next Implementation Steps
 
-1. Do a no-gameplay data/copy pass in the existing Journey data files: China route labels, objectives, route gate names/messages, boss intro cards, event names, field-kit copy, and scaffold slot labels.
-2. Add and wire a China-specific field-tool weapon atlas through the existing player weapon loader. Do not add a new combat system.
+1. Add and wire a China-specific field-tool weapon atlas through the existing player weapon loader. Do not add a new combat system.
+2. Update stale China scaffold implementation slot labels so planning UI/docs no longer call wired runtime packs placeholders.
 3. Optional after that: split the shared rammed-earth sentinel into distinct China boss atlases while keeping the existing boss state machine and `spriteBossId` pattern.
 4. Finish with a browser-verified natural China playthrough and an Egypt regression check.

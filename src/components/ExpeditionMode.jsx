@@ -30,6 +30,7 @@ import { BUREAU_CASES, getCategoryTitle } from '../utils/gameLogic';
 import ExpeditionJourney, { JourneyControlsReference } from './ExpeditionJourney';
 import DynastyTimelinePuzzle from './DynastyTimelinePuzzle.jsx';
 import { CHINA_DYNASTY_TIMELINE } from './expedition-journey/chinaJourneyData.js';
+import { getJourneyToolsForCivilisation } from './expedition-journey/journeyDataRouter.js';
 import {
   createExcavationMapAssetState,
   drawExcavationMapRegion,
@@ -1430,7 +1431,6 @@ const BRUSH_RECOVERY_BONUS = 3;
 const TROWEL_EXCAVATION_BONUS = 2;
 const CAMERA_DOCUMENTATION_BONUS = 1;
 const MAX_EVIDENCE_ITEMS = 3;
-const JOURNEY_TOOLS = ExpeditionJourney.tools;
 const TOOL_EFFECTS = {
   brush: {
     icon: Search,
@@ -1495,9 +1495,92 @@ const TOOL_EFFECTS = {
     missing: 'No category hints are available during inspection.',
     result: 'Expert Field Guide: Secured for real-time analysis.',
     impact: 'Unlocks Category Expert Hints',
-    collectedDesc: 'The field guide provides instant reference for identifying Egyptian pottery and architectural styles.',
+    collectedDesc: 'The field guide provides instant reference for identifying cultural materials, architecture and site clues.',
     missingDesc: 'Identifying unfamiliar artifacts will be much slower and more prone to error.'
   },
+};
+const EGYPT_TOOL_EFFECT_OVERRIDES = {
+  'field-guide-page': {
+    collectedDesc: 'The field guide provides instant reference for identifying Egyptian pottery and architectural styles.',
+  },
+};
+const CHINA_TOOL_EFFECT_OVERRIDES = {
+  brush: {
+    shortTitle: 'Soft Bamboo Brush',
+    collectedDesc: 'Soft brushes protect painted slips, bronze surfaces and loose loess from damage.',
+    missingDesc: 'Fragile inscriptions, paint traces and river-silt details are easier to damage without careful brushing.',
+  },
+  trowel: {
+    shortTitle: 'Rammed-Earth Trowel',
+    collectedDesc: 'The trowel defines packed-earth layers, wall footings and workshop edges.',
+    missingDesc: 'Wall layers and workshop boundaries are harder to separate from collapsed soil.',
+  },
+  notebook: {
+    shortTitle: 'Bamboo Field Notes',
+    collectedDesc: 'Field notes track dynasty clues, layers and context across the river-valley site.',
+    missingDesc: 'The team may miss how evidence from the river, wall and archive connects.',
+  },
+  camera: {
+    shortTitle: 'Survey Lens',
+    collectedDesc: 'The survey lens records artefacts before they leave the trench or archive shelf.',
+    missingDesc: 'Evidence moved without images loses some of its context.',
+  },
+  'measuring-tape': {
+    shortTitle: 'River Measuring Cord',
+    collectedDesc: 'The measuring cord maps wall lines, kilns and archive shelves against the survey grid.',
+    missingDesc: 'The site plan will be less reliable around walls, kilns and archive rooms.',
+  },
+  'field-guide-page': {
+    shortTitle: 'Dynasty Field Guide',
+    collectedDesc: 'The guide helps compare Chinese bronzes, oracle bones, coins, bamboo slips and rammed-earth features.',
+    missingDesc: 'Dynasty evidence is harder to read without quick reference notes.',
+  },
+};
+const ROME_TOOL_EFFECT_OVERRIDES = {
+  brush: {
+    shortTitle: 'Bristle Brush',
+    collectedDesc: 'Bristle brushes clean coins, inscriptions and plaster fragments without scraping them.',
+    missingDesc: 'Small Roman inscriptions and surface marks may be missed.',
+  },
+  trowel: {
+    shortTitle: 'Iron Trowel',
+    collectedDesc: 'The iron trowel defines paving edges, wall lines and buried civic foundations.',
+    missingDesc: 'Forum walls and road layers are harder to separate from rubble.',
+  },
+  notebook: {
+    shortTitle: 'Field Codex',
+    collectedDesc: 'The codex keeps civic records, road clues and archive notes in order.',
+    missingDesc: 'The team may lose track of which finds point to law, trade, army or public life.',
+  },
+  camera: {
+    shortTitle: 'Survey Lens',
+  },
+  'measuring-tape': {
+    shortTitle: 'Measuring Chain',
+    collectedDesc: 'The measuring chain maps roads, basilica lines and vault rooms with Roman-site precision.',
+    missingDesc: 'Distances between roads, walls and chambers will be less reliable.',
+  },
+  'field-guide-page': {
+    shortTitle: 'Wax Tablet',
+    collectedDesc: 'The wax tablet helps compare Roman law, civic buildings, coins, roads and inscriptions.',
+    missingDesc: 'Roman public-life evidence is harder to classify quickly.',
+  },
+};
+const getToolEffectOverridesForCivilisation = (targetCivilisation) => {
+  const civ = String(targetCivilisation || '').toLowerCase();
+  if (civ.includes('china')) return CHINA_TOOL_EFFECT_OVERRIDES;
+  if (civ.includes('rome')) return ROME_TOOL_EFFECT_OVERRIDES;
+  return EGYPT_TOOL_EFFECT_OVERRIDES;
+};
+const getToolEffectsForCivilisation = (toolId, targetCivilisation) => ({
+  ...(TOOL_EFFECTS[toolId] || {}),
+  ...(getToolEffectOverridesForCivilisation(targetCivilisation)[toolId] || {}),
+});
+const getExplorerProfileFitLine = (targetCivilisation) => {
+  const civ = String(targetCivilisation || '').toLowerCase();
+  if (civ.includes('china')) return 'river valleys, rammed-earth walls and archive routes';
+  if (civ.includes('rome')) return 'stone roads, Forum ruins and buried civic spaces';
+  return 'harsh Egyptian sands';
 };
 const RANK_BANDS = [
   { min: 90, title: 'Lead Archaeologist' },
@@ -1984,6 +2067,12 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
   const selectedStageId = selectedExpedition?.id || PLAYABLE_EXPEDITION_STAGE_ID;
   const stageContent = useMemo(() => getExpeditionMapContent(selectedStageId), [selectedStageId]);
   const targetCivilisation = stageContent.targetCivilisation;
+  const journeyTools = useMemo(() => (
+    getJourneyToolsForCivilisation(targetCivilisation)
+  ), [targetCivilisation]);
+  const explorerProfileFitLine = useMemo(() => (
+    getExplorerProfileFitLine(targetCivilisation)
+  ), [targetCivilisation]);
   const mapZones = stageContent.zones;
   const terrainByZone = stageContent.terrainByZone;
   const surveyZones = stageContent.surveyZones;
@@ -2121,14 +2210,14 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
     return { mapped: mappedFindsSummary.length, accurate, needsReview };
   }, [mappedFindsSummary]);
   const missingTools = useMemo(() => (
-    JOURNEY_TOOLS.filter(tool => !fieldKitSet.has(tool.id))
-  ), [fieldKitSet]);
+    journeyTools.filter(tool => !fieldKitSet.has(tool.id))
+  ), [fieldKitSet, journeyTools]);
   const collectedTools = useMemo(() => (
-    JOURNEY_TOOLS.filter(tool => fieldKitSet.has(tool.id))
-  ), [fieldKitSet]);
+    journeyTools.filter(tool => fieldKitSet.has(tool.id))
+  ), [fieldKitSet, journeyTools]);
   const fieldKitImpact = useMemo(() => (
-    JOURNEY_TOOLS.map((tool) => {
-      const effects = TOOL_EFFECTS[tool.id];
+    journeyTools.map((tool) => {
+      const effects = getToolEffectsForCivilisation(tool.id, targetCivilisation);
       const isCollected = fieldKitSet.has(tool.id);
       return {
         id: tool.id,
@@ -2141,7 +2230,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
         missingDesc: effects?.missingDesc || 'Standard equipment is missing.',
       };
     })
-  ), [fieldKitSet]);
+  ), [fieldKitSet, journeyTools, targetCivilisation]);
   const fieldKitBonus = useMemo(() => {
     if (!claimResult) return 0;
     const bonus =
@@ -2168,7 +2257,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
   const missionComplete = missionEvidenceCount >= missionRequiredCount;
   const finalScore = useMemo(() => {
     if (!claimResult) return null;
-    const toolsScore = Math.round((fieldKit.length / JOURNEY_TOOLS.length) * 15);
+    const toolsScore = Math.round((fieldKit.length / journeyTools.length) * 15);
     const investigationScore = Math.round((resources.investigation / 100) * 10);
     const staminaScore = Math.round((resources.stamina / 100) * 5);
     const timeScore = Math.round((resources.time / INITIAL_RESOURCES.time) * 5);
@@ -2186,7 +2275,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
       0,
       100
     );
-  }, [claimCorrect, claimResult, evidenceQualityBonus, evidenceSupportsClaim, fieldKit.length, fieldKitBonus, mappingAccuracyBonus, missionComplete, resources]);
+  }, [claimCorrect, claimResult, evidenceQualityBonus, evidenceSupportsClaim, fieldKit.length, fieldKitBonus, journeyTools.length, mappingAccuracyBonus, missionComplete, resources]);
   const finalRank = finalScore === null ? null : getRankTitle(finalScore);
   const resultFeedback = finalScore === null ? '' : getRankFeedback(finalScore);
   const syncInventory = useCallback((items) => {
@@ -5881,7 +5970,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
                     <span style={{ fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', color: '#c5a059', letterSpacing: '0.08em' }}>Warrior Explorer</span>
                   </div>
                   <p style={{ margin: 0, fontSize: '0.78rem', color: '#a89a7f', lineHeight: 1.45 }}>
-                    Equipped for {stageContent.targetCivilisation === 'Ancient Egypt' ? 'harsh Egyptian sands' : 'ancient environments'}. Fits all collected tools and coordinates the expedition with absolute precision.
+                    Equipped for {explorerProfileFitLine}. Fits all collected tools and coordinates the expedition with absolute precision.
                   </p>
                 </div>
               </div>

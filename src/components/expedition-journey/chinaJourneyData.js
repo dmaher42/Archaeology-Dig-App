@@ -283,6 +283,15 @@ export const CHINA_SCARAB_SEAL_TRIGGER = {
 // ---------------------------------------------------------------------------
 // Tools — archaeology kit pickups (ids must exist in the shared JOURNEY_TOOLS set).
 // ---------------------------------------------------------------------------
+export const CHINA_JOURNEY_TOOLS = [
+  { id: 'brush', name: 'Soft Bamboo Brush', emoji: 'B', icon: 'B' },
+  { id: 'trowel', name: 'Rammed-Earth Trowel', emoji: 'T', icon: 'T' },
+  { id: 'notebook', name: 'Bamboo Field Notes', emoji: 'J', icon: 'J' },
+  { id: 'camera', name: 'Survey Lens', emoji: 'L', icon: 'L' },
+  { id: 'measuring-tape', name: 'River Measuring Cord', emoji: 'M', icon: 'M' },
+  { id: 'field-guide-page', name: 'Dynasty Field Guide', emoji: 'D', icon: 'D' },
+];
+
 export const CHINA_TOOL_LAYOUT = [
   { id: 'brush',    x: X(320),  y: JY(314) },
   { id: 'trowel',   x: X(900),  y: JY(320) },

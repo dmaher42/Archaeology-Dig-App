@@ -6758,9 +6758,22 @@ export default function ExpeditionJourney({
       count = current.collectedObjectiveIds.has('escape-beacon') ? 1 : 0;
     } else if (sectionId === 'dig-site-entrance') {
       count = current.defeatedMiniBosses.has('ancient-construct') ? 1 : 0;
+    } else if (config.type === 'reach-gate' && config.gateId) {
+      count = current.openedRouteGateIds?.has(config.gateId) ? 1 : 0;
+    } else if (config.type === 'defeat-boss' && config.bossId) {
+      count = current.defeatedMiniBosses?.has(config.bossId) ? 1 : 0;
     }
 
-    return { ...config, count };
+    const total = Number.isFinite(config.total) ? config.total : 1;
+    const itemLabel = config.itemLabel
+      || (config.type === 'defeat-boss' ? 'guardian' : 'route step');
+    return {
+      ...config,
+      title: config.title || config.label,
+      total,
+      itemLabel,
+      count,
+    };
   }, []);
 
   const getNearestUnmetObjective = useCallback((sectionId, current) => {

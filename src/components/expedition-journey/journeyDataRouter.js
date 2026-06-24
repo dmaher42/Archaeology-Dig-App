@@ -29,7 +29,11 @@ export const setExpeditionJourneyCiv = (civ) => {
 };
 
 const getCivSource = (egyptObj, chinaObj, romeObj) => {
-  const civ = typeof currentCiv === 'string' ? currentCiv.toLowerCase() : '';
+  return getCivSourceFor(currentCiv, egyptObj, chinaObj, romeObj);
+};
+
+const getCivSourceFor = (targetCivilisation, egyptObj, chinaObj, romeObj) => {
+  const civ = typeof targetCivilisation === 'string' ? targetCivilisation.toLowerCase() : '';
   if (civ.includes('rome') && romeObj) return romeObj;
   if (civ.includes('china') && chinaObj) return chinaObj;
   return egyptObj;
@@ -72,8 +76,21 @@ export const GUARDIAN_KNOWLEDGE_QUESTIONS = makeProxy(EgyptData.GUARDIAN_KNOWLED
 export const WORLD_CONTINUITY_LANDMARKS = makeProxy(EgyptData.WORLD_CONTINUITY_LANDMARKS, ChinaData.CHINA_WORLD_CONTINUITY_LANDMARKS, RomeData.ROME_WORLD_CONTINUITY_LANDMARKS);
 export const WORLD_TRANSITION_STORY_MARKERS = makeProxy(EgyptData.WORLD_TRANSITION_STORY_MARKERS, ChinaData.CHINA_WORLD_TRANSITION_STORY_MARKERS, RomeData.ROME_WORLD_TRANSITION_STORY_MARKERS);
 
+export const getJourneyToolsForCivilisation = (targetCivilisation = currentCiv) => (
+  getCivSourceFor(
+    targetCivilisation,
+    EgyptData.JOURNEY_TOOLS,
+    ChinaData.CHINA_JOURNEY_TOOLS,
+    RomeData.ROME_TOOLS,
+  )
+);
+
 // Non-proxied items
-export const JOURNEY_TOOLS = EgyptData.JOURNEY_TOOLS;
+export const JOURNEY_TOOLS = makeProxy(
+  EgyptData.JOURNEY_TOOLS,
+  ChinaData.CHINA_JOURNEY_TOOLS,
+  RomeData.ROME_TOOLS,
+);
 export const UPGRADES = makeProxy(EgyptData.UPGRADES, ChinaData.CHINA_UPGRADES, RomeData.ROME_UPGRADES);
 export const isChinaJourneyCivilisation = EgyptData.isChinaJourneyCivilisation;
 export const CHINA_ENEMIES = EgyptData.CHINA_ENEMIES;

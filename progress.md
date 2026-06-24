@@ -4,6 +4,13 @@ Current source-of-truth note:
 - Future implementation should follow `docs/lost-site-expedition-production-bible.md`.
 - The production bible now defines implementation hierarchy, room pipelines, asset roles, and quality expectations.
 
+2026-06-25 Civilisation separation audit pass 4:
+- Separated China/Rome/Egypt Journey field-kit identity through the existing Journey data router instead of adding a parallel tool system.
+- Added China-specific Journey tool names such as Soft Bamboo Brush, River Measuring Cord, and Dynasty Field Guide while preserving the canonical tool ids used by saves, pickups, scoring, and HUD state.
+- Updated Expedition field-kit descriptions, Asha's explorer profile line, the China Journey start briefing, and generic objective-progress fallback so China/Rome no longer inherit Egypt-specific field-guide, Lost Map Tablet, or undefined objective copy.
+- Added a source guard covering China tools, China route gates, China objectives, China start briefing copy, and Rome/Egypt tool routing so the three expedition identities stay separated.
+- Updated the China asset audit: the next conflict pass should move to the China weapon/collectible visual reuse, especially replacing the Egypt khopesh weapon pack through the existing player weapon loader.
+
 2026-06-24 Ancient Rome Section One production pass:
 - Built Rome as a playable Journey section first, not an archive review screen: Ancient Rome now starts directly in the side-scrolling expedition flow with Rome-specific briefing copy.
 - Created and wired real PNG assets for Rome backgrounds, route props, evidence icons, transparent enemy/boss atlases, Asha's Rome variant, gladius weapon art, and the Rome opening cinematic.
