@@ -23,8 +23,12 @@ Current source-of-truth note:
 
 2026-06-24 Civilisation separation audit pass 3:
 - Found the first playable China screen was falling back to a bare sky/ground look because the shared background readiness contract still expected the retired `farValley` key.
-- Updated the China background expected-key list to match the active layered-parallax manifest: `skyLayer`, `farMountains`, `riverValley`, `watchtowerRidge`, and `foregroundMist`.
-- Added a focused China production guard so the layered China background PNG and atlas keys must stay ready for the shared Journey loader.
+- Fixed the renderer handoff so China receives both `backgroundPackId` and `environmentPackId`; the China background draw path now recognises the active `china-river-valley` pack instead of falling through to canvas fallback.
+- Rejected the active layered China PNG after browser review because its transparent bands exposed checkerboard blocks; switched the live manifest to the clean full rectangular `china-river-valley-parallax-pack.png` backdrop with `single-composited-backdrop` runtime mode.
+- Separated China from the Egypt/Anubis opening path: China now has a short Watchtower/River Valley Seal intro, China-specific skip/aftershock notice, China overlay styling, and real PNG assets for the opening background, Asha cutscene sprite, watchtower, and sealed timber gate.
+- Added `public/assets/expedition/player/china-asha-cutscene-2026-06-24.png`, derived from the cleaned China player atlas, so the intro uses the same hero identity as the playable China route instead of the generic stage-select character.
+- Added focused China production guards for the clean background contract, renderer pack-id handoff, China opening copy, PNG asset existence, and no Anubis/Duat/scarab leakage in the China opening block.
+- Verified focused Journey/Rome/China guards, `git diff --check`, lint, production build, and browser screenshots for the China opening overlay plus the first playable China screen.
 
 2026-06-24 Desert Entry full background reset:
 - Replaced the rejected split scenic/floor Desert Entry setup with a new flat integrated gameplay background at `public/assets/expedition/backgrounds/desert-entry/desert-entry-integrated-temple-approach-flat-2026-06-24.png`.

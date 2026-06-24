@@ -2,7 +2,7 @@
 
 Inspection date: 2026-05-15
 
-Scope: inspection and asset planning only. This audit does not change gameplay, Stage Select, Egypt, asset wiring, or generated images.
+Scope: inspection and asset planning, updated after the 2026-06-24 civilisation separation passes.
 
 ## Confirmed Source Of Truth
 
@@ -23,15 +23,17 @@ Scope: inspection and asset planning only. This audit does not change gameplay, 
 
 ## Current Status Summary
 
-Ancient China now has real runtime PNG atlas packs for the Journey background, Journey environment, excavation room map, excavation UI, survey/gateway map pieces, stage character, profile image, and a shared enemy/guardian sprite sheet.
+Ancient China now has real runtime PNG atlas packs for the Journey background, Journey environment, excavation room map, excavation UI, survey/gateway map pieces, stage character, profile image, opening cinematic, and enemy/guardian sprite sheets.
 
 The largest remaining asset issue is not missing files. It is mixed reuse: the China Journey still runs on the Egypt-authored Journey structure, route ids, objective model, key-item rewards, section ids, some helper copy, shared generic archaeology collectibles, and the Egypt khopesh weapon sprite. The stage scaffold in `expeditionStages.js` is also stale: it still labels some China implementation slots as placeholders even though runtime assets now exist and are wired in deeper Expedition/Journey config.
+
+2026-06-24 Pass 3 update: the China opening no longer inherits the Egypt/Anubis cinematic or aftermath notice. It now uses China-specific Watchtower/River Valley Seal copy, the clean China river-valley background, a derived transparent China Asha cutscene PNG, the China watchtower PNG, and the sealed timber gate PNG. The active gameplay background manifest now uses the clean full rectangular `china-river-valley-parallax-pack.png` rather than the retired layered source that showed checkerboard blocks in browser review.
 
 ## Asset Area Audit
 
 | Area | Current file/path used | Status | Where it appears | Required before China looks playable? | Priority |
 | --- | --- | --- | --- | --- | --- |
-| China parallax/background assets | `public/assets/expedition/backgrounds/china-river-valley/china-river-valley-parallax-pack.png` + `.json` | Real PNG runtime atlas, 1536x1024, 5 regions | China Journey background via `journeyBackgroundPackId: 'china-river-valley'` | Already present; keep | P1 done |
+| China parallax/background assets | `public/assets/expedition/backgrounds/china-river-valley/china-river-valley-parallax-pack.png` + `.json` | Real clean PNG gameplay backdrop, active manifest uses `single-composited-backdrop` | China Journey background via `journeyBackgroundPackId: 'china-river-valley'` | Already present; keep | P1 done |
 | China environment/platform assets | `public/assets/expedition/environment/china-river-valley/china-river-valley-environment-pack.png` + `.json` | Real PNG runtime atlas, 1536x1024, 23 regions | China Journey platforms, hazards, story props, gates through `journeyEnvironmentPackId: 'china-river-valley'` | Already present; keep | P1 done |
 | China room/excavation map assets | `public/assets/expedition/excavation/china-room-map-pack.png` + `.json` | Real PNG runtime atlas, 1536x1024, 28 regions | China excavation terrain and overlays through `roomMapPackId: 'chinaRoomMap'` | Already present; keep | P2 done |
 | China challenge UI assets | `public/assets/expedition/excavation/china-zone-challenge-ui-pack.png` + `.json` | Real PNG runtime atlas, 1536x1024, 27 regions | Zone-entry challenge cards and answer panels through `challengeUiPackId: 'chinaChallengeUi'` | Already present; keep | P2 done |
@@ -42,6 +44,7 @@ The largest remaining asset issue is not missing files. It is mixed reuse: the C
 | China evidence/museum images | `public/museum/china_*.jpg`, `china_*.png`; fallback `public/museum/china_generic.svg` | All China evidence image paths in `src/data.js` exist as real JPG/PNG files. Fallback is SVG. | Archaeology evidence cards, Lab/Museum/report image flow, Expedition evidence tokens by `ch_*` ids | Real evidence images are present; fallback only matters if an image is omitted later | P2 done; P3 replace fallback SVG |
 | China civilisation profile image | `public/assets/civilisations/profile-china.png` | Real PNG, 1024x1024 | Bureau training profile / civilisation case image from `src/data.js` | Already present; keep | P3 done |
 | China Stage Select character visual | `public/assets/expedition/stage-characters/ancient-china-character.png` | Real PNG, 1024x1536 | Expedition Stage Select header character | Already present; keep | P3 done |
+| China opening cinematic assets | `china-river-valley-parallax-pack.png`, `china-asha-cutscene-2026-06-24.png`, `china-watchtower.png`, `china-imperial-gate-sealed.png` | Real PNG assets wired into the existing Journey opening overlay | China Journey opening and skip-intro aftermath | Present and browser verified | P1 done |
 | China excavation hazards/guardians | Uses China map atlas for terrain/markers plus config objects in `ExpeditionMode.jsx` | Mostly real map art, but hazard/guardian labels are data-driven and can fall back to simple canvas/label treatment depending draw path | China excavation map hazards and Site Watcher | Good enough for prototype; custom hazard icons can polish | P3 |
 | China Journey route/section visuals | China background/environment pack, but Egypt section ids remain: `desert-entry`, `ruined-temple`, `catacombs`, `escape-sequence`, `dig-site-entrance` | Mixed: real China art over Egypt-authored section structure and some Egypt helper labels/messages | Journey route, objectives, transitions, gates and events | Needs copy/data pass before standalone-finished China | P1 |
 
@@ -59,6 +62,7 @@ No missing China runtime PNG/JSON files were found for currently wired China pac
 - `china-watchtower-sentry-sprites.png/.json`
 - `china-clay-guardian-enemy-sprites.png/.json`
 - `china-rammed-earth-sentinel-sprites.png/.json`
+- `china-asha-cutscene-2026-06-24.png`
 - `ancient-china-character.png`
 - `profile-china.png`
 
@@ -102,6 +106,9 @@ Already present and wired:
 - `public/assets/expedition/enemies/china/china-watchtower-sentry-sprites.png`
 - `public/assets/expedition/enemies/china/china-clay-guardian-enemy-sprites.png`
 - `public/assets/expedition/bosses/china-rammed-earth-sentinel-sprites.png`
+- `public/assets/expedition/player/china-asha-cutscene-2026-06-24.png`
+- `public/assets/expedition/environment/china-river-valley/china-watchtower.png`
+- `public/assets/expedition/environment/china-river-valley/china-imperial-gate-sealed.png`
 - `public/assets/expedition/stage-characters/ancient-china-character.png`
 - `public/assets/civilisations/profile-china.png`
 
