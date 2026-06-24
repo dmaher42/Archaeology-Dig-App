@@ -1,4 +1,4 @@
-// Rome enemy sprite definitions — all atlas paths are placeholders until art is delivered.
+// Rome enemy sprite definitions for the playable Section One route.
 
 export const ROME_ENEMY_SPRITE_BASE_PATH = 'assets/expedition/enemies/rome/';
 
@@ -8,7 +8,7 @@ export const ROME_FORUM_RAT_SPRITE_ATLAS_JSON = `${ROME_ENEMY_SPRITE_BASE_PATH}r
 export const ROME_VESTIBULE_WISP_SPRITE_ATLAS_JSON = `${ROME_ENEMY_SPRITE_BASE_PATH}rome-vestibule-wisp-sprites.json`;
 export const ROME_MARBLE_GOLEM_SPRITE_ATLAS_JSON = `${ROME_ENEMY_SPRITE_BASE_PATH}rome-marble-golem-sprites.json`;
 
-export const ROME_ENEMY_SPRITE_ATLAS_VERSION = 'rome-enemy-sprites-placeholder-2026-05-31';
+export const ROME_ENEMY_SPRITE_ATLAS_VERSION = 'rome-enemy-sprites-production-2026-06-24';
 
 // Size multipliers relative to Asha draw height
 export const ROME_ENEMY_VISUAL_SIZE_MULTIPLIERS = {

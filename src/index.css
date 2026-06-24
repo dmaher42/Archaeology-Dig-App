@@ -10362,6 +10362,107 @@ main {
   animation: openingAshaResolve 5.8s ease-in-out infinite;
 }
 
+.opening-cinematic-overlay.is-rome {
+  color: #f6ead5;
+  background:
+    radial-gradient(circle at 48% 60%, rgba(224, 171, 70, 0.14), transparent 30%),
+    linear-gradient(180deg, #08090a 0%, #16100c 48%, #040504 100%);
+}
+
+.opening-cinematic-overlay.is-rome::before {
+  background:
+    linear-gradient(180deg, #000 0 7.4%, transparent 7.4% 89.4%, #000 89.4% 100%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.58) 0%, rgba(0, 0, 0, 0.18) 24%, transparent 42%),
+    radial-gradient(ellipse 118% 92% at 50% 44%, transparent 34%, rgba(0, 0, 0, 0.58) 100%);
+}
+
+.opening-cinematic-overlay.is-rome::after {
+  background:
+    linear-gradient(90deg, rgba(222, 183, 101, 0.08), transparent 22% 76%, rgba(94, 198, 210, 0.08)),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.032) 0 1px, transparent 1px 7px);
+}
+
+.opening-cinematic-overlay.is-rome .opening-cinematic-bg {
+  object-position: center center;
+  filter: saturate(112%) contrast(112%) brightness(58%) sepia(10%) hue-rotate(-7deg);
+}
+
+.opening-cinematic-overlay.is-rome .opening-cinematic-depth-left {
+  background:
+    linear-gradient(90deg,
+      rgba(6, 5, 4, 0.94) 0%,
+      rgba(24, 17, 10, 0.58) 28%,
+      rgba(42, 29, 16, 0.24) 56%,
+      transparent 100%),
+    linear-gradient(180deg,
+      rgba(10, 8, 6, 0.44) 0%,
+      rgba(10, 8, 6, 0.14) 38%,
+      transparent 62%);
+}
+
+.opening-cinematic-overlay.is-rome .opening-cinematic-depth-right {
+  background:
+    linear-gradient(270deg, rgba(2, 9, 10, 0.92), rgba(26, 80, 86, 0.3), transparent),
+    radial-gradient(circle at 82% 28%, rgba(98, 211, 221, 0.18), transparent 36%);
+}
+
+.opening-cinematic-overlay.is-rome .opening-cinematic-seal {
+  top: 63%;
+  width: clamp(13rem, 28vw, 25rem);
+  transform: translate(-50%, -50%) rotate(2deg)
+    scale(calc(0.82 + var(--opening-progress, 0) * 0.25))
+    perspective(760px) rotateX(58deg);
+  filter:
+    brightness(calc(0.78 + var(--opening-progress, 0) * 0.62))
+    drop-shadow(0 0 1.7rem rgba(246, 205, 100, 0.62))
+    drop-shadow(0 0 4.4rem rgba(79, 213, 226, 0.45));
+}
+
+.opening-cinematic-overlay.is-rome .opening-cinematic-anubis {
+  right: clamp(-0.8rem, 4vw, 4.8rem);
+  bottom: clamp(0.4rem, 3vh, 2.8rem);
+  width: clamp(18rem, 35vw, 34rem);
+  max-height: 88%;
+  opacity: 0.98;
+  filter:
+    sepia(8%) saturate(108%) brightness(76%) contrast(132%)
+    drop-shadow(0 1.35rem 2.5rem rgba(0, 0, 0, 0.78))
+    drop-shadow(0 -0.35rem 1.8rem rgba(230, 174, 73, 0.3))
+    drop-shadow(0 0 3.1rem rgba(83, 212, 226, 0.44));
+}
+
+.opening-cinematic-overlay.is-rome .opening-cinematic-asha {
+  left: clamp(0.8rem, 7.4vw, 6rem);
+  bottom: clamp(0.25rem, 2.4vh, 2.3rem);
+  width: clamp(8.6rem, 17vw, 15.5rem);
+  filter:
+    saturate(114%) brightness(96%) contrast(126%)
+    drop-shadow(0 0 0.55rem rgba(0, 0, 0, 0.62))
+    drop-shadow(0 1.25rem 1.6rem rgba(0, 0, 0, 0.86))
+    drop-shadow(0.25rem 0 1.2rem rgba(94, 201, 218, 0.2))
+    drop-shadow(0 0 1rem rgba(245, 204, 120, 0.18));
+}
+
+.opening-cinematic-overlay.is-rome .opening-cinematic-copy {
+  text-shadow: 0 0 1.6rem rgba(238, 196, 98, 0.22), 0 0.2rem 1.2rem rgba(0, 0, 0, 0.75);
+}
+
+.opening-cinematic-overlay.is-rome .opening-cinematic-kicker {
+  color: #e7c470;
+}
+
+.opening-cinematic-overlay.is-rome .opening-cinematic-memory-runes span {
+  background:
+    radial-gradient(circle, rgba(250, 216, 122, 0.72), rgba(82, 205, 218, 0.18) 36%, transparent 70%);
+}
+
+.opening-cinematic-overlay.is-rome .opening-cinematic-banishment-ring {
+  border-color: rgba(238, 196, 92, 0.42);
+  box-shadow:
+    0 0 2.1rem rgba(237, 188, 83, 0.22),
+    inset 0 0 2.4rem rgba(79, 209, 226, 0.16);
+}
+
 .opening-cinematic-memory-runes {
   position: absolute;
   left: 50%;
@@ -10887,15 +10988,31 @@ main {
     opacity: 0.78;
   }
 
+  .opening-cinematic-overlay.is-rome .opening-cinematic-anubis {
+    right: -2.2rem;
+    width: clamp(14rem, 58vw, 22rem);
+    opacity: 0.9;
+  }
+
   .opening-cinematic-asha {
     left: -0.55rem;
     width: clamp(9rem, 38vw, 13.5rem);
     max-height: 62%;
   }
 
+  .opening-cinematic-overlay.is-rome .opening-cinematic-asha {
+    left: -0.25rem;
+    width: clamp(8rem, 34vw, 12rem);
+  }
+
   .opening-cinematic-seal {
     top: 61%;
     width: clamp(10rem, 44vw, 15rem);
+  }
+
+  .opening-cinematic-overlay.is-rome .opening-cinematic-seal {
+    top: 62%;
+    width: clamp(10rem, 42vw, 15rem);
   }
 
   .opening-cinematic-banishment-ring {

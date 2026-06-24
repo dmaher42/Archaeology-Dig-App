@@ -1043,7 +1043,7 @@ export function drawPlayerKhopeshFrame(ctx, anchorX, anchorY, attackState, direc
     stateRef,
   } = deps;
   const assets = playerWeaponSpriteRef.current;
-  const frameKey = getPlayerWeaponFrameKey(attackState);
+  const frameKey = getPlayerWeaponFrameKey(attackState, assets?.weaponId);
   const ready = assets.loaded && assets.image && assets.atlas?.regions?.[frameKey];
 
   if (!ready) {
@@ -1056,6 +1056,10 @@ export function drawPlayerKhopeshFrame(ctx, anchorX, anchorY, attackState, direc
     khopeshWindup: { x: -7, y: -28, width: 30, height: 42, rotate: -0.72, alpha: 1 },
     khopeshSwing: { x: 2, y: -39, width: 64, height: 48, rotate: 0.08, alpha: 0.94 },
     khopeshReady: { x: -5, y: -20, width: 14, height: 40, rotate: 0.2, alpha: 0.9 },
+    gladiusIdle: { x: -5, y: -23, width: 13, height: 43, rotate: -0.08, alpha: 0.95 },
+    gladiusWindup: { x: -8, y: -31, width: 29, height: 45, rotate: -0.7, alpha: 1 },
+    gladiusSwing: { x: 3, y: -40, width: 63, height: 50, rotate: 0.08, alpha: 0.96 },
+    gladiusReady: { x: -5, y: -22, width: 14, height: 43, rotate: 0.18, alpha: 0.94 },
   }[frameKey] || { x: 0, y: -24, width: 17, height: 48, rotate: 0, alpha: 1 };
 
   ctx.save();
@@ -1103,7 +1107,7 @@ export function drawPlayerKhopeshFrame(ctx, anchorX, anchorY, attackState, direc
 
   if (drawn && stateRef.current.renderStats) {
     stateRef.current.renderStats.playerWeaponFrame = frameKey;
-    stateRef.current.renderStats.playerWeaponVisualMode = 'khopesh-sprite-atlas';
+    stateRef.current.renderStats.playerWeaponVisualMode = `${assets?.weaponId || 'khopesh'}-sprite-atlas`;
   }
   return drawn;
 }
@@ -1235,6 +1239,10 @@ export function drawPlayerSpriteFrame(ctx, x, y, w, h, direction, invuln, now, d
     getHeroSpriteFrameScale,
     getHeroSpriteRowScale,
     getPlayerAttackState,
+    drawContactShadow,
+    drawGroundDustLip,
+    getDesertEntryGroundContactActive,
+    getDesertEntryVisualGroundOffsetY,
     isPlayerAttackVisualPhase,
     playerSpriteRef,
     stateRef,
@@ -1271,6 +1279,13 @@ export function drawPlayerSpriteFrame(ctx, x, y, w, h, direction, invuln, now, d
   const renderedHeight = frameHeight * drawScale;
   const footX = x + w / 2;
   const footY = y + h + 1;
+  const worldFootY = current.player.y + current.player.height;
+  const desertEntryVisualGroundOffsetY = typeof getDesertEntryVisualGroundOffsetY === 'function'
+    ? getDesertEntryVisualGroundOffsetY(current.player.x + current.player.width / 2, worldFootY, current)
+    : 0;
+  const desertEntryFootContactActive = typeof getDesertEntryGroundContactActive === 'function'
+    ? getDesertEntryGroundContactActive(current.player.x + current.player.width / 2, worldFootY, current)
+    : Boolean(desertEntryVisualGroundOffsetY);
   const drawX = -drawWidth / 2;
   const regionGroundLineY = Number(heroRegion?.groundLineY);
   const boundedGroundLineY = Number.isFinite(regionGroundLineY)
@@ -1311,14 +1326,40 @@ export function drawPlayerSpriteFrame(ctx, x, y, w, h, direction, invuln, now, d
   const squashX = applyRuntimeDodgeEffects ? 1 + dodgeProgress * 0.12 : 1 + landingPulse * 0.045 + dedicatedDodgeDuck * 0.035;
   const squashY = applyRuntimeDodgeEffects ? 1 - dodgeProgress * 0.08 : 1 - landingPulse * 0.035 - dedicatedDodgeDuck * 0.04;
   const knowledgeScale = current.player.knowledgeVisualScale || 1;
+  const groundSpeed = Math.abs(current.player.vx || 0);
+  const groundContactEnergy = clamp(groundSpeed / 260, 0, 1);
 
   ctx.save();
   if (invuln > 0 && !dodging && Math.floor(now / 100) % 2 === 0) ctx.globalAlpha = 0.34;
 
-  ctx.fillStyle = 'rgba(0,0,0,0.34)';
-  ctx.beginPath();
-  ctx.ellipse(footX, footY + 1, w * (applyRuntimeDodgeEffects ? 1.28 : 1.05), 5, 0, 0, Math.PI * 2);
-  ctx.fill();
+  if (desertEntryFootContactActive && typeof drawContactShadow === 'function') {
+    drawContactShadow(
+      ctx,
+      footX,
+      footY + 3,
+      w * (applyRuntimeDodgeEffects ? 1.58 : 1.42),
+      0.28 + groundContactEnergy * 0.08,
+      0.9,
+      { height: 5.5, color: 'rgba(38, 21, 8, 0.9)', coreOffsetX: direction * 2 },
+    );
+    if (typeof drawGroundDustLip === 'function') {
+      drawGroundDustLip(
+        ctx,
+        footX - direction * (7 + groundContactEnergy * 5),
+        footY + 5,
+        w * (1.36 + groundContactEnergy * 0.32),
+        `rgba(221, 151, 68, ${0.2 + groundContactEnergy * 0.08})`,
+      );
+    }
+    if (current.renderStats) {
+      current.renderStats.desertEntryPlayerFootContact = 'warm-plaza-foot-shadow-v1';
+    }
+  } else {
+    ctx.fillStyle = 'rgba(0,0,0,0.34)';
+    ctx.beginPath();
+    ctx.ellipse(footX, footY + 1, w * (applyRuntimeDodgeEffects ? 1.28 : 1.05), 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
 
   ctx.translate(footX + attackLean + movementLean + hurtShake + dodgeLean, footY + jumpLift + dodgeDuckSink);
   if (knowledgeScale > 1) {
@@ -1373,115 +1414,89 @@ export function drawPlayerSpriteFrame(ctx, x, y, w, h, direction, invuln, now, d
 
 export function drawBuriedStoneCausewaySurfaceFrame(ctx, platform, x, cameraX, now, deps) {
   const {
-    CANVAS_WIDTH,
-    DESERT_ENTRY_BURIED_CAUSEWAY_GROUND_VERSION,
-    DESERT_ENTRY_CAUSEWAY_DRAW_HEIGHT,
-    DESERT_ENTRY_CAUSEWAY_DRAW_Y_OFFSET,
+    DESERT_ENTRY_BACKGROUND_ART_VERSION,
     GROUND_Y,
-    desertEntryBuriedCausewayGroundRef,
+    ROUTE_GROUND_VISUAL_MODE,
     getSectionForX,
     stateRef,
-    worldToScreenX,
   } = deps;
   const section = getSectionForX(platform.x);
   if (section.id !== 'desert-entry' || platform.y !== GROUND_Y) return false;
+  void ctx;
+  void x;
+  void cameraX;
+  void now;
 
-  const visibleStart = Math.max(platform.x, cameraX - 120);
-  const visibleEnd = Math.min(platform.x + platform.width, cameraX + CANVAS_WIDTH + 120);
-  const causewayAsset = desertEntryBuriedCausewayGroundRef.current;
-  if (causewayAsset.loaded && causewayAsset.image) {
-    const tileWorldWidth = 768;
-    const drawHeight = DESERT_ENTRY_CAUSEWAY_DRAW_HEIGHT;
-    const drawY = platform.y + DESERT_ENTRY_CAUSEWAY_DRAW_Y_OFFSET;
-    const sourceWidth = causewayAsset.image.naturalWidth || causewayAsset.image.width;
-    const sourceHeight = causewayAsset.image.naturalHeight || causewayAsset.image.height;
-    const sourceCropY = Math.round(sourceHeight * 0.26);
-    const sourceCropHeight = Math.round(sourceHeight * 0.48);
-    const firstTile = Math.floor(visibleStart / tileWorldWidth) * tileWorldWidth;
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(x, drawY, platform.width, drawHeight);
-    ctx.clip();
-    ctx.globalAlpha = 1;
-    for (let worldX = firstTile; worldX <= visibleEnd; worldX += tileWorldWidth) {
-      ctx.drawImage(
-        causewayAsset.image,
-        0,
-        sourceCropY,
-        sourceWidth,
-        sourceCropHeight,
-        worldToScreenX(worldX, cameraX),
-        drawY,
-        tileWorldWidth + 1,
-        drawHeight,
-      );
-    }
-    ctx.restore();
-    if (stateRef.current.renderStats) {
-      stateRef.current.renderStats.desertGroundPngAssetLoaded = true;
-      stateRef.current.renderStats.desertGroundPngAssetVersion = DESERT_ENTRY_BURIED_CAUSEWAY_GROUND_VERSION;
-      stateRef.current.renderStats.desertEntryCausewayVisualMode = 'clean-stone-causeway-no-sand-sheet';
-    }
-    return true;
-  }
-
-  const firstSlab = Math.floor(visibleStart / 118) * 118;
-  const surfaceTop = platform.y - 16;
-  const surfaceBottom = platform.y + 18;
-
-  ctx.save();
-  ctx.beginPath();
-  ctx.rect(x, surfaceTop - 10, platform.width, surfaceBottom - surfaceTop + 18);
-  ctx.clip();
-
-  for (let worldX = firstSlab; worldX <= visibleEnd; worldX += 118) {
-    const seed = Math.abs(Math.sin(worldX * 0.021)) * 1000;
-    const slabWidth = 72 + (seed % 50);
-    const slabHeight = 14 + (seed % 11);
-    const slabX = worldToScreenX(worldX + (seed % 24) - 12, cameraX);
-    const slabY = surfaceTop + Math.sin(worldX * 0.017 + now / 3800) * 3 + (seed % 5);
-    const exposed = 0.14 + (seed % 7) * 0.012;
-
-    ctx.globalAlpha = exposed;
-    ctx.fillStyle = seed % 3 > 1
-      ? 'rgba(185, 137, 78, 0.86)'
-      : 'rgba(150, 105, 62, 0.88)';
-    ctx.beginPath();
-    ctx.roundRect(slabX, slabY, slabWidth, slabHeight, 4);
-    ctx.fill();
-
-    ctx.globalAlpha = exposed * 0.92;
-    ctx.strokeStyle = 'rgba(61, 36, 17, 0.68)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(slabX + slabWidth * 0.18, slabY + 2);
-    ctx.lineTo(slabX + slabWidth * 0.42, slabY + slabHeight - 3);
-    ctx.lineTo(slabX + slabWidth * 0.72, slabY + 5);
-    ctx.stroke();
-
-    ctx.globalAlpha = exposed * 0.7;
-    ctx.strokeStyle = 'rgba(247, 203, 124, 0.42)';
-    ctx.beginPath();
-    ctx.moveTo(slabX + 5, slabY + 2);
-    ctx.lineTo(slabX + slabWidth - 6, slabY + 1 + Math.sin(worldX * 0.03));
-    ctx.stroke();
-  }
-
-  ctx.globalAlpha = 0.18;
-  ctx.fillStyle = 'rgba(99, 58, 24, 0.5)';
-  for (let worldX = firstSlab + 42; worldX <= visibleEnd; worldX += 76) {
-    const seed = Math.abs(Math.sin(worldX * 0.049)) * 1000;
-    const pebbleX = worldToScreenX(worldX, cameraX);
-    const pebbleY = surfaceTop + 10 + (seed % 14);
-    ctx.beginPath();
-    ctx.ellipse(pebbleX, pebbleY, 2.5 + (seed % 3), 1.4, seed * 0.01, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  ctx.restore();
   if (stateRef.current.renderStats) {
     stateRef.current.renderStats.desertGroundPngAssetLoaded = false;
-    stateRef.current.renderStats.desertGroundPngFallback = true;
+    stateRef.current.renderStats.desertEntryBackgroundArtVersion = DESERT_ENTRY_BACKGROUND_ART_VERSION;
+    stateRef.current.renderStats.desertEntryCausewayVisualMode = ROUTE_GROUND_VISUAL_MODE;
+    stateRef.current.renderStats.desertEntryPlayableGroundPlane = 'integrated-background-painted-route-v1';
+    stateRef.current.renderStats.desertEntryGroundBodyFill = 'painted-into-background-no-separate-floor-strip';
+    stateRef.current.renderStats.desertEntryForegroundEdgeBlend = 'retired-separate-rubble-mask-strip';
+    stateRef.current.renderStats.desertEntryCollisionGroundY = GROUND_Y;
+  }
+  return true;
+}
+
+export function drawDesertEntryGroundMotionCuesFrame(ctx, player, cameraX, now, deps) {
+  const {
+    clamp,
+    drawGroundDustLip,
+    getDesertEntryGroundContactActive,
+    getDesertEntryVisualGroundOffsetY,
+    stateRef,
+    worldToScreenX,
+  } = deps;
+  if (!player || typeof getDesertEntryGroundContactActive !== 'function') return false;
+  void now;
+  const footY = player.y + player.height;
+  const footX = player.x + player.width / 2;
+  const contactActive = getDesertEntryGroundContactActive(footX, footY);
+  const offsetY = typeof getDesertEntryVisualGroundOffsetY === 'function'
+    ? getDesertEntryVisualGroundOffsetY(footX, footY)
+    : 0;
+  const speed = Math.abs(player.vx || 0);
+  if (!contactActive || speed < 45) return false;
+
+  const renderFootY = footY + offsetY;
+  const direction = player.vx >= 0 ? -1 : 1;
+  const screenX = worldToScreenX(footX, cameraX);
+  const runAmount = clamp((speed - 45) / 220, 0, 1);
+  ctx.save();
+  ctx.globalCompositeOperation = 'source-over';
+  if (typeof drawGroundDustLip === 'function') {
+    drawGroundDustLip(
+      ctx,
+      screenX - direction * 16,
+      renderFootY + 4,
+      54 + runAmount * 20,
+      `rgba(222, 151, 67, ${0.16 + runAmount * 0.1})`,
+    );
+  }
+  const contactShadow = ctx.createRadialGradient(screenX, renderFootY + 4, 4, screenX, renderFootY + 6, 64 + runAmount * 18);
+  contactShadow.addColorStop(0, `rgba(41, 22, 8, ${0.12 + runAmount * 0.08})`);
+  contactShadow.addColorStop(0.42, `rgba(82, 46, 18, ${0.08 + runAmount * 0.04})`);
+  contactShadow.addColorStop(1, 'rgba(82, 46, 18, 0)');
+  ctx.fillStyle = contactShadow;
+  ctx.beginPath();
+  ctx.ellipse(screenX - direction * 14, renderFootY + 6, 54 + runAmount * 18, 6.5, -0.04 * direction, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.globalAlpha = 0.13 + runAmount * 0.1;
+  ctx.fillStyle = 'rgba(232, 169, 86, 0.58)';
+  for (let index = 0; index < 4; index += 1) {
+    const seed = index * 41 + Math.round(player.x * 0.055);
+    const chipX = screenX - direction * (14 + index * 12) + Math.sin(seed) * 3;
+    const chipY = renderFootY + 4 + (index % 2) * 3;
+    const chipW = 5 + (seed % 4);
+    ctx.beginPath();
+    ctx.ellipse(chipX, chipY, chipW, 1.2 + runAmount * 0.55, -0.08 * direction, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+  if (stateRef.current.renderStats) {
+    stateRef.current.renderStats.desertEntryPlayerFootAnchor = 'warm-plaza-contact-shadow-v1';
   }
   return true;
 }
@@ -1550,7 +1565,7 @@ export function drawAncientRouteGroundFrame(ctx, section, cameraX, now, current,
   if (current.renderStats) {
     current.renderStats.routeGroundVisualMode = ROUTE_GROUND_VISUAL_MODE;
     current.renderStats.routeGroundHazeFixVersion = ROUTE_GROUND_HAZE_FIX_VERSION;
-    if (section.id === 'desert-entry') current.renderStats.desertGroundStyle = 'clean-stone-causeway-no-sand-sheet';
+    if (section.id === 'desert-entry') current.renderStats.desertGroundStyle = 'integrated-background-painted-route';
   }
   ctx.restore();
 }
@@ -2211,6 +2226,11 @@ export function drawPlatformFrame(ctx, platform, cameraX, current, deps) {
 
     const isGround = platform.y === GROUND_Y;
     const section = getSectionForX(platform.x);
+    if (isGround && section.id === 'desert-entry') {
+      drawBuriedStoneCausewaySurface(ctx, platform, x, cameraX, Date.now());
+      ctx.restore();
+      return;
+    }
     if (!isGround && current.renderStats) {
       current.renderStats.visibleElevatedPlatforms = [
         ...(current.renderStats.visibleElevatedPlatforms || []),
@@ -2299,7 +2319,6 @@ export function drawPlatformFrame(ctx, platform, cameraX, current, deps) {
       ctx.fillRect(platformX, visualY + visualHeight - 8, platformWidth, 8);
     }
     if (isGround && section.id === 'desert-entry') {
-      drawBuriedStoneCausewaySurface(ctx, platform, x, cameraX, Date.now());
       ctx.restore();
       return;
     }
@@ -3540,7 +3559,10 @@ export function drawDesertForegroundAtmosphereFrame(ctx, section, cameraX, deps)
   const isNearDesertEntry = section.id === 'desert-entry';
   const assets = getSectionBackgroundAssets(desertBackgroundAssetsRef.current, 'desert-entry');
   if (!isNearDesertEntry || !assets?.ready) return false;
-  if (assets.atlas?.runtimeMode === 'single-composited-backdrop') {
+  if (
+    assets.atlas?.runtimeMode === 'single-composited-backdrop'
+    || assets.atlas?.runtimeMode === 'single-integrated-gameplay-background'
+  ) {
     return false;
   }
   const layerOptions = { canvasWidth: CANVAS_WIDTH, cameraX };
@@ -3633,6 +3655,21 @@ export function drawForegroundDepthLayerFrame(ctx, section, cameraX, now, deps) 
     stateRef.current.renderStats.foregroundDepthParticleCount = particleCount;
   }
   return elementCount > 0 || particleCount > 0;
+}
+
+export function drawDesertEntryForegroundDepthFrame(ctx, section, cameraX, now, deps) {
+  const {
+    stateRef,
+  } = deps;
+  if (section.id !== 'desert-entry') return false;
+  void ctx;
+  void cameraX;
+  void now;
+  if (stateRef.current.renderStats) {
+    stateRef.current.renderStats.desertEntryForegroundDepthLoaded = false;
+    stateRef.current.renderStats.desertEntryForegroundDepthMode = 'retired-integrated-background-carries-front-edge';
+  }
+  return false;
 }
 
 export function drawTempleBackdropFrame(ctx, section, cameraX, deps) {
@@ -3733,6 +3770,44 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
   return drawn.every(Boolean);
 }
 
+// World-locked, 1:1 scrolling ground lane for desert-entry. The lane tile is a wide
+// strip whose upper ~48% is transparent sky and lower ~52% is the receding carved-stone
+// /rubble paving Asha runs on. Drawing it at parallax 1.0 (via the same tiling primitive
+// the other sections use) locks the visible floor to the world/collision plane and tiles
+// it seamlessly down the whole route — replacing the frozen single-plate painted footpath.
+// DEST_Y / DEST_HEIGHT place the paving so it straddles GROUND_Y (595) with the near edge
+// running off the bottom of the frame; HEIGHT >= ~374 keeps the tile at a uniform scale
+// (no horizontal stretch) and a repeat period wider than the viewport.
+const DESERT_GROUND_LANE_DEST_Y = 150;
+const DESERT_GROUND_LANE_DEST_HEIGHT = 520;
+
+export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
+  const {
+    CANVAS_WIDTH,
+    desertBackgroundAssetsRef,
+    drawDesertBackgroundLayer,
+    getSectionBackgroundAssets,
+    stateRef,
+  } = deps;
+  if (section.id !== 'desert-entry') return false;
+  const assets = getSectionBackgroundAssets(desertBackgroundAssetsRef.current, 'desert-entry');
+  if (!assets?.loaded) return false;
+
+  const drawn = drawDesertBackgroundLayer(
+    ctx,
+    assets,
+    'groundLane',
+    { y: DESERT_GROUND_LANE_DEST_Y, height: DESERT_GROUND_LANE_DEST_HEIGHT },
+    { canvasWidth: CANVAS_WIDTH, cameraX, parallax: 1, alpha: 1 },
+  );
+
+  if (drawn && stateRef.current.renderStats) {
+    stateRef.current.renderStats.desertEntryGroundLaneActive = true;
+    stateRef.current.renderStats.desertEntryGroundLaneParallax = 1;
+  }
+  return drawn;
+}
+
 export function drawChinaRiverValleyBackgroundFrame(ctx, cameraX, deps) {
   const {
     CANVAS_HEIGHT,
@@ -3746,6 +3821,19 @@ export function drawChinaRiverValleyBackgroundFrame(ctx, cameraX, deps) {
   const assets = getSectionBackgroundAssets(desertBackgroundAssetsRef.current, 'china-river-valley');
   if (!assets?.ready) return false;
   const layerOptions = { canvasWidth: CANVAS_WIDTH, cameraX };
+  if (assets.atlas?.runtimeMode === 'layered-parallax') {
+    // Five stacked bands from china-river-valley-layered-pack.png, drawn back-to-front
+    // at increasing parallax for depth. Sky is the opaque base; the rest are transparent
+    // bands that layer over it. dest y/height are tuned for screen placement; each draw
+    // no-ops (returns false) if its region is absent, so partial art degrades gracefully.
+    const skyDrawn = drawDesertBackgroundLayer(ctx, assets, 'skyLayer', { y: 0, height: CANVAS_HEIGHT }, { ...layerOptions, parallax: 0.012, alpha: 1 });
+    if (!skyDrawn) return false;
+    drawDesertBackgroundLayer(ctx, assets, 'farMountains',    { y: 150, height: 260 }, { ...layerOptions, parallax: 0.05, alpha: 0.92 });
+    drawDesertBackgroundLayer(ctx, assets, 'riverValley',     { y: 232, height: 268 }, { ...layerOptions, parallax: 0.12, alpha: 0.96 });
+    drawDesertBackgroundLayer(ctx, assets, 'watchtowerRidge', { y: 300, height: 320 }, { ...layerOptions, parallax: 0.22, alpha: 1 });
+    drawDesertBackgroundLayer(ctx, assets, 'foregroundMist',  { y: 366, height: 280 }, { ...layerOptions, parallax: 0.42, alpha: 0.78 });
+    return true;
+  }
   if (assets.atlas?.runtimeMode === 'single-composited-backdrop') {
     const backdropDrawn = drawDesertBackgroundLayer(
       ctx,
@@ -3755,6 +3843,13 @@ export function drawChinaRiverValleyBackgroundFrame(ctx, cameraX, deps) {
       { ...layerOptions, parallax: 0, alpha: 1 },
     );
     if (!backdropDrawn) return false;
+    drawDesertBackgroundLayer(
+      ctx,
+      assets,
+      'farValley',
+      { y: 164, height: 300 },
+      { ...layerOptions, parallax: 0.035, alpha: 0.56 },
+    );
 
     ctx.save();
     const depthWash = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
@@ -3789,6 +3884,7 @@ export function drawChinaRiverValleyBackgroundFrame(ctx, cameraX, deps) {
   }
   const drawn = [
     drawDesertBackgroundLayer(ctx, assets, 'skyLayer', { y: 0, height: CANVAS_HEIGHT }, { ...layerOptions, parallax: 0.01, alpha: 1.0 }),
+    drawDesertBackgroundLayer(ctx, assets, 'farValley', { y: 164, height: 300 }, { ...layerOptions, parallax: 0.035, alpha: 0.56 }),
     // TODO: Uncomment when artists slice the China background properly
     // drawDesertBackgroundLayer(ctx, assets, 'farMountains', { y: 184, height: 228 }, { ...layerOptions, parallax: 0.06, alpha: 0.42 }),
     // drawDesertBackgroundLayer(ctx, assets, 'riverValley', { y: 258, height: 224 }, { ...layerOptions, parallax: 0.14, alpha: 0.46 }),
@@ -5483,6 +5579,7 @@ export function drawCombatEffectsFrame(ctx, effects, cameraX, deps) {
   const {
     SCORPION_VENOM_SPIT_EFFECT_FRAMES,
     clamp,
+    getDesertEntryVisualGroundOffsetY,
     playerComboSlashEffectRef,
     playerFinisherSlashEffectRef,
     scorpionVenomSpitEffectRef,
@@ -5490,7 +5587,28 @@ export function drawCombatEffectsFrame(ctx, effects, cameraX, deps) {
     effects.forEach((effect) => {
       const progress = effect.timer / (effect.maxTimer || 0.35);
       const x = effect.x - cameraX;
-      const y = effect.y;
+      const footAnchoredEffects = new Set([
+        'combo-slash',
+        'finisher-slash',
+        'combat-impact',
+        'weapon-hit-spark',
+        'defeat',
+        'boss-defeat',
+        'movement-dust',
+        'landing-dust',
+        'jump-dust',
+        'knockback-dust',
+        'sand-skid',
+      ]);
+      const visualGroundFootY = Number.isFinite(effect.visualGroundFootY)
+        ? effect.visualGroundFootY
+        : footAnchoredEffects.has(effect.type)
+          ? effect.y
+          : Number.NaN;
+      const visualGroundOffsetY = typeof getDesertEntryVisualGroundOffsetY === 'function' && Number.isFinite(visualGroundFootY)
+        ? getDesertEntryVisualGroundOffsetY(effect.x, visualGroundFootY)
+        : 0;
+      const y = effect.y + visualGroundOffsetY;
       const compactTypes = new Set([
         'enemy-counter-window',
         'boss-vulnerable',
@@ -8445,12 +8563,19 @@ export function useJourneyRenderer(deps) {
       drawCollectibleFrame(ctx, x, y, cameraX, now, label, color, hidden, isShard, sprite, deps)
     ),
     drawCombatEffects: (ctx, effects, cameraX) => drawCombatEffectsFrame(ctx, effects, cameraX, deps),
+    drawDesertEntryGroundMotionCues: (ctx, player, cameraX, now) => (
+      drawDesertEntryGroundMotionCuesFrame(ctx, player, cameraX, now, deps)
+    ),
     drawCinematicCards: (ctx, current) => drawCinematicCardsFrame(ctx, current, deps),
     drawChinaRiverValleyBackground: (ctx, cameraX) => drawChinaRiverValleyBackgroundFrame(ctx, cameraX, deps),
     drawConnectedWorldAmbientLife: (ctx, section, cameraX, now) => (
       drawConnectedWorldAmbientLifeFrame(ctx, section, cameraX, now, deps)
     ),
     drawDesertEntryBackground: (ctx, section, cameraX) => drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps),
+    drawDesertEntryGroundLane: (ctx, section, cameraX) => drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps),
+    drawDesertEntryForegroundDepth: (ctx, section, cameraX, now) => (
+      drawDesertEntryForegroundDepthFrame(ctx, section, cameraX, now, deps)
+    ),
     drawDesertEntryPrimaryBackgroundPlates: (ctx, current, cameraX) => (
       drawDesertEntryPrimaryBackgroundPlatesFrame(ctx, current, cameraX, deps)
     ),

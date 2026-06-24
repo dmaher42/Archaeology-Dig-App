@@ -4,6 +4,45 @@ Current source-of-truth note:
 - Future implementation should follow `docs/lost-site-expedition-production-bible.md`.
 - The production bible now defines implementation hierarchy, room pipelines, asset roles, and quality expectations.
 
+2026-06-24 Ancient Rome Section One production pass:
+- Built Rome as a playable Journey section first, not an archive review screen: Ancient Rome now starts directly in the side-scrolling expedition flow with Rome-specific briefing copy.
+- Created and wired real PNG assets for Rome backgrounds, route props, evidence icons, transparent enemy/boss atlases, Asha's Rome variant, gladius weapon art, and the Rome opening cinematic.
+- Replaced Egypt/Anubis leakage in the Rome start path: the opening cinematic now uses Forum, Legate, Asha, and vault-sigil PNGs, and the skip-intro notice names the Legate.
+- Added the Rome evidence spine for Republic-to-Empire discoveries and a timeline-locked vault gate so the HASS content is embedded through exploration/progression.
+- Removed the unsupported Rome milestone from the Egypt doorway renderer and upgraded the Via Sacra playable background so the first gameplay screen reads as Ancient Rome.
+- Verified focused Rome/prologue tests, a 29-file PNG alpha/existence audit, lint, production build, and a live browser playthrough from Ancient Rome start to playable Via Sacra.
+- Follow-up Rome visual cleanup: replaced the Via Sacra opening source with `public/assets/expedition/backgrounds/rome-via-sacra/rome-via-sacra-source-no-temple-2026-06-24.png`, regenerated the active Rome Via Sacra parallax PNGs from that no-temple Roman street source, and added a Rome test guard so the opening does not regress to the old temple-front approach.
+- Also routed Rome shard-gate hints through Rome-specific copy so the first Forum gate no longer inherits Egypt's ravine-bridge guidance in the playable Rome state.
+
+2026-06-24 Civilisation separation audit first pass:
+- Added an explicit Egypt-only Journey runtime guard so Temple Threshold, Mummification Chamber, Forgotten Mural, Scribe Chamber, Scarab Seal, Scarab Queen intro, and the opening first-shard echo no longer use the old "not China" shortcut.
+- Cleaned Journey debug/fallback reporting so Rome does not report missing China guardian enemy sprites, and background fallback checks are scoped to the active civilisation's background pack list.
+- Updated Rome production guards and Journey source guards to protect the separation and the civ-aware Rome/Egypt opening notice split.
+- Verified: Rome production section tests, full Journey source-guard test file, targeted lint on changed files, production build, and a short Chrome browser state/screenshot check for Ancient China and Ancient Rome.
+- Remaining separation work: Ancient China still uses the Egypt/Anubis opening cinematic and the shared debug scene id `egypt-exterior-route`; Rome still reports the Egypt environment pack id even though its Rome background pack and gladius weapon load correctly.
+
+2026-06-24 Desert Entry full background reset:
+- Replaced the rejected split scenic/floor Desert Entry setup with a new flat integrated gameplay background at `public/assets/expedition/backgrounds/desert-entry/desert-entry-integrated-temple-approach-flat-2026-06-24.png`.
+- Updated the active Journey background prop and Desert Entry manifest so the level painted carved-stone plaza is the visible walkable route; the separate playable-floor, rubble-mask, and foreground-depth strips are retired from the active runtime path.
+- Retired the old Temple Approach ramp overlay and its remaining invisible ramp platforms so the player no longer climbs a separate diagonal path over the rebuilt background.
+- Verified focused Journey guards, targeted lint, production build, and a browser gameplay screenshot confirming Asha starts on the painted flat plaza with the Desert Entry fallback off.
+- Follow-up readability fix: created `public/assets/expedition/backgrounds/desert-entry/desert-entry-integrated-temple-approach-readable-path-2026-06-24.png` from the flat rebuild, baking in clearer route edges, stronger paving rhythm, and a brighter left-to-right walkable path so the playable lane is obvious.
+- Screenshot alignment fix: replaced that with `public/assets/expedition/backgrounds/desert-entry/desert-entry-integrated-temple-approach-footpath-2026-06-24.png`, moving the readable cue down to the front stone lane where Asha's feet actually land.
+
+2026-06-24 Desert Entry layered game-art rebuild:
+- Replaced the temporary single-strip ground approach with layered Desert Entry art: separate background plate, world-locked playable floor, rubble seam mask, and light foreground depth.
+- Runtime now loads the active background from `journeyPlacementOverrides.generated.js` and draws the playable floor/mask/depth through the existing Journey renderer, leaving collision and platform data unchanged.
+- New PNG assets live under `public/assets/expedition/backgrounds/desert-entry/` and are recorded in `desert-entry-parallax-pack.json` as the active layered game-art contract.
+- Corrected the first layered-art haze pass by making the playable floor crisp and opaque at Asha's foot height, reducing the rubble mask to the seam, and keeping foreground depth limited to the lower screen edge.
+- Verified Asha walking across Desert Entry in browser screenshots, then passed focused Desert Entry guards, full Journey guard files, lint, and build before any commit or publish.
+
+2026-06-23 Desert Entry ground-plane integration:
+- Reworked the Desert Entry route floor from a pasted-on bottom strip into a camera-view perspective plaza plane that blends into the existing painted panorama.
+- Asha, her dodge trail, normal enemies, mini-bosses, attack tells, and key combat effects now render on the same raised visual ground plane while the proven collision floor remains unchanged.
+- Added subtle run-motion ground streaks so Asha's speed is easier to read after the visual raise.
+- No new background was generated in this pass; the existing Desert Entry panorama already had the correct plaza perspective once the overlay and actor render positions were fixed.
+- Verified Journey source-contract tests, targeted changed-file lint, production build, and a headless Chrome gameplay capture with Asha running beside active scorpion enemies on the shared floor.
+
 2026-06-21 Arrival Threshold Duat Echo Trial:
 - Implemented the Arrival Threshold as Asha's first playable Duat threshold after the scarab transport, using the new high-resolution threshold chamber art and existing Journey opening flow.
 - Added a story-tied practice combat sequence in the room: still echo, moving echo, and striking echo. The broken scarab breach stays locked until the trial is complete.

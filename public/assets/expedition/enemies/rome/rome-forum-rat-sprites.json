@@ -1,0 +1,58 @@
+{
+  "image": "rome-forum-rat-sprites.png",
+  "source": "Rome Section One transparent forum rat atlas generated as finished small enemy sprite art with alpha.",
+  "size": {
+    "w": 1024,
+    "h": 512
+  },
+  "regions": {
+    "forumRatIdle": {
+      "x": 0,
+      "y": 0,
+      "w": 256,
+      "h": 256
+    },
+    "forumRatWalk1": {
+      "x": 256,
+      "y": 0,
+      "w": 256,
+      "h": 256
+    },
+    "forumRatWalk2": {
+      "x": 512,
+      "y": 0,
+      "w": 256,
+      "h": 256
+    },
+    "forumRatWalk3": {
+      "x": 768,
+      "y": 0,
+      "w": 256,
+      "h": 256
+    },
+    "forumRatWindup": {
+      "x": 0,
+      "y": 256,
+      "w": 256,
+      "h": 256
+    },
+    "forumRatAttack": {
+      "x": 256,
+      "y": 256,
+      "w": 256,
+      "h": 256
+    },
+    "forumRatHit": {
+      "x": 512,
+      "y": 256,
+      "w": 256,
+      "h": 256
+    },
+    "forumRatDefeated": {
+      "x": 768,
+      "y": 256,
+      "w": 256,
+      "h": 256
+    }
+  }
+}

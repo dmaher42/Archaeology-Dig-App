@@ -1,0 +1,34 @@
+{
+  "image": "gladius-weapon-pack.png",
+  "source": "Rome Section One transparent gladius weapon atlas.",
+  "size": {
+    "w": 512,
+    "h": 512
+  },
+  "regions": {
+    "gladiusIdle": {
+      "x": 48,
+      "y": 0,
+      "w": 110,
+      "h": 256
+    },
+    "gladiusWindup": {
+      "x": 298,
+      "y": 0,
+      "w": 148,
+      "h": 230
+    },
+    "gladiusSwing": {
+      "x": 0,
+      "y": 286,
+      "w": 294,
+      "h": 226
+    },
+    "gladiusReady": {
+      "x": 316,
+      "y": 272,
+      "w": 196,
+      "h": 240
+    }
+  }
+}

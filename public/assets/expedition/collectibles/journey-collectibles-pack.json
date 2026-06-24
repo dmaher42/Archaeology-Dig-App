@@ -1,11 +1,11 @@
 {
-  "image": "journey-collectibles-pack.png",
-  "source": "AI-generated Journey collectible sprite atlas; field-kit slots replaced May 2026; semi-realistic restoration evidence fragments regenerated June 2026 from photo-textured artifact cutouts.",
+  "image": "journey-collectibles-pack-rome-section-one-2026-06-24.png",
+  "source": "AI-generated Journey collectible sprite atlas; field-kit slots replaced May 2026; semi-realistic restoration evidence fragments regenerated June 2026 from photo-textured artifact cutouts. Rome Section One evidence and upgrade icons appended June 2026. Rome Section One evidence and upgrade icons appended June 2026.",
   "size": {
-    "w": 1536,
-    "h": 1536
+    "w": 2048,
+    "h": 2048
   },
-  "coordinateNote": "Hand-cropped transparent atlas regions. Restoration fragments use semi-realistic artifact cutouts matching the Lost Site prop style while preserving existing collectible keys and fallbacks.",
+  "coordinateNote": "Hand-cropped transparent atlas regions. Restoration fragments use semi-realistic artifact cutouts matching the Lost Site prop style while preserving existing collectible keys and fallbacks. Rome icon regions occupy the transparent lower band of the expanded atlas. Rome icon regions occupy the transparent lower band of the expanded atlas.",
   "regions": {
     "brush": {
       "x": 32,
@@ -192,6 +192,102 @@
       "y": 1297,
       "w": 181,
       "h": 222
+    },
+    "romeSenateTablet": {
+      "x": 10,
+      "y": 1546,
+      "w": 108,
+      "h": 108
+    },
+    "romeLawTablet": {
+      "x": 138,
+      "y": 1546,
+      "w": 108,
+      "h": 108
+    },
+    "romeCaesarStatue": {
+      "x": 266,
+      "y": 1546,
+      "w": 108,
+      "h": 108
+    },
+    "romeAugustusCoin": {
+      "x": 394,
+      "y": 1546,
+      "w": 108,
+      "h": 108
+    },
+    "romeMilitaryStandard": {
+      "x": 522,
+      "y": 1546,
+      "w": 108,
+      "h": 108
+    },
+    "romeEmpireMap": {
+      "x": 650,
+      "y": 1546,
+      "w": 108,
+      "h": 108
+    },
+    "romeSplitEmpireTablet": {
+      "x": 778,
+      "y": 1546,
+      "w": 108,
+      "h": 108
+    },
+    "romeWaxTablet": {
+      "x": 906,
+      "y": 1546,
+      "w": 108,
+      "h": 108
+    },
+    "romeRomanCoin": {
+      "x": 10,
+      "y": 1674,
+      "w": 108,
+      "h": 108
+    },
+    "romeScrollBundle": {
+      "x": 138,
+      "y": 1674,
+      "w": 108,
+      "h": 108
+    },
+    "romeSandal": {
+      "x": 266,
+      "y": 1674,
+      "w": 108,
+      "h": 108
+    },
+    "romeGladiatorBrace": {
+      "x": 394,
+      "y": 1674,
+      "w": 108,
+      "h": 108
+    },
+    "romeLegionShield": {
+      "x": 522,
+      "y": 1674,
+      "w": 108,
+      "h": 108
+    },
+    "romeSenatorialRing": {
+      "x": 650,
+      "y": 1674,
+      "w": 108,
+      "h": 108
+    },
+    "romeArchiveKey": {
+      "x": 778,
+      "y": 1674,
+      "w": 108,
+      "h": 108
+    },
+    "romeTimelineSeal": {
+      "x": 906,
+      "y": 1674,
+      "w": 108,
+      "h": 108
     }
   }
 }

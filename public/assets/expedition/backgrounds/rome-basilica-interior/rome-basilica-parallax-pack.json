@@ -1,0 +1,46 @@
+{
+  "image": "rome-basilica-interior-main-2026-06-24.png",
+  "source": "Rome Section One production parallax pack generated from built-in AI Forum art plus project-local painted depth layers.",
+  "size": {
+    "w": 1536,
+    "h": 630
+  },
+  "coordinateNote": "Each region is a full-screen PNG layer. Prop and mist layers use real alpha; background composites are rectangular PNGs.",
+  "regions": {
+    "basilicaSky": {
+      "x": 0,
+      "y": 0,
+      "w": 1536,
+      "h": 630,
+      "image": "rome-basilica-interior-basilica-sky-2026-06-24.png"
+    },
+    "farApseWall": {
+      "x": 0,
+      "y": 0,
+      "w": 1536,
+      "h": 630,
+      "image": "rome-basilica-interior-far-apse-wall-2026-06-24.png"
+    },
+    "distantNaveColumns": {
+      "x": 0,
+      "y": 0,
+      "w": 1536,
+      "h": 630,
+      "image": "rome-basilica-interior-distant-nave-columns-2026-06-24.png"
+    },
+    "midgroundMarbleFloor": {
+      "x": 0,
+      "y": 0,
+      "w": 1536,
+      "h": 630,
+      "image": "rome-basilica-interior-midground-marble-floor-2026-06-24.png"
+    },
+    "foregroundColumnShadow": {
+      "x": 0,
+      "y": 0,
+      "w": 1536,
+      "h": 630,
+      "image": "rome-basilica-interior-foreground-column-shadow-2026-06-24.png"
+    }
+  }
+}

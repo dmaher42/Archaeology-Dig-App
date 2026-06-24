@@ -15,8 +15,59 @@ import {
   ROME_SECRET_AREAS,
   ROME_JOURNEY_TOOLS,
 } from './rome/romeLevelData.js';
+import { ROME_GROUND_Y, ROME_VERTICAL_OFFSET, scaleRomeX } from './rome/romeConstants.js';
 
 export { ROME_SECTIONS as ROME_SECTIONS };
+
+export const ROME_SECTION_ONE_QUESTION = 'How did Rome change from a Republic into an Empire?';
+
+export const ROME_TIMELINE_SEQUENCE = [
+  {
+    id: 'republic-founded',
+    label: 'Republic',
+    shortText: 'Republic: elected offices and Senate power shaped Rome before emperors.',
+  },
+  {
+    id: 'caesar-dictator',
+    label: 'Caesar',
+    shortText: 'Caesar became dictator, exposing the Republic\'s weakness.',
+  },
+  {
+    id: 'augustus-emperor',
+    label: 'Augustus',
+    shortText: 'Augustus won the civil wars and became Rome\'s first emperor.',
+  },
+  {
+    id: 'empire-expands',
+    label: 'Empire Expands',
+    shortText: 'Armies, roads and governors pushed Roman rule across provinces.',
+  },
+  {
+    id: 'empire-splits',
+    label: 'Empire Splits',
+    shortText: 'The huge Empire later split east and west to survive.',
+  },
+];
+
+export const ROME_FORUM_ARCHIVE_ROOM = {
+  id: 'rome-forum-archive-room',
+  sectionId: 'basilica-interior',
+  entryX: scaleRomeX(6000),
+  exitX: scaleRomeX(7350),
+  question: ROME_SECTION_ONE_QUESTION,
+};
+
+export const ROME_SECTION_ID_BY_BACKGROUND_FOLDER = {
+  'rome-via-sacra': 'via-sacra',
+  'rome-forum-ruins': 'forum-ruins',
+  'rome-subterranean-thermae': 'subterranean-thermae',
+  'rome-basilica-interior': 'basilica-interior',
+  'rome-sealed-vault': 'sealed-vault',
+};
+
+const STAMPED_ROME_ASSET_SUFFIX = '2026-06-24';
+const ROME_ENVIRONMENT_ASSET_BASE_PATH = 'assets/expedition/environment/rome-section-one/';
+const romeAsset = (name) => `${ROME_ENVIRONMENT_ASSET_BASE_PATH}${name}-${STAMPED_ROME_ASSET_SUFFIX}.png`;
 
 // --- Sections ---
 export const ROME_JOURNEY_SECTIONS = ROME_SECTIONS;
@@ -47,11 +98,19 @@ export const ROME_ROUTE_GATES = ROME_GATES.map((gate) => ({
   label: gate.label,
   sectionId: gate.sectionId,
   requiredKeys: gate.requiredKeys ?? 1,
-  message: `This gate is sealed. Recover ${gate.requiredKeys ?? 1} key ${gate.requiredKeys === 1 ? 'item' : 'items'} to continue.`,
-  readyHint: 'The gate is ready to open.',
-  openMessage: 'The gate yields.',
+  timelinePuzzleRequired: Boolean(gate.timelinePuzzleRequired),
+  message: gate.timelinePuzzleRequired
+    ? 'The archive gate is out of order. Recover the Rome evidence sequence before forcing it.'
+    : `This gate is sealed. Recover ${gate.requiredKeys ?? 1} evidence ${gate.requiredKeys === 1 ? 'piece' : 'pieces'} to continue.`,
+  readyHint: gate.timelinePuzzleRequired
+    ? 'The Republic-to-Empire evidence sequence is restored. The vault lock is exposed.'
+    : 'The gate is ready to open.',
+  openMessage: gate.timelinePuzzleRequired
+    ? 'The timeline lock turns. The vault yields.'
+    : 'The gate yields.',
   requires: {
     shards: gate.requiredKeys ?? 1,
+    ...(gate.timelinePuzzleRequired ? { timelineSequence: ROME_TIMELINE_SEQUENCE } : {}),
   },
 }));
 
@@ -103,26 +162,191 @@ export const ROME_RELIC_SHARD_LAYOUT = ROME_SHARD_LAYOUT.map((shard) => ({
   x: shard.x,
   y: shard.y,
   sectionId: shard.sectionId,
+  spriteKey: shard.spriteKey,
+  label: shard.label,
+  shortName: shard.shortName,
+  timelineId: shard.timelineId,
+  timelineOrder: shard.timelineOrder,
+  timelineNotice: shard.timelineNotice,
   critical: shard.critical ?? false,
 }));
 
 // --- Boss key items (keys that unlock gates) ---
 export const ROME_BOSS_KEY_ITEMS = ROME_KEY_LAYOUT.map((key) => ({
   id: key.id,
+  name: 'Archive seal key',
+  label: 'Archive seal key',
   x: key.x,
   y: key.y,
   unlocksGateId: key.unlocksGateId,
+  gateId: key.unlocksGateId,
+  spriteKey: 'romeArchiveKey',
+  color: '#c8a24a',
   type: 'gate-key',
 }));
 
-// --- Story props (upgrade drops, decorative scene objects) ---
-export const ROME_STORY_PROPS = ROME_UPGRADE_LAYOUT.map((upgrade) => ({
-  id: upgrade.id,
-  x: upgrade.x,
-  y: upgrade.y,
-  type: 'upgrade-drop',
-  effect: upgrade.effect,
-}));
+const romeImageProp = ({
+  id,
+  asset,
+  x,
+  y = ROME_GROUND_Y,
+  width,
+  height,
+  depth = 'midground',
+  alpha = 1,
+  shadowOpacity = 0.16,
+  sectionId,
+  colorGradeFilter = 'sepia(8%) saturate(92%) brightness(95%) contrast(102%)',
+  ...rest
+}) => ({
+  id,
+  type: 'image-prop',
+  imageAssetKey: id,
+  assetPath: romeAsset(asset),
+  x,
+  y,
+  width,
+  height,
+  depth,
+  alpha,
+  shadowOpacity,
+  sectionId,
+  colorGradeFilter,
+  ...rest,
+});
+
+export const ROME_SCENE_PROPS = [
+  romeImageProp({
+    id: 'rome-via-sacra-ground-strip',
+    asset: 'rome-forum-ground-strip',
+    x: scaleRomeX(900),
+    width: 980,
+    height: 132,
+    depth: 'grounded',
+    sectionId: 'via-sacra',
+    alpha: 0.78,
+    shadowOpacity: 0.08,
+  }),
+  romeImageProp({
+    id: 'rome-via-sacra-column-cluster',
+    asset: 'rome-column-cluster',
+    x: scaleRomeX(1180),
+    y: ROME_GROUND_Y - 18,
+    width: 300,
+    height: 350,
+    depth: 'midground',
+    sectionId: 'via-sacra',
+  }),
+  romeImageProp({
+    id: 'rome-forum-law-tablet-prop',
+    asset: 'rome-law-tablet-prop',
+    x: scaleRomeX(2520),
+    y: ROME_GROUND_Y - 32,
+    width: 112,
+    height: 112,
+    depth: 'grounded',
+    sectionId: 'forum-ruins',
+  }),
+  romeImageProp({
+    id: 'rome-forum-caesar-statue-prop',
+    asset: 'rome-caesar-statue-prop',
+    x: scaleRomeX(3180),
+    y: ROME_GROUND_Y - 18,
+    width: 142,
+    height: 142,
+    depth: 'midground',
+    sectionId: 'forum-ruins',
+  }),
+  romeImageProp({
+    id: 'rome-forum-column-cluster',
+    asset: 'rome-column-cluster',
+    x: scaleRomeX(3650),
+    y: ROME_GROUND_Y - 20,
+    width: 340,
+    height: 396,
+    depth: 'midground',
+    sectionId: 'forum-ruins',
+    mirrorX: true,
+  }),
+  romeImageProp({
+    id: 'rome-thermae-stone-ledge',
+    asset: 'rome-stone-ledge',
+    x: scaleRomeX(4880),
+    y: ROME_GROUND_Y - 32,
+    width: 280,
+    height: 74,
+    depth: 'grounded',
+    sectionId: 'subterranean-thermae',
+    alpha: 0.86,
+  }),
+  romeImageProp({
+    id: 'rome-thermae-standard-prop',
+    asset: 'rome-military-standard-prop',
+    x: scaleRomeX(5320),
+    y: ROME_GROUND_Y - 28,
+    width: 128,
+    height: 128,
+    depth: 'midground',
+    sectionId: 'subterranean-thermae',
+    colorGradeFilter: 'saturate(72%) brightness(82%) contrast(104%)',
+  }),
+  romeImageProp({
+    id: 'rome-basilica-archive-doorway',
+    asset: 'rome-archive-doorway',
+    x: scaleRomeX(6075),
+    y: ROME_GROUND_Y - 2,
+    width: 236,
+    height: 320,
+    depth: 'midground',
+    sectionId: 'basilica-interior',
+  }),
+  romeImageProp({
+    id: 'rome-basilica-timeline-arch',
+    asset: 'rome-timeline-arch',
+    x: scaleRomeX(6700),
+    y: ROME_GROUND_Y - 18,
+    width: 360,
+    height: 230,
+    depth: 'midground',
+    sectionId: 'basilica-interior',
+    shadowOpacity: 0.12,
+  }),
+  romeImageProp({
+    id: 'rome-vault-locked-gate',
+    asset: 'rome-locked-vault-gate',
+    x: scaleRomeX(7350),
+    y: ROME_GROUND_Y,
+    width: 250,
+    height: 340,
+    depth: 'midground',
+    sectionId: 'basilica-interior',
+    colorGradeFilter: 'sepia(12%) saturate(86%) brightness(88%) contrast(108%)',
+  }),
+  romeImageProp({
+    id: 'rome-vault-scroll-bundle',
+    asset: 'rome-scroll-bundle-prop',
+    x: scaleRomeX(8080),
+    y: ROME_GROUND_Y - 28,
+    width: 118,
+    height: 118,
+    depth: 'grounded',
+    sectionId: 'sealed-vault',
+  }),
+  romeImageProp({
+    id: 'rome-vault-treasure-chest',
+    asset: 'rome-treasure-chest-prop',
+    x: scaleRomeX(8500),
+    y: ROME_GROUND_Y - 20,
+    width: 150,
+    height: 150,
+    depth: 'midground',
+    sectionId: 'sealed-vault',
+    colorGradeFilter: 'sepia(20%) saturate(72%) brightness(82%) contrast(110%)',
+  }),
+];
+
+// --- Story props (decorative scene objects) ---
+export const ROME_STORY_PROPS = ROME_SCENE_PROPS;
 
 // --- Section atmospheres (full shape — matches Egypt's SECTION_ATMOSPHERES) ---
 export const ROME_SECTION_ATMOSPHERES = {
@@ -234,16 +458,9 @@ export const ROME_HIDDEN_ROUTES = ROME_SECRET_AREAS.map((area) => ({
 }));
 
 // --- Stage entrance features ---
-export const ROME_STAGE_ENTRANCE_FEATURES = [
-  {
-    id: 'rome-opening-milestone',
-    type: 'milestone-plinth',
-    x: 300,
-    y: 560,
-    label: 'Roman milestone: distance marker carved in Latin',
-    sectionId: 'via-sacra',
-  },
-];
+// Rome uses PNG image-props for route landmarks; the shared stage-entrance renderer
+// is reserved for full doorway structures.
+export const ROME_STAGE_ENTRANCE_FEATURES = [];
 
 // --- Environment events ---
 export const ROME_ENVIRONMENT_EVENTS = [];
@@ -320,7 +537,7 @@ export const ROME_LORE_TABLETS = [
     y: 520,
     sectionId: 'via-sacra',
     title: 'Milestone Inscription',
-    text: 'From this stone: six hundred paces to the Forum gate. Built under the consul Gaius Aemilius.',
+    text: 'A road marker. The Republic counted distance, duty and offices before emperors claimed Rome.',
   },
   {
     id: 'tablet-forum-record',
@@ -328,7 +545,7 @@ export const ROME_LORE_TABLETS = [
     y: 470,
     sectionId: 'forum-ruins',
     title: 'Senate Record Fragment',
-    text: 'The archive is to be sealed by order of the Senate. No record of its contents shall remain above ground.',
+    text: 'Senate seal. This archive was buried because power was changing hands.',
   },
   {
     id: 'tablet-thermae-lead-stamp',
@@ -336,7 +553,7 @@ export const ROME_LORE_TABLETS = [
     y: 490,
     sectionId: 'subterranean-thermae',
     title: 'Lead Pipe Stamp',
-    text: 'Property of the Imperial Baths. Year of Nero. Pipe installer: M. Vettius Firma.',
+    text: 'Imperial bath stamp. Rome built systems that reached far beyond the Forum.',
   },
   {
     id: 'tablet-basilica-edict',
@@ -344,7 +561,7 @@ export const ROME_LORE_TABLETS = [
     y: 470,
     sectionId: 'basilica-interior',
     title: 'Posted Edict',
-    text: 'By authority of the Legate: this chamber and all passages below are closed until further notice. Trespassers will be judged accordingly.',
+    text: 'Legate order. Soldiers guarded records when politics could no longer hold them.',
   },
   {
     id: 'tablet-vault-import-record',
@@ -352,7 +569,7 @@ export const ROME_LORE_TABLETS = [
     y: 490,
     sectionId: 'sealed-vault',
     title: 'Import Record — Egypt Origin',
-    text: 'Received: one sealed cedar chest, contents listed as \'ceremonial items from the eastern province.\'  Actual contents: correspondence between the Senate and an unknown Egyptian official. Date of seal: before the eruption. Reason: unknown.',
+    text: 'Egyptian seal. Rome ruled distant provinces, but the vault kept one connection hidden.',
   },
 ];
 
@@ -391,8 +608,34 @@ export const ROME_WORLD_TRANSITION_STORY_MARKERS = [
 export const ROME_TOOLS = ROME_JOURNEY_TOOLS;
 
 // --- Upgrades (shared structure, Rome flavour names) ---
+const ROME_UPGRADE_COPY = {
+  'upgrade-roman-sandal': {
+    name: 'Winged Roman Sandal',
+    emoji: 'S',
+    description: 'Move faster across broken stone roads.',
+  },
+  'upgrade-gladiator-brace': {
+    name: 'Gladiator Brace',
+    emoji: 'B',
+    description: 'Strike harder after a clean opening.',
+  },
+  'upgrade-legion-shield': {
+    name: 'Legion Shield',
+    emoji: 'D',
+    description: 'Reduce damage from heavy Roman guards.',
+  },
+  'upgrade-senatorial-ring': {
+    name: 'Senatorial Ring',
+    emoji: 'R',
+    description: 'Pull nearby evidence into reach.',
+  },
+};
+
 export const ROME_UPGRADES = ROME_UPGRADE_LAYOUT.map((u) => ({
   id: u.id,
+  name: ROME_UPGRADE_COPY[u.id]?.name || u.id,
+  emoji: ROME_UPGRADE_COPY[u.id]?.emoji || 'U',
+  description: ROME_UPGRADE_COPY[u.id]?.description || '',
   effect: u.effect,
   x: u.x,
   y: u.y,
@@ -508,7 +751,6 @@ export const ROME_MINI_BOSSES = [];
 export { ROME_BOSS_SPAWN };
 
 // Gate position — end of the sealed vault section, world position
-import { scaleRomeX, ROME_VERTICAL_OFFSET } from './rome/romeConstants.js';
 const _RJY = (y) => y + ROME_VERTICAL_OFFSET;
 export const ROME_GATE = {
   x: scaleRomeX(8820),

@@ -1,0 +1,58 @@
+{
+  "image": "rome-vestibule-wisp-sprites.png",
+  "source": "Rome Section One enemy atlas derived from existing production Journey enemy art and retuned as Roman variants.",
+  "size": {
+    "w": 1024,
+    "h": 512
+  },
+  "regions": {
+    "vestibuleWispIdle": {
+      "x": 0,
+      "y": 0,
+      "w": 256,
+      "h": 256
+    },
+    "vestibuleWispWalk1": {
+      "x": 256,
+      "y": 0,
+      "w": 256,
+      "h": 256
+    },
+    "vestibuleWispWalk2": {
+      "x": 512,
+      "y": 0,
+      "w": 256,
+      "h": 256
+    },
+    "vestibuleWispWalk3": {
+      "x": 768,
+      "y": 0,
+      "w": 256,
+      "h": 256
+    },
+    "vestibuleWispWindup": {
+      "x": 0,
+      "y": 256,
+      "w": 256,
+      "h": 256
+    },
+    "vestibuleWispAttack": {
+      "x": 256,
+      "y": 256,
+      "w": 256,
+      "h": 256
+    },
+    "vestibuleWispHit": {
+      "x": 512,
+      "y": 256,
+      "w": 256,
+      "h": 256
+    },
+    "vestibuleWispDefeated": {
+      "x": 768,
+      "y": 256,
+      "w": 256,
+      "h": 256
+    }
+  }
+}

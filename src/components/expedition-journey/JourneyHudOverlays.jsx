@@ -460,7 +460,45 @@ export function JourneyBriefingOverlay({
   OPENING_CINEMATIC_ENABLED,
   startOpeningCinematic,
   startJourneyWithoutOpeningScene,
+  targetCivilisation = 'Ancient Egypt',
 }) {
+  const isRomeBriefing = String(targetCivilisation).toLowerCase().includes('rome');
+  const briefingCopy = isRomeBriefing
+    ? {
+        kicker: 'Forum Breach',
+        title: 'Ancient Rome',
+        intro: 'Asha enters the Via Sacra as a sealed archive stirs below the Forum.',
+        tag: 'THE FORUM',
+        missionTitle: 'Break the Senate vault',
+        missionDesc: 'Cross the Via Sacra, fight through the ruins, recover evidence of Rome\'s shift from Republic to Empire, and force the archive gate open.',
+        portraitSrc: 'assets/expedition/player/asha-rome-cutscene-2026-06-24.png',
+        portraitAlt: 'Asha ready for the Ancient Rome expedition',
+        tasks: [
+          'Push through the Via Sacra',
+          'Recover tablets, coins, statues, and standards',
+          'Fight the Legate\'s guards',
+          'Restore the Republic-to-Empire sequence',
+          'Open the sealed vault beneath the Forum',
+        ],
+      }
+    : {
+        kicker: 'Expedition Arrival',
+        title: 'Lost Site Expedition',
+        intro: 'Asha reaches a sealed site where the first guardian is already watching.',
+        tag: 'SEALED SITE',
+        missionTitle: 'The site tests the expedition',
+        missionDesc: 'The site won\'t open easily. Read what it still remembers, recover the scattered relics, and outlast the guardians that watch it.',
+        portraitSrc: 'assets/expedition/player/asha-reference-warrior-reference.png',
+        portraitAlt: 'Asha Explorer',
+        tasks: [
+          'Find and read the Lost Map Tablet',
+          'Collect relic shards along the route',
+          'Use shards to open sealed paths',
+          'Defeat the first guardian',
+          'Reach Base Camp',
+        ],
+      };
+
   return (
     <>
       {briefingOpen && (
@@ -470,26 +508,25 @@ export function JourneyBriefingOverlay({
               <div className="briefing-header-copy">
                 <div className="briefing-kicker">
                   <Flag size={16} />
-                  Expedition Arrival
+                  {briefingCopy.kicker}
                 </div>
-                <h1 className="premium-text-glow cinzel-header" style={{ fontSize: "2.5rem", margin: "0.2rem 0" }}>Lost Site Expedition</h1>
-                <p>Asha reaches a sealed site where the first guardian is already watching.</p>
+                <h1 className="premium-text-glow cinzel-header" style={{ fontSize: "2.5rem", margin: "0.2rem 0" }}>{briefingCopy.title}</h1>
+                <p>{briefingCopy.intro}</p>
               </div>
               <div className="briefing-hero-mark" aria-hidden="true">
                 <img
                   className="briefing-hero-portrait"
-                  src="assets/expedition/player/asha-reference-warrior-reference.png"
-                  alt="Asha Explorer"
+                  src={briefingCopy.portraitSrc}
+                  alt={briefingCopy.portraitAlt}
                 />
               </div>
             </div>
             <div className="briefing-content">
               <div className="mission-dossier expedition-start-dossier">
-                <div className="dossier-tag">SEALED SITE</div>
-                <h2 className="mission-title">The site tests the expedition</h2>
+                <div className="dossier-tag">{briefingCopy.tag}</div>
+                <h2 className="mission-title">{briefingCopy.missionTitle}</h2>
                 <p className="mission-desc">
-                  The site won't open easily. Read what it still remembers, recover the scattered
-                  relics, and outlast the guardians that watch it.
+                  {briefingCopy.missionDesc}
                 </p>
               </div>
               <div className="briefing-task-panel">
@@ -498,13 +535,7 @@ export function JourneyBriefingOverlay({
                   <h2>What to do first</h2>
                 </div>
                 <ul className="briefing-task-list">
-                  {[
-                    'Find and read the Lost Map Tablet',
-                    'Collect relic shards along the route',
-                    'Use shards to open sealed paths',
-                    'Defeat the first guardian',
-                    'Reach Base Camp',
-                  ].map(task => (
+                  {briefingCopy.tasks.map(task => (
                     <li key={task}>
                       <CheckCircle2 size={16} />
                       <span>{task}</span>

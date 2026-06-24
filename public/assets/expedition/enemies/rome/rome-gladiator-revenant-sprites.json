@@ -1,0 +1,58 @@
+{
+  "image": "rome-gladiator-revenant-sprites.png",
+  "source": "Rome Section One enemy atlas derived from existing production Journey enemy art and retuned as Roman variants.",
+  "size": {
+    "w": 1024,
+    "h": 512
+  },
+  "regions": {
+    "gladiatorRevenantIdle": {
+      "x": 0,
+      "y": 0,
+      "w": 256,
+      "h": 256
+    },
+    "gladiatorRevenantWalk1": {
+      "x": 256,
+      "y": 0,
+      "w": 256,
+      "h": 256
+    },
+    "gladiatorRevenantWalk2": {
+      "x": 512,
+      "y": 0,
+      "w": 256,
+      "h": 256
+    },
+    "gladiatorRevenantWalk3": {
+      "x": 768,
+      "y": 0,
+      "w": 256,
+      "h": 256
+    },
+    "gladiatorRevenantWindup": {
+      "x": 0,
+      "y": 256,
+      "w": 256,
+      "h": 256
+    },
+    "gladiatorRevenantAttack": {
+      "x": 256,
+      "y": 256,
+      "w": 256,
+      "h": 256
+    },
+    "gladiatorRevenantHit": {
+      "x": 512,
+      "y": 256,
+      "w": 256,
+      "h": 256
+    },
+    "gladiatorRevenantDefeated": {
+      "x": 768,
+      "y": 256,
+      "w": 256,
+      "h": 256
+    }
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "image": "rome-legion-shade-sprites.png",
+  "source": "Rome Section One enemy atlas derived from existing production Journey enemy art and retuned as Roman variants.",
+  "size": {
+    "w": 1024,
+    "h": 512
+  },
+  "regions": {
+    "legionShadeIdle": {
+      "x": 0,
+      "y": 0,
+      "w": 256,
+      "h": 256
+    },
+    "legionShadeWalk1": {
+      "x": 256,
+      "y": 0,
+      "w": 256,
+      "h": 256
+    },
+    "legionShadeWalk2": {
+      "x": 512,
+      "y": 0,
+      "w": 256,
+      "h": 256
+    },
+    "legionShadeWalk3": {
+      "x": 768,
+      "y": 0,
+      "w": 256,
+      "h": 256
+    },
+    "legionShadeWindup": {
+      "x": 0,
+      "y": 256,
+      "w": 256,
+      "h": 256
+    },
+    "legionShadeAttack": {
+      "x": 256,
+      "y": 256,
+      "w": 256,
+      "h": 256
+    },
+    "legionShadeHit": {
+      "x": 512,
+      "y": 256,
+      "w": 256,
+      "h": 256
+    },
+    "legionShadeDefeated": {
+      "x": 768,
+      "y": 256,
+      "w": 256,
+      "h": 256
+    }
+  }
+}

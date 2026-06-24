@@ -1,5 +1,18 @@
 // ENEMY_BASE_HEIGHT is intentionally separate from PLAYER_SPRITE_DRAW_HEIGHT so that
 // enemy sizes stay fixed when Asha's draw height is tuned.
+import {
+  EXPECTED_ROME_FORUM_RAT_SPRITE_KEYS,
+  EXPECTED_ROME_GLADIATOR_REVENANT_SPRITE_KEYS,
+  EXPECTED_ROME_LEGION_SHADE_SPRITE_KEYS,
+  EXPECTED_ROME_MARBLE_GOLEM_SPRITE_KEYS,
+  EXPECTED_ROME_VESTIBULE_WISP_SPRITE_KEYS,
+  ROME_FORUM_RAT_SPRITE_ATLAS_JSON,
+  ROME_GLADIATOR_REVENANT_SPRITE_ATLAS_JSON,
+  ROME_LEGION_SHADE_SPRITE_ATLAS_JSON,
+  ROME_MARBLE_GOLEM_SPRITE_ATLAS_JSON,
+  ROME_VESTIBULE_WISP_SPRITE_ATLAS_JSON,
+} from './rome/romeEnemySprites.js';
+
 const ENEMY_BASE_HEIGHT = 108;
 
 export const ENEMY_SPRITE_BASE_PATH = 'assets/expedition/enemies/';
@@ -340,6 +353,26 @@ const ENEMY_SPRITE_PACKS = {
     atlasPath: CHINA_CLAY_GUARDIAN_ENEMY_SPRITE_ATLAS_JSON,
     expectedKeys: EXPECTED_CHINA_CLAY_GUARDIAN_ENEMY_SPRITE_KEYS,
   },
+  legionShade: {
+    atlasPath: ROME_LEGION_SHADE_SPRITE_ATLAS_JSON,
+    expectedKeys: EXPECTED_ROME_LEGION_SHADE_SPRITE_KEYS,
+  },
+  gladiatorRevenant: {
+    atlasPath: ROME_GLADIATOR_REVENANT_SPRITE_ATLAS_JSON,
+    expectedKeys: EXPECTED_ROME_GLADIATOR_REVENANT_SPRITE_KEYS,
+  },
+  forumRat: {
+    atlasPath: ROME_FORUM_RAT_SPRITE_ATLAS_JSON,
+    expectedKeys: EXPECTED_ROME_FORUM_RAT_SPRITE_KEYS,
+  },
+  vestibuleWisp: {
+    atlasPath: ROME_VESTIBULE_WISP_SPRITE_ATLAS_JSON,
+    expectedKeys: EXPECTED_ROME_VESTIBULE_WISP_SPRITE_KEYS,
+  },
+  marbleGolem: {
+    atlasPath: ROME_MARBLE_GOLEM_SPRITE_ATLAS_JSON,
+    expectedKeys: EXPECTED_ROME_MARBLE_GOLEM_SPRITE_KEYS,
+  },
 };
 
 export const EGYPT_JOURNEY_ENEMY_SPRITE_PACK_IDS = [
@@ -501,6 +534,11 @@ export const getEnemySpritePack = (assets, family) => {
   if (family === 'riverCrab') return assets?.packs?.chinaRiverCrab || assets?.packs?.chinaEnemyGuardian || null;
   if (family === 'watchtowerSentry') return assets?.packs?.chinaWatchtowerSentry || assets?.packs?.chinaEnemyGuardian || null;
   if (family === 'clayGuardian') return assets?.packs?.chinaClayGuardianEnemy || assets?.packs?.chinaEnemyGuardian || null;
+  if (family === 'legionShade') return assets?.packs?.legionShade || null;
+  if (family === 'gladiatorRevenant') return assets?.packs?.gladiatorRevenant || null;
+  if (family === 'forumRat') return assets?.packs?.forumRat || null;
+  if (family === 'vestibuleWisp') return assets?.packs?.vestibuleWisp || null;
+  if (family === 'marbleGolem') return assets?.packs?.marbleGolem || null;
   return assets?.packs?.small || assets || null;
 };
 

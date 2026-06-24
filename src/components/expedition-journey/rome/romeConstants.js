@@ -7,13 +7,13 @@ export const ROME_WORLD_WIDTH = scaleRomeX(ROME_BASE_WORLD_WIDTH);
 export const ROME_GROUND_Y = 595;
 export const ROME_VERTICAL_OFFSET = 235;
 
-// Asha Rome variant — a new sprite atlas. Placeholder paths until art is delivered.
+// Asha Rome variant sprite atlas.
 export const PLAYER_ROME_HERO_SPRITE_ATLAS_JSON = 'assets/expedition/player/asha-rome-variant-spritesheet.json';
-export const PLAYER_ROME_HERO_SPRITE_VERSION = 'asha-rome-variant-spritesheet-placeholder-2026-05-31';
+export const PLAYER_ROME_HERO_SPRITE_VERSION = 'asha-rome-variant-spritesheet-production-2026-06-24';
 
 // Rome weapon — gladius replaces khopesh
 export const ROME_PLAYER_WEAPON_ATLAS_JSON = 'assets/expedition/player/gladius-weapon-pack.json';
-export const ROME_PLAYER_WEAPON_ATLAS_VERSION = 'gladius-weapon-pack-placeholder-2026-05-31';
+export const ROME_PLAYER_WEAPON_ATLAS_VERSION = 'gladius-weapon-pack-production-2026-06-24';
 export const ROME_EXPECTED_PLAYER_WEAPON_ASSET_KEYS = [
   'gladiusIdle',
   'gladiusWindup',

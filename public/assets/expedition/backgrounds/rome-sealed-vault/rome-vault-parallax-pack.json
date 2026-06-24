@@ -1,0 +1,46 @@
+{
+  "image": "rome-sealed-vault-main-2026-06-24.png",
+  "source": "Rome Section One production parallax pack generated from built-in AI Forum art plus project-local painted depth layers.",
+  "size": {
+    "w": 1536,
+    "h": 630
+  },
+  "coordinateNote": "Each region is a full-screen PNG layer. Prop and mist layers use real alpha; background composites are rectangular PNGs.",
+  "regions": {
+    "vaultDarkAtmosphere": {
+      "x": 0,
+      "y": 0,
+      "w": 1536,
+      "h": 630,
+      "image": "rome-sealed-vault-vault-dark-atmosphere-2026-06-24.png"
+    },
+    "farInscribedWalls": {
+      "x": 0,
+      "y": 0,
+      "w": 1536,
+      "h": 630,
+      "image": "rome-sealed-vault-far-inscribed-walls-2026-06-24.png"
+    },
+    "distantSealedArchways": {
+      "x": 0,
+      "y": 0,
+      "w": 1536,
+      "h": 630,
+      "image": "rome-sealed-vault-distant-sealed-archways-2026-06-24.png"
+    },
+    "midgroundVaultFloor": {
+      "x": 0,
+      "y": 0,
+      "w": 1536,
+      "h": 630,
+      "image": "rome-sealed-vault-midground-vault-floor-2026-06-24.png"
+    },
+    "foregroundAshDrift": {
+      "x": 0,
+      "y": 0,
+      "w": 1536,
+      "h": 630,
+      "image": "rome-sealed-vault-foreground-ash-drift-2026-06-24.png"
+    }
+  }
+}

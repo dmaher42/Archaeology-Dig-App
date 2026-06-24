@@ -227,8 +227,7 @@ const scribeChamberExteriorPath = new URL('../../../public/assets/expedition/env
 const scribeChamberInteriorPath = new URL('../../../public/assets/expedition/environment/desert-temple/scribe-locked-chamber-interior-2026-06-01.png', import.meta.url);
 const mummificationChamberInteractionAtlasPath = new URL('../../../public/assets/expedition/environment/desert-temple/mummification-chamber/mummification-chamber-interaction-atlas.png', import.meta.url);
 const desertEntryGroundingOverlayPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-grounding-overlay.png', import.meta.url);
-const desertEntryPremiumCausewayLanePath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-premium-causeway-lane.png', import.meta.url);
-const desertEntryMegaPanoramaPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry-opening-rebuild/desert-entry-mega-panorama-story-route-2026-06-19.png', import.meta.url);
+const desertEntryIntegratedBackgroundPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-integrated-temple-approach-footpath-2026-06-24.png', import.meta.url);
 const egyptForegroundDepthAtlasPath = new URL('../../../public/assets/expedition/environment/egypt-foreground/egypt-foreground-depth-pack.json', import.meta.url);
 const egyptForegroundDepthPngPath = new URL('../../../public/assets/expedition/environment/egypt-foreground/egypt-foreground-depth-pack.png', import.meta.url);
 const ashaComboSlashEffectPath = new URL('../../../public/assets/expedition/player/asha-combo-slash-effect-2026-06-06.png', import.meta.url);
@@ -1202,11 +1201,26 @@ test('journey editor prop palette exposes premium modular floor kit inserts', ()
   assert.match(journeyComponentSource, /Object\.assign\(nextProp, getGroundAwareStoryPropEditorEdit\(nextProp, \{ y: nextProp\.y \}\)\)/);
 });
 
-test('desert entry buried causeway visual is narrower than the floor collision band', () => {
-  assert.match(journeyComponentSource, /DESERT_ENTRY_CAUSEWAY_DRAW_HEIGHT = 34/);
-  assert.match(journeyComponentSource, /DESERT_ENTRY_CAUSEWAY_DRAW_Y_OFFSET = -4/);
-  assert.match(journeyComponentSource, /desertEntryCausewayVisualMode\s*=\s*'clean-stone-causeway-no-sand-sheet'/);
+test('desert entry ground collision uses the integrated painted route instead of a separate strip', () => {
+  assert.match(journeyComponentSource, /ROUTE_GROUND_VISUAL_MODE = 'desert-entry-painted-background-route-v1'/);
+  assert.match(journeyComponentSource, /ROUTE_GROUND_HAZE_FIX_VERSION = 'route-ground-footpath-integrated-temple-approach-2026-06-24'/);
+  assert.match(useJourneyRendererSource, /desertEntryCausewayVisualMode\s*=\s*ROUTE_GROUND_VISUAL_MODE/);
+  assert.match(useJourneyRendererSource, /desertEntryGroundBodyFill\s*=\s*'painted-into-background-no-separate-floor-strip'/);
   assert.doesNotMatch(journeyComponentSource, /const drawHeight = 96;\s*const drawY = platform\.y - 42;/);
+});
+
+test('desert entry uses world-locked contact as the shared visual foot anchor', () => {
+  assert.match(journeyComponentSource, /getDesertEntryVisualGroundOffsetY/);
+  assert.match(journeyComponentSource, /getDesertEntryGroundContactActive/);
+  assert.match(journeyComponentSource, /getGroundPlaneEntityRenderY/);
+  assert.match(journeyComponentSource, /playerGroundPlaneRenderY/);
+  assert.match(journeyComponentSource, /enemyGroundPlaneRenderY/);
+  assert.match(journeyComponentSource, /DESERT_ENTRY_VISUAL_GROUND_PLANE_OFFSET_Y = 0/);
+  assert.doesNotMatch(journeyComponentSource, /DESERT_ENTRY_VISUAL_GROUND_PLANE_OFFSET_Y = -46/);
+  assert.match(useJourneyRendererSource, /desertEntryCausewayVisualMode\s*=\s*ROUTE_GROUND_VISUAL_MODE/);
+  assert.match(useJourneyRendererSource, /desertEntryPlayableGroundPlane\s*=\s*'integrated-background-painted-route-v1'/);
+  assert.match(useJourneyRendererSource, /drawDesertEntryGroundMotionCuesFrame/);
+  assert.match(useJourneyRendererSource, /getDesertEntryGroundContactActive/);
 });
 
 test('journey editor exposes arch gates and checkpoints through canonical placement data', () => {
@@ -1376,11 +1390,12 @@ test('opening transport and arrival use dedicated scarab, threshold, Anubis, and
 
 test('opening arrival aftermath confirms Asha is trapped, watched, and must move forward into judgement', () => {
   assert.match(journeyComponentSource, /const OPENING_ARRIVAL_AFTERSHOCK_NOTICE = 'The way back is gone\. Anubis is still watching\. The only path is forward, into judgement\.'/);
-  assert.match(journeyComponentSource, /current\.notice = OPENING_ARRIVAL_AFTERSHOCK_NOTICE/);
+  assert.match(journeyComponentSource, /const openingArrivalNotice = isRomeCinematic \? ROME_OPENING_ARRIVAL_NOTICE : OPENING_ARRIVAL_AFTERSHOCK_NOTICE/);
+  assert.match(journeyComponentSource, /current\.notice = openingArrivalNotice/);
   assert.match(journeyComponentSource, /id:\s*'opening-arrival-aftershock'/);
   assert.match(journeyComponentSource, /name:\s*'Asha'/);
-  assert.match(journeyComponentSource, /message:\s*OPENING_ARRIVAL_AFTERSHOCK_NOTICE/);
-  assert.match(journeyComponentSource, /skipOpeningCinematic[\s\S]*?OPENING_ARRIVAL_AFTERSHOCK_NOTICE/);
+  assert.match(journeyComponentSource, /message:\s*openingArrivalNotice/);
+  assert.match(journeyComponentSource, /skipOpeningCinematic[\s\S]*?ROME_OPENING_ARRIVAL_NOTICE[\s\S]*?OPENING_ARRIVAL_AFTERSHOCK_NOTICE/);
   assert.doesNotMatch(journeyComponentSource, /opening-arrival-aftershock[\s\S]{0,400}(chosen|destiny|memory to protect|It was not treasure they stole)/i);
 });
 
@@ -2730,6 +2745,7 @@ test('opening Scarab Seal becomes a restrained false-discovery threshold scene',
   assert.match(journeyComponentSource, /drawOpeningSphinxDialogue/);
   assert.doesNotMatch(journeyComponentSource, /current\.environmentEvent = \{[\s\S]*?name:\s*SCARAB_SEAL_TRIGGER\.eventName[\s\S]*?message:\s*SCARAB_SEAL_TRIGGER\.messages\.slice\(1\)\.join\(' '\)/);
   assert.match(journeyComponentSource, /b\.id === SCARAB_SEAL_TRIGGER\.bossId[\s\S]*?!current\.scarabSealActivated/);
+  assert.match(journeyComponentSource, /const scarabSealRequired = scopedJourneyAssetPacks\.isEgyptJourney[\s\S]*?&& b\.id === SCARAB_SEAL_TRIGGER\.bossId/);
   assert.match(journeyComponentSource, /scarabSealRequired && current\.openingThresholdScene/);
   assert.match(journeyComponentSource, /target === 'journey-boss-start'/);
   assert.match(journeyComponentSource, /setBriefingOpen\(false\)/);
@@ -2748,7 +2764,7 @@ test('opening Scarab Seal becomes a restrained false-discovery threshold scene',
   assert.doesNotMatch(journeyComponentSource, /visualHazardId === 'opening-seal-reset-trap'[\s\S]*?strokeStyle = 'rgba\(250, 204, 21/);
   assert.doesNotMatch(journeyComponentSource, /openingScarabConfrontationPending/);
   const openingSealRuntimeBlock = journeyComponentSource.slice(
-    journeyComponentSource.indexOf("if (backgroundPackId !== 'china-river-valley' && !current.scarabSealActivated)"),
+    journeyComponentSource.indexOf('if (!inInteriorChamberScene && scopedJourneyAssetPacks.isEgyptJourney && !current.scarabSealActivated)'),
     journeyComponentSource.indexOf('getActiveHiddenRoutes().forEach'),
   );
   assert.doesNotMatch(openingSealRuntimeBlock, /player\.x = playerDomainStartX/);
@@ -3686,7 +3702,8 @@ test('Opening Anubis confrontation cannot replay after it has already been seen'
   assert.match(startOpeningBlock, /if \(current\.openingConfrontationSeen\) \{/);
   assert.match(startOpeningBlock, /current\.openingCinematic = null/);
   assert.match(startOpeningBlock, /current\.arrivalThresholdActive = false/);
-  assert.match(startOpeningBlock, /current\.notice = OPENING_ARRIVAL_AFTERSHOCK_NOTICE/);
+  assert.match(startOpeningBlock, /const openingArrivalNotice = isRomeCinematic \? ROME_OPENING_ARRIVAL_NOTICE : OPENING_ARRIVAL_AFTERSHOCK_NOTICE/);
+  assert.match(startOpeningBlock, /current\.notice = openingArrivalNotice/);
   assert.match(startOpeningBlock, /return;/);
 });
 
@@ -4009,7 +4026,8 @@ test('Scarab Queen boss intro is staged as a buried-sand emergence cinematic', (
   assert.match(useJourneyRendererSource, /cinematicBeat:\s*buriedSandEmergenceActive \? getScarabQueenEmergenceBeat\(introProgress\) : null/);
   assert.doesNotMatch(journeyComponentSource, /id:\s*'scarab-queen-trigger-looter'[\s\S]*?type:\s*'looter'/);
   assert.match(useJourneyRendererSource, /if \(boss\.id === 'scarab-queen' && bossVisualState\?\.buriedSandEmergence && bossVisualState\.cinematicBeat\?\.queenRise <= 0\) return false;/);
-  assert.match(journeyComponentSource, /if \(isBuriedScarabQueen && current\.bossDomain\?\.bossId === boss\.id\) \{[\s\S]*?drawScarabQueenLairOpeningProp\(ctx,/);
+  assert.match(journeyComponentSource, /const bossDomainActive = isBuriedScarabQueen && current\.bossDomain\?\.bossId === boss\.id/);
+  assert.match(journeyComponentSource, /if \(bossDomainActive\) \{[\s\S]*?drawScarabQueenLairOpeningProp\(ctx,[\s\S]*?drawMiniBoss\(ctx, renderBoss, bx, now\);/);
   assert.match(journeyComponentSource, /SCARAB_QUEEN_EMERGENCE_INTRO_SECONDS[\s\S]*?current\.bossIntro = \{[\s\S]*?title:\s*`Buried Lair: \$\{boss\.name\}`/);
   assert.match(journeyComponentSource, /target === 'journey-boss-intro-progress'/);
   assert.match(journeyComponentSource, /const bossIntroActive = current\.bossIntro\?\.id === boss\.id;[\s\S]*?if \(!bossIntroActive\) drawEnemyAttackTell/);
@@ -5046,66 +5064,65 @@ test('conservative sign cleanup moves route signs onto atlas-backed props', () =
   assert.doesNotMatch(storyProps, /type:\s*'sign'/);
 });
 
-test('desert entry single-backdrop mode is bypassed in favor of the approved panorama', () => {
-  assert.equal(desertEntryBackgroundAtlas.runtimeMode, 'single-composited-backdrop');
-  assert.ok(Object.keys(desertEntryBackgroundAtlas.regions).includes('sky') && Object.keys(desertEntryBackgroundAtlas.regions).includes('groundingOverlay'));
-  assert.equal(desertEntryBackgroundAtlas.regions.sky.image, undefined);
-  assert.equal(desertEntryBackgroundAtlas.regions.groundingOverlay.image, 'desert-entry-grounding-overlay.png');
-  assert.match(journeyBackgroundAssetsSource, /'groundingOverlay'/);
+test('desert entry asset manifest records the integrated gameplay-background rebuild', () => {
+  assert.equal(desertEntryBackgroundAtlas.runtimeMode, 'single-integrated-gameplay-background');
+  assert.equal(desertEntryBackgroundAtlas.image, 'desert-entry-integrated-temple-approach-footpath-2026-06-24.png');
+  assert.equal(desertEntryBackgroundAtlas.imageWidth, 2048);
+  assert.equal(desertEntryBackgroundAtlas.imageHeight, 768);
+  assert.equal(desertEntryBackgroundAtlas.regions.integratedGameplayBackground.image, 'desert-entry-integrated-temple-approach-footpath-2026-06-24.png');
+  assert.match(journeyBackgroundAssetsSource, /'integratedGameplayBackground'/);
+  assert.doesNotMatch(JSON.stringify(desertEntryBackgroundAtlas.regions), /playableFloor|floorRubbleMask|foregroundDepth|layeredBackground/);
   assert.doesNotMatch(journeyComponentSource, /'groundingOverlay'/);
-  assert.match(journeyComponentSource, /desert-entry-clean-panorama-only-2026-06-18/);
+  assert.match(journeyComponentSource, /desert-entry-footpath-integrated-gameplay-background-2026-06-24/);
   assert.doesNotMatch(journeyComponentSource, /'dustOverlay'/);
   assert.doesNotMatch(journeyComponentSource, /'foregroundParallax'/);
 });
 
-test('Desert Entry active panorama uses the story-route mega panorama PNG', () => {
+test('Desert Entry active panorama uses the integrated gameplay background PNG', () => {
   const panorama = journeyPlacementOverrides.props.find((prop) => (
     prop.id === 'desert-entry-arrival-ravine-mummification-panorama-1'
   ));
 
   assert.equal(
     panorama?.assetPath,
-    'assets/expedition/backgrounds/desert-entry-opening-rebuild/desert-entry-mega-panorama-story-route-2026-06-19.png',
+    'assets/expedition/backgrounds/desert-entry/desert-entry-integrated-temple-approach-footpath-2026-06-24.png',
   );
-  assert.equal(panorama?.width, 2172);
-  assert.equal(panorama?.height, 724);
+  assert.equal(panorama?.imageAssetKey, 'desertEntryIntegratedTempleApproach');
+  assert.equal(panorama?.width, 2048);
+  assert.equal(panorama?.height, 768);
   assert.equal(panorama?.depth, 'background');
   assert.equal(panorama?.layer, 'background');
   assert.equal(panorama?.panoramaCropBias, 0.32);
   assert.match(
     panorama?.label || '',
-    /scarab arrival through ravine, sacred chambers, mural records, scribe route, and scarab queen approach/,
+    /readable level painted carved-stone footpath is the visible walkable route under Asha/,
   );
   assert.ok(
     !journeyPlacementOverrides.props.some((prop) => (
       prop.id === 'desert-entry-arrival-ravine-mummification-panorama-1'
-      && prop.assetPath === 'assets/expedition/backgrounds/desert-entry-opening-rebuild/desert-entry-clean-canyon-panorama-2026-06-18.png'
+      && prop.assetPath === 'assets/expedition/backgrounds/desert-entry-opening-rebuild/desert-entry-mega-panorama-story-route-2026-06-19.png'
     )),
   );
 
-  const panoramaBytes = readFileSync(desertEntryMegaPanoramaPath);
+  const panoramaBytes = readFileSync(desertEntryIntegratedBackgroundPath);
   assert.equal(panoramaBytes.toString('ascii', 1, 4), 'PNG');
-  assert.equal(panoramaBytes.readUInt32BE(16), 2172);
-  assert.equal(panoramaBytes.readUInt32BE(20), 724);
-  assert.equal(panoramaBytes[25], 2, 'mega panorama should be RGB PNG art for the opaque background plate');
+  assert.equal(panoramaBytes.readUInt32BE(16), 2048);
+  assert.equal(panoramaBytes.readUInt32BE(20), 768);
+  assert.equal(panoramaBytes[25], 2, 'integrated background should be RGB PNG art for the opaque background plate');
 });
 
-test('desert entry grounding overlay stays a transparent archaeological sediment layer', () => {
-  const overlayBytes = readFileSync(desertEntryGroundingOverlayPath);
-  assert.equal(overlayBytes.toString('ascii', 1, 4), 'PNG');
-  assert.equal(overlayBytes.readUInt32BE(16), desertEntryBackgroundAtlas.imageWidth);
-  assert.equal(overlayBytes.readUInt32BE(20), desertEntryBackgroundAtlas.imageHeight);
-  assert.equal(overlayBytes[25], 6, 'grounding overlay should be RGBA so the clean background remains canonical');
+test('desert entry manifest explains the painted route and retired strip layers', () => {
+  const manifestCopy = `${desertEntryBackgroundAtlas.notes} ${desertEntryBackgroundAtlas.coordinateNote}`;
   [
-    /buried ruin shelf/i,
-    /sand drifts/i,
-    /rubble fields/i,
-    /contact shadows/i,
-    /desert sediment/i,
-    /ground-level dust haze/i,
+    /readable level carved-stone footpath is painted into the scene itself where Asha's feet land/i,
+    /clear upper and lower route edges/i,
+    /stronger paving rhythm/i,
+    /collision remains aligned/i,
+    /no separate playable-floor, rubble-mask, or foreground-depth strip is active/i,
   ].forEach((pattern) => {
-    assert.match(desertEntryBackgroundAtlas.notes, pattern);
+    assert.match(manifestCopy, pattern);
   });
+  assert.ok(existsSync(desertEntryGroundingOverlayPath), 'the retired grounding overlay may remain on disk but should not be active in the manifest');
 });
 
 test('desert entry foreground depth pack stays transparent, visual-only, and edge-framed', () => {
@@ -5436,7 +5453,7 @@ test('Desert Entry invisible ledge cues avoid translucent collision panels in no
   assert.doesNotMatch(ledgeCueSource, /supportMaxDrop/);
 });
 
-test('Desert Entry opening ledge overrides form a rising stone ramp route', () => {
+test('Desert Entry opening ledge overrides keep the rebuilt plaza flat', () => {
   const platformOverridesById = new Map(
     journeyPlacementOverrides.platforms.map((platform) => [platform.id, platform]),
   );
@@ -5445,32 +5462,21 @@ test('Desert Entry opening ledge overrides form a rising stone ramp route', () =
     'desert-entry-platform-8',
     'desert-entry-platform-7',
     'desert-entry-platform-6',
+    'desert-entry-platform-11',
+    'desert-entry-ramp-approach-step-17',
   ].forEach((platformId) => {
-    assert.equal(platformOverridesById.get(platformId), undefined, `${platformId} should stay retired so Asha follows the painted ramp surface`);
-    assert.ok(deletedPlatformIds.has(platformId), `${platformId} should remain explicitly deleted from the old floating-step route`);
+    assert.equal(platformOverridesById.get(platformId), undefined, `${platformId} should stay retired so Asha follows the painted flat plaza surface`);
+    assert.ok(deletedPlatformIds.has(platformId), `${platformId} should remain explicitly deleted from the old rising-ramp route`);
   });
-
-  const summit = platformOverridesById.get('desert-entry-platform-11');
-  assert.deepEqual(
-    { id: summit?.id, x: summit?.x, y: summit?.y, width: summit?.width, label: summit?.label },
-    { id: 'desert-entry-platform-11', x: 790, y: 275, width: 150, label: 'opening ramp summit stone landing' },
-  );
 
   const wallBackedClimb = journeyPlacementOverrides.props.find(
     (prop) => prop.id === 'desert-entry-opening-wall-backed-climb-1',
   );
-  assert.ok(wallBackedClimb, 'the opening ramp should have wall-backed ruin art so ledges do not read as floating blocks');
-  assert.equal(wallBackedClimb.type, 'image-prop');
-  assert.equal(wallBackedClimb.depth, 'grounded');
-  assert.equal(wallBackedClimb.layer, 'grounded');
-  assert.equal(wallBackedClimb.assetPath, 'assets/expedition/environment/egypt-opening/temple-approach-gatehouse-ramp-v2-2026-06-19.png');
-  assert.equal(wallBackedClimb.mirrorX, false);
-  assert.equal(wallBackedClimb.collidable, false);
-  assert.equal(wallBackedClimb.sandOverlapHeight, 0);
-  assert.equal(wallBackedClimb.widthScale, 1);
-  assert.ok(wallBackedClimb.alpha >= 0.8, 'the ramp-block climb should render as a solid object, not a transparent overlay');
-  assert.match(wallBackedClimb.colorGradeFilter, /brightness\(82%\)/);
-  assert.match(wallBackedClimb.label, /without reading as a transparent wall overlay/);
+  assert.equal(wallBackedClimb, undefined, 'the old separate ramp overlay should not draw over the flat integrated background');
+  assert.ok(
+    (journeyPlacementOverrides.deletedPropIds || []).includes('desert-entry-opening-wall-backed-climb-1'),
+    'the old separate ramp overlay should remain explicitly deleted',
+  );
 
   assert.equal(
     journeyPlacementOverrides.props.find((prop) => prop.id === 'desert-entry-opening-temple-threshold-shelf-1'),
@@ -5479,56 +5485,83 @@ test('Desert Entry opening ledge overrides form a rising stone ramp route', () =
   );
 });
 
-test('Temple Approach gatehouse ramp has a walk-up collision path to the door', () => {
+test('Temple Approach entry uses the flat integrated background floor', () => {
   const platformOverridesById = new Map(
     journeyPlacementOverrides.platforms.map((platform) => [platform.id, platform]),
   );
   const deletedPlatformIds = new Set(journeyPlacementOverrides.deletedPlatformIds || []);
   const retiredStepIds = Array.from({ length: 18 }, (_, index) => (
     `desert-entry-ramp-approach-step-${String(index + 1).padStart(2, '0')}`
-  )).filter(id => id !== 'desert-entry-ramp-approach-step-17');
+  ));
   retiredStepIds.forEach((id) => {
     assert.equal(platformOverridesById.get(id), undefined, `${id} should not reintroduce a visible floating-step path`);
-    assert.ok(deletedPlatformIds.has(id), `${id} should remain retired while the smooth ramp assist owns the climb`);
+    assert.ok(deletedPlatformIds.has(id), `${id} should remain retired while the flat integrated background owns the route`);
   });
 
-  assert.match(journeyComponentSource, /TEMPLE_THRESHOLD_HALL_ENTRY_TRIGGER = \{[\s\S]*?minX:\s*805[\s\S]*?maxX:\s*935[\s\S]*?footY:\s*275/);
-  assert.equal(platformOverridesById.get('desert-entry-platform-11')?.y, 275);
-  assert.equal(platformOverridesById.get('desert-entry-ramp-approach-step-17')?.y, 290);
-  assert.match(journeyComponentSource, /TEMPLE_APPROACH_RAMP_WALK_SURFACE = \[[\s\S]*?\{ x:\s*245,\s*y:\s*GROUND_Y \}[\s\S]*?\{ x:\s*310,\s*y:\s*555 \}[\s\S]*?\{ x:\s*865,\s*y:\s*275 \}/);
-  assert.match(journeyComponentSource, /TEMPLE_APPROACH_RAMP_ASSIST = \{[\s\S]*?minX:\s*220[\s\S]*?maxSnapDown:\s*72[\s\S]*?maxSnapUp:\s*56/);
-  assert.match(journeyComponentSource, /TEMPLE_APPROACH_RAMP_LOWER_PATH_FOOT_Y = GROUND_Y - 8/);
+  assert.match(journeyComponentSource, /TEMPLE_THRESHOLD_HALL_ENTRY_TRIGGER = \{[\s\S]*?minX:\s*805[\s\S]*?maxX:\s*935[\s\S]*?maxY:\s*GROUND_Y \+ 10[\s\S]*?footY:\s*GROUND_Y/);
+  assert.equal(platformOverridesById.get('desert-entry-platform-11'), undefined);
+  assert.equal(platformOverridesById.get('desert-entry-ramp-approach-step-17'), undefined);
+  assert.match(journeyComponentSource, /TEMPLE_APPROACH_RAMP_WALK_SURFACE = \[[\s\S]*?\{ x:\s*245,\s*y:\s*GROUND_Y \}[\s\S]*?\{ x:\s*935,\s*y:\s*GROUND_Y \}/);
+  assert.doesNotMatch(journeyComponentSource, /TEMPLE_APPROACH_RAMP_WALK_SURFACE = \[[\s\S]*?\{ x:\s*310,\s*y:\s*555 \}/);
+  assert.match(journeyComponentSource, /TEMPLE_APPROACH_RAMP_ASSIST = \{[\s\S]*?minX:\s*220[\s\S]*?maxSnapDown:\s*18[\s\S]*?maxSnapUp:\s*18/);
+  assert.match(journeyComponentSource, /TEMPLE_APPROACH_RAMP_LOWER_PATH_FOOT_Y = GROUND_Y;/);
   assert.match(journeyComponentSource, /getTempleApproachRampSurfaceY/);
   assert.match(journeyComponentSource, /const templeApproachRampClimbRequested = jump[\s\S]*?playerFootY < TEMPLE_APPROACH_RAMP_LOWER_PATH_FOOT_Y/);
   assert.match(journeyComponentSource, /playerCenterXForRamp[\s\S]*?TEMPLE_APPROACH_RAMP_ASSIST\.minX[\s\S]*?templeApproachRampClimbRequested[\s\S]*?player\.y = rampSurfaceY - player\.height/);
   assert.doesNotMatch(journeyComponentSource, /playerCenterXForRamp[\s\S]*?current\.currentSectionId === 'desert-entry'[\s\S]*?TEMPLE_APPROACH_RAMP_ASSIST\.minX/);
-  assert.match(journeyComponentSource, /target === 'journey-temple-approach-ramp'[\s\S]*?current\.player\.x = clamp\(42[\s\S]*?current\.player\.y = GROUND_Y - current\.player\.height/);
+  assert.match(journeyComponentSource, /target === 'journey-temple-approach-ramp'[\s\S]*?current\.arrivalThresholdActive = false[\s\S]*?current\.player\.x = clamp\(42[\s\S]*?current\.player\.y = GROUND_Y - current\.player\.height/);
   assert.match(journeyComponentSource, /window\.__setExpeditionJourneyDebugPosition = \(x, y = null\)[\s\S]*?const nextY = y === null \? Number\.NaN : Number\(y\)/);
 });
 
-test('desert entry ground reads as a clean stone causeway without a sand sheet', () => {
+test('desert entry ground uses the painted background route and never paints a separate floor strip', () => {
   const drawBuriedStoneCausewaySurfaceSource = getComponentFunctionSource('drawBuriedStoneCausewaySurfaceFrame');
-  assert.match(journeyComponentSource, /ROUTE_GROUND_VISUAL_MODE = 'clean-stone-causeway-no-sand-sheet-v2'/);
-  assert.match(journeyComponentSource, /ROUTE_GROUND_HAZE_FIX_VERSION = 'route-ground-clean-causeway-no-sand-sheet-2026-06-19'/);
+  const drawAncientRouteGroundSource = getComponentFunctionSource('drawAncientRouteGroundFrame');
+  const drawDesertEntryForegroundDepthSource = getComponentFunctionSource('drawDesertEntryForegroundDepthFrame');
+  const drawDesertEntryGroundMotionCuesSource = getComponentFunctionSource('drawDesertEntryGroundMotionCuesFrame');
+  const drawPlayerSpriteSource = getComponentFunctionSource('drawPlayerSpriteFrame');
+  assert.match(journeyComponentSource, /ROUTE_GROUND_VISUAL_MODE = 'desert-entry-painted-background-route-v1'/);
+  assert.match(journeyComponentSource, /ROUTE_GROUND_HAZE_FIX_VERSION = 'route-ground-footpath-integrated-temple-approach-2026-06-24'/);
   assert.match(journeyComponentSource, /drawBuriedStoneCausewaySurface/);
   assert.match(journeyComponentSource, /section\.id !== 'desert-entry' \|\| platform\.y !== GROUND_Y/);
-  assert.match(journeyComponentSource, /DESERT_ENTRY_BURIED_CAUSEWAY_GROUND_SRC = 'assets\/expedition\/backgrounds\/desert-entry\/desert-entry-premium-causeway-lane\.png'/);
-  assert.match(journeyComponentSource, /DESERT_ENTRY_BURIED_CAUSEWAY_GROUND_VERSION = 'png-premium-causeway-lane-2026-06-02'/);
-  assert.match(journeyComponentSource, /desertEntryBuriedCausewayGroundRef = useRef/);
-  assert.match(drawBuriedStoneCausewaySurfaceSource, /sourceCropY = Math\.round\(sourceHeight \* 0\.26\)/);
-  assert.match(drawBuriedStoneCausewaySurfaceSource, /sourceCropHeight = Math\.round\(sourceHeight \* 0\.48\)/);
-  assert.match(drawBuriedStoneCausewaySurfaceSource, /ctx\.globalAlpha = 1/);
-  assert.match(drawBuriedStoneCausewaySurfaceSource, /ctx\.drawImage\(\s*causewayAsset\.image,\s*0,\s*sourceCropY,\s*sourceWidth,\s*sourceCropHeight/);
-  assert.doesNotMatch(drawBuriedStoneCausewaySurfaceSource, /createLinearGradient\(0, surfaceTop - 4/);
-  assert.doesNotMatch(drawBuriedStoneCausewaySurfaceSource, /drift\.addColorStop/);
-  assert.match(journeyComponentSource, /desertGroundStyle = 'clean-stone-causeway-no-sand-sheet'/);
+  assert.match(journeyComponentSource, /DESERT_ENTRY_BACKGROUND_ART_VERSION = 'integrated-temple-approach-footpath-painted-route-2026-06-24'/);
+  assert.doesNotMatch(journeyComponentSource, /DESERT_ENTRY_BURIED_CAUSEWAY_GROUND_SRC/);
+  assert.doesNotMatch(journeyComponentSource, /DESERT_ENTRY_FLOOR_RUBBLE_MASK_SRC/);
+  assert.doesNotMatch(journeyComponentSource, /DESERT_ENTRY_FOREGROUND_DEPTH_SRC/);
+  assert.doesNotMatch(journeyComponentSource, /desertEntryBuriedCausewayGroundRef = useRef/);
+  assert.doesNotMatch(journeyComponentSource, /desertEntryFloorRubbleMaskRef = useRef/);
+  assert.doesNotMatch(journeyComponentSource, /desertEntryForegroundDepthRef = useRef/);
+  assert.doesNotMatch(drawAncientRouteGroundSource, /fullScreenVisualGroundPlane/);
+  assert.doesNotMatch(drawAncientRouteGroundSource, /drawBuriedStoneCausewaySurfaceFrame\(ctx,\s*\{/);
+  assert.doesNotMatch(drawBuriedStoneCausewaySurfaceSource, /fullScreenVisualGroundPlane/);
+  assert.match(journeyComponentSource, /if \(isGround && section\.id === 'desert-entry'\) \{[\s\S]*?ctx\.restore\(\);[\s\S]*?return;/);
+  assert.doesNotMatch(drawBuriedStoneCausewaySurfaceSource, /drawWorldLockedLayer\(/);
+  assert.doesNotMatch(drawBuriedStoneCausewaySurfaceSource, /ctx\.drawImage/);
+  assert.match(drawBuriedStoneCausewaySurfaceSource, /desertEntryBackgroundArtVersion = DESERT_ENTRY_BACKGROUND_ART_VERSION/);
+  assert.match(drawBuriedStoneCausewaySurfaceSource, /desertEntryGroundBodyFill = 'painted-into-background-no-separate-floor-strip'/);
+  assert.match(drawBuriedStoneCausewaySurfaceSource, /desertEntryPlayableGroundPlane = 'integrated-background-painted-route-v1'/);
+  assert.match(drawBuriedStoneCausewaySurfaceSource, /desertEntryForegroundEdgeBlend = 'retired-separate-rubble-mask-strip'/);
+  assert.match(drawDesertEntryForegroundDepthSource, /retired-integrated-background-carries-front-edge/);
+  assert.doesNotMatch(journeyComponentSource, /drawDesertEntryForegroundDepth\(ctx, section, cameraX, now\)/);
+  assert.doesNotMatch(drawBuriedStoneCausewaySurfaceSource, /baseWash\.addColorStop/);
+  assert.doesNotMatch(drawBuriedStoneCausewaySurfaceSource, /ctx\.fillRect\(clipLeft, planeTop, clipWidth, planeHeight\)/);
+  assert.doesNotMatch(drawBuriedStoneCausewaySurfaceSource, /edgeBlend/);
+  assert.doesNotMatch(drawBuriedStoneCausewaySurfaceSource, /laneGlow/);
+  assert.doesNotMatch(drawBuriedStoneCausewaySurfaceSource, /groundTextureAlpha/);
+  assert.doesNotMatch(drawBuriedStoneCausewaySurfaceSource, /sourceCropY/);
+  assert.match(drawDesertEntryGroundMotionCuesSource, /desertEntryPlayerFootAnchor = 'warm-plaza-contact-shadow-v1'/);
+  assert.match(drawDesertEntryGroundMotionCuesSource, /drawGroundDustLip\(\s*ctx,\s*screenX - direction \* 16,\s*renderFootY \+ 4/);
+  assert.doesNotMatch(drawDesertEntryGroundMotionCuesSource, /now \/ \(26 - runAmount \* 9\)/);
+  assert.doesNotMatch(drawDesertEntryGroundMotionCuesSource, /% 92/);
+  assert.match(drawDesertEntryGroundMotionCuesSource, /if \(!contactActive \|\| speed < 45\) return false/);
+  assert.match(drawPlayerSpriteSource, /getDesertEntryVisualGroundOffsetY/);
+  assert.match(drawPlayerSpriteSource, /getDesertEntryGroundContactActive/);
+  assert.match(drawPlayerSpriteSource, /desertEntryPlayerFootContact = 'warm-plaza-foot-shadow-v1'/);
+  assert.match(useJourneyRendererSource, /desertGroundStyle = 'integrated-background-painted-route'/);
   assert.match(journeyComponentSource, /drawBuriedStoneCausewaySurface\(ctx, platform, x, cameraX, Date\.now\(\)\)/);
-  assert.equal(desertEntryBackgroundAtlas.regions.groundCausewayOverlay.image, 'desert-entry-premium-causeway-lane.png');
-  const causewayBytes = readFileSync(desertEntryPremiumCausewayLanePath);
-  assert.equal(causewayBytes.toString('ascii', 1, 4), 'PNG');
-  assert.equal(causewayBytes.readUInt32BE(16), 1536);
-  assert.equal(causewayBytes.readUInt32BE(20), 192);
-  assert.equal(causewayBytes[25], 6, 'causeway overlay should be RGBA/transparent');
+  assert.equal(desertEntryBackgroundAtlas.regions.integratedGameplayBackground.image, 'desert-entry-integrated-temple-approach-footpath-2026-06-24.png');
+  assert.equal(desertEntryBackgroundAtlas.regions.playableFloor, undefined);
+  assert.equal(desertEntryBackgroundAtlas.regions.floorRubbleMask, undefined);
+  assert.equal(desertEntryBackgroundAtlas.regions.foregroundDepth, undefined);
 });
 
 test('story props render local contact sediment and occlusion around asset bases', () => {
@@ -5669,15 +5702,16 @@ test('small atmosphere floor assets are permanently ground-locked instead of bac
   assert.doesNotMatch(journeyComponentSource, /groundLocked.*parallax/);
 });
 
-test('route ground uses a narrow floor edge instead of a full-width bottom haze', () => {
+test('route ground uses the painted background route instead of a full-width bottom haze', () => {
   const drawAncientRouteGroundSource = getComponentFunctionSource('drawAncientRouteGroundFrame');
   const drawOpeningPyramidFacadeSource = getComponentFunctionSource('drawOpeningPyramidFacade');
-  assert.match(journeyComponentSource, /ROUTE_GROUND_VISUAL_MODE = 'clean-stone-causeway-no-sand-sheet-v2'/);
-  assert.match(journeyComponentSource, /ROUTE_GROUND_HAZE_FIX_VERSION = 'route-ground-clean-causeway-no-sand-sheet-2026-06-19'/);
+  assert.match(journeyComponentSource, /ROUTE_GROUND_VISUAL_MODE = 'desert-entry-painted-background-route-v1'/);
+  assert.match(journeyComponentSource, /ROUTE_GROUND_HAZE_FIX_VERSION = 'route-ground-footpath-integrated-temple-approach-2026-06-24'/);
   assert.match(journeyComponentSource, /const floorBandTop = GROUND_Y -/);
   assert.match(journeyComponentSource, /routeGroundVisualMode: ROUTE_GROUND_VISUAL_MODE/);
   assert.match(journeyComponentSource, /routeGroundHazeFixVersion: ROUTE_GROUND_HAZE_FIX_VERSION/);
   assert.match(drawAncientRouteGroundSource, /if \(section\.id !== 'desert-entry'\) \{\s*const blendPoints = \[/);
+  assert.doesNotMatch(drawAncientRouteGroundSource, /fullScreenVisualGroundPlane/);
   assert.doesNotMatch(drawOpeningPyramidFacadeSource, /baseFade/);
   assert.doesNotMatch(drawOpeningPyramidFacadeSource, /GROUND_Y - 52/);
   assert.doesNotMatch(journeyComponentSource, /const pathBottom = CANVAS_HEIGHT/);
@@ -6239,7 +6273,8 @@ test('dodge visual state uses the preview dodge atlas row with the old fallback 
   assert.match(journeyComponentSource, /current\.dodgeTimer > 0 && hasDedicatedDodgeRow/);
   assert.match(journeyComponentSource, /current\.dodgeTrail = \[\];/);
   assert.match(journeyComponentSource, /current\.dodgeTrail\.unshift/);
-  assert.match(journeyComponentSource, /drawPlayerSprite\(ctx, ghost\.x - cameraX, ghost\.y, player\.width, player\.height, ghost\.dir, 0, now\)/);
+  assert.match(journeyComponentSource, /const ghostGroundPlaneRenderY = getGroundPlaneEntityRenderY/);
+  assert.match(journeyComponentSource, /drawPlayerSprite\(ctx, ghost\.x - cameraX, ghostRenderY, player\.width, player\.height, ghost\.dir, 0, now\)/);
 });
 
 test('hazards and traps use trap audio instead of door sounds', () => {

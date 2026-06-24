@@ -1,3 +1,5 @@
+import { ROME_SECTION_BACKGROUND_PACKS } from './rome/romeBackgroundAssets.js';
+
 export const DESERT_BACKGROUND_ATLAS_BASE_PATH = 'assets/expedition/backgrounds/desert-entry/';
 export const DESERT_BACKGROUND_ATLAS_JSON = `${DESERT_BACKGROUND_ATLAS_BASE_PATH}desert-entry-parallax-pack.json`;
 export const CATACOMBS_BACKGROUND_ATLAS_BASE_PATH = 'assets/expedition/backgrounds/catacombs/';
@@ -12,15 +14,16 @@ export const CHINA_RIVER_VALLEY_BACKGROUND_ATLAS_BASE_PATH = 'assets/expedition/
 export const CHINA_RIVER_VALLEY_BACKGROUND_ATLAS_JSON = `${CHINA_RIVER_VALLEY_BACKGROUND_ATLAS_BASE_PATH}china-river-valley-parallax-pack.json`;
 
 export const EXPECTED_DESERT_BACKGROUND_KEYS = [
-  'sky',
-  'groundingOverlay',
+  'integratedGameplayBackground',
+  'groundLane',
 ];
 
-export const DESERT_BACKGROUND_DEPTH_MODE = 'desert-entry-photoreal-single-backdrop-grounding-overlay-v2';
+export const DESERT_BACKGROUND_DEPTH_MODE = 'desert-entry-footpath-integrated-gameplay-background-v1';
 export const JOURNEY_BACKGROUND_DEPTH_MODE = 'journey-section-parallax-v2';
 
 export const EXPECTED_CHINA_RIVER_VALLEY_BACKGROUND_KEYS = [
   'skyLayer',
+  'farValley',
   'farMountains',
   'riverValley',
   'watchtowerRidge',
@@ -85,10 +88,12 @@ export const SECTION_BACKGROUND_PACKS = {
     ],
   },
   'china-river-valley': CHINA_RIVER_VALLEY_BACKGROUND_PACK,
+  ...ROME_SECTION_BACKGROUND_PACKS,
 };
 
 export const FUTURE_JOURNEY_BACKGROUND_PACKS = {
   'china-river-valley': CHINA_RIVER_VALLEY_BACKGROUND_PACK,
+  ...ROME_SECTION_BACKGROUND_PACKS,
 };
 
 export const EGYPT_JOURNEY_BACKGROUND_SECTION_IDS = [

@@ -2,7 +2,7 @@ import { drawAtlasRegion } from './journeyRenderAssets.js';
 
 export const COLLECTIBLE_ATLAS_BASE_PATH = 'assets/expedition/collectibles/';
 export const COLLECTIBLE_ATLAS_JSON = `${COLLECTIBLE_ATLAS_BASE_PATH}journey-collectibles-pack.json`;
-export const COLLECTIBLE_SPRITE_ATLAS_VERSION = 'journey-collectibles-restoration-fragments-2026-06-07';
+export const COLLECTIBLE_SPRITE_ATLAS_VERSION = 'journey-collectibles-rome-section-one-2026-06-24';
 
 export const EXPECTED_COLLECTIBLE_ASSET_KEYS = [
   'brush',
@@ -36,6 +36,22 @@ export const EXPECTED_COLLECTIBLE_ASSET_KEYS = [
   'inkNameFragment',
   'witnessLineFragment',
   'royalRecordFragment',
+  'romeSenateTablet',
+  'romeLawTablet',
+  'romeCaesarStatue',
+  'romeAugustusCoin',
+  'romeMilitaryStandard',
+  'romeEmpireMap',
+  'romeSplitEmpireTablet',
+  'romeWaxTablet',
+  'romeRomanCoin',
+  'romeScrollBundle',
+  'romeSandal',
+  'romeGladiatorBrace',
+  'romeLegionShield',
+  'romeSenatorialRing',
+  'romeArchiveKey',
+  'romeTimelineSeal',
 ];
 
 export const RELIC_SHARD_FRAGMENT_SPRITE_KEYS = [
@@ -48,6 +64,16 @@ export const RELIC_SHARD_FRAGMENT_SPRITE_KEYS = [
   'inkNameFragment',
   'witnessLineFragment',
   'royalRecordFragment',
+  'romeSenateTablet',
+  'romeLawTablet',
+  'romeCaesarStatue',
+  'romeAugustusCoin',
+  'romeMilitaryStandard',
+  'romeEmpireMap',
+  'romeSplitEmpireTablet',
+  'romeWaxTablet',
+  'romeRomanCoin',
+  'romeScrollBundle',
 ];
 
 export const getRelicShardSpriteKey = (shard) => {
@@ -135,6 +161,10 @@ export const getUpgradeSpriteKey = (upgradeId) => ({
   'torch-upgrade': 'torchUpgrade',
   'historian-vision': 'historianVision',
   'ancient-compass': 'ancientCompass',
+  'upgrade-roman-sandal': 'romeSandal',
+  'upgrade-gladiator-brace': 'romeGladiatorBrace',
+  'upgrade-legion-shield': 'romeLegionShield',
+  'upgrade-senatorial-ring': 'romeSenatorialRing',
 }[upgradeId] || null);
 
 export const getObjectiveSpriteKey = (markerType) => ({

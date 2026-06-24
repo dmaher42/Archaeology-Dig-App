@@ -74,7 +74,7 @@ export const WORLD_TRANSITION_STORY_MARKERS = makeProxy(EgyptData.WORLD_TRANSITI
 
 // Non-proxied items
 export const JOURNEY_TOOLS = EgyptData.JOURNEY_TOOLS;
-export const UPGRADES = EgyptData.UPGRADES;
+export const UPGRADES = makeProxy(EgyptData.UPGRADES, ChinaData.CHINA_UPGRADES, RomeData.ROME_UPGRADES);
 export const isChinaJourneyCivilisation = EgyptData.isChinaJourneyCivilisation;
 export const CHINA_ENEMIES = EgyptData.CHINA_ENEMIES;
 export const ENEMIES = EgyptData.ENEMIES;
@@ -99,7 +99,9 @@ export const getJourneyMiniBosses = (targetCivilisation) => {
 export const GATE = new Proxy(EgyptData.GATE, {
   get(target, prop) {
     const civ = typeof currentCiv === 'string' ? currentCiv.toLowerCase() : '';
-    const source = civ.includes('rome') ? RomeData.ROME_GATE : target;
+    const source = civ.includes('rome') ? RomeData.ROME_GATE
+      : civ.includes('china') ? (ChinaData.CHINA_GATE || target)
+      : target;
     return source[prop];
   },
 });
@@ -108,7 +110,9 @@ export const GATE = new Proxy(EgyptData.GATE, {
 export const DISCOVERY_ENTRANCE = new Proxy(EgyptData.DISCOVERY_ENTRANCE, {
   get(target, prop) {
     const civ = typeof currentCiv === 'string' ? currentCiv.toLowerCase() : '';
-    const source = civ.includes('rome') ? RomeData.ROME_DISCOVERY_ENTRANCE : target;
+    const source = civ.includes('rome') ? RomeData.ROME_DISCOVERY_ENTRANCE
+      : civ.includes('china') ? (ChinaData.CHINA_DISCOVERY_ENTRANCE || target)
+      : target;
     return source[prop];
   },
 });

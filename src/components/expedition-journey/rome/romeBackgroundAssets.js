@@ -1,4 +1,4 @@
-// Rome background parallax pack definitions — placeholder atlas paths until art is delivered.
+// Rome background parallax pack definitions for the playable Section One route.
 
 export const ROME_VIA_SACRA_BACKGROUND_ATLAS_BASE_PATH        = 'assets/expedition/backgrounds/rome-via-sacra/';
 export const ROME_FORUM_RUINS_BACKGROUND_ATLAS_BASE_PATH      = 'assets/expedition/backgrounds/rome-forum-ruins/';

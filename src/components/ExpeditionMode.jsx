@@ -28,6 +28,8 @@ import {
 import { SCENARIOS } from '../data';
 import { BUREAU_CASES, getCategoryTitle } from '../utils/gameLogic';
 import ExpeditionJourney, { JourneyControlsReference } from './ExpeditionJourney';
+import DynastyTimelinePuzzle from './DynastyTimelinePuzzle.jsx';
+import { CHINA_DYNASTY_TIMELINE } from './expedition-journey/chinaJourneyData.js';
 import {
   createExcavationMapAssetState,
   drawExcavationMapRegion,
@@ -1951,6 +1953,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
   const [selectedExpedition, setSelectedExpedition] = useState(null);
   const [previewExpedition, setPreviewExpedition] = useState(null);
   const [baseCampOpen, setBaseCampOpen] = useState(false);
+  const [dynastyTimelineOpen, setDynastyTimelineOpen] = useState(false);
   const [fieldKit, setFieldKit] = useState([]);
   const [journeyRunId, setJourneyRunId] = useState(0);
   const [journeyOpeningMode, setJourneyOpeningMode] = useState('standard');
@@ -2595,8 +2598,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
     setSelectedExpedition(stage);
     setPreviewExpedition(null);
     const isEgypt = stage.id === EXPEDITION_STAGE_IDS.EGYPT;
-    const isRome  = stage.id === EXPEDITION_STAGE_IDS.ROME;
-    const hasPrologue = isEgypt || isRome;
+    const hasPrologue = isEgypt;
     setExpeditionStage(content.startsAt === 'excavation' ? 'excavation' : hasPrologue ? 'archive-prologue' : 'journey');
     setJourneyOpeningMode(isEgypt ? 'arrival-threshold' : 'standard');
     setInspectedPrologueItems(new Set());
@@ -2705,7 +2707,12 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
     setBaseCampOpen(true);
     setNotice('Base Camp Outpost reached. Tool Bench, Relic Table, Field Journal, Evidence Board, and Route Map are ready for excavation prep.');
     audioControls.playExpeditionMusic?.('baseCamp');
-  }, [audioControls, journeyRunId, selectedStageId]);
+    // China Section One climax: restore the Shang -> Zhou -> Qin -> Han timeline
+    // before excavation prep. Other civilisations skip straight to Base Camp.
+    if (String(targetCivilisation).toLowerCase().includes('china')) {
+      setDynastyTimelineOpen(true);
+    }
+  }, [audioControls, journeyRunId, selectedStageId, targetCivilisation]);
 
   const purchaseShopItem = useCallback((itemId) => {
     const purchaseResult = applyShopPurchase(baseCampProgressionRef.current, itemId);
@@ -4454,7 +4461,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
   const journeyCursorShouldHide = journeyCursorHidden && !journeyPaused;
 
   const shouldShowArchivePrologue =
-    (selectedStageId === EXPEDITION_STAGE_IDS.EGYPT || selectedStageId === EXPEDITION_STAGE_IDS.ROME)
+    selectedStageId === EXPEDITION_STAGE_IDS.EGYPT
     && expeditionStage === 'archive-prologue';
   const isRomeArchivePrologue = selectedStageId === EXPEDITION_STAGE_IDS.ROME && expeditionStage === 'archive-prologue';
 
@@ -5377,6 +5384,12 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
   if (baseCampOpen) {
     return (
       <section className="expedition-fullscreen-room expedition-basecamp-room" aria-label="Base Camp">
+        {dynastyTimelineOpen && (
+          <DynastyTimelinePuzzle
+            dynasties={CHINA_DYNASTY_TIMELINE}
+            onSolved={() => setDynastyTimelineOpen(false)}
+          />
+        )}
         <header className="expedition-fullscreen-header">
           <div className="header-left">
             <button type="button" className="fullscreen-back-btn" onClick={onBackToMenu}>

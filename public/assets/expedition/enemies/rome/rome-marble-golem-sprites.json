@@ -1,0 +1,58 @@
+{
+  "image": "rome-marble-golem-sprites.png",
+  "source": "Rome Section One enemy atlas derived from existing production Journey enemy art and retuned as Roman variants.",
+  "size": {
+    "w": 1024,
+    "h": 512
+  },
+  "regions": {
+    "marbleGolemIdle": {
+      "x": 0,
+      "y": 0,
+      "w": 256,
+      "h": 256
+    },
+    "marbleGolemWalk1": {
+      "x": 256,
+      "y": 0,
+      "w": 256,
+      "h": 256
+    },
+    "marbleGolemWalk2": {
+      "x": 512,
+      "y": 0,
+      "w": 256,
+      "h": 256
+    },
+    "marbleGolemWalk3": {
+      "x": 768,
+      "y": 0,
+      "w": 256,
+      "h": 256
+    },
+    "marbleGolemWindup": {
+      "x": 0,
+      "y": 256,
+      "w": 256,
+      "h": 256
+    },
+    "marbleGolemAttack": {
+      "x": 256,
+      "y": 256,
+      "w": 256,
+      "h": 256
+    },
+    "marbleGolemHit": {
+      "x": 512,
+      "y": 256,
+      "w": 256,
+      "h": 256
+    },
+    "marbleGolemDefeated": {
+      "x": 768,
+      "y": 256,
+      "w": 256,
+      "h": 256
+    }
+  }
+}

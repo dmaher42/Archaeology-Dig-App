@@ -26,6 +26,7 @@ import {
   DESERT_JOURNEY_SCENE_PANELS,
   DESERT_JOURNEY_TRANSITION_MASKS,
 } from './journeyDesertBackgroundPanels.js';
+import { SCARAB_QUEEN_DRAW_OFFSET_X } from './journeyBossSprites.js';
 import journeyPlacementOverrides from './journeyPlacementOverrides.generated.js';
 import { journeyComponentSource } from './journeySourceText.test-utils.mjs';
 
@@ -45,6 +46,48 @@ const isHorizontallyVisibleForTest = (worldX, width, cameraX, margin = 0) => {
   const screenX = worldX - cameraX;
   return screenX + width >= -margin && screenX <= JOURNEY_TEST_VIEWPORT_WIDTH + margin;
 };
+
+test('Scarab Queen routed placement starts the fight close enough for combat', () => {
+  setExpeditionJourneyCiv('Ancient Egypt');
+  const scarabQueen = getJourneyMiniBosses('Ancient Egypt').find(boss => boss.id === SCARAB_SEAL_TRIGGER.bossId);
+
+  assert.ok(scarabQueen, 'Scarab Queen should exist in routed mini-boss data');
+  const playerWidth = 28;
+  const bossIntroPlayerStandoff = 65;
+  const arenaStart = scarabQueen.arenaStart ?? scarabQueen.x - 160;
+  const arenaEnd = scarabQueen.arenaEnd ?? scarabQueen.x + 180;
+  const bossArenaMin = Math.max(arenaStart + 90, scarabQueen.patrolMin);
+  const bossArenaMax = Math.max(
+    bossArenaMin,
+    Math.min(arenaEnd - scarabQueen.width - 24, scarabQueen.patrolMax),
+  );
+  const bossIntroX = Math.max(
+    bossArenaMin,
+    Math.min(
+      scarabQueen.lairX - SCARAB_QUEEN_DRAW_OFFSET_X - scarabQueen.width / 2,
+      bossArenaMax,
+    ),
+  );
+  const bossIntroCenterX = bossIntroX + scarabQueen.width / 2;
+  const bossVisualCenterX = bossIntroCenterX + SCARAB_QUEEN_DRAW_OFFSET_X;
+  const playerStartX = Math.max(
+    arenaStart + 44,
+    Math.min(
+      bossIntroX - playerWidth - bossIntroPlayerStandoff,
+      Math.max(arenaStart + 44, arenaEnd - playerWidth - 44),
+    ),
+  );
+  const openingDistance = Math.abs(bossIntroCenterX - (playerStartX + 14));
+
+  assert.ok(
+    openingDistance < 155,
+    `Scarab Queen intro distance should begin inside her attack trigger, received ${openingDistance}`,
+  );
+  assert.ok(
+    Math.abs(bossVisualCenterX - scarabQueen.lairX) <= 2,
+    `Scarab Queen should emerge from the lair center, received offset ${Math.round(bossVisualCenterX - scarabQueen.lairX)}`,
+  );
+});
 
 test('applyJourneyPlacementOverrides merges exported editor items by id without mutating base data', () => {
   const base = {
@@ -590,7 +633,7 @@ test('Desert Entry rebuild keeps walkable ground continuous while old scenery ov
   });
 });
 
-test('Desert Entry opening rebuild carries arrival, scarab seal, ravine, and Mummification doorway in one clean panorama', () => {
+test('Desert Entry opening rebuild uses one integrated gameplay background plate for arrival, ravine, and temple approach', () => {
   setExpeditionJourneyCiv('Ancient Egypt');
 
   const propById = (id) => ROUTED_STORY_PROPS.find(prop => prop.id === id);
@@ -679,35 +722,32 @@ test('Desert Entry opening rebuild carries arrival, scarab seal, ravine, and Mum
   assert.equal(panorama.type, 'image-prop');
   assert.equal(panorama.depth, 'background');
   assert.equal(panorama.layer, 'background');
-  assert.equal(panorama.width, 2172);
-  assert.equal(panorama.height, 724);
-  assert.equal(panorama.alpha, 1, 'the mega panorama should be the visible early route background');
+  assert.equal(panorama.width, 2048);
+  assert.equal(panorama.height, 768);
+  assert.equal(panorama.alpha, 1, 'the integrated background plate should be the visible early route scenery');
   assert.equal(panorama.colorGradeFilter, 'none', 'the approved panorama should not be flattened by the old beige color grade');
   assert.equal(panorama.panoramaCropBias, 0.32, 'the opening camera should keep the ravine readable while pulling the temple destination further into frame');
   assert.equal(panorama.brightness, 1);
   assert.equal(panorama.x, 3300);
   assert.equal(
     panorama.assetPath,
-    'assets/expedition/backgrounds/desert-entry-opening-rebuild/desert-entry-mega-panorama-story-route-2026-06-19.png',
+    'assets/expedition/backgrounds/desert-entry/desert-entry-integrated-temple-approach-footpath-2026-06-24.png',
   );
-  assert.ok(existsSync(`public/${panorama.assetPath}`), 'mega panorama image file should exist on disk');
+  assert.ok(existsSync(`public/${panorama.assetPath}`), 'integrated gameplay background image file should exist on disk');
   assert.ok(
     isHorizontallyVisibleForTest(panorama.x - panorama.width / 2, panorama.width, Math.max(0, 3100 - JOURNEY_TEST_VIEWPORT_WIDTH * 0.42)),
-    'the mega panorama should cover the ravine/scarab route camera window',
+    'the integrated background should cover the ravine/scarab route camera window',
   );
   const wallBackedClimb = propById('desert-entry-opening-wall-backed-climb-1');
-  assert.ok(wallBackedClimb, 'the opening ledge route should have wall-backed ruin art');
-  assert.equal(wallBackedClimb.type, 'image-prop');
-  assert.equal(wallBackedClimb.depth, 'grounded');
-  assert.equal(wallBackedClimb.layer, 'grounded');
-  assert.equal(wallBackedClimb.assetPath, 'assets/expedition/environment/egypt-opening/temple-approach-gatehouse-ramp-v2-2026-06-19.png');
-  assert.ok(existsSync(`public/${wallBackedClimb.assetPath}`), 'purpose-built Temple Approach ramp PNG should exist on disk');
-  assert.equal(wallBackedClimb.mirrorX, false);
-  assert.equal(wallBackedClimb.widthScale, 1);
-  assert.ok(wallBackedClimb.alpha >= 0.8);
-  assert.match(wallBackedClimb.colorGradeFilter, /brightness\(82%\)/);
-  assert.equal(wallBackedClimb.sandOverlapHeight, 0);
-  assert.equal(wallBackedClimb.collidable, false);
+  assert.equal(
+    wallBackedClimb,
+    undefined,
+    'the old separate Temple Approach ramp overlay should stay retired behind the flat integrated background',
+  );
+  assert.ok(
+    journeyPlacementOverrides.deletedPropIds.includes('desert-entry-opening-wall-backed-climb-1'),
+    'the old separate Temple Approach ramp overlay should remain explicitly deleted',
+  );
   assert.equal(
     propById('desert-entry-opening-temple-threshold-shelf-1'),
     undefined,

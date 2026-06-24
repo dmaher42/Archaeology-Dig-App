@@ -392,6 +392,7 @@ import {
   getGiantSerpentDrawBox,
   getGiantSerpentSpriteFrame,
   getMissingBossSpriteAssets,
+  SCARAB_QUEEN_DRAW_OFFSET_X,
   getScarabQueenDrawBox,
   getScarabQueenSpriteFrame,
   getStoneGuardianDrawBox,
@@ -632,6 +633,11 @@ const OPENING_SPHINX_APPARITION_SRC = 'assets/expedition/bosses/anubis-apparitio
 const OPENING_SPHINX_SPRITE_VERSION = 'opening-anubis-apparition-2026-05-21';
 const OPENING_SPHINX_SCREEN_Y_OFFSET = 112;
 const OPENING_SPHINX_FOOT_Y = GROUND_Y - 10;
+const ROME_OPENING_BACKGROUND_SRC = 'assets/expedition/backgrounds/rome-forum-ruins/rome-forum-ruins-main-2026-06-24.png';
+const ROME_OPENING_ASHA_CUTSCENE_SRC = 'assets/expedition/player/asha-rome-cutscene-2026-06-24.png';
+const ROME_OPENING_LEGATE_CUTSCENE_SRC = 'assets/expedition/bosses/rome/rome-legate-revenant-cutscene-2026-06-24.png';
+const ROME_OPENING_VAULT_SIGIL_SRC = 'assets/expedition/environment/rome-section-one/rome-vault-sigil-cutscene-2026-06-24.png';
+const ROME_OPENING_ARRIVAL_NOTICE = 'The way back is sealed. The Legate is watching. The only path is through the Forum.';
 const TEMPLE_THRESHOLD_TRANSITION_DURATION = 8.4;
 const TEMPLE_THRESHOLD_FADE_OUT_SECONDS = 0.95;
 const TEMPLE_THRESHOLD_BLACK_HOLD_SECONDS = 0.55;
@@ -665,7 +671,6 @@ const FORGOTTEN_MURAL_RELIC_SLIDE_PUZZLE_ART_SRC = 'assets/expedition/environmen
 const FORGOTTEN_MURAL_HIDDEN_MEMORY_REVEAL_SRC = 'assets/expedition/environment/desert-temple/forgotten-mural-hidden-memory-reveal-2026-06-01.png';
 const SCRIBE_CHAMBER_EXTERIOR_SRC = 'assets/expedition/environment/desert-temple/scribe-locked-chamber-exterior-climb-structure-v3.png';
 const SCRIBE_CHAMBER_INTERIOR_SRC = 'assets/expedition/environment/desert-temple/scribe-locked-chamber-interior-2026-06-01.png';
-const DESERT_ENTRY_BURIED_CAUSEWAY_GROUND_SRC = 'assets/expedition/backgrounds/desert-entry/desert-entry-premium-causeway-lane.png';
 const STAGE_ENTRANCE_DOORWAY_SRC = 'assets/expedition/environment/stage-entrances/egypt-tomb-doorway-transition.png';
 const STAGE_ENTRANCE_DOORWAY_VERSION = 'imagegen-egypt-tomb-doorway-transition-2026-05-20';
 const DESERT_END_GATEWAY_SRC = 'assets/expedition/environment/stage-entrances/desert-end-threshold-angled.png';
@@ -695,7 +700,7 @@ const FORGOTTEN_MURAL_CHAMBER_VERSION = 'imagegen-forgotten-mural-chamber-2026-0
 const FORGOTTEN_MURAL_HIDDEN_MEMORY_REVEAL_VERSION = 'imagegen-forgotten-mural-hidden-memory-reveal-2026-06-01';
 const SCRIBE_CHAMBER_EXTERIOR_VERSION = 'imagegen-scribe-locked-chamber-exterior-v3-2026-06-05';
 const SCRIBE_CHAMBER_INTERIOR_VERSION = 'imagegen-scribe-locked-chamber-interior-2026-06-01';
-const DESERT_ENTRY_BURIED_CAUSEWAY_GROUND_VERSION = 'png-premium-causeway-lane-2026-06-02';
+const DESERT_ENTRY_BACKGROUND_ART_VERSION = 'integrated-temple-approach-footpath-painted-route-2026-06-24';
 const OPENING_PYRAMID_FACADE_WORLD_LEFT_X = -82;
 const DESERT_ENTRY_CONTINUOUS_BACKGROUND_START_X = DESERT_JOURNEY_SCENE_PANELS[0]?.worldStart ?? 0;
 const DESERT_ENTRY_CONTINUOUS_BACKGROUND_END_X = DESERT_JOURNEY_SCENE_PANELS[DESERT_JOURNEY_SCENE_PANELS.length - 1]?.worldEnd ?? 17400;
@@ -864,6 +869,25 @@ const getStageEntranceTriggerX = (feature) => {
   return feature.x - width / 2 + width * (feature.walkThroughTriggerX ?? passageVisual.centerX ?? 0.5);
 };
 
+const getTimelineRequirementProgress = (sequence = [], current = {}) => {
+  const requiredIds = sequence
+    .map(item => (typeof item === 'string' ? item : item?.id))
+    .filter(Boolean);
+  const collectedIds = current.collectedTimelineEvidenceIds instanceof Set
+    ? current.collectedTimelineEvidenceIds
+    : new Set(Array.isArray(current.romeTimelineEvidenceOrder) ? current.romeTimelineEvidenceOrder : []);
+  const foundIds = requiredIds.filter(id => collectedIds.has(id));
+  const missingIds = requiredIds.filter(id => !collectedIds.has(id));
+  return {
+    requiredIds,
+    foundIds,
+    missingIds,
+    found: foundIds.length,
+    required: requiredIds.length,
+    complete: requiredIds.length > 0 && missingIds.length === 0,
+  };
+};
+
 const areRouteGateRequirementsMetForState = (gate, current) => {
   if (!gate?.requires) return true;
   const requirements = gate.requires;
@@ -877,6 +901,7 @@ const areRouteGateRequirementsMetForState = (gate, current) => {
   }
   if (!enemiesDisabled && requirements.enemies?.some(enemyId => !current.defeatedEnemies?.has(enemyId))) return false;
   if (Number.isFinite(requirements.shards) && (current.relicShardCount || 0) < requirements.shards) return false;
+  if (requirements.timelineSequence?.length && !getTimelineRequirementProgress(requirements.timelineSequence, current).complete) return false;
   if (requirements.upgrades?.some(upgradeId => !current.permanentUpgradeIds?.has(upgradeId))) return false;
   if (requirements.checkpoint && current.activeCheckpoint?.id !== requirements.checkpoint) return false;
   return true;
@@ -1020,19 +1045,15 @@ const MUMMIFICATION_EXTERIOR_WORLD_OFFSET = scaleJourneyX(70);
 const mummificationExteriorWorldX = (x) => scaleJourneyX(x) + MUMMIFICATION_EXTERIOR_WORLD_OFFSET;
 const TEMPLE_APPROACH_RAMP_WALK_SURFACE = [
   { x: 245, y: GROUND_Y },
-  { x: 310, y: 555 },
-  { x: 445, y: 442 },
-  { x: 635, y: 350 },
-  { x: 865, y: 275 },
-  { x: 935, y: 275 },
+  { x: 935, y: GROUND_Y },
 ];
 const TEMPLE_APPROACH_RAMP_ASSIST = {
   minX: 220,
   maxX: 946,
-  maxSnapDown: 72,
-  maxSnapUp: 56,
+  maxSnapDown: 18,
+  maxSnapUp: 18,
 };
-const TEMPLE_APPROACH_RAMP_LOWER_PATH_FOOT_Y = GROUND_Y - 8;
+const TEMPLE_APPROACH_RAMP_LOWER_PATH_FOOT_Y = GROUND_Y;
 const getTempleApproachRampSurfaceY = (centerX) => {
   const points = TEMPLE_APPROACH_RAMP_WALK_SURFACE;
   if (centerX <= points[0].x) return points[0].y;
@@ -1054,16 +1075,16 @@ const TEMPLE_THRESHOLD_HALL_ENTRY_SPAWN = {
 };
 const TEMPLE_THRESHOLD_HALL_RETURN_FALLBACK = {
   x: 865,
-  y: 275,
+  y: GROUND_Y,
   cameraAnchorRatio: 0.5,
   direction: -1,
 };
 const TEMPLE_THRESHOLD_HALL_ENTRY_TRIGGER = {
   minX: 805,
   maxX: 935,
-  maxY: GROUND_Y - 235,
-  footY: 275,
-  footTolerance: 32,
+  maxY: GROUND_Y + 10,
+  footY: GROUND_Y,
+  footTolerance: 36,
 };
 const TEMPLE_THRESHOLD_HALL_CAMERA_X = scaleJourneyX(80);
 const TEMPLE_THRESHOLD_HALL_BOUNDS = {
@@ -1300,6 +1321,7 @@ const ENEMY_ATTACK_TRIGGER_REACH = 16;
 // pressing the attack. Larger than 0 so sprites never overlap/"share her space",
 // but smaller than ENEMY_ATTACK_TRIGGER_REACH so melee still lands at standoff.
 const ENEMY_COMBAT_STANDOFF_GAP = 6;
+const BOSS_INTRO_PLAYER_STANDOFF = 65;
 const getPlayerAttackTiming = (sequenceIndex = 1) => {
   const timingIndex = Math.max(0, sequenceIndex - 1) % PLAYER_ATTACK_COMBO_TIMINGS.length;
   return PLAYER_ATTACK_COMBO_TIMINGS[timingIndex] || PLAYER_ATTACK_COMBO_TIMINGS[0];
@@ -1751,6 +1773,12 @@ const isInteriorChamberScene = (current) => (
 );
 const getEntitySceneId = (entity) => entity?.sceneId || JOURNEY_SCENE_IDS.EXTERIOR;
 const isEntityActiveInScene = (entity, current) => getEntitySceneId(entity) === getJourneySceneId(current);
+const isStoryPropRouteGateVisibilityMet = (prop, current) => {
+  const openedRouteGateIds = current?.openedRouteGateIds;
+  if (prop?.showWhenRouteGateOpenId && !openedRouteGateIds?.has?.(prop.showWhenRouteGateOpenId)) return false;
+  if (prop?.hideWhenRouteGateOpenId && openedRouteGateIds?.has?.(prop.hideWhenRouteGateOpenId)) return false;
+  return true;
+};
 
 const OBJECTIVE_MARKER_IDS_BY_SECTION = {
   'desert-entry': ['map-tablet'],
@@ -1832,12 +1860,29 @@ const CHINA_GATE_HINTS = {
   shards: 'Search the nearby platforms and lower route for more relic shards.',
 };
 
+const ROME_GATE_HINTS = {
+  objective: {
+    'via-sacra': 'One Via Sacra evidence piece is still behind you on the Roman street.',
+    'forum-ruins': 'One Forum record is still behind you among the ruined public buildings.',
+    'subterranean-thermae': 'One thermae clue is still behind you near the steam channels.',
+    'basilica-interior': 'One basilica archive clue is still behind you near the civic hall.',
+    'sealed-vault': 'The vault will not open until the buried archive evidence is restored.',
+  },
+  shards: 'Search the Via Sacra route and Forum-side platforms for the next evidence shard.',
+};
+
 const CHINA_BOSS_KEY_ITEM_COPY = {
   'brush-handle': { name: 'Survey Brush Handle', checklistLabel: 'Survey Brush Handle' },
   'trowel-blade': { name: 'Archive Trowel Blade', checklistLabel: 'Archive Trowel Blade' },
   'measuring-cord': { name: 'River Measuring Cord', checklistLabel: 'River Measuring Cord' },
   'field-notebook-clasp': { name: 'Field Notebook Clasp', checklistLabel: 'Field Notebook Clasp' },
   'camera-lens': { name: 'Survey Camera Lens', checklistLabel: 'Survey Camera Lens' },
+  // Section One dynasty mandates
+  'river-jade-token': { name: 'River Jade Token', checklistLabel: 'River Jade Token' },
+  'shang-bronze-ladle': { name: 'Shang Bronze Ladle', checklistLabel: 'Shang Bronze Ladle' },
+  'zhou-mandate-scroll': { name: 'Zhou Mandate Scroll', checklistLabel: 'Zhou Mandate Scroll' },
+  'qin-imperial-mandate': { name: 'Qin Imperial Mandate', checklistLabel: 'Qin Imperial Mandate' },
+  'han-invention-compass': { name: 'Han Invention Compass', checklistLabel: 'Han Invention Compass' },
 };
 
 const getBossRewardProgress = (current) => {
@@ -1878,7 +1923,13 @@ const SECTION_MUSIC_CUES = {
   catacombs:          'catacombs',
   'escape-sequence':  'escape',
   'dig-site-entrance': 'baseCamp',
-  // China
+  // China — Section One frontier route
+  'yellow-river-frontier': 'bamboo-forest',
+  'rammed-earth-wall': 'rammed-earth-gate',
+  'frontier-settlement': 'rammed-earth-gate',
+  'hidden-archive': 'terracotta-tomb',
+  'imperial-gate': 'terracotta-tomb',
+  // Legacy China section ids (kept for compatibility)
   'bamboo-forest': 'bamboo-forest',
   'rammed-earth-gate': 'rammed-earth-gate',
   'terracotta-tomb': 'terracotta-tomb',
@@ -2786,10 +2837,10 @@ const resolvePropGroundingSettings = (config = {}) => {
 const DECORATIVE_PROP_LAYER_MODE = 'background-midground-grounded-depth-v3';
 const PROP_DEPTH_TUNING_VERSION = 'journey-grounded-placement-presets-2026-05-26';
 const PROP_GROUNDING_INTEGRATION_VERSION = 'prop-contact-shadow-local-sediment-occlusion-v4';
-const ROUTE_GROUND_VISUAL_MODE = 'clean-stone-causeway-no-sand-sheet-v2';
-const DESERT_ENTRY_CAUSEWAY_DRAW_HEIGHT = 34;
-const DESERT_ENTRY_CAUSEWAY_DRAW_Y_OFFSET = -4;
-const ROUTE_GROUND_HAZE_FIX_VERSION = 'route-ground-clean-causeway-no-sand-sheet-2026-06-19';
+const ROUTE_GROUND_VISUAL_MODE = 'desert-entry-painted-background-route-v1';
+const ROUTE_GROUND_HAZE_FIX_VERSION = 'route-ground-footpath-integrated-temple-approach-2026-06-24';
+const DESERT_ENTRY_VISUAL_GROUND_PLANE_OFFSET_Y = 0;
+const DESERT_ENTRY_VISUAL_GROUND_FOOT_TOLERANCE = 26;
 const FOREGROUND_DEPTH_LAYER_MODE = 'edge-framed-visual-only-no-collision';
 const ENABLE_FOREGROUND_DEPTH_LAYER = false;
 const DRAW_JOURNEY_FLAG_MARKERS = false;
@@ -2813,6 +2864,41 @@ const SECTION_PARALLAX_LAYERS = {
   ],
   'dig-site-entrance': [
     { key: 'skyLayer', y: 0, height: CANVAS_HEIGHT, parallax: 0, alpha: 1 },
+  ],
+  'via-sacra': [
+    { key: 'viaSacraSky', y: 0, height: CANVAS_HEIGHT, parallax: 0, alpha: 1 },
+    { key: 'farAqueductArches', y: 0, height: CANVAS_HEIGHT, parallax: 0.08, alpha: 0.98 },
+    { key: 'distantHillSide', y: 0, height: CANVAS_HEIGHT, parallax: 0.14, alpha: 0.94 },
+    { key: 'midgroundRoadRuins', y: 0, height: CANVAS_HEIGHT, parallax: 0.25, alpha: 1 },
+    { key: 'foregroundDust', y: 0, height: CANVAS_HEIGHT, parallax: 0.48, alpha: 0.82 },
+  ],
+  'forum-ruins': [
+    { key: 'forumSky', y: 0, height: CANVAS_HEIGHT, parallax: 0, alpha: 1 },
+    { key: 'farTempleColonnades', y: 0, height: CANVAS_HEIGHT, parallax: 0.07, alpha: 0.8 },
+    { key: 'distantForumRuins', y: 0, height: CANVAS_HEIGHT, parallax: 0.14, alpha: 0.92 },
+    { key: 'midgroundForumFloor', y: 0, height: CANVAS_HEIGHT, parallax: 0.26, alpha: 0.96 },
+    { key: 'foregroundColumnDust', y: 0, height: CANVAS_HEIGHT, parallax: 0.5, alpha: 0.72 },
+  ],
+  'subterranean-thermae': [
+    { key: 'thermaeDeepAtmosphere', y: 0, height: CANVAS_HEIGHT, parallax: 0, alpha: 1 },
+    { key: 'farHypocaustPillars', y: 0, height: CANVAS_HEIGHT, parallax: 0.08, alpha: 0.92 },
+    { key: 'distantBarrelVaults', y: 0, height: CANVAS_HEIGHT, parallax: 0.14, alpha: 1 },
+    { key: 'midgroundSteamChannels', y: 0, height: CANVAS_HEIGHT, parallax: 0.26, alpha: 1 },
+    { key: 'foregroundSteamMist', y: 0, height: CANVAS_HEIGHT, parallax: 0.52, alpha: 0.78 },
+  ],
+  'basilica-interior': [
+    { key: 'basilicaSky', y: 0, height: CANVAS_HEIGHT, parallax: 0, alpha: 1 },
+    { key: 'farApseWall', y: 0, height: CANVAS_HEIGHT, parallax: 0.06, alpha: 0.96 },
+    { key: 'distantNaveColumns', y: 0, height: CANVAS_HEIGHT, parallax: 0.13, alpha: 1 },
+    { key: 'midgroundMarbleFloor', y: 0, height: CANVAS_HEIGHT, parallax: 0.27, alpha: 1 },
+    { key: 'foregroundColumnShadow', y: 0, height: CANVAS_HEIGHT, parallax: 0.48, alpha: 0.86 },
+  ],
+  'sealed-vault': [
+    { key: 'vaultDarkAtmosphere', y: 0, height: CANVAS_HEIGHT, parallax: 0, alpha: 1 },
+    { key: 'farInscribedWalls', y: 0, height: CANVAS_HEIGHT, parallax: 0.08, alpha: 1 },
+    { key: 'distantSealedArchways', y: 0, height: CANVAS_HEIGHT, parallax: 0.16, alpha: 1 },
+    { key: 'midgroundVaultFloor', y: 0, height: CANVAS_HEIGHT, parallax: 0.28, alpha: 1 },
+    { key: 'foregroundAshDrift', y: 0, height: CANVAS_HEIGHT, parallax: 0.5, alpha: 0.8 },
   ],
 };
 
@@ -3064,11 +3150,58 @@ export default function ExpeditionJourney({
   const trapEditorPalette = useMemo(() => createJourneyTrapPalette(), []);
   const platformEditorPalette = useMemo(() => createJourneyPlatformPalette(), []);
   const selectedCharacterPreset = getPlayerCharacterPreset(selectedCharacterPresetId);
-  const [gameState, setGameState] = useState(() => makeInitialState({
-    targetCivilisation,
-    permanentUpgradeIds,
-    permanentUpgradeEffects,
-  }));
+  const [gameState, setGameState] = useState(() => {
+    const initial = makeInitialState({
+      targetCivilisation,
+      permanentUpgradeIds,
+      permanentUpgradeEffects,
+    });
+    if (openingStartMode === 'arrival-threshold') {
+      const openingCheckpoint = CHECKPOINTS.find(checkpoint => checkpoint.id === 'desert-entry');
+      const openingSection = SECTIONS.find(section => section.id === 'desert-entry');
+      initial.player.x = ARRIVAL_THRESHOLD_SPAWN_X;
+      initial.player.y = getArrivalThresholdGroundY(ARRIVAL_THRESHOLD_SPAWN_X + initial.player.width / 2) - initial.player.height;
+      initial.player.vx = 0;
+      initial.player.vy = 0;
+      initial.player.direction = -1;
+      initial.player.onGround = true;
+      initial.activeCheckpoint = openingCheckpoint || initial.activeCheckpoint;
+      initial.cameraX = 0;
+      initial.targetCameraX = 0;
+      initial.cameraMode = 'arrival-threshold';
+      initial.cameraFocusTarget = Math.round(ARRIVAL_THRESHOLD_SPAWN_X + initial.player.width / 2);
+      initial.openingThresholdScene = null;
+      initial.openingSphinxEncounter = null;
+      initial.openingSphinxTimer = 0;
+      initial.currentSectionId = 'arrival-threshold';
+      initial.arrivalThresholdActive = true;
+      initial.arrivalThresholdStarted = true;
+      initial.arrivalThresholdLeftInspected = false;
+      initial.arrivalThresholdMarkingsInspected = false;
+      initial.arrivalThresholdGateTriggered = false;
+      initial.arrivalThresholdTrial = null;
+      initial.arrivalThresholdWakeProgress = 0;
+      initial.arrivalThresholdNoticeTimer = 2.4;
+      initial.dynamicEnvironmentEvent = null;
+      initial.dynamicEnvironmentEventTimer = 0;
+      initial.collapsedPlatformIds.delete('opening-scarab-seal-summit');
+      initial.sectionTransition = null;
+      initial.sectionTransitionTimer = 0;
+      initial.cinematicEvent = {
+        id: 'arrival-threshold-spawn',
+        name: 'Asha',
+        message: ARRIVAL_THRESHOLD_SPAWN_LINE,
+        temporary: true,
+      };
+      initial.cinematicTimer = 2.8;
+      initial.notice = ARRIVAL_THRESHOLD_SPAWN_LINE;
+      initial.itemPurposeNoticeTimer = Math.max(initial.itemPurposeNoticeTimer || 0, 2.4);
+      initial.cameraShakeTimer = Math.max(initial.cameraShakeTimer, 0.18);
+      initial.cameraShakeStrength = Math.max(initial.cameraShakeStrength, 0.08);
+      initial.lastSectionId = openingSection?.id || 'desert-entry';
+    }
+    return initial;
+  });
   const [briefingOpen, setBriefingOpen] = useState(() => openingStartMode !== 'arrival-threshold');
   // Controls & combat reference now lives in the single Esc/"?" pause menu
   // (owned by ExpeditionMode), so there is no separate in-journey help state.
@@ -3252,12 +3385,6 @@ export default function ExpeditionJourney({
   const foregroundDepthEnvironmentAssetsRef = useRef(createEnvironmentAssetState(ENVIRONMENT_ASSET_PACK_IDS.EGYPT_FOREGROUND_DEPTH));
   const premiumGroundContactAssetsRef = useRef(createEnvironmentAssetState(ENVIRONMENT_ASSET_PACK_IDS.EGYPT_PREMIUM_GROUND_CONTACT));
   const desertBackgroundAssetsRef = useRef(createDesertBackgroundAssetState());
-  const desertEntryBuriedCausewayGroundRef = useRef({
-    image: null,
-    loaded: false,
-    failed: false,
-    version: DESERT_ENTRY_BURIED_CAUSEWAY_GROUND_VERSION,
-  });
   const enemySpriteAssetsRef = useRef(createEnemySpriteState());
   const bossSpriteAssetsRef = useRef(createBossSpriteState());
   const collectibleSpriteAssetsRef = useRef(createCollectibleSpriteState());
@@ -3437,7 +3564,7 @@ export default function ExpeditionJourney({
   const getRenderableStoryProps = useCallback((current = stateRef.current) => (
     getAllPropEditorStoryProps()
       .map(prop => getEditedStoryProp(prop))
-      .filter(prop => prop && isEntityActiveInScene(prop, current))
+      .filter(prop => prop && isEntityActiveInScene(prop, current) && isStoryPropRouteGateVisibilityMet(prop, current))
   ), [getAllPropEditorStoryProps, getEditedStoryProp]);
 
   const getLostBridgeRavineFloorPlacement = useCallback((current = stateRef.current) => {
@@ -5610,34 +5737,6 @@ export default function ExpeditionJourney({
     const image = new Image();
     image.onload = () => {
       if (cancelled) return;
-      desertEntryBuriedCausewayGroundRef.current = {
-        image,
-        loaded: true,
-        failed: false,
-        version: DESERT_ENTRY_BURIED_CAUSEWAY_GROUND_VERSION,
-      };
-      syncHud();
-    };
-    image.onerror = () => {
-      if (cancelled) return;
-      desertEntryBuriedCausewayGroundRef.current = {
-        image: null,
-        loaded: false,
-        failed: true,
-        version: DESERT_ENTRY_BURIED_CAUSEWAY_GROUND_VERSION,
-      };
-    };
-    image.src = `${import.meta.env.BASE_URL}${DESERT_ENTRY_BURIED_CAUSEWAY_GROUND_SRC}`;
-    return () => {
-      cancelled = true;
-    };
-  }, [syncHud]);
-
-  useEffect(() => {
-    let cancelled = false;
-    const image = new Image();
-    image.onload = () => {
-      if (cancelled) return;
       mummificationChamberInteriorRef.current = {
         image,
         loaded: true,
@@ -6079,6 +6178,7 @@ export default function ExpeditionJourney({
       || environmentPackId === ENVIRONMENT_ASSET_PACK_IDS.CHINA_RIVER_VALLEY
       || backgroundPackId === 'china-river-valley';
     const isRomeJourney = civStr.includes('rome') || backgroundPackId === 'rome';
+    const isEgyptJourney = !isChinaJourney && !isRomeJourney;
     return {
       backgroundSectionIds: isRomeJourney
         ? Object.keys(ROME_SECTION_BACKGROUND_PACKS)
@@ -6095,7 +6195,9 @@ export default function ExpeditionJourney({
         : isChinaJourney
           ? CHINA_JOURNEY_BOSS_SPRITE_PACK_IDS
           : EGYPT_JOURNEY_BOSS_SPRITE_PACK_IDS,
-      loadEgyptOnlyPacks: !isChinaJourney && !isRomeJourney,
+      weaponPackId: isRomeJourney ? 'gladius' : 'khopesh',
+      loadEgyptOnlyPacks: isEgyptJourney,
+      isEgyptJourney,
       isRomeJourney,
       isChinaJourney,
     };
@@ -6387,11 +6489,12 @@ export default function ExpeditionJourney({
 
   useEffect(() => loadPlayerWeaponSpritePack({
     baseUrl: import.meta.env.BASE_URL,
+    weaponId: scopedJourneyAssetPacks.weaponPackId,
     onUpdate: (assets) => {
       playerWeaponSpriteRef.current = assets;
       syncHud();
     },
-  }), [syncHud]);
+  }), [scopedJourneyAssetPacks.weaponPackId, syncHud]);
 
   useEffect(() => loadMarkerSpritePack({
     baseUrl: import.meta.env.BASE_URL,
@@ -6665,6 +6768,10 @@ export default function ExpeditionJourney({
     if (!gate.requires) return reqs;
     const enemiesDisabled = Boolean(current?.enemiesDisabled);
     const isChinaJourney = backgroundPackId === 'china-river-valley';
+    const isRomeJourney = backgroundPackId === 'rome'
+      || current?.targetCivilisation === 'Ancient Rome'
+      || current?.activeCivilisation === 'Ancient Rome';
+    const gateHints = isRomeJourney ? ROME_GATE_HINTS : isChinaJourney ? CHINA_GATE_HINTS : GATE_HINTS;
     const objectiveLabels = isChinaJourney ? CHINA_OBJECTIVE_LABELS : OBJECTIVE_LABELS;
     const objectiveSingularLabels = isChinaJourney ? CHINA_OBJECTIVE_SINGULAR_LABELS : OBJECTIVE_SINGULAR_LABELS;
     const sectionId = gate.requires.objective;
@@ -6685,7 +6792,7 @@ export default function ExpeditionJourney({
         met: current.completedObjectiveIds.has(sectionId) || Boolean(objective && objective.count >= objective.total),
         found: objective?.count ?? 0,
         required: objective?.total ?? 1,
-        hint: (isChinaJourney ? CHINA_GATE_HINTS.objective[sectionId] : GATE_HINTS.objective[sectionId])
+        hint: (gateHints.objective[sectionId] || GATE_HINTS.objective[sectionId])
           || 'Search this section for the missing objective marker.',
         targetX: nearest?.x ?? gate.x - 220,
         nearestObjective: nearest,
@@ -6787,6 +6894,41 @@ export default function ExpeditionJourney({
         } : null,
       });
     }
+    if (gate.requires.timelineSequence?.length) {
+      const timelineProgress = getTimelineRequirementProgress(gate.requires.timelineSequence, current);
+      const missingTimelineIds = new Set(timelineProgress.missingIds);
+      const nearestEvidence = RELIC_SHARDS
+        .filter(item => (
+          item.timelineId
+          && missingTimelineIds.has(item.timelineId)
+          && !current.collectedShardIds.has(item.id)
+          && item.x < gate.x
+          && (!item.routeId || current.discoveredHiddenRouteIds?.has(item.routeId))
+        ))
+        .sort((a, b) => Math.abs(a.x - current.player.x) - Math.abs(b.x - current.player.x))[0];
+      const direction = getDirectionFromPlayer(current.player.x, nearestEvidence?.x);
+      reqs.push({
+        type: 'timeline',
+        id: `${gate.id}-rome-timeline`,
+        label: `Forum Archive: ${timelineProgress.found}/${timelineProgress.required}`,
+        checklistLabel: 'Republic to Empire sequence',
+        shortMissing: `restore ${timelineProgress.missingIds.length} more Rome evidence ${timelineProgress.missingIds.length === 1 ? 'piece' : 'pieces'}`,
+        met: timelineProgress.complete,
+        found: timelineProgress.found,
+        required: timelineProgress.required,
+        hint: nearestEvidence
+          ? `${nearestEvidence.shortName || nearestEvidence.label || 'Evidence'} is ${getDirectionText(direction)}.`
+          : 'Recover the missing Rome evidence before forcing the vault.',
+        targetX: nearestEvidence?.x,
+        nearestObjective: nearestEvidence ? {
+          type: 'timeline',
+          id: nearestEvidence.id,
+          label: nearestEvidence.shortName || nearestEvidence.label || 'Rome evidence',
+          x: nearestEvidence.x,
+          direction,
+        } : null,
+      });
+    }
     if (gate.requires.shards) {
       const missing = Math.max(0, gate.requires.shards - current.relicShardCount);
       const shard = RELIC_SHARDS
@@ -6806,7 +6948,7 @@ export default function ExpeditionJourney({
         met: current.relicShardCount >= gate.requires.shards,
         found: current.relicShardCount,
         required: gate.requires.shards,
-        hint: `${isChinaJourney ? CHINA_GATE_HINTS.shards : GATE_HINTS.shards} Look ${getDirectionText(direction)} for the closest shard.`,
+        hint: `${gateHints.shards} Look ${getDirectionText(direction)} for the closest shard.`,
         targetX: shard?.x,
         nearestObjective: shard ? {
           type: 'shards',
@@ -7226,6 +7368,8 @@ export default function ExpeditionJourney({
     };
     const centerX = target.x + target.width / 2;
     const centerY = target.y + target.height / 2;
+    const targetFootY = target.y + target.height;
+    const playerFootY = player.y + player.height;
     const targetImmovable = target.type === 'scorpion-nest';
 
     target.hitFlash = Math.max(target.hitFlash || 0, impact.hitFlash);
@@ -7250,6 +7394,7 @@ export default function ExpeditionJourney({
         type: shieldEffectType,
         x: centerX,
         y: centerY,
+        visualGroundFootY: targetFootY,
         color: profile.color || '#7dd3fc',
         timer: profile.guardTimer || 0.34,
         maxTimer: profile.guardTimer || 0.34,
@@ -7260,6 +7405,7 @@ export default function ExpeditionJourney({
         type: guardEffectType,
         x: centerX,
         y: centerY,
+        visualGroundFootY: targetFootY,
         color: guardColor || profile.sparkColor,
         timer: profile.guardTimer || 0.34,
         maxTimer: profile.guardTimer || 0.34,
@@ -7269,6 +7415,7 @@ export default function ExpeditionJourney({
         type: defeated ? (targetKind === 'boss' ? 'boss-defeat' : 'defeat') : 'combat-impact',
         x: centerX,
         y: centerY,
+        visualGroundFootY: targetFootY,
         direction,
         color: color || (defeated ? defeatedProfile?.color : profile.color),
         timer: defeated ? defeatedProfile?.impactTimer || profile.impactTimer : profile.impactTimer,
@@ -7278,6 +7425,7 @@ export default function ExpeditionJourney({
         type: 'weapon-hit-spark',
         x: centerX - direction * 6,
         y: target.y + target.height * 0.42,
+        visualGroundFootY: targetFootY,
         direction,
         color: sparkColor || profile.sparkColor,
         fill: sparkFill || profile.sparkFill,
@@ -7290,6 +7438,7 @@ export default function ExpeditionJourney({
         type: profile.slashEffect === 'finisher' ? 'finisher-slash' : 'combo-slash',
         x: player.x + player.width / 2 + direction * (profile.slashEffect === 'finisher' ? 70 : 56),
         y: player.y + player.height * (profile.slashEffect === 'finisher' ? 0.38 : 0.39),
+        visualGroundFootY: playerFootY,
         direction,
         comboStep: hitType === 'combo2' ? 2 : 1,
         width: profile.slashWidth,
@@ -7303,6 +7452,7 @@ export default function ExpeditionJourney({
         type: 'knockback-dust',
         x: centerX - direction * 8,
         y: target.y + target.height - 2,
+        visualGroundFootY: targetFootY,
         direction,
         color: 'rgba(217, 161, 88, 0.62)',
         width: impact.dustWidth,
@@ -7577,11 +7727,14 @@ export default function ExpeditionJourney({
     const enemySpriteAssets = enemySpriteAssetsRef.current;
     const missingEnemySpriteAssets = getMissingEnemySpriteAssets(enemySpriteAssets);
     const chinaEnemyGuardianPack = enemySpriteAssets.packs?.chinaEnemyGuardian || null;
-    const missingChinaEnemyGuardianSpriteAssets = EXPECTED_CHINA_ENEMY_GUARDIAN_SPRITE_KEYS
-      .filter(key => !chinaEnemyGuardianPack?.atlas?.regions?.[key]);
-    const chinaEnemyGuardianFallbackActive = !chinaEnemyGuardianPack?.loaded
-      || chinaEnemyGuardianPack.failed
-      || missingChinaEnemyGuardianSpriteAssets.length > 0;
+    const missingChinaEnemyGuardianSpriteAssets = scopedJourneyAssetPacks.isChinaJourney
+      ? EXPECTED_CHINA_ENEMY_GUARDIAN_SPRITE_KEYS
+        .filter(key => !chinaEnemyGuardianPack?.atlas?.regions?.[key])
+      : [];
+    const chinaEnemyGuardianFallbackActive = scopedJourneyAssetPacks.isChinaJourney
+      && (!chinaEnemyGuardianPack?.loaded
+        || chinaEnemyGuardianPack.failed
+        || missingChinaEnemyGuardianSpriteAssets.length > 0);
     const enemySpriteFallbackActive = !enemySpriteAssets.loaded || enemySpriteAssets.failed || missingEnemySpriteAssets.length > 0;
     const bossSpriteAssets = bossSpriteAssetsRef.current;
     const missingBossSpriteAssets = getMissingBossSpriteAssets(bossSpriteAssets);
@@ -7603,6 +7756,13 @@ export default function ExpeditionJourney({
       || markerSpriteAssets.failed
       || missingMarkerSpriteAssets.length > 0;
     const dynamicWorldAssets = dynamicWorldAssetsRef.current;
+    const scopedBackgroundFallbackActive = scopedJourneyAssetPacks.backgroundSectionIds
+      .some((backgroundSectionId) => {
+        const sectionPack = getSectionBackgroundAssets(desertBackgroundAssets, backgroundSectionId);
+        return !sectionPack?.ready
+          || sectionPack.failed
+          || getMissingSectionBackgroundAssets(desertBackgroundAssets, backgroundSectionId).length > 0;
+      });
     const renderStats = current.renderStats || {};
     const playerAttackBox = current.playerAttackBox
       ? {
@@ -7712,7 +7872,7 @@ export default function ExpeditionJourney({
       baseCampBackgroundFallbackActive: digSiteBackgroundFallbackActive,
       chinaRiverValleyBackgroundAssetsLoaded: Boolean(chinaRiverValleyPack?.loaded),
       chinaRiverValleyBackgroundAssetsReady: Boolean(chinaRiverValleyPack?.ready),
-      chinaRiverValleyBackgroundFallbackActive: backgroundPackId === 'china-river-valley' && !chinaRiverValleyPack?.ready,
+      chinaRiverValleyBackgroundFallbackActive: scopedJourneyAssetPacks.isChinaJourney && !chinaRiverValleyPack?.ready,
       chinaRiverValleyBackgroundAtlasPath: CHINA_RIVER_VALLEY_BACKGROUND_ATLAS_JSON,
       enemySpritesLoaded: enemySpriteAssets.loaded,
       enemySpriteFallbackActive,
@@ -7766,7 +7926,7 @@ export default function ExpeditionJourney({
       playerWeaponSpriteReady: Boolean(playerWeaponAssets.ready),
       playerWeaponSpriteFallbackActive,
       playerWeaponAtlasPath: playerWeaponAssets.atlasPath || PLAYER_WEAPON_ATLAS_JSON,
-      playerWeaponAtlasVersion: PLAYER_WEAPON_ATLAS_VERSION,
+      playerWeaponAtlasVersion: playerWeaponAssets.version || PLAYER_WEAPON_ATLAS_VERSION,
       missingPlayerWeaponSpriteAssets,
       markerSpritesLoaded: Boolean(markerSpriteAssets.loaded),
       markerSpritesReady: Boolean(markerSpriteAssets.ready),
@@ -7774,8 +7934,8 @@ export default function ExpeditionJourney({
       markerSpriteAtlasPath: markerSpriteAssets.atlasPath || MARKER_SPRITE_ATLAS_JSON,
       markerSpriteAtlasVersion: MARKER_SPRITE_VERSION,
       missingMarkerSpriteAssets,
-      playerWeaponFrame: renderStats.playerWeaponFrame || getPlayerWeaponFrameKey(getPlayerAttackState(current)),
-      playerWeaponVisualMode: renderStats.playerWeaponVisualMode || (playerWeaponAssets.loaded ? 'khopesh-sprite-atlas' : 'canvas-fallback'),
+      playerWeaponFrame: renderStats.playerWeaponFrame || getPlayerWeaponFrameKey(getPlayerAttackState(current), playerWeaponAssets.weaponId),
+      playerWeaponVisualMode: renderStats.playerWeaponVisualMode || (playerWeaponAssets.loaded ? `${playerWeaponAssets.weaponId || 'khopesh'}-sprite-atlas` : 'canvas-fallback'),
       parallaxLayersActive: Boolean(renderStats.parallaxLayersActive),
       activeBackgroundSection: renderStats.activeBackgroundSection || null,
       backgroundDepthMode: renderStats.backgroundDepthMode || 'canvas-fallback',
@@ -7918,7 +8078,7 @@ export default function ExpeditionJourney({
       openingTrapDecalAssetVersion: OPENING_TRAP_DECAL_ASSET_VERSION,
       enemyVisualMode: renderStats.enemyVisualMode || 'sprite-atlas-with-grounding',
       bossVisualMode: renderStats.bossVisualMode || 'multi-boss-atlas-fallback-safe',
-      assetFallbackActive: environmentFallbackActive || enemySpriteFallbackActive || bossSpriteFallbackActive || collectibleSpriteFallbackActive || playerWeaponSpriteFallbackActive || (backgroundPackId === 'china-river-valley' ? !chinaRiverValleyPack?.ready : (desertBackgroundFallbackActive || ruinedTempleBackgroundFallbackActive || catacombsBackgroundFallbackActive || escapeBackgroundFallbackActive || digSiteBackgroundFallbackActive)),
+      assetFallbackActive: environmentFallbackActive || enemySpriteFallbackActive || bossSpriteFallbackActive || collectibleSpriteFallbackActive || playerWeaponSpriteFallbackActive || scopedBackgroundFallbackActive,
       desertVisualTuningVersion: DESERT_VISUAL_TUNING_VERSION,
       atlasTuningVersion: ATLAS_TUNING_VERSION,
       activeAtlasRegionIssues: missingEnvironmentAssets,
@@ -8068,6 +8228,8 @@ export default function ExpeditionJourney({
       guardianKnowledgeResults: current.guardianChallengeResults || {},
       guardianBattleModifiers: current.guardianBattleModifiers || {},
       collectedUpgrades: Array.from(current.collectedUpgrades),
+      romeTimelineEvidenceOrder: Array.isArray(current.romeTimelineEvidenceOrder) ? current.romeTimelineEvidenceOrder : [],
+      romeTimelineSolved: Boolean(current.romeTimelineSolved),
       activeCheckpoint: current.activeCheckpoint?.name,
       checkpointState: current.activeCheckpoint ? { id: current.activeCheckpoint.id, name: current.activeCheckpoint.name } : null,
       currentObjective: objective?.title || null,
@@ -8395,7 +8557,7 @@ export default function ExpeditionJourney({
       failureDetail: current.failureDetail,
       notice: current.notice,
     };
-  }, [backgroundPackId, briefingOpen, getActiveHazardsNearPlayer, getActiveHiddenRoutes, getActiveSecretCollectibles, getBossVulnerabilityState, getCombatMode, getEnemyPatternConfig, getEntityCombatState, getGateGuidance, getObjectiveProgress, getPlayerAttackState, getRenderableHazards, getRouteAccessState, getSectionDisplayName, getSectionDisplayTitle, getStaminaWarningState, isRouteRewardAccessible, playerHeroSpriteConfig, targetCivilisation]);
+  }, [briefingOpen, getActiveHazardsNearPlayer, getActiveHiddenRoutes, getActiveSecretCollectibles, getBossVulnerabilityState, getCombatMode, getEnemyPatternConfig, getEntityCombatState, getGateGuidance, getObjectiveProgress, getPlayerAttackState, getRenderableHazards, getRouteAccessState, getSectionDisplayName, getSectionDisplayTitle, getStaminaWarningState, isRouteRewardAccessible, playerHeroSpriteConfig, scopedJourneyAssetPacks.backgroundSectionIds, scopedJourneyAssetPacks.isChinaJourney, targetCivilisation]);
 
   // --- Rendering Helpers ---
   const drawFieldNoteLabel = useCallback(() => {
@@ -8561,6 +8723,26 @@ export default function ExpeditionJourney({
     worldToScreenX,
   });
 
+  const getDesertEntryGroundContactActive = useCallback((worldX, footY, current = stateRef.current) => {
+    if (!scopedJourneyAssetPacks.isEgyptJourney) return false;
+    if (!current || current.arrivalThresholdActive || isInteriorChamberScene(current)) return false;
+    if (!Number.isFinite(worldX) || !Number.isFinite(footY)) return false;
+    if (getSectionForX(worldX).id !== 'desert-entry') return false;
+    return Math.abs(footY - GROUND_Y) <= DESERT_ENTRY_VISUAL_GROUND_FOOT_TOLERANCE;
+  }, [scopedJourneyAssetPacks.isEgyptJourney]);
+
+  const getDesertEntryVisualGroundOffsetY = useCallback((worldX, footY, current = stateRef.current) => {
+    if (!getDesertEntryGroundContactActive(worldX, footY, current)) return 0;
+    return DESERT_ENTRY_VISUAL_GROUND_PLANE_OFFSET_Y;
+  }, [getDesertEntryGroundContactActive]);
+
+  const getGroundPlaneEntityRenderY = useCallback((entity, current = stateRef.current) => {
+    if (!entity || !Number.isFinite(entity.x) || !Number.isFinite(entity.y)) return Number.NaN;
+    const width = Number.isFinite(entity.width) ? entity.width : 0;
+    const height = Number.isFinite(entity.height) ? entity.height : 0;
+    return entity.y + getDesertEntryVisualGroundOffsetY(entity.x + width / 2, entity.y + height, current);
+  }, [getDesertEntryVisualGroundOffsetY]);
+
   const {
     drawAncientRouteGround,
     drawArrivalThresholdDoorwayOccluder,
@@ -8572,7 +8754,9 @@ export default function ExpeditionJourney({
     drawCombatEffects,
     drawChinaRiverValleyBackground,
     drawConnectedWorldAmbientLife,
+    drawDesertEntryGroundMotionCues,
     drawDesertEntryBackground,
+    drawDesertEntryGroundLane,
     drawDesertEntryPrimaryBackgroundPlates,
     drawDesertForegroundAtmosphere,
     drawDesertJourneySceneMasks,
@@ -8625,9 +8809,7 @@ export default function ExpeditionJourney({
     CHAMBER_DOOR_VISUALS,
     DEFAULT_LEVEL_TRANSITION,
     DEFAULT_JOURNEY_PROP_EDITOR_GRID_SIZE,
-    DESERT_ENTRY_BURIED_CAUSEWAY_GROUND_VERSION,
-    DESERT_ENTRY_CAUSEWAY_DRAW_HEIGHT,
-    DESERT_ENTRY_CAUSEWAY_DRAW_Y_OFFSET,
+    DESERT_ENTRY_BACKGROUND_ART_VERSION,
     DESERT_ENTRY_CONTINUOUS_BACKGROUND_END_X,
     DESERT_ENTRY_CONTINUOUS_BACKGROUND_START_X,
     DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_IDS,
@@ -8683,7 +8865,6 @@ export default function ExpeditionJourney({
     arrivalThresholdGlowCanvasRef,
     bossSpriteAssetsRef,
     clamp,
-    desertEntryBuriedCausewayGroundRef,
     desertBackgroundAssetsRef,
     desertEndGatewayRef,
     drawDesertBackgroundLayer,
@@ -8822,7 +9003,10 @@ export default function ExpeditionJourney({
     FOREGROUND_DEPTH_LAYER_MODE,
     getEnvironmentAssetKeyForStoryProp,
     getGeneratedStoryPropRenderProp,
+    getDesertEntryGroundContactActive,
+    getDesertEntryVisualGroundOffsetY,
     getJourneyPaintTintBuffer,
+    getGroundPlaneEntityRenderY,
     getScaledDetailContactLayer,
     foregroundDepthEnvironmentAssetsRef,
     getStandaloneImagePropAsset,
@@ -8912,6 +9096,9 @@ export default function ExpeditionJourney({
     const now = Date.now();
     const section = getSectionForX(player.x);
     const atmosphere = SECTION_ATMOSPHERES[section.id] || SECTION_ATMOSPHERES[SECTIONS[0].id];
+    const isRomeJourney = scopedJourneyAssetPacks.isRomeJourney;
+    const isChinaJourney = scopedJourneyAssetPacks.isChinaJourney;
+    const isEgyptJourney = !isRomeJourney && !isChinaJourney;
     const shake = current.cameraShakeTimer > 0
       ? Math.sin(now / 28) * current.cameraShakeStrength * 7
       : 0;
@@ -8931,6 +9118,7 @@ export default function ExpeditionJourney({
       : 0;
     const isPlayerNear = (worldX, distance = 240) => Math.abs((player.x + player.width / 2) - worldX) < distance;
     const chamberSceneActive = isInteriorChamberScene(current);
+    const playerGroundPlaneRenderY = getGroundPlaneEntityRenderY(player, current);
     const activeRouteGate = chamberSceneActive ? null : getNextJourneyRouteGate(ROUTE_GATES, current);
     const activeGateGuidance = activeRouteGate ? getGateGuidance(activeRouteGate, current) : null;
     const playerCenterX = player.x + player.width / 2;
@@ -8995,9 +9183,10 @@ export default function ExpeditionJourney({
       enemyVisualMode: enemySpriteAssetsRef.current.loaded ? 'sprite-atlas-with-grounding' : 'canvas-fallback',
       bossVisualMode: bossSpriteAssetsRef.current.loaded ? 'multi-boss-atlas-fallback-safe' : 'canvas-fallback',
       collectibleVisualMode: collectibleSpriteAssetsRef.current.loaded ? 'sprite-atlas-with-fallback' : 'canvas-fallback',
-      playerWeaponVisualMode: playerWeaponSpriteRef.current.loaded ? 'khopesh-sprite-atlas' : 'canvas-fallback',
+      playerWeaponVisualMode: playerWeaponSpriteRef.current.loaded ? `${playerWeaponSpriteRef.current.weaponId || 'khopesh'}-sprite-atlas` : 'canvas-fallback',
       desertVisualTuningVersion: DESERT_VISUAL_TUNING_VERSION,
-      desertEntryCausewayVisualMode: 'narrow-premium-causeway-with-modular-floor-kit',
+      desertEntryCausewayVisualMode: ROUTE_GROUND_VISUAL_MODE,
+      desertEntryPlayableGroundPlane: 'integrated-background-painted-route-v1',
       openingPyramidAssetVersion: OPENING_PYRAMID_ASSET_VERSION,
       openingPyramidAssetLoaded: openingPyramidClimbPackRef.current.loaded,
       openingPyramidFacadeVersion: OPENING_PYRAMID_FACADE_VERSION,
@@ -9065,7 +9254,7 @@ export default function ExpeditionJourney({
       visibleUpgradeSprites: [],
       visibleObjectiveSprites: [],
       visibleCollectibleCount: 0,
-      playerWeaponFrame: getPlayerWeaponFrameKey(getPlayerAttackState(current)),
+      playerWeaponFrame: getPlayerWeaponFrameKey(getPlayerAttackState(current), playerWeaponSpriteRef.current.weaponId),
       playerSpriteFrame: null,
       playerSpriteVisualMode: playerSpriteRef.current.mode || 'canvas-fallback',
       bossDomainActive: Boolean(current.bossDomain),
@@ -9087,8 +9276,8 @@ export default function ExpeditionJourney({
     }
 
     const arrivalThresholdDrawn = current.arrivalThresholdActive && drawArrivalThresholdScene(ctx, current, now);
-    const chinaBackgroundDrawn = !arrivalThresholdDrawn && drawChinaRiverValleyBackground(ctx, cameraX);
-    const desertBackgroundDrawn = !arrivalThresholdDrawn && !chinaBackgroundDrawn && drawDesertEntryBackground(ctx, section, cameraX);
+    const chinaBackgroundDrawn = !arrivalThresholdDrawn && isChinaJourney && drawChinaRiverValleyBackground(ctx, cameraX);
+    const desertBackgroundDrawn = !arrivalThresholdDrawn && !chinaBackgroundDrawn && isEgyptJourney && drawDesertEntryBackground(ctx, section, cameraX);
     const sectionParallaxDrawn = !arrivalThresholdDrawn && !chinaBackgroundDrawn && !desertBackgroundDrawn && drawSectionParallaxBackground(ctx, section, cameraX);
     if (arrivalThresholdDrawn) {
       current.renderStats.parallaxLayersActive = true;
@@ -9130,7 +9319,7 @@ export default function ExpeditionJourney({
     if ((desertJourneyScenePanelsDrawn || desertEntryPrimaryBackgroundPlatesDrawn) && current.renderStats) {
       current.renderStats.activeBackgroundSection = 'desert-entry';
       current.renderStats.backgroundDepthMode = desertEntryPrimaryBackgroundPlatesDrawn
-        ? 'desert-entry-clean-panorama-only-2026-06-18'
+        ? 'desert-entry-footpath-integrated-gameplay-background-2026-06-24'
         : DESERT_JOURNEY_BACKGROUND_SYSTEM_VERSION;
     }
     const routeBackgroundArtDrawn = parallaxBackgroundDrawn
@@ -9171,14 +9360,14 @@ export default function ExpeditionJourney({
     }
     if (!chamberSceneActive && !current.arrivalThresholdActive) {
       if (!cleanDesertEntryPanoramaActive) {
-        drawDesertForegroundAtmosphere(ctx, section, cameraX);
+        if (isEgyptJourney) drawDesertForegroundAtmosphere(ctx, section, cameraX);
         drawSectionParallaxForeground(ctx, section, cameraX);
-        drawOpeningPyramidMasonryBack(ctx, cameraX, now, current);
+        if (isEgyptJourney) drawOpeningPyramidMasonryBack(ctx, cameraX, now, current);
       }
       getZIndexSortedRenderableStoryProps(current).forEach((prop) => drawStoryProp(ctx, prop, cameraX, now, 'midground'));
       ENVIRONMENT_INTERACTIONS.forEach((item) => drawEnvironmentInteraction(ctx, item, cameraX, now, current));
       if (!cleanDesertEntryPanoramaActive) {
-        drawEgyptAmbientLife(ctx, section, cameraX, now);
+        if (isEgyptJourney) drawEgyptAmbientLife(ctx, section, cameraX, now);
         drawConnectedWorldAmbientLife(ctx, section, cameraX, now);
       }
       ENVIRONMENT_EVENTS
@@ -9191,12 +9380,15 @@ export default function ExpeditionJourney({
           drawDynamicEnvironmentEvent(ctx, { ...event, preview: true }, cameraX, now, (event.duration || 2.5) * 0.62);
         });
       drawDynamicEnvironmentEvent(ctx, current.dynamicEnvironmentEvent, cameraX, now, current.dynamicEnvironmentEventTimer);
+      drawDesertEntryGroundLane(ctx, section, cameraX);
       drawAncientRouteGround(ctx, section, cameraX, now, current);
       getZIndexSortedRenderableStoryProps(current).forEach((prop) => drawStoryProp(ctx, prop, cameraX, now, 'grounded'));
-      CHAMBER_DOOR_VISUALS
-        .map(door => ({ ...door, trigger: resolveChamberEntryTrigger(door) }))
-        .filter(door => door.trigger)
-        .forEach((door) => drawPremiumEgyptianChamberDoor(ctx, door, cameraX, current, now));
+      if (isEgyptJourney) {
+        CHAMBER_DOOR_VISUALS
+          .map(door => ({ ...door, trigger: resolveChamberEntryTrigger(door) }))
+          .filter(door => door.trigger)
+          .forEach((door) => drawPremiumEgyptianChamberDoor(ctx, door, cameraX, current, now));
+      }
     }
     const renderablePlatforms = current.arrivalThresholdActive ? [] : getRenderablePlatforms(current);
     drawTempleThresholdHallInterior(ctx, current, now);
@@ -9455,6 +9647,10 @@ export default function ExpeditionJourney({
       if (!enemy.defeated && isNormalEnemyInsideBossFocus(enemy, activeBossDomain)) return;
       const ex = worldToScreenX(enemy.x, cameraX);
       if (!isHorizontallyVisible(enemy.x, enemy.width, cameraX, 50)) return;
+      const enemyGroundPlaneRenderY = getGroundPlaneEntityRenderY(enemy, current);
+      const renderEnemy = Number.isFinite(enemyGroundPlaneRenderY) && enemyGroundPlaneRenderY !== enemy.y
+        ? { ...enemy, y: enemyGroundPlaneRenderY }
+        : enemy;
       if (!enemy.defeated && enemy.encounterRole && current.renderStats) {
         current.renderStats.visibleCombatPressureEnemies = Array.from(new Set([
           ...(current.renderStats.visibleCombatPressureEnemies || []),
@@ -9464,21 +9660,26 @@ export default function ExpeditionJourney({
       
       ctx.save();
       const shakeX = enemy.hitFlash > 0 ? Math.sin(now / 20) * 5 : 0;
-      if (!enemy.defeated) drawEnemyAttackTell(ctx, enemy, ex, cameraX, now, false, true);
+      if (!enemy.defeated) drawEnemyAttackTell(ctx, renderEnemy, ex, cameraX, now, false, true);
 
       // Main Visual
-      const spriteDrawn = drawSmallEnemySprite(ctx, enemy, ex, now, shakeX)
-        || drawLinkedEnemySprite(ctx, enemy, ex, now, shakeX);
+      const spriteDrawn = drawSmallEnemySprite(ctx, renderEnemy, ex, now, shakeX)
+        || drawLinkedEnemySprite(ctx, renderEnemy, ex, now, shakeX);
       if (!spriteDrawn) {
         if (enemy.defeated) {
-          drawContactShadow(ctx, ex + enemy.width / 2, enemy.y + enemy.height + 3, enemy.width * 0.62, 0.12, 0.75);
-          drawGroundDustLip(ctx, ex + enemy.width / 2, enemy.y + enemy.height + 2, enemy.width * 0.68, 'rgba(95, 58, 27, 0.24)');
+          drawContactShadow(ctx, ex + enemy.width / 2, renderEnemy.y + enemy.height + 3, enemy.width * 0.62, 0.12, 0.75);
+          drawGroundDustLip(ctx, ex + enemy.width / 2, renderEnemy.y + enemy.height + 2, enemy.width * 0.68, 'rgba(95, 58, 27, 0.24)');
         } else if (enemy.type === 'scorpion-nest') {
           // Placement + appearance are editor-tunable (Shift+E, click the nest); falls
           // back to SCORPION_NEST_EDITOR_DEFAULTS when no edit exists.
           const nestParams = getEditedNestParams(enemy);
           const nestCx = worldToScreenX(nestParams.x, cameraX) + enemy.width / 2 + shakeX;
-          const nestBaseY = nestParams.y + enemy.height + nestParams.yOffset;
+          const nestGroundPlaneOffsetY = getDesertEntryVisualGroundOffsetY(
+            nestParams.x + enemy.width / 2,
+            nestParams.y + enemy.height + nestParams.yOffset,
+            current,
+          );
+          const nestBaseY = nestParams.y + enemy.height + nestParams.yOffset + nestGroundPlaneOffsetY;
           const nestAsset = scorpionNestRef.current;
           const nestGlow = 0.4 + Math.sin(now / 220) * 0.25;
           if (nestAsset.loaded && nestAsset.image) {
@@ -9527,12 +9728,12 @@ export default function ExpeditionJourney({
             ctx.fill();
           }
         } else {
-          drawContactShadow(ctx, ex + enemy.width / 2, enemy.y + enemy.height + 3, enemy.width * 0.72, 0.16, 0.75);
+          drawContactShadow(ctx, ex + enemy.width / 2, renderEnemy.y + enemy.height + 3, enemy.width * 0.72, 0.16, 0.75);
           ctx.fillStyle = enemy.type === 'guardian' || enemy.type === 'statue' ? '#6b7280' : '#78350f';
           ctx.strokeStyle = 'rgba(30, 18, 8, 0.45)';
           ctx.lineWidth = 2;
           ctx.beginPath();
-          ctx.ellipse(ex + enemy.width / 2 + shakeX, enemy.y + enemy.height * 0.55, enemy.width * 0.45, enemy.height * 0.43, 0, 0, Math.PI * 2);
+          ctx.ellipse(ex + enemy.width / 2 + shakeX, renderEnemy.y + enemy.height * 0.55, enemy.width * 0.45, enemy.height * 0.43, 0, 0, Math.PI * 2);
           ctx.fill();
           ctx.stroke();
         }
@@ -9544,9 +9745,9 @@ export default function ExpeditionJourney({
 
       // Only show normal enemy health after damage so full bars do not read as platforms.
       if (!enemy.defeated && enemy.health > COMBAT_DAMAGE_SCALE && enemy.health < enemy.maxHealth) {
-        const enemyDrawBox = getEnemySpriteDrawBox(enemy, ex, 0, getCombatMode(enemy)) || {
+        const enemyDrawBox = getEnemySpriteDrawBox(renderEnemy, ex, 0, getCombatMode(enemy)) || {
           x: ex,
-          y: enemy.y,
+          y: renderEnemy.y,
           width: enemy.width,
           height: enemy.height,
         };
@@ -9570,18 +9771,23 @@ export default function ExpeditionJourney({
       if (boss.defeated) return;
       const bx = worldToScreenX(boss.x, cameraX);
       if (!isHorizontallyVisible(boss.x, boss.width, cameraX, 100)) return;
+      const bossGroundPlaneRenderY = getGroundPlaneEntityRenderY(boss, current);
+      const renderBoss = Number.isFinite(bossGroundPlaneRenderY) && bossGroundPlaneRenderY !== boss.y
+        ? { ...boss, y: bossGroundPlaneRenderY }
+        : boss;
       const isBuriedScarabQueen = boss.id === SCARAB_SEAL_TRIGGER.bossId
-        && backgroundPackId !== 'china-river-valley';
+        && isEgyptJourney;
       const bossIntroActive = current.bossIntro?.id === boss.id;
+      const bossDomainActive = isBuriedScarabQueen && current.bossDomain?.bossId === boss.id;
       if (isBuriedScarabQueen && !boss.awakened && !bossIntroActive) {
         drawScarabQueenLairOpeningProp(ctx, lairPlacement.x, cameraX, now, null, lairPlacement);
         return;
       }
-      if (isBuriedScarabQueen && current.bossDomain?.bossId === boss.id) {
+      if (bossDomainActive) {
         drawScarabQueenLairOpeningProp(ctx, lairPlacement.x || current.bossDomain.bossStartX || boss.x + boss.width / 2, cameraX, now, null, lairPlacement);
       }
-      drawMiniBoss(ctx, boss, bx, now);
-      if (!bossIntroActive) drawEnemyAttackTell(ctx, boss, bx, cameraX, now, true, true);
+      drawMiniBoss(ctx, renderBoss, bx, now);
+      if (!bossIntroActive) drawEnemyAttackTell(ctx, renderBoss, bx, cameraX, now, true, true);
     });
 
     if (!chamberSceneActive && !current.arrivalThresholdActive) {
@@ -9592,7 +9798,7 @@ export default function ExpeditionJourney({
       if (chamberSceneActive) return;
       if (!keyItem.dropped || keyItem.collected) return;
       drawCollectible(ctx, keyItem.x, keyItem.y, cameraX, now, keyItem.label || 'S', keyItem.color || '#b45309', false, false, {
-        key: 'loreTablet',
+        key: keyItem.spriteKey || 'loreTablet',
         kind: 'objective',
         size: 44,
         ringSize: 54,
@@ -9786,17 +9992,30 @@ export default function ExpeditionJourney({
     drawArrivalThresholdTrial(ctx, current, now);
     drawOpeningSphinxEncounter(ctx, current.openingSphinxEncounter, cameraX, now);
     drawCombatEffects(ctx, current.combatHitEffects, cameraX, now);
+    drawDesertEntryGroundMotionCues(ctx, player, cameraX, now);
+    const playerRenderY = Number.isFinite(playerGroundPlaneRenderY) ? playerGroundPlaneRenderY : player.y;
     const hasDedicatedDodgeRow = playerSpriteRef.current.mode === 'hero-atlas'
       && Boolean(getHeroSpriteRow(playerSpriteRef.current.atlas, 'dodge'));
     if (current.dodgeTrail?.length && !hasDedicatedDodgeRow) {
       current.dodgeTrail.forEach((ghost) => {
         ctx.save();
         ctx.globalAlpha = clamp(ghost.alpha, 0, 0.35);
-        drawPlayerSprite(ctx, ghost.x - cameraX, ghost.y, player.width, player.height, ghost.dir, 0, now);
+        const ghostGroundPlaneRenderY = getGroundPlaneEntityRenderY({
+          x: ghost.x,
+          y: ghost.y,
+          width: player.width,
+          height: player.height,
+        }, current);
+        const ghostRenderY = Number.isFinite(ghostGroundPlaneRenderY) ? ghostGroundPlaneRenderY : ghost.y;
+        drawPlayerSprite(ctx, ghost.x - cameraX, ghostRenderY, player.width, player.height, ghost.dir, 0, now);
         ctx.restore();
       });
     }
-    drawPlayerSprite(ctx, player.x - cameraX, player.y, player.width, player.height, player.direction, player.invulnerable, now);
+    drawPlayerSprite(ctx, player.x - cameraX, playerRenderY, player.width, player.height, player.direction, player.invulnerable, now);
+    if (!chamberSceneActive && !current.arrivalThresholdActive && section.id === 'desert-entry' && current.renderStats) {
+      current.renderStats.desertEntryForegroundDepthLoaded = false;
+      current.renderStats.desertEntryForegroundDepthMode = 'retired-integrated-background-carries-front-edge';
+    }
     drawForegroundOccluderProps(ctx, current, cameraX, now);
     if (!chamberSceneActive) getRouteGateDoorwayEntries().forEach((entry) => {
       const status = getDoorwayGateStatus(entry, current);
@@ -9838,10 +10057,12 @@ export default function ExpeditionJourney({
     ctx.restore();
 
     drawCinematicCards(ctx, current);
-  }, [backgroundPackId, drawAncientRouteGround, drawArrivalThresholdDoorwayOccluder, drawArrivalThresholdScene, drawArrivalThresholdTrial, drawAttackArc, drawCinematicCards, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawChinaRiverValleyBackground, drawDebugPlatformOverlay, drawDesertEntryBackground, drawDesertEntryPrimaryBackgroundPlates, drawDesertForegroundAtmosphere, drawDesertJourneySceneMasks, drawDesertJourneyScenePanels, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawForegroundDepthLayer, drawForegroundOccluderProps, drawTempleThresholdHallInterior, drawMummificationChamberInterior, drawForgottenMuralChamberInterior, drawForgottenMuralChamberTransition, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawLostBridgeRavineDepth, drawLostBridgeRavineForegroundVoid, drawLostBridgeStructure, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawPlayerFeedbackOverlays, drawPremiumEgyptianChamberDoor, drawPropPlacementEditorOverlay, drawRouteGate, drawScarabQueenLairOpeningProp, drawScribeLockedChamberInterior, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawTrapProjectile, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getDoorwayGateStatus, getEditedMiniBoss, getEditedNestParams, getGateGuidance, getPlayerAttackState, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getZIndexSortedRenderableStoryProps, getRouteGateDoorwayEntries, getScarabQueenLairPlacement, isRouteRewardAccessible, resolveChamberEntryTrigger, drawPlayerSprite, drawFieldNoteLabel]);
+  }, [backgroundPackId, drawAncientRouteGround, drawArrivalThresholdDoorwayOccluder, drawArrivalThresholdScene, drawArrivalThresholdTrial, drawAttackArc, drawCinematicCards, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawChinaRiverValleyBackground, drawDebugPlatformOverlay, drawDesertEntryGroundLane, drawDesertEntryGroundMotionCues, drawDesertEntryBackground, drawDesertEntryPrimaryBackgroundPlates, drawDesertForegroundAtmosphere, drawDesertJourneySceneMasks, drawDesertJourneyScenePanels, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawForegroundDepthLayer, drawForegroundOccluderProps, drawTempleThresholdHallInterior, drawMummificationChamberInterior, drawForgottenMuralChamberInterior, drawForgottenMuralChamberTransition, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawLostBridgeRavineDepth, drawLostBridgeRavineForegroundVoid, drawLostBridgeStructure, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawPlayerFeedbackOverlays, drawPremiumEgyptianChamberDoor, drawPropPlacementEditorOverlay, drawRouteGate, drawScarabQueenLairOpeningProp, drawScribeLockedChamberInterior, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawTrapProjectile, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getDesertEntryVisualGroundOffsetY, getDoorwayGateStatus, getEditedMiniBoss, getEditedNestParams, getGateGuidance, getGroundPlaneEntityRenderY, getPlayerAttackState, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getZIndexSortedRenderableStoryProps, getRouteGateDoorwayEntries, getScarabQueenLairPlacement, isRouteRewardAccessible, resolveChamberEntryTrigger, scopedJourneyAssetPacks.isChinaJourney, scopedJourneyAssetPacks.isRomeJourney, drawPlayerSprite, drawFieldNoteLabel]);
 
   const startOpeningCinematic = useCallback(({ speechEnabled = true, fromArrivalThreshold = false } = {}) => {
     const current = stateRef.current;
+    const isRomeCinematic = typeof targetCivilisation === 'string' && targetCivilisation.toLowerCase().includes('rome');
+    const openingArrivalNotice = isRomeCinematic ? ROME_OPENING_ARRIVAL_NOTICE : OPENING_ARRIVAL_AFTERSHOCK_NOTICE;
     if (fromArrivalThreshold) {
       current.arrivalThresholdActive = false;
       current.arrivalThresholdGateTriggered = true;
@@ -9857,11 +10078,11 @@ export default function ExpeditionJourney({
       current.cinematicEvent = {
         id: 'opening-confrontation-replay-skipped',
         name: 'Asha',
-        message: OPENING_ARRIVAL_AFTERSHOCK_NOTICE,
+        message: openingArrivalNotice,
         temporary: true,
       };
       current.cinematicTimer = 3.0;
-      current.notice = OPENING_ARRIVAL_AFTERSHOCK_NOTICE;
+      current.notice = openingArrivalNotice;
       current.player.x = 44;
       current.player.y = GROUND_Y - current.player.height;
       current.player.vx = 0;
@@ -9874,7 +10095,6 @@ export default function ExpeditionJourney({
       return;
     }
     audioControls?.unlockExpeditionSfx?.();
-    const isRomeCinematic = typeof targetCivilisation === 'string' && targetCivilisation.toLowerCase().includes('rome');
     audioControls?.playExpeditionSfx?.(openingAtmosphereSfxKey);
     if (!isRomeCinematic) {
       audioControls?.playExpeditionSfx?.('anubisPresenceStinger', { volume: 0.82 });
@@ -10012,13 +10232,16 @@ export default function ExpeditionJourney({
   const skipOpeningCinematic = useCallback(() => {
     const current = stateRef.current;
     if (!current.openingCinematic) return;
+    const openingArrivalNotice = current.openingCinematic.id === 'asha-legate-opening-cinematic'
+      ? ROME_OPENING_ARRIVAL_NOTICE
+      : OPENING_ARRIVAL_AFTERSHOCK_NOTICE;
     if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel();
     current.openingCinematic = null;
-    current.notice = OPENING_ARRIVAL_AFTERSHOCK_NOTICE;
+    current.notice = openingArrivalNotice;
     current.cinematicEvent = {
       id: 'opening-arrival-aftershock',
       name: 'Asha',
-      message: OPENING_ARRIVAL_AFTERSHOCK_NOTICE,
+      message: openingArrivalNotice,
       temporary: true,
     };
     current.cinematicTimer = 3.4;
@@ -10090,7 +10313,14 @@ export default function ExpeditionJourney({
     player.vx = dodgeDirection * PLAYER_DODGE_SPEED;
     player.jumpBufferTimer = 0;
     current.dodgeTrail = [];
-    const dustBase = { type: 'movement-dust', y: player.y + player.height - 5, direction: -dodgeDirection, color: 'rgba(230, 173, 96, 0.72)', maxTimer: 0.28 };
+    const dustBase = {
+      type: 'movement-dust',
+      y: player.y + player.height - 5,
+      visualGroundFootY: player.y + player.height,
+      direction: -dodgeDirection,
+      color: 'rgba(230, 173, 96, 0.72)',
+      maxTimer: 0.28,
+    };
     addCombatEffect(current, { ...dustBase, x: player.x + player.width / 2, timer: 0.28 });
     addCombatEffect(current, { ...dustBase, x: player.x + player.width / 2 - dodgeDirection * 14, timer: 0.22 });
     addCombatEffect(current, { ...dustBase, x: player.x + player.width / 2 - dodgeDirection * 26, timer: 0.16 });
@@ -10228,9 +10458,11 @@ export default function ExpeditionJourney({
       cinematic.timer = Math.max(0, cinematic.timer - dt);
       const elapsed = clamp(cinematic.duration - cinematic.timer, 0, cinematic.duration);
       const activeLine = getOpeningCinematicLine(cinematic);
+      const isRomeOpeningCinematicActive = cinematic.id === 'asha-legate-opening-cinematic';
+      const openingArrivalNotice = isRomeOpeningCinematicActive ? ROME_OPENING_ARRIVAL_NOTICE : OPENING_ARRIVAL_AFTERSHOCK_NOTICE;
       cinematic.activeLineId = activeLine?.id || null;
       cinematic.activeLine = activeLine || null;
-      current.notice = activeLine?.text || 'The first seal watches.';
+      current.notice = activeLine?.text || (isRomeOpeningCinematicActive ? 'The vault is still watching.' : 'The first seal watches.');
       current.attackQueued = false;
       player.vx = 0;
       player.vy = 0;
@@ -10255,11 +10487,11 @@ export default function ExpeditionJourney({
         current.player.y = GROUND_Y - current.player.height;
         current.cameraX = 0;
         current.targetCameraX = 0;
-        current.notice = OPENING_ARRIVAL_AFTERSHOCK_NOTICE;
+        current.notice = openingArrivalNotice;
         current.cinematicEvent = {
           id: 'opening-arrival-aftershock',
           name: 'Asha',
-          message: OPENING_ARRIVAL_AFTERSHOCK_NOTICE,
+          message: openingArrivalNotice,
           temporary: true,
         };
         current.cinematicTimer = 3.4;
@@ -11721,7 +11953,7 @@ export default function ExpeditionJourney({
     const forgottenMuralReturnPoint = (direction = 1) => resolveChamberReturnPoint(forgottenMuralEntryDoor, direction);
     const scribeReturnPoint = (direction = 1) => resolveChamberReturnPoint(scribeEntryDoor, direction);
 
-    const templeThresholdDoorwayActive = backgroundPackId !== 'china-river-valley'
+    const templeThresholdDoorwayActive = scopedJourneyAssetPacks.isEgyptJourney
       && currentSceneId === JOURNEY_SCENE_IDS.EXTERIOR
       && player.onGround
       && forgottenMuralPlayerCenterX >= templeThresholdEntryTrigger.minX
@@ -11808,14 +12040,14 @@ export default function ExpeditionJourney({
       current.templeThresholdHallActive = isTempleThresholdHallScene(current);
     }
 
-    const mummificationChamberDoorwayActive = backgroundPackId !== 'china-river-valley'
+    const mummificationChamberDoorwayActive = scopedJourneyAssetPacks.isEgyptJourney
       && currentSceneId === JOURNEY_SCENE_IDS.EXTERIOR
       && player.onGround
       && forgottenMuralPlayerCenterX >= mummificationEntryTrigger.minX
       && forgottenMuralPlayerCenterX <= mummificationEntryTrigger.maxX
       && player.y < mummificationEntryTrigger.maxY
       && Math.abs(forgottenMuralPlayerFootY - mummificationEntryTrigger.footY) <= mummificationEntryTrigger.footTolerance;
-    const forgottenMuralDoorwayActive = backgroundPackId !== 'china-river-valley'
+    const forgottenMuralDoorwayActive = scopedJourneyAssetPacks.isEgyptJourney
       && currentSceneId === JOURNEY_SCENE_IDS.EXTERIOR
       && player.onGround
       && forgottenMuralPlayerCenterX >= forgottenMuralEntryTrigger.minX
@@ -11931,7 +12163,7 @@ export default function ExpeditionJourney({
       current.forgottenMuralChamberActive = isForgottenMuralChamberScene(current);
     }
 
-    const scribeDoorwayActive = backgroundPackId !== 'china-river-valley'
+    const scribeDoorwayActive = scopedJourneyAssetPacks.isEgyptJourney
       && currentSceneId === JOURNEY_SCENE_IDS.EXTERIOR
       && player.onGround
       && forgottenMuralPlayerCenterX >= scribeEntryTrigger.minX
@@ -12035,7 +12267,7 @@ export default function ExpeditionJourney({
       }
     }
 
-    if (!inInteriorChamberScene && backgroundPackId !== 'china-river-valley' && !current.scarabSealActivated) {
+    if (!inInteriorChamberScene && scopedJourneyAssetPacks.isEgyptJourney && !current.scarabSealActivated) {
       const scarabSealHitbox = {
         x: SCARAB_SEAL_TRIGGER.x - SCARAB_SEAL_TRIGGER.width / 2,
         y: SCARAB_SEAL_TRIGGER.y - SCARAB_SEAL_TRIGGER.height / 2,
@@ -12185,7 +12417,7 @@ export default function ExpeditionJourney({
       activeLevelEntrance
       && activeLevelGate
       && Number.isFinite(activeLevelEntrance.x)
-      && backgroundPackId !== 'china-river-valley'
+      && scopedJourneyAssetPacks.isEgyptJourney
       && player.x + player.width / 2 >= getStageEntranceTriggerX(activeLevelEntrance)
     ) {
       const guidance = getGateGuidance(activeLevelGate, current);
@@ -12240,7 +12472,23 @@ export default function ExpeditionJourney({
           radius: shard.hidden ? 32 : 24,
           timer: 0.46,
         });
-        if (shard.hidden) {
+        if (shard.timelineId) {
+          if (!(current.collectedTimelineEvidenceIds instanceof Set)) current.collectedTimelineEvidenceIds = new Set();
+          if (!Array.isArray(current.romeTimelineEvidenceOrder)) current.romeTimelineEvidenceOrder = [];
+          if (!current.collectedTimelineEvidenceIds.has(shard.timelineId)) {
+            current.collectedTimelineEvidenceIds.add(shard.timelineId);
+            current.romeTimelineEvidenceOrder.push(shard.timelineId);
+          }
+          const timelineGate = ROUTE_GATES.find(gate => gate.requires?.timelineSequence?.length);
+          const timelineProgress = timelineGate
+            ? getTimelineRequirementProgress(timelineGate.requires.timelineSequence, current)
+            : null;
+          current.romeTimelineSolved = Boolean(timelineProgress?.complete);
+          current.notice = timelineProgress?.complete
+            ? 'The archive sequence locks into place: Republic, Caesar, Augustus, Empire, split.'
+            : `${shard.timelineNotice || `${shard.shortName || shard.label || 'Rome evidence'} recovered.`} (${timelineProgress?.found ?? 1}/${timelineProgress?.required ?? 5})`;
+          current.hitStopTimer = Math.max(current.hitStopTimer, 0.025);
+        } else if (shard.hidden) {
           current.notice = shardGateProgress
             ? `Hidden Relic Shard ${Math.min(current.relicShardCount, shardGateProgress.required)}/${shardGateProgress.required}: needed for ${shardGateProgress.gateName}.`
             : 'Hidden relic shard recovered. Spend these at Base Camp.';
@@ -12251,7 +12499,7 @@ export default function ExpeditionJourney({
             : 'Relic shard recovered. Spend these at Base Camp.';
         }
         current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 1.8);
-        const shouldEchoOpeningFirstShard = backgroundPackId !== 'china-river-valley'
+        const shouldEchoOpeningFirstShard = scopedJourneyAssetPacks.isEgyptJourney
           && current.scarabSealActivated
           && !current.openingFirstShardEchoSeen
           && current.relicShardCount === 1
@@ -13360,7 +13608,7 @@ export default function ExpeditionJourney({
         });
       }
       if (!current.seenBossIntroIds) current.seenBossIntroIds = new Set();
-      const scarabSealRequired = backgroundPackId !== 'china-river-valley'
+      const scarabSealRequired = scopedJourneyAssetPacks.isEgyptJourney
         && b.id === SCARAB_SEAL_TRIGGER.bossId;
       if (scarabSealRequired && current.openingThresholdScene) return;
       const bossIntroTriggerDistance = scarabSealRequired ? SCARAB_QUEEN_INTRO_TRIGGER_DISTANCE : 400;
@@ -13386,19 +13634,27 @@ export default function ExpeditionJourney({
           : null;
         const arenaStart = b.arenaStart ?? Math.max(0, b.x - 160);
         const arenaEnd = b.arenaEnd ?? Math.min(WORLD_WIDTH, b.x + 180);
-        const scarabQueenCinematic = b.id === SCARAB_SEAL_TRIGGER.bossId && backgroundPackId !== 'china-river-valley';
-        const playerDomainStartX = arenaStart + 44;
-        player.x = playerDomainStartX;
-        player.y = GROUND_Y - player.height;
-        player.vx = 0;
-        player.vy = 0;
-        player.direction = 1;
+        const scarabQueenCinematic = b.id === SCARAB_SEAL_TRIGGER.bossId && scopedJourneyAssetPacks.isEgyptJourney;
         const bossArenaMin = Math.max(arenaStart + 90, b.patrolMin);
         const bossArenaMax = Math.max(
           bossArenaMin,
           Math.min(arenaEnd - b.width - 24, b.patrolMax),
         );
-        b.x = bossArenaMax;
+        b.x = scarabQueenCinematic && Number.isFinite(b.lairX)
+          ? clamp(b.lairX - SCARAB_QUEEN_DRAW_OFFSET_X - b.width / 2, bossArenaMin, bossArenaMax)
+          : bossArenaMax;
+        const playerDomainMinX = arenaStart + 44;
+        const playerDomainMaxX = Math.max(playerDomainMinX, arenaEnd - player.width - 44);
+        const playerDomainStartX = clamp(
+          b.x - player.width - BOSS_INTRO_PLAYER_STANDOFF,
+          playerDomainMinX,
+          playerDomainMaxX,
+        );
+        player.x = playerDomainStartX;
+        player.y = GROUND_Y - player.height;
+        player.vx = 0;
+        player.vy = 0;
+        player.direction = 1;
         b.direction = -1;
         b.patrolMin = bossArenaMin;
         b.patrolMax = bossArenaMax;
@@ -13816,7 +14072,7 @@ export default function ExpeditionJourney({
       if (current.resources.time <= 0) triggerJourneyRescue('Time expired. Field team rescued.');
     }
 
-  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, backgroundPackId, openingAtmosphereSfxKey, scopedJourneyAssetPacks.isChinaJourney, scopedJourneyAssetPacks.isRomeJourney, targetCivilisation, buildBossRewardMoment, completeOpeningThresholdScene, enterLevelFromThreshold, startOpeningCinematic, startLevelThresholdEncounter, startTempleThresholdTransition, getActiveHiddenRoutes, getActiveSecretCollectibles, getActiveShardGateProgress, getAttackBox, getAttackHurtbox, getPlayerAttackNearMissTarget, getBossPhaseConfig, getBossVulnerabilityState, getDoorwayGateStatus, getEnemyPatternConfig, getObjectiveProgress, getGateGuidance, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getRenderableTrapPlatforms, getLiveScorpionNestBlockers, getRouteAccessState, getRouteGateDoorwayEntries, isRouteRewardAccessible, isLowStamina, addCombatEffect, applyCombatHitImpact, recordEnvironmentInteraction, getPlayerAttackState, getSectionDisplayName, getSectionDisplayTitle, resolveChamberEntryTrigger, resolveChamberReturnPoint, syncHud, updateArrivalThresholdTrial]);
+  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, openingAtmosphereSfxKey, scopedJourneyAssetPacks.isChinaJourney, scopedJourneyAssetPacks.isEgyptJourney, scopedJourneyAssetPacks.isRomeJourney, targetCivilisation, buildBossRewardMoment, completeOpeningThresholdScene, enterLevelFromThreshold, startOpeningCinematic, startLevelThresholdEncounter, startTempleThresholdTransition, getActiveHiddenRoutes, getActiveSecretCollectibles, getActiveShardGateProgress, getAttackBox, getAttackHurtbox, getPlayerAttackNearMissTarget, getBossPhaseConfig, getBossVulnerabilityState, getDoorwayGateStatus, getEnemyPatternConfig, getObjectiveProgress, getGateGuidance, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getRenderableTrapPlatforms, getLiveScorpionNestBlockers, getRouteAccessState, getRouteGateDoorwayEntries, isRouteRewardAccessible, isLowStamina, addCombatEffect, applyCombatHitImpact, recordEnvironmentInteraction, getPlayerAttackState, getSectionDisplayName, getSectionDisplayTitle, resolveChamberEntryTrigger, resolveChamberReturnPoint, syncHud, updateArrivalThresholdTrial]);
 
   const step = useCallback((ms) => {
     const dt = Math.min(ms / 1000, 0.05);
@@ -13913,6 +14169,14 @@ export default function ExpeditionJourney({
             }
             gate.requires?.upgrades?.forEach(upgradeId => current.collectedUpgrades.add(upgradeId));
             if (gate.requires?.shards) current.relicShardCount = Math.max(current.relicShardCount, gate.requires.shards + 1);
+            if (gate.requires?.timelineSequence?.length) {
+              const timelineIds = gate.requires.timelineSequence
+                .map(item => (typeof item === 'string' ? item : item?.id))
+                .filter(Boolean);
+              current.collectedTimelineEvidenceIds = new Set(timelineIds);
+              current.romeTimelineEvidenceOrder = timelineIds;
+              current.romeTimelineSolved = true;
+            }
           } else {
             current.relicShardCount = 0;
           }
@@ -14029,7 +14293,7 @@ export default function ExpeditionJourney({
           if (!boss) return;
           const arenaStart = boss.arenaStart ?? Math.max(0, boss.x - 160);
           const arenaEnd = boss.arenaEnd ?? Math.min(WORLD_WIDTH, boss.x + 180);
-          const scarabQueenCinematic = boss.id === SCARAB_SEAL_TRIGGER.bossId && backgroundPackId !== 'china-river-valley';
+          const scarabQueenCinematic = boss.id === SCARAB_SEAL_TRIGGER.bossId && scopedJourneyAssetPacks.isEgyptJourney;
           const section = SECTIONS.find(item => item.id === boss.sectionId);
           const sectionCheckpoint = getRenderableCheckpoints().find(checkpoint => checkpoint.id === boss.sectionId);
           if (scarabQueenCinematic) {
@@ -14062,7 +14326,13 @@ export default function ExpeditionJourney({
           boss.debugSpriteState = null;
           boss.awakened = true;
           boss.health = boss.maxHealth || boss.health || 1;
-          boss.x = Math.min(arenaEnd - boss.width - 24, Math.max(arenaStart + 90, boss.patrolMax));
+          boss.x = scarabQueenCinematic && Number.isFinite(boss.lairX)
+            ? clamp(
+              boss.lairX - SCARAB_QUEEN_DRAW_OFFSET_X - boss.width / 2,
+              Math.max(arenaStart + 90, boss.patrolMin),
+              Math.min(arenaEnd - boss.width - 24, boss.patrolMax),
+            )
+            : Math.min(arenaEnd - boss.width - 24, Math.max(arenaStart + 90, boss.patrolMax));
           boss.y = GROUND_Y - boss.height;
           boss.direction = -1;
           boss.attackWindup = 0;
@@ -14076,7 +14346,11 @@ export default function ExpeditionJourney({
           boss.hitFlash = 0;
           boss.attackCycleIndex = 0;
           boss.patternHistory = [];
-          current.player.x = clamp(arenaStart + 44, 0, WORLD_WIDTH - current.player.width);
+          current.player.x = clamp(
+            boss.x - current.player.width - BOSS_INTRO_PLAYER_STANDOFF,
+            arenaStart + 44,
+            Math.max(arenaStart + 44, arenaEnd - current.player.width - 44),
+          );
           current.player.y = GROUND_Y - current.player.height;
           current.player.vx = 0;
           current.player.vy = 0;
@@ -14232,6 +14506,9 @@ export default function ExpeditionJourney({
           current.cinematicEvent = null;
           current.cinematicTimer = 0;
           current.activeGuardianChallenge = null;
+          current.arrivalThresholdActive = false;
+          current.arrivalThresholdExitTransition = null;
+          current.arrivalThresholdTrial = null;
           current.sceneTransition = null;
           current.forgottenMuralChamberTransition = null;
           current.templeThresholdHallActive = false;
@@ -14439,7 +14716,7 @@ export default function ExpeditionJourney({
         window.removeEventListener('expedition-dev-jump', handleExpeditionDevJump);
       }
     };
-  }, [addCombatEffect, backgroundPackId, buildBossRewardMoment, createJourneySnapshot, getRenderableCheckpoints, startTempleThresholdTransition, step, syncHud]);
+  }, [addCombatEffect, backgroundPackId, buildBossRewardMoment, createJourneySnapshot, getRenderableCheckpoints, scopedJourneyAssetPacks.isEgyptJourney, startTempleThresholdTransition, step, syncHud]);
 
   useJourneyPlacementEditorShortcuts({
     DEFAULT_JOURNEY_PROP_EDITOR_ROTATION_STEP,
@@ -14598,6 +14875,32 @@ export default function ExpeditionJourney({
   );
   const openingShieldShattered = Boolean(gameState.openingCinematic?.shieldShattered || openingSpellImpactActive);
   const openingCinematicActive = Boolean(gameState.openingCinematic || gameState.openingThresholdScene || gameState.templeThresholdTransition);
+  const isRomeOpeningCinematic = gameState.openingCinematic?.id === 'asha-legate-opening-cinematic';
+  const openingCinematicClassName = [
+    'opening-cinematic-overlay',
+    isRomeOpeningCinematic ? 'is-rome' : 'is-egypt',
+    openingSpellImpactActive ? 'is-spell-impact' : '',
+    openingShieldShattered ? 'is-shield-shattered' : '',
+  ].filter(Boolean).join(' ');
+  const openingCinematicBackgroundSrc = isRomeOpeningCinematic
+    ? `${import.meta.env.BASE_URL}${ROME_OPENING_BACKGROUND_SRC}`
+    : 'assets/expedition/backgrounds/desert-entry/desert-entry-photoreal-sphinx-backdrop.png';
+  const openingCinematicAshaSrc = isRomeOpeningCinematic
+    ? `${import.meta.env.BASE_URL}${ROME_OPENING_ASHA_CUTSCENE_SRC}`
+    : OPENING_ASHA_CUTSCENE_SRC;
+  const openingCinematicGuardianSrc = isRomeOpeningCinematic
+    ? `${import.meta.env.BASE_URL}${ROME_OPENING_LEGATE_CUTSCENE_SRC}`
+    : OPENING_SPHINX_APPARITION_SRC;
+  const openingCinematicSealSrc = isRomeOpeningCinematic
+    ? `${import.meta.env.BASE_URL}${ROME_OPENING_VAULT_SIGIL_SRC}`
+    : `${import.meta.env.BASE_URL}${OPENING_JUDGEMENT_SEAL_IMAGE_SRC}`;
+  const openingCinematicTitle = isRomeOpeningCinematic
+    ? (gameState.openingCinematic?.title || 'The Vault Speaks First')
+    : 'The Gate Refuses';
+  const openingCinematicKicker = isRomeOpeningCinematic ? 'The First Archive' : 'The First Seal';
+  const openingCinematicAriaLabel = isRomeOpeningCinematic
+    ? 'Asha and the Legate opening cut scene'
+    : 'Asha and Anubis opening cut scene';
 
   return (
     <section className={`expedition-journey-container ${openingCinematicActive ? 'is-opening-cinematic' : ''}`} id="expedition-journey">
@@ -14680,24 +14983,25 @@ export default function ExpeditionJourney({
 
             {gameState.openingCinematic && (
               <div
-                className={`opening-cinematic-overlay ${openingSpellImpactActive ? 'is-spell-impact' : ''} ${openingShieldShattered ? 'is-shield-shattered' : ''}`}
+                className={openingCinematicClassName}
                 role="dialog"
                 aria-live="polite"
-                aria-label="Asha and Anubis opening cut scene"
+                aria-label={openingCinematicAriaLabel}
                 style={{ '--opening-progress': openingIntroProgress }}
               >
                 <div className="opening-cinematic-backdrop" aria-hidden="true">
                   <img
                     className="opening-cinematic-bg"
-                    src="assets/expedition/backgrounds/desert-entry/desert-entry-photoreal-sphinx-backdrop.png"
+                    src={openingCinematicBackgroundSrc}
                     alt=""
                   />
                   <div className="opening-cinematic-depth opening-cinematic-depth-left" />
                   <div className="opening-cinematic-depth opening-cinematic-depth-right" />
                   <img
                     className="opening-cinematic-seal"
-                    src={`${import.meta.env.BASE_URL}${OPENING_JUDGEMENT_SEAL_IMAGE_SRC}`}
+                    src={openingCinematicSealSrc}
                     onError={(event) => {
+                      if (isRomeOpeningCinematic) return;
                       const fallback = `${import.meta.env.BASE_URL}${OPENING_SCARAB_SEAL_IMAGE_SRC}`;
                       if (!event.currentTarget.src.endsWith(OPENING_SCARAB_SEAL_IMAGE_SRC)) {
                         event.currentTarget.src = fallback;
@@ -14707,7 +15011,7 @@ export default function ExpeditionJourney({
                   />
                   <img
                     className="opening-cinematic-anubis"
-                    src={OPENING_SPHINX_APPARITION_SRC}
+                    src={openingCinematicGuardianSrc}
                     alt=""
                   />
                   <div className="opening-cinematic-memory-runes">
@@ -14747,12 +15051,12 @@ export default function ExpeditionJourney({
                     the backdrop layer so the film grain keeps him spectral. */}
                 <img
                   className="opening-cinematic-asha"
-                  src={OPENING_ASHA_CUTSCENE_SRC}
+                  src={openingCinematicAshaSrc}
                   alt=""
                 />
                 <div className="opening-cinematic-copy">
-                  <div className="opening-cinematic-kicker">The First Seal</div>
-                  <h2>The Gate Refuses</h2>
+                  <div className="opening-cinematic-kicker">{openingCinematicKicker}</div>
+                  <h2>{openingCinematicTitle}</h2>
                 </div>
                 {activeOpeningCinematicLine && (
                   <div
@@ -14819,6 +15123,7 @@ export default function ExpeditionJourney({
         OPENING_CINEMATIC_ENABLED={OPENING_CINEMATIC_ENABLED}
         startOpeningCinematic={startOpeningCinematic}
         startJourneyWithoutOpeningScene={startJourneyWithoutOpeningScene}
+        targetCivilisation={targetCivilisation}
       />
     </section>
   );

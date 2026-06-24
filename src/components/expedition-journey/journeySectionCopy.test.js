@@ -12,8 +12,8 @@ test('section display copy is routed per civilisation', () => {
   assert.equal(SECTION_COPY['desert-entry'].title, 'Restore the first seal to earn passage below.');
 
   setExpeditionJourneyCiv('Ancient China');
-  assert.equal(SECTION_COPY['bamboo-forest'].name, 'Bamboo Forest');
-  assert.equal(SECTION_COPY['bamboo-forest'].title, 'The Silent Bamboo');
+  assert.equal(SECTION_COPY['yellow-river-frontier'].name, 'Yellow River Frontier');
+  assert.equal(SECTION_COPY['yellow-river-frontier'].title, 'The Yellow River Frontier');
   assert.equal(SECTION_COPY['desert-entry'], undefined);
 
   setExpeditionJourneyCiv('Ancient Rome');

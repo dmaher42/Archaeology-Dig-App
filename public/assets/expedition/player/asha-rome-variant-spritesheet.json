@@ -1,0 +1,1903 @@
+{
+  "image": "asha-rome-variant-spritesheet.png",
+  "source": "Rome-named Asha atlas derived from the production warrior motion sheet with subtle Roman red-gold costume grading.",
+  "status": "approved-asha-reference-warrior-dodge-backstep-tone-matched",
+  "productionReference": "asha-reference-warrior-reference.png",
+  "description": "New Asha runtime atlas based on the user-provided warrior reference: dark-skinned braided explorer-warrior, bronze Egyptian armor, teal accents, tan field cloth, and the locked-reference vertical khopesh polearm. Idle, run, jump, hurt, and the upgraded three-hit attack chain use the new reference-warrior identity. The combo now separates a quick horizontal entry slash, rising diagonal follow-up, and heavy finisher sweep with clearer windup and follow-through poses. Utility rows borrow from those rows so the runtime atlas does not mix in older Asha identities while final utility animation rows await visual approval. The atlas also includes an approved eight-frame dodge/backstep row with the peak evade on frame 02 and a low, braced recovery through frames 06-07.",
+  "frame": {
+    "width": 390,
+    "height": 256,
+    "groundLineY": 236,
+    "facing": "right"
+  },
+  "draw": {
+    "height": 130,
+    "sourceHeight": 224,
+    "integratedAttackTool": true,
+    "suppressExternalWeapon": true,
+    "suppressExternalWeaponDuringAttack": true,
+    "suppressRuntimeAttackArc": true,
+    "imageSmoothingQuality": "high",
+    "frameDistance": {
+      "run": 26,
+      "walk": 24,
+      "survey_walk": 34
+    },
+    "rowScaleMultipliers": {
+      "walk": 0.965,
+      "run": 0.965,
+      "survey_walk": 0.965,
+      "attack_pick_swing_sweep": 1.16
+    },
+    "frameScaleMultipliers": {
+      "attack_pick_swing_alt_02": 1.12,
+      "attack_pick_swing_alt_03": 1.3,
+      "attack_pick_swing_alt_04": 1.24,
+      "attack_pick_swing_alt_05": 1.22
+    },
+    "fixedFrame": {},
+    "attackChainRows": [
+      "attack_pick_swing",
+      "attack_pick_swing_alt",
+      "attack_pick_swing_sweep"
+    ],
+    "alternateAttackRows": [
+      "attack_pick_swing",
+      "attack_pick_swing_alt",
+      "attack_pick_swing_sweep"
+    ]
+  },
+  "rows": [
+    {
+      "name": "idle",
+      "row": 0,
+      "frameCount": 8,
+      "loop": true,
+      "frames": [
+        "idle_00",
+        "idle_01",
+        "idle_02",
+        "idle_03",
+        "idle_04",
+        "idle_05",
+        "idle_06",
+        "idle_07"
+      ]
+    },
+    {
+      "name": "walk",
+      "row": 1,
+      "frameCount": 8,
+      "loop": true,
+      "frames": [
+        "walk_00",
+        "walk_01",
+        "walk_02",
+        "walk_03",
+        "walk_04",
+        "walk_05",
+        "walk_06",
+        "walk_07"
+      ]
+    },
+    {
+      "name": "run",
+      "row": 2,
+      "frameCount": 8,
+      "loop": true,
+      "frames": [
+        "run_00",
+        "run_01",
+        "run_02",
+        "run_03",
+        "run_04",
+        "run_05",
+        "run_06",
+        "run_07"
+      ]
+    },
+    {
+      "name": "survey_walk",
+      "row": 3,
+      "frameCount": 8,
+      "loop": true,
+      "frames": [
+        "survey_walk_00",
+        "survey_walk_01",
+        "survey_walk_02",
+        "survey_walk_03",
+        "survey_walk_04",
+        "survey_walk_05",
+        "survey_walk_06",
+        "survey_walk_07"
+      ]
+    },
+    {
+      "name": "jump",
+      "row": 4,
+      "frameCount": 8,
+      "loop": false,
+      "frames": [
+        "jump_00",
+        "jump_01",
+        "jump_02",
+        "jump_03",
+        "jump_04",
+        "jump_05",
+        "jump_06",
+        "jump_07"
+      ]
+    },
+    {
+      "name": "fall",
+      "row": 5,
+      "frameCount": 8,
+      "loop": false,
+      "frames": [
+        "fall_00",
+        "fall_01",
+        "fall_02",
+        "fall_03",
+        "fall_04",
+        "fall_05",
+        "fall_06",
+        "fall_07"
+      ]
+    },
+    {
+      "name": "land",
+      "row": 6,
+      "frameCount": 8,
+      "loop": false,
+      "frames": [
+        "land_00",
+        "land_01",
+        "land_02",
+        "land_03",
+        "land_04",
+        "land_05",
+        "land_06",
+        "land_07"
+      ]
+    },
+    {
+      "name": "attack_pick_swing",
+      "row": 7,
+      "frameCount": 8,
+      "loop": false,
+      "frames": [
+        "attack_pick_swing_00",
+        "attack_pick_swing_01",
+        "attack_pick_swing_02",
+        "attack_pick_swing_03",
+        "attack_pick_swing_04",
+        "attack_pick_swing_05",
+        "attack_pick_swing_06",
+        "attack_pick_swing_07"
+      ]
+    },
+    {
+      "name": "hurt",
+      "row": 8,
+      "frameCount": 5,
+      "loop": false,
+      "frames": [
+        "hurt_00",
+        "hurt_01",
+        "hurt_02",
+        "hurt_03",
+        "hurt_04"
+      ]
+    },
+    {
+      "name": "interact",
+      "row": 9,
+      "frameCount": 6,
+      "loop": false,
+      "frames": [
+        "interact_00",
+        "interact_01",
+        "interact_02",
+        "interact_03",
+        "interact_04",
+        "interact_05"
+      ]
+    },
+    {
+      "name": "climb",
+      "row": 10,
+      "frameCount": 8,
+      "loop": false,
+      "frames": [
+        "climb_00",
+        "climb_01",
+        "climb_02",
+        "climb_03",
+        "climb_04",
+        "climb_05",
+        "climb_06",
+        "climb_07"
+      ]
+    },
+    {
+      "name": "push_pull",
+      "row": 11,
+      "frameCount": 8,
+      "loop": false,
+      "frames": [
+        "push_pull_00",
+        "push_pull_01",
+        "push_pull_02",
+        "push_pull_03",
+        "push_pull_04",
+        "push_pull_05",
+        "push_pull_06",
+        "push_pull_07"
+      ]
+    },
+    {
+      "name": "attack_pick_swing_alt",
+      "row": 12,
+      "frameCount": 8,
+      "loop": false,
+      "frames": [
+        "attack_pick_swing_alt_00",
+        "attack_pick_swing_alt_01",
+        "attack_pick_swing_alt_02",
+        "attack_pick_swing_alt_03",
+        "attack_pick_swing_alt_04",
+        "attack_pick_swing_alt_05",
+        "attack_pick_swing_alt_06",
+        "attack_pick_swing_alt_07"
+      ]
+    },
+    {
+      "name": "attack_pick_swing_sweep",
+      "row": 13,
+      "frameCount": 8,
+      "loop": false,
+      "frames": [
+        "attack_pick_swing_sweep_00",
+        "attack_pick_swing_sweep_01",
+        "attack_pick_swing_sweep_02",
+        "attack_pick_swing_sweep_03",
+        "attack_pick_swing_sweep_04",
+        "attack_pick_swing_sweep_05",
+        "attack_pick_swing_sweep_06",
+        "attack_pick_swing_sweep_07"
+      ]
+    },
+    {
+      "name": "dodge",
+      "row": 14,
+      "frameCount": 8,
+      "loop": false,
+      "frames": [
+        "dodge_00",
+        "dodge_01",
+        "dodge_02",
+        "dodge_03",
+        "dodge_04",
+        "dodge_05",
+        "dodge_06",
+        "dodge_07"
+      ]
+    }
+  ],
+  "regions": {
+    "idle_00": {
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 66,
+        "y": 6,
+        "w": 258,
+        "h": 233
+      },
+      "groundLineY": 236
+    },
+    "idle_01": {
+      "x": 390,
+      "y": 0,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 66,
+        "y": 6,
+        "w": 258,
+        "h": 233
+      },
+      "groundLineY": 236
+    },
+    "idle_02": {
+      "x": 780,
+      "y": 0,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 66,
+        "y": 6,
+        "w": 258,
+        "h": 233
+      },
+      "groundLineY": 236
+    },
+    "idle_03": {
+      "x": 1170,
+      "y": 0,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 66,
+        "y": 6,
+        "w": 258,
+        "h": 233
+      },
+      "groundLineY": 236
+    },
+    "idle_04": {
+      "x": 1560,
+      "y": 0,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 66,
+        "y": 6,
+        "w": 258,
+        "h": 233
+      },
+      "groundLineY": 236
+    },
+    "idle_05": {
+      "x": 1950,
+      "y": 0,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 66,
+        "y": 6,
+        "w": 258,
+        "h": 233
+      },
+      "groundLineY": 236
+    },
+    "idle_06": {
+      "x": 2340,
+      "y": 0,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 66,
+        "y": 6,
+        "w": 258,
+        "h": 233
+      },
+      "groundLineY": 236
+    },
+    "idle_07": {
+      "x": 2730,
+      "y": 0,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 66,
+        "y": 6,
+        "w": 258,
+        "h": 233
+      },
+      "groundLineY": 236
+    },
+    "walk_00": {
+      "x": 0,
+      "y": 256,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 43,
+        "y": 0,
+        "w": 303,
+        "h": 239
+      },
+      "groundLineY": 236
+    },
+    "walk_01": {
+      "x": 390,
+      "y": 256,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 33,
+        "y": 0,
+        "w": 323,
+        "h": 239
+      },
+      "groundLineY": 236
+    },
+    "walk_02": {
+      "x": 780,
+      "y": 256,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 49,
+        "y": 0,
+        "w": 293,
+        "h": 239
+      },
+      "groundLineY": 236
+    },
+    "walk_03": {
+      "x": 1170,
+      "y": 256,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 36,
+        "y": 0,
+        "w": 318,
+        "h": 239
+      },
+      "groundLineY": 236
+    },
+    "walk_04": {
+      "x": 1560,
+      "y": 256,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 37,
+        "y": 0,
+        "w": 316,
+        "h": 239
+      },
+      "groundLineY": 236
+    },
+    "walk_05": {
+      "x": 1950,
+      "y": 256,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 40,
+        "y": 0,
+        "w": 310,
+        "h": 239
+      },
+      "groundLineY": 236
+    },
+    "walk_06": {
+      "x": 2340,
+      "y": 256,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 44,
+        "y": 0,
+        "w": 302,
+        "h": 239
+      },
+      "groundLineY": 236
+    },
+    "walk_07": {
+      "x": 2730,
+      "y": 256,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 45,
+        "y": 0,
+        "w": 301,
+        "h": 239
+      },
+      "groundLineY": 236
+    },
+    "run_00": {
+      "x": 0,
+      "y": 512,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 43,
+        "y": 0,
+        "w": 303,
+        "h": 239
+      },
+      "groundLineY": 236
+    },
+    "run_01": {
+      "x": 390,
+      "y": 512,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 33,
+        "y": 0,
+        "w": 323,
+        "h": 239
+      },
+      "groundLineY": 236
+    },
+    "run_02": {
+      "x": 780,
+      "y": 512,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 49,
+        "y": 0,
+        "w": 293,
+        "h": 239
+      },
+      "groundLineY": 236
+    },
+    "run_03": {
+      "x": 1170,
+      "y": 512,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 36,
+        "y": 0,
+        "w": 318,
+        "h": 239
+      },
+      "groundLineY": 236
+    },
+    "run_04": {
+      "x": 1560,
+      "y": 512,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 37,
+        "y": 0,
+        "w": 316,
+        "h": 239
+      },
+      "groundLineY": 236
+    },
+    "run_05": {
+      "x": 1950,
+      "y": 512,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 40,
+        "y": 0,
+        "w": 310,
+        "h": 239
+      },
+      "groundLineY": 236
+    },
+    "run_06": {
+      "x": 2340,
+      "y": 512,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 44,
+        "y": 0,
+        "w": 302,
+        "h": 239
+      },
+      "groundLineY": 236
+    },
+    "run_07": {
+      "x": 2730,
+      "y": 512,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 45,
+        "y": 0,
+        "w": 301,
+        "h": 239
+      },
+      "groundLineY": 236
+    },
+    "survey_walk_00": {
+      "x": 0,
+      "y": 768,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 43,
+        "y": 0,
+        "w": 303,
+        "h": 239
+      },
+      "groundLineY": 236
+    },
+    "survey_walk_01": {
+      "x": 390,
+      "y": 768,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 33,
+        "y": 0,
+        "w": 323,
+        "h": 239
+      },
+      "groundLineY": 236
+    },
+    "survey_walk_02": {
+      "x": 780,
+      "y": 768,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 49,
+        "y": 0,
+        "w": 293,
+        "h": 239
+      },
+      "groundLineY": 236
+    },
+    "survey_walk_03": {
+      "x": 1170,
+      "y": 768,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 36,
+        "y": 0,
+        "w": 318,
+        "h": 239
+      },
+      "groundLineY": 236
+    },
+    "survey_walk_04": {
+      "x": 1560,
+      "y": 768,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 37,
+        "y": 0,
+        "w": 316,
+        "h": 239
+      },
+      "groundLineY": 236
+    },
+    "survey_walk_05": {
+      "x": 1950,
+      "y": 768,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 40,
+        "y": 0,
+        "w": 310,
+        "h": 239
+      },
+      "groundLineY": 236
+    },
+    "survey_walk_06": {
+      "x": 2340,
+      "y": 768,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 44,
+        "y": 0,
+        "w": 302,
+        "h": 239
+      },
+      "groundLineY": 236
+    },
+    "survey_walk_07": {
+      "x": 2730,
+      "y": 768,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 45,
+        "y": 0,
+        "w": 301,
+        "h": 239
+      },
+      "groundLineY": 236
+    },
+    "jump_00": {
+      "x": 0,
+      "y": 1024,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 37,
+        "y": 5,
+        "w": 316,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "jump_01": {
+      "x": 390,
+      "y": 1024,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 61,
+        "y": 5,
+        "w": 267,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "jump_02": {
+      "x": 780,
+      "y": 1024,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 69,
+        "y": 5,
+        "w": 251,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "jump_03": {
+      "x": 1170,
+      "y": 1024,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 59,
+        "y": 5,
+        "w": 273,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "jump_04": {
+      "x": 1560,
+      "y": 1024,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 65,
+        "y": 5,
+        "w": 261,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "jump_05": {
+      "x": 1950,
+      "y": 1024,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 57,
+        "y": 5,
+        "w": 276,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "jump_06": {
+      "x": 2340,
+      "y": 1024,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 21,
+        "y": 5,
+        "w": 349,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "jump_07": {
+      "x": 2730,
+      "y": 1024,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 52,
+        "y": 5,
+        "w": 286,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "fall_00": {
+      "x": 0,
+      "y": 1280,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 59,
+        "y": 5,
+        "w": 273,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "fall_01": {
+      "x": 390,
+      "y": 1280,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 65,
+        "y": 5,
+        "w": 261,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "fall_02": {
+      "x": 780,
+      "y": 1280,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 57,
+        "y": 5,
+        "w": 276,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "fall_03": {
+      "x": 1170,
+      "y": 1280,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 57,
+        "y": 5,
+        "w": 276,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "fall_04": {
+      "x": 1560,
+      "y": 1280,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 21,
+        "y": 5,
+        "w": 349,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "fall_05": {
+      "x": 1950,
+      "y": 1280,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 21,
+        "y": 5,
+        "w": 349,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "fall_06": {
+      "x": 2340,
+      "y": 1280,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 52,
+        "y": 5,
+        "w": 286,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "fall_07": {
+      "x": 2730,
+      "y": 1280,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 52,
+        "y": 5,
+        "w": 286,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "land_00": {
+      "x": 0,
+      "y": 1536,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 57,
+        "y": 5,
+        "w": 276,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "land_01": {
+      "x": 390,
+      "y": 1536,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 21,
+        "y": 5,
+        "w": 349,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "land_02": {
+      "x": 780,
+      "y": 1536,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 52,
+        "y": 5,
+        "w": 286,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "land_03": {
+      "x": 1170,
+      "y": 1536,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 52,
+        "y": 5,
+        "w": 286,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "land_04": {
+      "x": 1560,
+      "y": 1536,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 52,
+        "y": 5,
+        "w": 286,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "land_05": {
+      "x": 1950,
+      "y": 1536,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 52,
+        "y": 5,
+        "w": 286,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "land_06": {
+      "x": 2340,
+      "y": 1536,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 52,
+        "y": 5,
+        "w": 286,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "land_07": {
+      "x": 2730,
+      "y": 1536,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 52,
+        "y": 5,
+        "w": 286,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_00": {
+      "x": 0,
+      "y": 1792,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 51,
+        "y": 5,
+        "w": 288,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_01": {
+      "x": 390,
+      "y": 1792,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 45,
+        "y": 5,
+        "w": 299,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_02": {
+      "x": 780,
+      "y": 1792,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 1,
+        "y": 5,
+        "w": 388,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_03": {
+      "x": 1170,
+      "y": 1792,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 0,
+        "y": 14,
+        "w": 390,
+        "h": 225
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_04": {
+      "x": 1560,
+      "y": 1792,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 0,
+        "y": 31,
+        "w": 390,
+        "h": 208
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_05": {
+      "x": 1950,
+      "y": 1792,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 0,
+        "y": 30,
+        "w": 390,
+        "h": 209
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_06": {
+      "x": 2340,
+      "y": 1792,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 46,
+        "y": 5,
+        "w": 298,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_07": {
+      "x": 2730,
+      "y": 1792,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 49,
+        "y": 5,
+        "w": 293,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "hurt_00": {
+      "x": 0,
+      "y": 2048,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 64,
+        "y": 5,
+        "w": 262,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "hurt_01": {
+      "x": 390,
+      "y": 2048,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 51,
+        "y": 5,
+        "w": 287,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "hurt_02": {
+      "x": 780,
+      "y": 2048,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 51,
+        "y": 5,
+        "w": 287,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "hurt_03": {
+      "x": 1170,
+      "y": 2048,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 51,
+        "y": 5,
+        "w": 289,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "hurt_04": {
+      "x": 1560,
+      "y": 2048,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 55,
+        "y": 5,
+        "w": 279,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "interact_00": {
+      "x": 0,
+      "y": 2304,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 65,
+        "y": 5,
+        "w": 259,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "interact_01": {
+      "x": 390,
+      "y": 2304,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 65,
+        "y": 5,
+        "w": 259,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "interact_02": {
+      "x": 780,
+      "y": 2304,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 65,
+        "y": 5,
+        "w": 259,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "interact_03": {
+      "x": 1170,
+      "y": 2304,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 65,
+        "y": 5,
+        "w": 259,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "interact_04": {
+      "x": 1560,
+      "y": 2304,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 65,
+        "y": 5,
+        "w": 259,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "interact_05": {
+      "x": 1950,
+      "y": 2304,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 65,
+        "y": 5,
+        "w": 259,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "climb_00": {
+      "x": 0,
+      "y": 2560,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 37,
+        "y": 5,
+        "w": 316,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "climb_01": {
+      "x": 390,
+      "y": 2560,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 61,
+        "y": 5,
+        "w": 267,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "climb_02": {
+      "x": 780,
+      "y": 2560,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 69,
+        "y": 5,
+        "w": 251,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "climb_03": {
+      "x": 1170,
+      "y": 2560,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 58,
+        "y": 5,
+        "w": 274,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "climb_04": {
+      "x": 1560,
+      "y": 2560,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 64,
+        "y": 5,
+        "w": 262,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "climb_05": {
+      "x": 1950,
+      "y": 2560,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 57,
+        "y": 5,
+        "w": 276,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "climb_06": {
+      "x": 2340,
+      "y": 2560,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 20,
+        "y": 5,
+        "w": 350,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "climb_07": {
+      "x": 2730,
+      "y": 2560,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 51,
+        "y": 5,
+        "w": 287,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "push_pull_00": {
+      "x": 0,
+      "y": 2816,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 51,
+        "y": 5,
+        "w": 288,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "push_pull_01": {
+      "x": 390,
+      "y": 2816,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 45,
+        "y": 5,
+        "w": 299,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "push_pull_02": {
+      "x": 780,
+      "y": 2816,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 1,
+        "y": 5,
+        "w": 388,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "push_pull_03": {
+      "x": 1170,
+      "y": 2816,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 0,
+        "y": 14,
+        "w": 390,
+        "h": 225
+      },
+      "groundLineY": 236
+    },
+    "push_pull_04": {
+      "x": 1560,
+      "y": 2816,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 0,
+        "y": 31,
+        "w": 390,
+        "h": 208
+      },
+      "groundLineY": 236
+    },
+    "push_pull_05": {
+      "x": 1950,
+      "y": 2816,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 0,
+        "y": 30,
+        "w": 390,
+        "h": 209
+      },
+      "groundLineY": 236
+    },
+    "push_pull_06": {
+      "x": 2340,
+      "y": 2816,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 46,
+        "y": 5,
+        "w": 298,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "push_pull_07": {
+      "x": 2730,
+      "y": 2816,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 49,
+        "y": 5,
+        "w": 293,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_alt_00": {
+      "x": 0,
+      "y": 3072,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 67,
+        "y": 5,
+        "w": 257,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_alt_01": {
+      "x": 390,
+      "y": 3072,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 76,
+        "y": 5,
+        "w": 238,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_alt_02": {
+      "x": 780,
+      "y": 3072,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 65,
+        "y": 5,
+        "w": 261,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_alt_03": {
+      "x": 1170,
+      "y": 3072,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 97,
+        "y": 5,
+        "w": 197,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_alt_04": {
+      "x": 1560,
+      "y": 3072,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 75,
+        "y": 5,
+        "w": 240,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_alt_05": {
+      "x": 1950,
+      "y": 3072,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 78,
+        "y": 5,
+        "w": 234,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_alt_06": {
+      "x": 2340,
+      "y": 3072,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 53,
+        "y": 5,
+        "w": 284,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_alt_07": {
+      "x": 2730,
+      "y": 3072,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 59,
+        "y": 5,
+        "w": 271,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_sweep_00": {
+      "x": 0,
+      "y": 3328,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 48,
+        "y": 5,
+        "w": 294,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_sweep_01": {
+      "x": 390,
+      "y": 3328,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 43,
+        "y": 5,
+        "w": 303,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_sweep_02": {
+      "x": 780,
+      "y": 3328,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 40,
+        "y": 5,
+        "w": 310,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_sweep_03": {
+      "x": 1170,
+      "y": 3328,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 0,
+        "y": 15,
+        "w": 390,
+        "h": 224
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_sweep_04": {
+      "x": 1560,
+      "y": 3328,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 0,
+        "y": 30,
+        "w": 390,
+        "h": 209
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_sweep_05": {
+      "x": 1950,
+      "y": 3328,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 7,
+        "y": 5,
+        "w": 376,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_sweep_06": {
+      "x": 2340,
+      "y": 3328,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 43,
+        "y": 5,
+        "w": 305,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "attack_pick_swing_sweep_07": {
+      "x": 2730,
+      "y": 3328,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 56,
+        "y": 5,
+        "w": 278,
+        "h": 234
+      },
+      "groundLineY": 236
+    },
+    "dodge_00": {
+      "x": 0,
+      "y": 3584,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 77,
+        "y": 9,
+        "w": 235,
+        "h": 230
+      },
+      "groundLineY": 236
+    },
+    "dodge_01": {
+      "x": 390,
+      "y": 3584,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 51,
+        "y": 19,
+        "w": 273,
+        "h": 220
+      },
+      "groundLineY": 236
+    },
+    "dodge_02": {
+      "x": 780,
+      "y": 3584,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 37,
+        "y": 43,
+        "w": 283,
+        "h": 196
+      },
+      "groundLineY": 236
+    },
+    "dodge_03": {
+      "x": 1170,
+      "y": 3584,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 17,
+        "y": 35,
+        "w": 313,
+        "h": 204
+      },
+      "groundLineY": 236
+    },
+    "dodge_04": {
+      "x": 1560,
+      "y": 3584,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 41,
+        "y": 29,
+        "w": 280,
+        "h": 210
+      },
+      "groundLineY": 236
+    },
+    "dodge_05": {
+      "x": 1950,
+      "y": 3584,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 59,
+        "y": 31,
+        "w": 256,
+        "h": 208
+      },
+      "groundLineY": 236
+    },
+    "dodge_06": {
+      "x": 2340,
+      "y": 3584,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 63,
+        "y": 47,
+        "w": 253,
+        "h": 192
+      },
+      "groundLineY": 236
+    },
+    "dodge_07": {
+      "x": 2730,
+      "y": 3584,
+      "w": 390,
+      "h": 256,
+      "drawBounds": {
+        "x": 67,
+        "y": 49,
+        "w": 240,
+        "h": 190
+      },
+      "groundLineY": 236
+    }
+  },
+  "poseSources": {
+    "idle_00": "asha-reference-warrior-idle-still-guard-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_00",
+    "idle_01": "asha-reference-warrior-idle-still-guard-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_01",
+    "idle_02": "asha-reference-warrior-idle-still-guard-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_02",
+    "idle_03": "asha-reference-warrior-idle-still-guard-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_03",
+    "idle_04": "asha-reference-warrior-idle-still-guard-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_04",
+    "idle_05": "asha-reference-warrior-idle-still-guard-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_05",
+    "idle_06": "asha-reference-warrior-idle-still-guard-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_06",
+    "idle_07": "asha-reference-warrior-idle-still-guard-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_07",
+    "walk_00": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_00",
+    "walk_01": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_01",
+    "walk_02": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_02",
+    "walk_03": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_03",
+    "walk_04": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_04",
+    "walk_05": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_05",
+    "walk_06": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_06",
+    "walk_07": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_07",
+    "run_00": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_00",
+    "run_01": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_01",
+    "run_02": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_02",
+    "run_03": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_03",
+    "run_04": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_04",
+    "run_05": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_05",
+    "run_06": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_06",
+    "run_07": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_07",
+    "survey_walk_00": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_00",
+    "survey_walk_01": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_01",
+    "survey_walk_02": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_02",
+    "survey_walk_03": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_03",
+    "survey_walk_04": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_04",
+    "survey_walk_05": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_05",
+    "survey_walk_06": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_06",
+    "survey_walk_07": "asha-reference-warrior-run-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_07",
+    "jump_00": "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_00",
+    "jump_01": "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_01",
+    "jump_02": "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_02",
+    "jump_03": "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_03",
+    "jump_04": "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_04",
+    "jump_05": "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_05",
+    "jump_06": "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_06",
+    "jump_07": "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_07",
+    "fall_00": "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_03",
+    "fall_01": "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_04",
+    "fall_02": "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_05",
+    "fall_03": "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_05",
+    "fall_04": "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_06",
+    "fall_05": "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_06",
+    "fall_06": "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_07",
+    "fall_07": "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_07",
+    "land_00": "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_05",
+    "land_01": "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_06",
+    "land_02": "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_07",
+    "land_03": "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_07",
+    "land_04": "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_07",
+    "land_05": "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_07",
+    "land_06": "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_07",
+    "land_07": "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_07",
+    "attack_pick_swing_00": "asha-reference-warrior-attack-chain-01-entry-horizontal-framebyframe-approved-4096x512-2026-06-03.png:frame_00",
+    "attack_pick_swing_01": "asha-reference-warrior-attack-chain-01-entry-horizontal-framebyframe-approved-4096x512-2026-06-03.png:frame_01",
+    "attack_pick_swing_02": "asha-reference-warrior-attack-chain-01-entry-horizontal-framebyframe-approved-4096x512-2026-06-03.png:frame_02",
+    "attack_pick_swing_03": "asha-reference-warrior-attack-chain-01-entry-horizontal-framebyframe-approved-4096x512-2026-06-03.png:frame_03",
+    "attack_pick_swing_04": "asha-reference-warrior-attack-chain-01-entry-horizontal-framebyframe-approved-4096x512-2026-06-03.png:frame_04",
+    "attack_pick_swing_05": "asha-reference-warrior-attack-chain-01-entry-horizontal-framebyframe-approved-4096x512-2026-06-03.png:frame_05",
+    "attack_pick_swing_06": "asha-reference-warrior-attack-chain-01-entry-horizontal-framebyframe-approved-4096x512-2026-06-03.png:frame_06",
+    "attack_pick_swing_07": "asha-reference-warrior-attack-chain-01-entry-horizontal-framebyframe-approved-4096x512-2026-06-03.png:frame_07",
+    "hurt_00": "asha-reference-warrior-hurt-framebyframe-pass1-normalized-2560x512-candidate-2026-05-30.png:frame_00",
+    "hurt_01": "asha-reference-warrior-hurt-framebyframe-pass1-normalized-2560x512-candidate-2026-05-30.png:frame_01",
+    "hurt_02": "asha-reference-warrior-hurt-framebyframe-pass1-normalized-2560x512-candidate-2026-05-30.png:frame_02",
+    "hurt_03": "asha-reference-warrior-hurt-framebyframe-pass1-normalized-2560x512-candidate-2026-05-30.png:frame_03",
+    "hurt_04": "asha-reference-warrior-hurt-framebyframe-pass1-normalized-2560x512-candidate-2026-05-30.png:frame_04",
+    "interact_00": "asha-reference-warrior-idle-still-guard-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_00",
+    "interact_01": "asha-reference-warrior-idle-still-guard-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_01",
+    "interact_02": "asha-reference-warrior-idle-still-guard-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_02",
+    "interact_03": "asha-reference-warrior-idle-still-guard-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_03",
+    "interact_04": "asha-reference-warrior-idle-still-guard-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_04",
+    "interact_05": "asha-reference-warrior-idle-still-guard-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_05",
+    "climb_00": "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_00",
+    "climb_01": "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_01",
+    "climb_02": "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_02",
+    "climb_03": "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_03",
+    "climb_04": "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_04",
+    "climb_05": "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_05",
+    "climb_06": "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_06",
+    "climb_07": "asha-reference-warrior-jump-framebyframe-pass1-normalized-4096x512-candidate-2026-05-30.png:frame_07",
+    "push_pull_00": "asha-reference-warrior-attack-chain-01-entry-horizontal-framebyframe-approved-4096x512-2026-06-03.png:frame_00",
+    "push_pull_01": "asha-reference-warrior-attack-chain-01-entry-horizontal-framebyframe-approved-4096x512-2026-06-03.png:frame_01",
+    "push_pull_02": "asha-reference-warrior-attack-chain-01-entry-horizontal-framebyframe-approved-4096x512-2026-06-03.png:frame_02",
+    "push_pull_03": "asha-reference-warrior-attack-chain-01-entry-horizontal-framebyframe-approved-4096x512-2026-06-03.png:frame_03",
+    "push_pull_04": "asha-reference-warrior-attack-chain-01-entry-horizontal-framebyframe-approved-4096x512-2026-06-03.png:frame_04",
+    "push_pull_05": "asha-reference-warrior-attack-chain-01-entry-horizontal-framebyframe-approved-4096x512-2026-06-03.png:frame_05",
+    "push_pull_06": "asha-reference-warrior-attack-chain-01-entry-horizontal-framebyframe-approved-4096x512-2026-06-03.png:frame_06",
+    "push_pull_07": "asha-reference-warrior-attack-chain-01-entry-horizontal-framebyframe-approved-4096x512-2026-06-03.png:frame_07",
+    "attack_pick_swing_alt_00": "asha-reference-warrior-attack-chain-02-rising-diagonal-framebyframe-approved-4096x512-2026-06-03.png:frame_00",
+    "attack_pick_swing_alt_01": "asha-reference-warrior-attack-chain-02-rising-diagonal-framebyframe-approved-4096x512-2026-06-03.png:frame_01",
+    "attack_pick_swing_alt_02": "asha-reference-warrior-attack-chain-02-rising-diagonal-framebyframe-approved-4096x512-2026-06-03.png:frame_02",
+    "attack_pick_swing_alt_03": "asha-reference-warrior-attack-chain-02-rising-diagonal-framebyframe-approved-4096x512-2026-06-03.png:frame_03",
+    "attack_pick_swing_alt_04": "asha-reference-warrior-attack-chain-02-rising-diagonal-framebyframe-approved-4096x512-2026-06-03.png:frame_04",
+    "attack_pick_swing_alt_05": "asha-reference-warrior-attack-chain-02-rising-diagonal-framebyframe-approved-4096x512-2026-06-03.png:frame_05",
+    "attack_pick_swing_alt_06": "asha-reference-warrior-attack-chain-02-rising-diagonal-framebyframe-approved-4096x512-2026-06-03.png:frame_06",
+    "attack_pick_swing_alt_07": "asha-reference-warrior-attack-chain-02-rising-diagonal-framebyframe-approved-4096x512-2026-06-03.png:frame_07",
+    "attack_pick_swing_sweep_00": "asha-reference-warrior-attack-chain-03-heavy-sweep-framebyframe-approved-4096x512-2026-06-03.png:frame_00",
+    "attack_pick_swing_sweep_01": "asha-reference-warrior-attack-chain-03-heavy-sweep-framebyframe-approved-4096x512-2026-06-03.png:frame_01",
+    "attack_pick_swing_sweep_02": "asha-reference-warrior-attack-chain-03-heavy-sweep-framebyframe-approved-4096x512-2026-06-03.png:frame_02",
+    "attack_pick_swing_sweep_03": "asha-reference-warrior-attack-chain-03-heavy-sweep-framebyframe-approved-4096x512-2026-06-03.png:frame_03",
+    "attack_pick_swing_sweep_04": "asha-reference-warrior-attack-chain-03-heavy-sweep-framebyframe-approved-4096x512-2026-06-03.png:frame_04",
+    "attack_pick_swing_sweep_05": "asha-reference-warrior-attack-chain-03-heavy-sweep-framebyframe-approved-4096x512-2026-06-03.png:frame_05",
+    "attack_pick_swing_sweep_06": "asha-reference-warrior-attack-chain-03-heavy-sweep-framebyframe-approved-4096x512-2026-06-03.png:frame_06",
+    "attack_pick_swing_sweep_07": "asha-reference-warrior-attack-chain-03-heavy-sweep-framebyframe-approved-4096x512-2026-06-03.png:frame_07",
+    "dodge_00": "asha-reference-warrior-dodge-backstep-approved-3120x256-2026-06-05.png:frame_00",
+    "dodge_01": "asha-reference-warrior-dodge-backstep-approved-3120x256-2026-06-05.png:frame_01",
+    "dodge_02": "asha-reference-warrior-dodge-backstep-approved-3120x256-2026-06-05.png:frame_02",
+    "dodge_03": "asha-reference-warrior-dodge-backstep-approved-3120x256-2026-06-05.png:frame_03",
+    "dodge_04": "asha-reference-warrior-dodge-backstep-approved-3120x256-2026-06-05.png:frame_04",
+    "dodge_05": "asha-reference-warrior-dodge-backstep-approved-3120x256-2026-06-05.png:frame_05",
+    "dodge_06": "asha-reference-warrior-dodge-backstep-approved-3120x256-2026-06-05.png:frame_06",
+    "dodge_07": "asha-reference-warrior-dodge-backstep-approved-3120x256-2026-06-05.png:frame_07"
+  },
+  "masterReference": "asha-reference-warrior-master-reference.png",
+  "characterId": "asha-rome"
+}

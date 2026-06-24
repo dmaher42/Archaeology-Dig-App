@@ -1,0 +1,286 @@
+{
+  "image": "rome-legate-revenant-sprites.png",
+  "source": "Rome Section One Legate Revenant boss atlas derived from existing production Journey enemy art and retuned as a spectral Roman commander.",
+  "size": {
+    "w": 3072,
+    "h": 2304
+  },
+  "regions": {
+    "legateRevenantIdle": {
+      "x": 0,
+      "y": 0,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantIntro": {
+      "x": 384,
+      "y": 0,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantWindup": {
+      "x": 768,
+      "y": 0,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantCharge": {
+      "x": 1152,
+      "y": 0,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantShieldBash": {
+      "x": 1536,
+      "y": 0,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantShielded": {
+      "x": 1920,
+      "y": 0,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantCounterWindow": {
+      "x": 2304,
+      "y": 0,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantHit": {
+      "x": 2688,
+      "y": 0,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantDefeated": {
+      "x": 0,
+      "y": 384,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantWalk1": {
+      "x": 384,
+      "y": 384,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantWalk2": {
+      "x": 768,
+      "y": 384,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantWalk3": {
+      "x": 1152,
+      "y": 384,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantWalk4": {
+      "x": 1536,
+      "y": 384,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantWalk5": {
+      "x": 1920,
+      "y": 384,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantWalk6": {
+      "x": 2304,
+      "y": 384,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantCharge1": {
+      "x": 2688,
+      "y": 384,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantCharge2": {
+      "x": 0,
+      "y": 768,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantCharge3": {
+      "x": 384,
+      "y": 768,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantCharge4": {
+      "x": 768,
+      "y": 768,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantCharge5": {
+      "x": 1152,
+      "y": 768,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantCharge6": {
+      "x": 1536,
+      "y": 768,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantWindup1": {
+      "x": 1920,
+      "y": 768,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantWindup2": {
+      "x": 2304,
+      "y": 768,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantWindup3": {
+      "x": 2688,
+      "y": 768,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantWindup4": {
+      "x": 0,
+      "y": 1152,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantWindup5": {
+      "x": 384,
+      "y": 1152,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantShieldBash1": {
+      "x": 768,
+      "y": 1152,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantShieldBash2": {
+      "x": 1152,
+      "y": 1152,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantShieldBash3": {
+      "x": 1536,
+      "y": 1152,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantShieldBash4": {
+      "x": 1920,
+      "y": 1152,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantShieldBash5": {
+      "x": 2304,
+      "y": 1152,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantShieldBash6": {
+      "x": 2688,
+      "y": 1152,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantShieldBash7": {
+      "x": 0,
+      "y": 1536,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantStagger1": {
+      "x": 384,
+      "y": 1536,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantStagger2": {
+      "x": 768,
+      "y": 1536,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantStagger3": {
+      "x": 1152,
+      "y": 1536,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantStagger4": {
+      "x": 1536,
+      "y": 1536,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantStagger5": {
+      "x": 1920,
+      "y": 1536,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantDeath1": {
+      "x": 2304,
+      "y": 1536,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantDeath2": {
+      "x": 2688,
+      "y": 1536,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantDeath3": {
+      "x": 0,
+      "y": 1920,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantDeath4": {
+      "x": 384,
+      "y": 1920,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantDeath5": {
+      "x": 768,
+      "y": 1920,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantDeath6": {
+      "x": 1152,
+      "y": 1920,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantDeath7": {
+      "x": 1536,
+      "y": 1920,
+      "w": 384,
+      "h": 384
+    },
+    "legateRevenantDeath8": {
+      "x": 1920,
+      "y": 1920,
+      "w": 384,
+      "h": 384
+    }
+  }
+}

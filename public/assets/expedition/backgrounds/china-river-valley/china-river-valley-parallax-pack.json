@@ -1,10 +1,11 @@
 {
-  "image": "china-river-valley.png",
+  "image": "china-river-valley-layered-pack.png",
+  "runtimeMode": "layered-parallax",
   "regions": {
-    "skyLayer": { "x": 0, "y": 512, "w": 1024, "h": 512 },
-    "farMountains": { "x": 0, "y": 512, "w": 1024, "h": 512 },
-    "riverValley": { "x": 0, "y": 512, "w": 1024, "h": 512 },
-    "watchtowerRidge": { "x": 0, "y": 512, "w": 1024, "h": 512 },
-    "foregroundMist": { "x": 0, "y": 512, "w": 1024, "h": 512 }
+    "skyLayer": { "x": 0, "y": 0, "w": 1602, "h": 230 },
+    "farMountains": { "x": 0, "y": 298, "w": 1602, "h": 108 },
+    "riverValley": { "x": 0, "y": 500, "w": 1602, "h": 96 },
+    "watchtowerRidge": { "x": 0, "y": 632, "w": 1602, "h": 156 },
+    "foregroundMist": { "x": 0, "y": 866, "w": 1602, "h": 108 }
   }
 }

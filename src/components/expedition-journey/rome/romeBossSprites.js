@@ -7,12 +7,12 @@ export const ROME_LEGATE_REVENANT_BOSS_ID   = 'rome-legate-revenant';
 export const ROME_VAULT_SENTINEL_BOSS_ID     = 'rome-vault-sentinel';     // future
 export const ROME_IRON_EAGLE_BOSS_ID         = 'rome-iron-eagle';          // future
 
-// --- Atlas paths (placeholder until art is delivered) ---
+// --- Section One atlas paths ---
 export const ROME_LEGATE_REVENANT_SPRITE_ATLAS_JSON  = `${ROME_BOSS_SPRITE_BASE_PATH}rome-legate-revenant-sprites.json`;
 export const ROME_VAULT_SENTINEL_SPRITE_ATLAS_JSON    = `${ROME_BOSS_SPRITE_BASE_PATH}rome-vault-sentinel-sprites.json`;
 export const ROME_IRON_EAGLE_SPRITE_ATLAS_JSON        = `${ROME_BOSS_SPRITE_BASE_PATH}rome-iron-eagle-sprites.json`;
 
-export const ROME_BOSS_SPRITE_ATLAS_VERSION = 'rome-boss-sprites-placeholder-2026-05-31';
+export const ROME_BOSS_SPRITE_ATLAS_VERSION = 'rome-boss-sprites-production-2026-06-24';
 
 // Draw sizing
 export const ROME_MIN_BOSS_DRAW_HEIGHT = 176;
