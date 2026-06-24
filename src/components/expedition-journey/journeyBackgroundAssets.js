@@ -14,20 +14,18 @@ export const CHINA_RIVER_VALLEY_BACKGROUND_ATLAS_BASE_PATH = 'assets/expedition/
 export const CHINA_RIVER_VALLEY_BACKGROUND_ATLAS_JSON = `${CHINA_RIVER_VALLEY_BACKGROUND_ATLAS_BASE_PATH}china-river-valley-parallax-pack.json`;
 
 export const EXPECTED_DESERT_BACKGROUND_KEYS = [
-  'integratedGameplayBackground',
+  'underworldSky',
+  'floatingPyramids',
+  'corruptedTempleRuins',
   'groundLane',
+  'foregroundCorruption',
 ];
 
-export const DESERT_BACKGROUND_DEPTH_MODE = 'desert-entry-footpath-integrated-gameplay-background-v1';
+export const DESERT_BACKGROUND_DEPTH_MODE = 'desert-entry-underworld-layered-playable-route-v1';
 export const JOURNEY_BACKGROUND_DEPTH_MODE = 'journey-section-parallax-v2';
 
 export const EXPECTED_CHINA_RIVER_VALLEY_BACKGROUND_KEYS = [
   'skyLayer',
-  'farValley',
-  'farMountains',
-  'riverValley',
-  'watchtowerRidge',
-  'foregroundMist',
 ];
 
 export const CHINA_RIVER_VALLEY_BACKGROUND_PACK = {

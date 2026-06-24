@@ -3559,19 +3559,16 @@ export function drawDesertForegroundAtmosphereFrame(ctx, section, cameraX, deps)
   const isNearDesertEntry = section.id === 'desert-entry';
   const assets = getSectionBackgroundAssets(desertBackgroundAssetsRef.current, 'desert-entry');
   if (!isNearDesertEntry || !assets?.ready) return false;
-  if (
-    assets.atlas?.runtimeMode === 'single-composited-backdrop'
-    || assets.atlas?.runtimeMode === 'single-integrated-gameplay-background'
-  ) {
+  if (assets.atlas?.runtimeMode !== 'layered-underworld-playable-route') {
     return false;
   }
   const layerOptions = { canvasWidth: CANVAS_WIDTH, cameraX };
   const dustDrawn = drawDesertBackgroundLayer(
     ctx,
     assets,
-    'foregroundAtmosphere',
+    'foregroundCorruption',
     { y: 0, height: CANVAS_HEIGHT },
-    { ...layerOptions, parallax: 0.38, alpha: 0.32 },
+    { ...layerOptions, parallax: 0.62, alpha: 0.74 },
   );
   return dustDrawn;
 }
@@ -3756,16 +3753,16 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
   const assets = getSectionBackgroundAssets(desertBackgroundAssetsRef.current, 'desert-entry');
   if (!isNearDesertEntry || !assets?.ready) return false;
 
-  if (assets.atlas?.runtimeMode === 'single-composited-backdrop') {
+  if (assets.atlas?.runtimeMode !== 'layered-underworld-playable-route') {
     return false;
   }
 
   const layerOptions = { canvasWidth: CANVAS_WIDTH, cameraX };
 
   const drawn = [
-    drawDesertBackgroundLayer(ctx, assets, 'sky', { y: 0, height: CANVAS_HEIGHT }, { ...layerOptions, parallax: 0, alpha: 1 }),
-    drawDesertBackgroundLayer(ctx, assets, 'farDunes', { y: 0, height: CANVAS_HEIGHT }, { ...layerOptions, parallax: 0.035, alpha: 0.78 }),
-    drawDesertBackgroundLayer(ctx, assets, 'distantRuins', { y: 0, height: CANVAS_HEIGHT }, { ...layerOptions, parallax: 0.1, alpha: 0.68 }),
+    drawDesertBackgroundLayer(ctx, assets, 'underworldSky', { y: 0, height: CANVAS_HEIGHT }, { ...layerOptions, parallax: 0, alpha: 1 }),
+    drawDesertBackgroundLayer(ctx, assets, 'floatingPyramids', { y: 0, height: CANVAS_HEIGHT }, { ...layerOptions, parallax: 0.04, alpha: 0.92 }),
+    drawDesertBackgroundLayer(ctx, assets, 'corruptedTempleRuins', { y: 0, height: CANVAS_HEIGHT }, { ...layerOptions, parallax: 0.18, alpha: 0.94 }),
   ];
   return drawn.every(Boolean);
 }
@@ -3812,12 +3809,16 @@ export function drawChinaRiverValleyBackgroundFrame(ctx, cameraX, deps) {
   const {
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
+    ENVIRONMENT_ASSET_PACK_IDS,
     backgroundPackId,
     desertBackgroundAssetsRef,
     drawDesertBackgroundLayer,
+    environmentPackId,
     getSectionBackgroundAssets,
   } = deps;
-  if (backgroundPackId !== 'china-river-valley') return false;
+  const isChinaRiverValleyBackground = backgroundPackId === 'china-river-valley'
+    || environmentPackId === ENVIRONMENT_ASSET_PACK_IDS.CHINA_RIVER_VALLEY;
+  if (!isChinaRiverValleyBackground) return false;
   const assets = getSectionBackgroundAssets(desertBackgroundAssetsRef.current, 'china-river-valley');
   if (!assets?.ready) return false;
   const layerOptions = { canvasWidth: CANVAS_WIDTH, cameraX };
@@ -7762,10 +7763,13 @@ export function drawEnvironmentInteractionFrame(ctx, item, cameraX, now, current
 
 export function drawRouteGateFrame(ctx, gate, screenX, current, complete, layer = 'base', doorway = null, deps) {
   const {
+    ENVIRONMENT_ASSET_PACK_IDS,
     GROUND_Y,
+    drawAtlasRegion,
     drawContactShadow,
     drawDecorativeBaseBlend,
     drawGroundDustLip,
+    environmentAssetsRef,
     getSectionForX,
     placeGateOnGround,
     routeGateBackRef,
@@ -7799,6 +7803,64 @@ export function drawRouteGateFrame(ctx, gate, screenX, current, complete, layer 
     }
     const gateCenter = doorway?.anchorX ? screenX : screenX + gate.width / 2;
     ctx.save();
+    const activeEnvironmentPackId = environmentAssetsRef.current?.packId;
+    const isChinaGate = activeEnvironmentPackId === ENVIRONMENT_ASSET_PACK_IDS.CHINA_RIVER_VALLEY;
+    const isRomeGate = activeEnvironmentPackId === ENVIRONMENT_ASSET_PACK_IDS.ROME_SECTION_ONE;
+    if (isChinaGate || isRomeGate) {
+      const atlasKey = complete ? 'routeDoor' : isChinaGate ? 'sealedTimberGate' : 'romanSealedGate';
+      const gateHeight = isChinaGate ? 310 : 330;
+      const gateWidth = isChinaGate ? 290 : 250;
+      const gateTop = placeGateOnGround(gateHeight) + (isChinaGate ? 8 : 4);
+      const dest = {
+        x: gateCenter - gateWidth / 2,
+        y: gateTop,
+        width: gateWidth,
+        height: gateHeight,
+      };
+      if (layer === 'foreground') {
+        if (!complete) {
+          ctx.save();
+          ctx.globalCompositeOperation = 'screen';
+          const pulse = Math.sin(performance.now() / 620) * 0.5 + 0.5;
+          const glow = ctx.createRadialGradient(gateCenter, gateTop + gateHeight * 0.48, 8, gateCenter, gateTop + gateHeight * 0.48, gateWidth * 0.42);
+          glow.addColorStop(0, isChinaGate
+            ? `rgba(104, 180, 132, ${0.18 + pulse * 0.12})`
+            : `rgba(238, 190, 86, ${0.18 + pulse * 0.12})`);
+          glow.addColorStop(1, 'rgba(238, 190, 86, 0)');
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.ellipse(gateCenter, gateTop + gateHeight * 0.48, gateWidth * 0.42, gateHeight * 0.24, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+        ctx.restore();
+        return;
+      }
+      drawContactShadow(ctx, gateCenter, GROUND_Y + 2, gateWidth * 0.86, complete ? 0.16 : 0.24, 1.1);
+      drawDecorativeBaseBlend(ctx, gateCenter, GROUND_Y + 2, gateWidth * 0.76, getSectionForX(gate.x).id, 'midground', 0.72);
+      if (complete) {
+        const openGlow = ctx.createRadialGradient(gateCenter, GROUND_Y - 92, 8, gateCenter, GROUND_Y - 92, 96);
+        openGlow.addColorStop(0, isChinaGate ? 'rgba(90, 196, 136, 0.2)' : 'rgba(70, 217, 190, 0.18)');
+        openGlow.addColorStop(0.5, isChinaGate ? 'rgba(214, 184, 84, 0.12)' : 'rgba(250, 204, 21, 0.12)');
+        openGlow.addColorStop(1, 'rgba(250, 204, 21, 0)');
+        ctx.fillStyle = openGlow;
+        ctx.beginPath();
+        ctx.ellipse(gateCenter, GROUND_Y - 92, 96, 78, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      const gateDrawn = drawAtlasRegion(ctx, environmentAssetsRef.current, atlasKey, dest, {
+        mode: 'contain',
+        alignY: 'bottom',
+      });
+      if (!gateDrawn) {
+        ctx.restore();
+        return;
+      }
+      drawGroundDustLip(ctx, gateCenter, GROUND_Y + 1, gateWidth * 0.78, isChinaGate ? 'rgba(134, 110, 54, 0.2)' : 'rgba(184, 116, 52, 0.22)');
+      if (current.renderStats) current.renderStats.groundedPropCount += 1;
+      ctx.restore();
+      return;
+    }
     // Assets are 1024×682 (back/front) and 1024×637 (slab) — ratio ≈ 1.50:1.
     // Draw at natural aspect ratio to avoid squashing, and sink into ground by 20px
     // so the stone base sits flush rather than floating.

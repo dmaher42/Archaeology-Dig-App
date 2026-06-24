@@ -18,6 +18,7 @@ output/
 scratch/sfx-source/
 scratch/tut-assets/
 test-results/
+tmp/
 
 # Editor directories and files
 .vscode/*

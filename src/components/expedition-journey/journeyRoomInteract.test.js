@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { JOURNEY_EXTERIOR_SCENE_ID } from './journeyConstants.js';
 import {
   createJourneyRoomInteractionState,
   getJourneyInteractObjectState,
@@ -156,14 +157,14 @@ test('chamber return point centers Asha on the resolved exterior doorway', () =>
     },
     route: { id: 'desert-upper-survey-route', x: 7100, y: 81, width: 980, height: 124 },
     platform: { id: 'forgotten-mural-upper-doorway-floor', x: 7528, y: 193, width: 250, height: 18 },
-    exteriorSceneId: 'egypt-exterior-route',
+    exteriorSceneId: JOURNEY_EXTERIOR_SCENE_ID,
     direction: 1,
     canvasWidth: 960,
     worldWidth: 20000,
   });
 
   assert.deepEqual(returnPoint, {
-    sceneId: 'egypt-exterior-route',
+    sceneId: JOURNEY_EXTERIOR_SCENE_ID,
     x: 7653,
     y: 193,
     direction: 1,

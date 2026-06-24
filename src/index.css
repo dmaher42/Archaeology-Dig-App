@@ -10463,6 +10463,107 @@ main {
     inset 0 0 2.4rem rgba(79, 209, 226, 0.16);
 }
 
+.opening-cinematic-overlay.is-china {
+  color: #f5ead2;
+  background:
+    linear-gradient(180deg, #060908 0%, #14130c 52%, #050604 100%);
+}
+
+.opening-cinematic-overlay.is-china::before {
+  background:
+    linear-gradient(180deg, #000 0 7.4%, transparent 7.4% 89.4%, #000 89.4% 100%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.56) 0%, rgba(0, 0, 0, 0.18) 24%, transparent 42%),
+    linear-gradient(90deg, rgba(4, 7, 5, 0.58), transparent 32% 68%, rgba(3, 6, 8, 0.62));
+}
+
+.opening-cinematic-overlay.is-china::after {
+  background:
+    linear-gradient(90deg, rgba(214, 178, 93, 0.07), transparent 24% 74%, rgba(89, 174, 155, 0.08)),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 7px);
+}
+
+.opening-cinematic-overlay.is-china .opening-cinematic-bg {
+  object-position: center center;
+  filter: saturate(112%) contrast(108%) brightness(62%) sepia(6%) hue-rotate(4deg);
+}
+
+.opening-cinematic-overlay.is-china .opening-cinematic-depth-left {
+  background:
+    linear-gradient(90deg,
+      rgba(4, 7, 5, 0.93) 0%,
+      rgba(20, 24, 13, 0.56) 29%,
+      rgba(44, 42, 20, 0.25) 57%,
+      transparent 100%),
+    linear-gradient(180deg,
+      rgba(8, 10, 6, 0.42) 0%,
+      rgba(8, 10, 6, 0.12) 38%,
+      transparent 62%);
+}
+
+.opening-cinematic-overlay.is-china .opening-cinematic-depth-right {
+  background:
+    linear-gradient(270deg, rgba(3, 8, 8, 0.9), rgba(28, 72, 58, 0.3), transparent),
+    linear-gradient(180deg, rgba(205, 162, 76, 0.18), transparent 48%);
+}
+
+.opening-cinematic-overlay.is-china .opening-cinematic-seal {
+  top: 61%;
+  width: clamp(11rem, 21vw, 19rem);
+  opacity: 0.86;
+  transform: translate(-50%, -50%) rotate(0deg)
+    scale(calc(0.8 + var(--opening-progress, 0) * 0.18))
+    perspective(760px) rotateX(48deg);
+  filter:
+    brightness(calc(0.76 + var(--opening-progress, 0) * 0.5))
+    drop-shadow(0 0 1.35rem rgba(221, 176, 86, 0.5))
+    drop-shadow(0 0 2.8rem rgba(86, 171, 143, 0.34));
+}
+
+.opening-cinematic-overlay.is-china .opening-cinematic-anubis {
+  right: clamp(1rem, 8vw, 8rem);
+  bottom: clamp(0.6rem, 5vh, 4rem);
+  width: clamp(9.5rem, 18vw, 16rem);
+  max-height: 72%;
+  opacity: 0.92;
+  filter:
+    sepia(8%) saturate(112%) brightness(82%) contrast(116%)
+    drop-shadow(0 1.25rem 2.3rem rgba(0, 0, 0, 0.76))
+    drop-shadow(0 -0.2rem 1.5rem rgba(221, 173, 82, 0.22))
+    drop-shadow(0 0 2.3rem rgba(76, 152, 132, 0.3));
+}
+
+.opening-cinematic-overlay.is-china .opening-cinematic-asha {
+  left: clamp(0.2rem, 6.4vw, 5.2rem);
+  bottom: clamp(0.2rem, 2.2vh, 2rem);
+  width: clamp(8.3rem, 16vw, 14.8rem);
+  filter:
+    saturate(112%) brightness(98%) contrast(122%)
+    drop-shadow(0 0 0.55rem rgba(0, 0, 0, 0.6))
+    drop-shadow(0 1.2rem 1.55rem rgba(0, 0, 0, 0.84))
+    drop-shadow(0.25rem 0 1.15rem rgba(86, 168, 144, 0.2))
+    drop-shadow(0 0 1rem rgba(226, 188, 106, 0.16));
+}
+
+.opening-cinematic-overlay.is-china .opening-cinematic-copy {
+  text-shadow: 0 0 1.5rem rgba(231, 185, 93, 0.2), 0 0.2rem 1.2rem rgba(0, 0, 0, 0.76);
+}
+
+.opening-cinematic-overlay.is-china .opening-cinematic-kicker {
+  color: #e6c56f;
+}
+
+.opening-cinematic-overlay.is-china .opening-cinematic-memory-runes span {
+  background:
+    radial-gradient(circle, rgba(233, 196, 103, 0.66), rgba(91, 170, 143, 0.17) 38%, transparent 70%);
+}
+
+.opening-cinematic-overlay.is-china .opening-cinematic-banishment-ring {
+  border-color: rgba(228, 185, 88, 0.38);
+  box-shadow:
+    0 0 2rem rgba(227, 174, 72, 0.2),
+    inset 0 0 2.2rem rgba(77, 158, 136, 0.14);
+}
+
 .opening-cinematic-memory-runes {
   position: absolute;
   left: 50%;

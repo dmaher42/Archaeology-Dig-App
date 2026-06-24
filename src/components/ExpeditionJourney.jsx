@@ -27,6 +27,7 @@ import {
   PLAYER_HEIGHT,
   PLAYER_WIDTH,
   PLAYER_SPRITE_SCALE,
+  JOURNEY_EXTERIOR_SCENE_ID,
   JOURNEY_VERTICAL_OFFSET,
   sacredMuralExteriorX,
   sacredScribeExteriorX,
@@ -132,6 +133,7 @@ import {
   ARRIVAL_THRESHOLD_TRIAL_COMPLETE_LINE,
   ARRIVAL_THRESHOLD_TRIAL_EXIT_LOCKED_LINE,
   ARRIVAL_THRESHOLD_TRIAL_STEPS,
+  CHINA_OPENING_ARRIVAL_NOTICE,
   OPENING_ARRIVAL_AFTERSHOCK_NOTICE,
   OPENING_ASHA_CUTSCENE_SRC,
   OPENING_CINEMATIC_DURATION,
@@ -638,6 +640,20 @@ const ROME_OPENING_ASHA_CUTSCENE_SRC = 'assets/expedition/player/asha-rome-cutsc
 const ROME_OPENING_LEGATE_CUTSCENE_SRC = 'assets/expedition/bosses/rome/rome-legate-revenant-cutscene-2026-06-24.png';
 const ROME_OPENING_VAULT_SIGIL_SRC = 'assets/expedition/environment/rome-section-one/rome-vault-sigil-cutscene-2026-06-24.png';
 const ROME_OPENING_ARRIVAL_NOTICE = 'The way back is sealed. The Legate is watching. The only path is through the Forum.';
+const CHINA_OPENING_BACKGROUND_SRC = 'assets/expedition/backgrounds/china-river-valley/china-river-valley-parallax-pack.png';
+const CHINA_OPENING_ASHA_CUTSCENE_SRC = 'assets/expedition/stage-characters/ancient-china-character.png';
+const CHINA_OPENING_WATCHTOWER_SRC = 'assets/expedition/environment/china-river-valley/china-watchtower.png';
+const CHINA_OPENING_GATE_SEAL_SRC = 'assets/expedition/environment/china-river-valley/china-imperial-gate-sealed.png';
+const ROME_OPENING_CINEMATIC_ID = 'asha-legate-opening-cinematic';
+const CHINA_OPENING_CINEMATIC_ID = 'asha-china-watchtower-opening-cinematic';
+const EGYPT_OPENING_CINEMATIC_ID = 'asha-anubis-opening-cinematic';
+const CHINA_OPENING_CINEMATIC_DURATION = 24;
+const CHINA_OPENING_CINEMATIC_IMPACT_AT = 22.2;
+const getOpeningArrivalNoticeForCinematicId = (cinematicId) => {
+  if (cinematicId === ROME_OPENING_CINEMATIC_ID) return ROME_OPENING_ARRIVAL_NOTICE;
+  if (cinematicId === CHINA_OPENING_CINEMATIC_ID) return CHINA_OPENING_ARRIVAL_NOTICE;
+  return OPENING_ARRIVAL_AFTERSHOCK_NOTICE;
+};
 const TEMPLE_THRESHOLD_TRANSITION_DURATION = 8.4;
 const TEMPLE_THRESHOLD_FADE_OUT_SECONDS = 0.95;
 const TEMPLE_THRESHOLD_BLACK_HOLD_SECONDS = 0.55;
@@ -1753,7 +1769,7 @@ const isNormalEnemyInsideBossFocus = (enemy, bossDomain) => {
 };
 
 const JOURNEY_SCENE_IDS = Object.freeze({
-  EXTERIOR: 'egypt-exterior-route',
+  EXTERIOR: JOURNEY_EXTERIOR_SCENE_ID,
   TEMPLE_THRESHOLD_HALL: 'temple-threshold-hall',
   MUMMIFICATION_CHAMBER: 'mummification-chamber',
   FORGOTTEN_MURAL_CHAMBER: 'forgotten-mural-chamber',
@@ -8804,6 +8820,7 @@ export default function ExpeditionJourney({
     ARRIVAL_THRESHOLD_LEFT_BOUND,
     ARRIVAL_THRESHOLD_LEFT_INSPECT_X,
     ARRIVAL_THRESHOLD_RIGHT_BOUND,
+    backgroundPackId,
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
     CHAMBER_DOOR_VISUALS,
@@ -8876,6 +8893,7 @@ export default function ExpeditionJourney({
     drawGroundDustLip,
     drawPlayerWeaponAtlasRegion,
     drawRouteGroundApron,
+    environmentPackId,
     environmentAssetsRef,
     getAncientConstructDrawBox,
     getAncientConstructSpriteFrame,
@@ -9308,6 +9326,7 @@ export default function ExpeditionJourney({
     const parallaxBackgroundDrawn = arrivalThresholdDrawn || chinaBackgroundDrawn || desertBackgroundDrawn || sectionParallaxDrawn;
     const canDrawCleanDesertEntryBackground = !DESERT_ENTRY_RESTORE_ORIGINAL_BACKDROP
       && !arrivalThresholdDrawn
+      && !desertBackgroundDrawn
       && !chamberSceneActive
       && section.id === 'desert-entry';
     const desertEntryPrimaryBackgroundPlatesDrawn = canDrawCleanDesertEntryBackground
@@ -10061,8 +10080,14 @@ export default function ExpeditionJourney({
 
   const startOpeningCinematic = useCallback(({ speechEnabled = true, fromArrivalThreshold = false } = {}) => {
     const current = stateRef.current;
-    const isRomeCinematic = typeof targetCivilisation === 'string' && targetCivilisation.toLowerCase().includes('rome');
-    const openingArrivalNotice = isRomeCinematic ? ROME_OPENING_ARRIVAL_NOTICE : OPENING_ARRIVAL_AFTERSHOCK_NOTICE;
+    const isRomeCinematic = scopedJourneyAssetPacks.isRomeJourney;
+    const isChinaCinematic = scopedJourneyAssetPacks.isChinaJourney;
+    const openingCinematicId = isRomeCinematic
+      ? ROME_OPENING_CINEMATIC_ID
+      : isChinaCinematic
+        ? CHINA_OPENING_CINEMATIC_ID
+        : EGYPT_OPENING_CINEMATIC_ID;
+    const openingArrivalNotice = getOpeningArrivalNoticeForCinematicId(openingCinematicId);
     if (fromArrivalThreshold) {
       current.arrivalThresholdActive = false;
       current.arrivalThresholdGateTriggered = true;
@@ -10096,7 +10121,7 @@ export default function ExpeditionJourney({
     }
     audioControls?.unlockExpeditionSfx?.();
     audioControls?.playExpeditionSfx?.(openingAtmosphereSfxKey);
-    if (!isRomeCinematic) {
+    if (!isRomeCinematic && !isChinaCinematic) {
       audioControls?.playExpeditionSfx?.('anubisPresenceStinger', { volume: 0.82 });
     }
     spokenOpeningLineRef.current = null;
@@ -10121,11 +10146,16 @@ export default function ExpeditionJourney({
         })),
       ]
       : baseCinematicLines;
+    const openingCinematicDuration = (isChinaCinematic ? CHINA_OPENING_CINEMATIC_DURATION : OPENING_CINEMATIC_DURATION)
+      + reactionTimeShift;
+    const openingCinematicImpactAt = (isChinaCinematic ? CHINA_OPENING_CINEMATIC_IMPACT_AT : OPENING_CINEMATIC_SPELL_IMPACT_AT)
+      + reactionTimeShift;
     current.openingCinematic = {
-      id: isRomeCinematic ? 'asha-legate-opening-cinematic' : 'asha-anubis-opening-cinematic',
-      title: isRomeCinematic ? 'The Vault Speaks First' : 'The First Seal Watches',
-      duration: OPENING_CINEMATIC_DURATION + reactionTimeShift,
-      timer: OPENING_CINEMATIC_DURATION + reactionTimeShift,
+      id: openingCinematicId,
+      title: isRomeCinematic ? 'The Vault Speaks First' : isChinaCinematic ? 'The Watchtower Wakes' : 'The First Seal Watches',
+      duration: openingCinematicDuration,
+      timer: openingCinematicDuration,
+      spellImpactAt: openingCinematicImpactAt,
       speechEnabled,
       lines: activeCinematicLines,
       activeLineId: activeCinematicLines[0].id,
@@ -10146,7 +10176,7 @@ export default function ExpeditionJourney({
     current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.18);
     setBriefingOpen(false);
     syncHud();
-  }, [audioControls, openingAtmosphereSfxKey, syncHud, targetCivilisation]);
+  }, [audioControls, openingAtmosphereSfxKey, scopedJourneyAssetPacks.isChinaJourney, scopedJourneyAssetPacks.isRomeJourney, syncHud, targetCivilisation]);
 
   const completeOpeningThresholdScene = useCallback((current) => {
     const openingCheckpoint = getRenderableCheckpoints().find(checkpoint => checkpoint.id === 'desert-entry');
@@ -10232,9 +10262,7 @@ export default function ExpeditionJourney({
   const skipOpeningCinematic = useCallback(() => {
     const current = stateRef.current;
     if (!current.openingCinematic) return;
-    const openingArrivalNotice = current.openingCinematic.id === 'asha-legate-opening-cinematic'
-      ? ROME_OPENING_ARRIVAL_NOTICE
-      : OPENING_ARRIVAL_AFTERSHOCK_NOTICE;
+    const openingArrivalNotice = getOpeningArrivalNoticeForCinematicId(current.openingCinematic.id);
     if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel();
     current.openingCinematic = null;
     current.notice = openingArrivalNotice;
@@ -10458,16 +10486,18 @@ export default function ExpeditionJourney({
       cinematic.timer = Math.max(0, cinematic.timer - dt);
       const elapsed = clamp(cinematic.duration - cinematic.timer, 0, cinematic.duration);
       const activeLine = getOpeningCinematicLine(cinematic);
-      const isRomeOpeningCinematicActive = cinematic.id === 'asha-legate-opening-cinematic';
-      const openingArrivalNotice = isRomeOpeningCinematicActive ? ROME_OPENING_ARRIVAL_NOTICE : OPENING_ARRIVAL_AFTERSHOCK_NOTICE;
+      const isRomeOpeningCinematicActive = cinematic.id === ROME_OPENING_CINEMATIC_ID;
+      const isChinaOpeningCinematicActive = cinematic.id === CHINA_OPENING_CINEMATIC_ID;
+      const openingArrivalNotice = getOpeningArrivalNoticeForCinematicId(cinematic.id);
+      const spellImpactAt = cinematic.spellImpactAt ?? OPENING_CINEMATIC_SPELL_IMPACT_AT;
       cinematic.activeLineId = activeLine?.id || null;
       cinematic.activeLine = activeLine || null;
-      current.notice = activeLine?.text || (isRomeOpeningCinematicActive ? 'The vault is still watching.' : 'The first seal watches.');
+      current.notice = activeLine?.text || (isRomeOpeningCinematicActive ? 'The vault is still watching.' : isChinaOpeningCinematicActive ? 'The watchtower is still watching.' : 'The first seal watches.');
       current.attackQueued = false;
       player.vx = 0;
       player.vy = 0;
       player.direction = 1;
-      if (!cinematic.spellImpactTriggered && elapsed >= OPENING_CINEMATIC_SPELL_IMPACT_AT) {
+      if (!cinematic.spellImpactTriggered && elapsed >= spellImpactAt) {
         cinematic.spellImpactTriggered = true;
         cinematic.shieldShattered = true;
         current.player.x = 44;
@@ -10499,7 +10529,7 @@ export default function ExpeditionJourney({
         current.openingCameraRevealTimer = Math.max(current.openingCameraRevealTimer, OPENING_CAMERA_REVEAL_DURATION);
         current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.24);
         current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.12);
-      } else if (Math.abs(elapsed - OPENING_CINEMATIC_SPELL_IMPACT_AT) < dt + 0.02) {
+      } else if (Math.abs(elapsed - spellImpactAt) < dt + 0.02) {
         current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.42);
         current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.22);
       }
@@ -14868,39 +14898,53 @@ export default function ExpeditionJourney({
   const openingIntroProgress = gameState.openingCinematic
     ? clamp(1 - (gameState.openingCinematic.timer / gameState.openingCinematic.duration), 0, 1)
     : 0;
+  const openingSpellImpactAt = gameState.openingCinematic?.spellImpactAt ?? OPENING_CINEMATIC_SPELL_IMPACT_AT;
   const openingSpellImpactActive = Boolean(
     gameState.openingCinematic
     && (gameState.openingCinematic.spellImpactTriggered
-      || openingIntroProgress >= OPENING_CINEMATIC_SPELL_IMPACT_AT / OPENING_CINEMATIC_DURATION),
+      || openingIntroProgress >= openingSpellImpactAt / (gameState.openingCinematic.duration || OPENING_CINEMATIC_DURATION)),
   );
   const openingShieldShattered = Boolean(gameState.openingCinematic?.shieldShattered || openingSpellImpactActive);
   const openingCinematicActive = Boolean(gameState.openingCinematic || gameState.openingThresholdScene || gameState.templeThresholdTransition);
-  const isRomeOpeningCinematic = gameState.openingCinematic?.id === 'asha-legate-opening-cinematic';
+  const isRomeOpeningCinematic = gameState.openingCinematic?.id === ROME_OPENING_CINEMATIC_ID;
+  const isChinaOpeningCinematic = gameState.openingCinematic?.id === CHINA_OPENING_CINEMATIC_ID;
   const openingCinematicClassName = [
     'opening-cinematic-overlay',
-    isRomeOpeningCinematic ? 'is-rome' : 'is-egypt',
+    isRomeOpeningCinematic ? 'is-rome' : isChinaOpeningCinematic ? 'is-china' : 'is-egypt',
     openingSpellImpactActive ? 'is-spell-impact' : '',
     openingShieldShattered ? 'is-shield-shattered' : '',
   ].filter(Boolean).join(' ');
   const openingCinematicBackgroundSrc = isRomeOpeningCinematic
     ? `${import.meta.env.BASE_URL}${ROME_OPENING_BACKGROUND_SRC}`
-    : 'assets/expedition/backgrounds/desert-entry/desert-entry-photoreal-sphinx-backdrop.png';
+    : isChinaOpeningCinematic
+      ? `${import.meta.env.BASE_URL}${CHINA_OPENING_BACKGROUND_SRC}`
+      : 'assets/expedition/backgrounds/desert-entry/desert-entry-photoreal-sphinx-backdrop.png';
   const openingCinematicAshaSrc = isRomeOpeningCinematic
     ? `${import.meta.env.BASE_URL}${ROME_OPENING_ASHA_CUTSCENE_SRC}`
-    : OPENING_ASHA_CUTSCENE_SRC;
+    : isChinaOpeningCinematic
+      ? `${import.meta.env.BASE_URL}${CHINA_OPENING_ASHA_CUTSCENE_SRC}`
+      : OPENING_ASHA_CUTSCENE_SRC;
   const openingCinematicGuardianSrc = isRomeOpeningCinematic
     ? `${import.meta.env.BASE_URL}${ROME_OPENING_LEGATE_CUTSCENE_SRC}`
-    : OPENING_SPHINX_APPARITION_SRC;
+    : isChinaOpeningCinematic
+      ? `${import.meta.env.BASE_URL}${CHINA_OPENING_WATCHTOWER_SRC}`
+      : OPENING_SPHINX_APPARITION_SRC;
   const openingCinematicSealSrc = isRomeOpeningCinematic
     ? `${import.meta.env.BASE_URL}${ROME_OPENING_VAULT_SIGIL_SRC}`
-    : `${import.meta.env.BASE_URL}${OPENING_JUDGEMENT_SEAL_IMAGE_SRC}`;
+    : isChinaOpeningCinematic
+      ? `${import.meta.env.BASE_URL}${CHINA_OPENING_GATE_SEAL_SRC}`
+      : `${import.meta.env.BASE_URL}${OPENING_JUDGEMENT_SEAL_IMAGE_SRC}`;
   const openingCinematicTitle = isRomeOpeningCinematic
     ? (gameState.openingCinematic?.title || 'The Vault Speaks First')
-    : 'The Gate Refuses';
-  const openingCinematicKicker = isRomeOpeningCinematic ? 'The First Archive' : 'The First Seal';
+    : isChinaOpeningCinematic
+      ? (gameState.openingCinematic?.title || 'The Watchtower Wakes')
+      : 'The Gate Refuses';
+  const openingCinematicKicker = isRomeOpeningCinematic ? 'The First Archive' : isChinaOpeningCinematic ? 'River Valley Seal' : 'The First Seal';
   const openingCinematicAriaLabel = isRomeOpeningCinematic
     ? 'Asha and the Legate opening cut scene'
-    : 'Asha and Anubis opening cut scene';
+    : isChinaOpeningCinematic
+      ? 'Asha and the China watchtower opening cut scene'
+      : 'Asha and Anubis opening cut scene';
 
   return (
     <section className={`expedition-journey-container ${openingCinematicActive ? 'is-opening-cinematic' : ''}`} id="expedition-journey">

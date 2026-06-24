@@ -14,6 +14,7 @@ export const sacredScribeExteriorX = (x) => scaleJourneyX(x + SACRED_EXTERIOR_SP
 export const WORLD_WIDTH = scaleJourneyX(BASE_WORLD_WIDTH);
 export const GROUND_Y = 595;
 export const JOURNEY_VERTICAL_OFFSET = 235;
+export const JOURNEY_EXTERIOR_SCENE_ID = 'journey-exterior-route';
 export const PLAYER_WIDTH = 28;
 export const PLAYER_HEIGHT = 42;
 export const GRAVITY = 1850;

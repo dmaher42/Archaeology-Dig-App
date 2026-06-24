@@ -31,6 +31,7 @@ import journeyPlacementOverrides from './journeyPlacementOverrides.generated.js'
 import { journeyComponentSource } from './journeySourceText.test-utils.mjs';
 
 const JOURNEY_TEST_VIEWPORT_WIDTH = 1280;
+const journeyBackgroundAssetsSource = readFileSync('src/components/expedition-journey/journeyBackgroundAssets.js', 'utf8');
 
 const readPngInfo = (assetPath) => {
   const buffer = readFileSync(`public/${assetPath}`);
@@ -633,7 +634,7 @@ test('Desert Entry rebuild keeps walkable ground continuous while old scenery ov
   });
 });
 
-test('Desert Entry opening rebuild uses one integrated gameplay background plate for arrival, ravine, and temple approach', () => {
+test('Desert Entry opening rebuild uses the layered underworld atlas for arrival, ravine, and temple approach', () => {
   setExpeditionJourneyCiv('Ancient Egypt');
 
   const propById = (id) => ROUTED_STORY_PROPS.find(prop => prop.id === id);
@@ -644,7 +645,6 @@ test('Desert Entry opening rebuild uses one integrated gameplay background plate
   const retiredMummificationExterior = propById('desert-entry-generated-mummification-chamber-entrance-1');
   const retiredMuralClimbStructure = propById('forgotten-mural-climb-structure');
   const mummificationDoorway = propById('desert-entry-ravine-mummification-doorway-transition-1');
-  const panorama = propById('desert-entry-arrival-ravine-mummification-panorama-1');
   const retiredOpeningPlateIds = [
     'desert-entry-opening-pyramid-to-ravine-background-1',
     'desert-entry-ravine-bridge-background-1',
@@ -708,7 +708,7 @@ test('Desert Entry opening rebuild uses one integrated gameplay background plate
     journeyComponentSource.indexOf('const DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_IDS'),
     journeyComponentSource.indexOf('const DESERT_ENTRY_RETIRED_BACKGROUND_PROP_IDS'),
   );
-  assert.match(journeyComponentSource, /'desert-entry-arrival-ravine-mummification-panorama-1'/);
+  assert.ok(journeyPlacementOverrides.deletedPropIds.includes('desert-entry-arrival-ravine-mummification-panorama-1'));
   assert.doesNotMatch(primaryPlateListSource, /'desert-entry-opening-pyramid-to-ravine-background-1',\s*[\r\n]\s*'desert-entry-ravine-bridge-background-1'/);
   assert.doesNotMatch(journeyComponentSource, /opening-png-to-ravine-png-dust|ravine-png-to-mummification-png-dust|mummification-approach-png-to-arrival-png-pillar/);
   assert.equal(
@@ -717,27 +717,13 @@ test('Desert Entry opening rebuild uses one integrated gameplay background plate
     'the old generated opening pyramid should stay removed behind the primary background plates',
   );
   assert.ok(journeyPlacementOverrides.deletedPropIds.includes('opening-pyramid-facade-structure'));
-  assert.ok(panorama, 'the story-route mega panoramic Desert Entry background should exist in routed story props');
-  assert.equal(panorama.sectionId, 'desert-entry');
-  assert.equal(panorama.type, 'image-prop');
-  assert.equal(panorama.depth, 'background');
-  assert.equal(panorama.layer, 'background');
-  assert.equal(panorama.width, 2048);
-  assert.equal(panorama.height, 768);
-  assert.equal(panorama.alpha, 1, 'the integrated background plate should be the visible early route scenery');
-  assert.equal(panorama.colorGradeFilter, 'none', 'the approved panorama should not be flattened by the old beige color grade');
-  assert.equal(panorama.panoramaCropBias, 0.32, 'the opening camera should keep the ravine readable while pulling the temple destination further into frame');
-  assert.equal(panorama.brightness, 1);
-  assert.equal(panorama.x, 3300);
-  assert.equal(
-    panorama.assetPath,
-    'assets/expedition/backgrounds/desert-entry/desert-entry-integrated-temple-approach-footpath-2026-06-24.png',
-  );
-  assert.ok(existsSync(`public/${panorama.assetPath}`), 'integrated gameplay background image file should exist on disk');
-  assert.ok(
-    isHorizontallyVisibleForTest(panorama.x - panorama.width / 2, panorama.width, Math.max(0, 3100 - JOURNEY_TEST_VIEWPORT_WIDTH * 0.42)),
-    'the integrated background should cover the ravine/scarab route camera window',
-  );
+  assert.equal(propById('desert-entry-arrival-ravine-mummification-panorama-1'), undefined);
+  assert.match(journeyBackgroundAssetsSource, /'underworldSky'/);
+  assert.match(journeyBackgroundAssetsSource, /'floatingPyramids'/);
+  assert.match(journeyBackgroundAssetsSource, /'corruptedTempleRuins'/);
+  assert.match(journeyBackgroundAssetsSource, /'groundLane'/);
+  assert.match(journeyBackgroundAssetsSource, /'foregroundCorruption'/);
+  assert.ok(existsSync('public/assets/expedition/backgrounds/desert-entry/desert-entry-underworld-playable-stone-path-2026-06-24.png'), 'underworld playable path image file should exist on disk');
   const wallBackedClimb = propById('desert-entry-opening-wall-backed-climb-1');
   assert.equal(
     wallBackedClimb,
@@ -785,8 +771,8 @@ test('Desert Entry opening rebuild uses one integrated gameplay background plate
         && (prop.depth === 'background' || prop.depth === 'midground' || prop.layer === 'background')
       ))
       .map(prop => prop.id),
-    ['desert-entry-arrival-ravine-mummification-panorama-1'],
-    'the clean panorama should be the only visible early Desert Entry background/midground layer',
+    [],
+    'the layered underworld atlas should own the early Desert Entry background instead of a routed panorama prop',
   );
   assert.equal(
     retiredMummificationExterior,

@@ -1619,7 +1619,7 @@ const EXPEDITION_MAP_CONTENT = {
     journeyEnvironmentPackId: 'china-river-valley',
     journeyBackgroundPackId: 'china-river-valley',
     mapTitle: 'Ancient China Expedition Map',
-    routeMusicCue: 'desert',
+    routeMusicCue: 'bamboo-forest',
     excavationMusicCue: 'baseCamp',
     briefingIntro: 'Survey the river-valley site, choose a dig zone, collect evidence, and prove this Ancient China investigation.',
   },
@@ -1646,10 +1646,10 @@ const EXPEDITION_MAP_CONTENT = {
     mapTheme: ROME_EXCAVATION_MAP_THEME,
     defaultZoneName: 'Excavation Trench',
     visualMode: 'rome-room-map-stage-1',
-    journeyEnvironmentPackId: 'egypt-desert-temple',
+    journeyEnvironmentPackId: 'rome-section-one',
     journeyBackgroundPackId: 'rome',
     mapTitle: 'Forum Romanum Buried Site',
-    routeMusicCue: 'desert',
+    routeMusicCue: 'romanRoad',
     excavationMusicCue: 'baseCamp',
     briefingIntro: 'Survey the buried Forum site, choose a dig zone, collect structural evidence to unseal the archive, and prove this Ancient Rome investigation.',
   },
@@ -4252,8 +4252,9 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
     if (!selectedExpedition) return undefined;
     if (!new URLSearchParams(window.location.search).has('play')) return undefined;
     const timer = window.setTimeout(() => {
+      const playTarget = new URLSearchParams(window.location.search).get('play');
       setPrologueCinematicStep(null);
-      setJourneyOpeningMode('arrival-threshold');
+      setJourneyOpeningMode(playTarget === 'exterior' ? 'standard' : 'arrival-threshold');
       setExpeditionStage('journey');
       setBriefingOpen(false);
     }, 0);

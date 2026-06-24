@@ -9,7 +9,7 @@ import {
 test('section display copy is routed per civilisation', () => {
   setExpeditionJourneyCiv('Ancient Egypt');
   assert.equal(SECTION_COPY['desert-entry'].name, 'Desert Entry');
-  assert.equal(SECTION_COPY['desert-entry'].title, 'Restore the first seal to earn passage below.');
+  assert.equal(SECTION_COPY['desert-entry'].title, 'Cross the corrupted threshold and restore the first seal.');
 
   setExpeditionJourneyCiv('Ancient China');
   assert.equal(SECTION_COPY['yellow-river-frontier'].name, 'Yellow River Frontier');

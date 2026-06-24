@@ -1119,14 +1119,14 @@ export const GUARDIAN_KNOWLEDGE_CHALLENGES = {
 
 export const SECTION_ATMOSPHERES = {
   'desert-entry': {
-    skyTop: '#ffda91',
-    skyBottom: '#ffcc7d',
-    haze: 'rgba(255, 243, 171, 0.25)',
+    skyTop: '#17211f',
+    skyBottom: '#a96728',
+    haze: 'rgba(93, 58, 28, 0.24)',
     particle: 'sand',
-    particleColor: 'rgba(255, 247, 212, 0.6)',
-    fogColor: 'rgba(255, 248, 220, 0.2)',
-    mood: 'sun-baked dunes, heat haze, ancient sand',
-    title: 'Restore the first seal to earn passage below.',
+    particleColor: 'rgba(233, 194, 112, 0.42)',
+    fogColor: 'rgba(42, 33, 22, 0.24)',
+    mood: 'eclipse sky, broken pyramids, corrupted Duat path',
+    title: 'Cross the corrupted threshold and restore the first seal.',
   },
   'ruined-temple': {
     skyTop: '#5c4d3c',

@@ -21,6 +21,11 @@ Current source-of-truth note:
 - Verified: Rome production section tests, full Journey source-guard test file, targeted lint on changed files, production build, and a short Chrome browser state/screenshot check for Ancient China and Ancient Rome.
 - Remaining separation work: Ancient China still uses the Egypt/Anubis opening cinematic and the shared debug scene id `egypt-exterior-route`; Rome still reports the Egypt environment pack id even though its Rome background pack and gladius weapon load correctly.
 
+2026-06-24 Civilisation separation audit pass 3:
+- Found the first playable China screen was falling back to a bare sky/ground look because the shared background readiness contract still expected the retired `farValley` key.
+- Updated the China background expected-key list to match the active layered-parallax manifest: `skyLayer`, `farMountains`, `riverValley`, `watchtowerRidge`, and `foregroundMist`.
+- Added a focused China production guard so the layered China background PNG and atlas keys must stay ready for the shared Journey loader.
+
 2026-06-24 Desert Entry full background reset:
 - Replaced the rejected split scenic/floor Desert Entry setup with a new flat integrated gameplay background at `public/assets/expedition/backgrounds/desert-entry/desert-entry-integrated-temple-approach-flat-2026-06-24.png`.
 - Updated the active Journey background prop and Desert Entry manifest so the level painted carved-stone plaza is the visible walkable route; the separate playable-floor, rubble-mask, and foreground-depth strips are retired from the active runtime path.
@@ -28,6 +33,9 @@ Current source-of-truth note:
 - Verified focused Journey guards, targeted lint, production build, and a browser gameplay screenshot confirming Asha starts on the painted flat plaza with the Desert Entry fallback off.
 - Follow-up readability fix: created `public/assets/expedition/backgrounds/desert-entry/desert-entry-integrated-temple-approach-readable-path-2026-06-24.png` from the flat rebuild, baking in clearer route edges, stronger paving rhythm, and a brighter left-to-right walkable path so the playable lane is obvious.
 - Screenshot alignment fix: replaced that with `public/assets/expedition/backgrounds/desert-entry/desert-entry-integrated-temple-approach-footpath-2026-06-24.png`, moving the readable cue down to the front stone lane where Asha's feet actually land.
+- Underworld rebuild follow-up: wired the user-supplied five-layer mirror-world Egypt pack into the canonical Desert Entry background atlas. The active pack now uses `desert-entry-underworld-eclipse-sky-2026-06-24.png`, `desert-entry-underworld-floating-pyramids-2026-06-24.png`, `desert-entry-underworld-corrupted-temple-ruins-2026-06-24.png`, `desert-entry-underworld-playable-stone-path-2026-06-24.png`, and `desert-entry-underworld-foreground-corruption-2026-06-24.png`.
+- The old single panorama prop `desert-entry-arrival-ravine-mummification-panorama-1` is retired from generated placement overrides; the layered atlas now owns the early Desert Entry exterior. Added a dev-only `?play=exterior` shortcut to bypass the Arrival Threshold for visual checks while keeping normal `?play` behavior unchanged.
+- Browser verification screenshot: `output/playwright/desert-entry-underworld-gameplay-final-2026-06-24.png`. Asha is grounded on the world-locked stone path, with the eclipse sky, floating pyramid ruin layer, corrupted temple ruins, and foreground corruption visible behind/in front of the playable lane.
 
 2026-06-24 Desert Entry layered game-art rebuild:
 - Replaced the temporary single-strip ground approach with layered Desert Entry art: separate background plate, world-locked playable floor, rubble seam mask, and light foreground depth.

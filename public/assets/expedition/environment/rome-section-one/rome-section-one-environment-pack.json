@@ -1,0 +1,113 @@
+{
+  "image": "rome-section-one-environment-pack.png",
+  "source": "Rome Section One transparent runtime atlas generated from the same production PNG prop functions as the playable Rome scene.",
+  "size": {
+    "w": 2048,
+    "h": 2048
+  },
+  "notes": "Transparent atlas for Rome Journey gameplay surfaces: roads, marble floors, ledges, traps, archive doors, sealed gates and route-door visuals.",
+  "regions": {
+    "romanRoadGround": {
+      "x": 24,
+      "y": 24,
+      "w": 1024,
+      "h": 160
+    },
+    "forumPavingGround": {
+      "x": 24,
+      "y": 218,
+      "w": 1024,
+      "h": 160
+    },
+    "thermaePassageFloor": {
+      "x": 24,
+      "y": 412,
+      "w": 1024,
+      "h": 160
+    },
+    "basilicaMarbleFloor": {
+      "x": 24,
+      "y": 606,
+      "w": 1024,
+      "h": 160
+    },
+    "vaultStoneFloor": {
+      "x": 24,
+      "y": 800,
+      "w": 1024,
+      "h": 160
+    },
+    "romanStoneLedge": {
+      "x": 1076,
+      "y": 800,
+      "w": 360,
+      "h": 96
+    },
+    "romanColumnBlock": {
+      "x": 1464,
+      "y": 800,
+      "w": 280,
+      "h": 320
+    },
+    "romanFallenColumn": {
+      "x": 24,
+      "y": 1154,
+      "w": 420,
+      "h": 120
+    },
+    "romanEntablature": {
+      "x": 472,
+      "y": 1154,
+      "w": 520,
+      "h": 128
+    },
+    "romanPressurePlate": {
+      "x": 1020,
+      "y": 1154,
+      "w": 240,
+      "h": 96
+    },
+    "romanCollapsingColumn": {
+      "x": 1288,
+      "y": 1154,
+      "w": 160,
+      "h": 360
+    },
+    "romanSteamBurst": {
+      "x": 1476,
+      "y": 1154,
+      "w": 220,
+      "h": 260
+    },
+    "romanFallingBlock": {
+      "x": 1724,
+      "y": 1154,
+      "w": 220,
+      "h": 180
+    },
+    "romanDarkPit": {
+      "x": 24,
+      "y": 1548,
+      "w": 260,
+      "h": 120
+    },
+    "romanSealedGate": {
+      "x": 312,
+      "y": 1548,
+      "w": 340,
+      "h": 460
+    },
+    "romanBronzeSeal": {
+      "x": 680,
+      "y": 1548,
+      "w": 180,
+      "h": 180
+    },
+    "routeDoor": {
+      "x": 888,
+      "y": 1548,
+      "w": 340,
+      "h": 460
+    }
+  }
+}

@@ -425,6 +425,14 @@ def make_ground_strip(size=(1024, 160)) -> Image.Image:
     return finish_prop(img, size)
 
 
+def tint_prop(image: Image.Image, color: tuple[int, int, int], strength: float = 0.35, brightness: float = 1.0) -> Image.Image:
+    rgba = image.convert("RGBA")
+    tint = Image.new("RGBA", rgba.size, color + (0,))
+    tint.putalpha(rgba.getchannel("A").point(lambda value: int(value * strength)))
+    out = Image.alpha_composite(rgba, tint)
+    return ImageEnhance.Brightness(out).enhance(brightness)
+
+
 def make_stone_ledge(size=(360, 96)) -> Image.Image:
     img, draw, f = transparent_prop(size)
     def s(v): return int(v * f)
@@ -433,6 +441,84 @@ def make_stone_ledge(size=(360, 96)) -> Image.Image:
     for x in range(30, 342, 62):
         draw.line([s(x), s(18), s(x + 34), s(72)], fill=(237, 218, 176, 55), width=s(2))
     draw_stone_texture(draw, (s(10), s(18), s(350), s(84)), 20)
+    return finish_prop(img, size)
+
+
+def make_fallen_column_segment(size=(420, 120)) -> Image.Image:
+    img, draw, f = transparent_prop(size)
+    def s(v): return int(v * f)
+    draw.rounded_rectangle([s(28), s(34), s(392), s(86)], radius=s(24), fill=(178, 164, 134, 245), outline=(81, 70, 52, 210), width=s(4))
+    for x in range(52, 372, 42):
+        draw.line([s(x), s(38), s(x + 20), s(82)], fill=(231, 213, 176, 68), width=s(3))
+    draw.rectangle([s(14), s(70), s(405), s(105)], fill=(94, 77, 55, 150))
+    draw_stone_texture(draw, (s(18), s(28), s(404), s(104)), 24)
+    return finish_prop(img, size)
+
+
+def make_entablature_slab(size=(520, 128)) -> Image.Image:
+    img, draw, f = transparent_prop(size)
+    def s(v): return int(v * f)
+    draw.rounded_rectangle([s(18), s(24), s(502), s(92)], radius=s(8), fill=(150, 130, 94, 248), outline=(70, 58, 40, 210), width=s(4))
+    draw.rectangle([s(34), s(38), s(486), s(54)], fill=(205, 181, 125, 95))
+    draw.rectangle([s(46), s(80), s(470), s(106)], fill=(88, 70, 47, 145))
+    for x in range(64, 462, 70):
+        draw.rectangle([s(x), s(44), s(x + 36), s(82)], fill=(118, 98, 68, 150), outline=(59, 48, 34, 120), width=s(2))
+    draw_stone_texture(draw, (s(20), s(24), s(500), s(106)), 31)
+    return finish_prop(img, size)
+
+
+def make_pressure_plate(size=(240, 96)) -> Image.Image:
+    img, draw, f = transparent_prop(size)
+    def s(v): return int(v * f)
+    draw.rounded_rectangle([s(18), s(28), s(222), s(72)], radius=s(8), fill=(126, 104, 75, 245), outline=(61, 49, 34, 220), width=s(3))
+    draw.rounded_rectangle([s(48), s(38), s(192), s(64)], radius=s(5), fill=(178, 153, 100, 190), outline=(85, 65, 36, 150), width=s(2))
+    draw.line([s(120), s(32), s(120), s(70)], fill=(58, 45, 31, 100), width=s(2))
+    draw_stone_texture(draw, (s(18), s(28), s(222), s(72)), 37)
+    return finish_prop(img, size)
+
+
+def make_collapsing_column(size=(160, 360)) -> Image.Image:
+    img, draw, f = transparent_prop(size)
+    def s(v): return int(v * f)
+    draw.rectangle([s(58), s(34), s(105), s(310)], fill=(173, 158, 129, 242), outline=(77, 66, 49, 210), width=s(4))
+    for y in range(54, 300, 34):
+        draw.line([s(62), s(y), s(103), s(y + 12)], fill=(232, 216, 180, 75), width=s(2))
+    draw.rectangle([s(38), s(18), s(126), s(48)], fill=(121, 99, 68, 240), outline=(63, 51, 36, 200), width=s(3))
+    draw.rectangle([s(30), s(306), s(134), s(342)], fill=(106, 86, 61, 240), outline=(55, 44, 30, 200), width=s(3))
+    draw_stone_texture(draw, (s(28), s(18), s(136), s(342)), 41)
+    return finish_prop(img, size)
+
+
+def make_steam_burst(size=(220, 260)) -> Image.Image:
+    img, draw, f = transparent_prop(size)
+    def s(v): return int(v * f)
+    for i, (x, y, w, h, a) in enumerate([
+        (70, 112, 70, 132, 82),
+        (36, 74, 92, 154, 60),
+        (104, 58, 88, 170, 68),
+        (76, 24, 54, 184, 44),
+    ]):
+        draw.ellipse([s(x), s(y), s(x + w), s(y + h)], fill=(190, 222, 216, a))
+    draw.rectangle([s(34), s(218), s(188), s(242)], fill=(80, 72, 61, 190), outline=(130, 120, 94, 120), width=s(2))
+    return downsample(img.filter(ImageFilter.GaussianBlur(s(1))), size)
+
+
+def make_falling_block(size=(220, 180)) -> Image.Image:
+    img, draw, f = transparent_prop(size)
+    def s(v): return int(v * f)
+    draw.rounded_rectangle([s(34), s(34), s(186), s(140)], radius=s(10), fill=(135, 115, 84, 248), outline=(58, 47, 33, 220), width=s(4))
+    draw.line([s(52), s(62), s(162), s(48)], fill=(224, 202, 156, 78), width=s(3))
+    draw.line([s(70), s(104), s(174), s(126)], fill=(53, 42, 30, 80), width=s(3))
+    draw_stone_texture(draw, (s(34), s(34), s(186), s(140)), 45)
+    return finish_prop(img, size)
+
+
+def make_dark_pit(size=(260, 120)) -> Image.Image:
+    img, draw, f = transparent_prop(size)
+    def s(v): return int(v * f)
+    draw.ellipse([s(24), s(24), s(236), s(96)], fill=(5, 8, 10, 230), outline=(91, 75, 49, 150), width=s(4))
+    draw.ellipse([s(64), s(38), s(198), s(82)], fill=(1, 2, 4, 245))
+    draw.line([s(46), s(36), s(220), s(62)], fill=(177, 150, 90, 45), width=s(3))
     return finish_prop(img, size)
 
 
@@ -522,6 +608,54 @@ def write_environment_props() -> None:
     }
     for name, image in props.items():
         save_png(image, target / name)
+
+
+def write_environment_atlas() -> None:
+    target = PUBLIC / "environment" / "rome-section-one"
+    atlas_name = "rome-section-one-environment-pack.png"
+    manifest_name = "rome-section-one-environment-pack.json"
+    entries: dict[str, Image.Image] = {
+        "romanRoadGround": make_ground_strip(),
+        "forumPavingGround": tint_prop(make_ground_strip(), (118, 96, 66), 0.18, 0.96),
+        "thermaePassageFloor": tint_prop(make_ground_strip(), (42, 68, 70), 0.42, 0.72),
+        "basilicaMarbleFloor": tint_prop(make_ground_strip(), (218, 207, 178), 0.30, 1.08),
+        "vaultStoneFloor": tint_prop(make_ground_strip(), (30, 58, 42), 0.46, 0.64),
+        "romanStoneLedge": make_stone_ledge(),
+        "romanColumnBlock": make_column_cluster((280, 320)),
+        "romanFallenColumn": make_fallen_column_segment(),
+        "romanEntablature": make_entablature_slab(),
+        "romanPressurePlate": make_pressure_plate(),
+        "romanCollapsingColumn": make_collapsing_column(),
+        "romanSteamBurst": make_steam_burst(),
+        "romanFallingBlock": make_falling_block(),
+        "romanDarkPit": make_dark_pit(),
+        "romanSealedGate": make_arch_door((340, 460), locked=True),
+        "romanBronzeSeal": make_artifact_prop("coin", (180, 180)),
+        "routeDoor": make_arch_door((340, 460), locked=False),
+    }
+    atlas = Image.new("RGBA", (2048, 2048), (0, 0, 0, 0))
+    regions: dict[str, dict[str, int]] = {}
+    x = 24
+    y = 24
+    row_h = 0
+    for key, image in entries.items():
+        image = image.convert("RGBA")
+        if x + image.width + 24 > atlas.width:
+            x = 24
+            y += row_h + 34
+            row_h = 0
+        atlas.alpha_composite(image, (x, y))
+        regions[key] = {"x": x, "y": y, "w": image.width, "h": image.height}
+        x += image.width + 28
+        row_h = max(row_h, image.height)
+    save_png(atlas, target / atlas_name)
+    write_json(target / manifest_name, {
+        "image": atlas_name,
+        "source": "Rome Section One transparent runtime atlas generated from the same production PNG prop functions as the playable Rome scene.",
+        "size": {"w": atlas.width, "h": atlas.height},
+        "notes": "Transparent atlas for Rome Journey gameplay surfaces: roads, marble floors, ledges, traps, archive doors, sealed gates and route-door visuals.",
+        "regions": regions,
+    })
 
 
 def draw_ellipse_glow(base: Image.Image, box: tuple[int, int, int, int], color: tuple[int, int, int, int], blur: int = 8) -> None:
@@ -1271,6 +1405,7 @@ def main() -> None:
     write_background_pack("rome-basilica-interior", "rome-basilica-parallax-pack.json", make_basilica_layers())
     write_background_pack("rome-sealed-vault", "rome-vault-parallax-pack.json", make_vault_layers())
     write_environment_props()
+    write_environment_atlas()
     write_enemy_packs()
     write_enemy_packs_from_sources()
     write_boss_pack()

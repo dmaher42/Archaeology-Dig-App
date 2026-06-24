@@ -76,7 +76,7 @@ The missing or not-yet-China-specific visual sets are:
 - `public/assets/expedition/player/khopesh-weapon-pack.png` and `.json` are still the Journey weapon sprite atlas. This is the clearest Egypt-specific visual reuse.
 - `src/components/expedition-journey/journeyLevelData.js` keeps Egypt route ids and structure: `desert-entry`, `ruined-temple`, `catacombs`, `escape-sequence`, `dig-site-entrance`.
 - `SECTION_OBJECTIVES`, `OBJECTIVE_MARKERS`, `ROUTE_GATES`, `BOSS_KEY_ITEMS`, `GUARDIAN_KNOWLEDGE_QUESTIONS`, `GUARDIAN_KNOWLEDGE_CHALLENGES`, `SECTION_ATMOSPHERES`, `STORY_PROPS`, `ENVIRONMENT_EVENTS`, and `BOSS_INTROS` are still the shared Egypt-authored Journey model. China has enemy and mini-boss swaps, including river crab, watchtower sentry, and clay guardian regular-enemy families, but not a full China-specific Journey data set.
-- `ExpeditionMode.jsx` still uses `routeMusicCue: 'desert'` for China.
+- Pass 2 fixed the China Journey route music cue from the shared desert track to the China `bamboo-forest` cue.
 - Field-kit text still says the field guide helps identify "Egyptian pottery and architectural styles".
 - Some Journey snapshot/debug fields still use `desertBackground...` names even when the China background pack is active. This is naming reuse rather than a visible asset problem.
 
@@ -122,7 +122,7 @@ Recommended new files:
 P1 required for China Journey to look playable:
 
 1. Replace the Egypt khopesh weapon pack with a China-safe field tool weapon pack.
-2. Create a China-specific Journey data/copy pass for route names, objective names, route gates, section events, boss intros, field-kit wording, and music cue names.
+2. Create a China-specific Journey data/copy pass for route names, objective names, route gates, section events, boss intros, and field-kit wording.
 3. Update stale China scaffold implementation slot labels so planning UI/docs do not claim runtime assets are placeholders.
 
 P2 required for China Excavation/Museum to feel complete:
@@ -136,7 +136,7 @@ P3 polish only:
 1. Add distinct boss sprite packs for later China guardians instead of using the shared rammed-earth sentinel pack for all five encounters.
 2. Add China-specific collectible/relic/tool variants if the shared archaeology pack feels too generic or Egypt-coded.
 3. Add bespoke excavation hazard/Site Watcher sprites if the map needs stronger visual identity.
-4. Add China-specific audio cues later; this audit focused on image assets, but `routeMusicCue: 'desert'` is a visible code smell for a later audiovisual pass.
+4. Add more China-specific audio cues later if each section needs a distinct ambience beyond the current route-level China cue.
 
 ## Next Implementation Steps
 

@@ -1,11 +1,8 @@
 {
-  "image": "china-river-valley-layered-pack.png",
-  "runtimeMode": "layered-parallax",
+  "image": "china-river-valley-parallax-pack.png",
+  "runtimeMode": "single-composited-backdrop",
+  "source": "Clean full rectangular China river-valley gameplay background. The retired layered-pack PNG still exists as source art but is not active because its transparent bands contain visible checkerboard pixels.",
   "regions": {
-    "skyLayer": { "x": 0, "y": 0, "w": 1602, "h": 230 },
-    "farMountains": { "x": 0, "y": 298, "w": 1602, "h": 108 },
-    "riverValley": { "x": 0, "y": 500, "w": 1602, "h": 96 },
-    "watchtowerRidge": { "x": 0, "y": 632, "w": 1602, "h": 156 },
-    "foregroundMist": { "x": 0, "y": 866, "w": 1602, "h": 108 }
+    "skyLayer": { "x": 0, "y": 0, "w": 1602, "h": 930 }
   }
 }

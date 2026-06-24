@@ -16,6 +16,8 @@ export const JOURNEY_SOURCE_URLS = [
   new URL('./useJourneySimulation.js', import.meta.url),
 ];
 
+export const JOURNEY_BACKGROUND_ASSETS_SOURCE_URL = new URL('./journeyBackgroundAssets.js', import.meta.url);
+
 export const readJourneySourceText = (urls = JOURNEY_SOURCE_URLS) => urls
   .map((url) => {
     const path = fileURLToPath(url);
@@ -25,3 +27,4 @@ export const readJourneySourceText = (urls = JOURNEY_SOURCE_URLS) => urls
   .join('\n\n/* ---- journey source boundary ---- */\n\n');
 
 export const journeyComponentSource = readJourneySourceText();
+export const journeyBackgroundAssetsSource = readJourneySourceText([JOURNEY_BACKGROUND_ASSETS_SOURCE_URL]);

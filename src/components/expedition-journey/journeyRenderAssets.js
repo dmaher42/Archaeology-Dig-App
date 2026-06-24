@@ -9,6 +9,8 @@ export const EGYPT_FOREGROUND_DEPTH_ATLAS_JSON = `${EGYPT_FOREGROUND_DEPTH_ATLAS
 export const EGYPT_PREMIUM_GROUND_CONTACT_ATLAS_JSON = `${EGYPT_FOREGROUND_DEPTH_ATLAS_BASE_PATH}egypt-ground-contact-premium-kit-2026-06-02.json`;
 export const CHINA_RIVER_VALLEY_ENVIRONMENT_ATLAS_BASE_PATH = 'assets/expedition/environment/china-river-valley/';
 export const CHINA_RIVER_VALLEY_ENVIRONMENT_ATLAS_JSON = `${CHINA_RIVER_VALLEY_ENVIRONMENT_ATLAS_BASE_PATH}china-river-valley-environment-pack.json`;
+export const ROME_SECTION_ONE_ENVIRONMENT_ATLAS_BASE_PATH = 'assets/expedition/environment/rome-section-one/';
+export const ROME_SECTION_ONE_ENVIRONMENT_ATLAS_JSON = `${ROME_SECTION_ONE_ENVIRONMENT_ATLAS_BASE_PATH}rome-section-one-environment-pack.json`;
 export const ATLAS_TUNING_VERSION = 'environment-atlas-tuning-2026-05-10';
 export const DESERT_VISUAL_TUNING_VERSION = 'desert-entry-final-visual-tuning-2026-05-10';
 export const JOURNEY_ASSET_GROUNDING_VERSION = 'journey-asset-grounding-2026-05-11';
@@ -68,6 +70,26 @@ export const EXPECTED_CHINA_RIVER_VALLEY_ENVIRONMENT_KEYS = [
   'archiveJar',
   'sealedTimberGate',
   'bronzeSeal',
+  'routeDoor',
+];
+
+export const EXPECTED_ROME_SECTION_ONE_ENVIRONMENT_KEYS = [
+  'romanRoadGround',
+  'forumPavingGround',
+  'thermaePassageFloor',
+  'basilicaMarbleFloor',
+  'vaultStoneFloor',
+  'romanStoneLedge',
+  'romanColumnBlock',
+  'romanFallenColumn',
+  'romanEntablature',
+  'romanPressurePlate',
+  'romanCollapsingColumn',
+  'romanSteamBurst',
+  'romanFallingBlock',
+  'romanDarkPit',
+  'romanSealedGate',
+  'romanBronzeSeal',
   'routeDoor',
 ];
 
@@ -195,6 +217,7 @@ export const ENVIRONMENT_ASSET_PACK_IDS = {
   EGYPT_FOREGROUND_DEPTH: 'egypt-foreground-depth',
   EGYPT_PREMIUM_GROUND_CONTACT: 'egypt-premium-ground-contact',
   CHINA_RIVER_VALLEY: 'china-river-valley',
+  ROME_SECTION_ONE: 'rome-section-one',
 };
 
 export const ENVIRONMENT_ASSET_PACKS = {
@@ -234,6 +257,12 @@ export const ENVIRONMENT_ASSET_PACKS = {
     basePath: CHINA_RIVER_VALLEY_ENVIRONMENT_ATLAS_BASE_PATH,
     atlasPath: CHINA_RIVER_VALLEY_ENVIRONMENT_ATLAS_JSON,
     expectedKeys: EXPECTED_CHINA_RIVER_VALLEY_ENVIRONMENT_KEYS,
+  },
+  [ENVIRONMENT_ASSET_PACK_IDS.ROME_SECTION_ONE]: {
+    id: ENVIRONMENT_ASSET_PACK_IDS.ROME_SECTION_ONE,
+    basePath: ROME_SECTION_ONE_ENVIRONMENT_ATLAS_BASE_PATH,
+    atlasPath: ROME_SECTION_ONE_ENVIRONMENT_ATLAS_JSON,
+    expectedKeys: EXPECTED_ROME_SECTION_ONE_ENVIRONMENT_KEYS,
   },
 };
 
@@ -367,6 +396,27 @@ export const drawAtlasRegion = (ctx, assets, key, dest, options = {}) => {
 
 export const getEnvironmentAssetKeyForPlatform = (platform, sectionId, packId = DEFAULT_ENVIRONMENT_ASSET_PACK_ID) => {
   if (platform.assetKey) return platform.assetKey;
+  if (packId === ENVIRONMENT_ASSET_PACK_IDS.ROME_SECTION_ONE) {
+    const label = String(platform.label || '').toLowerCase();
+    if (label.includes('fallen column') || label.includes('column drum')) return 'romanFallenColumn';
+    if (label.includes('entablature') || label.includes('lintel') || label.includes('rostrum')) return 'romanEntablature';
+    if (label.includes('column base') || label.includes('plinth') || label.includes('podium')) return 'romanColumnBlock';
+    if (
+      label.includes('ledge')
+      || label.includes('step')
+      || label.includes('landing')
+      || label.includes('stair')
+      || label.includes('crown')
+      || label.includes('pillar cap')
+      || label.includes('milestone')
+      || label.includes('shelf')
+    ) return 'romanStoneLedge';
+    if (sectionId === 'forum-ruins') return 'forumPavingGround';
+    if (sectionId === 'subterranean-thermae') return 'thermaePassageFloor';
+    if (sectionId === 'basilica-interior') return 'basilicaMarbleFloor';
+    if (sectionId === 'sealed-vault') return 'vaultStoneFloor';
+    return 'romanRoadGround';
+  }
   if (packId === ENVIRONMENT_ASSET_PACK_IDS.CHINA_RIVER_VALLEY) {
     if (platform.label?.includes('bridge')) return 'bambooBridge';
     if (platform.label?.includes('archive')) return 'archiveFloor';
@@ -390,6 +440,18 @@ export const getEnvironmentAssetKeyForPlatform = (platform, sectionId, packId = 
 };
 
 export const getEnvironmentAssetKeyForHazard = (hazard, packId = DEFAULT_ENVIRONMENT_ASSET_PACK_ID) => {
+  if (packId === ENVIRONMENT_ASSET_PACK_IDS.ROME_SECTION_ONE) {
+    if (hazard.type === 'pressurePlate') return 'romanPressurePlate';
+    if (hazard.type === 'collapsingColumn') return 'romanCollapsingColumn';
+    if (hazard.type === 'steamBurst') return 'romanSteamBurst';
+    if (hazard.type === 'fallingBlock') return 'romanFallingBlock';
+    return ({
+      'column-drop-1': 'romanCollapsingColumn',
+      'steam-burst-1': 'romanSteamBurst',
+      'vault-trap-1': 'romanFallingBlock',
+      'dark-gap': 'romanDarkPit',
+    }[hazard.id] || 'romanStoneLedge');
+  }
   if (packId === ENVIRONMENT_ASSET_PACK_IDS.CHINA_RIVER_VALLEY) {
     return ({
       'thorn-bush': 'reedPatch',
@@ -462,6 +524,18 @@ export const getEnvironmentAssetKeyForHazard = (hazard, packId = DEFAULT_ENVIRON
 export const getEnvironmentAssetKeyForStoryProp = (prop, packId = DEFAULT_ENVIRONMENT_ASSET_PACK_ID) => {
   if (packId === ENVIRONMENT_ASSET_PACK_IDS.EGYPT_ATMOSPHERE) {
     return prop.atmosphereAssetKey || null;
+  }
+  if (packId === ENVIRONMENT_ASSET_PACK_IDS.ROME_SECTION_ONE) {
+    return ({
+      door: 'routeDoor',
+      ruins: 'romanColumnBlock',
+      column: 'romanColumnBlock',
+      bridge: 'romanFallenColumn',
+      statue: 'romanBronzeSeal',
+      glyphs: 'romanBronzeSeal',
+      mural: 'romanBronzeSeal',
+      camp: 'romanStoneLedge',
+    }[prop.type] || null);
   }
   if (packId === ENVIRONMENT_ASSET_PACK_IDS.CHINA_RIVER_VALLEY) {
     return ({

@@ -122,6 +122,7 @@ export const OPENING_CINEMATIC_DURATION = 54;
 export const OPENING_CINEMATIC_SPELL_IMPACT_AT = 49.4;
 export const OPENING_ASHA_CUTSCENE_SRC = 'assets/expedition/player/asha-opening-reference-cutscene.png';
 export const OPENING_ARRIVAL_AFTERSHOCK_NOTICE = 'The way back is gone. Anubis is still watching. The only path is forward, into judgement.';
+export const CHINA_OPENING_ARRIVAL_NOTICE = 'The river gate shut behind me. The watchtower has noticed. The only path is through the valley.';
 export const OPENING_CINEMATIC_LINES = [
   {
     id: 'asha-not-the-site',
@@ -346,10 +347,52 @@ export const ROME_OPENING_CINEMATIC_LINES = [
   },
 ];
 
+export const CHINA_OPENING_CINEMATIC_LINES = [
+  {
+    id: 'china-gate-shuts',
+    at: 1.4,
+    speaker: 'Asha',
+    voice: 'asha',
+    text: 'The river gate just locked behind me.',
+  },
+  {
+    id: 'china-watchtower-wakes',
+    at: 5.8,
+    speaker: 'Watchtower Sentry',
+    voice: 'guardian',
+    text: 'No one crosses the valley without leaving a record.',
+  },
+  {
+    id: 'china-asha-record',
+    at: 10.6,
+    speaker: 'Asha',
+    voice: 'asha',
+    text: 'Then I record what I find and keep moving.',
+  },
+  {
+    id: 'china-sentry-test',
+    at: 15.8,
+    speaker: 'Watchtower Sentry',
+    voice: 'guardian',
+    text: 'The first timber seal will test your evidence.',
+  },
+  {
+    id: 'china-asha-forward',
+    at: 20.2,
+    speaker: 'Asha',
+    voice: 'asha',
+    text: 'Forward through the valley, then.',
+  },
+];
+
 // Returns the correct opening cinematic lines for the current civilisation.
 export const getOpeningCinematicLines = (targetCivilisation) => {
-  if (typeof targetCivilisation === 'string' && targetCivilisation.toLowerCase().includes('rome')) {
+  const civilisation = typeof targetCivilisation === 'string' ? targetCivilisation.toLowerCase() : '';
+  if (civilisation.includes('rome')) {
     return ROME_OPENING_CINEMATIC_LINES;
+  }
+  if (civilisation.includes('china')) {
+    return CHINA_OPENING_CINEMATIC_LINES;
   }
   return OPENING_CINEMATIC_LINES;
 };

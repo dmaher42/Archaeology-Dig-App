@@ -20,34 +20,6 @@ const journeyPlacementOverrides = {
       "label": "ancient boundary seal"
     },
     {
-      "id": "desert-entry-arrival-ravine-mummification-panorama-1",
-      "sectionId": "desert-entry",
-      "type": "image-prop",
-      "imageAssetKey": "desertEntryIntegratedTempleApproach",
-      "assetPath": "assets/expedition/backgrounds/desert-entry/desert-entry-integrated-temple-approach-footpath-2026-06-24.png",
-      "width": 2048,
-      "height": 768,
-      "scale": 1,
-      "layer": "background",
-      "depth": "background",
-      "tint": "warm",
-      "colorGradeFilter": "none",
-      "panoramaCropBias": 0.32,
-      "alpha": 1,
-      "shadowOpacity": 0,
-      "sandOverlapHeight": 0,
-      "sandMoundWidth": 0,
-      "groundPebbles": 0,
-      "brightness": 1,
-      "zIndex": -127,
-      "x": 3300,
-      "y": 632,
-      "label": "integrated Desert Entry gameplay background; the readable level painted carved-stone footpath is the visible walkable route under Asha and the old separate floor/rubble/depth strips are retired",
-      "mirrorX": false,
-      "tintStrength": 0,
-      "paintStrength": 0
-    },
-    {
       "id": "desert-entry-restored-ravine-exit-rubble-edge-1",
       "sectionId": "desert-entry",
       "type": "image-prop",
@@ -173,6 +145,7 @@ const journeyPlacementOverrides = {
     }
   ],
   "deletedPropIds": [
+    "desert-entry-arrival-ravine-mummification-panorama-1",
     "desert-entry-asha-grounding-boot-dust-1",
     "desert-entry-asha-grounding-foreground-edge-1",
     "desert-entry-asha-grounding-rubble-crumbs-1",

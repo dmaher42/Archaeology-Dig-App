@@ -1,4 +1,5 @@
 import { SECRET_COLLECTIBLES } from './journeyDataRouter.js';
+import { JOURNEY_EXTERIOR_SCENE_ID } from './journeyConstants.js';
 import { clamp, JOURNEY_INTERACT_VERBS } from './journeyUtils.js';
 
 export const SCRIBE_CHAMBER_PUZZLE = {
@@ -493,7 +494,7 @@ export const createChamberDoorVisuals = ({
 }) => Object.freeze([
   {
     id: 'temple-threshold-hall-entry-door',
-    roomId: 'egypt-exterior-route',
+    roomId: JOURNEY_EXTERIOR_SCENE_ID,
     routeId: 'temple-threshold-hall-route',
     entryPlatformId: 'desert-entry-platform-11',
     trigger: TEMPLE_THRESHOLD_HALL_ENTRY_TRIGGER,
@@ -512,7 +513,7 @@ export const createChamberDoorVisuals = ({
   },
   {
     id: 'mummification-chamber-entry-door',
-    roomId: 'egypt-exterior-route',
+    roomId: JOURNEY_EXTERIOR_SCENE_ID,
     routeId: 'mummification-chamber-route',
     entryPlatformId: 'mummification-chamber-doorway-floor',
     trigger: MUMMIFICATION_CHAMBER_ENTRY_TRIGGER,
@@ -530,7 +531,7 @@ export const createChamberDoorVisuals = ({
   },
   {
     id: 'forgotten-mural-entry-door',
-    roomId: 'egypt-exterior-route',
+    roomId: JOURNEY_EXTERIOR_SCENE_ID,
     routeId: 'desert-upper-survey-route',
     entryPlatformId: 'forgotten-mural-upper-doorway-floor',
     trigger: FORGOTTEN_MURAL_CHAMBER_ENTRY_TRIGGER,
@@ -548,7 +549,7 @@ export const createChamberDoorVisuals = ({
   },
   {
     id: 'scribe-chamber-entry-door',
-    roomId: 'egypt-exterior-route',
+    roomId: JOURNEY_EXTERIOR_SCENE_ID,
     routeId: 'scribe-locked-chamber-route',
     entryPlatformId: 'scribe-chamber-doorway-threshold',
     trigger: SCRIBE_CHAMBER_ENTRY_TRIGGER,

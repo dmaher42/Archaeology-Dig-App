@@ -14,6 +14,13 @@ import {
 import {
   getMissingBossSpriteAssets,
 } from '../journeyBossSprites.js';
+import {
+  ENVIRONMENT_ASSET_PACK_IDS,
+  EXPECTED_ROME_SECTION_ONE_ENVIRONMENT_KEYS,
+  getEnvironmentAssetKeyForHazard,
+  getEnvironmentAssetKeyForPlatform,
+  getMissingEnvironmentAssets,
+} from '../journeyRenderAssets.js';
 import * as RomeData from '../romeJourneyData.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -36,6 +43,10 @@ const assertRegions = (atlas, expectedKeys) => {
     assert.ok(Number.isFinite(region.y), `${key} has y`);
     assert.ok(region.w > 0, `${key} has width`);
     assert.ok(region.h > 0, `${key} has height`);
+    if (atlas.size?.w && atlas.size?.h) {
+      assert.ok(region.x + region.w <= atlas.size.w, `${key} fits atlas width`);
+      assert.ok(region.y + region.h <= atlas.size.h, `${key} fits atlas height`);
+    }
   }
 };
 
@@ -110,8 +121,11 @@ test('Rome Section One has a playable Forum-to-archive learning spine instead of
 
 test('Rome and China do not inherit Egypt-only rooms or Scarab runtime gates', async () => {
   const journeySource = await readFile(path.join(repoRoot, 'src', 'components', 'ExpeditionJourney.jsx'), 'utf8');
+  const journeyUtilsSource = await readFile(path.join(repoRoot, 'src', 'components', 'expedition-journey', 'journeyUtils.js'), 'utf8');
 
   assert.match(journeySource, /const isEgyptJourney = !isChinaJourney && !isRomeJourney/);
+  assert.match(journeySource, /EXTERIOR:\s*JOURNEY_EXTERIOR_SCENE_ID/);
+  assert.match(journeyUtilsSource, /currentSceneId:\s*JOURNEY_EXTERIOR_SCENE_ID/);
   assert.match(journeySource, /loadEgyptOnlyPacks:\s*isEgyptJourney/);
   assert.match(journeySource, /const templeThresholdDoorwayActive = scopedJourneyAssetPacks\.isEgyptJourney/);
   assert.match(journeySource, /const mummificationChamberDoorwayActive = scopedJourneyAssetPacks\.isEgyptJourney/);
@@ -123,6 +137,42 @@ test('Rome and China do not inherit Egypt-only rooms or Scarab runtime gates', a
   assert.match(journeySource, /const missingChinaEnemyGuardianSpriteAssets = scopedJourneyAssetPacks\.isChinaJourney/);
   assert.match(journeySource, /assetFallbackActive:[\s\S]*scopedBackgroundFallbackActive/);
   assert.doesNotMatch(journeySource, /backgroundPackId !== 'china-river-valley'/);
+  assert.doesNotMatch(journeySource, /egypt-exterior-route/);
+  assert.doesNotMatch(journeyUtilsSource, /egypt-exterior-route/);
+});
+
+test('Rome gameplay surfaces and route gates use Rome and China environment packs instead of Egypt gate art', async () => {
+  const atlas = await readJson('assets', 'expedition', 'environment', 'rome-section-one', 'rome-section-one-environment-pack.json');
+  assertPngAssetExists(`assets/expedition/environment/rome-section-one/${atlas.image}`);
+  assertRegions(atlas, EXPECTED_ROME_SECTION_ONE_ENVIRONMENT_KEYS);
+  assert.deepEqual(
+    getMissingEnvironmentAssets({ atlas, expectedKeys: EXPECTED_ROME_SECTION_ONE_ENVIRONMENT_KEYS }),
+    [],
+    'Rome environment atlas has every required runtime surface key',
+  );
+
+  assert.equal(
+    getEnvironmentAssetKeyForPlatform({ label: 'via sacra stone road', y: 595 }, 'via-sacra', ENVIRONMENT_ASSET_PACK_IDS.ROME_SECTION_ONE),
+    'romanRoadGround',
+  );
+  assert.equal(
+    getEnvironmentAssetKeyForPlatform({ label: 'fallen entablature slab', y: 345 }, 'forum-ruins', ENVIRONMENT_ASSET_PACK_IDS.ROME_SECTION_ONE),
+    'romanEntablature',
+  );
+  assert.equal(
+    getEnvironmentAssetKeyForHazard({ type: 'steamBurst', id: 'steam-burst-1' }, ENVIRONMENT_ASSET_PACK_IDS.ROME_SECTION_ONE),
+    'romanSteamBurst',
+  );
+
+  const modeSource = await readFile(path.join(repoRoot, 'src', 'components', 'ExpeditionMode.jsx'), 'utf8');
+  assert.match(modeSource, /journeyEnvironmentPackId:\s*'rome-section-one'/);
+  assert.match(modeSource, /routeMusicCue:\s*'bamboo-forest'/);
+  assert.match(modeSource, /routeMusicCue:\s*'romanRoad'/);
+
+  const rendererSource = await readFile(path.join(repoRoot, 'src', 'components', 'expedition-journey', 'useJourneyRenderer.js'), 'utf8');
+  assert.match(rendererSource, /isChinaGate[\s\S]*sealedTimberGate/);
+  assert.match(rendererSource, /isRomeGate[\s\S]*romanSealedGate/);
+  assert.match(rendererSource, /const atlasKey = complete \? 'routeDoor'/);
 });
 
 test('Rome player, weapon, props, evidence icons, and cinematic art are connected to real PNG assets', async () => {
