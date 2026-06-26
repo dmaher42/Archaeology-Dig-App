@@ -3559,18 +3559,28 @@ export function drawDesertForegroundAtmosphereFrame(ctx, section, cameraX, deps)
   const isNearDesertEntry = section.id === 'desert-entry';
   const assets = getSectionBackgroundAssets(desertBackgroundAssetsRef.current, 'desert-entry');
   if (!isNearDesertEntry || !assets?.ready) return false;
-  if (assets.atlas?.runtimeMode !== 'layered-underworld-playable-route') {
+  const runtimeMode = assets.atlas?.runtimeMode;
+  if (runtimeMode !== 'layered-necropolis-playable-route') {
     return false;
   }
   const layerOptions = { canvasWidth: CANVAS_WIDTH, cameraX };
-  const dustDrawn = drawDesertBackgroundLayer(
-    ctx,
-    assets,
-    'foregroundCorruption',
-    { y: 0, height: CANVAS_HEIGHT },
-    { ...layerOptions, parallax: 0.62, alpha: 0.74 },
-  );
-  return dustDrawn;
+  const foregroundDrawn = [
+    drawDesertBackgroundLayer(
+      ctx,
+      assets,
+      'foregroundRubble',
+      { y: CANVAS_HEIGHT - 58, height: 58 },
+      { ...layerOptions, parallax: 0.94, alpha: 0.24 },
+    ),
+    drawDesertBackgroundLayer(
+      ctx,
+      assets,
+      'foregroundDepth',
+      { y: CANVAS_HEIGHT - 46, height: 46 },
+      { ...layerOptions, parallax: 1.08, alpha: 0.2 },
+    ),
+  ];
+  return foregroundDrawn.some(Boolean);
 }
 
 export function drawForegroundDepthParticlesFrame(ctx, now, cameraX, deps) {
@@ -3753,30 +3763,37 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
   const assets = getSectionBackgroundAssets(desertBackgroundAssetsRef.current, 'desert-entry');
   if (!isNearDesertEntry || !assets?.ready) return false;
 
-  if (assets.atlas?.runtimeMode !== 'layered-underworld-playable-route') {
+  const runtimeMode = assets.atlas?.runtimeMode;
+  if (runtimeMode !== 'layered-necropolis-playable-route') {
     return false;
   }
 
   const layerOptions = { canvasWidth: CANVAS_WIDTH, cameraX };
+  const fullFrame = { y: 0, height: CANVAS_HEIGHT };
+  const skyDrawn = drawDesertBackgroundLayer(
+    ctx,
+    assets,
+    'skyLight',
+    fullFrame,
+    { ...layerOptions, parallax: 0.012, alpha: 1 },
+  );
+  if (!skyDrawn) return false;
 
-  const drawn = [
-    drawDesertBackgroundLayer(ctx, assets, 'underworldSky', { y: 0, height: CANVAS_HEIGHT }, { ...layerOptions, parallax: 0, alpha: 1 }),
-    drawDesertBackgroundLayer(ctx, assets, 'floatingPyramids', { y: 0, height: CANVAS_HEIGHT }, { ...layerOptions, parallax: 0.04, alpha: 0.92 }),
-    drawDesertBackgroundLayer(ctx, assets, 'corruptedTempleRuins', { y: 0, height: CANVAS_HEIGHT }, { ...layerOptions, parallax: 0.18, alpha: 0.94 }),
-  ];
-  return drawn.every(Boolean);
+  drawDesertBackgroundLayer(ctx, assets, 'farPyramids', fullFrame, { ...layerOptions, parallax: 0.055, alpha: 0.52 });
+  drawDesertBackgroundLayer(ctx, assets, 'distantCliffs', fullFrame, { ...layerOptions, parallax: 0.14, alpha: 0.58 });
+  drawDesertBackgroundLayer(ctx, assets, 'midNecropolisRuins', fullFrame, { ...layerOptions, parallax: 0.28, alpha: 0.72 });
+  return true;
 }
 
-// World-locked, 1:1 scrolling ground lane for desert-entry. The lane tile is a wide
-// strip whose upper ~48% is transparent sky and lower ~52% is the receding carved-stone
-// /rubble paving Asha runs on. Drawing it at parallax 1.0 (via the same tiling primitive
-// the other sections use) locks the visible floor to the world/collision plane and tiles
-// it seamlessly down the whole route — replacing the frozen single-plate painted footpath.
-// DEST_Y / DEST_HEIGHT place the paving so it straddles GROUND_Y (595) with the near edge
-// running off the bottom of the frame; HEIGHT >= ~374 keeps the tile at a uniform scale
-// (no horizontal stretch) and a repeat period wider than the viewport.
-const DESERT_GROUND_LANE_DEST_Y = 150;
-const DESERT_GROUND_LANE_DEST_HEIGHT = 520;
+// World-locked, 1:1 scrolling ground lane for desert-entry. A near-locked backing
+// layer sits below it as visual-only land mass so the playable path no longer reads
+// as a floating ledge. Collision remains on the stable world floor.
+const DESERT_GROUND_BACKING_DEST_Y = 586;
+const DESERT_GROUND_BACKING_DEST_HEIGHT = 138;
+const DESERT_GROUND_BACKING_PARALLAX = 0.98;
+const DESERT_GROUND_BACKING_ALPHA = 0.42;
+const DESERT_GROUND_LANE_DEST_Y = 525;
+const DESERT_GROUND_LANE_DEST_HEIGHT = 95;
 
 export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
   const {
@@ -3790,6 +3807,19 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
   const assets = getSectionBackgroundAssets(desertBackgroundAssetsRef.current, 'desert-entry');
   if (!assets?.loaded) return false;
 
+  const backingDrawn = drawDesertBackgroundLayer(
+    ctx,
+    assets,
+    'groundBacking',
+    { y: DESERT_GROUND_BACKING_DEST_Y, height: DESERT_GROUND_BACKING_DEST_HEIGHT },
+    {
+      canvasWidth: CANVAS_WIDTH,
+      cameraX,
+      parallax: DESERT_GROUND_BACKING_PARALLAX,
+      alpha: DESERT_GROUND_BACKING_ALPHA,
+    },
+  );
+
   const drawn = drawDesertBackgroundLayer(
     ctx,
     assets,
@@ -3802,7 +3832,11 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
     stateRef.current.renderStats.desertEntryGroundLaneActive = true;
     stateRef.current.renderStats.desertEntryGroundLaneParallax = 1;
   }
-  return drawn;
+  if (backingDrawn && stateRef.current.renderStats) {
+    stateRef.current.renderStats.desertEntryGroundBackingActive = true;
+    stateRef.current.renderStats.desertEntryGroundBackingParallax = DESERT_GROUND_BACKING_PARALLAX;
+  }
+  return drawn || backingDrawn;
 }
 
 export function drawChinaRiverValleyBackgroundFrame(ctx, cameraX, deps) {
@@ -3852,16 +3886,18 @@ export function drawChinaRiverValleyBackgroundFrame(ctx, cameraX, deps) {
   }
   const layerOptions = { canvasWidth: CANVAS_WIDTH, cameraX };
   if (assets.atlas?.runtimeMode === 'layered-parallax') {
-    // Five stacked bands from china-river-valley-layered-pack.png, drawn back-to-front
-    // at increasing parallax for depth. The procedural base prevents old section art from
+    // Five full-frame panoramic layers (each ~3:1, content positioned naturally in-frame),
+    // drawn back-to-front at full canvas height with increasing parallax so their horizons
+    // stay aligned while depth scrolls. The procedural base prevents old section art from
     // showing during route switches or if any alpha-keyed layer leaves uncovered pixels.
     drawChinaFallbackBase();
-    const skyDrawn = drawDesertBackgroundLayer(ctx, assets, 'skyLayer', { y: 0, height: CANVAS_HEIGHT }, { ...layerOptions, parallax: 0.012, alpha: 1 });
+    const full = { y: 0, height: CANVAS_HEIGHT };
+    const skyDrawn = drawDesertBackgroundLayer(ctx, assets, 'skyLayer', full, { ...layerOptions, parallax: 0.01, alpha: 1 });
     if (!skyDrawn) return true;
-    drawDesertBackgroundLayer(ctx, assets, 'farMountains',    { y: 150, height: 260 }, { ...layerOptions, parallax: 0.05, alpha: 0.92 });
-    drawDesertBackgroundLayer(ctx, assets, 'riverValley',     { y: 232, height: 268 }, { ...layerOptions, parallax: 0.12, alpha: 0.96 });
-    drawDesertBackgroundLayer(ctx, assets, 'watchtowerRidge', { y: 300, height: 320 }, { ...layerOptions, parallax: 0.22, alpha: 1 });
-    drawDesertBackgroundLayer(ctx, assets, 'foregroundMist',  { y: 366, height: 280 }, { ...layerOptions, parallax: 0.42, alpha: 0.78 });
+    drawDesertBackgroundLayer(ctx, assets, 'farMountains',    full, { ...layerOptions, parallax: 0.045, alpha: 0.9 });
+    drawDesertBackgroundLayer(ctx, assets, 'riverValley',     full, { ...layerOptions, parallax: 0.1,  alpha: 1 });
+    drawDesertBackgroundLayer(ctx, assets, 'watchtowerRidge', full, { ...layerOptions, parallax: 0.2,  alpha: 1 });
+    drawDesertBackgroundLayer(ctx, assets, 'foregroundMist',  full, { ...layerOptions, parallax: 0.36, alpha: 0.92 });
     return true;
   }
   if (assets.atlas?.runtimeMode === 'single-composited-backdrop') {
@@ -4288,7 +4324,6 @@ export function drawDesertJourneyTransitionMaskFrame(ctx, transition, cameraX, n
 export function drawDesertJourneyScenePanelsFrame(ctx, current, cameraX, now, deps) {
   const {
     CANVAS_WIDTH,
-    DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_IDS,
     DESERT_JOURNEY_BACKGROUND_SYSTEM_VERSION,
     DESERT_JOURNEY_LAYER_ROLES,
     getDesertJourneyPanelsForViewport,
@@ -4311,7 +4346,6 @@ export function drawDesertJourneyScenePanelsFrame(ctx, current, cameraX, now, de
     current.renderStats.desertJourneyPanelIds = panels.map(panel => panel.id);
     current.renderStats.desertJourneyLayerRoles = DESERT_JOURNEY_LAYER_ROLES;
     current.renderStats.desertJourneyLayerDrawCount = layerDrawCount;
-    current.renderStats.desertEntryPrimaryBackgroundPlateIds = DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_IDS;
   }
 
   return layerDrawCount > 0;
@@ -4337,92 +4371,6 @@ export function drawDesertJourneySceneMasksFrame(ctx, current, cameraX, now, dep
   }
 
   return drawnMasks.length > 0;
-}
-
-export function drawDesertEntryPrimaryBackgroundPlatesFrame(ctx, current, cameraX, deps) {
-  const {
-    CANVAS_HEIGHT,
-    CANVAS_WIDTH,
-    DESERT_ENTRY_CONTINUOUS_BACKGROUND_END_X,
-    DESERT_ENTRY_CONTINUOUS_BACKGROUND_START_X,
-    DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_IDS,
-    clamp,
-    getRenderableStoryProps,
-    getStandaloneImagePropAsset,
-    isDesertEntryRebuildBackgroundPlateProp,
-  } = deps;
-  const plates = getRenderableStoryProps(current)
-    .filter(isDesertEntryRebuildBackgroundPlateProp)
-    .filter(plate => !Number.isFinite(plate.alpha) || plate.alpha > 0)
-    .sort((a, b) => {
-      const indexA = DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_IDS.indexOf(a.id);
-      const indexB = DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_IDS.indexOf(b.id);
-      return (indexA - indexB) || ((a.x || 0) - (b.x || 0));
-    });
-  if (plates.length === 0) return false;
-
-  const viewportCenterX = cameraX + CANVAS_WIDTH / 2;
-  const plateEntries = plates.map((plate, index) => ({
-    plate,
-    index,
-    centerX: Number.isFinite(plate.x) ? plate.x : 0,
-    segmentLeft: index > 0
-      ? (plates[index - 1].x + plate.x) / 2
-      : DESERT_ENTRY_CONTINUOUS_BACKGROUND_START_X,
-    segmentRight: index < plates.length - 1
-      ? (plate.x + plates[index + 1].x) / 2
-      : DESERT_ENTRY_CONTINUOUS_BACKGROUND_END_X,
-    asset: getStandaloneImagePropAsset(plate),
-  }));
-  const pendingCount = plateEntries.filter(entry => !entry.asset?.loaded || !entry.asset.image).length;
-  const activeEntry = plateEntries.find(entry => viewportCenterX >= entry.segmentLeft && viewportCenterX <= entry.segmentRight)
-    || plateEntries.reduce((closest, entry) => {
-      const closestDistance = Math.abs(viewportCenterX - closest.centerX);
-      const entryDistance = Math.abs(viewportCenterX - entry.centerX);
-      return entryDistance < closestDistance ? entry : closest;
-    }, plateEntries[0]);
-
-  const drawPlate = (entry) => {
-    const { plate, asset, segmentLeft, segmentRight } = entry;
-    if (!asset?.loaded || !asset.image) return false;
-    const image = asset.image;
-    const imageWidth = Number(image.naturalWidth || image.width) || Number(plate.width) || CANVAS_WIDTH;
-    const imageHeight = Number(image.naturalHeight || image.height) || Number(plate.height) || CANVAS_HEIGHT;
-    const scale = Math.max(CANVAS_WIDTH / imageWidth, CANVAS_HEIGHT / imageHeight);
-    const drawWidth = imageWidth * scale;
-    const drawHeight = imageHeight * scale;
-    const segmentSpan = Math.max(1, segmentRight - segmentLeft);
-    const panBias = Number.isFinite(plate.panoramaCropBias) ? plate.panoramaCropBias : 0;
-    const panProgress = clamp((viewportCenterX - segmentLeft) / segmentSpan + panBias, 0, 1);
-    const drawX = (CANVAS_WIDTH - drawWidth) * panProgress;
-    const drawY = (CANVAS_HEIGHT - drawHeight) * 0.5;
-
-    ctx.save();
-    ctx.globalAlpha = 1;
-    const colorGradeFilter = typeof plate.colorGradeFilter === 'string' ? plate.colorGradeFilter.trim() : '';
-    const brightnessFilter = Number.isFinite(plate.brightness) && plate.brightness !== 1
-      ? `brightness(${Math.round(clamp(plate.brightness, 0.4, 1.8) * 100)}%)`
-      : '';
-    const filter = [colorGradeFilter && colorGradeFilter !== 'none' ? colorGradeFilter : '', brightnessFilter]
-      .filter(Boolean)
-      .join(' ');
-    if (filter) ctx.filter = filter;
-    ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
-    ctx.restore();
-    return true;
-  };
-
-  const drawn = drawPlate(activeEntry) ? 1 : 0;
-
-  if (current.renderStats) {
-    current.renderStats.desertEntryPrimaryBackgroundPlateMode = 'single-plate-camera-pan-primary-png-v3';
-    current.renderStats.desertEntryPrimaryBackgroundPlateCount = drawn;
-    current.renderStats.desertEntryPrimaryBackgroundPlatePendingCount = pendingCount;
-    current.renderStats.desertEntryPrimaryBackgroundPlateActiveIds = drawn
-      ? [activeEntry?.plate?.id].filter(Boolean)
-      : [];
-  }
-  return drawn > 0;
 }
 
 export function drawSectionTransitionBlendFrame(ctx, cameraX, deps) {
@@ -8106,6 +8054,7 @@ export function drawHazardFrame(ctx, hazard, cameraX, current, now, deps) {
     getEgyptHazardDecalDescriptor,
     getEgyptHazardDecalDest,
     getEnvironmentAssetKeyForHazard,
+    getDesertEntryVisualGroundOffsetY,
     getHazardBurialAmount,
     getHazardGroundingConfig,
     getHazardVisualConfig,
@@ -8130,7 +8079,11 @@ export function drawHazardFrame(ctx, hazard, cameraX, current, now, deps) {
     const shakeY = reusableTrap?.type === 'collapsing-stone-floor' && trapPhase === 'shaking'
       ? Math.sin(now / 22) * 2
       : 0;
-    const baseY = hazard.y + shakeY;
+    const hazardFootY = hazard.y + hazard.height;
+    const visualGroundOffsetY = typeof getDesertEntryVisualGroundOffsetY === 'function'
+      ? getDesertEntryVisualGroundOffsetY(hazard.x + hazard.width / 2, hazardFootY, current)
+      : 0;
+    const baseY = hazard.y + shakeY + visualGroundOffsetY;
     const section = getSectionForX(hazard.x);
     const grounding = getHazardGroundingConfig(hazard);
     const centerX = hx + hazard.width / 2;
@@ -8666,9 +8619,6 @@ export function useJourneyRenderer(deps) {
     drawDesertEntryGroundLane: (ctx, section, cameraX) => drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps),
     drawDesertEntryForegroundDepth: (ctx, section, cameraX, now) => (
       drawDesertEntryForegroundDepthFrame(ctx, section, cameraX, now, deps)
-    ),
-    drawDesertEntryPrimaryBackgroundPlates: (ctx, current, cameraX) => (
-      drawDesertEntryPrimaryBackgroundPlatesFrame(ctx, current, cameraX, deps)
     ),
     drawDesertForegroundAtmosphere: (ctx, section, cameraX) => (
       drawDesertForegroundAtmosphereFrame(ctx, section, cameraX, deps)

@@ -97,25 +97,32 @@ missing, so partial drops degrade gracefully.)
 
 ## Copy-paste image-generation prompts (one per layer)
 
-Shared style: *2D side-scrolling game parallax background layer, semi-realistic painterly
-style, warm dawn light, muted earthy palette (loess yellow, dusty teal distance, bronze,
-green scrub), historically inspired Ancient China frontier, seamless horizontal tiling
-(left edge continues into right edge), no text, no labels, no UI, no watermark, no border.*
+Each prompt is fully self-contained. Generate each as a **wide panoramic image (much wider
+than tall)**, semi-realistic painterly game-art. Every prompt ends with the same hard
+exclusion line — keep it, it's what stops the generator drifting to Egypt.
 
-1. **Sky** — `china-bg-01-sky.png` (2048×640, opaque):
-> Wide seamless tileable dawn sky over an ancient Chinese river valley: pale teal-grey at the top blending to a warm gold haze at the horizon, soft layered clouds, a low diffused sun glow in the upper right. Sky only — no land, no mountains. [+ shared style]
+**HARD EXCLUSION (already included in each prompt below):** *NO Egypt, no pyramids, no
+sphinx, no obelisks, no hieroglyphs, no eclipse, no sand dunes, no desert, no Roman/Greek
+columns, no text, no labels, no UI, no watermark, no border.*
 
-2. **Far mountains** — `china-bg-02-far-mountains.png` (2048×360, transparent above peaks):
-> Seamless tileable band of distant blue-grey mountain ridgelines fading into morning haze, layered far/farther ranges, sitting along the lower 60% of the frame, fully transparent above the peaks. Atmospheric, soft, low detail. [+ shared style]
+> Transparency note: ask for a transparent background, but if your generator bakes it to
+> solid white anyway, that's fine — I key the white out to real alpha automatically when I
+> wire it. The **theme** (Ancient China river-valley frontier) is the part that must be right.
 
-3. **River valley** — `china-bg-03-river-valley.png` (2048×360, transparent above):
-> Seamless tileable midground band of the Yellow River winding horizontally across a valley, with small distant settlement rooftops, a couple of low pagodas and clumps of trees on the far bank, gentle reflections. Content in the lower half, transparent above. [+ shared style]
+1. **Sky** — `china-bg-01-sky.png` (opaque base):
+> Wide panoramic game background, much wider than tall. A serene Ancient China river-valley dawn sky: pale teal-grey at the very top blending down to warm gold and soft peach near the horizon, gentle layered clouds, a soft diffused early-morning sun glow in the upper right. Sky ONLY — no land, no mountains, no buildings. Semi-realistic painterly style, warm natural light, muted earthy palette, seamless left-to-right tiling, opaque full background. NO Egypt, no pyramids, no sphinx, no obelisks, no hieroglyphs, no eclipse, no desert, no text, no watermark, no border.
 
-4. **Watchtower ridge** — `china-bg-04-watchtower-ridge.png` (2048×440, transparent above silhouette):
-> Seamless tileable nearer ridge in an ancient Chinese frontier: weathered rammed-earth wall sections, one or two timber watchtowers with tiled roofs, ruined gate posts, hanging cloth banners, dry scrub. Bottom-anchored silhouette, transparent above, readable shapes. [+ shared style]
+2. **Far mountains** — `china-bg-02-far-mountains.png` (transparent):
+> Wide panoramic game parallax layer on a fully TRANSPARENT background (PNG alpha, no white fill). A row of distant misty Chinese mountain ridgelines in the style of classic Chinese landscape painting (soft karst-like and layered ranges), blue-grey, fading into morning haze, occupying the lower 60% of the frame with empty transparency above the peaks. Semi-realistic painterly, soft atmospheric, low detail, seamless horizontal tiling. NO Egypt, no pyramids, no sphinx, no obelisks, no sand dunes, no desert, no text, no watermark, no border.
 
-5. **Foreground mist** — `china-bg-05-foreground-mist.png` (2048×340, mostly transparent):
-> Seamless tileable foreground layer of thin low valley mist drifting across the bottom, with a few sparse silhouetted reed and grass clumps along the very bottom edge. Mostly transparent, soft and atmospheric, no solid ground. [+ shared style]
+3. **River valley + settlement** — `china-bg-03-river-valley.png` (transparent):
+> Wide panoramic game parallax layer on a fully TRANSPARENT background (PNG alpha, no white fill). The Yellow River winding horizontally across a green valley, with a distant ancient Chinese settlement on the far bank: low tiled rooftops, small timber pagodas, clumps of trees and terraced fields, gentle water reflections. Content in the lower half, transparent above. Semi-realistic painterly, warm dawn light, muted earthy and green palette, seamless horizontal tiling. NO Egypt, no pyramids, no sphinx, no obelisks, no desert, no text, no watermark, no border.
+
+4. **Watchtower ridge** — `china-bg-04-watchtower-ridge.png` (transparent):
+> Wide panoramic game parallax layer on a fully TRANSPARENT background (PNG alpha, no white fill). A nearer ridge of an ancient Chinese frontier: weathered rammed-earth (packed yellow-earth) wall sections, two or three timber watchtowers with tiled roofs, a simple timber frontier gate, hanging cloth banners, dry scrub and small trees. Bottom-anchored silhouette with readable shapes, transparent above. Semi-realistic painterly, warm light, earthy ochre palette, seamless horizontal tiling. NO Egypt, no pyramids, no sphinx, no obelisks, no hieroglyphs, no text, no watermark, no border.
+
+5. **Foreground grass / mist** — `china-bg-05-foreground-mist.png` (transparent):
+> Wide panoramic game foreground parallax layer on a fully TRANSPARENT background (PNG alpha, no white fill). Thin low valley mist drifting across the bottom, with sparse silhouetted reeds, tall grass clumps and a few small rocks along the very bottom edge. Mostly transparent, soft and atmospheric, no solid ground plane. Semi-realistic painterly, warm light, seamless horizontal tiling. NO Egypt, no pyramids, no sphinx, no obelisks, no desert, no text, no watermark, no border.
 
 ---
 

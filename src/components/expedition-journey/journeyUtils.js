@@ -1,5 +1,6 @@
 import {
   COMBAT_DAMAGE_SCALE,
+  DESERT_ENTRY_EXTERIOR_SPAWN_X,
   GROUND_Y,
   INITIAL_JOURNEY_NOTICE,
   JOURNEY_EXTERIOR_SCENE_ID,
@@ -292,6 +293,8 @@ export const applyJourneyRouteGatePlacementEdit = (gate = {}, edit = {}) => {
   if (Number.isFinite(edit.y)) next.y = edit.y;
   if (Number.isFinite(edit.width)) next.width = Math.max(1, Math.round(edit.width));
   if (Number.isFinite(edit.height)) next.height = Math.max(1, Math.round(edit.height));
+  if (typeof edit.hideArchVisual === 'boolean') next.hideArchVisual = edit.hideArchVisual;
+  if (typeof edit.suppressRouteGateVisual === 'boolean') next.suppressRouteGateVisual = edit.suppressRouteGateVisual;
   return next;
 };
 
@@ -1822,7 +1825,7 @@ export const isMummificationChamberComplete = (ritualStep) =>
 
 export const makeInitialState = ({ targetCivilisation, permanentUpgradeIds = [], permanentUpgradeEffects = {} } = {}) => ({
   player: {
-    x: 44,
+    x: DESERT_ENTRY_EXTERIOR_SPAWN_X,
     y: GROUND_Y - PLAYER_HEIGHT,
     width: PLAYER_WIDTH,
     height: PLAYER_HEIGHT,

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   CANVAS_HEIGHT,
   CANVAS_WIDTH,
+  DESERT_ENTRY_EXTERIOR_SPAWN_X,
   GROUND_Y,
   INVULNERABLE_DURATION,
   JUMP_SPEED,
@@ -716,13 +717,12 @@ const FORGOTTEN_MURAL_CHAMBER_VERSION = 'imagegen-forgotten-mural-chamber-2026-0
 const FORGOTTEN_MURAL_HIDDEN_MEMORY_REVEAL_VERSION = 'imagegen-forgotten-mural-hidden-memory-reveal-2026-06-01';
 const SCRIBE_CHAMBER_EXTERIOR_VERSION = 'imagegen-scribe-locked-chamber-exterior-v3-2026-06-05';
 const SCRIBE_CHAMBER_INTERIOR_VERSION = 'imagegen-scribe-locked-chamber-interior-2026-06-01';
-const DESERT_ENTRY_BACKGROUND_ART_VERSION = 'integrated-temple-approach-footpath-painted-route-2026-06-24';
+const DESERT_ENTRY_BACKGROUND_ART_VERSION = 'necropolis-layered-playable-route-2026-06-25';
+const DESERT_ENTRY_LAYERED_NECROPOLIS_OWNS_RAVINE_VISUALS = true;
 const OPENING_PYRAMID_FACADE_WORLD_LEFT_X = -82;
 const DESERT_ENTRY_CONTINUOUS_BACKGROUND_START_X = DESERT_JOURNEY_SCENE_PANELS[0]?.worldStart ?? 0;
 const DESERT_ENTRY_CONTINUOUS_BACKGROUND_END_X = DESERT_JOURNEY_SCENE_PANELS[DESERT_JOURNEY_SCENE_PANELS.length - 1]?.worldEnd ?? 17400;
-const DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_IDS = Object.freeze([
-  'desert-entry-arrival-ravine-mummification-panorama-1',
-]);
+const DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_IDS = Object.freeze([]);
 const DESERT_ENTRY_RETIRED_BACKGROUND_PROP_IDS = new Set([
   'desert-entry-asha-grounding-rubble-crumbs-1',
   'desert-entry-asha-grounding-tile-chips-1',
@@ -1102,6 +1102,7 @@ const TEMPLE_THRESHOLD_HALL_ENTRY_TRIGGER = {
   footY: GROUND_Y,
   footTolerance: 36,
 };
+const TEMPLE_THRESHOLD_HALL_ENTRY_DISABLED_FOR_BUILD = true;
 const TEMPLE_THRESHOLD_HALL_CAMERA_X = scaleJourneyX(80);
 const TEMPLE_THRESHOLD_HALL_BOUNDS = {
   minX: scaleJourneyX(80),
@@ -2067,7 +2068,7 @@ const GATE_HINTS = {
     'escape-sequence': 'Reach the escape marker before the route seal will open.',
     'dig-site-entrance': 'The final guardian seal opens after the Ancient Construct falls.',
   },
-  shards: 'Climb the ravine bridge route for the next relic shard; the drop below is not a safe path.',
+  shards: 'Follow the visible necropolis path for the next relic shard; the old ravine bridge route is retired for this rebuild.',
   upgrade: 'Look back through this section for the missing upgrade route.',
 };
 
@@ -2854,8 +2855,8 @@ const DECORATIVE_PROP_LAYER_MODE = 'background-midground-grounded-depth-v3';
 const PROP_DEPTH_TUNING_VERSION = 'journey-grounded-placement-presets-2026-05-26';
 const PROP_GROUNDING_INTEGRATION_VERSION = 'prop-contact-shadow-local-sediment-occlusion-v4';
 const ROUTE_GROUND_VISUAL_MODE = 'desert-entry-painted-background-route-v1';
-const ROUTE_GROUND_HAZE_FIX_VERSION = 'route-ground-footpath-integrated-temple-approach-2026-06-24';
-const DESERT_ENTRY_VISUAL_GROUND_PLANE_OFFSET_Y = 0;
+const ROUTE_GROUND_HAZE_FIX_VERSION = 'necropolis-route-ground-world-locked-2026-06-25';
+const DESERT_ENTRY_VISUAL_GROUND_PLANE_OFFSET_Y = -42;
 const DESERT_ENTRY_VISUAL_GROUND_FOOT_TOLERANCE = 26;
 const FOREGROUND_DEPTH_LAYER_MODE = 'edge-framed-visual-only-no-collision';
 const ENABLE_FOREGROUND_DEPTH_LAYER = false;
@@ -7973,7 +7974,6 @@ export default function ExpeditionJourney({
       desertJourneyLayerRoles: renderStats.desertJourneyLayerRoles || [],
       desertJourneyLayerDrawCount: renderStats.desertJourneyLayerDrawCount || 0,
       desertJourneyTransitionMasks: renderStats.desertJourneyTransitionMasks || [],
-      desertEntryPrimaryBackgroundPlateIds: renderStats.desertEntryPrimaryBackgroundPlateIds || [],
       visibleLabelCount: renderStats.visibleLabelCount || 0,
       labelSuppressionActive: Boolean(renderStats.labelSuppressionActive),
       platformVisualTuningActive: Boolean(renderStats.platformVisualTuningActive),
@@ -8786,7 +8786,6 @@ export default function ExpeditionJourney({
     drawDesertEntryGroundMotionCues,
     drawDesertEntryBackground,
     drawDesertEntryGroundLane,
-    drawDesertEntryPrimaryBackgroundPlates,
     drawDesertForegroundAtmosphere,
     drawDesertJourneySceneMasks,
     drawDesertJourneyScenePanels,
@@ -9342,21 +9341,15 @@ export default function ExpeditionJourney({
       && !desertBackgroundDrawn
       && !chamberSceneActive
       && section.id === 'desert-entry';
-    const desertEntryPrimaryBackgroundPlatesDrawn = canDrawCleanDesertEntryBackground
-      && drawDesertEntryPrimaryBackgroundPlates(ctx, current, cameraX);
     const desertJourneyScenePanelsDrawn = canDrawCleanDesertEntryBackground
-      && !desertEntryPrimaryBackgroundPlatesDrawn
       && drawDesertJourneyScenePanels(ctx, current, cameraX, now);
-    const cleanDesertEntryPanoramaActive = desertEntryPrimaryBackgroundPlatesDrawn;
-    if ((desertJourneyScenePanelsDrawn || desertEntryPrimaryBackgroundPlatesDrawn) && current.renderStats) {
+    const cleanDesertEntryPanoramaActive = false;
+    if (desertJourneyScenePanelsDrawn && current.renderStats) {
       current.renderStats.activeBackgroundSection = 'desert-entry';
-      current.renderStats.backgroundDepthMode = desertEntryPrimaryBackgroundPlatesDrawn
-        ? 'desert-entry-footpath-integrated-gameplay-background-2026-06-24'
-        : DESERT_JOURNEY_BACKGROUND_SYSTEM_VERSION;
+      current.renderStats.backgroundDepthMode = DESERT_JOURNEY_BACKGROUND_SYSTEM_VERSION;
     }
     const routeBackgroundArtDrawn = parallaxBackgroundDrawn
-      || desertJourneyScenePanelsDrawn
-      || desertEntryPrimaryBackgroundPlatesDrawn;
+      || desertJourneyScenePanelsDrawn;
 
     // --- Ground & Props ---
     ctx.save();
@@ -9427,7 +9420,11 @@ export default function ExpeditionJourney({
     drawMummificationChamberInterior(ctx, current, now);
     drawForgottenMuralChamberInterior(ctx, current, now);
     drawScribeLockedChamberInterior(ctx, current, now);
-    if (!chamberSceneActive && !current.arrivalThresholdActive) {
+    if (
+      !chamberSceneActive
+      && !current.arrivalThresholdActive
+      && !DESERT_ENTRY_LAYERED_NECROPOLIS_OWNS_RAVINE_VISUALS
+    ) {
       drawLostBridgeStructure(ctx, renderablePlatforms, cameraX, current);
     }
 
@@ -9555,7 +9552,9 @@ export default function ExpeditionJourney({
       const bridgePlatforms = renderablePlatforms.filter(platform => platform.variant === 'lost-bridge');
       const nonBridgePlatforms = renderablePlatforms.filter(platform => platform.variant !== 'lost-bridge');
       nonBridgePlatforms.forEach((platform) => drawPlatform(ctx, platform, cameraX, current));
-      if (!chamberSceneActive) drawLostBridgeRavineDepth(ctx, renderablePlatforms, cameraX, current);
+      if (!chamberSceneActive && !DESERT_ENTRY_LAYERED_NECROPOLIS_OWNS_RAVINE_VISUALS) {
+        drawLostBridgeRavineDepth(ctx, renderablePlatforms, cameraX, current);
+      }
       bridgePlatforms.forEach((platform) => drawPlatform(ctx, platform, cameraX, current));
       getZIndexSortedRenderableStoryProps(current).forEach((prop) => drawStoryProp(ctx, prop, cameraX, now, 'route-edge'));
     }
@@ -9822,7 +9821,11 @@ export default function ExpeditionJourney({
       if (!bossIntroActive) drawEnemyAttackTell(ctx, renderBoss, bx, cameraX, now, true, true);
     });
 
-    if (!chamberSceneActive && !current.arrivalThresholdActive) {
+    if (
+      !chamberSceneActive
+      && !current.arrivalThresholdActive
+      && !DESERT_ENTRY_LAYERED_NECROPOLIS_OWNS_RAVINE_VISUALS
+    ) {
       drawLostBridgeRavineForegroundVoid(ctx, renderablePlatforms, cameraX, current);
     }
 
@@ -10089,7 +10092,7 @@ export default function ExpeditionJourney({
     ctx.restore();
 
     drawCinematicCards(ctx, current);
-  }, [backgroundPackId, drawAncientRouteGround, drawArrivalThresholdDoorwayOccluder, drawArrivalThresholdScene, drawArrivalThresholdTrial, drawAttackArc, drawCinematicCards, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawChinaRiverValleyBackground, drawDebugPlatformOverlay, drawDesertEntryGroundLane, drawDesertEntryGroundMotionCues, drawDesertEntryBackground, drawDesertEntryPrimaryBackgroundPlates, drawDesertForegroundAtmosphere, drawDesertJourneySceneMasks, drawDesertJourneyScenePanels, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawForegroundDepthLayer, drawForegroundOccluderProps, drawTempleThresholdHallInterior, drawMummificationChamberInterior, drawForgottenMuralChamberInterior, drawForgottenMuralChamberTransition, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawLostBridgeRavineDepth, drawLostBridgeRavineForegroundVoid, drawLostBridgeStructure, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawPlayerFeedbackOverlays, drawPremiumEgyptianChamberDoor, drawPropPlacementEditorOverlay, drawRouteGate, drawScarabQueenLairOpeningProp, drawScribeLockedChamberInterior, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawTrapProjectile, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getDesertEntryVisualGroundOffsetY, getDoorwayGateStatus, getEditedMiniBoss, getEditedNestParams, getGateGuidance, getGroundPlaneEntityRenderY, getPlayerAttackState, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getZIndexSortedRenderableStoryProps, getRouteGateDoorwayEntries, getScarabQueenLairPlacement, isRouteRewardAccessible, resolveChamberEntryTrigger, scopedJourneyAssetPacks.isChinaJourney, scopedJourneyAssetPacks.isRomeJourney, drawPlayerSprite, drawFieldNoteLabel]);
+  }, [backgroundPackId, drawAncientRouteGround, drawArrivalThresholdDoorwayOccluder, drawArrivalThresholdScene, drawArrivalThresholdTrial, drawAttackArc, drawCinematicCards, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawChinaRiverValleyBackground, drawDebugPlatformOverlay, drawDesertEntryGroundLane, drawDesertEntryGroundMotionCues, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawDesertJourneySceneMasks, drawDesertJourneyScenePanels, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawForegroundDepthLayer, drawForegroundOccluderProps, drawTempleThresholdHallInterior, drawMummificationChamberInterior, drawForgottenMuralChamberInterior, drawForgottenMuralChamberTransition, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawLostBridgeRavineDepth, drawLostBridgeRavineForegroundVoid, drawLostBridgeStructure, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawPlayerFeedbackOverlays, drawPremiumEgyptianChamberDoor, drawPropPlacementEditorOverlay, drawRouteGate, drawScarabQueenLairOpeningProp, drawScribeLockedChamberInterior, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawTrapProjectile, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getDesertEntryVisualGroundOffsetY, getDoorwayGateStatus, getEditedMiniBoss, getEditedNestParams, getGateGuidance, getGroundPlaneEntityRenderY, getPlayerAttackState, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getZIndexSortedRenderableStoryProps, getRouteGateDoorwayEntries, getScarabQueenLairPlacement, isRouteRewardAccessible, resolveChamberEntryTrigger, scopedJourneyAssetPacks.isChinaJourney, scopedJourneyAssetPacks.isRomeJourney, drawPlayerSprite, drawFieldNoteLabel]);
 
   const startOpeningCinematic = useCallback(({ speechEnabled = true, fromArrivalThreshold = false } = {}) => {
     const current = stateRef.current;
@@ -10121,7 +10124,7 @@ export default function ExpeditionJourney({
       };
       current.cinematicTimer = 3.0;
       current.notice = openingArrivalNotice;
-      current.player.x = 44;
+      current.player.x = DESERT_ENTRY_EXTERIOR_SPAWN_X;
       current.player.y = GROUND_Y - current.player.height;
       current.player.vx = 0;
       current.player.vy = 0;
@@ -10242,10 +10245,15 @@ export default function ExpeditionJourney({
     audioControls?.playExpeditionSfx?.(openingAtmosphereSfxKey);
     if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel();
     spokenOpeningLineRef.current = null;
-    if (openingStartMode === 'arrival-threshold') {
+    const playTarget = typeof window !== 'undefined'
+      ? new URLSearchParams(window.location.search).get('play')
+      : null;
+    const startAtArrivalThreshold = openingStartMode === 'arrival-threshold' && playTarget !== 'exterior';
+    if (startAtArrivalThreshold) {
       current.openingConfrontationSeen = false;
       completeOpeningThresholdScene(current);
       openingStartModeConsumedRef.current = true;
+      setBriefingOpen(false);
       return;
     }
     current.openingCinematic = null;
@@ -10513,7 +10521,7 @@ export default function ExpeditionJourney({
       if (!cinematic.spellImpactTriggered && elapsed >= spellImpactAt) {
         cinematic.spellImpactTriggered = true;
         cinematic.shieldShattered = true;
-        current.player.x = 44;
+        current.player.x = DESERT_ENTRY_EXTERIOR_SPAWN_X;
         current.player.y = GROUND_Y - current.player.height;
         current.player.vx = 0;
         current.player.vy = 0;
@@ -10526,7 +10534,7 @@ export default function ExpeditionJourney({
       }
       if (cinematic.timer <= 0) {
         current.openingCinematic = null;
-        current.player.x = 44;
+        current.player.x = DESERT_ENTRY_EXTERIOR_SPAWN_X;
         current.player.y = GROUND_Y - current.player.height;
         current.cameraX = 0;
         current.targetCameraX = 0;
@@ -11295,7 +11303,7 @@ export default function ExpeditionJourney({
         player.direction = -1;
         current.notice = 'Asha climbs through the broken scarab breach.';
         if (progress >= 1) {
-          player.x = 44;
+          player.x = DESERT_ENTRY_EXTERIOR_SPAWN_X;
           player.y = GROUND_Y - player.height;
           player.direction = 1;
           current.arrivalThresholdActive = false;
@@ -11996,7 +12004,8 @@ export default function ExpeditionJourney({
     const forgottenMuralReturnPoint = (direction = 1) => resolveChamberReturnPoint(forgottenMuralEntryDoor, direction);
     const scribeReturnPoint = (direction = 1) => resolveChamberReturnPoint(scribeEntryDoor, direction);
 
-    const templeThresholdDoorwayActive = scopedJourneyAssetPacks.isEgyptJourney
+    const templeThresholdDoorwayActive = !TEMPLE_THRESHOLD_HALL_ENTRY_DISABLED_FOR_BUILD
+      && scopedJourneyAssetPacks.isEgyptJourney
       && currentSceneId === JOURNEY_SCENE_IDS.EXTERIOR
       && player.onGround
       && forgottenMuralPlayerCenterX >= templeThresholdEntryTrigger.minX
@@ -14558,7 +14567,7 @@ export default function ExpeditionJourney({
           current.currentSceneId = JOURNEY_SCENE_IDS.EXTERIOR;
           current.currentSectionId = 'desert-entry';
           current.lastSectionId = 'desert-entry';
-          current.player.x = clamp(42, 0, WORLD_WIDTH - current.player.width);
+          current.player.x = clamp(DESERT_ENTRY_EXTERIOR_SPAWN_X, 0, WORLD_WIDTH - current.player.width);
           current.player.y = GROUND_Y - current.player.height;
           current.player.vx = 0;
           current.player.vy = 0;

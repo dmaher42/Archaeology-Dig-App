@@ -366,14 +366,14 @@ test('Desert Entry keeps the archived clean physical transition metadata instead
   );
   assert.match(journeyComponentSource, /drawDesertJourneyScenePanelsFrame/);
   assert.match(journeyComponentSource, /drawDesertJourneySceneMasksFrame/);
-  assert.match(journeyComponentSource, /drawDesertEntryPrimaryBackgroundPlatesFrame/);
+  assert.doesNotMatch(journeyComponentSource, /drawDesertEntryPrimaryBackgroundPlatesFrame/);
   assert.match(journeyComponentSource, /drawDesertJourneyPanelLayerFrame/);
   assert.match(journeyComponentSource, /drawDesertJourneyTransitionMaskFrame/);
   assert.match(journeyComponentSource, /DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_IDS/);
   assert.match(journeyComponentSource, /DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_SEAM_MASKS/);
-  assert.match(journeyComponentSource, /desertEntryPrimaryBackgroundPlateIds/);
+  assert.doesNotMatch(journeyComponentSource, /desertEntryPrimaryBackgroundPlateIds/);
   assert.match(journeyComponentSource, /desertEntryPrimaryBackgroundPlateSeamMasks/);
-  assert.match(journeyComponentSource, /single-plate-camera-pan-primary-png-v3/);
+  assert.doesNotMatch(journeyComponentSource, /single-plate-camera-pan-primary-png-v3/);
   assert.match(journeyComponentSource, /DESERT_JOURNEY_BACKGROUND_SYSTEM_VERSION/);
   assert.doesNotMatch(journeyComponentSource, /DESERT_ENTRY_PRIMARY_BACKGROUND_CROSSFADE_WIDTH/);
   assert.doesNotMatch(journeyComponentSource, /overlayAlpha/);
@@ -634,7 +634,7 @@ test('Desert Entry rebuild keeps walkable ground continuous while old scenery ov
   });
 });
 
-test('Desert Entry opening rebuild uses the layered underworld atlas for arrival, ravine, and temple approach', () => {
+test('Desert Entry opening rebuild uses the layered necropolis atlas for arrival, ravine, and temple approach', () => {
   setExpeditionJourneyCiv('Ancient Egypt');
 
   const propById = (id) => ROUTED_STORY_PROPS.find(prop => prop.id === id);
@@ -718,12 +718,14 @@ test('Desert Entry opening rebuild uses the layered underworld atlas for arrival
   );
   assert.ok(journeyPlacementOverrides.deletedPropIds.includes('opening-pyramid-facade-structure'));
   assert.equal(propById('desert-entry-arrival-ravine-mummification-panorama-1'), undefined);
-  assert.match(journeyBackgroundAssetsSource, /'underworldSky'/);
-  assert.match(journeyBackgroundAssetsSource, /'floatingPyramids'/);
-  assert.match(journeyBackgroundAssetsSource, /'corruptedTempleRuins'/);
+  assert.match(journeyBackgroundAssetsSource, /'skyLight'/);
+  assert.match(journeyBackgroundAssetsSource, /'farPyramids'/);
+  assert.match(journeyBackgroundAssetsSource, /'distantCliffs'/);
+  assert.match(journeyBackgroundAssetsSource, /'midNecropolisRuins'/);
   assert.match(journeyBackgroundAssetsSource, /'groundLane'/);
-  assert.match(journeyBackgroundAssetsSource, /'foregroundCorruption'/);
-  assert.ok(existsSync('public/assets/expedition/backgrounds/desert-entry/desert-entry-underworld-playable-stone-path-2026-06-24.png'), 'underworld playable path image file should exist on disk');
+  assert.match(journeyBackgroundAssetsSource, /'foregroundRubble'/);
+  assert.match(journeyBackgroundAssetsSource, /'foregroundDepth'/);
+  assert.ok(existsSync('public/assets/expedition/backgrounds/desert-entry/desert-entry-necropolis-ground-lane-2026-06-25.png'), 'necropolis playable path image file should exist on disk');
   const wallBackedClimb = propById('desert-entry-opening-wall-backed-climb-1');
   assert.equal(
     wallBackedClimb,
@@ -772,7 +774,7 @@ test('Desert Entry opening rebuild uses the layered underworld atlas for arrival
       ))
       .map(prop => prop.id),
     [],
-    'the layered underworld atlas should own the early Desert Entry background instead of a routed panorama prop',
+    'the layered necropolis atlas should own the early Desert Entry background instead of a routed panorama prop',
   );
   assert.equal(
     retiredMummificationExterior,
@@ -813,6 +815,18 @@ test('Desert Entry opening rebuild uses the layered underworld atlas for arrival
     'retired ravine depth overlay should stay removed from routed editor props',
   );
   assert.ok(journeyPlacementOverrides.deletedPropIds.includes('desert-entry-lost-bridge-ravine-floor-deep-1'));
+  const templeApproachSeal = journeyPlacementOverrides.routeGates.find(gate => gate.id === 'temple-approach-seal');
+  const routedTempleApproachSeal = ROUTED_ROUTE_GATES.find(gate => gate.id === 'temple-approach-seal');
+  assert.equal(
+    templeApproachSeal?.suppressRouteGateVisual,
+    true,
+    'the first seal should keep its rules but not draw a giant placeholder slab over the necropolis background',
+  );
+  assert.equal(
+    routedTempleApproachSeal?.suppressRouteGateVisual,
+    true,
+    'route gate override flags should survive into the live routed Journey data',
+  );
 
 });
 

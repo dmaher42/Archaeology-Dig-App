@@ -1,16 +1,19 @@
 {
-  "image": "desert-entry-underworld-eclipse-sky-2026-06-24.png",
+  "image": "desert-entry-necropolis-sky-light-2026-06-27.png",
   "imageWidth": 2172,
   "imageHeight": 724,
-  "notes": "Layered underworld Desert Entry background for the opening Egypt Journey scene. The playable stone path is a dedicated world-locked route layer, while the eclipse sky, floating pyramid wasteland, corrupted temple ruins, and foreground corruption build the mirror-world/Duat collapse behind and in front of Asha.",
+  "notes": "Layered necropolis rebuild base for the opening Egypt Journey scene. The active art direction is warm semi-realistic Valley of the Kings cliffs crossed with Memphite Necropolis ruins, with only subtle corruption marks. The background is now split into sky/light, far pyramids, distant cliffs, and mid necropolis ruins before the gameplay floor is drawn. The playable stone path is a dedicated world-locked route layer so Asha runs on the same visible route used by collision, enemies, shards, checkpoints, and gates. The ground backing layer is non-colliding visual support so the walkable floor reads as continuous land instead of a floating ledge.",
   "regions": {
-    "underworldSky": { "image": "desert-entry-underworld-eclipse-sky-2026-06-24.png", "x": 0, "y": 0, "w": 2172, "h": 724 },
-    "floatingPyramids": { "image": "desert-entry-underworld-floating-pyramids-2026-06-24.png", "x": 0, "y": 0, "w": 2172, "h": 724 },
-    "corruptedTempleRuins": { "image": "desert-entry-underworld-corrupted-temple-ruins-2026-06-24.png", "x": 0, "y": 0, "w": 2172, "h": 724 },
-    "groundLane": { "image": "desert-entry-underworld-playable-stone-path-2026-06-24.png", "x": 0, "y": 0, "w": 2172, "h": 724 },
-    "foregroundCorruption": { "image": "desert-entry-underworld-foreground-corruption-2026-06-24.png", "x": 0, "y": 0, "w": 2172, "h": 724 }
+    "skyLight": { "image": "desert-entry-necropolis-sky-light-2026-06-27.png", "x": 0, "y": 0, "w": 2172, "h": 724 },
+    "farPyramids": { "image": "desert-entry-necropolis-far-pyramids-2026-06-27.png", "x": 0, "y": 0, "w": 2172, "h": 724 },
+    "distantCliffs": { "image": "desert-entry-necropolis-distant-cliffs-2026-06-27.png", "x": 0, "y": 0, "w": 2172, "h": 724 },
+    "midNecropolisRuins": { "image": "desert-entry-necropolis-mid-necropolis-ruins-2026-06-27.png", "x": 0, "y": 0, "w": 2172, "h": 724 },
+    "groundBacking": { "image": "desert-entry-necropolis-ground-backing-2026-06-26.png", "x": 0, "y": 0, "w": 4096, "h": 220 },
+    "groundLane": { "image": "desert-entry-necropolis-ground-lane-2026-06-25.png", "x": 0, "y": 0, "w": 4096, "h": 240 },
+    "foregroundRubble": { "image": "desert-entry-necropolis-foreground-rubble-2026-06-25.png", "x": 0, "y": 0, "w": 4096, "h": 160 },
+    "foregroundDepth": { "image": "desert-entry-necropolis-foreground-depth-2026-06-25.png", "x": 0, "y": 0, "w": 4096, "h": 128 }
   },
-  "groundLaneNote": "Dedicated underworld stone path layer. Drawn at parallax 1.0 (locked to the world / collision floor) so Asha runs on the same visible route that collision, enemies, shards, checkpoints, and gates use.",
-  "runtimeMode": "layered-underworld-playable-route",
-  "coordinateNote": "The active runtime uses layered 2172x724 PNGs. Background layers scroll with parallax for depth; groundLane scrolls at gameplay speed and remains the visible source of truth for the walkable floor."
+  "groundLaneNote": "Dedicated necropolis stone path layer. Drawn at parallax 1.0 (locked to the world / collision floor) so Asha runs on the same visible route that collision, enemies, shards, checkpoints, and gates use.",
+  "runtimeMode": "layered-necropolis-playable-route",
+  "coordinateNote": "The active runtime uses layered PNGs. skyLight carries the warm sunset and base haze; farPyramids, distantCliffs, and midNecropolisRuins each draw at a different camera speed so the Egypt background has real depth instead of a single flat plate. groundBacking sits directly behind and under the gameplay floor as a visual-only sand body; groundLane scrolls at gameplay speed and remains the visible source of truth for the walkable floor. The final rebuild should replace these temporary split-from-source depth layers with a high quality Valley of the Kings plus Memphite Necropolis set that preserves the ravine bridge and pyramid climb route."
 }

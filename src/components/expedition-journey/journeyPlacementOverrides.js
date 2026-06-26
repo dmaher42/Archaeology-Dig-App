@@ -23,7 +23,7 @@ const EDITABLE_FIELDS = Object.freeze({
     'reset', 'cooldown', 'depth', 'direction', 'launcherX', 'launcherY', 'linkedObjectIds',
     'editorVisible', 'burial', 'brightness', 'alpha', 'colorGradeFilter', 'penalty', 'message',
   ],
-  routeGates: ['id', 'sectionId', 'sceneId', 'x', 'y', 'width', 'height'],
+  routeGates: ['id', 'sectionId', 'sceneId', 'x', 'y', 'width', 'height', 'hideArchVisual', 'suppressRouteGateVisual'],
   routeGateDoorways: ['id', 'gateIds', 'anchorX', 'blockX', 'y', 'width', 'height', 'opening', 'slab', 'label'],
   hiddenRoutes: [
     'id', 'civilisation', 'sectionId', 'sceneId', 'name', 'x', 'y', 'width', 'height',

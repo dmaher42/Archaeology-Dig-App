@@ -17,6 +17,7 @@ export const JOURNEY_VERTICAL_OFFSET = 235;
 export const JOURNEY_EXTERIOR_SCENE_ID = 'journey-exterior-route';
 export const PLAYER_WIDTH = 28;
 export const PLAYER_HEIGHT = 42;
+export const DESERT_ENTRY_EXTERIOR_SPAWN_X = 128;
 export const GRAVITY = 1850;
 export const MOVE_SPEED = 260;
 export const JUMP_SPEED = 620;

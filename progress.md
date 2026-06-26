@@ -9,6 +9,19 @@ Current source-of-truth note:
 - Patched the canonical China background renderer so China owns the frame with a China-coloured opaque base during PNG loading and before alpha-keyed parallax layers draw.
 - Added a focused guard test for the loading path so Ancient China cannot display Egypt background art while the China pack is still resolving.
 
+2026-06-25 Egypt necropolis rebuild next step:
+- Created `docs/egypt-necropolis-final-layer-brief.md` as the final Desert Entry art-generation contract for a warm semi-realistic Valley of the Kings plus Memphite Necropolis route with subtle mirror-world corruption.
+- Added stable final layer filenames under `public/assets/expedition/backgrounds/desert-entry/`: `desert-entry-necropolis-sky-plate-2026-06-25.png`, `desert-entry-necropolis-ground-lane-2026-06-25.png`, `desert-entry-necropolis-foreground-rubble-2026-06-25.png`, and `desert-entry-necropolis-foreground-depth-2026-06-25.png`.
+- Seeded those final slots from the strongest existing Egypt layers so the runtime can be verified immediately; the PNG contents can now be replaced by final generated art without changing manifest keys.
+- Updated the active Desert Entry parallax manifest and focused Journey guards to use the final necropolis layer names while preserving the world-locked playable ground lane.
+- Next-phase layout correction: moved the exterior quick-start spawn to `DESERT_ENTRY_EXTERIOR_SPAWN_X = 128` so Asha no longer clips into the left edge, reduced the temporary ground-lane draw slot to keep the ravine/bridge visible, and fixed the `?play=exterior` helper guard so the exterior route is not treated as the Arrival Threshold start path. Verified focused Journey guards, production build, and a fresh preview screenshot at `output/playwright/desert-entry-next-phase-fresh-preview-clickthrough-5174-2026-06-25.png`.
+- Remaining Egypt art risk: this is still a temporary layer composition, not the final approved art direction. The next phase should replace the four stable necropolis PNG slots with production-quality Valley of the Kings/Memphite Necropolis gameplay art, keeping the visible playable path, bridge/ravine, and future ledge route as the source of truth for collision.
+- Art rebuild draft generated with the built-in image tool and copied into the four live Desert Entry necropolis slots. Selected generated sources live under `C:\Users\dmahe\.codex\generated_images\019ef64c-e3f3-79e2-b88f-c596212d99a2`; project files are `desert-entry-necropolis-sky-plate-2026-06-25.png`, `desert-entry-necropolis-ground-lane-2026-06-25.png`, `desert-entry-necropolis-foreground-rubble-2026-06-25.png`, and `desert-entry-necropolis-foreground-depth-2026-06-25.png`. Composite preview: `output/imagegen/egypt-necropolis-art-rebuild-composite-preview-cleaned-2026-06-25.png`. Build passed after replacement. Still needs clean dev-server restart plus true in-game screenshot with Asha before approval.
+- 2026-06-26 walkable-floor clarity pass: replaced the active Desert Entry ground lane and foreground rubble slots from the newest generated candidates in `C:\Users\dmahe\.codex\generated_images\019ef64c-e3f3-79e2-b88f-c596212d99a2`. The generated files had baked checkerboard preview pixels and nonstandard dimensions, so they were normalized into transparent `4096x240` and `4096x160` project layers before wiring. Browser check on local `5173` confirmed Asha now reads as standing on the stone causeway rather than a lower rubble strip.
+- Follow-up floor readability tune: the ground lane still read as a raised ledge because its top rubble lip was too strong. Cropped the active ground lane down to its flat paving surface, added a transparent top fade, and rendered it as a slimmer `95px` band at `y=525`. Local browser check confirmed the shelf/ledge read is reduced while collision remains unchanged.
+- Ground-skirt integration pass: added `desert-entry-necropolis-ground-backing-2026-06-26.png` as a fifth Desert Entry layer (`groundBacking`) and wired it into the active atlas/renderer as a visual-only near-locked sand body under the path. Collision and the world-locked `groundLane` remain unchanged; the goal is to stop the playable floor reading as a floating ledge.
+- Temporary build-flow fix: disabled the automatic Temple Threshold Hall doorway entry with `TEMPLE_THRESHOLD_HALL_ENTRY_DISABLED_FOR_BUILD = true`. Asha can run through the Temple Approach area while the exterior game is being rebuilt; the room code and manual developer jump remain available for later testing.
+
 2026-06-25 Civilisation separation audit pass 4:
 - Separated China/Rome/Egypt Journey field-kit identity through the existing Journey data router instead of adding a parallel tool system.
 - Added China-specific Journey tool names such as Soft Bamboo Brush, River Measuring Cord, and Dynasty Field Guide while preserving the canonical tool ids used by saves, pickups, scoring, and HUD state.
@@ -43,15 +56,11 @@ Current source-of-truth note:
 - Verified focused Journey/Rome/China guards, `git diff --check`, lint, production build, and browser screenshots for the China opening overlay plus the first playable China screen.
 
 2026-06-24 Desert Entry full background reset:
-- Replaced the rejected split scenic/floor Desert Entry setup with a new flat integrated gameplay background at `public/assets/expedition/backgrounds/desert-entry/desert-entry-integrated-temple-approach-flat-2026-06-24.png`.
-- Updated the active Journey background prop and Desert Entry manifest so the level painted carved-stone plaza is the visible walkable route; the separate playable-floor, rubble-mask, and foreground-depth strips are retired from the active runtime path.
-- Retired the old Temple Approach ramp overlay and its remaining invisible ramp platforms so the player no longer climbs a separate diagonal path over the rebuilt background.
-- Verified focused Journey guards, targeted lint, production build, and a browser gameplay screenshot confirming Asha starts on the painted flat plaza with the Desert Entry fallback off.
-- Follow-up readability fix: created `public/assets/expedition/backgrounds/desert-entry/desert-entry-integrated-temple-approach-readable-path-2026-06-24.png` from the flat rebuild, baking in clearer route edges, stronger paving rhythm, and a brighter left-to-right walkable path so the playable lane is obvious.
-- Screenshot alignment fix: replaced that with `public/assets/expedition/backgrounds/desert-entry/desert-entry-integrated-temple-approach-footpath-2026-06-24.png`, moving the readable cue down to the front stone lane where Asha's feet actually land.
-- Underworld rebuild follow-up: wired the user-supplied five-layer mirror-world Egypt pack into the canonical Desert Entry background atlas. The active pack now uses `desert-entry-underworld-eclipse-sky-2026-06-24.png`, `desert-entry-underworld-floating-pyramids-2026-06-24.png`, `desert-entry-underworld-corrupted-temple-ruins-2026-06-24.png`, `desert-entry-underworld-playable-stone-path-2026-06-24.png`, and `desert-entry-underworld-foreground-corruption-2026-06-24.png`.
-- The old single panorama prop `desert-entry-arrival-ravine-mummification-panorama-1` is retired from generated placement overrides; the layered atlas now owns the early Desert Entry exterior. Added a dev-only `?play=exterior` shortcut to bypass the Arrival Threshold for visual checks while keeping normal `?play` behavior unchanged.
-- Browser verification screenshot: `output/playwright/desert-entry-underworld-gameplay-final-2026-06-24.png`. Asha is grounded on the world-locked stone path, with the eclipse sky, floating pyramid ruin layer, corrupted temple ruins, and foreground corruption visible behind/in front of the playable lane.
+- Replaced several rejected Desert Entry background experiments and retired the old single panorama prop from generated placement overrides.
+- The active Desert Entry exterior is now owned by the layered atlas path, with a dedicated world-locked gameplay ground lane instead of pasted-on background strips.
+- A dev-only `?play=exterior` shortcut remains available to bypass the Arrival Threshold for visual checks while keeping normal `?play` behavior unchanged.
+- The rejected intermediate background files were later removed during the 2026-06-25 Egypt necropolis cleanup pass so only the current necropolis layer slots remain in the active Desert Entry asset folder.
+- Follow-up cleanup removed the old primary panorama renderer fallback and stale integrated-temple version labels. Future Desert Entry art work should replace the active necropolis layer PNGs/manifest contract, not resurrect the retired single-panorama path.
 
 2026-06-24 Desert Entry layered game-art rebuild:
 - Replaced the temporary single-strip ground approach with layered Desert Entry art: separate background plate, world-locked playable floor, rubble seam mask, and light foreground depth.
@@ -160,6 +169,12 @@ Current source-of-truth note:
 - Added a QA-only `journey-temple-approach-ramp` jump for future browser checks of this exact area.
 - Verified focused placement/secret tests, production build, a clean ramp screenshot, and a movement screenshot where Asha reaches the Threshold Hall from the ramp with no browser errors.
 - Follow-up after play-test feedback: the first QA check started Asha too high on the ramp and missed the lower-approach failure. The ramp assist now catches Asha from the lower ground approach, no longer depends on the section flag, and the QA jump starts before the ramp. Verified again from before the ramp into the Threshold Hall.
+
+2026-06-27 Egypt parallax step 1:
+- Split the active Desert Entry necropolis rebuild into explicit depth-layer slots for the Journey renderer: `skyLight`, `farPyramids`, `distantCliffs`, and `midNecropolisRuins`.
+- Replaced the old active `skyPlate` contract in the Desert Entry parallax manifest and asset loader so future work must provide separate background depth layers.
+- Updated the renderer to draw the Egypt background at layered camera speeds before the existing non-colliding ground backing and world-locked playable floor are drawn.
+- Kept collision, player placement, Temple Threshold Hall build-disable behavior, and the current playable floor alignment unchanged for this step.
 
 2026-06-05 Mummification ritual-lock upgrade:
 - Upgraded the existing Mummification Chamber (no new room/puzzle/progression system) from a guided "walk to glow and press interact" sequence into a tense, story-driven ritual lock, extending the in-place Journey chamber logic in `ExpeditionJourney.jsx` and the reusable interact primitives in `journeyUtils.js`.

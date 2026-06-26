@@ -300,6 +300,14 @@ const journeyPlacementOverrides = {
       "label": "desert track after the ravine bridge"
     },
     {
+      "id": "desert-entry-necropolis-ravine-ground-continuity",
+      "x": 2987,
+      "y": 595,
+      "width": 1276,
+      "height": 60,
+      "label": "necropolis stone path through retired ravine bridge gap"
+    },
+    {
       "id": "opening-first-terrace",
       "x": 879,
       "y": -26,
@@ -751,6 +759,15 @@ const journeyPlacementOverrides = {
     "mummification-chamber-far-left-ground-shelf",
     "lost-bridge-recovery-step-1",
     "lost-bridge-recovery-step-2",
+    "lost-bridge-approach-step-1",
+    "lost-bridge-approach-step-2",
+    "lost-bridge-approach-step-3",
+    "lost-bridge-near-landing",
+    "lost-bridge-slab-1",
+    "lost-bridge-slab-2",
+    "lost-bridge-far-landing",
+    "lost-bridge-mummification-threshold-walkway",
+    "desert-entry-platform-9",
     "desert-entry-platform-2",
     "desert-entry-platform-3",
     "desert-entry-platform-10",
@@ -1014,6 +1031,7 @@ const journeyPlacementOverrides = {
       "width": 34,
       "height": 274,
       "hideArchVisual": true,
+      "suppressRouteGateVisual": true,
       "message": "The Temple Approach Seal refuses easy entry. The lost fragments must prove Asha came to protect.",
       "readyHint": "The seal answers. Move through the threshold before the site closes again.",
       "openMessage": "The seal answers, but it does not trust you.",

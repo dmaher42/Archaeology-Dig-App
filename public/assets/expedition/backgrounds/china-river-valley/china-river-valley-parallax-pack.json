@@ -1,8 +1,12 @@
 {
-  "image": "china-river-valley-parallax-pack.png",
-  "runtimeMode": "single-composited-backdrop",
-  "source": "Clean full rectangular China river-valley gameplay background. The retired layered-pack PNG still exists as source art but is not active because its transparent bands contain visible checkerboard pixels.",
+  "image": "china-bg-01-sky.png",
+  "runtimeMode": "layered-parallax",
+  "source": "Ancient China river-valley frontier — five full-frame parallax layers (sky opaque base; mountains, river+settlement, watchtower ridge, foreground grass keyed to transparency).",
   "regions": {
-    "skyLayer": { "x": 0, "y": 0, "w": 1602, "h": 930 }
+    "skyLayer": { "x": 0, "y": 0, "w": 2172, "h": 724 },
+    "farMountains": { "image": "china-bg-02-far-mountains.png", "x": 0, "y": 0, "w": 2172, "h": 724 },
+    "riverValley": { "image": "china-bg-03-river-valley.png", "x": 0, "y": 0, "w": 2172, "h": 724 },
+    "watchtowerRidge": { "image": "china-bg-04-watchtower-ridge.png", "x": 0, "y": 0, "w": 2172, "h": 724 },
+    "foregroundMist": { "image": "china-bg-05-foreground-mist.png", "x": 0, "y": 0, "w": 2172, "h": 724 }
   }
 }
