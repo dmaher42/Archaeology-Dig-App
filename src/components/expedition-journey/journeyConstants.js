@@ -50,6 +50,21 @@ export const FIELD_RESCUE_STAMINA_REASON = 'Endurance overwhelmed.';
 export const EXHAUSTED_RECOVERY_RATE = 4; // Endurance per second while exhausted at zero
 export const EXHAUSTED_RECOVERY_CEILING = 15; // auto-recovery stops here; enough to dodge once
 
+// Boss sprite load grace — boss art swaps in after this delay.
+export const INITIAL_BOSS_SPRITE_LOAD_DELAY_MS = 9000;
+
+// Guardian knowledge-challenge config (currently disabled) + feedback copy.
+export const KNOWLEDGE_CHALLENGE_SIZE = 3;
+export const GUARDIAN_KNOWLEDGE_CHALLENGES_ENABLED = false;
+export const KNOWLEDGE_CHALLENGE_FEEDBACK = {
+  correct: 'Correct. Your field knowledge strengthens you.',
+  incorrect: 'Not quite. The guardian grows stronger.',
+};
+
+// Pyramid-climb jump tuning — Asha jumps higher on the opening pyramid ground/air.
+export const OPENING_PYRAMID_GROUND_JUMP_MULTIPLIER = 1.32;
+export const OPENING_PYRAMID_AIR_JUMP_MULTIPLIER = 1.6;
+
 export const PLAYER_HERO_SPRITE_ATLAS_JSON = 'assets/expedition/player/asha-reference-warrior-dodge-preview-spritesheet.json';
 export const PLAYER_HERO_SPRITE_VERSION = 'asha-reference-warrior-dodge-backstep-tone-matched-2026-06-05';
 export const PLAYER_HERO_PREVIOUS_SPRITE_ATLAS_JSON = 'assets/expedition/player/asha-hooded-warrior-explorer-spritesheet.json';

@@ -26,6 +26,12 @@ import {
   FIELD_RESCUE_STAMINA_REASON,
   EXHAUSTED_RECOVERY_RATE,
   EXHAUSTED_RECOVERY_CEILING,
+  INITIAL_BOSS_SPRITE_LOAD_DELAY_MS,
+  KNOWLEDGE_CHALLENGE_SIZE,
+  GUARDIAN_KNOWLEDGE_CHALLENGES_ENABLED,
+  KNOWLEDGE_CHALLENGE_FEEDBACK,
+  OPENING_PYRAMID_GROUND_JUMP_MULTIPLIER,
+  OPENING_PYRAMID_AIR_JUMP_MULTIPLIER,
   PLAYER_SPRITE_DRAW_HEIGHT,
   PLAYER_SPRITE_FRAME_COUNT,
   PLAYER_SPRITE_FRAME_HEIGHT,
@@ -484,8 +490,6 @@ import {
   MARKER_SPRITE_VERSION,
 } from './expedition-journey/journeyMarkerSprites';
 
-const INITIAL_BOSS_SPRITE_LOAD_DELAY_MS = 9000;
-
 const getArrivalThresholdGroundY = (centerX) => {
   const rampProgress = clamp(
     (ARRIVAL_THRESHOLD_RAMP_START_X - centerX) / (ARRIVAL_THRESHOLD_RAMP_START_X - ARRIVAL_THRESHOLD_RAMP_END_X),
@@ -509,12 +513,6 @@ const getArrivalThresholdEchoHitbox = (echo) => {
   };
 };
 
-const KNOWLEDGE_CHALLENGE_SIZE = 3;
-const GUARDIAN_KNOWLEDGE_CHALLENGES_ENABLED = false;
-const KNOWLEDGE_CHALLENGE_FEEDBACK = {
-  correct: 'Correct. Your field knowledge strengthens you.',
-  incorrect: 'Not quite. The guardian grows stronger.',
-};
 // Ravine Bridge painted art (chroma-keyed cutouts + transparent floor/ravine blend).
 const LOST_BRIDGE_ASSET_VERSION = 'lost-bridge-art-2026-06-10f';
 const LOST_BRIDGE_ASSET_DIR = 'assets/expedition/environment/egypt-opening/lost-bridge/';
@@ -836,8 +834,6 @@ const shouldRenderChamberDoorVisual = (door = {}) => (
 );
 const DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_SEAM_MASKS = Object.freeze([]);
 const DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_ID_SET = new Set(DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_IDS);
-const OPENING_PYRAMID_GROUND_JUMP_MULTIPLIER = 1.32;
-const OPENING_PYRAMID_AIR_JUMP_MULTIPLIER = 1.6;
 
 const isDesertEntryRebuildBackgroundPlateProp = (prop = {}) => (
   DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_ID_SET.has(prop.id)
