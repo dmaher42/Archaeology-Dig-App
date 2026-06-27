@@ -21,6 +21,11 @@ import {
   ATTACK_DURATION,
   ATTACK_RECOIL_DURATION,
   COMBAT_DAMAGE_SCALE,
+  LOW_STAMINA_WARNING,
+  FIELD_RESCUE_MESSAGE,
+  FIELD_RESCUE_STAMINA_REASON,
+  EXHAUSTED_RECOVERY_RATE,
+  EXHAUSTED_RECOVERY_CEILING,
   PLAYER_SPRITE_DRAW_HEIGHT,
   PLAYER_SPRITE_FRAME_COUNT,
   PLAYER_SPRITE_FRAME_HEIGHT,
@@ -510,11 +515,6 @@ const KNOWLEDGE_CHALLENGE_FEEDBACK = {
   correct: 'Correct. Your field knowledge strengthens you.',
   incorrect: 'Not quite. The guardian grows stronger.',
 };
-const LOW_STAMINA_WARNING = 'Endurance low — avoid another hit.';
-const FIELD_RESCUE_MESSAGE = 'You were forced back to the last checkpoint. Recover and try again.';
-const FIELD_RESCUE_STAMINA_REASON = 'Endurance overwhelmed.';
-const EXHAUSTED_RECOVERY_RATE = 4; // Endurance per second while exhausted at zero
-const EXHAUSTED_RECOVERY_CEILING = 15; // auto-recovery stops here; enough to dodge once
 // Ravine Bridge painted art (chroma-keyed cutouts + transparent floor/ravine blend).
 const LOST_BRIDGE_ASSET_VERSION = 'lost-bridge-art-2026-06-10f';
 const LOST_BRIDGE_ASSET_DIR = 'assets/expedition/environment/egypt-opening/lost-bridge/';
