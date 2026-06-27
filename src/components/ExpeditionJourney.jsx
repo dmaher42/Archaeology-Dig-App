@@ -2872,7 +2872,9 @@ const SECTION_PARALLAX_LAYERS = {
     { key: 'farAqueductArches', y: 0, height: CANVAS_HEIGHT, parallax: 0.08, alpha: 0.98 },
     { key: 'distantHillSide', y: 0, height: CANVAS_HEIGHT, parallax: 0.14, alpha: 0.94 },
     { key: 'midgroundRoadRuins', y: 0, height: CANVAS_HEIGHT, parallax: 0.25, alpha: 1 },
-    { key: 'foregroundDust', y: 0, height: CANVAS_HEIGHT, parallax: 0.48, alpha: 0.82 },
+    // Foreground rubble: drawn at ~80% height, bottom-anchored, so the 3:1 art
+    // doesn't render oversized vs the old 2.44:1 plate; full alpha keeps it solid.
+    { key: 'foregroundDust', y: Math.round(CANVAS_HEIGHT * 0.2), height: Math.round(CANVAS_HEIGHT * 0.8), parallax: 0.48, alpha: 1 },
   ],
   'forum-ruins': [
     { key: 'forumSky', y: 0, height: CANVAS_HEIGHT, parallax: 0, alpha: 1 },
