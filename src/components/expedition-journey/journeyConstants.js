@@ -65,6 +65,26 @@ export const KNOWLEDGE_CHALLENGE_FEEDBACK = {
 export const OPENING_PYRAMID_GROUND_JUMP_MULTIPLIER = 1.32;
 export const OPENING_PYRAMID_AIR_JUMP_MULTIPLIER = 1.6;
 
+// Perfect dodge: a last-instant dodge (the blow lands while Asha is still in her
+// dodge i-frames) deflects ANY attack — even red unblockables — and refunds some
+// Endurance, turning evasion into the primary, readable parry.
+export const PERFECT_DODGE_ENDURANCE_REWARD = 6;
+// How close an enemy's front edge must be to the player body before committing to a windup.
+// Kept deliberately small so the freeze reads as "right on you" not "approaching from afar".
+export const ENEMY_ATTACK_TRIGGER_REACH = 16;
+// Gap (in px) an enemy keeps between its body edge and Asha's body edge when
+// pressing the attack. Larger than 0 so sprites never overlap/"share her space",
+// but smaller than ENEMY_ATTACK_TRIGGER_REACH so melee still lands at standoff.
+export const ENEMY_COMBAT_STANDOFF_GAP = 6;
+export const BOSS_INTRO_PLAYER_STANDOFF = 65;
+
+// localStorage keys for the journey character loader + DEV prop editor.
+export const CHARACTER_LOADER_STORAGE_KEY = 'expedition-character-loader-choice';
+export const JOURNEY_PROP_EDITOR_STORAGE_KEY = 'expedition-journey-prop-editor-edits-v1';
+export const JOURNEY_PROP_EDITOR_SECTIONS_KEY = 'expedition-journey-prop-editor-collapsed-sections-v1';
+export const JOURNEY_PROP_EDITOR_PANEL_POS_KEY = 'expedition-journey-prop-editor-panel-pos-v1';
+export const CHARACTER_LOADER_VISIBILITY_STORAGE_KEY = 'expedition-character-loader-visible-v3';
+
 export const PLAYER_HERO_SPRITE_ATLAS_JSON = 'assets/expedition/player/asha-reference-warrior-dodge-preview-spritesheet.json';
 export const PLAYER_HERO_SPRITE_VERSION = 'asha-reference-warrior-dodge-backstep-tone-matched-2026-06-05';
 export const PLAYER_HERO_PREVIOUS_SPRITE_ATLAS_JSON = 'assets/expedition/player/asha-hooded-warrior-explorer-spritesheet.json';

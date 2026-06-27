@@ -32,6 +32,15 @@ import {
   KNOWLEDGE_CHALLENGE_FEEDBACK,
   OPENING_PYRAMID_GROUND_JUMP_MULTIPLIER,
   OPENING_PYRAMID_AIR_JUMP_MULTIPLIER,
+  PERFECT_DODGE_ENDURANCE_REWARD,
+  ENEMY_ATTACK_TRIGGER_REACH,
+  ENEMY_COMBAT_STANDOFF_GAP,
+  BOSS_INTRO_PLAYER_STANDOFF,
+  CHARACTER_LOADER_STORAGE_KEY,
+  JOURNEY_PROP_EDITOR_STORAGE_KEY,
+  JOURNEY_PROP_EDITOR_SECTIONS_KEY,
+  JOURNEY_PROP_EDITOR_PANEL_POS_KEY,
+  CHARACTER_LOADER_VISIBILITY_STORAGE_KEY,
   PLAYER_SPRITE_DRAW_HEIGHT,
   PLAYER_SPRITE_FRAME_COUNT,
   PLAYER_SPRITE_FRAME_HEIGHT,
@@ -1315,26 +1324,7 @@ const getGuardianBattleModifier = (correctCount) => {
   };
 };
 
-const CHARACTER_LOADER_STORAGE_KEY = 'expedition-character-loader-choice';
-const JOURNEY_PROP_EDITOR_STORAGE_KEY = 'expedition-journey-prop-editor-edits-v1';
-const JOURNEY_PROP_EDITOR_SECTIONS_KEY = 'expedition-journey-prop-editor-collapsed-sections-v1';
-const JOURNEY_PROP_EDITOR_PANEL_POS_KEY = 'expedition-journey-prop-editor-panel-pos-v1';
-const CHARACTER_LOADER_VISIBILITY_STORAGE_KEY = 'expedition-character-loader-visible-v3';
-
 const PARRY_WINDOW_DURATION = 0.12;
-// Perfect dodge: a last-instant dodge (the blow lands while Asha is still in her
-// dodge i-frames) deflects ANY attack — even red unblockables — and refunds some
-// Endurance, turning evasion into the primary, readable parry.
-const PERFECT_DODGE_ENDURANCE_REWARD = 6;
-// How close an enemy's front edge must be to the player body before committing to a windup.
-// Kept deliberately small so the freeze reads as "right on you" not "approaching from afar".
-const ENEMY_ATTACK_TRIGGER_REACH = 16;
-
-// Gap (in px) an enemy keeps between its body edge and Asha's body edge when
-// pressing the attack. Larger than 0 so sprites never overlap/"share her space",
-// but smaller than ENEMY_ATTACK_TRIGGER_REACH so melee still lands at standoff.
-const ENEMY_COMBAT_STANDOFF_GAP = 6;
-const BOSS_INTRO_PLAYER_STANDOFF = 65;
 const getPlayerAttackTiming = (sequenceIndex = 1) => {
   const timingIndex = Math.max(0, sequenceIndex - 1) % PLAYER_ATTACK_COMBO_TIMINGS.length;
   return PLAYER_ATTACK_COMBO_TIMINGS[timingIndex] || PLAYER_ATTACK_COMBO_TIMINGS[0];
