@@ -229,12 +229,12 @@ const scribeChamberExteriorPath = new URL('../../../public/assets/expedition/env
 const scribeChamberInteriorPath = new URL('../../../public/assets/expedition/environment/desert-temple/scribe-locked-chamber-interior-2026-06-01.png', import.meta.url);
 const mummificationChamberInteractionAtlasPath = new URL('../../../public/assets/expedition/environment/desert-temple/mummification-chamber/mummification-chamber-interaction-atlas.png', import.meta.url);
 const desertEntryGroundingOverlayPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-grounding-overlay.png', import.meta.url);
-const desertEntryNecropolisSkyLightPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-necropolis-sky-light-2026-06-27.png', import.meta.url);
-const desertEntryNecropolisFarPyramidsPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-necropolis-far-pyramids-2026-06-27.png', import.meta.url);
-const desertEntryNecropolisDistantCliffsPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-necropolis-distant-cliffs-2026-06-27.png', import.meta.url);
-const desertEntryNecropolisMidRuinsPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-necropolis-mid-necropolis-ruins-2026-06-27.png', import.meta.url);
-const desertEntryNecropolisPathPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-necropolis-ground-lane-2026-06-25.png', import.meta.url);
-const desertEntryNecropolisGroundBackingPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-necropolis-ground-backing-2026-06-26.png', import.meta.url);
+const desertEntryEgyptTrueSkyLightPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-egypt-true-sky-light-2026-06-27.png', import.meta.url);
+const desertEntryEgyptTrueFarPyramidsPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-egypt-true-far-pyramids-2026-06-27.png', import.meta.url);
+const desertEntryEgyptTrueDistantCliffsPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-egypt-true-distant-cliffs-2026-06-27.png', import.meta.url);
+const desertEntryEgyptTrueMidRuinsPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-egypt-true-mid-necropolis-ruins-2026-06-27.png', import.meta.url);
+const desertEntryEgyptTruePathPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-egypt-true-ground-lane-2026-06-27.png', import.meta.url);
+const desertEntryEgyptTrueGroundBackingPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-egypt-true-ground-backing-2026-06-27.png', import.meta.url);
 const egyptForegroundDepthAtlasPath = new URL('../../../public/assets/expedition/environment/egypt-foreground/egypt-foreground-depth-pack.json', import.meta.url);
 const egyptForegroundDepthPngPath = new URL('../../../public/assets/expedition/environment/egypt-foreground/egypt-foreground-depth-pack.png', import.meta.url);
 const ashaComboSlashEffectPath = new URL('../../../public/assets/expedition/player/asha-combo-slash-effect-2026-06-06.png', import.meta.url);
@@ -1216,11 +1216,11 @@ test('desert entry ground collision uses the integrated painted route instead of
   assert.doesNotMatch(journeyUtilsSource, /x:\s*44,/);
   assert.match(journeyComponentSource, /ROUTE_GROUND_VISUAL_MODE = 'desert-entry-painted-background-route-v1'/);
   assert.match(journeyComponentSource, /ROUTE_GROUND_HAZE_FIX_VERSION = 'necropolis-route-ground-world-locked-2026-06-25'/);
-  assert.match(useJourneyRendererSource, /DESERT_GROUND_BACKING_DEST_Y = 586/);
-  assert.match(useJourneyRendererSource, /DESERT_GROUND_BACKING_DEST_HEIGHT = 138/);
+  assert.match(useJourneyRendererSource, /DESERT_GROUND_BACKING_DEST_Y = 600/);
+  assert.match(useJourneyRendererSource, /DESERT_GROUND_BACKING_DEST_HEIGHT = 124/);
   assert.match(useJourneyRendererSource, /DESERT_GROUND_BACKING_PARALLAX = 0\.98/);
-  assert.match(useJourneyRendererSource, /DESERT_GROUND_LANE_DEST_Y = 525/);
-  assert.match(useJourneyRendererSource, /DESERT_GROUND_LANE_DEST_HEIGHT = 95/);
+  assert.match(useJourneyRendererSource, /DESERT_GROUND_LANE_DEST_Y = 520/);
+  assert.match(useJourneyRendererSource, /DESERT_GROUND_LANE_DEST_HEIGHT = 105/);
   assert.match(useJourneyRendererSource, /desertEntryCausewayVisualMode\s*=\s*ROUTE_GROUND_VISUAL_MODE/);
   assert.match(useJourneyRendererSource, /desertEntryGroundBodyFill\s*=\s*'painted-into-background-no-separate-floor-strip'/);
   assert.doesNotMatch(journeyComponentSource, /const drawHeight = 96;\s*const drawY = platform\.y - 42;/);
@@ -1232,7 +1232,7 @@ test('desert entry uses world-locked contact as the shared visual foot anchor', 
   assert.match(journeyComponentSource, /getGroundPlaneEntityRenderY/);
   assert.match(journeyComponentSource, /playerGroundPlaneRenderY/);
   assert.match(journeyComponentSource, /enemyGroundPlaneRenderY/);
-  assert.match(journeyComponentSource, /DESERT_ENTRY_VISUAL_GROUND_PLANE_OFFSET_Y = -42/);
+  assert.match(journeyComponentSource, /DESERT_ENTRY_VISUAL_GROUND_PLANE_OFFSET_Y = 0/);
   assert.match(useJourneyRendererSource, /const visualGroundOffsetY = typeof getDesertEntryVisualGroundOffsetY === 'function'/);
   assert.doesNotMatch(journeyComponentSource, /DESERT_ENTRY_VISUAL_GROUND_PLANE_OFFSET_Y = -46/);
   assert.match(useJourneyRendererSource, /desertEntryCausewayVisualMode\s*=\s*ROUTE_GROUND_VISUAL_MODE/);
@@ -3771,6 +3771,7 @@ test('Egypt Journey explains shard purpose and adds an optional Base Camp vouche
   assert.match(journeyComponentSource, /is-rewarding/);
 });
 
+
 test('Egypt Journey loads visible sprites for all default Egypt enemy families', () => {
   assert.match(journeyEnemySpritesSource, /WITHHELD_EGYPT_CREATURE_SPRITE_FAMILIES/);
   assert.match(journeyEnemySpritesSource, /WITHHELD_EGYPT_CREATURE_SPRITE_FAMILIES = new Set\(\[\s*'cursedStatue',\s*\]\)/);
@@ -5098,17 +5099,17 @@ test('conservative sign cleanup moves route signs onto atlas-backed props', () =
 
 test('desert entry asset manifest records the layered necropolis gameplay-background rebuild', () => {
   assert.equal(desertEntryBackgroundAtlas.runtimeMode, 'layered-necropolis-playable-route');
-  assert.equal(desertEntryBackgroundAtlas.image, 'desert-entry-necropolis-sky-light-2026-06-27.png');
+  assert.equal(desertEntryBackgroundAtlas.image, 'desert-entry-egypt-true-sky-light-2026-06-27.png');
   assert.equal(desertEntryBackgroundAtlas.imageWidth, 2172);
   assert.equal(desertEntryBackgroundAtlas.imageHeight, 724);
-  assert.equal(desertEntryBackgroundAtlas.regions.skyLight.image, 'desert-entry-necropolis-sky-light-2026-06-27.png');
-  assert.equal(desertEntryBackgroundAtlas.regions.farPyramids.image, 'desert-entry-necropolis-far-pyramids-2026-06-27.png');
-  assert.equal(desertEntryBackgroundAtlas.regions.distantCliffs.image, 'desert-entry-necropolis-distant-cliffs-2026-06-27.png');
-  assert.equal(desertEntryBackgroundAtlas.regions.midNecropolisRuins.image, 'desert-entry-necropolis-mid-necropolis-ruins-2026-06-27.png');
-  assert.equal(desertEntryBackgroundAtlas.regions.groundBacking.image, 'desert-entry-necropolis-ground-backing-2026-06-26.png');
-  assert.equal(desertEntryBackgroundAtlas.regions.groundLane.image, 'desert-entry-necropolis-ground-lane-2026-06-25.png');
-  assert.equal(desertEntryBackgroundAtlas.regions.foregroundRubble.image, 'desert-entry-necropolis-foreground-rubble-2026-06-25.png');
-  assert.equal(desertEntryBackgroundAtlas.regions.foregroundDepth.image, 'desert-entry-necropolis-foreground-depth-2026-06-25.png');
+  assert.equal(desertEntryBackgroundAtlas.regions.skyLight.image, 'desert-entry-egypt-true-sky-light-2026-06-27.png');
+  assert.equal(desertEntryBackgroundAtlas.regions.farPyramids.image, 'desert-entry-egypt-true-far-pyramids-2026-06-27.png');
+  assert.equal(desertEntryBackgroundAtlas.regions.distantCliffs.image, 'desert-entry-egypt-true-distant-cliffs-2026-06-27.png');
+  assert.equal(desertEntryBackgroundAtlas.regions.midNecropolisRuins.image, 'desert-entry-egypt-true-mid-necropolis-ruins-2026-06-27.png');
+  assert.equal(desertEntryBackgroundAtlas.regions.groundBacking.image, 'desert-entry-egypt-true-ground-backing-2026-06-27.png');
+  assert.equal(desertEntryBackgroundAtlas.regions.groundLane.image, 'desert-entry-egypt-true-ground-lane-2026-06-27.png');
+  assert.equal(desertEntryBackgroundAtlas.regions.foregroundRubble.image, 'desert-entry-egypt-true-foreground-rubble-2026-06-27.png');
+  assert.equal(desertEntryBackgroundAtlas.regions.foregroundDepth.image, 'desert-entry-egypt-true-foreground-depth-2026-06-27.png');
   assert.equal(desertEntryBackgroundAtlas.regions.skyPlate, undefined);
   assert.match(journeyBackgroundAssetsSource, /'skyLight'/);
   assert.match(journeyBackgroundAssetsSource, /'farPyramids'/);
@@ -5138,9 +5139,10 @@ test('Desert Entry old active panorama prop no longer owns the rebuild backgroun
     'Desert Entry background should be owned by the layered atlas path, not the old panorama prop path',
   );
   assert.match(useJourneyRendererSource, /'skyLight'[\s\S]*?parallax:\s*0\.012/);
-  assert.match(useJourneyRendererSource, /'farPyramids'[\s\S]*?parallax:\s*0\.055/);
-  assert.match(useJourneyRendererSource, /'distantCliffs'[\s\S]*?parallax:\s*0\.14/);
-  assert.match(useJourneyRendererSource, /'midNecropolisRuins'[\s\S]*?parallax:\s*0\.28/);
+  assert.match(useJourneyRendererSource, /'farPyramids'[\s\S]*?parallax:\s*0\.055,\s*alpha:\s*1/);
+  assert.match(useJourneyRendererSource, /'distantCliffs'[\s\S]*?parallax:\s*0\.14,\s*alpha:\s*1/);
+  assert.match(useJourneyRendererSource, /'midNecropolisRuins'[\s\S]*?parallax:\s*0\.28,\s*alpha:\s*1/);
+  assert.match(useJourneyRendererSource, /const DESERT_GROUND_BACKING_ALPHA = 1;/);
   assert.doesNotMatch(useJourneyRendererSource, /'skyPlate'/);
   assert.ok(
     !journeyPlacementOverrides.props.some((prop) => (
@@ -5150,31 +5152,33 @@ test('Desert Entry old active panorama prop no longer owns the rebuild backgroun
   );
 
   [
-    desertEntryNecropolisSkyLightPath,
-    desertEntryNecropolisFarPyramidsPath,
-    desertEntryNecropolisDistantCliffsPath,
-    desertEntryNecropolisMidRuinsPath,
-    desertEntryNecropolisPathPath,
+    desertEntryEgyptTrueSkyLightPath,
+    desertEntryEgyptTrueFarPyramidsPath,
+    desertEntryEgyptTrueDistantCliffsPath,
+    desertEntryEgyptTrueMidRuinsPath,
+    desertEntryEgyptTruePathPath,
   ].forEach((pngPath) => {
     const bytes = readFileSync(pngPath);
     assert.equal(bytes.toString('ascii', 1, 4), 'PNG');
     assert.ok(bytes.readUInt32BE(16) >= 2172);
     assert.ok(bytes.readUInt32BE(20) >= 240);
   });
-  const groundBackingBytes = readFileSync(desertEntryNecropolisGroundBackingPath);
+  const groundBackingBytes = readFileSync(desertEntryEgyptTrueGroundBackingPath);
   assert.equal(groundBackingBytes.toString('ascii', 1, 4), 'PNG');
   assert.ok(groundBackingBytes.readUInt32BE(16) >= 4096);
   assert.ok(groundBackingBytes.readUInt32BE(20) >= 220);
 });
 
 test('desert entry manifest explains the necropolis path and final rebuild target', () => {
-  const manifestCopy = `${desertEntryBackgroundAtlas.notes} ${desertEntryBackgroundAtlas.coordinateNote}`;
+  const manifestCopy = `${desertEntryBackgroundAtlas.notes} ${desertEntryBackgroundAtlas.groundLaneNote} ${desertEntryBackgroundAtlas.coordinateNote}`;
   [
-    /layered necropolis rebuild base/i,
+    /layered necropolis rebuild/i,
     /Valley of the Kings cliffs crossed with Memphite Necropolis ruins/i,
-    /split into sky\/light, far pyramids, distant cliffs, and mid necropolis ruins/i,
+    /split into full-width scene strips for sky\/light, far pyramids, distant cliffs, and mid necropolis ruins/i,
+    /must not be replaced by single-object cutout plates/i,
     /playable stone path is a dedicated world-locked route layer/i,
     /ground backing layer is non-colliding visual support/i,
+    /painted route pixels must stay fully opaque/i,
     /skyLight carries the warm sunset and base haze/i,
     /draw at a different camera speed/i,
     /groundBacking sits directly behind and under the gameplay floor/i,
@@ -5620,11 +5624,11 @@ test('desert entry ground uses the painted background route and never paints a s
   assert.match(drawPlayerSpriteSource, /desertEntryPlayerFootContact = 'warm-plaza-foot-shadow-v1'/);
   assert.match(useJourneyRendererSource, /desertGroundStyle = 'integrated-background-painted-route'/);
   assert.match(journeyComponentSource, /drawBuriedStoneCausewaySurface\(ctx, platform, x, cameraX, Date\.now\(\)\)/);
-  assert.equal(desertEntryBackgroundAtlas.regions.groundLane.image, 'desert-entry-necropolis-ground-lane-2026-06-25.png');
+  assert.equal(desertEntryBackgroundAtlas.regions.groundLane.image, 'desert-entry-egypt-true-ground-lane-2026-06-27.png');
   assert.equal(desertEntryBackgroundAtlas.regions.integratedGameplayBackground, undefined);
   assert.equal(desertEntryBackgroundAtlas.regions.playableFloor, undefined);
   assert.equal(desertEntryBackgroundAtlas.regions.floorRubbleMask, undefined);
-  assert.equal(desertEntryBackgroundAtlas.regions.foregroundDepth.image, 'desert-entry-necropolis-foreground-depth-2026-06-25.png');
+  assert.equal(desertEntryBackgroundAtlas.regions.foregroundDepth.image, 'desert-entry-egypt-true-foreground-depth-2026-06-27.png');
 });
 
 test('story props render local contact sediment and occlusion around asset bases', () => {

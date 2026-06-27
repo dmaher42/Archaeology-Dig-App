@@ -31,7 +31,7 @@ Current loader: `src/components/expedition-journey/journeyBackgroundAssets.js`
 
 | Pack | Folder | Atlas JSON | Image | Expected region keys |
 | --- | --- | --- | --- | --- |
-| Desert Entry | `public/assets/expedition/backgrounds/desert-entry/` | `desert-entry-parallax-pack.json` | `desert-entry-necropolis-sky-plate-2026-06-25.png` + layered route PNGs | `skyPlate`, `groundLane`, `foregroundRubble`, `foregroundDepth` |
+| Desert Entry | `public/assets/expedition/backgrounds/desert-entry/` | `desert-entry-parallax-pack.json` | `desert-entry-egypt-true-sky-light-2026-06-27.png` + separated parallax PNGs | `skyLight`, `farPyramids`, `distantCliffs`, `midNecropolisRuins`, `groundBacking`, `groundLane`, `foregroundRubble`, `foregroundDepth` |
 | Catacombs | `public/assets/expedition/backgrounds/catacombs/` | `catacombs-parallax-pack.json` | `catacombs-parallax-pack.png` | `undergroundAtmosphere`, `farTunnelWalls`, `distantCatacombs`, `midgroundGlyphWalls`, `foregroundMist` |
 | Escape Sequence | `public/assets/expedition/backgrounds/escape-sequence/` | `escape-sequence-parallax-pack.json` | `escape-sequence-parallax-pack.png` | `dangerAtmosphere`, `farCollapsingWalls`, `distantRuinsDebris`, `midgroundEscapeRuins`, `foregroundDust` |
 | Dig Site Entrance / Base Camp | `public/assets/expedition/backgrounds/dig-site-entrance/` | `base-camp-parallax-pack.json` | `base-camp-parallax-pack.png` | `skyLayer`, `farBackground`, `midBackground`, `nearBaseCamp`, `foregroundLayer` |

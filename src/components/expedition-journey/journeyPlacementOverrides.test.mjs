@@ -725,7 +725,7 @@ test('Desert Entry opening rebuild uses the layered necropolis atlas for arrival
   assert.match(journeyBackgroundAssetsSource, /'groundLane'/);
   assert.match(journeyBackgroundAssetsSource, /'foregroundRubble'/);
   assert.match(journeyBackgroundAssetsSource, /'foregroundDepth'/);
-  assert.ok(existsSync('public/assets/expedition/backgrounds/desert-entry/desert-entry-necropolis-ground-lane-2026-06-25.png'), 'necropolis playable path image file should exist on disk');
+  assert.ok(existsSync('public/assets/expedition/backgrounds/desert-entry/desert-entry-egypt-true-ground-lane-2026-06-27.png'), 'Egypt true playable path image file should exist on disk');
   const wallBackedClimb = propById('desert-entry-opening-wall-backed-climb-1');
   assert.equal(
     wallBackedClimb,

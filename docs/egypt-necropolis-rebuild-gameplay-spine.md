@@ -29,9 +29,13 @@ This document is the rebuild target for the Desert Entry exterior. It keeps the 
 
 ## Art Layer Plan
 
-- `skyPlate`: warm cliffs, distant pyramid/necropolis forms, and the overall colour mood.
+- `skyLight`: opaque warm sunset sky and atmosphere only.
+- `farPyramids`: distant pyramid and necropolis horizon forms.
+- `distantCliffs`: Valley of the Kings cliff/ravine depth behind the route.
+- `midNecropolisRuins`: non-colliding temple and necropolis ruins, including destination architecture.
+- `groundBacking`: non-colliding sand/stone support beneath the route so the floor does not float.
 - `groundLane`: the world-locked playable floor/bridge/ledge surface that moves accurately with Asha.
 - `foregroundRubble`: low rubble, cracked stones, and edge detail that supports hazards without hiding the route.
 - `foregroundDepth`: near dust, broken carved pieces, and subtle corruption passing in front of the camera.
 
-The temporary active manifest now uses older higher-quality Egypt layers as a rebuild base. The final PNG set should replace those files with new high-quality necropolis layers while keeping the same gameplay contract.
+The active manifest uses this eight-layer pack through `public/assets/expedition/backgrounds/desert-entry/desert-entry-parallax-pack.json`. Future work should keep this contract unless the renderer is deliberately changed.

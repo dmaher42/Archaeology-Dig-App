@@ -3779,21 +3779,21 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
   );
   if (!skyDrawn) return false;
 
-  drawDesertBackgroundLayer(ctx, assets, 'farPyramids', fullFrame, { ...layerOptions, parallax: 0.055, alpha: 0.52 });
-  drawDesertBackgroundLayer(ctx, assets, 'distantCliffs', fullFrame, { ...layerOptions, parallax: 0.14, alpha: 0.58 });
-  drawDesertBackgroundLayer(ctx, assets, 'midNecropolisRuins', fullFrame, { ...layerOptions, parallax: 0.28, alpha: 0.72 });
+  drawDesertBackgroundLayer(ctx, assets, 'farPyramids', fullFrame, { ...layerOptions, parallax: 0.055, alpha: 1 });
+  drawDesertBackgroundLayer(ctx, assets, 'distantCliffs', fullFrame, { ...layerOptions, parallax: 0.14, alpha: 1 });
+  drawDesertBackgroundLayer(ctx, assets, 'midNecropolisRuins', fullFrame, { ...layerOptions, parallax: 0.28, alpha: 1 });
   return true;
 }
 
 // World-locked, 1:1 scrolling ground lane for desert-entry. A near-locked backing
 // layer sits below it as visual-only land mass so the playable path no longer reads
 // as a floating ledge. Collision remains on the stable world floor.
-const DESERT_GROUND_BACKING_DEST_Y = 586;
-const DESERT_GROUND_BACKING_DEST_HEIGHT = 138;
+const DESERT_GROUND_BACKING_DEST_Y = 600;
+const DESERT_GROUND_BACKING_DEST_HEIGHT = 124;
 const DESERT_GROUND_BACKING_PARALLAX = 0.98;
-const DESERT_GROUND_BACKING_ALPHA = 0.42;
-const DESERT_GROUND_LANE_DEST_Y = 525;
-const DESERT_GROUND_LANE_DEST_HEIGHT = 95;
+const DESERT_GROUND_BACKING_ALPHA = 1;
+const DESERT_GROUND_LANE_DEST_Y = 520;
+const DESERT_GROUND_LANE_DEST_HEIGHT = 105;
 
 export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
   const {

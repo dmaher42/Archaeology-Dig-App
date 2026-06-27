@@ -1,6 +1,6 @@
 # Egypt Necropolis Final Layer Brief
 
-Use this brief for the final Desert Entry background generation pass. The files already exist as seeded placeholders and are wired into the active game manifest. Replace the PNG contents without changing the filenames or manifest keys unless the runtime contract changes.
+Use this brief for Desert Entry parallax regeneration. The files are wired into the active game manifest. Replace the PNG contents without changing the filenames or manifest keys unless the runtime contract changes.
 
 ## Runtime Contract
 
@@ -13,28 +13,56 @@ Use this brief for the final Desert Entry background generation pass. The files 
 
 ## Layer Files
 
-### `desert-entry-necropolis-sky-plate-2026-06-25.png`
+### `desert-entry-egypt-true-sky-light-2026-06-27.png`
 
 - Size: 2172 x 724.
 - Background: opaque.
-- Content: Valley of the Kings cliff wall, Memphite Necropolis pyramid silhouettes or mastaba ruins, warm clouded sunset, crumbling temple or tomb facade on the right.
-- Must leave the lower gameplay lane readable. Do not paint a competing false floor across the bottom.
+- Content: warm clouded sunset, sacred atmosphere, subtle haze.
+- Must not contain terrain, ruins, characters, UI, or a gameplay floor.
 
-### `desert-entry-necropolis-ground-lane-2026-06-25.png`
+### `desert-entry-egypt-true-far-pyramids-2026-06-27.png`
+
+- Size: 2172 x 724.
+- Background: transparent outside the distant horizon artwork.
+- Content: distant pyramid silhouettes, low necropolis horizon, and warm desert haze.
+- Must stay visually behind the cliffs and route.
+
+### `desert-entry-egypt-true-distant-cliffs-2026-06-27.png`
+
+- Size: 2172 x 724.
+- Background: transparent above the cliff/ravine artwork.
+- Content: Valley of the Kings cliff walls, eroded ridges, and desert-ravine depth.
+- Must not create a false walkable surface at Asha's feet.
+
+### `desert-entry-egypt-true-mid-necropolis-ruins-2026-06-27.png`
+
+- Size: 2172 x 724.
+- Background: transparent outside the ruined structures and terrain silhouettes.
+- Content: Memphite Necropolis ruins, carved temple thresholds, broken columns, relief walls, and right-side destination architecture.
+- Must remain non-colliding scenery behind the playable route.
+
+### `desert-entry-egypt-true-ground-backing-2026-06-27.png`
+
+- Size: 4096 x 220.
+- Background: transparent where empty; painted terrain pixels should be solid.
+- Content: non-colliding sand and stone body beneath the route.
+- This layer supports the floor visually so the ground lane does not read as a floating ledge.
+
+### `desert-entry-egypt-true-ground-lane-2026-06-27.png`
 
 - Size: 4096 x 240.
-- Background: transparent above the stone/sand route where possible, opaque or semi-opaque only on the route itself.
-- Content: world-locked playable stone path, broken causeway slabs, ravine bridge deck sections, cracked ledges, sandy edges.
+- Background: transparent above the stone route; painted route pixels should be solid.
+- Content: world-locked playable carved stone path, broken causeway slabs, shallow carved lip, and sandy edges.
 - This is the visual source of truth for where Asha can run. It must not look like a distant background strip.
 
-### `desert-entry-necropolis-foreground-rubble-2026-06-25.png`
+### `desert-entry-egypt-true-foreground-rubble-2026-06-27.png`
 
 - Size: 4096 x 160.
 - Background: transparent.
 - Content: low edge rubble, broken carved stones, small warning cracks, subtle gold corruption veins.
 - Must support hazards without hiding Asha, enemies, pickups, or the bridge deck.
 
-### `desert-entry-necropolis-foreground-depth-2026-06-25.png`
+### `desert-entry-egypt-true-foreground-depth-2026-06-27.png`
 
 - Size: 4096 x 128.
 - Background: transparent.
