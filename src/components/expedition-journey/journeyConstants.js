@@ -85,6 +85,14 @@ export const JOURNEY_PROP_EDITOR_SECTIONS_KEY = 'expedition-journey-prop-editor-
 export const JOURNEY_PROP_EDITOR_PANEL_POS_KEY = 'expedition-journey-prop-editor-panel-pos-v1';
 export const CHARACTER_LOADER_VISIBILITY_STORAGE_KEY = 'expedition-character-loader-visible-v3';
 
+// Boss focus padding + Scarab Queen lair intro/camera tuning (update loop + cinematic).
+export const BOSS_DOMAIN_ENEMY_FOCUS_PADDING = 96;
+export const SCARAB_QUEEN_ENEMY_FOCUS_PADDING = 220;
+export const SCARAB_QUEEN_INTRO_TRIGGER_DISTANCE = 220;
+export const SCARAB_QUEEN_EMERGENCE_INTRO_SECONDS = 6.8;
+export const SCARAB_QUEEN_CINEMATIC_CAMERA_ANCHOR_RATIO = 0.72;
+export const SCORPION_VENOM_SPIT_VISUAL_TRAVEL_TIME = 0.48;
+
 export const PLAYER_HERO_SPRITE_ATLAS_JSON = 'assets/expedition/player/asha-reference-warrior-dodge-preview-spritesheet.json';
 export const PLAYER_HERO_SPRITE_VERSION = 'asha-reference-warrior-dodge-backstep-tone-matched-2026-06-05';
 export const PLAYER_HERO_PREVIOUS_SPRITE_ATLAS_JSON = 'assets/expedition/player/asha-hooded-warrior-explorer-spritesheet.json';
