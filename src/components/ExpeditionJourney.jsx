@@ -730,7 +730,7 @@ const FORGOTTEN_MURAL_CHAMBER_VERSION = 'imagegen-forgotten-mural-chamber-2026-0
 const FORGOTTEN_MURAL_HIDDEN_MEMORY_REVEAL_VERSION = 'imagegen-forgotten-mural-hidden-memory-reveal-2026-06-01';
 const SCRIBE_CHAMBER_EXTERIOR_VERSION = 'imagegen-scribe-locked-chamber-exterior-v3-2026-06-05';
 const SCRIBE_CHAMBER_INTERIOR_VERSION = 'imagegen-scribe-locked-chamber-interior-2026-06-01';
-const DESERT_ENTRY_BACKGROUND_ART_VERSION = 'necropolis-layered-playable-route-2026-06-25';
+const DESERT_ENTRY_BACKGROUND_ART_VERSION = 'egypt-true-separated-parallax-route-2026-06-27';
 const DESERT_ENTRY_LAYERED_NECROPOLIS_OWNS_RAVINE_VISUALS = true;
 const OPENING_PYRAMID_FACADE_WORLD_LEFT_X = -82;
 const DESERT_ENTRY_CONTINUOUS_BACKGROUND_START_X = DESERT_JOURNEY_SCENE_PANELS[0]?.worldStart ?? 0;
@@ -6367,6 +6367,45 @@ export default function ExpeditionJourney({
     };
   }, [playerHeroSpriteConfig, syncHud]);
 
+  // Size the canvas backing store to its displayed device-pixel resolution so the game
+  // renders crisply instead of stretching a fixed 1280x720 buffer up to the screen.
+  // The draw loop reads canvas.width/height to build its virtual->backing-store transform,
+  // so growing the buffer here automatically supersamples every layer (Asha included).
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return undefined;
+    // Cap the longest side so 4K/HiDPI displays stay sharp without an unbounded fill cost.
+    const MAX_BACKING_WIDTH = 2560;
+    const syncCanvasResolution = () => {
+      const rect = canvas.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      const dpr = window.devicePixelRatio || 1;
+      let targetWidth = Math.round(rect.width * dpr);
+      let targetHeight = Math.round(rect.height * dpr);
+      if (targetWidth > MAX_BACKING_WIDTH) {
+        const ratio = MAX_BACKING_WIDTH / targetWidth;
+        targetWidth = MAX_BACKING_WIDTH;
+        targetHeight = Math.round(targetHeight * ratio);
+      }
+      // Never drop below the original render target; assigning width/height resets the
+      // context, so only touch it when the size actually changes.
+      targetWidth = Math.max(targetWidth, JOURNEY_RENDER_TARGET.nativeWidth);
+      targetHeight = Math.max(targetHeight, JOURNEY_RENDER_TARGET.nativeHeight);
+      if (canvas.width !== targetWidth) canvas.width = targetWidth;
+      if (canvas.height !== targetHeight) canvas.height = targetHeight;
+    };
+    syncCanvasResolution();
+    window.addEventListener('resize', syncCanvasResolution);
+    const observer = typeof ResizeObserver !== 'undefined'
+      ? new ResizeObserver(syncCanvasResolution)
+      : null;
+    observer?.observe(canvas);
+    return () => {
+      window.removeEventListener('resize', syncCanvasResolution);
+      observer?.disconnect();
+    };
+  }, []);
+
   useEffect(() => loadEnvironmentAssetPack({
     baseUrl: import.meta.env.BASE_URL,
     packId: environmentPackId,
@@ -9099,11 +9138,16 @@ export default function ExpeditionJourney({
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     const current = stateRef.current;
+    // Derive the virtual->backing-store scale from the live canvas dimensions so the
+    // game renders at the display's actual pixel resolution (set by syncCanvasResolution).
+    // Falling back to the fixed render target keeps behaviour correct before the first sync.
+    const backingWidth = canvas.width || JOURNEY_RENDER_TARGET.nativeWidth;
+    const backingHeight = canvas.height || JOURNEY_RENDER_TARGET.nativeHeight;
     ctx.setTransform(
-      JOURNEY_RENDER_TARGET.virtualToNativeScaleX,
+      backingWidth / CANVAS_WIDTH,
       0,
       0,
-      JOURNEY_RENDER_TARGET.virtualToNativeScaleY,
+      backingHeight / CANVAS_HEIGHT,
       0,
       0,
     );
