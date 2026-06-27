@@ -24,6 +24,10 @@ const ExpeditionMode = lazy(() => import('./components/ExpeditionMode').then((mo
   default: module.ExpeditionMode,
 })));
 
+const MummificationQuestMode = lazy(() => import('./components/MummificationQuestMode').then((module) => ({
+  default: module.MummificationQuestMode,
+})));
+
 // Utilities & Data
 import { 
   AUTOSAVE_KEY,
@@ -1342,7 +1346,7 @@ export default function App() {
 
   // Autosave Logic
   useEffect(() => {
-    if (phase === 'menu' || phase === 'expedition') return;
+    if (phase === 'menu' || phase === 'expedition' || phase === 'mummificationQuest') return;
     try {
       const isBureau = phase.startsWith('bureau');
       const payload = isBureau
@@ -1442,6 +1446,13 @@ export default function App() {
     setPhase('expedition');
   };
 
+  const handleStartMummificationQuest = () => {
+    audioControls.stopExpeditionMusic?.();
+    audioControls.stopExpeditionLoopingSfx?.();
+    setIsSiteSelectionActive(false);
+    setPhase('mummificationQuest');
+  };
+
   // Dev-only quick play: jump straight into the desert-entry journey gameplay,
   // bypassing the expedition selector, archive prologue, briefing and opening
   // cinematic. Reuses the same `?play` machinery as the URL bookmark — we set
@@ -1504,6 +1515,7 @@ export default function App() {
             onStartTraining={handleStartTraining}
             onStartBureau={handleStartBureau}
             onStartExpedition={handleStartExpedition}
+            onStartMummificationQuest={handleStartMummificationQuest}
             onQuickPlay={handleQuickPlay}
             savedGames={savedGames}
             onResumeInvestigation={() => applySavedSession(savedGames.archaeology)}
@@ -1666,6 +1678,12 @@ export default function App() {
                 setPhase('lab');
               }}
             />
+          </Suspense>
+        )}
+
+        {phase === 'mummificationQuest' && (
+          <Suspense fallback={<ModeLoadingFallback label="Loading Mummification Lab..." />}>
+            <MummificationQuestMode onBackToMenu={() => setPhase('menu')} />
           </Suspense>
         )}
 

@@ -4,6 +4,13 @@ Current source-of-truth note:
 - Future implementation should follow `docs/lost-site-expedition-production-bible.md`.
 - The production bible now defines implementation hierarchy, room pipelines, asset roles, and quality expectations.
 
+2026-06-28 Mummification Lab classroom MVP:
+- Added a new main-menu classroom mode: Mummification Lab / Orange Mummy Quest.
+- The MVP is text/card based only, with no image generation, no canvas drawing, no new dependencies, and no changes to Lost Site Journey gameplay.
+- It includes seven classroom stages: Briefing, Evidence Sort, Orange Practical Checklist, Observation Log, Sarcophagus Design Studio, Future Archaeologist Mode, and Field Report.
+- The new mode uses local React state only for this first pass and skips autosave so it does not interfere with existing investigation or Bureau saves.
+- Added a teacher safety note, respectful human-remains language, sarcophagus design prompts, metacognition prompts, Copy Report and Print Report actions, a data integrity test, and the brief at `docs/mummification-orange-sarcophagus-quest-brief.md`.
+
 2026-06-25 China background bleed fix:
 - Found a route-switch/loading weakness where the China Journey could fall through to the old generic temple backdrop before its `china-river-valley` PNG pack was ready.
 - Patched the canonical China background renderer so China owns the frame with a China-coloured opaque base during PNG loading and before alpha-keyed parallax layers draw.

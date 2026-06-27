@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Pickaxe, MapPin, FileText, Dice5, ChevronLeft, Compass, Volume2, VolumeX } from 'lucide-react';
+import { Pickaxe, MapPin, FileText, Dice5, ChevronLeft, Compass, FlaskConical, Volume2, VolumeX } from 'lucide-react';
 import { SCENARIOS } from '../data';
 import { WorldMap } from './WorldMap';
 
@@ -34,6 +34,7 @@ export function ActivityMenu({
   onStartTraining, 
   onStartBureau, 
   onStartExpedition,
+  onStartMummificationQuest,
   onQuickPlay = () => {},
   savedGames,
   onResumeInvestigation, 
@@ -57,6 +58,7 @@ export function ActivityMenu({
     `${import.meta.env.BASE_URL}assets/menu/mode_training_art.png`,
     `${import.meta.env.BASE_URL}assets/menu/mode_investigation_art.png`,
     `${import.meta.env.BASE_URL}assets/menu/mode_bureau_art.png`,
+    `${import.meta.env.BASE_URL}assets/menu/mode_investigation_art.png`,
     `${import.meta.env.BASE_URL}assets/menu/mode_expedition_art.png`
   ];
 
@@ -308,8 +310,28 @@ export function ActivityMenu({
             </div>
         </article>
 
+        {/* Mummification Lab */}
+        <article data-index={3} className={`activity-card activity-card--mummification glass-card ${focusedModeIndex === 3 ? 'is-focused' : ''}`} style={{ '--card-bg': `url(${modeArtworks[3]})` }} onMouseEnter={() => setFocusedModeIndex(3)}>
+          <div className="activity-card-header">
+            <div className="activity-card-icon activity-card-icon--mummification">
+              <FlaskConical size={24} />
+            </div>
+            <div className="activity-time-tag">45-60 MINS | CLASSROOM LAB</div>
+          </div>
+          <div className="activity-card-copy">
+            <h3>Mummification Lab</h3>
+            <div className="activity-mode-label">Orange Mummy Quest</div>
+            <p>Mummify an orange, design a sarcophagus, then interpret designs as archaeological evidence.</p>
+          </div>
+            <div className="activity-card-button-group">
+              <button type="button" className="premium-action-btn" onClick={onStartMummificationQuest}>
+                Start Lab
+              </button>
+            </div>
+        </article>
+
         {/* Lost Site Expedition */}
-        <article data-index={3} className={`activity-card activity-card--expedition glass-card ${focusedModeIndex === 3 ? 'is-focused' : ''}`} style={{ '--card-bg': `url(${modeArtworks[3]})` }} onMouseEnter={() => setFocusedModeIndex(3)}>
+        <article data-index={4} className={`activity-card activity-card--expedition glass-card ${focusedModeIndex === 4 ? 'is-focused' : ''}`} style={{ '--card-bg': `url(${modeArtworks[4]})` }} onMouseEnter={() => setFocusedModeIndex(4)}>
           <div className="activity-card-header">
             <div className="activity-card-icon activity-card-icon--expedition">
               <Compass size={24} />
