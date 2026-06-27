@@ -47,6 +47,13 @@ import {
   SCARAB_QUEEN_EMERGENCE_INTRO_SECONDS,
   SCARAB_QUEEN_CINEMATIC_CAMERA_ANCHOR_RATIO,
   SCORPION_VENOM_SPIT_VISUAL_TRAVEL_TIME,
+  OBJECTIVE_MARKER_IDS_BY_SECTION,
+  OBJECTIVE_LABELS,
+  OBJECTIVE_SINGULAR_LABELS,
+  CHINA_OBJECTIVE_LABELS,
+  CHINA_OBJECTIVE_SINGULAR_LABELS,
+  CHINA_GATE_NAMES,
+  CHINA_GATE_HINTS,
   PLAYER_SPRITE_DRAW_HEIGHT,
   PLAYER_SPRITE_FRAME_COUNT,
   PLAYER_SPRITE_FRAME_HEIGHT,
@@ -1782,54 +1789,6 @@ const isStoryPropRouteGateVisibilityMet = (prop, current) => {
   return true;
 };
 
-const OBJECTIVE_MARKER_IDS_BY_SECTION = {
-  'desert-entry': ['map-tablet'],
-  'ruined-temple': ['switch-1', 'switch-2', 'switch-3'],
-  catacombs: ['glyph-1', 'glyph-2', 'glyph-3'],
-  'escape-sequence': ['escape-beacon'],
-};
-
-const OBJECTIVE_LABELS = {
-  'desert-entry': 'Map Tablet',
-  'ruined-temple': 'Switches',
-  catacombs: 'Glyph Fragments',
-  'escape-sequence': 'Escape Route',
-  'dig-site-entrance': 'Guardian Seal',
-};
-
-const OBJECTIVE_SINGULAR_LABELS = {
-  'desert-entry': 'map tablet',
-  'ruined-temple': 'switch',
-  catacombs: 'glyph fragment',
-  'escape-sequence': 'escape marker',
-  'dig-site-entrance': 'guardian seal',
-};
-
-const CHINA_OBJECTIVE_LABELS = {
-  'desert-entry': 'River Survey Tablet',
-  'ruined-temple': 'Archive Switches',
-  catacombs: 'Oracle Fragments',
-  'escape-sequence': 'Safe Route',
-  'dig-site-entrance': 'Rammed-Earth Seal',
-};
-
-const CHINA_OBJECTIVE_SINGULAR_LABELS = {
-  'desert-entry': 'river survey tablet',
-  'ruined-temple': 'archive switch',
-  catacombs: 'oracle fragment',
-  'escape-sequence': 'safe route marker',
-  'dig-site-entrance': 'rammed-earth seal',
-};
-
-const CHINA_GATE_NAMES = {
-  'guardian-prep-seal': 'Guardian Prep Seal',
-  'desert-seal': 'River Valley Seal',
-  'temple-seal': 'Bronze Archive Seal',
-  'catacomb-seal': 'Jade Archive Seal',
-  'escape-seal': 'Field Records Seal',
-  'final-gate': 'Rammed-Earth Site Gate',
-};
-
 const isPlatformAvailable = (platform, current) => (
   isEntityActiveInScene(platform, current)
   && (!platform.requiresUpgrade || current.collectedUpgrades.has(platform.requiresUpgrade))
@@ -1850,17 +1809,6 @@ const isHazardAvailable = (hazard, current) => (
   isEntityActiveInScene(hazard, current)
   && (!hazard.revealedByScarabSeal || current.scarabSealActivated)
 );
-
-const CHINA_GATE_HINTS = {
-  objective: {
-    'desert-entry': 'The river survey tablet is still behind you on the valley route.',
-    'ruined-temple': 'One archive switch is still behind you near the timber gate.',
-    catacombs: 'Search the archive floor for the remaining oracle fragment.',
-    'escape-sequence': 'Reach the safe route marker before the seal will open.',
-    'dig-site-entrance': 'The final rammed-earth seal opens after the guardian falls.',
-  },
-  shards: 'Search the nearby platforms and lower route for more relic shards.',
-};
 
 const ROME_GATE_HINTS = {
   objective: {

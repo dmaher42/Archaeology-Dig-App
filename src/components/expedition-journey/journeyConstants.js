@@ -93,6 +93,66 @@ export const SCARAB_QUEEN_EMERGENCE_INTRO_SECONDS = 6.8;
 export const SCARAB_QUEEN_CINEMATIC_CAMERA_ANCHOR_RATIO = 0.72;
 export const SCORPION_VENOM_SPIT_VISUAL_TRAVEL_TIME = 0.48;
 
+// Objective + gate display text, keyed by section / gate id (per civilisation).
+export const OBJECTIVE_MARKER_IDS_BY_SECTION = {
+  'desert-entry': ['map-tablet'],
+  'ruined-temple': ['switch-1', 'switch-2', 'switch-3'],
+  catacombs: ['glyph-1', 'glyph-2', 'glyph-3'],
+  'escape-sequence': ['escape-beacon'],
+};
+
+export const OBJECTIVE_LABELS = {
+  'desert-entry': 'Map Tablet',
+  'ruined-temple': 'Switches',
+  catacombs: 'Glyph Fragments',
+  'escape-sequence': 'Escape Route',
+  'dig-site-entrance': 'Guardian Seal',
+};
+
+export const OBJECTIVE_SINGULAR_LABELS = {
+  'desert-entry': 'map tablet',
+  'ruined-temple': 'switch',
+  catacombs: 'glyph fragment',
+  'escape-sequence': 'escape marker',
+  'dig-site-entrance': 'guardian seal',
+};
+
+export const CHINA_OBJECTIVE_LABELS = {
+  'desert-entry': 'River Survey Tablet',
+  'ruined-temple': 'Archive Switches',
+  catacombs: 'Oracle Fragments',
+  'escape-sequence': 'Safe Route',
+  'dig-site-entrance': 'Rammed-Earth Seal',
+};
+
+export const CHINA_OBJECTIVE_SINGULAR_LABELS = {
+  'desert-entry': 'river survey tablet',
+  'ruined-temple': 'archive switch',
+  catacombs: 'oracle fragment',
+  'escape-sequence': 'safe route marker',
+  'dig-site-entrance': 'rammed-earth seal',
+};
+
+export const CHINA_GATE_NAMES = {
+  'guardian-prep-seal': 'Guardian Prep Seal',
+  'desert-seal': 'River Valley Seal',
+  'temple-seal': 'Bronze Archive Seal',
+  'catacomb-seal': 'Jade Archive Seal',
+  'escape-seal': 'Field Records Seal',
+  'final-gate': 'Rammed-Earth Site Gate',
+};
+
+export const CHINA_GATE_HINTS = {
+  objective: {
+    'desert-entry': 'The river survey tablet is still behind you on the valley route.',
+    'ruined-temple': 'One archive switch is still behind you near the timber gate.',
+    catacombs: 'Search the archive floor for the remaining oracle fragment.',
+    'escape-sequence': 'Reach the safe route marker before the seal will open.',
+    'dig-site-entrance': 'The final rammed-earth seal opens after the guardian falls.',
+  },
+  shards: 'Search the nearby platforms and lower route for more relic shards.',
+};
+
 export const PLAYER_HERO_SPRITE_ATLAS_JSON = 'assets/expedition/player/asha-reference-warrior-dodge-preview-spritesheet.json';
 export const PLAYER_HERO_SPRITE_VERSION = 'asha-reference-warrior-dodge-backstep-tone-matched-2026-06-05';
 export const PLAYER_HERO_PREVIOUS_SPRITE_ATLAS_JSON = 'assets/expedition/player/asha-hooded-warrior-explorer-spritesheet.json';
