@@ -6577,6 +6577,31 @@ export default function ExpeditionJourney({
     syncHud();
   }, [syncHud]);
 
+  // DEV-only: teleport the player to a section start so backgrounds/layouts can
+  // be eyeballed without playing through. Bypasses gates (view-only) and resets
+  // camera/velocity; the per-frame section resolver picks up the new position.
+  const jumpToDevSection = useCallback((section) => {
+    if (!import.meta.env.DEV || !section) return;
+    const current = stateRef.current;
+    if (!current?.player) return;
+    const targetX = Math.max(0, (Number(section.start) || 0) + 80);
+    current.player.x = targetX;
+    current.player.y = GROUND_Y - current.player.height;
+    current.player.vx = 0;
+    current.player.vy = 0;
+    current.currentSectionId = section.id;
+    current.failed = false;
+    current.failureReason = '';
+    current.failureDetail = '';
+    const camera = getCameraFollowTarget(current);
+    current.cameraX = camera.targetCameraX;
+    current.targetCameraX = camera.targetCameraX;
+    current.cameraMode = camera.mode;
+    current.cameraFocusTarget = camera.focusTarget;
+    current.notice = `Jumped to ${section.name || section.id}.`;
+    syncHud();
+  }, [syncHud]);
+
   const answerGuardianChallenge = useCallback((answerIndex) => {
     const current = stateRef.current;
     const challenge = current.activeGuardianChallenge;
@@ -15017,6 +15042,39 @@ export default function ExpeditionJourney({
                 if (import.meta.env.DEV && propPlacementEditorRef.current.enabled) event.preventDefault();
               }}
             />
+
+            {import.meta.env.DEV && (
+              <div
+                className="journey-dev-section-jump"
+                style={{
+                  position: 'absolute', top: 6, left: '50%', transform: 'translateX(-50%)',
+                  display: 'flex', gap: 4, alignItems: 'center', flexWrap: 'wrap',
+                  maxWidth: '92%', justifyContent: 'center',
+                  padding: '4px 8px', borderRadius: 6, zIndex: 40, pointerEvents: 'auto',
+                  background: 'rgba(15,12,10,0.72)', border: '1px solid rgba(212,184,120,0.35)',
+                  font: '11px/1.2 system-ui, sans-serif', color: '#e8dcc4',
+                }}
+              >
+                <span style={{ opacity: 0.7, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                  Dev · Jump
+                </span>
+                {SECTIONS.map((s, i) => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    title={s.id}
+                    onClick={(event) => { jumpToDevSection(s); event.currentTarget.blur(); }}
+                    style={{
+                      cursor: 'pointer', padding: '2px 7px', borderRadius: 4, font: 'inherit',
+                      background: 'rgba(212,184,120,0.14)', border: '1px solid rgba(212,184,120,0.4)',
+                      color: '#f0e6d2',
+                    }}
+                  >
+                    {i + 1}. {s.name || s.id}
+                  </button>
+                ))}
+              </div>
+            )}
 
             {import.meta.env.DEV && propEditorUi.enabled && (
               <>
