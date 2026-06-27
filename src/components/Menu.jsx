@@ -203,7 +203,7 @@ export function ActivityMenu({
       <div className="mission-selection-heading">
         <div>
           <div className="training-kicker">Archaeology Challenge</div>
-          <h2 className="premium-text-glow" style={{ margin: 0, fontSize: '2rem' }}>Lost Site Expedition</h2>
+          <h2 className="premium-text-glow" style={{ margin: 0, fontSize: '2rem' }}>The Antiquities Bureau</h2>
         </div>
         <div className="mission-selection-heading-actions">
           <button
