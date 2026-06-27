@@ -2,44 +2,44 @@
   "image": "rome-via-sacra-main-2026-06-24.png",
   "source": "Rome Section One Via Sacra parallax pack generated from the no-temple Roman street source plus project-local painted depth layers.",
   "size": {
-    "w": 1536,
-    "h": 630
+    "w": 2172,
+    "h": 724
   },
   "coordinateNote": "Each region is a full-screen PNG layer. Prop and mist layers use real alpha; background composites are rectangular PNGs.",
   "regions": {
     "viaSacraSky": {
       "x": 0,
       "y": 0,
-      "w": 1536,
-      "h": 630,
+      "w": 2172,
+      "h": 724,
       "image": "rome-via-sacra-via-sacra-sky-2026-06-24.png"
     },
     "farAqueductArches": {
       "x": 0,
       "y": 0,
-      "w": 1536,
-      "h": 630,
+      "w": 2172,
+      "h": 724,
       "image": "rome-via-sacra-far-aqueduct-arches-2026-06-24.png"
     },
     "distantHillSide": {
       "x": 0,
       "y": 0,
-      "w": 1536,
-      "h": 630,
+      "w": 2172,
+      "h": 724,
       "image": "rome-via-sacra-distant-hill-side-2026-06-24.png"
     },
     "midgroundRoadRuins": {
       "x": 0,
       "y": 0,
-      "w": 1536,
-      "h": 630,
+      "w": 2172,
+      "h": 724,
       "image": "rome-via-sacra-midground-road-ruins-2026-06-24.png"
     },
     "foregroundDust": {
       "x": 0,
       "y": 0,
-      "w": 1536,
-      "h": 630,
+      "w": 2172,
+      "h": 724,
       "image": "rome-via-sacra-foreground-dust-2026-06-24.png"
     }
   }
