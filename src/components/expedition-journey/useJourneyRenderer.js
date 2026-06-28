@@ -3568,7 +3568,7 @@ export function drawDesertForegroundAtmosphereFrame(ctx, section, cameraX, deps)
       assets,
       'foregroundRubble',
       { y: CANVAS_HEIGHT - 150, height: 150 },
-      { ...layerOptions, parallax: 1.0, alpha: 0.95 },
+      { ...layerOptions, parallax: 1.0, alpha: 1 },
     ),
     drawDesertBackgroundLayer(
       ctx,
