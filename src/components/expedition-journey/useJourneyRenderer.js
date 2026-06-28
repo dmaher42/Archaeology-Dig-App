@@ -3753,7 +3753,6 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
   const {
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
-    clamp,
     desertBackgroundAssetsRef,
     drawDesertBackgroundLayer,
     getSectionBackgroundAssets,
@@ -3798,16 +3797,17 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
   // passes it. Position fraction, scale and base Y are dev-tunable.
   const sphinxRegion = assets.atlas?.regions?.desertSphinx;
   const sphinxImage = sphinxRegion?.image ? assets.images?.[sphinxRegion.image] : null;
-  if (sphinxImage && sphinxRegion && typeof clamp === 'function') {
-    const SPHINX_SECTION_FRACTION = 0.32; // where along desert-entry it sits
-    const SPHINX_PARALLAX = 0.42;
+  if (sphinxImage && sphinxRegion) {
+    const SPHINX_SECTION_FRACTION = 0.32; // where along desert-entry it is anchored
+    const SPHINX_PARALLAX = 0.8;          // 1 = locked to the ground, lower = more distant
     const SPHINX_HEIGHT = 200;
     const SPHINX_BASE_Y = 568;            // screen Y of the Sphinx base (ground line)
     const sectionWidth = Math.max(1, section.end - section.start);
-    const localAnchor = SPHINX_SECTION_FRACTION * CANVAS_WIDTH;
-    const sectionProgress = clamp((cameraX - section.start) / Math.max(1, sectionWidth - CANVAS_WIDTH), 0, 1);
-    const sphinxX = localAnchor - sectionProgress * CANVAS_WIDTH * SPHINX_PARALLAX;
+    const sphinxWorldX = section.start + sectionWidth * SPHINX_SECTION_FRACTION;
     const sphinxWidth = SPHINX_HEIGHT * (sphinxRegion.w / sphinxRegion.h);
+    // True parallax: screen X drifts with actual camera movement (negative rate),
+    // so the monument scrolls past as the player walks instead of following them.
+    const sphinxX = (sphinxWorldX - cameraX) * SPHINX_PARALLAX + CANVAS_WIDTH / 2 - sphinxWidth / 2;
     if (sphinxX > -sphinxWidth && sphinxX < CANVAS_WIDTH + sphinxWidth) {
       ctx.drawImage(
         sphinxImage,
