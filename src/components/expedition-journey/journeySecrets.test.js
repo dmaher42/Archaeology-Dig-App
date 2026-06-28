@@ -4446,8 +4446,8 @@ test('necropolis rebuild retires standalone ravine bridge visuals and preserves 
       `${filename} should be deleted so obsolete ruin background plates cannot return`,
     );
   });
-  assert.match(journeyComponentSource, /DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_IDS = Object\.freeze\(\[\]\)/);
-  assert.match(journeyComponentSource, /DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_SEAM_MASKS = Object\.freeze/);
+  assert.doesNotMatch(journeyComponentSource, /DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_IDS/);
+  assert.doesNotMatch(journeyComponentSource, /DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_SEAM_MASKS/);
   assert.match(useJourneyRendererSource, /drawDesertJourneyScenePanelsFrame/);
   assert.match(useJourneyRendererSource, /drawDesertJourneySceneMasksFrame/);
   assert.doesNotMatch(journeyComponentSource, /drawDesertEntryPrimaryBackgroundPlates\(ctx, current, cameraX\)/);
@@ -4455,10 +4455,11 @@ test('necropolis rebuild retires standalone ravine bridge visuals and preserves 
   assert.match(useJourneyRendererSource, /drawDesertJourneyTransitionMaskFrame/);
   assert.match(useJourneyRendererSource, /DESERT_JOURNEY_BACKGROUND_SYSTEM_VERSION/);
   assert.match(useJourneyRendererSource, /desertJourneyBackgroundSystemVersion/);
-  assert.match(useJourneyRendererSource, /desertEntryPrimaryBackgroundPlateSeamMasks/);
+  assert.doesNotMatch(useJourneyRendererSource, /desertEntryPrimaryBackgroundPlateSeamMasks/);
   assert.doesNotMatch(useJourneyRendererSource, /single-plate-camera-pan-primary-png-v3/);
   assert.doesNotMatch(journeyComponentSource, /full-canvas-route-crossfade-primary-png-v2/);
-  assert.match(useJourneyRendererSource, /isDesertEntryRebuildBackgroundPlateProp/);
+  assert.doesNotMatch(useJourneyRendererSource, /isDesertEntryRebuildBackgroundPlateProp/);
+  assert.doesNotMatch(journeyComponentSource, /DESERT_ENTRY_RESTORE_ORIGINAL_BACKDROP/);
   assert.doesNotMatch(journeyComponentSource, /full-canvas-route-crossfade-background-v1/);
   assert.doesNotMatch(journeyComponentSource, /desert-entry-rebuild-full-canvas-route-crossfade-background-v1/);
   [
@@ -4488,6 +4489,15 @@ test('necropolis rebuild retires standalone ravine bridge visuals and preserves 
     existsSync(new URL('../../../public/assets/expedition/environment/egypt-opening/lost-bridge/lost-bridge-rubble-ramp-climb-2026-06-09.png', import.meta.url)),
     'rubble ramp climb asset should exist as a real project PNG',
   );
+});
+
+test('Desert Entry background renderer uses the active layered route only', () => {
+  assert.match(journeyBackgroundAssetsSource, /DESERT_BACKGROUND_DEPTH_MODE = 'desert-entry-necropolis-layered-playable-route-v1'/);
+  assert.match(journeyComponentSource, /drawDesertEntryBackground\(ctx, section, cameraX\)/);
+  assert.match(journeyComponentSource, /drawDesertEntryGroundLane\(ctx, section, cameraX\)/);
+  assert.doesNotMatch(journeyComponentSource, /cleanDesertEntryPanoramaActive/);
+  assert.doesNotMatch(journeyComponentSource, /DESERT_ENTRY_RESTORE_ORIGINAL_BACKDROP/);
+  assert.doesNotMatch(journeyComponentSource, /full-canvas-route-crossfade-background-v1/);
 });
 
 test('Desert Journey panel background avoids procedural ruins behind the retired primary PNG panorama', () => {

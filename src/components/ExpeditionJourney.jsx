@@ -722,9 +722,6 @@ const SCRIBE_CHAMBER_INTERIOR_VERSION = 'imagegen-scribe-locked-chamber-interior
 const DESERT_ENTRY_BACKGROUND_ART_VERSION = 'egypt-true-separated-parallax-route-2026-06-27';
 const DESERT_ENTRY_LAYERED_NECROPOLIS_OWNS_RAVINE_VISUALS = true;
 const OPENING_PYRAMID_FACADE_WORLD_LEFT_X = -82;
-const DESERT_ENTRY_CONTINUOUS_BACKGROUND_START_X = DESERT_JOURNEY_SCENE_PANELS[0]?.worldStart ?? 0;
-const DESERT_ENTRY_CONTINUOUS_BACKGROUND_END_X = DESERT_JOURNEY_SCENE_PANELS[DESERT_JOURNEY_SCENE_PANELS.length - 1]?.worldEnd ?? 17400;
-const DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_IDS = Object.freeze([]);
 const DESERT_ENTRY_RETIRED_BACKGROUND_PROP_IDS = new Set([
   'desert-entry-asha-grounding-rubble-crumbs-1',
   'desert-entry-asha-grounding-tile-chips-1',
@@ -836,28 +833,6 @@ const shouldRenderChamberDoorVisual = (door = {}) => (
   door.renderDoorVisual !== false
   && !DESERT_ENTRY_RETIRED_CHAMBER_DOOR_VISUAL_IDS.has(door.id)
 );
-const DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_SEAM_MASKS = Object.freeze([]);
-const DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_ID_SET = new Set(DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_IDS);
-
-const isDesertEntryRebuildBackgroundPlateProp = (prop = {}) => (
-  DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_ID_SET.has(prop.id)
-);
-
-// When true, the desert opening shows the original bright photoreal sphinx backdrop
-// at full brightness instead of the dimmer "opening rebuild" painted plates and dark
-// sky wash (whose shaded mummification-temple side read as a dark shadow on the right).
-// This forces the rebuild-sky coverage to 0 (so the backdrop is no longer faded out)
-// and disables the scene panels + primary PNG plates that were layered over it.
-const DESERT_ENTRY_RESTORE_ORIGINAL_BACKDROP = false;
-
-const getDesertEntryOpeningRebuildViewportCoverage = (cameraX = 0) => {
-  if (DESERT_ENTRY_RESTORE_ORIGINAL_BACKDROP) return 0;
-  const viewportLeft = Number.isFinite(cameraX) ? cameraX : 0;
-  const viewportRight = viewportLeft + CANVAS_WIDTH;
-  const overlap = Math.min(viewportRight, DESERT_ENTRY_CONTINUOUS_BACKGROUND_END_X)
-    - Math.max(viewportLeft, DESERT_ENTRY_CONTINUOUS_BACKGROUND_START_X);
-  return Math.max(0, Math.min(1, overlap / CANVAS_WIDTH));
-};
 
 const DEFAULT_LEVEL_TRANSITION = {
   title: 'ROUTE COMPLETE',
@@ -7127,10 +7102,6 @@ export default function ExpeditionJourney({
     DEFAULT_LEVEL_TRANSITION,
     DEFAULT_JOURNEY_PROP_EDITOR_GRID_SIZE,
     DESERT_ENTRY_BACKGROUND_ART_VERSION,
-    DESERT_ENTRY_CONTINUOUS_BACKGROUND_END_X,
-    DESERT_ENTRY_CONTINUOUS_BACKGROUND_START_X,
-    DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_IDS,
-    DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_SEAM_MASKS,
     DESERT_JOURNEY_BACKGROUND_SYSTEM_VERSION,
     DESERT_JOURNEY_LAYER_ROLES,
     DESERT_JOURNEY_SCENE_PANELS,
@@ -7208,7 +7179,6 @@ export default function ExpeditionJourney({
     getArrivalThresholdEchoHitbox,
     getArrivalThresholdGroundY,
     getEnvironmentAssetKeyForPlatform,
-    getDesertEntryOpeningRebuildViewportCoverage,
     getDesertJourneyPanelsForViewport,
     getDesertJourneyTransitionMasksForViewport,
     getCombatMode,
@@ -7334,7 +7304,6 @@ export default function ExpeditionJourney({
     getStoryPropEditorSize,
     getStoryPropPlacementPreset,
     getZIndexSortedRenderableStoryProps,
-    isDesertEntryRebuildBackgroundPlateProp,
     isLostBridgeRavineSpecialRendererProp,
     JOURNEY_FLAG_VISUAL_MODE,
     markerSpriteAssetsRef,
@@ -7629,14 +7598,12 @@ export default function ExpeditionJourney({
     }
 
     const parallaxBackgroundDrawn = arrivalThresholdDrawn || chinaBackgroundDrawn || desertBackgroundDrawn || sectionParallaxDrawn;
-    const canDrawCleanDesertEntryBackground = !DESERT_ENTRY_RESTORE_ORIGINAL_BACKDROP
-      && !arrivalThresholdDrawn
+    const canDrawCleanDesertEntryBackground = !arrivalThresholdDrawn
       && !desertBackgroundDrawn
       && !chamberSceneActive
       && section.id === 'desert-entry';
     const desertJourneyScenePanelsDrawn = canDrawCleanDesertEntryBackground
       && drawDesertJourneyScenePanels(ctx, current, cameraX, now);
-    const cleanDesertEntryPanoramaActive = false;
     if (desertJourneyScenePanelsDrawn && current.renderStats) {
       current.renderStats.activeBackgroundSection = 'desert-entry';
       current.renderStats.backgroundDepthMode = DESERT_JOURNEY_BACKGROUND_SYSTEM_VERSION;
@@ -7654,7 +7621,7 @@ export default function ExpeditionJourney({
       WORLD_CONTINUITY_LANDMARKS.forEach((landmark) => drawWorldContinuityLandmark(ctx, landmark, cameraX, now));
       WORLD_TRANSITION_STORY_MARKERS.forEach((marker) => drawWorldTransitionMarker(ctx, marker, cameraX, now));
       getZIndexSortedRenderableStoryProps(current).forEach((prop) => drawStoryProp(ctx, prop, cameraX, now, 'background'));
-      if (!cleanDesertEntryPanoramaActive) drawParticles(ctx, atmosphere, cameraX, now);
+      drawParticles(ctx, atmosphere, cameraX, now);
       if (desertJourneyScenePanelsDrawn) drawDesertJourneySceneMasks(ctx, current, cameraX, now);
     }
 
@@ -7677,17 +7644,13 @@ export default function ExpeditionJourney({
       renderParallaxLayer(0.28, `${atmosphere.skyBottom}cc`, 0.5);
     }
     if (!chamberSceneActive && !current.arrivalThresholdActive) {
-      if (!cleanDesertEntryPanoramaActive) {
-        if (isEgyptJourney) drawDesertForegroundAtmosphere(ctx, section, cameraX);
-        drawSectionParallaxForeground(ctx, section, cameraX);
-        if (isEgyptJourney) drawOpeningPyramidMasonryBack(ctx, cameraX, now, current);
-      }
+      if (isEgyptJourney) drawDesertForegroundAtmosphere(ctx, section, cameraX);
+      drawSectionParallaxForeground(ctx, section, cameraX);
+      if (isEgyptJourney) drawOpeningPyramidMasonryBack(ctx, cameraX, now, current);
       getZIndexSortedRenderableStoryProps(current).forEach((prop) => drawStoryProp(ctx, prop, cameraX, now, 'midground'));
       ENVIRONMENT_INTERACTIONS.forEach((item) => drawEnvironmentInteraction(ctx, item, cameraX, now, current));
-      if (!cleanDesertEntryPanoramaActive) {
-        if (isEgyptJourney) drawEgyptAmbientLife(ctx, section, cameraX, now);
-        drawConnectedWorldAmbientLife(ctx, section, cameraX, now);
-      }
+      if (isEgyptJourney) drawEgyptAmbientLife(ctx, section, cameraX, now);
+      drawConnectedWorldAmbientLife(ctx, section, cameraX, now);
       ENVIRONMENT_EVENTS
         .filter(event => event.dynamic && event.id !== current.dynamicEnvironmentEvent?.id)
         .forEach((event) => {

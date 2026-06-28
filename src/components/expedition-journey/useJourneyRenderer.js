@@ -2553,7 +2553,6 @@ export function drawPropSandOcclusionFrame(ctx, x, anchorY, propSize, sectionId,
 
 export function drawStoryPropFrame(ctx, prop, cameraX, now, requestedDepth = null, deps) {
   const {
-    CANVAS_WIDTH,
     DRAW_JOURNEY_FLAG_MARKERS,
     ENVIRONMENT_ASSET_PACK_IDS,
     JOURNEY_FLAG_VISUAL_MODE,
@@ -2586,7 +2585,6 @@ export function drawStoryPropFrame(ctx, prop, cameraX, now, requestedDepth = nul
     getStoryPropEditorBounds,
     getStoryPropEditorSize,
     getStoryPropPlacementPreset,
-    isDesertEntryRebuildBackgroundPlateProp,
     isHorizontallyVisible,
     isLostBridgeRavineSpecialRendererProp,
     markerSpriteAssetsRef,
@@ -2611,8 +2609,7 @@ export function drawStoryPropFrame(ctx, prop, cameraX, now, requestedDepth = nul
     if (outlinerEditor?.enabled && outlinerEditor.hiddenIds?.has(prop.id)) return;
   }
   const x = worldToScreenX(prop.x, cameraX);
-  const isPrimaryBackgroundPlate = isDesertEntryRebuildBackgroundPlateProp(prop);
-  const visibilityWidth = Math.max(isPrimaryBackgroundPlate ? CANVAS_WIDTH * 1.6 : 440, Number(prop.width) || 0);
+  const visibilityWidth = Math.max(440, Number(prop.width) || 0);
   if (!isHorizontallyVisible(prop.x - visibilityWidth / 2, visibilityWidth, cameraX)) return;
 
   ctx.save();
@@ -2622,10 +2619,6 @@ export function drawStoryPropFrame(ctx, prop, cameraX, now, requestedDepth = nul
     return;
   }
   if (isLostBridgeRavineSpecialRendererProp(prop)) {
-    ctx.restore();
-    return;
-  }
-  if (isDesertEntryRebuildBackgroundPlateProp(prop)) {
     ctx.restore();
     return;
   }
@@ -4239,20 +4232,13 @@ export function drawDesertJourneyScenePanelsFrame(ctx, current, cameraX, now, de
 export function drawDesertJourneySceneMasksFrame(ctx, current, cameraX, now, deps) {
   const {
     CANVAS_WIDTH,
-    DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_SEAM_MASKS,
     getDesertJourneyTransitionMasksForViewport,
-    isHorizontallyVisible,
   } = deps;
-  const routeMasks = getDesertJourneyTransitionMasksForViewport(cameraX, CANVAS_WIDTH, 220);
-  const plateMasks = DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_SEAM_MASKS.filter(mask => (
-    isHorizontallyVisible(mask.worldX - mask.width / 2, mask.width, cameraX, 220)
-  ));
-  const masks = [...routeMasks, ...plateMasks];
+  const masks = getDesertJourneyTransitionMasksForViewport(cameraX, CANVAS_WIDTH, 220);
   const drawnMasks = masks.filter(mask => drawDesertJourneyTransitionMaskFrame(ctx, mask, cameraX, now, deps));
 
   if (current.renderStats) {
     current.renderStats.desertJourneyTransitionMasks = drawnMasks.map(mask => mask.mask);
-    current.renderStats.desertEntryPrimaryBackgroundPlateSeamMasks = plateMasks.map(mask => mask.id);
   }
 
   return drawnMasks.length > 0;
