@@ -3753,6 +3753,7 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
   const {
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
+    clamp,
     desertBackgroundAssetsRef,
     drawDesertBackgroundLayer,
     getSectionBackgroundAssets,
@@ -3791,6 +3792,30 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
     { ...layerOptions, parallax: 0.14, alpha: 1 },
   );
   drawDesertBackgroundLayer(ctx, assets, 'midNecropolisRuins', fullFrame, { ...layerOptions, parallax: 0.28, alpha: 1 });
+
+  // Placed Sphinx landmark: a single non-tiling monument grounded at the
+  // necropolis floor, scrolling at mid parallax so the player approaches and
+  // passes it. Position fraction, scale and base Y are dev-tunable.
+  const sphinxRegion = assets.atlas?.regions?.desertSphinx;
+  const sphinxImage = sphinxRegion?.image ? assets.images?.[sphinxRegion.image] : null;
+  if (sphinxImage && sphinxRegion && typeof clamp === 'function') {
+    const SPHINX_SECTION_FRACTION = 0.32; // where along desert-entry it sits
+    const SPHINX_PARALLAX = 0.42;
+    const SPHINX_HEIGHT = 200;
+    const SPHINX_BASE_Y = 568;            // screen Y of the Sphinx base (ground line)
+    const sectionWidth = Math.max(1, section.end - section.start);
+    const localAnchor = SPHINX_SECTION_FRACTION * CANVAS_WIDTH;
+    const sectionProgress = clamp((cameraX - section.start) / Math.max(1, sectionWidth - CANVAS_WIDTH), 0, 1);
+    const sphinxX = localAnchor - sectionProgress * CANVAS_WIDTH * SPHINX_PARALLAX;
+    const sphinxWidth = SPHINX_HEIGHT * (sphinxRegion.w / sphinxRegion.h);
+    if (sphinxX > -sphinxWidth && sphinxX < CANVAS_WIDTH + sphinxWidth) {
+      ctx.drawImage(
+        sphinxImage,
+        sphinxRegion.x, sphinxRegion.y, sphinxRegion.w, sphinxRegion.h,
+        Math.round(sphinxX), SPHINX_BASE_Y - SPHINX_HEIGHT, Math.round(sphinxWidth), SPHINX_HEIGHT,
+      );
+    }
+  }
   return true;
 }
 
