@@ -2,7 +2,11 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-const expeditionModeSource = readFileSync(new URL('../ExpeditionMode.jsx', import.meta.url), 'utf8');
+const expeditionModeSource = [
+  '../expeditionDigData.js',
+  '../expeditionDigLogic.js',
+  '../ExpeditionMode.jsx',
+].map((p) => readFileSync(new URL(p, import.meta.url), 'utf8')).join('\n');
 const expeditionJourneySource = readFileSync(new URL('../ExpeditionJourney.jsx', import.meta.url), 'utf8');
 const journeyLevelDataSource = readFileSync(new URL('../expedition-journey/journeyLevelData.js', import.meta.url), 'utf8');
 

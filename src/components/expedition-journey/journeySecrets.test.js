@@ -93,7 +93,11 @@ const journeyPlacementOverridesSource = readFileSync(new URL('./journeyPlacement
 const journeyTrapsSource = readFileSync(new URL('./journeyTraps.js', import.meta.url), 'utf8');
 const expeditionStagesSource = readFileSync(new URL('../expedition/expeditionStages.js', import.meta.url), 'utf8');
 const devToolsSource = readFileSync(new URL('../DevTools.jsx', import.meta.url), 'utf8');
-const expeditionModeSource = readFileSync(new URL('../ExpeditionMode.jsx', import.meta.url), 'utf8');
+const expeditionModeSource = [
+  '../expeditionDigData.js',
+  '../expeditionDigLogic.js',
+  '../ExpeditionMode.jsx',
+].map((p) => readFileSync(new URL(p, import.meta.url), 'utf8')).join('\n');
 const menuSource = readFileSync(new URL('../Menu.jsx', import.meta.url), 'utf8');
 const appSource = readFileSync(new URL('../../App.jsx', import.meta.url), 'utf8');
 const indexCssSource = [

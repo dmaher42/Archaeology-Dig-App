@@ -164,7 +164,11 @@ test('Rome gameplay surfaces and route gates use Rome and China environment pack
     'romanSteamBurst',
   );
 
-  const modeSource = await readFile(path.join(repoRoot, 'src', 'components', 'ExpeditionMode.jsx'), 'utf8');
+  const modeSource = (await Promise.all([
+    'expeditionDigData.js',
+    'expeditionDigLogic.js',
+    'ExpeditionMode.jsx',
+  ].map((file) => readFile(path.join(repoRoot, 'src', 'components', file), 'utf8')))).join('\n');
   assert.match(modeSource, /journeyEnvironmentPackId:\s*'rome-section-one'/);
   assert.match(modeSource, /routeMusicCue:\s*'bamboo-forest'/);
   assert.match(modeSource, /routeMusicCue:\s*'romanRoad'/);
