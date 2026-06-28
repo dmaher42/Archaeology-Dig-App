@@ -3779,8 +3779,11 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
   );
   if (!skyDrawn) return false;
 
-  // Cliffs drawn first as the far backdrop (slowest, tiled).
-  drawDesertBackgroundLayer(ctx, assets, 'distantCliffs', fullFrame, { ...layerOptions, parallax: T.distantCliffs.parallax, alpha: T.distantCliffs.alpha });
+  // Cliffs drawn first as the far backdrop (slowest, tiled). Height is
+  // base-anchored to the canvas bottom so raising it lifts the peaks while the
+  // base stays pinned behind the ground layers.
+  const cliffsDest = { y: CANVAS_HEIGHT - T.distantCliffs.height, height: T.distantCliffs.height };
+  drawDesertBackgroundLayer(ctx, assets, 'distantCliffs', cliffsDest, { ...layerOptions, parallax: T.distantCliffs.parallax, alpha: T.distantCliffs.alpha });
 
   // Imposing pyramids drawn ONCE (non-tiling, world-anchored) so the
   // distinctive shapes never repeat as the player scrolls. Grounded in the art
