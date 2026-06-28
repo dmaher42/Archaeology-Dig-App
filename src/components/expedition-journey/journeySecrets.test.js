@@ -4166,10 +4166,10 @@ test('Egypt chamber entry triggers render as configurable premium doors outside 
   assert.match(chamberDoorVisuals, /Inspect Door|E Enter/);
 
   const drawStart = journeyComponentSource.indexOf('const draw = useCallback');
-  const drawEnd = journeyComponentSource.indexOf('const startOpeningCinematic = useCallback', drawStart);
   assert.notEqual(drawStart, -1, 'draw should exist');
-  assert.notEqual(drawEnd, -1, 'draw should end before startOpeningCinematic');
-  const drawSource = journeyComponentSource.slice(drawStart, drawEnd);
+  // draw now lives in useJourneyDraw.js; bound its source by the concatenated-source file marker.
+  const drawBoundary = journeyComponentSource.indexOf('journey source boundary', drawStart);
+  const drawSource = journeyComponentSource.slice(drawStart, drawBoundary === -1 ? undefined : drawBoundary);
   assert.match(drawSource, /CHAMBER_DOOR_VISUALS[\s\S]*?resolveChamberEntryTrigger\(door\)[\s\S]*?drawPremiumEgyptianChamberDoor/);
   assert.match(drawSource, /drawPremiumEgyptianChamberDoor/);
   assert.match(journeyComponentSource, /CHAMBER_DOOR_VISUALS_BY_ID\['mummification-chamber-entry-door'\]/);
