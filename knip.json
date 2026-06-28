@@ -1,0 +1,22 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "src/main.jsx",
+    "src/trailer/index.jsx",
+    "src/**/*.test.{js,jsx,mjs}",
+    "src/**/*.test-utils.mjs",
+    "scripts/**/*.{js,mjs,cjs}"
+  ],
+  "project": [
+    "src/**/*.{js,jsx,mjs}",
+    "scripts/**/*.{js,mjs,cjs}"
+  ],
+  "ignore": [
+    "src/**/*.generated.js",
+    "scratch/**",
+    "public/**"
+  ],
+  "ignoreDependencies": [
+    "canvas"
+  ]
+}
