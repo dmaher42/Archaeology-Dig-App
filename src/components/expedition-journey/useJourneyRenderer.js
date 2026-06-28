@@ -3779,9 +3779,17 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
 
   // Cliffs drawn first as the far backdrop (slowest parallax); the imposing
   // pyramids draw on top and a touch faster so they dominate the frame without
-  // inverted parallax — a deliberate oversized-grandeur composition.
+  // inverted parallax — a deliberate oversized-grandeur composition. The
+  // pyramids are drawn oversized (1.2x canvas height, top-anchored) so their
+  // bases sink below the ground line and behind the ruins instead of floating.
   drawDesertBackgroundLayer(ctx, assets, 'distantCliffs', fullFrame, { ...layerOptions, parallax: 0.055, alpha: 1 });
-  drawDesertBackgroundLayer(ctx, assets, 'farPyramids', fullFrame, { ...layerOptions, parallax: 0.14, alpha: 1 });
+  drawDesertBackgroundLayer(
+    ctx,
+    assets,
+    'farPyramids',
+    { y: 0, height: Math.round(CANVAS_HEIGHT * 1.2) },
+    { ...layerOptions, parallax: 0.14, alpha: 1 },
+  );
   drawDesertBackgroundLayer(ctx, assets, 'midNecropolisRuins', fullFrame, { ...layerOptions, parallax: 0.28, alpha: 1 });
   return true;
 }
