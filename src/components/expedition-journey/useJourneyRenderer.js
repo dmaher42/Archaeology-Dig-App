@@ -3875,6 +3875,18 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
     { canvasWidth: CANVAS_WIDTH, cameraX, parallax: 1, alpha: 1 },
   );
 
+  // Soft contact shadow where the ruins meet the ground: grounds the
+  // background onto the path and softens the boundary so it stops reading as a
+  // hard ledge -- subtle, no clutter.
+  ctx.save();
+  const contactShadow = ctx.createLinearGradient(0, 512, 0, 574);
+  contactShadow.addColorStop(0, 'rgba(28, 17, 9, 0)');
+  contactShadow.addColorStop(0.5, 'rgba(28, 17, 9, 0.3)');
+  contactShadow.addColorStop(1, 'rgba(28, 17, 9, 0)');
+  ctx.fillStyle = contactShadow;
+  ctx.fillRect(0, 512, CANVAS_WIDTH, 62);
+  ctx.restore();
+
   if (drawn && stateRef.current.renderStats) {
     stateRef.current.renderStats.desertEntryGroundLaneActive = true;
     stateRef.current.renderStats.desertEntryGroundLaneParallax = 1;
