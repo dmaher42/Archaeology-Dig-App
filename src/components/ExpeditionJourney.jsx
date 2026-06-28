@@ -101,6 +101,7 @@ import { useJourneyPlacementEditor } from './expedition-journey/useJourneyPlacem
 import { useJourneySimulation } from './expedition-journey/useJourneySimulation.js';
 import { useJourneyDraw } from './expedition-journey/useJourneyDraw.js';
 import { useJourneySnapshot } from './expedition-journey/useJourneySnapshot.js';
+import DesertLayerTuningPanel from './expedition-journey/DesertLayerTuningPanel.jsx';
 export { JourneyControlsReference } from './expedition-journey/journeyControlsReference.jsx';
 import {
   ARRIVAL_THRESHOLD_ASSET_VERSION,
@@ -7982,6 +7983,8 @@ export default function ExpeditionJourney({
                 ))}
               </div>
             )}
+
+            {import.meta.env.DEV && <DesertLayerTuningPanel />}
 
             {import.meta.env.DEV && propEditorUi.enabled && (
               <>

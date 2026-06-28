@@ -53,6 +53,7 @@ import {
 } from './journeyOpeningScenes.js';
 import journeyPlacementOverrides from './journeyPlacementOverrides.generated.js';
 import { journeyComponentSource } from './journeySourceText.test-utils.mjs';
+import { DESERT_LAYER_TUNING_DEFAULTS } from './desertLayerTuning.js';
 
 const source = readFileSync(new URL('./journeyLevelData.js', import.meta.url), 'utf8');
 const journeyUtilsSource = readFileSync(new URL('./journeyUtils.js', import.meta.url), 'utf8');
@@ -1218,11 +1219,12 @@ test('desert entry ground collision uses the integrated painted route instead of
   assert.doesNotMatch(journeyUtilsSource, /x:\s*44,/);
   assert.match(journeyComponentSource, /ROUTE_GROUND_VISUAL_MODE = 'desert-entry-painted-background-route-v1'/);
   assert.match(journeyComponentSource, /ROUTE_GROUND_HAZE_FIX_VERSION = 'necropolis-route-ground-world-locked-2026-06-25'/);
-  assert.match(useJourneyRendererSource, /DESERT_GROUND_BACKING_DEST_Y = 600/);
-  assert.match(useJourneyRendererSource, /DESERT_GROUND_BACKING_DEST_HEIGHT = 124/);
-  assert.match(useJourneyRendererSource, /DESERT_GROUND_BACKING_PARALLAX = 0\.98/);
-  assert.match(useJourneyRendererSource, /DESERT_GROUND_LANE_DEST_Y = 520/);
-  assert.match(useJourneyRendererSource, /DESERT_GROUND_LANE_DEST_HEIGHT = 105/);
+  // Backing/lane geometry now lives in the dev-tunable store; defaults hold the look.
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundBacking.y, 600);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundBacking.height, 124);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundBacking.parallax, 0.98);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundLane.y, 545);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundLane.height, 105);
   assert.match(useJourneyRendererSource, /desertEntryCausewayVisualMode\s*=\s*ROUTE_GROUND_VISUAL_MODE/);
   assert.match(useJourneyRendererSource, /desertEntryGroundBodyFill\s*=\s*'painted-into-background-no-separate-floor-strip'/);
   assert.doesNotMatch(journeyComponentSource, /const drawHeight = 96;\s*const drawY = platform\.y - 42;/);
@@ -5162,11 +5164,16 @@ test('Desert Entry old active panorama prop no longer owns the rebuild backgroun
     /runtimeMode !== 'layered-necropolis-playable-route'/,
     'Desert Entry background should be owned by the layered atlas path, not the old panorama prop path',
   );
-  assert.match(useJourneyRendererSource, /'skyLight'[\s\S]*?parallax:\s*0\.012/);
-  assert.match(useJourneyRendererSource, /'farPyramids'[\s\S]*?parallax:\s*0\.055,\s*alpha:\s*1/);
-  assert.match(useJourneyRendererSource, /'distantCliffs'[\s\S]*?parallax:\s*0\.14,\s*alpha:\s*1/);
-  assert.match(useJourneyRendererSource, /'midNecropolisRuins'[\s\S]*?parallax:\s*0\.28,\s*alpha:\s*1/);
-  assert.match(useJourneyRendererSource, /const DESERT_GROUND_BACKING_ALPHA = 1;/);
+  // Layer composition values now live in the dev-tunable store (desertLayerTuning);
+  // the renderer wires from it and the defaults preserve the established look.
+  assert.match(useJourneyRendererSource, /'skyLight'[\s\S]*?parallax: T\.skyLight\.parallax/);
+  assert.match(useJourneyRendererSource, /'distantCliffs'[\s\S]*?parallax: T\.distantCliffs\.parallax/);
+  assert.match(useJourneyRendererSource, /'midNecropolisRuins'[\s\S]*?parallax: T\.midNecropolisRuins\.parallax/);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.skyLight.parallax, 0.012);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.distantCliffs.parallax, 0.055);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.farPyramids.parallax, 0.14);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.midNecropolisRuins.parallax, 0.28);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundBacking.alpha, 1);
   assert.doesNotMatch(useJourneyRendererSource, /'skyPlate'/);
   assert.ok(
     !journeyPlacementOverrides.props.some((prop) => (

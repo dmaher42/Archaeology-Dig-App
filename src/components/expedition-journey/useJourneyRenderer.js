@@ -1,3 +1,5 @@
+import { DESERT_LAYER_TUNING } from './desertLayerTuning.js';
+
 export function drawOpeningSphinxDialogueFrame(ctx, encounter, screenX, screenY, alpha, deps) {
   const {
     CANVAS_HEIGHT,
@@ -3509,7 +3511,6 @@ export function drawSectionParallaxForegroundFrame(ctx, section, cameraX, deps) 
 
 export function drawDesertForegroundAtmosphereFrame(ctx, section, cameraX, deps) {
   const {
-    CANVAS_HEIGHT,
     CANVAS_WIDTH,
     backgroundPackId,
     desertBackgroundAssetsRef,
@@ -3567,15 +3568,15 @@ export function drawDesertForegroundAtmosphereFrame(ctx, section, cameraX, deps)
       ctx,
       assets,
       'foregroundRubble',
-      { y: CANVAS_HEIGHT - 150, height: 150 },
-      { ...layerOptions, parallax: 1.0, alpha: 1 },
+      { y: DESERT_LAYER_TUNING.foregroundRubble.y, height: DESERT_LAYER_TUNING.foregroundRubble.height },
+      { ...layerOptions, parallax: DESERT_LAYER_TUNING.foregroundRubble.parallax, alpha: DESERT_LAYER_TUNING.foregroundRubble.alpha },
     ),
     drawDesertBackgroundLayer(
       ctx,
       assets,
       'foregroundDepth',
-      { y: CANVAS_HEIGHT - 46, height: 46 },
-      { ...layerOptions, parallax: 1.08, alpha: 0.2 },
+      { y: DESERT_LAYER_TUNING.foregroundDepth.y, height: DESERT_LAYER_TUNING.foregroundDepth.height },
+      { ...layerOptions, parallax: DESERT_LAYER_TUNING.foregroundDepth.parallax, alpha: DESERT_LAYER_TUNING.foregroundDepth.alpha },
     ),
   ];
   return foregroundDrawn.some(Boolean);
@@ -3766,6 +3767,7 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
     return false;
   }
 
+  const T = DESERT_LAYER_TUNING;
   const layerOptions = { canvasWidth: CANVAS_WIDTH, cameraX };
   const fullFrame = { y: 0, height: CANVAS_HEIGHT };
   const skyDrawn = drawDesertBackgroundLayer(
@@ -3773,12 +3775,12 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
     assets,
     'skyLight',
     fullFrame,
-    { ...layerOptions, parallax: 0.012, alpha: 1 },
+    { ...layerOptions, parallax: T.skyLight.parallax, alpha: T.skyLight.alpha },
   );
   if (!skyDrawn) return false;
 
   // Cliffs drawn first as the far backdrop (slowest, tiled).
-  drawDesertBackgroundLayer(ctx, assets, 'distantCliffs', fullFrame, { ...layerOptions, parallax: 0.055, alpha: 1 });
+  drawDesertBackgroundLayer(ctx, assets, 'distantCliffs', fullFrame, { ...layerOptions, parallax: T.distantCliffs.parallax, alpha: T.distantCliffs.alpha });
 
   // Imposing pyramids drawn ONCE (non-tiling, world-anchored) so the
   // distinctive shapes never repeat as the player scrolls. Grounded in the art
@@ -3788,10 +3790,10 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
   const pyrRegion = assets.atlas?.regions?.farPyramids;
   const pyrImage = pyrRegion?.image ? assets.images?.[pyrRegion.image] : null;
   if (pyrImage && pyrRegion) {
-    const PYR_SECTION_FRACTION = 0.5; // anchored mid-section
-    const PYR_PARALLAX = 0.14;
-    const PYR_HEIGHT = 440;
-    const PYR_BASE_Y = 600;           // screen Y of the pyramid bases (ground line)
+    const PYR_SECTION_FRACTION = T.farPyramids.sectionFraction; // anchored mid-section
+    const PYR_PARALLAX = T.farPyramids.parallax;
+    const PYR_HEIGHT = T.farPyramids.height;
+    const PYR_BASE_Y = T.farPyramids.baseY;           // screen Y of the pyramid bases (ground line)
     const sectionWidth = Math.max(1, section.end - section.start);
     const pyrWorldX = section.start + sectionWidth * PYR_SECTION_FRACTION;
     const pyrWidth = PYR_HEIGHT * (pyrRegion.w / pyrRegion.h);
@@ -3803,7 +3805,7 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
     );
   }
 
-  drawDesertBackgroundLayer(ctx, assets, 'midNecropolisRuins', fullFrame, { ...layerOptions, parallax: 0.28, alpha: 1 });
+  drawDesertBackgroundLayer(ctx, assets, 'midNecropolisRuins', fullFrame, { ...layerOptions, parallax: T.midNecropolisRuins.parallax, alpha: T.midNecropolisRuins.alpha });
 
   // Placed Sphinx landmark: a single non-tiling monument grounded at the
   // necropolis floor, scrolling at mid parallax so the player approaches and
@@ -3811,10 +3813,10 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
   const sphinxRegion = assets.atlas?.regions?.desertSphinx;
   const sphinxImage = sphinxRegion?.image ? assets.images?.[sphinxRegion.image] : null;
   if (sphinxImage && sphinxRegion) {
-    const SPHINX_SECTION_FRACTION = 0.32; // where along desert-entry it is anchored
-    const SPHINX_PARALLAX = 0.8;          // 1 = locked to the ground, lower = more distant
-    const SPHINX_HEIGHT = 200;
-    const SPHINX_BASE_Y = 568;            // screen Y of the Sphinx base (ground line)
+    const SPHINX_SECTION_FRACTION = T.desertSphinx.sectionFraction; // where along desert-entry it is anchored
+    const SPHINX_PARALLAX = T.desertSphinx.parallax;          // 1 = locked to the ground, lower = more distant
+    const SPHINX_HEIGHT = T.desertSphinx.height;
+    const SPHINX_BASE_Y = T.desertSphinx.baseY;            // screen Y of the Sphinx base (ground line)
     const sectionWidth = Math.max(1, section.end - section.start);
     const sphinxWorldX = section.start + sectionWidth * SPHINX_SECTION_FRACTION;
     const sphinxWidth = SPHINX_HEIGHT * (sphinxRegion.w / sphinxRegion.h);
@@ -3834,13 +3836,8 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
 
 // World-locked, 1:1 scrolling ground lane for desert-entry. A near-locked backing
 // layer sits below it as visual-only land mass so the playable path no longer reads
-// as a floating ledge. Collision remains on the stable world floor.
-const DESERT_GROUND_BACKING_DEST_Y = 600;
-const DESERT_GROUND_BACKING_DEST_HEIGHT = 124;
-const DESERT_GROUND_BACKING_PARALLAX = 0.98;
-const DESERT_GROUND_BACKING_ALPHA = 1;
-const DESERT_GROUND_LANE_DEST_Y = 545;
-const DESERT_GROUND_LANE_DEST_HEIGHT = 105;
+// as a floating ledge. Collision remains on the stable world floor. The backing and
+// lane geometry are dev-tunable via DESERT_LAYER_TUNING (groundBacking / groundLane).
 
 export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
   const {
@@ -3854,16 +3851,17 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
   const assets = getSectionBackgroundAssets(desertBackgroundAssetsRef.current, 'desert-entry');
   if (!assets?.loaded) return false;
 
+  const T = DESERT_LAYER_TUNING;
   const backingDrawn = drawDesertBackgroundLayer(
     ctx,
     assets,
     'groundBacking',
-    { y: DESERT_GROUND_BACKING_DEST_Y, height: DESERT_GROUND_BACKING_DEST_HEIGHT },
+    { y: T.groundBacking.y, height: T.groundBacking.height },
     {
       canvasWidth: CANVAS_WIDTH,
       cameraX,
-      parallax: DESERT_GROUND_BACKING_PARALLAX,
-      alpha: DESERT_GROUND_BACKING_ALPHA,
+      parallax: T.groundBacking.parallax,
+      alpha: T.groundBacking.alpha,
     },
   );
 
@@ -3871,8 +3869,8 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
     ctx,
     assets,
     'groundLane',
-    { y: DESERT_GROUND_LANE_DEST_Y, height: DESERT_GROUND_LANE_DEST_HEIGHT },
-    { canvasWidth: CANVAS_WIDTH, cameraX, parallax: 1, alpha: 1 },
+    { y: T.groundLane.y, height: T.groundLane.height },
+    { canvasWidth: CANVAS_WIDTH, cameraX, parallax: T.groundLane.parallax, alpha: T.groundLane.alpha },
   );
 
   // Soft contact shadow where the ruins meet the ground: grounds the
@@ -3889,11 +3887,11 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
 
   if (drawn && stateRef.current.renderStats) {
     stateRef.current.renderStats.desertEntryGroundLaneActive = true;
-    stateRef.current.renderStats.desertEntryGroundLaneParallax = 1;
+    stateRef.current.renderStats.desertEntryGroundLaneParallax = DESERT_LAYER_TUNING.groundLane.parallax;
   }
   if (backingDrawn && stateRef.current.renderStats) {
     stateRef.current.renderStats.desertEntryGroundBackingActive = true;
-    stateRef.current.renderStats.desertEntryGroundBackingParallax = DESERT_GROUND_BACKING_PARALLAX;
+    stateRef.current.renderStats.desertEntryGroundBackingParallax = DESERT_LAYER_TUNING.groundBacking.parallax;
   }
   return drawn || backingDrawn;
 }
