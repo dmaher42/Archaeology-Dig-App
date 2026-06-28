@@ -3841,11 +3841,6 @@ const DESERT_GROUND_BACKING_PARALLAX = 0.98;
 const DESERT_GROUND_BACKING_ALPHA = 1;
 const DESERT_GROUND_LANE_DEST_Y = 545;
 const DESERT_GROUND_LANE_DEST_HEIGHT = 105;
-// Tileable scrub tufts drawn across the path/ruins boundary to break the hard
-// horizontal ledge line (foliage crossing the seam). Generic so tiling hides.
-const DESERT_BOUNDARY_SCRUB_DEST_Y = 470;
-const DESERT_BOUNDARY_SCRUB_DEST_HEIGHT = 150;
-const DESERT_BOUNDARY_SCRUB_PARALLAX = 0.92;
 
 export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
   const {
@@ -3878,16 +3873,6 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
     'groundLane',
     { y: DESERT_GROUND_LANE_DEST_Y, height: DESERT_GROUND_LANE_DEST_HEIGHT },
     { canvasWidth: CANVAS_WIDTH, cameraX, parallax: 1, alpha: 1 },
-  );
-
-  // Scrub tufts straddling the path/ruins boundary, drawn in front of the path
-  // top so foliage crosses the seam and dissolves the hard ledge line.
-  drawDesertBackgroundLayer(
-    ctx,
-    assets,
-    'boundaryScrub',
-    { y: DESERT_BOUNDARY_SCRUB_DEST_Y, height: DESERT_BOUNDARY_SCRUB_DEST_HEIGHT },
-    { canvasWidth: CANVAS_WIDTH, cameraX, parallax: DESERT_BOUNDARY_SCRUB_PARALLAX, alpha: 1 },
   );
 
   if (drawn && stateRef.current.renderStats) {
