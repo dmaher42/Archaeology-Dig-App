@@ -345,8 +345,7 @@ export const ROME_SCENE_PROPS = [
   }),
 ];
 
-// --- Story props (decorative scene objects) ---
-export const ROME_STORY_PROPS = ROME_SCENE_PROPS;
+// ROME_STORY_PROPS alias collapsed into ROME_SCENE_PROPS (the canonical definition).
 
 // --- Section atmospheres (full shape — matches Egypt's SECTION_ATMOSPHERES) ---
 export const ROME_SECTION_ATMOSPHERES = {

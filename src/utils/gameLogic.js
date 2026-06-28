@@ -6,7 +6,7 @@ export const {
   SCENARIOS,
   RED_HERRINGS,
   BUREAU_CASES = [],
-  BUREAU_COMPARISON_DATA = [],
+  BUREAU_COMPARISON_CHALLENGES = [],
   BUREAU_RESEARCH_FOCUS = {},
   getCategoryTitle,
   getArtifactEraLabel,

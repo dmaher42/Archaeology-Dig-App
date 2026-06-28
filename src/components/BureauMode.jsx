@@ -5,7 +5,7 @@ import confetti from 'canvas-confetti';
 import { 
   BUREAU_CASES,
   BUREAU_CIVILISATIONS,
-  BUREAU_COMPARISON_DATA,
+  BUREAU_COMPARISON_CHALLENGES,
   createInitialBureauEvidenceFilter,
   createNewBureauSession,
   getBureauCasesForSession,
@@ -316,9 +316,9 @@ export function BureauMode({ bureauState, setBureauState, onBackToMenu, audioCon
       if (solvedCount > 0 && solvedCount % 2 === 0 && solvedCount < totalCases) {
         // Find a comparison challenge that matches the last two civilisations solved
         const lastTwo = nextState.caseResults.slice(-2).map(r => r.correctCivilisation);
-        const comparison = BUREAU_COMPARISON_DATA.find(c => 
+        const comparison = BUREAU_COMPARISON_CHALLENGES.find(c => 
           c.civilisations.includes(lastTwo[0]) && c.civilisations.includes(lastTwo[1])
-        ) || BUREAU_COMPARISON_DATA[Math.floor(Math.random() * BUREAU_COMPARISON_DATA.length)];
+        ) || BUREAU_COMPARISON_CHALLENGES[Math.floor(Math.random() * BUREAU_COMPARISON_CHALLENGES.length)];
 
         return {
           ...nextState,
