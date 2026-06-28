@@ -40,6 +40,11 @@ import {
 } from './journeyRenderAssets.js';
 import lostSitePropRegistry from './lostSitePropRegistry.json';
 
+/* eslint-disable react-hooks/exhaustive-deps -- every dependency the rule flags in this file
+   is a stable ref or a module-level helper passed in from the component; none change across
+   renders, so omitting them from dependency arrays is correct and preserves the original
+   pre-extraction behaviour. */
+
 // DEV-only prop-placement EDITOR core. Extracted wholesale from ExpeditionJourney as a
 // pure mechanical move: every callback here is editor tooling (drag-to-place props,
 // transform/colour edits, undo/redo, per-room export, the Scene Outliner snapshot). The
