@@ -11,10 +11,10 @@
 
 export const DESERT_LAYER_TUNING_DEFAULTS = {
   skyLight: { parallax: 0.012, alpha: 1 },
-  distantCliffs: { parallax: 0.055, alpha: 1, height: 630 },
+  distantCliffs: { parallax: 0.055, alpha: 1, height: 900 },
   farPyramids: { sectionFraction: 0.5, parallax: 0.14, height: 440, baseY: 600 },
   midNecropolisRuins: { parallax: 0.28, alpha: 1 },
-  desertSphinx: { sectionFraction: 0.32, parallax: 0.8, height: 200, baseY: 568 },
+  desertSphinx: { sectionFraction: 0.21, parallax: 0.8, height: 368, baseY: 590 },
   groundBacking: { y: 600, height: 124, parallax: 0.98, alpha: 1 },
   groundLane: { y: 545, height: 105, parallax: 1, alpha: 1 },
   foregroundRubble: { y: 480, height: 150, parallax: 1.0, alpha: 1 },
@@ -46,7 +46,7 @@ export const DESERT_LAYER_TUNING_SCHEMA = [
   ] },
   { key: 'distantCliffs', label: 'Distant Cliffs', fields: [
     { k: 'parallax', min: 0, max: 0.4, step: 0.001 },
-    { k: 'height', min: 300, max: 900, step: 2 },
+    { k: 'height', min: 300, max: 1100, step: 2 },
     { k: 'alpha', label: 'Opacity', min: 0, max: 1, step: 0.01 },
   ] },
   { key: 'farPyramids', label: 'Pyramids (placed)', fields: [
