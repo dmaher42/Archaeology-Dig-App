@@ -58,7 +58,7 @@ export function ActivityMenu({
     `${import.meta.env.BASE_URL}assets/menu/mode_training_art.png`,
     `${import.meta.env.BASE_URL}assets/menu/mode_investigation_art.png`,
     `${import.meta.env.BASE_URL}assets/menu/mode_bureau_art.png`,
-    `${import.meta.env.BASE_URL}assets/menu/mode_investigation_art.png`,
+    `${import.meta.env.BASE_URL}assets/mummification-quest/backgrounds/mummification-lab-briefing.png`,
     `${import.meta.env.BASE_URL}assets/menu/mode_expedition_art.png`
   ];
 

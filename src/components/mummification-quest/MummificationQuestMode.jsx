@@ -1,12 +1,16 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
+  BookOpen,
   CheckCircle2,
   Clipboard,
   FileText,
   Printer,
+  RotateCcw,
+  Save,
   ShieldCheck,
+  Target,
 } from 'lucide-react';
 import {
   MUMMIFICATION_QUEST_ARCHAEOLOGIST_FIELDS,
@@ -16,6 +20,7 @@ import {
   MUMMIFICATION_QUEST_EVIDENCE_CATEGORIES,
   MUMMIFICATION_QUEST_FIELD_REPORT_FIELDS,
   MUMMIFICATION_QUEST_FOCUS,
+  MUMMIFICATION_QUEST_GLOSSARY,
   MUMMIFICATION_QUEST_MATERIALS,
   MUMMIFICATION_QUEST_OBSERVATION_FIELDS,
   MUMMIFICATION_QUEST_REPORT_SECTIONS,
@@ -23,13 +28,19 @@ import {
   MUMMIFICATION_QUEST_SAFETY_NOTE,
   MUMMIFICATION_QUEST_STAGE_IMAGES,
   MUMMIFICATION_QUEST_STAGES,
+  MUMMIFICATION_QUEST_STORAGE_KEY,
+  MUMMIFICATION_QUEST_SUCCESS_CRITERIA,
   MUMMIFICATION_QUEST_SYMBOL_BANK,
+  MUMMIFICATION_QUEST_TEACHER_NOTES,
   MUMMIFICATION_QUEST_TITLE,
 } from './mummificationQuestData';
 
 const makeBlankFieldState = (fields) => Object.fromEntries(fields.map((field) => [field.id, '']));
 
 const createEmptyQuestState = () => ({
+  labDetails: {
+    groupName: '',
+  },
   evidenceSort: Object.fromEntries(MUMMIFICATION_QUEST_EVIDENCE_CARDS.map((card) => [card.id, ''])),
   checklist: Object.fromEntries(MUMMIFICATION_QUEST_CHECKLIST.map((item) => [item.id, false])),
   observationLog: makeBlankFieldState(MUMMIFICATION_QUEST_OBSERVATION_FIELDS),
@@ -38,6 +49,69 @@ const createEmptyQuestState = () => ({
   fieldReport: makeBlankFieldState(MUMMIFICATION_QUEST_FIELD_REPORT_FIELDS),
 });
 
+const mergeTextSectionState = (defaults, saved = {}) => (
+  Object.fromEntries(Object.keys(defaults).map((key) => [key, String(saved[key] ?? '')]))
+);
+
+const mergeBooleanSectionState = (defaults, saved = {}) => (
+  Object.fromEntries(Object.keys(defaults).map((key) => [key, Boolean(saved[key])]))
+);
+
+const normalizeQuestState = (savedState = {}) => {
+  const defaults = createEmptyQuestState();
+
+  return {
+    labDetails: mergeTextSectionState(defaults.labDetails, savedState.labDetails),
+    evidenceSort: mergeTextSectionState(defaults.evidenceSort, savedState.evidenceSort),
+    checklist: mergeBooleanSectionState(defaults.checklist, savedState.checklist),
+    observationLog: mergeTextSectionState(defaults.observationLog, savedState.observationLog),
+    sarcophagusDesign: mergeTextSectionState(defaults.sarcophagusDesign, savedState.sarcophagusDesign),
+    futureArchaeologist: mergeTextSectionState(defaults.futureArchaeologist, savedState.futureArchaeologist),
+    fieldReport: mergeTextSectionState(defaults.fieldReport, savedState.fieldReport),
+  };
+};
+
+const loadSavedQuestState = () => {
+  if (typeof window === 'undefined') return createEmptyQuestState();
+
+  try {
+    const savedPayload = window.localStorage.getItem(MUMMIFICATION_QUEST_STORAGE_KEY);
+    if (!savedPayload) return createEmptyQuestState();
+    const parsedPayload = JSON.parse(savedPayload);
+    return normalizeQuestState(parsedPayload.questState || parsedPayload);
+  } catch (error) {
+    console.warn('Mummification Lab save could not be loaded', error);
+    return createEmptyQuestState();
+  }
+};
+
+const getInitialSaveStatus = () => {
+  if (typeof window === 'undefined') return 'Ready to save';
+  try {
+    return window.localStorage.getItem(MUMMIFICATION_QUEST_STORAGE_KEY) ? 'Saved' : 'Ready to save';
+  } catch {
+    return 'Save unavailable';
+  }
+};
+
+const buildSavePayload = (questState) => ({
+  version: 1,
+  updatedAt: new Date().toISOString(),
+  questState: normalizeQuestState(questState),
+});
+
+const saveQuestStateToStorage = (questState) => {
+  if (typeof window === 'undefined') return 'Ready to save';
+
+  try {
+    window.localStorage.setItem(MUMMIFICATION_QUEST_STORAGE_KEY, JSON.stringify(buildSavePayload(questState)));
+    return 'Saved';
+  } catch (error) {
+    console.warn('Mummification Lab autosave failed', error);
+    return 'Save unavailable';
+  }
+};
+
 const getCategoryLabel = (categoryId) => (
   MUMMIFICATION_QUEST_EVIDENCE_CATEGORIES.find((category) => category.id === categoryId)?.label || 'not sorted yet'
 );
@@ -45,6 +119,14 @@ const getCategoryLabel = (categoryId) => (
 const filledCount = (values) => Object.values(values).filter((value) => String(value).trim()).length;
 
 const formatOrBlank = (value) => String(value || '').trim() || 'Not recorded yet.';
+
+const formatChecklistSummary = (checklist) => {
+  const completedItems = MUMMIFICATION_QUEST_CHECKLIST
+    .filter((item) => checklist[item.id])
+    .map((item) => `- ${item.label}`);
+
+  return completedItems.length ? completedItems.join('\n') : 'No practical checklist items ticked yet.';
+};
 
 function TextField({ id, label, value, onChange, rows = 3, placeholder = '' }) {
   return (
@@ -73,7 +155,9 @@ function QuestImageCard({ asset, eyebrow = 'image', compact = false }) {
         <img
           src={currentImage}
           alt={asset.alt || asset.title}
-          onError={() => setImageIndex((index) => index + 1)}
+          loading="lazy"
+          decoding="async"
+          onError={() => setImageIndex((index) => Math.min(index + 1, candidates.length))}
         />
       ) : (
         <div className="mummification-image-placeholder">
@@ -92,8 +176,10 @@ function QuestImageCard({ asset, eyebrow = 'image', compact = false }) {
 
 export function MummificationQuestMode({ onBackToMenu }) {
   const [stageIndex, setStageIndex] = useState(0);
-  const [questState, setQuestState] = useState(() => createEmptyQuestState());
+  const [questState, setQuestState] = useState(loadSavedQuestState);
   const [copyStatus, setCopyStatus] = useState('');
+  const [saveStatus, setSaveStatus] = useState(getInitialSaveStatus);
+  const stagePanelRef = useRef(null);
 
   const currentStage = MUMMIFICATION_QUEST_STAGES[stageIndex];
   const sortedCount = Object.values(questState.evidenceSort).filter(Boolean).length;
@@ -102,45 +188,56 @@ export function MummificationQuestMode({ onBackToMenu }) {
   ).length;
   const checkedCount = Object.values(questState.checklist).filter(Boolean).length;
 
+  const commitQuestState = (nextQuestState) => {
+    setQuestState(nextQuestState);
+    setSaveStatus(saveQuestStateToStorage(nextQuestState));
+  };
+
   const updateSection = (section, key, value) => {
-    setQuestState((state) => ({
-      ...state,
+    commitQuestState({
+      ...questState,
       [section]: {
-        ...state[section],
+        ...questState[section],
         [key]: value,
       },
-    }));
+    });
   };
 
   const updateEvidenceSort = (cardId, categoryId) => {
-    setQuestState((state) => ({
-      ...state,
+    commitQuestState({
+      ...questState,
       evidenceSort: {
-        ...state.evidenceSort,
+        ...questState.evidenceSort,
         [cardId]: categoryId,
       },
-    }));
+    });
   };
 
   const toggleChecklist = (itemId) => {
-    setQuestState((state) => ({
-      ...state,
+    commitQuestState({
+      ...questState,
       checklist: {
-        ...state.checklist,
-        [itemId]: !state.checklist[itemId],
+        ...questState.checklist,
+        [itemId]: !questState.checklist[itemId],
       },
-    }));
+    });
   };
 
   const reportText = useMemo(() => {
+    const details = questState.labDetails;
     const observations = questState.observationLog;
     const design = questState.sarcophagusDesign;
     const future = questState.futureArchaeologist;
     const report = questState.fieldReport;
+    const completedChecklist = formatChecklistSummary(questState.checklist);
 
     const reportContent = {
       prediction: formatOrBlank(observations.prediction),
-      whatWeDid: formatOrBlank(report.whatWeDid),
+      whatWeDid: [
+        `Student summary: ${formatOrBlank(report.whatWeDid)}`,
+        'Orange practical checklist:',
+        completedChecklist,
+      ].join('\n'),
       changedOverTime: [
         `Day 0: ${formatOrBlank(observations.day0)}`,
         `Week 1: ${formatOrBlank(observations.week1)}`,
@@ -159,6 +256,7 @@ export function MummificationQuestMode({ onBackToMenu }) {
         `Design explanation: ${formatOrBlank(design.designExplanation)}`,
       ].join('\n'),
       futureInference: [
+        `Future archaeologist interpretation: ${formatOrBlank(future.evidenceSuggests)}`,
         `What the evidence suggests: ${formatOrBlank(future.evidenceSuggests)}`,
         `What could be misunderstood: ${formatOrBlank(future.couldBeMisunderstood)}`,
         `What we are still unsure about: ${formatOrBlank(future.stillUnsure)}`,
@@ -168,6 +266,9 @@ export function MummificationQuestMode({ onBackToMenu }) {
 
     return [
       MUMMIFICATION_QUEST_TITLE,
+      '',
+      `Group name: ${formatOrBlank(details.groupName)}`,
+      `Orange mummy name: ${formatOrBlank(design.mummyName)}`,
       '',
       ...MUMMIFICATION_QUEST_REPORT_SECTIONS.flatMap((section) => [
         section.title,
@@ -191,6 +292,15 @@ export function MummificationQuestMode({ onBackToMenu }) {
   const goToStage = (nextIndex) => {
     setStageIndex(Math.min(Math.max(nextIndex, 0), MUMMIFICATION_QUEST_STAGES.length - 1));
     setCopyStatus('');
+    if (typeof window === 'undefined') return;
+
+    window.requestAnimationFrame(() => {
+      const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+      stagePanelRef.current?.scrollIntoView({
+        block: 'start',
+        behavior: prefersReducedMotion ? 'auto' : 'smooth',
+      });
+    });
   };
 
   const handleCopyReport = async () => {
@@ -209,9 +319,82 @@ export function MummificationQuestMode({ onBackToMenu }) {
     window.print();
   };
 
+  const handleResetProgress = () => {
+    const shouldReset = typeof window === 'undefined' || window.confirm(
+      'Reset Mummification Lab progress for this device? This clears the saved group answers.',
+    );
+
+    if (!shouldReset) return;
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem(MUMMIFICATION_QUEST_STORAGE_KEY);
+    }
+    setQuestState(createEmptyQuestState());
+    setSaveStatus('Progress reset');
+    setCopyStatus('');
+  };
+
+  const renderGlossaryPanel = () => (
+    <section className="mummification-panel mummification-panel--wide mummification-glossary-panel">
+      <div className="mummification-panel-heading">
+        <BookOpen size={20} />
+        <h3>Student glossary</h3>
+      </div>
+      <dl className="mummification-glossary-list">
+        {MUMMIFICATION_QUEST_GLOSSARY.map((entry) => (
+          <div key={entry.term}>
+            <dt>{entry.term}</dt>
+            <dd>{entry.definition}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
+
+  const renderSuccessCriteriaPanel = () => (
+    <section className="mummification-panel mummification-panel--wide mummification-success-panel">
+      <div className="mummification-panel-heading">
+        <Target size={20} />
+        <h3>Success criteria</h3>
+      </div>
+      <ul className="mummification-check-list">
+        {MUMMIFICATION_QUEST_SUCCESS_CRITERIA.map((criterion) => (
+          <li key={criterion}>
+            <CheckCircle2 size={16} />
+            <span>{criterion}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+
+  const renderTeacherNotes = () => (
+    <details className="mummification-panel mummification-panel--wide mummification-teacher-notes">
+      <summary>
+        <ShieldCheck size={18} />
+        <span>Teacher Notes</span>
+      </summary>
+      <ul className="mummification-starter-list">
+        {MUMMIFICATION_QUEST_TEACHER_NOTES.map((note) => (
+          <li key={note}>{note}</li>
+        ))}
+      </ul>
+    </details>
+  );
+
   const renderBriefing = () => (
     <div className="mummification-stage-grid">
       <QuestImageCard key="briefing-image" asset={MUMMIFICATION_QUEST_STAGE_IMAGES.briefing} eyebrow="briefing" />
+      <section className="mummification-panel">
+        <h3>Group details</h3>
+        <TextField
+          id="mummification-group-name"
+          label="group name"
+          value={questState.labDetails.groupName}
+          rows={1}
+          placeholder="Example: Group 3 or Nile Table"
+          onChange={(value) => updateSection('labDetails', 'groupName', value)}
+        />
+      </section>
       <section className="mummification-panel">
         <h3>Learning focus</h3>
         <ul className="mummification-check-list">
@@ -236,6 +419,9 @@ export function MummificationQuestMode({ onBackToMenu }) {
           ))}
         </div>
       </section>
+      {renderSuccessCriteriaPanel()}
+      {renderGlossaryPanel()}
+      {renderTeacherNotes()}
     </div>
   );
 
@@ -480,6 +666,15 @@ export function MummificationQuestMode({ onBackToMenu }) {
             Mummify an orange, design a sarcophagus, and interpret evidence.
           </p>
         </div>
+        <div className="mummification-hero-actions">
+          <div className="mummification-save-indicator" aria-live="polite">
+            <Save size={16} />
+            <span>{saveStatus}</span>
+          </div>
+          <button type="button" className="mummification-reset-btn" onClick={handleResetProgress}>
+            <RotateCcw size={15} /> Reset Mummification Lab Progress
+          </button>
+        </div>
         <div className="mummification-hero-note">
           <ShieldCheck size={18} />
           <span>Year 7 friendly. Teacher-led practical.</span>
@@ -507,7 +702,7 @@ export function MummificationQuestMode({ onBackToMenu }) {
           })}
         </nav>
 
-        <article className="mummification-stage-panel">
+        <article ref={stagePanelRef} className="mummification-stage-panel">
           <div className="mummification-stage-header">
             <div>
               <div className="training-kicker">{currentStage.role}</div>

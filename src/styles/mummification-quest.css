@@ -7,6 +7,7 @@
 /* Mummification Lab classroom MVP */
 .mummification-quest-mode {
   align-items: stretch;
+  box-sizing: border-box;
   gap: clamp(1rem, 2vw, 1.5rem);
   min-height: 100%;
   padding: clamp(1rem, 2vw, 1.5rem);
@@ -22,9 +23,13 @@
 
 .mummification-quest-hero {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) minmax(12rem, auto);
   align-items: center;
   gap: 1rem;
+  border-color: rgba(168, 134, 97, 0.34);
+  background: linear-gradient(105deg, rgba(253, 248, 235, 0.97), rgba(236, 253, 245, 0.93));
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.24);
+  color: var(--text-ink);
   padding: clamp(1rem, 2vw, 1.35rem);
 }
 
@@ -46,12 +51,23 @@
   text-transform: uppercase;
 }
 
+.mummification-back-btn:hover,
+.mummification-back-btn:focus-visible,
+.mummification-reset-btn:hover,
+.mummification-reset-btn:focus-visible {
+  border-color: rgba(5, 150, 105, 0.45);
+  background: #fffaf0;
+  outline: none;
+}
+
 .mummification-quest-title-block h2 {
   color: var(--text-ink);
   font-family: 'Cinzel', serif;
   font-size: clamp(1.35rem, 3vw, 2.35rem);
   line-height: 1.05;
   margin: 0.15rem 0 0.25rem;
+  max-width: 52rem;
+  overflow-wrap: anywhere;
 }
 
 .mummification-quest-title-block p {
@@ -63,17 +79,59 @@
 
 .mummification-hero-note {
   display: inline-flex;
+  grid-column: 2 / 4;
   align-items: center;
   gap: 0.45rem;
-  max-width: 16rem;
+  justify-self: start;
+  max-width: 100%;
   border: 1px solid rgba(52, 211, 153, 0.35);
   border-radius: 8px;
-  background: rgba(52, 211, 153, 0.1);
+  background: rgba(236, 253, 245, 0.82);
   color: #14532d;
   font-size: 0.8rem;
   font-weight: 800;
   line-height: 1.25;
   padding: 0.65rem 0.75rem;
+}
+
+.mummification-hero-actions {
+  display: grid;
+  justify-items: end;
+  gap: 0.55rem;
+}
+
+.mummification-save-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid rgba(5, 150, 105, 0.26);
+  border-radius: 999px;
+  background: rgba(236, 253, 245, 0.86);
+  color: #065f46;
+  font-size: 0.78rem;
+  font-weight: 900;
+  padding: 0.42rem 0.65rem;
+}
+
+.mummification-reset-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  max-width: 15rem;
+  border: 1px solid rgba(41, 29, 17, 0.16);
+  border-radius: 6px;
+  background: rgba(255, 250, 240, 0.82);
+  color: var(--text-ink);
+  cursor: pointer;
+  font-family: 'Cinzel', serif;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 1.25;
+  padding: 0.5rem 0.65rem;
+  text-align: center;
+  text-transform: uppercase;
 }
 
 .mummification-quest-layout {
@@ -87,6 +145,10 @@
   align-self: start;
   display: grid;
   gap: 0.55rem;
+  position: sticky;
+  top: 0.75rem;
+  max-height: calc(100vh - 1.5rem);
+  overflow: auto;
   padding: 0.8rem;
 }
 
@@ -104,6 +166,19 @@
   font: inherit;
   padding: 0.65rem;
   text-align: left;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.mummification-stage-nav button:hover,
+.mummification-stage-nav button:focus-visible {
+  border-color: rgba(52, 211, 153, 0.45);
+  background: rgba(255, 255, 255, 0.72);
+  outline: none;
+  transform: translateX(2px);
 }
 
 .mummification-stage-nav button.is-active {
@@ -159,6 +234,7 @@
   font-family: 'Cinzel', serif;
   font-size: clamp(1.35rem, 2.5vw, 2rem);
   margin: 0.15rem 0 0.35rem;
+  overflow-wrap: anywhere;
 }
 
 .mummification-stage-header p {
@@ -210,6 +286,11 @@
   padding: 1rem;
 }
 
+.mummification-evidence-card,
+.mummification-panel {
+  min-width: 0;
+}
+
 .mummification-panel h3,
 .mummification-evidence-card h3,
 .mummification-category-card strong,
@@ -217,6 +298,17 @@
   color: var(--text-ink);
   font-family: 'Cinzel', serif;
   margin: 0 0 0.45rem;
+}
+
+.mummification-panel-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.75rem;
+}
+
+.mummification-panel-heading h3 {
+  margin: 0;
 }
 
 .mummification-panel p,
@@ -249,6 +341,11 @@
 
 .mummification-image-card img {
   object-fit: cover;
+  transition: transform 260ms ease;
+}
+
+.mummification-image-card:hover img {
+  transform: scale(1.015);
 }
 
 .mummification-image-card--compact img,
@@ -303,7 +400,9 @@
 }
 
 .mummification-panel--notice,
-.mummification-panel--safety {
+.mummification-panel--safety,
+.mummification-success-panel,
+.mummification-teacher-notes {
   border-color: rgba(52, 211, 153, 0.34);
   background-color: #ecfdf5;
 }
@@ -329,6 +428,68 @@
   flex: 0 0 auto;
   color: #059669;
   margin-top: 0.1rem;
+}
+
+.mummification-glossary-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0.7rem;
+  margin: 0;
+}
+
+.mummification-glossary-list div {
+  border-left: 3px solid rgba(5, 150, 105, 0.42);
+  padding-left: 0.65rem;
+}
+
+.mummification-glossary-list dt {
+  color: var(--text-ink);
+  font-family: 'Cinzel', serif;
+  font-size: 0.82rem;
+  font-weight: 900;
+  text-transform: lowercase;
+}
+
+.mummification-glossary-list dd {
+  color: var(--text-ink-muted);
+  line-height: 1.42;
+  margin: 0.2rem 0 0;
+}
+
+.mummification-teacher-notes {
+  padding: 0;
+}
+
+.mummification-teacher-notes summary {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--text-ink);
+  cursor: pointer;
+  font-family: 'Cinzel', serif;
+  font-weight: 900;
+  list-style: none;
+  padding: 1rem;
+}
+
+.mummification-teacher-notes summary::-webkit-details-marker {
+  display: none;
+}
+
+.mummification-teacher-notes summary::after {
+  content: '+';
+  margin-left: auto;
+  font-family: 'Courier Prime', monospace;
+  font-size: 1.25rem;
+}
+
+.mummification-teacher-notes[open] summary::after {
+  content: '-';
+}
+
+.mummification-teacher-notes .mummification-starter-list {
+  border-top: 1px solid rgba(5, 150, 105, 0.16);
+  padding: 0 1rem 1rem;
 }
 
 .mummification-prompt-stack {
@@ -398,6 +559,22 @@
   font-size: 0.75rem;
   font-weight: 800;
   padding: 0.45rem 0.65rem;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.mummification-choice-row button:hover,
+.mummification-choice-row button:focus-visible,
+.mummification-symbol-bank button:hover,
+.mummification-symbol-bank button:focus-visible {
+  border-color: rgba(5, 150, 105, 0.55);
+  background: rgba(236, 253, 245, 0.9);
+  color: #064e3b;
+  outline: none;
+  transform: translateY(-1px);
 }
 
 .mummification-choice-row button.is-selected {
@@ -464,6 +641,17 @@
   line-height: 1.45;
   padding: 0.75rem;
   resize: vertical;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease;
+}
+
+.mummification-field textarea:focus {
+  border-color: rgba(5, 150, 105, 0.7);
+  background: #fffaf0;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.16);
+  outline: none;
 }
 
 .mummification-report-preview pre {
@@ -503,7 +691,8 @@
 
 .mummification-stage-footer {
   justify-content: space-between;
-  padding-top: 0.25rem;
+  border-top: 1px solid rgba(244, 236, 225, 0.16);
+  padding-top: 0.75rem;
 }
 
 .mummification-stage-footer .btn,
@@ -528,8 +717,24 @@
     grid-template-columns: 1fr;
   }
 
+  .mummification-stage-nav {
+    position: static;
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    max-height: none;
+  }
+
   .mummification-hero-note {
+    grid-column: 1;
     max-width: none;
+  }
+
+  .mummification-hero-actions {
+    justify-items: stretch;
+  }
+
+  .mummification-save-indicator,
+  .mummification-reset-btn {
+    width: 100%;
   }
 }
 
@@ -544,5 +749,26 @@
 
   .mummification-stage-pill {
     justify-self: start;
+  }
+
+  .mummification-quest-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .mummification-back-btn,
+  .mummification-reset-btn,
+  .mummification-stage-footer .btn,
+  .mummification-report-actions .btn {
+    width: 100%;
+  }
+
+  .mummification-stage-footer,
+  .mummification-report-actions {
+    display: grid;
+  }
+
+  .mummification-card-grid,
+  .mummification-category-strip {
+    grid-template-columns: 1fr;
   }
 }

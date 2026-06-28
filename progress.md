@@ -4,6 +4,18 @@ Current source-of-truth note:
 - Future implementation should follow `docs/lost-site-expedition-production-bible.md`.
 - The production bible now defines implementation hierarchy, room pipelines, asset roles, and quality expectations.
 
+2026-06-28 Mummification Lab local save and classroom support pass:
+- Extended the existing `src/components/mummification-quest/` implementation; no duplicate app, no drawing canvas, no AI chat, and no Lost Site Expedition gameplay changes.
+- Added device-local autosave for group responses using `archaeologyDigApp:mummificationQuest:v1`, plus a visible saved indicator and Reset Mummification Lab Progress action.
+- Added the student glossary, success criteria panel, and collapsible Teacher Notes panel requested for the Year 7 classroom workflow.
+- Improved the generated Field Report so it compiles group name, mummy name, prediction, practical checklist, observations, sarcophagus design choices, future archaeologist interpretation, and final reflection.
+
+2026-06-28 Mummification Lab UI/UX polish pass:
+- Kept the polish scoped to the new classroom mode and main menu card; Lost Site Journey gameplay was not changed.
+- Updated the Mummification Lab menu card to use the generated lab briefing artwork instead of the generic investigation artwork.
+- Improved lab readability, responsive layout, image fallback cards, hover/focus affordances, and stage navigation behavior.
+- Fixed stage switching so moving between lab stages scrolls back to the current task instead of leaving students halfway down the previous screen.
+
 2026-06-28 Mummification Lab MVP field-and-asset pass:
 - Extended the existing feature-folder Mummification Lab rather than adding a duplicate root component or touching Lost Site Journey gameplay.
 - Updated Evidence Sort to use the requested categories: preservation, ritual/belief, archaeological evidence, and causes decay.

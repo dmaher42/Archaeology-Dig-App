@@ -1,9 +1,12 @@
 export const MUMMIFICATION_QUEST_TITLE = 'Mummification Lab: Orange Mummy Quest';
+export const MUMMIFICATION_QUEST_STORAGE_KEY = 'archaeologyDigApp:mummificationQuest:v1';
 
-const evidenceAsset = (fileName) => `/assets/mummification-quest/evidence-cards/${fileName}`;
-const backgroundAsset = (fileName) => `/assets/mummification-quest/backgrounds/${fileName}`;
-const practicalAsset = (fileName) => `/assets/mummification-quest/orange-practical/${fileName}`;
-const sarcophagusAsset = (fileName) => `/assets/mummification-quest/sarcophagus/${fileName}`;
+const PUBLIC_ASSET_BASE = `${import.meta.env?.BASE_URL || '/'}assets/mummification-quest`;
+
+const evidenceAsset = (fileName) => `${PUBLIC_ASSET_BASE}/evidence-cards/${fileName}`;
+const backgroundAsset = (fileName) => `${PUBLIC_ASSET_BASE}/backgrounds/${fileName}`;
+const practicalAsset = (fileName) => `${PUBLIC_ASSET_BASE}/orange-practical/${fileName}`;
+const sarcophagusAsset = (fileName) => `${PUBLIC_ASSET_BASE}/sarcophagus/${fileName}`;
 
 export const MUMMIFICATION_QUEST_FOCUS = [
   'preservation',
@@ -21,6 +24,61 @@ export const MUMMIFICATION_QUEST_RESPECT_NOTE =
 
 export const MUMMIFICATION_QUEST_SAFETY_NOTE =
   'Teacher safety note: teacher/adult handles cutting the orange. Follow school safety rules for cutting tools, salt or natron substitute, hygiene, allergies, storage, mould checks and disposal. The orange is never for eating.';
+
+export const MUMMIFICATION_QUEST_GLOSSARY = [
+  {
+    term: 'artefact',
+    definition: 'An object made, used or changed by people that can give clues about the past.',
+  },
+  {
+    term: 'preservation',
+    definition: 'Keeping something from decaying or changing too quickly.',
+  },
+  {
+    term: 'mummification',
+    definition: 'A process used in ancient Egypt to preserve a body for religious and afterlife beliefs.',
+  },
+  {
+    term: 'sarcophagus',
+    definition: 'A decorated coffin or stone case that could protect a mummy and show identity or beliefs.',
+  },
+  {
+    term: 'ritual',
+    definition: 'A repeated action or ceremony connected to beliefs, respect or community rules.',
+  },
+  {
+    term: 'afterlife',
+    definition: 'A belief that life continues in some form after death.',
+  },
+  {
+    term: 'evidence',
+    definition: 'A clue that helps support an explanation about the past.',
+  },
+  {
+    term: 'interpretation',
+    definition: 'An evidence-based explanation of what something might mean.',
+  },
+  {
+    term: 'contestability',
+    definition: 'The idea that people may disagree about the past when evidence is incomplete or can be read in more than one way.',
+  },
+];
+
+export const MUMMIFICATION_QUEST_SUCCESS_CRITERIA = [
+  'I can explain why Ancient Egyptians mummified bodies.',
+  'I can describe how the orange model shows preservation.',
+  'I can design a sarcophagus that shows identity, belief and protection.',
+  'I can explain what a future archaeologist might infer.',
+  'I can identify what could be misunderstood.',
+  'I can reflect on how my thinking changed.',
+];
+
+export const MUMMIFICATION_QUEST_TEACHER_NOTES = [
+  'adult handles cutting the orange',
+  'wash hands after the practical',
+  'dispose of mouldy oranges safely',
+  'use respectful language when discussing death and human remains',
+];
 
 export const MUMMIFICATION_QUEST_STAGE_IMAGES = {
   briefing: {

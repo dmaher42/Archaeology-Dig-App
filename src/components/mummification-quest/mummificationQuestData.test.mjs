@@ -7,6 +7,10 @@ import {
   MUMMIFICATION_QUEST_EVIDENCE_CARDS,
   MUMMIFICATION_QUEST_EVIDENCE_CATEGORIES,
   MUMMIFICATION_QUEST_OBSERVATION_FIELDS,
+  MUMMIFICATION_QUEST_GLOSSARY,
+  MUMMIFICATION_QUEST_STORAGE_KEY,
+  MUMMIFICATION_QUEST_SUCCESS_CRITERIA,
+  MUMMIFICATION_QUEST_TEACHER_NOTES,
   MUMMIFICATION_QUEST_REPORT_SECTIONS,
   MUMMIFICATION_QUEST_STAGE_IMAGES,
   MUMMIFICATION_QUEST_STAGES,
@@ -122,4 +126,47 @@ test('Available Mummification Lab images are wired from the feature asset folder
       `${primaryCandidate} should exist in public assets`,
     );
   }
+});
+
+test('Mummification Lab persistence uses the requested versioned localStorage key', () => {
+  assert.equal(MUMMIFICATION_QUEST_STORAGE_KEY, 'archaeologyDigApp:mummificationQuest:v1');
+});
+
+test('Mummification Lab support panels include glossary, success criteria and teacher notes', () => {
+  assert.deepEqual(
+    MUMMIFICATION_QUEST_GLOSSARY.map((entry) => entry.term),
+    [
+      'artefact',
+      'preservation',
+      'mummification',
+      'sarcophagus',
+      'ritual',
+      'afterlife',
+      'evidence',
+      'interpretation',
+      'contestability',
+    ],
+  );
+
+  assert.deepEqual(
+    MUMMIFICATION_QUEST_SUCCESS_CRITERIA,
+    [
+      'I can explain why Ancient Egyptians mummified bodies.',
+      'I can describe how the orange model shows preservation.',
+      'I can design a sarcophagus that shows identity, belief and protection.',
+      'I can explain what a future archaeologist might infer.',
+      'I can identify what could be misunderstood.',
+      'I can reflect on how my thinking changed.',
+    ],
+  );
+
+  assert.deepEqual(
+    MUMMIFICATION_QUEST_TEACHER_NOTES,
+    [
+      'adult handles cutting the orange',
+      'wash hands after the practical',
+      'dispose of mouldy oranges safely',
+      'use respectful language when discussing death and human remains',
+    ],
+  );
 });
