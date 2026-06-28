@@ -3777,19 +3777,32 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
   );
   if (!skyDrawn) return false;
 
-  // Cliffs drawn first as the far backdrop (slowest parallax); the imposing
-  // pyramids draw on top and a touch faster so they dominate the frame without
-  // inverted parallax — a deliberate oversized-grandeur composition. The
-  // pyramids are drawn oversized (1.2x canvas height, top-anchored) so their
-  // bases sink below the ground line and behind the ruins instead of floating.
+  // Cliffs drawn first as the far backdrop (slowest, tiled).
   drawDesertBackgroundLayer(ctx, assets, 'distantCliffs', fullFrame, { ...layerOptions, parallax: 0.055, alpha: 1 });
-  drawDesertBackgroundLayer(
-    ctx,
-    assets,
-    'farPyramids',
-    { y: 0, height: Math.round(CANVAS_HEIGHT * 1.2) },
-    { ...layerOptions, parallax: 0.14, alpha: 1 },
-  );
+
+  // Imposing pyramids drawn ONCE (non-tiling, world-anchored) so the
+  // distinctive shapes never repeat as the player scrolls. Grounded in the art
+  // (sand mounds at the bases), drawn at backdrop size with the bases sitting
+  // on the necropolis floor, and at low parallax so they stay pinned to the
+  // horizon. Position/size/base are dev-tunable.
+  const pyrRegion = assets.atlas?.regions?.farPyramids;
+  const pyrImage = pyrRegion?.image ? assets.images?.[pyrRegion.image] : null;
+  if (pyrImage && pyrRegion) {
+    const PYR_SECTION_FRACTION = 0.5; // anchored mid-section
+    const PYR_PARALLAX = 0.14;
+    const PYR_HEIGHT = 440;
+    const PYR_BASE_Y = 600;           // screen Y of the pyramid bases (ground line)
+    const sectionWidth = Math.max(1, section.end - section.start);
+    const pyrWorldX = section.start + sectionWidth * PYR_SECTION_FRACTION;
+    const pyrWidth = PYR_HEIGHT * (pyrRegion.w / pyrRegion.h);
+    const pyrX = (pyrWorldX - cameraX) * PYR_PARALLAX + CANVAS_WIDTH / 2 - pyrWidth / 2;
+    ctx.drawImage(
+      pyrImage,
+      pyrRegion.x, pyrRegion.y, pyrRegion.w, pyrRegion.h,
+      Math.round(pyrX), PYR_BASE_Y - PYR_HEIGHT, Math.round(pyrWidth), PYR_HEIGHT,
+    );
+  }
+
   drawDesertBackgroundLayer(ctx, assets, 'midNecropolisRuins', fullFrame, { ...layerOptions, parallax: 0.28, alpha: 1 });
 
   // Placed Sphinx landmark: a single non-tiling monument grounded at the
