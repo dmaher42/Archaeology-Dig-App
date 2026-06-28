@@ -200,11 +200,11 @@
 
 .mummification-panel,
 .mummification-evidence-card,
-.mummification-category-card {
+.mummification-category-card,
+.mummification-image-card {
   border: 1px solid rgba(41, 29, 17, 0.12);
   border-radius: 8px;
   background: var(--paper);
-  background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png");
   box-shadow: var(--shadow-dossier);
   color: var(--text-ink);
   padding: 1rem;
@@ -212,7 +212,8 @@
 
 .mummification-panel h3,
 .mummification-evidence-card h3,
-.mummification-category-card strong {
+.mummification-category-card strong,
+.mummification-image-card figcaption strong {
   color: var(--text-ink);
   font-family: 'Cinzel', serif;
   margin: 0 0 0.45rem;
@@ -220,10 +221,85 @@
 
 .mummification-panel p,
 .mummification-evidence-card p,
-.mummification-category-card span {
+.mummification-category-card span,
+.mummification-image-card figcaption span,
+.mummification-image-card figcaption em {
   color: var(--text-ink-muted);
   line-height: 1.5;
   margin: 0;
+}
+
+.mummification-panel--wide {
+  grid-column: 1 / -1;
+}
+
+.mummification-image-card {
+  display: grid;
+  gap: 0.65rem;
+  overflow: hidden;
+  padding: 0;
+}
+
+.mummification-image-card img,
+.mummification-image-placeholder {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  display: block;
+}
+
+.mummification-image-card img {
+  object-fit: cover;
+}
+
+.mummification-image-card--compact img,
+.mummification-image-card--compact .mummification-image-placeholder {
+  aspect-ratio: 16 / 9;
+}
+
+.mummification-image-placeholder {
+  display: grid;
+  place-content: center;
+  gap: 0.35rem;
+  min-height: 9rem;
+  background:
+    linear-gradient(135deg, rgba(168, 134, 97, 0.18), rgba(16, 185, 129, 0.12)),
+    repeating-linear-gradient(45deg, rgba(41, 29, 17, 0.08) 0 1px, transparent 1px 12px);
+  color: var(--text-ink);
+  padding: 1rem;
+  text-align: center;
+}
+
+.mummification-image-placeholder span {
+  color: #065f46;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mummification-image-placeholder strong {
+  font-family: 'Cinzel', serif;
+  font-size: 1.05rem;
+}
+
+.mummification-image-placeholder em {
+  color: var(--text-ink-muted);
+  font-size: 0.82rem;
+  font-style: normal;
+  line-height: 1.35;
+}
+
+.mummification-image-card figcaption {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0 1rem 1rem;
+}
+
+.mummification-image-card figcaption span {
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .mummification-panel--notice,
@@ -402,6 +478,15 @@
   margin: 0.75rem 0;
   padding: 0.85rem;
   white-space: pre-wrap;
+}
+
+.mummification-report-fields {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.mummification-panel .mummification-field {
+  color: var(--text-ink);
 }
 
 .mummification-report-title {

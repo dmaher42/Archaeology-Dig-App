@@ -4,6 +4,19 @@ Current source-of-truth note:
 - Future implementation should follow `docs/lost-site-expedition-production-bible.md`.
 - The production bible now defines implementation hierarchy, room pipelines, asset roles, and quality expectations.
 
+2026-06-28 Mummification Lab MVP field-and-asset pass:
+- Extended the existing feature-folder Mummification Lab rather than adding a duplicate root component or touching Lost Site Journey gameplay.
+- Updated Evidence Sort to use the requested categories: preservation, ritual/belief, archaeological evidence, and causes decay.
+- Added required observation, sarcophagus design, future archaeologist, and final report prompts, including "I predict the orange will change because..." and "My thinking changed because..."
+- Wired the four tracked evidence-card images from `public/assets/mummification-quest/evidence-cards/` and added placeholder fallback cards for missing background, orange-practical, sarcophagus, CT scan, and decay-condition images.
+- Verified focused lab tests, `npm.cmd run lint`, and `npm.cmd run build`.
+
+2026-06-28 Mummification Lab generated asset pass:
+- Generated the five previously missing classroom images with the built-in image generator and copied them into `public/assets/mummification-quest/`.
+- Added `backgrounds/mummification-lab-briefing.png`, `orange-practical/orange-practical-materials.png`, `evidence-cards/ct-scan.png`, `orange-practical/decay-conditions.png`, and `sarcophagus/sarcophagus-design-studio.png`.
+- Confirmed the saved images are classroom-friendly: orange model focus, no graphic human remains, no readable in-image labels, and consistent warm Egyptian classroom style.
+- Updated the lab data test so primary image candidates now have to exist in the project.
+
 2026-06-28 Mummification Lab classroom MVP:
 - Added a new main-menu classroom mode: Mummification Lab / Orange Mummy Quest.
 - The MVP is text/card based only, with no image generation, no canvas drawing, no new dependencies, and no changes to Lost Site Journey gameplay.

@@ -9,53 +9,42 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import {
+  MUMMIFICATION_QUEST_ARCHAEOLOGIST_FIELDS,
   MUMMIFICATION_QUEST_CHECKLIST,
+  MUMMIFICATION_QUEST_DESIGN_FIELDS,
   MUMMIFICATION_QUEST_EVIDENCE_CARDS,
   MUMMIFICATION_QUEST_EVIDENCE_CATEGORIES,
+  MUMMIFICATION_QUEST_FIELD_REPORT_FIELDS,
   MUMMIFICATION_QUEST_FOCUS,
+  MUMMIFICATION_QUEST_MATERIALS,
+  MUMMIFICATION_QUEST_OBSERVATION_FIELDS,
+  MUMMIFICATION_QUEST_REPORT_SECTIONS,
   MUMMIFICATION_QUEST_RESPECT_NOTE,
   MUMMIFICATION_QUEST_SAFETY_NOTE,
-  MUMMIFICATION_QUEST_SENTENCE_STARTERS,
+  MUMMIFICATION_QUEST_STAGE_IMAGES,
   MUMMIFICATION_QUEST_STAGES,
   MUMMIFICATION_QUEST_SYMBOL_BANK,
   MUMMIFICATION_QUEST_TITLE,
 } from './mummificationQuestData';
 
+const makeBlankFieldState = (fields) => Object.fromEntries(fields.map((field) => [field.id, '']));
+
 const createEmptyQuestState = () => ({
   evidenceSort: Object.fromEntries(MUMMIFICATION_QUEST_EVIDENCE_CARDS.map((card) => [card.id, ''])),
   checklist: Object.fromEntries(MUMMIFICATION_QUEST_CHECKLIST.map((item) => [item.id, false])),
-  observationLog: {
-    dateRange: '',
-    changes: '',
-    preservationClaim: '',
-    thinkingChanged: '',
-  },
-  sarcophagusDesign: {
-    ownerName: '',
-    colours: '',
-    symbols: '',
-    afterlifeBelief: '',
-    evidenceMessage: '',
-    possibleMisread: '',
-  },
-  futureArchaeologist: {
-    observedDesign: '',
-    evidenceNoticed: '',
-    interpretation: '',
-    alternative: '',
-    respectfulQuestion: '',
-  },
-  fieldReport: {
-    strongestEvidence: '',
-    finalThinkingChanged: '',
-  },
+  observationLog: makeBlankFieldState(MUMMIFICATION_QUEST_OBSERVATION_FIELDS),
+  sarcophagusDesign: makeBlankFieldState(MUMMIFICATION_QUEST_DESIGN_FIELDS),
+  futureArchaeologist: makeBlankFieldState(MUMMIFICATION_QUEST_ARCHAEOLOGIST_FIELDS),
+  fieldReport: makeBlankFieldState(MUMMIFICATION_QUEST_FIELD_REPORT_FIELDS),
 });
 
 const getCategoryLabel = (categoryId) => (
-  MUMMIFICATION_QUEST_EVIDENCE_CATEGORIES.find((category) => category.id === categoryId)?.label || 'Not sorted yet'
+  MUMMIFICATION_QUEST_EVIDENCE_CATEGORIES.find((category) => category.id === categoryId)?.label || 'not sorted yet'
 );
 
 const filledCount = (values) => Object.values(values).filter((value) => String(value).trim()).length;
+
+const formatOrBlank = (value) => String(value || '').trim() || 'Not recorded yet.';
 
 function TextField({ id, label, value, onChange, rows = 3, placeholder = '' }) {
   return (
@@ -69,6 +58,35 @@ function TextField({ id, label, value, onChange, rows = 3, placeholder = '' }) {
         onChange={(event) => onChange(event.target.value)}
       />
     </label>
+  );
+}
+
+function QuestImageCard({ asset, eyebrow = 'image', compact = false }) {
+  const candidates = asset?.imageCandidates || [];
+  const [imageIndex, setImageIndex] = useState(0);
+
+  const currentImage = candidates[imageIndex];
+
+  return (
+    <figure className={`mummification-image-card ${compact ? 'mummification-image-card--compact' : ''}`}>
+      {currentImage ? (
+        <img
+          src={currentImage}
+          alt={asset.alt || asset.title}
+          onError={() => setImageIndex((index) => index + 1)}
+        />
+      ) : (
+        <div className="mummification-image-placeholder">
+          <span>{asset?.placeholderLabel || eyebrow}</span>
+          <strong>{asset?.title || 'Image placeholder'}</strong>
+          <em>{asset?.missingHint || 'Image can be added later without breaking the lab.'}</em>
+        </div>
+      )}
+      <figcaption>
+        <span>{eyebrow}</span>
+        <strong>{asset?.title || 'Classroom image'}</strong>
+      </figcaption>
+    </figure>
   );
 }
 
@@ -115,36 +133,59 @@ export function MummificationQuestMode({ onBackToMenu }) {
   };
 
   const reportText = useMemo(() => {
-    const design = questState.sarcophagusDesign;
     const observations = questState.observationLog;
+    const design = questState.sarcophagusDesign;
     const future = questState.futureArchaeologist;
-    const field = questState.fieldReport;
-    const sortedSummary = `${correctSortCount} of ${MUMMIFICATION_QUEST_EVIDENCE_CARDS.length} evidence cards matched the strongest category.`;
+    const report = questState.fieldReport;
+
+    const reportContent = {
+      prediction: formatOrBlank(observations.prediction),
+      whatWeDid: formatOrBlank(report.whatWeDid),
+      changedOverTime: [
+        `Day 0: ${formatOrBlank(observations.day0)}`,
+        `Week 1: ${formatOrBlank(observations.week1)}`,
+        `Week 2: ${formatOrBlank(observations.week2)}`,
+        `Final: ${formatOrBlank(observations.final)}`,
+      ].join('\n'),
+      modelsPreservation: formatOrBlank(report.modelsPreservation),
+      modelLimits: formatOrBlank(report.modelLimits),
+      designEvidence: [
+        `Mummy name: ${formatOrBlank(design.mummyName)}`,
+        `Identity or role: ${formatOrBlank(design.identityRole)}`,
+        `Colours: ${formatOrBlank(design.colours)}`,
+        `Symbols: ${formatOrBlank(design.symbols)}`,
+        `Burial goods: ${formatOrBlank(design.burialGoods)}`,
+        `Inscription: ${formatOrBlank(design.inscription)}`,
+        `Design explanation: ${formatOrBlank(design.designExplanation)}`,
+      ].join('\n'),
+      futureInference: [
+        `What the evidence suggests: ${formatOrBlank(future.evidenceSuggests)}`,
+        `What could be misunderstood: ${formatOrBlank(future.couldBeMisunderstood)}`,
+        `What we are still unsure about: ${formatOrBlank(future.stillUnsure)}`,
+      ].join('\n'),
+      thinkingChanged: formatOrBlank(report.thinkingChanged),
+    };
 
     return [
       MUMMIFICATION_QUEST_TITLE,
       '',
-      `Orange mummy name or identity: ${design.ownerName || 'Not recorded yet'}`,
-      `Preservation evidence: ${observations.preservationClaim || field.strongestEvidence || 'Not recorded yet'}`,
-      `Observation record: ${observations.changes || 'Not recorded yet'}`,
-      `Evidence sort result: ${sortedSummary}`,
-      `Sarcophagus design choices: ${design.symbols || 'Not recorded yet'}`,
-      `Afterlife belief shown: ${design.afterlifeBelief || 'Not recorded yet'}`,
-      `Possible interpretation: ${future.interpretation || design.evidenceMessage || 'Not recorded yet'}`,
-      `Alternative interpretation or uncertainty: ${future.alternative || design.possibleMisread || 'Not recorded yet'}`,
-      `Respectful discussion point: ${future.respectfulQuestion || 'Not recorded yet'}`,
-      `My thinking changed because: ${field.finalThinkingChanged || observations.thinkingChanged || 'Not recorded yet'}`,
-    ].join('\n');
+      ...MUMMIFICATION_QUEST_REPORT_SECTIONS.flatMap((section) => [
+        section.title,
+        reportContent[section.id],
+        '',
+      ]),
+      `Evidence sort: ${correctSortCount} of ${MUMMIFICATION_QUEST_EVIDENCE_CARDS.length} cards matched the strongest category.`,
+    ].join('\n').trim();
   }, [correctSortCount, questState]);
 
   const stageProgress = useMemo(() => ({
     briefing: 1,
     'evidence-sort': sortedCount / MUMMIFICATION_QUEST_EVIDENCE_CARDS.length,
     'orange-practical': checkedCount / MUMMIFICATION_QUEST_CHECKLIST.length,
-    'observation-log': filledCount(questState.observationLog) / 4,
-    'sarcophagus-design': filledCount(questState.sarcophagusDesign) / 6,
-    'future-archaeologist': filledCount(questState.futureArchaeologist) / 5,
-    'field-report': filledCount(questState.fieldReport) / 2,
+    'observation-log': filledCount(questState.observationLog) / MUMMIFICATION_QUEST_OBSERVATION_FIELDS.length,
+    'sarcophagus-design': filledCount(questState.sarcophagusDesign) / MUMMIFICATION_QUEST_DESIGN_FIELDS.length,
+    'future-archaeologist': filledCount(questState.futureArchaeologist) / MUMMIFICATION_QUEST_ARCHAEOLOGIST_FIELDS.length,
+    'field-report': filledCount(questState.fieldReport) / MUMMIFICATION_QUEST_FIELD_REPORT_FIELDS.length,
   }), [checkedCount, questState, sortedCount]);
 
   const goToStage = (nextIndex) => {
@@ -154,6 +195,9 @@ export function MummificationQuestMode({ onBackToMenu }) {
 
   const handleCopyReport = async () => {
     try {
+      if (!navigator.clipboard?.writeText) {
+        throw new Error('Clipboard unavailable');
+      }
       await navigator.clipboard.writeText(reportText);
       setCopyStatus('Report copied.');
     } catch {
@@ -167,6 +211,7 @@ export function MummificationQuestMode({ onBackToMenu }) {
 
   const renderBriefing = () => (
     <div className="mummification-stage-grid">
+      <QuestImageCard key="briefing-image" asset={MUMMIFICATION_QUEST_STAGE_IMAGES.briefing} eyebrow="briefing" />
       <section className="mummification-panel">
         <h3>Learning focus</h3>
         <ul className="mummification-check-list">
@@ -183,8 +228,8 @@ export function MummificationQuestMode({ onBackToMenu }) {
         <h3>Respectful inquiry</h3>
         <p>{MUMMIFICATION_QUEST_RESPECT_NOTE}</p>
       </section>
-      <section className="mummification-panel">
-        <h3>Mission questions</h3>
+      <section className="mummification-panel mummification-panel--wide">
+        <h3>Briefing notes</h3>
         <div className="mummification-prompt-stack">
           {currentStage.prompts.map((prompt) => (
             <p key={prompt}>{prompt}</p>
@@ -217,6 +262,7 @@ export function MummificationQuestMode({ onBackToMenu }) {
 
           return (
             <article key={card.id} className="mummification-evidence-card">
+              <QuestImageCard asset={card} eyebrow="evidence card" compact />
               <div>
                 <h3>{card.title}</h3>
                 <p>{card.clue}</p>
@@ -249,12 +295,25 @@ export function MummificationQuestMode({ onBackToMenu }) {
 
   const renderPracticalChecklist = () => (
     <div className="mummification-stage-grid">
+      <QuestImageCard
+        key="orange-practical-image"
+        asset={MUMMIFICATION_QUEST_STAGE_IMAGES['orange-practical']}
+        eyebrow="practical"
+      />
+      <section className="mummification-panel">
+        <h3>Materials</h3>
+        <ul className="mummification-starter-list">
+          {MUMMIFICATION_QUEST_MATERIALS.map((material) => (
+            <li key={material}>{material}</li>
+          ))}
+        </ul>
+      </section>
       <section className="mummification-panel mummification-panel--safety">
         <ShieldCheck size={26} />
         <h3>Teacher safety note</h3>
         <p>{MUMMIFICATION_QUEST_SAFETY_NOTE}</p>
       </section>
-      <section className="mummification-panel">
+      <section className="mummification-panel mummification-panel--wide">
         <h3>Practical checklist</h3>
         <div className="mummification-check-stack">
           {MUMMIFICATION_QUEST_CHECKLIST.map((item) => (
@@ -274,56 +333,29 @@ export function MummificationQuestMode({ onBackToMenu }) {
 
   const renderObservationLog = () => (
     <div className="mummification-form-grid">
-      <TextField
-        id="mummification-date-range"
-        label="Date range or lesson number"
-        value={questState.observationLog.dateRange}
-        rows={2}
-        placeholder="Example: Lesson 1 to Lesson 3"
-        onChange={(value) => updateSection('observationLog', 'dateRange', value)}
-      />
-      <TextField
-        id="mummification-changes"
-        label="What changed in the orange?"
-        value={questState.observationLog.changes}
-        placeholder="Record smell, texture, moisture, colour or firmness."
-        onChange={(value) => updateSection('observationLog', 'changes', value)}
-      />
-      <TextField
-        id="mummification-preservation-claim"
-        label="Evidence-based preservation claim"
-        value={questState.observationLog.preservationClaim}
-        placeholder="The drying mixture helped preserve the orange because..."
-        onChange={(value) => updateSection('observationLog', 'preservationClaim', value)}
-      />
-      <TextField
-        id="mummification-thinking-changed"
-        label="My thinking changed because..."
-        value={questState.observationLog.thinkingChanged}
-        onChange={(value) => updateSection('observationLog', 'thinkingChanged', value)}
-      />
+      {MUMMIFICATION_QUEST_OBSERVATION_FIELDS.map((field) => (
+        <TextField
+          key={field.id}
+          id={`mummification-observation-${field.id}`}
+          label={field.label}
+          value={questState.observationLog[field.id]}
+          placeholder={field.placeholder}
+          rows={field.id === 'prediction' ? 2 : 3}
+          onChange={(value) => updateSection('observationLog', field.id, value)}
+        />
+      ))}
     </div>
   );
 
   const renderDesignStudio = () => (
-    <div className="mummification-form-grid">
-      <TextField
-        id="mummification-owner-name"
-        label="Name or identity panel for the sarcophagus"
-        value={questState.sarcophagusDesign.ownerName}
-        rows={2}
-        onChange={(value) => updateSection('sarcophagusDesign', 'ownerName', value)}
+    <div className="mummification-stage-grid">
+      <QuestImageCard
+        key="sarcophagus-design-image"
+        asset={MUMMIFICATION_QUEST_STAGE_IMAGES['sarcophagus-design']}
+        eyebrow="sarcophagus"
       />
-      <TextField
-        id="mummification-colours"
-        label="Colours and materials"
-        value={questState.sarcophagusDesign.colours}
-        rows={2}
-        placeholder="Explain why you chose them."
-        onChange={(value) => updateSection('sarcophagusDesign', 'colours', value)}
-      />
-      <label className="mummification-field mummification-field--full" htmlFor="mummification-symbols">
-        <span>Symbol bank</span>
+      <section className="mummification-panel">
+        <h3>Symbol bank</h3>
         <div className="mummification-symbol-bank" aria-label="Sarcophagus symbol ideas">
           {MUMMIFICATION_QUEST_SYMBOL_BANK.map((symbol) => (
             <button
@@ -339,93 +371,61 @@ export function MummificationQuestMode({ onBackToMenu }) {
             </button>
           ))}
         </div>
-        <textarea
-          id="mummification-symbols"
-          value={questState.sarcophagusDesign.symbols}
-          rows={3}
-          onChange={(event) => updateSection('sarcophagusDesign', 'symbols', event.target.value)}
-        />
-      </label>
-      <TextField
-        id="mummification-afterlife-belief"
-        label="Afterlife belief shown by the design"
-        value={questState.sarcophagusDesign.afterlifeBelief}
-        onChange={(value) => updateSection('sarcophagusDesign', 'afterlifeBelief', value)}
-      />
-      <TextField
-        id="mummification-evidence-message"
-        label="What evidence message should a future archaeologist notice?"
-        value={questState.sarcophagusDesign.evidenceMessage}
-        onChange={(value) => updateSection('sarcophagusDesign', 'evidenceMessage', value)}
-      />
-      <TextField
-        id="mummification-possible-misread"
-        label="What could they misread or debate?"
-        value={questState.sarcophagusDesign.possibleMisread}
-        onChange={(value) => updateSection('sarcophagusDesign', 'possibleMisread', value)}
-      />
+      </section>
+      <div className="mummification-form-grid mummification-panel--wide">
+        {MUMMIFICATION_QUEST_DESIGN_FIELDS.map((field) => (
+          <TextField
+            key={field.id}
+            id={`mummification-design-${field.id}`}
+            label={field.label}
+            value={questState.sarcophagusDesign[field.id]}
+            placeholder={field.placeholder}
+            rows={field.id === 'designExplanation' ? 4 : 2}
+            onChange={(value) => updateSection('sarcophagusDesign', field.id, value)}
+          />
+        ))}
+      </div>
     </div>
   );
 
   const renderFutureArchaeologist = () => (
     <div className="mummification-form-grid">
-      <TextField
-        id="mummification-observed-design"
-        label="Whose sarcophagus design are you interpreting?"
-        value={questState.futureArchaeologist.observedDesign}
-        rows={2}
-        onChange={(value) => updateSection('futureArchaeologist', 'observedDesign', value)}
-      />
-      <TextField
-        id="mummification-evidence-noticed"
-        label="Evidence noticed"
-        value={questState.futureArchaeologist.evidenceNoticed}
-        placeholder="Name the exact colour, symbol, placement or label you used as evidence."
-        onChange={(value) => updateSection('futureArchaeologist', 'evidenceNoticed', value)}
-      />
-      <TextField
-        id="mummification-interpretation"
-        label="One interpretation"
-        value={questState.futureArchaeologist.interpretation}
-        onChange={(value) => updateSection('futureArchaeologist', 'interpretation', value)}
-      />
-      <TextField
-        id="mummification-alternative"
-        label="Another possible interpretation"
-        value={questState.futureArchaeologist.alternative}
-        onChange={(value) => updateSection('futureArchaeologist', 'alternative', value)}
-      />
-      <TextField
-        id="mummification-respectful-question"
-        label="Respectful discussion question"
-        value={questState.futureArchaeologist.respectfulQuestion}
-        placeholder="Example: Could this symbol mean protection, or might it show identity?"
-        onChange={(value) => updateSection('futureArchaeologist', 'respectfulQuestion', value)}
-      />
+      {MUMMIFICATION_QUEST_ARCHAEOLOGIST_FIELDS.map((field) => (
+        <TextField
+          key={field.id}
+          id={`mummification-archaeologist-${field.id}`}
+          label={field.label}
+          value={questState.futureArchaeologist[field.id]}
+          placeholder={field.placeholder}
+          onChange={(value) => updateSection('futureArchaeologist', field.id, value)}
+        />
+      ))}
+      <section className="mummification-panel mummification-panel--wide">
+        <h3>Respectful discussion reminder</h3>
+        <p>
+          Use evidence first, explain uncertainty, and disagree with ideas rather than people.
+          Archaeological interpretations can be contested when evidence is incomplete.
+        </p>
+      </section>
     </div>
   );
 
   const renderFieldReport = () => (
     <div className="mummification-report-grid">
       <section className="mummification-panel">
-        <h3>Sentence starters</h3>
-        <ul className="mummification-starter-list">
-          {MUMMIFICATION_QUEST_SENTENCE_STARTERS.map((starter) => (
-            <li key={starter}>{starter}</li>
+        <h3>Final report notes</h3>
+        <div className="mummification-report-fields">
+          {MUMMIFICATION_QUEST_FIELD_REPORT_FIELDS.map((field) => (
+            <TextField
+              key={field.id}
+              id={`mummification-report-${field.id}`}
+              label={field.label}
+              value={questState.fieldReport[field.id]}
+              placeholder={field.placeholder}
+              onChange={(value) => updateSection('fieldReport', field.id, value)}
+            />
           ))}
-        </ul>
-        <TextField
-          id="mummification-strongest-evidence"
-          label="Strongest evidence for your final report"
-          value={questState.fieldReport.strongestEvidence}
-          onChange={(value) => updateSection('fieldReport', 'strongestEvidence', value)}
-        />
-        <TextField
-          id="mummification-final-thinking"
-          label="My thinking changed because..."
-          value={questState.fieldReport.finalThinkingChanged}
-          onChange={(value) => updateSection('fieldReport', 'finalThinkingChanged', value)}
-        />
+        </div>
       </section>
       <section className="mummification-panel mummification-report-preview">
         <div className="mummification-report-title">
@@ -471,19 +471,18 @@ export function MummificationQuestMode({ onBackToMenu }) {
     <section className="phase-container mummification-quest-mode">
       <header className="mummification-quest-hero glass-card">
         <button type="button" className="mummification-back-btn" onClick={onBackToMenu}>
-          <ArrowLeft size={16} /> Main Menu
+          <ArrowLeft size={16} /> Return to Menu
         </button>
         <div className="mummification-quest-title-block">
           <div className="training-kicker">Classroom Mode</div>
           <h2>{MUMMIFICATION_QUEST_TITLE}</h2>
           <p>
-            Mummify an orange, design a sarcophagus, then interpret design choices as
-            archaeological evidence.
+            Mummify an orange, design a sarcophagus, and interpret evidence.
           </p>
         </div>
         <div className="mummification-hero-note">
           <ShieldCheck size={18} />
-          <span>Teacher-led practical. Text-card MVP only.</span>
+          <span>Year 7 friendly. Teacher-led practical.</span>
         </div>
       </header>
 
@@ -529,7 +528,7 @@ export function MummificationQuestMode({ onBackToMenu }) {
               onClick={() => goToStage(stageIndex - 1)}
               disabled={stageIndex === 0}
             >
-              <ArrowLeft size={16} /> Previous
+              <ArrowLeft size={16} /> Back
             </button>
             <button
               type="button"

@@ -1,112 +1,234 @@
 export const MUMMIFICATION_QUEST_TITLE = 'Mummification Lab: Orange Mummy Quest';
 
+const evidenceAsset = (fileName) => `/assets/mummification-quest/evidence-cards/${fileName}`;
+const backgroundAsset = (fileName) => `/assets/mummification-quest/backgrounds/${fileName}`;
+const practicalAsset = (fileName) => `/assets/mummification-quest/orange-practical/${fileName}`;
+const sarcophagusAsset = (fileName) => `/assets/mummification-quest/sarcophagus/${fileName}`;
+
 export const MUMMIFICATION_QUEST_FOCUS = [
-  'Preservation and mummification',
+  'preservation',
+  'mummification',
   'Ancient Egyptian afterlife beliefs',
-  'Sarcophagus design as evidence',
-  'Artefacts, interpretation and contestability',
-  'Respectful discussion of human remains',
-  'Metacognition: "My thinking changed because..."',
+  'sarcophagus design',
+  'artefacts as evidence',
+  'interpretation and contestability',
+  'respectful discussion of human remains',
+  'metacognition: "My thinking changed because..."',
 ];
 
 export const MUMMIFICATION_QUEST_RESPECT_NOTE =
-  'This classroom lab uses an orange as a model. When discussing real mummified human remains, use respectful language: these were people, not props.';
+  'This classroom lab uses an orange as a safe model. When discussing real mummified human remains, use respectful language: these were people, not props.';
 
 export const MUMMIFICATION_QUEST_SAFETY_NOTE =
-  'Teacher safety note: run the orange practical only with teacher supervision. Follow school safety rules for cutting tools, salt or natron substitute, hygiene, allergies, storage, mould checks and disposal. The orange is never for eating.';
+  'Teacher safety note: teacher/adult handles cutting the orange. Follow school safety rules for cutting tools, salt or natron substitute, hygiene, allergies, storage, mould checks and disposal. The orange is never for eating.';
+
+export const MUMMIFICATION_QUEST_STAGE_IMAGES = {
+  briefing: {
+    title: 'Ancient Egyptian mummification beliefs',
+    alt: 'Ancient Egyptian mummification classroom briefing',
+    imageCandidates: [backgroundAsset('mummification-lab-briefing.png')],
+    placeholderLabel: 'backgrounds',
+    missingHint: 'Add a briefing background image here later.',
+  },
+  'orange-practical': {
+    title: 'Orange practical materials',
+    alt: 'Orange practical materials for a teacher-led classroom model',
+    imageCandidates: [practicalAsset('orange-practical-materials.png')],
+    placeholderLabel: 'orange-practical',
+    missingHint: 'Add an orange practical image here later.',
+  },
+  'sarcophagus-design': {
+    title: 'Sarcophagus design ideas',
+    alt: 'Sarcophagus design ideas for an orange mummy',
+    imageCandidates: [
+      sarcophagusAsset('sarcophagus-design-studio.png'),
+      evidenceAsset('ChatGPT Image Jun 28, 2026, 07_16_50 AM (4).png'),
+    ],
+    placeholderLabel: 'sarcophagus',
+    missingHint: 'Add a sarcophagus design image here later.',
+  },
+};
 
 export const MUMMIFICATION_QUEST_EVIDENCE_CATEGORIES = [
   {
     id: 'preservation',
-    label: 'Preservation',
-    prompt: 'What helped slow decay or protect the body?',
+    label: 'preservation',
+    prompt: 'Helps slow decay, dry the orange, or protect the model.',
   },
   {
-    id: 'afterlife',
-    label: 'Afterlife Beliefs',
-    prompt: 'What shows beliefs about life after death?',
+    id: 'ritual-belief',
+    label: 'ritual/belief',
+    prompt: 'Shows ideas about identity, protection, organs, or the afterlife.',
   },
   {
-    id: 'sarcophagus',
-    label: 'Sarcophagus Design',
-    prompt: 'What design choice communicates identity or status?',
+    id: 'archaeological-evidence',
+    label: 'archaeological evidence',
+    prompt: 'Gives clues that archaeologists can observe, scan, compare, or interpret.',
   },
   {
-    id: 'interpretation',
-    label: 'Interpretation',
-    prompt: 'What could be read in more than one way?',
+    id: 'causes-decay',
+    label: 'causes decay',
+    prompt: 'Makes preservation harder, such as moisture, air, heat, or mould.',
   },
 ];
 
 export const MUMMIFICATION_QUEST_EVIDENCE_CARDS = [
   {
-    id: 'salt-drying',
-    title: 'Drying mixture',
-    clue: 'A salt or natron-style mixture draws moisture out of the orange peel.',
+    id: 'natron',
+    title: 'Natron',
+    clue: 'A salt-like drying mixture removes moisture. Your orange model uses a safe classroom substitute.',
     correctCategoryId: 'preservation',
-    reveal: 'Less moisture can slow decay. This models one purpose of mummification.',
+    reveal: 'Natron helped dry bodies. Less moisture can slow decay, which is why this card is strongest as preservation evidence.',
+    imageCandidates: [evidenceAsset('ChatGPT Image Jun 28, 2026, 07_16_49 AM (1).png')],
+    alt: 'Natron-style drying salts with Ancient Egyptian materials',
   },
   {
-    id: 'wrapped-body',
-    title: 'Linen-style wrapping',
-    clue: 'The orange mummy is wrapped and labelled before storage.',
+    id: 'linen-bandages',
+    title: 'Linen bandages',
+    clue: 'Wrapped cloth protected the body and helped keep the person recognisable in burial traditions.',
     correctCategoryId: 'preservation',
-    reveal: 'Wrapping helps protect the body and also turns the practical into a recorded object.',
+    reveal: 'Wrapping could protect the body and hold materials in place. It also links preservation to identity.',
+    imageCandidates: [evidenceAsset('ChatGPT Image Jun 28, 2026, 07_16_50 AM (3).png')],
+    alt: 'Linen-wrapped mummy model with burial materials',
   },
   {
-    id: 'protective-symbols',
-    title: 'Protective symbols',
-    clue: 'A student adds eyes, wings or protective signs to the sarcophagus design.',
-    correctCategoryId: 'afterlife',
-    reveal: 'Protective images can point to beliefs about danger, protection and the afterlife.',
+    id: 'canopic-jars',
+    title: 'Canopic jars',
+    clue: 'Decorated jars protected organs and point to beliefs about the body and the afterlife.',
+    correctCategoryId: 'ritual-belief',
+    reveal: 'Canopic jars are useful evidence for beliefs about protection, organs, identity and the afterlife.',
+    imageCandidates: [evidenceAsset('ChatGPT Image Jun 28, 2026, 07_16_49 AM (2).png')],
+    alt: 'Ancient Egyptian canopic jars',
   },
   {
-    id: 'painted-name',
-    title: 'Painted name panel',
-    clue: 'The sarcophagus includes a name, title or identity panel.',
-    correctCategoryId: 'sarcophagus',
-    reveal: 'Names and titles can help archaeologists interpret identity and social meaning.',
+    id: 'ct-scan',
+    title: 'CT scan',
+    clue: 'A non-invasive scan can reveal bones, wrappings, amulets or injuries without unwrapping remains.',
+    correctCategoryId: 'archaeological-evidence',
+    reveal: 'A CT scan helps archaeologists gather evidence respectfully while keeping remains protected.',
+    imageCandidates: [evidenceAsset('ct-scan.png')],
+    alt: 'Placeholder for a CT scan evidence card',
   },
   {
-    id: 'colour-choice',
-    title: 'Colour choice',
-    clue: 'Gold, blue, green or black are chosen for decoration.',
-    correctCategoryId: 'sarcophagus',
-    reveal: 'Colours can communicate ideas, but archaeologists still need evidence before making a claim.',
+    id: 'moisture-air',
+    title: 'Moisture and air',
+    clue: 'Too much moisture, air, warmth or mould can make organic material decay faster.',
+    correctCategoryId: 'causes-decay',
+    reveal: 'Preservation is partly about controlling conditions that cause decay.',
+    imageCandidates: [practicalAsset('decay-conditions.png')],
+    alt: 'Placeholder for conditions that cause decay',
   },
   {
-    id: 'unclear-symbol',
-    title: 'Unclear symbol',
-    clue: 'A symbol looks important, but another student reads it differently.',
-    correctCategoryId: 'interpretation',
-    reveal: 'Evidence can be contested. A strong explanation names the clue and admits what is uncertain.',
+    id: 'sarcophagus-design',
+    title: 'Sarcophagus design',
+    clue: 'Names, colours, symbols and burial goods can become evidence about identity, belief and protection.',
+    correctCategoryId: 'archaeological-evidence',
+    reveal: 'A sarcophagus is not just decorative. Its choices can be interpreted as archaeological evidence, but interpretations can be contested.',
+    imageCandidates: [evidenceAsset('ChatGPT Image Jun 28, 2026, 07_16_50 AM (4).png')],
+    alt: 'Decorated Ancient Egyptian sarcophagus with protective symbols',
   },
+];
+
+export const MUMMIFICATION_QUEST_MATERIALS = [
+  'orange',
+  'teacher/adult cutting tool',
+  'spoon or scoop',
+  'salt or teacher-approved natron substitute',
+  'paper towel or tray',
+  'label and storage container',
+  'gloves if required by class rules',
 ];
 
 export const MUMMIFICATION_QUEST_CHECKLIST = [
   {
-    id: 'teacher-ready',
-    label: 'Teacher has explained the safety rules and practical steps.',
+    id: 'teacher-safety',
+    label: 'Teacher/adult explains safety rules and handles cutting the orange.',
   },
   {
-    id: 'orange-labelled',
-    label: 'Orange mummy is labelled with name, class and date.',
+    id: 'label-orange',
+    label: 'Label the orange mummy with name, class and date.',
   },
   {
-    id: 'clean-workspace',
-    label: 'Hands, bench and equipment are clean before and after the practical.',
-  },
-  {
-    id: 'no-eating',
-    label: 'Everyone understands the orange and mixture are not for eating.',
+    id: 'record-day-zero',
+    label: 'Record Day 0 observations before the drying mixture is added.',
   },
   {
     id: 'drying-mixture',
-    label: 'Drying mixture is added as directed by the teacher.',
+    label: 'Add the teacher-approved drying mixture as directed.',
   },
   {
-    id: 'storage-recorded',
-    label: 'Storage location and first observations are recorded.',
+    id: 'store-model',
+    label: 'Store the orange safely where the teacher says it can be checked later.',
+  },
+  {
+    id: 'clean-up',
+    label: 'Clean hands, bench and equipment. The orange is never for eating.',
+  },
+];
+
+export const MUMMIFICATION_QUEST_OBSERVATION_FIELDS = [
+  {
+    id: 'prediction',
+    label: 'I predict the orange will change because...',
+    placeholder: 'I predict the orange will change because...',
+  },
+  {
+    id: 'day0',
+    label: 'Day 0 observation',
+    placeholder: 'Record smell, colour, texture, moisture and firmness.',
+  },
+  {
+    id: 'week1',
+    label: 'Week 1 observation',
+    placeholder: 'What has changed? What evidence can you see or smell?',
+  },
+  {
+    id: 'week2',
+    label: 'Week 2 observation',
+    placeholder: 'What is different from Day 0 and Week 1?',
+  },
+  {
+    id: 'final',
+    label: 'Final observation',
+    placeholder: 'Use evidence to describe the final condition of the orange mummy.',
+  },
+];
+
+export const MUMMIFICATION_QUEST_DESIGN_FIELDS = [
+  {
+    id: 'mummyName',
+    label: 'mummy name',
+    placeholder: 'Give your orange mummy a name.',
+  },
+  {
+    id: 'identityRole',
+    label: 'identity or role',
+    placeholder: 'Example: scribe, musician, guardian, trader, student-made role.',
+  },
+  {
+    id: 'colours',
+    label: 'colours',
+    placeholder: 'Choose colours and explain what they might suggest.',
+  },
+  {
+    id: 'symbols',
+    label: 'symbols',
+    placeholder: 'List symbols such as eyes, wings, scarab, stars, river, lotus or name panel.',
+  },
+  {
+    id: 'burialGoods',
+    label: 'burial goods',
+    placeholder: 'What small goods would be included, and what might they mean?',
+  },
+  {
+    id: 'inscription',
+    label: 'inscription',
+    placeholder: 'Write a short respectful inscription for the sarcophagus.',
+  },
+  {
+    id: 'designExplanation',
+    label: 'explanation of design choices',
+    placeholder: 'Explain how your design shows identity, belief and protection.',
   },
 ];
 
@@ -115,18 +237,63 @@ export const MUMMIFICATION_QUEST_SYMBOL_BANK = [
   'Protective eyes',
   'Wings',
   'Scarab',
+  'Lotus',
   'River pattern',
   'Stars',
-  'Offerings',
+  'Offering bowl',
   'Journey to the afterlife',
 ];
 
-export const MUMMIFICATION_QUEST_SENTENCE_STARTERS = [
-  'The strongest evidence is...',
-  'One possible interpretation is...',
-  'Another interpretation could be...',
-  'My thinking changed because...',
-  'I would discuss this respectfully by...',
+export const MUMMIFICATION_QUEST_ARCHAEOLOGIST_FIELDS = [
+  {
+    id: 'evidenceSuggests',
+    label: 'What the evidence suggests',
+    placeholder: 'Use evidence from the sarcophagus design to make an inference.',
+  },
+  {
+    id: 'couldBeMisunderstood',
+    label: 'What could be misunderstood',
+    placeholder: 'What might a future archaeologist read incorrectly?',
+  },
+  {
+    id: 'stillUnsure',
+    label: 'What we are still unsure about',
+    placeholder: 'Name one uncertainty, missing clue or contestable interpretation.',
+  },
+];
+
+export const MUMMIFICATION_QUEST_FIELD_REPORT_FIELDS = [
+  {
+    id: 'whatWeDid',
+    label: 'What we did',
+    placeholder: 'Summarise the practical steps in your own words.',
+  },
+  {
+    id: 'modelsPreservation',
+    label: 'How this models preservation',
+    placeholder: 'Explain how drying and recording the orange helps model preservation.',
+  },
+  {
+    id: 'modelLimits',
+    label: 'What the orange model does not show',
+    placeholder: 'Explain what is different between an orange model and real human remains.',
+  },
+  {
+    id: 'thinkingChanged',
+    label: 'My thinking changed because...',
+    placeholder: 'My thinking changed because...',
+  },
+];
+
+export const MUMMIFICATION_QUEST_REPORT_SECTIONS = [
+  { id: 'prediction', title: 'My prediction' },
+  { id: 'whatWeDid', title: 'What we did' },
+  { id: 'changedOverTime', title: 'What changed over time' },
+  { id: 'modelsPreservation', title: 'How this models preservation' },
+  { id: 'modelLimits', title: 'What the orange model does not show' },
+  { id: 'designEvidence', title: 'How my sarcophagus shows identity, belief and protection' },
+  { id: 'futureInference', title: 'What a future archaeologist might infer' },
+  { id: 'thinkingChanged', title: 'My thinking changed because...' },
 ];
 
 export const MUMMIFICATION_QUEST_STAGES = [
@@ -134,38 +301,38 @@ export const MUMMIFICATION_QUEST_STAGES = [
     id: 'briefing',
     title: 'Briefing',
     role: 'Mission briefing',
-    studentGoal: 'Connect the orange model to preservation, evidence and respectful historical inquiry.',
+    studentGoal: 'Learn why preservation, identity and afterlife beliefs mattered in ancient Egyptian mummification.',
     prompts: [
-      'What problem were ancient Egyptian mummification methods trying to solve?',
-      'Why does the sarcophagus matter as evidence, not just decoration?',
-      'How can we discuss human remains respectfully?',
+      'Ancient Egyptians mummified bodies because they believed preservation, identity and the afterlife were connected.',
+      'In this lab, an orange is used as a safe classroom model. The model helps us think about preservation without using human remains.',
+      'A sarcophagus can be evidence because names, colours, symbols and burial goods can suggest identity, belief and protection.',
     ],
   },
   {
     id: 'evidence-sort',
     title: 'Evidence Sort',
     role: 'Evidence thinking',
-    studentGoal: 'Sort clues into preservation, afterlife beliefs, sarcophagus design and interpretation.',
+    studentGoal: 'Classify evidence as preservation, ritual/belief, archaeological evidence, or causes decay.',
     prompts: [
-      'Choose the strongest category for each clue.',
-      'If a clue could fit two categories, explain why it is contestable.',
+      'Choose the strongest category for each card.',
+      'If a card could fit more than one category, explain why the interpretation is contestable.',
     ],
   },
   {
     id: 'orange-practical',
     title: 'Orange Practical Checklist',
     role: 'Teacher-led practical',
-    studentGoal: 'Track the practical steps without treating the model as food or a joke.',
+    studentGoal: 'Use a safe orange model to track the steps of preservation and context recording.',
     prompts: [
       'Follow the teacher safety instructions.',
-      'Record what was done so the model keeps its context.',
+      'Record what was done so the model keeps its context as evidence.',
     ],
   },
   {
     id: 'observation-log',
     title: 'Observation Log',
     role: 'Conservation notes',
-    studentGoal: 'Record observations and build an evidence-based preservation claim.',
+    studentGoal: 'Record changes over time and connect observations to preservation.',
     prompts: [
       'What changed in the orange over time?',
       'What evidence supports your preservation claim?',
@@ -176,9 +343,9 @@ export const MUMMIFICATION_QUEST_STAGES = [
     id: 'sarcophagus-design',
     title: 'Sarcophagus Design Studio',
     role: 'Design as evidence',
-    studentGoal: 'Plan a sarcophagus that communicates identity, protection and afterlife beliefs.',
+    studentGoal: 'Plan a sarcophagus that communicates identity, belief and protection.',
     prompts: [
-      'Choose symbols and colours for a reason.',
+      'Choose colours, symbols and burial goods for a reason.',
       'Explain what a future archaeologist might infer from your design.',
     ],
   },
@@ -186,18 +353,18 @@ export const MUMMIFICATION_QUEST_STAGES = [
     id: 'future-archaeologist',
     title: 'Future Archaeologist Mode',
     role: 'Peer interpretation',
-    studentGoal: 'Interpret another design using evidence while allowing more than one answer.',
+    studentGoal: 'Interpret a sarcophagus as evidence while admitting uncertainty and contestability.',
     prompts: [
-      'What can you infer from the design evidence?',
-      'What could you be wrong about?',
-      'How can you disagree respectfully?',
+      'What does the evidence suggest?',
+      'What could be misunderstood?',
+      'What are we still unsure about?',
     ],
   },
   {
     id: 'field-report',
     title: 'Field Report',
     role: 'Final explanation',
-    studentGoal: 'Summarise the practical, design evidence, interpretation and changed thinking.',
+    studentGoal: 'Generate a report from your prediction, observations, design and interpretation.',
     prompts: [
       'Use evidence from the practical and sarcophagus design.',
       'Include one uncertainty or alternative interpretation.',

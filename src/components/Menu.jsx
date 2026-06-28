@@ -316,12 +316,12 @@ export function ActivityMenu({
             <div className="activity-card-icon activity-card-icon--mummification">
               <FlaskConical size={24} />
             </div>
-            <div className="activity-time-tag">45-60 MINS | CLASSROOM LAB</div>
+            <div className="activity-time-tag">1 lesson + observations</div>
           </div>
           <div className="activity-card-copy">
             <h3>Mummification Lab</h3>
             <div className="activity-mode-label">Orange Mummy Quest</div>
-            <p>Mummify an orange, design a sarcophagus, then interpret designs as archaeological evidence.</p>
+            <p>Mummify an orange, design a sarcophagus, and interpret evidence.</p>
           </div>
             <div className="activity-card-button-group">
               <button type="button" className="premium-action-btn" onClick={onStartMummificationQuest}>
