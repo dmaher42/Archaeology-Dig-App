@@ -3558,12 +3558,17 @@ export function drawDesertForegroundAtmosphereFrame(ctx, section, cameraX, deps)
   }
   const layerOptions = { canvasWidth: CANVAS_WIDTH, cameraX };
   const foregroundDrawn = [
+    // Full-frame grounding foreground: sand drifts, rubble and scrub whose
+    // content sits in the lower band of the 2172x724 plate, drawn over the
+    // path/midground (but under the player) so the playable floor's front edge
+    // is broken up and no longer reads as a hard ledge. World-locked parallax
+    // keeps the clutter pinned to the ground.
     drawDesertBackgroundLayer(
       ctx,
       assets,
       'foregroundRubble',
-      { y: CANVAS_HEIGHT - 58, height: 58 },
-      { ...layerOptions, parallax: 0.94, alpha: 0.24 },
+      { y: 0, height: CANVAS_HEIGHT },
+      { ...layerOptions, parallax: 1.0, alpha: 0.82 },
     ),
     drawDesertBackgroundLayer(
       ctx,
