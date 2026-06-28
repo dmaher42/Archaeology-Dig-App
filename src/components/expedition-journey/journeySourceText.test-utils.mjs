@@ -5,6 +5,7 @@ export const JOURNEY_SOURCE_URLS = [
   new URL('../ExpeditionJourney.jsx', import.meta.url),
   new URL('./journeyConstants.js', import.meta.url),
   new URL('./useJourneyEditorOutliner.js', import.meta.url),
+  new URL('./useJourneyPlacementEditor.js', import.meta.url),
   new URL('./journeyCombatTelegraphs.js', import.meta.url),
   new URL('./journeyControlsReference.jsx', import.meta.url),
   new URL('./journeyPlayerVisuals.js', import.meta.url),
