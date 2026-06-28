@@ -745,8 +745,31 @@ export const ROME_ENEMIES = [
       encounterRole: 'pre-boss champion', pressureHint: 'Fights alongside the vault sentinel — pressure test before the Legate.' }),
 ];
 
-// No mini-bosses in Rome Act 1 — the Legate Revenant is the sole boss
-export const ROME_MINI_BOSSES = [];
+// Rome Act 1 finale: the Legate Revenant uses the shared Journey boss runtime.
+export const ROME_MINI_BOSSES = [
+  {
+    id: ROME_BOSS_SPAWN.id,
+    sectionId: ROME_BOSS_SPAWN.sectionId,
+    name: ROME_BOSS_SPAWN.label,
+    type: 'rome-legate',
+    spriteBossId: ROME_BOSS_SPAWN.id,
+    x: ROME_BOSS_SPAWN.x,
+    y: ROME_BOSS_SPAWN.y,
+    width: 62,
+    height: 60,
+    patrolMin: scaleRomeX(8260),
+    patrolMax: scaleRomeX(8660),
+    speed: 68,
+    health: 3,
+    damage: 12,
+    shards: 14,
+    intro: 'Guardian Encounter: Legate Revenant. The Legate Revenant rises. He sealed this place with his life.',
+    dialogue: 'The Senate sealed this chamber for a reason. The record stays buried.',
+    domainName: 'Legate Vault',
+    arenaStart: scaleRomeX(8140),
+    arenaEnd: scaleRomeX(8820),
+  },
+];
 
 export { ROME_BOSS_SPAWN };
 

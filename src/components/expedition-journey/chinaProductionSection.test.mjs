@@ -33,7 +33,7 @@ const assertRegions = (atlas, expectedKeys) => {
   }
 };
 
-test('China clean composited background pack is ready for the shared Journey background loader', async () => {
+test('China layered background pack is ready for the shared Journey background loader', async () => {
   const atlas = await readJson(
     'assets',
     'expedition',
@@ -42,15 +42,15 @@ test('China clean composited background pack is ready for the shared Journey bac
     'china-river-valley-parallax-pack.json',
   );
 
-  assert.equal(atlas.runtimeMode, 'single-composited-backdrop');
-  assert.equal(atlas.image, 'china-river-valley-parallax-pack.png');
+  assert.equal(atlas.runtimeMode, 'layered-parallax');
+  assert.equal(atlas.image, 'china-bg-01-sky.png');
   assert.doesNotMatch(atlas.image, /layered-pack/, 'active gameplay background must not use the checkerboard-layered source image');
   assertPngAssetExists(`assets/expedition/backgrounds/china-river-valley/${atlas.image}`);
   assertRegions(atlas, EXPECTED_CHINA_RIVER_VALLEY_BACKGROUND_KEYS);
   assert.deepEqual(
     getMissingSectionBackgroundAssets({ packs: { 'china-river-valley': { atlas } } }, 'china-river-valley'),
     [],
-    'China background readiness should match the layered-parallax manifest keys',
+    'China background readiness should match every layered-parallax manifest key',
   );
 });
 

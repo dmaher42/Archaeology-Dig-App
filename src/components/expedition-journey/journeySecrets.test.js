@@ -32,6 +32,8 @@ import {
   snapJourneyPropCoordinate,
 } from './journeyUtils.js';
 import { CHINA_ENEMIES, ENEMIES, HIDDEN_ROUTES, RELIC_SHARDS, STORY_PROPS } from './journeyLevelData.js';
+import { getJourneyMiniBosses } from './journeyDataRouter.js';
+import { ROME_SECTION_OBJECTIVES } from './romeJourneyData.js';
 import {
   COMBAT_DAMAGE_SCALE,
   DESERT_ENTRY_EXTERIOR_SPAWN_X,
@@ -3771,6 +3773,18 @@ test('Egypt Journey explains shard purpose and adds an optional Base Camp vouche
   assert.match(journeyComponentSource, /is-rewarding/);
 });
 
+test('Rome sealed-vault finale points at an active Legate boss', () => {
+  const objective = ROME_SECTION_OBJECTIVES['sealed-vault'];
+  const romeBosses = getJourneyMiniBosses('Ancient Rome');
+  const legate = romeBosses.find(boss => boss.id === objective.bossId);
+
+  assert.equal(objective.type, 'defeat-boss');
+  assert.equal(objective.bossId, 'rome-legate-revenant');
+  assert.ok(legate, 'Rome active boss list should include the Legate Revenant');
+  assert.equal(legate.sectionId, 'sealed-vault');
+  assert.equal(legate.name, 'Legate Revenant');
+  assert.equal(legate.spriteBossId, 'rome-legate-revenant');
+});
 
 test('Egypt Journey loads visible sprites for all default Egypt enemy families', () => {
   assert.match(journeyEnemySpritesSource, /WITHHELD_EGYPT_CREATURE_SPRITE_FAMILIES/);

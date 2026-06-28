@@ -127,7 +127,7 @@ test('Rome and China do not inherit Egypt-only rooms or Scarab runtime gates', a
   assert.match(journeySource, /EXTERIOR:\s*JOURNEY_EXTERIOR_SCENE_ID/);
   assert.match(journeyUtilsSource, /currentSceneId:\s*JOURNEY_EXTERIOR_SCENE_ID/);
   assert.match(journeySource, /loadEgyptOnlyPacks:\s*isEgyptJourney/);
-  assert.match(journeySource, /const templeThresholdDoorwayActive = scopedJourneyAssetPacks\.isEgyptJourney/);
+  assert.match(journeySource, /const templeThresholdDoorwayActive = (?:!TEMPLE_THRESHOLD_HALL_ENTRY_DISABLED_FOR_BUILD\s*&&\s*)?scopedJourneyAssetPacks\.isEgyptJourney/);
   assert.match(journeySource, /const mummificationChamberDoorwayActive = scopedJourneyAssetPacks\.isEgyptJourney/);
   assert.match(journeySource, /const forgottenMuralDoorwayActive = scopedJourneyAssetPacks\.isEgyptJourney/);
   assert.match(journeySource, /const scribeDoorwayActive = scopedJourneyAssetPacks\.isEgyptJourney/);

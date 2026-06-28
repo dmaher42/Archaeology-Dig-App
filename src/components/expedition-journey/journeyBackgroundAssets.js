@@ -29,6 +29,10 @@ export const JOURNEY_BACKGROUND_DEPTH_MODE = 'journey-section-parallax-v2';
 
 export const EXPECTED_CHINA_RIVER_VALLEY_BACKGROUND_KEYS = [
   'skyLayer',
+  'farMountains',
+  'riverValley',
+  'watchtowerRidge',
+  'foregroundMist',
 ];
 
 export const CHINA_RIVER_VALLEY_BACKGROUND_PACK = {
