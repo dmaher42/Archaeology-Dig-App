@@ -182,8 +182,6 @@ export const SCENARIOS = [
   }
 ];
 
-export const ARTIFACT_TYPES = CATEGORIES.map(c => c.id);
-
 export const getCategoryTitle = (categoryId) => {
   const cat = CATEGORIES.find(c => c.id === categoryId);
   return cat ? cat.title : categoryId;
@@ -747,12 +745,3 @@ export const BUREAU_COMPARISON_CHALLENGES = [
 // (Aliases BUREAU_COMPARISON_DATA/_PAIRS/BUREAU_COMPARISONS/BUREAU_CASE_COMPARISONS
 //  collapsed into BUREAU_COMPARISON_CHALLENGES — the canonical definition above.)
 
-export const BUREAU_RESEARCH_FOCUS = Object.fromEntries(BUREAU_CASES.map((bureauCase) => ([
-  bureauCase.civilisation,
-  {
-    spark: `${bureauCase.civilisation} fingerprinting`,
-    lookFor: bureauCase.profileFacts,
-    inquiryQuestion: `Which evidence most strongly points to ${bureauCase.civilisation}?`,
-    evidenceReminder: 'Use the profile card to support your historical reasoning.',
-  },
-])));

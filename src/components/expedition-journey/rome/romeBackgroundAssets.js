@@ -1,19 +1,16 @@
 // Rome background parallax pack definitions for the playable Section One route.
 
-export const ROME_VIA_SACRA_BACKGROUND_ATLAS_BASE_PATH        = 'assets/expedition/backgrounds/rome-via-sacra/';
-export const ROME_FORUM_RUINS_BACKGROUND_ATLAS_BASE_PATH      = 'assets/expedition/backgrounds/rome-forum-ruins/';
-export const ROME_THERMAE_BACKGROUND_ATLAS_BASE_PATH          = 'assets/expedition/backgrounds/rome-subterranean-thermae/';
-export const ROME_BASILICA_BACKGROUND_ATLAS_BASE_PATH         = 'assets/expedition/backgrounds/rome-basilica-interior/';
-export const ROME_VAULT_BACKGROUND_ATLAS_BASE_PATH            = 'assets/expedition/backgrounds/rome-sealed-vault/';
+const ROME_VIA_SACRA_BACKGROUND_ATLAS_BASE_PATH        = 'assets/expedition/backgrounds/rome-via-sacra/';
+const ROME_FORUM_RUINS_BACKGROUND_ATLAS_BASE_PATH      = 'assets/expedition/backgrounds/rome-forum-ruins/';
+const ROME_THERMAE_BACKGROUND_ATLAS_BASE_PATH          = 'assets/expedition/backgrounds/rome-subterranean-thermae/';
+const ROME_BASILICA_BACKGROUND_ATLAS_BASE_PATH         = 'assets/expedition/backgrounds/rome-basilica-interior/';
+const ROME_VAULT_BACKGROUND_ATLAS_BASE_PATH            = 'assets/expedition/backgrounds/rome-sealed-vault/';
 
-export const ROME_VIA_SACRA_BACKGROUND_ATLAS_JSON   = `${ROME_VIA_SACRA_BACKGROUND_ATLAS_BASE_PATH}rome-via-sacra-parallax-pack.json`;
-export const ROME_FORUM_RUINS_BACKGROUND_ATLAS_JSON = `${ROME_FORUM_RUINS_BACKGROUND_ATLAS_BASE_PATH}rome-forum-ruins-parallax-pack.json`;
-export const ROME_THERMAE_BACKGROUND_ATLAS_JSON     = `${ROME_THERMAE_BACKGROUND_ATLAS_BASE_PATH}rome-thermae-parallax-pack.json`;
-export const ROME_BASILICA_BACKGROUND_ATLAS_JSON    = `${ROME_BASILICA_BACKGROUND_ATLAS_BASE_PATH}rome-basilica-parallax-pack.json`;
-export const ROME_VAULT_BACKGROUND_ATLAS_JSON       = `${ROME_VAULT_BACKGROUND_ATLAS_BASE_PATH}rome-vault-parallax-pack.json`;
-
-// Layer key contracts per section — what the parallax renderer expects in each atlas
-export const ROME_BACKGROUND_DEPTH_MODE = 'rome-section-parallax-v1';
+const ROME_VIA_SACRA_BACKGROUND_ATLAS_JSON   = `${ROME_VIA_SACRA_BACKGROUND_ATLAS_BASE_PATH}rome-via-sacra-parallax-pack.json`;
+const ROME_FORUM_RUINS_BACKGROUND_ATLAS_JSON = `${ROME_FORUM_RUINS_BACKGROUND_ATLAS_BASE_PATH}rome-forum-ruins-parallax-pack.json`;
+const ROME_THERMAE_BACKGROUND_ATLAS_JSON     = `${ROME_THERMAE_BACKGROUND_ATLAS_BASE_PATH}rome-thermae-parallax-pack.json`;
+const ROME_BASILICA_BACKGROUND_ATLAS_JSON    = `${ROME_BASILICA_BACKGROUND_ATLAS_BASE_PATH}rome-basilica-parallax-pack.json`;
+const ROME_VAULT_BACKGROUND_ATLAS_JSON       = `${ROME_VAULT_BACKGROUND_ATLAS_BASE_PATH}rome-vault-parallax-pack.json`;
 
 export const ROME_SECTION_BACKGROUND_PACKS = {
   'via-sacra': {
@@ -71,13 +68,4 @@ export const ROME_SECTION_BACKGROUND_PACKS = {
       'foregroundAshDrift',    // volcanic ash drifting (79 AD aftermath)
     ],
   },
-};
-
-// Section-to-music-track mapping for Rome audio system
-export const ROME_SECTION_MUSIC_TRACKS = {
-  'via-sacra':             'romanRoad',
-  'forum-ruins':           'romanForum',
-  'subterranean-thermae':  'romanThermae',
-  'basilica-interior':     'romanBasilica',
-  'sealed-vault':          'romanVaultBoss',
 };

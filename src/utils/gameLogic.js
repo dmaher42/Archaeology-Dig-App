@@ -7,7 +7,6 @@ export const {
   RED_HERRINGS,
   BUREAU_CASES = [],
   BUREAU_COMPARISON_CHALLENGES = [],
-  BUREAU_RESEARCH_FOCUS = {},
   getCategoryTitle,
   getArtifactEraLabel,
 } = data;
@@ -63,7 +62,7 @@ export const getEvidenceImagePath = (artifact) => {
   return resolveAssetPath(fallback);
 };
 
-export const BUREAU_CASES_BY_ID = new Map(BUREAU_CASES.map(item => [item.id, item]));
+const BUREAU_CASES_BY_ID = new Map(BUREAU_CASES.map(item => [item.id, item]));
 export const BUREAU_CIVILISATIONS = [...new Set(BUREAU_CASES.map(item => item.civilisation))];
 
 const FIRST_BUREAU_CIVILISATION = 'Ancient Egypt';
@@ -95,7 +94,7 @@ export const TRAINING_DIFFICULTIES = [
   },
 ];
 
-export const DEFAULT_TRAINING_DIFFICULTY_ID = 'beginner';
+const DEFAULT_TRAINING_DIFFICULTY_ID = 'beginner';
 
 export const TRAINING_SURVEY_ZONES = [
   {
@@ -230,7 +229,7 @@ export const createTrainingGridTiles = (
 
 export const createDefaultTrainingGridTiles = () => createTrainingGridTiles();
 
-export const createDefaultTrainingState = () => ({
+const createDefaultTrainingState = () => ({
   currentStepIndex: 0,
   difficultyId: DEFAULT_TRAINING_DIFFICULTY_ID,
   isSurveyed: false,
@@ -301,7 +300,7 @@ const shuffleItems = (items) => {
   return shuffled;
 };
 
-export const createBureauCaseOrder = () => {
+const createBureauCaseOrder = () => {
   const firstCase = BUREAU_CASES.find(item => item.civilisation === FIRST_BUREAU_CIVILISATION) || BUREAU_CASES[0];
   const trainingCases = BUREAU_CASES.filter(item => item.round === 'training' && item.id !== firstCase?.id);
   const challengeCases = BUREAU_CASES.filter(item => item.round !== 'training' && item.id !== firstCase?.id);
@@ -325,8 +324,8 @@ export const getBureauCasesForSession = (bureauState = {}) => {
 };
 
 export const AUTOSAVE_KEY = 'archaeologyDigApp.autosave.v1';
-export const AUTOSAVE_VERSION = 1;
-export const SAVE_APP_ID = 'archaeology-dig-app';
+const AUTOSAVE_VERSION = 1;
+const SAVE_APP_ID = 'archaeology-dig-app';
 
 export const TRAINING_STAGES = [
   { id: 'survey', title: 'Survey', purpose: 'Find a possible site' },
@@ -336,7 +335,7 @@ export const TRAINING_STAGES = [
   { id: 'lab', title: 'Lab', purpose: 'Analyse the finds to work out what they mean' },
 ];
 
-export const ARTIFACT_THEME_MAP = {
+const ARTIFACT_THEME_MAP = {
   objects: { accent: '#f59e0b', accentSoft: 'rgba(245, 158, 11, 0.18)', label: 'Artifact' },
   remains: { accent: '#a855f7', accentSoft: 'rgba(168, 85, 247, 0.18)', label: 'Remains' },
   structures: { accent: '#14b8a6', accentSoft: 'rgba(20, 184, 166, 0.18)', label: 'Structure' },
@@ -423,12 +422,6 @@ const getPromptTitleById = (promptId) => (
   LAB_ANALYSIS_PROMPTS.find(prompt => prompt.id === promptId)?.title || promptId
 );
 
-export const LAB_NOTE_STEMS = [
-  'This find suggests...',
-  'The clue that supports this is...',
-  'This helps historians understand...',
-];
-
 const OBSERVATION_LEADS = {
   objects: 'This object shows',
   remains: 'The evidence shows',
@@ -478,7 +471,7 @@ export const getLabAnswerFeedback = (artifact = {}, selectedAnswerIndex = null) 
   };
 };
 
-export const getLabFocusId = (artifact = {}) => {
+const getLabFocusId = (artifact = {}) => {
   if (artifact.labFocusId) return artifact.labFocusId;
   if (artifact.id && LAB_FOCUS_BY_ARTIFACT_ID[artifact.id]) return LAB_FOCUS_BY_ARTIFACT_ID[artifact.id];
 
@@ -559,7 +552,7 @@ export const getMuseumDisplayLabelPrompt = (artifact = {}) => {
   };
 };
 
-export const getArtifactHash = (input = '') => {
+const getArtifactHash = (input = '') => {
   let hash = 0;
   for (let i = 0; i < input.length; i += 1) {
     hash = (hash * 31 + input.charCodeAt(i)) >>> 0;
@@ -581,19 +574,19 @@ export const getArtifactTheme = (artifact) => {
   };
 };
 
-export const getFirstSentence = (text = '') => {
+const getFirstSentence = (text = '') => {
   const trimmed = String(text).trim();
   if (!trimmed) return '';
   const match = trimmed.match(/^(.+?[.!?])(?:\s|$)/);
   return (match?.[1] ?? trimmed).trim();
 };
 
-export const lowercaseFirstLetter = (text = '') => {
+const lowercaseFirstLetter = (text = '') => {
   if (!text) return '';
   return text.charAt(0).toLowerCase() + text.slice(1);
 };
 
-export const SORT_HINTS = {
+const SORT_HINTS = {
   objects: {
     first: 'This looks like something people deliberately made and could pick up. What does that tell you about it?',
     repeat: 'Look again at the clue. What does the shape, material or use tell you about what people made it for?',
@@ -680,11 +673,6 @@ export const getDigBoardColumns = (tileCount) => {
   if (tileCount >= 18) return 6;
   if (tileCount >= 10) return 5;
   return Math.max(2, Math.ceil(Math.sqrt(Math.max(tileCount, 1))));
-};
-
-export const allArtifactsById = () => {
-  const artifacts = SCENARIOS.flatMap(scenario => scenario.evidence || []);
-  return new Map([...artifacts, ...RED_HERRINGS].map(item => [item.id, item]));
 };
 
 export const createInitialBureauEvidenceFilter = () => (
@@ -964,8 +952,4 @@ export const rebuildSavedSession = (saved) => {
     trainingState: normalizeTrainingState(saved.trainingState),
     savedAt: saved.savedAt || null,
   };
-};
-
-export const customCollisionDetection = () => {
-  return null; 
 };

@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { resolveAssetPath } from '../../utils/gameLogic';
 
-export const FULL_INVESTIGATION_ATLAS_BASE_PATH = 'assets/full-investigation/shared/';
-export const FULL_INVESTIGATION_ATLAS_JSON = `${FULL_INVESTIGATION_ATLAS_BASE_PATH}full-investigation-ui-pack.json`;
+const FULL_INVESTIGATION_ATLAS_BASE_PATH = 'assets/full-investigation/shared/';
+const FULL_INVESTIGATION_ATLAS_JSON = `${FULL_INVESTIGATION_ATLAS_BASE_PATH}full-investigation-ui-pack.json`;
 
-export const EXPECTED_FULL_INVESTIGATION_ASSET_KEYS = [
+const EXPECTED_FULL_INVESTIGATION_ASSET_KEYS = [
   'parchmentPanel',
   'darkWoodPanel',
   'dossierTab',
@@ -56,7 +56,7 @@ const publish = (nextState) => {
   subscribers.forEach(listener => listener(cachedState));
 };
 
-export const getMissingFullInvestigationAssets = (assets) => {
+const getMissingFullInvestigationAssets = (assets) => {
   const regions = assets?.atlas?.regions || {};
   return EXPECTED_FULL_INVESTIGATION_ASSET_KEYS.filter(key => !regions[key]);
 };

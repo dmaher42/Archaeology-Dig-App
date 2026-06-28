@@ -58,17 +58,11 @@ export const isHorizontallyVisible = (worldX, width, cameraX, margin = 0) => {
   return screenX + width >= -margin && screenX <= JOURNEY_VIEWPORT.width + margin;
 };
 
-export const placeOnGround = (height, yOffset = 0) => (
+const placeOnGround = (height, yOffset = 0) => (
   JOURNEY_WORLD_LAYOUT.groundY - height + yOffset
 );
 
 export const placeGateOnGround = (height) => placeOnGround(height, 5);
-
-export const placeHazardAtFloor = (height, yOffset = 0) => (
-  JOURNEY_WORLD_LAYOUT.groundY - height + yOffset
-);
-
-export const placeFloatingMarker = (baseY, yOffset = 0) => baseY + yOffset;
 
 export const getCameraFollowTarget = ({ playerCenterX, bossIntroFocusX = null }) => {
   if (Number.isFinite(bossIntroFocusX)) {

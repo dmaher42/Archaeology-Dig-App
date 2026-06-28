@@ -1,26 +1,24 @@
 // Rome boss sprite definitions — Legate Revenant and future Rome boss roster.
 
-export const ROME_BOSS_SPRITE_BASE_PATH = 'assets/expedition/bosses/rome/';
+const ROME_BOSS_SPRITE_BASE_PATH = 'assets/expedition/bosses/rome/';
 
 // --- Boss IDs ---
 export const ROME_LEGATE_REVENANT_BOSS_ID   = 'rome-legate-revenant';
-export const ROME_VAULT_SENTINEL_BOSS_ID     = 'rome-vault-sentinel';     // future
-export const ROME_IRON_EAGLE_BOSS_ID         = 'rome-iron-eagle';          // future
+const ROME_VAULT_SENTINEL_BOSS_ID     = 'rome-vault-sentinel';     // future
+const ROME_IRON_EAGLE_BOSS_ID         = 'rome-iron-eagle';          // future
 
 // --- Section One atlas paths ---
 export const ROME_LEGATE_REVENANT_SPRITE_ATLAS_JSON  = `${ROME_BOSS_SPRITE_BASE_PATH}rome-legate-revenant-sprites.json`;
-export const ROME_VAULT_SENTINEL_SPRITE_ATLAS_JSON    = `${ROME_BOSS_SPRITE_BASE_PATH}rome-vault-sentinel-sprites.json`;
-export const ROME_IRON_EAGLE_SPRITE_ATLAS_JSON        = `${ROME_BOSS_SPRITE_BASE_PATH}rome-iron-eagle-sprites.json`;
-
-export const ROME_BOSS_SPRITE_ATLAS_VERSION = 'rome-boss-sprites-production-2026-06-24';
+const ROME_VAULT_SENTINEL_SPRITE_ATLAS_JSON    = `${ROME_BOSS_SPRITE_BASE_PATH}rome-vault-sentinel-sprites.json`;
+const ROME_IRON_EAGLE_SPRITE_ATLAS_JSON        = `${ROME_BOSS_SPRITE_BASE_PATH}rome-iron-eagle-sprites.json`;
 
 // Draw sizing
-export const ROME_MIN_BOSS_DRAW_HEIGHT = 176;
-export const ROME_LEGATE_REVENANT_DRAW_OFFSET_X = 16;
-export const ROME_LEGATE_REVENANT_FOOT_SINK = 10;
+const ROME_MIN_BOSS_DRAW_HEIGHT = 176;
+const ROME_LEGATE_REVENANT_DRAW_OFFSET_X = 16;
+const ROME_LEGATE_REVENANT_FOOT_SINK = 10;
 
 // --- Sprite key contracts ---
-export const ROME_LEGATE_REVENANT_ANIMATED_SPRITE_KEYS = [
+const ROME_LEGATE_REVENANT_ANIMATED_SPRITE_KEYS = [
   ...Array.from({ length: 6 }, (_, i) => `legateRevenantWalk${i + 1}`),
   ...Array.from({ length: 6 }, (_, i) => `legateRevenantCharge${i + 1}`),
   ...Array.from({ length: 5 }, (_, i) => `legateRevenantWindup${i + 1}`),
@@ -56,8 +54,8 @@ const simpleBossKeys = (prefix) => [
   `${prefix}Defeated`,
 ];
 
-export const ROME_VAULT_SENTINEL_SPRITE_KEYS = simpleBossKeys('vaultSentinel');
-export const ROME_IRON_EAGLE_SPRITE_KEYS     = simpleBossKeys('ironEagle');
+const ROME_VAULT_SENTINEL_SPRITE_KEYS = simpleBossKeys('vaultSentinel');
+const ROME_IRON_EAGLE_SPRITE_KEYS     = simpleBossKeys('ironEagle');
 
 const ROME_BOSS_SPRITE_PACKS = {
   [ROME_LEGATE_REVENANT_BOSS_ID]: {
@@ -78,71 +76,10 @@ export const ROME_JOURNEY_BOSS_SPRITE_PACK_IDS = [ROME_LEGATE_REVENANT_BOSS_ID];
 
 export const isRomeBossSpriteId = (bossId) => Object.hasOwn(ROME_BOSS_SPRITE_PACKS, bossId);
 
-const getAtlasImagePath = (atlasPath, imageName) => {
-  if (!imageName) return null;
-  if (imageName.startsWith('/') || imageName.startsWith('assets/')) return imageName;
-  const dir = atlasPath.includes('/') ? atlasPath.slice(0, atlasPath.lastIndexOf('/') + 1) : '';
-  return `${dir}${imageName}`;
-};
-
-export const createRomeBossSpriteState = () => ({
-  packs: {},
-  loaded: false,
-  ready: false,
-  failed: false,
-  error: null,
-});
-
-export const getMissingRomeBossSpriteAssets = (assets) => (
-  Object.entries(ROME_BOSS_SPRITE_PACKS).flatMap(([bossId, packConfig]) => {
-    const regions = assets?.packs?.[bossId]?.atlas?.regions || {};
-    return packConfig.expectedKeys.filter((k) => !regions[k]).map((k) => `${bossId}:${k}`);
-  })
-);
-
 export const getRomeBossSpritePack = (assets, bossId) => {
   const pack = assets?.packs?.[bossId];
   if (!pack?.loaded || pack.failed) return null;
   return pack;
-};
-
-export const loadRomeBossSpritePack = ({ baseUrl = '/', onUpdate, packIds = null }) => {
-  let cancelled = false;
-  const requested = packIds ? new Set(packIds) : null;
-  const entries = Object.entries(ROME_BOSS_SPRITE_PACKS)
-    .filter(([id]) => !requested || requested.has(id));
-
-  const loadOne = ([bossId, packConfig]) => {
-    const atlasUrl = `${baseUrl}${packConfig.atlasPath}`;
-    return fetch(atlasUrl)
-      .then((res) => {
-        if (!res.ok) throw new Error(`${bossId} boss atlas failed: ${res.status}`);
-        return res.json();
-      })
-      .then((atlas) => new Promise((resolve) => {
-        const image = new Image();
-        image.onload = () => resolve([bossId, { image, atlas, loaded: true, ready: packConfig.expectedKeys.every((k) => atlas?.regions?.[k]), failed: false, error: null, atlasPath: packConfig.atlasPath }]);
-        image.onerror = () => resolve([bossId, { image: null, atlas, loaded: false, ready: false, failed: true, error: `${bossId} image failed.`, atlasPath: packConfig.atlasPath }]);
-        image.src = `${baseUrl}${getAtlasImagePath(packConfig.atlasPath, atlas.image)}`;
-      }))
-      .catch((err) => [bossId, { image: null, atlas: null, loaded: false, ready: false, failed: true, error: err?.message || `${bossId} failed.`, atlasPath: packConfig.atlasPath }]);
-  };
-
-  Promise.all(entries.map(loadOne)).then((results) => {
-    if (cancelled) return;
-    const packs = Object.fromEntries(results);
-    const vals = Object.values(packs);
-    onUpdate?.({
-      ...createRomeBossSpriteState(),
-      packs,
-      loaded: vals.some((p) => p.loaded),
-      ready: vals.length > 0 && vals.every((p) => p.ready && !p.failed),
-      failed: vals.some((p) => p.failed),
-      error: vals.filter((p) => p.error).map((p) => p.error).join(' | ') || null,
-    });
-  });
-
-  return () => { cancelled = true; };
 };
 
 // --- Sprite frame selectors ---
@@ -165,8 +102,6 @@ export const getLegateRevenantSpriteFrame = (boss, combatMode, bossVisualState =
   if (!boss.awakened) return 'legateRevenantIntro';
   return seq('legateRevenantWalk', 6, 140);
 };
-
-export const shouldFlipRomeBossSprite = (bossId, facing = 1) => facing < 0;
 
 // --- Draw boxes ---
 

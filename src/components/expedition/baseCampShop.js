@@ -219,7 +219,7 @@ export const normalizeBaseCampProgression = (value) => {
   return createDefaultProgression(value);
 };
 
-export const getShopItemById = (itemId) => BASE_CAMP_SHOP_ITEMS.find(item => item.id === itemId) || null;
+const getShopItemById = (itemId) => BASE_CAMP_SHOP_ITEMS.find(item => item.id === itemId) || null;
 
 export const getShopItemDisplayName = (itemId) => {
   const item = getShopItemById(itemId);

@@ -17,8 +17,6 @@ import {
 } from './rome/romeLevelData.js';
 import { ROME_GROUND_Y, ROME_VERTICAL_OFFSET, scaleRomeX } from './rome/romeConstants.js';
 
-export { ROME_SECTIONS as ROME_SECTIONS };
-
 export const ROME_SECTION_ONE_QUESTION = 'How did Rome change from a Republic into an Empire?';
 
 export const ROME_TIMELINE_SEQUENCE = [
@@ -769,8 +767,6 @@ export const ROME_MINI_BOSSES = [
     arenaEnd: scaleRomeX(8820),
   },
 ];
-
-export { ROME_BOSS_SPAWN };
 
 // Gate position — end of the sealed vault section, world position
 const _RJY = (y) => y + ROME_VERTICAL_OFFSET;

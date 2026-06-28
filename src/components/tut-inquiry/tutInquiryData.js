@@ -731,18 +731,4 @@ export const TUT_SCORING = {
   ],
 };
 
-// Field Report scaffold — the verdict screen fills these slots from the player's
-// actual run, producing a one-page export for the written/video assessment that
-// responds to: "technology, human expertise and teamwork helped us discover the
-// cause of death."
-export const TUT_FIELD_REPORT_TEMPLATE = {
-  prompts: [
-    { id: 'technology', heading: 'Technology', lead: 'The technologies I used to read the evidence:' },
-    { id: 'expertise', heading: 'Human expertise', lead: 'The experts I consulted and what each revealed:' },
-    { id: 'teamwork', heading: 'Teamwork & debate', lead: 'How challenging and contesting evidence changed my thinking:' },
-    { id: 'verdict', heading: 'My verdict', lead: 'My evidence-based conclusion on how Tutankhamun died:' },
-    { id: 'changed-mind', heading: 'What changed my mind', lead: 'A claim I started out believing, and the evidence that overturned it:' },
-  ],
-};
-
 export const TUT_DOSSIER_DEFAULT = 'accident';

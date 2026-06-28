@@ -1,7 +1,7 @@
-export const EXCAVATION_MAP_ATLAS_BASE_PATH = 'assets/expedition/excavation/';
-export const EXCAVATION_MAP_ATLAS_JSON = `${EXCAVATION_MAP_ATLAS_BASE_PATH}excavation-map-ui-pack.json`;
+const EXCAVATION_MAP_ATLAS_BASE_PATH = 'assets/expedition/excavation/';
+const EXCAVATION_MAP_ATLAS_JSON = `${EXCAVATION_MAP_ATLAS_BASE_PATH}excavation-map-ui-pack.json`;
 
-export const EXCAVATION_ASSET_PACKS = {
+const EXCAVATION_ASSET_PACKS = {
   legacy: {
     atlasPath: EXCAVATION_MAP_ATLAS_JSON,
     expectedKeys: [
@@ -258,7 +258,7 @@ export const EXCAVATION_ASSET_PACKS = {
   },
 };
 
-export const EXPECTED_EXCAVATION_MAP_KEYS = [
+const EXPECTED_EXCAVATION_MAP_KEYS = [
   'riverbankTerrain',
   'burialTerrain',
   'archiveTerrain',

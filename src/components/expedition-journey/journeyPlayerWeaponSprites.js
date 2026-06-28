@@ -5,18 +5,18 @@ import {
   ROME_PLAYER_WEAPON_ATLAS_VERSION,
 } from './rome/romeConstants.js';
 
-export const PLAYER_WEAPON_ATLAS_BASE_PATH = 'assets/expedition/player/';
+const PLAYER_WEAPON_ATLAS_BASE_PATH = 'assets/expedition/player/';
 export const PLAYER_WEAPON_ATLAS_JSON = `${PLAYER_WEAPON_ATLAS_BASE_PATH}khopesh-weapon-pack.json`;
 export const PLAYER_WEAPON_ATLAS_VERSION = 'khopesh-weapon-pack-2026-05-12';
 
-export const EXPECTED_PLAYER_WEAPON_ASSET_KEYS = [
+const EXPECTED_PLAYER_WEAPON_ASSET_KEYS = [
   'khopeshIdle',
   'khopeshWindup',
   'khopeshSwing',
   'khopeshReady',
 ];
 
-export const PLAYER_WEAPON_PACKS = {
+const PLAYER_WEAPON_PACKS = {
   khopesh: {
     atlasPath: PLAYER_WEAPON_ATLAS_JSON,
     version: PLAYER_WEAPON_ATLAS_VERSION,

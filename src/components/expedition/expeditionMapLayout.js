@@ -1,4 +1,4 @@
-export const EXPEDITION_ROOM_ZONES = [
+const EXPEDITION_ROOM_ZONES = [
   {
     id: 'riverbank',
     name: 'Riverbank',
@@ -78,8 +78,3 @@ export const EXPEDITION_ROOM_CONNECTIONS = [
   { from: 'market', to: 'wall', points: [[314, 314], [326, 314]] },
   { from: 'wall', to: 'gate', points: [[574, 314], [586, 314]] },
 ];
-
-export const getRoomZoneAtPoint = (x, y) => EXPEDITION_ROOM_ZONES.find(zone => (
-  x >= zone.x && x <= zone.x + zone.w &&
-  y >= zone.y && y <= zone.y + zone.h
-)) || null;

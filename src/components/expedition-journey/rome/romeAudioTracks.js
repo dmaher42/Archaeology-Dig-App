@@ -169,24 +169,3 @@ export const ROME_AUDIO_TRACKS = {
   },
 };
 
-export const ROME_STINGER_DURATIONS = {
-  evidenceDiscovery: 3000,
-  gateUnlock:        4400,
-};
-
-// Synthetic SFX type names registered in the Rome synth engine
-export const ROME_SYNTH_SFX_TYPES = [
-  'romeMarbleStep',
-  'romeGladiusSwing',
-  'romeShieldDeflect',
-  'romeEnemyImpact',
-  'romeGladiatorImpact',
-  'romeSmallImpact',
-  'romeWispImpact',
-  'romeGolemImpact',
-  'romeLegateImpact',
-  'romePlayerImpact',
-  'romePresurePlate',
-  'romeSteamBurst',
-  'romeStoneFall',
-];

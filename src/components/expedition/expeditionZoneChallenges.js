@@ -1,4 +1,4 @@
-export const EXPEDITION_ZONE_CHALLENGES = {
+const EXPEDITION_ZONE_CHALLENGES = {
   riverbank: {
     zoneId: 'riverbank',
     title: 'Stabilise the Riverbank',

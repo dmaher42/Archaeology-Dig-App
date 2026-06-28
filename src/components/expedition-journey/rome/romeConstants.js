@@ -1,7 +1,7 @@
 // Rome expedition — world constants. All values are Rome-only; do not import from journeyConstants.
 
-export const ROME_BASE_WORLD_WIDTH = 9060;
-export const ROME_HORIZONTAL_SCALE = 5.65;
+const ROME_BASE_WORLD_WIDTH = 9060;
+const ROME_HORIZONTAL_SCALE = 5.65;
 export const scaleRomeX = (x) => Math.round(x * ROME_HORIZONTAL_SCALE);
 export const ROME_WORLD_WIDTH = scaleRomeX(ROME_BASE_WORLD_WIDTH);
 export const ROME_GROUND_Y = 595;

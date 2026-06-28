@@ -25,7 +25,7 @@ const X = scaleJourneyX;
 // ---------------------------------------------------------------------------
 // Sections
 // ---------------------------------------------------------------------------
-export const CHINA_SECTION_IDS = {
+const CHINA_SECTION_IDS = {
   FRONTIER: 'yellow-river-frontier',
   WALL: 'rammed-earth-wall',
   SETTLEMENT: 'frontier-settlement',
