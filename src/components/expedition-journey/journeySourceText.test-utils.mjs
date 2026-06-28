@@ -18,6 +18,7 @@ export const JOURNEY_SOURCE_URLS = [
   new URL('./useJourneyRenderer.js', import.meta.url),
   new URL('./useJourneySimulation.js', import.meta.url),
   new URL('./useJourneyDraw.js', import.meta.url),
+  new URL('./useJourneySnapshot.js', import.meta.url),
 ];
 
 export const JOURNEY_BACKGROUND_ASSETS_SOURCE_URL = new URL('./journeyBackgroundAssets.js', import.meta.url);
