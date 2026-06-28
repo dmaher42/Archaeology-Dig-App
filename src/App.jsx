@@ -24,7 +24,7 @@ const ExpeditionMode = lazy(() => import('./components/ExpeditionMode').then((mo
   default: module.ExpeditionMode,
 })));
 
-const MummificationQuestMode = lazy(() => import('./components/MummificationQuestMode').then((module) => ({
+const MummificationQuestMode = lazy(() => import('./components/mummification-quest/MummificationQuestMode').then((module) => ({
   default: module.MummificationQuestMode,
 })));
 

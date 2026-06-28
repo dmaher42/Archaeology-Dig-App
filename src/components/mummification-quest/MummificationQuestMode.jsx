@@ -19,7 +19,7 @@ import {
   MUMMIFICATION_QUEST_STAGES,
   MUMMIFICATION_QUEST_SYMBOL_BANK,
   MUMMIFICATION_QUEST_TITLE,
-} from './mummification-quest/mummificationQuestData';
+} from './mummificationQuestData';
 
 const createEmptyQuestState = () => ({
   evidenceSort: Object.fromEntries(MUMMIFICATION_QUEST_EVIDENCE_CARDS.map((card) => [card.id, ''])),
