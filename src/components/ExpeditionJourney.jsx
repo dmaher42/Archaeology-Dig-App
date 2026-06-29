@@ -4672,6 +4672,31 @@ export default function ExpeditionJourney({
     syncHud();
   }, [syncHud]);
 
+  // DEV: teleport to an arbitrary world X (used to jump straight to the
+  // enterable buildings, which sit mid-section, for in-game eyeballing).
+  const jumpToDevWorldX = useCallback((worldX, label) => {
+    if (!import.meta.env.DEV || !Number.isFinite(worldX)) return;
+    const current = stateRef.current;
+    if (!current?.player) return;
+    const targetX = Math.max(0, worldX);
+    current.player.x = targetX;
+    current.player.y = GROUND_Y - current.player.height;
+    current.player.vx = 0;
+    current.player.vy = 0;
+    const section = getSectionForX(targetX);
+    if (section) current.currentSectionId = section.id;
+    current.failed = false;
+    current.failureReason = '';
+    current.failureDetail = '';
+    const camera = getCameraFollowTarget(current);
+    current.cameraX = camera.targetCameraX;
+    current.targetCameraX = camera.targetCameraX;
+    current.cameraMode = camera.mode;
+    current.cameraFocusTarget = camera.focusTarget;
+    current.notice = `Jumped to ${label || 'world position'}.`;
+    syncHud();
+  }, [syncHud]);
+
   const answerGuardianChallenge = useCallback((answerIndex) => {
     const current = stateRef.current;
     const challenge = current.activeGuardianChallenge;
@@ -7981,6 +8006,30 @@ export default function ExpeditionJourney({
                     {i + 1}. {s.name || s.id}
                   </button>
                 ))}
+                <span style={{ opacity: 0.45, padding: '0 2px' }}>|</span>
+                {[
+                  { id: 'mummification-chamber-exterior-structure', label: 'Mummif. (hidden)' },
+                  { id: 'forgotten-mural-climb-structure', label: 'Mural' },
+                  { id: 'scribe-chamber-doorway-structure', label: 'Scribe' },
+                ].map(({ id, label }) => {
+                  const buildingProp = STORY_PROPS.find((prop) => prop.id === id);
+                  if (!buildingProp) return null;
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      title={`${id} @ x≈${Math.round(buildingProp.x)}`}
+                      onClick={(event) => { jumpToDevWorldX(buildingProp.x, label); event.currentTarget.blur(); }}
+                      style={{
+                        cursor: 'pointer', padding: '2px 7px', borderRadius: 4, font: 'inherit',
+                        background: 'rgba(120,170,212,0.16)', border: '1px solid rgba(120,170,212,0.45)',
+                        color: '#dce9f5',
+                      }}
+                    >
+                      🏛 {label}
+                    </button>
+                  );
+                })}
               </div>
             )}
 
