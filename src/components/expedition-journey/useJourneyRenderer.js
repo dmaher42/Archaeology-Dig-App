@@ -3846,7 +3846,7 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
     const cfg = T.ritualPyramid;
     const ritualSectionWidth = Math.max(1, section.end - section.start);
     const ritualWorldX = section.start + ritualSectionWidth * cfg.sectionFraction;
-    const ritualWidth = cfg.height * (ritualRegion.w / ritualRegion.h);
+    const ritualWidth = cfg.height * (ritualRegion.w / ritualRegion.h) * (cfg.widthScale ?? 1);
     const ritualX = (ritualWorldX - cameraX) * cfg.parallax + CANVAS_WIDTH / 2 - ritualWidth / 2;
     if (ritualX > -ritualWidth && ritualX < CANVAS_WIDTH + ritualWidth) {
       ctx.save();
