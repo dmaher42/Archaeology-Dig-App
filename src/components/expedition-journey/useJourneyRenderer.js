@@ -3790,7 +3790,8 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
   // (sand mounds at the bases), drawn at backdrop size with the bases sitting
   // on the necropolis floor, and at low parallax so they stay pinned to the
   // horizon. Position/size/base are dev-tunable.
-  const pyrRegion = assets.atlas?.regions?.farPyramids;
+  const skipPlacedPyramids = assets.atlas?.devCandidateMode === 'v3-ground-lane-test';
+  const pyrRegion = skipPlacedPyramids ? null : assets.atlas?.regions?.farPyramids;
   const pyrImage = pyrRegion?.image ? assets.images?.[pyrRegion.image] : null;
   if (pyrImage && pyrRegion) {
     const PYR_SECTION_FRACTION = T.farPyramids.sectionFraction; // anchored mid-section
@@ -3833,6 +3834,47 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
         Math.round(sphinxX), SPHINX_BASE_Y - SPHINX_HEIGHT, Math.round(sphinxWidth), SPHINX_HEIGHT,
       );
     }
+  }
+
+  // Placed Ritual Chamber building: a tall, climbable stepped-pyramid facade drawn
+  // world-locked (parallax ~1) at gameplay depth -- behind the player, who climbs
+  // invisible platforms laid onto its terraces. Position / scale / base / opacity
+  // are dev-tunable via the layer panel (ritualPyramid).
+  const ritualRegion = assets.atlas?.regions?.ritualPyramid;
+  const ritualImage = ritualRegion?.image ? assets.images?.[ritualRegion.image] : null;
+  if (ritualImage && ritualRegion && T.ritualPyramid.alpha > 0.01) {
+    const cfg = T.ritualPyramid;
+    const ritualSectionWidth = Math.max(1, section.end - section.start);
+    const ritualWorldX = section.start + ritualSectionWidth * cfg.sectionFraction;
+    const ritualWidth = cfg.height * (ritualRegion.w / ritualRegion.h);
+    const ritualX = (ritualWorldX - cameraX) * cfg.parallax + CANVAS_WIDTH / 2 - ritualWidth / 2;
+    if (ritualX > -ritualWidth && ritualX < CANVAS_WIDTH + ritualWidth) {
+      ctx.save();
+      ctx.globalAlpha = cfg.alpha;
+      ctx.drawImage(
+        ritualImage,
+        ritualRegion.x, ritualRegion.y, ritualRegion.w, ritualRegion.h,
+        Math.round(ritualX), cfg.baseY - cfg.height, Math.round(ritualWidth), cfg.height,
+      );
+      ctx.restore();
+    }
+  }
+  if (assets.atlas?.devCandidateLabel) {
+    ctx.save();
+    ctx.font = '12px Georgia, serif';
+    ctx.textBaseline = 'top';
+    const label = assets.atlas.devCandidateLabel;
+    const labelWidth = ctx.measureText(label).width;
+    ctx.fillStyle = 'rgba(31, 20, 8, 0.82)';
+    ctx.strokeStyle = 'rgba(244, 198, 112, 0.72)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(10, 38, labelWidth + 18, 24, 4);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(255, 232, 177, 0.94)';
+    ctx.fillText(label, 19, 44);
+    ctx.restore();
   }
   return true;
 }
