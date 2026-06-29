@@ -3770,6 +3770,32 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
   const T = DESERT_LAYER_TUNING;
   const layerOptions = { canvasWidth: CANVAS_WIDTH, cameraX };
   const fullFrame = { y: 0, height: CANVAS_HEIGHT };
+  const devCandidateMode = assets.atlas?.devCandidateMode || '';
+  const drawSinglePanoramaLayer = (key, dest, options = {}) => {
+    const region = assets.atlas?.regions?.[key];
+    const image = region?.image ? assets.images?.[region.image] : assets.image;
+    if (!region || !image || !dest?.height || !CANVAS_WIDTH) return false;
+
+    const sourceViewportWidth = Math.min(
+      region.w,
+      Math.max(1, Math.round(region.h * (CANVAS_WIDTH / dest.height))),
+    );
+    const maxSourceX = Math.max(0, region.w - sourceViewportWidth);
+    const sectionWidth = Math.max(1, section.end - section.start);
+    const sectionProgress = Math.max(0, Math.min(1, (cameraX - section.start) / sectionWidth));
+    const parallaxFactor = Number.isFinite(options.parallaxFactor) ? options.parallaxFactor : 1;
+    const sourceX = region.x + Math.round(maxSourceX * Math.max(0, Math.min(1, sectionProgress * parallaxFactor)));
+
+    ctx.save();
+    ctx.globalAlpha = Number.isFinite(options.alpha) ? options.alpha : 1;
+    ctx.drawImage(
+      image,
+      sourceX, region.y, sourceViewportWidth, region.h,
+      0, dest.y, CANVAS_WIDTH, dest.height,
+    );
+    ctx.restore();
+    return true;
+  };
   const skyDrawn = drawDesertBackgroundLayer(
     ctx,
     assets,
@@ -3779,18 +3805,27 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
   );
   if (!skyDrawn) return false;
 
+  if (devCandidateMode === 'v3-production-layers-test') {
+    drawSinglePanoramaLayer('farPyramids', fullFrame, { parallaxFactor: 0.25, alpha: 1 });
+  }
+
   // Cliffs drawn first as the far backdrop (slowest, tiled). Height is
   // base-anchored to the canvas bottom so raising it lifts the peaks while the
   // base stays pinned behind the ground layers.
   const cliffsDest = { y: CANVAS_HEIGHT - T.distantCliffs.height, height: T.distantCliffs.height };
-  drawDesertBackgroundLayer(ctx, assets, 'distantCliffs', cliffsDest, { ...layerOptions, parallax: T.distantCliffs.parallax, alpha: T.distantCliffs.alpha });
+  if (devCandidateMode === 'v3-production-layers-test') {
+    drawSinglePanoramaLayer('distantCliffs', fullFrame, { parallaxFactor: 0.45, alpha: T.distantCliffs.alpha });
+  } else {
+    drawDesertBackgroundLayer(ctx, assets, 'distantCliffs', cliffsDest, { ...layerOptions, parallax: T.distantCliffs.parallax, alpha: T.distantCliffs.alpha });
+  }
 
   // Imposing pyramids drawn ONCE (non-tiling, world-anchored) so the
   // distinctive shapes never repeat as the player scrolls. Grounded in the art
   // (sand mounds at the bases), drawn at backdrop size with the bases sitting
   // on the necropolis floor, and at low parallax so they stay pinned to the
   // horizon. Position/size/base are dev-tunable.
-  const skipPlacedPyramids = assets.atlas?.devCandidateMode === 'v3-ground-lane-test';
+  const skipPlacedPyramids = devCandidateMode === 'v3-ground-lane-test'
+    || devCandidateMode === 'v3-production-layers-test';
   const pyrRegion = skipPlacedPyramids ? null : assets.atlas?.regions?.farPyramids;
   const pyrImage = pyrRegion?.image ? assets.images?.[pyrRegion.image] : null;
   if (pyrImage && pyrRegion) {
@@ -3809,7 +3844,11 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
     );
   }
 
-  drawDesertBackgroundLayer(ctx, assets, 'midNecropolisRuins', fullFrame, { ...layerOptions, parallax: T.midNecropolisRuins.parallax, alpha: T.midNecropolisRuins.alpha });
+  if (devCandidateMode === 'v3-production-layers-test') {
+    drawSinglePanoramaLayer('midNecropolisRuins', fullFrame, { parallaxFactor: 0.75, alpha: T.midNecropolisRuins.alpha });
+  } else {
+    drawDesertBackgroundLayer(ctx, assets, 'midNecropolisRuins', fullFrame, { ...layerOptions, parallax: T.midNecropolisRuins.parallax, alpha: T.midNecropolisRuins.alpha });
+  }
 
   // Placed Sphinx landmark: a single non-tiling monument grounded at the
   // necropolis floor, scrolling at mid parallax so the player approaches and
@@ -3836,29 +3875,9 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
     }
   }
 
-  // Placed Ritual Chamber building: a tall, climbable stepped-pyramid facade drawn
-  // world-locked (parallax ~1) at gameplay depth -- behind the player, who climbs
-  // invisible platforms laid onto its terraces. Position / scale / base / opacity
-  // are dev-tunable via the layer panel (ritualPyramid).
-  const ritualRegion = assets.atlas?.regions?.ritualPyramid;
-  const ritualImage = ritualRegion?.image ? assets.images?.[ritualRegion.image] : null;
-  if (ritualImage && ritualRegion && T.ritualPyramid.alpha > 0.01) {
-    const cfg = T.ritualPyramid;
-    const ritualSectionWidth = Math.max(1, section.end - section.start);
-    const ritualWorldX = section.start + ritualSectionWidth * cfg.sectionFraction;
-    const ritualWidth = cfg.height * (ritualRegion.w / ritualRegion.h) * (cfg.widthScale ?? 1);
-    const ritualX = (ritualWorldX - cameraX) * cfg.parallax + CANVAS_WIDTH / 2 - ritualWidth / 2;
-    if (ritualX > -ritualWidth && ritualX < CANVAS_WIDTH + ritualWidth) {
-      ctx.save();
-      ctx.globalAlpha = cfg.alpha;
-      ctx.drawImage(
-        ritualImage,
-        ritualRegion.x, ritualRegion.y, ritualRegion.w, ritualRegion.h,
-        Math.round(ritualX), cfg.baseY - cfg.height, Math.round(ritualWidth), cfg.height,
-      );
-      ctx.restore();
-    }
-  }
+  // The Ritual Chamber building is now an editor-editable image-prop
+  // ('ritual-ascending-temple-building') rendered through the standalone-image-prop
+  // path, so it can be selected, dragged and resized in the placement editor.
   if (assets.atlas?.devCandidateLabel) {
     ctx.save();
     ctx.font = '12px Georgia, serif';
@@ -3897,26 +3916,48 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
   if (!assets?.loaded) return false;
 
   const T = DESERT_LAYER_TUNING;
-  const backingDrawn = drawDesertBackgroundLayer(
-    ctx,
-    assets,
-    'groundBacking',
-    { y: T.groundBacking.y, height: T.groundBacking.height },
-    {
-      canvasWidth: CANVAS_WIDTH,
-      cameraX,
-      parallax: T.groundBacking.parallax,
-      alpha: T.groundBacking.alpha,
-    },
-  );
+  const devCandidateMode = assets.atlas?.devCandidateMode || '';
+  const drawSingleGroundLayer = (key, dest, options = {}) => {
+    const region = assets.atlas?.regions?.[key];
+    const image = region?.image ? assets.images?.[region.image] : assets.image;
+    if (!region || !image || !dest?.height || !CANVAS_WIDTH) return false;
 
-  const drawn = drawDesertBackgroundLayer(
-    ctx,
-    assets,
-    'groundLane',
-    { y: T.groundLane.y, height: T.groundLane.height },
-    { canvasWidth: CANVAS_WIDTH, cameraX, parallax: T.groundLane.parallax, alpha: T.groundLane.alpha },
-  );
+    ctx.save();
+    ctx.globalAlpha = Number.isFinite(options.alpha) ? options.alpha : 1;
+    ctx.drawImage(
+      image,
+      region.x, region.y, region.w, region.h,
+      0, dest.y, CANVAS_WIDTH, dest.height,
+    );
+    ctx.restore();
+    return true;
+  };
+  const groundBackingDest = { y: T.groundBacking.y, height: T.groundBacking.height };
+  const backingDrawn = devCandidateMode === 'v3-production-layers-test'
+    ? drawSingleGroundLayer('groundBacking', groundBackingDest, { alpha: T.groundBacking.alpha })
+    : drawDesertBackgroundLayer(
+      ctx,
+      assets,
+      'groundBacking',
+      groundBackingDest,
+      {
+        canvasWidth: CANVAS_WIDTH,
+        cameraX,
+        parallax: T.groundBacking.parallax,
+        alpha: T.groundBacking.alpha,
+      },
+    );
+
+  const groundLaneDest = { y: T.groundLane.y, height: T.groundLane.height };
+  const drawn = devCandidateMode === 'v3-production-layers-test'
+    ? drawSingleGroundLayer('groundLane', groundLaneDest, { alpha: T.groundLane.alpha })
+    : drawDesertBackgroundLayer(
+      ctx,
+      assets,
+      'groundLane',
+      groundLaneDest,
+      { canvasWidth: CANVAS_WIDTH, cameraX, parallax: T.groundLane.parallax, alpha: T.groundLane.alpha },
+    );
 
   // Soft contact shadow where the ruins meet the ground: grounds the
   // background onto the path and softens the boundary so it stops reading as a
