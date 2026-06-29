@@ -402,14 +402,20 @@ test('Desert Entry keeps the archived clean physical transition metadata instead
   );
 });
 
-test('journeyDataRouter exposes editor overrides while journeyLevelData keeps authored base placement', () => {
+test('journeyDataRouter lays the ritual climb ledges from the building while journeyLevelData keeps authored base placement', () => {
   setExpeditionJourneyCiv('Ancient Egypt');
 
   const basePlatform = BASE_PLATFORMS.find(platform => platform.id === 'mummification-chamber-left-lower-terrace');
   const routedPlatform = ROUTED_PLATFORMS.find(platform => platform.id === 'mummification-chamber-left-lower-terrace');
 
+  // Base keeps the authored (old-facade) coords in journeyLevelData.
   assert.equal(basePlatform.width, 311);
-  assert.equal(routedPlatform.width, 210);
+  // Routed coords are computed as a fraction of the Ritual Chamber building, so a
+  // building resize (desertLayerTuning.ritualPyramid) moves the whole climb with it
+  // (ritualBuildingClimb.js). These values follow the default 736-tall / 1.14-wide building.
+  assert.equal(routedPlatform.width, 195);
+  assert.equal(routedPlatform.x, 5004);
+  assert.equal(routedPlatform.y, 453);
 });
 
 test('sacred exterior editor overrides stay aligned after horizontal scale changes', () => {

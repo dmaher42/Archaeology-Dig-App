@@ -15,7 +15,7 @@ export const DESERT_LAYER_TUNING_DEFAULTS = {
   farPyramids: { sectionFraction: 0.5, parallax: 0.14, height: 440, baseY: 600 },
   midNecropolisRuins: { parallax: 0.28, alpha: 1 },
   desertSphinx: { sectionFraction: 0.21, parallax: 0.8, height: 368, baseY: 590 },
-  ritualPyramid: { sectionFraction: 0.31, parallax: 1, height: 480, widthScale: 1, baseY: 600, alpha: 1 },
+  ritualPyramid: { sectionFraction: 0.31, parallax: 1, height: 736, widthScale: 1.14, baseY: 600, alpha: 1 },
   groundBacking: { y: 600, height: 124, parallax: 0.98, alpha: 1 },
   groundLane: { y: 545, height: 105, parallax: 1, alpha: 1 },
   foregroundRubble: { y: 480, height: 150, parallax: 1.0, alpha: 1 },

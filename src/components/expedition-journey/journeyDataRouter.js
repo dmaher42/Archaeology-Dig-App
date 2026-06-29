@@ -4,6 +4,7 @@ import * as RomeData from './romeJourneyData.js';
 import journeyPlacementOverrides from './journeyPlacementOverrides.generated.js';
 import journeyPropBlendOverrides from './journeyPropBlendOverrides.js';
 import { applyJourneyPlacementOverrides } from './journeyPlacementOverrides.js';
+import { applyRitualClimbLayout, applyRitualClimbRouteBounds } from './ritualBuildingClimb.js';
 
 let currentCiv = 'Ancient Egypt';
 
@@ -23,6 +24,13 @@ const EgyptEditorPlacementData = applyJourneyPlacementOverrides({
 // future editor exports. Use this for deliberate fake-bury/contact-strip passes,
 // not broad room layout changes.
 const EgyptPlacementData = applyJourneyPlacementOverrides(EgyptEditorPlacementData, journeyPropBlendOverrides);
+
+// Lay the Ritual Chamber climb ledges as fractions of the building so a building
+// resize (desertLayerTuning.ritualPyramid) moves the whole climb automatically.
+// Runs after the editor/blend overrides so it is the authoritative source for these
+// ledge ids -- their old absolute coords were removed from the editor override file.
+EgyptPlacementData.platforms = applyRitualClimbLayout(EgyptPlacementData.platforms);
+EgyptPlacementData.hiddenRoutes = applyRitualClimbRouteBounds(EgyptPlacementData.hiddenRoutes);
 
 export const setExpeditionJourneyCiv = (civ) => {
   currentCiv = civ;

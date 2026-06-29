@@ -65,6 +65,7 @@ import {
   SECTION_OBJECTIVES,
   setExpeditionJourneyCiv,
 } from './expedition-journey/journeyDataRouter';
+import { getRitualChamberEntryGeometry } from './expedition-journey/ritualBuildingClimb';
 import {
   getEnemyAttackTelegraph,
 } from './expedition-journey/journeyCombatTelegraphs';
@@ -890,8 +891,6 @@ const EGYPT_HAZARD_DECAL_PLACEMENT_BY_HAZARD = {
 const openingJourneyY = (y) => y + JOURNEY_VERTICAL_OFFSET;
 const SACRED_MURAL_APPROACH_X = sacredMuralExteriorX;
 const SACRED_SCRIBE_APPROACH_X = sacredScribeExteriorX;
-const MUMMIFICATION_EXTERIOR_WORLD_OFFSET = scaleJourneyX(70);
-const mummificationExteriorWorldX = (x) => scaleJourneyX(x) + MUMMIFICATION_EXTERIOR_WORLD_OFFSET;
 const TEMPLE_APPROACH_RAMP_WALK_SURFACE = [
   { x: 245, y: GROUND_Y },
   { x: 935, y: GROUND_Y },
@@ -961,17 +960,21 @@ const MUMMIFICATION_CHAMBER_ENTRY_SPAWN = {
   cameraAnchorRatio: 0.56,
   direction: 1,
 };
+// Entry door / trigger / return point derive from the Ritual Chamber building's
+// tomb-door ledge fraction, so they track the building when it is resized in the
+// Layers panel (see ritualBuildingClimb.js).
+const RITUAL_CHAMBER_ENTRY_GEOMETRY = getRitualChamberEntryGeometry();
 const MUMMIFICATION_CHAMBER_RETURN_FALLBACK = {
-  x: mummificationExteriorWorldX(710),
-  y: openingJourneyY(-12),
+  x: RITUAL_CHAMBER_ENTRY_GEOMETRY.returnX,
+  y: RITUAL_CHAMBER_ENTRY_GEOMETRY.returnY,
   cameraAnchorRatio: 0.42,
   direction: 1,
 };
 const MUMMIFICATION_CHAMBER_ENTRY_TRIGGER = {
-  minX: mummificationExteriorWorldX(688),
-  maxX: mummificationExteriorWorldX(724),
+  minX: RITUAL_CHAMBER_ENTRY_GEOMETRY.trigger.minX,
+  maxX: RITUAL_CHAMBER_ENTRY_GEOMETRY.trigger.maxX,
   maxY: GROUND_Y - 50,
-  footY: openingJourneyY(-10),
+  footY: RITUAL_CHAMBER_ENTRY_GEOMETRY.trigger.footY,
   footTolerance: 42,
 };
 const MUMMIFICATION_CHAMBER_CAMERA_X = scaleJourneyX(520);

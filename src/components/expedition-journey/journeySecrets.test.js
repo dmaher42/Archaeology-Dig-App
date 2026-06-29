@@ -2064,9 +2064,11 @@ test('mummification chamber exterior reuses Journey routes, ledges, assets, and 
   assert.ok(platforms.indexOf("id: 'mummification-chamber-doorway-floor'") < platforms.indexOf("id: 'forgotten-mural-carved-wall-ledge'"));
   assert.match(journeyUtilsSource, /mummificationChamberEntranceDiscovered:\s*false/);
   assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_EXTERIOR_SRC = 'assets\/expedition\/environment\/desert-temple\/mummification-chamber-exterior-ledged-building-2026-06-12\.png'/);
-  assert.match(journeyComponentSource, /MUMMIFICATION_EXTERIOR_WORLD_OFFSET = scaleJourneyX\(70\)/);
-  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?minX:\s*mummificationExteriorWorldX\(688\)[\s\S]*?maxX:\s*mummificationExteriorWorldX\(724\)/);
-  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?footY:\s*openingJourneyY\(-10\)[\s\S]*?footTolerance:\s*42/);
+  // Entry door / trigger derive from the Ritual Chamber building rect so they track
+  // a building resize (ritualBuildingClimb.js); they are no longer hardcoded offsets.
+  assert.match(journeyComponentSource, /RITUAL_CHAMBER_ENTRY_GEOMETRY = getRitualChamberEntryGeometry\(\)/);
+  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?minX:\s*RITUAL_CHAMBER_ENTRY_GEOMETRY\.trigger\.minX[\s\S]*?maxX:\s*RITUAL_CHAMBER_ENTRY_GEOMETRY\.trigger\.maxX/);
+  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?footY:\s*RITUAL_CHAMBER_ENTRY_GEOMETRY\.trigger\.footY[\s\S]*?footTolerance:\s*42/);
   assert.match(journeyComponentSource, /drawMummificationChamberExteriorAsset/);
   assert.match(journeyComponentSource, /drawMummificationChamberExteriorAsset[\s\S]*?drawEgyptStructureGroundContactLayer/);
   assert.match(journeyComponentSource, /prop\.type === 'generated-mummification-chamber-entrance'/);
