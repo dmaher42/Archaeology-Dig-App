@@ -66,6 +66,13 @@
       "y": 0,
       "w": 1505,
       "h": 935
+    },
+    "ritualPyramid": {
+      "image": "desert-entry-ritual-ascending-ruin-2026-06-29.png",
+      "x": 0,
+      "y": 0,
+      "w": 1672,
+      "h": 865
     }
   },
   "groundLaneNote": "Dedicated necropolis stone path layer. Drawn at parallax 1.0 (locked to the world / collision floor) so Asha runs on the same visible route that collision, enemies, shards, checkpoints, and gates use. Empty pixels outside the route can remain transparent, but painted route pixels must stay fully opaque.",
