@@ -3757,6 +3757,7 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
     desertBackgroundAssetsRef,
     drawDesertBackgroundLayer,
     getSectionBackgroundAssets,
+    stateRef,
   } = deps;
   const isNearDesertEntry = section.id === 'desert-entry';
   const assets = getSectionBackgroundAssets(desertBackgroundAssetsRef.current, 'desert-entry');
@@ -3848,13 +3849,17 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
     const ritualWorldX = section.start + ritualSectionWidth * cfg.sectionFraction;
     const ritualWidth = cfg.height * (ritualRegion.w / ritualRegion.h) * (cfg.widthScale ?? 1);
     const ritualX = (ritualWorldX - cameraX) * cfg.parallax + CANVAS_WIDTH / 2 - ritualWidth / 2;
+    // Track the vertical climb-camera: the background frame draws BEFORE the
+    // world's secretVerticalCameraOffset translate, so without this the building
+    // stays screen-pinned while the platforms/player slide down as Asha climbs.
+    const climbOffsetY = stateRef?.current?.secretVerticalCameraOffset || 0;
     if (ritualX > -ritualWidth && ritualX < CANVAS_WIDTH + ritualWidth) {
       ctx.save();
       ctx.globalAlpha = cfg.alpha;
       ctx.drawImage(
         ritualImage,
         ritualRegion.x, ritualRegion.y, ritualRegion.w, ritualRegion.h,
-        Math.round(ritualX), cfg.baseY - cfg.height, Math.round(ritualWidth), cfg.height,
+        Math.round(ritualX), Math.round(cfg.baseY - cfg.height + climbOffsetY), Math.round(ritualWidth), cfg.height,
       );
       ctx.restore();
     }
