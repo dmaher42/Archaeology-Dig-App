@@ -97,6 +97,8 @@ const expeditionModeSource = [
   '../expeditionDigData.js',
   '../expeditionDigLogic.js',
   '../ExpeditionMode.jsx',
+  '../useExpeditionDigDraw.js',
+  '../useExpeditionDigSimulation.js',
 ].map((p) => readFileSync(new URL(p, import.meta.url), 'utf8')).join('\n');
 const menuSource = readFileSync(new URL('../Menu.jsx', import.meta.url), 'utf8');
 const appSource = readFileSync(new URL('../../App.jsx', import.meta.url), 'utf8');

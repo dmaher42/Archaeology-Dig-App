@@ -6,6 +6,8 @@ const expeditionModeSource = [
   '../expeditionDigData.js',
   '../expeditionDigLogic.js',
   '../ExpeditionMode.jsx',
+  '../useExpeditionDigDraw.js',
+  '../useExpeditionDigSimulation.js',
 ].map((p) => readFileSync(new URL(p, import.meta.url), 'utf8')).join('\n');
 const expeditionJourneySource = readFileSync(new URL('../ExpeditionJourney.jsx', import.meta.url), 'utf8');
 const journeyLevelDataSource = readFileSync(new URL('../expedition-journey/journeyLevelData.js', import.meta.url), 'utf8');

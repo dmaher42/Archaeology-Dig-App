@@ -168,6 +168,8 @@ test('Rome gameplay surfaces and route gates use Rome and China environment pack
     'expeditionDigData.js',
     'expeditionDigLogic.js',
     'ExpeditionMode.jsx',
+    'useExpeditionDigDraw.js',
+    'useExpeditionDigSimulation.js',
   ].map((file) => readFile(path.join(repoRoot, 'src', 'components', file), 'utf8')))).join('\n');
   assert.match(modeSource, /journeyEnvironmentPackId:\s*'rome-section-one'/);
   assert.match(modeSource, /routeMusicCue:\s*'bamboo-forest'/);
