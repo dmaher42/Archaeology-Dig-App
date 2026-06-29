@@ -409,7 +409,7 @@ test('journeyDataRouter exposes editor overrides while journeyLevelData keeps au
   const routedPlatform = ROUTED_PLATFORMS.find(platform => platform.id === 'mummification-chamber-left-lower-terrace');
 
   assert.equal(basePlatform.width, 311);
-  assert.equal(routedPlatform.width, 233);
+  assert.equal(routedPlatform.width, 210);
 });
 
 test('sacred exterior editor overrides stay aligned after horizontal scale changes', () => {

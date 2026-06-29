@@ -963,7 +963,7 @@ const MUMMIFICATION_CHAMBER_ENTRY_SPAWN = {
 };
 const MUMMIFICATION_CHAMBER_RETURN_FALLBACK = {
   x: mummificationExteriorWorldX(710),
-  y: openingJourneyY(-134),
+  y: openingJourneyY(-12),
   cameraAnchorRatio: 0.42,
   direction: 1,
 };
@@ -971,7 +971,7 @@ const MUMMIFICATION_CHAMBER_ENTRY_TRIGGER = {
   minX: mummificationExteriorWorldX(688),
   maxX: mummificationExteriorWorldX(724),
   maxY: GROUND_Y - 50,
-  footY: openingJourneyY(-135),
+  footY: openingJourneyY(-10),
   footTolerance: 42,
 };
 const MUMMIFICATION_CHAMBER_CAMERA_X = scaleJourneyX(520);

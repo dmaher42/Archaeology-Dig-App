@@ -2066,7 +2066,7 @@ test('mummification chamber exterior reuses Journey routes, ledges, assets, and 
   assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_EXTERIOR_SRC = 'assets\/expedition\/environment\/desert-temple\/mummification-chamber-exterior-ledged-building-2026-06-12\.png'/);
   assert.match(journeyComponentSource, /MUMMIFICATION_EXTERIOR_WORLD_OFFSET = scaleJourneyX\(70\)/);
   assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?minX:\s*mummificationExteriorWorldX\(688\)[\s\S]*?maxX:\s*mummificationExteriorWorldX\(724\)/);
-  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?footY:\s*openingJourneyY\(-135\)[\s\S]*?footTolerance:\s*42/);
+  assert.match(journeyComponentSource, /MUMMIFICATION_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?footY:\s*openingJourneyY\(-10\)[\s\S]*?footTolerance:\s*42/);
   assert.match(journeyComponentSource, /drawMummificationChamberExteriorAsset/);
   assert.match(journeyComponentSource, /drawMummificationChamberExteriorAsset[\s\S]*?drawEgyptStructureGroundContactLayer/);
   assert.match(journeyComponentSource, /prop\.type === 'generated-mummification-chamber-entrance'/);
