@@ -66,7 +66,7 @@ export const DESERT_LAYER_TUNING_SCHEMA = [
     { k: 'height', min: 80, max: 400, step: 2 },
     { k: 'baseY', label: 'Base Y', min: 400, max: 680, step: 1 },
   ] },
-  { key: 'ritualPyramid', label: 'Ritual Pyramid (building)', fields: [
+  { key: 'ritualPyramid', label: 'Ritual Temple (building)', fields: [
     { k: 'sectionFraction', label: 'Position', min: 0, max: 1, step: 0.005 },
     { k: 'parallax', min: 0.5, max: 1.2, step: 0.01 },
     { k: 'height', min: 200, max: 1000, step: 4 },
