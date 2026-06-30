@@ -3829,11 +3829,21 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
     // so the monument scrolls past as the player walks instead of following them.
     const sphinxX = (sphinxWorldX - cameraX) * SPHINX_PARALLAX + CANVAS_WIDTH / 2 - sphinxWidth / 2;
     if (sphinxX > -sphinxWidth && sphinxX < CANVAS_WIDTH + sphinxWidth) {
+      // Tunable grade so the Sphinx sits in the weathered scene instead of reading as
+      // bright polished gold (desertSphinx.brightness / .saturate, live in Layers panel).
+      const sphinxBrightness = T.desertSphinx.brightness ?? 1;
+      const sphinxSaturate = T.desertSphinx.saturate ?? 1;
+      const sphinxGraded = sphinxBrightness !== 1 || sphinxSaturate !== 1;
+      if (sphinxGraded) {
+        ctx.save();
+        ctx.filter = `brightness(${sphinxBrightness}) saturate(${sphinxSaturate}) contrast(1.08)`;
+      }
       ctx.drawImage(
         sphinxImage,
         sphinxRegion.x, sphinxRegion.y, sphinxRegion.w, sphinxRegion.h,
         Math.round(sphinxX), SPHINX_BASE_Y - SPHINX_HEIGHT, Math.round(sphinxWidth), SPHINX_HEIGHT,
       );
+      if (sphinxGraded) ctx.restore();
     }
   }
 
