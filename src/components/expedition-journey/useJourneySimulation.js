@@ -1141,8 +1141,19 @@ export function useJourneySimulation({
           if (!current.openingConfrontationSeen) {
             startOpeningCinematic({ speechEnabled: true, fromArrivalThreshold: true });
           } else {
+            // Establish origin: she emerges in the Duat desert with the dying scarab
+            // breach she just climbed through right behind her (the seal prop sits at
+            // the far-left of desert-entry). Hold the camera on the spawn (no forward
+            // pan, which would scroll the breach off-screen) and name it, so the player
+            // reads where she came from instead of just standing there.
             current.notice = OPENING_ARRIVAL_AFTERSHOCK_NOTICE;
-            current.openingCameraRevealTimer = Math.max(current.openingCameraRevealTimer, OPENING_CAMERA_REVEAL_DURATION);
+            current.cinematicEvent = {
+              id: 'desert-entry-breach-emergence',
+              name: 'Asha',
+              message: 'Behind you, the scarab breach seals shut. No road leads back — only forward, into the cracked mirror of Egypt.',
+              temporary: true,
+            };
+            current.cinematicTimer = 4.4;
           }
         }
         syncHud();
