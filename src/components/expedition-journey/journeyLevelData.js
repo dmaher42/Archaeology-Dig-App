@@ -1203,6 +1203,15 @@ export const STORY_PROPS = [
   { id: 'opening-omen-bones', sectionId: 'desert-entry', type: 'atmosphere-prop', atmosphereAssetKey: 'scattered_bones', x: X(220), y: 596, width: 112, height: 58, depth: 'grounded', layer: 'foreground', alpha: 1, scale: 1, colorGradeFilter: 'saturate(82%) sepia(22%) brightness(88%) contrast(98%)', shadowOpacity: 0.16, sandOverlapHeight: 5, sandMoundWidth: 90, groundPebbles: 2, zIndex: 10, label: 'scattered bleached bones in the sand before the ruins' },
   { id: 'opening-omen-jackal-statue', sectionId: 'desert-entry', type: 'atmosphere-prop', atmosphereAssetKey: 'small_anubis_statue', x: X(238), y: 578, width: 98, height: 134, depth: 'grounded', layer: 'foreground', alpha: 1, scale: 1, colorGradeFilter: 'saturate(82%) sepia(22%) brightness(86%) contrast(100%)', shadowOpacity: 0.22, sandOverlapHeight: 8, sandMoundWidth: 84, groundPebbles: 3, zIndex: 13, label: 'weathered Anubis jackal sentinel statue guarding the necropolis boundary' },
 
+  // --- Pass 2: supernatural omen foreshadow (pure data; no new art, no renderer edits) ---
+  // Glowing teal eyes 'wake' on the boundary sentinel statue, and a darkened jackal
+  // silhouette watches from a distant rise with its own glowing eyes. The 'eyes' prop
+  // type already pulses teal via sin(now). Drifting haze is deferred to the (separately
+  // rebuilt) background layer. See [[opening-establishing-tableau]].
+  { id: 'opening-omen-sentinel-eyes', sectionId: 'desert-entry', type: 'eyes', x: X(238), y: 478, depth: 'grounded', layer: 'foreground', zIndex: 16, label: 'teal glow waking in the boundary sentinel statue eyes' },
+  { id: 'opening-omen-jackal-watcher', sectionId: 'desert-entry', type: 'atmosphere-prop', atmosphereAssetKey: 'small_anubis_statue', x: X(320), y: 512, width: 58, height: 80, depth: 'midground', layer: 'background', alpha: 0.94, scale: 1, colorGradeFilter: 'saturate(28%) brightness(14%) contrast(128%)', shadowOpacity: 0.12, sandOverlapHeight: 4, sandMoundWidth: 48, groundPebbles: 1, zIndex: 4, label: 'darkened living jackal silhouette watching from a distant rise' },
+  { id: 'opening-omen-jackal-watcher-eyes', sectionId: 'desert-entry', type: 'eyes', x: X(320), y: 470, depth: 'midground', layer: 'background', zIndex: 5, label: 'glowing eyes of the distant jackal watcher' },
+
   { id: 'desert-boundary-marker', sectionId: 'desert-entry', type: 'guardian-seal', x: X(650), y: JY(312), label: 'ancient boundary seal' },
   {
     id: 'opening-pyramid-facade-structure',
