@@ -5139,7 +5139,7 @@ test('desert entry asset manifest records the layered necropolis gameplay-backgr
   assert.equal(desertEntryBackgroundAtlas.regions.skyLight.image, 'desert-entry-egypt-true-sky-light-2026-06-27.png');
   assert.equal(desertEntryBackgroundAtlas.regions.farPyramids.image, 'desert-entry-egypt-true-far-pyramids-2026-06-27.png');
   assert.equal(desertEntryBackgroundAtlas.regions.distantCliffs.image, 'desert-entry-egypt-true-distant-cliffs-2026-06-27.png');
-  assert.equal(desertEntryBackgroundAtlas.regions.midNecropolisRuins.image, 'desert-entry-egypt-true-mid-necropolis-ruins-2026-06-27.png');
+  assert.equal(desertEntryBackgroundAtlas.regions.midNecropolisRuins.image, 'desert-entry-necropolis-stitched-2026-07-01.png');
   assert.equal(desertEntryBackgroundAtlas.regions.groundBacking.image, 'desert-entry-egypt-true-ground-backing-2026-06-27.png');
   assert.equal(desertEntryBackgroundAtlas.regions.groundLane.image, 'desert-entry-egypt-true-ground-lane-2026-06-27.png');
   assert.equal(desertEntryBackgroundAtlas.regions.foregroundRubble.image, 'desert-entry-egypt-true-foreground-rubble-2026-06-27.png');
