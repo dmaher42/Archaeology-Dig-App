@@ -3810,7 +3810,7 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
     );
   }
 
-  drawDesertBackgroundLayer(ctx, assets, 'midNecropolisRuins', fullFrame, { ...layerOptions, parallax: T.midNecropolisRuins.parallax, alpha: T.midNecropolisRuins.alpha });
+  drawDesertBackgroundLayer(ctx, assets, 'midNecropolisRuins', { y: T.midNecropolisRuins.baseY - T.midNecropolisRuins.height, height: T.midNecropolisRuins.height }, { ...layerOptions, parallax: T.midNecropolisRuins.parallax, alpha: T.midNecropolisRuins.alpha });
 
   // Placed Sphinx landmark: a single non-tiling monument grounded at the
   // necropolis floor, scrolling at mid parallax so the player approaches and
