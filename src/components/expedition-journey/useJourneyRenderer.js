@@ -2831,24 +2831,36 @@ export function drawStoryPropFrame(ctx, prop, cameraX, now, requestedDepth = nul
     const buildPaintTintBuffer = (paintColor) => {
       const bw = Math.max(1, Math.ceil(propSize.width));
       const bh = Math.max(1, Math.ceil(propSize.height));
-      const buffer = getJourneyPaintTintBuffer(bw, bh);
+      const assetSignature = standalonePropAsset?.image
+        ? `standalone:${propForAsset.assetPath || propForAsset.imageAssetKey || standalonePropAsset.image.currentSrc || standalonePropAsset.image.src || 'image'}`
+        : `atlas:${propAssets?.packId || 'environment'}:${propAssetKey}`;
+      const cacheKey = [
+        propForAsset.id || 'prop',
+        assetSignature,
+        bw,
+        bh,
+        propColorFilter || 'none',
+        paintColor,
+      ].join('|');
+      const buffer = getJourneyPaintTintBuffer(bw, bh, cacheKey, (bctx, entry) => {
+        bctx.setTransform(1, 0, 0, 1, 0, 0);
+        bctx.globalAlpha = 1;
+        bctx.globalCompositeOperation = 'source-over';
+        bctx.clearRect(0, 0, entry.width, entry.height);
+        const target = { x: 0, y: 0, width: bw, height: bh };
+        bctx.filter = propColorFilter && propColorFilter !== 'none' ? propColorFilter : 'none';
+        const drew = drawPropImageAsset(bctx, target);
+        bctx.filter = 'none';
+        if (!drew) return false;
+        bctx.globalCompositeOperation = 'multiply';
+        bctx.fillStyle = paintColor;
+        bctx.fillRect(0, 0, bw, bh);
+        bctx.globalCompositeOperation = 'destination-in';
+        drawPropImageAsset(bctx, target);
+        bctx.globalCompositeOperation = 'source-over';
+        return true;
+      });
       if (!buffer) return null;
-      const bctx = buffer.ctx;
-      bctx.setTransform(1, 0, 0, 1, 0, 0);
-      bctx.globalAlpha = 1;
-      bctx.globalCompositeOperation = 'source-over';
-      bctx.clearRect(0, 0, buffer.canvas.width, buffer.canvas.height);
-      const target = { x: 0, y: 0, width: bw, height: bh };
-      bctx.filter = propColorFilter && propColorFilter !== 'none' ? propColorFilter : 'none';
-      const drew = drawPropImageAsset(bctx, target);
-      bctx.filter = 'none';
-      if (!drew) return null;
-      bctx.globalCompositeOperation = 'multiply';
-      bctx.fillStyle = paintColor;
-      bctx.fillRect(0, 0, bw, bh);
-      bctx.globalCompositeOperation = 'destination-in';
-      drawPropImageAsset(bctx, target);
-      bctx.globalCompositeOperation = 'source-over';
       return { canvas: buffer.canvas, width: bw, height: bh };
     };
     const paintColor = typeof propSize.paintColor === 'string' && /^#([0-9a-f]{6})$/i.test(propSize.paintColor.trim())

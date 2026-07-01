@@ -2431,22 +2431,38 @@ const buildJourneyTintGradeFilter = (hex, strength) => {
 // can only shift existing colours, so vivid/clean targets come out muddy), this
 // multiplies a solid colour onto the sprite — so picking blue gives blue while the
 // art's light/shadow detail is preserved. Works only on image/atlas props (procedural
-// props draw their own colours and ignore it). Done in an offscreen buffer so the
-// multiply is clipped to the sprite's silhouette and never bleeds onto the scene.
-let journeyPaintTintBuffer = null;
-const getJourneyPaintTintBuffer = (width, height) => {
+// props draw their own colours and ignore it). Done in cached offscreen buffers so
+// the multiply is clipped to the sprite's silhouette and never bleeds onto the scene.
+const JOURNEY_PAINT_TINT_CACHE_LIMIT = 80;
+const journeyPaintTintBufferCache = new Map();
+const getJourneyPaintTintBuffer = (width, height, cacheKey, paintBuffer) => {
   if (typeof document === 'undefined') return null;
-  if (!journeyPaintTintBuffer) {
-    journeyPaintTintBuffer = document.createElement('canvas');
+  const bufferWidth = Math.max(1, Math.ceil(width));
+  const bufferHeight = Math.max(1, Math.ceil(height));
+  const key = typeof cacheKey === 'string' && cacheKey ? cacheKey : '';
+  if (key && journeyPaintTintBufferCache.has(key)) {
+    const cached = journeyPaintTintBufferCache.get(key);
+    journeyPaintTintBufferCache.delete(key);
+    journeyPaintTintBufferCache.set(key, cached);
+    return cached;
   }
-  const buf = journeyPaintTintBuffer;
-  if (buf.width < width || buf.height < height) {
-    buf.width = Math.max(buf.width, width);
-    buf.height = Math.max(buf.height, height);
-  }
+
+  const buf = document.createElement('canvas');
+  buf.width = bufferWidth;
+  buf.height = bufferHeight;
   const ctx = buf.getContext('2d');
   if (!ctx) return null;
-  return { canvas: buf, ctx };
+  const entry = { canvas: buf, ctx, width: bufferWidth, height: bufferHeight };
+  if (typeof paintBuffer === 'function' && paintBuffer(ctx, entry) === false) return null;
+
+  if (key) {
+    journeyPaintTintBufferCache.set(key, entry);
+    while (journeyPaintTintBufferCache.size > JOURNEY_PAINT_TINT_CACHE_LIMIT) {
+      const oldestKey = journeyPaintTintBufferCache.keys().next().value;
+      journeyPaintTintBufferCache.delete(oldestKey);
+    }
+  }
+  return entry;
 };
 
 // Filter the prop palette by a free-text query, matching label, key, asset key, or
