@@ -33,11 +33,11 @@
       "h": 724
     },
     "groundBacking": {
-      "image": "desert-entry-egypt-true-ground-backing-2026-06-27.png",
+      "image": "desert-entry-necropolis-floor-2026-07-01.png",
       "x": 0,
       "y": 0,
-      "w": 4096,
-      "h": 220
+      "w": 1817,
+      "h": 563
     },
     "groundLane": {
       "image": "desert-entry-egypt-true-ground-lane-2026-06-27.png",
