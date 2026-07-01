@@ -6,6 +6,7 @@ import {
   getJourneyToolsForCivilisation,
   JOURNEY_TOOLS,
   ROUTE_GATES,
+  SECTION_ATMOSPHERES,
   SECTION_COPY,
   SECTION_OBJECTIVES,
   setExpeditionJourneyCiv,
@@ -57,4 +58,11 @@ test('China journey start briefing is not the Egypt Lost Map Tablet briefing', (
   assert.match(journeyHudOverlaysSource, /isChinaBriefing/);
   assert.match(journeyHudOverlaysSource, /Follow the Yellow River frontier/);
   assert.match(journeyHudOverlaysSource, /Restore the dynasty line at the Imperial Gate/);
+});
+
+test('Desert Entry keeps the sky clear of ambient particle dots', () => {
+  setExpeditionJourneyCiv('Ancient Egypt');
+
+  assert.equal(SECTION_ATMOSPHERES['desert-entry'].particle, null);
+  assert.equal(SECTION_ATMOSPHERES['ruined-temple'].particle, 'embers');
 });

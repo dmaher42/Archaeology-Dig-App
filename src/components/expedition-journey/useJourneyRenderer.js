@@ -6775,6 +6775,8 @@ export function drawHiddenRouteHintFrame(ctx, route, cameraX, current, now, deps
 }
 
 export function drawParticlesFrame(ctx, atmosphere, cameraX, now, deps) {
+  if (!atmosphere?.particle || !atmosphere?.particleColor) return 0;
+
   const { CANVAS_WIDTH } = deps;
   ctx.save();
   ctx.fillStyle = atmosphere.particleColor;
