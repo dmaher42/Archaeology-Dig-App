@@ -26,7 +26,7 @@
       "h": 724
     },
     "midNecropolisRuins": {
-      "image": "desert-entry-necropolis-stitched-2026-07-01.png",
+      "image": "desert-entry-necropolis-stitched-pushed-back-2026-07-01.png",
       "x": 0,
       "y": 0,
       "w": 8132,
@@ -40,11 +40,11 @@
       "h": 563
     },
     "groundLane": {
-      "image": "desert-entry-egypt-true-ground-lane-2026-06-27.png",
+      "image": "desert-entry-necropolis-groundlane-2026-07-01.png",
       "x": 0,
       "y": 0,
-      "w": 2172,
-      "h": 313
+      "w": 1536,
+      "h": 222
     },
     "foregroundRubble": {
       "image": "desert-entry-egypt-true-foreground-rubble-2026-06-27.png",

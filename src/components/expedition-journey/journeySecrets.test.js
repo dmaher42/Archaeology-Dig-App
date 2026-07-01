@@ -5141,7 +5141,7 @@ test('desert entry asset manifest records the layered necropolis gameplay-backgr
   assert.equal(desertEntryBackgroundAtlas.regions.distantCliffs.image, 'desert-entry-egypt-true-distant-cliffs-2026-06-27.png');
   assert.equal(desertEntryBackgroundAtlas.regions.midNecropolisRuins.image, 'desert-entry-necropolis-stitched-2026-07-01.png');
   assert.equal(desertEntryBackgroundAtlas.regions.groundBacking.image, 'desert-entry-necropolis-floor-2026-07-01.png');
-  assert.equal(desertEntryBackgroundAtlas.regions.groundLane.image, 'desert-entry-egypt-true-ground-lane-2026-06-27.png');
+  assert.equal(desertEntryBackgroundAtlas.regions.groundLane.image, 'desert-entry-necropolis-groundlane-2026-07-01.png');
   assert.equal(desertEntryBackgroundAtlas.regions.foregroundRubble.image, 'desert-entry-egypt-true-foreground-rubble-2026-06-27.png');
   assert.equal(desertEntryBackgroundAtlas.regions.foregroundDepth.image, 'desert-entry-egypt-true-foreground-depth-2026-06-27.png');
   assert.equal(desertEntryBackgroundAtlas.regions.skyPlate, undefined);
@@ -5663,7 +5663,7 @@ test('desert entry ground uses the painted background route and never paints a s
   assert.match(drawPlayerSpriteSource, /desertEntryPlayerFootContact = 'warm-plaza-foot-shadow-v1'/);
   assert.match(useJourneyRendererSource, /desertGroundStyle = 'integrated-background-painted-route'/);
   assert.match(journeyComponentSource, /drawBuriedStoneCausewaySurface\(ctx, platform, x, cameraX, Date\.now\(\)\)/);
-  assert.equal(desertEntryBackgroundAtlas.regions.groundLane.image, 'desert-entry-egypt-true-ground-lane-2026-06-27.png');
+  assert.equal(desertEntryBackgroundAtlas.regions.groundLane.image, 'desert-entry-necropolis-groundlane-2026-07-01.png');
   assert.equal(desertEntryBackgroundAtlas.regions.integratedGameplayBackground, undefined);
   assert.equal(desertEntryBackgroundAtlas.regions.playableFloor, undefined);
   assert.equal(desertEntryBackgroundAtlas.regions.floorRubbleMask, undefined);
