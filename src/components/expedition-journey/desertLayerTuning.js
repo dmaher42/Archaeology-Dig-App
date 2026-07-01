@@ -12,7 +12,7 @@
 export const DESERT_LAYER_TUNING_DEFAULTS = {
   skyLight: { parallax: 0.012, alpha: 1 },
   distantCliffs: { parallax: 0.055, alpha: 0, height: 792 },
-  farPyramids: { sectionFraction: 0.5, parallax: 0.14, height: 440, baseY: 600 },
+  farPyramids: { sectionFraction: 0.5, parallax: 0.14, height: 540, baseY: 600 },
   midNecropolisRuins: { parallax: 0.28, alpha: 1, height: 630, baseY: 630 },
   desertSphinx: { sectionFraction: 0.16, parallax: 0.55, height: 300, baseY: 566, brightness: 0.82, saturate: 0.68 },
   ritualPyramid: { sectionFraction: 0.31, parallax: 1, height: 736, widthScale: 1.14, baseY: 600, alpha: 1 },
