@@ -76,6 +76,7 @@ const journeyEditorPointerHandlersPath = new URL('./useJourneyPlacementEditorPoi
 const journeyEditorPointerHandlersSource = existsSync(journeyEditorPointerHandlersPath)
   ? readFileSync(journeyEditorPointerHandlersPath, 'utf8')
   : '';
+const desertLayerTuningPanelSource = readFileSync(new URL('./DesertLayerTuningPanel.jsx', import.meta.url), 'utf8');
 const journeyEditorLogicSource = [
   journeyComponentSource,
   journeyEditorShortcutsSource,
@@ -1092,6 +1093,15 @@ test('journey prop editor exposes generated structure ground-contact controls', 
   assert.match(journeyComponentSource, /<span>Alpha<\/span>[\s\S]*?updateSelectedPropGroundContactLayer\(index,\s*\{ alpha:/);
   assert.match(journeyComponentSource, /<span>Mirror<\/span>[\s\S]*?updateSelectedPropGroundContactLayer\(index,\s*\{ mirrorX:/);
   assert.match(journeyComponentSource, /<span>Filter<\/span>[\s\S]*?updateSelectedPropGroundContactLayer\(index,\s*\{ filter:/);
+});
+
+test('journey prop editor opens layer controls when clicking the ritual building background', () => {
+  assert.match(journeyEditorPointerHandlersSource, /getRitualBuildingRect/);
+  assert.match(journeyEditorPointerHandlersSource, /getRitualBuildingLayerEditorBounds/);
+  assert.match(journeyEditorPointerHandlersSource, /journey:open-desert-layer-tuning/);
+  assert.match(journeyEditorPointerHandlersSource, /layerKey:\s*'ritualPyramid'/);
+  assert.match(desertLayerTuningPanelSource, /addEventListener\('journey:open-desert-layer-tuning'/);
+  assert.match(desertLayerTuningPanelSource, /focusedLayerKey === layer\.key/);
 });
 
 test('journey prop editor overlay does not wash selected assets', () => {

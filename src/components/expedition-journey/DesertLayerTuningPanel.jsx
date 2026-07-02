@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   DESERT_LAYER_TUNING,
   DESERT_LAYER_TUNING_SCHEMA,
@@ -26,8 +26,18 @@ export default function DesertLayerTuningPanel() {
   const [open, setOpen] = useState(false);
   const [, forceRender] = useState(0);
   const [copied, setCopied] = useState(false);
+  const [focusedLayerKey, setFocusedLayerKey] = useState(null);
 
   const bump = () => forceRender((n) => n + 1);
+
+  useEffect(() => {
+    const handleOpenLayerTuning = (event) => {
+      setFocusedLayerKey(event?.detail?.layerKey || null);
+      setOpen(true);
+    };
+    window.addEventListener('journey:open-desert-layer-tuning', handleOpenLayerTuning);
+    return () => window.removeEventListener('journey:open-desert-layer-tuning', handleOpenLayerTuning);
+  }, []);
 
   const setField = (layerKey, fieldKey, value) => {
     setDesertLayerTuningField(layerKey, fieldKey, value);
@@ -94,7 +104,16 @@ export default function DesertLayerTuningPanel() {
       </div>
 
       {DESERT_LAYER_TUNING_SCHEMA.map((layer) => (
-        <div key={layer.key} style={{ marginBottom: 8, paddingBottom: 6, borderBottom: '1px solid rgba(212,184,120,0.14)' }}>
+        <div
+          key={layer.key}
+          style={{
+            marginBottom: 8,
+            padding: focusedLayerKey === layer.key ? '5px 6px 6px' : '0 0 6px',
+            borderBottom: '1px solid rgba(212,184,120,0.14)',
+            borderRadius: focusedLayerKey === layer.key ? 5 : 0,
+            background: focusedLayerKey === layer.key ? 'rgba(212,184,120,0.12)' : 'transparent',
+          }}
+        >
           <div style={{ fontWeight: 600, color: '#f0e6d2', marginBottom: 3 }}>{layer.label}</div>
           {layer.fields.map((field) => {
             const value = DESERT_LAYER_TUNING[layer.key][field.k];
