@@ -3951,7 +3951,7 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
   ctx.save();
   const contactShadow = ctx.createLinearGradient(0, 512, 0, 574);
   contactShadow.addColorStop(0, 'rgba(28, 17, 9, 0)');
-  contactShadow.addColorStop(0.5, 'rgba(28, 17, 9, 0.3)');
+  contactShadow.addColorStop(0.5, 'rgba(28, 17, 9, 0.11)');
   contactShadow.addColorStop(1, 'rgba(28, 17, 9, 0)');
   ctx.fillStyle = contactShadow;
   ctx.fillRect(0, 512, CANVAS_WIDTH, 62);

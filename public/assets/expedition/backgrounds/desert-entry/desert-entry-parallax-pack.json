@@ -61,11 +61,11 @@
       "h": 128
     },
     "desertSphinx": {
-      "image": "desert-entry-egypt-true-sphinx-2026-06-28.png",
+      "image": "desert-entry-sphinx-painterly-2026-07-02.png",
       "x": 0,
       "y": 0,
-      "w": 1505,
-      "h": 935
+      "w": 1536,
+      "h": 1024
     },
     "ritualPyramid": {
       "image": "desert-entry-ritual-ascending-ruin-2026-06-29.png",
