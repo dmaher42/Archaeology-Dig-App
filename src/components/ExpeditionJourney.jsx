@@ -2431,22 +2431,38 @@ const buildJourneyTintGradeFilter = (hex, strength) => {
 // can only shift existing colours, so vivid/clean targets come out muddy), this
 // multiplies a solid colour onto the sprite — so picking blue gives blue while the
 // art's light/shadow detail is preserved. Works only on image/atlas props (procedural
-// props draw their own colours and ignore it). Done in an offscreen buffer so the
-// multiply is clipped to the sprite's silhouette and never bleeds onto the scene.
-let journeyPaintTintBuffer = null;
-const getJourneyPaintTintBuffer = (width, height) => {
+// props draw their own colours and ignore it). Done in cached offscreen buffers so
+// the multiply is clipped to the sprite's silhouette and never bleeds onto the scene.
+const JOURNEY_PAINT_TINT_CACHE_LIMIT = 80;
+const journeyPaintTintBufferCache = new Map();
+const getJourneyPaintTintBuffer = (width, height, cacheKey, paintBuffer) => {
   if (typeof document === 'undefined') return null;
-  if (!journeyPaintTintBuffer) {
-    journeyPaintTintBuffer = document.createElement('canvas');
+  const bufferWidth = Math.max(1, Math.ceil(width));
+  const bufferHeight = Math.max(1, Math.ceil(height));
+  const key = typeof cacheKey === 'string' && cacheKey ? cacheKey : '';
+  if (key && journeyPaintTintBufferCache.has(key)) {
+    const cached = journeyPaintTintBufferCache.get(key);
+    journeyPaintTintBufferCache.delete(key);
+    journeyPaintTintBufferCache.set(key, cached);
+    return cached;
   }
-  const buf = journeyPaintTintBuffer;
-  if (buf.width < width || buf.height < height) {
-    buf.width = Math.max(buf.width, width);
-    buf.height = Math.max(buf.height, height);
-  }
+
+  const buf = document.createElement('canvas');
+  buf.width = bufferWidth;
+  buf.height = bufferHeight;
   const ctx = buf.getContext('2d');
   if (!ctx) return null;
-  return { canvas: buf, ctx };
+  const entry = { canvas: buf, ctx, width: bufferWidth, height: bufferHeight };
+  if (typeof paintBuffer === 'function' && paintBuffer(ctx, entry) === false) return null;
+
+  if (key) {
+    journeyPaintTintBufferCache.set(key, entry);
+    while (journeyPaintTintBufferCache.size > JOURNEY_PAINT_TINT_CACHE_LIMIT) {
+      const oldestKey = journeyPaintTintBufferCache.keys().next().value;
+      journeyPaintTintBufferCache.delete(oldestKey);
+    }
+  }
+  return entry;
 };
 
 // Filter the prop palette by a free-text query, matching label, key, asset key, or
@@ -2609,6 +2625,18 @@ const ROUTE_GROUND_VISUAL_MODE = 'desert-entry-painted-background-route-v1';
 const ROUTE_GROUND_HAZE_FIX_VERSION = 'necropolis-route-ground-world-locked-2026-06-25';
 const DESERT_ENTRY_VISUAL_GROUND_PLANE_OFFSET_Y = 0;
 const DESERT_ENTRY_VISUAL_GROUND_FOOT_TOLERANCE = 26;
+// Grounded desert-entry enemies render with a per-family `groundOffset` (journeyEnemySprites.js)
+// that sinks their sprite below the painted route after the background rebuild, while the player
+// anchors flush at the floor. This lifts ONLY grounded desert-entry enemy sprites back onto the
+// route. Scoped to enemies + desert-entry; the player, other acts, bridge-deck enemies, flyers, and
+// the nest are excluded. Per-TYPE because each sprite's art has different empty padding under the
+// feet: bump a type up if it still sits sunk, down if it floats. `default` covers any other type.
+const DESERT_ENTRY_ENEMY_FOOT_LIFT = {
+  scorpion: 7,
+  scarab: 7,
+  snake: 14,
+  default: 8,
+};
 const FOREGROUND_DEPTH_LAYER_MODE = 'edge-framed-visual-only-no-collision';
 const ENABLE_FOREGROUND_DEPTH_LAYER = false;
 const DRAW_JOURNEY_FLAG_MARKERS = false;
@@ -3492,6 +3520,7 @@ export default function ExpeditionJourney({
     return (current.enemies || [])
       .filter(enemy => (
         enemy.type === 'scorpion-nest'
+        && enemy.routeBlocker !== false
         && !enemy.defeated
         && isEntityActiveInScene(enemy, current)
       ))
@@ -6112,6 +6141,17 @@ export default function ExpeditionJourney({
     return entity.y + getDesertEntryVisualGroundOffsetY(entity.x + width / 2, entity.y + height, current);
   }, [getDesertEntryVisualGroundOffsetY]);
 
+  // Enemy-only, desert-entry-only foot correction (see DESERT_ENTRY_ENEMY_FOOT_LIFT). Returns the
+  // pixels to lift a grounded desert-entry enemy sprite so its feet meet the painted route. Excludes
+  // the nest (custom render) and flyers; bridge-deck enemies fall outside the floor-contact tolerance.
+  const getDesertEntryEnemyFootLift = useCallback((entity, current = stateRef.current) => {
+    if (!entity || entity.type === 'scorpion-nest' || entity.flying) return 0;
+    const width = Number.isFinite(entity.width) ? entity.width : 0;
+    const height = Number.isFinite(entity.height) ? entity.height : 0;
+    if (!getDesertEntryGroundContactActive(entity.x + width / 2, entity.y + height, current)) return 0;
+    return DESERT_ENTRY_ENEMY_FOOT_LIFT[entity.type] ?? DESERT_ENTRY_ENEMY_FOOT_LIFT.default;
+  }, [getDesertEntryGroundContactActive]);
+
   const {
     drawAncientRouteGround,
     drawArrivalThresholdDoorwayOccluder,
@@ -6150,7 +6190,6 @@ export default function ExpeditionJourney({
     drawOpeningCinematic,
     drawOpeningSphinxEncounter,
     drawOpeningThresholdScene,
-    drawParticles,
     drawPlatform,
     drawPlayerFeedbackOverlays,
     drawPlayerSprite,
@@ -6516,7 +6555,6 @@ export default function ExpeditionJourney({
     drawOpeningPyramidMasonryBack,
     drawOpeningSphinxEncounter,
     drawOpeningThresholdScene,
-    drawParticles,
     drawPlatform,
     drawPlayerFeedbackOverlays,
     drawPlayerSprite,
@@ -6547,6 +6585,7 @@ export default function ExpeditionJourney({
     getActiveHiddenRoutes,
     getActiveSecretCollectibles,
     getCombatMode,
+    getDesertEntryEnemyFootLift,
     getDesertEntryVisualGroundOffsetY,
     getDoorwayGateStatus,
     getEditedMiniBoss,
@@ -7685,6 +7724,10 @@ export default function ExpeditionJourney({
         const current = stateRef.current;
         const sectionCheckpoint = getRenderableCheckpoints().find(checkpoint => checkpoint.id === section.id);
         const jumpX = sectionCheckpoint?.x ?? section.start + 24;
+        current.arrivalThresholdActive = false;
+        current.arrivalThresholdExitTransition = null;
+        current.arrivalThresholdTrial = null;
+        current.arrivalThresholdNoticeTimer = 0;
         current.player.x = clamp(jumpX, 0, WORLD_WIDTH - current.player.width);
         current.player.y = GROUND_Y - current.player.height;
         current.player.vx = 0;

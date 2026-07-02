@@ -2494,6 +2494,7 @@ export function drawPropGroundContactFrame(ctx, x, anchorY, propSize, sectionId,
 }
 
 export function drawPropSandOcclusionFrame(ctx, x, anchorY, propSize, sectionId, grounding) {
+  if (sectionId === 'desert-entry') return;
   if (grounding.sandOverlapHeight <= 0) return;
   const moundW = grounding.sandMoundWidth;
   const moundH = grounding.sandMoundHeight;
@@ -2831,24 +2832,36 @@ export function drawStoryPropFrame(ctx, prop, cameraX, now, requestedDepth = nul
     const buildPaintTintBuffer = (paintColor) => {
       const bw = Math.max(1, Math.ceil(propSize.width));
       const bh = Math.max(1, Math.ceil(propSize.height));
-      const buffer = getJourneyPaintTintBuffer(bw, bh);
+      const assetSignature = standalonePropAsset?.image
+        ? `standalone:${propForAsset.assetPath || propForAsset.imageAssetKey || standalonePropAsset.image.currentSrc || standalonePropAsset.image.src || 'image'}`
+        : `atlas:${propAssets?.packId || 'environment'}:${propAssetKey}`;
+      const cacheKey = [
+        propForAsset.id || 'prop',
+        assetSignature,
+        bw,
+        bh,
+        propColorFilter || 'none',
+        paintColor,
+      ].join('|');
+      const buffer = getJourneyPaintTintBuffer(bw, bh, cacheKey, (bctx, entry) => {
+        bctx.setTransform(1, 0, 0, 1, 0, 0);
+        bctx.globalAlpha = 1;
+        bctx.globalCompositeOperation = 'source-over';
+        bctx.clearRect(0, 0, entry.width, entry.height);
+        const target = { x: 0, y: 0, width: bw, height: bh };
+        bctx.filter = propColorFilter && propColorFilter !== 'none' ? propColorFilter : 'none';
+        const drew = drawPropImageAsset(bctx, target);
+        bctx.filter = 'none';
+        if (!drew) return false;
+        bctx.globalCompositeOperation = 'multiply';
+        bctx.fillStyle = paintColor;
+        bctx.fillRect(0, 0, bw, bh);
+        bctx.globalCompositeOperation = 'destination-in';
+        drawPropImageAsset(bctx, target);
+        bctx.globalCompositeOperation = 'source-over';
+        return true;
+      });
       if (!buffer) return null;
-      const bctx = buffer.ctx;
-      bctx.setTransform(1, 0, 0, 1, 0, 0);
-      bctx.globalAlpha = 1;
-      bctx.globalCompositeOperation = 'source-over';
-      bctx.clearRect(0, 0, buffer.canvas.width, buffer.canvas.height);
-      const target = { x: 0, y: 0, width: bw, height: bh };
-      bctx.filter = propColorFilter && propColorFilter !== 'none' ? propColorFilter : 'none';
-      const drew = drawPropImageAsset(bctx, target);
-      bctx.filter = 'none';
-      if (!drew) return null;
-      bctx.globalCompositeOperation = 'multiply';
-      bctx.fillStyle = paintColor;
-      bctx.fillRect(0, 0, bw, bh);
-      bctx.globalCompositeOperation = 'destination-in';
-      drawPropImageAsset(bctx, target);
-      bctx.globalCompositeOperation = 'source-over';
       return { canvas: buffer.canvas, width: bw, height: bh };
     };
     const paintColor = typeof propSize.paintColor === 'string' && /^#([0-9a-f]{6})$/i.test(propSize.paintColor.trim())
@@ -3559,18 +3572,6 @@ export function drawDesertForegroundAtmosphereFrame(ctx, section, cameraX, deps)
   }
   const layerOptions = { canvasWidth: CANVAS_WIDTH, cameraX };
   const foregroundDrawn = [
-    // Grounding foreground: a cropped strip of sand drifts, rubble and scrub
-    // drawn as a crisp, near-opaque band along the bottom (over the path and
-    // midground, under the player) so the playable floor's front edge is broken
-    // up and no longer reads as a hard ledge. Small and bottom-anchored so it
-    // stays sharp; world-locked parallax keeps the clutter pinned to the ground.
-    drawDesertBackgroundLayer(
-      ctx,
-      assets,
-      'foregroundRubble',
-      { y: DESERT_LAYER_TUNING.foregroundRubble.y, height: DESERT_LAYER_TUNING.foregroundRubble.height },
-      { ...layerOptions, parallax: DESERT_LAYER_TUNING.foregroundRubble.parallax, alpha: DESERT_LAYER_TUNING.foregroundRubble.alpha },
-    ),
     drawDesertBackgroundLayer(
       ctx,
       assets,
@@ -3750,6 +3751,161 @@ export function drawTempleBackdropFrame(ctx, section, cameraX, deps) {
   ctx.restore();
 }
 
+const getBackgroundRegionImage = (assets, key) => {
+  const region = assets?.atlas?.regions?.[key] || null;
+  const image = region?.image ? assets?.images?.[region.image] : assets?.image;
+  if (!region || !image) return null;
+  return { region, image };
+};
+
+function drawSinglePanoramaLayer(ctx, assets, key, dest, options = {}) {
+  const layer = getBackgroundRegionImage(assets, key);
+  if (!layer) return false;
+
+  const {
+    canvasWidth,
+    cameraX = 0,
+    parallax = 0,
+    alpha = 1,
+    alignY = 0.5,
+  } = options;
+  const { region, image } = layer;
+  if (!canvasWidth || dest.height <= 0) return false;
+
+  const sourceRatio = region.w / region.h;
+  const drawWidth = Math.max(canvasWidth, dest.height * sourceRatio);
+  const drawHeight = drawWidth / sourceRatio;
+  const overflowX = Math.max(0, drawWidth - canvasWidth);
+  const driftX = overflowX > 0 ? Math.max(-overflowX, Math.min(0, -cameraX * parallax)) : 0;
+  const drawY = dest.y + (dest.height - drawHeight) * alignY;
+
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.drawImage(
+    image,
+    region.x, region.y, region.w, region.h,
+    Math.round(driftX), Math.round(drawY), Math.round(drawWidth), Math.round(drawHeight),
+  );
+  ctx.restore();
+  return true;
+}
+
+function drawSingleGroundLayer(ctx, assets, key, dest, options = {}) {
+  const layer = getBackgroundRegionImage(assets, key);
+  if (!layer) return false;
+
+  const {
+    canvasWidth,
+    cameraX = 0,
+    parallax = 1,
+    alpha = 1,
+  } = options;
+  const { region, image } = layer;
+  if (!canvasWidth) return false;
+
+  const sourceRatio = region.w / region.h;
+  const drawWidth = canvasWidth;
+  const drawHeight = drawWidth / sourceRatio;
+  const scrollX = -((cameraX * parallax) % drawWidth);
+  const firstX = scrollX > 0 ? scrollX - drawWidth : scrollX;
+
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  for (let x = firstX; x < canvasWidth; x += drawWidth) {
+    ctx.drawImage(
+      image,
+      region.x, region.y, region.w, region.h,
+      Math.round(x), Math.round(dest.y), Math.round(drawWidth), Math.round(drawHeight),
+    );
+  }
+  ctx.restore();
+  return true;
+}
+
+function drawDesertEntryAtmosphericGrade(ctx, canvasWidth, canvasHeight, options = {}) {
+  const { groundY = 520, intensity = 1 } = options;
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'source-over';
+
+  const horizonHaze = ctx.createLinearGradient(0, 130, 0, groundY);
+  horizonHaze.addColorStop(0, `rgba(244, 187, 104, ${0.03 * intensity})`);
+  horizonHaze.addColorStop(0.34, `rgba(229, 155, 76, ${0.12 * intensity})`);
+  horizonHaze.addColorStop(0.7, `rgba(143, 83, 34, ${0.1 * intensity})`);
+  horizonHaze.addColorStop(1, 'rgba(82, 45, 18, 0)');
+  ctx.fillStyle = horizonHaze;
+  ctx.fillRect(0, 130, canvasWidth, Math.max(1, groundY - 130));
+
+  const skyWeight = ctx.createLinearGradient(0, 0, 0, 210);
+  skyWeight.addColorStop(0, `rgba(25, 14, 10, ${0.2 * intensity})`);
+  skyWeight.addColorStop(0.62, `rgba(72, 34, 15, ${0.06 * intensity})`);
+  skyWeight.addColorStop(1, 'rgba(72, 34, 15, 0)');
+  ctx.fillStyle = skyWeight;
+  ctx.fillRect(0, 0, canvasWidth, 220);
+
+  const leftFocus = ctx.createLinearGradient(0, 0, canvasWidth, 0);
+  leftFocus.addColorStop(0, `rgba(255, 217, 143, ${0.05 * intensity})`);
+  leftFocus.addColorStop(0.34, 'rgba(255, 217, 143, 0)');
+  leftFocus.addColorStop(0.72, 'rgba(35, 18, 8, 0)');
+  leftFocus.addColorStop(1, `rgba(35, 18, 8, ${0.08 * intensity})`);
+  ctx.fillStyle = leftFocus;
+  ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+  ctx.restore();
+}
+
+function drawDesertEntryPlayableFloorGrade(ctx, canvasWidth, options = {}) {
+  const {
+    groundY = 520,
+    floorBottom = 610,
+    intensity = 1,
+  } = options;
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'multiply';
+  const floorOcclusion = ctx.createLinearGradient(0, groundY - 28, 0, floorBottom);
+  floorOcclusion.addColorStop(0, 'rgba(255, 255, 255, 1)');
+  floorOcclusion.addColorStop(0.38, `rgba(145, 80, 26, ${0.12 * intensity})`);
+  floorOcclusion.addColorStop(1, `rgba(76, 43, 18, ${0.22 * intensity})`);
+  ctx.fillStyle = floorOcclusion;
+  ctx.fillRect(0, groundY - 28, canvasWidth, Math.max(1, floorBottom - groundY + 28));
+  ctx.restore();
+
+  ctx.save();
+  const routeContact = ctx.createLinearGradient(0, groundY - 18, 0, groundY + 62);
+  routeContact.addColorStop(0, 'rgba(34, 19, 8, 0)');
+  routeContact.addColorStop(0.45, `rgba(34, 19, 8, ${0.26 * intensity})`);
+  routeContact.addColorStop(1, 'rgba(34, 19, 8, 0)');
+  ctx.fillStyle = routeContact;
+  ctx.fillRect(0, groundY - 18, canvasWidth, 80);
+
+  const warmKick = ctx.createLinearGradient(0, groundY - 36, 0, groundY + 18);
+  warmKick.addColorStop(0, 'rgba(255, 206, 116, 0)');
+  warmKick.addColorStop(0.72, `rgba(255, 206, 116, ${0.08 * intensity})`);
+  warmKick.addColorStop(1, 'rgba(255, 206, 116, 0)');
+  ctx.fillStyle = warmKick;
+  ctx.fillRect(0, groundY - 36, canvasWidth, 56);
+  ctx.restore();
+}
+
+function drawDesertEntryDryPlazaSeamBreakup(ctx, canvasWidth, cameraX, options = {}) {
+  const {
+    seamY = 540,
+    intensity = 1,
+  } = options;
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'source-over';
+  const seamShade = ctx.createLinearGradient(0, seamY - 34, 0, seamY + 52);
+  seamShade.addColorStop(0, 'rgba(56, 36, 20, 0)');
+  seamShade.addColorStop(0.38, `rgba(126, 82, 42, ${0.12 * intensity})`);
+  seamShade.addColorStop(0.62, `rgba(49, 33, 22, ${0.1 * intensity})`);
+  seamShade.addColorStop(1, 'rgba(56, 36, 20, 0)');
+  ctx.fillStyle = seamShade;
+  ctx.fillRect(0, seamY - 34, canvasWidth, 86);
+  ctx.restore();
+}
+
 export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
   const {
     CANVAS_HEIGHT,
@@ -3771,46 +3927,82 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
   const T = DESERT_LAYER_TUNING;
   const layerOptions = { canvasWidth: CANVAS_WIDTH, cameraX };
   const fullFrame = { y: 0, height: CANVAS_HEIGHT };
-  const skyDrawn = drawDesertBackgroundLayer(
-    ctx,
-    assets,
-    'skyLight',
-    fullFrame,
-    { ...layerOptions, parallax: T.skyLight.parallax, alpha: T.skyLight.alpha },
-  );
+  const isV3ProductionCandidate = assets.atlas?.devCandidateMode === 'v3-production-layers-test';
+  const skyDrawn = isV3ProductionCandidate
+    ? drawSinglePanoramaLayer(
+      ctx,
+      assets,
+      'skyLight',
+      { y: 0, height: assets.atlas?.candidateSkyLayerHeight ?? CANVAS_HEIGHT },
+      { ...layerOptions, parallax: T.skyLight.parallax, alpha: T.skyLight.alpha, alignY: 0 },
+    )
+    : drawDesertBackgroundLayer(
+      ctx,
+      assets,
+      'skyLight',
+      fullFrame,
+      { ...layerOptions, parallax: T.skyLight.parallax, alpha: T.skyLight.alpha },
+    );
   if (!skyDrawn) return false;
 
-  // Cliffs drawn first as the far backdrop (slowest, tiled). Height is
-  // base-anchored to the canvas bottom so raising it lifts the peaks while the
-  // base stays pinned behind the ground layers.
-  const cliffsDest = { y: CANVAS_HEIGHT - T.distantCliffs.height, height: T.distantCliffs.height };
-  drawDesertBackgroundLayer(ctx, assets, 'distantCliffs', cliffsDest, { ...layerOptions, parallax: T.distantCliffs.parallax, alpha: T.distantCliffs.alpha });
+  if (isV3ProductionCandidate) {
+    drawSinglePanoramaLayer(ctx, assets, 'distantCliffs', {
+      y: assets.atlas?.candidateDepthFillDrawY ?? 205,
+      height: assets.atlas?.candidateDepthFillHeight ?? 230,
+    }, {
+      ...layerOptions,
+      parallax: T.distantCliffs.parallax,
+      alpha: assets.atlas?.candidateDepthFillAlpha ?? T.distantCliffs.alpha,
+      alignY: 0.5,
+    });
 
-  // Imposing pyramids drawn ONCE (non-tiling, world-anchored) so the
-  // distinctive shapes never repeat as the player scrolls. Grounded in the art
-  // (sand mounds at the bases), drawn at backdrop size with the bases sitting
-  // on the necropolis floor, and at low parallax so they stay pinned to the
-  // horizon. Position/size/base are dev-tunable.
-  const skipPlacedPyramids = assets.atlas?.devCandidateMode === 'v3-ground-lane-test';
-  const pyrRegion = skipPlacedPyramids ? null : assets.atlas?.regions?.farPyramids;
-  const pyrImage = pyrRegion?.image ? assets.images?.[pyrRegion.image] : null;
-  if (pyrImage && pyrRegion) {
-    const PYR_SECTION_FRACTION = T.farPyramids.sectionFraction; // anchored mid-section
-    const PYR_PARALLAX = T.farPyramids.parallax;
-    const PYR_HEIGHT = T.farPyramids.height;
-    const PYR_BASE_Y = T.farPyramids.baseY;           // screen Y of the pyramid bases (ground line)
-    const sectionWidth = Math.max(1, section.end - section.start);
-    const pyrWorldX = section.start + sectionWidth * PYR_SECTION_FRACTION;
-    const pyrWidth = PYR_HEIGHT * (pyrRegion.w / pyrRegion.h);
-    const pyrX = (pyrWorldX - cameraX) * PYR_PARALLAX + CANVAS_WIDTH / 2 - pyrWidth / 2;
-    ctx.drawImage(
-      pyrImage,
-      pyrRegion.x, pyrRegion.y, pyrRegion.w, pyrRegion.h,
-      Math.round(pyrX), PYR_BASE_Y - PYR_HEIGHT, Math.round(pyrWidth), PYR_HEIGHT,
-    );
+    drawSinglePanoramaLayer(ctx, assets, 'midNecropolisRuins', {
+      y: assets.atlas?.candidateMidLayerDrawY ?? 240,
+      height: assets.atlas?.candidateMidLayerHeight ?? 345,
+    }, {
+      ...layerOptions,
+      parallax: T.midNecropolisRuins.parallax,
+      alpha: T.midNecropolisRuins.alpha,
+      alignY: 0.5,
+    });
+  } else {
+    // Cliffs drawn first as the far backdrop (slowest, tiled). Height is
+    // base-anchored to the canvas bottom so raising it lifts the peaks while the
+    // base stays pinned behind the ground layers.
+    const cliffsDest = { y: CANVAS_HEIGHT - T.distantCliffs.height, height: T.distantCliffs.height };
+    drawDesertBackgroundLayer(ctx, assets, 'distantCliffs', cliffsDest, { ...layerOptions, parallax: T.distantCliffs.parallax, alpha: T.distantCliffs.alpha });
+
+    // Imposing pyramids drawn ONCE (non-tiling, world-anchored) so the
+    // distinctive shapes never repeat as the player scrolls. Grounded in the art
+    // (sand mounds at the bases), drawn at backdrop size with the bases sitting
+    // on the necropolis floor, and at low parallax so they stay pinned to the
+    // horizon. Position/size/base are dev-tunable.
+    const pyrRegion = assets.atlas?.regions?.farPyramids;
+    const pyrImage = pyrRegion?.image ? assets.images?.[pyrRegion.image] : null;
+    if (pyrImage && pyrRegion) {
+      const PYR_SECTION_FRACTION = T.farPyramids.sectionFraction; // anchored mid-section
+      const PYR_PARALLAX = T.farPyramids.parallax;
+      const PYR_HEIGHT = T.farPyramids.height;
+      const PYR_BASE_Y = T.farPyramids.baseY;           // screen Y of the pyramid bases (ground line)
+      const sectionWidth = Math.max(1, section.end - section.start);
+      const pyrWorldX = section.start + sectionWidth * PYR_SECTION_FRACTION;
+      const pyrWidth = PYR_HEIGHT * (pyrRegion.w / pyrRegion.h);
+      const pyrX = (pyrWorldX - cameraX) * PYR_PARALLAX + CANVAS_WIDTH / 2 - pyrWidth / 2;
+      ctx.drawImage(
+        pyrImage,
+        pyrRegion.x, pyrRegion.y, pyrRegion.w, pyrRegion.h,
+        Math.round(pyrX), PYR_BASE_Y - PYR_HEIGHT, Math.round(pyrWidth), PYR_HEIGHT,
+      );
+    }
+    drawDesertBackgroundLayer(ctx, assets, 'midNecropolisRuins', { y: T.midNecropolisRuins.baseY - T.midNecropolisRuins.height, height: T.midNecropolisRuins.height }, { ...layerOptions, parallax: T.midNecropolisRuins.parallax, alpha: T.midNecropolisRuins.alpha });
   }
 
-  drawDesertBackgroundLayer(ctx, assets, 'midNecropolisRuins', { y: T.midNecropolisRuins.baseY - T.midNecropolisRuins.height, height: T.midNecropolisRuins.height }, { ...layerOptions, parallax: T.midNecropolisRuins.parallax, alpha: T.midNecropolisRuins.alpha });
+  drawDesertEntryAtmosphericGrade(ctx, CANVAS_WIDTH, CANVAS_HEIGHT, {
+    groundY: isV3ProductionCandidate
+      ? assets.atlas?.candidateGroundLaneWalkingSurfaceY ?? 538
+      : T.groundLane.y,
+    intensity: isV3ProductionCandidate ? 1.05 : 0.74,
+  });
 
   // Placed Sphinx landmark: a single non-tiling monument grounded at the
   // necropolis floor, scrolling at mid parallax so the player approaches and
@@ -3912,38 +4104,77 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
   if (!assets?.loaded) return false;
 
   const T = DESERT_LAYER_TUNING;
-  const backingDrawn = drawDesertBackgroundLayer(
-    ctx,
-    assets,
-    'groundBacking',
-    { y: T.groundBacking.y, height: T.groundBacking.height },
-    {
-      canvasWidth: CANVAS_WIDTH,
-      cameraX,
-      parallax: T.groundBacking.parallax,
-      alpha: T.groundBacking.alpha,
-    },
-  );
+  const isV3ProductionCandidate = assets.atlas?.devCandidateMode === 'v3-production-layers-test';
+  const candidateGroundY = assets.atlas?.candidateGroundLaneWalkingSurfaceY ?? 538;
+  const backingDrawn = isV3ProductionCandidate
+    ? drawSingleGroundLayer(
+      ctx,
+      assets,
+      'groundBacking',
+      { y: assets.atlas?.candidateGroundBackingDrawY ?? 560 },
+      { canvasWidth: CANVAS_WIDTH, cameraX, parallax: T.groundBacking.parallax, alpha: T.groundBacking.alpha },
+    )
+    : drawDesertBackgroundLayer(
+      ctx,
+      assets,
+      'groundBacking',
+      { y: T.groundBacking.y, height: T.groundBacking.height },
+      {
+        canvasWidth: CANVAS_WIDTH,
+        cameraX,
+        parallax: T.groundBacking.parallax,
+        alpha: T.groundBacking.alpha,
+      },
+    );
 
-  const drawn = drawDesertBackgroundLayer(
-    ctx,
-    assets,
-    'groundLane',
-    { y: T.groundLane.y, height: T.groundLane.height },
-    { canvasWidth: CANVAS_WIDTH, cameraX, parallax: T.groundLane.parallax, alpha: T.groundLane.alpha },
-  );
+  const drawn = isV3ProductionCandidate
+    ? drawSingleGroundLayer(
+      ctx,
+      assets,
+      'groundLane',
+      { y: assets.atlas?.candidateGroundLaneDrawY ?? 148 },
+      { canvasWidth: CANVAS_WIDTH, cameraX, parallax: T.groundLane.parallax, alpha: T.groundLane.alpha },
+    )
+    : drawDesertBackgroundLayer(
+      ctx,
+      assets,
+      'groundLane',
+      { y: T.groundLane.y, height: T.groundLane.height },
+      { canvasWidth: CANVAS_WIDTH, cameraX, parallax: T.groundLane.parallax, alpha: T.groundLane.alpha },
+    );
 
   // Soft contact shadow where the ruins meet the ground: grounds the
   // background onto the path and softens the boundary so it stops reading as a
   // hard ledge -- subtle, no clutter.
+  drawDesertEntryPlayableFloorGrade(ctx, CANVAS_WIDTH, {
+    groundY: isV3ProductionCandidate ? candidateGroundY : 522,
+    floorBottom: isV3ProductionCandidate ? 616 : 612,
+    intensity: isV3ProductionCandidate ? 0.72 : 0.42,
+  });
   ctx.save();
   const contactShadow = ctx.createLinearGradient(0, 512, 0, 574);
   contactShadow.addColorStop(0, 'rgba(28, 17, 9, 0)');
-  contactShadow.addColorStop(0.5, 'rgba(28, 17, 9, 0.3)');
+  contactShadow.addColorStop(0.5, 'rgba(28, 17, 9, 0.11)');
   contactShadow.addColorStop(1, 'rgba(28, 17, 9, 0)');
   ctx.fillStyle = contactShadow;
   ctx.fillRect(0, 512, CANVAS_WIDTH, 62);
   ctx.restore();
+  drawDesertEntryDryPlazaSeamBreakup(ctx, CANVAS_WIDTH, cameraX, {
+    seamY: isV3ProductionCandidate ? candidateGroundY + 28 : T.groundLane.y + 35,
+    intensity: isV3ProductionCandidate ? 1.18 : 1.12,
+  });
+  const rubbleDrawn = drawDesertBackgroundLayer(
+    ctx,
+    assets,
+    'foregroundRubble',
+    { y: T.foregroundRubble.y, height: T.foregroundRubble.height },
+    {
+      canvasWidth: CANVAS_WIDTH,
+      cameraX,
+      parallax: T.foregroundRubble.parallax,
+      alpha: T.foregroundRubble.alpha,
+    },
+  );
 
   if (drawn && stateRef.current.renderStats) {
     stateRef.current.renderStats.desertEntryGroundLaneActive = true;
@@ -3953,7 +4184,10 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
     stateRef.current.renderStats.desertEntryGroundBackingActive = true;
     stateRef.current.renderStats.desertEntryGroundBackingParallax = DESERT_LAYER_TUNING.groundBacking.parallax;
   }
-  return drawn || backingDrawn;
+  if (rubbleDrawn && stateRef.current.renderStats) {
+    stateRef.current.renderStats.desertEntryForegroundRubbleActive = true;
+  }
+  return drawn || backingDrawn || rubbleDrawn;
 }
 
 export function drawChinaRiverValleyBackgroundFrame(ctx, cameraX, deps) {
@@ -4666,6 +4900,8 @@ export function drawSmallEnemySpriteFrame(ctx, enemy, screenX, now, shakeX = 0, 
     ctx.filter = 'brightness(1.1) saturate(0.62)';
   } else if (family === 'bat') {
     ctx.filter = 'brightness(1.12) contrast(1.08)';
+  } else {
+    ctx.filter = 'drop-shadow(-3px 2px 3px rgba(231, 166, 82, 0.3)) drop-shadow(0 7px 7px rgba(34, 18, 8, 0.24))';
   }
 
   if (shouldFlip) {
@@ -6774,34 +7010,6 @@ export function drawHiddenRouteHintFrame(ctx, route, cameraX, current, now, deps
   ctx.restore();
 }
 
-export function drawParticlesFrame(ctx, atmosphere, cameraX, now, deps) {
-  const { CANVAS_WIDTH } = deps;
-  ctx.save();
-  ctx.fillStyle = atmosphere.particleColor;
-  const count = atmosphere.particle === 'dust and debris' ? 45 : 34;
-  for (let i = 0; i < count; i += 1) {
-    const speedMult = atmosphere.particle === 'dust and debris' ? 2.5 : 1;
-    const drift = (now / (35 / speedMult)) % 2000;
-    const x = ((i * 137 + drift + cameraX * 0.1) % (CANVAS_WIDTH + 100)) - 50;
-    const yBase = atmosphere.particle === 'glyph motes' ? 120 : atmosphere.particle === 'fireflies' ? 150 : 60;
-    const yRange = atmosphere.particle === 'dust and debris' ? 300 : 200;
-    const y = yBase + ((i * 71 + Math.sin(now / 500 + i) * 30) % yRange);
-
-    if (atmosphere.particle === 'glyph motes') {
-      ctx.globalAlpha = 0.35;
-      ctx.font = 'bold 10px serif';
-      ctx.fillText(['\u{132f9}', '\u{132bd}', '\u{130fb}', '\u{131f3}'][i % 4], x, y);
-    } else {
-      const size = atmosphere.particle === 'dust and debris' ? 2 + (i % 4) : 1.5 + (i % 2);
-      ctx.globalAlpha = 0.5;
-      ctx.beginPath();
-      ctx.arc(x, y, size, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-  ctx.restore();
-}
-
 export function drawWorldTransitionMarkerFrame(ctx, marker, cameraX, now, deps) {
   const {
     CANVAS_WIDTH,
@@ -8676,7 +8884,6 @@ export function useJourneyRenderer(deps) {
       drawOpeningSphinxDialogueFrame(ctx, encounter, screenX, screenY, alpha, deps)
     ),
     drawOpeningThresholdScene: (ctx, scene, cameraX, now) => drawOpeningThresholdSceneFrame(ctx, scene, cameraX, now, deps),
-    drawParticles: (ctx, atmosphere, cameraX, now) => drawParticlesFrame(ctx, atmosphere, cameraX, now, deps),
     drawPlatform: (ctx, platform, cameraX, current) => drawPlatformFrame(ctx, platform, cameraX, current, deps),
     drawPlayerSprite: (ctx, x, y, w, h, direction, invuln, now) => (
       drawPlayerSpriteFrame(ctx, x, y, w, h, direction, invuln, now, deps)

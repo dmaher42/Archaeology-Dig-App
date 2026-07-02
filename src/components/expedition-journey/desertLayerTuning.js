@@ -14,12 +14,12 @@ export const DESERT_LAYER_TUNING_DEFAULTS = {
   distantCliffs: { parallax: 0.055, alpha: 0, height: 792 },
   farPyramids: { sectionFraction: 0.5, parallax: 0.14, height: 540, baseY: 600 },
   midNecropolisRuins: { parallax: 0.28, alpha: 1, height: 630, baseY: 630 },
-  desertSphinx: { sectionFraction: 0.16, parallax: 0.55, height: 300, baseY: 566, brightness: 0.82, saturate: 0.68 },
-  ritualPyramid: { sectionFraction: 0.31, parallax: 1, height: 736, widthScale: 1.14, baseY: 600, alpha: 1 },
-  groundBacking: { y: 515, height: 200, parallax: 0.98, alpha: 1 },
+  desertSphinx: { sectionFraction: 0.16, parallax: 0.55, height: 240, baseY: 542, brightness: 0.82, saturate: 0.68 },
+  ritualPyramid: { sectionFraction: 0.31, parallax: 0.52, height: 736, widthScale: 1.14, baseY: 600, alpha: 1 },
+  groundBacking: { y: 500, height: 150, parallax: 0.72, alpha: 1 },
   groundLane: { y: 545, height: 105, parallax: 1, alpha: 1 },
-  foregroundRubble: { y: 480, height: 150, parallax: 1.0, alpha: 1 },
-  foregroundDepth: { y: 584, height: 46, parallax: 1.08, alpha: 0.2 },
+  foregroundRubble: { y: 471, height: 120, parallax: 1, alpha: 1 },
+  foregroundDepth: { y: 584, height: 46, parallax: 1.24, alpha: 0.16 },
 };
 
 const clone = (obj) => Object.fromEntries(
@@ -79,8 +79,8 @@ export const DESERT_LAYER_TUNING_SCHEMA = [
     { k: 'alpha', label: 'Opacity', min: 0, max: 1, step: 0.01 },
   ] },
   { key: 'groundBacking', label: 'Ground Backing', fields: [
-    { k: 'y', label: 'Top Y', min: 480, max: 680, step: 1 },
-    { k: 'height', min: 40, max: 220, step: 1 },
+    { k: 'y', label: 'Top Y', min: 440, max: 680, step: 1 },
+    { k: 'height', min: 40, max: 280, step: 1 },
     { k: 'parallax', min: 0.6, max: 1.2, step: 0.01 },
     { k: 'alpha', label: 'Opacity', min: 0, max: 1, step: 0.01 },
   ] },
